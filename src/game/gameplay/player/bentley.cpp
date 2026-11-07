@@ -773,40 +773,41 @@ namespace M_FireBentleyDart { extern "C" {
 typedef int ti128 __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
 struct E { char pad[0x18]; int f18; };
+/* The dart (a BOMB clone) as written here: +0xE4 a record whose +0x18 takes the message kind. */
 struct O { int pad[3]; struct VTE *vt; char pad2[0xe4 - 0x10]; struct E *pe; };
+/* The launcher (BENTLEY::psoLauncher, CID 112) as written here: its target and a flag. */
 struct Q { char pad[0x50]; ti128 v50; int f60; };
-struct S { char pad[0x16d8]; int f16d8; void *f16dc; void *f16e0; struct Q *pq; ti128 v16f0; float f1700; };
 extern ti128 D_002A2DD0;
 extern float D_002DDED0;
-void UpdateBentleyAimPoint(struct S *);
-struct O *AcquireProxyObject(void *, int);
+void UpdateBentleyAimPoint(BENTLEY *);
+struct O *AcquireProxyObject(PROXY *, int);
 void LaunchSoFromLauncher(struct Q *, struct O *);
 void PrimeBomb__FP4BOMBf(struct O *, float);
-void SetBentleyAimState(struct S *, int);
+void SetBentleyAimState(BENTLEY *, int);
 // Fires the binocucom crossbow dart: clones the selected projectile template and launches it from the launcher
 // (CID112) toward the aim point. (runtime-verified: the dart, not a bomb)
-void FireBentleyDart(struct S *bentley, int a) {
-    void *pv;
+void FireBentleyDart(BENTLEY *bentley, int a) {
+    PROXY *pv;
     struct O *object;
     struct Q *pq;
     UpdateBentleyAimPoint(bentley);
-    switch (bentley->f16d8) {
-    case 0: pv = bentley->f16dc; break;
-    case 1: pv = bentley->f16e0; break;
+    switch (bentley->dartKind) {
+    case 0: pv = bentley->aproxyDart[0]; break;
+    case 1: pv = bentley->aproxyDart[1]; break;
     default: return;
     }
     if (!pv) return;
     object = AcquireProxyObject(pv, 0);
     if (!object) return;
     object->pe->f18 = a;
-    pq = bentley->pq;
+    pq = (struct Q *)bentley->psoLauncher;
     pq->f60 = 0;
-    pq->v50 = bentley->v16f0;
+    pq->v50 = bentley->aimPoint;
     LaunchSoFromLauncher(pq, object);
-    ((void (*)(void *, ti128))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
+    ((SO *)object)->SetAngularVelocity(D_002A2DD0);
     PrimeBomb__FP4BOMBf(object, 4.0f);
     SetBentleyAimState(bentley, 1);
-    bentley->f1700 = D_002DDED0;
+    bentley->lastDartTime = D_002DDED0;
 }
 } } // namespace M_FireBentleyDart
 
@@ -1469,54 +1470,51 @@ int GetBentleyGadgetFromId(char *bentley, int saak)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_StartBentleyGadget { extern "C" {
-struct E { int x0; void *p4; void *p8; };
+/* The spawned tossable (classes.h CID100 has no fields yet): its gadget id and owner. */
 struct O { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *p16C; };
 struct G { int x0; int x4; int x8; int xC; };
-struct P { char pad[0x4C0]; char grab[0x9BC - 0x4C0]; int x9BC; char pad1[0x11B0 - 0x9C0]; char thrower[4]; int x11B4; int pad2[2];
-    struct O *po11C0; char pad3[0x130C - 0x11C4]; int x130C; char pad4[0x16B4 - 0x1310]; struct E *pe16B4;
-    char pad5[0x1874 - 0x16B8]; int x1874; };
 extern struct G D_002DEB30;
-void BroadcastGameEvent(struct G *pg, int n, struct P *p);
-struct E *GetBentleyGadgetFromId(struct P *p, int k);
-void SetJtThrowState(void *pv, int n);
-void SetJtGrabState(void *pv, int n, void *pv2, int m);
-struct O *AcquireProxyObject(void *pv, int n);
+void BroadcastGameEvent(struct G *pg, int n, BENTLEY *p);
+JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k);
+void SetJtThrowState(JTTHROW *pv, int n);
+void SetJtGrabState(JTGRAB *pv, int n, void *pv2, int m);
+struct O *AcquireProxyObject(PROXY *pv, int n);
 int IsThrowableGadget(struct O *po);
-void SetGadgetRecordObject(struct P *p, struct E *pe, struct O *po);
-void GetGadgetButtonMask(struct P *p, int k);
-void SetBentleyState(struct P *p, int n);
-void ChargeGadgetMp(struct P *p, int k);
-void StartStepplayerGadget(struct P *p, int k);
+void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct O *po);
+void GetGadgetButtonMask(BENTLEY *p, int k);
+void SetBentleyState(BENTLEY *p, int n);
+void ChargeGadgetMp(BENTLEY *p, int k);
+void StartStepplayerGadget(BENTLEY *p, int k);
 // BENTLEY slot 100: broadcasts game event 0x3C, then per gadget id starts the throw/grab/air action using its record.
-void StartBentleyGadget(struct P *bentley, int k)
+void StartBentleyGadget(BENTLEY *bentley, int k)
 {
     D_002DEB30.xC = k;
     BroadcastGameEvent(&D_002DEB30, 0x3C, bentley);
     switch (k) {
     case 4: case 5: case 7: case 9: case 11: case 13: {
-        struct E *pe = GetBentleyGadgetFromId(bentley, k);
-        if ((unsigned int)(bentley->x11B4 - 4) < 3) {
-            SetJtThrowState(bentley->thrower, 7);
+        JTPOCKET *pe = GetBentleyGadgetFromId(bentley, k);
+        if ((unsigned int)(bentley->jtthrow.state - 4) < 3) {
+            SetJtThrowState(&bentley->jtthrow, 7);
             return;
         }
-        if (pe->p8) {
-            SetJtGrabState(bentley->grab, 0xB, pe->p8, 0);
+        if (pe->pcid100) {
+            SetJtGrabState(&bentley->jtgrab, 0xB, pe->pcid100, 0);
             return;
         }
-        bentley->pe16B4 = pe;
+        bentley->ppocketCur = pe;
         if (k == 7 || k == 11) {
-            struct O *object = AcquireProxyObject(pe->p4, 0);
+            struct O *object = AcquireProxyObject(pe->proxy, 0);
             if (!object)
                 return;
-            object->x15C = pe->x0;
+            object->x15C = pe->idGadget;
             if (IsThrowableGadget(object)) {
                 object->p16C = bentley;
                 SetGadgetRecordObject(bentley, pe, object);
             }
-            bentley->po11C0 = object;
+            bentley->jtthrow.ploCarried = (LO *)object;
             GetGadgetButtonMask(bentley, k);
             SetBentleyState(bentley, BENTLEY_THROW);
-            SetJtThrowState(bentley->thrower, 4);
+            SetJtThrowState(&bentley->jtthrow, 4);
             return;
         }
         ChargeGadgetMp(bentley, k);
@@ -1528,9 +1526,9 @@ void StartBentleyGadget(struct P *bentley, int k)
         SetBentleyState(bentley, BENTLEY_ADRENALINE);
         return;
     case 8:
-        bentley->x9BC = k;
-        bentley->x130C = bentley->x1874;
-        SetJtGrabState(bentley->grab, 0xB, 0, 0);
+        bentley->jtgrab.gadgetId = k;
+        bentley->unknown130C = bentley->unknown1874;
+        SetJtGrabState(&bentley->jtgrab, 0xB, 0, 0);
         return;
     default:
         StartStepplayerGadget(bentley, k);

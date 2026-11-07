@@ -208,7 +208,11 @@ struct BENTLEY : public STEPPLAYER
       float aimStateTime;   /* +0x16C0 clock.time aimState was set (SetBentleyAimState) */
       undefined4 unk_0x16c4[(0x16cc - 0x16c4) / 4];
       struct ASEGA *pasegaAim;   /* +0x16CC the aim animation: its event 0x243 fires a dart (HandleBentleyMessage) */
-      undefined4 unk_0x16d0[(0x16f0 - 0x16d0) / 4];
+      undefined4 unk_0x16d0[(0x16d8 - 0x16d0) / 4];
+      int dartKind;   /* +0x16D8 which dart template FireBentleyDart clones: 0/1 (aproxyDart), other: none */
+      PROXY *aproxyDart[2];   /* +0x16DC the dart templates */
+      SO *psoLauncher;   /* +0x16E4 the launcher the darts leave from (CID 112; LaunchSoFromLauncher) */
+      undefined4 unk_0x16e8[(0x16f0 - 0x16e8) / 4];
       qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
       float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */
       undefined4 unk_0x1704[(0x1710 - 0x1704) / 4];
