@@ -8,6 +8,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
 #include "sly2/aseg.h"
+#include "sly2/act.h"
 #include "player_input.h"
 #include "sly2/util.h"
 #include "sly2/players.h"   /* STEPPLAYER (JTTHROW::player), BENTLEY (D_002DD5BC) */
@@ -20,8 +21,7 @@ struct M3 {V r[3];};
 struct M4 {M3 basis;V position;};
 /* g++ 2.95 vtable entry with the call shapes used here. */
 struct VE {short delta,pad;union {void (*plain)(void *);void (*integer)(void *,int);void (*vector)(void *,qword);void (*evaluate)(void *,int,V *,float,float);} f;};
-struct TRACK {VE *vt;};
-struct TRACKREF {int tag;TRACK *track;};
+/* the clip channel FindAsegChannel returns: aseg.h CHN, its curve act.h AC */
 /* Any BASIC as the register-pinned launch helper calls it: the g++ vtable pointer at +0xC. */
 struct VOBJ {char pad[0xC];VE *vt;};
 /* A tossable (classes.h CID100, no fields there yet) carried as JTTHROW::ploCarried: its slot-76 virtual (not declared
@@ -65,7 +65,7 @@ void RecalculateAsegBlend(ASEG *);
 int IsAsegaRetracted(ASEGA *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 void SetBentleyHoverState(BENTLEY *,int);
-TRACKREF *FindAsegChannel(ASEG *,STEPPLAYER *,void *,int);
+CHN *FindAsegChannel(ASEG *,STEPPLAYER *,void *,int);
 int ShouldKeepSoPair(void *a, SOPAIR *b);
 qword ConvertPosBetweenLos(void *,void *,qword);
 qword CalculateBallisticLaunchVelocity(qword,qword,qword,float); // CalculateLaunchVelocity
@@ -123,8 +123,6 @@ extern "C" void PostJtThrowLoad(JTTHROW *thrower)
 static inline void IntCall(CID100V *o,int slot,int value){VE *v=o->vt;v[slot].f.integer((char *)o+v[slot].delta,value);}
 // Call the effect's no-argument virtual at vtable slot `slot`.
 static inline void EffectCall(EFFECT *o,int slot){VE *v=o->vt;v[slot].f.plain((char *)o+v[slot].delta);}
-// Evaluate the track at time (virtual slot 3) into result.
-static inline void Evaluate(TRACK *o,int optional,V *result,float time,float scale){VE *v=o->vt;v[3].f.evaluate((char *)o+v[3].delta,optional,result,time,scale);}
 // Move a float's bits into a GPR qword ($2).
 static inline qword CPUFloat(float f){register qword r asm("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
 // Store value to home and return the stored copy.
@@ -491,9 +489,9 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
     if (owner->unknown1A4 != 1)
         return;
     ASEGA *animation = owner->activeAnimation;
-    TRACKREF *reference = animation ? FindAsegChannel(animation->animation, owner, (void *)6, 1) : 0;
+    CHN *reference = animation ? FindAsegChannel(animation->animation, owner, (void *)6, 1) : 0;
     if (reference) {
-        Evaluate(reference->track, 0, &w.scratch.vector, animation->time, animation->speed);
+        reference->pac->Evaluate(animation->time, animation->speed, 0, &w.scratch.vector);
         VECTOR *direction = &s->player->vecUnknown1E0;
         float height = w.scratch.vector.f[2];
         direction->x = 0.0f;

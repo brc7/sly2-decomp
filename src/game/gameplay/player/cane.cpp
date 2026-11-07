@@ -18,7 +18,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/jt.h"
 union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
 struct VE{short delta,pad;void*fn;};
-struct EFFECT;struct ALO;
+struct EFFECT;struct ATTACKOBJ;
 /* The hang object (JT::hangHandle, CID19): +0x130 the effect played when leaving the cane state. */
 struct HNDV{char pad0[0x130];int exitEffect;};
 /* An XF (JT::wristXf) as read here: +0x70 its world position. */
@@ -68,7 +68,7 @@ int ChooseJtAttackCaneState(JT *);
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *, int, float);
 void SetJtAirJump(void *, int, int, int);
 void SetJtCaneState__FP2JTi(JT *, int);
-void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
+void ChooseJtAttackTarget(ATTACKOBJ *p, float heading, int mask, float dt, U *offset, ATTACKOBJ **out, qword *outvector, float cone);
 void RecalculateAsegBlend(ASEG *);
 void SetStepTargetHeadingFromVector(JT *, qword);
 void FixStepAngularVelocity(JT *);
@@ -661,8 +661,8 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 // history, laneG12v1: laneG11v1 with the abs.s asm replaced by __builtin_fabsf (same aligned 2). Was laneG11v1 (Claude agent, 2026-10-24): laneG10v1 (4) + an early `qword early=FloatToVec(dt)` before the 11B500 call. FloatToVec's mfc1 has a "memory" clobber so sched1 keeps it ahead of the call (the call depends on it), and it is defined on the SAME source line as VuFloatBits so cse treats the two asm_operands as equal (the line number is part of ASM_OPERANDS) and the later VuFloatBits reuses the early value, leaving only its dead store into the inline's v (0xD0) like the target. D_002A2DC0 is const (keeps its lq ahead of the memory clobber) and M3::operator= copies r[0],r[2],r[1]. aligned 2, ONE pin (heading f21). Left: s4/s5 swap of the hoisted D_003DD490/D_002BF4B8 high parts (target loop.c hoists the D_002BF4B8 hi first, so it lives one insn longer and is allocated second).
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];}M3&operator=(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];return *this;}};
 struct M4{U r[4];};
-/* The objects the attack target is chosen from (and the JT itself, as an ALO). */
-struct ALO{char pad[0xC];VE*vt;char pad10[0xD0];ALO*next;int padE4;int flags;};
+/* The objects the attack target is chosen from (g_sw.dlTarget: next +0xE0, flags +0xE8) and the JT itself (was ALO). */
+struct ATTACKOBJ{char pad[0xC];VE*vt;char pad10[0xD0];ATTACKOBJ*next;int padE4;int flags;};
 struct G;
 extern "C" const qword D_002A2DC0;
 extern "C" G D_003DD490;
@@ -670,7 +670,7 @@ extern "C" float D_002BF4B8;
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-extern "C" int FindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
+extern "C" int FindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ATTACKOBJ*);
 extern "C" float NormalizeAngle__Ff(float);
 struct VU_FLOAT{qword qw;};
 // Move a float's bits into a GPR qword (mfc1).
@@ -684,16 +684,16 @@ static inline qword Rotate(const M3&m,qword v){qword q;__asm__("vmulax.xyz ACC,%
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, v);return q;}
 // The object's velocity (virtual slot 33).
-static inline qword GetVelocity(ALO*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
+static inline qword GetVelocity(ATTACKOBJ*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
 // The object's reference frame into out (virtual slot 32).
-static inline void*GetFrame(ALO*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
+static inline void*GetFrame(ATTACKOBJ*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
 // Absolute value of f.
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 // Find the world's object of class 0x33 (search mode 3) after n.
-static inline int IsBonus(ALO*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
+static inline int IsBonus(ATTACKOBJ*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490,3,0x33,n);}
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
-extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, float dtInput, U *offset, ALO **out,
+extern "C" void ChooseJtAttackTarget(ATTACKOBJ *jt, float headingInput, int mask, float dtInput, U *offset, ATTACKOBJ **out,
                                      qword *outvector, float cone)
 {
     register float heading __asm__("$f21") = headingInput;
@@ -702,7 +702,7 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
     U origin, reference, target, delta, candidate;
     M4 prediction;
     U answer;
-    ALO *best = 0;
+    ATTACKOBJ *best = 0;
     float nearest = 300.0f;
     qword position;
     qword early = FloatToVec(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
@@ -713,7 +713,7 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
     reference.q = ConvertPosBetweenLos(jt, 0, offset->q);
     target.q = VuAdd(Rotate(rotation, offset->q), origin.q);
     delta.q = VuSubRef(target.q, reference.q);
-    for (ALO *node = (*(ALO **)&g_sw.dlTarget); node; node = node->next) {
+    for (ATTACKOBJ *node = (*(ATTACKOBJ **)&g_sw.dlTarget); node; node = node->next) {
         struct {
             U hdr;
             M4 m;
@@ -749,11 +749,11 @@ extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, floa
 extern "C" void ChooseJtSweepTarget(JT *jt, JTSWEEPBL *blend, ASEG *aseg)
 {
     U v;
-    ALO *alo;
+    ATTACKOBJ *alo;
     float t;
     float k = 1.6f;
     if (jt->state == 0) k = 3.15f;
-    ChooseJtAttackTarget((ALO *)jt, jt->targetHeading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
+    ChooseJtAttackTarget((ATTACKOBJ *)jt, jt->targetHeading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
     if (alo) t = Clamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
     else t = 1.0f;
     blend->abl[1].weight = t;
@@ -770,11 +770,11 @@ extern "C" void ChooseJtSweepTarget(JT *jt, JTSWEEPBL *blend, ASEG *aseg)
 extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
 {
     U v;
-    ALO *alo;
+    ATTACKOBJ *alo;
     float g;
     if (jt->controller && 0.5f < jt->controller->leftStickDeflection) g = jt->controller->leftStickAngle;
     else g = jt->targetHeading;
-    ChooseJtAttackTarget((ALO *)jt, g, 8, 0.25f, &D_002BF4D0, &alo, &v.q, 1.0f);
+    ChooseJtAttackTarget((ATTACKOBJ *)jt, g, 8, 0.25f, &D_002BF4D0, &alo, &v.q, 1.0f);
     jt->attachedTo = (LO *)alo;
     if (alo)
         g = atan2f(v.f[1], v.f[0]);
@@ -786,8 +786,8 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
 extern "C" void ChooseJtSmashTarget__FP2JT(JT *jt)
 {
     U v;
-    ALO *alo;
-    ChooseJtAttackTarget((ALO *)jt, jt->targetHeading, 4, 0.25f, &D_002BF4E0, &alo, &v.q, 3.15f);
+    ATTACKOBJ *alo;
+    ChooseJtAttackTarget((ATTACKOBJ *)jt, jt->targetHeading, 4, 0.25f, &D_002BF4E0, &alo, &v.q, 3.15f);
     jt->attachedTo = (LO *)alo;
     if (alo) {
         SetStepTargetHeadingFromVector(jt, v.q);

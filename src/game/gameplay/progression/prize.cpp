@@ -211,11 +211,11 @@ union U { qword q; float f[4]; int words[4]; };
 union M3 { qword rows[3]; float values[12]; };
 struct VTE { short delta, pad; void *fn; };
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
-struct HOLDER { char pad30[0x30]; ASEGA *animation; };
+/* the holder is the prize's state machine application (aseg.h SMA; its current segment pasegaCur) */
 struct P {
     char padC[0xC]; VTE *vt; char pad10[8]; int id; char pad1C[0x3C];
     CHANNEL *position, *orientation;
-    char pad60[0xF0]; int state; char pad154[0x14]; HOLDER *holder; char pad16C[4];
+    char pad60[0xF0]; int state; char pad154[0x14]; SMA *holder; char pad16C[4];
     qword coordinate, velocity, acceleration;
 };
 extern "C" {
@@ -306,8 +306,8 @@ extern "C" void ProjectDprizeTransform(P *prize)
     *(float *)((char *)channel + 0x3C) = 1.0f;
     prize->position->velocity = prize->velocity;
     { int stamp = ++D_003DD490.transformStamp; prize->position->stamp = stamp; }
-    if (prize->holder && prize->holder->animation) {
-        ASEGA *animation = prize->holder->animation;
+    if (prize->holder && prize->holder->pasegaCur) {
+        ASEGA *animation = prize->holder->pasegaCur;
         ASEG *action = animation->animation;
         AC *positionMotion = 0, *orientationMotion = 0;
         int i = 0;
@@ -751,13 +751,9 @@ namespace M_RenderDprizeSelf {
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword a, b, c, d; };
 struct V { float x, y, z, w; } __attribute__((aligned(16)));
-struct VTE { short d; short pad; void (*pf)(); };
-struct OBJ { VTE *vt; };
-struct H { int x0; OBJ *pobj; };
-struct R { char pad[0x30]; ASEGA *currentSegment; };
-struct LO { char pad[0x12C]; float unknown12C; char p1[0x150 - 0x130]; int state; char p2[0x168 - 0x154]; R *sma; };
+struct LO { char pad[0x12C]; float unknown12C; char p1[0x150 - 0x130]; int state; char p2[0x168 - 0x154]; SMA *sma; };
 extern "C" {
-H *FindAsegChannel(void *p, LO *plo, int a, int b);
+CHN *FindAsegChannel(void *p, LO *plo, int a, int b);
 qword GetLoWorldPos(LO *plo);
 void *GetLoWorldMatrix(LO *plo);
 void RenderSoSelf(LO *plo);
@@ -769,14 +765,13 @@ extern "C" { void RenderLoAtMatrix(LO *plo, M4 m, float a, float b); }
 void RenderDprizeSelf(LO *prize)
 {
     ASEGA *q;
-    H *ph;
+    CHN *ph;
     if (prize->state == 2) return;
-    if (prize->sma && (q = prize->sma->currentSegment) != 0) {
+    if (prize->sma && (q = prize->sma->pasegaCur) != 0) {
         ph = FindAsegChannel(q->animation, prize, 0xC, 1);
         if (ph) {
             V v;
-            OBJ *pobj = ph->pobj;
-            ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->time, q->speed);
+            ph->pac->Evaluate(q->time, q->speed, &v, 0);
             M4 m;
             m = LoadMatrixFromPosRotScale(GetLoWorldPos(prize), GetLoWorldMatrix(prize), &v);
             RenderLoAtMatrix(prize, m, prize->unknown12C, prize->unknown12C);

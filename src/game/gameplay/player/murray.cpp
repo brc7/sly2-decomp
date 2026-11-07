@@ -18,6 +18,7 @@
 #include "sly2/cm.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/act.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -924,7 +925,6 @@ union U { qword q; float f[4]; int i[4]; };
 struct VE { short delta, pad; void (*fn)(); };
 struct OBJ { char pad[12]; VE *vt; };
 struct COMPONENT;
-struct ENTRY { float value; int kind, key, pad; };
 struct P {
     char pad0[12];
     VE *vt;
@@ -1013,7 +1013,7 @@ void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
-ENTRY *FindAsegLabel(ASEG *, int);
+EA *FindAsegLabel(ASEG *, int);
 void SetAsegaChannelWeight(ASEGA *, float);
 }
 // Address p + offset.
@@ -1227,9 +1227,9 @@ extern "C" void SetMurrayState(P *murray, int next)
         ReplaceSmaEx(source, murray, id, flags, mode, component);
         if (clip || source) {
             if (clip && duration == position) {
-                ENTRY *e = FindAsegLabel(clip, 0x1AC);
+                EA *e = FindAsegLabel(clip, 0x1AC);
                 if (e)
-                    duration = e->value;
+                    duration = e->time;
             }
             if (duration != 0.0f)
                 SetAsegaChannelWeight(murray->asega, D_002DDED0.time + duration / murray->asega->speed);
@@ -1480,7 +1480,7 @@ void FreeSwXpList__FP2SWP2XP(void *pg, XP *pl);
 void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *DeliverZapToSo(struct MSG *pmsg);
-float *FindAsegLabel(void *p, int n);
+EA *FindAsegLabel(void *p, int n);
 void SeekAsega(ASEGA *p, int n, float g, float h);
 void RetractAsega(ASEGA *p);
 // Zero the xyz components of pv.
@@ -1567,9 +1567,9 @@ void SetMurrayFlopSubstate(MURRAY *murray, int s)
         FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
         murray->pxpFlop = 0;
         {
-            float *pg = FindAsegLabel(murray->activeAnimation->animation, 0x1A5);
-            if (pg)
-                SeekAsega(murray->activeAnimation, 0, *pg, 1.0f);
+            EA *pea = FindAsegLabel(murray->activeAnimation->animation, 0x1A5);
+            if (pea)
+                SeekAsega(murray->activeAnimation, 0, pea->time, 1.0f);
             else
                 RetractAsega(murray->activeAnimation);
         }
@@ -2341,9 +2341,6 @@ namespace M_SetMurrayAttack { extern "C" {
 extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002C09F0;
-struct VT { short d; short pad; void *pfn; };
-struct OBJ { struct VT *vt; };
-struct R { int x0; struct OBJ *po; };
 void ReleaseAsega(void *pp);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
@@ -2352,9 +2349,9 @@ void SetStepTargetHeading(MURRAY *p, float g);
 void FixStepAngularVelocity(MURRAY *p);
 void ReleaseSma(void *p);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *q, MURRAY *p, float g, float h, int n, struct ASEGA **ppanim);
-float *FindAsegLabel(void *q, int n);
+EA *FindAsegLabel(void *q, int n);
 void SetAsegaChannelWeight(struct ASEGA *pa, float t);
-struct R *FindAsegChannel(struct ASEG *p, MURRAY *pp, int a, int b);
+CHN *FindAsegChannel(struct ASEG *p, MURRAY *pp, int a, int b);
 void ReleaseInteractTargetMark(MURRAY *p);
 // Rotate v by the 3x3 matrix rows m[0..2].
 static inline qword MulM3(qword *m, qword v)
@@ -2394,18 +2391,18 @@ void SetMurrayAttack(MURRAY *murray, int k)
     ReleaseSma(&murray->activeStateMachine);
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->activeAnimation);
     if (q) {
-        float *pg = FindAsegLabel(q, 0x1AC);
-        if (pg)
-            g = *pg;
+        EA *pea = FindAsegLabel(q, 0x1AC);
+        if (pea)
+            g = pea->time;
     }
     if (g != 0.0f)
         SetAsegaChannelWeight(murray->activeAnimation, D_002DDED0.time + g / murray->activeAnimation->speed);
     if (murray->activeAnimation) {
-        struct R *r = FindAsegChannel(murray->activeAnimation->animation, murray, 1, 1);
+        CHN *r = FindAsegChannel(murray->activeAnimation->animation, murray, 1, 1);
         if (r) {
             qword a, b, pos, t, v;
-            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
-            ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, murray->activeAnimation->animation->duration, 0.0f, 0);
+            r->pac->Evaluate(0.0f, 0.0f, &a, 0);
+            r->pac->Evaluate(murray->activeAnimation->animation->duration, 0.0f, &b, 0);
             pos = GetLoWorldPos(murray);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(t) : "j"(b), "j"(a));
             t = MulM3(murray->aqwTarget, t);
@@ -2475,13 +2472,12 @@ void UpdateMurrayAttack(MURRAY *murray)
 
 namespace M_func_001B8B70 { extern "C" {
 typedef union U { qword q; float f[4]; } U;
-struct PARAM { float value; int kind,id,reserved; };
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
 qword GetStepAsegaTranslation(MURRAY*,ASEGA*,float);
-struct PARAM *FindAsegLabel(void*,int);
+struct EA *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertVecBetweenLos(void*,void*,qword);
 void FaceStepToward(MURRAY*,void*);
@@ -2544,9 +2540,9 @@ void UpdateMurrayAttackVelocity(MURRAY*murray){
         {
             register int active __asm__("$3")=murray->unknown1818;
             if(active){
-            struct PARAM *start=FindAsegLabel(murray->activeAnimation->animation,0x240);
-            struct PARAM *end=FindAsegLabel(murray->activeAnimation->animation,0x242);
-            float t=(murray->activeAnimation->time-start->value)/(end->value-start->value);
+            struct EA *start=FindAsegLabel(murray->activeAnimation->animation,0x240);
+            struct EA *end=FindAsegLabel(murray->activeAnimation->animation,0x242);
+            float t=(murray->activeAnimation->time-start->time)/(end->time-start->time);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(murray);
             desired=ConvertVecBetweenLos(0,murray,desired);
@@ -2811,7 +2807,7 @@ extern "C" void ReleaseAct(ACT**);
 extern "C" void SetSoCnstrForce(SO*,int);
 extern "C" void SetLoParent(SO*,SO*,int);
 extern "C" void SetSoTreeFlag2(SO*,int);
-extern "C" EVENT*FindAsegLabel(ASEG*,int);
+extern "C" EA*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertMat4BetweenLos(void*,void*,M4*);
 extern "C" void GetMurrayGripFrame(MURRAY*,XF*,const M4*,qword*,qword*);
@@ -2858,7 +2854,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         SetSoTreeFlag2(owner, 1);
         M4 predicted;
         float duration;
-        EVENT *event = FindAsegLabel(murray->activeAnimation->animation, 0x1C7);
+        EA *event = FindAsegLabel(murray->activeAnimation->animation, 0x1C7);
         duration = (event->time - murray->activeAnimation->time) / murray->activeAnimation->speed;
         LoadIdentityMatrix4(murray->psoCarryRoot->rootTransform, murray->rootTransform, &predicted, 0, duration);
         M4 work = ConvertMat4BetweenLos(murray, 0, &predicted);

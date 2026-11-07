@@ -37,10 +37,10 @@ struct VU_FLOAT
     qword qw;
 };
 
-/* A hero-like object as the leap reads it (an SO: XF at +0x58, flags word at +0x148, its control at +0x498). */
-struct ALO { char pad0[0xC]; VTE *pvt; char pad10[0x48]; XF *space; char pad5C[0xEC]; unsigned long flags; char pad150[0x208 - 0x150];
+/* A hero-like object as the leap reads it (an SO: XF at +0x58, flags word at +0x148, its control at +0x498; was ALO). */
+struct LEAPSUBJECT { char pad0[0xC]; VTE *pvt; char pad10[0x48]; XF *space; char pad5C[0xEC]; unsigned long flags; char pad150[0x208 - 0x150];
     int n208; char pad20C[0x498 - 0x20C]; void *control; };
-typedef char assert_ALO_size[sizeof(ALO) == 0x4A0 ? 1 : -1];
+typedef char assert_ALO_size[sizeof(LEAPSUBJECT) == 0x4A0 ? 1 : -1];
 #define POSITION(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
 
 /* A leap's tuning and the leap itself (0x70 bytes, vtable D_002DAA10 at +0xC). */
@@ -54,12 +54,12 @@ struct LEAPV
     char pad18[8];
     U previousVelocity;     /* 0x20 */
     LEAPTUNE *tuning;       /* 0x30 */
-    ALO *subject;           /* 0x34 */
+    LEAPSUBJECT *subject;           /* 0x34 */
     ASEGA *job;             /* 0x38 */
     int index;              /* 0x3C */
     U target;               /* 0x40 */
     float arrival, end;     /* 0x50 */
-    ALO *related;           /* 0x58 */
+    LEAPSUBJECT *related;           /* 0x58 */
     int kind;               /* 0x5C */
     int ballistic, steep;   /* 0x60 */
     ACT *constraint;        /* 0x68 */
@@ -69,9 +69,9 @@ typedef char assert_LEAP_size[sizeof(LEAPV) == 0x70 ? 1 : -1];
 /* The direction blend (four clips with their root velocities) and its 0x40-byte act. */
 struct DIRE { ASEG *animation; int pad[3]; qword velocity; FLOATWORD speed; int pad20[3]; };
 struct DIRBL { DIRE ae[4]; int fInit; };
-struct DIRSEL { char pad[0x10]; qword direction; ALO *root; ASEGA *active; DIRE *entries, *best; int flags, forward, backward; };
+struct DIRSEL { char pad[0x10]; qword direction; LEAPSUBJECT *root; ASEGA *active; DIRE *entries, *best; int flags, forward, backward; };
 struct DIROWNER { char pad[0x30]; ASEG *paseg; };
-struct DIRACT { int n0; int n4; int pad8; void *pvt; char pad10[0x10]; ALO *palo; ASEGA *pasega; DIROWNER *powner; ASEG **ppaseg; int grfapl; char pad34[0xC]; };
+struct DIRACT { int n0; int n4; int pad8; void *pvt; char pad10[0x10]; LEAPSUBJECT *palo; ASEGA *pasega; DIROWNER *powner; ASEG **ppaseg; int grfapl; char pad34[0xC]; };
 typedef char assert_DIRACT_size[sizeof(DIRACT) == 0x40 ? 1 : -1];
 
 /* The three clip markers (0x22..0x24) of PostAsegArcLoad's curve. */
@@ -108,25 +108,25 @@ void SetSndSourcePos(void *p, qword q);
 void SetSndRange(void *p, float a, float b);
 void SetSndVolume(void *p, float t);
 EA *FindAsegLabel(ASEG *paseg, int n);
-CHN *FindAsegChannel(ASEG *paseg, ALO *palo, int kind, int check);
+CHN *FindAsegChannel(ASEG *paseg, LEAPSUBJECT *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
-qword GetSoGravity(ALO *);
-void DetachStepguard(ALO *);
+qword GetSoGravity(LEAPSUBJECT *);
+void DetachStepguard(LEAPSUBJECT *);
 void DisableStuckWatch(void *);
 float ComputeMaxBallisticTime(qword,qword,float,float,float,float);
 qword TransformXfPos(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
-ACT *NewBezierAct(ALO *,XF *,int,qword,qword,float);
-void RefreshSwObjectCollisionFilter(GAME *,ALO *);
-void SetSoGravity(ALO *,qword);
+ACT *NewBezierAct(LEAPSUBJECT *,XF *,int,qword,qword,float);
+void RefreshSwObjectCollisionFilter(GAME *,LEAPSUBJECT *);
+void SetSoGravity(LEAPSUBJECT *,qword);
 void SeekAsega(ASEGA *,int,float,float);
-void AttachStepguard(ALO *,ALO *,int);
+void AttachStepguard(LEAPSUBJECT *,LEAPSUBJECT *,int);
 void EnableStuckWatch(void *);
 int IsAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
 void ReleaseAct(ACT **);
-void SetXfRole(ALO *o, XF *pxf, int m);
+void SetXfRole(LEAPSUBJECT *o, XF *pxf, int m);
 
 ASEGA *GetGaitBlendValue(GAIT *p);
 qword GetGaitRootVelocity(GAIT *p);
@@ -330,7 +330,7 @@ extern "C" void InitAsegArc(OID *p) {
 
 // Initialize curve timing, planar distance and curvature.
 // Arc timing from the animation labels 0x22/0x23/0x24: planar distance and curvature of the leap.
-extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
+extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
 {
     EA *pa, *pb, *pc;
     CHN *c;
@@ -388,7 +388,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
 }
 
 // Constructs a leap object (CID 0x91) in place and enters state 0.
-extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
+extern "C" void StartLeap(LEAPTUNE *ptune, LEAPSUBJECT *psubject, int index, LEAPV *p) {
     if (ptune->animation == 0)
         return;
     memset(p, 0, 0x70);
@@ -474,18 +474,18 @@ void SetLeapState(LEAPV *leap, int state)
     leap->stateTime = D_002DDED0.time;
     switch (state) {
     case 0:
-        ReplaceCurrentAseg(leap->tuning->animation, leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
+        ReplaceCurrentAseg(leap->tuning->animation, (ALO *)leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
         SubscribeLoObject(leap->job, leap);
         leap->previousVelocity.q = GetSoGravity(leap->subject);
         break;
     case 1: {
         if (IsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38)) {
-            ALO *subject = leap->subject;
+            LEAPSUBJECT *subject = leap->subject;
             DetachStepguard(subject);
             DisableStuckWatch(subject->control);
         }
         float playbackRate = leap->job->speed;
-        register ALO *motionSubject __asm__("$3") = leap->subject;
+        register LEAPSUBJECT *motionSubject __asm__("$3") = leap->subject;
         register XF *motionSpace __asm__("$4");
         register LEAPTUNE *motionTuning __asm__("$3");
         register float square __asm__("$f0");
@@ -525,7 +525,7 @@ void SetLeapState(LEAPV *leap, int state)
         } else
             time = motionTuning->flightTime / playbackRate;
         time = StdMax(leap->tuning->minimumTime / playbackRate, time);
-        ALO *subject = leap->subject;
+        LEAPSUBJECT *subject = leap->subject;
         VTE &entry = subject->pvt[35];
         short adjustment = entry.d;
         void (*applyVelocity)(void *, qword) = (void (*)(void *, qword))entry.pfn;
@@ -539,7 +539,7 @@ void SetLeapState(LEAPV *leap, int state)
         leap->end = leap->arrival - leap->tuning->minimumTime / playbackRate;
         if (leap->ballistic) {
             register qword timeScalar __asm__("vf1"), motionVelocity __asm__("vf2"), force __asm__("vf3");
-            register ALO *launchSubject __asm__("$3");
+            register LEAPSUBJECT *launchSubject __asm__("$3");
             register qword target __asm__("$6");
             __asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tlqc2 %2,%6\n\tlw %3,%7"
                     : "=j"(timeScalar), "=j"(motionVelocity), "=j"(force), "=r"(launchSubject)
@@ -612,7 +612,7 @@ extern "C" void InvalidateDirAnims(DIRBL *dirAnims) {
 }
 
 // Measures the root velocity and speed of the four directional animations.
-extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
+extern "C" void InitDirAnims(DIRBL *dirAnims, LEAPSUBJECT *arg)
 {
     DIRE *e;
     unsigned int i;
@@ -658,7 +658,7 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
 }
 
 // Initializes a directional-animation object (CID 0x92) and applies its animation.
-extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
+extern "C" void StartDirAnim(DIROWNER *dirAnims, LEAPSUBJECT *a, int b, DIRACT *object)
 {
     memset(object, 0, sizeof(*object));
     memset(object, 0, sizeof(*object));
@@ -668,7 +668,7 @@ extern "C" void StartDirAnim(DIROWNER *dirAnims, ALO *a, int b, DIRACT *object)
     object->grfapl = b;
     object->n0 = 0;
     object->n4 = 0;
-    ReplaceCurrentAseg(dirAnims->paseg, a, 0.0f, 1.0f, b, &object->pasega);
+    ReplaceCurrentAseg(dirAnims->paseg, (ALO *)a, 0.0f, 1.0f, b, &object->pasega);
     SubscribeLoObject(object->pasega, object);
     object->ppaseg = &dirAnims->paseg;
 }
@@ -797,7 +797,7 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             tag = FindAsegLabel(animation, id);
             if (tag)
                 time = tag->time;
-            ReplaceCurrentAseg(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
+            ReplaceCurrentAseg(best->animation, (ALO *)dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
             SubscribeLoObject(dirAnims->active, dirAnims);
             dirAnims->best = best;
         }

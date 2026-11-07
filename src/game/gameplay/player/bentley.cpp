@@ -16,6 +16,7 @@
 #include "sly2/players.h"
 #include "sly2/slotheap.h"
 #include "sly2/classes.h"
+#include "sly2/act.h"
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -1891,7 +1892,7 @@ extern CLOCK D_002DDED0;
 extern float D_002BC9B4;   /* contact friction */
 extern float D_002BC9B8;
 void FaceStepToward(STEPPLAYER *p, LO *plo);
-R *FindAsegChannel(ASEG *px, STEPPLAYER *p, int a, int b);
+CHN *FindAsegChannel(ASEG *px, STEPPLAYER *p, int a, int b);
 void ReleaseSma(SMA **ppsma);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *px, STEPPLAYER *p, int n, ASEGA **ppasega, float g0, float g1);
 }
@@ -1922,7 +1923,7 @@ extern "C" void SetBentleyHelperState(JTREC *s, int k)
             else
                 px = s->apaseg[1];
             FaceStepToward(s->player, s->player->interactTarget);
-            FindAsegChannel(px, s->player, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->masterSpeed);
+            FindAsegChannel(px, s->player, 1, 1)->pac->Evaluate(0.0f, px->masterSpeed, 0, &v.q);
             s->player->SetVelocity(*(M3Q *)s->player->aqwTarget * VU_VECTOR(v.q));
             s->player->qwUnknown190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
             s->side = k;

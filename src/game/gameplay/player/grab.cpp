@@ -20,6 +20,7 @@
 #include "sly2/po.h"
 #include "sly2/step.h"
 #include "sly2/aseg.h"
+#include "sly2/act.h"
 #include "sly2/stepplayer.h"
 #include "sly2/jt.h"
 #include "sly2/sw.h"
@@ -604,8 +605,8 @@ union U { float f[4]; qword q; int i[4]; };   // floats first, so U globals can 
 struct M3 { U r[3]; };
 struct VTE { short delta, pad; void *fn; };
 struct JOY { char pad0[0x10]; float x, y, heading, amount; };
-struct COMPONENT { VTE *vt; };
-struct BINDING { int key; COMPONENT *component; };
+/* the channel FindAsegChannel returns is aseg.h's CHN; its curve act.h's AC */
+
 struct SMP { float fastSpeed, slowSpeed, fastDuration; };
 struct HEIGHT { float min, max; };
 struct ENTRY { float weight; int active; char pad8[8]; U direction; };
@@ -664,7 +665,7 @@ void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
 void UpdateDirectionalBlend(ACTOR *, ENTRY *, void *);
 void FitStepToTerrain(ACTOR *, HEIGHT *, int, U *);
-BINDING *FindAsegChannel(void *, ACTOR *, int, int);
+CHN *FindAsegChannel(void *, ACTOR *, int, int);
 void FaceStepToward(ACTOR *, FOCUS *);
 void FixStepAngularVelocity(ACTOR *);
 void RebuildJtXmg(ACTOR *, void *, void *, void *, float, void *);
@@ -673,12 +674,11 @@ void ClampJtGrabCurveParam(ACTOR *, void *, void *);
 
 // The actor's velocity (virtual slot 33).
 static inline qword GetVelocity(ACTOR *p) { VTE &v = p->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
-// Evaluate the binding's component (virtual slot 3) for the animation into *out.
-static inline void ReadBinding(BINDING *b, ASEGA *a, U *out)
+// Evaluate the channel's curve (AC slot 3) at the animation's time and speed into *out.
+static inline void ReadBinding(CHN *b, ASEGA *a, U *out)
 {
-    COMPONENT *c = b->component;
-    VTE &v = c->vt[3];
-    ((void (*)(void *, int, U *, float, float))v.fn)((char *)c + v.delta, 0, out, a->time, a->speed);
+    b->pac->Evaluate(a->time, a->speed, 0, out);
+
 }
 
 // Broadcast a float into a VU0 register.
@@ -985,7 +985,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         ACTOR *actor = ctx->actor;
         ASEGA *anim = actor->anim;
         if (anim) {
-            BINDING *b = FindAsegChannel(anim->animation, actor, 1, 1);
+            CHN *b = FindAsegChannel(anim->animation, actor, 1, 1);
             if (b) {
                 ReadBinding(b, anim, &v);
                 v.q = ScaleVec(v.q, VuFloat(-1.0f));

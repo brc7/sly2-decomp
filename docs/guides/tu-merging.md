@@ -1097,6 +1097,34 @@ DMA (a SIF transfer); tu_1471C0's TEX (the capture texture's GS words, not shd.h
 Inventory (inv.py): 47 -> 35; struct/class/union definitions in src/game .cpp/.inc: 4737 -> 4663; `git diff --stat`:
 695 insertions, 854 deletions in 15 source and header files (this section aside).
 
+### Views unified, round 2 (names/vu-f7-anim-2): XF users, clip channels, ALO
+
+Round 2 of the anim family (from e8238a350), driven by the view census. Every function and data symbol of the 19
+touched files and of every includer of sly2/aseg.h, act.h and wr.h MATCHes, and each of the 115 objects has the branch
+start's symbol table (nm -S, sizes included) and relocations by symbol name. Private struct/class/union definitions in
+src/game .cpp files: 4804 -> 4724.
+
+| type | header | change | views removed |
+|---|---|---|---:|
+| ALO | sly2/aseg.h | defined as an empty `struct ALO : LO` (Sly 2 has no ALO; the Sly 1 symbols mangle the name: ApplyAsegCore, ReplaceCurrentAseg...): SMA::paloRoot / ASEGA::rootObject are used as the LO they are (sm.cpp SendSmaMessage, asega.cpp, aseg.cpp lost their `(LO *)` casts); cane.cpp's and tu_20B840.cpp's private `ALO` views renamed ATTACKOBJ / LEAPSUBJECT (three casts keep ReplaceCurrentAseg's mangled name in tu_20B840) | -- |
+| SMT | sly2/aseg.h | size/offset asserts, field comments, GRFSMT bits `fsmtReversible` (1), `fsmtRetractable` (2), `fsmtRouteMask` (0xfffc), used by sm.cpp | -- |
+| XF (sly2/so.h, unchanged) | -- | xf.cpp's slot functions (ResetXfValueRef, the value/derivative matrix builders, UpdateXfJobRange, SettleXfSlot, Add/Remove/SortXfActs, frame conversions, GetXfVelocity, EvaluateXfSlotMatrixDerivative, GetXfSlotMatrixAndDerivative, EvaluateXfSlotValue, UpdateSoXfWorldMatrices, LoadSoXfsFromBrx, ResolveXfId), aseg.cpp PredictAsegTransform / FindAsegChannel, act.cpp's goal setters, UpdateActLookAt and UpdateMatrixAct, ik.cpp, wr.cpp take XF/SO; the VU code moves the matrices and XF::velocity as qwords through casts of the MATRIX4/VECTOR4 members at the use (as jthands.cpp) | ~45 |
+| ACT | sly2/act.h | xf.cpp's act lists call Attach/Detach/SwitchTarget/Update as real virtuals; cplcy.cpp's CPHANG::pact1 is read as ACT1::goalValue | 7 |
+| CHN, AC, EA, ASEGA, SMA | aseg.h, act.h | the clip-channel readers (step.cpp GetStepAsega*, bentley, murray SetMurrayAttack, grab, pipe_jt, throw, prize RenderDprizeSelf, tu_1B0B78 GetAsegSpeedForObject) take FindAsegChannel's CHN and evaluate its curve with a real `AC::Evaluate(g, dtScale, pv, pdv)` (floats first); FindAsegLabel returns EA (murray x5); ASEGA/SMA views in murray, hurt, prize, tu_1B0B78 | ~30 |
+
+Kept, with the reason: LoadSoXfsFromBrx calls SO slot 51 (GetXfFromIndex) through the vtable by hand (the real
+virtual call reallocates the loop registers: 349 words off); GetXfSlotMatrixAndDerivative's slot-5 call stays by hand
+(GetGoal is called without its dt). Blocked on so.h's XF (base family): asega.cpp's and tu_1603B8.cpp's XF views and
+jthands' XFACT read XF +0xA8 as a float or as an IKREC/CHAINLINK/constraint pointer (a role-selected union: arrival
+time in roles 9/0x11, the chain link or IK record of their acts, the reference XF otherwise), act.cpp's curve
+Prepare views (four `OBJ`), UpdatePathAct (ACT4::Update: the local matrix as rows plus position) and AttachKind9Act write +0xC0..+0xFF as per-component floats, VECTORs and words (the slot's
+segment block: rest value, Bezier control values, rotation rows by phase), and the qword-row matrix views (glob, shape,
+solve, emitter, tu_1D6848, tu_223F70, tu_1D57A8, hang, air, prize) need MATRIX4/VECTOR4 qword forms. so.h's names
+for +0xC0..+0xF0 (restValue, rate, unknownE0, acceleration) are the four Bezier control values of a phase-1 segment
+(EvaluateBezierPos(t1 - t0, *timeSource - t0, *speedSource, +0xC0, +0xD0, +0xE0, +0xF0)) and the two rest values of
+LoadSoXfsFromBrx (+0xC0, +0xE0). WR's layout (wr.cpp's WRV) waits for WR to leave classes.h. blend.cpp (which
+cannot include basic.h: its own qword/OID/CHN/ASEG declarations) is not attempted.
+
 ### Views unified (names/vu-f8-sound-ui): CRef, the sound types, the screens
 
 The sound / UI / Splice-value family. Every function and data symbol of every touched file and of every includer of

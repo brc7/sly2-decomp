@@ -10,6 +10,7 @@
 
 #include "sly2/basic.h"
 #include "sly2/cm.h"
+#include "sly2/act.h"
 #include "sly2/lo.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
@@ -823,12 +824,11 @@ extern "C" LM D_002BDA40;
 extern "C" LM D_002BDA48, D_002BDA50, D_002BDA58;
 extern "C" float D_002BDA60, D_002BDA64;
 struct GS { char pad[0x4CC]; int unknown4CC; };
-struct TGT { char pad[0x20]; qword pos; };
 struct OBJ { char pad[0x40]; int matrix; };   /* the camera XF: its matrix at +0x40 */
 extern "C" {
 void UpdateCplcy(CPHANG *p, void *pv, JOY *pjoy);
 float RandomFloatInRange__Fff(float gMin, float gMax);
-void SetActPositionGoal(TGT *p, qword pos);
+void SetActPositionGoal(ACT1 *p, qword pos);
 void SetCmMat4(CM *p, int *pm);
 void UpdateCphang(CPHANG *p, void *pv, JOY *pjoy);
 }
@@ -911,11 +911,11 @@ void UpdateCphang(CPHANG *p, void *pv, JOY *pjoy)
             p->nextSwayTime = t + GRand(D_002BDA58);
         }
         float dt = D_002DDED0.deltaTime;
-        qword accel = VecCombo(VU_FLOAT(&D_002BDA60), Sub(*(qword *)&p->swayOffset, ((TGT *)p->pact1)->pos), VU_FLOAT(-D_002BDA64), *(qword *)&p->vecVel);
+        qword accel = VecCombo(VU_FLOAT(&D_002BDA60), Sub(*(qword *)&p->swayOffset, p->pact1->goalValue), VU_FLOAT(-D_002BDA64), *(qword *)&p->vecVel);
         v = AddScaled(*(qword *)&p->vecVel, accel, VU_FLOAT(dt));
-        pos = AddScaled2(((TGT *)p->pact1)->pos, *(qword *)&p->vecVel, v, VU_FLOAT(dt * 0.5f));
+        pos = AddScaled2(p->pact1->goalValue, *(qword *)&p->vecVel, v, VU_FLOAT(dt * 0.5f));
     }
-    SetActPositionGoal((TGT *)p->pact1, pos);
+    SetActPositionGoal(p->pact1, pos);
     *(qword *)&p->vecVel = v;
     SetCmMat4(&g_cm, &((OBJ *)p->pxfCam)->matrix);
 }
