@@ -37,13 +37,10 @@ Full description: [docs/architecture.md](docs/architecture.md). In short:
   (not functions)
 
 ## Documentation
-- [docs/engine.md](docs/engine.md) — how the engine works: boot, frame loop, level loading, object model, subsystems
+**Start at [docs/README.md](docs/README.md)** — a map of all docs. Highlights:
+- [docs/engine.md](docs/engine.md) — how the engine works, with a guide per subsystem in [docs/systems/](docs/README.md#systems-guides)
 - [docs/architecture.md](docs/architecture.md) — how `src/` is organised: layers, subsystems, one file per original source file
-- [docs/formats/](docs/formats/world-file.md) — on-disc formats (disc records, LZSS, world files, level objects, textures, meshes, audio, Splice scripts, save variables)
-- [docs/MATCHING_NOTES.md](docs/MATCHING_NOTES.md) — compiler facts and the matching techniques used
-- [docs/guides/](docs/guides/setup.md) — setup, [keeping a TU matching](docs/guides/tu-merging.md),
-  [naming and readable code](docs/guides/naming-workflow.md), [full link](docs/guides/full-link.md),
-  [port plan](docs/guides/port-plan.md)
+- [docs/decisions.md](docs/decisions.md) — the design decisions and compromises the matching code depends on
 
 ## Tools
 - `tools/matchtool.py check FILE [func...]` — compile one source and compare it to the original, per function
