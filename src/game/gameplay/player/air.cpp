@@ -272,10 +272,9 @@ void InitJtAir(T *t, int a)
 
 //////// 0x1959C0 PostLoadJtAir
 namespace M_PostLoadJtAir { extern "C" {
-struct S { int a; char pad[0x17C-4]; char b[0x1B8-0x17C]; char c[4]; };
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int, int, int, void *, int, int, int, void *);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *, int, int, void *, int, int, int, ASEGBL **);
 // Post-load: creates the 5-entry dynamic jump animation blend.
-void PostLoadJtAir(struct S *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->a, 0xC, 5, s->b, 0, 0, 0, s->c); }
+void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, 0xC, 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
 } } // namespace M_PostLoadJtAir
 
 //////// 0x195A00 SetJtAirJump
@@ -4703,15 +4702,13 @@ extern "C" void LandJtAir(JTAIR *air)
 
 //////// 0x19C870 GetJtAirAdjustRecord
 namespace M_func_0019C870 { extern "C" {
-struct O { char pad[0x520]; int x520; };
-struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c4; };
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
-int GetJtAirAdjustRecord(struct S *s, int *pn) {
-    int v;
-    switch (s->x1c) {
-    case 0xB: case 0xC: case 0xD: v = s->p->x520; break;
-    case 0x11: v = s->c4; break;
-    default: v = s->c0; break;
+SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
+    SOPART *v;
+    switch (s->state) {
+    case 0xB: case 0xC: case 0xD: v = s->player->jtgrab.unknown60; break;
+    case 0x11: v = s->precAirWallRun; break;
+    default: v = s->precAir; break;
     }
     *pn = 0;
     return v;
@@ -4729,31 +4726,29 @@ extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 
 //////// 0x19C8D0 CanJtUseGadgetInAir
 namespace M_func_0019C8D0 { extern "C" {
-struct O { char pad[0x12F0]; int x12f0; };
-struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
 int IsCameraPolicyActive__FP5CPLCY(void *);
 // Whether gadget/action k can be used in the current air sub-state.
-int CanJtUseGadgetInAir(struct S *p, int k) {
+int CanJtUseGadgetInAir(JTAIR *p, int k) {
     switch (k) {
     case 22:
-        if (p->x4 >= 17) goto L;
-        if (p->x4 < 15) goto L;
+        if (p->jumpKind >= 17) goto L;
+        if (p->jumpKind < 15) goto L;
         return 0;
     case 12:
-        if (p->x2c) goto L;
+        if (p->unknown2C) goto L;
         return 0;
     default:
         return 0;
     case 3:
         {
             int r = 0;
-            if (p->x1c == 0x11 && p->p->x12f0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+            if (p->state == 0x11 && p->player->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
             return r;
         }
     case 2: case 5: case 27:
     L:
-        switch (p->x1c) {
+        switch (p->state) {
         case 6: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16:
         case 17: case 18: case 19: case 20: case 21: case 22:
             return 0;

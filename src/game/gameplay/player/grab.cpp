@@ -2684,7 +2684,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 
 struct LO;
-struct STEPPLAYER;
 struct SMP { float g0, g4, g8; };
 
 struct VTGRAB1 { short d; short pad; int (*pfn)(void *, float *); };
@@ -2712,7 +2711,6 @@ struct JTGRABCAND {
     qword position;
 };
 struct SW { char pad0[0x4678]; int cjtgrabcand; JTGRABCAND ajtgrabcand[4]; };
-struct STEPPLAYER { char pad0[0x9C4]; int idUnk9C4; };
 struct CLOCK { float time; float deltaTime; };
 
 extern "C" {
@@ -2729,7 +2727,7 @@ void *memmove(void *dst, const void *src, uint cb);   // memmove
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);   // SmoothValue
 void FadeSoOut(LO *plo, float g);
 void BroadcastGameEvent(void *pv, int msg, LO *plo);
-LO *AcquireJtGrabMarker(SW *psw, int id, JTGRABCAND *pcand);
+LO *AcquireJtGrabMarker(SW *psw, ::PROXY *pproxy, JTGRABCAND *pcand);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
 
@@ -2815,9 +2813,9 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
     }
     for (j = 0; j < ccand; j++) {
         pcand = &candidates[j];
-        if (player->idUnk9C4 && pcand->priority == 1) {
+        if (player->jtgrab.pproxyMarker && pcand->priority == 1) {
             register LO *plo asm("$6"); // the one register pin: the original keeps the link result in a2, global-alloc would pick v0
-            plo = AcquireJtGrabMarker(world, player->idUnk9C4, pcand);
+            plo = AcquireJtGrabMarker(world, player->jtgrab.pproxyMarker, pcand);
             if (!plo)
                 break;
             pcand->unknown10 = plo;

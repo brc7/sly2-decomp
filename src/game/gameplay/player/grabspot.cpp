@@ -267,7 +267,6 @@ void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 namespace M_func_001830D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
-struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
 extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
@@ -303,7 +302,7 @@ static __inline__ qword VNormalize(qword c, qword k)
     return t;
 }
 // Position and facing (atan2 of tangent x up) on the shape at the given distance.
-void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, float *pg)
+void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
     VU pos, dir;
     qword n;
@@ -317,7 +316,7 @@ void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, floa
         VU u;
         register qword a __asm__("vf2");
         register qword b __asm__("vf3");
-        __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&pj->playerRadius));
+        __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&pj->grabRadius));
         a = pos.q;
         __asm__ __volatile__("");
         b = pj->pivotOffset;
@@ -461,16 +460,14 @@ void GetPoleGrabspotClosestParam(struct P *pole, struct Q *q, float *pg)
 } } // namespace M_func_001834D0
 
 namespace M_func_00183540 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; float radius; };
-struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 // The point at angle param / r on the circle of radius r + the player's radius.
-void GetPoleGrabspotGrabPosition(struct O *pole, float g, struct J *pj, qword *pv, float *pg)
+void GetPoleGrabspotGrabPosition(struct O *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
     float gPan = g / pole->radius;
-    float gR = pole->radius + pj->playerRadius;
+    float gR = pole->radius + pj->grabRadius;
     if (pv) {
         *pv = VuSub(VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->pivotOffset);
     }
@@ -552,17 +549,16 @@ void CloneHoldGrabspot(struct S *hold)
 namespace M_func_00183818 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; int n10C; };
-struct J { char pad[0x240]; qword pivotOffset; char pad2[0x103C - 0x250]; float playerRadius; int unknown1040; };
 extern qword GetLoWorldPos(void *p);
 extern qword *GetLoWorldMatrix(void *p);
 extern float atan2f(float y, float x);
 // Hold position and heading from the object matrix, pushed out by the player's radius unless +0x10C is set.
-void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float *pg)
+void GetHoldGrabspotGrabPosition(struct O *hold, STEPPLAYER *pj, qword *pv, float *pg)
 {
     float g = 0.0f;
     qword d;
     if (hold->n10C == 0)
-        g = pj->playerRadius;
+        g = pj->grabRadius;
     d = *GetLoWorldMatrix(hold);
     if (pv) {
         qword a, s, r;

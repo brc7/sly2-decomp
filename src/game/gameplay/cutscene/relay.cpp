@@ -3189,7 +3189,7 @@ void NextJsgCommand(JSGV *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)51))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->unknown240));
+            pstep->TranslateToPos(VuSub(*(qword *)&pos, pstep->pivotOffset));
             SetStepRadTarget(pstep, rad);
         }
         else
@@ -3503,7 +3503,7 @@ void NextJsgCommand(JSGV *script)
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
             {
-                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->unknown240);
+                place.position = VuAdd(PosLoWorld(pstepplayer), pstepplayer->pivotOffset);
             }
             else
             {

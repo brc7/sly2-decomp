@@ -90,7 +90,7 @@ void STEP::Init()
 extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
     LoadPoFromBrx(step, stream);
-    step->unknown240 = ConvertPosBetweenLos(step->parent, step, D_002A2DD0);
+    step->pivotOffset = ConvertPosBetweenLos(step->parent, step, D_002A2DD0);
     EnsureSoPhysRegionRecord(step);
 }
 
@@ -503,7 +503,7 @@ void PresetStepAccel(struct S *step)
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
     TranslateSoToPos(step, pos);
-    step->unknown230 = ConvertPosBetweenLos(step, 0, step->unknown240);
+    step->unknown230 = ConvertPosBetweenLos(step, 0, step->pivotOffset);
 }
 
 // Slot 30: RotateSoToMat, then takes the new heading as target heading and stores it in the controller.

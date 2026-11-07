@@ -326,8 +326,8 @@ struct JTAIR
       float unknownB4;
       float smashDistance; /* smash distance */
       struct LO *unknownBC;   /* possibly ignoredHangObject (low-confidence guess: set from phndHang / JT+0x1F18 when leaving a hang; air/grab skip that object) */
-      struct SO *unknownC0;
-      struct SO *unknownC4;
+      SOPART *precAir;   /* +0xC0 STEP parameter record in the air (GetJtAirAdjustRecord) */
+      SOPART *precAirWallRun;   /* +0xC4 the record in air state 0x11 (wall run, inferred) */
       struct JTEDGE *edge;    /* edge being caught */
       undefined4 unknownCC;
       qword edgePosition; /* edge position */
@@ -480,8 +480,8 @@ struct STEPPLAYER : public STEP
       struct ASEGA *activeAnimation;
       struct SMA *activeStateMachine;
       int unknown1038;
-      float unknown103C;
-      int unknown1040;
+      float grabRadius;   /* +0x103C the hero's radius added to grab-spot positions (grabspot.cpp GetPole/Wall/HoldGrabspotGrabPosition) */
+      int unknown1040;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) */
       int unknown1044;
       int unknown1048;
       float unknown104C;

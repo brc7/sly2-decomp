@@ -2285,7 +2285,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                             mat = LoadRotateMatrixRad(jt->unknown1F94 * D_002BF364, D_002A2DA0);
                             *(qword *)&vTarget = TransformPos(jt->hangHandle->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
-                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->unknown240), *(qword *)&jt->physics->gravity);
+                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->pivotOffset), *(qword *)&jt->physics->gravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->unknown1F98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
