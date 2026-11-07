@@ -141,17 +141,16 @@ extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 namespace M_PosCplookAnchor { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct X { void *po; };
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 // Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER. (inferred)
-qword PosCplookAnchor(struct X *p)
+qword PosCplookAnchor(CPLOOK *p)
 {
     U s;
     U pos;
-    pos.q = GetLoWorldPos(p->po);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) {
+    pos.q = GetLoWorldPos(p->pvHero);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p->pvHero, 0x34)) {
         register qword rs __asm__("vf2");
         register qword rp __asm__("vf3");
         register qword rd __asm__("vf1");
@@ -170,12 +169,11 @@ namespace M_PosCplookEye { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { qword q; float f[4]; } U;
-struct X { int a[4]; float panAngle; float tiltAngle; };
 extern qword D_002A5000;
 void LoadRotateMatrixPanTiltP(M3 *pm, float x, float y) __asm__("LoadRotateMatrixPanTilt");
-qword PosCplookAnchor(struct X *p);
+qword PosCplookAnchor(CPLOOK *p);
 // Eye = anchor + RotMatrix(panAngle +0x10, tiltAngle +0x14) * D_002A5000 offset. (inferred)
-qword PosCplookEye(struct X *p)
+qword PosCplookEye(CPLOOK *p)
 {
     M3 m;
     U v;
@@ -366,29 +364,27 @@ void CPLOOK::ResetPolicy()   /* key function */
 }
 
 namespace M_DeactivateCplook { extern "C" {
-struct A { void *hero; int pad[3]; float panAngle; float tiltAngle; int pad2[7]; void *zoomSound; void *zoomStopSound; int pad3[4]; float startPan; float startTilt; };
-extern char D_002DDF40[];
-void StopSnd(void *p, float g);
-void RcPtr_Assign(void **pp, int n);
+void StopSnd(SND *p, float g);
+void RcPtr_Assign(CRefPtr<SND> *pp, int n);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-void SetCmCut(void *p, float a, float b);
-void DeactivateCplcy(struct A *a, int n, void *b);
-static inline void Release(void **pp, float g)
+void SetCmCut(CM *p, float a, float b);
+void DeactivateCplcy(CPLOOK *a, int n, void *b);
+static inline void Release(CRefPtr<SND> *pp, float g)
 {
-    if (pp && *pp) {
-        StopSnd(*pp, g);
+    if (pp && pp->m_p) {
+        StopSnd(pp->m_p, g);
         RcPtr_Assign(pp, 0);
     }
 }
 // Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then CPLCY::Deactivate.
-void DeactivateCplook(struct A *a, int n, void *b)
+void DeactivateCplook(CPLOOK *a, int n, void *b)
 {
-    Release(&a->zoomSound, 0.0f);
-    Release(&a->zoomStopSound, 0.5f);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(a->hero, 0x34))
-        SetCmCut(D_002DDF40, a->panAngle + 3.1415927f, -a->tiltAngle);
+    Release(&a->psndZoom, 0.0f);
+    Release(&a->psndZoomStop, 0.5f);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(a->pvHero, 0x34))
+        SetCmCut(&g_cm, a->panAngle + 3.1415927f, -a->tiltAngle);
     else
-        SetCmCut(D_002DDF40, a->startPan + 3.1415927f, -a->startTilt);
+        SetCmCut(&g_cm, a->panStartAngle + 3.1415927f, -a->tiltStartAngle);
     DeactivateCplcy(a, n, b);
 }
 } } // namespace M_DeactivateCplook
