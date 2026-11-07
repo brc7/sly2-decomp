@@ -332,10 +332,9 @@ extern "C" void ResetStepguardFromScript(O *guard)
 
 // 0x2061D8 PostStepguardLoad
 namespace M_PostStepguardLoad { extern "C" {
-struct VE; struct O; struct C3; struct K; struct S;
+struct O; struct C3; struct K; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; char pad2[0x50 - 0x10]; int unknown50; };
+struct O : LO { int unknown50; };
 struct C3 { char pad[0x24]; int unknown24; };
 struct K { long l; } __attribute__((packed));
 struct S {
@@ -384,11 +383,11 @@ void PostStepguardLoad(struct S *guard)
     guard->alternatePatrolScript = CreateLo__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
     AddGuardScriptGoto(guard->alternatePatrolScript, -1, -1, 40.0f);
     guard->unknown2F0 = guard->alternatePatrolScript->unknown50;
-    guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
+    guard->alternatePatrolScript->Remove();
     if (guard->pickpocketIndicator0)
-        guard->pickpocketIndicator0->vt[9].pf((char *)guard->pickpocketIndicator0 + guard->pickpocketIndicator0->vt[9].d);
+        guard->pickpocketIndicator0->Remove();
     if (guard->pickpocketIndicator1)
-        guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
+        guard->pickpocketIndicator1->Remove();
     x = FindSoXf(guard, guard->oid, 0xC);
     if (x)
         guard->scaleAct = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
@@ -482,10 +481,9 @@ void STEPGUARD::RemoveHierarchy()
 
 // 0x206518 ResetStepguardToHome
 namespace M_ResetStepguardToHome { extern "C" {
-struct VE; struct O; struct HOMEREC; struct F64; struct S;
+struct O; struct HOMEREC; struct F64; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VE *vt; };
+struct O : BHV { };
 struct HOMEREC { char pad[8]; qword *position; float f; };
 struct F64 : XFM { void *owner; void *collisionGroup; };
 struct S : LO {
@@ -557,9 +555,9 @@ void ResetStepguardToHome(struct S *guard)
         StageStepguardLoot(guard);
     }
     if (guard->knockdownHelper)
-        guard->knockdownHelper->vt[9].pf((char *)guard->knockdownHelper + guard->knockdownHelper->vt[9].d);
+        guard->knockdownHelper->Close();
     o = PushStepBehavior(guard, CID_BHVGUARD);
-    o->vt[8].pf((char *)o + o->vt[8].d);
+    o->Start();
     SetLoParent(guard->detector, guard, 0xF);
     guard->detector->owner = guard;
     guard->detector->collisionGroup = guard->collisionGroup;
@@ -2991,7 +2989,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { short d; short pad; void *pfn; } VTE;
 extern float D_002C3DA8;
 struct BHVJUGGLED : BHV { char pad[0x50 - 0x30]; int state; };
-struct S { char pad[0xC]; VTE *vt; };
+struct S : LO { };
 int StepguardHasSgf(struct S *p, int n);
 struct BHVJUGGLED *FindStepBehavior(struct S *p, int n);
 void SetBhvThrownState(struct BHVJUGGLED *o, int n);
@@ -3012,9 +3010,9 @@ void StunStepguardThrownOp2(struct S *guard)
             SetBhvjuggledState(juggled, 2);
     }
     {
-        qword velocity = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);   /* get velocity */
+        qword velocity = guard->GetVelocity();   /* get velocity */
         velocity = LimitVectorLength(velocity, D_002C3DA8);
-        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, velocity);   /* set velocity */
+        guard->SetVelocity(velocity);   /* set velocity */
     }
 }
 } } // namespace M_func_00209EE0
