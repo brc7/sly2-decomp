@@ -5360,23 +5360,18 @@ extern "C" int IsJsgRemoved(JSGV *script)
 
 // 0x1E57A0 StartRelayScriptCamBlend
 namespace M_func_001E57A0 { extern "C" {
-struct T; struct A; struct SUB; struct P; struct G2; struct G;
+struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct T { qword v0; qword v10; float f20; };
-struct A { int n0; int n4; int pad8[2]; struct T t; float f40; int n44; };
-struct SUB { struct T *apt[2]; float f8C; int n90; int n94; void *p98; int n9C; };
-struct P { char pad[0x80]; float f80; struct SUB sub; };
-struct G2 { char pad[0x30]; qword v30; };
-struct G { char pad[0x20]; float f20; char pad24[0x60 - 0x24]; struct G2 m60; char pad2[0x500 - 0xA0]; char m500[0x10]; int n510; };
+struct A { int n0; int n4; int pad8[2]; CAMPOSE t; float f40; int n44; };
+struct P { char pad[0x80]; float f80; CAMMOVE sub; };
 extern qword D_002A2DD0;
 extern float D_002A8124;
 extern struct { float t; float dt; } D_002DDED0;
-extern struct G D_002DDF40;
 int AreFloatsNear__Ffff(float, float, float);
 float NormalizeAngle__Ff(float);
 qword DecomposeRotationMatrixToEuler(void *);
 int IsCameraPolicyActive__FP5CPLCY(void *);
-void RevokeCmPolicy(void *, int, int, void *, int, int);
+void RevokeCmPolicy(void *, int, int, void *, int, void *);
 void SetCmPolicy(void *, int, void *, int, void *);
 // Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
@@ -5396,39 +5391,39 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
         pb->n4 = 0;
         script->f80 = D_002DDED0.t + t;
     }
-    script->sub.apt[0] = &pa->t;
-    script->sub.apt[1] = &pb->t;
-    script->sub.f8C = t;
-    script->sub.n90 = 1;
-    script->sub.n94 = pa->n44;
-    script->sub.p98 = script;
-    script->sub.n9C = 1;
-    pga = (float *)&pa->t.v10;
-    pgb = (float *)&pb->t.v10;
+    script->sub.pposeFrom = &pa->t;
+    script->sub.pposeTo = &pb->t;
+    script->sub.dt = t;
+    script->sub.fCutOnLeave = 1;
+    script->sub.iCurve = pa->n44;
+    script->sub.pevent = (CAMEVENT *)script;
+    script->sub.nUnk18 = 1;
+    pga = &pa->t.eul.x;
+    pgb = &pb->t.eul.x;
     for (i = 2; i >= 0; i--) {
         *pgb = *pga + NormalizeAngle__Ff(*pgb - *pga);
         pga++;
         pgb++;
     }
     {
-        struct T **ppt = script->sub.apt;
+        CAMPOSE **ppt = &script->sub.pposeFrom;
         unsigned j;
         qword *zero=&D_002A2DD0;
         for (j = 0; j < 2; j++, ppt++) {
-            struct T *pt = *ppt;
-            if (FNear(pt->v0, *zero))
-                pt->v0 = (*(struct G2 *)&g_cm.mat).v30;
-            if (FNear(pt->v10, *zero))
-                pt->v10 = DecomposeRotationMatrixToEuler(&(*(struct G2 *)&g_cm.mat));
-            if (pt->f20 == 0.0f)
-                pt->f20 = D_002DDF40.f20;
+            CAMPOSE *pt = *ppt;
+            if (FNear(*(qword *)&pt->pos, *zero))
+                *(qword *)&pt->pos = PosOfCmMatq(&g_cm.matq);
+            if (FNear(*(qword *)&pt->eul, *zero))
+                *(qword *)&pt->eul = DecomposeRotationMatrixToEuler(&g_cm.matq);
+            if (pt->radFov == 0.0f)
+                pt->radFov = g_cm.fieldOfView;
         }
     }
-    if (script->sub.f8C == 0.0f)
-        script->sub.f8C = D_002A8124;
-    if (IsCameraPolicyActive__FP5CPLCY(D_002DDF40.m500))
-        RevokeCmPolicy(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
-    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &script->sub);
+    if (script->sub.dt == 0.0f)
+        script->sub.dt = D_002A8124;
+    if (IsCameraPolicyActive__FP5CPLCY(&g_cm.cpcamblend))
+        RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, g_cm.cpcamblend.pcammove);
+    SetCmPolicy(&g_cm, 10, &g_cm.cpcamblend, 0, &script->sub);
 }
 } } // namespace M_func_001E57A0
 
@@ -5436,14 +5431,13 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
 namespace M_func_001E5A98 { extern "C" {
 struct S;
 struct S { char pad[0x84]; int a84[3]; int n90; int n94; int n98; int n9C; };
-extern char D_002DDF40[];
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
 // Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
 void EndJsgCamBlend(struct S *script, int n)
 {
     script->n90 = n;
     script->n9C = 0;
-    RevokeCmPolicy(D_002DDF40, 2, 10, D_002DDF40 + 0x500, 0, script->a84);
+    RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, script->a84);
 }
 } } // namespace M_func_001E5A98
 

@@ -53,9 +53,6 @@ void SKY::PostLoad()
 
 // Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),
 // keeping its own height unless followCameraZ is set.
-// The position row of a camera matrix, through a pointer to the matrix: the original reads it at base &g_cm.mat,
-// offset 0x30 (g_cm.matq.pos folds to base &g_cm, offset 0x90).
-static inline qword PosOfCmMatq(CMMATQ *pmatq) { return pmatq->pos; }
 extern "C" void UpdateSky(SKYV *sky)
 {
     union V target;

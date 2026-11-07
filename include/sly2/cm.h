@@ -266,8 +266,6 @@ struct CMBASE : public BASIC
 {
 };
 
-/* CM: the camera: the policy stack, the view matrix, projection and frustum, fog, and the embedded policy objects.
-   Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 /* CMMATQ: the camera matrix (CM::mat) as quadword rows: the three rotation rows, then the position. The game's VU0
  * code moves these rows as 128-bit values (lq/sq of the row at base &g_cm plus the row offset); a qword member
  * reproduces that, where a cast of the float members (`*(qword *)&g_cm.pos`) makes g++ fold the offset into the
@@ -277,7 +275,12 @@ struct CMMATQ
     qword rot[3];   /* rotation rows (row 0 the view direction, rows 1/2 the other two axes) */
     qword pos;      /* the camera position (CM::pos) */
 };
+/* The position row read through a pointer to the matrix: the original reads it at base &g_cm.mat, offset 0x30, where
+ * g_cm.matq.pos is base &g_cm, offset 0x90 (sky's UpdateSky, relay's StartRelayScriptCamBlend). */
+inline qword PosOfCmMatq(CMMATQ *pmatq) { return pmatq->pos; }
 
+/* CM: the camera: the policy stack, the view matrix, projection and frustum, fog, and the embedded policy objects.
+   Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CM : public CMBASE
 {
       struct VISZONE *pzonVis;   /* visibility zone the camera is in */
