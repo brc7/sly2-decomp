@@ -687,7 +687,7 @@ void RemoveSoParts(struct P *so)
 
 // 0x1F2C30 AddSoHierarchy
 namespace M_AddSoHierarchy { extern "C" {
-struct VTE; struct VT; struct S8; struct E; struct L; struct H; struct G;
+struct VTE; struct VT; struct S8; struct E; struct L; struct H; 
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[12]; };
@@ -695,8 +695,7 @@ struct S8 { long l; } __attribute__((packed));
 struct E { char pad[0xDC]; void *region; };
 struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next; char pad1b[0x40 - 0x28]; int flagWord; char pad2[0x64 - 0x44]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xE8 - 0x74]; struct E *physics; };
 struct H { char pad[0x2C]; int numZones; };
-struct G { char pad[0x45CC]; struct H *zoneBsp; };
-extern struct G D_003DD490;
+extern SW D_003DD490;
 extern const struct S8 D_002A8270;
 void AddLoHierarchy(struct L *);
 void UpdateSoXfWorldMatrices(struct L *);
@@ -704,7 +703,7 @@ void AddSoParts(struct L *);
 qword GetLoWorldPos(struct L *);
 void *FindPathzoneAtPos(qword, int);
 void SetSoPhysRegion(struct L *, void *);
-void PostSwCallback(struct G *, struct L *, long, int);
+void PostSwCallback(SW *, struct L *, long, int);
 // Slot 11 (AddHierarchy): AddLoHierarchy, adds the parts, sets flags 0x14, registers the physics region (if the
 // object has a region record) and recurses into the children.
 void AddSoHierarchy(struct L *so)
@@ -721,7 +720,7 @@ void AddSoHierarchy(struct L *so)
     else so->flagWord = v | 0x14;
     pv = so->physics ? so->physics->region : 0;
     if (pv) {
-        if (D_003DD490.zoneBsp && D_003DD490.zoneBsp->numZones)
+        if (((struct H *)D_003DD490.pregtree) && ((struct H *)D_003DD490.pregtree)->numZones)
             SetSoPhysRegion(so, FindPathzoneAtPos(GetLoWorldPos(so), 1));
         else
             PostSwCallback(&D_003DD490, so, D_002A8270.l, 0);
