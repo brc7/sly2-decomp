@@ -1171,7 +1171,6 @@ namespace M_ClipCameraEye {
 // v is computed before posMin so the spill slots come out v 0x30 / posMin 0x40. No register pins.
 typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
-struct CLOCK { float time, deltaTime, unknown8, unknownC, dtPrev; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern qword D_002BD8F0, D_002BD900;
@@ -1208,13 +1207,13 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
     CLOCK *pclock = &D_002DDED0;
     int ii, jj;
     qword dpos = VuSub(posTarget, pos);
-    qword v = DivideBy(dpos, VU_FLOAT(&pclock->dtPrev));
+    qword v = DivideBy(dpos, VU_FLOAT(&pclock->cameraDeltaTime));
     qword posMin = VuAdd(pos, D_002BD8F0);
     qword posMax = VuAdd(pos, D_002BD900);
     STACKSCOPE frame;
     IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
-    qword r = AddScaled(pos, w, VU_FLOAT(&pclock->dtPrev));
+    qword r = AddScaled(pos, w, VU_FLOAT(&pclock->cameraDeltaTime));
     return r;
 }
 } // namespace M_ClipCameraEye
