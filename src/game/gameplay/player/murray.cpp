@@ -2903,8 +2903,6 @@ namespace M_SetMurrayLiftSubstate {
 typedef unsigned long ulong;
 union U { qword q; float f[4]; int i[4]; };
 struct M4 { U row[4]; };
-/* A transform (XF) as read here: its role state and parent. */
-struct NODE { M4 local,world; char pad80[0x18]; short state; char pad9A[6]; NODE*parent; };
 struct EVENT { float time; int kind,tag,pad; };
 /* STEPPLAYER::unknown1088 as written here: +0x1C an active flag. */
 struct PROXYV { char pad[0x1C]; int active; };
@@ -2926,7 +2924,7 @@ extern "C" void SendStepguardRootBhvMode6(SO*,int);
 extern "C" void StunStepguardThrownOp1(SO*);
 extern "C" void ComputeMurrayLiftLaunch(MURRAY*,qword,float*,float*,qword*,qword*);
 extern "C" ACT*NewBezierAct(void*,void*,void*,float,qword,qword);
-extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
+extern "C" qword ConvertXfVec(XF*,XF*,qword);
 extern "C" ACT*NewPositionAct(void*,void*,void*,int,int,qword);
 extern "C" ACT*NewIkAct(void*,void*,void*,PARTLINK*);
 extern "C" ACT*NewMatrixAct(void*,void*,void*,void*,int,M4*);
@@ -2958,8 +2956,8 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             goto failed;
     attach:
         SetSoCnstrForce(owner, 0);
-        murray->xfRoleA = ((NODE *)owner->unknown58)->state;
-        murray->xfRoleB = ((NODE *)owner->unknown5C)->state;
+        murray->xfRoleA = owner->unknown58->role;
+        murray->xfRoleB = owner->unknown5C->role;
         SetLoParent(owner, 0, 15);
         SetSoTreeFlag2(owner, 1);
         M4 predicted;
@@ -2975,7 +2973,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         ComputeMurrayLiftLaunch(murray, work.row[1].q, &event->time, &duration, &work.row[2].q, &work.row[3].q);
         murray->apactCarryA[2] =
             NewBezierAct(owner, owner->unknown58, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
-        owner->SetVelocity(ConvertXfVec(((NODE *)owner->unknown58)->parent, 0, work.row[2].q));
+        owner->SetVelocity(ConvertXfVec(owner->unknown58->parent, 0, work.row[2].q));
         murray->apactCarryA[3] = NewPositionAct(owner, owner->unknown5C, (void *)5, 7, 2, work.row[0].q);
         break;
     }

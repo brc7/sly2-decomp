@@ -1256,8 +1256,6 @@ void UpdateBentleyAim(BENTLEY *bentley)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136530 { extern "C" {
 typedef struct { qword r[3]; qword pos; } M4;
-/* A transform (XF) as read here: +0xA0 its parent. */
-struct O { char pad[0xA0]; void *xA0; };
 extern MURRAY *D_002F7900;
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
@@ -1316,7 +1314,7 @@ void SetBentleyHoverState(BENTLEY *bentley, int k)
         XF *pxf;
         SO *pq = (SO *)D_002F7900->jtthrowAim.ploHoldParent;
         pxf = pq->GetLocalTransform((MATRIX4 *)&m);
-        { M4 t = GetRelativeXfMatrix(((O *)bentley->transforms)->xA0, ((O *)bentley->unknown58)->xA0, &m); m = t; }
+        { M4 t = GetRelativeXfMatrix(bentley->transforms->parent, bentley->unknown58->parent, &m); m = t; }
         {
             int save = bentley->jtplaces.cplace;
             bentley->SetParent(D_002F7900, pxf, 3);
