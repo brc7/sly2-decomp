@@ -49,8 +49,8 @@ void SHAPE::Init()
 {
     SHAPE *pshape = (SHAPE *)this;
     InitXfm(pshape);
-    pshape->nUnk148 = -1;
-    pshape->nUnk178 = 1;
+    pshape->unknown148 = -1;
+    pshape->unknown178 = 1;
 }
 
 namespace M_CloneShape { extern "C" {
@@ -272,8 +272,8 @@ void MeasureShape(struct S *shape)
 // Invalidates the segment cache (search hint 0, cached segment -1).
 extern "C" void InvalidateShapeCache(SHAPE *shape)
 {
-    shape->nUnk178 = 0;
-    shape->nUnk148 = -1;
+    shape->unknown178 = 0;
+    shape->unknown148 = -1;
 }
 
 namespace M_func_001E6340 { extern "C" {
@@ -379,25 +379,25 @@ float GetShapeParamAtDistance(struct X *shape, float distance)
 // First point's parameter.
 extern "C" float GetShapeMinParam(SHAPE *shape)
 {
-    return shape->mpicvu[0];
+    return shape->vertexParams[0];
 }
 
 // First point's distance.
 extern "C" float GetShapeMinDistance(SHAPE *shape)
 {
-    return shape->mpicvs[0];
+    return shape->vertexArcLengths[0];
 }
 
 // Last point's parameter.
 extern "C" float GetShapeMaxParam(SHAPE *shape)
 {
-    return shape->mpicvu[shape->ccv - 1];
+    return shape->vertexParams[shape->numControlVertices - 1];
 }
 
 // Last point's distance: the shape's total length.
 extern "C" float GetShapeMaxDistance(SHAPE *shape)
 {
-    return shape->mpicvs[shape->ccv - 1];
+    return shape->vertexArcLengths[shape->numControlVertices - 1];
 }
 
 namespace M_UWrapShape { extern "C" {
@@ -762,7 +762,7 @@ void FindShapeClosestPointCurveFromParam(struct X *shape, qword pos, struct SPAC
 // Dispatches on the shape's mode to the linear or curve closest-point search from a starting parameter.
 extern "C" void FindShapeClosestPointFromParam(SHAPE *shape, qword pos, SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
 {
-    if (shape->crvk == 0) {
+    if (shape->curveKind == 0) {
         FindShapeClosestPointLinearFromParam(shape, pos, space, posOut, dirOut, paramOut, distanceOut, startParam);
         return;
     }
@@ -1390,7 +1390,7 @@ typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
 // The chain's simulation mode, or -1 without a chain.
 extern "C" int GetShapeChainMode(SHAPE *shape)
 {
-    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->pvUnk17c;
+    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->unknown17C;
     int n = -1;
     if (pchain != 0) {
         n = pchain->mode;
@@ -2090,7 +2090,7 @@ refresh:
 extern "C" void SyncChainDistances(SHAPECHAIN *chain)
 {
     SHAPE *pshape = chain->pshape;
-    CopyAb(chain->as, pshape->mpicvs, pshape->ccv * 4);
+    CopyAb(chain->as, pshape->vertexArcLengths, pshape->numControlVertices * 4);
 }
 
 namespace M_func_001E9858 {

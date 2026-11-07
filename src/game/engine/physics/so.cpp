@@ -2269,7 +2269,7 @@ typedef unsigned long ulong;
 struct MATRIX4 {float mat[4][4];};
 struct VECTOR {float x,y,z,w;};
 struct XF {char pad[0x40];MATRIX4 worldMatrix;};
-struct GEOM {int cpos;VECTOR *apos;int csurf;void *asurf;int cedge;void *aedge;};
+struct GEOM {int numPositions;VECTOR *positions;int numSurfaces;void *surfaces;int numEdges;void *edges;};
 struct SOPART;
 struct DLE {SOPART *next,*prev;};
 struct SOPART
@@ -2384,17 +2384,17 @@ extern "C" void UpdateSoTreeBounds(SO *so)
         }
         else
         {
-            for (i = 0; i < ppart->meshWorld.cpos; i++)
+            for (i = 0; i < ppart->meshWorld.numPositions; i++)
             {
-                qword qwPos = *(qword *)&ppart->meshWorld.apos[i];
+                qword qwPos = *(qword *)&ppart->meshWorld.positions[i];
                 ExtendBox(qwMin, qwMax, qwPos);
             }
         }
         if (ppart->meshStamp != ppart->worldStamp)
         {
-            for (i = ppart->unknown1C; i < ppart->meshWorld.cpos; i++)
+            for (i = ppart->unknown1C; i < ppart->meshWorld.numPositions; i++)
             {
-                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->meshLocal.apos[i]);
+                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->meshLocal.positions[i]);
                 ExtendBox(qwMin, qwMax, qwPos);
             }
         }
@@ -2416,18 +2416,18 @@ extern "C" void UpdateSoTreeBounds(SO *so)
         }
         else
         {
-            for (i = 0; i < ppart->meshWorld.cpos; i++)
+            for (i = 0; i < ppart->meshWorld.numPositions; i++)
             {
-                float gDist = GDistance(qwCenter, *(qword *)&ppart->meshWorld.apos[i]);
+                float gDist = GDistance(qwCenter, *(qword *)&ppart->meshWorld.positions[i]);
                 if (sRadius < gDist)
                     sRadius = gDist;
             }
         }
         if (ppart->meshStamp != ppart->worldStamp)
         {
-            for (i = ppart->unknown1C; i < ppart->meshWorld.cpos; i++)
+            for (i = ppart->unknown1C; i < ppart->meshWorld.numPositions; i++)
             {
-                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->meshLocal.apos[i]);
+                qword qwPos = QwTransformPos(&ppart->matWorld, *(qword *)&ppart->meshLocal.positions[i]);
                 float gDist = GDistanceFused(qwCenter, qwPos);
                 if (sRadius < gDist)
                     sRadius = gDist;
@@ -3072,9 +3072,9 @@ void SO::Clone(LO *ploBase)
         {
             int cb = sizeof(LVO);
             ppart->plvo = (LVO *)PvAllocSwCopy(cb, ppart->plvo);
-            ppart->plvo->mpiposvLocal = (VECTOR *)PvAllocSwCopy(ppart->meshLocal.cpos * 0x10, ppart->plvo->mpiposvLocal);
-            ppart->plvo->mpiposdvLocal = (VECTOR *)PvAllocSwCopy(ppart->meshLocal.cpos * 0x10, ppart->plvo->mpiposdvLocal);
-            ppart->plvo->mpisurfsurfx = (SURFX *)PvAllocSwCopy(ppart->meshLocal.csurf * 0xC, ppart->plvo->mpisurfsurfx);
+            ppart->plvo->mpiposvLocal = (VECTOR *)PvAllocSwCopy(ppart->meshLocal.numPositions * 0x10, ppart->plvo->mpiposvLocal);
+            ppart->plvo->mpiposdvLocal = (VECTOR *)PvAllocSwCopy(ppart->meshLocal.numPositions * 0x10, ppart->plvo->mpiposdvLocal);
+            ppart->plvo->mpisurfsurfx = (SURFX *)PvAllocSwCopy(ppart->meshLocal.numSurfaces * 0xC, ppart->plvo->mpisurfsurfx);
         }
     }
     if (physics)

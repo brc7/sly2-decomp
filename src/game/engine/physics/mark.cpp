@@ -318,9 +318,9 @@ int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int 
 {
     int ilsg = 0;
     int clsg = 0;
-    int iedge = ppart->meshWorld.cedge;
-    EDGE *aedge = ppart->meshWorld.aedge;
-    qword *apos = (qword *)ppart->meshWorld.apos;
+    int iedge = ppart->meshWorld.numEdges;
+    EDGE *aedge = ppart->meshWorld.edges;
+    qword *apos = (qword *)ppart->meshWorld.positions;
     for (iedge--; iedge >= 0; iedge--) {
         EDGE *pedge = &aedge[iedge];
         clsg += ClsgClipEdgeToBsp(absp, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], clsgMax - clsg, &alsg[clsg]);
@@ -337,8 +337,8 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
 {
     int ilsg = 0;
     int clsg = 0;
-    qword *apos = (qword *)part->meshWorld.apos;
-    SURF *asurf = part->meshWorld.asurf;
+    qword *apos = (qword *)part->meshWorld.positions;
+    SURF *asurf = part->meshWorld.surfaces;
     int i;
     for (i = numNodes - 1; i >= 0; i--)
         nodes[i].psurf->grf |= 1;
@@ -356,7 +356,7 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
                 if ((psurfOther->grf ^ 1) & 1)
                     continue;
             }
-            clsg += ClsgClipEdgeToBsp(bspPart->bspc.absp, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], maxSegments - clsg, &segments[clsg]);
+            clsg += ClsgClipEdgeToBsp(bspPart->bspc.nodes, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], maxSegments - clsg, &segments[clsg]);
             for (; ilsg < clsg; ilsg++)
                 segments[ilsg].pedge = pedge;
         }
@@ -902,7 +902,7 @@ namespace M_CsbiIntersectSphereBsp {
 // The contacts of a sphere (centre pos, radius sRadius) with the camera hull of a collision part: the first pbspLimit nodes of ppart->bspc.absp. At most
 // ccontactMax CMCONTACTs (bsp.h) go to acontact; returns how many. Callers: SquishCmEye 0x14EDA0 (eye sphere, cbsp 0 / absp NULL / up to 64) and
 // TryCollectDprize 0x1C5B20 (prize sphere, pbspLimit 0x7FFFFFFF, one contact is enough). Steps (all proven by the draft's instruction stream):
-//  1. absp == NULL: allocate min(cbspFull, 0x1555) nodes on the stack (STACKSCOPE) and PruneBsp 0x118A88 the tree to the sphere. PRUNE_Pos (wholly outside) -> 0;
+//  1. absp == NULL: allocate min(numNodesAllocated, 0x1555) nodes on the stack (STACKSCOPE) and PruneBsp 0x118A88 the tree to the sphere. PRUNE_Pos (wholly outside) -> 0;
 //     PRUNE_Neg (wholly inside) -> step 6; else cbsp = nodes written, the last one is the root.
 //  2. Every SURF of the pruned tree gets grf 0x10.
 //  3. Faces: for each surface (0x10, not 0x40; sets 0x40) the segment pos + r*n .. pos - r*n is clipped to the pruned tree (ClsgClipEdgeToBsp, 16 LSGs);
@@ -1024,12 +1024,12 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
         if (absp == 0)
         {
             int cbspAlloc = 0x1555;
-            if (ppart->bspc.cbspFull < 0x1555)
-                cbspAlloc = ppart->bspc.cbspFull;
+            if (ppart->bspc.numNodesAllocated < 0x1555)
+                cbspAlloc = ppart->bspc.numNodesAllocated;
             cbspLeft = cbspAlloc;
             absp = (BSP *)PvAllocStack(cbspAlloc * sizeof(BSP));
             pbsp = absp;
-            PRUNE prune = PruneBsp(ppart->bspc.absp, pbspLimit, sRadius, *(qword *)&pos, &cbspLeft, &pbsp);
+            PRUNE prune = PruneBsp(ppart->bspc.nodes, pbspLimit, sRadius, *(qword *)&pos, &cbspLeft, &pbsp);
             if (prune == PRUNE_Neg)
                 goto inside;
             if (prune == PRUNE_Pos)
@@ -1087,8 +1087,8 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
         ccontactFace = ccontact;
         for (i = cbsp; --i >= 0; )
         {
-            VECTOR4 *apos = (VECTOR4 *)ppart->meshWorld.apos;
-            SURF *asurf = ppart->meshWorld.asurf;
+            VECTOR4 *apos = (VECTOR4 *)ppart->meshWorld.positions;
+            SURF *asurf = ppart->meshWorld.surfaces;
             pbspNode = &absp[i];
             psurf = pbspNode->psurf;
             if (psurf->grf & 0x10)
@@ -1195,7 +1195,7 @@ nextedge:
                 pcontact->pos = avert[iv].pos;
                 pcontact->plane = avert[iv].plane;
                 pcontact->kind = 4;
-                pcontact->pv = &((VECTOR4 *)ppart->meshWorld.apos)[ivert];
+                pcontact->pv = &((VECTOR4 *)ppart->meshWorld.positions)[ivert];
                 if (ccontact >= ccontactMax)
                     break;
             }
@@ -1209,10 +1209,10 @@ clear:
             psurf->grf = (int)psurf->grf & ~0xF0;
         }
 inside:
-        if (ccontact == 0 && PbspPointInBsp(ppart->bspc.absp, pbspLimit, pos) != 0)
+        if (ccontact == 0 && PbspPointInBsp(ppart->bspc.nodes, pbspLimit, pos) != 0)
         {
             ccontact = 1;
-            ContactInsideBsp(sRadius, ppart->bspc.absp, pbspLimit, &ppart->meshWorld, pos, acontact);
+            ContactInsideBsp(sRadius, ppart->bspc.nodes, pbspLimit, &ppart->meshWorld, pos, acontact);
         }
     }
 done:
@@ -1515,8 +1515,8 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
     SOPART *ppart;
     SOPART *ppartOther;
     for (ppart = PPART_FIRST(largeTree); ppart; ppart = PPART_NEXT(ppart))
-        if (cnodeMax < ppart->bspc.cbspFull)
-            cnodeMax = ppart->bspc.cbspFull;
+        if (cnodeMax < ppart->bspc.numNodesAllocated)
+            cnodeMax = ppart->bspc.numNodesAllocated;
     SCOPE2 stackscope;
     cnodeMax = MinInt(cnodeMax, 0x1555);
     BSP *absp = (BSP *)AllocFromStack(ALLOCREQ(cnodeMax * sizeof(BSP), 0x10));
@@ -1537,7 +1537,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             query.c = cnodeMax;
             pbspLast = absp;
             pbspFirst = absp;
-            status = PruneBspP(ppart->bspc.absp, (BSP *)0x7FFFFFFF, smallTree->boundsCenter, smallTree->boundsRadius, &query.c, &pbspLast);
+            status = PruneBspP(ppart->bspc.nodes, (BSP *)0x7FFFFFFF, smallTree->boundsCenter, smallTree->boundsRadius, &query.c, &pbspLast);
             if (status == 1)
                 continue;
             if (status == 0) {
@@ -1580,9 +1580,9 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             }
             XP *pxpPrev = *ppxp;
             if (ppartOther->worldStamp != ppartOther->meshStamp || ppart->worldStamp != ppart->meshStamp) {
-                if (ppartOther->unknown1C < ppartOther->meshLocal.cpos)
+                if (ppartOther->unknown1C < ppartOther->meshLocal.numPositions)
                     MarkSoContactsSweptVertices(world, ppartOther, ppart, ppxp);
-                if (ppart->unknown1C < ppart->meshLocal.cpos)
+                if (ppart->unknown1C < ppart->meshLocal.numPositions)
                     MarkSoContactsSweptVertices(world, ppart, ppartOther, ppxp);
             }
             if (*ppxp == pxpPrev) {
@@ -1624,11 +1624,11 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             }
         }
         if (!ppart->unknownFlag10A)
-            AddZapResponderXps(world, smallTree, largeTree, ppart, ppart->bspc.cbspFull, ppart->bspc.absp, ppart->bspc.absp, &pxpFirst);
+            AddZapResponderXps(world, smallTree, largeTree, ppart, ppart->bspc.numNodesAllocated, ppart->bspc.nodes, ppart->bspc.nodes, &pxpFirst);
     }
     for (ppartOther = PPART_FIRST(smallTree); ppartOther; ppartOther = PPART_NEXT(ppartOther))
         if (!ppartOther->unknownFlag10A)
-            AddZapResponderXps(world, largeTree, smallTree, ppartOther, ppartOther->bspc.cbspFull, ppartOther->bspc.absp, ppartOther->bspc.absp, &pxpFirst);
+            AddZapResponderXps(world, largeTree, smallTree, ppartOther, ppartOther->bspc.numNodesAllocated, ppartOther->bspc.nodes, ppartOther->bspc.nodes, &pxpFirst);
     return pxpFirst;
 }
 

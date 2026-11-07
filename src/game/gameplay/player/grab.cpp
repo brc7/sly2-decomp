@@ -441,7 +441,7 @@ struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
 struct XP;
 struct SW;
 struct ASEGA;
-struct GEOM { int cpos; qword *apos; };
+struct GEOM { int numPositions; qword *positions; };
 struct SO {
     char pad0[0xC]; VTE *vt; ulong flags; char pad18[0x6C - 0x18]; int cbsp; char pad70[4]; BSP *absp;
     char pad78[0x90 - 0x78]; GEOM geomWorld;
@@ -543,8 +543,8 @@ static inline void ProbeGround(CONTEXT *p)
     GEOM *pgeom = &psoSelf->geomWorld;
     int cbspMax = 0;
     UpdateSoPartGeom(psoSelf);
-    qword posMin = VecMinArray(pgeom->cpos, pgeom->apos);
-    qword posMax = VecMaxArray(pgeom->cpos, pgeom->apos);
+    qword posMin = VecMinArray(pgeom->numPositions, pgeom->positions);
+    qword posMax = VecMaxArray(pgeom->numPositions, pgeom->positions);
     IntersectSwBoundingBox(&D_003DD490, posMin, posMax, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++)
         if (cbspMax <= apso[i]->cbsp)
@@ -2631,9 +2631,9 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     if (grf & 1)
     {
         DL *pdlTarget = &D_003DD490.dlTarget;
-        for (TARGET *target = (TARGET *)pdlTarget->head; target; target = (TARGET *)target->dleTarget.next)
+        for (TARGET *target = (TARGET *)pdlTarget->head; target; target = (TARGET *)target->targetListLink.next)
         {
-            if ((target->grftak & 1) && IsBasicDerivedFrom(target, (CID)19))
+            if ((target->targetKindFlags & 1) && IsBasicDerivedFrom(target, (CID)19))
                 AddJtGrabCandidate(world, player, qwPosJt, target, (CID19 *)target, 4, candidates);
         }
     }

@@ -355,11 +355,11 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
         for (int j = 0; j < 2; j++)
         {
             SHAPE *shape = (SHAPE *)CreateLo((CID)10, hands->owner, (OID)0xB2, -1);
-            shape->crvk = (CRVK)0;
-            shape->ccv = D_002C1ED0;
-            shape->mpicvu = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
-            shape->mpicvs = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
-            shape->mpicvpos = (VECTOR4 *)AllocFromWorldHeapAligned(D_002C1ED0 << 4, 16);
+            shape->curveKind = (CRVK)0;
+            shape->numControlVertices = D_002C1ED0;
+            shape->vertexParams = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
+            shape->vertexArcLengths = (float *)AllocFromWorldHeapAligned(D_002C1ED0 << 2, 16);
+            shape->vertexPositions = (VECTOR4 *)AllocFromWorldHeapAligned(D_002C1ED0 << 4, 16);
             MATRIX4 matSample;
             XF *pxfEffect;
             if (j == 0)
@@ -377,9 +377,9 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
                 MATRIX4 matOut;
                 float u = (float)k / (float)(D_002C1ED0 - 1);
                 PredictAsegEffect(u * aseg->tMax, aseg, hands->owner, 0.0f, pxfEffect, hands->owner->rootTransform, &matOut, 0);
-                shape->mpicvu[k] = u;
+                shape->vertexParams[k] = u;
                 qword pos = TransformPos(&matOut, *(qword *)matSample.mat[3]);
-                shape->mpicvpos[k] = *(VECTOR4 *)&pos;
+                shape->vertexPositions[k] = *(VECTOR4 *)&pos;
             }
             shape->Remove();
             MeasureShape(shape);

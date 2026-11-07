@@ -1292,7 +1292,7 @@ void UpdateJtLean(JT *jt)
                     *(qword *)&vecLean = ScaleVec(*(qword *)&vecDir, VuFloat(gSpeed));
                     float sAhead = jt->jtgrab.spotDistance + gSpeed * D_002BF2D0;
                     float sMax = GetShapeMaxDistance((SHAPE *)lo);
-                    if (((SHAPE *)lo)->fClosed) {
+                    if (((SHAPE *)lo)->isClosed) {
                         sAhead = ModPositive(sAhead, sMax);
                     } else {
                         float sMin = GetShapeMinDistance((SHAPE *)lo);

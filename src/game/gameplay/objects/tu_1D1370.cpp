@@ -1419,7 +1419,7 @@ struct EDGE { ushort aipos[2]; ushort aisurf[2]; EDGE *pedgeNext; EDGE *pedgeOth
 struct SURF { qword plane; EDGE *pedge; EDGE *pedgeOther; int grf; int ipos; };
 struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };
-struct GEOM { int cpos; qword *apos; int csurf; SURF *asurf; int cedge; EDGE *aedge; };
+struct GEOM { int numPositions; qword *positions; int numSurfaces; SURF *surfaces; int numEdges; EDGE *edges; };
 struct SOPART { char pad0[0x90]; GEOM meshWorld; };
 struct SUPPORT { qword pos; SURF *apsurf[2]; int fUsed; int pad; };
 struct SWALLOC { int cb; int cbAlign; };
@@ -1573,7 +1573,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
     if (PruneBspBySphere(pbspRoot, (BSP *)0x7FFFFFFF, frame.r[3].q, SqrtFloat(radius * radius + height * height), &cbspLeft, &pbsp) != 2)
         return;
     int cbsp = pbsp - absp;
-    SURF *asurf = ppart->meshWorld.asurf;
+    SURF *asurf = ppart->meshWorld.surfaces;
     pbsp--;
     int i;
     SURF *psurf;
@@ -1593,8 +1593,8 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
                 psurfOther = &asurf[pedge->aisurf[1]];
             if (!(psurfOther->grf & 0x400))
                 continue;
-            qword pos0 = ppart->meshWorld.apos[pedge->aipos[0]];
-            qword pos1 = ppart->meshWorld.apos[pedge->aipos[1]];
+            qword pos0 = ppart->meshWorld.positions[pedge->aipos[0]];
+            qword pos1 = ppart->meshWorld.positions[pedge->aipos[1]];
             float d0 = PlaneDist(plane, pos0);
             float d1 = PlaneDist(plane, pos1);
             float u = d0 / (d0 - d1);

@@ -30,7 +30,7 @@ void HND::Init()
     HNDV *hand = (HNDV *)this;
       InitTarget(hand);
       InitGrabspot((GRABSPOT *)hand->grabspot);
-      hand->grftak = 1;
+      hand->targetKindFlags = 1;
       hand->grabAnimA = 8;
       hand->grabAnimB = 9;
 }
