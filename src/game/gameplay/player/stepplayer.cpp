@@ -310,14 +310,14 @@ void UpdateStepplayerHideBlend(struct P *p);
 void PickHeroInteractTarget(struct P *p);
 int IsAsegaRetracted(int x);
 void DropAsegaRef(int *px);
-int FActiveCplcy__FP5CPLCY(void *p);
+int IsCameraPolicyActive__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
 void OpenGadgetMenuForHero(void *p);
 void UpdateBhvstk(int *p);
 /** @sly2-annot addr=0x1403D0
  * Purpose: STEPPLAYER vt16 per-frame: STEP update 0x203FC0, input/actions, vehicle/ride component (+0xFD0),
  *   interact-target pick 0x142AF8, gadget/menu button handling when the default camera policy is active
- *   (FActiveCplcy(g_cm+0x3A0))
+ *   (IsCameraPolicyActive(g_cm+0x3A0))
  * Info: proposed name UpdateStepplayer (T1); class STEPPLAYER slot16; TU stepplayer
  * Notes: runtime6 P1: calls the top BHV slot 14 with the POCTL (AI partner, S62)
  * Confidence: mid (draft) [T1 0.70] - evidence: runtime (save-state RAM); semantic review; sources:
@@ -352,7 +352,7 @@ void UpdateStepplayer(struct P *player)
     PickHeroInteractTarget(player);
     if (player->xEFC && IsAsegaRetracted(player->xEFC))
         DropAsegaRef(&player->xEFC);
-    if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
+    if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
 
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & (BUTTON_GADGET_MENU | BUTTON_RUN)) == BUTTON_GADGET_MENU) {

@@ -112,8 +112,8 @@ void FadeSoOut(LOV *plo, float f);
 void PlayWidgetAnimWithArg(WIDGETV *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
 RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
-int FInsideCmFrustum(CMV *, qword, qword);
-int FInsideCmMrd(CMV *, qword, float, float *);
+int IsInCameraFrustum(CMV *, qword, qword);
+int IsWithinCameraRenderDistance(CMV *, qword, float, float *);
 void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
 void StopWidgetAnim(WIDGETV *, int);
@@ -163,7 +163,7 @@ int IsReconTargetSelectable(RECONTGT *p);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);                    /* FIsBasicDerivedFrom__FP5BASIC3CID */
 LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");         /* PloFindSwObject__FP2SWi3OIDP2LO */
 const char *PchzFindSwLangstr(SW *psw, int oid);                    /* PchzFindSwLangstr__FP2SWi */
-int FActiveCplcy(CPLCY *pcplcy);                                    /* FActiveCplcy__FP5CPLCY */
+int IsCameraPolicyActive(CPLCY *pcplcy);                                    /* IsCameraPolicyActive__FP5CPLCY */
 
 #define BIT60(o) ((int)((o)->fl28 >> 60) & 1)
 
@@ -512,9 +512,9 @@ void SelectReconTarget(RECONSEL *reconSel)
             camera = &D_002DDF40;
             radius.q = ScalarBits(&o->sRadius);
             PlaneArguments(&eye, &threshold, &point, radius.q, &camera->v.position, &position.q);
-            if (!FInsideCmFrustum(camera, PlaneDelta(point, eye), threshold))
+            if (!IsInCameraFrustum(camera, PlaneDelta(point, eye), threshold))
                 continue;
-            if (!FInsideCmMrd(camera, GetLoWorldPos(o), o->height, &screen.f[0]))
+            if (!IsWithinCameraRenderDistance(camera, GetLoWorldPos(o), o->height, &screen.f[0]))
                 continue;
             distance = LengthXY(SubSecond(position.q, camera->v.position));
             if (distance < minimum) {
@@ -945,11 +945,11 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     case 4:
     case 5:
     case 6:
-        if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 10, 0.0f))
+        if (!IsCameraPolicyActive(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 10, 0.0f))
             SetReconSelState(reconSel, 8);
         break;
     case 7:
-        if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 250, 0.0f))
+        if (!IsCameraPolicyActive(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 250, 0.0f))
             SetReconSelState(reconSel, 8);
         break;
     }

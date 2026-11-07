@@ -51,7 +51,7 @@ struct CPLCY : public CPLCYDATA
     virtual void Revoke() __asm__("CPLCY_Revoke");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
     virtual void VSlot7() __asm__("ResetCplcy");
-    int FIsTop() __asm__("FActiveCplcy__FP5CPLCY");   /* from FCanUseGadget__2JTi.cpp */
+    int FIsTop() __asm__("IsCameraPolicyActive__FP5CPLCY");   /* from FCanUseGadget__2JTi.cpp */
 };
 
 /* CMPART1: an embedded camera policy of CM at +0x3A0 (role not identified; placeholder name).
@@ -66,7 +66,7 @@ struct CMPART1 : public CPLCY
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLOOK : public CPLCY
 {
-    virtual void VSlot7() __asm__("func_001505D8");   /* key function (cplcy.cpp) */
+    virtual void VSlot7() __asm__("ResetCplook");   /* key function (cplcy.cpp) */
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplook");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplook");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplook");
@@ -92,7 +92,7 @@ struct CPLOOK : public CPLCY
    Layout from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (6 copies in Lilly ports) */
 struct CPZOOM : public CPLCY
 {
-    virtual void VSlot7() __asm__("func_00150DE8");   /* key function (cplcy.cpp) */
+    virtual void VSlot7() __asm__("ResetCpzoom");   /* key function (cplcy.cpp) */
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpzoom");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpzoom");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpzoom");
@@ -168,7 +168,7 @@ struct CPTURRET : public CPLCY
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPCAMERA : public CPLCY
 {
-    virtual void Activate(void *pvHero, void *pv) __asm__("func_0012E798");   /* key function (tu_12E600) */
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpcamera");   /* key function (tu_12E600) */
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpcamera");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpcamera");
       CID44 *pcamera;   /* the placed camera object */

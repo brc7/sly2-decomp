@@ -117,7 +117,7 @@ struct GLOBSET
       WRBG *pwrbgFirst;   /* first warp/bend record */
       void *pbatchrecsFirst;   /* first render batch record */
     /* Out of line at 0x167310 (glob.cpp): stores -1 into nUnk4c. Called by every constructor of an SO-derived class
-       (the New<Class> factories of class_registry.cpp, rip.cpp's PripgNew). */
+       (the New<Class> factories of class_registry.cpp, rip.cpp's NewRipGroup). */
     GLOBSET();
 };
 

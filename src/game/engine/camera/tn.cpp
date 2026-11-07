@@ -379,7 +379,7 @@ extern LM D_002C41B0;
 extern float D_002C41E4;
 extern float D_002C41E8;
 extern float D_002C41EC;
-static inline qword QwToVu(qword qw)
+static inline qword MoveToVu(qword qw)
 {
     qword qwOut;
     __asm__("qmtc2 %1, %0" : "=j"(qwOut) : "r"(qw));
@@ -396,7 +396,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
         g = gMax;
     return g;
 }
-static inline float GSmoothStep(float u)
+static inline float SmoothStep(float u)
 {
     return u * u * (3.0f - (u + u));
 }
@@ -479,7 +479,7 @@ int HasCameraBsp(void *pv, SO *pso);
 void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
 qword ConvertCmWorldToScreen(CM *pcm, qword pos);
 qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
-int FFindCmClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
+int FindCameraClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
 qword FindCmClosestClearPos(int, SOPART **, qword, float);
 qword SquishCmEye(CM *, int, SOPART **, float (*)(void *, qword, qword, PLANEREC *), qword, qword, float, float);
 void InitVuTemp(void *p);
@@ -954,7 +954,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 //    (lqc2 0(v0) after addiu -0x1DE0); the pull's length through GXOfQw (reload's qmfc2 + asm mtc1 schedule after the clqPull address);
 //    ptn->pshape read only after the fEntered test; tManual stored before fArrived; the idle ramp's 0 in an else arm; the enter ramp's product
 //    in its own variable (gEnter); the time-since-manual factor through GLimitRange (gMin in f6, gMax in f7).
-// Everything else was found in T1146 / T1203: the two normalise shapes (A: register result, fallback lq before the branch, QwLengthUntied; B: QwToVu,
+// Everything else was found in T1146 / T1203: the two normalise shapes (A: register result, fallback lq before the branch, QwLengthUntied; B: MoveToVu,
 // the arms store to the VECTOR4), GMin for min.s, the switch on nMode, the chain assignments, g_clock.dt re-read at every use, the pull-vFocus
 // fallback g_qwZero.
 // What it does, in order:
@@ -1114,7 +1114,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         *(qword *)&dpos = QwSub(PosLoWorld(ptnCur->ploPull), *(qword *)&pcpdefi->posBase);
         dpos.z = 0.0f;
         qword *pqwFallback = &D_002A2DD0;
-        qword qwDir = QwToVu(*(qword *)&dpos);
+        qword qwDir = MoveToVu(*(qword *)&dpos);
         qword qwLen = QwLengthUntied(qwDir);
         if (GFromVf(qwLen) < 0.0001f)
         {
@@ -1206,7 +1206,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         qword *pqwFallbackView = &D_002A2DA0;
         *(qword *)&vecView = QwSub(*(qword *)&posHang, *(qword *)&pcm->pos);
         vecView.z *= 0.3f;
-        qword qwView = QwToVu(*(qword *)&vecView);
+        qword qwView = MoveToVu(*(qword *)&vecView);
         qword qwLenView = QwLengthUntied(qwView);
         if (GFromVf(qwLenView) < 0.0001f)
         {
@@ -1473,7 +1473,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                         radPanRevNew += 6.2831855f;
                 }
                 u = (radPan - radPanRevNew) / (radPanFwdNew - radPanRevNew);
-                u = GSmoothStep(u);
+                u = SmoothStep(u);
             }
             uFrameYWant = pcpd->uFrameY;
             sDistOut = u * sDistFwd + (1.0f - u) * sDistRev;
@@ -1556,41 +1556,41 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 // Every D_002C4110 (0.5) seconds it looks at five points around the hero (PosLoWorld + back * x + side * y + up * z
 // for the five offsets in D_002C4290; side = normalize(up x (hero - eye)) or (1, 0, 0) when the hero is straight
 // above). Each point is projected onto the screen, moved to the near clip depth and the segment between the two is
-// tested against the camera hulls (FFindCmClearInterval). The first visible point resets tLastSeen; when the hero
+// tested against the camera hulls (FindCameraClearInterval). The first visible point resets tLastSeen; when the hero
 // has been hidden for more than D_002C4114 (2.0) seconds the camera cuts (CutCm).
 // MATCH notes (Lilly's agent, T1578): STACKSCOPE needs its real out-of-line ctor/dtor (an inline wrapper calling
 // STACKSCOPE_ctor makes gcc keep hi(g_clock) in $fp). Loop 1 keeps a pointer to the current sample and loop 2 starts
 // from `pqw -= 4`: loop.c emits the pointer's final value after loop 1 and cse2 folds the rewind to sp+0x30, which
 // is why the game sets the loop-2 pointer in the STACKSCOPE constructor's delay slot. Any `&aqw[3]` written after
 // loop 1 is hoisted above loop 1 by gcse's PRE instead.
-static inline float GFromVfNi(qword qw)
+static inline float ReadVfX(qword qw)
 {
     float g;
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
 // v * (1 / |v|), with |v| in x of qwLen
-static inline qword QwScaleByInverse(qword v, qword qwLen)
+static inline qword ScaleByInverse(qword v, qword qwLen)
 {
     qword qw;
     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v));
     return qw;
 }
-static inline qword QwMiniXyz(qword qw0, qword qw1)
+static inline qword MinXyz(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vmini.xyz %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword QwMaxXyz(qword qw0, qword qw1)
+static inline qword MaxXyz(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vmax.xyz %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
 // back * v.x + side * v.y + up * v.z
-static inline qword QwAxesXyz(qword qwV, qword qwBack, qword qwSide, qword qwUp)
+static inline qword CombineAxes(qword qwV, qword qwBack, qword qwSide, qword qwUp)
 {
     qword qw;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(qw) : "j"(qwV), "j"(qwBack), "j"(qwSide), "j"(qwUp));
@@ -1623,22 +1623,22 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
     qword qwFallback = D_002A2DA0;
     qword qwLen = QwLengthUntied(qwCross);
     qword qwSide;
-    if (GFromVfNi(qwLen) < 0.0001f)
+    if (ReadVfX(qwLen) < 0.0001f)
     {
         qwSide = qwFallback;
     }
     else
     {
-        qwSide = QwScaleByInverse(qwCross, qwLen);
+        qwSide = ScaleByInverse(qwCross, qwLen);
     }
     aqw[9] = qwSide;
     aqw[8] = QwCross(aqw[10], qwSide);
     qword *pqw; // the current sample
     for (i = 0; i < 5; i++)
     {
-        qword pos = QwAdd(GetLoWorldPos(plo), QwAxesXyz(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
-        aqw[0] = QwMiniXyz(aqw[0], pos);
-        aqw[1] = QwMaxXyz(aqw[0], pos);
+        qword pos = QwAdd(GetLoWorldPos(plo), CombineAxes(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
+        aqw[0] = MinXyz(aqw[0], pos);
+        aqw[1] = MaxXyz(aqw[0], pos);
         pqw = &aqw[3 + i];
         *pqw = pos;
     }
@@ -1653,7 +1653,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
         ((VECTOR4 *)&aqw[2])->z = D_002DDF40.sNearClip;
         aqw[2] = ConvertCmScreenToWorld(&D_002DDF40, aqw[2]);
         float uExit;
-        if (FFindCmClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
+        if (FindCameraClearInterval(cpso, apso, *pqw, aqw[2], 0.0f, 0, &uExit) && 1.0f <= uExit)
         {
             pcmpart->tLastSeen = D_002DDED0.t;
             break;
@@ -1709,7 +1709,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
     IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,HasCameraBsp,0,&w.count,&w.objects);
     int count=w.count; SOPART **objects=w.objects;
     w.origin.q=FindCmClosestClearPos(count,objects,GetLoWorldPos(object),500.0f);
-    FFindCmClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
+    FindCameraClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
     if(w.high<one){
         float angle=initialAngle;
         p->state=4;
@@ -1720,7 +1720,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
             qword off=SetVectorCylind(w.phase+angle,w.radius,w.height);
             w.offset.q=off;
             w.rayEnd.q=Add(begin,off);
-            FFindCmClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
+            FindCameraClearInterval(w.count,w.objects,w.origin.q,w.rayEnd.q,minGap,&w.low,&w.high);
             float cost=(1.25f-w.high)*(GAbs(angle)+0.47123894f);
             if(cost<bestCost){
                 float left=1.0f-w.high;
@@ -1737,7 +1737,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
     final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
-    FFindCmClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
+    FindCameraClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;
         qword left=ScalarHome(w.offset,1.0f-u);

@@ -111,7 +111,7 @@ void EnterCritSect(CRITSECT *pcs);                                  /* EnterCrit
 void LeaveCritSect(CRITSECT *pcs);                                  /* LeaveCritSect__FP8CRITSECT */
 void InitCritSect(CRITSECT *pcs);                                   /* InitCritSect__FP8CRITSECT */
 int SemaCreate(int a, int b);                                       /* SemaCreate__Fii */
-int FBuildUploadBitmapGifs(int f, GSB *pgsb, GIFS *pgifs);          /* FBuildUploadBitmapGifs__FiP3GSBP4GIFS */
+int BuildUploadBitmapGifs(int f, GSB *pgsb, GIFS *pgifs);          /* BuildUploadBitmapGifs__FiP3GSBP4GIFS */
 
 void BlendDisplayOnBufferMismatch();
 int VBlankS_Interrupt(int ch);
@@ -133,7 +133,7 @@ void PadGsbToPage(GSB *gsb);
 extern "C" void GS_InterruptV() __asm__("GS_Interrupt__Fi");
 extern "C" void BuildClearGifsP(QW *aqw, int *prgba, int n) __asm__("BuildClearGifs__FP2QWG4RGBAi");
 
-static inline int FField(void)
+static inline int ReadFieldBit(void)
 {
     unsigned int bits;
     __asm__ __volatile__("lw %0,0x12001000":"=r"(bits):"X"(*(volatile unsigned int*)0x12001000));
@@ -172,7 +172,7 @@ void BlendDisplayOnBufferMismatch()
     int field = D_002DEDB8;
     int i = D_002DEDB0 & 1;
     PMODE pmode = D_002DEB80[i].pmode;
-    if (field != FField()) {
+    if (field != ReadFieldBit()) {
         DISPLAY display = *(DISPLAY *)((char *)&D_002DEB80[0].display + i * sizeof(DISPENV));
         DISPFB dispfb = *(DISPFB *)((char *)&D_002DEB80[0].dispfb + i * sizeof(DISPENV));
         display.DH -= 1;
@@ -228,7 +228,7 @@ void SyncVBlank()
     func_00234A60(D_002DFB4C);
 }
 
-static inline int FFieldCsr() { return ((CSR *)0x12001000)->FIELD; }
+static inline int ReadCsrFieldBit() { return ((CSR *)0x12001000)->FIELD; }
 // Presents the frame: waits for vblank, picks the field for the next frame, sets the draw environment's half-pixel
 // offset for it, and swaps the double-buffered display/draw environments (sceGsSwapDBuff), under the GS critical
 // section.
@@ -242,7 +242,7 @@ void SwapGsBuffers()
         D_002DEDB4 = 0;
         D_002BE594--;
     } else {
-        D_002DEDB4 = FFieldCsr() == 0;
+        D_002DEDB4 = ReadCsrFieldBit() == 0;
     }
     EnterCritSect(&D_002DFB40);
     sceGsSetHalfOffset((D_002DEDB0 & 1) ? &D_002DEBE0 : &D_002DECD0, 0x800, 0x800, D_002DEDB4);
@@ -263,7 +263,7 @@ void RestoreGsBuffers()
         D_002DEDBC = 2;
     if (D_002DFB60) {
         D_002DFB60 = 0;
-        D_002DEDB4 = FFieldCsr() == 0;
+        D_002DEDB4 = ReadCsrFieldBit() == 0;
         sceGsSetHalfOffset((D_002DEDB0 & 1) ? &D_002DECD0 : &D_002DEBE0, 0x800, 0x800, D_002DEDB4);
         func_00234CA0(0);
         sceGsPutDrawEnv((D_002DEDB0 & 1) ? &D_002DECC0 : &D_002DEBD0[0]);
@@ -547,7 +547,7 @@ void ClearFrameBuffers()
 SLY2_SCRAP("addiu $sp, $sp, 0x4d0");
 
 // Returns ceil(log2(value)) (0 for 0 and 1, at most 31): used for texture width/height exponents.
-uint NLog2(uint value)
+uint CeilLog2(uint value)
 {
     uint log2 = 0;
     uint bit = 1;
@@ -667,7 +667,7 @@ void UploadBitmaps(GSB *gsb)
     STACKSCOPE_ctor(&mk);
     gifs.AllocSw(((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     gifs.AddDmaCnt();
-    if (FBuildUploadBitmapGifs(1, gsb, &gifs)) {
+    if (BuildUploadBitmapGifs(1, gsb, &gifs)) {
         gifs.AddPrimPack(0, 1, 0xE);
         gifs.PackAD(0x3F, 0);
         gifs.PackAD(0x61, 0);
@@ -682,5 +682,5 @@ void UploadBitmaps(GSB *gsb)
 // Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) (inferred)
 extern "C" void AllocGsbBitmaps(GSB *gsb)
 {
-    FBuildUploadBitmapGifs(1, gsb, 0);
+    BuildUploadBitmapGifs(1, gsb, 0);
 }

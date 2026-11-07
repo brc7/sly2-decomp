@@ -942,7 +942,7 @@ extern float D_002C0D90;
 extern struct G D_003DD490;
 qword ConvertAloVec(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
-struct Q *PripNewRipg(struct G *,void *,void *);
+struct Q *NewRipInGroup(struct G *,void *,void *);
 qword GetLoWorldPos(void *);
 // Dot product.
 static inline float Dot(qword a,qword b)
@@ -960,7 +960,7 @@ static inline float Max(float a,float b)
     __asm__("max.s %0,%0,%1":"+f"(a):"f"(b));
     return a;
 }
-// spawn sparkle rip (PripNewRipg) at prize position periodically. (inferred)
+// spawn sparkle rip (NewRipInGroup) at prize position periodically. (inferred)
 void EmitDprizeGlint(struct S *prize)
 {
     union U scale;
@@ -977,7 +977,7 @@ void EmitDprizeGlint(struct S *prize)
                 if(Dot(direction,D_002DDF40.a)<0)emitter=prize->left;
                 else emitter=prize->right;
                 if(!emitter)goto changed;
-                q=PripNewRipg(&D_003DD490,(void *)4,0);
+                q=NewRipInGroup(&D_003DD490,(void *)4,0);
                 if(!q)goto changed;
                 prize->last=D_002DDED0.t;
                 {
@@ -1061,7 +1061,7 @@ extern char D_003DD490[];
 extern char D_002C0DA0[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
-struct X *PripNewRipg(void *pg, int a, int b);
+struct X *NewRipInGroup(void *pg, int a, int b);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
 void AwardCoin(struct S *p, int n);
@@ -1079,7 +1079,7 @@ void SetCoinDprizes(struct S *coin, int n)
         coin->lifetimeLeft = GRandInRange__Fff(coin->lifetimeMin, coin->lifetimeMax);
         break;
     case 1: {
-        struct X *px = PripNewRipg(D_003DD490, 9, 0);
+        struct X *px = NewRipInGroup(D_003DD490, 9, 0);
         struct LO *plo;
         if (px) {
             struct VTE *e;
@@ -1175,7 +1175,7 @@ extern char D_003DD490[];
 extern char D_002C0E10[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
-struct X *PripNewRipg(void *pg, int a, int b);
+struct X *NewRipInGroup(void *pg, int a, int b);
 struct LO *GetHeroPo(void *pg);
 qword GetLoWorldPos(struct S *p);
 struct MAT *GetLoWorldMatrix(struct S *p);
@@ -1201,7 +1201,7 @@ void SetMedicineDprizes(struct S *medicine, int n)
             n = medicine->state;
             break;
         }
-        px = PripNewRipg(D_003DD490, 9, 0);
+        px = NewRipInGroup(D_003DD490, 9, 0);
         if (px) {
             struct VTE *e;
             px->smackTarget = medicine;

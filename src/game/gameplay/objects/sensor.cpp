@@ -841,7 +841,7 @@ extern "C" void MoveLasenEndpoints(LASENV *laser)
     }
 }
 
-/* RenderLasenSelf: after RenderSoSelf and a camera test of the tree's bounding sphere (FInsideCmFrustum), each beam is
+/* RenderLasenSelf: after RenderSoSelf and a camera test of the tree's bounding sphere (IsInCameraFrustum), each beam is
    queried for its two endpoints and length (GetLasenBeamEnds). A beam longer than its visible length is pulled back
    toward the first endpoint, then the line object, the stretched middle object and the two end caps are placed along
    it in a basis built from its direction (BuildOrthonormalMatrixZ). What mattered for the match (sched1/local-alloc/
@@ -862,7 +862,7 @@ struct VU_FLOAT {
     VU_FLOAT(const float *laser, int) { __asm__ __volatile__("" : "=r"(q) : "0"(*(const int *)laser)); }
 };
 extern "C" {
-int FInsideCmFrustum(CAMERA *pcm, qword pos, VU_FLOAT sRadius);
+int IsInCameraFrustum(CAMERA *pcm, qword pos, VU_FLOAT sRadius);
 void RenderLoAlongSegment(ALO *palo, qword posA, qword posB, float a, float b);
 M3 BuildOrthonormalMatrixZ(qword dir, qword up);
 M4 LoadMatrixFromPosRotScale(qword pos, const M3 *pmat, const U *pscale);
@@ -917,7 +917,7 @@ extern "C" void RenderLasenSelf(LASENV *laser)
     qword boundPosition = bound->qwCenter.q;
     VU_FLOAT radius(&bound->sRadius, 0);
     qword relativePosition = Subtract(boundPosition, cam->position.q);
-    if (!FInsideCmFrustum(cam, relativePosition, radius)) return;
+    if (!IsInCameraFrustum(cam, relativePosition, radius)) return;
     U points[2];
     M3 basis;
     float dist;

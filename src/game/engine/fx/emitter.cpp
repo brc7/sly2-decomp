@@ -8,9 +8,9 @@
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does);
 // their C++-named definitions are C-linkage definitions of their literal symbols there (the namespace would change
 // the mangling), as in wave 9.
-// The static initializer (func_0015CAD8, stub func_0015CD48) is generated from the two emitter defaults and the six
+// The static initializer (StaticInit_emitter, stub func_0015CD48) is generated from the two emitter defaults and the six
 // slot pools below.
-// SLY2_ALIAS: __static_initialization_and_destruction_0=func_0015CAD8
+// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_emitter
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015CD48
 
 #include "sly2/basic.h"
@@ -493,10 +493,10 @@ extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSG
 #define SLY2_ENUM_ENSK
 enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 #endif
-EMITTERV * PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
+EMITTERV * EnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("EnsureEmitter__FP7EMITTER4ENSK");
 // Accessor used by the property system: returns the emitter, marking it dirty (values changed) when the access is a
 // write.
-EMITTERV *PemitterEnsureEmitter(EMITTERV *pemitter, ENSK ensk)
+EMITTERV *EnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 {
     if (ensk == ENSK_Set) {
         pemitter->fDirty = ensk;
@@ -620,7 +620,7 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
-int FPausedEmitter(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
+int IsEmitterPaused(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
 void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
 void PauseEmitterIndefinite(EMITTERV *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void ModifyEmitterParticles(EMITTERV *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
@@ -669,7 +669,7 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *emitter, float dt)
             return;
     }
 LActive:   /* near the camera (or not tied to a parent) */
-    if (FPausedEmitter(emitter))
+    if (IsEmitterPaused(emitter))
         return;
 
     int numToEmit = 0;
@@ -784,7 +784,7 @@ void UnpauseEmitter(EMITTERV *pemitter)
     pemitter->tUnpause = -1.0f;
 }
 
-namespace M_FPausedEmitter__FP7EMITTER {
+namespace M_IsEmitterPaused__FP7EMITTER {
 extern "C" { extern CLOCK D_002DDED0; }
 struct EMITTERV { char pad[0xF0]; int emitMode; int particleCount; char pad2[0x148 - 0xF8]; float tUnpause; };
 // Returns whether the emitter is paused: before its unpause time, or (continuous and constant-count modes) with no particles left to
@@ -801,7 +801,7 @@ extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
     }
     return 0;
 }
-} // namespace M_FPausedEmitter__FP7EMITTER
+} // namespace M_IsEmitterPaused__FP7EMITTER
 
 void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 // Called when the emitter's properties changed: clears the dirty flag, pushes the new emission parameters to its blip
@@ -863,7 +863,7 @@ namespace M_WakeSoWater__FP2SOP5WATERfP6VECTORT3ff {
 // The splash is EmitParticlesAt(pos, dir, cParticle, EMITP, EMITV, &e, 0, 0) with the EMITP (0x40) and EMITV (0x70) blocks
 // passed BY VALUE (EABI: a3 / t0 point at the caller's copies). They are aggregate initializers: g++ builds each one
 // in a memset stack temp and block-copies it, which is the target's memset + stores + lq/sq copy. What matched is the
-// unions in the two types (as in func_0015CAD8): store_constructor emits a (clobber (mem:BLK)) for every union
+// unions in the two types (as in StaticInit_emitter): store_constructor emits a (clobber (mem:BLK)) for every union
 // initializer, and those clobbers are scheduler barriers.
 // - EMITV: G4V at +0x00, a 4-float union at +0x40 and Sly 1's CLQ at +0x60 give the target's FPU numbers for
 //   5.0 / 0.39 / 1.047 / -1 (-1 reuses 0.39's register) and the store order.
@@ -878,7 +878,7 @@ union CLQ {
     float ag[4];
 };
 
-// 16-byte float views; the field names are unknown (same type as in func_0015CAD8).
+// 16-byte float views; the field names are unknown (same type as in StaticInit_emitter).
 union G4V { struct { float g0, g4, g8, gC; }; float ag[4]; };
 
 /* the particle record (EMITB+0xC0, emitter.h's EMITV) as rips use it (Sly 1's EMITRIP, objects as OIDs) */
@@ -935,7 +935,7 @@ void *CreateSfxSound(int id);
 void SetSndSourceLo(void *p, SO *pso);
 void SetSndRange(void *p, float a, float b);
 void RcPtr_Assign(void *pp, void *p);
-RIP *PripNewRipg(void *p, int k, int x);
+RIP *NewRipInGroup(void *p, int k, int x);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void EmitParticlesAt(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
 }
@@ -1011,7 +1011,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
             }
         }
         if (shouldWake && water->rippleObject) {
-            RIP *ripple = PripNewRipg(D_003DD490 /* g_sw */, 7 /* ripple kind */, 0);
+            RIP *ripple = NewRipInGroup(D_003DD490 /* g_sw */, 7 /* ripple kind */, 0);
             if (ripple) {
                 EVT *pvte = &ripple->pvt->a[1];
                 pvte->pfn((char *)ripple + pvte->d, scale, v, 0);
@@ -1457,10 +1457,10 @@ public:
 struct EMITX { void *ppblipg; SO **ppripg; void *subscriber; };   /* EMITG */
 extern "C" {
 extern char D_003DD490[];
-SO *PripgNew(void *p, int n);
+SO *NewRipGroup(void *p, int n);
 void SetRipgEmitb__FP4RIPGP5EMITB(SO *pso, EMITBV *pemit);
 void SubscribeLoObject(SO *pso, void *p);
-RIPV *PripNewRipg(void *p, int n, SO *pso);
+RIPV *NewRipInGroup(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITBV *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
@@ -1477,7 +1477,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     if (emitg && emitg->ppripg)
         ripGroup = *emitg->ppripg;
     if (!ripGroup) {
-        ripGroup = PripgNew(D_003DD490, emitb->ripGroupKind);
+        ripGroup = NewRipGroup(D_003DD490, emitb->ripGroupKind);
         if (!ripGroup)
             return;
         if (emitg && emitg->ppripg)
@@ -1488,7 +1488,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITBV *emitb, EMITX *e
     }
     if (!ripGroup)
         return;
-    for (i = 0; i < count && (rip = PripNewRipg(D_003DD490, emitb->ripKind, ripGroup)) != 0; i++) {
+    for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->ripKind, ripGroup)) != 0; i++) {
         rip->Set(positions[i], GRandInRange__Fff(emitb->scaleMin, emitb->scaleMax), emitb->pshd->touch);
         if (emitb->scaleSlope != 0.0f || emitb->scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->scaleSlope;
@@ -1555,7 +1555,7 @@ struct CM { char pad[0x70]; qword dir; };
 extern "C" {
 extern CM D_002DDF40;
 extern char D_003DD490[];
-PRG *PblipgNew(void *pv);
+PRG *NewBlipGroup(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
 BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -1585,7 +1585,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *emitter, EMITX *px,
     if (px && px->ppprg)
         pprg = *px->ppprg;
     if (!pprg) {
-        pprg = PblipgNew(D_003DD490);
+        pprg = NewBlipGroup(D_003DD490);
         if (!pprg)
             return;
         if (px && px->ppprg)

@@ -69,7 +69,7 @@ struct RIP
     virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
     virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
     virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
+    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
 };
 typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
 /* The kinds, in the reverse of their emission order (vtables 0x2D7738 .. 0x2D7468; RIP's 0x2D7788 last). DRAFT
@@ -82,7 +82,7 @@ struct RIPF : RIP
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceLeaf");   /* key function */
+    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleFlyingBounce");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostFlyingEmit");
     virtual void Render(CM *pcm) __asm__("RenderFlying");
 };
@@ -93,7 +93,7 @@ struct STUCK : RIP   /* RIPT 10 */
 };
 struct SHRAPNEL : RIP   /* RIPT 8 */
 {
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceShrapnel");   /* key function */
+    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("HandleShrapnelBounce");   /* key function */
     virtual void PostEmit(void *pv) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
     virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
 };
@@ -133,7 +133,7 @@ struct LEAF : RIP   /* RIPT 5 */
 {
     virtual void PostEmit(void *pv) __asm__("PostLeafEmit");   /* key function */
     virtual void Project() __asm__("ProjectLeafTransform");
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("StickLeafOnBounce");
+    virtual int HandleBounce(void *pa, qword q0, qword q1) __asm__("StickLeafOnBounce");
 };
 struct REMIT : RIP   /* RIPT 2 */
 {
@@ -154,7 +154,7 @@ void ReleaseRip(RIP *prip);
 void RemoveRip(RIP *prip);
 void TouchRip(RIP *prip, int fRemove);
 
-namespace M_PripgNew { extern "C" {
+namespace M_NewRipGroup { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x10]; char globset[0xD0]; int groupKind; };   /* RIPG */
 struct G { char pad[0x403C]; char pool[0x30]; struct O *defaultRipGroup; };   /* SW: the RIPG slot pool and the shared kind-0 group */
@@ -169,7 +169,7 @@ void AppendSlEntry(void *pl, void *pv);
 // Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
 // kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
 // linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
-struct O *PripgNew(struct G *sw, int kind)
+struct O *NewRipGroup(struct G *sw, int kind)
 {
     struct O *ripGroup;
     if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
@@ -189,7 +189,7 @@ struct O *PripgNew(struct G *sw, int kind)
     if (!kind) sw->defaultRipGroup = ripGroup;
     return ripGroup;
 }
-} } // namespace M_PripgNew
+} } // namespace M_NewRipGroup
 #undef VCALL0
 
 namespace M_InitRipg__FP4RIPG { extern "C" {
@@ -480,7 +480,7 @@ static inline void *Next(DLI *it) { void *p = *it->next; it->next = (void **)((c
 static inline void SetAlign(REQ *r, int a) { r->align = a; }
 static inline const qword &Origin(STATE *s) { return s->origin; }
 static inline int Min(int a, int b) { return a <= b ? a : b; }
-// Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual.
+// Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's HandleBounce virtual.
 void BounceRipgRips__FP4RIPG(P *p)
 {
     if (p->mode == 1) {
@@ -573,8 +573,8 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *ripGroup, CM *pcm, RO *pr
 }
 } // namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO
 
-// RIPG vt slot 62: returns (state(+0x150) != 1) (inferred)
-/* RIPG slot 62. */
+// RIPG vtable slot 62: returns ripgState != 1. Slot 62 is the SO predicate whose false result makes
+// RemoveSoPartFromTree wake the object, hence the name (inferred).
 int RIPG::VUnk61()
 {
     RIPGV *ripGroup = (RIPGV *)this;
@@ -667,22 +667,22 @@ struct X *PvtripFromRipt(struct X *p, unsigned int k)
 }
 } } // namespace M_PvtripFromRipt
 
-namespace M_PripNewRipg { extern "C" {
+namespace M_NewRipInGroup { extern "C" {
 struct R { int a, b; void *p8; };
 struct G { char pad[0x4054]; char pool[4]; };
 struct Q { char pad[0x15C]; char dl[4]; };
 extern char D_003DD490[];
-struct Q *PripgNew(void *pg, int n);
+struct Q *NewRipGroup(void *pg, int n);
 void *PvAllocSlotheapClear(void *pool);
 struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void AddRipRef__FP3RIP(struct R *r);
 // Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef.
-struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
+struct R *NewRipInGroup(struct G *p, void *a, struct Q *q)
 {
     void *pv;
     struct R *r;
-    if (!q) q = PripgNew(D_003DD490, 0);
+    if (!q) q = NewRipGroup(D_003DD490, 0);
     if (!q) return 0;
     pv = PvAllocSlotheapClear(p->pool);
     if (pv) {
@@ -693,7 +693,7 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
     return r; }
     return 0;
 }
-} } // namespace M_PripNewRipg
+} } // namespace M_NewRipInGroup
 
 namespace M_InitRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -784,7 +784,7 @@ extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
 }
 } // namespace M_ForceRipFade__FP3RIPf
 
-namespace M_FBounceRip {
+namespace M_HandleRipBounce {
 typedef int qw __attribute__((mode(TI)));
 union U {
     qw q;
@@ -939,7 +939,7 @@ static inline SHAPE *CaptureShape(SHAPE *incoming)
     __asm__("daddu %0,%1,$zero" : "=r"(saved) : "r"(incoming));
     return saved;
 }
-// RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
+// RIP default HandleBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
 int HandleRipBounce(RIP *rip, SHAPE *incomingShape, qw point, qw normal)
 {
     SHAPE *shape = CaptureShape(incomingShape);
@@ -1289,7 +1289,7 @@ typedef char layout_ceb08_67[(sizeof(((SHAPE*)0)->frame)==4)?1:-1];
 typedef char layout_ceb08_68[(sizeof(((SHAPE*)0)->owner)==4)?1:-1];
 typedef char layout_ceb08_69[(sizeof(((PROX*)0)->fraction)==4)?1:-1];
 typedef char layout_ceb08_70[(sizeof(((PROX*)0)->distance)==4)?1:-1];
-} // namespace M_FBounceRip
+} // namespace M_HandleRipBounce
 
 namespace M_IsVectorShorterThan2 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -1606,7 +1606,7 @@ void UpdateRip(struct S *p)
 }
 } } // namespace M_UpdateRip
 
-namespace M_FRenderRipPosMat {
+namespace M_RenderRipAtPose {
 typedef int qword __attribute__((mode(TI)));
 struct M3 {
     qword a, b, c;
@@ -1632,11 +1632,11 @@ extern "C" { extern G D_002DDF40; }
 extern "C" { extern struct CLOCK { float t,dt; } D_002DDED0; }
 extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
 extern "C" {
-int FInsideCmFrustum(G*,qword,qword);
-int FInsideCmMrd(G*,qword,float,float*);
+int IsInCameraFrustum(G*,qword,qword);
+int IsWithinCameraRenderDistance(G*,qword,float,float*);
 M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void RenderLoAtMatrix(LO*,const M4&,float,float);
-int FRenderRipPosMat(S*,qword,const M3&);
+int RenderRipAtPose(S*,qword,const M3&);
 }
 static inline float Poly(POLY *p, float t)
 {
@@ -1658,8 +1658,10 @@ static inline qword BcG(float f)
     u.q = r;
     return r;
 }
-// Compute rip render position/matrix relative to camera; false if culled. (inferred)
-int FRenderRipPosMat(S *p, qword pos, const M3 &mat)
+// Renders the rip's object at pos/mat, scaled and faded by the rip's age (alpha and size polynomials over its
+// lifetime). Returns 0 when the rip should be removed (no lifetime left, or outside the camera's render distance);
+// returns 1 otherwise, including when it is outside the view frustum or fully transparent (kept, not drawn).
+int RenderRipAtPose(S *p, qword pos, const M3 &mat)
 {
     if (!p->lo)
         return 1;
@@ -1673,9 +1675,9 @@ int FRenderRipPosMat(S *p, qword pos, const M3 &mat)
     float size = Poly(&p->size, t);
     G *pg = &D_002DDF40;
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->pos));
-    if (!FInsideCmFrustum(pg, delta, BcG(size * 100.0f)))
+    if (!IsInCameraFrustum(pg, delta, BcG(size * 100.0f)))
         return 1;
-    if (!FInsideCmMrd(pg, delta, p->lo->radius, &proj))
+    if (!IsWithinCameraRenderDistance(pg, delta, p->lo->radius, &proj))
         return 0;
     if (alpha < 0.0001f && size < 0.0001f)
         return 1;
@@ -1685,21 +1687,21 @@ int FRenderRipPosMat(S *p, qword pos, const M3 &mat)
     RenderLoAtMatrix(p->lo, m, alpha * proj, 1.0f);
     return 1;
 }
-} // namespace M_FRenderRipPosMat
+} // namespace M_RenderRipAtPose
 
 namespace M_RenderRip {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
 struct S { char pad[0x40]; M orientation; qword position; };   /* RIP */
 extern "C" {
-int FRenderRipPosMat(S *p, qword q, M m);
+int RenderRipAtPose(S *p, qword q, M m);
 void RemoveRip__FP3RIP(S *p);
 void RenderRip(S *p);
 }
-// RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip.
+// RIP default Render (vt entry 6): RenderRipAtPose, else RemoveRip.
 void RenderRip(S *p)
 {
-    if (!FRenderRipPosMat(p, p->position, p->orientation)) RemoveRip__FP3RIP(p);
+    if (!RenderRipAtPose(p, p->position, p->orientation)) RemoveRip__FP3RIP(p);
 }
 } // namespace M_RenderRip
 
@@ -1749,7 +1751,7 @@ extern "C" { extern G D_002DDF40; }
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 M BuildOrthonormalMatrixZ(qword a, qword b);
-int FRenderRipPosMat(S *p, qword q, M m);
+int RenderRipAtPose(S *p, qword q, M m);
 void RenderFlying(S *p);
 }
 // FLYING Render: oriented along its velocity, with "up" toward the camera (facesCamera) or world +z.
@@ -1766,7 +1768,7 @@ void RenderFlying(S *p)
         v = D_002A2DC0;
     }
     m = BuildOrthonormalMatrixZ(p->velocity, v);
-    FRenderRipPosMat(p, p->position, m);
+    RenderRipAtPose(p, p->position, m);
 }
 } // namespace M_RenderFlying
 
@@ -1817,7 +1819,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
-O *PripNewRipg(void*,void*,void*);
+O *NewRipInGroup(void*,void*,void*);
 qword TransformXfPos(void*,LO*,qword);
 float GRandInRange__Fff(float,float);
 void GetNormalVectors(qword,qword,qword,qword*);
@@ -1867,12 +1869,12 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
             : "=j"(r.r[2])
             : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
-// Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation. (inferred)
+// Spawn a STUCK rip (NewRipInGroup) attached to the hit object at the contact point/orientation. (inferred)
 O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
 {
     O *object = 0;
     if (visual) {
-        object = PripNewRipg(D_003DD490, (void *)10, 0);
+        object = NewRipInGroup(D_003DD490, (void *)10, 0);
         if (object) {
             float zero = 0.0f;
             U local;
@@ -1914,7 +1916,7 @@ O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
 }
 } // namespace M_CreateStuck
 
-namespace M_FBounceLeaf { extern "C" {
+namespace M_HandleFlyingBounce { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
 struct S { char pad[0xF0]; void *stuckVisual; };   /* FLYING */
@@ -1922,14 +1924,14 @@ extern int D_002C1F70[1];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
 void RemoveRip__FP3RIP(struct S *p);
-} } // namespace M_FBounceLeaf
-// FLYING FBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
+} } // namespace M_HandleFlyingBounce
+// FLYING HandleBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
 // the flying rip.
-int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
+int FLYING::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
-    using namespace M_FBounceLeaf;
-    M_FBounceLeaf::S *p = (M_FBounceLeaf::S *)this;
-    M_FBounceLeaf::A *pa = (M_FBounceLeaf::A *)pa_m;
+    using namespace M_HandleFlyingBounce;
+    M_HandleFlyingBounce::S *p = (M_HandleFlyingBounce::S *)this;
+    M_HandleFlyingBounce::A *pa = (M_HandleFlyingBounce::A *)pa_m;
     unsigned int i;
     for (i = 0; i < sizeof(D_002C1F70) / sizeof(D_002C1F70[0]); i++) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, D_002C1F70[i])) return 0;
@@ -1953,7 +1955,7 @@ struct S { char pad[0x40]; M orientation; qword position; char pad2[0xF0 - 0x80]
 extern "C" {
 qword TransformXfPos(void *p, int n, qword q);
 M ConvertXfMat(void *p, int n, M *pm);
-int FRenderRipPosMat(S *p, qword q, M m);
+int RenderRipAtPose(S *p, qword q, M m);
 void RenderStuck(S *p);
 }
 // STUCK Render: its position and orientation taken from the host object's space to world, then rendered.
@@ -1962,7 +1964,7 @@ void RenderStuck(S *p)
     qword q = TransformXfPos(p->host, 0, p->position);
     M m;
     m = ConvertXfMat(p->host, 0, &p->orientation);
-    FRenderRipPosMat(p, q, m);
+    RenderRipAtPose(p, q, m);
 }
 } // namespace M_RenderStuck
 
@@ -2043,7 +2045,7 @@ typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 
-namespace M_FBounceShrapnel { extern "C" {
+namespace M_HandleShrapnelBounce { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct C { char pad[0x60]; void *unknown60; };
 struct B { char pad[0xEC]; struct C *unknownEC; };   /* the hit body */
@@ -2051,13 +2053,13 @@ struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
-} } // namespace M_FBounceShrapnel
-// SHRAPNEL FBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
-int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
+} } // namespace M_HandleShrapnelBounce
+// SHRAPNEL HandleBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
+int SHRAPNEL::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
-    using namespace M_FBounceShrapnel;
+    using namespace M_HandleShrapnelBounce;
     void *p = this;
-    M_FBounceShrapnel::A *pa = (M_FBounceShrapnel::A *)pa_m;
+    M_HandleShrapnelBounce::A *pa = (M_HandleShrapnelBounce::A *)pa_m;
     void *plo = pa->pb->unknownEC->unknown60;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
@@ -2088,7 +2090,7 @@ struct SHRAPNEL {
 };
 struct CM;
 extern "C" { extern qword D_002A2DC0; }
-extern "C" int FRenderRipPosMat(SHRAPNEL *,qword,const M3 &);
+extern "C" int RenderRipAtPose(SHRAPNEL *,qword,const M3 &);
 static inline qword AddScaled(qword p, qword a, qword k)
 {
     __asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(p) : "j"(a), "j"(k));
@@ -2134,7 +2136,7 @@ extern "C" void RenderShrapnel__FP8SHRAPNELP2CM(SHRAPNEL *input, CM *)
     qword k = Depth(p);
     point.q = AddScaled(p->position, Axis(AxisAddress()), k);
     scalar.q = k;
-    FRenderRipPosMat(p, point.q, *MatrixAddress(p));
+    RenderRipAtPose(p, point.q, *MatrixAddress(p));
 }
 
 typedef char layout_render_0[(sizeof(qword)==16)?1:-1];
@@ -2392,7 +2394,7 @@ extern "C" { extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2]; }
 extern "C" { extern const qword D_002A2DA0,D_002A2DC0; }
 extern "C" {
 void RemoveRip__FP3RIP(RIP *);
-int FInsideCmFrustum(CAMERA *,qword,qword);
+int IsInCameraFrustum(CAMERA *,qword,qword);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 BuildAxisAngleRotationMatrix(qword,float);
 M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
@@ -2468,7 +2470,7 @@ extern "C" void RenderGlint(RIP *rip)
     float time = (D_002DDED0.time - rip->start) / rip->duration;
     float distance = Length(direction) * 0.001f;
     float size = Evaluate(rip->size, time) * Clamp(Evaluate(D_002C1FB0, distance), D_002C1FC0[0], D_002C1FC0[1]);
-    if (!FInsideCmFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
+    if (!IsInCameraFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
         RemoveRip__FP3RIP(rip);
         return;
     }
@@ -2598,7 +2600,7 @@ qword ConvertCmScreenToWorld(G*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*);
 M3 BuildAxisAngleRotationMatrix(qword,float);
-int FRenderRipPosMat(S*,qword,const M3&);
+int RenderRipAtPose(S*,qword,const M3&);
 void RenderSmack(S*);
 }
 static inline M3 Mul(const M3 &a, const M3 &b) return r
@@ -2627,7 +2629,7 @@ void RenderSmack(S *p)
     fade = BuildAxisAngleRotationMatrix(axis.q, angle * t);
     spin = BuildAxisAngleRotationMatrix(p->spin->axis, (t + t) * 3.14159274f);
     render = Mul(Mul(fade, spin), p->mat);
-    FRenderRipPosMat(p, view, render);
+    RenderRipAtPose(p, view, render);
 }
 } // namespace M_RenderSmack
 
@@ -2823,7 +2825,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
 void ConvertAloMat(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
-// LEAF FBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
+// LEAF HandleBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
 // orientation taken into the hit body's space, and removes the leaf.
 int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
 {
@@ -2887,7 +2889,7 @@ typedef struct {
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClipEdgeToObject(void *, qword, qword, int, HIT *);
-EMIT *PripNewRipg(struct G *, int, int);
+EMIT *NewRipInGroup(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
 // RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
 // the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
@@ -2905,7 +2907,7 @@ void UpdateRipt1(OBJ *object, int isTouching)
             goto found;
     }
 found:
-    ripple = PripNewRipg(&D_003DD490, 7, 0);
+    ripple = NewRipInGroup(&D_003DD490, 7, 0);
     if (ripple) {
         ripple->vt->a[1].pfn((char *)ripple + ripple->vt->a[1].d, 40.0f, hit.pos, 0);
         ripple->duration = 0.75f;

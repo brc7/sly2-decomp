@@ -81,7 +81,7 @@ float fmodf(float x, float y);
 float RadNormalize__Ff(float rad);
 void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);
 
-void func_001ED8E0(SAAV *p, SAAF *psaaf);
+void InitSaa(SAAV *p, SAAF *psaaf);
 void SetSaiIframe(SAAV *p, int n);
 void SetSaiDuDv(SAAV *p, float uOffset, float vOffset);
 int DoesSaaMatchOid(SAAV *p, int *pid);
@@ -148,10 +148,10 @@ extern "C" int AddSaaCopyRecord(SAAV *saa, void *a1, void *a2)
     return 1;
 }
 
-int FUpdatableSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
+int ShouldUpdateSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
 // by several shaders is advanced only once per frame.
-int FUpdatableSaa(SAAV *saa) {
+int ShouldUpdateSaa(SAAV *saa) {
     if (saa->updateTime != D_002DDED0.t) {
         saa->updateTime = D_002DDED0.t;
         return 1;
@@ -163,9 +163,9 @@ int FUpdatableSaa(SAAV *saa) {
 extern "C" void UpdateSaa(SAAV *saa) {
 }
 
-float UCompleteSaa(SAAV *p) __asm__("GetSaaCompletion__FP3SAA");
+float GetSaaCompletion(SAAV *p) __asm__("GetSaaCompletion__FP3SAA");
 // Base completion fraction (0..1) of an animation cycle: always 0.
-float UCompleteSaa(SAAV *saa) {
+float GetSaaCompletion(SAAV *saa) {
     return 0.0f;
 }
 
@@ -187,14 +187,14 @@ void SetSaiIframe(SAAV *saa, int n)
     }
 }
 
-static inline int IFromG(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
+static inline int ToFixed12(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
 // Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked. (inferred)
 void SetSaiDuDv(SAAV *saa, float uOffset, float vOffset)
 {
     int u, v;
     if (IsSlEmpty(&saa->instances)) return;
-    u = IFromG(uOffset);
-    v = IFromG(vOffset);
+    u = ToFixed12(uOffset);
+    v = ToFixed12(vOffset);
     if (saa->uOffset == u && saa->vOffset == v) return;
     saa->uOffset = u;
     saa->vOffset = v;
@@ -213,7 +213,7 @@ void LOOP::VSlot7(SAAF *psaa)
     LMV *plm2 = &p->pauseTimeRange;
     LMV *plm1;
     float g;
-    func_001ED8E0(p, psaa);
+    InitSaa(p, psaa);
     plm1 = &p->loopTimeRange;
     { float a = psaa->lm1.min; float b = psaa->lm1.max; p->loopTimeRange.min = a; plm1->max = b; }
     { float a = psaa->lm2.min; float b = psaa->lm2.max; p->pauseTimeRange.min = a; plm2->max = b; }
@@ -251,9 +251,9 @@ void UpdateLoop(LOOPV *ploop, float dt)
     SetSaiIframe(ploop, (int)ploop->frame);
 }
 
-float UCompleteLoop(LOOPV *p) __asm__("GetLoopCompletion__FP4LOOP");
+float GetLoopCompletion(LOOPV *p) __asm__("GetLoopCompletion__FP4LOOP");
 // Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
-float UCompleteLoop(LOOPV *loop) {
+float GetLoopCompletion(LOOPV *loop) {
     float frameRate = loop->frameRate;
     return (loop->frame / frameRate) / (((float)loop->numFrames / frameRate) + loop->pauseTime);
 }
@@ -265,7 +265,7 @@ void PINGPONG::VSlot7(SAAF *psaa)
     LMV *plm2 = &p->pauseTimeRange;
     LMV *plm1;
     float g;
-    func_001ED8E0(p, psaa);
+    InitSaa(p, psaa);
     plm1 = &p->loopTimeRange;
     { float a = psaa->lm1.min; float b = psaa->lm1.max; p->loopTimeRange.min = a; plm1->max = b; }
     { float a = psaa->lm2.min; float b = psaa->lm2.max; p->pauseTimeRange.min = a; plm2->max = b; }
@@ -306,9 +306,9 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
     SetSaiIframe(ppingpong, (int)ppingpong->frame);
 }
 
-float UCompletePingpong(PINGPONGV *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
+float GetPingpongCompletion(PINGPONGV *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
 // Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
-float UCompletePingpong(PINGPONGV *ppingpong)
+float GetPingpongCompletion(PINGPONGV *ppingpong)
 {
     float absDframe = ppingpong->frameRate;
     float progress;
@@ -330,7 +330,7 @@ void SHUFFLE::VSlot7(SAAF *psaaf)
 {
     SHUFFLEV *pshuffle = (SHUFFLEV *)this;
     float dtMax, dtMin;
-    func_001ED8E0(pshuffle, psaaf);
+    InitSaa(pshuffle, psaaf);
     dtMin = psaaf->lm1.min;
     dtMax = psaaf->lm1.max;
     pshuffle->pauseMax = dtMax;
@@ -357,7 +357,7 @@ void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
 // EYES vt7 Init. (inferred)
 extern "C" void InitEyes(EYESV *eyes, SAAF *psaaf)
 {
-    func_001ED8E0(eyes, psaaf);
+    InitSaa(eyes, psaaf);
     eyes->unknown60=psaaf->cLoopWord;
     eyes->blinkTime=psaaf->ag[0];
     { float a=psaaf->ag[1]; float b=psaaf->ag[2]; eyes->openTimeMin=a; eyes->openTimeMax=b; }
@@ -455,7 +455,7 @@ extern "C" int DoesEyesMatchOid(EYESV *eyes, int *pid)
 void InitScroller(SCROLLERV *p, SAAF *psaaf) __asm__("InitScroller__FP8SCROLLERP4SAAF");
 // SCROLLER init: base SAA init, then the u/v scroll speeds and wrap ranges; master speed multipliers start at 1.
 void InitScroller(SCROLLERV *scroller, SAAF *psaaf) {
-    func_001ED8E0(scroller, psaaf);
+    InitSaa(scroller, psaaf);
     scroller->uSpeed = psaaf->ag[0];
     scroller->vSpeed = psaaf->ag[1];
     scroller->uRange = psaaf->ag[2];
@@ -475,10 +475,10 @@ void SCROLLER::VSlot8()
     SetSaiDuDv(p, uOffset, vOffset);
 }
 
-float UCompleteScroller(SCROLLERV *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
+float GetScrollerCompletion(SCROLLERV *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
 // Completion fraction of a SCROLLER: the average of its u and v offsets as fractions of their wrap ranges (0.5 for an
 // axis that does not move).
-float UCompleteScroller(SCROLLERV *pscroller)
+float GetScrollerCompletion(SCROLLERV *pscroller)
 {
     float uComp = 0.0f;
     if (pscroller->uSpeed != 0.0f)
@@ -503,7 +503,7 @@ void SetScrollerMasterSpeeds(SCROLLERV *pscroller, float uSpeedScale, float vSpe
 
 // CIRCLER vt7 Init. (inferred)
 void CIRCLER::VSlot7(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
-    func_001ED8E0(p, psaaf);
+    InitSaa(p, psaaf);
     p->angularSpeed = psaaf->ag[0];
     p->radius = psaaf->ag[1];
     p->uCenter = psaaf->ag[2];
@@ -526,9 +526,9 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
     SetSaiDuDv(pcircler, sinOut, cosOut);
 }
 
-float UCompleteCircler(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
+float GetCirclerCompletion(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
 // Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
-float UCompleteCircler(CIRCLERV *pcircler)
+float GetCirclerCompletion(CIRCLERV *pcircler)
 {
     float angle = D_002DDED0.t * pcircler->angularSpeed;
     return GModPositive__Fff(angle, 6.28318530718f) * 0.159154943092f;

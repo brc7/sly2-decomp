@@ -5454,7 +5454,7 @@ extern struct G D_002DDF40;
 int FFloatsNear__Ffff(float, float, float);
 float RadNormalize__Ff(float);
 qword DecomposeRotationMatrixToEuler(void *);
-int FActiveCplcy__FP5CPLCY(void *);
+int IsCameraPolicyActive__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
 // Helpers X, Y, Z (small asm wrappers/accessors shaped for the match).
@@ -5509,7 +5509,7 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
     }
     if (script->sub.f8C == 0.0f)
         script->sub.f8C = D_002A8124;
-    if (FActiveCplcy__FP5CPLCY(D_002DDF40.m500))
+    if (IsCameraPolicyActive__FP5CPLCY(D_002DDF40.m500))
         RevokeCmPolicy(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
     SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &script->sub);
 }

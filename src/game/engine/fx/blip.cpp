@@ -85,7 +85,7 @@ struct POLY { float a, b, c; };
 struct S150 { int unknown0; float inverseLifetime; int unknown8; };
 typedef union { qwordV q; struct { long l; int n; int pad; } s; } GE;
 
-/* The blip group (CID 0x1C, an XFM; 0x460 bytes, PblipgNew clears it). */
+/* The blip group (CID 0x1C, an XFM; 0x460 bytes, NewBlipGroup clears it). */
 struct BLIPGV
 {
     int basic0, basic4, basic8;
@@ -270,7 +270,7 @@ void RemoveBlip(BLIPV *pblip)
 
 // Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11
 // AddHierarchy, vt15 PostLoad.
-extern "C" BLIPGV *PblipgNew(SW *psw)
+extern "C" BLIPGV *NewBlipGroup(SW *psw)
 {
     BLIPGV *p;
     int i;
@@ -386,7 +386,7 @@ static __inline__ int FVecsNear(qwordV a, qwordV b)
 }
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->unknown0 = 0; ps->unknown8 = 0; ps->inverseLifetime = r / g; }
-static __inline__ float GMax3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
+static __inline__ float Max3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
 // Sets a blip group up from an EMITB: render kind (and flying scale), colours, shader (PropagateBlipgShader),
 // frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
 // kind (EMITDV motion degenerates to straight lines when the EMITB adds no velocity, curl or damping).
@@ -437,7 +437,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
             if (ag[1] < tm && tm < t)
                 ag[1] = GEval(&blipGroup->poly, tm);
         }
-        blipGroup->maxSize = GMax3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
+        blipGroup->maxSize = Max3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
     }
     f = 0;
     g = emitb->lifetime;
@@ -564,7 +564,7 @@ static inline VU_FLOATM VuFloatDt()
     __asm__("lw %0, %1" : "=r"(v.qw) : "m"(D_002DDED0.dt));
     return v;
 }
-static inline char *PvSprBuf(int i)
+static inline char *GetScratchpadBuffer(int i)
 {
     return D_003DD2C0[D_002C3C5C].a[i].pv;
 }
@@ -573,7 +573,7 @@ static inline void Kick(BLIPV *pq)
     BUF *pb = &pq->abuf[pq->i];
     LoadSprBuf(pq->c * 16, pb, pq->c * 16, pb->b, pq->c * 16, pb->c, 0, 0);
 }
-static inline qwordV QwMid(const qwordV &a, const qwordV &b, const VU_FLOATA &g)
+static inline qwordV ScaleSum(const qwordV &a, const qwordV &b, const VU_FLOATA &g)
 {
     qwordV qw;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(a), "j"(b), "j"(g.qw));
@@ -617,7 +617,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
         SwapSprBuffers();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
-        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, blipGroup->renderKind, &vMin, &vMax);
+        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), GetScratchpadBuffer(0), GetScratchpadBuffer(1), GetScratchpadBuffer(2), pq->c, blipGroup->renderKind, &vMin, &vMax);
         i = (pq->i + 1) & 1;
         {
             BUF *pb = &pq->abuf[i];
@@ -633,7 +633,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     if (blipGroup->numLiveParticles <= 0) {
         blipGroup->pvt[9].pfn((char *)blipGroup + blipGroup->pvt[9].d);
     } else {
-        qwordV c = QwMid(vMin.q, vMax.q, VU_FLOATA(0.5f));
+        qwordV c = ScaleSum(vMin.q, vMax.q, VU_FLOATA(0.5f));
         blipGroup->boundsCenter = c;
         float g = GFromQw(QwLength(VuSubRef(c, vMax.q)));
         blipGroup->boundsRadius = g + blipGroup->maxSize;
@@ -771,7 +771,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
 
 // RenderBlipgSelf: light-list VU upload (Claude agent for Lilly, T1676; built on the team's v2..v14 drafts).
 // Collects the lights of p->plo's list whose position (PosLoWorld 0x1A62E8 + PmatLoWorld 0x1A6318 rotating p->boundsCenter)
-// passes the camera tests FInsideCmFrustum / FInsideCmMrd, as LIGHTMs in a stack array (or the single D_002A2D30 when the
+// passes the camera tests IsInCameraFrustum / IsWithinCameraRenderDistance, as LIGHTMs in a stack array (or the single D_002A2D30 when the
 // list check fails), then uploads each light per DMA queue through the VIF helpers.
 // Matching notes (gather loop, the last diffs; found with sched1/sched2/local-alloc dumps):
 //  * The g100 lw must issue after the &D_002DDF40 addiu in sched1 (else lw and lui overlap and the lui gets v1):
@@ -798,8 +798,8 @@ void *AllocFromStack(const AL &al);
 int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
-int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
-int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
+int IsInCameraFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
+int IsWithinCameraRenderDistance(CMV *pcm, qwordV d, float g, float *pg);
 DMA *AllocRenderListEntry(void);
 }
 static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
@@ -855,10 +855,10 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
             int z; __asm__("" : "=r"(z) : "r"(pcm));
             qwordV d = VuSub(AddZ(RotKZ(mat, v, vf.q, z), pos, z), pcm->pos);
             __asm__("" : "+j"(d)); /* empty asm: extra refs so d is caller-saved in vf1 */
-            if (!FInsideCmFrustum(&D_002DDF40, d, vf))
+            if (!IsInCameraFrustum(&D_002DDF40, d, vf))
                 goto next;
             float g;
-            if (!FInsideCmMrd(&D_002DDF40, d, plo->sBusy, &g))
+            if (!IsWithinCameraRenderDistance(&D_002DDF40, d, plo->sBusy, &g))
                 goto next;
             VECTOR_opAssign(&pl->x30, pos);
             cLight++;
@@ -880,7 +880,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
         qwordV v = blipGroup->boundsCenter;
         __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
         VU_FLOATR vf(blipGroup->boundsRadius);
-        if (!FInsideCmFrustum(pcm, SubE(v, pcm->pos), vf))
+        if (!IsInCameraFrustum(pcm, SubE(v, pcm->pos), vf))
             goto none;
         cLight = 1;
         aLight = &D_002A2D30;

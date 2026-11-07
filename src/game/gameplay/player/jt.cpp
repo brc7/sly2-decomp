@@ -4418,7 +4418,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018D500 { extern "C" {
 struct S { char pad[0xF04]; int n; };
-int FActiveCplcy__FP5CPLCY(void *p);
+int IsCameraPolicyActive__FP5CPLCY(void *p);
 /** @sly2-annot addr=0x18D500
  * Purpose: JT vt106: 0 if jts==1 or 0x14FD50((*(char (*)[])&g_cm.part3a0)) else 1
  * Info: proposed name JT_vt106 (T2); class JT slot106; TU jt
@@ -4430,7 +4430,7 @@ int JtVirtual106(struct S *jt)
 {
     int r = 1;
     if (jt->n == r) return 0;
-    if (FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
+    if (IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
     return r;
 }
 } } // namespace M_func_0018D500

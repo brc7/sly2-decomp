@@ -217,7 +217,7 @@ extern "C" BLOCK *PopBlockStack(STACK *pstack)
 //       overwrites, so the radius load waits a cycle and the gain home `sq` issues after the gain qmtc2.
 //   (2) duplicate allocation-only "r" inputs on the gain (x4) and radius (x2) qmtc2 asms: local-alloc ranks quantities by
 //       floor_log2(refs)*refs*size/life, so the gain gets v0 and the radius v1 (word a0), as in the target.
-//   (3) vf15 is loaded at argument time (QwLoadVf15, where the by-value sphere copy used to be loaded), between the gain and
+//   (3) vf15 is loaded at argument time (LoadSphereToVf15, where the by-value sphere copy used to be loaded), between the gain and
 //       radius home stores. Its empty ordering asm reads the sphere first: an asm that uses a value is ready one cycle after
 //       it (LINK_COST_FREE), so this extra step puts the lqc2 after `qmtc2 r; lw w` as in the target.
 //   (4) the plane loads take the word token "j"(q17) (dependency only), so they stay after the word qmtc2 and the home stores.
@@ -275,7 +275,7 @@ static inline float SqLength(VU_VECTOR v)
 static inline void SetX(float *pg, qword q) { __asm__("sw %1,%0" : "=m"(*pg) : "r"(q), "j"(q)); }
 // Microprogram 0x1C0 (sphere against the view): inputs vf10..vf17, results (offset, visibility) in vf18/vf19.
 // Loads the sphere into vf15; the result is only a token standing for vf15.
-static inline qword QwLoadVf15(const qword &pos)
+static inline qword LoadSphereToVf15(const qword &pos)
 {
     qword q;
     __asm__("" : "=j"(q) : "m"(pos)); // ordering only (no instruction): delays the lqc2 one cycle, see the header (3)
@@ -298,7 +298,7 @@ static inline void StartCull(qword *aqwPlane, VU_FLOATM gain, qword qwPos, VU_FL
     __asm__ __volatile__("vcallms 0x1C0" : : "j"(q10), "j"(q11), "j"(q12), "j"(q13), "j"(q14), "j"(q15), "j"(q16), "j"(q17));
 }
 // Wait for the microprogram (its results: sphere offset in vf18, visibility in vf19) and read the visibility.
-static inline float GVisCull()
+static inline float WaitCullVisibility()
 {
     __asm__ __volatile__("cfc2.i $zero, $vi0" : : : "vf18", "vf19");
     float g;
@@ -306,7 +306,7 @@ static inline float GVisCull()
     return g;
 }
 // The sphere offset the microprogram left in vf18.
-static inline qword QwDposCull()
+static inline qword GetCullSphereOffset()
 {
     register qword qwDpos __asm__("vf18"); // pin: the microprogram's output register
     return qwDpos;
@@ -416,13 +416,13 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             RENDER *prender = &pblock->ar[ir];
             if (prender->kind == -1)
                 continue;
-            StartCull(aqwPlane, pview->sGain, QwLoadVf15(prender->sphere.q), prender->sphere.w[3], prender->word);
+            StartCull(aqwPlane, pview->sGain, LoadSphereToVf15(prender->sphere.q), prender->sphere.w[3], prender->word);
             if (!(prender->channels & grfChannels))
                 continue;
-            float gVis = GVisCull();
+            float gVis = WaitCullVisibility();
             if (gVis == 0.0f)
                 continue;
-            VU_VECTOR dpos = QwDposCull();
+            VU_VECTOR dpos = GetCullSphereOffset();
             switch (prender->kind)
             {
             case 1:

@@ -2500,12 +2500,12 @@ extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
 extern "C" {
 extern int D_002DFBC0;
 // Whether gadget/action k can be used in this grab kind (kinds 1/8/11/12 forbid; 3/4 allow ...).
-int FActiveCplcy__FP5CPLCY(void *pcplcy);
+int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 }
 static inline int FGrabCameraFree(JTGRAB *grab)
 {
     int f = 0;
-    if (grab->pstepplayer->nUnk12f0 && (D_002DFBC0 & 2)) f = !FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+    if (grab->pstepplayer->nUnk12f0 && (D_002DFBC0 & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
     return f;
 }
 /* Whether input n is allowed in the current grab state (n 3: only in states 0, 1, 3, 4 and 13 with the camera

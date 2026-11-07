@@ -70,9 +70,9 @@ typedef char assert_CFont_size[sizeof(CFont) == 0x140 ? 1 : -1];
 class CFontBrx : public CFont
 {
 public:
-    float DxFromCh(char ch);
+    float GetCharWidth(char ch);
     void SwitchTex0(GIFS *pgifs);
-    float DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs);
+    float DrawChar(char ch, float x, float y, unsigned int rgba, GIFS *pgifs);
 };
 
 class CTextBox
@@ -101,9 +101,9 @@ public:
     CRichText(char *achz, CFont *pfont);
     void Reset();
     void SetBaseColor(RGBA *prgba);
-    unsigned char ChNext();
+    unsigned char ReadNextChar();
     int ClineWrap(float dxMax);
-    float DxMaxLine();
+    float GetMaxLineWidth();
     void Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs);
 };
 
@@ -165,13 +165,13 @@ void BuildBmpTex0(BMP *pbmp, int igs);                      /* BuildBmpTex0__FP3
 void BuildClutTex2(CLUT *pclut, int igs);                   /* BuildClutTex2__FP4CLUTi */
 void BuildClutGifs(CLUT *pclut, int igs, GIFS *pgifs);      /* BuildClutGifs__FP4CLUTiP4GIFS */
 void PostFontsLoad();
-/* The per-function callers saw ChNext / DxFromCh / DxDrawCh with other character types (int, or a signed char result);
+/* The per-function callers saw ReadNextChar / GetCharWidth / DrawChar with other character types (int, or a signed char result);
    the type decides whether the caller extends the character, so those callers keep their view through asm-labelled
    declarations of the same symbols. */
-extern "C" int ChNextI(CRichText *p) __asm__("ChNext__9CRichText");
-extern "C" char ChNextC(CRichText *p) __asm__("ChNext__9CRichText");
-extern "C" float DxFromChI(CFontBrx *pfont, int ch) __asm__("DxFromCh__8CFontBrxc");
-extern "C" float DxDrawChI(CFontBrx *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs) __asm__("DxDrawCh__8CFontBrxcffUiP4GIFS");
+extern "C" int ReadNextCharInt(CRichText *p) __asm__("ReadNextChar__9CRichText");
+extern "C" char ReadNextCharSigned(CRichText *p) __asm__("ReadNextChar__9CRichText");
+extern "C" float GetCharWidthInt(CFontBrx *pfont, int ch) __asm__("GetCharWidth__8CFontBrxc");
+extern "C" float DrawCharInt(CFontBrx *pfont, int ch, float x, float y, unsigned int rgba, GIFS *pgifs) __asm__("DrawChar__8CFontBrxcffUiP4GIFS");
 
 // Font startup: loads/posts the built-in fonts (0x15EF30) and sets the default font pointer D_002DE760 = font[0].
 // (inferred)
@@ -243,7 +243,7 @@ void CFont::PopScaling()
 
 // Returns the advance width of a character at the current scale (glyph width + 1 pixel, or the space width when the
 // font has no glyph for it).
-float CFontBrx::DxFromCh(char ch)
+float CFontBrx::GetCharWidth(char ch)
 {
     GLYPH *pglyph = FindGlyphForChar(this, ch);
     if (pglyph)
@@ -306,7 +306,7 @@ void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
 
 // Switches the GIF stream to this font's texture: ensures the font bitmap is in GS memory (TEXFLUSH when it was just
 // uploaded), sets TEX0_1 and the sprite primitive, then opens the REGLIST primitive (RGBAQ, UV, XYZF2, UV, XYZF2) that
-// DxDrawCh fills per glyph.
+// DrawChar fills per glyph.
 void CFontBrx::SwitchTex0(GIFS *pgifs)
 {
     int f = EnsureFontLoaded(this, pgifs);
@@ -322,7 +322,7 @@ void CFontBrx::SwitchTex0(GIFS *pgifs)
 // without the pin global-alloc gives it $f4).
 // Draws one character as a textured sprite at (x, y) in the 640x492.8 virtual screen (skipped when fully off screen)
 // and returns its advance width. Alpha is doubled into GS range (0x80 = opaque).
-float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
+float CFontBrx::DrawChar(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
 {
     GLYPH *pglyph = FindGlyphForChar(this, ch);
     if (pglyph) {
@@ -444,7 +444,7 @@ void CRichText::SetBaseColor(RGBA *rgba)
 // range), "~." restores the base colour, "~~" is a literal tilde; "&N" switches to font N (scaled to the base font's
 // line height), "&." restores the base font, "&&" is a literal ampersand; "^" escapes push or pop a text scale.
 // Returns 0 at the end of the text.
-unsigned char CRichText::ChNext()
+unsigned char CRichText::ReadNextChar()
 {
     int fDone = 0;
     register int one __asm__("$19") = 1; // register pin (the target's hoisted const-1 reg for the fontChanged stores)
@@ -554,12 +554,12 @@ int CRichText::ClineWrap(float dxMax)
     int ch;
     register int chNl __asm__("$18") = 10;
     Reset();
-    while ((ch = ChNextI(this)) != 0) {
+    while ((ch = ReadNextCharInt(this)) != 0) {
         if (ch == '\n') {
             cline++;
             dx = 0.0f;
         } else {
-            dx += DxFromChI(currentFont, ch);
+            dx += GetCharWidthInt(currentFont, ch);
         }
         if (dxMax != 0.0f && dx > dxMax) {
             unsigned char *pch;
@@ -591,18 +591,18 @@ extern "C" float GetRichTextWrappedHeight(CRichText *p, float dx)
 }
 
 // Returns the width of the widest line of the text (escapes applied).
-float CRichText::DxMaxLine()
+float CRichText::GetMaxLineWidth()
 {
     float dxMax = 0.0f;
     float dx = dxMax;
     char ch;
     Reset();
-    while ((ch = ChNextC(this)) != 0) {
+    while ((ch = ReadNextCharSigned(this)) != 0) {
         if (ch == '\n') {
             dxMax = GMax(dxMax, dx);
             dx = 0.0f;
         } else {
-            dx += currentFont->DxFromCh(ch);
+            dx += currentFont->GetCharWidth(ch);
         }
     }
     dxMax = GMax(dxMax, dx);
@@ -626,11 +626,11 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
     Reset();
     {
         int chT;
-        while ((chT = ChNextI(this)) != 0) {
+        while ((chT = ReadNextCharInt(this)) != 0) {
             if (chT == '\n')
                 iline++;
             else
-                adx[iline] += DxFromChI(currentFont, chT);
+                adx[iline] += GetCharWidthInt(currentFont, chT);
         }
     }
     if (ptb->jv == 0) {
@@ -647,7 +647,7 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
     pfontSetup = 0;
     Reset();
     pdx = adx;
-    while ((ch = ChNextI(this)) != 0) {
+    while ((ch = ReadNextCharInt(this)) != 0) {
         if (ch == '\n') {
             fNewLine = 1;
             pdx++;
@@ -673,7 +673,7 @@ void CRichText::Draw(CTextBox *ptb, CTextBox *ptbClip, GIFS *pgifs)
             currentFont->SwitchTex0(pgifs);
             fontChanged = 0;
         }
-        x += DxDrawChI(currentFont, ch, x, y, *(unsigned int *)&currentColor, pgifs);
+        x += DrawCharInt(currentFont, ch, x, y, *(unsigned int *)&currentColor, pgifs);
     }
     CleanupDraw(currentFont, ptbClip, pgifs);
 }

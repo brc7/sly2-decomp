@@ -116,9 +116,9 @@ union REQUEST {
 
 extern CLOCK D_002DDED0;
 /* the x/y/z readers of a qword vector: inline, defined after their caller (end of the functions) */
-inline float func_00259D98(qwordV *pq);
-inline float func_00259DA8(qwordV *pq);
-inline float func_00259DC0(qwordV *pq);
+inline float GetQwordX(qwordV *pq);
+inline float GetQwordY(qwordV *pq);
+inline float GetQwordZ(qwordV *pq);
 extern "C" {
 void InitSo(TRAIL *);
 void AddSoHierarchy(TRAIL *p);
@@ -376,7 +376,7 @@ static inline float Sqrt(qwordV d)
 }
 // After SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by
 // rate/distance (0x21C5F8) (inferred)
-extern "C" void func_0021C1C8(TRAIL *trail)
+extern "C" void ProjectTrailTransform(TRAIL *trail)
 {
     UpdateSoXfWorld(trail);
     if (!trail->state) {
@@ -507,9 +507,9 @@ extern "C" void SetTrailMeshPositions(TRAIL *trail, qwordV q)
     for (n = trail->model.nodes; n; n = n->next) {
         OUTV *pv = (OUTV *)((n->record - trail->model.records) * sizeof(OUTV) + (int)trail->model.output);
         qwordV t = q;
-        float x = func_00259D98(&t);
-        float y = func_00259DA8(&t);
-        float z = func_00259DC0(&t);
+        float x = GetQwordX(&t);
+        float y = GetQwordY(&t);
+        float z = GetQwordZ(&t);
         pv->x = x;
         pv->y = y;
         pv->z = z;
@@ -520,7 +520,7 @@ extern "C" void SetTrailMeshPositions(TRAIL *trail, qwordV q)
 // inline, defined after their caller, so g++ calls them and emits the out-of-line copies (linkonce), as the original
 // did.
 // Float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)]. (inferred)
-inline float func_00259D98(qwordV *p)
+inline float GetQwordX(qwordV *p)
 {
     float f;
     __asm__("mtc1 %1, %0" : "=f"(f) : "r"(*p));
@@ -528,7 +528,7 @@ inline float func_00259D98(qwordV *p)
 }
 
 // Float lane 1 (prot3w then mtc1) [game linkonce (inline/template)]. (inferred)
-inline float func_00259DA8(qwordV *p)
+inline float GetQwordY(qwordV *p)
 {
     float f;
     qwordV t;
@@ -538,7 +538,7 @@ inline float func_00259DA8(qwordV *p)
 }
 
 // Float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)]. (inferred)
-inline float func_00259DC0(qwordV *p)
+inline float GetQwordZ(qwordV *p)
 {
     float f;
     qwordV t;

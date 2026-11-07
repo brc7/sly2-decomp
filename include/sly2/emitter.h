@@ -20,7 +20,7 @@
 #include "sly2/util.h"
 struct RIPG; struct BLIPG; struct SW;
 
-/* ensure kind: what an accessor is asked for (the same enum as PemitterEnsureEmitter__FP7EMITTER4ENSK's) */
+/* ensure kind: what an accessor is asked for (the same enum as EnsureEmitter__FP7EMITTER4ENSK's) */
 #ifndef SLY2_ENUM_ENSK
 #define SLY2_ENUM_ENSK
 enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };

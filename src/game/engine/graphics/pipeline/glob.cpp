@@ -28,7 +28,7 @@ struct RGBAW { uint rgba; RGBAW(uint n) { rgba = n; } };
 RGBAW D_002DEB50(0x80101010);
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-typedef unsigned size_t; inline float func_002599D8(VECTOR *pvec); inline float func_002599E0(VECTOR *pvec); inline float func_002599E8(VECTOR *pvec);   /* the VECTOR component readers: inline, defined after their callers (end of file) */
+typedef unsigned size_t; inline float GetVectorComponentX(VECTOR *pvec); inline float GetVectorComponentY(VECTOR *pvec); inline float GetVectorComponentZ(VECTOR *pvec);   /* the VECTOR component readers: inline, defined after their callers (end of file) */
 
 extern "C" {
 extern char D_0025B880[], D_0025C1B0[];   /* the cel-border VU1 microprogram */
@@ -1018,12 +1018,12 @@ typedef char layout_M4_row3[((unsigned long)&((M4*)0)->r[3]==0x30)?1:-1];
 namespace M_RenderSoGlobset {
 // RenderSoGlobset (Claude agent, lane Z1, 2026-10-30): MATCH, 728/728, frame 0x290. Source = build/hand_wip/RenderSoGlobset.lilly5.cpp unchanged.
 //   Policy: no GPR/FPU pins. The only register bindings are the microprogram 0x1C0 I/O registers (vf10..vf19) inside the
-//   inline GCullSphere/GCullSphereSync helpers (allowed: VU microprogram registers bound inside an inline helper). All other asms
+//   inline GetSphereVisibility/GetSphereVisibilitySync helpers (allowed: VU microprogram registers bound inside an inline helper). All other asms
 //   are VU helper inlines (lw/qmfc2/mtc1 VU_FLOAT-style, as in Lilly's files) or commented empty asms; globals are D_ names only.
 // lilly5 (Claude agent, T1703, 2026-10-26): MATCH (728/728, frame 0x290). NOT in src/hand only because of the team's one-pin rule:
 //   the microprogram 0x1C0 inputs/outputs are register variables bound to vf10..vf19 (20 `register ... __asm__("vfN")`, as in
 //   UnpackSubglobBones.c / ProjectBlipTransformAccel lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
-//   From lilly3 (aligned 2), cull 2 (GCullSphereSync) only: (1) qmfc2 straight into a float "=r" (the qmfc2 output becomes a reload
+//   From lilly3 (aligned 2), cull 2 (GetSphereVisibilitySync) only: (1) qmfc2 straight into a float "=r" (the qmfc2 output becomes a reload
 //   in v0, reload's copy is the mtc1 v0,f0, so the i+1 reload after it gets v1 by round robin); (2) cfc2 outputs only vf19, an empty
 //   `"=j"(qwDpos)` asm declares vf18, and one empty `"+j"(qwDpos)` asm with a dead "$3" clobber: two no-code insns ready right after
 //   the cfc2 fill sched1's free slots (the PRE i+1 insn now issues after the swc1 gVisSub), and the $3 clobber holds the addiu v1
@@ -1059,11 +1059,11 @@ namespace M_RenderSoGlobset {
 //   (4) UnpackWords copy as `for (k = 0; k < cw; k++)`: loop.c creates the counter init after gcse's &matModel PRE insn, as BuildModelDrawPackets (15 -> 14).
 //   Left: cull 1 load/sq order + registers (target: radius lw after gain, regs v1/a0/v0/a2), cull 2 radius/range registers swapped (target radius v1, range a0),
 //   cull-2 tail `sw v1,0x1A4` / `swc1 f0,0x158` (sched1 puts the i+1 PRE insn before the swc1, so reload's spill store wins the sched2 luid tie).
-// laneH21v2 (Claude agent): aligned 30. laneI9v1 + CopyQws as `do { } while (0);` + for-k copy loop (no asm barrier; 31) + cull 2 through GCullSphereSync (vcallms and the cfc2.i sync as separate asms: target mtc1 zero / qmfc2 order) with a commented dead-$3 clobber on its qmfc2 (30).
+// laneH21v2 (Claude agent): aligned 30. laneI9v1 + CopyQws as `do { } while (0);` + for-k copy loop (no asm barrier; 31) + cull 2 through GetSphereVisibilitySync (vcallms and the cfc2.i sync as separate asms: target mtc1 zero / qmfc2 order) with a commented dead-$3 clobber on its qmfc2 (30).
 // laneI9v1 (Claude agent): aligned 31. laneI8v1 + final dist qmfc2 written straight to prpl->dist via "=r,m" : "j,!r" (never-chosen m alternative keeps the MEM; the qmfc2 output reload in v0 advances reload's round robin, so the pbStart reload gets v1 as in the target).
 // laneI8v1 (Claude agent): aligned 33. laneI7v2 + KindOf as (ulong)(psub->grf & 0xF8) >> 3 (target lbu + dsrl in the final switch, 35 -> 33).
 // laneI7v2 (Claude agent): aligned 35. laneI6v2 + params (pmodel, pmatWorld, gFirst, gSecond, pshd) (entry pshd spill order, 51 -> 48) + case-3 SqDist returns float straight from qmfc2 (48 -> 35).
-// laneI6v2 (Claude agent): aligned 51. laneI5v4 + final GBitsSqLength with qwOne as operand 0, case 3 GBitsSqDist (old order), fAlt kind as (x != 1.0f) ? 23 : 22.
+// laneI6v2 (Claude agent): aligned 51. laneI5v4 + final GetSquaredLengthBits with qwOne as operand 0, case 3 GBitsSqDist (old order), fAlt kind as (x != 1.0f) ? 23 : 22.
 // laneI5v4 (Claude agent): aligned 57. laneI4v5 + pad loop via `DMA *pdma` and a `pbPad` cursor, skin offset `int ibMat = imat*0x40 + 0x6F0`, commented empty volatile asm at the start of CopyQws.
 // RenderSoGlobset (Claude agent, lane I3): fresh rewrite in the style of Lilly's matched files.
 // laneI4v5 (Claude agent): aligned 120 (raw 179), frame 0x290. v4 + posCam, pos, sRadius declaration order.
@@ -1218,7 +1218,7 @@ void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat);
 qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius);
-int FInsideCmMrd(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
+int IsWithinCameraRenderDistance(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
 RPL *AllocRenderListEntry(void);
 }
@@ -1236,7 +1236,7 @@ static inline qword QwSub(qword qw0, qword qw1)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword QwXfm(const MATRIX4 &mat, qword qwPos)
+static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -1244,7 +1244,7 @@ static inline qword QwXfm(const MATRIX4 &mat, qword qwPos)
             : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
     return qw;
 }
-static inline qword QwXfmRef(const MATRIX4 &mat, const qword &qwPos)
+static inline qword TransformPointRef(const MATRIX4 &mat, const qword &qwPos)
 {
     qword qw;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -1252,14 +1252,14 @@ static inline qword QwXfmRef(const MATRIX4 &mat, const qword &qwPos)
             : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
     return qw;
 }
-static inline void GBitsSqLengthTo(int &gDst, qword qwV)
+static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
 {
     qword qwSq, qwOne;
     __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(qwOne), "=j"(qwSq) : "j"(qwV));
     // the "m" / "!r" alternative is allocation-only (never chosen): it keeps the destination a MEM, so the qmfc2 result is an output reload
     __asm__("qmfc2.ni %0, %1" : "=r,m"(gDst) : "j,!r"(qwSq));
 }
-static inline int GBitsSqLength(qword qwV)
+static inline int GetSquaredLengthBits(qword qwV)
 {
     qword qwSq, qwOne;
     int g;
@@ -1290,7 +1290,7 @@ struct VU_FLOATS
     VU_FLOATS(const SPH *psph) { __asm__("lw %0, %1" : "=r"(qw) : "m"(psph->sRange)); }
 };
 // Microprogram 0x1C0 (sphere against the view planes): its inputs and outputs live in fixed VU registers.
-static inline float GCullSphere(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
+static inline float GetSphereVisibility(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
 {
     qword *aqwPlane = D_002DDF40.aqwPlane;
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
@@ -1313,7 +1313,7 @@ static inline float GCullSphere(qword posCam, qword pos, const SPH *psph, const 
     return g;
 }
 // Same cull, with the VU0 sync as its own statement and the visibility moved out through a GPR.
-static inline float GCullSphereSync(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
+static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
 {
     qword *aqwPlane = D_002DDF40.aqwPlane;
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
@@ -1397,17 +1397,17 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
 {
     SUBDESC *pdesc;
     qword posCam = D_002DDF40.posCam;
-    qword pos = QwXfmRef(pmodel->powner->pxf->mat, *(qword *)&pmodel->posCenter);
+    qword pos = TransformPointRef(pmodel->powner->pxf->mat, *(qword *)&pmodel->posCenter);
     float sRadius = pmodel->rad;
     if (pmatWorld)
     {
-        pos = QwXfm(*pmatWorld, pos);
+        pos = TransformPoint(*pmatWorld, pos);
         sRadius *= GetMaxRowLengthMatrix3(pmatWorld);
     }
     if ((pmodel->grf & 0x200000000UL) && pshd->pmatClip)
         pos = ExpandSphereForProjection(pshd->pmatClip, pos, &sRadius);
     qword dpos;
-    float gVis = GCullSphere(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
+    float gVis = GetSphereVisibility(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
     if (gVis == 0.0f)
         return;
     pmodel->t = D_002DDED0.t;
@@ -1453,7 +1453,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             matModel = mat;
         }
         CopyAb__FPvT0Ui(&posSph, psph, 12);
-        qword posSub = QwXfm(matModel, *(qword *)&posSph);
+        qword posSub = TransformPoint(matModel, *(qword *)&posSph);
         float sRadiusSub = GetMaxRowLengthMatrix3(&matModel) * psph->rad;
         if ((psub->grf & 7) == 2 && pshd->pmatClip)
             posSub = ExpandSphereForProjection(pshd->pmatClip, posSub, &sRadiusSub);
@@ -1462,7 +1462,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         if (!psub->abone)
         {
             qword dposCull;
-            gVisSub = GCullSphereSync(posCam, posSub, psph, sRadiusSub, &dposCull);
+            gVisSub = GetSphereVisibilitySync(posCam, posSub, psph, sRadiusSub, &dposCull);
             if (gVisSub == 0.0f)
                 continue;
             dposSub = dposCull;
@@ -1470,7 +1470,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         else
         {
             dposSub = QwSub(posSub, posCam);
-            if (!FInsideCmMrd(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
+            if (!IsWithinCameraRenderDistance(&D_002DDF40, dposSub, psph->sRange, &gVisSub))
                 continue;
         }
         uchar *pbStart = D_002DEA28.pb;
@@ -1598,7 +1598,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         if (psub->grf & 0x400)
             prpl->dist = pdesc->dist;
         else
-            GBitsSqLengthTo(*(int *)&prpl->dist, dposSub);
+            StoreSquaredLengthBits(*(int *)&prpl->dist, dposSub);
         prpl->pb = pbStart;
         prpl->pv = psub->pb;
     }
@@ -1752,7 +1752,7 @@ static inline qword QwSub(qword qw0, qword qw1)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-static inline qword QwXfm(const MATRIX4 &mat, qword qwPos)
+static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 {
     qword qw;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -1760,14 +1760,14 @@ static inline qword QwXfm(const MATRIX4 &mat, qword qwPos)
             : "j"(*(qword *)mat.mat[0]), "j"(*(qword *)mat.mat[1]), "j"(*(qword *)mat.mat[2]), "j"(*(qword *)mat.mat[3]), "j"(qwPos));
     return qw;
 }
-static inline void GBitsSqLengthTo(int &gDst, qword qwV)
+static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
 {
     qword qwSq, qwOne;
     __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(qwOne), "=j"(qwSq) : "j"(qwV));
     // the "m"/"r" alternative is allocation-only (never chosen): it keeps the destination a MEM, so the qmfc2 result is an output reload
     __asm__("qmfc2.ni %0, %1" : "=r,m"(gDst) : "j,!r"(qwSq));
 }
-static inline int GBitsSqLength(qword qwV)
+static inline int GetSquaredLengthBits(qword qwV)
 {
     qword qwSq, qwOne;
     int g;
@@ -1873,7 +1873,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         {
             VECTOR4 pos;
             CopyAb__FPvT0Ui(&pos, &pmodel->asph[i], 12);
-            dpos = QwXfm(matModel, *(qword *)&pos);
+            dpos = TransformPoint(matModel, *(qword *)&pos);
         }
         uchar *pbStart = D_002DEA28.pb;
         if (psub->grf & 0x100)
@@ -1947,7 +1947,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         if (psub->grf & 0x400)
             prpl->dist = pdesc->dist;
         else
-            GBitsSqLengthTo(*(int *)&prpl->dist, dpos);
+            StoreSquaredLengthBits(*(int *)&prpl->dist, dpos);
         prpl->pb = pbStart;
         prpl->pv = psub->pb;
     }
@@ -2786,22 +2786,22 @@ extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *
 void FixupRgba(RGBA *prgba) __asm__("ColorCorrectRgba");
 extern "C" { 
  }
-static inline void *PvAllocStackP(int cb)
+static inline void *AllocFromStack16(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocStackImpl(&swalloc);
 }
-static inline void *PvAllocStackClearP(int cb)
+static inline void *AllocClearedFromStack16(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocStackClearImpl(&swalloc);
 }
-static inline void *PvAllocSwClearP(int cb)
+static inline void *AllocClearedFromWorldHeap16(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwClearImpl(&swalloc);
 }
-extern "C" SHD *PshdFindShader(int oid);
+extern "C" SHD *FindShader(int oid);
 extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern "C" int AddSaaCopyRecord(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void RelocateShaderUploadRecords(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
@@ -2856,7 +2856,7 @@ static inline void RelocPpv(char *pbOld, int cb, char *pbNew, char **ppb)
     if (ppb != 0 && *ppb >= pbOld && *ppb < pbOld + cb)
         *ppb += pbNew - pbOld;
 }
-static inline char *PbReloc(char *pbOld, int cb, char *pbNew, char *pb)
+static inline char *RelocatePointer(char *pbOld, int cb, char *pbNew, char *pb)
 {
     char *pbRet;
     if (pb != 0 && pb >= pbOld && pb < pbOld + cb)
@@ -2918,7 +2918,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     CalcRecipFitParams(psgl->fogIntensity, &D_002DDF40, pgFit);
 
     psubglob->cbnd = pbis->U8Read();
-    pglob->abnd = (BND *)PvAllocSwClearP(psubglob->cbnd * sizeof(BND));
+    pglob->abnd = (BND *)AllocClearedFromWorldHeap16(psubglob->cbnd * sizeof(BND));
     for (int ibnd = 0; ibnd < psubglob->cbnd; ibnd++)
     {
         BND *pbnd = &pglob->abnd[ibnd];
@@ -2986,13 +2986,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         vifsLit.AllocStack(0x2000);
         vifsLit.AddDmaCnt();
     }
-    int *acbatch = (int *)PvAllocStackClearP(cbatch * 4);
-    BATCH **apbatch = (BATCH **)PvAllocStackClearP(cbatch * 4);
+    int *acbatch = (int *)AllocClearedFromStack16(cbatch * 4);
+    BATCH **apbatch = (BATCH **)AllocClearedFromStack16(cbatch * 4);
     void *apvLit[1024];
     for (int ibatch = 0; ibatch < cbatch; ibatch++)
     {
         int cbatchThis = pbis->U8Read();
-        BATCH *abatch = (BATCH *)PvAllocStackClearP(cbatchThis << 6);
+        BATCH *abatch = (BATCH *)AllocClearedFromStack16(cbatchThis << 6);
         acbatch[ibatch] = cbatchThis;
         apbatch[ibatch] = abatch;
         BATCHHDR0 *phdr;
@@ -3069,7 +3069,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     pbatch->grf |= 8;
             }
             if (pbatch->grf & 0x20)
-                pbatch->aivtx = (int *)PvAllocStackClearP(pbatch->cvtx << 2);
+                pbatch->aivtx = (int *)AllocClearedFromStack16(pbatch->cvtx << 2);
             cvtxTotal += pbatch->cvtx;
             if (D_002DEB54 != 0)
                 pbatch->grf &= ~2;
@@ -3086,13 +3086,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
         STACKSCOPE scope;
         int cvtxFile = pbis->U8Read();
-        VECTOR *aposFile = (VECTOR *)PvAllocStackP(cvtxFile * sizeof(VECTOR));
+        VECTOR *aposFile = (VECTOR *)AllocFromStack16(cvtxFile * sizeof(VECTOR));
         pbis->Read(cvtxFile * sizeof(VECTOR), aposFile);
-        UVF *auvFile = (UVF *)PvAllocStackP(cvtxFile * sizeof(UVF));
+        UVF *auvFile = (UVF *)AllocFromStack16(cvtxFile * sizeof(UVF));
         pbis->Read(cvtxFile * sizeof(UVF), auvFile);
-        VECTOR *anormFile = (VECTOR *)PvAllocStackP(cvtxFile * sizeof(VECTOR));
+        VECTOR *anormFile = (VECTOR *)AllocFromStack16(cvtxFile * sizeof(VECTOR));
         pbis->Read(cvtxFile * sizeof(VECTOR), anormFile);
-        RGBA *argbaFile = (RGBA *)PvAllocStackP(cvtxFile * sizeof(RGBA));
+        RGBA *argbaFile = (RGBA *)AllocFromStack16(cvtxFile * sizeof(RGBA));
         pbis->Read(cvtxFile * sizeof(RGBA), argbaFile);
         for (RGBA *prgba = argbaFile; prgba < argbaFile + cvtxFile; prgba++)
             FixupRgba(prgba);
@@ -3104,20 +3104,20 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         {
             for (int iwt = 0; iwt < 4; iwt++)
                 phdr->aiqwBone[iwt] = psubglob->iqwBone + pbis->U8Read() * 4;
-            pvWeights = PvAllocStackP(CwtFromSubglob(psubglob) * cvtxFile);
+            pvWeights = AllocFromStack16(CwtFromSubglob(psubglob) * cvtxFile);
             pbis->Read(CwtFromSubglob(psubglob) * cvtxFile, pvWeights);
         }
         else
         {
             pvWeights = 0;
         }
-        uchar *pbVtx = (uchar *)PvAllocStackP(cvtxTotal);
+        uchar *pbVtx = (uchar *)AllocFromStack16(cvtxTotal);
         uint *punBits;
         uint un = 1;
         pbis->Read(cvtxTotal, pbVtx);
         int cbBits = ((cvtxTotal + 31) / 32) * 4;
         int fMulti = 0;
-        uint *aunBits = (uint *)PvAllocStackP(cbBits);
+        uint *aunBits = (uint *)AllocFromStack16(cbBits);
         pbis->Read(cbBits, aunBits);
         punBits = aunBits;
         if ((psubglob->bUnk02 & 5) || psubglob->cbnd != 0 || spec.iSpec != -1)
@@ -3135,7 +3135,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             if (psubglob->bUnk02 & 8)
             {
                 uchar *pbV = pbVtx;
-                arec = (VERTREC *)PvAllocStackP(cvtxTotal * sizeof(VERTREC));
+                arec = (VERTREC *)AllocFromStack16(cvtxTotal * sizeof(VERTREC));
                 VERTREC *prec = arec;
                 for (int ib = 0; ib < cbatchThis; ib++)
                 {
@@ -3154,8 +3154,8 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             }
             else
             {
-                VERTREC **apvtx = (VERTREC **)PvAllocStackClearP(cvtxFile << 2);
-                arec = (VERTREC *)PvAllocStackP(cvtxTotal * sizeof(VERTREC));
+                VERTREC **apvtx = (VERTREC **)AllocClearedFromStack16(cvtxFile << 2);
+                arec = (VERTREC *)AllocFromStack16(cvtxTotal * sizeof(VERTREC));
                 VERTREC *prec = arec;
                 for (int ib = 0; ib < cbatchThis; ib++)
                     abatch[ib].ivtxOwn = abatch[ib].cvtx;
@@ -3230,7 +3230,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         int ioid = pglobset->cnUnk2c;
                         while (--ioid >= 0)
-                            iqw += AddShaderVifUnpackQword(PshdFindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
+                            iqw += AddShaderVifUnpackQword(FindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
                     }
                     ppart->aiqwShdp[ishdp] = iqw;
                     iqw += AddVifUnpackShdp(pbatch->pshd, ishdp, iqw, &vifs);
@@ -3351,7 +3351,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             if (pglob->pwrbg != 0)
             {
                 int iqwW = ppart->iqwWeights;
-                WRBGBATCH *pwb = (WRBGBATCH *)PvAllocSwClearP(sizeof(WRBGBATCH));
+                WRBGBATCH *pwb = (WRBGBATCH *)AllocClearedFromWorldHeap16(sizeof(WRBGBATCH));
                 AppendSlEntry(&pglob->pwrbg->slBatch, pwb);
                 pwb->cvtx = pbatch->cvtx;
                 pwb->pvPos = pbatch->pvPos;
@@ -3680,7 +3680,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         int cbatchAll = 0;
         for (int i = 0; i < cbatch; i++)
             cbatchAll += acbatch[i];
-        BATCHRECS *pbatchrecs = (BATCHRECS *)PvAllocSwClearP(sizeof(BATCHRECS));
+        BATCHRECS *pbatchrecs = (BATCHRECS *)AllocClearedFromWorldHeap16(sizeof(BATCHRECS));
         pbatchrecs->pbatchrecsNext = (BATCHRECS *)pglobset->pbatchrecsFirst;
         pglobset->pbatchrecsFirst = pbatchrecs;
         pbatchrecs->psubglob = psubglob;
@@ -3694,11 +3694,11 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             {
                 pbr->cvtx = pb->cvtx;
                 pbr->grf = pb->grf;
-                pbr->pvPos = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pvPos);
-                pbr->pvUv = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pvUv);
-                pbr->pvUvLink = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pvUvLink);
-                pbr->pbRgb = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pbRgb);
-                pbr->pbNorm = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pbNorm);
+                pbr->pvPos = RelocatePointer(pbOld, cqwMain << 4, pbNew, (char *)pb->pvPos);
+                pbr->pvUv = RelocatePointer(pbOld, cqwMain << 4, pbNew, (char *)pb->pvUv);
+                pbr->pvUvLink = RelocatePointer(pbOld, cqwMain << 4, pbNew, (char *)pb->pvUvLink);
+                pbr->pbRgb = RelocatePointer(pbOld, cqwMain << 4, pbNew, (char *)pb->pbRgb);
+                pbr->pbNorm = RelocatePointer(pbOld, cqwMain << 4, pbNew, (char *)pb->pbNorm);
                 pbr->unknown1C = 0;
                 pb++;
                 pbr++;
@@ -4009,7 +4009,7 @@ void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*GetShdByIndex(int);
 int AddShaderVifUnpack(OBJECT*,int,int,VIFS*);
 void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
-/* func_002599D8/E0/E8: the file-scope inline readers */
+/* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
 extern QW D_002DEB60;
@@ -4091,9 +4091,9 @@ template <int V> static inline int Flags()
 }
 static inline void WriteVertex(U *destination, U value)
 {
-    float x = ::func_002599D8((VECTOR *)&value);
-    float y = ::func_002599E0((VECTOR *)&value);
-    float z = ::func_002599E8((VECTOR *)&value);
+    float x = ::GetVectorComponentX((VECTOR *)&value);
+    float y = ::GetVectorComponentY((VECTOR *)&value);
+    float z = ::GetVectorComponentZ((VECTOR *)&value);
     destination->f[0] = x;
     destination->f[1] = y;
     destination->f[2] = z;
@@ -5039,7 +5039,7 @@ typedef struct { float x, y, z, w; int a, b; } E;
 typedef struct { A *pa; int pad[3]; V4 offset; float radius; int pad2[8]; E *ae; } S;
 extern V4 D_002A2DD0;
 void RemoveLoFromRenderTree(A *pa);
-/* func_002599D8/E0/E8: the file-scope inline readers */
+/* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
 
@@ -5056,9 +5056,9 @@ void ResetGlobAttachment(S *p, int i)
     p->radius = g;
     pe = &p->ae[i];
     v = D_002A2DD0;
-    x = ::func_002599D8((VECTOR *)&v);
-    y = ::func_002599E0((VECTOR *)&v);
-    z = ::func_002599E8((VECTOR *)&v);
+    x = ::GetVectorComponentX((VECTOR *)&v);
+    y = ::GetVectorComponentY((VECTOR *)&v);
+    z = ::GetVectorComponentZ((VECTOR *)&v);
     pe->x = x;
     pe->y = y;
     pe->z = z;
@@ -5069,7 +5069,7 @@ void ResetGlobAttachment(S *p, int i)
 // Return v[0] [game linkonce (inline/template)]. (inferred)
 // 0x2599D8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
-inline float func_002599D8(VECTOR *pvec)
+inline float GetVectorComponentX(VECTOR *pvec)
 {
     return pvec->x;
 }
@@ -5077,7 +5077,7 @@ inline float func_002599D8(VECTOR *pvec)
 // Return v[1] [game linkonce (inline/template)]. (inferred)
 // 0x2599E0: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
-inline float func_002599E0(VECTOR *pvec)
+inline float GetVectorComponentY(VECTOR *pvec)
 {
     return pvec->y;
 }
@@ -5085,7 +5085,7 @@ inline float func_002599E0(VECTOR *pvec)
 // Return v[2] [game linkonce (inline/template)]. (inferred)
 // 0x2599E8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
 // out-of-line copy (linkonce), as the original did.
-inline float func_002599E8(VECTOR *pvec)
+inline float GetVectorComponentZ(VECTOR *pvec)
 {
     return pvec->z;
 }

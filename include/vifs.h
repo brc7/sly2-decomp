@@ -29,7 +29,7 @@ public:
     void AddVifStcycl(int wl, int cl);
     void AddVifStrow(QW *pqw);
     void AddVifStmask(uint unMask);
-    int CbUnpackSetup(UPK upk, int c, int iqw);
+    int WriteUnpackSetup(UPK upk, int c, int iqw);
     void UnpackHelper(UPK upk, int c, int iqw, int *pcb, uint **ppun);
     void AddVifUnpack(UPK upk, int c, void *pvSrc, int iqw);
     void AddVifUnpack(UPK upk, int c, CBinaryInputStream *pbis, int iqw);

@@ -89,7 +89,7 @@ void ColorCorrectRgba(RGBAV *prgba);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 void *memset(void *pv, int n, unsigned int cb);
 void *FindShaderById();
-int NLog2__FUi(int n);
+int CeilLog2__FUi(int n);
 }
 void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS *pgifs);
 
@@ -1005,13 +1005,13 @@ extern "C" void ClearShaderGsState()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PshdFindShader { extern "C" {
+namespace M_FindShader { extern "C" {
 
 struct E { int oid; char pad[0x28]; };
 extern int D_003DCFE8;
 extern struct E *D_003DCFEC;
 // Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL. (inferred)
-struct E *PshdFindShader(int oid)
+struct E *FindShader(int oid)
 {
     int i;
     if (oid == -1) return 0;
@@ -1020,7 +1020,7 @@ struct E *PshdFindShader(int oid)
     }
     return 0;
 }
-} } // namespace M_PshdFindShader
+} } // namespace M_FindShader
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindShaderById { extern "C" {
@@ -1081,7 +1081,7 @@ namespace M_UpdateShaders { extern "C" {
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 int ShouldUpdateSaa__FP3SAA(struct O *p);
-// For each SAA in (*(struct O * *)&g_sw.slSaa): if FUpdatableSaa call its vt8 (Update) (inferred)
+// For each SAA in (*(struct O * *)&g_sw.slSaa): if ShouldUpdateSaa call its vt8 (Update) (inferred)
 void UpdateShaders(void)
 {
     int unused[4];
@@ -1128,8 +1128,8 @@ void BuildBmpTex0(BMP *pbmp, int tbp)
     pbmp->tex0.TBP0 = tbp;
     pbmp->tex0.TBW = pbmp->cbw;
     pbmp->tex0.PSM = pbmp->psm;
-    pbmp->tex0.TW = NLog2__FUi(pbmp->cx);
-    pbmp->tex0.TH = NLog2__FUi(pbmp->cy);
+    pbmp->tex0.TW = CeilLog2__FUi(pbmp->cx);
+    pbmp->tex0.TH = CeilLog2__FUi(pbmp->cy);
     pbmp->tex0.TCC = 1;
 }
 
@@ -1145,7 +1145,7 @@ void BuildBmpGifs(struct BMP *pbmp, int dbp, void *pgifs)
 } } // namespace M_BuildBmpGifs
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FBuildUploadBitmapGifs__FiP3GSBP4GIFS { extern "C" {
+namespace M_BuildUploadBitmapGifs__FiP3GSBP4GIFS { extern "C" {
 struct BS { int n0; int n4; int n8; };
 struct X { char pad[0xC]; int c; };
 struct T1 { char pad[0x18]; long tex2; };
@@ -1167,7 +1167,7 @@ void AddDmaRefs__4DMASiP2QW(struct X *, int, int);
 void AddClutToHash(struct E1 *);
 void AddBitmapToHash(struct E2 *);
 // Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added.
-int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gifs)
+int BuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gifs)
 {
     int countBefore = 0;
     int i, j;
@@ -1220,7 +1220,7 @@ int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gi
         return 0;
     return gifs->c != countBefore;
 }
-} } // namespace M_FBuildUploadBitmapGifs__FiP3GSBP4GIFS
+} } // namespace M_BuildUploadBitmapGifs__FiP3GSBP4GIFS
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UploadPermShaders { extern "C" {

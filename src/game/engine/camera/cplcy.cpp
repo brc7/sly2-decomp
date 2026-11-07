@@ -28,7 +28,7 @@ extern void *D_002CD498[] __asm__("_vt$6CPZOOM");  /* CPZOOM vtable */
 extern void *D_002CD450[] __asm__("_vt$6CPHANG");  /* CPHANG vtable */
 extern void *D_002CD408[] __asm__("_vt$10CPCAMBLEND");  /* CPCAMBLEND vtable */
 extern void *D_002CD3C0[] __asm__("_vt$8CPTURRET");  /* CPTURRET vtable */
-extern int D_002DE254;      /* the active policy (compared by FActiveCplcy) */
+extern int D_002DE254;      /* the active policy (compared by IsCameraPolicyActive) */
 CPLCY *CPLCY_ctor(CPLCY *pcplcy);
 void InitCplcy(CPLCY *pcplcy);
 void UpdateCplcy(CPLCY *pcplcy, void *pv, JOY *pjoy);
@@ -96,7 +96,7 @@ extern "C" void ResetCplcy()
 }
 
 // True if pcplcy is g_cm's current top policy (D_002DE254 = g_cm.acpr[0].pcplcy)
-int FActiveCplcy(CPLCY *pcplcy)
+int IsCameraPolicyActive(CPLCY *pcplcy)
 {
     return D_002DE254 == (int)pcplcy;
 }
@@ -317,7 +317,7 @@ static __inline__ float GClamp(float g, float gMin, float gMax)
     return g;
 }
 
-static __inline__ float GClamp2(float g, float gMin, float gMax)
+static __inline__ float ClampAssign(float g, float gMin, float gMax)
 {
     if (g < gMin) g = gMin;
     else if (gMax < g) g = gMax;
@@ -335,7 +335,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
     x = p->zoom;
     p->zoomSpeed = (D_002BD980.c0 + x * (D_002BD980.c1 + x * D_002BD980.c2)) * pjoy->dyRight * __builtin_fabsf(pjoy->dyRight);
     x += p->zoomSpeed * D_002DDED0.dt;
-    p->zoom = x = GClamp2(x, 0.0f, 1.0f);
+    p->zoom = x = ClampAssign(x, 0.0f, 1.0f);
     if (p->zoomSpeed != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = p->zoomSound;
         SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->zoomSpeed)));
@@ -380,8 +380,8 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 }
 } } // namespace M_UpdateCplook
 
-// Slot 7: release psndUnk38/psndZoom refs. (inferred)
-/* Slot 7: releases the two sound pointers. */
+// ResetCplook (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
+// sound references psndUnk38 and psndZoom. (inferred)
 void CPLOOK::VSlot7()   /* key function */
 {
     CPLOOK *pcplook = this;
@@ -680,8 +680,8 @@ void UpdateCpzoom(struct X *p)
 }
 } } // namespace M_UpdateCpzoom
 
-// Slot 7: release the two sound refs (+0xC4/+0xC0) (inferred)
-/* Slot 7: releases the two sound pointers. */
+// ResetCpzoom (vtable slot 7, the policy reset; CPLCY's own slot 7 is the empty ResetCplcy): releases the two
+// sound references psndUnkc4 (+0xC4) and psndZoom (+0xC0). (inferred)
 void CPZOOM::VSlot7()   /* key function */
 {
     CPZOOM *pcpzoom = this;

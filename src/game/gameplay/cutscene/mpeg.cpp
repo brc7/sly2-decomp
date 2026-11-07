@@ -639,7 +639,7 @@ extern CFont *D_002DE760;
 extern TEXT_TABLE D_003E1C20;
 char *FindKeyedTableValue(TEXT_TABLE *p, int k);
 float GetRichTextWrappedHeight(CRichText *pfont, float dx) __asm__("GetRichTextWrappedHeight");
-float DxMaxLine__9CRichText(CRichText *pfont);
+float GetMaxLineWidth__9CRichText(CRichText *pfont);
 void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
 void Draw__9CRichTextP8CTextBoxT1P4GIFS(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
 }
@@ -674,7 +674,7 @@ void DrawMpegSubtitles(CMPEG *player)
         PushScaling__5CFontff(D_002DE760, 0.8f, 0.8f);
         CRichText font(FindKeyedTableValue(&D_003E1C20, player->psubt->idText), D_002DE760);
         float dy = GetRichTextWrappedHeight(&font, 320.0f);
-        float dx = DxMaxLine__9CRichText(&font);
+        float dx = GetMaxLineWidth__9CRichText(&font);
         TB tb(320.0f - dx * 0.5f, 476.8000183f - dy, dx, dy);
         RGBA rgba;
         TB *ptb = &tb;
