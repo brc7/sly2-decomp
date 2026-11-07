@@ -773,67 +773,56 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171AF8 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; void *script; };
-qword GetLoWorldPos(void *p);
-void GetGuardScriptTargetPose(void *script, qword pos, int target, int posOut, int headingOut);
+qword GetLoWorldPos(LO *p);
+void GetGuardScriptTargetPose(CID113 *script, qword pos, int target, int posOut, int headingOut);
+} }
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
-void GetBhvScriptTargetPose(struct S *behavior, int target, int posOut, int headingOut)
+extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, int target, int posOut, int headingOut)
 {
-    GetGuardScriptTargetPose(behavior->script, GetLoWorldPos(behavior->guard), target, posOut, headingOut);
+    using namespace M_func_00171AF8;
+    GetGuardScriptTargetPose(behavior->script, GetLoWorldPos(behavior->owner), target, posOut, headingOut);
 }
-} } // namespace M_func_00171AF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171B60 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0;
-struct VTE { short d; short pad; void (*pfn)(); };
-struct GUARD { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char unknown1B0[0x10]; };
-struct S { char pad[0x10]; struct GUARD *guard; };
-void DetachStepguard(struct GUARD *guard);
-void SetStepTargetHeading(struct GUARD *guard, float heading);
+void DetachStepguard(STEPGUARD *guard);
+void SetStepTargetHeading(STEPGUARD *guard, float heading);
+} }
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
-void TeleportBhvScriptGuard(struct S *behavior, qword pos, float heading)
+// (lo.h declares RotateToMat with a MATRIX4; the guard passes its 3x3 target matrix: slot 30 takes a MATRIX3.)
+extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading)
 {
-    struct GUARD *guard = behavior->guard;
-    struct VTE *entry;
+    using namespace M_func_00171B60;
+    STEPGUARD *guard = (STEPGUARD *)behavior->owner;
     DetachStepguard(guard);
-    entry = &guard->vt[0x1D];   /* set position */
-    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, pos);
+    guard->TranslateToPos(pos);
     SetStepTargetHeading(guard, heading);
-    entry = &guard->vt[0x1E];   /* set orientation */
-    ((void (*)(void *, void *))entry->pfn)((char *)guard + entry->d, guard->unknown1B0);
-    entry = &guard->vt[0x23];   /* set velocity */
-    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
-    entry = &guard->vt[0x24];   /* set angular velocity */
-    ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
+    guard->RotateToMat((MATRIX4 *)&guard->matTarget);
+    guard->SetVelocity(D_002A2DD0);
+    guard->SetAngularVelocity(D_002A2DD0);
 }
-} } // namespace M_func_00171B60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171C18 { extern "C" {
-struct COMMAND { int kind; };
-struct RESUME { struct COMMAND *command; int context; float pathParam; };
-struct BHVPATROLPATHV { char pad[0x38]; float pathParam; };
-struct S { char pad[0x10]; STEPGUARD *guard; int pad1; struct BHVPATROLPATHV *child; char pad2[0x18]; int context; struct COMMAND *currentCommand; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
+} }
 // 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
-void SaveBhvScriptResumeState(struct S *behavior, struct RESUME *resume)
+extern "C" void SaveBhvScriptResumeState(BHV169 *behavior, SSGRESUME *resume)
 {
-    switch (behavior->guard->attachKind) {
+    using namespace M_func_00171C18;
+    switch (((STEPGUARD *)behavior->owner)->attachKind) {
     case -1:
         resume->command = behavior->currentCommand;
         resume->context = behavior->context;
         if (resume->command && resume->command->kind == SSGK_FOLLOW_PATH)
-            resume->pathParam = behavior->child->pathParam;
+            resume->pathParam = ((BHVPATROLPATH *)behavior->pbhvNext)->pathParam;
         break;
     case 0: case 1:   /* on a rail or pipe: no resume point */
         func_002333B4(resume, 0, sizeof(*resume));
         break;
     }
 }
-} } // namespace M_func_00171C18
 
 // 0x171C98: Pops any running child behaviour and jumps the script to a label.
 /* Jumps to the label command id of the running script (popping a running sub-behaviour first). */
