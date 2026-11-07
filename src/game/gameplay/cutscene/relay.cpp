@@ -8,7 +8,7 @@
 // TU 0x1DFAD8..0x1E5D60 (141 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_relay
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001E5D60
-// The two Lilly ports (NextJsgCommand, FIsJsgCommandComplete) share one set of type copies at file scope (identical
+// The two Lilly ports (NextJsgCommand, IsJsgCommandComplete) share one set of type copies at file scope (identical
 // copies merged; GRABSPOT is NextJsgCommand's superset with two more virtuals); the other per-function files keep
 // their views in namespaces named after the function (docs/guides/tu-merging.md "Representation decisions"). The
 // former m2c bodies are written at file scope on the Lilly RELAY/RELAYCMD/JSG: RELAYCMD's argument block is a union
@@ -1975,8 +1975,8 @@ extern "C" void AddRelayPipeTo(RELAYV *relay, OID oidTarget, int fAsync, OID oid
 }
 
 // 0x1E0910 AddRelayWaitAndReleaseGrab
-// Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay (AddRelayCommand(prelay,0x1B,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x1B: waits while oidActor is in air states 0xB..0xD, then lets go of a grab still
+// in grab state 0 or 0xD (vtable slot 87); a non-player actor waits for the prompt button instead. (inferred)
 extern "C" void AddRelayWaitAndReleaseGrab(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
@@ -1991,8 +1991,8 @@ extern "C" void AddRelayHeroState(RELAYV *relay, int nUnk4, int nState, int fAsy
 }
 
 // 0x1E0990 AddRelayStepGrab
-// Splice builtin: append a RELAYCK 0x1D (StepCmd1D) command to the relay (AddRelayCommand(prelay,0x1D,fAsync)) and
-// fill its args. (inferred)
+// Splice builtin: appends RELAYCK 0x1D: the player oidActor grabs oidGoal (SetStepplayerGrabTarget) and the script
+// holds the character until the grab ends. (inferred)
 extern "C" void AddRelayStepGrab(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
@@ -2002,7 +2002,7 @@ extern "C" void AddRelayStepGrab(RELAYV *relay, OID oidGoal, OID oidActor)
 }
 
 // 0x1E09D0 AddRelayStepThrowAt
-// Splice builtin: appends step command 0x1E with two objects for oidActor.
+// Splice builtin: appends RELAYCK 0x1E: oidActor throws the object oidA at oidB's position (StartStepplayerThrowAt).
 extern "C" void AddRelayStepThrowAt(RELAYV *relay, OID oidA, OID oidB, OID oidActor)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1E, 0);
@@ -2010,8 +2010,8 @@ extern "C" void AddRelayStepThrowAt(RELAYV *relay, OID oidA, OID oidB, OID oidAc
 }
 
 // 0x1E0A20 AddRelayStepGrabState9
-// Splice builtin: append a RELAYCK 0x1F (StepCmd1F) command to the relay (AddRelayCommand(prelay,0x1F,fAsync)) and
-// fill its args. (inferred)
+// Splice builtin: appends RELAYCK 0x1F: puts the player oidActor's grab controller into state 9 on oidGoal
+// (SetStepplayerGrabState9; the state's meaning is not known yet). (inferred)
 extern "C" void AddRelayStepGrabState9(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
@@ -2021,8 +2021,8 @@ extern "C" void AddRelayStepGrabState9(RELAYV *relay, OID oidGoal, OID oidActor)
 }
 
 // 0x1E0A60 AddRelayStepAttachToHands
-// Splice builtin: append a RELAYCK 0x20 (StepCmd20) command to the relay (AddRelayCommand(prelay,0x20,fAsync)) and
-// fill its args. (inferred)
+// Splice builtin: appends RELAYCK 0x20: clears oidActor's grab and attaches oidGoal to the character's hands
+// (SetStepplayerGrabTargetEx); completes at once. (inferred)
 extern "C" void AddRelayStepAttachToHands(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
@@ -2032,8 +2032,8 @@ extern "C" void AddRelayStepAttachToHands(RELAYV *relay, OID oidGoal, OID oidAct
 }
 
 // 0x1E0AA0 AddRelayStepGrabState5
-// Splice builtin: append a RELAYCK 0x21 (StepCmd21) command to the relay (AddRelayCommand(prelay,0x21,fAsync)) and
-// fill its args. (inferred)
+// Splice builtin: appends RELAYCK 0x21: puts oidActor's grab controller into state 5 on oidGoal with the hands'
+// target attached to it (SetStepplayerGrabTargetAlt). (inferred)
 extern "C" void AddRelayStepGrabState5(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
@@ -2043,7 +2043,7 @@ extern "C" void AddRelayStepGrabState5(RELAYV *relay, OID oidGoal, OID oidActor)
 }
 
 // 0x1E0AE0 AddRelayStepGrabAseg
-// Splice builtin: appends step command 0x22 (a target and a mode) for oidActor.
+// Splice builtin, RELAYCK 0x22: oidActor enters grab state 0xC on animation oidTarget, facing the camera/nMode. (inferred)
 extern "C" void AddRelayStepGrabAseg(RELAYV *relay, OID oidTarget, int nMode, int nUnk6, OID oidActor)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd22, 0);
@@ -2061,7 +2061,7 @@ extern "C" void AddRelayFace(RELAYV *relay, OID oidFace, OID oidActor, float dtW
 
 // 0x1E0B90 AddRelayGoTo
 // Splice builtin: appends a GoTo command (RELAYCK 0x24): oidActor goes to oidTarget at run fraction uRun, arriving
-// within gArrive, playing clip idClip (fUnk9 set; the _1E0C08 variant clears it). The old view called AddRelayCommand
+// within gArrive, playing clip idClip (fUnk9 set; AddRelayGoToAlt clears it). The old view called AddRelayCommand
 // with two arguments: fAsync was simply already in the third argument register.
 extern "C" void AddRelayGoTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
 {
@@ -2075,8 +2075,8 @@ extern "C" void AddRelayGoTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidAc
 }
 
 // 0x1E0C08 AddRelayGoToAlt
-// Splice builtin: the GoTo variant with an explicit fAsync (RELAYCK 0x24): oidActor goes to oidTarget at run fraction
-// uRun, arriving within gArrive, playing clip idClip.
+// Splice builtin: the second GoTo builtin (RELAYCK 0x24): like AddRelayGoTo (oidActor goes to oidTarget at run
+// fraction uRun, within gArrive, playing clip idClip) but with the command's fUnk9 flag cleared. (inferred)
 extern "C" void AddRelayGoToAlt(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, int idClip, float uRun, float gArrive)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_GoTo, fAsync);
@@ -2127,7 +2127,7 @@ extern "C" void AddRelayWalkTo(RELAYV *relay, OID oidTarget, float gUnk5, int nU
 }
 
 // 0x1E0DB8 AddRelayStepCarryTo
-// Splice builtin: appends step command 0x29 (a target, a parameter, an arrival distance) for oidActor.
+// Splice builtin, RELAYCK 0x29: waits until oidActor, carrying (grab state 8), is near oidTarget (gArrive). (inferred)
 extern "C" void AddRelayStepCarryTo(RELAYV *relay, OID oidTarget, int fAsync, OID oidActor, float gUnk5, float gArrive)
 {
     RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd29, fAsync);
@@ -2220,8 +2220,8 @@ extern "C" void AddRelayHidePart(RELAYV *relay, OID oidAseg, OID oidPart)
 }
 
 // 0x1E1058 AddRelayJoltCamera
-// Splice builtin: append a RELAYCK 0x32 (Unk32) command to the relay (AddRelayCommand(prelay,0x32,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin JOLT (RefThunkRelayJOLT): appends RELAYCK 0x32, which jolts (shakes) the camera with JoltCm(g_cm, n)
+// and waits its time.
 extern "C" void AddRelayJoltCamera(RELAYV *relay, int n, int fAsync)
 {
     AddRelayCommand(relay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
@@ -2307,8 +2307,8 @@ extern "C" void AddRelayCamBlendTo(RELAYV *relay, qword qwPos, qword angles, int
 }
 
 // 0x1E1388 AddRelayPopCamBlend
-// Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay (AddRelayCommand(prelay,0x3A,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x3A, which ends the script's camera blend (PopJsgCamBlend with argument n).
+// (inferred)
 extern "C" void AddRelayPopCamBlend(RELAYV *relay, int n)
 {
     AddRelayCommand(relay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
@@ -2385,8 +2385,8 @@ extern "C" void AddRelayButtonPrompt(RELAYV *relay, int grfbtn, OID oidWho)
 }
 
 // 0x1E15B0 AddRelayWaitPlayerState
-// Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay (AddRelayCommand(prelay,0x43,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x43: waits until the player oidActor's state (STEPPLAYER vtable slot 88) equals n.
+// (inferred)
 extern "C" void AddRelayWaitPlayerState(RELAYV *relay, int n, OID oidActor)
 {
     RELAYCMD *prelaycmd;
@@ -2506,24 +2506,24 @@ extern "C" void AddRelayMurrayApplySma(RELAYV *relay, int nUnk5, int nUnk7, int 
 }
 
 // 0x1E18E0 AddRelayWaitBentleyGadget
-// Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay (AddRelayCommand(prelay,0x50,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x50: takes Bentley (oidActor) and waits until he is in his gadget state
+// (BENTLEY_GADGET, 6). (inferred)
 extern "C" void AddRelayWaitBentleyGadget(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
 }
 
 // 0x1E1910 AddRelayWaitBentleyGadgetDone
-// Splice builtin: append a RELAYCK 0x51 (Unk51) command to the relay (AddRelayCommand(prelay,0x51,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x51: takes Bentley (oidActor) and waits until he has left his gadget state
+// (BENTLEY_GADGET, 6). (inferred)
 extern "C" void AddRelayWaitBentleyGadgetDone(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
 }
 
 // 0x1E1940 AddRelayWaitLine
-// Splice builtin: append a RELAYCK 0x52 (Unk52) command to the relay (AddRelayCommand(prelay,0x52,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x52: waits until the script's last dialogue line has stopped, or (dtWait >= 0)
+// until the dialogue time reaches dtWait. (inferred)
 extern "C" void AddRelayWaitLine(RELAYV *relay, float dtWait)
 {
     AddRelayCommand(relay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
@@ -2571,8 +2571,8 @@ extern "C" void AddRelayResetStepGoal(RELAYV *relay, OID oidStep, OID oidUnk5)
 }
 
 // 0x1E1A60 AddRelayMurrayThrowAim
-// Splice builtin: append a RELAYCK 0x57 (Unk57) command to the relay (AddRelayCommand(prelay,0x57,fAsync)) and fill
-// its args. (inferred)
+// Splice builtin: appends RELAYCK 0x57 (async): puts Murray (oidActor) into his throw-aim state (EnterMurrayThrowAim).
+// (inferred)
 extern "C" void AddRelayMurrayThrowAim(RELAYV *relay, OID oidActor)
 {
     AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
@@ -2673,7 +2673,7 @@ void RemoveJsg(P *p);
 void UpdateRelayScript(P *p);
 }
 // Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
-// is fAsync or complete (FIsJsgCommandComplete); release JT if done; remove the JSG past the block end.
+// is fAsync or complete (IsJsgCommandComplete); release JT if done; remove the JSG past the block end.
 void UpdateRelayScript(P *script)
 {
     LOCK lock(script);
@@ -3969,8 +3969,8 @@ void NextJsgCommand(JSGV *script)
 } // namespace M_NextJsgCommand__FP3JSG
 
 // 0x1E3890 IsJsgCommandComplete
-namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD {
-// FIsJsgCommandComplete: ported from Lilly's personal Sly 2 decomp (src/P2/jsg.c), reduced to the declarations it needs.
+namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD {
+// IsJsgCommandComplete: ported from Lilly's FIsJsgCommandComplete (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BD850 (D_002BD850), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DFC00 (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
 // 0x001E3890 IsJsgCommandComplete  (T1306, our name; MATCH)
@@ -4120,9 +4120,9 @@ static inline float TJsgNow(JSGV *script)
     }
     return D_002DDED0.t;
 }
-int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
+int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
 // Whether the given command has finished, by kind.
-int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
+int IsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
 {
     int fComplete;
     MURRAY *pmurray;
@@ -4676,7 +4676,7 @@ int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
     }
     return fComplete;
 }
-} // namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD
+} // namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD
 
 // 0x1E4530 GetJsgCommandDuration
 namespace M_func_001E4530 { extern "C" {

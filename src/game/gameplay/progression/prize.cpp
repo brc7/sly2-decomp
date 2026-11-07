@@ -373,7 +373,7 @@ extern "C" void ProjectDprizeTransform(P *prize)
 }
 } // namespace M_ProjectDprizeTransform
 
-namespace M_FFilterDprizeObjects { extern "C" {
+namespace M_IsDprizeCollisionCandidate { extern "C" {
 struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
@@ -384,7 +384,7 @@ int IsDprizeCollisionCandidate(void *prize, struct Q *q)
     void *s;
     /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
 }
-} } // namespace M_FFilterDprizeObjects
+} } // namespace M_IsDprizeCollisionCandidate
 
 namespace M_CheckDprizeBounce {
 // CheckDprizeBounce: one commented pin (QwNormalizeInto), one allocation-only asm operand (GFromVf), VU one-op asm helpers only.

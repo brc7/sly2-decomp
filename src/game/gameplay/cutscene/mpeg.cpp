@@ -319,7 +319,7 @@ void StageInterleavedIopAudio(CQueueOutputIop *queue, int cb, char *pb)
     }
 }
 
-// Write cb bytes into the IOP ring buffer in chunks via CbSend; returns bytes written. (inferred)
+// Write cb bytes into the IOP ring buffer in chunks via CQueueOutputIop_SendBytes; returns bytes written. (inferred)
 extern "C" int CQueueOutputIop_WriteBytes(CQueueOutputIop *queue, int cb, char *pb)
 {
     int c = cb;
@@ -839,7 +839,7 @@ void Finish__5CMpeg(CMPEG *player)
     D_002DEDBC = 3;
 }
 
-// spool async stream and demux into sceMpeg (returns 2 at EOF).
+// spool the stream, demux one chunk: 0 = progress, 1 = stalled (drain the queues), 2 = EOF / stalled with room left.
 int DemuxStream__5CMpegi(CMPEG *player, int wait)
 {
     int n, r;

@@ -345,8 +345,8 @@ void ClearCurrentBootyEntry(BOOTYV *booty) {
     booty->pbootyeCur = 0;
 }
 
-// Splice setter: adds an object name (at most three) to the current booty entry; the symbol still carries Sly 1's
-// ALARM class name (BOOTY's old label), so it cannot be renamed by rename.py yet.
+// Splice setter: adds an object name (at most three) to the current booty entry. The mangled symbol still carries
+// Sly 1's ALARM class name (BOOTY's old label) in its signature: renaming the type is a separate pass.
 void AddBootyEntryObject(ALARM *booty, OID oid)
 {
     BOOTYE *entry = booty->pbootyeCur;
