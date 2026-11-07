@@ -95,7 +95,6 @@ struct LONGU { long l; } __attribute__((packed));
 struct POV { int pad[3]; VTE *pvt; int x10; POV **pp14; };
 struct MSG { BOMBV *p; int x4; POV *po; int zapKind; int damage; int pad14[3]; qword v20; qword v30; char pad40[0x60 - 0x40]; };
 struct MSG2 { int k; BOMBV *p; float g8; float gC; };
-struct G { char pad[0x402C]; int stimulusSystem; };   /* (inferred: func_00156698 adds a stimulus to it) */
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 
 extern CLOCK D_002DDED0;
@@ -109,7 +108,7 @@ extern const LONGU D_002A4B10;   /* an 8-byte callback record (a pointer to memb
 int D_002BC9D0[4] = {0x33, 0x64, 0x4F, 0x67};
 extern qword D_002A2DD0;
 extern "C" {
-extern G D_003DD490;
+extern SW D_003DD490;
 extern qword D_002A2DC0;
 int D_002BC9E0 = 0x43FA0000;   /* 500.0f, read as its bit pattern */
 void InitSo(BOMBV *);
@@ -118,15 +117,15 @@ void PostSoLoad(BOMBV *);
 void UpdateSo(BOMBV *p);
 void *AllocFromWorldHeap(AREQV *);
 void HandleBasicMessage(BOMBV *, int, void *);
-void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
+void UpdateSwPox(SW *pg, XEC *pa, XEC *pb, int n);
 qword GetLoWorldPos(void *p);
 int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
 void AddSoCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
-void AddXp(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
+void AddXp(SW *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
 void AdjustSoXps(BOMBV *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);
-void PostSwCallback(G *pg, BOMBV *p, long k, void *x);
+void PostSwCallback(SW *pg, BOMBV *p, long k, void *x);
 void SetLoParent(BOMBV *, Q18 *, int);
 void SetSoPosXfVelocityLocal(BOMBV *, qword);
 void SetSoRotXfVelocityLocal(BOMBV *, qword);
@@ -137,20 +136,20 @@ M3 *GetLoWorldMatrix(BOMBV *);
 void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 void ShouldKeepSoNotSelf();
-void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
+void IntersectSwBoundingSphere(SW *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
 void *AllocFromStack(AREQV *preq);
 int IntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int DeliverZapToSo(MSG *pmsg);
-int *NewNoise(int n, qword pos, void *pv);
+int *NewNoise(STIMK *pstimk, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void SO_ResetForProxy(BOMBV *);
 void SetSoTreeFlag2(BOMBV *, int);
 int ShouldSoIgnoreIntersection(BOMBV *pbomb, SOV *pso);
 int MaxInt(int r, int n);
-void RefreshSwObjectCollisionFilter(G *pg, BOMBV *p);
+void RefreshSwObjectCollisionFilter(SW *pg, BOMBV *p);
 void DetonateBomb(BOMBV *p);
 void UpdateBombCustomXps(BOMBV *p);
 int IsBombChainFreeOfExcludedClasses(BOMBV *p, SOV *pso);
@@ -691,7 +690,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        NewNoise(D_003DD490.stimulusSystem, GetLoWorldPos(bomb), pv)[0x54 / 4] = 1;
+        NewNoise(D_003DD490.apstimk[3], GetLoWorldPos(bomb), pv)[0x54 / 4] = 1;
     }
     ((void (*)(BOMBV *))bomb->vt[9].pfn)((BOMBV *)((char *)bomb + bomb->vt[9].d));
     bomb->isDetonationPrepared = 0;
