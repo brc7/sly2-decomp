@@ -1125,6 +1125,8 @@ NLerp (t onto an integer range). 33 private helpers in 25 merged files folded (7
 16 in gameplay; the first commit's subject says 8 TUs, it is 7). Clamp spellings fold into the one GClamp even when
 written differently: the early-return form with `g > hi` (vec, cane, joy), the if/else-if form with a result variable
 (clock, tu_12E600, tu_1B9F80) and the in-place assignment form (places, wr GLimit, tu_1D6848) all match with it.
+(The wave-4 pass below renamed these to Min, Max, MinInt, Clamp, Abs, IsPointer and LerpInt, and added StdMin/StdMax
+for the operand-swapped spelling this table calls the next step.)
 
 | not folded | result | rule |
 |---|---|---|
@@ -1139,6 +1141,59 @@ After pass 1, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,
 unchanged by the run (the commits had already set the new names and sources); the same 332 sources do not build here.
 progress.py caches results by source mtime only, so it does not rebuild the includers of a changed header: after a
 header change, rebuild every includer with matchtool (pass 1 did, for all 163 `sly2/` includers).
+
+(Wave-4 helper pass, names/w4-helpers.) After wave 3 the files merged since pass 3 still carried their own copies of
+the same helpers under independent names (QwSub/VuSubtract/SubVec, GetX/X/LaneXGpr/GXOfQw, GClamp/ClampF/ClampFloat...).
+A script inventoried every file-local `static`/`inline` definition under src/game (3,056 definitions in 137 files at
+the start), grouped them by body with parameter names, operand types and asm whitespace normalized, and each family
+was folded file by file: delete the copies, call the shared helper, add the include, rebuild the file; kept only if
+every function and data symbol of the file still matches and the object's `nm` set is unchanged (apart from gcc's
+numbering of local statics, `s_rgba.42` vs `.45`, and the `_GLOBAL_$I$` suffix, which link through aliases). Where the
+whole file fails, each namespace's copies were tried alone and the passing ones combined. 2,323 definitions remain
+(about 730 copies gone); the rest are single-use or file-specific helpers.
+
+The shared set after the pass (names follow naming-workflow.md section 8; all are descriptive placeholders):
+
+| header | helper | idiom | folded this pass |
+|---|---|---|---:|
+| vu0.h | VuSub / VuAdd | vsub.xyzw / vadd.xyzw | 89 / 43 |
+| vu0.h | VuCross | vopmula.xyz + vopmsub.xyz (`$ACC` and `ACC` spellings both fold) | 26 |
+| vu0.h | VuDot, VuLength, VuLengthXY, VuSqrtX | dot into x; dot + vsqrt; xy length; vsqrt of x | 22, 8, 7, 10 |
+| vu0.h | VuScaleByX, VuDivByX | v * k.x; v / d.x (vdiv + vmulq; the sites that list the operands reversed fold too where they match) | 17, 15 |
+| vu0.h | VuMin / VuMax, VuZero<QW>() | vmini.xyz / vmax.xyz; vf0 - vf0 | 7 / 7, 7 |
+| vu0.h | VuToFloat, VuFromFloat<QW>(g) | qmfc2.ni (plain `qmfc2` sites fold too: same encoding); qmtc2.ni of a float | 34, 15 |
+| vu0.h (EE section) | QwordX / QwordY / QwordZ | lane of a quadword in a GPR as a float: mtc1, prot3w, pextuw (`$0` and `$zero` both fold) | 104 / 68 / 76 |
+| vu0.h (EE section) | QwordFromFloats<QW>(x, y, z) | mfc1/pextlw/pcpyld pack | 18 |
+| vu0.h (EE section) | SqrtFloat, FpuMax, FpuMin, FpuAbs | volatile sqrt.s (`=f` and `=&f` both fold); max.s, min.s, abs.s | 20, 8 together |
+| util.h | Min, Max, MinInt | `a < b ? a : b`, `a > b ? a : b` (were GMin, GMax, NMin) | about 120 together with the rows below |
+| util.h | StdMin, StdMax, StdMaxInt | std::min / std::max's spelling (`b < a ? b : a`, `a < b ? b : a`): a different idiom from Min/Max (pass 3) | |
+| util.h | Clamp, ClampInt | float clamp (was GClamp; the early-return, if/else-if, result-variable and in-place spellings all fold); int clamp with `value > high` | |
+| util.h | Abs, IsPointer, LerpInt | `__builtin_fabsf` (the `g < 0 ? -g : g` and extern-fabsf spellings fold); `!(word & 1)` (was FIsPtr); was NLerp | |
+
+Copies that stay local keep the family's name and carry a one-line comment saying why (`// Same idiom as sly2/vu0.h
+VuSub; kept local because ...`): 29 of them, plus throw.cpp's two untouched vsub copies. The reasons, measured:
+
+| why kept | where |
+|---|---|
+| the callers pass mixed operand types (a `VV` wrapper or `VU_VECTOR` and a qword): the template wants one type | 14 copies: light (VuSub), shape (VuSub x2, VuDot, VuScaleByX, VuDivByX), guardbhv (VuDivByX), tu_1D1370 (VuSub x2, VuAdd, VuDot, VuScaleByX, VuDivByX) |
+| the shared helper changes a function | mark MarkSoContactsBspBsp 10/365 (VuSub); shape StepChain 62/215 and StepChainRk4 (VuSub, VuSqrtX, QwordX); light DoesSphereHitSpheres 41/135 (VuDivByX, operands listed reversed); cplcy UpdateCplook 243/286, waypoint RenderWaypt 312/376, vec FindClosestPointOnLineSegment 60/62 (Clamp); rip BounceRipgRips 139/199 and game GetEpisodePercentComplete 8/78 (`a > b ? b : a` / `a <= b ? a : b` into MinInt); game GetJobState 1/11 (StdMaxInt) |
+| folding moves a function's lines (path-hash quirk) | shape func_001E9AC0 (std-spelling min kept as StdMinLocal, the comment on the same line) |
+| the include goes below the function that needs it | throw.cpp (UpdateJtThrowArc, as in pass 2): VuMin, VuMax, VuToFloat, QwordZ renamed in place; its VuSub copies (Sub, SubVec) are untouched |
+
+Rules learned (add to the pass 1-3 rules above):
+
+| case | rule |
+|---|---|
+| util.h's helpers are plain inline functions, not templates | a same-signature local copy in the same scope is a redefinition (a compile error, so it is caught), so util.h copies that must stay local are named `<Name>Local`. vu0.h's templates lose overload resolution to a same-name non-template silently: a kept local copy named like the template is deliberate and commented |
+| a local overload with a different parameter type and a shared name | dangerous: sensor's vector `Min(VU_VECTOR, VU_VECTOR)` lost to util.h's `Min(float, float)` once that existed (qword converts to float: a standard conversion beats the user-defined one), which failed with "unsupported wide integer operation". Renamed VuMinVector/VuMaxVector. Give a different idiom a different name even when the types differ |
+| a using-directive or a qualified call (`M_func_001E9AC0::Add(...)`) | both see the namespace's copy: deleting it needs the qualified calls rewritten, and a new global helper with the same name as a namespace's helper can make a call ambiguous |
+| deleting a definition shifts the lines of the code below it | almost always harmless; shape func_001E9AC0 is the one place in this pass where it was not (keep the copy, rename it in place) |
+
+Not folded (later candidates): VU_FLOAT-returning constructors (`VuFloat` x26, `VuFloatFromMemWord` x14: already one
+name each, they need the wrapper types unified); `VecCombo` x10 (VU_VECTOR operands); the display-list and allocator
+C helpers (`PvNextDli` x14, `InitDli` x11, `PvAllocMsg`/`PvAllocSw*`/`PvAllocReq` families, `EvaluateClq`): their
+struct types are declared per file, so they need a shared type first; the `"+j"` in-place forms (SubIn, ScaleIn,
+AddScaled `"+j"`), which pass 1 already showed are a different idiom.
 
 ## Data
 
