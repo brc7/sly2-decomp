@@ -163,7 +163,7 @@ struct SW : public BASIC
       int oidWarpContext;       /* +0x3C3C [S] requested warp context oid (-1); was nUnk3c3c */
       FILEREC currentLevel;     /* +0x3C40 [R] current level FILEREC (equal to destinationLevel in every state); was _pad_235[16] */
       int loadFilter;    /* filter applied to objects while loading (inferred) */
-      int unknown3C84;
+      struct EXIT *pexitTaken; /* +0x3C84 [S] the exit being taken (exit_warp.cpp SetExitExits, game.cpp FailJob); was unknown3C84 */
       int returnWarpOid;
       int returnWarpContext;
       SLOTHEAP slotheapCallback;   /* scheduled callback records */
