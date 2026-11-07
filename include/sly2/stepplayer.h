@@ -41,6 +41,16 @@ struct MRSG
     float dt;   /* duration (s) */
 };
 
+/* MRSGC: a counted list of MRSG windows (ASEG::amrsgc entries, sly2/aseg.h); ib is the channel/bone index it
+   belongs to (inferred from the Lilly name). Was copied verbatim in eight files. */
+struct MRSGC
+{
+      int ib;
+      int cmrsg;    /* number of windows */
+      MRSG *amrsg;  /* the windows */
+};
+typedef char assert_MRSGC_size[sizeof(MRSGC) == 0xC ? 1 : -1];
+
 /* BL: an animation blend entry: a segment and its weight.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BL

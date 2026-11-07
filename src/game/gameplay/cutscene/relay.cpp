@@ -215,13 +215,6 @@ struct EA24
       RAW8 a[3];
 };
 
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
-
 ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl) __asm__("ApplyAsegToObject");
 
 void TriggerJoyRumbleRumk(JOY *pjoy, RUMK rumk, float dt);

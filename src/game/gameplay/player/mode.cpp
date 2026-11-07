@@ -154,12 +154,6 @@ struct EA24
 {
       RAW8 a[3];
 };
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 struct LOREF
 {

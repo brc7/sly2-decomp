@@ -1792,12 +1792,6 @@ struct EA24
 {
       RAW8 a[3];
 };
-struct MRSGC
-{
-      int ib;
-      int cmrsg;
-      MRSG *amrsg;
-};
 struct LOREF
 {
       LO *plo;
