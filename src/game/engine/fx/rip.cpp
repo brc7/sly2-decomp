@@ -77,8 +77,8 @@ typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
    SHRAPNEL are the Sly 1 symbols' class names. Fields: only the two words a GLINT/RIPT1 body reads (RIPF). */
 struct RIPF : RIP
 {
-    LO *followObject;          /* +0xF0 */
-    int spawnCount;             /* +0xF4 */
+    LO *followObject;          /* +0xF0 (GLINT) */
+    int nextRenderObject;       /* +0xF4 (RIPT1): the EMITB's next-render object, what the rip leaves on touching */
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
@@ -156,68 +156,71 @@ void TouchRip(RIP *prip, int fRemove);
 
 namespace M_PripgNew { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct O { int x0; int x4; int x8; struct VTE *vt; char p1[0x80 - 0x10]; char x80[0xD0]; int x150; };
-struct G { char pad[0x403C]; char pool[0x30]; struct O *x406C; };
+struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x10]; char globset[0xD0]; int groupKind; };   /* RIPG */
+struct G { char pad[0x403C]; char pool[0x30]; struct O *defaultRipGroup; };   /* SW: the RIPG slot pool and the shared kind-0 group */
 extern struct VTE D_002D9978[] __asm__("_vt$2SO");
 extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
 void *PvAllocSlotheapClear(void *pool);
-void *func_002333B4(void *p, int c, int cb) __asm__("memset");
+void *func_002333B4(void *sw, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
-void *GetSwClassList(struct G *p, int n);
+void *GetSwClassList(struct G *sw, int n);
 void AppendSlEntry(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
-// Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it,
-// construct (CRef), add to world. (inferred)
-struct O *PripgNew(struct G *p, int a)
+// Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
+// kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
+// linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
+struct O *PripgNew(struct G *sw, int kind)
 {
-    struct O *po;
-    if (!a && p->x406C) return p->x406C;
-    po = (__typeof__(po))PvAllocSlotheapClear(p->pool);
-    if (!po) return 0;
-    func_002333B4(po, 0, 0x1B0);
-    po->x0 = 0;
-    po->x4 = 0;
-    po->vt = D_002D9978;
-    ConstructGlobset(po->x80);
-    po->x150 = a;
-    po->vt = D_002D77D8;
-    AppendSlEntry(GetSwClassList(p, 0x57), po);
-    VCALL0(po, 7);
-    VCALL0(po, 11);
-    VCALL0(po, 15);
-    if (!a) p->x406C = po;
-    return po;
+    struct O *ripGroup;
+    if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
+    ripGroup = (__typeof__(ripGroup))PvAllocSlotheapClear(sw->pool);
+    if (!ripGroup) return 0;
+    func_002333B4(ripGroup, 0, 0x1B0);
+    ripGroup->basic0 = 0;
+    ripGroup->basic4 = 0;
+    ripGroup->vt = D_002D9978;
+    ConstructGlobset(ripGroup->globset);
+    ripGroup->groupKind = kind;
+    ripGroup->vt = D_002D77D8;
+    AppendSlEntry(GetSwClassList(sw, 0x57), ripGroup);
+    VCALL0(ripGroup, 7);
+    VCALL0(ripGroup, 11);
+    VCALL0(ripGroup, 15);
+    if (!kind) sw->defaultRipGroup = ripGroup;
+    return ripGroup;
 }
 } } // namespace M_PripgNew
 #undef VCALL0
 
 namespace M_InitRipg__FP4RIPG { extern "C" {
-struct S { char p0[0x40]; int x40; char p1[0x148 - 0x44]; unsigned long x148; int x150; char p2[0x15C - 0x154]; char dl[4]; };
-void InitSo(struct S *p);
+struct S { char p0[0x40]; int flags40; char p1[0x148 - 0x44]; unsigned long renderFlags; int groupKind; char p2[0x15C - 0x154]; char ripList[4]; };   /* RIPG */
+void InitSo(struct S *ripGroup);
 void InitDl__FP2DLi(void *pdl, int n);
-void SetLoBusyk(struct S *p, int n);
-void EnsureSoTree(struct S *p);
-void SetSoTreeFlag2(struct S *p, int n);
-static inline int FPtr(int v) { return !(v & 1); }
-// RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags.
-void InitRipg__FP4RIPG(struct S *p)
+void SetLoBusyk(struct S *ripGroup, int n);
+void EnsureSoTree(struct S *ripGroup);
+void SetSoTreeFlag2(struct S *ripGroup, int n);
+static inline int FPtr(int flags) { return !(flags & 1); }
+// RIPG::Init (vt slot 7): InitSo, an empty rip list (linked at RIP+0xC), busy level 1, LO flag bits 1-3 set and
+// render flag bit 35 cleared; a kind-1 group also gets func_001F27F0 / func_001F6860(.., 1) (inferred: its own
+// world registration).
+void InitRipg__FP4RIPG(struct S *ripGroup)
 {
-    int v;
-    InitSo(p);
-    InitDl__FP2DLi(p->dl, 0xC);
-    SetLoBusyk(p, 1);
-    v = p->x40;
-    if (FPtr(v)) *(int *)v = (*(int *)v & 1) | 0xE; else p->x40 = (v & 1) | 0xE;
-    p->x148 &= ~(1UL << 35);
-    if (p->x150 == 1) {
-        EnsureSoTree(p);
-        SetSoTreeFlag2(p, 1);
+    int flags;
+    InitSo(ripGroup);
+    InitDl__FP2DLi(ripGroup->ripList, 0xC);
+    SetLoBusyk(ripGroup, 1);
+    flags = ripGroup->flags40;
+    if (FPtr(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else ripGroup->flags40 = (flags & 1) | 0xE;
+    ripGroup->renderFlags &= ~(1UL << 35);
+    if (ripGroup->groupKind == 1) {
+        EnsureSoTree(ripGroup);
+        SetSoTreeFlag2(ripGroup, 1);
     }
 }
 } } // namespace M_InitRipg__FP4RIPG
 
-// Copy emitb rate into RIPG.
 void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
+// Copy emitb rate into RIPG.
 void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 {
     ripGroup->emitScale = pemitb->ripScale;
@@ -228,11 +231,11 @@ struct DL { void *head; void *tail; int ibDle; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 struct RIP;
-struct RIPGV { char pad[0x10]; int x10; char p1[0xEC - 0x14]; void *xEC; char p2[0x15C - 0xF0]; DL dl; };
-struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *x406C; };
+struct RIPGV { char pad[0x10]; int psoParent; char p1[0xEC - 0x14]; void *aaobrEntry; char p2[0x15C - 0xF0]; DL dl; };
+struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *defaultRipGroup; };
 extern "C" { extern SW D_003DD490; }
 extern "C" {
-void RemoveRip__FP3RIP(RIP *prip);
+void RemoveRip__FP3RIP(RIP *rip);
 void RemoveSoHierarchy(RIPGV *p);
 void RemoveSwAaobrObject(SW *psw, void *pv);
 void SnipLo(RIPGV *p);
@@ -255,24 +258,26 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-// RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG.
+// RIPG vt slot 12 (OnRemove): removes every rip, forgets the group if it is the world's shared one, takes it out of
+// the hierarchy, the SW's AAOBR (bounds) table and the class list, frees its LO root when unparented and returns it
+// to the pool.
 extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
 {
     DLI dli;
-    RIP *prip;
+    RIP *rip;
     SW *psw;
     InitDli(&dli, &ripGroup->dl);
-    while ((prip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(prip);
+    while ((rip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(rip);
     psw = &D_003DD490;
-    if (ripGroup == psw->x406C) psw->x406C = 0;
+    if (ripGroup == psw->defaultRipGroup) psw->defaultRipGroup = 0;
     RemoveSoHierarchy(ripGroup);
-    if (ripGroup->xEC) {
-        RemoveSwAaobrObject(psw, ripGroup->xEC);
-        ripGroup->xEC = 0;
+    if (ripGroup->aaobrEntry) {
+        RemoveSwAaobrObject(psw, ripGroup->aaobrEntry);
+        ripGroup->aaobrEntry = 0;
     }
     SnipLo(ripGroup);
     RemoveSlEntry(GetSwClassList(psw, 0x57), ripGroup);
-    if (!ripGroup->x10) FreeLoroot(ripGroup);
+    if (!ripGroup->psoParent) FreeLoroot(ripGroup);
     FreeSlotheapSlot(psw->pool, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
@@ -693,17 +698,18 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
 namespace M_InitRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a, b, c; };
-struct RIP { char pad[0x14]; float startTime; float duration; int followObject1C; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int unknownE0; };
+struct RIP { char pad[0x14]; float startTime; float duration; int renderObject; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int touchObject; };
 extern float D_002DDED0;
 extern qword D_002C1F50;
 extern struct M3 D_002A2D00;
-// RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix.
 } } // namespace M_InitRip
+// RIP default Init (vt entry 1): touch object, 1 s life starting now, initial scale, default alpha curve, both
+// positions at `pos`, identity orientation.
 void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here (the namespace's views) */
 {
     using namespace M_InitRip;
     M_InitRip::RIP *p = (M_InitRip::RIP *)this;
-    /*B*/p->unknownE0 = n;
+    /*B*/p->touchObject = n;
     p->duration = 1.0f;
     p->startTime = D_002DDED0;
     p->scale = g;
@@ -780,13 +786,46 @@ extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
 
 namespace M_FBounceRip {
 typedef int qw __attribute__((mode(TI)));
-union U {qw q;float f[4];int i[4];};
-struct POLY {float a,b,c;};
-struct RIP {int kind;char p4[0x10];float start,duration;char p1C[4];POLY scale;char p2C[0x44];U position;char p80[0x10];U velocity;U acceleration;char pB0[0x20];U angular;char pE0[0x10];float radius,restitution,friction;};
-struct SHAPE {void*frame;void*owner;};
-struct CLOCK {float time,dt;};
-struct PROX {float fraction,distance;};
-struct WORK {U temporary,scalar,tangent,afterTangent;PROX proximity;qw contact;U firstTorque,frictionTorque,frictionAxis,inertia,normal,offset;};
+union U {
+    qw q;
+    float f[4];
+    int i[4];
+};
+struct POLY {
+    float a, b, c;
+};
+struct RIP {
+    int kind;
+    char p4[0x10];
+    float start, duration;
+    char p1C[4];
+    POLY scale;
+    char p2C[0x44];
+    U position;
+    char p80[0x10];
+    U velocity;
+    U acceleration;
+    char pB0[0x20];
+    U angular;
+    char pE0[0x10];
+    float radius, restitution, friction;
+};
+struct SHAPE {
+    void *frame;
+    void *owner;
+};
+struct CLOCK {
+    float time, dt;
+};
+struct PROX {
+    float fraction, distance;
+};
+struct WORK {
+    U temporary, scalar, tangent, afterTangent;
+    PROX proximity;
+    qw contact;
+    U firstTorque, frictionTorque, frictionAxis, inertia, normal, offset;
+};
 extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C1F60,D_002C1F64,D_002C1F68,D_002C1F6C;
@@ -798,170 +837,385 @@ void ForceRipFade__FP3RIPf(RIP*,float);
 void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
 int HandleRipBounce(RIP*,SHAPE*,qw,qw);
 }
-static inline float Max(float a,float b){return a<b?b:a;}
-static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
-union SPECIAL_WORD {float value;int bits;};
-struct SPECIAL_PAGE {char before[0x1F60];SPECIAL_WORD duration,blend;};
-static inline void*OwnerAndNormal(SHAPE*shape,WORK&w,qw normal){register void*owner __asm__("$4");__asm__("lw %0,%2\n\tsqc2 %3,%1":"=&r"(owner),"=m"(w.normal.q):"m"(shape->owner),"j"(normal));return owner;}
-static inline void*SampleOwner(SHAPE*shape,WORK&w,qw*&output,qw&point){register void*owner __asm__("$4");register qw*target __asm__("$6");register qw sample __asm__("$5");__asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tlq %2,%5":"=&r"(owner),"=&r"(target),"=r"(sample):"m"(shape->owner),"r"(&w.temporary.q),"m"(w.contact));output=target;point=sample;return owner;}
-static inline float NormalLength(qw value){register float length __asm__("$f0");__asm__("qmfc2.ni $3,%1\n\tmtc1 $3,%0":"=f"(length):"j"(value):"$3");return length;}
-static inline qw DistanceValue(float value){register float bits __asm__("$3")=value;register qw scalar __asm__("vf1");__asm__("qmtc2.ni %1,%0":"=j"(scalar):"r"(bits));return scalar;}
-static inline qw ImpulseValue(float value){register float bits __asm__("$2")=value;register qw scalar __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(scalar):"r"(bits));return scalar;}
-static inline unsigned FallbackPage(){register unsigned page __asm__("$2");__asm__("lui %0,%%hi(D_002A2DA0)":"=r"(page));return page;}
-static inline qw*FallbackAddress(unsigned page){register qw*address __asm__("$2");__asm__("addiu %0,%1,%%lo(D_002A2DA0)":"=r"(address):"r"(page));return address;}
-static inline float SecondProjection(qw value){register float bits __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(value));return bits;}
-static inline qw ImpulseScalar(U&home,float value){register float bits __asm__("$2")=value;register qw scalar __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(scalar):"r"(bits));home.q=scalar;return home.q;}
-static inline qw RelativeVelocity(qw point,qw other){register qw v __asm__("vf9");__asm__("vsub.xyzw %0,%1,%2":"=j"(v):"j"(point),"j"(other));return v;}
-static inline qw PrepareOffsetTorque(qw normal,float amount,WORK&w){register qw torque __asm__("vf1");
- __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tvmulx.xyzw $vf10,%4,%0x\n\tsqc2 %0,%1\n\tvopmula.xyz $ACC,$vf10,%4\n\tvopmsub.xyz %0,%4,$vf10\n\tsqc2 $vf10,%2":"=&j"(torque),"=m"(w.temporary.q),"=m"(w.offset.q):"f"(amount),"j"(normal):"vf10","$3");return torque;
+static inline float Max(float a, float b)
+{
+    return a < b ? b : a;
 }
-static inline SHAPE*CaptureShape(SHAPE*incoming){register SHAPE*saved __asm__("$17");__asm__("daddu %0,%1,$zero":"=r"(saved):"r"(incoming));return saved;}
+static inline float Evaluate(POLY *p, float t)
+{
+    return p->a + t * (p->b + t * p->c);
+}
+union SPECIAL_WORD {
+    float value;
+    int bits;
+};
+struct SPECIAL_PAGE {
+    char before[0x1F60];
+    SPECIAL_WORD duration, blend;
+};
+static inline void *OwnerAndNormal(SHAPE *shape, WORK &w, qw normal)
+{
+    register void *owner __asm__("$4");
+    __asm__("lw %0,%2\n\tsqc2 %3,%1" : "=&r"(owner), "=m"(w.normal.q) : "m"(shape->owner), "j"(normal));
+    return owner;
+}
+static inline void *SampleOwner(SHAPE *shape, WORK &w, qw *&output, qw &point)
+{
+    register void *owner __asm__("$4");
+    register qw *target __asm__("$6");
+    register qw sample __asm__("$5");
+    __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tlq %2,%5"
+            : "=&r"(owner), "=&r"(target), "=r"(sample)
+            : "m"(shape->owner), "r"(&w.temporary.q), "m"(w.contact));
+    output = target;
+    point = sample;
+    return owner;
+}
+static inline float NormalLength(qw value)
+{
+    register float length __asm__("$f0");
+    __asm__("qmfc2.ni $3,%1\n\tmtc1 $3,%0" : "=f"(length) : "j"(value) : "$3");
+    return length;
+}
+static inline qw DistanceValue(float value)
+{
+    register float bits __asm__("$3") = value;
+    register qw scalar __asm__("vf1");
+    __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
+    return scalar;
+}
+static inline qw ImpulseValue(float value)
+{
+    register float bits __asm__("$2") = value;
+    register qw scalar __asm__("vf3");
+    __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
+    return scalar;
+}
+static inline unsigned FallbackPage()
+{
+    register unsigned page __asm__("$2");
+    __asm__("lui %0,%%hi(D_002A2DA0)" : "=r"(page));
+    return page;
+}
+static inline qw *FallbackAddress(unsigned page)
+{
+    register qw *address __asm__("$2");
+    __asm__("addiu %0,%1,%%lo(D_002A2DA0)" : "=r"(address) : "r"(page));
+    return address;
+}
+static inline float SecondProjection(qw value)
+{
+    register float bits __asm__("$3");
+    __asm__("qmfc2.ni %0,%1" : "=r"(bits) : "j"(value));
+    return bits;
+}
+static inline qw ImpulseScalar(U &home, float value)
+{
+    register float bits __asm__("$2") = value;
+    register qw scalar __asm__("vf3");
+    __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
+    home.q = scalar;
+    return home.q;
+}
+static inline qw RelativeVelocity(qw point, qw other)
+{
+    register qw v __asm__("vf9");
+    __asm__("vsub.xyzw %0,%1,%2" : "=j"(v) : "j"(point), "j"(other));
+    return v;
+}
+static inline qw PrepareOffsetTorque(qw normal, float amount, WORK &w)
+{
+    register qw torque __asm__("vf1");
+    __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tvmulx.xyzw $vf10,%4,%0x\n\tsqc2 %0,%1\n\tvopmula.xyz "
+            "$ACC,$vf10,%4\n\tvopmsub.xyz %0,%4,$vf10\n\tsqc2 $vf10,%2"
+            : "=&j"(torque), "=m"(w.temporary.q), "=m"(w.offset.q)
+            : "f"(amount), "j"(normal)
+            : "vf10", "$3");
+    return torque;
+}
+static inline SHAPE *CaptureShape(SHAPE *incoming)
+{
+    register SHAPE *saved __asm__("$17");
+    __asm__("daddu %0,%1,$zero" : "=r"(saved) : "r"(incoming));
+    return saved;
+}
 // RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
-int HandleRipBounce(RIP*p,SHAPE*incomingShape,qw point,qw normal){
- SHAPE*shape=CaptureShape(incomingShape);
- WORK w;float radius,elastic,friction;void*owner;
- {register qw incomingNormal __asm__("vf8");__asm__("qmtc2.ni %1,%0":"=j"(incomingNormal):"r"(normal));
- if(p->kind==8){w.contact=point;radius=p->radius;elastic=p->restitution;friction=p->friction;}else{w.contact=point;radius=100.0f;elastic=0.7f;friction=0.8f;}
- radius*=Evaluate(&p->scale,(D_002DDED0.time-p->start)/p->duration);
- owner=OwnerAndNormal(shape,w,incomingNormal);}
- int special=FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x59);register qw sampledNormal __asm__("vf8")=w.normal.q;
- if(special){
-  qw*output;qw samplePoint;void*sampleOwner=SampleOwner(shape,w,output,samplePoint);
-  CalculateWaterCurrent(sampleOwner,samplePoint,output,0);
-  register unsigned blendPage __asm__("$2");register qw original __asm__("vf3");
-  __asm__("lui %0,0x2C\n\tlqc2 %1,%2":"=r"(blendPage),"=j"(original):"m"(p->velocity.q));
-  register int bits __asm__("$2")=((SPECIAL_PAGE*)blendPage)->blend.bits;
-  register RIP*fadeArg __asm__("$4");register qw scale __asm__("vf4"),sample __asm__("vf1");register unsigned durationPage __asm__("$2");
-  __asm__("daddu %0,%4,$zero\n\tqmtc2.ni %5,%1\n\tlqc2 %2,%6\n\tlui %3,%%hi(D_002C1F60)":"=&r"(fadeArg),"=j"(scale),"=j"(sample),"=r"(durationPage):"r"(p),"r"(bits),"m"(w.temporary.q));
-  register qw difference __asm__("vf2");register float duration __asm__("$f12");
-  __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%%lo(D_002C1F60)(%4)":"=j"(difference),"=f"(duration):"j"(sample),"j"(original),"r"(durationPage),"m"(((SPECIAL_PAGE*)durationPage)->duration.value));
-  __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%3,%4x\n\tvsub.xyzw %1,%1,%0\n\tsqc2 %4,%2":"+j"(original),"+j"(sample),"=m"(w.scalar.q):"j"(difference),"j"(scale));
-  __asm__("mfc1 $2,%2\n\tqmtc2.ni $2,%0\n\tsqc2 %3,%1":"=j"(difference),"=m"(p->velocity.q):"f"(duration),"j"(original):"$2");
-  __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q":"+j"(sample):"j"(difference));
-  p->acceleration.q=sample;w.scalar.q=difference;
-  ForceRipFade__FP3RIPf(fadeArg,duration);
-  return 1;
- }
- register void*frameArg __asm__("$4");register void*nullArg __asm__("$5");register qw pointArg __asm__("$6");register float negativeRadius __asm__("$f0");
- __asm__("neg.s %0,%5\n\tlw %1,%6\n\tlq %3,%7\n\tdaddu %2,$zero,$zero\n\tsqc2 %8,%4":"=f"(negativeRadius),"=&r"(frameArg),"=r"(nullArg),"=r"(pointArg),"=m"(w.normal.q):"f"(radius),"m"(shape->frame),"m"(w.contact),"j"(sampledNormal));
- w.firstTorque.q=PrepareOffsetTorque(sampledNormal,negativeRadius,w);
- qw packedOther=GetXfVelocity(frameArg,nullArg,pointArg);
- float impulse,fricImpulse;
- register float unit __asm__("$f21");
- register qw lineStart __asm__("$5"),queryPoint __asm__("$4");
- register qw*queryPosition __asm__("$7");
- register float*queryAlong __asm__("$8"),*queryDistance __asm__("$9");
- register qw tangent __asm__("vf7");
- {
- register qw working __asm__("vf2"),other __asm__("vf5");
- register float ten __asm__("$f0")=10.0f;
- __asm__("qmtc2.ni %2,%0\n\tlqc2 %1,%3":"=j"(other),"=j"(working):"r"(packedOther),"m"(p->angular.q));
- register qw offset __asm__("vf10");
- __asm__("max.s %0,%2,%0\n\tlqc2 %1,%3":"+f"(radius),"=j"(offset):"f"(ten),"m"(w.offset.q));
- register float squared __asm__("$f3"),invInertia __asm__("$f0");
- register qw scratch __asm__("vf1");
- __asm__("mul.s %0,%3,%3\n\t.set noat\n\tlui $at,0x4020\n\tmtc1 $at,%1\n\t.set at\n\tlqc2 %2,%4":"=f"(squared),"=f"(invInertia),"=j"(scratch):"f"(radius),"m"(p->velocity.q):"$1");
- register qw normalValue __asm__("vf8");
- __asm__("vopmula.xyz $ACC,%0,%4\n\tvopmsub.xyz %0,%4,%0\n\tvadd.xyzw %1,%1,%0\n\tlqc2 %2,%5\n\tdiv.s %3,%3,%6"
-  :"+j"(working),"+j"(scratch),"=j"(normalValue),"+f"(invInertia):"j"(offset),"m"(w.normal.q),"f"(squared));
- qw relative=RelativeVelocity(scratch,other);
- register float elasticityFactor __asm__("$f1");
- __asm__("vmul.xyz %0,%3,%4\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%2\n\t.set at"
-  :"=&j"(scratch),"+j"(working),"=f"(elasticityFactor):"j"(relative),"j"(normalValue):"$1");
- register float projectionBits __asm__("$2"),epsilon __asm__("$f3");
- __asm__("qmfc2.ni %0,%3\n\t.set noat\n\tlui $at,0x38D1\n\tori $at,$at,0xB717\n\tmtc1 $at,%1\n\t.set at\n\tsub.s %2,%2,%4"
-  :"=r"(projectionBits),"=f"(epsilon),"+f"(elasticityFactor):"j"(scratch),"f"(elastic):"$1");
- register float numerator __asm__("$f2");
- __asm__("lqc2 $vf1,%2\n\tvopmula.xyz $ACC,$vf1,%3\n\tvopmsub.xyz %0,%3,$vf1\n\tmtc1 %4,%1":"+j"(working),"=f"(numerator):"m"(w.firstTorque.q),"j"(offset),"r"(projectionBits):"vf1");
- register qw normalBase __asm__("vf11"),firstInertia __asm__("vf4");
- __asm__("vmove.xyzw %1,%3\n\tmfc1 $3,%4\n\tqmtc2.ni $3,%2\n\tmul.s %0,%0,%5"
-  :"+f"(numerator),"=j"(normalBase),"=j"(firstInertia):"j"(normalValue),"f"(invInertia),"f"(elasticityFactor):"$3");
- register float negativeFriction __asm__("$f1");
- __asm__("vadda.xyzw $ACC,%2,$vf0\n\tvmaddx.xyzw %0,%0,%3x\n\tneg.s %1,%4":"+j"(working),"=f"(negativeFriction):"j"(normalValue),"j"(firstInertia),"f"(friction));
- __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf3,%0z\n\tsqc2 %4,%1":"=&j"(scratch),"=m"(w.scalar.q):"j"(working),"j"(normalValue),"j"(firstInertia):"vf3");
- register qw scalar __asm__("vf6");
- register float firstImpulse __asm__("$f22");
- __asm__("qmfc2.ni $2,%2\n\tmtc1 $2,$f0\n\tmfc1 $3,%4\n\tdiv.s %0,%3,$f0\n\tqmtc2.ni $3,%1"
-  :"=f"(firstImpulse),"=j"(scalar):"j"(scratch),"f"(numerator),"f"(negativeFriction):"$2","$3","$f0");
- impulse=firstImpulse;
- qw impulseScale=ImpulseValue(impulse);
- __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x":"+j"(working):"j"(relative),"j"(impulseScale));
- unsigned fallbackPage=FallbackPage();
- __asm__("vmul.xyz %0,%1,%2\n\tvaddw.x $vf4,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf4,%0z":"=&j"(scratch):"j"(working),"j"(normalValue):"vf4");
- qw*fallbackAddress=FallbackAddress(fallbackPage);
- register qw fallback __asm__("$2");
- __asm__("vmulx.xyzw %0,%2,%0x\n\tlq %1,%3":"+j"(scratch),"=r"(fallback):"j"(normalValue),"m"(*fallbackAddress));
- __asm__("vsub.xyzw %0,%2,%3\n\tsqc2 %4,%1":"=j"(tangent),"=m"(w.scalar.q):"j"(working),"j"(scratch),"j"(impulseScale));
- __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(scratch),"+j"(working):"j"(tangent));
- __asm__("sqc2 %3,%1\n\tvsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tsqc2 %4,%2":"+j"(scratch),"=m"(w.temporary.q),"=m"(w.scalar.q):"j"(other),"j"(scalar));
- register float length __asm__("$f0")=NormalLength(scratch);
- if(length<epsilon)scratch=fallback;
- else{__asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"+j"(scratch):"j"(tangent));}
- register float secondSquared __asm__("$f2"),secondInverse __asm__("$f0"),secondFactor __asm__("$f1");register qw axis __asm__("vf5");
- __asm__("mul.s %0,%4,%4\n\t.set noat\n\tlui $at,0x4020\n\tmtc1 $at,%1\n\t.set at\n\tvadda.xyzw $ACC,%5,$vf0\n\tvmaddx.xyzw %2,%6,%7x\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%3\n\t.set at":"=f"(secondSquared),"=f"(secondInverse),"=j"(axis),"=f"(secondFactor):"f"(radius),"j"(normalBase),"j"(scratch),"j"(scalar):"$1");
- __asm__("vopmula.xyz $ACC,%4,%5\n\tvopmsub.xyz %0,%5,%4\n\tqmfc2.ni %1,%6\n\tdiv.s %2,%2,%7\n\tsqc2 %0,%3"
-  :"+j"(scratch),"=r"(lineStart),"+f"(secondInverse),"=m"(w.frictionTorque.q):"j"(offset),"j"(axis),"j"(tangent),"f"(secondSquared));
- __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(scratch),"+j"(working):"j"(relative),"j"(normalValue));
- register float secondBits __asm__("$3"),secondNumerator __asm__("$f20");
- __asm__("sub.s %0,%0,%4\n\tqmfc2.ni %1,%3\n\tdaddu %2,$zero,$zero":"+f"(secondFactor),"=r"(secondBits),"=r"(queryPosition):"j"(scratch),"f"(elastic));
- __asm__("lqc2 %0,%3\n\tmtc1 %4,%2\n\tvopmula.xyz $ACC,%0,%5\n\tvopmsub.xyz %1,%5,%0"
-  :"=j"(scratch),"+j"(working),"=f"(secondNumerator):"m"(w.frictionTorque.q),"r"(secondBits),"j"(offset));
- __asm__("mul.s %0,%0,%4\n\taddiu %1,%5,0x40\n\taddiu %2,%5,0x44\n\tmfc1 $2,%6\n\tqmtc2.ni $2,%3":"+f"(secondNumerator),"=&r"(queryAlong),"=r"(queryDistance),"=j"(scalar):"f"(secondFactor),"r"(&w),"f"(secondInverse):"$2");
- register unsigned queryPage __asm__("$2");
- __asm__(".set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%0\n\t.set at\n\tvadda.xyzw $ACC,%3,$vf0\n\tvmaddx.xyzw %1,%1,%4x\n\tlui %2,%%hi(D_002A2DD0)":"=f"(unit),"+j"(working),"=r"(queryPage):"j"(axis),"j"(scalar):"$1");
- register qw*queryAddress __asm__("$2");
- __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf3,%0z\n\taddiu %1,%4,%%lo(D_002A2DD0)":"=&j"(scratch),"=r"(queryAddress):"j"(working),"j"(normalValue),"r"(queryPage):"vf3");
- register float denominatorBits __asm__("$3"),secondDenominator __asm__("$f0");
- __asm__("qmfc2.ni %0,%2\n\tlq %1,%3":"=&r"(denominatorBits),"=r"(queryPoint):"j"(scratch),"m"(*queryAddress));
- __asm__("mtc1 %2,%0\n\tsqc2 %3,%1":"=f"(secondDenominator),"=m"(w.scalar.q):"r"(denominatorBits),"j"(scalar));
- __asm__("div.s %0,%0,%1\n\tsqc2 %2,0x20(%6)\n\tsqc2 %3,0x80(%6)\n\tsqc2 %4,0x90(%6)\n\tsqc2 %5,0xA0(%6)":"+f"(secondNumerator):"f"(secondDenominator),"j"(tangent),"j"(axis),"j"(scalar),"j"(normalValue),"r"(&w):"memory");
- fricImpulse=secondNumerator;
- qw fricScale=ImpulseScalar(w.scalar,fricImpulse);
- __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x":"+j"(working):"j"(relative),"j"(fricScale));
- __asm__("vmul.xyz %0,%1,%2\n\tvaddw.x $vf4,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf4,%0z":"=&j"(scratch):"j"(working),"j"(normalValue):"vf4");
- __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scratch):"j"(normalValue));
- __asm__("vsub.xyzw %0,%0,%1":"+j"(working):"j"(scratch));
- w.afterTangent.q=working;
- }
- FindClosestPointOnLineSegment(queryPoint,lineStart,w.afterTangent.q,queryPosition,queryAlong,queryDistance);
- register qw tailNormal __asm__("vf8");
- {
- register float secondWeight __asm__("$f0")=w.proximity.fraction;
- register float minimum __asm__("$f2"),firstWeight __asm__("$f1");
- register qw axis __asm__("vf5"),linear __asm__("vf3"),angular __asm__("vf4");
- __asm__("lwc1 %0,%4\n\tsub.s %1,%5,%3\n\tlqc2 %2,%6\n\tmul.s %3,%3,%7":"=f"(minimum),"=f"(firstWeight),"=j"(axis),"+f"(secondWeight):"m"(D_002C1F68),"f"(unit),"m"(w.frictionAxis.q),"f"(fricImpulse));
- __asm__("lqc2 %0,%4\n\tlqc2 %1,%5\n\tmul.s %2,%2,%6\n\tlqc2 %3,%7":"=j"(tailNormal),"=j"(linear),"+f"(firstWeight),"=j"(angular):"m"(w.normal.q),"m"(p->velocity.q),"f"(impulse),"m"(p->angular.q));
- register qw second __asm__("vf2"),frictionTorque __asm__("vf7"),first __asm__("vf1");
- __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tlqc2 %1,%4\n\tmfc1 $2,%5\n\tqmtc2.ni $2,%2":"=j"(second),"=j"(frictionTorque),"=j"(first):"f"(secondWeight),"m"(w.frictionTorque.q),"f"(firstWeight):"$3","$2");
- __asm__("vmulax.xyzw $ACC,%4,%5x\n\tvmaddx.xyzw %0,%0,%6x\n\tsqc2 %5,%2\n\tvadd.xyzw %1,%1,%0\n\tlqc2 %0,%7\n\tsqc2 %1,%3"
-  :"+j"(axis),"+j"(linear),"=m"(w.scalar.q),"=m"(p->velocity.q):"j"(tailNormal),"j"(first),"j"(second),"m"(w.firstTorque.q));
- __asm__("vmulax.xyzw $ACC,%2,%0x\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %4,%1":"+j"(first),"=m"(w.scalar.q):"j"(axis),"j"(frictionTorque),"j"(second));
- register qw inverse __asm__("vf6");register float vertical __asm__("$f0");
- __asm__("lqc2 %0,%4\n\tlwc1 %1,%5\n\tvadda.xyzw $ACC,%2,$vf0\n\tvmaddx.xyzw %2,%6,%0x\n\tsqc2 %2,%3"
-  :"=j"(inverse),"=f"(vertical),"+j"(angular),"=m"(p->angular.q):"m"(w.inertia.q),"m"(p->velocity.f[2]),"j"(first));
- w.scalar.q=inverse;
- if(vertical<minimum){
-  register unsigned fadePage __asm__("$2");
-  __asm__("lui %0,%%hi(D_002C1F6C)\n\tswc1 %2,%1":"=&r"(fadePage),"=m"(p->velocity.f[2]):"f"(minimum));
-  register float duration __asm__("$f12");register RIP*receiver __asm__("$4");
-  __asm__("lwc1 %0,%%lo(D_002C1F6C)(%2)\n\tdaddu %1,%3,$zero":"=f"(duration),"=r"(receiver):"r"(fadePage),"r"(p),"m"(*(float*)(fadePage+0x1F6C)));
-  w.normal.q=tailNormal;ForceRipFade__FP3RIPf(receiver,duration);
-  __asm__("lqc2 %0,%1":"=j"(tailNormal):"m"(w.normal.q));
- }
- }
- register int returnValue __asm__("$2");
- {
- register qw position __asm__("vf2"),contact __asm__("vf3");
- __asm__("lqc2 %0,%3\n\taddiu %1,$zero,1\n\tlqc2 %2,%4"
-  :"=j"(position),"=&r"(returnValue),"=j"(contact):"m"(p->position.q),"m"(w.contact));
- register qw difference __asm__("vf1");register float zero __asm__("$f1");
- __asm__("vsub.xyzw %0,%2,%3\n\tmtc1 $zero,%1":"=j"(difference),"=f"(zero):"j"(contact),"j"(position));
- __asm__("vmul.xyz %0,%0,%1\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf3,%0z":"+j"(difference):"j"(tailNormal):"vf3");
- register float distance __asm__("$f0")=Max(SecondProjection(difference),zero)+unit;
- qw scale=DistanceValue(distance);
- __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %4,%1\n\tsqc2 %0,%2":"+j"(position),"=m"(w.scalar.q),"=m"(p->position.q):"j"(tailNormal),"j"(scale));
- }
- return returnValue;
+int HandleRipBounce(RIP *rip, SHAPE *incomingShape, qw point, qw normal)
+{
+    SHAPE *shape = CaptureShape(incomingShape);
+    WORK w;
+    float radius, elastic, friction;
+    void *owner;
+    {
+        register qw incomingNormal __asm__("vf8");
+        __asm__("qmtc2.ni %1,%0" : "=j"(incomingNormal) : "r"(normal));
+        if (rip->kind == 8) {
+            w.contact = point;
+            radius = rip->radius;
+            elastic = rip->restitution;
+            friction = rip->friction;
+        } else {
+            w.contact = point;
+            radius = 100.0f;
+            elastic = 0.7f;
+            friction = 0.8f;
+        }
+        radius *= Evaluate(&rip->scale, (D_002DDED0.time - rip->start) / rip->duration);
+        owner = OwnerAndNormal(shape, w, incomingNormal);
+    }
+    int special = FIsBasicDerivedFrom__FP5BASIC3CID(owner, 0x59);
+    register qw sampledNormal __asm__("vf8") = w.normal.q;
+    if (special) {
+        qw *output;
+        qw samplePoint;
+        void *sampleOwner = SampleOwner(shape, w, output, samplePoint);
+        CalculateWaterCurrent(sampleOwner, samplePoint, output, 0);
+        register unsigned blendPage __asm__("$2");
+        register qw original __asm__("vf3");
+        __asm__("lui %0,0x2C\n\tlqc2 %1,%2" : "=r"(blendPage), "=j"(original) : "m"(rip->velocity.q));
+        register int bits __asm__("$2") = ((SPECIAL_PAGE *)blendPage)->blend.bits;
+        register RIP *fadeArg __asm__("$4");
+        register qw scale __asm__("vf4"), sample __asm__("vf1");
+        register unsigned durationPage __asm__("$2");
+        __asm__("daddu %0,%4,$zero\n\tqmtc2.ni %5,%1\n\tlqc2 %2,%6\n\tlui %3,%%hi(D_002C1F60)"
+                : "=&r"(fadeArg), "=j"(scale), "=j"(sample), "=r"(durationPage)
+                : "r"(rip), "r"(bits), "m"(w.temporary.q));
+        register qw difference __asm__("vf2");
+        register float duration __asm__("$f12");
+        __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%%lo(D_002C1F60)(%4)"
+                : "=j"(difference), "=f"(duration)
+                : "j"(sample), "j"(original), "r"(durationPage), "m"(((SPECIAL_PAGE *)durationPage)->duration.value));
+        __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%3,%4x\n\tvsub.xyzw %1,%1,%0\n\tsqc2 %4,%2"
+                : "+j"(original), "+j"(sample), "=m"(w.scalar.q)
+                : "j"(difference), "j"(scale));
+        __asm__("mfc1 $2,%2\n\tqmtc2.ni $2,%0\n\tsqc2 %3,%1"
+                : "=j"(difference), "=m"(rip->velocity.q)
+                : "f"(duration), "j"(original)
+                : "$2");
+        __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q" : "+j"(sample) : "j"(difference));
+        rip->acceleration.q = sample;
+        w.scalar.q = difference;
+        ForceRipFade__FP3RIPf(fadeArg, duration);
+        return 1;
+    }
+    register void *frameArg __asm__("$4");
+    register void *nullArg __asm__("$5");
+    register qw pointArg __asm__("$6");
+    register float negativeRadius __asm__("$f0");
+    __asm__("neg.s %0,%5\n\tlw %1,%6\n\tlq %3,%7\n\tdaddu %2,$zero,$zero\n\tsqc2 %8,%4"
+            : "=f"(negativeRadius), "=&r"(frameArg), "=r"(nullArg), "=r"(pointArg), "=m"(w.normal.q)
+            : "f"(radius), "m"(shape->frame), "m"(w.contact), "j"(sampledNormal));
+    w.firstTorque.q = PrepareOffsetTorque(sampledNormal, negativeRadius, w);
+    qw packedOther = GetXfVelocity(frameArg, nullArg, pointArg);
+    float impulse, fricImpulse;
+    register float unit __asm__("$f21");
+    register qw lineStart __asm__("$5"), queryPoint __asm__("$4");
+    register qw *queryPosition __asm__("$7");
+    register float *queryAlong __asm__("$8"), *queryDistance __asm__("$9");
+    register qw tangent __asm__("vf7");
+    {
+        register qw working __asm__("vf2"), other __asm__("vf5");
+        register float ten __asm__("$f0") = 10.0f;
+        __asm__("qmtc2.ni %2,%0\n\tlqc2 %1,%3" : "=j"(other), "=j"(working) : "r"(packedOther), "m"(rip->angular.q));
+        register qw offset __asm__("vf10");
+        __asm__("max.s %0,%2,%0\n\tlqc2 %1,%3" : "+f"(radius), "=j"(offset) : "f"(ten), "m"(w.offset.q));
+        register float squared __asm__("$f3"), invInertia __asm__("$f0");
+        register qw scratch __asm__("vf1");
+        __asm__("mul.s %0,%3,%3\n\t.set noat\n\tlui $at,0x4020\n\tmtc1 $at,%1\n\t.set at\n\tlqc2 %2,%4"
+                : "=f"(squared), "=f"(invInertia), "=j"(scratch)
+                : "f"(radius), "m"(rip->velocity.q)
+                : "$1");
+        register qw normalValue __asm__("vf8");
+        __asm__("vopmula.xyz $ACC,%0,%4\n\tvopmsub.xyz %0,%4,%0\n\tvadd.xyzw %1,%1,%0\n\tlqc2 %2,%5\n\tdiv.s %3,%3,%6"
+                : "+j"(working), "+j"(scratch), "=j"(normalValue), "+f"(invInertia)
+                : "j"(offset), "m"(w.normal.q), "f"(squared));
+        qw relative = RelativeVelocity(scratch, other);
+        register float elasticityFactor __asm__("$f1");
+        __asm__("vmul.xyz %0,%3,%4\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\t.set "
+                "noat\n\tlui $at,0xBF80\n\tmtc1 $at,%2\n\t.set at"
+                : "=&j"(scratch), "+j"(working), "=f"(elasticityFactor)
+                : "j"(relative), "j"(normalValue)
+                : "$1");
+        register float projectionBits __asm__("$2"), epsilon __asm__("$f3");
+        __asm__("qmfc2.ni %0,%3\n\t.set noat\n\tlui $at,0x38D1\n\tori $at,$at,0xB717\n\tmtc1 $at,%1\n\t.set "
+                "at\n\tsub.s %2,%2,%4"
+                : "=r"(projectionBits), "=f"(epsilon), "+f"(elasticityFactor)
+                : "j"(scratch), "f"(elastic)
+                : "$1");
+        register float numerator __asm__("$f2");
+        __asm__("lqc2 $vf1,%2\n\tvopmula.xyz $ACC,$vf1,%3\n\tvopmsub.xyz %0,%3,$vf1\n\tmtc1 %4,%1"
+                : "+j"(working), "=f"(numerator)
+                : "m"(w.firstTorque.q), "j"(offset), "r"(projectionBits)
+                : "vf1");
+        register qw normalBase __asm__("vf11"), firstInertia __asm__("vf4");
+        __asm__("vmove.xyzw %1,%3\n\tmfc1 $3,%4\n\tqmtc2.ni $3,%2\n\tmul.s %0,%0,%5"
+                : "+f"(numerator), "=j"(normalBase), "=j"(firstInertia)
+                : "j"(normalValue), "f"(invInertia), "f"(elasticityFactor)
+                : "$3");
+        register float negativeFriction __asm__("$f1");
+        __asm__("vadda.xyzw $ACC,%2,$vf0\n\tvmaddx.xyzw %0,%0,%3x\n\tneg.s %1,%4"
+                : "+j"(working), "=f"(negativeFriction)
+                : "j"(normalValue), "j"(firstInertia), "f"(friction));
+        __asm__(
+            "vmul.xyz %0,%2,%3\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf3,%0z\n\tsqc2 %4,%1"
+            : "=&j"(scratch), "=m"(w.scalar.q)
+            : "j"(working), "j"(normalValue), "j"(firstInertia)
+            : "vf3");
+        register qw scalar __asm__("vf6");
+        register float firstImpulse __asm__("$f22");
+        __asm__("qmfc2.ni $2,%2\n\tmtc1 $2,$f0\n\tmfc1 $3,%4\n\tdiv.s %0,%3,$f0\n\tqmtc2.ni $3,%1"
+                : "=f"(firstImpulse), "=j"(scalar)
+                : "j"(scratch), "f"(numerator), "f"(negativeFriction)
+                : "$2", "$3", "$f0");
+        impulse = firstImpulse;
+        qw impulseScale = ImpulseValue(impulse);
+        __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x" : "+j"(working) : "j"(relative), "j"(impulseScale));
+        unsigned fallbackPage = FallbackPage();
+        __asm__("vmul.xyz %0,%1,%2\n\tvaddw.x $vf4,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf4,%0z"
+                : "=&j"(scratch)
+                : "j"(working), "j"(normalValue)
+                : "vf4");
+        qw *fallbackAddress = FallbackAddress(fallbackPage);
+        register qw fallback __asm__("$2");
+        __asm__("vmulx.xyzw %0,%2,%0x\n\tlq %1,%3"
+                : "+j"(scratch), "=r"(fallback)
+                : "j"(normalValue), "m"(*fallbackAddress));
+        __asm__("vsub.xyzw %0,%2,%3\n\tsqc2 %4,%1"
+                : "=j"(tangent), "=m"(w.scalar.q)
+                : "j"(working), "j"(scratch), "j"(impulseScale));
+        __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+                : "=&j"(scratch), "+j"(working)
+                : "j"(tangent));
+        __asm__("sqc2 %3,%1\n\tvsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tsqc2 %4,%2"
+                : "+j"(scratch), "=m"(w.temporary.q), "=m"(w.scalar.q)
+                : "j"(other), "j"(scalar));
+        register float length __asm__("$f0") = NormalLength(scratch);
+        if (length < epsilon)
+            scratch = fallback;
+        else {
+            __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "+j"(scratch) : "j"(tangent));
+        }
+        register float secondSquared __asm__("$f2"), secondInverse __asm__("$f0"), secondFactor __asm__("$f1");
+        register qw axis __asm__("vf5");
+        __asm__("mul.s %0,%4,%4\n\t.set noat\n\tlui $at,0x4020\n\tmtc1 $at,%1\n\t.set at\n\tvadda.xyzw "
+                "$ACC,%5,$vf0\n\tvmaddx.xyzw %2,%6,%7x\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%3\n\t.set at"
+                : "=f"(secondSquared), "=f"(secondInverse), "=j"(axis), "=f"(secondFactor)
+                : "f"(radius), "j"(normalBase), "j"(scratch), "j"(scalar)
+                : "$1");
+        __asm__("vopmula.xyz $ACC,%4,%5\n\tvopmsub.xyz %0,%5,%4\n\tqmfc2.ni %1,%6\n\tdiv.s %2,%2,%7\n\tsqc2 %0,%3"
+                : "+j"(scratch), "=r"(lineStart), "+f"(secondInverse), "=m"(w.frictionTorque.q)
+                : "j"(offset), "j"(axis), "j"(tangent), "f"(secondSquared));
+        __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+                : "=&j"(scratch), "+j"(working)
+                : "j"(relative), "j"(normalValue));
+        register float secondBits __asm__("$3"), secondNumerator __asm__("$f20");
+        __asm__("sub.s %0,%0,%4\n\tqmfc2.ni %1,%3\n\tdaddu %2,$zero,$zero"
+                : "+f"(secondFactor), "=r"(secondBits), "=r"(queryPosition)
+                : "j"(scratch), "f"(elastic));
+        __asm__("lqc2 %0,%3\n\tmtc1 %4,%2\n\tvopmula.xyz $ACC,%0,%5\n\tvopmsub.xyz %1,%5,%0"
+                : "=j"(scratch), "+j"(working), "=f"(secondNumerator)
+                : "m"(w.frictionTorque.q), "r"(secondBits), "j"(offset));
+        __asm__("mul.s %0,%0,%4\n\taddiu %1,%5,0x40\n\taddiu %2,%5,0x44\n\tmfc1 $2,%6\n\tqmtc2.ni $2,%3"
+                : "+f"(secondNumerator), "=&r"(queryAlong), "=r"(queryDistance), "=j"(scalar)
+                : "f"(secondFactor), "r"(&w), "f"(secondInverse)
+                : "$2");
+        register unsigned queryPage __asm__("$2");
+        __asm__(".set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%0\n\t.set at\n\tvadda.xyzw $ACC,%3,$vf0\n\tvmaddx.xyzw "
+                "%1,%1,%4x\n\tlui %2,%%hi(D_002A2DD0)"
+                : "=f"(unit), "+j"(working), "=r"(queryPage)
+                : "j"(axis), "j"(scalar)
+                : "$1");
+        register qw *queryAddress __asm__("$2");
+        __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf3,%0z\n\taddiu "
+                "%1,%4,%%lo(D_002A2DD0)"
+                : "=&j"(scratch), "=r"(queryAddress)
+                : "j"(working), "j"(normalValue), "r"(queryPage)
+                : "vf3");
+        register float denominatorBits __asm__("$3"), secondDenominator __asm__("$f0");
+        __asm__("qmfc2.ni %0,%2\n\tlq %1,%3"
+                : "=&r"(denominatorBits), "=r"(queryPoint)
+                : "j"(scratch), "m"(*queryAddress));
+        __asm__("mtc1 %2,%0\n\tsqc2 %3,%1"
+                : "=f"(secondDenominator), "=m"(w.scalar.q)
+                : "r"(denominatorBits), "j"(scalar));
+        __asm__("div.s %0,%0,%1\n\tsqc2 %2,0x20(%6)\n\tsqc2 %3,0x80(%6)\n\tsqc2 %4,0x90(%6)\n\tsqc2 %5,0xA0(%6)"
+                : "+f"(secondNumerator)
+                : "f"(secondDenominator), "j"(tangent), "j"(axis), "j"(scalar), "j"(normalValue), "r"(&w)
+                : "memory");
+        fricImpulse = secondNumerator;
+        qw fricScale = ImpulseScalar(w.scalar, fricImpulse);
+        __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x" : "+j"(working) : "j"(relative), "j"(fricScale));
+        __asm__("vmul.xyz %0,%1,%2\n\tvaddw.x $vf4,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf4,%0z"
+                : "=&j"(scratch)
+                : "j"(working), "j"(normalValue)
+                : "vf4");
+        __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scratch) : "j"(normalValue));
+        __asm__("vsub.xyzw %0,%0,%1" : "+j"(working) : "j"(scratch));
+        w.afterTangent.q = working;
+    }
+    FindClosestPointOnLineSegment(queryPoint, lineStart, w.afterTangent.q, queryPosition, queryAlong, queryDistance);
+    register qw tailNormal __asm__("vf8");
+    {
+        register float secondWeight __asm__("$f0") = w.proximity.fraction;
+        register float minimum __asm__("$f2"), firstWeight __asm__("$f1");
+        register qw axis __asm__("vf5"), linear __asm__("vf3"), angular __asm__("vf4");
+        __asm__("lwc1 %0,%4\n\tsub.s %1,%5,%3\n\tlqc2 %2,%6\n\tmul.s %3,%3,%7"
+                : "=f"(minimum), "=f"(firstWeight), "=j"(axis), "+f"(secondWeight)
+                : "m"(D_002C1F68), "f"(unit), "m"(w.frictionAxis.q), "f"(fricImpulse));
+        __asm__("lqc2 %0,%4\n\tlqc2 %1,%5\n\tmul.s %2,%2,%6\n\tlqc2 %3,%7"
+                : "=j"(tailNormal), "=j"(linear), "+f"(firstWeight), "=j"(angular)
+                : "m"(w.normal.q), "m"(rip->velocity.q), "f"(impulse), "m"(rip->angular.q));
+        register qw second __asm__("vf2"), frictionTorque __asm__("vf7"), first __asm__("vf1");
+        __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tlqc2 %1,%4\n\tmfc1 $2,%5\n\tqmtc2.ni $2,%2"
+                : "=j"(second), "=j"(frictionTorque), "=j"(first)
+                : "f"(secondWeight), "m"(w.frictionTorque.q), "f"(firstWeight)
+                : "$3", "$2");
+        __asm__("vmulax.xyzw $ACC,%4,%5x\n\tvmaddx.xyzw %0,%0,%6x\n\tsqc2 %5,%2\n\tvadd.xyzw %1,%1,%0\n\tlqc2 "
+                "%0,%7\n\tsqc2 %1,%3"
+                : "+j"(axis), "+j"(linear), "=m"(w.scalar.q), "=m"(rip->velocity.q)
+                : "j"(tailNormal), "j"(first), "j"(second), "m"(w.firstTorque.q));
+        __asm__("vmulax.xyzw $ACC,%2,%0x\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %4,%1"
+                : "+j"(first), "=m"(w.scalar.q)
+                : "j"(axis), "j"(frictionTorque), "j"(second));
+        register qw inverse __asm__("vf6");
+        register float vertical __asm__("$f0");
+        __asm__("lqc2 %0,%4\n\tlwc1 %1,%5\n\tvadda.xyzw $ACC,%2,$vf0\n\tvmaddx.xyzw %2,%6,%0x\n\tsqc2 %2,%3"
+                : "=j"(inverse), "=f"(vertical), "+j"(angular), "=m"(rip->angular.q)
+                : "m"(w.inertia.q), "m"(rip->velocity.f[2]), "j"(first));
+        w.scalar.q = inverse;
+        if (vertical < minimum) {
+            register unsigned fadePage __asm__("$2");
+            __asm__("lui %0,%%hi(D_002C1F6C)\n\tswc1 %2,%1" : "=&r"(fadePage), "=m"(rip->velocity.f[2]) : "f"(minimum));
+            register float duration __asm__("$f12");
+            register RIP *receiver __asm__("$4");
+            __asm__("lwc1 %0,%%lo(D_002C1F6C)(%2)\n\tdaddu %1,%3,$zero"
+                    : "=f"(duration), "=r"(receiver)
+                    : "r"(fadePage), "r"(rip), "m"(*(float *)(fadePage + 0x1F6C)));
+            w.normal.q = tailNormal;
+            ForceRipFade__FP3RIPf(receiver, duration);
+            __asm__("lqc2 %0,%1" : "=j"(tailNormal) : "m"(w.normal.q));
+        }
+    }
+    register int returnValue __asm__("$2");
+    {
+        register qw position __asm__("vf2"), contact __asm__("vf3");
+        __asm__("lqc2 %0,%3\n\taddiu %1,$zero,1\n\tlqc2 %2,%4"
+                : "=j"(position), "=&r"(returnValue), "=j"(contact)
+                : "m"(rip->position.q), "m"(w.contact));
+        register qw difference __asm__("vf1");
+        register float zero __asm__("$f1");
+        __asm__("vsub.xyzw %0,%2,%3\n\tmtc1 $zero,%1" : "=j"(difference), "=f"(zero) : "j"(contact), "j"(position));
+        __asm__("vmul.xyz %0,%0,%1\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,$vf3,%0z"
+                : "+j"(difference)
+                : "j"(tailNormal)
+                : "vf3");
+        register float distance __asm__("$f0") = Max(SecondProjection(difference), zero) + unit;
+        qw scale = DistanceValue(distance);
+        __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %4,%1\n\tsqc2 %0,%2"
+                : "+j"(position), "=m"(w.scalar.q), "=m"(rip->position.q)
+                : "j"(tailNormal), "j"(scale));
+    }
+    return returnValue;
 }
 
 typedef char layout_ceb08_0[(sizeof(qw)==16)?1:-1];
@@ -1093,68 +1347,195 @@ int IsVectorShorterThan5(qword v)
 
 namespace M_ProjectRipTransform {
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f;};
-struct M3 {U r[3];M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};struct M4 {qword a,b,c,d;};
-struct PHYS {qword accel,axis;float rate,scale;};
-struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float gE0,gE4;};
-extern "C" { extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0; }
+union U {
+    qword q;
+    float f;
+};
+struct M3 {
+    U r[3];
+    M3() {}
+    M3(const M3 &m)
+    {
+        r[0] = m.r[0];
+        r[1] = m.r[1];
+        r[2] = m.r[2];
+    }
+    M3 &operator=(const M3 &m)
+    {
+        r[0] = m.r[0];
+        r[1] = m.r[1];
+        r[2] = m.r[2];
+        return *this;
+    }
+};
+struct M4 {
+    qword a, b, c, d;
+};
+struct PHYS {
+    qword accel, axis;
+    float rate, scale;
+};
+struct S {
+    char pad[0x40];
+    M3 mat;
+    qword pos, prev, vel;
+    PHYS phys;
+    qword omega;
+    float touchWord, angularDamping;
+}; /* +0xE0: the touch object (unused here) */
+extern "C" {
+extern struct CLOCK {
+    float time;
+    union {
+        float dt;
+        int dtbits;
+    };
+} D_002DDED0;
+}
 extern "C" {
 int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorterThan5(qword);
 M3*BuildAxisAngleRotationMatrix(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
 void ProjectRipTransform(S*);
 }
-static inline qword Scale(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
-static inline qword Sq(qword a){qword r,one;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"j"(a));return r;}
-static inline qword Sqrt(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(a));return a;}
-static inline float Float(qword a){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
-struct R3 {U r[3];};
-struct MATH {U first,second;R3 scratch;};
-union SHARED {MATH math;M4 matrix;};
-struct WORK {SHARED shared;R3 rotation,product;};
-static inline qword Broadcast(U*storage,float f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));storage->q=r;return storage->q;}
-static inline qword BroadcastBits(U*storage,int f){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));storage->q=r;return storage->q;}
-static inline qword Normalize(qword a,float f,U*storage){qword r,l=Broadcast(storage,f);__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(l),"j"(a));return r;}
-static inline void Multiply(R3*scratch,R3*out,const R3*a,const M3&b){
- register qword row0 __asm__("vf4")=b.r[0].q;
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(row0):"j"(a->r[0].q),"j"(a->r[1].q),"j"(a->r[2].q),"j"(b.r[0].q));
- scratch->r[0].q=row0;out->r[0]=scratch->r[0];
- register qword row1 __asm__("vf2")=b.r[1].q;
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(row1):"j"(a->r[0].q),"j"(a->r[1].q),"j"(a->r[2].q),"j"(b.r[1].q));
- scratch->r[1].q=row1;out->r[1]=scratch->r[1];
- register qword input2 __asm__("vf1")=b.r[2].q;
- qword row2=a->r[0].q;
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(row2):"j"(a->r[0].q),"j"(a->r[1].q),"j"(a->r[2].q),"j"(input2));
- out->r[2].q=row2;scratch->r[2]=out->r[2];
+static inline qword Scale(qword a, qword s)
+{
+    qword r;
+    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s));
+    return r;
 }
-static inline qword Point(const M4 &m,qword a){register qword r __asm__("vf3")=m.a;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(r):"j"(m.a),"j"(m.b),"j"(m.c),"j"(m.d),"j"(a));return r;}
-static inline qword AddScaled(qword a,qword b,qword s){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(s));return r;}
-static inline int ClockWord(char*page){int word;__asm__("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.dtbits),"m"(*(const int*)(page-0x212C)));return word;}
-static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.dtbits));return page;}
-static inline void PublishBasisStart(S*p,qword first,qword second){__asm__("sqc2 %3,0x40(%2)\n\tsqc2 %4,0x50(%2)":"=m"(p->mat.r[0].q),"=m"(p->mat.r[1].q):"r"(p),"j"(first),"j"(second));}
+static inline qword Sq(qword a)
+{
+    qword r, one;
+    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "=j"(r), "=&j"(one)
+            : "j"(a));
+    return r;
+}
+static inline qword Sqrt(qword a)
+{
+    __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(a));
+    return a;
+}
+static inline float Float(qword a)
+{
+    float f;
+    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(a));
+    return f;
+}
+struct R3 {U r[3];};
+struct MATH {
+    U first, second;
+    R3 scratch;
+};
+union SHARED {
+    MATH math;
+    M4 matrix;
+};
+struct WORK {
+    SHARED shared;
+    R3 rotation, product;
+};
+static inline qword Broadcast(U *storage, float f)
+{
+    qword r;
+    __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(f));
+    storage->q = r;
+    return storage->q;
+}
+static inline qword BroadcastBits(U *storage, int f)
+{
+    qword r;
+    __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(f));
+    storage->q = r;
+    return storage->q;
+}
+static inline qword Normalize(qword a, float f, U *storage)
+{
+    qword r, l = Broadcast(storage, f);
+    __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(r) : "j"(l), "j"(a));
+    return r;
+}
+static inline void Multiply(R3 *scratch, R3 *out, const R3 *a, const M3 &b)
+{
+    register qword row0 __asm__("vf4") = b.r[0].q;
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "+j"(row0)
+            : "j"(a->r[0].q), "j"(a->r[1].q), "j"(a->r[2].q), "j"(b.r[0].q));
+    scratch->r[0].q = row0;
+    out->r[0] = scratch->r[0];
+    register qword row1 __asm__("vf2") = b.r[1].q;
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "+j"(row1)
+            : "j"(a->r[0].q), "j"(a->r[1].q), "j"(a->r[2].q), "j"(b.r[1].q));
+    scratch->r[1].q = row1;
+    out->r[1] = scratch->r[1];
+    register qword input2 __asm__("vf1") = b.r[2].q;
+    qword row2 = a->r[0].q;
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "+j"(row2)
+            : "j"(a->r[0].q), "j"(a->r[1].q), "j"(a->r[2].q), "j"(input2));
+    out->r[2].q = row2;
+    scratch->r[2] = out->r[2];
+}
+static inline qword Point(const M4 &m, qword a)
+{
+    register qword r __asm__("vf3") = m.a;
+    __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w"
+            : "+j"(r)
+            : "j"(m.a), "j"(m.b), "j"(m.c), "j"(m.d), "j"(a));
+    return r;
+}
+static inline qword AddScaled(qword a, qword b, qword s)
+{
+    qword r;
+    __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(s));
+    return r;
+}
+static inline int ClockWord(char *page)
+{
+    int word;
+    __asm__("lw %0,%%lo(%2)(%1)" : "=r"(word) : "r"(page), "i"(&D_002DDED0.dtbits), "m"(*(const int *)(page - 0x212C)));
+    return word;
+}
+static inline char *ClockPage()
+{
+    register char *page __asm__("$2");
+    __asm__("lui %0,%%hi(%1)" : "=r"(page) : "i"(&D_002DDED0.dtbits));
+    return page;
+}
+static inline void PublishBasisStart(S *p, qword first, qword second)
+{
+    __asm__("sqc2 %3,0x40(%2)\n\tsqc2 %4,0x50(%2)"
+            : "=m"(p->mat.r[0].q), "=m"(p->mat.r[1].q)
+            : "r"(p), "j"(first), "j"(second));
+}
 // RIP default Project (vt entry 4): integrate velocity/position with damping and gravity. (inferred)
-void ProjectRipTransform(S*p){
- WORK w;
- if(!IsVectorNearlyZero(p->omega)) {
-  qword omega=Scale(p->omega,Broadcast(&w.shared.math.first,p->gE4*D_002DDED0.dt+1.0f));
-  p->omega=omega;
-  float length=Float(Sqrt(Sq(omega)));
-  if(0.0001f<length){
-   w.shared.math.first.q=Normalize(omega,length,&w.shared.math.second);
-   BuildAxisAngleRotationMatrix((M3*)&w.rotation,w.shared.math.first.q,length*D_002DDED0.dt);
-   Multiply(&w.shared.math.scratch,&w.product,&w.rotation,p->mat);
-   PublishBasisStart(p,w.product.r[0].q,w.product.r[1].q);p->mat.r[2]=w.shared.math.scratch.r[2];
-  }
- }
- p->prev=p->pos;
- int moving=0;
- if(!IsVectorShorterThan2(p->vel) || !IsVectorShorterThan5(p->phys.accel))moving=1;
- if(moving){
-  CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(&w.shared.matrix,&p->phys);
-  char*page=ClockPage();
-  qword v=Point(w.shared.matrix,p->vel);
-  p->vel=v;
-  p->pos=AddScaled(p->pos,v,BroadcastBits(&w.shared.math.first,ClockWord(page)));
- }
+void ProjectRipTransform(S *p)
+{
+    WORK w;
+    if (!IsVectorNearlyZero(p->omega)) {
+        qword omega = Scale(p->omega, Broadcast(&w.shared.math.first, p->angularDamping * D_002DDED0.dt + 1.0f));
+        p->omega = omega;
+        float length = Float(Sqrt(Sq(omega)));
+        if (0.0001f < length) {
+            w.shared.math.first.q = Normalize(omega, length, &w.shared.math.second);
+            BuildAxisAngleRotationMatrix((M3 *)&w.rotation, w.shared.math.first.q, length * D_002DDED0.dt);
+            Multiply(&w.shared.math.scratch, &w.product, &w.rotation, p->mat);
+            PublishBasisStart(p, w.product.r[0].q, w.product.r[1].q);
+            p->mat.r[2] = w.shared.math.scratch.r[2];
+        }
+    }
+    p->prev = p->pos;
+    int moving = 0;
+    if (!IsVectorShorterThan2(p->vel) || !IsVectorShorterThan5(p->phys.accel))
+        moving = 1;
+    if (moving) {
+        CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(&w.shared.matrix, &p->phys);
+        char *page = ClockPage();
+        qword v = Point(w.shared.matrix, p->vel);
+        p->vel = v;
+        p->pos = AddScaled(p->pos, v, BroadcastBits(&w.shared.math.first, ClockWord(page)));
+    }
 }
 
 typedef char layout_cf0a0_0[(sizeof(qword)==16)?1:-1];
@@ -1177,8 +1558,8 @@ typedef char layout_cf0a0_16[((unsigned)&((S*)0)->prev==0x80)?1:-1];
 typedef char layout_cf0a0_17[((unsigned)&((S*)0)->vel==0x90)?1:-1];
 typedef char layout_cf0a0_18[((unsigned)&((S*)0)->phys==0xA0)?1:-1];
 typedef char layout_cf0a0_19[((unsigned)&((S*)0)->omega==0xD0)?1:-1];
-typedef char layout_cf0a0_20[((unsigned)&((S*)0)->gE0==0xE0)?1:-1];
-typedef char layout_cf0a0_21[((unsigned)&((S*)0)->gE4==0xE4)?1:-1];
+typedef char layout_cf0a0_20[((unsigned)&((S*)0)->touchWord==0xE0)?1:-1];
+typedef char layout_cf0a0_21[((unsigned)&((S*)0)->angularDamping==0xE4)?1:-1];
 typedef char layout_cf0a0_22[((unsigned)&((CLOCK*)0)->time==0x0)?1:-1];
 typedef char layout_cf0a0_23[((unsigned)&((CLOCK*)0)->dt==0x4)?1:-1];
 typedef char layout_cf0a0_24[((unsigned)&((CLOCK*)0)->dtbits==0x4)?1:-1];
@@ -1198,38 +1579,54 @@ namespace M_UpdateRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long x28; char p2[0xE8 - 0x30]; int xE8; };
-struct G { char pad[0x150]; int x150; };
+struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::fInWorld */
+struct G { char pad[0x150]; int groupKind; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
-    char p2[0xE0 - 0x80]; struct LO *unknownE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
+    char p2[0xE0 - 0x80]; struct LO *touchObject; char p3[0xEC - 0xE4]; struct VTE *vt; };
 void RemoveRip__FP3RIP(struct S *p);
-// RIP default Update (vt entry 5): fade/age and RemoveRip when expired. (inferred)
+// RIP default Update (vt entry 5): removes the rip when its life is over; otherwise (not in a kind-1 group) tests it
+// against its touch object (when that is in the world, through the object's point test, vtable slot 73) and
+// reports the result to Touch (slot 7).
 void UpdateRip(struct S *p)
 {
-    struct LO *plo;
-    int f;
+    struct LO *touch;
+    int isInside;
     if (D_002DDED0.t - p->startTime > p->duration) {
         RemoveRip__FP3RIP(p);
         return;
     }
-    if (p->pg->x150 == 1) return;
-    plo = p->unknownE0;
-    if (!plo) return;
-    if (!plo->xE8) return;
-    f = 0;
-    if ((int)(plo->x28 >> 60) & 1)
-        if (((int (*)(void *, qword))plo->vt[73].pf)((char *)plo + plo->vt[73].d, p->currentPosition)) f = 1;
-    ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, f);
+    if (p->pg->groupKind == 1) return;
+    touch = p->touchObject;
+    if (!touch) return;
+    if (!touch->unknownE8) return;
+    isInside = 0;
+    if ((int)(touch->loBits >> 60) & 1)
+        if (((int (*)(void *, qword))touch->vt[73].pf)((char *)touch + touch->vt[73].d, p->currentPosition)) isInside = 1;
+    ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, isInside);
 }
 } } // namespace M_UpdateRip
 
 namespace M_FRenderRipPosMat {
 typedef int qword __attribute__((mode(TI)));
-struct M3 { qword a,b,c; }; struct M4 { qword a,b,c,d; };
+struct M3 {
+    qword a, b, c;
+};
+struct M4 {
+    qword a, b, c, d;
+};
 union U { qword q; float f; };
-struct POLY { float a,b,c; };
+struct POLY {
+    float a, b, c;
+};
 struct LO { char pad[0x38]; float radius; };
-struct S { char pad[0x14]; float start,duration; LO *lo; POLY size; int pad2; POLY alpha; };
+struct S {
+    char pad[0x14];
+    float start, duration;
+    LO *lo;
+    POLY size;
+    int pad2;
+    POLY alpha;
+};
 struct G { char pad[0x90]; qword pos; };
 extern "C" { extern G D_002DDF40; }
 extern "C" { extern struct CLOCK { float t,dt; } D_002DDED0; }
@@ -1241,29 +1638,51 @@ M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
 void RenderLoAtMatrix(LO*,const M4&,float,float);
 int FRenderRipPosMat(S*,qword,const M3&);
 }
-static inline float Poly(POLY *p,float t){return p->a+t*(p->b+t*p->c);}
-static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
-static inline qword BcG(float f){U u;qword r;__asm__("mfc1 %0,%1":"=r"(r):"f"(f));u.q=r;return r;}
-// Compute rip render position/matrix relative to camera; false if culled. (inferred)
-int FRenderRipPosMat(S*p,qword pos,const M3&mat)
+static inline float Poly(POLY *p, float t)
 {
-    if(!p->lo)return 1;
-    if(p->duration<=0.0f)return 0;
+    return p->a + t * (p->b + t * p->c);
+}
+static inline float Clamp(float f, float lo, float hi)
+{
+    if (f < lo)
+        return lo;
+    if (hi < f)
+        return hi;
+    return f;
+}
+static inline qword BcG(float f)
+{
+    U u;
+    qword r;
+    __asm__("mfc1 %0,%1" : "=r"(r) : "f"(f));
+    u.q = r;
+    return r;
+}
+// Compute rip render position/matrix relative to camera; false if culled. (inferred)
+int FRenderRipPosMat(S *p, qword pos, const M3 &mat)
+{
+    if (!p->lo)
+        return 1;
+    if (p->duration <= 0.0f)
+        return 0;
 
     float proj;
     qword delta;
-    float t=(D_002DDED0.t-p->start)/p->duration;
-    float alpha=Clamp(Poly(&p->alpha,t),D_002BBB60.lo,D_002BBB60.hi);
-    float size=Poly(&p->size,t);
-    G *pg=&D_002DDF40;
-    __asm__("vsub.xyzw %0,%1,%2":"=j"(delta):"j"(pos),"j"(pg->pos));
-    if(!FInsideCmFrustum(pg,delta,BcG(size*100.0f)))return 1;
-    if(!FInsideCmMrd(pg,delta,p->lo->radius,&proj))return 0;
-    if(alpha<0.0001f && size<0.0001f)return 1;
+    float t = (D_002DDED0.t - p->start) / p->duration;
+    float alpha = Clamp(Poly(&p->alpha, t), D_002BBB60.lo, D_002BBB60.hi);
+    float size = Poly(&p->size, t);
+    G *pg = &D_002DDF40;
+    __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->pos));
+    if (!FInsideCmFrustum(pg, delta, BcG(size * 100.0f)))
+        return 1;
+    if (!FInsideCmMrd(pg, delta, p->lo->radius, &proj))
+        return 0;
+    if (alpha < 0.0001f && size < 0.0001f)
+        return 1;
     M4 m;
-    M4 tmp=LoadMatrixFromPosRotScalar(pos,mat,size);
-    m=tmp;
-    RenderLoAtMatrix(p->lo,m,alpha*proj,1.0f);
+    M4 tmp = LoadMatrixFromPosRotScalar(pos, mat, size);
+    m = tmp;
+    RenderLoAtMatrix(p->lo, m, alpha * proj, 1.0f);
     return 1;
 }
 } // namespace M_FRenderRipPosMat
@@ -1271,7 +1690,7 @@ int FRenderRipPosMat(S*p,qword pos,const M3&mat)
 namespace M_RenderRip {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
-struct S { char pad[0x40]; M m; qword q70; };
+struct S { char pad[0x40]; M orientation; qword position; };   /* RIP */
 extern "C" {
 int FRenderRipPosMat(S *p, qword q, M m);
 void RemoveRip__FP3RIP(S *p);
@@ -1280,7 +1699,7 @@ void RenderRip(S *p);
 // RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip.
 void RenderRip(S *p)
 {
-    if (!FRenderRipPosMat(p, p->q70, p->m)) RemoveRip__FP3RIP(p);
+    if (!FRenderRipPosMat(p, p->position, p->orientation)) RemoveRip__FP3RIP(p);
 }
 } // namespace M_RenderRip
 
@@ -1308,23 +1727,24 @@ extern "C" int GetMaxRipSize()
 }
 
 namespace M_PostFlyingEmit { extern "C" {
-struct B { int a[3]; int c; };
-struct S { int a[2]; struct B *pb; char pad[0xE4]; int f0; int f4; };
-void PostRipEmit(struct S *a, struct S *b);
-// FLYING (Sly2 RIPT 3) PostEmit: base PostRipEmit + setup. (inferred)
-void PostFlyingEmit(struct S *a, struct S *b)
+struct B { int reference, shape, render, nextRender; };   /* EMITB+0x08: the resolved objects */
+struct S { int rip[2]; struct B *pb; char pad[0xE4]; int stuckVisual; int facesCamera; };   /* the rip (+0xF0) and the EMITB (+0xF0) */
+void PostRipEmit(struct S *rip, struct S *emitb);
+// FLYING (RIPT 3) PostEmit: base PostRipEmit, then the object it becomes when it sticks (the EMITB's next-render
+// object) and its camera-facing flag.
+void PostFlyingEmit(struct S *rip, struct S *emitb)
 {
-    PostRipEmit(a, b);
-    a->f0 = b->pb->c;
-    a->f4 = b->f0;
+    PostRipEmit(rip, emitb);
+    rip->stuckVisual = emitb->pb->nextRender;
+    rip->facesCamera = emitb->stuckVisual;   /* EMITB+0xF0 */
 }
 } } // namespace M_PostFlyingEmit
 
 namespace M_RenderFlying {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
-struct S { char pad[0x70]; qword q70; char p1[0x90 - 0x80]; qword q90; char p2[0xF4 - 0xA0]; int f; };
-struct G { char pad[0x60]; qword q60; };
+struct S { char pad[0x70]; qword position; char p1[0x90 - 0x80]; qword velocity; char p2[0xF4 - 0xA0]; int facesCamera; };
+struct G { char pad[0x60]; qword matRow0; };   /* CM: first row of its matrix (inferred: the view axis) */
 extern "C" { extern G D_002DDF40; }
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
@@ -1332,35 +1752,67 @@ M BuildOrthonormalMatrixZ(qword a, qword b);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderFlying(S *p);
 }
-// FLYING Render: oriented render via FRenderRipPosMat. (inferred)
+// FLYING Render: oriented along its velocity, with "up" toward the camera (facesCamera) or world +z.
 void RenderFlying(S *p)
 {
     qword v;
     M m;
-    if (p->f) {
+    if (p->facesCamera) {
         union { qword q; float f; } s; qword k;
         __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
         s.q = k;
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(D_002DDF40.q60), "j"(k));
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(D_002DDF40.matRow0), "j"(k));
     } else {
         v = D_002A2DC0;
     }
-    m = BuildOrthonormalMatrixZ(p->q90, v);
-    FRenderRipPosMat(p, p->q70, m);
+    m = BuildOrthonormalMatrixZ(p->velocity, v);
+    FRenderRipPosMat(p, p->position, m);
 }
 } // namespace M_RenderFlying
 
 namespace M_CreateStuck {
 // Emit an oriented particle in the supplied parent space.
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
+union U {
+    qword q;
+    float f[4];
+};
 struct M3 {qword r[3];};
-struct LO {char pad158[0x158];float height;};
-struct POLY {float a,b,c;};
-struct EMIT {char pad8[8];LO*owner;char padC[8];float start,duration;char pad1C[4];POLY size;};
+struct LO {
+    char pad158[0x158];
+    float height;
+};
+struct POLY {
+    float a, b, c;
+};
+struct EMIT {
+    char pad8[8];
+    LO *owner;
+    char padC[8];
+    float start, duration;
+    char pad1C[4];
+    POLY size;
+};
 struct O;
-struct VE {short delta,pad;void(*fn)(void*,qword,int,float);};
-struct O {char pad18[0x18];float duration;LO*visual;char pad20[8];float spin;char pad2C[0x14];M3 matrix;U position;char pad80[0x10];U velocity;char padA0[0x4C];VE*vt;LO*space;};
+struct VE {
+    short delta, pad;
+    void (*fn)(void *, qword, int, float);
+};
+struct O {
+    char pad18[0x18];
+    float duration;
+    LO *visual;
+    char pad20[8];
+    float spin;
+    char pad2C[0x14];
+    M3 matrix;
+    U position;
+    char pad80[0x10];
+    U velocity;
+    char padA0[0x4C];
+    VE *vt;
+    LO *space;
+};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
@@ -1373,59 +1825,106 @@ M3 LoadRotateMatrixEuler(qword);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 O *CreateStuck(EMIT*,LO*,LO*,qword,qword);
 }
-static inline float Polynomial(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
-static inline float Dot(qword a,qword b){qword d,one;float f;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=j"(one):"j"(a),"j"(b));__asm__("mtc1 %1,%0":"=f"(f):"r"(d));return f;}
-static inline qword Scale(qword a,float f,U&home){qword k;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));home.q=k;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(a):"j"(a),"j"(k));return a;}
-static inline qword Transform(M3&m,qword a){__asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));return a;}
-static inline M3 Mul(const M3&a,const M3&b) return r {
- qword a0=a.r[0],a1=a.r[1],a2=a.r[2];
- __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[0]));
- __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
- __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
+static inline float Polynomial(POLY *p, float t)
+{
+    return p->a + t * (p->b + t * p->c);
+}
+static inline float Dot(qword a, qword b)
+{
+    qword d, one;
+    float f;
+    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "=j"(d), "=j"(one)
+            : "j"(a), "j"(b));
+    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(d));
+    return f;
+}
+static inline qword Scale(qword a, float f, U &home)
+{
+    qword k;
+    __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(f));
+    home.q = k;
+    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(a) : "j"(a), "j"(k));
+    return a;
+}
+static inline qword Transform(M3 &m, qword a)
+{
+    __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z"
+            : "+j"(a)
+            : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+    return a;
+}
+static inline M3 Mul(const M3 &a, const M3 &b) return r
+{
+    qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
+    __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[0])
+            : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[0]));
+    __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[1])
+            : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[1]));
+    __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[2])
+            : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 // Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation. (inferred)
-O *CreateStuck(EMIT*p,LO*visual,LO*space,qword position,qword direction){
- O*object=0;
- if(visual){
-  object=PripNewRipg(D_003DD490,(void*)10,0);
-  if(object){
-   float zero=0.0f;
-   U local;local.q=TransformXfPos(0,space,position);
-   float size=Polynomial(&p->size,(D_002DDED0.t-p->start)/p->duration);
-   size*=GRandInRange__Fff(0.8f,1.4f);
-   object->vt[1].fn((char*)object+object->vt[1].delta,local.q,0,size);
-   object->visual=visual;object->duration=5.0f;object->spin=-size;object->space=space;
-   M3 frame;frame.r[2]=direction;
-   GetNormalVectors(direction,D_002A2DA0,D_002A2DB0,frame.r);
-   U angles;angles.f[1]=zero;angles.f[0]=zero;angles.f[2]=GRandInRange__Fff(zero,6.28318548f);
-   M3 rotation;
-   rotation=LoadRotateMatrixEuler(angles.q);
-   {M3 orient=Mul(frame,rotation);
-   object->matrix=orient;}
-   qword *up=&D_002A2DC0;
-   if(__builtin_fabsf(Dot(direction,*up))<0.7f){
-    U flat;flat.q=direction;flat.f[2]=zero;
-    M3 tilt;tilt=BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(flat.q,direction);
-    U home;
-    object->velocity.q=Transform(tilt,Scale(*up,-50.0f,home));
-   }
-   object->position.f[2]+=p->owner->height;
-  }
- }
- return object;
+O *CreateStuck(EMIT *p, LO *visual, LO *space, qword position, qword direction)
+{
+    O *object = 0;
+    if (visual) {
+        object = PripNewRipg(D_003DD490, (void *)10, 0);
+        if (object) {
+            float zero = 0.0f;
+            U local;
+            local.q = TransformXfPos(0, space, position);
+            float size = Polynomial(&p->size, (D_002DDED0.t - p->start) / p->duration);
+            size *= GRandInRange__Fff(0.8f, 1.4f);
+            object->vt[1].fn((char *)object + object->vt[1].delta, local.q, 0, size);
+            object->visual = visual;
+            object->duration = 5.0f;
+            object->spin = -size;
+            object->space = space;
+            M3 frame;
+            frame.r[2] = direction;
+            GetNormalVectors(direction, D_002A2DA0, D_002A2DB0, frame.r);
+            U angles;
+            angles.f[1] = zero;
+            angles.f[0] = zero;
+            angles.f[2] = GRandInRange__Fff(zero, 6.28318548f);
+            M3 rotation;
+            rotation = LoadRotateMatrixEuler(angles.q);
+            {
+                M3 orient = Mul(frame, rotation);
+                object->matrix = orient;
+            }
+            qword *up = &D_002A2DC0;
+            if (__builtin_fabsf(Dot(direction, *up)) < 0.7f) {
+                U flat;
+                flat.q = direction;
+                flat.f[2] = zero;
+                M3 tilt;
+                tilt = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(flat.q, direction);
+                U home;
+                object->velocity.q = Transform(tilt, Scale(*up, -50.0f, home));
+            }
+            object->position.f[2] += p->owner->height;
+        }
+    }
+    return object;
 }
 } // namespace M_CreateStuck
 
 namespace M_FBounceLeaf { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct A { void *x0; void *x4; };
-struct S { char pad[0xF0]; void *xF0; };
+struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
+struct S { char pad[0xF0]; void *stuckVisual; };   /* FLYING */
 extern int D_002C1F70[1];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
 void RemoveRip__FP3RIP(struct S *p);
-// FLYING FBounce: on contact CreateStuck then RemoveRip. (inferred)
 } } // namespace M_FBounceLeaf
+// FLYING FBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
+// the flying rip.
 int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_FBounceLeaf;
@@ -1433,9 +1932,9 @@ int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the names
     M_FBounceLeaf::A *pa = (M_FBounceLeaf::A *)pa_m;
     unsigned int i;
     for (i = 0; i < sizeof(D_002C1F70) / sizeof(D_002C1F70[0]); i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, D_002C1F70[i])) return 0;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, D_002C1F70[i])) return 0;
     }
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, 0x59)) CreateStuck(p, p->xF0, pa->x0, q0, q1);
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, 0x59)) CreateStuck(p, p->stuckVisual, pa->hitObject, q0, q1);
     RemoveRip__FP3RIP(p);
     return 1;
 }
@@ -1450,19 +1949,19 @@ void STUCK::Update(float dt)   /* key function: STUCK's vtable comes out here */
 namespace M_RenderStuck {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
-struct S { char pad[0x40]; M m; qword q70; char pad2[0xF0 - 0x80]; void *p; };
+struct S { char pad[0x40]; M orientation; qword position; char pad2[0xF0 - 0x80]; void *host; };   /* STUCK: position / orientation in its host's space */
 extern "C" {
 qword TransformXfPos(void *p, int n, qword q);
 M ConvertXfMat(void *p, int n, M *pm);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderStuck(S *p);
 }
-// STUCK Render: transform by host object's matrix, FRenderRipPosMat. (inferred)
+// STUCK Render: its position and orientation taken from the host object's space to world, then rendered.
 void RenderStuck(S *p)
 {
-    qword q = TransformXfPos(p->p, 0, p->q70);
+    qword q = TransformXfPos(p->host, 0, p->position);
     M m;
-    m = ConvertXfMat(p->p, 0, &p->m);
+    m = ConvertXfMat(p->host, 0, &p->orientation);
     FRenderRipPosMat(p, q, m);
 }
 } // namespace M_RenderStuck
@@ -1472,7 +1971,7 @@ typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
 struct LM { float gMin, gMax; };
 struct SHRAPNEL {
-    char pad[0x18]; float g18;
+    char pad[0x18]; float duration;
     char pad2[0x90 - 0x1C]; qword v;
     char pad3[0xD0 - 0xA0]; float ag[3];
     char pad4[0xF0 - 0xDC]; V3 dir;
@@ -1497,47 +1996,69 @@ static inline qword VLen(qword v)
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(t), "=&j"(one) : "j"(v));
     return t;
 }
-static inline float LowerLimit(char*page){return *(const float*)(page-0x44A0);}
-static inline float ReadLengthAndPublish(qword length,char**out,LM**limits,float*duration,float life){register char*page __asm__("$2");register LM*address __asm__("$3");register float scalar __asm__("$f3");__asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\tswc1 %6,%3\n\tmtc1 %1,%2\n\taddiu %1,%0,%%lo(%5)":"=&r"(page),"=&r"(address),"=f"(scalar),"=m"(*duration):"j"(length),"i"(&D_002BBB60),"f"(life));*out=page;*limits=address;return scalar;}
-static inline void CopyDirection(SHRAPNEL*dest,const EMITBV*source){register float xz __asm__("$f0");register float y __asm__("$f1");__asm__("lwc1 %0,%5\n\tswc1 %0,%2\n\tlwc1 %1,%6\n\tswc1 %1,%3\n\tlwc1 %0,%7\n\tswc1 %0,%4":"=&f"(xz),"=&f"(y),"=m"(dest->dir.x),"=m"(dest->dir.y),"=m"(dest->dir.z):"m"(source->dir.x),"m"(source->dir.y),"m"(source->dir.z));}
+static inline float LowerLimit(char *page)
+{
+    return *(const float *)(page - 0x44A0);
+}
+static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, float *duration, float life)
+{
+    register char *page __asm__("$2");
+    register LM *address __asm__("$3");
+    register float scalar __asm__("$f3");
+    __asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\tswc1 %6,%3\n\tmtc1 %1,%2\n\taddiu %1,%0,%%lo(%5)"
+            : "=&r"(page), "=&r"(address), "=f"(scalar), "=m"(*duration)
+            : "j"(length), "i"(&D_002BBB60), "f"(life));
+    *out = page;
+    *limits = address;
+    return scalar;
+}
+static inline void CopyDirection(SHRAPNEL *dest, const EMITBV *source)
+{
+    register float xz __asm__("$f0");
+    register float y __asm__("$f1");
+    __asm__("lwc1 %0,%5\n\tswc1 %0,%2\n\tlwc1 %1,%6\n\tswc1 %1,%3\n\tlwc1 %0,%7\n\tswc1 %0,%4"
+            : "=&f"(xz), "=&f"(y), "=m"(dest->dir.x), "=m"(dest->dir.y), "=m"(dest->dir.z)
+            : "m"(source->dir.x), "m"(source->dir.y), "m"(source->dir.z));
+}
 // SHRAPNEL (RIPT 8) PostEmit.
 extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemitb)
 {
     float len, g;
     int i;
     PostRipEmit(psh, pemitb);
-    float gain=GRandInRange__Fff(D_002C1F78.gMin,D_002C1F78.gMax);
-    float life=psh->g18*gain;
-    qword lengthValue=VLen(psh->v);
-    char*page;LM*limits;
-    len=ReadLengthAndPublish(lengthValue,&page,&limits,&psh->g18,life);
-    CopyDirection(psh,pemitb);
+    float gain = GRandInRange__Fff(D_002C1F78.gMin, D_002C1F78.gMax);
+    float life = psh->duration * gain;
+    qword lengthValue = VLen(psh->v);
+    char *page;
+    LM *limits;
+    len = ReadLengthAndPublish(lengthValue, &page, &limits, &psh->duration, life);
+    CopyDirection(psh, pemitb);
     g = GClamp(D_002C1F80[0] + len * (D_002C1F80[1] + len * D_002C1F80[2]), LowerLimit(page), limits->gMax) * 10.0f;
     for (i = 0; i < 3; i++)
         psh->ag[i] = GRandInRange__Fff(-g, g);
 }
 
 #define OFF(t,m) ((unsigned)&((t*)0)->m)
-typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,gMin)==0 && OFF(LM,gMax)==4 && OFF(SHRAPNEL,g18)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
+typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)==4 && sizeof(V3)==12 && sizeof(LM)==8 && OFF(LM,gMin)==0 && OFF(LM,gMax)==4 && OFF(SHRAPNEL,duration)==0x18 && OFF(SHRAPNEL,v)==0x90 && OFF(SHRAPNEL,ag)==0xD0 && OFF(SHRAPNEL,dir)==0xF0 && OFF(EMITBV,dir)==0xF0 && sizeof(((SHRAPNEL*)0)->ag)==12 && sizeof(D_002C1F80)==12)?1:-1];
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 
 namespace M_FBounceShrapnel { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct C { char pad[0x60]; void *p60; };
-struct B { char pad[0xEC]; struct C *pc; };
+struct C { char pad[0x60]; void *unknown60; };
+struct B { char pad[0xEC]; struct C *unknownEC; };   /* the hit body */
 struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
-// SHRAPNEL FBounce: HandleRipBounce then remove on condition. (inferred)
 } } // namespace M_FBounceShrapnel
+// SHRAPNEL FBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
 int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_FBounceShrapnel;
     void *p = this;
     M_FBounceShrapnel::A *pa = (M_FBounceShrapnel::A *)pa_m;
-    void *plo = pa->pb->pc->p60;
+    void *plo = pa->pb->unknownEC->unknown60;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
         RemoveRip__FP3RIP(p);
@@ -1549,31 +2070,71 @@ int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the nam
 namespace M_RenderShrapnel__FP8SHRAPNELP2CM {
 // Render the particle with its scalar depth offset along the global axis.
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
-union F {float value;int bits;};
+union U {
+    qword q;
+    float f[4];
+};
+union F {
+    float value;
+    int bits;
+};
 struct M3 {qword rows[3];};
-struct SHRAPNEL {char pad40[0x40];M3 matrix;qword position;char pad80[0x70];F depth;};
+struct SHRAPNEL {
+    char pad40[0x40];
+    M3 matrix;
+    qword position;
+    char pad80[0x70];
+    F depth;
+};
 struct CM;
 extern "C" { extern qword D_002A2DC0; }
 extern "C" int FRenderRipPosMat(SHRAPNEL *,qword,const M3 &);
-static inline qword AddScaled(qword p,qword a,qword k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(p):"j"(a),"j"(k));return p;}
-static inline SHRAPNEL* Receiver(SHRAPNEL*input){register SHRAPNEL*p __asm__("$3");__asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));return p;}
-static inline const qword* AxisAddress(void){register const qword*p __asm__("$2");__asm__("lui %0,%%hi(%1)\n\taddiu %0,%0,%%lo(%1)":"=r"(p):"i"(&D_002A2DC0));return p;}
-static inline qword Axis(const qword*p){register qword v __asm__("vf3");__asm__("lqc2 %0,0(%1)":"=j"(v):"r"(p),"m"(*p));return v;}
-static inline const M3* MatrixAddress(SHRAPNEL*p){register SHRAPNEL*receiver __asm__("$4")=p;register const M3*matrix __asm__("$6");__asm__("addiu %0,%1,64":"=r"(matrix):"r"(receiver));return matrix;}
-static inline qword Depth(SHRAPNEL*p){
- register qword k __asm__("vf2");register int bits __asm__("$4");
- __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0":"=j"(k),"=&r"(bits):"r"(p),"m"(p->depth.bits));
- return k;
+static inline qword AddScaled(qword p, qword a, qword k)
+{
+    __asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(p) : "j"(a), "j"(k));
+    return p;
+}
+static inline SHRAPNEL *Receiver(SHRAPNEL *input)
+{
+    register SHRAPNEL *p __asm__("$3");
+    __asm__("daddu %0,%1,$zero" : "=r"(p) : "r"(input));
+    return p;
+}
+static inline const qword *AxisAddress(void)
+{
+    register const qword *p __asm__("$2");
+    __asm__("lui %0,%%hi(%1)\n\taddiu %0,%0,%%lo(%1)" : "=r"(p) : "i"(&D_002A2DC0));
+    return p;
+}
+static inline qword Axis(const qword *p)
+{
+    register qword v __asm__("vf3");
+    __asm__("lqc2 %0,0(%1)" : "=j"(v) : "r"(p), "m"(*p));
+    return v;
+}
+static inline const M3 *MatrixAddress(SHRAPNEL *shrapnel)
+{
+    register SHRAPNEL *receiver __asm__("$4") = shrapnel;
+    register const M3 *matrix __asm__("$6");
+    __asm__("addiu %0,%1,64" : "=r"(matrix) : "r"(receiver));
+    return matrix;
+}
+static inline qword Depth(SHRAPNEL *shrapnel)
+{
+    register qword k __asm__("vf2");
+    register int bits __asm__("$4");
+    __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0" : "=j"(k), "=&r"(bits) : "r"(shrapnel), "m"(shrapnel->depth.bits));
+    return k;
 }
 // SHRAPNEL Render.
-extern "C" void RenderShrapnel__FP8SHRAPNELP2CM(SHRAPNEL *input,CM *){
-    SHRAPNEL *p=Receiver(input);
-    U point,scalar;
-    qword k=Depth(p);
-    point.q=AddScaled(p->position,Axis(AxisAddress()),k);
-    scalar.q=k;
-    FRenderRipPosMat(p,point.q,*MatrixAddress(p));
+extern "C" void RenderShrapnel__FP8SHRAPNELP2CM(SHRAPNEL *input, CM *)
+{
+    SHRAPNEL *p = Receiver(input);
+    U point, scalar;
+    qword k = Depth(p);
+    point.q = AddScaled(p->position, Axis(AxisAddress()), k);
+    scalar.q = k;
+    FRenderRipPosMat(p, point.q, *MatrixAddress(p));
 }
 
 typedef char layout_render_0[(sizeof(qword)==16)?1:-1];
@@ -1595,17 +2156,17 @@ namespace M_InitMatch__FP5MATCHP6VECTORfP2SO {
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR;
 struct SO;
-struct MATCH { char pad[0x20]; float g20; float g24; int n28; int pad2; qword q30; };
+struct MATCH { char pad[0x20]; float scaleStart; float scaleSlope; int scaleCurve; int pad2; qword alpha; };
 extern "C" { extern qword D_002BBB50; }
 extern "C" void InitRip(MATCH *p, VECTOR *pv, float g, SO *pso);
-// MATCH (RIPT 6) Init.
+// MATCH (RIPT 6) Init: base init, then the scale curve g + (1 - g) t (grows to full size) and the default alpha.
 extern "C" void InitMatch__FP5MATCHP6VECTORfP2SO(MATCH *pmatch, VECTOR *pv, float g, SO *pso)
 {
     InitRip(pmatch, pv, g, pso);
-    pmatch->q30 = D_002BBB50;
-    pmatch->g20 = g;
-    pmatch->g24 = 1.0f - g;
-    pmatch->n28 = 0;
+    pmatch->alpha = D_002BBB50;
+    pmatch->scaleStart = g;
+    pmatch->scaleSlope = 1.0f - g;
+    pmatch->scaleCurve = 0;
 }
 } // namespace M_InitMatch__FP5MATCHP6VECTORfP2SO
 
@@ -1617,10 +2178,10 @@ union U { qword q; float g; };
 struct LO;
 struct LOV { int pad[18]; short d9; short p9; void (*pfn9)(LO *); };
 struct LO { int a[3]; LOV *pvt; };
-struct X { char pad[0x60]; void *p60; };
+struct X { char pad[0x60]; void *motion; };   /* the render object: its motion record (LoadIdentityMatrix4) */
 struct S {
     char pad[0x18]; float dt; X *px;
-    char pad2[0x40 - 0x20]; MAT3 mat; qword pos; qword x80; qword v; qword a;
+    char pad2[0x40 - 0x20]; MAT3 mat; qword pos; qword previousPos; qword v; qword a;
     char pad3[0xF0 - 0xB0]; qword axis; float rad; LO *plo;
 };
 extern "C" {
@@ -1647,7 +2208,7 @@ void LaunchMatch__FP5MATCH(S *p)
     qword d, s1, s2;
     p->pos = GetLoWorldPos(p->plo);
     p->mat = *GetLoWorldMatrix(p->plo);
-    LoadIdentityMatrix4(p->px->p60, 0, &m4, 0, p->dt);
+    LoadIdentityMatrix4(p->px->motion, 0, &m4, 0, p->dt);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(m4.a[3]), "j"(p->pos));
     s1 = Bc(1.0f / p->dt);
     s2 = Bc(p->dt * -0.5f);
@@ -1739,18 +2300,19 @@ namespace M_UpdateMatch { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
 extern struct CLOCK { float t; } D_002DDED0;
-struct S { char p0[0x14]; float g14; float g18; struct O *po; char p1[0x104-0x20]; int f104; };
+struct S { char p0[0x14]; float startTime; float duration; struct O *renderObject; char p1[0x104-0x20]; int shouldLaunch; };
 void LaunchMatch__FP5MATCH(struct S *p);
 void RemoveRip__FP3RIP(struct S *p);
-// MATCH Update: LaunchMatch / RemoveRip.
 } } // namespace M_UpdateMatch
+// MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
+// render object (vtable slot 8) and removes itself.
 void MATCH::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateMatch;
     M_UpdateMatch::S *p = (M_UpdateMatch::S *)this;
-    if (D_002DDED0.t >= p->g14 && p->f104) LaunchMatch__FP5MATCH(p);
-    if (D_002DDED0.t - p->g14 > p->g18) {
-        struct O *po = p->po;
+    if (D_002DDED0.t >= p->startTime && p->shouldLaunch) LaunchMatch__FP5MATCH(p);
+    if (D_002DDED0.t - p->startTime > p->duration) {
+        struct O *po = p->renderObject;
         struct VTE *e = &po->vt[8];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
         RemoveRip__FP3RIP(p);
@@ -1759,11 +2321,11 @@ void MATCH::Update(float dt)   /* key function (the namespace's views) */
 
 namespace M_RenderMatch { extern "C" {
 extern struct CLOCK { float t; } D_002DDED0;
-struct S { char pad[0x14]; float g14; };
+struct S { char pad[0x14]; float startTime; };
 void RenderRip(struct S *p);
 // MATCH Render: wraps RenderRip. (inferred)
 void RenderMatch(struct S *p) {
-    if (D_002DDED0.t < p->g14) return;
+    if (D_002DDED0.t < p->startTime) return;
     RenderRip(p);
 }
 } } // namespace M_RenderMatch
@@ -1803,10 +2365,26 @@ namespace M_RenderGlint {
 typedef int qword __attribute__((mode(TI)));
 struct M3 {qword r[3];};
 struct M4 {qword r[4];};
-struct POLY {float a,b,c;};
-struct RIP {char pad0[0x14];float start,duration;void *material;POLY size;int unused2C;POLY opacity;char pad3C[0x34];qword position;};
-struct CAMERA {char pad0[0x90];qword position;};
-struct CLOCK {float time,dt;};
+struct POLY {
+    float a, b, c;
+};
+struct RIP {
+    char pad0[0x14];
+    float start, duration;
+    void *material;
+    POLY size;
+    int unused2C;
+    POLY opacity;
+    char pad3C[0x34];
+    qword position;
+};
+struct CAMERA {
+    char pad0[0x90];
+    qword position;
+};
+struct CLOCK {
+    float time, dt;
+};
 extern "C" { extern CAMERA D_002DDF40; }
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0; }
@@ -1821,43 +2399,94 @@ M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
 void RenderLoAtMatrix(void *,const M4 &,float,float);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
-static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword Scale(qword a,VU_FLOAT s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s.q));return r;}
-static inline qword BcG(float f){union{qword q;float f;}u;qword r;__asm__("mfc1 %0,%1":"=r"(r):"f"(f));u.q=r;return r;}
-static inline float Length(qword v){qword d,one,l;float f;
- __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));
- __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(l):"j"(d));
- __asm__("mtc1 %1, %0" : "=f"(f) : "r"(l));
- return f;}
-static inline float Evaluate(const POLY &p,float t){return p.a+t*(p.b+t*p.c);}
-static inline float Clamp(float v,float low,float high){if(v<low)return low;else if(high<v)return high;else return v;}
+static inline qword Subtract(qword a, qword b)
+{
+    qword r;
+    __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
+    return r;
+}
+static inline qword Scale(qword a, VU_FLOAT s)
+{
+    qword r;
+    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s.q));
+    return r;
+}
+static inline qword BcG(float f)
+{
+    union {
+        qword q;
+        float f;
+    } u;
+    qword r;
+    __asm__("mfc1 %0,%1" : "=r"(r) : "f"(f));
+    u.q = r;
+    return r;
+}
+static inline float Length(qword v)
+{
+    qword d, one, l;
+    float f;
+    __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "=j"(d), "=&j"(one)
+            : "j"(v));
+    __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
+    __asm__("mtc1 %1, %0" : "=f"(f) : "r"(l));
+    return f;
+}
+static inline float Evaluate(const POLY &p, float t)
+{
+    return p.a + t * (p.b + t * p.c);
+}
+static inline float Clamp(float v, float low, float high)
+{
+    if (v < low)
+        return low;
+    else if (high < v)
+        return high;
+    else
+        return v;
+}
 /* a*b for 3x3 matrices stored as rows (each result row = a.r[0]*b.x + a.r[1]*b.y + a.r[2]*b.z) */
-static inline M3 Multiply(const M3&a,const M3&b) return r {
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[0]));
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[1]));
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[2]));
+static inline M3 Multiply(const M3 &a, const M3 &b) return r
+{
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[0])
+            : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[0]));
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[1])
+            : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[1]));
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[2])
+            : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
 }
 // RIPT 4 Render: large custom draw (fades; RemoveRip when done)
-extern "C" void RenderGlint(RIP *p)
+extern "C" void RenderGlint(RIP *rip)
 {
-    M3 basis,rotation,product;
+    M3 basis, rotation, product;
     M4 transform;
-    qword direction=Subtract(D_002DDF40.position,p->position);
-    float time=(D_002DDED0.time-p->start)/p->duration;
-    float distance=Length(direction)*0.001f;
-    float size=Evaluate(p->size,time)*Clamp(Evaluate(D_002C1FB0,distance),D_002C1FC0[0],D_002C1FC0[1]);
-    if(!FInsideCmFrustum(&D_002DDF40,Scale(direction,VU_FLOAT(-1.0f)),BcG(size*100.0f))){RemoveRip__FP3RIP(p);return;}
+    qword direction = Subtract(D_002DDF40.position, rip->position);
+    float time = (D_002DDED0.time - rip->start) / rip->duration;
+    float distance = Length(direction) * 0.001f;
+    float size = Evaluate(rip->size, time) * Clamp(Evaluate(D_002C1FB0, distance), D_002C1FC0[0], D_002C1FC0[1]);
+    if (!FInsideCmFrustum(&D_002DDF40, Scale(direction, VU_FLOAT(-1.0f)), BcG(size * 100.0f))) {
+        RemoveRip__FP3RIP(rip);
+        return;
+    }
     /* opacity clamp; the result shares lo's register, hi is loaded before the compare */
-    float opacity=D_002BBB60[0];
-    float hi=D_002BBB60[1];
-    float v=Evaluate(p->opacity,time);
-    if(v<opacity){}else if(hi<v)opacity=hi;else opacity=v;
-    opacity*=Clamp(Evaluate(D_002C1FD0,distance),D_002C1FE0[0],D_002C1FE0[1]);
-    basis=BuildOrthonormalMatrixZ(direction,D_002A2DC0);
-    rotation=BuildAxisAngleRotationMatrix(D_002A2DA0,Evaluate(D_002C1FF0,time));
-    product=Multiply(basis,rotation);
-    transform=LoadMatrixFromPosRotScalar(p->position,product,size);
-    RenderLoAtMatrix(p->material,transform,opacity,1.0f);
+    float opacity = D_002BBB60[0];
+    float hi = D_002BBB60[1];
+    float v = Evaluate(rip->opacity, time);
+    if (v < opacity) {
+    } else if (hi < v)
+        opacity = hi;
+    else
+        opacity = v;
+    opacity *= Clamp(Evaluate(D_002C1FD0, distance), D_002C1FE0[0], D_002C1FE0[1]);
+    basis = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
+    rotation = BuildAxisAngleRotationMatrix(D_002A2DA0, Evaluate(D_002C1FF0, time));
+    product = Multiply(basis, rotation);
+    transform = LoadMatrixFromPosRotScalar(rip->position, product, size);
+    RenderLoAtMatrix(rip->material, transform, opacity, 1.0f);
 }
 } // namespace M_RenderGlint
 
@@ -1866,51 +2495,52 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z; } V3;
 typedef struct {
     char pad0[0x20];
-    float x20[3];
+    float spinMin[3];       /* +0x20 */
     char pad2c[4];
-    float x30[3];
+    float spinMax[3];       /* +0x30 */
     char pad3c[0x50 - 0x3C];
-    qword x50;
-} DEF;
+    qword scale;            /* +0x50 the smack's scale curve */
+} DEF;   /* the SMACK's definition record (inferred) */
 typedef struct {
     char pad0[0x18];
-    float x18;
+    float duration;
     char pad1c[4];
-    qword x20;
-    qword x30;
+    qword scale;
+    qword alpha;
     char pad40[0x90 - 0x40];
-    V3 x90;
+    V3 velocity;
     char pad9c[0xF0 - 0x9C];
-    DEF *xF0;
+    DEF *def;
     char padf4[0x100 - 0xF4];
-    qword x100;
-} OBJ;
+    qword screenPos;        /* position in screen space */
+} OBJ;   /* SMACK */
 extern char D_002DDF40[];
 extern float D_002C2000;
 extern qword D_002BBB50;
 void InitRip(OBJ *, qword);
 qword ConvertCmWorldToScreen(void *, qword);
 float GRandInRange__Fff(float, float);
-// SMACK (RIPT 9) Init.
-void InitSmack(OBJ *p, qword q)
+// SMACK (RIPT 9) Init: base init, its position converted to screen space, a random velocity between the
+// definition's bounds, fixed duration, default alpha and the definition's scale curve.
+void InitSmack(OBJ *object, qword q)
 {
     DEF *d;
     float x, y;
-    InitRip(p, q);
-    d = p->xF0;
-    p->x100 = ConvertCmWorldToScreen(D_002DDF40, q);
-    x = GRandInRange__Fff(d->x20[0], d->x30[0]);
-    y = GRandInRange__Fff(d->x20[1], d->x30[1]);
+    InitRip(object, q);
+    d = object->def;
+    object->screenPos = ConvertCmWorldToScreen(D_002DDF40, q);
+    x = GRandInRange__Fff(d->spinMin[0], d->spinMax[0]);
+    y = GRandInRange__Fff(d->spinMin[1], d->spinMax[1]);
     {
-        float z = GRandInRange__Fff(d->x20[2], d->x30[2]);
-        V3 *v = &p->x90;
+        float z = GRandInRange__Fff(d->spinMin[2], d->spinMax[2]);
+        V3 *v = &object->velocity;
         v->x = x;
         v->y = y;
         v->z = z;
     }
-    p->x18 = D_002C2000;
-    p->x30 = D_002BBB50;
-    p->x20 = d->x50;
+    object->duration = D_002C2000;
+    object->alpha = D_002BBB50;
+    object->scale = d->scale;
 }
 } } // namespace M_InitSmack
 
@@ -1921,26 +2551,27 @@ extern char D_002DDF40[];
 typedef struct { qword a; qword b; } Q2;
 typedef struct {
     char pad0[0x14];
-    float x14;
-    float x18;
+    float startTime;
+    float duration;
     char pad1c[0x70 - 0x1C];
-    qword x70;
-    qword x80;
-    qword x90;
+    qword position;
+    qword previousPosition;
+    qword velocity;
     char pada0[0xF0 - 0xA0];
-    Q2 *xF0;
+    Q2 *def;                /* the definition: Bezier end point / tangent (inferred) */
     char padf4[0x100 - 0xF4];
-    qword x100;
-} OBJ;
+    qword screenPos;
+} OBJ;   /* SMACK */
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
 qword ConvertCmScreenToWorld(void *, qword);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
-// SMACK Project.
-void ProjectSmackTransform(OBJ *p)
+// SMACK Project: moves along a Bezier in screen space toward the definition's target, arriving at the end of its life,
+// and converts back to world space.
+void ProjectSmackTransform(OBJ *object)
 {
-    EvaluateBezierPos(GMax(p->x14 + p->x18 - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->x100, p->x90, p->xF0->a, p->xF0->b, &p->x100, &p->x90, 0);
-    p->x80 = p->x70;
-    p->x70 = ConvertCmScreenToWorld(D_002DDF40, p->x100);
+    EvaluateBezierPos(GMax(object->startTime + object->duration - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
+    object->previousPosition = object->position;
+    object->position = ConvertCmScreenToWorld(D_002DDF40, object->screenPos);
 }
 } } // namespace M_ProjectSmackTransform
 
@@ -1950,7 +2581,16 @@ struct M3 { qword r[3]; };
 union U { qword q; float f; };
 struct G { char pad[0x60]; M3 mat; };
 struct SPIN { char pad[0x40]; qword axis; };
-struct S {char pad[0x14];float start,duration;char pad1C[0x40-0x1C];M3 mat;char pad70[0xF0-0x70];SPIN *spin;char padF4[0x100-0xF4];qword pos;};
+struct S {
+    char pad[0x14];
+    float start, duration;
+    char pad1C[0x40 - 0x1C];
+    M3 mat;
+    char pad70[0xF0 - 0x70];
+    SPIN *spin;
+    char padF4[0x100 - 0xF4];
+    qword pos;
+};
 extern "C" { extern G D_002DDF40; }
 extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" {
@@ -1961,24 +2601,33 @@ M3 BuildAxisAngleRotationMatrix(qword,float);
 int FRenderRipPosMat(S*,qword,const M3&);
 void RenderSmack(S*);
 }
-static inline M3 Mul(const M3 &a,const M3 &b) return r {
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[0]));
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[1]));
- __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[2]));
+static inline M3 Mul(const M3 &a, const M3 &b) return r
+{
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[0])
+            : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[0]));
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[1])
+            : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[1]));
+    __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
+            : "=j"(r.r[2])
+            : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
 }
 // SMACK Render. (inferred)
-void RenderSmack(S *p) {
- M3 camera,fade,spin,render;
- U axis;float angle;
- G *pg=&D_002DDF40;
- qword view=ConvertCmScreenToWorld(pg,p->pos);
- camera=MulMatrix3Matrix3(p->mat,pg->mat);
- DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&camera,&angle,&axis.q);
- float t=(D_002DDED0.t-p->start)/p->duration;
- fade=BuildAxisAngleRotationMatrix(axis.q,angle*t);
- spin=BuildAxisAngleRotationMatrix(p->spin->axis,(t+t)*3.14159274f);
- render=Mul(Mul(fade,spin),p->mat);
- FRenderRipPosMat(p,view,render);
+void RenderSmack(S *p)
+{
+    M3 camera, fade, spin, render;
+    U axis;
+    float angle;
+    G *pg = &D_002DDF40;
+    qword view = ConvertCmScreenToWorld(pg, p->pos);
+    camera = MulMatrix3Matrix3(p->mat, pg->mat);
+    DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&camera, &angle, &axis.q);
+    float t = (D_002DDED0.t - p->start) / p->duration;
+    fade = BuildAxisAngleRotationMatrix(axis.q, angle * t);
+    spin = BuildAxisAngleRotationMatrix(p->spin->axis, (t + t) * 3.14159274f);
+    render = Mul(Mul(fade, spin), p->mat);
+    FRenderRipPosMat(p, view, render);
 }
 } // namespace M_RenderSmack
 
@@ -1989,23 +2638,23 @@ typedef void (C::*PMF)(void *);
 struct D { char pad[0x60]; PMF pmf; };
 struct OBJ {
     char pad0[0x14];
-    float x14;
-    float x18;
+    float startTime;
+    float duration;
     char pad1c[0xF0 - 0x1C];
-    D *xF0;
-    C *xF4;
-    void *xF8;
-};
+    D *def;                 /* its +0x60: the member function to call when done */
+    C *target;
+    void *argument;
+};   /* SMACK */
 extern "C" void RemoveRip__FP3RIP(OBJ *);
-// SMACK Update (RemoveRip when done)
 } // namespace M_UpdateSmack
+// SMACK Update: at the end of its life calls the definition's completion member on the target, then removes itself.
 void SMACK::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateSmack;
     M_UpdateSmack::OBJ *p = (M_UpdateSmack::OBJ *)this;
-    if (p->x18 < D_002DDED0.t - p->x14) {
-        PMF pmf = p->xF0->pmf;
-        (p->xF4->*pmf)(p->xF8);
+    if (p->duration < D_002DDED0.t - p->startTime) {
+        PMF pmf = p->def->pmf;
+        (p->target->*pmf)(p->argument);
         RemoveRip__FP3RIP(p);
     }
 }
@@ -2017,30 +2666,33 @@ typedef struct { float x, y, z; } __attribute__((aligned(16))) VECTOR;
 typedef struct { float mat[3][4]; } __attribute__((aligned(16))) MATRIX3;
 typedef struct {
     char pad0[0x40];
-    MATRIX3 x40;
+    MATRIX3 orientation;
 } OBJ;
 extern "C" void PostRipEmit(OBJ *);
 extern "C" float GRandInRange__Fff(float, float);
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword);
-static inline MATRIX3 MakeBasis(qword vector) return r {LoadLookAtMatrix(&r,vector);}
-// LEAF (RIPT 5) PostEmit: random initial orientation. (inferred)
+static inline MATRIX3 MakeBasis(qword vector) return r
+{
+    LoadLookAtMatrix(&r, vector);
+}
 } // namespace M_PostLeafEmit
-void LEAF::PostEmit(void *pv)   /* key function (the namespace's views) */
+// LEAF (RIPT 5) PostEmit: random initial orientation. (inferred)
+void LEAF::PostEmit(void *pv) /* key function (the namespace's views) */
 {
     using namespace M_PostLeafEmit;
     M_PostLeafEmit::OBJ *p = (M_PostLeafEmit::OBJ *)this;
     M_PostLeafEmit::VECTOR v;
     float x, y, z;
-    register float lo __asm__("$f20")=-1.0f;
+    register float lo __asm__("$f20") = -1.0f;
     PostRipEmit(p);
-    register float hi __asm__("$f21")=1.0f;
-    x = GRandInRange__Fff(lo,hi);
-    y = GRandInRange__Fff(lo,hi);
+    register float hi __asm__("$f21") = 1.0f;
+    x = GRandInRange__Fff(lo, hi);
+    y = GRandInRange__Fff(lo, hi);
     z = GRandInRange__Fff(0.1f, 0.9f);
     v.x = x;
     v.y = y;
     v.z = z + 0.1f;
-    p->x40 = MakeBasis(*(M_PostLeafEmit::qword *)&v);
+    p->orientation = MakeBasis(*(M_PostLeafEmit::qword *)&v);
 }
 
 namespace M_ProjectLeafTransform {
@@ -2164,26 +2816,27 @@ extern "C" void ProjectLeafTransform(P *p)
 namespace M_StickLeafOnBounce { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } M3;
-typedef struct { void *x0; void *x4; } S;
-typedef struct { char pad[0x40]; M3 m; } R;
-typedef struct { char pad[0x1C]; void *x1C; } OBJ;
+typedef struct { void *hitObject; void *hitBody; } S;   /* the bounce contact */
+typedef struct { char pad[0x40]; M3 orientation; } R;   /* the new STUCK */
+typedef struct { char pad[0x1C]; void *renderObject; } OBJ;   /* the LEAF */
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
 void ConvertAloMat(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
-// LEAF FBounce: CreateStuck/RemoveRip on contact. (inferred)
-int StickLeafOnBounce(OBJ *p, S *s, qword a, qword b)
+// LEAF FBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
+// orientation taken into the hit body's space, and removes the leaf.
+int StickLeafOnBounce(OBJ *object, S *s, qword a, qword b)
 {
-    R *r;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(s->x4, 0x33))
+    R *stuck;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(s->hitBody, 0x33))
         return 0;
-    r = CreateStuck(p, p->x1C, s->x0, a, b);
-    if (r) {
+    stuck = CreateStuck(object, object->renderObject, s->hitObject, a, b);
+    if (stuck) {
         M3 m;
-        ConvertAloMat(&m, 0, s->x4, &r->m);
-        r->m = m;
+        ConvertAloMat(&m, 0, s->hitBody, &stuck->orientation);
+        stuck->orientation = m;
     }
-    RemoveRip__FP3RIP(p);
+    RemoveRip__FP3RIP(object);
     return 1;
 }
 } } // namespace M_StickLeafOnBounce
@@ -2205,7 +2858,7 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
     void *pvEmit;
     PostRipEmit(prip, pv);
     pvEmit = *(void **)((char *)pv + 8);
-    prip->spawnCount = *(int *)((char *)pvEmit + 0xC);
+    prip->nextRenderObject = *(int *)((char *)pvEmit + 0xC);   /* EMITB resolved objects [3] */
     return pvEmit;
 }
 
@@ -2214,52 +2867,54 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, float, qword, int); } a[4]; } VT;
 typedef struct {
     char pad[0x18];
-    float x18;
-    int x1C;
-    float x20;
-    float x24;
+    float duration;
+    int renderObject;
+    float scaleStart;
+    float scaleSlope;
     char pad28[0xEC - 0x28];
     VT *vt;
 } EMIT;
-typedef struct { char pad[0xE0]; int c; char *a; } Q;
+typedef struct { char pad[0xE0]; int numEdges; char *edges; } Q;   /* the touch object: its 0xB0-byte collision records (inferred) */
 typedef struct {
     char pad[0x70];
-    qword x70;
-    qword x80;
+    qword position;
+    qword previousPosition;
     char pad90[0xE0 - 0x90];
-    Q *q;
+    Q *q;                   /* +0xE0 touch object */
     char pade4[0xF4 - 0xE4];
-    int xF4;
+    int nextRenderObject;
 } OBJ;
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
-// RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself. (inferred)
-void UpdateRipt1(OBJ *p, int n)
+// RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
+// the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
+// render object; then the base TouchRip.
+void UpdateRipt1(OBJ *object, int isTouching)
 {
     HIT hit;
     int i;
-    EMIT *pe;
-    if (n == 0 || p->xF4 == 0)
+    EMIT *ripple;
+    if (isTouching == 0 || object->nextRenderObject == 0)
         goto done;
-    hit.pos = p->x70;
-    for (i = 0; i < p->q->c; i++) {
-        if (ClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
+    hit.pos = object->position;
+    for (i = 0; i < object->q->numEdges; i++) {
+        if (ClipEdgeToObject(object->q->edges + i * 0xB0, object->previousPosition, object->position, 1, &hit))
             goto found;
     }
 found:
-    pe = PripNewRipg(&D_003DD490, 7, 0);
-    if (pe) {
-        pe->vt->a[1].pfn((char *)pe + pe->vt->a[1].d, 40.0f, hit.pos, 0);
-        pe->x18 = 0.75f;
-        pe->x20 = 40.0f;
-        pe->x24 = 30.0f;
-        pe->x1C = p->xF4;
+    ripple = PripNewRipg(&D_003DD490, 7, 0);
+    if (ripple) {
+        ripple->vt->a[1].pfn((char *)ripple + ripple->vt->a[1].d, 40.0f, hit.pos, 0);
+        ripple->duration = 0.75f;
+        ripple->scaleStart = 40.0f;
+        ripple->scaleSlope = 30.0f;
+        ripple->renderObject = object->nextRenderObject;
     }
 done:
-    TouchRip__FP3RIPi(p, n);
+    TouchRip__FP3RIPi(object, isTouching);
 }
 } } // namespace M_UpdateRipt1
 
@@ -2269,12 +2924,12 @@ union U { qword q; float a[4]; };
 struct S {
     char pad[0x20]; float scale;
     char pad2[0xA0 - 0x24]; qword acceleration;
-    char pad3[0xC4 - 0xB0]; float fC4;
+    char pad3[0xC4 - 0xB0]; float damping;
 };
 extern qword D_002C1F40;
 extern void InitRip(struct S *);
 
-// RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, accel -8. (inferred)
+// RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, damping -8.
 void InitBublet(struct S *p)
 {
     union U u;
@@ -2285,97 +2940,142 @@ void InitBublet(struct S *p)
     u.q = k;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(D_002C1F40), "j"(k));
     p->acceleration = r;
-    p->fC4 = -8.0f;
+    p->damping = -8.0f;
 }
 } } // namespace M_InitBublet
 
 namespace M_ProjectBubletTransform { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-struct B { qword x,y; };
-struct MIX_STATE {union U direction,scalar;};
+struct B {
+    qword x, y;
+};
+struct MIX_STATE {
+    union U direction, scalar;
+};
 struct S { char pad[0x70]; qword pos; char pad80[0x10]; qword vel; };
 extern qword D_002A2DD0,D_002A2DA0,D_002A2DC0;
-union FLOATWORD {float value;int bits;};
-struct CLOCK {float time;union FLOATWORD dt;};
+union FLOATWORD {
+    float value;
+    int bits;
+};
+struct CLOCK {
+    float time;
+    union FLOATWORD dt;
+};
 void ProjectRipTransform(struct S*);
 float GRandInRange__Fff(float,float);
 int FFloatsNear__Ffff(float,float,float);
 void GetNormalVectors(qword,qword,qword,struct B*);
 void CalculateSinCos__FfPfT1(float,float*,float*);
-static inline const void*ClockHigh(void){register const void*page __asm__("$2");__asm__("lui %0,%%hi(D_002DDED0+4)":"=r"(page));return page;}
-static inline qword Factors(const float*cs,float speed,float*first,float*second){
- register float a __asm__("$f1")=cs[0],b __asm__("$f0");
- const void*page=ClockHigh();const union FLOATWORD*wordView=(const union FLOATWORD*)((const char*)page-0x212C);
- register int word __asm__("$2");register qword dt __asm__("vf5");
- __asm__("lwc1 %1,%5\n\tmul.s %0,%0,%4\n\tlw %2,%%lo(D_002DDED0+4)(%6)\n\tqmtc2.ni %2,%3\n\tmul.s %1,%1,%4":"+&f"(a),"=&f"(b),"=r"(word),"=j"(dt):"f"(speed),"m"(cs[1]),"r"(page),"m"(wordView->bits));
- *first=a;*second=b;return dt;
+static inline const void *ClockHigh(void)
+{
+    register const void *page __asm__("$2");
+    __asm__("lui %0,%%hi(D_002DDED0+4)" : "=r"(page));
+    return page;
+}
+static inline qword Factors(const float *cs, float speed, float *first, float *second)
+{
+    register float a __asm__("$f1") = cs[0], b __asm__("$f0");
+    const void *page = ClockHigh();
+    const union FLOATWORD *wordView = (const union FLOATWORD *)((const char *)page - 0x212C);
+    register int word __asm__("$2");
+    register qword dt __asm__("vf5");
+    __asm__("lwc1 %1,%5\n\tmul.s %0,%0,%4\n\tlw %2,%%lo(D_002DDED0+4)(%6)\n\tqmtc2.ni %2,%3\n\tmul.s %1,%1,%4"
+            : "+&f"(a), "=&f"(b), "=r"(word), "=j"(dt)
+            : "f"(speed), "m"(cs[1]), "r"(page), "m"(wordView->bits));
+    *first = a;
+    *second = b;
+    return dt;
 }
 static inline float X(qword q) {float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f;}
 static inline float Y(qword q) {float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f;}
 static inline float Z(qword q) {float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f;}
-static inline void FNear(int *pf,qword a,qword b) { if(FFloatsNear__Ffff(X(b),X(a),0.0001f)) if(FFloatsNear__Ffff(Y(b),Y(a),0.0001f)) *pf=FFloatsNear__Ffff(Z(b),Z(a),0.0001f)!=0; }
-static inline qword BcX(float f){register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(f));return value;}
-static inline qword BcYAndPublishX(float f,qword x,union U*home){
- register qword value __asm__("vf4");
- __asm__("sqc2 %2,%1\n\tmfc1 $2,%3\n\tqmtc2.ni $2,%0"
-     :"=j"(value),"=m"(home->q):"j"(x),"f"(f):"$2");
- return value;
+static inline void FNear(int *pf, qword a, qword b)
+{
+    if (FFloatsNear__Ffff(X(b), X(a), 0.0001f))
+        if (FFloatsNear__Ffff(Y(b), Y(a), 0.0001f))
+            *pf = FFloatsNear__Ffff(Z(b), Z(a), 0.0001f) != 0;
 }
-static inline void MixAndAdvance(struct S*owner,const struct B*basis,struct MIX_STATE*state,qword sx,qword sy,qword dt){
- register qword y __asm__("vf1")=basis->y,x __asm__("vf2")=basis->x;
- register qword coefficientX __asm__("vf3")=sx,coefficientY __asm__("vf4")=sy,time __asm__("vf5")=dt;
- __asm__("vmulax.xyzw $ACC,%0,%4x\n\tvmaddx.xyzw %0,%1,%5x\n\t"
-         "lqc2 %1,%2\n\tsqc2 %5,16+%3\n\tvadda.xyzw $ACC,%1,$vf0\n\t"
-         "vmaddx.xyzw %1,%0,%6x\n\tsqc2 %1,%2\n\tsqc2 %0,%3\n\tsqc2 %6,16+%3"
-   :"+&j"(x),"+&j"(y),"+m"(owner->pos),"=m"(*state)
-   :"j"(coefficientX),"j"(coefficientY),"j"(time));
+static inline qword BcX(float f)
+{
+    register qword value __asm__("vf3");
+    __asm__("qmtc2.ni %1,%0" : "=j"(value) : "r"(f));
+    return value;
 }
-static inline qword NormalizeAndAxes(const struct S*owner,qword*rawPage,qword*xAxis,qword*upAxis){
- register qword velocity __asm__("vf1"),length __asm__("vf2");
- register qword*up __asm__("$2");register qword*x __asm__("$3")=rawPage;
- register qword upValue __asm__("$6"),xValue __asm__("$5");
- __asm__("lqc2 %0,%4\n\tvmul.xyz %1,%0,%0\n\tvaddw.x $vf3,$vf0,$vf0w\n\t"
-         "vadday.x $ACC,%1,%1y\n\tvmaddz.x %1,$vf3,%1z\n\t"
-         "lui %2,%%hi(%5)\n\taddiu %2,%2,%%lo(%5)\n\taddiu %3,%3,%%lo(%6)"
-   :"=j"(velocity),"=j"(length),"=&r"(up),"+r"(x)
-   :"m"(owner->vel),"i"(&D_002A2DC0),"i"(&D_002A2DA0):"vf3");
- __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlq %1,%4\n\t"
-         "vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%3,$Q\n\tlq %2,%5"
-   :"+&j"(length),"=&r"(upValue),"=r"(xValue)
-   :"j"(velocity),"m"(*up),"m"(*x));
- *xAxis=xValue;*upAxis=upValue;return length;
+static inline qword BcYAndPublishX(float f, qword x, union U *home)
+{
+    register qword value __asm__("vf4");
+    __asm__("sqc2 %2,%1\n\tmfc1 $2,%3\n\tqmtc2.ni $2,%0" : "=j"(value), "=m"(home->q) : "j"(x), "f"(f) : "$2");
+    return value;
 }
-static inline void BasisArguments(qword normal,struct B*destination,qword*argument,struct B**receiver){
- register qword value __asm__("$4");register struct B*output __asm__("$7");
- __asm__("qmfc2.ni %0,%2\n\tla %1,%a3"
-     :"=&r"(value),"=r"(output):"j"(normal),"p"(destination));
- *argument=value;*receiver=output;
+static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct MIX_STATE *state, qword sx, qword sy,
+                                 qword dt)
+{
+    register qword y __asm__("vf1") = basis->y, x __asm__("vf2") = basis->x;
+    register qword coefficientX __asm__("vf3") = sx, coefficientY __asm__("vf4") = sy, time __asm__("vf5") = dt;
+    __asm__("vmulax.xyzw $ACC,%0,%4x\n\tvmaddx.xyzw %0,%1,%5x\n\t"
+            "lqc2 %1,%2\n\tsqc2 %5,16+%3\n\tvadda.xyzw $ACC,%1,$vf0\n\t"
+            "vmaddx.xyzw %1,%0,%6x\n\tsqc2 %1,%2\n\tsqc2 %0,%3\n\tsqc2 %6,16+%3"
+            : "+&j"(x), "+&j"(y), "+m"(owner->pos), "=m"(*state)
+            : "j"(coefficientX), "j"(coefficientY), "j"(time));
+}
+static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qword *xAxis, qword *upAxis)
+{
+    register qword velocity __asm__("vf1"), length __asm__("vf2");
+    register qword *up __asm__("$2");
+    register qword *x __asm__("$3") = rawPage;
+    register qword upValue __asm__("$6"), xValue __asm__("$5");
+    __asm__("lqc2 %0,%4\n\tvmul.xyz %1,%0,%0\n\tvaddw.x $vf3,$vf0,$vf0w\n\t"
+            "vadday.x $ACC,%1,%1y\n\tvmaddz.x %1,$vf3,%1z\n\t"
+            "lui %2,%%hi(%5)\n\taddiu %2,%2,%%lo(%5)\n\taddiu %3,%3,%%lo(%6)"
+            : "=j"(velocity), "=j"(length), "=&r"(up), "+r"(x)
+            : "m"(owner->vel), "i"(&D_002A2DC0), "i"(&D_002A2DA0)
+            : "vf3");
+    __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlq %1,%4\n\t"
+            "vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%3,$Q\n\tlq %2,%5"
+            : "+&j"(length), "=&r"(upValue), "=r"(xValue)
+            : "j"(velocity), "m"(*up), "m"(*x));
+    *xAxis = xValue;
+    *upAxis = upValue;
+    return length;
+}
+static inline void BasisArguments(qword normal, struct B *destination, qword *argument, struct B **receiver)
+{
+    register qword value __asm__("$4");
+    register struct B *output __asm__("$7");
+    __asm__("qmfc2.ni %0,%2\n\tla %1,%a3" : "=&r"(value), "=r"(output) : "j"(normal), "p"(destination));
+    *argument = value;
+    *receiver = output;
 }
 // RIPT 0 Project: wobble + base ProjectRipTransform. (inferred)
-void ProjectBubletTransform(struct S*p) {
-    int near=0,choose=0;
+void ProjectBubletTransform(struct S *p)
+{
+    int near = 0, choose = 0;
     float roll;
     ProjectRipTransform(p);
-    roll=GRandInRange__Fff(0.0f,1.0f);
-    FNear(&near,p->vel,D_002A2DD0);
-    if(!near&&roll<0.3f) choose=1;
-    if(choose) {
+    roll = GRandInRange__Fff(0.0f, 1.0f);
+    FNear(&near, p->vel, D_002A2DD0);
+    if (!near && roll < 0.3f)
+        choose = 1;
+    if (choose) {
         union U norm;
         struct B basis;
         struct MIX_STATE state;
-        float speed,angle,cs[2],cx,cy;
-        qword kx,ky,kt;
-        qword xAxis,upAxis,normalArgument;struct B*basisOutput;
-        norm.q=NormalizeAndAxes(p,(qword*)0x002A0000,&xAxis,&upAxis);
-        BasisArguments(norm.q,&basis,&normalArgument,&basisOutput);
-        GetNormalVectors(normalArgument,xAxis,upAxis,basisOutput);
-        speed=GRandInRange__Fff(100.0f,100.0f+(1.0f-roll*3.33333325386f)*300.0f);
-        angle=GRandInRange__Fff(0.0f,6.28318548203f);
-        CalculateSinCos__FfPfT1(angle,&cs[0],&cs[1]);
-        kt=Factors(cs,speed,&cx,&cy);
-        kx=BcX(cx);ky=BcYAndPublishX(cy,kx,&state.scalar);
-        MixAndAdvance(p,&basis,&state,kx,ky,kt);
+        float speed, angle, cs[2], cx, cy;
+        qword kx, ky, kt;
+        qword xAxis, upAxis, normalArgument;
+        struct B *basisOutput;
+        norm.q = NormalizeAndAxes(p, (qword *)0x002A0000, &xAxis, &upAxis);
+        BasisArguments(norm.q, &basis, &normalArgument, &basisOutput);
+        GetNormalVectors(normalArgument, xAxis, upAxis, basisOutput);
+        speed = GRandInRange__Fff(100.0f, 100.0f + (1.0f - roll * 3.33333325386f) * 300.0f);
+        angle = GRandInRange__Fff(0.0f, 6.28318548203f);
+        CalculateSinCos__FfPfT1(angle, &cs[0], &cs[1]);
+        kt = Factors(cs, speed, &cx, &cy);
+        kx = BcX(cx);
+        ky = BcYAndPublishX(cy, kx, &state.scalar);
+        MixAndAdvance(p, &basis, &state, kx, ky, kt);
     }
 }
 
@@ -2421,51 +3121,52 @@ void RIPT0::Touch(int f)   /* key function: RIPT0's vtable comes out here */
 }
 
 namespace M_PostRemitEmit { extern "C" {
-struct O { char p0[8]; int *pn; char p1[0xF0-0xC]; int oid; float gF4; };
+struct O { char p0[8]; int *refs; char p1[0xF0-0xC]; int expls; float rate; };   /* the REMIT, and the EMITB (refs; +0xF0 the EXPLS OID, +0xF4 rate) */
 extern struct G D_003DD490;
 void PostRipEmit(struct O *p, struct O *q);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int n);
-// REMIT (RIPT 2) PostEmit: resolve target emitter oid via SW lookup, copy rate. (inferred)
+// REMIT (RIPT 2) PostEmit: finds the explosion it re-emits (by OID, near the reference object) and copies the rate.
 void PostRemitEmit(struct O *p, struct O *q) {
     PostRipEmit(p, q);
-    p->oid = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->oid, *q->pn);
-    p->gF4 = q->gF4;
+    p->expls = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->expls, *q->refs);
+    p->rate = q->rate;
 }
 } } // namespace M_PostRemitEmit
 
 namespace M_UpdateRemit { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
-typedef struct { int k; int pad[7]; qword q; int pad2[4]; } MSG;
+typedef struct { int flags; int pad[7]; qword origin; int pad2[4]; } MSG;   /* EXPLSO */
 struct TGT;
 typedef struct { short d; short pad; void (*pf)(struct TGT *, MSG *); } VTE;
 typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;
 typedef struct {
     char pad0[0x70];
-    qword x70;
+    qword position;
     char pad80[0xF0 - 0x80];
-    TGT *xF0;
-    float xF4;
-    float xF8;
-} OBJ;
+    TGT *expls;
+    float rate;             /* explosions per second */
+    float accumulated;
+} OBJ;   /* REMIT */
 void UpdateRip(OBJ *);
-// REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target. (inferred)
 } } // namespace M_UpdateRemit
+// REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
+// with only the origin set).
 void REMIT::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateRemit;
     M_UpdateRemit::OBJ *p = (M_UpdateRemit::OBJ *)this;
     UpdateRip(p);
-    if (p->xF0) {
-        p->xF8 += D_002DDED0.dt * p->xF4;
-        while (p->xF8 >= 1.0f) {
+    if (p->expls) {
+        p->accumulated += D_002DDED0.dt * p->rate;
+        while (p->accumulated >= 1.0f) {
             MSG m;
             TGT *t;
-            m.k = 4;
-            m.q = p->x70;
-            t = p->xF0;
+            m.flags = 4;   /* EXPLSO has origin */
+            m.origin = p->position;
+            t = p->expls;
             t->vt[51].pf((TGT *)((char *)t + t->vt[51].d), &m);
-            p->xF8 -= 1.0f;
+            p->accumulated -= 1.0f;
         }
     }
 }

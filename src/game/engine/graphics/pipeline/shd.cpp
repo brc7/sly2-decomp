@@ -36,7 +36,7 @@ struct CLUT
     short padA;
     RGBAV *argba;           /* +0x0C */
     int cqwPal;             /* +0x10 */
-    int n14;
+    int unknown14;
     TEX0 tex2;              /* +0x18 */
 };
 struct BMP
@@ -51,7 +51,7 @@ struct BMP
     char padE[0x14 - 0xE];
     void *pv;               /* +0x14 pixels */
     int cqw;                /* +0x18 */
-    int n1C;
+    int unknown1C;
     TEX0 tex0;              /* +0x20 */
 };
 struct SHDV { int an[11]; };
@@ -456,13 +456,13 @@ void LoadBmpFromBrx(void *pbis, struct X *px)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CopyBitmapHeader { extern "C" {
-struct S { int a, b, c, d; unsigned int n10; int n14; unsigned int n18; };
-struct T { int a, b, c, d; unsigned int n10; int n14; };
-// Copy a BMP header and compute qword count. (inferred)
+struct S { int a, b, c, d; unsigned int byteCount; int unknown14; unsigned int qwordCount; };
+struct T { int a, b, c, d; unsigned int byteCount; int unknown14; };
+// Copies a bitmap header and derives its size in qwords (bytes rounded up to 16).
 struct S *CopyBitmapHeader(struct S *p, struct T *q)
 {
     *(struct T *)p = *q;
-    p->n18 = (p->n10 + 15) >> 4;
+    p->qwordCount = (p->byteCount + 15) >> 4;
     return p;
 }
 } } // namespace M_CopyBitmapHeader
@@ -536,23 +536,24 @@ void LoadTexFromBrx(void *pbis, struct Z *pz)
 namespace M_LoadShdFromBrx { extern "C" {
 struct MSG { int cb; int nKind; };
 struct L;
-struct C { char pad[6]; unsigned char b6; char pad7; struct L *p8; char pad2[0x14 - 0xC]; };
+struct C { char pad[6]; unsigned char numFrames; char pad7; struct L *pshd; char pad2[0x14 - 0xC]; };   /* TEX */
 struct ENT { int n; void *p; };
+/* SHD (glob.cpp's SHDF / SHD) */
 struct L {
     char pad[4];
-    unsigned char b4;
-    unsigned char b5;
+    unsigned char kind;     /* +0x04 shdk */
+    unsigned char flags;    /* +0x05 grfshd */
     char pad6[2];
-    int c8;
-    int cC;
-    int c10;
+    int rgba;               /* +0x08 */
+    int rgbaVolume;         /* +0x0C */
+    int rgba2;              /* +0x10 */
     char pad14[3];
-    unsigned char b17;
-    struct C *ac;
-    int n1C;
-    struct ENT *ae;
-    int n24;
-    void *p28;
+    unsigned char numTextures;   /* +0x17 */
+    struct C *ac;           /* +0x18 textures */
+    int numPasses;          /* +0x1C upload records, by kind */
+    struct ENT *ae;         /* +0x20 */
+    int numFrames;          /* +0x24 the first texture's frame count */
+    void *psaa;             /* +0x28 shader animation */
 };
 extern void **D_003DD004;
 void Read__18CBinaryInputStreamiPv(void *, int, void *);
@@ -574,53 +575,53 @@ void LoadShdFromBrx(void *pbis, struct L *p)
     int i, j;
     struct ENT *ae, *pe;
     Read__18CBinaryInputStreamiPv(pbis, 0x18, p);
-    ColorCorrectRgba(&p->c8);
-    ColorCorrectRgba(&p->cC);
-    ColorCorrectRgba(&p->c10);
+    ColorCorrectRgba(&p->rgba);
+    ColorCorrectRgba(&p->rgbaVolume);
+    ColorCorrectRgba(&p->rgba2);
     i = S16Read__18CBinaryInputStream(pbis);
     if (i >= 0)
-        p->p28 = D_003DD004[i];
-    msg.cb = p->b17 * 0x14;
+        p->psaa = D_003DD004[i];
+    msg.cb = p->numTextures * 0x14;
     msg.nKind = 0x10;
     p->ac = (__typeof__(p->ac))AllocClearedFromWorldHeap(&msg);
-    for (j = 0; j < p->b17; j++) {
+    for (j = 0; j < p->numTextures; j++) {
         struct C *pc = &p->ac[j];
         LoadTexFromBrx(pbis, pc);
-        pc->p8 = p;
+        pc->pshd = p;
     }
-    p->n24 = p->ac->b6;
-    switch (p->b4) {
+    p->numFrames = p->ac->numFrames;
+    switch (p->kind) {
     case 0:
     case 4:
     case 5:
     case 6:
-        p->n1C = 1;
+        p->numPasses = 1;
         break;
     case 1:
     case 2:
-        p->n1C = 2;
+        p->numPasses = 2;
         break;
     case 7:
-        p->n1C = (p->b5 & 0x20) ? 2 : 3;
+        p->numPasses = (p->flags & 0x20) ? 2 : 3;
         break;
     case 3:
-        p->n1C = 4;
+        p->numPasses = 4;
         break;
     }
-    msg.cb = p->n1C * 8;
+    msg.cb = p->numPasses * 8;
     msg.nKind = 0x10;
     ae = (__typeof__(ae))AllocClearedFromWorldHeap(&msg);
     p->ae = ae;
-    switch (p->b4) {
+    switch (p->kind) {
     case 0:
     case 4:
     case 5:
     case 6:
-        InitEnt(ae, p->ac->p8->n24 + 8, &msg);
+        InitEnt(ae, p->ac->pshd->numFrames + 8, &msg);
         break;
     case 3:
     {
-        int n = (p->b5 & 2) ? p->ac->p8->n24 + 2 : 0;
+        int n = (p->flags & 2) ? p->ac->pshd->numFrames + 2 : 0;
         InitEnt(ae, n + 6, &msg);
         pe = &ae[1];
         InitEnt(pe, 6, &msg);
@@ -637,7 +638,7 @@ void LoadShdFromBrx(void *pbis, struct L *p)
         break;
     case 1:
     {
-        int n = p->ac->p8->n24 + 8;
+        int n = p->ac->pshd->numFrames + 8;
         InitEnt(ae, n, &msg);
         pe = &ae[1];
         InitEnt(pe, n, &msg);
@@ -645,12 +646,12 @@ void LoadShdFromBrx(void *pbis, struct L *p)
     }
     case 7:
     {
-        int n = p->ac->p8->n24 + 8;
+        int n = p->ac->pshd->numFrames + 8;
         InitEnt(ae, n, &msg);
         pe = &ae[1];
         InitEnt(pe, n, &msg);
         pe = &ae[2];
-        if (!(p->b5 & 0x20))
+        if (!(p->flags & 0x20))
             InitEnt(pe, n, &msg);
         break;
     }
@@ -663,24 +664,25 @@ namespace M_BuildShaderTex0List { extern "C" {
 typedef unsigned long ulong;
 struct B4 { char a[4]; };
 struct MSG { int cb; int nKind; };
-struct S3 { char pad[6]; unsigned char c6; };
-struct Src { int x0; char pad4; unsigned char b5; unsigned char b6; char pad7; struct B4 b8; char padc[0xC]; struct S3 *p18; };
-struct Dst { int x0; int x4; int x8; struct B4 bc; int c; ulong *a; };
+struct S3 { char pad[6]; unsigned char numFrames; };   /* TEX */
+struct Src { int oid; char pad4; unsigned char flags; unsigned char unknown6; char pad7; struct B4 rgba; char padc[0xC]; struct S3 *atex; };   /* SHD */
+struct Dst { int oid; int unknown4; int flags; struct B4 rgba; int c; ulong *a; };   /* the compact shader blips use: c TEX0 words */
 void *AllocClearedFromWorldHeap(struct MSG *);
 ulong Tex0FromTexIframeCtk(struct S3 *, int, int);
-// Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture) (inferred)
+// Builds the compact shader record blips use from a SHD: its OID, flags and colour, and one TEX0 register word per
+// frame of its first texture (Tex0FromTexIframeCtk).
 void BuildShaderTex0List(struct Src *ps, struct Dst *pd)
 {
     struct S3 *p;
     struct MSG msg;
     int i;
-    pd->x0 = ps->x0;
-    pd->x4 = ps->b6;
-    pd->x8 = ps->b5;
-    pd->bc = ps->b8;
-    p = ps->p18;
+    pd->oid = ps->oid;
+    pd->unknown4 = ps->unknown6;
+    pd->flags = ps->flags;
+    pd->rgba = ps->rgba;
+    p = ps->atex;
     {
-        int c = p->c6;
+        int c = p->numFrames;
         pd->c = c;
         msg.cb = c * 8;
     }
@@ -1056,7 +1058,7 @@ extern "C" SHDV *GetShdByIndex(int ishd)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindShaderAnimById { extern "C" {
-struct O { char pad[0x14]; int n14; char pad2[0x30-0x18]; struct O *pChild; char pad3[0x40-0x34]; struct O *pNext; };
+struct O { char pad[0x14]; int id; char pad2[0x30-0x18]; struct O *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 // 0x1EC910: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addu $2, $2, $4");
 
@@ -1068,7 +1070,7 @@ struct O *FindShaderAnimById(int n)
     if (n == -1) return 0;
     for (p = (*(struct O * *)&g_sw.slSaa); p; p = p->pNext) {
         if (p->pChild) break;
-        if (p->n14 == n) return p;
+        if (p->id == n) return p;
     }
     return 0;
 }

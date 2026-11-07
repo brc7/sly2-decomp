@@ -32,7 +32,7 @@ struct RENDER;
 struct SUB
 {
     char pad[0xA4];
-    int nA4;
+    int renderStamp;      /* (inferred) copied into an object entering the render tree */
 };
 /* An object with an entry in the render tree (calls through vtable slots 8, 19 and 31). */
 struct OBJ
@@ -51,7 +51,7 @@ struct OBJ
     qword posLocal;       /* 0x90 */
     float sRadius;        /* 0xA0 */
     char padA4[0x9C];
-    int n140;             /* 0x140 */
+    int renderStamp;      /* 0x140 its SUB's stamp while in the render tree, -1 when out (inferred) */
     RENDER *prender;      /* 0x144 its entry in the render tree */
 };
 typedef char assert_OBJ_prender[(uint)&((OBJ *)0)->prender == 0x144 ? 1 : -1];
@@ -587,7 +587,7 @@ extern "C" void RemoveLoFromRenderTree(OBJ *pobj)
     if (pobj->prender) {
         int n;
         *(ulong *)&pobj->prender->sFar |= 0xF00000000UL;  /* kind = -1 (64-bit access, as the per-file code) */
-        pobj->n140 = -1;
+        pobj->renderStamp = -1;
         pobj->prender = 0;
         n = pobj->nTagged;
         if ((n ^ 1) & 1) *(int *)n &= ~0x80;
@@ -616,7 +616,7 @@ extern "C" void AddLoToRenderTree(OBJ *pobj)
             *(int *)pobj->nTagged |= 0x80;
         else
             pobj->nTagged |= 0x80;
-        pobj->n140 = pobj->psub->nA4;
+        pobj->renderStamp = pobj->psub->renderStamp;
     }
 }
 

@@ -51,31 +51,69 @@ void PrepareSwLights(SW *p);
 void DrawGadgetMenuSlotLabels(void *p);
 }
 
+/* The virtual screen game code draws in (640 x 492.8, centred on the GS drawing offset 2048 - 640 / 2 = 1792,
+   2048 - 224 / 2 = 1936 at the scales below) and GS's 12.4 fixed-point vertex coordinates. */
+#define SCREEN_WIDTH 640.0f
+#define SCREEN_HEIGHT 492.8000183f
+#define SCREEN_TO_GS_X 0.8f             /* 512 / 640 */
+#define SCREEN_TO_GS_Y 0.45454547f      /* 224 / 492.8 */
+#define GS_OFFSET_X 1792.0f
+#define GS_OFFSET_Y 1936.0f
+#define GS_FIXED_ONE 16.0f              /* 12.4 fixed point */
+
 // Adds a flat-coloured sprite covering the screen rectangle (x0,y0)-(x1,y1) to a GIF stream; alpha-blended when the
 // colour's alpha is below 0xFF. Note it halves the caller's alpha in place (PS2 alpha 0x80 = opaque). Coordinates are
 // in the 640x492.8 virtual screen, converted to GS 12.4 fixed point around the (1792,1936) drawing offset.
 extern "C" void FillScreenRect(RGBA *color, GIFS *gifs, float x0, float y0, float x1, float y1)
 {
-    gifs->AddPrimPack( color->a <= 0xFE ? 0x46 : 6, 5, 0x441EE);
+    gifs->AddPrimPack(color->a <= 0xFE ? 0x46 : 6, 5, 0x441EE);   /* SPRITE, alpha-blended when translucent */
     color->a = (color->a + 1) >> 1;
-    gifs->PackAD( 0x47, 0x31001);
-    gifs->PackAD( 0x42, 0x44);
-    gifs->PackRGBA( *(int *)color);
-    gifs->PackXYZF( (int)((x0 * 0.8f + 1792.0f) * 16.0f), (int)((y0 * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
-    gifs->PackXYZF( (int)((x1 * 0.8f + 1792.0f) * 16.0f), (int)((y1 * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
+    gifs->PackAD(0x47, 0x31001);   /* TEST_1 */
+    gifs->PackAD(0x42, 0x44);      /* ALPHA_1 */
+    gifs->PackRGBA(*(int *)color);
+    gifs->PackXYZF((int)((x0 * SCREEN_TO_GS_X + GS_OFFSET_X) * GS_FIXED_ONE),
+                   (int)((y0 * SCREEN_TO_GS_Y + GS_OFFSET_Y) * GS_FIXED_ONE), 0, 0);
+    gifs->PackXYZF((int)((x1 * SCREEN_TO_GS_X + GS_OFFSET_X) * GS_FIXED_ONE),
+                   (int)((y1 * SCREEN_TO_GS_Y + GS_OFFSET_Y) * GS_FIXED_ONE), 0, 0);
 }
 
 /* Views used by DrawWorldLabel: the camera, a limit, the rich-text object and the text box it is drawn in. */
-struct CM {char pad40[0x40];float sx,sy,unknown,nearDepth;char pad50[0x10];qword matrix[4];};
-struct LM {float low,high;};
-struct RT {const char *text;char *current;void *font,*baseFont,*alternateFont;RGBA color,baseColor,alternateColor;char pad20[0x20];qword color0,color1;int changed;float cameraX,cameraY,offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
+struct CM { char pad40[0x40]; float sx, sy, unknown, nearDepth; char pad50[0x10]; qword matrix[4]; };
+struct LM { float low, high; };
+struct RT
+{
+    const char *text;
+    char *current;
+    void *font, *baseFont, *alternateFont;
+    RGBA color, baseColor, alternateColor;
+    char pad20[0x20];
+    qword color0, color1;
+    int changed;
+    float cameraX, cameraY, offsetX, offsetY, width, height, sx, sy, lineHeight, fontScale;
+    int vAlign, hAlign, priority;
+};
 struct CONFIG;
-extern "C" void CTextBox_SetPos(CONFIG *,float,float);
-extern "C" void CTextBox_SetSize(CONFIG *,float,float);
-extern "C" void CTextBox_SetTextColor(CONFIG *,const RGBA *);
-extern "C" void CTextBox_SetHorizontalJust(CONFIG *,int);
-extern "C" void CTextBox_SetVerticalJust(CONFIG *,int);
-struct CONFIG {float x,y,width,height;RGBA color;int hAlign,vAlign;CONFIG(uint bits=0xFF808080){CTextBox_SetPos(this,0.0f,0.0f);CTextBox_SetSize(this,640.0f,492.8000183f);RGBA gray(bits);CTextBox_SetTextColor(this,&gray);CTextBox_SetHorizontalJust(this,0);CTextBox_SetVerticalJust(this,0);}};
+extern "C" void CTextBox_SetPos(CONFIG *, float, float);
+extern "C" void CTextBox_SetSize(CONFIG *, float, float);
+extern "C" void CTextBox_SetTextColor(CONFIG *, const RGBA *);
+extern "C" void CTextBox_SetHorizontalJust(CONFIG *, int);
+extern "C" void CTextBox_SetVerticalJust(CONFIG *, int);
+/* A CTextBox: the whole screen, grey text, left / top aligned by default. */
+struct CONFIG
+{
+    float x, y, width, height;
+    RGBA color;
+    int hAlign, vAlign;
+    CONFIG(uint bits = 0xFF808080)
+    {
+        CTextBox_SetPos(this, 0.0f, 0.0f);
+        CTextBox_SetSize(this, SCREEN_WIDTH, SCREEN_HEIGHT);
+        RGBA gray(bits);
+        CTextBox_SetTextColor(this, &gray);
+        CTextBox_SetHorizontalJust(this, 0);
+        CTextBox_SetVerticalJust(this, 0);
+    }
+};
 extern CM D_002DDF40;
 /* The two vectors draw and tu_1BE398 copy as clip-plane / key values (16 bytes each, the fourth word 0; render's
    .data, first). */
@@ -84,44 +122,53 @@ float D_002C1F10[4] = {8.62348902e+09f, 8.62348902e+09f, 1.28849019e+10f, 0.0f};
 float D_002C1F20 = 640.0f;   /* render's .data (address order) */
 LM D_002C1F28 = {0.4f, 1.5f};
 int D_002C1F30 = 8, D_002C1F34 = 8;   /* screen margins x, y */
-extern "C" qword ConvertCmWorldToScreen(CM *,qword);
-extern "C" float GLimitLm__FP2LMf(LM *,float);
-extern "C" RT *CRichText_ctor(RT *,const char *,float);
-extern "C" void CRichText_GetExtents(RT *,float *,float *);
-extern "C" void DrawRichText2(RT *,CONFIG *,int);
+extern "C" qword ConvertCmWorldToScreen(CM *, qword);
+extern "C" float GLimitLm__FP2LMf(LM *, float);
+extern "C" RT *CRichText_ctor(RT *, const char *, float);
+extern "C" void CRichText_GetExtents(RT *, float *, float *);
+extern "C" void DrawRichText2(RT *, CONFIG *, int);
 // Keeps the height argument in $f20 (the register the original holds it in across calls).
-static inline float SavedHeight(float value){register float height __asm__("$f20");__asm__("mov.s %0,%1":"=f"(height):"f"(value));return height;}
+static inline float SavedHeight(float value)
+{
+    register float height __asm__("$f20");
+    __asm__("mov.s %0,%1" : "=f"(height) : "f"(value));
+    return height;
+}
 // x, y and z components of a quadword vector.
-static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
-static inline float Y(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
-static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
+static inline float Y(qword q) { float f; __asm__("prot3w %0,%1" : "=r"(f) : "r"(q)); return f; }
+static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f) : "r"(q)); return f; }
 
 // Draws a text label anchored at a world position: projects it to the screen (skipped when nearer than the near
 // plane), scales the text with distance (clamped to D_002C1F28 = 0.4..1.5), centres a padded box just above the point
 // and draws the text with the given colour. The first colour argument is unused. Used for debug/world labels
 // (inferred).
-extern "C" void DrawWorldLabel(qword position,const char *text,const RGBA *unusedColor,const RGBA *color,float inputHeight)
+extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unusedColor, const RGBA *color, float inputHeight)
 {
-    float height=SavedHeight(inputHeight);
-    CM *camera=&D_002DDF40;
-    qword screen=ConvertCmWorldToScreen(camera,position);
-    float depth=Z(screen);
-    if(depth<camera->nearDepth)return;
-    float scale=GLimitLm__FP2LMf(&D_002C1F28,height*(D_002C1F20/(camera->sx*depth)));
-    RT rt;CRichText_ctor(&rt,text,scale);
+    float height = SavedHeight(inputHeight);
+    CM *camera = &D_002DDF40;
+    qword screen = ConvertCmWorldToScreen(camera, position);
+    float depth = Z(screen);
+    if (depth < camera->nearDepth)
+        return;
+    float scale = GLimitLm__FP2LMf(&D_002C1F28, height * (D_002C1F20 / (camera->sx * depth)));
+    RT rt;
+    CRichText_ctor(&rt, text, scale);
     CONFIG config;
-    float w,h;
-    CRichText_GetExtents(&rt,&w,&h);
-    float x=(X(screen)*0.5f+0.5f)*640.0f;
-    float y=(0.5f-Y(screen)*0.5f)*492.8000183f;
-    int marginX=D_002C1F30,marginY=D_002C1F34;
-    config.x=x-w*0.5f-marginX;
-    config.y=y-h-2*marginY;
-    config.width=w+2*marginX;
-    config.height=h+2*marginY;
-    config.x+=marginX;config.y+=marginY;
-    RGBA rgba=*color;config.color=rgba;
-    DrawRichText2(&rt,&config,6);
+    float w, h;
+    CRichText_GetExtents(&rt, &w, &h);
+    float x = (X(screen) * 0.5f + 0.5f) * SCREEN_WIDTH;     /* normalized [-1, 1] -> screen */
+    float y = (0.5f - Y(screen) * 0.5f) * SCREEN_HEIGHT;
+    int marginX = D_002C1F30, marginY = D_002C1F34;
+    config.x = x - w * 0.5f - marginX;
+    config.y = y - h - 2 * marginY;
+    config.width = w + 2 * marginX;
+    config.height = h + 2 * marginY;
+    config.x += marginX;
+    config.y += marginY;
+    RGBA rgba = *color;
+    config.color = rgba;
+    DrawRichText2(&rt, &config, 6);
 }
 
 // Hands out the next 16-byte render-list entry (RPL: pass kind, sort depth, two DMA CALL addresses) from the frame's
@@ -129,7 +176,8 @@ extern "C" void DrawWorldLabel(qword position,const char *text,const RGBA *unuse
 // sorts the entries by kind and depth into the frame's VIF1 chain.
 extern "C" RPL *AllocRenderListEntry(void)
 {
-    func_002333B4(D_003D4A50->dmaCalls, 0, 8); return D_003D4A50++;
+    func_002333B4(D_003D4A50->dmaCalls, 0, 8);
+    return D_003D4A50++;
 }
 
 // Returns an object's flags word, following the +0x40 field when it holds a pointer.
@@ -149,7 +197,8 @@ extern "C" void SubmitSwRelightAll(SW *world)
     count = CploFindSwObjectsByClass(world, 0x105, 0x30, 0, 0x400, objects);
     for (i = 0; i < count; i++) {
         LO *object = objects[i];
-        if ((Flags(object) & 8) && object->relightStamp != world->relightStamp) SubmitGlobsetRelight(object->globset);
+        if ((Flags(object) & 8) && object->relightStamp != world->relightStamp)
+            SubmitGlobsetRelight(object->globset);
     }
 }
 

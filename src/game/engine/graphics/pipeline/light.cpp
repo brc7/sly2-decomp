@@ -13,8 +13,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-struct VTE { short d; short pad; void *pfn; };
+#define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
+struct VTE {
+    short d;
+    short pad;
+    void *pfn;
+};
 struct V3 { float x, y, z; };
 struct LMK { int a, b; };
 extern "C" void *InitVuTemp(void *);            /* vector init, returns its receiver */
@@ -452,9 +456,9 @@ static __inline__ void SetBitM(int *a, int bit)
     *pw |= m;
 }
 // Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending. (inferred)
-void AddLightToSw(SWL *s, LIGHTV *o)
+void AddLightToSw(SWL *s, LIGHTV *light)
 {
-    if (o->slot < 0) {
+    if (light->slot < 0) {
         unsigned int i;
         // w is initialised (live before the loop), so cse keeps w, not bit, as the register for
         // the low bit; the and is then folded into w and the free word is really re-read below.
@@ -477,26 +481,26 @@ void AddLightToSw(SWL *s, LIGHTV *o)
             if (w & 0xFFFF0000U) slot = n + 16; else slot = n;
             break;
         }
-        s->objects[slot] = o;
-        o->slot = slot;
+        s->objects[slot] = light;
+        light->slot = slot;
     }
     if (s->disabled)
         return;
-    if (o->isStatic)
+    if (light->isStatic)
         return;
-    if (!o->kind || o->isDynamic || !s->tree)
-        SetBitM(s->pending, o->slot);
+    if (!light->kind || light->isDynamic || !s->tree)
+        SetBitM(s->pending, light->slot);
     else
-        InsertLightInTree(s, s->tree, GetLoWorldPos(o), o->sFar, o->slot);
+        InsertLightInTree(s, s->tree, GetLoWorldPos(light), light->sFar, light->slot);
 }
 
 // Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) (inferred)
-void RemoveLightFromSw(SWL *p, LIGHTV *q)
+void RemoveLightFromSw(SWL *p, LIGHTV *light)
 {
-    int n = q->slot;
+    int n = light->slot;
     p->free[n / 32] |= 1 << (n % 32);
-    p->objects[q->slot] = 0;
-    q->slot = -1;
+    p->objects[light->slot] = 0;
+    light->slot = -1;
     p->disabled = 1;
 }
 
@@ -753,7 +757,7 @@ static inline float LengthQ(qword v)
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(d));
     return f;
 }
-static inline uint *Write(VIFS *g, uint x) { uchar *d; *(uint *)g->m_pb = x; d = g->m_pb + 4; g->m_pb = d; return (uint *)d; }
+static inline uint *Write(VIFS *vifs, uint x) { uchar *d; *(uint *)vifs->m_pb = x; d = vifs->m_pb + 4; vifs->m_pb = d; return (uint *)d; }
 #define Copy(D,S,W) uint*d_=(D);const uint*s_=(S);do{int k;for(k=0;k<(W);k+=4){uint a=s_[0],b=s_[1],c=s_[2],e=s_[3];d_[0]=a;d_[1]=b;d_[2]=c;d_[3]=e;s_+=4;d_+=4;}}while(0);
 static inline void Clear(LIGHTQ *p) { p->cqwBasis = 0; p->pbBasis = 0; p->pbPayload = 0; }
 static inline void Align(uint align)
@@ -928,16 +932,16 @@ extern "C" void BuildLightPackets(void *a0, int n, LIGHTV **ap, LIGHTQ *o)
     for (i = 0; i < n; i++) {
         LIGHTV *p = ap[i];
         RebuildLight(p);
-        uint tag=0x6C03C000 | (i*3+0x15);
-        uint*d=Write(&D_002DEA28,tag);
-        Copy(d,p->payload.words,12);
+        uint tag = 0x6C03C000 | (i * 3 + 0x15);
+        uint *d = Write(&D_002DEA28, tag);
+        Copy(d, p->payload.words, 12);
         D_002DEA28.m_pb += 48;
     }
     for (; i < 4; i++) {
         VIFS *g = &D_002DEA28;
         const uint *src = D_002BFC60.words;
-        uint*d=Write(g,0x6C03C000 | (i*3+0x15));
-        Copy(d,src,12);
+        uint *d = Write(g, 0x6C03C000 | (i * 3 + 0x15));
+        Copy(d, src, 12);
         g->m_pb += 48;
     }
     o->cqwPacket = ((char *)D_002DEA28.m_pb - (char *)o->pbPacket) >> 4;

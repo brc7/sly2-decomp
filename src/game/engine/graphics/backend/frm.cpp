@@ -43,11 +43,34 @@ struct Y { char pad[0x1088]; void *storage; };
 /* The list iterator as this TU spells it (sly2/dli.h DLI with a constructor and destructor). */
 extern void *D_002DD2FC;
 struct DLI {
- DL*list;void**next;int linkOffset;void*previous;
- DLI(DL*owner){int offset=owner->ibDle;previous=D_002DD2FC;D_002DD2FC=this;list=owner;next=(void**)owner;linkOffset=offset;}
- ~DLI(){D_002DD2FC=previous;}
- void*Next(){void*value=*next;next=(void**)((unsigned int)value+linkOffset);return value;}
+    DL *list;
+    void **next;
+    int linkOffset;
+    void *previous;
+    DLI(DL *owner)
+    {
+        int offset = owner->ibDle;
+        previous = D_002DD2FC;
+        D_002DD2FC = this;
+        list = owner;
+        next = (void **)owner;
+        linkOffset = offset;
+    }
+    ~DLI() { D_002DD2FC = previous; }
+    void *Next()
+    {
+        void *value = *next;
+        next = (void **)((unsigned int)value + linkOffset);
+        return value;
+    }
 };
+
+/* GS registers written through A+D packets here (GS manual numbering) */
+enum GS_REG {
+    GS_RGBAQ = 0x01, GS_TEX0_1 = 0x06, GS_CLAMP_1 = 0x08, GS_TEX1_1 = 0x14, GS_TEXFLUSH = 0x3F, GS_SCISSOR_1 = 0x40,
+    GS_ALPHA_1 = 0x42, GS_TEST_1 = 0x47, GS_FINISH = 0x61,
+};
+#define GIFTAG_REGS_AD 0xE     /* GIF tag register list: one A+D register */
 
 /* frm's .bss after the two packet builders (address order; g_pfrmOpen..D_002DEB00: medium/low by layout, frm is the
  * code that maintains them). */
@@ -152,8 +175,8 @@ void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw)
     QW aqw[8];
     GIFS gifs;
     gifs.AllocStatic(8, aqw);
-    gifs.AddPrimPack(0, 1, 0xE);
-    gifs.PackAD(0x61, 0);
+    gifs.AddPrimPack(0, 1, GIFTAG_REGS_AD);
+    gifs.PackAD(GS_FINISH, 0);
     gifs.AddPrimEnd();
     pvifs->AddDmaCnt();
     pvifs->AddVifFlush();
@@ -167,8 +190,8 @@ void FinalizeFrameVifs(VIFS *pvifs, int *pcqw, QW **paqw)
 // Ends the frame's GIF chain with a GS FINISH write and END, and detaches it into the caller's count/pointer.
 void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw)
 {
-    pgifs->AddPrimPack(0, 1, 0xE);
-    pgifs->PackAD(0x61, 0);
+    pgifs->AddPrimPack(0, 1, GIFTAG_REGS_AD);
+    pgifs->PackAD(GS_FINISH, 0);
     pgifs->AddPrimEnd();
     pgifs->AddDmaEnd();
     pgifs->Detach(pcqw, paqw);
@@ -230,24 +253,27 @@ void RenderFrame(FRM *frame, int renderGifs)
 
 // Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO
 // in frame->releaseList and frees the pool blocks in frame->freeList. (inferred)
-void ClearPendingFrame(FRM *frame){
- if(!IsDlEmpty__FP2DL(&frame->releaseList)){
-  DLI iter(&frame->releaseList);
-  for(LOV*object=(LOV*)iter.Next();object;object=(LOV*)iter.Next()){
-   RemoveDlEntry__FP2DLPv(&frame->releaseList,object);
-   VTE*entry=&object->vt[2];entry->method((char*)object+entry->delta);
-  }
-  ClearDl__FP2DL(&frame->releaseList);
- }
- if(!IsDlEmpty__FP2DL(&frame->freeList)){
-  DLI iter(&frame->freeList);
-  for(Y*object=(Y*)iter.Next();object;object=(Y*)iter.Next()){
-   if(object->storage)FreeSlotheapSlot(&g_sw.slotheapUnk40a0,object->storage);
-   RemoveDlEntry__FP2DLPv(&frame->freeList,object);
-   FreeSlotheapSlot(&g_sw.slotheapUnk4088,object);
-  }
-  ClearDl__FP2DL(&frame->freeList);
- }
+void ClearPendingFrame(FRM *frame)
+{
+    if (!IsDlEmpty__FP2DL(&frame->releaseList)) {
+        DLI iter(&frame->releaseList);
+        for (LOV *object = (LOV *)iter.Next(); object; object = (LOV *)iter.Next()) {
+            RemoveDlEntry__FP2DLPv(&frame->releaseList, object);
+            VTE *entry = &object->vt[2];
+            entry->method((char *)object + entry->delta);
+        }
+        ClearDl__FP2DL(&frame->releaseList);
+    }
+    if (!IsDlEmpty__FP2DL(&frame->freeList)) {
+        DLI iter(&frame->freeList);
+        for (Y *object = (Y *)iter.Next(); object; object = (Y *)iter.Next()) {
+            if (object->storage)
+                FreeSlotheapSlot(&g_sw.slotheapUnk40a0, object->storage);
+            RemoveDlEntry__FP2DLPv(&frame->freeList, object);
+            FreeSlotheapSlot(&g_sw.slotheapUnk4088, object);
+        }
+        ClearDl__FP2DL(&frame->freeList);
+    }
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
@@ -310,17 +336,17 @@ void BlendPrevFrame()
     QW aqw[0x64];
     gifs.AllocStatic(0x64, aqw);
     gifs.AddDmaCnt();
-    gifs.AddPrimPack(0, 1, 0xE);
-    gifs.PackAD(0x3F, 0);
-    ulong *pdisp = (ulong *)((D_002DEDB0 & 1) ? D_002DEBE0 : D_002DECD0);
-    gifs.PackAD(6, Tex0FromDisp(*pdisp) | 0x2A8000000L);
-    gifs.PackAD(0x14, 0x61);
-    gifs.PackAD(8, 5);
-    gifs.PackAD(0x47, 0x33001);
-    gifs.PackAD(0x42, 0x3000000064L);
-    gifs.PackAD(1, 0x3F80000080808080L);
-    gifs.PackAD(0x40, 0xDE000101FF0000L);
-    gifs.AddPrimPack(0x156, 2, 0x43);
+    gifs.AddPrimPack(0, 1, GIFTAG_REGS_AD);
+    gifs.PackAD(GS_TEXFLUSH, 0);
+    ulong *pdisp = (ulong *)((D_002DEDB0 & 1) ? D_002DEBE0 : D_002DECD0);   /* the other buffer's DISPFB */
+    gifs.PackAD(GS_TEX0_1, Tex0FromDisp(*pdisp) | 0x2A8000000L);   /* TW = TH = 10: a 1024 x 1024 texture */
+    gifs.PackAD(GS_TEX1_1, 0x61);
+    gifs.PackAD(GS_CLAMP_1, 5);
+    gifs.PackAD(GS_TEST_1, 0x33001);
+    gifs.PackAD(GS_ALPHA_1, 0x3000000064L);     /* fixed alpha 0x64 / 0x80 */
+    gifs.PackAD(GS_RGBAQ, 0x3F80000080808080L);
+    gifs.PackAD(GS_SCISSOR_1, 0xDE000101FF0000L);
+    gifs.AddPrimPack(0x156, 2, 0x43);   /* textured, blended sprites; UV + XYZF2 pairs */
     int v = (D_002DEDB8 & 1) ? 0 : 0x10;
     for (int x = 0; x < 0x200; x += 0x20) {
         gifs.PackUV((x << 4) | 8, v);
@@ -328,9 +354,9 @@ void BlendPrevFrame()
         gifs.PackUV(((x + 0x20) << 4) | 8, v + 0xE00);
         gifs.PackXYZF((x + 0x720) << 4, 0x8700, 0, 0);
     }
-    gifs.AddPrimPack(0, 1, 0xE);
-    gifs.PackAD(0x40, 0xDF000001FF0000L);
-    gifs.PackAD(0x61, 0);
+    gifs.AddPrimPack(0, 1, GIFTAG_REGS_AD);
+    gifs.PackAD(GS_SCISSOR_1, 0xDF000001FF0000L);
+    gifs.PackAD(GS_FINISH, 0);
     gifs.AddPrimEnd();
     gifs.AddDmaEnd();
     gifs.EndDmaCnt();

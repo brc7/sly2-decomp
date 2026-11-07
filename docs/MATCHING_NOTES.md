@@ -565,6 +565,8 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
   `&p->arr[i]`; `((float *)&q)[0]` as a union's `.x`; per-function command views replaced by one shared union (RELAYCMD in
   the relay builders; a two-argument `AddRelayCommand` view was just fAsync already sitting in a2).
 - `do { ...; goto next; ... next: i = n; } while (i < 3)` -> `for (...; i = n) { ...; continue; }` (DrawFrameCaptureScreen).
+- A nested `if (d == 0) { ... }` comparator chain as early returns (CompareSortRecs); `{int j; for (j = 0, p = a; j < n;
+  j++, p++) f(p->k);}` as `for (int j = 0; j < n; j++) f(a[j].k);` (CprplPartitionArpl).
 
 **Not free** (reverted):
 - Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`, `goto fail`, a single-exit result variable) ->
@@ -619,3 +621,6 @@ object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 - A goto out of a nested contact walk to the code after it -> a helper that returns the result (frame and registers change:
   UpdateButton, SendBarrierImpactMessages).
 - `&verts[i]` for `(P4 *)((i << 4) + (int)verts)` in CalculateWayptCurtainDz (different schedule).
+- Factoring a repeated block into a `static inline` helper, even once (UpdateEmitter's particle-count clamp: register
+  allocation changes); `int f = 0 < d; if (f) c = d;` written `if (d > 0) c = d;` (loses slt/movn); folding
+  `if (!a(p)) continue; if (b(p)) goto found;` into `if (a(p) && b(p)) ...` through an inline predicate.

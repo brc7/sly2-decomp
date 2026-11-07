@@ -29,9 +29,13 @@ struct V4 { V3 v; float w; };
 
 /* Views of objects whose classes are not modelled yet; only the fields this TU reads. */
 struct CM { char pad[0x4C]; float rNear; float rFar; char pad2[0xC]; MATRIX4V cameraMatrix; char pad3[0xA0]; MATRIX4V viewProj; };
-struct FR { char pad[0x24]; uchar *pb24; };
-struct GAME { char pad[0x3E28]; int a3E28[4]; int f3E38; int f3E3C; char pad2[0x3EA8 - 0x3E40]; int f3EA8; };
+struct FR { char pad[0x24]; uchar *chainStart; };   /* the frame: where its VIF1 chain starts */
+/* SW: vecLightRgb (+0x3E28), the stereo flag (+0x3E38, sw.h's fUnk3e38: also keys shd.cpp's colour correction),
+   a forced clear (+0x3E3C) and a background-image rebuild request (+0x3EA8) (inferred from these uses) */
+struct GAME { char pad[0x3E28]; int vecLightRgb[4]; int isStereo; int forceClear; char pad2[0x3EA8 - 0x3E40]; int rebuildBackground; };
 typedef void (*PFNRP)(VIFS *, int, int);
+#define NUM_RPL_KINDS 26
+#define DMA_TAG_CALL 0x50000000    /* DMAtag id CALL (5 << 28); the address goes in the upper word */
 
 extern GAME D_003DD490;
 extern VIFS D_002DEA28;
@@ -45,7 +49,7 @@ extern RPL D_003B3980[];
 extern RPL *D_003D4A50;
 int D_002DE5A4;   /* draw's .bss */
 /* The render pass of each draw kind (26 kinds), index into the pass hook table D_002BDD88 (draw's .data). */
-int D_002BDD20[26] = {4, 3, 0, 0, 11, 0, 11, 6, 7, 1, 0, 0, 2, 0, 0, 8, 0, 1, 9, 0, 1, 5, 10, 0, 1, 0};
+int D_002BDD20[NUM_RPL_KINDS] = {4, 3, 0, 0, 11, 0, 11, 6, 7, 1, 0, 0, 2, 0, 0, 8, 0, 1, 9, 0, 1, 5, 10, 0, 1, 0};
 /* Pass table: begin and end hook per pass. Declared as an array of pairs, not of a {pfnBegin, pfnEnd} struct:
    g++ folds a struct member's +4 into the hoisted table base, the C original materialised D_002BDD88+4 apart. */
 extern PFNRP D_002BDD88[][2];
@@ -90,23 +94,22 @@ int NCmpPrplZ(RPL **entryA, RPL **entryB)
 // 25).
 int CprplPartitionArpl(int count, RPL *entries, RPL **sorted, int *firstIndex, int *endIndex)
 {
-    int nextIndex[26];
+    int nextIndex[NUM_RPL_KINDS];
     int i;
-    RPL *entry;
-    for (i = 25; i >= 0; i--)
+    for (i = NUM_RPL_KINDS - 1; i >= 0; i--)
         endIndex[i] = 0;
-    {int j; for (j = 0, entry = entries; j < count; j++, entry++)
-        endIndex[entry->kind]++;}
+    for (int j = 0; j < count; j++)
+        endIndex[entries[j].kind]++;
     firstIndex[0] = 0;
     nextIndex[0] = 0;
-    for (i = 1; i < 26; i++) {
+    for (i = 1; i < NUM_RPL_KINDS; i++) {
         int t;
         firstIndex[i] = t = endIndex[i - 1];
         endIndex[i] += t;
         nextIndex[i] = firstIndex[i];
     }
-    {int k; for (k = 0; k < count; k++, entries++)
-        sorted[nextIndex[entries->kind]++] = entries;}
+    for (int k = 0; k < count; k++, entries++)
+        sorted[nextIndex[entries->kind]++] = entries;
     qsort(sorted + firstIndex[5], endIndex[5] - firstIndex[5], 4, (PFNCMP)NCmpPrplReverseZ);
     qsort(sorted + firstIndex[6], endIndex[6] - firstIndex[6], 4, (PFNCMP)NCmpPrplReverseZ);
     qsort(sorted + firstIndex[10], endIndex[10] - firstIndex[10], 4, (PFNCMP)NCmpPrplReverseZ);
@@ -123,7 +126,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 {
     V4 clipConstants[2];
     MATRIX4V viewProj, cameraMatrix;
-    if (D_003DD490.f3E38) {
+    if (D_003DD490.isStereo) {
         if (g_pfrmOpen == &D_002DEA50)
             vifs->AddDmaCall((QW *)D_002DF940);
         else
@@ -147,7 +150,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
         clipConstants[1].v = D_002C1F10;
         clipConstants[1].w = -depthRatio / depthScale;
         vifs->AddVifUnpack(UPK_V4_32, 2, clipConstants, 0);
-        if (D_003DD490.f3E38) {
+        if (D_003DD490.isStereo) {
             if (g_pfrmOpen == &D_002DEA50)
                 BuildStereoEyeViewProj(camera, 1, 0, &viewProj, &cameraMatrix);
             else
@@ -176,8 +179,8 @@ extern "C" void DrawSw(GAME *world)
     MATRIX4V mat0;
     MATRIX4V mat1;
     RPL *sorted[0x2000];
-    int firstIndex[26];
-    int endIndex[26];
+    int firstIndex[NUM_RPL_KINDS];
+    int endIndex[NUM_RPL_KINDS];
     V4 v0, v1;
     int count;
     int passPrev, kindPrev;
@@ -186,14 +189,14 @@ extern "C" void DrawSw(GAME *world)
     count = CprplPartitionArpl(D_003D4A50 - D_003B3980, D_003B3980, sorted, firstIndex, endIndex);
     {
         uchar *writePointer = D_002DEA28.m_pb;
-        g_pfrmOpen->pb24 = writePointer;
+        g_pfrmOpen->chainStart = writePointer;
     }
     D_002DEA28.AddDmaCall((QW *)D_002DF800);
     D_002DEA28.m_fCheckCnt = 1;
     D_002DEA28.AddDmaCnt();
-    if (world->f3E3C || firstIndex[1] == endIndex[1])
+    if (world->forceClear || firstIndex[1] == endIndex[1])
         D_002DEA28.AddVifDirect(0x25, (QW *)D_002DEDC0, 0);
-    if (D_003DD490.f3E38) {
+    if (D_003DD490.isStereo) {
         D_002DEA28.AddVifFlush();
         if (g_pfrmOpen == &D_002DEA50)
             D_002DEA28.AddDmaCall((QW *)D_002DF940);
@@ -214,7 +217,7 @@ extern "C" void DrawSw(GAME *world)
     D_002DEA28.AddVifUnpack(UPK_V4_32, 2, &v0, 0);
     D_002DEA28.AddVifUnpack(UPK_S32, 1, &D_002DE5A4, 0xD);
     D_002DE5A4 = 0;
-    if (D_003DD490.f3E38) {
+    if (D_003DD490.isStereo) {
         if (g_pfrmOpen == &D_002DEA50)
             BuildStereoEyeViewProj(&D_002DDF40, 1, 0, &mat0, &mat1);
         else
@@ -227,7 +230,7 @@ extern "C" void DrawSw(GAME *world)
     }
     D_002DEA28.AddVifUnpack(UPK_V4_32, 4, &mat0, 2);
     D_002DEA28.AddVifUnpack(UPK_V4_32, 4, &mat1, 6);
-    D_002DEA28.AddVifUnpack(UPK_V4_32, 1, world->a3E28, 0xA);
+    D_002DEA28.AddVifUnpack(UPK_V4_32, 1, world->vecLightRgb, 0xA);
     D_002DEA28.AddVifBaseOffset(0x32, 0x1E7);
     D_002DEA28.EndDmaCnt();
     passPrev = -1;
@@ -244,11 +247,11 @@ extern "C" void DrawSw(GAME *world)
             passPrev = pass;
         }
         if (entry->dmaCall0) {
-            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)entry->dmaCall0 << 32) | 0x50000000;
+            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)entry->dmaCall0 << 32) | DMA_TAG_CALL;
             D_002DEA28.m_pb += sizeof(QW);
         }
         if (entry->dmaCall1) {
-            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)entry->dmaCall1 << 32) | 0x50000000;
+            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)entry->dmaCall1 << 32) | DMA_TAG_CALL;
             D_002DEA28.m_pb += sizeof(QW);
         }
     }
@@ -257,8 +260,8 @@ extern "C" void DrawSw(GAME *world)
     D_003D4A50 = 0;
     D_002DEA00.Flush();
     D_002DEA28.Flush();
-    if (world->f3EA8) {
-        world->f3EA8 = 0;
+    if (world->rebuildBackground) {
+        world->rebuildBackground = 0;
         BuildWorldBackgroundImage(world, 0);
     }
 }

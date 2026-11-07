@@ -47,10 +47,10 @@ static inline void *PvNextDli(DLI *pdli)
 struct CLOCKV { float t; float dt; char pad08[0x40 - 0x08]; float dtReal; };
 extern "C" CLOCKV D_002DDED0;
 
-struct CMV { char pad[0x90]; qwordV pos; char padA0[0x100 - 0xA0]; float g100; char pad104[0x114 - 0x104]; float g114; };
+struct CMV { char pad[0x90]; qwordV pos; char padA0[0x100 - 0xA0]; float projScaleX; char pad104[0x114 - 0x104]; float projScaleY; };   /* CM: matProj[0][0], [1][1] */
 extern "C" CMV D_002DDF40;
 
-struct VIFS { int pad[3]; int xC; };
+struct VIFS { int pad[3]; int writeOffset; };   /* (inferred) where the next packet starts */
 extern "C" VIFS D_002DEA28;
 
 /* The particle buffer: three parallel arrays of 0x2B entries. */
@@ -77,53 +77,54 @@ struct BLIPV
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct LOV;
 struct EX { int pad[2]; LOV **pplo; };
-/* The light objects RenderBlipgSelf walks (the list at +0x11C, linked at +0x128). */
-struct LOV { char pad[0x10]; LOV *x10; char pad14[0x38 - 0x14]; float g38; char pad3C[0xE4 - 0x3C]; EX *xE4; char padE8[0x11C - 0xE8]; LOV *x11C; char pad120[8]; LOV *x128; };
+/* The subscribed EMITTER and the members of its group, which RenderBlipgSelf draws the blips at (the group list at
+   +0x11C, linked at +0x128; emitter.cpp's EMITTER views). EX: the EMITB, whose resolved objects' [0] is the reference. */
+struct LOV { char pad[0x10]; LOV *psoParent; char pad14[0x38 - 0x14]; float sBusy; char pad3C[0xE4 - 0x3C]; EX *pemitb; char padE8[0x11C - 0xE8]; LOV *groupList; char pad120[8]; LOV *nextInGroup; };
 
 struct POLY { float a, b, c; };
-struct S150 { int x0; float g4; int x8; };
+struct S150 { int unknown0; float inverseLifetime; int unknown8; };
 typedef union { qwordV q; struct { long l; int n; int pad; } s; } GE;
 
 /* The blip group (CID 0x1C, an XFM; 0x460 bytes, PblipgNew clears it). */
 struct BLIPGV
 {
-    int x0, x4, x8;
+    int basic0, basic4, basic8;
     VTE *pvt;               /* 0x0C */
-    int x10;                /* 0x10 */
+    int psoParent;          /* 0x10 */
     int pad14;
-    int x18;                /* 0x18 */
+    int oid;                /* 0x18 */
     char pad1C[0x38 - 0x1C];
-    float g38;              /* 0x38 */
+    float sBusy;            /* 0x38 */
     int pad3C;
-    int x40;                /* 0x40 tagged word (pointer, or odd flags) */
+    int flags40;            /* 0x40 tagged word (pointer, or odd flags) */
     char pad44[0xE0 - 0x44];
     LOV *plo;                /* 0xE0 subscribed object (CID 0x1D) */
     char padE4[0xF0 - 0xE4];
     qwordV boundsCenter;              /* 0xF0 bounding sphere centre */
-    float g100;             /* 0x100 radius */
+    float boundsRadius;     /* 0x100 */
     char pad104[0x110 - 0x104];
-    POLY poly;              /* 0x110 */
+    POLY poly;              /* 0x110 size over the normalized life (the EMITB's scale CLQ / lifetime) */
     int pad11C;
-    float g120;             /* 0x120 */
+    float maxSize;          /* 0x120 the largest |size| over a life (pads the bounds) */
     char pad124[0x130 - 0x124];
-    char ab130[0x10];       /* 0x130 CLQ */
-    char ab140[4];          /* 0x140 */
-    float g144;
+    char alphaCurve[0x10];       /* 0x130 alpha CLQ over the normalized life */
+    char unknown140[4];          /* 0x140 (zeroed, uploaded to the VU) */
+    float frameRate;        /* 0x144 texture frames per second */
     char pad148[8];
-    S150 s150;              /* 0x150 */
+    S150 lifeParams;              /* 0x150 */
     int pad15C;
     int motionKind;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
     int pad164[3];
-    char ab170[0x30];       /* 0x170 EMITDV */
-    int n1A0;               /* 0x1A0 */
+    char emitdv[0x30];       /* 0x170 EMITDV */
+    int numFrames;          /* 0x1A0 texture animation frames (a power of two, <= 16) */
     int pad1A4[3];
     GE age[0x20];           /* 0x1B0 */
     int numColors;               /* 0x3B0 colour count */
     unsigned char colors[0x20][4]; /* 0x3B4 */
-    int x434;
+    int hasColorRanges;     /* 0x434 colours come in (start, end) pairs */
     void *gifPacket;             /* 0x438 GIF packet (D_002DD5C0/D_002DD600) */
     int renderKind;               /* 0x43C render kind */
-    float g440;
+    float flyingScale;      /* 0x440 (renderKind 1) */
     int numLiveParticles;               /* 0x444 live particles */
     DLV dl;                  /* 0x448 BLIPs */
     DLEV dle;                /* 0x454 on D_002DEAF0 */
@@ -137,12 +138,21 @@ extern "C" SW D_003DD490;
 /* The emitter block a group is set from (SetBlipgEmitb). */
 struct CLR { int c; unsigned char ab[1][4]; };
 struct EMITBV {
-    char pad0[0x58]; float g58; int pad5C;
-    qwordV v60;
-    char pad70[0x80 - 0x70]; float g80; int pad84; int pad88; float g8C;
-    char pad90[0xB0 - 0x90]; char abB0[0x10];
-    int xC0; int xC4; int xC8; int xCC; void *xD0; int xD4; float gD8; CLR *pclrDC;
-    char abE0[0x10]; float gF0;
+    char pad0[0x58]; float damping; int pad5C;      /* EMITV (+0x50) fields: damping, added velocity, curl rate, lifetime */
+    qwordV addedVelocity;
+    char pad70[0x80 - 0x70]; float curlRate; int pad84; int pad88; float lifetime;
+    char pad90[0xB0 - 0x90]; char alpha[0x10];
+    /* the particle record (+0xC0) as blips use it (Sly 1's EMITBLIP) */
+    int renderKind;         /* +0xC0 1: flying, 2: rolling */
+    int motionKind;         /* +0xC4 0: EMITDV motion, 1: straight, 2: spline */
+    int hasRandomFrame;     /* +0xC8 */
+    int hasColorRanges;     /* +0xCC */
+    void *shaderOid;        /* +0xD0 */
+    int padD4;
+    float shaderLoopTime;   /* +0xD8 one pass through the texture frames (0: the lifetime) */
+    CLR *pclrDC;            /* +0xDC */
+    char scale[0x10];       /* +0xE0 scale CLQ */
+    float flyingScale;      /* +0xF0 */
 };
 
 struct BASIC;
@@ -267,8 +277,8 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     if (!psw->slotheapBlipg.pslotFree && psw->slotheapBlipg.ab) return 0;
     p = (BLIPGV *)PvAllocSlotheapClear(&psw->slotheapBlipg);
     func_002333B4(p, 0, 0x460);
-    p->x0 = 0;
-    p->x4 = 0;
+    p->basic0 = 0;
+    p->basic4 = 0;
     p->pvt = D_002CB5D8;
     i = 31;
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
@@ -280,33 +290,34 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     return p;
 }
 
-// BLIPG vt7 Init.
 void InitBlipg(BLIPGV *p) __asm__("InitBlipg__FP5BLIPG");
-void InitBlipg(BLIPGV *p)
+// BLIPG vt7 Init: XFM init, an empty blip list (linked at BLIP+0x1090), no OID, never culled by distance (sBusy
+// 1e10), busy level 1, LO flag bits 1-3 set.
+void InitBlipg(BLIPGV *blipGroup)
 {
     int x;
-    InitXfm(p);
-    InitDl(&p->dl, 0x1090);
-    p->x18 = -1;
-    p->g38 = 1e10f;
-    SetLoBusyk(p, 1);
-    x = p->x40;
+    InitXfm(blipGroup);
+    InitDl(&blipGroup->dl, 0x1090);
+    blipGroup->oid = -1;
+    blipGroup->sBusy = 1e10f;
+    SetLoBusyk(blipGroup, 1);
+    x = blipGroup->flags40;
     if ((x ^ 1) & 1) *(int *)x = (*(int *)x & 1) | 0xe;
-    else p->x40 = (x & 1) | 0xe;
+    else blipGroup->flags40 = (x & 1) | 0xe;
 }
 
-// BLIPG vt12: remove all blips, base remove, queue group for freeing.
 void OnBlipgRemove(BLIPGV *p) __asm__("OnBlipgRemove__FP5BLIPG");
-void OnBlipgRemove(BLIPGV *p)
+// BLIPG vt12: remove all blips, base remove, queue group for freeing.
+void OnBlipgRemove(BLIPGV *blipGroup)
 {
     DLI dli;
     void *pv;
-    InitDli(&dli, &p->dl);
+    InitDli(&dli, &blipGroup->dl);
     while ((pv = PvNextDli(&dli)) != 0) RemoveBlip((BLIPV *)pv);
-    RemoveLoHierarchy(p);
-    SnipLo(p);
-    if (!p->x10) FreeLoroot(p);
-    AppendDlEntry(&D_002DEAF0, p);
+    RemoveLoHierarchy(blipGroup);
+    SnipLo(blipGroup);
+    if (!blipGroup->psoParent) FreeLoroot(blipGroup);
+    AppendDlEntry(&D_002DEAF0, blipGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 
@@ -322,21 +333,21 @@ void BLIPG::VUnk01()
 /* v6 (Claude agent, laneC15 2026-10-23): aligned 4 -> 3. ONE pin (px in $9) plus two commented empty asms: `cExtra = 0; asm("" : "+r"(cExtra));` early (gives the target slt/subu/movn) and `c = v; asm("" : "+r"(c));` (gives lw v0 + daddu t0 without a pin on c). Left: li a0,1 (n = 1) scheduled before daddu t0, so reorg fills the loop-guard slot with slt (beql) instead of the li (beqz). n=1 position / for-init: same. */
 /* v5 (Claude agent, laneC11 2026-10-23): aligned 5 -> 4. cExtra = 0 moved before c = v, plus a 2nd pin cExtra in $10 (t2). Left: with cExtra pinned, if-conversion gives bnel+subu instead of slt/subu/movn (v1/v0 swap on the slt). cExtra unpinned with the early init: 13; px pinned to $9 too: 7. */
 /* v4 (Claude agent, laneC9 2026-10-23): aligned 6 -> 5 with ONE register pin (c in $8) plus v = px->c; c = v; v >>= 1 (gives the target's lw v0 + daddu t0,v0). Left: cExtra = 0 (t2) is emitted after the loops; target sets it right after the load (then the loop-head alignment nops line up). cExtra = 0 right after c = v: 13 (px/cExtra swap t1/t2); declaration order: 13. */
-struct SHD { int x0; int x4; int x8; unsigned char ab[4]; int c; long *al; };
+struct SHD { int pad0; int pad4; int flags; unsigned char ab[4]; int c; long *al; };   /* flags bit 0: the second blend packet; ab: colour; c / al: texture frames and their TEX0 words */
 // Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF
 // regs. (inferred)
-extern "C" void PropagateBlipgShader(BLIPGV *p, void *pv)
+extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, void *pv)
 {
     register SHD *px asm("$9") = (SHD *)FindShdOrDefault(pv); /* register pin (Claude agent): px in t1 */
     int n, v, i, j;
     int cExtra;
     int c;
     GE *pge;
-    p->gifPacket = (px->x8 & 1) ? D_002DD600 : D_002DD5C0;
-    if (p->numColors == 0) {
-        p->numColors = 1;
+    blipGroup->gifPacket = (px->flags & 1) ? D_002DD600 : D_002DD5C0;
+    if (blipGroup->numColors == 0) {
+        blipGroup->numColors = 1;
         for (j = 0; j < 4; j++)
-            p->colors[0][j] = (px->ab[j] + 1) >> 1;
+            blipGroup->colors[0][j] = (px->ab[j] + 1) >> 1;
     }
     v = px->c;
     cExtra = 0;
@@ -351,8 +362,8 @@ extern "C" void PropagateBlipgShader(BLIPGV *p, void *pv)
         n >>= 1;
     if (c < n)
         cExtra = n - c;
-    p->n1A0 = n;
-    pge = p->age;
+    blipGroup->numFrames = n;
+    pge = blipGroup->age;
     for (i = 0; i < c; i++) {
         pge->s.l = px->al[i];
         pge->s.n = 6;
@@ -364,7 +375,7 @@ extern "C" void PropagateBlipgShader(BLIPGV *p, void *pv)
     }
 }
 
-// MATCH (Claude agent, laneC10 2026-10-23): from v4; p->g120 stored in each branch of the if/else (gcc cross-jumps the two stores into one join block), which lets the g8C load schedule first. One commented register pin (r in InitS).
+// MATCH (Claude agent, laneC10 2026-10-23): from v4; p->maxSize stored in each branch of the if/else (gcc cross-jumps the two stores into one join block), which lets the g8C load schedule first. One commented register pin (r in InitS).
 static __inline__ float GetX(qwordV q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
@@ -374,91 +385,93 @@ static __inline__ int FVecsNear(qwordV a, qwordV b)
            FFloatsNear(GetZ(a), GetZ(b), 1e-4f);
 }
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
-static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->x0 = 0; ps->x8 = 0; ps->g4 = r / g; }
+static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->unknown0 = 0; ps->unknown8 = 0; ps->inverseLifetime = r / g; }
 static __inline__ float GMax3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
-// Bind emitter parameter block to the blip group (copies emit settings, then PropagateBlipgShader) (inferred)
-extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
+// Sets a blip group up from an EMITB: render kind (and flying scale), colours, shader (PropagateBlipgShader),
+// frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
+// kind (EMITDV motion degenerates to straight lines when the EMITB adds no velocity, curl or damping).
+extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITBV *emitb)
 {
     CLR *pclr;
     float g;
     int f;
     int i, j, k;
-    k = q->xC0;
+    k = emitb->renderKind;
     g = 1.0f;
-    p->renderKind = k;
+    blipGroup->renderKind = k;
     if (k == 1)
-        g = q->gF0;
-    p->g440 = g;
-    pclr = q->pclrDC;
+        g = emitb->flyingScale;
+    blipGroup->flyingScale = g;
+    pclr = emitb->pclrDC;
     if (pclr) {
-        p->numColors = pclr->c;
-        for (i = 0; i < p->numColors; i++)
+        blipGroup->numColors = pclr->c;
+        for (i = 0; i < blipGroup->numColors; i++)
         {
-            int iDst = p->numColors - i - 1;
+            int iDst = blipGroup->numColors - i - 1;
             for (j = 0; j < 4; j++)
-                p->colors[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
+                blipGroup->colors[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
         }
-        p->x434 = q->xCC;
+        blipGroup->hasColorRanges = emitb->hasColorRanges;
     }
-    PropagateBlipgShader(p, q->xD0);
-    func_002333B4(p->ab140, 0, 0x10);
-    if (p->n1A0 >= 2) {
-        int n = p->n1A0;
-        if (q->gD8 != 0.0f)
-            p->g144 = (float)n / q->gD8;
+    PropagateBlipgShader(blipGroup, emitb->shaderOid);
+    func_002333B4(blipGroup->unknown140, 0, 0x10);
+    if (blipGroup->numFrames >= 2) {
+        int n = blipGroup->numFrames;
+        if (emitb->shaderLoopTime != 0.0f)
+            blipGroup->frameRate = (float)n / emitb->shaderLoopTime;
         else
-            p->g144 = (float)n / q->g8C;
+            blipGroup->frameRate = (float)n / emitb->lifetime;
     }
-    PrescaleClq((CLQ *)q->abB0, 1.0f / q->g8C, 0.0f, (CLQ *)p->ab130);
-    PrescaleClq((CLQ *)q->abE0, 1.0f / q->g8C, 0.0f, (CLQ *)&p->poly);
-    if (p->poly.b == 0.0f && p->poly.c == 0.0f) {
-        p->g120 = __builtin_fabsf(p->poly.a);
+    PrescaleClq((CLQ *)emitb->alpha, 1.0f / emitb->lifetime, 0.0f, (CLQ *)blipGroup->alphaCurve);
+    PrescaleClq((CLQ *)emitb->scale, 1.0f / emitb->lifetime, 0.0f, (CLQ *)&blipGroup->poly);
+    if (blipGroup->poly.b == 0.0f && blipGroup->poly.c == 0.0f) {
+        blipGroup->maxSize = __builtin_fabsf(blipGroup->poly.a);
     } else {
         float ag[3];
-        float t = q->g8C;
-        ag[0] = p->poly.a;
+        float t = emitb->lifetime;
+        ag[0] = blipGroup->poly.a;
         ag[1] = 0.0f;
-        ag[2] = GEval(&p->poly, t);
-        if (p->poly.c != ag[1]) {
-            float tm = -p->poly.b / (p->poly.c + p->poly.c);
+        ag[2] = GEval(&blipGroup->poly, t);
+        if (blipGroup->poly.c != ag[1]) {
+            float tm = -blipGroup->poly.b / (blipGroup->poly.c + blipGroup->poly.c);
             if (ag[1] < tm && tm < t)
-                ag[1] = GEval(&p->poly, tm);
+                ag[1] = GEval(&blipGroup->poly, tm);
         }
-        p->g120 = GMax3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
+        blipGroup->maxSize = GMax3(__builtin_fabsf(ag[0]), __builtin_fabsf(ag[1]), __builtin_fabsf(ag[2]));
     }
     f = 0;
-    g = q->g8C;
-    InitS(g, &p->s150);
+    g = emitb->lifetime;
+    InitS(g, &blipGroup->lifeParams);
     {
-    int kC4 = q->xC4;
-    p->motionKind = kC4;
+    int kC4 = emitb->motionKind;
+    blipGroup->motionKind = kC4;
     if (!kC4) {
-        int fNear = FVecsNear(D_002A2DD0, q->v60);
-        if (fNear && q->g58 == 0.0f && q->g80 == 0.0f)
+        int fNear = FVecsNear(D_002A2DD0, emitb->addedVelocity);
+        if (fNear && emitb->damping == 0.0f && emitb->curlRate == 0.0f)
             f = 1;
     }
     }
     if (f)
-        p->motionKind = 1;
-    func_002333B4(p->ab170, 0, 0x30);
-    if (!p->motionKind)
-        SetEmitdvEmitb((EMITDV *)p->ab170, q);
+        blipGroup->motionKind = 1;
+    func_002333B4(blipGroup->emitdv, 0, 0x30);
+    if (!blipGroup->motionKind)
+        SetEmitdvEmitb((EMITDV *)blipGroup->emitdv, emitb);
 }
 
 // BLIPG vt16 Update: just UpdateLo. (inferred)
-extern "C" void UpdateBlipg(BLIPGV *p, float dt)
+extern "C" void UpdateBlipg(BLIPGV *blipGroup, float dt)
 {
-    UpdateLo(p, dt);
+    UpdateLo(blipGroup, dt);
 }
 
-// BLIPG vt51: SubscribeLoObject, and if the target is an EMITTER-family (cid 0x1D) remember it (+0xE0) and copy its
-// +0x38. (inferred)
-extern "C" void SubscribeBlipgObject(BLIPGV *p, LOV *plo)
+// BLIPG vt51: subscribes to the object, and when it is an EMITTER (CID 0x1D) also remembers it as the group's
+// emitter (drawn at its group members' places) and takes over its busy radius.
+extern "C" void SubscribeBlipgObject(BLIPGV *blipGroup, LOV *plo)
 {
-    SubscribeLoObject(p, plo);
+    SubscribeLoObject(blipGroup, plo);
     if (FIsBasicDerivedFrom((BASIC *)plo, CID_1D) != 0) {
-        p->plo = plo;
-        p->g38 = plo->g38;
+        blipGroup->plo = plo;
+        blipGroup->sBusy = plo->sBusy;
     }
 }
 
@@ -531,7 +544,7 @@ extern "C" int ProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *
 
 // ProjectBlipgTransformAccel (0x139AB8): DMA-double-buffered VU particle update over the DLI list at p->dl (0x448), accumulating the
 // bounding box of every particle batch in vMin/vMax (ProjectBlipTransformAccel, microprogram), then sets the bounding sphere
-// p->boundsCenter = centre, p->g100 = radius + p->g120 (or calls virtual slot 9 when p->numLiveParticles drops to 0).
+// p->boundsCenter = centre, p->boundsRadius = radius + p->maxSize (or calls virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1675, 2026-10-25), built on lilly2 (T1663: arg block) and lilly1 (T1659: sceDmaSync returns int).
 // The prologue (hi $LC0 v0, zero v1, hi $LC1 v0, f0 stores then f1 stores) needs VECTOR = struct with an anonymous union:
 // store_constructor clears the struct (sq zero) and then ALWAYS emits a CLOBBER for the union member, even when already
@@ -582,16 +595,16 @@ static inline float GFromQw(const qwordV &qw)
     return g;
 }
 // VU-accelerated particle advance with bounds.
-extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
+extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
 {
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
     VECTORV vMax = {{{-FLT_MAX, -FLT_MAX, -FLT_MAX}}};
     M4 m;
-    m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(p->ab170);
+    m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->emitdv);
     {
     DLI dli;
     BLIPV *pq;
-    InitDli(&dli, &p->dl);
+    InitDli(&dli, &blipGroup->dl);
     pq = (BLIPV *)PvNextDli(&dli);
     {
         BUF *pb = &pq->abuf[pq->i];
@@ -604,40 +617,40 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
         SwapSprBuffers();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
-        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->renderKind, &vMin, &vMax);
+        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, blipGroup->renderKind, &vMin, &vMax);
         i = (pq->i + 1) & 1;
         {
             BUF *pb = &pq->abuf[i];
             SaveSprBuf(pb, pb->b, pb->c, 0);
         }
         pq->c -= n;
-        p->numLiveParticles -= n;
+        blipGroup->numLiveParticles -= n;
         if (pq->c <= 0) RemoveBlip(pq);
         else pq->i = i;
         pq = pqNext;
     }
     sceDmaSync(D_002DE59C, 0, 0);
-    if (p->numLiveParticles <= 0) {
-        p->pvt[9].pfn((char *)p + p->pvt[9].d);
+    if (blipGroup->numLiveParticles <= 0) {
+        blipGroup->pvt[9].pfn((char *)blipGroup + blipGroup->pvt[9].d);
     } else {
         qwordV c = QwMid(vMin.q, vMax.q, VU_FLOATA(0.5f));
-        p->boundsCenter = c;
+        blipGroup->boundsCenter = c;
         float g = GFromQw(QwLength(VuSubRef(c, vMax.q)));
-        p->g100 = g + p->g120;
+        blipGroup->boundsRadius = g + blipGroup->maxSize;
     }
     D_002DD2FC = dli.m_pdliNext;
     }
 }
 
+struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,m"(f), "i,r"(0)); } };
 // ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
 // batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
 // velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; renderKind == 2 updates c.w through
-// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->g100 = radius + p->g120 (or calls
+// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->boundsRadius = radius + p->maxSize (or calls
 // virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1677, 2026-10-25): lilly5 (T1673) + the T1675 ProjectBlipgTransformAccel prologue fix: VECTOR is a
 // struct with an anonymous union, so store_constructor emits a sched1-only CLOBBER after the clear, which gives both pool
 // his $v0 and the zero reload $v1. Loop givs: the post-switch copies go through c-based pointers pcs/pcd (laneC2f).
-struct VU_FLOATT { qwordV q; VU_FLOATT(float f) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,m"(f), "i,r"(0)); } };
 static inline qwordV AddScaled(qwordV a, qwordV b, VU_FLOATT s)
 {
     qwordV r;
@@ -662,22 +675,22 @@ static __inline__ qwordV MulPoint(M4 *pm, qwordV v)
     return r;
 }
 // BLIPG vt17: per-blip transform/projection (non-accelerated path) (inferred)
-extern "C" void ProjectBlipgTransform(BLIPGV *p)
+extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
 {
     M4 m;
-    if (p->motionKind == 0) {
+    if (blipGroup->motionKind == 0) {
         if (D_002BC9C0 == 0) {
-            ProjectBlipgTransformAccel(p);
+            ProjectBlipgTransformAccel(blipGroup);
             return;
         }
-        m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(p->ab170);
+        m = CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(blipGroup->emitdv);
     }
     {
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
     VECTORV vMax = {{{-FLT_MAX, -FLT_MAX, -FLT_MAX}}};
     DLI dli;
     BLIPV *pq;
-    InitDli(&dli, &p->dl);
+    InitDli(&dli, &blipGroup->dl);
     while ((pq = (BLIPV *)PvNextDli(&dli)) != 0) {
         int i, j, cDead, iNext;
         BUF *pb, *pbn;
@@ -694,7 +707,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
                 cDead++;
                 continue;
             }
-            switch (p->motionKind) {
+            switch (blipGroup->motionKind) {
             case 0: {
                 qwordV v = MulPoint(&m, pb->b[i].q);
                 pbn->b[j].q = v;
@@ -722,7 +735,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
             CA(pcd)[0].v.w = CA(pcs)[0].v.w;
             CB(pcd)[0].v.w = CB(pcs)[0].v.w;
             *pcd = *pcs;
-            if (p->renderKind == 2)
+            if (blipGroup->renderKind == 2)
                 pcd->v.w = RadNormalize(pcs->v.w + pcs->v.z * pclock->dt);
             *(qwordV *)&vMin = Min(*(qwordV *)&vMin, CA(pcd)[0].q);
             *(qwordV *)&vMax = Max(*(qwordV *)&vMax, CA(pcd)[0].q);
@@ -730,25 +743,25 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
             j++;
         }
         pq->c -= cDead;
-        p->numLiveParticles -= cDead;
+        blipGroup->numLiveParticles -= cDead;
         if (pq->c <= 0)
             RemoveBlip(pq);
         else
             pq->i = iNext;
     }
-    if (p->numLiveParticles <= 0) {
-        VTE *pvt = p->pvt;
-        pvt[9].pfn((char *)p + pvt[9].d);
+    if (blipGroup->numLiveParticles <= 0) {
+        VTE *pvt = blipGroup->pvt;
+        pvt[9].pfn((char *)blipGroup + pvt[9].d);
     } else {
         qwordV c, d, l;
         float g;
         c = Mid(*(qwordV *)&vMin, *(qwordV *)&vMax, VU_FLOATT(0.5f));
-        p->boundsCenter = c;
+        blipGroup->boundsCenter = c;
         d = VuSub(c, *(qwordV *)&vMax);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l));
-        p->g100 = g + p->g120;
+        blipGroup->boundsRadius = g + blipGroup->maxSize;
     }
     D_002DD2FC = dli.m_pdliNext;
     }
@@ -767,7 +780,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
 //    ranks the boundsCenter chain above mat.r[2] (boundsCenter vf1 instead of vf2).
 //  * Plain VuSub (2 refs on pcm->pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
 //  * The empty "=r"(z) asm only exists for sched2 (see the comment there).
-struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };
+struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };   /* one place to draw the blips at: rotation rows, then position (x30..w30) */
 extern "C" LIGHTM D_002A2D30;
 struct FRAME { int a[4]; };
 struct AL { int cb; int align; AL(int c, int a) { cb = c; align = a; } };
@@ -779,7 +792,7 @@ struct VU_FLOATR {
        (sched1 then keeps the lw and the lui apart, and both get v0 like the target) */
     VU_FLOATR(const float *pf, CMV *pcm) { __asm__("lw %0, %1" : "=r"(q) : "m"(*pf), "r"(pcm)); }
 };
-struct DMA { int x0; int x4; int x8; int xC; };
+struct DMA { int kind; int unknown4; int packetStart; int unknownC; };   /* a render-list entry */
 extern "C" {
 void *AllocFromStack(const AL &al);
 int IsLoInWorld(LOV *plo);
@@ -802,17 +815,17 @@ static inline qwordV RotKZ(const M3 &m, qwordV v, qwordV k, int z)
     return r;
 }
 // BLIPG vt19 RenderSelf: build VU1 DMA for the blip group. (inferred)
-extern "C" void RenderBlipgSelf(BLIPGV *p)
+extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
 {
     FRAME frame;
     STACKSCOPE_ctor(&frame);
     int cLight;
     LIGHTM *aLight;
-    if (p->plo != 0 && IsDlEmpty((DLV *)&p->plo->x11C) == 0) {
+    if (blipGroup->plo != 0 && IsDlEmpty((DLV *)&blipGroup->plo->groupList) == 0) {
         cLight = 0;
-        aLight = (LIGHTM *)PvAllocStack(CPvDl((DLV *)&p->plo->x11C) << 6);
+        aLight = (LIGHTM *)PvAllocStack(CPvDl((DLV *)&blipGroup->plo->groupList) << 6);
         LIGHTM *pl = aLight;
-        LOV *plo = p->plo->x11C;
+        LOV *plo = blipGroup->plo->groupList;
         M3 *pmId;
         if (!plo) goto done;
         pmId = &D_002A2D00;
@@ -820,7 +833,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             if (!IsLoInWorld(plo))
                 goto next;
             {
-            LOV **pplo = plo->xE4->pplo;
+            LOV **pplo = plo->pemitb->pplo;
             qwordV pos;
             M3 mat;
             if (*pplo) {
@@ -828,15 +841,15 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
                 mat = *GetLoWorldMatrix(*pplo);
             } else {
                 pos = GetLoWorldPos(plo);
-                if (plo->x10)
-                    mat = *GetLoWorldMatrix(plo->x10);
+                if (plo->psoParent)
+                    mat = *GetLoWorldMatrix(plo->psoParent);
                 else
                     mat = *pmId;
             }
-            qwordV v = p->boundsCenter;
+            qwordV v = blipGroup->boundsCenter;
             __asm__ volatile(""); /* barrier: the boundsCenter load issues first (an operand-less one adds no refs to v) */
             CMV *pcm = &D_002DDF40;
-            VU_FLOATR vf(&p->g100, pcm);
+            VU_FLOATR vf(&blipGroup->boundsRadius, pcm);
             /* empty asm, emits nothing: z depends on pcm and feeds the Rot and the Add, so in sched2 it takes the
                second issue slot next to the lw and the mat.r[1] lqc2 waits a cycle (target order lw, lqc2, por, Rot) */
             int z; __asm__("" : "=r"(z) : "r"(pcm));
@@ -845,7 +858,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             if (!FInsideCmFrustum(&D_002DDF40, d, vf))
                 goto next;
             float g;
-            if (!FInsideCmMrd(&D_002DDF40, d, plo->g38, &g))
+            if (!FInsideCmMrd(&D_002DDF40, d, plo->sBusy, &g))
                 goto next;
             VECTOR_opAssign(&pl->x30, pos);
             cLight++;
@@ -859,14 +872,14 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             pl++;
             }
         next:
-            plo = plo->x128;
+            plo = plo->nextInGroup;
             if (plo) goto top;
     done:;
     } else {
         register CMV *pcm asm("$4") = &D_002DDF40; /* register pin: the target builds &D_002DDF40 in a0 */
-        qwordV v = p->boundsCenter;
+        qwordV v = blipGroup->boundsCenter;
         __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
-        VU_FLOATR vf(p->g100);
+        VU_FLOATR vf(blipGroup->boundsRadius);
         if (!FInsideCmFrustum(pcm, SubE(v, pcm->pos), vf))
             goto none;
         cLight = 1;
@@ -879,15 +892,15 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
     }
     int c = 0;
     DMA *pdma = AllocRenderListEntry();
-    pdma->x0 = 0xC;
-    pdma->x4 = 0;
-    int save = D_002DEA28.xC;
+    pdma->kind = 0xC;
+    pdma->unknown4 = 0;
+    int save = D_002DEA28.writeOffset;
     AddDmaCnt__4DMAS(&D_002DEA28);
-    for (BLIPV *pq = (BLIPV *)p->dl.head; pq; pq = pq->pblipNext) {
+    for (BLIPV *pq = (BLIPV *)blipGroup->dl.head; pq; pq = pq->pblipNext) {
         BUF *pb = &pq->abuf[pq->i];
         for (int i = 0; i < cLight; i++) {
             if (c < 2) {
-                AddBlipgVuParams(p);
+                AddBlipgVuParams(blipGroup);
                 c++;
             }
             unsigned short as[3];
@@ -898,12 +911,12 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 9, 1, as, 0, ten);
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &aLight[i], 7);
             AddVifStcycl__4VIFSii(&D_002DEA28, 1, 10);
-            if (p->renderKind == 1)
+            if (blipGroup->renderKind == 1)
                 AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->b, as[0] + 1, 0);
             AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->c, as[0] + 2, 0);
             AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->a, as[0] + 3, 0);
             AddVifStcycl__4VIFSii(&D_002DEA28, 1, 1);
-            switch (p->renderKind) {
+            switch (blipGroup->renderKind) {
             case 0: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000000); break;
             case 1: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000390); break;
             case 2: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000870); break;
@@ -913,13 +926,13 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
     }
     EndDmaCnt__4DMAS(&D_002DEA28);
     AddDmaRet__4DMAS(&D_002DEA28);
-    pdma->x8 = save;
+    pdma->packetStart = save;
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }
 
 // Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to the DMA list.
 // (inferred)
-extern "C" void AddBlipgVuParams(BLIPGV *p)
+extern "C" void AddBlipgVuParams(BLIPGV *blipGroup)
 {
     float *pg;
     int *pn;
@@ -927,24 +940,24 @@ extern "C" void AddBlipgVuParams(BLIPGV *p)
     CLOCKV *pclock;
     UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 5, 0, &pg);
     pclock = &D_002DDED0;
-    pg[0] = D_002DDF40.g100;
-    pg[1] = D_002DDF40.g114;
-    pg[2] = p->g440;
+    pg[0] = D_002DDF40.projScaleX;
+    pg[1] = D_002DDF40.projScaleY;
+    pg[2] = blipGroup->flyingScale;
     pg[3] = D_002DDED0.t;
     UnpackHelper__4VIFS3UPKiiPiPPUi(pdma, 0xC, 1, 6, 0, &pn);
     pn[0] = 0;
-    if (p->x434)
+    if (blipGroup->hasColorRanges)
         pn[0] |= 1;
-    pn[1] = p->numColors;
-    pn[2] = p->n1A0;
+    pn[1] = blipGroup->numColors;
+    pn[2] = blipGroup->numFrames;
     *(float *)&pn[3] = pclock->dtReal;
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, p->numColors, p->colors, 0x30 - p->numColors);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, p->ab130, 1);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &p->poly, 2);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, p->ab140, 3);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &p->s150, 4);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, p->gifPacket, 0x30);
-    AddVifUnpackRefs__4VIFS3UPKiPviPPPv(pdma, 0xC, p->n1A0, p->age, 0xF, 0);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, blipGroup->numColors, blipGroup->colors, 0x30 - blipGroup->numColors);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->alphaCurve, 1);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->poly, 2);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, blipGroup->unknown140, 3);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &blipGroup->lifeParams, 4);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, blipGroup->gifPacket, 0x30);
+    AddVifUnpackRefs__4VIFS3UPKiPviPPPv(pdma, 0xC, blipGroup->numFrames, blipGroup->age, 0xF, 0);
 }
 
 // Pass 2 begin (kind 12): upload blip microprogram. (inferred)

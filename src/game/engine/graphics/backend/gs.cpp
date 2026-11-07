@@ -157,26 +157,29 @@ static inline void PublishMode(const PMODE*value)
     __asm__("ldl %0,%1\n\tldr %0,%2":"=&r"(word):"m"(((const char*)value)[7]),"m"(((const char*)value)[0]),"X"(*value));
     __asm__ __volatile__("sdl %1,0x12000007\n\tsdr %1,0x12000000":"=X"(*(volatile PMODE*)0x12000000):"r"(word):"$1");
 }
-static inline void EnablePrimary(PMODE*mode)
+static inline void EnablePrimary(PMODE *mode)
 {
-    const unsigned long primaryMask=1;
-    register unsigned long word __asm__("$2"),mask __asm__("$3");
-    __asm__("li %1,%2\n\tld %0,%3":"=r"(word),"=r"(mask):"i"(primaryMask),"m"(*mode));
-    mode->word=word|mask;
+    const unsigned long primaryMask = 1;
+    register unsigned long word __asm__("$2"), mask __asm__("$3");
+    __asm__("li %1,%2\n\tld %0,%3" : "=r"(word), "=r"(mask) : "i"(primaryMask), "m"(*mode));
+    mode->word = word | mask;
 }
 // Interlace fix-up run at vblank: when the field about to be shown differs from the one the frame was rendered for,
 // shifts the display one line (DISPLAY height-1 and DY+1, or DISPFB DBY+1) and enables the primary read circuit; then
 // writes PMODE. Keeps a field-rendered frame from jittering when a frame is late.
 void BlendDisplayOnBufferMismatch()
 {
-    int field=D_002DEDB8;
-    int i=D_002DEDB0&1;
-    PMODE pmode=D_002DEB80[i].pmode;
-    if(field!=FField()){
-        DISPLAY display=*(DISPLAY*)((char*)&D_002DEB80[0].display+i*sizeof(DISPENV));
-        DISPFB dispfb=*(DISPFB*)((char*)&D_002DEB80[0].dispfb+i*sizeof(DISPENV));
-        display.DH-=1;
-        if(field)display.DY+=1;else dispfb.DBY+=1;
+    int field = D_002DEDB8;
+    int i = D_002DEDB0 & 1;
+    PMODE pmode = D_002DEB80[i].pmode;
+    if (field != FField()) {
+        DISPLAY display = *(DISPLAY *)((char *)&D_002DEB80[0].display + i * sizeof(DISPENV));
+        DISPFB dispfb = *(DISPFB *)((char *)&D_002DEB80[0].dispfb + i * sizeof(DISPENV));
+        display.DH -= 1;
+        if (field)
+            display.DY += 1;
+        else
+            dispfb.DBY += 1;
         PublishDisplay(&display);
         PublishBuffer(&dispfb);
         EnablePrimary(&pmode);
@@ -388,68 +391,84 @@ void BuildFrameTex0Gifs()
 }
 
 // (Claude agent) framebuffer packet builder. Keys: FrameBits with shifts (masks appear at combine, no CSE across calls), TEX steps as copies a/b/c/d of an uninitialised TEX, separate frame/frame2 locals, values[2],[4],[0] order.
-struct TEXBITS{
- ulong TBP0:14,TBW:6,PSM:6,TW:4,TH:4,TCC:1,TFX:2,CBP:14,CPSM:4,CSM:1,CSA:5,CLD:3;
+struct TEXBITS {
+    ulong TBP0 : 14, TBW : 6, PSM : 6, TW : 4, TH : 4, TCC : 1, TFX : 2, CBP : 14, CPSM : 4, CSM : 1, CSA : 5, CLD : 3;
 };
-union TEX{ulong word;TEXBITS bits;};
-static inline ulong FrameBits(ulong frame){return (frame&0x1FFUL)|(((frame>>16)&0x3FUL)<<16)|(((frame>>24)&0x3FUL)<<24);}
+union TEX {
+    ulong word;
+    TEXBITS bits;
+};
+static inline ulong FrameBits(ulong frame)
+{
+    return (frame & 0x1FFUL) | (((frame >> 16) & 0x3FUL) << 16) | (((frame >> 24) & 0x3FUL) << 24);
+}
 // Builds the per-frame drawing-context GIF packet (FRAME/ZBUF/XYOFFSET/SCISSOR/TEST for contexts 1 and 2 of the
 // current buffer, with an FBMSK write mask) plus a companion table of TEX0/FRAME words for current/other buffer.
 // (inferred)
-void BuildFrameContextGifs(int gifCount,QW*gifBuffer,int vifCount,QW*vifBuffer,uint mask){
- DRAWENV*current;DRAWENV*other;
- if(D_002DEDB0&1){current=&D_002DECD0;other=current-1;}
- else{current=&D_002DEBE0;other=current+1;}
- GIFS gifs;
- gifs.AllocStatic(gifCount,gifBuffer);
- ulong writeMask=(ulong)mask<<32;
- gifs.AddPrimPack(0,1,0xEUL);
- gifs.PackAD(0x4C,FrameBits(current->frame)|writeMask);
- gifs.PackAD(0x4E,current->zbuf);
- gifs.PackAD(0x18,current->xyoffset);
- gifs.PackAD(0x40,current->scissor);
- gifs.PackAD(0x47,current->test);
- gifs.AddPrimPack(0x200,1,0xEUL);
- gifs.PackAD(0x4D,FrameBits(current->frame)|writeMask);
- gifs.PackAD(0x4F,current->zbuf);
- gifs.PackAD(0x19,current->xyoffset);
- gifs.PackAD(0x41,current->scissor);
- gifs.PackAD(0x48,current->test);
- gifs.AddPrimEnd();
- int values[8];func_002333B4(values,0,sizeof(values));
- TEX texture;
- ulong frame=current->frame;
- TEX a=texture;
- a.bits.TBP0=(frame&0x1FFUL)<<5;
- a.bits.TBW=(frame>>16)&0x3FUL;
- a.bits.PSM=0;
- a.bits.TW=10;
- a.bits.TH=10;
- a.bits.TCC=1;
- a.bits.TFX=0;
- values[2]=(int)a.word;
- values[4]=(int)((frame&~0x3F000000UL)|0x02000000UL);
- values[0]=(int)frame;
- TEX b=a;
- b.bits.PSM=2;
- values[6]=(int)b.word;
- ulong frame2=other->frame;
- TEX c=b;
- c.bits.TBP0=(frame2&0x1FFUL)<<5;
- c.bits.TBW=(frame2>>16)&0x3FUL;
- c.bits.PSM=0;
- values[1]=(int)frame2;
- values[3]=(int)c.word;
- values[5]=(int)((frame2&~0x3F000000UL)|0x02000000UL);
- TEX d=c;
- d.bits.PSM=2;
- values[7]=(int)d.word;
- VIFS vifs;
- vifs.AllocStatic(vifCount,vifBuffer);vifs.AddDmaCnt();
- vifs.AddVifDirectRefs(gifCount,gifBuffer,0);
- vifs.AddVifBaseOffset(0,0);
- vifs.AddVifUnpack(UPK_V4_32,2,values,0xB);
- vifs.EndDmaCnt();vifs.AddDmaRet();
+void BuildFrameContextGifs(int gifCount, QW *gifBuffer, int vifCount, QW *vifBuffer, uint mask)
+{
+    DRAWENV *current;
+    DRAWENV *other;
+    if (D_002DEDB0 & 1) {
+        current = &D_002DECD0;
+        other = current - 1;
+    } else {
+        current = &D_002DEBE0;
+        other = current + 1;
+    }
+    GIFS gifs;
+    gifs.AllocStatic(gifCount, gifBuffer);
+    ulong writeMask = (ulong)mask << 32;
+    gifs.AddPrimPack(0, 1, 0xEUL);
+    gifs.PackAD(0x4C, FrameBits(current->frame) | writeMask);
+    gifs.PackAD(0x4E, current->zbuf);
+    gifs.PackAD(0x18, current->xyoffset);
+    gifs.PackAD(0x40, current->scissor);
+    gifs.PackAD(0x47, current->test);
+    gifs.AddPrimPack(0x200, 1, 0xEUL);
+    gifs.PackAD(0x4D, FrameBits(current->frame) | writeMask);
+    gifs.PackAD(0x4F, current->zbuf);
+    gifs.PackAD(0x19, current->xyoffset);
+    gifs.PackAD(0x41, current->scissor);
+    gifs.PackAD(0x48, current->test);
+    gifs.AddPrimEnd();
+    int values[8];
+    func_002333B4(values, 0, sizeof(values));
+    TEX texture;
+    ulong frame = current->frame;
+    TEX a = texture;
+    a.bits.TBP0 = (frame & 0x1FFUL) << 5;
+    a.bits.TBW = (frame >> 16) & 0x3FUL;
+    a.bits.PSM = 0;
+    a.bits.TW = 10;
+    a.bits.TH = 10;
+    a.bits.TCC = 1;
+    a.bits.TFX = 0;
+    values[2] = (int)a.word;
+    values[4] = (int)((frame & ~0x3F000000UL) | 0x02000000UL);
+    values[0] = (int)frame;
+    TEX b = a;
+    b.bits.PSM = 2;
+    values[6] = (int)b.word;
+    ulong frame2 = other->frame;
+    TEX c = b;
+    c.bits.TBP0 = (frame2 & 0x1FFUL) << 5;
+    c.bits.TBW = (frame2 >> 16) & 0x3FUL;
+    c.bits.PSM = 0;
+    values[1] = (int)frame2;
+    values[3] = (int)c.word;
+    values[5] = (int)((frame2 & ~0x3F000000UL) | 0x02000000UL);
+    TEX d = c;
+    d.bits.PSM = 2;
+    values[7] = (int)d.word;
+    VIFS vifs;
+    vifs.AllocStatic(vifCount, vifBuffer);
+    vifs.AddDmaCnt();
+    vifs.AddVifDirectRefs(gifCount, gifBuffer, 0);
+    vifs.AddVifBaseOffset(0, 0);
+    vifs.AddVifUnpack(UPK_V4_32, 2, values, 0xB);
+    vifs.EndDmaCnt();
+    vifs.AddDmaRet();
 }
 
 // Rebuilds the three per-frame context packets (different FBMSK masks) and the framebuffer-texture packets after a
@@ -587,7 +606,7 @@ void PadGsbToPage(GSB *gsb)
 // 0x80 boundary if it would straddle); returns the start index.
 int IgsAllocGsb(GSB *input, int count)
 {
-    register GSB *gsb __asm__("$19")=input;
+    register GSB *gsb __asm__("$19") = input;
     unsigned int i;
     int old;
     GSBB *run;
@@ -605,9 +624,9 @@ loop:
         } else {
             unsigned int j = IgsbBucketFromCgs(run->end - run->start);
             if (j != i) {
-                register GSBB *next __asm__("$4")=run->next;
+                register GSBB *next __asm__("$4") = run->next;
                 gsb->freeRuns[i] = next;
-                register GSBB *replacement __asm__("$2")=gsb->freeRuns[j];
+                register GSBB *replacement __asm__("$2") = gsb->freeRuns[j];
                 run->next = replacement;
                 gsb->freeRuns[j] = run;
             }
@@ -616,8 +635,10 @@ loop:
     }
     i++;
 test:
-    if (i < 8) goto loop;
-    if (((gsb->top + count) & mask) != (gsb->top & mask)) PadGsbToPage(gsb);
+    if (i < 8)
+        goto loop;
+    if (((gsb->top + count) & mask) != (gsb->top & mask))
+        PadGsbToPage(gsb);
     old = gsb->top;
     gsb->top = old + count;
 done:
@@ -638,7 +659,7 @@ void BuildImageGifs(int dbp, int dbw, int dpsm, int rrw, int rrh, int cqw, GIFS 
 
 // Builds and sends (sync) a GIF chain uploading every level bitmap/CLUT of class 1 into GS memory allocated from the
 // GSB, then TEXFLUSH + FINISH. (inferred)
-void UploadBitmaps(GSB *p)
+void UploadBitmaps(GSB *gsb)
 {
     GIFS gifs;
     STACKSCOPEMK mk;
@@ -646,7 +667,7 @@ void UploadBitmaps(GSB *p)
     STACKSCOPE_ctor(&mk);
     gifs.AllocSw(((D_003DCF9C * 3 + D_003DCF98) << 3) | 4);
     gifs.AddDmaCnt();
-    if (FBuildUploadBitmapGifs(1, p, &gifs)) {
+    if (FBuildUploadBitmapGifs(1, gsb, &gifs)) {
         gifs.AddPrimPack(0, 1, 0xE);
         gifs.PackAD(0x3F, 0);
         gifs.PackAD(0x61, 0);
@@ -659,7 +680,7 @@ void UploadBitmaps(GSB *p)
 }
 
 // Assigns GS addresses to the class-1 bitmaps/CLUTs without uploading (0x1ECC28 with no GIFS) (inferred)
-extern "C" void AllocGsbBitmaps(GSB *p)
+extern "C" void AllocGsbBitmaps(GSB *gsb)
 {
-    FBuildUploadBitmapGifs(1, p, 0);
+    FBuildUploadBitmapGifs(1, gsb, 0);
 }

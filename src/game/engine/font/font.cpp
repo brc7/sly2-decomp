@@ -108,9 +108,10 @@ public:
 };
 
 /* The font file parts PostLoad reads. */
-struct HDR { char pad[4]; unsigned char b4, b5, b6, b7; float g8; unsigned short hC; };
-struct BMP { char pad[0xE]; unsigned short hE; char pad2[4]; int n14; int n18; char pad3[4]; unsigned long fl20; };
-struct CLUT { char pad[0xA]; unsigned short hA; int nC; int n10; int pad14; unsigned long fl18; };
+struct HDR { char pad[4]; unsigned char charWidth, spaceWidth, lineHeight, fontIndex; float scale; unsigned short numGlyphs; };
+/* shd.cpp's BMP / CLUT: the GS blocks they need, their data (address, qwords) and TEX0 / TEX2 words */
+struct BMP { char pad[0xE]; unsigned short gsBlocks; char pad2[4]; int pixels; int qwords; char pad3[4]; unsigned long tex0; };
+struct CLUT { char pad[0xA]; unsigned short gsBlocks; int colors; int qwords; int pad14; unsigned long tex2; };
 struct FD { HDR *phdr; GLYPH *aglyph; BMP *pbmp; CLUT *pclut; };
 /* GS buffer allocator (0x630 bytes). */
 struct GSB { char ab[0x630]; };
@@ -350,35 +351,35 @@ SLY2_SCRAP("addiu $sp, $sp, 0xf0");
 void PostLoad(CFontBrx *pfont, FD *pfd, GSB *pgsb)
 {
     HDR *phdr = pfd->phdr;
-    pfont->fontIndex = phdr->b7;
+    pfont->fontIndex = phdr->fontIndex;
     RegisterFont(pfont);
-    pfont->charWidthUnscaled = phdr->b4;
-    pfont->spaceWidth = phdr->b5;
-    pfont->lineHeight = phdr->b6;
-    pfont->xScale = phdr->g8;
-    pfont->yScale = phdr->g8;
-    pfont->numGlyphs = phdr->hC;
+    pfont->charWidthUnscaled = phdr->charWidth;
+    pfont->spaceWidth = phdr->spaceWidth;
+    pfont->lineHeight = phdr->lineHeight;
+    pfont->xScale = phdr->scale;
+    pfont->yScale = phdr->scale;
+    pfont->numGlyphs = phdr->numGlyphs;
     pfont->glyphs = pfd->aglyph;
     GIFS gifs;
     BMP *pbmp = pfd->pbmp;
     CLUT *pclut = pfd->pclut;
-    int n = IgsAllocGsb(pgsb, pbmp->hE);
+    int n = IgsAllocGsb(pgsb, pbmp->gsBlocks);
     BuildBmpTex0(pbmp, n);
-    pfont->tex0 = pbmp->fl20;
+    pfont->tex0 = pbmp->tex0;
     gifs.AllocStatic(6, pfont->bitmapUploadGifs);
     BuildBmpGifs(pbmp, n, &gifs);
     gifs.Detach(&pfont->bitmapUploadQwords, &pfont->bitmapUpload);
-    pfont->bitmapDataQwords = pbmp->n18;
-    pfont->bitmapData = (QW *)pbmp->n14;
+    pfont->bitmapDataQwords = pbmp->qwords;
+    pfont->bitmapData = (QW *)pbmp->pixels;
     if (pclut) {
-        n = IgsAllocGsb(pgsb, pclut->hA);
+        n = IgsAllocGsb(pgsb, pclut->gsBlocks);
         BuildClutTex2(pclut, n);
-        pfont->tex0 |= pclut->fl18;
+        pfont->tex0 |= pclut->tex2;
         gifs.AllocStatic(6, pfont->clutUploadGifs);
         BuildClutGifs(pclut, n, &gifs);
         gifs.Detach(&pfont->clutUploadQwords, &pfont->clutUpload);
-        pfont->clutDataQwords = pclut->n10;
-        pfont->clutData = (QW *)pclut->nC;
+        pfont->clutDataQwords = pclut->qwords;
+        pfont->clutData = (QW *)pclut->colors;
     }
 }
 
@@ -389,16 +390,16 @@ void RegisterFont(CFont *pfont)
 }
 
 // Binary-searches the font glyph table for a character (via remap table D_002BE338)
-GLYPH *FindGlyphForChar(CFont *p, unsigned char ch)
+GLYPH *FindGlyphForChar(CFont *font, unsigned char ch)
 {
     int key = D_002BE338[ch];
     int lo = 0;
-    int hi = p->numGlyphs - 1;
+    int hi = font->numGlyphs - 1;
     while (lo <= hi) {
         int mid = (hi + lo) / 2;
-        int d = key - p->glyphs[mid].ch;
+        int d = key - font->glyphs[mid].ch;
         if (d == 0)
-            return &p->glyphs[mid];
+            return &font->glyphs[mid];
         if (d > 0)
             lo = mid + 1;
         else
