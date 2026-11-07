@@ -446,8 +446,8 @@ extern "C" void EndRpHud(VIFS *pvifs)
 
 // 0x211C58 ConstructWidget130
 /* WIDGET130's constructor (sly2/classes.h): WIDGET_ctor, the vptr (_vt$9WIDGET130, class_registry's), the fields. */
-// Constructor of widget class 0x82: base widget, then four ids and one more field set to -1 (unused).
-WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; anUnk110[3] = -1; nUnk120 = -1; }
+// Constructor of widget class 0x82 (the recon selector prompt): base widget, then its five choices -1.
+WIDGET130::WIDGET130() { actorChoice = -1; risingChoice = -1; fallingChoice = -1; nearChoice = -1; emptyChoice = -1; }
 
 // 0x211CA8 ShowModalBoxWidget
 namespace M_func_00211CA8 { extern "C" {

@@ -2263,11 +2263,16 @@ struct CID101 : CID100
 };
 typedef char assert_CID101_size[sizeof(CID101) == 0x1B0 ? 1 : -1];
 
-/* 130 WIDGET130 (0x130); vtable 0x2C9670, 50 slots */
+/* 130 WIDGET130 (0x130): WIDGET: the recon selector prompt (tu_201D78); vtable 0x2C9670, 50 slots */
 struct WIDGET130 : WIDGET
 {
-    int anUnk110[4];                          /* +0x110 set to -1 by the constructor */
-    int nUnk120;                              /* +0x120 set to -1 by the constructor */
+    /* the recon selector's prompt (oid 0x362, tu_201D78): the selector state to request next in each situation
+       (target done, rising, falling, near, empty: names from tu_201D78's view; -1 from the constructor) */
+    int actorChoice;             /* +0x110 */
+    int risingChoice;            /* +0x114 */
+    int fallingChoice;           /* +0x118 */
+    int nearChoice;              /* +0x11C */
+    int emptyChoice;             /* +0x120 */
     char pad124[0x130 - 0x124];
     WIDGET130() __asm__("ConstructWidget130");     /* out of line: engine/presentation/hud.cpp */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget130ClassDesc");   /* slot 6 */
