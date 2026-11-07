@@ -17,6 +17,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
 #include "sly2/vu0.h"
+#include "sly2/dli.h"
 
 /* The LO flag word at +0x28 (read as one 64-bit word by the m2c views; lo.h names the bits). */
 #define LO_REMOVED_BIT    0x0100000000000000UL  /* bit 56 (isRemoved): taken out of the world */
@@ -654,7 +655,6 @@ extern "C" void OnLoAdd(LO *plo)
 
 namespace M_func_001A61A0 { extern "C" {
 typedef unsigned long ulong;
-struct DL { void *a, *b; int c; };
 int IsEntryInDl__FP2DLPv(struct DL *pdl, void *pv);
 struct S { char pad[0x14]; void *root; char pad2[0x10]; ulong fl; };
 // True when the object's in-world bit is set and its root record is in the world's in-world list.

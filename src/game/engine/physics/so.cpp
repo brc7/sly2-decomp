@@ -26,6 +26,7 @@
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
 #include "sly2/vu0.h"
+#include "sly2/dli.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -733,11 +734,8 @@ void AddSoHierarchy(struct L *so)
 
 // 0x1F2D48 RemoveSoHierarchy
 namespace M_RemoveSoHierarchy { extern "C" {
-struct DL; struct DLI; struct VTE; struct O; struct E; struct P; struct K;
+struct VTE; struct O; struct E; struct P; struct K;
 typedef unsigned long ulong;
-typedef struct DL { void *head; void *tail; int linkOffset; } DL;
-typedef struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; struct DLI *m_pdliNext; } DLI;
-extern DLI *D_002DD2FC;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong flags; };
 struct E { char pad[0xDC]; int region; };
@@ -750,20 +748,6 @@ void RemoveLoHierarchy(struct P *);
 void RemoveSoParts(struct P *);
 void ClearSwCallbacks(struct G *, int, struct P *, long, int);
 void SetSoPhysRegion(struct P *, int);
-static inline void InitDli(DLI *pdli, DL *pdl)
-{
-    pdli->m_pdl = pdl;
-    pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->linkOffset;
-    pdli->m_pdliNext = D_002DD2FC;
-    D_002DD2FC = pdli;
-}
-static inline void *PvNextDli(DLI *pdli)
-{
-    void *pv = *pdli->m_ppv;
-    pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
-    return pv;
-}
 // Slot 12 (RemoveHierarchy): RemoveLoHierarchy, removes the parts, resets the fade, unregisters the region callback
 // and recurses into the children.
 void RemoveSoHierarchy(struct P *so)
@@ -3710,29 +3694,11 @@ struct O *DeliverZapToSo(struct K *pk)
 
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords { extern "C" {
-struct DL; struct DLI; struct E; struct P;
-struct DL { void *pvFirst; void *pvLast; int linkOffset; };
-struct DLI { struct DL *pdl; void **ppv; int ibDle; struct DLI *pdliNext; };
-extern struct DLI *D_002DD2FC;
+struct E; struct P;
 extern struct CLOCK D_002DDED0;
 struct E { char pad[0x4C]; float t; };
 struct P { char pad[0x4118]; char pool[0x18]; struct DL dl; };
-void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 void FreeSlotheapSlot(void *, void *);
-static inline void InitDli(struct DLI *pdli, struct DL *pdl)
-{
-    pdli->pdl = pdl;
-    pdli->ppv = (void **)pdl;
-    pdli->ibDle = pdl->linkOffset;
-    pdli->pdliNext = D_002DD2FC;
-    D_002DD2FC = pdli;
-}
-static inline void *PvNextDli(struct DLI *pdli)
-{
-    void *pv = *pdli->ppv;
-    pdli->ppv = (void **)((char *)pv + pdli->ibDle);
-    return pv;
-}
 // Drops zap-history entries older than 0.25 s from the world's list.
 void ExpireSwZapRecords(struct P *so)
 {
@@ -3744,7 +3710,7 @@ void ExpireSwZapRecords(struct P *so)
         RemoveDlEntry__FP2DLPv(&so->dl, pe);
         FreeSlotheapSlot(so->pool, pe);
     }
-    D_002DD2FC = dli.pdliNext;
+    D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_ExpireSwZapRecords
 

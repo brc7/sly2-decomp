@@ -12,7 +12,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
-struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
+#include "sly2/dli.h"
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; void *pfn; };
 /* View of an SO: vtable (22 leave, 23 enter), its busy-list entry (+0x14), zone kind in bits 52..55 of the flags
@@ -95,20 +95,6 @@ static __inline__ float GDist(qword a, qword b)
         "vaddq.x %0, $vf0, Q" : "+j"(d));
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
-}
-static inline void InitDli(DLI *pdli, DL *pdl)
-{
-    pdli->m_pdl = pdl;
-    pdli->m_ppv = (void **)pdl;
-    pdli->m_ibDle = pdl->linkOffset;
-    pdli->m_pdliNext = D_002DD2FC;
-    D_002DD2FC = pdli;
-}
-static inline void *PvNextDli(DLI *pdli)
-{
-    void *pv = *pdli->m_ppv;
-    pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
-    return pv;
 }
 
 // Per-frame busy update: walks the busy list up to the cursor, testing each object against the camera or the hero and
