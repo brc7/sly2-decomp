@@ -2186,9 +2186,9 @@ void CacheJtRestPose(JT *jt)
     jt->tPickpocketLabel = GetAsegLabelTime(jt->pasegPickpocket, 0x167);
     PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19A4->rootTransform, jt->rootTransform, &m0, 0);
     jt->posPickpocketHand = m0.r[3];
-    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19CC, jt->rootTransform, &m1, 0);
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->handXf, jt->rootTransform, &m1, 0);
     jt->posPickpocket19CC = m1.r[3];
-    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19C0, jt->rootTransform, &m2, 0);
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->wristXf, jt->rootTransform, &m2, 0);
     jt->posPickpocket19C0 = m2.r[3];
     jt->eulerPickpocket19C0 = DecomposeRotationMatrixToEuler(&m2);
     InvertMatrix4Rigid(&mi, &m2);
@@ -3370,7 +3370,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->hangHandle->HandleSpliceEvent(6, 0, 0, 0, 0);
                 UnsubscribeLoObject(jt->hangHandle, jt);
                 SetJtAnimState(jt, -1);
-                RemoveNodeBySlot(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
+                RemoveNodeBySlot(jt, jt->wristXf, jt->pactHand);
                 if (jt->janim.pxaHang != 0)
                 {
                     RemoveSoXa(jt->janim.pxaHang->other, jt->janim.pxaHang);
@@ -3508,7 +3508,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     oid = OID_Nil;
                 grfRoute = GrfJtLeanMask(jt);
                 ClearXyz(&jt->unknown190);
-                if (jt->unknown1A54 != 0 && jt->unknown1A70 != 0)
+                if (jt->ablSweep[2].pasegbl != 0 && jt->ablSweep[3].pasegbl != 0)
                 {
                     switch (jt->animState)
                     {
@@ -3537,15 +3537,15 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Hang:
             {
                 jt->janim.unknown18 = -1;
-                jt->unknown199C = 1.0f;
-                jt->unknown1998 = 1.0f;
-                ACT1 *pact1 = (ACT1 *)jt->unknown1A00;
+                jt->swingActiveBlend = 1.0f;
+                jt->swingSpeedBlend = 1.0f;
+                ACT1 *pact1 = (ACT1 *)jt->pactHand;
                 svt = 0.0f;
                 jt->janim.hangStartTime = D_002DDED0.time;
                 aseg = jt->pasegHang;
                 ClearXyz((VECTOR *)&pact1->goalValue);
                 tStart = 0.5f;
-                AddXfAct(jt, (XF *)jt->unknown19C0, (ACT *)jt->unknown1A00);
+                AddXfAct(jt, jt->wristXf, jt->pactHand);
                 qword posHand = PosLoWorld(jt->unknown19A4);
                 jt->janim.dposHang = VuSub(posHand, GetJtHangHandlePosition(jt));
                 UpdateJtHangPlace(jt);
@@ -3623,7 +3623,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 aseg = jt->unknown1BC0;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
-                jt->unknown1038 = -1;
+                jt->blendSide = -1;
                 break;
             case JTS_Pickpocket:
                 aseg = jt->pasegPickpocket;
@@ -3762,7 +3762,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearXyz(&jt->unknown190);
                 break;
             case JTBS_5:
-                jt->unknown1038 = -1;
+                jt->blendSide = -1;
                 aseg = jt->unknown14D0;
                 ClearXyz(&jt->unknown190);
                 grfapl = 9;

@@ -108,11 +108,16 @@ struct BLLEAN : public BL
 struct JTPLACE
 {
       LO *object; /* object */
-      GRABSPOT *grabSpot; /* grab spot */
-      SOPART *part;    /* collision part */
+      GRABSPOT *grabSpot; /* grab spot (a hang/grab curve: its GetGrabPos virtual evaluates the place) */
+      SOPART *part;    /* collision part the place is on (its transform holds the position) */
       float rememberedTime; /* time it was remembered */
-      qword position; /* position */
+      union   /* selected by grabSpot (places.cpp GetJtPlacePosition) */
+      {
+            qword position; /* no grabSpot: position (in part->transform's space when part is set) */
+            float grabSpotParam; /* grabSpot set: the distance along the grab spot's curve */
+      };
 };
+typedef char assert_JTPLACE_size[sizeof(JTPLACE) == 0x20 ? 1 : -1];
 
 /* JTPLACES: the hero's list of remembered landing/grab spots (up to 32).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
@@ -411,18 +416,21 @@ struct GADGETSLOT
       float stateStartTime; /* time the state was entered */
 };
 
-/* JTGOAL: a move-to goal: target position, distance and hold flag.
+/* JTGOAL: a scripted move-to goal and its anti-stuck check (jtgoal.cpp): target position, the distance at the last
+   check and the hold flag.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGOAL
 {
       STEPPLAYER *player;        /* owner */
       undefined4 unknown04[3];
-      qword goalPosition; /* goal position */
-      float distance; /* distance to the goal */
-      float lastCheckTime; /* time of the last check */
-      int shouldHold; /* hold at the goal */
+      qword goalPosition; /* +0x10 goal position */
+      float lastDistance; /* +0x20 distance to the goal at the last check (SetJtgoal stores the raw bits of an integer-typed
+                             distance helper) */
+      float nextCheckTime; /* +0x24 clock.time of the next progress check */
+      int isHolding; /* +0x28 the goal warped the player and waits for the player's air state to clear */
       undefined4 unknown2C;
 };
+typedef char assert_JTGOAL_isHolding[SLY2_OFFSETOF(JTGOAL, isHolding) == 0x28 ? 1 : -1];
 
 /* JTTHROW: the carry/throw subsystem: carried object, aiming and the throw blends.
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
@@ -478,7 +486,8 @@ struct STEPPLAYER : public STEP
       JTMODE jtmode;   /* gadget/recon modes */
       JTPIPE jtpipe;   /* pipe climbing */
       JTGOAL jtgoal;   /* move-to goal */
-      uint unknown1000;   /* possibly grabSpotMask (low-confidence guess: ANDed with GRABSPOT::grfUnk1c to filter spots) */
+      uint grfGrabTarget;   /* +0x1000 the hero's bit (Bentley 2, Murray 4) matched against grab spots (GRABSPOT::grfUnk1c, grab.cpp)
+                               and CID 0x14 hand targets (jthands.cpp) */
       undefined4 unk_0x1004[(0x1010 - 0x1004) / 4];
       qword unknown1010;   /* possibly smoothedOffset (low-confidence guess: PosSmooth-ed toward zero each frame in air.cpp) */
       float unknown1020;
@@ -487,7 +496,7 @@ struct STEPPLAYER : public STEP
       struct SM *unknown102C;
       struct ASEGA *activeAnimation;
       struct SMA *activeStateMachine;
-      int unknown1038;
+      int blendSide;   /* +0x1038 side of the directional blend: -1 none, 0 negative, 1 positive (dirblend.cpp; jt.cpp resets it) */
       float grabRadius;   /* +0x103C the hero's radius added to grab-spot positions (grabspot.cpp GetPole/Wall/HoldGrabspotGrabPosition) */
       int unknown1040;   /* +0x1040 1: grab headings are turned by pi (grabspot.cpp) */
       int unknown1044;
@@ -498,7 +507,8 @@ struct STEPPLAYER : public STEP
       qword unknown1060;
       qword unknown1070;
       float unknown1080;   /* stamped with clock.time while Murray is busy and grabbing (GetMurrayCpdefi) */
-      struct JSG *pjsgScript;   /* script (JSG) controlling the hero */
+      struct RELAYJSG *pjsgScript;   /* +0x1084 the relay job sequence (RELAYJSG, cutscene/relay.cpp; refcounted) scripting the hero, set by
+                                   SetStepplayerRide; +0x40 of it is its current actor command (jtgoal.cpp, stepplayer.cpp) */
       void *unknown1088;
       int unknown108C;
       LOREF *unknown1090;

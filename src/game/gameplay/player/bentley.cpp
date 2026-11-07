@@ -103,7 +103,7 @@ void InitBentley(BENTLEY *bentley)
         ps->slowSpeed = 0.0f;
         ps->maxSpeedChange = 4500.0f;
     }
-    bentley->unknown1000 = 2;
+    bentley->grfGrabTarget = 2;
     bentley->apocket[1].idGadget = 7;
     bentley->apocket[2].idGadget = 9;
     bentley->apocket[3].idGadget = 11;

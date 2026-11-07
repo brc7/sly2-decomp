@@ -2374,35 +2374,35 @@ int WillStepplayerLand(struct SO *so, float dt)
 } } // namespace M_func_00143D20
 
 namespace M_func_00143DE8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, ...); };
-struct P {
-    char pad[0xC]; struct VTE *vt; char pad1[0x26C - 0x10]; char m26C[0x4C8 - 0x26C]; int grabState;
-    char pad2[0xF00 - 0x4CC]; char mF00[0x1084 - 0xF00]; struct LO *plo; char pad3[0x11B4 - 0x1088]; int x11B4;
-};
+/* STEPPLAYER::pjsgScript is the relay job sequence (RELAYJSG, cutscene/relay.cpp; not in a header): a refcounted BASIC
+   whose +0x40 is its current actor command, the command kind first. */
+struct RELAYCMDIsland { int kind; };
+struct RELAYJSGIsland : public BASIC { char pad10[0x40 - 0x10]; RELAYCMDIsland *prelaycmdJt; };
 void ClearBhvstk__FP6BHVSTK(void *p);
-int IsStepplayerInJtMode(struct P *p);
+int IsStepplayerInJtMode(STEPPLAYER *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
-// Sets the ridden object (+0x1084): the old one is released (leaving grab states 5/6), the new one notified.
-void SetStepplayerRide(struct P *player, struct LO *lo)
+// Sets the job sequence scripting the hero (+0x1084): the old one is released (leaving grab states 5/6), the new one
+// referenced; the behaviour stack is cleared and a recon mode left.
+void SetStepplayerRide(STEPPLAYER *player, RELAYJSGIsland *lo)
 {
-    struct LO *old = player->plo;
+    RELAYJSGIsland *old = (RELAYJSGIsland *)player->pjsgScript;
     if (lo == old) return;
     if (old) {
         old->Release();
-        switch (player->grabState) {
+        switch (player->jtgrab.state) {
         case 5: case 6:
-            player->vt[88].pfn((char *)player + player->vt[88].d, 0);
+            player->SetPlayerState(0);
             break;
         }
     }
-    player->plo = lo;
+    player->pjsgScript = (RELAYJSG *)lo;
     if (!lo)
         return;
     lo->AddRef();
-    ClearBhvstk__FP6BHVSTK(player->m26C);
-    if (IsStepplayerInJtMode(player)) SetJtModeState__FP6JTMODEi(player->mF00, -1);
-    if (player->x11B4 != -1 && *(int *)player->plo->unknown40 != 0x1E)
-        player->vt[88].pfn((char *)player + player->vt[88].d, 0);
+    ClearBhvstk__FP6BHVSTK(&player->behaviors);
+    if (IsStepplayerInJtMode(player)) SetJtModeState__FP6JTMODEi(&player->jtmode, -1);
+    if (player->jtthrow.state != -1 && ((RELAYJSGIsland *)player->pjsgScript)->prelaycmdJt->kind != 0x1E)
+        player->SetPlayerState(0);
 }
 } } // namespace M_func_00143DE8
 

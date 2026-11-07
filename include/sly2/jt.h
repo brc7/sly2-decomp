@@ -39,10 +39,12 @@ struct JTANIM
       int unknown0C;
       int unknown10;
       float hangStartTime; /* time hanging started */
-      int unknown18;
+      int unknown18;   /* hang.cpp: the swing extreme last reached (0 near, 2 far, -1 none) */
       int isHangingBackward; /* hanging facing backward */
-      struct XA *pxaHang;   /* attachment used while hanging */
-      undefined4 unk_0x24[(0x70 - 0x24) / 4];
+      struct XA *pxaHang;   /* attachment used while hanging (its other object: the moving anchor's owner) */
+      undefined4 unk_0x24[(0x30 - 0x24) / 4];
+      qword hangForce[2][2];   /* +0x30 AnticipateJtForce's result: {linear, angular} acceleration for Sly, then for the
+                                  anchor's owner (hang.cpp CalculateJtHangAccel, AddJtExternalAccelerations) */
       struct SM *psmHang;   /* state machine of the hang */
       undefined4 unknown74[3];
       qword dposHang;   /* hang offset */
@@ -56,6 +58,15 @@ struct JTPOCKET
       PROXY *proxy;    /* proxy that spawns the gadget object */
       CID100 *pcid100;   /* the gadget object */
 };
+
+/* JTSWEEPBL: a cane sweep blend: two blend entries (incoming, outgoing) and the blended segment
+   (cane.cpp ChooseJtSweepTarget weights them toward the attack target). */
+struct JTSWEEPBL
+{
+      JTAIRBL abl[2];   /* [0] incoming, [1] outgoing */
+      ASEGBL *pasegbl;   /* the blended segment (played as the state's clip) */
+};
+typedef char assert_JTSWEEPBL_size[sizeof(JTSWEEPBL) == 0x1C ? 1 : -1];
 
 /* JT: Sly Cooper (the player character class inherited from Sly 1's name JT).
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports) */
@@ -90,20 +101,20 @@ struct JT : public STEPPLAYER
       float animStateStartTime; /* +0x18DC [R] clock.time when animState was entered; was tUnk18dc */
 
       JTANIM janim;   /* animation and hang state */
-      undefined4 unknown1970[0x24 / 4];
-      ASEG *pasegHang;   /* hang animation */
-      float unknown1998;
-      float unknown199C;
+      JTAIRBL ablSwing[3];   /* +0x1970 the swing blend entries (forward, backward, idle; PostJtLoadSwing) */
+      ASEG *pasegHang;   /* +0x1994 hang animation: the swing blend (RecalculateAsegBlend) */
+      float swingSpeedBlend;   /* +0x1998 smoothed swing speed weight (hang.cpp) */
+      float swingActiveBlend;   /* +0x199C smoothed active-swing weight (hang.cpp) */
       SO *unknown19A0;
       SO *unknown19A4;   /* possibly handObject (low-confidence guess: position used as posHand; its rootTransform for PredictAsegEffect) */
       LO *unknown19A8;
       float rBounds;   /* +0x19AC radius of the extra bounds points */
       float unknown19B0;
       undefined4 unk_0x19b4[(0x19c0 - 0x19b4) / 4];
-      void *unknown19C0;
-      void *unknown19C4;
+      XF *wristXf;   /* +0x19C0 wrist transform (hang IK; the pickpocket pose reads its position) */
+      XF *handChildXf;   /* +0x19C4 transform under the hand (hang IK goal) */
       void *unknown19C8;
-      void *unknown19CC;
+      XF *handXf;   /* +0x19CC hand transform (hang IK; its reference word is the IK chain id) */
       void *unknown19D0;
       void *unknown19D4;
       void *unknown19D8;
@@ -116,15 +127,8 @@ struct JT : public STEPPLAYER
       ACT5 *pact5Unk19f4;
       ACT5 *pact5Unk19f8;
       ACT5 *pact5Unk19fc;
-      int unknown1A00;
-      undefined4 unknown1A04[0x18 / 4];
-      ASEGBL *unknown1A1C;
-      undefined4 unknown1A20[0x18 / 4];
-      ASEGBL *unknown1A38;
-      undefined4 unknown1A3C[0x18 / 4];
-      ASEGBL *unknown1A54;
-      undefined4 unknown1A58[0x18 / 4];
-      ASEGBL *unknown1A70;
+      struct ACT *pactHand;   /* +0x1A00 the hand's position actuator (hang IK goal: SetActPositionGoal) */
+      JTSWEEPBL ablSweep[4];   /* +0x1A04 the cane sweep blends of cane states 4..7 (cane.cpp SetJtCaneState) */
       ASEG *unknown1A74;
       ASEG *unknown1A78;
       ASEG *unknown1A7C;
@@ -151,10 +155,10 @@ struct JT : public STEPPLAYER
       float tPickpocketLabel;   /* +0x1BD8 time of label 0x167 in pasegPickpocket (CacheJtRestPose) */
       undefined4 unknown1BDC;
       qword posPickpocketHand;   /* +0x1BE0 the hand object's position at that label (CacheJtRestPose) */
-      qword posPickpocket19CC;   /* +0x1BF0 unknown19CC's position at that label */
-      qword posPickpocket19C0;   /* +0x1C00 unknown19C0's position at that label */
-      qword eulerPickpocket19C0;   /* +0x1C10 unknown19C0's rotation (Euler angles) at that label */
-      qword posPickpocketHandLocal;   /* +0x1C20 posPickpocketHand in unknown19C0's frame */
+      qword posPickpocket19CC;   /* +0x1BF0 handXf (+0x19CC)'s position at that label */
+      qword posPickpocket19C0;   /* +0x1C00 wristXf (+0x19C0)'s position at that label */
+      qword eulerPickpocket19C0;   /* +0x1C10 wristXf (+0x19C0)'s rotation (Euler angles) at that label */
+      qword posPickpocketHandLocal;   /* +0x1C20 posPickpocketHand in wristXf (+0x19C0)'s frame */
       undefined4 unk_0x1c30[(0x1ce0 - 0x1c30) / 4];
       ASEG *apasegSwing[13];   /* cane swing animations */
       ASEG *pasegAttackA;   /* first attack animation */
@@ -237,6 +241,9 @@ typedef char assert_JT_bodyState[SLY2_OFFSETOF(JT, bodyState) == 0x18D0 ? 1 : -1
 typedef char assert_JT_stateStartTime[SLY2_OFFSETOF(JT, stateStartTime) == 0x18CC ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_JT_animState[SLY2_OFFSETOF(JT, animState) == 0x18D8 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_JT_attachedTo[SLY2_OFFSETOF(JT, attachedTo) == 0x18C0 ? 1 : -1];     /* CONFIRMED runtime */
+typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 1 : -1];
+typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
+typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
 typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */
 
 #endif /* SLY2_JT_H */

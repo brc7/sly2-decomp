@@ -58,7 +58,12 @@ struct STEP : public PO
       int unknown1A4;
       float targetHeading; /* target heading (radians) */
       undefined4 unknown1AC;
-      MATRIX3 matTarget;   /* target orientation */
+      union
+      {
+            MATRIX3 matTarget;   /* target orientation */
+            qword aqwTarget[3];   /* the same rows as VU quadwords (jthands.cpp reads them so). Local qword-row form of
+                                     MATRIX3: a candidate for a MATRIX3 union in sly2/basic.h */
+      };
       qword unknown1E0;
       float rSpin;   /* spin rate */
       VECTOR vSpin;   /* spin axis */

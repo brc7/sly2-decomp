@@ -106,7 +106,7 @@ void InitMurray(MURRAY *murray)
     Init(&murray->unknown10A8, f, g);
     }
     InitThrow(&murray->jtthrowAim, murray);
-    murray->unknown1000 = 4;
+    murray->grfGrabTarget = 4;
     D_002F7900 = murray;
 }
 } } // namespace M_InitMurray
