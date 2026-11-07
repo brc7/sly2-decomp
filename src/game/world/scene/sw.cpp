@@ -19,6 +19,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
+#include "sly2/save.h"
 #include "sly2/slotheap.h"
 #include "sly2/joy.h"
 #include "sly2/scrap.h"
@@ -544,12 +545,7 @@ struct SVPATH
       int cid;
       short *aid;
 };
-struct SAVEDATA
-{
-      byte ab[0x5400];
-      uint nVersion;
-      int nSum;
-};
+/* SAVEDATA: sly2/save.h */
 /* LOUPD: sly2/sw.h */
 int GetCurrentLevelIndex();
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);

@@ -34,14 +34,6 @@ struct SVKEY
 
 /* The schema (g_svstore = SW::savevars) is sly2/sw.h's SAVEVARS: SVENT entries and the SVN symbol table (SVNHASH). */
 
-/* The save blob plus the schema version and checksum it was written with (g_gs, D_003D4A60). */
-struct SVSET
-{
-    GS gs;
-    int nSchema;            /* +0x5400 */
-    int nSchemaSum;         /* +0x5404 */
-};
-typedef char assert_SVSET_size[sizeof(SVSET) == 0x5408 ? 1 : -1];
 
 /* The result of a lookup: the leaf and the array index. */
 struct SVFIND
@@ -57,7 +49,7 @@ struct DISP1 { unsigned long dx : 12; unsigned long dy : 11; unsigned long rest 
 struct DISP2 { unsigned int dx : 12; unsigned int dy : 11; unsigned long rest : 41; };
 struct GSREGS { char pad[0x18]; DISP1 d1; char pad20[0x40 - 0x20]; DISP2 d2; };
 
-extern SVSET D_003D4A60;        /* g_gs */
+extern SAVEDATA D_003D4A60;        /* g_gs */
 extern char D_002DD590[];       /* the level heap */
 /* save's .data: bytes per element by kind, and the completion weight of each world's progress variable. */
 int D_002C2D90[11] = {4, 4, 4, 4, 4, 16, 16, 8, 12, 4, 4};
@@ -81,8 +73,8 @@ void *AllocFromStack(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
-CRef GetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
-CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
+CRef GetGlobalSaveVar(SVKEY *key, SAVEDATA *saveSet);
+CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SAVEDATA *saveSet);
 void ResetRumbleSaveVar();
 int CountRegionLanguages();
 void SetLanguage(int lang);
@@ -96,12 +88,12 @@ CRef *CRef_SetClq(CRef *pref, const qword *pclq);
 CRef *CRef_SetLm(CRef *pref, const void *plm);
 CRef *CRef_SetSmp(CRef *pref, const void *psmp);
 
-void ResetGsIfSchemaChanged(SAVEVARS *schema, SVSET *saveSet);
-int DoesGsMatchSchema(SAVEVARS *schema, SVSET *saveSet);
+void ResetGsIfSchemaChanged(SAVEVARS *schema, SAVEDATA *saveSet);
+int DoesGsMatchSchema(SAVEVARS *schema, SAVEDATA *saveSet);
 int FindSaveVar(SAVEVARS *schema, SVKEY *key, SVFIND *result);
-void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SVSET *saveSet);
-CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SVSET *saveSet);
-CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &ref, SVSET *saveSet);
+void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet);
+CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet);
+CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &ref, SAVEDATA *saveSet);
 void InitSaveSymbolTable(SVNHASH *symbolTable, int csym);
 unsigned int HashSaveSymbolName(const char *pchz);
 void AddSaveSymbol(SVNHASH *symbolTable, char *pchz, int symid);
@@ -151,7 +143,7 @@ extern "C" void LoadSaveSchemaFromBrx(SAVEVARS *schema, CBinaryInputStream *stre
 
 // Resets the save blob when its stored schema version or checksum differs from the loaded schema, and stores the new
 // ones.
-extern "C" void ResetGsIfSchemaChanged(SAVEVARS *schema, SVSET *saveSet)
+extern "C" void ResetGsIfSchemaChanged(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
     int nSchema = *(unsigned short *)((unsigned char *)schema->aent + schema->cent * 10 - 6);
@@ -163,7 +155,7 @@ extern "C" void ResetGsIfSchemaChanged(SAVEVARS *schema, SVSET *saveSet)
 }
 
 // True when the save blob's stored schema version and checksum match the loaded schema.
-extern "C" int DoesGsMatchSchema(SAVEVARS *schema, SVSET *saveSet)
+extern "C" int DoesGsMatchSchema(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
     return *(unsigned short *)((unsigned char *)schema->aent + schema->cent * 10 - 6) == saveSet->nSchema &&
@@ -214,7 +206,7 @@ extern "C" int FindSaveVar(SAVEVARS *schema, SVKEY *key, SVFIND *result)
 }
 
 // Returns the address of a save variable in a save blob (blob + offset + index * size of its kind).
-extern "C" void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SVSET *saveSet)
+extern "C" void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
 {
     SVFIND find;
     FindSaveVar(schema, key, &find);
@@ -225,7 +217,7 @@ struct LMV { int a[2]; };
 struct SMPV { int a[3]; };
 
 // Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
-CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SVSET *saveSet)
+CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
 {
     CRef ref;
     SVFIND find;
@@ -280,7 +272,7 @@ CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SVSET *saveSet)
 }
 
 // Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
-CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
+CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &refVal, SAVEDATA *saveSet)
 {
     CRef ref(0x24);
     SVFIND find;
@@ -333,7 +325,7 @@ CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet
     return ref;
 }
 
-static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
+static inline int GetSaveVarInt(SVKEY *key, SAVEDATA *saveSet)
 {
     CRef ref = GetGlobalSaveVar(key, saveSet);
     return ref.u.n;
@@ -342,7 +334,7 @@ static inline int GetSaveVarInt(SVKEY *key, SVSET *saveSet)
 
 // The game completion percentage: a weighted sum of nine progress variables plus a bonus per vault flag; 0, 100 or
 // clamped to 1..99.
-extern "C" int GetCompletionPercent(SAVEVARS *schema, SVSET *saveSet)
+extern "C" int GetCompletionPercent(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = 0;
     int total = 0;
@@ -393,7 +385,7 @@ extern "C" int GetCompletionPercent(SAVEVARS *schema, SVSET *saveSet)
 
 // Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
 // "from_memcard". (inferred)
-extern "C" void BuildMemcardGsMask(SAVEVARS *schema, SVSET *saveSet)
+extern "C" void BuildMemcardGsMask(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int symid;
     int i;
@@ -526,8 +518,8 @@ extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 }
 
 /* Lookups in the global schema; spelled as inline wrappers (the temporaries of a direct call differ). */
-static inline CRef GetGlobalStoreSaveVar(SVKEY *key, SVSET *saveSet) { return GetSaveVar(&g_sw.savevars, key, saveSet); }
-static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet)
+static inline CRef GetGlobalStoreSaveVar(SVKEY *key, SAVEDATA *saveSet) { return GetSaveVar(&g_sw.savevars, key, saveSet); }
+static inline CRef SetGlobalStoreSaveVar(SVKEY *key, const CRef &ref, SAVEDATA *saveSet)
 {
     return SetSaveVar(&g_sw.savevars, key, ref, saveSet);
 }
@@ -589,12 +581,12 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     return key;
 }
 
-static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SVSET *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
+static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SAVEDATA *saveSet) { return SetGlobalSaveVar(key, *pref, saveSet); }
 
 // Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
 // settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
-extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
+extern "C" void ResetSaveGs(SAVEDATA *saveSet, int fKeepSettings)
 {
     STACKSCOPE stackscope;
     SVKEY *apkey[11] = { (SVKEY *)g_sw.psvpLang, (SVKEY *)g_sw.psvpNoVibration, (SVKEY *)g_sw.psvpAutosaveWarned,
@@ -622,11 +614,11 @@ extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
     }
 }
 
-static inline int GetGlobalSaveVarInt(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
-static inline float GetGlobalSaveVarFloat(SVKEY *key, SVSET *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
+static inline int GetGlobalSaveVarInt(SVKEY *key, SAVEDATA *saveSet) { return GetGlobalSaveVar(key, saveSet).u.n; }
+static inline float GetGlobalSaveVarFloat(SVKEY *key, SAVEDATA *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
 // Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
-extern "C" void ApplyGsSettings(SVSET *saveSet)
+extern "C" void ApplyGsSettings(SAVEDATA *saveSet)
 {
     if ((SVKEY *)g_sw.psvpLang && CountRegionLanguages() >= 2)
         SetLanguage(GetGlobalSaveVarInt((SVKEY *)g_sw.psvpLang, saveSet));
@@ -662,6 +654,6 @@ namespace RO_ORDER { extern const char r_D_002A78F0[] __asm__("D_002A78F0") = "f
 namespace RO_ORDER { extern const char r_D_002A78F8[] __asm__("D_002A78F8") = "from_memcard"; }
 // ---- save's .bss (tu-merging.md "Data": .bss gaps): g_gs, the save blob with its schema version and checksum
 // (0x3D4A60..0x3D9E68, then screen's .bss at 0x3D9E70). 16-aligned on the definition, as the layout shows (0x3D4A60
-// after tu_1D7238's word at 0x3D4A54; SVSET itself is 8-aligned, and its 0x5408 bytes are what the copies in this
+// after tu_1D7238's word at 0x3D4A54; SAVEDATA itself is 8-aligned, and its 0x5408 bytes are what the copies in this
 // file move). Defined after the functions, so none sees a definition.
-SVSET D_003D4A60 __attribute__((aligned(16)));
+SAVEDATA D_003D4A60 __attribute__((aligned(16)));

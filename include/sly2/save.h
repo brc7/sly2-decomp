@@ -59,6 +59,20 @@ typedef char assert_GS_mppukfAcquired[SLY2_OFFSETOF(GS, mppukfAcquired) == 0x98 
 typedef char assert_GS_ccoin[SLY2_OFFSETOF(GS, ccoin) == 0xA0 ? 1 : -1];   /* schema + runtime coin counts (CONFIRMED) */
 typedef char assert_GS_mplootkc[SLY2_OFFSETOF(GS, mplootkc) == 0xA4 ? 1 : -1];   /* schema (CONFIRMED) */
 
+/* SAVEDATA: the save blob plus the schema version and checksum it was written with (g_gs, D_003D4A60; 0x5408 bytes, the
+   part of a save slot written to the card). Type name from basic.h's forward declaration, field names from save.cpp
+   (its SVSET; sw.cpp's copy called them nVersion/nSum). */
+struct SAVEDATA
+{
+      GS gs;
+      int nSchema;          /* +0x5400 the schema version (the last entry's ib) */
+      int nSchemaSum;       /* +0x5404 the schema checksum (sum of its entry bytes) */
+};
+typedef char assert_SAVEDATA_size[sizeof(SAVEDATA) == 0x5408 ? 1 : -1];
+
+/* g_gs: the live save data (address name D_003D4A60). */
+extern SAVEDATA g_gs __asm__("D_003D4A60");
+
 /* ---- The save manager (g_save = D_002E65E0; memcard.cpp): moved from memcard.cpp's file-scope types. ---- */
 
 /* MEMCARD: the memory card worker thread (SAVE::memcard): semaphore, thread id (-1: none), the queued job. */
