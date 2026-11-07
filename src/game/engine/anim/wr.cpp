@@ -245,7 +245,7 @@ extern "C" void AddWrWarpGroup(WRV *warp, WRBG *group)
 // The state vector of one vertex for one warp matrix
 // A batch of the glob: its vertex positions and, per warp matrix, where the state vectors go
 // pos (w = 1) transformed by mat
-static inline qwordV QwTransformPos(const MATRIX4V &mat, qwordV qwPos)
+static inline qwordV TransformPoint(const MATRIX4V &mat, qwordV qwPos)
 {
     qwordV qw;
     qw = VuMulMatrix4(*(qwordV *)mat.mat[0], *(qwordV *)mat.mat[1], *(qwordV *)mat.mat[2], *(qwordV *)mat.mat[3], qwPos);
@@ -259,7 +259,7 @@ static inline VU_FLOAT VuFloat(float g)
     return vu;
 }
 
-static inline qwordV QwScale(qwordV qw, VU_FLOAT g)
+static inline qwordV VuScale(qwordV qw, VU_FLOAT g)
 {
     qwordV qwResult;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwResult) : "j"(qw), "j"(g.q));
@@ -268,7 +268,7 @@ static inline qwordV QwScale(qwordV qw, VU_FLOAT g)
 
 
 // |v| (x, y, z) in x
-static inline qwordV QwLength(qwordV v)
+static inline qwordV VuLength(qwordV v)
 {
     qwordV qw;
     qw = VuDot(v, v);
@@ -327,7 +327,7 @@ static inline VU_VECTOR Normalize(VU_VECTOR vec)
 }
 
 // x of a VU_FLOAT as a float, through an asm mtc1 (the compiler's mtc1 schedules the circle case differently)
-static inline float GFromVu(VU_FLOAT g)
+static inline float FloatFromVu(VU_FLOAT g)
 {
     register int n asm("$3"); // the one pin: local-alloc gives this block-local scratch $v0, the game has $v1
     float gResult;
@@ -371,13 +371,13 @@ void UpdateWrStateVectors(WRV *warp)
             switch (group->envelope.kind)
             {
             case 4:
-                posBend = QwScale(*(qwordV *)&D_002A2DA0, VuFloat((group->envelope.innerDistance + group->envelope.outerDistance) * 0.5f));
+                posBend = VuScale(*(qwordV *)&D_002A2DA0, VuFloat((group->envelope.innerDistance + group->envelope.outerDistance) * 0.5f));
                 break;
             case 5:
-                posBend = QwScale(*(qwordV *)&D_002A2DB0, VuFloat((group->envelope.innerDistance + group->envelope.outerDistance) * 0.5f));
+                posBend = VuScale(*(qwordV *)&D_002A2DB0, VuFloat((group->envelope.innerDistance + group->envelope.outerDistance) * 0.5f));
                 break;
             case 6:
-                posBend = QwScale(*(qwordV *)&D_002A2DC0, VuFloat((group->envelope.innerDistance + group->envelope.outerDistance) * 0.5f));
+                posBend = VuScale(*(qwordV *)&D_002A2DC0, VuFloat((group->envelope.innerDistance + group->envelope.outerDistance) * 0.5f));
                 break;
             default:
                 posBend = *(qwordV *)&D_002A2DD0;
@@ -385,7 +385,7 @@ void UpdateWrStateVectors(WRV *warp)
             }
             MATRIX4V matInverse;
             matInverse = InvertMatrix4Rigid(&dmat);
-            posBend = QwTransformPos(matInverse, posBend);
+            posBend = TransformPoint(matInverse, posBend);
             if (group->glob->pmatUnk08)
                 dmat = __ml__FRC7MATRIX4T0(group->envelope.dmat, *group->glob->pmatUnk08);
         }
@@ -404,26 +404,26 @@ void UpdateWrStateVectors(WRV *warp)
             {
                 VECTORV pos;
                 float s;
-                *(qwordV *)&pos = QwTransformPos(dmat, *(qwordV *)ppos);
+                *(qwordV *)&pos = TransformPoint(dmat, *(qwordV *)ppos);
                 switch (group->envelope.kind)
                 {
                 case -1:
                     *pu = 1.0f;
                     continue;
                 case 0:
-                    s = VuToFloat(QwLength(*(qwordV *)&pos));
+                    s = VuToFloat(VuLength(*(qwordV *)&pos));
                     break;
                 case 1:
                     pos.z = 0.0f;
-                    s = VuToFloat(QwLength(*(qwordV *)&pos));
+                    s = VuToFloat(VuLength(*(qwordV *)&pos));
                     break;
                 case 2:
                     pos.y = 0.0f;
-                    s = VuToFloat(QwLength(*(qwordV *)&pos));
+                    s = VuToFloat(VuLength(*(qwordV *)&pos));
                     break;
                 case 3:
                     pos.x = 0.0f;
-                    s = VuToFloat(QwLength(*(qwordV *)&pos));
+                    s = VuToFloat(VuLength(*(qwordV *)&pos));
                     break;
                 case 4:
                     s = pos.x;
@@ -465,7 +465,7 @@ void UpdateWrStateVectors(WRV *warp)
                         float gSin, gCos;
                         VU_FLOAT gDot = VuDot(VU_VECTOR(posWorld), Normalize(VU_VECTOR(entry->vecAxis)));
                         float rScale = entry->data.circle.spatialFrequency * 6.2831855f;
-                        float rad = GFromVu(gDot) * rScale;
+                        float rad = FloatFromVu(gDot) * rScale;
                         CalculateSinCos__FfPfT1(RadNormalize__Ff(rad), &gSin, &gCos);
                         pwarpvtx->ag[is] = gCos * *pu;
                         pwarpvtx->ag[is + 1] = gSin * *pu;
@@ -509,7 +509,7 @@ float UNoise(int n)
 }
 
 // Interpolate alternating noise samples with smoothstep.
-static inline float GSmooth(float s)
+static inline float Smoothstep(float s)
 {
     float twice=s+s;
     register float square __asm__("$f3")=s;
@@ -544,7 +544,7 @@ float UNoise(float frequency, float phase, float u1)
         u1 *= randomness;
         u0 = randomness * (u0 - 1.0f) + 1.0f;
     }
-    return u0+Product(GSmooth(t-n),u1-u0);
+    return u0+Product(Smoothstep(t-n),u1-u0);
 }
 
 /** @sly2-annot addr=0x22BF40
