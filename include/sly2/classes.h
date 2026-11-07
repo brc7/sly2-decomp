@@ -1180,7 +1180,10 @@ struct BHVGOTO : BHV
     int unknownAC;
     float gotoParam;        /* +0xB0 [S] set from the script's goto command (SSGE::gotoParam; meaning unknown) */
     int numRouteLinks;      /* +0xB4 */
-    PATHLINK *firstLink;    /* +0xB8 the route's (single) link (FindPathlinkRoute) */
+    union {
+        PATHLINK *firstLink;    /* +0xB8 the route's (single) link */
+        PATHLINK *route[1];     /* +0xB8 the same as the route array FindPathlinkRoute fills (FindBhvgotoRoute) */
+    };
     int isDirect;           /* +0xBC goes straight to the goal (no route) */
     int allowPartialRoute;  /* +0xC0 */
     int unknownC4[3];
@@ -1723,8 +1726,11 @@ struct PATHLINK : LO
 {
     int numEnds;            /* +0x50 the number of link segments (BHVPATHLINK walks 0..numEnds-1) */
     int unknown54[3];
-    PATHLINKEND aend[6];
-    char pad120[0x160 - 0x120];
+    PATHLINKEND aend[6];    /* +0x60 aend[0]/aend[1]: the link's start and end (PlanBhvgoto) */
+    int kind;               /* +0x120 0: a walkable segment (PlanBhvgoto tests the guard's distance to it) */
+    int unknown124;
+    struct CID17 *endZone;  /* +0x128 the path zone at its far end (FindBhvgotoRoute) */
+    char pad12C[0x160 - 0x12C];
     virtual void Init() __asm__("InitPathlink");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddPathlinkHierarchy");   /* slot 11 */
@@ -1732,6 +1738,7 @@ struct PATHLINK : LO
     virtual void PostLoad() __asm__("PostPathlinkLoad");   /* slot 15 */
 };
 typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
+typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -1];
 
 /* 99 CID99 (0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
 struct CID99 : SO

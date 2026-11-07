@@ -5957,36 +5957,23 @@ void BHVGOTO::Update() {
 
 // 0x17D8A8 FindBhvgotoRoute
 namespace M_FindBhvgotoRoute { extern "C" {
-struct I; struct D; struct C; struct A; struct V2; struct S;
-typedef int qword __attribute__((mode(TI)));
 extern SW D_003DD490;
-struct I { char pad[0x128]; void *endZone; };
-struct D { char pad[0x10]; void *pathzone; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
-struct A { char pad[0xE8]; struct C *unknownE8; };
-struct V2 { qword a; qword b; };
-struct S {
-    char pad[0x10]; struct A *guard; char pad2[0x2C];
-    struct V2 goal;
-    union { struct V2 waypoint; struct { int waypointRef0; int waypointRef1; char pad[8]; qword waypointPos; } s; } u;
-    char pad3[0xB4 - 0x80]; int numRouteLinks; struct I *route[1]; int isDirect; int allowPartialRoute;
-};
-qword GetLoWorldPos(struct A *p);
-qword GetPathlinkEndpointPos(struct V2 *p, qword goalPos);
+qword GetLoWorldPos(void *p);
+qword GetPathlinkEndpointPos(PATHLINKEND *p, qword goalPos);
 struct CID17 *FindPathzoneAtPos(qword goalPos, int n);
-int FindPathlinkRoute(void *a, struct A *b, qword goalPos, int c, int d, struct I **pp);
+int FindPathlinkRoute(void *a, STEPGUARD *b, qword goalPos, int c, int d, PATHLINK **pp);
 void FindPathzoneClosestPoint(void *a, qword goalPos, qword *pv, int n);
 // 0x17D8A8: Routes the goal through the path zones: directly within one zone, else through path links (optionally
 // allowing partial routes), else stops at the closest reachable point.
-void FindBhvgotoRoute(struct S *behavior) {
+void FindBhvgotoRoute(BHVGOTO *behavior) {
     behavior->numRouteLinks = 0;
-    behavior->u.waypoint = behavior->goal;
+    behavior->waypoint = behavior->goal;
     if (behavior->isDirect != 0)
         return;
-    qword pos = GetLoWorldPos(behavior->guard);
+    qword pos = GetLoWorldPos(behavior->owner);
     qword goalPos = GetPathlinkEndpointPos(&behavior->goal, pos);
-    struct C *c = behavior->guard->unknownE8;
-    struct D *d = c ? c->unknownDC : 0;
+    SOPHYS *c = behavior->owner->physics;
+    REGENT *d = c ? c->pregent : 0;
     void *currentZone = d ? d->pathzone : 0;
     void *goalZone;
     int failed;
@@ -5997,11 +5984,11 @@ void FindBhvgotoRoute(struct S *behavior) {
     } else if (goalZone != currentZone) {
         SW *g = &D_003DD490;
         int n;
-        if ((behavior->numRouteLinks = FindPathlinkRoute(g->pregtree, behavior->guard, goalPos, 1, 1, behavior->route)) <= 0) {
+        if ((behavior->numRouteLinks = FindPathlinkRoute(g->pregtree, (STEPGUARD *)behavior->owner, goalPos, 1, 1, behavior->route)) <= 0) {
             if (behavior->allowPartialRoute == 0) {
                 failed = 1;
             } else {
-                n = FindPathlinkRoute(g->pregtree, behavior->guard, goalPos, 0, 1, behavior->route);
+                n = FindPathlinkRoute(g->pregtree, (STEPGUARD *)behavior->owner, goalPos, 0, 1, behavior->route);
                 behavior->numRouteLinks = n;
                 if (n == 0) {
                     failed = 1;
@@ -6013,72 +6000,62 @@ void FindBhvgotoRoute(struct S *behavior) {
                     } else {
                         a = behavior->route[n - 1]->endZone;
                     }
-                    behavior->u.s.waypointRef0 = 0;
-                    behavior->u.s.waypointRef1 = 0;
-                    FindPathzoneClosestPoint(a, goalPos, &behavior->u.s.waypointPos, 1);
+                    behavior->waypoint.shape = 0;
+                    behavior->waypoint.object = 0;
+                    FindPathzoneClosestPoint(a, goalPos, &behavior->waypoint.pos, 1);
                 }
             }
         }
     }
     if (failed) {
-        behavior->u.s.waypointRef0 = 0;
-        behavior->u.s.waypointRef1 = 0;
-        behavior->u.s.waypointPos = pos;
+        behavior->waypoint.shape = 0;
+        behavior->waypoint.object = 0;
+        behavior->waypoint.pos = pos;
     }
 }
 } } // namespace M_FindBhvgotoRoute
 
 // 0x17DA28 PlanBhvgoto
 namespace M_PlanBhvgoto { extern "C" {
-struct W; struct X; struct Q; struct B; struct D; struct C; struct A; struct S;
-typedef int qword __attribute__((mode(TI)));
+struct W;
 extern CLOCK D_002DDED0;
-struct W { int pad[0x28 / 4]; int version; };
+struct W { int pad[0x28 / 4]; int version; };   /* the region tree (REGTREE has no layout yet): its path-graph version */
 extern SW D_003DD490;
-struct X { qword a; qword v; };
-struct Q { char pad[0x60]; struct X start; struct X end; char pad2[0x120 - 0xA0]; int kind; };
-struct B { char pad[0xE8]; int numPoints; char pad2[8]; qword *points; };
-struct D { char pad[0x10]; void *pathzone; };
-struct C { char pad[0xDC]; struct D *unknownDC; };
-struct A { char pad[0xE8]; struct C *unknownE8; char pad2[0x294 - 0xEC]; struct B *path; char pad3[0xFE8 - 0x298]; int capabilities; };
-struct S {
-    char pad[0x10]; struct A *guard; char pad2[0x1C]; int state; char pad3[0x2C]; struct X waypoint; struct X relocateGoal;
-    float planTime; int pathGraphVersion; char pad4[0xC]; int numRouteLinks; struct Q *firstLink; int isDirect;
-};
-int IsBhvBusyAbove(struct S *p);
-void SetBhvgotoState(struct S *p, int n);
-void FindBhvgotoRoute(struct S *p);
-void ClearPointerPair(struct X *x);
+void FindBhvgotoRoute(BHVGOTO *p);
 qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(struct X *s, qword v);
+/* PATHLINKEND cleared by an explicit ClearPointerPair call: its constructor at that point changes the register of
+   the numRouteLinks load (v0/v1). */
+struct PATHLINKENDIsland { SHAPE *shape; LO *object; int unknown8[2]; qword pos; };
+void ClearPointerPair(PATHLINKENDIsland *x);
+qword GetPathlinkEndpointPos(PATHLINKENDIsland *s, qword v);
 void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
-void MeasureShape(struct B *b);
-int FindPathzonePathCurve(void *q, qword a, qword b, struct B *c);
+void MeasureShape(SHAPE *b);
+int FindPathzonePathCurve(void *q, qword a, qword b, SHAPE *c);
 // VU0 helper: z component of a vector.
 // 0x17DA28: Plans the move: routes, builds the path curve to the next waypoint or path link (or a straight
 // two-point shape) and picks the state.
-void PlanBhvgoto(struct S *behavior) {
-    struct X nextGoal;
+void PlanBhvgoto(BHVGOTO *behavior) {
+    PATHLINKENDIsland nextGoal;
     int nextState;
     if (behavior->state == -1) return;
-    if (!(behavior->guard->capabilities & 2)) return;
+    if (!(((STEPGUARD *)behavior->owner)->capabilityFlags & 2)) return;
     if (IsBhvBusyAbove(behavior)) return;
     SetBhvgotoState(behavior, 0);
     FindBhvgotoRoute(behavior);
     ClearPointerPair(&nextGoal);
     if (behavior->numRouteLinks == 0) {
-        nextGoal = behavior->waypoint;
+        nextGoal = *(PATHLINKENDIsland *)&behavior->waypoint;
         nextState = 1;
     } else {
-        struct Q *q = behavior->firstLink;
-        nextGoal = q->start;
+        PATHLINK *q = behavior->firstLink;
+        nextGoal = *(PATHLINKENDIsland *)&q->aend[0];
         nextState = 2;
         if (q->kind == 0) {
             union { qword q; float f[4]; } c;
             float segmentParam;
-            qword pos = GetLoWorldPos(behavior->guard);
-            qword a = GetPathlinkEndpointPos(&q->start, pos);
-            qword b = GetPathlinkEndpointPos(&q->end, pos);
+            qword pos = GetLoWorldPos(behavior->owner);
+            qword a = GetPathlinkEndpointPos((PATHLINKENDIsland *)&q->aend[0], pos);
+            qword b = GetPathlinkEndpointPos((PATHLINKENDIsland *)&q->aend[1], pos);
             int isNearLink;
             FindClosestPointOnLineSegment(pos, a, b, &c.q, &segmentParam, 0);
             isNearLink = 0;
@@ -6097,20 +6074,20 @@ void PlanBhvgoto(struct S *behavior) {
         }
     }
     if (nextState > 0) if (nextState < 3) {   // (two ifs: "&&" lays the blocks out differently)
-        struct B *b = behavior->guard->path;
-        qword pos = GetLoWorldPos(behavior->guard);
+        SHAPE *b = (SHAPE *)behavior->owner->unknown294;
+        qword pos = GetLoWorldPos(behavior->owner);
         qword q = GetPathlinkEndpointPos(&nextGoal, pos);
         if (behavior->isDirect) {
-            b->numPoints = 2;
-            b->points[0] = pos;
-            b->points[1] = q;
+            b->numControlVertices = 2;
+            *(qword *)&b->vertexPositions[0] = pos;
+            *(qword *)&b->vertexPositions[1] = q;
             MeasureShape(b);
         } else {
-            struct C *c = behavior->guard->unknownE8;
-            struct D *d = c ? c->unknownDC : 0;
+            SOPHYS *c = behavior->owner->physics;
+            REGENT *d = c ? c->pregent : 0;
             void *e = d ? d->pathzone : 0;
             if (!FindPathzonePathCurve(e, pos, q, b)) {
-                behavior->relocateGoal = nextGoal;
+                *(PATHLINKENDIsland *)&behavior->relocateGoal = nextGoal;
                 nextState = 5;
             }
         }
