@@ -118,27 +118,24 @@ void ResetXfValueRef(void *q, struct S *p)
 namespace RO_ORDER { extern const float r_D_002A98D0 __asm__("D_002A98D0") = -3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022C840 { extern "C" {
-struct VTE { short d; short pad; void (*pf)(...); };   /* the C file's unprototyped pointer */
-struct O { int a[3]; struct VTE *vt; };
-struct Q { char pad[0x80]; float a, b; void *pa, *pb; char pad2[8]; short k; short l; };
 extern const float D_002A98D0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
 // If the transform slot's role is an active (moving) one, marks the owning SO awake so it gets per-frame updates.
 // (inferred)
-void WakeXfOwner(struct O *p, struct Q *q)
+void WakeXfOwner(SO *p, XF *q)
 {
-    switch (q->k) {
+    switch (q->role) {
     case 0: case 1: case 2: case 3: case 13: case 14: case 15: case 16: case 20: case 21:
         break;
     default:
-        q->b = D_002A98D0;
-        q->a = D_002A98D0;
-        q->pb = D_002C44E0;
-        q->pa = D_002C44E0;
+        q->segmentEndTime = D_002A98D0;
+        q->segmentStartTime = D_002A98D0;
+        q->speedSource = (float *)D_002C44E0;
+        q->timeSource = (float *)D_002C44E0;
         break;
     }
-    q->l = 0;
-    p->vt[47].pf((char *)p + p->vt[47].d, 4);
+    q->phase = 0;
+    p->SetFlags(4);
 }
 } } // namespace M_func_0022C840
 
