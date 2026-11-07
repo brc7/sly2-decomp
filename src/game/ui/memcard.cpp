@@ -2225,15 +2225,14 @@ void FormatSaveTimeText(void *s)
 
 namespace M_func_001ADC40 {
 /* (Claude agent, 2026-10-17) frame pointer copy pf used only for the push call reproduces the a0->s5 copy. */
-struct REF{int tag;union{int n;float g;};};
 struct G{char pad[0x3A18];char object[0x104];void*primary;int pad20[2];void*fallback;};
 struct B{char data[0x5464];};
 extern "C" {
  extern G D_003DD490;
  extern B D_002E6604[] __asm__("D_002E65E0+0x24");
  extern char D_003D9ED0[];
- void*GetGlobalSaveVar(REF*,void*,void*);
- void Decref__4CRef(REF*);
+ void*GetGlobalSaveVar(CRefData*,void*,void*);
+ void Decref__4CRef(CRefData*);
  void*STACKSCOPE_ctor(void*);
  void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
  void*AllocSaveKey(void*,...);
@@ -2244,11 +2243,11 @@ extern "C" {
  char*strcpy(char*,const char*);
  int GetPauseMenuTopPageId(void*);
 }
-static inline float GetG(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);float g=r.g;Decref__4CRef(&r);return g;}
-static inline int GetN(REF&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);int n=r.n;Decref__4CRef(&r);return n;}
+static inline float GetG(CRefData&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);float g=r.u.g;Decref__4CRef(&r);return g;}
+static inline int GetN(CRefData&r,void*a,B*b){GetGlobalSaveVar(&r,a,b);int n=r.u.n;Decref__4CRef(&r);return n;}
 // Per-slot text (strings 0x5CF..0x5D1): the slot's episode and completion percentage.
 extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
- REF ref;
+ CRefData ref;
  G*pg=&D_003DD490;
  B*pb=&D_002E6604[idx];
  if(GetG(ref,pg->primary,pb)!=0.0f){

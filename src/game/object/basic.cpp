@@ -8,6 +8,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
 #include "sly2/slotheap.h"
+#include "sly2/cref.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
 
@@ -35,11 +36,10 @@ struct CLQ;
 struct LM;
 
 /* A Splice value as the C callers pass it by hand (tag + payload; out-of-line constructors and Decref). */
-struct CREFV { int m_tagk; union { int n; float g; void *pv; } u; };
 /* A Splice pair node (pool 0) and the counted pointer to one. */
 struct CPAIR;
 struct SPAIR { CPAIR *p; };
-struct CPAIR { int cref; int x4; CREFV ref; SPAIR sp; };
+struct CPAIR { int cref; int x4; CRefData ref; SPAIR sp; };
 
 /* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::lastEventId). */
 struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEvent as the callback list */
@@ -54,30 +54,30 @@ extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 SIDEBAG *PtNew__t6CGcObj1Z8CSidebag(void);
 void AssignSidebagRef(SIDEBAG **pp, SIDEBAG *p);
 void MakeRoot__t6CGcObj1Z8CSidebag(SIDEBAG *p);
-void EnsureBasicOption__FP5BASICiP4CRef(CREFV *pref, LO *plo, int optid, CREFV *prefValue);
-void Decref__4CRef(CREFV *pref);
-void CRef_ctor_CLQ(CREFV *pref, CLQ *pclq);
-void CRef_ctor_LM(CREFV *pref, LM *plm);
-void CRef_ctor_BASIC(CREFV *pref, BASICV *pbasic);
-void CRef_ctor(CREFV *pref, qword v);
+void EnsureBasicOption__FP5BASICiP4CRef(CRefData *pref, LO *plo, int optid, CRefData *prefValue);
+void Decref__4CRef(CRefData *pref);
+void CRef_ctor_CLQ(CRefData *pref, CLQ *pclq);
+void CRef_ctor_LM(CRefData *pref, LM *plm);
+void CRef_ctor_BASIC(CRefData *pref, BASICV *pbasic);
+void CRef_ctor(CRefData *pref, qword v);
 CPAIR *PtNew__t6CGcObj1Z5CPair(void);
 void Attach__t7CRefPtr1Z5CPairP5CPair(SPAIR *psp, CPAIR *pn);
 void PairPtr_Assign(SPAIR *psp, CPAIR *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 void PairPtr_Release(SPAIR *psp, int n) __asm__("_$_t7CRefPtr1Z5CPair");
-CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
-void CRef_SetSymid(CREFV *pref, int n);
-void CRef_SetBasic(CREFV *pref, BASICV *pbasic);
+CRefData *CRef_SetPair(CRefData *pref, CPAIR *pn);
+void CRef_SetSymid(CRefData *pref, int n);
+void CRef_SetBasic(CRefData *pref, BASICV *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
-void EvalExpression__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
-void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
+void EvalExpression__FP5CPairP6CFrame(CRefData *pref, CPAIR *pair, CFrame *frame);
+void CRefAssign(CRefData *pref, CRefData *prefFrom) __asm__("__as__4CRefRC4CRef");   /* CRef::operator= */
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int FindBindingPtr__6CFrameUii(CFrame *p, int k, int n);
-CREFV *BuildSpliceListFromValues(CREFV *ret, int x, int *pn, int y);
+CRefData *BuildSpliceListFromValues(CRefData *ret, int x, int *pn, int y);
 
-void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref);
+void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CRefData *pref);
 SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *p, CPAIR *pair, float t);
-SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CRefData *pref);
 }
 int IsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
@@ -110,8 +110,8 @@ void EnsureBasicSidebag(BASICV *object) {
 // Sets a boolean sidebag option on the object unless it already has a value (EnsureBasicOption).
 void EnsureLoSidebagBool(LO *plo, OPTID optid, int v)
 {
-    CREFV ref;
-    CREFV refT;
+    CRefData ref;
+    CRefData refT;
     ref.m_tagk = 0x17;
     ref.u.n = v != 0;
     EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
@@ -122,8 +122,8 @@ void EnsureLoSidebagBool(LO *plo, OPTID optid, int v)
 // Sets an integer sidebag option unless already set.
 void EnsureLoSidebagInt(LO *plo, OPTID optid, int v)
 {
-    CREFV ref;
-    CREFV refT;
+    CRefData ref;
+    CRefData refT;
     ref.m_tagk = 0x15;
     ref.u.n = v;
     EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
@@ -134,8 +134,8 @@ void EnsureLoSidebagInt(LO *plo, OPTID optid, int v)
 // Sets a float sidebag option unless already set.
 void EnsureLoSidebagFloat(LO *plo, OPTID optid, float g)
 {
-    CREFV ref;
-    CREFV refT;
+    CRefData ref;
+    CRefData refT;
     ref.m_tagk = 0x16;
     ref.u.g = g;
     EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
@@ -144,7 +144,7 @@ void EnsureLoSidebagFloat(LO *plo, OPTID optid, float g)
 }
 
 /* The payload constructors need a frame slot apart from the result (the m2c frames: value at 0, result at 0x10). */
-struct CREFFR { CREFV ref; char pad8[8]; CREFV refT; };
+struct CREFFR { CRefData ref; char pad8[8]; CRefData refT; };
 // Sets a CLQ (four-float curve) sidebag option unless already set.
 void EnsureLoSidebagClq(LO *plo, OPTID optid, CLQ *pclq)
 {
@@ -168,8 +168,8 @@ void EnsureLoSidebagLm(LO *plo, OPTID optid, LM *plm)
 // Sets an object-id sidebag option (stored as an integer) unless already set.
 void EnsureLoSidebagOid(LO *plo, OPTID optid, OID v)
 {
-    CREFV ref;
-    CREFV refT;
+    CRefData ref;
+    CRefData refT;
     ref.m_tagk = 0x15;
     ref.u.n = v;
     EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
@@ -180,8 +180,8 @@ void EnsureLoSidebagOid(LO *plo, OPTID optid, OID v)
 // Sets a vector sidebag option unless already set (vector passed by value).
 extern "C" void EnsureLoSidebagVector(LO *plo, int optid, qword v)
 {
-    CREFV ref;
-    CREFV refT;
+    CRefData ref;
+    CRefData refT;
     CRef_ctor(&ref, v);
     EnsureBasicOption__FP5BASICiP4CRef(&refT, plo, optid, &ref);
     Decref__4CRef(&refT);
@@ -215,13 +215,13 @@ extern "C" int GetBasicSelf(int n)
 
 // Builds the Splice call expression for an event: (handler-symbol self args...), where args is the event's
 // argument list. Returns an owning pointer to the list.
-SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CRefData *px)
 {
     SPAIR sp;
     CPAIR *p;
     Attach__t7CRefPtr1Z5CPairP5CPair(&sp, PtNew__t6CGcObj1Z5CPair());
     {
-        CREFV *pref = &sp.p->ref;
+        CRefData *pref = &sp.p->ref;
         CRef_SetPair(pref, PtNew__t6CGcObj1Z5CPair());
     }
     p = (CPAIR *)sp.p->ref.u.pv;
@@ -248,12 +248,12 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 }
 
 // Evaluates a Splice event call in the object's frame and copies the result to *pref when given.
-void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref)
+void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CRefData *pref)
 {
-    CREFV ref;
+    CRefData ref;
     EvalExpression__FP5CPairP6CFrame(&ref, pair, frame);
     if (pref != 0) {
-        __as__4CRefRC4CRef(pref, &ref);
+        CRefAssign(pref, &ref);
     }
     Decref__4CRef(&ref);
 }
@@ -305,10 +305,10 @@ extern "C" void CancelSwSpliceCallback(SW *world, int id) {
 // BASIC's Splice event handler (vtable slot 3): when the object's frame binds a handler for the event, builds the
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
 // Sly 1: HandleLoSpliceEvent.
-extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CREFV *z)
+extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CRefData *z)
 {
     if (object->frame && FindBindingPtr__6CFrameUii(object->frame, k, 1)) {
-        CREFV ref;
+        CRefData ref;
         SPAIR sp;
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
         BuildSpliceEventCall(&sp, object, k, &ref);

@@ -14,6 +14,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_guardbhv
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0017F070
 #include "sly2/basic.h"
+#include "sly2/cref.h"
 #include "sly2/scrap.h"
 #include "sly2/lo.h"
 #include "sly2/step.h"
@@ -962,7 +963,7 @@ int FilterAttackLineOfSightHit(struct X *x, struct Y *p) {
 
 // 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
-union U; struct M4; struct VTE; struct NAME; struct SCALE; struct LM; struct ENTRY; struct P; struct LSG; struct LOS; struct CREF; struct POLY; struct CLOCK; struct BASIC;
+union U; struct M4; struct VTE; struct NAME; struct SCALE; struct LM; struct ENTRY; struct P; struct LSG; struct LOS; struct POLY; struct CLOCK; struct BASIC;
 // ChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
@@ -1004,18 +1005,13 @@ struct P {
 struct LSG { U point; char rest[0x50]; };
 struct LOS { U start, end; LSG hit; };
 extern "C" void Decref__4CRef(void *);
-struct CREF {
-    int tagk, tag;
-    CREF(bool f) { tagk = 0x17; tag = f; }
-    ~CREF() { Decref__4CRef(this); }
-};
 struct POLY { float a, b, c; };
 struct CLOCK { float time, deltaTime; };
 struct BASIC {
     char pad0[0xC];
     virtual void AddRef();
     virtual void Release();
-    virtual void HandleSpliceEvent(unsigned symidEvent, int fPost, int cargs, void **ppvargs, CREF *pref);
+    virtual void HandleSpliceEvent(unsigned symidEvent, int fPost, int cargs, void **ppvargs, CRef *pref);
 };
 extern "C" {
 extern CLOCK D_002DDED0;
@@ -1142,10 +1138,10 @@ extern "C" ENTRY *ChooseStepguardAttack(P *guard, P *target, void *gate)
                 continue;
         }
         {
-            CREF ref(true);
+            CRef ref(true);
             void *argument = (char *)entry + 0x18;
             ((BASIC *)guard)->HandleSpliceEvent(0x18, 0, 1, &argument, &ref);
-            if (ref.tagk != 0x17 || !ref.tag)
+            if (ref.m_tagk != 0x17 || !ref.u.n)
                 continue;
             if (entry->response) {
                 M4 frame;
