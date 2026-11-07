@@ -1114,12 +1114,10 @@ struct S {
     float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: as UpdateWidget's: the view keeps &g_clock in a register (address folding) */
 extern SW D_003DD490;
-extern struct CLOCKIsland D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
-void SetClockRate(struct CLOCKIsland *,int,float);
+void SetClockRate(CLOCK *,int,float);
 void LoadWidgetSprites(struct S *);
 void UnloadWidgetSprites(struct S *);
 void StopWidgetMainAnim(struct S *);
@@ -1140,16 +1138,16 @@ void SetWidgetState(struct S *widget, int state)
     if (widget->pausesGame) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE) {
             if (++D_002DD318 == 1)
-                SetClockRate(&D_002DDED0, 7, 0.0f);   /* clock pause slot 7: stop */
+                SetClockRate(&g_clock, 7, 0.0f);   /* clock pause slot 7: stop */
         } else if (state < WIDGET_STATE_VISIBLE && widget->state >= WIDGET_STATE_VISIBLE) {
             if (--D_002DD318 == 0)
-                SetClockRate(&D_002DDED0, 7, 1.0f);   /* run again */
+                SetClockRate(&g_clock, 7, 1.0f);   /* run again */
         }
     }
     if (widget->state == WIDGET_STATE_UNLOADED)
         LoadWidgetSprites(widget);
     widget->state = state;
-    widget->stateTime = D_002DDED0.time;
+    widget->stateTime = g_clock.realTime;
     widget->stateFrame = D_002BE538;
     switch (state) {
     case WIDGET_STATE_UNLOADED: UnloadWidgetSprites(widget); break;
@@ -1169,8 +1167,6 @@ struct S {
     float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
     char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
 };
-struct CLOCKIsland { char pad[0x3C]; float time; float dt; };   /* CLOCK island: a view based at +0x3C keeps &g_clock in a register; the full CLOCK folds the offset (UpdateWidget 107/123 off) */
-extern struct CLOCKIsland D_002DDED0;
 void UpdateLo(struct S *);
 int IsWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
@@ -1186,12 +1182,12 @@ void UpdateWidget(struct S *widget)
     if (state == WIDGET_STATE_HIDDEN) {
         if (widget->request == WIDGET_REQUEST_SHOW)
             state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING;
-    } else if (widget->requestTime != D_002DDED0.time) {   /* not requested this frame */
+    } else if (widget->requestTime != g_clock.realTime) {   /* not requested this frame */
         switch (state) {
         case WIDGET_STATE_VISIBLE:
             if (!IsWidgetAnimPlaying(widget, widget->mainAnimId))
                 SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-            if (widget->visibleTimeout > 0.0f && widget->visibleTimeout < D_002DDED0.time - widget->stateTime)
+            if (widget->visibleTimeout > 0.0f && widget->visibleTimeout < g_clock.realTime - widget->stateTime)
                 SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
             if (widget->request == WIDGET_REQUEST_HIDE)
                 state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING;
