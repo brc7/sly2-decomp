@@ -24,6 +24,7 @@
 #include "sly2/screen.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/joy.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -3210,10 +3211,9 @@ struct CRef {
     void Decref() __asm__("Decref__4CRef");
 };
 struct G { char pad[0x3B1C]; void *unknown3B1C; };
-struct H { char pad[0x100C]; int unknown100C; int unknown1010; };
 struct I { char pad[0xFD54]; void *foundSave; };
 extern "C" { extern G D_003DD490; }
-extern "C" { extern H D_002DFC00; }
+extern "C" { extern JOY D_002DFC00; }
 extern "C" { 
 extern I D_002E65E0;
  }
@@ -3228,7 +3228,7 @@ extern "C" void BuildTitlePromptText(char *pch)
 {
     float g;
     void *pv;
-    if (D_002DFC00.unknown100C == 1 && D_002DFC00.unknown1010 == 0) {
+    if (D_002DFC00.joys == 1 && D_002DFC00.joyk == 0) {
         strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, 9));
         return;
     }
