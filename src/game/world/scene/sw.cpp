@@ -7,8 +7,8 @@
 // after each function (as jt.cpp does), their C++-named definitions as C-linkage definitions of their literal
 // symbols there. ResolveSwSaveVars (a Lilly port) is at file scope: it completes types basic.h only
 // forward-declares (SVPATH, SAVEDATA, LOUPD...), which sw.h's SW refers to.
-// g_sw is defined here with an inline constructor (SW_ctor) and destructor (DestroyBasic with g++'s in-charge flag
-// 2), and D_003E1C20 with an inline constructor: g++ generates the 96-instruction construct-and-destruct
+// g_sw is defined here as a plain SW (constructor SW_ctor, implicit destructor calling ~BASIC with g++'s in-charge
+// flag 2), and D_003E1C20 with an inline constructor: g++ generates the 96-instruction construct-and-destruct
 // StaticInit_sw and the _GLOBAL_$D$ stub func_00210E90 next to the _GLOBAL_$I$ one (as cm.cpp does for g_cm).
 // Entry points: SW_ctor (g_sw), ExecuteSwTransition (per frame: level loads), PostSwLoad, DeleteSw,
 // the hands-off / letterbox counters, the level and world table queries (GetCurrentWorld, GetWorldEntry...).
@@ -29,9 +29,6 @@
 #include "sly2/cref.h"
 #include "sly2/hud.h"
 
-/* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
-   destructor DestroyBasic (cm.cpp's g_cm pattern). */
-struct SWG;
 struct LEVELLIST8;
 extern "C" {
 /* sw's plain .bss words, first declared in address order: g++ 2.95 lays the .bss objects without a constructor out
@@ -43,18 +40,10 @@ extern LEVELLIST8 *D_003E1C4C;
 extern FILEREC *D_003E1C50;
 extern int D_003E1C54, D_003E1C58;
 SW *SW_ctor(SW *world);
-void DestroyBasic(SWG *world, int grfDelete);
 extern char D_002C3EB8[], D_003E1C60[];
 }
-struct SWG
-{
-    char ab[sizeof(SW)];
-    // Construct the world through SW_ctor.
-    SWG() { SW_ctor((SW *)this); }
-    // Destroy the world (DestroyBasic with the delete flag 2).
-    ~SWG() { DestroyBasic(this, 2); }
-} __attribute__((aligned(16)));
-SWG D_003DD490;
+/* g_sw (sly2/sw.h): its constructor is SW_ctor; its implicit destructor runs ~BASIC (_$_5BASIC). */
+SW g_sw __attribute__((aligned(16)));
 /* D_003E1C20: four words built at startup (a table header {0, D_002C3EB8, 0, D_003E1C60}). */
 struct O1C20
 {

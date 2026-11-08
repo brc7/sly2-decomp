@@ -6581,7 +6581,7 @@ SetGlobalSaveVar,0x258200,game
 InitFileKey,0x258248,memcard
 func_00258280,0x258280,game_linkonce
 DestroyCm,0x258290,cm
-DestroyBasic,0x258348,screen
+_$_5BASIC,0x258348,screen
 CTextBox_SetPos,0x258438,rhythm
 CTextBox_SetSize,0x258448,rhythm
 CTextBox_SetTextColor,0x258458,rhythm

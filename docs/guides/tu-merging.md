@@ -646,7 +646,8 @@ Still matching-only, and why:
 - murray's slot-29 call, whose object is not statically an SO.
 
 Fixable later, outside the owning family:
-- BASIC's destructor as a real member, which retires sw.cpp's SWG and cm.cpp's CMG.
+- BASIC's destructor as a real member: done for sw.cpp's SWG (names/basic-dtor, below); cm.cpp's CMG also needs ~CM
+  (DestroyCm, 0x258290) emitted out of line as `_$_2CM`.
 - A qword-row matrix row type (murray, RenderStepguardSelf).
 - glob.cpp's and blend.cpp's Lilly namespaces.
 
@@ -820,10 +821,10 @@ symbol name; at the end all 210 src/game sources). This round went after the han
 | LO/SO/PO objects called by hand | stepplayer, murray (carried object, hit effect), bentley (dart, explosion objects), jt (contact objects, sub-objects), air, hurt, relay (JSG tunnel = TN, step holds = STEP slots 83/84), cm (policy reset), cplcy, sound (CID151/STREAMSND/BASIC), tu_17F090 (hack enemies : PO), tu_1D1370 (robot tank : PO, part's physics root IsFixed), hud (widgets : LO), bif (find builtins on LO/SW) | real virtual calls on the shared classes; `isInWorld` for the bit-60 tests |
 | emitter.cpp SetEmitterParticleCount | its EMITTERV | emitter.h EMITTER (k, c, fDirty) |
 
-Header change: basic.h declares `~BASIC()` (never defined; DestroyBasic 0x258348 is its body, emitted by screen.cpp over
+Header change: basic.h declares `~BASIC()` (never defined; _$_5BASIC 0x258348 is its body, emitted by screen.cpp over
 its own view). Its symbol is `_$_5BASIC`: g++ 2.95 rejects an asm-labelled destructor here (PO()'s base cleanup in
 classes.h then finds no `BASIC::__dt`), so an object that destroys a BASIC-derived object binds it with
-`// SLY2_ALIAS: _$_5BASIC=DestroyBasic`. A scratch TU defining `SW g;` references only `SW_ctor` and `_$_5BASIC`. All
+`// SLY2_ALIAS: _$_5BASIC=DestroyBasic` (since names/basic-dtor the config name is `_$_5BASIC` itself). A scratch TU defining `SW g;` references only `SW_ctor` and `_$_5BASIC`. All
 210 sources compile to identical objects with the declaration.
 
 Measured (scratch metrics.py over src/game): struct/class/union definitions 6,627 -> 6,510; family-named views
@@ -863,7 +864,7 @@ Measured (scratch metrics.py over src/game): struct/class/union definitions 6,51
 Left, with the reason: a view in a function whose namespace defines its own struct with the base's name (prize
 EmitDprizeGlint's local `LO`: inside a derived struct the name means the base); tu_144B28 func_00146B18's `PO` (as an
 LO it picks the C++ `GetLoWorldPos(LO *)` overload, which returns a different qword type, so the call target would
-change); the SNDMGR views of sound.cpp (destroyed through DestroyBasic, but nothing else shows that it is a BASIC);
+change); the SNDMGR views of sound.cpp (destroyed through ~BASIC, but nothing else shows that it is a BASIC);
 views of SO fields inside the SO range (`struct B { char pad[0xE8]; SOPHYS-like *pc; }`), which want each field mapped to
 so.h's name rather than a base; hand-vptr views whose vt field has layout asserts (murray func_001B6CC0, jt
 func_0018DF60, tu_1D1370 robot tank, tu_17F090) or whose calls are inside asm (murray SetMurrayFlopSubstate); the
@@ -1203,7 +1204,7 @@ call is `::SetGadgetMenuState` (same function).
 Kept (other families' types, noted for their owners): the widget the screens point at (`pchild`, `void *`; the bodies
 read it through their WIDGET views, cast at the use: classes.h, the AI family's this round) and HUDMETER's hero
 (`HERO(p)`, a cast to the STEPPLAYER view); the notice banner (CID154, classes.h: its state at +0x10 is not SCREEN's
-layout); M_func_00258348's BASIC/CVarb/CSidebag release view (DestroyBasic's linkonce copy). Not attempted: the splice/
+layout); M_func_00258348's BASIC/CVarb/CSidebag release view (~BASIC's linkonce copy, _$_5BASIC). Not attempted: the splice/
 CFrame/CProc/CSidebag/CPair/CVarb views and SP* owners of frame.cpp, eval.cpp, ref.cpp, proc.cpp, varb.cpp, pair.cpp,
 sidebag.cpp (tied to gc.cpp's linkonce instances, the next step); callback.cpp's one-field CFrame view (including
 cframe.h there clashes: basic.h's SL, gc.h's PtNew against its C declaration); CRichText/CFont (font.cpp's classes
@@ -1268,7 +1269,7 @@ CMethod as first moved to method.h: 11 words off).
 Kept (noted for their owners): gc.cpp's six node views (above); bif.cpp's 14 SPN/SP owner views (candidates:
 `typedef CRefOwner<CPair>`, the `int pad[3]` ones as derived structs); proxy.cpp's M_CloneProxy frame views (RC/SP in
 a union with the allocation size); callback.cpp's SPFV (a frame slot read through, owner unknown); the CSidebag release
-views outside splice/ (lo.cpp's RF, screen.cpp's DestroyBasic, asega.cpp's homed CRefPtr<CSidebag> assignment);
+views outside splice/ (lo.cpp's RF, screen.cpp's ~BASIC (_$_5BASIC), asega.cpp's homed CRefPtr<CSidebag> assignment);
 basic.h's comment that frame.cpp/eval.cpp define their own CFrame views is stale.
 
 ### Views unified (names/vu-objects): the hack and robot tank classes
@@ -1353,12 +1354,16 @@ table with sizes are identical to objects built at a9b1a4ade.
 | SO +0x58/+0x5C `positionXf` / `rotationXf` | so.h | 13 files' uses renamed |
 
 CPLCY Set/Revoke already took the entry argument (names/vu-f1-base-3). Not done:
-- g_sw as a plain `SW` (dropping SWG): sw.cpp then compiles to the same code, but its destructor call references
-  `_$_5BASIC`. `SLY2_ALIAS` renames only defined symbols and an assembler equate (`_$_5BASIC = DestroyBasic`) keeps the
-  relocation on `_$_5BASIC`, so the object would carry a name no object defines and config does not know (symcheck
-  unresolved; tools/link.py would resolve it from the ELF). It needs a naming decision: screen.cpp emitting the real
-  inline `BASIC::~BASIC` as `_$_5BASIC` (config and matched.csv rename DestroyBasic), or a second config name at
-  0x258348 (progress.py keys functions by address). cm.cpp's CMG is the same case through ~CM (DestroyCm).
+- g_sw as a plain `SW` (dropping SWG): done in names/basic-dtor. The function at 0x258348 is BASIC's destructor under
+  its own symbol `_$_5BASIC` (config, matched.csv and units.csv renamed from DestroyBasic). screen.cpp still emits it
+  over a C view: a user-written `BASIC::~BASIC() {}` stores the vptr on entry, which the target does not (g++ 2.95
+  leaves the vptr store out only of an implicit destructor's empty body: the original's ~BASIC was implicit), and an
+  implicit one would be inlined into its callers. The view is declared `__asm__("_$_5BASIC")` and
+  `__attribute__((weak, section(".gnu.linkonce.t._$_5BASIC")))` (bif.cpp's operator* pattern): an asm-labelled inline
+  is not emitted from calls to `~BASIC`. The screens', sound's and memcard's static-object views call
+  `((BASIC *)this)->BASIC::~BASIC()` (flag 2); cm.cpp's DestroyCm and sound.cpp's Decref* (flags x and 0) call a C
+  view `BASIC_dtor` labelled `_$_5BASIC`. cm.cpp's CMG stays: a plain `CM` needs the implicit ~CM, which is inlined
+  (and needs SND complete for CRefPtr<SND>) where the target calls DestroyCm (0x258290) out of line.
 - XF's matrices as MATRIX4Q unions (xf.cpp, UpdateSoXfWorldMatrices casts): XF is being changed on another branch.
 - The remaining private row unions: at file scope, redefined in the same scope, or kept because QWROW's unsigned
   `qword` changes a signedness (`&u.q` passed as a signed `qword *`) or the code (shape.cpp StepChainRk4/StepChain).
@@ -2053,8 +2058,8 @@ Representation decisions:
 
 - **Globals under their real names.** sw.h, cm.h, clock.h and joy.h declare `extern SW g_sw __asm__("D_003DD490");`
   (g_cm, g_clock, g_joy alike), the existing pattern for globals whose config name is an address name
-  (`g_heapSw`, `g_pdliFirst`). The defining TU keeps its address-named definition (sw.cpp's `SWG D_003DD490`, which
-  carries the constructor/destructor), and the per-file `extern SW D_003DD490;` declarations are unchanged (follow-up:
+  (`g_heapSw`, `g_pdliFirst`). The defining TU keeps its address-named definition (cm.cpp's `CMG D_002DDF40`, which
+  carries the constructor/destructor; sw.cpp defines `SW g_sw` since names/basic-dtor), and the per-file `extern SW D_003DD490;` declarations are unchanged (follow-up:
   rename them to g_sw file by file).
 - **View type at the use.** Where a file's view type for the name equals the field's type the use is plain
   (`g_sw.slotheapJsg`); otherwise it keeps the file's type with a cast at the use, `(*(struct X * *)&g_sw.dlTaskActive)`

@@ -6569,7 +6569,7 @@ SetGlobalSaveVar,0x258200,16,match,src/game/world/state/game.cpp
 InitFileKey,0x258248,14,match,src/game/ui/memcard.cpp
 func_00258280__FP10STEPPLAYER,0x258280,3,match,src/game/app/class_registry.cpp
 DestroyCm,0x258290,46,match,src/game/engine/camera/cm.cpp
-DestroyBasic,0x258348,59,match,src/game/engine/presentation/screen.cpp
+_$_5BASIC,0x258348,59,match,src/game/engine/presentation/screen.cpp
 CTextBox_SetPos,0x258438,3,match,src/game/gameplay/objects/rhythm.cpp
 CTextBox_SetSize,0x258448,3,match,src/game/gameplay/objects/rhythm.cpp
 CTextBox_SetTextColor,0x258458,6,match,src/game/gameplay/objects/rhythm.cpp

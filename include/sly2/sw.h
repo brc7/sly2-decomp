@@ -422,7 +422,7 @@ typedef char assert_SW_guardAlertResumeTime[SLY2_OFFSETOF(SW, guardAlertResumeTi
 typedef char assert_SW_iclueNext[SLY2_OFFSETOF(SW, iclueNext) == 0x4760 ? 1 : -1];
 typedef char assert_SW_pepmenu[SLY2_OFFSETOF(SW, pepmenu) == 0x4774 ? 1 : -1];
 
-/* g_sw: the one world (sw.cpp defines it under its address name as an SWG). */
+/* g_sw: the one world (defined in sw.cpp as a plain SW). */
 extern SW g_sw __asm__("D_003DD490");
 
 #endif /* SLY2_SW_H */

@@ -8,7 +8,7 @@
 // symbol (CompareSaves__FP4SAVET0) as a C-linkage definition: it compares two SAVEINFO records, not SAVEs.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does).
 // The two dialogs D_002E6550 / D_002E65A0 are defined here with inline constructors (CMemcardDialog_ctor,
-// CMcStatus_ctor) and destructors (DestroyBasic, in-charge flag 2): g++ generates the 93-instruction
+// CMcStatus_ctor) and destructors (~BASIC, in-charge flag 2): g++ generates the 93-instruction
 // construct-and-destruct StaticInit_memcard and the _GLOBAL_$D$ stub func_001AE130 (cm.cpp's g_cm pattern).
 // Entry points: StartupMemcard (boot), UpdateSave__FP4SAVE (per frame), AutosaveGame, the dialog
 // widgets' Update (slot 7) and the save-page menu actions.
@@ -34,7 +34,6 @@ struct MCDLG;
 extern "C" {
 MCDLG *CMemcardDialog_ctor(MCDLG *dialog);
 void *CMcStatus_ctor(void *pv);        /* CMcStatus constructor */
-void DestroyBasic(MCDLGG *pv, int grfDelete);
 }
 struct MCDLGG
 {
@@ -44,16 +43,16 @@ struct MCDLGG
     char ab48[8];
     // Construct the memory-card dialog through its class constructor.
     MCDLGG() { CMemcardDialog_ctor((MCDLG *)this); }
-    // Destroy the object (DestroyBasic with the delete flag 2).
-    ~MCDLGG() { DestroyBasic(this, 2); }
+    // Destroy the object (~BASIC, in-charge flag 2).
+    ~MCDLGG() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 struct MCSTATUSG
 {
     char ab[0x40];
     // Construct the memory-card status object through its class constructor.
     MCSTATUSG() { CMcStatus_ctor(this); }
-    // Destroy the object (DestroyBasic with the delete flag 2).
-    ~MCSTATUSG() { DestroyBasic((MCDLGG *)this, 2); }
+    // Destroy the object (~BASIC, in-charge flag 2).
+    ~MCSTATUSG() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 /* memcard's .bss, in the ELF's order: the thread stack, the sceMcGetDir table, the directory path, the dialog (0x50),
    the status widget (0x40), the save manager. g++ 2.95 emits an object with a constructor at its definition and

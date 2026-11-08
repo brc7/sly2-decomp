@@ -323,11 +323,11 @@ struct BASIC
          incomplete in most includers; only class_registry constructs classes). */
       BASIC();
       /* Destruction: releases the side bag and then the frame, and frees the object when the in-charge flag's bit 0
-         is set: the function DestroyBasic (0x258348, a linkonce copy screen.cpp emits over its own view; the static
-         objects of sw/cm/sound/memcard/screen call it as their base destructor with g++'s in-charge flag 2).
-         Declared, never defined, so the symbol is _$_5BASIC: an object that destroys a BASIC-derived object binds it
-         to the config name with `// SLY2_ALIAS: _$_5BASIC=DestroyBasic`. An asm label (`__asm__("DestroyBasic")`)
-         is not accepted: g++ 2.95 then cannot find the destructor for PO()'s base cleanup (classes.h). */
+         is set: _$_5BASIC (0x258348), a linkonce copy screen.cpp emits over its own view (a user-written definition
+         would store the vptr on entry; the original's destructor was implicit). The static objects of
+         sw/sound/memcard/screen call it as their base destructor with g++'s in-charge flag 2. Declared, never
+         defined in C++: an implicit destructor would be inlined into every caller (and cm.cpp's DestroyCm and
+         sound.cpp's Decref* call it through C views with their own flag). */
       ~BASIC();
       virtual void AddRef() __asm__("BASIC_Slot1Default");
       virtual void Release() __asm__("BASIC_Slot2Default");

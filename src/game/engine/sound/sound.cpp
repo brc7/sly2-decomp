@@ -8,7 +8,7 @@
 //
 // Types: TU-private SND / BANKSND / SNDMGR views for the m2c bodies (sly2/aseg.h's SND is a 3-word stub).
 // g_sndmgr is defined here: SNDMGR_ctor constructs it, and its destructor releases the counted sound pointers at
-// +0x200, +0x208[8] and +0x228 (slot 2 of each object's vtable), then runs ~BASIC (DestroyBasic, in-charge flag 2).
+// +0x200, +0x208[8] and +0x228 (slot 2 of each object's vtable), then runs ~BASIC (_$_5BASIC, in-charge flag 2).
 // Spelled as a base with that destructor and the pointers as members with an inline release, g++ generates the
 // 123-instruction construct-and-destruct StaticInit_sound and the _GLOBAL_$D$ stub func_001FF398.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does).
@@ -30,15 +30,14 @@ struct SNDOBJ { char pad0[0xC]; VTE *vtable; };
 struct SNDMGRG;
 extern "C" {
 void SNDMGR_ctor(SNDMGRG *soundManager);
-void DestroyBasic(void *pv, int grfDelete);   /* ~BASIC */
 }
 struct SNDMGRBASE
 {
     char ab[0x4C];
     DL dlSndDirty;          /* +0x4C [S] draft name: the sounds RemoveSndFromDirtyList takes out (was the address name D_003DD08C) */
     char ab58[0x200 - 0x58];
-    // Destroy the object (DestroyBasic with the delete flag 2).
-    ~SNDMGRBASE() { DestroyBasic(this, 2); }
+    // Destroy the object (~BASIC, in-charge flag 2).
+    ~SNDMGRBASE() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 struct SNDMGRG : public SNDMGRBASE
 {
@@ -669,10 +668,10 @@ void BANKSND::AddRef()   /* key function: BANKSND's vtable comes out here */
 }
 
 namespace M_DecrefBanksnd { extern "C" {
-void DestroyBasic(BANKSND *, int);
+void BASIC_dtor(BANKSND *, int) __asm__("_$_5BASIC");   /* ~BASIC with in-charge flag 0 */
 void FreeBanksnd(BANKSND *);
 // Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
-void DecrefBanksnd(BANKSND *sound) { if (--sound->refCount == 0 && sound) { DestroyBasic(sound, 0); FreeBanksnd(sound); } }
+void DecrefBanksnd(BANKSND *sound) { if (--sound->refCount == 0 && sound) { BASIC_dtor(sound, 0); FreeBanksnd(sound); } }
 } } // namespace M_DecrefBanksnd
 
 // Allocates a bank sound from the manager's pool.
@@ -1059,13 +1058,13 @@ void STREAMSND::AddRef()   /* key function: STREAMSND's vtable comes out here */
 }
 
 namespace M_DecrefStreamsnd { extern "C" {
-void DestroyBasic(STREAMSND *, int);
+void BASIC_dtor(STREAMSND *, int) __asm__("_$_5BASIC");   /* ~BASIC with in-charge flag 0 */
 void FreeStreamsnd(STREAMSND *);
 // Drops a reference to a streamed sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
 void DecrefStreamsnd(STREAMSND *sound)
 {
     if (--sound->refCount == 0 && sound) {
-        DestroyBasic(sound, 0);
+        BASIC_dtor(sound, 0);
         FreeStreamsnd(sound);
     }
 }

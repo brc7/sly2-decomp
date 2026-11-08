@@ -11,7 +11,7 @@
 // per-function files keep their views in namespaces named after each function (as jt.cpp does), their C++-named
 // definitions as C-linkage definitions of their literal symbols there.
 // The nine global screen objects are defined here (the shown-screen list, then eight screens with inline
-// constructors and the linkonce destructor DestroyBasic, in-charge flag 2): g++ generates the 150-instruction
+// constructors and the linkonce destructor ~BASIC (_$_5BASIC), in-charge flag 2): g++ generates the 150-instruction
 // construct-and-destruct StaticInit_screen and the _GLOBAL_$D$ stub func_001DE280 (cm.cpp's g_cm pattern).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_screen
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001DE260
@@ -45,7 +45,6 @@ void *ConstructThiefnetScreen(void *pv);      /* THIEFNET constructor */
 void *ConstructJobListScreen(void *pv);      /* JOBLIST constructor */
 void *ConstructScreen52D(void *pv);      /* screen 0x52D constructor */
 void *ConstructTitleScreen(void *pv);      /* title screen constructor */
-void DestroyBasic(void *pv, int grfDelete);
 extern char D_002D8668[] __asm__("_vt$8HUDMETER"), D_002D37D0[] __asm__("_vt$9PAUSEMENU"), D_002CA490[] __asm__("_vt$6CID154");   /* vtables of the HUD meter, pause menu and notice */
 extern char D_002D8568[] __asm__("_vt$10GADGETMENU");   /* GADGETMENU vtable */
 }
@@ -63,8 +62,8 @@ template <int CB> struct SCRINL
     char ab[CB - 0x10];
     // Inline screen header: zeroed fields and the given vtable.
     SCRINL(void *pvtInit) { x0 = 0; x4 = 0; pvt = pvtInit; }
-    // Destroy the screen object (DestroyBasic with the delete flag 2).
-    ~SCRINL() { DestroyBasic(this, 2); }
+    // Destroy the screen object (~BASIC, in-charge flag 2).
+    ~SCRINL() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 /* A screen constructed by a C-named constructor. */
 template <int CB> struct SCRCTOR
@@ -72,8 +71,8 @@ template <int CB> struct SCRCTOR
     char ab[CB];
     // Construct the object with its class constructor.
     SCRCTOR(void *(*pfnCtor)(void *)) { pfnCtor(this); }
-    // Destroy the object (DestroyBasic with the delete flag 2).
-    ~SCRCTOR() { DestroyBasic(this, 2); }
+    // Destroy the object (~BASIC, in-charge flag 2).
+    ~SCRCTOR() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 SCRLIST D_003D9E70 __attribute__((aligned(16)));   /* 16-aligned by layout: 0x3D9E70 after g_gs (save, 0x5408 bytes from 0x3D4A60) */
 SCRINL<0x50> D_003D9E80(D_002D8668);    /* HUD meter */
@@ -2970,8 +2969,13 @@ static inline void Release4(R4 *r)
 
 typedef struct S { R2 *p0; R4 *p4; } S;
 
-// BASIC's destructor (inline): releases the sidebag and Splice frame references.
-inline void DestroyBasic(S *p, int flags)
+// BASIC's destructor _$_5BASIC (sly2/basic.h ~BASIC; the original's implicit one, emitted linkonce): releases the side
+// bag, then the Splice frame, and frees the object when the in-charge flag's bit 0 is set. A C view, weak in
+// .gnu.linkonce.t._$_5BASIC (as bif.cpp's operator*), rather than a BASIC::~BASIC() definition: a user-written
+// destructor of the polymorphic BASIC stores the vptr on entry (g++ 2.95 omits that only in an implicit destructor's
+// empty body), and this body does not.
+void BASIC_dtor(S *p, int flags) __asm__("_$_5BASIC") __attribute__((weak, section(".gnu.linkonce.t._$_5BASIC")));
+void BASIC_dtor(S *p, int flags)
 {
     Release4(p->p4);
     {
