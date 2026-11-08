@@ -3633,20 +3633,20 @@ int GetSoIceable(SO *p) { return (int)p->hurtRespawnsHero & 1; }   /* bit 33 (so
 
 // 0x1F8510 NewSoXfHandle
 namespace M_func_001F8510 { extern "C" {
-struct Q;
-struct Q { int a, b, numTransforms; void *pvt; int pad[4]; void *so; void *transform; int pad2[2]; };   /* the CID149 handle, built by hand */
+struct CID149Island;
+struct CID149Island { int a, b, numTransforms; void *pvt; int pad[4]; void *so; void *transform; int pad2[2]; };   /* the CID149 handle, built by hand */
 extern char D_002CA2C0[] __asm__("_vt$6CID149");
 struct Pool;
-struct Q *AllocZeroedFromSlotheap(struct Pool *);
+struct CID149Island *AllocZeroedFromSlotheap(struct Pool *);
 void func_002333B4(void *, int, int) __asm__("memset");
 // Creates an XF handle object (CID 149) for the object's XF matching (oid, kind), for scripts.
-struct Q *NewSoXfHandle(SO *so, int k, int m)
+struct CID149Island *NewSoXfHandle(SO *so, int k, int m)
 {
     int i;
     for (i = 0; i < so->numTransforms; i++) {
         XF *pe = &so->transforms[i];
         if (pe->kind == m && (k == -1 || pe->oid == k)) {
-            struct Q *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
+            struct CID149Island *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
             func_002333B4(q, 0, 0x30);
             q->pvt = D_002CA2C0;
             q->so = so;
