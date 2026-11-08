@@ -24,6 +24,8 @@
 #include "sly2/classes.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/clock.h"
+#include "sly2/sw.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -119,10 +121,8 @@ struct SFXHOLDER : public XFM
     SFX *sfx;               /* +0xF0 */
 };
 
-extern SW D_003DD490;       /* g_sw */
 extern "C" {
 extern const float D_002A514C;    /* "indefinitely": a time far in the future */
-extern CLOCK D_002DDED0;    /* g_clock */
 void AddSwPoFollower(SW *psw, EMITTERV *pemitter);
 void SetLoParent(LO *plo, SO *psoParent, int n);
 SO *GetSoFromLo(int oid);
@@ -254,14 +254,13 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
 // Forwards to 0x1C4848(&g_sw, p) (SW-level registration of the emitter) (inferred)
 extern "C" void AddEmitterToHeroFollowers(EMITTERV *pemitter)
 {
-    AddSwPoFollower(&D_003DD490, pemitter);
+    AddSwPoFollower(&g_sw, pemitter);
 }
 
 namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
 struct K { short a; short b; int c; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct ALLOCREQ { int cb; int kind; };
-extern char D_003DD490[];
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5140;
 extern float D_002A5148;
@@ -295,7 +294,7 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
 {
     ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
     if (pemitter->pemitb->aploRef[EMITREF_Reference])
-        PostSwCallback(D_003DD490, pemitter, D_002A5140.l, 0);
+        PostSwCallback(&g_sw, pemitter, D_002A5140.l, 0);
     if (pemitter->emitMode == EMIT_MODE_UNSET) {
         if (pemitter->pauseChance != 0.0f || pemitter->autoPause)
             pemitter->emitMode = EMIT_MODE_INTERMITTENT;
@@ -351,7 +350,7 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
         }
     }
     if (pemitter->groupOid != -1) {
-        EMITTER *group = FindSwObject__FP2SWi3OIDP2LO(D_003DD490 /* g_sw */, 5, pemitter->groupOid, 0);
+        EMITTER *group = FindSwObject__FP2SWi3OIDP2LO(&g_sw /* g_sw */, 5, pemitter->groupOid, 0);
         if (!group) {
             group = CreateLo__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
             group->pemitb = (__typeof__(group->pemitb))AllocCopyFromHeap(0x100, pemitter->pemitb);
@@ -478,7 +477,6 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
 namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
-extern "C" { extern CLOCK D_002DDED0; }
 struct BLIPG { char pad[0x444]; int numBlips; };   /* classes.h's BLIPG names no fields yet */
 extern "C" {
 void UpdateLo(EMITTERV *p);
@@ -548,7 +546,7 @@ LActive:   /* near the camera (or not tied to a parent) */
     int numToEmit = 0;
     switch (emitter->emitMode) {
     case EMIT_MODE_INTERMITTENT: {
-        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.deltaTime;
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * g_clock.deltaTime;
         numToEmit = (int)accumulated;
         emitter->particleFraction = accumulated - (float)numToEmit;
         if (1.0f < (float)numToEmit) {
@@ -584,7 +582,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         break;
     }
     case EMIT_MODE_CONTINUOUS: {
-        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.deltaTime;
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * g_clock.deltaTime;
         numToEmit = (int)accumulated;
         emitter->particleFraction = accumulated - (float)numToEmit;
         if (numToEmit != 0) {
@@ -628,9 +626,9 @@ LActive:   /* near the camera (or not tied to a parent) */
         emitter->pemitb->aploRef[EMITREF_Reference] = savedReference;
     }
 
-    if (D_002DDED0.time >= emitter->rateRedrawTime) {
+    if (g_clock.time >= emitter->rateRedrawTime) {
         emitter->currentRate = RandomFloatInRange__Fff(emitter->rate.minValue, emitter->rate.maxValue);
-        emitter->rateRedrawTime = D_002DDED0.time + emitter->rateRedrawInterval;
+        emitter->rateRedrawTime = g_clock.time + emitter->rateRedrawInterval;
     }
     ModifyEmitterParticles(emitter);
 }
@@ -640,7 +638,7 @@ void PauseEmitter(EMITTERV *pemitter, float dt) __asm__("PauseEmitter__FP7EMITTE
 // Pauses the emitter for dt seconds (until the clock passes tUnpause).
 void PauseEmitter(EMITTERV *pemitter, float dt)
 {
-    pemitter->tUnpause = D_002DDED0.time + dt;
+    pemitter->tUnpause = g_clock.time + dt;
 }
 
 void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
@@ -662,7 +660,7 @@ void UnpauseEmitter(EMITTERV *pemitter)
 int IsEmitterPaused(EMITTER *pemitter) __asm__("IsEmitterPaused__FP7EMITTER");
 int IsEmitterPaused(EMITTER *pemitter)
 {
-    if (D_002DDED0.time < pemitter->tUnpause)
+    if (g_clock.time < pemitter->tUnpause)
         return 1;
     switch (pemitter->emitMode) {
     case EMIT_MODE_CONTINUOUS:
@@ -784,10 +782,8 @@ struct E { int pad0[2]; EX *renderObject; EX *nextRenderObject; WATER *touchObje
 union V4 { qword q; float a[4]; };
 
 extern "C" {
-extern CLOCK D_002DDED0;
 extern int D_002BDEB0[];
 extern qword D_002A2DC0;
-extern char D_003DD490[];
 float RandomFloatInRange__Fff(float lo, float hi);
 int RandomIntInRange__Fii(int lo, int hi);
 int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
@@ -844,23 +840,23 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
         if (!shouldWake) {
             interval = 1.0f - strength * (1.0f - minIntervalFrac);
             if (soundObject) {
-                shouldWake = interval < D_002DDED0.time - soundObject->lastWakeTime;
+                shouldWake = interval < g_clock.time - soundObject->lastWakeTime;
             } else {
-                float now = D_002DDED0.time;
+                float now = g_clock.time;
                 int periodNow = (int)(now / interval);
                 int periodNext = (int)((now + dt) / interval);
                 shouldWake = periodNow != periodNext;
             }
         }
         if (shouldWake && water->rippleObject) {
-            RIP *ripple = NewRipInGroup(D_003DD490 /* g_sw */, 7 /* ripple kind */, 0);
+            RIP *ripple = NewRipInGroup(&g_sw /* g_sw */, 7 /* ripple kind */, 0);
             if (ripple) {
                 ripple->Init(v, scale, 0);
                 ripple->scaleStart = scale;
                 ripple->scaleSlope = scale * 0.6f;
                 ripple->renderObject = (LO *)water->rippleObject;
                 if (soundObject)
-                    soundObject->lastWakeTime = D_002DDED0.time;
+                    soundObject->lastWakeTime = g_clock.time;
                 if (500.0f < distance && water->splashObject) {
                     EMITVIsland emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
                     EMITVELIsland emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, *(qword *)&so->physics->gravity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
@@ -1171,7 +1167,6 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
 
 namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut);   /* the record starts with the speed LM */
 float RandomFloatInRange__Fff(float a, float b);
 
@@ -1181,7 +1176,7 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
 {
     float birthTime, skip;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, emitv->randomRadius, emitv->zSpeedRatio, emitv, pv, index, pvel);
-    birthTime = D_002DDED0.time;
+    birthTime = g_clock.time;
     birthTime = birthTime - RandomFloatInRange__Fff(emitv->lmAge.minValue, emitv->lmAge.maxValue);
     *ptBirth = birthTime;
     *ptDeath = birthTime + emitv->lifetime;
@@ -1203,7 +1198,6 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
 extern "C" {
-extern char D_003DD490[];
 RIPG *NewRipGroup(void *p, int n);
 void SubscribeLoObject(LO *plo, LO *ploSubscriber);
 RIP *NewRipInGroup(void *p, int n, RIPG *pripg);
@@ -1223,7 +1217,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITG *em
     if (emitg && emitg->ppripg)
         ripGroup = *emitg->ppripg;
     if (!ripGroup) {
-        ripGroup = NewRipGroup(D_003DD490, emitb->v.ripGroupKind);
+        ripGroup = NewRipGroup(&g_sw, emitb->v.ripGroupKind);
         if (!ripGroup)
             return;
         if (emitg && emitg->ppripg)
@@ -1234,7 +1228,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITG *em
     }
     if (!ripGroup)
         return;
-    for (i = 0; i < count && (rip = NewRipInGroup(D_003DD490, emitb->v.k, ripGroup)) != 0; i++) {
+    for (i = 0; i < count && (rip = NewRipInGroup(&g_sw, emitb->v.k, ripGroup)) != 0; i++) {
         rip->Init(positions[i], RandomFloatInRange__Fff(emitb->v.lmScale.minValue, emitb->v.lmScale.maxValue), (SO *)emitb->aploRef[EMITREF_Touch]);
         if (emitb->v.scaleSlope != 0.0f || emitb->v.scaleCurve != 0.0f) {
             rip->scaleSlope = emitb->v.scaleSlope;
@@ -1285,7 +1279,6 @@ struct PRG {
     BLK *pblkFirst;             /* +0x448 */
 };
 extern "C" {
-extern char D_003DD490[];
 PRG *NewBlipGroup(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITB *p);
 BLK *NewBlip(void *pv, PRG *pprg);
@@ -1318,7 +1311,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, in
     if (px && px->ppblipg)
         pprg = (PRG *)*px->ppblipg;
     if (!pprg) {
-        pprg = NewBlipGroup(D_003DD490);
+        pprg = NewBlipGroup(&g_sw);
         if (!pprg)
             return;
         if (px && px->ppblipg)
@@ -1331,7 +1324,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, in
     }
     BLK *pblk = pprg->pblkFirst;
     int k = 0;
-    while (k < c && (pblk || (pblk = NewBlip(D_003DD490, pprg)))) {
+    while (k < c && (pblk || (pblk = NewBlip(&g_sw, pprg)))) {
         qword *pq1 = pblk->afr[1].apos;
         for (unsigned int i = pblk->numBlips; i < 43 && k < c; k++, i++) {
             FR *pfr = &pblk->afr[0];
@@ -1432,7 +1425,6 @@ namespace M_OriginateSplineSinkParticles {
 // the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
 struct M4 { qword r[4]; };
 extern "C" {
-extern CLOCK D_002DDED0;
 extern float D_002A5150;
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen);
 int AreFloatsNear__Ffff(float g1, float g2, float gEps);
@@ -1486,7 +1478,7 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGE
     pv = target->GetLocalTransform((MATRIX4 *)&mWorld);
     mBase = mWorld;
     for (i = 0; i < c; i++) {
-        float tNow = D_002DDED0.time;
+        float tNow = g_clock.time;
         float t = pgenEmit->atDeath[i] - tNow;
         int velocityKind = target->pemitb->emito.velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
@@ -1630,7 +1622,6 @@ struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 // Float carried as raw bits in a GPR qword (no VU0 transfer).
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int *)&f)); } };
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 struct X { float x, y, z, w; qword axis; float curlRate; float damping; };   /* EMITDV */
 extern "C" { void BuildAxisAngleRotationMatrix(MATRIX3 *pm, float g, qword axis); }
@@ -1659,11 +1650,11 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
     MATRIX4 *pmRot = &mRot;
     if (emitdv->curlRate != 0.0f) {
         MATRIX3 m3;
-        BuildAxisAngleRotationMatrix(&m3, emitdv->curlRate * D_002DDED0.deltaTime, emitdv->axis);
+        BuildAxisAngleRotationMatrix(&m3, emitdv->curlRate * g_clock.deltaTime, emitdv->axis);
         *(MATRIX3 *)pmRot = m3;
     }
     MATRIX4 mD;
-    mD = *pmRot * mScale * VU_FLOAT(D_002DDED0.deltaTime);
+    mD = *pmRot * mScale * VU_FLOAT(g_clock.deltaTime);
     return *pmRot + mD;
 }
 } // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4

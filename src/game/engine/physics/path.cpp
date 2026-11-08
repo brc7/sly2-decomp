@@ -822,7 +822,6 @@ struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
 struct F { struct V *apv[3]; };
 struct P { float x, y, z; unsigned short c, d; };
 struct S { char pad[0x18]; int oid; char p0[0xE0 - 0x1C]; int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
-extern SW D_003DD490;
 void LoadXfmFromBrx(struct S *p, void *pbis);
 int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
@@ -877,8 +876,8 @@ void LoadPathzoneFromBrx(struct S *zone, void *stream)
     }
     ComputeCgEdgeCosts(&zone->numVertices);
     if (zone->oid == 0x2CA)
-        D_003DD490.pcid17Default = (CID17 *)zone;
-    zone->version = ++D_003DD490.pathzoneVersion;
+        g_sw.pcid17Default = (CID17 *)zone;
+    zone->version = ++g_sw.pathzoneVersion;
 }
 } } // namespace M_LoadPathzoneFromBrx
 
@@ -893,7 +892,6 @@ struct F { struct V *apv[3]; };
 struct FS { int ai[3]; };
 struct P { float x, y; int z; unsigned short c, d; };
 struct S : XFM { int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
-extern SW D_003DD490;
 /* The default navigation graph (path's .data): four corner vertices of a 200000-unit square, each with its
  * neighbour indices (-1: unused), and its two triangles. */
 struct VS D_002C0C10[4] = {
@@ -950,7 +948,7 @@ void InitDefaultPathzoneCg(struct S *zone)
     pp->x = g;
     pp->y = -g;
     ComputeCgEdgeCosts(&zone->numVertices);
-    zone->version = ++D_003DD490.pathzoneVersion;
+    zone->version = ++g_sw.pathzoneVersion;
 }
 } } // namespace M_InitDefaultPathzoneCg
 
@@ -1133,7 +1131,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct N { qword *pplane; unsigned short ach[2]; };
 struct B { int c; struct N *an; int numPlanes, planes; int numZones; int zoneIds; void **zones; };
-extern SW D_003DD490;
 void InitVuTemp(void *p);
 // 1 if pos is strictly in front of the plane (plane.xyz . pos - plane.w > 0), else 0.
 static __inline__ int ISide(qword plane, qword pos)
@@ -1157,7 +1154,7 @@ static __inline__ int ISide(qword plane, qword pos)
 // Walks the world's zone BSP (SW +0x45CC) to the path zone containing pos; falls back to the world's default zone.
 void *FindPathzoneAtPos(qword pos, int flags)
 {
-    struct B *pb = ((struct B *)D_003DD490.pregtree);
+    struct B *pb = ((struct B *)g_sw.pregtree);
     struct N *pn, *pnEnd, *an;
     void **zones;
     unsigned int c;
@@ -1175,7 +1172,7 @@ void *FindPathzoneAtPos(qword pos, int flags)
     }
     if (!flags && pb->numZones)
         return 0;
-    return D_003DD490.pcid17Default;
+    return g_sw.pcid17Default;
 leaf:
     return zones[c & 0x7FFF];
 }
@@ -1277,7 +1274,6 @@ namespace M_func_001C1138 { extern "C" {
 struct LO { char pad[0x124]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
 struct AL { int cb; int cbAlign;  };
 struct S { char pad[0x10]; int c; int *zoneIds; struct LO **zones; int linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
-extern char D_003DD490[];
 struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
 int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
 void *AllocCopyFromWorldHeap(const struct AL *pal, const void *pv);
@@ -1286,9 +1282,9 @@ static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm_
 // Fill the allocation request for count 4-byte links with the given alignment and set owner->numLinks = count.
 static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
 // High address page of the world D_003DD490.
-static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_003DD490));return page;}
+static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_sw));return page;}
 // Address of the world D_003DD490 from its high page.
-static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(D_003DD490));return world;}
+static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(&g_sw));return world;}
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
 void BindSwPathzones(struct S *world)
 {
@@ -1512,7 +1508,6 @@ void RemoveObstacleEvents(int count, struct E *events, int key)
 namespace M_func_001C1968 { extern "C" {
 struct E;
 struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; int *obstacles; int unknown110; int version; };
-extern SW D_003DD490;
 void RemoveObstacleEvents(int n, struct E *a, int key);
 // Unregisters an obstacle from both axes of its zone and bumps the world's navigation version.
 void RemovePathzoneObstacle(struct S *zone, int key)
@@ -1526,7 +1521,7 @@ void RemovePathzoneObstacle(struct S *zone, int key)
     RemoveObstacleEvents(zone->numEvents, zone->zEvents, i);
     zone->numObstacles--;
     zone->numEvents -= 2;
-    zone->version = ++D_003DD490.pathzoneVersion;
+    zone->version = ++g_sw.pathzoneVersion;
 }
 } } // namespace M_func_001C1968
 
@@ -1565,7 +1560,6 @@ struct E;
 struct O { char pad[0x1A0]; union { qword q; float g[4]; } a; union { qword q; float g[4]; } b; char p1[0x1DC - 0x1C0]; struct S *pathzone; };
 struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; struct O **obstacles; int unknown110; int version; };
 struct M { struct O *po; void *pv; };
-extern SW D_003DD490;
 int FindPathzoneObstacles(struct S *p, int z, qword a, qword b, int c, void **ap);
 int DoConvexObstaclesOverlap(struct O *po, void *pv);
 void MergeCid14Obstacles(int n, struct M *pm);
@@ -1600,7 +1594,7 @@ void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
     }
     obstacle->pathzone = zone;
     zone->numEvents += 2;
-    zone->version = ++D_003DD490.pathzoneVersion;
+    zone->version = ++g_sw.pathzoneVersion;
 }
 } } // namespace M_func_001C1BA0
 
@@ -1741,7 +1735,6 @@ void PATHLINK::Init() { using namespace M_InitPathlink; M_InitPathlink::S *p = (
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddPathlinkHierarchy { extern "C" {
 struct O { char pad[0x28]; int n; };
-extern SW D_003DD490;
 void AddLoHierarchy(void *p);
 // CID 124 slot 11: AddLoHierarchy, then bumps the world's navigation version.
 void AddPathlinkHierarchy(void *pathlink)
@@ -1749,7 +1742,7 @@ void AddPathlinkHierarchy(void *pathlink)
     SW *pg;
     int c;
     AddLoHierarchy(pathlink);
-    pg = &D_003DD490;
+    pg = &g_sw;
     c = pg->unknown3D74 + 1;
     pg->unknown3D74 = c;
     ((struct O *)pg->pregtree)->n = c;
@@ -1759,7 +1752,6 @@ void AddPathlinkHierarchy(void *pathlink)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_RemovePathlinkHierarchy { extern "C" {
 struct O { char pad[0x28]; int n; };
-extern SW D_003DD490;
 void RemoveLoHierarchy(void *p);
 // CID 124 slot 12: RemoveLoHierarchy, then bumps the world's navigation version.
 void RemovePathlinkHierarchy(void *pathlink)
@@ -1767,7 +1759,7 @@ void RemovePathlinkHierarchy(void *pathlink)
     SW *pg;
     int c;
     RemoveLoHierarchy(pathlink);
-    pg = &D_003DD490;
+    pg = &g_sw;
     c = pg->unknown3D74 + 1;
     pg->unknown3D74 = c;
     ((struct O *)pg->pregtree)->n = c;
