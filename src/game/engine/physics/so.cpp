@@ -1885,7 +1885,7 @@ extern "C" void WakeSo(SO *so)
 
 // 0x1F50E0 UpdateSoTreeBounds
 namespace M_UpdateSoTreeBounds {
-struct MATRIX4; struct VECTOR; struct XF; struct GEOM; struct DLE; struct SOPART; struct SOTREE; struct SO; struct VU_FLOAT;
+struct VU_FLOAT;
 // UpdateSoTreeBounds (0x1F50E0): SO virtual 48 - rebuild the bounds of the SO's tree record (SO+0xEC).
 // Pass 1, the box of every visible collision part: UpdateSoPartGeom (0x1F38A8) first, then a sphere part adds its
 // XF position -/+ radius * D_002A2DE0, a mesh part its world points, and a part whose geometry is stale
@@ -1901,41 +1901,8 @@ struct MATRIX4; struct VECTOR; struct XF; struct GEOM; struct DLE; struct SOPART
 //   position is read as `*(qword *)mat[3]` (aliases the VU_FLOAT home store, so it is read twice);
 // - the transformed local points use GDistanceFused (vsub inside the dot-product asm, the 1.0 output first).
 typedef int qword __attribute__((mode(TI)));
-typedef unsigned long ulong;
-struct MATRIX4 {float mat[4][4];};
-struct VECTOR {float x,y,z,w;};
-struct XF {char pad[0x40];MATRIX4 worldMatrix;};
-struct GEOM {int numPositions;VECTOR *positions;int numSurfaces;void *surfaces;int numEdges;void *edges;};
-struct SOPART;
-struct DLE {SOPART *next,*prev;};
-struct SOPART
-{
-    /* 0x00 */ XF *transform;
-    /* 0x04 */ void *owner;
-    /* 0x08 */ float radius;          // sphere radius (unknownFlag10B parts)
-    /* 0x0c */ int oid;
-    /* 0x10 */ void *plvo;
-    /* 0x14 */ short damage;
-    /* 0x16 */ ulong unknownFlag10A:1;
-               ulong unknownFlag10B:1; // the part is a sphere around its XF's position
-               ulong isHidden:1;
-               ulong unknownBits10A:13;
-    /* 0x18 */ unsigned zapKindFlags;
-    /* 0x1c */ int unknown1C;
-    /* 0x20 */ MATRIX4 matWorld;
-    /* 0x60 */ DLE dle;
-    /* 0x68 */ char bspc[0x10];
-    /* 0x78 */ GEOM meshLocal;
-    /* 0x90 */ GEOM meshWorld;
-    /* 0xa8 */ int meshStamp;
-    /* 0xac */ int worldStamp;
-};
-struct SOTREE {qword boundsMin,boundsMax,boundsCenter;float boundsRadius;SOPART *ppartFirst;};
-struct SO {char pad[0xEC];SOTREE *physicsTree;};
 struct VU_FLOAT {qword qw;};
 extern "C" { extern qword D_002A2DE0,D_002A2DF0,D_002A2E00; }
-extern "C" void UpdateSoPartGeom(SOPART *);
-extern "C" void ClearSoTreeBoundsDirty(SO *);
 
 // Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g)
@@ -2008,7 +1975,7 @@ extern "C" void UpdateSoTreeBounds(SO *so)
     qword qwMax = D_002A2E00;
     SOPART *ppart;
     int i;
-    for (ppart = so->physicsTree->ppartFirst; ppart; ppart = ppart->dle.next)
+    for (ppart = (SOPART *)so->physicsTree->parts.head; ppart; ppart = (SOPART *)ppart->dle.next)
     {
         if (ppart->isHidden)
             continue;
@@ -2045,7 +2012,7 @@ extern "C" void UpdateSoTreeBounds(SO *so)
     float sRadius = 0.0f;
     qword qwCenter;
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwCenter) : "j"(qwMin), "j"(qwMax), "j"(gHalf.qw));
-    for (ppart = so->physicsTree->ppartFirst; ppart; ppart = ppart->dle.next)
+    for (ppart = (SOPART *)so->physicsTree->parts.head; ppart; ppart = (SOPART *)ppart->dle.next)
     {
         if (ppart->unknownFlag10B)
         {
@@ -2084,7 +2051,7 @@ typedef char layout_part_matrix[((unsigned)&((SOPART*)0)->matWorld==0x20)?1:-1];
 typedef char layout_part_dle[((unsigned)&((SOPART*)0)->dle==0x60)?1:-1];
 typedef char layout_part_world[((unsigned)&((SOPART*)0)->meshWorld==0x90)?1:-1];
 typedef char layout_part_stamp[((unsigned)&((SOPART*)0)->worldStamp==0xAC)?1:-1];
-typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->ppartFirst==0x34)?1:-1];
+typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->parts==0x34)?1:-1];
 } // namespace M_UpdateSoTreeBounds
 
 // 0x1F5480 ExtendSoTreeBounds
