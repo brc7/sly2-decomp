@@ -416,8 +416,16 @@ struct XPLIST
    Layout from src/game/gameplay/player/jt/RebuildJtXmg.cpp (8 copies in Lilly ports) */
 struct XF
 {
-      MATRIX4 localMatrix; /* local matrix */
-      MATRIX4 worldMatrix; /* world matrix (row 3 = world position, XF+0x70) */
+      union
+      {
+            MATRIX4 localMatrix; /* local matrix */
+            MATRIX4Q localMatq;   /* its rows as quadwords (row 3, +0x30: the local position) */
+      };
+      union
+      {
+            MATRIX4 worldMatrix; /* world matrix (row 3 = world position, XF+0x70) */
+            MATRIX4Q worldMatq;   /* its rows as quadwords */
+      };
       float segmentStartTime;
       float segmentEndTime;
       float *timeSource;

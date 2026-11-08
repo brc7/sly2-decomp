@@ -1195,37 +1195,29 @@ void ApplySoProxy(SO *so, MATRIX4 *pv)
 
 // 0x1F40A0 TranslateSoToPos
 namespace M_TranslateSoToPos {
-struct LO; struct E; struct P; 
 extern "C" {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { M3 m3; qword r3; } s; float f[4][4]; qword r[4]; } __attribute__((aligned(16))) M4;
 typedef union { qword q; float f[4]; } V4;
-struct LO { char pad[0x30]; V4 position; M4 matWorld; char pad2[0xA0 - 0x80]; struct LO *parent; int stamp; };
 struct REGION;
-struct REGION_LINK;
-struct E { char pad[0xDC]; struct REGION_LINK *regionLink; };
-struct P { char pad[0xC]; VTE *pvt; char pad2[0x58 - 0x10]; struct LO *positionXf; char pad3[0x60 - 0x5C]; struct LO *rootTransform; char pad4[0xE8 - 0x64]; struct E *physics; };
 qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void FreeSoContacts(struct P *);
-void UnsettleXfSlot(struct P *, struct LO *);
-void UpdateSoPartMatrices(struct P *);
-qword GetLoWorldPos(struct P *);
+void UpdateSoPartMatrices(SO *);
+qword GetLoWorldPos(SO *);
 struct REGION *FindPathzoneAtPos(qword, int);
-void SetSoPhysRegion(struct P *, struct REGION *);
+void SetSoPhysRegion(SO *, struct REGION *);
 // Slot 29: moves the object to a world position (the position XF expressed relative to its parents), frees its
 // contacts and refreshes XF modes, part matrices and region.
-void TranslateSoToPos(struct P *so, qword v)
+void TranslateSoToPos(SO *so, qword v)
 {
     M4 m0, matWorld, m80, mC0, m100, m140, m180, m1C0;
-    struct LO *plo;
+    XF *plo;
     const M3 *basis;
     register M4 *presult __asm__("$18");
     if (!so->positionXf) return;
-    basis = &so->rootTransform->matWorld.s.m3;
+    basis = (const M3 *)&so->rootTransform->worldMatq;
     VECTOR_opAssign(&m0.s.r3, v);
     m0.s.m3 = *basis;
     m0.f[1][3] = 0.0f;
@@ -1233,14 +1225,14 @@ void TranslateSoToPos(struct P *so, qword v)
     m0.f[0][3] = 0.0f;
     m0.f[3][3] = 1.0f;
     presult=&mC0;
-    InvertMatrix4Rigid(&m100,&so->positionXf->matWorld);
-    __ml__FRC7MATRIX4T0(presult, &m100, &so->rootTransform->matWorld);
+    InvertMatrix4Rigid(&m100,(M4 *)&so->positionXf->worldMatq);
+    __ml__FRC7MATRIX4T0(presult, &m100, (M4 *)&so->rootTransform->worldMatq);
     matWorld.r[1] = mC0.r[1];
     matWorld.r[0] = mC0.r[0];
     matWorld.r[2] = mC0.r[2];
     matWorld.r[3] = mC0.r[3];
     if (so->positionXf->parent) {
-        m80 = so->positionXf->parent->matWorld;
+        m80 = *(M4 *)&so->positionXf->parent->worldMatq;
     } else {
         M4 *identity = &m80;
         func_002333B4(identity, 0, 0x40);
@@ -1256,16 +1248,16 @@ void TranslateSoToPos(struct P *so, qword v)
     __ml__FRC7MATRIX4T0(&m100, world, &m1C0);
     plo = so->positionXf;
     mC0 = m100;
-    VECTOR_opAssign(&plo->position.q, mC0.r[3]);
-    plo->position.f[3] = 1.0f;
-    { int stamp=++g_sw.transformStamp;so->positionXf->stamp=stamp; }
-    ((void (*)(void *))so->pvt[18].pfn)((char *)so + so->pvt[18].d);
+    VECTOR_opAssign(&plo->localMatq.r[3].q, mC0.r[3]);
+    plo->localMatrix.mat[3][3] = 1.0f;
+    { int stamp=++g_sw.transformStamp;so->positionXf->worldStamp=stamp; }
+    so->UpdateXfWorldHierarchy();
     FreeSoContacts(so);
     UnsettleXfSlot(so, so->positionXf);
     UpdateSoPartMatrices(so);
     {
-        struct REGION_LINK *link = 0;
-        if (so->physics) link = so->physics->regionLink;
+        REGENT *link = 0;
+        if (so->physics) link = so->physics->pregent;
         if (link) SetSoPhysRegion(so, FindPathzoneAtPos(GetLoWorldPos(so), 1));
     }
 }
