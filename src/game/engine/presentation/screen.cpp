@@ -2439,7 +2439,6 @@ void UpdateJobListWidgets(JOBLIST *p)
 } } // namespace M_UpdateJobListWidgets
 
 namespace M_SetJobListPage { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct SUB {
     char pad0[0xC];
     VTE *vt;

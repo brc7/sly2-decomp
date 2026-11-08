@@ -4125,10 +4125,9 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 
 // 0x1E4D40 GetJsgTargetPosHeading
 namespace M_GetJsgTargetPosHeading { extern "C" {
-struct VTE; struct O; struct P;
+struct O; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; float *(*pfn)(void *); };
-struct O { int pad[3]; struct VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
+struct O { int pad[3]; VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword GetLoWorldPos(struct O *po);
@@ -4150,8 +4149,8 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
         } else {
             float *p1, *p2;
             uv.q = GetLoWorldPos(po);
-            p1 = po->vt[0x1F].pfn((char *)po + po->vt[0x1F].d);
-            p2 = po->vt[0x1F].pfn((char *)po + po->vt[0x1F].d);
+            p1 = ((float *(*)(void *))po->vt[0x1F].pfn)((char *)po + po->vt[0x1F].d);
+            p2 = ((float *(*)(void *))po->vt[0x1F].pfn)((char *)po + po->vt[0x1F].d);
             g = atan2f(p1[1], p2[0]);
         }
     } else {
@@ -4163,8 +4162,8 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
             g = px->g1A8;
         } else {
             float *p1, *p2;
-            p1 = px->vt[0x1F].pfn((char *)px + px->vt[0x1F].d);
-            p2 = px->vt[0x1F].pfn((char *)px + px->vt[0x1F].d);
+            p1 = ((float *(*)(void *))px->vt[0x1F].pfn)((char *)px + px->vt[0x1F].d);
+            p2 = ((float *(*)(void *))px->vt[0x1F].pfn)((char *)px + px->vt[0x1F].d);
             g = atan2f(p1[1], p2[0]);
         }
     }
@@ -4579,14 +4578,13 @@ void EndJsgCamBlend(struct S *script, int n)
 
 // 0x1E5AE0 NewRelayJsg
 namespace M_PjsgNew { extern "C" {
-struct VTE; struct E; struct A; struct C; struct S;
-struct VTE { short d; short pad; void (*pfn)(void *); };
+struct E; struct A; struct C; struct S;
 struct E { int kind; char pad4[0xC]; int oid; char pad14[0x3C]; };   /* RELAYCMD: kind, then (BlockBegin) the block object's oid at +0x10 */
 struct A : LO { int commandCount; struct E *commands; char pad2[4]; char dl[1]; };
 struct C { char pad[0x18]; int context; };
-struct S { int unknown0; int unknown4; int pad8; struct VTE *pvt; int pad10; struct A *relay; int context; int block; int pad20[2]; struct E *firstCommand; struct E *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
+struct S { int unknown0; int unknown4; int pad8; VTE *pvt; int pad10; struct A *relay; int context; int block; int pad20[2]; struct E *firstCommand; struct E *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
 extern char D_003DD490[];
-extern struct VTE D_002D8C08[] __asm__("_vt$8RELAYJSG");
+extern VTE D_002D8C08[] __asm__("_vt$8RELAYJSG");
 struct S *AllocZeroedFromSlotheap(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 int FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
@@ -4634,7 +4632,7 @@ struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
     peLast = &relay->commands[relay->commandCount - 1];
     SetBlockEnd(p, pe, peLast);
     PrependDlEntry__FP2DLPv(relay->dl, p);
-    p->pvt[1].pfn((char *)p + p->pvt[1].d);
+    ((void (*)(void *))p->pvt[1].pfn)((char *)p + p->pvt[1].d);
     return p;
 }
 } } // namespace M_PjsgNew

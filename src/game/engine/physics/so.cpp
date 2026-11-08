@@ -714,7 +714,7 @@ extern "C" void SetSoBusyDistance(SO *so, float t)
 
 // 0x1F31E0 LoadSoFromBrx
 namespace M_LoadSoFromBrx {
-struct GEO; struct TREE; struct M4; struct VE; union FLAGS; struct E; struct STATE; struct DATA; struct P; struct MSG;
+struct GEO; struct TREE; struct M4; union FLAGS; struct E; struct STATE; struct DATA; struct P; struct MSG;
 typedef unsigned long ulong;
 typedef unsigned int uint;
 typedef int qword __attribute__((mode(TI)));
@@ -723,12 +723,11 @@ struct TREE {int count,a,b;void *nodes;};
 struct M4 {qword rows[4];};
 struct E;
 struct P;
-struct VE {short delta,pad;void (*fn)();};
 union FLAGS {ulong raw;struct {void *mesh;short state;unsigned short high;} fields;};
 struct E {void *object;P *owner;float radius;int tag;FLAGS flags;int id,pinned;M4 matrix;char pad60[8];TREE tree;GEO local,world;int state,stamp;};
 struct STATE {qword rows[3];char pad30[0xA0];float mass;char padD4[0xC];};
 struct DATA {char pad0[0x38];void *guard;char pad3C[0x24];};
-struct P {char pad0[0xC];VE *vt;char pad10[0x30];uint flags;char pad44[0x3C];DATA data;int count;E *entries;STATE *state;};
+struct P {char pad0[0xC];VTE *vt;char pad10[0x30];uint flags;char pad44[0x3C];DATA data;int count;E *entries;STATE *state;};
 struct MSG {int bytes,alignment;};
 extern "C" { extern char D_002C44F0[]; }
 extern "C" {
@@ -752,11 +751,11 @@ void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(P *,void 
 void SetLoVisMask(P *,int);
 }
 // Call p's virtual at vtable slot 63 and return its int result.
-static inline int Extra(P *p){VE *v=&p->vt[63];return ((int (*)(P *))v->fn)((P *)((char *)p+v->delta));}
+static inline int Extra(P *p){VTE *v=&p->vt[63];return ((int (*)(P *))v->pfn)((P *)((char *)p+v->d));}
 // Call p's virtual at vtable slot 51 with id and return the pointer it gives.
-static inline void *Lookup(P *p,int id){VE *v=&p->vt[51];return ((void *(*)(P *,int))v->fn)((P *)((char *)p+v->delta),id);}
+static inline void *Lookup(P *p,int id){VTE *v=&p->vt[51];return ((void *(*)(P *,int))v->pfn)((P *)((char *)p+v->d),id);}
 // Call p's virtual at vtable slot 64.
-static inline void Post(P *p){VE *v=&p->vt[64];((void (*)(P *))v->fn)((P *)((char *)p+v->delta));}
+static inline void Post(P *p){VTE *v=&p->vt[64];((void (*)(P *))v->pfn)((P *)((char *)p+v->d));}
 // Set flag 8: on p->flags when bit 0 is set, otherwise on the word p->flags points to (as the original does).
 static inline void SetActive(P *p){uint f=p->flags;if((f^1)&1)*(uint *)f|=8;else p->flags=f|8;}
 // Slot 14 (LoadFromBrx): the LO base, the model and glob set, the part array (XF id, flags, radius, local
@@ -1235,7 +1234,7 @@ void ApplySoProxy(SO *so, MATRIX4 *pv)
 
 // 0x1F40A0 TranslateSoToPos
 namespace M_TranslateSoToPos {
-struct LO; struct E; struct VTE; struct P; 
+struct LO; struct E; struct P; 
 extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
@@ -1245,8 +1244,7 @@ struct LO { char pad[0x30]; V4 position; M4 matWorld; char pad2[0xA0 - 0x80]; st
 struct REGION;
 struct REGION_LINK;
 struct E { char pad[0xDC]; struct REGION_LINK *regionLink; };
-struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct LO *positionXf; char pad3[0x60 - 0x5C]; struct LO *rootTransform; char pad4[0xE8 - 0x64]; struct E *physics; };
+struct P { char pad[0xC]; VTE *pvt; char pad2[0x58 - 0x10]; struct LO *positionXf; char pad3[0x60 - 0x5C]; struct LO *rootTransform; char pad4[0xE8 - 0x64]; struct E *physics; };
 extern SW D_003DD490;
 qword *VECTOR_opAssign(qword *, qword);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
@@ -1301,7 +1299,7 @@ void TranslateSoToPos(struct P *so, qword v)
     VECTOR_opAssign(&plo->position.q, mC0.r[3]);
     plo->position.f[3] = 1.0f;
     { int stamp=++D_003DD490.transformStamp;so->positionXf->stamp=stamp; }
-    so->pvt[18].pfn((char *)so + so->pvt[18].d);
+    ((void (*)(void *))so->pvt[18].pfn)((char *)so + so->pvt[18].d);
     FreeSoContacts(so);
     UnsettleXfSlot(so, so->positionXf);
     UpdateSoPartMatrices(so);
@@ -1317,12 +1315,11 @@ void TranslateSoToPos(struct P *so, qword v)
 
 // 0x1F42E0 RotateSoToMat
 namespace M_RotateSoToMat {
-union U; struct M3; struct LO; struct VTE; struct P; 
+union U; struct M3; struct LO; struct P; 
 typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
 struct LO { M3 matrix; QWROW position; M3 rotation; char pad[0x30]; LO *parent; int stamp; };
-struct VTE { short delta,pad; void (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" { extern SW D_003DD490; }
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
@@ -1363,7 +1360,7 @@ extern "C" void RotateSoToMat(P *so,const M3 *basis)
         dest->r[2].i[3]=0;
         int stamp=++D_003DD490.transformStamp;
         so->object->stamp=stamp;
-        so->vt[18].fn((char *)so+so->vt[18].delta);
+        ((void (*)(void *))so->vt[18].pfn)((char *)so+so->vt[18].d);
         FreeSoContacts(so);
         UnsettleXfSlot(so,so->object);
         UpdateSoPartMatrices(so);
@@ -1476,12 +1473,11 @@ qword SO::GetAngularVelocity()
 
 // 0x1F46D8 SetSoAngularVelocity
 namespace M_SetSoAngularVelocity {
-union U; struct M3; struct LO; struct VTE; struct P;
+union U; struct M3; struct LO; struct P;
 typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
 struct LO { M3 matrix; QWROW position; M3 rotation; char pad[0x24]; int kind; short state; char pad9A[6]; LO *parent; int stamp; char padA8[8]; QWROW velocity; };
-struct VTE { short delta,pad; qword (*fn)(void *); };
 struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
@@ -1518,7 +1514,7 @@ extern "C" void SetSoAngularVelocity(P *so,qword position)
     const M3 *rotation=&object->rotation;
     Clear(&object->velocity);
     M3 normalized;
-    qword origin=so->vt[34].fn((char *)so+so->vt[34].delta);
+    qword origin=((qword (*)(void *))so->vt[34].pfn)((char *)so+so->vt[34].d);
     normalized=*rotation;
     NormalizeRotateMatrix3__FP7MATRIX3(&normalized);
     M3 relative=Mul(*rotation,InvertMatrix3Cofactor(&normalized));
@@ -1659,13 +1655,12 @@ extern "C" void MatchSoXf(X *so, X *q)
 
 // 0x1F4A80 SetSoXf
 namespace M_func_001F4A80 {
-union U; struct M4; struct VTE; struct A; struct P;
+union U; struct M4; struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {QWROW r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
-struct VTE { short d; short pad; void (*pfn)(); };
 struct A { char pad[0x70]; qword pos; };
-struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
+struct P { char pad[0xC]; VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
 extern "C" void SetLoTransformFromXf(struct P *p, struct A *pa);
 extern "C" M4 *GetXfAngularVelocity(M4 *,A *,A *);
 // The object's angular-velocity matrix (GetXfAngularVelocity).
@@ -1682,7 +1677,7 @@ typedef void (*SETVECTOR)(void *,qword);
 // Load a vtable entry's function pointer.
 static inline SETVECTOR ReadSetter(const VTE &entry){
  SETVECTOR function;
- asm("lw %0,%1":"=r"(function):"m"(entry.pfn));
+ asm("lw %0,%1":"=r"(function):"m"(((void (*)())entry.pfn)));
  return function;
 }
 // Slot 39: sets the transform (SetXf) and derives linear and angular velocity from the XF rate matrix.
@@ -2542,12 +2537,11 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
 
 // 0x1F5E10 AccelSoTowardPosSpring
 namespace M_AccelSoTowardPosSpring { extern "C" {
-struct COEF; struct VE; struct OWNER; struct S; 
+struct COEF; struct OWNER; struct S; 
 typedef int qword __attribute__((mode(TI)));
 struct COEF {float a,b,c;};
-struct VE {short d,pad;qword(*fn)(void*);};
 struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
-struct S {char pad[0xC];struct VE *vt;char pad10[0x48];struct OWNER *owner;};
+struct S {char pad[0xC];VTE *vt;char pad10[0x48];struct OWNER *owner;};
 extern CLOCK D_002DDED0;
 qword GetLoWorldPos(struct S*);
 qword ConvertXfVec(void*,void*,qword);
@@ -2586,7 +2580,7 @@ void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCo
    }
  }
  if(d){
-   qword difference=Sub(speed.q,p->vt[33].fn((char*)p+p->vt[33].d));
+   qword difference=Sub(speed.q,((qword (*)(void*))p->vt[33].pfn)((char*)p+p->vt[33].d));
    float distance=Length(difference);
    if(1.0e-4f<distance){
      register void *parent asm("a1");
@@ -3429,11 +3423,10 @@ void SetSoZapResponse(SO *so, int f, int b)
 
 // 0x1F7950 HandleSoTouchZaps
 namespace M_func_001F7950 { extern "C" {
-struct VTE; struct VT; struct E; struct P; struct M; struct G2;
+struct VT; struct E; struct P; struct M; struct G2;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
-struct VTE { short d; short p; void *pfn; };
-struct VT { struct VTE a[75]; };
+struct VT { VTE a[75]; };
 struct E { char pad[0x6C]; int zapContacts; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *tree; char pad3[0x148 - 0xF0]; union { struct { signed char hitDamage0, hitDamage1; } c; ulong flags; } u; };
 struct M { void *source; int n4; void *target; int zapKinds; int damage; int pad[3]; qword pos; qword velocity; char pad2[0x60 - 0x40]; };

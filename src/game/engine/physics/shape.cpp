@@ -205,9 +205,8 @@ void CacheShapeSegment(struct PATH *shape, int segment)
 namespace M_MeasureShape { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a,b,c,d; };
-struct VTE { short d,pad; void (*pf)(); };
 struct S {
- char pad[0xC]; struct VTE *vt; char pad10[0xE0-0x10];
+ char pad[0xC]; VTE *vt; char pad10[0xE0-0x10];
  int mode; char padE4[4]; int n; char padEC[4];
  float *dist; qword *v; char padF8[8]; struct M mat;
  char pad140[0x174-0x140]; float duration; int pad178; void *sub;
@@ -236,7 +235,7 @@ void MeasureShape(struct S *shape)
 {
  int i;
  InvalidateShapeCache(shape);
- shape->mat=*((struct M*(*)(void*))shape->vt[31].pf)((char*)shape+shape->vt[31].d);
+ shape->mat=*((struct M*(*)(void*))shape->vt[31].pfn)((char*)shape+shape->vt[31].d);
  if (shape->mode==0) {
   float *d0=shape->dist; float total=0.0f;
   qword prev;
@@ -431,8 +430,7 @@ float ClampShapeDistance(SHAPE *shape, float distance)
 namespace M_EvaluateShapeU { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a,b,c,d; };
-struct VTE { short d; short pad; void (*pf)(); };
-struct S { char pad[0xC]; struct VTE *vt; char pad2[0xE0-0x10]; int mode; char pad3[0xF4-0xE4]; qword *points; char pad4[0x140-0xF8]; qword *incoming,*outgoing; };
+struct S { char pad[0xC]; VTE *vt; char pad2[0xE0-0x10]; int mode; char pad3[0xF4-0xE4]; qword *points; char pad4[0x140-0xF8]; qword *incoming,*outgoing; };
 union U { qword q; float f; };
 int FindShapeSegmentAtParam(struct S*,float,float*,float*);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*);
@@ -468,7 +466,7 @@ void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOu
     register qword row0 __asm__("vf5"),row1 __asm__("vf4"),row2 __asm__("vf3");
     register qword tangent __asm__("vf2");
     int i=SegmentIndex(FindShapeSegmentAtParam(shape,param,&elapsed,&duration));
-    m=* ((struct M *(*)(void*))shape->vt[31].pf)((char*)shape+shape->vt[31].d);
+    m=* ((struct M *(*)(void*))shape->vt[31].pfn)((char*)shape+shape->vt[31].d);
     if (shape->mode==0) {
         if (posOut) {
             union U scalar;float t=elapsed/duration;
@@ -503,7 +501,6 @@ typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
 typedef char M_Size[sizeof(struct M)==0x40?1:-1];
 typedef char M_Alignment[__alignof__(struct M)==16?1:-1];
-typedef char VTE_Size[sizeof(struct VTE)==8?1:-1];
 typedef char S_Prefix_Size[sizeof(struct S)==0x148?1:-1];
 typedef char U_Size[sizeof(union U)==16?1:-1];
 typedef char U_Alignment[__alignof__(union U)==16?1:-1];
@@ -511,8 +508,6 @@ typedef char M_a_Offset[FIELD_OFFSET(struct M,a)==0?1:-1];
 typedef char M_b_Offset[FIELD_OFFSET(struct M,b)==0x10?1:-1];
 typedef char M_c_Offset[FIELD_OFFSET(struct M,c)==0x20?1:-1];
 typedef char M_d_Offset[FIELD_OFFSET(struct M,d)==0x30?1:-1];
-typedef char VTE_d_Offset[FIELD_OFFSET(struct VTE,d)==0?1:-1];
-typedef char VTE_pf_Offset[FIELD_OFFSET(struct VTE,pf)==4?1:-1];
 typedef char S_vt_Offset[FIELD_OFFSET(struct S,vt)==0xC?1:-1];
 typedef char S_mode_Offset[FIELD_OFFSET(struct S,mode)==0xE0?1:-1];
 typedef char S_points_Offset[FIELD_OFFSET(struct S,points)==0xF4?1:-1];
@@ -591,7 +586,6 @@ typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { QWROW rows[4]; };
-struct VTE { short delta, pad; void *fn; };
 struct SPACE;
 struct PATH {
     char padC[0xC]; VTE *vt; char pad10[0xD4];
@@ -683,7 +677,7 @@ extern "C" { void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPA
     float elapsed, duration;
     int backward = 0, forward = 0, previous;
     int index = FindShapeSegmentAtParam(p, initial, &elapsed, &duration);
-    matrix = *((M4 *(*)(void *))p->vt[31].fn)((char *)p + p->vt[31].delta);
+    matrix = *((M4 *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d);
     float fraction;
     for (;;) {
         const M4 *basis = &matrix;
@@ -799,7 +793,6 @@ typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { qword a, b, c, d; };
-struct VTE { short delta, pad; void *fn; };
 struct SPACE;
 struct PATH {
     char padC[0xC]; VTE *vt; char pad10[0xD0];
@@ -868,7 +861,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
     QWROW closest;
     qword start, end;
     VTE &v = p->vt[31];
-    matrix = *((M4 *(*)(void *))v.fn)((char *)p + v.delta);
+    matrix = *((M4 *(*)(void *))v.pfn)((char *)p + v.d);
     switch (p->mode) {
     case 0: {
         start = TransformPoint(matrix, p->points[0]);
@@ -1477,8 +1470,7 @@ namespace M_InitChain { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword unknown0,unknown4,c,d;};
 struct AL {int cb,align;};
-struct VTE {short d,pad;struct M4 *(*pf)(void*);};
-struct PATH {char pad[0xC];struct VTE *vt;char pad10[0xE8-0x10];int numPoints;int padEC;float *dist;qword *points;};
+struct PATH {char pad[0xC];VTE *vt;char pad10[0xE8-0x10];int numPoints;int padEC;float *dist;qword *points;};
 struct S {int unknown0,unknown4;float gravity;char padC[0x20-0xC];qword start,end;void *fn40,*fn44;struct PATH *path;int mode;int pad50;qword *positions,*previousPositions;float *dist;float unknown60;char pad64[8];float unknown6C,unknown70;char pad74[0x84-0x74];int capacity;float unknown88;};
 extern char D_002C44F0[];
 void *AllocClearedFromWorldHeap(struct AL*);
@@ -1495,7 +1487,7 @@ struct S *InitChain(struct S *chain,struct PATH *path) {
  chain->gravity=-1750.0f;chain->unknown60=3.0f;chain->unknown6C=500.0f;chain->unknown70=5.0f;
  chain->unknown0=0;chain->unknown4=0;
  chain->capacity=chain->path->numPoints;chain->unknown88=300.0f;
- m=chain->path->vt[31].pf((char*)chain->path+chain->path->vt[31].d);
+ m=((struct M4 *(*)(void*))chain->path->vt[31].pfn)((char*)chain->path+chain->path->vt[31].d);
  for(i=0;i<chain->path->numPoints;i++)chain->positions[i]=Point(m,chain->path->points[i]);
  chain->fn40=chain->fn44=D_002C44F0;
  if(chain->path->numPoints>0) {
@@ -1535,8 +1527,7 @@ struct VU_FLOAT {
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 struct M4 { qword r[4]; };
 struct SPACE { char pad[0x40]; M4 matrix; };
-struct VT { short delta, pad; M4 *(*fn)(void *); };
-struct PATH { char pad[0xC]; VT *vt; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
+struct PATH { char pad[0xC]; VTE *vt; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *owner[2]; };
 struct CHAIN
 {
@@ -1821,8 +1812,8 @@ void StepChainRk4(CHAIN *chain)
     M4 inverse;
     {
         PATH *path = chain->path;
-        VT *e = &path->vt[31];
-        InvertMatrix4Rigid(&inverse, e->fn((char *)path + e->delta));
+        VTE *e = &path->vt[31];
+        InvertMatrix4Rigid(&inverse, ((M4 *(*)(void *))e->pfn)((char *)path + e->d));
     }
     for (i = 0; i < count; i++)
     {
@@ -1865,8 +1856,7 @@ struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() cons
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M4 { qword r[4]; };
 struct SPACE { char pad[0x40]; M4 matrix; };
-struct VT { short delta, pad; M4 *(*fn)(void *); };
-struct PATH { char pad[0xC]; VT *vt; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
+struct PATH { char pad[0xC]; VTE *vt; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
 struct CHAIN
 {
     qword force;
@@ -1973,8 +1963,8 @@ void StepChain(CHAIN *chain)
     M4 inverse;
     {
         PATH *path = chain->path;
-        VT *e = &path->vt[31];
-        InvertMatrix4Rigid(&inverse, e->fn((char *)path + e->delta));
+        VTE *e = &path->vt[31];
+        InvertMatrix4Rigid(&inverse, ((M4 *(*)(void *))e->pfn)((char *)path + e->d));
     }
     for (i = 0; i < n; i++)
     {

@@ -378,7 +378,6 @@ typedef int qword __attribute__((mode(TI)));
 struct M3 {QWROW rows[3];};
 struct M4 {M3 basis;QWROW position;};
 struct FRAME {M4 matrix,world;};
-struct VENTRY {short delta,pad;void (*fn)();};
 struct REF {char pad0[0x70];QWROW position;char pad80[0x20];FRAME *parent;};
 struct POLY {float a,b,c;};
 struct LIMITS {float low,high;};
@@ -387,7 +386,7 @@ struct ATTACH {char pad0[0x10];P *owner;int index,id;void *object;void *binding;
 struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];float tilt;char pad18[0x48];};
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
-struct P {char pad0[0xC];VENTRY *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
+struct P {char pad0[0xC];VTE *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0; }
 extern "C" POLY D_002C2040;
@@ -444,9 +443,9 @@ static inline void ResetDrive(P *p){
  p->goalHeading=heading;
 }
 // Helpers GetMatrixFrom, GetVelocity (small asm wrappers/accessors shaped for the match).
-static inline M4*GetMatrixFrom(P*p,VENTRY*vt){VENTRY&e=vt[31];return ((M4*(*)(void*))e.fn)((char*)p+e.delta);}
+static inline M4*GetMatrixFrom(P*p,VTE*vt){VTE&e=vt[31];return ((M4*(*)(void*))e.pfn)((char*)p+e.d);}
 // The object's velocity (virtual slot 33).
-static inline qword GetVelocity(P *p){VENTRY &e=p->vt[33];return ((qword (*)(void *))e.fn)((char *)p+e.delta);}
+static inline qword GetVelocity(P *p){VTE &e=p->vt[33];return ((qword (*)(void *))e.pfn)((char *)p+e.d);}
 // CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else
 // idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound
 // volume/pitch. (inferred)
@@ -490,7 +489,7 @@ extern "C" void UpdateRobottank(P *tank)
     if(high<response)turnFactor=high;
     else turnFactor=response;
  response_done:;
-    float limited=D_002C2030;VENTRY*table;
+    float limited=D_002C2030;VTE*table;
     asm("lwc1 $f3,%4\n\tmin.s %0,%0,%2\n\tlwc1 $f2,%5\n\tmul.s %0,%3,%0\n\tlw %1,%6\n\tmul.s %0,%0,$f3\n\tdiv.s %0,%0,$f2"
         :"+f"(limited),"=r"(table):"f"(tank->drive),"f"(turnFactor),"m"(tank->steering),"m"(tank->width),"m"(tank->vt):"$f2","$f3");
     tank->turn=limited;
@@ -647,7 +646,6 @@ typedef char guard_52[(sizeof(REF)==176)?1:-1];
 typedef char guard_53[(sizeof(ENTRY)==96)?1:-1];
 typedef char guard_54[(sizeof(SIDE)==20)?1:-1];
 typedef char guard_55[(sizeof(ATTACH)==176)?1:-1];
-typedef char guard_56[(sizeof(VENTRY)==8)?1:-1];
 typedef char guard_57[(sizeof(POLY)==12)?1:-1];
 typedef char guard_58[(sizeof(LIMITS)==8)?1:-1];
 typedef char guard_59[(sizeof(int)==4)?1:-1];
@@ -664,8 +662,6 @@ typedef char guard_69[(OFF(POLY,b)==4)?1:-1];
 typedef char guard_70[(OFF(POLY,c)==8)?1:-1];
 typedef char guard_71[(OFF(LIMITS,low)==0)?1:-1];
 typedef char guard_72[(OFF(LIMITS,high)==4)?1:-1];
-typedef char guard_73[(OFF(VENTRY,delta)==0)?1:-1];
-typedef char guard_74[(OFF(VENTRY,fn)==4)?1:-1];
 typedef char guard_75[(OFF(M4,basis)==0)?1:-1];
 typedef char guard_76[(OFF(M4,position)==0x30)?1:-1];
 typedef char guard_78[(OFF(P,entries[1])-OFF(P,entries[0])==0x60)?1:-1];
@@ -1406,7 +1402,6 @@ struct SOPART { char pad0[0x90]; GEOM meshWorld; };
 struct SUPPORT { qword pos; SURF *apsurf[2]; int fUsed; int pad; };
 struct SWALLOC { int cb; int cbAlign; };
 
-struct VTE { short delta, pad; M4 *(*pfn)(void *); };
 struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };
 struct WHEEL { char pad0[0x20]; float radius, bottom, top; char pad2C[0x24]; qword pos; };
@@ -1437,7 +1432,7 @@ void AddXp(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, f
 }
 
 // Helpers GetMatrix, PvAllocStack, ClearAb, Sqrt (small asm wrappers/accessors shaped for the match).
-static inline M4 *GetMatrix(OWNER *p) { return p->vt[31].pfn((char *)p + p->vt[31].delta); }
+static inline M4 *GetMatrix(OWNER *p) { return ((M4 *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d); }
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 // Zero cb bytes.
@@ -1851,8 +1846,7 @@ struct NODE{M4 matrix,local;char pad80[0x20];NODE*parent;int generation;};
 struct CONTACT{char pad[0x90];float height;};
 struct ENTRY{int unknown;NODE*node;CONTACT*contacts;char padC[8];float tilt,speed,angle,radius;char pad24[12];float x,y;char pad38[0x20];float height;char pad5C[4];};
 struct P;
-struct VE{short delta,pad;qword(*fn)(P*);};
-struct P{char pad[0xC];VE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
+struct P{char pad[0xC];VTE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern qword D_002A2DC0,D_002A2DB0; }
@@ -1882,8 +1876,8 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
 // RenderSoSelf. (inferred)
 extern "C" void RenderRobottankSelf(P*tank){
  V velocity,point;M3 basis;
- VE*method=&tank->vt[33];
- velocity.q=ConvertVecBetweenLos(0,tank,method->fn((P*)((char*)tank+method->delta)));
+ VTE*method=&tank->vt[33];
+ velocity.q=ConvertVecBetweenLos(0,tank,((qword (*)(P*))method->pfn)((P*)((char*)tank+method->d)));
  for(int i=0;i<tank->count;i++){
   ENTRY*e=&tank->entries[i];
   point.q=TransformXfPos(0,(NODE*)tank->space,e->node->local.position.q);
@@ -1951,8 +1945,7 @@ struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() cons
 struct VU_FLOAT { qword q; VU_FLOAT() {} VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); } };
 // A float into a VU register.
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "r"(g)); return v; }
-struct VENTRY { short delta, pad; void *fn; };
-struct P { char pad0[0xC]; VENTRY *vt; char pad10[0x550]; int remaining; };
+struct P { char pad0[0xC]; VTE *vt; char pad10[0x550]; int remaining; };
 struct EVENT { P *sender; char pad4[8]; int kind, change; };
 extern "C" { extern qword D_002A2DA0, D_002A2DC0; }
 extern "C" float D_002C21D0[2];
@@ -2014,11 +2007,11 @@ static inline float Random(const float *range) { return RandomFloatInRange__Fff(
 /* object vector (virtual get) += delta (virtual set) */
 static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
 {
-    VENTRY *vt = p->vt;
-    VENTRY *pset = &vt[set];
-    void *receiver = (char *)p + pset->delta;
-    VV original = ((qword (*)(void *))vt[get].fn)((char *)p + vt[get].delta);
-    ((void (*)(void *, qword))pset->fn)(receiver, VuAdd(original, delta.q));
+    VTE *vt = p->vt;
+    VTE *pset = &vt[set];
+    void *receiver = (char *)p + pset->d;
+    VV original = ((qword (*)(void *))vt[get].pfn)((char *)p + vt[get].d);
+    ((void (*)(void *, qword))pset->pfn)(receiver, VuAdd(original, delta.q));
 }
 
 // CID 77 vtable slot 75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or

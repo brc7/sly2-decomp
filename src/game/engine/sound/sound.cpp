@@ -26,8 +26,7 @@
 #include "sly2/sw.h"
 
 /* g_sndmgr's static construction and destruction. */
-struct VTESND { short d; short pad; void (*pfn)(void *); };
-struct SNDOBJ { char pad0[0xC]; VTESND *vtable; };
+struct SNDOBJ { char pad0[0xC]; VTE *vtable; };
 struct SNDMGRG;
 extern "C" {
 void SNDMGR_ctor(SNDMGRG *soundManager);
@@ -160,7 +159,7 @@ extern char D_002D9D00[] __asm__("_vt$6CID151");
 // Base sound constructor: BASIC header cleared, SND vtable, volume 1, audible from 300 to 3000 units.
 CID151 *SND_ctor(CID151 *sound)
 {
-    ((SNDOBJ *)sound)->vtable = (VTESND *)D_002D9D00;   /* the vptr, by hand (a C-named constructor) */
+    ((SNDOBJ *)sound)->vtable = (VTE *)D_002D9D00;   /* the vptr, by hand (a C-named constructor) */
     sound->scriptFrame.m_p = 0;
     sound->scriptVariables.m_p = 0;
     sound->volume = 1.0f;
@@ -501,7 +500,7 @@ extern "C" BANKSND *BANKSND_ctor(BANKSND *sound, int sfxId)
 {
     SND_ctor(sound);
     sound->sfxId = sfxId;
-    ((SNDOBJ *)sound)->vtable = (VTESND *)D_002D9C70;   /* the vptr, stored by hand (a C-named constructor) */
+    ((SNDOBJ *)sound)->vtable = (VTE *)D_002D9C70;   /* the vptr, stored by hand (a C-named constructor) */
     SetSndFlags(sound, SND_START, SND_START);
     return sound;
 }
@@ -734,7 +733,7 @@ STREAMSND *STREAMSND_ctor(STREAMSND *sound, FILEREC *pfilerec, int streamKind)
     SNDMGR *soundManager;
     SND_ctor(sound);
     sound->record.pfilerec = pfilerec;
-    ((SNDOBJ *)sound)->vtable = (VTESND *)D_002D9BE0;   /* the vptr, by hand (a C-named constructor) */
+    ((SNDOBJ *)sound)->vtable = (VTE *)D_002D9BE0;   /* the vptr, by hand (a C-named constructor) */
     sound->streamKind = streamKind;
     for (i = 0; i < 6; i++)
         sound->groupVolumes[i] = 1.0f;

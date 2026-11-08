@@ -18,9 +18,8 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* g++ 2.95 vtable entry, for the hand-scheduled calls of vtable slot 33 (GetVelocity). */
-struct VE { short d; short pad; void *pfn; };
 /* The vtable pointer of an object (at +0xC, after BASIC's fields), as a memory operand of the hand-scheduled asm. */
-#define PVT(p) (*(VE **)((char *)(p) + 0xC))
+#define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /* A float vector in a quadword, and a quadword with float lanes. */
 struct V { float x, y, z, w; } __attribute__((aligned(16)));
@@ -322,7 +321,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  if(missile->flightTime>0.0f)missile->arrivalTime=D_002DDED0.time+missile->flightTime;
  else{
   func_001B2398Ret((V*)&w.velocity,missile,0.5f);
-  register qword copied __asm__("$2");register VE*table __asm__("$3");register float negative __asm__("$f0");
+  register qword copied __asm__("$2");register VTE*table __asm__("$3");register float negative __asm__("$f0");
   __asm__("lq %0,%4\n\tlw %1,%5\n\tli.s %2,%6\n\tsq %0,%3":"=&r"(copied),"=r"(table),"=f"(negative),"=m"(w.dir):"m"(w.velocity.q),"m"(PVT(missile)),"F"(-0.5f));
   register qword k __asm__("vf1");register qword(*method)(void*) __asm__("$2");register void*receiver __asm__("$4");
   __asm__("mfc1 %0,%4\n\tlh %1,%5\n\tqmtc2.ni %0,%2\n\tlw %0,%6\n\tsqc2 %2,%3\n\taddu %1,%7,%1":"=&r"(method),"=&r"(receiver),"=j"(k),"=m"(w.tmp.q):"f"(negative),"m"(table[33].d),"m"(table[33].pfn),"r"(missile));
@@ -379,7 +378,7 @@ static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r
 // Lane z as a float; the missile's velocity (vtable slot 33).
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 // The missile's velocity (virtual slot 33).
-static inline qword Velocity(CID82*missile){VE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
+static inline qword Velocity(CID82*missile){VTE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of
 // PresetSplmissAccel).
 static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*destination){
@@ -404,7 +403,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
   __asm__("mfc1 %0,%2\n\tsq %0,%1":"=r"(scaleWord),"=m"(w.scale.q):"f"(1.5f/remaining));
   w.integrated.q=scaleWord;
   qword position=GetLoWorldPos(missile);
-  register qword destination __asm__("vf1"),delta __asm__("vf2");register VE*table __asm__("$3");register float negative __asm__("$f0");
+  register qword destination __asm__("vf1"),delta __asm__("vf2");register VTE*table __asm__("$3");register float negative __asm__("$f0");
   __asm__("lqc2 %0,%5\n\tqmtc2.ni %6,%1\n\tlw %2,%7\n\tvsub.xyzw %1,%0,%1\n\tli.s %3,%8\n\tsqc2 %1,%4":"=j"(destination),"=j"(delta),"=r"(table),"=f"(negative),"=m"(w.delta.q):"m"(w.destination),"r"(position),"m"(PVT(missile)),"F"(-0.5f));
   register qword(*method)(void*) __asm__("$2");register void*receiver __asm__("$4");register qword copiedNegative __asm__("$3");
   __asm__("mfc1 %0,%4\n\tlh %1,%5\n\tsq %0,%3\n\tlw %0,%6\n\taddu %1,%7,%1\n\tlq %2,%3":"=&r"(method),"=&r"(receiver),"=r"(copiedNegative),"=m"(w.negative.q):"f"(negative),"m"(table[33].d),"m"(table[33].pfn),"r"(missile));
@@ -423,7 +422,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  __asm__("lq %2,%5\n\tpor %1,$zero,%6\n\tlq %3,%7\n\tpor %0,$zero,%8\n\tli.s %4,%9":"=r"(startPosition),"=&r"(startVelocity),"=&r"(endPosition),"=&r"(endVelocity),"=f"(tension):"m"(w.destination),"r"(velocity),"m"(w.output),"r"(position),"F"(1.0f));
  EvaluateBezierPos(remaining,frameDt,tension,startPosition,startVelocity,endPosition,endVelocity,0,&w.integrated.q,0);
  w.copy=w.integrated;
- VE*table=PVT(missile);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
+ VTE*table=PVT(missile);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
  qword current=method((char*)missile+displacement);
  register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");

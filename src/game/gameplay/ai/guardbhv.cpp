@@ -2267,7 +2267,7 @@ void StartBhvpath(BHVPATH *behavior) {
 
 // 0x177F78 StepBhvpathAlongShape
 namespace M_StepBhvpathAlongShape {
-union VEC; struct VTENT; struct CURVE; struct CONTEXT; struct BODY; struct GROUP; struct OBJECT; struct S; struct CLQ; struct LM; struct VU_FLOAT; struct VUF; struct VV; struct VU_VECTOR;
+union VEC; struct CURVE; struct CONTEXT; struct BODY; struct GROUP; struct OBJECT; struct S; struct CLQ; struct LM; struct VU_FLOAT; struct VUF; struct VV; struct VU_VECTOR;
 // StepBhvpathAlongShape (Claude agent, T1690, 2026-10-25): MATCH. Curve follower step: closest point on the curve(s), steering
 // velocity toward the next point, avoidance of other bodies (loop), integration and collision clamp.
 // Built on lilly15 (aligned 11, T1686). What finished it (each measured, see notes/170000.md):
@@ -2296,11 +2296,6 @@ union VEC
 {
     qword qw;
     float f[4];
-};
-struct VTENT
-{
-    short delta, pad;
-    void *pfn;
 };
 struct CURVE
 {
@@ -2331,7 +2326,7 @@ struct GROUP
 struct OBJECT
 {
     char pad[0xC];
-    VTENT *pvt;
+    VTE *pvt;
     char pad10[0xD8];
     GROUP *pgroup;
     char padEC[0xC4];
@@ -2530,8 +2525,8 @@ static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 static inline qword GetObjectVelocity(void *pv)
 {
     OBJECT *pobj = (OBJECT *)pv;
-    VTENT *pvte = &pobj->pvt[33];
-    return ((qword (*)(void *))pvte->pfn)((char *)pobj + pvte->delta);
+    VTE *pvte = &pobj->pvt[33];
+    return ((qword (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
 }
 
 // VU0 helper: vector difference.
@@ -4291,11 +4286,10 @@ typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 
 // 0x17AF30 HandleBhvjuggledMessage
 namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
-struct VTE; struct O; struct X;
+struct O; struct X;
 extern void *D_002BE6D0[];
 extern int D_002BE6E8[];
-struct VTE { short d; short pad; void *pfn; };
-struct O { char pad[0xC]; struct VTE *vt; };
+struct O { char pad[0xC]; VTE *vt; };
 struct X { int a; int pad[7]; qword v; qword pad2; };
 int IsAnimBindingDone(ANIMBINDING *c);
 void StopAnimBinding(ANIMBINDING *c);
@@ -4344,7 +4338,7 @@ int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTMSG *pm) {
             o = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
                 struct X x;
-                struct VTE *entry;
+                VTE *entry;
                 func_002333B4(&x, 0, sizeof x);
                 x.a = 5;
                 x.v = GetLoWorldPos(((STEPGUARD *)behavior->owner));
@@ -4375,15 +4369,14 @@ void BHVJUGGLED::Close()
 
 // 0x17B1A8 SetBhvjuggledState
 namespace M_SetBhvjuggledState {
-union U; union F; struct VE; struct VOBJ; struct GROUP; struct ENTRY;
+union U; union F; struct VOBJ; struct GROUP; struct ENTRY;
 // Movement-state transitions and actor response.
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 // Copy the 128-bit value.
 union U{qword q;float f[4];int bits[4];void Assign(const U&v){q=v.q;}};
 union F{float value;int bits;};
-struct VE{short delta,pad;void(*fn)();};
 struct GROUP{char pad[0xA0];void*space;};
-struct VOBJ{char pad0[12];VE*vt;};   /* the guard's vtable as BlendSet's asm reads it */
+struct VOBJ{char pad0[12];VTE*vt;};   /* the guard's vtable as BlendSet's asm reads it */
 struct ENTRY{float value;int kind,key,pad;};
 struct DELTA;
 extern "C"{
@@ -4412,7 +4405,7 @@ extern "C"{
 static inline void BlendSet(BHVJUGGLED *p, qword current, U *desired, U *scale, U *scratch)
 {
     register VOBJ *actor __asm__("$7");
-    register VE *vt __asm__("$6");
+    register VTE *vt __asm__("$6");
     register int word __asm__("$4");
     register qword a __asm__("vf1"), b __asm__("vf2"), d __asm__("vf3"), lift __asm__("vf2"), axis __asm__("vf1"),
         k __asm__("vf4");
@@ -4435,7 +4428,7 @@ static inline void BlendSet(BHVJUGGLED *p, qword current, U *desired, U *scale, 
     register void (*setter)() __asm__("$3");
     __asm__("lqc2 %0,%4\n\tlh %1,%5\n\tlqc2 %2,%6\n\tlw %3,%7"
             : "=j"(axis), "=r"(adjustment), "=j"(k), "=r"(setter)
-            : "m"(axisAddress->q), "m"(vt[35].delta), "m"(scale->q), "m"(vt[35].fn));
+            : "m"(axisAddress->q), "m"(vt[35].d), "m"(scale->q), "m"(((void (*)())vt[35].pfn)));
     register qword packed __asm__("$5");
     register VOBJ *adjusted __asm__("$4");
     __asm__("vmulax.xyzw $ACC,%3,%0x\n\tvmaddx.xyzw %0,%4,%5x\n\tqmfc2.ni %1,%0\n\taddu %2,%6,%7"
@@ -4450,11 +4443,8 @@ typedef char Float_Size[sizeof(float)==4?1:-1];
 typedef char Short_Size[sizeof(short)==2?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
 typedef char GROUP_Size[sizeof(GROUP)==0xA4?1:-1];
-typedef char VE_delta_Offset[FIELD_OFFSET(VE,delta)==0?1:-1];
-typedef char VE_fn_Offset[FIELD_OFFSET(VE,fn)==4?1:-1];
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char F_Size[sizeof(F)==4?1:-1];
-typedef char VE_Size[sizeof(VE)==8?1:-1];
 typedef char ENTRY_Size[sizeof(ENTRY)==16?1:-1];
 typedef char GROUP_space_Offset[FIELD_OFFSET(GROUP,space)==160?1:-1];
 typedef char ENTRY_value_Offset[FIELD_OFFSET(ENTRY,value)==0?1:-1];

@@ -525,7 +525,6 @@ void STEPGUARD::OnProxyRelease(LO *plo)
 // 0x206820 RestartStepguard
 namespace M_func_00206820 { extern "C" {
 struct STEPGUARDIsland; struct REQUEST;
-typedef struct { short d; short pad; void *pfn; } VTE;
 /* island: the vtable pointer pinned to $3 across the first call (real virtual calls: 2/45 off, request store scheduled after the slot load) */
 struct STEPGUARDIsland { char pad[0xC]; VTE *vt; };
 #define VT(p, n, T) ((T)(p)->vt[n].pfn)
