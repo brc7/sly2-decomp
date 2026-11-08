@@ -24,6 +24,7 @@
 #include "sly2/step.h"
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
+#include "sly2/clock.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct SNDOBJ { char pad0[0xC]; VTE *vtable; };
@@ -366,7 +367,7 @@ namespace M_CalculateSndVolPan { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct RANGE {float low,high;};
 struct M3 {qword r[3];};
-extern char D_003DD490[],D_002BBB60[];
+extern char D_002BBB60[];
 void *GetCurrentPo(void*);
 qword GetLoWorldPos(void*);
 qword ConvertMatVec(const struct M3*,const struct M3*,qword);
@@ -396,7 +397,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
  float high,low,distance,value;
  register qword difference __asm__("vf3");
  source.q=point;
- player=GetCurrentPo(D_003DD490);
+ player=GetCurrentPo(&g_sw);
  if(player)reference=GetLoWorldPos(player);
  else reference=g_cm.matq.pos;
  high=limits->high;low=limits->low;
@@ -528,7 +529,6 @@ struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad1
 #define SFX_BENTLEY 0x73
 #define SFX_MURRAY 0x15
 extern SNDMGR D_003DD040;
-extern char D_003DD490[];
 extern int D_002DD5BC, D_002F7900, D_002E1E40;   /* Bentley, Murray, Sly */
 short GetSoundIndex(SNDMGR *, int *);
 void RemoveSndFromDirtyList(CID151 *);
@@ -585,7 +585,7 @@ void PlayBanksnd(BANKSND *sound)
     case SFX_BENTLEY: owner = D_002DD5BC; break;
     case SFX_MURRAY: owner = D_002F7900; break;
     }
-    if (owner == GetHeroPo(D_003DD490)) StepRandomSfxVariation(&D_003DD040);
+    if (owner == GetHeroPo(&g_sw)) StepRandomSfxVariation(&D_003DD040);
 }
 } } // namespace M_PlayBanksnd
 
@@ -1140,8 +1140,6 @@ namespace M_StartupSound { extern "C" {
 /* SNDMGR: the volume table (8 rows x 4 channels; row 2 is read as the stream channel volumes), the master volume,
    four channel volumes, this and the last update's tick */
 extern SNDMGR D_003DD040;
-struct CLOCK;
-extern struct CLOCK D_002DDED0;
 void snd_StartSoundSystem(int);
 int func_00233048(int, int, int, int, int, int, int);
 long TickNow(struct CLOCK *);
@@ -1159,7 +1157,7 @@ void StartupSound(void)
         for (row = 0; row < 8; row++)
             D_003DD040.volumes[row][channel] = 1.0f;
     }
-    now = TickNow(&D_002DDED0);
+    now = TickNow(&g_clock);
     D_003DD040.tickNow = now;
     D_003DD040.tickLast = now;
 }
@@ -1528,7 +1526,6 @@ void ResetSndmgr(SNDMGR *soundManager)
 
 namespace M_UpdateSndmgr { extern "C" {
 struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
-extern CLOCK D_002DDED0;
 extern int D_002BD4C0;
 extern struct K D_002A8288;
 long TickNow(CLOCK *);
@@ -1553,7 +1550,7 @@ void UpdateSndmgr(SNDMGR *soundManager)
     struct K smoothing;
     CID151 *sound;
     soundManager->tickLast = soundManager->tickNow;
-    soundManager->tickNow = TickNow(&D_002DDED0);
+    soundManager->tickNow = TickNow(&g_clock);
     UpdateHeadsetMicrophone(soundManager);
     PollSoundManagerStatus(soundManager);
     music = soundManager->musicStackCount > 0 ? (soundManager->musicStack + soundManager->musicStackCount - 1)->p : 0;
@@ -1577,8 +1574,8 @@ void UpdateSndmgr(SNDMGR *soundManager)
     UpdateDialog(soundManager);
     smoothing = D_002A8288;
     /* game time stopped (inferred: the pause menu): fade the ambience and music out, cut the dialog */
-    if (ShouldFadeWhenTimeStops(soundManager) && D_002DDED0.deltaTime == 0.0f) targetVolume = 0.0f;
-    fadeVolume = SmoothValue__FfffP3SMPPf(soundManager->volumes[VOLUME_CATEGORY_PAUSE_FADE][VOLUME_CHANNEL_AMBIENCE], targetVolume, D_002DDED0.realDeltaTime, &smoothing, 0);
+    if (ShouldFadeWhenTimeStops(soundManager) && g_clock.deltaTime == 0.0f) targetVolume = 0.0f;
+    fadeVolume = SmoothValue__FfffP3SMPPf(soundManager->volumes[VOLUME_CATEGORY_PAUSE_FADE][VOLUME_CHANNEL_AMBIENCE], targetVolume, g_clock.realDeltaTime, &smoothing, 0);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_AMBIENCE, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_MUSIC, fadeVolume, VOLUME_CATEGORY_PAUSE_FADE);
     SetSndmgrChannelVolume(soundManager, VOLUME_CHANNEL_DIALOG, targetVolume, VOLUME_CATEGORY_PAUSE_FADE);
@@ -1595,7 +1592,6 @@ namespace M_func_001FDA48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 /* NOISETYPE (noise.cpp): range +0x54, height range +0x58 (low, high) */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
-extern SW D_003DD490;
 void OnMicLevelResult(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
 void *GetHeroPo(SW *);
@@ -1624,10 +1620,10 @@ void UpdateHeadsetMicrophone(SNDMGR *soundManager)
         func_002330D0(SUKR_RPC, SUKR_QUERY_MIC_LEVEL, 0, 0, 0, 0, 0, OnMicLevelResult, (long)soundManager);
     }
     noiseType = 0;
-    hero = GetHeroPo(&D_003DD490);
+    hero = GetHeroPo(&g_sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER) && 0.5f < soundManager->micLevel) {
         float height;
-        noiseType = (O *)D_003DD490.apstimk[5];
+        noiseType = (O *)g_sw.apstimk[5];
         position = GetLoWorldPos(hero);
         noiseType->range = Eval(&soundManager->micNoiseRangeCurve, soundManager->micLevel);
         height = Eval(&soundManager->micNoiseHeightCurve, soundManager->micLevel);
@@ -1656,7 +1652,6 @@ namespace M_func_001FDC08 {
 extern "C" {
 struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
 /* SNDMGR (layout: sly2/sndmgr.h) */
-extern char D_003DD490[];
 struct PLAYER *GetCurrentPo(void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float SmoothValue__FfffP3SMPPf(float,float,float,SMP *,float *);
@@ -1672,8 +1667,8 @@ void UpdateMusicMix(SNDMGR *input)
     soundManager->selectedMusicLayer = 1;
     if (soundManager->musicLayer2Requests) soundManager->selectedMusicLayer = 2;
     else if (soundManager->musicLayer0Requests) soundManager->selectedMusicLayer = 0;
-    else if (GetCurrentPo(D_003DD490) && IsBasicDerivedFrom__FP5BASIC3CID(GetCurrentPo(D_003DD490), 0x34)) {
-        struct PLAYER *player = GetCurrentPo(D_003DD490);
+    else if (GetCurrentPo(&g_sw) && IsBasicDerivedFrom__FP5BASIC3CID(GetCurrentPo(&g_sw), 0x34)) {
+        struct PLAYER *player = GetCurrentPo(&g_sw);
         if (player->state == 3) soundManager->selectedMusicLayer = 0;
         else if (player->state == 4) soundManager->selectedMusicLayer = 2;
         else if (player->mode != -1) soundManager->selectedMusicLayer = 0;
@@ -1889,15 +1884,13 @@ extern "C" int ShouldFadeWhenTimeStops(SNDMGR *soundManager)
 }
 
 namespace M_StartDialog {
-struct G;
-extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_004435F0[]; }
 extern "C" {
 void StopDialog(SNDMGR *, int);
 SNDSTREAM *FindDialogStream(SNDMGR *, int);
 STREAMSND *PstreamsndNew(FILEREC *, int);
 void SetSubtitle(void *, int, int);
-BASIC *FindSwObjectByClass__FP2SWi3CIDP2LO(G *, int, int, int);
+BASIC *FindSwObjectByClass__FP2SWi3CIDP2LO(SW *, int, int, int);
 int GetDialogRoleSmOid(SNDMGR *, int);
 BASIC *FindLiveSma(BASIC *, int);
 }
@@ -1916,7 +1909,7 @@ extern "C" STREAMSND *StartDialog(SNDMGR *soundManager, int id, int noSubtitle)
     soundManager->dialogElapsed = 0;
     if (!noSubtitle) SetSubtitle(D_004435F0, id, record->speakerId);
     if (record->speakerId != -1 && record->numEvents) {
-        register BASIC *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&D_003DD490, 5, record->speakerId, 0);
+        register BASIC *speaker __asm__("$19")=FindSwObjectByClass__FP2SWi3CIDP2LO(&g_sw, 5, record->speakerId, 0);
         if (speaker) {
             register int role __asm__("$18")=0;
             register int speakerRole __asm__("$20")=3;
