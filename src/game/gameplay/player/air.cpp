@@ -69,11 +69,6 @@ struct GRABSPOTV : public GRABSPOTDATA
 
 extern "C" void SetStepTargetHeadingFromVector(STEP *pstep, qword dpos);
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
@@ -963,8 +958,8 @@ typedef int qword __attribute__((mode(TI)));typedef unsigned int uint;
 struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];QWROW normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
-struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{QWROW scalar;REQ request;};struct WORK{QWROW normals[64];SCRATCH scratch;FRAME frame;QWROW residual,original;};
-extern "C"{extern QWROW D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(REQ*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
+struct FRAME{};union SCRATCH{QWROW scalar;SWALLOC request;};struct WORK{QWROW normals[64];SCRATCH scratch;FRAME frame;QWROW residual,original;};
+extern "C"{extern QWROW D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(SWALLOC*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
 // Store a VU0 register to home (volatile).
 static inline void Publish(QWROW*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 // Return v scaled by k.x.
@@ -984,7 +979,7 @@ static inline qword Sub(qword input,qword other){register qword a __asm__("vf2")
 // Squared length of the xyz part of a as a float.
 static inline float Square(qword a){qword q=a,one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(q),"=&j"(one));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
 // Allocate bytes, 16-byte aligned, from the frame stack.
-static inline float*Allocate(REQ*r,int bytes){r->bytes=bytes;r->alignment=16;return(float*)AllocFromStack(r);}
+static inline float*Allocate(SWALLOC*r,int bytes){r->cb=bytes;r->cbAlign=16;return(float*)AllocFromStack(r);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char CONTACT_Size[sizeof(CONTACT)==176?1:-1];
@@ -993,7 +988,6 @@ typedef char COLLISION_Size[sizeof(COLLISION)==108?1:-1];
 typedef char P_Size[sizeof(P)==240?1:-1];
 typedef char MOVE_Size[sizeof(MOVE)==32?1:-1];
 typedef char FRAME_Size[sizeof(FRAME)==1?1:-1];
-typedef char REQ_Size[sizeof(REQ)==8?1:-1];
 typedef char SCRATCH_Size[sizeof(SCRATCH)==16?1:-1];
 typedef char WORK_Size[sizeof(WORK)==1088?1:-1];
 typedef char CONTACT_owner_Offset[FIELD_OFFSET(CONTACT,owner)==8?1:-1];
@@ -1006,8 +1000,6 @@ typedef char COLLISION_single_Offset[FIELD_OFFSET(COLLISION,single)==104?1:-1];
 typedef char P_collision_Offset[FIELD_OFFSET(P,collision)==236?1:-1];
 typedef char MOVE_actor_Offset[FIELD_OFFSET(MOVE,actor)==0?1:-1];
 typedef char MOVE_mode_Offset[FIELD_OFFSET(MOVE,mode)==28?1:-1];
-typedef char REQ_bytes_Offset[FIELD_OFFSET(REQ,bytes)==0?1:-1];
-typedef char REQ_alignment_Offset[FIELD_OFFSET(REQ,alignment)==4?1:-1];
 typedef char WORK_normals_Offset[FIELD_OFFSET(WORK,normals)==0?1:-1];
 typedef char WORK_scratch_Offset[FIELD_OFFSET(WORK,scratch)==1024?1:-1];
 typedef char WORK_frame_Offset[FIELD_OFFSET(WORK,frame)==1040?1:-1];
@@ -1022,7 +1014,7 @@ typedef char U_Align[__alignof__(QWROW)==16?1:-1];
 typedef char SCRATCH_Align[__alignof__(SCRATCH)==16?1:-1];
 typedef char WORK_Align[__alignof__(WORK)==16?1:-1];
 typedef char FRAME_Align[__alignof__(FRAME)==1?1:-1];
-typedef char REQ_Align[__alignof__(REQ)==4?1:-1];
+typedef char REQ_Align[__alignof__(SWALLOC)==4?1:-1];
 typedef char U_q_Offset[FIELD_OFFSET(QWROW,q)==0?1:-1];
 typedef char U_float_Offset[FIELD_OFFSET(QWROW,f)==0?1:-1];
 typedef char Normal_Count[sizeof(((WORK*)0)->normals)/sizeof(QWROW)==64?1:-1];
@@ -2909,15 +2901,14 @@ struct CONTACT{char pad[8];P*owner;char padC[0x74];qword normal;char pad90[0x1C]
 struct LINK{CONTACT*first;LINK*next;};
 struct COLLISION{char pad[0x64];LINK*groups;};
 struct P{char pad[0xEC];COLLISION*collision;char padF0[0x118];int mode;};
-struct REQUEST{int bytes,alignment;};
-union WORK{REQUEST request;U scalar;};
+union WORK{SWALLOC request;U scalar;};
 
 extern "C"{
 extern qword D_002A2DC0;
 extern float D_002A656C;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-void*AllocFromStack(REQUEST*);
+void*AllocFromStack(SWALLOC*);
 void SolveInequalities(int,float*,float*,float*,float);
 }
 // Copy a VU0 register (vmove).
@@ -2933,7 +2924,7 @@ static inline float Z(qword q){register qword bits __asm__("$2");register float 
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char CONTACT_Size[sizeof(CONTACT)==176?1:-1];
 typedef char LINK_Size[sizeof(LINK)==8?1:-1];
-typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
+typedef char REQUEST_Size[sizeof(SWALLOC)==8?1:-1];
 typedef char WORK_Size[sizeof(WORK)==16?1:-1];
 typedef char CONTACT_owner_Offset[FIELD_OFFSET(CONTACT,owner)==8?1:-1];
 typedef char CONTACT_normal_Offset[FIELD_OFFSET(CONTACT,normal)==128?1:-1];
@@ -2943,8 +2934,6 @@ typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==4?1:-1];
 typedef char COLLISION_groups_Offset[FIELD_OFFSET(COLLISION,groups)==100?1:-1];
 typedef char P_collision_Offset[FIELD_OFFSET(P,collision)==236?1:-1];
 typedef char P_mode_Offset[FIELD_OFFSET(P,mode)==520?1:-1];
-typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
-typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 typedef char MARK_Size[sizeof(STACKSCOPE)==1?1:-1];
 typedef char MARK_Align[__alignof__(STACKSCOPE)==1?1:-1];
 typedef char Qword_Size[sizeof(qword)==16?1:-1];
@@ -2984,10 +2973,10 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
     WORK work;
     U down;
     float *returned;
-    register REQUEST *request __asm__("$16");
+    register SWALLOC *request __asm__("$16");
     {
         float negative = -1.0f;
-        register REQUEST *argument __asm__("$4");
+        register SWALLOC *argument __asm__("$4");
         register qword result __asm__("vf3");
         // The scalar home is overwritten by the real matrix-size request.
         __asm__("mult $3,%7,%7\n\tla %0,%a5\n\tmfc1 $2,%4\n\tdaddu %1,%0,$zero\n\tqmtc2.ni $2,$vf2\n\tsqc2 "
@@ -2997,22 +2986,22 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
                 : "f"(negative), "p"(&work.request), "i"(&D_002A2DC0), "r"(count)
                 : "$2", "$3", "vf1", "vf2", "hi", "lo", "memory");
         down.q = result;
-        request->alignment = 16;
+        request->cbAlign = 16;
         returned = (float *)AllocFromStack(argument);
     }
     register float *matrix __asm__("$22");
     float *rhs;
     register int rowbytes __asm__("$18") = count * 4;
     {
-        register REQUEST *argument __asm__("$4");
+        register SWALLOC *argument __asm__("$4");
         __asm__("sw %3,%2\n\tdaddu %0,%4,$zero\n\tdaddu %1,%5,$zero"
-                : "=&r"(argument), "=r"(matrix), "=m"(work.request.bytes)
+                : "=&r"(argument), "=r"(matrix), "=m"(work.request.cb)
                 : "r"(rowbytes), "r"(request), "r"(returned));
-        request->alignment = 16;
+        request->cbAlign = 16;
         rhs = (float *)AllocFromStack(argument);
     }
-    work.request.bytes = rowbytes;
-    request->alignment = 16;
+    work.request.cb = rowbytes;
+    request->cbAlign = 16;
     float *weights = (float *)AllocFromStack(request);
     float *cursor = matrix;
     for (group = p->collision->groups; group; group = group->next) {

@@ -129,7 +129,6 @@ void InitStepplayer(STEPPLAYER *player)
 } } // namespace M_InitStepplayer
 
 namespace M_PostLoadStepplayer { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a; int b; };
 extern const struct LONGU D_002A4D10;
 struct M3 { qword r[3]; };
@@ -1566,11 +1565,6 @@ static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 extern "C" { extern CLQ D_002BD280; }
 extern "C" { extern CLQ D_002BD290; }

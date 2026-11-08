@@ -71,11 +71,6 @@ void FaceStepToward(STEP *pstep, LO *plo);
 void SetJtCaneState(JT *pjt, int jtcs);
 
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
@@ -4552,7 +4547,6 @@ void UpdateAllGuardsPickpocket(void)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018E3A0 { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* the 8-byte callback by value (B4) */
 extern const LONGU D_002A5F98;
 void OnStepplayerActive(void *p);
 void EnsureSwCallback(void *, void *, long, int);

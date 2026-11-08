@@ -61,7 +61,6 @@ struct XFACT
 struct JTHANDSCTX { JTHANDS *phands; qword pos; };
 
 /* The callback PMF passed by value from the `.c` file (see "callback" in docs/guides/tu-merging.md). */
-struct LONGU { long l; } __attribute__((packed));
 
 extern "C" {
 /* jthands' .data (address order): the carried-shape point count, the default gravity (VQ: initializable, read as a
@@ -307,11 +306,6 @@ inline qword TransformPos(MATRIX4 *matrix, qword pos)
               "j"(pos));
     return result;
 }
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *AllocFromWorldHeap(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);

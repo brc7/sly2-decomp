@@ -122,11 +122,6 @@ struct CID100 : public SO
       undefined4 unk_0x170[16];
 };
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
 struct SLOT
@@ -179,19 +174,9 @@ struct CELL
       int ileafPos;
 };
 
-struct LANGSTR
-{
-      int id;
-      char *pchz;
-};
 
 /* SVN: sly2/sw.h */
 
-struct SVPATH
-{
-      int cid;
-      short *aid;
-};
 
 /* LOUPD: sly2/sw.h */
 
@@ -330,7 +315,6 @@ struct CONTEXT {
     ACTOR *pactor; float tStamp; int action; int step; float tHold; ACTOR *pactorFocus; char pad18[8]; float gParam;
     char pad24[0x440 - 0x24]; ATTACH attach; char pad478[0x500 - 0x478]; int fInhibit;
 };
-struct SWALLOC { int cb, cbAlign; };
 struct VU_FLOAT { qword q; };
 
 extern "C" {

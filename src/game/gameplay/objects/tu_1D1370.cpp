@@ -1391,7 +1391,6 @@ struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; SURF *apsur
 struct GEOM { int numPositions; qword *positions; int numSurfaces; SURF *surfaces; int numEdges; EDGE *edges; };
 struct SOPART { char pad0[0x90]; GEOM meshWorld; };
 struct SUPPORT { qword pos; SURF *apsurf[2]; int fUsed; int pad; };
-struct SWALLOC { int cb; int cbAlign; };
 
 struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };
@@ -1763,7 +1762,6 @@ void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
 namespace M_AdjustRobottankNewXp { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct LONGU { long l; } __attribute__((packed));   /* the 8-byte callback by value (B4) */
 typedef struct {
     struct { char pad[8]; void *so; char pad2[0x34]; } sides[2];
     qword normal;

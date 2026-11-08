@@ -118,15 +118,14 @@ void InitMurray(MURRAY *murray)
 } } // namespace M_InitMurray
 
 namespace M_LoadMurrayFromBrx { extern "C" {
-struct REQ { int cb; int align; };
 extern char D_002C0270[];
 void LoadStepFromBrx(MURRAY *p);
 void BindLoOidTable(MURRAY *p, int n, void *q);
-PARTLINK *AllocClearedFromWorldHeap(struct REQ *r);
+PARTLINK *AllocClearedFromWorldHeap(struct SWALLOC *r);
 void *FindSoXf(MURRAY *p, int a, int b);
 void InitIkRecord(PARTLINK *t);
 // Allocate a zeroed 0xE0-byte PARTLINK, 16-byte aligned, from the world heap.
-static __inline__ PARTLINK *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return AllocClearedFromWorldHeap(&req); }
+static __inline__ PARTLINK *NewT(void) { struct SWALLOC req; req.cb = 0xE0; req.cbAlign = 0x10; return AllocClearedFromWorldHeap(&req); }
 // MURRAY LoadFromBrx (slot 14): STEP base, binds his object table (0x89 entries) and allocates the two hand/grip
 // records. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadMurrayFromBrx(MURRAY *murray)

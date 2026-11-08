@@ -880,7 +880,6 @@ extern "C" void JtHurtFallCallback(JTHURT *hurt)
 }
 
 /* The 8-byte hurt callback passed by value (B4): read through a packed view so it goes straight into a1 (ldl/ldr). */
-struct LONGU { long l; } __attribute__((packed));
 extern "C" {
 extern const LONGU D_002A6790;
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
@@ -1160,13 +1159,12 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2788 {
 typedef int qword __attribute__((mode(TI)));
-struct MSG { int cb; int nKind; };
 struct HIT { qword pos; char pad[0x5F0]; };
 struct L { char pad[0xE0]; int xE0; };
 extern "C" {
 extern qword D_002A2DD0;
 qword GetLoWorldPos(void *p);
-void *AllocFromStack(MSG *pmsg);
+void *AllocFromStack(SWALLOC *pmsg);
 int CollectSoParts(L *pl, void *pfn, int n, void *pv);
 int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void CanWaterInflictZap(void);
@@ -1188,10 +1186,10 @@ int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
     a.f[2] += object->waterProbe[1];
     b.f[2] += object->waterProbe[0];
     STACKSCOPE frame;
-    MSG msg;
-    MSG *message = &msg;
+    SWALLOC msg;
+    SWALLOC *message = &msg;
     message->cb = pl->xE0 * 4;
-    message->nKind = 0x10;
+    message->cbAlign = 0x10;
     void *pbuf = AllocFromStack(message);
     int n = CollectSoParts(pl, (void *)CanWaterInflictZap, 0, pbuf);
     if (!ClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))

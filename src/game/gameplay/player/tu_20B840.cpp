@@ -24,7 +24,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC; entries are called with several shapes. */
 union U { qword q; float f[4]; };
-union FLOATWORD { float value; int bits; };
 
 /* PostJtLoadGait: ported from Lilly's personal Sly 2 decomp (src/P2/jt.c), reduced to the declarations it needs. */
 void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("ResolveAsegChannelTarget");

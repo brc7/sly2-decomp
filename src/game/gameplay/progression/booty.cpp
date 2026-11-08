@@ -92,9 +92,7 @@ struct MATCH
     char pad2[0xEC - 0xAC]; VT *pvt; char pad3[0x104 - 0xF0]; void *p104;
 };
 
-struct LONGU { long l; } __attribute__((packed));
 struct RANGE { float a; float b; };
-struct REQ { int cb; int cbAlign; };
 struct STACKSCOPEC { int a[4]; };
 
 extern "C" {
@@ -113,8 +111,8 @@ extern const char D_002A4BC0[];   /* defined below where the ELF has it (.rodata
 void InitSo(BOOTYV *);
 STACKSCOPEC *STACKSCOPE_ctor(STACKSCOPEC *);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPEC *, int) __asm__("_$_10STACKSCOPE");
-void *AllocClearedFromStack(REQ *);
-void *AllocCopyFromWorldHeap(REQ *, void *);
+void *AllocClearedFromStack(SWALLOC *);
+void *AllocCopyFromWorldHeap(SWALLOC *, void *);
 void LoadSoFromBrx(BOOTYV *, void *);
 void PostSoLoad(BOOTYV *);
 void UpdateSo(BOOTYV *);
@@ -188,12 +186,12 @@ extern "C" void InitBooty(BOOTYV *booty) {
 }
 
 // Fills an allocation request.
-static inline REQ *SetReq(REQ *pr, int cb, int cbAlign) { pr->cb = cb; pr->cbAlign = cbAlign; return pr; }
+static inline SWALLOC *SetReq(SWALLOC *pr, int cb, int cbAlign) { pr->cb = cb; pr->cbAlign = cbAlign; return pr; }
 // BOOTY (cid 0x67) vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to
 // SW heap. (inferred)
 extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
     STACKSCOPEC ctx;
-    REQ req;
+    SWALLOC req;
     STACKSCOPE_ctor(&ctx);
     booty->abootye = (BOOTYE *)AllocClearedFromStack(SetReq(&req, 0x580, 0x10));
     LoadSoFromBrx(booty, a);
