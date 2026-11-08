@@ -702,97 +702,75 @@ extern "C" void SetSoBusyDistance(SO *so, float t)
 
 // 0x1F31E0 LoadSoFromBrx
 namespace M_LoadSoFromBrx {
-struct GEO; struct TREE; struct M4; union FLAGS; struct E; struct STATE; struct DATA; struct P; struct MSG;
 typedef unsigned long ulong;
 typedef unsigned int uint;
-typedef int qword __attribute__((mode(TI)));
-struct GEO {int count;qword *points;int planeCount;void *planes;int edgeCount;void *edges;};
-struct TREE {int count,a,b;void *nodes;};
-struct M4 {qword rows[4];};
-struct E;
-struct P;
-union FLAGS {ulong raw;struct {void *mesh;short state;unsigned short high;} fields;};
-struct E {void *object;P *owner;float radius;int tag;FLAGS flags;int id,pinned;M4 matrix;char pad60[8];TREE tree;GEO local,world;int state,stamp;};
-struct STATE {qword rows[3];char pad30[0xA0];float mass;char padD4[0xC];};
-struct DATA {char pad0[0x38];void *guard;char pad3C[0x24];};
-struct P {char pad0[0xC];VTE *vt;char pad10[0x30];uint flags;char pad44[0x3C];DATA data;int count;E *entries;STATE *state;};
 extern "C" { extern char D_002C44F0[]; }
 extern "C" {
-void LoadSoXfsFromBrx(P *,void *);
+void LoadSoXfsFromBrx(SO *,void *);
 int U32Read__18CBinaryInputStream(void *);
 int S16Read__18CBinaryInputStream(void *);
 int S32Read__18CBinaryInputStream(void *);
 int S8Read__18CBinaryInputStream(void *);
 float F32Read__18CBinaryInputStream(void *);
-void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEO *);
-void CBinaryInputStream_ReadBspc(void *,GEO *,TREE *);
-void ReadMatrix__18CBinaryInputStreamP7MATRIX3(void *,STATE *);
-void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(DATA *,P *,void *);
+void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEOM *);
+void CBinaryInputStream_ReadBspc(void *,GEOM *,BSPC *);
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(void *,MATRIX3 *);
+void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(GLOBSET *,SO *,void *);
 void *AllocClearedFromWorldHeap(SWALLOC *);
-void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
-void AddSoParts(P *);
-void ScaleSoInertia(P *,float);
-void LoadOptionsFromBrx__FPvP18CBinaryInputStream(P *,void *);
-void EnsureSoBounds(P *);
-void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(P *,void *,void *);
-void SetLoVisMask(P *,int);
+void AddSoParts(SO *);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(SO *,void *);
+void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(SO *,void *,void *);
+void SetLoVisMask(SO *,int);
 }
-// Call p's virtual at vtable slot 63 and return its int result.
-static inline int Extra(P *p){VTE *v=&p->vt[63];return ((int (*)(P *))v->pfn)((P *)((char *)p+v->d));}
-// Call p's virtual at vtable slot 51 with id and return the pointer it gives.
-static inline void *Lookup(P *p,int id){VTE *v=&p->vt[51];return ((void *(*)(P *,int))v->pfn)((P *)((char *)p+v->d),id);}
-// Call p's virtual at vtable slot 64.
-static inline void Post(P *p){VTE *v=&p->vt[64];((void (*)(P *))v->pfn)((P *)((char *)p+v->d));}
-// Set flag 8: on p->flags when bit 0 is set, otherwise on the word p->flags points to (as the original does).
-static inline void SetActive(P *p){uint f=p->flags;if((f^1)&1)*(uint *)f|=8;else p->flags=f|8;}
-// Slot 14 (LoadFromBrx): the LO base, the model and glob set, the part array (XF id, flags, radius, local
-// geometry, BSP...), the physics block (matrix, mass), options and bounds.
-// Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadSoFromBrx(P *so,void *stream)
+/* LO::unknown40 is a tagged word: bit 0 clear means it points at the flag word */
+/* GetXfFromIndex (slot 51) called by hand: as a virtual call inside the part loop it keeps the vptr in a register */
+static inline XF *Lookup(SO *p,int id){VTE *v=&(*(VTE **)((char *)p+0xC))[51];return ((XF *(*)(SO *,int))v->pfn)((SO *)((char *)p+v->d),id);}
+static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)*(uint *)f|=8;else p->unknown40=f|8;}
+extern "C" void LoadSoFromBrx(SO *so,void *stream)
 {
-    int i=0;E *e;
+    int i=0;SOPART *e;
     LoadSoXfsFromBrx(so,stream);
     int metadata=U32Read__18CBinaryInputStream(stream);
-    LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&so->data,so,stream);
-    int extra=Extra(so);
-    so->count=S16Read__18CBinaryInputStream(stream);
+    LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&so->model,so,stream);
+    int extra=so->GetExtraPartCount();
+    so->numParts=S16Read__18CBinaryInputStream(stream);
     SWALLOC request;
-    request.cb=(so->count+extra)*sizeof(E);request.cbAlign=16;
-    so->entries=(E *)AllocClearedFromWorldHeap(&request);
-    for(;i<so->count;i++){
-        e=&so->entries[i];
-        GEO *local=&e->local;
+    request.cb=(so->numParts+extra)*sizeof(SOPART);request.cbAlign=16;
+    so->parts=(SOPART *)AllocClearedFromWorldHeap(&request);
+    for(;i<so->numParts;i++){
+        e=&so->parts[i];
+        GEOM *local=&e->meshLocal;
         e->owner=so;
-        e->object=Lookup(so,S16Read__18CBinaryInputStream(stream));
-        e->tag=S32Read__18CBinaryInputStream(stream);
+        e->transform=Lookup(so,S16Read__18CBinaryInputStream(stream));
+        e->oid=(OID)S32Read__18CBinaryInputStream(stream);
         int f=S8Read__18CBinaryInputStream(stream);
-        e->flags.raw=(e->flags.raw&~(1UL<<48))|((ulong)(f&1)<<48);
+        e->unknownFlag10A=f&1;
         f=S8Read__18CBinaryInputStream(stream);
-        e->flags.raw=(e->flags.raw&~(1UL<<49))|((ulong)(f&1)<<49);
+        e->unknownFlag10B=f&1;
         e->radius=F32Read__18CBinaryInputStream(stream);
         ReadGeom__18CBinaryInputStreamP4GEOM(stream,local);
-        if(!e->object){e->object=D_002C44F0;e->world=e->local;}
-        else CloneGeom__FP4GEOMP7MATRIX4T0(local,0,&e->world);
-        CBinaryInputStream_ReadBspc(stream,&e->world,&e->tree);
-        e->id=U32Read__18CBinaryInputStream(stream);
-        e->flags.fields.state=S16Read__18CBinaryInputStream(stream);
-        e->pinned=S16Read__18CBinaryInputStream(stream);
+        if(!e->transform){e->transform=(XF *)D_002C44F0;e->meshWorld=e->meshLocal;}
+        else CloneGeom(local,0,&e->meshWorld);
+        CBinaryInputStream_ReadBspc(stream,&e->meshWorld,&e->bspc);
+        e->zapKindFlags=U32Read__18CBinaryInputStream(stream);
+        e->damage=S16Read__18CBinaryInputStream(stream);
+        e->unknown1C=S16Read__18CBinaryInputStream(stream);
         f=S8Read__18CBinaryInputStream(stream);
-        e->flags.raw=(e->flags.raw&~(1UL<<50))|((ulong)(f&1)<<50);
+        e->isHidden=f&1;
     }
-    for(i=so->count;i<so->count+extra;i++){e=&so->entries[i];e->flags.fields.state=-10;}
+    for(i=so->numParts;i<so->numParts+extra;i++){e=&so->parts[i];e->damage=-10;}
     AddSoParts(so);
-    if(so->count>0){
-        request.cb=sizeof(STATE);request.cbAlign=16;
-        STATE *state=(STATE *)AllocClearedFromWorldHeap(&request);
-        so->state=state;
-        state->mass=F32Read__18CBinaryInputStream(stream);
-        ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,state);
+    if(so->numParts>0){
+        request.cb=sizeof(SOPHYS);request.cbAlign=16;
+        SOPHYS *state=(SOPHYS *)AllocClearedFromWorldHeap(&request);
+        so->physics=state;
+        state->m=F32Read__18CBinaryInputStream(stream);
+        ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&state->inertiaLocal);
         ScaleSoInertia(so,1.0f);
-        Post(so);
+        so->InitPhys();
     }
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(so,stream);
-    if(so->data.guard)SetActive(so);
+    if(so->model.numPieces)SetActive(so);
     EnsureSoBounds(so);
     LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(so,stream,0);
     SetLoVisMask(so,metadata);
@@ -1768,22 +1746,20 @@ loop:
 
 // 0x1F4E28 FreeSoContacts
 namespace M_func_001F4E28 { extern "C" {
-struct N;
-struct N { void *contacts; struct N *next; int *head; SO *other; };   /* a contact list (SOTREE::pxplistFirst) */
 void FreeSwXpList__FP2SWP2XP(SW *, void *);
 // Frees every contact of the tree, notifying both sides (slot 54) first.
 void FreeSoContacts(SO *so)
 {
-    struct N *pn;
+    XPLIST *pn;
     if (!so->physicsTree) return;
     InvalidateSoAaox(so);
-    for (pn = (struct N *)so->physicsTree->pxplistFirst; pn; pn = pn->next) {
+    for (pn = so->physicsTree->pxplistFirst; pn; pn = pn->pxplistNext) {
         SO *q = so->physicsTree->root;
-        q->OnContactFreed(pn->other);
-        pn->other->OnContactFreed(so->physicsTree->root);
-        FreeSwXpList__FP2SWP2XP(&g_sw, pn->contacts);
-        *pn->head = 0;
-        pn->contacts = 0;
+        q->OnContactFreed(pn->psoOther);
+        pn->psoOther->OnContactFreed(so->physicsTree->root);
+        FreeSwXpList__FP2SWP2XP(&g_sw, pn->pxpFirst);
+        *pn->ppxpHead = 0;
+        pn->pxpFirst = 0;
     }
     so->OnContactFreed(0);
     FreeSwXpList__FP2SWP2XP(&g_sw, so->physicsTree->pxpFirst);
