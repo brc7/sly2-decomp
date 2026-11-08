@@ -1639,22 +1639,20 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
 namespace M_func_00193C98 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct O { char pad[0xE4]; int xe4; };
 struct Q { int x0; int x4; float x8; int xc; U x10; qword x20; };
 struct HIT { qword a; U b; qword c[4]; };
-struct P : STEP { char pad[0x4D4 - 0x2C0]; struct O *x4d4; int pad2[2]; float x4e0; int x4e4; };
 extern qword D_002A2DD0;
 void SetActRotationGoal(void *r, qword q);
-float GetShapeMinDistance(struct O *o);
-float GetShapeMaxDistance(struct O *o);
+float GetShapeMinDistance(SHAPE *pshape);
+float GetShapeMaxDistance(SHAPE *pshape);
 float ModPositive__Fff(float g, float hi);
-void EvaluateShapeAtDistance(struct O *o, float g, U *pv, int n);
-qword ConvertPosBetweenLos(int n, struct P *p, qword q);
+void EvaluateShapeAtDistance(SHAPE *pshape, float g, U *pv, int n);
+qword ConvertPosBetweenLos(int n, STEPPLAYER *pstepplayer, qword q);
 int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
 // Advances/clamps the grab parameter along the held curve object (wraps on closed curves, clamps on open ones).
-void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
+void ClampJtGrabCurveParam(STEPPLAYER *grab, struct Q *q, void *r)
 {
-    struct O *o;
+    SHAPE *o;
     float g, lo, hi, t;
     U v;
     struct HIT hit;
@@ -1663,16 +1661,16 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
         SetActRotationGoal(r, D_002A2DD0);
         return;
     }
-    o = grab->x4d4;
+    o = (SHAPE *)grab->jtgrab.grabbedObject;
     g = q->x10.f;
-    if (grab->x4e4)
+    if (grab->jtgrab.isFlipped)
         g = -g;
     lo = GetShapeMinDistance(o);
     hi = GetShapeMaxDistance(o);
-    if (o->xe4)
-        t = ModPositive__Fff(grab->x4e0 + g, hi);
+    if (o->isClosed)
+        t = ModPositive__Fff(grab->jtgrab.spotDistance + g, hi);
     else
-        t = Clamp(grab->x4e0 + g, lo, hi);
+        t = Clamp(grab->jtgrab.spotDistance + g, lo, hi);
     EvaluateShapeAtDistance(o, t, &v, 0);
     v.q = ConvertPosBetweenLos(0, grab, v.q);
     if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
@@ -1823,27 +1821,26 @@ extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *grab, HFDK hfdk)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00194118 { extern "C" {
-typedef struct T { char pad[0xFC]; int fc, x100, x104, x108, x10c, x110, x114; int pad2[2]; int x120, x124, x128; int x12c; int x130; int p3[3]; int x140; int p4[8]; int x164, x168, x16c; } T;
-typedef struct O { char pad[0x68]; T *t; } O;
-extern char D_002BF670[];
-// Resets a block of the private camera TN's parameters to defaults.
-void ResetJtGrabTnParams(O *o)
+extern CPD D_002BF670;   /* the grab TN's camera definition (defined below as GRAB_DATA's CPDINIT) */
+// Resets a block of the private camera TN's parameters to defaults: no BSP or path, the one camera definition
+// D_002BF670, priority 3, mode bits 5, pull on entry.
+void ResetJtGrabTnParams(JTGRAB *grab)
 {
-    T *t = o->t;
-    t->x100 = 0;
-    t->fc = 0;
-    t->x108 = 0;
-    t->x164 = 5;
-    t->x10c = 0;
-    t->x110 = 1;
-    t->x120 = 0;
-    t->x124 = 0;
-    t->x16c = 0;
-    t->x114 = (int)D_002BF670;
-    t->x130 = 0;
-    t->x168 = 1;
-    t->x128 = 3;
-    t->x140 = 0;
+    TN *t = grab->cameraTunnel;
+    t->bspc.numNodesAllocated = 0;
+    t->bspc.numNodes = 0;
+    t->bspc.nodes = 0;
+    t->grftnm = 5;
+    t->path = 0;
+    t->numCameraDefinitions = 1;
+    t->fCylind = 0;
+    t->unknown124 = 0;
+    t->pullsWhileIdle = 0;
+    t->cameraDefinitions = &D_002BF670;
+    t->panLimitAngle = 0.0f;
+    t->pullsOnEnter = 1;
+    t->priority = 3;
+    t->progress = 0.0f;
 }
 } } // namespace M_func_00194118
 
