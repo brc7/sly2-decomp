@@ -1015,17 +1015,15 @@ void FixStepAngularVelocity(struct S *step)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204D48 { extern "C" {
-typedef struct VECTOR { float x, y, z; } VECTOR;
 extern VECTOR D_002C3CB8;   /* the default spin smoothing */
-struct S : PO { char pad[0x1F0 - 0x180]; float g; VECTOR v; };
-// Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (+0x1F0).
-void ScaleStepSpinSpeed(struct S *step, float g)
+// Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (rSpin).
+void ScaleStepSpinSpeed(STEP *step, float g)
 {
-    step->v = D_002C3CB8;
-    step->v.x *= g;
-    step->v.y *= g;
-    step->v.z *= 1.0f / SqrtFloat(g);
-    step->g = g;
+    step->vSpin = D_002C3CB8;
+    step->vSpin.x *= g;
+    step->vSpin.y *= g;
+    step->vSpin.z *= 1.0f / SqrtFloat(g);
+    step->rSpin = g;
 }
 } } // namespace M_func_00204D48
 
