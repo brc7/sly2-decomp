@@ -46,12 +46,12 @@ void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
 }
 
-// Initializes a static mesh (vtable slot 7): SO init, then clears SO flag bit 35 (unknownFlag148A).
+// Initializes a static mesh (vtable slot 7): SO init, then clears SO flag bit 35 (isRenderable).
 void MS::Init()
 {
     MSV *mesh = (MSV *)this;
       InitSo(mesh);
-      mesh->unknownFlag148A = 0;
+      mesh->isRenderable = 0;
 }
 
 // Renders the mesh (vtable slot 19): a posed globset goes through the scene render list (init the stack scratch, then

@@ -39,7 +39,7 @@ void SKY::PostLoad()
     flagsWord = sky->unknown40;   /* a flags word, or (low bit clear) a pointer to one */
     if ((flagsWord ^ 1) & 1) *(int *)flagsWord |= 2;
     else sky->unknown40 = flagsWord | 2;
-    sky->unknownFlag148A = 0;
+    sky->isRenderable = 0;
 }
 
 // Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),

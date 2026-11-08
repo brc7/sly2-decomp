@@ -77,7 +77,7 @@ extern "C" void InitWaypt(WAYPTV *waypoint)
     waypoint->requiredPowerup = -1;
     if (IsPointer(flags)) *(int *)flags |= 0xA;
     else waypoint->unknown40 = flags | 0xA;
-    waypoint->unknownFlag148A = 0;
+    waypoint->isRenderable = 0;
 }
 
 // Clears LO flag 8 (in the tagged flag word) on a child part, so it is not drawn by itself.

@@ -891,6 +891,25 @@ Left, with the reason: blend.cpp's VTE (the file does not include basic.h); memc
 not vtable entries); throw.cpp's VE (one entry record, a union of several function types); the private records of
 prize.cpp and grabspot.cpp (left for a follow-up because another agent is editing those files).
 
+### Views unified (names/vu-physics): the physics family, so.cpp and shape.cpp
+
+Same checks as base round 5 (every touched object MATCHes, identical relocations by symbol name, identical `nm -S`),
+run on all 210 game sources because so.h and xfm.h changed.
+
+| change | where | how |
+|---|---|---|
+| quadword rows as union members | so.h XF (`localMatq`, `worldMatq`, `velq`), SOPHYS (`inertiaq`); xfm.h SHAPE (`vertexPosq`) | the VU0 code reads whole rows through the Q member instead of a cast (island-review rule). xf.cpp's world XF initializer gained one brace level per matrix |
+| new and named fields | so.h `SURFX` (a soft part's surface triangle), LVO documented as per-vertex velocity/acceleration, SO +0x148 `dhpHit`, +0x149 `dhpTouch`, bit 35 `isRenderable`; xfm.h `SHAPECHAIN` (0x90) with `SHAPE::chain` typed | from InitSo, SetSoHitDamage, HandleSoTouchZaps, SetSoBit35Hierarchy, EnsureSoPartMesh/UpdateSoPartMesh, InitChain and AddChainSample. Guesses are marked (inferred) |
+| so.cpp views replaced | UpdateSoTreeBounds, LoadSoFromBrx, FreeSoContacts, EnsureSoPartMesh, UpdateSoPartMesh, CloneSoPartGeomInserting, HandleSoTouchZaps, TranslateSoToPos, RotateSoToMat, SetSoAngularVelocity, ScaleSoInertia, the three AccelSoToward* functions (spring coefficients are basic.h CLQ), SetSoEyesClosed, GetSoCameraDefaults (cm.h CPDEFI), SetSoGrfBit8, InitSo, SetSoBit35Hierarchy, the XF-handle actuator functions (act.h ACT/ACT4), FindZapResponder (LO::parent), ExpireSwZapRecords (sw.h SW) | real fields and real virtual calls; a namespace's duplicate extern "C" declarations of functions declared at file scope were removed (they make the call ambiguous once the types agree) |
+| shape.cpp views replaced | UpdateShapeXfWorld, SetShapeChainMode, GetShapeChainLength, AddChainSample, the file-scope SHAPECHAIN | SHAPE and SHAPECHAIN |
+
+Kept, with the reason (scratch islands.csv): LoadSoFromBrx's slot-51 call stays a hand call (as a virtual call in the
+part loop the vptr stays in a register); SetSoXf's `SOIsland` (its slot-35 entry is loaded by hand-scheduled asm);
+NewSoXfHandle's `CID149Island` and NewSoPartHandle's `CID150Island` (hand construction: the vptr store and raw clears of
+BASIC's two CRefPtr words). Not attempted: EnsureSoBounds and the shape evaluators (register-pinned VU0 transcriptions
+with hand vtable calls); the XP contact views (XP has no header yet and several other families define it at file
+scope); path.cpp's PATHZONE/PATHLINK views (those classes are opaque in classes.h, another family's header).
+
 ### Views unified (names/vu-f5-camera): the camera family
 
 The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,

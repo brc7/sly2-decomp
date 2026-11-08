@@ -85,7 +85,7 @@ void RIPG::Init()
     SetLoBusyKind(this, 1);
     flags = unknown40;
     if (IsPointer(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else unknown40 = (flags & 1) | 0xE;
-    unknownFlag148A = 0;
+    isRenderable = 0;
     if (groupKind == 1) {
         EnsureSoTree(this);
         SetSoTreeFlag2(this, 1);
