@@ -484,7 +484,6 @@ struct MCJOB { int GetInfo() __asm__("McJobGetInfo"); int GetDir() __asm__("McJo
 void CreateMemcardThreadJob(void *, int (MCJOB::*)()) __asm__("CreateMemcardThread");
 
 namespace M_UpdateSave__FP4SAVE { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct H { char pad[0x44]; int phase; };   /* the memcard dialog */
 extern char D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
@@ -863,7 +862,6 @@ int McJobSaveSlotResetGs(SAVE *saveManager)
 } } // namespace M_func_001ABC68
 
 namespace M_func_001ABCE8 { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C88;
 void ResetRumbleSaveVar(SAVE *p);
@@ -880,7 +878,6 @@ void StartAutosaveJob(SAVE *saveManager)
 } } // namespace M_func_001ABCE8
 
 namespace M_func_001ABD40 { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C90;
 void ResetRumbleSaveVar(SAVE *p);
@@ -1521,7 +1518,6 @@ void p_McJobCreateSave() __asm__("McJobCreateSave");
 extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (unsigned int)p_McJobCreateSave};
 }
 namespace M_CMemcardDialog_Update { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short index; void (*pfn)(void *); };
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 extern char D_003D9ED0[];
@@ -1714,7 +1710,6 @@ void OnMcDialogChoice(S *dialog)
 } // namespace M_func_001ACFE0
 
 namespace M_func_001AD168 { extern "C" {
-struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { char pad[0x40]; int state; };
 extern const struct LONGU D_002A6E88, D_002A6D88, D_002A6E90;

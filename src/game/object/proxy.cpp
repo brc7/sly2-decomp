@@ -77,19 +77,9 @@ struct CELL
       int ileafPos;
 };
 
-struct LANGSTR
-{
-      int id;
-      char *pchz;
-};
 
 /* SVN: sly2/sw.h */
 
-struct SVPATH
-{
-      int cid;
-      short *aid;
-};
 
 /* LOUPD: sly2/sw.h */
 
@@ -152,11 +142,6 @@ public:
     LO **m_aplo;
 };
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 // Makes a proxy id: the source index in the high half, the copy index in the low half.
 /* A proxy id: the source index in the high half, the copy index in the low half. */
@@ -190,8 +175,7 @@ extern "C" OID GetOidFromProxyId(int id)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C99D8 { extern "C" {
 struct N { int id; struct N *pnParent; int oid; int unknownC; int unknown10; struct N *pnNext; struct DL dl; int pad; };
-struct AL { int cb; int cbAlign; };
-void *AllocClearedFromWorldHeap(const struct AL *pal);
+void *AllocClearedFromWorldHeap(const struct SWALLOC *pal);
 void InitSl(struct DL *pdl, int ib);
 int GetOidFromProxyId(int id);
 struct DL *GetSwProxyRefBucket(void *p, int id);
@@ -201,7 +185,7 @@ void AppendSlEntry(struct DL *pl, void *pv);
 struct N *FindProxyRefPath(struct N *parentNode, int c, const int *aid)
 {
     struct N *pn, *pnParent, *pnNew;
-    struct AL al;
+    struct SWALLOC al;
     int i;
 again:
     for (pn = (struct N *)parentNode->dl.head; pn; pn = pn->pnNext) {
@@ -647,10 +631,9 @@ void PROXY::Init()
 namespace M_CloneProxy { extern "C" {
 struct RC { int cRef; };
 struct E { int unknown0; int unknown4; struct RC *frame; int pad[3]; };   /* a PROXYINIT record; frame: its Splice frame */
-struct AL { int cb; int cbAlign; };
 struct SP { struct RC *p; };
 void CloneXfm(PROXY *p, PROXY *q);
-struct E *AllocCopyFromWorldHeap(struct AL *pal, struct E *pv);
+struct E *AllocCopyFromWorldHeap(struct SWALLOC *pal, struct E *pv);
 void CFrame_CloneTo(struct SP *pret, struct RC *p, PROXY *ps);
 void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
 void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
@@ -658,7 +641,7 @@ void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
 void CloneProxy(PROXY *proxy, PROXY *source)
 {
     int i;
-    union { struct AL al; struct SP sp; } u;
+    union { struct SWALLOC al; struct SP sp; } u;
     CloneXfm(proxy, source);
     for (i = 0; i < proxy->numInits; i++) {
         struct E *pe = &((struct E *)proxy->inits)[i];
@@ -687,7 +670,6 @@ extern "C" void AcquireProxy(PROXY *proxy)
 
 // PROXY's OnAdd (vtable slot 23): unfreezes the object and registers it (0x149AB8).
 /* The 8-byte callback passed by value (B4): read through a packed view so it goes straight into a2 (ldl/ldr). */
-struct LONGU { long l; } __attribute__((packed));
 extern "C" {
 extern const LONGU D_002A77C0;
 void OnLoAdd(LO *plo);

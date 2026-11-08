@@ -166,7 +166,6 @@ struct O {
     char padA0[0xC8]; O *source; char pad16C[0xC]; int clipFrame, hasCurtainHit; float height;
 };
 struct P4 { qwordV q; };
-struct REQ { int cb, align; };
 struct FRAME { int x[4]; };
 struct WORLD;
 int D_002C4490 = 0x459C4000;   /* 5000.0f, read as its bits (waypoint's .data starts here) */
@@ -177,7 +176,7 @@ UQ *DefaultConstructVector(UQ *);
 UQ *InitVuTemp(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(REQ *);
+void *AllocFromStack(SWALLOC *);
 int HasCameraBsp(void *, O *);
 void IntersectSwBoundingBox(SW *, qwordV, qwordV, int (*)(void *, O *), void *, int *, O ***);
 int CollectBspSurfacesTouchingPolygon(NODE *, NODE *, int, UQ *, int *, FACE ***);
@@ -337,9 +336,9 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
     }
     objectIndex = 0;
     STACKSCOPE_ctor(&frame);
-    REQ *preq = (REQ *)&tmp;
+    SWALLOC *preq = (SWALLOC *)&tmp;
     preq->cb = 0x10000;
-    preq->align = 16;
+    preq->cbAlign = 16;
     faces = (FACE **)AllocFromStack(preq);
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;

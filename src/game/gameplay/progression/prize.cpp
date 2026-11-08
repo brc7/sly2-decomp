@@ -155,7 +155,6 @@ union M3 { qword rows[3]; float values[12]; };
 /* The prize's two XFs (SO unknown58 / unknown5C: the position and orientation channels) as this function moves them:
    the local rotation rows, the local position (row 3), the world stamp and the velocity as quadwords. */
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
-union FLOATWORD { float value; int bits; };
 struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 extern "C" {
 extern float D_002C0D4C;

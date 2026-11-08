@@ -277,10 +277,9 @@ void DeleteSw(SW *world)
 } } // namespace M_DeleteSw
 
 namespace M_func_0020E180 { extern "C" {
-struct MSG { int cb; int nKind; };
 struct ZPR { char ab[0x630]; };
-void *AllocFromWorldHeap(struct MSG *pmsg);
-void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void *AllocFromWorldHeap(struct SWALLOC *pmsg);
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
 void InitSl(void *p, int n);
 void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void InitRenderTargets(void *p, struct ZPR *pz);
@@ -291,20 +290,20 @@ void BroadcastGameEvent(void *p, int a, int b);
 // game callback 2.
 void InitSwLoadBuffers(SW *world)
 {
-    struct MSG msg;
+    struct SWALLOC msg;
     struct ZPR zpr;
     int i;
     unsigned int j;
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         world->aaaox[i] = (struct AAOX *)AllocFromWorldHeap(&msg);
     }
     msg.cb = 0x8000;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     world->aloupd = (LOUPD *)AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     world->ppxrRoot = (PXR *)AllocClearedFromWorldHeap(&msg);
     world->ppxrRoot->proxyId = -1;
     world->ppxrRoot->proxyOid = -1;
@@ -400,17 +399,7 @@ struct CELL
       int ileafNeg;
       int ileafPos;
 };
-struct LANGSTR
-{
-      int id;
-      char *pchz;
-};
 /* SVN: sly2/sw.h */
-struct SVPATH
-{
-      int cid;
-      short *aid;
-};
 /* SAVEDATA: sly2/save.h */
 /* LOUPD: sly2/sw.h */
 int GetCurrentLevelIndex();
@@ -870,11 +859,6 @@ public:
     uint U32Read() __asm__("U32Read__18CBinaryInputStream");
     void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
 };
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 // Allocate cb bytes with alignment cbAlign from the world heap.
@@ -1108,10 +1092,9 @@ int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepSoNotSelf(pv
 
 namespace M_IntersectSwBoundingBox { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-void *AllocFromStack(struct MSG *pmsg);
+void *AllocFromStack(struct SWALLOC *pmsg);
 void FlushSwBoundsUpdates(SW *p);
 void UpdateSwAaox(SW *p);
 
@@ -1120,7 +1103,7 @@ void UpdateSwAaox(SW *p);
 void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     QWROW mn, mx;
-    struct MSG msg;
+    struct SWALLOC msg;
     struct O **ap;
     struct G *g;
     int c;
@@ -1134,9 +1117,9 @@ void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O
         mx.q = qwmxqOut;
     }
     {
-        struct MSG *pm = &msg;
+        struct SWALLOC *pm = &msg;
         pm->cb = 0x400;
-        pm->nKind = 0x10;
+        pm->cbAlign = 0x10;
     }
     c = 0;
     ap = (__typeof__(ap))AllocFromStack(&msg);
@@ -1162,22 +1145,21 @@ void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O
 
 namespace M_IntersectSwBoundingSphere { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-void *AllocFromStack(struct MSG *pmsg);
+void *AllocFromStack(struct SWALLOC *pmsg);
 void FlushSwBoundsUpdates(SW *p);
 void UpdateSwAaox(SW *p);
 
 // Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
 void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
-    struct MSG msg;
+    struct SWALLOC msg;
     struct O **ap;
     struct G *g;
     int c;
     msg.cb = 0x400;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     ap = (__typeof__(ap))AllocFromStack(&msg);
     c = 0;
     FlushSwBoundsUpdates(p);
