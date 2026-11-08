@@ -292,13 +292,21 @@ struct BARREL;
 inline void *func_00259A28(BARREL *pbarrel) { return (char *)pbarrel + sizeof(SO); }
 inline void *func_00259A20(BARREL *pbarrel) { return pbarrel; }   /* its GRABSPOT owner getter (see sly2/xfm.h) */
 
-/* LVO: per-part local vertex data: positions, their deltas and the surface map (inferred).
+/* SURFX: the three vertex indices of a triangle surface of a soft part (so.cpp EnsureSoPartMesh orders them so that
+   their winding agrees with the surface normal; UpdateSoPartMesh rebuilds the planes from them). */
+struct SURFX
+{
+    int aipos[3];
+};
+
+/* LVO: the per-vertex motion of a soft (deforming) part: velocity and acceleration per vertex and the triangle of
+   each surface (so.cpp EnsureSoPartMesh allocates them, UpdateSoPartMesh integrates the vertices with them).
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct LVO
 {
-    VECTOR *mpiposvLocal;   /* local vertex positions */
-    VECTOR *mpiposdvLocal;   /* local vertex deltas */
-    SURFX *mpisurfsurfx;   /* extra data per surface */
+    VECTOR *mpiposvLocal;   /* velocity of each vertex (16 bytes each) */
+    VECTOR *mpiposdvLocal;   /* acceleration of each vertex (16 bytes each) */
+    SURFX *mpisurfsurfx;   /* the triangle of each surface */
 };
 
 /* SOPART: one collision part of an SO: its transform, mesh (local and world copies), BSP and damage settings.

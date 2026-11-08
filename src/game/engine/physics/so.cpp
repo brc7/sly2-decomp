@@ -2835,7 +2835,7 @@ void SetSoPartsZapKindsById(SO *p, int n, int x) { int i; for (i = 0; i < p->num
 
 // 0x1F6C08 EnsureSoPartMesh
 namespace M_func_001F6C08 {
-union U; struct TRI; struct MESH; struct EDGE; struct PLANE; struct P; struct FRAME; struct MSG;
+struct FRAME;
 // EnsureSoPartMesh (0x1F6C08): build the scratch mesh of P once (p->mesh at +0x10).
 // Allocates the MESH, per-point velocity/acceleration arrays and per-triangle vertex triples inside a
 // temporary allocator FRAME, collects each triangle's three vertices from the edge list (edge face ids
@@ -2844,11 +2844,6 @@ union U; struct TRI; struct MESH; struct EDGE; struct PLANE; struct P; struct FR
 // MATCH (T1582): ONE function-scope triangle index (`itri`, used by the edge loop and as the second loop's
 // counter) and ONE function-scope `ptri` shared by both loops; per-loop locals gave register rotation only.
 typedef int qword __attribute__((mode(TI)));
-struct TRI {int vertex[3];};
-struct MESH {qword *velocity,*acceleration;TRI *triangles;};
-struct EDGE {unsigned short vertex[2],face[2];int extra[2];};
-struct PLANE {QWROW normal;QWROW extra;};
-struct P {char pad0[0x10];MESH *mesh;char pad14[0x68];QWROW *positions;int planeCount;PLANE *planes;char pad88[8];int pointCount;QWROW *source;int triCount;void *triSource;int edgeCount;EDGE *edges;};
 struct FRAME;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -2866,49 +2861,49 @@ static inline float Dot(qword a,qword b){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"0"(a),"j"(b));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 // Builds a part's soft-mesh record once: per-vertex velocities and accelerations and the oriented triangles.
-extern "C" void EnsureSoPartMesh(P *so)
+extern "C" void EnsureSoPartMesh(SOPART *so)
 {
-    if(so->mesh)return;
+    if(so->plvo)return;
     QWROW first,second,cross;
     FRAME storage;
     SWALLOC request;
-    int triBytes=sizeof(TRI),alignment=16;
+    int triBytes=sizeof(LVO),alignment=16;
     STACKSCOPE_ctor(&storage);
     SWALLOC *allocation=&request;
     request.cb=triBytes;allocation->cbAlign=alignment;
-    so->mesh=(MESH *)AllocFromWorldHeap(allocation);
-    request.cb=so->pointCount*16;allocation->cbAlign=alignment;
-    so->mesh->velocity=(qword *)AllocClearedFromWorldHeap(allocation);
-    request.cb=so->pointCount*16;allocation->cbAlign=alignment;
-    so->mesh->acceleration=(qword *)AllocClearedFromWorldHeap(allocation);
-    request.cb=so->triCount*triBytes;allocation->cbAlign=alignment;
-    so->mesh->triangles=(TRI *)AllocClearedFromWorldHeap(allocation);
-    request.cb=so->triCount*4;allocation->cbAlign=alignment;
+    so->plvo=(LVO *)AllocFromWorldHeap(allocation);
+    request.cb=so->meshWorld.numPositions*16;allocation->cbAlign=alignment;
+    so->plvo->mpiposvLocal=(VECTOR *)AllocClearedFromWorldHeap(allocation);
+    request.cb=so->meshWorld.numPositions*16;allocation->cbAlign=alignment;
+    so->plvo->mpiposdvLocal=(VECTOR *)AllocClearedFromWorldHeap(allocation);
+    request.cb=so->meshWorld.numSurfaces*triBytes;allocation->cbAlign=alignment;
+    so->plvo->mpisurfsurfx=(SURFX *)AllocClearedFromWorldHeap(allocation);
+    request.cb=so->meshWorld.numSurfaces*4;allocation->cbAlign=alignment;
     int *counts=(int *)AllocClearedFromStack(allocation);
     int itri;
-    TRI *ptri;
-    for(int i=0;i<so->edgeCount;i++) {
-        EDGE *edge=&so->edges[i];
+    SURFX *ptri;
+    for(int i=0;i<so->meshWorld.numEdges;i++) {
+        EDGE *edge=&so->meshWorld.edges[i];
         for(int side=0;side<2;side++) {
-            itri=edge->face[side];
-            ptri=&so->mesh->triangles[itri];
+            itri=edge->aisurf[side];
+            ptri=&so->plvo->mpisurfsurfx[itri];
             for(int endpoint=0;endpoint<2;endpoint++) {
-                int vertex=edge->vertex[endpoint];
+                int vertex=edge->aipos[endpoint];
                 int j;
-                for(j=0;j<counts[itri];j++)if(vertex==ptri->vertex[j])break;
+                for(j=0;j<counts[itri];j++)if(vertex==ptri->aipos[j])break;
                 if(j<counts[itri])continue;
-                if(j<3){ptri->vertex[counts[itri]]=vertex;counts[itri]++;}
+                if(j<3){ptri->aipos[counts[itri]]=vertex;counts[itri]++;}
             }
         }
     }
-    QWROW *positions=so->positions;
-    for(itri=0;itri<so->triCount;itri++) {
-        ptri=&so->mesh->triangles[itri];
-        PLANE *plane=&so->planes[itri];
-        first.q=Sub(positions[ptri->vertex[1]].q,positions[ptri->vertex[0]].q);
-        second.q=Sub(positions[ptri->vertex[2]].q,positions[ptri->vertex[0]].q);
+    QWROW *positions=(QWROW *)so->meshLocal.positions;
+    for(itri=0;itri<so->meshWorld.numSurfaces;itri++) {
+        ptri=&so->plvo->mpisurfsurfx[itri];
+        SURF *plane=&so->meshLocal.surfaces[itri];
+        first.q=Sub(positions[ptri->aipos[1]].q,positions[ptri->aipos[0]].q);
+        second.q=Sub(positions[ptri->aipos[2]].q,positions[ptri->aipos[0]].q);
         cross.q=Cross(first.q,second.q);
-        if(Dot(cross.q,plane->normal.q)<0.0f){int t=ptri->vertex[1];ptri->vertex[1]=ptri->vertex[2];ptri->vertex[2]=t;}
+        if(Dot(cross.q,*(qword *)&plane->normal)<0.0f){int t=ptri->aipos[1];ptri->aipos[1]=ptri->aipos[2];ptri->aipos[2]=t;}
     }
     STACKSCOPE_ctor_1AE4A0(&storage,2);
 }
@@ -2916,12 +2911,8 @@ extern "C" void EnsureSoPartMesh(P *so)
 
 // 0x1F6EF8 UpdateSoPartMesh
 namespace M_func_001F6EF8 { extern "C" {
-struct TRI; struct MESH; struct P;
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f;} V;
-struct TRI {int index[3];};
-struct MESH {qword *velocity,*acceleration;struct TRI *triangles;};
-struct P {void *x0;int x4;float maximum;int xC;struct MESH*mesh;char pad14[0x64];int count;qword *positions;int triCount;void *planes;char pad88[0x20];int state;};
 void InitPlaneFromPositions(void*,qword,qword,qword);
 // Return a + b * s.x (vf5).
 static inline qword Step(qword a,qword b,qword s){register qword r __asm__("vf5");
@@ -2939,16 +2930,16 @@ static inline qword *VelocityCursor(qword *p){register qword *initial __asm__("$
 static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("slt %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
 // Integrates a soft-mesh part's vertices by dt (semi-implicit), tracks the largest radius and invalidates the part
 // after large moves.
-void UpdateSoPartMesh(struct P*so,float dt)
+void UpdateSoPartMesh(SOPART *so,float dt)
 {
  V scalar;
  register int vertexIndex __asm__("a2")=0;
- qword *velocity=so->mesh->velocity;
+ qword *velocity=(qword *)so->plvo->mpiposvLocal;
  register int initialCount __asm__("$3");
- register qword *acceleration __asm__("$5")=({register qword *r __asm__("$5");__asm__("lw %0,%2\n\tlw %1,%3":"=&r"(initialCount),"=r"(r):"m"(so->count),"m"(so->mesh->acceleration));r;});
+ register qword *acceleration __asm__("$5")=({register qword *r __asm__("$5");__asm__("lw %0,%2\n\tlw %1,%3":"=&r"(initialCount),"=r"(r):"m"(so->meshLocal.numPositions),"m"(so->plvo->mpiposdvLocal));r;});
  register qword *positions __asm__("s4");
  float maximum=0.0f;
- positions=so->positions;
+ positions=(qword *)so->meshLocal.positions;
  if(initialCount>0){
    register qword time __asm__("vf7")=VuFromFloat<qword>(dt);
    register int invalid __asm__("$7")=-1;
@@ -2961,28 +2952,28 @@ void UpdateSoPartMesh(struct P*so,float dt)
      int state;
      qword next,newpoint;
      float square;
-     __asm__("sqc2 %4,%2\n\tlqc2 %0,%3\n\tlw %1,%5":"=j"(force),"=r"(state),"=m"(scalar.q):"m"(*acceleration),"j"(time),"m"(so->state));
+     __asm__("sqc2 %4,%2\n\tlqc2 %0,%3\n\tlw %1,%5":"=j"(force),"=r"(state),"=m"(scalar.q):"m"(*acceleration),"j"(time),"m"(so->meshStamp));
      next=Step(old,force,time);
      newpoint=Position(point,old,next,half,&scalar);
-     if(state!=invalid && 1.0f<LengthSquared(VuSub(point,newpoint)))so->state=invalid;
+     if(state!=invalid && 1.0f<LengthSquared(VuSub(point,newpoint)))so->meshStamp=invalid;
      square=LengthSquared(newpoint);
      *position=newpoint;
      *velocityCursor=next;
      if(maximum<square)maximum=square;
-     limit=so->count;
+     limit=so->meshLocal.numPositions;
    }while(++velocityCursor,++position,++acceleration,++vertexIndex<limit);
  }
- so->maximum=SqrtFloat(maximum);
+ so->radius=SqrtFloat(maximum);
  {
-   struct TRI*firstTri=so->mesh->triangles;
-   char *firstPlane=(char*)so->planes;
+   SURFX *firstTri=so->plvo->mpisurfsurfx;
+   char *firstPlane=(char*)so->meshLocal.surfaces;
    register int planeIndex __asm__("s3")=0;
-   if(so->triCount>0){struct TRI*tri=firstTri;char*plane=firstPlane;do{
-     qword a=positions[tri->index[0]],b=positions[tri->index[1]],c=positions[tri->index[2]];
+   if(so->meshLocal.numSurfaces>0){SURFX *tri=firstTri;char*plane=firstPlane;do{
+     qword a=positions[tri->aipos[0]],b=positions[tri->aipos[1]],c=positions[tri->aipos[2]];
      __asm__("addiu %0,%0,12":"+r"(tri));
      InitPlaneFromPositions(plane,a,b,c);
      plane+=0x20;
-   }while(PlaneLess(++planeIndex,so->triCount));}
+   }while(PlaneLess(++planeIndex,so->meshLocal.numSurfaces));}
  }
 }
 
@@ -2992,19 +2983,6 @@ typedef char layout_float[(sizeof(float)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_V[(sizeof(V)==16)?1:-1];
 typedef char layout_V_alignment[(__alignof__(V)==16)?1:-1];
-typedef char layout_TRI[(sizeof(struct TRI)==12)?1:-1];
-typedef char layout_MESH[(sizeof(struct MESH)==12)?1:-1];
-typedef char layout_P[(sizeof(struct P)==0xAC)?1:-1];
-typedef char layout_P_maximum[((unsigned)&((struct P*)0)->maximum==8)?1:-1];
-typedef char layout_P_mesh[((unsigned)&((struct P*)0)->mesh==0x10)?1:-1];
-typedef char layout_P_count[((unsigned)&((struct P*)0)->count==0x78)?1:-1];
-typedef char layout_P_positions[((unsigned)&((struct P*)0)->positions==0x7C)?1:-1];
-typedef char layout_P_triCount[((unsigned)&((struct P*)0)->triCount==0x80)?1:-1];
-typedef char layout_P_planes[((unsigned)&((struct P*)0)->planes==0x84)?1:-1];
-typedef char layout_P_state[((unsigned)&((struct P*)0)->state==0xA8)?1:-1];
-typedef char layout_MESH_velocity[((unsigned)&((struct MESH*)0)->velocity==0)?1:-1];
-typedef char layout_MESH_acceleration[((unsigned)&((struct MESH*)0)->acceleration==4)?1:-1];
-typedef char layout_MESH_triangles[((unsigned)&((struct MESH*)0)->triangles==8)?1:-1];
 } } // namespace M_func_001F6EF8
 
 // 0x1F70C0 CloneSoPartGeomInserting
