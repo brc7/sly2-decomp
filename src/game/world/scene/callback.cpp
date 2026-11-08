@@ -46,7 +46,6 @@ struct EVCB
     int id;
 };
 
-extern CLOCK D_002DDED0;
 
 
 extern "C" {
@@ -125,7 +124,7 @@ extern "C" void ProcessSwCallbacks(SW *world)
     EVCB *spliceCallback;
     while ((spliceCallback = (EVCB *)world->slEvent.head) != 0)
     {
-        if (D_002DDED0.time < spliceCallback->time)
+        if (g_clock.time < spliceCallback->time)
             break;
         spliceCallback->id = -1;
         SPFV *frameSlot = spliceCallback->frameSlot;

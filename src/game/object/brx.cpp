@@ -66,7 +66,6 @@ public:
     int S32Read();
     float F32Read();
 };
-extern SW D_003DD490;
 struct SWALLOC
 {
     int cb;
@@ -212,7 +211,7 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
     LO *plo = (D_002BAAE8 + cid)->pfnNew();
     plo->parent = psoParent;
     plo->oid = oid;
-    world = &D_003DD490;
+    world = &g_sw;
     FramePtr_Assign(plo, GetSpliceFrame(world, isplice, plo));
     AppendSlEntry(GetSwOidBucket(world, oid), plo);
     AppendSlEntry(GetSwClassList(world, cid), plo);
@@ -244,13 +243,13 @@ LO *CloneLoWithParent(LO *plo, SO *psoParent)
 void PostLoadOidField(LO *plo, void *pv)
 {
     OIDFIELD *poidfield = (OIDFIELD *)pv;
-    *(LO **)((char *)plo + poidfield->ib) = FindSwObject(&D_003DD490, 4, poidfield->oid, plo);
+    *(LO **)((char *)plo + poidfield->ib) = FindSwObject(&g_sw, 4, poidfield->oid, plo);
 }
 
 // Deferred post-load callback: resolves a stored oid to an object and calls the stored member-function setter with it.
 void PostLoadOidSetter(LO *plo, void *pv)
 {
-    LO *ploFound = FindSwObject(&D_003DD490, 4, ((OIDPMF *)pv)->oid, plo);
+    LO *ploFound = FindSwObject(&g_sw, 4, ((OIDPMF *)pv)->oid, plo);
     (((LOSETTEE *)plo)->*((OIDPMF *)pv)->pmf)(ploFound);
 }
 
@@ -483,7 +482,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                 if (grfeopid & 0x80)
                 {
                     int oid = stream->S32Read();
-                    OIDFIELD *poidfield = (OIDFIELD *)AllocSwPostLoadRecord(&D_003DD490);
+                    OIDFIELD *poidfield = (OIDFIELD *)AllocSwPostLoadRecord(&g_sw);
                     poidfield->oid = (OID)oid;
                     poidfield->ib = pf - (char *)pvStruct;
                     LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
@@ -661,7 +660,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
             if (grfeopid & 0x100)
             {
                 int oid = stream->S32Read();
-                OIDSETTER *poidsetter = (OIDSETTER *)AllocSwPostLoadRecord(&D_003DD490);
+                OIDSETTER *poidsetter = (OIDSETTER *)AllocSwPostLoadRecord(&g_sw);
                 poidsetter->oid = (OID)oid;
                 poidsetter->setter = peopid->setFile;
                 LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
@@ -815,7 +814,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             goto create;
         }
         {
-            SW *world = &D_003DD490;
+            SW *world = &g_sw;
             int r;
             t = MakeProxyId(world->isrcLoading, -1);
             r = FindProxyRefPath(world->ppxrRoot, 1, &t);
@@ -861,7 +860,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
     create:
         if (IsCidDerivedFrom((CID)cid, (CID)6))
         {
-            LoadProxyFromBrx(&D_003DD490, psoParent, (CID)cid, (OID)oid, n, stream, plc);
+            LoadProxyFromBrx(&g_sw, psoParent, (CID)cid, (OID)oid, n, stream, plc);
         }
         else
         {

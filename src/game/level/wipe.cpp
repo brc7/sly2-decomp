@@ -33,7 +33,6 @@ struct WIPE
 };
 typedef char assert_WIPE_size[sizeof(WIPE) == 0x5C ? 1 : -1];
 
-extern SW D_003DD490;
 
 extern "C" {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
@@ -89,7 +88,7 @@ extern "C" void SetWipeWipes(WIPE *wipe, int newState)
         wipe->widget->Show(LABEL_WIPE_IN);
         break;
     case WIPE_TRANSITION:
-        SetSwTransition(&D_003DD490, &wipe->transition);
+        SetSwTransition(&g_sw, &wipe->transition);
         wipe->hasTransition = 0;
         func_002333B4(&wipe->transition, 0, sizeof(TRANS));
         break;
@@ -132,13 +131,13 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
     case WIPE_TRANSITION:
         return;
     }
-    if (IsSameFileRecord(&D_003DD490.currentLevel, &transition->destinationLevel))
+    if (IsSameFileRecord(&g_sw.currentLevel, &transition->destinationLevel))
         transition->flags |= TRANS_SAME_LEVEL;
     else
         transition->flags &= ~TRANS_SAME_LEVEL;
-    wipe->widget = (WIDGET *)FindSwObject(&D_003DD490, 0x405, (OID)oid, 0);
+    wipe->widget = (WIDGET *)FindSwObject(&g_sw, 0x405, (OID)oid, 0);
     if (!wipe->widget) {
-        SetSwTransition(&D_003DD490, transition);
+        SetSwTransition(&g_sw, transition);
         return;
     }
     wipe->hasTransition = 1;
@@ -151,7 +150,7 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
 // otherwise returns the wipe to idle. Called at the end of the world load (sw.cpp). (inferred)
 extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
 {
-    wipe->widget = (WIDGET *)FindSwObject(&D_003DD490, 0x405, (OID)wipe->widgetOid, 0);
+    wipe->widget = (WIDGET *)FindSwObject(&g_sw, 0x405, (OID)wipe->widgetOid, 0);
     if (!wipe->widget || wipe->state != WIPE_TRANSITION) {
         SetWipeWipes(wipe, WIPE_IDLE);
         return;

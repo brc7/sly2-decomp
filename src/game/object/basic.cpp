@@ -46,7 +46,6 @@ struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
 
 extern "C" {
 extern CIDDESC D_002BAAE8[];
-extern CLOCK D_002DDED0;
 extern int D_0027A1D8[];   /* s_aiEvtParm (class_registry_options.inc) */
 extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 
@@ -312,7 +311,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int 
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
         BuildSpliceEventCall(&sp, object, k, &ref);
         if (f)
-            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.time);
+            ScheduleSwSpliceCallback(&g_sw, object, sp.p, g_clock.time);
         else
             EvalSpliceEventCallback(object, sp.p, object->frame, z);
         {
