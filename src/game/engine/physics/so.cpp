@@ -3053,13 +3053,11 @@ void InflictSoContactZaps(SO *so)
 
 // 0x1F7530 FindZapResponder
 namespace M_func_001F7530 { extern "C" {
-struct N;
 int GetSoZapResponseFlags(void *p, void *q);
-struct N { char pad[0x10]; struct N *next; };
-// Returns the first LO in a chain whose zap response to the given kinds is nonzero.
-struct N *FindZapResponder(struct N *lo, void *q)
+// Returns the first LO up the parent chain whose zap response to the given kinds is nonzero.
+LO *FindZapResponder(LO *lo, void *q)
 {
-    for (; lo; lo = lo->next) {
+    for (; lo; lo = lo->parent) {
         if (GetSoZapResponseFlags(lo, q))
             return lo;
     }
