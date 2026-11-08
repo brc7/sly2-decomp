@@ -198,8 +198,9 @@ struct SO : public LO
       float unknown13C;
       int unknownStamp140;
       undefined4 unknown144;
-      char unknown148;
-      char unknown149;
+      char dhpHit;   /* +0x148 the hit damage, stored negated (InitSo: -10; SetSoHitDamage; SetSoZapMode gives it to the parts
+                        of zap mode 2) */
+      char dhpTouch;   /* +0x149 the damage of the touch zap (InitSo: -20; HandleSoTouchZaps, zap kind 0x20000) (inferred) */
       int unknownBits148A : 4;   /* int-typed like the next field (so.cpp's getter sign-extends it) */
                 int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
                 /* zapMode..isNotLandable are uint-typed (bits 24..29 of the 64-bit unit at +0x148): their so.cpp getters
@@ -212,7 +213,8 @@ struct SO : public LO
                 ulong unknownBits148D : 3;
                 ulong hurtRespawnsHero : 1; /* being hurt by this object respawns the hero */
                 ulong isTreeRoot : 1;  /* the object is the root of its physics tree */
-                ulong unknownFlag148A : 1;
+                ulong isRenderable : 1;   /* bit 35: may be in the render tree (SetSoBit35Hierarchy and SetSoGrfBit8 add/remove
+                                             it; InitSo inherits it from the parent, 1 at top level) (inferred) */
                 ulong hasIkLimbs : 1;    /* the object has IK limbs */
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetSoWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSoClassDesc");   /* slot 6 */
@@ -281,6 +283,7 @@ struct SO : public LO
 typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_SO_rootTransform[SLY2_OFFSETOF(SO, rootTransform) == 0x60 ? 1 : -1]; /* position = rootTransform->worldMatrix row 3 (CONFIRMED runtime) */
 typedef char assert_SO_children[SLY2_OFFSETOF(SO, children) == 0x64 ? 1 : -1]; /* child DL at SO+0x64 (CONFIRMED runtime) */
+typedef char assert_SO_dhpHit[SLY2_OFFSETOF(SO, dhpTouch) == 0x149 ? 1 : -1];
 typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the

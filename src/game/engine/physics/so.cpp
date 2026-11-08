@@ -147,27 +147,23 @@ void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 
 // 0x1F2108 InitSo
 namespace M_InitSo { extern "C" {
-struct F; struct P;
-typedef unsigned long ulong;
-struct F { ulong lo : 35; ulong bit35 : 1; ulong hi : 28; };
-struct P { char pad[0x10]; struct P *parent; char pad1[0x12C - 0x14]; float alpha; char pad2[0x13C - 0x130]; float boundsScale; int unknown140; int unknown144; union { struct { signed char hitDamage0, hitDamage1; } c; struct F f; } u; };
 extern float D_002C3B90;
-void InitLo(struct P *);
-void SetLoBusyKind(struct P *, int);
+void InitLo(SO *);
+void SetLoBusyKind(SO *, int);
 void InitDl__FP2DLi(void *, int);
 // Slot 7 (Init): InitLo, not busy, empty child list, hit damages 10/20, alpha 1, the default bounds scale, and the
 // bit-35 flag inherited from the parent.
-void InitSo(struct P *so)
+void InitSo(SO *so)
 {
     InitLo(so);
     SetLoBusyKind(so, 0);
-    InitDl__FP2DLi((char *)so + 0x64, 0x24);
-    so->u.c.hitDamage0 = -10;
-    so->u.c.hitDamage1 = -20;
-    so->alpha = 1.0f;
-    so->boundsScale = D_002C3B90;
-    so->u.f.bit35 = (uchar)(so->parent ? so->parent->u.f.bit35 : 1);
-    so->unknown140 = -1;
+    InitDl__FP2DLi(&so->children, 0x24);
+    so->dhpHit = -10;
+    so->dhpTouch = -20;
+    so->opacity = 1.0f;
+    so->unknown13C = D_002C3B90;
+    so->isRenderable = (uchar)(so->parent ? so->parent->isRenderable : 1);
+    so->unknownStamp140 = -1;
 }
 } } // namespace M_InitSo
 
@@ -226,7 +222,7 @@ extern "C" void SetSoParent(SO *plo, SO *pa, XF *pb, int flags)
     if (flags & 8) plo->SetAngularVelocity(q2);
     ReleaseSoBoundsHierarchy(plo);
     EnsureSoBoundsHierarchy(plo);
-    if (plo->parent && !plo->parent->unknownFlag148A) SetSoBit35Hierarchy(plo, 0);
+    if (plo->parent && !plo->parent->isRenderable) SetSoBit35Hierarchy(plo, 0);
 }
 } // namespace M_SetSoParent
 
@@ -1030,7 +1026,7 @@ void SetSoGrfBit8(SO *so, int enabled)
                     __asm__("sw %1,%0" : "=m"(so->unknown40) : "r"(value));
                 }
             }
-            if (so->unknownFlag148A && IsLoInWorld(so))
+            if (so->isRenderable && IsLoInWorld(so))
                 AddLoToRenderTree(so);
         } else {
             if (!has8)
@@ -1129,7 +1125,7 @@ void OnSoAdd(SO *so)
     LO *q;
     int unused[4];
     OnLoAdd(so);
-    if (so->unknownFlag148A) {
+    if (so->isRenderable) {
         int v = so->unknown40;
         if ((v ^ 1) & 1) v = *(int *)v;
         if (v & 8) AddLoToRenderTree(so);
@@ -3228,7 +3224,7 @@ void HandleSoTouchZaps(SO *so)
     if (k == 3 && IsBasicDerivedFrom__FP5BASIC3CID(so, 0x38)) {
         m.zapKinds = 0x40000; m.damage = -50; m.source = D_002F7900.p;
     } else {
-        m.source = so; m.zapKinds = 0x20000; m.damage = so->unknown149;
+        m.source = so; m.zapKinds = 0x20000; m.damage = so->dhpTouch;
     }
     DeliverZapToSo(&m);
 }
@@ -3242,13 +3238,13 @@ void SetSoZapMode(SO *so, int k)
 {
     int from, to, s;
     int i;
-    if (k == ((int)(*(ulong *)&so->unknown148 >> 24) & 3)) return;   /* read as the whole +0x148 word (zapMode bits 24-25): the bit-field read compiles differently */
+    if (k == (int)so->zapMode) return;
     switch (k) {
     case 0: case 1: case 3:
         from = 0x10000; to = 0; s = -10;
         break;
     case 2:
-        s = so->unknown148; from = 0; to = 0x10000;
+        s = so->dhpHit; from = 0; to = 0x10000;
         break;
     }
     for (i = 0; i < so->numParts; i++) {
@@ -3269,28 +3265,28 @@ int GetSoZapMode(SO *p) { return p->zapMode & 3; }
 // Sets the hit damage (stored negated in the byte at +0x148; default 10). (inferred)
 extern "C" void SetSoHitDamage(SO *so, int n)
 {
-    so->unknown148 = -n;
+    so->dhpHit = -n;
 }
 
 // 0x1F7B68 GetSoHitDamage
 // Returns the hit damage. (inferred)
 extern "C" int GetSoHitDamage(SO *so)
 {
-    return -so->unknown148;
+    return -so->dhpHit;
 }
 
 // 0x1F7B78 SetSoHitDamage2
 // Sets the second hit damage (byte +0x149, negated; default 20). (inferred)
 extern "C" void SetSoHitDamage2(SO *so, int n)
 {
-    so->unknown149 = -n;
+    so->dhpTouch = -n;
 }
 
 // 0x1F7B88 GetSoHitDamage2
 // Returns the second hit damage. (inferred)
 extern "C" int GetSoHitDamage2(SO *so)
 {
-    return -so->unknown149;
+    return -so->dhpTouch;
 }
 
 // 0x1F7B98 EnsureSoInSwList187
