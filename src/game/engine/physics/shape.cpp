@@ -26,17 +26,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct SPACE;
-struct SHAPECHAIN;
-/* A chain of objects along a shape: the shape (+0x48), its simulation mode (+0x4C, SetShapeChainMode) and its own
-   copy of the distances (+0x5C). */
-struct SHAPECHAIN
-{
-    char pad0[0x48];
-    SHAPE *pshape;          /* +0x48 */
-    int mode;               /* +0x4C */
-    char pad50[0x5C - 0x50];
-    float *as;              /* +0x5C */
-};
 extern "C" {
 void InitXfm(XFM *pxfm);
 float GetShapeParamAtDistance(SHAPE *pshape, float s);
@@ -270,14 +259,12 @@ extern "C" void InvalidateShapeCache(SHAPE *shape)
 }
 
 namespace M_func_001E6340 { extern "C" {
-struct Q { char pad[0x4C]; int mode; };
-struct S : XFM { char pad[0x17C - 0xE0]; struct Q *chain; };
-void StepChainRk4(struct Q *q);
-void StepChain(struct Q *q);
-void InheritLoFlag4(struct S *p);
+void StepChainRk4(SHAPECHAIN *q);
+void StepChain(SHAPECHAIN *q);
+void InheritLoFlag4(SHAPE *p);
 // Slot 17: when a chain is attached, steps its simulation (StepChainRk4 for modes 0/3, StepChain for 1/2);
 // otherwise the base LO transform update.
-void UpdateShapeXfWorld(struct S *shape)
+void UpdateShapeXfWorld(SHAPE *shape)
 {
     if (shape->chain) {
         switch (shape->chain->mode) {
@@ -1046,12 +1033,12 @@ float GetShapeParamSearchStep(SHAPE *shape)
 
 namespace M_func_001E7840 { extern "C" {
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
-void *InitChain(void *pv, SHAPE *p);
+SHAPECHAIN *InitChain(void *pv, SHAPE *p);
 void MeasureShape(SHAPE *p);
 void SetLoBusyKind(SHAPE *p, int n);
 // Creates the shape's chain (rope simulation) if missing, measures it and marks the LO busy; f = 1 re-arms an
 // existing chain.
-void *EnsureShapeChain(SHAPE *shape, int rearm)
+SHAPECHAIN *EnsureShapeChain(SHAPE *shape, int rearm)
 {
     if (!shape->chain) {
         shape->chain = InitChain(func_001AE4F8(0x90), shape);
@@ -1111,22 +1098,20 @@ void AddShapeChainSample(void *shape, float param)
 } } // namespace M_func_001E79F0
 
 namespace M_SetShapeChainMode { extern "C" {
-struct Q { char pad[0x4C]; int mode; };
-struct P { char pad[0x40]; int flags; char pad2[0x17C - 0x44]; struct Q *chain; };
-void *EnsureShapeChain(struct P *p, int f);
-void SetLoBusyKind(struct P *p, int n);
+SHAPECHAIN *EnsureShapeChain(SHAPE *p, int f);
+void SetLoBusyKind(SHAPE *p, int n);
 // Sets the chain's simulation mode; -1 disables updates, any other value ensures the chain and enables them.
-void SetShapeChainMode(struct P *shape, int mode)
+void SetShapeChainMode(SHAPE *shape, int mode)
 {
     if (mode != -1) {
         EnsureShapeChain(shape, 1);
         SetLoBusyKind(shape, 0);
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->flags = v & ~0x20; }
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->flags = v | 0xC; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->unknown40 = v & ~0x20; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->unknown40 = v | 0xC; }
     } else {
         SetLoBusyKind(shape, 0);
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0x20; else shape->flags = v | 0x20; }
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0xC; else shape->flags = v & ~0xC; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0x20; else shape->unknown40 = v | 0x20; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0xC; else shape->unknown40 = v & ~0xC; }
     }
     if (shape->chain) shape->chain->mode = mode;
 }
@@ -1394,7 +1379,7 @@ typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
 // The chain's simulation mode, or -1 without a chain.
 extern "C" int GetShapeChainMode(SHAPE *shape)
 {
-    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->chain;
+    SHAPECHAIN *pchain = shape->chain;
     int n = -1;
     if (pchain != 0) {
         n = pchain->mode;
@@ -2104,7 +2089,7 @@ refresh:
 extern "C" void SyncChainDistances(SHAPECHAIN *chain)
 {
     SHAPE *pshape = chain->pshape;
-    CopyAb(chain->as, pshape->vertexArcLengths, pshape->numControlVertices * 4);
+    CopyAb(chain->distances, pshape->vertexArcLengths, pshape->numControlVertices * 4);
 }
 
 namespace M_func_001E9858 {

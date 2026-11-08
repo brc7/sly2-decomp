@@ -111,7 +111,7 @@ struct SHAPE : public XFM
       int unknown148;
       float segmentLengths[11]; /* per-segment lengths (inferred from the name: g = float, s = distance) */
       int segmentHint;   /* +0x178 segment index the last parameter search ended in (shape.cpp) */
-      void *chain;   /* +0x17C the chain record (SHAPECHAIN in shape.cpp; its +0x4C is a mode) */
+      struct SHAPECHAIN *chain;   /* +0x17C the chain simulated along the shape (EnsureShapeChain), 0: none */
       struct SHAPERANGES *pranges;   /* per-range data (SHAPERANGES) */
       undefined4 unknown184[3];
     virtual void Init() __asm__("InitShape");   /* slot 7 */
@@ -120,6 +120,38 @@ struct SHAPE : public XFM
     virtual void UpdateXfWorld() __asm__("UpdateShapeXfWorld");   /* slot 17 */
     virtual void Clone(LO *ploBase) __asm__("CloneShape");   /* slot 41 */
 };
+
+/* SHAPECHAIN (0x90, EnsureShapeChain): a rope/chain of samples simulated along a SHAPE, its ends optionally pinned
+   to objects (SetChainEndObject). Built from shape.cpp's views (InitChain, the chain steppers, SetShapeChainMode). */
+struct SHAPECHAIN
+{
+      qword force;   /* +0x00 external acceleration on every sample (InitChain stores the gravity in z) */
+      qword unknown10;
+      qword start;   /* +0x20 the first end's offset in its transform's space */
+      qword end;   /* +0x30 the last end's offset in its transform's space */
+      XF *pxfFirst;   /* +0x40 the transform the first end follows (g_xfWorld when free) */
+      XF *pxfLast;   /* +0x44 the transform the last end follows */
+      SHAPE *pshape;   /* +0x48 the shape */
+      int mode;   /* +0x4C simulation mode: 0/3 stepped with RK4, 1/2 with StepChain; -1 off (SetShapeChainMode) */
+      int unknown50;
+      QWROW *positions;   /* +0x54 sample positions */
+      QWROW *velocities;   /* +0x58 sample velocities (InitChain's previous positions) */
+      float *distances;   /* +0x5C its own copy of the shape's arc lengths (SyncChainDistances) */
+      float damping;   /* +0x60 */
+      float stretch;   /* +0x64 */
+      float stretchDamping;   /* +0x68 */
+      float bend;   /* +0x6C */
+      float bendDamping;   /* +0x70 */
+      float shapeStiffness;   /* +0x74 pull toward the shape's rest positions */
+      float shapeDamping;   /* +0x78 */
+      undefined4 unknown7C[2];
+      int capacity;   /* +0x84 number of samples allocated */
+      float step;   /* +0x88 sample spacing */
+      undefined4 unknown8C;
+};
+typedef char assert_SHAPECHAIN_mode[SLY2_OFFSETOF(SHAPECHAIN, mode) == 0x4C ? 1 : -1];
+typedef char assert_SHAPECHAIN_capacity[SLY2_OFFSETOF(SHAPECHAIN, capacity) == 0x84 ? 1 : -1];
+typedef char assert_SHAPECHAIN_size[sizeof(SHAPECHAIN) == 0x90 ? 1 : -1];
 typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* TARGET: a point other objects aim at or detect (attack/grab/look targets), kept in the world's target list.
