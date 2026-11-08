@@ -23,6 +23,7 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/game.h"
+#include "sly2/clock.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -185,7 +186,6 @@ void PostMurrayLoad(MURRAY *murray)
 
 namespace M_UpdateMurrayStateMachine {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-extern "C" CLOCK D_002DDED0;
 extern "C" float D_002C08DC,D_002C08E0;
 extern "C" void SetJtAirJump(JTAIR*,int,void*,void*);
 extern "C" void StartJtMode(JTMODE*,int,void*,void*);
@@ -235,7 +235,7 @@ extern "C" void UpdateMurrayStateMachine(MURRAY *murray)
         case MURRAY_SCRIPT_SMA:
         case MURRAY_PIPE: break;
         default:
-            if (D_002DDED0.time - murray->unknown20C > 0.1f) {
+            if (g_clock.time - murray->unknown20C > 0.1f) {
                 switch (murray->state) {
                 case MURRAY_CARRY: SetJtAirJump(&murray->jtair, 16, 0, 0); break;
                 case MURRAY_POWER_MOVE:
@@ -373,16 +373,13 @@ void UpdateMurrayJtModeInput(MURRAY *murray)
 } } // namespace M_func_001B5038
 
 namespace M_UpdateMurray { extern "C" {
-struct G;
-extern CLOCK D_002DDED0;
-extern struct G D_003DD490;
 extern float D_002C08E4;
 extern qword D_002C08F0;
 extern qword D_002A2DE0;
 void UpdateStepplayer(MURRAY *p);
 int IsAsegaRetracted(ASEGA *p);
 void DropAsegaRef(ASEGA **pp);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, MURRAY *p, int n);
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(SW *pg, MURRAY *p, int n);
 void UpdateMurrayJtModeInput(MURRAY *p);
 void UpdateMurrayStateMachine(MURRAY *p);
 int GetStepplayerLeanFlags(MURRAY *p);
@@ -398,8 +395,8 @@ void UpdateMurrayPowerVelocity(MURRAY *p);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *p,float g);
 void UpdateMurrayPlaces(MURRAY *p);
 void UpdateJtActiveZap(JTHURT *p);
-int ShouldSwPairObjects(struct G *pg,SOTREE *a,SOTREE *b);
-void RefreshSwObjectCollisionFilter(struct G *pg, MURRAY *p);
+int ShouldSwPairObjects(SW *pg,SOTREE *a,SOTREE *b);
+void RefreshSwObjectCollisionFilter(SW *pg, MURRAY *p);
 void SetActPositionGoal(ACT1 *p, qword v);
 // Store -v (v scaled by a broadcast -1) into the actor's qwUnknown190.
 static inline void Neg(MURRAY *p, qword v)
@@ -438,7 +435,7 @@ void UpdateMurray(MURRAY *murray)
         return;
     if (murray->unknown190C && IsAsegaRetracted(murray->unknown190C))
         DropAsegaRef(&murray->unknown190C);
-    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, murray, 0xF8FA);
+    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&g_sw, murray, 0xF8FA);
     UpdateMurrayJtModeInput(murray);
     UpdateMurrayStateMachine(murray);
     switch (murray->state) {
@@ -477,15 +474,15 @@ void UpdateMurray(MURRAY *murray)
     }
     UpdateMurrayPlaces(murray);
     UpdateJtActiveZap(&murray->jthurt);
-    if (murray->ploReleased && murray->releaseTime + 0.1f < D_002DDED0.time) {
-        if (!((SO *)murray->ploReleased)->physicsTree || !ShouldSwPairObjects(&D_003DD490, murray->physicsTree, ((SO *)murray->ploReleased)->physicsTree))
+    if (murray->ploReleased && murray->releaseTime + 0.1f < g_clock.time) {
+        if (!((SO *)murray->ploReleased)->physicsTree || !ShouldSwPairObjects(&g_sw, murray->physicsTree, ((SO *)murray->ploReleased)->physicsTree))
             murray->ploReleased = 0;
         if (!murray->ploReleased)
-            RefreshSwObjectCollisionFilter(&D_003DD490, murray);
+            RefreshSwObjectCollisionFilter(&g_sw, murray);
     }
     if (!murray->pact1Unk1acc)
         return;
-    if (D_002DDED0.time - murray->unknown1AC8 < D_002C08E4)
+    if (g_clock.time - murray->unknown1AC8 < D_002C08E4)
         SetActPositionGoal(murray->pact1Unk1acc, D_002C08F0);
     else
         SetActPositionGoal(murray->pact1Unk1acc, D_002A2DE0);
@@ -581,8 +578,6 @@ void UpdateMurrayCarry(MURRAY *murray)
 
 namespace M_SetMurrayCarrySubstate { extern "C" {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef struct { float t,dt; } CLOCK;
-extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetXfRole(MURRAY *p, XF *pxf, int k);
 void ResetGaitFeet(void *p);
@@ -613,7 +608,7 @@ void SetMurrayCarrySubstate(MURRAY *murray, int k)
     }
     __asm__("daddu %0,$%5,$zero\n\tdaddu %1,$%5,$zero\n\tlwc1 %2,%6\n\taddiu %3,$zero,%7\n\tmtc1 $%5,%4"
             : "=&r"(pr), "=&r"(pv), "=f"(now), "=r"(n), "=f"(f)
-            : "J"(0), "m"(D_002DDED0.t), "I"(1));
+            : "J"(0), "m"(g_clock.time), "I"(1));
     murray->carrySubstateTime = now;
     if (k == n)
         goto state1;
@@ -651,8 +646,6 @@ done:
 #undef FIELD_OFFSET
 
 namespace M_func_001B5820 { extern "C" {
-extern CLOCK D_002DDED0;
-extern char D_003DD490[];
 extern int D_002C0908[][5], D_002C0948[][5];
 extern float D_002C0900;
 STEPPLAYER *GetHeroPo(void *g);
@@ -666,13 +659,13 @@ void SetSmaGoal(SMA *psma, int b);
 void UpdateMurrayStruggle(MURRAY *murray)
 {
     int a;
-    if (GetHeroPo(D_003DD490) != murray) return;
-    if (IsSwHandsOff(D_003DD490)) return;
+    if (GetHeroPo(&g_sw) != murray) return;
+    if (IsSwHandsOff(&g_sw)) return;
     a = GetSmaCurrentState(murray->activeStateMachine);
     if (a != GetSmaGoal(murray->activeStateMachine)) return;
     if (a >= 0x1D0) return;
     if (a < 0x1CB) return;
-    murray->struggleTimeLeft -= D_002DDED0.deltaTime;
+    murray->struggleTimeLeft -= g_clock.deltaTime;
     if (ConsumeButtonsPressedWithin__5POCTLUif(murray->controller, BUTTON_FACE, 0.0f)) {
         murray->mashesLeft--;
         murray->lastMashTime = murray->struggleTimeLeft;
@@ -797,7 +790,6 @@ extern "C" void UpdateMurrayStrafe(MURRAY *murray)
 
 namespace M_func_001B5D30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetXfRole(MURRAY *p, XF *pxf, int b);
 void ResetGaitFeet(void *p);
@@ -817,7 +809,7 @@ void SetMurrayStrafeSubstate(MURRAY *murray, int st)
         SetXfRole(murray, murray->rotationXf, 2);
     }
     murray->strafeSubstate = st;
-    murray->strafeStartTime = D_002DDED0.time;
+    murray->strafeStartTime = g_clock.time;
     o = 0;
     x = 0;
     n = 1;
@@ -918,7 +910,6 @@ namespace M_SetMurrayState {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
 extern "C" {
-extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
 extern BENTLEY *D_002DD5BC;
 void SetXfRole(MURRAY *, XF *, int);
@@ -1035,7 +1026,7 @@ extern "C" void SetMurrayState(MURRAY *murray, int next)
     int flags = 1, id = -1, mode = 4;
     void *activation;
     float duration = 0.0f;
-    murray->stateTime = D_002DDED0.time;
+    murray->stateTime = g_clock.time;
     // enter the new state
     switch (next) {
     case MURRAY_IDLE:
@@ -1163,7 +1154,7 @@ extern "C" void SetMurrayState(MURRAY *murray, int next)
                     duration = e->time;
             }
             if (duration != 0.0f)
-                SetAsegaChannelWeight(murray->activeAnimation, D_002DDED0.time + duration / murray->activeAnimation->speed);
+                SetAsegaChannelWeight(murray->activeAnimation, g_clock.time + duration / murray->activeAnimation->speed);
         }
     }
     murray->ApplyStateStepParams();
@@ -1171,14 +1162,13 @@ extern "C" void SetMurrayState(MURRAY *murray, int next)
 } // namespace M_SetMurrayState
 
 namespace M_GetMurrayCpdefi { extern "C" {
-extern CLOCK D_002DDED0;
 void GetStepplayerCpdefi(MURRAY *p, int *pf);
 void UpdateJtThrowHoldPosition(void *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
 // MURRAY camera definition (slot 50): stamps x1080 while moving, STEPPLAYER base, then flag bit 1 for flop/strafe.
 void GetMurrayCpdefi(MURRAY *murray, int *pf)
 {
-    if (murray->state != MURRAY_IDLE && murray->state != MURRAY_PLAYER_STATE_4 && murray->jtgrab.kind) murray->unknown1080 = D_002DDED0.time;
+    if (murray->state != MURRAY_IDLE && murray->state != MURRAY_PLAYER_STATE_4 && murray->jtgrab.kind) murray->unknown1080 = g_clock.time;
     GetStepplayerCpdefi(murray, pf);
     switch (murray->state) {
     case MURRAY_ATTACK:
@@ -1217,7 +1207,6 @@ void PresetMurrayAccel(MURRAY *murray)
 
 namespace M_HandleMurrayMessage { extern "C" {
 typedef struct MSG { void *x0; int x4; int x8; } MSG;
-extern char D_003DD490[];
 extern float D_002C0990[];
 extern float D_002C099C;
 void HandleStepplayerMessage(MURRAY *p, int msg, MSG *pm);
@@ -1242,7 +1231,7 @@ void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
             SetMurrayFlopSubstate(murray, 1);
             break;
         case 0x1A5:
-            EmitSwNoise(D_003DD490, 0, GetLoWorldPos(murray), murray);
+            EmitSwNoise(&g_sw, 0, GetLoWorldPos(murray), murray);
             break;
         case 0x1EB:
             switch (murray->state) {
@@ -1262,7 +1251,7 @@ void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
             break;
         case 0x1C8:
             if (!murray->liftSubstate) {
-                EmitSwNoise(D_003DD490, 0, GetLoWorldPos(murray), murray);
+                EmitSwNoise(&g_sw, 0, GetLoWorldPos(murray), murray);
                 SetMurrayLiftSubstate(murray, 1);
             }
             break;
@@ -1396,8 +1385,6 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
 
 namespace M_SetMurrayFlopSubstate { extern "C" {
 // Update attachment state and projected velocity.
-extern CLOCK D_002DDED0;
-extern char D_003DD490[];
 extern qword D_002A2DC0;
 union WORD{int bits;float value;};extern union WORD D_002C09A8;
 struct SIDE { int x0; int x4; void *x8; void *xC; qword v10; char pad[0x30 - 0x20]; qword v30; };
@@ -1443,12 +1430,12 @@ void SetMurrayFlopSubstate(MURRAY *murray, int s)
     if (murray->flopSubstate == -1)
         Zero(&murray->unknown190);
     murray->flopSubstate = s;
-    murray->unknown13DC = D_002DDED0.time;
+    murray->unknown13DC = g_clock.time;
     switch (s) {
     case 0:
         break;
     case -1:
-        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
+        FreeSwXpList__FP2SWP2XP(&g_sw, murray->pxpFlop);
         murray->pxpFlop = 0;
         break;
     case 1: {
@@ -1466,7 +1453,7 @@ void SetMurrayFlopSubstate(MURRAY *murray, int s)
         __asm__("qmtc2.ni %5,%1\n\tvsub.xyzw %0,%0,%6\n\tlw %2,%8\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %3,%7,%1x\n\tqmfc2.ni %4,%3":"+&j"(v),"=&j"(k),"=r"(setter),"=j"(r),"=r"(argument):"r"(bits),"j"(d),"j"(up),"m"(vt[35].pfn));
         u.q=k;
         setter((char*)murray+delta,argument);
-        murray->unknown131C = D_002DDED0.time;
+        murray->unknown131C = g_clock.time;
         break;
     }
     case 2: {
@@ -1490,7 +1477,7 @@ void SetMurrayFlopSubstate(MURRAY *murray, int s)
                 (void)DeliverZapToSo(&msg);
             }
         }
-        FreeSwXpList__FP2SWP2XP(D_003DD490, murray->pxpFlop);
+        FreeSwXpList__FP2SWP2XP(&g_sw, murray->pxpFlop);
         murray->pxpFlop = 0;
         {
             EA *pea = FindAsegLabel(murray->activeAnimation->animation, 0x1A5);
@@ -1955,8 +1942,6 @@ void DropMurrayCarried(MURRAY *murray)
 } } // namespace M_DropMurrayCarried
 
 namespace M_DetachMurrayCarried { extern "C" {
-extern CLOCK D_002DDED0;
-extern char D_003DD490[];
 void ReleaseAct(ACT **ppact);
 void SetXfRole(SO *pso, XF *pxf, int n);
 void SetSoTreeFlag2(SO *pso, int a);
@@ -1988,8 +1973,8 @@ void DetachMurrayCarried(MURRAY *murray)
     SetSoTreeFlag2(x, 0);
     SetLoParent(x, 0, 0xF);
     murray->ploReleased = x;
-    murray->releaseTime = D_002DDED0.time;
-    RefreshSwObjectCollisionFilter(D_003DD490, murray);
+    murray->releaseTime = g_clock.time;
+    RefreshSwObjectCollisionFilter(&g_sw, murray);
 }
 } } // namespace M_DetachMurrayCarried
 
@@ -2263,7 +2248,6 @@ void StartMurrayAltAttack(MURRAY *murray)
 } } // namespace M_StartMurrayAltAttack
 
 namespace M_SetMurrayAttack { extern "C" {
-extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern float D_002C09F0;
 void ReleaseAsega(void *pp);
@@ -2293,7 +2277,7 @@ void SetMurrayAttack(MURRAY *murray, int k)
     if (k == murray->attackSubstate)
         return;
     murray->attackSubstate = k;
-    murray->attackStartTime = D_002DDED0.time;
+    murray->attackStartTime = g_clock.time;
     if (k == -1)
         return;
     murray->comboWindow = 0;
@@ -2321,7 +2305,7 @@ void SetMurrayAttack(MURRAY *murray, int k)
             g = pea->time;
     }
     if (g != 0.0f)
-        SetAsegaChannelWeight(murray->activeAnimation, D_002DDED0.time + g / murray->activeAnimation->speed);
+        SetAsegaChannelWeight(murray->activeAnimation, g_clock.time + g / murray->activeAnimation->speed);
     if (murray->activeAnimation) {
         CHN *r = FindAsegChannel(murray->activeAnimation->animation, murray, 1, 1);
         if (r) {
@@ -2482,7 +2466,6 @@ namespace M_func_001B8D30 { extern "C" {
 /* MURRAY::unknown1850 (an ASEG arc record) as read here: +0x1C the leap distance behind Murray. */
 struct ARCV { char pad[0x1C]; float sLeap; };
 struct M3 { qword row[3]; };
-extern CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 /* A LEAP (leap.h, no fields yet) as written here: +0x40 its goal position. */
 struct LEAPV { char pad[0x40]; qword posGoal; };
@@ -2507,7 +2490,7 @@ void SetMurrayPowerSubstate(MURRAY *murray, int st)
         murray->pleapPower = 0;
     }
     murray->subState = st;
-    murray->subStateTime = D_002DDED0.time;
+    murray->subStateTime = g_clock.time;
     o = 0;
     n = 0;
     switch (st) {
@@ -2559,7 +2542,6 @@ void SetMurrayPowerSubstate(MURRAY *murray, int st)
 #undef FIELD_OFFSET
 
 namespace M_func_001B8EC0 { extern "C" {
-extern float D_002DDED0;
 extern float D_002C0A30;
 extern float D_002C0A34;
 int IsAsegaRetracted(ASEGA *p);
@@ -2584,7 +2566,7 @@ void UpdateMurrayPower(MURRAY *murray)
                 SetMurrayState(murray, MURRAY_IDLE);
             } else if (murray->powerContactTrigger) {
                 SetMurrayPowerSubstate(murray, 2);
-            } else if (!murray->isBehaviorActive && D_002DDED0 - murray->subStateTime > D_002C0A30) {
+            } else if (!murray->isBehaviorActive && g_clock.time - murray->subStateTime > D_002C0A30) {
                 SetMurrayPowerSubstate(murray, 3);
             }
             break;
@@ -2599,7 +2581,7 @@ void UpdateMurrayPower(MURRAY *murray)
         case 3:
             if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) {
                 SetMurrayState(murray, MURRAY_IDLE);
-            } else if (D_002DDED0 - murray->subStateTime > D_002C0A34 && murray->controller->state == 1 && 0.0f < murray->controller->leftStickDeflection) {
+            } else if (g_clock.time - murray->subStateTime > D_002C0A34 && murray->controller->state == 1 && 0.0f < murray->controller->leftStickDeflection) {
                 SetMurrayState(murray, MURRAY_IDLE);
             }
             break;
@@ -2644,7 +2626,6 @@ typedef struct X {
 } X;
 extern "C" float D_002C3C60[];
 extern "C" float D_002C0A38;
-extern "C" char D_003DD490[];
 extern "C" void AdjustStepNewXp(MURRAY *p, X *px, int i);
 extern "C" void AdjustJtHurtXp(void *p, X *px, int i);
 extern "C" void ResetJtPipeAdjust(void *p, X *px, int i);
@@ -2676,7 +2657,7 @@ extern "C" void AdjustMurrayNewXp(MURRAY *murray, X *px, int i)
         break;
     case MURRAY_FLOP:
         if (murray->flopSubstate == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
-            AppendXpList(D_003DD490, CloneXpList(D_003DD490, px), &murray->pxpFlop);
+            AppendXpList(&g_sw, CloneXpList(&g_sw, px), &murray->pxpFlop);
         }
         break;
     case MURRAY_PIPE: ResetJtPipeAdjust(&murray->jtpipe, px, i); break;
@@ -2722,7 +2703,6 @@ struct EVENT { float time; int kind,tag,pad; };
 /* STEPPLAYER::unknown1088 as written here: +0x1C an active flag. */
 struct PROXYV { char pad[0x1C]; int active; };
 struct MOTION;
-extern "C" CLOCK D_002DDED0;
 extern "C" M4 D_002A2D30;
 extern "C" float D_002C0A3C,D_002C0A40;
 extern "C" void ReleaseAct(ACT**);
@@ -2756,7 +2736,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         ReleaseAct(&murray->apactCarryA[3]);
     }
     murray->liftSubstate = state;
-    murray->liftSubstateTime = D_002DDED0.time;
+    murray->liftSubstateTime = g_clock.time;
     SO *owner;
     switch (state) {
     case 0: murray->fLiftGrabbed = 0; break;
@@ -2786,7 +2766,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             SendStepguardRootBhvMode6(owner, (int)murray);
         ComputeMurrayLiftLaunch(murray, work.row[1].q, &event->time, &duration, &work.row[2].q, &work.row[3].q);
         murray->apactCarryA[2] =
-            NewBezierAct(owner, owner->positionXf, (void *)5, D_002DDED0.time + duration, work.row[1].q, work.row[3].q);
+            NewBezierAct(owner, owner->positionXf, (void *)5, g_clock.time + duration, work.row[1].q, work.row[3].q);
         owner->SetVelocity(ConvertXfVec(owner->positionXf->parent, 0, work.row[2].q));
         murray->apactCarryA[3] = NewPositionAct(owner, owner->rotationXf, (void *)5, 7, 2, work.row[0].q);
         break;
@@ -2915,7 +2895,6 @@ int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
 } } // namespace M_FCanUseGadget__6MURRAYi
 
 namespace M_UseMurrayGadget { extern "C" {
-extern GAME D_002DEB30;
 void BroadcastGameEvent(void *p, int a, MURRAY *b);
 void ChargeGadgetMp(MURRAY *p, int k);
 void StartStepplayerGadget(MURRAY *p, int k);
@@ -2926,8 +2905,8 @@ void SetJtGrabState(JTGRAB *p, int a, LO *plo, int c);
 // ...
 void UseMurrayGadget(MURRAY *murray, int k)
 {
-    D_002DEB30.idGadgetLast = k;
-    BroadcastGameEvent(&D_002DEB30, 0x3C, murray);
+    g_game.idGadgetLast = k;
+    BroadcastGameEvent(&g_game, 0x3C, murray);
     switch (k) {
     case 20:
         ChargeGadgetMp(murray, k);

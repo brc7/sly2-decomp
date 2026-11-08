@@ -30,6 +30,8 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/act.h"
+#include "sly2/clock.h"
+#include "sly2/game.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -426,7 +428,7 @@ struct ACTOR{char pad[0x80];qword response;};
 struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct WORK{U a,b;};
 extern "C"{
-extern CLOCK D_002DDED0;extern qword D_002A2DC0;
+extern qword D_002A2DC0;
 extern float D_002BF288;
 extern float D_002BF28C;
 extern float D_002BF290;
@@ -486,7 +488,7 @@ extern "C" void PresetJtAccel(P *jt)
             w.b.f[2] = w.a.f[2];
         AddSoAcceleration(
             jt,
-            LimitVectorLength(DivVec(VuSub(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&D_002DDED0.deltaTime)), D_002BF288));
+            LimitVectorLength(DivVec(VuSub(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&g_clock.deltaTime)), D_002BF288));
         break;
     }
     case 24:
@@ -501,7 +503,7 @@ extern "C" void PresetJtAccel(P *jt)
             basis.r[1] = m->r[1];
             basis.r[2] = m->r[2];
             float projection = SplitVectorAlongAxis(position, basis.r[0].q, &w.a.q, &w.b.q);
-            float dt = D_002DDED0.deltaTime;
+            float dt = g_clock.deltaTime;
             float gAlong = projection - D_002BF290 * dt;
             float gPerp = 1.0f - D_002BF294 * dt;
             float angle = QwordZ(direction) * dt;
@@ -511,7 +513,7 @@ extern "C" void PresetJtAccel(P *jt)
             rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
             qword sum = VuAdd(w.a.q, w.b.q);
             qword moved = VuSub(RotateVecAt(&rotation, &sum), position);
-            qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&D_002DDED0.deltaTime));
+            qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&g_clock.deltaTime));
             AddSoAcceleration(jt, LimitVectorLength(ProjectOutVec(velocity, D_002A2DC0), D_002BF28C));
         }
         break;
@@ -542,7 +544,6 @@ struct B { char pad[0x1BC]; int x1BC; };
 struct O : STEP { char pad[0x4C8 - 0x2C0]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
     char hurt[0xF50 - 0xDF0]; char pipe[0x18C8 - 0xF50]; int state; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
-extern struct CLOCK D_002DDED0;
 extern float D_002BF298;
 extern float D_002BF29C;
 extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
@@ -590,7 +591,7 @@ void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
         break;
     case 5:
         if ((unsigned int)(jt->n18D0 - 8) < 2) {
-            register float g __asm__("$f0") = D_002DDED0.time - jt->g18D4;
+            register float g __asm__("$f0") = g_clock.time - jt->g18D4;
             if (g < D_002BF298) { g=D_002BF29C; pa->g94=g; }
         }
         break;
@@ -635,7 +636,6 @@ typedef struct MSGB { int x0; void *x4; LOB *x8; } MSGB;
 typedef struct CLR { int a, b, c; } CLR;
 typedef struct O1034 { char pad[0x30]; void *x30; } O1034;
 
-extern char D_003DD490[];
 extern char D_002BF2A0[];
 extern char D_002BF2B8[];
 
@@ -722,7 +722,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                     void *object = PickpocketStepguard(AsJt(p)->interactTarget, GetLoWorldPos(p));
                     if (object && !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
                         !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
-                        int oid = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
+                        int oid = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 1, 0x282, p);
                         F(void *, 0x1BCC) = object;
                         StartStepplayerGrabStateC(p, oid, object, -1);
                     }
@@ -749,7 +749,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                     SetBhvjuggledState(px, 6);
                 break;
             }
-            case 0x16D: EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p); break;
+            case 0x16D: EmitSwNoise(&g_sw, 0, GetLoWorldPos(p), p); break;
             }
         }
         break;
@@ -912,7 +912,6 @@ float ModPositive(float gDividend, float gDivisor) __asm__("ModPositive__Fff");
 
 
 extern "C" { extern qword D_002A2DD0; }
-extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -1086,7 +1085,7 @@ void UpdateJtLean(JT *jt)
                         if (jt->jtgrab.isFlipped)
                             g = -g;
                         float gLean = SmoothValueWithAccel(jt->jtgrab.leanAmount, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)),
-                                               D_002DDED0.deltaTime, &D_002BF320, &jt->jtgrab.dgLean);
+                                               g_clock.deltaTime, &D_002BF320, &jt->jtgrab.dgLean);
                         jt->jtgrab.leanAmount = gLean;
                         float gZero = 0.0f;
                         float gOne = 1.0f;
@@ -1287,7 +1286,6 @@ void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, 
 int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void SetActRotationGoal(void *p, qword v);
 void ShouldKeepSoPair();
-extern char D_003DD490[];
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
 int TryMatchJtXmg(O *p, M *pm, void *px);
@@ -1306,7 +1304,7 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
         a = ConvertPosBetweenLos(jt, 0, pm->v30);
         b = ConvertPosBetweenLos(jt, 0, pm->v40);
         c = ConvertPosBetweenLos(jt, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VuMin(a, VuMin(b, c)), VuMax(a, VuMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
+        IntersectSwBoundingBox(&g_sw, VuMin(a, VuMin(b, c)), VuMax(a, VuMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
                                &n0, &n1);
         if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) ||
              FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
@@ -1339,7 +1337,6 @@ struct S {
     char p2[0xE1C]; void *x1028; char p3[8]; void *x1034; char p4[0x4DC]; int x1514; char p5[8];
     char x1520[0x100]; char x1620[0x3B4]; int x19d4, x19d8, x19dc, x19e0; char p6[0xC]; int x19f0, x19f4;
 };
-extern struct CLOCK D_002DDED0;
 int GetStepplayerLeanFlags(struct S *p);
 void SetSmaMask(void *p, int n);
 float ClampAbs__Fff(float g, float h);
@@ -1359,7 +1356,7 @@ void UpdateJtStand(struct S *jt)
         UV u;
         u.q = o->GetAngularVelocity();
         u.v.z = ClampAbs__Fff(u.v.z, 10.0f);
-        SetStepTargetHeading(jt, jt->g1a8 + u.v.z * D_002DDED0.deltaTime);
+        SetStepTargetHeading(jt, jt->g1a8 + u.v.z * g_clock.deltaTime);
     }
     if (!jt->x19f0)
         return;
@@ -1450,14 +1447,13 @@ void GetJtCameraTarget(JT *jt, UV *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A428 { extern "C" {
-extern struct CLOCK D_002DDED0;
 void GetStepplayerCpdefi(JT *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
 void GetJtCpdefi(JT *jt, int *pf)
 {
     if (jt->state != 0 && jt->state != 0x12 && jt->jtgrab.kind && jt->jtpipe.state != 1)
-        jt->lastMoveTime = D_002DDED0.time;
+        jt->lastMoveTime = g_clock.time;
     GetStepplayerCpdefi(jt, pf);
     switch (jt->state) {
     case 8:
@@ -1486,7 +1482,6 @@ typedef struct S {
 } S;
 typedef struct R { unsigned int x0; char pad[0x30 - 4]; float g30; int x34; int pad38; int x3C; } R;
 
-extern "C" CLOCK D_002DDED0;
 extern "C" SMP D_002BF348;
 
 extern "C" float GetStepHeading(A *p);
@@ -1651,7 +1646,7 @@ tail:
         } else {
             k = 0.0f;
         }
-        ps->p68->p114->g10 = SmoothValue__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, D_002DDED0.deltaTime, 0);
+        ps->p68->p114->g10 = SmoothValue__FfffP3SMPPf(&D_002BF348, ps->p68->p114->g10, k, g_clock.deltaTime, 0);
     }
     switch (ps->x8) {
     case 0:
@@ -1727,7 +1722,6 @@ MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
 int FIsSmaRetracted(SMA *psma) __asm__("IsSmaRetracted");
 
 
-extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -1848,7 +1842,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->animState != 8 && jt->animState != 9 || jt->janim.isInputOpen)
                     {
     fell:
-                        if (D_002DDED0.time - jt->unknown20C > 0.1f)
+                        if (g_clock.time - jt->unknown20C > 0.1f)
                             SetJtAirJump(&jt->jtair, 0, 0, 0);
                     }
                     break;
@@ -2008,7 +2002,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Unk05, JTBS_4);
                     break;
                 case JTS_Hang:
-                    if (D_002DDED0.time - jt->stateStartTime > 0.25f)
+                    if (g_clock.time - jt->stateStartTime > 0.25f)
                     {
                         if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
@@ -2022,7 +2016,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (jt->floorContact && 0.7f < jt->floorContact->normal.z)
                     {
-                        if (D_002DDED0.time - jt->stateStartTime > 0.4f)
+                        if (g_clock.time - jt->stateStartTime > 0.4f)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
@@ -2032,7 +2026,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->floorContact && 0.7f < jt->floorContact->normal.z && D_002DDED0.time - jt->stateStartTime > 0.4f)
+                    if (jt->floorContact && 0.7f < jt->floorContact->normal.z && g_clock.time - jt->stateStartTime > 0.4f)
                     {
                         float tLabel = TFindAsegLabel(jt->unknown1A84, (OID)0x16D);
                         ASEGA *asega = jt->activeAnimation;
@@ -2057,7 +2051,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     break;
                 }
                 case JTS_Unk11:
-                    if (!jt->unknown1D30 || D_002DDED0.time - jt->stateStartTime > D_002BF360)
+                    if (!jt->unknown1D30 || g_clock.time - jt->stateStartTime > D_002BF360)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
@@ -2170,7 +2164,7 @@ extern float D_002BF380;
 extern float D_002BF3A0;
 extern float D_002BF3B8;
 extern float D_002BF3BC;
-extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
+extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword TransformXfPos(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
 float atan2f(float,float);float ClampToLimits__FP2LMf(struct LM*,float);
@@ -2338,7 +2332,7 @@ void UpdateJtAttachCorrection(struct P *jt)
                     SetActRotationGoal(jt->dvResidual, w.residual.q);
                     SetActRotationGoal(jt->dvX, axis);
                     jt->valid = 1;
-                    jt->time = D_002DDED0.time;
+                    jt->time = g_clock.time;
                     return;
                 }
             }
@@ -2347,9 +2341,9 @@ void UpdateJtAttachCorrection(struct P *jt)
     {
         register float remaining __asm__("$f0") = jt->time, after __asm__("$f2"), gain __asm__("$f3");
         {
-            register float life __asm__("$f1") = D_002BF3BC, now __asm__("$f3") = D_002DDED0.time;
+            register float life __asm__("$f1") = D_002BF3BC, now __asm__("$f3") = g_clock.time;
             remaining = remaining + life;
-            after = D_002DDED0.deltaTime;
+            after = g_clock.deltaTime;
             remaining = remaining - now;
             after = remaining - after;
         }
@@ -2526,7 +2520,6 @@ union PHASE {
     U scalar;
 };
 extern qword D_002A2DD0;
-extern char D_003DD490[];
 extern float D_002BF3C0;
 extern float D_002BF3C4;
 extern float D_002BF3C8;
@@ -2664,7 +2657,7 @@ void UpdateJtPre(struct P *jt)
     float initialHeading;
     initialHeading = GetStepHeading(jt);
     (void)NormalizeAngle__Ff(jt->state->heading - initialHeading);
-    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, jt, 0xFFFF);
+    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&g_sw, jt, 0xFFFF);
     UpdateJtModeInput(jt);
     ChooseJtGroundState(jt);
     UpdateJtActiveCane__FP2JT(jt);
@@ -3042,7 +3035,6 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtState
-extern "C" { extern GAME D_002DEB30; }
 extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("ApplySmWithKind");
@@ -3053,7 +3045,6 @@ float NormalizeAngle(float rad) __asm__("NormalizeAngle__Ff");
 
 
 extern "C" { extern qword D_002A2DD0; }
-extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -3061,7 +3052,6 @@ extern "C" { extern CLOCK D_002DDED0; }
 
 
 
-extern "C" { extern SW D_003DD490; }
 
 
 
@@ -3324,7 +3314,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 if (jt->janim.pxaHang != 0)
                 {
                     RemoveSoXa(jt->janim.pxaHang->other, jt->janim.pxaHang);
-                    FreeSwXaList(&D_003DD490, jt->janim.pxaHang);
+                    FreeSwXaList(&g_sw, jt->janim.pxaHang);
                     jt->janim.pxaHang = 0;
                 }
                 SetPlayerTn(jt, 0);
@@ -3416,7 +3406,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk11:
                 jt->unknown1D30 = 0;
-                OnGameEvent(&D_002DEB30, 0x38, jt);
+                OnGameEvent(&g_game, 0x38, jt);
                 break;
             case JTS_Unk18:
                 jt->unknown200 = 1.0f;
@@ -3491,7 +3481,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->swingSpeedBlend = 1.0f;
                 ACT1 *pact1 = (ACT1 *)jt->pactHand;
                 svt = 0.0f;
-                jt->janim.hangStartTime = D_002DDED0.time;
+                jt->janim.hangStartTime = g_clock.time;
                 aseg = jt->pasegHang;
                 ClearXyz((VECTOR *)&pact1->goalValue);
                 tStart = 0.5f;
@@ -3562,7 +3552,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearXyz(&jt->unknown190);
                 ChooseJtSmashTarget(jt);
                 aseg = jt->unknown1A80;
-                jt->unknown19B0 = D_002DDED0.time + D_002BF3E4;
+                jt->unknown19B0 = g_clock.time + D_002BF3E4;
                 break;
             case JTS_Unk0E:
                 SetJtAnimState(jt, -1);
@@ -3639,7 +3629,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Unk11:
                 aseg = jt->unknown1D34;
                 grfapl = 9;
-                OnGameEvent(&D_002DEB30, 0x37, jt);
+                OnGameEvent(&g_game, 0x37, jt);
                 break;
             case JTS_SurfaceClimb:
                 ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, &jt->surflocMesh, 0, 0);
@@ -3761,12 +3751,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
     if (jts != jt->state)
     {
         jt->state = jts;
-        jt->stateStartTime = D_002DDED0.time;
+        jt->stateStartTime = g_clock.time;
     }
     if (jtbs != jt->bodyState)
     {
         jt->bodyState = jtbs;
-        jt->bodyStateStartTime = D_002DDED0.time;
+        jt->bodyStateStartTime = g_clock.time;
     }
     jt->ApplyStateStepParams();
     SetJtChannelMask(jt, grf);
@@ -3904,7 +3894,6 @@ void *GetJtGadgetRecord(char *p, int n)
 // 0x23, 0x27 always; 3 needs the pad flag and the camera policy on top; 0x17 needs its proxy to have a spare; 0x18 only in jts 5 (fight stance), 0x1B only in jts 2 (air); 0x28 only on the ground
 // with no animation state, no interaction (interactMode 4) and unknown1D30 clear; the pocket items (0x1A, 0x25, 0x26, 0x29): an item in use must be carried, else the row's proxy needs a spare.
 // (jump2: the failing call tests, the throw state and the pocket arm share the return-0 block because `return 1` is the LAST arm and the pocket arm falls into `default:`.)
-extern CLOCK D_002DDED0;
 
 extern int D_002DFBC0;
 
@@ -3936,9 +3925,9 @@ int JT::CanUseGadget(int gadgetId)
     {
         if (state == JTS_Unk04)
             return 0;
-        if (D_002DDED0.art[CRK_PowerUp] == 1.0f)
+        if (g_clock.art[CRK_PowerUp] == 1.0f)
             return 1;
-        return D_002DDED0.art[CRK_PowerUp] == (gadgetId == 0x1D ? D_002BF3EC : D_002BF3F0);
+        return g_clock.art[CRK_PowerUp] == (gadgetId == 0x1D ? D_002BF3EC : D_002BF3F0);
     }
     switch (state)
     {
@@ -4048,9 +4037,6 @@ typedef struct OBJ { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *
 #define F(T, o) (*(T *)((char *)p + (o)))
 #define A(o) ((char *)p + (o))
 
-typedef struct SND { char pad[0xC]; int xC; } SND;
-extern SND D_002DEB30;
-extern char D_002DDED0[];
 extern float D_002BF3EC;
 extern float D_002BF3F0;
 
@@ -4076,13 +4062,13 @@ extern void StartStepplayerGadget(void *p, int n);
 // JT slot 100: per-gadget action (slow motion through the clock rate and sounds, decoys, throws ...).
 void UseJtGadget(char *p, int n)
 {
-    D_002DEB30.xC = n;
-    BroadcastGameEvent(&D_002DEB30, 0x3C, p);
+    g_game.idGadgetLast = n;
+    BroadcastGameEvent(&g_game, 0x3C, p);
     switch (n) {
     case 0x1D: {
         void *pv;
         ChargeGadgetMp(p, n);
-        SetClockRate(D_002DDED0, 1, D_002BF3EC);
+        SetClockRate(&g_clock, 1, D_002BF3EC);
         g_sw.unknown475C = -1.0f;
         pv = CreateSfxSound(0x67);
         SetSndSourceLo(pv, 0);
@@ -4092,7 +4078,7 @@ void UseJtGadget(char *p, int n)
     case 0x2A: {
         void *pv;
         ChargeGadgetMp(p, n);
-        SetClockRate(D_002DDED0, 1, D_002BF3F0);
+        SetClockRate(&g_clock, 1, D_002BF3F0);
         g_sw.unknown475C = 0.7f;
         pv = CreateSfxSound(0x66);
         SetSndSourceLo(pv, 0);
@@ -4180,7 +4166,6 @@ void UseJtGadget(char *p, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DD78 { extern "C" {
 struct S : STEPPLAYER { char pad[0x2044 - 0x1320]; void *p2044; };
-extern struct CLOCK D_002DDED0;
 void SetClockRate(struct CLOCK *pclock, int n, float g);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
@@ -4190,7 +4175,7 @@ void EndJtGadget(struct S *jt, int n)
 {
     if (n == 0x1D || n == 0x2A) {
         void **pp;
-        SetClockRate(&D_002DDED0, 1, 1.0f);
+        SetClockRate(&g_clock, 1, 1.0f);
         pp = &jt->p2044;
         if (*pp) {
             StopSnd(*pp, 0.0f);
@@ -4283,7 +4268,6 @@ struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
 struct P{char pad[0xC];VTE*vt;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
 struct SMP{float a,b,c;};
-extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
 extern "C" SMP D_002BF3F8;
 extern "C" SMP D_002BF408;
@@ -4389,7 +4373,7 @@ extern "C" void UpdateJtSmoothing(P *jt)
     U direction, position, scratch, negative;
     *(M3 *)&jt->matrix = *(M3 *)&m;
     M4 *current = GetLoWorldMatrix(jt);
-    CLOCK *clock = &D_002DDED0;
+    CLOCK *clock = &g_clock;
     float factor = 0.5f;
     unsigned samplePage = SmoothSamplePage();
     M3 *receiver, *optional;
@@ -4504,7 +4488,6 @@ extern qword GetLoWorldPos(void *p);
 extern void SetStepTargetHeadingFromVector(JT *p, qword v);
 extern float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
 extern M3 *InvertMatrix3Cofactor(M3 *pmOut, qword *aqwRows);
-extern struct CLOCK D_002DDED0;
 extern float D_002BF414;
 extern char D_002BF418[];
 extern qword D_002A2DA0;
@@ -4539,7 +4522,7 @@ void UpdateJtFaceTarget(JT *jt)
     }
     __asm__("qmfc2.ni %0, %1" : "=r"(gLen) : "j"(l));
     SetStepTargetHeadingFromVector(jt, n.q);
-    SmoothValue__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.deltaTime * 0.5f, D_002BF418, &g);
+    SmoothValue__FfffP3SMPPf(gLen, D_002BF414, g_clock.deltaTime * 0.5f, D_002BF418, &g);
     InvertMatrix3Cofactor(&m, jt->aqwTarget);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&g));
     u.q = s;
@@ -4554,7 +4537,6 @@ void UpdateJtFaceTarget(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018E330 { extern "C" {
-extern char D_003DD490[];
 int FindSwObjectsByClass(void *g, int a, int b, int c, int cMax, void **ap);
 void UpdateStepguardPickpocket(void *p);
 // World callback registered by OnJtActive: runs UpdateStepguardPickpocket on every guard (CID 0x38, at most 32).
@@ -4562,7 +4544,7 @@ void UpdateAllGuardsPickpocket(void)
 {
     void *ap[32];
     int c, i;
-    c = FindSwObjectsByClass(D_003DD490, 0x505, 0x38, 0, 0x20, ap);
+    c = FindSwObjectsByClass(&g_sw, 0x505, 0x38, 0, 0x20, ap);
     for (i = 0; i < c; i++)
         UpdateStepguardPickpocket(ap[i]);
 }
@@ -4572,14 +4554,13 @@ void UpdateAllGuardsPickpocket(void)
 namespace M_func_0018E3A0 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* the 8-byte callback by value (B4) */
 extern const LONGU D_002A5F98;
-extern char D_003DD490[];
 void OnStepplayerActive(void *p);
 void EnsureSwCallback(void *, void *, long, int);
 // JT slot 78 (becomes active): STEPPLAYER base, then registers the guard pickpocket callback.
 void OnJtActive(void *p)
 {
     OnStepplayerActive(p);
-    EnsureSwCallback(D_003DD490, p, D_002A5F98.l, 0);
+    EnsureSwCallback(&g_sw, p, D_002A5F98.l, 0);
 }
 } } // namespace M_func_0018E3A0
 

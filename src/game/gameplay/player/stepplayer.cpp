@@ -29,6 +29,9 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/cref.h"
+#include "sly2/clock.h"
+#include "sly2/game.h"
+#include "sly2/save.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -48,10 +51,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* g++ 2.95 vtable entries ({delta, pfn}; slot n is entry n + 1). */
 #define PBOOTY(p) (*(LO **)((char *)(p) + 0x11A8))
 
-extern SW D_003DD490;
 extern "C" {
-extern char D_002DEB30[];       /* the game */
-extern CLOCK D_002DDED0;
 extern const float D_002A4D60;
 int IsSwHandsOff(SW *psw);
 STEPPLAYER *GetHeroPo(SW *psw);
@@ -132,7 +132,6 @@ namespace M_PostLoadStepplayer { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a; int b; };
 extern const struct LONGU D_002A4D10;
-extern SW D_003DD490;
 struct M3 { qword r[3]; };
 struct AREQ { int cb; int cbAlign; };
 extern char D_002BC9F0[];
@@ -172,7 +171,7 @@ void PostLoadStepplayer(STEPPLAYER *player)
     PostLoadJtMode(&player->jtmode);
     PostJtThrowLoad(&player->jtthrow);
     PostJtLoadPipe(&player->jtpipe);
-    c = FindSwObjects(&D_003DD490, 0x401, 0x2AB, player, 0x10, apv);
+    c = FindSwObjects(&g_sw, 0x401, 0x2AB, player, 0x10, apv);
     if (c) {
         struct AREQ req;
         struct AREQ *preq = &req;
@@ -190,7 +189,7 @@ void PostLoadStepplayer(STEPPLAYER *player)
     player->SetCtlState(0);
     player->SendPowerupEvent();
     LoadStepplayerGadgets(player);
-    BindStepplayerHpMp(player, D_003DD490.transition.flags & 4);
+    BindStepplayerHpMp(player, g_sw.transition.flags & 4);
     player->unknown1088 = EnsureTargetRecordById(player);
     SetSoMass(player, 0.25f);
     if (player->transforms->kind == 0) {
@@ -199,18 +198,17 @@ void PostLoadStepplayer(STEPPLAYER *player)
         XF *so = player->transforms;
         func_002333B4(so, 0, 0x40);
         so->localMatrix.mat[0][0] = so->localMatrix.mat[1][1] = so->localMatrix.mat[2][2] = so->localMatrix.mat[3][3] = 1.0f;
-        D_003DD490.transformStamp++;
-        player->transforms->worldStamp = D_003DD490.transformStamp;
+        g_sw.transformStamp++;
+        player->transforms->worldStamp = g_sw.transformStamp;
         player->UpdateXfWorldHierarchy();
         player->TranslateToPos(q);
         player->RotateToMat((MATRIX3 *)&m);
     }
-    PostSwCallback(&D_003DD490, player, D_002A4D10.l, 0);
+    PostSwCallback(&g_sw, player, D_002A4D10.l, 0);
 }
 } } // namespace M_PostLoadStepplayer
 
 namespace M_func_00140338 { extern "C" {
-extern struct CLOCK D_002DDED0;
 int GetCurrentWorld(void);
 void RestartHudWidget1(void *p);
 int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
@@ -225,7 +223,7 @@ void AcknowledgeStepplayerHint(void)
     RestartHudWidget1(&g_sw);
     if (FindSwObjectsByClass(&g_sw, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(&g_sw);
     SetSndSourceLo(CreateSfxSound(0x32), 0);
-    g_sw.unknown4754 = D_002DDED0.time;
+    g_sw.unknown4754 = g_clock.time;
     g_cm.cplook.numActivations++;   /* the look policy's activation count (ActivateCplook/ActivateCpzoom also bump it) */
 }
 } } // namespace M_func_00140338
@@ -233,7 +231,6 @@ void AcknowledgeStepplayerHint(void)
 namespace M_UpdateStepplayer { extern "C" {
 /* A behaviour as called here: its slot 14 (BHV::UpdateSteering, declared without the controller argument it takes). */
 struct O { int pad[3]; VTE *vt; };
-extern JOY D_002DFC00;
 extern char D_003DA0F0[];
 void UpdateStep(STEPPLAYER *p);
 void UpdateStepplayerGadgets(STEPPLAYER *p);
@@ -278,7 +275,7 @@ void UpdateStepplayer(STEPPLAYER *player)
         DropAsegaRef(&player->jthurt.unknown10C);
     if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->state == 1 && player->controller->GetButtonsPressedWithin(BUTTON_GADGET_MENU, 0.0f)) {
 
-        JOY *pg = &D_002DFC00;
+        JOY *pg = &g_joy;
         if ((pg->buttonsHeld & (BUTTON_GADGET_MENU | BUTTON_RUN)) == BUTTON_GADGET_MENU) {
             SetJoyBtnHandled(pg, BUTTON_GADGET_MENU);
             OpenGadgetMenuForHero(D_003DA0F0);
@@ -353,7 +350,6 @@ void SetStepplayerCtlState(char *player, int n)
 namespace M_func_00140750 { extern "C" {
 /* UpdateStepplayerHideBlend (Claude agent): matched. MinF/MaxF as `b < a ? b : a`, block-local dt per case, and the x10C8 state as `if (xDF4 != -1 || (g = x10CC) == 0) -1; else if (g == 1 || (x10C8 == 1 && 0 < g)) 1; else 0`. */
 typedef int qword __attribute__((mode(TI)));
-extern CLOCK D_002DDED0;
 extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
 int TestStepplayerHidden(STEPPLAYER *p);
 qword GetLoWorldPos(STEPPLAYER *p);
@@ -371,10 +367,10 @@ void UpdateStepplayerHideBlend(STEPPLAYER *player)
     if (!player->hideNoise) return;
     switch (TestStepplayerHidden(player)) {
     case 1:
-        { float dt = D_002DDED0.deltaTime; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
+        { float dt = g_clock.deltaTime; player->hideBlend = StdMin(player->hideBlend + D_002BCC6C * dt, 1.0f); }
         break;
     case 0:
-        { float dt = D_002DDED0.deltaTime; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
+        { float dt = g_clock.deltaTime; player->hideBlend = MaxF(player->hideBlend + D_002BCC70 * dt, 0.0f); }
         break;
     case 2:
         player->hideBlend = 0.0f;
@@ -390,11 +386,11 @@ void UpdateStepplayerHideBlend(STEPPLAYER *player)
         player->noiseBuildup = 0.0f;
         break;
     case 1:
-        { float dt = D_002DDED0.deltaTime; player->noiseBuildup = Clamp(player->noiseBuildup + D_002BCC74 * dt, 0.0f, 1.0f); }
+        { float dt = g_clock.deltaTime; player->noiseBuildup = Clamp(player->noiseBuildup + D_002BCC74 * dt, 0.0f, 1.0f); }
         break;
     case -1:
     case 2:
-        { float dt = D_002DDED0.deltaTime; player->noiseBuildup = Clamp(player->noiseBuildup + D_002BCC78 * dt, 0.0f, 1.0f); }
+        { float dt = g_clock.deltaTime; player->noiseBuildup = Clamp(player->noiseBuildup + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
     if (player->noiseBuildup == 1.0f) CreateNoise(player->hideNoise, GetLoWorldPos(player), player, 0);
@@ -404,7 +400,7 @@ void UpdateStepplayerHideBlend(STEPPLAYER *player)
 // Slot 98 base, movement-noise class (inferred): 0 (silent) while the world is hands-off, else -1 (no opinion: the subclass decides). UpdateStepplayerHideBlend resets its noise meter on 0 and fills it at one of two rates otherwise; a full meter makes noise.
 extern "C" int GetStepplayerMovementNoise()
 {
-    return (IsSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
+    return (IsSwHandsOff(&g_sw) != 0) ? 0 : -1;
 }
 
 namespace M_func_001409E8 { extern "C" {
@@ -506,7 +502,7 @@ void AddStepplayerAxisXps(STEPPLAYER *player, void *a, struct Y *b, qword v)
 // If this is the current player, swaps the camera TN override (+0x1024).
 extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
 {
-    STEPPLAYER *pstepplayerHero = GetHeroPo(&D_003DD490);
+    STEPPLAYER *pstepplayerHero = GetHeroPo(&g_sw);
     if (pstepplayerHero != player)
         return;
     if (pstepplayerHero->unknown1024 != 0) {
@@ -590,7 +586,7 @@ void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void
 // Slot 93: broadcasts game event 0x10 with the player.
 extern "C" void OnStepplayerHeroDied(STEPPLAYER *player)
 {
-    BroadcastGameEvent(D_002DEB30, 0x10, player);
+    BroadcastGameEvent(&g_game, 0x10, player);
 }
 
 namespace M_STEPPLAYER_FInvulnerable { extern "C" {
@@ -642,7 +638,6 @@ struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
 struct ENT { void *po; int x4; };
 struct GG { char pad[0x2010]; void *p2010; };
-extern struct CLOCK D_002DDED0;
 extern struct GG *D_002E1E40;
 extern float D_002BCC94;
 void RunJtHurtCallback(void *p);
@@ -766,8 +761,8 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                 } else if (n != -1) {
                     ChargeGadgetMp(player);
                     switch (F(int, player, 0x9BC)) {
-                    case 0xE: SetGuardOverride(&D_003DD490, 1); break;
-                    case 0x15: SetAllGuardsSpecialState(&D_003DD490, 0x15); break;
+                    case 0xE: SetGuardOverride(&g_sw, 1); break;
+                    case 0x15: SetAllGuardsSpecialState(&g_sw, 0x15); break;
                     case 0x17: {
                         DLI dli;
                         void *po2;
@@ -780,7 +775,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                                 RemoveNoise(po2);
                         }
                         D_002DD2FC = dli.m_pdliNext;
-                        g_sw.guardAlertResumeTime = D_002DDED0.time + D_002BCC94;
+                        g_sw.guardAlertResumeTime = g_clock.time + D_002BCC94;
                         break;
                     }
                     }
@@ -884,7 +879,6 @@ struct JT {
     char pad4[0xDF0 - 0x4D0]; char axDF0[4]; int xDF4; char pad5[0x1044 - 0xDF8]; int x1044; int pad6;
     float x104C; float x1050; char pad7[0x1060 - 0x1054]; QWROW x1060; qword x1070;
 };
-extern struct CLOCK D_002DDED0;
 extern float D_002BCC98, D_002BCC9C, D_002BCCA0, D_002BCCA4, D_002BCCA8, D_002BCCAC, D_002BCCB0, D_002BCCB4;
 extern char D_002BCCB8[], D_002BCCC8[], D_002BCCD8[];
 extern struct { float a, b, c; } D_002BCCF0;
@@ -931,14 +925,14 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
             xp->pos.f[2] = g;
         } else {
             void *pv = jt->x434 ? D_002BCCC8 : D_002BCCB8;
-            xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, D_002DDED0.deltaTime, pv, 0);
+            xp->pos.f[2] = SmoothValue__FfffP3SMPPf(jt->x1050, jt->x104C, g_clock.deltaTime, pv, 0);
             xp->pos.f[2] = Clamp(xp->pos.f[2], z + D_002BCC98, z + D_002BCC9C);
         }
         xp->pos.f[0] = v.f[0];
         xp->pos.f[1] = v.f[1];
     }
     {
-        qword vel = PosSmooth(jt->x1070, D_002A2DD0, D_002DDED0.deltaTime, D_002BCCD8, 0);
+        qword vel = PosSmooth(jt->x1070, D_002A2DD0, g_clock.deltaTime, D_002BCCD8, 0);
         qword r;
         jt->x1070 = vel;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(xp->pos.q), "j"(vel));
@@ -1006,7 +1000,6 @@ void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
 
 namespace M_UpdateStepplayerGadgets { extern "C" {
 struct T { int x0; int x4; int x8; int xC; char pad[0x10]; };
-extern struct CLOCK D_002DDED0;
 extern int D_002C3258[];
 extern struct T D_002BCD00[];
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, int mask, float g);
@@ -1035,7 +1028,7 @@ void UpdateStepplayerGadgets(STEPPLAYER *player)
                     int n = GetStepplayerMp(player);
                     if (n < D_002BCD00[id].xC) {
                         SetSndSourceLo(CreateSfxSound(0x2E), 0);
-                        player->lastGadgetUseTime = D_002DDED0.time;
+                        player->lastGadgetUseTime = g_clock.time;
                     } else {
                         SetGadgetSlotState(player, pe, D_002BCD00[id].x0);
                     }
@@ -1071,7 +1064,7 @@ extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int st
         ((void (*)(void *, int))vtable[102].pfn)((char *)player + vtable[102].d, pslot->idGadget);
     }
     pslot->state = state;
-    pslot->stateStartTime = D_002DDED0.time;
+    pslot->stateStartTime = g_clock.time;
     switch (state) {
     case 2:
         player->StartGadget(pslot->idGadget);  /* slot 99 */
@@ -1086,14 +1079,13 @@ extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int st
 namespace M_ChargeGadgetMp { extern "C" {
 struct E { int a, b, c, d; int pad[4]; };
 extern struct E D_002BCD00[];
-extern float D_002DDED0;
 int GetStepplayerMp(void *p);
 void SetStepplayerMp(void *p, int a);
 // Subtracts the gadget's MP cost from the player's MP and stamps the use time.
 void ChargeGadgetMp(char *p, int i)
 {
     if (i != -1) SetStepplayerMp(p, GetStepplayerMp(p) - D_002BCD00[i].d);
-    *(float *)(p + 0x1304) = D_002DDED0;
+    *(float *)(p + 0x1304) = g_clock.time;
 }
 } } // namespace M_ChargeGadgetMp
 
@@ -1205,7 +1197,6 @@ namespace M_SetStepplayerGadget {
 extern "C" void Decref__4CRef(CRef *);
 
 extern "C" {
-extern CLOCK D_002DDED0;
 extern char D_002A4D50[];
 extern char D_002A4D58[];
 int sprintf(char *pch, const char *fmt, ...);
@@ -1220,7 +1211,7 @@ extern "C" void SetStepplayerGadget(STEPPLAYER *player, unsigned int i, int id)
     SetGadgetSlotState(player, pe, -1);
     pe->idGadget = id;
     pe->state = 0;
-    pe->stateStartTime = D_002DDED0.time;
+    pe->stateStartTime = g_clock.time;
     for (int j = 0; j < 3; j++) {
         char ach[16];
         GADGETSLOT *pe2 = &player->gadgetSlots[j];
@@ -1314,7 +1305,6 @@ typedef struct { qword r[4]; } M4;
 struct BUF { char pad[0x30]; qword pos; };
 /* The hand position actuator (JTHANDS::pactPos; act.h ACT) as read here: +0x1C its end time. */
 struct X994 { char pad[0x1C]; float t; };
-extern struct CLOCK D_002DDED0;
 void LoadIdentityMatrix4(XF *a, int b, M4 *pm, int c, float g);
 qword GetLoWorldPos(void *p);
 // Transform point v by the 4x4 matrix pm.
@@ -1352,7 +1342,7 @@ int IsStepplayerGrabReady(STEPPLAYER *player)
     v = Mul(&m, buf.pos);
     if (5.0f < DistanceBetween(GetLoWorldPos(player->jtgrab.hands.ploHand), v)) return 0;
     if (player->jtgrab.hands.mode != 1) return 1;
-    if (D_002DDED0.time < ((X994 *)player->jtgrab.hands.pactPos)->t) return 0;
+    if (g_clock.time < ((X994 *)player->jtgrab.hands.pactPos)->t) return 0;
     return 1;
 }
 } } // namespace M_func_001423A0
@@ -1409,7 +1399,6 @@ void StartStepplayerFollow(char *player, int a, qword q)
 } } // namespace M_StartStepplayerFollow
 
 namespace M_RenderStepplayerSelf { extern "C" {
-extern struct CLOCK D_002DDED0;
 extern JT *D_002E1E40;
 extern float D_002BD268, D_002BD26C;
 extern char D_002BD270[];
@@ -1430,8 +1419,8 @@ void RenderStepplayerSelf(STEPPLAYER *player)
         g1 = 1.0f;
         g0 = g1;
     }
-    player->renderAlpha = SmoothValue__FfffP3SMPPf(player->renderAlpha, g0, D_002DDED0.deltaTime, D_002BD270, 0);
-    player->renderAlpha2 = SmoothValue__FfffP3SMPPf(player->renderAlpha2, g1, D_002DDED0.deltaTime, D_002BD270, 0);
+    player->renderAlpha = SmoothValue__FfffP3SMPPf(player->renderAlpha, g0, g_clock.deltaTime, D_002BD270, 0);
+    player->renderAlpha2 = SmoothValue__FfffP3SMPPf(player->renderAlpha2, g1, g_clock.deltaTime, D_002BD270, 0);
     if (player == D_002E1E40) {
         ((JT *)player)->unknown19A0->opacity = player->renderAlpha;
         ((JT *)player)->unknown19A4->opacity = player->renderAlpha;
@@ -1529,18 +1518,17 @@ void InitIdleTimer(STEPPLAYER *p, int a)
 } } // namespace M_func_00142868
 
 namespace M_func_00142880 { extern "C" {
-extern struct CLOCK D_002DDED0;
 float RandomFloatInRange__Fff(float a, float b);
 // Next idle event = now + a random time in the chosen range.
 void ScheduleIdleTimer(STEPPLAYER *p)
 {
     float t;
     if (p->idleKind) {
-        t = D_002DDED0.time;
+        t = g_clock.time;
         t += RandomFloatInRange__Fff(p->agdtIdle[0], p->agdtIdle[1]);
         p->tNextIdle = t;
     } else {
-        t = D_002DDED0.time;
+        t = g_clock.time;
         t += RandomFloatInRange__Fff(p->agdtIdle[2], p->agdtIdle[3]);
         p->tNextIdle = t;
     }
@@ -1680,7 +1668,6 @@ struct P : LO {
     M3 m1150;
 };
 extern "C" {
-extern CLOCK D_002DDED0;
 extern int D_002DD640;
 extern float D_002A4D68;
 extern qword D_002A2DA0;
@@ -1745,7 +1732,7 @@ void PickHeroInteractTarget(P *p)
         f = 1;
     if (p->jtModeState != -1)
         f = 0;
-    if (p->g114C < D_002DDED0.time && (p->n1148 != 0 || f)) {
+    if (p->g114C < g_clock.time && (p->n1148 != 0 || f)) {
         p->n1148 = !p->n1148;
         ScheduleIdleTimer(p);
     }
@@ -1962,20 +1949,18 @@ struct OUT { SVENT *pe; int n; };
 // Allocation request: byte count and alignment.
 struct AREQ { int cb; int cbAlign; AREQ(int c, int a) { cb = c; cbAlign = a; } };
 extern "C" {
-extern SW D_003DD490;
-extern char D_003D4A60[];
 extern char D_002A4D88[];
 extern char D_002A4D90[];
 extern char D_002A4D98[];
 extern char D_002A4DA0[];
 short FindSaveSymbol(SVNHASH *, char *);
 int FindSaveVar(SAVEVARS *, KEY *, OUT *);
-CRef GetSaveVar(SAVEVARS *p, KEY *key, char *pb);
+CRef GetSaveVar(SAVEVARS *p, KEY *key, SAVEDATA *pb);
 void *AllocFromStack(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
 }
 // Look up a save variable by key.
-static inline CRef Lookup(KEY &k) { return GetSaveVar(&g_sw.savevars, &k, D_003D4A60); }
+static inline CRef Lookup(KEY &k) { return GetSaveVar(&g_sw.savevars, &k, &g_gs); }
 // Allocate cb bytes, 16-byte aligned.
 static inline void *Alloc(int cb)
 {
@@ -1989,7 +1974,7 @@ extern "C" KEY *FindBootySaveVar(int id)
     KEY key;
     OUT out;
     OUT out2;
-    SAVEVARS *pt = &D_003DD490.savevars;
+    SAVEVARS *pt = &g_sw.savevars;
     key.c = 0;
     key.a = as;
     as[0] = FindSaveSymbol(&pt->symtab, D_002A4D88);
@@ -2000,13 +1985,13 @@ extern "C" KEY *FindBootySaveVar(int id)
     FindSaveVar(pt, &key, &out);
     SVENT *pe1;
     for (int n = out.pe->ientChild; n != 0; n = pe1->ientSibling) {
-        pe1 = &D_003DD490.savevars.aent[n];
+        pe1 = &g_sw.savevars.aent[n];
         key.c = 3;
         as[1] = pe1->symid;
-        if (FindSaveVar(&D_003DD490.savevars, &key, &out2)) {
+        if (FindSaveVar(&g_sw.savevars, &key, &out2)) {
             SVENT *pe2;
             for (int n2 = out2.pe->ientChild; n2 != 0; n2 = pe2->ientSibling) {
-                pe2 = &D_003DD490.savevars.aent[n2];
+                pe2 = &g_sw.savevars.aent[n2];
                 as[3] = pe2->symid;
                 CRef ref;
                 for (int i = 0; i < 15; i++) {
@@ -2059,9 +2044,7 @@ struct SO { char pad[0x180]; int x180; };
 struct K { char pad[0xC]; unsigned short xC; };
 struct S { int c; K *pk; };
 struct BL { int c; void *pv; };
-struct G;
 extern "C" {
-extern G D_003D4A60;
 extern char D_002A4DB0[], D_002A4D50[], D_002A4DC0[], D_002A4DC8[];
 void *FindBootySaveVar(void *p);
 int GetCurrentBootyEntryId(void *p);
@@ -2072,18 +2055,18 @@ BL *GetLevelListEntry(int);
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
-CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, G *pv);
+CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, SAVEDATA *pv);
 }
 extern "C" { CRefIsland SetSaveVarByName(const CRefIsland &ref, const void *o, ...); }
 extern "C" { CRefIsland GetSaveVarByName(const char *, ...); }
 // Store ref into the global save variable pv.
-static inline void Send(void *pv, CRefIsland ref) { SetGlobalSaveVar(pv, ref, &D_003D4A60); }
+static inline void Send(void *pv, CRefIsland ref) { SetGlobalSaveVar(pv, ref, &g_gs); }
 // Store the reference r into the save variable pv.
 static inline void SetPv(void *pv, const CRefIsland &r, void *)
 {
     CRefData arg;
     __4CRefRC4CRef((CRefIsland *)&arg, &r);
-    SetGlobalSaveVar(pv, *(CRefIsland *)&arg, &D_003D4A60);
+    SetGlobalSaveVar(pv, *(CRefIsland *)&arg, &g_gs);
     Decref__4CRef((CRefIsland *)&arg);
 }
 // Call the object's virtual at vtable slot 103 and return its pointer.
@@ -2101,15 +2084,15 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
                 int dummy[2];
                 void *pv0 = FindBootySaveVar(lo->p18);
                 CRef16 a0(0x15, -1);
-                SetPv(pv0, a0, &D_003D4A60);
+                SetPv(pv0, a0, &g_gs);
             }
             void *pv = GetBootyContainerSaveKey(q);
             CRefIsland a(0x15, GetCurrentBootyEntryId(lo->booty));
-            SetPv(pv, a, &D_003D4A60);
+            SetPv(pv, a, &g_gs);
         } else {
             void *pv = GetBootyContainerSaveKey(q);
             CRefIsland a(0x15, (int)lo->p18);
-            SetPv(pv, a, &D_003D4A60);
+            SetPv(pv, a, &g_gs);
         }
         break;
     }
@@ -2157,12 +2140,10 @@ namespace M_func_00143AF0 {
 extern "C" void Decref__4CRef(CRef *);
 extern "C" void __4CRefRC4CRef(CRef *, const CRef *);
 struct LO { char pad[0xC]; VTE *vt; char pad2[0x18 - 0x10]; void *p18; };
-struct G;
-extern "C" G D_003D4A60;
 extern "C" { extern char D_002A4DB0[]; }
 extern "C" {
 void *FindBootySaveVar(void *p);
-CRef SetGlobalSaveVar(void *p, const CRef &ref, G *pv);
+CRef SetGlobalSaveVar(void *p, const CRef &ref, SAVEDATA *pv);
 CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n);
 }
 /* Same SetPv form as SetBootyContainerKind: the unused dummy param makes gcc set up %hi(D_003D4A60)
@@ -2174,7 +2155,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     CRefData arg;
     __4CRefRC4CRef((CRef *)&arg, &r);
     {
-        const CRef &ret = SetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
+        const CRef &ret = SetGlobalSaveVar(pv, *(CRef *)&arg, &g_gs);
     }
     Decref__4CRef((CRef *)&arg);
 }
@@ -2184,7 +2165,7 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
     void *pv = FindBootySaveVar(lo->p18);
     if (pv) {
         CRef a(x, 0x15);
-        SetPv(pv, a, &D_003D4A60);
+        SetPv(pv, a, &g_gs);
     }
     VTE *e = &lo->vt[103];
     CRef ret = SetSaveVarByName(CRef(-1, 0x15), ((void *(*)(void *))e->pfn)((char *)lo + e->d), D_002A4DB0, 0);
@@ -2411,14 +2392,13 @@ extern "C" void SetStepplayerMp(STEPPLAYER *player, int mp)
 
 namespace M_DrainStepplayerMp { extern "C" {
 /* only diff: hazard nop placement (target: no nop after mfc1 before beqz, nop after mtc1); assembler-level */
-extern struct CLOCK D_002DDED0;
 int GetStepplayerMp(void *p);
 void SetStepplayerMp(void *p, int n);
 // Accumulates rate * dt and subtracts whole MP units (floored at 0).
 void DrainStepplayerMp(STEPPLAYER *player, float f)
 {
     int n;
-    player->gadgetPowerDrainRemainder += f * D_002DDED0.deltaTime;
+    player->gadgetPowerDrainRemainder += f * g_clock.deltaTime;
     n = (int)player->gadgetPowerDrainRemainder;
     if (!n)
         return;
