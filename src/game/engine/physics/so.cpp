@@ -3247,40 +3247,37 @@ void SetSoZapResponse(SO *so, int f, int b)
 
 // 0x1F7950 HandleSoTouchZaps
 namespace M_func_001F7950 { extern "C" {
-struct VT; struct E; struct P; struct M; struct G2;
+struct M; struct G2;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
-struct VT { VTE a[75]; };
-struct E { char pad[0x6C]; int zapContacts; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *tree; char pad3[0x148 - 0xF0]; union { struct { signed char hitDamage0, hitDamage1; } c; ulong flags; } u; };
 struct M { void *source; int n4; void *target; int zapKinds; int damage; int pad[3]; qword pos; qword velocity; char pad2[0x60 - 0x40]; };
 struct G2 { void *p; };
 extern struct G2 D_002F7900;
-void SetSoZapMode(struct P *, int);
+void SetSoZapMode(SO *, int);
 void func_002333B4(void *, int, int) __asm__("memset");
-qword GetLoWorldPos(struct P *);
+qword GetLoWorldPos(SO *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void DeliverZapToSo(struct M *);
 // Deferred touch callback: processes the contacts' zaps (slot 74), then emits the object's own zap according to
 // its zap mode. (inferred)
-void HandleSoTouchZaps(struct P *so)
+void HandleSoTouchZaps(SO *so)
 {
     int k;
     struct M m;
-    if (!so->tree) return;
-    if (so->tree->zapContacts) ((void (*)(void *))so->pvt->a[74].pfn)((char *)so + so->pvt->a[74].d);
-    if (!so->tree) return;
-    k = (int)(so->u.flags >> 24) & 3;
+    if (!so->physicsTree) return;
+    if (so->physicsTree->firstZapContact) so->InflictContactZaps();
+    if (!so->physicsTree) return;
+    k = so->zapMode;
     if (!k) return;
     SetSoZapMode(so, 0);
     func_002333B4(&m, 0, 0x60);
     m.target = so;
     m.pos = GetLoWorldPos(so);
-    m.velocity = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
+    m.velocity = so->GetVelocity();
     if (k == 3 && IsBasicDerivedFrom__FP5BASIC3CID(so, 0x38)) {
         m.zapKinds = 0x40000; m.damage = -50; m.source = D_002F7900.p;
     } else {
-        m.source = so; m.zapKinds = 0x20000; m.damage = so->u.c.hitDamage1;
+        m.source = so; m.zapKinds = 0x20000; m.damage = so->unknown149;
     }
     DeliverZapToSo(&m);
 }
@@ -3314,8 +3311,6 @@ void SetSoZapMode(SO *so, int k)
 // 0x1F7B40 GetSoZapMode
 namespace M_func_001F7B40 { extern "C" {
 // Returns the zap mode.
-/* SO's +0x148 word whole: the getter sign-extends through a shift pair the zapMode bit-field does not give (matching-only). */
-struct SOIsland { char pad[0x148]; ulong flags; };
 int GetSoZapMode(SO *p) { return p->zapMode & 3; }
 } } // namespace M_func_001F7B40
 
