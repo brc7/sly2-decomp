@@ -68,7 +68,7 @@ void SetMurrayState(MURRAY *pmurray, int nState, void *pv);
 struct CARRYSPOTV { char pad[0x180]; LO *plo; char pad184[0x190 - 0x184]; SO *psoGoalA; int pad194; SO *psoGoalB; };
 
 namespace M_InitMurray { extern "C" {
-/* InitMurray: actor defaults init. The int -1 stores come before the float stores in source; gcc schedules them so strafeSubstate lands right after unknown220. (Claude agent) */
+/* InitMurray: actor defaults init. The int -1 stores come before the float stores in source; gcc schedules them so strafeSubstate lands right after baseRadius. (Claude agent) */
 extern MURRAY *D_002F7900;
 void InitStepplayer(MURRAY *p);
 void InitGait(GAIT *a, MURRAY *owner, int sfxidStep);
@@ -81,7 +81,7 @@ static inline void Init(SMPA *ps, float f, float g) { ps->maxSpeedChange = g; ps
 void InitMurray(MURRAY *murray)
 {
     InitStepplayer(murray);
-    murray->unknown220 = 50.0f;
+    murray->baseRadius = 50.0f;
     murray->flopSubstate = -1;
     murray->attackSubstate = -1;
     murray->subState = -1;
@@ -2069,7 +2069,7 @@ void ApplyMurrayStateStepParams(MURRAY *murray)
     case MURRAY_CARRY: v = murray->aprecCarry[murray->carrySubstate]; break;
     default: v = murray->aprecState[murray->state]; break;
     }
-    if (!v) v = murray->unknown268;
+    if (!v) v = murray->ppartPhysMesh;
     SetStepPhys(murray, v, k);
 }
 } } // namespace M_func_001B8008
