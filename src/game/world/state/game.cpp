@@ -13,6 +13,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_game
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00166250
 
+extern int D_002DEB28;      /* declared before g_game: .bss is emitted in first-declaration order */
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
@@ -33,7 +34,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 
 extern "C" {
-extern int D_002DEB28;      /* declared before g_game: .bss is emitted in first-declaration order */
 extern char D_002E1E88[];   /* the game sequence queue */
 extern char D_002DE578[];   /* the difficulty object */
 void SetRegion(int n);

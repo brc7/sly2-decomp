@@ -9,6 +9,8 @@
 // TU 0x187030..0x188488 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_joy
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00188468
+extern int D_002DFBC0;     /* g_grfjoyt: declared before joy.h's g_joy, since .bss is emitted in first-declaration order */
+extern int D_002DFBC4;     /* the users' grf */
 #include "sly2/basic.h"
 #include "sly2/joy.h"
 #include "sly2/cm.h"
@@ -27,8 +29,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct VEC2 { float x; float y; };
 /* The event timer at D_002DEB30 as ReadJoy reads it. */
 
-extern int D_002DFBC0;     /* g_grfjoyt */
-extern int D_002DFBC4;     /* the users' grf */
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
 unsigned short D_002BE970[12] = {0x2000, 0x8000, 0x1000, 0x4000, 0x10, 0x20, 0x40, 0x80, 0x4, 0x8, 0x1, 0x2};   /* pad button bits (d-pad, then the shape buttons, then L/R), named by no code (joy's .data) */
