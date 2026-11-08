@@ -5,10 +5,11 @@
 #include "common.h"   /* byte; deliberately not sly2/basic.h, so every TU can include this header without
                          pulling in (and colliding with) the shared type names */
 
-struct SLOT;
-
-/* SLOT (a free slot: its first word links to the next free slot) stays forward-declared: several unmerged files
- * still define it privately. Define it here once those files are merged. */
+/* SLOT: a free slot; its first word links to the next free slot */
+struct SLOT
+{
+      SLOT *pslotNext;
+};
 
 /* Layout CONFIRMED by match of every slotheap function (offsets 0x0..0x14); moved here unchanged from sw.h. */
 /* SLOTHEAP: a pool of fixed-size slots carved from one block, with a free list (records of one kind: contacts,

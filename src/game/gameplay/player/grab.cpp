@@ -124,10 +124,6 @@ struct CID100 : public SO
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
-struct SLOT
-{
-      SLOT *pslotNext;
-};
 
 struct TASKPAIR
 {

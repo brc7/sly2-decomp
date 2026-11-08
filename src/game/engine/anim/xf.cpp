@@ -39,10 +39,6 @@ struct VU_VECTOR4
     qword qw;
 };
 
-struct SLOT
-{
-      SLOT *pslotNext;
-};
 
 
 struct GRABSPOTDATA

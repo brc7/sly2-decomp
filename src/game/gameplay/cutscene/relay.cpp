@@ -391,10 +391,6 @@ struct JSGENT
     undefined4 unk_0x08[(0x30 - 0x08) / 4];
 };
 
-struct SLOT
-{
-      SLOT *pslotNext;
-};
 
 void LatchButtonEdges(JOY *pjoy, uint grfbtn) __asm__("SetJoyBtnHandled");
 

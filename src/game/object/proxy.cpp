@@ -47,10 +47,6 @@ int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare);
 
 
 
-struct SLOT
-{
-      SLOT *pslotNext;
-};
 
 struct GRABSPOTDATA
 {

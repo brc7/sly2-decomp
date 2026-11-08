@@ -373,10 +373,6 @@ extern "C" void CreateSwScreenTint(S *world)
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
-struct SLOT
-{
-      SLOT *pslotNext;
-};
 struct GRABSPOTDATA
 {
       TN *ptn;
