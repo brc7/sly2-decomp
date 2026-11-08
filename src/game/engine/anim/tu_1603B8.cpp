@@ -11,7 +11,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 union U { qword q; float f[4]; int i[4]; };
-struct M3 { qword r[3]; };
 struct M4 { U r[4]; };
 
 /* A transform object as the constraint code sees it (local matrix, world matrix, parent, stamp, constraint). */
@@ -61,8 +60,8 @@ extern "C" {
 void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void SetXfRole(LOBase *p, XFV *plo, int n);
 M4 InvertMatrix4Rigid(const M4 *m);
-M3 InvertMatrix3Cofactor(const M3 *m);
-void NormalizeRotateMatrix3__FP7MATRIX3(M3 *m);
+MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *m);
+void NormalizeRotateMatrix3__FP7MATRIX3(MATRIX3Q *m);
 qword *VECTOR_opAssign(qword *p, qword v);
 }
 
@@ -95,12 +94,12 @@ static inline qword Transform(const M4 &matrix,qword point) {
  result = VuMulMatrix4(matrix.r[0].q, matrix.r[1].q, matrix.r[2].q, matrix.r[3].q, point);return result;
 }
 // Return the 3x3 matrix product of a and b.
-static inline M3 Mul(const M3 &a,const M3 &b) return r
+static inline MATRIX3Q Mul(const MATRIX3Q &a,const MATRIX3Q &b) return r
 {
- qword a0=a.r[0],a1=a.r[1],a2=a.r[2];
- __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[0]));
- __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
- __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
+ qword a0=a.r[0].q,a1=a.r[1].q,a2=a.r[2].q;
+ __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[0].q));
+ __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
+ __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
 
 // Applies one transform constraint for the frame: the destination's local position and/or rotation are set so that its
@@ -108,7 +107,7 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
 // the rotation is re-orthonormalized), then the global transform stamp is bumped so world matrices are recomputed.
 extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *constraint)
 {
- M3 rotation;
+ MATRIX3Q rotation;
  if(constraint->position) {
   M4 inv=InvertMatrix4Rigid(&constraint->dest->parent->world);
   XFV *dest=constraint->dest;
@@ -116,10 +115,10 @@ extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *constraint)
   dest->local.r[3].f[3]=1.0f;
  }
  if(constraint->rotation) {
-  rotation=Mul(InvertMatrix3Cofactor((M3 *)&constraint->dest->parent->world),*(M3 *)&constraint->source->world);
+  rotation=Mul(InvertMatrix3Cofactor((MATRIX3Q *)&constraint->dest->parent->world),*(MATRIX3Q *)&constraint->source->world);
   NormalizeRotateMatrix3__FP7MATRIX3(&rotation);
   XFV *dest=constraint->dest;
-  *(M3 *)&dest->local=rotation;
+  *(MATRIX3Q *)&dest->local=rotation;
   dest->local.r[0].i[3]=0;
   dest->local.r[1].i[3]=0;
   dest->local.r[2].i[3]=0;

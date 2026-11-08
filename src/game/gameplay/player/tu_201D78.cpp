@@ -21,7 +21,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 union V { qword q; float f[4]; };
 struct VECTORV { float x, y, z; };   /* sly2/basic.h's VECTOR has constructors (not in a union) */
-struct M4 { qword r[4]; };
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
 
@@ -636,7 +635,7 @@ struct VU_FLOAT {qword qw;};
 // Broadcast the float word n into a VU0 register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2 %1,%0":"=j"(v.qw):"rV"(n));return v;}
 // camera up row; the pointer parameter gives the game's &cm+0x60 base register (lqc2 0x10(s1), then s1-0x60 for the calls)
-static inline qword GetMatrixUp(const M4 *m){return m->r[1];}
+static inline qword GetMatrixUp(const MATRIX4Q *m){return m->r[1].q;}
 // screen position of a projected point: x and y from [-1,1] to pixels, z kept
 static inline VU_FLOAT ScreenFromProjected(qword q)
 {
@@ -674,7 +673,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     if (reconSel->actor) {
         qword world = GetLoWorldPos(reconSel->actor);
         VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
-        qword head = VuAdd(world, VuScaleByX(GetMatrixUp((M4 *)&g_cm.mat), offset.qw));
+        qword head = VuAdd(world, VuScaleByX(GetMatrixUp((MATRIX4Q *)&g_cm.mat), offset.qw));
         qword base = ConvertCmWorldToScreen(&g_cm, world);
         qword top = ConvertCmWorldToScreen(&g_cm, head);
         VU_FLOAT screen = ScreenFromProjected(base);

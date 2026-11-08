@@ -17,7 +17,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 typedef union { qword q; float f[4]; } U;
-typedef struct { qword r[3]; } M3;
 /* g++ 2.95 vtable entry (the blast listener's slot 51 is called by hand: its class is not known). */
 
 /* The bomb's XA (+0xE4: its position at +0x50) and XP (+0xEC: radius at +0x30, owner at +0x60, contact list at +0x64). */
@@ -44,7 +43,7 @@ struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
     int isDetonationPrepared;  /* +0x174 */
     int pad178[2];
     qword posDetonate;         /* +0x180 */
-    M3 matDetonate;            /* +0x190 */
+    MATRIX3Q matDetonate;            /* +0x190 */
     qword velocityAtDetonation;        /* +0x1C0 */
     qword angularVelocityAtDetonation; /* +0x1D0 */
     int makesNoise;            /* +0x1E0 detonation creates a noise stimulus (func_00156698), inferred */
@@ -112,9 +111,9 @@ void SetSoRotXfVelocityLocal(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
 void SetSoCnstrTorque(BOMBV *, int);
 int CanSoTakeDamage(BOMBV *p, WKR *pm);
-M3 *GetLoWorldMatrix(BOMBV *);
-void BuildOrthonormalMatrixZ(M3 *, qword, qword);
-void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
+MATRIX3Q *GetLoWorldMatrix(BOMBV *);
+void BuildOrthonormalMatrixZ(MATRIX3Q *, qword, qword);
+void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3Q *, qword, qword);
 void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qword q, void (*pfn)(), SOTREE *px, float g, int *pc, XAV ***paps);
 void *AllocFromStack(AREQV *preq);
@@ -481,26 +480,26 @@ extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
 }
 
 // 3x3 matrix times vector.
-static __inline__ qword MulV(M3 *pm, qword v)
+static __inline__ qword MulV(MATRIX3Q *pm, qword v)
 {
     qword o;
-    o = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v);
+    o = VuMulMatrix3(pm->r[0].q, pm->r[1].q, pm->r[2].q, v);
     return o;
 }
 // Stores pm times the bomb's world rotation as its detonation orientation (matDetonate).
-static __inline__ void MulStore(BOMBV *bomb, M3 *pm)
+static __inline__ void MulStore(BOMBV *bomb, MATRIX3Q *pm)
 {
-    M3 t, u;
-    M3 *pb = GetLoWorldMatrix(bomb);
-    u.r[0] = t.r[0] = MulV(pm, pb->r[0]);
-    u.r[1] = t.r[1] = MulV(pm, pb->r[1]);
-    t.r[2] = u.r[2] = MulV(pm, pb->r[2]);
+    MATRIX3Q t, u;
+    MATRIX3Q *pb = GetLoWorldMatrix(bomb);
+    u.r[0].q = t.r[0].q = MulV(pm, pb->r[0].q);
+    u.r[1].q = t.r[1].q = MulV(pm, pb->r[1].q);
+    t.r[2].q = u.r[2].q = MulV(pm, pb->r[2].q);
     bomb->matDetonate = t;
 }
 // Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal.
 extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 {
-    M3 m;
+    MATRIX3Q m;
     if (bomb->isDetonationPrepared)
         return;
     bomb->posDetonate = pos;
@@ -509,7 +508,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
     bomb->angularVelocityAtDetonation = bomb->GetAngularVelocity();
     switch (bomb->detonationPoseMode) {
     case 0:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[2], q);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[2].q, q);
         MulStore(bomb, &m);
         break;
     case 1:
@@ -517,7 +516,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
         bomb->matDetonate = m;
         break;
     case 2:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[0], q);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(bomb)->r[0].q, q);
         MulStore(bomb, &m);
         break;
     case 3:

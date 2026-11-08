@@ -1150,8 +1150,7 @@ namespace M_func_001E7BB8 { extern "C" {
 // World bounds from transformed path points and segment controls.
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
-struct M4 {qword r[4];};
-struct S : LO { char pad[0xA0 - 0x50]; struct M4 mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
+struct S : LO { char pad[0xA0 - 0x50]; struct MATRIX4Q mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct S*);
 // Transform point p by the matrix rows r0..r3 (old only influences register allocation).
 static inline qword Point(qword old,qword r0,qword r1,qword r2,qword r3,qword p){__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(old):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(p));return old;}
@@ -1161,9 +1160,9 @@ void GetShapeBounds(struct S*shape,qword*minOut,qword*maxOut){
  register qword maximum __asm__("vf5"),minimum __asm__("vf6");
  register qword *first __asm__("$5");
  UpdateXfmMatWorld(shape);
- {register struct M4*m __asm__("$2");
+ {register struct MATRIX4Q*m __asm__("$2");
  __asm__("lw %0,%2\n\taddiu %1,%3,%4":"=&r"(first),"=r"(m):"m"(shape->points),"r"(shape),"I"((unsigned)&((struct S*)0)->mat));
- __asm__("lqc2 %0,0x30(%8)\n\tlqc2 %1,0x10(%8)\n\tlqc2 %2,0x20(%8)\n\tlqc2 %3,%7":"=j"(r3),"=j"(r1),"=j"(r2),"=j"(r0):"m"(m->r[3]),"m"(m->r[1]),"m"(m->r[2]),"m"(shape->mat.r[0]),"r"(m));}
+ __asm__("lqc2 %0,0x30(%8)\n\tlqc2 %1,0x10(%8)\n\tlqc2 %2,0x20(%8)\n\tlqc2 %3,%7":"=j"(r3),"=j"(r1),"=j"(r2),"=j"(r0):"m"(m->r[3].q),"m"(m->r[1].q),"m"(m->r[2].q),"m"(shape->mat.r[0].q),"r"(m));}
  {register qword value __asm__("vf1")=*first;register int mode __asm__("$2");
  __asm__ volatile("vmulax.xyz ACC,%2,%6x\n\tvmadday.xyz ACC,%3,%6y\n\tvmaddaz.xyz ACC,%4,%6z\n\tvmaddw.xyz %0,%5,$vf0w\n\tlw %1,%7":"=&j"(maximum),"=r"(mode):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(value),"m"(shape->mode));
  minimum=maximum;
@@ -1236,11 +1235,11 @@ typedef char bound_layout_0[(sizeof(qword)==16)?1:-1];
 typedef char bound_layout_1[(__alignof__(qword)==16)?1:-1];
 typedef char bound_layout_2[(sizeof(union U)==16)?1:-1];
 typedef char bound_layout_3[(__alignof__(union U)==16)?1:-1];
-typedef char bound_layout_4[(sizeof(struct M4)==64)?1:-1];
-typedef char bound_layout_5[(__alignof__(struct M4)==16)?1:-1];
-typedef char bound_layout_6[(sizeof(((struct M4*)0)->r)==64)?1:-1];
-typedef char bound_layout_7[(sizeof(((struct M4*)0)->r[0])==16)?1:-1];
-typedef char bound_layout_8[(OFF(struct M4,r)==0)?1:-1];
+typedef char bound_layout_4[(sizeof(struct MATRIX4Q)==64)?1:-1];
+typedef char bound_layout_5[(__alignof__(struct MATRIX4Q)==16)?1:-1];
+typedef char bound_layout_6[(sizeof(((struct MATRIX4Q*)0)->r)==64)?1:-1];
+typedef char bound_layout_7[(sizeof(((struct MATRIX4Q*)0)->r[0].q)==16)?1:-1];
+typedef char bound_layout_8[(OFF(struct MATRIX4Q,r)==0)?1:-1];
 typedef char bound_layout_9[(OFF(struct S,mat)==0xA0)?1:-1];
 typedef char bound_layout_10[(OFF(struct S,mode)==0xE0)?1:-1];
 typedef char bound_layout_11[(OFF(struct S,n)==0xE8)?1:-1];
@@ -1263,9 +1262,8 @@ namespace M_func_001E7D90 { extern "C" {
 // Bounding radius from transformed path vertices and Bezier controls.
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
-struct M4 {qword r[4];};
 struct BASIS3 {qword r[3];};
-struct P : LO { char padA0[0xA0 - 0x50]; struct M4 matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
+struct P : LO { char padA0[0xA0 - 0x50]; struct MATRIX4Q matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
 extern void UpdateXfmMatWorld(struct P*);
 // Load the point at source into vf1.
 static inline qword ReadPoint(const qword*source){register qword value __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(value):"m"(*source));return value;}
@@ -1289,12 +1287,12 @@ float UpdateShapeBoundingSphere(struct P*shape)
         if(remaining>0){
             register qword r0 __asm__("vf3"),r2 __asm__("vf5"),r1 __asm__("vf4");
             register qword *point __asm__("$4");
-            register struct M4 *basis __asm__("$2")=&shape->matrix;
-            __asm__("lqc2 %0,%4\n\tlqc2 %1,0x20(%8)\n\tlqc2 %2,0x10(%8)\n\tlw %3,%7":"=j"(r0),"=j"(r2),"=j"(r1),"=r"(point):"m"(shape->matrix.r[0]),"m"(basis->r[2]),"m"(basis->r[1]),"m"(shape->points),"r"(basis));
+            register struct MATRIX4Q *basis __asm__("$2")=&shape->matrix;
+            __asm__("lqc2 %0,%4\n\tlqc2 %1,0x20(%8)\n\tlqc2 %2,0x10(%8)\n\tlw %3,%7":"=j"(r0),"=j"(r2),"=j"(r1),"=r"(point):"m"(shape->matrix.r[0].q),"m"(basis->r[2].q),"m"(basis->r[1].q),"m"(shape->points),"r"(basis));
             do {qword v=DirInPlace(r0,r1,r2,*point);squared=MaxR(squared,LenSq(v));point++;}while(--remaining);
         }
     }else{
-        register struct M4 *incomingBasis __asm__("$8");
+        register struct MATRIX4Q *incomingBasis __asm__("$8");
         register qword r0 __asm__("vf3"),r1 __asm__("vf4"),r2 __asm__("vf5");
         register qword firstPoint __asm__("vf1"),previous __asm__("vf6");
         register qword *first __asm__("$5")=shape->points;
@@ -1343,11 +1341,11 @@ float UpdateShapeBoundingSphere(struct P*shape)
                 squared=MaxR(squared,measured);
                 __asm__("mul.s %0,%3,%4\n\tlw %1,%5\n\tlqc2 %2,%6\n\taddu %1,%7,%1"
                   :"=f"(measured),"=&r"(incoming),"=j"(row0)
-                  :"f"(interval),"f"(negative),"m"(shape->incoming),"m"(shape->matrix.r[0]),"r"(offset));
+                  :"f"(interval),"f"(negative),"m"(shape->incoming),"m"(shape->matrix.r[0].q),"r"(offset));
                 k=Scalar(measured,&scalar);
                 __asm__("lqc2 %0,0x10(%6)\n\tlqc2 %1,0x10(%7)\n\tlqc2 %2,0x20(%6)"
                   :"=j"(row1),"=j"(value),"=j"(row2)
-                  :"m"(incomingBasis->r[1]),"m"(incoming[1]),"m"(incomingBasis->r[2]),"r"(incomingBasis),"r"(incoming));
+                  :"m"(incomingBasis->r[1].q),"m"(incoming[1]),"m"(incomingBasis->r[2].q),"r"(incomingBasis),"r"(incoming));
                 __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z"
                   :"+j"(value):"j"(row0),"j"(row1),"j"(row2));
                 __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x":"+j"(value):"j"(next),"j"(k));
@@ -1368,8 +1366,8 @@ float UpdateShapeBoundingSphere(struct P*shape)
 typedef char verified_radius_0[(sizeof(qword)==16)?1:-1];
 typedef char verified_radius_1[(__alignof__(qword)==16)?1:-1];
 typedef char verified_radius_2[(sizeof(union U)==16)?1:-1];
-typedef char verified_radius_3[(sizeof(struct M4)==0x40)?1:-1];
-typedef char verified_radius_4[(OFF(struct M4,r)==0)?1:-1];
+typedef char verified_radius_3[(sizeof(struct MATRIX4Q)==0x40)?1:-1];
+typedef char verified_radius_4[(OFF(struct MATRIX4Q,r)==0)?1:-1];
 typedef char verified_radius_5[(OFF(struct P,matrix)==0xA0)?1:-1];
 typedef char verified_radius_6[(OFF(struct P,mode)==0xE0)?1:-1];
 typedef char verified_radius_7[(OFF(struct P,count)==0xE8)?1:-1];
@@ -1381,10 +1379,10 @@ typedef char verified_radius_12[(OFF(struct P,outgoing)==0x144)?1:-1];
 typedef char verified_radius_13[(sizeof(void*)==4)?1:-1];
 typedef char verified_radius_14[(sizeof(int)==4)?1:-1];
 typedef char verified_radius_15[(sizeof(float)==4)?1:-1];
-typedef char verified_radius_16[(__alignof__(struct M4)==16)?1:-1];
+typedef char verified_radius_16[(__alignof__(struct MATRIX4Q)==16)?1:-1];
 typedef char verified_radius_17[(__alignof__(union U)==16)?1:-1];
-typedef char verified_radius_18[(sizeof(((struct M4*)0)->r)==64)?1:-1];
-typedef char verified_radius_19[(sizeof(((struct M4*)0)->r[0])==16)?1:-1];
+typedef char verified_radius_18[(sizeof(((struct MATRIX4Q*)0)->r)==64)?1:-1];
+typedef char verified_radius_19[(sizeof(((struct MATRIX4Q*)0)->r[0].q)==16)?1:-1];
 typedef char verified_radius_20[(sizeof(((struct P*)0)->count)==4)?1:-1];
 
 typedef char radius_basis_prefix_size[(sizeof(struct BASIS3)==48)?1:-1];
@@ -1524,8 +1522,7 @@ struct VU_FLOAT {
 };
 // Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
-struct M4 { qword r[4]; };
-struct SPACE { char pad[0x40]; M4 matrix; };
+struct SPACE { char pad[0x40]; MATRIX4Q matrix; };
 struct PATH { char pad[0xC]; VTE *vt; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *owner[2]; };
 struct CHAIN
@@ -1555,17 +1552,17 @@ extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);
 int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
-M4 *InvertMatrix4Rigid(M4 *, M4 *);
+MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *);
 void InvalidateShapeCache(PATH *);
 void StepChainRk4(CHAIN *);
 }
 
 // Transform point v by the 4x4 matrix m.
-static inline VV TransformPoint(const M4 &m, VV v)
+static inline VV TransformPoint(const MATRIX4Q &m, VV v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
+            : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(v));
     return r;
 }
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChainRk4 (48/838 instructions off).
@@ -1807,11 +1804,11 @@ void StepChainRk4(CHAIN *chain)
         CopyAb__FPvT0Ui(&chain->position[1], &accP[1], (count - 2) * 16);
         CopyAb__FPvT0Ui(&chain->velocity[1], &accV[1], (count - 2) * 16);
     }
-    M4 inverse;
+    MATRIX4Q inverse;
     {
         PATH *path = chain->path;
         VTE *e = &path->vt[31];
-        InvertMatrix4Rigid(&inverse, ((M4 *(*)(void *))e->pfn)((char *)path + e->d));
+        InvertMatrix4Rigid(&inverse, ((MATRIX4Q *(*)(void *))e->pfn)((char *)path + e->d));
     }
     for (i = 0; i < count; i++)
     {
@@ -1852,8 +1849,7 @@ union U { qword q; float f[4]; };
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
-struct M4 { qword r[4]; };
-struct SPACE { char pad[0x40]; M4 matrix; };
+struct SPACE { char pad[0x40]; MATRIX4Q matrix; };
 struct PATH { char pad[0xC]; VTE *vt; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
 struct CHAIN
 {
@@ -1874,18 +1870,18 @@ struct CHAIN
 extern "C" { extern qword D_002A2DA0; }    // fallback direction
 extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
-M4 *InvertMatrix4Rigid(M4 *, M4 *);   // invert
+MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *);   // invert
 void AddChainSample(CHAIN *, float);
 void InvalidateShapeCache(PATH *);
 void StepChain(CHAIN *);
 }
 
 // Transform point v by the 4x4 matrix m.
-static inline VV TransformPoint(const M4 &m, VV v)
+static inline VV TransformPoint(const MATRIX4Q &m, VV v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
+            : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(v));
     return r;
 }
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes StepChain (62/215 instructions off).
@@ -1957,11 +1953,11 @@ void StepChain(CHAIN *chain)
         AddChainSample(chain, chain->distance[n - 2] + VuToFloat(Length(VuSub(chain->position[n - 2].q, chain->position[n - 1].q))));
         n = chain->path->count;
     }
-    M4 inverse;
+    MATRIX4Q inverse;
     {
         PATH *path = chain->path;
         VTE *e = &path->vt[31];
-        InvertMatrix4Rigid(&inverse, ((M4 *(*)(void *))e->pfn)((char *)path + e->d));
+        InvertMatrix4Rigid(&inverse, ((MATRIX4Q *(*)(void *))e->pfn)((char *)path + e->d));
     }
     for (i = 0; i < n; i++)
     {

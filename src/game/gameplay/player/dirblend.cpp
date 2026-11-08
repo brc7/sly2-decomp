@@ -18,7 +18,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/stepplayer.h"
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
-struct M4 { qword r[4]; };
 struct ACTOR; struct MULTI;
 
 /* The clips are aseg.h's ASEG (only the duration, +0x74, is read, also as its bits), FindAsegChannel's CHN gives the
@@ -35,7 +34,7 @@ void RecalculateAsegBlend(void *blend);
 void FaceStepToward(STEP *step, LO *target);
 float NormalizeAngle__Ff(float);
 qword SetVectorCylind(float, float, float);
-M4 *GetLoWorldMatrix(LO *lo);
+MATRIX4Q *GetLoWorldMatrix(LO *lo);
 }
 float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 bytes are 0: alignment) */
 
@@ -202,11 +201,11 @@ static inline qword ProjectOut(qword ni, qword vi)
 // Remove the sideways component (along the world matrix's row 1) from the player's velocity; saves the old velocity.
 static inline void RemoveSide(STEPPLAYER *player, U *result, U *oldVelocity)
 {
-    M4 *basis;
+    MATRIX4Q *basis;
     qword value;
     oldVelocity->q = ToVu(GetVel(player));
     basis = GetLoWorldMatrix(player);
-    value = ProjectOut(basis->r[1], oldVelocity->q);
+    value = ProjectOut(basis->r[1].q, oldVelocity->q);
     result->q = value;
     SetVel(player, value);
 }

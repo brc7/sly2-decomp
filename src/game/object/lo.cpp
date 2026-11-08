@@ -682,7 +682,6 @@ qword GetLoEulerDegrees(void)
 
 namespace M_func_001A63B0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[3]; } M3;
 // Pack x, y, z into a 128-bit GPR value.
 static __inline__ qword Make(float x, float y, float z)
 {
@@ -695,13 +694,13 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-void LoadRotateMatrixEuler(M3 *pm, qword v);
+void LoadRotateMatrixEuler(MATRIX3Q *pm, qword v);
 // Sets the object's orientation from Euler angles in degrees (through RotateToMat, slot 30).
 void SetLoEulerDegrees(struct LO *object, qword v)
 {
-    M3 c;
+    MATRIX3Q c;
     union { qword q; float f; } r;
-    M3 m;
+    MATRIX3Q m;
     r.q = Make(QwordX(v) * 0.017453294f, QwordY(v) * 0.017453294f, QwordZ(v) * 0.017453294f);
     LoadRotateMatrixEuler(&m, r.q);
     c = m;
@@ -1106,21 +1105,20 @@ extern "C" void LO_Slot45Default()
 
 namespace M_ConvertAloPos { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pm, M4 *pn);
+void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn);
 // Converts a point from one object's space to another's (through world space; a null object means world space).
 qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
     if (a) {
-        M4 *pm = (M4 *)a->GetWorldMatrix();
+        MATRIX4Q *pm = (MATRIX4Q *)a->GetWorldMatrix();
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
-                : "=j"(v) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]));
+                : "=j"(v) : "j"(v), "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q), "j"(pm->r[3].q));
     }
     if (b) {
-        M4 m;
-        InvertMatrix4Rigid(&m, (M4 *)b->GetWorldMatrix());
+        MATRIX4Q m;
+        InvertMatrix4Rigid(&m, (MATRIX4Q *)b->GetWorldMatrix());
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
-                : "=j"(v) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]));
+                : "=j"(v) : "j"(v), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q));
     }
     return v;
 }
@@ -1128,22 +1126,21 @@ qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 
 namespace M_ConvertAloVec { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[3]; } M3;
-M3 *GetLoWorldMatrix(void *p);
-void InvertMatrix3Cofactor(M3 *pm, M3 *pn);
+MATRIX3Q *GetLoWorldMatrix(void *p);
+void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn);
 // Converts a direction vector from one object's space to another's (rotation only).
 qword ConvertVecBetweenLos(void *a, void *b, qword v)
 {
     if (a) {
-        M3 *pm = GetLoWorldMatrix(a);
+        MATRIX3Q *pm = GetLoWorldMatrix(a);
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-                : "=j"(v) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
+                : "=j"(v) : "j"(v), "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q));
     }
     if (b) {
-        M3 m;
+        MATRIX3Q m;
         InvertMatrix3Cofactor(&m, GetLoWorldMatrix(b));
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-                : "=j"(v) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+                : "=j"(v) : "j"(v), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q));
     }
     return v;
 }
@@ -1151,23 +1148,22 @@ qword ConvertVecBetweenLos(void *a, void *b, qword v)
 
 namespace M_ConvertAloMat {
 typedef int qword __attribute__((mode(TI)));
-struct M3 { qword r[3]; };
-extern "C" M3 *GetLoWorldMatrix(void *p);
-extern "C" M3 InvertMatrix3Cofactor(const M3 *b);
-static inline M3 Mul(const M3 &a, const M3 &b) return r
+extern "C" MATRIX3Q *GetLoWorldMatrix(void *p);
+extern "C" MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *b);
+static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
 {
-    qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
+    qword a0 = a.r[0].q, a1 = a.r[1].q, a2 = a.r[2].q;
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-        : "=j"(r.r[0]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[0]));
+        : "=j"(r.r[0].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[0].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-        : "=j"(r.r[1]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[1]));
+        : "=j"(r.r[1].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[1].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-        : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
+        : "=j"(r.r[2].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2].q));
 }
 // Converts a 3x3 matrix from one object's space to another's.
-extern "C" { M3 ConvertMatBetweenLos(void *a, void *b, const M3 *m)
+extern "C" { MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
 {
-    M3 result;
+    MATRIX3Q result;
     if (a) result = Mul(*GetLoWorldMatrix(a), *m);
     else result = *m;
     if (b) {
@@ -1207,20 +1203,19 @@ M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
 
 namespace M_func_001A72D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pm);
+void InvertMatrix4Rigid(MATRIX4Q *pm);
 // Converts a point through an explicit matrix, or through its inverse when inverse is set. (inferred)
-qword ConvertMatPos(M4 *pm, int f, qword v)
+qword ConvertMatPos(MATRIX4Q *pm, int f, qword v)
 {
     if (pm) {
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
-                : "=j"(v) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]));
+                : "=j"(v) : "j"(v), "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q), "j"(pm->r[3].q));
     }
     if (f) {
-        M4 m;
+        MATRIX4Q m;
         InvertMatrix4Rigid(&m);
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
-                : "=j"(v) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]));
+                : "=j"(v) : "j"(v), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q));
     }
     return v;
 }
@@ -1228,20 +1223,19 @@ qword ConvertMatPos(M4 *pm, int f, qword v)
 
 namespace M_func_001A7348 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[3]; } M3;
-void InvertMatrix3Cofactor(M3 *pm);
+void InvertMatrix3Cofactor(MATRIX3Q *pm);
 // Converts a direction vector through an explicit 3x3 matrix or its inverse. (inferred)
-qword ConvertMatVec(M3 *pm, int f, qword v)
+qword ConvertMatVec(MATRIX3Q *pm, int f, qword v)
 {
     if (pm) {
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-                : "=j"(v) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
+                : "=j"(v) : "j"(v), "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q));
     }
     if (f) {
-        M3 m;
+        MATRIX3Q m;
         InvertMatrix3Cofactor(&m);
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-                : "=j"(v) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+                : "=j"(v) : "j"(v), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q));
     }
     return v;
 }

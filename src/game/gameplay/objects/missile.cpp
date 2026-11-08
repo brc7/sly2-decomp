@@ -111,7 +111,6 @@ struct WORKF { U pos; V dir; U velocity, tmp; V factor; HIT hit; V scalar; U dir
 typedef char assert_WORKF_size[sizeof(WORKF) == 0xE0 ? 1 : -1];
 struct WORKA { V output; U integrated, step; V destination; U scale, delta, negative, copy; };
 typedef char assert_WORKA_size[sizeof(WORKA) == 0x80 ? 1 : -1];
-struct M4 { qword r[4]; };
 
 extern qword D_002A2DD0;
 /* Sly 1's SNIP (SnipLoObjects record): which object (by OID) to bind at which byte offset of the LO. */
@@ -133,7 +132,7 @@ V GetMissileTargetPosition(MISSILE *pmissile, float g);
 qword LimitVectorLength(qword v, float s);
 qword GetLoWorldPos(SO *pso);
 int ClipEdgeToSphere(qword a, qword b, qword c, int n, HIT *phit, float r);
-void LoadIdentityMatrix4(void *pv, int a, M4 *pmat, int b, float g);
+void LoadIdentityMatrix4(void *pv, int a, MATRIX4Q *pmat, int b, float g);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 void AddSoAcceleration(SO *pso, qword qwAccel);
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
@@ -356,15 +355,15 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
 }
 
 // 4x4 matrix times point.
-static inline qword MulPt(M4 *m, qword v) { qword r; r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v); return r; }
+static inline qword MulPt(MATRIX4Q *m, qword v) { qword r; r = VuMulMatrix4(m->r[0].q, m->r[1].q, m->r[2].q, m->r[3].q, v); return r; }
 // The target point in world space: through targetObject's local matrix predicted dt ahead (LoadIdentityMatrix4),
 // or the stored point when there is no target object. (inferred)
 extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 {
     V r;
     if (missile->targetObject) {
-        M4 m;
-        M4 m2;
+        MATRIX4Q m;
+        MATRIX4Q m2;
         LoadIdentityMatrix4(missile->targetObject->GetLocalTransform((MATRIX4 *)&m), 0, &m2, 0, g);
         *(qword *)&r = MulPt(&m2, MulPt(&m, missile->targetPos));
     } else {

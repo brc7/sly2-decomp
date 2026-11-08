@@ -365,11 +365,10 @@ void RemoveSndFromDirtyList(CID151 *sound)
 namespace M_CalculateSndVolPan { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct RANGE {float low,high;};
-struct M3 {qword r[3];};
 extern char D_002BBB60[];
 void *GetCurrentPo(void*);
 qword GetLoWorldPos(void*);
-qword ConvertMatVec(const struct M3*,const struct M3*,qword);
+qword ConvertMatVec(const struct MATRIX3Q*,const struct MATRIX3Q*,qword);
 float ClampToLimits__FP2LMf(void*,float);
 float atan2f(float,float);
 // Return a - b (vf3).
@@ -409,7 +408,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
    if(value>0.0f){
      qword direction;
      float angle;
-     direction=ConvertMatVec(0,&(*(struct M3 *)&g_cm.mat),Bits(difference));
+     direction=ConvertMatVec(0,&(*(struct MATRIX3Q *)&g_cm.mat),Bits(difference));
      angle=atan2f(-Y(direction),QwordX(direction));
      if(limits->high<limits->low)angle+=3.1415927f;
      Rounded(outAngle,angle*57.295776f);return;

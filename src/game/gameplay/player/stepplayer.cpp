@@ -131,7 +131,6 @@ void InitStepplayer(STEPPLAYER *player)
 namespace M_PostLoadStepplayer { extern "C" {
 struct K { int a; int b; };
 extern const struct LONGU D_002A4D10;
-struct M3 { qword r[3]; };
 struct AREQ { int cb; int cbAlign; };
 extern char D_002BC9F0[];
 void PostStepLoad(STEPPLAYER *);
@@ -150,7 +149,7 @@ void BindStepplayerHpMp(STEPPLAYER *, int);
 void *EnsureTargetRecordById(STEPPLAYER *);
 void SetSoMass(STEPPLAYER *, float);
 qword GetLoWorldPos(STEPPLAYER *);
-struct M3 *GetLoWorldMatrix(STEPPLAYER *);
+struct MATRIX3Q *GetLoWorldMatrix(STEPPLAYER *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void PostSwCallback(SW *, STEPPLAYER *, long, int);
 
@@ -193,7 +192,7 @@ void PostLoadStepplayer(STEPPLAYER *player)
     SetSoMass(player, 0.25f);
     if (player->transforms->kind == 0) {
         qword q = GetLoWorldPos(player);
-        struct M3 m = *GetLoWorldMatrix(player);
+        struct MATRIX3Q m = *GetLoWorldMatrix(player);
         XF *so = player->transforms;
         func_002333B4(so, 0, 0x40);
         so->localMatrix.mat[0][0] = so->localMatrix.mat[1][1] = so->localMatrix.mat[2][2] = so->localMatrix.mat[3][3] = 1.0f;
@@ -1300,18 +1299,17 @@ extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
 }
 
 namespace M_func_001423A0 { extern "C" {
-typedef struct { qword r[4]; } M4;
 struct BUF { char pad[0x30]; qword pos; };
 /* The hand position actuator (JTHANDS::pactPos; act.h ACT) as read here: +0x1C its end time. */
 struct X994 { char pad[0x1C]; float t; };
-void LoadIdentityMatrix4(XF *a, int b, M4 *pm, int c, float g);
+void LoadIdentityMatrix4(XF *a, int b, MATRIX4Q *pm, int c, float g);
 qword GetLoWorldPos(void *p);
 // Transform point v by the 4x4 matrix pm.
-static __inline__ qword Mul(M4 *pm, qword v)
+static __inline__ qword Mul(MATRIX4Q *pm, qword v)
 {
     qword o;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
+            : "=j"(o) : "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q), "j"(pm->r[3].q), "j"(v));
     return o;
 }
 // Distance between a and b as a float.
@@ -1334,7 +1332,7 @@ static __inline__ float DistanceBetween(qword a, qword b)
 int IsStepplayerGrabReady(STEPPLAYER *player)
 {
     struct BUF buf;
-    M4 m;
+    MATRIX4Q m;
     qword v;
     if (player->jtgrab.state != 5 || !player->jtgrab.grabbedObject) return 1;
     LoadIdentityMatrix4(((SO *)player->jtgrab.hands.ploHand)->GetLocalTransform((MATRIX4 *)&buf), 0, &m, 0, 0.0f);
@@ -1429,44 +1427,43 @@ void RenderStepplayerSelf(STEPPLAYER *player)
 } } // namespace M_RenderStepplayerSelf
 
 namespace M_func_001426E8 { extern "C" {
-typedef struct { qword r[3]; } M3;
 XF *FindSoXf(STEPPLAYER *p, int x, int n);
-void InvertMatrix3CofactorP(M3 *pmOut, void *pm) __asm__("InvertMatrix3Cofactor");
+void InvertMatrix3CofactorP(MATRIX3Q *pmOut, void *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(qword *aqwRows);
 ACT *NewPositionAct(STEPPLAYER *p, XF *pxf, int a, int b, int c, qword q);
 void DetachAct(ACT *pact);
 // Rotate v by the 3x3 matrix pm.
-static __inline__ qword MulV(M3 *pm, qword v)
+static __inline__ qword MulV(MATRIX3Q *pm, qword v)
 {
     qword o;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(v));
+            : "=j"(o) : "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q), "j"(v));
     return o;
 }
 // Return the 3x3 matrix product *pa * *pb.
-static __inline__ M3 MulM3(M3 *pa, M3 *pb)
+static __inline__ MATRIX3Q MulM3(MATRIX3Q *pa, MATRIX3Q *pb)
 {
-    M3 m;
-    m.r[0] = MulV(pa, pb->r[0]);
-    m.r[1] = MulV(pa, pb->r[1]);
-    m.r[2] = MulV(pa, pb->r[2]);
+    MATRIX3Q m;
+    m.r[0].q = MulV(pa, pb->r[0].q);
+    m.r[1].q = MulV(pa, pb->r[1].q);
+    m.r[2].q = MulV(pa, pb->r[2].q);
     return m;
 }
 // Finds the start-marker child and places the player relative to it.
 void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
 {
     XF *so = FindSoXf(player, x, 6);
-    M3 m, a;
+    MATRIX3Q m, a;
     if (!so)
         return;
     InvertMatrix3CofactorP(&a, &player->rootTransform->worldMatrix);
     {
-        M3 t;
-        M3 *pb = (M3 *)&so->worldMatrix;
-        t.r[0] = m.r[0] = MulV(&a, pb->r[0]);
-        t.r[1] = m.r[1] = MulV(&a, pb->r[1]);
-        m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
-        *(M3 *)player->aqwStartMarker = t;
+        MATRIX3Q t;
+        MATRIX3Q *pb = (MATRIX3Q *)&so->worldMatrix;
+        t.r[0].q = m.r[0].q = MulV(&a, pb->r[0].q);
+        t.r[1].q = m.r[1].q = MulV(&a, pb->r[1].q);
+        m.r[2].q = t.r[2].q = MulV(&a, pb->r[2].q);
+        *(MATRIX3Q *)player->aqwStartMarker = t;
     }
     player->pactStartMarker = NewPositionAct(player, so, 3, 7, 2, DecomposeRotationMatrixToEuler(player->aqwStartMarker));
     DetachAct(player->pactStartMarker);
@@ -1648,8 +1645,7 @@ namespace M_func_00142AF8 {
 // result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
-struct M3 { qword r[3]; };
-struct R { char pad[0x40]; M3 m40; char pad1[0xA0 - 0x70]; void *pA0; };
+struct R { char pad[0x40]; MATRIX3Q m40; char pad1[0xA0 - 0x70]; void *pA0; };
 struct Q { char pad[8]; R *p8; };
 struct S {
     char pad[0xE0]; S *pNext; int pad1; float gE8; char rng[8]; int nF4;
@@ -1659,7 +1655,7 @@ struct P : LO {
     S *ps10DC; int pad3; int interactKind; char pad4[0x10F4 - 0x10E8]; Q *pq; void *leanTarget; int pad5;
     int n1100; int n1104; int pad6[2]; float g1110; float g1114; float g1118; int pad7;
     LM lmPan; LM lmTilt; float g1130; float g1134; char pad8[0x1148 - 0x1138]; int n1148; float g114C;
-    M3 m1150;
+    MATRIX3Q m1150;
 };
 extern "C" {
 extern int D_002DD640;
@@ -1675,33 +1671,33 @@ qword GetLoWorldPos(void *p);
 qword ConvertPosBetweenLos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float ClampAngleToRange(LM *plm, float g);
-M3 LoadRotateMatrixPanTilt(float a, float b);
-M3 BuildAxisAngleRotationMatrix(qword v, float g);
-M3 ConvertXfMat(void *pvFrom, void *pvTo, M3 *pm);
-M3 InvertMatrix3Cofactor(const M3 *pm);
-qword DecomposeRotationMatrixToEuler(M3 *pm);
+MATRIX3Q LoadRotateMatrixPanTilt(float a, float b);
+MATRIX3Q BuildAxisAngleRotationMatrix(qword v, float g);
+MATRIX3Q ConvertXfMat(void *pvFrom, void *pvTo, MATRIX3Q *pm);
+MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *pm);
+qword DecomposeRotationMatrixToEuler(MATRIX3Q *pm);
 void SetActPositionGoal(Q *pq, qword q);
 void PickHeroInteractTarget(P *p);
 }
 struct VU_VECTOR4 { qword qw; };
 // 3x3 matrix product matL * matR.
-inline M3 operator*(const M3 &matL, const M3 &matR) return mat
+inline MATRIX3Q operator*(const MATRIX3Q &matL, const MATRIX3Q &matR) return mat
 {
-    qword qwL0 = matL.r[0];
-    qword qwL1 = matL.r[1];
-    qword qwL2 = matL.r[2];
+    qword qwL0 = matL.r[0].q;
+    qword qwL1 = matL.r[1].q;
+    qword qwL2 = matL.r[2].q;
     VU_VECTOR4 v0;
     VU_VECTOR4 v1;
     VU_VECTOR4 v2;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(v0.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[0])->qw));
-    *(VU_VECTOR4 *)&mat.r[0] = v0;
+            : "=j"(v0.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[0].q)->qw));
+    *(VU_VECTOR4 *)&mat.r[0].q = v0;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(v1.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[1])->qw));
-    *(VU_VECTOR4 *)&mat.r[1] = v1;
+            : "=j"(v1.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[1].q)->qw));
+    *(VU_VECTOR4 *)&mat.r[1].q = v1;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[2])->qw));
-    *(VU_VECTOR4 *)&mat.r[2] = v2;
+            : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)&matR.r[2].q)->qw));
+    *(VU_VECTOR4 *)&mat.r[2].q = v2;
 }
 // Fraction of g between a and b; 0 when a == b.
 static inline float InverseLerp(float g, float a, float b)
@@ -1711,7 +1707,7 @@ static inline float InverseLerp(float g, float a, float b)
     return (g - a) / (b - a);
 }
 // Float i of the matrix's first row.
-static inline float X(const M3 &m, int i) { return ((float *)&m.r[0])[i]; }
+static inline float X(const MATRIX3Q &m, int i) { return ((float *)&m.r[0].q)[i]; }
 
 // Per-frame interact/lean target pick: ranks candidates with GetHeroInteractDistance.
 void PickHeroInteractTarget(P *p)
@@ -1796,11 +1792,11 @@ void PickHeroInteractTarget(P *p)
             g = (1.0f - u) * p->g1130 + u * p->g1134;
         }
     }
-    M3 m0, m1;
+    MATRIX3Q m0, m1;
     m0 = LoadRotateMatrixPanTilt(pan, tilt) * BuildAxisAngleRotationMatrix(D_002A2DA0, g);
     m1 = ConvertXfMat(0, p->p60, &p->pq->p8->m40);
     m1 = m1 * InvertMatrix3Cofactor(&p->m1150);
-    M3 m2;
+    MATRIX3Q m2;
     if (X(m0, 0) + X(m1, 0) < 0.0f && X(m0, 1) * X(m1, 1) < 0.0f)
         m2 = p->m1150;
     else

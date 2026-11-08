@@ -398,7 +398,6 @@ extern "C" void ResetHackship(HACKSHIP *ship)
 namespace M_func_0017FD08 {
 typedef int qword __attribute__((mode(TI)));
 extern "C" qword D_002A2DD0;
-struct M4 { qword r[4]; };
 extern "C" {
 void PlayWidgetAnim(WIDGET *pwidget, int n);
 CID151 *CreateSfxSound(int n);
@@ -413,9 +412,9 @@ void SetSoCnstrTorque(SO *pso, int n);
 void SetSoPartsBit48(SO *pso, int n);
 void SetSmaGoal(SMA *psma, int n);
 void StopSnd(CID151 *psnd, float f);
-struct M4 GetRelativeXfMatrix(XF *pxfA, XF *pxfB, struct M4 *pm);
+struct MATRIX4Q GetRelativeXfMatrix(XF *pxfA, XF *pxfB, struct MATRIX4Q *pm);
 ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int c, qword v);
-qword DecomposeRotationMatrixToEuler(struct M4 *pm);
+qword DecomposeRotationMatrixToEuler(struct MATRIX4Q *pm);
 }
 // State switch (leave/enter): health widget, engine sound, docking actuators, states 0..5. (inferred)
 extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
@@ -474,7 +473,7 @@ extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
         break;
     case 3:
         {
-            struct M4 m;
+            struct MATRIX4Q m;
             XF *pxf;
 
             pxf = ship->ploDock->GetLocalTransform((MATRIX4 *)&m);
@@ -482,7 +481,7 @@ extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
             ship->SetParent(ship->ploDock->parent, pxf, 3);
             ship->SetVelocity(D_002A2DD0);
             ship->SetAngularVelocity(D_002A2DD0);
-            ship->pactPos = NewPositionAct(ship, ship->positionXf, 1, 7, 2, m.r[3]);
+            ship->pactPos = NewPositionAct(ship, ship->positionXf, 1, 7, 2, m.r[3].q);
             ship->pactRot = NewPositionAct(ship, ship->rotationXf, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
             SetSoCnstrForce(ship, 1);
             SetSoCnstrTorque(ship, 1);
@@ -1493,12 +1492,11 @@ namespace M_func_001821C0 {
 // One pin (epsilon in $f1).
 
 typedef union {qword q;float f[4];int i[4];} U;
-struct M3 {qword r[3];};
 struct M4 {U r[4];};
 extern "C" { extern qword D_002A2DC0; }
 extern "C" void RenderSoSelf(SO*);
-extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
-extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
+extern "C" MATRIX3Q BuildOrthonormalMatrixZ(qword,qword);
+extern "C" MATRIX3Q BuildAxisAngleRotationMatrix(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" void RenderLoAtMatrix(LO*,M4*,float,float);
 // Helpers Load, Cross, AddLateral (small asm wrappers/accessors shaped for the match).
@@ -1508,20 +1506,20 @@ static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz
 // Return a plus the node's lateral vector scaled by f.
 static inline qword AddLateral(qword a,HACKWALLPIECE*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
 // 3x3 matrix product.
-static inline M3 Mul(const M3 &a, const M3 &b) return r
+static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
 {
-    qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
+    qword a0 = a.r[0].q, a1 = a.r[1].q, a2 = a.r[2].q;
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-        : "=j"(r.r[0]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[0]));
+        : "=j"(r.r[0].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[0].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-        : "=j"(r.r[1]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[1]));
+        : "=j"(r.r[1].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[1].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
-        : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
+        : "=j"(r.r[2].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2].q));
 }
 
 // vtable slot 19: RenderSoSelf then draw each segment piece with its own matrix. (inferred)
 extern "C" void RenderHackwallSelf(HACKWALL*wall){
- int i,count;M3 m;M4 mm;qword pos;
+ int i,count;MATRIX3Q m;M4 mm;qword pos;
  RenderSoSelf(wall);
  if(!wall->ploPiece)return;
  count=wall->cseg;i=0;
@@ -1536,7 +1534,7 @@ extern "C" void RenderHackwallSelf(HACKWALL*wall){
    if(1.0f<__builtin_fabsf(n->lateral))pos=AddLateral(pos,n,n->lateral);
    {float roll=n->roll;register float epsilon __asm__("$f1")=0.01f; /* the one pin */if(epsilon<__builtin_fabsf(roll))m=Mul(m,BuildAxisAngleRotationMatrix(D_002A2DC0,roll));}
    VECTOR_opAssign(&mm.r[3].q,pos);
-   pm->r[0].q=m.r[0];pm->r[1].q=m.r[1];pm->r[2].q=m.r[2];
+   pm->r[0].q=m.r[0].q;pm->r[1].q=m.r[1].q;pm->r[2].q=m.r[2].q;
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
    pm->r[3].f[3]=1.0f;
    RenderLoAtMatrix(wall->ploPiece,pm,1.0f,1.0f);
@@ -1556,13 +1554,13 @@ typedef char Int_Size[(sizeof(int)==4)?1:-1];
 typedef char Float_Size[(sizeof(float)==4)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char U_Align[(__alignof__(U)==16)?1:-1];
-typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
-typedef char M3_Align[(__alignof__(M3)==16)?1:-1];
+typedef char M3_Size[(sizeof(MATRIX3Q)==0x30)?1:-1];
+typedef char M3_Align[(__alignof__(MATRIX3Q)==16)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
-typedef char M3_row0_Offset[((unsigned)&((M3*)0)->r[0]==0)?1:-1];
-typedef char M3_row1_Offset[((unsigned)&((M3*)0)->r[1]==0x10)?1:-1];
-typedef char M3_row2_Offset[((unsigned)&((M3*)0)->r[2]==0x20)?1:-1];
-typedef char M4_row3_Offset[((unsigned)&((M4*)0)->r[3]==0x30)?1:-1];
+typedef char M3_row0_Offset[((unsigned)&((MATRIX3Q*)0)->r[0].q==0)?1:-1];
+typedef char M3_row1_Offset[((unsigned)&((MATRIX3Q*)0)->r[1].q==0x10)?1:-1];
+typedef char M3_row2_Offset[((unsigned)&((MATRIX3Q*)0)->r[2].q==0x20)?1:-1];
+typedef char M4_row3_Offset[((unsigned)&((M4*)0)->r[3].q==0x30)?1:-1];
 typedef char U_float_View[((unsigned)&((U*)0)->f[0]==0)?1:-1];
 typedef char U_int_View[((unsigned)&((U*)0)->i[0]==0)?1:-1];
 } // namespace M_func_001821C0

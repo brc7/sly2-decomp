@@ -168,7 +168,6 @@ static inline float SmoothStep(float u)
 struct SWCB { long l; } __attribute__((packed));   /* the 8-byte callback PMF, passed in one register */
 struct MARK { int a[4]; };          /* STACKSCOPE's storage, constructed by hand */
 struct MSGA { int cb; int nKind; int k; int **pp; };   /* allocation request / load collector */
-struct M3 { qword r[3]; };
 union U { qword q; float f[4]; int i[4]; };
 union UF { qword q; float f; };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
@@ -220,10 +219,10 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
 void OnLoRemove(TN *p);
 void EvaluateShapeAtDistance(SHAPE *pshape, float t, qword *ppos, qword *pnormal);
-M3 BuildOrthonormalMatrixZ(qword, qword);
+MATRIX3Q BuildOrthonormalMatrixZ(qword, qword);
 qword SetVectorCylind(float, float, float);
 void GetVectorCylind(qword, float *, float *, float *);
-M3 *GetLoWorldMatrix(TN *p);
+MATRIX3Q *GetLoWorldMatrix(TN *p);
 float fmodf(float, float);
 void CPLCY_ctor(CMPART2 *p);
 void InitCplcy(CMPART2 *p);
@@ -258,7 +257,7 @@ float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n);
 struct COEF { float a, b, c, d; };
 struct BOUND { float low, high; };
 extern "C" void EvaluateTnPathPos(TN *p, float *times, COEF *coef, BOUND *bounds, int mode, qword *out, float time, float delta);
-void func_002215C0F(TN *p, qword *times, M3 *coef, LM *bounds, float time, float delta, int mode, qword *out) __asm__("EvaluateTnPathPos");
+void func_002215C0F(TN *p, qword *times, MATRIX3Q *coef, LM *bounds, float time, float delta, int mode, qword *out) __asm__("EvaluateTnPathPos");
 extern "C" void UpdateTnCallback(TN *p);
 void UpdateTnCallbackA(TN *p, int a) __asm__("UpdateTnCallback");
 void func_00221940I(TN *p, int id) __asm__("ClearTnCpd");
@@ -306,7 +305,7 @@ void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
         n = ps->fCylind;
         ps->fCylind = 0;
         ProjectPointOntoTnPath(ps, *ppos, &u.q, (qword *)ab);
-        func_002215C0F(ps, &u.q, (M3 *)&m, p->almOffset, ps->progress, 0.0f, 1, ppos);
+        func_002215C0F(ps, &u.q, (MATRIX3Q *)&m, p->almOffset, ps->progress, 0.0f, 1, ppos);
         ps->fCylind = n;
     }
 }
@@ -473,15 +472,15 @@ __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(len) : "j"(len));
 __asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(v),"0"(len));
 return r; }
 // Rotate v by the transpose of m (three dot products).
-static inline qword InverseRotate(const M3 &m, qword v) {
+static inline qword InverseRotate(const MATRIX3Q &m, qword v) {
     qword one,a,b,c;
-    __asm__("vmul.xyzw %2,%5,%0\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%0\n\tvmul.xyzw %4,%7,%0\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y" : "+j"(v),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));
+    __asm__("vmul.xyzw %2,%5,%0\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%0\n\tvmul.xyzw %4,%7,%0\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y" : "+j"(v),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c) : "j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q));
     return v;
 }
 // Projects a world point into the path basis and returns path direction. (inferred)
 void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
     U pos;
-    M3 m;
+    MATRIX3Q m;
     if(p->path) {
         EvaluateShapeAtDistance(p->path,p->progress,&pos.q,normal);
         m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0q);
@@ -494,19 +493,19 @@ void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
         m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0q);
         *out=InverseRotate(m,VuSub(v,pos.q));
     } else {
-        *normal=Normalize(GetLoWorldMatrix(p)->r[0]);
+        *normal=Normalize(GetLoWorldMatrix(p)->r[0].q);
         *out=ConvertPosBetweenLos(0,p,v);
     }
 }
 
 // Rotate v by the 3x3 matrix m.
-static inline qword Rotate(const M3 &m,qword v) {
-    __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2])); return v;
+static inline qword Rotate(const MATRIX3Q &m,qword v) {
+    __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q)); return v;
 }
 // Evaluates a clamped path offset (fmodf), rotates/translates to world. (inferred)
 void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qword *out,float time,float delta) {
     U pos,normal,center;
-    M3 m;
+    MATRIX3Q m;
     U rotated;
     float *f=pos.f;
     int i;

@@ -23,7 +23,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /* A matrix as four quadword rows (copies and the VU0 transform). */
-struct M4 { qword r[4]; };
 /* A 3x3 rotation as three float4 rows (ConvertXfMat's result). */
 typedef struct { float x, y, z, w; } V4;
 struct M3 { V4 r[3]; } __attribute__((aligned(16)));
@@ -48,7 +47,7 @@ qword TransformXfPos(int a, XF *pxf, qword pos);
 void VECTOR_opAssign(void *pv, qword q);
 M3 ConvertXfMat(int a, XF *pxf, MATRIX4 *matrix);
 qword GetXfVelocity(XF *pxf, int a, qword pos);
-M4 GetXfAngularVelocity(XF *pxf, int a);
+MATRIX4Q GetXfAngularVelocity(XF *pxf, int a);
 void LO_SetParent(LO *plo, SO *psoParent, XF *pxfParent, int grf);
 void SetLoVisMask(LO *plo, uint grf);
 void PushXfContext(XF *pxf);
@@ -61,7 +60,7 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
 /* The same operator called with the result pointer passed by hand, on quadword-row matrices (XFM_ApplyTransform: with the
    operator form the temporary is copied once more and the frame is 0x40 bytes bigger). */
-extern "C" void MulMatrix4Ret(M4 *pmatResult, M4 *pmatL, M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");
+extern "C" void MulMatrix4Ret(MATRIX4Q *pmatResult, MATRIX4Q *pmatL, MATRIX4Q *pmatR) __asm__("__ml__FRC7MATRIX4T0");
 void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollector *plc);
 
 /* 0x231100 InitXfm */
@@ -169,10 +168,10 @@ MATRIX4 * XFM::GetWorldMatrix()
 }
 
 // Transform point v by the 4x4 matrix m.
-static inline qword MulPos(const M4 *m, qword v)
+static inline qword MulPos(const MATRIX4Q *m, qword v)
 {
     qword r;
-    r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v);
+    r = VuMulMatrix4(m->r[0].q, m->r[1].q, m->r[2].q, m->r[3].q, v);
     return r;
 }
 // XFM's GetVelocity (vtable slot 33): the velocity of the object's point on the parent XF.
@@ -180,7 +179,7 @@ extern "C" qword GetXfmVelocity(XFM *xfm)
 {
     XF *o = xfm->parentTransform;
     if (!o) return D_002A2DD0;
-    return GetXfVelocity(o, 0, MulPos((M4 *)&o->worldMatrix, *(qword *)xfm->localMatrix.mat[3]));
+    return GetXfVelocity(o, 0, MulPos((MATRIX4Q *)&o->worldMatrix, *(qword *)xfm->localMatrix.mat[3]));
 }
 
 // XFM's GetAngularVelocity (vtable slot 34): the parent XF's angular velocity.
@@ -190,7 +189,7 @@ extern "C" qword GetXfmAngularVelocity(XFM *xfm)
     {
         MATRIX4 m;
         {
-            M4 t = GetXfAngularVelocity(xfm->parentTransform, 0);
+            MATRIX4Q t = GetXfAngularVelocity(xfm->parentTransform, 0);
             m = *(MATRIX4 *)&t;
         }
         {
@@ -221,22 +220,22 @@ extern "C" XF *XFM_GetLocalTransform(XFM *xfm, MATRIX4 *matrix)
 /* 0x231598 XFM_ApplyTransform */
 // XFM's ApplyTransform (vtable slot 37): premultiplies the local matrix by the given matrix and invalidates the world
 // matrix.
-extern "C" void XFM_ApplyTransform(XFM *xfm, M4 *matrix) { M4 t; MulMatrix4Ret(&t, matrix, (M4 *)&xfm->localMatrix); *(M4 *)&xfm->localMatrix = t; InvalidateXfm(xfm); }
+extern "C" void XFM_ApplyTransform(XFM *xfm, MATRIX4Q *matrix) { MATRIX4Q t; MulMatrix4Ret(&t, matrix, (MATRIX4Q *)&xfm->localMatrix); *(MATRIX4Q *)&xfm->localMatrix = t; InvalidateXfm(xfm); }
 
 // XFM's SetParent (vtable slot 10): reparents the object (LO_SetParent) keeping its world matrix when asked.
 extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
 {
-    M4 m;
+    MATRIX4Q m;
     if (grf & 3) {
         if ((uchar)xfm->isInWorld) {
-            m = *(M4 *)xfm->GetWorldMatrix();
+            m = *(MATRIX4Q *)xfm->GetWorldMatrix();
         } else {
             XF *q;
-            m = *(M4 *)&xfm->localMatrix;
+            m = *(MATRIX4Q *)&xfm->localMatrix;
             for (q = xfm->parentTransform; q; q = q->parent)
             {
                 MATRIX4 t = q->localMatrix * *(MATRIX4 *)&m;
-                m = *(M4 *)&t;
+                m = *(MATRIX4Q *)&t;
             }
         }
     }
@@ -248,7 +247,7 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
         xfm->parentTransform = 0;
     LO_SetParent(xfm, psoNew, pxfNew, grf);
     if (grf & 1)
-        xfm->TranslateToPos(m.r[3]);
+        xfm->TranslateToPos(m.r[3].q);
     if (grf & 2)
         xfm->RotateToMat((MATRIX3 *)&m);
 }

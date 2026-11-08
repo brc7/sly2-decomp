@@ -1741,7 +1741,6 @@ struct BIS;
 struct OWNER : LO { char pad[0xC4 - 0x50]; HEAP *heap;};
 struct ROOT;
 struct SPRITE;
-struct M3 {qword r[3];};
 struct M23 {float a[6];} __attribute__((aligned(16)));
 struct PAIR {short x,y;};
 struct RAWCOLOR {uchar r,g,b,a;};
@@ -1766,7 +1765,7 @@ int S16Read__18CBinaryInputStream(BIS *);
 int S8Read__18CBinaryInputStream(BIS *);
 int S32Read__18CBinaryInputStream(BIS *);
 float F32Read__18CBinaryInputStream(BIS *);
-void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,MATRIX3Q *);
 void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
 void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
 void *AllocClearedFromStack(ALLOCREQ *);
@@ -1780,14 +1779,14 @@ extern "C" { extern char D_00000650[],D_00000140[]; }
 // Fill the request and allocate bytes with the given alignment.
 static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
 // Copy the xy parts of the three rows of src into a 2x3 affine matrix.
-static inline void CopyXY(M23 &dst,const M3 &src){
- const float *a=(const float *)&src.r[0],*b=(const float *)&src.r[1],*c=(const float *)&src.r[2];
+static inline void CopyXY(M23 &dst,const MATRIX3Q &src){
+ const float *a=(const float *)&src.r[0].q,*b=(const float *)&src.r[1].q,*c=(const float *)&src.r[2].q;
  dst.a[0]=a[0];dst.a[1]=a[1];dst.a[2]=b[0];dst.a[3]=b[1];dst.a[4]=c[0];dst.a[5]=c[1];
 }
 // Loads one sprite descriptor (geometry, polygon, shader, index, picture or nested sprite) and builds its packets.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,int,SPRITE *sprites){
- STACKSCOPE outer;M3 raw;
+ STACKSCOPE outer;MATRIX3Q raw;
  int id=U16Read__18CBinaryInputStream(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
  sprite->kind=U32Read__18CBinaryInputStream(stream);
  switch(sprite->kind){
@@ -1815,7 +1814,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   break;
  }
  case SPRITE_KIND_POLYGON:{
-  ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
+  ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);MATRIX3Q matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
   sprite->data.polygon.count=U16Read__18CBinaryInputStream(stream);
   sprite->data.polygon.vertices=(VERTEX *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
   Read__18CBinaryInputStreamiPv(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
@@ -2480,7 +2479,6 @@ struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;}
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 // 2x3 affine matrix (padded to 8 floats), optionally zeroed.
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
-struct M4 {qword r[4];};
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
 extern "C" { extern VIFS D_002DEA28; }
 extern "C" { extern char D_00442210[],D_002DF010[]; }
@@ -2496,8 +2494,8 @@ static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,sour
 static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 
 extern "C" void SetRichText2BaseColor(struct RT *,RGBA *);
-extern "C" void BuildRichTextMatrix(struct RT *,struct M4 *,struct M23 *);
-extern "C" void DrawRichText2Glyphs(struct RT *,struct M4 *,struct DATA *);
+extern "C" void BuildRichTextMatrix(struct RT *,struct MATRIX4Q *,struct M23 *);
+extern "C" void DrawRichText2Glyphs(struct RT *,struct MATRIX4Q *,struct DATA *);
 extern "C" { extern qword D_002A2E10,D_002A2E20; }
 // Configures box, alignment and colour and queues the rich text for drawing. (inferred)
 extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
@@ -2509,7 +2507,7 @@ extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     p->hAlign=config->hAlign;p->vAlign=config->vAlign;p->priority=priority;
     color=config->color;SetRichText2BaseColor(p,&color);
     struct M23 matrix(M23::Zero);
-    struct M4 world;
+    struct MATRIX4Q world;
     struct DATA style;
     matrix.a[0]=p->scaleX*p->fontScale;
     matrix.a[3]=p->scaleY*p->fontScale;

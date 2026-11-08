@@ -1672,7 +1672,6 @@ extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
 namespace M_func_00137248 {
 // CorrectBentleyRideVelocity (Claude agent laneB24, 2026-10-23): matched. len as an mtc1 asm from the qword (gcc emits the qmfc2), cz via a pextuw asm with a float "=r" output (gcc emits the mtc1).
 typedef int qword __attribute__((mode(TI)));
-struct M3 { qword r[3]; };
 union UQ { qword q; };
 struct VU_FLOAT {
     qword q;
@@ -1723,11 +1722,11 @@ static inline qword AddScaled(qword a, qword v, VU_FLOAT f)
     return r;
 }
 // Rotate v by the 3x3 matrix m.
-static inline qword MulM3(const M3 &m, qword v)
+static inline qword MulM3(const MATRIX3Q &m, qword v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-        : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v), "j"(m.r[0])); /* extra operand: allocation only */
+        : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(v), "j"(m.r[0].q)); /* extra operand: allocation only */
     return r;
 }
 
@@ -1749,7 +1748,7 @@ extern qword D_002A2DC0, D_002A2DA0;
 qword GetLoWorldPos(LO *p);
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float ClampAbs__Fff(float g, float gMax);
-M3 BuildAxisAngleRotationMatrix(qword axis, float g);
+MATRIX3Q BuildAxisAngleRotationMatrix(qword axis, float g);
 qword LimitVectorLength(qword v, float g);
 void AddSoAcceleration(STEPPLAYER *p, qword v);
 }
@@ -1777,8 +1776,8 @@ extern "C" void CorrectBentleyRideVelocity(JTREC *s)
     SmoothValue__FfffP3SMPPf(len, D_002BC998, g_clock.deltaTime, &D_002BC9A8, &dgNext);
     float g = ClampAbs__Fff(dgNext - dot, D_002BC9A0 * g_clock.deltaTime);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
-    M3 mc;
-    M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * g_clock.deltaTime);
+    MATRIX3Q mc;
+    MATRIX3Q m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * g_clock.deltaTime);
     mc = m;
     qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(g_clock.deltaTime));
     AddSoAcceleration(s->player, LimitVectorLength(r, maxValue));

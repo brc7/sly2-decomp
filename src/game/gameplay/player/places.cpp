@@ -23,7 +23,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* vec.h's quadword-aligned VECTOR (basic.h's has no alignment). */
 struct VECTORV { float x, y, z; } __attribute__((aligned(16)));
 typedef union { qword q; float f[4]; } U;
-typedef struct { qword r[4]; } M4;
 /* A place's grab spot (JTPLACE::grabSpot) as called here: vtable at +0x20, slot 3 evaluates a point at a distance,
    slot 6 returns its object (classes.h's GRABSPOT declares these virtuals without their signatures). */
 struct PLACESO { char pad[0x20]; VTE *vt; };
@@ -41,7 +40,7 @@ extern VECTORV D_002A2DD0;
 extern STEPPLAYER *D_002E1E40, *D_002DD5BC, *D_002F7900;
 extern "C" {
 qword TransformXfPos(void *a, void *b, qword q);
-void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
+void LoadIdentityMatrix4(void *o, float g, int n, MATRIX4Q *pm, int m);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void ReturnJtToSafePlace(STEPPLAYER *, JTPLACE *);
 void ChooseJtSafePlace(JTPLACES *p, JTPLACE *e);
@@ -92,7 +91,7 @@ extern "C" void PostLoadJtPlaces(void)
 extern "C" qword GetJtPlacePosition(STEPPLAYER *jt, JTPLACE *q, float g)
 {
     U t;
-    M4 m;
+    MATRIX4Q m;
     void *o;
     qword v;
     qword r;
@@ -107,7 +106,7 @@ extern "C" qword GetJtPlacePosition(STEPPLAYER *jt, JTPLACE *q, float g)
     }
     if (o && 0.0f < g) {
         LoadIdentityMatrix4(o, g, 0, &m, 0);
-        r = VuMulMatrix4(m.r[0], m.r[1], m.r[2], m.r[3], v);
+        r = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, v);
     } else {
         r = TransformXfPos(o, 0, v);
     }

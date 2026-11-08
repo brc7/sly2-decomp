@@ -2363,35 +2363,34 @@ namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame {
 struct MATRIX4; // Script matrix-slerp builtin. Matched by Claude agent (2026-10-17): MulM3 uses the g++ named return value (`return m`),
 // stores each row right after its asm, and also writes a second (dead) M3 copy t, which is the target's 0xB0 slot.
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[3]; } M3;
 typedef union { qword q; float g; } UF;
 struct MATRIX4 { float m[4][4]; };
 extern "C" {
-M3 MulMatrix3Matrix3(M3 *pa, M3 *pb);
-void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pmat, float *prad, qword *pvec);
-M3 BuildAxisAngleRotationMatrix(float rad, qword axis);
+MATRIX3Q MulMatrix3Matrix3(MATRIX3Q *pa, MATRIX3Q *pb);
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3Q *pmat, float *prad, qword *pvec);
+MATRIX3Q BuildAxisAngleRotationMatrix(float rad, qword axis);
 void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 }
 // Return the 3x3 matrix product a * *pb.
-static inline M3 MulM3(const M3 &a, M3 *pb) return m
+static inline MATRIX3Q MulM3(const MATRIX3Q &a, MATRIX3Q *pb) return m
 {
-    M3 t;
+    MATRIX3Q t;
     qword r0, r1, r2;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(r0) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[0]));
-    m.r[0] = r0; t.r[0] = r0;
+            : "=j"(r0) : "j"(a.r[0].q), "j"(a.r[1].q), "j"(a.r[2].q), "j"(pb->r[0].q));
+    m.r[0].q = r0; t.r[0].q = r0;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(r1) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[1]));
-    m.r[1] = r1; t.r[1] = r1;
+            : "=j"(r1) : "j"(a.r[0].q), "j"(a.r[1].q), "j"(a.r[2].q), "j"(pb->r[1].q));
+    m.r[1].q = r1; t.r[1].q = r1;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(r2) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[2]));
-    m.r[2] = r2; t.r[2] = r2;
+            : "=j"(r2) : "j"(a.r[0].q), "j"(a.r[1].q), "j"(a.r[2].q), "j"(pb->r[2].q));
+    m.r[2].q = r2; t.r[2].q = r2;
 }
 extern "C" CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args);
 // Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500).
 CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
-    M3 mat = MulMatrix3Matrix3((M3 *)args[0].u.pv, (M3 *)args[1].u.pv);
+    MATRIX3Q mat = MulMatrix3Matrix3((MATRIX3Q *)args[0].u.pv, (MATRIX3Q *)args[1].u.pv);
     UF normal;
     float rad;
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&mat, &rad, &normal.q);
@@ -2399,7 +2398,7 @@ CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
     MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
     func_002333B4(pm, 0, 0x40);
     pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
-    *(M3 *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * args[2].u.g, normal.q), (M3 *)args[0].u.pv);
+    *(MATRIX3Q *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * args[2].u.g, normal.q), (MATRIX3Q *)args[0].u.pv);
     return ref;
 }
 } // namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame

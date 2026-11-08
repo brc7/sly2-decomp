@@ -1074,12 +1074,11 @@ normalize:
 
 namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct M4 { qword r[4]; };
-struct R { char pad[0x40]; struct M4 m; };
+struct R { char pad[0x40]; struct MATRIX4Q m; };
 struct BUF { qword a[4]; };
-void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
-qword ConvertMatPos(struct M4 *pm, int z, qword v);
-qword ConvertMatVec(struct M4 *pm, int z, qword v);
+void __ml__FRC7MATRIX4T0(struct MATRIX4Q *pm, struct MATRIX4Q *pa, struct BUF *pb);
+qword ConvertMatPos(struct MATRIX4Q *pm, int z, qword v);
+qword ConvertMatVec(struct MATRIX4Q *pm, int z, qword v);
 qword GetXfVelocity(struct R *r, int z, qword v);
 
 // Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space.
@@ -1089,7 +1088,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
     EMITO *py = &p->emito;
     LO *pso = p->aploRef[EMITREF_Reference];
     struct BUF buf;
-    struct M4 m;
+    struct MATRIX4Q m;
     struct R *r;
     if (!pso) return;
     r = (struct R *)pso->GetLocalTransform((MATRIX4 *)&buf);
@@ -1098,7 +1097,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
     if (py->velocityKind != EMIT_VELOCITY_WORLD) {
         *pw = ConvertMatVec(&m, 0, *pw);
         if (py->velocityKind != EMIT_VELOCITY_NO_RELATIVE)
-            *pw = VuAdd(*pw, GetXfVelocity(r, 0, py->velocityKind == EMIT_VELOCITY_RELATIVE_SPIN ? *pv : r->m.r[3]));
+            *pw = VuAdd(*pw, GetXfVelocity(r, 0, py->velocityKind == EMIT_VELOCITY_RELATIVE_SPIN ? *pv : r->m.r[3].q));
     }
 }
 } } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
@@ -1127,13 +1126,12 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
 
 namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword r[3]; } M3;
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
 float RandomFloatInRange__Fff(float a, float b);
 float NormalizeAngle__Ff(float g);
 qword SetVectorSphere(float pan, float tilt, float r);
-void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
+void GetNormalVectors(qword a, qword b, qword c, MATRIX3Q *pm);
 
 // Picks the velocity of particle i from an EMITVX distribution: its pan/tilt grid cell, jittered by gRand, rotated
 // into the emission normal's frame and scaled by speed sv.
@@ -1146,7 +1144,7 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
     float tilt = pemitvx->tiltBase + (float)iTilt * pemitvx->dTilt;
     float pan = pemitvx->panBase + (float)iPan * pemitvx->dPan;
     QWROW v;
-    M3 m;
+    MATRIX3Q m;
     qword r;
     if (gRand != 0.0f) {
         tilt += gRand * RandomFloatInRange__Fff(-0.5f, 0.5f) * pemitvx->dTilt;
@@ -1156,10 +1154,10 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
     pan = NormalizeAngle__Ff(pan);
     v.q = SetVectorSphere(pan, tilt, RandomFloatInRange__Fff(plm->minValue, plm->maxValue));
     v.f[2] *= sv;
-    m.r[2] = *pnormal;
+    m.r[2].q = *pnormal;
     GetNormalVectors(*pnormal, D_002A2DA0, D_002A2DB0, &m);
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(r) : "j"(v.q), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+            : "=j"(r) : "j"(v.q), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q));
     *pv = r;
 }
 } } // namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4
@@ -1422,31 +1420,30 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, EMITGEN *gen)
 namespace M_OriginateSplineSinkParticles {
 // OriginateSplineSinkParticles: emitter particle transform (Claude agent, lane E20). The clock time is read into a local BEFORE
 // the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
-struct M4 { qword r[4]; };
 extern "C" {
 extern float D_002A5150;
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen);
 int AreFloatsNear__Ffff(float g1, float g2, float gEps);
-void LoadIdentityMatrix4(void *p, int n, M4 *pm0, float t, M4 *pm1);
-void __ml__FRC7MATRIX4T0(M4 *pmOut, M4 *pmA, M4 *pmB);
+void LoadIdentityMatrix4(void *p, int n, MATRIX4Q *pm0, float t, MATRIX4Q *pm1);
+void __ml__FRC7MATRIX4T0(MATRIX4Q *pmOut, MATRIX4Q *pmA, MATRIX4Q *pmB);
 void OriginateSplineSinkParticles(int c, EMITB *pemit, EMITGEN *pgenEmit, EMITGEN *pgen);
 }
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Transform point v by the 4x4 matrix m (rotation plus translation).
-static inline qword MulAffine(const M4 &m, qword v)
+static inline qword MulAffine(const MATRIX4Q &m, qword v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(m.r[3]), "j"(v));
+            : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(v));
     return r;
 }
 // Rotate v by the 3x3 part of m.
-static inline qword MulRot(const M4 &m, qword v)
+static inline qword MulRot(const MATRIX4Q &m, qword v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(r) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+            : "=j"(r) : "j"(v), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q));
     return r;
 }
 // Return v scaled by s.
@@ -1463,11 +1460,11 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGE
     int i;
     float tPrev;
     void *pv;
-    M4 m;
-    M4 mA;
-    M4 mB;
-    M4 mBase;
-    M4 mWorld;
+    MATRIX4Q m;
+    MATRIX4Q mA;
+    MATRIX4Q mB;
+    MATRIX4Q mBase;
+    MATRIX4Q mWorld;
     if (!saved)
         refs[EMITREF_Reference] = target->parent;
     gen->fConvertToWorld = 0;
@@ -1481,7 +1478,7 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGE
         float t = pgenEmit->atDeath[i] - tNow;
         int velocityKind = target->pemitb->emito.velocityKind;
         if (!AreFloatsNear__Ffff(t, tPrev, 0.0001f)) {
-            M4 mT;
+            MATRIX4Q mT;
             tPrev = t;
             LoadIdentityMatrix4(pv, 0, &m, t, 0);
             __ml__FRC7MATRIX4T0(&mT, &m, &mBase);
@@ -1496,14 +1493,14 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGE
         }
         gen->apos[i] = MulAffine(m, gen->apos[i]);
         if (velocityKind != EMIT_VELOCITY_WORLD) {
-            M4 *pmA = &mA;
+            MATRIX4Q *pmA = &mA;
             gen->av[i] = MulRot(*pmA, gen->av[i]);
             if (velocityKind != EMIT_VELOCITY_NO_RELATIVE) {
                 qword v[1];
                 if (velocityKind == EMIT_VELOCITY_RELATIVE_SPIN)
                     v[0] = gen->apos[i];
                 else
-                    v[0] = mA.r[3];
+                    v[0] = mA.r[3].q;
                 gen->av[i] = VuAdd(gen->av[i], MulAffine(mB, v[0]));
             }
         }
