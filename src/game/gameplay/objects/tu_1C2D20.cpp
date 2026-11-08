@@ -43,7 +43,6 @@ int IsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *AcquireProxyObject(void *plo, int n);
 void SelectLootEntry(SOV *plo, int id);
 XF *FindSoXf(SPRAYER *p, void *pv, int n);
-extern SW D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
 LM D_002C0CE0 = {0.75f, 1.2f};                     // flight time
 float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime step
@@ -165,7 +164,7 @@ namespace RO_ORDER { extern const float r_D_002A76E8 __asm__("D_002A76E8") = 3.4
 // empties the pouch; returns the first item launched. Details below.
 extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
 {
-    SW *game = &D_003DD490;
+    SW *game = &g_sw;
     SOV *first = 0;
     for (int i = 0; i < count; i++) {
         SOV *node;

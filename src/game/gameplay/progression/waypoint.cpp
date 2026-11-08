@@ -53,8 +53,6 @@ typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPTV *)0)->jobConditio
 /* World, camera and clock views (the fields used in this TU). The world fields' meanings are unknown: unknown3B0C
    switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
    unknown4764 < unknown4768. */
-extern SW D_003DD490;      // g_sw
-extern CLOCK D_002DDED0;   // g_clock
 extern qwordV D_002A2DC0;   // g_normalZ
 extern "C" {
 qwordV GetLoWorldPos(void *plo);     /* PosLoWorld */
@@ -130,12 +128,12 @@ extern "C" void UpdateWaypt(WAYPTV *waypoint)
     int isInRange;
     float radius;
     UpdateSo(waypoint);
-    hero = GetHeroPo(&D_003DD490);
+    hero = GetHeroPo(&g_sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, waypoint->triggerClass)) {
         radius = waypoint->isActive ? waypoint->activeRadius : waypoint->inactiveRadius;
         isInRange = GDist(GetLoWorldPos(hero), GetLoWorldPos(waypoint)) < radius;
     } else isInRange = 0;
-    if ((waypoint->mode == 0 || waypoint->mode == 2) && D_003DD490.currentJob)
+    if ((waypoint->mode == 0 || waypoint->mode == 2) && g_sw.currentJob)
         isInRange = 0;
     if (isInRange && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) &&
         (hero->jtair.state != -1 || hero->GetHealthState() == 2))
@@ -345,7 +343,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
     faces = (FACE **)AllocFromStack(preq);
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
-    IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
+    IntersectSwBoundingBox(&g_sw, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
                   HasCameraBsp, 0, &query.numObjects, &query.objects);
     qwordV toSource = VuSub(posSrc, posCam);
     int numFound = query.numObjects;
@@ -447,7 +445,7 @@ char *FindSwLocalizedString__FP2SWi(SW *psw, int id);
 void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
 // Draws the job-name plate text at pos.
-static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, FindSwLocalizedString__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
+static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, FindSwLocalizedString__FP2SWi(&g_sw, id), &rgba0, &rgba1); }
 
 // Evaluates the quadratic g0 + g1 x + g2 x^2.
 static inline float GEvaluateClq(CLQ *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
@@ -514,24 +512,24 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 extern "C" void RenderWaypt(WAYPTV *waypoint)
 {
     RenderSoSelf(waypoint);
-    float fadeStart = Max(D_003DD490.tLookLast + D_002C4494, D_003DD490.unknown4754 + D_002C4498);
-    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, D_002DDED0.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
-    fadeStart = D_003DD490.tLookLast + D_002C449C;
-    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, D_002DDED0.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
+    float fadeStart = Max(g_sw.tLookLast + D_002C4494, g_sw.unknown4754 + D_002C4498);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, g_clock.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
+    fadeStart = g_sw.tLookLast + D_002C449C;
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, g_clock.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
     switch (waypoint->mode)
     {
     case 0:
-        if (D_003DD490.currentJob)
+        if (g_sw.currentJob)
             showAlpha = labelAlpha = 0.0f;
         break;
     case 2:
-        if (D_003DD490.numCluesCollected < D_003DD490.numClues || D_003DD490.currentJob ||
+        if (g_sw.numCluesCollected < g_sw.numClues || g_sw.currentJob ||
             (waypoint->requiredPowerup != -1 && IsPowerupAcquired(waypoint->requiredPowerup)) ||
             (waypoint->jobCondition && !IsJobComplete(waypoint->jobCondition)))
             showAlpha = labelAlpha = 0.0f;
         break;
     case 1:
-        if (!D_003DD490.currentJob)
+        if (!g_sw.currentJob)
             showAlpha = labelAlpha = 0.0f;
         break;
     }

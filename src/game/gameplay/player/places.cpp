@@ -34,12 +34,10 @@ struct B { char pad[0x10C]; int unknown10C; };
 struct HIT { qword pos; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };
 typedef struct { float g, gFirst, gSecond; } CLQV;   /* 12-byte data object: basic.h's CLQ is 16 (its symbol size would change) */
 
-extern SW D_003DD490;
 float D_002BF940 = 1.25f;   /* places' .data starts here (address order) */
 extern const float D_002A66A0;   /* defined below where the ELF has it (.rodata order) */
 struct VECTORQ { float x, y, z; } __attribute__((aligned(16)));   /* a quadword-aligned VECTORV (vec.h's layout) */
 extern VECTORV D_002A2DD0;
-extern CLOCK D_002DDED0;
 extern STEPPLAYER *D_002E1E40, *D_002DD5BC, *D_002F7900;
 extern "C" {
 qword TransformXfPos(void *a, void *b, qword q);
@@ -130,7 +128,7 @@ extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
     if (!q) {
         ChooseJtSafePlace(&jt->jtplaces, &e);
         q = &e;
-        if (jt == GetHeroPo(&D_003DD490)) {
+        if (jt == GetHeroPo(&g_sw)) {
             qword r = GetJtPlacePosition(jt, &e, 0.0f);
             float g = ComputeMaxBallisticTime(VuSub(r, *(qword *)jt->positionXf->worldMatrix.mat[3]), *(qword *)&jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
@@ -145,11 +143,11 @@ extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
                     if (IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0x13) || IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0xB) || IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0xD) ||
                         IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0x27) || IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0xC) || IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0x22) ||
                         IsBasicDerivedFrom__FP5BASIC3CID(e.object, 0x26)) {
-                        UpdateSoBusy(&D_003DD490, e.object);
+                        UpdateSoBusy(&g_sw, e.object);
                         ChooseJtLanding(&jt->jtair, e.object);
                     }
                 }
-                StartScreenFade(D_003DD490.pcid116Fade);
+                StartScreenFade(g_sw.pcid116Fade);
                 return;
             }
         }
@@ -171,7 +169,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, JTPLACE *q, int n, STEP **apo)
         U a, b;
         HIT hit;
         int i0, i1;
-        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)ShouldKeepSoPair, places->player->physicsTree, &i0, &i1, D_002BF944);
+        IntersectSwBoundingSphere(&g_sw, pos, (void *)ShouldKeepSoPair, places->player->physicsTree, &i0, &i1, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;
@@ -224,7 +222,7 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, JTPLACE *pe)
     int c, i;
     float best;
     JTPLACE *e;
-    c = FindSwObjectsByClass(&D_003DD490, 0x505, 0x33, 0, 0x10, apv);
+    c = FindSwObjectsByClass(&g_sw, 0x505, 0x33, 0, 0x10, apv);
     best = D_002A66A0;
     for (i = 0; i < places->cplace; i++) {
         float g;
@@ -301,7 +299,7 @@ extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
     places->aplace[0].object = ((LO *(*)(void *))s->vt[6].pfn)((char *)s + s->vt[6].d);
     e->grabSpot = (GRABSPOT *)s;
     e->grabSpotParam = g;
-    e->rememberedTime = D_002DDED0.time;
+    e->rememberedTime = g_clock.time;
     places->aplace[0].object->clearsPlacesOnRemove = 1;
 }
 
@@ -345,7 +343,7 @@ extern "C" void AddJtPlaceAtPosition(JTPLACES *places, SOPART *s, qword q)
         s->hasPlaces = 1;
     }
     places->aplace[0].position = q;
-    e->rememberedTime = D_002DDED0.time;
+    e->rememberedTime = g_clock.time;
 }
 
 // Compacts the place table, dropping entries that reference the given object.
