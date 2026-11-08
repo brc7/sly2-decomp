@@ -954,7 +954,7 @@ void ApplyBentleyStateStepParams(BENTLEY *bentley) {
     case BENTLEY_AIR: r = GetJtAirAdjustRecord(&bentley->jtair, &n); break;
     default: r = 0; break;
     }
-    if (!r) r = bentley->unknown268;
+    if (!r) r = bentley->ppartPhysMesh;
     SetStepPhys(bentley, r, n);
 }
 } } // namespace M_func_00135D80

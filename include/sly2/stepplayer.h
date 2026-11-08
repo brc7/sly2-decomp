@@ -329,7 +329,7 @@ struct JTAIR
       struct LO *unknownBC;   /* possibly ignoredHangObject (low-confidence guess: set from phndHang / JT+0x1F18 when leaving a hang; air/grab skip that object) */
       SOPART *precAir;   /* +0xC0 STEP parameter record in the air (GetJtAirAdjustRecord) */
       SOPART *precAirWallRun;   /* +0xC4 the record in air state 0x11 (wall run, inferred) */
-      struct JTEDGE *edge;    /* edge being caught */
+      SOPART *edge;    /* +0xC8 the part whose edge is being caught (XPD::ppart of the edge contact; air.cpp) */
       undefined4 unknownCC;
       qword edgePosition; /* edge position */
       qword normalEdge;   /* edge normal */

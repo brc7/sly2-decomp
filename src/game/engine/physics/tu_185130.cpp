@@ -599,7 +599,7 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
  qword len=VuSqrtX(VuDot(difference,difference));
  qword fallback=QwScaleX(normal.q,VuFloat(-1.0f));register qword direction asm("vf2"); // the one register pin: direction vf2
  if(QwordX(len)<0.0001f)direction=fallback;else direction=VuDivByX(difference,len);
- qword target=QwAddScaled(closest.q,direction,VuFloat(-((float *)&jt->aposMeshProbe[0])[0]));
+ qword target=QwAddScaled(closest.q,direction,VuFloat(-jt->avecMeshProbe[0].x));
  M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,D_002A2DC0.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
  for(i=0;i<3;i++)FindMeshClosestPoint(((MESH *)jt->unknown1F18),QwTransformPos(&frame,jt->aposMeshProbe[i]),&jt->surflocMesh,0,&contacts[i].q,0);

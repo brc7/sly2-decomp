@@ -85,12 +85,6 @@ void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverrid
 
 extern "C" int GetStepplayerMp(STEPPLAYER *pstepplayer);
 
-struct JTEDGE
-{
-      struct XF *pxf;
-      LO *plo;
-};
-
 extern "C" void ChargeGadgetMp(STEPPLAYER *pstepplayer, int idGadget);
 
 struct XPD
@@ -143,26 +137,22 @@ void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 //////// 0x195950 InitJtAir
 namespace M_InitJtAir { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct T {
-    int x0, x4; int p8[5]; int x1c; char pad[0xF0-0x20]; qword xf0; char pad2[0x108-0x100];
-    float x108, x10c, x110, x114, x118, x11c; char pad3[0x164-0x120]; float x164;
-} T;
 extern qword D_002BF740;
 // Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
 // tuning.
-void InitJtAir(T *t, int a)
+void InitJtAir(JTAIR *t, STEPPLAYER *a)
 {
-    t->x0 = a;
-    t->x4 = -1;
-    t->x1c = -1;
-    t->xf0 = D_002BF740;
-    t->x108 = -60.0f;
-    t->x10c = -50.0f;
-    t->x110 = 75.0f;
-    t->x114 = 50.0f;
-    t->x11c = 75.0f;
-    t->x118 = -150.0f;
-    t->x164 = 1.0f;
+    t->player = a;
+    t->jumpKind = -1;
+    t->state = -1;
+    t->dposEdge = D_002BF740;
+    t->unknown108 = -60.0f;
+    t->unknown10C = -50.0f;
+    t->unknown110 = 75.0f;
+    t->unknown114 = 50.0f;
+    t->unknown11C = 75.0f;
+    t->unknown118 = -150.0f;
+    t->unknown164 = 1.0f;
 }
 } } // namespace M_InitJtAir
 
@@ -1503,16 +1493,14 @@ void StartJtAirTurn(JTAIR *p)
 
 //////// 0x1974C8 GetFirstNonNullEntry
 namespace M_func_001974C8 { extern "C" {
-typedef struct N { int v; struct N *next; } N;
-typedef struct O { char pad[0x64]; N *p; } O;
-// Walks a linked list and returns the first non-null payload.
-int GetFirstNonNullEntry(O *o)
+// Returns the first contact of the tree's contact lists (the first XPLIST with a contact).
+XP *GetFirstNonNullEntry(SOTREE *o)
 {
-    N *p = o->p;
+    XPLIST *p = o->pxplistFirst;
     while (p) {
-        if (p->v)
-            return p->v;
-        p = p->next;
+        if (p->pxpFirst)
+            return p->pxpFirst;
+        p = p->pxplistNext;
     }
     return 0;
 }
@@ -1741,8 +1729,8 @@ void UpdateJtAirInput(JTAIR *air)
                     if (xp != 0)
                     {
                         XPD *pxpd = &xp->axpd[1 - ixpd];
-                        air->edge = (JTEDGE *)pxpd->ppart;
-                        air->edgePosition = ConvertXfPos(0, air->edge->pxf, pxpd->pos);
+                        air->edge = pxpd->ppart;
+                        air->edgePosition = ConvertXfPos(0, air->edge->transform, pxpd->pos);
                         air->unknown100 = xp->xpk;
                         air->unknown104 = (ixpd == 0) ? (int)xp->pv1 : (int)xp->pv0;
                         air->normalEdge = *(qword *)&vec;
@@ -1759,15 +1747,15 @@ void UpdateJtAirInput(JTAIR *air)
                     SetJtAirJump(air, 3, 0, 0);
                     break;
                 }
-                if (((SO *)air->edge->plo)->physicsTree == 0)
+                if (air->edge->owner->physicsTree == 0)
                     SetJtAirState(air, 4, 0);
                 else
                 {
                     STEPPLAYER *player = air->player;
                     player->unknown1010 = PosSmooth(player->unknown1010, D_002A2DD0, D_002DDED0.deltaTime, &D_002BF820, 0);
-                    *(qword *)&vec = ConvertXfPos(air->edge->pxf, 0, air->edgePosition);
+                    *(qword *)&vec = ConvertXfPos(air->edge->transform, 0, air->edgePosition);
                     if (D_002DDED0.time - air->stateStartTime > 0.03f &&
-                        !FCheckJtEdgeGrab(air, (SOPART *)air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
+                        !FCheckJtEdgeGrab(air, air->edge, *(qword *)&vec, air->unknown100, (void *)air->unknown104, &air->normalEdge))
                     {
                         SetJtAirState(air, 4, 0);
                         break;
@@ -2382,151 +2370,69 @@ namespace M_func_001991A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
-struct O { char pad[0xC]; VTE *vt; };
-struct C8 { int x0; int x4; };
-struct P {
-    struct O *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; struct C8 *xc8; char pad3[4];
-    qword xd0; qword xe0; qword xf0;
-};
 extern qword D_002A2DB0;
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
-qword TransformXfPos(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
-void AddJtWallRunXps(struct P *p)
+void AddJtWallRunXps(JTAIR *p)
 {
-    if (p->x1c != 0x11)
+    if (p->state != 0x11)
         return;
     U q, r;
     M3 m;
     U s;
     qword neg, v;
-    q.q = GetLoWorldPos(p->x0);
-    r.q = TransformXfPos(p->xc8->x0, 0, p->xd0);
+    q.q = GetLoWorldPos(p->player);
+    r.q = ConvertXfPos(p->edge->transform, 0, p->edgePosition);
     qword sq;
     __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
     s.q = sq;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->xe0), "j"(s.q));
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->normalEdge), "j"(s.q));
     m.r[0] = neg;
     GetNormalVectors(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(v) : "j"(p->xf0), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+            : "=j"(v) : "j"(p->dposEdge), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     qword rq;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(rq) : "j"(r.q), "j"(v));
     r.q = rq;
-    ((void (*)(void *, int, int, qword, qword, qword))p->x0->vt[82].pfn)((char *)p->x0 + p->x0->vt[82].d, 7, p->xc8->x4, r.q, D_002A2DB0, q.q);
+    p->player->AddAxisXps(7, p->edge->owner, r.q, D_002A2DB0, q.q);
 }
 } } // namespace M_func_001991A0
 
 //////// 0x199298 FreeJtWallRunXps
 namespace M_func_00199298 {
-struct Y {
-    int a0, a4, a8;
-    virtual void v1();
-    virtual void v2();
-    virtual void v3();
-    virtual void v4();
-    virtual void v5();
-    virtual void v6();
-    virtual void v7();
-    virtual void v8();
-    virtual void v9();
-    virtual void v10();
-    virtual void v11();
-    virtual void v12();
-    virtual void v13();
-    virtual void v14();
-    virtual void v15();
-    virtual void v16();
-    virtual void v17();
-    virtual void v18();
-    virtual void v19();
-    virtual void v20();
-    virtual void v21();
-    virtual void v22();
-    virtual void v23();
-    virtual void v24();
-    virtual void v25();
-    virtual void v26();
-    virtual void v27();
-    virtual void v28();
-    virtual void v29();
-    virtual void v30();
-    virtual void v31();
-    virtual void v32();
-    virtual void v33();
-    virtual void v34();
-    virtual void v35();
-    virtual void v36();
-    virtual void v37();
-    virtual void v38();
-    virtual void v39();
-    virtual void v40();
-    virtual void v41();
-    virtual void v42();
-    virtual void v43();
-    virtual void v44();
-    virtual void v45();
-    virtual void v46();
-    virtual void v47();
-    virtual void v48();
-    virtual void v49();
-    virtual void v50();
-    virtual void v51();
-    virtual void v52();
-    virtual void v53();
-    virtual void v54();
-    virtual void v55();
-    virtual void v56();
-    virtual void v57();
-    virtual void v58();
-    virtual void v59();
-    virtual void v60();
-    virtual void v61();
-    virtual int F();
-};
-struct SL { Y *x8; char pad[0x3C]; };
-struct X { int x0; int x4; SL a[2]; char pad[0x9C-0x88]; int x9c; char pad2[0xAC-0xA0]; X *xac; };
-struct L { X *x0; L *x4; X **x8; };
-struct EC { char pad[0x60]; Y *x60; L *x64; };
-struct C4 { char pad[0xEC]; EC *xec; };
-struct C8 { int x0; C4 *x4; };
-struct P0 { char pad[0xEC]; EC *xec; };
-struct P { P0 *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; C8 *xc8; };
-struct G;
-extern "C" { extern G D_003DD490; }
-extern "C" void FreeSwXpList__FP2SWP2XP(G *g, X *x);
+extern "C" void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 // During a wall run (kind 0x11) frees the wall-run contact list.
-extern "C" void FreeJtWallRunXps(P *p)
+extern "C" void FreeJtWallRunXps(JTAIR *p)
 {
-    EC *ec;
-    if (p->x1c != 0x11 || !(ec = p->xc8->x4->xec))
+    SOTREE *ptree;
+    if (p->state != 0x11 || !(ptree = p->edge->owner->physicsTree))
         return;
-    X *head = 0;
-    Y *y = ec->x60;
-    int f = y->F();
-    for (L *l = p->x0->xec->x64; l; l = l->x4) {
-        X **pp = &l->x0;
-        X *x;
+    XP *head = 0;
+    SO *y = ptree->root;
+    int f = y->IsFixed();
+    for (XPLIST *l = p->player->physicsTree->pxplistFirst; l; l = l->pxplistNext) {
+        XP **pp = &l->pxpFirst;
+        XP *x;
         while ((x = *pp)) {
-            Y *a;
-            if (x->x9c == 11) {
-                pp = &x->xac;
+            SO *a;
+            if (x->xpk == 11) {
+                pp = &x->pxpNext;
                 continue;
             }
             {
-                int i = p->x0 != (P0 *)x->a[0].x8;
-                a = x->a[1 - i].x8;
+                int i = p->player != x->axpd[0].psoRoot;
+                a = x->axpd[1 - i].psoRoot;
             }
-            if (f ? a->F() : a == y) {
-                *pp = x->xac;
-                x->xac = head;
+            if (f ? a->IsFixed() : a == y) {
+                *pp = x->pxpNext;
+                x->pxpNext = head;
                 head = x;
             } else
-                pp = &x->xac;
+                pp = &x->pxpNext;
         }
-        *l->x8 = l->x0;
+        *l->ppxpHead = l->pxpFirst;
     }
     FreeSwXpList__FP2SWP2XP(&D_003DD490, head);
 }
@@ -2538,10 +2444,6 @@ namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR {
 typedef int qword __attribute__((mode(TI)));
 struct JT;
 union VECTOR {qword q;float f[4];int n[4];};
-struct FACE {qword normal;int pad[4];};
-struct GEO {int n;VECTOR *points;int k;FACE *faces;};
-struct SO {char pad[0x90];GEO geom;};
-struct EDGE {unsigned short a,b,faceA,faceB;};
 extern "C" { extern qword D_002A2DA0; }
 // Normalize *v in place, or use fallback when its length is too small.
 static inline void Normal(VECTOR*v,qword fallback){qword a=v->q;register qword d __asm__("vf1");qword one;float g;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));if(g<0.0001f){a=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q":"=j"(a):"j"(d),"0"(a));}v->q=a;}
@@ -2552,25 +2454,26 @@ static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni 
 // For an edge between a walkable face (normal z > 0.7) and a wall face (normal z < 0.55) computes the grab direction;
 // returns nonzero if the edge is a ledge Sly can grab. (Sly 1-derived name: FCheckJtSingleEdge.)
 /* Its VECTOR (a qword/float/int union) is not basic.h's, so it keeps its symbol as a C-linkage definition. */
-extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SO *so, EDGE *e, VECTOR *out)
+/* The Sly 1 symbol says SO; in Sly 2 the shape is the part (SOPART::meshWorld). */
+extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SOPART *so, EDGE *e, VECTOR *out)
 {
-    GEO *geom = &so->geom;
-    FACE *chosen;
+    GEOM *geom = &so->meshWorld;
+    SURF *chosen;
     VECTOR d, r, k;
-    FACE *a = &geom->faces[e->faceA];
-    FACE *b = &geom->faces[e->faceB];
-    if (((float *)&a->normal)[2] > 0.7f && ((float *)&b->normal)[2] < 0.55f)
+    SURF *a = &geom->surfaces[e->aisurf[0]];
+    SURF *b = &geom->surfaces[e->aisurf[1]];
+    if (a->normal.z > 0.7f && b->normal.z < 0.55f)
         chosen = b;
-    else if (((float *)&a->normal)[2] < 0.55f && ((float *)&b->normal)[2] > 0.7f)
+    else if (a->normal.z < 0.55f && b->normal.z > 0.7f)
         chosen = a;
     else
         return 0;
-    d.q = VuSub(geom->points[e->b].q, geom->points[e->a].q);
+    d.q = VuSub(((VECTOR *)geom->positions)[e->aipos[1]].q, ((VECTOR *)geom->positions)[e->aipos[0]].q);
     r.n[2] = 0;
     r.f[1] = d.f[0];
     r.f[0] = -d.f[1];
     Normal(&r, D_002A2DA0);
-    if (Dot(r.q, chosen->normal) < 0.0f)
+    if (Dot(r.q, *(qword *)&chosen->normal) < 0.0f)
         r.q = Scale(r.q, -1.0f, k);
     *out = r;
     return 1;
@@ -2581,10 +2484,9 @@ extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SO *so, ED
 namespace M_func_001995D8 {
 /* Build paired arc samples and transform them into world space. */
 typedef int qword __attribute__((mode(TI)));
-// 3x3 matrix of U rows with copy constructor and assignment.
+// 3x3 matrix of QWROW rows with copy constructor and assignment.
 struct M3 {QWROW r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
 struct M4 {QWROW r[4];};
-struct P {char pad[0x108];float ax,ay,az,bx,by,bz;};
 extern "C" { extern qword D_002A2DC0; }
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 // Pack x, y, z into a 128-bit value.
@@ -2597,17 +2499,17 @@ static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz AC
 static inline void Set(QWROW*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
 // Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
 // ledge's surroundings.
-extern "C" void BuildJtEdgeProbeArc(P *p, const M4 *world, int count, QWROW *out)
+extern "C" void BuildJtEdgeProbeArc(JTAIR *p, const M4 *world, int count, QWROW *out)
 {
     M3 m;
     QWROW *cursor = out, *v;
-    Set(cursor++, p->bx, p->bz);
-    Set(cursor++, p->bx, p->by);
-    Set(cursor++, p->ax, p->az);
+    Set(cursor++, p->unknown114, p->unknown11C);
+    Set(cursor++, p->unknown114, p->unknown118);
+    Set(cursor++, p->unknown108, p->unknown110);
     v = cursor++;
-    Set(v, p->bx, p->bz);
-    float x = p->ax, y = v->f[1];
-    qword a = Pack(x, y, p->az), b = Pack(x, y, p->ay);
+    Set(v, p->unknown114, p->unknown11C);
+    float x = p->unknown108, y = v->f[1];
+    qword a = Pack(x, y, p->unknown110), b = Pack(x, y, p->unknown10C);
     int i;
     for (i = 8; i >= 0; i--) {
         m = BuildAxisAngleRotationMatrix(D_002A2DC0, (i - 4) * 0.261799395084381103515625f);
@@ -2645,38 +2547,30 @@ struct M4 { M3 m; U pos; };
 struct PLANE { qword q; };
 // HIT is cleared 0x60 bytes at a time by the collision routines; the original frame reserves 0x70 for it.
 struct HIT { U point[2]; U plane[2]; float parameter[2]; int kind; PLANE *face[2]; int unk54[5]; };
-struct BSP;
-struct S0 { char pad[0x10]; long x10; char pad2[0x60 - 0x18]; S0 *x60; char pad64[0x10]; BSP *tree; };
-struct EC2 { char pad[0x34]; struct S0 *x34; char pad2[0x70 - 0x38]; long x70; };
-struct C { char pad[0xEC]; struct EC2 *xec; };
-struct L { int x0; struct L *x4; int x8; struct C *xc; };
-struct EC { char pad[0x64]; struct L *x64; };
-struct O { char pad[0xEC]; struct EC *xec; };
-struct P { struct O *x0; };
 extern "C" { extern qword D_002A2DC0; }
 extern "C" { extern qword D_002A2DB0; }
 extern "C" {
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 qword *VECTOR_opAssign(qword *pq, qword q);
-void BuildJtEdgeProbeArc(struct P *p, const M4 *pm, int n, U *apt);
-int ClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
+void BuildJtEdgeProbeArc(JTAIR *p, const M4 *pm, int n, U *apt);
+int ClipEdgeToObject(SOPART *s, qword a, qword b, int n, HIT *ph);
 }
 
 // Clip the segment (a, b) against the object; returns the hit count and fills h.
-static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *h)
+static inline int HitSegment(SOPART *s, const qword *a, const qword *b, HIT *h)
 {
     return ClipEdgeToObject(s, *a, *b, 1, h);
 }
 
 // Sweeps 11 probe segments around the edge point against every layer's shapes; true if at least two hit (a valid
 // ledge normal).
-extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
+extern "C" int IsJtEdgeNormalValid(JTAIR *p, qword q1, qword q2)
 {
     M3 m;
     M4 m4;
     qword apt[22];
     HIT hit;
-    struct L *l;
+    XPLIST *l;
     int c = 0;
     m.r[0].q = q2;
     GetNormalVectors(q2, D_002A2DC0, D_002A2DB0, &m.r[1].q);
@@ -2686,14 +2580,14 @@ extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
     m4.m.r[0].i[3] = m4.m.r[1].i[3] = m4.m.r[2].i[3] = 0;
     pm->pos.f[3] = 1.0f;
     BuildJtEdgeProbeArc(p, &m4, 22, (U *)apt);
-    for (l = p->x0->xec->x64; l; l = l->x4) {
+    for (l = p->player->physicsTree->pxplistFirst; l; l = l->pxplistNext) {
         int i;
-        if (l->xc->xec->x70 & 4)
+        if (l->psoOther->physicsTree->skipsUpdate)
             continue;
         for (i = 0; i < sizeof apt / sizeof *apt; i += 2) {
-            struct S0 *s;
-            for (s = l->xc->xec->x34; s; s = s->x60) {
-                if (s->x10 & (1L << 48))
+            SOPART *s;
+            for (s = (SOPART *)l->psoOther->physicsTree->parts.head; s; s = (SOPART *)s->dle.next) {
+                if (s->unknownFlag10A)
                     continue;
                 if (HitSegment(s, &apt[i], &apt[i + 1], &hit) <= 0)
                     continue;
@@ -2709,10 +2603,6 @@ extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
     return c >= 2;
 }
 
-typedef char guard_S0_x10[(unsigned)&((S0 *)0)->x10 == 16 ? 1 : -1];
-typedef char guard_S0_x60[(unsigned)&((S0 *)0)->x60 == 96 ? 1 : -1];
-typedef char guard_EC2_x34[(unsigned)&((EC2 *)0)->x34 == 52 ? 1 : -1];
-typedef char guard_EC2_x70[(unsigned)&((EC2 *)0)->x70 == 112 ? 1 : -1];
 typedef char guard_M4_pos[(unsigned)&((M4 *)0)->pos == 48 ? 1 : -1];
 typedef char guard_HIT_param[(unsigned)&((HIT *)0)->parameter == 64 ? 1 : -1];
 typedef char guard_size_HIT[sizeof(HIT) == 112 ? 1 : -1];
@@ -2731,22 +2621,13 @@ namespace M_func_001999D0 {
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
-struct EDGE;
-struct NODE;
-struct FACE { QWROW plane; EDGE *first, *second; int flags; };
-struct EDGE { ushort vertices[2], face, other; EDGE *next, *nextOther; };
-struct GEOMETRY { char pad0[4]; QWROW *points; char pad8[4]; FACE *faces; };
-struct QUERY { int pad0, count, pad8; NODE *tree; };
-struct SHAPE { char pad0[0x68]; QUERY query; char pad78[0x18]; GEOMETRY geometry; };
-struct ACTOR { char pad0[0x258]; SHAPE *shape; };
-struct JT { ACTOR *actor; };
-struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; FACE *firstFace, *lastFace; };
+struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; SURF *firstFace, *lastFace; };
 extern "C" {
 extern QWROW D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
-int CollectEdgesAtGeomPoint(GEOMETRY *, QUERY *, int, int, EDGE **);
-int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, QWROW *);   // FCheckJtSingleEdge
-int func_00118668(NODE *, int, qword, qword, int, SPAN *);
-int IsJtEdgeNormalValid(JT *, qword, qword);
+int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **);
+int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JTAIR *, SOPART *, EDGE *, QWROW *);   // FCheckJtSingleEdge
+int func_00118668(BSP *, int, qword, qword, int, SPAN *);
+int IsJtEdgeNormalValid(JTAIR *, qword, qword);
 }
 
 // Return a + b.
@@ -2768,7 +2649,7 @@ static inline qword Normalize(qword v, qword fallback)
 
 // Tests a contact against a shape feature: for a vertex, sums IsJtSingleEdgeGrabbable over the edges meeting there
 // (at most 64) plus a BSP clip test; for an edge tests it directly. Returns nonzero with the grab normal.
-extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, void *info, QWROW *out)
+extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind, void *info, QWROW *out)
 {
     switch (kind) {
     case 1: {
@@ -2776,8 +2657,8 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         QWROW direction;
         int found = 0;
         qword sum = D_002A2DD0.q;
-        GEOMETRY *geometry = &shape->geometry;
-        int count = CollectEdgesAtGeomPoint(geometry, &shape->query, (QWROW *)info - geometry->points, 64, edges);
+        GEOM *geometry = &shape->meshWorld;
+        int count = CollectEdgesAtGeomPoint(geometry, &shape->bspc, (QWROW *)info - (QWROW *)geometry->positions, 64, edges);
         for (int i = 0; i < count; i++) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edges[i], &direction)) {
                 found = 1;
@@ -2794,28 +2675,28 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
             return 0;
         break;
     case 2: {
-        FACE *face = (FACE *)info;
-        if (face->plane.f[2] < 0.7f)
+        SURF *face = (SURF *)info;
+        if (face->normal.z < 0.7f)
             return 0;
         int found = 0;
         qword sum = D_002A2DD0.q;
         QWROW direction;
         SPAN spans[2];
-        for (EDGE *edge = face->first; edge; edge = edge->next) {
+        for (EDGE *edge = face->pedge; edge; edge = edge->pedgeNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
-                QWROW *points = shape->geometry.points;
-                if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
-                                  points[edge->vertices[1]].q, 2, spans) > 0) {
+                QWROW *points = (QWROW *)shape->meshWorld.positions;
+                if (func_00118668(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                                  points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
                 }
             }
         }
-        for (EDGE *edge = face->second; edge; edge = edge->nextOther) {
+        for (EDGE *edge = face->pedgeOther; edge; edge = edge->pedgeOtherNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
-                QWROW *points = shape->geometry.points;
-                if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
-                                  points[edge->vertices[1]].q, 2, spans) > 0) {
+                QWROW *points = (QWROW *)shape->meshWorld.positions;
+                if (func_00118668(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                                  points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
                 }
@@ -3192,14 +3073,11 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
 //////// 0x19A400 SolveJtJumpTimeToTarget
 namespace M_FTimeJtJumpToTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct C { char pad[0x88]; float g88; };
-struct B { char pad[0xE8]; struct C *pc; };
-struct S { struct B *pb; };
 int SolveQuadratic__FfffPf(float, float, float, float *);
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
-int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
+int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
-    int n = SolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
+    int n = SolveQuadratic__FfffPf(p->player->physics->gravity.z * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
     if (n <= 0) return 0;
     {
         float g = ag[n - 1];
@@ -3645,10 +3523,7 @@ namespace M_func_0019AC88 { extern "C" {
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
-struct X { char pad[0x80]; qword v80; };
-struct O : LO { char pad[0xE8 - 0x50]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
-struct A { struct O *p; };
-struct P { struct A *a; void *p4; int pad[2]; qword v10; };
+struct P { JTAIR *a; void *p4; int pad[2]; qword v10; };   /* the callback context */
 qword GetLoWorldPos(void *p);
 int PredictMeshContact(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
@@ -3669,14 +3544,14 @@ float MeasureJumpAlongPath(struct P *p, float t)
 {
     U a, b, c, d, e;
     qword pos, vel;
-    struct O *o;
+    JT *o;
     void *pv;
     float g, h;
     pv = p->p4;
-    o = p->a->p;
+    o = (JT *)p->a->player;
     pos = GetLoWorldPos(o);
     vel = p->v10;
-    PredictMeshContact(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
+    PredictMeshContact(pv, pos, vel, *(qword *)&o->physics->gravity, o->avecMeshProbe[0].x, t, &a.q, &b.q, &c.q);
     EvaluateBezierPos(t, 0.0f, 1.0f, pos, vel, b.q, c.q, 0, 0, &d.q);
     g = Len(d.q);
     EvaluateBezierPos(t, t, 1.0f, pos, vel, b.q, c.q, 0, 0, &e.q);
@@ -3763,17 +3638,14 @@ extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 
 //////// 0x19B0A8 FilterJtObstruction
 namespace M_func_0019B0A8 { extern "C" {
-struct SO { char pad[0x70]; long fl; };
-struct A { char pad[0xEC]; struct SO *pso; };
-struct X { int a; struct A *pa; int b, c; long fl; };
-struct L { int c; struct SO **a; };
+struct L { int c; SOTREE **a; };   /* the trees to ignore */
 // Obstruction filter: ignores flagged contacts, objects with flag 4 and objects in an ignore list.
-int FilterJtObstruction(struct L *l, struct X *x) {
-    struct SO *so;
+int FilterJtObstruction(struct L *l, SOPART *x) {
+    SOTREE *so;
     int i;
-    if (x->fl & (1L << 48)) return 0;
-    so = x->pa->pso;
-    if (so->fl & 4) return 0;
+    if (x->unknownFlag10A) return 0;
+    so = x->owner->physicsTree;
+    if (so->skipsUpdate) return 0;
     for (i = 0; i < l->c; i++) if (so == l->a[i]) return 0;
     return 1;
 }

@@ -63,27 +63,24 @@ enum
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitStep { extern "C" {
-struct S : PO { char pad[0x200 - 0x180]; float unknownRatio200; char p1[0x10]; float stepDownHeight; char p2[8]; float baseRadius; char p3[0x3C]; float gravityRatio; int physPartOid; char p4[4]; char behaviorStack[4]; };
-void InitPo(struct S *p);
-void ScaleStepSpinSpeed(struct S *p, float g);
-void SetStepTargetHeading(struct S *p, float g);
-void InitBhvstk(void *pv, struct S *p);
+void InitPo(PO *ppo);
+void ScaleStepSpinSpeed(STEP *pstep, float r);
+void InitBhvstk(BHVSTK *pbhvstk, STEP *pstep);
 } } // namespace M_InitStep
 // Slot 7 (Init): InitPo, then walking defaults: gravity ratio 1, spin ratio 1 (ScaleStepSpinSpeed), target heading
 // 0, base radius 30, step-down height -50, and the behaviour stack.
 void STEP::Init()
 {
     using namespace M_InitStep;
-    M_InitStep::S *p = (M_InitStep::S *)this;
-    InitPo(p);
-    p->physPartOid = -1;
-    p->gravityRatio = 1.0f;
-    p->unknownRatio200 = 1.0f;
-    ScaleStepSpinSpeed(p, 1.0f);
-    SetStepTargetHeading(p, 0.0f);
-    p->baseRadius = 30.0f;
-    p->stepDownHeight = -50.0f;
-    InitBhvstk(p->behaviorStack, p);
+    InitPo(this);
+    oidPhys = -1;
+    unknown260 = 1.0f;
+    unknown200 = 1.0f;
+    ScaleStepSpinSpeed(this, 1.0f);
+    SetStepTargetHeading(this, 0.0f);
+    baseRadius = 30.0f;
+    stepDownHeight = -50.0f;
+    InitBhvstk(&behaviors, this);
 }
 
 // Slot 14 (LoadFromBrx): LoadPoFromBrx, caches the base position in parent space (+0x240) and ensures the physics
@@ -104,31 +101,28 @@ extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostStepLoad { extern "C" {
-struct S : LO { char pad[0x58 - 0x50]; int childOid0; int childOid1; char pad2[0x294 - 0x60]; int sampledShape; };
-struct O : PO { char pad[0x264 - 0x180]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
-void PostSoLoad(struct O *p);
-int NewSampledShape(int a, int b);
-void SetXfRole(struct O *p, int n, int f);
-void *FindSoPart(struct O *p, int oid);
-void BuildStepPhysPart(struct O *p, void *pv);
-void HideSoPart(struct O *p, void *pv);
-void PostBhvstkLoad(void *pv);
-// Slot 15 (PostLoad): PostSoLoad, allocates the step's runtime block, attaches its two child objects by oid and
-// builds the collision ("phys") part from the mesh part named by oid +0x264 (BuildStepPhysPart).
-void PostStepLoad(struct O *step)
+void PostSoLoad(SO *pso);
+void *NewSampledShape(int a, int b);
+void SetXfRole(SO *pso, XF *pxf, int f);
+void BuildStepPhysPart(STEP *pstep, SOPART *ppart);
+void HideSoPart(SO *pso, SOPART *ppart);
+void PostBhvstkLoad(BHVSTK *pbhvstk);
+// Slot 15 (PostLoad): PostSoLoad, allocates the step's sampled shape, gives its two child transforms role 1 and
+// builds the collision ("phys") part from the mesh part named by oidPhys (BuildStepPhysPart).
+void PostStepLoad(STEP *step)
 {
     PostSoLoad(step);
-    step->sampledShape = NewSampledShape(0x2C9, 0x10);
-    SetXfRole(step, ((struct S *)step)->childOid0, 1);
-    SetXfRole(step, ((struct S *)step)->childOid1, 1);
-    if (step->oid != -1) {
-        step->ownPart = FindSoPart(step, step->oid);
-        if (step->ownPart) {
-            BuildStepPhysPart(step, step->ownPart);
-            HideSoPart(step, step->ownPart);
+    step->unknown294 = NewSampledShape(0x2C9, 0x10);
+    SetXfRole(step, step->positionXf, 1);
+    SetXfRole(step, step->rotationXf, 1);
+    if (step->oidPhys != -1) {
+        step->ppartPhysMesh = FindSoPart(step, (OID)step->oidPhys);
+        if (step->ppartPhysMesh) {
+            BuildStepPhysPart(step, step->ppartPhysMesh);
+            HideSoPart(step, step->ppartPhysMesh);
         }
     }
-    PostBhvstkLoad(step->behaviorStack);
+    PostBhvstkLoad(&step->behaviors);
 }
 } } // namespace M_PostStepLoad
 
@@ -228,34 +222,29 @@ extern "C" void SetStepPhysByOid(STEP *step, OID oid, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetStepPhys { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { qword a[4]; } MATRIX4;
-struct X { char pad[0x40]; MATRIX4 m; };
-struct B { qword *p; };
-struct M { struct X *px; char pad[0xC]; struct B *pb; char pad2[0x78 - 0x14]; int c; qword *av; };
-struct S : PO { char pad[0x258 - 0x180]; struct M *pm0; struct M *pm1; };
+typedef struct { qword a[4]; } MATRIX4;   /* qword rows (TU-private; XF's matrices are converted at the call) */
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void InvalidateSoAaox(struct S *p);
-// Sets the current phys part (+0x25C). With fForceSnap the body part (+0x258) takes its points at once (in the body
+// Sets the current phys part (psopartPhys). With fForceSnap the body part (psopartBody) takes its points at once (in the body
 // part's frame) and the per-point velocities are cleared.
-void SetStepPhys(struct S *step, struct M *pm, int f)
+void SetStepPhys(STEP *step, SOPART *pm, int f)
 {
-    step->pm1 = pm;
+    step->psopartPhys = pm;
     if (f) {
         MATRIX4 m, mm, mi;
         MATRIX4 *pmm = &mm;
         MATRIX4 *pmi = &mi;
         int i;
         qword *ps, *pd;
-        InvertMatrix4RigidP(&mi, &step->pm0->px->m);
-        __ml__FRC7MATRIX4T0(pmm, pmi, &step->pm1->px->m);
+        InvertMatrix4RigidP(&mi, (MATRIX4 *)&step->psopartBody->transform->worldMatrix);
+        __ml__FRC7MATRIX4T0(pmm, pmi, (MATRIX4 *)&step->psopartPhys->transform->worldMatrix);
         m = mm;
-        ps = step->pm1->av;
-        pd = step->pm0->av;
-        i = step->pm1->c;
+        ps = (qword *)step->psopartPhys->meshLocal.positions;
+        pd = (qword *)step->psopartBody->meshLocal.positions;
+        i = step->psopartPhys->meshLocal.numPositions;
         while (--i >= 0) {
             qword r;
             __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -264,7 +253,7 @@ void SetStepPhys(struct S *step, struct M *pm, int f)
             ps++;
             pd++;
         }
-        func_002333B4(step->pm0->pb->p, 0, step->pm0->c * 16);
+        func_002333B4(step->psopartBody->plvo->mpiposvLocal, 0, step->psopartBody->meshLocal.numPositions * 16);
         InvalidateSoAaox(step);
     }
 }
@@ -1021,17 +1010,15 @@ void FixStepAngularVelocity(struct S *step)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204D48 { extern "C" {
-typedef struct VECTOR { float x, y, z; } VECTOR;
 extern VECTOR D_002C3CB8;   /* the default spin smoothing */
-struct S : PO { char pad[0x1F0 - 0x180]; float g; VECTOR v; };
-// Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (+0x1F0).
-void ScaleStepSpinSpeed(struct S *step, float g)
+// Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (rSpin).
+void ScaleStepSpinSpeed(STEP *step, float g)
 {
-    step->v = D_002C3CB8;
-    step->v.x *= g;
-    step->v.y *= g;
-    step->v.z *= 1.0f / SqrtFloat(g);
-    step->g = g;
+    step->vSpin = D_002C3CB8;
+    step->vSpin.x *= g;
+    step->vSpin.y *= g;
+    step->vSpin.z *= 1.0f / SqrtFloat(g);
+    step->rSpin = g;
 }
 } } // namespace M_func_00204D48
 
@@ -1310,14 +1297,13 @@ extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 namespace M_func_00205478 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
-struct S : PO { char pad[0x2A0 - 0x180]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
-void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
-void ApplySmGetSma(void *x, struct S *ps, int a, int b, void **ppv);
-// Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (+0x2A0); the first reference
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps);
+void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps);
+void ApplySmGetSma(void *x, STEP *ps, int a, int b, void **ppv);
+// Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (acrefDialogSm); the first reference
 // ensures a state-machine instance (SMA) of the role's dialog SM. (inferred)
-void AddStepDialogSmRefs(struct S *step, int mask)
+void AddStepDialogSmRefs(STEP *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1325,7 +1311,7 @@ void AddStepDialogSmRefs(struct S *step, int mask)
         int bit = 1 << i;
         if (!f) bit = 0;
         if (mask & bit) {
-            if (++step->a[i] < 2) {
+            if (++step->acrefDialogSm[i] < 2) {
                 int id = GetDialogRoleSmOid(D_003DD040, i);
                 void *x = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                 if (x) {
@@ -1343,13 +1329,12 @@ void AddStepDialogSmRefs(struct S *step, int mask)
 namespace M_func_00205588 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
-struct S : PO { char pad[0x2A0 - 0x180]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
-void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps);
+void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps);
 void RetractSma(void *y);
 // Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted. (inferred)
-void RemoveStepDialogSmRefs(struct S *step, int mask)
+void RemoveStepDialogSmRefs(STEP *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1357,8 +1342,8 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
         int bit = 1 << i;
         if (!f) bit = 0;
         if (mask & bit) {
-            if (step->a[i] != 0) {
-                if (--step->a[i] <= 0) {
+            if (step->acrefDialogSm[i] != 0) {
+                if (--step->acrefDialogSm[i] <= 0) {
                     int id = GetDialogRoleSmOid(D_003DD040, i);
                     void *x = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                     if (x) {
@@ -1376,9 +1361,8 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00205670 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct P : PO { char pad[0x208 - 0x180]; int enabled;};
 extern qword D_002A2DC0;
-void BuildStepFootprint(struct P*,QWROW*);
+void BuildStepFootprint(STEP*,QWROW*);
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 // Return *a - *b (vf3).
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
@@ -1394,7 +1378,7 @@ else {register qword normalized __asm__("vf1");__asm__("vdiv $Q,$vf0w,%2x\n\tvwa
 __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
 // When the step has a floor contact, intersects the segment from->to with its two footprint triangles; returns 1
 // and the hit point on a hit.
-int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
+int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output)
 {
  QWROW tri[6],d,k;
  float distance,length;
@@ -1403,7 +1387,7 @@ int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
  register QWROW *third __asm__("s0");
  register QWROW *end __asm__("s2");
  register float *distanceOut __asm__("s3");
- if(!step->enabled)return 0;
+ if(!step->floorContact)return 0;
  BuildStepFootprint(step,tri);
  d.q=Sub(&to,&from);
  length=Normal(&d,&D_002A2DC0);
@@ -1425,26 +1409,25 @@ typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M3 { qword r[3]; };
-struct S : PO { char pad[0x218 - 0x180]; qword *origin; int pad21C; float radius; };
 extern "C" {
-M3 *GetLoWorldMatrix(S *p);
-qword GetLoWorldPos(S *p);
+M3 *GetLoWorldMatrix(LO *p);
+qword GetLoWorldPos(LO *p);
 extern int D_002C3CC8[2][3];
 }
 // Return v scaled by g.
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 // Load a vector into a VU0 register.
 static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) : "m"(*p)); return r; }
-// Builds the two footprint triangles: a diamond of radius +0x220 around the base point (+0x218), oriented by the
+// Builds the two footprint triangles: a diamond of radius baseRadius around the base point (*unknown218), oriented by the
 // world matrix.
-extern "C" void BuildStepFootprint(S *step, qword out[2][3])
+extern "C" void BuildStepFootprint(STEP *step, qword out[2][3])
 {
     qword point[5];
-    qword origin = *step->origin;
+    qword origin = *step->unknown218;
     qword right = GetLoWorldMatrix(step)->r[0];
     qword forward = LoadVf(&GetLoWorldMatrix(step)->r[1]);
     point[0] = GetLoWorldPos(step);
-    float radius = step->radius;
+    float radius = step->baseRadius;
     point[1] = VuAdd(origin, MulX(right, VU_FLOAT(radius)));
     point[2] = VuAdd(origin, MulX(forward, VU_FLOAT(radius)));
     point[3] = VuAdd(origin, MulX(right, VU_FLOAT(-radius)));

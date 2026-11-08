@@ -76,10 +76,10 @@ struct STEP : public PO
       XP *floorContact; /* contact with the floor (0 when airborne) */
       float unknown20C;
       float unknown210;
-      float unknown214;
+      float stepDownHeight;   /* +0x214 how far below the base the floor probe reaches (STEP::Init: -50) */
       qword *unknown218;
       qword *unknown21C;
-      float unknown220;
+      float baseRadius;   /* +0x220 radius of the base (floor contact) footprint (STEP::Init: 30) */
       undefined4 unknown224[3];
       qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
       union
@@ -93,14 +93,16 @@ struct STEP : public PO
       SOPART *psopartBody;   /* +0x258 the body part: its points follow the phys part (step.cpp SetStepPhys/UpdateStepPhys); its
                                 world mesh vertices are the hero's outline (tu_14A008 UpdateBhvRouteChase) */
       SOPART *psopartPhys;   /* +0x25C the current phys part (step.cpp SetStepPhys) */
-      float unknown260;   /* possibly massScale (low-confidence guess: SetSoMass(m * unknown260 / r)) */
-      int unknown264;
-      SOPART *unknown268;
+      float unknown260;   /* +0x260 the gravity ratio (SetStepGravityRatio stores it and rescales mass and gravity by its change;
+                             STEP::Init: 1) */
+      int oidPhys;   /* +0x264 oid of the mesh part the phys part is built from (-1 none; LoadJtFromBrx: 0xC7; PostStepLoad) */
+      SOPART *ppartPhysMesh;   /* +0x268 that mesh part (PostStepLoad: BuildStepPhysPart from it, then hidden) */
       BHVSTK behaviors; /* the behaviour stack */
       void *unknown294;
       int unknown298;
       undefined4 unknown29C;
-      int unknown2A0[6];
+      int acrefDialogSm[6];   /* +0x2A0 reference counts of the six dialog roles' state machines (AddStepDialogSmRefs /
+                                 RemoveStepDialogSmRefs: the first reference applies the role's SM, the last retracts it) */
     virtual void Init() __asm__("InitStep");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
