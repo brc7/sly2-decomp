@@ -1548,16 +1548,16 @@ extern "C" void MatchSoXf(SO *so, LO *q)
 
 // 0x1F4A80 SetSoXf
 namespace M_func_001F4A80 {
-union U; struct M4; struct A; struct P;
+struct M4; struct SOIsland;
 typedef int qword __attribute__((mode(TI)));
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {QWROW r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
-struct A { char pad[0x70]; qword pos; };
-struct P { char pad[0xC]; VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
-extern "C" void SetLoTransformFromXf(struct P *p, struct A *pa);
-extern "C" M4 *GetXfAngularVelocity(M4 *,A *,A *);
+/* SO with its vptr named: the slot 35 entry is loaded by hand (scheduled asm) */
+struct SOIsland { char pad[0xC]; VTE *pvt; char pad2[0xE8 - 0x10]; SOPHYS *physics; };
+extern "C" void SetLoTransformFromXf(struct SOIsland *p, XF *pa);
+extern "C" M4 *GetXfAngularVelocity(M4 *,XF *,XF *);
 // The object's angular-velocity matrix (GetXfAngularVelocity).
-static inline M4 BuildVelocity(A *owner) return result { GetXfAngularVelocity(&result,owner,0); }
+static inline M4 BuildVelocity(XF *owner) return result { GetXfAngularVelocity(&result,owner,0); }
 // Pack x, y, z into a 128-bit GPR value.
 static __inline__ qword Make(float x, float y, float z)
 {
@@ -1574,12 +1574,12 @@ static inline SETVECTOR ReadSetter(const VTE &entry){
  return function;
 }
 // Slot 39: sets the transform (SetXf) and derives linear and angular velocity from the XF rate matrix.
-extern "C" void SetSoXf(struct P *so, struct A *pa)
+extern "C" void SetSoXf(struct SOIsland *so, XF *pa)
 {
     M4 m;
     qword q;
     SetLoTransformFromXf(so, pa);
-    if (!so->pe) return;
+    if (!so->physics) return;
     { M4 t = BuildVelocity(pa); m = t; }
     VTE *vt=so->pvt;
     int delta=vt[35].d;
@@ -1587,7 +1587,7 @@ extern "C" void SetSoXf(struct P *so, struct A *pa)
     SETVECTOR setpos=ReadSetter(vt[35]);
     {
         register qword r __asm__("vf6");
-    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w" : "+j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(pa->pos));
+    __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w" : "+j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(pa->worldMatq.r[3].q));
     QWROW v; v.q = q;
     qword rr;__asm__("qmfc2.ni %0,%1":"=r"(rr):"j"(r));
     setpos((char*)so+delta,rr);
