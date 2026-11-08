@@ -997,25 +997,15 @@ void UpdateSoXfWorld(SO *so)
 
 // 0x1F3B28 SetSoGrfBit8
 namespace M_func_001F3B28 { extern "C" {
-struct P;
-typedef unsigned long ulong;
-
-struct P {
-    char pad[0x40];
-    int flagWord;
-    char pad2[0x148 - 0x44];
-    ulong flags;
-};
-
-int IsLoInWorld(struct P *);
-void AddLoToRenderTree(struct P *);
-void RemoveLoFromRenderTree(struct P *);
+int IsLoInWorld(SO *);
+void AddLoToRenderTree(SO *);
+void RemoveLoFromRenderTree(SO *);
 
 // Slot 21: sets or clears LO flag bit 8; enabling it registers objects marked with bit 35 that are in the world,
 // disabling unregisters them (meaning inferred).
-void SetSoGrfBit8(struct P *so, int enabled)
+void SetSoGrfBit8(SO *so, int enabled)
 {
-    register int word __asm__("a2") = so->flagWord;
+    register int word __asm__("a2") = so->unknown40;
     register int flags __asm__("v1") = word;
     register int firstTest __asm__("v0");
 
@@ -1037,10 +1027,10 @@ void SetSoGrfBit8(struct P *so, int enabled)
                     *(int *)tagged |= 8;
                 else {
                     register int value __asm__("v0") = word | 8;
-                    __asm__("sw %1,%0" : "=m"(so->flagWord) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->unknown40) : "r"(value));
                 }
             }
-            if ((so->flags & (1L << 35)) && IsLoInWorld(so))
+            if (so->unknownFlag148A && IsLoInWorld(so))
                 AddLoToRenderTree(so);
         } else {
             if (!has8)
@@ -1055,7 +1045,7 @@ void SetSoGrfBit8(struct P *so, int enabled)
                     *destination = value & mask;
                 } else {
                     register int value __asm__("v0") = word & ~8;
-                    __asm__("sw %1,%0" : "=m"(so->flagWord) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->unknown40) : "r"(value));
                 }
             }
             RemoveLoFromRenderTree(so);
