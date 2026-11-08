@@ -23,11 +23,9 @@ typedef struct MATRIX3 M3;
 /* mat.h's VECTOR (16-byte aligned, the stack locals depend on it); sly2/basic.h's is 12 bytes. */
 struct VECTORA { float x, y, z; } __attribute__((aligned(16)));
 union U{qword q;float f[4];int i[4];};
-/* g++ 2.95 vtable entry. */
-struct VE{short delta,pad;void*fn;};
 struct COMPONENT;struct EFFECT;
 /* The pipe as the climb reads it (pipe.cpp PIPE: a SHAPE). */
-struct PATH{char pad0[12];VE*vt;char pad10[0x18];unsigned long flags;char pad30[0xB4];int cyclic;char padE8[0xA8];void*focus;char pad194[8];int x19c;char pad1A0[0x30];int attachEffectId;int releaseEffectId;};
+struct PATH{char pad0[12];VTE*vt;char pad10[0x18];unsigned long flags;char pad30[0xB4];int cyclic;char padE8[0xA8];void*focus;char pad194[8];int x19c;char pad1A0[0x30];int attachEffectId;int releaseEffectId;};
 typedef char PATH_releaseEffectId_Offset[FIELD_OFFSET(PATH,releaseEffectId)==0x1D4?1:-1];
 struct SMPV{float maximum,minimum,duration;};struct LMV{float low,high;};
 struct WORK{U ahead,behind;union{U input;SMPV smooth;}reuse;LMV limit;};
@@ -132,9 +130,9 @@ extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
         /* SetAngularVelocity (slot 36) through the vtable by hand: the original loads the slot before computing the
            argument (a plain virtual call loads it after) */
         STEPPLAYER *o = pipe->player;
-        VE *vt = *(VE **)((char *)o + 0xC);
-        void (*call)(void *, qword) = (void (*)(void *, qword))vt[36].fn;
-        void *thisp = (char *)o + vt[36].delta;
+        VTE *vt = *(VTE **)((char *)o + 0xC);
+        void (*call)(void *, qword) = (void (*)(void *, qword))vt[36].pfn;
+        void *thisp = (char *)o + vt[36].d;
         call(thisp, Scale(vec.q, f / D_002DDED0.deltaTime));
     }
 }
@@ -420,7 +418,7 @@ extern "C" void RecordJtPipePlace(JTPIPE *pipe)
 extern "C" void SetJtPipeVectors(JTPIPE *s, qword a, qword b) { s->handPosition = a; s->unknown40 = b; }
 
 // Set the path's state (virtual slot 3).
-static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
+static inline void PathState(PATH*p,int state){VTE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.pfn)((char*)p+v.d,state,0,0,0,0);}
 // Move a 128-bit GPR value into a VU0 register.
 static inline qword Vector(qword q){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(q));return v;}
 // Direction from *a to *b and the axis pointer (second register variant).

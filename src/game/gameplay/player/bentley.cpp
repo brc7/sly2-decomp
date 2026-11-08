@@ -501,9 +501,8 @@ void UpdateBentley(BENTLEY *bentley)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetBentleyState { extern "C" {
-struct VTE { short d; short pad; void *pfn; };
 /* The held tossable (classes.h CID100: its slot 76 is not declared there). */
-struct VO { char pad[0xC]; struct VTE *vt; };
+struct VO { char pad[0xC]; VTE *vt; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetXfRole(BENTLEY *, XF *, int);
@@ -791,9 +790,8 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00135940 { extern "C" {
 typedef union { qword q; float f; } U;
-struct VT { short d; short pad; void *pfn; };
 /* Bentley as the register-pinned drag code reads him: the g++ vtable pointer at +0xC. */
-struct VOBJ { char pad[0xC]; struct VT *pvt; };
+struct VOBJ { char pad[0xC]; VTE *pvt; };
 extern float D_002BC990;
 void PresetSoAccel(BENTLEY *p);
 void PresetStepAccel(BENTLEY *p);
@@ -817,7 +815,7 @@ void PresetBentleyAccel(BENTLEY *bentley)
     case BENTLEY_PIPE: PresetJtAccelPipe(&bentley->jtpipe); break;
     case BENTLEY_GADGET:
         if (bentley->subState == 2) {
-            register struct VT *vt __asm__("$3") = ((VOBJ *)bentley)->pvt;
+            register VTE *vt __asm__("$3") = ((VOBJ *)bentley)->pvt;
             U a, u;
             qword v, r, q;
             qword (*function)(void *) = (qword (*)(void *))vt[33].pfn;
@@ -855,9 +853,8 @@ void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleBentleyMessage { extern "C" {
-struct VT { short d; short pad; void *pfn; };
 /* The spawned tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): its gadget id and slot 76. */
-struct O { char pad[0xC]; struct VT *pvt; char pad2[0x15C - 0x10]; int x15C; };
+struct O { char pad[0xC]; VTE *pvt; char pad2[0x15C - 0x10]; int x15C; };
 struct M { void *x0; int x4; int x8; };
 void HandleStepplayerMessage(BENTLEY *p, int k, struct M *pm);
 LO *AcquireProxyObject(PROXY *pv, int n);
@@ -1078,9 +1075,8 @@ void SetBentleySubState(BENTLEY *bentley, int n) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136118 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(); };
 /* The held tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): state, a stick target and slot 76. */
-struct O { char pad[0xC]; struct VTE *vt; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
+struct O { char pad[0xC]; VTE *vt; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
 extern struct CLOCK D_002DDED0;
 int IsAsegaRetracted(ASEGA *pv);
 void SetBentleySubState(BENTLEY *p, int n);

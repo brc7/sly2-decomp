@@ -75,9 +75,8 @@ typedef char assert_DIRACT_size[sizeof(DIRACT) == 0x40 ? 1 : -1];
 
 /* The three clip markers (0x22..0x24) of PostAsegArcLoad's curve. */
 struct V3 { float x, y, z; };
-struct CVE { short d; short pad; void (*pf)(void *, qword *, qword *, float, float); };
-struct CV { CVE *vt; };
-#define CURVECALL(pcv, pq, pd, t, s) (pcv)->vt[3].pf((char *)(pcv) + (pcv)->vt[3].d, pq, pd, t, s)
+struct CV { VTE *vt; };
+#define CURVECALL(pcv, pq, pd, t, s) ((void (*)(void *, qword *, qword *, float, float))(pcv)->vt[3].pfn)((char *)(pcv) + (pcv)->vt[3].d, pq, pd, t, s)
 struct BLCURVE { OID oid; ASEG *paseg; float a; float b; float c; float ca; float cb; FLOATWORD dist; V3 v; int pad; int fInit; };
 
 struct GAME;

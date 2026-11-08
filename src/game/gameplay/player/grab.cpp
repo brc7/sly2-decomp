@@ -307,7 +307,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
-struct VTE { short delta, pad; void *fn; };
 struct JOY { char pad0[0x1C]; float amount; char pad20[0x10]; uint buttonsHeld; };
 struct SURF;
 struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
@@ -369,11 +368,11 @@ uint GetGadgetButtonMask(ACTOR *, int);
 void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 
 // Call the actor's control-setter virtual (vtable slot 88) with n.
-static inline void SetControl(ACTOR *p, int n) { VTE &v = p->vt[88]; ((void (*)(void *, int))v.fn)((char *)p + v.delta, n); }
+static inline void SetControl(ACTOR *p, int n) { VTE &v = p->vt[88]; ((void (*)(void *, int))v.pfn)((char *)p + v.d, n); }
 // Ask the actor whether action n is allowed (virtual slot 99).
-static inline int CanAct(ACTOR *p, int n) { VTE &v = p->vt[99]; return ((int (*)(void *, int))v.fn)((char *)p + v.delta, n); }
+static inline int CanAct(ACTOR *p, int n) { VTE &v = p->vt[99]; return ((int (*)(void *, int))v.pfn)((char *)p + v.d, n); }
 // Notify the actor of q (virtual slot 51).
-static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(void *, ACTOR *))v.fn)((char *)p + v.delta, q); }
+static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(void *, ACTOR *))v.pfn)((char *)p + v.d, q); }
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 
@@ -602,7 +601,6 @@ typedef unsigned int uint;
 
 union U { float f[4]; qword q; int i[4]; };   // floats first, so U globals can be initialized
 struct M3 { U r[3]; };
-struct VTE { short delta, pad; void *fn; };
 struct JOY { char pad0[0x10]; float x, y, heading, amount; };
 /* the channel FindAsegChannel returns is aseg.h's CHN; its curve act.h's AC */
 
@@ -672,7 +670,7 @@ void ClampJtGrabCurveParam(ACTOR *, void *, void *);
 }
 
 // The actor's velocity (virtual slot 33).
-static inline qword GetVelocity(ACTOR *p) { VTE &v = p->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
+static inline qword GetVelocity(ACTOR *p) { VTE &v = p->vt[33]; return ((qword (*)(void *))v.pfn)((char *)p + v.d); }
 // Evaluate the channel's curve (AC slot 3) at the animation's time and speed into *out.
 static inline void ReadBinding(CHN *b, ASEGA *a, U *out)
 {
@@ -1031,8 +1029,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtGrabState { extern "C" {
-typedef struct { short d; short pad; void (*pfn)(void *, int); } VT;
-struct O { char pad[0xC]; VT *vt; char pad2[0x1854-0x10]; int x1854; };
+struct O { char pad[0xC]; VTE *vt; char pad2[0x1854-0x10]; int x1854; };
 struct P {
     struct O *x0; float x4; int x8; int pad0c[2]; int x14; int x18; char pad[0x440-0x1C]; char x440[0x4C4-0x440];
     int x4c4; char pad2[0x500-0x4C8]; int x500;
@@ -1052,7 +1049,7 @@ void SetJtGrabState(struct P *grab, int n, int a, int b)
     grab->x4 = D_002DDED0.time;
     grab->x18 = b;
     grab->x14 = a;
-    grab->x0->vt[88].pfn((char *)grab->x0 + grab->x0->vt[88].d, 2);
+    ((void (*)(void *, int))grab->x0->vt[88].pfn)((char *)grab->x0 + grab->x0->vt[88].d, 2);
     switch (n) {
     case 0: case 13:
         n = 5;
@@ -1159,7 +1156,6 @@ namespace M_SetJtGrabKind {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 
-struct VTE { short delta, pad; void *fn; };
 struct M3 { qword row[3]; };
 struct JOY { char pad0[0x1C]; float amount; };
 struct PROGRAM;
@@ -1246,16 +1242,16 @@ void EnableJtLeanActs(ACTOR *, int);
 static inline void SourceState(SOURCE *p, int state)
 {
     VTE &v = p->vt[3];
-    ((void (*)(void *, int, void *, void *, void *, void *))v.fn)((char *)p + v.delta, state, 0, 0, 0, 0);
+    ((void (*)(void *, int, void *, void *, void *, void *))v.pfn)((char *)p + v.d, state, 0, 0, 0, 0);
 }
 // Call the object's no-argument virtual at vtable slot `slot`.
-static inline void Notify(LO *lo, int slot) { VTE &v = lo->vt[slot]; ((void (*)(void *))v.fn)((char *)lo + v.delta); }
+static inline void Notify(LO *lo, int slot) { VTE &v = lo->vt[slot]; ((void (*)(void *))v.pfn)((char *)lo + v.d); }
 // Call the actor's no-argument virtual at vtable slot `slot`.
-static inline void Notify(ACTOR *p, int slot) { VTE &v = p->vt[slot]; ((void (*)(void *))v.fn)((char *)p + v.delta); }
+static inline void Notify(ACTOR *p, int slot) { VTE &v = p->vt[slot]; ((void (*)(void *))v.pfn)((char *)p + v.d); }
 // Call the actor's vector virtual at vtable slot `slot` with q.
-static inline void SetVector(ACTOR *p, int slot, qword q) { VTE &v = p->vt[slot]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
+static inline void SetVector(ACTOR *p, int slot, qword q) { VTE &v = p->vt[slot]; ((void (*)(void *, qword))v.pfn)((char *)p + v.d, q); }
 // Call the actor's pointer virtual at vtable slot `slot` with pv.
-static inline void SetPointer(ACTOR *p, int slot, void *pv) { VTE &v = p->vt[slot]; ((void (*)(void *, void *))v.fn)((char *)p + v.delta, pv); }
+static inline void SetPointer(ACTOR *p, int slot, void *pv) { VTE &v = p->vt[slot]; ((void (*)(void *, void *))v.pfn)((char *)p + v.d, pv); }
 // bit 0 set: the word holds the flags itself; otherwise it points to them
 static inline void AddFlags(uint *pflags, uint bits)
 {

@@ -46,7 +46,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define PASEGAHURT(p) (*(ASEGA **)((char *)(p) + 0xEFC))
 #define FLEAN1100(p) (*(int *)((char *)(p) + 0x1100))
 /* g++ 2.95 vtable entries ({delta, pfn}; slot n is entry n + 1). */
-struct VTESP { short d; short pad; void (*pfn)(...); };
 #define PBOOTY(p) (*(LO **)((char *)(p) + 0x11A8))
 
 extern SW D_003DD490;
@@ -232,9 +231,8 @@ void AcknowledgeStepplayerHint(void)
 } } // namespace M_func_00140338
 
 namespace M_UpdateStepplayer { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, void *); };
 /* A behaviour as called here: its slot 14 (BHV::UpdateSteering, declared without the controller argument it takes). */
-struct O { int pad[3]; struct VTE *vt; };
+struct O { int pad[3]; VTE *vt; };
 extern JOY D_002DFC00;
 extern char D_003DA0F0[];
 void UpdateStep(STEPPLAYER *p);
@@ -411,8 +409,7 @@ extern "C" int GetStepplayerMovementNoise()
 
 namespace M_func_001409E8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; int (*pfn)(void *, void *); };
-struct SO { char pad[0xC]; struct VTE *vt; char pad2[0xFE0 - 0x10]; struct SO *psoNext; };
+struct SO { char pad[0xC]; VTE *vt; char pad2[0xFE0 - 0x10]; struct SO *psoNext; };
 struct X { char pad[0x104]; struct X *pxNext; };
 int IsStepplayerInJtMode(STEPPLAYER *p);
 qword GetLoWorldPos(STEPPLAYER *p);
@@ -437,7 +434,7 @@ int TestStepplayerHidden(STEPPLAYER *player)
     for (;;) {
         if (!so) break;
         if (StepguardHasSgf(so, 0x1D) || StepguardHasSgf(so, 0xB)) { r = 2; break; }
-        if (so->vt[89].pfn((char *)so + so->vt[89].d, q)) { r = 1; break; }
+        if (((int (*)(void *, void *))so->vt[89].pfn)((char *)so + so->vt[89].d, q)) { r = 1; break; }
         so = so->psoNext;
     }
     if (r == 0) {
@@ -881,10 +878,9 @@ void GetStepplayerCameraFocusPosition(char *player, struct V *v)
 namespace M_GetStepplayerCpdefi { extern "C" {
 /* VU0 length via asm; qmfc2 into an int then explicit mtc1 (gives the original GPR/FPR allocation). */
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void *pfn; };
 struct XP { char pad[0x10]; QWROW pos; char pad2[0x34 - 0x20]; float g34; };
 struct JT {
-    char pad[0xC]; struct VTE *vt; char pad1[0x2C0 - 0x10]; char ax2C0[0x2DC - 0x2C0]; int x2DC;
+    char pad[0xC]; VTE *vt; char pad1[0x2C0 - 0x10]; char ax2C0[0x2DC - 0x2C0]; int x2DC;
     char pad2[0x434 - 0x2E0]; int x434; char pad3[0x4C0 - 0x438]; char ax4C0[0xC]; int x4CC;
     char pad4[0xDF0 - 0x4D0]; char axDF0[4]; int xDF4; char pad5[0x1044 - 0xDF8]; int x1044; int pad6;
     float x104C; float x1050; char pad7[0x1060 - 0x1054]; QWROW x1060; qword x1070;
@@ -916,7 +912,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
     } else {
         QWROW v;
         float z, lo, hi, g;
-        struct VTE *e;
+        VTE *e;
         { qword q = GetLoWorldPos(jt); __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); }
         e = &jt->vt[97];
         ((void (*)(void *, QWROW *))e->pfn)((char *)jt + e->d, &v);
@@ -958,7 +954,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
     if (jt->xDF4 != -1)
         AddJtHurtCpdefiFlags(jt->axDF0, xp);
     {
-        struct VTE *e = &jt->vt[34];
+        VTE *e = &jt->vt[34];
         register qword w __asm__("vf3") = ((qword (*)(void *))e->pfn)((char *)jt + e->d);
         register qword l1 __asm__("vf1");
         register qword r2 __asm__("vf2");
@@ -1072,7 +1068,7 @@ extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int st
         return;
     if (pslot->state == 1) {
         /* slot 101 (stepplayer.h's declaration order puts OnActive elsewhere): a hand-made vtable call */
-        VTESP *vtable = *(VTESP **)((char *)player + 0xC);
+        VTE *vtable = *(VTE **)((char *)player + 0xC);
         ((void (*)(void *, int))vtable[102].pfn)((char *)player + vtable[102].d, pslot->idGadget);
     }
     pslot->state = state;
@@ -1393,8 +1389,7 @@ extern "C" int IsStepplayerNotInGrabStateC(STEPPLAYER *player)
 
 namespace M_StartStepplayerFollow { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30 - 0x10]; int n30; char pad3[0x40 - 0x34]; qword q40; };
+struct O { char pad[0xC]; VTE *vt; char pad2[0x30 - 0x10]; int n30; char pad3[0x40 - 0x34]; qword q40; };
 void ClearBhvstk__FP6BHVSTK(void *p);
 struct O *PushStepBehavior(void *p, int n);
 // Splice op 446: clears the behaviour stack and, with a leader, starts following it.
@@ -1402,7 +1397,7 @@ struct O *PushStepBehavior(void *p, int n);
 void StartStepplayerFollow(char *player, int a, qword q)
 {
     struct O *o;
-    struct VTE *e;
+    VTE *e;
     ClearBhvstk__FP6BHVSTK(player + 0x26C);
     if (!a)
         return;
@@ -2057,7 +2052,6 @@ struct CRefIsland {
 };
 // Script reference padded to 16 bytes.
 struct CRef16 : CRefIsland { int pad[2]; CRef16(int k, int n) : CRefIsland(k, n) {} };
-struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct Y { int x0; int x4; };
 struct X { char pad[0x158]; Y *p158; void *p15C; };
 struct LO { char pad[0xC]; VTE *vt; char pad2[0x18 - 0x10]; void *p18; char pad3[0x11A8 - 0x1C]; X *booty; };
@@ -2094,7 +2088,7 @@ static inline void SetPv(void *pv, const CRefIsland &r, void *)
     Decref__4CRef((CRefIsland *)&arg);
 }
 // Call the object's virtual at vtable slot 103 and return its pointer.
-static inline void *Vcall103(LO *lo) { VTE *e = &lo->vt[103]; return e->pfn((char *)lo + e->d); }
+static inline void *Vcall103(LO *lo) { VTE *e = &lo->vt[103]; return ((void *(*)(void *))e->pfn)((char *)lo + e->d); }
 
 // Booty save-state transitions: 0 picked up, 1 delivered, 2 dropped ...
 extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
@@ -2163,7 +2157,6 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
 namespace M_func_00143AF0 {
 extern "C" void Decref__4CRef(CRef *);
 extern "C" void __4CRefRC4CRef(CRef *, const CRef *);
-struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct LO { char pad[0xC]; VTE *vt; char pad2[0x18 - 0x10]; void *p18; };
 struct G;
 extern "C" G D_003D4A60;
@@ -2195,14 +2188,13 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
         SetPv(pv, a, &D_003D4A60);
     }
     VTE *e = &lo->vt[103];
-    CRef ret = SetSaveVarByName(CRef(-1, 0x15), e->pfn((char *)lo + e->d), D_002A4DB0, 0);
+    CRef ret = SetSaveVarByName(CRef(-1, 0x15), ((void *(*)(void *))e->pfn)((char *)lo + e->d), D_002A4DB0, 0);
     return pv;
 }
 } // namespace M_func_00143AF0
 
 namespace M_func_00143BD8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; };
+struct O { char pad[0xC]; VTE *vt; };
 extern char D_002A4DB0[];
 void GetSaveVarByName(CRefData *r, void *a, void *b, int c);
 void Decref__4CRef(CRefData *r);
@@ -2213,7 +2205,7 @@ void RestoreStepplayerBooty(struct O *player)
 {
     CRefData r;
     int n;
-    struct VTE *e = &player->vt[103];
+    VTE *e = &player->vt[103];
     GetSaveVarByName(&r, ((void *(*)(void *))e->pfn)((char *)player + e->d), D_002A4DB0, 0);
     n = r.u.n;
     Decref__4CRef(&r);

@@ -420,7 +420,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
 //////// 0x195FB8 SetJtAirState
 namespace M_func_00195FB8 {
 typedef int qword __attribute__((mode(TI)));
-struct M3{QWROW row[3];};struct VTE{short delta,pad;void*fn;};
+struct M3{QWROW row[3];};
 struct SPACE;struct OBJECT;struct PROVIDER;struct REFERENCE;struct EVENT;struct EFFECT;struct SCENE;struct SECONDARY;
 struct DATA{char pad0[4];float amount;};struct SOURCE{char pad0[0x114];DATA*data;char pad118[0x64];int state;};
 struct COMPONENT{void*object;};
@@ -434,7 +434,7 @@ extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E
 void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
 qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(ASEG*);int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**);}
 // Call the actor's no-argument virtual at vtable slot `slot`.
-static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
+static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.pfn)((char*)p+v.d);}
 // Zero the xyz words of v.
 static inline void ClearXYZ(QWROW*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 // Zero the actor's velocity.
@@ -451,7 +451,6 @@ typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char DATA_Size[sizeof(DATA)==8?1:-1];
 typedef char SOURCE_Size[sizeof(SOURCE)==384?1:-1];
 typedef char COMPONENT_Size[sizeof(COMPONENT)==4?1:-1];
@@ -468,8 +467,6 @@ typedef char CONTEXT_Size[sizeof(CONTEXT)==512?1:-1];
 typedef char RANGE_Size[sizeof(RANGE)==8?1:-1];
 typedef char TWO_ROWS_Size[sizeof(TWO_ROWS)==32?1:-1];
 typedef char WORK_Size[sizeof(WORK)==192?1:-1];
-typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
 typedef char DATA_amount_Offset[FIELD_OFFSET(DATA,amount)==4?1:-1];
 typedef char SOURCE_data_Offset[FIELD_OFFSET(SOURCE,data)==276?1:-1];
 typedef char SOURCE_state_Offset[FIELD_OFFSET(SOURCE,state)==380?1:-1];
@@ -771,9 +768,9 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
         air->flags28 = 0;
         ACTOR *actor = air->actor;
         VTE &v = actor->vt[35];
-        void *receiver = (char *)actor + v.delta;
+        void *receiver = (char *)actor + v.d;
         qword velocity = PlanJtLaunchVelocity(air, 4);
-        ((void (*)(void *, qword))v.fn)(receiver, velocity);
+        ((void (*)(void *, qword))v.pfn)(receiver, velocity);
         air->variant = 0;
         if (air->mode == 16)
             clip = air->special14C;
@@ -870,12 +867,12 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
             register int adjustment __asm__("$4");
             __asm__("lh %0,0x118(%2)\n\tsqc2 %3,%1"
                     : "=r"(adjustment), "=m"(w.velocity.q)
-                    : "r"(vt), "j"(velocity), "m"(vt[35].delta));
+                    : "r"(vt), "j"(velocity), "m"(vt[35].d));
             register void *receiver __asm__("$4");
             register VECTOR_SETTER setter __asm__("$3");
             __asm__("addu %0,%2,%4\n\tlw %1,0x11C(%3)"
                     : "=&r"(receiver), "=r"(setter)
-                    : "r"(velocityOwner), "r"(vt), "0"(adjustment), "m"(vt[35].fn));
+                    : "r"(velocityOwner), "r"(vt), "0"(adjustment), "m"(vt[35].pfn));
             PublishReal(&w.temp, full);
             register qword velocityArg __asm__("$5");
             __asm__ volatile("lq %0,%2\n\tsqc2 %3,%1"
@@ -1157,7 +1154,7 @@ namespace RO_ORDER { extern const float r_D_002A63B0 __asm__("D_002A63B0") = 3.4
 namespace M_PresetJtAccelJump {
 typedef int qword __attribute__((mode(TI)));
 struct M3{QWROW row[3];};struct M4{QWROW row[4];};
-struct VTE{short delta,pad;void*fn;};struct BODY{char pad0[0xB0];QWROW angularVelocity;char padC0[0x30];QWROW angularAcceleration;};struct MOTION{char pad0[0x80];QWROW acceleration;};struct ACTOR{char pad0[12];VTE*vt;char pad10[0x4C];BODY*body;char pad60[0x88];MOTION*motion;char padEC[0x190-0xEC];QWROW velocity;};
+struct BODY{char pad0[0xB0];QWROW angularVelocity;char padC0[0x30];QWROW angularAcceleration;};struct MOTION{char pad0[0x80];QWROW acceleration;};struct ACTOR{char pad0[12];VTE*vt;char pad10[0x4C];BODY*body;char pad60[0x88];MOTION*motion;char padEC[0x190-0xEC];QWROW velocity;};
 struct CONTEXT{ACTOR*actor;int state;char pad8[0x10];float stamp;int mode;char pad20[0x14];float gain;char pad38[0x68];QWROW desired;char padB0[0x110];float targetX,targetZ;};
 struct SMP{float maximum,minimum,duration;};struct RANGE{float low,high;};struct POLY{float c0,c1,c2;};struct PARAMS{float values[3];};
 /* The basis writer and later vectors share their actual stack homes. */
@@ -1166,7 +1163,7 @@ union WORK{struct{QWROW local,scalar;M3 basis,rotation,returned;QWROW original;}
 extern "C"{extern CLOCK D_002DDED0;extern QWROW D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
 qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,QWROW*);}
 // The actor's velocity (virtual slot 33).
-static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
+static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.pfn)((char*)p+v.d);}
 // Rotate vector by the 3x3 matrix rows r0..r2 (seed provides the output register).
 static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(seed):"j"(r0),"j"(r1),"j"(r2),"j"(vector));return seed;}
 // Rotate vector by the 3x3 matrix m (seed provides the output register).
@@ -1177,7 +1174,6 @@ typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char M4_Size[sizeof(M4)==64?1:-1];
 typedef char M3_row_Offset[FIELD_OFFSET(M3,row)==0?1:-1];
 typedef char M4_row_Offset[FIELD_OFFSET(M4,row)==0?1:-1];
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char BODY_Size[sizeof(BODY)==256?1:-1];
 typedef char MOTION_Size[sizeof(MOTION)==144?1:-1];
 typedef char ACTOR_Size[sizeof(ACTOR)==416?1:-1];
@@ -1895,7 +1891,6 @@ union U { qword q; float f[4]; int i[4]; };
 struct EMPTY { ~EMPTY() {} };
 struct M3 { qword r[3]; };
 struct M4 { U r[4]; };
-struct VTE { short delta, pad; void *fn; };
 struct SPACE;
 struct CLIP;
 struct INPUT { char pad0[0x18]; float heading; float amount; };
@@ -1963,11 +1958,11 @@ void SetStepplayerTnOverride(ACTOR *, void *);
 }
 
 // The object's velocity (virtual slot 33).
-static inline qword GetVelocity(void *p) { VTE &v = ((SOURCE *)p)->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
+static inline qword GetVelocity(void *p) { VTE &v = ((SOURCE *)p)->vt[33]; return ((qword (*)(void *))v.pfn)((char *)p + v.d); }
 // The object's reference frame (virtual slot 32).
-static inline SPACE *GetFrame(void *p) { VTE &v = ((SOURCE *)p)->vt[32]; return ((SPACE * (*)(void *, void *))v.fn)((char *)p + v.delta, 0); }
+static inline SPACE *GetFrame(void *p) { VTE &v = ((SOURCE *)p)->vt[32]; return ((SPACE * (*)(void *, void *))v.pfn)((char *)p + v.d, 0); }
 // Whether the actor is facing its target (virtual slot 92) (inferred).
-static inline int IsFacing(ACTOR *p) { VTE &v = p->vt[92]; return ((int (*)(void *))v.fn)((char *)p + v.delta); }
+static inline int IsFacing(ACTOR *p) { VTE &v = p->vt[92]; return ((int (*)(void *))v.pfn)((char *)p + v.d); }
 
 // Broadcast a float into a VU0 register, keeping a volatile stack home copy.
 static inline VU_FLOAT VuFloatHomed(float g) { union { volatile qword home; } u; qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g)); u.home = q; VU_FLOAT v; v.q = q; return v; }
@@ -2398,8 +2393,7 @@ namespace M_func_001991A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
-typedef struct { short d; short pad; void (*pfn)(void *, int, int, qword, qword, qword); } VT;
-struct O { char pad[0xC]; VT *vt; };
+struct O { char pad[0xC]; VTE *vt; };
 struct C8 { int x0; int x4; };
 struct P {
     struct O *x0; char pad[0x1C-4]; int x1c; char pad2[0xC8-0x20]; struct C8 *xc8; char pad3[4];
@@ -2432,7 +2426,7 @@ void AddJtWallRunXps(struct P *p)
     qword rq;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(rq) : "j"(r.q), "j"(v));
     r.q = rq;
-    p->x0->vt[82].pfn((char *)p->x0 + p->x0->vt[82].d, 7, p->xc8->x4, r.q, D_002A2DB0, q.q);
+    ((void (*)(void *, int, int, qword, qword, qword))p->x0->vt[82].pfn)((char *)p->x0 + p->x0->vt[82].d, 7, p->xc8->x4, r.q, D_002A2DB0, q.q);
 }
 } } // namespace M_func_001991A0
 
@@ -4345,7 +4339,6 @@ namespace M_MeasureJtJumpToTargetAtTime {
 // Compute motion correction in a predicted target frame.
 
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short delta,pad; void *fn; };
 struct M4 { qword row[4]; };
 union V { qword q; float a[4]; };
 struct MOTION { char before[0x80]; qword acceleration; };
@@ -4384,9 +4377,6 @@ typedef char CONTEXT_Size[(sizeof(CONTEXT))==4?1:-1];
 typedef char CONTEXT_Align[(__alignof__(CONTEXT))==4?1:-1];
 typedef char V_q_Offset[((unsigned)&((V*)0)->q)==0?1:-1];
 typedef char V_a_Offset[((unsigned)&((V*)0)->a)==0?1:-1];
-typedef char VTE_delta_Offset[((unsigned)&((VTE*)0)->delta)==0?1:-1];
-typedef char VTE_pad_Offset[((unsigned)&((VTE*)0)->pad)==2?1:-1];
-typedef char VTE_fn_Offset[((unsigned)&((VTE*)0)->fn)==4?1:-1];
 typedef char MOTION_acceleration_Offset[((unsigned)&((MOTION*)0)->acceleration)==128?1:-1];
 typedef char OBJECT_vt_Offset[((unsigned)&((OBJECT*)0)->vt)==12?1:-1];
 typedef char OBJECT_motion_Offset[((unsigned)&((OBJECT*)0)->motion)==232?1:-1];
@@ -4409,7 +4399,7 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
     position.q = GetLoWorldPos(context->owner);
     OBJECT *owner = context->owner;
     VTE *vt = owner->vt;
-    oldVelocity.q = ((VECTOR_GETTER)vt[33].fn)((OBJECT *)((char *)owner + vt[33].delta));
+    oldVelocity.q = ((VECTOR_GETTER)vt[33].pfn)((OBJECT *)((char *)owner + vt[33].d));
     register M4 *inverseOwner __asm__("$17");
     SPACE *frame;
     {
@@ -4428,7 +4418,7 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
         register int delta __asm__("$4");
         __asm__("lqc2 %0,%4\n\tlqc2 %1,%5\n\tmul.s %2,%6,%2\n\tlh %3,%7"
                 : "=j"(v), "=j"(acceleration), "+f"(half), "=r"(delta)
-                : "m"(oldVelocity.q), "m"(motion->acceleration), "f"(duration), "m"(targetVt[32].delta));
+                : "m"(oldVelocity.q), "m"(motion->acceleration), "f"(duration), "m"(targetVt[32].d));
         __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%3x\n\tsqc2 %0,%1"
                 : "+j"(v), "=m"(future.q)
                 : "j"(acceleration), "j"(time));
@@ -4443,7 +4433,7 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
                          : "=m"(prediction.q)
                          : "m"(oldVelocity.q), "m"(future.q), "m"(position.q), "j"(halfVector)
                          : "vf2", "vf3", "vf4");
-        INVERSE_GETTER inverseFunction = (INVERSE_GETTER)targetVt[32].fn;
+        INVERSE_GETTER inverseFunction = (INVERSE_GETTER)targetVt[32].pfn;
         scalar.q = halfVector;
         frame = inverseFunction(receiver, inverseArgument);
     }
@@ -4575,9 +4565,8 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
 
 //////// 0x19C688 GrabJtAirTarget
 namespace M_func_0019C688 { extern "C" {
-typedef struct { short d; short pad; void (*pfn)(void *, int); } VT;
 struct C { char pad[0x10C]; int x10c; char pad2[0x124-0x110]; int x124; };
-struct O { char pad[0xC]; VT *vt; char pad2[0x4C0-0x10]; char grab[0xF5C-0x4C0]; struct C *xf5c; float xf60;
+struct O { char pad[0xC]; VTE *vt; char pad2[0x4C0-0x10]; char grab[0xF5C-0x4C0]; struct C *xf5c; float xf60;
     char pad3[0x18C4-0xF64]; struct C *hangHandle; char pad4[0x1F18-0x18C8]; struct C *x1f18; };
 struct P { struct O *x0; int x4; int x8; struct C *xc; int x10; float x14; int x18; int x1c; };
 extern int D_002DD5BC;
@@ -4622,7 +4611,7 @@ void GrabJtAirTarget(struct P *p)
     case 15:
         p->x0->xf5c = p->xc;
         p->x0->xf60 = p->x14;
-        p->x0->vt[88].pfn((char *)p->x0 + p->x0->vt[88].d, 8);
+        ((void (*)(void *, int))p->x0->vt[88].pfn)((char *)p->x0 + p->x0->vt[88].d, 8);
         break;
     case 16:
     {

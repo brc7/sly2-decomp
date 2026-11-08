@@ -17,7 +17,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "player_input.h"
 #include "sly2/jt.h"
 union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
-struct VE{short delta,pad;void*fn;};
 struct EFFECT;struct ATTACKOBJ;
 /* The hang object (JT::hangHandle, CID19): +0x130 the effect played when leaving the cane state. */
 struct HNDV{char pad0[0x130];int exitEffect;};
@@ -486,9 +485,6 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_U[(sizeof(U)==16)?1:-1];
-typedef char layout_VE[(sizeof(VE)==8)?1:-1];
-typedef char layout_VE_delta[((unsigned long)&((VE*)0)->delta==0x0)?1:-1];
-typedef char layout_VE_fn[((unsigned long)&((VE*)0)->fn==0x4)?1:-1];
 typedef char layout_HNDV_exitEffect[((unsigned long)&((HNDV*)0)->exitEffect==0x130)?1:-1];
 typedef char layout_POINT_position[((unsigned long)&((POINT*)0)->position==0x70)?1:-1];
 
@@ -662,7 +658,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];}M3&operator=(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];return *this;}};
 struct M4{U r[4];};
 /* The objects the attack target is chosen from (g_sw.dlTarget: next +0xE0, flags +0xE8) and the JT itself (was ALO). */
-struct ATTACKOBJ{char pad[0xC];VE*vt;char pad10[0xD0];ATTACKOBJ*next;int padE4;int flags;};
+struct ATTACKOBJ{char pad[0xC];VTE*vt;char pad10[0xD0];ATTACKOBJ*next;int padE4;int flags;};
 struct G;
 extern "C" const qword D_002A2DC0;
 extern "C" G D_003DD490;
@@ -684,9 +680,9 @@ static inline qword Rotate(const M3&m,qword v){qword q;__asm__("vmulax.xyz ACC,%
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, v);return q;}
 // The object's velocity (virtual slot 33).
-static inline qword GetVelocity(ATTACKOBJ*p){VE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->fn;return f((char*)p+e->delta);}
+static inline qword GetVelocity(ATTACKOBJ*p){VTE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->pfn;return f((char*)p+e->d);}
 // The object's reference frame into out (virtual slot 32).
-static inline void*GetFrame(ATTACKOBJ*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].fn)((char*)p+p->vt[32].delta,out);}
+static inline void*GetFrame(ATTACKOBJ*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].pfn)((char*)p+p->vt[32].d,out);}
 // Absolute value of f.
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 // Find the world's object of class 0x33 (search mode 3) after n.

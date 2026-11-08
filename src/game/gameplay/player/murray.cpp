@@ -916,12 +916,11 @@ namespace M_SetMurrayState {
 // Lane 4 (Claude agent): hacks of the earlier drafts (xori/mtc1/addiu asm, 6 pins) are gone; this has ONE pin
 // (the zero-vector temp in case 7) and one VU vsub.
 typedef int qword __attribute__((mode(TI)));
-struct VE { short delta, pad; void (*fn)(); };
-struct OBJ { char pad[12]; VE *vt; };
+struct OBJ { char pad[12]; VTE *vt; };
 struct COMPONENT;
 struct P {
     char pad0[12];
-    VE *vt;
+    VTE *vt;
     char pad10[72];
     void *first;            // 0x58
     void *second;           // 0x5C
@@ -1013,9 +1012,9 @@ void SetAsegaChannelWeight(ASEGA *, float);
 // Address p + offset.
 static inline void *Block(P *p, int offset) { return (void *)((char *)p + offset); }
 // virtual call through slot `index` of an object whose vptr is at +0xC
-static inline void Call(OBJ *p, int index) { VE &v = p->vt[index]; ((void (*)(void *))v.fn)((char *)p + v.delta); }
+static inline void Call(OBJ *p, int index) { VTE &v = p->vt[index]; ((void (*)(void *))v.pfn)((char *)p + v.d); }
 // Set the actor's velocity (virtual slot 35).
-static inline void SetVelocity(P *p, qword q) { VE &v = p->vt[35]; ((void (*)(void *, qword))v.fn)((char *)p + v.delta, q); }
+static inline void SetVelocity(P *p, qword q) { VTE &v = p->vt[35]; ((void (*)(void *, qword))v.pfn)((char *)p + v.d, q); }
 // Murray state switch (x13D0, 0..21): exit work for the old state, entry work (clip selection, velocity reset,
 // component states) for the new one.
 extern "C" void SetMurrayState(P *murray, int next)
@@ -1459,7 +1458,6 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
 
 namespace M_SetMurrayFlopSubstate { extern "C" {
 // Update attachment state and projected velocity.
-struct VT { short d; short pad; void *pfn; };
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DC0;
@@ -1468,7 +1466,7 @@ struct SIDE { int x0; int x4; void *x8; void *xC; qword v10; char pad[0x30 - 0x2
 struct LINK { struct SIDE as[2]; char pad[0xAC - 0x80]; struct LINK *pnext; };
 struct MSG { void *x0; int x4; void *x8; int xC; int x10; char pad[0x20 - 0x14]; qword v20; qword v30; char pad2[0x60 - 0x40]; };
 /* Any BASIC as the register-pinned dive code reads it: the g++ vtable pointer at +0xC. */
-struct VOBJ { char pad[0xC]; struct VT *vt; };
+struct VOBJ { char pad[0xC]; VTE *vt; };
 void FreeSwXpList__FP2SWP2XP(void *pg, XP *pl);
 void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
@@ -1481,12 +1479,9 @@ static inline void Zero(VECTOR *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char WORD_Size[sizeof(union WORD)==4?1:-1];
-typedef char VT_Size[sizeof(struct VT)==8?1:-1];
 typedef char SIDE_Size[sizeof(struct SIDE)==64?1:-1];
 typedef char LINK_Size[sizeof(struct LINK)==176?1:-1];
 typedef char MSG_Size[sizeof(struct MSG)==96?1:-1];
-typedef char VT_d_Offset[FIELD_OFFSET(VT,d)==0?1:-1];
-typedef char VT_pfn_Offset[FIELD_OFFSET(VT,pfn)==4?1:-1];
 typedef char SIDE_x0_Offset[FIELD_OFFSET(SIDE,x0)==0?1:-1];
 typedef char SIDE_x4_Offset[FIELD_OFFSET(SIDE,x4)==4?1:-1];
 typedef char SIDE_x8_Offset[FIELD_OFFSET(SIDE,x8)==8?1:-1];
@@ -1522,7 +1517,7 @@ void SetMurrayFlopSubstate(MURRAY *murray, int s)
         union { qword q; float f[4]; } u;
         register qword v __asm__("vf3"),up __asm__("vf2"),d __asm__("vf1"),r __asm__("vf1"),k __asm__("vf4");
         register unsigned int bits __asm__("$2");
-        register struct VT*vt __asm__("$5");
+        register VTE*vt __asm__("$5");
         register int delta __asm__("$4");
         register void(*setter)(void*,qword) __asm__("$2");
         register qword argument __asm__("$5");
@@ -2699,7 +2694,6 @@ void UpdateMurrayPowerVelocity(MURRAY *murray)
 } } // namespace M_func_001B90B8
 
 namespace M_AdjustMurrayNewXp {
-typedef struct VTE { short d; short pad; void (*pfn)(...); } VTE;
 typedef union U { int i; float f; } U;
 typedef struct Q { char pad[0xC]; VTE *vt; } Q;
 typedef struct E { char pad0[0xC]; struct Q *pq; char pad[0x30]; } E;
@@ -3131,16 +3125,15 @@ void SpawnMurrayHitEffect(MURRAY *murray, qword q)
 } } // namespace M_func_001B9D28
 
 namespace M_func_001B9DB8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
 /* The effect object's vtable as called here: slot 29 (TranslateToPos) is passed an int, so the call stays by hand. */
-struct OV { int a, b, c; struct VTE *vt; };
+struct OV { int a, b, c; VTE *vt; };
 void ApplyAsegCore(ASEG *paseg, SO *pso, int c, int d, float f, float g);
 // Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
 void SpawnMurrayHitEffectUnchecked(MURRAY *murray, int x)
 {
     if (!((((int)murray->psoHitEffectB->isInWorld & 1) == 0)))
         return;
-    struct VTE *e = &((OV *)murray->psoHitEffectB)->vt[29];
+    VTE *e = &((OV *)murray->psoHitEffectB)->vt[29];
     ((void (*)(void *, int))e->pfn)((char *)murray->psoHitEffectB + e->d, x);
     ApplyAsegCore(murray->pasegHitEffectB, murray->psoHitEffectB, 0, 0, 0.0f, 1.0f);
 }

@@ -73,14 +73,13 @@ namespace M_SetJtHurtState {
 typedef int qword __attribute__((mode(TI)));
 // Zero the xyz words.
 union U{float f[4];qword q;int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};   // floats first: U globals are initialized
-struct VE{short delta,pad;void(*fn)();};
 struct ASEG;
 struct COMPONENT;
 struct CONTROL{char pad[0x18];float yaw;};
 struct VALUE{char pad[0x20];U value;};
 struct INNER{char pad[0x60];VALUE*value;};
 struct RIG{char pad[0xA8];INNER*inner;};
-struct P{char pad0[12];VE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
+struct P{char pad0[12];VTE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
 // The default clip for state `next`: clips[0] below state 8, clips[8] from state 8 on.
 struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
 struct POLY{float a,b,c;};
@@ -110,11 +109,11 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  void ReplaceSma(void*,P*,int,void*,COMPONENT**);
 }
 // The actor's velocity (virtual slot 33).
-static inline qword Vector(P*p){VE*v=&p->vt[33];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+static inline qword Vector(P*p){VTE*v=&p->vt[33];return ((qword(*)(P*))v->pfn)((P*)((char*)p+v->d));}
 // Set the actor's vector at virtual slot 36.
-static inline void SetVector(P*p,qword q){VE*v=&p->vt[36];((void(*)(P*,qword))v->fn)((P*)((char*)p+v->delta),q);}
+static inline void SetVector(P*p,qword q){VTE*v=&p->vt[36];((void(*)(P*,qword))v->pfn)((P*)((char*)p+v->d),q);}
 // Call the actor's no-argument virtual at vtable slot `slot`.
-static inline void Invoke(P*p,int slot){VE*v=&p->vt[slot];((void(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+static inline void Invoke(P*p,int slot){VTE*v=&p->vt[slot];((void(*)(P*))v->pfn)((P*)((char*)p+v->d));}
 // Load the main camera's position into a GPR.
 static inline qword Position()
 {
@@ -160,7 +159,6 @@ static inline float ClampKnownLower(float value, float lo, LIMIT *range)
     return value;
 }
 typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char VE_Size[sizeof(VE)==8?1:-1];
 typedef char POLY_Size[sizeof(POLY)==12?1:-1];
 typedef char LIMIT_Size[sizeof(LIMIT)==8?1:-1];
 typedef char C_actor_Offset[FIELD_OFFSET(C,actor)==0?1:-1];
@@ -356,7 +354,6 @@ void PostLoadJtHurt(JTHURT *s)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelZap {
 typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; void *pfn; };
 struct X { char pad[0x80]; qword v80; };
 struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(QWROW &u); };
 struct P { struct O *o; int state; };
@@ -415,7 +412,6 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
 namespace M_UpdateJtActiveZap { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct LO;
-typedef struct { short d; short pad; qword (*pfn)(struct LO *); } VTE;
 struct LO { int x0, x4, x8; VTE *vt; char pad10[0xD0 - 0x10]; float xD0; char padD4[0x1A8 - 0xD4]; float x1A8; char pad1AC[0x208 - 0x1AC]; int x208; };
 struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
 extern struct CLOCK D_002DDED0;
@@ -461,7 +457,7 @@ done:
     case 7: {
         union { qword q; float f[4]; } v;
         float g;
-        v.q = s->po->vt[33].pfn((struct LO *)((char *)s->po + s->po->vt[33].d));
+        v.q = ((qword (*)(struct LO *))s->po->vt[33].pfn)((struct LO *)((char *)s->po + s->po->vt[33].d));
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
         SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.deltaTime));
         if (0.25f < D_002DDED0.time - s->x8 && s->po->x208)
@@ -652,10 +648,9 @@ typedef int qword __attribute__((mode(TI)));
 struct P;
 struct C;
 typedef void(C::*ACTION)();
-struct VE{short delta,pad;void(*fn)();};
 struct COUNT{int a,b,c;};
 struct W{char pad[0x158];COUNT*count;};
-struct P{char pad0[12];VE*vt;char pad10[0x29C-0x10];int guard;char pad2A0[0x4C8-0x2A0];int mode;char pad4CC[8];P*delegate;char pad4D8[0xFBC-0x4D8];int state;char padFC0[0x11A8-0xFC0];W*widget;};
+struct P{char pad0[12];VTE*vt;char pad10[0x29C-0x10];int guard;char pad2A0[0x4C8-0x2A0];int mode;char pad4CC[8];P*delegate;char pad4D8[0xFBC-0x4D8];int state;char padFC0[0x11A8-0xFC0];W*widget;};
 struct RECORD{P*object;int pad4,pad8;int flags;int delta;char pad14[0x30-0x14];int a,b,c;char pad3C[0x60-0x3C];}__attribute__((aligned(16)));
 struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;char pad24[0x30-0x24];RECORD record;int mode;float time,changed;char pad9C[0x108-0x9C];void*effect;void*output;
  void Reaction() __asm__("JtHurtEndCallback");
@@ -688,20 +683,19 @@ extern "C"{
 // a + b with unsigned wrap.
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
 // Ask the actor whether to reject the hit with these flags (virtual slot 76).
-static inline int Reject(P*p,int flags){VE*v=&p->vt[76];return ((int(*)(P*,int))v->fn)((P*)((char*)p+v->delta),flags);}
+static inline int Reject(P*p,int flags){VTE*v=&p->vt[76];return ((int(*)(P*,int))v->pfn)((P*)((char*)p+v->d),flags);}
 // Pass the hit record to the actor's delegate virtual (slot 75).
-static inline int Delegate(P*p,RECORD*r){VE*v=&p->vt[75];return ((int(*)(P*,RECORD*))v->fn)((P*)((char*)p+v->delta),r);}
+static inline int Delegate(P*p,RECORD*r){VTE*v=&p->vt[75];return ((int(*)(P*,RECORD*))v->pfn)((P*)((char*)p+v->d),r);}
 // The actor's vector at virtual slot `slot`.
-static inline qword Vector(P*p,int slot){VE*v=&p->vt[slot];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+static inline qword Vector(P*p,int slot){VTE*v=&p->vt[slot];return ((qword(*)(P*))v->pfn)((P*)((char*)p+v->d));}
 // Set the actor's vector at virtual slot `slot`.
-static inline void SetVector(P*p,int slot,qword value){VE*v=&p->vt[slot];((void(*)(P*,qword))v->fn)((P*)((char*)p+v->delta),value);}
+static inline void SetVector(P*p,int slot,qword value){VTE*v=&p->vt[slot];((void(*)(P*,qword))v->pfn)((P*)((char*)p+v->d),value);}
 // Notify the actor with value (virtual slot 88).
-static inline void Notify(P*p,int value){VE*v=&p->vt[88];((void(*)(P*,int))v->fn)((P*)((char*)p+v->delta),value);}
+static inline void Notify(P*p,int value){VTE*v=&p->vt[88];((void(*)(P*,int))v->pfn)((P*)((char*)p+v->d),value);}
 // z lane of value as a float.
 static inline float Z(qword value){register int word __asm__("$9");float result;__asm__("pextuw %0,$zero,%1":"=r"(word):"r"(value));__asm__("mtc1 %1,%0":"=f"(result):"r"(word));return result;}
 typedef char RECORD_Size[sizeof(RECORD)==96?1:-1];
 typedef char ACTION_Size[sizeof(ACTION)==8?1:-1];
-typedef char VE_Size[sizeof(VE)==8?1:-1];
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char C_actor_Offset[FIELD_OFFSET(C,actor)==0?1:-1];
 typedef char C_kind_Offset[FIELD_OFFSET(C,kind)==4?1:-1];
@@ -1083,7 +1077,6 @@ SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2460 {
 struct M4 {QWROW r[4];};
-struct VTE {short delta,pad;void*fn;};
 struct EFFECT {char pad[0xC];VTE*vt;};
 /* The hero's water volume (STEPPLAYER::pwater; classes.h WATER has no fields yet): splash effect, zap kind and tag. */
 struct L {char pad[0xC];VTE*vt;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
@@ -1108,7 +1101,7 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
         if (player->jthurt.state == 3 || player->jthurt.state == 10)
             point.f[2] -= 10.0f;
         L *link = ((L *)player->pwater);
-        valid = ((int (*)(void *, qword))link->vt[73].fn)((char *)link + link->vt[73].delta, point.q);
+        valid = ((int (*)(void *, qword))link->vt[73].pfn)((char *)link + link->vt[73].d, point.q);
     } else
         valid = 0;
     if (!valid)
@@ -1163,7 +1156,7 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
             msg.position.f[2] = point.f[2];
             msg.type = 4;
             EFFECT *effect = ((L *)player->pwater)->effect;
-            ((void (*)(void *, MSG *))effect->vt[51].fn)((char *)effect + effect->vt[51].delta, &msg);
+            ((void (*)(void *, MSG *))effect->vt[51].pfn)((char *)effect + effect->vt[51].d, &msg);
             entry->tLast = D_002DDED0.time;
         }
     }

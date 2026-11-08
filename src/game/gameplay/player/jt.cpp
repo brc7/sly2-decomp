@@ -52,8 +52,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef unsigned size_t;
 
 /* Hand-made STEPPLAYER virtual call (g++ 2.95 vtable entries {delta, pfn}; slot n is entry n + 1). */
-struct VTEJ { short d; short pad; void (*pfn)(); };
-#define PVTJ(p) (*(VTEJ **)((char *)(p) + 0xC))
+#define PVTJ(p) (*(VTE **)((char *)(p) + 0xC))
 /* A JT quadword stepplayer.h leaves unnamed (+0x1FA0). */
 #define QW1FA0(pjt) (*(qword *)((char *)(pjt) + 0x1FA0))
 extern "C" {
@@ -422,7 +421,7 @@ typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
-struct M4{U r[4];};struct VTE{short delta,pad;void*fn;};
+struct M4{U r[4];};
 struct ACTOR{char pad[0x80];qword response;};
 struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct WORK{U a,b;};
@@ -477,7 +476,7 @@ extern "C" void PresetJtAccel(P *jt)
     case 6: CorrectBentleyRideVelocity((char *)jt + 0x1FF0); break;
     case 14: {
         VTE *e = &jt->vt[33];
-        w.a.q = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
+        w.a.q = ((qword(*)(void *))e->pfn)((char *)jt + e->d);
         w.b.q = GetStepAsegaTranslation(jt, jt->model, jt->model->time);
         float cap = GetAsegLabelTime(jt->lookup, 0x16D);
         if (jt->model->time < cap) {
@@ -493,9 +492,9 @@ extern "C" void PresetJtAccel(P *jt)
     case 24:
         if (jt->submode == 13) {
             VTE *e = &jt->vt[33];
-            qword position = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
+            qword position = ((qword(*)(void *))e->pfn)((char *)jt + e->d);
             e = &jt->vt[34];
-            qword direction = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
+            qword direction = ((qword(*)(void *))e->pfn)((char *)jt + e->d);
             M4 *m = GetLoWorldMatrix(jt);
             M3 basis;
             basis.r[0] = m->r[0];
@@ -525,10 +524,7 @@ typedef char Unsigned_Size[(sizeof(unsigned)==4)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
-typedef char VTE_Size[(sizeof(VTE)==8)?1:-1];
 //typedef char WORK_Size[(sizeof(WORK)==0x90)?1:-1];
-typedef char VTE_delta_Offset[((unsigned)&((VTE*)0)->delta==0)?1:-1];
-typedef char VTE_fn_Offset[((unsigned)&((VTE*)0)->fn==4)?1:-1];
 typedef char ACTOR_response_Offset[((unsigned)&((ACTOR*)0)->response==128)?1:-1];
 typedef char P_vt_Offset[((unsigned)&((P*)0)->vt==12)?1:-1];
 typedef char P_actor_Offset[((unsigned)&((P*)0)->actor==232)?1:-1];
@@ -638,7 +634,6 @@ typedef struct LOB { char pad[0xC]; int xC; char pad1[0x44 - 0x10]; int x44; } L
 typedef struct MSGB { int x0; void *x4; LOB *x8; } MSGB;
 typedef struct CLR { int a, b, c; } CLR;
 typedef struct O1034 { char pad[0x30]; void *x30; } O1034;
-struct VTE { short d; short pad; void *pfn; };
 
 extern char D_003DD490[];
 extern char D_002BF2A0[];
@@ -740,7 +735,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 ClearX((CLR *)A(0x190));
 
                 {
-                    struct VTE *e = &F(struct VTE *, 0xC)[35];
+                    VTE *e = &F(VTE *, 0xC)[35];
                     ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190));
                 }
                 px = FindStepBehavior(AsJt(p)->interactTarget, 0xB1);
@@ -1338,10 +1333,9 @@ namespace M_UpdateJtStand { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct VTE { short d; short pad; void (*pfn)(); };
 struct T { char pad[0x4C]; SO *po; };   /* the floor contact (XP): the other side's object */
 struct S {
-    char pad[0xC]; struct VTE *vt; char p0[0x198]; float g1a8; char p1[0x5C]; struct T *pt208;
+    char pad[0xC]; VTE *vt; char p0[0x198]; float g1a8; char p1[0x5C]; struct T *pt208;
     char p2[0xE1C]; void *x1028; char p3[8]; void *x1034; char p4[0x4DC]; int x1514; char p5[8];
     char x1520[0x100]; char x1620[0x3B4]; int x19d4, x19d8, x19dc, x19e0; char p6[0xC]; int x19f0, x19f4;
 };
@@ -1357,7 +1351,7 @@ void SnapSma(void *p, int n);
 // Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
 void UpdateJtStand(struct S *jt)
 {
-    struct VTE *e;
+    VTE *e;
     SetSmaMask(jt->x1034, GetStepplayerLeanFlags(jt));
     e = &jt->vt[92];
     if (!((int (*)(void *))e->pfn)((char *)jt + e->d) && jt->pt208) {
@@ -2469,10 +2463,6 @@ typedef union {
     qword q;
     float f[4];
 } U;
-struct VTE {
-    short delta, pad;
-    void *fn;
-};
 struct STATE {
     char pad[0x18];
     float heading, amount;
@@ -2486,7 +2476,7 @@ struct MODEL {
     float scale;
 };
 struct COMPONENT {
-    struct VTE *vt;
+    VTE *vt;
 };
 struct BINDING {
     int key;
@@ -2494,7 +2484,7 @@ struct BINDING {
 };
 struct P {
     char padC[0xC];
-    struct VTE *vt;
+    VTE *vt;
     char pad10[0x150 - 0x10];
     struct STATE *state;
     char pad154[0x190 - 0x154];
@@ -2581,8 +2571,8 @@ static inline void *At(struct P *p, int offset)
 static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
 {
     struct COMPONENT *c = b->component;
-    struct VTE *entry = &c->vt[3];
-    ((void (*)(void *, int, qword *, float, float))entry->fn)((char *)c + entry->delta, 0, out, m->base, m->scale);
+    VTE *entry = &c->vt[3];
+    ((void (*)(void *, int, qword *, float, float))entry->pfn)((char *)c + entry->d, 0, out, m->base, m->scale);
 }
 // Return a scaled by b.x in place.
 static inline qword ScaleIn(qword a, qword b)
@@ -2753,7 +2743,7 @@ void UpdateJtPre(struct P *jt)
         register float one __asm__("$f20");
         register float weight __asm__("$f1");
         qword velocity;
-        struct VTE *entry;
+        VTE *entry;
         DrainStepplayerMp(jt, D_002BF3C4);
         if (jt->submode == 12) {
             float angle = NormalizeAngle__Ff(GetStepHeading(jt) - jt->heading);
@@ -2763,7 +2753,7 @@ void UpdateJtPre(struct P *jt)
             SetStepTargetHeading(jt, jt->state->heading);
         one = 1.0f;
         entry = &jt->vt[34];
-        velocity = ((qword(*)(void *))entry->fn)((char *)jt + entry->delta);
+        velocity = ((qword(*)(void *))entry->pfn)((char *)jt + entry->d);
         weight = D_002BF3CC * ClampAbs__Fff(QwordZ(velocity) / (jt->factor * D_002BF35C), one);
         {
             register float zero __asm__("$f2") = 0.0f;
@@ -2793,12 +2783,9 @@ void UpdateJtPre(struct P *jt)
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
-typedef char VTE_Size[(sizeof(struct VTE)==8)?1:-1];
 typedef char PHASE_Size[(sizeof(union PHASE)==16)?1:-1];
 typedef char STATE_Size[(sizeof(struct STATE)==32)?1:-1];
 typedef char BINDING_Size[(sizeof(struct BINDING)==8)?1:-1];
-typedef char VTE_delta_Offset[((unsigned)&((struct VTE*)0)->delta==0)?1:-1];
-typedef char VTE_fn_Offset[((unsigned)&((struct VTE*)0)->fn==4)?1:-1];
 typedef char STATE_heading_Offset[((unsigned)&((struct STATE*)0)->heading==24)?1:-1];
 typedef char STATE_amount_Offset[((unsigned)&((struct STATE*)0)->amount==28)?1:-1];
 typedef char MODEL_table_Offset[((unsigned)&((struct MODEL*)0)->table==20)?1:-1];
@@ -4230,7 +4217,7 @@ extern "C" void SetJtGrabObject(JT *jt, LO *lo)
         jt->jtgrab.unknown500 = 1;
         SetJtGrabState(&jt->jtgrab, 6, lo, 0);
     } else if (jt->jtgrab.state == 6) {
-        VTEJ *entry = &PVTJ(jt)[88];
+        VTE *entry = &PVTJ(jt)[88];
         ((void (*)(void *, int))entry->pfn)((char *)jt + entry->d, 0);
     }
 }
@@ -4291,7 +4278,6 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M3{qword r[3];};
 struct M4{qword r[4];};
-struct VTE{short delta,pad;void*fn;};
 struct O{char pad[0xC];VTE*vt;};
 struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
@@ -4399,7 +4385,7 @@ static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, u
 // Smooths Sly's matrix and position and updates the directional animation weight.
 extern "C" void UpdateJtSmoothing(P *jt)
 {
-    M4 m = *((M4 * (*)(void *)) jt->object->vt[31].fn)((char *)jt->object + jt->object->vt[31].delta);
+    M4 m = *((M4 * (*)(void *)) jt->object->vt[31].pfn)((char *)jt->object + jt->object->vt[31].d);
     U direction, position, scratch, negative;
     *(M3 *)&jt->matrix = *(M3 *)&m;
     M4 *current = GetLoWorldMatrix(jt);
@@ -4410,11 +4396,11 @@ extern "C" void UpdateJtSmoothing(P *jt)
     SMP *sample;
     float smoothDt = SmoothInputs(current, clock, factor, samplePage, receiver, optional, sample);
     SmoothMatrix(receiver, &jt->matrix, sample, optional, &direction.q, smoothDt);
-    ((void (*)(void *, qword))jt->vt[36].fn)((char *)jt + jt->vt[36].delta, direction.q);
+    ((void (*)(void *, qword))jt->vt[36].pfn)((char *)jt + jt->vt[36].d, direction.q);
     U target;
     P *owner = NegativeTarget(m, jt->offset, &negative, &scratch, &target, jt);
     (void)PosSmooth(GetLoWorldPos(owner), target.q, &D_002BF408, &position.q, clock->deltaTime * factor);
-    ((void (*)(void *, qword))jt->vt[35].fn)((char *)jt + jt->vt[35].delta, position.q);
+    ((void (*)(void *, qword))jt->vt[35].pfn)((char *)jt + jt->vt[35].d, position.q);
     qword relative;
     {
         register PARAM *params __asm__("$3");
@@ -4474,7 +4460,6 @@ typedef char Pointer_Size[(sizeof(void*)==4)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==48)?1:-1];
 typedef char M4_Size[(sizeof(M4)==64)?1:-1];
-typedef char VTE_Size[(sizeof(VTE)==8)?1:-1];
 typedef char O_Size[(sizeof(O)==16)?1:-1];
 typedef char PARAM_Size[(sizeof(PARAM)==32)?1:-1];
 typedef char SMP_Size[(sizeof(SMP)==12)?1:-1];
@@ -4488,8 +4473,6 @@ typedef char U_q_Offset[((unsigned)&((U*)0)->q==0)?1:-1];
 typedef char U_f_Offset[((unsigned)&((U*)0)->f==0)?1:-1];
 typedef char M3_r_Offset[((unsigned)&((M3*)0)->r==0)?1:-1];
 typedef char M4_r_Offset[((unsigned)&((M4*)0)->r==0)?1:-1];
-typedef char VTE_delta_Offset[((unsigned)&((VTE*)0)->delta==0)?1:-1];
-typedef char VTE_fn_Offset[((unsigned)&((VTE*)0)->fn==4)?1:-1];
 typedef char O_vt_Offset[((unsigned)&((O*)0)->vt==12)?1:-1];
 typedef char PARAM_y_Offset[((unsigned)&((PARAM*)0)->y==16)?1:-1];
 typedef char PARAM_z_Offset[((unsigned)&((PARAM*)0)->z==20)?1:-1];
