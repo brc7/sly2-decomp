@@ -113,4 +113,4 @@ extern "C" TICK TickNow(CLOCK *clock)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-CLOCK g_clock;   /* g_clock (0x60 bytes: 0x2DDED0..0x2DDF30, between cd's and cm's .bss) */
+CLOCK g_clock;   /* (0x60 bytes: 0x2DDED0..0x2DDF30, between cd's and cm's .bss) */
