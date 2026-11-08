@@ -73,12 +73,6 @@ struct MODEL {
     char unknown48[0x14];
     N *nodes;
 };
-/* g++ 2.95 vtable entry. */
-struct VTE {
-    short d;
-    short pad;
-    void *pfn;
-};
 /* View of the trail (an SO). */
 struct TRAIL {
     char pad0[0xC];

@@ -34,8 +34,6 @@ enum {
 };
 
 typedef union { qword q; float f[4]; } U;
-/* g++ 2.95 vtable entry. */
-struct VTE { short d; short pad; void *pfn; };
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct SW;

@@ -20,7 +20,6 @@ struct VECTORV { float x, y, z; };   /* sly2/basic.h's VECTOR has constructors (
 struct M4 { qword r[4]; };
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
-struct VTE { short d; short pad; void *pfn; };
 
 /* basic.h's CID has no enumerators yet. */
 #define CID_2E ((CID)0x2E)

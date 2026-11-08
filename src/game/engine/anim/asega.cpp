@@ -17,7 +17,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Hand-made calls of LO slots lo.h does not declare with these arguments (45: the override release); the vtable
    pointer of a BASIC is at +0xC. */
-struct VTE { short d; short pad; void (*pfn)(); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /* The XF an ACTSEG drives and the SO that owns XFs, as far as this TU reads them (sly2/so.h has the full XF; it reads

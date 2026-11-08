@@ -14,8 +14,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
 typedef struct { qwordV r[4]; } MATRIX4V;
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short delta, pad; void *fn; };
 
 /* A bone frame (XF view: local matrix, world position at +0x70, parent at +0xA0) and the parent's world matrix. */
 struct A { MATRIX4V m; char pad[0x30]; qwordV worldPos; char pad2[0x20]; void *parent; };
@@ -64,7 +62,7 @@ void ACT7::Attach()
 static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
 {
     VTE *e = &so->vt[51];
-    return ((void *(*)(void *, int))e->fn)((char *)so + e->delta, S16Read__18CBinaryInputStream(pbis));
+    return ((void *(*)(void *, int))e->pfn)((char *)so + e->d, S16Read__18CBinaryInputStream(pbis));
 }
 
 // Loads an SO's two-bone IK records from the level stream: per record the first bone, second bone and parent transforms
@@ -254,14 +252,11 @@ typedef char qword_Size[(sizeof(qwordV)==16)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
-typedef char VTE_Size[(sizeof(VTE)==8)?1:-1];
 typedef char FRAME_Size[(sizeof(FRAME)==0xB0)?1:-1];
 typedef char FRAME_local_Offset[((unsigned)&((FRAME*)0)->local==0)?1:-1];
 typedef char FRAME_world_Offset[((unsigned)&((FRAME*)0)->world==64)?1:-1];
 typedef char FRAME_parent_Offset[((unsigned)&((FRAME*)0)->parent==160)?1:-1];
 typedef char FRAME_stamp_Offset[((unsigned)&((FRAME*)0)->stamp==164)?1:-1];
-typedef char VTE_delta_Offset[((unsigned)&((VTE*)0)->delta==0)?1:-1];
-typedef char VTE_fn_Offset[((unsigned)&((VTE*)0)->fn==4)?1:-1];
 typedef char CONTROL_vt_Offset[((unsigned)&((CONTROL*)0)->vt==0)?1:-1];
 
 typedef char WORK_Size[(sizeof(WORK)==0x170)?1:-1];

@@ -64,7 +64,6 @@ typedef char assert_XP_size[sizeof(XP) == 0xC0 ? 1 : -1];   /* CloneXpList copie
 
 /* Hand-made call of an SO virtual whose so.h declaration has no parameters (slot 55): g++ 2.95 vtable entries
    {delta, pfn}, entry 0 unused, so slot n is entry n + 1. */
-struct VTE { short d; short pad; void (*pfn)(SO *, XP *, int); };
 #define PVT(pso) (*(VTE **)((char *)(pso) + 0xC))
 
 extern "C" {
@@ -270,7 +269,7 @@ extern "C" void RecalcSwXpMovement(SW *world, int count, XP **contacts)
                 SO *pso;
                 pxps->v = GetXfVelocity(pxps->pxf, 0, pxps->pos);
                 pso = pxps->pso;
-                PVT(pso)[56].pfn((SO *)((char *)pso + PVT(pso)[56].d), pxp, j);   /* slot 55 */
+                ((void (*)(SO *, XP *, int))PVT(pso)[56].pfn)((SO *)((char *)pso + PVT(pso)[56].d), pxp, j);   /* slot 55 */
             }
         }
         for (j = 0; j < 2; j++) {

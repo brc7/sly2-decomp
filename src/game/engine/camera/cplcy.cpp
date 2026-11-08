@@ -927,8 +927,7 @@ extern "C" CPCAMBLEND *CPCAMBLEND_ctor(CPCAMBLEND *pcpcamblend)
 }
 
 namespace M_ActivateCpcamblend { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };   /* the CAMEVENT, called through its vtable pointer at +0x0C */
+struct O { int a[3]; VTE *vt; };   /* the CAMEVENT, called through its vtable pointer at +0x0C */
 void ActivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b);
 } } // namespace M_ActivateCpcamblend
 // Pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
@@ -944,7 +943,7 @@ void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespa
     a->pcammove = b;
     o = (struct O *)b->pevent;
     e = &o->vt[1];
-    e->pfn((char *)o + e->d);
+    ((void (*)(...))e->pfn)((char *)o + e->d);
 }
 
 namespace M_DeactivateCpcamblend { extern "C" {

@@ -24,8 +24,6 @@ typedef union { qword q; float f; } UF;
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 struct M3P { qword r[3]; };
 struct M4{U r[4];};
-/* g++ 2.95 vtable entry. */
-struct VTE{short delta,pad;void*fn;};
 struct DELTA{U first,second;};
 /* An object with a vtable at +0xC (the hang point, the anchor's owner); +0x134 a distance. */
 struct NODE{char pad0[0xC];VTE*vt;char pad10[0x124];union{float property;int propertyBits;};};
@@ -151,10 +149,7 @@ static inline void StoreQ(U*d,VU_VECTOR v){d->q=v.q;}
 static inline U*Addr(U*p){return p;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char DELTA_Size[sizeof(DELTA)==32?1:-1];
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char NODE_vt_Offset[FIELD_OFFSET(NODE,vt)==12?1:-1];
-typedef char VTE_delta_Offset[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char VTE_fn_Offset[FIELD_OFFSET(VTE,fn)==4?1:-1];
 typedef char DELTA_first_Offset[FIELD_OFFSET(DELTA,first)==0?1:-1];
 typedef char DELTA_second_Offset[FIELD_OFFSET(DELTA,second)==16?1:-1];
 /* const-ref read: a non-scalar MEM, so the axis load for call 2 waits for the .first store */
@@ -197,7 +192,7 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
                     : "r"(effect), "r"(second));
             second->q = GetSoImpulseAngularDelta(object, Addr(&points[side])->q, Ref(axis));
             VTE *method = &jt->vt[69];
-            ((void (*)(NODE *, DELTA *, qword, U *))method->fn)((NODE *)((char *)jt + method->delta), effect, *point,
+            ((void (*)(NODE *, DELTA *, qword, U *))method->pfn)((NODE *)((char *)jt + method->d), effect, *point,
                                                                 &velocity[side]);
         }
         relative[axisIndex].q = SubV(velocity[0].q, velocity[1].q);
@@ -271,9 +266,9 @@ static inline float EvaluateClq(CLQV*p,float x){return p->g0+x*(p->g1+x*p->g2);}
 // Larger of a and b.
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
 // The object's velocity (virtual slot 33).
-static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->fn)((char*)p+e->delta);}
+static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->pfn)((char*)p+e->d);}
 // The object's reference space (virtual slot 32).
-static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->fn)((char*)p+e->delta,0);}
+static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->pfn)((char*)p+e->d,0);}
 // Unit vector along v, or fallback when its length is below 1e-4.
 static inline qword NormalizeVec(qword v,qword fallback){qword len=VuSqrtX(VuDot(v,v));qword r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
 // Identity accessor (keeps the original address arithmetic).
@@ -420,7 +415,6 @@ static inline int Can(JT*jt,int mode){return jt->CanUseGadget(mode);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
-typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 
 typedef char SMP_Size[sizeof(SMP)==12?1:-1];
 typedef char WORK_Size[sizeof(WORK)==176?1:-1];
@@ -615,9 +609,6 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     jt->activeAnimation->speed = ClampAbs__Fff((target - jt->activeAnimation->time) / D_002DDED0.deltaTime, D_002BF590);
 }
 
-typedef char final_offset_0_0[FIELD_OFFSET(VTE,delta)==0?1:-1];
-typedef char final_offset_0_1[FIELD_OFFSET(VTE,pad)==2?1:-1];
-typedef char final_offset_0_2[FIELD_OFFSET(VTE,fn)==4?1:-1];
 typedef char final_offset_1_0[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char final_offset_1_1[FIELD_OFFSET(U,f)==0?1:-1];
 typedef char final_offset_1_2[FIELD_OFFSET(U,i)==0?1:-1];
@@ -650,12 +641,12 @@ extern "C" void GetJtHangHeading__FP2JTPf(JT *jt, float *pg)
     {
         NODE *o = ((NODE *)jt->hangHandle);
         VTE *e = &o->vt[31];
-        a = ((float *(*)(void *))e->fn)((char *)o + e->delta);
+        a = ((float *(*)(void *))e->pfn)((char *)o + e->d);
     }
     {
         NODE *o = ((NODE *)jt->hangHandle);
         VTE *e = &o->vt[31];
-        b = ((float *(*)(void *))e->fn)((char *)o + e->delta);
+        b = ((float *(*)(void *))e->pfn)((char *)o + e->d);
     }
     *pg = atan2f(a[1], b[0]);
 }

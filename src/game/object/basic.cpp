@@ -20,7 +20,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    BASIC is BASICV (sly2/basic.h's BASIC has the vptr implicitly), the signed class id CIDV (basic.h's CID has no
    enumerators, so it is unsigned and the derivation test would compare unsigned); the C++ definitions that name them
    carry their mangled names as asm labels. */
-struct VTE { short d; short pad; void (*pfn)(); };
 struct REFNODE;
 struct CFrame;
 /* A sidebag (pool 4): count, then the GC link word (index/page bit-fields, bit 15 a GC mark). */

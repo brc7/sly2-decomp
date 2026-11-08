@@ -20,8 +20,6 @@ union V {qword q;float f[4];};
 struct M3 {qword r[3];};
 struct M4 {qword r[4];};
 struct SMPV {float a,b,c,d;};
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; void (*pf)(void *, int, int, int, int, int); };
 /* The controller as the turret reads it (POCTL). */
 struct CONTROL {char pad[0x10];float x,y;char pad18[8];float z;float zoom;};
 struct SHAPEV {char pad[0x30];float radius;};
@@ -295,9 +293,9 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
             if (!v) return;
             turret->lastLaunched = v;
             if (turret->launcher) LaunchSoFromLauncher(turret->launcher, v);
-            turret->vt[3].pf((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
+            ((void (*)(void *, int, int, int, int, int))turret->vt[3].pfn)((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
         } else
-            turret->vt[3].pf((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
+            ((void (*)(void *, int, int, int, int, int))turret->vt[3].pfn)((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
     }
 }
 

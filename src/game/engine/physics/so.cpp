@@ -110,7 +110,6 @@ struct VU_VECTOR4
 /* The record only CanSoTakeDamage reads (its +0x44 word). */
 struct SOWATCH { char pad0[0x44]; int unknown44; };
 /* Hand-made virtual calls for the slots so.h does not declare with these signatures (g++ 2.95 {delta, pfn}). */
-struct VTE { short d; short pad; void (*pfn)(); };
 #define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
 
 extern SW D_003DD490;           /* g_sw */

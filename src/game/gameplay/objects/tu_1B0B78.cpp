@@ -23,7 +23,6 @@ struct V3 { int x, y, z; };
 struct VECTOR3 { float x, y, z; };
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
-struct VTE { short d; short pad; void *pfn; };
 
 struct SW;
 struct ASEG;

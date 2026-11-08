@@ -15,7 +15,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(); };
 struct LONGU { long l; } __attribute__((packed));   /* an 8-byte callback PMF, passed in one register */
 /* A dancer's move: its button, then three clips (oid, the clip once loaded, apply flags): 0 played on success, 1 on
    a failed press, 2 on a miss. */

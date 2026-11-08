@@ -19,8 +19,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
 typedef struct M4 { U r[4]; } M4;
-/* g++ 2.95 vtable entry. */
-typedef struct VTE { short delta, pad; void *fn; } VTE;
 typedef struct I3 { int index[3]; } I3;
 struct K { int a; int b; };
 /* The mesh object (an XFM, which ends at +0xE0; vtable slot 31 returns its world matrix). */
@@ -145,7 +143,7 @@ extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,S
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  VTE*entry=&mesh->vt[31];
  w.input.q=point;
- word=(unsigned)((M4*(*)(void*))entry->fn)((char*)mesh+entry->delta);
+ word=(unsigned)((M4*(*)(void*))entry->pfn)((char*)mesh+entry->d);
  w.matrix=*(M4*)word;
  bestDistance=D_002A5684;
  if(mesh->count>0){word=12;do{
@@ -296,7 +294,7 @@ extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *poi
     M4 *pm;
     VTE *e = &mesh->vt[31];
     float stop, step;
-    pm = ((M4 *(*)(void *))e->fn)((char *)mesh + e->delta);
+    pm = ((M4 *(*)(void *))e->pfn)((char *)mesh + e->d);
     mat = *pm;
     float h = (params->fastSpeed + params->slowSpeed) * 0.5f;
     step = g_clock.deltaTime * 0.5f;

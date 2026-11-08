@@ -40,7 +40,6 @@ void TouchRip(RIP *prip, int fRemove);
 
 /* The hand-made construction of a RIPG (zeroed pool memory set up as an SO, then as a RIPG) stores the two vtable
    pointers by hand. */
-struct VTE { short d; short pad; void (*pf)(); };
 #define VPTR(p) (*(VTE **)((char *)(p) + 0xC))   /* BASIC's vtable pointer word */
 extern "C" {
 extern VTE D_002D9978[] __asm__("_vt$2SO");

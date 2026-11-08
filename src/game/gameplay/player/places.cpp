@@ -24,8 +24,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct VECTORV { float x, y, z; } __attribute__((aligned(16)));
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[4]; } M4;
-/* g++ 2.95 vtable entry. */
-struct VTE { short delta; short pad; void *function; };
 /* A place's grab spot (JTPLACE::grabSpot) as called here: vtable at +0x20, slot 3 evaluates a point at a distance,
    slot 6 returns its object (classes.h's GRABSPOT declares these virtuals without their signatures). */
 struct PLACESO { char pad[0x20]; VTE *vt; };
@@ -102,7 +100,7 @@ extern "C" qword GetJtPlacePosition(STEPPLAYER *jt, JTPLACE *q, float g)
     qword r;
     if (q->grabSpot) {
         PLACESO *s = (PLACESO *)q->grabSpot;
-        ((void (*)(void *, STEPPLAYER *, U *, int, float))s->vt[3].function)((char *)s + s->vt[3].delta, jt, &t, 0, q->grabSpotParam);
+        ((void (*)(void *, STEPPLAYER *, U *, int, float))s->vt[3].pfn)((char *)s + s->vt[3].d, jt, &t, 0, q->grabSpotParam);
         o = q->object->GetLocalTransform(0);
         v = TransformXfPos(0, o, t.q);
     } else {
@@ -300,7 +298,7 @@ extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
     }
     e = &places->aplace[0];
     func_002333B4(e, 0, sizeof(JTPLACE));
-    places->aplace[0].object = ((LO *(*)(void *))s->vt[6].function)((char *)s + s->vt[6].delta);
+    places->aplace[0].object = ((LO *(*)(void *))s->vt[6].pfn)((char *)s + s->vt[6].d);
     e->grabSpot = (GRABSPOT *)s;
     e->grabSpotParam = g;
     e->rememberedTime = D_002DDED0.time;

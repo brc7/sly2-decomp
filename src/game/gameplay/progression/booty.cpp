@@ -20,9 +20,8 @@ typedef union { qword q; float f[4]; } VU;
 typedef struct { qword q[4]; } M4;
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
-struct VTE { short d; short pad; void (*pfn)(); };
 struct VT { VTE a[64]; };
-#define VCALL(po, slot, T) ((T)(po)->pvt->a[slot].pfn)((char *)(po) + (po)->pvt->a[slot].d
+#define VCALL(po, slot, T) ((T)((void (*)())(po)->pvt->a[slot].pfn))((char *)(po) + (po)->pvt->a[slot].d
 
 #define CID_34 ((CID)0x34)   /* basic.h's CID has no enumerators yet */
 struct MATCH;
@@ -429,7 +428,7 @@ static inline float Dist3(qword a, qword b, float k)
 #define LINKE(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
-    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
+    ((PFNE)((void (*)())pvte->pfn))((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
     SubscribeRipObject(booty->pmatch, booty); \
     g = Dist(GetLoWorldPos(PA), GetLoWorldPos(PB)); \
     booty->pmatch->p1C = (PB); \
@@ -442,7 +441,7 @@ static inline float Dist3(qword a, qword b, float k)
 #define LINKE3(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
-    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
+    ((PFNE)((void (*)())pvte->pfn))((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
     SubscribeRipObject(booty->pmatch, booty); \
     g = Dist3(GetLoWorldPos(PA), GetLoWorldPos(PB), 250.0f); \
     booty->pmatch->p1C = (PB); \
@@ -622,7 +621,7 @@ void SetBootyState(BOOTYV *booty, int st)
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(vq) : "j"(vv), "j"(sq), "r"(pvt) : "$2"); /* "r"(pvt): allocation-only (Claude agent), keeps the vtable load before the vmulx like the target; "$2": clobber of the dead v0 (Claude agent), so pvt takes v1 like the target */
             s.q = sq;
             v.q = vq;
-            ((PFNQ)pvt->a[35].pfn)((char *)booty + pvt->a[35].d, v.q);
+            ((PFNQ)((void (*)())pvt->a[35].pfn))((char *)booty + pvt->a[35].d, v.q);
         }
         a = RandomFloatInRange__Fff(lo, hi);
         b = RandomFloatInRange__Fff(lo, hi);

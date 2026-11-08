@@ -35,7 +35,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct VTE { short d; short pad; void (*pfn)(); };
 struct JOY;
 /* A menu item (0x20): its message kind, callbacks, an option list (c values at a), flags (bit 1 keep the page open). */
 struct ITEM { int kind; void (*select)(ITEM *); int c; int *a; void (*update)(ITEM *); void (*init)(ITEM *); int subpageMeta; uint flags; };   /* subpageMeta: the META of the page it opens */

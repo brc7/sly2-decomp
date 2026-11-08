@@ -58,7 +58,6 @@ struct BLIPV
     BLIPV *pblipPrev;
 };
 
-struct VTE { short d; short pad; void (*pfn)(void *); };
 /* The subscribed object is an EMITTER (emitter.h); RenderBlipgSelf draws the blips at the members of its group (the
    group list, linked through groupLink), each at its EMITB's reference object (aploRef[EMITREF_Reference]) or itself. */
 
@@ -239,9 +238,9 @@ extern "C" BLIPGV *NewBlipGroup(SW *psw)
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
                                  `while (--i != -1) ;` loads 30 as C++ */
     AppendSlEntry(GetSwClassList(psw, CID_1C), p);
-    p->pvt[7].pfn((char *)p + p->pvt[7].d);
-    p->pvt[11].pfn((char *)p + p->pvt[11].d);
-    p->pvt[15].pfn((char *)p + p->pvt[15].d);
+    ((void (*)(void *))p->pvt[7].pfn)((char *)p + p->pvt[7].d);
+    ((void (*)(void *))p->pvt[11].pfn)((char *)p + p->pvt[11].d);
+    ((void (*)(void *))p->pvt[15].pfn)((char *)p + p->pvt[15].d);
     return p;
 }
 
@@ -588,7 +587,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     }
     sceDmaSync(D_002DE59C, 0, 0);
     if (blipGroup->numLiveParticles <= 0) {
-        blipGroup->pvt[9].pfn((char *)blipGroup + blipGroup->pvt[9].d);
+        ((void (*)(void *))blipGroup->pvt[9].pfn)((char *)blipGroup + blipGroup->pvt[9].d);
     } else {
         qwordV c = ScaleSum(vMin.q, vMax.q, VU_FLOATA(0.5f));
         blipGroup->boundsCenter = c;
@@ -713,7 +712,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
     }
     if (blipGroup->numLiveParticles <= 0) {
         VTE *pvt = blipGroup->pvt;
-        pvt[9].pfn((char *)blipGroup + pvt[9].d);
+        ((void (*)(void *))pvt[9].pfn)((char *)blipGroup + pvt[9].d);
     } else {
         qwordV c, d, l;
         float g;

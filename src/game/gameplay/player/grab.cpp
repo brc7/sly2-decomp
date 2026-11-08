@@ -49,7 +49,6 @@ extern CLOCK D_002DDED0;
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 
 /* Hand-made LO virtual calls (g++ 2.95 vtable entries {delta, pfn}; the vtable pointer is at +0xC). */
-struct VTE { short d; short pad; void (*pfn)(); };
 #define PVT(plo) (*(VTE **)((char *)(plo) + 0xC))
 extern "C" {
 extern qword D_002A2DD0;    /* zero vector */

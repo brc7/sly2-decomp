@@ -21,8 +21,7 @@ typedef union { qwordV q; float f[4]; } VU;
 struct M3 { qwordV r[3]; };
 struct M4 { M3 basis; qwordV position; };
 
-/* Hand-made virtual calls: the vtable pointer of an object is at +0xC; the entries are called with several shapes. */
-struct VTE { short d; short pad; union { void (*pfn)(void *, ...); qwordV (*get)(void *, ...); void (*set)(void *, qwordV); }; };
+/* Hand-made virtual calls (basic.h VTE): the vtable pointer of an object is at +0xC; the entries are called with several shapes. */
 
 enum CIDV { CID_34 = 0x34 };
 struct BASIC;
@@ -217,7 +216,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5
 // SelectGuardTrapTarget).
 static inline void SetStateVirtual(CID100V *gadget, int state)
 {
-    gadget->pvt[76].pfn((char *)gadget + gadget->pvt[76].d, state);
+    ((void (*)(void *, ...))gadget->pvt[76].pfn)((char *)gadget + gadget->pvt[76].d, state);
 }
 
 // CID100 vtable slot 7 (Init): SO init; blast damage -10, fired beyond 3000 units from the thrower, no pending
@@ -535,9 +534,9 @@ static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%
 // Return old + v * k.
 static inline qwordV AddScaledK(qwordV old,qwordV v,VUK k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%1x":"+j"(old):"j"(k.q),"j"(v));return old;}
 // The object's vector at virtual slot `slot`.
-static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return v[slot].get((char *)o+v[slot].d);}
+static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return ((qwordV (*)(void *, ...))v[slot].pfn)((char *)o+v[slot].d);}
 // Set the object's vector at virtual slot `slot`.
-static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;v[slot].set((char *)o+v[slot].d,q);}
+static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;((void (*)(void *, qwordV))v[slot].pfn)((char *)o+v[slot].d,q);}
 // Copy p into callee-saved $21.
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
 // See the block comment above.
@@ -816,7 +815,7 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
                 }
                 if (D_002C43B0 < D_002DDED0.time - gadget->time) {
                     SprayDprizes(&D_003DD490,0x5D,GetLoWorldPos(gadget->source),gadget,1);
-                    gadget->actor->pvt[9].pfn((char *)gadget->actor + gadget->actor->pvt[9].d);   /* Remove */
+                    ((void (*)(void *, ...))gadget->actor->pvt[9].pfn)((char *)gadget->actor + gadget->actor->pvt[9].d);   /* Remove */
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
                     register GAME *pgame asm("$4") = &D_002DEB30;
                     BroadcastGameEvent(pgame, 0x18, gadget->actor);
@@ -918,7 +917,7 @@ extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
             gadget->hook.owner = gadget;
             gadget->hook.object = bestActor;
             AddSoXa(bestActor, &gadget->hook);
-            q = bestActor->pvt[33].get((char *)bestActor + bestActor->pvt[33].d);
+            q = ((qwordV (*)(void *, ...))bestActor->pvt[33].pfn)((char *)bestActor + bestActor->pvt[33].d);
             s=LoadCoefficient();
             u.q = q;
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(q), "j"(s));

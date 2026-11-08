@@ -22,7 +22,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC; entries are called with several shapes. */
-struct VTE { short d; short pad; void (*pfn)(); };
 union U { qword q; float f[4]; };
 union FLOATWORD { float value; int bits; };
 

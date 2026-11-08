@@ -15,7 +15,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
-typedef struct VTE { short d; short pad; void (*pfn)(); } VTE;
 typedef struct SOX { char pad[0xC]; VTE *vt; } SOX;   /* any SO, for its virtual calls */
 /* A trigger class (cid, armed) or an action (kind, value). */
 struct I { int a; int b; };

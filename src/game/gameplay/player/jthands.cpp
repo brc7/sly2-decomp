@@ -29,7 +29,6 @@ struct M3 { qword r[3]; };
 struct M4 { qword r[4]; };
 
 /* Hand-made virtual calls (the vtable pointer of an LO is at +0xC). */
-struct VTE { short delta, pad; void *pfn; };
 /* a macro, not an inline function: an inline function's parameter becomes a new pseudo, which moves a pinned object
    pointer into another register (StartJtHandsCarry) */
 #define PVT(plo) (*(VTE **)((char *)(plo) + 0xC))
@@ -239,7 +238,7 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
     }
     case 2: {
         M4 *output = &w.stage.early.temporary;
-        M4 *world = ((M4 * (*)(void *))PVT(hands->ploRef)[31].pfn)((char *)hands->ploRef + PVT(hands->ploRef)[31].delta);   /* LO slot 31, GetWorldMatrix */
+        M4 *world = ((M4 * (*)(void *))PVT(hands->ploRef)[31].pfn)((char *)hands->ploRef + PVT(hands->ploRef)[31].d);   /* LO slot 31, GetWorldMatrix */
         cursor = &w.stage.early.inverse;
         new (cursor) M4(InvertMatrix4Rigid(&hands->matChain));
         const M4 *inverseArg = InverseArgument((M4 *)cursor);
@@ -479,9 +478,9 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
 union VIEWS { struct { M4 intermediate, product, inverse; } matrices; struct { M3 angles, converted; } basis; U scalar; };
 struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocity, destination, delta, endVelocity; };
 // The object's source matrix into out (virtual slot 32).
-static inline XF *SourceMatrix(LO *lo, M4 *out) { VTE &v = PVT(lo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)lo + v.delta), out); }   /* LO slot 32, GetLocalTransform */
+static inline XF *SourceMatrix(LO *lo, M4 *out) { VTE &v = PVT(lo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)lo + v.d), out); }   /* LO slot 32, GetLocalTransform */
 // The object's world matrix (virtual slot 31).
-static inline M4 *WorldMatrix(LO *lo) { VTE &v = PVT(lo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)lo + v.delta)); }   /* LO slot 31, GetWorldMatrix */
+static inline M4 *WorldMatrix(LO *lo) { VTE &v = PVT(lo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)lo + v.d)); }   /* LO slot 31, GetWorldMatrix */
 // Address of the work record's translation slot (+0xB0), in $4.
 static inline qword *TranslationSlot(CARRYWORK &w) { register qword *slot __asm__("$4"); __asm__("addiu %0,%1,0xB0" : "=r"(slot) : "r"(&w)); return slot; }
 // Copy the matrix pointer into $8.
@@ -660,7 +659,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         register LO *receiver __asm__("$4");
         __asm__("lh %0,%4\n\tlw %1,%5\n\tsqc2 %6,%2\n\taddu %0,%8,%0\n\tsqc2 %7,%3"
                 : "=&r"(receiver), "=&r"(apply), "=m"(work.views.scalar.q), "=m"(work.endVelocity)
-                : "m"(table[35].delta), "m"(table[35].pfn), "j"(inverse), "j"(negativeOrEnd),
+                : "m"(table[35].d), "m"(table[35].pfn), "j"(inverse), "j"(negativeOrEnd),
                   "r"(object)); /* LO slot 35, SetVelocity */
         work.views.scalar.q = positive;
         apply(receiver, callbackVelocity);

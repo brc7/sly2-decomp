@@ -298,6 +298,18 @@ template <class T> void CRefPtr<T>::Attach(T *p)
    CFrame views, can include the shared headers). */
 
 
+/* VTE: one g++ 2.95 vtable entry: the this-adjustment and the function (the vtable a BASIC's vptr at +0xC points to
+   is an array of these, slot 0 unused). Code that cannot call the real virtual yet (the class has no header, or the
+   slot's signature is unknown) calls through it as ((T)pvt[i].pfn)((char *)p + pvt[i].d, ...), T the function type
+   it matched with. arrayv.h keeps its own copy in namespace ArrayV. */
+struct VTE
+{
+      short d;     /* this-adjustment added to the object pointer */
+      short pad;
+      void *pfn;   /* the function */
+};
+typedef char assert_VTE_size[sizeof(VTE) == 8 ? 1 : -1];
+
 /* BASIC: the root class of every game object: the Splice script context (frame, side bag of script variables) and the
    list of objects subscribed to this one, plus the vtable at +0xC.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (29 copies in Lilly ports) */

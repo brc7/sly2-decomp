@@ -18,7 +18,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Hand-made calls of LO slots lo.h does not declare with these arguments (43/44: overrides, 51: sub-object XF) and the
    ASEGA vtable store; the vtable pointer of a BASIC is at +0xC. */
-struct VTE { short d; short pad; void (*pfn)(); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 struct AREQV { int cb; int cbAlign; };

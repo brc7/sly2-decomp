@@ -176,7 +176,6 @@ struct MSGA { int cb; int nKind; int k; int **pp; };   /* allocation request / l
 struct M3 { qword r[3]; };
 union U { qword q; float f[4]; int i[4]; };
 union UF { qword q; float f; };
-struct VTE { short d; short pad; int (*pfn)(...); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 struct POX { char pad[0x2DC]; int unknown2DC; };   /* the current player as UpdateTnCallback reads it */
 struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GetPlaneDistance) */
@@ -411,11 +410,11 @@ void SetTnTns(TN *p, int k)
     switch (k) {
     case 1:
         SetCmPolicy(&g_cm, p->priority + 2, &g_cm.tunnelPolicy, p->hero, p);
-        PVT(p)[3].pfn((char *)p + PVT(p)[3].d, 5, 1, 0, 0, 0);
+        ((int (*)(...))PVT(p)[3].pfn)((char *)p + PVT(p)[3].d, 5, 1, 0, 0, 0);
         break;
     case 0:
         RevokeCmPolicy(&g_cm, 8, -1, 0, 0, p);
-        PVT(p)[3].pfn((char *)p + PVT(p)[3].d, 6, 1, 0, 0, 0);
+        ((int (*)(...))PVT(p)[3].pfn)((char *)p + PVT(p)[3].d, 6, 1, 0, 0, 0);
         break;
     }
     p->state = (TNS)k;

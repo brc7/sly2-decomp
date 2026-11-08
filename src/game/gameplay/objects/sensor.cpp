@@ -31,7 +31,6 @@ struct M4 { U rows[4]; };
 
 
 /* Hand-made virtual calls: the vtable pointer of an LO is at +0xC. */
-struct VTE { short delta, pad; void *fn; };
 
 struct SW;
 struct XF;
@@ -409,7 +408,7 @@ static inline qword Transform(const M4 *m, qword point)
 }
 /* LO slot 31 (GetWorldMatrix) by hand. */
 // The path's world matrix (LO vtable slot 31).
-static inline M4 *GetWorldMatrix(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->fn)((char *)path + v->delta); }
+static inline M4 *GetWorldMatrix(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->pfn)((char *)path + v->d); }
 // Marks the SO's collision data dirty (flag 2 in the tagged flag word).
 static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1) *(uint *)f |= 2; else pso->grfDirty = f | 2; }
 

@@ -20,7 +20,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct M4 { qword r[4]; };
 union U { qword q; float f[4]; };
-struct VTE { short d; short pad; void *pfn; };
 struct T8 { int a, b; };
 /* The frame a polygon's outline is given in (+0x50; inferred): its transform stamp changes whenever it moves. */
 struct CID14O { char pad[0xA4]; int transformStamp; };

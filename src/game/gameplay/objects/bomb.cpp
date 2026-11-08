@@ -19,7 +19,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 /* g++ 2.95 vtable entry (the blast listener's slot 51 is called by hand: its class is not known). */
-struct VTE { short d; short pad; void *pfn; };
 
 /* The bomb's XA (+0xE4: its position at +0x50) and XP (+0xEC: radius at +0x30, owner at +0x60, contact list at +0x64). */
 struct XPQ;

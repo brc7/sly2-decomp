@@ -22,7 +22,6 @@ union U { qword q; float f[4]; int i[4]; };
 union FLOATWORD { float value; int bits; };
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
-struct VTE { short d; short pad; void (*pfn)(void *); };
 
 /* POD matrix rows, and the class form with user-written copies that IntegrateSoGroupTransforms / ApplySoRestingContactVelocity need. */
 struct M3 { qword r[3]; };
@@ -160,7 +159,7 @@ extern "C" void SolveSw(SW *world)
     world->piloupdCur = &i;
     for (i = 0; i < world->cloupd; i++) {
         SWE *entry = &((SWE *)world->aloupd)[i];
-        if ((entry->fl & 0x24) == 4) entry->pso->pvt[17].pfn((char *)entry->pso + entry->pso->pvt[17].d);
+        if ((entry->fl & 0x24) == 4) ((void (*)(void *))entry->pso->pvt[17].pfn)((char *)entry->pso + entry->pso->pvt[17].d);
     }
     world->piloupdCur = 0;
     SolveSwContactGroups(world, 1);
@@ -332,7 +331,7 @@ static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r
 // The frame clock's dt.
 static inline float ClockDt(){return D_002DDED0.deltaTime;}
 // Call p's no-argument virtual at vtable slot `slot`.
-static inline void Callback(SO *p,int slot){VTE *vt=p->pvt;vt[slot].pfn((char *)p+vt[slot].d);}
+static inline void Callback(SO *p,int slot){VTE *vt=p->pvt;((void (*)(void *))vt[slot].pfn)((char *)p+vt[slot].d);}
 // Solves one contact group: one DZG row per contact, target velocities from restitution and penetration, the DZG
 // and friction solve, impulses applied to the objects, then the objects are notified (slots 65-67).
 void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCount,XP **contacts)
@@ -503,7 +502,7 @@ void IntegrateSoGroupTransforms(SO *p)
     {M3C *dest=&MATC(rotation);*dest=frame;dest->r[1].i[3]=0;dest->r[2].i[3]=0;dest->r[0].i[3]=0;}
     rotation->worldStamp=++global->transformStamp;
     Clear(rotationVelocity);
-    p->pvt[18].pfn((char*)p+p->pvt[18].d);
+    ((void (*)(void *))p->pvt[18].pfn)((char*)p+p->pvt[18].d);
     UpdateSoPartMatrices(p);
     if(p->physicsTree){
         for(node=p->physicsTree->first;node;node=node->next){
@@ -595,7 +594,7 @@ extern "C" void ApplySoRestingContactVelocity(SO *input)
                 MATC(rotation).r[0].i[3]=0;
                 rotation->worldStamp=++D_003DD490.transformStamp;
             }
-            p->pvt[18].pfn((char *)p+p->pvt[18].d);
+            ((void (*)(void *))p->pvt[18].pfn)((char *)p+p->pvt[18].d);
         }
     }
 }
@@ -696,7 +695,7 @@ extern "C" void ApplySoContactShift(SO*object)
             ((int*)&transform->localMatrix.r[0])[3]=0;
             transform->worldStamp=++D_003DD490.transformStamp;
         }
-        if(changed){object->pvt[18].pfn((char*)object+object->pvt[18].d);InvalidateSoAaox(object);}
+        if(changed){((void (*)(void *))object->pvt[18].pfn)((char*)object+object->pvt[18].d);InvalidateSoAaox(object);}
     }
 }
 
