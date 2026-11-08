@@ -35,6 +35,7 @@
 #include "sly2/task.h"
 #include "gifs.h"
 #include "vifs.h"
+#include "sly2/clock.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -185,9 +186,7 @@ struct TITLE : SCREEN   /* the title screen */
 };
 /* The job list's selected job (+0x6C / +0x70 text ids). */
 
-extern SW D_003DD490;
 extern "C" {
-extern CLOCK D_002DDED0;
 extern DL D_003DA0E0;
 extern char D_002E1E60[], D_002E6550[], D_002E65A0[];   /* letterbox, memcard dialog and status */
 extern GIFS D_002DEA00;   /* the frame's two packet streams: the GIF one */
@@ -195,7 +194,6 @@ extern VIFS D_002DEA28;   /* and the VIF1 one */
 extern LO *D_002E1E40, *D_002DD5BC, *D_002F7900;    /* the three heroes */
 extern JOB *D_003DA4D0;
 extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
-extern char D_003D4A60[];
 
 void PostHudMeterLoad(void *screen);
 void InitPauseMenu(void *pmenu);
@@ -307,7 +305,6 @@ extern "C" void PostLoadScreens()
 
 namespace M_func_001D95B8 { extern "C" {
 struct S { SCREENBASE *requested; int a, b; SCREENBASE *focused; };   /* the shown-screen list: head, focused screen */
-extern JOY D_002DFC00;   /* the joypad */
 // If the screen at the head of the shown list (the requested top screen) differs from the focused one, tells the old one
 // it lost focus and focuses the new one. (inferred)
 void UpdateScreenFocus(struct S *list) {
@@ -321,24 +318,21 @@ void UpdateScreenFocus(struct S *list) {
     previous = list->focused;
     list->focused = requested;
     if (requested) {
-        requested->pjoy = &D_002DFC00;
+        requested->pjoy = &g_joy;
         requested->SetFocus(1, previous);
     }
 }
 } } // namespace M_func_001D95B8
 
 namespace M_func_001D9648 { extern "C" {
-extern CLOCK D_002DDED0;
-typedef struct { char pad[0x100C]; int unknown100C; } PAD;
 extern int D_002DFBC0;
 extern int D_002DFBC4;
-extern PAD D_002DFC00;
-extern PAD D_002E0D00;
+extern JOY D_002E0D00;   /* the second JOY */
 extern char D_003D9ED0[], D_003DA150[], D_003DA0F0[], D_002DDEC0[], D_00443740[], D_003D9E80[];
 extern char D_003DA0C0[], D_003DA3C0[], D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
 void RemoveGrfusr__Fi(int);
-int HandleJoyButtons(PAD *, int);
-void ClearJoyButtons(PAD *, int);
+int HandleJoyButtons(JOY *, int);
+void ClearJoyButtons(JOY *, int);
 int TryOpenPauseMenu(int);
 int IsDlEmpty__FP2DL(void *);
 void UpdatePauseMenu(void *);
@@ -356,13 +350,13 @@ void UpdateTitleScreen(void *);
 // Per-frame HUD screen update: handles the pause / menu buttons and runs every screen's Update (slot 7). (inferred)
 void UpdateScreens(void *pdl)
 {
-    PAD *pad;
+    JOY *pad;
     if (D_002DFBC4 & 8) {
-        if (D_002DDED0.rate == 0.0f || 0.1f < D_002DDED0.time / D_002DDED0.rate)
+        if (g_clock.rate == 0.0f || 0.1f < g_clock.time / g_clock.rate)
             RemoveGrfusr__Fi(8);
     }
     if (D_002DFBC0 & 2)
-        pad = &D_002DFC00;
+        pad = &g_joy;
     else
         pad = &D_002E0D00;
     if (HandleJoyButtons(pad, 0x800)) {
@@ -371,7 +365,7 @@ void UpdateScreens(void *pdl)
     } else if (D_002DFBC0 & 2) {
         int r = IsDlEmpty__FP2DL(pdl);
         int f = 0;
-        if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.time)
+        if (pad->joys == 1 && 5.0f <= g_clock.time)
             f = 1;
         if (r && f)
             TryOpenPauseMenu(0);
@@ -463,9 +457,7 @@ typedef struct {
     int maxPower;
 } Q;
 #define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
-extern struct G D_003DD490;
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
-Q *GetHeroPo(struct G *);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int);
 int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
 int GetStepplayerMp(Q *);
 void PlayWidgetAnim(WIDGET *, int);
@@ -476,10 +468,10 @@ void PostHudMeterLoad(HUDMETER *p)
 {
     Q *hero;
     WIDGET *widget;
-    p->widget = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
+    p->widget = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, 0x36B, 0);
     p->state = 0;
     p->hero = 0;
-    hero = GetHeroPo(&D_003DD490);
+    hero = (Q *)GetHeroPo(&g_sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
         p->hero = (STEPPLAYER *)hero;
     if (p->hero == 0) {
@@ -616,10 +608,7 @@ typedef struct Q {
     int maxPower;
 } Q;
 #define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
-extern struct G D_003DD490;
-extern CLOCK D_002DDED0;
 extern char D_002C3248[];
-Q *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int GetStepplayerMp(Q *);
 int AreFloatsNear__Ffff(float, float, float);
@@ -632,8 +621,6 @@ void SetWidgetAnimPhase(WIDGET *, int, float);
 void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the namespace's views) */
 {
     using namespace M_UpdateHudMeter;
-    using M_UpdateHudMeter::D_003DD490;
-    using M_UpdateHudMeter::D_002DDED0;
     HUDMETER *p = this;
     Q *old;
     Q *q;
@@ -641,7 +628,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         return;
     old = HERO(p);
     p->hero = 0;
-    q = GetHeroPo(&D_003DD490);
+    q = (Q *)GetHeroPo(&g_sw);
     if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
         p->hero = (STEPPLAYER *)q;
     if (!p->hero) {
@@ -712,7 +699,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         if (p->shownHealth < p->health)
             p->shownHealth = p->health;
         else
-            p->shownHealth = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, D_002DDED0.deltaTime);
+            p->shownHealth = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, g_clock.deltaTime);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
         if (AreFloatsNear__Ffff(p->shownHealth, p->health, 0.0001f))
             SetHudMeterState(p, HUDMETER_STEADY);
@@ -722,7 +709,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         if (p->shownPower < p->power)
             p->shownPower = p->power;
         else
-            p->shownPower = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, D_002DDED0.deltaTime);
+            p->shownPower = SmoothValue__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, g_clock.deltaTime);
         SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
         if (AreFloatsNear__Ffff(p->shownPower, p->power, 0.0001f))
             SetHudMeterState(p, HUDMETER_STEADY);
@@ -733,7 +720,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
 // Post-load of the notice banner: finds its widget.
 extern "C" void PostNoticeLoad(SCREEN *screen)
 {
-    PLONOTICE(screen) = FindSwObject(&D_003DD490, 0x405, (OID)0x371, 0);
+    PLONOTICE(screen) = FindSwObject(&g_sw, 0x405, (OID)0x371, 0);
 }
 
 // Resets the notice banner: no current or queued text, no widget, state 0.
@@ -746,7 +733,6 @@ extern "C" void ResetNotice(SCREEN *screen)
 }
 
 namespace M_UpdateNotice { extern "C" {
-extern CLOCK D_002DDED0;
 typedef struct { char pad[0x58]; int visibility; } W;
 typedef struct {
     char pad[0x10];
@@ -781,7 +767,7 @@ void UpdateNotice(OBJ *p)
             SetNoticeState(p, NOTICE_HIDING);
         } else if (0.0f < p->duration) {
             if (p->widget && !IsWidgetVisible(p->widget))
-                p->stateTime += D_002DDED0.deltaTime;
+                p->stateTime += g_clock.deltaTime;
         }
         break;
     case NOTICE_HIDING:
@@ -870,7 +856,6 @@ extern "C" int GetCurrentNoticeTextId(SCREEN *screen)
 }
 
 namespace M_SetNoticeState { extern "C" {
-extern CLOCK D_002DDED0;
 typedef struct {
     char pad[0x10];
     int state;
@@ -892,7 +877,7 @@ void SetNoticeState(OBJ *p, int n)
         return;
     switch (p->state) {
     case NOTICE_HIDING:
-        if (n == NOTICE_APPEARING && p->stateTime == D_002DDED0.time)
+        if (n == NOTICE_APPEARING && p->stateTime == g_clock.time)
             n = 2;
         break;
     case NOTICE_SWAPPING:
@@ -921,7 +906,7 @@ void SetNoticeState(OBJ *p, int n)
         }
     }
     p->state = n;
-    p->stateTime = D_002DDED0.time;
+    p->stateTime = g_clock.time;
 }
 } } // namespace M_SetNoticeState
 
@@ -943,7 +928,7 @@ SCREEN *ConstructScreen(SCREEN *p) {
 void SCREEN::PostLoad()   /* key function: SCREEN's vtable comes out here */
 {
     SCREEN *screen = (SCREEN *)this;
-    screen->pchild = (WIDGET *)FindSwObject(&D_003DD490, 5, (OID)screen->idTextQueued, 0);
+    screen->pchild = (WIDGET *)FindSwObject(&g_sw, 5, (OID)screen->idTextQueued, 0);
 }
 
 /* screen slot 13. */
@@ -958,17 +943,16 @@ extern "C" void ResetScreen(SCREEN *screen)
 extern "C" void ResetScreenMode(SCREEN *screen)
 {
     screen->nMode = -1;
-    screen->modeStartTime = D_002DDED0.realTime;
+    screen->modeStartTime = g_clock.realTime;
     SetScreenMode(screen, -1, -1);
 }
 
 namespace M_func_001DA808 { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 void UpdateScreenDefault(SCREEN *p);
 // Screen update that closes the screen when its mode timer expires. (inferred)
 void UpdateTimedScreen(SCREEN *p) {
     UpdateScreenDefault(p);
-    if (p->tPopupEnd <= D_002DDED0.realTime) SetScreenMode(p, -1, -1);
+    if (p->tPopupEnd <= g_clock.realTime) SetScreenMode(p, -1, -1);
 }
 } } // namespace M_func_001DA808
 
@@ -997,7 +981,6 @@ void UpdateScreenStickDir(SCREEN *p)
 } } // namespace M_UpdateScreenStickDir
 
 namespace M_func_001DA950 { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern float D_002A7984, D_002C3254;
 void *CreateSfxSound(int timerKind);
 void SetSndSourceLo(void *p, int timerKind);
@@ -1015,7 +998,7 @@ void SetScreenMode(SCREEN *p, int timerKind, int modeArg) {
         break;
     case 1:
     default:
-        p->tPopupEnd = D_002DDED0.realTime + D_002C3254;
+        p->tPopupEnd = g_clock.realTime + D_002C3254;
         SetSndSourceLo(CreateSfxSound(0x36), 0);
         break;
     }
@@ -1050,18 +1033,16 @@ void GADGETMENU::Reset()   /* key function */
 extern "C" void ClearGadgetMenu(GADGETMENU *gadgetMenu)
 {
     gadgetMenu->nState = -1;
-    gadgetMenu->tState = D_002DDED0.realTime;
+    gadgetMenu->tState = g_clock.realTime;
 }
 
 /* Gadget menu pages (SetGadgetMenuState): closed, or the page of Sly, Bentley or Murray. */
 enum GadgetMenuPage { GADGETMENU_CLOSED = -1, GADGETMENU_SLY, GADGETMENU_BENTLEY, GADGETMENU_MURRAY };
 
 namespace M_UpdateGadgetMenu { extern "C" {
-extern struct G D_003DD490;
 extern int D_002C3258[];
 void UpdateTimedScreen(GADGETMENU *);
 int HandleJoyButtons(void *, int);
-void *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void UpdateScreenStickDir(GADGETMENU *);
 GMITEM *FindScreenEntry(GADGETMENU *, int);
@@ -1087,7 +1068,7 @@ void UpdateGadgetMenu(GADGETMENU *p)
         SetGadgetMenuState(p, GADGETMENU_CLOSED);
         return;
     }
-    hero = GetHeroPo(&D_003DD490);
+    hero = GetHeroPo(&g_sw);
     if (hero == 0 || !IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34)) {
         SetGadgetMenuState(p, GADGETMENU_CLOSED);
         return;
@@ -1121,11 +1102,9 @@ typedef struct { float x, y, dx, dy; char pad[0x10]; } TXT;
 typedef struct { char ab[0xA0]; } FONT;
 typedef struct { int n; int a; int b; } SLOT;
 typedef struct { char pad[0x1180]; SLOT gadgetSlots[3]; } Q;
-extern struct G D_003DD490;
 extern float D_002C3264;
 extern int D_002C3268[];
 int IsWidgetVisible(void *);
-Q *GetHeroPo(struct G *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void CTextBox_SetPos(TXT *, float, float);
 void CTextBox_SetSize(TXT *, float, float);
@@ -1146,7 +1125,7 @@ void DrawGadgetMenuSlotLabels(GADGETMENU *p)
         return;
     if (!IsWidgetVisible(p->pchild))
         return;
-    hero = GetHeroPo(&D_003DD490);
+    hero = (Q *)GetHeroPo(&g_sw);
     if (hero == 0)
         return;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
@@ -1227,7 +1206,6 @@ int IsPowerupAcquired(int n) {
 } } // namespace M_FPowerupAcquired
 
 namespace M_SetPowerupAcquired {
-extern "C" { extern GAME D_002DEB30; }
 extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79A8[]; }
 extern "C" { extern char D_002A79B8[]; }
@@ -1242,8 +1220,8 @@ extern "C" void SetPowerupAcquired(int n, int f)
     sprintf(buf, D_002A79A0, n);
     ref = SetSaveVarByName(CRef(f != 0), D_002A79A8, D_002A79B8, buf, 0);
     if (f) {
-        D_002DEB30.idGadgetLast = n;
-        BroadcastGameEvent(&D_002DEB30, 0x3B, 0);
+        g_game.idGadgetLast = n;
+        BroadcastGameEvent(&g_game, 0x3B, 0);
     }
 }
 } // namespace M_SetPowerupAcquired
@@ -1271,7 +1249,6 @@ struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; ch
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
 
 extern "C" {
@@ -1327,7 +1304,7 @@ void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
     if (mode == sel->nMode)
         return;
     sel->nMode = mode;
-    sel->modeStartTime = D_002DDED0.realTime;
+    sel->modeStartTime = g_clock.realTime;
     if (mode == -1 || sel->idSelected == -1)
         return;
     GMITEM *current = FindScreenEntry(sel, sel->idSelected);
@@ -1408,7 +1385,7 @@ void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
 // Opens the gadget-menu page of the current hero (Sly, Bentley or Murray).
 extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
 {
-    LO *ploHero = GetHeroPo(&D_003DD490);
+    LO *ploHero = GetHeroPo(&g_sw);
     if (ploHero != 0) {
         if (ploHero == D_002E1E40) {
             SetGadgetMenuState(gadgetMenu, GADGETMENU_SLY);
@@ -1425,8 +1402,6 @@ extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
 }
 
 namespace M_SetGadgetMenuState { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
-extern char D_003DD490[];
 extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
 void SetClockRate(CLOCK *, float, int);
@@ -1443,13 +1418,13 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
     if (s == p->nState)
         return;
     if (p->nState == GADGETMENU_CLOSED) {
-        SetClockRate(&D_002DDED0, 0.0f, 0);
-        IncrementSwHandsOff(D_003DD490, 0);
+        SetClockRate(&g_clock, 0.0f, 0);
+        IncrementSwHandsOff(&g_sw, 0);
         p->Show();
     }
     SelectGadgetMenuItem(p, -1);
     p->nState = s;
-    p->tState = D_002DDED0.realTime;
+    p->tState = g_clock.realTime;
     switch (s) {
     case GADGETMENU_CLOSED: {
         int i;
@@ -1459,8 +1434,8 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
             p->aitem[i].idAnimCur = -1;
         p->citem = 0;
         p->aitem = 0;
-        SetClockRate(&D_002DDED0, 1.0f, 0);
-        DecrementSwHandsOff(D_003DD490, 0);
+        SetClockRate(&g_clock, 1.0f, 0);
+        DecrementSwHandsOff(&g_sw, 0);
         p->Hide();
         SetScreenMode(p, -1, -1);
         p->pchild = 0;
@@ -1486,7 +1461,7 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
     if (p->nState != GADGETMENU_CLOSED) {
         WIDGET *e;
         RefreshGadgetMenuItems(p);
-        e = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->idTextQueued, 0);
+        e = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, p->idTextQueued, 0);
         p->pchild = (WIDGET *)e;
         if (!e) {
             ::SetGadgetMenuState(p, GADGETMENU_CLOSED);   /* the file-scope declaration (this one is ambiguous with it) */
@@ -1536,12 +1511,11 @@ void THIEFNET::Reset()   /* key function */
 }
 
 namespace M_ClearThiefnet { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 // ThiefNet: state -1, empty item list, no animation handles.
 void ClearThiefnet(THIEFNET *p) {
     unsigned int i;
     p->nTab = -1;
-    p->tTab = D_002DDED0.realTime;
+    p->tTab = g_clock.realTime;
     p->idAnimPopup = -1;
     p->idAnimScrollUp = -1;
     p->idAnimScrollDown = -1;
@@ -1558,8 +1532,6 @@ struct REC12 { int sellPrice, x4, price; };
 extern "C" {
 extern REC D_002BCD00[];
 extern REC12 D_002C3288[];
-extern char D_002DEB30[];
-extern char D_003DD490[];
 extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
 void UpdateTimedScreen(THIEFNET *);
 int HandleJoyButtons(void *, int);
@@ -1596,14 +1568,14 @@ extern "C" void UpdateThiefnet(THIEFNET *p)
         if (HandleJoyButtons(p->pjoy, 0x40)) {
             if (p->idPowerupSelected != -1) {
                 int cost = D_002BCD00[p->idPowerupSelected].price;
-                int have = GetCoinCount(D_002DEB30);
+                int have = GetCoinCount(&g_game);
                 if (!p->nPopup) {
                     SetScreenMode(p, -1, -1);
-                    SetCoinCount(D_002DEB30, have - cost);
+                    SetCoinCount(&g_game, have - cost);
                     SetPowerupAcquired(p->idPowerupSelected, 1);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(CreateSfxSound(0x29), 0);
-                    RefreshPlayersAfterPowerupChange(D_003DD490);
+                    RefreshPlayersAfterPowerupChange(&g_sw);
                 } else if (have >= cost) {
                     SetScreenMode(p, 0, 0x34);
                 } else {
@@ -1625,7 +1597,7 @@ extern "C" void UpdateThiefnet(THIEFNET *p)
                 r = GetSaveVarByName(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.u.n > 0) {
                     SetSaveVarByName(CRef(r.u.n - 1, 0x15), D_002A79D0, D_002A79D8, buf, 0);
-                    SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->idLootSelected].sellPrice);
+                    SetCoinCount(&g_game, GetCoinCount(&g_game) + D_002C3288[p->idLootSelected].sellPrice);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(CreateSfxSound(0x29), 0);
                 }
@@ -1852,8 +1824,6 @@ typedef struct SUB {
     int pageAnimFirst;
     int pageAnimThird;
 } SUB;
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
-extern char D_003DD490[];
 void SetClockRate(CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
@@ -1872,19 +1842,19 @@ void SetThiefnetTab(THIEFNET *p, int s)
     if (s == p->nTab)
         return;
     if (p->nTab == -1) {
-        SetClockRate(&D_002DDED0, 0.0f, 0);
-        IncrementSwHandsOff(D_003DD490, 0);
+        SetClockRate(&g_clock, 0.0f, 0);
+        IncrementSwHandsOff(&g_sw, 0);
         p->Show();
         SetWidgetState(p->pchild, 1);
     }
     old = p->nTab;
     p->nTab = s;
-    p->tTab = D_002DDED0.realTime;
+    p->tTab = g_clock.realTime;
     switch (s) {
     case -1:
         ((WIDGET *)p->pchild)->Hide();
-        SetClockRate(&D_002DDED0, 1.0f, 0);
-        DecrementSwHandsOff(D_003DD490, 0);
+        SetClockRate(&g_clock, 1.0f, 0);
+        DecrementSwHandsOff(&g_sw, 0);
         p->Hide();
         if (((SUB *)p->pchild)->visibility > 0)
             SetWidgetRequest(p->pchild, 1);
@@ -1939,7 +1909,6 @@ namespace RO_ORDER { extern const float r_D_002A79CC __asm__("D_002A79CC") = 3.4
 namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "loot"; }
 namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
 namespace M_func_001DC4B0 { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 void SetThiefnetTab(THIEFNET *, int);
 void SelectThiefnetItem(THIEFNET *, int);
 void *CreateSfxSound(int);
@@ -1950,7 +1919,7 @@ void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
     if (n == p->nMode)
         return;
     p->nMode = n;
-    p->modeStartTime = D_002DDED0.realTime;
+    p->modeStartTime = g_clock.realTime;
     switch (n) {
     case 0:
         SetThiefnetTab(p, 1);
@@ -1985,7 +1954,6 @@ void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
 namespace M_BuildGadgetMenuInfoText { extern "C" {
 typedef struct { int pad[5]; int nameTextId; int detailTextId; int descriptionTextId; } REC;
 extern GADGETMENU D_003DA0F0;
-extern char D_003DD490[];
 extern REC D_002BCD00[];
 extern char *D_002C3268[];
 extern char D_002A7A10[], D_002A7A18[], D_002A7A28[];
@@ -2002,14 +1970,14 @@ void BuildGadgetMenuInfoText(char *out)
     char buf[256];
     unsigned char *s;
     if (D_003DA0F0.nPopup != -1) {
-        strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, D_003DA0F0.idsPopup));
+        strcpy(out, FindSwLocalizedString__FP2SWi(&g_sw, D_003DA0F0.idsPopup));
     } else if (D_003DA0F0.idSelected == -1) {
-        strcpy(out, FindSwLocalizedString__FP2SWi(D_003DD490, 0xDD));
+        strcpy(out, FindSwLocalizedString__FP2SWi(&g_sw, 0xDD));
     } else {
         GMITEM *po = FindScreenEntry(&D_003DA0F0,D_003DA0F0.idSelected);
-        int v = GetGadgetSlotFromId(GetHeroPo(D_003DD490), D_003DA0F0.idSelected);
+        int v = GetGadgetSlotFromId(GetHeroPo(&g_sw), D_003DA0F0.idSelected);
         if (po->fEquippable && v < 0) {
-            strcpy(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0xE1));
+            strcpy(buf, FindSwLocalizedString__FP2SWi(&g_sw, 0xE1));
             s = (unsigned char *)D_002A7A10;
         } else {
             char *sz;
@@ -2017,10 +1985,10 @@ void BuildGadgetMenuInfoText(char *out)
                 sz = D_002C3268[v];
             else
                 sz = D_002A7A10;
-            sprintf(buf, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.idSelected].descriptionTextId), sz, sz, sz);
-            s = (unsigned char *)FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.idSelected].detailTextId);
+            sprintf(buf, FindSwLocalizedString__FP2SWi(&g_sw, D_002BCD00[D_003DA0F0.idSelected].descriptionTextId), sz, sz, sz);
+            s = (unsigned char *)FindSwLocalizedString__FP2SWi(&g_sw, D_002BCD00[D_003DA0F0.idSelected].detailTextId);
         }
-        sprintf(out, D_002A7A18, FindSwLocalizedString__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.idSelected].nameTextId),
+        sprintf(out, D_002A7A18, FindSwLocalizedString__FP2SWi(&g_sw, D_002BCD00[D_003DA0F0.idSelected].nameTextId),
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
     }
 }
@@ -2030,8 +1998,6 @@ namespace M_BuildThiefnetPowerupNameText { extern "C" {
 extern THIEFNET D_003DA150;
 struct T { int a[5]; int id; int b[2]; };
 extern struct T D_002BCD00[];
-extern struct G D_003DD490;
-void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
 // Text callback: the power-up name of list row i.
 void BuildThiefnetPowerupNameText(char *pch, int i) {
@@ -2039,7 +2005,7 @@ void BuildThiefnetPowerupNameText(char *pch, int i) {
     unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     int id = -1;
     if (n < 0x2B) id = D_002BCD00[n].id;
-    if (id != -1) strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, id));
+    if (id != -1) strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, id));
     else *pch = 0;
 }
 } } // namespace M_BuildThiefnetPowerupNameText
@@ -2063,8 +2029,6 @@ void BuildThiefnetPowerupCostText(char *pch, int i) {
 
 namespace M_BuildThiefnetLootNameText {
 struct REC { char *name; int ids; int pad; };
-struct G;
-extern "C" { extern G D_003DD490; }
 extern "C" { extern THIEFNET D_003DA150; }
 extern "C" { extern REC D_002C3288[]; }
 extern "C" { extern char D_002A79A0[]; }
@@ -2074,7 +2038,6 @@ extern "C" { extern char D_002A7A30[]; }
 extern "C" int sprintf(char *, const char *, ...);
 extern "C" char *strcpy(char *, const char *);
 extern "C" CRef GetSaveVarByName(const char *, ...);
-extern "C" { char *FindSwLocalizedString__FP2SWi(G *, int); }
 // Text callback: the loot name of list row i, with the count when more than one is owned.
 extern "C" void BuildThiefnetLootNameText(char *pch, int k)
 {
@@ -2090,7 +2053,7 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
         ids = D_002C3288[i].ids;
     }
     if (ids != -1) {
-        strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, ids));
+        strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, ids));
         if (c >= 2)
             sprintf(pch, D_002A7A30, pch, c);
     } else {
@@ -2119,8 +2082,6 @@ void BuildThiefnetLootPriceText(char *pch, int i) {
 namespace M_func_001DCA30 { extern "C" {
 extern THIEFNET D_003DA150;
 #define D_003DA180 (*(int *)((char *)base_D_003DA150 + 0x30))   /* screen's object+0x30 */
-extern struct G D_003DD490;
-void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
 // Text callback: the popup prompt text for the popup mode. (inferred)
 void BuildThiefnetPromptText(char *pch) {
@@ -2131,7 +2092,7 @@ void BuildThiefnetPromptText(char *pch) {
     case 1: id = 0xE0; break;
     default: *pch = 0; return;
     }
-    strcpy(pch, FindSwLocalizedString__FP2SWi(&D_003DD490, id));
+    strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, id));
 }
 } } // namespace M_func_001DCA30
 #undef D_003DA180
@@ -2142,16 +2103,14 @@ typedef struct { char *name; int ids,pad; } REC2;
 extern THIEFNET D_003DA150;
 extern REC D_002BCD00[];
 extern REC2 D_002C3288[];
-extern struct G D_003DD490;
-extern char D_002DEB30[],D_002A7A38[];
-char *FindSwLocalizedString__FP2SWi(struct G *,int);
+extern char D_002A7A38[];
 int GetCoinCount(void *);
 int sprintf(char *,const char *,...);
 char *strcpy(char *,const char *);
 // Copy the localized string `id` into p.
 static inline void CopyId(char *p,int id)
 {
-    strcpy(p,FindSwLocalizedString__FP2SWi(&D_003DD490,id));
+    strcpy(p,FindSwLocalizedString__FP2SWi(&g_sw,id));
 }
 // Text callback: the popup message, or the selected power-up's name, description and affordability, or the loot sell
 // line.
@@ -2168,9 +2127,9 @@ void BuildThiefnetInfoText(char *pch)
             if(i<0x2B) {
                 if(D_002BCD00[i].detailTextId!=pt->nPopup) {   /* timerKind is -1 here: "has a detail text" */
                     int *pc=&D_002BCD00[i].cost;
-                    int count=GetCoinCount(D_002DEB30);
+                    int count=GetCoinCount(&g_game);
                     int idsT=count<*pc?0xD9:0xDA;
-                    struct G *pg=&D_003DD490;
+                    SW *pg=&g_sw;
                     char *fmt=D_002A7A38;
                     char *pch1=FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].nameTextId);
                     char *pch2=FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].detailTextId);
@@ -2184,7 +2143,7 @@ void BuildThiefnetInfoText(char *pch)
         case 1: {
             unsigned int i=pt->idLootSelected;
             if(i<0x40) {
-                sprintf(pch,FindSwLocalizedString__FP2SWi(&D_003DD490,0xDB),D_002C3288[i].name);
+                sprintf(pch,FindSwLocalizedString__FP2SWi(&g_sw,0xDB),D_002C3288[i].name);
                 return;
             }
             CopyId(pch,0xE3);
@@ -2230,11 +2189,10 @@ extern "C" void ResetJobList(SCREEN *screen)
 }
 
 namespace M_ClearJobList { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 // Job list: state -1, time stamp, no animation handles.
 void ClearJobList(JOBLIST *p) {
     p->nPage = -1; //P
-    p->tPage = D_002DDED0.realTime; //P
+    p->tPage = g_clock.realTime; //P
     p->idAnimPopup = -1; //P
     p->idAnimScrollUp = -1; //P
     p->idAnimScrollDown = -1; //P
@@ -2447,8 +2405,6 @@ typedef struct SUB {
     int pageAnimFirst;
     int pageAnimThird;
 } SUB;
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
-extern char D_003DD490[];
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(void *, int);
@@ -2464,15 +2420,15 @@ void SetJobListPage(JOBLIST *p, int s)
     if (s == p->nPage)
         return;
     if (p->nPage == -1) {
-        IncrementSwHandsOff(D_003DD490, 0);
+        IncrementSwHandsOff(&g_sw, 0);
         p->Show();
     }
     old = p->nPage;
     p->nPage = s;
-    p->tPage = D_002DDED0.realTime;
+    p->tPage = g_clock.realTime;
     switch (s) {
     case -1:
-        DecrementSwHandsOff(D_003DD490, 0);
+        DecrementSwHandsOff(&g_sw, 0);
         p->Hide();
         if (((SUB *)p->pchild)->visibility > 0)
             SetWidgetRequest(p->pchild, 1);
@@ -2528,7 +2484,6 @@ namespace RO_ORDER { extern const char r_D_002A7A28[] __asm__("D_002A7A28") = ":
 namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%s (%d)"; }
 namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
 namespace M_SetJobListStickDir { extern "C" {
-extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 void SetJobListPage(JOBLIST *, int);
 void SelectJobListItem(JOBLIST *, int);
 void *CreateSfxSound(int);
@@ -2539,7 +2494,7 @@ void SetJobListStickDir(JOBLIST *p, unsigned int n)
     if (n == p->nMode)
         return;
     p->nMode = n;
-    p->modeStartTime = D_002DDED0.realTime;
+    p->modeStartTime = g_clock.realTime;
     switch (n) {
     case 0:
         if (p->centry)
@@ -2635,7 +2590,7 @@ extern "C" void SetScreenState(SCREEN *screen, int mode)
 {
     if (mode != screen->nMode) {
         screen->nMode = mode;
-        screen->modeStartTime = D_002DDED0.realTime;
+        screen->modeStartTime = g_clock.realTime;
     }
 }
 
@@ -2683,21 +2638,18 @@ void HideTitleScreen(TITLE *p) {
 
 namespace M_SelectLanguageItem { extern "C" {
 struct S { char p0[8]; void *p8; };
-extern char D_003DD490[];
 void SetLanguage(void *p);
 void WipeToWorldWarp(void *g, int a, int b, int c, int d, int e);
 // Language-menu item callback: sets the language and warps to the title world.
 void SelectLanguageItem(struct S *p) {
     SetLanguage(p->p8);
-    WipeToWorldWarp(D_003DD490, 0, 0x189, -1, 1, -1);
+    WipeToWorldWarp(&g_sw, 0, 0x189, -1, 1, -1);
 }
 } } // namespace M_SelectLanguageItem
 
 namespace M_UpdateTitleScreen { extern "C" {
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
-extern SAVE D_002E65E0;
 extern char D_002E6550[];
-extern struct G D_003DD490;
 extern char D_003D9ED0[];
 extern ITEM D_003DA578[];
 extern int D_002C35B8[];
@@ -2712,7 +2664,7 @@ void SetMcDialogPhase(void *, int);
 void StartGameFromSave(void *);
 void StartNewGame(TITLE *);
 int CountRegionLanguages(void);
-void *FindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int);
 void GetRegionLanguages(int *, int **);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void PushPauseMenuPage(void *, int, ITEM *, void *, void *);
@@ -2730,9 +2682,9 @@ void UpdateTitleScreen(TITLE *p)
     if (p->pjoy == 0)
         return;
     if (HandleJoyButtons(p->pjoy, 0x800)) {
-        if ((D_002E65E0.currentSlot = D_002E65E0.newestSlot) != 0) {
+        if ((g_save.currentSlot = g_save.newestSlot) != 0) {
             SetMcDialogPhase(D_002E6550, 1);
-            StartGameFromSave(D_002E65E0.currentSlot);
+            StartGameFromSave(g_save.currentSlot);
         } else {
             StartNewGame(p);
         }
@@ -2747,7 +2699,7 @@ void UpdateTitleScreen(TITLE *p)
         return;
     if (!HandleJoyButtons(p->pjoy, 0x10))
         return;
-    pv = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
+    pv = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, 0x5D6, 0);
     if (pv == 0)
         return;
     GetRegionLanguages(&c, &ak);
@@ -2765,27 +2717,25 @@ void UpdateTitleScreen(TITLE *p)
 
 namespace M_StartNewGame {
 extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
-struct G;
-extern "C" { extern G D_003D4A60; }
 extern "C" { 
  }
 extern "C" { extern void *D_002E1E40; }
 extern "C" { extern void *D_002DD5BC; }
 extern "C" { extern void *D_002F7900; }
 extern "C" {
-CRef SetGlobalSaveVar(void *, const CRef &, G *);
+CRef SetGlobalSaveVar(void *, const CRef &, SAVEDATA *);
 void BindStepplayerHpMp(void *, int);
-void StartGameFromSave(G *);
+void StartGameFromSave(SAVEDATA *);
 }
 /* The unused third parameter is deliberate: it is the same SetPv form as SetBootyContainerKind / ClearStepplayerBootySave,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
-static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &D_003D4A60); }
+static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &g_gs); }
 // Starts a new game: clears the save flag, binds the three heroes' health and power, and starts play.
 extern "C" void StartNewGame(void)
 {
     {
         CRef ref(0, 0x16);
-        SetPv((*(void * *)&g_sw.psvpDt), ref, &D_003D4A60);
+        SetPv((*(void * *)&g_sw.psvpDt), ref, &g_gs);
     }
     if (D_002E1E40)
         BindStepplayerHpMp(D_002E1E40, 1);
@@ -2793,7 +2743,7 @@ extern "C" void StartNewGame(void)
         BindStepplayerHpMp(D_002DD5BC, 1);
     if (D_002F7900)
         BindStepplayerHpMp(D_002F7900, 1);
-    StartGameFromSave(&D_003D4A60);
+    StartGameFromSave(&g_gs);
 }
 } // namespace M_StartNewGame
 
@@ -2804,16 +2754,11 @@ void TITLE::SetMode(int mode)   /* key function */
     SCREEN *screen = (SCREEN *)this;
     if (mode != screen->nMode) {
         screen->nMode = mode;
-        screen->modeStartTime = D_002DDED0.realTime;
+        screen->modeStartTime = g_clock.realTime;
     }
 }
 
 namespace M_BuildTitlePromptText {
-extern "C" { extern SW D_003DD490; }
-extern "C" { extern JOY D_002DFC00; }
-extern "C" { 
-extern SAVE D_002E65E0;
- }
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
@@ -2824,25 +2769,25 @@ extern "C" void BuildTitlePromptText(char *pch)
 {
     float g;
     void *pv;
-    if (D_002DFC00.joys == 1 && D_002DFC00.joyk == 0) {
-        strcpy(pch, FindSwLocalizedString(&D_003DD490, 9));
+    if (g_joy.joys == 1 && g_joy.joyk == 0) {
+        strcpy(pch, FindSwLocalizedString(&g_sw, 9));
         return;
     }
     g = 0.0f;
-    pv = D_002E65E0.newestSlot;
+    pv = g_save.newestSlot;
     if (pv) {
-        CRef ref = GetGlobalSaveVar(D_003DD490.psvpDt, pv);
+        CRef ref = GetGlobalSaveVar(g_sw.psvpDt, pv);
         g = ref.u.g;
     }
     {
         int ids = g != 0.0f ? 6 : 5;
-        strcpy(pch, FindSwLocalizedString(&D_003DD490, ids));
+        strcpy(pch, FindSwLocalizedString(&g_sw, ids));
     }
     strcpy1(pch, D_002A7A70);
-    strcpy1(pch, FindSwLocalizedString(&D_003DD490, 8));
+    strcpy1(pch, FindSwLocalizedString(&g_sw, 8));
     if (CountRegionLanguages() >= 2) {
         strcpy1(pch, D_002A7A70);
-        strcpy1(pch, FindSwLocalizedString(&D_003DD490, 0x56));
+        strcpy1(pch, FindSwLocalizedString(&g_sw, 0x56));
     }
 }
 } // namespace M_BuildTitlePromptText
@@ -2870,14 +2815,14 @@ int GetWorldNameTextId(int n) {
 // Text callback: the current episode's name.
 extern "C" void BuildJobListWorldText(char *pch)
 {
-    StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, GetWorldNameTextId(GetCurrentWorld())));
+    StrcpyCall(pch, FindSwLocalizedString(&g_sw, GetWorldNameTextId(GetCurrentWorld())));
 }
 
 // Text callback: the selected job's description. (inferred)
 extern "C" void BuildJobDescriptionText(char *pch)
 {
     if (D_003DA4D0 != 0) {
-        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->descriptionTextId));
+        StrcpyCall(pch, FindSwLocalizedString(&g_sw, D_003DA4D0->descriptionTextId));
     }
 }
 
@@ -2885,47 +2830,43 @@ extern "C" void BuildJobDescriptionText(char *pch)
 extern "C" void BuildJobNameText(char *pch)
 {
     if (D_003DA4D0 != 0) {
-        StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, D_003DA4D0->labelNameId));
+        StrcpyCall(pch, FindSwLocalizedString(&g_sw, D_003DA4D0->labelNameId));
     }
 }
 
 namespace M_BuildJobListRowText { extern "C" {
 struct O : LO { char pad[0x6C - 0x50]; int n; };
 extern JOBLIST D_003DA3C0;
-extern struct G D_003DD490;
-void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(void *p, void *q);
 // Text callback: the job name of row i.
 void BuildJobListRowText(void *p, int i) {
     JOBLIST *pg = &D_003DA3C0;
-    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, ((struct O *)pg->aentry[i].ptask)->n));
+    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
 }
 } } // namespace M_BuildJobListRowText
 
 namespace M_BuildJobListTaskRowText { extern "C" {
 struct O : LO { char pad[0x5C - 0x50]; int n; };
 extern JOBLIST D_003DA3C0;
-extern struct G D_003DD490;
-void *FindSwLocalizedString__FP2SWi(struct G *g, int n);
 void strcpy(void *p, void *q);
 // Text callback: the task name of row i.
 void BuildJobListTaskRowText(void *p, int i) {
     JOBLIST *pg = &D_003DA3C0;
-    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&D_003DD490, ((struct O *)pg->aentry[i].ptask)->n));
+    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
 }
 } } // namespace M_BuildJobListTaskRowText
 
 // Text callback: a title-screen string followed by a button glyph. (inferred)
 extern "C" void BuildTitleScreenButtonText(char *pch)
 {
-    StrcpyCall(pch, FindSwLocalizedString(&D_003DD490, 0x40));
+    StrcpyCall(pch, FindSwLocalizedString(&g_sw, 0x40));
     strcpy1(pch, D_002A7AA8);
 }
 
 // Text callback: the game completion percentage.
 extern "C" void BuildTitleCompletionText(char *pch)
 {
-    sprintf(pch, D_002A7AB8, GetCompletionPercent((*(char (*)[])&g_sw.savevars), D_003D4A60));
+    sprintf(pch, D_002A7AB8, GetCompletionPercent((*(char (*)[])&g_sw.savevars), &g_gs));
 }
 
 
