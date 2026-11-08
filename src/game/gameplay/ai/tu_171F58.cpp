@@ -45,12 +45,10 @@ typedef struct WORK{QUERY query;NODE*result256[256];NODE*result32[32];NODE*resul
 typedef struct LMV{float low,high;}LMV;
 struct GOAL { qword a; qword v; };
 
-extern CLOCK D_002DDED0;
 extern const float D_002A5398;   /* defined below where the ELF has it (.rodata order) */
 float D_002BE5A0 = 2.0f;   /* tu_171F58's .data starts here (address order) */
 extern const float D_002A53D4;   /* defined below where the ELF has it (.rodata order) */
 extern const LMV D_002A53C0, D_002A53C8;   /* distance, +-pi/4; defined below where the ELF has them (.rodata order) */
-extern char D_003DD490;
 extern qword D_002A2DA0,D_002A2DC0;
 extern const float D_002A53D0;   /* defined below where the ELF has it (.rodata order) */
 LMV D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
@@ -164,9 +162,9 @@ extern "C" void UpdateBhvSearch(BHV171 *behavior) {
                     SetBhvSearchState(behavior, 1);
                 }
                 behavior->needsReplan = 0;
-            } else if (behavior->lookEndTime < D_002DDED0.time || IsBhvanimDone(behavior->pbhvNext)) {
+            } else if (behavior->lookEndTime < g_clock.time || IsBhvanimDone(behavior->pbhvNext)) {
                 SetBhvSearchState(behavior, 4);
-            } else if (D_002DDED0.time > behavior->nextTime) {
+            } else if (g_clock.time > behavior->nextTime) {
                 SetBhvSearchState(behavior, 3);
             } else {
                 qword a = GetBhvSearchLastKnownPosition(behavior);
@@ -186,7 +184,7 @@ extern "C" void UpdateBhvSearch(BHV171 *behavior) {
                     SetBhvSearchState(behavior, 1);
                 }
                 behavior->needsReplan = 0;
-            } else if (behavior->lookEndTime < D_002DDED0.time) {
+            } else if (behavior->lookEndTime < g_clock.time) {
                 SetBhvSearchState(behavior, 4);
             } else {
                 StepBhvSearchPoint(behavior);
@@ -223,7 +221,7 @@ extern "C" void SetBhvSearchState(BHV171 *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(&behavior->pbhvNext);
     behavior->state = n;
-    behavior->stateTime = D_002DDED0.time;
+    behavior->stateTime = g_clock.time;
     switch (n) {
     case 0:
         {
@@ -297,9 +295,9 @@ extern "C" int IsBhvSearchIdle(BHV171 *behavior)
 // 0x172560: Arms the look timers: a random look duration from the guard's range (+0xE6C..+0xE70); the second
 // (give-up) timer only for guards with +0xE78 == 1.
 extern "C" void SetBhvSearchLookTimers(BHV171 *behavior) {
-    float t = D_002DDED0.time;
+    float t = g_clock.time;
     behavior->lookEndTime = t + RandomFloatInRange(((STEPGUARD *)behavior->owner)->lookTimes.minValue, ((STEPGUARD *)behavior->owner)->lookTimes.maxValue);
-    if (((STEPGUARD *)behavior->owner)->searchMode == 1) behavior->nextTime = D_002DDED0.time + D_002BE5A0;
+    if (((STEPGUARD *)behavior->owner)->searchMode == 1) behavior->nextTime = g_clock.time + D_002BE5A0;
     else behavior->nextTime = 3.40282346638528859812e+38f;
 }
 
@@ -491,21 +489,21 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
         }
     }
     {
-        int count = FindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS35, 0, 0x100, w.result256);
+        int count = FindSwObjectsByClass(&g_sw, 0x505, CID_CLASS35, 0, 0x100, w.result256);
         for (int i = 0; i < count; i++) {
             w.query.candidate.q = GetLoWorldPos(w.result256[i]);
             TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = FindSwObjectsByClass(&D_003DD490, 0x505, CID_BOOTY, 0, 0x20, w.result32);
+        int count = FindSwObjectsByClass(&g_sw, 0x505, CID_BOOTY, 0, 0x20, w.result32);
         for (int i = 0; i < count; i++) {
             w.query.candidate.q = GetLoWorldPos(w.result32[i]);
             TryAddSearchCandidate(&w.query);
         }
     }
     {
-        int count = FindSwObjectsByClass(&D_003DD490, 0x505, CID_CLASS27, 0, 0x80, w.result128);
+        int count = FindSwObjectsByClass(&g_sw, 0x505, CID_CLASS27, 0, 0x80, w.result128);
         for (int i = 0; i < count; i++) {
             w.query.candidate.q = GetLoWorldPos(w.result128[i]);
             TryAddSearchCandidate(&w.query);
@@ -578,9 +576,9 @@ extern "C" void StepBhvSearchPoint(BHV171 *behavior) {
     if (behavior->searchPointIndex >= 4) return;
     pbhvCur = behavior->pbhvNext;
     if (behavior->nextTime == D_002A53D4) {
-        if (HasBhvgotoArrived(pbhvCur)) behavior->nextTime = D_002DDED0.time + 1.0f;
+        if (HasBhvgotoArrived(pbhvCur)) behavior->nextTime = g_clock.time + 1.0f;
     }
-    if (D_002DDED0.time < behavior->nextTime) return;
+    if (g_clock.time < behavior->nextTime) return;
     pe = &behavior->searchPoints[behavior->searchPointIndex++];
     if (behavior->searchPointIndex >= 4) behavior->searchPointIndex = 0;
     ClearPointerPair(&goal);
