@@ -924,8 +924,7 @@ struct O *FindShaderAnimById(int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateShaders { extern "C" {
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
+struct O { char pad[0xC]; VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 int ShouldUpdateSaa__FP3SAA(struct O *p);
 // For each SAA in (*(struct O * *)&g_sw.slSaa): if ShouldUpdateSaa call its vt8 (Update) (inferred)
 void UpdateShaders(void)
@@ -933,7 +932,7 @@ void UpdateShaders(void)
     int unused[4];
     struct O *p;
     for (p = (*(struct O * *)&g_sw.slSaa); p && !p->pChild; p = p->pNext) {
-        if (ShouldUpdateSaa__FP3SAA(p)) p->vt[8].pf((char *)p + p->vt[8].d);
+        if (ShouldUpdateSaa__FP3SAA(p)) ((void (*)(void *))p->vt[8].pfn)((char *)p + p->vt[8].d);
     }
 }
 } } // namespace M_UpdateShaders

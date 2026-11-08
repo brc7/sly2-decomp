@@ -92,8 +92,7 @@ void SetupCm(CM *pcm)
 
 namespace M_UpdateCmLast__FP2CM { extern "C" {
 /* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
-struct VTE { short d; short pad; void (*pfn)(void *, ...); };
-struct O { int pad[3]; struct VTE *vt; };
+struct O { int pad[3]; VTE *vt; };
 extern struct CLOCK D_002DDED0;
 extern int D_002DFBC0;
 extern JOY D_002DFC00;
@@ -122,8 +121,8 @@ void UpdateCmLast__FP2CM(CM *cm)
             if (focus) {
                 cpdefi = &cm->cpdefi;
                 if (focus != lastFocus) {
-                    struct VTE *e = &((struct O *)focus)->vt[50];
-                    e->pfn((char *)focus + e->d, cpdefi);
+                    VTE *e = &((struct O *)focus)->vt[50];
+                    ((void (*)(void *, ...))e->pfn)((char *)focus + e->d, cpdefi);
                     if (lastUpdated || focus != cm->focus)
                         ResetCmAdjust(cm, cpdefi);
                     AdjustCmCpdefi(cm, focus, cpdefi);
@@ -816,8 +815,8 @@ extern "C" void ResetCmAdjust(CM *pcm)
 
 namespace M_GetCmCpdefi { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(void *, CPDEFI *); };   /* the SO's vtable (slot 50, GetCpdefi), by hand */
-struct O { int pad[3]; struct VTE *vt; };
+
+struct O { int pad[3]; VTE *vt; };
 qword CalcCmAdjust(CM *p, CPDEFI *ps);
 // If pso == focus(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and adjustedPosition = basePosition +
 // CalcCmAdjust.
@@ -826,9 +825,9 @@ void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
     if ((SO *)po == p->focus) {
         *ps = p->cpdefi;
     } else {
-        struct VTE *e = &po->vt[50];
+        VTE *e = &po->vt[50];
         qword q, r;
-        e->pfn((char *)po + e->d, ps);
+        ((void (*)(void *, CPDEFI *))e->pfn)((char *)po + e->d, ps);
         q = CalcCmAdjust(p, ps);
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(*(qword *)&ps->basePosition), "j"(q));
         *(qword *)&ps->adjustedPosition = r;

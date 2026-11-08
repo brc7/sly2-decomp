@@ -1776,7 +1776,6 @@ struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
 struct XF { qword pos; MATRIX3 localMatrix; VEC v; VEC w; };
-struct VTE { short d; short pad; void (*pfn)(void *, EXPLSO *); };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
 extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }

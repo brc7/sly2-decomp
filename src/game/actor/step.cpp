@@ -393,8 +393,7 @@ struct S {
     char pad2[0x1A4 - 0x184]; int steeringMode; float targetHeading;
     char pad3[0x208 - 0x1AC]; int floorContact; float lastFloorContactTime;
 };
-struct VE { short d; short pad; float *(*pf)(void *); };
-struct VT { struct VE e[32]; };
+struct VT { VTE e[32]; };
 extern CLOCK D_002DDED0;
 extern float D_002C3C80[3];   /* turn-rate speed factor polynomial */
 extern float D_002BBB60[2];
@@ -411,8 +410,8 @@ void UpdateStep(struct S *step)
     UpdateStepPhys(step);
     switch (step->steeringMode) {
     case STEERING_HEADING: {
-        float *a = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
-        float *b = step->vt->e[31].pf((char *)step + step->vt->e[31].d);
+        float *a = ((float *(*)(void *))step->vt->e[31].pfn)((char *)step + step->vt->e[31].d);
+        float *b = ((float *(*)(void *))step->vt->e[31].pfn)((char *)step + step->vt->e[31].d);
         float d = NormalizeAngle__Ff(step->targetHeading - atan2f(a[1], b[0]));
         float f;
         d = __builtin_fabsf(d);
@@ -938,11 +937,10 @@ int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepCustomXps { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VE { short d; short pad; unsigned int (*pf)(void *); };
 struct EC { char pad[0x60]; void *rootSo; };
 struct X4 : LO { char pad[0xEC - 0x50]; struct EC *tree; };
 struct X { int pad; struct X4 *so; };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
+struct S { char pad[0xC]; VTE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t; int unknown44; int unknown48; int tag; char pad[0x10]; };
 extern qword D_002A2DC0;
 extern char D_003DD490[];
@@ -962,7 +960,7 @@ void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a
     qword pos, n, d, tmp;
     float f;
     AddSoCustomXps();
-    fl = step->vt[85].pf((char *)step + step->vt[85].d);
+    fl = ((unsigned int (*)(void *))step->vt[85].pfn)((char *)step + step->vt[85].d);
     if ((fl & PROBE_ENABLED) == 0)
         return;
     if (IsBasicDerivedFrom__FP5BASIC3CID(x->so->tree->rootSo, 0x33))
@@ -1003,7 +1001,6 @@ extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FixStepAngularVelocity { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { short d; short pad; void *pfn; } VTE;
 struct B { char pad[0xB0]; qword v; };
 struct S { char pad[0xC]; VTE *vt; char pad2[0x5C - 0x10]; struct B *pb; char pad3[0x1A8 - 0x60]; float g; char pad4[0x1F4 - 0x1AC]; int x; };
 float atan2f(float y, float x);
@@ -1214,7 +1211,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f; } U;
 typedef union {float value;int word;} FLOATWORD;
 typedef struct M4 { qword row[4]; } M4;
-typedef struct {short delta,unused; void (*fn)();} VTE;
 typedef struct B {int a,b,c; VTE *vt;} B;
 typedef struct P {
     B base;
@@ -1249,7 +1245,7 @@ extern void MatchStepXf(P *step, B *other)
         register qword v __asm__("vf2");
         register VTE *set __asm__("a2");
         VTE *get = &other->vt[31];
-        const M4 *source = ((M4 *(*)(B *))get->fn)((B *)((char *)other+get->delta));
+        const M4 *source = ((M4 *(*)(B *))get->pfn)((B *)((char *)other+get->d));
         m.row[0] = source->row[0];
         set = step->base.vt;
         {qword sc = Broadcast(-1.0f);
@@ -1257,11 +1253,11 @@ extern void MatchStepXf(P *step, B *other)
         v = MulX(step->offset, sc);
         m.row[2] = source->row[2];
         {qword t = Transform(&m,v,source->row[3],&m.row[3]);
-        P *self = (P *)((char *)step+set[29].delta);
-        register void (*positionFn)(P*,qword) __asm__("v1")=(void(*)(P*,qword))set[29].fn;
+        P *self = (P *)((char *)step+set[29].d);
+        register void (*positionFn)(P*,qword) __asm__("v1")=(void(*)(P*,qword))set[29].pfn;
         scale.q = sc;
         positionFn(self, t);}}
-        { VTE *s=step->base.vt; ((void (*)(P *,const M4 *))s[30].fn)((P *)((char *)step+s[30].delta), &m); }
+        { VTE *s=step->base.vt; ((void (*)(P *,const M4 *))s[30].pfn)((P *)((char *)step+s[30].d), &m); }
         if (IsBasicDerivedFrom__FP5BASIC3CID(&step->base,0x34)) {
             qword r;
             qword scq;
@@ -1271,8 +1267,8 @@ extern void MatchStepXf(P *step, B *other)
             __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(r) : "j"(D_002A2DC0), "j"(scale.q));
             step->adjusted = r;
         }
-        { VTE *s=step->base.vt; ((void (*)(P *,qword))s[35].fn)((P *)((char *)step+s[35].delta), D_002A2DD0); }
-        { VTE *s=step->base.vt; ((void (*)(P *,qword))s[36].fn)((P *)((char *)step+s[36].delta), D_002A2DD0); }
+        { VTE *s=step->base.vt; ((void (*)(P *,qword))s[35].pfn)((P *)((char *)step+s[35].d), D_002A2DD0); }
+        { VTE *s=step->base.vt; ((void (*)(P *,qword))s[36].pfn)((P *)((char *)step+s[36].d), D_002A2DD0); }
         step->count = 0;
     } else {
         MatchSoXf(step,other);
@@ -1289,9 +1285,6 @@ typedef char layout_matrix_0[((unsigned)&((M4*)0)->row[0]==0)?1:-1];
 typedef char layout_matrix_1[((unsigned)&((M4*)0)->row[1]==0x10)?1:-1];
 typedef char layout_matrix_2[((unsigned)&((M4*)0)->row[2]==0x20)?1:-1];
 typedef char layout_matrix_3[((unsigned)&((M4*)0)->row[3]==0x30)?1:-1];
-typedef char layout_vte[(sizeof(VTE)==8)?1:-1];
-typedef char layout_delta[((unsigned)&((VTE*)0)->delta==0)?1:-1];
-typedef char layout_function[((unsigned)&((VTE*)0)->fn==4)?1:-1];
 typedef char layout_base[(sizeof(B)==0x10)?1:-1];
 typedef char layout_vtable[((unsigned)&((B*)0)->vt==0xC)?1:-1];
 typedef char layout_count[((unsigned)&((P*)0)->count==0x208)?1:-1];

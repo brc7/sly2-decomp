@@ -1020,11 +1020,6 @@ struct XF
     char pad[0x40];
     MATRIX4 localMatrix;
 };
-struct VTENT
-{
-    short delta, pad;
-    void (*pfn)(void *);
-};
 struct SPH
 {
     float pos[3];
@@ -1035,7 +1030,7 @@ struct SPH
 struct OBJ
 {
     char pad[0xC];
-    VTENT *pvt;
+    VTE *pvt;
     char pad10[0x18];
     SPH sph;
     char pad40[0x20];
@@ -1319,8 +1314,8 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         OBJ *pobj = pmodel->apobj[i];
         if (ShouldUpdateSaa__FP3SAA(pobj))
         {
-            VTENT *pvte = &pobj->pvt[8];
-            pvte->pfn((char *)pobj + pvte->delta);
+            VTE *pvte = &pobj->pvt[8];
+            ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
         }
     }
     int fAlt = 0;
@@ -1525,15 +1520,10 @@ struct XF
     char pad[0x40];
     MATRIX4 localMatrix;
 };
-struct VTENT
-{
-    short delta, pad;
-    void (*pfn)(void *);
-};
 struct OBJ
 {
     char pad[0xC];
-    VTENT *pvt;
+    VTE *pvt;
 };
 struct ALO
 {
@@ -1715,8 +1705,8 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         OBJ *pobj = pmodel->apobj[i];
         if (ShouldUpdateSaa__FP3SAA(pobj))
         {
-            VTENT *pvte = &pobj->pvt[8];
-            pvte->pfn((char *)pobj + pvte->delta);
+            VTE *pvte = &pobj->pvt[8];
+            ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
         }
     }
     for (i = 0; i < pmodel->csub; i++)
@@ -1937,13 +1927,9 @@ struct SPHERE {
     uint metadata;
 };
 struct SO;
-struct VE {
-    short delta, pad;
-    TRANSFORM *(*fn)(SO *, int);
-};
 struct SO {
     char pad[0xC];
-    VE *vt;
+    VTE *vt;
 };
 struct P{SO*owner;};
 struct REQUEST {
@@ -1983,7 +1969,6 @@ typedef char FaceSize[sizeof(FACE)==64?1:-1];
 typedef char LinkSize[sizeof(LINK)==6?1:-1];
 typedef char LinkSetSize[sizeof(LINKS)==8?1:-1];
 typedef char BindingSize[sizeof(BINDING)==12?1:-1];
-typedef char VirtualEntrySize[sizeof(VE)==8?1:-1];
 typedef char D_flags_Offset[FIELD_OFFSET(D,flags)==2?1:-1];
 typedef char D_kind_Offset[FIELD_OFFSET(D,kind)==3?1:-1];
 typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
@@ -1999,8 +1984,6 @@ typedef char SPHERE_limit_Offset[FIELD_OFFSET(SPHERE,limit)==16?1:-1];
 typedef char SPHERE_metadata_Offset[FIELD_OFFSET(SPHERE,metadata)==20?1:-1];
 typedef char TRANSFORM_matrix_Offset[FIELD_OFFSET(TRANSFORM,matrix)==64?1:-1];
 typedef char SO_vt_Offset[FIELD_OFFSET(SO,vt)==12?1:-1];
-typedef char VE_delta_Offset[FIELD_OFFSET(VE,delta)==0?1:-1];
-typedef char VE_fn_Offset[FIELD_OFFSET(VE,fn)==4?1:-1];
 typedef char FACE_flags_Offset[FIELD_OFFSET(FACE,flags)==8?1:-1];
 typedef char FACE_indices_Offset[FIELD_OFFSET(FACE,indices)==20?1:-1];
 typedef char FACE_first_Offset[FIELD_OFFSET(FACE,first)==36?1:-1];
@@ -2051,10 +2034,10 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
     }
     {
         SO *object = p->owner;
-        VE *method = &object->vt[51];
-        SO *receiver = (SO *)((char *)object + method->delta);
+        VTE *method = &object->vt[51];
+        SO *receiver = (SO *)((char *)object + method->d);
         int index = S16Read__18CBinaryInputStream(stream);
-        entry->transform = method->fn(receiver, index);
+        entry->transform = ((TRANSFORM *(*)(SO *, int))method->pfn)(receiver, index);
     }
     if (entry->flags.word & 0x1000)
         ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, &matrix);
@@ -4314,13 +4297,9 @@ typedef unsigned int uint;
 struct TRANSFORM;
 struct STREAM;
 struct SO;
-struct VE {
-    short delta, pad;
-    void (*readTransform)(SO *, STREAM *, TRANSFORM **);
-};
 struct SO {
     char pad[0xC];
-    VE *vt;
+    VTE *vt;
     char pad10[0x10];
     uint flags;
     char position[0x10];
@@ -4380,7 +4359,6 @@ struct REQUEST {
 typedef char D_Size[sizeof(D)==20?1:-1];
 typedef char E_Size[sizeof(E)==40?1:-1];
 typedef char LINK_Size[sizeof(LINK)==20?1:-1];
-typedef char VE_Size[sizeof(VE)==8?1:-1];
 typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
 typedef char FLAGS_Size[sizeof(FLAGS)==4?1:-1];
 typedef char D_channel_Offset[FIELD_OFFSET(D,channel)==0?1:-1];
@@ -4412,8 +4390,6 @@ typedef char SO_vectors_Offset[FIELD_OFFSET(SO,vectors)==72?1:-1];
 typedef char LINK_bounds_Offset[FIELD_OFFSET(LINK,bounds)==4?1:-1];
 typedef char LINK_object_Offset[FIELD_OFFSET(LINK,object)==12?1:-1];
 typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
-typedef char VE_delta_Offset[FIELD_OFFSET(VE,delta)==0?1:-1];
-typedef char VE_readTransform_Offset[FIELD_OFFSET(VE,readTransform)==4?1:-1];
 extern "C"{
 extern int D_003DA790;
 extern LINK D_003DA798[];
@@ -4436,8 +4412,8 @@ static inline void *Copy(int bytes, void *source)
 // Call the object's readTransform virtual (vtable slot 52) to load a transform from the stream.
 static inline void ReadTransform(SO *object, STREAM *stream, TRANSFORM **output)
 {
-    VE *method = &object->vt[52];
-    method->readTransform((SO *)((char *)object + method->delta), stream, output);
+    VTE *method = &object->vt[52];
+    ((void (*)(SO *, STREAM *, TRANSFORM **))method->pfn)((SO *)((char *)object + method->d), stream, output);
 }
 // If any of p's objects has flag 4, replace p's object array with a heap copy (so it can be edited without touching
 // the shared one) (inferred).

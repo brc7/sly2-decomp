@@ -873,7 +873,6 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_FireMissile (was src/game/app/splice_thunks/RefThunk_FireMissile.cpp) ----
 namespace T_RefThunk_FireMissile {
-struct VTE { short d; short pad; void (*pfn)(void *, int, void *); };
 struct LO { char pad[0xC]; VTE *pvt; };
 extern "C" { CRef RefThunk_FireMissile(LO *p, int c, void *aref); }
 // Splice binding for option 508 on MISSILE (g_aeopid[405], thunkFn): unpacks the script's 2 arguments (0x2030,
@@ -887,7 +886,7 @@ CRef RefThunk_FireMissile(LO *object, int argCount, void *args)
     ref.Decref();
     ref.InitTag(0x24);
     VTE *pvte = &object->pvt[78];
-    pvte->pfn((char *)object + pvte->d, n, &u);
+    ((void (*)(void *, int, void *))pvte->pfn)((char *)object + pvte->d, n, &u);
     return ref;
 }
 } // namespace T_RefThunk_FireMissile

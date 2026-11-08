@@ -43,8 +43,7 @@ void ACT3::Attach()
 struct M3 { qword r[3]; };
 struct S;
 struct O { struct M3 mat; char pad[0x70-0x30]; qword pos; char pad1[0xA8-0x80]; CHAINLINK *entry; };
-struct VE { short d; short pad; struct O *(*get)(void *,int); };
-struct S { char pad[0xC]; struct VE *vt; };
+struct S { char pad[0xC]; VTE *vt; };
 /* LoadSoChainsFromBrx builds each ACT3 by hand (AllocAct, then the vtable store) and reads the links' transforms
    through its XF view O (the rest matrix as three qword rows). */
 #define ACT_VPTR(p) (*(void **)((char *)(p) + 0x18))
@@ -89,7 +88,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
             ACT3 *action;
             link=&chain->links[j];
             link->chain=chain;
-            { struct VE *ve=&so->vt[51]; link->pxf=(XF *)ve->get((char *)so+ve->d,S16Read__18CBinaryInputStream(stream)); }
+            { VTE *ve=&so->vt[51]; link->pxf=(XF *)((struct O *(*)(void *,int))ve->pfn)((char *)so+ve->d,S16Read__18CBinaryInputStream(stream)); }
             *(struct M3 *)&link->restMatrix=LXF(link)->mat;
             action=(ACT3 *)AllocAct(0x20);
             ACT_VPTR(action)=D_002DB338;

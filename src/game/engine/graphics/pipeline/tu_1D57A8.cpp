@@ -24,11 +24,6 @@ struct M4
 {
     U r[4];
 };
-struct VTENT
-{
-    short delta, pad;
-    void (*pfn)(void *);
-};
 struct RENDER;
 struct SUB
 {
@@ -39,7 +34,7 @@ struct SUB
 struct OBJ
 {
     char pad0[0xC];
-    VTENT *pvt;           /* 0x0C */
+    VTE *pvt;           /* 0x0C */
     char pad10[0x1D];
     uchar grfChannels;    /* 0x2D */
     char pad2E[0xA];
@@ -378,8 +373,8 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
         OBJ *pobj = pscene->apobj[i];
         if (ShouldUpdateSaa__FP3SAA(pobj))
         {
-            VTENT *pvte = &pobj->pvt[8];
-            pvte->pfn((char *)pobj + pvte->delta);
+            VTE *pvte = &pobj->pvt[8];
+            ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
         }
     }
     SW *pg = &D_003DD490;
@@ -557,8 +552,8 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     for (i = 0; i < cDeferred; i++)
     {
         OBJ *pobj = apobjDeferred[i];
-        VTENT *pvte = &pobj->pvt[19];
-        pvte->pfn((char *)pobj + pvte->delta);
+        VTE *pvte = &pobj->pvt[19];
+        ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
     }
 }
 
@@ -582,7 +577,7 @@ extern "C" void RemoveLoFromRenderTree(OBJ *pobj)
 // visible); stores the entry and sets the in-tree flag (0x80).
 extern "C" void AddLoToRenderTree(OBJ *pobj)
 {
-    M4 m = *((M4 *(*)(void *))pobj->pvt[31].pfn)((char *)pobj + pobj->pvt[31].delta);
+    M4 m = *((M4 *(*)(void *))pobj->pvt[31].pfn)((char *)pobj + pobj->pvt[31].d);
     qword v;
     RENDER *prender;
     v = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, pobj->posLocal);
