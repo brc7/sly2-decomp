@@ -10,6 +10,8 @@
 #include "sly2/clock.h"
 #include "sly2/save.h"
 #include "gifs.h"
+#include "sly2/joy.h"
+#include "sly2/sndmgr.h"
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
@@ -104,13 +106,12 @@ struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSi
 struct JOY;
 
 extern "C" {
-extern CLOCK D_002DDED0;
 extern DMA *D_002DE598;
 int D_002F68F8;            /* first declared before D_002F6900: g++ 2.95 lays plain .bss out in declaration order */
 char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2F7900) */
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern int D_004425DC;
-extern char D_003DD040[], D_004435F0[];
+extern char D_004435F0[];
 extern char D_002D4220[] __asm__("_vt$15CQueueOutputIpu");
 extern int D_002E1E54, D_002DEDBC;
 /* Two movie file references (16 hashed words, sly2/sw.h FILEREC layout; the first is the intro movie, the same record
@@ -121,7 +122,6 @@ extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 
     0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
 int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
-extern JOY D_002DFC00;
 
 int func_00234A60(int n) __asm__("WaitSema");
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(DMA *, QW *);
@@ -234,7 +234,7 @@ void MpegDisplayThread(void)
         D_002F66B0.stage = 2;
         RestoreGsBuffers__Fv();
         x = 0;
-        if (D_002F66B0.psubt && IsWithinLimits__FP2LMf(&D_002F66B0.psubt->window, D_002DDED0.realTime - D_002F66B0.t10C))
+        if (D_002F66B0.psubt && IsWithinLimits__FP2LMf(&D_002F66B0.psubt->window, g_clock.realTime - D_002F66B0.t10C))
             x = (QW *)((unsigned)D_002F66B0.pb + 0x41DC00);
         Draw(x, &D_002F66B0);
         Draw(x, &D_002F66B0);
@@ -433,7 +433,7 @@ int CQueueOutputIpu::IsAsyncDrain() {   /* key function */
 void Init__10CMpegAudio(CMpegAudio *audio)
 {
     snd_PauseAllSoundsInGroup(0xFFFFFFFF);
-    StopDialog(D_003DD040);
+    StopDialog(&g_sndmgr);
     ClearSubtitle(D_004435F0);
     snd_StopAllStreams();
     while (snd_FlushSoundCommands()) ;
@@ -763,15 +763,15 @@ void Execute__5CMpegPv(CMPEG *player, K *k)
         CMpeg_Start(player, &strm);
         while (!sceMpegIsEnd(&player->mpeg)) {
             int f;
-            MarkClockTick(&D_002DDED0, 1);
-            UpdateJoy__FP3JOY(&D_002DFC00);
+            MarkClockTick(&g_clock, 1);
+            UpdateJoy__FP3JOY(&g_joy);
             if (!g_save.currentSlot) UpdateSave__FP4SAVE(&g_save);
             f = 0;
             if (FMatch(k, (K *)D_002A3968) || FMatch(k, (K *)D_002A39A8)) f = D_002F68F8 != 0;
             if (D_002C0268) f = 1;
             if (f) {
                 int fQuit = 0;
-                if (HandleJoyButtons(&D_002DFC00, 0x91F)) fQuit = 1;
+                if (HandleJoyButtons(&g_joy, 0x91F)) fQuit = 1;
                 if (fQuit) {
                     player->fRepeat = 0;
                     break;
@@ -817,7 +817,7 @@ void Update__5CMpeg(CMPEG *player)
     while (player->stage == 1) DemuxStream__5CMpegi(player, 0);
     if (sceMpegGetPicture(&player->mpeg, player->pb + 0x285A80, 0x5CD) < 0) return;
     if (player->mpeg.frameCount == 0) {
-        player->t10C = D_002DDED0.realTime;
+        player->t10C = g_clock.realTime;
         BuildMpegGifs(player);
         DrawMpegSubtitles(player);
         func_00234CA0(0);
