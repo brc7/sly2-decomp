@@ -39,7 +39,7 @@ struct ZV { char pad[0xE4]; int unknownE4; char pad1[0x194 - 0xE8]; int unknown1
 struct SOV
 {
     char pad0[0xC];
-    struct { short d; short pad; int (*pfn)(void *); } *vt;
+    VTE *vt;
     char pad10[0x240 - 0x10];
     qword eyeOffset;
     char pad250[0x4C8 - 0x250];
@@ -272,7 +272,7 @@ extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int
     SOV *hero = GetHeroPo(D_003DD490);
     if (!target) { state = TARGET_UNSEEN; goto done; }
     if (!IsLoInWorld(target)) { state = TARGET_UNSEEN; goto done; }
-    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = TARGET_UNSEEN; goto done; }
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && ((int (*)(void *))target->vt[77].pfn)((char *)target + target->vt[77].d) == 2) { state = TARGET_UNSEEN; goto done; }
     if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_SAFEHOUSE)) { state = TARGET_UNSEEN; goto done; }
     if (IsSwInputLocked(D_003DD490)) { state = TARGET_UNSEEN; goto done; }
     if (detector->isDisabled) { state = TARGET_UNSEEN; goto done; }
