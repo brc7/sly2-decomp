@@ -1267,18 +1267,14 @@ void TranslateSoToPos(SO *so, qword v)
 
 // 0x1F42E0 RotateSoToMat
 namespace M_RotateSoToMat {
-union U; struct M3; struct LO; struct P; 
+struct M3;
 typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
-struct LO { M3 matrix; QWROW position; M3 rotation; char pad[0x30]; LO *parent; int stamp; };
-struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
-extern "C" void FreeSoContacts(P *);
-extern "C" void UnsettleXfSlot(P *,LO *);
-extern "C" void UpdateSoPartMatrices(P *);
+extern "C" void UpdateSoPartMatrices(SO *);
 // Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
@@ -1288,14 +1284,14 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
 // Slot 30: sets the rotation from a world matrix (normalised against the parents), frees contacts and refreshes.
-extern "C" void RotateSoToMat(P *so,const M3 *basis)
+extern "C" void RotateSoToMat(SO *so,const M3 *basis)
 {
-    LO *object=so->object;
+    XF *object=so->rotationXf;
     if(!object)return;
     {
         M3 m;
         if(object->parent) {
-            m=object->parent->rotation;
+            m=*(M3 *)&object->parent->worldMatq;
             NormalizeRotateMatrix3__FP7MATRIX3(&m);
         } else {
             func_002333B4(&m,0,sizeof(m));
@@ -1304,16 +1300,16 @@ extern "C" void RotateSoToMat(P *so,const M3 *basis)
             m.r[0].f[0]=1.0f;
         }
         M3 transformed=Mul(InvertMatrix3Cofactor(&m),*basis);
-        M3 *dest=&so->object->matrix;
+        M3 *dest=(M3 *)&so->rotationXf->localMatq;
         *dest=transformed;
         dest->r[0].i[3]=0;
         dest->r[1].i[3]=0;
         dest->r[2].i[3]=0;
         int stamp=++g_sw.transformStamp;
-        so->object->stamp=stamp;
-        ((void (*)(void *))so->vt[18].pfn)((char *)so+so->vt[18].d);
+        so->rotationXf->worldStamp=stamp;
+        so->UpdateXfWorldHierarchy();
         FreeSoContacts(so);
-        UnsettleXfSlot(so,so->object);
+        UnsettleXfSlot(so,so->rotationXf);
         UpdateSoPartMatrices(so);
     }
 }
@@ -1424,16 +1420,13 @@ qword SO::GetAngularVelocity()
 
 // 0x1F46D8 SetSoAngularVelocity
 namespace M_SetSoAngularVelocity {
-union U; struct M3; struct LO; struct P;
+struct M3;
 typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
-struct LO { M3 matrix; QWROW position; M3 rotation; char pad[0x24]; int kind; short state; char pad9A[6]; LO *parent; int stamp; char padA8[8]; QWROW velocity; };
-struct P { char pad[0xC]; VTE *vt; char pad10[0x4C]; LO *object; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
-extern "C" void UnsettleXfSlot(P *,LO *);
 // Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
@@ -1443,11 +1436,9 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
 extern "C" int IsXfRoleMoving(int);
-extern "C" void SetXfRole(P *,LO *,int);
-extern "C" qword ConvertXfVec(LO *,LO *,qword);
-extern "C" void InvalidateSoAaox(P *);
-extern "C" void WakeSo(P *);
-extern "C" void SetSoBit35Hierarchy(P *,long);
+extern "C" qword ConvertXfVec(XF *,XF *,qword);
+extern "C" void WakeSo(SO *);
+extern "C" void SetSoBit35Hierarchy(SO *,long);
 // Return a - *pb.
 static inline qword Sub(qword a,const qword *pb) { qword r,b; __asm__("lqc2 %1,%3\n\tvsub.xyzw %0,%2,%1":"=j"(r),"=&j"(b):"j"(a),"m"(*pb));return r; }
 // Rotate v by the 3x3 matrix m.
@@ -1457,19 +1448,19 @@ static inline qword Transform(const M3 &m,qword v) { qword r;
 // Zero the xyz words of v.
 static inline void Clear(QWROW *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
 // Slot 36: sets the rotation XF's angular velocity from a world-space w.
-extern "C" void SetSoAngularVelocity(P *so,qword position)
+extern "C" void SetSoAngularVelocity(SO *so,qword position)
 {
-    LO *object=so->object;
+    XF *object=so->rotationXf;
     if(!object || object->kind!=6)return;
-    if(!IsXfRoleMoving(object->state))SetXfRole(so,object,1);
-    const M3 *rotation=&object->rotation;
-    Clear(&object->velocity);
+    if(!IsXfRoleMoving(object->role))SetXfRole(so,object,1);
+    const M3 *rotation=(const M3 *)&object->worldMatq;
+    Clear(&object->velq);
     M3 normalized;
-    qword origin=((qword (*)(void *))so->vt[34].pfn)((char *)so+so->vt[34].d);
+    qword origin=so->GetAngularVelocity();
     normalized=*rotation;
     NormalizeRotateMatrix3__FP7MATRIX3(&normalized);
     M3 relative=Mul(*rotation,InvertMatrix3Cofactor(&normalized));
-    object->velocity.q=ConvertXfVec(0,object->parent,Transform(relative,Sub(position,&origin)));
+    object->velq.q=ConvertXfVec(0,object->parent,Transform(relative,Sub(position,&origin)));
     UnsettleXfSlot(so,object);
     InvalidateSoAaox(so);
     WakeSo(so);

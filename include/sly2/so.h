@@ -447,7 +447,11 @@ struct XF
       };
       short stiffness;
       short damping;
-      VECTOR4 velocity;
+      union
+      {
+            VECTOR4 velocity;
+            QWROW velq;   /* the same as a quadword */
+      };
       union   /* +0xC0..+0xFF: the segment block, by role and phase */
       {
             struct
