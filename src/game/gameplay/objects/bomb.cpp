@@ -80,7 +80,6 @@ struct MSG { BOMBV *p; int x4; POV *po; int zapKind; int damage; int pad14[3]; q
 struct MSG2 { int k; BOMBV *p; float g8; float gC; };
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 
-extern CLOCK D_002DDED0;
 /* bomb's .data (address order): the default radius, the four classes that defuse a chain, the gravity scalar. */
 float D_002BC9C8 = 200.0f;
 extern const float D_002A4B18;   /* defined below where the ELF has it (.rodata order) */
@@ -91,7 +90,6 @@ extern const LONGU D_002A4B10;   /* an 8-byte callback record (a pointer to memb
 int D_002BC9D0[4] = {0x33, 0x64, 0x4F, 0x67};
 extern qword D_002A2DD0;
 extern "C" {
-extern SW D_003DD490;
 extern qword D_002A2DC0;
 int D_002BC9E0 = 0x43FA0000;   /* 500.0f, read as its bit pattern */
 void InitSo(BOMBV *);
@@ -196,7 +194,7 @@ static __inline__ float GLength(qword v)
 extern "C" void UpdateBomb(BOMBV *bomb)
 {
     UpdateSo(bomb);
-    if (bomb->tDetonate <= D_002DDED0.time)
+    if (bomb->tDetonate <= g_clock.time)
         goto out;
     {
         qword v;
@@ -220,7 +218,7 @@ extern "C" void UpdateBombCustomXps(BOMBV *bomb)
     int unused[4];
     HITB hit;
     for (i = 0; i < bomb->cxp; i++)
-        UpdateSwPox(&D_003DD490, bomb->physicsTree, bomb->axp[i].plo->physicsTree, 2);
+        UpdateSwPox(&g_sw, bomb->physicsTree, bomb->axp[i].plo->physicsTree, 2);
     bomb->cxp = 0;
     for (pso = (*(SOLIST *)&g_sw.dlTarget).p; pso; pso = pso->pnext) {
         SO *plo;
@@ -250,7 +248,7 @@ extern "C" void UpdateBombCustomXps(BOMBV *bomb)
                 register qword vp __asm__("vf2");
                 register qword vn __asm__("vf1");
                 register int n __asm__("$2");
-                UpdateSwPox(&D_003DD490, bomb->physicsTree, plo->physicsTree, 1);
+                UpdateSwPox(&g_sw, bomb->physicsTree, plo->physicsTree, 1);
                 pe = &bomb->axp[bomb->cxp++];
                 pe->plo = plo;
                 __asm__("" : "+r"(pe));
@@ -276,7 +274,7 @@ extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int a2, int a3, int a4, 
         CXP *pe;
         for (pe = bomb->axp; pe < bomb->axp + bomb->cxp; pe++) {
             if ((void *)pe->plo == ps->po->pxp->pso60) {
-                AddXp(&D_003DD490, bomb->parts, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
+                AddXp(&g_sw, bomb->parts, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
                 return;
             }
         }
@@ -411,7 +409,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
         break;
     }
     case 1:
-        PostSwCallback(&D_003DD490, bomb, D_002A4B10.l, AE(pqBest)[IOther(pqBest, bomb)].x);
+        PostSwCallback(&g_sw, bomb, D_002A4B10.l, AE(pqBest)[IOther(pqBest, bomb)].x);
         break;
     }
 }
@@ -530,7 +528,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 }
 
 // tDetonate = min(tDetonate, now + dt).
-void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < D_002DDED0.time + f) ? bomb->tDetonate : D_002DDED0.time + f; }
+void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < g_clock.time + f) ? bomb->tDetonate : g_clock.time + f; }
 
 // (Claude agent) IntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
 // Radius: fold turns `b >= a ? b : a` into MAX(b, a) only with both values in locals (a loaded first).
@@ -544,7 +542,7 @@ extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
     int n;
     SOV **apo;
     int i;
-    { float a = bomb->sRadius; float b = bomb->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, bomb->posDetonate, ShouldKeepSoNotSelf, bomb->physicsTree, b >= a ? b : a, &c, &aps); }
+    { float a = bomb->sRadius; float b = bomb->sRadiusHero; IntersectSwBoundingSphere(&g_sw, bomb->posDetonate, ShouldKeepSoNotSelf, bomb->physicsTree, b >= a ? b : a, &c, &aps); }
     if (c == 0) {
         *pc = 0;
         *papo = 0;
@@ -664,7 +662,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        NewNoise(D_003DD490.apstimk[3], GetLoWorldPos(bomb), pv)[0x54 / 4] = 1;
+        NewNoise(g_sw.apstimk[3], GetLoWorldPos(bomb), pv)[0x54 / 4] = 1;
     }
     bomb->Remove();
     bomb->isDetonationPrepared = 0;
@@ -701,6 +699,6 @@ extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
     if (pbombOwner != bomb->owner) {
         bomb->owner = pbombOwner;
-        RefreshSwObjectCollisionFilter(&D_003DD490, bomb);
+        RefreshSwObjectCollisionFilter(&g_sw, bomb);
     }
 }

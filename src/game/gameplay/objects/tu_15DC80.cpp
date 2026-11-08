@@ -17,7 +17,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 // Color bytes with a user constructor (part of RgbaLerp's codegen).
 struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor is part of RgbaLerp's codegen */
-extern CLOCK D_002DDED0;          /* g_clock */
 
 /* The fade object, CID116 (an LO, vtable at +0xC; offsets confirmed by the match). */
 struct FADEV
@@ -66,7 +65,7 @@ void CID116::Init()
 extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 {
     UpdateLo(fade, dt);
-    if (D_002DDED0.time - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
+    if (g_clock.time - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
         VTE *entry = &fade->vtable[9];
         ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
     }
@@ -95,7 +94,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
     RGBAV color;
     RGBAV from, to;
     float phaseTime;
-    float elapsed = D_002DDED0.time - fade->startTime;
+    float elapsed = g_clock.time - fade->startTime;
     VIFS *dma;
     unsigned char *dmaStart;
     RPL *entry;
@@ -149,7 +148,7 @@ extern "C" void StartScreenFade(FADEV *fade)
 {
     if (((int)(fade->loFlags >> 60) & 1) == 0) {
         VTE *entry = &fade->vtable[8];
-        fade->startTime = D_002DDED0.time;
+        fade->startTime = g_clock.time;
         ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
     }
 }

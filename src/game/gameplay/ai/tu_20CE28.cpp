@@ -25,7 +25,6 @@ struct WVOL { char pad[0xC]; VTE *vt; char pad10[0x174]; int zapAmount; int zapK
 /* The filter's argument (an object and its flags; bit 48 tested). */
 struct FPAIR { int a; void *object; char pad[8]; long flags; };
 
-extern CLOCK D_002DDED0;
 /* tu_20CE28's .data (address order): the blocked-time limit, the five probe offsets around the guard (16-byte
  * vectors; VQ lets them be initialized), the probe's line test range and the hazard time limit. */
 union VQ { float af[4]; qword q; };
@@ -84,7 +83,7 @@ extern "C" void UpdateStuckWatch(STUCKWATCH *watch)
         case 1:
             if (!isStuck)
                 SetStuckWatchState(watch, 0);
-            else if (D_002DDED0.time - watch->stateTime > D_002C3DF0 && !watch->guard->IsInvulnerable((ZPK)0x4000))
+            else if (g_clock.time - watch->stateTime > D_002C3DF0 && !watch->guard->IsInvulnerable((ZPK)0x4000))
                 SetStuckWatchState(watch, 2);
             break;
         case 2:
@@ -126,7 +125,7 @@ extern "C" void SetStuckWatchState(STUCKWATCH *watch, int state)
 {
     if (watch->state == state) return;
     watch->state = state;
-    watch->stateTime = D_002DDED0.time;
+    watch->stateTime = g_clock.time;
     if (state != 2)
         return;
     ZPR zap;
@@ -201,7 +200,7 @@ extern "C" void UpdateHazardWatch(HAZARDWATCH *watch)
         case 1:
             if (!watch->volume)
                 SetHazardWatchState(watch, 0);
-            else if (D_002DDED0.time - watch->stateTime > D_002C3E58 &&
+            else if (g_clock.time - watch->stateTime > D_002C3E58 &&
                      !watch->guard->IsInvulnerable((ZPK)((WVOL *)watch->volume)->zapKind))
                 SetHazardWatchState(watch, 2);
             break;
@@ -220,7 +219,7 @@ extern "C" void SetHazardWatchState(HAZARDWATCH *watch, int state)
     if (state == watch->state)
         return;
     watch->state = state;
-    watch->stateTime = D_002DDED0.time;
+    watch->stateTime = g_clock.time;
     if (state == 2) {
         ZPR zap;
         func_002333B4(&zap, 0, sizeof(zap));

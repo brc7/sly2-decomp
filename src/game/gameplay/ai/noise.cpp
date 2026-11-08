@@ -27,8 +27,6 @@ struct NOISEHDR { int frame; int sidebag; int unknown8; VTE *vt; };
  * noise durations/loudnesses. */
 extern float D_002BDCD0;
 extern LM D_002BDCD8;
-extern SW D_003DD490;
-extern CLOCK D_002DDED0;
 extern float D_002BDCE0;
 extern float D_002BDCF0[3];
 extern float D_002BDD00;
@@ -94,7 +92,7 @@ struct Lock {
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
 extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outNoise)
 {
-    CID147 *noise = (CID147 *)AllocZeroedFromSlotheap(&D_003DD490.slotheapStimulus);
+    CID147 *noise = (CID147 *)AllocZeroedFromSlotheap(&g_sw.slotheapStimulus);
     func_002333B4(noise, 0, 0x60);
     ((NOISEHDR *)noise)->frame = 0;
     ((NOISEHDR *)noise)->sidebag = 0;
@@ -103,10 +101,10 @@ extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outN
     noise->startPosition = pos;
     ((NOISEHDR *)noise)->vt = D_002CE2B8;
     noise->loudness = loudness;
-    noise->serial = ++D_003DD490.stimulusSerial;
-    noise->startTime = D_002DDED0.time;
+    noise->serial = ++g_sw.stimulusSerial;
+    noise->startTime = g_clock.time;
     noise->noiseKind = type->noiseKind;
-    AppendDlEntry(&D_003DD490.dlStimulus, noise);
+    AppendDlEntry(&g_sw.dlStimulus, noise);
     noise->AddRef();
     Lock lock(noise);
     FramePtr_Assign(noise, (int)type->scriptFrame.m_p);
@@ -149,7 +147,7 @@ extern "C" void ExpireNoise(CID147 *noise)
 {
     float duration = noise->type->duration;
     if (duration >= 0.0f) {
-        if ((noise->startTime + duration) < D_002DDED0.time) {
+        if ((noise->startTime + duration) < g_clock.time) {
             RemoveNoise(noise);
         }
     }
@@ -193,7 +191,7 @@ extern "C" float GetNoiseRadius(CID147 *noise)
     float rampTime, progress;
     if (0.0f < type->duration) {
         rampTime = Min(D_002BDCE0, type->duration);
-        progress = Min((D_002DDED0.time - noise->startTime) / rampTime, 1.0f);
+        progress = Min((g_clock.time - noise->startTime) / rampTime, 1.0f);
         return type->range * (D_002BDCF0[0] + progress * (D_002BDCF0[1] + progress * D_002BDCF0[2]));
     }
     return type->range;

@@ -96,7 +96,6 @@ extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an objec
 extern VIFS D_002DEA28;
 extern GIFS D_002DEA00;
 extern FRM *D_002DEA4C __asm__("g_pfrmOpen");
-extern CLOCK D_002DDED0;
 extern int D_002DEDBC,D_002DEB18;
 extern uint D_002BE538;
 /* prog's .data (address order): the logo's screen rectangle (ints), its pulse and fade, the 206 logo vertices and the
@@ -266,7 +265,7 @@ static inline void Clamp(float *value,const float *bounds){float low=bounds[0],h
 // Start a loading-screen frame: tick the clock and open the frame.
 static inline void BeginFrame()
 {
-    MarkClockTick(&D_002DDED0,1);
+    MarkClockTick(&g_clock,1);
     OpenFrame();
     uchar *pb=D_002DEA28.m_pb;
     D_002DEA4C->packet=pb;
@@ -288,7 +287,7 @@ extern "C" void LoadingScreenThread(void *)
             BeginFrame();
             ReferSemaStatus(D_003D3A40,&status);
             if(status.count!=0)break;
-            float t=-*D_002DD314+D_002DDED0.realTime;
+            float t=-*D_002DD314+g_clock.realTime;
             float scale=1.0f+D_002C10B0*sinf(t*D_002C10B4);
             matrix.Identity();
             matrix.a[0]=D_002C10A0*scale;

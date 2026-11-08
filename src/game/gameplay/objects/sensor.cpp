@@ -39,7 +39,6 @@ struct LO;
 struct XP;
 struct DL;
 struct CBinaryInputStream;
-extern SW D_003DD490;   /* g_psw's world */
 
 /* A path object (CID 10, SHAPE) as far as the endpoints read it: its world matrix (LO slot 31, GetWorldMatrix) and its
    control points. */
@@ -234,7 +233,6 @@ struct SUB { char pad[0x14]; SOV **ppso; };
 struct REQUEST { int x0; SUB *psub; };
 struct HIT { qword pos; char pad[0x50]; };
 
-extern CLOCK D_002DDED0;
 extern qword D_002A2DF0, D_002A2E00;   /* initial bounding-box min / max (not const: see BuildLasenBeams) */
 float D_002C3610 = 100.0f; /* sensor's .data (0x2C3610; the next 12 bytes are 0): ramp length of the mode-16 profile */
 extern qword D_002A2DC0;   /* up vector for the beam basis (not const: see RenderLasenSelf) */
@@ -428,7 +426,7 @@ extern "C" void BuildLasenBeams(LASENV *laser)
             BEAMEND *end = &beam->ends[j];
             end->kind = -1;
             if (end->oid != -1) {
-                LO *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, end->oid, (LO *)laser);
+                LO *object = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 1, end->oid, (LO *)laser);
                 if (object) {
                     if (IsBasicDerivedFrom__FP5BASIC3CID(object, (CID)10)) {
                         SHAPEV *path = (SHAPEV *)object;
@@ -609,7 +607,7 @@ extern "C" void BindLasenAnimations(LASENV *laser)
         CHN *pchn;
         if (palo == 0)
             continue;
-        FindSwObjectsByClass(&D_003DD490, 2, (CID)0x6D, palo, 1, &pcap->paseg);
+        FindSwObjectsByClass(&g_sw, 2, (CID)0x6D, palo, 1, &pcap->paseg);
         paseg = pcap->paseg;
         if (paseg == 0)
             continue;
@@ -646,8 +644,8 @@ extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
             }
         }
     }
-    FreeSwXpList__FP2SWP2XP(&D_003DD490, list);
-    EnsureSwCallback(&D_003DD490, laser, &LASENV::ZapBeams, 0);
+    FreeSwXpList__FP2SWP2XP(&g_sw, list);
+    EnsureSwCallback(&g_sw, laser, &LASENV::ZapBeams, 0);
 }
 
 // World positions of a beam's two endpoints (a fixed point from the sensor's root space, or the point on the path)
@@ -743,8 +741,8 @@ extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a
             float dist = Scalar(Len(Sub(seg[0], pos.q)));
             qword dir = Sub(seg[1], seg[0]);
             dir = Div(dir, Len(dir));
-            AddXp(&D_003DD490, laser->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->firstContact, 0.0f);
-            EnsureSwCallback(&D_003DD490, laser, &LASENV::ZapBeams, 0);
+            AddXp(&g_sw, laser->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->firstContact, 0.0f);
+            EnsureSwCallback(&g_sw, laser, &LASENV::ZapBeams, 0);
         }
     }
 }
@@ -809,7 +807,7 @@ extern "C" void MoveLasenEndpoints(LASENV *laser)
             if (end->kind != 1)
                 continue;
             seg = &end->track.motion.segments[end->track.motion.current];
-            seg->elapsed = t = seg->elapsed + laser->endpointSpeed * D_002DDED0.deltaTime;
+            seg->elapsed = t = seg->elapsed + laser->endpointSpeed * g_clock.deltaTime;
             if (seg->duration < t) {
                 float r = fmodf(t, seg->duration);
                 end->track.motion.current = (end->track.motion.current + 1) % end->track.motion.count;
