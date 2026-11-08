@@ -108,7 +108,6 @@ union REQUEST {
     float f[4];
 };
 
-extern CLOCK D_002DDED0;
 /* the x/y/z readers of a qword vector: inline, defined after their caller (end of the functions) */
 inline float GetQwordX(qwordV *pq);
 inline float GetQwordY(qwordV *pq);
@@ -160,7 +159,7 @@ static inline int Wrap(int index, int count)
 // (inferred)
 extern "C" void ResetTrailHistory(TRAIL *trail)
 {
-    float t = D_002DDED0.time;
+    float t = g_clock.time;
     M4 m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
     int n = trail->count;
     int i = n + Wrap(0, n);
@@ -356,7 +355,7 @@ extern "C" void UpdateTrail(TRAIL *trail, float dt)
 {
     UpdateLo(trail, dt);
     if (trail->rate != 0.0f) {
-        float t = trail->g + D_002DDED0.deltaTime * trail->rate;
+        float t = trail->g + g_clock.deltaTime * trail->rate;
         trail->g = t;
         if (t <= 0.0f) {
             trail->g = 0.0f;
@@ -386,7 +385,7 @@ extern "C" void ProjectTrailTransform(TRAIL *trail)
     if (!trail->state) {
         Ring *e = &trail->ring[trail->index];
         trail->index = (trail->index + 1) % trail->count;
-        e->t = D_002DDED0.time;
+        e->t = g_clock.time;
         e->g = trail->g;
         e->m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
         if (trail->g <= 0.0f)
@@ -470,7 +469,7 @@ extern "C" void RenderTrail(TRAIL *trail)
                 StoreXYZ(out, pos);
                 out++;
                 if (color) {
-                    float fade = 1.0f - (D_002DDED0.time - a->t) / trail->fade;
+                    float fade = 1.0f - (g_clock.time - a->t) / trail->fade;
                     if (fade < 0.0f)
                         fade = 0.0f;
                     else if (1.0f < fade)

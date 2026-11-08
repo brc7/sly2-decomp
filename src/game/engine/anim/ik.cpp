@@ -161,7 +161,6 @@ struct CONTROL{VTE*vt;};
 struct WORK{U row[23];};
 // Placement new: construct at p.
 inline void*operator new(unsigned int,void*p){return p;}
-extern "C" SW D_003DD490;
 extern "C" float acosf(float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float);
 extern "C" qwordV*VECTOR_opAssign(qwordV*,qwordV);
@@ -241,7 +240,7 @@ extern "C" void SolveIk(void*context,IKREC*request){
  (void)new(turnDestination)M3(BuildAxisAngleRotationMatrix(normalizedTurn,twist));
  register FRAME*current __asm__("$4");register SW*game __asm__("$5");
  __asm__("lqc2 $vf9,0xC0(%2)\n\tlui %1,%%hi(%5)\n\tlqc2 $vf6,0xD0(%2)\n\taddiu %1,%1,%%lo(%5)\n\tlqc2 $vf7,0xE0(%2)\n\tlqc2 $vf2,0x40(%2)\n\tlqc2 $vf3,0x50(%2)\n\tvmulax.xyz $ACC,$vf9,$vf2x\n\tvmadday.xyz $ACC,$vf6,$vf2y\n\tvmaddz.xyz $vf2,$vf7,$vf2z\n\tlqc2 $vf1,0x60(%2)\n\tvmulax.xyz $ACC,$vf9,$vf3x\n\tvmadday.xyz $ACC,$vf6,$vf3y\n\tvmaddz.xyz $vf3,$vf7,$vf3z\n\tlqc2 $vf8,0x20(%4)\n\tvmulax.xyz $ACC,$vf9,$vf1x\n\tvmadday.xyz $ACC,$vf6,$vf1y\n\tvmaddz.xyz $vf1,$vf7,$vf1z\n\tlqc2 $vf5,0x10(%3)\n\tvmulax.xyz $ACC,$vf2,$vf8x\n\tvmadday.xyz $ACC,$vf3,$vf8y\n\tvmaddz.xyz $vf8,$vf1,$vf8z\n\tlqc2 $vf4,0x10(%4)\n\tvmulax.xyz $ACC,$vf2,$vf5x\n\tvmadday.xyz $ACC,$vf3,$vf5y\n\tvmaddz.xyz $vf5,$vf1,$vf5z\n\tsqc2 $vf2,0x120(%2)\n\tvmulax.xyz $ACC,$vf2,$vf4x\n\tvmadday.xyz $ACC,$vf3,$vf4y\n\tvmaddz.xyz $vf4,$vf1,$vf4z\n\tsqc2 $vf3,0x130(%2)\n\tsqc2 $vf1,0x140(%2)\n\tlw %0,4(%3)\n\tsqc2 $vf4,0xB0(%2)\n\tsqc2 $vf8,0xC0(%2)\n\tsqc2 $vf9,0x70(%2)\n\tsqc2 $vf6,0x80(%2)\n\tsqc2 $vf7,0x90(%2)\n\tsqc2 $vf2,0xF0(%2)\n\tsqc2 $vf3,0x100(%2)\n\tsqc2 $vf1,0x110(%2)\n\tsqc2 $vf5,0x120(%2)\n\tsqc2 $vf5,0xA0(%2)\n\tsqc2 $vf4,0x130(%2)\n\tsqc2 $vf8,0x140(%2)\n\tsqc2 $vf5,0(%0)"
-  :"=&r"(current),"=&r"(game):"p"(&w),"r"(q),"r"(originalBasis),"i"(&D_003DD490):"vf1","vf2","vf3","vf4","vf5","vf6","vf7","vf8","vf9","memory");
+  :"=&r"(current),"=&r"(game):"p"(&w),"r"(q),"r"(originalBasis),"i"(&g_sw):"vf1","vf2","vf3","vf4","vf5","vf6","vf7","vf8","vf9","memory");
  /* Publish the actual affine rows and shared generation stamp. */
  register int stamp __asm__("$2");
  __asm__ __volatile__("lq %1,0xB0(%4)\n\tsq %1,0x10(%0)\n\tlq $3,0xC0(%4)\n\tsw $zero,0xC(%0)\n\tsq $3,0x20(%0)\n\tsw $zero,0x2C(%0)\n\tsw $zero,0x1C(%0)\n\tlw %1,0x3D58(%2)\n\taddiu %1,%1,1\n\tsw %1,0x3D58(%2)\n\tlw $3,4(%3)\n\tlw %0,8(%3)\n\tsw %1,0xA4($3)"

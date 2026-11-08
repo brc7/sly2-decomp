@@ -81,7 +81,6 @@ struct M3 { float f[3][4]; } __attribute__((aligned(16)));
 /* ONZ/ONZE, the warp entries (WRE) and the space warp (WR) are sly2/wr.h's. */
 
 
-extern CLOCK D_002DDED0;
 extern VECTOR4 D_002A2DA0; // (1, 0, 0, 0)
 extern VECTOR4 D_002A2DB0; // (0, 1, 0, 0)
 extern VECTOR4 D_002A2DC0; // (0, 0, 1, 0)
@@ -431,7 +430,7 @@ static inline float Product(float a,float b)
 float UNoise(float frequency, float phase, float u1)
 {
     float randomness = u1;
-    float t = frequency * 2.0f * D_002DDED0.time + phase;
+    float t = frequency * 2.0f * g_clock.time + phase;
     int n = (int)t;
     float u0 = UNoise(n);
     u1 = UNoise(n + 1);
@@ -497,7 +496,7 @@ void UpdateWrMatrixes(WR *p) __asm__("UpdateWrMatrixes__FP2WR");
 // rotations). Skipped when already updated this frame.
 void UpdateWrMatrixes(WR *p){
  UpdateLo(p);
- if(D_002DDED0.time==p->lastUpdateTime)return;
+ if(g_clock.time==p->lastUpdateTime)return;
  if(p->valuesChanged)UpdateWrStateVectors(p);
  for(int i=0;i<p->entryCount;i++){
   WRE *entry=&p->entries[i];
@@ -507,7 +506,7 @@ void UpdateWrMatrixes(WR *p){
   case 0:{
    V position,uv,temporary;
    float sine,cosine;
-   float angle=(D_002DDED0.time*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
+   float angle=(g_clock.time*entry->data.circle.frequency+entry->data.circle.phase)*6.2831855f;
    CalculateSinCos__FfPfT1(NormalizeAngle__Ff(angle),&sine,&cosine);
    int column=entry->data.circle.column,next=column+1;
    V *pos0=&matrix->r[column],*pos1=&matrix->r[next],*uv0=&coordinates->r[column],*uv1=&coordinates->r[next];
@@ -537,7 +536,7 @@ void UpdateWrMatrixes(WR *p){
   }
   }
  }
- p->lastUpdateTime=D_002DDED0.time;
+ p->lastUpdateTime=g_clock.time;
 }
 
 void AddWrCircleWarp(WR *warp) __asm__("AddWrCircleWarp__FP2WR");

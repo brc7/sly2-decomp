@@ -34,7 +34,6 @@ struct M4 { qword a[4]; };
 struct LONGU { long l; } __attribute__((packed));
 
 extern "C" {
-extern SW D_003DD490;
 extern const LONGU D_002A46C8;
 extern VTE D_002CAF48[] __asm__("_vt$5ASEGA");
 extern VTE D_002CAF08[] __asm__("_vt$6ACTSEG");
@@ -191,7 +190,7 @@ void ASEG::PostLoad()
     ASEG *segment = (ASEG *)this;
     PostLoLoad(segment);
     if (segment->pasegstart)
-        PostSwCallback(&D_003DD490, segment, D_002A46C8.l, segment->pasegstart);
+        PostSwCallback(&g_sw, segment, D_002A46C8.l, segment->pasegstart);
 }
 
 // Returns the segment's label entry with the given id, or 0. (inferred)
@@ -333,9 +332,9 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
 void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
-        *ppo = FindSwObject(&D_003DD490, 1, (OID)pk->s.oid, b);
+        *ppo = FindSwObject(&g_sw, 1, (OID)pk->s.oid, b);
     else
-        *ppo = FindSwObject(&D_003DD490, 4, (OID)pk->s.oid, a);
+        *ppo = FindSwObject(&g_sw, 4, (OID)pk->s.oid, a);
     if (!*ppo)
         *pn = 0;
     else
@@ -364,8 +363,8 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, int xfk, int fCheck)
 // Resolves the object an override (OVR) refers to, relative to the root or in the world. (inferred)
 // Also stores a second result through its last argument (0 when not found).
 void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
-    if (q) *ppo = FindSwObject(&D_003DD490, 1, (OID)pa->oid, q);
-    else *ppo = FindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
+    if (q) *ppo = FindSwObject(&g_sw, 1, (OID)pa->oid, q);
+    else *ppo = FindSwObject(&g_sw, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
     else { LO *po = *ppo; *pn = ((int (*)(void *, int))PVT(po)[43].pfn)((char *)po + PVT(po)[43].d, pa->slot); }
 }

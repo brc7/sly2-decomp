@@ -27,7 +27,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef unsigned size_t;
 
-extern SW D_003DD490;
 extern "C" {
 void InitLo(LO *plo);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the counted CFrame store (linkonce, proxy.cpp) */
@@ -342,7 +341,7 @@ void SM::PostLoad()
     SM *psm = (SM *)this;
     PostLoLoad(psm);
     if (psm->psminit) {
-        LO *plo = FindSwObject(&D_003DD490, 4, psm->psminit->oidRoot, psm);
+        LO *plo = FindSwObject(&g_sw, 4, psm->psminit->oidRoot, psm);
         ApplySmToObject(psm, (ALO *)plo, psm->psminit->oidInitialState, psm->psminit->grfapl);
     }
 }
@@ -510,7 +509,7 @@ extern "C" void DecrefSma(SMA *psma)
         FramePtr_Assign(&psma->scriptFrame, 0);
         AssignSidebagRef(&psma->scriptVariables, 0);
         UnsubscribeLoAll(psma);
-        FreeSlotheapSlot(&D_003DD490.slotheapSma, psma);
+        FreeSlotheapSlot(&g_sw.slotheapSma, psma);
     }
 }
 
@@ -541,7 +540,7 @@ void RetractSma(SMA *p)
 // True when the activation is no longer on the world's live SMA list.
 extern "C" int IsSmaRetracted(SMA *psma)
 {
-    return IsEntryInDl(&D_003DD490.dlSma, psma) == 0;
+    return IsEntryInDl(&g_sw.dlSma, psma) == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

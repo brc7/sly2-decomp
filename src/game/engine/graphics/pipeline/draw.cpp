@@ -26,7 +26,6 @@ typedef void (*PFNRP)(VIFS *, int, int);
 #define NUM_RPL_KINDS 26
 #define DMA_TAG_CALL 0x50000000    /* DMAtag id CALL (5 << 28); the address goes in the upper word */
 
-extern SW D_003DD490;
 extern VIFS D_002DEA28;
 extern FR *g_pfrmOpen;
 extern FR D_002DEA50;
@@ -114,7 +113,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 {
     V4 clipConstants[2];
     MATRIX4 viewProj, cameraMatrix;
-    if (D_003DD490.unknown3E38) {
+    if (g_sw.unknown3E38) {
         if (g_pfrmOpen == &D_002DEA50)
             vifs->AddDmaCall((QW *)D_002DF940);
         else
@@ -138,7 +137,7 @@ extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
         clipConstants[1].v = D_002C1F10;
         clipConstants[1].w = -depthRatio / depthScale;
         vifs->AddVifUnpack(UPK_V4_32, 2, clipConstants, 0);
-        if (D_003DD490.unknown3E38) {
+        if (g_sw.unknown3E38) {
             if (g_pfrmOpen == &D_002DEA50)
                 BuildStereoEyeViewProj(camera, 1, 0, &viewProj, &cameraMatrix);
             else
@@ -184,7 +183,7 @@ extern "C" void DrawSw(SW *world)
     D_002DEA28.AddDmaCnt();
     if (world->fForceClear || firstIndex[1] == endIndex[1])
         D_002DEA28.AddVifDirect(0x25, (QW *)D_002DEDC0, 0);
-    if (D_003DD490.unknown3E38) {
+    if (g_sw.unknown3E38) {
         D_002DEA28.AddVifFlush();
         if (g_pfrmOpen == &D_002DEA50)
             D_002DEA28.AddDmaCall((QW *)D_002DF940);
@@ -205,7 +204,7 @@ extern "C" void DrawSw(SW *world)
     D_002DEA28.AddVifUnpack(UPK_V4_32, 2, &v0, 0);
     D_002DEA28.AddVifUnpack(UPK_S32, 1, &D_002DE5A4, 0xD);
     D_002DE5A4 = 0;
-    if (D_003DD490.unknown3E38) {
+    if (g_sw.unknown3E38) {
         if (g_pfrmOpen == &D_002DEA50)
             BuildStereoEyeViewProj(&g_cm, 1, 0, &mat0, &mat1);
         else

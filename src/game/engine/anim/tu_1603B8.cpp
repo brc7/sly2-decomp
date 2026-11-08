@@ -55,7 +55,6 @@ public:
     virtual XFV *GetXfFromIndex(int n);
 };
 
-extern SW D_003DD490;
 extern XFV D_002C44F0;
 
 extern "C" {
@@ -125,6 +124,6 @@ extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *constraint)
   dest->local.r[1].i[3]=0;
   dest->local.r[2].i[3]=0;
  }
- int stamp=++D_003DD490.transformStamp;
+ int stamp=++g_sw.transformStamp;
  constraint->dest->stamp=stamp;
 }
