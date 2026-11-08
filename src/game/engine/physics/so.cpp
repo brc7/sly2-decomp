@@ -71,11 +71,6 @@ ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("NewActFromParams");
 
 void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("AllocFromStack");
 
@@ -721,7 +716,6 @@ struct E {void *object;P *owner;float radius;int tag;FLAGS flags;int id,pinned;M
 struct STATE {qword rows[3];char pad30[0xA0];float mass;char padD4[0xC];};
 struct DATA {char pad0[0x38];void *guard;char pad3C[0x24];};
 struct P {char pad0[0xC];VTE *vt;char pad10[0x30];uint flags;char pad44[0x3C];DATA data;int count;E *entries;STATE *state;};
-struct MSG {int bytes,alignment;};
 extern "C" { extern char D_002C44F0[]; }
 extern "C" {
 void LoadSoXfsFromBrx(P *,void *);
@@ -734,7 +728,7 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEO *);
 void CBinaryInputStream_ReadBspc(void *,GEO *,TREE *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(void *,STATE *);
 void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(DATA *,P *,void *);
-void *AllocClearedFromWorldHeap(MSG *);
+void *AllocClearedFromWorldHeap(SWALLOC *);
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
 void AddSoParts(P *);
 void ScaleSoInertia(P *,float);
@@ -762,8 +756,8 @@ extern "C" void LoadSoFromBrx(P *so,void *stream)
     LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(&so->data,so,stream);
     int extra=Extra(so);
     so->count=S16Read__18CBinaryInputStream(stream);
-    MSG request;
-    request.bytes=(so->count+extra)*sizeof(E);request.alignment=16;
+    SWALLOC request;
+    request.cb=(so->count+extra)*sizeof(E);request.cbAlign=16;
     so->entries=(E *)AllocClearedFromWorldHeap(&request);
     for(;i<so->count;i++){
         e=&so->entries[i];
@@ -789,7 +783,7 @@ extern "C" void LoadSoFromBrx(P *so,void *stream)
     for(i=so->count;i<so->count+extra;i++){e=&so->entries[i];e->flags.fields.state=-10;}
     AddSoParts(so);
     if(so->count>0){
-        request.bytes=sizeof(STATE);request.alignment=16;
+        request.cb=sizeof(STATE);request.cbAlign=16;
         STATE *state=(STATE *)AllocClearedFromWorldHeap(&request);
         so->state=state;
         state->mass=F32Read__18CBinaryInputStream(stream);
@@ -2917,10 +2911,9 @@ extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 // Empty scope object (constructor/destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
-struct MSG {int bytes,alignment;};
-extern "C" void *AllocFromWorldHeap(MSG *);
-extern "C" void *AllocClearedFromWorldHeap(MSG *);
-extern "C" void *AllocClearedFromStack(MSG *);
+extern "C" void *AllocFromWorldHeap(SWALLOC *);
+extern "C" void *AllocClearedFromWorldHeap(SWALLOC *);
+extern "C" void *AllocClearedFromStack(SWALLOC *);
 // Return a - b.
 static inline qword Sub(qword a,qword b) {qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
 // Cross product a x b.
@@ -2935,19 +2928,19 @@ extern "C" void EnsureSoPartMesh(P *so)
     if(so->mesh)return;
     QWROW first,second,cross;
     FRAME storage;
-    MSG request;
+    SWALLOC request;
     int triBytes=sizeof(TRI),alignment=16;
     STACKSCOPE_ctor(&storage);
-    MSG *allocation=&request;
-    request.bytes=triBytes;allocation->alignment=alignment;
+    SWALLOC *allocation=&request;
+    request.cb=triBytes;allocation->cbAlign=alignment;
     so->mesh=(MESH *)AllocFromWorldHeap(allocation);
-    request.bytes=so->pointCount*16;allocation->alignment=alignment;
+    request.cb=so->pointCount*16;allocation->cbAlign=alignment;
     so->mesh->velocity=(qword *)AllocClearedFromWorldHeap(allocation);
-    request.bytes=so->pointCount*16;allocation->alignment=alignment;
+    request.cb=so->pointCount*16;allocation->cbAlign=alignment;
     so->mesh->acceleration=(qword *)AllocClearedFromWorldHeap(allocation);
-    request.bytes=so->triCount*triBytes;allocation->alignment=alignment;
+    request.cb=so->triCount*triBytes;allocation->cbAlign=alignment;
     so->mesh->triangles=(TRI *)AllocClearedFromWorldHeap(allocation);
-    request.bytes=so->triCount*4;allocation->alignment=alignment;
+    request.cb=so->triCount*4;allocation->cbAlign=alignment;
     int *counts=(int *)AllocClearedFromStack(allocation);
     int itri;
     TRI *ptri;
@@ -3085,8 +3078,7 @@ struct P {LO *owner;int flags;float radius;int material;char pad10[0xC];int pinn
 struct FRAME {int pad[4];};
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-struct MSG {int bytes,alignment;};
-extern "C" void *AllocClearedFromStack(MSG *);
+extern "C" void *AllocClearedFromStack(SWALLOC *);
 extern "C" void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 extern "C" M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 extern "C" M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
@@ -3104,13 +3096,13 @@ extern "C" void CloneSoPartGeomInserting(P *source,LO *space,int inserted,P *des
     GEO temporary;
     FRAME frame;
     STACKSCOPE_ctor(&frame); /* explicit begin/end calls (POD frame), not a ctor/dtor class: that reorders the argument copies. */
-    MSG request;MSG *allocation=&request;
+    SWALLOC request;SWALLOC *allocation=&request;
     float maximum=0.0f;
     dest->owner=space;dest->flags=source->flags;dest->material=source->material;dest->pinnedCount=source->pinnedCount;
     {for(int i=0;i<source->local.count;i++){float length=SquaredLength(source->local.points[i]);if(maximum<length)maximum=length;}}
     dest->radius=Sqrt(maximum);
     temporary=source->local;
-    request.bytes=(temporary.count+inserted)*16;allocation->alignment=16;
+    request.cb=(temporary.count+inserted)*16;allocation->cbAlign=16;
     qword *points=(qword *)AllocClearedFromStack(allocation);
     int pinned=source->pinnedCount;
     CopyAb__FPvT0Ui(points,temporary.points,pinned*16);

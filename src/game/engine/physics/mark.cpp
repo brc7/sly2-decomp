@@ -940,11 +940,6 @@ struct VU_VECTOR4
 {
     qword qw;
 };
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("AllocFromStack");
 struct VU_FLOAT
 {

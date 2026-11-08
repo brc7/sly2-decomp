@@ -507,19 +507,18 @@ extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int 
 namespace M_SimplifyApcgvNeighbor { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct CTX { int a[4]; };
-struct REQ { int cb; int align; };
 void STACKSCOPE_ctor(struct CTX *c);
 void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(struct REQ *r);
+void *AllocFromStack(struct SWALLOC *r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n);
 // Fill the request and allocate cb bytes (alignment nKind) from the frame stack.
-static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return AllocFromStack(preq); }
+static __inline__ void *PvAllocReq(struct SWALLOC *preq, int cb, int nKind) { preq->cb = cb; preq->cbAlign = nKind; return AllocFromStack(preq); }
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
 void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 {
     struct CTX c;
-    struct REQ req;
+    struct SWALLOC req;
     qword **tmp, **prev, **cur, **next, **end;
     int n, k;
     STACKSCOPE_ctor(&c);
@@ -1180,10 +1179,9 @@ leaf:
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSwZoneBspFromBrx { extern "C" {
-struct MSG { int cb; int nKind; };
 struct G { char pad[0x45CC]; void *p45cc; };
 int U32Read__18CBinaryInputStream(void *pbis);
-void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
 void LoadZoneBspFromBrx(void *p, int n, void *pbis);
 // Reads the world's zone BSP from the level stream when present.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -1191,9 +1189,9 @@ void LoadSwZoneBspFromBrx(struct G *world, void *stream)
 {
     int n = U32Read__18CBinaryInputStream(stream);
     if (n) {
-        struct MSG msg;
+        struct SWALLOC msg;
         msg.cb = 0x30;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         world->p45cc = AllocClearedFromWorldHeap(&msg);
         LoadZoneBspFromBrx(world->p45cc, n, stream);
     }
@@ -1247,22 +1245,21 @@ void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostLoadSwPathzones { extern "C" {
-struct MSG { int cb; int nKind; };
 struct G { char pad[0x45C8]; void *defaultPathzone; void *zoneBsp; };
 void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitDefaultPathzoneCg(void *p);
-void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
 void BindSwPathzones(void *p);
 // After level load: with no zone BSP creates a default path zone (oid 0x2CA) with the trivial graph; then binds the
 // zones and their links.
 void PostLoadSwPathzones(struct G *world)
 {
     if (!world->zoneBsp) {
-        struct MSG msg;
+        struct SWALLOC msg;
         world->defaultPathzone = CreateLo__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
         InitDefaultPathzoneCg(world->defaultPathzone);
         msg.cb = 0x30;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         world->zoneBsp = AllocClearedFromWorldHeap(&msg);
     }
     BindSwPathzones(world->zoneBsp);
@@ -1272,15 +1269,14 @@ void PostLoadSwPathzones(struct G *world)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1138 { extern "C" {
 struct LO { char pad[0x124]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
-struct AL { int cb; int cbAlign;  };
 struct S { char pad[0x10]; int c; int *zoneIds; struct LO **zones; int linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
 struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
 int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
-void *AllocCopyFromWorldHeap(const struct AL *pal, const void *pv);
+void *AllocCopyFromWorldHeap(const struct SWALLOC *pal, const void *pv);
 // Zero in $7 (the null scope argument of the following call).
 static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;}
 // Fill the allocation request for count 4-byte links with the given alignment and set owner->numLinks = count.
-static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
+static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct SWALLOC*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
 // High address page of the world D_003DD490.
 static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_sw));return page;}
 // Address of the world D_003DD490 from its high page.
@@ -1290,7 +1286,7 @@ void BindSwPathzones(struct S *world)
 {
     int i,n;register int c __asm__("$6");
     struct LO *ap[0x400];
-    struct AL al;
+    struct SWALLOC al;
     char*worldPage=WorldPage();
     for (i = 0; i < world->c; i++) {
         struct LO *plo = FindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, world->zoneIds[i], 0);
@@ -1310,7 +1306,7 @@ void BindSwPathzones(struct S *world)
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char actor_layout[(sizeof(void*)==4 && sizeof(int)==4 && sizeof(struct AL)==8 && OFF(struct AL,cb)==0 && OFF(struct AL,cbAlign)==4 && OFF(struct LO,zoneIndex)==0x124 && OFF(struct LO,linkIndex)==0x150 && OFF(struct S,c)==0x10 && OFF(struct S,zoneIds)==0x14 && OFF(struct S,zones)==0x18 && OFF(struct S,numLinks)==0x20 && OFF(struct S,links)==0x24 && OFF(struct S,isBound)==0x2C)?1:-1];
+typedef char actor_layout[(sizeof(void*)==4 && sizeof(int)==4 && sizeof(struct SWALLOC)==8 && OFF(struct SWALLOC,cb)==0 && OFF(struct SWALLOC,cbAlign)==4 && OFF(struct LO,zoneIndex)==0x124 && OFF(struct LO,linkIndex)==0x150 && OFF(struct S,c)==0x10 && OFF(struct S,zoneIds)==0x14 && OFF(struct S,zones)==0x18 && OFF(struct S,numLinks)==0x20 && OFF(struct S,links)==0x24 && OFF(struct S,isBound)==0x2C)?1:-1];
 } } // namespace M_func_001C1138
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1822,7 +1818,6 @@ namespace M_FindPathlinkRoute {
 // an unused local whose address goes to an inline helper that ignores it is purged (18/321). So the real object is a
 // never-touched RAII-style object (inline empty dtor) or a volatile. Rest of the code is lilly4 (StoreX estimate).
 typedef int qword __attribute__((mode(TI)));
-struct MSG { int cb; int nKind; };
 struct NAV : XFM { char pad[0x124 - 0xE0]; int index; };
 struct EDGE : LO { char pad[0x128 - 0x50]; NAV *pnavDest; int pad12C; qword posBegin; qword posEnd; };
 struct ADJ { int cedge; int *aiedge; };
@@ -1832,8 +1827,8 @@ struct NODE { NAV *pnav; EDGE *pedge; NODE *pnodeParent; float gCost; float gEst
 extern "C" {
 void *STACKSCOPE_ctor(void *pframe);
 void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
-void *AllocClearedFromStack(MSG *pmsg);
-void *AllocFromStack(MSG *pmsg);
+void *AllocClearedFromStack(SWALLOC *pmsg);
+void *AllocFromStack(SWALLOC *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 qword GetLoWorldPos(void *pv);
 NAV *FindPathzoneAtPos(qword pos, int f);
@@ -1847,9 +1842,9 @@ int IsPosInPathzone(NAV *pnav, qword pos, int f);
 }
 
 // Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
-static inline void *AllocZeroedFromHeap(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocClearedFromStack(&msg); }
+static inline void *AllocZeroedFromHeap(int cb) { SWALLOC msg; msg.cb = cb; msg.cbAlign = 0x10; return AllocClearedFromStack(&msg); }
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
-static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocFromStack(&msg); }
+static inline void *PvAlloc(int cb) { SWALLOC msg; msg.cb = cb; msg.cbAlign = 0x10; return AllocFromStack(&msg); }
 // Length of the xyz part of v, in the x lane.
 static inline qword QwLength(qword v)
 {

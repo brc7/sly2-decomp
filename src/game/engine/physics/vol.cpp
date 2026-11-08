@@ -29,7 +29,6 @@ struct VOLV
 };
 typedef char assert_VOL_radiusSquared[(unsigned int)&((VOLV *)0)->radiusSquared == 0x120 ? 1 : -1];
 
-typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct MARK { int a[4]; } MARK;
 struct DL;
 extern const float D_002A9880;   /* defined below where the ELF has it (.rodata order) */
@@ -43,7 +42,7 @@ qword ConvertPosBetweenLos(int a, VOLV *p, qword q);
 int FindBspLeafContainingPointFast(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(MSG *pmsg);
+void *AllocFromStack(SWALLOC *pmsg);
 int PruneBspBySphere(void *p, int n, qword v, int *pc, void **ppv, float g);
 void OnLoAdd(VOLV *p);
 void OnLoRemove(VOLV *p);
@@ -114,17 +113,17 @@ extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
     } else {
         MARK scope;
         int isInside = 0;
-        MSG request;
+        SWALLOC request;
         int numLeaves;
         void *leaves;
         STACKSCOPE_ctor(&scope);
         {
             int capacity = vol->bspc.numNodesFull;
-            MSG *requestPtr = &request;
+            SWALLOC *requestPtr = &request;
             capacity = MinInt(capacity, 0x1555);
             numLeaves = capacity;
             requestPtr->cb = capacity * 12;
-            requestPtr->nKind = 0x10;
+            requestPtr->cbAlign = 0x10;
             leaves = AllocFromStack(requestPtr);
         }
         {

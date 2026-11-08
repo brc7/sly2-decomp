@@ -44,7 +44,6 @@ typedef char assert_MESH_ptn[(unsigned int)&((MESH *)0)->ptn == 0x110 ? 1 : -1];
 typedef struct LIST { int count; int pad[3]; qword planes[8]; } LIST;
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
-struct MSG { int cb; int nKind; };
 struct VECTOR;
 class CBinaryInputStream
 {
@@ -67,7 +66,7 @@ namespace TU_185130_DATA { float r_D_002BE918 __asm__("D_002BE918") = -300.0f; }
 SMP D_002BE920={25.0f,0.0f,0.25f},D_002BE930={1000.0f,0.0f,0.25f},D_002BE940={250.0f,0.0f,0.5f};
 void InitXfm(MESH *pmesh);
 void LoadXfmXfFromBrx(MESH *pmesh, CBinaryInputStream *pbis);
-void *AllocFromWorldHeap(MSG *pmsg);
+void *AllocFromWorldHeap(SWALLOC *pmsg);
 void AddLoHierarchy(MESH *pmesh);
 void RemoveLoHierarchy(MESH *pmesh);
 void CloneXfm(MESH *pmesh);
@@ -100,13 +99,13 @@ void CID8::Init()
 }
 
 // Fill the heap message and allocate cb bytes (kind nKind) from the world heap.
-static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind = nKind; pmsg->cb = cb; return AllocFromWorldHeap(pmsg); }
+static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cbAlign = nKind; pmsg->cb = cb; return AllocFromWorldHeap(pmsg); }
 // CID 8/9 slot 14 (LoadFromBrx): the XFM, then the vertex count and positions and the triangles (with edge
 // neighbours) into world-heap memory, then the object's options.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadCid8FromBrx(MESH *mesh, CBinaryInputStream *stream)
 {
-    MSG msg;
+    SWALLOC msg;
     int i, j;
     LoadXfmXfFromBrx(mesh, stream);
     mesh->cvertex = stream->S16Read();

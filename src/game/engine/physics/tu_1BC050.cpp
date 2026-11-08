@@ -72,8 +72,6 @@ struct LSG {
     LSG *plsgNext;
 };
 
-struct MSG { int cb; int nKind; };
-struct AREQC { int cb; int align; };
 // Allocation request: byte count and alignment.
 struct AREQV { int cb; int align; AREQV(int c, int a) { cb = c; align = a; } };
 
@@ -98,8 +96,8 @@ extern char D_003DD020[];
 void InitShape(CID14V *p);
 void InitDl__FP2DLi(DL *pdl, int ib);
 void LoadShapeFromBrx(CID14V *p);
-void *AllocClearedFromWorldHeap(MSG *pmsg);
-void *AllocFromWorldHeap(AREQC *preq);
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
+void *AllocFromWorldHeap(SWALLOC *preq);
 void *AllocFromStack(const AREQV &r);
 void CloneShape(CID14V *p, int a);
 void AddLoHierarchy(CID14V *p);
@@ -156,7 +154,7 @@ int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("F
 int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("FindShapeFreeRange");
 
 // Fill the heap message and allocate cb zeroed bytes (kind nKind) from the world heap.
-static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); }
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
 /* The world matrix: virtual slot 31. */
@@ -177,7 +175,7 @@ void CID14::Init()
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadCid14FromBrx(CID14V *polygon)
 {
-    MSG msg;
+    SWALLOC msg;
     LoadShapeFromBrx(polygon);
     polygon->edgePlanes = (qword *)PvAllocMsg(&msg, (polygon->numPoints << 4) - 0x10, 0x10);
 }
@@ -187,7 +185,7 @@ extern "C" void CloneCid14(CID14V *polygon, int x)
 {
     T8 a = polygon->dleMerged;
     T8 b = polygon->dlePending;
-    MSG req;
+    SWALLOC req;
     CloneShape(polygon, x);
     polygon->dleMerged = a;
     polygon->dlePending = b;
@@ -759,7 +757,7 @@ CID14V *NewMergedCid14Obstacle(void)
 {
     CID14V *p;
     int i, j;
-    AREQC req;
+    SWALLOC req;
     float *pm;
     p = (CID14V *)((DL *)&g_sw.dlCid14Free)->head;
     if (!p) {
@@ -775,17 +773,17 @@ CID14V *NewMergedCid14Obstacle(void)
             pm[5] = 1.0f;
             pm[0] = 1.0f;
             req.cb = 0x80;
-            req.align = 0x10;
+            req.cbAlign = 0x10;
             q->times = (float *)AllocFromWorldHeap(&req);
             for (j = 0; j < 32; j++) q->times[j] = (float)j;
             req.cb = 0x80;
-            req.align = 0x10;
+            req.cbAlign = 0x10;
             q->distances = AllocFromWorldHeap(&req);
             req.cb = 0x200;
-            req.align = 0x10;
+            req.cbAlign = 0x10;
             q->points = (qword *)AllocFromWorldHeap(&req);
             req.cb = 0x1F0;
-            req.align = 0x10;
+            req.cbAlign = 0x10;
             q->edgePlanes = (qword *)AllocFromWorldHeap(&req);
             ((void (*)(void *))q->vt[9].pfn)((char *)q + q->vt[9].d);
             AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, q);

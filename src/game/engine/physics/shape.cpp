@@ -71,11 +71,10 @@ void CloneShape(SHAPE *shape)
 
 namespace M_LoadShapeFromBrx { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct MSG { int cb; int nKind; };
 void LoadXfmXfFromBrx(SHAPE *, void *);
 int S8Read__18CBinaryInputStream(void *);
 int U16Read__18CBinaryInputStream(void *);
-void *AllocFromWorldHeap(struct MSG *);
+void *AllocFromWorldHeap(struct SWALLOC *);
 void Read__18CBinaryInputStreamiPv(void *, int, void *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *, VECTOR4 *);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(SHAPE *, void *);
@@ -85,30 +84,30 @@ void MeasureShape(SHAPE *);
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void LoadShapeFromBrx(SHAPE *shape, void *stream)
 {
-    struct MSG msg;
+    struct SWALLOC msg;
     int i;
     LoadXfmXfFromBrx(shape, stream);
     shape->curveKind = (CRVK)S8Read__18CBinaryInputStream(stream);
     shape->isClosed = S8Read__18CBinaryInputStream(stream);
     shape->numControlVertices = U16Read__18CBinaryInputStream(stream);
     msg.cb = shape->numControlVertices * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     shape->vertexParams = (__typeof__(shape->vertexParams))AllocFromWorldHeap(&msg);
     msg.cb = shape->numControlVertices * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     shape->vertexArcLengths = (__typeof__(shape->vertexArcLengths))AllocFromWorldHeap(&msg);
     msg.cb = shape->numControlVertices * 16;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     shape->vertexPositions = (__typeof__(shape->vertexPositions))AllocFromWorldHeap(&msg);
     Read__18CBinaryInputStreamiPv(stream, shape->numControlVertices * 4, shape->vertexParams);
     for (i = 0; i < shape->numControlVertices; i++)
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->vertexPositions[i]);
     if (shape->curveKind) {
         msg.cb = shape->numControlVertices * 16;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         shape->incomingTangents = (__typeof__(shape->incomingTangents))AllocFromWorldHeap(&msg);
         msg.cb = shape->numControlVertices * 16;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         shape->outgoingTangents = (__typeof__(shape->outgoingTangents))AllocFromWorldHeap(&msg);
         for (i = 0; i < shape->numControlVertices; i++)
             ReadVector__18CBinaryInputStreamP6VECTOR(stream, &shape->incomingTangents[i]);
@@ -1470,21 +1469,20 @@ typedef char layout_P_closed[((unsigned)&((SHAPE*)0)->isClosed==0xE4)?1:-1];
 namespace M_InitChain { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword unknown0,unknown4,c,d;};
-struct AL {int cb,align;};
 struct PATH {char pad[0xC];VTE *vt;char pad10[0xE8-0x10];int numPoints;int padEC;float *dist;qword *points;};
 struct S {int unknown0,unknown4;float gravity;char padC[0x20-0xC];qword start,end;void *fn40,*fn44;struct PATH *path;int mode;int pad50;qword *positions,*previousPositions;float *dist;float unknown60;char pad64[8];float unknown6C,unknown70;char pad74[0x84-0x74];int capacity;float unknown88;};
 extern char D_002C44F0[];
-void *AllocClearedFromWorldHeap(struct AL*);
+void *AllocClearedFromWorldHeap(struct SWALLOC*);
 void SyncChainDistances(struct S*);
 // Transform point a by the 4x4 matrix m.
 static inline qword Point(struct M4 *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->unknown0),"j"(m->unknown4),"j"(m->c),"j"(m->d),"j"(a));return r;}
 // Initialises a chain for a shape: a private copy of the points and distances and the rest lengths.
 struct S *InitChain(struct S *chain,struct PATH *path) {
- struct AL size;struct M4 *m;int i;
+ struct SWALLOC size;struct M4 *m;int i;
  chain->path=path;chain->mode=-1;
- size.cb=path->numPoints*16;size.align=16;chain->positions=(__typeof__(chain->positions))AllocClearedFromWorldHeap(&size);
- size.cb=path->numPoints*16;size.align=16;chain->previousPositions=(__typeof__(chain->previousPositions))AllocClearedFromWorldHeap(&size);
- size.cb=path->numPoints*4;size.align=16;chain->dist=(__typeof__(chain->dist))AllocClearedFromWorldHeap(&size);
+ size.cb=path->numPoints*16;size.cbAlign=16;chain->positions=(__typeof__(chain->positions))AllocClearedFromWorldHeap(&size);
+ size.cb=path->numPoints*16;size.cbAlign=16;chain->previousPositions=(__typeof__(chain->previousPositions))AllocClearedFromWorldHeap(&size);
+ size.cb=path->numPoints*4;size.cbAlign=16;chain->dist=(__typeof__(chain->dist))AllocClearedFromWorldHeap(&size);
  chain->gravity=-1750.0f;chain->unknown60=3.0f;chain->unknown6C=500.0f;chain->unknown70=5.0f;
  chain->unknown0=0;chain->unknown4=0;
  chain->capacity=chain->path->numPoints;chain->unknown88=300.0f;
@@ -2143,8 +2141,7 @@ struct STATE { int pad; OWNER *object; char pad8[0x28 - 8]; };
 struct NODE { MESH *mesh; int n; E *entries; NODE *next; };
 struct CONFIG { void *owner; char pad4[0xC]; U zero; float limit; char pad24[0x18]; MESH *meshes; STATE *states; void *ae; };
 struct S { char pad[0x80]; CONFIG config; char padD0[0xDC - 0xD0]; NODE *head; char padE0[0x150 - 0xE0]; void *path; };
-struct AL { int cb, align; };
-union PHASE { AL request; U hit; };
+union PHASE { SWALLOC request; U hit; };
 struct WORK { PHASE phase; U direction; M3 basis, temporary, inverse; float distance; };
 extern "C" { extern char D_002C44F0; }
 
@@ -2153,7 +2150,7 @@ void PostSoLoad(S *);
 M3 *GetLoWorldMatrix(S *);
 void ResetGlobAttachment(CONFIG *, int);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);   /* memcpy */
-void *AllocFromWorldHeap(AL *);                            /* allocate (size, align) */
+void *AllocFromWorldHeap(SWALLOC *);                            /* allocate (size, align) */
 void FindShapeClosestPoint(void *, qword, void *, qword *, qword *, float *, float *);
 M3 *BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void PostCid106Load(S *);
@@ -2218,7 +2215,7 @@ void PostCid106Load(S *cid106)
                 int k = 0;
                 CopyAb__FPvT0Ui(vertices, e->vertices, e->n * 16);
                 w.phase.request.cb = e->n * 16;
-                phase->request.align = 16;
+                phase->request.cbAlign = 16;
                 U *out = (U *)AllocFromWorldHeap(&phase->request);
                 e->samples = out;
                 for (k = 0; k < e->n; k++) {
@@ -2311,17 +2308,16 @@ void CID106::RenderSelf()
 
 namespace M_func_001E9C30 { extern "C" {
 
-struct MSG { int cb; int nKind; };
 struct S : XFM { char pad[0x180 - 0xE0]; void *pv; };
-void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
 void BuildShapeVolumeSegments(void *pv, struct S *p);
 // Allocates and builds the shape's volume/segment table once. (inferred)
 void EnsureShapeVolumeSegments(struct S *shape)
 {
-    struct MSG msg;
+    struct SWALLOC msg;
     if (!shape->pv) {
         msg.cb = 0x9C;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         shape->pv = AllocClearedFromWorldHeap(&msg);
         BuildShapeVolumeSegments(shape->pv, shape);
     }
@@ -2337,7 +2333,6 @@ namespace M_func_001E9C88 { extern "C" {
  * then puts sp+0x200 straight into a1, so gcse has nothing to hoist and the apv[cpv++] cursor (s6) keeps an
  * un-noted init in the loop preheader. The MSG request reuses pos2's stack slot. */
 typedef int qword __attribute__((mode(TI)));
-struct MSG { int cb; int nKind; };
 struct SEG { float a, b; };
 struct O { char padC[0xC]; void *vt; char pad10[0xE0-0x10]; int curved; int isClosed; int count; float *parameters; float *distances; qword *points; };
 struct S { struct O *po; int c4; struct SEG *aseg; int cC; struct SEG aseg10[16]; int c90; void **apv; int n98; };
@@ -2347,10 +2342,10 @@ float GetShapeMaxDistance(struct O *);
 void EvaluateShapeAtDistance(struct O *, float, qword *, qword *);
 void *FindPathzoneAtPos(qword, int);
 int IsPosInPathzone(void *, qword, int);
-void *AllocCopyFromWorldHeap(struct MSG *, void *);
+void *AllocCopyFromWorldHeap(struct SWALLOC *, void *);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);
 // Fill the heap message and reallocate pv as a cb-byte copy (kind nKind) on the world heap.
-static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
+static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 // Samples the shape and records the distinct path zones (FindPathzoneAtPos) it passes through with their parameter
 // ranges. (inferred)
 void BuildShapeVolumeSegments(struct S *shape, struct O *table)
@@ -2407,11 +2402,11 @@ void BuildShapeVolumeSegments(struct S *shape, struct O *table)
         aseg[cseg - 1].b = aseg[0].b + tEnd;
     }
     shape->c4 = cseg;
-    shape->aseg = (__typeof__(shape->aseg))PvReallocMsg((struct MSG *)&pos2, cseg * 8, 0x10, aseg);
+    shape->aseg = (__typeof__(shape->aseg))PvReallocMsg((struct SWALLOC *)&pos2, cseg * 8, 0x10, aseg);
     shape->cC = cseg;
     CopyAb__FPvT0Ui(shape->aseg10, aseg, cseg * 8);
     shape->c90 = cpv;
-    shape->apv = (__typeof__(shape->apv))PvReallocMsg((struct MSG *)&pos2, cpv * 4, 0x10, apv);
+    shape->apv = (__typeof__(shape->apv))PvReallocMsg((struct SWALLOC *)&pos2, cpv * 4, 0x10, apv);
     shape->n98 = -1;
 }
 } } // namespace M_func_001E9C88

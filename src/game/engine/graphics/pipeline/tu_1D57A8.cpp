@@ -145,7 +145,7 @@ M4 InvertMatrix4Rigid(const M4 &matSrc);
 float GetMaxRowLengthMatrix3(M4 *pmat);
 RENDER *InsertRenderEntry(SW *pg, qword pos, float sRadius, float sFar, int grfChannels);
 RENDERBLOCK *AllocRenderBlock(SW *pg);
-void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 }
 extern const float D_002A7870;   /* defined below where the ELF has it (.rodata order) */
 
@@ -596,14 +596,13 @@ extern "C" void AddLoToRenderTree(OBJ *pobj)
     }
 }
 
-struct MSG { int cb; int nKind; };
 // Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+static inline void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); }
 
 // Allocates a render-tree block: four empty entries (kind -1), 0x80 bytes.
 extern "C" RENDERBLOCK *AllocRenderBlock(SW *pg)
 {
-    MSG msg;
+    SWALLOC msg;
     RENDERBLOCK *pblock = (RENDERBLOCK *)PvAllocMsg(&msg, 0x80, 0x10);
     pblock->ar[0].kind = pblock->ar[1].kind = pblock->ar[2].kind = pblock->ar[3].kind = KIND_NONE;
     return pblock;

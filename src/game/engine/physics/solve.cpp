@@ -20,7 +20,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef unsigned long ulong;
 union U { qword q; float f[4]; int i[4]; };
-union FLOATWORD { float value; int bits; };
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
 

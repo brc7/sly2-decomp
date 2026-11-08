@@ -134,14 +134,13 @@ int IsEntryInDl(DL *pdl, void *pv);
 void AppendDlEntry(DL *pdl, void *pv);
 
 namespace M_NewSfx { extern "C" {
-typedef struct MSG { int cb; int cbAlign; } MSG;   /* SWALLOC */
-void *AllocClearedFromWorldHeap(MSG *pmsg);   /* PvAllocSwClear */
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg);   /* PvAllocSwClear */
 struct E { int sfxId; float rangeNear; float rangeFar; float volume; int unknown10; };   /* SFX */
 // Allocates a sound-effect descriptor (as objects load one from the level) on the world heap: no effect, full volume,
 // audible from 300 (full) to 3000 units (silent).
 struct E *NewSfx(void)
 {
-    MSG msg;
+    SWALLOC msg;
     struct E *sfx;
     msg.cb = sizeof(struct E);
     msg.cbAlign = 0x10;
@@ -1300,11 +1299,6 @@ public:
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
     float F32Read() __asm__("F32Read__18CBinaryInputStream");
     void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
-};
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
 };
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
