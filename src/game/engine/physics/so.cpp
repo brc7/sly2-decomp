@@ -3674,18 +3674,19 @@ struct Q *NewSoXfHandle(SO *so, int k, int m)
 
 // 0x1F85E0 NewSoPartHandle
 namespace M_func_001F85E0 { extern "C" {
-struct Q;
-struct Q { int a, b, c; void *pvt; int pad[4]; void *object; void *part; int pad2[2]; };
+struct CID150Island;
+/* CID150 constructed by hand: the raw CRefPtr clears and the vptr store (a CID150 constructor would refcount) */
+struct CID150Island { int a, b, c; void *pvt; int pad[4]; void *object; void *part; int pad2[2]; };
 extern char D_002CA280[] __asm__("_vt$6CID150");
 struct Pool;
 void *FindSoPart(void *);
-struct Q *AllocZeroedFromSlotheap(struct Pool *);
+struct CID150Island *AllocZeroedFromSlotheap(struct Pool *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 // Creates a part handle object (CID 150) for the part with the given oid.
-struct Q *NewSoPartHandle(void *pa)
+struct CID150Island *NewSoPartHandle(void *pa)
 {
     void *r = FindSoPart(pa);
-    struct Q *q;
+    struct CID150Island *q;
     if (!r) return 0;
     q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
     func_002333B4(q, 0, 0x30);
