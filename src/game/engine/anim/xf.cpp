@@ -246,7 +246,6 @@ extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CC00 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
 // writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix). (inferred)
@@ -739,7 +738,7 @@ extern "C" void LoadSoXfsFromBrx(SO *p,void *stream){
  LoadSoIkFromBrx(p,stream);
  LoadXfmConstraintsFromBrx(p,stream);
  LoadSoChainsFromBrx(p,stream);
- p->unknown58=Lookup(p,S16Read__18CBinaryInputStream(stream));p->unknown5C=Lookup(p,S16Read__18CBinaryInputStream(stream));p->rootTransform=Lookup(p,S16Read__18CBinaryInputStream(stream));
+ p->positionXf=Lookup(p,S16Read__18CBinaryInputStream(stream));p->rotationXf=Lookup(p,S16Read__18CBinaryInputStream(stream));p->rootTransform=Lookup(p,S16Read__18CBinaryInputStream(stream));
  if(p->numTransforms>0)ClearFlag(p);
 }
 } // namespace M_LoadSoXfsFromBrx

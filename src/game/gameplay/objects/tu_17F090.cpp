@@ -106,7 +106,6 @@ extern "C" void AdjustHackNewXp(HACK *hack, XP *pxp)
 
 namespace M_func_0017F1D0 { extern "C" {
 /* Apply damage and a projected knockback impulse from the message. */
-typedef union {qword q;float f[4];} U;
 extern qword D_002A2DC0,D_002A2DA0;
 qword GetLoWorldPos(HACK*);
 qword LimitVectorLength(qword,float);
@@ -116,7 +115,7 @@ static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,
 // Unit vector along a, or fallback when its length is too small.
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 // Return a + b * g.
-static inline qword AddScaled(qword a,qword b,float g){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
+static inline qword AddScaled(qword a,qword b,float g){qword k;QWROW u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;}
 // vt75 (msg with flag 8): health += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain,
 // limited) through constraint and SetVelocity. (inferred)
 int TakeHackDamage(HACK*hack,ZPR*pzpr){
@@ -129,7 +128,7 @@ int TakeHackDamage(HACK*hack,ZPR*pzpr){
  {float *a=&hack->clqKnockback.g0;t=-pzpr->dhp;g=Clamp(hack->clqKnockback.g0+t*(a[1]+t*a[2]),hack->lmKnockback.minValue,hack->lmKnockback.maxValue);}
  v=hack->GetVelocity();
  v=LimitVectorLength(AddScaled(v,dir,g),hack->lmKnockback.maxValue);
- v=ApplyConstr(&hack->physics->constrForce,hack->unknown58,v);
+ v=ApplyConstr(&hack->physics->constrForce,hack->positionXf,v);
  hack->SetVelocity(v);
  return 1;
 }
@@ -275,7 +274,7 @@ namespace M_func_0017F850 { extern "C" {
 void SetXfRole(SO *p, XF *pxf, int role);
 void BindHackshipParts(HACKSHIP *p);
 // vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
-void PostHackshipLoad(HACKSHIP *p) { PostHackLoad(p); p->SetCtlState(0); SetXfRole(p, p->unknown58, 2); SetXfRole(p, p->unknown5C, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->ahacke); }
+void PostHackshipLoad(HACKSHIP *p) { PostHackLoad(p); p->SetCtlState(0); SetXfRole(p, p->positionXf, 2); SetXfRole(p, p->rotationXf, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->ahacke); }
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
@@ -451,8 +450,8 @@ extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
     case 3:
         ReleaseAct(&ship->pactPos);
         ReleaseAct(&ship->pactRot);
-        SetXfRole(ship, ship->unknown58, 2);
-        SetXfRole(ship, ship->unknown5C, 2);
+        SetXfRole(ship, ship->positionXf, 2);
+        SetXfRole(ship, ship->rotationXf, 2);
         SetLoParent(ship, 0, 0xF);
         SetSoCnstrForce(ship, 5);
         SetSoCnstrTorque(ship, 4);
@@ -488,12 +487,12 @@ extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
             XF *pxf;
 
             pxf = ship->ploDock->GetLocalTransform((MATRIX4 *)&m);
-            m = GetRelativeXfMatrix(ship->transforms->parent, ship->unknown58->parent, &m);
+            m = GetRelativeXfMatrix(ship->transforms->parent, ship->positionXf->parent, &m);
             ship->SetParent(ship->ploDock->parent, pxf, 3);
             ship->SetVelocity(D_002A2DD0);
             ship->SetAngularVelocity(D_002A2DD0);
-            ship->pactPos = NewPositionAct(ship, ship->unknown58, 1, 7, 2, m.r[3]);
-            ship->pactRot = NewPositionAct(ship, ship->unknown5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+            ship->pactPos = NewPositionAct(ship, ship->positionXf, 1, 7, 2, m.r[3]);
+            ship->pactRot = NewPositionAct(ship, ship->rotationXf, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
             SetSoCnstrForce(ship, 1);
             SetSoCnstrTorque(ship, 1);
             SetSoPartsBit48(ship, 1);
@@ -557,9 +556,8 @@ void HACKBULLET::Init()
 
 namespace M_func_001801B8 {
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
 struct M3 {
- U r[3];
+ QWROW r[3];
  // Uninitialised 3x3 matrix.
  M3(){}
  // Copy the three rows.
@@ -602,7 +600,7 @@ extern "C" void UpdateHackbullet(HACKBULLET*bullet){
  bullet->SetVelocity(Transform(rotation,direction));
  // The original reads this local matrix before initialization.
  matrix=Mul(rotation,matrix);
- bullet->RotateToMat((MATRIX4*)&matrix);   /* SO's override takes the 3x3 rotation */
+ bullet->RotateToMat((MATRIX3*)&matrix);
 }
 } // namespace M_func_001801B8
 
@@ -689,8 +687,8 @@ void PostHackenemyLoad(HACKENEMY *enemy)
 {
     PostHackLoad(enemy);
     enemy->pshapePath = NewSampledShape(0x2C9, 0x10);
-    if (enemy->unknown58) SetXfRole(enemy, enemy->unknown58, 2);
-    if (enemy->unknown5C) SetXfRole(enemy, enemy->unknown5C, 2);
+    if (enemy->positionXf) SetXfRole(enemy, enemy->positionXf, 2);
+    if (enemy->rotationXf) SetXfRole(enemy, enemy->rotationXf, 2);
     BindHackAnimEntries(enemy, 5, enemy->ahacke);
 }
 } } // namespace M_func_001805C8
@@ -824,7 +822,7 @@ dispatch:
  case 0:case 4:break;
  case 1:case 2:{
   if(enemy->fHoldAim)break;
-  XF*frame=enemy->unknown5C;
+  XF*frame=enemy->rotationXf;
   qword target=GetLoWorldPos(enemy->ploTarget);
   qword self=GetLoWorldPos(enemy);
   float heading=NormalizeAngle__Ff(Heading(ConvertXfVec(0,frame->parent,VuSub(target,self))));
@@ -899,7 +897,7 @@ void PresetHackenemyAccel(HACKENEMY *enemy)
         MATRIX3 mat;
         mat = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->heading);
         if (enemy->state != 3)
-            mat = ConvertXfMat(enemy->unknown5C->parent, 0, &mat);
+            mat = ConvertXfMat(enemy->rotationXf->parent, 0, &mat);
         AccelSoTowardMatBounded(enemy, &mat, enemy->aScale);
     }
     if (enemy->state == 3) {

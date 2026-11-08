@@ -532,9 +532,8 @@ namespace M_AdjustStepNewXp { extern "C" {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
    side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
-struct XP { struct ENDPOINT ae[2]; U normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
+struct XP { struct ENDPOINT ae[2]; QWROW normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
 struct STATE { char pad[0xD0]; float mass; };
 struct P : LO { char padE8[0xE8 - 0x50]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
 extern char D_003DD490[];
@@ -556,7 +555,7 @@ static inline qword Sub(const qword *pa, const qword *pb)
 static inline qword Scale(qword a, float g)
 {
     qword k;
-    U u;
+    QWROW u;
     __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(g));
     u.q = k;
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(a) : "j"(a), "j"(k));
@@ -572,7 +571,7 @@ static inline float Dot(qword a, qword b)
     return g;
 }
 // Normalize *v in place, or set it to fallback when its length is below 1e-4 (length pinned to vf1).
-static inline void Normal(U *v, qword fallback)
+static inline void Normal(QWROW *v, qword fallback)
 {
     qword a = v->q;
     register qword d __asm__("vf1"); /* the one pin: the length/result lives in vf1 (as in TakeHackDamage) */
@@ -591,7 +590,7 @@ static inline void Normal(U *v, qword fallback)
 static inline qword AddScaled(const qword *pa, qword b, float g)
 {
     qword a = *pa, k;
-    U u;
+    QWROW u;
     __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(g));
     u.q = k;
     __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "=j"(a) : "j"(b), "j"(k), "0"(a));
@@ -602,7 +601,7 @@ static inline qword AddScaled(const qword *pa, qword b, float g)
 // (z > 0.7) gets the step's floor friction and a force limit from its weight.
 void AdjustStepNewXp(struct P *step, struct XP *x, int side)
 {
-    U dir, diff, point;
+    QWROW dir, diff, point;
     float d;
     float sign;
     int kind;
@@ -1005,7 +1004,6 @@ extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 namespace M_FixStepAngularVelocity { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { short d; short pad; void *pfn; } VTE;
-typedef union { qword q; float f[4]; } U;
 struct B { char pad[0xB0]; qword v; };
 struct S { char pad[0xC]; VTE *vt; char pad2[0x5C - 0x10]; struct B *pb; char pad3[0x1A8 - 0x60]; float g; char pad4[0x1F4 - 0x1AC]; int x; };
 float atan2f(float y, float x);
@@ -1014,7 +1012,7 @@ void SmoothAngle__FfffP3SMPPf(float a, float b, float c, int *p, float *pf);
 // angular velocity about Z.
 void FixStepAngularVelocity(struct S *step)
 {
-    U v;
+    QWROW v;
     float *a, *b;
     v.q = step->pb->v;
     a = ((float *(*)(void *))step->vt[31].pfn)((char *)step + step->vt[31].d);
@@ -1385,17 +1383,16 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00205670 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union {qword q;float f[4];int i[4];} V;
 struct P : PO { char pad[0x208 - 0x180]; int enabled;};
 extern qword D_002A2DC0;
-void BuildStepFootprint(struct P*,V*);
+void BuildStepFootprint(struct P*,QWROW*);
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 // Return *a - *b (vf3).
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
 // Return a scaled by f (broadcast through k).
-static inline qword Scale(qword a,float f,V *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
+static inline qword Scale(qword a,float f,QWROW *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
 // Normalize *v in place (or set it to *fallback when its length is below 1e-4); returns the length.
-static inline float Normal(V*v,const qword*fallback){qword a=v->q;register qword d __asm__("vf1");register qword one __asm__("vf2");float g,r;
+static inline float Normal(QWROW*v,const qword*fallback){qword a=v->q;register qword d __asm__("vf1");register qword one __asm__("vf2");float g,r;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(one):"j"(d));
 __asm__("qmfc2.ni %0,%1":"=r"(g):"j"(one));
@@ -1406,12 +1403,12 @@ __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
 // and the hit point on a hit.
 int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
 {
- V tri[6],d,k;
+ QWROW tri[6],d,k;
  float distance,length;
  register qword *out __asm__("s4")=output;
- register V *t __asm__("s1");
- register V *third __asm__("s0");
- register V *end __asm__("s2");
+ register QWROW *t __asm__("s1");
+ register QWROW *third __asm__("s0");
+ register QWROW *end __asm__("s2");
  register float *distanceOut __asm__("s3");
  if(!step->enabled)return 0;
  BuildStepFootprint(step,tri);

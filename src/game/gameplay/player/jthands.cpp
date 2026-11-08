@@ -666,8 +666,8 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         apply(receiver, callbackVelocity);
     }
     float endTime = D_002DDED0.time + phase;
-    qword position = TransformXfPos(0, object->unknown58->parent, work.final.r[3]);
-    qword endVelocity = ConvertXfVec(0, object->unknown58->parent, work.endVelocity);
+    qword position = TransformXfPos(0, object->positionXf->parent, work.final.r[3]);
+    qword endVelocity = ConvertXfVec(0, object->positionXf->parent, work.endVelocity);
     {
         register XF *channel __asm__("$5");
         register qword velocityArgument __asm__("$8"), positionArgument __asm__("$7");
@@ -675,10 +675,10 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         register SO *receiver __asm__("$4");
         __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
                 : "=&r"(channel), "=&r"(velocityArgument), "=f"(timeArgument), "=&r"(positionArgument), "=r"(receiver)
-                : "m"(object->unknown58), "r"(endVelocity), "f"(endTime), "r"(position), "r"(object));
+                : "m"(object->positionXf), "r"(endVelocity), "f"(endTime), "r"(position), "r"(object));
         p->pactPos = NewBezierAct(receiver, channel, 5, timeArgument, positionArgument, velocityArgument);
     }
-    ConvertXfMat(&work.views.basis.converted, 0, object->unknown5C->parent, (M3 *)finalMatrix);
+    ConvertXfMat(&work.views.basis.converted, 0, object->rotationXf->parent, (M3 *)finalMatrix);
     work.views.basis.angles = work.views.basis.converted;
     qword angles = DecomposeRotationMatrixToEuler((M3 *)workingBase);
     register XF *orientationChannel __asm__("$5");
@@ -686,10 +686,10 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
     register qword anglesArgument __asm__("$9");
     __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5"
             : "=&r"(orientationChannel), "=&r"(orientationOwner), "=r"(anglesArgument)
-            : "m"(object->unknown5C), "r"(object), "r"(angles));
+            : "m"(object->rotationXf), "r"(object), "r"(angles));
     ACT *job = NewPositionAct(orientationOwner, orientationChannel, 5, 9, 2, anglesArgument);
     p->pactTurn = job;
-    XFACT *pxfact = (XFACT *)object->unknown5C;
+    XFACT *pxfact = (XFACT *)object->rotationXf;
     if (pxfact->pactCur == job)
         pxfact->tEnd = endTime;
     SetSoTreeFlag2(object, 1);
@@ -723,9 +723,9 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
         SetSoCnstrForce(object, 1);
         SetSoCnstrTorque(object, 1);
     }
-    XF *pxfAct = object->unknown58;
+    XF *pxfAct = object->positionXf;
     hands->pactHold = NewPositionAct(object, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
-    pxfAct = object->unknown5C;
+    pxfAct = object->rotationXf;
     hands->pactTurn = NewPositionAct(object, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
     FadeSoIn(object, 0.25f);
     hands->psoHeld = object;
@@ -759,9 +759,9 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
     } else {
         SetLoParent(hands->psoHeld, 0, 0xF);
     }
-    XF *pxfAct = hands->psoHeld->unknown58;
+    XF *pxfAct = hands->psoHeld->positionXf;
     hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->parent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.time + D_002C1EF4);
-    pxfAct = hands->psoHeld->unknown5C;
+    pxfAct = hands->psoHeld->rotationXf;
     mat = ConvertXfMatR(0, pxfAct->parent, GetLoWorldMatrix(object));
     hands->pactTurn = NewPositionAct(hands->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
     hands->ploTarget = hands->psoHeld;

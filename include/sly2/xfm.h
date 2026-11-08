@@ -81,7 +81,7 @@ struct XFM : public LO
     virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("SetXfmParent");   /* slot 10 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadXfmFromBrx");   /* slot 14 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateXfmToPos");   /* slot 29 */
-    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateXfmToMat");   /* slot 30 */
+    virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateXfmToMat");   /* slot 30 */
     virtual XF *GetLocalTransform(MATRIX4 *pmatLocal) __asm__("XFM_GetLocalTransform");   /* slot 32 */
     virtual qword GetVelocity() __asm__("GetXfmVelocity");   /* slot 33 */
     virtual qword GetAngularVelocity() __asm__("GetXfmAngularVelocity");   /* slot 34 */

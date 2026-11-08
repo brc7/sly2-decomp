@@ -24,6 +24,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/joy.h"
 #include "sly2/screen.h"
+#include "sly2/classes.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/dli.h"
@@ -455,8 +456,6 @@ enum HudMeterState { HUDMETER_HIDDEN, HUDMETER_STEADY, HUDMETER_DAMAGE, HUDMETER
 enum NoticeState { NOTICE_HIDDEN, NOTICE_APPEARING, NOTICE_SHOWN, NOTICE_HIDING, NOTICE_SWAPPING };
 
 namespace M_PostHudMeterLoad { extern "C" {
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT;
-typedef struct { char pad[0xC]; VT *vt; } W;
 typedef struct {
     char pad[0xDFC];
     int maxHealth;
@@ -477,7 +476,7 @@ void SetWidgetAnimPhase(WIDGET *, int, float);
 void PostHudMeterLoad(HUDMETER *p)
 {
     Q *hero;
-    W *widget;
+    WIDGET *widget;
     p->widget = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
     p->state = 0;
     p->hero = 0;
@@ -510,9 +509,9 @@ void PostHudMeterLoad(HUDMETER *p)
             p->idAnimState6 = 0x340;
             p->idAnimState7 = 0x341;
     }
-    widget = (W *)p->widget;
+    widget = p->widget;
     if (widget) {
-        widget->vt->a[49].pfn((char *)widget + widget->vt->a[49].d, p->idAnimSteady);
+        widget->Show(p->idAnimSteady);
         PlayWidgetAnim(p->widget, 0x34F);
         PlayWidgetAnim(p->widget, 0x350);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
@@ -529,8 +528,6 @@ extern "C" void ResetHudMeter(HUDMETER *hudmeter)
 }
 
 namespace M_SetHudMeterState { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
-typedef struct { char pad0[0xC]; VTE *vt; } SUB;
 typedef struct { int a, b, c, powerCost; int pad[4]; } REC;
 extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
@@ -539,7 +536,6 @@ int IsPowerupAcquired(int);
 void PlayWidgetAnim(WIDGET *, int);
 void StopWidgetAnim(WIDGET *, int);
 void SetWidgetAnimPhase(WIDGET *, int, float);
-#define VCALL1(o, n, a) ((void (*)(void *, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a)
 // Switches the meter's state: hide / appear animations, steady (health gauge, plus the power gauge only if the character
 // owns a power-up that costs power), damage, and the alternate animations.
 void SetHudMeterState(HUDMETER *p, int s)
@@ -550,19 +546,19 @@ void SetHudMeterState(HUDMETER *p, int s)
     if (!p->widget)
         return;
     if (old == HUDMETER_DAMAGE || old == HUDMETER_STATE6)
-        VCALL1(((SUB *)p->widget), 49, p->idAnimSteady);
+        p->widget->Show(p->idAnimSteady);
     p->state = s;
     switch (s) {
     case HUDMETER_HIDDEN:
     case HUDMETER_SWITCH_HERO:
-        VCALL1(((SUB *)p->widget), 49, p->idAnimHide);
+        p->widget->Show(p->idAnimHide);
         break;
     case HUDMETER_STEADY: {
         int n = 0;
         GMITEM *tbl = 0;
         int found;
         int i;
-        VCALL1(((SUB *)p->widget), 49, p->idAnimSteady);
+        p->widget->Show(p->idAnimSteady);
         PlayWidgetAnim(p->widget, 0x34F);
         SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
         if (IsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
@@ -595,18 +591,17 @@ void SetHudMeterState(HUDMETER *p, int s)
         break;
     }
     case HUDMETER_DAMAGE:
-        VCALL1(((SUB *)p->widget), 49, p->idAnimDamage);
+        p->widget->Show(p->idAnimDamage);
         break;
     case HUDMETER_STATE6:
-        VCALL1(((SUB *)p->widget), 49, p->idAnimState6);
+        p->widget->Show(p->idAnimState6);
         break;
     case HUDMETER_STATE7:
-        VCALL1(((SUB *)p->widget), 49, p->idAnimState7);
+        p->widget->Show(p->idAnimState7);
         break;
     }
 }
 } } // namespace M_SetHudMeterState
-#undef VCALL1
 
 namespace M_UpdateHudMeter { extern "C" {
 typedef struct { char pad0[0xC]; void *vt; } SUB;
@@ -877,8 +872,6 @@ extern "C" int GetCurrentNoticeTextId(SCREEN *screen)
 
 namespace M_SetNoticeState { extern "C" {
 extern CLOCK D_002DDED0;
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[64]; } VT;
-typedef struct { char pad[0xC]; VT *vt; } LO;
 typedef struct {
     char pad[0x10];
     int state;
@@ -887,15 +880,15 @@ typedef struct {
     float duration;
     int queuedTextId;
     float queuedDuration;
-    LO *widget;
+    WIDGET *widget;
 } OBJ;
-void StartWidgetMainAnim(LO *, int);
-void ShowWidgetArgs(LO *, int, int *);
+void StartWidgetMainAnim(WIDGET *, int);
+void ShowWidgetArgs(WIDGET *, int, int *);
 // Switches the notice banner's state: show the widget with the text, hide it, swap animation, or main animation after
 // a swap.
 void SetNoticeState(OBJ *p, int n)
 {
-    LO *plo;
+    WIDGET *plo;
     if (n == p->state)
         return;
     switch (p->state) {
@@ -921,7 +914,7 @@ void SetNoticeState(OBJ *p, int n)
             StartWidgetMainAnim(p->widget, 0x312);
             break;
         case NOTICE_HIDING:
-            p->widget->vt->a[50].pfn((char *)p->widget + p->widget->vt->a[50].d);
+            p->widget->Hide();
             break;
         case NOTICE_APPEARING:
             ShowWidgetArgs(p->widget, 1, &p->textId);
@@ -1273,7 +1266,6 @@ namespace M_SetGadgetMenuStickDir {
 // Change a selector's input mode and, when the joystick points somewhere, move the selection to the
 // enabled item that lies closest along that direction from the current one.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 
 struct PROX { float along, distance; };
 struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
@@ -1295,7 +1287,7 @@ void SetGadgetMenuStickDir(GADGETMENU *sel, int mode);
 }
 
 // Pack x, y, z into a 128-bit GPR value (home is a scratch slot).
-static inline qword XYZ(float x, float y, float z, U &home)
+static inline qword XYZ(float x, float y, float z, QWROW &home)
 {
     qword r, t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
@@ -1316,7 +1308,7 @@ static inline qword Normalize(qword a)
     return r;
 }
 // "rV": the float stays a memory operand until reload, which loads it through the dying %hi register.
-static inline qword Splat(const float &f, U &home)
+static inline qword Splat(const float &f, QWROW &home)
 {
     qword s;
     __asm__("qmtc2.ni %1,%0" : "=j"(s) : "rV"(*(const int *)&f));
@@ -1330,7 +1322,7 @@ static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %
 // Moves the gadget-menu selection to the selectable item lying closest along the stick direction (slot 14).
 void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
 {
-    U home;
+    QWROW home;
     HIT hit;
     PROX proximity;
     if (mode == sel->nMode)
@@ -1434,8 +1426,6 @@ extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
 }
 
 namespace M_SetGadgetMenuState { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
-typedef struct { char pad0[0xC]; VTE *vt; } SUB;
 extern CLOCK D_002DDED0; /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
 extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
@@ -1445,9 +1435,8 @@ void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SelectGadgetMenuItem(GADGETMENU *, int);
 void SetScreenMode(GADGETMENU *, int, int);
-SUB *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void SetGadgetMenuState(GADGETMENU *p, int s);
-#define VCALL(o, itemCount) ((void (*)(void *))(o)->vt[itemCount].pfn)((char *)(o) + (o)->vt[itemCount].d)
 // Opens or closes the gadget menu: opening freezes the clock, takes player control and shows the hero's page; closing
 // restores them.
 void SetGadgetMenuState(GADGETMENU *p, int s)
@@ -1466,7 +1455,7 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
     case GADGETMENU_CLOSED: {
         int i;
         if (p->pchild)
-            VCALL(((SUB *)p->pchild), 50);
+            ((WIDGET *)p->pchild)->Hide();
         for (i = 0; i < p->citem; i++)
             p->aitem[i].idAnimCur = -1;
         p->citem = 0;
@@ -1496,7 +1485,7 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
         break;
     }
     if (p->nState != GADGETMENU_CLOSED) {
-        SUB *e;
+        WIDGET *e;
         RefreshGadgetMenuItems(p);
         e = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, p->idTextQueued, 0);
         p->pchild = (WIDGET *)e;
@@ -1506,7 +1495,7 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
             float best;
             int gadgetId;
             int i;
-            ((void (*)(void *, int))e->vt[49].pfn)((char *)e + e->vt[49].d, 0x318);
+            e->Show(0x318);
             best = D_002A79CC;
             gadgetId = -1;
             for (i = 0; i < p->citem; i++) {
@@ -1524,7 +1513,6 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
     }
 }
 } } // namespace M_SetGadgetMenuState
-#undef VCALL
 
 namespace M_func_001DB7A8 { extern "C" {
 extern char D_002D84E8[] __asm__("_vt$8THIEFNET");
@@ -1857,11 +1845,8 @@ void UpdateThiefnetWidgets(THIEFNET *p)
 } } // namespace M_UpdateThiefnetWidgets
 
 namespace M_SetThiefnetTab { extern "C" {
-typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct SUB {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0x58 - 0x10];
+    char pad0[0x58];
     int visibility;
     char pad5c[0x70 - 0x5C];
     int pageAnimSecond;     /* +0x70..+0x78: the page's three animation ids (inferred; named by id order) */
@@ -1879,7 +1864,6 @@ void *CreateSfxSound(int);
 void SetSndSourceLo(void *, int);
 void RefreshThiefnetItems(THIEFNET *);
 void SelectThiefnetItem(THIEFNET *, int);
-#define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 // Opens ThiefNet on a tab (buy or sell) or closes it (-1), freezing / resuming the clock and player control.
 void SetThiefnetTab(THIEFNET *p, int s)
 {
@@ -1899,7 +1883,7 @@ void SetThiefnetTab(THIEFNET *p, int s)
     p->tTab = D_002DDED0.realTime;
     switch (s) {
     case -1:
-        VCALL(((SUB *)p->pchild), 50);
+        ((WIDGET *)p->pchild)->Hide();
         SetClockRate(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
         p->Hide();
@@ -1939,7 +1923,6 @@ void SetThiefnetTab(THIEFNET *p, int s)
     p->SetMode(-1);
 }
 } } // namespace M_SetThiefnetTab
-#undef VCALL
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -2613,32 +2596,26 @@ void SCRN52D::PostLoad()   /* key function */
 }
 
 namespace M_func_001DD6C8 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
 // Shows screen 0x52D and its widget. (inferred)
 void ShowScreen52D(SCRN52D *p) {
     if (p->pchild) {
         p->Show();   /* slot 10 */
         {
-            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
-            struct VTE *e = &po->vt[49];
-            ((void (*)(void *, int))e->pfn)((char *)po + e->d, -1);
+            WIDGET *po = (WIDGET *)p->pchild;   /* the widget */
+            po->Show(-1);
         }
     }
 }
 } } // namespace M_func_001DD6C8
 
 namespace M_func_001DD728 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
 // Hides screen 0x52D and its widget. (inferred)
 void HideScreen52D(SCRN52D *p) {
     if (p->pchild) {
         p->Hide();   /* slot 11 */
         {
-            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
-            struct VTE *e = &po->vt[50];
-            ((void (*)(void *))e->pfn)((char *)po + e->d);
+            WIDGET *po = (WIDGET *)p->pchild;   /* the widget */
+            po->Hide();
         }
     }
 }
@@ -2680,17 +2657,14 @@ TITLE *ConstructTitleScreen(TITLE *p) {
 } } // namespace M_func_001DD7D8
 
 namespace M_func_001DD820 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
 void EnsureRumbleModeDefault(void);
 // Shows the title screen and its widget and resets rumble. (inferred)
 void ShowTitleScreen(TITLE *p) {
     if (p->pchild) {
         p->Show();   /* slot 10 */
         {
-            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
-            struct VTE *e = &po->vt[49];
-            ((void (*)(void *, int))e->pfn)((char *)po + e->d, -1);
+            WIDGET *po = (WIDGET *)p->pchild;   /* the widget */
+            po->Show(-1);
         }
         EnsureRumbleModeDefault();
     }
@@ -2698,16 +2672,13 @@ void ShowTitleScreen(TITLE *p) {
 } } // namespace M_func_001DD820
 
 namespace M_HideTitleScreen { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a, b, c; struct VTE *vt; };
 // Hides the title screen and its widget.
 void HideTitleScreen(TITLE *p) {
     if (p->pchild) {
         p->Hide();   /* slot 11 */
         {
-            struct O *po = (struct O *)p->pchild;   /* the widget (WIDGET view) */
-            struct VTE *e = &po->vt[50];
-            ((void (*)(void *))e->pfn)((char *)po + e->d);
+            WIDGET *po = (WIDGET *)p->pchild;   /* the widget */
+            po->Hide();
         }
     }
 }

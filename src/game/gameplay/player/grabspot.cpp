@@ -266,8 +266,7 @@ void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 
 namespace M_func_001830D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
-extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
+extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir);
 extern float atan2f(float y, float x);
 extern qword D_002A2DC0;
 extern qword D_002A2DA0;
@@ -282,7 +281,7 @@ static __inline__ qword VLen(qword c)
 // Broadcast int bits into a VU0 register.
 static __inline__ qword Bc(int g)
 {
-    VU u;
+    QWROW u;
     qword s;
     __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
     u.q = s;
@@ -307,7 +306,7 @@ static __inline__ qword VNormalize(qword c, qword k)
 // Position and facing (atan2 of tangent x up) on the shape at the given distance.
 void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
-    VU pos, dir;
+    QWROW pos, dir;
     qword n;
     qword c, r;
     float gl;
@@ -316,7 +315,7 @@ void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, fl
     n = VNormalize(c, D_002A2DA0);
     if (pv) {
         qword s;
-        VU u;
+        QWROW u;
         register qword a __asm__("vf2");
         register qword b __asm__("vf3");
         __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&pj->grabRadius));
@@ -340,9 +339,8 @@ void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, fl
 
 namespace M_func_00183218 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
 extern float GetRandomShapeDistanceInRange(void *p, float g, float h);
-extern void EvaluateShapeAtDistance(void *p, float t, VU *ppos, VU *pdir);
+extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir);
 extern float RandomFloatInRange__Fff(float a, float b);
 extern float D_002BE8B8;
 extern float D_002BE8BC;
@@ -360,7 +358,7 @@ static __inline__ qword VLen(qword c)
 // A random point along the shape with an outward offset (grab-hint sparkle).
 void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
 {
-    VU pos, dir, u;
+    QWROW pos, dir, u;
     qword n;
     qword k, c, l, one, r, s, a;
     float gl;

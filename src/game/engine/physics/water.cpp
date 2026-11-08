@@ -173,7 +173,7 @@ void UpdateSoTreeBounds(SOW *p);
 void WakeSo(SOW *p, N *pn);
 /* The same function called with the object only (AddSoXa: with pn passed on, a1 is copied first; 8 of 11 off). */
 void func_001F5078P(SOW *p) __asm__("WakeSo");
-void IsPosInSo(SOW *p);
+int IsPosInSo(SOW *p, qword pos);
 }
 
 // Slot 7 (Init): InitSo, then the water's defaults (spring 1, gravity-like -10 and the other tuning values).
@@ -607,7 +607,7 @@ extern "C" int CanWaterInflictZap(void *water, COLL *collider)
 }
 
 // Slot 73: point-in-object test, forwarded to IsPosInSo with the same position argument. (inferred)
-extern "C" void IsPosInWater(SOW *water)
+extern "C" int IsPosInWater(SOW *water, qword pos)
 {
-    IsPosInSo(water);
+    return IsPosInSo(water, pos);
 }

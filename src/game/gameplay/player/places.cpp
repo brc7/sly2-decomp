@@ -134,13 +134,13 @@ extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
         q = &e;
         if (jt == GetHeroPo(&D_003DD490)) {
             qword r = GetJtPlacePosition(jt, &e, 0.0f);
-            float g = ComputeMaxBallisticTime(VuSub(r, *(qword *)jt->unknown58->worldMatrix.mat[3]), *(qword *)&jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
+            float g = ComputeMaxBallisticTime(VuSub(r, *(qword *)jt->positionXf->worldMatrix.mat[3]), *(qword *)&jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = jt->jtplaces.cplace;
                 jt->TranslateToPos(VuSub(r, jt->pivotOffset));
                 jt->jtplaces.cplace = save;
                 SetStepTargetHeadingFromVector(jt, g_cm.matq.rot[0]);
-                jt->RotateToMat((MATRIX4 *)&jt->matTarget);
+                jt->RotateToMat(&jt->matTarget);
                 CutCm__FP2CM(&g_cm);
                 SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                 if (e.grabSpot) {

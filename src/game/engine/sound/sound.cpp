@@ -366,7 +366,6 @@ void RemoveSndFromDirtyList(CID151 *sound)
 
 namespace M_CalculateSndVolPan { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union {qword q;float f[4];int i[4];} V;
 struct RANGE {float low,high;};
 struct M3 {qword r[3];};
 extern char D_003DD490[],D_002BBB60[];
@@ -378,7 +377,7 @@ float atan2f(float,float);
 // Return a - b (vf3).
 static inline qword Sub(qword a,qword b){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
 // Length of the xyz part of a as a float; also stores a to *save.
-static inline float Length(qword a,V*save){qword d,one;float g;
+static inline float Length(qword a,QWROW*save){qword d,one;float g;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));
 save->q=a;
@@ -393,7 +392,7 @@ static inline void Rounded(int*out,float f){float bits;__asm__("cvt.w.s %0,%1":"
 // full distance to 0 at the stop distance; pan is the angle to the point in degrees.
 void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float*outValue,int*outAngle)
 {
- V source,delta;
+ QWROW source,delta;
  void *player;
  register qword reference __asm__("vf1");
  float high,low,distance,value;

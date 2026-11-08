@@ -574,7 +574,7 @@ struct EXPLG : EXPL
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplgClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExplgFromBrx");   /* slot 14 */
     virtual void Clone(LO *ploBase) __asm__("CloneExplg");   /* slot 41 */
-    virtual void ExplodeExplso() __asm__("ExplodeExplgExplso");   /* slot 51 */
+    virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplgExplso");   /* slot 51 */
 };
 typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 
@@ -584,8 +584,8 @@ struct EXPLS : EXPLO
     char padF0[0x110 - 0xF0];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleExplsMessage");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplsClassDesc");   /* slot 6 */
-    virtual void ExplodeExplso() __asm__("ExplodeExplsExplso");   /* slot 51 */
-    virtual void FireExplso() __asm__("FireExplsExplso");   /* slot 52 */
+    virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplsExplso");   /* slot 51 */
+    virtual void FireExplso(EXPLSO *pexplso) __asm__("FireExplsExplso");   /* slot 52 */
 };
 typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 
@@ -1584,7 +1584,7 @@ struct LIGHT : XFM
     virtual void OnRemove() __asm__("OnLightRemove");   /* slot 22 */
     virtual void OnAdd() __asm__("OnLightAdd");   /* slot 23 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateLightToPos");   /* slot 29 */
-    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateLightToMat");   /* slot 30 */
+    virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateLightToMat");   /* slot 30 */
 };
 typedef char assert_LIGHT_size[sizeof(LIGHT) == 0x170 ? 1 : -1];
 typedef char assert_LIGHT_position[SLY2_OFFSETOF(LIGHT, position) == 0x100 ? 1 : -1];
@@ -2389,7 +2389,7 @@ struct WATER : SO
     virtual void UpdateBounds() __asm__("UpdateWaterBounds");   /* slot 49 */
     virtual void InitPhys() __asm__("InitWaterPhysics");   /* slot 64 */
     virtual void AddExternalAccelerations() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
-    virtual void IsPosInside() __asm__("IsPosInWater");   /* slot 73 */
+    virtual int IsPosInside(qword pos) __asm__("IsPosInWater");   /* slot 73 */
 };
 typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 
@@ -2405,14 +2405,7 @@ struct WAYPT : SO
 };
 typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
 
-/* 115 WR (0x900); vtable 0x2DCF00, 48 slots */
-struct WR : LO
-{
-    char pad50[0x900 - 0x50];
-    virtual void Init() __asm__("InitWr");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetWrClassDesc");   /* slot 6 */
-    virtual void Update() __asm__("UpdateWrMatrixes__FP2WR");   /* slot 16 */
-};
-typedef char assert_WR_size[sizeof(WR) == 0x900 ? 1 : -1];
+/* 115 WR (0x900); vtable 0x2DCF00, 48 slots: defined in sly2/wr.h (the anim header) with its fields. */
+struct WR;
 
 #endif /* SLY2_CLASSES_H */

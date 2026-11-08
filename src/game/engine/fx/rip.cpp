@@ -1324,8 +1324,8 @@ typedef char layout_cf0a0_34[((unsigned)&((M4*)0)->d==0x30)?1:-1];
 } // namespace M_ProjectRipTransform
 
 // RIP default Update (vt entry 5): removes the rip when its life is over; otherwise (not in a kind-1 group) tests it
-// against its touch object (when that is in the world, through the object's point test, vtable slot 73, by hand:
-// so.h's IsPosInside is settled across families separately) and reports the result to Touch (slot 7).
+// against its touch object (when that is in the world and physical, through the object's point test IsPosInside,
+// slot 73) and reports the result to Touch (slot 7).
 void RIP::Update()
 {
     SO *touch;
@@ -1340,7 +1340,7 @@ void RIP::Update()
     if (!touch->physics) return;
     isInside = 0;
     if ((int)touch->isInWorld & 1)
-        if (((int (*)(void *, qword))VPTR(touch)[73].pf)((char *)touch + VPTR(touch)[73].d, currentPosition)) isInside = 1;
+        if (touch->IsPosInside(currentPosition)) isInside = 1;
     Touch(isInside);
 }
 
@@ -2727,27 +2727,18 @@ void REMIT::PostEmit(EMITB *pemitb)
     rate = pemitb->v.u.remit.rate;
 }
 
-namespace M_UpdateRemit { extern "C" {
-struct TGT;
-typedef struct { short d; short pad; void (*pf)(struct TGT *, EXPLSO *); } VTE;
-typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;   /* the EXPLS: its explode virtual (slot 51) takes the EXPLSO, which
-                                                         emitter.h's EXPL::ExplodeExplso does not declare */
-} } // namespace M_UpdateRemit
 // REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
 // with only the origin set).
 void REMIT::Update()   /* key function */
 {
-    using namespace M_UpdateRemit;
     UpdateRip(this);
     if (pexpls) {
         accumulated += g_clock.deltaTime * rate;
         while (accumulated >= 1.0f) {
             EXPLSO m;
-            TGT *t;
             m.grf = EXPLSO_HAS_ORIGIN;
             m.origin = currentPosition;
-            t = (TGT *)pexpls;
-            t->vt[51].pf((TGT *)((char *)t + t->vt[51].d), &m);
+            pexpls->ExplodeExplso(&m);
             accumulated -= 1.0f;
         }
     }

@@ -711,7 +711,6 @@ extern "C" int IsBhvInteractIdle(BHV195 *behavior)
 
 // Keeps its .data and VU0 code in a namespace of its own (see the file header).
 namespace M_func_00145DB0 { extern "C" {
-typedef union { qword q; float f[4]; } VU;
 float D_002BD344 = 300.0f;
 struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
 qword *GetLoWorldMatrix(void *);
@@ -721,7 +720,7 @@ qword *GetLoWorldMatrix(void *);
 // (state 2) once close and facing it, 1 runs back into the distance band, 2 interacts until the attack ends.
 void UpdateBhvInteract(BHV195 *behavior)
 {
-    VU toTarget;
+    QWROW toTarget;
     qword targetPos, ownerPos, delta, length, one, normalized;
     float distance;
     UpdateBhv(behavior);
@@ -862,7 +861,6 @@ extern "C" int IsBhvInteract2Idle(BHV196 *behavior)
 
 // Keeps its .data and VU0 code in a namespace of its own (see the file header).
 namespace M_func_001462A8 { extern "C" {
-typedef union { qword q; float f[4]; } VU;
 float D_002BD350 = 350.0f;
 struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
 qword *GetLoWorldMatrix(void *);
@@ -871,7 +869,7 @@ qword *GetLoWorldMatrix(void *);
 // the attack is his crosshair, BTBLENDS state +0x1714).
 void UpdateBhvInteract2(BHV196 *behavior)
 {
-    VU toTarget;
+    QWROW toTarget;
     qword targetPos, ownerPos, delta, length, one, normalized;
     float distance;
     UpdateBhv(behavior);

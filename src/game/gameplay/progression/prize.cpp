@@ -132,8 +132,8 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(prize, pbis);
     *(int *)((char *)EnsureSoInSwList187(prize) + 0xF0) = 1;
-    SetXfRole(prize, prize->unknown58, 0x15);
-    SetXfRole(prize, prize->unknown5C, 0x15);
+    SetXfRole(prize, prize->positionXf, 0x15);
+    SetXfRole(prize, prize->rotationXf, 0x15);
     BindLoOidTable(prize, 1, D_002C0D40);
 }
 
@@ -814,7 +814,7 @@ void SetDprizeDprizes(struct S *prize, int n)
     if (n != DPRIZE_STATE_IDLE && n != DPRIZE_STATE_VANISHING)
         SetLoParent(prize, 0, 0);
     if (prize->state == DPRIZE_STATE_NONE || prize->state == DPRIZE_STATE_GONE) {
-        struct O *o = (struct O *)prize->unknown58;
+        struct O *o = (struct O *)prize->positionXf;
         prize->position = o->position;
         prize->velocity = o->velocity;
     }
@@ -1243,9 +1243,9 @@ void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2
     prize->Add();
     SetLoParent(prize, 0, 0);
     prize->TranslateToPos(q1);
-    prize->RotateToMat((MATRIX4 *)D_002A2D00);   /* the identity */
-    Zero(&prize->unknown58->velocity);
-    Zero(&prize->unknown5C->velocity);
+    prize->RotateToMat((MATRIX3 *)D_002A2D00);   /* the identity */
+    Zero(&prize->positionXf->velocity);
+    Zero(&prize->rotationXf->velocity);
     prize->animSkipTime = f1;
     prize->hasBoosted = 0;
     prize->SetState(3);
@@ -1301,12 +1301,11 @@ namespace M_func_001C6DE8 {
 //    dependent, which is why that store precedes the $ra/$f20 saves in the prologue. cse merges any plain copy made before the
 //    test, so the argument is held in a variable pinned to $a2 (the one allowed pin).
 typedef int qword __attribute__((mode(TI)));
-union VECTOR4 { qword q; float f[4]; };
 struct LSG {
-    VECTOR4 posA;           // 0x00: hit point (lower cast)
-    VECTOR4 posB;           // 0x10: hit point (upper cast)
-    VECTOR4 normalA;        // 0x20
-    VECTOR4 normalB;        // 0x30
+    QWROW posA;           // 0x00: hit point (lower cast)
+    QWROW posB;           // 0x10: hit point (upper cast)
+    QWROW normalA;        // 0x20
+    QWROW normalB;        // 0x30
     float t;                // 0x40
     float u;                // 0x44
     char pad48[0x18];

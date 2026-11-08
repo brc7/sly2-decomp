@@ -588,10 +588,9 @@ namespace M_func_001E6A30 {
 //    reload move scheduled before the in-place normalize, and the distance bits land in $a0 instead of $v0.
 //  * Normalize output is tied to the length operand ("+j"), DotInto ties the result to the second operand (the point delta).
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
-struct M4 { U rows[4]; };
+struct M4 { QWROW rows[4]; };
 struct VTE { short delta, pad; void *fn; };
 struct SPACE;
 struct PATH {
@@ -653,7 +652,7 @@ static inline VV Root(VV a)
     return a;
 }
 // Length of the xyz part of v (x lane).
-static inline VV LengthOf(const U &v)
+static inline VV LengthOf(const QWROW &v)
 {
     qword d, one;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
@@ -662,7 +661,7 @@ static inline VV LengthOf(const U &v)
     return d;
 }
 // Divide a by the x lane of length.
-static inline VV NormalizeTo(U a, VV length)
+static inline VV NormalizeTo(QWROW a, VV length)
 {
     qword r = length;
     __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "+j"(r) : "j"(a.q));
@@ -679,7 +678,7 @@ static inline VV Normalize(VV a)
 extern "C" { void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue, float initial)
 {
-    U segment;
+    QWROW segment;
     M4 matrix;
     float elapsed, duration;
     int backward = 0, forward = 0, previous;
@@ -797,7 +796,6 @@ namespace M_FindShapeClosestPoint {
 //  * Normalize ties its output to the length operand ("+j"), Dot's `one` is not early-clobber (the second dot reuses vf3).
 //  * The empty asm on `time` is allocation-only (see the comment at its use).
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { qword a, b, c, d; };
@@ -867,7 +865,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
                               float *outTime, float *outValue)
 {
     M4 matrix;
-    U closest;
+    QWROW closest;
     qword start, end;
     VTE &v = p->vt[31];
     matrix = *((M4 *(*)(void *))v.fn)((char *)p + v.delta);
@@ -2059,9 +2057,8 @@ namespace M_func_001E95B0 {
  * 1.0f and the %hi of the step constant otherwise). The first sample is tested before the loop and the loop is
  * entered with a goto to its first label, so loop.c sees a jump into the loop and leaves it alone. */
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];};
-struct PATH : XFM { char pad[0xE8 - 0xE0]; int count;int padEC;float*dist;U*pos;};
-struct S {char pad[0x48];PATH*path;int mode;int pad50;U*positions;U*previousPositions;float*time;char pad60[0x84-0x60];int capacity;float step;};
+struct PATH : XFM { char pad[0xE8 - 0xE0]; int count;int padEC;float*dist;QWROW*pos;};
+struct S {char pad[0x48];PATH*path;int mode;int pad50;QWROW*positions;QWROW*previousPositions;float*time;char pad60[0x84-0x60];int capacity;float step;};
 extern "C" { extern float D_002C3678; }
 extern "C" void InvalidateShapeCache(PATH*);
 extern "C" void AddChainSample(S*,float);
@@ -2077,7 +2074,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
     return r;
 }
 /* pd = p0 * cf + p1 * f */
-static inline void Lerp(U*pd,const U*p0,const U*p1,float f,float cf){pd->q=VecCombo(VU_FLOAT(cf),VU_VECTOR(p0->q),VU_FLOAT(f),VU_VECTOR(p1->q));}
+static inline void Lerp(QWROW*pd,const QWROW*p0,const QWROW*p1,float f,float cf){pd->q=VecCombo(VU_FLOAT(cf),VU_VECTOR(p0->q),VU_FLOAT(f),VU_VECTOR(p1->q));}
 // Appends a time sample to a chain's sampled path (truncating when time goes back, interpolating inserted samples
 // every `step`); a full chain (capacity reached) drops to mode 0.
 void AddChainSample(S*chain,float time){

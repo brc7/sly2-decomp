@@ -1121,7 +1121,6 @@ int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepSoNotSelf(pv
 
 namespace M_IntersectSwBoundingBox { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
@@ -1133,7 +1132,7 @@ void UpdateSwAaox(SW *p);
 // result is a slot-allocated array.
 void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
-    U mn, mx;
+    QWROW mn, mx;
     struct MSG msg;
     struct O **ap;
     struct G *g;

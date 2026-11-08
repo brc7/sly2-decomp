@@ -2373,7 +2373,7 @@ void NextJsgCommand(RELAYJSG *script)
             script->ploActor->TranslateToPos(*(qword *)&pos);
         }
         mat = LoadRotateMatrixRad(rad, D_002A2DC0);
-        script->ploActor->RotateToMat((MATRIX4 *)&mat);
+        script->ploActor->RotateToMat(&mat);
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;

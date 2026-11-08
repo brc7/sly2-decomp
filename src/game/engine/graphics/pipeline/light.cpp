@@ -17,11 +17,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/util.h"
 #include "sly2/light.h"
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
-struct VTE {
-    short d;
-    short pad;
-    void *pfn;
-};
 extern "C" void *InitVuTemp(void *);            /* vector init, returns its receiver */
 /* 16-byte vector whose default constructor is the shared vector initialiser (InitVuTemp). */
 union UV { qword q; float f[4]; UV(); };
@@ -29,8 +24,6 @@ union UV { qword q; float f[4]; UV(); };
 inline UV::UV() { (void)InitVuTemp(this); }
 /* The 48-byte shader payload of a light (RebuildLight fills it; the packets copy it). */
 struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]; } values; }; };
-/* The hand-made call through a LIGHT's vtable (slot 30, RotateToMat: its signature is being settled across families). */
-#define VT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /* A node of the world's cell tree (32 bytes; brx_sw.cpp loads it): a plane, then the children or leaf indices. The
    leaves' light masks are sly2/sw.h's LIGHTMASK. */
@@ -99,7 +92,7 @@ extern "C" void EnsureSwDefaultLight(void)
     r.q = QwordFromFloats<qword>(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
-    ((void (*)(LIGHT *, M3R *))VT(light)[30].pfn)((LIGHT *)((char *)light + VT(light)[30].d), &c);
+    light->RotateToMat((MATRIX3 *)&c);
     SetLightMidtoneStrength(light, 255.0f);
     SetLightMidtoneAngle(light, 240.0f);
 }

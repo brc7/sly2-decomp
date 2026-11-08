@@ -471,8 +471,8 @@ void StartBhvidle(BHVIDLE *behavior) {
         ResetDetectorTargets(((STEPGUARD *)behavior->owner)->pdetector);
         if (((STEPGUARD *)behavior->owner)->handsOffLookAt) behavior->lookAt = ((STEPGUARD *)behavior->owner)->handsOffLookAt;
     }
-    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown58, 1);
-    if (!behavior->lookAt) SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 1);
+    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->positionXf, 1);
+    if (!behavior->lookAt) SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 1);
 }
 } } // namespace M_StartBhvidle
 
@@ -485,9 +485,9 @@ extern "C" void CloseBhvidle(BHVIDLE *behavior)
 {
     using namespace M_CloseBhvidle;
     CloseBhvanim(behavior);
-    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown58, 2);
+    SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->positionXf, 2);
     if (!behavior->lookAt)
-        SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 2);
+        SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 2);
 }
 
 // 0x1750E0 HandleBhvidleMessage
@@ -499,12 +499,12 @@ extern "C" int HandleBhvidleMessage(BHVIDLE *behavior, int msg, ASEGEVENTMSG *pm
         switch (pm->event) {
         case 0x29:
             ((STEPGUARD *)behavior->owner)->unknown1A4 = 1;
-            M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 2);
+            M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 2);
             return 1;
         case 0x2A:
             ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
             if (!behavior->lookAt)
-                M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->unknown5C, 1);
+                M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 1);
             return 1;
         }
     }
@@ -1079,7 +1079,7 @@ typedef union U{qword q;float f[4];}U;
 typedef struct SCALE{char pad[0x20];float value;}SCALE;   /* STEPGUARD::scale's record */
 /* a PATHLINKEND without its clearing constructor (ClearPointerPair is called by hand, after the distance tests) */
 typedef struct X{void*a,*b;char pad8[8];qword point;}X;
-typedef struct WORK{X frame;U point;}WORK;
+typedef struct WORK{X frame;QWROW point;}WORK;
 extern float D_002BE614;
 
 int IsStepguardHandsOff(STEPGUARD*);
@@ -1092,13 +1092,13 @@ int IsBhvshootDone(void*);
 int IsBhvanimDone(void*);
 void EmitStepguardStimulus(STEPGUARD*,LO*);
 // Stores a quadword (keeps the target's instruction choice).
-static inline void StorePoint(U*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
+static inline void StorePoint(QWROW*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
 // VU0 helper: x of a VU register as a float (register-pinned).
 static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
 // VU0 helper: square root of x.
 static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;}
 // Matching helper (register-pinned asm): horizontal distance from `pos` to a point; also returns the actor and its mode.
-static inline float DistanceXY(BHVCOMBAT *p, U *point, qword pos, STEPGUARD **actor, int *mode)
+static inline float DistanceXY(BHVCOMBAT *p, QWROW *point, qword pos, STEPGUARD **actor, int *mode)
 {
     register qword a __asm__("vf2"), b __asm__("vf3"), d __asm__("vf1");
     STEPGUARD *o;
@@ -1120,7 +1120,7 @@ static inline float DistanceXY(BHVCOMBAT *p, U *point, qword pos, STEPGUARD **ac
 // Returns the region object of the actor's tuning owner (NULL if none).
 static inline struct CID17*ActorRegion(STEPGUARD*actor){REGENT*owner=actor->physics?actor->physics->pregent:0;return owner?owner->pathzone:0;}
 // Matching helper (register-pinned asm): true if the actor moved farther than a .data threshold from `point`.
-static inline int Moved(BHVCOMBAT *p, U *point)
+static inline int Moved(BHVCOMBAT *p, QWROW *point)
 {
     register qword a __asm__("vf2"), d __asm__("vf1");
     qword one;
@@ -1141,7 +1141,7 @@ static inline int Moved(BHVCOMBAT *p, U *point)
     result = threshold < distance ? result : 0;
     return result;
 }
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char X_Size[sizeof(X)==32?1:-1];
 typedef char WORK_Size[sizeof(WORK)==48?1:-1];
 typedef char SCALE_value_Offset[FIELD_OFFSET(SCALE,value)==32?1:-1];
@@ -1855,9 +1855,9 @@ extern "C" int HandleBhvguardMessage(BHV156 *behavior, int event, ZPR *msg)
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_mask[(sizeof(unsigned long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
-typedef char layout_U_q[((unsigned long)&((U*)0)->q==0x0)?1:-1];
-typedef char layout_U_f[((unsigned long)&((U*)0)->f==0x0)?1:-1];
+typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
+typedef char layout_U_q[((unsigned long)&((QWROW*)0)->q==0x0)?1:-1];
+typedef char layout_U_f[((unsigned long)&((QWROW*)0)->f==0x0)?1:-1];
 typedef char layout_WORK_next[((unsigned long)&((WORK*)0)->next==0x0)?1:-1];
 typedef char layout_WORK_scalar[((unsigned long)&((WORK*)0)->scalar==0x70)?1:-1];
 
@@ -4177,7 +4177,7 @@ void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
     if (!behavior->unknown60) return;
     ((STEPPLAYER *)behavior->holder)->GetStunHold(&r, ((struct U *)behavior->holdAct)->endTime - D_002DDED0.time);
     if (!r.fValid) { behavior->unknown60 = 0; return; }
-    w = ((struct W *)((STEPGUARD *)behavior->owner)->unknown58);
+    w = ((struct W *)((STEPGUARD *)behavior->owner)->positionXf);
     CalculateBhvjuggledHoldPoint(behavior, &r, &holdPoint, &holdDirection);
     a = TransformXfPos(0, w->unknownA0, holdPoint);
     SetRestActPose(((struct U *)behavior->holdAct), a, ConvertXfVec(0, w->unknownA0, holdDirection));
@@ -4188,7 +4188,6 @@ void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
 namespace M_UpdateBhvjuggled { extern "C" {
 struct C; struct B; struct Y; struct X; struct OUT;
 // Update the movement-state controller.
-typedef union { qword q; float f[4]; } U;
 extern CLOCK D_002DDED0;
 extern float D_002BE6C8, D_002BE6CC;
 struct C { char pad[0x1C]; float endTime; };
@@ -4217,7 +4216,7 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
         case 1:
             if (behavior->juggleState == 1 && behavior->owner->floorContact) {
                 SetBhvjuggledState(behavior, 3);
-            } else if (((struct B *)behavior->owner->unknown58)->currentAct != ((struct C *)behavior->holdAct) || ((struct B *)behavior->owner->unknown58)->currentAct->endTime < D_002DDED0.time) {
+            } else if (((struct B *)behavior->owner->positionXf)->currentAct != ((struct C *)behavior->holdAct) || ((struct B *)behavior->owner->positionXf)->currentAct->endTime < D_002DDED0.time) {
                 SetBhvjuggledState(behavior, 2);
             } else if (QwordZ(v) < 0.0f && behavior->juggleState == 0) {
                 SetBhvjuggledState(behavior, 1);
@@ -4233,7 +4232,7 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
         case 4:
         case 5: {
             struct OUT out;
-            U a, b, t, vel, ud;
+            QWROW a, b, t, vel, ud;
             qword tq, c;
             float dt;
             register void*nullSource __asm__("$5");
@@ -4275,14 +4274,14 @@ void UpdateBhvjuggled(BHVJUGGLED *behavior) {
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
+typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
 typedef char layout_C[(sizeof(struct C)==0x20)?1:-1];
 typedef char layout_B[(sizeof(struct B)==0x94)?1:-1];
 typedef char layout_X[(sizeof(struct X)==0x19A8)?1:-1];
 typedef char layout_Y[(sizeof(struct Y)==0x64)?1:-1];
 typedef char layout_OUT[(sizeof(struct OUT)==0x40)?1:-1];
-typedef char layout_U_q[((unsigned)&((U*)0)->q==0)?1:-1];
-typedef char layout_U_f[((unsigned)&((U*)0)->f==0)?1:-1];
+typedef char layout_U_q[((unsigned)&((QWROW*)0)->q==0)?1:-1];
+typedef char layout_U_f[((unsigned)&((QWROW*)0)->f==0)?1:-1];
 typedef char layout_C_gain[((unsigned)&((struct C*)0)->endTime==0x1C)?1:-1];
 typedef char layout_B_control[((unsigned)&((struct B*)0)->currentAct==0x90)?1:-1];
 typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
@@ -4482,8 +4481,8 @@ extern "C" void SetBhvjuggledState(BHVJUGGLED *behavior, int next)
     }
     if ((unsigned)behavior->juggleState < 2 && (unsigned)next >= 2) {
         ReleaseAct((DELTA **)&behavior->holdAct);
-        SetXfRole(behavior->owner, (GROUP *)behavior->owner->unknown58, 2);
-        SetXfRole(behavior->owner, (GROUP *)behavior->owner->unknown5C, 2);
+        SetXfRole(behavior->owner, (GROUP *)behavior->owner->positionXf, 2);
+        SetXfRole(behavior->owner, (GROUP *)behavior->owner->rotationXf, 2);
     }
     int was = Still(behavior->juggleState), now = Still(next);
     behavior->juggleState = next;
@@ -4526,7 +4525,7 @@ extern "C" void SetBhvjuggledState(BHVJUGGLED *behavior, int next)
         scale = scratch;
         qword current = GetLoWorldPos(beforeActor);
         BlendSet(behavior, current, &cached, &scale, &scratch);
-        GROUP *first = (GROUP *)behavior->owner->unknown58;
+        GROUP *first = (GROUP *)behavior->owner->positionXf;
         if (!((DELTA *)behavior->holdAct)) {
             float end = *(float *)(clockCarrier + (short)(clockAddress & 0xffff)) + D_002BE700;
             qword localPoint = TransformXfPos(0, first->space, point.q);
@@ -4736,10 +4735,9 @@ void SetBhvTargetsState(BHV178 *behavior, int n)
 namespace M_func_0017B9C0 {
 union U; struct RANGE; struct POLY; struct WORK;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-union U{qword q;float f[4];};
 struct RANGE{float lo,hi;};
 struct POLY{float a,b,c;};
-struct WORK{float t,d,t2,d2;U origin,bestPoint;};
+struct WORK{float t,d,t2,d2;QWROW origin,bestPoint;};
 extern "C"{
  extern CLOCK D_002DDED0;
  extern RANGE D_002BE740;
@@ -4751,7 +4749,7 @@ extern "C"{
 // VU0 helper: moves a CPU quadword into a VU register.
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 // VU0 helper: loads a quadword into a VU register.
-static inline qword Load(U*u){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(u->q));return r;}
+static inline qword Load(QWROW*u){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(u->q));return r;}
 // VU0 helper: x of a VU register as a float.
 // VU0 helper: length of a vector.
 static inline float Length(qword v)
@@ -4765,7 +4763,7 @@ static inline float Length(qword v)
     return VuToFloat(d);
 }
 // VU0 helper: distance from an origin to a point.
-static inline float Distance(U *origin, qword point)
+static inline float Distance(QWROW *origin, qword point)
 {
     register qword a __asm__("vf2") = origin->q;
     qword b = point, d;
@@ -4773,7 +4771,7 @@ static inline float Distance(U *origin, qword point)
     return Length(d);
 }
 // VU0 helper: distance from a point to an origin.
-static inline float DistanceFrom(qword point, U *origin)
+static inline float DistanceFrom(qword point, QWROW *origin)
 {
     qword a = point, b = Load(origin), d;
     __asm__("vsub.xyzw %0,%1,%2" : "=&j"(d) : "j"(a), "j"(b));
@@ -4782,10 +4780,10 @@ static inline float DistanceFrom(qword point, U *origin)
 // Identity (keeps a value in a register for the match).
 static inline qword To(qword a){return a;}
 // VU0 helper: stores a VU register to memory.
-static inline void Store(U*u,qword a){__asm__("sqc2 %1,%0":"=m"(u->q):"j"(a));}
+static inline void Store(QWROW*u,qword a){__asm__("sqc2 %1,%0":"=m"(u->q):"j"(a));}
 // Clamps *x into a range.
 static inline void ClampIn(float*x,RANGE*p){float lo=p->lo,hi=p->hi;if(*x<lo)*x=lo;else if(hi<*x)*x=hi;}
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char POLY_Size[sizeof(POLY)==12?1:-1];
 typedef char RANGE_Size[sizeof(RANGE)==8?1:-1];
 typedef char WORK_Size[sizeof(WORK)==48?1:-1];
@@ -4894,7 +4892,7 @@ typedef char UInt_Size[sizeof(unsigned int)==4?1:-1];
 typedef char Float_Size[sizeof(float)==4?1:-1];
 typedef char Long_Size[sizeof(unsigned long)==8?1:-1];
 typedef char Qword_Size[sizeof(qword)==16?1:-1];
-typedef char U_Alignment[__alignof__(U)==16?1:-1];
+typedef char U_Alignment[__alignof__(QWROW)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
 } // namespace M_func_0017B9C0
 
@@ -5303,7 +5301,7 @@ test:
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-typedef char layout_U[(sizeof(U)==16)?1:-1];
+typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
 typedef char layout_float[(sizeof(float)==4)?1:-1];
 } } // namespace M_func_0017C6D0
 

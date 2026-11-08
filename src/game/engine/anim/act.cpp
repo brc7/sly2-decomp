@@ -934,7 +934,6 @@ namespace M_UpdateActLookAt { extern "C" {
 /* v2 (Claude agent, 2026-10-23): aligned 15 -> 13: qmtc2 asm before the vsub, vsub as "=j"(d) : s.pos, goalValue (+0xC0) (gets dt vf3). Left: target schedules vsub before qmtc2 with s.pos vf2/goalValue (+0xC0) vf1, output vf2. */
 // WIP (Claude agent): 15 diffs - VU reg numbering only: dv reload should be vf3 / one-vector vf2 (ours swapped), second block wants lw of g_clock.deltaTime after the lqc2s and vsub in vf2; posT lq via $a1.
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 struct VTE { short d; short pad; void (*pfn)(...); };
 extern char D_003DD490[];
 extern qword D_002A2DD0;
@@ -949,7 +948,7 @@ void CalculateVectorPanTilt(qword q, float *pa, float *pb);
 // Evaluate the quadratic g0 + g1*t + g2*t^2 at t.
 static __inline__ float EvaluateQuadratic(CLQ *pp, float t) { return pp->g0 + t * (pp->g1 + t * pp->g2); }
 // Length of the xyz part of a as a float (pv is a scratch home).
-static __inline__ float VectorLength(U *pv, qword a)
+static __inline__ float VectorLength(QWROW *pv, qword a)
 {
     qword t;
     float g;
@@ -963,7 +962,7 @@ static __inline__ float VectorLength(U *pv, qword a)
 void UpdateActLookAt(ACT2 *p)
 {
     struct { qword pos; qword vel; } s;
-    U dt;
+    QWROW dt;
     float ag[2];
     qword dv;
     qword posT;

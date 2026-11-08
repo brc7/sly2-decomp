@@ -172,7 +172,6 @@ qword PosCplookAnchor(CPLOOK *p)
 namespace M_PosCplookEye { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-typedef union { qword q; float f[4]; } U;
 extern qword D_002A5000;
 void LoadRotateMatrixPanTiltP(M3 *pm, float x, float y) __asm__("LoadRotateMatrixPanTilt");
 qword PosCplookAnchor(CPLOOK *p);
@@ -180,7 +179,7 @@ qword PosCplookAnchor(CPLOOK *p);
 qword PosCplookEye(CPLOOK *p)
 {
     M3 m;
-    U v;
+    QWROW v;
     qword pos;
     /* pinned $v0 for address and loaded value, like the target */
     { register qword *pa __asm__("$2") = &D_002A5000; register qword t __asm__("$2") = *pa; v.q = t; }
@@ -405,14 +404,13 @@ extern "C" CPZOOM *CPZOOM_ctor(CPZOOM *pcpzoom)
 
 namespace M_PosCpzoomCenter { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union VU { qword q; float f[4]; } VU;
 extern char D_003DD490[];
 qword GetLoWorldPos(void *p);
 void *GetCurrentPo(void *p);
 // Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos. (inferred)
 qword PosCpzoomCenter(CPZOOM *p)
 {
-    VU v;
+    QWROW v;
     if (p->ploOwner) {
         v.q = GetLoWorldPos(p->ploOwner);
     } else {
@@ -430,7 +428,6 @@ qword PosCpzoomCenter(CPZOOM *p)
 
 namespace M_PosCpzoomEye { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 extern qword D_002A5000;
 qword GetLoWorldPos(void *p);
@@ -456,7 +453,7 @@ static inline qword Normalize(qword v)
 static inline qword VecMul(qword v, float g)
 {
     qword r;
-    U s;
+    QWROW s;
     qword t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(g));
     s.q = t;
@@ -476,7 +473,7 @@ qword PosCpzoomEye(CPZOOM *p)
 {
     qword r;
     if (p->ploFocus) {
-        U n;
+        QWROW n;
         qword a = GetLoWorldPos(p->ploFocus);
         n.q = Normalize(VuSub(a, PosCpzoomCenter(p)));
         p->panAngle = atan2f(n.f[1], n.f[0]);
@@ -968,7 +965,6 @@ namespace M_UpdateCpcamblend {
 // with separate qmfc2/mtc1 asms, so the float t lives only in an FPR and sub.s schedules like the original.
 extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 extern struct CLOCK D_002DDED0;
@@ -1010,9 +1006,9 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 extern "C" void UpdateCpcamblend(CPCAMBLEND *p)
 {
     float u, t, t1, fov;
-    U pos, rot;
+    QWROW pos, rot;
     M4 m4;
-    U c;
+    QWROW c;
     CAMMOVE *ppath;
     UpdateCplcy(p);
     u = D_002DDED0.time - g_cm.modeStartTime;

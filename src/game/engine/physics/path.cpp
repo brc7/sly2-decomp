@@ -200,12 +200,11 @@ namespace M_ClsgClipEdgeToCbsp {
 //    crossing); jump2 cross-jumps the identical tails. Only the pushed state clears `leaf` for an interior child.
 //  * The pushed plane is stored field by field; cse reuses the stored 0.0f for the `dl <= 0.0f` test.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 struct TRI { char d[12]; };
 union NODE { qword plane; struct { float x, y, z; unsigned short child[2]; } e; };
 struct GRAPH { char pad[12]; TRI *leaves; int count; NODE *nodes; };
-struct STATE { NODE *node; TRI *leaf; float t; U plane; };
-struct ROW { U a, b, planeA, planeB; float t0, t1; int flags; TRI *leaf; char tail[16]; };
+struct STATE { NODE *node; TRI *leaf; float t; QWROW plane; };
+struct ROW { QWROW a, b, planeA, planeB; float t0, t1; int flags; TRI *leaf; char tail[16]; };
 typedef char STATE_Size[sizeof(STATE) == 0x20 ? 1 : -1];
 typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
 extern "C" void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
@@ -380,12 +379,11 @@ extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW 
 namespace M_FClipEdgeToCbsp { extern "C" {
 
 typedef int qword __attribute__((mode(TI)));
-typedef union U{qword q;float f[4];}U;
 typedef struct GRAPH GRAPH;
 typedef struct TRI TRI;
-typedef struct ROW{U begin,end,beginPlane,endPlane;float low,high;int flags;TRI*leaf;char tail[16];}ROW;
+typedef struct ROW{QWROW begin,end,beginPlane,endPlane;float low,high;int flags;TRI*leaf;char tail[16];}ROW;
 extern int ClipEdgeToCbsp(GRAPH*,qword,qword,int,ROW*,int);
-typedef char U_Size[sizeof(U)==16?1:-1];
+typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char ROW_Size[sizeof(ROW)==96?1:-1];
 typedef char ROW_Low_Offset[(unsigned int)&((ROW*)0)->low==0x40?1:-1];
 typedef char ROW_High_Offset[(unsigned int)&((ROW*)0)->high==0x44?1:-1];
@@ -630,11 +628,10 @@ namespace M_CposFindPath {
 //    input reload (lui v1 / lw v1) and the read has no anti-dependence on the out[1] store. That drops the qmtc2 asm's
 //    sched1 priority below %hi(D_002A2DA0), which gives the axis address v0 in local-alloc, as in the original.
 typedef int qword __attribute__((mode(TI)));
-union U { qword q; float f[4]; };
 struct V;
 // volatile cost: stops dbr from filling the loop branch delay slots with the cost store (as in the target)
 struct E { V *pv; volatile int cost; };
-struct V { U pos; int cEdge; E *aEdge; };
+struct V { QWROW pos; int cEdge; E *aEdge; };
 struct TRI { V *apv[3]; };
 struct BSP;
 struct G { int pad0[3]; TRI *atri; int cv; BSP *pbsp; };
@@ -650,7 +647,7 @@ void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(AREQ *);
 void FindPathAStar(G *, V *, V *, int, int *, V **);
 void SimplifyPathByLineOfSight(G *, int *, V **);
-int FindPathPoints(G *, qword, qword, int, U *);
+int FindPathPoints(G *, qword, qword, int, QWROW *);
 }
 // the unused second output keeps gcse from hoisting the qmtc2 out of the loops (not single_set)
 static inline qword ToVF(qword v) { qword r; int dummy; __asm__("qmtc2.ni %2,%0" : "=j"(r), "=r"(dummy) : "r"(v)); return r; }
@@ -689,7 +686,7 @@ static inline qword AddScaled(qword p, qword axis, VU_FLOAT s)
 
 // Finds a route between two points over the graph: locates both triangles, runs A*, simplifies, copies at most
 // cposMax points out with a minimum spacing. Returns the point count (Sly 1 CposFindPath).
-int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
+int FindPathPoints(G *graph, qword from, qword to, int capacity, QWROW *out)
 {
     TRI *first = FindNavTriangleSafe(graph, graph->pbsp, from, 1);
     if (!first) return 0;
@@ -697,7 +694,7 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
     TRI *last = FindNavTriangleSafe(graph, graph->pbsp, to, 1);
     if (!last) return 0;
     qword finish = GetClosestPointOnNavTriangle(last, to);
-    U *write;
+    QWROW *write;
     int count;
     if (first == last) {
         out[0].q = from;
@@ -744,17 +741,17 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
         for (int i = 0; i < 3; i++) last->apv[i]->cEdge--;
     }
     {
-        U *end = out + count;
+        QWROW *end = out + count;
         qword prev = out[0].q;
-        U *rd = write;
-        U *wr = write;
+        QWROW *rd = write;
+        QWROW *wr = write;
         if (wr < end) {
             float thr = D_002C0C04;
             do {
                 int accept = thr < Dist2D(rd->q, prev);
                 if (accept) {
-                    U *s = rd++;
-                    U *d = wr++;
+                    QWROW *s = rd++;
+                    QWROW *d = wr++;
                     prev = s->q;
                     d->q = prev;
                 } else rd++;

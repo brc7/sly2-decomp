@@ -775,7 +775,6 @@ void DetachStepguard(STEPGUARD *guard);
 void SetStepTargetHeading(STEPGUARD *guard, float heading);
 } }
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
-// (lo.h declares RotateToMat with a MATRIX4; the guard passes its 3x3 target matrix: slot 30 takes a MATRIX3.)
 extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading)
 {
     using namespace M_func_00171B60;
@@ -783,7 +782,7 @@ extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float headin
     DetachStepguard(guard);
     guard->TranslateToPos(pos);
     SetStepTargetHeading(guard, heading);
-    guard->RotateToMat((MATRIX4 *)&guard->matTarget);
+    guard->RotateToMat(&guard->matTarget);
     guard->SetVelocity(D_002A2DD0);
     guard->SetAngularVelocity(D_002A2DD0);
 }

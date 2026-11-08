@@ -646,7 +646,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         FrameFree(&frame, 2);
     }
     bomb->TranslateToPos(bomb->posDetonate);
-    bomb->RotateToMat((MATRIX4 *)&bomb->matDetonate);   /* a 3x3 rotation (M3) */
+    bomb->RotateToMat((MATRIX3 *)&bomb->matDetonate);   /* a 3x3 rotation (M3) */
     bomb->SetVelocity(bomb->velocityAtDetonation);
     bomb->SetAngularVelocity(bomb->angularVelocityAtDetonation);
     if (bomb->blastListener) {

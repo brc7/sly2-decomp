@@ -251,7 +251,7 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
     if (grf & 1)
         xfm->TranslateToPos(m.r[3]);
     if (grf & 2)
-        xfm->RotateToMat((MATRIX4 *)&m);
+        xfm->RotateToMat((MATRIX3 *)&m);
 }
 
 /* 0x231768 LoadXfmXfFromBrx */

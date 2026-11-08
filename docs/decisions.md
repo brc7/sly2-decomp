@@ -67,7 +67,11 @@ still matches. Where the original reads a row at base `&g_cm.mat` (offset 0x30 f
 local `CMMATQ *` first (sky, relay, tu_201D78). The alternative (CM::pos and the rows themselves as qwords) was not taken:
 about 35 existing uses read `mat`/`matRot`/`pos` as floats or matrices, or through `*(qword *)&...pos` casts that match
 as they are; the union keeps both spellings available. Existing `*(qword *)&pcm->pos` casts are left alone (their folded form is what those functions
-need). *Status:* permanent rule for new cases; reversible (the union adds no bytes).
+need). The shared forms are basic.h's `QWROW` (`union { qword q; float f[4]; int i[4]; }`, one row or vector) and
+`MATRIX3Q` / `MATRIX4Q` (`QWROW r[3]` / `r[4]`), added in names/xfamily-sigs: a class unions them with its float
+member (`STEP::matqTarget` beside `matTarget`), per-function views use them instead of a private row union; a private
+union stays where QWROW's unsigned `qword` changes a signedness or the code (the local `typedef int qword` views).
+*Status:* permanent rule for new cases; reversible (the union adds no bytes).
 
 **1.9 Two spellings of a Splice counted pointer (decision taken in names/vu-f8-sound-ui-3).** A counted pointer that
 is a link between Splice nodes (a pair's next, a binding's next) is spelled with the CRefPtr<T> specializations whose

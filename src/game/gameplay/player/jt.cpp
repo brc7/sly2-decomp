@@ -1479,8 +1479,7 @@ void GetJtCpdefi(JT *jt, int *pf)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A4E8 {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } VU;
-struct WORK{VU scalar;VU forward,reverse;VU kept;};
+struct WORK{QWROW scalar;QWROW forward,reverse;QWROW kept;};
 typedef struct M { qword r[4]; } M;
 struct C;
 typedef struct A : STEP { char pad[0x1024 - 0x2C0]; C*x1024; } A;
@@ -1507,7 +1506,7 @@ extern "C" float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, flo
 
 
 // base + m.row1 * scalar (one asm block, register-pinned).
-static __inline__ qword OffsetAdd(const M *m, const VU *scalar, const VU *base)
+static __inline__ qword OffsetAdd(const M *m, const QWROW *scalar, const QWROW *base)
 {
     register qword value __asm__("vf1"), row __asm__("vf2");
     __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvadd.xyzw %0,%1,%0"
@@ -1516,7 +1515,7 @@ static __inline__ qword OffsetAdd(const M *m, const VU *scalar, const VU *base)
     return value;
 }
 // base - m.row1 * scalar (one asm block, register-pinned).
-static __inline__ qword OffsetSub(const M *m, const VU *scalar, const VU *base)
+static __inline__ qword OffsetSub(const M *m, const QWROW *scalar, const QWROW *base)
 {
     register qword value __asm__("vf1"), row __asm__("vf2");
     __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvsub.xyzw %0,%1,%0"
@@ -1672,7 +1671,7 @@ tail:
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
 typedef char Pointer_Size[(sizeof(void*)==4)?1:-1];
-typedef char VU_Size[(sizeof(VU)==16)?1:-1];
+typedef char VU_Size[(sizeof(QWROW)==16)?1:-1];
 typedef char WORK_Size[(sizeof(WORK)==0x40)?1:-1];
 typedef char M_Size[(sizeof(M)==0x40)?1:-1];
 typedef char S_Size[(sizeof(S)==0x70)?1:-1];
@@ -1706,7 +1705,7 @@ typedef char SMP_Size[sizeof(SMP)==12?1:-1];
 typedef char SMP_a_Offset[(unsigned)&((SMP*)0)->fastSpeed==0?1:-1];
 typedef char SMP_b_Offset[(unsigned)&((SMP*)0)->slowSpeed==4?1:-1];
 typedef char SMP_duration_Offset[(unsigned)&((SMP*)0)->fastDuration==8?1:-1];
-typedef char VU_Alignment[__alignof__(VU)==16?1:-1];
+typedef char VU_Alignment[__alignof__(QWROW)==16?1:-1];
 typedef char M_Alignment[__alignof__(M)==16?1:-1];
 typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
 typedef char SMP_Alignment[__alignof__(SMP)==4?1:-1];
@@ -3369,8 +3368,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ShowSoPart(jt, jt->unknown1A90);
                 break;
             case JTS_Stand:
-                SlotSetRole(jt, jt->unknown58, 2);
-                SlotSetRole(jt, jt->unknown5C, 2);
+                SlotSetRole(jt, jt->positionXf, 2);
+                SlotSetRole(jt, jt->rotationXf, 2);
                 switch (jt->animState)
                 {
                     case 6:
@@ -3411,8 +3410,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Unk12:
             case JTS_Unk13:
             case JTS_Unk14:
-                SlotSetRole(jt, jt->unknown58, 2);
-                SlotSetRole(jt, jt->unknown5C, 2);
+                SlotSetRole(jt, jt->positionXf, 2);
+                SlotSetRole(jt, jt->rotationXf, 2);
                 break;
             case JTS_SurfaceClimb:
                 SetSoCnstrForce(jt, 0);
@@ -3445,8 +3444,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
             case JTS_Stand:
             {
                 stateMachine = jt->unknown1028;
-                SlotSetRole(jt, jt->unknown58, 1);
-                SlotSetRole(jt, jt->unknown5C, 1);
+                SlotSetRole(jt, jt->positionXf, 1);
+                SlotSetRole(jt, jt->rotationXf, 1);
                 jt->unknown1514 = 0;
                 switch (jt->state)
                 {
@@ -3634,19 +3633,19 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk12:
                 stateMachine = jt->unknown102C;
-                SlotSetRole(jt, jt->unknown58, 1);
-                SlotSetRole(jt, jt->unknown5C, 1);
+                SlotSetRole(jt, jt->positionXf, 1);
+                SlotSetRole(jt, jt->rotationXf, 1);
                 ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
             case JTS_Unk13:
-                SlotSetRole(jt, jt->unknown58, 1);
-                SlotSetRole(jt, jt->unknown5C, 1);
+                SlotSetRole(jt, jt->positionXf, 1);
+                SlotSetRole(jt, jt->rotationXf, 1);
                 ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk14:
-                SlotSetRole(jt, jt->unknown58, 2);
-                SlotSetRole(jt, jt->unknown5C, 2);
+                SlotSetRole(jt, jt->positionXf, 2);
+                SlotSetRole(jt, jt->rotationXf, 2);
                 ClearXyz(&jt->unknown190);
                 SetJtAnimState(jt, -1);
                 break;
@@ -4517,7 +4516,6 @@ typedef char M4_Basis_Prefix[(sizeof(M3)==(unsigned)&((M4*)0)->r[3])?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018E1E0 { extern "C" {
-typedef union { qword q; float f[4]; } VU;
 typedef struct { qword r[3]; } M3;
 extern qword GetLoWorldPos(void *p);
 extern void SetStepTargetHeadingFromVector(JT *p, qword v);
@@ -4538,9 +4536,9 @@ static __inline__ qword VLen(qword c)
 // Turns Sly toward the interact target with smoothing.
 void UpdateJtFaceTarget(JT *jt)
 {
-    VU n;
+    QWROW n;
     M3 ms, m;
-    VU u;
+    QWROW u;
     float g;
     qword d, l, s, r;
     float gl, gLen;

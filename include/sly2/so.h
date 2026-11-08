@@ -171,8 +171,8 @@ struct SO : public LO
 {
       int numTransforms; /* number of transforms */
       XF *transforms; /* the transforms (XF) of the model hierarchy */
-      XF *unknown58;   /* possibly motionTransform (low-confidence guess: XF put in velocity roles 1/2 by jt.cpp; missile ApplyConstr on it) */
-      XF *unknown5C;   /* possibly actuatorTransform (low-confidence guess: XF driven by actuators (missile func_0012DCA0, SlotUnsettle)) */
+      XF *positionXf;   /* +0x58 the transform that carries the position (TranslateSoToPos writes it; solve.cpp's pxfPos; velocity roles 1/2 in jt.cpp) */
+      XF *rotationXf;   /* +0x5C the transform that carries the orientation (RotateSoToMat writes its matrix; solve.cpp's pxfRot) */
       XF *rootTransform; /* root transform; its world matrix holds the object's position (XF+0x70) */
       DL children;  /* child objects attached to this one */
       LO *ploRemovedFirst;   /* first removed child (kept for re-adding, inferred) */
@@ -222,7 +222,7 @@ struct SO : public LO
     virtual void UpdateXfWorld() __asm__("UpdateSoXfWorld");   /* slot 17 */
     virtual void UpdateXfWorldHierarchy() __asm__("UpdateSoXfWorldHierarchy");   /* slot 18 */
     virtual void RenderSelf() __asm__("RenderSoSelf");   /* slot 19 */
-    virtual void RenderAll() __asm__("RenderSoAll");   /* slot 20 */
+    virtual void RenderAll(MATRIX4 *pmatWorld, float gFirst, float gSecond, struct SOBOUNDS *psobounds) __asm__("RenderSoAll");   /* slot 20 */
     virtual void SetFlag8(int fOn) __asm__("SetSoGrfBit8");   /* slot 21 */
     virtual void OnRemove() __asm__("OnSoRemove");   /* slot 22 */
     virtual void OnAdd() __asm__("OnSoAdd");   /* slot 23 */
@@ -230,7 +230,7 @@ struct SO : public LO
     virtual void OnProxyAcquire(LO *plo) __asm__("SO_ResetForProxy");   /* slot 26 */
     virtual void OnProxyRelease(LO *plo) __asm__("SO_Slot27");   /* slot 27 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateSoToPos");   /* slot 29 */
-    virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
+    virtual void RotateToMat(MATRIX3 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
     virtual XF *GetLocalTransform(MATRIX4 *pmatLocal) __asm__("GetSoLocalXf");   /* slot 32 */
     virtual qword GetVelocity() __asm__("GetSoVelocity");   /* slot 33 */
     virtual void SetVelocity(qword qwVel) __asm__("SetSoVelocity");   /* slot 35 */
@@ -267,7 +267,7 @@ struct SO : public LO
       virtual void PresetAccel() __asm__("PresetSoAccel");
       virtual void AddExternalAccelerations() __asm__("AddSoExternalAccelerations");
       virtual void AddWaterAcceleration() __asm__("AddSoWaterAcceleration");
-      virtual void IsPosInside() __asm__("IsPosInSo");
+      virtual int IsPosInside(qword pos) __asm__("IsPosInSo");   /* slot 73: whether a world position is inside a visible part (rip.cpp RIP::Update, the POINT_IN_BSP_QUICK thunk) */
       virtual void InflictContactZaps() __asm__("InflictSoContactZaps");
       virtual int TakeDamage(ZPR *pzpr) __asm__("CanSoTakeDamage");
     virtual qword GetAngularVelocity() __asm__("GetSoAngularVelocity");   /* override declared in GetSoAngularVelocity.cpp */

@@ -370,7 +370,7 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
             group->constantCount = pemitter->constantCount;
             group->autoPause = pemitter->autoPause;
             SetLoBusyKind(group, 1);
-            group->RotateToMat((MATRIX4 *)GetLoWorldMatrix(pemitter));   /* place it at this emitter's transform */
+            group->RotateToMat((MATRIX3 *)GetLoWorldMatrix(pemitter));   /* place it at this emitter's transform */
         }
         pemitter->fDirty = 0;
         AppendDlEntry__FP2DLPv(&group->groupList, pemitter);
@@ -1132,7 +1132,6 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
 
 namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 extern qword D_002A2DA0;
 extern qword D_002A2DB0;
@@ -1151,7 +1150,7 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
     int iPan = i % c;
     float tilt = pemitvx->tiltBase + (float)iTilt * pemitvx->dTilt;
     float pan = pemitvx->panBase + (float)iPan * pemitvx->dPan;
-    U v;
+    QWROW v;
     M3 m;
     qword r;
     if (gRand != 0.0f) {
@@ -1172,7 +1171,6 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
 
 namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef union { qword q; float f[4]; } U;
 extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut);   /* the record starts with the speed LM */
 float RandomFloatInRange__Fff(float a, float b);
@@ -1189,7 +1187,7 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
     *ptDeath = birthTime + emitv->lifetime;
     skip = RandomFloatInRange__Fff(emitv->lmPush.minValue, emitv->lmPush.maxValue);
     if (skip != 0.0f) {
-        U u;
+        QWROW u;
         qword r;
         {
             qword qwuOut;
@@ -1672,43 +1670,33 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
 } // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4
 
 namespace M_ExplodeWithDefaults { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
-void ExplodeWithDefaults(struct O *o)
+void ExplodeWithDefaults(EXPL *pexpl)
 {
     EXPLSO p = {0};
-    struct VTE *vt;
-
-    vt = o->vt;
-    vt[51].pfn((char *)o + vt[51].d, &p);
+    pexpl->ExplodeExplso(&p);
 }
 } } // namespace M_ExplodeWithDefaults
 
 namespace M_ExplodeExplParams { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };
 // Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51)
 // (inferred)
-void ExplodeExplParams(struct O *o, int flags, LO *reference, float scale, float radius, qword vector, qword origin)
+void ExplodeExplParams(EXPL *pexpl, int flags, LO *reference, float scale, float radius, qword vector, qword origin)
 {
     EXPLSO p;
-    struct VTE *e;
     p.grf = flags;
     p.ploReference = reference;
     p.scale = scale;
     p.radius = radius;
     p.vector = vector;
     p.origin = origin;
-    e = &o->vt[51];
-    e->pfn((char *)o + e->d, &p);
+    pexpl->ExplodeExplso(&p);
 }
 } } // namespace M_ExplodeExplParams
 
 // Empty base implementation of the EXPL explode virtual (slot 51) (inferred)
-void EXPL::ExplodeExplso()   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
+void EXPL::ExplodeExplso(EXPLSO *pexplso)   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
 {
 }
 
@@ -1854,7 +1842,7 @@ void ExplodeExplgExplso(S *group, EXPLSO *explso)
             xf.v.x = xf.v.y = xf.v.z = 0;
             xf.w.x = xf.w.y = xf.w.z = 0;
         }
-        child->vt[51].pfn((char *)child + child->vt[51].d, &childExplso);
+        ((::EXPL *)child)->ExplodeExplso(&childExplso);
     }
 }
 } // namespace M_ExplodeExplgExplso
@@ -1879,16 +1867,11 @@ void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
     }
 }
 
-namespace M_ExplodeExplsExplso { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { int a[3]; struct VTE *vt; };
-// EXPLS explode: forwards to its own vtable slot 52 (fire) (inferred)
-void ExplodeExplsExplso(struct O *o, int x)
+// EXPLS explode: forwards to its own slot 52 (fire) (inferred)
+void EXPLS::ExplodeExplso(EXPLSO *pexplso)
 {
-    struct VTE *e = &o->vt[52];
-    e->pfn((char *)o + e->d, x);
+    FireExplso(pexplso);
 }
-} } // namespace M_ExplodeExplsExplso
 
 // Returns the EXPLS's sound effect, creating it on first use. Used by the class option table (five EXPLS options
 // point at it), so level data can set the explosion's sound properties.
