@@ -2323,19 +2323,16 @@ typedef char check_object_owner[((unsigned)&((P*)0)->owner==0x5C)?1:-1];
 
 // 0x1F5C30 AccelSoTowardMatSpring
 namespace M_AccelSoTowardMatSpring {
-union U; struct M3; struct OWNER; struct P; struct COEF; 
+union U; struct M3;
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
-struct OWNER {M3 matrix;char pad30[0x70];OWNER *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
-struct P : LO { char pad5C[0x5C - 0x50]; OWNER *owner;};
-struct COEF {float a,b,c;};
-extern "C" M3 ConvertXfMat(OWNER *,OWNER *,const M3 *);
+extern "C" M3 ConvertXfMat(XF *,XF *,const M3 *);
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" M3 MulMatrix3Matrix3(const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
-extern "C" qword ConvertXfVec(OWNER *,OWNER *,qword);
+extern "C" qword ConvertXfVec(XF *,XF *,qword);
 // Length of the xyz part of a as a float.
 static inline float Length(qword a){qword d,one;float f;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
@@ -2345,36 +2342,36 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 static inline qword AddScaled(qword old,qword v,qword s){__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(old):"j"(v),"j"(s));return old;}
 // Spring torque toward a target orientation (quadratic CLQ on the angle) and toward a target angular velocity
 // (clamped to 1/dt).
-extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qword velocity,const COEF*d)
+extern "C" void AccelSoTowardMatSpring(SO*so,const M3*orientation,const CLQ*c,qword velocity,const CLQ*d)
 {
-    OWNER *owner=so->owner;
+    XF *owner=so->rotationXf;
     if(c){
         M3 frame,relative;
         U axis;
         float angle;
         frame=ConvertXfMat(0,owner->parent,orientation);
         NormalizeRotateMatrix3__FP7MATRIX3(&frame);
-        relative=MulMatrix3Matrix3(&owner->matrix,&frame);
+        relative=MulMatrix3Matrix3((M3 *)&owner->localMatq,&frame);
         DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&relative,&angle,&axis.q);
         if(0.0001f<angle){
-            float gain=c->c*angle*angle+c->b*angle+c->a;
+            float gain=c->g2*angle*angle+c->g1*angle+c->g0;
             U scalar;
             qword k=VuFromFloat<qword>(gain);
-            {qword result=AddScaled(owner->force,axis.q,k);scalar.q=k;owner->force=result;}
+            {qword result=AddScaled(owner->acceleration,axis.q,k);scalar.q=k;owner->acceleration=result;}
         }
     }
     if(d){
         qword transformed=ConvertXfVec(0,owner->parent,velocity);
-        qword direction=VuSub(transformed,owner->velocity);
+        qword direction=VuSub(transformed,(qword)owner->velq.q);
         float length=Length(direction);
         if(0.0001f<length){
-            float gain=(d->c*length+d->b)+d->a/length;
+            float gain=(d->g2*length+d->g1)+d->g0/length;
             float limit=1.0f/g_clock.deltaTime;
             U scalar;
             qword k;
             if(limit<gain)gain=limit;
             k=VuFromFloat<qword>(gain);
-            {qword result=AddScaled(owner->force,direction,k);scalar.q=k;owner->force=result;}
+            {qword result=AddScaled(owner->acceleration,direction,k);scalar.q=k;owner->acceleration=result;}
         }
     }
 }
@@ -2382,12 +2379,8 @@ extern "C" void AccelSoTowardMatSpring(P*so,const M3*orientation,const COEF*c,qw
 
 // 0x1F5E10 AccelSoTowardPosSpring
 namespace M_AccelSoTowardPosSpring { extern "C" {
-struct COEF; struct OWNER; struct S; 
 typedef int qword __attribute__((mode(TI)));
-struct COEF {float a,b,c;};
-struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
-struct S {char pad[0xC];VTE *vt;char pad10[0x48];struct OWNER *owner;};
-qword GetLoWorldPos(struct S*);
+qword GetLoWorldPos(SO*);
 qword ConvertXfVec(void*,void*,qword);
 // Return x - y (vf1/vf2/vf3).
 static inline qword Sub(qword x,qword y){register qword a __asm__("vf1")=x,b __asm__("vf2")=y,r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -2404,36 +2397,36 @@ static inline qword Scalar(float f){register qword r __asm__("$2");__asm__("mfc1
 static inline qword AddScaled(qword old,qword direction,qword factor){register qword a __asm__("vf2")=old,b __asm__("vf4")=direction,scale __asm__("vf3")=factor,r __asm__("vf1");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(scale));return r;}
 // Spring force toward a target position (CLQ on the distance) and toward a target velocity (clamped to 1/dt).
-void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCoefficients,qword velocity,struct COEF*velocityCoefficients)
+void AccelSoTowardPosSpring(SO*input,qword position,CLQ*positionCoefficients,qword velocity,CLQ*velocityCoefficients)
 {
  QWROW argument,point,old1,scale1,speed,old2,scale2;
- register struct S *p __asm__("$17")=input;
- register struct COEF *c __asm__("$16")=positionCoefficients,*d __asm__("$18")=velocityCoefficients;
- register struct OWNER *owner __asm__("$19");
- point.q=position;owner=p->owner;speed.q=velocity;
+ register SO *p __asm__("$17")=input;
+ register CLQ *c __asm__("$16")=positionCoefficients,*d __asm__("$18")=velocityCoefficients;
+ register XF *owner __asm__("$19");
+ point.q=position;owner=p->positionXf;speed.q=velocity;
  if(c){
    qword difference=Sub(point.q,GetLoWorldPos(p));
    float distance=Length(difference);
    if(1.0e-4f<distance){
-     float inverse=c->a/distance;
-     float value=c->c*distance+c->b;
+     float inverse=c->g0/distance;
+     float value=c->g2*distance+c->g1;
      register void *parent __asm__("$5");
-     old1.q=owner->force;parent=owner->parent;value+=inverse;
+     old1.q=owner->acceleration;parent=owner->parent;value+=inverse;
      argument.q=Scalar(value);scale1=argument;
-     owner->force=AddScaled(old1.q,ConvertXfVec(0,parent,difference),scale1.q);
+     owner->acceleration=AddScaled(old1.q,ConvertXfVec(0,parent,difference),scale1.q);
    }
  }
  if(d){
-   qword difference=Sub(speed.q,((qword (*)(void*))p->vt[33].pfn)((char*)p+p->vt[33].d));
+   qword difference=Sub(speed.q,p->GetVelocity());
    float distance=Length(difference);
    if(1.0e-4f<distance){
      register void *parent asm("a1");
-     float value=(d->c*distance+d->b)+d->a/distance;
+     float value=(d->g2*distance+d->g1)+d->g0/distance;
      float limit=1.0f/g_clock.deltaTime;
      if(limit<value)value=limit;
      scale2.q=Scalar(value);
-     {register qword oldValue asm("v0")=owner->force;old2.q=oldValue;}parent=owner->parent;argument.q=LoadVector(&scale2);
-     owner->force=AddScaled(old2.q,ConvertXfVec(0,parent,difference),scale2.q);
+     {register qword oldValue asm("v0")=owner->acceleration;old2.q=oldValue;}parent=owner->parent;argument.q=LoadVector(&scale2);
+     owner->acceleration=AddScaled(old2.q,ConvertXfVec(0,parent,difference),scale2.q);
    }
  }
 }
