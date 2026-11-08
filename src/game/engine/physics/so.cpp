@@ -2212,7 +2212,7 @@ extern "C" int GetSoExtraPartCount(void)
 
 // 0x1F59A0 AccelSoTowardMatBounded
 namespace M_func_001F59A0 {
-union U; struct M3; struct OWNER; struct P; struct COEF; 
+union U; struct M3;
 // AccelSoTowardMatBounded: angular braking and bounded angular-velocity correction.
 // coef a = top angular speed, (a-b)/c = angular acceleration, a*a/(2*acceleration) = stopping angle.
 // Caps an overspeed, turns the owner toward `orientation` (expressed in its parent space) with a desired
@@ -2222,13 +2222,9 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
-struct SPACE;
-struct OWNER {M3 matrix;char pad30[0x70];SPACE *parent;char padA4[0xC];qword velocity;char padC0[0x30];qword force;};
-struct P : LO { char pad5C[0x5C - 0x50]; OWNER *owner;};
-struct COEF {float a,b,c;};
-extern "C" M3 *ConvertXfMat(M3 *,SPACE *,SPACE *,const M3 *);
+extern "C" M3 *ConvertXfMat(M3 *,XF *,XF *,const M3 *);
 // The orientation converted from parent space to world space (ConvertXfMat).
-static inline M3 BuildFrame(SPACE*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
+static inline M3 BuildFrame(XF*parent,const M3*orientation) return result {ConvertXfMat(&result,0,parent,orientation);}
 extern "C" void NormalizeRotateMatrix3__FP7MATRIX3(M3 *);
 extern "C" void MulMatrix3Matrix3(M3 *,const M3 *,const M3 *);
 extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *);
@@ -2254,32 +2250,32 @@ static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,
 
 // Accelerates the rotation toward a target orientation with angular braking and a bounded correction (top speed
 // and acceleration from coef). Used for steering (STEP mode 0).
-extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *c)
+extern "C" void AccelSoTowardMatBounded(SO *so,const M3 *orientation,const CLQ *c)
 {
     M3 frame,relative;
     U axis,wanted,change,predicted;
     float angle;
-    float maximum=c->a;
-    float acceleration=(maximum-c->b)/c->c;
+    float maximum=c->g0;
+    float acceleration=(maximum-c->g1)/c->g2;
     float square=maximum*maximum;
     float stopAngle;
-    OWNER *owner=so->owner;
+    XF *owner=so->rotationXf;
     // one variable for the speed and, later, the speed along the turn axis (target: f4 for both)
-    float speed=Length(owner->velocity);
+    float speed=Length(owner->velq.q);
     stopAngle=square/(acceleration+acceleration);
     float desired,remaining,length,gain;
     CLOCK *clock;
     if(maximum<speed){
         U scalar;float correction=((maximum-speed)*2.5f)/speed;
-        change.q=ScaleFactor(owner->velocity,Scalar(correction,&scalar));
-        owner->force=Add(owner->force,change.q);
+        change.q=ScaleFactor(owner->velq.q,Scalar(correction,&scalar));
+        owner->acceleration=Add(owner->acceleration,change.q);
     }
     frame=BuildFrame(owner->parent,orientation);
     NormalizeRotateMatrix3__FP7MATRIX3(&frame);
-    {M3 out;MulMatrix3Matrix3(&out,&owner->matrix,&frame);relative=out;}
+    {M3 out;MulMatrix3Matrix3(&out,(M3 *)&owner->localMatq,&frame);relative=out;}
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&relative,&angle,&axis.q);
     desired=ClampAbs__Fff((angle/stopAngle)*maximum,maximum);
-    speed=QwordX(DotQ(owner->velocity,axis.q));
+    speed=QwordX(DotQ(owner->velq.q,axis.q));
     clock=&g_clock;
     float half=clock->deltaTime*0.5f;
     remaining=angle-(speed+desired)*half;
@@ -2287,21 +2283,17 @@ extern "C" void AccelSoTowardMatBounded(P *so,const M3 *orientation,const COEF *
     U scalar;
     qword w;
     {qword k=Scalar(desired,&scalar);w=Scale(axis.q,k);StoreQ(w,&wanted);}
-    {qword v=owner->velocity;qword k=Scalar(clock->deltaTime,&scalar);predicted.q=AddScaled(v,owner->force,k);}
+    {qword v=owner->velq.q;qword k=Scalar(clock->deltaTime,&scalar);predicted.q=AddScaled(v,owner->acceleration,k);}
     qword cv=VuSub(w,predicted.q);
     change.q=cv;
     length=Length(cv);
     if(length<acceleration*clock->deltaTime)gain=1.0f/clock->deltaTime;
     else gain=acceleration/length;
     StoreQ(ScaleNew(cv,Scalar(gain,&scalar)),&change);
-    owner->force=Add(owner->force,change.q);
+    owner->acceleration=Add(owner->acceleration,change.q);
 }
 
 typedef char check_matrix_size[(sizeof(M3)==0x30)?1:-1];
-typedef char check_owner_parent[((unsigned)&((OWNER*)0)->parent==0xA0)?1:-1];
-typedef char check_owner_velocity[((unsigned)&((OWNER*)0)->velocity==0xB0)?1:-1];
-typedef char check_owner_force[((unsigned)&((OWNER*)0)->force==0xF0)?1:-1];
-typedef char check_object_owner[((unsigned)&((P*)0)->owner==0x5C)?1:-1];
 } // namespace M_func_001F59A0
 
 // 0x1F5C30 AccelSoTowardMatSpring
