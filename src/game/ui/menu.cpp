@@ -16,6 +16,7 @@
 #include "sly2/cref.h"
 #include "sly2/save.h"
 #include "sly2/widget.h"
+#include "sly2/game.h"
 extern "C" void Decref__4CRef(void *);
 
 /* The pause menu (DRAFT name PAUSEMENU, after its functions' annotations): an 11-slot screen (sly2/screen.h's
@@ -68,16 +69,12 @@ struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
 struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
 struct OPT;
 
-extern SW D_003DD490;
 extern "C" {
 extern PMENU D_003D9ED0;
-extern char D_002DDED0[], D_002DEB30[];
 extern GSV D_002DEB80;
-extern SNDMGR D_003DD040;
 extern char D_002BBB60[];
 extern MCDLG D_002E6550;
 extern int D_002C2D8C;
-extern char D_003D4A60[];
 extern char D_002BFDA8[], D_002BFE08[], D_002BFE68[];
 extern ITEM D_002C00E8[];
 extern struct H { char pad[0x24]; int unknown24; } D_003DA3C0;
@@ -157,7 +154,7 @@ void GetGlobalSaveVarInto(CRefData *r, int a, void *b) __asm__("GetGlobalSaveVar
 
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void InitPauseMenu(PMENU *menu) {
-    menu->pool = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
+    menu->pool = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, 0x370, 0);
     menu->pending = -1;
     menu->state = 0;
 }
@@ -181,9 +178,9 @@ extern "C" void PAUSEMENU_Slot9(PMENU *p, int f) {
 void PAUSEMENU::Show()   /* key function: PAUSEMENU's vtable comes out here */
 {
     ShowScreen();
-    SetClockRate(D_002DDED0, 0, 0.0f);
-    IncrementSwHandsOff(&D_003DD490, 0);
-    BroadcastGameEvent(D_002DEB30, 0x28, 0);
+    SetClockRate(&g_clock, 0, 0.0f);
+    IncrementSwHandsOff(&g_sw, 0);
+    BroadcastGameEvent(&g_game, 0x28, 0);
 }
 
 // Hides the pause menu: screen base hide, game clock running again, hands-off released, game event 0x2C.
@@ -191,9 +188,9 @@ extern "C" void HidePauseMenu(PMENU *menu)
 {
     HideScreen(menu);
     menu->depth = 0;
-    SetClockRate(D_002DDED0, 0, 1.0f);
-    DecrementSwHandsOff(&D_003DD490, 0);
-    BroadcastGameEvent(D_002DEB30, 0x2C, 0);
+    SetClockRate(&g_clock, 0, 1.0f);
+    DecrementSwHandsOff(&g_sw, 0);
+    BroadcastGameEvent(&g_game, 0x2C, 0);
 }
 
 // The pause menu state machine (states 0..11): exit actions of the old state (moving the selection in 5/6, closing in
@@ -271,12 +268,12 @@ void SetPauseMenuState(PMENU *menu, int st)
             case 0x67:
                 PlayWidgetAnim(pe->pool, 0x333);
                 PlayWidgetAnim(pe->pool, 0x315);
-                SetWidgetAnimPhase(pe->pool, 0x315, D_003DD040.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC]);
+                SetWidgetAnimPhase(pe->pool, 0x315, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC]);
                 break;
             case 0x68:
                 PlayWidgetAnim(pe->pool, 0x334);
                 PlayWidgetAnim(pe->pool, 0x315);
-                SetWidgetAnimPhase(pe->pool, 0x315, D_003DD040.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE]);
+                SetWidgetAnimPhase(pe->pool, 0x315, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE]);
                 break;
             case 0x3F:
                 PlayWidgetAnim(pe->pool, 0x335);
@@ -506,8 +503,8 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = ClampToLimits__FP2LMf(D_002BBB60, D_003DD040.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC] + f * g_clock.realDeltaTime * 1.5f);
-        SetSndmgrChannelVolume(&D_003DD040, 1, g, 1);
+        g = ClampToLimits__FP2LMf(D_002BBB60, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC] + f * g_clock.realDeltaTime * 1.5f);
+        SetSndmgrChannelVolume(&g_sndmgr, 1, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);
         break;
     }
@@ -516,9 +513,9 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = ClampToLimits__FP2LMf(D_002BBB60, D_003DD040.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE] + f * g_clock.realDeltaTime * 1.5f);
-        SetSndmgrChannelVolume(&D_003DD040, 0, g, 1);
-        SetSndmgrChannelVolume(&D_003DD040, 3, g, 1);
+        g = ClampToLimits__FP2LMf(D_002BBB60, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE] + f * g_clock.realDeltaTime * 1.5f);
+        SetSndmgrChannelVolume(&g_sndmgr, 0, g, 1);
+        SetSndmgrChannelVolume(&g_sndmgr, 3, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);
         break;
     }
@@ -542,7 +539,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
 }
 
 // Evaluate save variable id as an int.
-static inline int GetTag(int id) { return Eval(id, D_003D4A60).u.n; }
+static inline int GetTag(int id) { return Eval(id, &g_gs).u.n; }
 // Item text callback for the video items (76..78): picks the string from the current option values.
 extern "C" void GetPauseMenuVideoItemText(int *menu)
 {
@@ -568,7 +565,7 @@ extern "C" void GetPauseMenuVideoItemText(int *menu)
         break;
     case 79:
     case 80:
-        *menu = D_003DD040.isHeadsetEnabled ? 0x4F : 0x50;
+        *menu = g_sndmgr.isHeadsetEnabled ? 0x4F : 0x50;
         break;
     case 72:
     case 73:
@@ -604,25 +601,25 @@ extern "C" void GetPauseMenuVideoItemText(int *menu)
 // Store a script reference into a global save variable.
 static inline void SetPv(OPT*key,CRef r,void*context){SetGlobalSaveVar(key,r,context);}
 // Store an int into a global save variable.
-static inline void SetInt(OPT*key,int x){CRef r(x,0x15);SetPv(key,r,D_003D4A60);}
+static inline void SetInt(OPT*key,int x){CRef r(x,0x15);SetPv(key,r,&g_gs);}
 // Store a bool into a global save variable.
-static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,D_003D4A60);}
+static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,&g_gs);}
 // Store a float into a global save variable.
-static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,D_003D4A60);}
+static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,&g_gs);}
 #define OPTI(d) (*(OPT **)&(d))
 // Applies an option item (kinds 103 and up): sets the option values and re-applies the GS settings.
 void ApplyPauseMenuVideoItem(PMENU*owner,ITEM*msg){
  switch(msg->kind){
  case 103:
-  SetFloat((*(OPT * *)&g_sw.psvpMusicVolume),1.0f-D_003DD040.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC]);
+  SetFloat((*(OPT * *)&g_sw.psvpMusicVolume),1.0f-g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC]);
   SetPauseMenuState(owner,9);
   break;
  case 104:
-  SetFloat((*(OPT * *)&g_sw.psvpEffectsVolume),1.0f-D_003DD040.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE]);
+  SetFloat((*(OPT * *)&g_sw.psvpEffectsVolume),1.0f-g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE]);
   SetPauseMenuState(owner,9);
   break;
  case 63:{
-  SW*game=&D_003DD490;
+  SW*game=&g_sw;
   SetFloat(((struct OPT *)game->psvpScreenCenterX),D_002F6468-636.0f);
   SetFloat(((struct OPT *)game->psvpScreenCenterY),D_002F646C-50.0f);
   SetPauseMenuState(owner,9);
@@ -642,12 +639,12 @@ void ApplyPauseMenuVideoItem(PMENU*owner,ITEM*msg){
  case 83:case 84:SetBool(OPTI((*(int *)&g_sw.psvpReverseAim)),msg->kind==84);break;
  default:break;
  }
- ApplyGsSettings(D_003D4A60);
+ ApplyGsSettings(&g_gs);
 }
 
 // Resets the video options to their defaults and enters state 9.
 void ResetPauseMenuVideoOptions(PMENU *menu, ITEM *item) {
-    ApplyGsSettings(D_003D4A60);
+    ApplyGsSettings(&g_gs);
     SetPauseMenuState(menu, 9);
 }
 
@@ -730,9 +727,9 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     unsigned int i;
     int f, k;
     if (!D_003D9ED0.pool) return 0;
-    if (IsSwTransitionBusy(&D_003DD490)) return 0;
+    if (IsSwTransitionBusy(&g_sw)) return 0;
     if (IsScreenShown(&D_002E6550)) return 0;
-    pl = GetHeroPo(&D_003DD490);
+    pl = GetHeroPo(&g_sw);
     if (pl && IsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
     if (!AreWidgetLoadsIdle()) return 0;
     psrc = D_002C00E8;
@@ -748,7 +745,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
             break;
         case 0x6B:
             f = 0;
-            if (D_003DD490.currentJob) {
+            if (g_sw.currentJob) {
                 if (GetCurrentWorld()) f = 1;
             }
             break;
@@ -830,8 +827,8 @@ extern "C" void OnPauseItemState11(void) {
 extern "C" void OpenPauseCharacterPage(ITEM *item)
 {
     char *s;
-    BroadcastGameEvent(D_002DEB30, 0x29, 0);
-    switch (GetBasicCid(GetHeroPo(&D_003DD490))) {
+    BroadcastGameEvent(&g_game, 0x29, 0);
+    switch (GetBasicCid(GetHeroPo(&g_sw))) {
     case 0x35: s = (char *)D_002C01D0; break;
     case 0x37: s = (char *)D_002C01F0; break;
     case 0x36: s = (char *)D_002C0210; break;
@@ -844,7 +841,7 @@ extern "C" void OpenPauseCharacterPage(ITEM *item)
 // Item callback: game event 0x2B, then opens the job list screen (SetJobListPage, 0x1DD300).
 extern "C" void OnPauseItemJobList(void)
 {
-    BroadcastGameEvent(D_002DEB30, 0x2B, 0);
+    BroadcastGameEvent(&g_game, 0x2B, 0);
     SetJobListPage(&D_003DA3C0, (*(void * *)&g_sw.currentJob) != 0);
 }
 
@@ -859,13 +856,13 @@ extern "C" void GetPauseQuitItemText(int *menu)
 // the game sequence.
 extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
 {
-    BroadcastGameEvent(D_002DEB30, 0x2D, 0);
-    BroadcastGameEvent(D_002DEB30, 0x2E, 0);
+    BroadcastGameEvent(&g_game, 0x2D, 0);
+    BroadcastGameEvent(&g_game, 0x2E, 0);
     if (g_save.currentSlot) {
         CRefData r;
         int v;
         D_002E6550.followUpAction = 1;
-        GetGlobalSaveVarInto(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
+        GetGlobalSaveVarInto(&r, (*(int *)&g_sw.psvpAutosaveWarned), &g_gs);
         v = r.u.n;
         Decref__4CRef(&r);
         if (v == 0) {
@@ -883,14 +880,14 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
 // "Restart job" item: game event 0x2A, then fails the current job (it restarts).
 extern "C" void OnPauseItemRestartJob(void)
 {
-    BroadcastGameEvent(D_002DEB30, 0x2A, 0);
+    BroadcastGameEvent(&g_game, 0x2A, 0);
     FailJob((*(void * *)&g_sw.currentJob));
 }
 
 // "Return to hideout" item: wipes to the hideout warp (0x189) and fails the current job.
 extern "C" void OnPauseItemReturnToHideout(ITEM *item)
 {
-    SW *pg = &D_003DD490;
+    SW *pg = &g_sw;
     WipeToWorldWarp(pg, (void *)D_002A3928, 0x189, -1, 0x80, -1);
     if (pg->currentJob) FailJob(pg->currentJob);
     if (item) item->flags |= 2;

@@ -21,6 +21,8 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/sw.h"
+#include "sly2/clock.h"
+#include "sly2/joy.h"
 
 /* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
    level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
@@ -93,11 +95,8 @@ void SetupCm(CM *pcm)
 namespace M_UpdateCmLast__FP2CM { extern "C" {
 /* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
 struct O { int pad[3]; VTE *vt; };
-extern struct CLOCK D_002DDED0;
 extern int D_002DFBC0;
-extern JOY D_002DFC00;
 extern JOY D_002E0D00;
-extern SW D_003DD490;
 extern char D_002BD810[];
 void ResetCmAdjust(CM *p, CPDEFI *pcpdefi);
 void AdjustCmCpdefi(CM *p, SO *pso, CPDEFI *pcpdefi);
@@ -134,7 +133,7 @@ void UpdateCmLast__FP2CM(CM *cm)
                 cpdefi = 0;
                 lastFocus = 0;
             }
-            policy->Update(cpdefi, (D_002DFBC0 & 1) ? &D_002DFC00 : &D_002E0D00);
+            policy->Update(cpdefi, (D_002DFBC0 & 1) ? &g_joy : &D_002E0D00);
             lastUpdated = policy;
             if (cm->numPolicies <= 0)
                 break;
@@ -143,11 +142,11 @@ void UpdateCmLast__FP2CM(CM *cm)
     if (cm->nCut) {
         SetCmFov__FP2CMf(cm, cm->targetFieldOfView);
     } else if (cm->targetFieldOfView != cm->fieldOfView) {
-        cm->fieldOfView = SmoothValueWithAccel__FffffP4SMPAPf(cm->fieldOfView, cm->dfov, cm->targetFieldOfView, D_002DDED0.deltaTime, &cm->fovSmoothing, &cm->dfov);
+        cm->fieldOfView = SmoothValueWithAccel__FffffP4SMPAPf(cm->fieldOfView, cm->dfov, cm->targetFieldOfView, g_clock.deltaTime, &cm->fovSmoothing, &cm->dfov);
         RecalcCmFrustrum(cm);
     }
     cm->nCut = 0;
-    if (D_003DD490.unknown3E38)   /* stereo mode (draw.cpp) */
+    if (g_sw.unknown3E38)   /* stereo mode (draw.cpp) */
         cm->stereoEyeOffset = SmoothValue__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.cameraDeltaTime, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
@@ -388,7 +387,6 @@ MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR) __asm__("__ml__FRC7M
 bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("InvertMatrix4");
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sNear, float sFar, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 extern "C" { extern LM D_002BBB60; }
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("CombineEyeLookAtProj");
 extern "C" void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane);
 void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");
@@ -444,7 +442,7 @@ void UpdateCmMat4(CM *pcm) __asm__("UpdateCmMat4__FP2CM");
 extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
 {
     MATRIX4 matEye;
-    float dtJolt = D_002DDED0.time - pcm->joltTime;
+    float dtJolt = g_clock.time - pcm->joltTime;
     if (dtJolt > D_002BD850)
     {
         CombineEyeLookAtProj(&pcm->mat, &pcm->matProj, &pcm->matViewProj);
@@ -532,7 +530,6 @@ int CompareCameraVisZones(struct T **ppa, struct T **ppb)
 namespace M_UpdateCmVisZone__FP2CM { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; int k; };
-extern char D_003DD490[];
 int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap);
 void UpdateVisInside(struct O *po, qword pos);
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
@@ -544,7 +541,7 @@ void UpdateCmVisZone__FP2CM(CM *cm)
 {
     struct O *apo[32];
     qword pos = *(qword *)&cm->pos;
-    int n = FindSwObjectsByClass(D_003DD490, 0x105, 5, 0, 0x20, apo);
+    int n = FindSwObjectsByClass(&g_sw, 0x105, 5, 0, 0x20, apo);
     int i;
     for (i = 0; i < n; i++)
         UpdateVisInside(apo[i], pos);
@@ -625,7 +622,6 @@ SLY2_SCRAP("daddu $2, $0, $0");
 namespace M_SetCmPolicy { extern "C" {
 /* Insert an entry into a priority-sorted array of 8 (Claude agent). memmove goes through an inline helper: its
    parameters get their own pseudos, giving the target's (p + i*16) base copied into a1 then +0x320 / +0x310. */
-extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
 // memmove cb bytes.
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
@@ -651,7 +647,7 @@ void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
         /* the new top: deactivate the previous top (slot 3), activate this one (slot 2) */
         if (p->numPolicies >= 2)
             p->policyStack[1].policy->Deactivate(p->policyStack[1].focus, p->policyStack[1].argument);
-        p->modeStartTime = D_002DDED0.time;
+        p->modeStartTime = g_clock.time;
         po->Activate(a, b);
     }
 }
@@ -659,7 +655,6 @@ void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
 
 namespace M_RevokeCmPolicy { extern "C" {
 /* Matched by Claude agent (2026-10-17): compare against the parameters directly (no local E copy) and `for (i = 0, pe = p->policies; ...)`. */
-extern struct CLOCK D_002DDED0;
 /* which fields of a stack entry a revoke must match */
 enum { REVOKE_BY_PRIO = 1, REVOKE_BY_POLICY = 2, REVOKE_BY_FOCUS = 4, REVOKE_BY_PARAM = 8 };
 // Removes the policy-stack entries that match on every field the mask selects (priority, policy, focus object,
@@ -697,7 +692,7 @@ void RevokeCmPolicy(CM *p, int grf, CPP prio, CPLCY *po, SO *a, void *b)
         /* the top policy went away: deactivate it (slot 3) and activate the new top (slot 2) */
         poTop->Deactivate(aTop, bTop);
         if (p->numPolicies > 0) {
-            p->modeStartTime = D_002DDED0.time;
+            p->modeStartTime = g_clock.time;
             p->policyStack[0].policy->Activate(p->policyStack[0].focus, p->policyStack[0].argument);
         }
     }
@@ -1107,10 +1102,8 @@ typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register, from a value or from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
 extern "C" {
-extern CLOCK D_002DDED0;
 extern qword D_002BD8F0, D_002BD900;
 extern float D_002BD8D8, D_002BD8DC;
-extern char D_003DD490[];
 void *STACKSCOPE_ctor(STACKSCOPE *p);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *p, int n) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
@@ -1152,7 +1145,7 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
     qword posMin = VuAdd(pos, D_002BD8F0);
     qword posMax = VuAdd(pos, D_002BD900);
     STACKSCOPE frame;
-    IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
+    IntersectSwBoundingBox(&g_sw, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
     qword r = AddScaled(pos, w, VU_FLOAT(&pclock->cameraDeltaTime));
     return r;
@@ -1406,11 +1399,10 @@ void SetCmMrdRatio(CM *pcm, float g)
 }
 
 namespace M_JoltCamera { extern "C" {
-extern float D_002DDED0;
 // Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
 void JoltCamera(CM *p, int a)
 {
-    p->joltTime = D_002DDED0;
+    p->joltTime = g_clock.time;
     p->joltKind = a;
 }
 } } // namespace M_JoltCamera
