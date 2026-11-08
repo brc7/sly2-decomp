@@ -15,6 +15,7 @@
 #include "sly2/aseg.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/clock.h"
 #define SLY2_KEY_TU_ROBOTTANK   /* this TU is the class's key TU: see sly2/classes.h */
 #include "sly2/classes.h"
 #include "sly2/tank.h"
@@ -28,7 +29,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    (engine/physics/mark.cpp's names). */
 struct XP { char pad0[0x90]; float g; char pad94[0xAC - 0x94]; XP *pxpNext; };
 
-extern CLOCK D_002DDED0;
 extern "C" {
 extern const float D_002A7834;   /* defined below where the ELF has it (.rodata order) */
 void OnPoActive(PO *ppo, int fActive);
@@ -152,7 +152,6 @@ union SCALE {const qword*axis;int stride;};
 struct P : SO { char pad150[0x190 - 0x150];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
 extern "C" {
 extern qword D_002A2DC0,D_002A2DD0;
-extern char D_003DD490[];
 void PostSoLoad(P *);
 REF *FindSoXf(P *,int,int);
 void *memmove(void *,const void *,int);
@@ -259,11 +258,11 @@ extern "C" void PostRobottankLoad(P *tank){
  ATTACH **cursor=tank->attachments;int byteOffset=0;
  do {
   current.attachment=*cursor;
-  current.attachment->object=FindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,tank);
+  current.attachment->object=FindSwObject__FP2SWi3OIDP2LO(&g_sw,1,current.attachment->id,tank);
   if(current.attachment->object){
    current.attachment->mesh=FindSoXf(tank,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
-    current.attachment->extra=FindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,tank);
+    current.attachment->extra=FindSwObject__FP2SWi3OIDP2LO(&g_sw,1,current.attachment->extraId,tank);
     if(current.attachment->extra || current.attachment->extraId==invalid){
      current.attachment->binding=ApplySmToObject(current.attachment->object,tank,-1,0);
      if(current.attachment->mesh)current.attachment->meshBinding=NewPositionAct(tank,current.attachment->mesh,1,7,3,D_002A2DD0);
@@ -384,7 +383,6 @@ struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];flo
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
 struct P {char pad0[0xC];VTE *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0; }
 extern "C" POLY D_002C2040;
 extern "C" POLY D_002C2060;
@@ -490,7 +488,7 @@ extern "C" void UpdateRobottank(P *tank)
     asm("lwc1 $f3,%4\n\tmin.s %0,%0,%2\n\tlwc1 $f2,%5\n\tmul.s %0,%3,%0\n\tlw %1,%6\n\tmul.s %0,%0,$f3\n\tdiv.s %0,%0,$f2"
         :"+f"(limited),"=r"(table):"f"(tank->drive),"f"(turnFactor),"m"(tank->steering),"m"(tank->width),"m"(tank->vt):"$f2","$f3");
     tank->turn=limited;
-    if(GetMatrixFrom(tank,table)->basis.rows[2].f[2]>0.5f)tank->lastCorrection=D_002DDED0.time;
+    if(GetMatrixFrom(tank,table)->basis.rows[2].f[2]>0.5f)tank->lastCorrection=g_clock.time;
     i=0;
     if(tank->sideCount>0){
         LIMITS*limits=&tank->sides[0].angleLimits;SIDE*side=tank->sides;
@@ -509,7 +507,7 @@ extern "C" void UpdateRobottank(P *tank)
         ENTRY *entry=&tank->entries[k];
         float desired;
         if(tank->drive!=0.0f)desired=entry->steering*tank->steering;else desired=0.0f;
-        entry->tilt=SmoothAngle__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.deltaTime,D_002C2098,0);
+        entry->tilt=SmoothAngle__FfffP3SMPPf(entry->tilt,desired,g_clock.deltaTime,D_002C2098,0);
     }
     i=0;
     qword currentPosition=GetLoWorldPos(tank);
@@ -578,7 +576,7 @@ extern "C" void UpdateRobottank(P *tank)
         }while(i<tank->attachCount);
     }
     if(tank->sound){
-        tank->soundRate=SmoothValue__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,D_002DDED0.deltaTime,D_002C20A8,0);
+        tank->soundRate=SmoothValue__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,g_clock.deltaTime,D_002C20A8,0);
         float rate=Clamp(tank->soundRate,0.2f,1.0f);
         SetSndVolume(tank->sound,rate);
         SetSndPitch(tank->sound,rate*0.2f);
@@ -746,7 +744,6 @@ namespace RO_ORDER { extern const float r_D_002A7810 __asm__("D_002A7810") = 3.4
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D22D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3];
 qword GetLoWorldPos(LO *plo);
@@ -758,7 +755,7 @@ CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
     CID108 *best = 0;
     CID108 *apickup[16];
     qword pos = GetLoWorldPos(tank);
-    int n = FindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, apickup);
+    int n = FindSwObjectsByClass(&g_sw, 0x105, 0x6C, 0, 0x10, apickup);
     float fMin = D_002A7810;
     int i;
     for (i = 0; i < n; i++) {
@@ -920,7 +917,6 @@ struct P : PO {
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];
     P *target; void *navigator; PATH *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
 };
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DA0, D_002A2DC0; }
 extern "C" float D_002C20E8;
 extern "C" float D_002C20EC;
@@ -1074,7 +1070,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         tank->drive = 0.0f;
         tank->goalHeading = tank->heading;
         tank->wheelAngle = atan2f(QwordY(delta), QwordX(delta));
-        if (tank->nextAttack < D_002DDED0.time) {
+        if (tank->nextAttack < g_clock.time) {
             ATTACH *attach = FindReadyRobottankWeapon(tank);
             if (attach) {
                 if (attach->mesh) {
@@ -1089,7 +1085,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                 }
             fire:
                 SetSmaGoal(attach->binding, 0x68);
-                float t = D_002DDED0.time;
+                float t = g_clock.time;
                 tank->nextAttack = t + RandomFloatInRange__Fff(1.0f, 1.5f);
             }
         }
@@ -1112,7 +1108,7 @@ extern "C" void UpdateRobottankAi(P *tank)
         break;
     }
 
-    if (D_002DDED0.time > tank->nextAttack) {
+    if (g_clock.time > tank->nextAttack) {
         for (int i = 0; i < tank->attachCount; i++) {
             ATTACH *attach = tank->attachments[i];
             if (!HasRobottankWeaponAmmo(attach))
@@ -1131,7 +1127,7 @@ extern "C" void UpdateRobottankAi(P *tank)
                     continue;
             }
             SetSmaGoal(attach->binding, 0x68);
-            float t = D_002DDED0.time;
+            float t = g_clock.time;
             tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.min, attach->fireInterval.maxValue);
         }
     }
@@ -1199,7 +1195,6 @@ struct P : LO {
     char pad55C[0x64]; float lastCorrection;
 };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const qword D_002A2DC0, D_002A2DD0; }
 extern "C" POLY D_002C2100;
 extern "C" POLY D_002C2120;
@@ -1279,7 +1274,7 @@ static inline float ClampTo(float v, const LIMITS &l) { return Clamp(v, l.low, l
 extern "C" void PresetRobottankAccel(P *tank)
 {
     PresetSoAccel(tank);
-    if (D_002DDED0.time - tank->lastCorrection > 3.0f) {
+    if (g_clock.time - tank->lastCorrection > 3.0f) {
         M3 reset;
         TiltMatUpright(GetLoWorldMatrix(tank), 0, &reset);
         AccelSoTowardMatSpring(tank, &reset, &D_002C2100, D_002A2DD0, 0);
@@ -1315,7 +1310,7 @@ extern "C" void PresetRobottankAccel(P *tank)
         } while (++i < tank->count);
     }
     float budget = StdMin(D_002C2140, tank->contactScale * total / tank->physics->mass);
-    CLOCK *clock = &D_002DDED0;
+    CLOCK *clock = &g_clock;
     qword origin = tank->primary->velocity.q;
     velocity.q = ScalarBits(*(const int *)&clock->deltaTime);
     scalar.q = AddScaled(origin, tank->primary->acceleration.q, velocity.q);
@@ -1344,7 +1339,7 @@ extern "C" void PresetRobottankAccel(P *tank)
         minimum = -ClampTo(Evaluate(tank->traction, Clamp(-fraction, 0.0f, 1.0f)), tank->limits);
         maximum = tank->reverseLimit;
     }
-    dtv.q = TimeStep(D_002DDED0);
+    dtv.q = TimeStep(g_clock);
     phase.impulse.acceleration.q = VuDivByX(VuSub(desired.q, velocity.q), dtv.q);
     phase.impulse.acceleration.bits[2] = 0;
     phase.impulse.acceleration.f[0] = Clamp(phase.impulse.acceleration.f[0], minimum, maximum);
@@ -1402,8 +1397,6 @@ struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };
 struct WHEEL { char pad0[0x20]; float radius, bottom, top; char pad2C[0x24]; qword pos; };
 struct CONTACT;
-struct GAME;
-extern "C" { extern GAME D_003DD490; }
 extern "C" { extern const qword D_002A2DC0; }
 extern "C" { extern const qword D_002C2150[5]; }
 /* VU_FLOAT's mfc1 is partially redundant in the ray pass, so gcse PRE hoists the radius/height conversions to the
@@ -1424,7 +1417,7 @@ void *AllocFromStack(SWALLOC *);
 int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **);
 int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);
 qword TransformPlane(M4 *, qword);
-void AddXp(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
+void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
 }
 
 // Helpers GetMatrix, PvAllocStack, ClearAb, Sqrt (small asm wrappers/accessors shaped for the match).
@@ -1694,7 +1687,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
         qword world = Transform(frame, bestPoint).q;
         VECTOR normal;
         normal.q = plane;
-        AddXp(&D_003DD490, owner->shape, ppart, world, normal.q, 10, 0, 0, ppcontact, best);
+        AddXp(&g_sw, owner->shape, ppart, world, normal.q, 10, 0, 0, ppcontact, best);
     }
 }
 } // namespace M_func_001D3450
@@ -1778,7 +1771,6 @@ typedef struct {
     float elasticity;
     float friction;
 } OBJ;
-extern char D_003DD490[];
 extern const LONGU D_002A7840;
 void AdjustSoNewXp(void *, OBJ *, int);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -1809,7 +1801,7 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
         contact->friction = 0.1f;
     }
     if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
-        EnsureSwCallback(D_003DD490, tank, D_002A7840.l, other);
+        EnsureSwCallback(&g_sw, tank, D_002A7840.l, other);
 }
 } } // namespace M_AdjustRobottankNewXp
 
@@ -1842,8 +1834,6 @@ struct CONTACT{char pad[0x90];float height;};
 struct ENTRY{int unknown;NODE*node;CONTACT*contacts;char padC[8];float tilt,speed,angle,radius;char pad24[12];float x,y;char pad38[0x20];float height;char pad5C[4];};
 struct P;
 struct P{char pad[0xC];VTE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
-extern "C" { extern CLOCK D_002DDED0; }
-extern "C" { extern SW D_003DD490; }
 extern "C" { extern qword D_002A2DC0,D_002A2DB0; }
 extern "C" { extern char D_002C21A0[],D_002C21B0[],D_002C21C0[]; }
 extern "C" float D_002C21CC;
@@ -1882,7 +1872,7 @@ extern "C" void RenderRobottankSelf(P*tank){
    float height;
    if(hit){float limit=e->height+hit->height;if(point.f[2]<limit){point.f[2]=limit;goto heightDone;}height=limit;}
    else height=e->height;
-   (void)SmoothValue__FfffP3SMPPf(point.f[2],height,D_002DDED0.deltaTime,D_002C21A0,0);point.f[2]=height;
+   (void)SmoothValue__FfffP3SMPPf(point.f[2],height,g_clock.deltaTime,D_002C21A0,0);point.f[2]=height;
   }
   heightDone:;
   point.q=TransformXfPos(tank->space,e->node->parent,point.q);
@@ -1890,15 +1880,15 @@ extern "C" void RenderRobottankSelf(P*tank){
   if(hit){
    float current=velocity.f[0]/e->radius;
    if((0.0f<desired&&current<D_002C21CC*desired)||(desired<0.0f&&D_002C21CC*desired<current))
-    e->speed=SmoothValue__FfffP3SMPPf(e->speed,D_002C21CC*desired,D_002DDED0.deltaTime,D_002C21B0,0);
+    e->speed=SmoothValue__FfffP3SMPPf(e->speed,D_002C21CC*desired,g_clock.deltaTime,D_002C21B0,0);
    else e->speed=current;
   }else{
-   float dt=D_002DDED0.deltaTime;
+   float dt=g_clock.deltaTime;
    void*table;
    if(FpuAbs(e->speed)<FpuAbs(desired))table=D_002C21B0;else table=D_002C21C0;
    e->speed=SmoothValue__FfffP3SMPPf(e->speed,desired,dt,table,0);
   }
-  float dt=D_002DDED0.deltaTime;
+  float dt=g_clock.deltaTime;
   e->angle=NormalizeAngle__Ff(e->angle+e->speed*dt);
   basis=Mul(Rotation(D_002A2DC0,e->tilt),Rotation(D_002A2DB0,e->angle));
   NODE*node=e->node;
@@ -1908,7 +1898,7 @@ extern "C" void RenderRobottankSelf(P*tank){
   node->matrix.basis.r[1].f[3]=0.0f;
   node->matrix.basis.r[0].f[3]=0.0f;
   node->matrix.basis.r[2].f[3]=0.0f;
-  register int generation=++D_003DD490.transformStamp;
+  register int generation=++g_sw.transformStamp;
   e->node->generation=generation;
  }
  UpdateSoXfWorldMatrices(tank);RenderSoSelf(tank);
@@ -2059,7 +2049,6 @@ int TakeRobottankDamage(P *tank, EVENT *event)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRobottankState { extern "C" {
-extern CLOCK D_002DDED0;
 struct OBJ : PO {
     int state;
     float t;
@@ -2110,7 +2099,7 @@ void SetRobottankState(OBJ *tank, int n)
         break;
     }
     tank->state = n;
-    tank->t = D_002DDED0.time;
+    tank->t = g_clock.time;
     switch (n) {
     case 0: {
         WIDGET *pw2 = tank->pw;
@@ -2143,7 +2132,7 @@ extern "C" void SetRobottankTactic(ROBOTTANK *tank, int nState)
 {
     if (nState != tank->tactic) {
         tank->tactic = nState;
-        tank->tacticTime = D_002DDED0.time;
+        tank->tacticTime = g_clock.time;
     }
 }
 
@@ -2392,14 +2381,13 @@ void CID108::Update()
 }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetRcPickupState { extern "C" {
-extern CLOCK D_002DDED0;
 extern int D_002C2248[];
 void SetSmaGoalIfReachable(SMA *psma, int n);
 // Pickup state with time; SMA goal from D_002C2248[state]. (inferred)
 void SetRcPickupState(CID108 *pickup, int n) {
     if (n == pickup->state) return;
     pickup->state = n;
-    pickup->stateTime = D_002DDED0.time;
+    pickup->stateTime = g_clock.time;
     if (pickup->psma && n != -1) SetSmaGoalIfReachable(pickup->psma, D_002C2248[n]);
 }
 } } // namespace M_SetRcPickupState

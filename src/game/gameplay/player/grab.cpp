@@ -31,6 +31,8 @@
 #include "player_input.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/clock.h"
+#include "sly2/game.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -45,7 +47,6 @@ extern "C" {
 void InitGait(GAIT *pgait, STEPPLAYER *pstepplayer, int n);
 void ResetJtHands(JTHANDS *phands);
 }
-extern CLOCK D_002DDED0;
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 
 /* Hand-made LO virtual calls (g++ 2.95 vtable entries {delta, pfn}; the vtable pointer is at +0xC). */
@@ -311,7 +312,6 @@ struct JOY { char pad0[0x1C]; float amount; char pad20[0x10]; uint buttonsHeld; 
 struct SURF;
 struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
 struct XP;
-struct SW;
 struct ASEGA;
 struct GEOM { int numPositions; qword *positions; };
 struct SO {
@@ -334,8 +334,6 @@ struct SWALLOC { int cb, cbAlign; };
 struct VU_FLOAT { qword q; };
 
 extern "C" {
-extern SW D_003DD490;                                   // the world
-extern CLOCK D_002DDED0;                                // g_clock
 extern uint D_002DFBC4;
 extern qword D_002A2DC0;                                // (0, 0, 1)
 extern float D_002BF5B0;
@@ -411,7 +409,7 @@ static inline void ProbeGround(CONTEXT *p)
     qword posEnd = VuAdd(posBase, ScaleVec(D_002A2DC0, VuFloat(&D_002BF5B0)));
     int cso;
     SO **apso;
-    IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
+    IntersectSwBoundingBox(&g_sw, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++) {
         int clsg = ClipEdgeToObject(apso[i], posBase, posEnd, 8, alsg);
         LSG *plsg = alsg;
@@ -425,7 +423,7 @@ static inline void ProbeGround(CONTEXT *p)
     UpdateSoPartGeom(psoSelf);
     qword posMin = VecMinArray(pgeom->numPositions, pgeom->positions);
     qword posMax = VecMaxArray(pgeom->numPositions, pgeom->positions);
-    IntersectSwBoundingBox(&D_003DD490, posMin, posMax, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
+    IntersectSwBoundingBox(&g_sw, posMin, posMax, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++)
         if (cbspMax <= apso[i]->cbsp)
             cbspMax = apso[i]->cbsp;
@@ -437,18 +435,18 @@ static inline void ProbeGround(CONTEXT *p)
         SO *so = apso[i];
         XP *xp = 0;
         if (so->flags & (1UL << 49)) {
-            MarkSoContactsSphereBsp(&D_003DD490, so, psoSelf, 0, 0, &xp);
+            MarkSoContactsSphereBsp(&g_sw, so, psoSelf, 0, 0, &xp);
         } else {
             int cbspLeft = cbspMax;
             BSP *pbsp = absp;
             if (PruneBspBySphere(so->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
                 int cbsp = pbsp - absp;
                 pbsp--;
-                MarkSoContactsBspBsp(&D_003DD490, psoSelf, so, cbsp, so->absp, pbsp, &xp);
+                MarkSoContactsBspBsp(&g_sw, psoSelf, so, cbsp, so->absp, pbsp, &xp);
             }
         }
         if (xp) {
-            FreeSwXpList(&D_003DD490, xp);
+            FreeSwXpList(&g_sw, xp);
             return;
         }
     }
@@ -465,7 +463,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
         step = grab->step;
         switch (grab->action) {
         case 1:
-            if (0.15f < D_002DDED0.time - grab->tHold && ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.25f)) {
+            if (0.15f < g_clock.time - grab->tHold && ConsumeButtonsPressedWithin__5POCTLUif(joy, BUTTON_JUMP, 0.25f)) {
                 SetJtAirJump(&AsStepplayer(grab->pactor)->jtair, 7, 0, grab->pactorFocus);
                 break;
             }
@@ -515,7 +513,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
         case 10:
             if (!grab->pactor->pasega || IsAsegaRetracted(grab->pactor->pasega)) {
                 SetControl(grab->pactor, 0);
-            } else if (D_002BF5B8 < D_002DDED0.time - grab->tStamp) {
+            } else if (D_002BF5B8 < g_clock.time - grab->tStamp) {
                 if (0.0f < grab->pactor->pjoy->amount || (grab->pactor->pjoy->buttonsHeld & 0xD0)) {
                     SetControl(grab->pactor, 0);
                     return;
@@ -626,7 +624,6 @@ struct CONTEXT {
 struct VU_FLOAT { qword q; };
 
 extern "C" {
-extern CLOCK D_002DDED0;
 extern ACTOR *D_002E1E40;
 extern qword D_002A2DA0;                    // (1, 0, 0, 0)
 extern float D_002BF5BC;
@@ -757,7 +754,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         smp.slowSpeed = 0.0f;
         smp.fastDuration = 0.3f;
         U vel;
-        PosSmooth(pos.q, goal.q, D_002DDED0.deltaTime, &smp, &vel);
+        PosSmooth(pos.q, goal.q, g_clock.deltaTime, &smp, &vel);
         float lateral;
         qword offset;
         if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 38)) {
@@ -783,8 +780,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             FOCUS *focus;
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12) && !(focus = ctx->focus)->cyclic) {
                 float lo, hi;
-                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, D_002DDED0.deltaTime, &smp, &lo);
-                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, D_002DDED0.deltaTime, &smp, &hi);
+                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMinDistance(focus) + 30.0f, g_clock.deltaTime, &smp, &lo);
+                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 30.0f, g_clock.deltaTime, &smp, &hi);
                 s = Clamp(lateral, lo, hi);
             } else {
                 s = lateral;
@@ -916,10 +913,10 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (focus->cyclic) {
                 limit = smp.fastSpeed;
             } else if (ctx->reversed) {
-                SmoothValue__FfffP3SMPPf(ctx->value, 50.0f, D_002DDED0.deltaTime, &smp, &limit);
+                SmoothValue__FfffP3SMPPf(ctx->value, 50.0f, g_clock.deltaTime, &smp, &limit);
                 limit = -limit;
             } else {
-                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 50.0f, D_002DDED0.deltaTime, &smp, &limit);
+                SmoothValue__FfffP3SMPPf(ctx->value, GetShapeMaxDistance(focus) - 50.0f, g_clock.deltaTime, &smp, &limit);
             }
             float ratio = (limit - smp.slowSpeed) / (smp.fastSpeed - smp.slowSpeed);
             float amount = joy->amount;
@@ -963,7 +960,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 ACTOR *actor = ctx->actor;
                 float turn = -actor->velocity.f[1] / D_002BF5CC;
                 actor->velocity.q = ScaleVecX(D_002A2DA0, DotVec(actor->velocity.q, D_002A2DA0));
-                SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * D_002DDED0.deltaTime);
+                SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * g_clock.deltaTime);
             } else {
                 SetJtGrabKind(ctx, 9);
             }
@@ -1034,7 +1031,6 @@ struct P {
     struct O *x0; float x4; int x8; int pad0c[2]; int x14; int x18; char pad[0x440-0x1C]; char x440[0x4C4-0x440];
     int x4c4; char pad2[0x500-0x4C8]; int x500;
 };
-extern CLOCK D_002DDED0;
 void SetJtGrabKind(struct P *p, int n);
 void SetJtCaneState__FP2JTi(struct O *o, int n);
 void UpdateJtCane__FP2JT(struct O *o);
@@ -1046,7 +1042,7 @@ void SetJtGrabState(struct P *grab, int n, int a, int b)
 {
     SetJtGrabKind(grab, -1);
     grab->x8 = n;
-    grab->x4 = D_002DDED0.time;
+    grab->x4 = g_clock.time;
     grab->x18 = b;
     grab->x14 = a;
     ((void (*)(void *, int))grab->x0->vt[88].pfn)((char *)grab->x0 + grab->x0->vt[88].d, 2);
@@ -1098,7 +1094,6 @@ qword GetLoWorldPos(void *p);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int k);
 void FilterDetectorLineOfSightHit(void);
-extern char D_003DD490[];
 extern float D_002BF638;
 }
 struct E { int x0; int x4; };
@@ -1132,7 +1127,7 @@ void ClearJtDetectionOutOfSight(P *p)
         }
         SCOPEDIJ x;
 
-        IntersectSwBoundingBox(D_003DD490, a, b, (void *)FilterDetectorLineOfSightHit, o, &x.i, &x.j);
+        IntersectSwBoundingBox(&g_sw, a, b, (void *)FilterDetectorLineOfSightHit, o, &x.i, &x.j);
         if (!FindFirstObjectHitByLine(0, a, b, x.i, x.j, 0)) continue;
         SetDetectorTargetState(o->xf64, e, 0);
     }
@@ -1200,7 +1195,6 @@ struct VU_FLOAT { qword q; };
 union U { qword q; float f[4]; int i[4]; };
 
 extern "C" {
-extern CLOCK D_002DDED0;          // g_clock
 extern ACTOR *D_002E1E40;         // the player
 extern ACTOR *D_002F7900;
 extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002BF650;
@@ -1382,7 +1376,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             break;
         }
         grab->previous = -1;
-        grab->pactor->tStamp = D_002DDED0.time;
+        grab->pactor->tStamp = g_clock.time;
         break;
     case 7:
         if (Less(step, 11) && !Less(step, 9)) {
@@ -1648,7 +1642,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
         break;
     }
     grab->step = step;
-    grab->tStep = D_002DDED0.time;
+    grab->tStep = g_clock.time;
     if (step == -1)
         return;
     ReleaseAsega(&grab->pactor->animation);
@@ -1664,7 +1658,6 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FJtGrabNearestCandidate { extern "C" {
 struct O { char pad[0x10C]; int x10c; };
-extern SW D_003DD490;
 extern float D_002BF660;
 extern float D_002BF664;
 extern int D_002E1E40;
@@ -1675,7 +1668,7 @@ void SetJtGrabState(struct P *p, int n, struct O *o, GRABSPOT *a);
 // returns nonzero if a grab started. Runtime: CID27 gives state 8, CID12/34 state 0, rails state 3.
 int TryGrabJtNearestCandidate(struct P *p)
 {
-    SW *g = &D_003DD490;
+    SW *g = &g_sw;
     int n = g->cjtgrabcand;
     int i;
     for (i = 0; i < n; i++) {
@@ -1715,7 +1708,6 @@ struct T {char pad[0x18];float x18,x1C;};
 struct O : SO { struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
-extern CLOCK D_002DDED0;
 extern float D_002BF668;
 extern qword D_002A2DC0,D_002A2DD0;
 void EvaluateShapeAtParam(struct CURVE*,float,qword*,qword*);
@@ -1753,8 +1745,8 @@ void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *ou
     smp.slowSpeed = p->x260;
     smp.fastSpeed = p->x2A0;
     smp.fastDuration = D_002BF668;
-    (void)SmoothValue__FfffP3SMPPf(current, 50.0f, D_002DDED0.deltaTime, &smp, &low);
-    (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, D_002DDED0.deltaTime, &smp, &high);
+    (void)SmoothValue__FfffP3SMPPf(current, 50.0f, g_clock.deltaTime, &smp, &low);
+    (void)SmoothValue__FfffP3SMPPf(current, GetShapeMaxDistance(curve) - 50.0f, g_clock.deltaTime, &smp, &high);
     {
         float hi = high;
         *outPos = VuSub(pos.q, p->o->pos);
@@ -1945,7 +1937,7 @@ extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *grab, HFDK hfdk)
 {
     if (hfdk == grab->hfdk) return;
     grab->hfdk = hfdk;
-    grab->tHfdk = D_002DDED0.time;
+    grab->tHfdk = g_clock.time;
     grab->uFlattenClamp = 0;
     switch (hfdk) {
     case 3:
@@ -1992,7 +1984,6 @@ struct E8 { char pad[0x80]; qword x80; };
 struct O : LO { char pad2[0xE8-0x50]; struct E8 *xe8; };
 struct S { char pad[0x1BC]; int x1bc; float x1c0; float x1c4; };
 struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; float x1c; };
-extern CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
 void EvaluateShapeAtParam(struct S *s, U *position, U *direction, float g);
@@ -2050,13 +2041,13 @@ void PresetJtAccelHide(struct P *p)
             int bits;
             goal = s->x1c0;
             __asm__("qmfc2.ni %0,%1" : "=r"(bits) : "j"(direction));
-            dt = D_002DDED0.deltaTime;
+            dt = g_clock.deltaTime;
             __asm__ __volatile__("mtc1 %1,%0" : "=f"(d2) : "r"(bits));
         }
     }
     (void)SmoothValue__FfffP3SMPPf(d1, goal, dt, psmp, &a);
     }
-    (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, D_002DDED0.deltaTime, psmp, &b);
+    (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, g_clock.deltaTime, psmp, &b);
     x = Clamp(s->x1c4 * d2, b, a) - d2;
     qword kq, rq;
     __asm__("qmtc2.ni %1, %0" : "=j"(kq) : "r"(x));
@@ -2240,7 +2231,6 @@ extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-extern "C" { extern CLOCK D_002DDED0; }
 
 
 
@@ -2370,7 +2360,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     MoveJtGrabCands(&candidates[i + 1], &candidates[i], (ccandMax - i) * sizeof(JTGRABCAND) - sizeof(JTGRABCAND));
     cand.object = lo;
     cand.grabSpot = spot;
-    cand.unknown14 = D_002DDED0.time;
+    cand.unknown14 = g_clock.time;
     cand.unknown10 = 0;
     cand.dsParam = 0.0f;
     candidates[i] = cand;
@@ -2411,7 +2401,6 @@ void EmitJtGrabSparkles(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND 
 
 
 
-extern "C" { extern SW D_003DD490; }
 
 
 
@@ -2465,49 +2454,49 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     qword qwPosJt = PosLoWorld(player);
     if (grf & 8)
     {
-        DL *pdlpcid12 = &D_003DD490.dlCid12;
+        DL *pdlpcid12 = &g_sw.dlCid12;
         for (CID12 *pcid12 = (CID12 *)pdlpcid12->head; pcid12; pcid12 = (CID12 *)pcid12->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid12, pcid12, 4, candidates);
     }
     if (grf & 0x10)
     {
-        DL *pdlpcid34 = &D_003DD490.dlCid34;
+        DL *pdlpcid34 = &g_sw.dlCid34;
         for (CID34 *pcid34 = (CID34 *)pdlpcid34->head; pcid34; pcid34 = (CID34 *)pcid34->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid34, pcid34, 4, candidates);
     }
     if (grf & 0x80)
     {
-        DL *pdlpcid35 = &D_003DD490.dlCid35;
+        DL *pdlpcid35 = &g_sw.dlCid35;
         for (CID35 *pcid35 = (CID35 *)pdlpcid35->head; pcid35; pcid35 = (CID35 *)pcid35->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid35, pcid35, 4, candidates);
     }
     if (grf & 4)
     {
-        DL *pdlpcid27 = &D_003DD490.dlCid27;
+        DL *pdlpcid27 = &g_sw.dlCid27;
         for (CID27 *pcid27 = (CID27 *)pdlpcid27->head; pcid27; pcid27 = (CID27 *)pcid27->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid27, pcid27, 4, candidates);
     }
     if (grf & 0x400)
     {
-        DL *pdlpcid39 = &D_003DD490.dlCid39;
+        DL *pdlpcid39 = &g_sw.dlCid39;
         for (CID39 *pcid39 = (CID39 *)pdlpcid39->head; pcid39; pcid39 = (CID39 *)pcid39->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid39, pcid39, 4, candidates);
     }
     if (grf & 0x200)
     {
-        DL *pdlpcid13 = &D_003DD490.dlCid13;
+        DL *pdlpcid13 = &g_sw.dlCid13;
         for (CID13 *pcid13 = (CID13 *)pdlpcid13->head; pcid13; pcid13 = (CID13 *)pcid13->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid13, pcid13, 4, candidates);
     }
     if (grf & 2)
     {
-        DL *pdlpcid11 = &D_003DD490.dlCid11;
+        DL *pdlpcid11 = &g_sw.dlCid11;
         for (CID11 *pcid11 = (CID11 *)pdlpcid11->head; pcid11; pcid11 = (CID11 *)pcid11->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid11, pcid11, 4, candidates);
     }
     if (grf & 1)
     {
-        DL *pdlTarget = &D_003DD490.dlTarget;
+        DL *pdlTarget = &g_sw.dlTarget;
         for (TARGET *target = (TARGET *)pdlTarget->head; target; target = (TARGET *)target->targetListLink.next)
         {
             if ((target->targetKindFlags & 1) && IsBasicDerivedFrom(target, (CID)19))
@@ -2516,14 +2505,14 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     }
     if (grf & 0x20)
     {
-        DL *pdlpcid38 = &D_003DD490.dlCid38;
+        DL *pdlpcid38 = &g_sw.dlCid38;
         for (CID38 *pcid38 = (CID38 *)pdlpcid38->head; pcid38; pcid38 = (CID38 *)pcid38->dle.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid38, pcid38, 4, candidates);
     }
     int ccand;
     for (ccand = 4; ccand > 0 && !candidates[ccand - 1].object; ccand--)
         ;
-    SW *pswG = &D_003DD490;
+    SW *pswG = &g_sw;
     EmitJtGrabSparkles(pswG, player, ccand, candidates);
     UpdateJtGrabCandidates(pswG, player, ccand, candidates);
     int idHintOld = GetHintBoxTextId(&D_003DA0C0);
@@ -2541,15 +2530,15 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
         if (proxy && proxy->oid == 0x624 && D_002BF70C < pswG->ajtgrabcand[0].unknown14)
             idHint = 0x125;
         else
-            idHint = D_003DD490.ajtgrabcand[0].grabSpot->nUnk14;
+            idHint = g_sw.ajtgrabcand[0].grabSpot->nUnk14;
     }
     if (idHint == idHintOld)
         return;
     if (idHint == -1)
-        CancelNotice(&D_003DA0C0, D_003DD490.idHintGrab);
+        CancelNotice(&D_003DA0C0, g_sw.idHintGrab);
     else
         PostNotice(&D_003DA0C0, idHint, -1.0f);
-    D_003DD490.idHintGrab = idHint;
+    g_sw.idHintGrab = idHint;
 }
 } // namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi
 
@@ -2592,13 +2581,11 @@ struct JTGRABCAND {
 };
 
 extern "C" {
-extern CLOCK D_002DDED0;
 int D_002E1E4C;   /* .bss order: file-scope plain objects are emitted first, in first-declaration order */
 int D_002E1E50;
 extern float D_002BF710;
 extern float D_002BF714;
 extern SMP D_002BF718;
-extern char D_002DEB30[];
 int CompareJtGrabCandidates(const void *, const void *);   // JTGRABCAND compare for qsort
 void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort
 void *memmove(void *dst, const void *src, uint cb);   // memmove
@@ -2663,7 +2650,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                         }
                     }
                     if (D_002E1E50) {
-                        float dt = D_002DDED0.deltaTime;
+                        float dt = g_clock.deltaTime;
                         float dsPrev = oldCandidate->dsParam;
                         float dsNew = dsPrev + dt * ((pcand->spotDistance - oldCandidate->spotDistance) * D_002BF710 + (pcand->dsParam - dsPrev) * D_002BF714);
                         float dsAvg;
@@ -2671,7 +2658,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                         dsAvg = (dsPrev + dsNew) * 0.5f;
                         oldCandidate->spotDistance = oldCandidate->spotDistance + dt * dsAvg;
                     } else {
-                        oldCandidate->spotDistance = SmoothValue__FfffP3SMPPf(oldCandidate->spotDistance, pcand->spotDistance, D_002DDED0.deltaTime, &D_002BF718, &oldCandidate->dsParam);
+                        oldCandidate->spotDistance = SmoothValue__FfffP3SMPPf(oldCandidate->spotDistance, pcand->spotDistance, g_clock.deltaTime, &D_002BF718, &oldCandidate->dsParam);
                     }
                     if (fWrap) {
                         if (asRange[1] < oldCandidate->spotDistance)
@@ -2699,7 +2686,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
             pcand->unknown10 = plo;
         }
         ((JTGRABCAND *)world->ajtgrabcand)[world->cjtgrabcand++] = *pcand;
-        BroadcastGameEvent(D_002DEB30, 0x3D, pcand->object);
+        BroadcastGameEvent(&g_game, 0x3D, pcand->object);
     }
     qsort(ajtgrabcandOld, world->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
 }
@@ -2758,11 +2745,9 @@ struct JTGRABCAND
     qword position;
 };
 struct PRG;
-struct SW;
 struct STEPPLAYER { char pad0[0x12F8]; EMITTER *pemitterGrab; };
 
 extern "C" {
-extern CLOCK D_002DDED0;    // g_clock
 float RandomFloatInRange__Fff(float gMin, float gMax);                    // RandomFloatInRange
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");          // memset
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *pemitb, EMITG *pemitg, int cpart, QWROW *apos, QWROW *av, float *atBirth, float *atDeath,
@@ -2816,7 +2801,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
 
         if (candidate->priority == -1)
             continue;
-        g = pemitter->rate.maxValue * D_002DDED0.deltaTime;
+        g = pemitter->rate.maxValue * g_clock.deltaTime;
         gRand = RandomFloatInRange__Fff(0.0f, 1.0f);
         c = (int)g;
         g -= (float)c;
@@ -2831,7 +2816,7 @@ void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER 
             s = VU_FLOAT(RandomInRange(&pemitp->lmSpeed));
             VU_VECTOR vs = s * v;
             vScaled.q = vs.q;
-            float tBirth = D_002DDED0.time;
+            float tBirth = g_clock.time;
             tBirth -= RandomInRange(&pemitp->lmAge);
             atBirth[cpart] = tBirth;
             atDeath[cpart] = tBirth + pemitp->lifetime;

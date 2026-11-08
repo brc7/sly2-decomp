@@ -23,6 +23,7 @@
 #include "sly2/clock.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/game.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -50,7 +51,6 @@ void OnStepplayerHeroDied(STEPPLAYER *pstepplayer);
 extern int D_002E1E00;
 int IsSwHandsOff(SW *psw);
 }
-extern SW D_003DD490;
 
 // Initializes the player's hurt/zap context (STEPPLAYER+0xDF0): owner, state -1, status -1, 2.0 s default and a
 // count of 0x28.
@@ -85,7 +85,6 @@ struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;
 struct POLY{float a,b,c;};
 struct LIMIT{float lo,hi;};
 extern "C"{
- extern CLOCK D_002DDED0;
  extern U D_002A2DD0;
  // hurt's .data starts here (address order across the namespaces below). This namespace has no extern "C" block, so
  // the definitions carry it themselves (C symbols).
@@ -233,7 +232,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
             actor->second->inner->value->value.Clear();
         }
         hurt->actor->frozen = 1;
-        hurt->changed = D_002DDED0.time;
+        hurt->changed = g_clock.time;
         break;
     case 8: {
         qword moving = Vector(hurt->actor);
@@ -316,7 +315,7 @@ extern "C" void SetJtHurtState(C *hurt, int next)
     }
     InvalidateSoAaox(hurt->actor);
     hurt->mode = next;
-    hurt->time = D_002DDED0.time;
+    hurt->time = g_clock.time;
     if (next == -1)
         return;
     if (!clip)
@@ -359,7 +358,6 @@ struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; floa
 struct P { struct O *o; int state; };
 extern "C" qword D_002A2DD0;
 extern "C" float D_002BFA90[3];   /* the zap spring */
-extern "C" struct CLOCK D_002DDED0;
 
 extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
 // Broadcast g into a VU0 register and store it to u.
@@ -386,7 +384,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
   AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
   if(p->o->f198!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;
-   u.f[2]=(-p->o->f198-v.f[2])/D_002DDED0.deltaTime;
+   u.f[2]=(-p->o->f198-v.f[2])/g_clock.deltaTime;
    p->o->Set(u.q);
   }
   break;
@@ -414,7 +412,6 @@ typedef int qword __attribute__((mode(TI)));
 struct LO;
 struct LO { int x0, x4, x8; VTE *vt; char pad10[0xD0 - 0x10]; float xD0; char padD4[0x1A8 - 0xD4]; float x1A8; char pad1AC[0x208 - 0x1AC]; int x208; };
 struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
-extern struct CLOCK D_002DDED0;
 extern float D_002BFAA0[3];
 extern float D_002BFAB0[3];
 extern float D_002BFAC0[3];
@@ -435,7 +432,7 @@ void UpdateJtActiveZap(struct S *s)
         float w;
         float a;
         if (s->x4 == -1) {
-            float dt = D_002DDED0.time - s->x98;
+            float dt = g_clock.time - s->x98;
             if (s->x9C < dt) {
                 s->x90 = -1;
                 s->po->xD0 = 0.0f;
@@ -446,7 +443,7 @@ void UpdateJtActiveZap(struct S *s)
         } else {
             u = 0.0f;
         }
-        w = cosf((D_002DDED0.time - s->x94) * 10.0f);
+        w = cosf((g_clock.time - s->x94) * 10.0f);
         a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
         s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
     }
@@ -459,8 +456,8 @@ done:
         float g;
         v.q = ((qword (*)(struct LO *))s->po->vt[33].pfn)((struct LO *)((char *)s->po + s->po->vt[33].d));
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
-        SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.deltaTime));
-        if (0.25f < D_002DDED0.time - s->x8 && s->po->x208)
+        SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, g_clock.deltaTime));
+        if (0.25f < g_clock.time - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
         else if (IsJtStuck(s->po, 0, s->x8))
             RunJtHurtCallback(s);
@@ -659,9 +656,7 @@ struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;c
  void Finish() __asm__("ReturnJtToSafePlaceCallback");
 };
 extern "C"{
- extern CLOCK D_002DDED0;
- extern char D_002DE578[],D_002DEB30[];
- extern SW D_003DD490;
+ extern char D_002DE578[];
  extern qword D_002A2DD0;
  union VQ{float f[4];qword q;};
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
@@ -758,7 +753,7 @@ extern "C" int TakeJtDamage(C *p, RECORD *input)
         if (Add32(*p->counter, delta) > 0) {
             if (p->mode != 1) {
                 p->mode = 0;
-                p->time = p->changed = D_002DDED0.time;
+                p->time = p->changed = g_clock.time;
             }
             *p->counter = Add32(*p->counter, delta);
             if (p->effect)
@@ -783,7 +778,7 @@ notify: {
     W *widget = p->actor->widget;
     if (widget && (widget->count->c || Add32(*p->counter, delta) <= 0))
         DropStepplayerBooty(p->actor);
-    BroadcastGameEvent(D_002DEB30, 0xF, input->object);
+    BroadcastGameEvent(&g_game, 0xF, input->object);
     p->record = *input;
     p->record.delta = delta;
     SetJtHurtCallback(p, 0);
@@ -791,7 +786,7 @@ notify: {
     *p->counter = n >= 0 ? n : 0;
     if (*p->counter > 0) {
         p->mode = 1;
-        p->time = D_002DDED0.time;
+        p->time = g_clock.time;
     }
     switch (input->flags) {
     case 0x100:
@@ -850,7 +845,7 @@ notify: {
     }
 }
 sound:
-    register SW *game __asm__("$16") = &D_003DD490;
+    register SW *game __asm__("$16") = &g_sw;
     qword point = GetLoWorldPos(p->actor);
     STIMK *channel = game->apstimk[6];
     (void)NewNoise(channel, point, p->actor);
@@ -1032,7 +1027,7 @@ extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
         return 1;
     if (D_002E1E00 & 1)
         return 1;
-    if (!IsSwHandsOff(&D_003DD490))
+    if (!IsSwHandsOff(&g_sw))
         goto ret0;
 ret1:
     return 1;
@@ -1082,7 +1077,6 @@ struct EFFECT {char pad[0xC];VTE*vt;};
 struct L {char pad[0xC];VTE*vt;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
 struct HIT {L*target;int pad4;STEPPLAYER*source;int tag,kind;char pad14[0xC];QWROW point,direction;char pad40[0x20];};
 struct MSG {int type;char pad4[0x1C];QWROW position;};
-extern "C" CLOCK D_002DDED0;
 extern "C" qword GetLoWorldPos(LO*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
 extern "C" void*DeliverZapToSo(HIT*);
@@ -1137,12 +1131,12 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
     register QWROW *predpos __asm__("$20") = &predicted.r[3];
     for (; i < player->clorefSplash; i++) {
         LOREF *entry = &player->alorefSplash[i];
-        if (D_002DDED0.time - entry->tLast < 0.05f)
+        if (g_clock.time - entry->tLast < 0.05f)
             continue;
         SO *object = (SO *)entry->plo;
         position.q = GetLoWorldPos(object);
         void *frame = object->GetLocalTransform((MATRIX4 *)pbase);
-        LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.deltaTime);
+        LoadIdentityMatrix4(frame, 0, ppred, 0, g_clock.deltaTime);
         predicted = __ml__FRC7MATRIX4T0(ppred, pbase);
         int crossed = 0;
         if (point.f[2] <= position.f[2]) {
@@ -1157,7 +1151,7 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
             msg.type = 4;
             EFFECT *effect = ((L *)player->pwater)->effect;
             ((void (*)(void *, MSG *))effect->vt[51].pfn)((char *)effect + effect->vt[51].d, &msg);
-            entry->tLast = D_002DDED0.time;
+            entry->tLast = g_clock.time;
         }
     }
 }
@@ -1211,7 +1205,6 @@ int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A28B0 { extern "C" {
-extern struct CLOCK D_002DDED0;
 int ProbeStepplayerSurface(STEPPLAYER *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
 void AddSoWaterAcceleration(STEPPLAYER *p,void *o);
@@ -1250,7 +1243,7 @@ void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
   v=VuScaleByX(v,k);
   accel.q=v;
   origin.q=GetLoWorldPos(player);
-  clock=&D_002DDED0;
+  clock=&g_clock;
   SmoothValueWithAccel__FffffP4SMPAPf(origin.f[2]+player->waterProbe[2],vel.f[2]-dir.f[2],pos.f[2],clock->deltaTime,&player->unknown10A8,&z);
   g=(z-vel.f[2])/clock->deltaTime-player->physics->gravity.z;
   accel.f[2]=accel.f[2]>g?accel.f[2]:g;

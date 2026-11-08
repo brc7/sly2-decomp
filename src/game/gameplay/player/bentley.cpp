@@ -21,6 +21,8 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/game.h"
+#include "sly2/clock.h"
+#include "sly2/sw.h"
 
 // Bentley's state (BENTLEY +0x13D0), switched by SetBentleyState and run by UpdateBentleyStateMachine. Meanings from
 // docs/systems/player.md section 4 except where marked.
@@ -48,7 +50,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* The contact friction field (engine/physics/mark.cpp's XP). */
 struct XP { char pad0[0x94]; float gFriction; };
 
-extern CLOCK D_002DDED0;
 extern "C" {
 /* Bentley's snip table (Sly 1 SNIP {grfsnip, oid, ib}, BindLoOidTable with a count of 0x76), bentley's first .data. */
 struct SNIP { int grfsnip; int oid; int ib; };
@@ -153,7 +154,6 @@ void PostBentleyLoad(BENTLEY *bentley) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBentleyStateMachine { extern "C" {
-extern struct CLOCK D_002DDED0;
 extern float D_002BC930;
 void SetJtAirJump(JTAIR *pv, int a, int b, int c);
 int IsStepplayerNearInteractTarget(BENTLEY *p, int n);
@@ -193,14 +193,14 @@ void UpdateBentleyStateMachine(BENTLEY *p)
         case BENTLEY_GRAB:
             if (p->jtgrab.state == 1 || p->jtgrab.state == 12)
                 break;
-            if (0.1f < D_002DDED0.time - p->unknown20C)
+            if (0.1f < g_clock.time - p->unknown20C)
                 SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         case BENTLEY_NEAR_TARGET:
         case BENTLEY_WALK:
         case BENTLEY_THROW:
         default:
-            if (0.1f < D_002DDED0.time - p->unknown20C)
+            if (0.1f < g_clock.time - p->unknown20C)
                 SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         }
@@ -282,7 +282,7 @@ void UpdateBentleyStateMachine(BENTLEY *p)
                 SetBentleyState(p, BENTLEY_IDLE);
             break;
         case BENTLEY_ADRENALINE:
-            if (D_002BC930 < D_002DDED0.time - p->stateTime)
+            if (D_002BC930 < g_clock.time - p->stateTime)
                 SetBentleyState(p, BENTLEY_IDLE);
             break;
         }
@@ -316,8 +316,6 @@ namespace M_UpdateBentley { extern "C" {
 /* v3 (Claude agent, laneB4, 2026-10-23): aligned 37 -> 17. LenXY as two asms: vmul.xy alone, then vaddy.x+vsqrt+vwaitq+vaddq.x fused (fixes the extra-instruction offset). */
 /* v2 (Claude agent, 2026-10-23): aligned 42 -> 37. MulT asm operand order: outputs (r, one, t0, t1, t2), inputs (v, r[2], r[1]) gives the target's temp VF numbers (t0 vf7, one vf8, t1 vf6, t2 vf5). Left: r = r[0] lands in vf1 (target vf3; "0"(r[0]) tie same), LenXY: target loads p150 before the vmul and p1030 after vaddq (fused LenXY asm worse, 46-54), the mtc1/add.s nop in case 6. */
 struct POLY { float a; float b; float c; };
-extern struct CLOCK D_002DDED0;
-extern char D_003DD490[];
 extern struct LM D_002BBB60;
 extern float D_002BC934;
 extern struct POLY D_002BC940;
@@ -430,7 +428,7 @@ void UpdateBentley(BENTLEY *bentley)
     UpdateStepplayer(bentley);
     if (((bentley->isInWorld) & 1) == 0)
         return;
-    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, bentley, 0xF8FE);
+    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&g_sw, bentley, 0xF8FE);
     UpdateBentleyJtMode(bentley);
     UpdateBentleyStateMachine(bentley);
     switch (bentley->state) {
@@ -476,7 +474,7 @@ void UpdateBentley(BENTLEY *bentley)
             float z = 0.0f;
             if (z < bentley->controller->leftStickDeflection) {
                 float d = NormalizeAngle__Ff(bentley->controller->leftStickAngle - bentley->targetHeading);
-                SetStepTargetHeading(bentley, bentley->targetHeading + ClampAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.deltaTime));
+                SetStepTargetHeading(bentley, bentley->targetHeading + ClampAbs__Fff(d, g1 * D_002BC960 * g_clock.deltaTime));
             }
             SetVel(bentley, SetVectorCylind(bentley->controller->leftStickAngle + 3.1415927f, g0 * LenXY(bentley->abldirB[1].vRoot) * bentley->activeAnimation->speed, z), bentley->abldirB, bentley->pasegblB);
         }
@@ -503,7 +501,6 @@ void UpdateBentley(BENTLEY *bentley)
 namespace M_SetBentleyState { extern "C" {
 /* The held tossable (classes.h CID100: its slot 76 is not declared there). */
 struct VO { char pad[0xC]; VTE *vt; };
-extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetXfRole(BENTLEY *, XF *, int);
 void ScheduleIdleTimer(BENTLEY *);
@@ -620,7 +617,7 @@ void SetBentleyState(BENTLEY *p, int k)
     c = 4;
     g = 0.0f;
     rate = 1.0f;
-    p->stateTime = D_002DDED0.time;
+    p->stateTime = g_clock.time;
     switch (k) {
     case BENTLEY_IDLE:
         SetXfRole(p, p->positionXf, 1);
@@ -704,7 +701,6 @@ struct LSG { ti128 pos; int pad[0x14]; };
 union VQ { float af[4]; ti128 q; };
 extern VQ D_002BC970;    /* screen points for ConvertCmScreenToWorld */
 extern VQ D_002BC980;
-extern char D_003DD490[];
 ti128 ConvertCmScreenToWorld(void *, ti128);
 struct C *STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
@@ -721,7 +717,7 @@ void UpdateBentleyAimPoint(BENTLEY *bentley) {
     ti128 v1 = ConvertCmScreenToWorld(&g_cm, D_002BC970.q);
     ti128 v2 = ConvertCmScreenToWorld(&g_cm, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
-    IntersectSwBoundingBox(D_003DD490, v1, v2, ShouldKeepSoNotSelf, bentley->physicsTree, &cso, &aso);
+    IntersectSwBoundingBox(&g_sw, v1, v2, ShouldKeepSoNotSelf, bentley->physicsTree, &cso, &aso);
     if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->aimPoint = lsg.pos;
     else bentley->aimPoint = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
@@ -734,7 +730,6 @@ typedef int ti128 __attribute__((mode(TI)));
 /* The launcher (BENTLEY::psoLauncher, CID 112) as written here: its target and a flag. */
 struct Q { char pad[0x50]; ti128 v50; int f60; };
 extern ti128 D_002A2DD0;
-extern float D_002DDED0;
 void UpdateBentleyAimPoint(BENTLEY *);
 SO *AcquireProxyObject(PROXY *, int);
 void LaunchSoFromLauncher(struct Q *, SO *);
@@ -763,7 +758,7 @@ void FireBentleyDart(BENTLEY *bentley, int a) {
     ((SO *)object)->SetAngularVelocity(D_002A2DD0);
     PrimeBomb__FP4BOMBf(object, 4.0f);
     SetBentleyAimState(bentley, 1);
-    bentley->lastDartTime = D_002DDED0;
+    bentley->lastDartTime = g_clock.time;
 }
 } } // namespace M_FireBentleyDart
 
@@ -774,7 +769,7 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
     int state;
     state = bentley->state;
     if (state != 0 && (state != 9) && (bentley->jtgrab.kind != 0)) {
-        bentley->unknown1080 = D_002DDED0.time;
+        bentley->unknown1080 = g_clock.time;
     }
     GetStepplayerCpdefi(bentley, pcpdefi);
     switch (bentley->state) {
@@ -1077,7 +1072,6 @@ void SetBentleySubState(BENTLEY *bentley, int n) {
 namespace M_func_00136118 { extern "C" {
 /* The held tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): state, a stick target and slot 76. */
 struct O { char pad[0xC]; VTE *vt; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
-extern struct CLOCK D_002DDED0;
 int IsAsegaRetracted(ASEGA *pv);
 void SetBentleySubState(BENTLEY *p, int n);
 void StickTossable(struct O *po, int n);
@@ -1108,7 +1102,7 @@ void UpdateBentleySubState(BENTLEY *bentley)
                 ReleaseBentleyHeldObject(bentley);
                 SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if
- (0.1f < D_002DDED0.time - bentley->unknown20C) {
+ (0.1f < g_clock.time - bentley->unknown20C) {
                 SetBentleySubState(bentley, 2);
             } else {
                 SetBentleySubState(bentley, 1);
@@ -1142,7 +1136,7 @@ extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
     if (n == bentley->aimState)
         return;
     bentley->aimState = n;
-    bentley->aimStateTime = D_002DDED0.time;
+    bentley->aimStateTime = g_clock.time;
     if (n == 0) {
         SetBentleyCrosshairState(&bentley->btblends, -1);
     }
@@ -1150,7 +1144,6 @@ extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBentleyAim { extern "C" {
-extern struct CLOCK D_002DDED0;
 extern float D_002BC994;
 int IsStepplayerInJtMode(BENTLEY *p);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *pv, int n, float g);
@@ -1171,7 +1164,7 @@ void UpdateBentleyAim(BENTLEY *bentley)
             if (!IsStepplayerInJtMode(bentley)) {
                 SetBentleyAimState(bentley, -1);
             } else if (bentley->aimState == 1) {
-                if (D_002BC994 < D_002DDED0.time - bentley->lastDartTime)
+                if (D_002BC994 < g_clock.time - bentley->lastDartTime)
                     SetBentleyAimState(bentley, 0);
             } else if (ConsumeButtonsPressedWithin__5POCTLUif(bentley->controller, BUTTON_RUN, 0.25f)) {   // in look mode the run button fires
                 FireBentleyDart(bentley, 0x80000);
@@ -1179,7 +1172,7 @@ void UpdateBentleyAim(BENTLEY *bentley)
             break;
         case -1:
             if (IsStepplayerInJtMode(bentley) && bentley->jtmode.kind != 2) {
-                if (D_002BC994 < D_002DDED0.time - bentley->lastDartTime)
+                if (D_002BC994 < g_clock.time - bentley->lastDartTime)
                     SetBentleyAimState(bentley, 0);
                 else
                     SetBentleyAimState(bentley, 1);
@@ -1210,7 +1203,6 @@ void UpdateBentleyAim(BENTLEY *bentley)
 namespace M_func_00136530 { extern "C" {
 typedef struct { qword r[3]; qword pos; } M4;
 extern MURRAY *D_002F7900;
-extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetLoParent(BENTLEY *, int, int);
 void ReleaseAct(ACT **);
@@ -1250,7 +1242,7 @@ void SetBentleyHoverState(BENTLEY *bentley, int k)
         break;
     }
     bentley->hoverState = k;
-    bentley->hoverStateTime = D_002DDED0.time;
+    bentley->hoverStateTime = g_clock.time;
     pv = bentley->apasegHover[k];
     switch (k) {
     case -1: {
@@ -1420,7 +1412,6 @@ int GetBentleyGadgetFromId(char *bentley, int saak)
 namespace M_StartBentleyGadget { extern "C" {
 /* The spawned tossable (classes.h CID100 has no fields yet): its gadget id and owner. */
 struct O { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *p16C; };
-extern GAME D_002DEB30;
 void BroadcastGameEvent(GAME *pg, int n, BENTLEY *p);
 JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k);
 void SetJtThrowState(JTTHROW *pv, int n);
@@ -1435,8 +1426,8 @@ void StartStepplayerGadget(BENTLEY *p, int k);
 // BENTLEY slot 100: broadcasts game event 0x3C, then per gadget id starts the throw/grab/air action using its record.
 void StartBentleyGadget(BENTLEY *bentley, int k)
 {
-    D_002DEB30.idGadgetLast = k;
-    BroadcastGameEvent(&D_002DEB30, 0x3C, bentley);
+    g_game.idGadgetLast = k;
+    BroadcastGameEvent(&g_game, 0x3C, bentley);
     switch (k) {
     case 4: case 5: case 7: case 9: case 11: case 13: {
         JTPOCKET *pe = GetBentleyGadgetFromId(bentley, k);
@@ -1578,7 +1569,6 @@ void HandleBentleyCrosshairMessage(BTBLENDS *bentley, int msg, struct M *pm) {
 namespace M_func_00136F48 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float a[4]; } QF;
-extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void ChooseJtAttackTarget(BENTLEY *, int, void *, int *, QF *, float, float, float);
 qword ConvertPosBetweenLos(void *, BENTLEY *, qword);
@@ -1600,7 +1590,7 @@ void SetBentleyCrosshairState(BTBLENDS *ps, int state)
         QF v;
         QF r;
         float g;
-        ps->startTime = D_002DDED0.time;
+        ps->startTime = g_clock.time;
         ps->unknown0C = 0;
         ps->unknown10 = 0;
         ps->unknown14 = 0;
@@ -1638,13 +1628,13 @@ void SetBentleyCrosshairState(BTBLENDS *ps, int state)
         break;
     }
     }
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->pbentley, 1, &ps->pasega, D_002DDED0.time - ps->startTime, 1.0f);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, ps->pbentley, 1, &ps->pasega, g_clock.time - ps->startTime, 1.0f);
     if (!ps->pasega)
         return;
     if (ps->unknown10)
         DetachXfActById(ps->pasega, ps->pbentley, ps->pbentley->unknown10B8);
     if (ps->pasega && dt != 0.0f)
-        SetAsegaChannelWeight(ps->pasega, D_002DDED0.time + dt);
+        SetAsegaChannelWeight(ps->pasega, g_clock.time + dt);
 }
 } } // namespace M_func_00136F48
 
@@ -1751,7 +1741,6 @@ static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
 }
 
 extern "C" {
-extern CLOCK D_002DDED0;
 extern float D_002BC998;
 extern float D_002BC99C;
 extern float D_002BC9A0;
@@ -1785,13 +1774,13 @@ extern "C" void CorrectBentleyRideVelocity(JTREC *s)
     float dot = VuToFloat(Dot(dv, n.q));
     float w = cz / len;
     float dgNext;
-    SmoothValue__FfffP3SMPPf(len, D_002BC998, D_002DDED0.deltaTime, &D_002BC9A8, &dgNext);
-    float g = ClampAbs__Fff(dgNext - dot, D_002BC9A0 * D_002DDED0.deltaTime);
+    SmoothValue__FfffP3SMPPf(len, D_002BC998, g_clock.deltaTime, &D_002BC9A8, &dgNext);
+    float g = ClampAbs__Fff(dgNext - dot, D_002BC9A0 * g_clock.deltaTime);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
     M3 mc;
-    M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * D_002DDED0.deltaTime);
+    M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * g_clock.deltaTime);
     mc = m;
-    qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.deltaTime));
+    qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(g_clock.deltaTime));
     AddSoAcceleration(s->player, LimitVectorLength(r, maxValue));
 }
 } // namespace M_func_00137248
@@ -1883,7 +1872,6 @@ struct Q {
 };
 struct R { int x0; Q *pq; };
 extern "C" {
-extern CLOCK D_002DDED0;
 extern float D_002BC9B4;   /* contact friction */
 extern float D_002BC9B8;
 void FaceStepToward(STEPPLAYER *p, LO *plo);
@@ -1900,7 +1888,7 @@ extern "C" void SetBentleyHelperState(JTREC *s, int k)
         return;
     s->state = k;
     px = 0;
-    s->stateStartTime = D_002DDED0.time;
+    s->stateStartTime = g_clock.time;
     if (k == -1) {
         VU_FLOATM g(D_002BC9B8);
         qword vel = s->player->GetVelocity();
