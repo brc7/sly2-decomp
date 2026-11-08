@@ -1308,14 +1308,13 @@ extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 namespace M_func_00205478 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
-struct S : PO { char pad[0x2A0 - 0x180]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
-void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
-void ApplySmGetSma(void *x, struct S *ps, int a, int b, void **ppv);
-// Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (+0x2A0); the first reference
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps);
+void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps);
+void ApplySmGetSma(void *x, STEP *ps, int a, int b, void **ppv);
+// Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (acrefDialogSm); the first reference
 // ensures a state-machine instance (SMA) of the role's dialog SM. (inferred)
-void AddStepDialogSmRefs(struct S *step, int mask)
+void AddStepDialogSmRefs(STEP *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1323,7 +1322,7 @@ void AddStepDialogSmRefs(struct S *step, int mask)
         int bit = 1 << i;
         if (!f) bit = 0;
         if (mask & bit) {
-            if (++step->a[i] < 2) {
+            if (++step->acrefDialogSm[i] < 2) {
                 int id = GetDialogRoleSmOid(D_003DD040, i);
                 void *x = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                 if (x) {
@@ -1341,13 +1340,12 @@ void AddStepDialogSmRefs(struct S *step, int mask)
 namespace M_func_00205588 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
-struct S : PO { char pad[0x2A0 - 0x180]; int a[6]; };
 int GetDialogRoleSmOid(void *p, int i);
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
-void *FindSmaForObject__FP2SMP3ALO(void *x, struct S *ps);
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps);
+void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps);
 void RetractSma(void *y);
 // Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted. (inferred)
-void RemoveStepDialogSmRefs(struct S *step, int mask)
+void RemoveStepDialogSmRefs(STEP *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1355,8 +1353,8 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
         int bit = 1 << i;
         if (!f) bit = 0;
         if (mask & bit) {
-            if (step->a[i] != 0) {
-                if (--step->a[i] <= 0) {
+            if (step->acrefDialogSm[i] != 0) {
+                if (--step->acrefDialogSm[i] <= 0) {
                     int id = GetDialogRoleSmOid(D_003DD040, i);
                     void *x = FindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                     if (x) {
@@ -1375,9 +1373,8 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
 namespace M_func_00205670 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} V;
-struct P : PO { char pad[0x208 - 0x180]; int enabled;};
 extern qword D_002A2DC0;
-void BuildStepFootprint(struct P*,V*);
+void BuildStepFootprint(STEP*,V*);
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 // Return *a - *b (vf3).
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
@@ -1393,7 +1390,7 @@ else {register qword normalized __asm__("vf1");__asm__("vdiv $Q,$vf0w,%2x\n\tvwa
 __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
 // When the step has a floor contact, intersects the segment from->to with its two footprint triangles; returns 1
 // and the hit point on a hit.
-int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
+int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output)
 {
  V tri[6],d,k;
  float distance,length;
@@ -1402,7 +1399,7 @@ int IntersectStepFootprint(struct P*step,qword from,qword to,qword*output)
  register V *third __asm__("s0");
  register V *end __asm__("s2");
  register float *distanceOut __asm__("s3");
- if(!step->enabled)return 0;
+ if(!step->floorContact)return 0;
  BuildStepFootprint(step,tri);
  d.q=Sub(&to,&from);
  length=Normal(&d,&D_002A2DC0);
@@ -1424,26 +1421,25 @@ typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M3 { qword r[3]; };
-struct S : PO { char pad[0x218 - 0x180]; qword *origin; int pad21C; float radius; };
 extern "C" {
-M3 *GetLoWorldMatrix(S *p);
-qword GetLoWorldPos(S *p);
+M3 *GetLoWorldMatrix(LO *p);
+qword GetLoWorldPos(LO *p);
 extern int D_002C3CC8[2][3];
 }
 // Return v scaled by g.
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 // Load a vector into a VU0 register.
 static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) : "m"(*p)); return r; }
-// Builds the two footprint triangles: a diamond of radius +0x220 around the base point (+0x218), oriented by the
+// Builds the two footprint triangles: a diamond of radius baseRadius around the base point (*unknown218), oriented by the
 // world matrix.
-extern "C" void BuildStepFootprint(S *step, qword out[2][3])
+extern "C" void BuildStepFootprint(STEP *step, qword out[2][3])
 {
     qword point[5];
-    qword origin = *step->origin;
+    qword origin = *step->unknown218;
     qword right = GetLoWorldMatrix(step)->r[0];
     qword forward = LoadVf(&GetLoWorldMatrix(step)->r[1]);
     point[0] = GetLoWorldPos(step);
-    float radius = step->radius;
+    float radius = step->baseRadius;
     point[1] = VuAdd(origin, MulX(right, VU_FLOAT(radius)));
     point[2] = VuAdd(origin, MulX(forward, VU_FLOAT(radius)));
     point[3] = VuAdd(origin, MulX(right, VU_FLOAT(-radius)));

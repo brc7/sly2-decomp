@@ -101,7 +101,8 @@ struct STEP : public PO
       void *unknown294;
       int unknown298;
       undefined4 unknown29C;
-      int unknown2A0[6];
+      int acrefDialogSm[6];   /* +0x2A0 reference counts of the six dialog roles' state machines (AddStepDialogSmRefs /
+                                 RemoveStepDialogSmRefs: the first reference applies the role's SM, the last retracts it) */
     virtual void Init() __asm__("InitStep");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetStepClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");   /* slot 14 */
