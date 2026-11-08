@@ -33,6 +33,7 @@
 #include "sly2/util.h"
 #include "sly2/clock.h"
 #include "sly2/game.h"
+#include "sly2/classes.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -80,64 +81,14 @@ struct BND
 };
 
 
-struct GRABSPOTDATA
-{
-      TN *ptn;
-      undefined4 unk_0x04;
-      float sUnk08;
-      undefined4 unk_0x0c;
-      int nPriority;
-      int nUnk14;
-      int nGroup;
-      uint grfUnk1c;
-};
 
-struct GRABSPOT : public GRABSPOTDATA
-{
-    virtual int GetGrabRange(float *pasRange);
-    virtual void GetClosestParam(JT *pjt, float *psParam);
-    virtual void GetPos(float sParam, JT *pjt, VECTOR *ppos, float *pradTarget);
-    virtual void AdjustDist(float *pgDist);
-};
 
-struct CID19 : public TARGET, public GRABSPOT
-{
-      int nHangKind;
-      undefined4 unk_0x128;
-      int sfxidHangStart;
-      int sfxidHangEnd;
-      float gUnk134;
-      LO *ploUnk138;
-      undefined4 unk_0x13c;
-};
 
-struct CID100 : public SO
-{
-      int nState;
-      undefined4 unk_0x154;
-      int nUnk158;
-      int idGadget;
-      undefined4 unk_0x160[3];
-      LO *ploUnk16c;
-      undefined4 unk_0x170[16];
-};
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
 
-struct TASKPAIR
-{
-    OID oidTask;
-    int nState;
-};
 
-struct RSMG
-{
-    OID oidRoot;
-    OID oidSM;
-    OID oidTriggerGoal;
-    OID oidUntriggerGoal;
-};
 
 struct REGNODE
 {
@@ -176,66 +127,13 @@ struct CELL
 
 /* LOUPD: sly2/sw.h */
 
-struct CID34 : public XFM, public GRABSPOT
-{
-      DLE dle;
-      float sUnk10c;
-};
 
-struct CID38 : public XFM, public GRABSPOT
-{
-      DLE dle;
-      int nGrabState;
-};
 
-struct CID11 : public SHAPE, public GRABSPOT
-{
-      DLE dle;
-      undefined4 unk_0x1bc;
-      qword qwUnk1c0;
-      int nUnk1d0;
-      int nUnk1d4;
-      undefined4 unk_0x1d8[2];
-};
 
-struct CID12 : public SHAPE, public GRABSPOT
-{
-      DLE dle;
-      int nUnk1bc;
-};
 
-struct CID13 : public SHAPE, public GRABSPOT
-{
-      DLE dle;
-      undefined4 unk_0x1bc;
-      float gUnk1c0;
-      float gUnk1c4;
-      undefined4 unk_0x1c8[2];
-};
 
-struct CID27 : public VOL, public GRABSPOT
-{
-      DLE dle;
-      LO *ploUnk15c;
-};
 
-struct CID39 : public XFM, public GRABSPOT
-{
-      DLE dle;
-      undefined4 unk_0x10c;
-};
 
-struct CID35 : public XFM, public GRABSPOT
-{
-      DLE dle;
-      LO *ploUser;
-      float sUnk110;
-      LO *ploRelay;
-      int crsmg;
-      RSMG arsmg[4];
-      int ctaskpair;
-      TASKPAIR ataskpair[4];
-};
 
 
 
@@ -2207,9 +2105,6 @@ namespace M_AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND
 // sorted array of ccandMax candidates: by priority (higher first), then by distance, one entry per group (the nearer spot of a
 // group wins). Objects the hero already holds / just let go of, spots whose mask the hero's flags do not share and objects
 // farther than their own busyRadius or than 1000 are skipped.
-extern "C" {
-void* memset(void* ptr, int value, size_t num);
-}
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 
 
@@ -2280,7 +2175,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         if (lo == ((JT *)player)->unknown1F18)
             return;
     }
-    if (!(player->grfGrabTarget & spot->grfUnk1c))
+    if (!(player->grfGrabTarget & spot->grfPlayers))
         return;
     if (D_002E1E4C)
     {
@@ -2296,11 +2191,11 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
                 return;
         }
     }
-    spot->GetClosestParam((JT *)player, &cand.spotDistance);
-    spot->GetPos(cand.spotDistance, (JT *)player, (VECTOR *)&cand.position, 0);
+    spot->GetClosestParam(player, &cand.spotDistance);
+    spot->GetGrabPos(cand.spotDistance, player, &cand.position, 0);
     cand.priority = spot->nPriority;
     cand.distance = LengthOf(VuSub(qwPosJt, cand.position));
-    spot->AdjustDist(&cand.distance);
+    spot->AdjustScore(&cand.distance);
     if (cand.distance > D_002BF664)
         return;
     int i;
@@ -2359,9 +2254,6 @@ namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi {
 // hint box (the popup at the top of the screen) shows the hint text of the best one's spot (nUnk14) while it is within 250 - or the
 // text 0x125 for an object of oid 0x624 that has been the best for more than a second.
 
-extern "C" {
-void* memset(void* ptr, int value, size_t num);
-}
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 
@@ -2435,43 +2327,43 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     if (grf & 8)
     {
         DL *pdlpcid12 = &g_sw.dlCid12;
-        for (CID12 *pcid12 = (CID12 *)pdlpcid12->head; pcid12; pcid12 = (CID12 *)pcid12->dle.next)
+        for (CID12 *pcid12 = (CID12 *)pdlpcid12->head; pcid12; pcid12 = (CID12 *)pcid12->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid12, pcid12, 4, candidates);
     }
     if (grf & 0x10)
     {
         DL *pdlpcid34 = &g_sw.dlCid34;
-        for (CID34 *pcid34 = (CID34 *)pdlpcid34->head; pcid34; pcid34 = (CID34 *)pcid34->dle.next)
+        for (CID34 *pcid34 = (CID34 *)pdlpcid34->head; pcid34; pcid34 = (CID34 *)pcid34->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid34, pcid34, 4, candidates);
     }
     if (grf & 0x80)
     {
         DL *pdlpcid35 = &g_sw.dlCid35;
-        for (CID35 *pcid35 = (CID35 *)pdlpcid35->head; pcid35; pcid35 = (CID35 *)pcid35->dle.next)
+        for (CID35 *pcid35 = (CID35 *)pdlpcid35->head; pcid35; pcid35 = (CID35 *)pcid35->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid35, pcid35, 4, candidates);
     }
     if (grf & 4)
     {
         DL *pdlpcid27 = &g_sw.dlCid27;
-        for (CID27 *pcid27 = (CID27 *)pdlpcid27->head; pcid27; pcid27 = (CID27 *)pcid27->dle.next)
+        for (CID27 *pcid27 = (CID27 *)pdlpcid27->head; pcid27; pcid27 = (CID27 *)pcid27->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid27, pcid27, 4, candidates);
     }
     if (grf & 0x400)
     {
         DL *pdlpcid39 = &g_sw.dlCid39;
-        for (CID39 *pcid39 = (CID39 *)pdlpcid39->head; pcid39; pcid39 = (CID39 *)pcid39->dle.next)
+        for (CID39 *pcid39 = (CID39 *)pdlpcid39->head; pcid39; pcid39 = (CID39 *)pcid39->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid39, pcid39, 4, candidates);
     }
     if (grf & 0x200)
     {
         DL *pdlpcid13 = &g_sw.dlCid13;
-        for (CID13 *pcid13 = (CID13 *)pdlpcid13->head; pcid13; pcid13 = (CID13 *)pcid13->dle.next)
+        for (RAIL *pcid13 = (RAIL *)pdlpcid13->head; pcid13; pcid13 = (RAIL *)pcid13->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid13, pcid13, 4, candidates);
     }
     if (grf & 2)
     {
         DL *pdlpcid11 = &g_sw.dlCid11;
-        for (CID11 *pcid11 = (CID11 *)pdlpcid11->head; pcid11; pcid11 = (CID11 *)pcid11->dle.next)
+        for (PIPE *pcid11 = (PIPE *)pdlpcid11->head; pcid11; pcid11 = (PIPE *)pcid11->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid11, pcid11, 4, candidates);
     }
     if (grf & 1)
@@ -2480,13 +2372,13 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
         for (TARGET *target = (TARGET *)pdlTarget->head; target; target = (TARGET *)target->targetListLink.next)
         {
             if ((target->targetKindFlags & 1) && IsBasicDerivedFrom(target, (CID)19))
-                AddJtGrabCandidate(world, player, qwPosJt, target, (CID19 *)target, 4, candidates);
+                AddJtGrabCandidate(world, player, qwPosJt, target, (HND *)target, 4, candidates);
         }
     }
     if (grf & 0x20)
     {
         DL *pdlpcid38 = &g_sw.dlCid38;
-        for (CID38 *pcid38 = (CID38 *)pdlpcid38->head; pcid38; pcid38 = (CID38 *)pcid38->dle.next)
+        for (CID38 *pcid38 = (CID38 *)pdlpcid38->head; pcid38; pcid38 = (CID38 *)pcid38->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid38, pcid38, 4, candidates);
     }
     int ccand;

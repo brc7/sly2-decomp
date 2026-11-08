@@ -94,7 +94,7 @@ struct GRABSPOT
     virtual int GetGrabRange() __asm__("GetGrabspotWrapRange");     /* slot 1; key function (grabspot.cpp) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetGrabspotClosestParam");         /* slot 2 */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetGrabspotGrabPosition");              /* slot 3 */
-    virtual void AdjustScore() __asm__("AdjustGrabspotScore");             /* slot 4 */
+    virtual void AdjustScore(float *pgScore) __asm__("AdjustGrabspotScore");             /* slot 4 */
     virtual void GetSparklePos() __asm__("GetGrabspotSparklePosition");           /* slot 5 */
     virtual LO *GetOwner() __asm__("GetGrabspotOwner");                     /* slot 6 */
 };
@@ -1459,7 +1459,7 @@ struct CID35 : XFM, GRABSPOT
     virtual void PostLoad() __asm__("PostTriggerGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnTriggerGrabspotRemove");   /* slot 22 */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetTriggerGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
-    virtual void AdjustScore() __asm__("AdjustTriggerGrabspotScore");   /* GRABSPOT slot 4 (delta -224) */
+    virtual void AdjustScore(float *pgScore) __asm__("AdjustTriggerGrabspotScore");   /* GRABSPOT slot 4 (delta -224) */
     virtual LO *GetOwner() __asm__("func_00259A30__FP5CID35");   /* GRABSPOT slot 6 (delta -224) */
     virtual void OnTriggered() __asm__("FireTriggerGrabspot");   /* slot 51 */
 };
@@ -1518,13 +1518,20 @@ typedef char assert_CID27_ploHold[SLY2_OFFSETOF(CID27, ploHold) == 0x15C ? 1 : -
 /* 19 HND (0x140): hook; REVIEW proposes HND; vtable 0x2D2978, 50 slots */
 struct HND : TARGET, GRABSPOT
 {
-    char pad124[0x140 - 0x124];
+    int nHangKind;          /* +0x124 hang kind (jt.cpp SetJtState, the hang entry) */
+    int unknown128;
+    int sfxidHangStart;     /* +0x12C sound at the hang start (jt.cpp SetJtState; HND::Init sets 8) */
+    int sfxidHangEnd;       /* +0x130 (HND::Init sets 9) */
+    float unknown134;
+    LO *ploTarget;          /* +0x138 object the hang aims at (jt.cpp ChooseJtGroundState) */
+    int unknown13C;
     virtual void Init() __asm__("InitHnd");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetHndClassDesc");   /* slot 6 */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetHndGrabPosition");   /* GRABSPOT slot 3 (delta -256) */
     virtual LO *GetOwner() __asm__("func_00259A70__FP3HND");   /* GRABSPOT slot 6 (delta -256) */
 };
 typedef char assert_HND_size[sizeof(HND) == 0x140 ? 1 : -1];
+typedef char assert_HND_ploTarget[SLY2_OFFSETOF(HND, ploTarget) == 0x138 ? 1 : -1];
 
 /* 8 CID8 (0x100): mesh surface; vtable 0x2D2CB8, 50 slots */
 struct CID8 : XFM
@@ -1816,7 +1823,8 @@ typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1];
 /* 11 PIPE (0x1E0): lamp posts; JTPIPE; vtable 0x2D56F8, 50 slots */
 struct PIPE : SHAPE, GRABSPOT
 {
-    char pad1B4[0x1E0 - 0x1B4];
+    DLE dleGrab;            /* +0x1B4 link in g_sw.dlCid11 (grab.cpp GatherJtGrabCandidates, grab mask 2) */
+    char pad1BC[0x1E0 - 0x1BC];
     virtual void OnAdd() __asm__("OnPipeAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPipeClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPipe");   /* slot 7 */
@@ -1830,12 +1838,14 @@ struct PIPE : SHAPE, GRABSPOT
     virtual LO *GetOwner() __asm__("func_00259AF8__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
+typedef char assert_PIPE_dleGrab[SLY2_OFFSETOF(PIPE, dleGrab) == 0x1B4 ? 1 : -1];
 
 
 /* 13 RAIL (0x1D0): wires; vtable 0x2D6FE8, 50 slots */
 struct RAIL : SHAPE, GRABSPOT
 {
-    char pad1B4[0x1D0 - 0x1B4];
+    DLE dleGrab;            /* +0x1B4 link in g_sw.dlCid13 (grab.cpp GatherJtGrabCandidates, grab mask 0x200) */
+    char pad1BC[0x1D0 - 0x1BC];
     virtual void OnAdd() __asm__("OnRailAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRailClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRail");   /* slot 7 */
@@ -1849,6 +1859,7 @@ struct RAIL : SHAPE, GRABSPOT
     virtual LO *GetOwner() __asm__("func_00259B08__FP4RAIL");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];
+typedef char assert_RAIL_dleGrab[SLY2_OFFSETOF(RAIL, dleGrab) == 0x1B4 ? 1 : -1];
 
 /* 61 RAJAN (0x1020); vtable 0x2D7188, 90 slots */
 struct RAJAN : STEPGUARD
@@ -2065,7 +2076,8 @@ typedef char assert_SKY_size[sizeof(SKY) == 0x160 ? 1 : -1];
 /* 39 CID39 (0x110): GRABSPOT XFM, list D_003E13D8; vtable 0x2D9DD0, 50 slots */
 struct CID39 : XFM, GRABSPOT
 {
-    char pad104[0x110 - 0x104];
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid39 (grab.cpp GatherJtGrabCandidates, grab mask 0x400) */
+    int unknown10C;
     virtual void Init() __asm__("InitGrabSpotXfm");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid39ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostGrabSpotXfmLoad");   /* slot 15 */
@@ -2076,6 +2088,7 @@ struct CID39 : XFM, GRABSPOT
     virtual LO *GetOwner() __asm__("func_00259C08__FP5CID39");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
+typedef char assert_CID39_dleGrab[SLY2_OFFSETOF(CID39, dleGrab) == 0x104 ? 1 : -1];
 
 /* 46 CID46 (0x120): recon photo target; vtable 0x2D9F70, 50 slots */
 struct CID46 : XFM

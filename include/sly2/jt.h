@@ -99,7 +99,7 @@ struct JT : public STEPPLAYER
       qword aposBounds[3];   /* +0x1890 extra points the SO tree bounds are extended by (UpdateJtExtraEntries): Sly's position and the
                                 hand object's, before and after the transform update */
       LO *attachedTo;       /* +0x18C0 [R] object Sly is attached to (ledge/pole/rope owner); was ploUnk18c0 */
-      CID19 *hangHandle;    /* +0x18C4 [R] current HND (hang/hook object, CID 0x13); was phndUnk18c4 */
+      HND *hangHandle;      /* +0x18C4 [R] current HND (hang/hook object, CID 0x13); was phndUnk18c4 */
       JTS state;            /* +0x18C8 [R] movement state: 0 Stand 1 Run 2 Air 3 Hang 4 Hurt 6 Interact 8 Pipe 11 Pickpocket
                                12 Walk 21 SurfaceClimb 22 HangFollow 23 Throw/aim (runtime2/3, slygame JTS) */
       float stateStartTime; /* +0x18CC [R] clock.time when state was entered (time - stateStartTime = time in state); was tUnk18cc */

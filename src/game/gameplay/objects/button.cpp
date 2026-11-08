@@ -90,7 +90,7 @@ struct BUTTONV : SO
     LO *pushObjects[8];
     int numPushClasses;         /* +0x2D0 classes that may press it (none: any) */
     CIDV pushClasses[8];
-    CID19 *phndPress;           /* +0x2F4 the hang handle (HND) Sly presses it by hanging from (compared with JT::hangHandle) */
+    HND *phndPress;             /* +0x2F4 the hang handle (HND) Sly presses it by hanging from (compared with JT::hangHandle) */
     LO *pusher;                /* +0x2F8 the object pressing it */
 };
 typedef char assert_BUTTON_pusher[SLY2_OFFSETOF(BUTTONV, pusher) == 0x2F8 ? 1 : -1];

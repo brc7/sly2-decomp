@@ -32,6 +32,7 @@
 #include "sly2/act.h"
 #include "sly2/clock.h"
 #include "sly2/game.h"
+#include "sly2/classes.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -87,32 +88,11 @@ PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare")
 
 int FCanAcquireProxy(PROXY *pproxy) __asm__("CanAcquireProxy");
 
-struct CID100 : public SO
+/* The gadget id of a tossable (classes.h CID100, +0x15C); classes.h leaves CID100's words padded (objects family). */
+struct CID100GADGET : SO
 {
-      int nState;
-      undefined4 unk_0x154;
-      int nUnk158;
-      int idGadget;
-      undefined4 unk_0x160[3];
-      LO *ploUnk16c;
-      undefined4 unk_0x170[16];
-};
-
-struct GRABSPOTDATA
-{
-      TN *ptn;
-      undefined4 unk_0x04;
-      float sUnk08;
-      undefined4 unk_0x0c;
-      int nPriority;
-      int nUnk14;
-      int nGroup;
-      uint grfUnk1c;
-};
-
-struct GRABSPOT : public GRABSPOTDATA
-{
-    virtual void GetClosestParam(JT *pjt, float *psParam);
+    char pad150[0x15C - 0x150];
+    int idGadget;           /* +0x15C */
 };
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
@@ -158,17 +138,6 @@ extern "C" float GetShapeMaxDistance(SHAPE *pshape);
 
 extern "C" void EvaluateShapeAtDistance(SHAPE *pshape, float s, qword *ppos, qword *pdir);
 
-struct CID19 : public TARGET, public GRABSPOT
-{
-      int nHangKind;
-      undefined4 unk_0x128;
-      int sfxidHangStart;
-      int sfxidHangEnd;
-      float gUnk134;
-      LO *ploUnk138;
-      undefined4 unk_0x13c;
-};
-
 void SetJtState(JT *pjt, JTS jts, JTBS jtbs);
 
 int FAsegaStopped(ASEGA *pasega) __asm__("IsAsegaRetracted");
@@ -209,9 +178,6 @@ void SetSndVolume(SND *psnd, float gVolume) __asm__("SetSndVolume");
 extern "C" void SetSndRange(SND *psnd, float sNear, float sFar);
 
 
-struct EXPL : public XFM
-{
-};
 
 void FreeSwXaList(SW *psw, XA *pxaFirst) __asm__("FreeSwXaList");
 
@@ -263,12 +229,6 @@ void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew) __asm__("SetActRotationGoa
 extern "C" float GetShapeMinDistance(SHAPE *pshape);
 
 extern "C" void EvaluateShapeAtParam(SHAPE *pshape, float u, qword *ppos, qword *pdir);
-
-struct CID12 : public SHAPE, public GRABSPOT
-{
-      DLE dle;
-      int nUnk1bc;
-};
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitJt { extern "C" {
@@ -1053,7 +1013,7 @@ void UpdateJtLean(JT *jt)
                 SHAPE *shape = (SHAPE *)jt->jtgrab.grabbedObject;
                 EvaluateShapeAtParam(shape, jt->jtgrab.spotParam, (qword *)&vecPos, (qword *)&vecDir);
                 lo = shape;
-                if (((CID12 *)lo)->nUnk1bc) {
+                if (((CID12 *)lo)->unknown1BC) {
                     *(qword *)&vecDir = NormalizeVecViaDot(*(qword *)&vecDir);
                     qword velocity = jt->GetVelocity();
                     float gSpeed = VuToFloat(VuDot(velocity, *(qword *)&vecDir));
@@ -2057,17 +2017,17 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->controller->ConsumeButtonsPressedWithin(BUTTON_JUMP, 0.25f))
                     {
                         VECTOR4 vTarget;
-                        LO *ploTarget = jt->hangHandle->ploUnk138;
+                        LO *ploTarget = jt->hangHandle->ploTarget;
                         if (ploTarget && IsBasicDerivedFrom(ploTarget, (CID)10))
                         {
-                            SHAPE *shape = (SHAPE *)jt->hangHandle->ploUnk138;
+                            SHAPE *shape = (SHAPE *)jt->hangHandle->ploTarget;
                             EvaluateShapeAtDistance(shape, GetShapeMaxDistance(shape) * (0.5f - jt->unknown1F94 * 0.5f), (qword *)&vTarget, 0);
                         }
                         else
                         {
                             VECTOR4 vLocal;
-                            if (jt->hangHandle->ploUnk138)
-                                *(qword *)&vLocal = ConvertLoPos(0, jt->hangHandle, PosLoWorld(jt->hangHandle->ploUnk138));
+                            if (jt->hangHandle->ploTarget)
+                                *(qword *)&vLocal = ConvertLoPos(0, jt->hangHandle, PosLoWorld(jt->hangHandle->ploTarget));
                             else
                                 *(qword *)&vLocal = D_002BF370;
                             MATRIX3 mat;
@@ -3957,7 +3917,7 @@ int JT::CanUseGadget(int gadgetId)
                     case 0x25:
                     case 0x26:
                     case 0x29:
-                        if (((CID100 *)jtthrow.ploCarried)->idGadget == gadgetId)
+                        if (((CID100GADGET *)jtthrow.ploCarried)->idGadget == gadgetId)
                             return 1;
                 }
             }
