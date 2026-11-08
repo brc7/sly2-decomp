@@ -92,11 +92,6 @@ public:
     float F32Read();
 };
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 
 class CLoadCollector

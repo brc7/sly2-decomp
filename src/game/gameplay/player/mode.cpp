@@ -35,11 +35,6 @@ extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, vo
 void IncrementSwNoPause(SW *psw) __asm__("IncrementSwNoPause");
 void DecrementSwNoPause(SW *psw) __asm__("DecrementSwNoPause");
 void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("SetStepTargetHeading");
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 void SetAsegaSpeed(ASEGA *pasega, float svt);

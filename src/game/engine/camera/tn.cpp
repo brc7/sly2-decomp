@@ -104,11 +104,6 @@ static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwRow), "j"(gScale.qw));
     return qw;
 }
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 extern "C" float atan2f(float y, float x);
 extern "C" void GetVectorSphere(qword v, float *prad, float *pradTilt, float *psLen);

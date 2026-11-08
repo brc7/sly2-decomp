@@ -167,6 +167,20 @@ struct MATRIX4Q
 typedef char assert_MATRIX3Q_size[sizeof(MATRIX3Q) == sizeof(MATRIX3) ? 1 : -1];
 typedef char assert_MATRIX4Q_size[sizeof(MATRIX4Q) == sizeof(MATRIX4) ? 1 : -1];
 
+/* Small records that the per-function decompilation had copied into many TUs (census tier E), one definition each. */
+/* SWALLOC: a world-heap / stack allocation request (byte count, alignment), passed by pointer to the allocators
+   (AllocClearedFromWorldHeap, AllocFromStack...; Sly 1's PvAllocSwImpl family). The TU copies were named MSG, AL, REQ,
+   REQUEST. Same bytes as emitter.h's AREQ and dmas.h's ALLOCREQ (not folded yet). */
+struct SWALLOC { int cb; int cbAlign; };
+/* LONGU: an 8-byte record passed by value in one 64-bit register (the packed-long callback / pointer-to-member pairs) */
+struct LONGU { long l; } __attribute__((packed));
+/* FLOATWORD: a float and its bit pattern */
+union FLOATWORD { float value; int bits; };
+/* SVPATH: a save-variable path (class id and the id list leading to the variable; GetGlobalSaveVar's key) */
+struct SVPATH { int cid; short *aid; };
+/* LANGSTR: a localized string (id, text), the entries of the level's string table */
+struct LANGSTR { int id; char *pchz; };
+
 /* SMP: smoothing parameters for a value that chases a target: the speed used far from / near the target and the time
    constant (inferred from Sly 1 SmoothValue).
    Layout from src/game/object/brx/LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp (4 copies in Lilly ports) */

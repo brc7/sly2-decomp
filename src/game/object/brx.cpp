@@ -66,11 +66,6 @@ public:
     int S32Read();
     float F32Read();
 };
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
 CRef BuildSpliceListFromValues(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
@@ -140,11 +135,6 @@ struct CLSNEW
 typedef char assert_CLSNEW_size[sizeof(CLSNEW) == 0x14 ? 1 : -1];
 
 /* SW::alangstr entry (the same view as proxy/ and brx_sw). */
-struct LANGSTR
-{
-    int id;
-    char *pchz;
-};
 
 extern CLSNEW D_002BAAE8[];
 extern EOPID D_002AC880[];   /* g_aeopid */

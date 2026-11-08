@@ -42,7 +42,7 @@ void Align__18CBinaryInputStreami(BIS *stream, int cb);
 int U8Read__18CBinaryInputStream(BIS *stream);
 int U16Read__18CBinaryInputStream(BIS *stream);
 void ReadVector4__18CBinaryInputStreamP7VECTOR4(BIS *stream, void *pvec);
-void CBinaryInputStream_ReadStringSw(BIS *stream, int *pn, void *pv, int n);
+void CBinaryInputStream_ReadStringSw(BIS *stream, char **ppchz, void *pv, int n);
 void CBinaryInputStream_SkipStringSw(BIS *stream);
 void LocalizeSwStringTable(void *pv);
 void BeginLoadingScreen(void *p);
@@ -224,7 +224,6 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
 }
 
 /* Language strings as LoadSwLocalizedStringsFromBrx sees the SW (offsets only). */
-struct LANGSTR { int id; int text; };
 struct SWLANG { char pad[0x4640]; int c; LANGSTR *ae; };
 extern int D_002E1E54;
 extern char D_003E1C20[];
@@ -255,7 +254,7 @@ extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *
         pe->id = S16Read__18CBinaryInputStream(pbs);
         for (j = 0; j < c; j++) {
             if (j == iMatch)
-                CBinaryInputStream_ReadStringSw(pbs, &pe->text, &g_heapSw, 0x2E);
+                CBinaryInputStream_ReadStringSw(pbs, &pe->pchz, &g_heapSw, 0x2E);
             else
                 CBinaryInputStream_SkipStringSw(pbs);
         }
