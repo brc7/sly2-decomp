@@ -1826,9 +1826,6 @@ typedef union {qword q;float f[4];} U;
 typedef struct {qword row[4];} M4;
 struct LO;
 struct PROJECTION {qword direction;int kind;};
-typedef struct { short d; short pad; void (*pfn)(void *, int, void *, qword, qword, qword); } VT82;
-typedef struct { short d; short pad; qword (*pfn)(void *); } VT33;
-typedef union { VT82 v82; VT33 v33; } VTE;
 struct LO { char pad[0xC]; VTE *vt; char pad2[0x190 - 0x10]; qword x190; char pad3[0x218 - 0x1A0]; qword *x218; };
 struct T { char pad[0xE4]; int xe4; char pad2[0x1BC - 0xE8]; int x1bc; };
 struct S { struct LO *x0; int x4; int x8; int xc; int x10; struct T *x14; int x18; float x1c; float x20; };
@@ -1868,7 +1865,7 @@ void UpdateJtInternalXpsHide(struct S *p)
     case 4: {
         U pos;
         pos.q = GetLoWorldPos(p->x14);
-        p->x0->vt[82].v82.pfn((char *)p->x0 + p->x0->vt[82].v82.d, 0x23, p->x14, pos.q, D_002A2DB0, *p->x0->x218);
+        ((void (*)(void *, int, void *, qword, qword, qword))p->x0->vt[82].pfn)((char *)p->x0 + p->x0->vt[82].d, 0x23, p->x14, pos.q, D_002A2DB0, *p->x0->x218);
         break;
     }
     case 3: {
@@ -1882,7 +1879,7 @@ void UpdateJtInternalXpsHide(struct S *p)
             M4 *m;
             register qword w __asm__("vf2");
             float d0, d1;
-            vel.q = p->x0->vt[33].v33.pfn((char *)p->x0 + p->x0->vt[33].v33.d);
+            vel.q = ((qword (*)(void *))p->x0->vt[33].pfn)((char *)p->x0 + p->x0->vt[33].d);
             d0 = Dot(vel.q, v1.q);
             m = GetLoWorldMatrix(p->x0);
             w=p->x0->x190;
@@ -1902,7 +1899,7 @@ void UpdateJtInternalXpsHide(struct S *p)
                 v1.q = v1q;
             }
         }
-        p->x0->vt[82].v82.pfn((char *)p->x0 + p->x0->vt[82].v82.d, k, t, v0.q, v1.q, *p->x0->x218);
+        ((void (*)(void *, int, void *, qword, qword, qword))p->x0->vt[82].pfn)((char *)p->x0 + p->x0->vt[82].d, k, t, v0.q, v1.q, *p->x0->x218);
         break;
     }
     }
@@ -1920,17 +1917,10 @@ typedef char offset_2_x1c[(unsigned)&((struct S*)0)->x1c==28?1:-1];
 typedef char offset_2_x20[(unsigned)&((struct S*)0)->x20==32?1:-1];
 typedef char offset_3_direction[(unsigned)&((struct PROJECTION*)0)->direction==0?1:-1];
 typedef char offset_3_kind[(unsigned)&((struct PROJECTION*)0)->kind==16?1:-1];
-typedef char offset_4_d[(unsigned)&((VT82*)0)->d==0?1:-1];
-typedef char offset_4_pfn[(unsigned)&((VT82*)0)->pfn==4?1:-1];
-typedef char offset_5_d[(unsigned)&((VT33*)0)->d==0?1:-1];
-typedef char offset_5_pfn[(unsigned)&((VT33*)0)->pfn==4?1:-1];
 typedef char offset_6_row[(unsigned)&((M4*)0)->row==0?1:-1];
 typedef char size_0[sizeof(qword)==16?1:-1];
 typedef char size_1[sizeof(U)==16?1:-1];
 typedef char size_2[sizeof(M4)==64?1:-1];
-typedef char size_3[sizeof(VTE)==8?1:-1];
-typedef char size_4[sizeof(VT82)==8?1:-1];
-typedef char size_5[sizeof(VT33)==8?1:-1];
 typedef char size_6[sizeof(struct PROJECTION)==32?1:-1];
 typedef char size_7[sizeof(struct LO)==544?1:-1];
 typedef char size_8[sizeof(struct T)==448?1:-1];
@@ -1942,7 +1932,6 @@ typedef char size_13[sizeof(void*)==4?1:-1];
 typedef char alignment_0[__alignof__(U)==16?1:-1];
 typedef char alignment_1[__alignof__(qword)==16?1:-1];
 typedef char alignment_2[__alignof__(M4)==16?1:-1];
-typedef char alignment_3[__alignof__(VTE)==4?1:-1];
 typedef char alignment_4[__alignof__(struct PROJECTION)==16?1:-1];
 typedef char alignment_5[__alignof__(struct S)==4?1:-1];
 } } // namespace M_UpdateJtInternalXpsHide
@@ -2581,18 +2570,14 @@ typedef unsigned int uint;
 struct LO;
 struct SMP { float g0, g4, g8; };
 
-struct VTGRAB1 { short d; short pad; int (*pfn)(void *, float *); };
-struct VTGRAB3 { short d; short pad; void (*pfn)(void *, STEPPLAYER *, qword *, void *, float); };
-union VTGRAB { VTGRAB1 v1; VTGRAB3 v3; };
-struct VTLO { short d; short pad; void (*pfn)(void *, qword); };
 
 struct GRABSPOT {
     char pad0[0x14];
     int nUnk14;          // hint text id, -1 for none
     char pad18[0x20 - 0x18];
-    VTGRAB *pvt;         // slot 1: int FGetWrapRange(float *pasRange)
+    VTE *pvt;         // slot 1: int FGetWrapRange(float *pasRange)
 };
-struct LO { char pad0[0xC]; VTLO *pvt; };
+struct LO { char pad0[0xC]; VTE *pvt; };
 
 struct JTGRABCAND {
     LO *object;
@@ -2659,7 +2644,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                     oldCandidate->dsParam = 0.0f;
                 } else {
                     float sRange;
-                    int fWrap = pcand->grabSpot->pvt[1].v1.pfn((char *)pcand->grabSpot + pcand->grabSpot->pvt[1].v1.d, asRange);
+                    int fWrap = ((int (*)(void *, float *))pcand->grabSpot->pvt[1].pfn)((char *)pcand->grabSpot + pcand->grabSpot->pvt[1].d, asRange);
                     if (fWrap) {
                         float ds;
                         sRange = asRange[1] - asRange[0];
@@ -2695,8 +2680,8 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                             oldCandidate->spotDistance = oldCandidate->spotDistance + sRange;
                     }
                     GRABSPOT *spot = oldCandidate->grabSpot;
-                    spot->pvt[3].v3.pfn((char *)spot + spot->pvt[3].v3.d, player, &pos, 0, oldCandidate->spotDistance);
-                    oldCandidate->unknown10->pvt[29].pfn((char *)oldCandidate->unknown10 + oldCandidate->unknown10->pvt[29].d, pos);
+                    ((void (*)(void *, STEPPLAYER *, qword *, void *, float))spot->pvt[3].pfn)((char *)spot + spot->pvt[3].d, player, &pos, 0, oldCandidate->spotDistance);
+                    ((void (*)(void *, qword))oldCandidate->unknown10->pvt[29].pfn)((char *)oldCandidate->unknown10 + oldCandidate->unknown10->pvt[29].d, pos);
                 }
                 memmove(pcand, pcand + 1, (ccand - j) * (int)sizeof(JTGRABCAND) - (int)sizeof(JTGRABCAND));
                 ccand--;

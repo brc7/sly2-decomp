@@ -636,7 +636,6 @@ namespace M_HandleStepplayerMessage { extern "C" {
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
 typedef int qword __attribute__((mode(TI)));
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
-struct VT { struct { short d; short pad; void (*pfn)(...); } a[64]; };
 #define F(T, p, off) (*(T *)((char *)(p) + (off)))
 struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
@@ -712,7 +711,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                 float f[4];
             } s; /* home of the -1.0f VU_FLOAT: stored, never read */
             qword sv, r;
-            struct VT *vtable;
+            VTE *vtable;
             void *pthis;
             void (*function)(void *, qword);
             __asm__("qmtc2.ni %1, %0" : "=j"(sv) : "r"(-1.0f));
@@ -721,9 +720,9 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                 __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwFqwordp0x190Out) : "j"(v), "j"(sv));
                 F(qword, player, 0x190) = qwFqwordp0x190Out;
             }
-            vtable = F(struct VT *, player, 0xC);
-            pthis = (char *)player + vtable->a[35].d;
-            function = (void (*)(void *, qword))vtable->a[35].pfn;
+            vtable = F(VTE *, player, 0xC);
+            pthis = (char *)player + vtable[35].d;
+            function = (void (*)(void *, qword))vtable[35].pfn;
             __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z"
                     : "=&j"(r)
                     : "j"(pm[0]), "j"(v), "j"(pm[1]), "j"(pm[2]));
@@ -810,8 +809,8 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             F(void *, player, 0x108C) = pm->p0;
             for (i = 0; i < F(int, player, 0x1094); i++) {
                 void *object = F(struct ENT *, player, 0x1090)[i].po;
-                struct VT *vtable = F(struct VT *, object, 0xC);
-                ((void (*)(void *))vtable->a[8].pfn)((char *)object + vtable->a[8].d);
+                VTE *vtable = F(VTE *, object, 0xC);
+                ((void (*)(void *))vtable[8].pfn)((char *)object + vtable[8].d);
                 F(struct ENT *, player, 0x1090)[i].x4 = 0;
             }
         }
@@ -824,8 +823,8 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             F(void *, player, 0x108C) = 0;
             for (i = 0; i < F(int, player, 0x1094); i++) {
                 void *object = F(struct ENT *, player, 0x1090)[i].po;
-                struct VT *vtable = F(struct VT *, object, 0xC);
-                ((void (*)(void *))vtable->a[9].pfn)((char *)object + vtable->a[9].d);
+                VTE *vtable = F(VTE *, object, 0xC);
+                ((void (*)(void *))vtable[9].pfn)((char *)object + vtable[9].d);
             }
         }
         break;

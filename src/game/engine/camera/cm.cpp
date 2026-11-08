@@ -1502,8 +1502,7 @@ int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
 /* 0x256278 (the matrix option's setter, forwarding to SetCmMat): an inline function in sly2/cm.h. */
 
 namespace M_DestroyCm { extern "C" {
-typedef struct { int pad[4]; short d; short p; void (*f)(void *); } VT;
-typedef struct { int pad[3]; VT *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
+typedef struct { int pad[3]; VTE *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
    zoomStopSound and CPZOOM::psndZoom / zoomStopSound) */
 typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
@@ -1512,10 +1511,10 @@ void DestroyBasic(S *, int);
 // order, then runs the base destructor (func_00258348, shared with SW and the screens) with the in-charge flag.
 inline void DestroyCm(S *p, int x)
 {
-    if (p->zoomSound2) p->zoomSound2->vt->f((char *)p->zoomSound2 + p->zoomSound2->vt->d);
-    if (p->zoomZoomSound) p->zoomZoomSound->vt->f((char *)p->zoomZoomSound + p->zoomZoomSound->vt->d);
-    if (p->lookSound2) p->lookSound2->vt->f((char *)p->lookSound2 + p->lookSound2->vt->d);
-    if (p->lookZoomSound) p->lookZoomSound->vt->f((char *)p->lookZoomSound + p->lookZoomSound->vt->d);
+    if (p->zoomSound2) ((void (*)(void *))p->zoomSound2->vt[2].pfn)((char *)p->zoomSound2 + p->zoomSound2->vt[2].d);
+    if (p->zoomZoomSound) ((void (*)(void *))p->zoomZoomSound->vt[2].pfn)((char *)p->zoomZoomSound + p->zoomZoomSound->vt[2].d);
+    if (p->lookSound2) ((void (*)(void *))p->lookSound2->vt[2].pfn)((char *)p->lookSound2 + p->lookSound2->vt[2].d);
+    if (p->lookZoomSound) ((void (*)(void *))p->lookZoomSound->vt[2].pfn)((char *)p->lookZoomSound + p->lookZoomSound->vt[2].d);
     DestroyBasic(p, x);
 }
 } } // namespace M_DestroyCm

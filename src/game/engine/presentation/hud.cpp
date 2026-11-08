@@ -3518,8 +3518,7 @@ void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
 namespace M_HandleSpriteKeyEvents {
 // Dispatch sprite actions and manage sound slots.
 struct O;
-struct VT { char pad[0x40]; short d; short pd; int (*kind)(void *); };
-struct M { char pad[0xC]; struct VT *vt; };
+struct M { char pad[0xC]; VTE *vt; };
 struct E { char pad[0x14]; struct M *pm; };
 struct R { char pad[8]; struct E *ae; };
 struct A { int kind; int id; };
@@ -3565,7 +3564,7 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
         case 0: {
             struct M *m=CreateSfxSound(a->id);
             SetSndSourceLo(m,0);
-            if(m->vt->kind((char *)m+m->vt->d)==2)
+            if(((int (*)(void *))m->vt[8].pfn)((char *)m+m->vt[8].d)==2)
                 RcPtr_Assign(&((E *)(createOffset+(int)p->r->ae))->pm,m);
             break;
         }

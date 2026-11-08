@@ -1517,8 +1517,7 @@ void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 } } // namespace M_func_002104A0
 
 namespace M_func_00210538 { extern "C" {
-struct VT { char pad[0x198]; short d; short pd; void (*pf)(void *, void *); };
-struct X { char pad[0xC]; struct VT *vtable; };
+struct X { char pad[0xC]; VTE *vtable; };
 struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
 struct X *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
 // Animation event 17: finds the object and up to two others and sends them a message.
@@ -1554,7 +1553,7 @@ void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *
         msg.g8 = g;
         msg.grf |= 0x18;
     }
-    x->vtable->pf((char *)x + x->vtable->d, &msg);
+    ((void (*)(void *, void *))x->vtable[51].pfn)((char *)x + x->vtable[51].d, &msg);
 }
 } } // namespace M_func_00210538
 
@@ -1590,8 +1589,7 @@ void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
 namespace M_StartSwAsegSound { extern "C" {
 // Complete WIP; true source-object lookup and sound-reference contracts.
 static inline void Clamp(float *f,float *b) {float lo=b[0],hi=b[1]; if(*f<lo)*f=lo; else if(hi<*f)*f=hi;}
-struct VT { char pad[0x40]; short d; short pd; int (*kind)(void *); };
-struct M { char pad[0xC]; struct VT *vt; };
+struct M { char pad[0xC]; VTE *vt; };
 struct C { char pad[0x20]; float value; };
 struct O { char pad[0xFC4]; struct C *curve; };
 extern float D_002C3EA0[3];
@@ -1631,7 +1629,7 @@ void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int 
     SetSndVolume(m, scale);
     SetSndPitch(m, offset);
     SetSndDoppler(m, fade);
-    if (m->vt->kind((char *)m + m->vt->d) == 2)
+    if (((int (*)(void *))m->vt[8].pfn)((char *)m + m->vt[8].d) == 2)
         RcPtr_Assign(out, m);
 }
 } } // namespace M_StartSwAsegSound

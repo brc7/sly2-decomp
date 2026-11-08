@@ -2243,8 +2243,7 @@ void ClearJobList(JOBLIST *p) {
 } } // namespace M_ClearJobList
 
 namespace M_UpdateJobList { extern "C" {
-typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[32]; } VT;
-typedef struct { char pad[0xC]; VT *vt; char pad10[0x58 - 0x10]; int visibility; } W;
+typedef struct { char pad[0xC]; VTE *vt; char pad10[0x58 - 0x10]; int visibility; } W;
 void UpdateTimedScreen(JOBLIST *);
 int AreWidgetLoadsIdle(void);
 void SetWidgetState(void *, int);
@@ -2267,7 +2266,7 @@ void UpdateJobList(JOBLIST *p)
             return;
         SetWidgetState(p->pchild, 1);
         SetWidgetRequest(p->pchild, 2);
-        ((W *)p->pchild)->vt->a[16].pfn((char *)p->pchild + ((W *)p->pchild)->vt->a[16].d);
+        ((void (*)(void *))((W *)p->pchild)->vt[16].pfn)((char *)p->pchild + ((W *)p->pchild)->vt[16].d);
     }
     if (HandleJoyButtons(p->pjoy, 0x800)) {
         SetJobListPage(p, -1);

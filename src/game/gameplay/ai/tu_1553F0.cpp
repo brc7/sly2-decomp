@@ -40,8 +40,7 @@ typedef struct MSG { int cb; int nKind; } MSG;
 struct M3 { qwordV r[3]; };
 struct VECTORV { float x, y, z, w; };
 class HERO;
-struct VT { char pad[0x108]; short d; short pad2; qwordV (*pfn)(HERO *); };
-class HERO { public: char pad[0xC]; VT *pvt; };
+class HERO { public: char pad[0xC]; VTE *pvt; };
 // Vector with a trivial copy constructor.
 struct VUV { qwordV q; VUV() {} VUV(const VUV &v) : q(v.q) {} };
 struct FRAME { int a[4]; };
@@ -535,7 +534,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
     VECTORV clq;
     LM lm;
     VUV sc;
-    qwordV vel = object->pvt->pfn((HERO *)((char *)object + object->pvt->d));
+    qwordV vel = ((qwordV (*)(HERO *))object->pvt[33].pfn)((HERO *)((char *)object + object->pvt[33].d));
     FRAME frame;
     VUV hit;
     qwordV pad[5]; /* unused: frame layout */

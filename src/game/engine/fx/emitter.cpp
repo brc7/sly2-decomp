@@ -1268,10 +1268,9 @@ struct BLK {
     int numBlips; PAIR *apair; int pad108C; BLK *pblkNext;   /* apair: spline end points (spline motion) */
 };
 struct PRG;
-struct PRGVT { char pad[0x198]; short d; short pad2; void (*pfn)(PRG *, LO *); };
 /* BLIPG (fields as the blip-emission code reads them; kinds after Sly 1's BLIPMK / BLIPOK) */
 struct PRG {
-    char pad0[0xC]; PRGVT *pvt; char pad10[0x160 - 0x10];
+    char pad0[0xC]; VTE *pvt; char pad10[0x160 - 0x10];
     int motionKind;             /* +0x160 2: spline (each blip keeps two end points) */
     char pad164[0x1A0 - 0x164];
     int numFrames;              /* +0x1A0 texture animation frames */
@@ -1326,7 +1325,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, in
             *px->ppblipg = (BLIPG *)pprg;
         SetBlipgEmitb(pprg, emitter);
         if (px && px->ploSubscriber)
-            pprg->pvt->pfn((PRG *)((char *)pprg + pprg->pvt->d), px->ploSubscriber);
+            ((void (*)(PRG *, LO *))pprg->pvt[51].pfn)((PRG *)((char *)pprg + pprg->pvt[51].d), px->ploSubscriber);
         if (!pprg)
             return;
     }
