@@ -4390,9 +4390,8 @@ void p_func_002113B8() __asm__("BuildSubtitleButtonText");
 void p_func_00211420() __asm__("BuildHeldItemText");
 void p_func_002155C0() __asm__("BuildSpritePictureTexPacket");
 extern "C" char d_D_002C3EC0[] __asm__("D_002C3EC0");
-extern "C" char d_D_003DD490[] __asm__("D_003DD490");
 extern "C" {
-extern const unsigned int D_002A8B90[4] = {0x2CF, (unsigned int)p_BuildCoinCountText, (unsigned int)(d_D_003DD490 + 0x3B20), 0};
+extern const unsigned int D_002A8B90[4] = {0x2CF, (unsigned int)p_BuildCoinCountText, (unsigned int)&g_sw.psvpCcoin, 0};
 extern const unsigned int D_002A8BA0[4] = {0x2D0, (unsigned int)p_BuildClueCountText, 0, 0};
 extern const unsigned int D_002A8BB0[4] = {0x2D1, (unsigned int)p_BuildTimerText, 0, 0};
 extern const unsigned int D_002A8BC0[4] = {0x2D2, (unsigned int)p_func_00211298, 0, 0};

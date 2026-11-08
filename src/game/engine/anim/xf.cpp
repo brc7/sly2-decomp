@@ -903,11 +903,10 @@ char D_002C44E0[4] = {0};   /* an empty buffer the queue pointers start at */
 float D_002C44E4 = 1.0f;    /* the unit weight the world frame's second pointer reads */
 /* The world frame (other TUs: g_xfWorld, the identity XF a slot without a parent uses): both matrices identity,
  * the default bounds -FLT_MAX/FLT_MAX and pointers to g_clock (its first float) and to D_002C44E4. */
-namespace XF_DATA { extern float p_g_clock __asm__("D_002DDED0"); }
 XF D_002C44F0 = {
     {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}},
     {{{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}},
-    -3.40282347e+38f, 3.40282347e+38f, &XF_DATA::p_g_clock, &D_002C44E4,
+    -3.40282347e+38f, 3.40282347e+38f, &g_clock.time, &D_002C44E4,
 };
 /* The chase tuning: writable statics in .data (the ELF has them at 0x2C45F0-0x2C4634; the scalars are plain floats,
  * 4-aligned, where a one-float struct would be 8-aligned). */

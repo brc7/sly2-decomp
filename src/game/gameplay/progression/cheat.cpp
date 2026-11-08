@@ -246,7 +246,6 @@ void p_func_0014C190(void *) __asm__("CheatWarpToEpisode");
 void p_CheatSetFlag(void *) __asm__("CheatSetFlag");
 void p_func_0014C200(void *) __asm__("CheatUnlockCompletionReward");
 void p_CheatGiveGadget(void *) __asm__("CheatGiveGadget");
-extern "C" char d_003DD040[] __asm__("D_003DD040");
 extern "C" int k_002BE26C __asm__("D_002BE26C");
 int b_002BD4C8[6] __asm__("D_002BD4C8") = {PAD_LEFT, PAD_R1, PAD_UP, PAD_DOWN, PAD_UP, PAD_LEFT};
 CODEREC b_002BD4E0 __asm__("D_002BD4E0") = {b_002BD4C8, 6, p_func_0014C140, 0};
@@ -269,7 +268,7 @@ CODEREC b_002BD6A0 __asm__("D_002BD6A0") = {b_002BD688, 6, p_func_0014C190, (voi
 int b_002BD6C0[6] __asm__("D_002BD6C0") = {PAD_DOWN, PAD_UP, PAD_LEFT, PAD_LEFT, PAD_R1, PAD_RIGHT};
 CODEREC b_002BD6D8 __asm__("D_002BD6D8") = {b_002BD6C0, 6, p_func_0014C190, (void *)8};
 int b_002BD6F8[6] __asm__("D_002BD6F8") = {PAD_LEFT, PAD_R1, PAD_R1, PAD_DOWN, PAD_DOWN, PAD_LEFT};
-CODEREC b_002BD710 __asm__("D_002BD710") = {b_002BD6F8, 6, p_CheatSetFlag, d_003DD040 + 0x10};
+CODEREC b_002BD710 __asm__("D_002BD710") = {b_002BD6F8, 6, p_CheatSetFlag, &g_sndmgr.isHeadsetEnabled};
 int b_002BD730[6] __asm__("D_002BD730") = {PAD_RIGHT, PAD_R1, PAD_DOWN, PAD_R1, PAD_DOWN, PAD_DOWN};
 CODEREC b_002BD748 __asm__("D_002BD748") = {b_002BD730, 6, p_CheatSetFlag, &k_002BE26C};
 int b_002BD768[6] __asm__("D_002BD768") = {PAD_RIGHT, PAD_LEFT, PAD_RIGHT, PAD_LEFT, PAD_R1, PAD_LEFT};
