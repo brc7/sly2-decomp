@@ -29,11 +29,13 @@
 #include "heap.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
+#include "sly2/clock.h"
+#include "sly2/joy.h"
+#include "sly2/save.h"
+#include "sly2/sndmgr.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
 
-extern SW D_003DD490;           /* g_sw */
-extern CLOCK D_002DDED0;        /* g_clock */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
 #undef D_003DA0D8
 #define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
@@ -101,7 +103,6 @@ extern "C" void BuildContextText(char *pchz, char *pchzContext)
 
 // 0x210ED8 BuildCoinCountText
 namespace M_BuildCoinCountText { extern "C" {
-extern char D_003D4A60[];
 extern char D_002A8AA0[];
 void GetGlobalSaveVar(CRefData *r, int *p, void *q);
 void Decref__4CRef(CRefData *r);
@@ -117,7 +118,7 @@ void BuildCoinCountText(void *f, int **pp)
         char *fmt = D_002A8AA0;
         CRefData r;
         int v;
-        GetGlobalSaveVar(&r, p, D_003D4A60);
+        GetGlobalSaveVar(&r, p, &g_gs);
         v = r.u.n;
         Decref__4CRef(&r);
         fiprintf(f, fmt, v);
@@ -127,25 +128,23 @@ void BuildCoinCountText(void *f, int **pp)
 
 // 0x210F50 BuildClueCountText
 namespace M_BuildClueCountText { extern "C" {
-extern SW D_003DD490;
 extern char D_002A8AA8[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D0: clue bottles collected / total in this level. Runtime-checked counters SW+0x4764 / +0x4768.
 void BuildClueCountText(void *f)
 {
-    fiprintf(f, D_002A8AA8, D_003DD490.numCluesCollected, D_003DD490.numClues);
+    fiprintf(f, D_002A8AA8, g_sw.numCluesCollected, g_sw.numClues);
 }
 } } // namespace M_BuildClueCountText
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern CLOCK D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
 void BuildTimerText(void *f)
 {
-    float t = -D_002DDED0.time + g_sw.hudTimerEndTime; int n; t = (t < 0.0f) ? 0.0f : t;
+    float t = -g_clock.time + g_sw.hudTimerEndTime; int n; t = (t < 0.0f) ? 0.0f : t;
     n = (int)t;
     {
         int q = n / 60;
@@ -157,9 +156,7 @@ void BuildTimerText(void *f)
 // 0x210FE0 BuildBinocularReadoutText
 namespace M_func_00210FE0 { extern "C" {
 struct X : STEP { char pad[0xF20 - 0x2C0]; int modeKind; char padf24[0x18]; float hudZoom; };   /* STEPPLAYER jtmode.kind (0 look, 1 zoom), jtmode.hud.zoom */
-extern char D_003DD490[];
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
-struct X *GetHeroPo(void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
 int sprintf(char *, char *, ...);
 int fptodp(float);
@@ -167,7 +164,7 @@ int fptodp(float);
 // (inferred)
 void BuildBinocularReadoutText(char *text)
 {
-    struct X *hero = GetHeroPo(D_003DD490);
+    struct X *hero = (struct X *)GetHeroPo(&g_sw);
     float zoom;
     if (!hero || !IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER))
         return;
@@ -200,7 +197,7 @@ void BuildBinocularReadoutText(char *text)
 // HUD texts 0x2DD / 0x2DE: the recon selector's selected item, or its pending caption.
 extern "C" void BuildReconSelectionText(char *text, int which)
 {
-    JT *hero = (JT *)GetHeroPo(&D_003DD490);
+    JT *hero = (JT *)GetHeroPo(&g_sw);
     if (!hero || !IsBasicDerivedFrom((BASIC *)hero, (CID)CID_STEPPLAYER))
         return;
     int *reconSelector = hero->jtmode.hud.unknown14;
@@ -219,7 +216,6 @@ extern "C" void BuildReconSelectionText(char *text, int which)
 
 // 0x2111F0 BuildReconTargetText
 namespace M_BuildReconTargetText { extern "C" {
-extern SW D_003DD490;
 struct Z { char pad[0xF8]; int nameTextId; };
 struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
 struct X : STEP { char pad[0xF38 - 0x2C0]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.unknown14 */
@@ -228,7 +224,7 @@ void strcpy(char *dst, char *src);
 // HUD texts 0x2DF-0x2E4: the name of recon target i, if there is one.
 void BuildReconTargetText(char *dst, int i)
 {
-    SW *sw = &D_003DD490;
+    SW *sw = &g_sw;
     struct X *hero = (struct X *)GetHeroPo(sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
         struct Y *selector = hero->reconSelector;
@@ -240,7 +236,6 @@ void BuildReconTargetText(char *dst, int i)
 
 // 0x211298 BuildMenuCarouselText
 namespace M_func_00211298 { extern "C" {
-extern SW D_003DD490;
 struct F { int id; char pad[0x1C]; };
 struct E { int numEntries; struct F *entries; char pad[0xC]; int selection; char pad2[4]; };   /* a menu page */
 #undef D_003D9EDC
@@ -258,7 +253,7 @@ void BuildMenuCarouselText(char *dst, int k)
         int j = k + (long)(page->selection - 3);   /* slot 3 of the carousel is the selection */
         while (j < 0)
             j += n;
-        (void)strcpy(dst, FindSwLocalizedString(&D_003DD490, page->entries[j % n].id));
+        (void)strcpy(dst, FindSwLocalizedString(&g_sw, page->entries[j % n].id));
     }
 }
 } } // namespace M_func_00211298
@@ -273,7 +268,7 @@ void strcpy(void *p, int v);
 extern "C" void BuildWidgetArgText(void *text, int i, WIDGET *widget)
 {
     using namespace M_BuildWidgetArgText;
-    strcpy(text, (int)FindSwLocalizedString(&D_003DD490, widget->argTextIds[i]));
+    strcpy(text, (int)FindSwLocalizedString(&g_sw, widget->argTextIds[i]));
 }
 
 // 0x211390 BuildSubtitleText
@@ -295,7 +290,7 @@ extern "C" void BuildSubtitleButtonText(int n)
 // HUD text 0x2F1: the message of the scrolling ticker.
 extern "C" void BuildTickerText(char *pchz)
 {
-    strcpy(pchz, FindSwLocalizedString(&D_003DD490, D_003DA0D8));
+    strcpy(pchz, FindSwLocalizedString(&g_sw, D_003DA0D8));
 }
 
 // 0x211420 BuildHeldItemText
@@ -307,8 +302,6 @@ struct Y { char pad[0x224]; int keyTextId; char pad228[0x1C]; struct Z *loot; };
 /* STEPPLAYER: jtgrab.state, the grabbed object (inferred), the default text id (inferred) */
 struct X : STEP { char pad[0x4C8 - 0x2C0]; int grabState; char pad4cc[0x9A0 - 0x4CC]; struct Y *heldObject; char pad9a4[0x1318 - 0x9A4]; int heldTextId; };
 enum { GRAB_STATE_HOLDING = 0xC };   /* (inferred) */
-extern char D_003DD490[];
-struct X *GetHeroPo(void *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 char *FindSwLocalizedString__FP2SWi(void *, int);
 void strcpy(char *, char *);
@@ -316,7 +309,7 @@ void strcpy(char *, char *);
 void BuildHeldItemText(char *text)
 {
     int id = -1;
-    struct X *hero = GetHeroPo(D_003DD490);
+    struct X *hero = (struct X *)GetHeroPo(&g_sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
         struct Y *held = hero->heldObject;
         if (held) {
@@ -332,7 +325,7 @@ void BuildHeldItemText(char *text)
         }
     }
     if (id != -1)
-        strcpy(text, FindSwLocalizedString__FP2SWi(D_003DD490, id));
+        strcpy(text, FindSwLocalizedString__FP2SWi(&g_sw, id));
     else
         *text = 0;
 }
@@ -461,7 +454,7 @@ void WIDGET127::Show(int idLabel)
     using namespace M_func_00211CA8;
     if (mainAnimId == -1) {
         WIDGET::Show(idLabel);
-        IncrementSwHandsOff(&D_003DD490, 0);
+        IncrementSwHandsOff(&g_sw, 0);
         isOpen = 1;
         PlayWidgetAnim(this, 0x33A);   /* the box's open animation */
     }
@@ -478,7 +471,7 @@ void WIDGET127::Init()
 // 0x211D38 UpdateModalBoxWidget
 namespace M_func_00211D38 { extern "C" {
 extern int D_002DD318;
-extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
+extern char D_002E6550[], D_003DA4F0[];
 int IsScreenShown(void *);
 int HandleJoyButtons(void *, int);
 void DecrementSwHandsOff(SW *, int);
@@ -493,11 +486,11 @@ void WIDGET127::Update()
         return;
     WIDGET::Update();
     if (state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - stateTime && !IsScreenShown(D_002E6550)
-        && !IsScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0 /* face buttons */)) {
-        DecrementSwHandsOff(&D_003DD490, 0);
-        if (keepsGamePaused == 0 && D_003DD490.currentJob) {
+        && !IsScreenShown(D_003DA4F0) && HandleJoyButtons(&g_joy, 0xF0 /* face buttons */)) {
+        DecrementSwHandsOff(&g_sw, 0);
+        if (keepsGamePaused == 0 && g_sw.currentJob) {
             D_002DD318++;
-            RestartJob(D_003DD490.currentJob);
+            RestartJob(g_sw.currentJob);
         }
         Hide();
     }
@@ -545,12 +538,12 @@ void WIDGET129::PostLoad()
     int i;
     WIDGET::PostLoad();
     for (i = 0; i < numEntriesB; i++) {
-        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, entriesB[i].oid, 0);
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, entriesB[i].oid, 0);
         if (object)
             entriesB[i].task = (TASK *)object;
     }
     for (i = 0; i < numEntriesA; i++) {
-        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, entriesA[i].oid, 0);
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, entriesA[i].oid, 0);
         if (object)
             entriesA[i].task = (TASK *)object;
     }
@@ -722,7 +715,7 @@ void WIDGET::PostLoad()
     int scaledWidth;
     LO::PostLoad();
     if (hasFont) {
-        SW *sw = &D_003DD490;
+        SW *sw = &g_sw;
         if (!sw->ploHudFont)
             sw->ploHudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, this);
     }
@@ -951,7 +944,7 @@ void WIDGET::Hide()
 extern "C" void ResetWidgetVisibleTime(WIDGET *widget)
 {
     if (widget->state == WIDGET_STATE_VISIBLE)
-        widget->stateTime = D_002DDED0.realTime;
+        widget->stateTime = g_clock.realTime;
 }
 
 // 0x212A50 SetWidgetRequest
@@ -961,7 +954,7 @@ extern "C" void SetWidgetRequest(WIDGET *widget, int request)
 {
     if (widget->request != request) {
         widget->request = request;
-        widget->requestTime = D_002DDED0.realTime;
+        widget->requestTime = g_clock.realTime;
     }
 }
 
@@ -997,9 +990,9 @@ extern "C" void SetWidgetState(WIDGET *widget, int state)
     /* states >= VISIBLE are on screen */
     if (widget->priority >= 16) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE)
-            D_003DD490.numShownWidgets++;
+            g_sw.numShownWidgets++;
         else if (state < WIDGET_STATE_VISIBLE && widget->state >= WIDGET_STATE_VISIBLE)
-            D_003DD490.numShownWidgets--;
+            g_sw.numShownWidgets--;
     }
     if (widget->pausesGame) {
         if (widget->state < WIDGET_STATE_VISIBLE && state >= WIDGET_STATE_VISIBLE) {
@@ -1782,7 +1775,6 @@ void PostSwCallback(SW *,OWNER *,PMF,SPRITE *);
 }
 extern "C" { extern int D_002C40A4; }
 extern "C" { extern PMF D_002A8B08; }
-extern "C" { extern SW D_003DD490; }
 extern "C" { extern QW D_002A2E10; }
 extern "C" { extern char D_00000650[],D_00000140[]; }
 // Fill the request and allocate bytes with the given alignment.
@@ -1855,7 +1847,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   vif.AddVifUnpack(UPK_V4_32,((uint)gif.m_pb-(uint)gif.m_ab)>>4,gif.m_ab,7);
   vif.AddVifMscal(D_00000650);vif.EndDmaCnt();vif.AddDmaRet();
   if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->heap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
-  else{vif.DetachCopySw(owner->heap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&D_003DD490,owner,D_002A8B08,sprite);}
+  else{vif.DetachCopySw(owner->heap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&g_sw,owner,D_002A8B08,sprite);}
   break;
  }
  case SPRITE_KIND_GEOMETRY:{
@@ -2140,7 +2132,6 @@ namespace M_CRichText_ctor {
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct F { char pad[0x54]; char *fonts; };   /* the HUD font object: 0x40-byte fonts */
-extern "C" SW D_003DD490;
 extern "C" Q D_002A2E10;
 extern "C" Q D_002A2E20;
 /* CRichText2 (0x98 bytes; the field names are the same in every view of this file):
@@ -2168,8 +2159,8 @@ extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
     rt->hAlign = 1;
     rt->vAlign = 1;
     rt->priority = 6;
-    rt->font = rt->baseFont = ((F *)D_003DD490.ploHudFont)->fonts;
-    rt->altFont = ((F *)D_003DD490.ploHudFont)->fonts + 0x40;
+    rt->font = rt->baseFont = ((F *)g_sw.ploHudFont)->fonts;
+    rt->altFont = ((F *)g_sw.ploHudFont)->fonts + 0x40;
     rt->baseColor = RGBA(0x80808080);
     rt->baseColor0 = D_002A2E10;
     rt->baseColor1 = D_002A2E20;
@@ -2183,7 +2174,6 @@ namespace M_func_00215BA8 {
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
 struct F { char pad[0x54]; char *fonts; };
-extern "C" SW D_003DD490;
 /* a text sprite descriptor (RenderSpriteText's S) */
 struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
 struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
@@ -2208,8 +2198,8 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
     rt->priority = sprite->owner->priority;
     rt->lineHeight = sprite->scale;
     rt->fontScale = rt->lineHeight * 0.01953125f;   /* 1 / 51.2 */
-    rt->font = rt->baseFont = ((F *)D_003DD490.ploHudFont)->fonts;
-    rt->altFont = ((F *)D_003DD490.ploHudFont)->fonts + 0x40;
+    rt->font = rt->baseFont = ((F *)g_sw.ploHudFont)->fonts;
+    rt->altFont = ((F *)g_sw.ploHudFont)->fonts + 0x40;
     rt->baseColor = sprite->color;
     rt->baseColor0 = styleCopy.b;
     rt->baseColor1 = styleCopy.c;
@@ -2697,14 +2687,11 @@ typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float 
 typedef struct {char *text,*cur;void *font,*baseFont,*altFont;RGBA color,baseColor,altColor;char pad20[0x20];qword baseColor0,baseColor1;int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;} RT;
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
-typedef struct {float t,dt;} CLOCK;
-extern "C" { extern SW D_003DD490; }
 extern "C" { extern STRINGGEN D_003E1C88[]; }
 extern "C" { extern const char D_002A8B80[],D_002A8B88[]; }
 extern "C" { extern char D_004435F0[]; }
 #define D_004435F4 (*(RGBA *)((char *)base_D_004435F0 + 4))   /* g_subtitle's colour (tu_2275B8's SPEAKERLABEL +0x4) */
 extern "C" { extern SCROLL D_003DA0C0; }
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern const float D_002C40B8; }
 extern "C" char *strcpy(char *,const char *);
 extern "C" char *strcpy1(char *,const char *);
@@ -2727,7 +2714,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
     RT rt;
     DATA style;
     char marquee[2*sizeof(text)+3*5];
-    if(!D_003DD490.ploHudFont)return;
+    if(!g_sw.ploHudFont)return;
     text[0]=0;
     if(p->kind==TEXT_SOURCE_TABLE){
         uint i;
@@ -2735,7 +2722,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         if(i>=108)*(long *)text=*(const long *)D_002A8B80;
         else D_003E1C88[i].get(text,D_003E1C88[i].context,p->owner);
     }else if(p->kind==TEXT_SOURCE_LANGSTR){
-        strcpy(text,(const char *)FindSwLocalizedString(&D_003DD490,p->id));
+        strcpy(text,(const char *)FindSwLocalizedString(&g_sw,p->id));
     }
     if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_SUBTITLE){
         int lines=1,ch,visible;
@@ -2771,7 +2758,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         strcpy1(marquee,D_002A8B88);
         strcpy1(marquee,text);
         strcpy1(marquee,D_002A8B88);
-        elapsed=D_002DDED0.t-D_003DA0C0.time;
+        elapsed=g_clock.time-D_003DA0C0.time;
         if(elapsed<D_002C40B8){
             data->fade*=elapsed/D_002C40B8;
         }else{
@@ -3524,7 +3511,6 @@ struct R { char pad[8]; struct E *ae; };
 struct A { int kind; int id; };
 struct F { char pad[0x18]; unsigned char count; char pad1[3]; struct A *aa; };
 struct S { char pad[4]; struct F *af; char pad1[8]; struct R *r; };
-extern "C" { extern char D_003DD040[]; }
 extern "C" struct M *CreateSfxSound(int id);
 extern "C" void SetSndSourceLo(struct M *, struct O *);
 extern "C" void StopSnd(struct M *, float);
@@ -3574,8 +3560,8 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
             if(Presence(e->pm)) Stop(SlotAddress(e));
             break;
         }
-        case 2: StartDialog(D_003DD040,a->id,0); break;
-        case 3: StopDialog(D_003DD040); break;
+        case 2: StartDialog(&g_sndmgr,a->id,0); break;
+        case 3: StopDialog(&g_sndmgr); break;
         }
     } while(++j<f->count);
 }
