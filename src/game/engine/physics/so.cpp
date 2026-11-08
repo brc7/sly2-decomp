@@ -3139,20 +3139,18 @@ SO *DeliverZapToSo(struct K *pk)
 
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords { extern "C" {
-struct E; struct P;
+struct E;
 struct E { char pad[0x4C]; float t; };
-struct P { char pad[0x4118]; char pool[0x18]; struct DL dl; };
-void FreeSlotheapSlot(void *, void *);
 // Drops zap-history entries older than 0.25 s from the world's list.
-void ExpireSwZapRecords(struct P *so)
+void ExpireSwZapRecords(SW *so)
 {
     struct DLI dli;
     struct E *pe;
-    InitDli(&dli, &so->dl);
+    InitDli(&dli, &so->dlZprHit);
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
         if (g_clock.time < pe->t + 0.25f) continue;
-        RemoveDlEntry__FP2DLPv(&so->dl, pe);
-        FreeSlotheapSlot(so->pool, pe);
+        RemoveDlEntry__FP2DLPv(&so->dlZprHit, pe);
+        FreeSlotheapSlot(&so->slotheapZprHit, pe);
     }
     D_002DD2FC = dli.m_pdliNext;
 }
