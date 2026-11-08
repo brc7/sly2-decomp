@@ -103,7 +103,11 @@ struct SHAPE : public XFM
       int numControlVertices; /* number of control vertices */
       float *vertexParams; /* parameter value at each control vertex */
       float *vertexArcLengths; /* arc length at each control vertex */
-      VECTOR4 *vertexPositions; /* control vertex positions (local) */
+      union
+      {
+            VECTOR4 *vertexPositions; /* control vertex positions (local) */
+            QWROW *vertexPosq;   /* the same, read as quadwords */
+      };
       undefined4 unknownF8[2];
       MATRIX4 matWorldCache;   /* world matrix the cached world positions were computed with (inferred) */
       VECTOR4 *incomingTangents;   /* +0x140 per-vertex incoming tangents (shape.cpp's views name them incoming/outgoing) */
@@ -135,7 +139,7 @@ struct SHAPECHAIN
       int mode;   /* +0x4C simulation mode: 0/3 stepped with RK4, 1/2 with StepChain; -1 off (SetShapeChainMode) */
       int unknown50;
       QWROW *positions;   /* +0x54 sample positions */
-      QWROW *velocities;   /* +0x58 sample velocities (InitChain's previous positions) */
+      QWROW *velocities;   /* +0x58 per-sample velocities (InitChain's view calls them previous positions; inferred) */
       float *distances;   /* +0x5C its own copy of the shape's arc lengths (SyncChainDistances) */
       float damping;   /* +0x60 */
       float stretch;   /* +0x64 */
