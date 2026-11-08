@@ -29,6 +29,7 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/classes.h"
+#include "sly2/clock.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -385,11 +386,9 @@ struct GRP { int a; XF *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
 struct HDR { signed char c0; signed char citem; char pad[0x12]; };
 struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
 struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int relightStamp; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (numPieces, subMeshes, pieces, relightStamp, pwrbgFirst) */
-struct G;
-extern "C" { extern G D_003DD490; }
 extern "C" { 
  }
-extern "C" SO *FindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);   /* the found object is an SO here */
+extern "C" SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);   /* the found object is an SO here */
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
 extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
@@ -405,7 +404,7 @@ extern "C" void BindGlobset(S *p)
         GRP *pgrp = &p->agrp[i];
         for (int j = 0; j < phdr->citem; j++) {
             ITEM *pitem = &pgrp->aitem[j];
-            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pitem->oid, p->pvOwner);
+            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, pitem->oid, p->pvOwner);
             if (pitem->plo)
                 pitem->pbone = pitem->plo->GetXfFromIndex(pitem->n8);
             if (pitem->pbone) {
@@ -428,7 +427,7 @@ extern "C" void BindGlobset(S *p)
         }
     }
     for (X *px = p->pxFirst; px; px = px->pxNext) {
-        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, px->oid, p->pvOwner);
+        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, px->oid, p->pvOwner);
         if (plo)
             AddWrWarpGroup(plo, px);
     }
@@ -553,12 +552,10 @@ int VU1_Interrupt(void)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpRelight {
 struct X { char pad[0x120]; QW amat[3]; int pad150[4]; int isDisabled; };   /* a light: 3 qwords of relight data; isDisabled (inferred): skipped */
-struct G;
-extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_0025E090[]; }
 extern "C" { extern char D_0025E668[]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern "C" int FindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
+extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 // Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload
 // up to 256 lights x 3 qw. (inferred)
@@ -572,7 +569,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
     pvifs->AddDmaCnt();
     pvifs->AddVifFlusha();
     pvifs->AddVifBaseOffset(0x32, 0);
-    int c = FindSwObjectsByClass(&D_003DD490, 0x505, 4, 0, 0x180, (void **)apx);
+    int c = FindSwObjectsByClass(&g_sw, 0x505, 4, 0, 0x180, (void **)apx);
     for (i = 0; i < c; i++) {
         px = apx[i];
         if (!px->isDisabled)
@@ -694,7 +691,6 @@ struct PACKET
     U sphere;
     M4 matrix;
 };
-extern "C" { extern SW D_003DD490; }
 extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
@@ -810,7 +806,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
         *(int *)&prpl->depth = 0;   /* an int store of 0.0f */
         prpl->pvCall = descriptor->chain;
     }
-    p->tick = D_003DD490.relightStamp;
+    p->tick = g_sw.relightStamp;
 }
 } // namespace M_SubmitGlobsetRelight
 
@@ -1080,8 +1076,6 @@ struct MODEL
         float scale;
     };
 };
-extern "C" { extern SW D_003DD490; }
-extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void SubmitGlobsetRelight(MODEL *pmodel);
@@ -1292,8 +1286,8 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     float gVis = GetSphereVisibility(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
     if (gVis == 0.0f)
         return;
-    pmodel->t = D_002DDED0.time;
-    if (pmodel->nStamp != D_003DD490.relightStamp)
+    pmodel->t = g_clock.time;
+    if (pmodel->nStamp != g_sw.relightStamp)
         SubmitGlobsetRelight(pmodel);
     int i;
     for (i = 0; i < pmodel->cobj; i++)
@@ -1307,7 +1301,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     }
     int fAlt = 0;
     if (pmodel->grf & 0x400000000UL)
-        fAlt = D_003DD490.numShownWidgets == 0;
+        fAlt = g_sw.numShownWidgets == 0;
     for (i = 0; i < pmodel->csub; i++)
     {
         pdesc = &pmodel->asubdesc[i];
@@ -1579,13 +1573,11 @@ struct MODEL
     char pad48[8];
     float scale;
 };
-struct G;
-extern "C" { extern G D_003DD490; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void BuildLightPackets(G *pg, int c, void **apv, SOBOUNDS *pshd);
+void BuildLightPackets(SW *pg, int c, void **apv, SOBOUNDS *pshd);
 int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 int GetRenderTargetTexture(ALO *palo, int n);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
@@ -1680,7 +1672,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
     {
         func_002333B4(&shd, 0, sizeof(SOBOUNDS));
         pshd = &shd;
-        BuildLightPackets(&D_003DD490, palo->cpshd, palo->apshd, &shd);
+        BuildLightPackets(&g_sw, palo->cpshd, palo->apshd, &shd);
     }
     else
     {
@@ -3841,7 +3833,7 @@ namespace M_EndRpProjVolume {
 struct COMMAND {
     short kind, index;
 };
-extern "C" { extern SW D_003DD490; }
+extern "C" { extern SW D_003DD490; }   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
 extern "C" { extern int D_002DEB70[2]; }
 extern "C" { 
  }
