@@ -149,20 +149,8 @@ struct DPRIZE : SO
 };
 typedef char assert_DPRIZE_size[sizeof(DPRIZE) == 0x230 ? 1 : -1];
 
-/* 126 WIDGET (0x110); vtable 0x2DAF30, 50 slots */
-struct WIDGET : LO
-{
-    char pad50[0x110 - 0x50];
-    WIDGET() __asm__("WIDGET_ctor");          /* out of line: presentation/hud/WIDGET_ctor.c */
-    virtual void RenderSelf() __asm__("RenderWidget");   /* slot 19; key function (hud.cpp) */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetWidgetClassDesc");   /* slot 6 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWidgetFromBrx");   /* slot 14 */
-    virtual void PostLoad() __asm__("PostWidgetLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateWidget");   /* slot 16 */
-    virtual void Show(int idLabel) __asm__("ShowWidget");   /* slot 49: shows the widget with an animation label (-1 default; game.cpp ShowCountdownHud, letterbox, relay AddRelayWidgetShow) */
-    virtual void Hide() __asm__("HideWidget");   /* slot 50 */
-};
-typedef char assert_WIDGET_size[sizeof(WIDGET) == 0x110 ? 1 : -1];
+/* 126 WIDGET (0x110); vtable 0x2DAF30, 50 slots: sly2/widget.h (files that cannot include this header use it) */
+#include "sly2/widget.h"
 
 /* 138 SAA (0x50); vtable 0x2D9420, 10 slots */
 struct SAAF;   /* the shader-animation parameters (Sly 1 symbols InitShuffle__FP7SHUFFLEP4SAAF...) */
@@ -604,13 +592,24 @@ typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 /* 131 WIDGET131 (0x140): WIDGET: episode menu; vtable 0x2CEEB8, 50 slots */
 struct WIDGET131 : WIDGET
 {
-    char pad110[0x140 - 0x110];
+    /* the menu (tu_15CD68.cpp; g_sw.pepmenu points at it) */
+    int episode;                 /* +0x110 selected episode */
+    int nextEpisode;             /* +0x114 episode being scrolled to */
+    int lastEpisode;             /* +0x118 last selectable episode */
+    int menuState;               /* +0x11C EPMENU_* */
+    int menuSub;                 /* +0x120 */
+    float menuStateTime;         /* +0x124 real time of the last menu state change */
+    int chapter;                 /* +0x128 */
+    int promptState;             /* +0x12C */
+    float promptTime;            /* +0x130 */
+    char pad134[0x140 - 0x134];
     virtual void Init() __asm__("InitEpisodeMenu");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget131ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostEpisodeMenuLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateEpisodeMenu");   /* slot 16 */
 };
 typedef char assert_WIDGET131_size[sizeof(WIDGET131) == 0x140 ? 1 : -1];
+typedef char assert_WIDGET131_promptTime[SLY2_OFFSETOF(WIDGET131, promptTime) == 0x130 ? 1 : -1];
 
 /* 116 CID116 (0x70): screen tint / fill (render kinds 14 and 1); vtable 0x2CF058, 48 slots */
 struct CID116 : LO
@@ -2153,25 +2152,34 @@ typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
 typedef char assert_CID125_guards[SLY2_OFFSETOF(CID125, guards) == 0x54 ? 1 : -1];
 
 /* 129 WIDGET129 (0x220): WIDGET: objective counter (computed per frame); vtable 0x2DAD90, 50 slots */
+struct ITEMCOUNTERENTRY { OID oid; TASK *task; };   /* an item counter entry: the task's oid, resolved by PostLoad */
 struct WIDGET129 : WIDGET
 {
-    char pad110[0x220 - 0x110];
+    int numEntriesA;             /* +0x110 AddItemCounterOidA (at most 16) */
+    ITEMCOUNTERENTRY entriesA[16];   /* +0x114 */
+    int numEntriesB;             /* +0x194 AddItemCounterOidB; the counted done/total/remaining texts are for these */
+    ITEMCOUNTERENTRY entriesB[16];   /* +0x198 */
+    char pad218[0x220 - 0x218];
     virtual void PostLoad() __asm__("PostLoadItemCounterWidget");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget129ClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateItemCounterWidget");   /* slot 16 */
 };
 typedef char assert_WIDGET129_size[sizeof(WIDGET129) == 0x220 ? 1 : -1];
+typedef char assert_WIDGET129_numEntriesB[SLY2_OFFSETOF(WIDGET129, numEntriesB) == 0x194 ? 1 : -1];
 
 /* 127 WIDGET127 (0x120): WIDGET: modal hands-off box; vtable 0x2DABF0, 50 slots */
 struct WIDGET127 : WIDGET
 {
-    char pad110[0x120 - 0x110];
+    int isOpen;                  /* +0x110 set while the box is up (ShowModalBoxWidget, UpdateModalBoxWidget) */
+    int keepsGamePaused;         /* +0x114 0: dismissing the box restarts the current job */
+    char pad118[0x120 - 0x118];
     virtual void Init() __asm__("InitModalBoxWidget");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateModalBoxWidget");   /* slot 16 */
     virtual void Show(int idLabel) __asm__("ShowModalBoxWidget");   /* slot 49 */
 };
 typedef char assert_WIDGET127_size[sizeof(WIDGET127) == 0x120 ? 1 : -1];
+typedef char assert_WIDGET127_keepsGamePaused[SLY2_OFFSETOF(WIDGET127, keepsGamePaused) == 0x114 ? 1 : -1];
 
 /* 128 WIDGET128 (0x110): WIDGET: job completion banner (pauses clock slot 7); vtable 0x2DAA50, 50 slots */
 struct WIDGET128 : WIDGET
@@ -2234,11 +2242,16 @@ struct CID101 : CID100
 };
 typedef char assert_CID101_size[sizeof(CID101) == 0x1B0 ? 1 : -1];
 
-/* 130 WIDGET130 (0x130); vtable 0x2C9670, 50 slots */
+/* 130 WIDGET130 (0x130): WIDGET: the recon selector prompt (tu_201D78); vtable 0x2C9670, 50 slots */
 struct WIDGET130 : WIDGET
 {
-    int anUnk110[4];                          /* +0x110 set to -1 by the constructor */
-    int nUnk120;                              /* +0x120 set to -1 by the constructor */
+    /* the recon selector's prompt (oid 0x362, tu_201D78): the selector state to request next in each situation
+       (target done, rising, falling, near, empty: names from tu_201D78's view; -1 from the constructor) */
+    int actorChoice;             /* +0x110 */
+    int risingChoice;            /* +0x114 */
+    int fallingChoice;           /* +0x118 */
+    int nearChoice;              /* +0x11C */
+    int emptyChoice;             /* +0x120 */
     char pad124[0x130 - 0x124];
     WIDGET130() __asm__("ConstructWidget130");     /* out of line: engine/presentation/hud.cpp */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWidget130ClassDesc");   /* slot 6 */

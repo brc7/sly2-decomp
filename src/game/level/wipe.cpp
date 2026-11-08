@@ -5,11 +5,8 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0022B700
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
+#include "sly2/classes.h"
 
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; void (*pfn)(...); };
-/* The wipe widget (found as oid 0x405); only its vtable pointer is used here. */
-struct WIDGETV { int unknown0, unknown4, unknown8; VTE *vtable; };   /* slot 49 shows a label, slot 50 hides */
 
 /* TRANS (the transition request handed to SetSwTransition): sly2/sw.h. */
 enum { TRANS_SAME_LEVEL = 2 };
@@ -28,7 +25,7 @@ struct WIPE
     int state;              /* +0x0 */
     int hasTransition;         /* +0x4 a transition is stored */
     TRANS transition;        /* +0x8 */
-    WIDGETV *widget;   /* +0x54 */
+    WIDGET *widget;   /* +0x54 */
     int widgetOid;      /* +0x58 */
 
     /* HYPOTHESIS: InitWipe is the real constructor (it returns this); renaming it is a separate step. */
@@ -41,7 +38,7 @@ extern SW D_003DD490;
 extern "C" {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
 void SetSwTransition(SW *world, TRANS *transition);
-int IsWidgetAnimPlaying(WIDGETV *widget, int a);
+int IsWidgetAnimPlaying(WIDGET *widget, int a);
 void SetWipeWipes(WIPE *wipe, int newState);
 void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newState);
 }
@@ -75,7 +72,7 @@ extern "C" WIPE *InitWipe(WIPE *wipe)
 // world (SetSwTransition).
 extern "C" void SetWipeWipes(WIPE *wipe, int newState)
 {
-    WIDGETV *widget;
+    WIDGET *widget;
     if (wipe->state == newState) return;
     wipe->state = newState;
     switch (newState) {
@@ -83,13 +80,13 @@ extern "C" void SetWipeWipes(WIPE *wipe, int newState)
         wipe->hasTransition = 0;
         func_002333B4(&wipe->transition, 0, sizeof(TRANS));
         widget = wipe->widget;
-        if (widget) widget->vtable[50].pfn((char *)widget + widget->vtable[50].d);
+        if (widget) widget->Hide();
         break;
     case WIPE_OUT:
-        wipe->widget->vtable[49].pfn((char *)wipe->widget + wipe->widget->vtable[49].d, LABEL_WIPE_OUT);
+        wipe->widget->Show(LABEL_WIPE_OUT);
         break;
     case WIPE_IN:
-        wipe->widget->vtable[49].pfn((char *)wipe->widget + wipe->widget->vtable[49].d, LABEL_WIPE_IN);
+        wipe->widget->Show(LABEL_WIPE_IN);
         break;
     case WIPE_TRANSITION:
         SetSwTransition(&D_003DD490, &wipe->transition);
@@ -139,7 +136,7 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
         transition->flags |= TRANS_SAME_LEVEL;
     else
         transition->flags &= ~TRANS_SAME_LEVEL;
-    wipe->widget = (WIDGETV *)FindSwObject(&D_003DD490, 0x405, (OID)oid, 0);
+    wipe->widget = (WIDGET *)FindSwObject(&D_003DD490, 0x405, (OID)oid, 0);
     if (!wipe->widget) {
         SetSwTransition(&D_003DD490, transition);
         return;
@@ -154,7 +151,7 @@ extern "C" void ActivateWipe(WIPE *wipe, TRANS *transition, int oid, int newStat
 // otherwise returns the wipe to idle. Called at the end of the world load (sw.cpp). (inferred)
 extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
 {
-    wipe->widget = (WIDGETV *)FindSwObject(&D_003DD490, 0x405, (OID)wipe->widgetOid, 0);
+    wipe->widget = (WIDGET *)FindSwObject(&D_003DD490, 0x405, (OID)wipe->widgetOid, 0);
     if (!wipe->widget || wipe->state != WIPE_TRANSITION) {
         SetWipeWipes(wipe, WIPE_IDLE);
         return;

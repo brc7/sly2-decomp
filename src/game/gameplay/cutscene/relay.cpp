@@ -326,33 +326,6 @@ void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoo
 
 void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("SetSwAsegEyesClosed");
 
-struct WIDGETV : public LO
-{
-      undefined4 unk_0x50[2];
-      int nState;
-      float tState;
-      int cframeState;
-      int nStateStamped;
-      float tStateStamped;
-      undefined4 unk_0x6c;
-      int idLabelHold;
-      int idLabelIn;
-      int idLabelOut;
-      int idLabelPlaying;
-      ushort cclip;
-      WIDGETCLIP *aclip;
-      undefined4 unk_0x88;
-      undefined4 unk_0x8c[6];
-      int nPriority;
-      int fHidden;
-      int unk_0xac;
-      int fFreezeClock;
-      DLE dleDraw;
-      undefined4 unk_0xbc[0x15];
-    virtual void Show(int idLabel);
-    virtual void Hide();
-};
-
 struct SUBTITLE
 {
       int idString;
@@ -2279,7 +2252,7 @@ void NextJsgCommand(RELAYJSG *script)
         {
             if (prelaycmd->relayck == RELAYCK_WidgetShow)
             {
-                ((WIDGETV *)plo)->Show(prelaycmd->widgetShow.idLabel);
+                ((WIDGET *)plo)->Show(prelaycmd->widgetShow.idLabel);
                 if (!prelaycmd->fAsync)
                 {
                     script->ploWidget = plo;
@@ -2287,7 +2260,7 @@ void NextJsgCommand(RELAYJSG *script)
             }
             else
             {
-                ((WIDGETV *)plo)->Hide();
+                ((WIDGET *)plo)->Hide();
             }
         }
         break;
@@ -4402,21 +4375,15 @@ void ClearJsgSma(RELAYJSG *script)
 } } // namespace M_ClearJsgSma
 
 // 0x1E5468 ClearJsgWidget
-namespace M_func_001E5468 { extern "C" {
-struct VTE; struct O; struct S;
-struct VTE { short d; short pad; void (*pf)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S : BASIC { char pad[0x64 - 0x10]; struct O *po; };
-// Call vtable slot 50 on ploWidget (+0x64) and clear it. (inferred)
-void ClearJsgWidget(struct S *script)
+// Hides the script's widget (slot 50) and forgets it.
+extern "C" void ClearJsgWidget(RELAYJSG *script)
 {
-    struct O *po = script->po;
-    if (po) {
-        po->vt[50].pf((char *)po + po->vt[50].d);
-        script->po = 0;
+    WIDGET *widget = (WIDGET *)script->ploWidget;
+    if (widget) {
+        widget->Hide();
+        script->ploWidget = 0;
     }
 }
-} } // namespace M_func_001E5468
 
 // 0x1E54B0 ClearJsgJtMode
 // End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> EndJtMode(+0xF00)). (inferred)
@@ -4475,7 +4442,6 @@ int IsJsgRemoved(RELAYJSG *p);
 void RemoveDlEntry__FP2DLPv(DL *pdl, RELAYJSG *p);
 void ClearJsgAseg(RELAYJSG *p);
 void ClearJsgSma(RELAYJSG *p);
-void ClearJsgWidget(RELAYJSG *p);
 void ClearJsgStepHolds(RELAYJSG *p);
 void AbortJsgMove(RELAYJSG *p);
 void SetClockRate(CLOCK *pclock, int n, float g);

@@ -25,59 +25,12 @@
 #include "sly2/cref.h"
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
+#include "sly2/hud.h"
+#include "heap.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
-
-/* WIDGET::state values. */
-enum WIDGET_STATE
-{
-    WIDGET_STATE_UNLOADED = 0,
-    WIDGET_STATE_HIDDEN = 1,
-    WIDGET_STATE_VISIBLE = 2,
-    WIDGET_STATE_APPEARING = 3,
-    WIDGET_STATE_DISAPPEARING = 4,
-};
-/* WIDGET::request values. */
-enum WIDGET_REQUEST
-{
-    WIDGET_REQUEST_NONE = 0,
-    WIDGET_REQUEST_HIDE = 1,
-    WIDGET_REQUEST_SHOW = 2,
-};
-
-/* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
-struct WIDGETV : public LO
-{
-    char pad50[0x8];
-    int state;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
-    float stateTime;           /* +0x5C time of the last state change */
-    char pad60[0x4];
-    int request;           /* +0x64 1 hide, 2 show */
-    float requestTime;         /* +0x68 */
-    char pad6C[0x4];
-    int loopAnimId;         /* +0x70 */
-    int showAnimId;         /* +0x74 */
-    int hideAnimId;         /* +0x78 */
-    int mainAnimId;         /* +0x7C */
-    char pad80[0x28];
-    int isNonExclusive;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
-};
-/* A sprite group (0x30 bytes) as DrawSprite..GetSpriteMainState read it: the 0x18-byte animations at +4, the
-   0x18-byte playback slots at +8 (slot 0 plays the group's main track), an enable flag at +0x28. */
-struct SPRITEITEM { char pad0[0x18]; };   /* an animation */
-/* a playback slot: the animation playing (-1 none), the key, the time, whether it finished (or holds a seeked
-   time), its sound */
-struct SPRITEENTRY { char pad0[0x8]; short animIndex; short keyIndex; float time; int isFinished; void *sound; };
-struct SPRITEGRP
-{
-    unsigned short numAnims, numSlots;
-    SPRITEITEM *anims;      /* +0x04 */
-    SPRITEENTRY *slots;     /* +0x08 */
-    char padC[0x1C];
-    int isEnabled;          /* +0x28 */
-};
 
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
@@ -97,10 +50,16 @@ char *GetReconPendingText(int *pn);
 char *GetReconSelectedText(int *pn);
 void GetSubtitleText(char *pchz, int n);
 void FormatSubtitleButtonGlyphs(char *pchz, int n);
-void SetWidgetRequest(WIDGETV *widget, int request);
-void SetWidgetStateW(WIDGETV *widget, int state) __asm__("SetWidgetState");
-int IsWidgetObscured(WIDGETV *widget);
-void DrawSpriteItems(SPRITEITEM *anim, int slot, int drawFlags);
+void SetWidgetRequest(WIDGET *widget, int request);
+void SetWidgetState(WIDGET *widget, int state);
+int HasSpriteAnim(void *pv, SPRITEGRP *group, int id);
+int IsWidgetObscured(WIDGET *widget);
+int IsWidgetIdle(WIDGET *widget);
+int GetSpriteMainState(SPRITEGRP *spriteGroup);
+int IsSpriteAnimActive(SPRITEGRP *spriteGroup);
+void StopSprite(SPRITEGRP *spriteGroup);
+void SetWidgetExclusive(WIDGET *widget, int isNonExclusive);
+void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags);
 void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
 int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
@@ -308,15 +267,14 @@ void BuildMenuCarouselText(char *dst, int k)
 
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText { extern "C" {
-struct T : LO { char pad[0xCC - 0x50]; int argTextIds[1]; };
-extern SW D_003DD490;
 void strcpy(void *p, int v);
+} } // namespace M_BuildWidgetArgText
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
-void BuildWidgetArgText(void *text, int i, struct T *widget)
+extern "C" void BuildWidgetArgText(void *text, int i, WIDGET *widget)
 {
+    using namespace M_BuildWidgetArgText;
     strcpy(text, (int)FindSwLocalizedString(&D_003DD490, widget->argTextIds[i]));
 }
-} } // namespace M_BuildWidgetArgText
 
 // 0x211390 BuildSubtitleText
 // HUD text 0x2EF: the current subtitle's text. (inferred)
@@ -488,170 +446,138 @@ extern "C" void EndRpHud(VIFS *pvifs)
 
 // 0x211C58 ConstructWidget130
 /* WIDGET130's constructor (sly2/classes.h): WIDGET_ctor, the vptr (_vt$9WIDGET130, class_registry's), the fields. */
-// Constructor of widget class 0x82: base widget, then four ids and one more field set to -1 (unused).
-WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; anUnk110[3] = -1; nUnk120 = -1; }
+// Constructor of widget class 0x82 (the recon selector prompt): base widget, then its five choices -1.
+WIDGET130::WIDGET130() { actorChoice = -1; risingChoice = -1; fallingChoice = -1; nearChoice = -1; emptyChoice = -1; }
 
 // 0x211CA8 ShowModalBoxWidget
 namespace M_func_00211CA8 { extern "C" {
-struct S : LO { char pad[0x7C - 0x50]; int mainAnimId; char pad2[0x90]; int isOpen; };   /* isOpen: WIDGET127+0x110 (inferred) */
-extern SW D_003DD490;
-void ShowWidget(struct S *p, int k);
 void IncrementSwHandsOff(SW *g, int a);
-void PlayWidgetAnim(struct S *p, int a);
+void PlayWidgetAnim(WIDGET *p, int a);
+} } // namespace M_func_00211CA8
 // Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
 // open animation. (inferred)
-void ShowModalBoxWidget(struct S *widget, int arg)
+void WIDGET127::Show(int idLabel)
 {
-    if (widget->mainAnimId == -1) {
-        ShowWidget(widget, arg);
+    using namespace M_func_00211CA8;
+    if (mainAnimId == -1) {
+        WIDGET::Show(idLabel);
         IncrementSwHandsOff(&D_003DD490, 0);
-        widget->isOpen = 1;
-        PlayWidgetAnim(widget, 0x33A);   /* the box's open animation */
+        isOpen = 1;
+        PlayWidgetAnim(this, 0x33A);   /* the box's open animation */
     }
 }
-} } // namespace M_func_00211CA8
 
 // 0x211D08 InitModalBoxWidget
-namespace M_func_00211D08 { extern "C" {
-struct S : LO { char pad[0xB0 - 0x50]; int fontFlag; };
-void InitLo(struct S *p);
-} } // namespace M_func_00211D08
-// Initializes the modal message box (class 0x7F): base init and its "font" flag.
-void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *widget = (M_func_00211D08::S *)this;
-    InitLo(widget);
-    widget->fontFlag = 1;
+// Initializes the modal message box (class 0x7F): base init, and it pauses the game while shown.
+void WIDGET127::Init()
+{
+    LO::Init();
+    pausesGame = 1;
 }
 
 // 0x211D38 UpdateModalBoxWidget
 namespace M_func_00211D38 { extern "C" {
-// Actor update: commit completed state after every noninitial guard path.
-struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
-struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int isOpen; int keepsGamePaused; };
-extern SW D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
-int IsWidgetIdle(struct S *p);
-void UpdateWidget(struct S *p);
 int IsScreenShown(void *);
 int HandleJoyButtons(void *, int);
 void DecrementSwHandsOff(SW *, int);
 void RestartJob(void *);
+} } // namespace M_func_00211D38
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
-void UpdateModalBoxWidget(struct S *widget)
+void WIDGET127::Update()
 {
-    if (IsWidgetIdle(widget))
+    using namespace M_func_00211D38;
+    if (IsWidgetIdle(this))
         return;
-    UpdateWidget(widget);
-    if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - widget->stateTime && !IsScreenShown(D_002E6550)
+    WIDGET::Update();
+    if (state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.realTime - stateTime && !IsScreenShown(D_002E6550)
         && !IsScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0 /* face buttons */)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (widget->keepsGamePaused == 0 && D_003DD490.currentJob) {
+        if (keepsGamePaused == 0 && D_003DD490.currentJob) {
             D_002DD318++;
             RestartJob(D_003DD490.currentJob);
         }
-        widget->pvt->pf((char *)widget + widget->pvt->d);   /* HideWidget (slot 50) */
+        Hide();
     }
-    widget->isOpen = 1;
+    isOpen = 1;
 }
-} } // namespace M_func_00211D38
 
 // 0x211E40 InitWidget128
-namespace M_func_00211E40 { extern "C" {
-struct S : LO { char pad[0xB0 - 0x50]; int fontFlag; };
-void InitLo(struct S *p);
-} } // namespace M_func_00211E40
-// Initializes widget class 0x80: base init and its "font" flag.
-void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *widget = (M_func_00211E40::S *)this;
-    InitLo(widget);
-    widget->fontFlag = 1;
+// Initializes widget class 0x80 (the job completion banner): base init, and it pauses the game while shown.
+void WIDGET128::Init()
+{
+    LO::Init();
+    pausesGame = 1;
 }
 
 // 0x211E70 AddItemCounterOidA
-namespace M_func_00211E70 { extern "C" {
-struct E { int oid; void *object; };
-struct S : LO { char pad[0x110 - 0x50]; unsigned int numEntries; struct E entries[16]; };
 // Adds an object to the item counter widget's first list (at most 16). (inferred)
-void AddItemCounterOidA(struct S *widget, int oid)
+extern "C" void AddItemCounterOidA(WIDGET129 *widget, int oid)
 {
-    unsigned int count = widget->numEntries;
+    unsigned int count = widget->numEntriesA;
     if (count < 16) {
-        widget->entries[count].oid = oid;
-        widget->numEntries = count + 1;
+        widget->entriesA[count].oid = (OID)oid;
+        widget->numEntriesA = count + 1;
     }
 }
-} } // namespace M_func_00211E70
 
 // 0x211E98 AddItemCounterOidB
-namespace M_func_00211E98 { extern "C" {
-struct E { int oid; void *object; };
-struct S : LO { char pad[0x194 - 0x50]; unsigned int numEntries; struct E entries[16]; };
 // Adds an object to the item counter widget's second list (at most 16). (inferred)
-void AddItemCounterOidB(struct S *widget, int oid)
+extern "C" void AddItemCounterOidB(WIDGET129 *widget, int oid)
 {
-    unsigned int count = widget->numEntries;
+    unsigned int count = widget->numEntriesB;
     if (count < 16) {
-        widget->entries[count].oid = oid;
-        widget->numEntries = count + 1;
+        widget->entriesB[count].oid = (OID)oid;
+        widget->numEntriesB = count + 1;
     }
 }
-} } // namespace M_func_00211E98
 
 // 0x211EC0 PostLoadItemCounterWidget
 namespace M_func_00211EC0 { extern "C" {
-extern SW D_003DD490;
-struct B { int oid; void *object; };
-struct S : LO { char pad[0x110 - 0x50]; int numEntriesA; struct B entriesA[0x10]; int numEntriesB; struct B entriesB[1]; };
-void PostWidgetLoad(struct S *p);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int z);
 } } // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
-void WIDGET129::PostLoad() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *widget = (M_func_00211EC0::S *)this;
+void WIDGET129::PostLoad()
+{
+    using namespace M_func_00211EC0;
     int i;
-    PostWidgetLoad(widget);
-    for (i = 0; i < widget->numEntriesB; i++) {
-        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesB[i].oid, 0);
+    WIDGET::PostLoad();
+    for (i = 0; i < numEntriesB; i++) {
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, entriesB[i].oid, 0);
         if (object)
-            widget->entriesB[i].object = object;
+            entriesB[i].task = (TASK *)object;
     }
-    for (i = 0; i < widget->numEntriesA; i++) {
-        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, widget->entriesA[i].oid, 0);
+    for (i = 0; i < numEntriesA; i++) {
+        void *object = FindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, entriesA[i].oid, 0);
         if (object)
-            widget->entriesA[i].object = object;
+            entriesA[i].task = (TASK *)object;
     }
 }
 
 // 0x211F90 UpdateItemCounterWidget
 namespace M_func_00211F90 { extern "C" {
-struct VT {
-    char pad[0x188]; short d49; short pd49; void (*f49)(void *,int);
-    short d50; short pd50; void (*f50)(void *);
-};
-/* The lists of AddItemCounterOidA/B read one word late: object of entry i, then oid of entry i + 1. */
-struct E {TASK *object;int nextOid;};
-struct S {
-    char pad[0xC];struct VT *vt;char pad10[0x100];
-    int countA;int firstOidA;struct E a[15];int lastObjectA;int countB;int firstOidB;struct E b[0];
-};
 enum { TASK_STATE_ACTIVE = 1 };   /* (inferred) */
 extern char D_002C3EC0[0x90];
 extern char D_002A8AA0[];
-void UpdateWidget(struct S *);
 int IsTaskComplete(TASK *);
-int IsWidgetAnimPlaying(struct S *,int);
+int IsWidgetAnimPlaying(WIDGET *,int);
 int sprintf(char *,char *,...);
+} } // namespace M_func_00211F90
 // Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
 // texts, shows while any is active and hides when all are done. (inferred)
 // Runtime-checked: it counts the complete tasks.
-void UpdateItemCounterWidget(struct S *widget)
+void WIDGET129::Update()
 {
+    using namespace M_func_00211F90;
     int i;
     int numComplete = 0;
     int numCompleteB = 0;
     int numActive = 0;
-    UpdateWidget(widget);
-    for (i = 0; i < widget->countB; i++) {
-        TASK *task = widget->b[i].object;
+    WIDGET::Update();
+    for (i = 0; i < numEntriesB; i++) {
+        TASK *task = entriesB[i].task;
         if (task) {
             if (task->state == TASK_STATE_ACTIVE)
                 numActive++;
@@ -661,8 +587,8 @@ void UpdateItemCounterWidget(struct S *widget)
             }
         }
     }
-    for (i = 0; i < widget->countA; i++) {
-        TASK *task = widget->a[i].object;
+    for (i = 0; i < numEntriesA; i++) {
+        TASK *task = entriesA[i].task;
         if (task) {
             if (task->state == TASK_STATE_ACTIVE)
                 numActive++;
@@ -671,17 +597,16 @@ void UpdateItemCounterWidget(struct S *widget)
         }
     }
     /* the three 0x30-byte "Widget Item" text buffers: done, total, remaining */
-    if (IsWidgetAnimPlaying(widget, 0x314)) {
+    if (IsWidgetAnimPlaying(this, 0x314)) {
         sprintf(D_002C3EC0, D_002A8AA0, numCompleteB);
-        sprintf(D_002C3EC0 + 0x30, D_002A8AA0, widget->countB);
-        sprintf(D_002C3EC0 + 0x60, D_002A8AA0, widget->countB - numCompleteB);
+        sprintf(D_002C3EC0 + 0x30, D_002A8AA0, numEntriesB);
+        sprintf(D_002C3EC0 + 0x60, D_002A8AA0, numEntriesB - numCompleteB);
     }
-    if (numComplete == widget->countB + widget->countA || !numActive)
-        widget->vt->f50((char *)widget + widget->vt->d50);       /* HideWidget */
+    if (numComplete == numEntriesB + numEntriesA || !numActive)
+        Hide();
     else if (numActive > 0)
-        widget->vt->f49((char *)widget + widget->vt->d49, -1);   /* ShowWidget */
+        Show(-1);
 }
-} } // namespace M_func_00211F90
 
 // 0x212158 WIDGET_ctor
 namespace M_WIDGET_ctor { extern "C" {
@@ -706,7 +631,7 @@ struct S *WIDGET_ctor(struct S *widget)
 // 0x2121C8 IsWidgetIdle
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
 // True when the widget is neither shown nor requested to show. (inferred)
-extern "C" int IsWidgetIdle(WIDGETV *widget)
+extern "C" int IsWidgetIdle(WIDGET *widget)
 {
     int isIdle = 0;
     if (widget->state < WIDGET_STATE_VISIBLE)
@@ -715,14 +640,8 @@ extern "C" int IsWidgetIdle(WIDGETV *widget)
 }
 
 // 0x2121E8 IsWidgetAnimPlaying
-namespace M_FWidgetAnimPlaying { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };   /* a sprite group */
-struct S : LO { char pad[0x7C - 0x50]; int mainAnimId; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-int GetSpriteMainState(struct A *a);
-int IsSpriteAnimActive(struct A *a);
 // True while the widget animation with the given id (0x314 = main track) is still running.
-int IsWidgetAnimPlaying(struct S *widget, int animId)
+extern "C" int IsWidgetAnimPlaying(WIDGET *widget, int animId)
 {
     int groupIndex, i;
     if (animId == -1)
@@ -732,7 +651,7 @@ int IsWidgetAnimPlaying(struct S *widget, int animId)
     if (animId == 0x314)   /* the main track */
         return GetSpriteMainState(widget->spriteGroups) == 0;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (i = 0; i < group->numAnims; i++) {
             if (animId == group->anims[i].id)
                 return IsSpriteAnimActive(group);
@@ -740,102 +659,88 @@ int IsWidgetAnimPlaying(struct S *widget, int animId)
     }
     return 0;
 }
-} } // namespace M_FWidgetAnimPlaying
 
 // 0x212298 LoadWidgetFromBrx
 namespace M_LoadWidgetFromBrx { extern "C" {
 typedef struct { int cb; int cbAlign; } AREQ;
-struct O { char pad[0x40]; void *owner; };
-struct S : LO {
-    int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
-    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteHeap;   /* duration: +0x90; the visible timeout UpdateWidget checks is +0x8C (see SetWidgetState's view) */
-};
 extern char D_003E1C70[], D_003E1C80[];
-
-void LoadLoFromBrx(LO *plo, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
-struct O *AllocClearedFromWorldHeap(AREQ *preq);
-void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
-void AppendSlEntry(void *, struct O *po);
-void LoadSpriteTable(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
-void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
+WIDGETLOAD *AllocClearedFromWorldHeap(AREQ *preq);
+void CBinaryInputStream_ReadCb64(void *pbis, WIDGETLOAD *po);
+void AppendSlEntry(void *, WIDGETLOAD *po);
+void LoadSpriteTable(WIDGET *p, void *pbis, WIDGET *p2, int *pa, SPRITEDESC **pb);
+void LoadSpriteGroups(WIDGET *p, void *pbis, WIDGET *p2);
+} } // namespace M_LoadWidgetFromBrx
 // Loads a widget: default animation ids, the LO part, whether its sprites are streamed, duration, size and font flag;
 // its sprites load now or later. Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadWidgetFromBrx(struct S *widget, void *pbis)
+void WIDGET::LoadFromBrx(CBinaryInputStream *pbis)
 {
+    using namespace M_LoadWidgetFromBrx;
     int isStreamed;
-    widget->loopAnimId = 0x310;
-    widget->showAnimId = 0x30F;
-    widget->hideAnimId = 0x311;
-    LoadLoFromBrx(widget, pbis);
+    loopAnimId = 0x310;
+    showAnimId = 0x30F;
+    hideAnimId = 0x311;
+    LO::LoadFromBrx(pbis);
     isStreamed = S8Read__18CBinaryInputStream(pbis);
-    widget->duration = F32Read__18CBinaryInputStream(pbis);
-    widget->width = U32Read__18CBinaryInputStream(pbis);
-    widget->height = U32Read__18CBinaryInputStream(pbis);
-    widget->hasFont = U32Read__18CBinaryInputStream(pbis);
+    duration = F32Read__18CBinaryInputStream(pbis);
+    width = U32Read__18CBinaryInputStream(pbis);
+    height = U32Read__18CBinaryInputStream(pbis);
+    hasFont = U32Read__18CBinaryInputStream(pbis);
     if (isStreamed) {
-        AREQ req;
-        widget->state = WIDGET_STATE_UNLOADED;
+        M_LoadWidgetFromBrx::AREQ req;
+        state = WIDGET_STATE_UNLOADED;
         req.cb = 0x50;
         req.cbAlign = 0x10;
-        widget->spriteHeap = D_003E1C70;   /* the streamed-sprite linear heap */
-        widget->deferredLoad = AllocClearedFromWorldHeap(&req);
-        widget->deferredLoad->owner = widget;
-        CBinaryInputStream_ReadCb64(pbis, widget->deferredLoad);
-        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), widget->deferredLoad);
+        spriteHeap = (HEAP *)D_003E1C70;   /* the streamed-sprite linear heap */
+        deferredLoad = AllocClearedFromWorldHeap(&req);
+        deferredLoad->owner = this;
+        CBinaryInputStream_ReadCb64(pbis, deferredLoad);
+        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), deferredLoad);
     } else {
-        widget->state = WIDGET_STATE_HIDDEN;
-        widget->spriteHeap = D_003E1C80;   /* the level heap */
-        LoadSpriteTable(widget, pbis, widget, &widget->spriteCount, &widget->sprites);
-        LoadSpriteGroups(widget, pbis, widget);
+        state = WIDGET_STATE_HIDDEN;
+        spriteHeap = (HEAP *)D_003E1C80;   /* the level heap */
+        LoadSpriteTable(this, pbis, this, &spriteCount, &sprites);
+        LoadSpriteGroups(this, pbis, this);
     }
-    widget->mainAnimId = -1;
+    mainAnimId = -1;
 }
-} } // namespace M_LoadWidgetFromBrx
 
 // 0x2123C8 PostWidgetLoad
 namespace M_PostWidgetLoad { extern "C" {
-struct VT { char pad[0x188]; short d; short pd; void (*pf)(void *, int); };
-struct S {
-    char pad[0xC]; struct VT *pvt; char pad10[0x30]; unsigned int lowFlags; char pad44[0x29]; unsigned char isShownOnLoad;
-    char pad6e[0x26]; int width; int height; float screenX; float screenY; char pada4[4]; int isNonExclusive; char padac[0x10];
-    int hasFont; char padc0[8]; struct S *ownerWidget;
-};
-/* lowFlags: LO grfUnk40, either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
-extern SW D_003DD490;
-void PostLoLoad(struct S *p);
-LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, struct S *);
-void SetLoBusyKind(struct S *p, int);
+LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, LO *);
+void SetLoBusyKind(LO *p, int);
+} } // namespace M_PostWidgetLoad
 // Widget post-load: finds the font object, centres the widget on screen from its size, shows it if flagged, marks it
 // busy.
-void PostWidgetLoad(struct S *widget)
+void WIDGET::PostLoad()
 {
+    using namespace M_PostWidgetLoad;
     unsigned int flags;
     float scaledHeight;
     int scaledWidth;
-    PostLoLoad(widget);
-    if (widget->hasFont) {
+    LO::PostLoad();
+    if (hasFont) {
         SW *sw = &D_003DD490;
         if (!sw->ploHudFont)
-            sw->ploHudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, widget);
+            sw->ploHudFont = FindSwObject__FP2SWi3OIDP2LO(sw, 0x405, 0x374, this);
     }
-    widget->ownerWidget = widget;
-    widget->isNonExclusive = -1;
+    ownerWidget = this;
+    isNonExclusive = -1;
     /* centre on the GS drawing area (origin 2048,2048): width from 640 to 512 units, height times 1/2.2 */
-    scaledWidth = (widget->width << 9) / 640;
-    scaledHeight = (float)widget->height * 0.45454547f;
-    widget->screenY = 2048.0f - scaledHeight * 0.5f;
-    widget->screenX = 2048.0f - (float)scaledWidth * 0.5f;
-    if (widget->isShownOnLoad)
-        widget->pvt->pf((char *)widget + widget->pvt->d, -1);   /* ShowWidget */
-    SetLoBusyKind(widget, 1);
-    flags = widget->lowFlags;
+    scaledWidth = (width << 9) / 640;
+    scaledHeight = (float)height * 0.45454547f;
+    screenY = 2048.0f - scaledHeight * 0.5f;
+    screenX = 2048.0f - (float)scaledWidth * 0.5f;
+    if (isShownOnLoad)
+        Show(-1);
+    SetLoBusyKind(this, 1);
+    /* LO unknown40: either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
+    flags = unknown40;
     if ((flags ^ 1) & 1) *(int *)flags |= 0x102;
-    else widget->lowFlags = flags | 0x102;
+    else unknown40 = flags | 0x102;
 }
-} } // namespace M_PostWidgetLoad
 
 // 0x2124F0 LoadWidgetSprites
 namespace M_LoadWidgetSprites {
@@ -845,11 +750,6 @@ typedef struct {int cb,alignment;} MSG;
 struct BIS {int grf;char unknown4[0x2C];void *vt;int cbSpool;char *abSpool;int unknown3C[10];};
 typedef struct {int keyLo,keyHi,kind;char filename[0x104];} KEY;   /* a file lookup key (inferred) */
 typedef union {MSG msg;char magic[4];} TMP;
-typedef struct S S;
-/* A deferred load record (0x50 bytes, g_sw.slWidgetDeferred): four key words read from the BRX, the widget, the
-   load priorities. */
-typedef struct N {int key0,key1;char pad8[0x2C];int key2;int pad38;int key3;S *owner;int priority,lastPriority;struct N *next;} N;
-struct S : LO {int spriteCount;void *sprites;int state;char pad5c[4];int stateFrame;char pad64[0x5C];N *deferredLoad;};
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -862,9 +762,8 @@ extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
 extern "C" unsigned short U16Read__18CBinaryInputStream(BIS *);
 extern "C" int strncmp(const void *,const void *,unsigned int);
-extern "C" void SetWidgetState(S *,int);
-extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
-extern "C" void LoadSpriteGroups(S *,BIS *,S *);
+extern "C" void LoadSpriteTable(WIDGET *,BIS *,WIDGET *,int *,SPRITEDESC **);
+extern "C" void LoadSpriteGroups(WIDGET *,BIS *,WIDGET *);
 extern "C" { 
  }
 extern "C" { extern POOL D_003E1C70; }
@@ -872,9 +771,9 @@ extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
 // Build the file's decryption key from its load record (kind 2, lo = (k0^k2)+0xCA0, hi = k1^k3); returns whether the
 // key is usable (hi != 0).
-static inline int SetKey(KEY *key,N *load) {
+static inline int SetKey(KEY *key,WIDGETLOAD *load) {
     if(!load)return 0;
-    {int k2=load->key2,k0=load->key0,k3=load->key3,k1=load->key1;
+    {int k2=load->file.aw[13],k0=load->file.aw[0],k3=load->file.aw[15],k1=load->file.aw[1];
     key->kind=2;
     key->keyLo=(k0^k2)+0xCA0;
     key->keyHi=k1^k3;}
@@ -887,22 +786,22 @@ struct WORK {
  KEY key __attribute__((aligned(16)));
 };
 // Loads a streamed widget's sprite file when the widget first leaves the unloaded state.
-extern "C" void LoadWidgetSprites(S *widget) {
+extern "C" void LoadWidgetSprites(WIDGET *widget) {
     WORK work;
     register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"(&work.stream));
     int priority=0;
-    N *load;
-    S *owner;
+    WIDGETLOAD *load;
+    WIDGET *owner;
     int version;
     /* the highest priority among widgets that are loaded and shown (or hidden within the last frame) ... */
-    for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
+    for(load=(*(WIDGETLOAD **)&g_sw.slWidgetDeferred);load;load=load->next) {
         owner=load->owner;
         if(owner->state==0)continue;
         if(owner->state==1 && D_002BE538-owner->stateFrame>=2)continue;
         priority=StdMaxInt(priority,load->lastPriority);
     }
     /* ... evicts every loaded widget loaded at or above it, since the sprite heap is reset to that point */
-    for(load=(*(N * *)&g_sw.slWidgetDeferred);load;load=load->next) {
+    for(load=(*(WIDGETLOAD **)&g_sw.slWidgetDeferred);load;load=load->next) {
         owner=load->owner;
         if(load->priority>=priority && owner->state!=0)SetWidgetState(owner,0);
     }
@@ -939,37 +838,36 @@ load:
 
 // 0x212780 UnloadWidgetSprites
 namespace M_UnloadWidgetSprites { extern "C" {
-struct C { char pad[0x44]; int priority; int lastPriority; };   /* the deferred load record */
-struct S { char pad[0x48]; int unknown48; int unknown4C; int spriteCount; int sprites; char pad2[0x28]; short numSpriteGroups; short pad3; int spriteGroups; char pad4[0x38]; struct C *deferredLoad; char pad5[0x34]; int xform; char childList[4]; };
-void ClearSl(void *p);
+void ClearSl(SL *psl);
+} } // namespace M_UnloadWidgetSprites
 // Drops a widget's sprite tables and lists (on entering the unloaded state).
-void UnloadWidgetSprites(struct S *widget)
+extern "C" void UnloadWidgetSprites(WIDGET *widget)
 {
-    struct C *load;
+    using namespace M_UnloadWidgetSprites;
+    WIDGETLOAD *load;
     widget->xform = 0;
     widget->spriteCount = 0;
     widget->sprites = 0;
     widget->numSpriteGroups = 0;
     widget->spriteGroups = 0;
-    ClearSl(widget->childList);
+    ClearSl(&widget->renderQueue);
     load = widget->deferredLoad;
     load->priority = 0;
     load->lastPriority = 0;
 }
-} } // namespace M_UnloadWidgetSprites
 
 // 0x2127C8 AreWidgetLoadsIdle
 namespace M_func_002127C8 { extern "C" {
-struct Q : LO { char pad[0x58 - 0x50]; int state; int pad2; int stateFrame; int request; };   /* the widget */
-struct S { char pad[0x40]; struct Q *owner; char pad2[8]; struct S *next; };   /* a deferred load record */
 extern int D_002BE538;
+} } // namespace M_func_002127C8
 // True when no deferred widget sprite load is younger than two frames (used to wait for widgets before continuing).
 // (inferred)
-int AreWidgetLoadsIdle(void)
+extern "C" int AreWidgetLoadsIdle(void)
 {
-    struct S *load;
-    for (load = (*(struct S * *)&g_sw.slWidgetDeferred); load; load = load->next) {
-        struct Q *widget = load->owner;
+    using namespace M_func_002127C8;
+    WIDGETLOAD *load;
+    for (load = (*(WIDGETLOAD * *)&g_sw.slWidgetDeferred); load; load = load->next) {
+        WIDGET *widget = load->owner;
         int value;
         if (widget->state == WIDGET_STATE_UNLOADED)
             continue;
@@ -982,95 +880,75 @@ int AreWidgetLoadsIdle(void)
     }
     return 1;
 }
-} } // namespace M_func_002127C8
 
 // 0x212828 ShowWidgetArgsFromSplice
 namespace M_ShowWidgetArgsFromSplice { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; char argTextIds[4]; };
 struct L { int words[4]; };
 void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d);
 void Decref__4CRef(CRefData *r);
+} } // namespace M_ShowWidgetArgsFromSplice
 // Shows a widget with argument ids taken from a splice list (at most 10).
-void ShowWidgetArgsFromSplice(struct S *widget, void *spliceList)
+extern "C" void ShowWidgetArgsFromSplice(WIDGET *widget, void *spliceList)
 {
+    using namespace M_ShowWidgetArgsFromSplice;
     CRefData ref;
     struct L scratch;
     SetValuesFromSpliceList(&ref, spliceList, 0x10, 0xA, &scratch, widget->argTextIds);
     Decref__4CRef(&ref);
-    widget->vt[49].pf((char *)widget + widget->vt[49].d, -1);   /* ShowWidget */
+    widget->Show(-1);
 }
-} } // namespace M_ShowWidgetArgsFromSplice
 
 // 0x212880 ShowWidgetArgs
-namespace M_ShowWidgetArgs { extern "C" {
-struct VE { short d; short pad; void (*pf)(void *, int); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; int argTextIds[10]; };
 // Shows a widget with n argument ids (at most 10), e.g. the text ids it displays.
-void ShowWidgetArgs(struct S *widget, int n, int *src)
+extern "C" void ShowWidgetArgs(WIDGET *widget, int n, int *src)
 {
     int i;
     for (i = 0; i < n && (unsigned)i < 10; i++)
         widget->argTextIds[i] = src[i];
-    widget->vt[49].pf((char *)widget + widget->vt[49].d, -1);   /* ShowWidget */
+    widget->Show(-1);
 }
-} } // namespace M_ShowWidgetArgs
 
 // 0x2128E8 ShowWidget
-namespace M_ShowWidget {
-struct B { char pad[0xC];
-  virtual void v1(); virtual void v2(); virtual void v3(); virtual void v4(); virtual void v5();
-  virtual void v6(); virtual void v7(); virtual void v8(); virtual void v9(); virtual void v10();
-  virtual void v11(); virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
-  virtual void v16(); };
-struct S : B {
-  char pad10[0x48]; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; char pad7c[8]; void *mainSprite;
-  void SetState(int) __asm__("SetWidgetState");
-  void SetRequest(int) __asm__("SetWidgetRequest");
-  int HasSpriteAnim(void *, int) __asm__("HasSpriteAnim");
-  void Show(int) __asm__("ShowWidget");
-};
-// ShowWidget (widget slot 49): requests that a widget show, loading its sprites first if needed; k = the animation
-// argument (-1 = default).
-void S::Show(int animId)
+// ShowWidget (widget slot 49): requests that a widget show, loading its sprites first if needed; animId = the
+// animation to loop (-1 = default).
+void WIDGET::Show(int animId)
 {
     if (state == WIDGET_STATE_UNLOADED)
-        SetState(WIDGET_STATE_HIDDEN);
-    SetRequest(WIDGET_REQUEST_SHOW);
+        SetWidgetState(this, WIDGET_STATE_HIDDEN);
+    SetWidgetRequest(this, WIDGET_REQUEST_SHOW);
     loopAnimId = animId;
     showAnimId = -1;
     hideAnimId = -1;
     if (animId != -1) {
-        SetState(WIDGET_STATE_HIDDEN);
-        SetState(WIDGET_STATE_VISIBLE);
+        SetWidgetState(this, WIDGET_STATE_HIDDEN);
+        SetWidgetState(this, WIDGET_STATE_VISIBLE);
         return;
     }
     /* default animations, where the sprite has them; 0x314 is the main track */
     loopAnimId = 0x314;
-    if (HasSpriteAnim(mainSprite, 0x30F))
+    if (HasSpriteAnim(this, spriteGroups, 0x30F))
         showAnimId = 0x30F;
-    if (HasSpriteAnim(mainSprite, 0x310))
+    if (HasSpriteAnim(this, spriteGroups, 0x310))
         loopAnimId = 0x310;
-    if (HasSpriteAnim(mainSprite, 0x311))
+    if (HasSpriteAnim(this, spriteGroups, 0x311))
         hideAnimId = 0x311;
     if (state == WIDGET_STATE_HIDDEN)
-        v16();   /* UpdateWidget */
+        Update();
 }
-} // namespace M_ShowWidget
 
 // 0x2129E8 HideWidget
-// Requests that a widget hide; without a disappear animation it goes straight to hidden.
-extern "C" void HideWidget(WIDGETV *widget)
+// HideWidget (widget slot 50): requests that a widget hide; without a disappear animation it goes straight to hidden.
+void WIDGET::Hide()
 {
-    SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-    if (widget->hideAnimId == -1)
-        SetWidgetStateW(widget, WIDGET_STATE_HIDDEN);
+    SetWidgetRequest(this, WIDGET_REQUEST_HIDE);
+    if (hideAnimId == -1)
+        SetWidgetState(this, WIDGET_STATE_HIDDEN);
 }
 
 // 0x212A30 ResetWidgetVisibleTime
 /* Restarts the state timer of a visible widget. */
 // Restarts a visible widget's display timeout. (inferred)
-extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
+extern "C" void ResetWidgetVisibleTime(WIDGET *widget)
 {
     if (widget->state == WIDGET_STATE_VISIBLE)
         widget->stateTime = D_002DDED0.realTime;
@@ -1079,7 +957,7 @@ extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
 // 0x212A50 SetWidgetRequest
 /* Requests a state (1 hide, 2 show) and stamps the request time. */
 // Sets the widget's requested state (show / hide), acted on by UpdateWidget.
-extern "C" void SetWidgetRequest(WIDGETV *widget, int request)
+extern "C" void SetWidgetRequest(WIDGET *widget, int request)
 {
     if (widget->request != request) {
         widget->request = request;
@@ -1102,24 +980,18 @@ namespace RO_ORDER { extern const char r_D_002A8AE0[] __asm__("D_002A8AE0") = "&
 namespace RO_ORDER { extern const char r_D_002A8AE8[] __asm__("D_002A8AE8") = "ZRB."; }
 // 0x212A70 SetWidgetState
 namespace M_SetWidgetState { extern "C" {
-struct S : LO {
-    char pad[0x58 - 0x50]; int state; float stateTime; int stateFrame; int request; float requestTime;
-    char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
-    float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
-    char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
-};
-extern SW D_003DD490;
 extern int D_002DD318;
 extern int D_002BE538;
 void SetClockRate(CLOCK *,int,float);
-void LoadWidgetSprites(struct S *);
-void UnloadWidgetSprites(struct S *);
-void StopWidgetMainAnim(struct S *);
-void StartWidgetMainAnim(struct S *,int);
+void LoadWidgetSprites(WIDGET *);
+void StopWidgetMainAnim(WIDGET *);
+void StartWidgetMainAnim(WIDGET *,int);
+} } // namespace M_SetWidgetState
 // The widget state machine: 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing; keeps the world's visible
 // widget count and pauses the clock for pausing widgets.
-void SetWidgetState(struct S *widget, int state)
+extern "C" void SetWidgetState(WIDGET *widget, int state)
 {
+    using namespace M_SetWidgetState;
     if (widget->state == state)
         return;
     /* states >= VISIBLE are on screen */
@@ -1151,88 +1023,76 @@ void SetWidgetState(struct S *widget, int state)
     case WIDGET_STATE_DISAPPEARING: StartWidgetMainAnim(widget, widget->hideAnimId); break;
     }
 }
-} } // namespace M_SetWidgetState
 
 // 0x212C50 UpdateWidget
 namespace M_UpdateWidget { extern "C" {
-struct S : LO {
-    char pad[0x58 - 0x50]; int state; float stateTime; int stateFrame; int request; float requestTime;
-    char pad1[4]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId; int numSpriteGroups; void *spriteGroups;
-    float mainAnimTime; float visibleTimeout;   /* +0x8C: UpdateWidget's visible-duration limit (target: lwc1 +0x8C). LoadWidgetFromBrx's F32 goes to +0x90, not here (swc1 +0x90); no writer of +0x8C is known, so whether a level value reaches it is open */
-    char pad2[0xA4-0x90]; int priority; char pad3[8]; int pausesGame;   /* priority (inferred): >= 16 counts as an on-screen widget */
-};
-void UpdateLo(struct S *);
-int IsWidgetAnimPlaying(struct S *,int);
-void SetWidgetRequest(struct S *,int);
-void SetWidgetState(struct S *,int);
 void AdvanceWidgetSprite(void *,float);
+} } // namespace M_UpdateWidget
 // Per-frame widget update: advances the state machine from requests, animation completion and duration, and advances
 // the main sprite. Runtime-checked: state 1 hidden, 2 visible.
-void UpdateWidget(struct S *widget)
+void WIDGET::Update()
 {
-    int state;
-    UpdateLo(widget);
-    state = widget->state;
-    if (state == WIDGET_STATE_HIDDEN) {
-        if (widget->request == WIDGET_REQUEST_SHOW)
-            state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING;
-    } else if (widget->requestTime != g_clock.realTime) {   /* not requested this frame */
-        switch (state) {
+    using namespace M_UpdateWidget;
+    int nextState;
+    LO::Update();
+    nextState = state;
+    if (nextState == WIDGET_STATE_HIDDEN) {
+        if (request == WIDGET_REQUEST_SHOW)
+            nextState = showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING;
+    } else if (requestTime != g_clock.realTime) {   /* not requested this frame */
+        switch (nextState) {
         case WIDGET_STATE_VISIBLE:
-            if (!IsWidgetAnimPlaying(widget, widget->mainAnimId))
-                SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-            if (widget->visibleTimeout > 0.0f && widget->visibleTimeout < g_clock.realTime - widget->stateTime)
-                SetWidgetRequest(widget, WIDGET_REQUEST_HIDE);
-            if (widget->request == WIDGET_REQUEST_HIDE)
-                state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING;
+            if (!IsWidgetAnimPlaying(this, mainAnimId))
+                SetWidgetRequest(this, WIDGET_REQUEST_HIDE);
+            if (visibleTimeout > 0.0f && visibleTimeout < g_clock.realTime - stateTime)
+                SetWidgetRequest(this, WIDGET_REQUEST_HIDE);
+            if (request == WIDGET_REQUEST_HIDE)
+                nextState = hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING;
             break;
         case WIDGET_STATE_APPEARING:
-            if (!IsWidgetAnimPlaying(widget, widget->showAnimId)) {
-                switch (widget->request) {
-                case WIDGET_REQUEST_HIDE: state = widget->hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING; break;
-                case WIDGET_REQUEST_SHOW: state = WIDGET_STATE_VISIBLE; break;
+            if (!IsWidgetAnimPlaying(this, showAnimId)) {
+                switch (request) {
+                case WIDGET_REQUEST_HIDE: nextState = hideAnimId == -1 ? WIDGET_STATE_HIDDEN : WIDGET_STATE_DISAPPEARING; break;
+                case WIDGET_REQUEST_SHOW: nextState = WIDGET_STATE_VISIBLE; break;
                 }
             }
             break;
         case WIDGET_STATE_DISAPPEARING:
-            if (!IsWidgetAnimPlaying(widget, widget->hideAnimId)) {
-                switch (widget->request) {
-                case WIDGET_REQUEST_HIDE: state = WIDGET_STATE_HIDDEN; break;
-                case WIDGET_REQUEST_SHOW: state = widget->showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING; break;
+            if (!IsWidgetAnimPlaying(this, hideAnimId)) {
+                switch (request) {
+                case WIDGET_REQUEST_HIDE: nextState = WIDGET_STATE_HIDDEN; break;
+                case WIDGET_REQUEST_SHOW: nextState = showAnimId == -1 ? WIDGET_STATE_VISIBLE : WIDGET_STATE_APPEARING; break;
                 }
             }
             break;
         }
     }
-    SetWidgetState(widget, state);
-    if (widget->mainAnimId != -1) {
+    SetWidgetState(this, nextState);
+    if (mainAnimId != -1) {
         float dt = g_clock.realDeltaTime;
-        widget->mainAnimTime += dt;
-        AdvanceWidgetSprite(widget->spriteGroups, dt);
+        mainAnimTime += dt;
+        AdvanceWidgetSprite(spriteGroups, dt);
     }
 }
-} } // namespace M_UpdateWidget
 
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct H *slots; char padc[0x24]; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void SetSpriteDefaultPhase(struct A *pa, float phase);
-void SetSpriteAnimPhase(struct A *pa, int animIndex, float g, int z);
+void SetSpriteDefaultPhase(SPRITEGRP *pa, float phase);
+void SetSpriteAnimPhase(SPRITEGRP *pa, int animIndex, float g, int z);
+} } // namespace M_SetWidgetAnimPhase
 // Seeks a widget animation (0x314 = main) to a fraction of its length (meters and gauges).
-void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
+extern "C" void SetWidgetAnimPhase(WIDGET *widget, int animId, float phase)
 {
+    using namespace M_SetWidgetAnimPhase;
     int groupIndex, animIndex;
     if (animId == 0x314) {
         SetSpriteDefaultPhase(widget->spriteGroups, phase);
         return;
     }
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             int slotIndex = -1;
             if (animId == anim->id) {
                 int i;
@@ -1245,31 +1105,27 @@ void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
         }
     }
 }
-} } // namespace M_SetWidgetAnimPhase
 
 // 0x212F80 SetWidgetAnimTime
 namespace M_func_00212F80 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct H *slots; char padc[0x24]; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void SetSpriteDefaultTime(struct A *pa, float phase);
-void SetSpriteAnimTime(struct A *pa, int animIndex, float g, int z);
+void SetSpriteDefaultTime(SPRITEGRP *pa, float phase);
+void SetSpriteAnimTime(SPRITEGRP *pa, int animIndex, float g, int z);
 // 0x212F78: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
-
+} } // namespace M_func_00212F80
 // Seeks a widget animation to an absolute time. (inferred)
-void SetWidgetAnimTime(struct S *widget, int animId, float phase)
+extern "C" void SetWidgetAnimTime(WIDGET *widget, int animId, float phase)
 {
+    using namespace M_func_00212F80;
     int groupIndex, animIndex;
     if (animId == 0x314) {
         SetSpriteDefaultTime(widget->spriteGroups, phase);
         return;
     }
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             int slotIndex = -1;
             if (animId == anim->id) {
                 int i;
@@ -1282,15 +1138,11 @@ void SetWidgetAnimTime(struct S *widget, int animId, float phase)
         }
     }
 }
-} } // namespace M_func_00212F80
 
 // 0x2130C0 QueueWidgetRenderSetup
 namespace M_QueueWidgetRenderSetup { extern "C" {
 // Queue the render initialization payloads in a DMA packet.
 
-typedef unsigned int uint;
-typedef unsigned long ulong;
-struct S : LO { char pad[0xA4 - 0x50]; int priority;};
 extern VIFS D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 void CopyAqw__FPvT0i(void *,void *,int);
@@ -1305,9 +1157,10 @@ static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,sour
 static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 // 0x2130B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
-
+} } // namespace M_QueueWidgetRenderSetup
 // Queues the DMA packet that sets up rendering before the widget sprites.
-void QueueWidgetRenderSetup(struct S *p){
+extern "C" void QueueWidgetRenderSetup(WIDGET *p){
+    using namespace M_QueueWidgetRenderSetup;
     unsigned char *tag=D_002DEA28.m_pb;
     RPL *e;
     *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
@@ -1322,11 +1175,10 @@ void QueueWidgetRenderSetup(struct S *p){
     e->kind=0x15;e->depth=p->priority<<18;
     e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
 }
-} } // namespace M_QueueWidgetRenderSetup
 
 // 0x2132D0 IsWidgetVisible
 // True when the widget's main animation is active and no higher-priority exclusive widget hides it.
-extern "C" int IsWidgetVisible(WIDGETV *widget)
+extern "C" int IsWidgetVisible(WIDGET *widget)
 {
     if (widget->mainAnimId == -1) {
         return 0;
@@ -1347,14 +1199,15 @@ struct PARAM {
 };
 struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;char pad38[0x29];uchar channel;char pad62[6];Q *next;};
 struct LIST {Q *first,*last;};
-struct S : LO { char pad[0x84 - 0x50]; void *sprites;char pad88[0x74];LIST queue;};
+/* WIDGET island: a WIDGET-typed p (even the same pointer) moves the Align loop's registers (291/316 off) */
+struct WIDGETIsland {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
 extern "C" { extern VIFS D_002DEA28; }
 extern "C" {
-void RenderLoSelf(S *);
-int IsWidgetVisible(S *);
+void RenderLoSelf(WIDGETIsland *);
+int IsWidgetVisible(WIDGETIsland *);
 void DrawSprite(void *);
-void QueueWidgetRenderSetup(S *);
-void QueueSpriteVuProgram(S *,int,float);
+void QueueWidgetRenderSetup(WIDGETIsland *);
+void QueueSpriteVuProgram(WIDGETIsland *,int,float);
 void RenderSpritePayload(void *,void *,PARAM *,int);
 void ClearSl(LIST *);
 }
@@ -1371,14 +1224,14 @@ static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=Colo
 // Set the color scale from the widget's color1 bytes.
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 // Switch the packet pointers to the uncached mirror (0x30000000), then queue the widget's render setup.
-static inline Q *Begin(S *p,VIFS *r){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c|=0x30000000;b|=0x30000000;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
+static inline Q *Begin(WIDGETIsland *p,VIFS *r){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c|=0x30000000;b|=0x30000000;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
 // Switch the packet pointers back to cached addresses and empty the widget's render queue.
-static inline void Finish(VIFS *r,S *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
+static inline void Finish(VIFS *r,WIDGETIsland *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 } // namespace M_RenderWidget
 // Renders a widget: flushes its sprite render queue with the VU microprogram packets.
-void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (the namespace's views) */
+void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here */
     using namespace M_RenderWidget;
-    S *p=(S *)this;
+    WIDGETIsland *p=(WIDGETIsland *)this;
     RenderLoSelf(p);
     if(!IsWidgetVisible(p))return;
     DrawSprite(p->sprites);
@@ -1416,80 +1269,59 @@ void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (th
 }
 
 // 0x2137F0 IsWidgetObscured
-namespace M_FWidgetObscured { extern "C" {
-struct S : LO { char pad[0xA4 - 0x50]; int priority; char pad2[0xC]; struct S *next; };
 // True when an exclusive widget of higher priority is shown.
-int IsWidgetObscured(struct S *widget)
+extern "C" int IsWidgetObscured(WIDGET *widget)
 {
-    struct S *other;
+    WIDGET *other;
     int unused[4];   /* an unused 16-byte stack frame in the original */
-    for (other = (*(struct S * *)&g_sw.dlWidgetExclusive); other; other = other->next) {
+    for (other = (*(WIDGET * *)&g_sw.dlWidgetExclusive); other; other = (WIDGET *)other->exclusiveLink.next) {
         if (widget->priority < other->priority)
             return 1;
     }
     return 0;
 }
-} } // namespace M_FWidgetObscured
 
 // 0x213830 StartWidgetMainAnim
 namespace M_StartWidgetMainAnim { extern "C" {
-struct S : LO { char pad50[0x7C - 0x50]; int mainAnimId; char pad3[4]; void *spriteGroups; char pad4[0x24]; int isExclusive; };
-void StartSpriteAnimById(void *p);
-void SetWidgetExclusive(struct S *p, int a);
+void StartSpriteAnimById(SPRITEGRP *p);
+} } // namespace M_StartWidgetMainAnim
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
-void StartWidgetMainAnim(struct S *widget, int animId)
+extern "C" void StartWidgetMainAnim(WIDGET *widget, int animId)
 {
+    using namespace M_StartWidgetMainAnim;
     StartSpriteAnimById(widget->spriteGroups);
     widget->SetFlag8(1);
     if (widget->isExclusive)
         SetWidgetExclusive(widget, 0);
     widget->mainAnimId = animId;
 }
-} } // namespace M_StartWidgetMainAnim
 
 // 0x213898 StopWidgetMainAnim
-namespace M_StopWidgetMainAnim {
-extern "C" void StopSprite(void *p);
-struct B { char pad[0xC];
-  virtual void v1(); virtual void v2(); virtual void v3(int, int, int, int, int);
-  virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7(); virtual void v8();
-  virtual void v9(); virtual void v10(); virtual void v11(); virtual void v12(); virtual void v13();
-  virtual void v14(); virtual void v15(); virtual void v16(); virtual void v17(); virtual void v18();
-  virtual void v19(); virtual void v20(); virtual void v21(int);
-};
-struct S : B {
-  char pad10[0x6C]; int mainAnimId; char pad80[4]; void *spriteGroups; int mainAnimTime /* a float, cleared as a word */; char pad8C[0x20]; int isExclusive;
-  void SetExclusive(int) __asm__("SetWidgetExclusive");
-  void StopMainAnim() __asm__("StopWidgetMainAnim");
-};
-// StopWidgetMainAnim: stops the widget's main sprite and leaves the exclusive list.
-void S::StopMainAnim()
+// Stops the widget's main sprite and leaves the exclusive list.
+extern "C" void StopWidgetMainAnim(WIDGET *widget)
 {
-    StopSprite(spriteGroups);
-    if (isExclusive)
-        SetExclusive(-1);
-    v21(0);
-    v3(6, 0, 0, 0, 0);   /* HandleSpliceEvent slot: event 6 (inferred) */
-    mainAnimTime = 0;
-    mainAnimId = -1;
+    StopSprite(widget->spriteGroups);
+    if (widget->isExclusive)
+        SetWidgetExclusive(widget, -1);
+    widget->SetFlag8(0);
+    widget->HandleSpliceEvent(6, 0, 0, 0, 0);   /* Splice event 6 (inferred) */
+    widget->mainAnimTime = 0;
+    widget->mainAnimId = -1;
 }
-} // namespace M_StopWidgetMainAnim
 
 // 0x213928 StopWidgetAnim
 namespace M_StopWidgetAnim { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct C *slots; char padc[0x14]; int currentAnim; char pad24[0xC]; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
+void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z);
+} } // namespace M_StopWidgetAnim
 // Returns the sprite that plays an animation id to its rest animation.
-void StopWidgetAnim(struct S *widget, int animId)
+extern "C" void StopWidgetAnim(WIDGET *widget, int animId)
 {
+    using namespace M_StopWidgetAnim;
     int groupIndex, animIndex, i;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id) {
                 int isAnySlotPlaying = 0;
                 for (i = 0; i < group->numSlots; i++) {
@@ -1499,52 +1331,47 @@ void StopWidgetAnim(struct S *widget, int animId)
                 if (isAnySlotPlaying)
                     RestartNestedSprite(widget, groupIndex, 0, 0, 0);
                 else
-                    group->currentAnim = -1;
+                    group->pendingAnim = -1;
                 return;
             }
         }
     }
 }
-} } // namespace M_StopWidgetAnim
 
 // 0x213A08 PlayWidgetAnimsWithArg
 namespace M_func_00213A08 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSpriteWithArg(struct S *widget, int groupIndex, int animIndex, int x, int y, int z);
+void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z);
+} } // namespace M_func_00213A08
 // Starts every sprite that has the animation id, with an argument. (inferred)
-void PlayWidgetAnimsWithArg(struct S *widget, int animId, int arg)
+extern "C" void PlayWidgetAnimsWithArg(WIDGET *widget, int animId, int arg)
 {
+    using namespace M_func_00213A08;
     int groupIndex, animIndex;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id)
                 RestartNestedSpriteWithArg(widget, groupIndex, 0, arg, 0, 0);
         }
     }
 }
-} } // namespace M_func_00213A08
 
 // 0x213B00 PlayWidgetAnim
 namespace M_PlayWidgetAnim { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short animIndex; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct C *slots; char padc[0x14]; int currentAnim; char pad24[0xC]; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
+void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z);
+} } // namespace M_PlayWidgetAnim
 // Starts the animation id on the sprite that owns it (restarting in place if it is instanced).
-void PlayWidgetAnim(struct S *widget, int animId)
+extern "C" void PlayWidgetAnim(WIDGET *widget, int animId)
 {
+    using namespace M_PlayWidgetAnim;
     int groupIndex, animIndex, i;
     if (animId == -1)
         return;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id) {
                 int isAnySlotPlaying = 0;
                 for (i = 0; i < group->numSlots; i++) {
@@ -1554,28 +1381,26 @@ void PlayWidgetAnim(struct S *widget, int animId)
                 if (isAnySlotPlaying)
                     RestartNestedSprite(widget, groupIndex, animIndex, 0, 0);
                 else
-                    group->currentAnim = animIndex;
+                    group->pendingAnim = animIndex;
                 return;
             }
         }
     }
 }
-} } // namespace M_PlayWidgetAnim
 
 // 0x213BD8 PlayWidgetAnimWithArg
 namespace M_func_00213BD8 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; struct E *anims; char pad8[0x28]; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
-void RestartNestedSpriteWithArg(struct S *widget, int groupIndex, int animIndex, int x, int y, int z);
+void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z);
+} } // namespace M_func_00213BD8
 // Starts the first sprite that has the animation id, with an argument. (inferred)
-void PlayWidgetAnimWithArg(struct S *widget, int animId, int arg)
+extern "C" void PlayWidgetAnimWithArg(WIDGET *widget, int animId, int arg)
 {
+    using namespace M_func_00213BD8;
     int groupIndex, animIndex;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        struct A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            struct E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (animId == anim->id) {
                 RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, 0, 0);
                 return;
@@ -1583,58 +1408,38 @@ void PlayWidgetAnimWithArg(struct S *widget, int animId, int arg)
         }
     }
 }
-} } // namespace M_func_00213BD8
 
 // 0x213C68 SetWidgetXf
-namespace M_SetWidgetXf { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct M { qword a, b; };   /* a 2x3 matrix */
-struct VE { short d; short pad; struct M *(*pf)(void *, int, int); };
-struct A { struct VE *vt; };   /* a heap; slot 1 allocates */
-struct S : LO { char pad[0xC4 - 0x50]; struct A *spriteHeap; char pad2[0x30]; struct M *xform; };
 // Sets the widget's 2D transform override.
-void SetWidgetXf(struct S *widget, struct M *src)
+extern "C" void SetWidgetXf(WIDGET *widget, SPRITEXF *src)
 {
-    if (!widget->xform) {
-        struct A *heap = widget->spriteHeap;
-        widget->xform = heap->vt[1].pf((char *)heap + heap->vt[1].d, 0x20, 0x1F);
-    }
+    if (!widget->xform)
+        widget->xform = (SPRITEXF *)widget->spriteHeap->Alloc(0x20, 0x1F);
     *widget->xform = *src;
 }
-} } // namespace M_SetWidgetXf
 
 // 0x213CD8 SetWidgetAnimXf
-namespace M_SetWidgetAnimXf {
-struct M { int a[8]; } __attribute__((aligned(16)));
-struct H { virtual void *Alloc(int cb, int animId); };
-struct E { char pad[0x14]; int id; };
-struct A { unsigned short numAnims; short pad; E *anims; char pad8[0x24]; M *xform; };
-struct S : LO { char pad[0x80 - 0x50]; unsigned short numSpriteGroups; short pad82; A *spriteGroups; char pad88[0x3C]; H *spriteHeap; };
 // Sets the 2D transform of the sprite that plays an animation id.
-extern "C" void SetWidgetAnimXf(S *widget, int animId, M *xform)
+extern "C" void SetWidgetAnimXf(WIDGET *widget, int animId, SPRITEXF *xform)
 {
     int groupIndex, animIndex;
     for (groupIndex = 0; groupIndex < widget->numSpriteGroups; groupIndex++) {
-        A *group = &widget->spriteGroups[groupIndex];
+        SPRITEGRP *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
-            E *anim = &group->anims[animIndex];
+            SPRITEANIM *anim = &group->anims[animIndex];
             if (anim->id == animId) {
                 if (!group->xform)
-                    group->xform = (M *)widget->spriteHeap->Alloc(0x20, 0x1F);
+                    group->xform = (SPRITEXF *)widget->spriteHeap->Alloc(0x20, 0x1F);
                 *group->xform = *xform;
                 return;
             }
         }
     }
 }
-} // namespace M_SetWidgetAnimXf
 
 // 0x213DB0 SwitchWidgetAnim
-namespace M_SwitchWidgetAnim { extern "C" {
-void StopWidgetAnim(void *p, int k);
-void PlayWidgetAnim(void *p, int k);
 // Stops the animation in *pk, plays the new one and stores its id.
-void SwitchWidgetAnim(void *widget, int animId, int *currentAnimId)
+extern "C" void SwitchWidgetAnim(WIDGET *widget, int animId, int *currentAnimId)
 {
     if (animId == *currentAnimId)
         return;
@@ -1644,79 +1449,62 @@ void SwitchWidgetAnim(void *widget, int animId, int *currentAnimId)
     if (animId != -1)
         PlayWidgetAnim(widget, animId);
 }
-} } // namespace M_SwitchWidgetAnim
 
 // 0x213E20 FindSpriteItemPose
-namespace M_func_00213E20 { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct QQ { qword a, b; };
-struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
-struct Y { struct RGBA color0; struct RGBA color1; char pad8[8]; struct QQ matrix; struct Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
-struct H { int numItems; struct Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numSlots; void *anims; struct H *slots; char padc[0x24]; };
-struct S : LO { char pad[0x84 - 0x50]; struct A *spriteGroups; };
 // Recursively finds nested sprite k and returns its 2D transform and colours. (inferred)
-int FindSpriteItemPose(struct S *widget, int groupIndex, struct QQ *matrix, struct RGBA *color0, struct RGBA *color1, int numItems, struct Y *items)
+extern "C" int FindSpriteItemPose(WIDGET *widget, int groupIndex, SPRITEXF *matrix, struct RGBA *color0, struct RGBA *color1, int numItems, SPRITEITEM *items)
 {
     int i;
-    struct Y *item;
+    SPRITEITEM *item;
     if (!items) {
-        struct H *slot = widget->spriteGroups->slots;
+        SPRITESLOT *slot = widget->spriteGroups->slots;
         numItems = slot->numItems;
         items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
-        struct Z *descriptor;
+        SPRITEDESC *descriptor;
         item = &items[i];
         descriptor = item->descriptor;
         if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
-        if (groupIndex == descriptor->groupIndex) {
+        if (groupIndex == descriptor->index) {
             *matrix = item->matrix;
             *color0 = item->color0;
             *color1 = item->color1;
             return 1;
         }
-        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->groupIndex].slots[item->spriteSlot].numItems, widget->spriteGroups[descriptor->groupIndex].slots[item->spriteSlot].items))
+        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->index].slots[item->spriteSlot].numItems, widget->spriteGroups[descriptor->index].slots[item->spriteSlot].items))
             return 1;
     }
     return 0;
 }
-} } // namespace M_func_00213E20
 
 // 0x213F70 RestartNestedSprite
 namespace M_func_00213F70 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-struct QQ { qword a, b; };
-struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
-struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int link; int unknown6C; };
-struct H { int numItems; Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numSlots; void *anims; H *slots; char padc[0x24]; };
-struct S : LO { char pad[0x84 - 0x50]; A *spriteGroups; };
-extern "C" void StopSpriteSlot(A *pa, int i);
-extern "C" void ClearSle(int *p);
-extern "C" int FindFreeSpriteSlot(A *pa);
-extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void ClearSle(SLE *p);
+extern "C" int FindFreeSpriteSlot(SPRITEGRP *pa);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 // Recursively finds nested sprite item k and restarts it on animation z. (inferred)
-extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int numItems, Y *items)
+extern "C" int RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int numItems, SPRITEITEM *items)
 {
     int i;
-    Y *item;
+    SPRITEITEM *item;
     if (!items) {
-        H *slot = widget->spriteGroups->slots;
+        SPRITESLOT *slot = widget->spriteGroups->slots;
         numItems = slot->numItems;
         items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
-        Z *descriptor;
+        SPRITEDESC *descriptor;
         item = &items[i];
         descriptor = item->descriptor;
         if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
         int oldSlot=item->spriteSlot;
-        if (descriptor->groupIndex == groupIndex) {
+        if (descriptor->index == groupIndex) {
             StopSpriteSlot(&widget->spriteGroups[groupIndex], oldSlot);
             ClearSle(&item->link);
             item->spriteSlot = FindFreeSpriteSlot(&widget->spriteGroups[groupIndex]);
@@ -1725,7 +1513,7 @@ extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int
         }
         {
             /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            H *slot = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].slots);
+            SPRITESLOT *slot = (SPRITESLOT *)(oldSlot * sizeof(SPRITESLOT) + (int)widget->spriteGroups[descriptor->index].slots);
             if (RestartNestedSprite(widget, groupIndex, animIndex, slot->numItems, slot->items))
                 return 1;
         }
@@ -1739,34 +1527,27 @@ namespace M_func_00214100 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-struct QQ { qword a, b; };
-struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
-struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[8]; int arg; int link; int unknown6C; };
-struct H { int numItems; Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numSlots; void *anims; H *slots; char padc[0x24]; };
-struct S : LO { char pad[0x84 - 0x50]; A *spriteGroups; };
-extern "C" void StopSpriteSlot(A *pa, int i);
-extern "C" void ClearSle(int *p);
-extern "C" int FindFreeSpriteSlot(A *pa);
-extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void ClearSle(SLE *p);
+extern "C" int FindFreeSpriteSlot(SPRITEGRP *pa);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 // RestartNestedSprite with an extra argument. (inferred)
-extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animIndex, int arg, int numItems, Y *items)
+extern "C" int RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int arg, int numItems, SPRITEITEM *items)
 {
     int i;
-    Y *item;
+    SPRITEITEM *item;
     if (!items) {
-        H *slot = widget->spriteGroups->slots;
+        SPRITESLOT *slot = widget->spriteGroups->slots;
         numItems = slot->numItems;
         items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
-        Z *descriptor;
+        SPRITEDESC *descriptor;
         item = &items[i];
         descriptor = item->descriptor;
         if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
         int oldSlot=item->spriteSlot;
-        if (descriptor->groupIndex == groupIndex) {
+        if (descriptor->index == groupIndex) {
             if (arg != item->arg)
                 continue;
             StopSpriteSlot(&widget->spriteGroups[groupIndex], oldSlot);
@@ -1777,7 +1558,7 @@ extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animInd
         }
         {
             /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            H *slot = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].slots);
+            SPRITESLOT *slot = (SPRITESLOT *)(oldSlot * sizeof(SPRITESLOT) + (int)widget->spriteGroups[descriptor->index].slots);
             if (RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, slot->numItems, slot->items))
                 return 1;
         }
@@ -1787,11 +1568,8 @@ extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animInd
 } // namespace M_func_00214100
 
 // 0x2142B0 HasSpriteAnim
-namespace M_FSpriteHasAnim { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct S { unsigned short numAnims; short pad; struct E *anims; };   /* a sprite group */
 // True when the sprite's animation list contains the id.
-int HasSpriteAnim(void *pv, struct S *group, int id)
+extern "C" int HasSpriteAnim(void *pv, SPRITEGRP *group, int id)
 {
     int i;
     if (id == -1)
@@ -1802,12 +1580,11 @@ int HasSpriteAnim(void *pv, struct S *group, int id)
     }
     return 0;
 }
-} } // namespace M_FSpriteHasAnim
 
 // 0x214300 SetWidgetExclusive
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 // Sets whether the widget is exclusive (an exclusive widget hides lower-priority widgets while shown). (inferred)
-extern "C" void SetWidgetExclusive(WIDGETV *widget, int isNonExclusive)
+extern "C" void SetWidgetExclusive(WIDGET *widget, int isNonExclusive)
 {
     int wasNonExclusive = widget->isNonExclusive;
     if (wasNonExclusive == isNonExclusive)
@@ -1821,22 +1598,22 @@ extern "C" void SetWidgetExclusive(WIDGETV *widget, int isNonExclusive)
 
 // 0x214398 LoadSpriteTable
 namespace M_LoadSpriteTable { extern "C" {
-struct S : LO { char pad[0xC4 - 0x50]; void *spriteHeap; };
 extern int D_002C40A4;
 int U16Read__18CBinaryInputStream(void *a);
 int AllocZeroedFromHeap__FP4HEAPii(void *heap, int cb, int k);
-void LoadSpriteDescriptor(struct S *p, void *a, void *b, int n, int m);
+void LoadSpriteDescriptor(WIDGET *p, void *a, void *b, int n, int m);
+} } // namespace M_LoadSpriteTable
 // Loads a sprite table: the count, then each sprite descriptor.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadSpriteTable(struct S *p, void *a, void *b, int *pn, int *pm)
+extern "C" void LoadSpriteTable(WIDGET *p, void *a, void *b, int *pn, int *pm)
 {
+    using namespace M_LoadSpriteTable;
     int i;
     *pn = U16Read__18CBinaryInputStream(a);
     *pm = AllocZeroedFromHeap__FP4HEAPii(p->spriteHeap, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
     for (i = 1; i <= *pn; i++)
         LoadSpriteDescriptor(p, a, b, *pn, *pm);
 }
-} } // namespace M_LoadSpriteTable
 
 // 0x214460 LoadSpriteGroups
 namespace M_LoadSpriteGroups {
@@ -1845,7 +1622,6 @@ typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
 struct BIS;
-struct HEAP;
 struct ROOT;
 struct GROUP;
 struct FRAME {char fields[0x70];};
@@ -1862,8 +1638,7 @@ struct KEY {float time;uchar itemCount,colorCount,shortCount,byteCount;uchar *by
 struct ANIM {ushort count,pad2;KEY *keys;float duration;ROOT *owner;GROUP *group;int id;};
 struct REUSE {int count;FRAME *frames;short index,phase;void *previous;float elapsed;int pad14;};
 struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[0x14];int index;ROOT *owner;int first;int pad2C;};
-struct ROOT : LO { char pad[0x80 - 0x50]; ushort groupCount,pad82;GROUP *groups;};
-struct OWNER : LO { char pad[0xC4 - 0x50]; HEAP *heap;};
+struct ROOT {char pad[0x80];ushort groupCount,pad82;GROUP *groups;};
 extern "C" {
 int U16Read__18CBinaryInputStream(BIS *);
 uint U32Read__18CBinaryInputStream(BIS *);
@@ -1883,27 +1658,27 @@ static inline void CopyXY(M23 *dst,const M3 &src){
 }
 // Loads sprite groups, their reusable frames and animation keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
+extern "C" void LoadSpriteGroups(WIDGET *owner,BIS *stream,ROOT *root){
  int i,j,k,m;
  root->groupCount=U16Read__18CBinaryInputStream(stream);
- root->groups=(GROUP *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)root->groupCount*0x30,0x12);
+ root->groups=(GROUP *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)root->groupCount*0x30,0x12);
  for(i=0;i<root->groupCount;i++){
   GROUP *group=&root->groups[i];
   group->first=(i==0);group->owner=root;
   group->reuseCount=U16Read__18CBinaryInputStream(stream);
-  group->reuse=(REUSE *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)group->reuseCount*0x18,0x12);
+  group->reuse=(REUSE *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)group->reuseCount*0x18,0x12);
   int count=U16Read__18CBinaryInputStream(stream);
   for(j=0;j<group->reuseCount;){
    int next=j+1;
    REUSE *reuse=&group->reuse[j];
    reuse->previous=0;reuse->index=-1;reuse->phase=0;reuse->elapsed=0.0f;
    reuse->count=count;
-   reuse->frames=(FRAME *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,count*0x70,0x10);
+   reuse->frames=(FRAME *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,count*0x70,0x10);
    for(m=0;m<reuse->count;m++)InitSpriteItem(&reuse->frames[m]);
    j=next;
   }
   group->animCount=U16Read__18CBinaryInputStream(stream);
-  group->animations=(ANIM *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)group->animCount*0x18,0x12);
+  group->animations=(ANIM *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)group->animCount*0x18,0x12);
   group->index=-1;
   for(j=0;j<group->animCount;j++){
    ANIM *animation=&group->animations[j];
@@ -1911,12 +1686,12 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
    animation->duration=F32Read__18CBinaryInputStream(stream);
    animation->id=S32Read__18CBinaryInputStream(stream);
    animation->count=U16Read__18CBinaryInputStream(stream);
-   animation->keys=(KEY *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)animation->count*0x20,0x12);
+   animation->keys=(KEY *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)animation->count*0x20,0x12);
    for(k=0;k<animation->count;k++){
     KEY *key=&animation->keys[k];
     key->time=F32Read__18CBinaryInputStream(stream);
     key->itemCount=U8Read__18CBinaryInputStream(stream);
-    key->items=(ITEM *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->itemCount*0x40,0x12);
+    key->items=(ITEM *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->itemCount*0x40,0x12);
     for(m=0;m<key->itemCount;m++){
      ITEM *item=&key->items[m];
      item->a0=U16Read__18CBinaryInputStream(stream);item->a2=U16Read__18CBinaryInputStream(stream);item->a4=U16Read__18CBinaryInputStream(stream);item->a6=S16Read__18CBinaryInputStream(stream);
@@ -1924,22 +1699,22 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
      M3 raw;ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(&item->matrix,matrix);
     }
     key->colorCount=U8Read__18CBinaryInputStream(stream);
-    key->colors=(COLORS *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->colorCount*8,0x12);
+    key->colors=(COLORS *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->colorCount*8,0x12);
     for(m=0;m<key->colorCount;m++){
      COLORS *colors=&key->colors[m];
      RGBA second(U32Read__18CBinaryInputStream(stream));RGBA first(U32Read__18CBinaryInputStream(stream));
      colors->second=*(RGBA_RAW *)&second;colors->first=*(RGBA_RAW *)&first;
     }
     key->shortCount=U8Read__18CBinaryInputStream(stream);
-    key->shorts=(ushort *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->shortCount*2,0x12);
+    key->shorts=(ushort *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->shortCount*2,0x12);
     for(m=0;m<key->shortCount;m++){
      ushort *dst=&key->shorts[m];*dst=U16Read__18CBinaryInputStream(stream);
     }
     key->byteCount=U8Read__18CBinaryInputStream(stream);
-    key->bytes=(uchar *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->byteCount,0x12);
+    key->bytes=(uchar *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->byteCount,0x12);
     for(int byteIndex=0;byteIndex<key->byteCount;byteIndex++)key->bytes[byteIndex]=U8Read__18CBinaryInputStream(stream);
     key->tagCount=U8Read__18CBinaryInputStream(stream);
-    key->tags=(TAG *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,(int)key->tagCount*8,0x12);
+    key->tags=(TAG *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,(int)key->tagCount*8,0x12);
     for(m=0;m<key->tagCount;m++){
      key->tags[m].kind=U8Read__18CBinaryInputStream(stream);
      if(key->tags[m].kind<2)key->tags[m].value.signedBits=S32Read__18CBinaryInputStream(stream);
@@ -2151,12 +1926,11 @@ void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 SHDBLIP *FindShaderById(int oid);
 }
-struct P : LO { char pad[0xC4 - 0x50]; HEAP *spriteHeap; };
 /* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
 struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; QW *texPacket; };
-extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
+extern "C" void BuildSpritePictureTexPacket(WIDGET *p, Q *q);
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
-void BuildSpritePictureTexPacket(P *owner, Q *sprite)
+void BuildSpritePictureTexPacket(WIDGET *owner, Q *sprite)
 {
     STACKSCOPE frame;
     if (sprite->kind == SPRITE_KIND_PICTURE) {
@@ -2215,22 +1989,18 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct L : LO { char pad[0x84 - 0x50]; char *spriteGroups; };   /* the owning widget */
-/* a sprite descriptor: index is the nested group (NESTED) or the texture resource id (EFFECT) */
-struct S { int id; int kind; L *owner; int unknownC; int index; void *texture; };
-struct T { char pad[0x30]; S *descriptor; char pad34[0x24]; int spriteSlot; };   /* a frame item */
 extern "C" int FindFreeSpriteSlot(void *p);
 extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *FindObjectForRenderTarget(int);
 extern "C" void *AcquireRenderTarget(void *);
 // Binds a sprite item to its payload by kind (a nested sprite starts its main animation). (inferred)
-extern "C" void SetSpriteItemSource(S *sprite, T *item, void *matrix, RGBA c0, RGBA c1)
+extern "C" void SetSpriteItemSource(SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
     item->descriptor = sprite;
     switch (sprite->kind) {
-    case SPRITE_KIND_NESTED:   /* groups are 0x30 bytes */
-        item->spriteSlot = FindFreeSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30);
-        StartSpriteAnimSlot(sprite->owner->spriteGroups + sprite->index * 0x30, 0x314, item->spriteSlot, matrix, c0, c1);
+    case SPRITE_KIND_NESTED:
+        item->spriteSlot = FindFreeSpriteSlot(&sprite->owner->spriteGroups[sprite->index]);
+        StartSpriteAnimSlot(&sprite->owner->spriteGroups[sprite->index], 0x314, item->spriteSlot, matrix, c0, c1);
         break;
     case SPRITE_KIND_EFFECT:
         if (sprite->index != -1) {
@@ -2252,33 +2022,28 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct L : LO { char pad[0x84 - 0x50]; char *spriteGroups; };
-struct S { int id; int kind; L *owner; int unknownC; int index; };
-struct T { char pad[0x58]; int spriteSlot; };
 extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
 // Forwards a frame update (time, transform, colours) to a nested sprite item. (inferred)
-extern "C" void UpdateSpriteItem(float time, S *sprite, T *item, void *matrix, RGBA c0, RGBA c1)
+extern "C" void UpdateSpriteItem(float time, SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
     if (sprite->kind == SPRITE_KIND_NESTED)
-        UpdateSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot, matrix, time, c0, c1);
+        UpdateSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot, matrix, time, c0, c1);
 }
 } // namespace M_func_00215850
 
 // 0x2158C0 ReleaseSpriteItem
 namespace M_func_002158C0 { extern "C" {
-struct L : LO { char pad[0x84 - 0x50]; char *spriteGroups; };
 struct Q { char pad[0x20]; void *resource; };   /* a texture reference */
-struct S { int id; int kind; struct L *owner; int unknownC; int index; struct Q *texture; };
-struct T { char pad[0x58]; int spriteSlot; };
+struct S { int id; int kind; WIDGET *owner; int unknownC; int index; struct Q *texture; };
 void StopSpriteSlot(void *p, int a);
 void ReleaseRenderTarget(void *p);
-void InitSpriteItem(struct T *t);
+void InitSpriteItem(SPRITEITEM *item);
 // Releases a sprite item's payload (stops a nested sprite, drops a texture reference) and resets it. (inferred)
-void ReleaseSpriteItem(struct S *sprite, struct T *item)
+void ReleaseSpriteItem(struct S *sprite, SPRITEITEM *item)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
-        StopSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot);
+        StopSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot);
         break;
     case SPRITE_KIND_EFFECT:
         if (sprite->texture) {
@@ -2294,24 +2059,21 @@ void ReleaseSpriteItem(struct S *sprite, struct T *item)
 
 // 0x215960 QueueSpriteItem
 namespace M_func_00215960 { extern "C" {
-struct L : LO { char pad[0x84 - 0x50]; char *spriteGroups; };
-struct S { int id; int kind; struct L *owner; int unknownC; int index; };
-struct T { char pad[0x58]; int spriteSlot; char pad5c[5]; unsigned char drawFlags; };
 void DrawSpriteSlot(void *p, int a, int b);
-void PrependSlEntry(void *p, struct T *t);
+void PrependSlEntry(SL *psl, SPRITEITEM *item);
 // Queues a sprite item for drawing (nested sprites draw recursively). (inferred)
-void QueueSpriteItem(struct S *sprite, struct T *item, int drawFlags)
+void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFlags)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
-        DrawSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot, item->drawFlags);
+        DrawSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot, item->drawFlags);
         break;
     case SPRITE_KIND_GEOMETRY:
     case SPRITE_KIND_TEXT:
     case SPRITE_KIND_EFFECT:
     case SPRITE_KIND_PICTURE:
         item->drawFlags = drawFlags;
-        PrependSlEntry((char *)sprite->owner + 0xFC, item);   /* the widget's render queue (+0xFC) */
+        PrependSlEntry(&sprite->owner->renderQueue, item);
         break;
     case SPRITE_KIND_POLYGON:
     case SPRITE_KIND_UNUSED5:
@@ -2422,10 +2184,8 @@ struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
 struct F { char pad[0x54]; char *fonts; };
 extern "C" SW D_003DD490;
-struct C8 : LO { char pad[0x9C - 0x50]; float screenX; float screenY; };   /* the widget whose screen position text uses */
-struct P8 : LO { char pad[0xA4 - 0x50]; int priority; char padA8[0x20]; C8 *ownerWidget; };   /* the owning widget */
 /* a text sprite descriptor (RenderSpriteText's S) */
-struct R { char pad[8]; P8 *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
+struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
 struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
   char pad60[4]; float originX; float originY; int offsetX; int offsetY; float width; float height; float scaleX; float scaleY; float lineHeight; float fontScale;
   int vAlign; int hAlign; int priority; };
@@ -3085,7 +2845,6 @@ namespace M_func_00217298 { extern "C" {
 // Queue the selected VU microprogram pair in a DMA packet.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct S : LO { char pad[0xA4 - 0x50]; int priority;};
 extern VIFS D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
 RPL *AllocRenderListEntry(void);
@@ -3096,7 +2855,7 @@ static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)entry>>3)
 // Pad the packet with zero words to a quadword boundary.
 static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Queues the VU microprogram pair for a sprite render mode. (inferred)
-void QueueSpriteVuProgram(struct S *p,int mode,float priority){
+void QueueSpriteVuProgram(WIDGET *p,int mode,float priority){
     unsigned char *tag=D_002DEA28.m_pb;
     RPL *e;
     *(ulong *)tag=0x10000000UL;
@@ -3125,9 +2884,7 @@ namespace M_RenderSpriteGeometry { extern "C" {
 // Queue transformed sprite parameters with optional fade limiting.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct POSITION : LO { char pad[0x9C - 0x50]; float screenX,screenY;};   /* PostWidgetLoad's ownerWidget */
-struct OWNER : LO { char pad[0xA4 - 0x50]; int priority;char pada8[0x20];struct POSITION *ownerWidget;};
-struct S {char pad[8];struct OWNER *owner;char padc[6];unsigned short mode;int count;char pad18[4];int tag;};
+struct S {char pad[8];WIDGET *owner;char padc[6];unsigned short mode;int count;char pad18[4];int tag;};
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
@@ -3183,10 +2940,8 @@ namespace M_func_002177E0 { extern "C" {
 // Queue transformed sprite parameters and a direct GIF payload.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct POSITION : LO { char pad[0x9C - 0x50]; float screenX,screenY;};   /* PostWidgetLoad's ownerWidget */
-struct OWNER : LO { char pad[0xA4 - 0x50]; int priority;char pada8[0x20];struct POSITION *ownerWidget;};
 struct GEO {char pad[0x18];int count;void *data;};
-struct S {int pad,type;struct OWNER *owner;char padc[8];union {struct GEO *geo;int raw;};int rawtag;union {int tag;int count;};void *buffer;};
+struct S {int pad,type;WIDGET *owner;char padc[8];union {struct GEO *geo;int raw;};int rawtag;union {int tag;int count;};void *buffer;};
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
@@ -3242,15 +2997,14 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
 
 // 0x217BA0 StartSpriteAnimById
 namespace M_func_00217BA0 { extern "C" {
-struct E { char pad[0x14]; int id; };
-struct S { unsigned short numAnims; short pad; struct E *anims; char pad8[0x20]; int isEnabled; };
-void StartSpriteAnim(struct S *group, int i);
+void StartSpriteAnim(SPRITEGRP *group, int i);
 // 0x217B98: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sd $zero, 0x10($4)");
-
+} } // namespace M_func_00217BA0
 // Starts the sprite animation with the given id (0x314 = the first). (inferred)
-void StartSpriteAnimById(struct S *group, int animId)
+extern "C" void StartSpriteAnimById(SPRITEGRP *group, int animId)
 {
+    using namespace M_func_00217BA0;
     int i;
     if (group->isEnabled) {
         i = 0;
@@ -3262,19 +3016,16 @@ void StartSpriteAnimById(struct S *group, int animId)
         StartSpriteAnim(group, i);
     }
 }
-} } // namespace M_func_00217BA0
 
 // 0x217C20 StartSpriteAnim
 namespace M_func_00217C20 {
-struct T { char pad[8]; short animIndex; };   /* slot 0 */
-struct S { char pad[8]; T *slots; char padc[0x1C]; int isEnabled; };
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern "C" char D_002A3A10[];
-extern "C" void StopSprite(S *p, int i);
-extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void StopSprite(SPRITEGRP *p, int i);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 // Starts sprite animation i from time 0 with default colours (stopping it first if instanced). (inferred)
-extern "C" void StartSpriteAnim(S *group, int animIndex)
+extern "C" void StartSpriteAnim(SPRITEGRP *group, int animIndex)
 {
     if (group->isEnabled) {
         if (group->slots->animIndex >= 0)
@@ -3293,11 +3044,9 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct E { char pad[0x14]; int id; };
-struct S { unsigned short numAnims; short pad; E *anims; char pad8[8]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };   /* a sprite group (inferred: the main-track restart state) */
-extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
+extern "C" void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 // Starts animation k in a reusable sprite slot. (inferred)
-extern "C" void StartSpriteAnimSlot(S *group, int animId, int slot, void *matrix, RGBA c0, RGBA c1)
+extern "C" void StartSpriteAnimSlot(SPRITEGRP *group, int animId, int slot, void *matrix, RGBA c0, RGBA c1)
 {
     float t = 0.0f;
     int i;
@@ -3331,15 +3080,11 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; void *unknown14; };
-struct F { char pad[0x18]; };
-struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 // Compose two 2x3 affine matrices (q then n).
-static inline M23 Mul(const M23 &q, const M23 &n)
+static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
-    M23 r;
+    SPRITEXF r;
     r.a[0] = m0 * n.a[0] + m1 * n.a[2];
     r.a[1] = m0 * n.a[1] + m1 * n.a[3];
     r.a[2] = m2 * n.a[0] + m3 * n.a[2];
@@ -3348,17 +3093,17 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void AdvanceSpriteAnim(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1);
+extern "C" void AdvanceSpriteAnim(float,SPRITEANIM *pf, int z, SPRITEXF *pm, RGBA c0, RGBA c1);
 // Starts a sprite animation at a given frame / time and draws it. (inferred)
-extern "C" void StartSpriteAnimAt(S *group, int animIndex, int slot, M23 *matrix, float t, RGBA c0, RGBA c1)
+extern "C" void StartSpriteAnimAt(SPRITEGRP *group, int animIndex, int slot, SPRITEXF *matrix, float t, RGBA c0, RGBA c1)
 {
-    E *state = &group->slots[slot];
-    M23 m;
+    SPRITESLOT *state = &group->slots[slot];
+    SPRITEXF m;
     state->animIndex = animIndex;
     state->isFinished = 0;
     state->time = t;
     state->keyIndex = 0;
-    M23 *pmUse;
+    SPRITEXF *pmUse;
     if (group->xform) {
         m = Mul(*matrix, *group->xform);
         pmUse = &m;
@@ -3370,11 +3115,8 @@ extern "C" void StartSpriteAnimAt(S *group, int animIndex, int slot, M23 *matrix
 } // namespace M_func_00217D98
 
 // 0x217EF8 FindFreeSpriteSlot
-namespace M_IFreeSpriteSlot { extern "C" {
-struct E { char pad[8]; short animIndex; char pad2[14]; };
-struct S { short numAnims; unsigned short numSlots; char pad[4]; struct E *slots; };
 // First free reusable sprite slot.
-int FindFreeSpriteSlot(struct S *group)
+extern "C" int FindFreeSpriteSlot(SPRITEGRP *group)
 {
     int i;
     int count = group->numSlots;
@@ -3384,22 +3126,18 @@ int FindFreeSpriteSlot(struct S *group)
     }
     return 0;
 }
-} } // namespace M_IFreeSpriteSlot
 
 // 0x217F38 ResetSpriteSlotItems
 namespace M_func_00217F38 { extern "C" {
-struct Y { char pad[0x30]; void *descriptor; char pad2[0x3C]; };   /* a frame item */
-struct F { int numItems; struct Y *items; char pad[0x10]; };
-struct S { int counts; int anims; struct F *slots; };
-void ReleaseSpriteItem(void *p, struct Y *y);
-void InitSpriteItem(struct Y *y);
+void ReleaseSpriteItem(void *p, SPRITEITEM *y);
+void InitSpriteItem(SPRITEITEM *y);
 // Release each item's sprite descriptor.
-static inline void ReleaseItems(int n, struct Y *items)
+static inline void ReleaseItems(int n, SPRITEITEM *items)
 {
-    int k; for (k = 0; k < n; k++) { struct Y *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
+    int k; for (k = 0; k < n; k++) { SPRITEITEM *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
 }
 // Resets / releases every item of sprite slot i. (inferred)
-void ResetSpriteSlotItems(struct S *group, int slot)
+void ResetSpriteSlotItems(SPRITEGRP *group, int slot)
 {
     ReleaseItems(group->slots[slot].numItems, group->slots[slot].items);
 }
@@ -3407,24 +3145,21 @@ void ResetSpriteSlotItems(struct S *group, int slot)
 
 // 0x217FB8 SetSpriteDefaultPhase
 namespace M_func_00217FB8 { extern "C" {
-struct S { char pad[0x28]; int isEnabled; };
-void SetSpriteAnimPhase(struct S *p, int a, int b);
+void SetSpriteAnimPhase(SPRITEGRP *p, int a, int b);
+} } // namespace M_func_00217FB8
 // Seeks the default animation by phase. (inferred)
-void SetSpriteDefaultPhase(struct S *group)
+extern "C" void SetSpriteDefaultPhase(SPRITEGRP *group)
 {
+    using namespace M_func_00217FB8;
     if (group->isEnabled)
         SetSpriteAnimPhase(group, 0, 0);
 }
-} } // namespace M_func_00217FB8
 
 // 0x217FE0 SetSpriteAnimPhase
 namespace M_func_00217FE0 { extern "C" {
-struct E { char pad[8]; short animIndex; char pad2[14]; };
-struct F { char pad[8]; float duration; char pad2[12]; };
-struct S { int counts; struct F *anims; struct E *slots; };
-void SetSpriteAnimTime(struct S *p, int i, int j, float f);
+void SetSpriteAnimTime(SPRITEGRP *p, int i, int j, float f);
 // Seeks a sprite animation to a fraction (clamped to 0..1) of its duration. (inferred)
-void SetSpriteAnimPhase(struct S *group, int slot, int item, float phase)
+void SetSpriteAnimPhase(SPRITEGRP *group, int slot, int item, float phase)
 {
     int animIndex;
     float clamped = 0.0f;
@@ -3439,15 +3174,15 @@ void SetSpriteAnimPhase(struct S *group, int slot, int item, float phase)
 
 // 0x218038 SetSpriteDefaultTime
 namespace M_func_00218038 { extern "C" {
-struct S { char pad[0x28]; int isEnabled; };
-void SetSpriteAnimTime(struct S *p, int a, int b);
+void SetSpriteAnimTime(SPRITEGRP *p, int a, int b);
+} } // namespace M_func_00218038
 // Seeks the default animation by time. (inferred)
-void SetSpriteDefaultTime(struct S *group)
+extern "C" void SetSpriteDefaultTime(SPRITEGRP *group)
 {
+    using namespace M_func_00218038;
     if (group->isEnabled)
         SetSpriteAnimTime(group, 0, 0);
 }
-} } // namespace M_func_00218038
 
 // 0x218060 SetSpriteAnimTime
 namespace M_func_00218060 {
@@ -3463,22 +3198,15 @@ struct RGBA {
     // Assign a color as one word.
     RGBA &operator=(const RGBA &c){*(RGBA2 *)this=*(const RGBA2 *)&c;return *this;}
 } __attribute__((aligned(16)));
-struct QQ { qword a, b; };
-struct Y { RGBA2 color0; RGBA2 color1; char pad8[8]; QQ matrix; };   /* a frame item */
-struct E { int count;void *items;short animIndex;short keyIndex;float time;int isFinished;void *unknown14; };
-struct F { char pad[8]; float duration; char padc[0xC]; };
-struct S;
-struct A { int counts; F *anims; E *slots; char padc[0x18]; S *owner; char pad28[8]; };   /* a sprite group */
-struct S : LO { char pad[0x84 - 0x50]; A *spriteGroups; };
-extern "C" int FindSpriteItemPose(S *p, int k, QQ *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
-extern "C" void ResetSpriteSlotItems(A *p, int i);
+extern "C" int FindSpriteItemPose(WIDGET *p, int k, SPRITEXF *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
+extern "C" void ResetSpriteSlotItems(SPRITEGRP *p, int i);
 // F12 is independent of the integer slots. These pointers address real
 // independent caller copies of the nontrivial by-value colors (A3/T0).
-extern "C" void UpdateSpriteSlot(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
+extern "C" void UpdateSpriteSlot(float g, SPRITEGRP *p, int i, SPRITEXF *pq, const RGBA *c0, const RGBA *c1);
 // Seeks a reused sprite animation to a clamped time (refreshing it at time 0 first). (inferred)
-extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
+extern "C" void SetSpriteAnimTime(SPRITEGRP *group, int slot, SPRITEITEM *item, float time)
 {
-    QQ q;
+    SPRITEXF q;
     RGBA c0, c1;
     int animIndex = group->slots[slot].animIndex;
     if (animIndex < 0)
@@ -3486,8 +3214,8 @@ extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
     time = StdMin(group->anims[animIndex].duration, StdMax(0.0f, time));
     if (item) {
         q = item->matrix;
-        *(RGBA2 *)&c0 = item->color0;
-        *(RGBA2 *)&c1 = item->color1;
+        *(::RGBA *)&c0 = item->color0;
+        *(::RGBA *)&c1 = item->color1;
     } else if (!FindSpriteItemPose(group->owner, group - group->owner->spriteGroups, &q, &c0, &c1, 0, 0)) {
         return;
     }
@@ -3510,18 +3238,15 @@ namespace M_func_00218220 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
-struct M23 {float a[6];} __attribute__((aligned(16)));
-struct O : LO { char pad[0xF4 - 0x50]; void *followObject; M23 *xform;};   /* the widget: world object to follow (inferred), transform override */
-struct S {char pad[0x24]; O *owner; int isEnabled;};   /* the main sprite group */
-extern "C" M23 D_002A3A10;
+extern "C" SPRITEXF D_002A3A10;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
-extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
+extern "C" void UpdateSpriteSlot(SPRITEGRP *,int,SPRITEXF *,float,const RGBA &,const RGBA &);
 // Compose two 2x3 affine matrices (q then n).
-static inline M23 Mul(const M23 &q, const M23 &n)
+static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
-    M23 r;
+    SPRITEXF r;
     r.a[0] = m0 * n.a[0] + m1 * n.a[2];
     r.a[1] = m0 * n.a[1] + m1 * n.a[3];
     r.a[2] = m2 * n.a[0] + m3 * n.a[2];
@@ -3531,9 +3256,9 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     return r;
 }
 // Advances the widget's main sprite by dt; a world-anchored widget follows its object's screen position. (inferred)
-extern "C" void AdvanceWidgetSprite(S *group,float dt) {
+extern "C" void AdvanceWidgetSprite(SPRITEGRP *group,float dt) {
     if(group->isEnabled) {
-        M23 m=D_002A3A10;
+        SPRITEXF m=D_002A3A10;
         if(group->owner->followObject) {
             qword worldPos=GetLoWorldPos(group->owner->followObject); qword screenPos=ConvertCmWorldToScreen(&g_cm,worldPos);
             m.a[4] = QwordX(screenPos)*320.0f+320.0f;
@@ -3553,15 +3278,11 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; int sound; };
-struct F {char pad[8];float duration;char padC[0xC];};
-struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 // Compose two 2x3 affine matrices (q then n).
-static inline M23 Mul(const M23 &q, const M23 &n)
+static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
-    M23 r;
+    SPRITEXF r;
     r.a[0] = m0 * n.a[0] + m1 * n.a[2];
     r.a[1] = m0 * n.a[1] + m1 * n.a[3];
     r.a[2] = m2 * n.a[0] + m3 * n.a[2];
@@ -3570,15 +3291,15 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void InterpolateSpriteSlot(float,F *,int,M23 *,RGBA,RGBA);
-extern "C" void AdvanceSpriteAnim(float,F *,int,M23 *,RGBA,RGBA);
+extern "C" void InterpolateSpriteSlot(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA);
+extern "C" void AdvanceSpriteAnim(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA);
 // Forwards a sprite slot's update to the reusable or the full animation path. (inferred)
-extern "C" void UpdateSpriteSlot(S *group,int slot,M23 *matrix,float dt,RGBA c0,RGBA c1) {
-    E *state=&group->slots[slot];
+extern "C" void UpdateSpriteSlot(SPRITEGRP *group,int slot,SPRITEXF *matrix,float dt,RGBA c0,RGBA c1) {
+    SPRITESLOT *state=&group->slots[slot];
     int animIndex=state->animIndex;
     if(animIndex<0)return;
-    M23 m;
-    M23 *pmUse;
+    SPRITEXF m;
+    SPRITEXF *pmUse;
     if(group->xform) {
         m=Mul(*matrix,*group->xform);
         pmUse=&m;
@@ -3624,11 +3345,10 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 
 // 0x218660 StopSpriteSlot
 namespace M_func_00218660 { extern "C" {
-struct E { char pad[8]; short animIndex; short pad2; float time; int isFinished; void *sound; };
-struct S { char pad[8]; struct E *slots; char padc[4]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };
+struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
-void ResetSpriteSlotItems(struct S *p, int i);
+void ResetSpriteSlotItems(SPRITEGRP *p, int i);
 // Stop the sound and drop the reference, if any.
 static inline void Release(void **pp)
 {
@@ -3638,9 +3358,9 @@ static inline void Release(void **pp)
     }
 }
 // Stops a sprite slot's sounds and resets its items. (inferred)
-void StopSpriteSlot(struct S *group, int slot)
+void StopSpriteSlot(SPRITEGRP *group, int slot)
 {
-    struct E *state = (struct E*)(slot*sizeof(struct E)+(int)group->slots);   /* &group->slots[slot] */
+    SPRITESLOT *state = (SPRITESLOT*)(slot*sizeof(SPRITESLOT)+(int)group->slots);   /* &group->slots[slot] */
     if (state->animIndex >= 0) {
         /* remember where it stopped, so a main-track restart this frame resumes it (StartSpriteAnimSlot) */
         float t=state->time;
@@ -3657,18 +3377,14 @@ void StopSpriteSlot(struct S *group, int slot)
 } } // namespace M_func_00218660
 
 // 0x218710 IsSpriteAnimActive
-namespace M_FSpriteAnimActive { extern "C" {
-struct B { char pad[8]; short animIndex; char pad2[6]; int isFinished; };
-struct S { char pad[8]; struct B *slots; };
 // True while the sprite animation is running.
-int IsSpriteAnimActive(struct S *group)
+extern "C" int IsSpriteAnimActive(SPRITEGRP *group)
 {
-    struct B *mainSlot = group->slots;
+    SPRITESLOT *mainSlot = group->slots;
     if (mainSlot->animIndex != 0 && mainSlot->isFinished == 0)
         return 1;
     return 0;
 }
-} } // namespace M_FSpriteAnimActive
 
 // 0x218738 GetSpriteMainState
 // State of the sprite group's main animation. (inferred)
@@ -3679,25 +3395,24 @@ extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 
 // 0x218748 FinishSpriteSoundEvent
 namespace M_func_00218748 { extern "C" {
-struct E { char pad[0x10]; int isFinished; void *sound; };   /* a playback slot */
-struct S { char pad[8]; struct E *slots; };
 void PauseSnd(void *p);
 // The record's entry array (word at +8).
-static inline struct E *Entries(const struct S *p){struct E *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
+static inline SPRITESLOT *Entries(const SPRITEGRP *p){SPRITESLOT *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
 // Load a sound pointer from its slot into $3.
 static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;}
 // Address of entry `index` (register-pinned arithmetic).
-static inline struct E *EntryAt(struct E *entries,int index){register struct E *value asm("$2");register int bytes asm("$5")=index*sizeof(struct E);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
+static inline SPRITESLOT *EntryAt(SPRITESLOT *entries,int index){register SPRITESLOT *value asm("$2");register int bytes asm("$5")=index*sizeof(SPRITESLOT);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
+} } // namespace M_func_00218748
 // Marks a sprite sound event done and stops or pauses its sound. (inferred)
-void FinishSpriteSoundEvent(struct S *p, int slot)
+extern "C" void FinishSpriteSoundEvent(SPRITEGRP *p, int slot)
 {
+    using namespace M_func_00218748;
     void *sound;
     p->slots[slot].isFinished = 1;
     sound=SoundRead(&EntryAt(Entries(p),slot)->sound);
     if (sound)
         PauseSnd(sound);
 }
-} } // namespace M_func_00218748
 
 // 0x218790 CombineSpriteColors
 namespace M_CombineSpriteColors { extern "C" {
@@ -3786,13 +3501,11 @@ extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M
 
 // 0x2190F8 FinishSpriteSoundEvents
 namespace M_func_002190F8 { extern "C" {
-struct E { char pad[7]; unsigned char numActions; unsigned char *actions; char padc[0x14]; };   /* an animation key */
-struct S { int numKeys; struct E *keys; char pad8[8]; void *group; };   /* an animation */
 void FinishSpriteSoundEvent(void *p, int k);
 // Finishes every sound event (action 7) of a sprite key. (inferred)
-void FinishSpriteSoundEvents(struct S *anim, int key, int slot)
+void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
 {
-    struct E *keyData = &anim->keys[key];
+    SPRITEKEY *keyData = &anim->keys[key];
     int j;
     for (j = 0; j < keyData->numActions; j++) {
         if (keyData->actions[j] == 7)   /* a sound action */
@@ -3871,21 +3584,16 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
 
 // 0x219348 ResetSpriteKeyItems
 namespace M_ResetSpriteKeyItems { extern "C" {
-struct Y { char pad[0x30]; void *descriptor; char pad2[0x3C]; };   /* a frame item */
-struct F { int numItems; struct Y *items; char pad[0x10]; };   /* a playback slot */
-struct Q { char pad[8]; struct F *slots; };   /* the group */
-struct E { char pad[6]; unsigned char numItemRefs; char pad7[0xD]; unsigned short *itemRefs; char pad18[8]; };   /* an animation key */
-struct S { int numKeys; struct E *keys; char pad8[8]; struct Q *group; };   /* an animation */
-void ReleaseSpriteItem(void *p, struct Y *y);
-void InitSpriteItem(struct Y *y);
+void ReleaseSpriteItem(void *p, SPRITEITEM *y);
+void InitSpriteItem(SPRITEITEM *y);
 // Resets the items a sprite key refers to.
-void ResetSpriteKeyItems(struct S *anim, int key, int slot)
+void ResetSpriteKeyItems(SPRITEANIM *anim, int key, int slot)
 {
-    struct E *keyData = &anim->keys[key];
-    struct Y *items = anim->group->slots[slot].items;
+    SPRITEKEY *keyData = &anim->keys[key];
+    SPRITEITEM *items = anim->group->slots[slot].items;
     int k;
     for (k = 0; k < keyData->numItemRefs; k++) {
-        struct Y *item = &items[keyData->itemRefs[k]];
+        SPRITEITEM *item = &items[keyData->itemRefs[k]];
         if (item->descriptor)
             ReleaseSpriteItem(item->descriptor, item);
         else
@@ -4352,27 +4060,23 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
 
 // 0x21A998 DrawSpriteItems
 namespace M_func_0021A998 { extern "C" {
-struct Y { char pad[0x30]; void *descriptor; int kind; char pad2[0x38]; };   /* a frame item */
-struct F { int numItems; struct Y *items; char pad[0x10]; };   /* a playback slot */
-struct Q { char pad[8]; struct F *slots; };   /* the group */
-struct S { char pad[0xC]; char *owner; struct Q *group; };   /* an animation; owner = the widget */
-void QueueSpriteItem(void *descriptor, struct Y *item, int drawFlags);
-void PrependSlEntry(void *p, struct Y *y);
+void QueueSpriteItem(void *descriptor, SPRITEITEM *item, int drawFlags);
+void PrependSlEntry(SL *psl, SPRITEITEM *y);
 // Queue a sprite's items for drawing, last first: items with a descriptor through QueueSpriteItem, descriptor-less
 // kind-4 items straight onto the widget's render queue.
-static inline void Draw(struct S *anim, int n, struct Y *items, int drawFlags)
+static inline void Draw(SPRITEANIM *anim, int n, SPRITEITEM *items, int drawFlags)
 {
     int k;
     for (k = n - 1; k >= 0; k--) {
-        struct Y *item = &items[k];
+        SPRITEITEM *item = &items[k];
         if (item->descriptor)
             QueueSpriteItem(item->descriptor, item, drawFlags);
         else if (item->kind == 4)   /* no descriptor: queued as is (inferred) */
-            PrependSlEntry(anim->owner + 0xFC, item);   /* the widget's render queue */
+            PrependSlEntry(&anim->owner->renderQueue, item);
     }
 }
 // Queues a sprite's items for drawing in reverse order. (inferred)
-void DrawSpriteItems(struct S *anim, int slot, int drawFlags)
+void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags)
 {
     Draw(anim, anim->group->slots[slot].numItems, anim->group->slots[slot].items, drawFlags);
 }

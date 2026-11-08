@@ -1278,6 +1278,42 @@ cross-family pass) and the weapon (JSG) views. Not started: prize.cpp, grabspot.
 where the views had arithmetic: RenderHackwallSelf reads `wall->aseg[i].dlPiece.head` (was
 `((N**)((int)wall+i*0x30))[0x1DC/4]`); InitRobottank stores `0.0f` into the float the view wrote as an int.
 
+### Views unified (names/vu-hud): WIDGET, its subclasses and the sprite records
+
+The HUD/widget family (from 9197b9081). Every function and data symbol of the touched files and of every includer of
+classes.h, screen.h, widget.h and hud.h (83 objects) MATCHes, and each object is identical to the branch start's
+(allocated section bytes, relocations by symbol name, the symbol table with sizes). Struct/class/union definitions in
+src/game: 4,104 -> 3,916 (hud.cpp 345 -> 180); 11 sources, +598/-990.
+
+| type | header | change | views removed |
+|---|---|---|---:|
+| WIDGET (0x110) | sly2/widget.h (new; classes.h includes it at WIDGET's place in the emission order) | real fields for 0x50..0x110 (state machine, labels, sprite groups, timeout, size and position, priority, exclusive list link, deferred load, sprite heap, argument texts, followed object, transform, render queue); relay.cpp's Lilly names in the field comments | hud.cpp's file-scope WIDGETV and ~60 per-function S/O/Q/T/L/P8/C8/OWNER/POSITION views; tu_201D78, wipe, relay (2), mode, menu, memcard (6), letterbox, sw.cpp (3) |
+| WIDGET127 / 129 / 130 / 131 | sly2/classes.h | modal box (isOpen, keepsGamePaused), item counter (two 16-entry OID/TASK lists), recon prompt (five choice words; tu_201D78), episode menu (tu_15CD68's fields; menuState/menuSub/menuStateTime to keep WIDGET's state names free) | tu_15CD68's EPMENU, tu_201D78's WIDGETV |
+| SPRITEGRP, SPRITEANIM, SPRITESLOT, SPRITEKEY, SPRITEITEM, SPRITEDESC, SPRITEXF, WIDGETLOAD; WIDGET_STATE / WIDGET_REQUEST | sly2/hud.h (new) | the records the widget plays (group 0x30, animation 0x18, slot 0x18, key 0x20, item 0x70, descriptor 0x40, 2x3 transform 0x20 aligned 16) and the deferred sprite-file load record (FILEREC + owner, heap marks, link) | ~70 A/E/H/C/F/Y/Z/QQ/M23/N views in hud.cpp |
+| SCREEN::pchild | sly2/screen.h | `WIDGET *` (was `void *`); two casts at screen.cpp's assignments | -- |
+
+The widget functions became members where the class declares the slot (WIDGET::Show/Hide/Update/PostLoad/
+LoadFromBrx, WIDGET127::Show/Init/Update, WIDGET128::Init, WIDGET129::PostLoad/Update); base calls are qualified
+(`WIDGET::Update()`, `LO::Init()`: direct calls, same code) and the hand-made slot 49/50/16/21/3 calls are virtual
+calls (Show, Hide, Update, SetFlag8, HandleSpliceEvent) everywhere but game.cpp, tu_1D1370.cpp and screen.cpp (a
+cross-family pass converts their Show/Hide call sites; their W/SUB/O views map onto WIDGET: visibility = state,
+pageAnim* = the three labels at +0x70). Spellings that matched on the first compile: SPRITEXF (`float a[6]`, aligned 16)
+for the qword-pair and `int a[8]` matrix copies; `&owner->spriteGroups[index]` for the `+ index * 0x30` byte
+arithmetic; `int` item counts read into an `unsigned int` local for AddItemCounterOid's unsigned compare. Watch for:
+an identical `extern "C"` declaration in a namespace and at file scope makes calls ambiguous (the namespace copies
+were deleted); a namespace typedef of `uint`/`ulong` is ambiguous with common.h's under `using namespace`; sw.cpp
+cannot include classes.h (its Lilly-port GRABSPOT: cc1plus would crash), hence widget.h.
+
+Island (scratch islands.csv): RenderWidget (WIDGET::RenderSelf) keeps its view as `WIDGETIsland`: with a WIDGET-typed
+pointer (even `this`) the packet-align loop's registers move (291/316 off; Begin/Finish on WIDGET each match alone).
+Kept: WIDGET_ctor's view (the C-named constructor stores the vptr and BASIC's words by hand), the CLOCKIsland views of
+SetWidgetState/UpdateWidget/StopSpriteSlot. Not attempted: the rich-text copy (CRichText2: its views disagree on int
+vs float box fields and the colour representation), LoadSpriteGroups/LoadSpriteDescriptor's sprite internals (tuned:
+the GROUP/ANIM/REUSE/KEY/ITEM views, the descriptor payload union), the key interpolation functions with register
+pins (InterpolateSpriteSlot, HandleSpriteKeyEvents, ApplySpriteKeyPoses, AdvanceSpriteAnim), InitSpriteItem
+(its +0x34..+0x58 item words), the STRINGGEN getters' player views. For sw.h's owner: SW::pepmenu is the WIDGET131
+(typed `struct EPMENU *`; tu_15CD68 reads it through one cast).
+
 ## Path-hash quirk (asm functions)
 
 GCC 2.95 hashes the source file name and the line number into the gcse ordering of inline-asm expressions; in rare

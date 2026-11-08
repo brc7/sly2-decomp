@@ -22,8 +22,8 @@ level data, run by `engine/presentation/hud.cpp`).
 
 | Type | What it is | Where |
 |---|---|---|
-| `WIDGET` | HUD element: state (unloaded, hidden, visible, appearing, disappearing), requested state, sprite groups, argument text ids, display timeout, exclusive flag and priority | `engine/presentation/hud.cpp` |
-| WIDGET subclasses | modal message box, job-completion banner (pauses the game clock), item/objective counter, episode menu, timer (letterbox) | `hud.cpp`, the episode-menu unit in `src/game/ui/` |
+| `WIDGET` | HUD element: state (unloaded, hidden, visible, appearing, disappearing), requested state, sprite groups, argument text ids, display timeout, exclusive flag and priority | `engine/presentation/hud.cpp`; class in `include/sly2/widget.h`, its records in `include/sly2/hud.h` |
+| WIDGET subclasses | modal message box (WIDGET127), job-completion banner (WIDGET128, pauses the game clock), item/objective counter (WIDGET129), recon selector prompt (WIDGET130), episode menu (WIDGET131); the letterbox bars are a plain WIDGET | `hud.cpp`, the episode-menu unit in `src/game/ui/`; classes in `include/sly2/classes.h` |
 | sprite group / sprite item / sprite key | the widget's animated 2-D content: items are text, geometry or picture payloads (or nested sprites); keys hold poses (2-D transform, colours) and sound events over time | `hud.cpp` |
 | `STRINGGEN` | the text table: entries `{text id, getter, context}`; a getter builds dynamic text (coin count, timer, subtitle...) | `hud.cpp` (getters `Build*Text`) |
 | `SCREEN` family (sly2/screen.h) | global UI controllers: HUD meter, notice banner, gadget menu (`GADGETMENU`), ThiefNet, job list, title screen, timed screen, pause menu, memory-card dialogs | `screen.cpp`, `src/game/ui/menu.cpp`, `src/game/ui/memcard.cpp` |

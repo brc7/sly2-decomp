@@ -27,6 +27,7 @@
 #include "sly2/joy.h"
 #include "sly2/scrap.h"
 #include "sly2/cref.h"
+#include "sly2/hud.h"
 
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
    destructor DestroyBasic (cm.cpp's g_cm pattern). */
@@ -531,7 +532,6 @@ namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
 typedef unsigned int uint;
 struct KEY {int name,tag,kind;char data[0x104];};
-struct WIDGET : LO { char pad0[0x58 - 0x50]; int shown;};
 struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct FRAME;
@@ -673,7 +673,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     }
     if(!GetCurrentWorld()){
         ACTOR *actor=GetHeroPo(world);
-        if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
+        if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->state)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(&g_cm);
     CutCm__FP2CM(&g_cm);
@@ -1006,24 +1006,23 @@ void LoadSwSharedDataFromBrx(void *world, void *q)
 
 namespace M_func_0020F710 { extern "C" {
 extern int D_002C3E70[4];
-struct L { float a; int b; int c; float d; int e[4]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-struct WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context);
-void SetWidgetXf(struct WIDGET *widget, struct L *pl);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context);
+void SetWidgetXf(WIDGET *widget, SPRITEXF *pxf);
 int CountCollectedClues(void);
 int GetMaxClueCount(void);
 // Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
 // (inferred)
 void BindSwTimerHud(SW *world)
 {
-    struct L l;
+    SPRITEXF l;
     int i;
     int *pn = D_002C3E70;
     func_002333B4(&l, 0, sizeof(l));
-    l.d = 1.0f;
-    l.a = 1.0f;
+    l.a[3] = 1.0f;   /* identity */
+    l.a[0] = 1.0f;
     for (i = 0; i < 4; i++) {
-        struct WIDGET *widget = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, D_002C3E70[i], 0);
+        WIDGET *widget = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, D_002C3E70[i], 0);
         if (widget) {
             SetWidgetXf(widget, &l);
             world->ahudstack[i].widget = widget;
@@ -1035,12 +1034,10 @@ void BindSwTimerHud(SW *world)
 } } // namespace M_func_0020F710
 
 namespace M_func_0020F7E0 { extern "C" {
-struct F8 { char pad[0x14]; float value; };   /* the element's animated value */
-struct O { char pad[0xF8]; struct F8 *anim; };   /* the HUD widget (HUDSTACK::widget) */
 extern CLOCK D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
-int IsWidgetVisible(struct O *po);
+int IsWidgetVisible(WIDGET *widget);
 float SmoothValueWithAccel__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, void *source);
@@ -1055,17 +1052,17 @@ void UpdateSwTimerHud(SW *world)
     z = t;
     for (i = 0; i < 4; i++) {
         HUDSTACK *e = &world->ahudstack[i];
-        struct O *o = (struct O *)e->widget;
+        WIDGET *o = e->widget;
         if (!o || !IsWidgetVisible(o)) {
             e->shouldSnap = 1;
             continue;
         }
         if (e->shouldSnap) {
-            o->anim->value = t;
+            o->xform->a[5] = t;
             e->dyVel = 0.0f;
             e->shouldSnap = 0;
         } else {
-            o->anim->value = SmoothValueWithAccel__FffffP4SMPAPf(o->anim->value, e->dyVel, t, D_002C3E88, &e->dyVel, D_002DDED0.deltaTime);
+            o->xform->a[5] = SmoothValueWithAccel__FffffP4SMPAPf(o->xform->a[5], e->dyVel, t, D_002C3E88, &e->dyVel, D_002DDED0.deltaTime);
         }
         t += D_002C3E80;
         if (i == 3) {

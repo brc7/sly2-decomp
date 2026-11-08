@@ -25,6 +25,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/screen.h"
 #include "sly2/cref.h"
+#include "sly2/widget.h"
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -89,15 +90,13 @@ struct MCTBLDIR
     char achName[32];       /* +0x20 */
 };
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
-/* The dialog's child widget: its display state (2: fully shown), when that was reached, the state it is heading for. */
-struct MCCHILD : LO { char pad0[0x58 - 0x50]; int displayState; float tDisplayState; char pad60[4]; int targetDisplayState; char pad68[0xB0 - 0x68]; int unknownB0; };
 struct MCDLG
 {
     char pad0[0xC];
     void *vtable;              /* +0x0C */
     char pad10[0x20 - 0x10];
     int id;                 /* +0x20 */
-    MCCHILD *pchild;        /* +0x24 */
+    WIDGET *pchild;         /* +0x24 the dialog's widget */
     int nMode;              /* +0x28 */
     float tMode;            /* +0x2C */
     char pad30[0x40 - 0x30];
@@ -1443,11 +1442,11 @@ extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
 void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes out here */
 {
     MCDLG *dialog = (MCDLG *)this;
-    MCCHILD *pchild;
+    WIDGET *pchild;
     PostLoadScreen(dialog);
     pchild = dialog->pchild;
     if (pchild != 0) {
-        pchild->unknownB0 = 1;
+        pchild->pausesGame = 1;
         if (dialog->nState != -1) {
             SetMcDialogState(dialog, dialog->nState);
         }
@@ -1463,28 +1462,28 @@ extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
 
 namespace M_SetMcDialogState { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; struct O *child; char pad3[0x18]; int state; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
 // Sets the dialog state; when the dialog is shown, refreshes it (slot 10) and shows its child widget.
 void SetMcDialogState(struct O *dialog, int state)
 {
     dialog->state = state;
     if (dialog->child) {
         { struct VTE *e = &dialog->vt[10]; e->pfn((char *)dialog + e->d); }
-        { struct O *child = dialog->child; struct VTE *e = &child->vt[49]; e->pfn((char *)child + e->d, -1); }
+        dialog->child->Show(-1);
     }
 }
 } } // namespace M_SetMcDialogState
 
 namespace M_ClearMcDialogState { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; struct O *child; char pad3[0x18]; int state; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
 // Clears the dialog state and hides the dialog (slot 11) and its child widget.
 void ClearMcDialogState(struct O *dialog)
 {
     dialog->state = -1;
     if (dialog->child) {
         { struct VTE *e = &dialog->vt[11]; e->pfn((char *)dialog + e->d); }
-        { struct O *child = dialog->child; struct VTE *e = &child->vt[50]; e->pfn((char *)child + e->d); }
+        dialog->child->Hide();
     }
 }
 } } // namespace M_ClearMcDialogState
@@ -1536,8 +1535,7 @@ extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (
 namespace M_CMemcardDialog_Update { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short index; void (*pfn)(void *); };
-struct P : LO { char pad[0x58 - 0x50]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
-struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
+struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 extern SAVE D_002E65E0;
 extern CLOCK D_002DDED0;
 extern char D_003DD490[];
@@ -1558,19 +1556,19 @@ void PopPauseMenuToRoot(void *p);
 // layout, starts the card jobs and moves to the follow-up state.
 void CMemcardDialog_Update(struct S *dialog)
 {
-    struct P *child = dialog->child;
+    WIDGET *child = dialog->child;
     int c;
     int buttonKind;
     if (!child)
         return;
-    if (child->displayState != 2)
+    if (child->state != 2)
         return;
-    c = child->targetDisplayState;
+    c = child->request;
     if (c != 2)
         return;
     if (IsSwTransitionBusy(D_003DD490))
         return;
-    if (D_002DDED0.realTime - dialog->child->tDisplayState <= 0.1f)
+    if (D_002DDED0.realTime - dialog->child->stateTime <= 0.1f)
         return;
     buttonKind = GetMcDialogButtonKind(dialog);
     if (buttonKind != 1) {
@@ -2178,39 +2176,28 @@ CMcStatus::CMcStatus()
     ResetMode();
 }
 
-namespace M_func_001ADE38 { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *, int); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x24]; struct O *child; };
-// Shows the status widget's child (slot 49 with -1).
-void ShowMcDialogWidget(struct S *dialog) 
+// Shows the dialog's widget (slot 49 with -1).
+extern "C" void ShowMcDialogWidget(void *dialog)   /* a SCREEN (the status screen or a dialog) */
 {
-    struct O *child = dialog->child;
-    if (child) { struct VTE *e = &child->vt[49]; e->pfn((char *)child + e->d, -1); }
+    WIDGET *child = ((SCREEN *)dialog)->pchild;
+    if (child) child->Show(-1);
 }
-} } // namespace M_func_001ADE38
 
-namespace M_HideMcDialogWidget { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x24]; struct O *child; };
-// Hides the status widget's child (slot 50).
-void HideMcDialogWidget(struct S *dialog) 
+// Hides the dialog's widget (slot 50).
+extern "C" void HideMcDialogWidget(void *dialog)   /* a SCREEN (the status screen or a dialog) */
 {
-    struct O *child = dialog->child;
-    if (child) { struct VTE *e = &child->vt[50]; e->pfn((char *)child + e->d); }
+    WIDGET *child = ((SCREEN *)dialog)->pchild;
+    if (child) child->Hide();
 }
-} } // namespace M_HideMcDialogWidget
 
 namespace M_func_001ADEA8 {
-struct O : LO { char pad[0x58 - 0x50]; int displayState; int pad2[2]; int targetDisplayState; };
-struct S { char pad[0x24]; O *child; };
+struct S { char pad[0x24]; WIDGET *child; };
 // True when the status widget's child is shown or showing.
 extern "C" int IsMcStatusVisible(S *dialog)
 {
-    O *child = dialog->child;
+    WIDGET *child = dialog->child;
     if (!child) return 0;
-    if (child->displayState < 2 && child->targetDisplayState < 2) return 0;
+    if (child->state < 2 && child->request < 2) return 0;
     return 1;
 }
 } // namespace M_func_001ADEA8
@@ -2220,11 +2207,11 @@ extern "C" int IsMcStatusVisible(S *dialog)
 /* CMcStatus slot 7: hide once shown for over a second and the worker is idle. */
 extern "C" void CMcStatus_Update(MCDLG *dialog)
 {
-    MCCHILD *pchild;
+    WIDGET *pchild;
     UpdateTimedScreen(dialog);
     pchild = dialog->pchild;
     if (pchild != 0) {
-        if (pchild->displayState == 2 && pchild->targetDisplayState == pchild->displayState && D_002DDED0.realTime - pchild->tDisplayState > 1.0f &&
+        if (pchild->state == 2 && pchild->request == pchild->state && D_002DDED0.realTime - pchild->stateTime > 1.0f &&
             IsMemcardThreadValid(&g_save.memcard) == 0) {
             HideMcDialogWidget(dialog);
         }

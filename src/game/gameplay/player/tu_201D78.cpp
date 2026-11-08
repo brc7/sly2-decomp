@@ -56,9 +56,6 @@ struct RECONTGT
     int choice;             /* 0x110 */
 };
 
-/* A HUD widget of the prompt. */
-struct WIDGETV { int x0, x4, x8; VTE *pvt; char pad10[0x58 - 0x10]; void *shown; char pad5C[0xF4 - 0x5C]; RECONTGT *actor;
-    char padF8[0x110 - 0xF8]; int actorChoice, risingChoice, fallingChoice, nearChoice, emptyChoice; };
 /* The hero mode the prompt belongs to: its owner object, and its state at +0x20. */
 struct MODEL { LOV *plo; char pad4[0x20 - 4]; int state; };
 
@@ -80,8 +77,8 @@ struct RECONSEL
     uint savedFlags;        /* 0xA0 */
     void *resource;         /* 0xA4 */
     MODEL *model;           /* 0xA8 */
-    WIDGETV *primary;        /* 0xAC */
-    WIDGETV *secondary;      /* 0xB0 */
+    WIDGET130 *primary;      /* 0xAC the prompt (oid 0x362) */
+    WIDGET *secondary;       /* 0xB0 oid 0x365, follows the target */
     int refreshPending;     /* 0xB4 */
     int visible;            /* 0xB8 */
     int selected;           /* 0xBC */
@@ -104,16 +101,16 @@ int IsPointInVol(LOV *pvol, qword v);
 qword GetLoWorldPos(void *p);
 void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
-void PlayWidgetAnimWithArg(WIDGETV *pw, int id, int v);
+void PlayWidgetAnimWithArg(WIDGET *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
 RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
 int IsInCameraFrustum(CM *, qword, qword);
 int IsWithinCameraRenderDistance(CM *, qword, float, float *);
 void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
-void StopWidgetAnim(WIDGETV *, int);
-void PlayWidgetAnim(WIDGETV *, int);
-void SetWidgetExclusive(WIDGETV *, int);
+void StopWidgetAnim(WIDGET *, int);
+void PlayWidgetAnim(WIDGET *, int);
+void SetWidgetExclusive(WIDGET *, int);
 void SetClockRate(void *, int, float);
 void SetSoundManagerFlags(void *, int, int);
 void ResetCplookZoom(void *);
@@ -122,10 +119,10 @@ void StartFrameCapture(void *, int, int);
 void BroadcastGameEvent(void *, int, void *);
 void *CreateSfxSound(int);
 void SetSndSourceLo(void *, void *);
-void SetWidgetAnimPhase(WIDGETV *, int, float);
-void SetWidgetState(WIDGETV *, int);
-void SetWidgetRequest(WIDGETV *, int);
-int IsWidgetAnimPlaying(WIDGETV *, int);
+void SetWidgetAnimPhase(WIDGET *, int, float);
+void SetWidgetState(WIDGET *, int);
+void SetWidgetRequest(WIDGET *, int);
+int IsWidgetAnimPlaying(WIDGET *, int);
 void EndJtMode(MODEL *);
 qword ConvertCmWorldToScreen(CM *, qword);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
@@ -183,8 +180,8 @@ extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 extern "C" void PostReconSelLoad(RECONSEL *reconSel)
 {
     if (IsBasicDerivedFrom((BASIC *)reconSel->model->plo, CID_35)) {
-        reconSel->primary = (WIDGETV *)FindSwObject(&D_003DD490, 0x405, (OID)0x362, 0);
-        reconSel->secondary = (WIDGETV *)FindSwObject(&D_003DD490, 0x405, (OID)0x365, 0);
+        reconSel->primary = (WIDGET130 *)FindSwObject(&D_003DD490, 0x405, (OID)0x362, 0);
+        reconSel->secondary = (WIDGET *)FindSwObject(&D_003DD490, 0x405, (OID)0x365, 0);
     }
     reconSel->resource = FindSwObject(&D_003DD490, 0x405, (OID)0x602, 0);
     reconSel->count = FindSwObjectsByClass(&D_003DD490, 0x405, CID_2E, 0, 16, reconSel->items);
@@ -455,10 +452,6 @@ extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->p
 // The localized string of the selected-target label (+0xBC).
 extern "C" const char *GetReconSelectedText(RECONSEL *reconSel) { if (reconSel->selected == -1) return 0; return FindSwLocalizedString(&D_003DD490, reconSel->selected); }
 
-// Call the widget's virtual at slot 49 with n.
-static inline void Post(WIDGETV *x,int n){VTE *entry=&x->pvt[49];((void (*)(void *,int))entry->pfn)((char *)x+entry->d,n);}
-// Call the widget's virtual at slot 50.
-static inline void Clear(WIDGETV *x){VTE *entry=&x->pvt[50];((void (*)(void *))entry->pfn)((char *)x+entry->d);}
 // Clear bit 0 of a flag word (the pointer-or-inline tag).
 static inline int Untag(int word)
 {
@@ -522,7 +515,7 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
     case 9:
         ResetCplookZoom(&g_cm.cplook);
         SetWidgetExclusive(reconSel->primary, -1);
-        Post(reconSel->primary, 0x310);
+        reconSel->primary->Show(0x310);
         if (reconSel->resource) {
             if (reconSel->actor->key != -1)
                 StartDialog(D_003DD040, reconSel->actor->key, 0);
@@ -547,14 +540,14 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
         reconSel->selected = -1;
         reconSel->pending = -1;
         ClearReconTargetMarks(reconSel);
-        Post(reconSel->primary, -1);
+        reconSel->primary->Show(-1);
         ResetReconTargets(reconSel);
         UpdateReconSelInVolume(reconSel);
         BroadcastGameEvent(D_002DEB30, 9, 0);
         break;
     case 1:
         StopWidgetAnim(reconSel->primary, 0x35D);
-        Post(reconSel->secondary, 0x339);
+        reconSel->secondary->Show(0x339);
         break;
     case 5:
         PlayWidgetAnim(reconSel->secondary, 0x35A);
@@ -598,35 +591,35 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
         break;
     }
     case 9:
-        Post(reconSel->secondary, 0x339);
-        Post(reconSel->primary, 0x35C);
+        reconSel->secondary->Show(0x339);
+        reconSel->primary->Show(0x35C);
         SetWidgetExclusive(reconSel->primary, 0);
         break;
     case 3:
     case 4:
-        reconSel->secondary->actor = reconSel->actor;
-        Post(reconSel->secondary, 0x337);
+        reconSel->secondary->followObject = (LO *)reconSel->actor;
+        reconSel->secondary->Show(0x337);
         PlayWidgetAnim(reconSel->secondary, 0x359);
         SetWidgetAnimPhase(reconSel->secondary, 0x359, 0.0f);
         break;
-    case 2: Post(reconSel->secondary, 0x339); break;
+    case 2: reconSel->secondary->Show(0x339); break;
     case 10:
         reconSel->actor = 0;
         reconSel->selected = -1;
         reconSel->pending = -1;
-        Clear(reconSel->secondary);
-        Clear(reconSel->primary);
+        reconSel->secondary->Hide();
+        reconSel->primary->Hide();
         NotifyReconTargets(reconSel);
         BroadcastGameEvent(D_002DEB30, 11, 0);
         break;
     case -1:
         if (previous != 10) {
             BroadcastGameEvent(D_002DEB30, 11, 0);
-            if (reconSel->primary->shown) {
+            if (reconSel->primary->state) {
                 SetWidgetState(reconSel->primary, 1);
                 SetWidgetRequest(reconSel->primary, 1);
             }
-            if (reconSel->secondary->shown) {
+            if (reconSel->secondary->state) {
                 SetWidgetState(reconSel->secondary, 1);
                 SetWidgetRequest(reconSel->secondary, 1);
             }
