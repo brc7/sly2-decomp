@@ -73,7 +73,6 @@ struct AREQV { int cb; int cbAlign; };
 /* The hit TakeBombDamage absorbs. */
 struct WKR { int x0; char pad[0x2C]; qword v30; char pad2[4]; int flags; };
 /* 8 bytes read with ldl/ldr (alignment 1). */
-struct LONGU { long l; } __attribute__((packed));
 /* DetonateBomb's impact message and the message to +0x168. */
 struct POV { int pad[3]; VTE *pvt; int x10; POV **pp14; };
 struct MSG { BOMBV *p; int x4; POV *po; int zapKind; int damage; int pad14[3]; qword v20; qword v30; char pad40[0x60 - 0x40]; };

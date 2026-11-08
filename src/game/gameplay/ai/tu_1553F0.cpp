@@ -34,7 +34,6 @@ enum {
 };
 
 typedef int qwordV __attribute__((mode(TI)));
-typedef struct MSG { int cb; int nKind; } MSG;
 
 /* Dimitri is classes.h DIMITRI (routes: DIMITRIROUTE), his behaviours BHV180 (escape) and BHV181 (attack); the
    sub-behaviours they push are BHV181, BHVCOMBAT, BHVATTACK, BHVANIM, BHVIDLE and BHVWALKPATH. */
@@ -57,7 +56,7 @@ extern const float D_002A5130;   /* defined below where the ELF has it (.rodata 
 extern const float D_002A5134;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5138;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
-void *AllocClearedFromWorldHeap(MSG *message);
+void *AllocClearedFromWorldHeap(SWALLOC *message);
 void LoadStepFromBrx(DIMITRI *p, void *pbis);
 void PostStepguardLoad(DIMITRI *p);
 void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, DIMITRI *p);
@@ -114,12 +113,12 @@ float RandomFloatInRange(float gMin, float gMax);
 float NormalizeAngle(float rad);
 
 // Fills an allocation request and allocates from the world heap.
-static inline void *AllocWithRequest(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+static inline void *AllocWithRequest(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); }
 // 0x1553F0: DIMITRI vtable slot 14 (LoadFromBrx): allocates room for the route records, STEPGUARD load, then sets
 // +0x1018 to INT_MAX.
 extern "C" void LoadDimitriFromBrx(DIMITRI *dimitri, void *pbis)
 {
-    MSG msg;
+    SWALLOC msg;
     dimitri->routes = (DIMITRIROUTE *)AllocWithRequest(&msg, 0x480, 0x10);
     LoadStepFromBrx(dimitri, pbis);
     dimitri->hitPointsAtLastEscape = 0x7FFFFFFF;

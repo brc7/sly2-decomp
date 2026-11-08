@@ -273,7 +273,6 @@ extern "C" void ResetStepguardFromScript(STEPGUARD *guard)
 
 // 0x2061D8 PostStepguardLoad
 /* an unaligned long constant (the original loads it with ldl/ldr) */
-struct LONGU { long l; } __attribute__((packed));
 extern int D_002C3CF8[3];
 extern const LONGU D_002A8608;
 extern qword D_002A2DE0;
@@ -2280,7 +2279,7 @@ void CloneAnimBinding(ANIMBINDING *binding)
 
 // 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 { extern "C" {
-struct ASEGA; struct INSTANCE; struct LEAP; struct ANIMBINDINGIsland; union FLOATWORD; struct STEPGUARDIsland;
+struct ASEGA; struct INSTANCE; struct LEAP; struct ANIMBINDINGIsland; struct STEPGUARDIsland;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct ASEGA { char pad[0x1C]; float localTime; };
@@ -2288,7 +2287,6 @@ struct INSTANCE { char pad[0x10]; qword velocity; /* DIRANIM */ char pad2[0x30 -
 struct LEAP { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct ASEGA *asega; };
 /* island: register-pinned asm body */
 struct ANIMBINDINGIsland { int kind; int resource; void *instance; };
-union FLOATWORD { float value; int bits; };
 /* island: register-pinned asm body; STEP +0x190/+0x1E0 as qwords (step.h has VECTOR/qword padding names) */
 struct STEPGUARDIsland : PO { char pad[0x190 - 0x180]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
 extern qword D_002A2DD0;

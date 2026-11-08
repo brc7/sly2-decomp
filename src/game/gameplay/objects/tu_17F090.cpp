@@ -190,7 +190,6 @@ int IsHackAnimDone(HACK *hack) { if (hack->pasega) return IsAsegaRetracted(hack-
 } } // namespace M_func_0017F550
 
 namespace M_func_0017F5B0 { extern "C" {
-struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5630;
 void PostSwCallback(SW *g, void *p, long k, int n);
 // Once: set the dying flag and post the Kill callback (D_002A5630: a pointer to HACK's slot 82) with n. (inferred)
@@ -222,7 +221,6 @@ void KillHack(HACK *hack, LO *ploKiller) {
 } } // namespace M_func_0017F5F8
 
 namespace M_func_0017F6B0 { extern "C" {
-struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5638;
 void ClearSwCallbacks(SW *g, int a, void *p, long k, int n);
 // Health = max; cancel a pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
@@ -1238,11 +1236,10 @@ void HACKWALL::Init()
 }
 
 namespace M_func_00181840 { extern "C" {
-struct MSG { int cb; int nKind; };
 /* A SOPART read with its flag word as one 64-bit value (matching-only: so.h's SOPART has a pointer there). */
 struct R { XF *pxf; SO *pso; int unknown8; int n; unsigned long fl; char pad[0x98]; };
 void InitDl__FP2DLi(DL *pdl, int ib);
-void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
 void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
 void AddSoParts(SO *pso);
 // vtable slot 15: resolve the segments' shapes (dropping missing ones), allocate their pieces, PostHackLoad, then one
@@ -1262,10 +1259,10 @@ void PostHackwallLoad(HACKWALL *wall)
         }
         InitDl__FP2DLi(&pseg->dlPiece, 0x60);
         for (j = 0; j < pseg->cpiece; j++) {
-            struct MSG msg;
+            struct SWALLOC msg;
             HACKWALLPIECE *ppiece;
             msg.cb = 0x70;
-            msg.nKind = 0x10;
+            msg.cbAlign = 0x10;
             ppiece = (HACKWALLPIECE *)AllocClearedFromWorldHeap(&msg);
             ppiece->pseg = pseg;
             ppiece->state = -1;

@@ -58,7 +58,6 @@ typedef char size_2[sizeof(I)==8?1:-1];
 
 // Allocation request: byte count and alignment.
 struct AREQV { int cb; int align; AREQV(int c, int a) { cb = c; align = a; } };
-struct MSG { int cb; int nKind; };
 struct SW;
 typedef void (TRIG::*PMF)();
 extern "C" {
@@ -105,12 +104,12 @@ int IsBreakableDone(TRIG *p);
 E *GetCurrentBreakableStage(TRIG *p);
 }
 /* Callers' views (asm labels): the allocator with a plain request, and calls that pass an extra (unused) argument. */
-void *func_001AE318M(MSG *pmsg) __asm__("AllocFromStack");
+void *func_001AE318M(SWALLOC *pmsg) __asm__("AllocFromStack");
 struct XPC;
 int func_001BBE48X(TRIG *p, XPC *e) __asm__("IsBreakableDone");
 E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 // Allocates from the world heap (request size and kind).
-static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
+static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return func_001AE318M(pmsg); }
 
 // CID 98 vtable slot 7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
 extern "C" void InitBreakable(TRIG *breakable) {
@@ -470,7 +469,7 @@ extern "C" int AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
 // Append stage id with action buffer (max 32). (inferred)
 extern "C" void AddBreakableStage(TRIG *breakable, int id)
 {
-    MSG msg;
+    SWALLOC msg;
     if (breakable->stageCount < 0x20) {
         E *pe;
         breakable->stage = breakable->stageCount++;
@@ -485,7 +484,7 @@ extern "C" void AddBreakableStage(TRIG *breakable, int id)
 extern "C" void InitBreakablePreStage(TRIG *breakable)
 {
     E *pe;
-    MSG msg;
+    SWALLOC msg;
     breakable->stage = -1;
     pe = &breakable->stages[-1];
     pe->id = -1;
@@ -586,7 +585,7 @@ extern "C" void AddBreakableHideParts(TRIG *breakable, int v) {
 // Splice builder, action 12: applies task states (ApplyTaskStates) when the stage runs.
 extern "C" void AddBreakableTaskStates(TRIG *breakable, int a, int b)
 {
-    MSG msg;
+    SWALLOC msg;
     I *pi = AddBreakableAction(breakable, 0xC);
     pi->b = (int)PvAllocMsg(&msg, 8, 0x10);
     ((int *)pi->b)[0] = a;

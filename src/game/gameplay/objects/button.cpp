@@ -118,7 +118,6 @@ struct PUSHER { char pad[0x2C4]; int unknown2C4; char pad2C8[0x2DC - 0x2C8]; int
 /* EnsureSwCallback takes an 8-byte struct by value in one register: pass it as a long read through a packed view
    (pilot blocker B4, caller side; see barrier.cpp). Here the global itself is declared with the packed type: a cast
    of its address (barrier's spelling) schedules the high part of the address after the store before the call. */
-struct LONGU { long l; } __attribute__((packed));
 
 extern JT *D_002E1E40;            /* the hero (Sly) */
 extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one long */

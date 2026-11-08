@@ -98,11 +98,6 @@ void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("SetClockRate");
 
 
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 
@@ -412,19 +407,9 @@ struct CELL
       int ileafPos;
 };
 
-struct LANGSTR
-{
-      int id;
-      char *pchz;
-};
 
 /* SVN: sly2/sw.h */
 
-struct SVPATH
-{
-      int cid;
-      short *aid;
-};
 
 /* LOUPD: sly2/sw.h */
 
@@ -496,7 +481,6 @@ void RELAY::Init() { using namespace M_InitRelay; M_InitRelay::S *p = (M_InitRel
 // 0x1DFB10 LoadRelayFromBrx
 namespace M_LoadRelayFromBrx {
 struct MSG; struct ENT; struct OBJ;
-struct MSG { int cb; int nKind; };
 struct ENT { char a[0x50]; };
 struct OBJ : LO {   /* RELAY's own fields */
     int c;
@@ -505,8 +489,8 @@ struct OBJ : LO {   /* RELAY's own fields */
     char pad5c[0x7C - 0x5C];
     int f7C;
 };
-extern "C" { void *AllocFromStack(MSG *); }
-extern "C" { void *AllocFromWorldHeap(MSG *); }
+extern "C" { void *AllocFromStack(SWALLOC *); }
+extern "C" { void *AllocFromWorldHeap(SWALLOC *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
@@ -517,10 +501,10 @@ extern "C" { void LoadLoFromBrx(OBJ *, void *); }
 extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
 {
     STACKSCOPE frame;
-    MSG msg;
-    MSG *pmsg = &msg;
+    SWALLOC msg;
+    SWALLOC *pmsg = &msg;
     pmsg->cb = 0xA000;
-    pmsg->nKind = 0x10;
+    pmsg->cbAlign = 0x10;
     relay->ae = (ENT *)AllocFromStack(pmsg);
     AddRelayBlockBegin(relay, -1);
     relay->f7C = 1;
@@ -529,7 +513,7 @@ extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
         ENT *aeOld = relay->ae;
         relay->cMax = StdMaxInt(relay->c, relay->cMax) + 1;
         pmsg->cb = relay->cMax * sizeof(ENT);
-        pmsg->nKind = 0x10;
+        pmsg->cbAlign = 0x10;
         relay->ae = (ENT *)AllocFromWorldHeap(pmsg);
         CopyAb__FPvT0Ui(relay->ae, aeOld, relay->c * sizeof(ENT));
     }
@@ -539,16 +523,15 @@ extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
 // 0x1DFBF8 CloneRelay
 namespace M_CloneRelay { extern "C" {
 struct MSG; struct S;
-struct MSG { int cb; int nKind; };
 struct S : LO { char pad50[0x54 - 0x50]; void *pv; int c; char p1[0x80-0x5C]; int f80; };   /* RELAY's own fields */
 void CloneLo(struct S *p);
-void *AllocCopyFromWorldHeap(struct MSG *pmsg, void *pv);
+void *AllocCopyFromWorldHeap(struct SWALLOC *pmsg, void *pv);
 // Resizes a world-heap block (request size and kind, then reallocate).
-static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
+static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
 void CloneRelay(struct S *relay) {
-    struct MSG msg;
+    struct SWALLOC msg;
     CloneLo(relay);
     if (relay->f80) relay->pv = PvReallocMsg(&msg, relay->c * 0x50, 0x10, relay->pv);
 }

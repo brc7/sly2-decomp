@@ -36,7 +36,6 @@ struct BARRIERV : SO
    into a2; g++ 2.95 copies a by-value class argument through a stack temporary (pilot blocker B4), so the C++ call
    passes the 8 bytes as a long read through a packed (alignment 1) view, which gives the same ldl/ldr. */
 struct CALLBACKK { int a; int b; };
-struct LONGU { long l; } __attribute__((packed));
 
 extern CALLBACKK D_002A4790;
 
