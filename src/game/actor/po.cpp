@@ -27,7 +27,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The world (SW) as this TU reads it. */
 
-struct MSG { int cb; int nKind; };
 struct SL;
 extern "C" {
 extern int D_002E1E00;
@@ -57,8 +56,8 @@ void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 float atan2f(float y, float x);
 float NormalizeAngle__Ff(float g);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pv, float *pa, float *pb);
-EMITB *AllocCopyFromWorldHeap(MSG *, EMITB *);
-void *AllocClearedFromWorldHeap(MSG *pmsg);
+EMITB *AllocCopyFromWorldHeap(SWALLOC *, EMITB *);
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(CRefData *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *p, int a, int b, int c);
@@ -427,9 +426,9 @@ extern "C" void AddSwPoFollower(SW *world, EMITTER *follower)
         world->apemitTracked[world->cpemitTracked++] = (EMITTER *)follower;
         pv = PemitbEnsureEmitter(follower, 1);
         if (!pv->aploRef) {
-            MSG msg;
+            SWALLOC msg;
             msg.cb = 0x14;
-            msg.nKind = 0x10;
+            msg.cbAlign = 0x10;
             pv->aploRef = (LO **)AllocClearedFromWorldHeap(&msg);   /* its own reference block */
         }
     }

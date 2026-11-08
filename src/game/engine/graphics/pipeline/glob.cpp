@@ -109,11 +109,6 @@ struct BND
 
 
 
-struct SWALLOC
-{
-    int cb;
-    int cbAlign;
-};
 
 // GLOBSET constructor, at the start of the glob TU.
 /* GLOBSET's constructor (sly2/so.h; it was kept as a C function under the symbol __4CRef before). */
@@ -312,9 +307,6 @@ struct P {
     struct GROUP *groups;
 };
 struct STREAM;
-struct REQUEST {
-    int bytes, alignment;
-};
 typedef char MetaSize[sizeof(struct META)==8?1:-1];
 typedef char RecordSize[sizeof(struct RECORD)==0x20?1:-1];
 typedef char EntrySize[sizeof(struct E)==0x28?1:-1];
@@ -324,18 +316,18 @@ struct VECTOR;
 void ReadVector__18CBinaryInputStreamP6VECTOR(struct STREAM*,struct VECTOR*) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
 float F32Read__18CBinaryInputStream(struct STREAM*) __asm__("F32Read__18CBinaryInputStream");
 unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
-void*AllocClearedFromWorldHeap(struct REQUEST*);
+void*AllocClearedFromWorldHeap(struct SWALLOC*);
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
 void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
 {
     int count = S16Read__18CBinaryInputStream(stream);
     if (count) {
-        struct REQUEST request;
+        struct SWALLOC request;
         struct GROUP *groups;
         int i;
-        request.bytes = count * sizeof(struct GROUP);
-        request.alignment = 0x10;
+        request.cb = count * sizeof(struct GROUP);
+        request.cbAlign = 0x10;
         groups = (struct GROUP *)AllocClearedFromWorldHeap(&request);
         for (i = 0; i < count; i++) {
             struct GROUP *group = &groups[i];
@@ -4332,13 +4324,10 @@ struct LINK {
     SO *object;
     int next;
 };
-struct REQUEST {
-    int bytes, alignment;
-};
 typedef char D_Size[sizeof(D)==20?1:-1];
 typedef char E_Size[sizeof(E)==40?1:-1];
 typedef char LINK_Size[sizeof(LINK)==20?1:-1];
-typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
+typedef char REQUEST_Size[sizeof(SWALLOC)==8?1:-1];
 typedef char FLAGS_Size[sizeof(FLAGS)==4?1:-1];
 typedef char D_channel_Offset[FIELD_OFFSET(D,channel)==0?1:-1];
 typedef char D_segments_Offset[FIELD_OFFSET(D,segments)==1?1:-1];
@@ -4372,7 +4361,7 @@ typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
 extern "C"{
 extern int D_003DA790;
 extern LINK D_003DA798[];
-void*AllocCopyFromWorldHeap(REQUEST*,void*);
+void*AllocCopyFromWorldHeap(SWALLOC*,void*);
 SO*CloneSaa(SO*);
 void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
@@ -4383,9 +4372,9 @@ void RelocateShaderUploadRecords(int,int,int,uint,uint);
 // Allocate bytes, 16-byte aligned, from the world heap and copy source into them.
 static inline void *Copy(int bytes, void *source)
 {
-    REQUEST request;
-    request.bytes = bytes;
-    request.alignment = 16;
+    SWALLOC request;
+    request.cb = bytes;
+    request.cbAlign = 16;
     return AllocCopyFromWorldHeap(&request, source);
 }
 // Call the object's readTransform virtual (vtable slot 52) to load a transform from the stream.

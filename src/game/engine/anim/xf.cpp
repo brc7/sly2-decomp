@@ -70,19 +70,9 @@ struct CELL
       int ileafPos;
 };
 
-struct LANGSTR
-{
-      int id;
-      char *pchz;
-};
 
 /* SVN: sly2/sw.h */
 
-struct SVPATH
-{
-      int cid;
-      short *aid;
-};
 
 /* LOUPD: sly2/sw.h */
 

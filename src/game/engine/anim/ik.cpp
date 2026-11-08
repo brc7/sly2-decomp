@@ -27,14 +27,13 @@ struct B { char pad[0x40]; MATRIX4V m; };
 struct SOIK { char pad[0xC]; VTE *vt; char pad10[0x40]; int entryCount; XF *entries; char pad58[0x148 - 0x58]; unsigned long flags; };
 typedef char assert_SOIK_grf[(unsigned int)&((SOIK *)0)->flags == 0x148 ? 1 : -1];
 
-struct MSG { int cb; int nKind; };
 extern "C" {
 void CloneAct(ACT *pact, ACT *pactSrc, ALO *palo, XF *pxf);
 void AttachActBase(ACT *pact);
 int U8Read__18CBinaryInputStream(void *pbis);
 int S16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
-void *AllocClearedFromWorldHeap(MSG *pmsg);
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 void InitIkRecord(IKREC *q);
 void NewIkAct(SOIK *p, void *pv, int n, IKREC *q);
 float AngleBetweenVectors(qwordV a, qwordV b, qwordV *pv);
@@ -76,10 +75,10 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
     if (!count) return;
     so->flags |= 1UL << 36;
     for (i = 0; i < count; i++) {
-        MSG msg;
+        SWALLOC msg;
         IKREC *ikRecord;
         msg.cb = 0xE0;
-        msg.nKind = 0x10;
+        msg.cbAlign = 0x10;
         ikRecord = (IKREC *)AllocClearedFromWorldHeap(&msg);
         ikRecord->pxfUpper = (XF *)ReadObjectReference(so, stream);
         ikRecord->pxfLower = (XF *)ReadObjectReference(so, stream);

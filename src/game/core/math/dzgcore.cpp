@@ -16,14 +16,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    g_pdliFirst) so the inline DLI helpers below stay as the per-function file wrote them. */
 struct DLI { DL *pdl; void **ppv; int ibDle; DLI *pdliNext; int nUnused; };
 
-typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct FRAME { int an[4]; } FRAME;
 extern DLI *g_pdliFirst __asm__("D_002DD2FC");
 extern "C" {
 extern const float D_002A4120;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A4124;   /* defined below where the ELF has it (.rodata order) */
-void *AllocClearedFromStack(MSG *pmsg);
-void *AllocFromStack(MSG *pmsg);
+void *AllocClearedFromStack(SWALLOC *pmsg);
+void *AllocFromStack(SWALLOC *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");     /* memset */
 void STACKSCOPE_ctor(FRAME *pframe);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pframe, int n) __asm__("_$_10STACKSCOPE");
@@ -44,13 +43,13 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz);
 // current allocator and initialises the four constraint lists. Same body as Sly 1's InitDzg.
 extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
 {
-    MSG msg;
+    SWALLOC msg;
 
     dzg->maxRows = maxConstraints;
     dzg->numActiveRows = 0;
     dzg->numRows = 0;
     msg.cb = maxConstraints * 0x28;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     dzg->rows = (DZ *)AllocClearedFromStack(&msg);
     func_002333B4(&dzg->activeRows, 0, sizeof(DL));
     func_002333B4(&dzg->rowsAtLowerBound, 0, sizeof(DL));
@@ -61,16 +60,16 @@ extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
     InitDl(&dzg->rowsAtUpperBound, 0x20);
     InitDl(&dzg->freeRows, 0x20);
     msg.cb = maxConstraints * maxConstraints * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     dzg->agMat = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * maxConstraints * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     dzg->agLu = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     dzg->rightHandSide = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     dzg->agX = (float *)AllocFromStack(&msg);
     return dzg;
 }
@@ -277,7 +276,7 @@ extern "C" void SolveDzgFilled(DZG *dzg)
 }
 
 // Fill the message and allocate cb bytes (kind nKind) from the frame stack.
-static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
+static inline void *AllocStackBlock(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocFromStack(pmsg); }
 
 // Solves `count` inequality constraints with a temporary DZG on the stack: row i of the count x count matrix A
 // and rhs[i] define constraint i, each bounded above by maxValue; writes the solved values to outX.
@@ -285,7 +284,7 @@ extern "C" void SolveInequalities(int count, float *matrix, float *rhs, float *o
 {
     FRAME frame;
     DZG solver;
-    MSG msg;
+    SWALLOC msg;
     int i;
 
     STACKSCOPE_ctor(&frame);

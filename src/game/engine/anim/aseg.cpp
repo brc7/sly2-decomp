@@ -31,7 +31,6 @@ struct AREQT : AREQV { AREQT(int c, int a) { cb = c; cbAlign = a; } };
 /* The VU code's form of a matrix (qword rows); the XF's local matrix is read through it. */
 struct M4 { qword a[4]; };
 
-struct LONGU { long l; } __attribute__((packed));
 
 extern "C" {
 extern const LONGU D_002A46C8;

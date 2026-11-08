@@ -944,11 +944,10 @@ typedef int qword __attribute__((mode(TI)));
 struct X { qword pos; qword normal; qword unknown20; };
 struct E { int a, b, c; };
 struct LO { char pad[0x70]; int rootNodeIndex; struct E *bspNodes; };
-struct AL { int cb; int cbAlign; };
 extern float D_002BD8D4;
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(struct AL *pal);
+void *AllocFromStack(struct SWALLOC *pal);
 int IntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
 void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
 qword LimitVectorLength(qword v, float g);
@@ -969,7 +968,7 @@ static inline int Dot(qword *pa, qword *pb)
 // Allocate cb bytes with alignment cbAlign from the world heap.
 static inline void *PvAlloc(int cb, int cbAlign)
 {
-    struct AL al;
+    struct SWALLOC al;
     al.cb = cb;
     al.cbAlign = cbAlign;
     return AllocFromStack(&al);

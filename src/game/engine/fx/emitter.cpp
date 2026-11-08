@@ -261,7 +261,6 @@ namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
 struct K { short a; short b; int c; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct ALLOCREQ { int cb; int kind; };
-struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5140;
 extern float D_002A5148;
 void PostSwCallback(void *pg, EMITTER *p, long k, int n);
@@ -1691,10 +1690,9 @@ void EXPL::ExplodeExplso(EXPLSO *pexplso)   /* key function: EXPL's vtable comes
 }
 
 namespace M_LoadExplgFromBrx { extern "C" {
-typedef struct MSG { int cb; int nKind; } MSG;
-void *AllocClearedFromWorldHeap(MSG *pmsg);
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 // Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+static inline void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct C { int a[4]; };
 struct DA { int n0; int cMax; int c; LO **a; };
 struct S : XFM { int numChildren; LO **children; };   /* EXPLG (its fields past XFM) */
@@ -1710,7 +1708,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
 {
     struct C ctx;
     struct DA da;
-    MSG msg;
+    SWALLOC msg;
     int i;
     LoadXfmFromBrx(p, q);
     STACKSCOPE_ctor(&ctx);
@@ -1739,17 +1737,16 @@ int EXPLG::GetChildren(LO ***childrenOut)
 }
 
 namespace M_CloneExplg { extern "C" {
-typedef struct MSG { int cb; int nKind; } MSG;
-void *AllocCopyFromWorldHeap(MSG *pmsg, void *pv);
+void *AllocCopyFromWorldHeap(SWALLOC *pmsg, void *pv);
 // Fill the heap message and reallocate pv as a cb-byte copy of kind nKind on the world heap.
-static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
+static inline void *PvReallocMsg(SWALLOC *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 struct S { int pad[4]; void *psoParent; char pad2[0xE0 - 0x14]; int numChildren; void **children; };   /* EXPLG */
 void CloneXfm(struct S *p, void *pv);
 void *CloneLoWithParent__FP2LOP2SO(void *pv, void *p10);
 // EXPLG clone: XFM clone, then a private copy of the child array with each child cloned under the same parent.
 void CloneExplg(struct S *p, void *pv)
 {
-    MSG msg;
+    SWALLOC msg;
     int i;
     CloneXfm(p, pv);
     p->children = (__typeof__(p->children))PvReallocMsg(&msg, p->children, p->numChildren * 4, 0x10);

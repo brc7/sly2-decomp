@@ -254,12 +254,11 @@ struct STATE {   /* the group's SO::physicsTree (an SOTREE) as this function rea
     char pad20[0x20]; qword origin; float radius; DL shapes; char pad40[0x20]; void *subject; NODE *nodes; char pad68[8]; unsigned long flags; };
 struct OBJ { char padEC[0xEC]; STATE *state; };
 struct NODE { int pad; NODE *next; char pad8[4]; OBJ *object; };
-struct REQ { int cb, align; };
 struct FRAME { int a[4]; };
 extern "C" {
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(const REQ *);
+void *AllocFromStack(const SWALLOC *);
 int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
 int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -267,9 +266,9 @@ int IsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(RIPG *);
 }
 /* the scratch request and the rip iterator share one stack slot */
-union PHASE { REQ request; DLI rip; };
+union PHASE { SWALLOC request; DLI rip; };
 // Set an allocation request's alignment.
-static inline void SetAlign(REQ *r, int a) { r->align = a; }
+static inline void SetAlign(SWALLOC *r, int a) { r->cbAlign = a; }
 // The state's origin vector.
 static inline const qword &Origin(STATE *s) { return s->origin; }
 // Same idiom as sly2/util.h MinInt; kept local because the shared helper changes BounceRipgRips (139/199 instructions off).
@@ -2537,10 +2536,6 @@ struct MIX_STATE {
 };
 struct S { char pad[0x70]; qword pos; char pad80[0x10]; qword vel; };
 extern qword D_002A2DD0,D_002A2DA0,D_002A2DC0;
-union FLOATWORD {
-    float value;
-    int bits;
-};
 void ProjectRipTransform(struct S*);
 float RandomFloatInRange__Fff(float,float);
 int AreFloatsNear__Ffff(float,float,float);

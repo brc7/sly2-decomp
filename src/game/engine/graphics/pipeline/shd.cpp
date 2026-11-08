@@ -439,23 +439,22 @@ void LoadTexFromBrx(void *pbis, TEX *ptex)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadShdFromBrx { extern "C" {
-struct MSG { int cb; int nKind; };
 void Read__18CBinaryInputStreamiPv(void *, int, void *);
 int S16Read__18CBinaryInputStream(void *);
-void *AllocClearedFromWorldHeap(struct MSG *);
+void *AllocClearedFromWorldHeap(struct SWALLOC *);
 void LoadTexFromBrx(void *, TEX *);
 // Set the entry count to n and allocate n zeroed 16-byte records from the world heap.
-static inline void InitEnt(SHDP *pe, int n, struct MSG *pmsg)
+static inline void InitEnt(SHDP *pe, int n, struct SWALLOC *pmsg)
 {
     pe->cqw = n;
     pmsg->cb = n * 16;
-    pmsg->nKind = 0x10;
+    pmsg->cbAlign = 0x10;
     pe->aqw = (QW *)AllocClearedFromWorldHeap(pmsg);
 }
 // Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data.
 void LoadShdFromBrx(void *pbis, SHD *p)
 {
-    struct MSG msg;
+    struct SWALLOC msg;
     int i, j;
     SHDP *ae, *pe;
     Read__18CBinaryInputStreamiPv(pbis, 0x18, p);
@@ -466,7 +465,7 @@ void LoadShdFromBrx(void *pbis, SHD *p)
     if (i >= 0)
         p->psaa = D_003DD004[i];
     msg.cb = p->ctex * 0x14;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     p->atex = (__typeof__(p->atex))AllocClearedFromWorldHeap(&msg);
     for (j = 0; j < p->ctex; j++) {
         TEX *ptex = &p->atex[j];
@@ -493,7 +492,7 @@ void LoadShdFromBrx(void *pbis, SHD *p)
         break;
     }
     msg.cb = p->cshdp * 8;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     ae = (__typeof__(ae))AllocClearedFromWorldHeap(&msg);
     p->ashdp = ae;
     switch (p->shdk) {
@@ -545,14 +544,13 @@ void LoadShdFromBrx(void *pbis, SHD *p)
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
 namespace M_BuildShaderTex0List { extern "C" {
-struct MSG { int cb; int nKind; };
-void *AllocClearedFromWorldHeap(struct MSG *);
+void *AllocClearedFromWorldHeap(struct SWALLOC *);
 // Builds the compact shader record blips use from a SHD: its OID, flags and colour, and one TEX0 register word per
 // frame of its first texture (Tex0FromTexIframeCtk).
 void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
 {
     TEX *ptex;
-    struct MSG msg;
+    struct SWALLOC msg;
     int i;
     pshdblip->oid = pshd->oid;
     pshdblip->unknown4 = pshd->unknown06;
@@ -564,7 +562,7 @@ void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
         pshdblip->cframe = c;
         msg.cb = c * 8;
     }
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     pshdblip->atex0 = (ulong *)AllocClearedFromWorldHeap(&msg);
     for (i = 0; i < pshdblip->cframe; i++)
     {
@@ -576,13 +574,12 @@ void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadShadersFromBrx { extern "C" {
-struct MSG { int cb; int nKind; };
 extern void *D_003DCFA8[16];   /* the permanent uploads (the file-scope definition is a char block) */
 void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *);
 void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *);
 int U16Read__18CBinaryInputStream(void *);
-void *AllocClearedFromStack(struct MSG *);
-void *AllocClearedFromWorldHeap(struct MSG *);
+void *AllocClearedFromStack(struct SWALLOC *);
+void *AllocClearedFromWorldHeap(struct SWALLOC *);
 SAA *LoadSaaFromBrx(int, void *);
 void LoadShdFromBrx(void *, SHD *);
 void LoadSwSharedDataFromBrx(void *, void *);
@@ -594,20 +591,20 @@ void AppendSlEntry(void *, void *);
 // (0x1ECE58); build shader packets.
 void LoadShadersFromBrx(void *p, int k, void *pbis)
 {
-    struct MSG msg;
+    struct SWALLOC msg;
     int i, j;
     void *pv;
     LoadColorTablesFromBrx__FP18CBinaryInputStream(pbis);
     LoadBitmapsFromBrx__FP18CBinaryInputStream(pbis);
     D_003DD000 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DD000 * 4;
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     D_003DD004 = (SAA **)AllocClearedFromStack(&msg);
     for (i = 0; i < D_003DD000; i++)
         D_003DD004[i] = LoadSaaFromBrx(0, pbis);
     D_003DCFE8 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DCFE8 * sizeof(SHD);
-    msg.nKind = 0x10;
+    msg.cbAlign = 0x10;
     D_003DCFEC = (SHD *)AllocClearedFromStack(&msg);
     for (j = 0; j < D_003DCFE8; j++)
         LoadShdFromBrx(pbis, &D_003DCFEC[j]);
@@ -621,7 +618,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
         if (pshd->grfshd & 0x40) {
             SHDBLIP *pshdblip;
             msg.cb = 0x1C;
-            msg.nKind = 0x10;
+            msg.cbAlign = 0x10;
             pshdblip = (SHDBLIP *)AllocClearedFromWorldHeap(&msg);
             BuildShaderTex0List(pshd, pshdblip);
             AppendSlEntry((*(char (*)[])&g_sw.slShd), pshdblip);
