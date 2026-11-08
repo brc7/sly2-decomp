@@ -26,17 +26,6 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct SPACE;
-struct SHAPECHAIN;
-/* A chain of objects along a shape: the shape (+0x48), its simulation mode (+0x4C, SetShapeChainMode) and its own
-   copy of the distances (+0x5C). */
-struct SHAPECHAIN
-{
-    char pad0[0x48];
-    SHAPE *pshape;          /* +0x48 */
-    int mode;               /* +0x4C */
-    char pad50[0x5C - 0x50];
-    float *as;              /* +0x5C */
-};
 extern "C" {
 void InitXfm(XFM *pxfm);
 float GetShapeParamAtDistance(SHAPE *pshape, float s);
@@ -270,14 +259,12 @@ extern "C" void InvalidateShapeCache(SHAPE *shape)
 }
 
 namespace M_func_001E6340 { extern "C" {
-struct Q { char pad[0x4C]; int mode; };
-struct S : XFM { char pad[0x17C - 0xE0]; struct Q *chain; };
-void StepChainRk4(struct Q *q);
-void StepChain(struct Q *q);
-void InheritLoFlag4(struct S *p);
+void StepChainRk4(SHAPECHAIN *q);
+void StepChain(SHAPECHAIN *q);
+void InheritLoFlag4(SHAPE *p);
 // Slot 17: when a chain is attached, steps its simulation (StepChainRk4 for modes 0/3, StepChain for 1/2);
 // otherwise the base LO transform update.
-void UpdateShapeXfWorld(struct S *shape)
+void UpdateShapeXfWorld(SHAPE *shape)
 {
     if (shape->chain) {
         switch (shape->chain->mode) {
@@ -1046,12 +1033,12 @@ float GetShapeParamSearchStep(SHAPE *shape)
 
 namespace M_func_001E7840 { extern "C" {
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
-void *InitChain(void *pv, SHAPE *p);
+SHAPECHAIN *InitChain(void *pv, SHAPE *p);
 void MeasureShape(SHAPE *p);
 void SetLoBusyKind(SHAPE *p, int n);
 // Creates the shape's chain (rope simulation) if missing, measures it and marks the LO busy; f = 1 re-arms an
 // existing chain.
-void *EnsureShapeChain(SHAPE *shape, int rearm)
+SHAPECHAIN *EnsureShapeChain(SHAPE *shape, int rearm)
 {
     if (!shape->chain) {
         shape->chain = InitChain(func_001AE4F8(0x90), shape);
@@ -1088,8 +1075,7 @@ void SetShapeChainEndObject(void *shape, int object)
 } } // namespace M_func_001E7968
 
 namespace M_func_001E79A0 { extern "C" {
-struct O { char pad[0x5C]; float *distances; };
-struct O *EnsureShapeChain(SHAPE *p, int n);
+SHAPECHAIN *EnsureShapeChain(SHAPE *p, int n);
 // Current length of the shape's chain (last sample; 0 without points).
 float GetShapeChainLength(SHAPE *shape)
 {
@@ -1111,22 +1097,20 @@ void AddShapeChainSample(void *shape, float param)
 } } // namespace M_func_001E79F0
 
 namespace M_SetShapeChainMode { extern "C" {
-struct Q { char pad[0x4C]; int mode; };
-struct P { char pad[0x40]; int flags; char pad2[0x17C - 0x44]; struct Q *chain; };
-void *EnsureShapeChain(struct P *p, int f);
-void SetLoBusyKind(struct P *p, int n);
+SHAPECHAIN *EnsureShapeChain(SHAPE *p, int f);
+void SetLoBusyKind(SHAPE *p, int n);
 // Sets the chain's simulation mode; -1 disables updates, any other value ensures the chain and enables them.
-void SetShapeChainMode(struct P *shape, int mode)
+void SetShapeChainMode(SHAPE *shape, int mode)
 {
     if (mode != -1) {
         EnsureShapeChain(shape, 1);
         SetLoBusyKind(shape, 0);
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->flags = v & ~0x20; }
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->flags = v | 0xC; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->unknown40 = v & ~0x20; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->unknown40 = v | 0xC; }
     } else {
         SetLoBusyKind(shape, 0);
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v |= 0x20; else shape->flags = v | 0x20; }
-        { int v = shape->flags; if ((v ^ 1) & 1) *(int *)v &= ~0xC; else shape->flags = v & ~0xC; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0x20; else shape->unknown40 = v | 0x20; }
+        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0xC; else shape->unknown40 = v & ~0xC; }
     }
     if (shape->chain) shape->chain->mode = mode;
 }
@@ -1394,7 +1378,7 @@ typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
 // The chain's simulation mode, or -1 without a chain.
 extern "C" int GetShapeChainMode(SHAPE *shape)
 {
-    SHAPECHAIN *pchain = (SHAPECHAIN *)shape->chain;
+    SHAPECHAIN *pchain = shape->chain;
     int n = -1;
     if (pchain != 0) {
         n = pchain->mode;
@@ -2040,11 +2024,8 @@ namespace M_func_001E95B0 {
  * 1.0f and the %hi of the step constant otherwise). The first sample is tested before the loop and the loop is
  * entered with a goto to its first label, so loop.c sees a jump into the loop and leaves it alone. */
 typedef int qword __attribute__((mode(TI)));
-struct PATH : XFM { char pad[0xE8 - 0xE0]; int count;int padEC;float*dist;QWROW*pos;};
-struct S {char pad[0x48];PATH*path;int mode;int pad50;QWROW*positions;QWROW*previousPositions;float*time;char pad60[0x84-0x60];int capacity;float step;};
 extern "C" { extern float D_002C3678; }
-extern "C" void InvalidateShapeCache(PATH*);
-extern "C" void AddChainSample(S*,float);
+extern "C" void AddChainSample(SHAPECHAIN*,float);
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Wrap a qword as a VU_VECTOR.
@@ -2060,43 +2041,43 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 static inline void Lerp(QWROW*pd,const QWROW*p0,const QWROW*p1,float f,float cf){pd->q=VecCombo(VU_FLOAT(cf),VU_VECTOR(p0->q),VU_FLOAT(f),VU_VECTOR(p1->q));}
 // Appends a time sample to a chain's sampled path (truncating when time goes back, interpolating inserted samples
 // every `step`); a full chain (capacity reached) drops to mode 0.
-void AddChainSample(S*chain,float time){
- int count=chain->path->count;
+void AddChainSample(SHAPECHAIN*chain,float time){
+ int count=chain->pshape->numControlVertices;
  int n;
- if(time<chain->time[count-1]){
+ if(time<chain->distances[count-1]){
   int i=count;
-  for(;;){--i;if(i<0)break;if(chain->time[i]<time)break;}
+  for(;;){--i;if(i<0)break;if(chain->distances[i]<time)break;}
   i++;
-  chain->path->count=i+1;
-  chain->time[i]=time;
+  chain->pshape->numControlVertices=i+1;
+  chain->distances[i]=time;
   goto refresh;
  }
  n=count;
- if(time<chain->time[count-2]+D_002C3678*chain->step){chain->time[count-1]=time;goto finished;}
+ if(time<chain->distances[count-2]+D_002C3678*chain->step){chain->distances[count-1]=time;goto finished;}
  goto top;
  for(;;){
  top:
   if(n<chain->capacity){
    n++;
    chain->positions[n-1]=chain->positions[n-2];
-   chain->previousPositions[n-1]=chain->previousPositions[n-2];
-   chain->time[n-1]=time;
-   chain->path->pos[n-1]=chain->path->pos[n-2];
-   chain->path->dist[n-1]=chain->path->dist[n-2];
-   chain->time[n-2]=chain->time[n-3]+chain->step;
-   float f=(chain->time[n-2]-chain->time[n-3])/(chain->time[n-1]-chain->time[n-3]);
+   chain->velocities[n-1]=chain->velocities[n-2];
+   chain->distances[n-1]=time;
+   chain->pshape->vertexPosq[n-1]=chain->pshape->vertexPosq[n-2];
+   chain->pshape->vertexArcLengths[n-1]=chain->pshape->vertexArcLengths[n-2];
+   chain->distances[n-2]=chain->distances[n-3]+chain->step;
+   float f=(chain->distances[n-2]-chain->distances[n-3])/(chain->distances[n-1]-chain->distances[n-3]);
    float cf=1-f;
    Lerp(&chain->positions[n-2],&chain->positions[n-3],&chain->positions[n-1],f,cf);
-   Lerp(&chain->previousPositions[n-2],&chain->previousPositions[n-3],&chain->previousPositions[n-1],f,cf);
-   Lerp(&chain->path->pos[n-2],&chain->path->pos[n-3],&chain->path->pos[n-1],f,cf);
-   chain->path->dist[n-2]=cf*chain->path->dist[n-3]+f*chain->path->dist[n-1];
-   if(time<chain->time[n-2]+D_002C3678*chain->step){chain->time[n-1]=time;break;}
+   Lerp(&chain->velocities[n-2],&chain->velocities[n-3],&chain->velocities[n-1],f,cf);
+   Lerp(&chain->pshape->vertexPosq[n-2],&chain->pshape->vertexPosq[n-3],&chain->pshape->vertexPosq[n-1],f,cf);
+   chain->pshape->vertexArcLengths[n-2]=cf*chain->pshape->vertexArcLengths[n-3]+f*chain->pshape->vertexArcLengths[n-1];
+   if(time<chain->distances[n-2]+D_002C3678*chain->step){chain->distances[n-1]=time;break;}
   }else{chain->mode=0;break;}
  }
 finished:
- chain->path->count=n;
+ chain->pshape->numControlVertices=n;
 refresh:
- InvalidateShapeCache(chain->path);
+ InvalidateShapeCache(chain->pshape);
 }
 } // namespace M_func_001E95B0
 
@@ -2104,7 +2085,7 @@ refresh:
 extern "C" void SyncChainDistances(SHAPECHAIN *chain)
 {
     SHAPE *pshape = chain->pshape;
-    CopyAb(chain->as, pshape->vertexArcLengths, pshape->numControlVertices * 4);
+    CopyAb(chain->distances, pshape->vertexArcLengths, pshape->numControlVertices * 4);
 }
 
 namespace M_func_001E9858 {

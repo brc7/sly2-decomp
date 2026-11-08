@@ -137,7 +137,11 @@ struct CONSTR
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct SOPHYS
 {
-      MATRIX3 inertiaLocal;  /* moment of inertia (local frame) */
+      union
+      {
+            MATRIX3 inertiaLocal;  /* moment of inertia (local frame) */
+            MATRIX3Q inertiaq;   /* its rows as quadwords (ScaleSoInertia) */
+      };
       MATRIX3 inverseInertiaLocal; /* inverse moment of inertia (local frame) */
       qword velocity;     /* linear velocity */
       qword angularVelocity; /* angular velocity */
@@ -194,8 +198,9 @@ struct SO : public LO
       float unknown13C;
       int unknownStamp140;
       undefined4 unknown144;
-      char unknown148;
-      char unknown149;
+      char dhpHit;   /* +0x148 the hit damage, stored negated (InitSo: -10; SetSoHitDamage; SetSoZapMode gives it to the parts
+                        of zap mode 2) */
+      char dhpTouch;   /* +0x149 the damage of the touch zap (InitSo: -20; HandleSoTouchZaps, zap kind 0x20000) (inferred) */
       int unknownBits148A : 4;   /* int-typed like the next field (so.cpp's getter sign-extends it) */
                 int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
                 /* zapMode..isNotLandable are uint-typed (bits 24..29 of the 64-bit unit at +0x148): their so.cpp getters
@@ -208,7 +213,8 @@ struct SO : public LO
                 ulong unknownBits148D : 3;
                 ulong hurtRespawnsHero : 1; /* being hurt by this object respawns the hero */
                 ulong isTreeRoot : 1;  /* the object is the root of its physics tree */
-                ulong unknownFlag148A : 1;
+                ulong isRenderable : 1;   /* bit 35: may be in the render tree (SetSoBit35Hierarchy and SetSoGrfBit8 add/remove
+                                             it; InitSo inherits it from the parent, 1 at top level) (inferred) */
                 ulong hasIkLimbs : 1;    /* the object has IK limbs */
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetSoWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSoClassDesc");   /* slot 6 */
@@ -277,6 +283,7 @@ struct SO : public LO
 typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_SO_rootTransform[SLY2_OFFSETOF(SO, rootTransform) == 0x60 ? 1 : -1]; /* position = rootTransform->worldMatrix row 3 (CONFIRMED runtime) */
 typedef char assert_SO_children[SLY2_OFFSETOF(SO, children) == 0x64 ? 1 : -1]; /* child DL at SO+0x64 (CONFIRMED runtime) */
+typedef char assert_SO_dhpHit[SLY2_OFFSETOF(SO, dhpTouch) == 0x149 ? 1 : -1];
 typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
@@ -292,13 +299,21 @@ struct BARREL;
 inline void *func_00259A28(BARREL *pbarrel) { return (char *)pbarrel + sizeof(SO); }
 inline void *func_00259A20(BARREL *pbarrel) { return pbarrel; }   /* its GRABSPOT owner getter (see sly2/xfm.h) */
 
-/* LVO: per-part local vertex data: positions, their deltas and the surface map (inferred).
+/* SURFX: the three vertex indices of a triangle surface of a soft part (so.cpp EnsureSoPartMesh orders them so that
+   their winding agrees with the surface normal; UpdateSoPartMesh rebuilds the planes from them). */
+struct SURFX
+{
+    int aipos[3];
+};
+
+/* LVO: the per-vertex motion of a soft (deforming) part: velocity and acceleration per vertex and the triangle of
+   each surface (so.cpp EnsureSoPartMesh allocates them, UpdateSoPartMesh integrates the vertices with them).
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
 struct LVO
 {
-    VECTOR *mpiposvLocal;   /* local vertex positions */
-    VECTOR *mpiposdvLocal;   /* local vertex deltas */
-    SURFX *mpisurfsurfx;   /* extra data per surface */
+    VECTOR *mpiposvLocal;   /* velocity of each vertex (16 bytes each) */
+    VECTOR *mpiposdvLocal;   /* acceleration of each vertex (16 bytes each) */
+    SURFX *mpisurfsurfx;   /* the triangle of each surface */
 };
 
 /* SOPART: one collision part of an SO: its transform, mesh (local and world copies), BSP and damage settings.
@@ -408,8 +423,16 @@ struct XPLIST
    Layout from src/game/gameplay/player/jt/RebuildJtXmg.cpp (8 copies in Lilly ports) */
 struct XF
 {
-      MATRIX4 localMatrix; /* local matrix */
-      MATRIX4 worldMatrix; /* world matrix (row 3 = world position, XF+0x70) */
+      union
+      {
+            MATRIX4 localMatrix; /* local matrix */
+            MATRIX4Q localMatq;   /* its rows as quadwords (row 3, +0x30: the local position) */
+      };
+      union
+      {
+            MATRIX4 worldMatrix; /* world matrix (row 3 = world position, XF+0x70) */
+            MATRIX4Q worldMatq;   /* its rows as quadwords */
+      };
       float segmentStartTime;
       float segmentEndTime;
       float *timeSource;
@@ -431,7 +454,11 @@ struct XF
       };
       short stiffness;
       short damping;
-      VECTOR4 velocity;
+      union
+      {
+            VECTOR4 velocity;
+            QWROW velq;   /* the same as a quadword */
+      };
       union   /* +0xC0..+0xFF: the segment block, by role and phase */
       {
             struct
