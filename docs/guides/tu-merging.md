@@ -1364,6 +1364,31 @@ CPLCY Set/Revoke already took the entry argument (names/vu-f1-base-3). Not done:
   `qword` changes a signedness (`&u.q` passed as a signed `qword *`) or the code (shape.cpp StepChainRk4/StepChain).
 - The other widget Show/Hide hand calls (hud.cpp, menu.cpp, memcard.cpp, tu_15CD68.cpp: their own WIDGET views).
 
+### Views unified (names/vu-objects-2): the prize and grab-spot classes
+
+The gameplay-objects family, round 2 (from 34a45b35). Every function and data symbol of prize.cpp, grabspot.cpp,
+tu_1D1370.cpp, air.cpp and the 77 includers of sly2/classes.h MATCHes, each object identical to the branch start's
+(`nm -S`, relocations by symbol name); vtables and factories unchanged. Struct/class/union definitions: prize.cpp
+132 -> 71, grabspot.cpp 61 -> 16, tu_1D1370.cpp 112 -> 108, air.cpp 208 -> 207.
+
+| type | header | change | views removed |
+|---|---|---|---|
+| DPRIZE, COIN, MEDICINE, KEY, LOOT (+LOOTE), CLUE, CLUEPROXY, VAULT | sly2/prize.h (new; classes.h includes it at DPRIZE's position, the eight classes kept in their relative order, so prize.cpp emits its vtables as before) | real layouts with offset asserts; slot 76 is `SetState(int)` in all five DPRIZE classes; VAULT is a PO (prize.cpp's VAULTV wrongly derived it from DPRIZE): its dial sub-state, digit targets/animations, dialogs and per-state relays (the D_002C0EC8 oid table's offsets agree) | all prize.cpp functions but the save-key ones: the file-scope DPRIZEV/CLUEV/LOOTV/VAULTV/CLUEPROXYV and the per-function S/O/P/KEYV/LOB views, including the tuned ProjectDprizeTransform, CheckDprizeBounce, EmitDprizeGlint, UpdateVaultInput, SetVaultDialState |
+| GRABSPOT, CID12, CID34, CID38, BARREL, CID35, CID36, CID27 | sly2/classes.h (in place) | GRABSPOT's data words named (xf.cpp's GRABSPOTDATA: tunnel, busy radius, priority, player mask); GetOwner returns `LO *`, GetClosestParam/GetGrabPos have their override signatures; each class's grab-list link is a `DLE dleGrab` (sw.cpp's InitDl offsets 0x1B4/0x104/0x174/0x154 confirm it; it is what Clone preserves); CID35's RSMG and task-pair tables, CID36's linked objects, BARREL's carry state and carrier | all grabspot.cpp functions' class views and the file-scope GRABPOLE/GRABSPOT35/GRABSPOT36/BARRELV; air.cpp's Lilly CID88 copy |
+| ROBOTTANK | sly2/tank.h | — | the weapon-list views of FindReadyRobottankWeapon, FindRobottankWeapon, CloneRobottank, AddRobottankWeapon |
+
+Spellings that matched: real virtual calls where the views called through the vtable by hand (DPRIZE SetState,
+SO::GetXfFromIndex for ProjectDprizeTransform's slot 51, GRABSPOT GetOwner/GetClosestParam/GetGrabPos, BARREL
+SetVelocity/HandleSpliceEvent/SetParent, CID35 SendMessage); float words a VU asm broadcasts as bits read as
+`*(int *)&prize->bounceRadius`; `VuSub<qword>` where a header qword (unsigned) meets the file's signed one. Did not
+match: passing the GRABSPOT base by conversion (`InitGrabspot(wall)`, also through a reference) adds a null test,
+so the Init functions pass `&obj->ptn` (its first field). Kept: the views of other families' records (the prize's two
+XFs as quadword channels, the vault's dial-timer XF whose +0xA8 so.h names as a pointer, rip and listener vtables, the
+carrying player's JTMODE and attach XFs, JSG weapon records, ZPR-like message blocks), TakeRobottankDamage and the
+other hand-tuned tank functions. Not done: grab.cpp's Lilly copies of the grab-spot classes (CID11/12/13/19/27/34/38/39
+and three GRABSPOT copies with other signatures; the file does not include classes.h and the copies mix player-family
+types), ALARM's view in AddLootEntryObject.
+
 ## Path-hash quirk (asm functions)
 
 GCC 2.95 hashes the source file name and the line number into the gcse ordering of inline-asm expressions; in rare

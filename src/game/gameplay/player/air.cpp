@@ -118,17 +118,6 @@ struct XP
       XP *pxpNext;
 };
 
-struct CID88 : public SO, public GRABSPOTV
-{
-      DLE dle;
-      int nUnk17c;
-      float tUnk180;
-      undefined4 unk_0x184[2];
-      int nUnk18c;
-      STEPPLAYER *pstepplayerUnk190;
-      undefined4 unk_0x194[3];
-};
-
 struct CID100V : public SO
 {
       int nState;
@@ -1693,7 +1682,7 @@ void UpdateJtAirInput(JTAIR *air)
                     SetJtAirState(air, 4, air->jumpObject);
                 break;
             case 6:
-                if (((CID88 *)air->jumpObject)->nUnk17c == 3)
+                if (((BARREL *)air->jumpObject)->carryState == 3)
                     SetJtAirState(air, 4, 0);
                 else if (*(float *)&air->player->positionXf->reference < D_002DDED0.time)
                     StartJtGrabForAirKind(air);

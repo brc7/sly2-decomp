@@ -72,7 +72,8 @@ inline PO::PO() { unknown174 = 0; }
 
 /* The grab-spot mix-in (second base of the grab-spot classes): GRABSPOTDATA (0x20 bytes, object/proxy.cpp) and
    its own vptr at +0x20 (vtable 0x2D28D8, 6 slots; hidden-types.md B2.12). Slot names from gameplay/player/grabspot.cpp;
-   only GetGrabRange's signature is modelled.
+   GetOwner, GetClosestParam and GetGrabPos have their signatures (names/vu-objects-2: from the overrides and
+   grabspot.cpp's calls); the data fields are named from InitGrabspot and the classes' post-loads (xf.cpp's GRABSPOTDATA).
    A class with a secondary base must override at least one of its virtuals exactly when its secondary vtable in the
    ELF differs from the base's own: with -fno-rtti g++ reuses the base's vtable (_vt$8GRABSPOT) for a secondary base
    whose virtuals the class does not override, which changes the constructor's vptr stores. Every grab-spot class
@@ -82,13 +83,20 @@ inline PO::PO() { unknown174 = 0; }
    emits its getter too (.gnu.linkonce.t.<symbol>), the only object that does. */
 struct GRABSPOT
 {
-    char abData[0x20];
+    TN *ptn;                /* +0x00 camera tunnel of the spot (PostLoad turns its TNS override off) */
+    int unknown04;
+    float sBusy;            /* +0x08 busy radius; InitGrabspot sets FLT_MAX, the barrel 300 */
+    int unknown0C;
+    int nPriority;          /* +0x10 (CID35's Init sets 1, CID36's -1) */
+    int nUnk14;             /* +0x14 InitGrabspot sets -1 */
+    int nGroup;             /* +0x18 */
+    int grfPlayers;         /* +0x1C players that may grab it (1 Sly, 2 Bentley, 4 Murray; InitGrabspot sets 7) */
     virtual int GetGrabRange() __asm__("GetGrabspotWrapRange");     /* slot 1; key function (grabspot.cpp) */
-    virtual void GetClosestParam() __asm__("GetGrabspotClosestParam");         /* slot 2 */
-    virtual void GetGrabPos() __asm__("GetGrabspotGrabPosition");              /* slot 3 */
+    virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetGrabspotClosestParam");         /* slot 2 */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetGrabspotGrabPosition");              /* slot 3 */
     virtual void AdjustScore() __asm__("AdjustGrabspotScore");             /* slot 4 */
     virtual void GetSparklePos() __asm__("GetGrabspotSparklePosition");           /* slot 5 */
-    virtual void GetOwner() __asm__("GetGrabspotOwner");                     /* slot 6 */
+    virtual LO *GetOwner() __asm__("GetGrabspotOwner");                     /* slot 6 */
 };
 
 /* BLIPG's 32 records (0x1C bytes each) with an empty inline constructor: g++ still emits the 32-step loop. */
@@ -132,22 +140,9 @@ struct SENSOR : SO
 };
 typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
 
-/* 90 DPRIZE (0x230): abstract; vtable 0x2D6B98, 76 slots */
-struct DPRIZE : SO
-{
-    char pad150[0x230 - 0x150];
-    virtual int TakeDamage(ZPR *pzpr) __asm__("TakeDprizeDamage");   /* slot 75; key function (prize.cpp) */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetDprizeClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDprizeMessage");   /* slot 5 */
-    virtual void Init() __asm__("InitDprize");   /* slot 7 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadDprizeFromBrx");   /* slot 14 */
-    virtual void PostLoad() __asm__("PostDprizeLoad");   /* slot 15 */
-    virtual void Update() __asm__("UpdateDprize");   /* slot 16 */
-    virtual void UpdateXfWorld() __asm__("ProjectDprizeTransform");   /* slot 17 */
-    virtual void RenderSelf() __asm__("RenderDprizeSelf");   /* slot 19 */
-    virtual void SetState() __asm__("SetDprizeDprizes");   /* slot 76 */
-};
-typedef char assert_DPRIZE_size[sizeof(DPRIZE) == 0x230 ? 1 : -1];
+/* 90 DPRIZE (0x230) and its classes COIN, MEDICINE, KEY, LOOT, CLUE, with CLUEPROXY and VAULT (key TU prize.cpp):
+   sly2/prize.h */
+#include "sly2/prize.h"
 
 /* 126 WIDGET (0x110); vtable 0x2DAF30, 50 slots: sly2/widget.h (files that cannot include this header use it) */
 #include "sly2/widget.h"
@@ -1370,7 +1365,8 @@ typedef char assert_BHV191_size[sizeof(BHV191) == 0x50 ? 1 : -1];
 /* 12 CID12 (0x1C0): wall grabspot (wall press); vtable 0x2D2738, 50 slots */
 struct CID12 : SHAPE, GRABSPOT
 {
-    char pad1B4[0x1C0 - 0x1B4];
+    DLE dleGrab;            /* +0x1B4 link in the world's grab list g_sw.dlCid12 (sw.cpp InitDl offset; kept across Clone) */
+    int unknown1BC;
     virtual void OnAdd() __asm__("OnWallGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid12ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWallGrabspot");   /* slot 7 */
@@ -1378,17 +1374,19 @@ struct CID12 : SHAPE, GRABSPOT
     virtual void OnRemove() __asm__("OnWallGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneWallGrabspot");   /* slot 41 */
     virtual int GetGrabRange() __asm__("GetWallGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("GetWallGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("GetWallGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetWallGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetWallGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
     virtual void GetSparklePos() __asm__("GetWallGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
-    virtual void GetOwner() __asm__("func_002599F0__FP5CID12");   /* GRABSPOT slot 6 (delta -400) */
+    virtual LO *GetOwner() __asm__("func_002599F0__FP5CID12");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
+typedef char assert_CID12_dleGrab[SLY2_OFFSETOF(CID12, dleGrab) == 0x1B4 ? 1 : -1];
 
 /* 34 CID34 (0x110): pole (GRABSPOT); vtable 0x2D2558, 50 slots */
 struct CID34 : XFM, GRABSPOT
 {
-    char pad104[0x110 - 0x104];
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid34 (kept across Clone) */
+    float sRadius;          /* +0x10C pole radius */
     virtual void OnAdd() __asm__("OnPoleGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid34ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPoleGrabspot");   /* slot 7 */
@@ -1396,32 +1394,40 @@ struct CID34 : XFM, GRABSPOT
     virtual void OnRemove() __asm__("OnPoleGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePoleGrabspot");   /* slot 41 */
     virtual int GetGrabRange() __asm__("GetPoleGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -224) */
-    virtual void GetClosestParam() __asm__("GetPoleGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -224) */
-    virtual void GetGrabPos() __asm__("GetPoleGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
+    virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetPoleGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -224) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetPoleGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void GetSparklePos() __asm__("GetPoleGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -224) */
-    virtual void GetOwner() __asm__("func_00259A00__FP5CID34");   /* GRABSPOT slot 6 (delta -224) */
+    virtual LO *GetOwner() __asm__("func_00259A00__FP5CID34");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
+typedef char assert_CID34_sRadius[SLY2_OFFSETOF(CID34, sRadius) == 0x10C ? 1 : -1];
 
 /* 38 CID38 (0x110); vtable 0x2D2378, 50 slots */
 struct CID38 : XFM, GRABSPOT
 {
-    char pad104[0x110 - 0x104];
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid38 (kept across Clone) */
+    int fNoPushOut;         /* +0x10C the grab position is not pushed out by the player's radius */
     virtual void OnAdd() __asm__("OnHoldGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHoldGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostHoldGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnHoldGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneHoldGrabspot");   /* slot 41 */
-    virtual void GetGrabPos() __asm__("GetHoldGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
-    virtual void GetOwner() __asm__("func_00259A10__FP5CID38");   /* GRABSPOT slot 6 (delta -224) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetHoldGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
+    virtual LO *GetOwner() __asm__("func_00259A10__FP5CID38");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID38_size[sizeof(CID38) == 0x110 ? 1 : -1];
 
 /* 88 BARREL (0x1A0): BARREL / carryable (REVIEW, medium); vtable 0x2D20D0, 75 slots */
 struct BARREL : SO, GRABSPOT
 {
-    char pad174[0x1A0 - 0x174];
+    DLE dleGrab;            /* +0x174 link in g_sw.dlCid88 (kept across Clone) */
+    int carryState;         /* +0x17C 0 free .. 3 (SetBarrelState) */
+    float carryStateTime;   /* +0x180 */
+    int unknown184[2];
+    int isFree;             /* +0x18C physical when not carried */
+    STEPPLAYER *carrier;    /* +0x190 the player carrying it */
+    int unknown194[3];
     virtual void OnAdd() __asm__("OnBarrelAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBarrelClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBarrel");   /* slot 7 */
@@ -1431,25 +1437,35 @@ struct BARREL : SO, GRABSPOT
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrelIgnoreIntersection");   /* slot 61 */
     virtual void PresetAccel() __asm__("PresetBarrelAccel");   /* slot 70 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("HandleBarrelZap");   /* slot 75 */
-    virtual void GetOwner() __asm__("func_00259A20__FP6BARREL");   /* GRABSPOT slot 6 (delta -336) */
+    virtual LO *GetOwner() __asm__("func_00259A20__FP6BARREL");   /* GRABSPOT slot 6 (delta -336) */
 };
 typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
+typedef char assert_BARREL_carryState[SLY2_OFFSETOF(BARREL, carryState) == 0x17C ? 1 : -1];
 
 /* 35 CID35 (0x180): GRABSPOT XFM; mission trigger spot (ApplyTaskStates); vtable 0x2D1EE8, 51 slots */
 struct CID35 : XFM, GRABSPOT
 {
-    char pad104[0x180 - 0x104];
+    DLE dleGrab;            /* +0x104 link in g_sw.dlCid35 */
+    int nFired;             /* +0x10C last FireTriggerGrabspot argument */
+    float sRadius;          /* +0x110 biases the grab score (AdjustTriggerGrabspotScore) */
+    void *relay;            /* +0x114 fired with the trigger */
+    int crsmg;              /* +0x118 */
+    OID arsmg[4][4];        /* +0x11C RSMG[4] (as HACKLOCK's: oidRoot, oidSM, oidTrigger, oidNoTrigger) */
+    int cpair;              /* +0x15C */
+    int apair[4][2];        /* +0x160 task state pairs (ApplyTaskStates) */
     virtual void OnAdd() __asm__("OnTriggerGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid35ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTriggerGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostTriggerGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnTriggerGrabspotRemove");   /* slot 22 */
-    virtual void GetGrabPos() __asm__("GetTriggerGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetTriggerGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void AdjustScore() __asm__("AdjustTriggerGrabspotScore");   /* GRABSPOT slot 4 (delta -224) */
-    virtual void GetOwner() __asm__("func_00259A30__FP5CID35");   /* GRABSPOT slot 6 (delta -224) */
+    virtual LO *GetOwner() __asm__("func_00259A30__FP5CID35");   /* GRABSPOT slot 6 (delta -224) */
     virtual void OnTriggered() __asm__("FireTriggerGrabspot");   /* slot 51 */
 };
 typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
+typedef char assert_CID35_sRadius[SLY2_OFFSETOF(CID35, sRadius) == 0x110 ? 1 : -1];
+typedef char assert_CID35_apair[SLY2_OFFSETOF(CID35, apair) == 0x160 ? 1 : -1];
 
 /* 37 CID37 (0x1A0): booty container; vtable 0x2CB9F8, 51 slots */
 struct CID37 : CID35
@@ -1466,28 +1482,38 @@ typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 /* 36 CID36 (0x1A0): carry grabspot (child of CID35); vtable 0x2D1D00, 51 slots */
 struct CID36 : CID35
 {
-    char pad180[0x1A0 - 0x180];
+    LO *unknown180;         /* +0x180 a trigger target that is it or its descendant is skipped */
+    OID oid1;               /* +0x184 three linked objects resolved at post-load */
+    LO *plo1;               /* +0x188 */
+    OID oid2;               /* +0x18C */
+    LO *plo2;               /* +0x190 */
+    OID oid3;               /* +0x194 */
+    LO *plo3;               /* +0x198 */
+    OID oidTarget;          /* +0x19C a target with another id at +0xF4 is skipped (inferred) */
     virtual void PostLoad() __asm__("PostCarryGrabspotLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid36ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitCarryGrabspot");   /* slot 7 */
     virtual void OnTriggered() __asm__("OnTriggerGrabspotGrabbed");   /* slot 51 */
 };
 typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
+typedef char assert_CID36_oid1[SLY2_OFFSETOF(CID36, oid1) == 0x184 ? 1 : -1];
 
 /* 27 CID27 (0x160): table grabspot (VOL + GRABSPOT; hide under); vtable 0x2D1B60, 50 slots */
 struct CID27 : VOL, GRABSPOT
 {
-    char pad154[0x160 - 0x154];
+    DLE dleGrab;            /* +0x154 link in g_sw.dlCid27 */
+    LO *ploHold;            /* +0x15C child whose height sets the hold position */
     virtual void OnAdd() __asm__("OnTableGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid27ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTableGrabspot");   /* slot 7 */
     virtual void PostLoad() __asm__("PostTableGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnTableGrabspotRemove");   /* slot 22 */
-    virtual void GetGrabPos() __asm__("GetTableGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -304) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetTableGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -304) */
     virtual void GetSparklePos() __asm__("GetTableGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -304) */
-    virtual void GetOwner() __asm__("func_00259A40__FP5CID27");   /* GRABSPOT slot 6 (delta -304) */
+    virtual LO *GetOwner() __asm__("func_00259A40__FP5CID27");   /* GRABSPOT slot 6 (delta -304) */
 };
 typedef char assert_CID27_size[sizeof(CID27) == 0x160 ? 1 : -1];
+typedef char assert_CID27_ploHold[SLY2_OFFSETOF(CID27, ploHold) == 0x15C ? 1 : -1];
 
 /* 19 HND (0x140): hook; REVIEW proposes HND; vtable 0x2D2978, 50 slots */
 struct HND : TARGET, GRABSPOT
@@ -1495,8 +1521,8 @@ struct HND : TARGET, GRABSPOT
     char pad124[0x140 - 0x124];
     virtual void Init() __asm__("InitHnd");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetHndClassDesc");   /* slot 6 */
-    virtual void GetGrabPos() __asm__("GetHndGrabPosition");   /* GRABSPOT slot 3 (delta -256) */
-    virtual void GetOwner() __asm__("func_00259A70__FP3HND");   /* GRABSPOT slot 6 (delta -256) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetHndGrabPosition");   /* GRABSPOT slot 3 (delta -256) */
+    virtual LO *GetOwner() __asm__("func_00259A70__FP3HND");   /* GRABSPOT slot 6 (delta -256) */
 };
 typedef char assert_HND_size[sizeof(HND) == 0x140 ? 1 : -1];
 
@@ -1798,87 +1824,13 @@ struct PIPE : SHAPE, GRABSPOT
     virtual void OnRemove() __asm__("OnPipeRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePipe");   /* slot 41 */
     virtual int GetGrabRange() __asm__("GetPipeWrapRange");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("GetPipeClosestParam");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("GetPipeGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetPipeClosestParam");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetPipeGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
     virtual void GetSparklePos() __asm__("GetPipeSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
-    virtual void GetOwner() __asm__("func_00259AF8__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
+    virtual LO *GetOwner() __asm__("func_00259AF8__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
 
-/* 91 COIN (0x240): COIN pool; vtable 0x2D6928, 76 slots */
-struct COIN : DPRIZE
-{
-    char pad230[0x240 - 0x230];
-    virtual void Update() __asm__("UpdateCoin");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetCoinClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitCoin");   /* slot 7 */
-    virtual void SetState() __asm__("SetCoinDprizes");   /* slot 76 */
-};
-typedef char assert_COIN_size[sizeof(COIN) == 0x240 ? 1 : -1];
-
-/* 93 MEDICINE (0x250): health refill; vtable 0x2D66B8, 76 slots */
-struct MEDICINE : DPRIZE
-{
-    char pad230[0x250 - 0x230];
-    virtual void Update() __asm__("UpdateMedicine");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetMedicineClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitMedicine");   /* slot 7 */
-    virtual void SetState() __asm__("SetMedicineDprizes");   /* slot 76 */
-};
-typedef char assert_MEDICINE_size[sizeof(MEDICINE) == 0x250 ? 1 : -1];
-
-/* 92 KEY (0x240); vtable 0x2D6448, 76 slots */
-struct KEY : DPRIZE
-{
-    char pad230[0x240 - 0x230];
-    virtual void Init() __asm__("InitKey");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetKeyClassDesc");   /* slot 6 */
-    virtual void SetState() __asm__("SetKeyDprizes");   /* slot 76 */
-};
-typedef char assert_KEY_size[sizeof(KEY) == 0x240 ? 1 : -1];
-
-/* 94 LOOT (0x250): pickpocket item; vtable 0x2D61D8, 76 slots */
-struct LOOT : DPRIZE
-{
-    char pad230[0x250 - 0x230];
-    virtual void Update() __asm__("UpdateLoot");   /* slot 16 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetLootClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitLoot");   /* slot 7 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLootFromBrx");   /* slot 14 */
-    virtual void SetState() __asm__("SetLootDprizes");   /* slot 76 */
-};
-typedef char assert_LOOT_size[sizeof(LOOT) == 0x250 ? 1 : -1];
-
-/* 95 CLUE (0x230): clue bottle; vtable 0x2D5F68, 76 slots */
-struct CLUE : DPRIZE
-{
-    virtual void Init() __asm__("InitClue");   /* slot 7 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetClueClassDesc");   /* slot 6 */
-    virtual void OnProxyAcquire(LO *plo) __asm__("ResetClue");   /* slot 26 */
-    virtual void OnProxyRelease(LO *plo) __asm__("ClearClueState");   /* slot 27 */
-    virtual void SetState() __asm__("SetClueDprizes");   /* slot 76 */
-};
-typedef char assert_CLUE_size[sizeof(CLUE) == 0x230 ? 1 : -1];
-
-/* 7 CLUEPROXY (0x110): PROXY child; clue-bottle proxy (REVIEW, medium); vtable 0x2D5DC8, 50 slots */
-struct CLUEPROXY : PROXY
-{
-    char pad100[0x110 - 0x100];
-    virtual void PostLoad() __asm__("PostClueproxyLoad");   /* slot 15 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetClueproxyClassDesc");   /* slot 6 */
-};
-typedef char assert_CLUEPROXY_size[sizeof(CLUEPROXY) == 0x110 ? 1 : -1];
-
-/* 78 VAULT (0x230): clue-bottle safe; vtable 0x2D5B30, 81 slots */
-struct VAULT : PO
-{
-    char pad180[0x230 - 0x180];
-    virtual void PostLoad() __asm__("PostVaultLoad");   /* slot 15 */
-    virtual CLASSINFO *GetClassInfo() __asm__("GetVaultClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitVault");   /* slot 7 */
-    virtual void Update() __asm__("UpdateVault");   /* slot 16 */
-};
-typedef char assert_VAULT_size[sizeof(VAULT) == 0x230 ? 1 : -1];
 
 /* 13 RAIL (0x1D0): wires; vtable 0x2D6FE8, 50 slots */
 struct RAIL : SHAPE, GRABSPOT
@@ -1891,10 +1843,10 @@ struct RAIL : SHAPE, GRABSPOT
     virtual void OnRemove() __asm__("OnRailRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneRail");   /* slot 41 */
     virtual int GetGrabRange() __asm__("GetRailWrapRange");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("GetRailClosestParam");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("GetRailGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetRailClosestParam");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetRailGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
     virtual void GetSparklePos() __asm__("GetRailSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
-    virtual void GetOwner() __asm__("func_00259B08__FP4RAIL");   /* GRABSPOT slot 6 (delta -400) */
+    virtual LO *GetOwner() __asm__("func_00259B08__FP4RAIL");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];
 
@@ -2120,8 +2072,8 @@ struct CID39 : XFM, GRABSPOT
     virtual void OnRemove() __asm__("OnGrabSpotXfmRemove");   /* slot 22 */
     virtual void OnAdd() __asm__("OnGrabSpotXfmAdd");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("CloneGrabSpotXfm");   /* slot 41 */
-    virtual void GetGrabPos() __asm__("GetOffsetToObjectPosition");   /* GRABSPOT slot 3 (delta -224) */
-    virtual void GetOwner() __asm__("func_00259C08__FP5CID39");   /* GRABSPOT slot 6 (delta -224) */
+    virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetOffsetToObjectPosition");   /* GRABSPOT slot 3 (delta -224) */
+    virtual LO *GetOwner() __asm__("func_00259C08__FP5CID39");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
 

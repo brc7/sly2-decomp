@@ -67,7 +67,7 @@ void InitRobottank(ROBOTTANK *tank) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneRobottank {
 extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
-struct OBJ;struct X;extern "C" void InitRobottankWeapon(X*,OBJ*);
+struct X;extern "C" void InitRobottankWeapon(X*,ROBOTTANK*);
 extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
 // Two-word header with a trivial constructor.
 struct A { int x0; int x4; A() {} };
@@ -77,7 +77,7 @@ struct B : A {
 };
 struct X : B {
     // Construct the weapon: zero the header words, set the vtable and initialise it for p.
-    X(OBJ *p) {
+    X(ROBOTTANK *p) {
  // Keep header zeroing before the remaining constructor stores.
  register X *receiver __asm__("$4");
  __asm__("daddu %0,%2,$zero\n\tsw $zero,%1"
@@ -89,21 +89,20 @@ struct X : B {
 
     char pad[0xB0 - 0x10];
 };
-struct OBJ : PO { char pad180[0x4F8 - 0x180]; int c; X *a[1]; };
 extern "C" {
-void ClonePo(OBJ *);
+void ClonePo(ROBOTTANK *);
 void CopyRobottankWeapon(X *, X *);
 // CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
 // copy 0x9C bytes). (inferred)
-void CloneRobottank(OBJ *tank)
+void CloneRobottank(ROBOTTANK *tank)
 {
     int i;
     ClonePo(tank);
-    for (i = 0; i < tank->c; i++) {
-        X *old = tank->a[i];
+    for (i = 0; i < tank->cjsgWeapon; i++) {
+        X *old = (X *)tank->apjsgWeapon[i];
         X *n = new X(tank);
         CopyRobottankWeapon(n, old);
-        tank->a[i] = n;
+        tank->apjsgWeapon[i] = (JSG *)n;
     }
 }
 }
@@ -121,8 +120,6 @@ typedef char native_layout_8[(OFF(B,vt)==0xC)?1:-1];
 typedef char native_layout_9[(OFF(X,x0)==0)?1:-1];
 typedef char native_layout_10[(OFF(X,x4)==4)?1:-1];
 typedef char native_layout_11[(OFF(X,vt)==0xC)?1:-1];
-typedef char native_layout_12[(OFF(OBJ,c)==0x4F8)?1:-1];
-typedef char native_layout_13[(OFF(OBJ,a)==0x4FC)?1:-1];
 } // namespace M_CloneRobottank
 
 // health x560 = max x55C, refresh health meter (UpdateRobottankHealthMeter), reset body SMA, SetRcCarState(0). (inferred)
@@ -729,14 +726,13 @@ void ReadRobottankInput(OBJ *tank)
 
 // Keeps its per-function views in weapons namespace of its own (see the file header).
 namespace M_func_001D2240 { extern "C" {
-struct O { char pad[0x80]; int state; };
-struct S : PO { char pad[0x4F8 - 0x180]; int weaponCount; struct O *weapons[1]; };
+struct O { char pad[0x80]; int state; };   /* the weapon (JSG) */
 int HasRobottankWeaponAmmo(struct O *po);
 // First weapon with enough ammo whose state is not 4. (inferred)
-struct O *FindReadyRobottankWeapon(struct S *tank) {
+struct O *FindReadyRobottankWeapon(ROBOTTANK *tank) {
     int i;
-    for (i = 0; i < tank->weaponCount; i++) {
-        struct O *po = tank->weapons[i];
+    for (i = 0; i < tank->cjsgWeapon; i++) {
+        struct O *po = (struct O *)tank->apjsgWeapon[i];
         if (HasRobottankWeaponAmmo(po) && po->state != 4) return po;
     }
     return 0;
@@ -1744,13 +1740,12 @@ void RemoveRobottankContactsWith(ROBOTTANK *tank, SO *psoOther) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3FA8 { extern "C" {
-struct O { char pad[0x14]; int id; };
-struct S : PO { char pad[0x4F8 - 0x180]; int c; struct O *ap[1]; };
+struct O { char pad[0x14]; int id; };   /* the weapon (JSG) */
 // Find weapon record by id. (inferred)
-struct O *FindRobottankWeapon(struct S *tank, int id) {
+struct O *FindRobottankWeapon(ROBOTTANK *tank, int id) {
     int i;
-    for (i = 0; i < tank->c; i++) {
-        struct O *po = tank->ap[i];
+    for (i = 0; i < tank->cjsgWeapon; i++) {
+        struct O *po = (struct O *)tank->apjsgWeapon[i];
         if (po->id == id) return po;
     }
     return 0;
@@ -2168,9 +2163,8 @@ void AddRobottankWheel(ROBOTTANK *tank, OID oid, LM *plm, float sRadius) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4B90 {
 extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
-struct OBJ;
 struct X;
-extern "C" void InitRobottankWeapon(X *,OBJ *);
+extern "C" void InitRobottankWeapon(X *,ROBOTTANK *);
 extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
 struct A { int x0; };
 struct B : A {
@@ -2188,9 +2182,8 @@ struct X : B {
     int unknown38;
     char pad[0xB0 - 0x3C];
 };
-struct OBJ : PO { char pad[0x4F8 - 0x180]; unsigned int weaponCount; X *weapons[8]; };
 // Allocates a weapon record from the world heap and sets its vtable (D_002C94A0).
-static inline X *CreateItem(OBJ *owner) {
+static inline X *CreateItem(ROBOTTANK *owner) {
  void *allocated=func_001AE4F8(sizeof(X));
  register X *item __asm__("$16");
  register unsigned page __asm__("$3");
@@ -2203,17 +2196,17 @@ static inline X *CreateItem(OBJ *owner) {
  register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));InitRobottankWeapon(receiver,owner);return item;
 }
 // Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8. (inferred)
-extern "C" void AddRobottankWeapon(OBJ *tank, int a, int b, int inputC, int inputD)
+extern "C" void AddRobottankWeapon(ROBOTTANK *tank, int a, int b, int inputC, int inputD)
 {
     register int c __asm__("$20")=inputC;
     register int d __asm__("$21")=inputD;
-    if (tank->weaponCount < 8) {
+    if ((unsigned int)tank->cjsgWeapon < 8) {
         X *it = CreateItem(tank);
-        unsigned int index=tank->weaponCount;
+        unsigned int index=tank->cjsgWeapon;
         it->unknown14=a;
         it->unknown18=b;
-        tank->weapons[index]=it;
-        tank->weaponCount=index+1;
+        tank->apjsgWeapon[index]=(JSG *)it;
+        tank->cjsgWeapon=index+1;
         it->unknown38=d;
         it->unknown2C=c;
     }
@@ -2234,8 +2227,6 @@ typedef char native_layout_10[(OFF(X,unknown14)==0x14)?1:-1];
 typedef char native_layout_11[(OFF(X,unknown18)==0x18)?1:-1];
 typedef char native_layout_12[(OFF(X,unknown2C)==0x2C)?1:-1];
 typedef char native_layout_13[(OFF(X,unknown38)==0x38)?1:-1];
-typedef char native_layout_14[(OFF(OBJ,weaponCount)==0x4F8)?1:-1];
-typedef char native_layout_15[(OFF(OBJ,weapons)==0x4FC)?1:-1];
 } // namespace M_func_001D4B90
 
 // Keeps its per-function views in a namespace of its own (see the file header).
