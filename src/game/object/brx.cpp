@@ -110,7 +110,6 @@ inline void *PvAllocStackClear(int cb, int cbAlign)
 }
 
 /* g++ 2.95 vtable entry, for the hand-made calls through a load collector's vtable. */
-struct VE { short d; short pad; void *pfn; };
 
 /* Load collectors: LoadSwObjectsFromBrx hands every object it creates to one through vtable slot 1, Add(c, aplo). The
    array collector (vtable D_002CBE50) keeps them; the proxy collector (vtable D_002CBE38) reparents and tags them. */
@@ -151,7 +150,7 @@ struct LANGSTR
 extern CLSNEW D_002BAAE8[];
 extern EOPID D_002AC880[];   /* g_aeopid */
 extern const char D_002A4BE0[] = "";   /* the empty string (a zero-filled .rodata row) */
-extern VE D_002CBE50[] __asm__("_vt$19CLoadCollectorArray");      /* CLoadCollectorArray vtable (emitted here) */
+extern VTE D_002CBE50[] __asm__("_vt$19CLoadCollectorArray");      /* CLoadCollectorArray vtable (emitted here) */
 extern "C" {
 void FramePtr_Assign(void *pspframe, void *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void *GetSpliceFrame(SW *world, int isplice, LO *plo);
@@ -696,7 +695,7 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream)
 extern "C" CLoadCollectorArray *CLoadCollectorArray_ctor(CLoadCollectorArray *plca)
 {
     plca->cMax = 0;
-    *(VE **)plca = D_002CBE50;
+    *(VTE **)plca = D_002CBE50;
     plca->c = 0;
     plca->aplo = 0;
     return plca;

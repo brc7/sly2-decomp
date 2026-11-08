@@ -556,8 +556,7 @@ void SetSoIdProxy(SO *object, int a)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CA370 { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
-struct Z { struct VTE *vt; };   /* the load collector (CLoadCollector) */
+struct Z { VTE *vt; };   /* the load collector (CLoadCollector) */
 struct R { int n; LO **ap; int numCopies; int c; int unknown10; int spareTag; void **ap18; char pad[0x6C - 0x1C]; };   /* a proxy source (as below) */
 struct G { char pad[0x3F08]; struct R *ar; };
 int MakeProxyId__Fii(int i, int c);
@@ -577,7 +576,7 @@ void AddProxyCopy(struct G *world, int i, SO *a, XF *b, void *x, MATRIX4 *y, str
         plo->ApplyProxy(y);
     }
     if (pz)
-        ((void (*)(void *, int, LO **))pz->vt[1].pf)((char *)pz + pz->vt[1].d, pr->n, &pr->ap[pr->c * pr->n]);
+        ((void (*)(void *, int, LO **))pz->vt[1].pfn)((char *)pz + pz->vt[1].d, pr->n, &pr->ap[pr->c * pr->n]);
     pr->c++;
 }
 } } // namespace M_func_001CA370
@@ -893,7 +892,6 @@ namespace M_PspareAcquire {
 // Attach an object node, bind its resources, and update its children.
 typedef int qword __attribute__((mode(TI)));
 struct P;
-struct VTE {short delta,pad;void *fn;};
 struct M4 {qword rows[4];};
 struct NODE {P *owner;NODE *next;char pad8[8];M4 matrix;};
 struct TREE {int id;TREE *parent;char pad8[8];P *owner;};
@@ -921,17 +919,17 @@ void FramePtr_Assign(void **,void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame")
 void CMemInputStream_dtor(STREAM *,int);
 }
 // The object pointer adjusted by the vtable entry's this-delta.
-static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.delta);}
+static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.d);}
 // Call the object's channel virtual (slot 10).
-static inline void Channel(P *p,void *context,void *channel){VTE &v=p->vt[10];((void(*)(P *,void *,void *,int))v.fn)(Adjusted(p,v),context,channel,0);}
+static inline void Channel(P *p,void *context,void *channel){VTE &v=p->vt[10];((void(*)(P *,void *,void *,int))v.pfn)(Adjusted(p,v),context,channel,0);}
 // Apply a matrix through the object's virtual slot 37.
-static inline void Matrix(P *p,const M4 *m){VTE &v=p->vt[37];((void(*)(P *,const M4 *))v.fn)(Adjusted(p,v),m);}
+static inline void Matrix(P *p,const M4 *m){VTE &v=p->vt[37];((void(*)(P *,const M4 *))v.pfn)(Adjusted(p,v),m);}
 // Reset the object (virtual slot 8).
-static inline void Reset(P *p){VTE &v=p->vt[8];((void(*)(P *))v.fn)(Adjusted(p,v));}
+static inline void Reset(P *p){VTE &v=p->vt[8];((void(*)(P *))v.pfn)(Adjusted(p,v));}
 // Set the object's parent (virtual slot 26).
-static inline void Parent(P *p,P *parent){VTE &v=p->vt[26];((void(*)(P *,P *))v.fn)(Adjusted(p,v),parent);}
+static inline void Parent(P *p,P *parent){VTE &v=p->vt[26];((void(*)(P *,P *))v.pfn)(Adjusted(p,v),parent);}
 // Query the object's children of class 14 (virtual slot 3) into *cursor.
-static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,int,int,void **,int))v.fn)(Adjusted(p,v),14,0,1,cursor,0);}
+static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,int,int,void **,int))v.pfn)(Adjusted(p,v),14,0,1,cursor,0);}
 // Acquires a spare copy for the proxy: chooses one, takes it from its previous owner, places its objects at the
 // proxy and applies the init records (slot 26 on each object). Returns the spare or null.
 extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
@@ -967,7 +965,7 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
   P *child=proxy->table->objects[row*proxy->table->count+i];
   VTE &entry=child->vt[42];
   work.child=child;
-  ((void(*)(P *,float))entry.fn)(Adjusted(child,entry),proxy->scale);Channel(work.child,proxy->context,proxy->channel);Matrix(work.child,&proxy->matrix);Reset(work.child);Parent(work.child,proxy);
+  ((void(*)(P *,float))entry.pfn)(Adjusted(child,entry),proxy->scale);Channel(work.child,proxy->context,proxy->channel);Matrix(work.child,&proxy->matrix);Reset(work.child);Parent(work.child,proxy);
   work.cursor=&work.child;Query(proxy,cursor);
   work.cursor=&work.owner;Query(work.child,cursor);
  }

@@ -18,7 +18,6 @@ typedef int qwordV __attribute__((mode(TI)));
 /* g++ 2.95 vtable entry: this-adjust delta and the function. Slots used here: 3 HandleSpliceEvent(symid, fPost, cargs,
    ppvargs, n) on the exit or warp, 38 (LO, takes an LO *: moves the object to the given one) on the hero and on the
    paired objects. */
-struct VT { short d; short pad; void (*pfn)(); };
 
 struct LO;
 struct RSMG { int a[4]; };
@@ -28,7 +27,7 @@ struct TASKSTATE { int a[2]; };
 struct EXITV
 {
     int pad0[3];
-    VT *vtable;                    /* +0x0C */
+    VTE *vtable;                    /* +0x0C */
     char pad10[0x40 - 0x10];
     unsigned int flagWord;         /* +0x40 flag word, or (low bit clear) a pointer to it */
     char pad44[0xEC - 0x44];
@@ -57,7 +56,7 @@ struct WARPPAIR { OID object; OID target; };
 struct WARPV
 {
     int pad0[3];
-    VT *vtable;                    /* +0x0C */
+    VTE *vtable;                    /* +0x0C */
     char pad10[0x18 - 0x10];
     OID oid;                    /* +0x18 */
     char pad1C[0xE0 - 0x1C];
@@ -179,7 +178,7 @@ extern "C" void PutHeroAtWarp(WARPV *warp)
     LO *hero = GetHeroPo(&D_003DD490);
     if (hero)
     {
-        VT *heroVtable = *(VT **)((char *)hero + 0xC);
+        VTE *heroVtable = *(VTE **)((char *)hero + 0xC);
         ((void (*)(void *, WARPV *))heroVtable[38].pfn)((char *)hero + heroVtable[38].d, warp);
         ((void (*)(void *, int, int, int, int, int))warp->vtable[3].pfn)((char *)warp + warp->vtable[3].d, 5, 0, 0, 0, 0);
     }
@@ -369,7 +368,7 @@ extern "C" void TriggerWarp(WARPV *warp)
             LO *target = FindSwObject(&D_003DD490, 4, pair->target, (LO *)warp);
             if (target)
             {
-                VT *vtable = *(VT **)((char *)object + 0xC);
+                VTE *vtable = *(VTE **)((char *)object + 0xC);
                 ((void (*)(void *, LO *))vtable[38].pfn)((char *)object + vtable[38].d, target);
             }
         }

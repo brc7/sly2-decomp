@@ -37,8 +37,7 @@ struct VALSMP { SMPV smp; int cref; };                      /* tag 0x1E, CSplice
 
 /* A basic (engine) object: reference counting through its vtable (slot 1 adds, slot 2 releases; g++ 2.95 vtable
    entries are {short delta; short pad; pfn}). */
-struct VTENTRY { short d; short pad; void (*pfn)(void *); };
-struct BASICOBJ { int pad[3]; VTENTRY *vt; };
+struct BASICOBJ { int pad[3]; VTE *vt; };
 
 extern "C" {
 int func_00233178(const void *a, const void *b, int cb) __asm__("memcmp");   /* memcmp */
@@ -163,7 +162,7 @@ extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
 extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
 {
     if (object)
-        object->vt[1].pfn((char *)object + object->vt[1].d);
+        ((void (*)(void *))object->vt[1].pfn)((char *)object + object->vt[1].d);
     pref->u.pv = object;
     pref->m_tagk = 0x21;
     return pref;
@@ -332,7 +331,7 @@ extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
 {
     if (object)
-        object->vt[1].pfn((char *)object + object->vt[1].d);
+        ((void (*)(void *))object->vt[1].pfn)((char *)object + object->vt[1].d);
     pref->Decref();
     pref->u.pv = object;
     pref->m_tagk = 0x21;
@@ -454,7 +453,7 @@ void CRef::Incref()
     {
         BASICOBJ *object = (BASICOBJ *)u.pv;
         if (object)
-            object->vt[1].pfn((char *)object + object->vt[1].d);
+            ((void (*)(void *))object->vt[1].pfn)((char *)object + object->vt[1].d);
         break;
     }
     case 0x1F:
@@ -524,7 +523,7 @@ void CRef::Decref()
     {
         BASICOBJ *p = (BASICOBJ *)u.pv;
         if (p)
-            p->vt[2].pfn((char *)p + p->vt[2].d);
+            ((void (*)(void *))p->vt[2].pfn)((char *)p + p->vt[2].d);
         break;
     }
     case 0x22:

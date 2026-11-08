@@ -19,8 +19,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* g++ 2.95 vtable entry; PVT reads an object's vtable pointer (+0xC). For the XFM slots 49 and 50, which xfm.h only
    names (VSlot49/VSlot50, no parameters known there). */
-struct VE { short d; short pad; void *pfn; };
-#define PVT(p) (*(VE **)((char *)(p) + 0xC))
+#define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 /* A matrix as four quadword rows (copies and the VU0 transform). */
 struct M4 { qword r[4]; };
@@ -34,7 +33,7 @@ struct CBinaryInputStream
     uint U32Read();
     void ReadMatrix4(MATRIX4 *matrix);
 };
-struct CLoadCollector { VE *vtable; };
+struct CLoadCollector { VTE *vtable; };
 struct CLoadCollectorArray : CLoadCollector { int cMax; int c; LO **aplo; };
 
 extern SW D_003DD490;

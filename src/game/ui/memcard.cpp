@@ -1461,28 +1461,26 @@ extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
 }
 
 namespace M_SetMcDialogState { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
+struct O { char pad[0xC]; VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
 // Sets the dialog state; when the dialog is shown, refreshes it (slot 10) and shows its child widget.
 void SetMcDialogState(struct O *dialog, int state)
 {
     dialog->state = state;
     if (dialog->child) {
-        { struct VTE *e = &dialog->vt[10]; e->pfn((char *)dialog + e->d); }
+        { VTE *e = &dialog->vt[10]; ((void (*)(...))e->pfn)((char *)dialog + e->d); }
         dialog->child->Show(-1);
     }
 }
 } } // namespace M_SetMcDialogState
 
 namespace M_ClearMcDialogState { extern "C" {
-struct VTE { short d; short pad; void (*pfn)(...); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
+struct O { char pad[0xC]; VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
 // Clears the dialog state and hides the dialog (slot 11) and its child widget.
 void ClearMcDialogState(struct O *dialog)
 {
     dialog->state = -1;
     if (dialog->child) {
-        { struct VTE *e = &dialog->vt[11]; e->pfn((char *)dialog + e->d); }
+        { VTE *e = &dialog->vt[11]; ((void (*)(...))e->pfn)((char *)dialog + e->d); }
         dialog->child->Hide();
     }
 }
