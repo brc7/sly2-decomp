@@ -26,6 +26,8 @@
 #include "sly2/screen.h"
 #include "sly2/cref.h"
 #include "sly2/widget.h"
+#include "sly2/clock.h"
+#include "sly2/game.h"
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -111,13 +113,9 @@ enum
     SAVE_SLOT_FILE_SIZE = 0x5408,   /* the part of a slot written to the card (its SAVEINFO follows) */
 };
 
-extern SW D_003DD490;
 extern "C" {
-extern char D_002DEB30[];       /* the game */
-extern SAVE D_002E65E0;   /* the save manager */
 extern int D_004425D8;
 extern char D_003D9ED0[];       /* the pause menu */
-extern CLOCK D_002DDED0;
 extern void *D_002D3750[] __asm__("_vt$14CMemcardDialog");      /* CMemcardDialog vtable (emitted here) */
 /* CMemcardDialog (DRAFT name, from its functions' annotations): the memory-card dialog screen, vtable 0x2D3750, emitted
    here. Defined before CMcStatus (below), whose vtable comes out before it. MCDLG is the view the bodies read. */
@@ -173,9 +171,9 @@ char *strcpy(char *, const char *);
 // manager g_save.
 void StartupMemcard()
 {
-    InitGame(D_002DEB30);
+    InitGame(&g_game);
     D_004425D8 = -1;
-    InitSave(&D_002E65E0, 0, 0);
+    InitSave(&g_save, 0, 0);
 }
 
 // Converts a card directory entry (sceMcGetDir) into the game's SAVEINFO record (attribute bits renumbered).
@@ -393,7 +391,6 @@ void MemcardThreadMain(MEMCARD *worker)
     ExitDeleteThread();
 }
 } } // namespace M_MemcardThreadMain
-extern SAVE D_002E65E0;
 
 namespace M_CreateMemcardThread { extern "C" {
 struct ThreadParam { int attr; void *entry; void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned int attr2; int option; int waitType; int waitId; int wakeupCount; };
@@ -489,7 +486,7 @@ void CreateMemcardThreadJob(void *, int (MCJOB::*)()) __asm__("CreateMemcardThre
 namespace M_UpdateSave__FP4SAVE { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct H { char pad[0x44]; int phase; };   /* the memcard dialog */
-extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
+extern char D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
 int IsSwTransitionBusy(void *g);
@@ -503,7 +500,7 @@ void SetMcDialogState(struct H *h, int n);
 // or advances the state, and triggers the autosave with a 0.3 s debounce.
 void UpdateSave__FP4SAVE(SAVE *saveManager)
 {
-    if (IsSwTransitionBusy(D_003DD490))
+    if (IsSwTransitionBusy(&g_sw))
         return;
     if (D_002DEB4C)
         return;
@@ -577,8 +574,6 @@ extern "C" void Decref__4CRef(CRef *);
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
 extern "C" {
-extern SW D_003DD490;
-extern CLOCK D_002DDED0;
 extern ST D_002E6550;
 extern char D_002E65A0[];
 void SetMcDialogPhase(ST *, int);
@@ -626,7 +621,7 @@ void SetSaveState(SAVE *saveManager, int state)
         saveManager->newestSlot = &saveManager->aslot[0];
         for (i = 0; i < 3; i++) {
             SAVESLOT *pslot = &saveManager->aslot[i];
-            float isUsed = GetF(D_003DD490.psvpDt, pslot);
+            float isUsed = GetF(g_sw.psvpDt, pslot);
             if (isUsed != 0.0f) {
                 if (CompareSaves__FP4SAVET0(&saveManager->newestSlot->info, &pslot->info) < 0)
                     saveManager->newestSlot = pslot;
@@ -637,7 +632,7 @@ void SetSaveState(SAVE *saveManager, int state)
         break;
     }
     saveManager->nState = state;
-    saveManager->tStateChanged = D_002DDED0.realTime;
+    saveManager->tStateChanged = g_clock.realTime;
 }
 } // namespace M_SetSaveState
 
@@ -902,10 +897,9 @@ void StartSaveSlotJob(SAVE *saveManager)
 
 namespace M_func_001ABD98 { extern "C" {
 struct H { char pad[0x4C]; int followUpAction; };   /* the memcard dialog */
-extern SW D_003DD490;
 extern struct H D_002E6550;
 extern int D_002DEB4C;
-extern char D_003D4A60[], D_002E65A0[];
+extern char D_002E65A0[];
 int IsSwTransitionBusy(SW *g);
 int GetCurrentWorld(void);
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
@@ -922,14 +916,14 @@ void AutosaveGame(SAVE *saveManager, int force)
     int isEnabled;
     if (!saveManager->currentSlot)
         return;
-    world = &D_003DD490;
+    world = &g_sw;
     if (IsSwTransitionBusy(world))
         return;
     if (D_002DEB4C)
         return;
     if (!GetCurrentWorld() && !force)
         return;
-    GetGlobalSaveVar(&ref, world->psvpAutosaveWarned, D_003D4A60);
+    GetGlobalSaveVar(&ref, world->psvpAutosaveWarned, &g_gs);
     isEnabled = ref.u.n;
     Decref__4CRef(&ref);
     if (!isEnabled) {
@@ -1491,24 +1485,21 @@ extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
 {
     if (nMode != dialog->nMode) {
         dialog->nMode = nMode;
-        dialog->tMode = D_002DDED0.realTime;
+        dialog->tMode = g_clock.realTime;
     }
 }
 
 namespace M_func_001ACC38 { extern "C" {
-extern SAVE D_002E65E0;
-extern CLOCK D_002DDED0;
 struct S { char pad[0x44]; int phase; float tPhase; };
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.
 void SetMcDialogPhase(struct S *dialog, int phase)
 {
     if (phase == dialog->phase) return;
-    switch (phase) { case 2: case 3: D_002E65E0.currentSlot = 0; }
+    switch (phase) { case 2: case 3: g_save.currentSlot = 0; }
     dialog->phase = phase;
-    dialog->tPhase = D_002DDED0.realTime;
+    dialog->tPhase = g_clock.realTime;
 }
 } } // namespace M_func_001ACC38
-extern SAVE D_002E65E0;
 
 namespace M_func_001ACC80 { extern "C" {
 struct S { char pad[0x40]; int state; };
@@ -1533,9 +1524,6 @@ namespace M_CMemcardDialog_Update { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short index; void (*pfn)(void *); };
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
-extern SAVE D_002E65E0;
-extern CLOCK D_002DDED0;
-extern char D_003DD490[];
 extern char D_003D9ED0[];
 extern const struct LONGU D_002A6D88;
 int IsSwTransitionBusy(void *g);
@@ -1563,9 +1551,9 @@ void CMemcardDialog_Update(struct S *dialog)
     c = child->request;
     if (c != 2)
         return;
-    if (IsSwTransitionBusy(D_003DD490))
+    if (IsSwTransitionBusy(&g_sw))
         return;
-    if (D_002DDED0.realTime - dialog->child->stateTime <= 0.1f)
+    if (g_clock.realTime - dialog->child->stateTime <= 0.1f)
         return;
     buttonKind = GetMcDialogButtonKind(dialog);
     if (buttonKind != 1) {
@@ -1597,14 +1585,14 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x15:
     case 0x18:
     case 0x2E:
-        if (D_002E65E0.nState != 6)
+        if (g_save.nState != 6)
             return;
         ClearMcDialogState(dialog);
         return;
     case 0x13:
         if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
-        if (!D_002E65E0.memcard.jobResult) {
+        if (!g_save.memcard.jobResult) {
             CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
             SetMcDialogState(dialog, 0x16);
         } else
@@ -1613,7 +1601,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x16:
         if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
-        if (!D_002E65E0.memcard.jobResult) {
+        if (!g_save.memcard.jobResult) {
             ClearMcDialogState(dialog);
             return;
         }
@@ -1622,7 +1610,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x1A:
         if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
-        if (!D_002E65E0.memcard.jobResult) {
+        if (!g_save.memcard.jobResult) {
             ClearMcDialogState(dialog);
             switch (dialog->followUpAction) {
             case 1:
@@ -1642,8 +1630,8 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x21:
         if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
-        D_002E65E0.selectedSlot = 0;
-        if (!D_002E65E0.memcard.jobResult) {
+        g_save.selectedSlot = 0;
+        if (!g_save.memcard.jobResult) {
             ClearMcDialogState(dialog);
             return;
         }
@@ -1652,7 +1640,6 @@ void CMemcardDialog_Update(struct S *dialog)
     }
 }
 } } // namespace M_CMemcardDialog_Update
-extern SAVE D_002E65E0;
 
 namespace M_func_001ACFE0 {
 // Game-state transition handler: switch on the new state id (state) and run the menu/HUD hooks for it.
@@ -1667,8 +1654,7 @@ extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);            // CRef copy c
 class O;
 struct S { char pad[0x40]; int state; int phase; float tPhase; int followUpAction; };   // the memcard dialog
 extern "C" {
-extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
-extern char D_002E65E0[];
+extern char D_003DA530[], D_003D9ED0[];
 
 int IsScreenShown(void *p);
 int IsPauseMenuOnLoadPageA(void *p);
@@ -1684,7 +1670,7 @@ void OnMcDialogChoice(S *s);
 CRef SetGlobalSaveVar(O *, const CRef &, void *);                   // O::Set(const CRef &, context), returns a CRef
 }
 // Store a script reference into a global save variable.
-static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(po, arg, D_003D4A60); }
+static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(po, arg, &g_gs); }
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
 void OnMcDialogChoice(S *dialog)
 {
@@ -1714,19 +1700,18 @@ void OnMcDialogChoice(S *dialog)
         {
             O *po = (*(O * *)&g_sw.psvpAutosaveWarned);
             CRef ref(true);
-            SetPv(po, ref, D_003D4A60);
+            SetPv(po, ref, &g_gs);
         }
         if (dialog->followUpAction < 4) {
             if (dialog->followUpAction > 0) {
                 SetMcDialogState(dialog, 0x1A);
-                StartSaveSlotJob(D_002E65E0);
+                StartSaveSlotJob(&g_save);
             }
         }
         break;
     }
 }
 } // namespace M_func_001ACFE0
-extern SAVE D_002E65E0;
 
 namespace M_func_001AD168 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
@@ -1761,7 +1746,6 @@ void ConfirmMcDialog(struct S *dialog)
 
 namespace M_func_001AD250 { extern "C" {
 struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
-extern SAVE D_002E65E0;
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
 void Decref__4CRef(CRefData *);
 void ResetSaveGs(SAVESLOT *b, int n);
@@ -1773,15 +1757,15 @@ void SetSndSourceLo(void *p, int n);
 void StartNewGameInSlot(struct S *item)
 {
     CRefData ref;
-    SAVESLOT *slot = &D_002E65E0.aslot[item->slotIndex];
+    SAVESLOT *slot = &g_save.aslot[item->slotIndex];
     float dt;
     GetGlobalSaveVar(&ref, g_sw.psvpDt, slot);
     dt = ref.u.g;
     Decref__4CRef(&ref);
     if (dt == 0.0f) {
-        D_002E65E0.currentSlot = slot;
+        g_save.currentSlot = slot;
         ResetSaveGs(slot, 1);
-        StartGameFromSave(D_002E65E0.currentSlot);
+        StartGameFromSave(g_save.currentSlot);
     } else {
         SetSndSourceLo(CreateSfxSound(0x36), 0);
         if (item)
@@ -1789,11 +1773,9 @@ void StartNewGameInSlot(struct S *item)
     }
 }
 } } // namespace M_func_001AD250
-extern SAVE D_002E65E0;
 
 namespace M_func_001AD320 { extern "C" {
 struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
-extern SAVE D_002E65E0;
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
 void Decref__4CRef(CRefData *);
 void ResetSaveGs(SAVESLOT *b, int n);
@@ -1802,15 +1784,15 @@ void StartGameFromSave(SAVESLOT *b);
 void LoadGameFromSlot(struct S *item)
 {
     CRefData ref;
-    SAVESLOT *slot = &D_002E65E0.aslot[item->slotIndex];
+    SAVESLOT *slot = &g_save.aslot[item->slotIndex];
     float dt;
     GetGlobalSaveVar(&ref, g_sw.psvpDt, slot);
     dt = ref.u.g;
     Decref__4CRef(&ref);
-    D_002E65E0.currentSlot = slot;
+    g_save.currentSlot = slot;
     if (dt == 0.0f) {
         ResetSaveGs(slot, 1);
-        StartGameFromSave(D_002E65E0.currentSlot);
+        StartGameFromSave(g_save.currentSlot);
     } else {
         StartGameFromSave(slot);
         if (item)
@@ -1818,13 +1800,10 @@ void LoadGameFromSlot(struct S *item)
     }
 }
 } } // namespace M_func_001AD320
-extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
 struct H { char pad[0x4C]; int followUpAction; };
-extern SAVE D_002E65E0;
 extern struct H D_002E6550;
-extern char D_003D4A60[];
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
 void Decref__4CRef(CRefData *);
 void SetMcDialogState(struct H *h, int n);
@@ -1832,13 +1811,13 @@ void StartSaveSlotJob(SAVE *g);
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
 void SaveToCurrentSlot(void)
 {
-    SAVE *saveManager = &D_002E65E0;
+    SAVE *saveManager = &g_save;
     struct H *dialog = &D_002E6550;
     CRefData ref;
     int isWarned;
     saveManager->currentSlot = saveManager->selectedSlot;
     dialog->followUpAction = 2;
-    GetGlobalSaveVar(&ref, g_sw.psvpAutosaveWarned, D_003D4A60);
+    GetGlobalSaveVar(&ref, g_sw.psvpAutosaveWarned, &g_gs);
     isWarned = ref.u.n;
     Decref__4CRef(&ref);
     if (!isWarned) {
@@ -1849,12 +1828,10 @@ void SaveToCurrentSlot(void)
     }
 }
 } } // namespace M_func_001AD3E0
-extern SAVE D_002E65E0;
 
 namespace M_func_001AD480 { extern "C" {
 struct H { char pad[0x4C]; int followUpAction; };
 struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
-extern SAVE D_002E65E0;
 extern struct H D_002E6550;
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
 void Decref__4CRef(CRefData *);
@@ -1864,12 +1841,12 @@ void SaveToCurrentSlot(void);
 void SelectSaveSlotToSave(struct S *item)
 {
     CRefData ref;
-    SAVESLOT *slot = &D_002E65E0.aslot[item->slotIndex];
+    SAVESLOT *slot = &g_save.aslot[item->slotIndex];
     float dt;
     GetGlobalSaveVar(&ref, g_sw.psvpDt, slot);
     dt = ref.u.g;
     Decref__4CRef(&ref);
-    D_002E65E0.selectedSlot = slot;
+    g_save.selectedSlot = slot;
     if (dt == 0.0f)
         SaveToCurrentSlot();
     else
@@ -1878,16 +1855,13 @@ void SelectSaveSlotToSave(struct S *item)
         item->flags |= 2;
 }
 } } // namespace M_func_001AD480
-extern SAVE D_002E65E0;
 
 namespace M_func_001AD538 {
 extern "C" void Decref__4CRef(CRef *);
 struct E { char pad[0x14]; int selectedIndex; int pad2[1]; };   /* a pause menu page */
 struct H { char pad[0x24]; int topPage; };   /* the pause menu: index of the top page */
 extern "C" {
-extern SAVE D_002E65E0;
 extern char D_002E6550[];
-extern SW D_003DD490;
 extern struct H D_003D9ED0;
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
@@ -1910,7 +1884,7 @@ extern "C" void UpdateSaveMenuSlots(void)
     {
         SAVESLOT *slot = g_save.aslot;
         for (i = 0; i < 3; i++, slot++) {
-            isUsed[i] = EvalSaveVar(D_003DD490.psvpDt, slot);
+            isUsed[i] = EvalSaveVar(g_sw.psvpDt, slot);
         }
     }
     switch (GetPauseMenuTopPageId(&D_003D9ED0)) {
@@ -1937,13 +1911,12 @@ extern "C" void UpdateSaveMenuSlots(void)
         }
         break;
     case 0x19:
-        if (D_002E65E0.currentSlot)
-            page->selectedIndex = D_002E65E0.currentSlot - D_002E65E0.aslot;
+        if (g_save.currentSlot)
+            page->selectedIndex = g_save.currentSlot - g_save.aslot;
         break;
     }
 }
 } // namespace M_func_001AD538
-extern SAVE D_002E65E0;
 #undef D_003D9EDC
 
 namespace M_func_001AD740 { extern "C" {
@@ -1979,7 +1952,7 @@ void SetSaveSlotLabel(struct S *item)
 /* Dynamic text: the card name. */
 extern "C" void FormatMcCardNameText(char *pch)
 {
-    strcpy(pch, FindSwLocalizedString(&D_003DD490, ::D_002E6550.state));
+    strcpy(pch, FindSwLocalizedString(&g_sw, ::D_002E6550.state));
 }
 
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
@@ -1991,7 +1964,7 @@ void p_func_001ABC68() __asm__("McJobSaveSlotResetGs");
 extern const unsigned int r_D_002A6E90[2] __asm__("D_002A6E90") = {0xFFFF0000, (unsigned int)p_func_001ABC68};
 }
 namespace M_func_001AD820 { extern "C" {
-extern char D_002E6550[], D_003DD490[];
+extern char D_002E6550[];
 int GetMcDialogButtonKind(void *p);
 char *FindSwLocalizedString__FP2SWi(void *p, int n);
 void strcpy1(char *a, const char *b);
@@ -2001,13 +1974,13 @@ void FormatMcDialogText(char *buf)
     switch (GetMcDialogButtonKind(D_002E6550)) {
     case 1:
         strcpy(buf, "&2S&.: ");
-        strcpy1(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0x38));
+        strcpy1(buf, FindSwLocalizedString__FP2SWi(&g_sw, 0x38));
         break;
     case 2:
         strcpy(buf, "&2S&. : ");
-        strcpy1(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0x36));
+        strcpy1(buf, FindSwLocalizedString__FP2SWi(&g_sw, 0x36));
         strcpy1(buf, "       ");
-        strcpy1(buf, FindSwLocalizedString__FP2SWi(D_003DD490, 0x37));
+        strcpy1(buf, FindSwLocalizedString__FP2SWi(&g_sw, 0x37));
         strcpy1(buf, " : &2T&.");
         break;
     }
@@ -2017,12 +1990,11 @@ void FormatMcDialogText(char *buf)
 // Dynamic text (string 0x5CB) of the save page. (inferred: content not identified)
 extern "C" void FormatSavePageTextA(char *pch)
 {
-    strcpy(pch, FindSwLocalizedString(&D_003DD490, GetPauseMenuTopPageId(D_003D9ED0)));
+    strcpy(pch, FindSwLocalizedString(&g_sw, GetPauseMenuTopPageId(D_003D9ED0)));
 }
 
 namespace M_func_001AD980 { extern "C" {
-extern SW D_003DD490;
-extern char D_003DA530[], D_003D4A60[];
+extern char D_003DA530[];
 int IsScreenShown(void *p);
 void *GetBestEpisode(void);
 int GetWorldNameTextId(void *p);
@@ -2037,9 +2009,9 @@ void FormatSaveCompletionText(char *buf)
     if (IsScreenShown(D_003DA530))
         return;
     fmt = "%s : %d%%";
-    world = &D_003DD490;
+    world = &g_sw;
     episodeName = FindSwLocalizedString(world, GetWorldNameTextId(GetBestEpisode()));
-    sprintf(buf, fmt, episodeName, GetCompletionPercent(&world->savevars, D_003D4A60));
+    sprintf(buf, fmt, episodeName, GetCompletionPercent(&world->savevars, &g_gs));
 }
 } } // namespace M_func_001AD980
 
@@ -2049,7 +2021,6 @@ struct G { int pad[9]; int topPage; };
 extern struct G D_003D9ED0;
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
-extern SW D_003DD490;
 int IsPauseMenuOnSavePage(struct G *g);
 int GetPauseMenuTopPageId(struct G *g);
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b);
@@ -2065,7 +2036,7 @@ void FormatSavePageTextB(char *buf)
     float isUsed;
     if (!IsPauseMenuOnSavePage(menu))
         return;
-    world = &D_003DD490;
+    world = &g_sw;
     {
     struct E *page = &D_003D9EDC[menu->topPage];
     GetGlobalSaveVar(&ref, world->psvpDt, &g_save.aslot[page->selectedIndex]);
@@ -2098,7 +2069,7 @@ void FormatSavePageTextB(char *buf)
 #undef D_003D9EDC
 
 namespace M_func_001ADBB8 { extern "C" {
-extern char D_003D9ED0[], D_003DD490[];
+extern char D_003D9ED0[];
 int GetPauseMenuTopPageId(void *p);
 void *FindSwLocalizedString__FP2SWi(void *p, int n);
 void strcpy(void *s, void *q);
@@ -2110,7 +2081,7 @@ void FormatSaveTimeText(void *s)
     case 0x19:
     case 0x1E:
     case 0x1F:
-        strcpy(s, FindSwLocalizedString__FP2SWi(D_003DD490, 0x40));
+        strcpy(s, FindSwLocalizedString__FP2SWi(&g_sw, 0x40));
         strcpy1(s, (char *)" : &2T&.");
         break;
     }
@@ -2120,7 +2091,6 @@ void FormatSaveTimeText(void *s)
 namespace M_func_001ADC40 {
 /* (Claude agent, 2026-10-17) frame pointer copy pf used only for the push call reproduces the a0->s5 copy. */
 extern "C" {
- extern SW D_003DD490;
   extern char D_003D9ED0[];
  void*GetGlobalSaveVar(CRefData*,void*,void*);
  void Decref__4CRef(CRefData*);
@@ -2140,14 +2110,14 @@ static inline int GetN(CRefData&r,void*a,SAVESLOT*b){GetGlobalSaveVar(&r,a,b);in
 // Per-slot text (strings 0x5CF..0x5D1): the slot's episode and completion percentage.
 extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
  CRefData ref;
- SW*pg=&D_003DD490;
+ SW*pg=&g_sw;
  SAVESLOT*pb=&g_save.aslot[idx];
  if(GetG(ref,pg->psvpDt,pb)!=0.0f){
   int frame[4];int*pf=frame;STACKSCOPE_ctor(pf);
   void*value=AllocSaveKey((char *)"episodeBest",0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->psvpEpisodeCurrent,pb);
-  sprintf(buf,"%s : %d%%",(char*)FindSwLocalizedString(&D_003DD490,GetWorldNameTextId(tag)),GetCompletionPercent(&D_003DD490.savevars,pb));
+  sprintf(buf,"%s : %d%%",(char*)FindSwLocalizedString(&g_sw,GetWorldNameTextId(tag)),GetCompletionPercent(&g_sw.savevars,pb));
   STACKSCOPE_ctor_1AE4A0(frame,2);
  }else{
   switch(GetPauseMenuTopPageId(D_003D9ED0)){
@@ -2208,7 +2178,7 @@ extern "C" void CMcStatus_Update(MCDLG *dialog)
     UpdateTimedScreen(dialog);
     pchild = dialog->pchild;
     if (pchild != 0) {
-        if (pchild->state == 2 && pchild->request == pchild->state && D_002DDED0.realTime - pchild->stateTime > 1.0f &&
+        if (pchild->state == 2 && pchild->request == pchild->state && g_clock.realTime - pchild->stateTime > 1.0f &&
             IsMemcardThreadValid(&g_save.memcard) == 0) {
             HideMcDialogWidget(dialog);
         }
@@ -2222,7 +2192,7 @@ void CMcStatus::SetMode(int nMode)
     MCDLG *dialog = (MCDLG *)this;
     if (nMode != dialog->nMode) {
         dialog->nMode = nMode;
-        dialog->tMode = D_002DDED0.realTime;
+        dialog->tMode = g_clock.realTime;
     }
 }
 

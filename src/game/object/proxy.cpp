@@ -43,7 +43,6 @@ int IsLoInWorld(LO *plo);
 }
 int GetSourceIndexFromProxyId(int id);
 int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare);
-extern SW D_003DD490;
 
 
 
@@ -184,7 +183,7 @@ extern "C" OID GetOidFromProxyId(int id)
 {
     PROXYSRC *psrc;
     if (GetCopyIndexFromProxyId(id) == -1) return (OID)-1;
-    psrc = &D_003DD490.aproxysrc[GetSourceIndexFromProxyId(id)];
+    psrc = &g_sw.aproxysrc[GetSourceIndexFromProxyId(id)];
     return psrc->aoid[GetCopyIndexFromProxyId(id)];
 }
 
@@ -192,7 +191,6 @@ extern "C" OID GetOidFromProxyId(int id)
 namespace M_func_001C99D8 { extern "C" {
 struct N { int id; struct N *pnParent; int oid; int unknownC; int unknown10; struct N *pnNext; struct DL dl; int pad; };
 struct AL { int cb; int cbAlign; };
-extern char D_003DD490[];
 void *AllocClearedFromWorldHeap(const struct AL *pal);
 void InitSl(struct DL *pdl, int ib);
 int GetOidFromProxyId(int id);
@@ -224,7 +222,7 @@ again:
         InitSl(&pn->dl, 0x14);
         pn->id = aid[i];
         pn->oid = GetOidFromProxyId(pn->id);
-        AppendSlEntry(GetSwProxyRefBucket(D_003DD490, pn->oid), pn);
+        AppendSlEntry(GetSwProxyRefBucket(&g_sw, pn->oid), pn);
         pn->pnParent = pnParent;
         AppendSlEntry(&pnParent->dl, pn);
         pnParent = pn;
@@ -477,7 +475,6 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
 
 
 
-extern SW D_003DD490;
 
 
 
@@ -487,7 +484,7 @@ PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("FindProxyRefPath");
 // The world's proxy source for proxy id idProxy.
 inline PROXYSRC *PproxysrcFromIdProxy(int idProxy)
 {
-    return &D_003DD490.aproxysrc[GetSourceIndexFromProxyId(idProxy)];
+    return &g_sw.aproxysrc[GetSourceIndexFromProxyId(idProxy)];
 }
 // LO slot 25: move the object to proxy id idProxy in the world's proxy-reference tree (detaching it from its old path
 // and claiming the new one where the source has a single object), optionally for its children too.
@@ -505,7 +502,7 @@ void LO::SetIdProxy(int idProxy, int fChildren)
         aid[--cid] = ppxrIter->proxyId;
     }
     aid[--cid] = idProxy;
-    PXR *ppxrNew = FindPxr(D_003DD490.ppxrRoot, 16 - cid, &aid[cid]);
+    PXR *ppxrNew = FindPxr(g_sw.ppxrRoot, 16 - cid, &aid[cid]);
     for (ppxrIter = proxyRecord; ppxrIter->proxyId != -1; ppxrIter = ppxrIter->parent)
     {
         if (ppxrIter->object == this)
@@ -700,7 +697,7 @@ void EnsureSwCallback(SW *world, LO *plo, long cb, int n);
 extern "C" void OnProxyAdd(PROXY *proxy)
 {
     OnLoAdd(proxy);
-    if (!proxy->unknownE4) EnsureSwCallback(&D_003DD490, proxy, D_002A77C0.l, 0);
+    if (!proxy->unknownE4) EnsureSwCallback(&g_sw, proxy, D_002A77C0.l, 0);
 }
 
 // Returns the copy index of a spare: its index in the source's spare array past the source's placed copies.
@@ -902,7 +899,6 @@ struct DESC {int kind,flags;char pad8[0x20];};
 struct STREAM {int flags;unsigned char *cursor;int remaining,consumed;unsigned char *raw;int rawCount,compression,pending,word20;unsigned char *decompressed;int word28,word2C;VTE *vt;void *begin,*end;};
 struct WORK {int id;P *found,*child;void *cursor;P *owner;};
 extern "C" {
-extern SW D_003DD490;
 extern DESC D_002AC880[];
 NODE *ChooseProxySpare(P *,int);
 void ReleaseProxySpare__FP5PROXYP10PROXYSPARE(P *,NODE *);
@@ -942,13 +938,13 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
  work.owner=proxy;
  node->matrix=proxy->matrix;
  int row=GetCopyIndexFromProxySpare__FP5PROXYP10PROXYSPARE(proxy,node);
- work.id=MakeProxyId__Fii(proxy->table-((TABLE *)D_003DD490.aproxysrc),row);
- TREE *tree=FindProxyRefPath(((TREE *)D_003DD490.ppxrRoot),1,&work.id);
+ work.id=MakeProxyId__Fii(proxy->table-((TABLE *)g_sw.aproxysrc),row);
+ TREE *tree=FindProxyRefPath(((TREE *)g_sw.ppxrRoot),1,&work.id);
  for(int i=0;i<proxy->bindCount;i++){
   BIND *bind=&proxy->binds[i];
   if(bind->kind==5)continue;
   if(bind->kind==6){work.found=tree->owner;if(!work.found)continue;}
-  else if(FindSwObjectsInProxyScope(&D_003DD490,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
+  else if(FindSwObjectsInProxyScope(&g_sw,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
   bind->object=work.found;
   CMemInputStream_ctor(&stream);
   SetMemInputStreamBuffer(&stream,bind->begin,bind->end,0);

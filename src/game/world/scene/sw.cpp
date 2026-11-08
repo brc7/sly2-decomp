@@ -28,6 +28,9 @@
 #include "sly2/scrap.h"
 #include "sly2/cref.h"
 #include "sly2/hud.h"
+#include "sly2/clock.h"
+#include "sly2/game.h"
+#include "sly2/sndmgr.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -223,7 +226,7 @@ int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; retu
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
-extern char D_002DEB30[], D_003D9E70[], D_003DD040[];
+extern char D_003D9E70[];
 
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
@@ -242,7 +245,7 @@ void FreeSw__Fv(void);
 // manager, clears about 15 global object pointers and frees the world's memory.
 void DeleteSw(SW *world)
 {
-    void *pv = D_002DEB30;
+    void *pv = &g_game;
     BroadcastGameEvent(pv, 1, 0);
     if (world->ploJobFailed) {
         AbortJob(world->ploJobFailed);
@@ -252,7 +255,7 @@ void DeleteSw(SW *world)
     DeleteSwSplice(world);
     ClearGameDifficulty(pv);
     ResetCameraPolicies(&g_cm);
-    ResetSndmgr(D_003DD040);
+    ResetSndmgr(&g_sndmgr);
     ClearShaderGsState();
     SetRumbleRums__FP6RUMBLE4RUMS(&g_joy.rumble, 3);
     D_002E1E40 = 0;
@@ -276,7 +279,6 @@ void DeleteSw(SW *world)
 namespace M_func_0020E180 { extern "C" {
 struct MSG { int cb; int nKind; };
 struct ZPR { char ab[0x630]; };
-extern char D_002DEB30[];
 void *AllocFromWorldHeap(struct MSG *pmsg);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void InitSl(void *p, int n);
@@ -312,7 +314,7 @@ void InitSwLoadBuffers(SW *world)
         InitRenderTargets(&world->artgt[j], &zpr);
     if (world->transition.flags & 0x20)
         world->unknown3E38 = 1;
-    BroadcastGameEvent(D_002DEB30, 2, 0);
+    BroadcastGameEvent(&g_game, 2, 0);
 }
 } } // namespace M_func_0020E180
 
@@ -376,7 +378,6 @@ struct SLOT
 {
       SLOT *pslotNext;
 };
-extern GAME D_002DEB30;
 struct GRABSPOTDATA
 {
       TN *ptn;
@@ -415,12 +416,11 @@ struct SVPATH
 int GetCurrentLevelIndex();
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 extern int D_002E1E54;
-extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
 extern "C" SVPATH *NewSaveKey(const char *pchz, ...);
 extern "C" CRef SetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
 // Store a script reference into a global save variable.
-inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetGlobalSaveVar(psvp, ref, &D_003D4A60); }
+inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetGlobalSaveVar(psvp, ref, &g_gs); }
 // Store an int into a global save variable.
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
@@ -460,11 +460,11 @@ void ResolveSwSaveVars(SW *world)
     SetSaveVarInt(world->psvpEpisodeCurrent, GetCurrentWorld());
     if (GetCurrentWorld() > GetBestEpisode())
         SetSaveVarByName(CRef(GetCurrentWorld(), 0x15), "episodeBest", 0);
-    BroadcastGameEvent(&D_002DEB30, 3, 0);
+    BroadcastGameEvent(&g_game, 3, 0);
 }
 
 namespace M_PostSwLoad { extern "C" {
-extern char D_002DEB30[], D_003D9E70[];
+extern char D_003D9E70[];
 void PrimeSlotheap(void *p);
 void CreateSwScreenTint(SW *psw);
 void SelectSwMainMs(SW *psw);
@@ -480,7 +480,6 @@ void PostLoadScreens(void *p);
 void ProcessSwCallbacks(SW *psw);
 void BuildPathzoneLinkLists(void *p);
 void SetupCm__FP2CM(void *p);
-void BroadcastGameEvent(void *p, int a, int b);
 
 // After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
 // until the queue is empty, resets the camera and runs game callback 4.
@@ -513,7 +512,7 @@ void PostSwLoad(SW *world)
     world->unknown39D0 = 0;
     BuildPathzoneLinkLists(world->pregtree);
     SetupCm__FP2CM(&g_cm);
-    BroadcastGameEvent(D_002DEB30, 4, 0);
+    BroadcastGameEvent(&g_game, 4, 0);
 }
 } } // namespace M_PostSwLoad
 
@@ -525,7 +524,7 @@ struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct FRAME;
 struct STREAM;
-extern "C" { extern char D_002DDED0[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
+extern "C" { extern char D_002F7980[], D_002F66B0[], D_00443740[], D_002E1E88[]; }
 extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
 extern "C" {
 void FlushFrames__Fi(int);
@@ -571,7 +570,7 @@ struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
 extern "C" CRef GetSaveVarByName(const char *,...);
 // The frame clock's current time.
-static inline float Time(){return *(float *)D_002DDED0;}
+static inline float Time(){return g_clock.time;}
 // True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
 static inline int Same(const FILEREC *a,const FILEREC *b){if(a==b)return true;if(!b)return false;return (a->aw[2]^a->aw[14])==(b->aw[2]^b->aw[14]);}
 // Build the file decryption key from its header (kind 2, name = (w0 ^ w13) + 0xCA0, tag = w1 ^ w15); returns whether
@@ -622,7 +621,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
     DeleteSw(world);
-    ResetClock(D_002DDED0);
+    ResetClock(&g_clock);
     AddGrfusr__Fi(8);
     func_002333B4(&g_sw,0,sizeof(SW));
     func_002333B4(&g_sw,0,sizeof(SW));
@@ -666,7 +665,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     }
     UpdateCmLast__FP2CM(&g_cm);
     CutCm__FP2CM(&g_cm);
-    BroadcastGameEvent(D_002DEB30,5,0);
+    BroadcastGameEvent(&g_game,5,0);
     ClearPhase(2);
     ResumeWipeAfterLoad(D_00443740);
     if(!hasFile)RunNextStartupStep(D_002E1E88);
@@ -1023,7 +1022,6 @@ void BindSwTimerHud(SW *world)
 } } // namespace M_func_0020F710
 
 namespace M_func_0020F7E0 { extern "C" {
-extern CLOCK D_002DDED0;
 extern char D_002C3E88[];
 extern float D_002C3E80;
 int IsWidgetVisible(WIDGET *widget);
@@ -1051,11 +1049,11 @@ void UpdateSwTimerHud(SW *world)
             e->dyVel = 0.0f;
             e->shouldSnap = 0;
         } else {
-            o->xform->a[5] = SmoothValueWithAccel__FffffP4SMPAPf(o->xform->a[5], e->dyVel, t, D_002C3E88, &e->dyVel, D_002DDED0.deltaTime);
+            o->xform->a[5] = SmoothValueWithAccel__FffffP4SMPAPf(o->xform->a[5], e->dyVel, t, D_002C3E88, &e->dyVel, g_clock.deltaTime);
         }
         t += D_002C3E80;
         if (i == 3) {
-            float remaining = -D_002DDED0.time + world->hudTimerEndTime;
+            float remaining = -g_clock.time + world->hudTimerEndTime;
             int n;
             remaining = (0.0f > remaining) ? 0.0f : remaining;
             n = (int)remaining;
@@ -1779,7 +1777,6 @@ namespace M_func_00210BE0 { extern "C" {
 typedef struct { char *pch; char *pchOut; } ENT;
 typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
 typedef struct { int a[4]; } ALLOC;
-extern SW D_003DD490;   /* (inferred) nonzero when a language table is loaded */
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
 extern char *FindSwLocalizedString__FP2SWi(SW *, char *);
 extern int strlen_(char *) __asm__("strlen");
@@ -1790,12 +1787,12 @@ void LocalizeSwStringTable(TBL *table)
 {
     ALLOC heap;
     int i;
-    if (D_003DD490.clangstr == 0)
+    if (g_sw.clangstr == 0)
         return;
     __11CLinearHeapiPUc(&heap, table->heapSize, table->heapBuffer);
     for (i = 0; i < table->c; i++) {
         ENT *e = &table->a[i];
-        e->pchOut = FindSwLocalizedString__FP2SWi(&D_003DD490, e->pch);
+        e->pchOut = FindSwLocalizedString__FP2SWi(&g_sw, e->pch);
         if (strlen_(e->pchOut))
             e->pchOut = PchzAllocCopy__FP4HEAPPci(&heap, e->pchOut, 4);
         else
