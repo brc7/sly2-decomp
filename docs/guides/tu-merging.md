@@ -870,6 +870,26 @@ func_0018DF60, tu_1D1370 robot tank, tu_17F090) or whose calls are inside asm (m
 screen/memcard/game widget Show/Hide calls (WIDGET slot 49 takes an int, classes.h) and the screen objects' own slots
 10/11 (screen family).
 
+### Views unified (names/vu-f1-base-5s): base family, round 5
+
+Re-applied on top of the other families' rounds, including the HUD round and the cross-family signature pass (the earlier attempts, names/vu-f1-base-5 and -5r, conflicted with them).
+Same checks as round 4 (MATCH, identical relocations by symbol name, identical `nm -S`), run on all 210 game sources
+because basic.h and so.h changed.
+
+| change | where | how |
+|---|---|---|
+| private vtable-entry records (`struct VTE { short d; short pad; void (*pfn)(...); };`, also named VE/VT/PRGVT, with `delta`/`fn`/`pf` spellings, the `{entry} a[N]` arrays, the one- and two-slot records padded to slot k, and the per-slot record unions of grab.cpp and tu_223F70) | about 70 sources | one shared `VTE` in basic.h (`void *pfn`). A call that went through a typed `pfn` now casts it to exactly that type, `((void (*)(void *, int))p->vt[49].pfn)(...)`; a padded record becomes the slot index (pad / 8). Their offset asserts were dropped (basic.h asserts the size) |
+| GLOBSET +0x2C/+0x30/+0x34 | so.h, glob.cpp, so.cpp | `numShaderOids`, `shaderOids`, `selectedShader` (glob.cpp loads the oid list and builds shader unpacks from it; SetSoAnimIndex stores -(index + 3)); SetSoAnimIndex/ClearSoAnimIndex take SO |
+| XF +0xA8 and +0xC0..+0xFF | so.h | +0xA8 is a union by role: `reference`, `arrivalTime` (roles 9/0x11), `plink` (CHAINLINK), `pikrec` (IKREC), `pconstr` (XFMCONSTR); +0xC0 a union of the old `restValue/rate/unknownE0/acceleration`, the phase-1 control values `segmentStart/segmentStartTangent/segmentEnd/segmentEndTangent` and `rotationRows[4]`, with offset asserts. SO::Clone's chain case uses `plink` |
+| base views replaced by the header type | so.cpp (SetSoAnimIndex, MatchSoXf), proxy.cpp (SO_Slot27), glob.cpp (BindGlobset: SO and XF) | real fields (children, ploRemovedFirst, model, psobounds, physics->pregent, siblingLink, worldMatrix) and real virtual calls (Get/SetVelocity, Get/SetAngularVelocity, OnProxyRelease, GetXfFromIndex); game.cpp ApplyStateLoVisibility and so.cpp RenderSoAll were already on the header types |
+
+Measured (scratch metrics.py over src/game): definitions 3,382 -> 3,241; family-named views 249 -> 246; padded views
+284 -> 281; 78 files, +453/-728.
+
+Left, with the reason: blend.cpp's VTE (the file does not include basic.h); memcard's PMF records (pointers to member,
+not vtable entries); throw.cpp's VE (one entry record, a union of several function types); the private records of
+prize.cpp and grabspot.cpp (left for a follow-up because another agent is editing those files).
+
 ### Views unified (names/vu-f5-camera): the camera family
 
 The private views of CM, the camera policies (CPLCY, CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT,
