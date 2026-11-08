@@ -121,7 +121,6 @@ struct WORK468 { V a, b; MARK mark __attribute__((aligned(16))); REQ msg __attri
 
 extern qwordV D_002A2DA0;
 extern "C" {
-extern SW D_003DD490;
 extern qwordV D_002A2DC0, D_002A2DD0;
 extern M3 D_002A2D00;
 void InitSo(SOW *p);
@@ -269,7 +268,7 @@ extern "C" void UpdateSwXaList(SOW *unused, N **link)
         }
         node = nextNode;
     }
-    FreeSwXaList(&D_003DD490, freeList);
+    FreeSwXaList(&g_sw, freeList);
 }
 
 // Track collider membership and emit contact and impact events.
@@ -300,7 +299,7 @@ extern "C" void UpdateWater(SOW *water){
   if(GetWaterSubmergedFraction(water,object,0,0)==0.0f)continue;
   object->flags|=0x100000000L;
   if(object->flags&0x80000000L)continue;
-  {register SW*world __asm__("$4")=&D_003DD490;node=AllocSwXa(world);}
+  {register SW*world __asm__("$4")=&g_sw;node=AllocSwXa(world);}
   node->owner=water;node->object=object;node->next=water->first;water->first=node;
   if(!water->recipient)continue;
   work.scratch.velocity.q=Velocity(object);
@@ -357,7 +356,7 @@ extern "C" void RemoveWaterHierarchy(SOW *water)
     N *node;
     RemoveSoHierarchy(water);
     for (node = water->first; node; node = node->next) RemoveSoXa(node->object, node);
-    FreeSwXaList(&D_003DD490, water->first);
+    FreeSwXaList(&g_sw, water->first);
     water->first = 0;
 }
 
@@ -390,7 +389,7 @@ extern "C" void HandleWaterMessage(SOW *water, int message, SOW *sender)
         if (node) {
             node->next = 0;
             RemoveSoXa(node->object, node);
-            FreeSwXaList(&D_003DD490, node);
+            FreeSwXaList(&g_sw, node);
         }
         pair.object->vt[4].f.signal((char *)pair.object + pair.object->vt[4].delta, 5, &pair);
     }

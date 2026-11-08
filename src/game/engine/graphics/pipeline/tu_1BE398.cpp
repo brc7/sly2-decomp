@@ -65,7 +65,6 @@ struct POV : PO { char pad180[0xF40 - 0x180]; POV *controlled; };   /* (inferred
 int D_002C0B28[26] = {-1, -1, -1, 15, 15, 16, 16, -1, -1, 17, -1, -1, -1, -1, -1, 15, 16, 17, 15, 16, 17, -1, 15, 16, 17, -1};
 int D_002C0B90[26] = {-1, -1, -1, 18, 18, 19, 19, -1, -1, 20, -1, -1, -1, -1, -1, 18, 19, 20, 18, 19, 20, -1, 18, 19, 20, -1};
 int *D_002C0BF8[2] = {D_002C0B28, D_002C0B90};
-extern SW D_003DD490;
 extern "C" {
 extern V3 D_002C1F00,D_002C1F10;
 M3*GetLoWorldMatrix(RTCAM*);
@@ -359,15 +358,15 @@ extern "C" void FindObjectForRenderTarget(int id)
 {
     switch (id) {
     case 0x2AE:{
-        POV*object=Get(GetHeroPo(&D_003DD490));
-        (void)FindSwObject(&D_003DD490,1,(OID)id,(LO *)object);
+        POV*object=Get(GetHeroPo(&g_sw));
+        (void)FindSwObject(&g_sw,1,(OID)id,(LO *)object);
         break;
     }
     case 0x2AF:
-        (void)FindSwObject(&D_003DD490, 1, (OID)0x2AF, (LO *)GetHeroPo(&D_003DD490));
+        (void)FindSwObject(&g_sw, 1, (OID)0x2AF, (LO *)GetHeroPo(&g_sw));
         break;
     default:
-        (void)FindSwObject(&D_003DD490, 0x405, (OID)id, 0);
+        (void)FindSwObject(&g_sw, 0x405, (OID)id, 0);
         break;
     }
 }

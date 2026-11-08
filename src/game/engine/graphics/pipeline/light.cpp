@@ -33,7 +33,6 @@ typedef char Size_NODE[sizeof(CELL) == 32 ? 1 : -1];
 struct M3R { qword r[3]; };
 struct SPHERE { qword pos; float sRadius; int pad[3]; };
 
-extern SW D_003DD490;
 extern "C" {
 extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern VIFS D_002DEA28;
@@ -153,13 +152,13 @@ extern "C" void RemoveLightHierarchy(LIGHT *light) {
 // LIGHT vt22: LO OnRemove then RemoveLightFromSw (free tree slot)
 extern "C" void OnLightRemove(LIGHT *light) {
     OnLoRemove(light);
-    RemoveLightFromSw(&D_003DD490, light);
+    RemoveLightFromSw(&g_sw, light);
 }
 
 // LIGHT vt23: LO OnAdd then AddLightToSw (alloc slot, insert into light tree)
 extern "C" void OnLightAdd(LIGHT *light) {
     OnLoAdd(light);
-    AddLightToSw(&D_003DD490, light);
+    AddLightToSw(&g_sw, light);
 }
 
 // LIGHT vt29: XFM TranslateToPos then RebuildLight. (inferred)
@@ -324,7 +323,7 @@ void RebuildLight(LIGHT *light)
 // relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.fLightTreeDirty). (inferred)
 void InvalidateLight(LIGHT *light)
 {
-    if (!light->isDynamic) D_003DD490.relightStamp++;
+    if (!light->isDynamic) g_sw.relightStamp++;
     if (!light->isStatic && light->kind) g_sw.fLightTreeDirty = 1;
 }
 

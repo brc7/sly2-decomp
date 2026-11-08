@@ -133,7 +133,6 @@ struct SCENE
 };
 
 extern VIFS D_002DEA28;   /* the frame's VIF1 stream */
-extern SW D_003DD490;
 extern RPL D_003B3980[0x2000];
 extern RPL *D_003D4A50;
 extern "C" {
@@ -377,7 +376,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
         }
     }
-    SW *pg = &D_003DD490;
+    SW *pg = &g_sw;
     if (pscene->nStamp != pg->relightStamp)
         SubmitGlobsetRelight(pscene);
     int cDeferred = 0;
@@ -583,7 +582,7 @@ extern "C" void AddLoToRenderTree(OBJ *pobj)
     v = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, pobj->posLocal);
     {
         float r = GetMaxRowLengthMatrix3(&m) * pobj->sRadius;
-        prender = InsertRenderEntry(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);
+        prender = InsertRenderEntry(&g_sw, v, r, pobj->sFar, pobj->grfChannels);
     }
     pobj->prender = prender;
     if (prender) {
