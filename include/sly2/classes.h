@@ -91,11 +91,11 @@ struct GRABSPOT
     int nUnk14;             /* +0x14 InitGrabspot sets -1 */
     int nGroup;             /* +0x18 */
     int grfPlayers;         /* +0x1C players that may grab it (1 Sly, 2 Bentley, 4 Murray; InitGrabspot sets 7) */
-    virtual int GetGrabRange() __asm__("GetGrabspotWrapRange");     /* slot 1; key function (grabspot.cpp) */
+    virtual int GetGrabRange(float *pasRange) __asm__("GetGrabspotWrapRange");     /* slot 1; key function (grabspot.cpp) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetGrabspotClosestParam");         /* slot 2 */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetGrabspotGrabPosition");              /* slot 3 */
     virtual void AdjustScore(float *pgScore) __asm__("AdjustGrabspotScore");             /* slot 4 */
-    virtual void GetSparklePos() __asm__("GetGrabspotSparklePosition");           /* slot 5 */
+    virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetGrabspotSparklePosition");           /* slot 5 */
     virtual LO *GetOwner() __asm__("GetGrabspotOwner");                     /* slot 6 */
 };
 
@@ -1373,10 +1373,10 @@ struct CID12 : SHAPE, GRABSPOT
     virtual void PostLoad() __asm__("PostWallGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnWallGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneWallGrabspot");   /* slot 41 */
-    virtual int GetGrabRange() __asm__("GetWallGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual int GetGrabRange(float *pasRange) __asm__("GetWallGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetWallGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -400) */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetWallGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("GetWallGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
+    virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetWallGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
     virtual LO *GetOwner() __asm__("func_002599F0__FP5CID12");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
@@ -1393,10 +1393,10 @@ struct CID34 : XFM, GRABSPOT
     virtual void PostLoad() __asm__("PostPoleGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnPoleGrabspotRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePoleGrabspot");   /* slot 41 */
-    virtual int GetGrabRange() __asm__("GetPoleGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -224) */
+    virtual int GetGrabRange(float *pasRange) __asm__("GetPoleGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -224) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetPoleGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -224) */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetPoleGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
-    virtual void GetSparklePos() __asm__("GetPoleGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -224) */
+    virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetPoleGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -224) */
     virtual LO *GetOwner() __asm__("func_00259A00__FP5CID34");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
@@ -1509,7 +1509,7 @@ struct CID27 : VOL, GRABSPOT
     virtual void PostLoad() __asm__("PostTableGrabspotLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnTableGrabspotRemove");   /* slot 22 */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetTableGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -304) */
-    virtual void GetSparklePos() __asm__("GetTableGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -304) */
+    virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetTableGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -304) */
     virtual LO *GetOwner() __asm__("func_00259A40__FP5CID27");   /* GRABSPOT slot 6 (delta -304) */
 };
 typedef char assert_CID27_size[sizeof(CID27) == 0x160 ? 1 : -1];
@@ -1831,10 +1831,10 @@ struct PIPE : SHAPE, GRABSPOT
     virtual void PostLoad() __asm__("PostPipeLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnPipeRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePipe");   /* slot 41 */
-    virtual int GetGrabRange() __asm__("GetPipeWrapRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual int GetGrabRange(float *pasRange) __asm__("GetPipeWrapRange");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetPipeClosestParam");   /* GRABSPOT slot 2 (delta -400) */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetPipeGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("GetPipeSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
+    virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetPipeSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
     virtual LO *GetOwner() __asm__("func_00259AF8__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
@@ -1852,10 +1852,10 @@ struct RAIL : SHAPE, GRABSPOT
     virtual void PostLoad() __asm__("PostRailLoad");   /* slot 15 */
     virtual void OnRemove() __asm__("OnRailRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneRail");   /* slot 41 */
-    virtual int GetGrabRange() __asm__("GetRailWrapRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual int GetGrabRange(float *pasRange) __asm__("GetRailWrapRange");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetRailClosestParam");   /* GRABSPOT slot 2 (delta -400) */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetRailGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("GetRailSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
+    virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetRailSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
     virtual LO *GetOwner() __asm__("func_00259B08__FP4RAIL");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];

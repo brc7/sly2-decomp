@@ -67,7 +67,7 @@ void InitGrabspot(GRABSPOT *grabspot)
 } } // namespace M_InitGrabspot
 
 // GRABSPOT default: no wrap range (returns 0).
-int GRABSPOT::GetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
+int GRABSPOT::GetGrabRange(float *pasRange)   /* key function: GRABSPOT's vtable comes out here */
 {
     return 0;
 }

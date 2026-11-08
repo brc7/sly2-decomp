@@ -2425,32 +2425,8 @@ namespace M_UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND {
 // Merges this frame's sorted grab candidates into the four the world keeps (SW::ajtgrabcand): an old candidate
 // whose object is found again takes the new distance and smooths its parameter towards the new one (wrapping
 // around the spot's range), one that is gone is dropped, and the remaining new ones are linked and appended.
-typedef int qword __attribute__((mode(TI)));
-typedef unsigned int uint;
 
-struct LO;
 struct SMP { float g0, g4, g8; };
-
-
-struct GRABSPOT {
-    char pad0[0x14];
-    int nUnk14;          // hint text id, -1 for none
-    char pad18[0x20 - 0x18];
-    VTE *pvt;         // slot 1: int FGetWrapRange(float *pasRange)
-};
-struct LO { char pad0[0xC]; VTE *pvt; };
-
-struct JTGRABCAND {
-    LO *object;
-    GRABSPOT *grabSpot;
-    float distance;
-    int priority;
-    LO *unknown10;
-    float unknown14;
-    float spotDistance;
-    float dsParam;
-    qword position;
-};
 
 extern "C" {
 int D_002E1E4C;   /* .bss order: file-scope plain objects are emitted first, in first-declaration order */
@@ -2480,9 +2456,9 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
         if (candidates->grabSpot->nUnk14 != -1)
             candidates->priority = 1;
     }
-    JTGRABCAND *ajtgrabcandOld = ((JTGRABCAND *)world->ajtgrabcand);
+    JTGRABCAND *ajtgrabcandOld = world->ajtgrabcand;
     for (i = world->cjtgrabcand; --i >= 0; ) {
-        oldCandidate = &((JTGRABCAND *)world->ajtgrabcand)[i];
+        oldCandidate = &world->ajtgrabcand[i];
         // Search the new candidates from the end; the drop code sits in the loop's exit test (its calls stop gcc
         // from duplicating the test in front of the loop, giving the original's jump-to-test entry).
         j = ccand;
@@ -2503,7 +2479,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                     oldCandidate->dsParam = 0.0f;
                 } else {
                     float sRange;
-                    int fWrap = ((int (*)(void *, float *))pcand->grabSpot->pvt[1].pfn)((char *)pcand->grabSpot + pcand->grabSpot->pvt[1].d, asRange);
+                    int fWrap = pcand->grabSpot->GetGrabRange(asRange);
                     if (fWrap) {
                         float ds;
                         sRange = asRange[1] - asRange[0];
@@ -2539,8 +2515,8 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                             oldCandidate->spotDistance = oldCandidate->spotDistance + sRange;
                     }
                     GRABSPOT *spot = oldCandidate->grabSpot;
-                    ((void (*)(void *, STEPPLAYER *, qword *, void *, float))spot->pvt[3].pfn)((char *)spot + spot->pvt[3].d, player, &pos, 0, oldCandidate->spotDistance);
-                    ((void (*)(void *, qword))oldCandidate->unknown10->pvt[29].pfn)((char *)oldCandidate->unknown10 + oldCandidate->unknown10->pvt[29].d, pos);
+                    spot->GetGrabPos(oldCandidate->spotDistance, player, &pos, 0);
+                    ((void (*)(void *, qword))PVT(oldCandidate->unknown10)[29].pfn)((char *)oldCandidate->unknown10 + PVT(oldCandidate->unknown10)[29].d, pos);   // the marker's slot 29 (TranslateToPos)
                 }
                 memmove(pcand, pcand + 1, (ccand - j) * (int)sizeof(JTGRABCAND) - (int)sizeof(JTGRABCAND));
                 ccand--;
@@ -2557,7 +2533,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLA
                 break;
             pcand->unknown10 = plo;
         }
-        ((JTGRABCAND *)world->ajtgrabcand)[world->cjtgrabcand++] = *pcand;
+        world->ajtgrabcand[world->cjtgrabcand++] = *pcand;
         BroadcastGameEvent(&g_game, 0x3D, pcand->object);
     }
     qsort(ajtgrabcandOld, world->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
@@ -2572,7 +2548,6 @@ namespace M_EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND {
 // rounded up with that probability): each one samples a position and velocity from the grab spot, scales the
 // velocity, picks a birth time in the past and optionally pushes the position along the velocity. At most ten are
 // collected, then handed to the emitter's particle system in one batch.
-typedef int qword __attribute__((mode(TI)));
 
 struct VU_FLOAT
 {
@@ -2593,31 +2568,6 @@ struct VU_VECTOR
     // Wrap a VECTOR.
     VU_VECTOR(const QWROW &v) { q = v.q; }
 };
-
-struct GRABSPOT
-{
-    char pad0[0x20];
-    virtual int GetGrabRange(float *pasRange);
-    virtual void V2();
-    virtual void V3();
-    virtual void V4();
-    virtual void GetSparkle(QWROW *ppos, QWROW *pv, float sParam);
-};
-struct LO;
-struct JTGRABCAND
-{
-    LO *object;
-    GRABSPOT *grabSpot;
-    float distance;
-    int priority;           // -1: no spot to sparkle
-    LO *unknown10;
-    float unknown14;
-    float spotDistance;
-    float dsParam;
-    qword position;
-};
-struct PRG;
-struct STEPPLAYER { char pad0[0x12F8]; EMITTER *pemitterGrab; };
 
 extern "C" {
 float RandomFloatInRange__Fff(float gMin, float gMax);                    // RandomFloatInRange
@@ -2645,7 +2595,7 @@ static inline VU_VECTOR AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT g)
 // Ask the candidate's grab spot for its sparkle position and direction.
 static inline void GetSparkle(JTGRABCAND *candidate, QWROW *posOut, QWROW *pv)
 {
-    candidate->grabSpot->GetSparkle(posOut, pv, candidate->spotDistance);
+    candidate->grabSpot->GetSparklePos(&posOut->q, &pv->q, candidate->spotDistance);
 }
 
 // For every candidate spawns/refreshes the grab-hint sparkle effect.
