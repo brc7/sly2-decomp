@@ -1092,10 +1092,9 @@ qword GetStepAsegaRotation(void *step, ASEGA *q, float g)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204F78 { extern "C" {
-struct G;
 struct O { char pad[0x10]; struct O *parent; char p2[0xEC - 0x14]; void *tree; };
 void *GetSoFromLo(void *pv);
-void UpdateSwPox(struct G *pg, void *a, void *b, int n);
+void UpdateSwPox(SW *pg, void *a, void *b, int n);
 void InvalidateSoAaox(struct O *p);
 // Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
 // attachment pair through UpdateSwPox. (inferred)
@@ -1103,7 +1102,7 @@ void LinkStepAttachment(struct O *step, void *pv, int f)
 {
     struct O *o = (struct O *)GetSoFromLo(pv);
     while (o && !o->tree) o = o->parent;
-    if (step->tree && o && o->tree) UpdateSwPox((G *)&g_sw, step->tree, o->tree, f ? 1 : 2);
+    if (step->tree && o && o->tree) UpdateSwPox(&g_sw, step->tree, o->tree, f ? 1 : 2);
     InvalidateSoAaox(step);
 }
 } } // namespace M_func_00204F78

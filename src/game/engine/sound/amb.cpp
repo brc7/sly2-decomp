@@ -31,8 +31,6 @@ struct AMB : public XFM
     AMBREC *linkedSounds;        /* +0xF4 */
 };
 
-struct G { char pad[0x228]; void *p; };
-
 extern "C" {
 void InitXfm(XFM *pxfm);
 void SetLoBusyKind(LO *plo, int busyk);
@@ -41,7 +39,7 @@ void *AllocCopyFromWorldHeap(AREQV *preq, void *pv);
 void **AllocClearedFromWorldHeap(AREQV *preq);
 void LoadXfmFromBrx(XFM *pxfm, void *pbis);
 void PostLoLoad(LO *plo);
-void *FindStreamGroupIndex(G *pg, int id);
+void *FindStreamGroupIndex(SNDMGR *psndmgr, int id);
 void AddStreamGroupSource(float g, void *p, void *q, AMB *pamb, float *pv);
 void OnLoAdd(LO *plo);
 void OnLoRemove(LO *plo);
@@ -96,12 +94,12 @@ extern "C" void PostAmbLoad(AMB *amb)
     request.cb = amb->soundCount * 4;
     request.cbAlign = 0x10;
     amb->playingSounds = AllocClearedFromWorldHeap(&request);
-    soundGroup = (*(G *)&g_sndmgr).p;
+    soundGroup = g_sndmgr.ambienceSound.p;
     if (soundGroup) {
         int i;
         for (i = 0; i < amb->linkedCount; i++) {
             AMBREC *link = &amb->linkedSounds[i];
-            AddStreamGroupSource(link->gain, soundGroup, FindStreamGroupIndex((G *)&g_sndmgr, link->soundId), amb, link->range);
+            AddStreamGroupSource(link->gain, soundGroup, FindStreamGroupIndex(&g_sndmgr, link->soundId), amb, link->range);
         }
     }
 }
