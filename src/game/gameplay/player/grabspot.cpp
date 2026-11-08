@@ -500,7 +500,7 @@ void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *pv, float *
 {
     float g = 0.0f;
     qword d;
-    if (hold->fNoPushOut == 0)
+    if (hold->nGrabState == 0)
         g = pj->grabRadius;
     d = *GetLoWorldMatrix(hold);
     if (pv) {

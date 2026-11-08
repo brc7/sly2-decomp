@@ -1406,7 +1406,8 @@ typedef char assert_CID34_sRadius[SLY2_OFFSETOF(CID34, sRadius) == 0x10C ? 1 : -
 struct CID38 : XFM, GRABSPOT
 {
     DLE dleGrab;            /* +0x104 link in g_sw.dlCid38 (kept across Clone) */
-    int fNoPushOut;         /* +0x10C the grab position is not pushed out by the player's radius */
+    int nGrabState;         /* +0x10C the grab state the player takes (grab.cpp TryGrabJtNearestCandidate); nonzero: the
+                               grab position is not pushed out by the player's radius (GetHoldGrabspotGrabPosition) */
     virtual void OnAdd() __asm__("OnHoldGrabspotAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHoldGrabspot");   /* slot 7 */

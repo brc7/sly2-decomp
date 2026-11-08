@@ -904,42 +904,37 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtGrabState { extern "C" {
-struct O { char pad[0xC]; VTE *vt; char pad2[0x1854-0x10]; int x1854; };
-struct P {
-    struct O *x0; float x4; int x8; int pad0c[2]; int x14; int x18; char pad[0x440-0x1C]; char x440[0x4C4-0x440];
-    int x4c4; char pad2[0x500-0x4C8]; int x500;
-};
-void SetJtGrabKind(struct P *p, int n);
-void SetJtCaneState__FP2JTi(struct O *o, int n);
-void UpdateJtCane__FP2JT(struct O *o);
-void SetJtHandsTarget(void *p, int n);
-void ClearJtDetectionOutOfSight(struct P *p);
+void SetJtGrabKind(JTGRAB *pjtgrab, int n);
+void SetJtCaneState__FP2JTi(JT *pjt, int n);
+void UpdateJtCane__FP2JT(JT *pjt);
+void SetJtHandsTarget(JTHANDS *phands, int n);
+void ClearJtDetectionOutOfSight(JTGRAB *pjtgrab);
 // Starts a grab action: resets the kind, stores the state, time, object and grab spot, and switches the player's
 // generic state to 2 (grab).
-void SetJtGrabState(struct P *grab, int n, int a, int b)
+void SetJtGrabState(JTGRAB *grab, int n, LO *plo, GRABSPOT *pspot)
 {
     SetJtGrabKind(grab, -1);
-    grab->x8 = n;
-    grab->x4 = g_clock.time;
-    grab->x18 = b;
-    grab->x14 = a;
-    ((void (*)(void *, int))grab->x0->vt[88].pfn)((char *)grab->x0 + grab->x0->vt[88].d, 2);
+    grab->state = n;
+    grab->enterTime = g_clock.time;
+    grab->grabSpot = pspot;
+    grab->grabbedObject = plo;
+    grab->player->SetPlayerState(2);
     switch (n) {
     case 0: case 13:
         n = 5;
         break;
     case 6:
     {
-        struct O *o = grab->x0;
+        JT *jt = (JT *)grab->player;
         n = 0;
-        o->x1854 = a;
-        SetJtCaneState__FP2JTi(o, 0);
-        UpdateJtCane__FP2JT(o);
+        jt->hands.ploTarget = plo;
+        SetJtCaneState__FP2JTi(jt, 0);
+        UpdateJtCane__FP2JT(jt);
         break;
     }
     case 5: case 9:
-        grab->x4c4 = grab->x14;
-        SetJtHandsTarget(grab->x440, 0);
+        grab->hands.ploTarget = grab->grabbedObject;
+        SetJtHandsTarget(&grab->hands, 0);
         n = 0;
         break;
     case 8:
@@ -952,7 +947,7 @@ void SetJtGrabState(struct P *grab, int n, int a, int b)
         break;
     case 11: case 12:
         n = 0;
-        grab->x500 = 1;
+        grab->unknown500 = 1;
         break;
     default:
         n = 0;
@@ -1535,28 +1530,26 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FJtGrabNearestCandidate { extern "C" {
-struct O { char pad[0x10C]; int x10c; };
 extern float D_002BF660;
 extern float D_002BF664;
-extern int D_002E1E40;
-struct P { int x0; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
-void SetJtGrabState(struct P *p, int n, struct O *o, GRABSPOT *a);
+extern JT *D_002E1E40;
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
+void SetJtGrabState(JTGRAB *pjtgrab, int n, LO *plo, GRABSPOT *pspot);
 // Walks the sorted grab candidates (distance < D_002BF660) and maps the nearest usable one's class to a grab state;
 // returns nonzero if a grab started. Runtime: CID27 gives state 8, CID12/34 state 0, rails state 3.
-int TryGrabJtNearestCandidate(struct P *p)
+int TryGrabJtNearestCandidate(JTGRAB *grab)
 {
     SW *g = &g_sw;
     int n = g->cjtgrabcand;
     int i;
     for (i = 0; i < n; i++) {
         JTGRABCAND *e = &g->ajtgrabcand[i];
-        struct O *o;
+        LO *o;
         int k;
         if (e->distance > D_002BF660) break;
-        o = (struct O *)e->object;
+        o = e->object;
         if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x13) || IsBasicDerivedFrom__FP5BASIC3CID(o, 0xB))
-            k = (p->x0 == D_002E1E40) ? 6 : 5;
+            k = (grab->player == (STEPPLAYER *)D_002E1E40) ? 6 : 5;
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1B))
             k = 8;
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0xC))
@@ -1564,11 +1557,11 @@ int TryGrabJtNearestCandidate(struct P *p)
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x22))
             k = 0;
         else if (IsBasicDerivedFrom__FP5BASIC3CID(o, 0x26))
-            k = ((struct O *)e->object)->x10c;
+            k = ((CID38 *)e->object)->nGrabState;
         else
             k = IsBasicDerivedFrom__FP5BASIC3CID(o, 0x23) ? 7 : -1;
         if (k != -1) {
-            SetJtGrabState(p, k, o, e->grabSpot);
+            SetJtGrabState(grab, k, o, e->grabSpot);
             return 1;
         }
     }
