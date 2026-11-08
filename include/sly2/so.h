@@ -137,7 +137,11 @@ struct CONSTR
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct SOPHYS
 {
-      MATRIX3 inertiaLocal;  /* moment of inertia (local frame) */
+      union
+      {
+            MATRIX3 inertiaLocal;  /* moment of inertia (local frame) */
+            MATRIX3Q inertiaq;   /* its rows as quadwords (ScaleSoInertia) */
+      };
       MATRIX3 inverseInertiaLocal; /* inverse moment of inertia (local frame) */
       qword velocity;     /* linear velocity */
       qword angularVelocity; /* angular velocity */

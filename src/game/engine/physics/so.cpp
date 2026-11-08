@@ -809,38 +809,34 @@ extern "C" void SetSoMass(SO *so, float m)
 
 // 0x1F35F8 ScaleSoInertia
 namespace M_AdjustSoMomint { extern "C" {
-struct T; struct X;
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-typedef struct { qword r[3]; } M3;
-struct T { M3 m; qword v[3]; };
-struct X : LO { char pad[0xE8 - 0x50]; struct T *physics; };
 void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
-int InvertMatrix3(struct T *pt, qword *pv);
+int InvertMatrix3(MATRIX3 *pmat, MATRIX3 *pmatInverse);
 // Scales the inertia matrix by r and recomputes its inverse (zero when singular).
-void ScaleSoInertia(struct X *so, float s)
+void ScaleSoInertia(SO *so, float s)
 {
-    struct T *pt = so->physics;
-    M3 m;
+    SOPHYS *pt = so->physics;
+    MATRIX3Q m;
     U u;
-    M3 r;
+    MATRIX3Q r;
     qword uq;
     __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(s));
     u.q = uq;
     qword r0;
-    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r0) : "j"(u.q), "j"(pt->m.r[0]));
-    r.r[0] = r0;
+    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r0) : "j"(u.q), "j"(pt->inertiaq.r[0].q));
+    r.r[0].q = r0;
     qword r1;
-    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r1) : "j"(u.q), "j"(pt->m.r[1]));
-    r.r[1] = r1;
+    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r1) : "j"(u.q), "j"(pt->inertiaq.r[1].q));
+    r.r[1].q = r1;
     qword r2;
-    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(u.q), "j"(pt->m.r[2]));
-    r.r[2] = r2;
-    func_0023320C(&m, &r, sizeof(M3));
-    pt->m = m;
-    if (!InvertMatrix3(so->physics, so->physics->v))
-        func_002333B4(so->physics->v, 0, 0x30);
+    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(u.q), "j"(pt->inertiaq.r[2].q));
+    r.r[2].q = r2;
+    func_0023320C(&m, &r, sizeof(MATRIX3Q));
+    pt->inertiaq = m;
+    if (!InvertMatrix3(&so->physics->inertiaLocal, &so->physics->inverseInertiaLocal))
+        func_002333B4(&so->physics->inverseInertiaLocal, 0, 0x30);
 }
 } } // namespace M_AdjustSoMomint
 
