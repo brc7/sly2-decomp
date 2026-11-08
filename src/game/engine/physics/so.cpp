@@ -704,7 +704,7 @@ extern "C" void SetSoBusyDistance(SO *so, float t)
 namespace M_LoadSoFromBrx {
 typedef unsigned long ulong;
 typedef unsigned int uint;
-extern "C" { extern char D_002C44F0[]; }
+extern "C" { extern XF D_002C44F0; }   /* g_xfWorld (xf.cpp) */
 extern "C" {
 void LoadSoXfsFromBrx(SO *,void *);
 int U32Read__18CBinaryInputStream(void *);
@@ -749,7 +749,7 @@ extern "C" void LoadSoFromBrx(SO *so,void *stream)
         e->unknownFlag10B=f&1;
         e->radius=F32Read__18CBinaryInputStream(stream);
         ReadGeom__18CBinaryInputStreamP4GEOM(stream,local);
-        if(!e->transform){e->transform=(XF *)D_002C44F0;e->meshWorld=e->meshLocal;}
+        if(!e->transform){e->transform=&D_002C44F0;e->meshWorld=e->meshLocal;}
         else CloneGeom(local,0,&e->meshWorld);
         CBinaryInputStream_ReadBspc(stream,&e->meshWorld,&e->bspc);
         e->zapKindFlags=U32Read__18CBinaryInputStream(stream);
@@ -2178,28 +2178,25 @@ void SetSoGravity(SO *so, qword q)
 
 // 0x1F58F0 GetSoCameraDefaults
 namespace M_GetSoCpdefi { extern "C" {
-struct V; struct O; struct P; struct Out; 
+struct V;
 typedef int qword __attribute__((mode(TI)));
 struct V { float x, y, z, w; float pad[8]; };
-struct O { char pad[0x40]; char rotation[0x30]; qword position; };
-struct P : LO { char pad[0x60 - 0x50]; struct O *rootTransform; };
-struct Out { int flags; int pad[3]; qword position; qword velocity; float heading; float adjustment; float lastMoveTime; int unknown3C; };
-qword GetXfVelocity(struct O *, int, qword);
+qword GetXfVelocity(XF *, int, qword);
 void TiltMatUpright(void *, int, struct V *);
 float atan2f(float, float);
 // Slot 50: the camera's default info for this object: base position and velocity, home heading from the upright
 // matrix, adjustment 100, no flags, last-move time now.
-void GetSoCameraDefaults(struct P *so, struct Out *po)
+void GetSoCameraDefaults(SO *so, CPDEFI *po)
 {
-    struct O *o = so->rootTransform;
+    XF *o = so->rootTransform;
     struct V v;
     void *ps;
-    qword q = o->position;
-    po->position = q;
-    ps = o->rotation;
-    po->velocity = GetXfVelocity(o, 0, q);
+    qword q = o->worldMatq.r[3].q;
+    *(qword *)&po->basePosition = q;
+    ps = &o->worldMatrix;
+    *(qword *)&po->vBase = GetXfVelocity(o, 0, q);
     TiltMatUpright(ps, 0, &v);
-    po->heading = atan2f(-v.y, -v.x); po->adjustment = 100.0f; po->flags = 0; po->lastMoveTime = g_clock.time; po->unknown3C = 0;
+    po->homeHeading = atan2f(-v.y, -v.x); po->adjustDistance = 100.0f; po->grfcpd = 0; po->lastMoveTime = g_clock.time; po->turnAxis = 0;
 }
 } } // namespace M_GetSoCpdefi
 
@@ -3483,20 +3480,18 @@ void SetSoSaaParams(SO *so, float f, float g)
 
 // 0x1F80D0 SetSoEyesClosed
 namespace M_func_001F80D0 { extern "C" {
-struct L;
-struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *firstChild; char pad3[0x70 - 0x68]; struct L *firstRemovedChild; char pad4[0xA4 - 0x74]; int numSaas; void **saas; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetEyesClosed(void *, float);
 // Opens or closes the eyes (CID 0x8E) of the object and its SO children.
-void SetSoEyesClosed(struct L *so, float f)
+void SetSoEyesClosed(SO *so, float f)
 {
     int i;
-    struct L *q;
-    for (i = 0; i < so->numSaas; i++) {
-        void *pv = so->saas[i];
+    SO *q;
+    for (i = 0; i < so->model.cpsaa; i++) {
+        SAA *pv = so->model.apsaa[i];
         if (IsBasicDerivedFrom__FP5BASIC3CID(pv, 0x8E)) SetEyesClosed(pv, f);
     }
-    for (q = so->firstChild; q != so->firstRemovedChild; q = q->next)
+    for (q = (SO *)so->children.head; q != (SO *)so->ploRemovedFirst; q = (SO *)q->siblingLink.next)
         if (IsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) SetSoEyesClosed(q, f);
 }
 } } // namespace M_func_001F80D0
