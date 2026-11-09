@@ -410,7 +410,7 @@ extern "C" void CreateMemcardThread(MEMCARD *worker, MCJOBPMF pmf)
     worker->job = pmf;
     worker->jobResult = MC_RESULT_OK;
     func_002333B4(&tp, 0, sizeof(tp));
-    tp.entry = MemcardThreadMain;
+    tp.entry = (void *)MemcardThreadMain;
     tp.stack = D_002E2080;
     tp.gpReg = D_002E5270;
     tp.stackSize = 0x4000;
