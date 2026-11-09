@@ -921,23 +921,18 @@ extern "C" CPCAMBLEND *CPCAMBLEND_ctor(CPCAMBLEND *pcpcamblend)
 }
 
 namespace M_ActivateCpcamblend {
-struct O { int a[3]; VTE *vt; };   /* the CAMEVENT, called through its vtable pointer at +0x0C */
 void ActivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b) __asm__("ActivateCplcy");
 } // namespace M_ActivateCpcamblend
-// Pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
+// CPLCY::Activate; pcammove(+0x10)=pv; pevent->AddRef() (begin event). (inferred)
 void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpcamblend;
     CPCAMBLEND *a = this;
     int n = (int)pvHero;
     CAMMOVE *b = (CAMMOVE *)pv;
-    struct O *o;
-    struct VTE *e;
     M_ActivateCpcamblend::ActivateCplcy(a, n, b);
     a->pcammove = b;
-    o = (struct O *)b->pevent;
-    e = &o->vt[1];
-    ((void (*)(...))e->pfn)((char *)o + e->d);
+    ((BASIC *)b->pevent)->AddRef();
 }
 
 namespace M_DeactivateCpcamblend {
