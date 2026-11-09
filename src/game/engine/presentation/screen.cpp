@@ -36,6 +36,7 @@
 #include "gifs.h"
 #include "vifs.h"
 #include "sly2/clock.h"
+#include "sly2/vtables.h"
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -46,8 +47,6 @@ void *ConstructThiefnetScreen(void *pv);      /* THIEFNET constructor */
 void *ConstructJobListScreen(void *pv);      /* JOBLIST constructor */
 void *ConstructScreen52D(void *pv);      /* screen 0x52D constructor */
 void *ConstructTitleScreen(void *pv);      /* title screen constructor */
-extern char D_002D8668[] __asm__("_vt$8HUDMETER"), D_002D37D0[] __asm__("_vt$9PAUSEMENU"), D_002CA490[] __asm__("_vt$6CID154");   /* vtables of the HUD meter, pause menu and notice */
-extern char D_002D8568[] __asm__("_vt$10GADGETMENU");   /* GADGETMENU vtable */
 }
 struct SCRLIST
 {
@@ -76,9 +75,9 @@ template <int CB> struct SCRCTOR
     ~SCRCTOR() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 SCRLIST D_003D9E70 __attribute__((aligned(16)));   /* 16-aligned by layout: 0x3D9E70 after g_gs (save, 0x5408 bytes from 0x3D4A60) */
-SCRINL<0x50> D_003D9E80(D_002D8668);    /* HUD meter */
-SCRINL<0x1F0> D_003D9ED0(D_002D37D0);   /* pause menu */
-SCRINL<0x30> D_003DA0C0(D_002CA490);    /* notice */
+SCRINL<0x50> D_003D9E80(SLY2_VTBL(HUDMETER));    /* HUD meter */
+SCRINL<0x1F0> D_003D9ED0(SLY2_VTBL(PAUSEMENU));   /* pause menu */
+SCRINL<0x30> D_003DA0C0(SLY2_VTBL(CID154));    /* notice */
 SCRCTOR<0x60> D_003DA0F0(GADGETMENU_ctor);
 SCRCTOR<0x270> D_003DA150(ConstructThiefnetScreen);
 SCRCTOR<0x110> D_003DA3C0(ConstructJobListScreen);
@@ -911,12 +910,11 @@ void SetNoticeState(OBJ *p, int n) __asm__("SetNoticeState"); void SetNoticeStat
 } // namespace M_SetNoticeState
 
 namespace M_func_001DA728 {
-extern char D_002D85E8[] __asm__("_vt$6SCREEN");
 // Base SCREEN constructor: vtable, no widget (oid -1), then resets the mode.
 extern "C" SCREEN *ConstructScreen(SCREEN *p) {
     p->scriptFrame.m_p = 0;
     p->scriptVariables.m_p = 0;
-    *(void **)((char *)p + 0xC) = D_002D85E8;
+    SLY2_SET_VPTR(p, SCREEN);
     p->idTextQueued = -1;
     ResetScreenMode(p);
     return p;
@@ -1016,7 +1014,7 @@ extern "C" void *GADGETMENU_ctor(void *pv)
 {
     GADGETMENU *gadgetMenu = (GADGETMENU *)pv;
     ConstructScreen(gadgetMenu);
-    *(void **)((char *)gadgetMenu + 0xC) = D_002D8568;   /* the vptr, by hand (a C-named constructor) */
+    SLY2_SET_VPTR(gadgetMenu, GADGETMENU);   /* the vptr, by hand (a C-named constructor) */
     ClearGadgetMenu(gadgetMenu);
     return gadgetMenu;
 }
@@ -1489,13 +1487,12 @@ extern "C" void SetGadgetMenuState(GADGETMENU *p, int s)
 } // namespace M_SetGadgetMenuState
 
 namespace M_func_001DB7A8 {
-extern char D_002D84E8[] __asm__("_vt$8THIEFNET");
 THIEFNET *ConstructScreen(THIEFNET *p) __asm__("ConstructScreen");
 void ClearThiefnet(THIEFNET *p) __asm__("ClearThiefnet");
 // Constructor of the ThiefNet shop screen (widget 0x378, a 64-entry item list). (inferred)
 THIEFNET *ConstructThiefnetScreen(THIEFNET *p) __asm__("ConstructThiefnetScreen"); THIEFNET *ConstructThiefnetScreen(THIEFNET *p) {
     ConstructScreen(p);
-    *(void **)((char *)p + 0xC) = D_002D84E8;
+    SLY2_SET_VPTR(p, THIEFNET);
     p->idTextQueued = 0x378;
     ClearThiefnet(p);
     return p;
@@ -2158,13 +2155,12 @@ extern "C" void BuildThiefnetInfoText(char *pch)
 } // namespace M_BuildThiefnetInfoText
 
 namespace M_func_001DCC58 {
-extern char D_002D8468[] __asm__("_vt$7JOBLIST");
 JOBLIST *ConstructScreen(JOBLIST *p) __asm__("ConstructScreen");
 void ClearJobList(JOBLIST *p) __asm__("ClearJobList");
 // Constructor of the job-list screen (widget 0x4E0). (inferred)
 JOBLIST *ConstructJobListScreen(JOBLIST *p) __asm__("ConstructJobListScreen"); JOBLIST *ConstructJobListScreen(JOBLIST *p) {
     ConstructScreen(p);
-    *(void **)((char *)p + 0xC) = D_002D8468;
+    SLY2_SET_VPTR(p, JOBLIST);
     p->idTextQueued = 0x4E0;
     ClearJobList(p);
     return p;
@@ -2520,13 +2516,12 @@ extern "C" void SetJobListStickDir(JOBLIST *p, unsigned int n)
 } // namespace M_SetJobListStickDir
 
 namespace M_func_001DD648 {
-extern char D_002D83E8[] __asm__("_vt$7SCRN52D");
 SCRN52D *ConstructScreen(SCRN52D *p) __asm__("ConstructScreen");
 void ResetScreenMode(SCRN52D *p) __asm__("ResetScreenMode");
 // Constructor of screen 0x52D (widget 0x52D; its role is unknown). (inferred)
 SCRN52D *ConstructScreen52D(SCRN52D *p) __asm__("ConstructScreen52D"); SCRN52D *ConstructScreen52D(SCRN52D *p) {
     ConstructScreen(p);
-    *(void **)((char *)p + 0xC) = D_002D83E8;
+    SLY2_SET_VPTR(p, SCRN52D);
     p->idTextQueued = 0x52D;
     ResetScreenMode(p);
     return p;
@@ -2591,13 +2586,12 @@ extern "C" void SetScreenState(SCREEN *screen, int mode)
 }
 
 namespace M_func_001DD7D8 {
-extern char D_002D8368[] __asm__("_vt$5TITLE");
 TITLE *ConstructScreen(TITLE *p) __asm__("ConstructScreen");
 void ResetScreenMode(TITLE *p) __asm__("ResetScreenMode");
 // Constructor of the title screen (widget 0x5D2). (inferred)
 TITLE *ConstructTitleScreen(TITLE *p) __asm__("ConstructTitleScreen"); TITLE *ConstructTitleScreen(TITLE *p) {
     ConstructScreen(p);
-    *(void **)((char *)p + 0xC) = D_002D8368;
+    SLY2_SET_VPTR(p, TITLE);
     p->idTextQueued = 0x5D2;
     ResetScreenMode(p);
     return p;
