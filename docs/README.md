@@ -60,5 +60,9 @@ On-disc data, for tools and the port: [disc records](formats/disc-records.md),
 - [guides/full-link.md](guides/full-link.md) — linking the whole ELF from source and what it still takes from the
   original.
 - [guides/port-plan.md](guides/port-plan.md) — the plan for a native port.
-- [guides/tu-merging.md](guides/tu-merging.md) — history of the translation-unit merge (kept for reference; current
-  rules are in decisions.md).
+- [guides/tu-merging.md](guides/tu-merging.md) — editing a translation unit without breaking the match: mismatch
+  causes, vtable emission, unifying private views with the shared headers, islands, linkonce copies, data layout.
+- [archive/view-unification-history.md](archive/view-unification-history.md) — the per-round records of vtable
+  emission and view unification (what each round changed and left), kept for reference.
+- [archive/tu-merge-history.md](archive/tu-merge-history.md) — the per-wave notes of the translation-unit merge, kept
+  for reference.

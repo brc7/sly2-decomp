@@ -24,7 +24,7 @@
  * specializations, so those files call the instances and emit no copy; files outside splice/ that have no node header
  * call the mangled names as C symbols (an identifier starting with __as__ cannot be declared: g++ reads it as
  * operator=, so those callers use an asm label). See docs/guides/tu-merging.md, "The Splice GC pool family" and
- * "Views unified, continued (names/vu-f8-sound-ui-3)".
+ * docs/archive/view-unification-history.md, "Views unified, continued (names/vu-f8-sound-ui-3)".
  * CONFIRMED by match: the code of every instance. HYPOTHESIS: the names (CGcObj is the name of Lilly's port; the
  * member names are ours), that PushFront/PtNew/... are members rather than free templates (the mangled names would
  * differ, the code would not), and the static data members: each kind's four list words and its block table are

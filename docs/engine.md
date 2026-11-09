@@ -249,6 +249,10 @@ builtin table is in `bif.cpp`; the evaluator is Sly 1's eval.cpp one-to-one, wit
 the payload word, `=` compares raw payloads, unbound symbols evaluate to nil) `[C:static]`. Value tags were renumbered
 from Sly 1 `[C:verified]`.
 
+Types: `CRef` in `include/sly2/cref.h`; the garbage-collected nodes derive from `CGcObj<T>` (`gc.h`): pairs and
+bindings (`pair.h`, `varb.h`), frames (`cframe.h`), procedures (`proc.h`), side bags (`sidebag.h`) and methods
+(`method.h`); `sp.h` holds the owning pointer whose release is inline.
+
 Guide: [systems/splice-scripting.md](systems/splice-scripting.md) (values, frames, evaluator, options, events, builtins,
 GC). Serialized form: [formats/splice-scripts.md](formats/splice-scripts.md).
 
@@ -264,6 +268,10 @@ Notable facts: lighting ("relight") recomputes two colour sets per vertex only w
 banding in the VU code** (the cel look comes from the art, the steep light curve and the outlines); outlines are
 silhouette edges drawn as GS lines; shadow volumes count in the framebuffer's **green channel** because there is no
 stencil buffer. Particles (EMITTER, RIPG, BLIPG, explosions, trails) are covered in the same guide.
+
+Types: the render-list entry in `include/sly2/render.h`; models in `so.h` (GLOB, GLOBSET) and `glob.h` (their culling
+data and vertex colour palettes); colour tables, bitmaps, textures and shaders in `shd.h`; the per-object light
+packets in `light.h`; the GS block allocator in `gs.h`.
 
 Guide: [systems/rendering.md](systems/rendering.md) (render lists, passes and kinds, relight, shaders and textures,
 culling, particles, render targets, what a port must replace). Port checklist:
@@ -317,13 +325,16 @@ once per frame. The rhythm minigame times against music time (`GetMusicTime`), n
 drives the **USB-headset microphone**: dialogue plays through the headset and the mic level makes the hero emit a noise
 guards hear.
 
+Types: SND and its kinds in `include/sly2/snd.h`; the manager `g_sndmgr` in `sndmgr.h`.
+
 Guide: [systems/sound-and-music.md](systems/sound-and-music.md). Formats: [formats/audio.md](formats/audio.md).
 
 ### 7.8 Particles and effects (`engine/fx/`)
 
 EMITTER (CID 0x1D) keeps Sly 1's emitter structure and spawns RIPs and BLIPs; the same file holds the explosion family
 EXPL/EXPLG/EXPLO/EXPLS. RIPG (CID 0x57) owns RIP particles whose types got real C++ vtables; BLIPG (CID 0x1C) sprite
-particle groups; trails (CID 0x69) deform a mesh along a ring of past matrices.
+particle groups; trails (CID 0x69) deform a mesh along a ring of past matrices. Types: `include/sly2/emitter.h` and
+`rip.h` (the particle kinds).
 
 Guide: [systems/rendering.md section 8](systems/rendering.md#8-particles-and-effects-enginefx).
 
@@ -333,7 +344,8 @@ Guide: [systems/rendering.md section 8](systems/rendering.md#8-particles-and-eff
 job-completion banner pauses the game clock through rate slot 7; the objective counter recounts complete tasks every
 frame and stores the count nowhere). **Screens** are a BASIC-derived family (no CIDs) on an active list updated by
 `UpdateScreens`: pause menu (clock slot 0 and hands-off; the world keeps rendering), ThiefNet, gadget menu, memcard
-dialogs. Text: STRINGGEN getters, `CFont`/`CRichText`, the text table.
+dialogs. Text: STRINGGEN getters, `CFont`/`CRichText`, the text table. Types: WIDGET in `include/sly2/widget.h`, its
+sprite records in `hud.h`, the screens in `screen.h`.
 
 Guide: [systems/ui-and-hud.md](systems/ui-and-hud.md).
 
@@ -368,7 +380,8 @@ behaviour).
 the job, complete after the job) `[C:runtime]`; visibility records put objects in the world only in some task states, so
 objective order is fixed. `BroadcastGameEvent` is the game event bus (startup, post-load, hero died, guard defeated, job
 finished, ...). Difficulty averages saved samples (`GetDifficulty`); `ScaleByDifficulty` scales a count by it. Collectibles are the DPRIZE family
-(`prize.cpp`).
+(`prize.cpp`, classes in `include/sly2/prize.h`). The game-progress record `g_game` (current job and task, event
+timers) is in `game.h`.
 
 Guide: [systems/progression-and-saves.md](systems/progression-and-saves.md).
 
@@ -389,7 +402,8 @@ Guide: [systems/cutscenes-and-sequences.md](systems/cutscenes-and-sequences.md).
 - **RELAY** (CID 0x72) holds a flat array of commands in nested blocks, built at load from object records (METHOD
   options) or Splice through one builtin per command kind. `FireRelay` spawns a **JSG** interpreter (slot heap) that steps
   through commands while each is async or complete (`NextJsgCommand`, `IsJsgCommandComplete`) and can spawn more JSGs;
-  `RemoveJsg` releases everything a script holds. Commands cover actors and teleports, movement (pushing BHVs), clips,
+  `RemoveJsg` releases everything a script holds. The command record RELAYCMD and the running instance RELAYJSG are
+  in `include/sly2/relay.h`. Commands cover actors and teleports, movement (pushing BHVs), clips,
   state machines, widgets, hands-off, camera cuts/blends/tweens, sound and dialogue lines, hint boxes, task states and
   controller hand-off (`SetCtlState`). **Cutscenes complete tasks themselves**; a TASK's Splice fires them. Camera blends
   push CPCAMBLEND (angles in degrees, vertical fov in radians).
@@ -418,7 +432,7 @@ Minigames are entered by handing the controller to another PO (`SetCtlState` fro
 field): **Bentley hacking** (HACK family CIDs 0x47-0x4C: ship, enemies, bullets, lock, walls; left stick moves, right
 stick aims and fires), **mounted turret** (TURRET 0x45 + CPTURRET), **RC combat** (ROBOTTANK 0x4D; player or AI mode),
 **dance** (DANCER 0x44 + rhythm manager CID121, judged against music time), the **safehouse** character select and
-ThiefNet (SAFEHOUSE 0x46). The RC chopper and the drivable tank are plain POs whose drive code is not identified yet.
+ThiefNet (SAFEHOUSE 0x46). The hacking classes are declared in `include/sly2/hack.h`, the robot tank in `tank.h`. The RC chopper and the drivable tank are plain POs whose drive code is not identified yet.
 
 Smaller gameplay classes (`gameplay/objects/`): BARRIER, BOMB, MISSILE/ACCMISS (projectiles derived from BOMB), BUTTON and
 VOLBTN (fire Splice events 5/6), SENSOR and laser rigs, TARGET, breakable props (CID98, staged recorded actions),

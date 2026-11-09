@@ -25,7 +25,8 @@ Code:
 - `level/wipe.cpp` (the level-transition wipe) and `engine/presentation/letterbox.cpp` (the letterbox bars).
 
 Types: `RELAY` in `include/sly2/classes.h`; the command kinds are the `RELAYCK` enum in `include/sly2/basic.h`;
-`RELAYCMD`, the JSG view and the per-kind argument blocks are declared in `relay.cpp`.
+`RELAYCMD` (with its per-kind argument union) and `RELAYJSG` (a relay's running job-sequence instance) in
+`include/sly2/relay.h`.
 
 ## 2. Main types
 
@@ -166,4 +167,5 @@ control and the camera.
   (the startup step queue): who queues movies; `src/game/world/scene/sw.cpp` (`ExecuteSwTransition`): where they play.
 - `src/game/gameplay/cutscene/framecapture.cpp`: the frame-capture transition.
 - `src/game/level/wipe.cpp`, `src/game/engine/presentation/letterbox.cpp`.
-- `include/sly2/basic.h` (`RELAYCK`), `include/sly2/classes.h` (`RELAY`).
+- `include/sly2/basic.h` (`RELAYCK`), `include/sly2/classes.h` (`RELAY`), `include/sly2/relay.h` (`RELAYCMD`,
+  `RELAYJSG`).

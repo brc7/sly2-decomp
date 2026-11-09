@@ -9,7 +9,7 @@
  * varb.h, the member specialization of sly2/classes.h), and its inline-release locals use CRefOwner<T>, which is the
  * same object (one pointer) with the template's inline destructor: same code, no copy. The attach (CRefPtr<T>::Attach,
  * a linkonce instance emitted by splice/gc.cpp) is called by its symbol through CRefPtrFns<T>.
- * See docs/guides/tu-merging.md, "Views unified, continued (names/vu-f8-sound-ui-3)". */
+ * See docs/archive/view-unification-history.md, "Views unified, continued (names/vu-f8-sound-ui-3)". */
 #ifndef SLY2_SP_H
 #define SLY2_SP_H
 #include "sly2/gc.h"

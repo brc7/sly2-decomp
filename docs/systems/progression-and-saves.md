@@ -194,7 +194,8 @@ the player is struggling; higher presumably means easier play (inferred from its
 
 Progress that is not a task lives in save variables written by gameplay code: coins (`loot.ccoin`, read and written
 through `GetCoinCount` / `SetCoinCount`), loot counts, clue bottles and vaults per level, owned gadgets, booty. The code
-is in `src/game/gameplay/progression/` (`prize.cpp` for coins, clues, vaults and prize sprays; `booty.cpp`;
+is in `src/game/gameplay/progression/` (`prize.cpp` for coins, clues, vaults and prize sprays, with the classes in
+`include/sly2/prize.h`; `booty.cpp`;
 `cheat.cpp`; `waypoint.cpp`) and ThiefNet purchases in the front-end screens.
 
 ## 9. How it connects
@@ -251,5 +252,5 @@ level-specific behaviour, prefer a script handler on the task.
 - `src/game/ui/memcard.cpp`: the save manager, worker thread, card jobs, dialogs, save pages.
 - `src/game/world/scene/sw.cpp`: `ResolveSwSaveVars`.
 - `src/game/gameplay/progression/`: prizes, booty, cheats, waypoints.
-- `include/sly2/task.h`, `save.h`, `sw.h`.
+- `include/sly2/task.h`, `save.h`, `sw.h`, `game.h` (the game-progress record `g_game`), `prize.h`.
 - [formats/save-variables.md](../formats/save-variables.md) and [engine.md](../engine.md) sections 7.12-7.13.

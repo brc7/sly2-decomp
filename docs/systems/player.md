@@ -22,7 +22,7 @@ Code lives in two places:
 - `src/game/gameplay/player/` holds STEPPLAYER (`stepplayer.cpp`), the three heroes (`jt.cpp`, `bentley.cpp`,
   `murray.cpp`) and one file per component (`air.cpp`, `grab.cpp`, `hurt.cpp`, `hang.cpp`, `pipe_jt.cpp`,
   `cane.cpp`, `throw.cpp`, `mode.cpp`, `places.cpp`, `jtgoal.cpp`, `jthands.cpp`), plus the grabbable world objects
-  (`grabspot.cpp`, `pipe.cpp`, `rail.cpp`, `hnd.cpp`) and animation helpers (`dirblend.cpp`, the GAIT/LEAP unit).
+  (`grabspot.cpp`, `pipe.cpp`, `rail.cpp`, `hnd.cpp`) and animation helpers (`dirblend.cpp`, `gait.cpp` for GAIT and LEAP).
 
 The types are declared in `include/sly2/po.h`, `step.h`, `stepplayer.h` (STEPPLAYER and every component record),
 `jt.h` (JT) and `players.h` (MURRAY, BENTLEY). The button bits are named in
@@ -181,13 +181,13 @@ called from the owner's slot 70, and sometimes an `UpdateJtInternalXps*` constra
   on an object that leaves the world.
 - **Mode** (`JTMODE`, `mode.cpp`): the look (binocucom, kind 0) and recon (kind 1) modes with their HUD:
   `StartJtMode` / `EndJtMode`, `SetJtModeState`, `UpdateJtMode`. Recon selection (picking photo targets, RECONTGT
-  objects) is in the unit that defines `UpdateReconSel`.
+  objects) is in `recon.cpp` (`UpdateReconSel`).
 - **Goal** (`JTGOAL`, `jtgoal.cpp`): a scripted walk-to point (`SetJtgoal`, `UpdateJtgoal`) with anti-stuck logic that
   fades blocking guards or warps the hero onto the goal. While `IsJtgoalHolding` is true the AI input and the
   behaviour stack are skipped.
 - **Throw** (`JTTHROW`, `throw.cpp`): carrying and aiming an object, the predicted arc and marker, `SetJtThrowState`,
   `UpdateJtThrow`, `ReleaseJtThrowObject`.
-- **Gait / leap / directional blends** (`dirblend.cpp` and the unit that defines `UpdateGaitBlend`): walk/run blend and
+- **Gait / leap / directional blends** (`dirblend.cpp` and `gait.cpp`, which defines `UpdateGaitBlend`): walk/run blend and
   footsteps (`UpdateGaitBlend`, `UpdateGaitFootsteps`), LEAP jumps between two points (`StartLeap`, `UpdateLeap`),
   and solving eight directional clips so root motion matches a requested velocity (`UpdateDirectionalBlend`,
   `UpdateDirectionalAcceleration`).
@@ -225,8 +225,8 @@ control (Murray following Sly, a partner walking to a mark in a cutscene), it is
 stack the guards use. `UpdateStepplayer` calls the top behaviour's input slot with the hero's POCTL; the behaviour
 writes stick and button values into it, and the hero's normal state machine reacts as if a player were holding the
 pad. Example: following Sly pushes a follow behaviour and, under it, a walk-to-goal behaviour; Splice starts it with
-`StartStepplayerFollow`. The behaviours that drive heroes (follow, walk-to-goal, approach-and-interact) live in the
-unit that defines them under `src/game/gameplay/ai/` (search for `StartStepplayerFollow`'s callees). There is no guard
+`StartStepplayerFollow`. The behaviours that drive heroes (follow, walk-to-goal, approach-and-interact) live in
+`src/game/gameplay/ai/stepbhv.cpp`. There is no guard
 root behaviour on a hero's stack.
 
 Scripts (RELAY/JSG sequences, engine.md section 7.14) take over a hero through the ride/script hook

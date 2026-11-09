@@ -18,9 +18,10 @@ and [progression-and-saves.md](progression-and-saves.md).
   names the playable object it is played with. The minigame object reads its `POCTL` like a hero does, and the level's
   scripts and relays decide when it starts, how it scores and what completing it does to the task.
 
-Code: boss classes in `src/game/gameplay/ai/` (one small file per named character, still address-named), minigame
-objects in `src/game/gameplay/objects/` (`turret.cpp`, `rhythm.cpp`, the hacking and robot-tank units) and
-`src/game/gameplay/ai/` (the safehouse unit). Each file's header comment names its classes and entry points.
+Code: boss classes in `src/game/gameplay/ai/` (one small file per named character: `carmelita.cpp`, `dimitri.cpp`, `neela.cpp`, `rajan.cpp`, `contessa.cpp`), minigame
+objects in `src/game/gameplay/objects/` (`turret.cpp`, `rhythm.cpp`, `hack.cpp`, `robottank.cpp`) and
+`src/game/gameplay/ai/safehouse.cpp`. The hacking classes are declared in `include/sly2/hack.h`, the robot tank and its
+ammo pickup in `include/sly2/tank.h`. Each file's header comment names its classes and entry points.
 
 ## 2. Main types
 
@@ -115,9 +116,9 @@ game.
 
 ## 8. Where to look
 
-- `src/game/gameplay/ai/`: the boss classes (search for `FindDimitriFarthestRoute`, `CONTESSA`, `RAJAN`) and the
-  safehouse unit (`UpdateSafehouse`).
-- `src/game/gameplay/objects/`: `turret.cpp`, `rhythm.cpp`, the hacking unit (`hack.cpp`) and the robot-tank unit
-  (`CollectRobottankPickup`).
+- `src/game/gameplay/ai/`: the boss classes (`dimitri.cpp`, `contessa.cpp`, `rajan.cpp`, `carmelita.cpp`, `neela.cpp`)
+  and `safehouse.cpp` (`UpdateSafehouse`).
+- `src/game/gameplay/objects/`: `turret.cpp`, `rhythm.cpp`, `hack.cpp` (classes in `include/sly2/hack.h`) and `robottank.cpp`
+  (`CollectRobottankPickup`; classes in `include/sly2/tank.h`).
 - `src/game/engine/camera/cplcy.cpp`: `CPTURRET` and the other special camera policies.
 - `src/game/gameplay/cutscene/relay.cpp`: `RELAYCK_SetCtlState` and the rhythm commands.

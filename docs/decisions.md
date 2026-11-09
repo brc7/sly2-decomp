@@ -81,7 +81,7 @@ same single word with the release inline. *Why:* in the original every one of th
 in our sources the real template makes g++ 2.95 emit extra weak copies of the destructor and its helpers in each TU
 that also calls them out of line, so the objects' symbol tables and linkonce sections no longer match. gc.cpp keeps its
 own views of the nodes because it is the TU that must emit the real template. *Status:* permanent for the Splice nodes;
-details and the measurements are in guides/tu-merging.md (Views unified, names/vu-f8-sound-ui-3).
+details and the measurements are in archive/view-unification-history.md (names/vu-f8-sound-ui-3).
 
 ## 2. Linkage and symbols
 

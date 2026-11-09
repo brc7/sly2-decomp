@@ -237,5 +237,6 @@ paths.
 - `src/game/object/brx.cpp`: `LoadOptionsFromBrx`, `LoadOptionFromBrx`.
 - `src/game/app/bif.cpp`, `bif2.cpp`: builtins. `src/game/app/class_registry_options.inc`: option records and per-class
   arrays. `src/generated/splicewrap/`: thunks.
-- `include/sly2/cref.h`, `cframe.h`, `eopid.h`, `gc.h`.
+- `include/sly2/cref.h`, `cframe.h`, `eopid.h`, `gc.h`; the GC node kinds in `pair.h`, `varb.h`, `proc.h` (CProc),
+  `sidebag.h` (CSidebag), `method.h` (CMethod), and `sp.h` (CRefOwner, the owning pointer with inline release).
 - [formats/splice-scripts.md](../formats/splice-scripts.md): serialized form, symbol and event names, option usage.

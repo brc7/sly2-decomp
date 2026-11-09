@@ -25,8 +25,8 @@ Code lives in `src/game/engine/physics/`:
   impulse/acceleration helpers), `dzg.cpp` (contact rows on top of the solver in `core/math/dzgcore.cpp`).
 - `geom.cpp` (collision geometry in local and world space), `clip.cpp` (segment clipping and line tests),
   `vol.cpp` (trigger volumes), `water.cpp` (water bodies), `shape.cpp` (paths and curves), `path.cpp` (navigation
-  zones and A*), the convex-obstacle unit (`IsPosInConvexObstacle`, `MergeCid14Obstacles`), the sticky-mesh unit
-  (`UpdateJtMeshAttachment`) and the launcher unit (`LaunchSoFromLauncher`).
+  zones and A*), `cnvo.cpp`, the convex obstacles (`IsPosInConvexObstacle`, `MergeCid14Obstacles`), `sticky.cpp`, the sticky
+  meshes (`UpdateJtMeshAttachment`), and `launcher.cpp` (`LaunchSoFromLauncher`).
 - Shared maths in `src/game/core/math/`: `bsp.cpp` (plane BSP trees: clip an edge, locate a point), `dzgcore.cpp`
   (the active-set constraint solver), `crout.cpp` (the factorisation it uses).
 - `src/game/actor/step.cpp`: how a walking body uses the solver (section 4).
@@ -182,7 +182,7 @@ crossbow dart, 0x200000 juggle (floors hp at 5).
   sight and returns the points; `FindPathzonePathCurve` builds a curve from it.
 - **The zone BSP.** A world can carry a BSP whose leaves are path zones; `FindPathzoneAtPos` walks it to find the zone
   containing a point, falling back to a default zone that `PostLoadSwPathzones` creates when the world has none.
-- **Obstacles.** Convex polygons (the convex-obstacle unit: `IsPosInConvexObstacle`, `ClipEdgeToConvexObstacle`) register in the zone that
+- **Obstacles.** Convex polygons (`cnvo.cpp`: `IsPosInConvexObstacle`, `ClipEdgeToConvexObstacle`) register in the zone that
   contains them (`AddPathzoneObstacle` / `RemovePathzoneObstacle`), kept in sorted begin/end event arrays per axis for
   sweep-and-prune queries; overlapping ones merge into one hull (`MergeCid14Obstacles`, `UpdatePendingCid14Obstacles`
   after each solve). Every change bumps a world navigation version so planners know to re-plan. `IsPosFreeInPathzone`
@@ -238,9 +238,9 @@ collision parts with a BSP, is not ignored by the walker's `ShouldIgnoreIntersec
 
 - `src/game/engine/physics/so.cpp`, `solve.cpp`, `dzg.cpp`, `bbmark.cpp`, `mark.cpp`: the rigid-body core.
 - `src/game/engine/physics/geom.cpp`, `clip.cpp`, `vol.cpp`, `shape.cpp`: geometry, line tests, volumes, paths.
-- `src/game/engine/physics/water.cpp`, the launcher unit (`LaunchSoFromLauncher`), the sticky-mesh unit
+- `src/game/engine/physics/water.cpp`, `launcher.cpp` (`LaunchSoFromLauncher`), `sticky.cpp`
   (`UpdateJtMeshAttachment`): special bodies.
-- `src/game/engine/physics/path.cpp` and the convex-obstacle unit (`MergeCid14Obstacles`): navigation.
+- `src/game/engine/physics/path.cpp` and `cnvo.cpp` (`MergeCid14Obstacles`): navigation.
 - `src/game/core/math/bsp.cpp`, `dzgcore.cpp`, `crout.cpp`: shared maths.
 - `src/game/actor/step.cpp`: walking bodies on the solver.
 - `include/sly2/so.h`, `include/sly2/dzg.h`.

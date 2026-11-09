@@ -37,7 +37,7 @@ is how clears, texture uploads and 2-D effects are drawn.
 | `MS` | static mesh: an SO with no fields of its own | `pipeline/ms.cpp` |
 | `SKY` | the sky dome, an SO re-centred on the camera each frame | `pipeline/sky.cpp` |
 | `VIS` | camera visibility zone (a BSP volume) that selects the camera's `grfvis` mask | `pipeline/vis.cpp` |
-| RTCAM (class name not settled) | a camera object that renders a few objects into a 128x128 render target | the render-target unit in `pipeline/` (`InitRenderTargets`) |
+| RTCAM (class name not settled) | a camera object that renders a few objects into a 128x128 render target | `pipeline/rtcam.cpp` (`InitRenderTargets`) |
 | `DMAS` / `VIFS` / `GIFS` | DMA chain builder and its VIF1 and GIF packet subclasses | `backend/dmas.cpp`, `backend/vifs.cpp`, `backend/gifs.cpp` |
 | `FRM` | one of the two double-buffered frames handed to the render thread | `backend/frm.cpp` |
 | `GSB` | a GS-memory block allocator (size-bucket free lists plus a bump top) | `backend/gs.cpp` |
@@ -307,9 +307,13 @@ The game-side structure worth keeping: the RPL kinds and their sort, the pass bo
 
 - `src/game/engine/graphics/pipeline/`: `render.cpp` (RenderSw, RPL allocation), `draw.cpp` (DrawSw, sort, pass hooks
   table), `glob.cpp` (globsets and most pass hooks), `shd.cpp`, `shdanim.cpp`, `light.cpp`, `ms.cpp`, `sky.cpp`, `vis.cpp`,
-  plus two units still named by address (render targets; scene render tree).
+  `rtcam.cpp` (render targets), `rendertree.cpp` (scene render tree and its culling).
 - `src/game/engine/graphics/backend/`: `dmas.cpp`, `vifs.cpp`, `gifs.cpp`, `gs.cpp`, `frm.cpp`.
 - `src/game/engine/fx/`: `emitter.cpp`, `blip.cpp`, `rip.cpp`, `trail.cpp`.
 - `src/game/engine/physics/so.cpp`: `RenderSoSelf`, render-tree insertion of SOs.
-- `include/vifs.h`, `include/gifs.h`, `include/dmas.h`: the packet builder classes; `include/sly2/emitter.h`.
+- `include/vifs.h`, `include/gifs.h`, `include/dmas.h`: the packet builder classes.
+- `include/sly2/render.h` (the render-list entry RPL), `glob.h` (sub-mesh culling data, loader state, vertex colour
+  palettes; GLOB/GLOBSET themselves are in `so.h`), `shd.h` (CLUT, BMP, TEX, SHD and the TEX0 word), `light.h`
+  (SOBOUNDS and the per-object light packets), `gs.h` (the GS block allocator), `emitter.h` and `rip.h` (emitters
+  and the particle kinds).
 - `src/sdk/libgraph`, `src/sdk/libdma`: Sony GS/DMA libraries the backend calls.

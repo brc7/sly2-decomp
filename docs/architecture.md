@@ -9,8 +9,8 @@ built into Sucker Punch's design; each is listed below with the reason it
 stays and a header-only remedy.
 
 - Each original translation unit (TU) is one source file. Files are named after the original file where it is known
-  (`sw.cpp`, `relay.cpp`); otherwise `tu_<start address>` (`safehouse.cpp`), or `empty_<address>` for a unit that holds
-  only compiler-generated stubs. `tools/layout/units.csv` maps every function to its unit; the file header gives the
+  (`sw.cpp`, `relay.cpp`); otherwise after the class or system it holds (`safehouse.cpp`, `robottank.cpp`), or
+  `empty_<start address>` for a unit that holds only compiler-generated stubs. `tools/layout/units.csv` maps every function to its unit; the file header gives the
   unit's address range.
 - How the graph was built, the alternatives tried and the per-unit placement rationale are in the design record
   (`research/layout/LAYOUT.md`, outside the repo).

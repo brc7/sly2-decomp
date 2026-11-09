@@ -31,8 +31,9 @@ request bits on a sound object, and once per frame the manager flushes the dirty
 | subtitle record (`SPEAKERLABEL`, hypothesis name) | the current caption: language-string id, speaker colour, button glyph mask. |
 | `SFX` descriptor | per-effect parameters from level data (effect id, audible ranges, volume). |
 
-Header views are mostly TU-private (`engine/sound/sound.cpp` declares its own `SND`/`SNDMGR` views); `include/sly2/snd.h`
-and `include/sly2/aseg.h` carry partial declarations.
+Headers: `include/sly2/snd.h` (SND and its BANKSND/STREAMSND kinds, sound sources and counted references) and
+`include/sly2/sndmgr.h` (the sound manager `g_sndmgr` with its stream and file lists; kept apart from snd.h so its many
+includers stay light).
 
 ## 3. Lifecycle
 
@@ -106,7 +107,7 @@ parameters (volume/pan/pitch), pause, continue. Async results come back through 
 - `UpdateDialog` fires the line's events as the stream's play time passes them: `ApplyDialogEvent` sets the goal state
   of a role's SM (mouth shapes) or plays a gesture. `StopDialog` flushes remaining events, returns mouths to rest and
   clears the line. `IsDialogPlaying`, `GetDialogTime` and `GetDialogStreamDuration` are the queries.
-- **Subtitles** (the subtitle unit in `engine/sound/`): `SetSubtitle` / `ClearSubtitle`; `GetSubtitleText` copies the
+- **Subtitles** (`engine/sound/subtitle.cpp`): `SetSubtitle` / `ClearSubtitle`; `GetSubtitleText` copies the
   language string; `TrimSubtitleToVoiceProgress` cuts it to the fraction of the voice line played so far (the
   typewriter effect); `FormatSubtitleButtonGlyphs` appends rich-text button glyphs; `GetSpeakerSubtitleColor` colours the box
   by speaker class. The HUD draws it through text callbacks ([ui-and-hud.md](ui-and-hud.md)). RELAY cutscene commands,
@@ -195,7 +196,8 @@ Game-side code (`SNDMGR`, the request queue, music stack and layers, dialogue ro
 - `src/game/engine/sound/sound.cpp`: SND, BANKSND, STREAMSND, SNDMGR, music, dialogue, volumes, the headset
   (`UpdateHeadsetMicrophone`, `OnMicLevelResult`); the SNDMGR field comment lists the channels and categories.
 - `src/game/engine/sound/amb.cpp`: AMB ambient emitters.
-- The subtitle unit in `src/game/engine/sound/` (still named by address): subtitle record and helpers.
+- `src/game/engine/sound/subtitle.cpp`: subtitle record and helpers.
+- `include/sly2/snd.h`, `sndmgr.h`.
 - `src/sdk/989snd/`: the 989snd EE client library.
 - Callers: `ui/menu.cpp` and `world/state/save.cpp` (option volumes and the headset option), `gameplay/ai/noise.cpp`
   (the microphone noise), `gameplay/cutscene/relay.cpp` (dialogue and music

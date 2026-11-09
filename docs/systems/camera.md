@@ -177,7 +177,7 @@ Almost nothing here is hardware-specific. The exceptions:
 - `src/game/engine/camera/cm.cpp`: CM, `InitCm`, `UpdateCmLast`, policy stack, matrices, fog, clipping, vis zone.
 - `src/game/engine/camera/cplcy.cpp`: base policy and CPLOOK, CPZOOM, CPHANG, CPCAMBLEND, CPTURRET, CPTWOSHOT.
 - `src/game/engine/camera/tn.cpp`: TN volumes, CPD records, the CPTN follow camera and line of sight.
-- The `CAMERA` / CPCAMERA unit in `src/game/engine/camera/` (still named by address).
+- `src/game/engine/camera/camera.cpp`: the placed `CAMERA` object and CPCAMERA.
 - `src/game/engine/graphics/pipeline/vis.cpp`: VIS zones.
 - `include/sly2/cm.h`: all camera types.
 - Callers: `actor/po.cpp` (`OnPoActive`), `gameplay/player/mode.cpp`, `gameplay/player/grab.cpp`,

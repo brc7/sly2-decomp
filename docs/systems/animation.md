@@ -32,7 +32,7 @@ it".
 | `SMA` | an SM **applied** to an object: refcounted, current state, goal, running transition and its ASEGA, transition mask, speed | `aseg.h`, `sm.cpp` |
 | IK record | two-bone IK: first bone, second bone, parent XFs and lengths | `engine/anim/ik.cpp` |
 | chain | a tail / rope: a chain of XFs simulated with damping | `engine/anim/tail.cpp` |
-| transform constraint | destination object's position and/or rotation follow a source's | the constraint unit in `engine/anim/` (`ApplyXfmConstraint`) |
+| transform constraint | destination object's position and/or rotation follow a source's | `engine/anim/constraint.cpp` (`ApplyXfmConstraint`) |
 | `WR` | a space warp (an LO): wave and noisy-bend entries applied to the vertices of warp groups | `engine/anim/wr.cpp` |
 
 Two refcounted "application" objects (`ASEGA`, `SMA`) are the important ownership boundary: the level owns `ASEG` and
@@ -188,7 +188,7 @@ consistent dt.
 ## 12. Where to look
 
 - `src/game/engine/anim/`: `xf.cpp` (slots, `UpdateSoSlots`), `act.cpp` (acts and curves), `aseg.cpp`, `asega.cpp`,
-  `blend.cpp`, `sm.cpp`, `ik.cpp`, `tail.cpp`, `wr.cpp`, and the constraint unit (still named by address).
+  `blend.cpp`, `sm.cpp`, `ik.cpp`, `tail.cpp`, `wr.cpp`, and `constraint.cpp` (transform constraints).
 - `src/game/engine/physics/so.cpp`: `UpdateSoXfWorld` (SO slot 17), which calls `UpdateSoSlots`.
 - `src/game/gameplay/player/`: `dirblend.cpp` and the GAIT/LEAP users; `include/sly2/leap.h`.
 - `include/sly2/aseg.h` (ASEG, ASEGA, ASEGBL, SM, SMA, EA), `include/sly2/act.h`, `include/sly2/so.h` (XF).

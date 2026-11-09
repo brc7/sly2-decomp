@@ -26,10 +26,11 @@ Code lives in `src/game/gameplay/ai/`:
   BHVWALKPATH, BHVGOTO, BHVPATROL, BHVATTACK / BHVCOMBAT, BHVLEAP, BHVSHOOT, rail, pipe, juggled, path-link and
   patrol-path behaviours.
 - `detector.cpp` (vision), `noise.cpp` (stimuli and listeners), `pickpocket.cpp` (loot).
-- Units still named by address hold the search behaviour (`UpdateBhvSearch`), guard scripts (`UpdateBhvScript`,
-  `AddGuardScript*`), spawners (`UpdateSpawner`), the stuck/hazard watchdogs (`UpdateStuckWatch`,
-  `UpdateHazardWatch`), the partner/hero behaviours (follow, walk-to-goal, approach), and the named characters
-  (Carmelita, Dimitri, Neyla, Rajan, the Contessa). Search for those entry points; each file's header comment says
+- `bhvsearch.cpp` holds the search behaviour (`UpdateBhvSearch`), `guardscript.cpp` guard scripts (`UpdateBhvScript`,
+  `AddGuardScript*`), `spawner.cpp` spawners (`UpdateSpawner`), `watchdog.cpp` the stuck/hazard watchdogs
+  (`UpdateStuckWatch`, `UpdateHazardWatch`), `stepbhv.cpp` the partner/hero behaviours (follow, walk-to-goal,
+  approach), and one file per named character (`carmelita.cpp`, `dimitri.cpp`, `neela.cpp`, `rajan.cpp`,
+  `contessa.cpp`). Search for those entry points; each file's header comment says
   what it holds.
 
 Types: `include/sly2/step.h` (STEP, BHV, BHVSTK), `include/sly2/guard.h` (STEPGUARD, DETECTOR, BHVGUARD's record,
