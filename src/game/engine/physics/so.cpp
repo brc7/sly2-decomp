@@ -30,6 +30,7 @@
 #include "sly2/act.h"
 #include "sly2/dli.h"
 #include "sly2/clock.h"
+#include "sly2/vtables.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -3629,7 +3630,6 @@ extern "C" int GetSoIceable(SO *p) { return (int)p->hurtRespawnsHero & 1; }   /*
 namespace M_func_001F8510 {
 struct CID149Island;
 struct CID149Island { int a, b, numTransforms; void *pvt; int pad[4]; void *so; void *transform; int pad2[2]; };   /* the CID149 handle, built by hand */
-extern char D_002CA2C0[] __asm__("_vt$6CID149");
 struct Pool;
 struct CID149Island *AllocZeroedFromSlotheap(struct Pool *) __asm__("AllocZeroedFromSlotheap");
 void func_002333B4(void *, int, int) __asm__("memset");
@@ -3642,7 +3642,7 @@ extern "C" struct CID149Island *NewSoXfHandle(SO *so, int k, int m)
         if (pe->kind == m && (k == -1 || pe->oid == k)) {
             struct CID149Island *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
             func_002333B4(q, 0, 0x30);
-            q->pvt = D_002CA2C0;
+            SLY2_SET_VPTR(q, CID149);
             q->so = so;
             q->transform = pe;
             q->a = 0;
@@ -3659,7 +3659,6 @@ namespace M_func_001F85E0 {
 struct CID150Island;
 /* CID150 constructed by hand: the raw CRefPtr clears and the vptr store (a CID150 constructor would refcount) */
 struct CID150Island { int a, b, c; void *pvt; int pad[4]; void *object; void *part; int pad2[2]; };
-extern char D_002CA280[] __asm__("_vt$6CID150");
 struct Pool;
 void *FindSoPart(void *) __asm__("FindSoPart");
 struct CID150Island *AllocZeroedFromSlotheap(struct Pool *) __asm__("AllocZeroedFromSlotheap");
@@ -3674,7 +3673,7 @@ extern "C" struct CID150Island *NewSoPartHandle(void *pa)
     func_002333B4(q, 0, 0x30);
     q->object = pa;
     q->part = r;
-    q->pvt = D_002CA280;
+    SLY2_SET_VPTR(q, CID150);
     q->a = 0;
     q->b = 0;
     return q;
