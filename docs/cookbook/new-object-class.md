@@ -34,7 +34,7 @@ good one: an `SO` subclass whose overrides each call the base first and then do 
 
 ```cpp
 // gameplay/objects/button.cpp: the shape every override follows
-extern "C" void InitButton(BUTTONV *button)
+extern "C" void InitButton(BUTTON *button)
 {
     InitSo(button);            // base first
     InitBtn(&button->btn);     // then this class's state
@@ -122,8 +122,8 @@ extern "C" void InitButton(BUTTONV *button)
 - **Proxy scoping.** Objects inside a proxy copy find each other by oid only within the same copy unless the search
   says otherwise; a class that looks up "oid N" should use the object-relative lookups (`FindSwObject` with the object
   as context).
-- **Per-file views.** Many `.cpp` files declare their own partial view of a class (`BUTTONV` and the like) instead of
-  including the full header. If you change a class layout, search for every view of it.
+- **Per-file views.** Many `.cpp` files declare their own partial view of a class (`PATHLINKV`, `CID100V` and the like)
+  instead of including the full header. If you change a class layout, search for every view of it.
 
 ## How to test
 

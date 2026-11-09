@@ -94,7 +94,7 @@ difference.
 - **Names can lie; code cannot.** Function and field names are hypotheses until marked otherwise
   ([engine.md section 1](../engine.md#1-how-knowledge-is-marked)); `(inferred)` names especially. The matched body is
   the ground truth.
-- **Per-file views.** Many files read a struct through their own partial view (`BUTTONV`, `struct S` in a function's
+- **Per-file views.** Many files read a struct through their own partial view (`CID100V`, `struct S` in a function's
   namespace). A field that looks different in two files may be the same offset under two names; compare offsets, not
   names.
 - **Address-named globals** (`D_...`) are real globals that are not named yet; search `config/symbol_addrs.txt` and
