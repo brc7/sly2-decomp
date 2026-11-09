@@ -187,15 +187,14 @@ extern "C" void PostReconSelLoad(RECONSEL *reconSel)
     ResetReconTargets(reconSel);
 }
 
-// Calls virtual slot 9 on each target's companion object (+0x100). (inferred: resets its marker)
+// Removes each target's companion object (+0x100) from the world (LO::Remove). (inferred: its marker)
 void ResetReconTargets(RECONSEL *reconSel)
 {
     int i;
     for (i = 0; i < reconSel->count; i++) {
         LOV *o = reconSel->items[i]->plo100;
         if (o) {
-            VTE *e = &o->pvt[9];
-            ((void (*)(void *))e->pfn)((char *)o + e->d);
+            ((LO *)o)->Remove();
         }
     }
 }
@@ -409,7 +408,7 @@ void SelectReconTarget(RECONSEL *reconSel)
     LOV *owner = reconSel->model->plo;
     float minimum;
     RECONTGT **slot;
-    ((void (*)(void *, qword *))owner->pvt[97].pfn)((char *)owner + owner->pvt[97].d, &reconSel->position.q);
+    ((JT *)owner)->GetCameraFocusPos((VECTOR4 *)&reconSel->position.q);
     reconSel->position.f[2] += 20.0f;
     minimum = D_002A8550;
     if (reconSel->count > 0) {
