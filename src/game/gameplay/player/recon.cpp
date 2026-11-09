@@ -206,7 +206,7 @@ void NotifyReconTargets(RECONSEL *reconSel)
     int i;
     for (i = 0; i < reconSel->count; i++) {
         RECONTGT *o = reconSel->items[i];
-        if (((int)(o->fl28 >> 60) & 1) && o->plo100) ((void (*)(void *))o->plo100->pvt[8].pfn)((char *)o->plo100 + o->plo100->pvt[8].d);
+        if (((int)(o->fl28 >> 60) & 1) && o->plo100) ((::LO *)o->plo100)->Add();
     }
 }
 
