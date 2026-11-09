@@ -25,6 +25,7 @@
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
 #include "sly2/clock.h"
+#include "sly2/vtables.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct SNDOBJ { char pad0[0xC]; VTE *vtable; };
@@ -116,7 +117,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define CD_STATE_IDLE 3   /* cd.cpp's disc-poll state D_002BD4C0 (1 read, 2 wait, 3 idle) */
 
 extern "C" {
-extern void *D_002D9C70[] __asm__("_vt$7BANKSND");  /* BANKSND vtable */
 void SetSndFlags(CID151 *sound, int grfMask, int grf);
 CID151 *SND_ctor(CID151 *sound);
 BANKSND *BANKSND_ctor(BANKSND *sound, int sfxId);
@@ -154,11 +154,10 @@ extern "C" struct E *NewSfx(void)
 } // namespace M_NewSfx
 
 namespace M_SND_ctor {
-extern char D_002D9D00[] __asm__("_vt$6CID151");
 // Base sound constructor: BASIC header cleared, SND vtable, volume 1, audible from 300 to 3000 units.
 extern "C" CID151 *SND_ctor(CID151 *sound)
 {
-    ((SNDOBJ *)sound)->vtable = (VTE *)D_002D9D00;   /* the vptr, by hand (a C-named constructor) */
+    SLY2_SET_VPTR(((SNDOBJ *)sound), CID151);   /* the vptr, by hand (a C-named constructor) */
     sound->scriptFrame.m_p = 0;
     sound->scriptVariables.m_p = 0;
     sound->volume = 1.0f;
@@ -498,7 +497,7 @@ extern "C" BANKSND *BANKSND_ctor(BANKSND *sound, int sfxId)
 {
     SND_ctor(sound);
     sound->sfxId = sfxId;
-    ((SNDOBJ *)sound)->vtable = (VTE *)D_002D9C70;   /* the vptr, stored by hand (a C-named constructor) */
+    SLY2_SET_VPTR(((SNDOBJ *)sound), BANKSND);   /* the vptr, stored by hand (a C-named constructor) */
     SetSndFlags(sound, SND_START, SND_START);
     return sound;
 }
@@ -718,7 +717,6 @@ namespace M_STREAMSND_ctor {
    (+0x88), source counts (+0xA0) and sources (+0xB8, 8 each), the stream kind (+0x3B8) and the dirty sub-group mask
    (+0x3BC). */
 extern SNDMGR D_003DD040 __asm__("D_003DD040");
-extern char D_002D9BE0[] __asm__("_vt$9STREAMSND");
 int GetStreamVolumeChannel(SNDMGR *, FILEREC *) __asm__("GetStreamVolumeChannel");
 void PauseSnd(CID151 *) __asm__("PauseSnd");
 // Streamed-sound constructor: base constructor, STREAMSND vtable, the file record and kind, all six sub-group volumes at
@@ -730,7 +728,7 @@ extern "C" STREAMSND *STREAMSND_ctor(STREAMSND *sound, FILEREC *pfilerec, int st
     SNDMGR *soundManager;
     SND_ctor(sound);
     sound->record.pfilerec = pfilerec;
-    ((SNDOBJ *)sound)->vtable = (VTE *)D_002D9BE0;   /* the vptr, by hand (a C-named constructor) */
+    SLY2_SET_VPTR(((SNDOBJ *)sound), STREAMSND);   /* the vptr, by hand (a C-named constructor) */
     sound->streamKind = streamKind;
     for (i = 0; i < 6; i++)
         sound->groupVolumes[i] = 1.0f;
@@ -1086,7 +1084,6 @@ struct V2 { float x, y; };
    paused flag, the mute-when-stopped flags, the microphone noise curves (CLQ), the playback mode, the music layers'
    smoothing parameters, the counted sound pointers released by the destructor (dialog +0x200, the eight music-stack
    entries +0x208, ambience +0x228). */
-extern char D_002CA510[] __asm__("_vt$6CID152");
 extern const struct V2 D_002A83B8 __asm__("D_002A83B8");
 extern const struct V2 D_002A83C0 __asm__("D_002A83C0");
 void InitDl__FP2DLi(DL *, int) __asm__("InitDl__FP2DLi");
@@ -1106,7 +1103,7 @@ SNDMGR *SNDMGR_ctor(SNDMGR *soundManager) __asm__("SNDMGR_ctor"); SNDMGR *SNDMGR
     int *entry;
     soundManager->abasic[0] = 0;   /* BASIC: frame, side bag, vtable */
     soundManager->abasic[1] = 0;
-    soundManager->abasic[3] = (int)D_002CA510;
+    soundManager->abasic[3] = (int)SLY2_VTBL(CID152);
     InitSlotheap(&soundManager->bankSoundPool, 0x70, 0x80, 0x10);      /* 128 bank sounds of 0x70 bytes */
     InitSlotheap(&soundManager->streamSoundPool, 0x3C0, 0x10, 0x10);   /* 16 stream sounds of 0x3C0 bytes */
     soundManager->dialogSound.p = 0;
