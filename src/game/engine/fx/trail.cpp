@@ -76,7 +76,7 @@ struct MODEL {
 /* View of the trail (an SO). */
 struct TRAIL {
     char pad0[0xC];
-    VTE *vt; /* +0x00C slot 9 Remove, slot 31 the world matrix */
+    void *vptr; /* +0x00C (the calls go through the real SO) */
     char pad10[0x30];
     unsigned int flags; /* +0x040 a pointer to flags when bit 0 is clear, else the flags */
     char pad44[0x3C];
@@ -160,7 +160,7 @@ static inline int Wrap(int index, int count)
 extern "C" void ResetTrailHistory(TRAIL *trail)
 {
     float t = g_clock.time;
-    M4 m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
+    M4 m = *(M4 *)((SO *)trail)->GetWorldMatrix();
     int n = trail->count;
     int i = n + Wrap(0, n);
     t -= i * 0.016666668f;
@@ -366,7 +366,7 @@ extern "C" void UpdateTrail(TRAIL *trail, float dt)
         }
     }
     if (trail->g <= 0.0f && trail->rate <= 0.0f && !(trail->idle < trail->count))
-        ((void (*)(void *))trail->vt[9].pfn)((char *)trail + trail->vt[9].d);
+        ((SO *)trail)->Remove();
 }
 
 // Square root of the x lane of d as a float.
@@ -387,7 +387,7 @@ extern "C" void ProjectTrailTransform(TRAIL *trail)
         trail->index = (trail->index + 1) % trail->count;
         e->t = g_clock.time;
         e->g = trail->g;
-        e->m = *((M4 * (*)(void *)) trail->vt[31].pfn)((char *)trail + trail->vt[31].d);
+        e->m = *(M4 *)((SO *)trail)->GetWorldMatrix();
         if (trail->g <= 0.0f)
             trail->idle++;
         else
