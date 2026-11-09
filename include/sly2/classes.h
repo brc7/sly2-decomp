@@ -220,7 +220,12 @@ typedef char assert_CID43_size[sizeof(CID43) == 0x100 ? 1 : -1];
 /* 86 BARRIER (0x180); vtable 0x2CAF88, 75 slots */
 struct BARRIER : SO
 {
-    char pad150[0x180 - 0x150];
+    int numObjects;             /* +0x150 objects named by the barrier (barrier.cpp) */
+    OID objects[4];             /* +0x154 */
+    int numClasses;             /* +0x164 classes named by the barrier */
+    CID classes[4];             /* +0x168 */
+    int letsNamedThrough;       /* +0x178 named objects pass (else: only named objects are stopped) */
+    SO *impactObject;           /* +0x17C the object reported by the current impact event */
     virtual void Init() __asm__("InitBarrier");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBarrierClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostBarrierLoad");   /* slot 15 */
