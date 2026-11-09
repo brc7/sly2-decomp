@@ -22,12 +22,9 @@ typedef union U { qword q; float f[4]; int i[4]; } U;
 typedef struct M4 { U r[4]; } M4;
 typedef struct I3 { int index[3]; } I3;
 struct K { int a; int b; };
-/* The mesh object (an XFM, which ends at +0xE0; vtable slot 31 returns its world matrix). */
-typedef struct MESH
+/* The mesh object: an XFM (which ends at +0xE0) with its triangle mesh. */
+typedef struct MESH : XFM
 {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0xD0];
     int cvertex;        /* +0xE0 */
     qword *vertices;
     int count;          /* triangles */
@@ -140,9 +137,8 @@ namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.4
 // (vertex positions transformed by the object's world matrix, slot 31).
 extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,SURFLOC*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
- VTE*entry=&mesh->vt[31];
  w.input.q=point;
- word=(unsigned)((M4*(*)(void*))entry->pfn)((char*)mesh+entry->d);
+ word=(unsigned)mesh->GetWorldMatrix();
  w.matrix=*(M4*)word;
  bestDistance=D_002A5684;
  if(mesh->count>0){word=12;do{
@@ -291,9 +287,8 @@ extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *poi
     float dist, clamped;
     int edge, n;
     M4 *pm;
-    VTE *e = &mesh->vt[31];
     float stop, step;
-    pm = ((M4 *(*)(void *))e->pfn)((char *)mesh + e->d);
+    pm = (M4 *)mesh->GetWorldMatrix();
     mat = *pm;
     float h = (params->fastSpeed + params->slowSpeed) * 0.5f;
     step = g_clock.deltaTime * 0.5f;
