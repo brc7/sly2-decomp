@@ -22,7 +22,9 @@ typedef union { qwordV q; float f[4]; } VU;
 struct M3 { qwordV r[3]; };
 struct M4 { M3 basis; qwordV position; };
 
-/* Hand-made virtual calls (basic.h VTE): the vtable pointer of an object is at +0xC; the entries are called with several shapes. */
+// The real classes behind the views below, for their virtual calls.
+static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
+static inline ::CID100 *AsTossable(void *p) { return (::CID100 *)p; }
 
 enum CIDV { CID_34 = 0x34 };
 struct BASIC;
@@ -43,7 +45,7 @@ struct SOTREEV { char pad[0x60]; SOV *owner; struct LN *contactLists; };
 struct SOV
 {
     int pad0[3];
-    VTE *pvt;               /* 0x0C */
+    void *vptr;               /* 0x0C */
     SOV *parent;            /* 0x10 */
     char pad14[0x18 - 0x14];
     int oid;                /* 0x18 */
@@ -62,7 +64,7 @@ typedef char assert_SO_size[sizeof(SOV) == 0x150 ? 1 : -1];
 
 /* The actor a trap hands control to (+0xFC4 colour/goal act, +0xFD0 its control record). */
 struct CONTROL { int id, state, pad; void *object; };
-struct ACTOR { char pad[0xC]; VTE *pvt; char pad10[0xFC4 - 0x10]; void *color; char padFC8[8]; CONTROL basis; };
+struct ACTOR { char pad[0xC]; void *vptr; char pad10[0xFC4 - 0x10]; void *color; char padFC8[8]; CONTROL basis; };
 struct HOOK { struct CID100V *owner; ACTOR *object; HOOK *next; };
 
 struct CID100V : SOV
@@ -214,7 +216,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5
 // SelectGuardTrapTarget).
 static inline void SetStateVirtual(CID100V *gadget, int state)
 {
-    ((void (*)(void *, ...))gadget->pvt[76].pfn)((char *)gadget + gadget->pvt[76].d, state);
+    AsTossable(gadget)->SetState(state);
 }
 
 // CID100 vtable slot 7 (Init): SO init; blast damage -10, fired beyond 3000 units from the thrower, no pending
@@ -278,7 +280,7 @@ void UpdateTossable(CID100V *gadget)
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
         f = gadget->maxThrowerDistance < g;
         if (f)
-            ((int (*)(void *, int))gadget->pvt[75].pfn)((char *)gadget + gadget->pvt[75].d, 0);   /* the slot returns int (v0 busy) */
+            AsTossable(gadget)->TakeDamage(0);
     }
 }
 
@@ -531,10 +533,6 @@ static inline VUK MkVuk(float f){VUK r;__asm__("mfc1 %0,%1":"=r"(r.q):"f"(f));re
 static inline qwordV ScaleK(qwordV v,VUK k){qwordV r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(k.q));return r;}
 // Return old + v * k.
 static inline qwordV AddScaledK(qwordV old,qwordV v,VUK k){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%1x":"+j"(old):"j"(k.q),"j"(v));return old;}
-// The object's vector at virtual slot `slot`.
-static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return ((qwordV (*)(void *, ...))v[slot].pfn)((char *)o+v[slot].d);}
-// Set the object's vector at virtual slot `slot`.
-static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;((void (*)(void *, qwordV))v[slot].pfn)((char *)o+v[slot].d,q);}
 // Copy p into callee-saved $21.
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
 // See the block comment above.
@@ -590,10 +588,10 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
             if (x < fz) {
             } else if (one < x) fz = one;
             else fz = x;
-            { velocity = AddScaledK(Get(body, 33), linear, MkVuk(fz)); }
-            { spin = AddScaledK(Get(body, 34), angular, MkVuk(fz)); }
-            Set(body, 35, velocity);
-            Set(body, 36, spin);
+            { velocity = AddScaledK(AsSo(body)->GetVelocity(), linear, MkVuk(fz)); }
+            { spin = AddScaledK(AsSo(body)->GetAngularVelocity(), angular, MkVuk(fz)); }
+            AsSo(body)->SetVelocity(velocity);
+            AsSo(body)->SetAngularVelocity(spin);
         }
     }
 }
@@ -813,7 +811,7 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
                 }
                 if (D_002C43B0 < g_clock.time - gadget->time) {
                     SprayDprizes(&g_sw,0x5D,GetLoWorldPos(gadget->source),gadget,1);
-                    ((void (*)(void *, ...))gadget->actor->pvt[9].pfn)((char *)gadget->actor + gadget->actor->pvt[9].d);   /* Remove */
+                    AsSo(gadget->actor)->Remove();
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
                     register GAME *pgame asm("$4") = &g_game;
                     BroadcastGameEvent(pgame, 0x18, gadget->actor);
@@ -915,14 +913,14 @@ extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
             gadget->hook.owner = gadget;
             gadget->hook.object = bestActor;
             AddSoXa(bestActor, &gadget->hook);
-            q = ((qwordV (*)(void *, ...))bestActor->pvt[33].pfn)((char *)bestActor + bestActor->pvt[33].d);
+            q = AsSo(bestActor)->GetVelocity();
             s=LoadCoefficient();
             u.q = q;
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(q), "j"(s));
             u.q = r;
             v.q = s;
             u.f[2] = D_002C43F4;
-            ((void (*)(void *, qwordV))bestActor->pvt[35].pfn)((char *)bestActor + bestActor->pvt[35].d, u.q);
+            AsSo(bestActor)->SetVelocity(u.q);
             SendStepguardRootBhvMode6(bestActor, 0);
         }
     }

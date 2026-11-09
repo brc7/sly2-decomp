@@ -2202,7 +2202,7 @@ struct CID100 : SO
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldTossableIgnoreIntersection");   /* slot 61 */
     virtual void PresetAccel() __asm__("OrientTossableToTarget");   /* slot 70 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeTossableDamage");   /* slot 75 */
-    virtual void SetState() __asm__("SetTossableState");   /* slot 76 */
+    virtual void SetState(int state) __asm__("SetTossableState");   /* slot 76 */
 };
 typedef char assert_CID100_size[sizeof(CID100) == 0x1B0 ? 1 : -1];
 
@@ -2281,7 +2281,7 @@ struct CID102 : CID100
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid102ClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateGuardTrap");   /* slot 16 */
     virtual void AddExternalAccelerations() __asm__("PushGuardTrapAway");   /* slot 71 */
-    virtual void SetState() __asm__("SelectGuardTrapTarget");   /* slot 76 */
+    virtual void SetState(int state) __asm__("SelectGuardTrapTarget");   /* slot 76 */
 };
 typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
 
