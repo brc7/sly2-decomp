@@ -16,7 +16,7 @@ struct MSV : public SO
 {
 };
 
-/* The render-tree block stack (tu_1D57A8 STACK: a count and 256 block pointers; size CONFIRMED by match: frame size). */
+/* The render-tree block stack (rendertree STACK: a count and 256 block pointers; size CONFIRMED by match: frame size). */
 struct INTSTACK
 {
       byte ab[0x410];
@@ -41,7 +41,7 @@ struct GLOBOWNER
 
 extern "C" {
 void InitSo(SO *pso);
-void InitBlockStack(INTSTACK *stack);   /* tu_1D57A8: the render-tree block stack */
+void InitBlockStack(INTSTACK *stack);   /* rendertree: the render-tree block stack */
 void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
 }

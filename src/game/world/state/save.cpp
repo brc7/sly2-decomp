@@ -657,6 +657,6 @@ namespace RO_ORDER { extern const char r_D_002A78F0[] __asm__("D_002A78F0") = "f
 namespace RO_ORDER { extern const char r_D_002A78F8[] __asm__("D_002A78F8") = "from_memcard"; }
 // ---- save's .bss (tu-merging.md "Data": .bss gaps): g_gs, the save blob with its schema version and checksum
 // (0x3D4A60..0x3D9E68, then screen's .bss at 0x3D9E70). 16-aligned on the definition, as the layout shows (0x3D4A60
-// after tu_1D7238's word at 0x3D4A54; SAVEDATA itself is 8-aligned, and its 0x5408 bytes are what the copies in this
+// after safehouse's word at 0x3D4A54; SAVEDATA itself is 8-aligned, and its 0x5408 bytes are what the copies in this
 // file move). Defined after the functions, so none sees a definition.
 SAVEDATA g_gs __attribute__((aligned(16)));

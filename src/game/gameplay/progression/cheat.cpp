@@ -235,7 +235,7 @@ extern "C" void StartupCodes(CODES *codes)
 // ---- cheat's .data (tu-merging.md "Data"): the 15 codes StartupCodes adds (0x2BD4C8..0x2BD810, the first .data after
 // cd's in TU order). Each is its 6-button sequence (pad masks) followed by the code record: in .data the record is
 // 0x20 bytes {buttons, numButtons, action, actionArg, numMatched, isOneShot, next, 0} (CODE above declares 0x38, the size of one sequence
-// plus record), so each is spelled as its own word record. actionArg: the episode (0..8), g_sndmgr+0x10, tu_15CD68's
+// plus record), so each is spelled as its own word record. actionArg: the episode (0..8), g_sndmgr+0x10, episodemenu's
 // D_002BE26C, gadget numbers. Asm labels: the declarations above stay as the functions see them.
 namespace CHEAT_CODES {
 /* PS2 pad button masks used by the sequences (the same masks as rhythm.cpp's prompt keys). */

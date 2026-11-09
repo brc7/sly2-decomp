@@ -945,7 +945,7 @@ extern "C" float GetMaxRowLengthMatrix3(M3 *matrix)
 
 // ---- mat's .rodata (0x2A2D00..0x2A2DA0; the first part of .rodata holds named constants of many objects in TU order,
 // tu-merging.md "Phase 6"): the identity MATRIX3 and MATRIX4 and a zero MATRIX3, which many TUs read (Sly 1's
-// g_matIdentity and kin: names DRAFT, owner by layout: mat is the TU between tu_114AE0's palette and vec's constants).
+// g_matIdentity and kin: names DRAFT, owner by layout: mat is the TU between palette256's palette and vec's constants).
 // Under asm labels so that no declaration (here M3, elsewhere other views) has to agree with the definitions' types.
 namespace RO_MAT {
 extern const float r_D_002A2D00[12] __asm__("D_002A2D00") __attribute__((aligned(16))) =

@@ -20,11 +20,11 @@ extern const char D_002A2E50[4], D_002A2E58[4];
 extern const int D_002A2E5C;
 extern const unsigned int D_002A2E60, D_002A2E68[256];
 extern char D_003DA4F0[];
-/* cd's .data (D_002BD4C0: by layout, between tu_14A008's data and D_002BD4C4; sound, mpeg and tu_14B660 read it too). */
+/* cd's .data (D_002BD4C0: by layout, between carmelita's data and D_002BD4C4; sound, mpeg and cdutil read it too). */
 int D_002BD4C0 = 0;                 /* disc-poll state (1 read, 2 wait, 3 idle) */
 int D_002BD4C4 = -1;                /* last disc type */
 /* cd's .bss. */
-unsigned char D_002DD680[0x800] __attribute__((aligned(64)));    /* sector buffer (64-aligned by layout: 0x2DD680 after tu_14A008's word at 0x2DD648; sceCdRead DMAs into it) */
+unsigned char D_002DD680[0x800] __attribute__((aligned(64)));    /* sector buffer (64-aligned by layout: 0x2DD680 after carmelita's word at 0x2DD648; sceCdRead DMAs into it) */
 int D_002DDE80, D_002DDE84;
 extern "C" {
 char *strupr(char *) __asm__("UpperizePchz__FPc");

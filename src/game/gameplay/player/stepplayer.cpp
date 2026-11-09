@@ -7,7 +7,7 @@
 //
 // Types: sly2/stepplayer.h's STEPPLAYER and its sub-records (jtgrab, jthurt, jtmode, jtthrow, agadgetslot...) for
 // the m2c bodies, with real virtual calls (slots 87, 88, 99, 101); three unnamed words through macros (as
-// tu_144B28.cpp does). The slots GetHealthState, CanUseGadget and CanBeHealed are STEPPLAYER members here (symbols
+// stepbhv.cpp does). The slots GetHealthState, CanUseGadget and CanBeHealed are STEPPLAYER members here (symbols
 // GetStepplayerHealthState__10STEPPLAYER etc.). The hand-written per-function files keep their views in namespaces named after each function (as
 // jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepplayer

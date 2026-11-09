@@ -45,7 +45,7 @@ struct CLUT : CLUTHDR
     int unknown14;
     TEX0 tex2;              /* +0x18 its TEX2 word (BuildClutTex2) */
 
-    /* built from a header at startup (tu_1147D8/tu_114AE0's built-in tables); no default constructor: every other
+    /* built from a header at startup (palette16/palette256's built-in tables); no default constructor: every other
        CLUT is loaded in place (LoadClutFromBrx) */
     CLUT(void *pvHeader) { CopyClutHeader(this, (CLUTHDR *)pvHeader); }
 };

@@ -23,7 +23,7 @@ struct GUARDLOOT
       int count;            /* +0xC [S] how many (StartBhvko sums the coin entries, oid 0x2B3) */
 };
 
-/* A guard's stuck watch (STEPGUARD::stuckWatch, 16 bytes, tu_20CE28.cpp): when the probes around the guard stay
+/* A guard's stuck watch (STEPGUARD::stuckWatch, 16 bytes, watchdog.cpp): when the probes around the guard stay
    blocked for a while the guard zaps itself (kind 0x4000) to get relocated. [S] */
 struct STUCKWATCH
 {
@@ -43,7 +43,7 @@ struct HAZARDWATCH
       int isEnabled;        /* +0x10 */
 };
 
-/* A guard script command (SSGE, from SW::slotheapSsge; tu_1709A8.cpp): its kind (SSGK_*: 0 set the context object,
+/* A guard script command (SSGE, from SW::slotheapSsge; guardscript.cpp): its kind (SSGK_*: 0 set the context object,
    1/2 walk/pause times, 3 teleport, 4 message, 5 wait, 6 follow a path, 7 go to a point, 8 animation, 9 label,
    10 jump, 11/12 busy on/off, 13 leap, 14 play the behaviour's binding, 15 relay alarm), the target id (an oid, -1
    none), the kind-dependent arguments and the script's list link (DLE at +0x18). [S] */
@@ -91,7 +91,7 @@ struct STIMTEMPLATE
       float range;          /* +0x54 [S] how far it carries (CanRajanSenseStimulus doubles it) */
       LM heightRange;       /* +0x58 [S] the height window */
 };
-/* A stimulus a guard may sense (0x60 bytes; stepguard.cpp's stimulus functions, tu_1CBEB0 emitter). [S] */
+/* A stimulus a guard may sense (0x60 bytes; stepguard.cpp's stimulus functions, rajan emitter). [S] */
 struct STIMULUS
 {
       undefined4 unknown0[5];
@@ -144,7 +144,7 @@ struct DETECTOR : public XFM
 {
       STEPGUARD *owner;     /* +0xE0 [S] the guard owning the detector (ResetStepguardToHome) */
       SOTREE *ownerPhysicsTree; /* +0xE4 [S] the owner's physics tree (copied from SO::physicsTree) */
-      VOL *pvolNear;        /* +0xE8 [S] near volume (tu_1B9F80's view; VOL type [H]) */
+      VOL *pvolNear;        /* +0xE8 [S] near volume (neela's view; VOL type [H]) */
       VOL *pvolFar;         /* +0xEC [S] far volume */
       int isForced;         /* +0xF0 [S] every live target counts as seen (cleared by ClearStepguardState) */
       int isDisabled;       /* +0xF4 [S] no target is seen */
@@ -197,7 +197,7 @@ struct ASEGEVENTMSG
       int event;            /* +0x8 [S] the event label (0x15E root motion, 0x25..0x36 guard events) */
 };
 typedef char assert_ASEGEVENTMSG_event[SLY2_OFFSETOF(ASEGEVENTMSG, event) == 0x8 ? 1 : -1];
-/* The guard's mover (STEPGUARD +0xFD0, 16 bytes; tu_144B28.cpp reads the same bytes as a JTGOAL): the driver (the
+/* The guard's mover (STEPGUARD +0xFD0, 16 bytes; stepbhv.cpp reads the same bytes as a JTGOAL): the driver (the
    behaviour whose motion update moves the guard: SetStepguardMoverDriver / ResetStepguardMover), a heading lock and
    the owning guard. [S] */
 struct GUARDMOVER

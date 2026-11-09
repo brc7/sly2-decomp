@@ -100,7 +100,7 @@ struct HUDSTACK
       int shouldSnap; /* snap into place instead of sliding */
 };
 
-/* RENDERTGT: one of the two render targets (SW::artgt; types/views-3, from tu_1BE398.cpp's RT view, which reads the
+/* RENDERTGT: one of the two render targets (SW::artgt; types/views-3, from rtcam.cpp's RT view, which reads the
    texture register through GS TEX0 bit-fields and keeps its own view): size, TEX0, the clearing and the as-texture
    GIF packets InitRenderTargets builds, and the camera object that claimed it (0 when free). */
 struct RENDERTGT
@@ -214,7 +214,7 @@ struct SW : public BASIC
       SLOTHEAP slotheapXp;   /* contact point records */
       int transformStamp; /* frame stamp compared with XF::worldStamp */
       int relightStamp;    /* +0x3D5C bumped when the world's lighting changes; models and scenes keep a copy and re-light
-                              when it differs (light.cpp, render.cpp, glob.cpp, tu_1D57A8.cpp CullSceneRenderList); was unknown3D5C */
+                              when it differs (light.cpp, render.cpp, glob.cpp, rendertree.cpp CullSceneRenderList); was unknown3D5C */
       int frameCounter;     /* +0x3D60 [R] counts up once per world frame (S12->S13: +32 for 0.533 s game time); Lilly name kept */
       int relightStampSubmitted; /* +0x3D64 the relightStamp RenderSw last resubmitted relighting for (render.cpp); was _pad_256 */
       int stimulusSerial;    /* serial number of the last stimulus (inferred) */
@@ -244,7 +244,7 @@ struct SW : public BASIC
       int fForceClear;      /* +0x3E3C [S] clear the frame even when the render list is not empty (draw.cpp); was _pad_279 */
       int unknown3E40;      /* +0x3E40 [S] draft: tested == 0 by LoadSubglobType0FromBrx (glob.cpp) */
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
-      struct RENDERBLOCK *pblockRender; /* +0x3E5C root block of the level's render tree (tu_1D57A8.cpp InsertRenderEntry);
+      struct RENDERBLOCK *pblockRender; /* +0x3E5C root block of the level's render tree (rendertree.cpp InsertRenderEntry);
                                           was unknown3E5C */
       CID116 *pcid116Fade;   /* the screen fade object (CID116, inferred) */
       float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
@@ -280,7 +280,7 @@ struct SW : public BASIC
       DL dlCid9;
       DL dlCid27;
       DL dlStepguard;   /* all guards (STEPGUARD) */
-      DL dlCid98;           /* +0x3FC0 [S] class list of CID 98 (its vt22/vt23 remove / append, tu_1BAB50.cpp); was _pad_310 */
+      DL dlCid98;           /* +0x3FC0 [S] class list of CID 98 (its vt22/vt23 remove / append, breakable.cpp); was _pad_310 */
       DL dlTargetrec;       /* +0x3FCC [S] draft name: target records (stepguard.cpp appends, so.cpp searches by id) */
       DL dlCid47;
       DL dlCid21;           /* +0x3FE4 [S] class list of CID 0x15 (target.cpp OnLoAdd / OnLoRemove); was _pad_312 */
@@ -318,19 +318,19 @@ struct SW : public BASIC
       int unknown456C;
       LIGHTMASK lightmaskPending; /* +0x4570 [S] lights not in the tree (they affect every leaf); was _pad_333 */
       LIGHTMASK lightmaskFree;    /* +0x4590 [S] free light slots */
-      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (NewMergedCid14Obstacle, tu_1BC050.cpp); was _pad_333+0x48 */
+      DL dlCid14Free;       /* +0x45B0 [S] draft name: free merged CID 14 polygons (NewMergedCid14Obstacle, cnvo.cpp); was _pad_333+0x48 */
       DL dlCid14Pending;    /* +0x45BC [S] draft name: CID 14 objects waiting for their path zone (UpdatePendingCid14Obstacles) */
       CID17 *pcid17Default;   /* default CID17 object (inferred) */
       REGTREE *pregtree;   /* region tree */
       CLQ clqGuardScale;   /* guard scaling curve (difficulty, inferred) */
       LM lmGuardScale;   /* guard scaling limits */
-      RENDERTGT artgt[2];   /* +0x45E8 [S] the two 128x128 render targets (tu_1BE398.cpp); was _pad_338 */
+      RENDERTGT artgt[2];   /* +0x45E8 [S] the two 128x128 render targets (rtcam.cpp); was _pad_338 */
       LO *bootyProxySource; /* +0x4638 [S] the proxy source booties are acquired from / locked on (booty.cpp) */
       int nextBootyContainerId; /* +0x463C [S] next booty-container id (booty.cpp PostBootyContainerLoad post-increments it) */
       int clangstr;   /* number of localised strings */
       LANGSTR *alangstr;   /* the localised strings */
-      SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (tu_20B840.cpp); was _pad_343 */
-      SLOTHEAP slotheapDiract; /* +0x4660 [S] DIRACT slot heap (tu_20B840.cpp) */
+      SLOTHEAP slotheapLeap;   /* +0x4648 [S] LEAP slot heap (gait.cpp); was _pad_343 */
+      SLOTHEAP slotheapDiract; /* +0x4660 [S] DIRACT slot heap (gait.cpp) */
       int cjtgrabcand;   /* number of grab candidates this frame */
       undefined4 unknown467C;
       JTGRABCAND ajtgrabcand[4];   /* the grab candidates */
@@ -351,7 +351,7 @@ struct SW : public BASIC
 
       float hudTimerEndTime; /* game time the HUD countdown ends */
       int csecHudTimerShown;   /* seconds currently shown on the HUD timer */
-      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (InitEpisodeMenu registers itself, tu_15CD68.cpp); was _pad_357 */
+      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (InitEpisodeMenu registers itself, episodemenu.cpp); was _pad_357 */
       int cpemitTracked;   /* number of tracked emitters */
       struct EMITTER *apemitTracked[4];   /* the tracked emitters */
       uint32_t   _pad_360    [ 1 ] ;

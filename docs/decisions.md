@@ -14,7 +14,7 @@ How code should read once it matches (names, comments, locals) is a separate top
 
 **1.1 Separate structs where views conflict.** When functions disagree about a struct's layout, they keep separate
 structs rather than one merged guess. No speculative unions. *Why:* a wrong merge either breaks the match or hides a real
-difference. *Where:* every `.cpp` with private views (the hack classes of `tu_17F090.cpp` were the example until
+difference. *Where:* every `.cpp` with private views (the hack classes of `hack.cpp` were the example until
 names/vu-objects showed the tail-padding conflict was a misread base size; they derive in `sly2/hack.h` now). *Status:* temporary per type: a view folds
 into the shared type when a header names its fields and the function still matches.
 
@@ -25,7 +25,7 @@ superset (grab's `GRABSPOT` with all its virtuals). *Status:* permanent rule; in
 
 **1.3 Unions only where a mode field selects the bytes.** A union is allowed when a kind/mode field selects what the
 bytes hold and the code shows it: `BEAMEND`'s tail in `sensor.cpp`, the guard-script command argument in
-`tu_1709A8.cpp`, `EOPID` in `sly2/eopid.h` (by option flags), the `CRef` payload in `sly2/cref.h` (by tag). *Status:*
+`guardscript.cpp`, `EOPID` in `sly2/eopid.h` (by option flags), the `CRef` payload in `sly2/cref.h` (by tag). *Status:*
 permanent rule.
 
 **1.4 Matching-only islands.** Where no natural spelling matches, a small documented form that exists only to reproduce
@@ -64,7 +64,7 @@ not a cast at each use. First case: `CM::matq` (`sly2/cm.h` `CMMATQ { qword rot[
 cast of the float member (`*(qword *)&g_cm.pos`) makes g++ 2.95 fold the offset into the address constant, which forced
 twelve file-local CM island views in names/vu-f5-camera; with the qword member all twelve went away and every includer
 still matches. Where the original reads a row at base `&g_cm.mat` (offset 0x30 for the position), the code takes a
-local `CMMATQ *` first (sky, relay, tu_201D78). The alternative (CM::pos and the rows themselves as qwords) was not taken:
+local `CMMATQ *` first (sky, relay, recon). The alternative (CM::pos and the rows themselves as qwords) was not taken:
 about 35 existing uses read `mat`/`matRot`/`pos` as floats or matrices, or through `*(qword *)&...pos` casts that match
 as they are; the union keeps both spellings available. Existing `*(qword *)&pcm->pos` casts are left alone (their folded form is what those functions
 need). The shared forms are basic.h's `QWROW` (`union { qword q; float f[4]; int i[4]; }`, one row or vector) and
@@ -96,20 +96,20 @@ native link sees a wrong symbol. *Status:* temporary per label: it goes when the
 **2.2 Addend labels.** Where a base-plus-offset spelling changes codegen (g++ shares or folds the base), a field inside
 another object is declared as its own symbol whose label carries an addend:
 `extern MEMCARD worker __asm__("<owner symbol>+0x<offset>");` (`memcard.cpp`, `menu.cpp`, `hud.cpp`,
-`tu_201D78.cpp`). g++ sees a separate symbol; the assembler relocates against the owner. The same trick with `+0` names
+`recon.cpp`). g++ sees a separate symbol; the assembler relocates against the owner. The same trick with `+0` names
 a symbol whose plain label would make g++ emit the file's own inline member under it (`splicemap.cpp`,
-`tu_1553F0.cpp`). *Status:* temporary: until the owner's field can be spelled directly without changing code.
+`dimitri.cpp`). *Status:* temporary: until the owner's field can be spelled directly without changing code.
 
 **2.3 Weak `.gnu.linkonce` definitions.** Six out-of-line inline copies whose inline form does not emit or does not
 match are plain definitions with `__attribute__((weak, section(".gnu.linkonce.t.<symbol>")))`: `VecCombo` and
-`operator*` (`tu_1553F0.cpp`, `bif.cpp`), `STEPGUARD_ctor` / `JT_ctor` / `MURRAY_ctor` (`class_registry.cpp`) and
-`CHash<char *, int>::Resize` (`sly2/arrayv.h`, `tu_119BC8.cpp`). This is the object form of a linkonce copy (weak
+`operator*` (`dimitri.cpp`, `bif.cpp`), `STEPGUARD_ctor` / `JT_ctor` / `MURRAY_ctor` (`class_registry.cpp`) and
+`CHash<char *, int>::Resize` (`sly2/arrayv.h`, `dynarraystr.cpp`). This is the object form of a linkonce copy (weak
 symbol, own section) with names and code unchanged. *Status:* temporary: each becomes a real inline/template member
 when its callers or its spelling allow (conditions in tu-merging.md "Representation decisions").
 
 **2.4 Linkonce copies by reference or explicit instantiation.** Other inline copies are emitted the natural way: an
 inline declared before its callers and defined after them (end of file), template members explicitly instantiated in
-the TU that owned them (`emitter.cpp`, `tu_119BC8.cpp`, `splice/gc.cpp`), or the address taken in a table
+the TU that owned them (`emitter.cpp`, `dynarraystr.cpp`, `splice/gc.cpp`), or the address taken in a table
 (the option table in `class_registry_options.inc` names the inline accessors). Each copy has exactly one emitting object. *Status:* permanent
 mechanism; the HYPOTHESIS is that this mirrors the original header order.
 
@@ -128,12 +128,12 @@ the definition invisible to the code (no constant folding). *Where:* the data-ph
 (`grep -l "namespace RO_ORDER" src/game`). *Status:* permanent (only spelling; rename the identifiers freely).
 
 **3.2 Custom section names.** `.rodata.early` holds the named constants of the first part of `.rodata` (`cd.cpp`,
-`menu.cpp`, `memcard.cpp`, `hud.cpp`, `sw.cpp`, `game.cpp`, `tu_1A4E08.cpp`, `tu_15CD68.cpp`,
+`menu.cpp`, `memcard.cpp`, `hud.cpp`, `sw.cpp`, `game.cpp`, `startup.cpp`, `episodemenu.cpp`,
 `class_registry_options.inc`); `.data.buildinfo` holds `main.cpp`'s build strings. The original placed these apart from
 their TU's literals / `.data` for an unknown reason; tools/link.py places sections by name. *Status:* permanent until
 the original mechanism is known; the names themselves are ours and easy to change.
 
-**3.3 Palette `.rodata` attribute.** The two startup palettes (`tu_1147D8.cpp`, `tu_114AE0.cpp`) carry
+**3.3 Palette `.rodata` attribute.** The two startup palettes (`palette16.cpp`, `palette256.cpp`) carry
 `__attribute__((section(".rodata")))`: the original compiler put a const object with a dynamic initializer in
 `.rodata`, ours puts it in `.bss`. The attribute is on the palette arrays only (TU-private `RGBA` with a four-byte
 constructor); the CLUT/BMP pair each TU builds next to them is `sly2/shd.h`'s CLUT/BMP, whose constructor from a header
@@ -177,7 +177,7 @@ here. *Status:* temporary: until the wrappers are valid C++.
 
 **4.4 Path-hash pins.** g++ 2.95 hashes the presumed file name and line into the gcse order of inline asm, so a few
 asm functions match only at a given (path byte sum, line) window. They keep a `#line N "<old path>"` pin before the asm
-helper and a `#line` back after it (`tu_1D1370.cpp`). Moving or renaming such a helper can break the match; so can
+helper and a `#line` back after it (`robottank.cpp`). Moving or renaming such a helper can break the match; so can
 renaming a global whose symbol name feeds the same hash (`g_pfrmOpen` in `DrawSw`). *Status:* permanent.
 
 ## 5. What is not source
@@ -188,7 +188,7 @@ committed) for what no object covers:
 | Blob | Status |
 |---|---|
 | VU microcode (`.vutext`) and IOP modules (`.irx`) | permanent: binary inputs (no DVP sources); names inside them are labels on their blob sections |
-| Built-in font and bitmap artwork (`tu_1147D8.cpp`, `tu_114AE0.cpp`, `font.cpp` blocks) | temporary: awaiting the user's decision on how image assets are kept (the repo never commits game artwork) |
+| Built-in font and bitmap artwork (`palette16.cpp`, `palette256.cpp`, `font.cpp` blocks) | temporary: awaiting the user's decision on how image assets are kept (the repo never commits game artwork) |
 | SDK sources that do not build on Linux | temporary: linked as objects where the Mac's `--sdk-only` build provides them |
 | Data no object defines yet | temporary: shrinks as data is defined in source |
 

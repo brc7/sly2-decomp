@@ -42,7 +42,7 @@ static inline JT *AsJt(void *p) { return (JT *)p; }
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
 
 /* .bss (tu-merging.md "Data": .bss gaps): D_002E1E00, the word whose bit 0 makes the player invulnerable (po's
-   IsPoInvulnerable, hurt, tu_17F090; InitGame clears it), at the head of jt's .bss before g_pjt D_002E1E40; sized
+   IsPoInvulnerable, hurt, hack; InitGame clears it), at the head of jt's .bss before g_pjt D_002E1E40; sized
    0x40 by the layout (one word code names, then 0x3C bytes no code names). Ownership is a choice: the gap lies
    between joy's .bss (the two JOYs end at 0x2E1E00) and jt's, and the flag is the player's. Defined here, first,
    so g++ emits it before g_pjt (uninitialized objects go out in first-declaration order); asm-labelled, so the

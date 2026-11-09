@@ -62,5 +62,5 @@ extern "C" void HideLetterbox(LETTERBOX *letterbox)
 }
 
 // ---- letterbox's .bss (tu-merging.md "Data": .bss gaps): the letterbox object (0x2E1E60, between language's .bss
-// and tu_1A4E08's in TU order; sw and screen take its address). Defined after the functions, so none sees it.
+// and startup's in TU order; sw and screen take its address). Defined after the functions, so none sees it.
 LETTERBOX D_002E1E60;

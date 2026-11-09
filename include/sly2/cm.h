@@ -193,7 +193,7 @@ struct CPTURRET : public CPLCY
    Layout from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPCAMERA : public CPLCY
 {
-    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpcamera");   /* key function (tu_12E600) */
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpcamera");   /* key function (camera) */
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpcamera");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpcamera");
       CID44 *pcamera;   /* the placed camera object */

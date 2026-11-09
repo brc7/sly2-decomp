@@ -102,8 +102,8 @@ struct FRM;
 
 extern "C" {
 extern FD *D_002BE320[];
-/* The two registered fonts (font's .data, first): their descriptors in the palette TUs' blocks (tu_1147D8's at
-   0x29A7A8, tu_114AE0's at 0x2A28E8; those blocks are still blobs). Asm-labelled, so the declaration above is what
+/* The two registered fonts (font's .data, first): their descriptors in the palette TUs' blocks (palette16's at
+   0x29A7A8, palette256's at 0x2A28E8; those blocks are still blobs). Asm-labelled, so the declaration above is what
    the functions see. */
 namespace FONT_DATA { extern "C" char d_0029A7A8[] __asm__("D_0029A7A8"), d_002A28E8[] __asm__("D_002A28E8");
 FD *r_D_002BE320[2] __asm__("D_002BE320") = {(FD *)d_0029A7A8, (FD *)d_002A28E8}; }

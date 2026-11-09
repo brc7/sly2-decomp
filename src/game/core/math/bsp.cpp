@@ -590,7 +590,7 @@ extern "C" qword TransformPlane(MAT *matrix, qword plane)
 
 // 0x2564A8 / 0x2564B8: a qword store returning its destination, and VUF's empty constructor returning this: inline,
 // defined after their callers, so g++ calls them and emits the out-of-line copies (linkonce), as the original did.
-// 0x2564B8 keeps its C symbol (tu_1BC050, cm and path call it by that name, and VUF/VU_QWORD's constructors are
+// 0x2564B8 keeps its C symbol (cnvo, cm and path call it by that name, and VUF/VU_QWORD's constructors are
 // bound to it).
 // Stores a quadword through a pointer and returns the pointer (an inline assignment kept out of line in the
 // linkonce area).

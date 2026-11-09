@@ -565,7 +565,7 @@ struct STEPPLAYER : public STEP
       float renderAlpha2;   /* +0x10D8 the second opacity factor RenderSoGlobset takes */
       LO *interactTarget;   /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
       int interactBlockFlags;   /* +0x10E0 nonzero: no interaction candidates are scanned (UpdateStepplayerInteractCandidates);
-                                   bit 0 while an AI interact behaviour runs (ai/tu_144B28), bits 1/2 set and cleared by jt.cpp */
+                                   bit 0 while an AI interact behaviour runs (ai/stepbhv), bits 1/2 set and cleared by jt.cpp */
       int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in ChooseJtGroundState). Not
                                renamed: STEPPLAYER already has an interactMode member further down */
 

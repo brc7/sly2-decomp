@@ -450,7 +450,7 @@ struct XF
             float arrivalTime;   /* roles 9 and 0x11: the absolute arrival time (ACT8::Update; asega.cpp: blend weight) */
             struct CHAINLINK *plink;   /* a chain role: the chain link (so.cpp UpdateSoChains, xf.cpp UpdateChainLink) */
             struct IKREC *pikrec;   /* the IK role: the IK record (ik.cpp) */
-            struct XFMCONSTR *pconstr;   /* role 0xF (constrained): the constraint (tu_1603B8.cpp) */
+            struct XFMCONSTR *pconstr;   /* role 0xF (constrained): the constraint (constraint.cpp) */
       };
       short stiffness;
       short damping;

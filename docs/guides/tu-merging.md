@@ -64,16 +64,16 @@ is the six pool blocks followed by more blocks of the same shape (`if (++sentry 
 the extra objects are template statics too. spliceutils (133 instructions) has five more slot heaps, 0x18 apart
 (0x452188..0x4521E8); a TU-private `template <int CB, int C> struct CSpliceHeap { SLOTHEAP slotheap; ctor; static
 CSpliceHeap s_heap; }` with five explicit instantiations after `SLY2_INSTANTIATE_SLOT_POOLS()` matched, and the code
-that used the raw `D_004521xx` addresses now names `CSpliceHeap<CB, C>::s_heap`. Other shapes (`tu_1147D8` 185,
-`tu_114AE0` 1926, sprbuf's SPRBUF array with a dynamic initializer) need their own spelling; not done in wave 1.
+that used the raw `D_004521xx` addresses now names `CSpliceHeap<CB, C>::s_heap`. Other shapes (`palette16` 185,
+`palette256` 1926, sprbuf's SPRBUF array with a dynamic initializer) need their own spelling; not done in wave 1.
 
 Wave 5 spelled the three of them as the file-scope objects they are, defined before `SLY2_INSTANTIATE_SLOT_POOLS()`
 in their original order, so g++ generates the initializer:
 
-- tu_1147D8 and tu_114AE0 contain no code of their own: `RGBA D_0029A7C0[16] = { RGBA(0, 0, 0, 0xF), ... };`
-  (256 entries in tu_114AE0) with a private four-byte `RGBA` constructor, then `CLUT D_002DD500(D_0027A778);` and
+- palette16 and palette256 contain no code of their own: `RGBA D_0029A7C0[16] = { RGBA(0, 0, 0, 0xF), ... };`
+  (256 entries in palette256) with a private four-byte `RGBA` constructor, then `CLUT D_002DD500(D_0027A778);` and
   `BMP D_002DD520(D_0029A790);` whose inline constructors call func_001EAD98 / func_001EB050 (CopyClutHeader /
-  CopyBmpHeader) on a header in .data. The natural array initializer matches; the per-function tu_114AE0 needed a
+  CopyBmpHeader) on a header in .data. The natural array initializer matches; the per-function palette256 needed a
   dead countdown to steer cse, which g++'s own array-init code provides.
 - sprbuf: `SPRBUF D_003DD2C0[2] = { MakeFirst(), MakeSecond() };` (SPRBUF's constructor memsets it), then the pools.
   With SLY2_ALIAS binding the initializer, the asm-label hack and its `SLY2_ASM: gnu-reorder-db` line go away and
@@ -123,21 +123,21 @@ those kinds free into them.
 | 4 instructions differ in StaticInit (two `li a1`/`li a2` pairs swapped) | a pool named in code before the explicit instantiation | `SLY2_INSTANTIATE_SLOT_POOLS()` right after the includes | varb |
 | a caller is ~40 instructions short around a `delete` | the per-function file had a class-specific `operator delete` that a hand-filtered draft lost | concatenate the files verbatim first; never filter lines when drafting | pair (drafting mistake) |
 | field access through a raw offset (`*(ulong *)((char *)p + 0x148) &= ~(1UL << 35)`) | — | the header bitfield (`SO::unknownFlag148A`) gives the same `ld/and/sd` | ms |
-| a `.c` body is 2-3 instructions off as C++ around a bit test: target `andi 1; bnez`, ours `xori 1; andi 1; beqz` | in C++ `!` yields `bool`, so `!(x & 1)` is computed, not branched on | write `(x & 1) == 0` | tu_15DC80 (func_0015E1D8), tu_1BE398 (func_001BEB28, 74 of 117), detector (KCalculateDetectorTarget) |
+| a `.c` body is 2-3 instructions off as C++ around a bit test: target `andi 1; bnez`, ours `xori 1; andi 1; beqz` | in C++ `!` yields `bool`, so `!(x & 1)` is computed, not branched on | write `(x & 1) == 0` | screenfade (func_0015E1D8), rtcam (func_001BEB28, 74 of 117), detector (KCalculateDetectorTarget) |
 | a `.c` function that passes an 8-byte struct by value differs: target spills the incoming `a2` (`sd a2,0(sp)`) and reloads it for the call (`ld a2,0(sp)`); ours copies it through a stack temporary with `ldl/ldr/sdl/sdr` and has a bigger frame | g++ 2.95 copies every by-value class argument into a temporary (pilot blocker B4) | solved in wave 4 for the one case: the struct was a pointer to member function (`{short delta; short index; union {short delta2; pfn}}`; the per-file field test "index equal, then delta2 for a virtual or pfn, delta ignored" is g++'s own PMF `==`). Declared `void (CObj::*)(int)` it is passed in a register like the C struct and compared with `==`. Earlier tries (an `aligned(8)` copy of the type: 39/40 differ; the parameter as `long`: 30/39 differ) were dead ends. Before punning an 8-byte struct, check whether it is a PMF | callback (EnsureSwCallback, ClearSwCallbacks, PostSwCallback) |
 | shared-base stores (`lui; addiu; sw 0/4/8/C(base)`) where the target has one `lui` per store | the target's four words are separate globals, not one struct | keep separate `extern int D_...` declarations | spliceutils (GcShutdown*Pool) |
-| compile error: conflicting declarations of the same `extern "C"` function | two `.c` files declared one callee with different parameter types (C allowed it) | one prototype with the real types; callers cast if needed | tu_19F0A8 (SetStepguardSpecial), brx_sw (CBinaryInputStream readers) |
-| compile error: `redefinition of struct RGBA` (or CLOCK, DL...) | a TU-private type collides with a shared header | include only what the TU uses (slotheap.h deliberately does not include basic.h); a private type whose inline members shape codegen (tu_15DC80's `RGBA() {}`) stays private, under its own name if the TU also needs the shared header (brx_sw renamed its POD copy `RGBAPOD`) | brx_sw, tu_15DC80 |
-| an m2c body calls `UpdateLo()` / `UpdateStepguard()` with no arguments | m2c could not see that `a0`/`f12` are passed through unchanged | give the function the real parameters and pass them on (`UpdateStepguard(pguard, dt)`); no instructions change | tu_14FAC8, tu_15DC80 |
+| compile error: conflicting declarations of the same `extern "C"` function | two `.c` files declared one callee with different parameter types (C allowed it) | one prototype with the real types; callers cast if needed | guardoverride (SetStepguardSpecial), brx_sw (CBinaryInputStream readers) |
+| compile error: `redefinition of struct RGBA` (or CLOCK, DL...) | a TU-private type collides with a shared header | include only what the TU uses (slotheap.h deliberately does not include basic.h); a private type whose inline members shape codegen (screenfade's `RGBA() {}`) stays private, under its own name if the TU also needs the shared header (brx_sw renamed its POD copy `RGBAPOD`) | brx_sw, screenfade |
+| an m2c body calls `UpdateLo()` / `UpdateStepguard()` with no arguments | m2c could not see that `a0`/`f12` are passed through unchanged | give the function the real parameters and pass them on (`UpdateStepguard(pguard, dt)`); no instructions change | contessa, screenfade |
 | a `.c` caller passing an 8-byte struct by value is ~19 instructions off as C++: target loads it straight into `a2` with `ldl/ldr`, ours builds a stack temporary (B4, caller side) | as above: g++ copies a by-value class argument through a temporary | declare the parameter `long` and pass the 8 bytes read through a packed view: `struct LONGU { long l; } __attribute__((packed));` ... `EnsureSwCallback(psw, p, ((LONGU *)&D_002A4790)->l, 0)`; the packed (alignment 1) read is what gives `ldl/ldr` (an `aligned(4)` long typedef gives a plain `ld`) | barrier (NotifyBarrierImpact), button (UpdateButton), bomb (func_0013AEB0: 61 of 201; the global declared `extern const LONGU`, as button) |
 | button's UpdateButton is 8 instructions off with barrier's packed-long spelling `((LONGU *)&D_002A4E80)->l`: the high part of the global's address is scheduled after a store that precedes the call, not before it | the cast of the global's address builds the address differently from a direct reference | declare the global itself with the packed type: `extern const LONGU D_002A4E80;` and pass `D_002A4E80.l` (alias tricks on the view changed nothing). Since the struct is a PMF (callback above), passing a real PMF is the better long-term spelling for both callers (not done) | button |
 | a call through an inline wrapper in the per-function file is a few instructions off when the merged file calls the callee directly (arguments evaluated in the other order, or a temporary handled differently) | an inline function's parameters are evaluated into pseudos first | keep a small inline wrapper with the per-file shape (`NFindSymbol(psvstore, pchz)` around `NFindSaveSymbol(&psvstore->symtab, pchz)`; `RefGetSaveVarGlobal(pkey, psvset)`) | save (func_001D84B0, BuildSaveKeyV, GetSaveVarByName, SetSaveVarByName, func_001D8D80) |
 | a local that passes through an inline accessor is far off (95 of 103) | a `pash = &pbtn->aash[i]` local changes register allocation of the whole loop | index the member array in each expression as the per-file code did | button (RunBtnAsegs) |
 | a `.c` function calling through a table of `{pfnBegin, pfnEnd}` structs is ~30 instructions off as C++: target materialises `table+4` for `pfnEnd` apart, ours reuses the hoisted table base and loads at +4 | the C and C++ front ends build different RTL for `a[i].field` | declare the table as an array of pairs, `PFN D_002BDD88[][2]`, and call through `D_002BDD88[k][1]` | draw (DrawSw) |
 | a 1-bit bit-field test (`p->f == 0`) is far off as C++ (71 and 83 of ~200 instructions): target `ld; dsrl32 28; andi 1`, ours an AND with a 64-bit mask built by `ori; dsll32` | g++ folds the comparison into a mask test; the C front end extracts the bit. Changing the field's declared type does not help | compare `(int)p->f == 0` | find (MatchSwObject, FindSwObjectsByClass) |
-| an m2c body is a few instructions off by scheduling: a global float load hoisted above stores into the object | the global (`D_002DDF0C`) is really a field of a struct (`CLOCK` at `D_002DDED0` + 0x3C); a scalar memory reference can be moved across struct stores, an in-struct one cannot | read it as the struct field (sly2/basic.h `CLOCK::tReal`, or a TU-local view) | tu_15CD68 (func_0015D648 4 off, func_0015D880 12 off), bomb (UpdateBombCustomXps: the SO list head D_003E13B4 kept as `struct { SOV *p; }`) |
-| a hand-passed CRef result (`RefGet...(&ref, ...); n = ref.tag; Decref__4CRef(&ref); return n ^ 1;`) is off as C++ when written `CRef ref = RefGet...(); return ref.u.n ^ 1;` (the xor is computed before the destructor call) | the destructor runs after the return value is computed | read the value in an inner block: `int n; { CRef ref = RefGet...(); n = ref.u.n; } return n ^ 1;`. Hand-passed CRef results otherwise become plain by-value calls (difficulty, tu_15CD68, tu_1D7238 all matched) | rumble (FRumbleEnabled) |
-| the same count field is compared signed in one function (`slt`, `blez`) and unsigned in another (`sltiu`) | the per-function files typed it differently | declare it once and cast at the odd use (`(unsigned int)p->c < 4`) | barrier, tu_1A4E08, tu_1D7238 |
+| an m2c body is a few instructions off by scheduling: a global float load hoisted above stores into the object | the global (`D_002DDF0C`) is really a field of a struct (`CLOCK` at `D_002DDED0` + 0x3C); a scalar memory reference can be moved across struct stores, an in-struct one cannot | read it as the struct field (sly2/basic.h `CLOCK::tReal`, or a TU-local view) | episodemenu (func_0015D648 4 off, func_0015D880 12 off), bomb (UpdateBombCustomXps: the SO list head D_003E13B4 kept as `struct { SOV *p; }`) |
+| a hand-passed CRef result (`RefGet...(&ref, ...); n = ref.tag; Decref__4CRef(&ref); return n ^ 1;`) is off as C++ when written `CRef ref = RefGet...(); return ref.u.n ^ 1;` (the xor is computed before the destructor call) | the destructor runs after the return value is computed | read the value in an inner block: `int n; { CRef ref = RefGet...(); n = ref.u.n; } return n ^ 1;`. Hand-passed CRef results otherwise become plain by-value calls (difficulty, episodemenu, safehouse all matched) | rumble (FRumbleEnabled) |
+| the same count field is compared signed in one function (`slt`, `blez`) and unsigned in another (`sltiu`) | the per-function files typed it differently | declare it once and cast at the odd use (`(unsigned int)p->c < 4`) | barrier, startup, safehouse |
 | `StaticInit_<tu>` is 80 instructions: a `jal` to an Init function before the six pool blocks | a file-scope object of the TU with a constructor (wipe: `D_00443740`, constructed by `InitWipe`) | define the object in the merged file with an inline constructor that calls the init function (`struct WIPE { ... WIPE() { InitWipe(this); } }; WIPE D_00443740;`), directly before `SLY2_INSTANTIATE_SLOT_POOLS()` | wipe |
 | an m2c constructor stores 1 instruction off around `(x + 0x3F) & ~0x3F` | unsigned arithmetic schedules the mask differently | compute on `(int)pv` | bas |
 | `StaticInit_<tu>` is 84 instructions: two stores (a vtable address and -1) into a global before the pool blocks | the inlined constructor of a file-scope polymorphic object whose virtuals still have C names (heap: the level heap D_002DD590, vtable D_002CA578) | a POD view with an inline constructor that stores the vtable address by hand, defined before `SLY2_INSTANTIATE_SLOT_POOLS()`; the C-named virtuals take it as a plain pointer | heap |
@@ -148,35 +148,35 @@ those kinds free into them.
 | a pool allocator is 57 of 59 off: our code keeps the pool address in a saved register, the target rematerializes it (`lui`/`addiu`) at each use | a local `SLOTHEAP *p = &CSlotPool<..>::s_pool.slotheap` | name `CSlotPool<CB, C>::s_pool.slotheap` in every expression | frame (PvNewBinding) |
 | six per-pool instances of one helper are 67 of 90 off when written as one `static inline` function taking the pool's globals as arguments | the arguments become pseudos that are hoisted into saved registers; the original instances name the globals directly | a macro that expands the body per pool, and one small inline per pool for the (index, page) -> node lookup (`GC_DEFINE_HANDLE`) | gc (six sweeps, Collect) |
 | an initialisation of two members is 2 x 7 off: the count is cleared before the array pointer is stored | members stored directly may be reordered; the original stored through pointers (`InitStack(&c, &ap, n)`) | keep the pointer-taking inline helper | gc (Collect) |
-| a `.c` function with an asm whose output operand is a memory lvalue (`"=j"(out->q)` through a union pointer, `"=r"(c[0])`) has a 16-byte bigger frame as C++ and stores the value twice (33/106, 33/36 differ) | the C++ front end copies the asm output through an extra stack temporary | write the asm output to a scalar and store it afterwards (`qword BcQ(float)` returning the value, `scalar.q = BcQ(q)`; `"=r"(count)` then `c[0] = count`) | tu_1D6848 (func_001D6848), clock (StartupClock), hang (func_00190C58: `"=j"(s.q)` into a union), pipe_jt (func_0019EA00, same). Wave 7: when the target does store the value into the union (an `sqc2` to its slot), write the asm output to a scalar and then assign the member (`qword u_q; asm(... "=j"(u_q) ...); u.q = u_q;`): detector (func_00153E60), tu_173158 (func_00173610), vec (six functions) |
+| a `.c` function with an asm whose output operand is a memory lvalue (`"=j"(out->q)` through a union pointer, `"=r"(c[0])`) has a 16-byte bigger frame as C++ and stores the value twice (33/106, 33/36 differ) | the C++ front end copies the asm output through an extra stack temporary | write the asm output to a scalar and store it afterwards (`qword BcQ(float)` returning the value, `scalar.q = BcQ(q)`; `"=r"(count)` then `c[0] = count`) | launcher (func_001D6848), clock (StartupClock), hang (func_00190C58: `"=j"(s.q)` into a union), pipe_jt (func_0019EA00, same). Wave 7: when the target does store the value into the union (an `sqc2` to its slot), write the asm output to a scalar and then assign the member (`qword u_q; asm(... "=j"(u_q) ...); u.q = u_q;`): detector (func_00153E60), spawner (func_00173610), vec (six functions) |
 | a `.c` access to the previous array element `((struct E *)((char *)e - 0x70))->f` is 39/165 off as C++: the address is built as `e - 0x8000` plus `0x7FF4` | the C++ front end folds the negative byte offset as a large unsigned constant; `e[-1]` and `n->entries[j-1]` do no better | integer arithmetic: `((struct E *)((int)e - 0x70))->f` | tail (LoadSoChainsFromBrx) |
 | a register swap (v0/v1, 3 of 78) around a store after a call | one per-function file declared the callee returning `void *`, the other `void`; the merged prototype took `void *` | declare the callee with its real result (`void CopyAb(...)`, as its definition) | stream (CbWrite) |
-| the reverse: a constant or loop counter takes v0 instead of v1 after a call (2 of 27; 4 of 76) | the callee was declared `void` but the original declared it returning `int` (its result occupies v0 even when unused) | declare the result: `int sceClose(int)`, `int func_00234A60(int)` (the semaphore calls) | tu_1848A8 (CStreamBis_Close), frm (FlushFrames) |
-| 4 of 122 off as C++: a hoisted `andi 0xFF` scheduled after a hoisted float constant instead of before | an `int` stored into a `long x : 8` bit-field; the per-function `.c` compiled as `.cpp` misses the same way (C-vs-C++) | store `(uchar)mask` (or `mask & 0xFF`) | tu_1D57A8 (func_001D6508) |
-| 2 x 2 off: the `ori` of a 32-bit constant argument scheduled after the `move a0` | two per-function prototypes of one callee disagreed on a parameter (`int` vs `ulong`); the merged one took `int` | take the type the mangled name says (`AddPrimPack__4GIFSiiUl`: `ulong`) | tu_1471C0 (func_001475C0) |
+| the reverse: a constant or loop counter takes v0 instead of v1 after a call (2 of 27; 4 of 76) | the callee was declared `void` but the original declared it returning `int` (its result occupies v0 even when unused) | declare the result: `int sceClose(int)`, `int func_00234A60(int)` (the semaphore calls) | streambis (CStreamBis_Close), frm (FlushFrames) |
+| 4 of 122 off as C++: a hoisted `andi 0xFF` scheduled after a hoisted float constant instead of before | an `int` stored into a `long x : 8` bit-field; the per-function `.c` compiled as `.cpp` misses the same way (C-vs-C++) | store `(uchar)mask` (or `mask & 0xFF`) | rendertree (func_001D6508) |
+| 2 x 2 off: the `ori` of a 32-bit constant argument scheduled after the `move a0` | two per-function prototypes of one callee disagreed on a parameter (`int` vs `ulong`); the merged one took `int` | take the type the mangled name says (`AddPrimPack__4GIFSiiUl`: `ulong`) | framecapture (func_001475C0) |
 | deleting an object that holds a counted pointer is 36 of 81 off: a call to the pointer's out-of-line destructor instead of the inline release | the member was declared with the out-of-line pointer type (SPM) where the per-file view used the inline-release one (SPW/SPB) | type the member with the pointer class whose destructor the original inlined (CSidebag::pbindingFirst is an SPW; CVarb::pnext stays SPM) | sidebag (CSidebag_CloneTo) |
-| s0/s1 swap at the top of a function (4 of 23) | the per-function file passed a parameter on to a callee unchanged (`PropagateSais(p, f)`: a1 still holds f); the merged prototype took one argument | keep the pass-through argument; when another caller uses the one-argument form, declare an asm-labelled alias for the second form (`void PropagateSaisF(FRM *, int) __asm__("PropagateSais");`). hang uses the same device for func_0011B500 called with a hidden result pointer by hand | frm (RenderFrame); wave 7 the same device the other way round: brx (FindSwObject called with a fifth argument the target loads into a4), water (AddSoXa calls func_001F5078 with one argument: passing the second on made gcc copy a1 first, 8 of 11), memory (CheckForOutOfMemory takes none but the allocators pass the size), missile/xform/tu_1553F0 (hidden result pointers passed by hand) |
+| s0/s1 swap at the top of a function (4 of 23) | the per-function file passed a parameter on to a callee unchanged (`PropagateSais(p, f)`: a1 still holds f); the merged prototype took one argument | keep the pass-through argument; when another caller uses the one-argument form, declare an asm-labelled alias for the second form (`void PropagateSaisF(FRM *, int) __asm__("PropagateSais");`). hang uses the same device for func_0011B500 called with a hidden result pointer by hand | frm (RenderFrame); wave 7 the same device the other way round: brx (FindSwObject called with a fifth argument the target loads into a4), water (AddSoXa calls func_001F5078 with one argument: passing the second on made gcc copy a1 first, 8 of 11), memory (CheckForOutOfMemory takes none but the allocators pass the size), missile/xform/dimitri (hidden result pointers passed by hand) |
 | a non-standard StaticInit (166 instructions) is 165-168 off when written as `E D_003D3A00[5] = { E(...), ... }` or as a global object whose inline constructor fills `this->ae` | g++ allocates more registers for the array-initializer and `this`-based code than for the per-file body | a global `LOGO D_003D3A00;` whose inline constructor is the per-file body and names the global, not `this` (`E *pe = D_003D3A00.ae;`) | prog |
 | `StaticInit_<tu>` is 83 instructions: two `jal`s before the pool blocks | file-scope packet builders with constructors (`__4GIFS`, `__4VIFS`) defined in the TU | define them before `SLY2_INSTANTIATE_SLOT_POOLS()`: `GIFS D_002DEA00; VIFS D_002DEA28;` | frm |
 | a constructor is 27 of 27 off (missing inlined body) | it inlined `Begin()`, which the TU also defines out of line; in one file a member cannot be both inline in the class and defined out of line | write the inlined stores in the constructor by hand (same order) | prog (`__5CProgP4RGBAN31`) |
-| a test of LO's isInWorld bit (bit 60 of the word at +0x28: `ulong isInWorld : 1` in sly2/lo.h, or a per-file `unsigned int f : 1` after long bit-fields) is one or more instructions off: target `ld; dsrl32 28; andi 1` | as the find row; here `(int)` truncates and sign-extends (`dsll32; dsra32`) | `(uchar)plo->fInWorld` (or `(uchar)plo->f`): an unsigned narrowing extracts the bit as the target does | brx (CreateLo), xform (func_002313F0, SetXfmParent), tu_14A008 (func_0014B290, 23 of 115), bomb (UpdateBombCustomXps), noise (func_00156FE8) |
+| a test of LO's isInWorld bit (bit 60 of the word at +0x28: `ulong isInWorld : 1` in sly2/lo.h, or a per-file `unsigned int f : 1` after long bit-fields) is one or more instructions off: target `ld; dsrl32 28; andi 1` | as the find row; here `(int)` truncates and sign-extends (`dsll32; dsra32`) | `(uchar)plo->fInWorld` (or `(uchar)plo->f`): an unsigned narrowing extracts the bit as the target does | brx (CreateLo), xform (func_002313F0, SetXfmParent), carmelita (func_0014B290, 23 of 115), bomb (UpdateBombCustomXps), noise (func_00156FE8) |
 | a call through a pointer to member function is 2 off (the `sll` of the PMF's index scheduled after the `addu` of the delta) | the per-function file called it on an incomplete class (`class X; void (X::*)(void *)`); on LO (complete, polymorphic) g++ orders the arithmetic differently | keep the call on an incomplete class (`class LOSETTEE; ((LOSETTEE *)plo->*pmf)(plo)`) | brx (PostLoadOidSetter) |
-| internal compiler error 378 at the end of a function definition | the file also declares the same symbol as an `extern "C"` function with its literal mangled name (`qword VecCombo__FG8VU_FLOATG9VU_VECTORT0T1(qword, ...)` next to the C++ `VecCombo(VU_FLOAT, ...)` that mangles to it) | call the TU's own functions by their C++ names; where the call needs other parameter types, declare an asm-labelled alias instead (`qword VecComboQ(qword, qword, qword, qword) __asm__("VecCombo__FG8VU_FLOATG9VU_VECTORT0T1")`: no crash) | tu_1553F0 (VecCombo); avoided the same way in wr, text, joy |
+| internal compiler error 378 at the end of a function definition | the file also declares the same symbol as an `extern "C"` function with its literal mangled name (`qword VecCombo__FG8VU_FLOATG9VU_VECTORT0T1(qword, ...)` next to the C++ `VecCombo(VU_FLOAT, ...)` that mangles to it) | call the TU's own functions by their C++ names; where the call needs other parameter types, declare an asm-labelled alias instead (`qword VecComboQ(qword, qword, qword, qword) __asm__("VecCombo__FG8VU_FLOATG9VU_VECTORT0T1")`: no crash) | dimitri (VecCombo); avoided the same way in wr, text, joy |
 | a struct copy uses unaligned `ldl/ldr/sdl/sdr` and is far off (34 of 43) | `typedef struct { ... } M3 __attribute__((aligned(16)));` in a `.c` file: as C++ the attribute on the typedef does not reach the struct | put the attribute on the struct: `struct M3 { ... } __attribute__((aligned(16)));` | xform (RotateXfmToMat) |
 | a call of the matrix `operator*` result stored into a member is 18 off and the frame 0x40 bigger | `t = a * b` with the C++ operator copies the returned temporary once more; the per-function file called `__ml__FRC7MATRIX4T0(&t, a, b)` with the result pointer by hand | an asm-labelled hidden-result declaration on the quadword-row type: `extern "C" void MulMatrix4Ret(M4 *, M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0")` | xform (func_00231598) |
 | v0/v1 swapped in two consecutive hand-made vtable calls | the merged body read the vtable pointer into a shared local (`VE *pvt = PVT(p)`); the per-function m2c read it in each call | read it in each call expression | xform (CloneXfm) |
 | compile error "jump to label crosses initialization" | a `.c` function jumps into a block past declarations with initializers (legal in C) | turn the initializers into assignments after plain declarations (no code change) | bomb (UpdateBomb) |
 | one instruction off in a `.c` countdown loop (`li 30` where the target loads 31) | `while (--i != -1);` with an empty body compiles differently as C++ | write it `do ; while (--i != -1);` | blip (NewBlipGroup) |
-| v0/v1 (or the register of an address loaded around a call) swapped | the callee's declared return type differs from the per-function file's (declared `void` where it returns a value, or the reverse) | declare it as the per-function file did, through an asm-labelled view when the TU also defines it (`void func_0011B500V(M3 *, float, qword) __asm__("func_0011B500")`) | blip (memset returns `void *`), tu_223F70 (an int-returning vtable slot), mat (LoadRotateMatrixPanTilt calls func_0011B500 as `void`) |
-| a call's argument registers are loaded in another order, or an argument is moved that the target leaves in place | callers of one function passed different argument lists (floats first, an extra unused argument, by value vs by address, int vs char) | keep each caller's view as an asm-labelled declaration of the same symbol (`int func_001BCAC0F(CID14 *, void *, float, float, int) __asm__("func_001BCAC0")`) | blip, aseg, font, gs, util, booty, tu_223F70, tu_1BC050, tn, tu_1BAB50, menu (GetGlobalSaveVar three ways) |
+| v0/v1 (or the register of an address loaded around a call) swapped | the callee's declared return type differs from the per-function file's (declared `void` where it returns a value, or the reverse) | declare it as the per-function file did, through an asm-labelled view when the TU also defines it (`void func_0011B500V(M3 *, float, qword) __asm__("func_0011B500")`) | blip (memset returns `void *`), gadget (an int-returning vtable slot), mat (LoadRotateMatrixPanTilt calls func_0011B500 as `void`) |
+| a call's argument registers are loaded in another order, or an argument is moved that the target leaves in place | callers of one function passed different argument lists (floats first, an extra unused argument, by value vs by address, int vs char) | keep each caller's view as an asm-labelled declaration of the same symbol (`int func_001BCAC0F(CID14 *, void *, float, float, int) __asm__("func_001BCAC0")`) | blip, aseg, font, gs, util, booty, gadget, cnvo, tn, breakable, menu (GetGlobalSaveVar three ways) |
 | frame 0x10 smaller than the target | an unused local (a DLI, a temporary pointer) of the per-function file was dropped | keep it | aseg (FindAsegPlayerForObject, SetAsegMasterSpeed, InitAseg's `CLQ *pclq`) |
-| an extra store per asm, or the frame bigger: asm output operand written straight into a union or struct member (`"=j"(u.q)`, `"=j"(m.r[0])`) | as C++ the member is stored, then reloaded | output to a scalar and assign it (`qword t; __asm__(... "=j"(t) ...); u.q = t;`) | solve, tu_1B0B78, tn (GDistPlanePos), light (func_001A3B80), mat (four functions), rhythm (VecMul) |
-| a field compared both signed and unsigned (`p->n < 4` and `p->n <= 0`) | the per-function files typed it differently | an anonymous union `{ unsigned int un; int n; }` and each function reads its own member; or `(int)` at the signed uses | tu_201D78, booty, mpeg (CMPEG count, CByteQueue +0x10), rhythm, po, tu_1BC050 |
+| an extra store per asm, or the frame bigger: asm output operand written straight into a union or struct member (`"=j"(u.q)`, `"=j"(m.r[0])`) | as C++ the member is stored, then reloaded | output to a scalar and assign it (`qword t; __asm__(... "=j"(t) ...); u.q = t;`) | solve, critter, tn (GDistPlanePos), light (func_001A3B80), mat (four functions), rhythm (VecMul) |
+| a field compared both signed and unsigned (`p->n < 4` and `p->n <= 0`) | the per-function files typed it differently | an anonymous union `{ unsigned int un; int n; }` and each function reads its own member; or `(int)` at the signed uses | recon, booty, mpeg (CMPEG count, CByteQueue +0x10), rhythm, po, cnvo |
 | a struct-returning call assigned to a local goes through one more temporary (frame bigger, an extra copy) | `m = f()` in C++ builds the result in a temporary; C passed `&m` as the hidden pointer | initialise (`M4 mT = f()`), or pass the hidden pointer by hand through an asm-labelled view (`MATRIX4 *InvertMatrix4RigidP(MATRIX4 *, void *) __asm__("InvertMatrix4Rigid")`), or construct in place (`new (&m) M3(f(...))`); an assignment to a member (`p->mat = f()`) went through a temporary in C too and matches as written | booty, mat (CalculateDmat4, func_0011B500), po (UpdatePoctl) |
 | an inline helper returning a struct adds a temporary | C++ copies the inline's local into the return slot, then into the target | named return value (`static inline M3 MulM3(...) return m { ... }`), or an out pointer with row copies | mat (MulMatrix3Matrix3, LoadRotateMatrixPanTilt) |
-| scheduling differs after two helpers were merged into one | they differed only in `volatile` | keep both | tu_223F70 (ToVF / ToVFN) |
+| scheduling differs after two helpers were merged into one | they differed only in `volatile` | keep both | gadget (ToVF / ToVFN) |
 | a register-pinned value is copied again before a call | the pinned variable was not passed explicitly inside the pin block | pass it explicitly (`HandleAsegaEvent(p, pe)` with `pe` in `$5`) | asega |
-| a member-function callback and a C definition of the same symbol (PMF to `func_001BB400`) | an asm-labelled member declaration next to the C definition risks ICE 378 | make the definition the member function (`void TRIG::Action()` with the label, `TRIG *p = this;`) | tu_1BAB50 |
+| a member-function callback and a C definition of the same symbol (PMF to `func_001BB400`) | an asm-labelled member declaration next to the C definition risks ICE 378 | make the definition the member function (`void TRIG::Action()` with the label, `TRIG *p = this;`) | breakable |
 | linkonce setters called through asm-labelled members (`void SetPos(float, float) __asm__("CTextBox_SetPos")`) | — | define the linkonce copies as those member functions at the end of the file | rhythm (five CTextBox setters) |
 | a hand-scheduled function copies a register-pinned object pointer into another saved register (a `move s2,s4`, the later loads through s2) | the vtable read `"m"(PVT(object))` went through an inline accessor `VTE *&PVT(LO *)`: an inline function's parameter becomes a new pseudo | make the accessor a macro (`#define PVT(plo) (*(VTE **)((char *)(plo) + 0xC))`) | jthands (func_001CCC88) |
 | internal compiler error 378 at an unrelated C++ declaration (`MATRIX4 operator*(const MATRIX4 &, const MATRIX4 &)`) | an earlier `extern "C"` declaration of the literal mangled name `__ml__FRC7MATRIX4T0` (the ICE-378 row above, the other way round) | declare the C-style call as an asm-labelled alias (`M4 *MulMatrix4Ret(M4 *, const M4 *, const M4 *) __asm__("__ml__FRC7MATRIX4T0")`) | jthands |
@@ -184,7 +184,7 @@ those kinds free into them.
 | an extra callee-saved FPU register and a float computed before a call (98 of 103) | the callee was declared with the float argument before two quadwords; the caller's file put it last. The registers are the same either way (the float goes to $f12), but the argument order decides evaluation order | an asm-labelled view with the caller's order (`func_0012DE58Q(..., qword, qword, float)`) | jthands (func_001CD308) |
 | missing side zeroed with an extra FPU register and a 16-byte bigger frame (129 of 142) | a VECTOR4 (float) view zeroed `x = y = z = 0` loads 0.0f into an FPU register; the per-file int view stored `$0` | zero through an int view of the same bytes (`union VECW { VECTOR4 vec; int an[4]; }`) | dzg (FillDzgDz) |
 | frame 0x10 bigger with an 8-byte allocation request bound to a `const AL &` parameter | the request is 16 bytes in the original (two more words) | `struct AL { int cb; int cbAlign; int pad[2]; }`; the other users match either way | dzg (ApplyDzg) |
-| compile error "too many arguments to function" at a hand-made vtable call | the C file's vtable entry type `void (*pfn)();` means "unspecified arguments" in C and "no arguments" in C++ | `void (*pfn)(...)` (xf: same code) or a cast at the call (tu_1709A8) | xf, tu_1709A8 |
+| compile error "too many arguments to function" at a hand-made vtable call | the C file's vtable entry type `void (*pfn)();` means "unspecified arguments" in C and "no arguments" in C++ | `void (*pfn)(...)` (xf: same code) or a cast at the call (guardscript) | xf, guardscript |
 | compile error "ANSI C++ forbids implicit conversion from `void *'" | C bodies assign allocator results (func_001AE1D0/2A0/378, AllocZeroedFromSlotheap) to typed pointers | a cast; mechanically `x = (__typeof__(x))f(...)` (scratch helper, no code change) | shd, path, step, jt, glob |
 | a C struct-returning call assigned to an existing local (`t = f(...)`) is a temporary (frame 0x10..0x40 bigger) | as the booty/mat row | pass the result pointer by hand through an asm-labelled view (`void MulMatrix4P(M4 *, M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0")`, `InvertMatrix4RigidP`) | xf (func_002303A0, func_00230A98), step (SetStepPhys) |
 | a C compound literal store `scalar = (U){b}` is an extra temporary or a store in the wrong place | C++ builds the literal as a temporary | hurt func_001A16C8: `__asm__("" : "+j"(b)); scalar.q = b;` keeps the store last; air PxpFindJtBestEdge (`scalar = (U){back}; point.q = value; scalar = (U){lift};`, scalar never read): each literal in its own block as an initialised local, `{ U s = {back}; } point.q = value; { U s = {lift}; }`, with the outer `scalar` dropped (see "air" below) | hurt, air |
@@ -193,14 +193,14 @@ those kinds free into them.
 | v0/v1 or a delay-slot store swapped after a call | the callee returns a value the merged prototype declared void (the v0 rule) | declare its result: `int func_001F8300(STEP *)` | step (LoadStepFromBrx) |
 | a C call without arguments (`f();`, a0/a1 passed through) gets a0 loaded or registers renamed | a C++ prototype with parameters forces the argument set-up | an argument-less asm-labelled view (`void func_00190D10V() __asm__("func_00190D10")`) | jt (RenderJtSelf) |
 | `#include "bis.h"`/`"mat.h"` next to sly2/basic.h: redefinition errors, or an empty compiler error with exit 1 | vec.h's VECTOR/MATRIX types clash with basic.h's; with many errors the compiler printed nothing | include only one family; the Lilly CBinaryInputStream replaces bis.h (glob), a local 16-byte aligned VECTOR replaces mat.h (xf) | glob, xf |
-| a per-file `#define q u.q` breaks later functions | macro leak (the waypoint row) | `#undef` after the namespace | tu_1709A8 |
+| a per-file `#define q u.q` breaks later functions | macro leak (the waypoint row) | `#undef` after the namespace | guardscript |
 | (not a mismatch) C files that passed CRef results by hidden pointer into 16-byte aligned wrappers (`struct CREFA { CRef r; } __attribute__((aligned(16)))`) and called operator=/Decref by hand | — | with sly2/cref.h's CRef (constructor and destructor) the by-value C++ calls match without the wrappers: g++ gives the temporaries the same 16-byte slots. The 16-byte alignment of the counted pair pointer (SPPAIR) is still needed (27 of 110 off without) | spliceobj |
 | compile error "parse error before `::'" in an asm statement | a C file's `__asm__("" ::: "$6")`: in C++ `:::` lexes as `::` followed by `:` | write `: : :` (no code change) | cplcy (ActivateCpzoom) |
-| a function that matches standalone is far off in the merged file; the per-function file compiled as C++ outside a namespace matches, inside `namespace X { }` it does not | a libc function the file declared itself (`extern "C" float fabsf(float)`, `char *strcpy(char *, const char *)`) is `X::fabsf` inside the namespace, and g++ only treats the global declaration as its builtin (fabsf becomes a call with an extra saved FPU register; strcpy of a string constant is no longer expanded inline) | drop the namespace's declaration and declare the function once at file scope (`extern "C"` block after the includes). Only where the builtin is what the C original got: strcpy whose source is not a constant must stay a call (memcard func_001ADA20 matched only as a call); m2c bodies call it through `char *StrcpyCall(char *, const char *) __asm__("strcpy")` | tu_17F090 (func_001821C0, fabsf), memcard (WriteIconSys, func_001AD820), screen |
+| a function that matches standalone is far off in the merged file; the per-function file compiled as C++ outside a namespace matches, inside `namespace X { }` it does not | a libc function the file declared itself (`extern "C" float fabsf(float)`, `char *strcpy(char *, const char *)`) is `X::fabsf` inside the namespace, and g++ only treats the global declaration as its builtin (fabsf becomes a call with an extra saved FPU register; strcpy of a string constant is no longer expanded inline) | drop the namespace's declaration and declare the function once at file scope (`extern "C"` block after the includes). Only where the builtin is what the C original got: strcpy whose source is not a constant must stay a call (memcard func_001ADA20 matched only as a call); m2c bodies call it through `char *StrcpyCall(char *, const char *) __asm__("strcpy")` | hack (func_001821C0, fabsf), memcard (WriteIconSys, func_001AD820), screen |
 | frame 16 bytes bigger and a pinned float spilled | an inline helper took the address of a register-pinned local (`Max(&squared, g)` with `register float squared asm("$f2")`): C++ allows `&` on a register variable and puts it on the stack; the C front end kept it in the register | a value-returning helper: `squared = MaxR(squared, g)` | shape (func_001E7D90) |
 | a bit-field compared with a constant (`s->bf.k == 2`, `p->x28.b.st != 2`) is far off: a 64-bit mask test instead of the field extraction | the find row, for a signed multi-bit field and a non-zero constant | `(int)s->bf.k == 2` | lo (AddLo, PostLoLoad), game (PostTaskLoad) |
 | g++ 2.95 exits with status 1 and no message | cc1plus segfaults (signal 11; the driver reports only the status) when a file redefines a class that has virtual functions: `struct A { virtual void f(); }; struct A { int y; };` is enough. The same redefinition of a class without virtuals is an ordinary "redefinition of `struct A'" error. Since types/views-2 BASIC and every registry class are polymorphic, so a TU-private `struct BASIC`/`LO`/`SW`/`SHAPE`... after a shared header crashes instead of listing its clashes (types/views-3) | use the header's type (its field names) instead of a private one of the same name, or rename the view; to see all clashes at once compile against a scratch copy of include/ with `virtual` deleted (the size asserts then fail, ignore them), or bisect the preprocessed .ii by truncation (the crash line is the redefinition) | shape, and the eight types/views-3 files |
-| every field of a derived view is 8 bytes off | the derived classes keep their own words at +0x1C8, inside the base view's 16-byte tail padding (sizeof(HACK) rounds up to 0x1D0 because SO is 16-byte aligned) | separate views over the common base (`struct HACKSHIP : public SO` with the base words repeated by a macro) and a cast at the base-function calls; or a pad computed from `sizeof(BASE)` when the derived fields really start after it (grabspot GRABSPOT36) | tu_17F090, grabspot |
+| every field of a derived view is 8 bytes off | the derived classes keep their own words at +0x1C8, inside the base view's 16-byte tail padding (sizeof(HACK) rounds up to 0x1D0 because SO is 16-byte aligned) | separate views over the common base (`struct HACKSHIP : public SO` with the base words repeated by a macro) and a cast at the base-function calls; or a pad computed from `sizeof(BASE)` when the derived fields really start after it (grabspot GRABSPOT36) | hack, grabspot |
 | a C compound-literal store through a pointer (`*scalar = (U){complement}`) | C++ builds the literal as a temporary; a plain member store moves, and the C code's store order (the -1 store before an mfc1) is lost | a member store plus one matching-only `__asm__("" : "+f"(remain) : : "memory")` after the earlier store (it uses the value the mfc1 converts, so the store stays first) | murray (func_001B8B70) |
 | a loop label one nop further than the target in an otherwise matching function, only in the merged file | tools/wibo_cc.py measures the alignment nops of short loops with marker labels placed at line indices computed on the text after asfix.divfix (which inserts the R5900 div/sqrt hazard nops), but inserts them into the raw text; any vsqrt/vdiv at a block start earlier in the same file shifts the markers, the measurement fails and the loop keeps the unpadded alignment. Never seen with one function per file | fixed in tools/wibo_cc.py (wave 10): the markers go into the divfixed text; before the fix no other source was affected (all 1,723 checked) | lo (FMatchesLoName) |
 | a register swap of a constant and a vtable address before a call (v0/v1) | the base constructor was declared `void`; it returns the object (the v0 rule) | declare it returning the pointer | memcard (CMemcardDialog_ctor) |
@@ -225,7 +225,7 @@ Other observations:
   first compile once types were unified. Most of the work is unifying the per-file views of one object into one type.
 - `.c` callers that passed a hidden result pointer by hand (`GetSpeakerSubtitleColor(&c, k)`, `GetGlobalSaveVar(&ref,
   ...)`) become by-value calls in C++ and match: g++ uses the same hidden-pointer convention for a returned non-POD
-  class (tu_2275B8, difficulty).
+  class (subtitle, difficulty).
 - Defining a class's first virtual function in the merged file makes it the class's key TU: g++ then also emits
   out-of-line copies of the class's inline members (bq: `__17CQueueInputMemoryPUci`) and, with RTTI, `__tf...`
   typeinfo functions. They have no address in the binary (the code exists nowhere there) and show as extras, not
@@ -288,7 +288,7 @@ Other observations:
   function under its literal symbol, as bas's constructor did. Functions whose signature fits (Startup__Fv,
   IsPs2DvdInDrive__Fv, CloneGeom__FP4GEOMP7MATRIX4T0, the OSTRM constructors __5OSTRMi/__5OSTRMPvi...) became the C++
   functions that mangle to them.
-- Wave 5: tu_119BC8's SLY2_CC/`-G0`/`-ffast-math -mvu0-use-vf0-vf31` overrides (three linkonce instances) were not
+- Wave 5: dynarraystr's SLY2_CC/`-G0`/`-ffast-math -mvu0-use-vf0-vf31` overrides (three linkonce instances) were not
   needed in the merged file either; its register pin (`register HENT *list asm("s1")`) stays.
 - Wave 5: a per-function file's `#define` aliases (waypoint's `#define cpso L.cpso`) leak into later functions of a
   merged file; `#undef` them after the function.
@@ -326,29 +326,29 @@ Other observations:
     xfm.h names XFM slots 49/50 without parameters, so those stay hand calls (no header change).
   - BHV layout (bhvstk): vtable +0xC, owner +0x10, the behaviour below +0x14, the behaviour above +0x18 (what CloseBhv
     pops), busy flag +0x1C, busy count +0x20; BHVSTK {owner, depth, eight 0xF0-byte slots} at +0x26C of a guard. The
-    "+0x18 running sub-behaviour / stack" union of tu_171F58, tu_1553F0 and tu_14A008 is that pointer.
+    "+0x18 running sub-behaviour / stack" union of bhvsearch, dimitri and carmelita is that pointer.
   - vec has no object views but 20 per-file helper sets whose names collide with different asm (Sub/Cross/Dot with
     other operand orders, allocation-only operands, clobbers). Each function's helpers stay as matched in a namespace
     named after the function (`namespace V_GetNormalVector { ... extern "C" qword GetNormalVector(...) {...} }`);
     extern "C" definitions inside a namespace keep their plain symbols, and external declarations go to one
     extern "C" block at file scope (global variables declared inside a namespace would be mangled). No codegen change.
-    Elsewhere colliding helpers were renamed (water SubB/ZeroXyz, tu_185130 VUFM/VUFQ, tu_173158 GetXV/SqrtV).
+    Elsewhere colliding helpers were renamed (water SubB/ZeroXyz, sticky VUFM/VUFQ, spawner GetXV/SqrtV).
   - The SLY2_CC/-G0/-ffast-math overrides of xform (six files) and memory's two linkonce setters were not needed.
-  - Per-file views often typed one field two ways (int and pointer, a time and an id): tu_1553F0's +0x4C was typed
+  - Per-file views often typed one field two ways (int and pointer, a time and an id): dimitri's +0x4C was typed
     int but func_00155A68 reads the object's position from it. When a unified field is read as a pointer anywhere,
-    type it as a pointer; anonymous unions where both reads matter (tu_1553F0's BHVO, water's motion node).
+    type it as a pointer; anonymous unions where both reads matter (dimitri's BHVO, water's motion node).
   - g++ 2.95's symbol for `::operator delete(void *)` is `__builtin_delete`: memory defines it as the operator.
 - Wave 8 (22 asm TUs of 21..38 functions, inline-asm TUs smallest first; dzg, jthands, spliceobj and sensor left for
-  a dedicated pass): tu_20B840, shdanim, tu_1BAB50 and menu matched on the first compile once the views were unified,
+  a dedicated pass): gait, shdanim, breakable and menu matched on the first compile once the views were unified,
   the rest after one to four fixes from the mismatch table. What recurred:
   - Most mismatches were per-caller views of one callee (argument order or count, return type) and asm outputs
     written into union or struct members; both have rows in the table above.
-  - Shared helpers used where identical: vu0.h VuSub/VuSubRef/VuDot (blip), VuSub (tu_1B0B78), VuAdd/VuSub
-    (tu_201D78); util.h GMax (font), GAbs (solve, util, tn), GClamp (util, rhythm), GMin (tn), FIsPtr (tu_223F70).
+  - Shared helpers used where identical: vu0.h VuSub/VuSubRef/VuDot (blip), VuSub (critter), VuAdd/VuSub
+    (recon); util.h GMax (font), GAbs (solve, util, tn), GClamp (util, rhythm), GMin (tn), FIsPtr (gadget).
     A helper with the same name but another form stays TU-private and renamed (rhythm and po GMaxR `a < b ? b : a`;
     mat's three sqrt helpers, volatile and not).
   - Header types where they cover the fields: basic.h CLOCK (asega), SMP/SMPA/CLQ/LM/RGBA/VECTOR (util), aseg.h and
-    dli.h (aseg, asega), stepplayer.h GAIT (tu_20B840), xfm.h TN, cm.h CMPART2/CM and UpdateCptn's CPD for all of tn,
+    dli.h (aseg, asega), stepplayer.h GAIT (gait), xfm.h TN, cm.h CMPART2/CM and UpdateCptn's CPD for all of tn,
     gifs.h GIFS for both GIFS users of mpeg (one had declared a non-virtual private copy).
   - A header move was reverted: adding CHN/OVR/OVRA/AC/ACTSEG to aseg.h breaks about 15 per-function Lilly ports
     that define their own CHN/OVR/OVRA/KEY, so ACTSEG/OVRA/AC stay identical TU-private copies in aseg.cpp and
@@ -400,12 +400,12 @@ Every choice:
 | hurt.cpp | JTHURT | stepplayer.h's, for the 14 functions on named fields; JT fields through jt.h (jts, jtgrab, jtair, nUnk298, activeAnimation), zpr.ploSource as SO (hurtRespawnsHero bit-field matched) | the JT field mapping came from offsets of jt.h/stepplayer.h (offset dump of the header types) | stepplayer.h names JTHURT +0x14/+0x18 (a count and a 12-byte record array) and fills HURTEND (the 8-byte callback PMF at +0x1C; today an empty struct) |
 | grab.cpp | JTGRAB | stepplayer.h's for the small functions; state is +8 and kind +0xC (two per-file views had them named the other way: k/c) | func_00194640/func_001944C8 matched only with the offsets read as named | — |
 | proxy.cpp | PROXY/PROXYSRC/PROXYSPARE | xfm.h PROXY; the Lilly PROXYSRC/PROXYSPARE (identical in three ports) at file scope | PspareFromIcopy/GetCopyIndexFromProxySpare, Lock/Unlock, PloAcquireProxy rewritten on them | a proxy header |
-| tu_1709A8.cpp | SSGE (guard script command) | the +0x08 argument is a union selected by the command kind (time for 5, point for 3/7, number for 6/13..15) | the build calls store a float, an int or a point pointer there by kind; func_00170E90 reads the point for kinds 3/7 | — |
-| tu_144B28.cpp, bentley.cpp, jt.cpp | unnamed header words | small macros naming the word at its offset (STEPGUARD +0xFD0 JTGOAL, +0x10E0 flags; BENTLEY +0x16C0, +0x186C; JT +0x1FA0) instead of a header change | the headers have padding there; no header change in wave 9 | the headers name them |
+| guardscript.cpp | SSGE (guard script command) | the +0x08 argument is a union selected by the command kind (time for 5, point for 3/7, number for 6/13..15) | the build calls store a float, an int or a point pointer there by kind; func_00170E90 reads the point for kinds 3/7 | — |
+| stepbhv.cpp, bentley.cpp, jt.cpp | unnamed header words | small macros naming the word at its offset (STEPGUARD +0xFD0 JTGOAL, +0x10E0 flags; BENTLEY +0x16C0, +0x186C; JT +0x1FA0) instead of a header change | the headers have padding there; no header change in wave 9 | the headers name them |
 | (wave 10) | C++-named hand-written definitions in namespaces | the wave-9 device at scale: a namespaced `.cpp` function whose symbol is mangled becomes a C-linkage definition of its literal symbol (`extern "C" int FPausedEmitter__FP7EMITTER(EMITTER *p)`), because its own private types would be `M_x::EMITTER` and change the mangling; done mechanically (emitter 8, rip 6, cm 2, memcard 3...) | the user's "keep conflicting private views in per-function namespaces"; the views conflict across the files of every wave-10 TU | the function's views move to shared types: then it becomes the C++ function again (reversible: the symbol is the same string) |
 | (wave 10) | namespaced callee and global declarations | as in wave 9, declarations inside a namespace of a `.cpp` block get the namespace in their mangled names (calls and globals of those blocks reference `..M_x..` symbols); relocations are masked, so matching is unaffected, but a native link would need them fixed. Left as wave 9 left them | — | the native-link step |
 | (wave 10) | m2c-body types | file-scope TU-private views of the fields the m2c bodies use, header types wherever the headers name the fields (cm.h CPLCY family and CM, xfm.h SHAPE, sw.h SW, lo.h LO with real virtual calls, stepplayer.h STEPPLAYER, so.h XF/SO), unnamed header words through offset macros, derived views for class hierarchies (ACTPHASE/ACTREST : ACT, CLUE/LOOT/VAULT : DPRIZE, GRABSPOT36 : GRABSPOT35) | each view names only what the code reads; names follow the per-function views and the annotations | the headers name the fields |
-| tu_17F090.cpp | HACK and HACKSHIP / HACKENEMY / HACKLOCK | separate views over SO (HACK words repeated by a macro), not derived | the class words at +0x1C8 lie inside HACK's 16-byte tail padding; a derived struct starts at 0x1D0 (every field 8 off) | done (names/vu-objects): the premise was wrong (HACK is 0x1C0; +0x1C0/+0x1C4 belong to each subclass), sly2/hack.h derives them |
+| hack.cpp | HACK and HACKSHIP / HACKENEMY / HACKLOCK | separate views over SO (HACK words repeated by a macro), not derived | the class words at +0x1C8 lie inside HACK's 16-byte tail padding; a derived struct starts at 0x1D0 (every field 8 off) | done (names/vu-objects): the premise was wrong (HACK is 0x1C0; +0x1C0/+0x1C4 belong to each subclass), sly2/hack.h derives them |
 | memcard.cpp | SAVEINFO (+0x48) | union of the whole flag word and the creation day/month bytes that overlap its upper half | FillMcDirInfo reads/writes +0x48 with lw/sw and stores bytes at +0x4A/+0x4B | the real record (a date struct overlapping a bit-field word?) |
 | memcard.cpp | CompareSaves__FP4SAVET0 | C-linkage literal symbol over SAVEINFO | its Sly 1 symbol says SAVE, but it compares two directory records (SAVE is the 0xFD70-byte manager here) | a Sly 2 symbol |
 | stepplayer.cpp | STEPPLAYER virtual slots | real calls for slots 87, 88, 99; slot 101 by hand | stepplayer.h's declaration order gives OnActive at 0x270 (slot 77) where the code calls 0x330; the header's appended "override declared in" lines are not in vtable order | stepplayer.h's virtual order fixed |
@@ -414,11 +414,11 @@ Every choice:
 | emitter.cpp | EMITTER view vs sly2/emitter.h | (link/linkonce-misc) emitter.cpp includes emitter.h; its file-scope EMITTER (the m2c bodies' fields: k, c, lmRate, fAutoPause, tNext, tUnpause, pripg, pblipg) and EMITB views moved into the header; the 0x70-byte defaults stay `EMITDEF::EMITV` (already namespaced, so the two EMITVs never clashed) | the EMITTER/EXPLO member templates (below) are written against emitter.h's types and called by PostEmitterLoad; every emitter.cpp function still MATCHes | — (was: TU-private EMITTER, emitter.h not included) |
 | sly2/emitter.h (link/linkonce-misc) | EMITB +0x08, +0x20; EMITV +0x08..+0x1C | `LO **aploRef` (+0x08: the five objects the block's OIDs resolve to, a 0x14-byte block; emitter.cpp's old name `poidParent`, po's `pn`), `int oidEmito` (+0x20); EMITV `oid08`, `n0C`, `oid10`, `oid14`, `EMITBLIPCLRS *pblipclrs` (+0x1C) | func_002586D8 resolves +0x20/+0x30 and +0xC8..+0xD4 with FindSwObject; LoadEmitblipColorsFromBrx stores a byte at +0xCC and its list at +0xDC. +0x0C of EMITV is both an OID (record 1) and the blip colour byte: one int field with both uses in its comment (no union: no kind field shown to select) | a kind that selects the +0x0C meaning |
 | sly2/emitter.h (link/linkonce-misc) | the EMITTER/EXPLO linkonce members (LoadFromBrx, Clone, post-load binding, PemitbEnsure, blip colours, second Pclassinfo) | free function templates over the class, one per pair, explicitly instantiated at the end of emitter.cpp; each named after its EMITTER copy (`CloneEmitter<EXPLO>` is EXPLO's Clone), PemitbEnsure after the old overload name; per-class data through overloaded inline helpers (PclassinfoEmitb, PvEmitbRefsNull); CBinaryInputStream readers by their symbols (bis.h's class clashes with basic.h's VECTOR/MATRIX types) | explicit instantiation emits weak `.gnu.linkonce.t.<symbol>` copies without data (scratch test); all 12 MATCH; the member form needs the key TU (as pass 3) | real names; the member form once EMITTER/EXPLO's key TUs emit vtables |
-| sly2/xfm.h, so.h (link/linkonce-misc) | the GRABSPOT owner getters (slot 6 of each grabbable class's GRABSPOT vtable: 10 identity functions) | free inline functions `void *func_X(CLS *p) { return p; }` next to each class's ensure accessor; classes.h's VtF slot labels name them, so each class's key TU (grabspot 6, hnd, pipe, rail, tu_1FF3B8) emits its getter with the vtable (link/eopid-real-refs; before, eopid_linkonce.cpp's address references emitted them and the labels carried a trailing space) | the vtable deltas (classes.h) bring `this` back to the object; GRABSPOT's own slot 6 returns 0; each sits right before its class's accessor in the linkonce area | inline virtual members once the classes' key TUs are merged |
+| sly2/xfm.h, so.h (link/linkonce-misc) | the GRABSPOT owner getters (slot 6 of each grabbable class's GRABSPOT vtable: 10 identity functions) | free inline functions `void *func_X(CLS *p) { return p; }` next to each class's ensure accessor; classes.h's VtF slot labels name them, so each class's key TU (grabspot 6, hnd, pipe, rail, freegrabspot) emits its getter with the vtable (link/eopid-real-refs; before, eopid_linkonce.cpp's address references emitted them and the labels carried a trailing space) | the vtable deltas (classes.h) bring `this` back to the object; GRABSPOT's own slot 6 returns 0; each sits right before its class's accessor in the linkonce area | inline virtual members once the classes' key TUs are merged |
 | (link/linkonce-misc) | linkonce copies that their callers call | the inline function is declared before its callers and defined after them (end of the file): g++ 2.95 calls an inline whose body it has not seen and emits the copy in `.gnu.linkonce.t.<symbol>` at the end of the TU (scratch test). Single-TU helpers take C++ names (`GetVectorComponentX__FP6VECTOR`); helpers that other TUs call by their C symbol stay `extern "C" inline` (namespaced C declarations of the same name count as uses: guardbhv); asm-labelled members keep their label (rhythm's CTextBox setters, bif's VU constructors) | HYPOTHESIS for the original mechanism (header order, or the body in a later header); every caller still MATCHes, no object's other sections change | the VU classes (VU_FLOAT/VU_VECTOR) and CTextBox in shared headers with their real member names |
-| tu_1553F0.cpp, bif.cpp (link/linkonce-misc) | VecCombo 0x258480, operator* 0x256D28 | left plain functions (reverted) | as inline-after-callers g++ did not emit them: their callers reach them only through differently typed asm-labelled declarations (VecComboQ, bif's VU_FLOAT_X views), which do not mark the inline definition used; calling them through their real declarations would change func_00155FB0 (hand-tuned) and bif's RefOp* code | the callers on shared VU types |
-| tu_1553F0.cpp, bif.cpp, class_registry.cpp, tu_119BC8.cpp (link/linkonce-rest) | the six weak `.gnu.linkonce` definitions: VecCombo 0x258480, operator* 0x256D28, STEPGUARD_ctor/JT_ctor/MURRAY_ctor, CHash<char *, int>::Resize | plain definitions with `__attribute__((weak, section(".gnu.linkonce.t.<symbol>")))` (prefix form on the definition; bif: on a declaration before it; Resize: an explicit specialization, sly2/arrayv.h row below) | the object form of an out-of-line inline copy (weak symbol, own linkonce section), names and code unchanged; the inline forms are not emitted or do not match (see "The container family"): VecCombo/operator* are reached only through other declarations' asm labels, the constructors' inline form in classes.h is emitted by stepguard.cpp but inlined by class_registry's eleven guard factories, Resize as a template instance is 2/78 off | VecCombo/operator* called through their real declarations (needs the callers on shared VU types); the constructors as inline members once class_registry's factories call them out of line; Resize when a template-member spelling matches |
-| sly2/arrayv.h, tu_119BC8.cpp (link/linkonce-rest) | the container linkonce copies 0x2564E0..0x256AF0 | members of the class templates CDynArrayV<T>, CArrayListener<T>, CHashIndex<T>, CHash<K, V> (names and T = char * HYPOTHESIS), defined after the classes with the per-function views as casts of `this`, explicitly instantiated in tu_119BC8.cpp; CHash<char *, int>::Resize an explicit specialization with the weak/section attributes | 11 members MATCH as instances; Resize as an instance is 2/78 off in every spelling tried | the real field names in place of the views; the vtables emitted by tu_119BC8 (data/vtables) |
+| dimitri.cpp, bif.cpp (link/linkonce-misc) | VecCombo 0x258480, operator* 0x256D28 | left plain functions (reverted) | as inline-after-callers g++ did not emit them: their callers reach them only through differently typed asm-labelled declarations (VecComboQ, bif's VU_FLOAT_X views), which do not mark the inline definition used; calling them through their real declarations would change func_00155FB0 (hand-tuned) and bif's RefOp* code | the callers on shared VU types |
+| dimitri.cpp, bif.cpp, class_registry.cpp, dynarraystr.cpp (link/linkonce-rest) | the six weak `.gnu.linkonce` definitions: VecCombo 0x258480, operator* 0x256D28, STEPGUARD_ctor/JT_ctor/MURRAY_ctor, CHash<char *, int>::Resize | plain definitions with `__attribute__((weak, section(".gnu.linkonce.t.<symbol>")))` (prefix form on the definition; bif: on a declaration before it; Resize: an explicit specialization, sly2/arrayv.h row below) | the object form of an out-of-line inline copy (weak symbol, own linkonce section), names and code unchanged; the inline forms are not emitted or do not match (see "The container family"): VecCombo/operator* are reached only through other declarations' asm labels, the constructors' inline form in classes.h is emitted by stepguard.cpp but inlined by class_registry's eleven guard factories, Resize as a template instance is 2/78 off | VecCombo/operator* called through their real declarations (needs the callers on shared VU types); the constructors as inline members once class_registry's factories call them out of line; Resize when a template-member spelling matches |
+| sly2/arrayv.h, dynarraystr.cpp (link/linkonce-rest) | the container linkonce copies 0x2564E0..0x256AF0 | members of the class templates CDynArrayV<T>, CArrayListener<T>, CHashIndex<T>, CHash<K, V> (names and T = char * HYPOTHESIS), defined after the classes with the per-function views as casts of `this`, explicitly instantiated in dynarraystr.cpp; CHash<char *, int>::Resize an explicit specialization with the weak/section attributes | 11 members MATCH as instances; Resize as an instance is 2/78 off in every spelling tried | the real field names in place of the views; the vtables emitted by dynarraystr (data/vtables) |
 | sound.cpp | g_sndmgr | SNDMGRBASE (destructor = ~BASIC) + SNDMGRG members SNDREF (inline release) | the destruction order (members, then base) and g++'s array loop reproduce StaticInit_sound | a real SNDMGR class |
 | sly2/stackscope.h (types/views-1) | STACKSCOPE (the stack-heap scope) | one class, no members, constructor asm-labelled STACKSCOPE_ctor, out-of-line destructor `_$_10STACKSCOPE` (config renamed from STACKSCOPE_ctor_1AE4A0); memory.cpp defines both members | the 69 private views (FRAME, OBJ, CTX, MARK, CLS, CFrame, HEAP_SCOPE, STACKSCOPE; int a[4] / int n / empty) all match with the empty class; the out-of-line destructor form matches everywhere but one function, the inline-wrapper form (`~X() { STACKSCOPE_ctor_1AE4A0(this, 2); }`) missed 15 functions; the mangled name came from the annotation | glob.cpp func_0016CF78 keeps its inline-wrapper MARK (island; 15/456 off with the shared class); the LEASE/SCOPEW helpers (explicit release) stay |
 | sly2/pair.h, sly2/varb.h (types/views-1) | CPair/CPairPtr, CVarb/CVarbPtr | the Splice list nodes and their counted links as shared structs; out-of-line destructors `_$_8CPairPtr` / `_$_8CVarbPtr` (config renamed from PairPtr_Release / func_00257250), assignments bound to PairPtr_Assign / func_00257450 with `void` result; bif.cpp, sidebag.cpp and frame.cpp define the four linkonce copies as the members (MATCH) | the views agreed field for field; `CPairPtr &operator=` puts eval's EvalLambda 2 registers off; varb.h must come after SLY2_INSTANTIATE_SLOT_POOLS() (CVarb::operator delete names the second pool; earlier, the static initializer reorders) | done for the four functions (link/linkonce-pools): they are CRefPtr<CPair>/<CVarb> instances emitted by splice/gc.cpp (config names `_$_t7CRefPtr1Z5CPair`, `__as__t7CRefPtr1Z5CPairP5CPair`...); the two headers keep their views for the includers, whose `_$_8CPairPtr`/`_$_8CVarbPtr` references are alias lines. The inline-release owners (SPW/SPN) and serialize.cpp's NODE/CRef views stay |
@@ -432,15 +432,15 @@ Every choice:
 | sly2/sw.h (types/views-3) | SW, the last class_registry view | a real class: `SW() __asm__("SW_ctor")` (out of line, world/scene/sw.cpp's namespaced definition), virtual layout from the ELF vtable `_vt$2SW` (0x2DC018, 9 slots): Pclassinfo/Update/Render/Draw labelled GetSwClassDesc/UpdateSw/RenderSw/DrawSw (names from the annotations "class SW slot7/8/9"); class_registry's NewSw constructs it; `_vt$2SW` named in symbol_addrs.txt and stored by name by SW_ctor | NewSw and SW_ctor MATCH; nobody emits or references the vtable through the class (Pclassinfo is the key function, its definition is C), so no alias line was needed before or after | the slot names Update/Render/Draw are ours (the functions are UpdateSw/RenderSw/DrawSw, called directly by game.cpp) |
 | sly2/cframe.h (types/views-3) | CFrame | basic.h's CFrame (proxy.cpp's Lilly view, the only user of its members) moved to its own header; basic.h keeps the forward declaration | splice/frame.cpp and eval.cpp define their own CFrame (members defined in frame.cpp: `FFindBinding__6CFrame...`), so they could not include basic.h's headers at all | the three CFrame views unified (same layout; the counted-pointer forms SPO/SPZ/CVarbPtr differ and are part of the codegen) |
 | sly2/gc.h, sly2/basic.h (link/linkonce-pools) | CGcObj<T>, CRefPtr<T>, the GC node views | CGcObj moved out of basic.h into the new sly2/gc.h (with CGc and g_gc), link word as bit-fields, per-kind data as declared-only static members named in config, `CGcPool<T>` for the pool; CRefPtr gains the out-of-class `Attach` and a clearing default constructor, its `operator=` is defined in splice/gc.cpp; gc.cpp's views take the real class names (CPair, CVarb, CFrame, CProc, CSidebag, CMethod) and derive from CGcObj<T> | the 58 instances MATCH ("The Splice GC pool family"); every other view of these nodes (frame.cpp's, eval.cpp's, bif's, serialize's...) is untouched | the per-kind COMMONS_ definitions become the template statics' definitions (a data step); the other files' node views unified with gc.cpp's |
-| sly2/sw.h (types/views-3) | RENDERTGT (SW +0x45E8, two of them) | new struct for the former `_pad_338` (0x28 bytes each: size, TEX0 as a plain ulong, the two GIF packets, the claiming camera), offset assert; tu_1BE398.cpp reads them through its RT view (TEX0 as GS bit-fields) with a cast at the use | tu_1BE398's func_001BE6F0 / func_001BEE10 index the pair; TEX0 bit-field unions also live in font.cpp and shd.cpp, so the header keeps the plain word | a GS register header |
-| macro files (types/views-3) | private views that clash with the shared headers by name | as integrate/round5: removed where the header type has the same layout (basic.h's DL in frm, OID/CID/CLASSINFO/qword/CLOCK/MATRIX3/MATRIX4 in most files), renamed with a `V` (or `Q`/`A`) suffix where the layout differs or matters for codegen: basic's BASICV/CIDV (the hand-made vtable word; signed class ids: basic.h's `enum CID {}` is unsigned), frm's LOV, throw's ASEGAV/CLQV (basic.h's CLQ has a constructor, so no brace-initialized D_002C40F0), tu_201D78's VECTORV/LOV/CMV, pipe_jt's ASEGV/ASEGAV/SMPV/LMV and VECTORA (mat.h's 16-byte VECTOR: its stack locals depend on it), bif's VECTORQ. A renamed view in a C++ symbol keeps the symbol by an asm label on the declaration (`IsBasicDerivedFrom(BASICV *, CIDV) __asm__("IsBasicDerivedFrom__FP5BASIC3CID")`, `VU_VECTOR(const VECTORQ &) __asm__("__9VU_VECTORRC6VECTOR")`, tu_201D78's FindSwObject); a header field of another type is read with a cast at the use (save's SVKEY/SVSTORE, basic's typed callback list `(DLV *)&g_sw.slEvent`) | every function and data symbol MATCH and each object's nm symbol set is unchanged (symcheck) | the V-named views are the view-unification list for these files; basic.h's CID given a negative enumerator would retire most CIDV/`(CID)0x34` spellings (affects every includer) |
+| sly2/sw.h (types/views-3) | RENDERTGT (SW +0x45E8, two of them) | new struct for the former `_pad_338` (0x28 bytes each: size, TEX0 as a plain ulong, the two GIF packets, the claiming camera), offset assert; rtcam.cpp reads them through its RT view (TEX0 as GS bit-fields) with a cast at the use | rtcam's func_001BE6F0 / func_001BEE10 index the pair; TEX0 bit-field unions also live in font.cpp and shd.cpp, so the header keeps the plain word | a GS register header |
+| macro files (types/views-3) | private views that clash with the shared headers by name | as integrate/round5: removed where the header type has the same layout (basic.h's DL in frm, OID/CID/CLASSINFO/qword/CLOCK/MATRIX3/MATRIX4 in most files), renamed with a `V` (or `Q`/`A`) suffix where the layout differs or matters for codegen: basic's BASICV/CIDV (the hand-made vtable word; signed class ids: basic.h's `enum CID {}` is unsigned), frm's LOV, throw's ASEGAV/CLQV (basic.h's CLQ has a constructor, so no brace-initialized D_002C40F0), recon's VECTORV/LOV/CMV, pipe_jt's ASEGV/ASEGAV/SMPV/LMV and VECTORA (mat.h's 16-byte VECTOR: its stack locals depend on it), bif's VECTORQ. A renamed view in a C++ symbol keeps the symbol by an asm label on the declaration (`IsBasicDerivedFrom(BASICV *, CIDV) __asm__("IsBasicDerivedFrom__FP5BASIC3CID")`, `VU_VECTOR(const VECTORQ &) __asm__("__9VU_VECTORRC6VECTOR")`, recon's FindSwObject); a header field of another type is read with a cast at the use (save's SVKEY/SVSTORE, basic's typed callback list `(DLV *)&g_sw.slEvent`) | every function and data symbol MATCH and each object's nm symbol set is unchanged (symcheck) | the V-named views are the view-unification list for these files; basic.h's CID given a negative enumerator would retire most CIDV/`(CID)0x34` spellings (affects every includer) |
 | sly2/classes.h and the class headers (data/vtables) | key functions | each registry class's first declared virtual is one its key TU defines as a member (an override, or a new virtual preceded only by overrides, moved to the front); the class definitions in emission order (each key TU's classes in descending ELF address order, bases first; aseg.h: SM before SMA; CID120 moved to guard.h before STEPGUARD); HACKSHIP's/ROBOTTANK's inline constructors outside the class under `#ifndef SLY2_KEY_TU_<CLASS>`; SAA's slot 7 family takes `SAAF *` | g++ 2.95 emits a vtable in the TU that defines the key function, its TU's vtables in reverse definition order, and a class's inline members in its key TU; 174 vtables emitted, each slot checked against the ELF | the 17 left: class_registry's 13 (its getters as members), GOMER, exit_warp's three |
 | key TUs (data/vtables) | TU-private views named like classes.h's classes | `V` suffix (types/views-3's rule), C++ symbols kept by asm labels; enums identical to basic.h's removed | the views stay (field layouts the code needs); the real class is only the vtable's carrier | the views fold into the real classes |
-| class_registry_options.inc, classes.h, so.h (link/eopid-real-refs) | the 40 asm labels with a trailing space (`__asm__("Name ")`: the assembler trims the space, so a C-named declaration and a header inline function of the same mangled name referred to one symbol without g++ emitting the inline function) | none left. g_aeopid names the 27 inline accessors (cm.h, lo.h, so.h, xfm.h, step.h, stepplayer.h, guard.h) and the 36 emitter.h template instances by their C++ names: `EOPID_PMFI(func_00259AE8)` = `(const void *)&::func_00259AE8`, `EOPID_PMFT(func_00258898, EXPLO)` = `(const void *)(EOPIDT<EXPLO>::func_00258898)&::func_00258898` (a trait struct spells the pointer types: g++ 2.95 deduces a template instance only from a typed target, and `&f<T>` in a data initializer is "sorry, not implemented"); taking the addresses emits the 63 copies in class_registry's object, so src/game/app/eopid_linkonce.cpp (not an original TU) is deleted and matched.csv names class_registry.cpp for them. PemitbEnsure's two instances stay emitter.cpp's explicit instantiations: class_registry declares them `extern template`. The ten GRABSPOT VtF labels in classes.h name the owner getters exactly, so each key TU emits its getter with the vtable (grabspot 6, hnd, pipe, rail, tu_1FF3B8; matched.csv sources moved there). GLOBSET: 0x167310 renamed `__4CRef` -> `__7GLOBSET` (rename.py) and defined as `GLOBSET::GLOBSET()` in glob.cpp; rip.cpp keeps a C view labelled with the real symbol | the address of an inline function, or a vtable slot that names it, is what makes g++ 2.95 emit its `.gnu.linkonce.t.<symbol>` copy (a label equal to the mangled name counts as a reference); each copy now has exactly one emitting object, the one that refers to it, as the original TUs must have had (the table's TU and the vtables' key TUs). Measured: every function and data symbol of the 210 game sources MATCH; nm sets change only by U -> W for the 73 copies (63 class_registry, 10 key TUs), class_registry taking over eopid_linkonce's undefined references, and the GLOBSET rename; relverify 50,740 OK; tools/link.py 0 differing bytes, 527 objects, eopid_linkonce's 292 unplaced .data bytes gone | the accessors as members once their classes' key TUs define member functions; real names |
+| class_registry_options.inc, classes.h, so.h (link/eopid-real-refs) | the 40 asm labels with a trailing space (`__asm__("Name ")`: the assembler trims the space, so a C-named declaration and a header inline function of the same mangled name referred to one symbol without g++ emitting the inline function) | none left. g_aeopid names the 27 inline accessors (cm.h, lo.h, so.h, xfm.h, step.h, stepplayer.h, guard.h) and the 36 emitter.h template instances by their C++ names: `EOPID_PMFI(func_00259AE8)` = `(const void *)&::func_00259AE8`, `EOPID_PMFT(func_00258898, EXPLO)` = `(const void *)(EOPIDT<EXPLO>::func_00258898)&::func_00258898` (a trait struct spells the pointer types: g++ 2.95 deduces a template instance only from a typed target, and `&f<T>` in a data initializer is "sorry, not implemented"); taking the addresses emits the 63 copies in class_registry's object, so src/game/app/eopid_linkonce.cpp (not an original TU) is deleted and matched.csv names class_registry.cpp for them. PemitbEnsure's two instances stay emitter.cpp's explicit instantiations: class_registry declares them `extern template`. The ten GRABSPOT VtF labels in classes.h name the owner getters exactly, so each key TU emits its getter with the vtable (grabspot 6, hnd, pipe, rail, freegrabspot; matched.csv sources moved there). GLOBSET: 0x167310 renamed `__4CRef` -> `__7GLOBSET` (rename.py) and defined as `GLOBSET::GLOBSET()` in glob.cpp; rip.cpp keeps a C view labelled with the real symbol | the address of an inline function, or a vtable slot that names it, is what makes g++ 2.95 emit its `.gnu.linkonce.t.<symbol>` copy (a label equal to the mangled name counts as a reference); each copy now has exactly one emitting object, the one that refers to it, as the original TUs must have had (the table's TU and the vtables' key TUs). Measured: every function and data symbol of the 210 game sources MATCH; nm sets change only by U -> W for the 73 copies (63 class_registry, 10 key TUs), class_registry taking over eopid_linkonce's undefined references, and the GLOBSET rename; relverify 50,740 OK; tools/link.py 0 differing bytes, 527 objects, eopid_linkonce's 292 unplaced .data bytes gone | the accessors as members once their classes' key TUs define member functions; real names |
 | blend.cpp (integrate/round10) | AC, AC5, ACG, ACG2 (sly2/act.h's curve classes whose vtables 0x2CB5A8/0x2CB588 blend emits) | declared again in blend.cpp, all four on the BLCHNF line near the top, with blend's parameter types; AC5::VSlot2/Evaluate and ACG2::Evaluate are the former C functions (asm labels keep func_00138660, EvaluateBlendChnPosVel, func_00138BA0; each body starts with a `BLCHNQ *p = (BLCHNQ *)this;` view on the `{` line); AC5's slot 4 func_002581B8 is an inline member emitted with the vtable | blend.cpp cannot include act.h (its own qword/OID typedefs clash with sly2/basic.h's); one line keeps every function's line number (the gcse quirk hashes them). Replaces integrate/round9's file-scope pointer to func_002581B8 (4 unplaced `.data` bytes). Both vtables and all 12 functions MATCH | blend.cpp on basic.h's types: then it includes act.h |
 | grab.cpp | func_00192A28's frame record | a namespace-scope struct `SCOPEDIJ { char c; STACKSCOPE frame; int i, j; }` (placeholder name) instead of the function-local class | g++ 2.95 emits a local class's implicit constructor and destructor out of line (two local functions not in the ELF); at namespace scope they stay inline and unemitted (full-link.md "Junk scraps and padding") | the record's real type |
 | the data-phase files | named `.rodata` constants between functions | `namespace RO_ORDER { extern const float r_D_X __asm__("D_X") = ...; }` just before the function the ELF puts after the constant; the file's declarations above stay as they are | g++ emits a named constant at its definition and a function's literals with the function, so each constant is defined where the ELF has it; inside the namespace under its asm label no function sees the definition (no folding into the code) ("Phase 5", `.rodata` rule) | — (the spelling only orders the output) |
-| cd, menu, tu_1A4E08, main (data phases) | section names `.rodata.early`, `.data.buildinfo`; the palettes' `.rodata` | `__attribute__((section(".rodata.early")))` on the named constants of the first part of `.rodata`, `.data.buildinfo` on main's build strings; the palettes D_0029A7C0/D_002A2900 `section(".rodata")` | stylistic names (easy to rename): the original compiler put those objects apart from their TU's literals / `.data`, for a reason not known, and link.py places the sections by name; the palettes: a const object with a dynamic initializer goes to `.rodata` in the original, `.bss` in ours ("Other layout rules found", "Resolved decisions") | the original mechanism known |
+| cd, menu, startup, main (data phases) | section names `.rodata.early`, `.data.buildinfo`; the palettes' `.rodata` | `__attribute__((section(".rodata.early")))` on the named constants of the first part of `.rodata`, `.data.buildinfo` on main's build strings; the palettes D_0029A7C0/D_002A2900 `section(".rodata")` | stylistic names (easy to rename): the original compiler put those objects apart from their TU's literals / `.data`, for a reason not known, and link.py places the sections by name; the palettes: a const object with a dynamic initializer goes to `.rodata` in the original, `.bss` in ours ("Other layout rules found", "Resolved decisions") | the original mechanism known |
 
 ### Vtables emitted (data/vtables)
 
@@ -489,7 +489,7 @@ Rules found on the way (each one failed once):
   copy in its key TU (global, not linkonce). BASIC's and PO's constructors (inline in classes.h) appeared in basic.cpp
   and po.cpp: those TUs do not include classes.h (their classes come from basic.h/po.h). HACKSHIP's and ROBOTTANK's
   constructors (class_registry inlines them) are defined after their classes under `#ifndef SLY2_KEY_TU_<CLASS>`, and
-  tu_17F090/tu_1D1370 define the macro before including classes.h.
+  hack/robottank define the macro before including classes.h.
 - **Emission order is the reverse of definition order.** A TU's vtables come out in the reverse order of their
   classes' definitions (forward declarations do not count: tried). classes.h's classes are therefore in emission
   order: each key TU's classes in descending ELF address order, bases first (a topological sort; the 13 classes whose
@@ -561,7 +561,7 @@ tuorder.py: 225 vtables, 0 out of order); every function and data symbol of the 
   0x1AE4F8 renamed from func_001AE4F8); frm.cpp's frame pointer is `g_pfrmOpen` (config name at 0x2DEA4C; draw.cpp
   already used it and frm.cpp MATCHes renamed); hud's `D_C0` is the address name `D_000000C0`; brx_sw's stream view
   is `CStreamBis` and its destructor `_$_10CStreamBis` (config name of 0x184950, DRAFT class name as
-  CStreamBis_Close/Refill; tu_1848A8 defines it by asm label on its C definition); CPairPtr/CVarbPtr (pair.h,
+  CStreamBis_Close/Refill; streambis defines it by asm label on its C definition); CPairPtr/CVarbPtr (pair.h,
   varb.h, and serialize.cpp's copy) are explicit specializations of CRefPtr (table "Views unified"). With no line
   left, config/link_aliases.txt is deleted. integrate/round10 retired tools/linkaliases.py as well: it only derived
   the address names, which link.py's `symbols()` binds itself (an absolute address for every name no object
@@ -590,16 +590,16 @@ file and the includers of every touched header MATCH (functions and data). Per f
 | family | vtables | key TU | key function (declared first, defined as the member) | notes |
 |---|---:|---|---|---|
 | camera policies (sly2/cm.h) | 8 + 1 | cplcy, tn | CPLCY::Init, CMPART1::Init, CPLOOK/CPZOOM::VSlot7, CPHANG::Deactivate, CPCAMBLEND/CPTURRET/CPTWOSHOT::Activate; tn's CMPART2::Update | CPLCY gets its seven slots (Init/Activate/Deactivate/Set/Revoke/Update/VSlot7); the classes in emission order; CMPART2's other overrides make tn's `_vt$7CMPART2` (an unreferenced extra before) the ELF's 0x2DB858; tn's unresolved `Init__5CPLCY` gone; CPCAMBLEND's unused `Enter` virtual removed |
-| CPCAMERA | 1 | tu_12E600 | Activate (func_0012E798) | |
-| registry classes whose getter is class_registry's | 10 | noise, asega, grabspot, sensor, so, tu_20B840, shdanim, prize, hud, stepplayer | CID147::VUnk00, ASEGA::VUnk00, GRABSPOT::FGetGrabRange, SENSOR::Init, CID148::VUnk00, LEAP::HandleMessage, SAA::VSlot7, DPRIZE::FTakeDamage, WIDGET::RenderSelf, STEPPLAYER::VUnk57 | Pclassinfo (the class_registry getter) is the first virtual otherwise; an override, or the class's first new virtual, moved in front of it |
+| CPCAMERA | 1 | camera | Activate (func_0012E798) | |
+| registry classes whose getter is class_registry's | 10 | noise, asega, grabspot, sensor, so, gait, shdanim, prize, hud, stepplayer | CID147::VUnk00, ASEGA::VUnk00, GRABSPOT::FGetGrabRange, SENSOR::Init, CID148::VUnk00, LEAP::HandleMessage, SAA::VSlot7, DPRIZE::FTakeDamage, WIDGET::RenderSelf, STEPPLAYER::VUnk57 | Pclassinfo (the class_registry getter) is the first virtual otherwise; an override, or the class's first new virtual, moved in front of it |
 | sound instances (new sly2/snd.h) | 3 | sound | CID151::Start (StartSnd), BANKSND::VUnk00, STREAMSND::VUnk00 | CID151 moved out of classes.h (which includes snd.h at its place) with its 16 slots, 8 of them pure |
 | screens (sly2/screen.h) | 10 | screen, menu, memcard | SCREENBASE::Update, HUDMETER::Update, SCREEN::PostLoad, GADGETMENU/THIEFNET::VSlot13, JOBLIST/SCRN52D::PostLoad, TITLE::SetMode, PAUSEMENU::VSlot10, CMemcardDialog::PostLoad | the 11-slot base SCREENBASE (0x2D86D0) the HUD meter and the pause menu derive from; screen.cpp's views renamed SCREENV/GADGETMENUV |
 | RIP kinds | 11 | rip | RIP::Init, FLYING/SHRAPNEL::FBounce, STUCK/MATCH/SMACK/REMIT::Update, GLINT/RIPT1::Init, RIPT0::Touch, LEAF::PostEmit | rip.cpp's file-scope RIP view is the root class: its fields, then the eight VTRIP slots, so the vptr lands at +0xEC (sizeof 0xF0 asserted); RIPF for the two words past it |
 | load collectors | 2 | brx | CLoadCollectorArray::Add (already a member), CLoadCollectorProxy::Add | the hand-made vtable call became a virtual call and the local proxy's vptr store the implicit constructor's: same code |
 | byte-queue outputs | 2 | mpeg | CQueueOutputIop/Ipu::FAsyncDrain (the mangled names they had) | CMPEG's inline constructor gets the audio output's vptr from the member's implicit constructor |
-| heaps, streams | 3 | heap, bis, tu_1848A8 | CSwHeap::PvAlloc, CMemInputStream::Fill, CStreamBis::Fill | CSwHeap moved to heap.h; the level heap object's inline constructor is its own derived type's (CSwHeapG): an inline member of CSwHeap gets an out-of-line copy in the key TU; CStreamBis declared with just its two slots (tu_1848A8 reads the object through its private CBinaryInputStream view) |
+| heaps, streams | 3 | heap, bis, streambis | CSwHeap::PvAlloc, CMemInputStream::Fill, CStreamBis::Fill | CSwHeap moved to heap.h; the level heap object's inline constructor is its own derived type's (CSwHeapG): an inline member of CSwHeap gets an out-of-line copy in the key TU; CStreamBis declared with just its two slots (streambis reads the object through its private CBinaryInputStream view) |
 | relay's job-sequence instance | 1 | relay | RELAYJSG::VUnk00 (AddJsgRef) | DRAFT name; BASIC's class descriptor in slot 6, so not the registry's JSG |
-| arrays (sly2/arrayv.h) | 4 | tu_119BC8 | CDynArrayStr::Init (func_00119BD0) | explicit instantiations of CDynArrayV/CArrayListener/CHashIndex<char *> emit the three template vtables; the CHashIndex member of CDynArrayStr, instantiated before the class, gives the ELF's order |
+| arrays (sly2/arrayv.h) | 4 | dynarraystr | CDynArrayStr::Init (func_00119BD0) | explicit instantiations of CDynArrayV/CArrayListener/CHashIndex<char *> emit the three template vtables; the CHashIndex member of CDynArrayStr, instantiated before the class, gives the ELF's order |
 | EXPL | 1 | emitter | EXPL::VSlot51 (ExplodeExplExplso, empty) | |
 
 Rules found on the way:
@@ -695,7 +695,7 @@ Labels on the header virtuals also resolve the references of the key-TU extras: 
 config/link_aliases.txt: 232 -> 42 lines (vtables 212 -> 21: act.cpp's 19 curve classes, hud's and memcard's local
 classes). symcheck: unresolved references 439 -> 31 (the 191 registry vtables, and 217 placeholder member names the
 key-TU extras of jt/sm/missile referenced); relverify: 26,974 relocations OK, 0 mismatched. LEAP/CID146 live in
-their own sly2/leap.h (guard.h and players.h include it): step.h is included by tu_20B840.cpp, which keeps a
+their own sly2/leap.h (guard.h and players.h include it): step.h is included by gait.cpp, which keeps a
 field-level LEAP view. Reverted: none of the header or registry changes changed code; the only failed forms were build errors
 (a BASIC constructor defined in basic.h, `CRefPtr()` clearing, explicit specializations after the instantiation), see
 Representation decisions. Not attempted: act.cpp's three curve-class factories (21 lines; the classes have no registry
@@ -712,16 +712,16 @@ unchanged against the branch start except where intended (sw.cpp references `_vt
 | change | header | views removed | files | interior macros | link aliases |
 |---|---|---:|---:|---:|---:|
 | SW a real class (constructor SW_ctor, vtable `_vt$2SW`, slots 6-9 labelled) | sly2/sw.h | 1 (class_registry's `REG::SW`, the last `namespace REG` view) | 3 (class_registry, sw.cpp, classes.h comment) | 0 | 0 (SW never had one: NewSw calls SW_ctor) |
-| the eight files cc1plus crashed on (basic, booty, find, save, frm, pipe_jt, throw, tu_201D78) | sw.h / cm.h | their private SW, CM, BASIC, DL, CLOCK, OID/CID, qword views (removed or V-renamed, Representation decisions) | 8 | 15 | 0 |
+| the eight files cc1plus crashed on (basic, booty, find, save, frm, pipe_jt, throw, recon) | sw.h / cm.h | their private SW, CM, BASIC, DL, CLOCK, OID/CID, qword views (removed or V-renamed, Representation decisions) | 8 | 15 | 0 |
 | CFrame out of basic.h; eval, frame on sw.h | sly2/cframe.h (new) | 0 | 3 (+ proxy includes cframe.h) | 2 | 0 |
-| sensor, tu_1BE398 (private enums), bif (16-byte VECTOR), po (mat.h) | sw.h / cm.h | enums, qword, bif's MATRIX4; po's mat.h include | 4 | 11 | 0 |
+| sensor, rtcam (private enums), bif (16-byte VECTOR), po (mat.h) | sw.h / cm.h | enums, qword, bif's MATRIX4; po's mat.h include | 4 | 11 | 0 |
 | SW fields: RENDERTGT artgt[2] (was _pad_338); comments carrying the files' names for slEvent/slotheapEvent/cEventWorld (basic's callback list), savevars (save's SVSTORE), the settings and episode keys, ploUnk4638/cCid37 (booty), slotheapUnk4088 (frm), dlSoTreeQueue2 (sensor) | sw.h | — | — | — | — |
 
 **Root cause of the silent exits** (all eight files): cc1plus segfaults on the redefinition of a class with virtual
 functions (two lines reproduce it; without `virtual` g++ prints the ordinary redefinition error). types/views-2 made
 BASIC and the registry classes polymorphic, so a TU-private `struct BASIC`/`SW`/`LO` after a shared header became a
-crash; the eight files had such views (BASIC in basic and find, SW in basic, booty and save, LO in frm and tu_201D78
-once cm.h brings lo.h, CM in tu_201D78, ASEG/ASEGA in throw and pipe_jt once cm.h brings aseg.h). Not a header bug: each file's clashing views had to go. Diagnosis method in the
+crash; the eight files had such views (BASIC in basic and find, SW in basic, booty and save, LO in frm and recon
+once cm.h brings lo.h, CM in recon, ASEG/ASEGA in throw and pipe_jt once cm.h brings aseg.h). Not a header bug: each file's clashing views had to go. Diagnosis method in the
 mismatch table ("g++ 2.95 exits with status 1 and no message").
 
 Interior macros: 47 -> 19 (the 28 in the 14 files that could not include the headers are converted; what is left has
@@ -740,9 +740,9 @@ touched headers MATCHes, and each touched object's nm symbol set is unchanged.
 
 | change | where | how |
 |---|---|---|
-| hand vtable calls (`p->vt[n].pfn((char *)p + p->vt[n].d, ...)`) | prize, tu_1471C0, frm, update, tu_1D7238, po, tu_1BE398, button, barrier, bomb, waypoint, busy, lo.cpp, so.cpp, relay, stepguard, xf, rip, shape, cplcy, tu_14A008, tu_173158, tu_17F090, ... | real virtual calls on the shared classes (slot -> member: LO 1..48, SO 49..75, PO 76..81); a derived view that needs a later slot declares it (`virtual void SetState(int)` = DPRIZE slot 76) |
-| object views padded over the base (`char pad[0xC]; VTE *vt; char p[0x150 - 0x10]; ...` or `char pad[0x180]; ...`) | the DPRIZE family (prize), HACK family (tu_17F090: HACK : PO), RELAY (relay), BUTTON/VOLBTN, BARRIER, WAYPT, BOMB, SAFEHOUSE, CID104, RTCAM/RTO, the guard attack, PATHLINK | derived views of the shared class (`struct S : SO { int state; ... }`); the class's own fields stay in the view (their classes have no header with fields) |
-| LO/SO/PO-named and V-named field views | lo.cpp and so.cpp (most of their small functions), po.cpp, busy, proxy, find, callback, game, sound, murray, jt, tu_144B28, bif, ... | the shared type with its field names; bit tests on the +0x28 / +0x148 words become the bit-fields (`(int)p->isInWorld & 1` keeps the original shift/and pair) |
+| hand vtable calls (`p->vt[n].pfn((char *)p + p->vt[n].d, ...)`) | prize, framecapture, frm, update, safehouse, po, rtcam, button, barrier, bomb, waypoint, busy, lo.cpp, so.cpp, relay, stepguard, xf, rip, shape, cplcy, carmelita, spawner, hack, ... | real virtual calls on the shared classes (slot -> member: LO 1..48, SO 49..75, PO 76..81); a derived view that needs a later slot declares it (`virtual void SetState(int)` = DPRIZE slot 76) |
+| object views padded over the base (`char pad[0xC]; VTE *vt; char p[0x150 - 0x10]; ...` or `char pad[0x180]; ...`) | the DPRIZE family (prize), HACK family (hack: HACK : PO), RELAY (relay), BUTTON/VOLBTN, BARRIER, WAYPT, BOMB, SAFEHOUSE, CID104, RTCAM/RTO, the guard attack, PATHLINK | derived views of the shared class (`struct S : SO { int state; ... }`); the class's own fields stay in the view (their classes have no header with fields) |
+| LO/SO/PO-named and V-named field views | lo.cpp and so.cpp (most of their small functions), po.cpp, busy, proxy, find, callback, game, sound, murray, jt, stepbhv, bif, ... | the shared type with its field names; bit tests on the +0x28 / +0x148 words become the bit-fields (`(int)p->isInWorld & 1` keeps the original shift/and pair) |
 | DL/DLI/DLE/SL copies, local InitDli/PvNextDli | 20 files | basic.h DL/SL/DLE and dli.h DLI/InitDli/PvNextDli |
 | LM/CLQ/VECTOR/VECTOR4/MATRIX4/RGBA/SMP copies identical to basic.h | 40 files | removed (synonym fields renamed: minValue/maxValue, unused, red/green/blue/alpha, fastSpeed/slowSpeed/fastDuration) |
 | Lilly-port copies of family types | tn, mode, jt, so, glob, relay, grab, mark, proxy, xf, air | moved into the headers: xfm.h EDGE/SURF/BSP, PROXYINIT/PROXYSPARE/PROXYREST/PROXYSRC; so.h SUBGLOBX, XPLIST, SOBOUNDS |
@@ -763,14 +763,14 @@ whole word).
 
 Evidence for header signatures that need classes.h in step (not changed here: the overriders there would stop
 overriding): LO slot 20 RenderAll is called with (int, float, float, SOBOUNDS *) (so.cpp RenderSoAll, lo.cpp
-RenderLoAtMatrix); slot 30 RotateToMat receives a 3x3 MATRIX3 (bomb, tu_173158, lo.cpp); SO slot 73 IsPosInside takes
+RenderLoAtMatrix); slot 30 RotateToMat receives a 3x3 MATRIX3 (bomb, spawner, lo.cpp); SO slot 73 IsPosInside takes
 a quadword position and returns int (rip UpdateRip, class_registry's thunk); BASIC slot 3's fifth argument is a CRef *
 reply (po.cpp CanPoBeHealed); update.cpp calls LO slot 17 as the paused-object update. SO +0x58/+0x5C are the
 position/rotation XFs (fieldrename refused `positionXf`: the token is used in so.cpp's member bodies).
 
 Not attempted (representation-specific or other families' classes): the qword/union matrix views of the hand-tuned
 so.cpp transform functions (TranslateSoToPos, RotateSoToMat, SetSoAngularVelocity, SetSoXf), sensor.cpp's whole-word
-SO/SOPART/SOTREE views, tu_223F70's qword XF view, glob.cpp's self-contained Lilly namespace, hud's register-passed RGBA
+SO/SOPART/SOTREE views, gadget's qword XF view, glob.cpp's self-contained Lilly namespace, hud's register-passed RGBA
 words, the player/guard/camera classes' padded views (their families' headers), listener objects whose slot 51 is not
 declared (prize's LISTENER views).
 
@@ -782,28 +782,28 @@ MATCH because the call targets are masked). All 211 src/game sources MATCH with 
 
 | change | where | how |
 |---|---|---|
-| hand vtable calls on LO/SO/PO objects | sw (PostSwLoad, ShouldKeepSoPair, ExecuteSwTransition, TriggerOneRsmg), game (countdown widget, task marker), so.cpp (SetSoParent, DeliverZapToSo), proxy (AddProxyCopy, SetSoIdProxy, InitSwProxySpares, SO_ResetForProxy), xf (WakeXfOwner, SetXfRole), render, sky, emitter, prize, tu_17F090, tu_1C2D20 | real virtual calls; the HACK view declares its own slots 82 (`Die`) and 83, the pouch item view slot 76 |
+| hand vtable calls on LO/SO/PO objects | sw (PostSwLoad, ShouldKeepSoPair, ExecuteSwTransition, TriggerOneRsmg), game (countdown widget, task marker), so.cpp (SetSoParent, DeliverZapToSo), proxy (AddProxyCopy, SetSoIdProxy, InitSwProxySpares, SO_ResetForProxy), xf (WakeXfOwner, SetXfRole), render, sky, emitter, prize, hack, lootpouch | real virtual calls; the HACK view declares its own slots 82 (`Die`) and 83, the pouch item view slot 76 |
 | SO/SOPART/SOTREE/XF field views in so.cpp | zap delivery and responses, IsPosInSo, CollectSoParts, SetSoZapMode, the region-record, gravity and SAA-list helpers, AdjustSoXps, ExtendSoTreeBounds, SetSoGravity, GetSoVelocity, the XF handle accessors | the shared types; so.cpp's XFH and STEPREC views became so.h CID148/CID149 and REGENT |
-| views padded over the base | tu_1D1370 (robot tank, RC pickup), path (path zones : XFM, path links : LO), tu_153B08, prize (sprayed prize, clue proxy : PROXY), sky, tu_1C2D20 | derived views of the shared class |
+| views padded over the base | robottank (robot tank, RC pickup), path (path zones : XFM, path links : LO), filerec, prize (sprayed prize, clue proxy : PROXY), sky, lootpouch | derived views of the shared class |
 | LO/SO views in the header-less player files | jtgoal (contacts through SOTREE/XPLIST, the faded object an SO), places (place objects LO, spots SOPART, the ground an SO) | `#include "sly2/so.h"`; the player-type views are left to the player family |
 
 Header changes: lo.h/so.h slot 39 `SetTransformFromXf(XF *pxf)` (SetSoXf(so, pxf) and SetLoTransformFromXf take the
-XF; tu_1C2D20 passes the launch frame); so.h GLOBSET +0x4C `relightStamp` (render.cpp SubmitSwRelightAll compares it
+XF; lootpouch passes the launch frame); so.h GLOBSET +0x4C `relightStamp` (render.cpp SubmitSwRelightAll compares it
 with the world's relight stamp, glob.cpp BindGlobset sets it), REGENT +0x4/+0x8/+0xC floats (EnsureSoPhysRegionRecord
 defaults 75/150 and 1), CID148 +0x10 `cref`, CID149 +0x20 `pso` / +0x24 `pxf`.
 
 Matching-only islands added (scratch islands.csv): render.cpp `RGBAIsland` (DrawWorldLabel's RGBA with constructors),
-tu_17F090 OnHackshipActive `LOIsland` and so.cpp GetSoZapMode / GetSoNoJtPlace `SOIsland` (whole-word bit tests; the
+hack OnHackshipActive `LOIsland` and so.cpp GetSoZapMode / GetSoNoJtPlace `SOIsland` (whole-word bit tests; the
 bit-fields compile to other shift sequences).
 
 Measured (scratch metrics.py over src/game): struct/class/union definitions 6,759 -> 6,627; family-named views 322 ->
 312; hand-vptr views 406 -> 379; non-derived views padded over a base 1,257 -> 1,189; 19 files, +425/-634.
 
 Left for later, with the reason: classes.h signatures (LO slot 20 RenderAll args: so.cpp RenderSoAll, lo.cpp
-RenderLoAtMatrix; slot 30 RotateToMat MATRIX3: tu_1D6848; SO slot 73 IsPosInside: rip UpdateRip; WIDGET slot 49 Show
+RenderLoAtMatrix; slot 30 RotateToMat MATRIX3: launcher; SO slot 73 IsPosInside: rip UpdateRip; WIDGET slot 49 Show
 takes an int: game.cpp ShowCountdownHud, SetJobCompletionPhase; EXPL slot 51 takes the EXPLSO: emitter); the
 hand-tuned asm functions that read the vtable pointer themselves (step MatchStepXf, so.cpp SetSoXf, booty case 5);
-the qword-representation views (shape.cpp paths, solve.cpp, tu_1D6848, bbmark's AAOBR = SOTREE); glob.cpp's Lilly
+the qword-representation views (shape.cpp paths, solve.cpp, launcher, bbmark's AAOBR = SOTREE); glob.cpp's Lilly
 namespace; the task/job views of game.cpp (sly2/task.h); the header-less player files' remaining LO/SO views (cane
 NODE = LO with Add/Remove/MatchTransform, its ALO target list = TARGET, its POCTL view = po.h POCTL; hang NODE;
 pipe_jt PATH and INPUT = POCTL), left to the player family's pass on those files to keep the merge simple.
@@ -817,8 +817,8 @@ symbol name; at the end all 210 src/game sources). This round went after the han
 |---|---|---|
 | reference-counted holders | sm.cpp (four `Lock` copies), relay.cpp (`LOCK` in UpdateRelayScript/RemoveJsg) | one file-scope `SMAHOLD` (AddRef in the constructor, Release in the destructor) on aseg.h SMA; relay uses its existing `JSGREF` on JSGV |
 | SMA/SM/SMRT views in sm.cpp | SetSmaSvt, SeekSma, SnapSma, HandleSmaMessage (now `(SMA *, MSGID, void *)`), SkipSma, RetractSma, NotifySmaSpliceOnEnterState, Replace/ReleaseSma, GetSmStateOid, FindSmDistanceTable, CountSmTransitionHops | aseg.h SMA/SM/ASEGA and sm.cpp's SMS/SMRT; real AddRef/Release/SendMessage/HandleSpliceEvent |
-| behaviours pushed with PushStepBehavior | tu_144B28 (follow, walk-to), tu_171F58, tu_1553F0, tu_1B9F80, tu_14A008, stepplayer (StartStepplayerFollow) | the views derive from step.h BHV (`struct O : BHV { ... }`, `owner` for the old `guard` word); `child->Start()` replaces the slot-8 calls and tu_171F58's `StartPushedBhv` template |
-| LO/SO/PO objects called by hand | stepplayer, murray (carried object, hit effect), bentley (dart, explosion objects), jt (contact objects, sub-objects), air, hurt, relay (JSG tunnel = TN, step holds = STEP slots 83/84), cm (policy reset), cplcy, sound (CID151/STREAMSND/BASIC), tu_17F090 (hack enemies : PO), tu_1D1370 (robot tank : PO, part's physics root IsFixed), hud (widgets : LO), bif (find builtins on LO/SW) | real virtual calls on the shared classes; `isInWorld` for the bit-60 tests |
+| behaviours pushed with PushStepBehavior | stepbhv (follow, walk-to), bhvsearch, dimitri, neela, carmelita, stepplayer (StartStepplayerFollow) | the views derive from step.h BHV (`struct O : BHV { ... }`, `owner` for the old `guard` word); `child->Start()` replaces the slot-8 calls and bhvsearch's `StartPushedBhv` template |
+| LO/SO/PO objects called by hand | stepplayer, murray (carried object, hit effect), bentley (dart, explosion objects), jt (contact objects, sub-objects), air, hurt, relay (JSG tunnel = TN, step holds = STEP slots 83/84), cm (policy reset), cplcy, sound (CID151/STREAMSND/BASIC), hack (hack enemies : PO), robottank (robot tank : PO, part's physics root IsFixed), hud (widgets : LO), bif (find builtins on LO/SW) | real virtual calls on the shared classes; `isInWorld` for the bit-60 tests |
 | emitter.cpp SetEmitterParticleCount | its EMITTERV | emitter.h EMITTER (k, c, fDirty) |
 
 Header change: basic.h declares `~BASIC()` (never defined; _$_5BASIC 0x258348 is its body, emitted by screen.cpp over
@@ -836,7 +836,7 @@ incomplete (sm.cpp SetSmaGoal reads its +0xC flags), ALO is only forward-declare
 SMA's root); hand vtable stores (ApplySmCore, NewRelayJsg) need the views; murray SpawnMurrayHitEffectUnchecked passes
 an int where TranslateToPos takes a quadword (a real call changes the code); the classes.h signatures listed in
 round 2 (RenderAll, RotateToMat, IsPosInside, WIDGET Show) block rip UpdateRip, stepplayer PostLoadStepplayer and the
-widget Show calls in game.cpp/tu_1D1370/screen; the qword-representation SHAPE/XF views (shape.cpp, tail.cpp) and the
+widget Show calls in game.cpp/robottank/screen; the qword-representation SHAPE/XF views (shape.cpp, tail.cpp) and the
 hand-tuned player functions (murray, bentley, jt, hurt, grab) whose P views are STEPPLAYER layouts.
 
 ### Views unified (names/vu-f1-base-4): base family, round 4
@@ -847,7 +847,7 @@ private views in 37 sources. Its target was the views padded over a base class.
 
 | change | where | how |
 |---|---|---|
-| object views padded over a base (`struct S { char pad[0x54]; int state; ... }`) | game (JOB/TASK), guardbhv/stepguard/tu_144B28 (guards, attacks, detectors, behaviours), hud/screen/memcard (widgets), murray/jt/bentley/stepplayer/grab/hurt/air (heroes), step, so, path, shape, relay, prize, grabspot, tu_1D1370, sound (stream sounds), and 15 smaller files | `struct S : B { char pad[0x54 - 0x50]; int state; ... }`: B is the largest base of the object's class whose size fits in the pad (BASIC 0x10, BHV 0x30, LO 0x50, XFM 0xE0, SO 0x150, PO 0x180, SHAPE 0x190, STEP 0x2C0, STEPPLAYER 0x1320; classes.h CID35 for the carry grab spot, snd.h STREAMSND for stream sounds). The leftover pad keeps both offsets (`0x54 - 0x50`), so the view's other offsets read as before |
+| object views padded over a base (`struct S { char pad[0x54]; int state; ... }`) | game (JOB/TASK), guardbhv/stepguard/stepbhv (guards, attacks, detectors, behaviours), hud/screen/memcard (widgets), murray/jt/bentley/stepplayer/grab/hurt/air (heroes), step, so, path, shape, relay, prize, grabspot, robottank, sound (stream sounds), and 15 smaller files | `struct S : B { char pad[0x54 - 0x50]; int state; ... }`: B is the largest base of the object's class whose size fits in the pad (BASIC 0x10, BHV 0x30, LO 0x50, XFM 0xE0, SO 0x150, PO 0x180, SHAPE 0x190, STEP 0x2C0, STEPPLAYER 0x1320; classes.h CID35 for the carry grab spot, snd.h STREAMSND for stream sounds). The leftover pad keeps both offsets (`0x54 - 0x50`), so the view's other offsets read as before |
 | how a view's class was decided | per view | from what the function does with the object: guard functions (`Stepguard*`, a behaviour's `guard` field), InitLo/PostLoLoad/UpdateLo calls, IsBasicDerivedFrom, Init/Clone calls (InitShape, CloneXfm, CloneSo), and offsets that match a header (SHAPE +0xE4 isClosed, DETECTOR +0xE8/+0xFC, RELAYV's alarm list at +0x84). Views whose class is not shown (internal records such as XF, SOPHYS and SOTREE views, the SNDMGR global, rich-text and sprite records) stay as they are |
 | views that are a header type | guardbhv (SetBhvpathShape, IsBhvpatrolpathAtEnd: xfm.h SHAPE; SetBhvanimState: aseg.h ASEG), relay (ResetRelay, SetRelayCommandLimit: the file's RELAYV; ClearJsgSma, ClearJsgStepHolds: its JSGV) | the view is removed and the type used with its field names |
 | pushed behaviours called by hand | guardbhv (21 views and the `StartPushedBhv` calls in their functions), stepguard (ResetStepguardToHome) | `struct O : BHV { ... }` with `o->Start()` / `o->Close()`; MoveBhvRelocateToPoint keeps the template: its one view is both the guard and the pushed leap |
@@ -862,12 +862,12 @@ Measured (scratch metrics.py over src/game): struct/class/union definitions 6,51
 309 -> 308; hand-vptr views 330 -> 301; non-derived views padded over a base 1,172 -> 635; 37 files, +735/-786.
 
 Left, with the reason: a view in a function whose namespace defines its own struct with the base's name (prize
-EmitDprizeGlint's local `LO`: inside a derived struct the name means the base); tu_144B28 func_00146B18's `PO` (as an
+EmitDprizeGlint's local `LO`: inside a derived struct the name means the base); stepbhv func_00146B18's `PO` (as an
 LO it picks the C++ `GetLoWorldPos(LO *)` overload, which returns a different qword type, so the call target would
 change); the SNDMGR views of sound.cpp (destroyed through ~BASIC, but nothing else shows that it is a BASIC);
 views of SO fields inside the SO range (`struct B { char pad[0xE8]; SOPHYS-like *pc; }`), which want each field mapped to
 so.h's name rather than a base; hand-vptr views whose vt field has layout asserts (murray func_001B6CC0, jt
-func_0018DF60, tu_1D1370 robot tank, tu_17F090) or whose calls are inside asm (murray SetMurrayFlopSubstate); the
+func_0018DF60, robottank robot tank, hack) or whose calls are inside asm (murray SetMurrayFlopSubstate); the
 screen/memcard/game widget Show/Hide calls (WIDGET slot 49 takes an int, classes.h) and the screen objects' own slots
 10/11 (screen family).
 
@@ -879,7 +879,7 @@ because basic.h and so.h changed.
 
 | change | where | how |
 |---|---|---|
-| private vtable-entry records (`struct VTE { short d; short pad; void (*pfn)(...); };`, also named VE/VT/PRGVT, with `delta`/`fn`/`pf` spellings, the `{entry} a[N]` arrays, the one- and two-slot records padded to slot k, and the per-slot record unions of grab.cpp and tu_223F70) | about 70 sources | one shared `VTE` in basic.h (`void *pfn`). A call that went through a typed `pfn` now casts it to exactly that type, `((void (*)(void *, int))p->vt[49].pfn)(...)`; a padded record becomes the slot index (pad / 8). Their offset asserts were dropped (basic.h asserts the size) |
+| private vtable-entry records (`struct VTE { short d; short pad; void (*pfn)(...); };`, also named VE/VT/PRGVT, with `delta`/`fn`/`pf` spellings, the `{entry} a[N]` arrays, the one- and two-slot records padded to slot k, and the per-slot record unions of grab.cpp and gadget) | about 70 sources | one shared `VTE` in basic.h (`void *pfn`). A call that went through a typed `pfn` now casts it to exactly that type, `((void (*)(void *, int))p->vt[49].pfn)(...)`; a padded record becomes the slot index (pad / 8). Their offset asserts were dropped (basic.h asserts the size) |
 | GLOBSET +0x2C/+0x30/+0x34 | so.h, glob.cpp, so.cpp | `numShaderOids`, `shaderOids`, `selectedShader` (glob.cpp loads the oid list and builds shader unpacks from it; SetSoAnimIndex stores -(index + 3)); SetSoAnimIndex/ClearSoAnimIndex take SO |
 | XF +0xA8 and +0xC0..+0xFF | so.h | +0xA8 is a union by role: `reference`, `arrivalTime` (roles 9/0x11), `plink` (CHAINLINK), `pikrec` (IKREC), `pconstr` (XFMCONSTR); +0xC0 a union of the old `restValue/rate/unknownE0/acceleration`, the phase-1 control values `segmentStart/segmentStartTangent/segmentEnd/segmentEndTangent` and `rotationRows[4]`, with offset asserts. SO::Clone's chain case uses `plink` |
 | base views replaced by the header type | so.cpp (SetSoAnimIndex, MatchSoXf), proxy.cpp (SO_Slot27), glob.cpp (BindGlobset: SO and XF) | real fields (children, ploRemovedFirst, model, psobounds, physics->pregent, siblingLink, worldMatrix) and real virtual calls (Get/SetVelocity, Get/SetAngularVelocity, OnProxyRelease, GetXfFromIndex); game.cpp ApplyStateLoVisibility and so.cpp RenderSoAll were already on the header types |
@@ -926,22 +926,22 @@ every touched file and of every includer of cm.h MATCHes, and each object's nm s
 cm.h field names taken from the views: `fovSmoothing` (+0x2C, SMPA, was unknown2C..38), `joltKind` (+0x61C),
 `stereoEyeOffset`/`stereoFocusDistance` (+0x620/+0x624), `zoomStopSound` (CPLOOK +0x38 / CPZOOM +0xC4: sfx 0x25, made on
 activation). Struct definitions in src/game .cpp: 121 deleted, 12 CMIsland added (two of them are the renamed views of sky
-and tu_173158).
+and spawner).
 
 CMIsland (matching-only, Representation decisions 1.4): the original reads g_cm's position and matrix rows as 128-bit
 members at base `&g_cm` plus the field offset (`lq 0x90(base)`). CM declares them as VECTOR4/MATRIX4 floats; a cast of
 those fields (`*(qword *)&g_cm.pos`) makes g++ fold the offset into the address constant (`lq 0(base+0x90)`, 1-2
 instructions off), and through a pointer the cast also changes scheduling (blip: MEM_IN_STRUCT). Where that happened
 the read goes through a small file-local `CMIsland` (a struct with qword members at the CM offsets) and everything
-else uses CM: sound, light, prize, lo, busy, waypoint, emitter, blip, cplcy, tu_201D78 (one read each or two); sky
-(base `&g_cm.mat`, offset 0x30) and tu_173158 (the old view, renamed: its asm reads the rows from base `&g_cm`).
+else uses CM: sound, light, prize, lo, busy, waypoint, emitter, blip, cplcy, recon (one read each or two); sky
+(base `&g_cm.mat`, offset 0x30) and spawner (the old view, renamed: its asm reads the rows from base `&g_cm`).
 Revisited in names/vu-f5-camera-2 (below): CM::matq, a qword-row view in the matrix union, removed all twelve.
 
 Not converted: render.cpp and places.cpp (their private qword/RGBA/LM/VECTOR types clash with basic.h, so they
-cannot include cm.h), tu_12E600's CID44 view (classes.h names no CID44 fields; not this family's header), rip, hud,
-relay (G views at +0x500/+0x510 and the matrix), glob/tu_1D57A8 (VIEW: the frustum planes, g_cm read as a culling
-view), bif's CM, tu_1BE398's RTCAM, and the `char D_002DDF40[]` + offset spellings (exit_warp, turret, relay,
-asega, guardbhv, tu_1BAB50, tu_14A008, bentley). All but tu_12E600's CID44 view and tu_1BE398's RTCAM (an XFM-derived render-target
+cannot include cm.h), camera's CID44 view (classes.h names no CID44 fields; not this family's header), rip, hud,
+relay (G views at +0x500/+0x510 and the matrix), glob/rendertree (VIEW: the frustum planes, g_cm read as a culling
+view), bif's CM, rtcam's RTCAM, and the `char D_002DDF40[]` + offset spellings (exit_warp, turret, relay,
+asega, guardbhv, breakable, carmelita, bentley). All but camera's CID44 view and rtcam's RTCAM (an XFM-derived render-target
 camera object, not CM) were converted in names/vu-f5-camera-2.
 
 ### Views unified (names/vu-f5-camera-2): the camera family, round 2
@@ -952,16 +952,16 @@ Every function and data symbol of every touched file and of every includer of cm
 | change | header | views removed | files |
 |---|---|---:|---:|
 | CM::matq: the matrix as quadword rows (`CMMATQ { qword rot[3]; qword pos; }`) in CM's matrix union; the CMIsland views go (docs/decisions.md 1.8) | cm.h | 12 CMIsland | 12 |
-| rip, relay, hud, bif, render, places, glob, tu_1D57A8: CM/CAMPOSE/CAMMOVE/g_cm in place of their camera views | — | 15 (rip G x3, CAMERA; relay T, SUB, G, G2; glob VIEW, ENV; tu_1D57A8 VIEW; bif CM; render CM; places D; hud's opaque G) | 8 |
+| rip, relay, hud, bif, render, places, glob, rendertree: CM/CAMPOSE/CAMMOVE/g_cm in place of their camera views | — | 15 (rip G x3, CAMERA; relay T, SUB, G, G2; glob VIEW, ENV; rendertree VIEW; bif CM; render CM; places D; hud's opaque G) | 8 |
 | `char D_002DDF40[]` + offset and opaque handles (MANAGER/CAMERA in grab) replaced by `&g_cm` and its policy members (cplook, cpzoom, cpcamblend, hangPolicy, turretPolicy, part3a0) | — | 19 declarations | 16 |
-| tu_201D78's `D_002DDFA0 __asm__("D_002DDF40+0x60")` separate-symbol alias | — | 1 | 1 |
+| recon's `D_002DDFA0 __asm__("D_002DDF40+0x60")` separate-symbol alias | — | 1 | 1 |
 
 How the original's address forms come out with CM's members (all g++ 2.95, checked per function):
 
 | original access | spelling |
 |---|---|
 | `lq 0x90(base)`, base `&g_cm` (position) / `0x60+0x10*i` (rows) | `g_cm.matq.pos`, `g_cm.matq.rot[i]` |
-| `lq 0x30(base)`, base `&g_cm.mat` (sky, relay; tu_201D78's row 1 at `0x10`) | `CMMATQ *pmatq = &g_cm.matq; pmatq->pos` (a local pointer stays the base) |
+| `lq 0x30(base)`, base `&g_cm.mat` (sky, relay; recon's row 1 at `0x10`) | `CMMATQ *pmatq = &g_cm.matq; pmatq->pos` (a local pointer stays the base) |
 | `lq 0(base)`, base `&g_cm + 0x90` (folded: emitter, tn, stepguard...) | `*(qword *)&g_cm.pos` (unchanged) |
 | the frustum's transposed plane normals as three qwords (CullSceneRenderList, glob's StartCull) | `(qword *)g_cm.agFrustumXyz` (a pointer value only; a union member did not change codegen either, but cost nothing to avoid) |
 
@@ -970,14 +970,14 @@ function-static `s_rgba.87` became `.90`: nm differs, code does not); a template
 the local pointer made the helper unnecessary. (2) Template helpers of sly2/vu0.h deduce one quadword type: where a
 file's signed `qword` meets cm.h's (basic.h's unsigned `qword`), the call names it (`VuSub<qword>(a, g_cm.matq.pos)`).
 
-render.cpp, places.cpp, tu_1D57A8.cpp, bif.cpp, asega.cpp, brx_sw.cpp, update.cpp, sw.cpp now include cm.h. The clashes
+render.cpp, places.cpp, rendertree.cpp, bif.cpp, asega.cpp, brx_sw.cpp, update.cpp, sw.cpp now include cm.h. The clashes
 with basic.h were resolved in the files (Representation decisions 1.6): their own `typedef int qword` dropped for
 basic.h's (no codegen change in any of them), render's private RGBA/LO/SW/LM views renamed RGBAV/LOV/SWV/LMV, places'
 LO/JT/CLQ/LM renamed LOV/JTV/CLQV/LMV and vec.h's 16-byte aligned VECTOR kept as a local `VECTORV` (basic.h's VECTOR
 has no alignment). Struct definitions in src/game .cpp: 26 camera views and 19 handle declarations removed (render's
 and places' renamed views are not counted); no island remains in the family.
 
-Left: tu_12E600's CID44 camera-object view (classes.h; not this family), tu_1BE398's RTCAM (render-target camera
+Left: camera's CID44 camera-object view (classes.h; not this family), rtcam's RTCAM (render-target camera
 object, an XFM; no header), main.cpp's `extern CM D_002DDF40` (a typed handle; main does not include cm.h), and the
 inventory's false positives in cm.cpp/cplcy.cpp (CMG, the g_cm definition wrapper; SW/ACT/STEPPLAYER views).
 
@@ -994,8 +994,8 @@ emitter.h) MATCHes, and each object's nm symbol set is unchanged.
 | RPL, the render-list entry (`pbCall`/`pvCall`: the two DMA CALL targets) | new sly2/render.h (self-contained) | 6 | 4 |
 | EMITTER's fields (mode, count, rate, pause, group list/link, current rate, density, box radius...); EMITB as Sly 1 lays it out: EMITO origin record (+0x10, a union for the point position / data word), EMITVEL velocity record (+0x50; Sly 1's EMITV, renamed because EMITV is in the accessors' mangled names), EMITV particle record (+0xC0) as a union of the rip and blip records selected by particleKind, with EMITROLL/EMITREMIT payloads; EMITREF indices for aploRef; EMITMESH/EMITTRI, EMITVX, EXPLSO and its flags | sly2/emitter.h | emitter.cpp 60 definitions (7 EMITTER views, the EMITB/record views EMITBV/EP/E/S/B/X/P/EMITREFS/EMITO/SAV/EO, EMITMESH/EMITVX copies, EMITDEF::EMITO and their helper types); blip 1, grab 3, po 2 | 4 |
 | RIP and its kind classes moved out of rip.cpp; RIP gains startTime, renderObject, the scale curve, orientation, velocity, angularVelocity, touchObject; FLYING/MATCH/REMIT/SHRAPNEL fields; `RIP::Init(pos, scale, psoTouch)` in Sly 1's parameter order (InitMatch's symbol), `PostEmit(EMITB *)` | new sly2/rip.h | 14 (rip.cpp's per-function RIP/RIPGV/SHRAPNEL/OBJ views, emitter.cpp's RIPV/RIP) | rip, emitter |
-| TEX0 (one word or GS fields), CLUT, BMP | new sly2/shd.h (self-contained) | 9 | shd, font, gs, tu_1BE398 |
-| GSB/GSBB (0x630) | new sly2/gs.h (self-contained) | 4 | gs, font, tu_1BE398 |
+| TEX0 (one word or GS fields), CLUT, BMP | new sly2/shd.h (self-contained) | 9 | shd, font, gs, rtcam |
+| GSB/GSBB (0x630) | new sly2/gs.h (self-contained) | 4 | gs, font, rtcam |
 
 Hand-made vtable calls that became real virtual calls and still match: EMITTER group creation (RotateToMat, slot 30),
 ConvertEmitoPosVec and OriginateSplineSinkParticles (GetLocalTransform, slot 32), EmitRips and WakeSoWater (RIP::Init,
@@ -1012,21 +1012,21 @@ aggregate initializer makes cc1plus exit silently. RIP::Init reads the clock thr
 Not converted: views of RIPG, BLIPG, EXPLG and EXPLS fields (classes.h names none of their fields; not this family's
 header: rip.cpp's RIPGV, emitter.cpp's BLIPG/RIPG/PRG/EXPLGV/EXPLS views, the EMITG views typed on them); RENDERTGT
 views (sly2/sw.h keeps TEX0 as a plain word; shd.h's TEX0 union could replace it); the namespaced Lilly views in
-glob.cpp, shd.cpp, light.cpp, blip.cpp (SHD, DMA/DMAS/VIFS/GIFS packet classes, PACKET, LIGHT, SAA); tu_1147D8 /
-tu_114AE0's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT would change every includer); the hand
+glob.cpp, shd.cpp, light.cpp, blip.cpp (SHD, DMA/DMAS/VIFS/GIFS packet classes, PACKET, LIGHT, SAA); palette16 /
+palette256's constructor-initialized CLUT/BMP (a constructor in shd.h's CLUT would change every includer); the hand
 vtable calls of rip.cpp's hand-tuned functions (BounceRipgRips, UpdateRipg, RenderRipgSelf, HandleRipBounce, the
 Render* bodies).
 
 ### Views unified, round 2 (names/vu-f6-render-2): shaders, packet streams, light packets, rip calls
 
-The namespaced Lilly / per-function views of the render family's records in shd, glob, blip, light, tu_1147D8 and
-tu_114AE0 (and so.cpp's views of the light record), and the hand-made vtable calls of rip.cpp, replaced by shared types
+The namespaced Lilly / per-function views of the render family's records in shd, glob, blip, light, palette16 and
+palette256 (and so.cpp's views of the light record), and the hand-made vtable calls of rip.cpp, replaced by shared types
 and real calls. Every function and data symbol of each touched file and of every includer of a changed header MATCHes,
 and each object's nm symbol set is unchanged.
 
 | change | header | views removed | files |
 |---|---|---:|---|
-| CLUT/BMP constructors from a header (`CLUT(void *pvHeader)` calls CopyClutHeader; likewise BMP), CLUT/BMP `clevel` (+0x05, the level filter) and BMP `cb` (+0x10) | sly2/shd.h | 4 | tu_1147D8, tu_114AE0 |
+| CLUT/BMP constructors from a header (`CLUT(void *pvHeader)` calls CopyClutHeader; likewise BMP), CLUT/BMP `clevel` (+0x05, the level filter) and BMP `cb` (+0x10) | sly2/shd.h | 4 | palette16, palette256 |
 | TEX (0x14: grftex +0x04, cbmp +0x06 = the frame count, cclut +0x07; glob's Lilly TEXF had cibmp/ciclut at +4/+5, the loaders show otherwise), SHDP (upload record), SHD (0x2C), SHDBLIP (the compact record blips use, linked on SW::slShd; our name) | sly2/shd.h | shd 30 (SHDV, the loaders' X/Y/E/Z/E20/E28, LoadShdFromBrx's L/C/ENT, BuildShaderTex0List's Src/S3/Dst, BuildShaderGifPackets' ENTRY/PACKET/RGBA/TEXTURE, the upload functions' E1/E2/T1/T2/BS/X/DMAS/M, the hash functions' S); blip 1 | shd, blip |
 | the frame's VIF1 stream D_002DEA28 as vifs.h's VIFS | (vifs.h) | glob 4 DMA, blip VIFS | glob, blip |
 | render-list entry | sly2/render.h RPL | blip DMA | blip |
@@ -1110,7 +1110,7 @@ relocations by symbol name and symbol table (with sizes) are unchanged from the 
 | RIP::touchObject is an SO; RIP +0xC4 damping; FLYING +0xF4 facesCamera | sly2/rip.h | rip ~20 per-function views (S/M/B/X/R/OBJ/MATCH...) | rip |
 | EMITG (group pointers + subscriber, 0xC) and EMITGEN (per-particle arrays, 0x20: EmitParticles keeps two on its stack), both named by the mangled symbols | sly2/emitter.h | 13 (five EMITX/Y/EMITR, two BUF, TIMES, LOC, L2, emitter's RIPG and SO-class views, grab's EMITX) | emitter, grab |
 | the subscribed emitter of a blip group as EMITTER/EMITB | (emitter.h) | 2 (LOV, EX) | blip |
-| the frame's packet streams as gifs.h/vifs.h classes with real member calls; render-list entries as RPL; FindShaderById's record as SHDBLIP | (gifs.h, vifs.h, render.h, shd.h) | 21 (hud 8 R, 6 E, BUF, X; tu_1471C0 GIFS; tu_1D57A8 DMA; tu_15DC80 R, Q) | hud, tu_1471C0, tu_1D57A8, tu_15DC80, screen |
+| the frame's packet streams as gifs.h/vifs.h classes with real member calls; render-list entries as RPL; FindShaderById's record as SHDBLIP | (gifs.h, vifs.h, render.h, shd.h) | 21 (hud 8 R, 6 E, BUF, X; framecapture GIFS; rendertree DMA; screenfade R, Q) | hud, framecapture, rendertree, screenfade, screen |
 
 Real calls that match: LIGHT's slot 31 (GetWorldMatrix, twice), SAA slot 10 (twice), RIPG slots 7/11/15 in
 NewRipGroup, slot 9 (Remove) in BounceRipgRips and EmitRips, RIP slot 7 (Touch) in UpdateRip, RIP::Init as MATCH::Init's
@@ -1131,7 +1131,7 @@ blip's BLIPV/BLIPGV: classes.h names none of their fields and they are not this 
 view of the SOTREE fields it reads); the hand-tuned rip bodies' views (HandleRipBounce, ProjectRipTransform,
 RenderRipAtPose, RenderShrapnel, RenderGlint, the SMACK/LEAF/bublet transforms); blip's one by-hand AddVifUnpack (five
 words); the RENDERTGT views (sw.h); glob/light PACKET(S) (different records); shd's TEX1/CLAMP (one user); main.cpp's
-DMA (a SIF transfer); tu_1471C0's TEX (the capture texture's GS words, not shd.h's TEX); tu_1D57A8's RENDER tree
+DMA (a SIF transfer); framecapture's TEX (the capture texture's GS words, not shd.h's TEX); rendertree's RENDER tree
 (one TU); the LIGHTM matrix in blip (not a LIGHT).
 
 Inventory (inv.py): 47 -> 35; struct/class/union definitions in src/game .cpp/.inc: 4737 -> 4663; `git diff --stat`:
@@ -1146,20 +1146,20 @@ src/game .cpp files: 4804 -> 4724.
 
 | type | header | change | views removed |
 |---|---|---|---:|
-| ALO | sly2/aseg.h | defined as an empty `struct ALO : LO` (Sly 2 has no ALO; the Sly 1 symbols mangle the name: ApplyAsegCore, ReplaceCurrentAseg...): SMA::paloRoot / ASEGA::rootObject are used as the LO they are (sm.cpp SendSmaMessage, asega.cpp, aseg.cpp lost their `(LO *)` casts); cane.cpp's and tu_20B840.cpp's private `ALO` views renamed ATTACKOBJ / LEAPSUBJECT (three casts keep ReplaceCurrentAseg's mangled name in tu_20B840) | -- |
+| ALO | sly2/aseg.h | defined as an empty `struct ALO : LO` (Sly 2 has no ALO; the Sly 1 symbols mangle the name: ApplyAsegCore, ReplaceCurrentAseg...): SMA::paloRoot / ASEGA::rootObject are used as the LO they are (sm.cpp SendSmaMessage, asega.cpp, aseg.cpp lost their `(LO *)` casts); cane.cpp's and gait.cpp's private `ALO` views renamed ATTACKOBJ / LEAPSUBJECT (three casts keep ReplaceCurrentAseg's mangled name in gait) | -- |
 | SMT | sly2/aseg.h | size/offset asserts, field comments, GRFSMT bits `fsmtReversible` (1), `fsmtRetractable` (2), `fsmtRouteMask` (0xfffc), used by sm.cpp | -- |
 | XF (sly2/so.h, unchanged) | -- | xf.cpp's slot functions (ResetXfValueRef, the value/derivative matrix builders, UpdateXfJobRange, SettleXfSlot, Add/Remove/SortXfActs, frame conversions, GetXfVelocity, EvaluateXfSlotMatrixDerivative, GetXfSlotMatrixAndDerivative, EvaluateXfSlotValue, UpdateSoXfWorldMatrices, LoadSoXfsFromBrx, ResolveXfId), aseg.cpp PredictAsegTransform / FindAsegChannel, act.cpp's goal setters, UpdateActLookAt and UpdateMatrixAct, ik.cpp, wr.cpp take XF/SO; the VU code moves the matrices and XF::velocity as qwords through casts of the MATRIX4/VECTOR4 members at the use (as jthands.cpp) | ~45 |
 | ACT | sly2/act.h | xf.cpp's act lists call Attach/Detach/SwitchTarget/Update as real virtuals; cplcy.cpp's CPHANG::pact1 is read as ACT1::goalValue | 7 |
-| CHN, AC, EA, ASEGA, SMA | aseg.h, act.h | the clip-channel readers (step.cpp GetStepAsega*, bentley, murray SetMurrayAttack, grab, pipe_jt, throw, prize RenderDprizeSelf, tu_1B0B78 GetAsegSpeedForObject) take FindAsegChannel's CHN and evaluate its curve with a real `AC::Evaluate(g, dtScale, pv, pdv)` (floats first); FindAsegLabel returns EA (murray x5); ASEGA/SMA views in murray, hurt, prize, tu_1B0B78 | ~30 |
+| CHN, AC, EA, ASEGA, SMA | aseg.h, act.h | the clip-channel readers (step.cpp GetStepAsega*, bentley, murray SetMurrayAttack, grab, pipe_jt, throw, prize RenderDprizeSelf, critter GetAsegSpeedForObject) take FindAsegChannel's CHN and evaluate its curve with a real `AC::Evaluate(g, dtScale, pv, pdv)` (floats first); FindAsegLabel returns EA (murray x5); ASEGA/SMA views in murray, hurt, prize, critter | ~30 |
 
 Kept, with the reason: LoadSoXfsFromBrx calls SO slot 51 (GetXfFromIndex) through the vtable by hand (the real
 virtual call reallocates the loop registers: 349 words off); GetXfSlotMatrixAndDerivative's slot-5 call stays by hand
-(GetGoal is called without its dt). Blocked on so.h's XF (base family): asega.cpp's and tu_1603B8.cpp's XF views and
+(GetGoal is called without its dt). Blocked on so.h's XF (base family): asega.cpp's and constraint.cpp's XF views and
 jthands' XFACT read XF +0xA8 as a float or as an IKREC/CHAINLINK/constraint pointer (a role-selected union: arrival
 time in roles 9/0x11, the chain link or IK record of their acts, the reference XF otherwise), act.cpp's curve
 Prepare views (four `OBJ`), UpdatePathAct (ACT4::Update: the local matrix as rows plus position) and AttachKind9Act write +0xC0..+0xFF as per-component floats, VECTORs and words (the slot's
 segment block: rest value, Bezier control values, rotation rows by phase), and the qword-row matrix views (glob, shape,
-solve, emitter, tu_1D6848, tu_223F70, tu_1D57A8, hang, air, prize) need MATRIX4/VECTOR4 qword forms. so.h's names
+solve, emitter, launcher, gadget, rendertree, hang, air, prize) need MATRIX4/VECTOR4 qword forms. so.h's names
 for +0xC0..+0xF0 (restValue, rate, unknownE0, acceleration) are the four Bezier control values of a phase-1 segment
 (EvaluateBezierPos(t1 - t0, *timeSource - t0, *speedSource, +0xC0, +0xD0, +0xE0, +0xF0)) and the two rest values of
 LoadSoXfsFromBrx (+0xC0, +0xE0). WR's layout (wr.cpp's WRV) waits for WR to leave classes.h. blend.cpp (which
@@ -1227,7 +1227,7 @@ layout); M_func_00258348's BASIC/CVarb/CSidebag release view (~BASIC's linkonce 
 CFrame/CProc/CSidebag/CPair/CVarb views and SP* owners of frame.cpp, eval.cpp, ref.cpp, proc.cpp, varb.cpp, pair.cpp,
 sidebag.cpp (tied to gc.cpp's linkonce instances, the next step); callback.cpp's one-field CFrame view (including
 cframe.h there clashes: basic.h's SL, gc.h's PtNew against its C declaration); CRichText/CFont (font.cpp's classes
-need RGBA/QW/GIFS/TEX0 in a header; mpeg.cpp's and tu_2275B8's views).
+need RGBA/QW/GIFS/TEX0 in a header; mpeg.cpp's and subtitle's views).
 
 ### Views unified, continued (names/vu-f8-sound-ui-3): the Splice nodes and their counted pointers
 
@@ -1294,15 +1294,15 @@ basic.h's comment that frame.cpp/eval.cpp define their own CFrame views is stale
 ### Views unified (names/vu-objects): the hack and robot tank classes
 
 The gameplay-objects family, round 1 (from 9197b908): the registry classes of the two largest object TUs get their real
-layouts in new headers, and the per-function views of them go. Every function and data symbol of tu_17F090.cpp,
-tu_1D1370.cpp, class_registry.cpp and the other 74 includers of sly2/classes.h MATCHes, and each object is identical
+layouts in new headers, and the per-function views of them go. Every function and data symbol of hack.cpp,
+robottank.cpp, class_registry.cpp and the other 74 includers of sly2/classes.h MATCHes, and each object is identical
 to the branch start's (`nm -S`: symbols with sizes, binding and section; relocations by symbol name). The vtables and
 class_registry's factories are unchanged (the classes keep their sizes, virtual layouts and constructors).
-Struct/class/union definitions: tu_17F090.cpp 149 -> 34, tu_1D1370.cpp 148 -> 112.
+Struct/class/union definitions: hack.cpp 149 -> 34, robottank.cpp 148 -> 112.
 
 | type | header | change | views removed |
 |---|---|---|---|
-| HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL | sly2/hack.h (new; classes.h includes it at the classes' emission position) | real layouts with offset asserts; records HACKE (anim entry), HACKSHIPPART, HACKRULE (the enemy's per-state enter/stay limits), HACKWALLSEG (0x30, AddHackwallSegment) and HACKWALLPIECE (0x70, the allocated piece); HACK +0x1A0 is a union of the qword InitHack stores and the CLQ TakeHackDamage evaluates (decision 1.8's form); slot 82 is `Kill(LO *ploKiller)` (the killer lands in ZPR +0x08); HACKSHIP's and ROBOTTANK's cleared constructor word is the engine sound (CID151) | all 76 functions of tu_17F090: HACKV/HACKSHIPV/HACKENEMYV/HACKLOCKV/HACKSEG and the per-function S/O/P/E/Q/R/T/N/M/CTX/F views; real virtual calls for Kill, Reset, GetVelocity, SetVelocity, SetAngularVelocity, RotateToMat, GetLocalTransform, SetParent and the health widget's Show/Hide |
+| HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL | sly2/hack.h (new; classes.h includes it at the classes' emission position) | real layouts with offset asserts; records HACKE (anim entry), HACKSHIPPART, HACKRULE (the enemy's per-state enter/stay limits), HACKWALLSEG (0x30, AddHackwallSegment) and HACKWALLPIECE (0x70, the allocated piece); HACK +0x1A0 is a union of the qword InitHack stores and the CLQ TakeHackDamage evaluates (decision 1.8's form); slot 82 is `Kill(LO *ploKiller)` (the killer lands in ZPR +0x08); HACKSHIP's and ROBOTTANK's cleared constructor word is the engine sound (CID151) | all 76 functions of hack: HACKV/HACKSHIPV/HACKENEMYV/HACKLOCKV/HACKSEG and the per-function S/O/P/E/Q/R/T/N/M/CTX/F views; real virtual calls for Kill, Reset, GetVelocity, SetVelocity, SetAngularVelocity, RotateToMat, GetLocalTransform, SetParent and the health widget's Show/Hide |
 | ROBOTTANK, CID108 | sly2/tank.h (new, same arrangement) | real layouts: ROBOTTANKWHEEL (0x60), ROBOTTANKSIDE (0x14), ROBOTTANKAMMO (0xC), the drive/traction terms, health and widget, the AI's target/path/selection; the weapons are JSG objects (`struct JSG *apjsgWeapon[8]`) | the file-scope ROBOTTANKV/RCPICKUP/XPLISTV and the views of 24 functions (Init, the pickup search and collect, path reset, wheel contacts and bounds, the wheel/side/ammo setters, health meter, the weapon ammo helpers' owner, all CID108 functions) |
 
 **Why the hack classes no longer need separate views.** Decision 1.1 kept HACKSHIP/HACKENEMY/HACKLOCK as separate
@@ -1311,7 +1311,7 @@ size is 0x1C0, no HACK function touches +0x1C0, and each subclass's state and st
 first fields, so the derived classes start at 0x1C0 and every offset falls where the views had it.
 
 Kept: the views of other families' records (XP contact sides, the contact request, a SOPART read with a 64-bit flag
-word, the LO flag word read whole: the LOIsland reads of decision 1.4), the hand-tuned helpers, and in tu_1D1370 the
+word, the LO flag word read whole: the LOIsland reads of decision 1.4), the hand-tuned helpers, and in robottank the
 large tuned functions (PostRobottankLoad, UpdateRobottank, UpdateRobottankAi, PresetRobottankAccel, the pinned
 func_001D3450, RenderRobottankSelf, TakeRobottankDamage), SetRobottankState (its widget Show/Hide sites belong to the
 cross-family pass) and the weapon (JSG) views. Not started: prize.cpp, grabspot.cpp. Natural spellings that matched
@@ -1327,15 +1327,15 @@ src/game: 4,104 -> 3,916 (hud.cpp 345 -> 180); 11 sources, +598/-990.
 
 | type | header | change | views removed |
 |---|---|---|---:|
-| WIDGET (0x110) | sly2/widget.h (new; classes.h includes it at WIDGET's place in the emission order) | real fields for 0x50..0x110 (state machine, labels, sprite groups, timeout, size and position, priority, exclusive list link, deferred load, sprite heap, argument texts, followed object, transform, render queue); relay.cpp's Lilly names in the field comments | hud.cpp's file-scope WIDGETV and ~60 per-function S/O/Q/T/L/P8/C8/OWNER/POSITION views; tu_201D78, wipe, relay (2), mode, menu, memcard (6), letterbox, sw.cpp (3) |
-| WIDGET127 / 129 / 130 / 131 | sly2/classes.h | modal box (isOpen, keepsGamePaused), item counter (two 16-entry OID/TASK lists), recon prompt (five choice words; tu_201D78), episode menu (tu_15CD68's fields; menuState/menuSub/menuStateTime to keep WIDGET's state names free) | tu_15CD68's EPMENU, tu_201D78's WIDGETV |
+| WIDGET (0x110) | sly2/widget.h (new; classes.h includes it at WIDGET's place in the emission order) | real fields for 0x50..0x110 (state machine, labels, sprite groups, timeout, size and position, priority, exclusive list link, deferred load, sprite heap, argument texts, followed object, transform, render queue); relay.cpp's Lilly names in the field comments | hud.cpp's file-scope WIDGETV and ~60 per-function S/O/Q/T/L/P8/C8/OWNER/POSITION views; recon, wipe, relay (2), mode, menu, memcard (6), letterbox, sw.cpp (3) |
+| WIDGET127 / 129 / 130 / 131 | sly2/classes.h | modal box (isOpen, keepsGamePaused), item counter (two 16-entry OID/TASK lists), recon prompt (five choice words; recon), episode menu (episodemenu's fields; menuState/menuSub/menuStateTime to keep WIDGET's state names free) | episodemenu's EPMENU, recon's WIDGETV |
 | SPRITEGRP, SPRITEANIM, SPRITESLOT, SPRITEKEY, SPRITEITEM, SPRITEDESC, SPRITEXF, WIDGETLOAD; WIDGET_STATE / WIDGET_REQUEST | sly2/hud.h (new) | the records the widget plays (group 0x30, animation 0x18, slot 0x18, key 0x20, item 0x70, descriptor 0x40, 2x3 transform 0x20 aligned 16) and the deferred sprite-file load record (FILEREC + owner, heap marks, link) | ~70 A/E/H/C/F/Y/Z/QQ/M23/N views in hud.cpp |
 | SCREEN::pchild | sly2/screen.h | `WIDGET *` (was `void *`); two casts at screen.cpp's assignments | -- |
 
 The widget functions became members where the class declares the slot (WIDGET::Show/Hide/Update/PostLoad/
 LoadFromBrx, WIDGET127::Show/Init/Update, WIDGET128::Init, WIDGET129::PostLoad/Update); base calls are qualified
 (`WIDGET::Update()`, `LO::Init()`: direct calls, same code) and the hand-made slot 49/50/16/21/3 calls are virtual
-calls (Show, Hide, Update, SetFlag8, HandleSpliceEvent) everywhere but game.cpp, tu_1D1370.cpp and screen.cpp (a
+calls (Show, Hide, Update, SetFlag8, HandleSpliceEvent) everywhere but game.cpp, robottank.cpp and screen.cpp (a
 cross-family pass converts their Show/Hide call sites; their W/SUB/O views map onto WIDGET: visibility = state,
 pageAnim* = the three labels at +0x70). Spellings that matched on the first compile: SPRITEXF (`float a[6]`, aligned 16)
 for the qword-pair and `int a[8]` matrix copies; `&owner->spriteGroups[index]` for the `+ index * 0x30` byte
@@ -1352,7 +1352,7 @@ vs float box fields and the colour representation), LoadSpriteGroups/LoadSpriteD
 the GROUP/ANIM/REUSE/KEY/ITEM views, the descriptor payload union), the key interpolation functions with register
 pins (InterpolateSpriteSlot, HandleSpriteKeyEvents, ApplySpriteKeyPoses, AdvanceSpriteAnim), InitSpriteItem
 (its +0x34..+0x58 item words), the STRINGGEN getters' player views. For sw.h's owner: SW::pepmenu is the WIDGET131
-(typed `struct EPMENU *`; tu_15CD68 reads it through one cast).
+(typed `struct EPMENU *`; episodemenu reads it through one cast).
 
 ### Cross-family signatures (names/xfamily-sigs)
 
@@ -1367,7 +1367,7 @@ table with sizes are identical to objects built at a9b1a4ade.
 | LO slot 20 `RenderAll(MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *)` (RenderSoGlobset's arguments: 0 matrix = the object's own, 0 bounds = its own record) | lo.h, so.h | RenderSoAll is SO::RenderAll; lo.cpp RenderLoAtMatrix |
 | LO slot 30 `RotateToMat(MATRIX3 *)` | lo.h, xfm.h, so.h, step.h, classes.h (LIGHT) | light.cpp EnsureSwDefaultLight; callers holding a MATRIX3 pass it uncast |
 | SO slot 73 `int IsPosInside(qword pos)` | so.h, classes.h (WATER) | rip.cpp RIP::Update, class_registry's POINT_IN_BSP_QUICK thunk; IsPosInWater forwards the position. UpdateRip's +0xE8 read is SO::physics |
-| WIDGET slot 49 `Show(int)` / slot 50 `Hide()` calls; WIDGET +0x8C `visibleTimeout` | classes.h | game.cpp (RestartHudWidget1/2, ShowCountdownHud, SetJobCompletionPhase), tu_1D1370 SetRobottankState (after the pinned region), screen.cpp (hud meter, notice, gadget menu, ThiefNet, screen 0x52D, title; screen.cpp now includes classes.h) |
+| WIDGET slot 49 `Show(int)` / slot 50 `Hide()` calls; WIDGET +0x8C `visibleTimeout` | classes.h | game.cpp (RestartHudWidget1/2, ShowCountdownHud, SetJobCompletionPhase), robottank SetRobottankState (after the pinned region), screen.cpp (hud meter, notice, gadget menu, ThiefNet, screen 0x52D, title; screen.cpp now includes classes.h) |
 | `QWROW`, `MATRIX3Q`, `MATRIX4Q` (decision 1.8); STEP::matqTarget | basic.h, step.h | murray UpdateMurrayStrafe (its U/M3 views and the cast); 78 per-function row unions in 28 files |
 | WR's layout (from wr.cpp's WRV) with WRE, ONZ/ONZE, WRECIRCLE/WREBEND | wr.h (classes.h forward-declares WR; class_registry includes wr.h) | wr.cpp's WRV, VECTORV and its V/M4 row views |
 | SO +0x58/+0x5C `positionXf` / `rotationXf` | so.h | 13 files' uses renamed |
@@ -1386,14 +1386,14 @@ CPLCY Set/Revoke already took the entry argument (names/vu-f1-base-3). Not done:
 - XF's matrices as MATRIX4Q unions (xf.cpp, UpdateSoXfWorldMatrices casts): XF is being changed on another branch.
 - The remaining private row unions: at file scope, redefined in the same scope, or kept because QWROW's unsigned
   `qword` changes a signedness (`&u.q` passed as a signed `qword *`) or the code (shape.cpp StepChainRk4/StepChain).
-- The other widget Show/Hide hand calls (hud.cpp, menu.cpp, memcard.cpp, tu_15CD68.cpp: their own WIDGET views).
+- The other widget Show/Hide hand calls (hud.cpp, menu.cpp, memcard.cpp, episodemenu.cpp: their own WIDGET views).
 
 ### Views unified (names/vu-objects-2): the prize and grab-spot classes
 
 The gameplay-objects family, round 2 (from 34a45b35). Every function and data symbol of prize.cpp, grabspot.cpp,
-tu_1D1370.cpp, air.cpp and the 77 includers of sly2/classes.h MATCHes, each object identical to the branch start's
+robottank.cpp, air.cpp and the 77 includers of sly2/classes.h MATCHes, each object identical to the branch start's
 (`nm -S`, relocations by symbol name); vtables and factories unchanged. Struct/class/union definitions: prize.cpp
-132 -> 71, grabspot.cpp 61 -> 16, tu_1D1370.cpp 112 -> 108, air.cpp 208 -> 207.
+132 -> 71, grabspot.cpp 61 -> 16, robottank.cpp 112 -> 108, air.cpp 208 -> 207.
 
 | type | header | change | views removed |
 |---|---|---|---|
@@ -1419,7 +1419,7 @@ GCC 2.95 hashes the source file name and the line number into the gcse ordering 
 functions that ordering decides stack-slot numbering, so the match depends on (sum of path bytes, line) mod 287.
 A merge changes both the path and the line of every function. If a merged function that contains inline asm misses
 only by a few stack offsets, pin the name with `#line N "<repo-relative path>"` and keep the asm helper in the line
-window that matches (example: func_001D3450 in `src/game/gameplay/objects/tu_1D1370.cpp`, namespace M_func_001D3450).
+window that matches (example: func_001D3450 in `src/game/gameplay/objects/robottank.cpp`, namespace M_func_001D3450).
 
 What wave 2 measured (on func_001D3450, by changing only its `#line 13 "<path>"` pin; MATCH unless noted):
 
@@ -1446,23 +1446,23 @@ review. Helpers shared by several functions of the TU are defined once, so a sen
 shared helper sits.
 
 In practice it is rare: the three asm TUs of wave 2 (sjis: register-pinned `addu`/`sll` helpers; sky: a `pextuw`
-helper; tu_1603B8: VU0 macro-mode asm with `"j"` operands) merged with no pin, and UpdateSky and ApplyXfmConstraint
+helper; constraint: VU0 macro-mode asm with `"j"` operands) merged with no pin, and UpdateSky and ApplyXfmConstraint
 still matched under eight different `#line` pins each. Only functions where gcse PRE creates pseudos from an asm (and
-those pseudos then get stack slots) are sensitive. tu_1D1370 (44 functions), which holds the one known case, was
+those pseudos then get stack slots) are sensitive. robottank (44 functions), which holds the one known case, was
 merged in wave 9: its namespace keeps the per-function file's verbatim `#line 13 "src/game/gameplay/objects/tu_1D1370/
 func_001D3450.cpp"` (the string only names the presumed file; the directory is gone) and a `#line <next line>
-"src/game/gameplay/objects/tu_1D1370.cpp"` after the namespace restores the merged name. func_001D3450 and every
+"src/game/gameplay/objects/robottank.cpp"` after the namespace restores the merged name. func_001D3450 and every
 function after it matched.
 
 Wave 5 merged 20 more asm TUs (VU0 macro-mode, VU0 microprogram calls, EE 128-bit asm, register pins, allocation-only
 operands) and none needed a pin: every miss was a C-vs-C++ or declaration difference (mismatch table). That includes
-the functions whose per-file notes describe stack-slot-sensitive spellings (LaunchSoFromLauncher in tu_1D6848,
-func_001C2EF0 in tu_1C2D20, UpdateChainLink in tail, func_0022A220 and RenderWaypt in waypoint, func_0014C748 in
+the functions whose per-file notes describe stack-slot-sensitive spellings (LaunchSoFromLauncher in launcher,
+func_001C2EF0 in lootpouch, UpdateChainLink in tail, func_0022A220 and RenderWaypt in waypoint, func_0014C748 in
 clip, EnforceDzgDz in dzgcore, SolveIk in ik): they matched at their new paths and lines.
 
 Wave 6 (23 more asm TUs, among them the heavily hand-scheduled CullSceneRenderList, SetJtJtcs, ChooseJtAttackTarget,
 CalculateJtHangAccel, AnticipateJtForce, UpdateJtThrowArc, ClsgClipEdgeToBsp and UpdateJtActivePipe) needed no pin
-either. One verbatim pin was tried on tu_1D57A8's func_001D6508 (`#line 7 ".../func_001D6508.c"` around its Dist
+either. One verbatim pin was tried on rendertree's func_001D6508 (`#line 7 ".../func_001D6508.c"` around its Dist
 helper): the miss was scheduling, not stack offsets, and the pin changed nothing (the fix was a C++ cast). The two
 stack-frame misses of the wave (hang func_00190C58, pipe_jt func_0019EA00: 16 bytes bigger) were the asm-output-into-
 memory row of the mismatch table, not the path hash.
@@ -1482,18 +1482,18 @@ style (VU_VECTOR / VU_FLOAT classes and their operators); HYPOTHESIS for the Sly
 
 | idiom | asm | example sites | likely helper |
 |---|---|---|---|
-| float into a VF register | `qmtc2.ni r, vf` (sometimes from the float's memory word, `"rV"`) | tu_1471C0 VU_FLOAT, blend ToVf, hang VuFloat/VufFromMemWord, throw Scalar, trail Broadcast, pipe Bc, prog/tu_1D57A8 VU_FLOAT | `VU_FLOAT(float)` |
-| x of a VF register as a float | `qmfc2.ni r, vf` (+ `mtc1`) | tu_1D57A8 Scalar, cane, hang GXOfVf, bsp GFromVf, places, trail Sqrt | `float(VU_FLOAT)` / `GFromVf` |
-| lane of a qword in a GPR | `mtc1` (x), `prot3w` (y), `pextuw r, $0, q` (z) | cane GetY/GetZ, trail GetY/GetZ/StoreXYZ and its linkonce func_00259D98/DA8/DC0, throw GZOfQw, tu_20CE28, pipe_jt Z | VU_VECTOR x()/y()/z() accessors (the three linkonce instances are their out-of-line copies) |
+| float into a VF register | `qmtc2.ni r, vf` (sometimes from the float's memory word, `"rV"`) | framecapture VU_FLOAT, blend ToVf, hang VuFloat/VufFromMemWord, throw Scalar, trail Broadcast, pipe Bc, prog/rendertree VU_FLOAT | `VU_FLOAT(float)` |
+| x of a VF register as a float | `qmfc2.ni r, vf` (+ `mtc1`) | rendertree Scalar, cane, hang GXOfVf, bsp GFromVf, places, trail Sqrt | `float(VU_FLOAT)` / `GFromVf` |
+| lane of a qword in a GPR | `mtc1` (x), `prot3w` (y), `pextuw r, $0, q` (z) | cane GetY/GetZ, trail GetY/GetZ/StoreXYZ and its linkonce func_00259D98/DA8/DC0, throw GZOfQw, watchdog, pipe_jt Z | VU_VECTOR x()/y()/z() accessors (the three linkonce instances are their out-of-line copies) |
 | three floats to a qword | `mfc1; mfc1; pextlw; mfc1; pcpyld` | turret Make (twice), pipe_jt UpdateJtActivePipe (inline) | `VU_VECTOR(x, y, z)` / SetVector |
 | difference / sum | `vsub.xyzw`, `vadd.xyzw` | nearly every TU (Sub, VSub, QwSub, Difference, Add) | `operator-`, `operator+` |
-| dot product (x only) | `vmul.xyz d,a,b; vaddw.x one,vf0,vf0w; vadday.x ACC,d,dy; vmaddz.x d,one,dz` | tu_1D57A8 Dot, turret Length, hang QwDot/StoreDot, throw, trail, bsp Dot3, places Dist, pipe Dot, tu_1B9F80 Square | `VU_FLOAT Dot(VU_VECTOR, VU_VECTOR)` |
-| length | dot + `vsqrt Q,dx; vwaitq; vaddq.x d,vf0,Q` | turret Length/OffsetLength, cane func_0018EE38 (xy only: `vmul.xy; vaddy.x`), hang QwSqrt, throw LengthV, trail Sqrt, tu_1D57A8 Dist, pipe Length | `Length` / `GLength` |
+| dot product (x only) | `vmul.xyz d,a,b; vaddw.x one,vf0,vf0w; vadday.x ACC,d,dy; vmaddz.x d,one,dz` | rendertree Dot, turret Length, hang QwDot/StoreDot, throw, trail, bsp Dot3, places Dist, pipe Dot, neela Square | `VU_FLOAT Dot(VU_VECTOR, VU_VECTOR)` |
+| length | dot + `vsqrt Q,dx; vwaitq; vaddq.x d,vf0,Q` | turret Length/OffsetLength, cane func_0018EE38 (xy only: `vmul.xy; vaddy.x`), hang QwSqrt, throw LengthV, trail Sqrt, rendertree Dist, pipe Length | `Length` / `GLength` |
 | normalize with a fallback axis | length, `li.s 0.0001` compare, `lq` of D_002A2DC0/D_002A2DA0/D_002A2DD0, `vdiv Q,vf0w,len; vwaitq; vmulq.xyzw` | rail NormalizeOr, hang NormalizeAt/func_00190C58/UpdateJtActiveHang, throw PlanarUnit/ProjectUnit, pipe Normalize, pipe_jt Normal/NormalB, bsp Normalize (no fallback) | `NormalizeVector(v, fallback)` |
 | a + v * s.x | `vadda.xyzw ACC,a,vf0; vmaddx.xyzw r,v,sx` | blend Madd/MaddN/MaddV/Madd2, cane AddScaled, hang QwAddScaled(2), rail AddScaled, trail Offset, pipe func_001C3A08/A88 | `VU_VECTOR AddScaled(a, v, s)` |
 | a * s.x + b * t.x | `vmulax.xyzw ACC,a,sx; vmaddx.xyzw r,b,tx` | throw Lerp/TransitionBlend, trail Blend, hang QwCombo, bsp QwMix, cane FJtSweepBack (0.5 average), AnticipateJtForce MulAdd3 (three terms) | `Lerp` / weighted sum |
-| scale | `vmulx.xyzw r,v,sx` | tu_1471C0 `operator*(VU_FLOAT, VU_VECTOR)`, tu_12E600, hang QwScaleX, pipe_jt Scale | `operator*(VU_FLOAT, VU_VECTOR)` |
-| 3x3 / 4x4 matrix times vector | `vmulax.xyz ACC,r0,vx; vmadday.xyz ACC,r1,vy; vmaddz.xyz` (4x4: `vmaddaz` + `vmaddw.xyz r,r3,vf0w`) | cane Rotate/Transform, hang Mul (three rows = matrix product)/QwRotateVec, rail Dir, trail Transform, places func_0019F3F8, pipe Transform, tu_1D57A8 func_001D6378, bsp func_001193D8, turret InverseRotate (transposed) | `operator*(MATRIX3/MATRIX4, VU_VECTOR)` |
+| scale | `vmulx.xyzw r,v,sx` | framecapture `operator*(VU_FLOAT, VU_VECTOR)`, camera, hang QwScaleX, pipe_jt Scale | `operator*(VU_FLOAT, VU_VECTOR)` |
+| 3x3 / 4x4 matrix times vector | `vmulax.xyz ACC,r0,vx; vmadday.xyz ACC,r1,vy; vmaddz.xyz` (4x4: `vmaddaz` + `vmaddw.xyz r,r3,vf0w`) | cane Rotate/Transform, hang Mul (three rows = matrix product)/QwRotateVec, rail Dir, trail Transform, places func_0019F3F8, pipe Transform, rendertree func_001D6378, bsp func_001193D8, turret InverseRotate (transposed) | `operator*(MATRIX3/MATRIX4, VU_VECTOR)` |
 | cross product | `vopmula.xyz ACC,a,b; vopmsub.xyz r,b,a` | hang QwCross, rail CrossKeepSecond, pipe Cross, bsp Cross | `Cross` |
 | plane distance | dot then `vmaddaz.x ACC,one,dz; vmsubw.x d,one,planew` | bsp (five functions) | `GDistancePlane` |
 | zero vector | `vsub.xyzw r,vf0,vf0` | blend func_00138660 | `VU_VECTOR()` zero |
@@ -1616,8 +1616,8 @@ yet):
 | Splice GC pools, six kinds (pair, binding, frame, proc, sidebag, method): **done** (link/linkonce-pools) | 0x254F00..0x256270, 0x256B48..0x257FC8 (minus the VU math), 0x258178, 0x259A88, 0x259C18..0x259D18 | 58 functions: the 18 PushFront/ctor/Unlink, 6 PtNew, 6 ClearMarks, 6 FreeGarbage, 6 Shutdown, 2 MakeRoot of `CGcObj<T>` (sly2/gc.h), the 6 `CRefPtr<T>::Attach`, 3 `CRefPtr<T>::operator=`, 3 `~CRefPtr<T>` (sly2/basic.h), `~CFrame`, all emitted by splice/gc.cpp except `CRefPtr<CMethod>::Attach` (object/spliceobj.cpp) and `~CProc` (splice/ref.cpp) | members of `CGcObj<T>` (the node base) and `CRefPtr<T>` (the counted pointer), defined after their classes without `inline`, and the implicit destructors of CFrame and CProc; see "The Splice GC pool family" below | done, 58 (link/linkonce-pools) |
 | EMITTER / EXPLO | 0x2584A8..0x259170, 0x2599C8, 0x258F30 | emitter.cpp 10, po.cpp `PemitbEnsureEmitter`, basic.cpp `GetEmitterClassDesc_linkonce` | the rest of sly2/emitter.h's template set (pairs at equal offsets, above) | done, 12: function templates in emitter.h, explicit instantiations in emitter.cpp (mangled `<name>__H1Z7EMITTER_...` / `__H1Z5EXPLO_...`) |
 | one-to-three-instruction accessors next to g_aeopid's | 0x2562A8, 0x2564A8..0x2564C0, 0x2599D8..0x259C08, 0x259D18, 0x259D98..0x259DC0 | grabspot 8, glob 3, trail 3, bsp 2, mark, guardbhv, rail, pipe, step | free inline accessors in the class headers, as inline passes 1 and 3 | done, 21: the 10 GRABSPOT owner getters (grabspot, rail, pipe) and step's g_aeopid setter 0x259D18 as free inline functions in xfm.h/so.h/step.h emitted by eopid_linkonce.cpp (now: the getters by their key TUs, step's setter by class_registry); glob, trail, bsp, mark, guardbhv's called helpers as inline functions defined after their callers |
-| containers / binstream | 0x2564E0..0x256AF0 | tu_119BC8 11, bis 1 (0x2566B0) | template container members | not done: 6 of tu_119BC8's and bis's 0x2566B0 are only referenced by vtables (no caller to make the inline-after-callers form emit them), the rest call each other; a template-class model was beyond the timebox. **Done on link/linkonce-rest**: sly2/arrayv.h's class templates, instantiated by tu_119BC8.cpp ("The container family" below) |
-| math and text-box inlines | 0x256CE8..0x256D28, 0x258438..0x258480 | bif (`VU_FLOAT`/`VU_VECTOR` constructors, `operator*`), xf `VECTOR_opAssign`, tu_1553F0 `VecCombo`, rhythm's five `CTextBox_Set*` | inline members/operators in sly2 headers (not emitted inline by the callers that call them: they must stay calls) | done, 8 (inline after their callers, symbols unchanged); reverted: `operator*`, `VecCombo` (Representation decisions). link/linkonce-rest: those two as plain definitions with the weak/section attributes |
+| containers / binstream | 0x2564E0..0x256AF0 | dynarraystr 11, bis 1 (0x2566B0) | template container members | not done: 6 of dynarraystr's and bis's 0x2566B0 are only referenced by vtables (no caller to make the inline-after-callers form emit them), the rest call each other; a template-class model was beyond the timebox. **Done on link/linkonce-rest**: sly2/arrayv.h's class templates, instantiated by dynarraystr.cpp ("The container family" below) |
+| math and text-box inlines | 0x256CE8..0x256D28, 0x258438..0x258480 | bif (`VU_FLOAT`/`VU_VECTOR` constructors, `operator*`), xf `VECTOR_opAssign`, dimitri `VecCombo`, rhythm's five `CTextBox_Set*` | inline members/operators in sly2 headers (not emitted inline by the callers that call them: they must stay calls) | done, 8 (inline after their callers, symbols unchanged); reverted: `operator*`, `VecCombo` (Representation decisions). link/linkonce-rest: those two as plain definitions with the weak/section attributes |
 | other | 0x256278, 0x256360..0x256440, 0x258040..0x258348, 0x259B48..0x259BB0 | cm 2 (SetCmMat wrapper, func_00258290), class_registry's STEPGUARD_ctor/JT_ctor/MURRAY_ctor, cplcy `RcPtr_Assign`, asega, blend, game `Ref{Get,Set}GlobalSaveVar`, memcard, screen, sound 2 | inline constructors and members | done, 10: cm's 0x256278 is a g_aeopid setter (inline in cm.h, emitted by class_registry since link/eopid-real-refs); the others inline after their callers. Not done: blend's 0x2581B8 (vtable-only), the three class_registry constructors (left to link/crt0-block). link/linkonce-rest: blend's as an inline function emitted by blend.cpp itself (first through a file-scope address reference, in eopid_linkonce.cpp and then, integrate/round9, in blend.cpp; since integrate/round10 as AC5's inline slot 4, emitted with the vtable 0x2CB5A8 blend.cpp emits), the constructors with the weak/section attributes |
 
 A function template that is not declared `inline` is the form that reproduces both sides at once: emitted per
@@ -1689,7 +1689,7 @@ after the definition would inline it). Used for the called helpers of the access
 families, defined at the end of their home TU; a TU that only calls the function needs no definition (it calls the
 weak symbol). Where a copy is only referenced from data (a g_aeopid record or a vtable that no TU emits), the
 inline function goes into the class header and eopid_linkonce.cpp takes its address, as pass 1 did (since link/eopid-real-refs g_aeopid itself does). 51 copies moved
-on that branch (76 of the 127 left on it; 18 on integrate/round8 after the pools family: tu_119BC8 and bis, blend, the
+on that branch (76 of the 127 left on it; 18 on integrate/round8 after the pools family: dynarraystr and bis, blend, the
 three class_registry constructors, VecCombo and operator*, all done on link/linkonce-rest, below); the cases and the
 two reverted ones are in "Representation decisions" above.
 
@@ -1699,22 +1699,22 @@ The last 18 copies. Every object now links whole (full-link.md "Status"); every 
 sets change only by the renames below and T -> W for the attribute forms, symcheck is unchanged (41 unresolved, 0
 duplicate strong), relverify 29,602 OK and 0 mismatched.
 
-**The template shape (tu_119BC8, bis).** The vtables in tu_119BC8's place in the linkonce data area name the
+**The template shape (dynarraystr, bis).** The vtables in dynarraystr's place in the linkonce data area name the
 classes: 0x2CA660 has six slots, Init (0x2564E0: attach to the owner, its list at +4, take its heap), Clear
 (0x256658: free the elements, every listener's Clear), Load (0x2566D8: Clear, a count, then per element a cleared
 scratch element, ReadElement, Add), ReadElement (0x2566B0: sizeof(T) bytes), Add (0x2565E0: append, NotifyAdd) and
-NotifyAdd (0x256588: every listener's OnAdd); tu_119BC8's own class (0x2CA5E0) has the same table with Init and
+NotifyAdd (0x256588: every listener's OnAdd); dynarraystr's own class (0x2CA5E0) has the same table with Init and
 ReadElement overridden (0x119BD0 calls the base Init 0x2564E0 and inits its hash index at +0x34; 0x119C08 reads a
 string). 0x2CA640 is a listener base with two pure slots (0x23C820) and 0x2CA620 the hash index (Clear 0x2568A0,
 OnAdd 0x256AF0: insert the element's key and index); the index's Init 0x256528 and the hash table's Clear 0x2567D0,
 Resize 0x2568C0 and Insert 0x2569F8 are non-virtual. The derived Init calls the base Init and the hash members call
 each other, none inlined: non-inline template members, as for CGcObj<T>. sly2/arrayv.h has `CDynArrayV<T>` (on a
 polymorphic base holding the owner and link words, so the vptr lands at +0xC), `CArrayListener<T>`,
-`CHashIndex<T>` and `CHash<K, V>`; tu_119BC8 instantiates `<char *>` / `<char *, int>`. The names, the element type
+`CHashIndex<T>` and `CHash<K, V>`; dynarraystr instantiates `<char *>` / `<char *, int>`. The names, the element type
 (4 bytes; the derived class's elements are strings) and the base split are HYPOTHESIS. The bodies are the
 per-function ones with `this` cast to their views; config names are the instances' (`Clear__t10CDynArrayV1ZPc`,
 `Insert__t5CHash2ZPcZiPPcPi`...: functions.csv, matched.csv, units.csv, new symbol_addrs.txt entries; bis's copy
-moved, matched.csv's source for 0x2566B0 is tu_119BC8). No vtable is emitted (no constructor is instantiated).
+moved, matched.csv's source for 0x2566B0 is dynarraystr). No vtable is emitted (no constructor is instantiated).
 
 What each remaining form needed (measured on scratch files, then in the sources):
 
@@ -1738,8 +1738,8 @@ one qword typedef everywhere first. Folding a TU's helper = delete its definitio
 include; then every function of the file must still match.
 
 Folded in pilot 1 (25 helpers in 13 TUs, all functions still MATCH): bsp Sub; tail QwSub, QwAdd, QwAddScaledX; trail
-VSub and its `"+j"(position)` Offset (the in-place "+j" spelling gives the same code as `"=j"` + inputs); tu_1C2D20
-Sub, Add; turret Sub; tu_1B9F80 Sub, Add; pipe Sub; pipe_jt Sub; tu_1D6848 Sub; dirblend AddScaled; hang Sub, VSub,
+VSub and its `"+j"(position)` Offset (the in-place "+j" spelling gives the same code as `"=j"` + inputs); lootpouch
+Sub, Add; turret Sub; neela Sub, Add; pipe Sub; pipe_jt Sub; launcher Sub; dirblend AddScaled; hang Sub, VSub,
 QwAdd, VAdd, QwSub; cane VSub, Add, Sub; clip SubQ, Sub. Moving the asm into the header changed nothing through the
 path-hash quirk in these TUs.
 
@@ -1770,17 +1770,17 @@ src/game (one .cpp per TU).
 
 | helper | folded | left | why left |
 |---|---:|---:|---|
-| VuDot | 80 | 26 | 16 not the plain statement (fused with vsub/lqc2/qmfc2/vsqrt in one asm, hand-scheduled blocks, a temp written as a literal `$vf2`); 4 change the code when folded (vec GetNormalVectors, whose asm lists the temp first; ik func_00186930; tu_171F58 QwLengthOne; waypoint Normalize); 2 `"memory"` clobber, 2 allocation-only operand, 1 volatile; 1 above throw's include |
-| VuSub / VuSubRef | 62 / 1 | 15 | 4 change the code (tu_171F58 two, one a two-output allocation form; turret Difference, operands listed reversed: still 1 off; throw SubS, an in-place `"+j"`); 5 above throw's include; 2 volatile, 1 `"memory"` and 1 `"vf4"` clobber, 2 allocation-only operand |
+| VuDot | 80 | 26 | 16 not the plain statement (fused with vsub/lqc2/qmfc2/vsqrt in one asm, hand-scheduled blocks, a temp written as a literal `$vf2`); 4 change the code when folded (vec GetNormalVectors, whose asm lists the temp first; ik func_00186930; bhvsearch QwLengthOne; waypoint Normalize); 2 `"memory"` clobber, 2 allocation-only operand, 1 volatile; 1 above throw's include |
+| VuSub / VuSubRef | 62 / 1 | 15 | 4 change the code (bhvsearch two, one a two-output allocation form; turret Difference, operands listed reversed: still 1 off; throw SubS, an in-place `"+j"`); 5 above throw's include; 2 volatile, 1 `"memory"` and 1 `"vf4"` clobber, 2 allocation-only operand |
 | VuFromFloat | 37 | 75 | 34 not the plain statement (12 plain `qmtc2` without .ni: a different instruction; 22 fused into larger asm); 14 move a whole quadword (QwToVf, ToVF, PointVF, Vector...: a different idiom, a compile error by the size check); 13 change the code, mostly where the asm writes a wrapper's member (`VU_FLOAT(float f)` constructors storing `q`; `v.qw`, `g.q`: the returned temporary is one more copy); 8 `"rV"` (the float's memory word as the operand); 3 above throw's include; 1 volatile, 1 `"vf1"` clobber, 1 allocation-only operand |
 | VuToFloat | 44 | 53 | 14 fused into larger asm; 27 change the code: the result kept as int bits (`n`, `bits`, `nd`, `i`: VuToFloat returns a float, so the compiler converts) or the qmfc2+mtc1 pair whose GPR temp the match needs (bsp five times, vec, hang); 6 results kept as a quadword (a compile error); 2 above throw's include; 3 `"memory"` clobber, 1 volatile |
-| VuMulMatrix3 / 4 | 10 / 14 | 30 | 11 rows pinned in literal VF registers or fused with their loads (ik, tu_185130); 9 write a struct member (the rows of a matrix product, `r.r[i]` in tu_1603B8 and hang; tail `v.qw`); 3 in-place `"+j"` rotate (geom, pipe, rail); 3 list the vector first (tu_185130 two, tu_173158); 1 tied `"0"(v)` (cane); 1 earlyclobber result (pipe Transform); 2 allocation-only operand |
+| VuMulMatrix3 / 4 | 10 / 14 | 30 | 11 rows pinned in literal VF registers or fused with their loads (ik, sticky); 9 write a struct member (the rows of a matrix product, `r.r[i]` in constraint and hang; tail `v.qw`); 3 in-place `"+j"` rotate (geom, pipe, rail); 3 list the vector first (sticky two, spawner); 1 tied `"0"(v)` (cane); 1 earlyclobber result (pipe Transform); 2 allocation-only operand |
 
 Total: 248 sites folded in 41 files; every function of every touched file matches. What pass 2 learned about folds:
 
 | case | result | rule |
 |---|---|---|
-| a fold changes the code, but the raw asm next to it (the vsub feeding the dot in jtgoal IDist, tu_14A008, busy) is folded too | matches | mixing a helper call with the raw asm it feeds reorders the loads around the call boundary; fold neighbours together, and retry misses after the other helpers are in |
+| a fold changes the code, but the raw asm next to it (the vsub feeding the dot in jtgoal IDist, carmelita, busy) is folded too | matches | mixing a helper call with the raw asm it feeds reorders the loads around the call boundary; fold neighbours together, and retry misses after the other helpers are in |
 | `#include "sly2/vu0.h"` at the top of throw.cpp, even on a line that shifts nothing | UpdateJtThrowArc 355/517 off | merely declaring the helpers before that function changes it (not the path-hash line quirk); throw.cpp includes vu0.h after UpdateJtThrowArc, and its sites above that point stay raw |
 | the dot temp with or without earlyclobber (`"=j"` vs `"=&j"(one)`, about half the sites each) | no difference for any site (the misses miss with both) | one VuDot with a plain `"=j"` temp |
 | a pinned result (`register qword d asm("vf1")`) assigned from the helper; a pinned dot temp or qmfc2 GPR temp dropped by the fold | matches (vec LenV, geom Normalize, throw ScalarS and others) | unlike pass 1's rail case, a pin on the variable that receives the result survives the fold; the pins on temps that the fold removes were not needed |
@@ -1791,34 +1791,34 @@ Total: 248 sites folded in 41 files; every function of every touched file matche
 Forwarding wrappers removed: 47 private wrappers whose whole body was one call of a sly2/vu0.h helper (`qword
 Sub(qword a, qword b) { qword r; r = VuSub(a, b); return r; }`, `Dot3`, `QwDot`, `VF0`, `Broadcast`, `ToVf`, `FG`,
 `GFromVf`, `X`...) are gone and their call sites call the helper: 12 in core/math (bez, bsp, vec), 14 in engine (blend,
-tail, wr, trail, clip, tu_185130, tu_1D6848, water), 21 in gameplay (detector, tu_14A008, tu_1553F0, tu_171F58,
-tu_173158, bomb, missile, tu_1C2D20, places, dirblend, hang, throw, waypoint; the commit subject says 23). Two were
-unused (tu_173158 QwSub, throw X). vec's per-function namespaces were folded namespace by namespace (V_func_0011EA60
+tail, wr, trail, clip, sticky, launcher, water), 21 in gameplay (detector, carmelita, dimitri, bhvsearch,
+spawner, bomb, missile, lootpouch, places, dirblend, hang, throw, waypoint; the commit subject says 23). Two were
+unused (spawner QwSub, throw X). vec's per-function namespaces were folded namespace by namespace (V_func_0011EA60
 keeps its own Sub, which has different asm). The `int`-typed float-to-VF wrappers (dirblend ScalarBits/PureBits, blend
 ToVf) fold into `VuFromFloat<qword>(bits)` unchanged, since VuFromFloat takes the word as given.
 
 | wrapper kept | why |
 |---|---|
-| tu_173158 QwSubFrom (`const qword &` operand) | calling VuSub directly: func_00173F18 55/350 off (the by-reference rule of pass 1). tu_171F58's QwSubFrom of the same shape folded fine |
-| tu_1D57A8 Dot / Scalar (VU_VECTOR operands by value) | folding even Scalar alone: CullSceneRenderList 15/705 off (the VU_VECTOR copy is part of the shape). tu_173158's GetXV (VU_VECTOR, used once inside LengthXY) folded fine |
-| tu_1D6848 Difference (`const qword *` operand) | VuSub(end, start) at the call: func_001D6848 4/105 off |
+| spawner QwSubFrom (`const qword &` operand) | calling VuSub directly: func_00173F18 55/350 off (the by-reference rule of pass 1). bhvsearch's QwSubFrom of the same shape folded fine |
+| rendertree Dot / Scalar (VU_VECTOR operands by value) | folding even Scalar alone: CullSceneRenderList 15/705 off (the VU_VECTOR copy is part of the shape). spawner's GetXV (VU_VECTOR, used once inside LengthXY) folded fine |
+| launcher Difference (`const qword *` operand) | VuSub(end, start) at the call: func_001D6848 4/105 off |
 | hang LengthSquared | its argument is a virtual call (`Velocity(p)`): the wrapper evaluates it once |
 | matrix adapters (Transform, QwTransformPos, Point, MulPos, MulV, Rotate, QwRotateVec...) | not forwarders: they turn a matrix type into four row operands; inlining them at the sites would add code |
-| composites (trail Dot = VuDot then VuToFloat, tu_1B9F80 Square, detector Dot, the length forms with their own vsqrt asm, wrappers whose result is a pinned register) | not single forwards |
+| composites (trail Dot = VuDot then VuToFloat, neela Square, detector Dot, the length forms with their own vsqrt asm, wrappers whose result is a pinned register) | not single forwards |
 
 Shared C helpers: include/sly2/util.h (new) holds GMin, GMax (`a < b ? a : b`, `a > b ? a : b`), NMin (int),
 GClamp (early-return form), GAbs (`__builtin_fabsf`), FIsPtr (`!(n & 1)`: a word that is a pointer or an odd tag) and
 NLerp (t onto an integer range). 33 private helpers in 25 merged files folded (7 in core/platform/world, 10 in engine,
 16 in gameplay; the first commit's subject says 8 TUs, it is 7). Clamp spellings fold into the one GClamp even when
 written differently: the early-return form with `g > hi` (vec, cane, joy), the if/else-if form with a result variable
-(clock, tu_12E600, tu_1B9F80) and the in-place assignment form (places, wr GLimit, tu_1D6848) all match with it.
+(clock, camera, neela) and the in-place assignment form (places, wr GLimit, launcher) all match with it.
 (The wave-4 pass below renamed these to Min, Max, MinInt, Clamp, Abs, IsPointer and LerpInt, and added StdMin/StdMax
 for the operand-swapped spelling this table calls the next step.)
 
 | not folded | result | rule |
 |---|---|---|
-| `b < a ? b : a` min (bsp GMin, tu_1D57A8 Min, clip GMin, water Min) and `a < b ? b : a` max (bsp GMax, throw GMax) folded into GMin/GMax | 1..89 instructions off (water UpdateWater 1/290, tu_1D57A8 func_001D6508 1/122, bsp func_00118D08 2/168, clip func_0014C748 89/172) | the operand-swapped forms (they are std::min/std::max's spelling: compare with `<` only, return the first operand on ties) are a different idiom: kept private. clip, bsp and throw therefore do not include util.h (their private GMin/GMax would collide); a second pair of shared helpers for that spelling is the next step |
-| vec V_FindClosestPointOnLineSegment's GClamp (assignment form) | FindClosestPointOnLineSegment 60/62 off | context decides: the same spelling folded in places, wr and tu_1D6848. Kept in its namespace (it hides ::GClamp there) |
+| `b < a ? b : a` min (bsp GMin, rendertree Min, clip GMin, water Min) and `a < b ? b : a` max (bsp GMax, throw GMax) folded into GMin/GMax | 1..89 instructions off (water UpdateWater 1/290, rendertree func_001D6508 1/122, bsp func_00118D08 2/168, clip func_0014C748 89/172) | the operand-swapped forms (they are std::min/std::max's spelling: compare with `<` only, return the first operand on ties) are a different idiom: kept private. clip, bsp and throw therefore do not include util.h (their private GMin/GMax would collide); a second pair of shared helpers for that spelling is the next step |
+| vec V_FindClosestPointOnLineSegment's GClamp (assignment form) | FindClosestPointOnLineSegment 60/62 off | context decides: the same spelling folded in places, wr and launcher. Kept in its namespace (it hides ::GClamp there) |
 
 After pass 3, `JOBS=2 python3 tools/progress.py`: 6,662/6,662 functions and 350,068/350,068 instructions; matched.csv
 unchanged by the run (the commits had already set names and sources); the same 332 sources do not build here (SDK
@@ -1862,7 +1862,7 @@ VuSub; kept local because ...`): 29 of them, plus throw.cpp's two untouched vsub
 
 | why kept | where |
 |---|---|
-| the callers pass mixed operand types (a `VV` wrapper or `VU_VECTOR` and a qword): the template wants one type | 14 copies: light (VuSub), shape (VuSub x2, VuDot, VuScaleByX, VuDivByX), guardbhv (VuDivByX), tu_1D1370 (VuSub x2, VuAdd, VuDot, VuScaleByX, VuDivByX) |
+| the callers pass mixed operand types (a `VV` wrapper or `VU_VECTOR` and a qword): the template wants one type | 14 copies: light (VuSub), shape (VuSub x2, VuDot, VuScaleByX, VuDivByX), guardbhv (VuDivByX), robottank (VuSub x2, VuAdd, VuDot, VuScaleByX, VuDivByX) |
 | the shared helper changes a function | mark MarkSoContactsBspBsp 10/365 (VuSub); shape StepChain 62/215 and StepChainRk4 (VuSub, VuSqrtX, QwordX); light DoesSphereHitSpheres 41/135 (VuDivByX, operands listed reversed); cplcy UpdateCplook 243/286, waypoint RenderWaypt 312/376, vec FindClosestPointOnLineSegment 60/62 (Clamp); rip BounceRipgRips 139/199 and game GetEpisodePercentComplete 8/78 (`a > b ? b : a` / `a <= b ? a : b` into MinInt); game GetJobState 1/11 (StdMaxInt) |
 | folding moves a function's lines (path-hash quirk) | shape func_001E9AC0 (std-spelling min kept as StdMinLocal, the comment on the same line) |
 | the include goes below the function that needs it | throw.cpp (UpdateJtThrowArc, as in pass 2): VuMin, VuMax, VuToFloat, QwordZ renamed in place; its VuSub copies (Sub, SubVec) are untouched |
@@ -1908,7 +1908,7 @@ Defining a TU's data:
 Known limits: the ELF has no symbol table, so a definition that is too short passes unless symbol_addrs.txt gives
 `size:`; relocated words are masked, so a wrong pointer in a table still passes; unnamed literals and strings are not
 checked (only named symbols). Our compiler puts a const object with a dynamic initializer in .bss, where the original
-has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` carry
+has it zero-filled in .rodata: palette16's and palette256's palettes `D_0029A7C0` / `D_002A2900` carry
 `__attribute__((section(".rodata")))` for it (see "Resolved decisions" under Data). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
 by any TU. The end of .bss from 0x4421A0 was taken for commons (phase 3); it is in TU order up to 0x452098 and is
 defined by layout since phase 7 ("Phase 7: .bss and data gaps"); only the class and template statics after it and
@@ -1917,41 +1917,41 @@ in `.sbss` are commons.
 Rules found while defining the data of every TU (the early data survey's owner guesses were often wrong; layout wins):
 
 - **What to leave out.** `.bss` addresses inside g_sw (0x3DD490..0x3E1C20) are SW fields, not objects (ms's "first
-  glob owner", the slot heaps of tu_1709A8/tu_20B840/noise/frm, light's lists). End of `.bss` from 0x4421A0 (in TU order after
+  glob owner", the slot heaps of guardscript/gait/noise/frm, light's lists). End of `.bss` from 0x4421A0 (in TU order after
   all: phase 7), the splice pool words in `.sbss`/0x4520xx and the `.bss` around 0x3DD0E4..0x3DD190 (cd, menu entries between sound and
   sprbuf) are not in TU order: not defined. Also left: vtables, class rows, engine tables, PMF constants (literal
-  phase), records and tables holding function pointers (pointer phase: cheat's CODEs, menu's items, tu_15CD68's label
+  phase), records and tables holding function pointers (pointer phase: cheat's CODEs, menu's items, episodemenu's label
   tables, draw's pass hooks), the shared constant block 0x2A2D00..0x2A2E10 (identity matrices, unit/zero vectors right
-  after tu_114AE0's palette; owner undecided) and the two zero-filled palettes (since resolved: section attribute, "Resolved decisions" below).
+  after palette256's palette; owner undecided) and the two zero-filled palettes (since resolved: section attribute, "Resolved decisions" below).
 - **Ownership by layout beats the survey's first-user guess** where they disagree: frm owns D_002DEA4C (survey: font),
-  cd owns D_002BD4C0 (survey: tu_14A008, medium), phasemem owns the RPL buffer D_003B3980 that only other TUs name;
+  cd owns D_002BD4C0 (survey: carmelita, medium), phasemem owns the RPL buffer D_003B3980 that only other TUs name;
   basic's two int tables lie in crt0_splicewrap's `.rodata` (0x27A108.., generated area) and are not basic's
   (defined in class_registry_options.inc since data/crt0-tables).
 - **Spelling.** `.data`: a plain definition. `.rodata`: `extern const T x = v;` (`extern` keeps the symbol, `const`
   puts it in `.rodata`); strings as `extern const char x[] = "...";`. Where a callee or return wants `char *`, change a
   plain-C-symbol callee's parameter to `const` (check the declaration is inside `extern "C"`) or cast; never change a
   mangled callee's parameter types (IsWithinLimits__FP2LMf, CdPath__FPcT0i: the symbol would change). A zero-filled `.rodata`
-  row that the code uses as a string is `""` (tu_11AFE0, tu_1BAB50, brx). `= 0` keeps a zero word in `.data`.
+  row that the code uses as a string is `""` (strhash, breakable, brx). `= 0` keeps a zero word in `.data`.
 - **Sizes.** Arrays are 8-byte aligned on the EE, so zero words before an 8-aligned next object are padding: size an
   array by the count the code uses (loot tables 9, logo triangles 53/22/11/11/62, snip tables by the BindLoOidTable
-  count), not by the gap. Two names into one array (tu_1471C0's D_002BD398/D_002BD39C) stay extern; so do records whose
+  count), not by the gap. Two names into one array (framecapture's D_002BD398/D_002BD39C) stay extern; so do records whose
   view type overlaps the next datum (gs' 0xF0-byte DRAWENV view).
 - **16-byte vectors read as qwords** cannot be initialized through a qword-first type: use a TU-local
   `union VQ { float af[4]; qword q; };` and `.q` at the reads, or list the floats first in an existing union U (no layout
-  change; cane, hurt, grab, tu_1B9F80).
+  change; cane, hurt, grab, neela).
 - **When a visible value changes code.** A const definition lets g++ fold the value: cd's UpdateCd stopped matching.
   Declare the objects `extern const` above and define them at the END of the file (gcc 2.95 compiles function by
-  function, so a later definition is not seen). If the const qualification alone changes the code (tu_185130's
+  function, so a later definition is not seen). If the const qualification alone changes the code (sticky's
   D_002A5688), leave the extern. `extern const` declarations of `.data` words that comments describe as code-generation
-  devices (path D_002C0C04, tu_185130 D_002BE918) stay extern too.
+  devices (path D_002C0C04, sticky D_002BE918) stay extern too.
 - **Namespace-mangled externs.** In files with per-function namespaces, an `extern` inside a namespace without
   `extern "C"` refers to `_<n>M_<view>$D_...`, which no native link resolves (relocations are masked, so the match never
   showed it). A definition there must carry `extern "C"` (`extern "C" T x = v;`, `extern "C" { T x; }` for `.bss`); the
   data check silently skips mangled names, so list the object's data symbols after each TU. Fixed for the data defined
-  here (step, hurt, grab, jt, tu_1D1370, glob). The remaining references (555 data, 47 functions in 28 files, waves
+  here (step, hurt, grab, jt, robottank, glob). The remaining references (555 data, 47 functions in 28 files, waves
   9/10 and the big six included) were fixed on integrate/round2: see "Linkage of namespace-scoped declarations" below.
 - **Order.** Definitions go in address order where the declarations allow; in the big per-function-view files (tn,
-  jt, tu_1D1370, glob) they sit at their first declaration, so the object's data order follows the declarations (each
+  jt, robottank, glob) they sit at their first declaration, so the object's data order follows the declarations (each
   symbol still MATCHes; the layout is not reproduced).
 - **Values** come from the ELF: floats as the shortest literal that round-trips (FLT_MAX as `3.40282347e+38f`), words
   that the code reads as float bits stay ints with a comment.
@@ -1982,10 +1982,10 @@ Rules found while defining the data of every TU (the early data survey's owner g
   g_clock fields; D_002DEB40/44/48 g_game fields; D_002E5270 is an address inside memcard's thread stack. A scalar
   declared by the code with much more room to the next name than its size stays extern ("extent unclear").
 - **Ownership by text order** again beat the survey: g_joy, g_grfjoyt, g_grfusr (survey: guardbhv) are joy's; the
-  ship singleton D_002DFB80 (guardbhv) is tu_17F090's; g_clock (cd) is clock's; the builtin table D_002BBB90 (no
+  ship singleton D_002DFB80 (guardbhv) is hack's; g_clock (cd) is clock's; the builtin table D_002BBB90 (no
   owner) is bif's, right after bif's D_002BBB70 (eval only indexes it). `.rodata` names the code no longer uses (now
   literals in the function) are not defined (guardbhv's D_002A5588..D_002A55A0).
-- **PMF constants** can look like 64-bit integers: tu_17F090's D_002A5630 `{0, 0x53, 12}` is a virtual
+- **PMF constants** can look like 64-bit integers: hack's D_002A5630 `{0, 0x53, 12}` is a virtual
   pointer-to-member (delta 0, vtable index 0x53, vptr at +0xC) passed to PostSwCallback; left for the literal phase.
 - **Vtables.** g++ 2.95 emits a vtable (`_vt$<class>`, `.gnu.linkonce.d`) only where the class's virtual functions
   are real members. Six are: CLinearHeap (heap), CBinaryInputStream (bis), CQueueInputFile and CQueueInputMemory
@@ -2054,14 +2054,14 @@ Rules found:
   later declaration with another type must not leak). Comments name the SW field (offsets from sly2/sw.h). The SW
   type could replace the casts where a file has `SW` in scope (done for most of them in phase 4, below). Codegen: identical in 81 files; in two
   functions the base form changes code (CSE of the shared base in hud's func_00211298, offset folding in
-  tu_201D78's UpdateReconTargetVisibility), so those three declarations stay extern.
+  recon's UpdateReconTargetVisibility), so those three declarations stay extern.
 - **Pointer records.** `namespace ANPTR_<tu> { void p_F() __asm__("F"); extern "C" char d_X[] __asm__("X");
   extern "C" { extern const unsigned int D_X[n] = {0xFFFF0000, (unsigned int)p_F}; } }` at the end of the TU: words as
   in the ELF, pointers through asm-labelled declarations, no existing declaration has to agree. A non-virtual PMF
   constant is 8 bytes {delta 0, index -1, pfn}; hud's widget records are {id, builder, arg, 0}. relverify checks the
   pointers (the data check masks them).
 - **func_ labels and view inlines.** Labelling `func_00129658` as `__as__4CRefRC4CRef` in splicemap (and
-  `func_00256CE8` as `__8VU_FLOATf` in tu_1553F0) makes g++ emit the file's own inline member with that mangled name
+  `func_00256CE8` as `__8VU_FLOATf` in dimitri) makes g++ emit the file's own inline member with that mangled name
   (a referenced assembler name forces the deferred inline out): left as address names.
 - **Prototype link.** Resolving through the defining objects exposes the prototype link's existing `.bss` placement
   differences (memcard, mpeg, sw, tn): `.text` from objects 1,281,279 equal bytes (68 fewer); relverify, which checks
@@ -2093,9 +2093,9 @@ Representation decisions:
   Interior array elements are spelled as elements (`g_sw.objectsByClass[49]`, `g_sw.apstimk[3]`, the stimulus view base
   `g_sw.aslPxrOid[410]`); act.cpp's view at slotheapAsega+0xC was slotheapAct.cb.
 - **Private views that blocked the header** were replaced by the shared layout where that was the only obstacle
-  (all MATCH): the file-scope `typedef int qword __attribute__((mode(TI)))` (signed) in light, sky, vol, tu_1B9F80,
-  bomb, tu_1BAB50, tu_1FF3B8 gives way to basic.h's unsigned TI qword; busy's `struct DL`; the CLOCK views of cane,
-  hang, prog (`frameT` = tReal), tu_15CD68 (`t` at +0x3C = tReal) and rumble (`a[16]` = dtReal), with the views' own
+  (all MATCH): the file-scope `typedef int qword __attribute__((mode(TI)))` (signed) in light, sky, vol, neela,
+  bomb, breakable, freegrabspot gives way to basic.h's unsigned TI qword; busy's `struct DL`; the CLOCK views of cane,
+  hang, prog (`frameT` = tReal), episodemenu (`t` at +0x3C = tReal) and rumble (`a[16]` = dtReal), with the views' own
   size/alignment asserts.
 - **.bss order (g++ 2.95).** An object with a constructor is emitted at its definition; every other uninitialized
   object is emitted at the end of the file in the order of its *first declaration* (file scope first, then
@@ -2150,7 +2150,7 @@ word `D_003DD008` defined), prog (`D_002DD314` is a `.sbss` common), screen (the
 (g_game defined at file scope as `char[0x1C]`, `D_002DEB28` declared first), stepguard, joy, grab, sprbuf.
 `.rodata` (in `--tu-data` mode now byte-identical to the ELF, relocated words aside): text, guardbhv, game,
 stepguard, screen (with its `D_002C3268` string table and the three strings, which also closes the gap in its
-`.data`), air, stepplayer, jt, prize, murray, sound, relay, tu_17F090, booty; hud from 84 to 9 differing bytes, hurt to 4 (its
+`.data`), air, stepplayer, jt, prize, murray, sound, relay, hack, booty; hud from 84 to 9 differing bytes, hurt to 4 (its
 shared literal).
 
 **`-fdata-sections` (the default mode of tools/link.py).** It gives each named object its own section but leaves
@@ -2179,7 +2179,7 @@ How the original got one copy where we emitted two (*shared literals*), by kind:
   named constant is that function's literal: defined under its asm label just before the function (`RO_ORDER`),
   with the declaration kept, so the function loads the symbol (same `lui/lwc1`) and emits nothing of its own. Only
   valid where the constant is the first of the function's literals; true in all 30 cases here (po, blend, mark,
-  path, bomb, tn, step, hurt, tu_171F58, tu_185130, ...).
+  path, bomb, tn, step, hurt, bhvsearch, sticky, ...).
 - **Strings** are pooled per TU (`output_constant_def`): memcard's 14 and sw's 3 named strings were the functions'
   literals, so they are now spelled as literals where they are used and the definitions are gone (`(char *)` where
   a `void *` parameter takes one). The symbols stop existing; nothing else referenced them.
@@ -2194,16 +2194,16 @@ How the original got one copy where we emitted two (*shared literals*), by kind:
 Other layout rules found:
 
 - **The first part of `.rodata`** (up to about 0x2A3A00) holds named constants of many objects in TU order before
-  every object's literals (cd's read modes and CRC table, the file-reference keys of tu_1A4E08, menu and mpeg, the
+  every object's literals (cd's read modes and CRC table, the file-reference keys of startup, menu and mpeg, the
   two palettes). The reason the original compiler separated them is not known. Decision (stylistic, easy to rename):
-  those of objects that also have literals get `__attribute__((section(".rodata.early")))` (cd, menu, tu_1A4E08),
+  those of objects that also have literals get `__attribute__((section(".rodata.early")))` (cd, menu, startup),
   so the link can place them apart; the palettes keep their `.rodata` attribute.
 - **Writable statics and strings in `.data`**: xf's chase tuning and rhythm's two prompt glyph strings are in
   `.data` in the ELF (const removed / `char[]` arrays). A one-float struct is 8-aligned (`DATA_ALIGNMENT` raises
   records and arrays to 64 bits) where the ELF has 4-aligned words: those are plain floats (xf's tuning, hurt's F
   words, throw's D_002C410C), defined under their asm labels where the declarations keep the view's type.
 - **16-aligned objects** the layout shows (12-byte POLY/CLQ-like records and the objects after them) carry
-  `aligned(16)` on the definition (tn, tu_1D1370, jt, cplcy, stepguard, prize, ... ; scratch fixalign added them one
+  `aligned(16)` on the definition (tn, robottank, jt, cplcy, stepguard, prize, ... ; scratch fixalign added them one
   at a time from the ELF addresses). Where the type is probably 16 bytes (CLQ), the attribute is a stand-in.
 - **`.data` block**: in the per-function-view files the definitions sat at their first declaration. Each such file
   now has one block after the functions in address order, each definition re-wrapped in its namespace /
@@ -2212,8 +2212,8 @@ Other layout rules found:
   D_002C44E4, tn's default CPD D_002C4120 (without lmTilt, which is D_002C41A8), prize's two smack records, grab's
   CPD record D_002BF670, menu's pause pages and items (D_002BFD58..D_002C01C8, function pointers by asm label), jt's
   D_002BF2F0/D_002BF3D0, murray's D_002C09A4 (func_001B6CC0 reads it by absolute address), cane, font, path
-  (D_002C0C04), tu_1471C0 (D_002BD398; D_002BD39C stays its interior address name), tu_15CD68 (D_002BE268, a
-  pointer to the key at 0x2A37A8; whether it is tu_15CD68's is not known), tn's null callback record D_002A96E8.
+  (D_002C0C04), framecapture (D_002BD398; D_002BD39C stays its interior address name), episodemenu (D_002BE268, a
+  pointer to the key at 0x2A37A8; whether it is episodemenu's is not known), tn's null callback record D_002A96E8.
 - **main's build strings** (region, date, build number at 0x2C46C0) lie after xf's `.data`, in a later TU's place:
   section `.data.buildinfo` (stylistic, as `.rodata.early`).
 
@@ -2229,7 +2229,7 @@ relocations 29,704 OK / 0 mismatched; symcheck: 41 unresolved as before, 0 dupli
 **The end of `.bss` is in TU order (a correction of phase 3).** GNU ld puts commons of 8 bytes or less in `.sbss`
 (`-G 8`, its default for MIPS), so the 4-byte words at 0x4425D0.. (prog's, frm's, memcard's thread ids) cannot be
 commons. Read as `.bss` in TU order the range fits: hud (0x3E1C70..0x4425D0), thread (0x4425D0..0x4435F0),
-tu_2275B8 (g_subtitle, ..0x443740), wipe (..0x4437A0), xf (..0x443800), then the SDK libraries' `.bss` in library
+subtitle (g_subtitle, ..0x443740), wipe (..0x4437A0), xf (..0x443800), then the SDK libraries' `.bss` in library
 order (989snd 0x443800, libkernel, libgcc, libdma, libcdvd, libpad, libmc, libmpeg, collect2 0x452080). The commons
 are the class and template statics only: `.sbss` and 0x452098.. (`s_aptPage`, `s_pool`). Every `COMMONS_<tu>` entry
 for 0x4421A0..0x443800 is now a `.bss` definition in the owning TU; the `.sbss` and 0x4520xx commons stay.
@@ -2241,7 +2241,7 @@ Rules found:
   first-declaration order for uninitialized objects ("Phase 5") is the block's order, and the declarations the
   functions see stay as they are (no codegen change in any file). Where a hand-written StaticInit constructs the
   object (hud's CLinearHeap, level heap and STRINGGEN table) or the type has a constructor g++ would add to the
-  generated initializer (tu_2275B8's RGBA), the definition is constructor-less storage of the layout (the file's
+  generated initializer (subtitle's RGBA), the definition is constructor-less storage of the layout (the file's
   POD view, or a TU-local struct): a constructor would make g++ generate initialization code.
 - **Words other TUs name inside one object.** thread's id table (main, render, memcard, mpeg, 4 spare) is spelled
   as separate words because frm, memcard and mpeg name its elements and an array element at 4 mod 8 cannot be a
@@ -2253,7 +2253,7 @@ Rules found:
   memcard's thread stack `aligned(64)`, g_gs (save) and screen's list head `aligned(16)`. Each is a choice that
   fits the layout, noted at the definition (as in phase 5).
 - **Sizes from the layout and the code.** The palette TUs' BMP descriptor is 0x28 bytes (both TUs show the same 8
-  bytes after it); cheat's spare record 0x38 = one CODE; tu_1A4E08's STEPQ 0x1C8 = the gap exactly; g_gs is 0x5408
+  bytes after it); cheat's spare record 0x38 = one CODE; startup's STEPQ 0x1C8 = the gap exactly; g_gs is 0x5408
   (the copies in save.cpp move that many bytes), so screen's 16-byte alignment, not a bigger SVSET, closes the gap.
 
 `.bss` defined (owner by layout; the users in brackets where the owner does not name it):
@@ -2278,17 +2278,17 @@ differing bytes after every step. What was done, by kind:
   dropped (every object including slotheap.h defines those); gc.cpp's three 8-byte commons at +0x10 of the pools are
   `CSlotPool<...>::s_pool.slotheap.cAlloc`.
 - **Interiors**: gs.cpp's double buffer is four objects (tags and draw environments) instead of one block, so frm,
-  tu_1471C0 and hud reference the draw environments directly. Where phase 3/4 kept an address name because a
+  framecapture and hud reference the draw environments directly. Where phase 3/4 kept an address name because a
   base+offset spelling changes code (g++ shares or folds the base), the declaration is bound to its owner by an asm
-  label with an addend: `extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");` (tu_201D78; also tu_1471C0's
+  label with an addend: `extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");` (recon; also framecapture's
   D_002BD39C, hud's D_003D9EDC/EF4, memcard's and menu's D_002E6604/D_002F633C). g++ treats the label as a symbol
   of its own; the assembler relocates against the owner. The same trick with `+0` names a symbol whose plain label
-  would make g++ emit the file's own inline member under it (splicemap's `__as__4CRefRC4CRef+0`, tu_1553F0's
+  would make g++ emit the file's own inline member under it (splicemap's `__as__4CRefRC4CRef+0`, dimitri's
   `__8VU_FLOATf+0`).
 - **Objects defined** (owner by layout, phase rules): bsp's sentinel planes and leaves (0x2BBAD0..0x2BBB30),
   util's limits {0, 1} / {-1, 1} (0x2BBB60, 0x2BBB68: Sly 1's g_lmZeroOne), mat's identity/zero matrices and vec's
   axis/zero/one/FLT_MAX vectors (`.rodata` 0x2A2D00..0x2A2E50, "the first part of `.rodata`": TU order puts the
-  block between tu_114AE0 and cd, mat and vec are the math TUs in range, matrices before vectors as in Sly 1), hud's
+  block between palette256 and cd, mat and vec are the math TUs in range, matrices before vectors as in Sly 1), hud's
   identity M23 (0x2A3A10, `.rodata.early`), grabspot's flag D_002DFB84 (`.bss`), emitter.h's empty reference blocks
   as template static data members (`EMITBREFS<T>::s_apvNull`, `.gnu.linkonce.d.`, 0x2CE4A0/0x2CE4B8). Each under
   asm labels so that no other declaration has to agree with the definition's type.
@@ -2445,7 +2445,7 @@ them). Settled for functions.csv's names (both files and the SDK sources now agr
 S-command RPCs on the client bound to 0x80000593 (in _sceCd_scmd_prechk); cdvdfsv dispatches S-command 3 to
 sceCdGetDiskType and 4 to sceCdGetError, and 0x242A20 sends 3, 0x242AE0 sends 4. 0x242AB8 calls 0x242A20 and maps
 -1 to 0 (SCECdNODISC); the game calls it where it wants the disk type (IsPs2DvdInDrive compares with 0x14, PS2DVD)
-and calls 0x242AE0 to read the error after a read (bas.cpp; ReadCdDirect's retry loop; tu_1848A8's func_001849A0,
+and calls 0x242AE0 to read the error after a read (bas.cpp; ReadCdDirect's retry loop; streambis's func_001849A0,
 which tests it for 0, SCECdErNO). The last two were spelled `sceCdGetDiskType()` in source, and were round 3's two
 mismatches; they now call sceCdGetError (relocations of the four touched objects: 94 OK, 0 mismatched). So 0x242AB8 is sceCdGetDiskType, 0x242AE0 sceCdGetError, and 0x242A20 keeps
 functions.csv's placeholder sceCdGetDiskType2 (Sony's name for the raw call is not known).
@@ -2532,7 +2532,7 @@ wrappers and thunks, but also at getters/setters all over the game, so tools/gen
 | 0x27A1D8 | `D_0027A1D8[30]` (s_aiEvtParm) | the first type of each event 0..28 and the end (51) |
 | `.data` 0x2AC880..0x2BAAE8 | `D_002AC880[1449]` (g_aeopid) | sly2/eopid.h's EOPID per option binding; D_002BAAE8 (the class descriptors) follows |
 
-Everything after 0x27A250 up to tu_1147D8's palette is tu_1147D8's font, not this TU's (full-link.md, data work list).
+Everything after 0x27A250 up to palette16's palette is palette16's font, not this TU's (full-link.md, data work list).
 
 Representation (the decisions for review):
 

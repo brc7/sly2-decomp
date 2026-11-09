@@ -2206,7 +2206,7 @@ extern "C" inline void InitFileKey(FILEKEY *pfk)
 // "Phase 6: one link mode"); the pointer-to-member records are defined among the functions (RO_ORDER).
 
 // ---- memcard's .rodata.early (tu-merging.md "Phase 6"): the FILEREC key of the save icon file (GetDiscFileEntrySize,
-// load_file_from_disc), between tu_1A4E08's keys and menu's in TU order. Asm-labelled: the declarations above stay.
+// load_file_from_disc), between startup's keys and menu's in TU order. Asm-labelled: the declarations above stay.
 namespace MEMCARD_KEYS {
 extern const unsigned int r_D_002A38E8[16] __asm__("D_002A38E8") __attribute__((section(".rodata.early"))) = {0xBD87DF12, 0xE9F4E46C, 0x0E45625C, 0x8F049FCC, 0x478171EA, 0x9B7A071D, 0x844C0FEE, 0x53E2403F, 0xC179D2D6, 0xD52DEF52, 0x5842CD0B, 0x2190978E, 0xC22AC32F, 0xBD961318, 0x0E456593, 0xE9F48034};
 }

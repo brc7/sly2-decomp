@@ -66,7 +66,7 @@ struct AC
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCurveFromBrxDefault");   /* slot 1 */
     virtual void Prepare(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
     virtual void Evaluate(float g, float dtScale, void *pv, void *pdv) __asm__("__pure_virtual");   /* slot 3 (pure): the
-                               value (and derivative) at time g; the floats come first (tu_20B840's calls set up their
+                               value (and derivative) at time g; the floats come first (gait's calls set up their
                                arguments in this order) */
 };
 
@@ -357,7 +357,7 @@ struct ACT7 : ACT
 struct AC5 : AC
 {
     ASEGBL *pasegbl;        /* +0x04 the blended segment */
-    MRSGC *pmrsgc;          /* +0x08 its time-range record that keeps this channel in step (tu_20B840's PostJtLoadGait) */
+    MRSGC *pmrsgc;          /* +0x08 its time-range record that keeps this channel in step (gait's PostJtLoadGait) */
     AC **apac;              /* +0x0C the blended segments' curves for this channel */
     qword restValue;        /* +0x10 */
     virtual void Prepare(void *pv) __asm__("BlendChannelPose");   /* slot 2 */

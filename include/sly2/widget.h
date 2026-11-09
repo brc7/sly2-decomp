@@ -52,7 +52,7 @@ struct WIDGET : LO
     HEAP *spriteHeap;            /* +0xC4 the heap the sprites come from (the streamed-sprite or the level heap) */
     WIDGET *ownerWidget;         /* +0xC8 the widget whose position the sprite texts use (itself) */
     int argTextIds[10];          /* +0xCC argument text ids (ShowWidgetArgs; -1 none) */
-    LO *followObject;            /* +0xF4 world object the widget follows (tu_201D78's recon target; inferred) */
+    LO *followObject;            /* +0xF4 world object the widget follows (recon's recon target; inferred) */
     SPRITEXF *xform;             /* +0xF8 2-D transform override (SetWidgetXf) */
     SL renderQueue;              /* +0xFC sprite items queued for this frame's render (link at +0x68) */
     char pad108[0x110 - 0x108];

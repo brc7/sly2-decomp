@@ -17,7 +17,7 @@ struct BUF { int pad0[2]; char *gifBuffer; int gifBufferQwords; int pad1[2]; cha
 extern struct BUF D_002DEA50[2];
 /* phasemem's .bss (address order): the phase buffers (phase 3: two 0x6000 + two 0x58000 halves; phase 2: two
  * 0x1800 + two 0x800 in one 0x4000 block), the RPL buffer between them (no code here names it: render, draw and
- * tu_1D57A8 use it; it fills the gap exactly) and g_phase. */
+ * rendertree use it; it fills the gap exactly) and g_phase. */
 char D_002F7980[0xC000] __attribute__((aligned(128)));   /* 128-aligned by layout: 0x2F7980 after murray's word at 0x2F7900 */
 char D_00303980[0xB0000];
 char D_003B3980[0x1C000];

@@ -45,7 +45,7 @@ warps, exits and wipes request a level change. The objects inside the world are 
 loading screen, clock, VU microcode, sound, HUD packets, memory card, MPEG) under a progress bar, then `StartupGame`
 (`world/state/game.cpp`): language from the console, game event 0, and `BeginStartupSequence`.
 
-**The startup step queue** (`app/tu_1A4E08.cpp`) is a short list of front-end steps run one after another: play a
+**The startup step queue** (`app/startup.cpp`) is a short list of front-end steps run one after another: play a
 movie, warp to a level, start a task, enter the memory-card UI. At boot it holds the intro movie, the memory-card
 check and the warp to the first level. `RunNextStartupStep` runs one step; a movie step warps to an empty level (a
 transition with no file) that plays it, and the end of that empty load runs the next step. The game also queues steps
@@ -240,7 +240,7 @@ in `OnRemove` (slot 22). The list then holds exactly the live instances.
 
 ## 11. Where to look
 
-- `src/game/app/main.cpp`: `GameMain`, `Startup`. `src/game/app/tu_1A4E08.cpp`: the startup step queue.
+- `src/game/app/main.cpp`: `GameMain`, `Startup`. `src/game/app/startup.cpp`: the startup step queue.
 - `src/game/world/scene/sw.cpp`: `SW_ctor`, `SetSwTransition`, `DeleteSw`, `InitSwLoadBuffers`, `ResolveSwSaveVars`,
   `PostSwLoad`, `ExecuteSwTransition`, hands-off counters, lighting, the update table, level table queries.
 - `src/game/world/scene/callback.cpp`: world callbacks.

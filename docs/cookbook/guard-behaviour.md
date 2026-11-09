@@ -90,7 +90,7 @@ StartPushedBhv(o);
 ## Variant: a script command
 
 Patrol and scripted segments are guard scripts (`SSG`), lists of commands built from Splice options and executed by
-the script behaviour (`gameplay/ai/tu_1709A8.cpp`). To add a command:
+the script behaviour (`gameplay/ai/guardscript.cpp`). To add a command:
 
 1. Add a kind to the `SSGK_*` enum and an `AddGuardScript<Name>` function that appends a command of that kind
    (`AddGuardScriptCommand`) and fills its arguments.

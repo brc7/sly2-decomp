@@ -62,8 +62,8 @@ Left, and who decides:
   syscall stubs func_002347xx..002351E0) and sceSifSetReg (0x23A920, which config calls sceSifExecNotifyHandler):
   renames of SDK sources the naming pass deferred to the Mac. Also to verify
   on the Mac: func_00237B80.c and _sceMpegCscStoreRefImage.c (gnu-reorder) now call SignalSema / FlushCache by name.
-- **User decisions**: tu_1147D8's built-in font (D_0027A778, D_0029A790, font.cpp's D_0029A7A8/D_002A28E8) and
-  tu_114AE0's bitmap block (D_0029A8C0, D_002A28D0): game artwork, how image assets are kept in source.
+- **User decisions**: palette16's built-in font (D_0027A778, D_0029A790, font.cpp's D_0029A7A8/D_002A28E8) and
+  palette256's bitmap block (D_0029A8C0, D_002A28D0): game artwork, how image assets are kept in source.
 - **The commons (data/commons-file)**: the user chose one source file over a link.py ordering rule.
   [src/game/app/commons.cpp](../../src/game/app/commons.cpp) defines the 54 game commons (the Splice GC kinds'
   list words and block tables, CSlotPool/CSpliceHeap's template statics and their sentries, prog's and hud's words)
@@ -165,9 +165,9 @@ relocation at the differing word), and lists config names at the wrong address (
 were once plain functions homed in a TU that uses them, which split those objects' `.text`. All are template or inline
 instances again, each in its own `.gnu.linkonce.t.<symbol>` section: the Splice GC pools (`CGcObj<T>` in sly2/gc.h,
 `CRefPtr<T>` in sly2/basic.h), the EMITTER/EXPLO set (function templates in sly2/emitter.h), accessors whose address the
-option table takes (emitted by class_registry.cpp), the containers (sly2/arrayv.h, instantiated by tu_119BC8.cpp), and a
+option table takes (emitted by class_registry.cpp), the containers (sly2/arrayv.h, instantiated by dynarraystr.cpp), and a
 few plain definitions with `weak` + `section(".gnu.linkonce.t.<symbol>")` (class_registry's three constructors, bif's
-`operator*`, tu_1553F0's VecCombo). Why each form: tu-merging.md, "Inline functions and linkonce copies" and "Linkonce
+`operator*`, dimitri's VecCombo). Why each form: tu-merging.md, "Inline functions and linkonce copies" and "Linkonce
 copies by family". The first placed copy of each linkonce section is linked and every other object's copy bound to it.
 
 ### Junk scraps and padding
@@ -250,11 +250,11 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 |---|---:|---|---|---|
 | ~~crt0_splicewrap `.rodata`~~ | ~~98,000~~ | 0x262380..0x27A250 | class_registry.cpp | done (data/crt0-tables): the 199 class option arrays, g_mpcidarysplopt, HandleBasicSpliceEvent's event parameter types |
 | ~~crt0_splicewrap `.data`~~ | ~~57,960~~ | 0x2AC880..0x2BAAE8 | class_registry.cpp | done (data/crt0-tables): g_aeopid, the 1,449 option records |
-| tu_1147D8's built-in font | 132,464 | 0x27A250..0x29A7C0 | tu_1147D8 (head of its `.rodata`, before its palette D_0029A7C0) | font header {-1, 0x00290A19, 1.0f, 163} and 163 8-byte glyph records (0x27A250..0x27A778), the CLUT header D_0027A778 (16 colours: the palette D_0029A7C0), the 512x512 4-bit bitmap 0x27A790..0x29A790 (131,072 bytes, mostly 0xFF: these were "the tables filled with 0xFF"), the BMP header D_0029A790 and a font descriptor {header, glyphs, &D_002DD520 BMP, &D_002DD500 CLUT} at 0x29A7A8 (.data 0x2BE320 points at it). The structured parts are about 1.4 KB; the bitmap is an image and needs a decision on how image assets are kept in source |
+| palette16's built-in font | 132,464 | 0x27A250..0x29A7C0 | palette16 (head of its `.rodata`, before its palette D_0029A7C0) | font header {-1, 0x00290A19, 1.0f, 163} and 163 8-byte glyph records (0x27A250..0x27A778), the CLUT header D_0027A778 (16 colours: the palette D_0029A7C0), the 512x512 4-bit bitmap 0x27A790..0x29A790 (131,072 bytes, mostly 0xFF: these were "the tables filled with 0xFF"), the BMP header D_0029A790 and a font descriptor {header, glyphs, &D_002DD520 BMP, &D_002DD500 CLUT} at 0x29A7A8 (.data 0x2BE320 points at it). The structured parts are about 1.4 KB; the bitmap is an image and needs a decision on how image assets are kept in source |
 | registry vtables | 100,312 at link/real-link; 35,272 left after data/vtables (174 vtables, 65,040 bytes, emitted by their key TUs), 24,944 after data/vtables-2 (44 more, 10,328 bytes), 24,864 after integrate/round10 (blend's AC5/ACG2, 80 bytes) | the six gaps of link/real-link (0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520); left: the SDK `.data` at the head of the first gap (0x2C46E8.., newlib's reent data, libkernel's tables) and the linkonce area's vtables no object emits | left: 62 vtables without a config name (about 7,950 bytes); data/address-names-2 emitted 57 of them (tu-merging.md "Vtables emitted (data/address-names-2)"); left: EMITTER's and EXPLO's template-instance tables 0x2CE680 and 0x2CED18 (848 bytes) | real classes with the ELF's layout and a key function in each key TU, as data/vtables-2 did (tu-merging.md "Vtables emitted, continued") |
-| palette TUs' tables | 33,024 | 0x29A800 | tail of tu_1147D8 / head of tu_114AE0 | the bitmap/glyph tables after D_0029A7C0 (defined) and before D_002A2900 |
+| palette TUs' tables | 33,024 | 0x29A800 | tail of palette16 / head of palette256 | the bitmap/glyph tables after D_0029A7C0 (defined) and before D_002A2900 |
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (2 below) |
-| small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near tu_14C548) | unreferenced or unnamed statics of game TUs |
+| small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near empty_14C548) | unreferenced or unnamed statics of game TUs |
 
 `.bss` (no bytes, but an address assignment each; all but the SDK tail, the commons and three small gaps
 defined on data/bss-gaps; the commons by src/game/app/commons.cpp on data/commons-file): 400,080 from 0x3E1C70 (hud.cpp's buffers, D_003E1C70..D_003E21A0
@@ -264,7 +264,7 @@ file's `.bss` starts); 21,536 at 0x3D4A50 (D_003D4A50/54/60, the record many TUs
 reference); 4,416 at 0x2E0D00 (D_002E0D00, D_002E1E00); about 1,800 in small gaps.
 
 Order of work: ~~the crt0_splicewrap tables~~ (done, data/crt0-tables: 155,960 bytes), then the vtables (100,312,
-needs the key TUs' first virtuals; done in data/vtables, data/vtables-2 and integrate/round10 for every vtable with a config name), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the list
+needs the key TUs' first virtuals; done in data/vtables, data/vtables-2 and integrate/round10 for every vtable with a config name), palette16's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the list
 of names link.py binds to absolute addresses (build/link/absolute.txt; "Absolute symbols" above).
 
 ### 2. SDK objects instead of blobs

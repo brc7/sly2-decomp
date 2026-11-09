@@ -112,7 +112,7 @@ void ClearPathlinkend(void *pv) __asm__("ClearPointerPair");   /* guardbhv: zero
 /* A path-link endpoint / go-to goal (0x20), constructed by an inline constructor that calls ClearPointerPair
    (guardbhv; it zeroes the first two words; as an asm-labelled out-of-line constructor g++ keeps `this` live across
    the call: one move more in ExecuteBhvScriptCommand, two swapped in SetBhvcombatState): a shape, an object, or (both NULL) the point at +0x10. PATHLINK holds six, BHVGOTO three (goal,
-   waypoint, relocate goal), BHV191 one; tu_1709A8/tu_171F58 build goals on the stack for SetBhvgotoGoal. */
+   waypoint, relocate goal), BHV191 one; guardscript/bhvsearch build goals on the stack for SetBhvgotoGoal. */
 struct PATHLINKEND
 {
     SHAPE *shape;           /* +0x00 the goal shape (GetPathlinkEndpointPos projects onto it) */
@@ -348,7 +348,7 @@ struct ROUTESTATION
 };
 typedef char assert_ROUTESTATION_size[sizeof(ROUTESTATION) == 0xC ? 1 : -1];
 
-/* 123 CID123 (0x60): 256-point route (ROUTE, cid 0x7B: Carmelita's stations, tu_14A008.cpp); vtable 0x2CCF10, 48 slots */
+/* 123 CID123 (0x60): 256-point route (ROUTE, cid 0x7B: Carmelita's stations, carmelita.cpp); vtable 0x2CCF10, 48 slots */
 struct CID123 : LO
 {
     int isReversed;         /* +0x50 1: distances along the route count the other way */
@@ -437,7 +437,7 @@ struct CID122 : LO
 };
 typedef char assert_CID122_size[sizeof(CID122) == 0x60 ? 1 : -1];
 
-/* One of Dimitri's escape routes (0x24 bytes, tu_1553F0.cpp): two ends with a volume around each, given as oids by
+/* One of Dimitri's escape routes (0x24 bytes, dimitri.cpp): two ends with a volume around each, given as oids by
    the Splice option AddDimitriRoute and resolved by PostDimitriLoad. */
 struct DIMITRIROUTE
 {
@@ -587,7 +587,7 @@ typedef char assert_EXPLS_size[sizeof(EXPLS) == 0x110 ? 1 : -1];
 /* 131 WIDGET131 (0x140): WIDGET: episode menu; vtable 0x2CEEB8, 50 slots */
 struct WIDGET131 : WIDGET
 {
-    /* the menu (tu_15CD68.cpp; g_sw.pepmenu points at it) */
+    /* the menu (episodemenu.cpp; g_sw.pepmenu points at it) */
     int episode;                 /* +0x110 selected episode */
     int nextEpisode;             /* +0x114 episode being scrolled to */
     int lastEpisode;             /* +0x118 last selectable episode */
@@ -686,7 +686,7 @@ struct BHV171 : BHV
 };
 typedef char assert_BHV171_size[sizeof(BHV171) == 0xE0 ? 1 : -1];
 
-/* A spawn selector of CID119 (0x1C bytes, tu_173158.cpp): kind 0 an LO spot, 1 a curve (walked with a one-command
+/* A spawn selector of CID119 (0x1C bytes, spawner.cpp): kind 0 an LO spot, 1 a curve (walked with a one-command
    script), 2 a small LO spot. */
 struct SPAWNSELECTOR
 {
@@ -1359,7 +1359,7 @@ struct BHV191 : BHV
 };
 typedef char assert_BHV191_size[sizeof(BHV191) == 0x50 ? 1 : -1];
 
-/* 71..76 HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL (key TU tu_17F090): sly2/hack.h */
+/* 71..76 HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL (key TU hack): sly2/hack.h */
 #include "sly2/hack.h"
 
 /* 12 CID12 (0x1C0): wall grabspot (wall press); vtable 0x2D2738, 50 slots */
@@ -1904,7 +1904,7 @@ typedef char assert_RIPG_ripList[SLY2_OFFSETOF(RIPG, ripList) == 0x15C ? 1 : -1]
 typedef char assert_RIPG_boundsRadius[SLY2_OFFSETOF(RIPG, boundsRadius) == 0x1A0 ? 1 : -1];
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
-/* 77 ROBOTTANK and 108 CID108 (key TU tu_1D1370): sly2/tank.h */
+/* 77 ROBOTTANK and 108 CID108 (key TU robottank): sly2/tank.h */
 #include "sly2/tank.h"
 
 /* 112 CID112 (0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
@@ -2213,11 +2213,11 @@ struct CID101 : CID100
 };
 typedef char assert_CID101_size[sizeof(CID101) == 0x1B0 ? 1 : -1];
 
-/* 130 WIDGET130 (0x130): WIDGET: the recon selector prompt (tu_201D78); vtable 0x2C9670, 50 slots */
+/* 130 WIDGET130 (0x130): WIDGET: the recon selector prompt (recon); vtable 0x2C9670, 50 slots */
 struct WIDGET130 : WIDGET
 {
-    /* the recon selector's prompt (oid 0x362, tu_201D78): the selector state to request next in each situation
-       (target done, rising, falling, near, empty: names from tu_201D78's view; -1 from the constructor) */
+    /* the recon selector's prompt (oid 0x362, recon): the selector state to request next in each situation
+       (target done, rising, falling, near, empty: names from recon's view; -1 from the constructor) */
     int actorChoice;             /* +0x110 */
     int risingChoice;            /* +0x114 */
     int fallingChoice;           /* +0x118 */

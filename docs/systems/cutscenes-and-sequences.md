@@ -21,7 +21,7 @@ Code:
   scripts call to append commands, and the JSG interpreter (`NextJsgCommand`, `IsJsgCommandComplete`, the per-script
   helpers for hands-off, camera blends, actors and focus).
 - `gameplay/cutscene/mpeg.cpp`: the movie player `CMpeg` (one global).
-- `gameplay/cutscene/tu_1471C0.cpp`: the frame-capture transition (class id 104, still placeholder-named).
+- `gameplay/cutscene/framecapture.cpp`: the frame-capture transition (class id 104, still placeholder-named).
 - `level/wipe.cpp` (the level-transition wipe) and `engine/presentation/letterbox.cpp` (the letterbox bars).
 
 Types: `RELAY` in `include/sly2/classes.h`; the command kinds are the `RELAYCK` enum in `include/sly2/basic.h`;
@@ -114,7 +114,7 @@ movies; mission sequences are relays.
 - **Wipe** (`level/wipe.cpp`): `WipeToWorldWarp` requests a level change through the wipe widget; `UpdateWipe` (run
   from `UpdateScreens`) plays the out animation and then fires the world transition; `ResumeWipeAfterLoad` plays the
   in animation after the load ([world-and-levels.md](world-and-levels.md#4-requesting-a-level-change)).
-- **Frame capture** (class id 104, `tu_1471C0.cpp`): when started (`StartFrameCapture`, from Splice) it copies the
+- **Frame capture** (class id 104, `framecapture.cpp`): when started (`StartFrameCapture`, from Splice) it copies the
   frame buffer into a texture, takes hands-off, slows the clock and plays a sound, then draws the captured frame as two
   quads placed by two child objects until its animation ends. The main loop asks `IsFrameCaptureInactive` before
   rendering the world and calls `DrawFrameCaptureScreen` for the overlay ([engine.md section 4](../engine.md#4-the-frame-loop)).
@@ -162,8 +162,8 @@ control and the camera.
 ## 10. Where to look
 
 - `src/game/gameplay/cutscene/relay.cpp`: RELAY, the builders, the JSG interpreter.
-- `src/game/gameplay/cutscene/mpeg.cpp`: `CMpeg`; `src/game/level/exit_warp.cpp` and `src/game/app/tu_1A4E08.cpp`
+- `src/game/gameplay/cutscene/mpeg.cpp`: `CMpeg`; `src/game/level/exit_warp.cpp` and `src/game/app/startup.cpp`
   (the startup step queue): who queues movies; `src/game/world/scene/sw.cpp` (`ExecuteSwTransition`): where they play.
-- `src/game/gameplay/cutscene/tu_1471C0.cpp`: the frame-capture transition.
+- `src/game/gameplay/cutscene/framecapture.cpp`: the frame-capture transition.
 - `src/game/level/wipe.cpp`, `src/game/engine/presentation/letterbox.cpp`.
 - `include/sly2/basic.h` (`RELAYCK`), `include/sly2/classes.h` (`RELAY`).

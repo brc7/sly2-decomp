@@ -1635,7 +1635,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 
 // 0x2564C0: the empty VECTOR constructor's body (AddEmbeddedVertexXps's VECTOR temporaries call it): inline, defined after
 // its callers, so g++ calls it and emits the out-of-line copy (linkonce), as the original did. It keeps its C symbol
-// (bsp, tu_1D1370 and waypoint call it by that name).
+// (bsp, robottank and waypoint call it by that name).
 namespace M_func_001A87F0 {
 // Identity "constructor" for VECTOR: returns pvec unchanged (keeps the original's call shape).
 extern "C" { inline VECTOR *DefaultConstructVector(VECTOR *pvec)

@@ -1,7 +1,7 @@
 // bis.cpp -- CBinaryInputStream (LZSS-capable binary reader over Fill()ed blocks), its readers for strings, BSP
 // trees and collision geometry, and CMemInputStream (a stream over one memory buffer).
 // TU 0x1177A8..0x118668 (33 functions, address order). Its former linkonce copy 0x2566B0 is CDynArrayV<char *>::ReadElement
-// (sly2/arrayv.h, emitted by tu_119BC8.cpp).
+// (sly2/arrayv.h, emitted by dynarraystr.cpp).
 // Level and asset loading read through this class: a subclass's Fill() supplies raw blocks (CD sectors, a host file,
 // a memory buffer), Refill() turns them into the current window, optionally LZSS-decompressing 0x2000-byte chunks,
 // and the typed readers (U8Read .. ReadMatrix4, strings, geometry, BSP trees) consume it. A read past the end leaves

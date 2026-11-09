@@ -34,7 +34,7 @@
 #include "sly2/save.h"
 #include "sly2/sndmgr.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
-extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
+extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (subtitle), base of D_004435F4 */
 
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
 #undef D_003DA0D8
@@ -2688,7 +2688,7 @@ typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} S
 extern "C" { extern STRINGGEN D_003E1C88[]; }
 extern "C" { extern const char D_002A8B80[],D_002A8B88[]; }
 extern "C" { extern char D_004435F0[]; }
-#define D_004435F4 (*(RGBA *)((char *)base_D_004435F0 + 4))   /* g_subtitle's colour (tu_2275B8's SPEAKERLABEL +0x4) */
+#define D_004435F4 (*(RGBA *)((char *)base_D_004435F0 + 4))   /* g_subtitle's colour (subtitle's SPEAKERLABEL +0x4) */
 extern "C" { extern SCROLL D_003DA0C0; }
 extern "C" { extern const float D_002C40B8; }
 extern "C" char *strcpy(char *,const char *);

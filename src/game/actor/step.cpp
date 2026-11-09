@@ -271,7 +271,7 @@ struct X {char pad40[0x40];M4 m;};
 struct B {union V *v;};
 struct M {struct X *px;char pad4[0xC];struct B *pb;char pad14[8];int count;char pad20[0x5C];union V *points;};
 struct S : PO { char pad258[0x258 - 0x180]; struct M *pm0,*pm1;};
-/* step's .data starts here: the contact side signs (medium: tu_223F70 and murray read them too) and the point
+/* step's .data starts here: the contact side signs (medium: gadget and murray read them too) and the point
  * smoothing SMP; the rest is defined in the per-function namespaces below, in address order. */
 extern float D_002C3C60[2];
 extern float D_002C3C68[3];

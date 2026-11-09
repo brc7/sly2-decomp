@@ -108,7 +108,7 @@ struct RGBA
     uchar green;    /* green, 0..255 */
     uchar blue;    /* blue, 0..255 */
     uchar alpha;    /* alpha (opacity), 0..255 */
-    /* The constructors: render.cpp's DrawWorldLabel and the TU-private RGBA views (hud, cm, glob, tu_15DC80, the
+    /* The constructors: render.cpp's DrawWorldLabel and the TU-private RGBA views (hud, cm, glob, screenfade, the
        startup palettes) were compiled with them (a user constructor changes how g++ copies and allocates the
        struct). The pattern constructor is a template only so that it costs no local label numbers in includers
        that never call it (an inline member renumbers function-static symbols such as cm.cpp's s_rgba.87). */

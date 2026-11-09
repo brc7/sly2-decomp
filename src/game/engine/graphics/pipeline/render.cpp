@@ -97,7 +97,7 @@ struct CONFIG
         CTextBox_SetVerticalJust(this, 0);
     }
 };
-/* The two vectors draw and tu_1BE398 copy as clip-plane / key values (16 bytes each, the fourth word 0; render's
+/* The two vectors draw and rtcam copy as clip-plane / key values (16 bytes each, the fourth word 0; render's
    .data, first). */
 float D_002C1F00[4] = {33218888.0f, 33218888.0f, 4.25201766e+09f, 0.0f};
 float D_002C1F10[4] = {8.62348902e+09f, 8.62348902e+09f, 1.28849019e+10f, 0.0f};
@@ -208,6 +208,6 @@ extern "C" void RenderSw(SW *world)
 }
 
 // ---- render's .bss (tu-merging.md "Data": .bss gaps): the first .bss after prog's in TU order, at 0x3D4A50: the
-// RPL allocation cursor (render, draw, rip and tu_1D57A8 advance it through phasemem's buffer D_003B3980). Defined
+// RPL allocation cursor (render, draw, rip and rendertree advance it through phasemem's buffer D_003B3980). Defined
 // after the functions, so none sees a definition.
 RPL *D_003D4A50;

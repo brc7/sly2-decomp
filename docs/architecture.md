@@ -9,7 +9,7 @@ built into Sucker Punch's design; each is listed below with the reason it
 stays and a header-only remedy.
 
 - Each original translation unit (TU) is one source file. Files are named after the original file where it is known
-  (`sw.cpp`, `relay.cpp`); otherwise `tu_<start address>` (`tu_1D7238.cpp`), or `empty_<address>` for a unit that holds
+  (`sw.cpp`, `relay.cpp`); otherwise `tu_<start address>` (`safehouse.cpp`), or `empty_<address>` for a unit that holds
   only compiler-generated stubs. `tools/layout/units.csv` maps every function to its unit; the file header gives the
   unit's address range.
 - How the graph was built, the alternatives tried and the per-unit placement rationale are in the design record
@@ -57,19 +57,19 @@ src/
   game/platform/boot/crt0/     L1  crt0 `_start`
                                    files: _start
   game/platform/cdvd/          L1  CD driver, CD file table (fid -> name/size)
-                                   files: cd tu_14B660
+                                   files: cd cdutil
   game/platform/input/         L1  pad (JOY) and rumble
                                    files: joy rumble
   game/platform/memory/        L1  heaps (HEAP/CSwHeap, slot heaps, phase memory, scratchpad buffer), AllocZeroedFromHeap, malloc/free
-                                   files: heap memory phasemem slotheap sprbuf tu_1147D8 tu_114AE0
+                                   files: heap memory phasemem slotheap sprbuf palette16 palette256
   game/platform/runtime/       L1  Sucker Punch's own printf/string runtime (PrintfToStream, vsprintf, strlen) and OSTRM streams
                                    files: stream text
   game/platform/thread/        L1  EE threads / semaphores wrapper
                                    files: thread
   game/core/binstream/         L2  CBinaryInputStream (bis), async CD stream (bas), CStreamBis
-                                   files: bas bis tu_1848A8
+                                   files: bas bis streambis
   game/core/containers/        L2  intrusive lists (DL/SL), CDynArray, byte queues, hashing, small key/string class
-                                   files: bq dl dynarray empty_119DA0 empty_119EF8 empty_11B1A8 tu_119BC8 tu_11AFE0
+                                   files: bq dl dynarray empty_119DA0 empty_119EF8 empty_11B1A8 dynarraystr strhash
   game/core/locale/            L2  language / region selection
                                    files: language
   game/core/math/              L2  vectors, matrices, Bezier, Crout solver, BSP/planes, DZG LCP core, misc util
@@ -85,9 +85,9 @@ src/
   game/world/state/            L5  session state: GAME (world/level/jobs/events), save variables, difficulty
                                    files: difficulty game save
   game/engine/anim/            L6  actuators (ACT), animation segments (ASEG/ASEGA), blends, IK, state machines (SM), chains, WR, XF transform/motion slots
-                                   files: act aseg asega blend empty_12F0F0 empty_131F70 ik sm tail tu_1603B8 wr xf
+                                   files: act aseg asega blend empty_12F0F0 empty_131F70 ik sm tail constraint wr xf
   game/engine/camera/          L6  camera (CM), camera policies (CPLCY), TN camera nodes, CPCAMERA
-                                   files: cm cplcy tn tu_12E600
+                                   files: cm cplcy tn camera
   game/engine/font/            L6  font rendering and Shift-JIS
                                    files: font sjis
   game/engine/fx/              L6  particles and effects: emitters, RIPs, blips, trails
@@ -95,31 +95,31 @@ src/
   game/engine/graphics/backend/ L6  GS / DMA / GIF / VIF packet builders and the frame (FRM) system
                                    files: dmas empty_1578F8 frm gifs gs vifs
   game/engine/graphics/pipeline/ L6  draw/render passes, globs, shaders (SHD/SHDANIM), lights, sky, visibility zones, culling sphere tree, item render targets
-                                   files: draw glob light ms render shd shdanim sky tu_1BE398 tu_1D57A8 vis
+                                   files: draw glob light ms render shd shdanim sky rtcam rendertree vis
   game/engine/physics/         L6  SO solid objects, solver, shapes/geometry, BSP marks/contacts, clipping, paths, volumes, water, launchers, mesh contacts
-                                   files: bbmark clip dzg empty_1C2920 geom mark path shape so solve tu_185130 tu_1BC050 tu_1D6848 vol water
+                                   files: bbmark clip dzg empty_1C2920 geom mark path shape so solve sticky cnvo launcher vol water
   game/engine/presentation/    L6  presentation service: HUD widgets, SCREEN manager/base, letterbox, progress bar + loading screen
                                    files: hud letterbox prog screen
   game/engine/sound/           L6  sound manager, banks/streams, ambient emitters, speakers
-                                   files: amb sound tu_2275B8
+                                   files: amb sound subtitle
   game/level/                  L7  per-frame world update, world-file load glue, warps/exits, wipes (level flow)
                                    files: brx_sw empty_1FF690 empty_226AB8 exit_warp update wipe
   game/actor/                  L8  PO and STEP: the shared bases of the player characters and the guards
                                    files: po step
   game/gameplay/ai/            L9  STEPGUARD, guard behaviours (BHV stack, guardbhv), detectors, noise stimuli, pickpocket, named bosses/NPCs, spawners
-                                   files: bhvstk detector gomer guardbhv noise pickpocket stepguard tu_144B28 tu_14A008 tu_14FAC8 tu_1553F0 tu_1709A8 tu_171F58 tu_173158 tu_1B9F80 tu_1CBEB0 tu_1D7238 tu_20CE28
+                                   files: bhvstk detector gomer guardbhv noise pickpocket stepguard stepbhv carmelita contessa dimitri guardscript bhvsearch spawner neela rajan safehouse watchdog
   game/gameplay/cutscene/      L9  relays (scripted event sequences), MPEG FMV, framebuffer capture screen
-                                   files: mpeg relay tu_1471C0
+                                   files: mpeg relay framecapture
   game/gameplay/objects/       L9  interactive world objects and minigames: buttons, barriers, bombs, missiles, sensors, turrets, targets, rhythm, hacking, RC tank...
-                                   files: barrier bomb button empty_1D7A30 missile rhythm sensor target tu_14C548 tu_1539A8 tu_153B08 tu_15DC80 tu_17F090 tu_1B0B78 tu_1BAB50 tu_1C2D20 tu_1D1370 tu_1FF3B8 tu_223F70 turret
+                                   files: barrier bomb button empty_1D7A30 missile rhythm sensor target empty_14C548 empty_1539A8 filerec screenfade hack critter breakable lootpouch robottank freegrabspot gadget turret
   game/gameplay/player/        L9  STEPPLAYER, Sly/Bentley/Murray (JT, Bentley, Murray), moves (air, grab, hang, pipe, rail, throw, hurt...), grab spots, recon
-                                   files: air bentley cane dirblend empty_1344F0 empty_1378D8 grab grabspot hang hnd hurt jt jtgoal jthands mode murray pipe pipe_jt places rail stepplayer throw tu_19F0A8 tu_201D78 tu_20B840
+                                   files: air bentley cane dirblend empty_1344F0 empty_1378D8 grab grabspot hang hnd hurt jt jtgoal jthands mode murray pipe pipe_jt places rail stepplayer throw guardoverride recon gait
   game/gameplay/progression/   L9  prizes/clues, booty, cheats, waypoints
                                    files: booty cheat prize waypoint
   game/ui/                     L10 front-end screens: pause menu, episode menu, memory-card flow and dialogs
-                                   files: empty_1AE7D0 memcard menu tu_15CD68
+                                   files: empty_1AE7D0 memcard menu episodemenu
   game/app/                    L11 composition root: main loop, boot sequence, class registry (New*/Get*ClassDesc, D_002BAAE8), Splice built-ins (bif, bif2) and binding thunks
-                                   files: bif bif2 class_registry (the whole crt0_splicewrap TU, generated wrappers included) main tu_1A4E08
+                                   files: bif bif2 class_registry (the whole crt0_splicewrap TU, generated wrappers included) main startup
                                    class_registry_options.inc (not a TU): crt0_splicewrap's Splice option tables (g_aeopid, the class option
                                    arrays), included by class_registry.cpp (docs/guides/tu-merging.md "The crt0_splicewrap tables"); its
                                    records take the addresses of the inline option accessors of the class headers, so class_registry emits
@@ -154,32 +154,32 @@ or one call each; all are listed in the design record, research/layout/):
 | # | from (layer) | to (layer) | weight | main TU pairs | category |
 |---|---|---|---|---|---|
 | 1 | splice (L3) | app (L11) | 51.0 | eval->bif 21, serialize->bif 11, pair->bif 8, ref->bif 8 | SCRIPT-BUILTINS |
-| 2 | engine/presentation (L6) | ui (L10) | 39.5 | screen->memcard 14, hud->memcard 11, screen->menu 9, hud->tu_15CD68 4 | PRESENTATION-READS |
+| 2 | engine/presentation (L6) | ui (L10) | 39.5 | screen->memcard 14, hud->memcard 11, screen->menu 9, hud->episodemenu 4 | PRESENTATION-READS |
 | 3 | object (L4) | app (L11) | 34.0 | spliceobj->bif 15, basic->bif 13, basic->class_registry 2, splicemap->bif 2 | SCRIPT-BUILTINS |
 | 4 | object (L4) | world/scene (L5) | 32.2 | lo->sw 16, brx->sw 8, proxy->sw 4, basic->sw 2 | WORLD |
-| 5 | engine/presentation (L6) | gameplay/player (L9) | 21.0 | screen->stepplayer 18, hud->tu_201D78 2, screen->tu_19F0A8 1 | PRESENTATION-READS |
+| 5 | engine/presentation (L6) | gameplay/player (L9) | 21.0 | screen->stepplayer 18, hud->recon 2, screen->guardoverride 1 | PRESENTATION-READS |
 | 6 | world/scene (L5) | engine/physics (L6) | 18.2 | sw->so 11, sw->bbmark 5, sw->path 2 | WORLD-UP |
 | 7 | world/state (L5) | engine/presentation (L6) | 16.7 | game->hud 10, game->screen 7 | UI-PUSH |
 | 8 | object (L4) | engine/anim (L6) | 15.5 | xform->xf 8, proxy->xf 4, lo->xf 2, basic->asega 1 | ONE-HIERARCHY |
-| 9 | core/containers (L2) | object (L4) | 15.0 | tu_119BC8->basic 10, bq->basic 3, dynarray->basic 2 | SPECIFIC |
+| 9 | core/containers (L2) | object (L4) | 15.0 | dynarraystr->basic 10, bq->basic 3, dynarray->basic 2 | SPECIFIC |
 | 10 | splice (L3) | object (L4) | 15.0 | frame->proxy 4, ref->basic 4, eval->proxy 3, proc->proxy 2 | SCRIPT-API |
 | 11 | sdk/989snd (L0) | platform/runtime (L1) | 13.0 | sdk:989snd->text 13 | C-RUNTIME |
 | 12 | world/scene (L5) | engine/sound (L6) | 12.4 | sw->sound 12 | WORLD-UP |
 | 13 | world/scene (L5) | engine/presentation (L6) | 12.0 | sw->screen 7, sw->hud 3, sw->letterbox 2 | UI-PUSH |
-| 14 | engine/presentation (L6) | gameplay/ai (L9) | 11.0 | screen->bhvstk 5, screen->guardbhv 3, hud->guardbhv 2, screen->tu_1D7238 1 | PRESENTATION-READS |
+| 14 | engine/presentation (L6) | gameplay/ai (L9) | 11.0 | screen->bhvstk 5, screen->guardbhv 3, hud->guardbhv 2, screen->safehouse 1 | PRESENTATION-READS |
 | 15 | engine/presentation (L6) | actor (L8) | 10.0 | screen->po 6, hud->po 4 | PRESENTATION-READS |
 | 16 | world/scene (L5) | engine/camera (L6) | 10.0 | sw->cm 5, sw->cplcy 5 | WORLD-UP |
-| 17 | gameplay/ai (L9) | ui (L10) | 9.0 | guardbhv->menu 5, tu_173158->menu 3, tu_144B28->menu 1 | UI-PUSH |
-| 18 | actor (L8) | gameplay/ai (L9) | 9.0 | step->bhvstk 5, po->bhvstk 1, po->guardbhv 1, po->tu_1D7238 1 | SPECIFIC |
+| 17 | gameplay/ai (L9) | ui (L10) | 9.0 | guardbhv->menu 5, spawner->menu 3, stepbhv->menu 1 | UI-PUSH |
+| 18 | actor (L8) | gameplay/ai (L9) | 9.0 | step->bhvstk 5, po->bhvstk 1, po->guardbhv 1, po->safehouse 1 | SPECIFIC |
 | 19 | platform/input (L1) | splice (L3) | 9.0 | rumble->ref 9 | SPECIFIC |
-| 20 | world/scene (L5) | engine/graphics/pipeline (L6) | 8.2 | sw->shd 4, sw->shdanim 2, sw->light 1, sw->tu_1BE398 1 | WORLD-UP |
+| 20 | world/scene (L5) | engine/graphics/pipeline (L6) | 8.2 | sw->shd 4, sw->shdanim 2, sw->light 1, sw->rtcam 1 | WORLD-UP |
 | 21 | world/state (L5) | level (L7) | 8.0 | game->wipe 6, game->exit_warp 2 | WORLD-UP |
 | 22 | object (L4) | engine/physics (L6) | 8.0 | lo->so 4, proxy->so 3, proxy->path 1 | ONE-HIERARCHY |
 | 23 | world/state (L5) | ui (L10) | 7.0 | game->memcard 6, save->menu 1 | UI-PUSH |
 | 24 | sdk/libgcc (L0) | platform/memory (L1) | 7.0 | sdk:libgcc->memory 7 | C-RUNTIME |
 | 25 | world/scene (L5) | level (L7) | 6.2 | sw->update 2, sw->exit_warp 2, sw->brx_sw 1, sw->wipe 1 | WORLD-UP |
 | 26 | core/linkonce (L2) | engine/fx (L6) | 6.0 | game_linkonce->emitter 6 | SPECIFIC |
-| 27 | engine/physics (L6) | gameplay/player (L9) | 6.0 | tu_185130->jt 2, so->places 1, so->stepplayer 1, tu_185130->dirblend 1 | HERO-HOOK |
+| 27 | engine/physics (L6) | gameplay/player (L9) | 6.0 | sticky->jt 2, so->places 1, so->stepplayer 1, sticky->dirblend 1 | HERO-HOOK |
 | 28 | engine/sound (L6) | actor (L8) | 6.0 | sound->po 6 | HERO-HOOK |
 | 29 | world/scene (L5) | actor (L8) | 6.0 | sw->po 6 | HERO-HOOK |
 | 30 | world/scene (L5) | gameplay/ai (L9) | 5.7 | sw->guardbhv 1, sw->bhvstk 1, sw->noise 1, sw->stepguard 1 | HERO-HOOK |
@@ -188,19 +188,19 @@ or one call each; all are listed in the design record, research/layout/):
 | 33 | engine/graphics/pipeline (L6) | gameplay/objects (L9) | 5.0 | render->rhythm 5 | SPECIFIC |
 | 34 | world/state (L5) | engine/sound (L6) | 5.0 | save->sound 5 | WORLD-UP |
 | 35 | engine/presentation (L6) | gameplay/objects (L9) | 5.0 | screen->rhythm 5 | PRESENTATION-READS |
-| 36 | sdk/libgcc (L0) | core/containers (L2) | 5.0 | sdk:libgcc->tu_119BC8 5 | C-RUNTIME |
+| 36 | sdk/libgcc (L0) | core/containers (L2) | 5.0 | sdk:libgcc->dynarraystr 5 | C-RUNTIME |
 | 37 | platform/cdvd (L1) | engine/presentation (L6) | 4.0 | cd->screen 4 | UI-PUSH |
 | 38 | engine/fx (L6) | app (L11) | 4.0 | emitter->bif 3, emitter->class_registry 1 | SCRIPT-BUILTINS |
-| 39 | world/state (L5) | app (L11) | 4.0 | game->tu_1A4E08 4 | WORLD-UP |
+| 39 | world/state (L5) | app (L11) | 4.0 | game->startup 4 | WORLD-UP |
 | 40 | platform/memory (L1) | object (L4) | 4.0 | heap->basic 4 | SPECIFIC |
 | 41 | gameplay/cutscene (L9) | ui (L10) | 4.0 | mpeg->memcard 4 | UI-PUSH |
 | 42 | world/scene (L5) | engine/graphics/backend (L6) | 4.0 | sw->gs 3, sw->frm 1 | WORLD-UP |
-| 43 | platform/memory (L1) | engine/graphics/pipeline (L6) | 4.0 | tu_1147D8->shd 2, tu_114AE0->shd 2 | SPECIFIC |
-| 44 | gameplay/ai (L9) | app (L11) | 4.0 | tu_1553F0->bif 4 | SCRIPT-BUILTINS |
+| 43 | platform/memory (L1) | engine/graphics/pipeline (L6) | 4.0 | palette16->shd 2, palette256->shd 2 | SPECIFIC |
+| 44 | gameplay/ai (L9) | app (L11) | 4.0 | dimitri->bif 4 | SCRIPT-BUILTINS |
 | 45 | world/state (L5) | engine/physics (L6) | 3.7 | game->so 4 | WORLD-UP |
 | 46 | level (L7) | ui (L10) | 3.0 | update->memcard 2, brx_sw->memcard 1 | UI-PUSH |
 | 47 | object (L4) | engine/camera (L6) | 3.0 | busy->cplcy 2, lo->cplcy 1 | ONE-HIERARCHY |
-| 48 | world/scene (L5) | app (L11) | 3.0 | callback->bif 2, sw->tu_1A4E08 1 | WORLD-UP |
+| 48 | world/scene (L5) | app (L11) | 3.0 | callback->bif 2, sw->startup 1 | WORLD-UP |
 | 49 | world/state (L5) | gameplay/progression (L9) | 3.0 | difficulty->prize 2, game->booty 1 | WORLD-UP |
 | 50 | level (L7) | actor (L8) | 3.0 | exit_warp->po 2, update->po 1 | HERO-HOOK |
 | 51 | core/linkonce (L2) | actor (L8) | 3.0 | game_linkonce->po 2, game_linkonce->step 1 | HERO-HOOK |
@@ -214,14 +214,14 @@ emitted by app/class_registry.cpp (the option table g_aeopid takes their address
 key TUs in gameplay/), so those edges now come from app/ (L11) and are downward.
 
 Specific notes (CONFIRMED from edge examples):
-- core/containers -> object: `tu_119BC8` (util library) defines a class whose vtable inherits BASIC slots; `bq`/`dynarray` call
+- core/containers -> object: `dynarraystr` (util library) defines a class whose vtable inherits BASIC slots; `bq`/`dynarray` call
   through BASIC-shaped vtables. The util library therefore already depended on BASIC in the original source.
 - core/binstream -> object: `bis` calls virtual slots on a BASIC-derived owner while decompressing (Decompress/Refill).
 - platform/input -> splice: rumble's "enabled" flag is a save variable read through Splice refs.
 - actor -> gameplay/ai: STEP owns a behaviour stack (InitStep -> InitBhvstk); BHVSTK lives with the guard behaviours. Moving
   `bhvstk` to actor would trade 9 for ~30 weight (ai->bhvstk is heavy); left as is.
 - world/scene -> engine/*: DeleteSw/PostSwLoad/ExecuteSwTransition reset camera, sound, shaders, physics filters.
-- platform/memory -> engine/graphics/pipeline: two static-init-only TUs (`tu_1147D8`, `tu_114AE0`) touch shd tables; unknown purpose.
+- platform/memory -> engine/graphics/pipeline: two static-init-only TUs (`palette16`, `palette256`) touch shd tables; unknown purpose.
 
 **Header organisation** (ours to choose) can make most of the remaining couplings compile-time clean without moving code: put the
 *declarations* that lower layers need into lower headers - `struct SW` + the `g_sw` extern (world/scene/sw.h), the class-descriptor type +

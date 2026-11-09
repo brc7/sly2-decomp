@@ -103,7 +103,7 @@ struct MURRAY : public STEPPLAYER
       int comboWindow;   /* +0x1820 a new attack may start while one runs (CanMurrayAttack); cleared when an attack starts */
       undefined4 unk_0x1824[(0x1830 - 0x1824) / 4];
       qword unknown1830;
-      int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/tu_144B28.cpp: 0 face the player, 1 keep turning) */
+      int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/stepbhv.cpp: 0 face the player, 1 keep turning) */
       float subStateTime;   /* +0x1844 clock.time subState was set (UpdateMurrayPower timeouts) */
       ASEG *pasegPowerA;   /* +0x1848 power-move clip of sub-state 0 (SetMurrayPowerSubstate) */
       ASEG *pasegPowerB;   /* +0x184C power-move clip of sub-state 1 */

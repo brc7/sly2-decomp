@@ -27,9 +27,9 @@ objects in `src/game/gameplay/objects/` (`turret.cpp`, `rhythm.cpp`, the hacking
 | Class (class id) | What it is | File |
 |---|---|---|
 | `DIMITRI` (0x3B) | boss guard with a table of authored escape routes; two behaviours of its own (escape, attack) | the unit defining `FindDimitriFarthestRoute` |
-| `RAJAN` (0x3D) | boss guard: hears one stimulus source at double range; a camera policy framing him with Murray | `tu_1CBEB0.cpp` |
-| `CONTESSA` (0x40) | boss guard: Init and Update overrides that fit her body to the terrain while she crawls | `tu_14FAC8.cpp` |
-| `HACK` family (0x47-0x4C: `HACK`, `HACKSHIP`, `HACKENEMY`, `HACKBULLET`, `HACKLOCK`, `HACKWALL`) | Bentley's hacking minigame: the ship (a singleton), enemies, bullets, locks and walls, each an `SO` with health and entry tables bound by oid | `tu_17F090.cpp` |
+| `RAJAN` (0x3D) | boss guard: hears one stimulus source at double range; a camera policy framing him with Murray | `rajan.cpp` |
+| `CONTESSA` (0x40) | boss guard: Init and Update overrides that fit her body to the terrain while she crawls | `contessa.cpp` |
+| `HACK` family (0x47-0x4C: `HACK`, `HACKSHIP`, `HACKENEMY`, `HACKBULLET`, `HACKLOCK`, `HACKWALL`) | Bentley's hacking minigame: the ship (a singleton), enemies, bullets, locks and walls, each an `SO` with health and entry tables bound by oid | `hack.cpp` |
 | `TURRET` (0x45) | player-controlled turret (a PO): aim from the stick or a target, zoom, fire through a launcher; the camera follows with the `CPTURRET` policy | `turret.cpp`, `engine/camera/cplcy.cpp` |
 | `ROBOTTANK` (0x4D) | the RC combat car (a PO) with wheels, weapons, ammo and an AI mode; CID108 is its ammo pickup | the unit defining `CollectRobottankPickup` |
 | `DANCER` (0x44) and the rhythm manager (CID121) | the dance minigame: dancers playing a move clip per cue, and a manager timing cues, judging presses and drawing the note track | `rhythm.cpp` |
@@ -117,7 +117,7 @@ game.
 
 - `src/game/gameplay/ai/`: the boss classes (search for `FindDimitriFarthestRoute`, `CONTESSA`, `RAJAN`) and the
   safehouse unit (`UpdateSafehouse`).
-- `src/game/gameplay/objects/`: `turret.cpp`, `rhythm.cpp`, the hacking unit (`tu_17F090.cpp`) and the robot-tank unit
+- `src/game/gameplay/objects/`: `turret.cpp`, `rhythm.cpp`, the hacking unit (`hack.cpp`) and the robot-tank unit
   (`CollectRobottankPickup`).
 - `src/game/engine/camera/cplcy.cpp`: `CPTURRET` and the other special camera policies.
 - `src/game/gameplay/cutscene/relay.cpp`: `RELAYCK_SetCtlState` and the rhythm commands.

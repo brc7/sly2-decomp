@@ -1,12 +1,12 @@
 /* include/sly2/arrayv.h -- the loadable dynamic array with listeners, its hash index and the string-keyed hash
  * table: the class templates whose instances are the linkonce copies 0x2564E0..0x256AF0 (link/linkonce-rest).
  *
- * The vtables (in tu_119BC8's place in the ELF's linkonce data area, emitted in the reverse order of definition):
+ * The vtables (in dynarraystr's place in the ELF's linkonce data area, emitted in the reverse order of definition):
  *   0x2CA660  CDynArrayV<char *>        Init 0x2564E0, Clear 0x256658, Load 0x2566D8, ReadElement 0x2566B0,
  *                                       Add 0x2565E0, NotifyAdd 0x256588
  *   0x2CA640  CArrayListener<char *>    two pure slots (__pure_virtual 0x23C820)
  *   0x2CA620  CHashIndex<char *>        Clear 0x2568A0, OnAdd 0x256AF0
- *   0x2CA5E0  tu_119BC8's array class   CDynArrayV<char *> with Init (0x119BD0: the base Init, then its hash index
+ *   0x2CA5E0  dynarraystr's array class   CDynArrayV<char *> with Init (0x119BD0: the base Init, then its hash index
  *                                       at +0x34 keyed by 0x119BC8) and ReadElement (0x119C08: a string) overridden
  * The non-virtual members: CHashIndex::Init 0x256528 (called by 0x119BD0), CHash<char *, int>::Clear 0x2567D0,
  * Resize 0x2568C0 and Insert 0x2569F8. ReadElement reads sizeof(T) bytes and Load scratch-allocates and clears
@@ -14,7 +14,7 @@
  * function returns the element) is a HYPOTHESIS, and so are all names here (no symbol names these classes).
  *
  * The members are defined after the classes without `inline` and emitted by explicit instantiation in
- * src/game/core/containers/tu_119BC8.cpp: an explicitly instantiated template member comes out weak in
+ * src/game/core/containers/dynarraystr.cpp: an explicitly instantiated template member comes out weak in
  * `.gnu.linkonce.t.<symbol>`, as the original's copies did (see docs/guides/tu-merging.md "Linkonce copies by
  * family"). The bodies keep the per-function views they matched with (`this` cast to the view). The vtables are not
  * emitted here (no constructor is instantiated; the data/vtables work owns them). */
@@ -231,7 +231,7 @@ template <class T> void CHashIndex<T>::Clear()
     ((CHash<T, int> *)((char *)this + 0x14))->Clear();
 }
 
-/* 0x2568C0 CHash<K, V>::Resize: defined in tu_119BC8.cpp as the explicit specialization for <char *, int> (the
+/* 0x2568C0 CHash<K, V>::Resize: defined in dynarraystr.cpp as the explicit specialization for <char *, int> (the
    instantiated template member compiles 2 instructions off; see there). */
 
 /* 0x2569F8: insert (key, value) under the key's caseless string hash (53 buckets on the first insert). */

@@ -1,4 +1,4 @@
-/* include/sly2/hack.h -- the hacking minigame classes (Bentley's hack: gameplay/objects/tu_17F090.cpp, their key TU):
+/* include/sly2/hack.h -- the hacking minigame classes (Bentley's hack: gameplay/objects/hack.cpp, their key TU):
  * HACK : PO and its subclasses HACKSHIP (the player's ship), HACKBULLET, HACKENEMY, HACKLOCK and HACKWALL, with the
  * records they own (HACKE anim entries, ship parts, enemy targeting rules, wall segments and pieces).
  *
@@ -7,7 +7,7 @@
  * classes.h includes this file there; a TU that includes this header first gets classes.h (and with it these classes)
  * in the right order.
  *
- * Field names come from how tu_17F090's functions use them; "(inferred)" marks names guessed from that use (no Sly 2
+ * Field names come from how hack's functions use them; "(inferred)" marks names guessed from that use (no Sly 2
  * symbol or Sly 1 counterpart). Layouts: names/vu-objects (view unification of the file's per-function views). */
 #ifndef SLY2_HACK_H
 #ifndef SLY2_CLASSES_H

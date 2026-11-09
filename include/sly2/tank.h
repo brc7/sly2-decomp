@@ -1,11 +1,11 @@
-/* include/sly2/tank.h -- the robot tank (RC car) and its ammo pickup (gameplay/objects/tu_1D1370.cpp, their key TU):
+/* include/sly2/tank.h -- the robot tank (RC car) and its ammo pickup (gameplay/objects/robottank.cpp, their key TU):
  * ROBOTTANK : PO with its wheel, side and ammo records, and CID108 (the ammo pickup).
  *
  * Registry classes (sly2/classes.h conventions: real virtual layouts, each slot's function named by an asm label,
  * sizes from the class descriptors). They are defined at their emission position inside classes.h, which includes
  * this file there; a TU that includes this header first gets classes.h (and these classes) in the right order.
  *
- * Field names come from how tu_1D1370's functions use them; "(inferred)" marks names guessed from that use.
+ * Field names come from how robottank's functions use them; "(inferred)" marks names guessed from that use.
  * The weapons are JSG objects (0xB0; class_registry's _vt$3JSG, CloneRobottank constructs them); their fields are
  * still read through per-function views. Layouts: names/vu-objects. */
 #ifndef SLY2_TANK_H

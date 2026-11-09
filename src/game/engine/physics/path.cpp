@@ -2,7 +2,7 @@
 // walkable triangles (CGT) with a 2D BSP for point location, and vertices (CGV) with edge costs for A*. Role: locate
 // the triangle under a point, clip a segment against walkable space, find and simplify a path (A* plus line-of-sight
 // pruning), choose the path zone that contains a point (the world's zone BSP), keep each zone's dynamic obstacles
-// (convex polygons from tu_1BC050.cpp) in sweep-and-prune event arrays, and route between zones through path links
+// (convex polygons from cnvo.cpp) in sweep-and-prune event arrays, and route between zones through path links
 // (PATHLINK, CID 124). Entry points: FindPathPoints, FindPathzonePathCurve, FindPathzoneAtPos, IsPosInPathzone,
 // IsPosFreeInPathzone, AddPathzoneObstacle / RemovePathzoneObstacle, FindPathlinkRoute, PostLoadSwPathzones.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_path

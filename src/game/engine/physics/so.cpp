@@ -35,7 +35,7 @@ extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* 
 extern qword D_002A2DC0;
 /* 0x1F8C40 StaticInit_so (93 instructions) and its _GLOBAL_$I$ stub func_001F8DB8: g++'s initializer for the file-scope
    object below (built in a zeroed temporary and copied), then the six engine slot pools. D_003DD020 is the default
-   query record that tu_1BC050 and guardbhv pass to FindShapeClosestPoint (role HYPOTHESIS; the name is a placeholder). */
+   query record that cnvo and guardbhv pass to FindShapeClosestPoint (role HYPOTHESIS; the name is a placeholder). */
 struct CPQ
 {
     qword axis;             /* D_002A2DC0 (the up axis) */

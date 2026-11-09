@@ -5,7 +5,7 @@
 // HandleMurrayMessage, the attack combo (SetMurrayAttack, UpdateMurrayAttack), lift/carry/throw (UpdateMurrayLift,
 // ThrowMurrayCarried), the Splice setters and the STEPPLAYER virtual overrides.
 //
-// Types: sly2/players.h's MURRAY for the m2c bodies (one unnamed word, +0x1820, through a macro as tu_144B28.cpp
+// Types: sly2/players.h's MURRAY for the m2c bodies (one unnamed word, +0x1820, through a macro as stepbhv.cpp
 // does). The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp
 // does), their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_murray

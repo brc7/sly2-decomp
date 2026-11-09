@@ -69,7 +69,7 @@ struct JTSWEEPBL
 typedef char assert_JTSWEEPBL_size[sizeof(JTSWEEPBL) == 0x1C ? 1 : -1];
 
 /* SURFLOC: a location on a sticky mesh (CID 8/9): a triangle index and barycentric coordinates in it (Sly 1 name;
-   FindMeshClosestPoint hint/result; tu_185130.cpp, jt.cpp). */
+   FindMeshClosestPoint hint/result; sticky.cpp, jt.cpp). */
 struct SURFLOC
 {
       int itri;   /* triangle index */
@@ -182,10 +182,10 @@ struct JT : public STEPPLAYER
       undefined4 unknown1D38[2];
       int unknown1D40;
       undefined4 unk_0x1d44[(0x1e10 - 0x1d44) / 4];
-      BLDIR abldirMesh[8];   /* +0x1E10 directional blends while attached to a sticky mesh (InitJt; tu_185130.cpp UpdateJtMeshAttachment) */
+      BLDIR abldirMesh[8];   /* +0x1E10 directional blends while attached to a sticky mesh (InitJt; sticky.cpp UpdateJtMeshAttachment) */
       ASEGBL *pasegblMesh;   /* +0x1F10 their blended segment (masterSpeed scales the mesh movement) */
       SM *unknown1F14;
-      LO *unknown1F18;   /* the sticky mesh (CID 8/9; possibly climbSurface) attached to: jt.cpp casts it to CLIMBSURF, tu_185130.cpp to MESH; sent splice event 6 on detach; compared in grab candidates */
+      LO *unknown1F18;   /* the sticky mesh (CID 8/9; possibly climbSurface) attached to: jt.cpp casts it to CLIMBSURF, sticky.cpp to MESH; sent splice event 6 on detach; compared in grab candidates */
       SURFLOC surflocMesh;   /* +0x1F1C the location on that mesh (FindMeshClosestPoint hint and result) */
       undefined4 unk_0x1f28[(0x1f30 - 0x1f28) / 4];
       union

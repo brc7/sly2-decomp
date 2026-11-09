@@ -331,8 +331,8 @@ set too after introducing a helper (see the last items).
   `if (!a(p)) continue; if (b(p)) goto found;` into `if (a(p) && b(p)) ...` through an inline predicate.
 - `if (a > 0) if (a < 3)` -> `if (a > 0 && a < 3)` (PlanBhvgoto); `(struct SEG *)(i * 32 + (int)p)` -> `&p->segments[i]` in
   SetBhvpathlinkState (address computed differently).
-- A `static inline` helper can be emitted out of line (a non-template one in tu_171F58, the template with a cast in
-  tu_1553F0: a new local symbol in `nm`): check the nm set, not only matchtool, after introducing a helper.
+- A `static inline` helper can be emitted out of line (a non-template one in bhvsearch, the template with a cast in
+  dimitri: a new local symbol in `nm`): check the nm set, not only matchtool, after introducing a helper.
 - A nested `if (x != 0) { if (x == 1) B; } else A;` as `if (x == 0) A; else if (x == 1) B;` (block order follows the
   source; BuildReconSelectionText); byte arithmetic `(H *)(i * sizeof(H) + (int)base)` as `&base[i]` (scheduling;
   RestartNestedSprite).

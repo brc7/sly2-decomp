@@ -115,7 +115,7 @@ extern char D_004435F0[];
 extern char D_002D4220[] __asm__("_vt$15CQueueOutputIpu");
 extern int D_002E1E54, D_002DEDBC;
 /* Two movie file references (16 hashed words, sly2/sw.h FILEREC layout; the first is the intro movie, the same record
- * as tu_1A4E08's D_002A3868), read as K. */
+ * as startup's D_002A3868), read as K. */
 extern const unsigned int D_002A3968[16] = {0xD77E9E24, 0xEF8D7128, 0x90A6F254, 0xF139A465, 0x0183958F, 0x6D4D86AC, 0xC5C41E37,
     0xE5DD4733, 0x9BD55409, 0xDEFE997A, 0x3CCDE869, 0xE79189E6, 0xC3EC6045, 0xD77006A2, 0x90A6FA5C, 0xEFA0B12C};
 extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 0x30120C3B, 0x285ED44F, 0xF6109257, 0xAE965CAD,

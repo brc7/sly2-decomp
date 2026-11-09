@@ -1,6 +1,6 @@
 /* include/sly2/leap.h -- LEAP and CID146, the BASIC-derived helper objects that STEP subclasses embed (MURRAY +0x1890,
  * STEPGUARD +0xDB0 / +0xE20), from app/class_registry.cpp's construction views with the real virtual layout from
- * the ELF vtables (types/views-2). Its own header, included by guard.h and players.h only: player/tu_20B840.cpp
+ * the ELF vtables (types/views-2). Its own header, included by guard.h and players.h only: player/gait.cpp
  * (which includes stepplayer.h) still has its own field-level LEAP view. */
 #ifndef SLY2_LEAP_H
 #define SLY2_LEAP_H
@@ -14,8 +14,8 @@ struct LEAP : BASIC
     char pad10[0x38 - 0x10];
     ASEGA *pasegaCur;       /* +0x38 [S] the animation the leap plays (stepguard GetAnimBindingInstance) */
     char pad3C[0x70 - 0x3C];
-    LEAP() __asm__("ConstructLeap");              /* out of line: player/tu_20B840.cpp */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleLeapMessage");   /* slot 5; key function (tu_20B840) */
+    LEAP() __asm__("ConstructLeap");              /* out of line: player/gait.cpp */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleLeapMessage");   /* slot 5; key function (gait) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLeapClassDesc");   /* slot 6 */
 };
 typedef char assert_LEAP_size[sizeof(LEAP) == 0x70 ? 1 : -1];
