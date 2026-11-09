@@ -17,6 +17,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/sw.h"
 #include "player_input.h"
 #include "sly2/jt.h"
+static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }   /* the real class behind the views below, for its virtual calls */
 typedef unsigned int uint;
 union U{qword q;float f[4];int i[4];};
 typedef union { qword q; float f; } UF;
@@ -26,7 +27,7 @@ struct M3P { qword r[3]; };
 struct M4{U r[4];};
 struct DELTA{U first,second;};
 /* An object with a vtable at +0xC (the hang point, the anchor's owner); +0x134 a distance. */
-struct NODE{char pad0[0xC];VTE*vt;char pad10[0x124];union{float property;int propertyBits;};};
+struct NODE{char pad0[0xC];void *vptr;char pad10[0x124];union{float property;int propertyBits;};};
 /* An IK joint record (+0x19C0, +0x19C4, +0x19CC): position, world matrix, owner frame, stamp, chain. */
 struct IKJ { char pad[0x30]; qword localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
 struct STATE{U direction,position,velocity;M3 rotation;};
@@ -147,7 +148,7 @@ static inline void StoreQ(U*d,VU_VECTOR v){d->q=v.q;}
 static inline U*Addr(U*p){return p;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char DELTA_Size[sizeof(DELTA)==32?1:-1];
-typedef char NODE_vt_Offset[FIELD_OFFSET(NODE,vt)==12?1:-1];
+typedef char NODE_vptr_Offset[FIELD_OFFSET(NODE,vptr)==12?1:-1];
 typedef char DELTA_first_Offset[FIELD_OFFSET(DELTA,first)==0?1:-1];
 typedef char DELTA_second_Offset[FIELD_OFFSET(DELTA,second)==16?1:-1];
 /* const-ref read: a non-scalar MEM, so the axis load for call 2 waits for the .first store */
@@ -189,9 +190,7 @@ extern "C" void AnticipateJtForce(NODE *jt, NODE *other, qword *point, float *in
                     : "=m"(scalar)
                     : "r"(effect), "r"(second));
             second->q = GetSoImpulseAngularDelta(object, Addr(&points[side])->q, Ref(axis));
-            VTE *method = &jt->vt[69];
-            ((void (*)(NODE *, DELTA *, qword, U *))method->pfn)((NODE *)((char *)jt + method->d), effect, *point,
-                                                                &velocity[side]);
+            AsSo(jt)->GetVelocityAtPos((FX *)effect, *point, (VECTOR4 *)&velocity[side]);
         }
         relative[axisIndex].q = SubV(velocity[0].q, velocity[1].q);
     }
@@ -264,9 +263,9 @@ static inline float EvaluateClq(CLQV*p,float x){return p->g0+x*(p->g1+x*p->g2);}
 // Larger of a and b.
 static inline float MaxOf(float a,float b){return(b>a)?b:a;}
 // The object's velocity (virtual slot 33).
-static inline qword GetVelocityOf(void*p){VTE*e=&((NODE*)p)->vt[33];return((qword(*)(void*))e->pfn)((char*)p+e->d);}
+static inline qword GetVelocityOf(void*p){return AsSo(p)->GetVelocity();}
 // The object's reference space (virtual slot 32).
-static inline void*Space(NODE*p){VTE*e=&p->vt[32];return((void*(*)(void*,void*))e->pfn)((char*)p+e->d,0);}
+static inline void*Space(NODE*p){return AsSo(p)->GetLocalTransform(0);}
 // Unit vector along v, or fallback when its length is below 1e-4.
 static inline qword NormalizeVec(qword v,qword fallback){qword len=VuSqrtX(VuDot(v,v));qword r;if(QwordX(len)<0.0001f)r=fallback;else r=DivVec(v,len);return r;}
 // Identity accessor (keeps the original address arithmetic).
@@ -627,7 +626,6 @@ typedef char final_alignment_1[__alignof__(U)==16?1:-1];
 typedef char final_alignment_2[__alignof__(M3)==16?1:-1];
 typedef char final_alignment_3[__alignof__(WORK)==16?1:-1];
 typedef char final_alignment_4[__alignof__(JT)==16?1:-1];
-typedef char final_alignment_5[__alignof__(VTE)==4?1:-1];
 
 typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
 #undef FIELD_OFFSET
@@ -637,14 +635,10 @@ extern "C" void GetJtHangHeading__FP2JTPf(JT *jt, float *pg)
 {
     float *a, *b;
     {
-        NODE *o = ((NODE *)jt->hangHandle);
-        VTE *e = &o->vt[31];
-        a = ((float *(*)(void *))e->pfn)((char *)o + e->d);
+        a = (float *)AsSo(jt->hangHandle)->GetWorldMatrix();
     }
     {
-        NODE *o = ((NODE *)jt->hangHandle);
-        VTE *e = &o->vt[31];
-        b = ((float *(*)(void *))e->pfn)((char *)o + e->d);
+        b = (float *)AsSo(jt->hangHandle)->GetWorldMatrix();
     }
     *pg = atan2f(a[1], b[0]);
 }
