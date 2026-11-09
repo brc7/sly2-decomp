@@ -30,25 +30,7 @@ struct RGBAV
 };
 
 /* The waypoint (an SO). */
-struct WAYPTV : SO
-{
-    int mode;               /* +0x150 when it shows: 0 unless unknown3B0C, 1 only with unknown3B0C, 2 for a job */
-    int triggerClass;       /* +0x154 class of hero that activates it */
-    float inactiveRadius;   /* +0x158 activation radius while inactive */
-    float activeRadius;     /* +0x15C ... and while active */
-    TASK *attachment;       /* +0x160 the task it marks (the label is its job's name plate) */
-    int isActive;           /* +0x164 */
-    LO *source;             /* +0x168 the marked object (the beam stands on it) */
-    SO *marker;            /* +0x16C the marker at the top */
-    SO *beam;              /* +0x170 */
-    SO *base;              /* +0x174 */
-    int clipFrame;          /* +0x178 camera frame of the last height clip */
-    int hasCurtainHit;      /* +0x17C */
-    float height;           /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainExtraHeight) */
-    int requiredPowerup;    /* +0x184 hidden once this powerup is acquired (-1: none) */
-    void *jobCondition;     /* +0x188 shown only while this job condition holds */
-};
-typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPTV *)0)->jobCondition == 0x188 ? 1 : -1];
+typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPT *)0)->jobCondition == 0x188 ? 1 : -1];
 
 /* World, camera and clock views (the fields used in this TU). The world fields' meanings are unknown: unknown3B0C
    switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
@@ -56,16 +38,16 @@ typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPTV *)0)->jobConditio
 extern qwordV D_002A2DC0;   // g_normalZ
 extern "C" {
 qwordV GetLoWorldPos(void *plo);     /* PosLoWorld */
-void InitSo(WAYPTV *p);
-void PostSoLoad(WAYPTV *p);
-void UpdateSo(WAYPTV *p);
+void InitSo(WAYPT *p);
+void PostSoLoad(WAYPT *p);
+void UpdateSo(WAYPT *p);
 STEPPLAYER *GetHeroPo(SW *psw);
 int IsBasicDerivedFrom__FP5BASIC3CID(STEPPLAYER *pj, int k);
 }
 
 // WAYPT (cid 107) vtable slot 7 (Init): SO init; triggered by class 50 within 300 (500 once active); no clip frame or
 // powerup yet; LO flags 0xA; clears SO flag bit 35.
-extern "C" void InitWaypt(WAYPTV *waypoint)
+extern "C" void InitWaypt(WAYPT *waypoint)
 {
     int flags;
     InitSo(waypoint);
@@ -93,7 +75,7 @@ static __inline__ void ClearBit(SO *part)
 // WAYPT vtable slot 15 (PostLoad): SO post-load; the marker, beam and base are drawn by RenderWaypt, not by themselves.
 void WAYPT::PostLoad()
 {
-    WAYPTV *waypoint = (WAYPTV *)this;
+    WAYPT *waypoint = this;
     PostSoLoad(waypoint);
     if (waypoint->marker) ClearBit(waypoint->marker);
     if (waypoint->beam) ClearBit(waypoint->beam);
@@ -114,7 +96,7 @@ static __inline__ float GDist(qwordV a, qwordV b)
     return g;
 }
 // Calls the waypoint's vtable slot 3 (HandleSpliceEvent) with an event and no arguments.
-static inline void SendSpliceEvent(WAYPTV *waypoint, int event)
+static inline void SendSpliceEvent(WAYPT *waypoint, int event)
 {
     waypoint->HandleSpliceEvent(event, 0, 0, 0, 0);
 }
@@ -122,7 +104,7 @@ enum { SPLICE_EVENT_ACTIVATE = 5, SPLICE_EVENT_DEACTIVATE = 6 };
 // WAYPT vtable slot 16 (Update): the waypoint is active while a hero of triggerClass is within the activation radius
 // (and the mode allows it); a hero of CID 0x34 that is busy (in an air state, or GetHealthState answering 2) keeps the
 // current activity. Changes send Splice event 5 (activate) or 6 (deactivate).
-extern "C" void UpdateWaypt(WAYPTV *waypoint)
+extern "C" void UpdateWaypt(WAYPT *waypoint)
 {
     STEPPLAYER *hero;
     int isInRange;
@@ -431,7 +413,7 @@ CLQ D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0
 LM D_002C44D0 = {1.0f, 5.0f};
 float D_002C44D8 = 300.0f;
 extern "C" {
-void RenderSoSelf(WAYPTV *waypoint);
+void RenderSoSelf(WAYPT *waypoint);
 int IsPowerupAcquired(int ipuk);
 int IsJobComplete(void *pcond);
 void CalculateWayptCurtainExtraHeight(O *po);
@@ -508,7 +490,7 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 
 // WAYPT vtable slot 39 (RenderSelf): see the block comment above. The mode decides whether it shows at all; the beam
 // runs from the source up by height (plus a camera-distance-scaled top), with the marker on top and the base below.
-extern "C" void RenderWaypt(WAYPTV *waypoint)
+extern "C" void RenderWaypt(WAYPT *waypoint)
 {
     RenderSoSelf(waypoint);
     float fadeStart = Max(g_sw.tLookLast + D_002C4494, g_sw.unknown4754 + D_002C4498);

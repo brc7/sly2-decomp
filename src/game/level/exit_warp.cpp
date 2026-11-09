@@ -44,9 +44,9 @@ void *AllocCopyFromWorldHeap(MEMREQ *request, WARPBLOB *pblob);
 void LoadVolFromBrx(EXIT *exitVolume, CBinaryInputStream *stream);
 void *AllocFromWorldHeap(MEMREQ *request);
 void IncrementSwHandsOff(SW *world, int n);
-void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, void *object);
+void ApplyTaskStates(void *p, int c, TASKSTATEREQ *ataskstate, void *object);
 void RevokeCmPolicy(void *pcm, int a, int b, void *pv, int c, int d);
-void AppendBoundedPair(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
+void AppendBoundedPair(void *p, TASKSTATEREQ *ataskstate, int cMax, int *pc, int d, int e);
 void FindLevelIndexByFileRecord(void *pvWorld);
 void UpdateLo(EXIT *exitVolume, float dt);
 void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
@@ -135,7 +135,7 @@ extern "C" void PutHeroAtWarp(WARP *warp)
 // EXIT initialization (vtable slot 7): XFM init, default target warp oid 0x189 and wipe oid -1, not busy.
 void EXIT::Init()
 {
-    EXIT *exitVolume = (EXIT *)this;
+    EXIT *exitVolume = this;
     unsigned int grf;
     InitXfm(exitVolume);
     exitVolume->targetWarpOid = 0x189;
@@ -296,7 +296,7 @@ extern "C" void UpdateExit(EXIT *exitVolume, float dt)
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void WARP::LoadFromBrx(CBinaryInputStream *stream)
 {
-    WARP *warp = (WARP *)this;
+    WARP *warp = this;
     LoadXfmFromBrx(warp, stream);
     CBinaryInputStream_SkipStringSw(stream);
 }

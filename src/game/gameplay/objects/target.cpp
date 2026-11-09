@@ -15,14 +15,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* CID 0x15: a look-at point for the player, an XFM in its own list g_sw.dlCid21. The field meanings come from the
    player's chooser in stepplayer.cpp (distance test, LM range test on the second distance, priority compare). */
-struct CID21V : public XFM
-{
-    DLE listLink;       /* +0xE0 link in g_sw.dlCid21 */
-    float maxDistance;  /* +0xE8 ignored beyond this distance (inferred) */
-    float rangeMin;     /* +0xEC LM limits of the second distance (height or lateral offset; inferred) */
-    float rangeMax;     /* +0xF0 */
-    int priority;       /* +0xF4 higher wins over nearer (inferred) */
-};
 
 float D_002C40C0 = 1500.0f;   /* target's .data (the next word is 0: alignment): busy radius margin */
 
@@ -81,7 +73,7 @@ extern "C" void CloneTarget(TARGET *target)
 }
 
 // CID21 vtable slot 7 (Init): XFM defaults; noticed within 2000 units, range -800..800, priority 1. (inferred)
-extern "C" void InitLookTarget(CID21V *lookTarget)
+extern "C" void InitLookTarget(CID21 *lookTarget)
 {
     InitXfm(lookTarget);
     lookTarget->maxDistance = 2000.0f;
@@ -91,7 +83,7 @@ extern "C" void InitLookTarget(CID21V *lookTarget)
 }
 
 // CID21 vtable slot 22 (OnRemove): leaves the active world and g_sw.dlCid21. (inferred)
-extern "C" void OnLookTargetRemove(CID21V *lookTarget)
+extern "C" void OnLookTargetRemove(CID21 *lookTarget)
 {
     OnLoRemove(lookTarget);
     RemoveDlEntry(&g_sw.dlCid21, lookTarget);
@@ -100,13 +92,13 @@ extern "C" void OnLookTargetRemove(CID21V *lookTarget)
 // CID21 vtable slot 23 (OnAdd): enters the active world and g_sw.dlCid21, where the player's chooser finds it.
 void CID21::OnAdd()
 {
-    CID21V *lookTarget = (CID21V *)this;
+    CID21 *lookTarget = this;
     OnLoAdd(lookTarget);
     AppendDlEntry(&g_sw.dlCid21, lookTarget);
 }
 
 // CID21 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
-extern "C" void CloneLookTarget(CID21V *lookTarget)
+extern "C" void CloneLookTarget(CID21 *lookTarget)
 {
     DLE listLink = lookTarget->listLink;
     CloneXfm(lookTarget);

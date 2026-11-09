@@ -306,8 +306,9 @@ struct RSMG
 };
 typedef char assert_RSMG_size[sizeof(RSMG) == 0x10 ? 1 : -1];
 
-/* TASKSTATE: a (task, state) pair; ApplyTaskStates requests each state of its task (game.cpp). Name inferred. */
-struct TASKSTATE
+/* TASKSTATEREQ: a (task, state) pair; ApplyTaskStates requests each state of its task (game.cpp; the states are
+   game.cpp's enum TASKSTATE). Name inferred. */
+struct TASKSTATEREQ
 {
     OID oidTask;
     int state;
@@ -344,7 +345,7 @@ struct BTN
     int numRsmgs;               /* +0xB0 */
     RSMG rsmgs[8];              /* +0xB4 */
     int numTaskStates;          /* +0x134 */
-    TASKSTATE taskStates[4];    /* +0x138 applied on trigger */
+    TASKSTATEREQ taskStates[4];    /* +0x138 applied on trigger */
 };
 typedef char assert_BTN_size[sizeof(BTN) == 0x158 ? 1 : -1];
 
@@ -1943,7 +1944,8 @@ typedef char assert_RAIL_rSlide[SLY2_OFFSETOF(RAIL, rSlide) == 0x1C4 ? 1 : -1];
 /* 61 RAJAN (0x1020); vtable 0x2D7188, 90 slots */
 struct RAJAN : STEPGUARD
 {
-    char pad1010[0x1020 - 0x1010];
+    int hasCameraPolicy;        /* +0x1010 camera policy 6 is set (rajan.cpp SetRajanCameraFocus) */
+    int unk1014[3];
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRajanClassDesc");   /* slot 6 */
     virtual int CanSenseStimulus(struct STIMULUS *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
@@ -2164,7 +2166,8 @@ typedef char assert_CIRCLER_size[sizeof(CIRCLER) == 0x60 ? 1 : -1];
 /* 97 SKY (0x160): sky dome; render kind 1; vtable 0x2D9500, 75 slots */
 struct SKY : SO
 {
-    char pad150[0x160 - 0x150];
+    int followCameraZ;          /* +0x150 nonzero: also follow the camera's height (sky.cpp) */
+    int unk154[3];
     virtual void PostLoad() __asm__("PostSkyLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSkyClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateSky");   /* slot 16 */
@@ -2269,7 +2272,12 @@ typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];
 /* 21 CID21 (0x100): camera-related XFM (task visibility lists); vtable 0x2DB378, 50 slots */
 struct CID21 : XFM
 {
-    char padE0[0x100 - 0xE0];
+    DLE listLink;               /* +0xE0 link in g_sw.dlCid21 (target.cpp) */
+    float maxDistance;          /* +0xE8 ignored beyond this distance (inferred) */
+    float rangeMin;             /* +0xEC LM limits of the second distance (height or lateral offset; inferred) */
+    float rangeMax;             /* +0xF0 */
+    int priority;               /* +0xF4 higher wins over nearer (inferred) */
+    int unkF8[2];
     virtual void OnAdd() __asm__("OnLookTargetAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid21ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLookTarget");   /* slot 7 */
@@ -2457,7 +2465,7 @@ struct EXIT : VOL
     float rearmDelay;           /* +0x15C after leaving, re-armed once this has passed */
     float wipeDelay;            /* +0x160 delay from taking the exit to the wipe */
     int taskStateCount;         /* +0x164 */
-    TASKSTATE taskStates[4];    /* +0x168 */
+    TASKSTATEREQ taskStates[4];    /* +0x168 */
     int unk188[2];              /* +0x188 unused by exit_warp.cpp */
     virtual void Init() __asm__("InitExit");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExitClassDesc");   /* slot 6 */
@@ -2478,7 +2486,7 @@ struct WARP : XFM
     int rsmgCount;              /* +0xE0 */
     RSMG rsmgs[4];              /* +0xE4 */
     int taskStateCount;         /* +0x124 */
-    TASKSTATE taskStates[4];    /* +0x128 */
+    TASKSTATEREQ taskStates[4];    /* +0x128 */
     unsigned int pairCount;     /* +0x148 objects moved on trigger */
     WARPPAIR pairs[4];          /* +0x14C */
     int aliasCount;             /* +0x16C other oids the warp answers to */
@@ -2509,7 +2517,22 @@ typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 /* 107 WAYPT (0x190): job marker mission_start_*; vtable 0x2DCC98, 75 slots */
 struct WAYPT : SO
 {
-    char pad150[0x190 - 0x150];
+    int mode;                   /* +0x150 when it shows: 0 unless unknown3B0C, 1 only with unknown3B0C, 2 for a job */
+    int triggerClass;           /* +0x154 class of hero that activates it */
+    float inactiveRadius;       /* +0x158 activation radius while inactive */
+    float activeRadius;         /* +0x15C ... and while active */
+    struct TASK *attachment;    /* +0x160 the task it marks (the label is its job's name plate) */
+    int isActive;               /* +0x164 */
+    LO *source;                 /* +0x168 the marked object (the beam stands on it) */
+    SO *marker;                 /* +0x16C the marker at the top */
+    SO *beam;                   /* +0x170 */
+    SO *base;                   /* +0x174 */
+    int clipFrame;              /* +0x178 camera frame of the last height clip */
+    int hasCurtainHit;          /* +0x17C */
+    float height;               /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainExtraHeight) */
+    int requiredPowerup;        /* +0x184 hidden once this powerup is acquired (-1: none) */
+    void *jobCondition;         /* +0x188 shown only while this job condition holds */
+    int unk18C;
     virtual void PostLoad() __asm__("PostWayptLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWayptClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWaypt");   /* slot 7 */

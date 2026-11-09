@@ -13,17 +13,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/vu0.h"
 union V { qword q; float f[4]; };
 /* SKY's own field (classes.h SKY has only padding past SO). */
-struct SKYV : SO
-{
-    int followCameraZ;      /* +0x150 nonzero: also follow the camera's height */
-};
 
 
 extern "C" {
-void PostSoLoad(SKYV *pso);
-void SetLoBusyKind(SKYV *plo, int busyk);
-void UpdateSo(SKYV *pso);
-qword GetLoWorldPos(SKYV *pso);
+void PostSoLoad(SKY *pso);
+void SetLoBusyKind(SKY *plo, int busyk);
+void UpdateSo(SKY *pso);
+qword GetLoWorldPos(SKY *pso);
 }
 
 // Returns the z component (word 2) of a quadword vector.
@@ -32,7 +28,7 @@ qword GetLoWorldPos(SKYV *pso);
 // when it holds one) and clears SO flag bit 35, which keeps the sky out of the collision sphere tree (inferred).
 void SKY::PostLoad()
 {
-    SKYV *sky = (SKYV *)this;
+    SKY *sky = this;
     int flagsWord;
     PostSoLoad(sky);
     SetLoBusyKind(sky, 1);
@@ -44,7 +40,7 @@ void SKY::PostLoad()
 
 // Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),
 // keeping its own height unless followCameraZ is set.
-extern "C" void UpdateSky(SKYV *sky)
+extern "C" void UpdateSky(SKY *sky)
 {
     union V target;
     UpdateSo(sky);
