@@ -4094,7 +4094,7 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 namespace M_GetJsgTargetPosHeading { extern "C" {
 struct O; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct O { int pad[3]; VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
+struct O { int pad[3]; void *vptr; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 qword GetLoWorldPos(struct O *po);
@@ -4116,8 +4116,8 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
         } else {
             float *p1, *p2;
             uv.q = GetLoWorldPos(po);
-            p1 = ((float *(*)(void *))po->vt[0x1F].pfn)((char *)po + po->vt[0x1F].d);
-            p2 = ((float *(*)(void *))po->vt[0x1F].pfn)((char *)po + po->vt[0x1F].d);
+            p1 = (float *)((LO *)po)->GetWorldMatrix();
+            p2 = (float *)((LO *)po)->GetWorldMatrix();
             g = atan2f(p1[1], p2[0]);
         }
     } else {
@@ -4129,8 +4129,8 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
             g = px->g1A8;
         } else {
             float *p1, *p2;
-            p1 = ((float *(*)(void *))px->vt[0x1F].pfn)((char *)px + px->vt[0x1F].d);
-            p2 = ((float *(*)(void *))px->vt[0x1F].pfn)((char *)px + px->vt[0x1F].d);
+            p1 = (float *)((LO *)px)->GetWorldMatrix();
+            p2 = (float *)((LO *)px)->GetWorldMatrix();
             g = atan2f(p1[1], p2[0]);
         }
     }
@@ -4594,7 +4594,7 @@ struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
     peLast = &relay->commands[relay->commandCount - 1];
     SetBlockEnd(p, pe, peLast);
     PrependDlEntry__FP2DLPv(relay->dl, p);
-    ((void (*)(void *))p->pvt[1].pfn)((char *)p + p->pvt[1].d);
+    ((BASIC *)p)->AddRef();
     return p;
 }
 } } // namespace M_PjsgNew
