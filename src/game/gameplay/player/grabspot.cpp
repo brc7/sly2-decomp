@@ -694,8 +694,8 @@ void SetBarrelState(BARREL *barrel, int n)
 
 namespace M_func_00183E08 {
 typedef int qword __attribute__((mode(TI)));
-/* The carrier (a STEPPLAYER) as the zap handler uses it: its slot 88 and its JTMODE at +0xF00. */
-struct O { char pad[0xC]; struct VTE *vt; char p1[0xEF0]; char xf00[4]; };
+/* The carrier (a STEPPLAYER) as the zap handler uses it: its JTMODE at +0xF00 (stepplayer.h does not name it). */
+struct O { char pad[0xF00]; char xf00[4]; };
 struct M { ZPR *q; void *pv; };
 int CanSoTakeDamage(BARREL *p, ZPR *q) __asm__("CanSoTakeDamage");
 qword GetLoWorldPos(BARREL *p) __asm__("GetLoWorldPos");
@@ -706,17 +706,13 @@ void SetBarrelState(BARREL *p, int n) __asm__("SetBarrelState");
 extern "C" int HandleBarrelZap(BARREL *barrel, ZPR *q)
 {
     struct M m;
-    struct VTE *e;
     if (!CanSoTakeDamage(barrel, q)) return 0;
     if (barrel->carryState == 3) return 1;
     if (!(q->grfzpr & 8)) return 1;
     EmitSwNoise(&g_sw, 0, GetLoWorldPos(barrel), barrel);
     if (barrel->carrier) {
-        struct O *o;
         SetJtModeState__FP6JTMODEi(((struct O *)barrel->carrier)->xf00, -1);
-        o = (struct O *)barrel->carrier;
-        e = &o->vt[88];
-        ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);
+        barrel->carrier->SetPlayerState(0);
     }
     SetBarrelState(barrel, 3);
     m.q = q;
