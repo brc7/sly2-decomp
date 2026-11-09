@@ -33,6 +33,7 @@
 #include "sly2/joy.h"
 #include "sly2/save.h"
 #include "sly2/sndmgr.h"
+#include "sly2/vtables.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (subtitle), base of D_004435F4 */
 
@@ -604,13 +605,12 @@ void WIDGET129::Update()
 // 0x212158 WIDGET_ctor
 namespace M_WIDGET_ctor {
 struct S { void *frame; void *sidebag; char pad[4]; void *vt; char pad2[0x6C]; int mainAnimId; char pad3[0x4C]; int argTextIds[10]; char pad4[8]; char childList[4]; };
-extern char D_002DAF30[] __asm__("_vt$6WIDGET");
 void InitSl(void *p, int n) __asm__("InitSl");
 // WIDGET constructor: vtable, no main animation (-1), the ten argument text ids -1 and an empty child list.
 extern "C" struct S *WIDGET_ctor(struct S *widget)
 {
     unsigned int i;
-    widget->vt = D_002DAF30;
+    SLY2_SET_VPTR(widget, WIDGET);
     widget->mainAnimId = -1;
     widget->frame = 0;      /* BASIC's counted pointers */
     widget->sidebag = 0;
@@ -4083,7 +4083,7 @@ void BuildContextText(char *,void *,void *) __asm__("BuildContextText");
 
 extern LINEAR D_003E1C70 __asm__("D_003E1C70");
 extern HEAP D_003E1C80 __asm__("D_003E1C80");
-extern char D_003E21A0[] __asm__("D_003E21A0"),D_002CA578[] __asm__("_vt$7CSwHeap");
+extern char D_003E21A0[] __asm__("D_003E21A0");
 extern STRINGGEN D_003E1C88[108] __asm__("D_003E1C88");
 extern void *D_002C40A0 __asm__("D_002C40A0");
 extern int D_002DD2E0 __asm__("__sn_t9CSlotPool2i20i8192$s_pool"),D_002DD2E4 __asm__("__sn_t9CSlotPool2i24i2048$s_pool"),D_002DD2E8 __asm__("__sn_t9CSlotPool2i40i512$s_pool"),D_002DD2EC __asm__("__sn_t9CSlotPool2i28i2048$s_pool"),D_002DD2F0 __asm__("__sn_t9CSlotPool2i12i200$s_pool"),D_002DD2F4 __asm__("__sn_t9CSlotPool2i20i256$s_pool");
@@ -4200,7 +4200,7 @@ extern const STRINGGEN D_002A9230 __asm__("D_002A9230");
 extern "C" void StaticInit_hud(int initialize,int priority){
  if(priority==0xFFFF&&initialize){
   __11CLinearHeapiPUc(&D_003E1C70,0x60000,D_003E21A0);
-  D_003E1C80.vtable=D_002CA578;D_003E1C80.field4=-1;
+  D_003E1C80.vtable=SLY2_VTBL(CSwHeap);D_003E1C80.field4=-1;
   STRINGGEN *destination=D_003E1C88;
   *destination++=D_002A8B90;
   *destination++=D_002A8BA0;
