@@ -10,6 +10,7 @@
 #include "sly2/shd.h"
 #include "sly2/vu0.h"
 #include "sly2/classes.h"
+static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }   /* the real class behind the views below, for its virtual calls */
 #include "sly2/dli.h"
 #include "sly2/sw.h"
 #include "sly2/clock.h"
@@ -237,9 +238,9 @@ extern "C" BLIPGV *NewBlipGroup(SW *psw)
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
                                  `while (--i != -1) ;` loads 30 as C++ */
     AppendSlEntry(GetSwClassList(psw, CID_1C), p);
-    ((void (*)(void *))p->pvt[7].pfn)((char *)p + p->pvt[7].d);
-    ((void (*)(void *))p->pvt[11].pfn)((char *)p + p->pvt[11].d);
-    ((void (*)(void *))p->pvt[15].pfn)((char *)p + p->pvt[15].d);
+    AsLo(p)->Init();
+    AsLo(p)->AddHierarchy();
+    AsLo(p)->PostLoad();
     return p;
 }
 
@@ -586,7 +587,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
     }
     sceDmaSync(D_002DE59C, 0, 0);
     if (blipGroup->numLiveParticles <= 0) {
-        ((void (*)(void *))blipGroup->pvt[9].pfn)((char *)blipGroup + blipGroup->pvt[9].d);
+        AsLo(blipGroup)->Remove();
     } else {
         qwordV c = ScaleSum(vMin.q, vMax.q, VU_FLOATA(0.5f));
         blipGroup->boundsCenter = c;
@@ -710,8 +711,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
             pq->i = iNext;
     }
     if (blipGroup->numLiveParticles <= 0) {
-        VTE *pvt = blipGroup->pvt;
-        ((void (*)(void *))pvt[9].pfn)((char *)blipGroup + pvt[9].d);
+        AsLo(blipGroup)->Remove();
     } else {
         qwordV c, d, l;
         float g;
