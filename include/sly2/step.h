@@ -28,7 +28,7 @@ struct BHV : public BASIC
     virtual void Update() __asm__("UpdateBhv");   /* slot 10: named from its overrides (inferred) */
     virtual void UpdateMotion() __asm__("UpdateBhvMotion");   /* slot 11: named from its overrides (inferred) */
     virtual int GetGroundProbeFlags() __asm__("GetBhvGroundProbeFlags");   /* slot 12: named from its overrides (inferred); int: GetStepguardGroundProbeFlags returns the mover driver's result */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvMessage");   /* slot 13: named from its overrides (inferred) */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvMessage");   /* slot 13: named from its overrides (inferred) */
     virtual void UpdateSteering(POCTL *ppoctl) __asm__("ResetBhvSteering");   /* slot 14: named from its overrides (inferred); UpdateStepplayer passes the player's POCTL */
 };
 typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

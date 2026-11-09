@@ -760,7 +760,7 @@ struct BHVANIM : BHV
     virtual void Update() __asm__("UpdateBhvanim");   /* slot 10 */
     virtual void UpdateMotion() __asm__("UpdateBhvanimMotion");   /* slot 11 */
     virtual int GetGroundProbeFlags() __asm__("GetBhvanimGroundProbeFlags");   /* slot 12 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvanimMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvanimMessage");   /* slot 13 */
 };
 typedef char assert_BHVANIM_size[sizeof(BHVANIM) == 0x50 ? 1 : -1];
 
@@ -771,7 +771,7 @@ struct BHVIDLE : BHVANIM
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvidleClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvidle");   /* slot 8 */
     virtual void Close() __asm__("CloseBhvidle");   /* slot 9 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvidleMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvidleMessage");   /* slot 13 */
 };
 typedef char assert_BHVIDLE_size[sizeof(BHVIDLE) == 0x50 ? 1 : -1];
 
@@ -836,7 +836,7 @@ struct BHVSTRIKE : BHVANIM
     virtual void OnPush() __asm__("InitBhvstrike");   /* slot 7 */
     virtual void Close() __asm__("CloseBhvstrike");   /* slot 9 */
     virtual void Update() __asm__("UpdateBhvstrike");   /* slot 10 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvstrikeMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvstrikeMessage");   /* slot 13 */
 };
 typedef char assert_BHVSTRIKE_size[sizeof(BHVSTRIKE) == 0x60 ? 1 : -1];
 
@@ -1022,7 +1022,7 @@ struct BHVATTACK : BHV
     virtual void OnPush() __asm__("InitBhvattack");   /* slot 7 */
     virtual void Close() __asm__("CloseBhvattack");   /* slot 9 */
     virtual void Update() __asm__("UpdateBhvattack");   /* slot 10 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvattackMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvattackMessage");   /* slot 13 */
 };
 typedef char assert_BHVATTACK_size[sizeof(BHVATTACK) == 0x50 ? 1 : -1];
 
@@ -1073,7 +1073,7 @@ struct BHVGUARD : BHV
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvguardClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvguard");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvguard");   /* slot 10 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvguardMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvguardMessage");   /* slot 13 */
 };
 typedef char assert_BHVGUARD_size[sizeof(BHVGUARD) == 0xB0 ? 1 : -1];
 
@@ -1109,7 +1109,7 @@ struct BHVJUGGLED : BHVANIM
     virtual void Start() __asm__("StartBhvjuggled");   /* slot 8 */
     virtual void Update() __asm__("UpdateBhvjuggled");   /* slot 10 */
     virtual int GetGroundProbeFlags() __asm__("GetBhvjuggledGroundProbeFlags");   /* slot 12 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvjuggledMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvjuggledMessage");   /* slot 13 */
 };
 typedef char assert_BHVJUGGLED_size[sizeof(BHVJUGGLED) == 0x70 ? 1 : -1];
 
@@ -1159,7 +1159,7 @@ struct BHVSHOOT : BHV
     virtual void OnPush() __asm__("InitBhvshoot");   /* slot 7 */
     virtual void Close() __asm__("CloseBhvshoot");   /* slot 9 */
     virtual void Update() __asm__("UpdateBhvshoot");   /* slot 10 */
-    virtual void HandleBehaviorMessage() __asm__("HandleBhvshootMessage");   /* slot 13 */
+    virtual int HandleBehaviorMessage(int msgid, void *pv) __asm__("HandleBhvshootMessage");   /* slot 13 */
 };
 typedef char assert_BHVSHOOT_size[sizeof(BHVSHOOT) == 0x40 ? 1 : -1];
 
