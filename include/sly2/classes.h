@@ -1861,15 +1861,43 @@ struct CID45 : XFM
 };
 typedef char assert_CID45_size[sizeof(CID45) == 0x130 ? 1 : -1];
 
+/* A navigation graph (CG): vertices (CGV, 0x20 bytes each), triangles (three vertex pointers each), the 2D BSP
+   nodes, and the zone's dynamic obstacles with their sorted x and z begin/end events (sweep and prune; the event
+   arrays start with two sentinels, so numEvents is 2 + 2 per obstacle). path.cpp's 2D BSP walkers see it as GRAPH.
+   Moved from src/game/engine/physics/path.cpp with PATHZONE. */
+struct CGV { int an[8]; };
+struct CG
+{
+    int ccgv;               /* number of vertices */
+    CGV *acgv;              /* +0x04 vertices */
+    int numTriangles;       /* +0x08 */
+    void *triangles;        /* +0x0C */
+    int numBspNodes;        /* +0x10 */
+    void *bspNodes;         /* +0x14 */
+    int numObstacles;       /* +0x18 */
+    int obstacleCapacity;   /* +0x1C */
+    int numEvents;          /* +0x20 */
+    void *xEvents;          /* +0x24 */
+    void *zEvents;          /* +0x28 */
+    void **obstacles;       /* +0x2C */
+};
+typedef char assert_CG_size[sizeof(CG) == 0x30 ? 1 : -1];
+
 /* 17 PATHZONE (0x130): *_pz; vtable 0x2D52B0, 50 slots */
 struct PATHZONE : XFM
 {
-    char padE0[0x130 - 0xE0];
+    CG cg;                      /* +0xE0 the zone's navigation graph */
+    int unknown110;             /* +0x110 (Init: -1) */
+    int version;                /* +0x114 navigation version it was last changed in (g_sw.pathzoneVersion) */
+    DL unknownList118;          /* +0x118 (entries link at +0x60) */
+    int zoneIndex;              /* +0x124 its index in the world's zone BSP (BindSwPathzones) */
+    int unk128[2];
     virtual void Init() __asm__("InitPathzone");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPathzoneClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPathzoneFromBrx");   /* slot 14 */
 };
 typedef char assert_PATHZONE_size[sizeof(PATHZONE) == 0x130 ? 1 : -1];
+typedef char assert_PATHZONE_zoneIndex[SLY2_OFFSETOF(PATHZONE, zoneIndex) == 0x124 ? 1 : -1];
 
 /* 124 PATHLINK (0x160): BHVPATHLINK walks it; REVIEW; vtable 0x2D5120, 48 slots */
 struct PATHLINK : LO
