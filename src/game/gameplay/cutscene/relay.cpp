@@ -202,17 +202,6 @@ void PlayStepClip(STEPPLAYER *pstepplayer, OID oid, int grfapl, int nState) __as
 
 void FindShapeClosestPointAll(SHAPE *pshape, qword posFrom, CONSTR *pconstr, qword *pposClosest, VECTOR4 *pnormTangentClosest, float *pu, float *ps) __asm__("FindShapeClosestPoint");
 
-struct CID100V : public SO
-{
-      int nState;
-      undefined4 unk_0x154;
-      int nUnk158;
-      int idGadget;
-      undefined4 unk_0x160[3];
-      LO *ploUnk16c;
-      undefined4 unk_0x170[16];
-};
-
 void SetJtState(JT *pjt, JTS jts, JTBS jtbs);
 
 

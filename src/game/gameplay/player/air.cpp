@@ -109,17 +109,6 @@ struct XP
       XP *pxpNext;
 };
 
-struct CID100V : public SO
-{
-      int nState;
-      undefined4 unk_0x154;
-      int nUnk158;
-      int idGadget;
-      undefined4 unk_0x160[3];
-      LO *ploUnk16c;
-      undefined4 unk_0x170[16];
-};
-
 extern "C" int IsAsegaRetracted(ASEGA *pasega);
 
 struct VU_FLOAT

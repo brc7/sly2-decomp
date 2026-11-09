@@ -2278,10 +2278,29 @@ struct CID21 : XFM
 };
 typedef char assert_CID21_size[sizeof(CID21) == 0x100 ? 1 : -1];
 
-/* 100 CID100 (0x1B0): tossables (alarm clock tossable_distract, music box); vtable 0x2DBB10, 76 slots */
+/* 100 CID100 (0x1B0): tossables (alarm clock tossable_distract, music box); vtable 0x2DBB10, 76 slots. Slot functions
+   are named Tossable (InitTossable, UpdateTossable...); the gadgets (CID101/CID102) derive from it. Layout from
+   src/game/gameplay/objects/gadget.cpp's CID100V view (names from there; also relay.cpp's/air.cpp's copies and
+   throw.cpp's reads). */
 struct CID100 : SO
 {
-    char pad150[0x1B0 - 0x150];
+    int state;                  /* +0x150 gadget.cpp's TOSSABLE_STATE */
+    float time;                 /* +0x154 time of the last state change */
+    int pendingContact;         /* +0x158 -1 none; 2 a surface to stick to was found; 4 touched while held (inferred) */
+    int gadgetKind;             /* +0x15C GADGET_KIND or another gadget id (throw.cpp charges its gadget mp) */
+    SO *nearest;                /* +0x160 homing target (gadget 0x29) */
+    SM *stateMachine;           /* +0x164 */
+    SMA *smApplication;         /* +0x168 its goal follows the state */
+    LO *thrower;                /* +0x16C */
+    float maxThrowerDistance;   /* +0x170 farther than this from the thrower it is fired (3000) */
+    int blastZapKind;           /* +0x174 zap kind of the blast hits (inferred, as BOMB's) */
+    int blastDamage;            /* +0x178 damage of the blast hits (-10) */
+    ACT *rotationJob;           /* +0x17C */
+    ACT *positionJob;           /* +0x180 */
+    int unk184[3];
+    qword stickNormal;          /* +0x190 contact normal of the surface to stick to */
+    SO *stickTarget;            /* +0x1A0 */
+    int unk1A4[3];
     virtual void RemoveHierarchy() __asm__("RemoveTossableHierarchy");   /* slot 12 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid100ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleTossableMessage");   /* slot 5 */
@@ -2297,6 +2316,7 @@ struct CID100 : SO
     virtual void SetState(int state) __asm__("SetTossableState");   /* slot 76 */
 };
 typedef char assert_CID100_size[sizeof(CID100) == 0x1B0 ? 1 : -1];
+typedef char assert_CID100_stickNormal[SLY2_OFFSETOF(CID100, stickNormal) == 0x190 ? 1 : -1];
 
 /* 101 CID101 (0x1B0): Bentley trigger bomb / mines (gadget object); vtable 0x2C9810, 76 slots */
 struct CID101 : CID100
