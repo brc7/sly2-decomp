@@ -108,11 +108,6 @@ enum EMIT_VELOCITY {
 typedef EMITB EMITBV;
 typedef EMITTER EMITTERV;
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
-struct EXPLGV : public XFM
-{
-    int numChildren;        /* +0xE0 */
-    LO **children;          /* +0xE4 */
-};
 /* The EXPLS (an explosion's sound-effect part; EnsureExplsSfx is registered as an EXPLS option accessor in the class
    option table): its lazily created SFX at +0xF0. */
 struct SFXHOLDER : public XFM
@@ -1692,16 +1687,15 @@ void *AllocClearedFromWorldHeap(SWALLOC *pmsg) __asm__("AllocClearedFromWorldHea
 extern "C" { static inline void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); } }
 struct C { int a[4]; };
 struct DA { int n0; int cMax; int c; LO **a; };
-struct S : XFM { int numChildren; LO **children; };   /* EXPLG (its fields past XFM) */
 void STACKSCOPE_ctor(struct C *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
-void LoadXfmFromBrx(struct S *p, void *q) __asm__("LoadXfmFromBrx");
+void LoadXfmFromBrx(EXPLG *p, void *q) __asm__("LoadXfmFromBrx");
 void CLoadCollectorArray_ctor(struct DA *pda) __asm__("CLoadCollectorArray_ctor");
-void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda) __asm__("LoadXfmChildObjectsFromBrx");
+void LoadXfmChildObjectsFromBrx(EXPLG *p, void *q, struct DA *pda) __asm__("LoadXfmChildObjectsFromBrx");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // EXPLG::LoadFromBrx: XFM load, then its child objects; the explosions (CID 0x1E and derived) become the group's
 // children, anything else gets vtable slot 9 (inferred: removal). Every child is flagged (LO bit 57).
-extern "C" void LoadExplgFromBrx(struct S *p, void *q)
+extern "C" void LoadExplgFromBrx(EXPLG *p, void *q)
 {
     struct C ctx;
     struct DA da;
@@ -1728,27 +1722,25 @@ extern "C" void LoadExplgFromBrx(struct S *p, void *q)
 // Returns an explosion group's children: the array through the out parameter, the count as the result.
 int EXPLG::GetChildren(LO ***childrenOut)
 {
-    EXPLGV *group = (EXPLGV *)this;
-    *childrenOut = group->children;
-    return group->numChildren;
+    *childrenOut = children;
+    return numChildren;
 }
 
 namespace M_CloneExplg {
 void *AllocCopyFromWorldHeap(SWALLOC *pmsg, void *pv) __asm__("AllocCopyFromWorldHeap");
 // Fill the heap message and reallocate pv as a cb-byte copy of kind nKind on the world heap.
 extern "C" { static inline void *PvReallocMsg(SWALLOC *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); } }
-struct S { int pad[4]; void *psoParent; char pad2[0xE0 - 0x14]; int numChildren; void **children; };   /* EXPLG */
-void CloneXfm(struct S *p, void *pv) __asm__("CloneXfm");
-void *CloneLoWithParent__FP2LOP2SO(void *pv, void *p10) __asm__("CloneLoWithParent__FP2LOP2SO");
+void CloneXfm(EXPLG *p, void *pv) __asm__("CloneXfm");
+LO *CloneLoWithParent__FP2LOP2SO(LO *plo, SO *psoParent) __asm__("CloneLoWithParent__FP2LOP2SO");
 // EXPLG clone: XFM clone, then a private copy of the child array with each child cloned under the same parent.
-extern "C" void CloneExplg(struct S *p, void *pv)
+extern "C" void CloneExplg(EXPLG *p, void *pv)
 {
     SWALLOC msg;
     int i;
     CloneXfm(p, pv);
-    p->children = (__typeof__(p->children))PvReallocMsg(&msg, p->children, p->numChildren * 4, 0x10);
+    p->children = (LO **)PvReallocMsg(&msg, p->children, p->numChildren * 4, 0x10);
     for (i = 0; i < p->numChildren; i++)
-        p->children[i] = CloneLoWithParent__FP2LOP2SO(p->children[i], p->psoParent);
+        p->children[i] = CloneLoWithParent__FP2LOP2SO(p->children[i], p->parent);
 }
 } // namespace M_CloneExplg
 

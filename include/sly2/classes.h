@@ -643,7 +643,9 @@ typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
 /* 31 EXPLG (0xF0); vtable 0x2CE828, 51 slots */
 struct EXPLG : EXPL
 {
-    char padE0[0xF0 - 0xE0];
+    int numChildren;            /* +0xE0 the explosions of the group (emitter.cpp LoadExplgFromBrx) */
+    LO **children;              /* +0xE4 */
+    int unkE8[2];
     virtual int GetChildren(LO ***paplo) __asm__("CploExplgChildren");   /* slot 28 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplgClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExplgFromBrx");   /* slot 14 */
