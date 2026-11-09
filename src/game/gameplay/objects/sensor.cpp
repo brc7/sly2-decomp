@@ -404,9 +404,8 @@ static inline qword Transform(const M4 *m, qword point)
             : "=j"(r) : "j"(m->rows[0].q), "j"(m->rows[1].q), "j"(m->rows[2].q), "j"(m->rows[3].q), "j"(point));
     return r;
 }
-/* LO slot 31 (GetWorldMatrix) by hand. */
-// The path's world matrix (LO vtable slot 31).
-static inline M4 *GetWorldMatrix(SHAPEV *path) { VTE *v = &path->pvt[31]; return ((M4 * (*)(void *))v->pfn)((char *)path + v->d); }
+// The path's world matrix.
+static inline M4 *GetWorldMatrix(SHAPEV *path) { return (M4 *)((SHAPE *)path)->GetWorldMatrix(); }
 // Marks the SO's collision data dirty (flag 2 in the tagged flag word).
 static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1) *(uint *)f |= 2; else pso->grfDirty = f | 2; }
 

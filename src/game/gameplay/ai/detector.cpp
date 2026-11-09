@@ -270,7 +270,7 @@ extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int
     SOV *hero = GetHeroPo(&g_sw);
     if (!target) { state = TARGET_UNSEEN; goto done; }
     if (!IsLoInWorld(target)) { state = TARGET_UNSEEN; goto done; }
-    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && ((int (*)(void *))target->vt[77].pfn)((char *)target + target->vt[77].d) == 2) { state = TARGET_UNSEEN; goto done; }
+    if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_PO) && ((PO *)target)->GetHealthState() == 2) { state = TARGET_UNSEEN; goto done; }
     if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER) && hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_SAFEHOUSE)) { state = TARGET_UNSEEN; goto done; }
     if (IsSwInputLocked(&g_sw)) { state = TARGET_UNSEEN; goto done; }
     if (detector->isDisabled) { state = TARGET_UNSEEN; goto done; }

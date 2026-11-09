@@ -533,7 +533,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
     VECTORV clq;
     LM lm;
     VUV sc;
-    qwordV vel = ((qwordV (*)(HERO *))object->pvt[33].pfn)((HERO *)((char *)object + object->pvt[33].d));
+    qwordV vel = ((LO *)object)->GetVelocity();
     FRAME frame;
     VUV hit;
     qwordV pad[5]; /* unused: frame layout */
