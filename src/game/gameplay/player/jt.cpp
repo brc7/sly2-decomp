@@ -581,15 +581,11 @@ void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleJtMessage { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-#define F(T, o) (*(T *)((char *)p + (o)))
-#define A(o) ((char *)p + (o))
 
 typedef struct MSG9 { void *x0; int x4; int x8; } MSG9;
-typedef struct E { int x0; int x4; void *x8; } E;
 typedef struct LOB { char pad[0xC]; int xC; char pad1[0x44 - 0x10]; int x44; } LOB;
 typedef struct MSGB { int x0; void *x4; LOB *x8; } MSGB;
 typedef struct CLR { int a, b, c; } CLR;
-typedef struct O1034 { char pad[0x30]; void *x30; } O1034;
 
 extern char D_002BF2A0[];
 extern char D_002BF2B8[];
@@ -597,18 +593,17 @@ extern char D_002BF2B8[];
 extern void HandleStepplayerMessage(void *p, int msg, void *pv);
 extern void SetJtCaneState__FP2JTi(void *p, int n);
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void DetachXfActById(void *a, void *p, int c);
+extern void DetachXfActById(void *a, void *p, void *c);
 extern void DetachSoActsMatching(void *a, void *p, int c, void *d);
 extern qword GetLoWorldPos(void *p);
-extern void *PickpocketStepguard(void *a, qword q);
+extern LO *PickpocketStepguard(void *a, qword q);
 extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
 extern void StartStepplayerGrabStateC(void *p, int oid, void *pv, int n);
 extern void *FindStepBehavior(void *p, int n);
 extern void SetBhvjuggledState(void *p, int n);
 extern void EmitSwNoise(void *p, int a, qword q, void *c);
-extern void SetJtAirJump(void *p, int a, int b, int c);
-extern void SetGadgetRecordObject(void *p, E *pe, void *c);
+extern void SetGadgetRecordObject(void *p, JTPOCKET *pe, void *c);
 
 
 // Zero the three fields of px.
@@ -617,29 +612,29 @@ static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
 
 // JT message handler (slot 5): STEPPLAYER base, then message 3 (animation finished) and the animation events of Sly's
 // clips (cane hits, footsteps, effects).
-void HandleJtMessage(char *p, int msg, void *pv)
+void HandleJtMessage(JT *p, int msg, void *pv)
 {
     HandleStepplayerMessage(p, msg, pv);
     switch (msg) {
     case 3:
-        if (pv == AsJt(p)->janim.animationPlayback) {
-            if (AsJt(p)->animState == 10)
+        if (pv == p->janim.animationPlayback) {
+            if (p->animState == 10)
                 SetJtCaneState__FP2JTi(p, 2);
             else
                 SetJtCaneState__FP2JTi(p, -1);
             break;
         }
-        if (pv != F(void *, 0x1030))
+        if (pv != p->activeAnimation)
             break;
-        switch (AsJt(p)->state) {
+        switch (p->state) {
         case 9:
         case JTS_Pickpocket: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
         case JTS_Grab:
-        case JTS_SurfaceClimb: F(int, 0x1038) = -1; break;
+        case JTS_SurfaceClimb: p->blendSide = -1; break;
         case 5:
 
-            if (AsJt(p)->bodyState < 10) {
-                if (AsJt(p)->bodyState >= 8)
+            if (p->bodyState < 10) {
+                if (p->bodyState >= 8)
                     SetJtState__FP2JT3JTS4JTBS(p, 5, 4);
             }
 
@@ -649,16 +644,16 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 9: {
         MSG9 *pm = (MSG9 *)pv;
         void *x = pm->x0;
-        if (x == F(void *, 0x1030) || x == AsJt(p)->janim.animationPlayback || (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
+        if (x == p->activeAnimation || x == p->janim.animationPlayback || (p->activeStateMachine && x == p->activeStateMachine->pasegaCur)) {
             switch (pm->x8) {
-            case 0x16E: DetachXfActById(AsJt(p)->janim.animationPlayback, p, F(int, 0x10B8)); break;
-            case 0x16F: DetachSoActsMatching(AsJt(p)->janim.animationPlayback, p, 3, D_002BF2A0); break;
-            case 0x170: DetachSoActsMatching(AsJt(p)->janim.animationPlayback, p, 3, D_002BF2B8); break;
-            case 0x164: AsJt(p)->janim.isInputOpen = 1; break;
-            case 0x166: AsJt(p)->janim.useAltLanding = 1; break;
+            case 0x16E: DetachXfActById(p->janim.animationPlayback, p, p->unknown10B8); break;
+            case 0x16F: DetachSoActsMatching(p->janim.animationPlayback, p, 3, D_002BF2A0); break;
+            case 0x170: DetachSoActsMatching(p->janim.animationPlayback, p, 3, D_002BF2B8); break;
+            case 0x164: p->janim.isInputOpen = 1; break;
+            case 0x166: p->janim.useAltLanding = 1; break;
             case 0x165:
-                if (F(int, 0x18EC)) {
-                    switch (AsJt(p)->animState) {
+                if (p->janim.unknown0C) {
+                    switch (p->animState) {
                     case 0xC:
                     case 0xE:
                     case 0x10:
@@ -673,12 +668,12 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 }
                 break;
             case 0x167:
-                if (AsJt(p)->interactTarget && F(int, 0x1BD4)) {
-                    void *object = PickpocketStepguard(AsJt(p)->interactTarget, GetLoWorldPos(p));
+                if (p->interactTarget && p->unknown1BD4) {
+                    LO *object = PickpocketStepguard(p->interactTarget, GetLoWorldPos(p));
                     if (object && !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
                         !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
                         int oid = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 1, 0x282, p);
-                        F(void *, 0x1BCC) = object;
+                        p->ploPickpocket = object;
                         StartStepplayerGrabStateC(p, oid, object, -1);
                     }
                 }
@@ -686,20 +681,19 @@ void HandleJtMessage(char *p, int msg, void *pv)
             case 0x173: {
                 void *px;
 
-                F(int, 0x1D2C) = 1;
-                ClearX((CLR *)A(0x190));
+                p->unknown1D2C = 1;
+                ClearX((CLR *)&p->unknown190);
 
                 {
-                    VTE *e = &F(VTE *, 0xC)[35];
-                    ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190));
+                    p->SetVelocity(p->qwUnknown190);
                 }
-                px = FindStepBehavior(AsJt(p)->interactTarget, 0xB1);
+                px = FindStepBehavior(p->interactTarget, 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 4);
                 break;
             }
             case 0x174: {
-                void *px = FindStepBehavior(AsJt(p)->interactTarget, 0xB1);
+                void *px = FindStepBehavior(p->interactTarget, 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 6);
                 break;
@@ -710,24 +704,24 @@ void HandleJtMessage(char *p, int msg, void *pv)
         break;
     }
     case 1: {
-        E *pe;
+        JTPOCKET *pe;
         int i;
-        switch (AsJt(p)->state) {
+        switch (p->state) {
         case JTS_Hang:
         case JTS_HangFollow:
-            if (AsJt(p)->hangHandle == pv)
-                SetJtAirJump(A(0x2C0), 0, 0, 0);
+            if (p->hangHandle == pv)
+                SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         case JTS_Grab:
-            if (AsJt(p)->jtgrab.state < 5) {
-                if (AsJt(p)->jtgrab.state >= 3 && AsJt(p)->jtgrab.grabbedObject == pv)
-                    SetJtAirJump(A(0x2C0), 0, 0, 0);
+            if (p->jtgrab.state < 5) {
+                if (p->jtgrab.state >= 3 && p->jtgrab.grabbedObject == pv)
+                    SetJtAirJump(&p->jtair, 0, 0, 0);
             }
             break;
         }
-        pe = (E *)A(0x1FB0);
+        pe = p->gadgetPockets;
         for (i = 0; i < 4; i++, pe++) {
-            if (pe->x8 == pv)
+            if (pe->pcid100 == pv)
                 SetGadgetRecordObject(p, pe, 0);
         }
         break;
@@ -741,7 +735,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
             break;
         k = pm->x8->xC;
         if (k & 2) {
-            switch (AsJt(p)->animState) {
+            switch (p->animState) {
             case 4:
             case 6:
             case 0xC:
