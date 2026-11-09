@@ -1273,12 +1273,12 @@ void UpdateCptwoshot(CPTWOSHOT *p)
 } // namespace M_UpdateCptwoshot
 
 namespace M_RcPtr_Assign { extern "C" {
-typedef struct { int pad[3]; VTE *vt; } O;
+typedef struct { int pad[3]; void *vptr; } O;   /* a SND (BASIC: AddRef/Release) */
 // Reference-counted pointer assignment: add a reference to o, release the old target, store o.
 inline void RcPtr_Assign(O **pp, O *o)
 {
-    if (o) ((void (*)(void *))o->vt[1].pfn)((char *)o + o->vt[1].d);
-    if (*pp) ((void (*)(void *))(*pp)->vt[2].pfn)((char *)*pp + (*pp)->vt[2].d);
+    if (o) ((BASIC *)o)->AddRef();
+    if (*pp) ((BASIC *)*pp)->Release();
     *pp = o;
 }
 } } // namespace M_RcPtr_Assign
