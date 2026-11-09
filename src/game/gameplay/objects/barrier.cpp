@@ -158,7 +158,7 @@ void AddBarrierClass(BARRIERV *barrier, CIDV cid)
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_barrier {
 void p_SendBarrierImpactMessages() __asm__("SendBarrierImpactMessages");
-extern "C" {
-extern const unsigned int D_002A4790[2] = {0xFFFF0000, (unsigned int)p_SendBarrierImpactMessages};
-}
+
+extern const unsigned int D_002A4790[2] __asm__("D_002A4790") = {0xFFFF0000, (unsigned int)p_SendBarrierImpactMessages};
+
 } // namespace ANPTR_barrier

@@ -12,6 +12,9 @@ crt0_splicewrap TU, src/game/app/class_registry.cpp, which includes each one at 
 SLY2_SPLICEWRAP_BEGIN(NAME) / SLY2_SPLICEWRAP_END (a new wrapper needs that block added by hand). One TU because the
 original is one: its functions and their .rodata literals interleave in address order (docs/guides/tu-merging.md,
 "class_registry"). Needs the matching-era helpers automatch/quickfix/c_rewrites, which are no longer in the repo.
+The committed .inc files were later made valid ISO C++ by hand-run edits that keep the objects identical: (s32)
+casts where pbasic is passed for an s32, (char *)pbasic for byte offsets, and extern "C++" labelled prototypes where
+two wrappers' C prototypes of one native function differ; a regeneration would have to emit those.
 """
 import os, re, sys, subprocess, csv, struct
 sys.path.insert(0, os.path.dirname(__file__))

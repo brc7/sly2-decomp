@@ -9,7 +9,7 @@ CRef *RefThunk_GetSoZapResponseFlags(CRef *ret, void *pbasic, s32 cref, CRef *ar
     s32 arg0_v;
     aotyp[0] = 0x1011;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    SetS32__4CRefi(&ref, GetSoZapResponseFlags(pbasic, arg0_v));
+    SetS32__4CRefi(&ref, GetSoZapResponseFlags((s32)pbasic, arg0_v));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

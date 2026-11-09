@@ -874,7 +874,7 @@ extern "C" void RemoveVolbtnHierarchy(VOLBTNV *volumeButton)
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_button {
 void p_func_00149010() __asm__("UpdateButtonPlayerPush");
-extern "C" {
-extern const unsigned int D_002A4E80[2];   /* defined below where the ELF has it (.rodata order) */
-}
+
+extern const unsigned int D_002A4E80[2] __asm__("D_002A4E80");   /* defined below where the ELF has it (.rodata order) */
+
 } // namespace ANPTR_button

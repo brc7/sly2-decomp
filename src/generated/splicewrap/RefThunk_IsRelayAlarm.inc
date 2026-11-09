@@ -8,7 +8,7 @@ CRef *RefThunk_IsRelayAlarm(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 6;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    CRef_SetBool(&ref, IsRelayAlarm(pbasic, arg0_v) != 0);
+    CRef_SetBool(&ref, IsRelayAlarm((s32)pbasic, arg0_v) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

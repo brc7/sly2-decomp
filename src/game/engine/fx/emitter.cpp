@@ -133,12 +133,12 @@ void CloneXfm(XFM *pxfm, XFM *pxfmBase);
 void SetRipgEmitb(RIPG *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
 float RandomFloatInRange(float gMin, float gMax);
 
-namespace M_InitEmitBlock { extern "C" {
-extern EMITO D_002DE5B0;
-extern EMITVEL D_002DE5F0;   /* defined above through its initializer view (EMITDEF::EMITVELIsland) */
+namespace M_InitEmitBlock {
+extern EMITO D_002DE5B0 __asm__("D_002DE5B0");
+extern EMITVEL D_002DE5F0 __asm__("D_002DE5F0");   /* defined above through its initializer view (EMITDEF::EMITVELIsland) */
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
-void InitEmitBlock(EMITB *p)
+extern "C" void InitEmitBlock(EMITB *p)
 {
     func_002333B4(p, 0, sizeof(EMITB));
     p->cref = 1;
@@ -146,13 +146,13 @@ void InitEmitBlock(EMITB *p)
     p->emito = D_002DE5B0;
     p->vel = D_002DE5F0;
 }
-} } // namespace M_InitEmitBlock
+} // namespace M_InitEmitBlock
 
-namespace M_InitEmitter { extern "C" {
-void InitXfm(void *p);
-void InitDl__FP2DLi(void *pdl, int ib);
-void SetLoBusyKind(void *p, int n);
-} } // namespace M_InitEmitter
+namespace M_InitEmitter {
+void InitXfm(void *p) __asm__("InitXfm");
+void InitDl__FP2DLi(void *pdl, int ib) __asm__("InitDl__FP2DLi");
+void SetLoBusyKind(void *p, int n) __asm__("SetLoBusyKind");
+} // namespace M_InitEmitter
 // EMITTER::Init: XFM init, then "unset" defaults (mode and count -1, no group, 10 particles per second, not paused),
 // an empty slaved-emitter list linked through +0x128, busy level 0, and LO flag bit 2 set (field meanings from Sly 1's
 // EMITTER, which has the same members in the same order).
@@ -178,14 +178,14 @@ void EMITTER::Init()
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
 // Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
-extern "C" {
-int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-void ReadVector__18CBinaryInputStreamP6VECTOR(CBinaryInputStream *pbis, qword *pv);
-float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-void *AllocFromWorldHeap(AL *pal);
-void *AllocClearedFromWorldHeap(AL *pal);
-}
-extern "C" { extern qword D_002A2DC0; }
+
+int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis) __asm__("U16Read__18CBinaryInputStream");
+void ReadVector__18CBinaryInputStreamP6VECTOR(CBinaryInputStream *pbis, qword *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis) __asm__("F32Read__18CBinaryInputStream");
+void *AllocFromWorldHeap(AL *pal) __asm__("AllocFromWorldHeap");
+void *AllocClearedFromWorldHeap(AL *pal) __asm__("AllocClearedFromWorldHeap");
+
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // Allocate cb bytes with the given alignment from the world heap.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
 // Allocate cb zeroed bytes with the given alignment from the world heap.
@@ -257,31 +257,31 @@ extern "C" void AddEmitterToHeroFollowers(EMITTERV *pemitter)
     AddSwPoFollower(&g_sw, pemitter);
 }
 
-namespace M_PostEmitterLoad__FP7EMITTER { extern "C" {
+namespace M_PostEmitterLoad__FP7EMITTER {
 struct K { short a; short b; int c; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct ALLOCREQ { int cb; int kind; };
-extern const struct LONGU D_002A5140;
-extern float D_002A5148;
-void PostSwCallback(void *pg, EMITTER *p, long k, int n);
-float RandomFloatInRange__Fff(float gMin, float gMax);
-void PauseEmitterIndefinite__FP7EMITTER(EMITTER *p);
-void PauseEmitter__FP7EMITTERf(EMITTER *p, float g);
-EMITTER *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
-EMITTER *CreateLo__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
-void *AllocCopyFromWorldHeap(struct ALLOCREQ *preq, void *pv);
-void SetLoBusyKind(EMITTER *p, int n);
-void *GetLoWorldMatrix(EMITTER *p);
-void AppendDlEntry__FP2DLPv(void *pv, EMITTER *p);
+extern const struct LONGU D_002A5140 __asm__("D_002A5140");
+extern float D_002A5148 __asm__("D_002A5148");
+void PostSwCallback(void *pg, EMITTER *p, long k, int n) __asm__("PostSwCallback");
+float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
+void PauseEmitterIndefinite__FP7EMITTER(EMITTER *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
+void PauseEmitter__FP7EMITTERf(EMITTER *p, float g) __asm__("PauseEmitter__FP7EMITTERf");
+EMITTER *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+EMITTER *CreateLo__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n) __asm__("CreateLo__F3CIDP2SO3OIDi");
+void *AllocCopyFromWorldHeap(struct ALLOCREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");
+void SetLoBusyKind(EMITTER *p, int n) __asm__("SetLoBusyKind");
+void *GetLoWorldMatrix(EMITTER *p) __asm__("GetLoWorldMatrix");
+void AppendDlEntry__FP2DLPv(void *pv, EMITTER *p) __asm__("AppendDlEntry__FP2DLPv");
 
 // Allocate cb bytes from the world heap and copy pv into them.
-static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
+extern "C" { static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 {
     struct ALLOCREQ req;
     req.cb = cb;
     req.kind = 0x10;
     return AllocCopyFromWorldHeap(&req, pv);
-}
+} }
 
 
 // Post-load setup of an EMITTER: runs the shared emitter template, schedules a callback when it emits from an object,
@@ -289,7 +289,7 @@ static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 // one, else continuous), draws the first rate and pause, computes the box density / radius, and when the emitter
 // belongs to a group (groupOid) links it into the group emitter, creating that emitter from this one's settings if
 // the level has none.
-void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
+extern "C" void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
 {
     ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
     if (pemitter->pemitb->aploRef[EMITREF_Reference])
@@ -378,7 +378,7 @@ void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
             pemitter->unknown40 &= ~2;
     }
 }
-} } // namespace M_PostEmitterLoad__FP7EMITTER
+} // namespace M_PostEmitterLoad__FP7EMITTER
 
 // Re-parents the emitter to the LO found via +0xE4 (0x1A58D0(p, 0x1A5BF0(oid), 0)) (inferred)
 extern "C" void AttachEmitterToReferencedObject(EMITTERV *pemitter)
@@ -422,10 +422,10 @@ typedef int qword __attribute__((mode(TI)));
 union V { qword q; struct { float x, y, z, w; } v; float a[4]; };
 struct BLK { qword apos[2][0x84]; int ibuf; int numBlips; int pad[2]; BLK *pblkNext; };   /* a block of blips, double-buffered positions */
 struct BLIPG { char pad[0x448]; BLK *pblkFirst; };
-extern "C" {
-qword GetLoWorldPos(LO *referenceObject);
-float ModPositive__Fff(float g, float gMod);
-}
+
+qword GetLoWorldPos(LO *referenceObject) __asm__("GetLoWorldPos");
+float ModPositive__Fff(float g, float gMod) __asm__("ModPositive__Fff");
+
 // Wrap *pg into [gMin, gMax] with period gBox, writing the applied shift to *pdg (unchanged when already inside).
 static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float *pdg)
 {
@@ -477,16 +477,16 @@ namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
 struct BLIPG { char pad[0x444]; int numBlips; };   /* classes.h's BLIPG names no fields yet */
-extern "C" {
-void UpdateLo(EMITTERV *p);
-int IsDlEmpty__FP2DL(DL *pdl);
-int IsLoInWorld(EMITTERV *p);
-qword GetLoWorldPos(void *p);
-float RandomFloatInRange__Fff(float gMin, float gMax);
-int CountDlEntries__FP2DL(DL *pdl);
+
+void UpdateLo(EMITTERV *p) __asm__("UpdateLo");
+int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
+int IsLoInWorld(EMITTERV *p) __asm__("IsLoInWorld");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
+int CountDlEntries__FP2DL(DL *pdl) __asm__("CountDlEntries__FP2DL");
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITG *pemitg);
-}
+void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITG *pemitg) __asm__("EmitParticles__FiP5EMITBP5EMITG");
+
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 int IsEmitterPaused(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
 void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
@@ -780,22 +780,22 @@ struct WATER { char pad[0x18]; int oid; char pad1c[0x178 - 0x1C]; EX *splashObje
 struct E { int pad0[2]; EX *renderObject; EX *nextRenderObject; WATER *touchObject; };   /* the resolved objects (EMITB+0x08's block) */
 union V4 { qword q; float a[4]; };
 
-extern "C" {
-extern int D_002BDEB0[];
-extern qword D_002A2DC0;
-float RandomFloatInRange__Fff(float lo, float hi);
-int RandomIntInRange__Fii(int lo, int hi);
-int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
-void SetSndVolume(void *p, float g);
-void StopSnd(void *p, float g);
-void *CreateSfxSound(int id);
-void SetSndSourceLo(void *p, SO *pso);
-void SetSndRange(void *p, float a, float b);
-void RcPtr_Assign(void *pp, void *p);
-RIP *NewRipInGroup(void *p, int k, int x);
+
+extern int D_002BDEB0[] __asm__("D_002BDEB0");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+float RandomFloatInRange__Fff(float lo, float hi) __asm__("RandomFloatInRange__Fff");
+int RandomIntInRange__Fii(int lo, int hi) __asm__("RandomIntInRange__Fii");
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void SetSndVolume(void *p, float g) __asm__("SetSndVolume");
+void StopSnd(void *p, float g) __asm__("StopSnd");
+void *CreateSfxSound(int id) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, SO *pso) __asm__("SetSndSourceLo");
+void SetSndRange(void *p, float a, float b) __asm__("SetSndRange");
+void RcPtr_Assign(void *pp, void *p) __asm__("RcPtr_Assign");
+RIP *NewRipInGroup(void *p, int k, int x) __asm__("NewRipInGroup");
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void EmitParticlesAt(qword pos, qword dir, int n, EMITVIsland emitp, EMITVELIsland emitv, E *pe, int x, int y);
-}
+void EmitParticlesAt(qword pos, qword dir, int n, EMITVIsland emitp, EMITVELIsland emitv, E *pe, int x, int y) __asm__("EmitParticlesAt");
+
 
 // Length of the xyz part of a, in the x lane.
 static inline qword Length(qword a)
@@ -892,14 +892,14 @@ struct VU_VECTOR { qword q; };
 // Wrap a qword as a VU_VECTOR.
 static inline VU_VECTOR V(qword q) { VU_VECTOR v; v.q = q; return v; }
 struct MATRIX3 { qword r[3]; };
-extern "C" { extern qword D_002A2DA0; }
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
 struct BOXE { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct MESHO { char pad[0xE8]; int numLengths; int padEC; float *cumulativeLength; };   /* the curve shape */
-extern "C" {
-float RandomFloatInRange__Fff(float gMin, float gMax);
-void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
-MATRIX3 *GetLoWorldMatrix(void *palo);
-}
+
+float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
+void EvaluateShapeAtDistance(MESHO *pmesh, float g, qword *ppos, qword *pnormal) __asm__("EvaluateShapeAtDistance");
+MATRIX3 *GetLoWorldMatrix(void *palo) __asm__("GetLoWorldMatrix");
+
 // Return f0*v0 + f1*v1 + f2*v2.
 static inline qword Combo3(VU_FLOAT f0, VU_VECTOR v0, VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
@@ -1072,18 +1072,18 @@ normalize:
 }
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
 
-namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1 { extern "C" {
+namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1 {
 typedef int qword __attribute__((mode(TI)));
 struct R { char pad[0x40]; struct MATRIX4Q m; };
 struct BUF { qword a[4]; };
-void __ml__FRC7MATRIX4T0(struct MATRIX4Q *pm, struct MATRIX4Q *pa, struct BUF *pb);
-qword ConvertMatPos(struct MATRIX4Q *pm, int z, qword v);
-qword ConvertMatVec(struct MATRIX4Q *pm, int z, qword v);
-qword GetXfVelocity(struct R *r, int z, qword v);
+void __ml__FRC7MATRIX4T0(struct MATRIX4Q *pm, struct MATRIX4Q *pa, struct BUF *pb) __asm__("__ml__FRC7MATRIX4T0");
+qword ConvertMatPos(struct MATRIX4Q *pm, int z, qword v) __asm__("ConvertMatPos");
+qword ConvertMatVec(struct MATRIX4Q *pm, int z, qword v) __asm__("ConvertMatVec");
+qword GetXfVelocity(struct R *r, int z, qword v) __asm__("GetXfVelocity");
 
 // Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space.
 // (inferred)
-void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
+extern "C" void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
 {
     EMITO *py = &p->emito;
     LO *pso = p->aploRef[EMITREF_Reference];
@@ -1100,7 +1100,7 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *p, qword *pv, qword *pw)
             *pw = VuAdd(*pw, GetXfVelocity(r, 0, py->velocityKind == EMIT_VELOCITY_RELATIVE_SPIN ? *pv : r->m.r[3].q));
     }
 }
-} } // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
+} // namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1
 
 namespace M_CalculateEmitvx__FiP2LMiP6EMITVX {
 float NormalizeAngle(float rad) asm("NormalizeAngle__Ff");
@@ -1124,18 +1124,18 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
 }
 } // namespace M_CalculateEmitvx__FiP2LMiP6EMITVX
 
-namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 { extern "C" {
+namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DA0;
-extern qword D_002A2DB0;
-float RandomFloatInRange__Fff(float a, float b);
-float NormalizeAngle__Ff(float g);
-qword SetVectorSphere(float pan, float tilt, float r);
-void GetNormalVectors(qword a, qword b, qword c, MATRIX3Q *pm);
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+extern qword D_002A2DB0 __asm__("D_002A2DB0");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+float NormalizeAngle__Ff(float g) __asm__("NormalizeAngle__Ff");
+qword SetVectorSphere(float pan, float tilt, float r) __asm__("SetVectorSphere");
+void GetNormalVectors(qword a, qword b, qword c, MATRIX3Q *pm) __asm__("GetNormalVectors");
 
 // Picks the velocity of particle i from an EMITVX distribution: its pan/tilt grid cell, jittered by gRand, rotated
 // into the emission normal's frame and scaled by speed sv.
-void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
+extern "C" void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
                                                      qword *pnormal, int i, qword *pv)
 {
     int c = pemitvx->c;
@@ -1160,16 +1160,16 @@ void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, float gRand
             : "=j"(r) : "j"(v.q), "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q));
     *pv = r;
 }
-} } // namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4
+} // namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4
 
-namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 { extern "C" {
+namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 {
 typedef int qword __attribute__((mode(TI)));
-void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut);   /* the record starts with the speed LM */
-float RandomFloatInRange__Fff(float a, float b);
+void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut) __asm__("ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4");   /* the record starts with the speed LM */
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 
 // Chooses particle `index`'s velocity (ChooseEmitVelocity over the speed range) and its birth / death times; a
 // nonzero skip moves the position along the velocity, as if the particle had already been flying that long.
-void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *emitv, void *pemitvx, int unused, int index, qword *ppos, qword *pv, qword *pvel, float *ptBirth, float *ptDeath)
+extern "C" void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *emitv, void *pemitvx, int unused, int index, qword *ppos, qword *pv, qword *pvel, float *ptBirth, float *ptDeath)
 {
     float birthTime, skip;
     ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(pemitvx, emitv->randomRadius, emitv->zSpeedRatio, emitv, pv, index, pvel);
@@ -1190,19 +1190,19 @@ void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(EMITVEL *em
         *ppos = r;
     }
 }
-} } // namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7
+} // namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7
 
 namespace M_EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5 {
 struct MATRIX3 { float mat[3][4]; } __attribute__((aligned(16)));
-extern "C" {
-RIPG *NewRipGroup(void *p, int n);
-void SubscribeLoObject(LO *plo, LO *ploSubscriber);
-RIP *NewRipInGroup(void *p, int n, RIPG *pripg);
-float RandomFloatInRange__Fff(float a, float b);
-void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITB *pemit);
-MATRIX3 *GetLoWorldMatrix(void *p);
-int IsDlEmpty__FP2DL(DL *pdl);
-}
+
+RIPG *NewRipGroup(void *p, int n) __asm__("NewRipGroup");
+void SubscribeLoObject(LO *plo, LO *ploSubscriber) __asm__("SubscribeLoObject");
+RIP *NewRipInGroup(void *p, int n, RIPG *pripg) __asm__("NewRipInGroup");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITB *pemit) __asm__("SetEmitdvEmitb__FP6EMITDVP5EMITB");
+MATRIX3 *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
+int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
+
 // Spawns `count` rips at the originated positions / velocities / times into the emitter's RIPG (creating and
 // subscribing it on first use): each gets a random initial scale, the EMITB's scale curve, alpha curve, motion
 // (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is removed (slot 9).
@@ -1275,15 +1275,15 @@ struct PRG {
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
 };
-extern "C" {
-PRG *NewBlipGroup(void *pv);
-void SetBlipgEmitb(PRG *pprg, EMITB *p);
-BLK *NewBlip(void *pv, PRG *pprg);
+
+PRG *NewBlipGroup(void *pv) __asm__("NewBlipGroup");
+void SetBlipgEmitb(PRG *pprg, EMITB *p) __asm__("SetBlipgEmitb");
+BLK *NewBlip(void *pv, PRG *pprg) __asm__("NewBlip");
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-int RandomIntInRange__Fii(int nMin, int nMax);
-float RandomFloatInRange__Fff(float gMin, float gMax);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
-}
+int RandomIntInRange__Fii(int nMin, int nMax) __asm__("RandomIntInRange__Fii");
+float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *p, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab) __asm__("EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3");
+
 
 // Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
@@ -1367,14 +1367,14 @@ namespace M_OriginateParticles__FiP5EMITBP7EMITGEN {
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct MATRIX3 { qword r[3]; };
 struct XF { qword pos; MATRIX3 localMatrix; qword v; qword w; };
-extern "C" {
-void *AllocFromStack(AL *pal);
-void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
-void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *pemit, int i, int c, qword *ppos, qword *pnormal);
-void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath);
-void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *pemit, qword *ppos, qword *pvel);
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, EMITGEN *pgen);
-}
+
+void *AllocFromStack(AL *pal) __asm__("AllocFromStack");
+void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx) __asm__("CalculateEmitvx__FiP2LMiP6EMITVX");
+void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *pemit, int i, int c, qword *ppos, qword *pnormal) __asm__("ChooseEmitoPos__FP5EMITOiiP6VECTORT3");
+void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath) __asm__("ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7");
+void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITB *pemit, qword *ppos, qword *pvel) __asm__("ConvertEmitoPosVec__FP5EMITOP6VECTORT1");
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemit, EMITGEN *pgen) __asm__("OriginateParticles__FiP5EMITBP7EMITGEN");
+
 // Allocate cb bytes with the given alignment from the frame stack.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(&al); }
 // Rotate v by the 3x3 matrix m.
@@ -1420,14 +1420,14 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, EMITGEN *gen)
 namespace M_OriginateSplineSinkParticles {
 // OriginateSplineSinkParticles: emitter particle transform (Claude agent, lane E20). The clock time is read into a local BEFORE
 // the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
-extern "C" {
-extern float D_002A5150;
-void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen);
-int AreFloatsNear__Ffff(float g1, float g2, float gEps);
-void LoadIdentityMatrix4(void *p, int n, MATRIX4Q *pm0, float t, MATRIX4Q *pm1);
-void __ml__FRC7MATRIX4T0(MATRIX4Q *pmOut, MATRIX4Q *pmA, MATRIX4Q *pmB);
-void OriginateSplineSinkParticles(int c, EMITB *pemit, EMITGEN *pgenEmit, EMITGEN *pgen);
-}
+
+extern float D_002A5150 __asm__("D_002A5150");
+void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen) __asm__("OriginateParticles__FiP5EMITBP7EMITGEN");
+int AreFloatsNear__Ffff(float g1, float g2, float gEps) __asm__("AreFloatsNear__Ffff");
+void LoadIdentityMatrix4(void *p, int n, MATRIX4Q *pm0, float t, MATRIX4Q *pm1) __asm__("LoadIdentityMatrix4");
+void __ml__FRC7MATRIX4T0(MATRIX4Q *pmOut, MATRIX4Q *pmA, MATRIX4Q *pmB) __asm__("__ml__FRC7MATRIX4T0");
+void OriginateSplineSinkParticles(int c, EMITB *pemit, EMITGEN *pgenEmit, EMITGEN *pgen) __asm__("OriginateSplineSinkParticles");
+
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Transform point v by the 4x4 matrix m (rotation plus translation).
@@ -1512,14 +1512,14 @@ void OriginateSplineSinkParticles(int c, EMITB *emitb, EMITGEN *pgenEmit, EMITGE
 } // namespace M_OriginateSplineSinkParticles
 
 namespace M_EmitParticles__FiP5EMITBP5EMITG {
-extern "C" {
-void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, EMITGEN *pgen);
-void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath);
-void OriginateSplineSinkParticles(void *a, EMITB *b, EMITGEN *pgenEmit, EMITGEN *pgen);
-void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath, qword *aposStart, qword *aposEnd);
+
+void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, EMITB *b, EMITGEN *pgen) __asm__("OriginateParticles__FiP5EMITBP7EMITGEN");
+void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath) __asm__("EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5");
+void OriginateSplineSinkParticles(void *a, EMITB *b, EMITGEN *pgenEmit, EMITGEN *pgen) __asm__("OriginateSplineSinkParticles");
+void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath, qword *aposStart, qword *aposEnd) __asm__("EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3");
 // Emits `count` particles from an EMITB: originates them (inside count stack-allocation scope), then hands them to
 // EmitRips or EmitBlips (spline-motion blips also get their spline end points).
-void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
+extern "C" void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 {
     if (count) {
         EMITGEN gen;
@@ -1540,17 +1540,17 @@ void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
         }
     }
 }
-}
+
 } // namespace M_EmitParticles__FiP5EMITBP5EMITG
 
-namespace M_EmitParticlesAt { extern "C" {
+namespace M_EmitParticlesAt {
 typedef int qword __attribute__((mode(TI)));
-void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, EMITG *pemitg);
+void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, EMITG *pemitg) __asm__("EmitParticles__FiP5EMITBP5EMITG");
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
 // particle and velocity records (passed by value by the callers), resolved objects (`refs`, EMITB+0x08) and rip
 // group / subscriber.
-void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, RIPG **ppripg, LO *ploSubscriber)
+extern "C" void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, RIPG **ppripg, LO *ploSubscriber)
 {
     EMITB emitb;
     EMITG emitg;
@@ -1566,17 +1566,17 @@ void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, E
     emitb.v = *particle;
     EmitParticles__FiP5EMITBP5EMITG(count, &emitb, &emitg);
 }
-} } // namespace M_EmitParticlesAt
+} // namespace M_EmitParticlesAt
 
 // 0x15BF38: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
 
-namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB { extern "C" {
+namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct O { qword addedVelocity; qword curlAxis; float curlRate; float damping; };   /* EMITDV: a particle's motion parameters */
-extern qword D_002A2DC0;
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // Length of the xyz part of c, in the x lane.
-static __inline__ qword VLen(qword c)
+extern "C" { static __inline__ qword VLen(qword c)
 {
     qword l, one;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(l), "=&j"(one) : "j"(c));
@@ -1585,9 +1585,9 @@ static __inline__ qword VLen(qword c)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(r) : "j"(l));
     return r;
     }
-}
+} }
 // Normalize c into *pr; falls back to k when the length is below 1e-4.
-static __inline__ void VNormalize(qword *pr, qword c, qword k)
+extern "C" { static __inline__ void VNormalize(qword *pr, qword c, qword k)
 {
     qword l;
     register qword t __asm__("vf1");
@@ -1601,16 +1601,16 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
         __asm__ __volatile__("vdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(t) : "j"(c), "j"(l));
     }
     *pr = t;
-}
+} }
 // Copies an EMITB's particle motion parameters into an EMITDV (the curl axis normalized, +z if degenerate).
-void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
+extern "C" void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
 {
     emitdv->addedVelocity = emitb->vel.addedVelocity;
     VNormalize(&emitdv->curlAxis, emitb->vel.curlAxis, D_002A2DC0);
     emitdv->curlRate = emitb->vel.curlRate;
     emitdv->damping = emitb->vel.damping;
 }
-} } // namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB
+} // namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB
 
 namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4 {
 typedef int qword __attribute__((mode(TI)));
@@ -1618,9 +1618,9 @@ struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 // Float carried as raw bits in a GPR qword (no VU0 transfer).
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int *)&f)); } };
-extern "C" { extern MATRIX4 D_002A2D30; }
+extern MATRIX4 D_002A2D30 __asm__("D_002A2D30");
 struct X { float x, y, z, w; qword axis; float curlRate; float damping; };   /* EMITDV */
-extern "C" { void BuildAxisAngleRotationMatrix(MATRIX3 *pm, float g, qword axis); }
+void BuildAxisAngleRotationMatrix(MATRIX3 *pm, float g, qword axis) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) __asm__("__ml__FRC7MATRIX4G8VU_FLOAT");
 // Element-wise sum of two 4x4 matrices.
@@ -1629,7 +1629,7 @@ static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
     for (int i = 0; i < 4; i++)
         r.r[i] = VuAdd(a.r[i], b.r[i]);
 }
-extern "C" MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p);
+extern MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
 // Builds the matrix that advances a particle's velocity by one frame (dt): the curl rotation R (curlRate * dt about
 // the axis), plus R * (damping * v + addedVelocity) * dt, as a 4x4 acting on (v, 1).
 MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
@@ -1655,20 +1655,20 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
 }
 } // namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4
 
-namespace M_ExplodeWithDefaults { extern "C" {
+namespace M_ExplodeWithDefaults {
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
-void ExplodeWithDefaults(EXPL *pexpl)
+extern "C" void ExplodeWithDefaults(EXPL *pexpl)
 {
     EXPLSO p = {0};
     pexpl->ExplodeExplso(&p);
 }
-} } // namespace M_ExplodeWithDefaults
+} // namespace M_ExplodeWithDefaults
 
-namespace M_ExplodeExplParams { extern "C" {
+namespace M_ExplodeExplParams {
 // Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51)
 // (inferred)
-void ExplodeExplParams(EXPL *pexpl, int flags, LO *reference, float scale, float radius, qword vector, qword origin)
+extern "C" void ExplodeExplParams(EXPL *pexpl, int flags, LO *reference, float scale, float radius, qword vector, qword origin)
 {
     EXPLSO p;
     p.grf = flags;
@@ -1679,29 +1679,29 @@ void ExplodeExplParams(EXPL *pexpl, int flags, LO *reference, float scale, float
     p.origin = origin;
     pexpl->ExplodeExplso(&p);
 }
-} } // namespace M_ExplodeExplParams
+} // namespace M_ExplodeExplParams
 
 // Empty base implementation of the EXPL explode virtual (slot 51) (inferred)
 void EXPL::ExplodeExplso(EXPLSO *pexplso)   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
 {
 }
 
-namespace M_LoadExplgFromBrx { extern "C" {
-void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
+namespace M_LoadExplgFromBrx {
+void *AllocClearedFromWorldHeap(SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
 // Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
-static inline void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); }
+extern "C" { static inline void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); } }
 struct C { int a[4]; };
 struct DA { int n0; int cMax; int c; LO **a; };
 struct S : XFM { int numChildren; LO **children; };   /* EXPLG (its fields past XFM) */
-void STACKSCOPE_ctor(struct C *);
+void STACKSCOPE_ctor(struct C *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
-void LoadXfmFromBrx(struct S *p, void *q);
-void CLoadCollectorArray_ctor(struct DA *pda);
-void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+void LoadXfmFromBrx(struct S *p, void *q) __asm__("LoadXfmFromBrx");
+void CLoadCollectorArray_ctor(struct DA *pda) __asm__("CLoadCollectorArray_ctor");
+void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda) __asm__("LoadXfmChildObjectsFromBrx");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // EXPLG::LoadFromBrx: XFM load, then its child objects; the explosions (CID 0x1E and derived) become the group's
 // children, anything else gets vtable slot 9 (inferred: removal). Every child is flagged (LO bit 57).
-void LoadExplgFromBrx(struct S *p, void *q)
+extern "C" void LoadExplgFromBrx(struct S *p, void *q)
 {
     struct C ctx;
     struct DA da;
@@ -1723,7 +1723,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
     }
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
-} } // namespace M_LoadExplgFromBrx
+} // namespace M_LoadExplgFromBrx
 
 // Returns an explosion group's children: the array through the out parameter, the count as the result.
 int EXPLG::GetChildren(LO ***childrenOut)
@@ -1733,15 +1733,15 @@ int EXPLG::GetChildren(LO ***childrenOut)
     return group->numChildren;
 }
 
-namespace M_CloneExplg { extern "C" {
-void *AllocCopyFromWorldHeap(SWALLOC *pmsg, void *pv);
+namespace M_CloneExplg {
+void *AllocCopyFromWorldHeap(SWALLOC *pmsg, void *pv) __asm__("AllocCopyFromWorldHeap");
 // Fill the heap message and reallocate pv as a cb-byte copy of kind nKind on the world heap.
-static inline void *PvReallocMsg(SWALLOC *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
+extern "C" { static inline void *PvReallocMsg(SWALLOC *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); } }
 struct S { int pad[4]; void *psoParent; char pad2[0xE0 - 0x14]; int numChildren; void **children; };   /* EXPLG */
-void CloneXfm(struct S *p, void *pv);
-void *CloneLoWithParent__FP2LOP2SO(void *pv, void *p10);
+void CloneXfm(struct S *p, void *pv) __asm__("CloneXfm");
+void *CloneLoWithParent__FP2LOP2SO(void *pv, void *p10) __asm__("CloneLoWithParent__FP2LOP2SO");
 // EXPLG clone: XFM clone, then a private copy of the child array with each child cloned under the same parent.
-void CloneExplg(struct S *p, void *pv)
+extern "C" void CloneExplg(struct S *p, void *pv)
 {
     SWALLOC msg;
     int i;
@@ -1750,7 +1750,7 @@ void CloneExplg(struct S *p, void *pv)
     for (i = 0; i < p->numChildren; i++)
         p->children[i] = CloneLoWithParent__FP2LOP2SO(p->children[i], p->psoParent);
 }
-} } // namespace M_CloneExplg
+} // namespace M_CloneExplg
 
 namespace M_ExplodeExplgExplso {
 // ExplodeExplgExplso (Claude agent, lane D40): matched with Lilly's MATRIX3 operator* (src/game/engine/anim/tail/UpdateChainLink.cpp: rows of the LEFT
@@ -1762,7 +1762,7 @@ struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
 struct XF { qword pos; MATRIX3 localMatrix; VEC v; VEC w; };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
-extern "C" { MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm); }
+MATRIX4 InvertMatrix4Rigid(MATRIX4 *pm) __asm__("InvertMatrix4Rigid");
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 struct VU_VECTOR4 { qword qw; };
 // 3x3 matrix product matL * matR.
@@ -1793,7 +1793,7 @@ inline qword QwRotateVec(const MATRIX3 *pmat, qword qwVec)
             : "j"(pmat->r[0]), "j"(pmat->r[1]), "j"(pmat->r[2]), "j"(qwVec));
     return qwResult;
 }
-extern "C" void ExplodeExplgExplso(S *p, EXPLSO *pp);
+extern void ExplodeExplgExplso(S *p, EXPLSO *pp) __asm__("ExplodeExplgExplso");
 // EXPLG explode: explodes every child explosion (vtable slot 51) with a copy of the EXPLSO whose transform is the
 // child's placement relative to the group, composed with the caller's transform when it gave one; the group is the
 // reference object unless the caller set one.
@@ -1830,9 +1830,9 @@ void ExplodeExplgExplso(S *group, EXPLSO *explso)
 }
 } // namespace M_ExplodeExplgExplso
 
-namespace M_HandleExplsMessage { extern "C" {
+namespace M_HandleExplsMessage {
 struct O { char pad[0x100]; void *pripg; void *pblipg; };   /* EXPLS: its particle groups (+0x100, +0x104) */
-} } // namespace M_HandleExplsMessage
+} // namespace M_HandleExplsMessage
 // EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
@@ -1866,7 +1866,7 @@ extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
     return explosionSound->sfx;
 }
 
-namespace M_FireExplsExplso { extern "C" {
+namespace M_FireExplsExplso {
 // (Claude agent) MATCH: g8 if/else reload form, max via local h=0.5f, pfrm transform split into mul asm + vadd asm with t loaded late.
 typedef int qword __attribute__((mode(TI)));
 typedef struct EMITP { int reference; int shape; int render; int nextRender; int touch; } EMITP;   /* EMITB+0x08: the resolved objects */
@@ -1882,28 +1882,28 @@ typedef struct EMITTERV {
     RIPG *pripg; BLIPG *pblipg; /* +0x100 */
 } EMITTERV;
 
-extern char D_002BDEC0[];
-extern float RandomFloatInRange__Fff(float lo, float hi);
-extern float ClampToLimits__FP2LMf(void *p, float g);
+extern char D_002BDEC0[] __asm__("D_002BDEC0");
+extern float RandomFloatInRange__Fff(float lo, float hi) __asm__("RandomFloatInRange__Fff");
+extern float ClampToLimits__FP2LMf(void *p, float g) __asm__("ClampToLimits__FP2LMf");
 typedef union V4 { qword q; float a[4]; } V4;
 extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
-extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
-extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
-extern void VECTOR_opAssign(qword *pv, qword a);
-extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITG *pemitg);
-extern qword ConvertPosBetweenLos(int x, int y, qword v);
-extern void *CreateSfxSound(int id);
-extern void SetSndSourceLo(void *p, void *pso);
-extern void SetSndSourcePos(void *p, qword v);
-extern void SetSndRange(void *p, float a, float b);
-extern void SetSndVolume(void *p, float g);
-extern void SetSndPitch(void *p, float g);
+extern V4 __9VU_VECTORRC6VECTOR(qword *pv) __asm__("__9VU_VECTORRC6VECTOR");
+extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
+extern void VECTOR_opAssign(qword *pv, qword a) __asm__("VECTOR_opAssign");
+extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITG *pemitg) __asm__("EmitParticles__FiP5EMITBP5EMITG");
+extern qword ConvertPosBetweenLos(int x, int y, qword v) __asm__("ConvertPosBetweenLos");
+extern void *CreateSfxSound(int id) __asm__("CreateSfxSound");
+extern void SetSndSourceLo(void *p, void *pso) __asm__("SetSndSourceLo");
+extern void SetSndSourcePos(void *p, qword v) __asm__("SetSndSourcePos");
+extern void SetSndRange(void *p, float a, float b) __asm__("SetSndRange");
+extern void SetSndVolume(void *p, float g) __asm__("SetSndVolume");
+extern void SetSndPitch(void *p, float g) __asm__("SetSndPitch");
 
 // EXPLS fire: emits one explosion's particles from a copy of the EXPLS's EMITB with the EXPLSO's overrides
 // (reference, direction, origin point or transform, touch object, count); a scaled explosion scales the count
 // (capped at half the maximum), speed and blip size. Then plays the EXPLS's sound at the origin's centre (by
 // origin kind, through the local transform, then into world space from the reference object).
-void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
+extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
 {
     EMITP emitp;
     EMITB emitb;
@@ -2022,7 +2022,7 @@ void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
         SetSndPitch(sound, expls->psnd->pitch);
     }
 }
-} } // namespace M_FireExplsExplso
+} // namespace M_FireExplsExplso
 
 
 
@@ -2055,14 +2055,14 @@ template CLASSINFO *GetEmitterClassDesc_linkonce(EXPLO *);                  /* 0
 EMITV4 D_002BDDF0 = {{0.0f, 0.0f, 0.0f, 0.0f}};
 float D_002BDE00 = 1.0f;
 namespace EMIT_DEFAULTS {
-extern "C" unsigned int r_D_002BDE10[16] __asm__("D_002BDE10") __attribute__((aligned(16))) = {   /* record 0 */
+extern unsigned int r_D_002BDE10[16] __asm__("D_002BDE10") __attribute__((aligned(16))) = {   /* record 0 */
     0, 0, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0, 0x41C80000 /* 25.0f */, 0, 0, 0, 0, 0, 0, 0};
-extern "C" unsigned int r_D_002BDE50[2] __asm__("D_002BDE50") = {0xFFFFFFFF, 0x41200000 /* 10.0f */};
+extern unsigned int r_D_002BDE50[2] __asm__("D_002BDE50") = {0xFFFFFFFF, 0x41200000 /* 10.0f */};
 }
 int D_002BDE58 = 0;
 EMITV3 D_002BDE60 = {{25.0f, 0.8f, 0.8f}};
 namespace EMIT_DEFAULTS {
-extern "C" unsigned int r_D_002BDE70[16] __asm__("D_002BDE70") __attribute__((aligned(16))) = {   /* record 1 */
+extern unsigned int r_D_002BDE70[16] __asm__("D_002BDE70") __attribute__((aligned(16))) = {   /* record 1 */
     0xFFFFFFFF, 0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x41C80000 /* 25.0f */, 0x3F800000 /* 1.0f */,
     0x3F800000 /* 1.0f */, 0x3F800000 /* 1.0f */, 0, 0, 0, 0, 0, 0, 0};
 }
@@ -2074,9 +2074,9 @@ LM D_002BDEC0 = {0.5f, 2.0f};
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_emitter {
 void p_func_00159968() __asm__("AttachEmitterToReferencedObject");
-extern "C" {
-extern const unsigned int D_002A5140[2] = {0xFFFF0000, (unsigned int)p_func_00159968};
-}
+
+extern const unsigned int D_002A5140[2] __asm__("D_002A5140") = {0xFFFF0000, (unsigned int)p_func_00159968};
+
 } // namespace ANPTR_emitter
 // The three FLT_MAX words follow the record in .rodata (definition order is emission order).
 extern const float D_002A5148 = 3.40282347e+38f;

@@ -77,21 +77,21 @@ void SetupCm(CM *pcm)
 {
 }
 
-namespace M_UpdateCmLast__FP2CM { extern "C" {
+namespace M_UpdateCmLast__FP2CM {
 /* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
 struct O { int pad[3]; VTE *vt; };
-extern int D_002DFBC0;
-extern JOY D_002E0D00;
-extern char D_002BD810[];
-void ResetCmAdjust(CM *p, CPDEFI *pcpdefi);
-void AdjustCmCpdefi(CM *p, SO *pso, CPDEFI *pcpdefi);
-void SetCmFov__FP2CMf(CM *p, float g);
-float SmoothValueWithAccel__FffffP4SMPAPf(float g, float h, float i, float dt, SMPA *psmpa, float *pb);
-float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
+extern int D_002DFBC0 __asm__("D_002DFBC0");
+extern JOY D_002E0D00 __asm__("D_002E0D00");
+extern char D_002BD810[] __asm__("D_002BD810");
+void ResetCmAdjust(CM *p, CPDEFI *pcpdefi) __asm__("ResetCmAdjust");
+void AdjustCmCpdefi(CM *p, SO *pso, CPDEFI *pcpdefi) __asm__("AdjustCmCpdefi");
+void SetCmFov__FP2CMf(CM *p, float g) __asm__("SetCmFov__FP2CMf");
+float SmoothValueWithAccel__FffffP4SMPAPf(float g, float h, float i, float dt, SMPA *psmpa, float *pb) __asm__("SmoothValueWithAccel__FffffP4SMPAPf");
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr) __asm__("SmoothValue__FfffP3SMPPf");
 // Per-frame camera update: runs the top policy of the stack (vtable slot 6 Update, with the focus object's CPDEFI
 // from its vtable slot 50 and the current joypad), again whenever the update replaced the top policy; then the fov:
 // snapped on a cut, else smoothed toward the target; clears the cut and, in stereo mode, smooths the eye offset.
-void UpdateCmLast__FP2CM(CM *cm)
+extern "C" void UpdateCmLast__FP2CM(CM *cm)
 {
     CPLCY *policy;
     CPLCY *lastUpdated;
@@ -134,12 +134,12 @@ void UpdateCmLast__FP2CM(CM *cm)
     if (g_sw.unknown3E38)   /* stereo mode (draw.cpp) */
         cm->stereoEyeOffset = SmoothValue__FfffP3SMPPf(cm->stereoEyeOffset, cm->stereoFocusDistance, g_clock.cameraDeltaTime, D_002BD810, 0);
 }
-} } // namespace M_UpdateCmLast__FP2CM
+} // namespace M_UpdateCmLast__FP2CM
 
-namespace M_ResetCameraPolicies { extern "C" {
+namespace M_ResetCameraPolicies {
 // Calls ResetPolicy (vtable slot 7) on every policy on the stack, then resets the stereo eye offset (+0x620: 0) and
 // focus distance (+0x624: 10).
-void ResetCameraPolicies(CM *p)
+extern "C" void ResetCameraPolicies(CM *p)
 {
     int i;
     for (i = 0; i < p->numPolicies; i++)
@@ -147,24 +147,24 @@ void ResetCameraPolicies(CM *p)
     p->stereoEyeOffset = 0.0f;
     p->stereoFocusDistance = 10.0f;
 }
-} } // namespace M_ResetCameraPolicies
+} // namespace M_ResetCameraPolicies
 
 namespace M_InitCm__FP2CM {
 // InitCm: near/far and LM init via inline helpers (parameter pseudos give the original FP register choice).
 typedef int qword __attribute__((mode(TI)));
 
-extern "C" {
-extern float D_002BD81C, D_002BD820, D_002BD824;
-extern qword D_002BD830;
-extern qword D_002BD840;
+
+extern float D_002BD81C __asm__("D_002BD81C"), D_002BD820 __asm__("D_002BD820"), D_002BD824 __asm__("D_002BD824");
+extern qword D_002BD830 __asm__("D_002BD830");
+extern qword D_002BD840 __asm__("D_002BD840");
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-void SetCameraLookAt(CM *p, qword pos, qword tgt, float da, float db);
-void CutCm__FP2CM(CM *p);
-void InitCmpart1(void *p);
-void InitCptn(void *p);
-void InitCplcy(void *p);
-void SetCmPolicy(CM *p, int prio, void *po, int a, int b);
-}
+void SetCameraLookAt(CM *p, qword pos, qword tgt, float da, float db) __asm__("SetCameraLookAt");
+void CutCm__FP2CM(CM *p) __asm__("CutCm__FP2CM");
+void InitCmpart1(void *p) __asm__("InitCmpart1");
+void InitCptn(void *p) __asm__("InitCptn");
+void InitCplcy(void *p) __asm__("InitCplcy");
+void SetCmPolicy(CM *p, int prio, void *po, int a, int b) __asm__("SetCmPolicy");
+
 // Set the camera's near and far clip distances.
 static inline void SetNF(CM *cm, float n, float f) { cm->nearClip = n; cm->farClip = f; }
 // Initialise a smoothing record: fast speed, fast duration and max speed change; slow speed 0.
@@ -211,20 +211,20 @@ extern "C" void InitCm__FP2CM(CM *cm)
 }
 } // namespace M_InitCm__FP2CM
 
-namespace M_CutCm__FP2CM { extern "C" {
+namespace M_CutCm__FP2CM {
 // Requests a camera cut (no smoothing) this frame: cutCount = max(cutCount, 1).
-void CutCm__FP2CM(CM *p)
+extern "C" void CutCm__FP2CM(CM *p)
 {
     int n = p->nCut;
     int m = 1;
     if (m < n) m = n;
     p->nCut = m;
 }
-} } // namespace M_CutCm__FP2CM
+} // namespace M_CutCm__FP2CM
 
-namespace M_SetCmCut { extern "C" {
+namespace M_SetCmCut {
 // Cut with explicit pan/tilt: cutPanAngle(+0x304)/cutTiltAngle(+0x308) = args, nCut = max(nCut,2) (inferred)
-void SetCmCut(CM *p, float a, float b)
+extern "C" void SetCmCut(CM *p, float a, float b)
 {
     int m = 2;
     p->cutTiltAngle = b;
@@ -232,17 +232,17 @@ void SetCmCut(CM *p, float a, float b)
     if (m < p->nCut) m = p->nCut;
     p->nCut = m;
 }
-} } // namespace M_SetCmCut
+} // namespace M_SetCmCut
 
-namespace M_CombineEyeLookAtProj { extern "C" {
+namespace M_CombineEyeLookAtProj {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void InvertMatrix4Rigid(M4F *pmOut, M4F *pm);
-void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb);
+void InvertMatrix4Rigid(M4F *pmOut, M4F *pm) __asm__("InvertMatrix4Rigid");
+void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb) __asm__("__ml__FRC7MATRIX4T0");
 // MatViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x)
-void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)
+extern "C" void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)
 {
     M4F m;
     M4 r;
@@ -266,13 +266,13 @@ void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)
     }
     *pmOut = r;
 }
-} } // namespace M_CombineEyeLookAtProj
+} // namespace M_CombineEyeLookAtProj
 
 namespace M_BuildFrustrum {
 // BuildFrustrum(pmat, gx, gy, anormal): 4 side-plane normals. Hard-reg VF vars in Normalize1 pin the first block allocation.
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { qword r[3]; };
-extern "C" void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal);
+extern void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal) __asm__("BuildFrustrum");
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Wrap a qword as a VU_VECTOR.
@@ -324,7 +324,7 @@ void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal)
 namespace M_RecalcCmFrustrum__FP2CM {
 #include "sly2/cm.h"
 // sqrt.s as volatile inline asm (as in other matched cm/util code): it orders the stores like the original.
-extern "C" float tanf(float);
+extern float tanf(float) __asm__("tanf");
 void BuildProj(void *p, float a, float b, float c, float d, float e, float f) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 void SetCmLookAt(CM *p, float g, void *pv) __asm__("BuildCmFgfn");
 void RecalcCm(CM *p) __asm__("UpdateCmMat4__FP2CM");
@@ -371,9 +371,9 @@ MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR) __asm__("__ml__FRC7MATRIX4T0");
 bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("InvertMatrix4");
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sNear, float sFar, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
-extern "C" { extern LM D_002BBB60; }
-extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("CombineEyeLookAtProj");
-extern "C" void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane);
+extern LM D_002BBB60 __asm__("D_002BBB60");
+extern void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("CombineEyeLookAtProj");
+extern void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane) __asm__("BuildFrustrum");
 void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");
 struct VU_FLOAT
 {
@@ -386,15 +386,15 @@ static inline qword QwAddScaled(qword qwBase, qword qwD, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwD), "j"(g.qw));
     return qw;
 }
-extern "C" { extern float D_002BD850; }
-extern "C" { extern float D_002BD854; }
-extern "C" { extern CLQ D_002BD860; }
-extern "C" { extern qword D_002BD870; }
-extern "C" { extern qword D_002BD880; }
-extern "C" { extern qword D_002BD890; }
-extern "C" { extern qword D_002BD8A0; }
-extern "C" { extern qword D_002A2DE0; }
-extern "C" { extern float *VECTOR_opAssign(float *pg, qword qw); }
+extern float D_002BD850 __asm__("D_002BD850");
+extern float D_002BD854 __asm__("D_002BD854");
+extern CLQ D_002BD860 __asm__("D_002BD860");
+extern qword D_002BD870 __asm__("D_002BD870");
+extern qword D_002BD880 __asm__("D_002BD880");
+extern qword D_002BD890 __asm__("D_002BD890");
+extern qword D_002BD8A0 __asm__("D_002BD8A0");
+extern qword D_002A2DE0 __asm__("D_002A2DE0");
+extern float *VECTOR_opAssign(float *pg, qword qw) __asm__("VECTOR_opAssign");
 // Return qwRow scaled by gScale.
 static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 {
@@ -495,10 +495,10 @@ extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
 }
 } // namespace M_UpdateCmMat4__FP2CM
 
-namespace M_CompareCameraVisZones { extern "C" {
+namespace M_CompareCameraVisZones {
 struct T { char pad[0xE4]; int unknownE4; char pad2[0x110 - 0xE8]; int priority; float distance; char pad3[0x120 - 0x118]; };
 // Qsort comparator for vis-zone candidates: by +0x110 desc, +0xE4 desc, then +0x114 (distance) asc. (inferred)
-int CompareCameraVisZones(struct T **ppa, struct T **ppb)
+extern "C" int CompareCameraVisZones(struct T **ppa, struct T **ppb)
 {
     struct T *a = *ppa;
     struct T *b = *ppb;
@@ -510,19 +510,19 @@ int CompareCameraVisZones(struct T **ppa, struct T **ppb)
     if (b->distance < a->distance) return 1;
     return a - b;
 }
-} } // namespace M_CompareCameraVisZones
+} // namespace M_CompareCameraVisZones
 
-namespace M_UpdateCmVisZone__FP2CM { extern "C" {
+namespace M_UpdateCmVisZone__FP2CM {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; int k; };
-int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap);
-void UpdateVisInside(struct O *po, qword pos);
-void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
-int CompareCameraVisZones(const void *a, const void *b);
-void SetCmVisZone(CM *p, struct O *po);
+int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap) __asm__("FindSwObjectsByClass");
+void UpdateVisInside(struct O *po, qword pos) __asm__("UpdateVisInside");
+void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *)) __asm__("qsort");
+int CompareCameraVisZones(const void *a, const void *b) __asm__("CompareCameraVisZones");
+void SetCmVisZone(CM *p, struct O *po) __asm__("SetCmVisZone");
 // Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best
 // via SetCmVisZone if its kind==1.
-void UpdateCmVisZone__FP2CM(CM *cm)
+extern "C" void UpdateCmVisZone__FP2CM(CM *cm)
 {
     struct O *apo[32];
     qword pos = *(qword *)&cm->pos;
@@ -534,7 +534,7 @@ void UpdateCmVisZone__FP2CM(CM *cm)
     if (n > 0 && apo[0]->k == 1)
         SetCmVisZone(cm, apo[0]);
 }
-} } // namespace M_UpdateCmVisZone__FP2CM
+} // namespace M_UpdateCmVisZone__FP2CM
 
 // If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0. (inferred)
 extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
@@ -555,16 +555,16 @@ extern "C" void SetCmMat4(CM *pcm, qword *pmat)
     UpdateCmMat4(pcm);
 }
 
-namespace M_SetCameraLookAt { extern "C" {
+namespace M_SetCameraLookAt {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } V4;
 struct M3 { V4 r[3]; } __attribute__((aligned(16)));
 typedef struct { M3 m; V4 pos; } M4;
-void GetVectorSphere(qword v, float *a, float *b, int c);
-M3 LoadRotateMatrixPanTilt(float a, float b);
-void VECTOR_opAssign(V4 *p, qword v);
+void GetVectorSphere(qword v, float *a, float *b, int c) __asm__("GetVectorSphere");
+M3 LoadRotateMatrixPanTilt(float a, float b) __asm__("LoadRotateMatrixPanTilt");
+void VECTOR_opAssign(V4 *p, qword v) __asm__("VECTOR_opAssign");
 // Build a 4x4 matrix from rotation m and translation pos.
-static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
+extern "C" { static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 {
     VECTOR_opAssign(&pm->pos, pos);
     pm->m = m;
@@ -572,10 +572,10 @@ static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
     pm->m.r[2].w = 0;
     pm->m.r[0].w = 0;
     pm->pos.w = 1.0f;
-}
+} }
 // Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos) (0x11EFB0), rotation
 // 0x11B720, pos row, UpdateCmMat4. (inferred)
-void SetCameraLookAt(CM *cm, qword pos, qword tgt, float da, float db)
+extern "C" void SetCameraLookAt(CM *cm, qword pos, qword tgt, float da, float db)
 {
     qword d;
     float a, b;
@@ -584,14 +584,14 @@ void SetCameraLookAt(CM *cm, qword pos, qword tgt, float da, float db)
     LoadM4((M4 *)&cm->mat, LoadRotateMatrixPanTilt(a + da, b + db), pos);
     UpdateCmMat4(cm);
 }
-} } // namespace M_SetCameraLookAt
+} // namespace M_SetCameraLookAt
 
-namespace M_BuildCmFgfn { extern "C" {
-extern float D_002A4FF8;
-void FitRecipFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb);
+namespace M_BuildCmFgfn {
+extern float D_002A4FF8 __asm__("D_002A4FF8");
+void FitRecipFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb) __asm__("FitRecipFunction__FffffPfT4");
 // Builds the GS fog function (FGFN) from nearFogDistance/farFogDistance/maxFog (+0x240..0x248): linear map to 0..4080, +8417280
 // bias.
-void BuildCmFgfn(CM *p, float *af, float f)
+extern "C" void BuildCmFgfn(CM *p, float *af, float f)
 {
     if (f == D_002A4FF8) f = 1.0f;
     FitRecipFunction__FffffPfT4(1.0f, 4080.0f, p->farFogDistance / p->nearFogDistance, (1.0f - p->maxFog * f) * 4080.0f, &af[0], &af[1]);
@@ -599,20 +599,20 @@ void BuildCmFgfn(CM *p, float *af, float f)
     af[2] = p->nearFogDistance;
     af[3] = af[0] + 8192.0f;
 }
-} } // namespace M_BuildCmFgfn
+} // namespace M_BuildCmFgfn
 
 // 0x14E320: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("daddu $2, $0, $0");
 
-namespace M_SetCmPolicy { extern "C" {
+namespace M_SetCmPolicy {
 /* Insert an entry into a priority-sorted array of 8 (Claude agent). memmove goes through an inline helper: its
    parameters get their own pseudos, giving the target's (p + i*16) base copied into a1 then +0x320 / +0x310. */
-void *memmove(void *dst, void *src, int cb);
+void *memmove(void *dst, void *src, int cb) __asm__("memmove");
 // memmove cb bytes.
-static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
+extern "C" { static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); } }
 // Insert {cpp,pcplcy,focus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top:
 // prev vt3 Deactivate, modeStartTime=clock.time, vt2 Activate.
-void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
+extern "C" void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
 {
     int i;
     if (p->numPolicies >= sizeof(p->policyStack) / sizeof(p->policyStack[0]))
@@ -636,16 +636,16 @@ void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
         po->Activate(a, b);
     }
 }
-} } // namespace M_SetCmPolicy
+} // namespace M_SetCmPolicy
 
-namespace M_RevokeCmPolicy { extern "C" {
+namespace M_RevokeCmPolicy {
 /* Matched by Claude agent (2026-10-17): compare against the parameters directly (no local E copy) and `for (i = 0, pe = p->policies; ...)`. */
 /* which fields of a stack entry a revoke must match */
 enum { REVOKE_BY_PRIO = 1, REVOKE_BY_POLICY = 2, REVOKE_BY_FOCUS = 4, REVOKE_BY_PARAM = 8 };
 // Removes the policy-stack entries that match on every field the mask selects (priority, policy, focus object,
 // parameter), calling each one's Revoke (vtable slot 5); when the top entry went, deactivates it and activates the new
 // top.
-void RevokeCmPolicy(CM *p, int grf, CPP prio, CPLCY *po, SO *a, void *b)
+extern "C" void RevokeCmPolicy(CM *p, int grf, CPP prio, CPLCY *po, SO *a, void *b)
 {
     CPR *peOut;
     CPR *pe;
@@ -682,24 +682,24 @@ void RevokeCmPolicy(CM *p, int grf, CPP prio, CPLCY *po, SO *a, void *b)
         }
     }
 }
-} } // namespace M_RevokeCmPolicy
+} // namespace M_RevokeCmPolicy
 
-namespace M_CalcCmAdjust { extern "C" {
-void SetVectorCylind(void *a, void *b, float x, float y, float z);
+namespace M_CalcCmAdjust {
+void SetVectorCylind(void *a, void *b, float x, float y, float z) __asm__("SetVectorCylind");
 // The camera adjust offset: a cylindrical vector pointing opposite the focus's home angle (homeHeading + pi) with length
 // adjustDistance (CPDEFI +0x30 / +0x34). (inferred)
-void CalcCmAdjust(void *a, CPDEFI *b)
+void CalcCmAdjust(void *a, CPDEFI *b) __asm__("CalcCmAdjust"); void CalcCmAdjust(void *a, CPDEFI *b)
 {
     SetVectorCylind(a, b, b->homeHeading + 3.14159265f, b->adjustDistance, 0.0f);
 }
-} } // namespace M_CalcCmAdjust
+} // namespace M_CalcCmAdjust
 
-namespace M_ApplyCameraSpring { extern "C" {
+namespace M_ApplyCameraSpring {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
 typedef int qword __attribute__((mode(TI)));
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
-void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, float k2)
+extern "C" void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
     register CLOCK *pclock __asm__("v0");
     register qword s1 __asm__("vf3");
@@ -738,18 +738,18 @@ void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, 
         *ppos = x;
     }
 }
-} } // namespace M_ApplyCameraSpring
+} // namespace M_ApplyCameraSpring
 
-namespace M_AdjustCmCpdefi { extern "C" {
+namespace M_AdjustCmCpdefi {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x4F4]; int stepMode; };
-extern qword D_002A2DD0;
-qword CalcCmAdjust(CM *p, CPDEFI *ps);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
-void ApplyCameraSpring(CM *p, ::qword *ppos, VECTOR *pvel, qword target, float k1, float k2);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+qword CalcCmAdjust(CM *p, CPDEFI *ps) __asm__("CalcCmAdjust");
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void ApplyCameraSpring(CM *p, ::qword *ppos, VECTOR *pvel, qword target, float k1, float k2) __asm__("ApplyCameraSpring");
 // Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different
 // gains; writes cpdefi.adjustedPosition = basePosition + dposAdjust.
-void AdjustCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
+extern "C" void AdjustCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
 {
     qword q = CalcCmAdjust(p, ps);
     if (IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) {
@@ -776,7 +776,7 @@ void AdjustCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
         *(qword *)&ps->adjustedPosition = r;
     }
 }
-} } // namespace M_AdjustCmCpdefi
+} // namespace M_AdjustCmCpdefi
 
 // Zero the xyz components of pv.
 static inline void ZeroVector(VECTOR *pv)
@@ -793,14 +793,14 @@ extern "C" void ResetCmAdjust(CM *pcm)
     ZeroVector(&pcm->vFocus);
 }
 
-namespace M_GetCmCpdefi { extern "C" {
+namespace M_GetCmCpdefi {
 typedef int qword __attribute__((mode(TI)));
 
 struct O { int pad[3]; VTE *vt; };
-qword CalcCmAdjust(CM *p, CPDEFI *ps);
+qword CalcCmAdjust(CM *p, CPDEFI *ps) __asm__("CalcCmAdjust");
 // If pso == focus(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and adjustedPosition = basePosition +
 // CalcCmAdjust.
-void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
+extern "C" void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
 {
     if ((SO *)po == p->focus) {
         *ps = p->cpdefi;
@@ -813,19 +813,19 @@ void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
         *(qword *)&ps->adjustedPosition = r;
     }
 }
-} } // namespace M_GetCmCpdefi
+} // namespace M_GetCmCpdefi
 
-namespace M_FindCameraClearInterval { extern "C" {
+namespace M_FindCameraClearInterval {
 /* float g placed after the pointer params: its param copy comes after pgMax, lengthening pgMax so the hoisted 0x40 wins $fp in global alloc */
 typedef int qword __attribute__((mode(TI)));
 struct T { int a, b, c; };
 struct O { char pad[0x70]; int c; struct T *at; };
 struct HIT { char pad[0x40]; float enterTime; float exitTime; char pad2[0x18]; };
-int func_00118668(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit);
-int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f);
+int func_00118668(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit) __asm__("func_00118668");
+int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f) __asm__("MergeSegmentLists");
 // Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
 // > duMin in *puFrom/ *puTo.
-int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
+extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
 {
     struct HIT ahit[0x40];
     int c = 0;
@@ -857,7 +857,7 @@ int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *
         *pgMax = g1;
     return 1;
 }
-} } // namespace M_FindCameraClearInterval
+} // namespace M_FindCameraClearInterval
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -865,12 +865,12 @@ int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *
 namespace RO_ORDER { extern const float r_D_002A4FF8 __asm__("D_002A4FF8") = 3.40282347e+38f; }
 namespace M_FindCmClosestClearPos {
 typedef int qword __attribute__((mode(TI)));
-extern "C" {
-extern int D_002BD8B0[];
-qword SetVectorSphere(float pan, float tilt, float s);
-int FindCameraClearInterval(void *p, void *x, qword a, qword b, float *pt, float *pu, float g);
-qword FindCmClosestClearPos(void *p, void *x, qword pos, float g);
-}
+
+extern int D_002BD8B0[] __asm__("D_002BD8B0");
+qword SetVectorSphere(float pan, float tilt, float s) __asm__("SetVectorSphere");
+int FindCameraClearInterval(void *p, void *x, qword a, qword b, float *pt, float *pu, float g) __asm__("FindCameraClearInterval");
+qword FindCmClosestClearPos(void *p, void *x, qword pos, float g) __asm__("FindCmClosestClearPos");
+
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Wrap a qword as a VU_VECTOR.
@@ -923,22 +923,22 @@ qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
 }
 } // namespace M_FindCmClosestClearPos
 
-namespace M_SquishCmEye { extern "C" {
+namespace M_SquishCmEye {
 /* MATCH (Claude agent, lane D4): v2 inline Dot(qword *pa, qword *pb) (keeps &ax[i].normal hoisted in a reg), returning int from a qmfc2 into `register int d asm("$7")`, stored through `*(int *)pg++` (sw $a3 like the target). */
 typedef int qword __attribute__((mode(TI)));
 struct X { qword pos; qword normal; qword unknown20; };
 struct E { int a, b, c; };
 struct LO { char pad[0x70]; int rootNodeIndex; struct E *bspNodes; };
-extern float D_002BD8D4;
-void STACKSCOPE_ctor(void *p);
+extern float D_002BD8D4 __asm__("D_002BD8D4");
+void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(struct SWALLOC *pal);
-int IntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax);
-void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g);
-qword LimitVectorLength(qword v, float g);
+void *AllocFromStack(struct SWALLOC *pal) __asm__("AllocFromStack");
+int IntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax) __asm__("IntersectSphereBsp");
+void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g) __asm__("SolveInequalities");
+qword LimitVectorLength(qword v, float g) __asm__("LimitVectorLength");
 
 // Dot product of the xyz parts of *pa and *pb, as raw float bits.
-static inline int Dot(qword *pa, qword *pb)
+extern "C" { static inline int Dot(qword *pa, qword *pb)
 {
     register qword nj __asm__("vf1") = *pb;
     register qword t __asm__("vf2") = *pa;
@@ -948,20 +948,20 @@ static inline int Dot(qword *pa, qword *pb)
             : "+j"(t), "=&j"(one) : "j"(nj));
     __asm__("qmfc2.ni %0, %1" : "=r"(d) : "j"(t));
     return d;
-}
+} }
 
 // Allocate cb bytes with alignment cbAlign from the world heap.
-static inline void *PvAlloc(int cb, int cbAlign)
+extern "C" { static inline void *PvAlloc(int cb, int cbAlign)
 {
     struct SWALLOC al;
     al.cb = cb;
     al.cbAlign = cbAlign;
     return AllocFromStack(&al);
-}
+} }
 
 // Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix + constraint values via pfn,
 // solves (0x11AD30) and returns v + sum of normal impulses.
-qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, qword, struct X *),
+extern "C" qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, qword, struct X *),
                     qword pos, qword v, float g, float h)
 {
     struct X ax[64];
@@ -1017,7 +1017,7 @@ qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, q
         return r;
     }
 }
-} } // namespace M_SquishCmEye
+} // namespace M_SquishCmEye
 
 struct LOBSP { char pad[0x70]; int numCameraBspNodes; };
 // Camera object filter: accepts objects with camera-collision BSP nodes (a positive count at +0x70) (inferred).
@@ -1026,7 +1026,7 @@ extern "C" int HasCameraBsp(void *pv, LO *plo)
     return ((LOBSP *)plo)->numCameraBspNodes > 0;
 }
 
-namespace M_SvSquishCmEyeConstraint { extern "C" {
+namespace M_SvSquishCmEyeConstraint {
 // MATCH (Claude agent, lane D24, 2026-10-23): v6 with the mtc1 asm's allocation-only "j" operands replaced by an
 // "r,j" constraint on td (never-chosen alternative, forced off by an unused "i,r"(0) operand). With fewer operands
 // the mtc1 has 4 dependents like the `one` sqc2, so the luid tie-break issues the sqc2 first, like the target.
@@ -1034,12 +1034,12 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct PL { qword pos; qword plane; };
 struct P { char pad[0x48]; float nearCorner; };
-extern float D_002BD8D8;
-extern char D_002BD8E0[];
-void *InitVuTemp(void *p);
-void SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
+extern float D_002BD8D8 __asm__("D_002BD8D8");
+extern char D_002BD8E0[] __asm__("D_002BD8E0");
+void *InitVuTemp(void *p) __asm__("InitVuTemp");
+void SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr) __asm__("SmoothValue__FfffP3SMPPf");
 // Signed distance from pos to plane (plane.xyz . pos - plane.w).
-static __inline__ float GDistPlane(qword plane, qword pos)
+extern "C" { static __inline__ float GDistPlane(qword plane, qword pos)
 {
     U d, one;
     qword td, tone;
@@ -1054,9 +1054,9 @@ static __inline__ float GDistPlane(qword plane, qword pos)
     one.q = tone;
     d.q = td;
     return dist;
-}
+} }
 // Dot product of the xyz parts of *pa and b as a float.
-static __inline__ float GDot(const qword *pa, qword b)
+extern "C" { static __inline__ float GDot(const qword *pa, qword b)
 {
     qword a = *pa;
     qword d, one;
@@ -1064,9 +1064,9 @@ static __inline__ float GDot(const qword *pa, qword b)
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 // Constraint for SquishCmEye: SmoothValue(dist-to-plane, nearCornerDistance(+0x48) - k) ; return dot(vEye, normal) - smoothed.
-float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
+extern "C" float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
 {
     float r;
     qword plane = pl->plane;
@@ -1074,7 +1074,7 @@ float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
     SmoothValue__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, D_002BD8E0, &r);
     return GDot(&vIn, pl->plane) - r;
 }
-} } // namespace M_SvSquishCmEyeConstraint
+} // namespace M_SvSquishCmEyeConstraint
 
 namespace M_ClipCameraEye {
 // ClipCameraEye (Claude agent, lane K5, 2026-10-24): MATCH. Built on laneK4v1 (K3/K4 fresh rewrite in the ClipEdgeToSphere style).
@@ -1085,17 +1085,17 @@ namespace M_ClipCameraEye {
 typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register, from a value or from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
-extern "C" {
-extern qword D_002BD8F0, D_002BD900;
-extern float D_002BD8D8, D_002BD8DC;
-void *STACKSCOPE_ctor(STACKSCOPE *p);
+
+extern qword D_002BD8F0 __asm__("D_002BD8F0"), D_002BD900 __asm__("D_002BD900");
+extern float D_002BD8D8 __asm__("D_002BD8D8"), D_002BD8DC __asm__("D_002BD8DC");
+void *STACKSCOPE_ctor(STACKSCOPE *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *p, int n) __asm__("_$_10STACKSCOPE");
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-qword SquishCmEye(void *p, int i, int j, void *pfn, qword a, qword v, float g, float h);
-void HasCameraBsp(void);
-void SvSquishCmEyeConstraint(void);
-qword ClipCameraEye(void *p, qword pos, qword posTarget);
-}
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
+qword SquishCmEye(void *p, int i, int j, void *pfn, qword a, qword v, float g, float h) __asm__("SquishCmEye");
+void HasCameraBsp(void) __asm__("HasCameraBsp");
+void SvSquishCmEyeConstraint(void) __asm__("SvSquishCmEyeConstraint");
+qword ClipCameraEye(void *p, qword pos, qword posTarget) __asm__("ClipCameraEye");
+
 // Divide v by g.
 static inline qword DivideBy(const qword &v, const VU_FLOAT &g) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 // Return base + vec * s.
@@ -1136,19 +1136,19 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
 }
 } // namespace M_ClipCameraEye
 
-namespace M_ConvertCmScreenToWorld { extern "C" {
+namespace M_ConvertCmScreenToWorld {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 // Transform point v by the 4x4 matrix pm.
-static __inline__ qword Mul(M4 *pm, qword v)
+extern "C" { static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
             : "=j"(o) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]));
     return o;
-}
+} }
 // Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat.
-qword ConvertCmScreenToWorld(CM *cm, qword v)
+extern "C" qword ConvertCmScreenToWorld(CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
     float x = QwordX(v);
@@ -1165,15 +1165,15 @@ qword ConvertCmScreenToWorld(CM *cm, qword v)
     r.f[2] *= cm->tanHalfFovY;
     return Mul((M4 *)&cm->mat, r.q);
 }
-} } // namespace M_ConvertCmScreenToWorld
+} // namespace M_ConvertCmScreenToWorld
 
-namespace M_ConvertCmWorldToScreen { extern "C" {
+namespace M_ConvertCmWorldToScreen {
 
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pm, M4 *pn);
+void InvertMatrix4Rigid(M4 *pm, M4 *pn) __asm__("InvertMatrix4Rigid");
 // World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
-qword ConvertCmWorldToScreen(CM *cm, qword v)
+extern "C" qword ConvertCmWorldToScreen(CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
     M4 m;
@@ -1197,31 +1197,31 @@ qword ConvertCmWorldToScreen(CM *cm, qword v)
     }
     return r.q;
 }
-} } // namespace M_ConvertCmWorldToScreen
+} // namespace M_ConvertCmWorldToScreen
 
 // 0x14F3C0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
-namespace M_SetCmPos { extern "C" {
+namespace M_SetCmPos {
 typedef int qword __attribute__((mode(TI)));
 typedef union { struct { qword r[4]; } q; float af[4][4]; } M4;
-qword *VECTOR_opAssign(qword *p, qword v);
-void SetCmMat4(CM *p, M4 *m);
+qword *VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
+void SetCmMat4(CM *p, M4 *m) __asm__("SetCmMat4");
 // Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4.
-void SetCmPos(CM *cm, qword pos)
+extern "C" void SetCmPos(CM *cm, qword pos)
 {
     M4 m = *(M4 *)&cm->mat;
     VECTOR_opAssign(&m.q.r[3], pos);
     m.af[3][3] = 1.0f;
     SetCmMat4(cm, &m);
 }
-} } // namespace M_SetCmPos
+} // namespace M_SetCmPos
 
-namespace M_SetCmMat { extern "C" {
+namespace M_SetCmMat {
 #include "mat.h"
-void SetCmMat4(CM *p, struct MATRIX4 *m);
+void SetCmMat4(CM *p, struct MATRIX4 *m) __asm__("SetCmMat4");
 // Set rotation from MATRIX3, keep pos, SetCmMat4. (inferred)
-void SetCmMat(CM *cm, struct MATRIX3 *pmat)
+void SetCmMat(CM *cm, struct MATRIX3 *pmat) __asm__("SetCmMat"); void SetCmMat(CM *cm, struct MATRIX3 *pmat)
 {
     struct MATRIX4 m;
     *(struct MATRIX3 *)&m = *pmat;
@@ -1231,12 +1231,12 @@ void SetCmMat(CM *cm, struct MATRIX3 *pmat)
     m.mat[0][3] = 0.0f;
     SetCmMat4(cm, &m);
 }
-} } // namespace M_SetCmMat
+} // namespace M_SetCmMat
 
-namespace M_GetCmRotDeg { extern "C" {
+namespace M_GetCmRotDeg {
 typedef int qword __attribute__((mode(TI)));
 // Pack x, y, z into a 128-bit GPR value.
-static __inline__ qword Make(float x, float y, float z)
+extern "C" { static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
     __asm__("mfc1 %0,%2
@@ -1246,23 +1246,23 @@ static __inline__ qword Make(float x, float y, float z)
 	pcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
-}
-qword DecomposeRotationMatrixToEuler(void *p);
+} }
+qword DecomposeRotationMatrixToEuler(void *p) __asm__("DecomposeRotationMatrixToEuler");
 // Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees.
 #define DEGREES_PER_RADIAN 57.295776f
-qword GetCmRotDeg(CM *p)
+extern "C" qword GetCmRotDeg(CM *p)
 {
     union { qword q; float f; } r;
     qword v = DecomposeRotationMatrixToEuler(&p->mat);
     r.q = Make(QwordX(v) * DEGREES_PER_RADIAN, QwordY(v) * DEGREES_PER_RADIAN, QwordZ(v) * DEGREES_PER_RADIAN);
     return r.q;
 }
-} } // namespace M_GetCmRotDeg
+} // namespace M_GetCmRotDeg
 
-namespace M_SetCmRotDeg { extern "C" {
+namespace M_SetCmRotDeg {
 typedef int qword __attribute__((mode(TI)));
 // Pack x, y, z into a 128-bit GPR value.
-static __inline__ qword Make(float x, float y, float z)
+extern "C" { static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
     __asm__("mfc1 %0,%2
@@ -1272,13 +1272,13 @@ static __inline__ qword Make(float x, float y, float z)
 	pcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
-}
+} }
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
-void LoadRotateMatrixEuler(M3 *pm, qword v);
-void SetCmMat4(CM *p, M4 *m);
+void LoadRotateMatrixEuler(M3 *pm, qword v) __asm__("LoadRotateMatrixEuler");
+void SetCmMat4(CM *p, M4 *m) __asm__("SetCmMat4");
 // Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4. (inferred)
-void SetCmRotDeg(CM *cm, qword v)
+extern "C" void SetCmRotDeg(CM *cm, qword v)
 {
     M4 mat = *(M4 *)&cm->mat;
     union { qword q; float f; } r;
@@ -1292,11 +1292,11 @@ void SetCmRotDeg(CM *cm, qword v)
     mat.af[0][3] = 0.0f;
     SetCmMat4(cm, &mat);
 }
-} } // namespace M_SetCmRotDeg
+} // namespace M_SetCmRotDeg
 
-namespace M_SetCmFov__FP2CMf { extern "C" {
+namespace M_SetCmFov__FP2CMf {
 // Fov(+0x20)=targetFieldOfView(+0x24)=f, dfov=0; RecalcCmFrustrum if changed > 1e-4.
-void SetCmFov__FP2CMf(CM *cm, float f)
+extern "C" void SetCmFov__FP2CMf(CM *cm, float f)
 {
     int fChanged = __builtin_fabsf(f - cm->fieldOfView) > 0.0001f;
     cm->fieldOfView = f;
@@ -1304,7 +1304,7 @@ void SetCmFov__FP2CMf(CM *cm, float f)
     cm->dfov = 0.0f;
     if (fChanged) RecalcCmFrustrum(cm);
 }
-} } // namespace M_SetCmFov__FP2CMf
+} // namespace M_SetCmFov__FP2CMf
 
 // Option setter g_aeopid[162] (field +0x24): targetFieldOfView=f and the active policy's saved fov (acpr[0].pcplcy+4) so
 // Deactivate restores it. (inferred)
@@ -1363,17 +1363,17 @@ void SetCmUFogMax(CM *pcm, float g)
     RecalcCmFrustrum(pcm);
 }
 
-namespace M_SetCmRgbaFog__FP2CMP4RGBA { extern "C" {
+namespace M_SetCmRgbaFog__FP2CMP4RGBA {
 struct S4 { char a[4]; };
-void ColorCorrectRgba(void *p);
+void ColorCorrectRgba(void *p) __asm__("ColorCorrectRgba");
 // RgbaFog(+0x24C)=*prgba; 0x1ED278 on it; RecalcCmFrustrum.
-void SetCmRgbaFog__FP2CMP4RGBA(CM *cm, struct S4 *s)
+extern "C" void SetCmRgbaFog__FP2CMP4RGBA(CM *cm, struct S4 *s)
 {
     *(struct S4 *)&cm->rgbaFog = *s;
     ColorCorrectRgba(&cm->rgbaFog);
     RecalcCmFrustrum(cm);
 }
-} } // namespace M_SetCmRgbaFog__FP2CMP4RGBA
+} // namespace M_SetCmRgbaFog__FP2CMP4RGBA
 
 // RMRD ratio (+0x18)=f; RecalcCmFrustrum (which derives +0x1C = max(r/fov,1)) (inferred)
 void SetCmMrdRatio(CM *pcm, float g)
@@ -1382,23 +1382,23 @@ void SetCmMrdRatio(CM *pcm, float g)
     RecalcCmFrustrum(pcm);
 }
 
-namespace M_JoltCamera { extern "C" {
+namespace M_JoltCamera {
 // Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
-void JoltCamera(CM *p, int a)
+extern "C" void JoltCamera(CM *p, int a)
 {
     p->joltTime = g_clock.time;
     p->joltKind = a;
 }
-} } // namespace M_JoltCamera
+} // namespace M_JoltCamera
 
-namespace M_BuildStereoEyeViewProj { extern "C" {
+namespace M_BuildStereoEyeViewProj {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef struct { qword r[4]; } M4;
-void VECTOR_opAssign(qword *p, qword v);
-void CombineEyeLookAtProj(M4 *pm, void *pv, int n);
+void VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
+void CombineEyeLookAtProj(M4 *pm, void *pv, int n) __asm__("CombineEyeLookAtProj");
 // Copy the rotation pmat into pm with zero w in rows 0-2 and w = 1 in row 3 (the caller fills the position).
-static __inline__ void LoadM4(M4 *pm, M3 *pmat)
+extern "C" { static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 {
     pm->r[0] = pmat->r[0];
     pm->r[1] = pmat->r[1];
@@ -1407,10 +1407,10 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
     ((int *)&pm->r[2])[3] = 0;
     ((int *)&pm->r[0])[3] = 0;
     ((float *)&pm->r[3])[3] = 1.0f;
-}
+} }
 // Builds a view-proj from CM::mat with pos offset along the right axis by +/- stereoEyeOffset (k=1/2) via CombineEyeLookAtProj
 // into pm (proj = pv or matProj) (inferred)
-void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
+extern "C" void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
 {
     QWROW r, g;
     float f = 0.0f;
@@ -1432,14 +1432,14 @@ void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
     LoadM4(pm, (M3 *)&cm->mat);
     CombineEyeLookAtProj(pm, pv ? pv : (void *)&cm->matProj, n);
 }
-} } // namespace M_BuildStereoEyeViewProj
+} // namespace M_BuildStereoEyeViewProj
 
-namespace M_IsInCameraFrustum { extern "C" {
+namespace M_IsInCameraFrustum {
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; qword r[3]; };
 // True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
 // (inferred)
-int IsInCameraFrustum(struct X *p, qword v, qword w)
+extern "C" int IsInCameraFrustum(struct X *p, qword v, qword w)
 {
     qword one;
     int f;
@@ -1448,13 +1448,13 @@ int IsInCameraFrustum(struct X *p, qword v, qword w)
             : "=r"(f) : "j"(p->r[0]), "j"(p->r[1]), "j"(p->r[2]), "j"(v), "j"(one), "j"(w));
     return (f ^ 0xF0) == 0;
 }
-} } // namespace M_IsInCameraFrustum
+} // namespace M_IsInCameraFrustum
 
-namespace M_IsWithinCameraRenderDistance { extern "C" {
+namespace M_IsWithinCameraRenderDistance {
 typedef int qword __attribute__((mode(TI)));
 struct P { int pad[7]; float cullScale; };
 // True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
-int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
+extern "C" int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
 {
     qword l, one;
     float l2, r, r2, d2;
@@ -1472,12 +1472,12 @@ int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
         *pu = 1.0f;
     return 1;
 }
-} } // namespace M_IsWithinCameraRenderDistance
+} // namespace M_IsWithinCameraRenderDistance
 
 
 /* 0x256278 (the matrix option's setter, forwarding to SetCmMat): an inline function in sly2/cm.h. */
 
-namespace M_DestroyCm { extern "C" {
+namespace M_DestroyCm {
 typedef struct { int pad[3]; VTE *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
    zoomStopSound and CPZOOM::psndZoom / zoomStopSound) */
@@ -1487,8 +1487,8 @@ void BASIC_dtor(S *, int) __asm__("_$_5BASIC");   /* ~BASIC (screen.cpp), passed
 // (~BASIC, _$_5BASIC, shared with SW and the screens) with the in-charge flag. Defined over this view, labelled and weak
 // in .gnu.linkonce.t._$_2CM (as screen.cpp's ~BASIC): a CM::~CM() definition would need SND complete for the
 // CRefPtr<SND> members, and the implicit destructor would be inlined into the static destructor, which calls it.
-void DestroyCm(S *p, int x) __asm__("_$_2CM") __attribute__((weak, section(".gnu.linkonce.t._$_2CM")));
-void DestroyCm(S *p, int x)
+extern "C" { void DestroyCm(S *p, int x) __asm__("_$_2CM") __attribute__((weak, section(".gnu.linkonce.t._$_2CM"))); }
+extern "C" void DestroyCm(S *p, int x)
 {
     if (p->zoomSound2) ((void (*)(void *))p->zoomSound2->vt[2].pfn)((char *)p->zoomSound2 + p->zoomSound2->vt[2].d);
     if (p->zoomZoomSound) ((void (*)(void *))p->zoomZoomSound->vt[2].pfn)((char *)p->zoomZoomSound + p->zoomZoomSound->vt[2].d);
@@ -1496,7 +1496,7 @@ void DestroyCm(S *p, int x)
     if (p->lookZoomSound) ((void (*)(void *))p->lookZoomSound->vt[2].pfn)((char *)p->lookZoomSound + p->lookZoomSound->vt[2].d);
     BASIC_dtor(p, x);
 }
-} } // namespace M_DestroyCm
+} // namespace M_DestroyCm
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.

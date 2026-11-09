@@ -6,7 +6,7 @@ CRef *func_0010A8D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
-    CRef_SetBool(&ref, IsStepplayerGrabReady(pbasic) != 0);
+    CRef_SetBool(&ref, IsStepplayerGrabReady((s32)pbasic) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

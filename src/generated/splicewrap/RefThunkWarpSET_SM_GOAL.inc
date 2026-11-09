@@ -11,7 +11,7 @@ CRef *RefThunkWarpSET_SM_GOAL(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 4, aref, aotyp, &arg0_v, &arg1_v, &arg2_v, &arg3_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    SetWarpRsmg(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
+    SetWarpRsmg((s32)pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

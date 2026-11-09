@@ -37,7 +37,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The thunks use sly2/cref.h's CRef; the vector result goes through the C-named setter. */
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);
-extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe");
 
 // ---- The generated Splice wrappers (src/generated/splicewrap/*.inc, tools/gen_splicewrap.py output) ----
 // Each wrapper is C as the generator wrote it (CRef as a plain struct, constructor/destructor calls spelled out),
@@ -107,11 +107,11 @@ __asm__(
 
 // ---- splice thunk RefThunkBasicDERIVED_FROMQ (was src/game/app/splice_thunks/RefThunkBasicDERIVED_FROMQ.cpp) ----
 namespace T_RefThunkBasicDERIVED_FROMQ {
-extern "C" {
-CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, int *an);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
-}
+
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, int *an) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref) __asm__("RefThunkBasicDERIVED_FROMQ");
+
 // Splice binding for option 3 on BASIC (g_aeopid[2], thunkFn): unpacks the script's 1 argument (Cid) with
 // RefSetArgsFromSplice, calls IsBasicDerivedFrom and returns a bool to the script.
 CRef RefThunkBasicDERIVED_FROMQ(void *object, int argCount, void *args)
@@ -154,7 +154,7 @@ CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunkBasicCUSTOM_LM_PROPERTY (was src/game/app/splice_thunks/RefThunkBasicCUSTOM_LM_PROPERTY.cpp) ----
 namespace T_RefThunkBasicCUSTOM_LM_PROPERTY {
-extern "C" { void EnsureLoSidebagLm__FP2LO5OPTIDP2LM(void *p, int n, void *pu); CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref); }
+void EnsureLoSidebagLm__FP2LO5OPTIDP2LM(void *p, int n, void *pu) __asm__("EnsureLoSidebagLm__FP2LO5OPTIDP2LM"); CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref) __asm__("RefThunkBasicCUSTOM_LM_PROPERTY");
 // Splice binding for option 8 on BASIC (g_aeopid[7], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Lm) with RefSetArgsFromSplice, calls EnsureLoSidebagLm and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *object, int argCount, void *args)
@@ -225,7 +225,7 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkSoPOINT_IN_BSP_QUICK (was src/game/app/splice_thunks/RefThunkSoPOINT_IN_BSP_QUICK.cpp) ----
 namespace T_RefThunkSoPOINT_IN_BSP_QUICK {
-extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe");
 extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(SO *p, int c, void *aref);
 // Splice binding for option 108 on SO (g_aeopid[43], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls virtual and returns a bool to the script.
@@ -780,11 +780,11 @@ extern "C" CRef RefThunk_SetAndResolveGuardAttackBindingKind2(void *p, int c, vo
 
 // ---- splice thunk RefThunkVolCHECK_POINT (was src/game/app/splice_thunks/RefThunkVolCHECK_POINT.cpp) ----
 namespace T_RefThunkVolCHECK_POINT {
-extern "C" {
-CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *a0);
-int IsPointInVol(void *p, qword q);
-CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
-}
+
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *a0) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe");
+int IsPointInVol(void *p, qword q) __asm__("IsPointInVol");
+CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref) __asm__("RefThunkVolCHECK_POINT");
+
 // Splice binding for option 108 on VOL (g_aeopid[366], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls IsPointInVol and returns a bool to the script.
 CRef RefThunkVolCHECK_POINT(void *object, int argCount, void *args)
@@ -812,7 +812,7 @@ extern "C" CRef RefThunk_IsSphereInVol(void *p, int c, void *aref)
 
 // ---- splice thunk RefThunkSmAPPLY (was src/game/app/splice_thunks/RefThunkSmAPPLY.cpp) ----
 namespace T_RefThunkSmAPPLY {
-extern "C" { void *ApplySmToObject(void *p, int a, int b, int c); CRef RefThunkSmAPPLY(void *p, int c, void *aref); }
+void *ApplySmToObject(void *p, int a, int b, int c) __asm__("ApplySmToObject"); CRef RefThunkSmAPPLY(void *p, int c, void *aref) __asm__("RefThunkSmAPPLY");
 // Splice binding for option 214 on SM (g_aeopid[368], thunkFn): unpacks the script's 3 arguments (0x2030, Oid,
 // 0x100B) with RefSetArgsFromSplice, calls ApplySmToObject and returns a value of type 0x2088 to the script.
 CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
@@ -827,7 +827,7 @@ CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_ApplySmWithKind (was src/game/app/splice_thunks/RefThunk_ApplySmWithKind.cpp) ----
 namespace T_RefThunk_PsmaApplySmEx {
-extern "C" { void * ApplySmWithKind(void *p, int, int, int, int); CRef RefThunk_ApplySmWithKind(void *p, int c, void *aref); }
+void * ApplySmWithKind(void *p, int, int, int, int) __asm__("ApplySmWithKind"); CRef RefThunk_ApplySmWithKind(void *p, int c, void *aref) __asm__("RefThunk_ApplySmWithKind");
 // Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
 // 0x100B, 0x1054) with RefSetArgsFromSplice, calls ApplySmWithKind and returns a value of type 0x2088 to the script.
 CRef RefThunk_ApplySmWithKind(void *object, int argCount, void *args)
@@ -1285,7 +1285,7 @@ CRef RefThunk_AddRelayStepCarryTo(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_AddRelayRespawn (was src/game/app/splice_thunks/RefThunk_AddRelayRespawn.cpp) ----
 namespace T_RefThunk_AddRelayRespawn {
-extern "C" { void AddRelayRespawn(void *p, int, int, int, int, int); CRef RefThunk_AddRelayRespawn(void *p, int c, void *aref); }
+void AddRelayRespawn(void *p, int, int, int, int, int) __asm__("AddRelayRespawn"); CRef RefThunk_AddRelayRespawn(void *p, int c, void *aref) __asm__("RefThunk_AddRelayRespawn");
 // Splice binding for option 628 on RELAY (g_aeopid[668], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // 0x102E, 0x102F, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayRespawn and returns nothing to the script.
 CRef RefThunk_AddRelayRespawn(void *object, int argCount, void *args)
@@ -1306,7 +1306,7 @@ CRef RefThunk_AddRelayRespawn(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_AddRelayLaunchTo (was src/game/app/splice_thunks/RefThunk_AddRelayLaunchTo.cpp) ----
 namespace T_RefThunk_AddRelayLaunchTo {
-extern "C" { void AddRelayLaunchTo(void *p, int, float, float, int, int); CRef RefThunk_AddRelayLaunchTo(void *p, int c, void *aref); }
+void AddRelayLaunchTo(void *p, int, float, float, int, int) __asm__("AddRelayLaunchTo"); CRef RefThunk_AddRelayLaunchTo(void *p, int c, void *aref) __asm__("RefThunk_AddRelayLaunchTo");
 // Splice binding for option 676 on RELAY (g_aeopid[669], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayLaunchTo and returns nothing to the script.
 CRef RefThunk_AddRelayLaunchTo(void *object, int argCount, void *args)
@@ -1408,7 +1408,7 @@ CRef RefThunk_AddRelayCamBlendFrom(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_AddRelayCamBlendTo (was src/game/app/splice_thunks/RefThunk_AddRelayCamBlendTo.cpp) ----
 namespace T_RefThunk_AddRelayCamBlendTo {
-extern "C" { void AddRelayCamBlendTo(void *p, qword, qword, float, int, int); CRef RefThunk_AddRelayCamBlendTo(void *p, int c, void *aref); }
+void AddRelayCamBlendTo(void *p, qword, qword, float, int, int) __asm__("AddRelayCamBlendTo"); CRef RefThunk_AddRelayCamBlendTo(void *p, int c, void *aref) __asm__("RefThunk_AddRelayCamBlendTo");
 // Splice binding for option 678 on RELAY (g_aeopid[683], thunkFn/thunkUser): unpacks the script's 5 arguments
 // (Vector, Vector, Float, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayCamBlendTo and returns nothing to the
 // script.
@@ -1771,7 +1771,7 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_FindClosestSwPo (was src/game/app/splice_thunks/RefThunk_FindClosestSwPo.cpp) ----
 namespace T_RefThunk_FindClosestSwPo {
 extern "C" {
-CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
+extern "C++" { CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe"); }
 void *FindClosestSwPo(void *p, qword q);
 CRef RefThunk_FindClosestSwPo(void *p, int c, void *aref);
 }
@@ -1789,7 +1789,7 @@ CRef RefThunk_FindClosestSwPo(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_EmitSwNoise (was src/game/app/splice_thunks/RefThunk_EmitSwNoise.cpp) ----
 namespace T_RefThunk_EmitSwNoise {
-extern "C" { void *EmitSwNoise(void *p, int a, qword q, int b); CRef RefThunk_EmitSwNoise(void *p, int c, void *aref); }
+void *EmitSwNoise(void *p, int a, qword q, int b) __asm__("EmitSwNoise"); CRef RefThunk_EmitSwNoise(void *p, int c, void *aref) __asm__("RefThunk_EmitSwNoise");
 // Splice binding for option 850 on SW (g_aeopid[932], thunkFn): unpacks the script's 3 arguments (0x1046, Vector,
 // 0x2002) with RefSetArgsFromSplice, calls EmitSwNoise and returns a value of type 0x2093 to the script.
 CRef RefThunk_EmitSwNoise(void *object, int argCount, void *args)
@@ -2235,7 +2235,7 @@ extern "C" CRef RefThunk_ChooseEscapePosition(void *p, int c, void *aref)
 
 // ---- splice thunk RefThunk_AddDancerMove (was src/game/app/splice_thunks/RefThunk_AddDancerMove.cpp) ----
 namespace T_RefThunk_AddDancerMove {
-extern "C" { void AddDancerMove(void *p, int, int, int, int, int); CRef RefThunk_AddDancerMove(void *p, int c, void *aref); }
+void AddDancerMove(void *p, int, int, int, int, int) __asm__("AddDancerMove"); CRef RefThunk_AddDancerMove(void *p, int c, void *aref) __asm__("RefThunk_AddDancerMove");
 // Splice binding for option 1158 on CID68 (g_aeopid[1343], thunkUser): unpacks the script's 5 arguments (0x103C,
 // Oid, 0x100B, Oid, Oid) with RefSetArgsFromSplice, calls AddDancerMove and returns nothing to the script.
 CRef RefThunk_AddDancerMove(void *object, int argCount, void *args)
@@ -3216,10 +3216,10 @@ MURRAY::MURRAY() {}
 /* The class descriptor table D_002BAAE8 (declared above as CLASSDESC[199]). CLASSDESC derives from CLASSINFO and so
    has no aggregate initializer: the table is defined under C linkage with a plain record of the same layout
    {parent, cid, cidEnd, cb, pfnNew}; the getters keep returning &D_002BAAE8[cid]. */
-namespace M_classdesc { extern "C" {
+namespace M_classdesc {
 struct CLASSROW { CLASSROW *pcdParent; int cid; int cidEnd; int cb; void *(*pfnNew)(); };
 typedef void *(*PFNNEW)();
-CLASSROW D_002BAAE8[199] = {
+CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {0, 0, 199, 0x10, 0}, /* Basic */
     {&D_002BAAE8[0], 1, 2, 0x4790, (PFNNEW)NewSw}, /* Sw */
     {&D_002BAAE8[0], 2, 134, 0x50, (PFNNEW)NewLo}, /* Lo */
@@ -3420,4 +3420,4 @@ CLASSROW D_002BAAE8[199] = {
     {&D_002BAAE8[155], 197, 198, 0x40, (PFNNEW)NewBhv197}, /* Bhv197 */
     {&D_002BAAE8[155], 198, 199, 0x40, (PFNNEW)NewBhv198}, /* Bhv198 */
 };
-} }
+}

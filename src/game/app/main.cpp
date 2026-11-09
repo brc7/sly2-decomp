@@ -320,9 +320,9 @@ void StartupBlips() __asm__("StartupBlips__Fv");
 void StartupHudGifPackets() __asm__("StartupHudGifPackets");
 void StartupMemcard() __asm__("StartupMemcard__Fv");
 void StartupMpeg() __asm__("StartupMpeg__Fv");
-extern "C" { void (*D_002BFCE0[20])(void) = {
+void (*D_002BFCE0[20])(void) __asm__("D_002BFCE0") = {
     StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, SetCdPollStateIdle, StartupFont,
     StartupJoy, StartupFrame, StartupLoadingScreen, StartupClock, StartupVU0, StartupVU1, StartupSound, StartupBlips,
     StartupHudGifPackets, StartupMemcard, StartupMpeg, 0
-}; }
+};
 }

@@ -71,7 +71,7 @@ void ChooseJtAttackTarget(ATTACKOBJ *p, float heading, int mask, float dt, U *of
 void RecalculateAsegBlend(ASEG *);
 void SetStepTargetHeadingFromVector(JT *, qword);
 void FixStepAngularVelocity(JT *);
-void SetStepTargetHeading(JT *, float);
+extern "C++" { void SetStepTargetHeading(JT *, float) __asm__("SetStepTargetHeading"); }
 extern float D_002BF4AC;
 extern float D_002BF4B0[2];   /* an LM {min, max}: the takedown target's z window */
 extern "C" float D_002BF4B8;

@@ -79,7 +79,7 @@ int MaxInt(int, int);
 void AttachJtHandsObject(JTHANDS *,LO *);
 void ReleaseJtHandsActs(JTHANDS *);
 void RefreshSwObjectCollisionFilter(SW *,STEPPLAYER *);
-void SetStepTargetHeading(STEPPLAYER *,float);
+extern "C++" { void SetStepTargetHeading(STEPPLAYER *,float) __asm__("SetStepTargetHeading"); }
 void SetStepTargetHeadingFromVector(STEPPLAYER *,qword);
 void SetLoParent(LO *,int,int);
 void FadeSoOut(LO *,float);

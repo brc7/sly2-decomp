@@ -78,29 +78,29 @@ struct VU_FLOAT
 };
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022C818 { extern "C" {
+namespace M_func_0022C818 {
 // Points a transform slot's time/speed sources at its own segment fields (time 0, speed 1), detaching any animation
 // that was driving it. (inferred)
-void ResetXfValueRef(ALO *q, XF *p)
+extern "C" void ResetXfValueRef(ALO *q, XF *p)
 {
     p->segmentEndTime = 1.0f;
     p->segmentStartTime = 0;
     p->timeSource = &p->segmentStartTime;
     p->speedSource = &p->segmentEndTime;
 }
-} } // namespace M_func_0022C818
+} // namespace M_func_0022C818
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A98D0 __asm__("D_002A98D0") = -3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022C840 { extern "C" {
-extern const float D_002A98D0;   /* defined below where the ELF has it (.rodata order) */
-extern char D_002C44E0[];
+namespace M_func_0022C840 {
+extern const float D_002A98D0 __asm__("D_002A98D0");   /* defined below where the ELF has it (.rodata order) */
+extern char D_002C44E0[] __asm__("D_002C44E0");
 // If the transform slot's role is an active (moving) one, marks the owning SO awake so it gets per-frame updates.
 // (inferred)
-void WakeXfOwner(SO *p, XF *q)
+extern "C" void WakeXfOwner(SO *p, XF *q)
 {
     switch (q->role) {
     case 0: case 1: case 2: case 3: case 13: case 14: case 15: case 16: case 20: case 21:
@@ -115,20 +115,20 @@ void WakeXfOwner(SO *p, XF *q)
     q->phase = 0;
     p->SetFlags(4);
 }
-} } // namespace M_func_0022C840
+} // namespace M_func_0022C840
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022C8C0 { extern "C" {
+namespace M_func_0022C8C0 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int n[4]; } VU;
 typedef struct { VU r[3]; } M3;
 typedef struct { VU r[4]; } M4;
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
-M3 *LoadRotateMatrixEuler(M3 *pm, qword v);
-VU *VECTOR_opAssign(VU *pv, qword q);
+M3 *LoadRotateMatrixEuler(M3 *pm, qword v) __asm__("LoadRotateMatrixEuler");
+VU *VECTOR_opAssign(VU *pv, qword q) __asm__("VECTOR_opAssign");
 // Builds the local matrix a slot value produces for the slot's component kind: translation, Euler rotation, shear or
 // scale (an identity matrix with the value written in the right place). (inferred)
-M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
+extern "C" M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
 {
     switch (p->kind) {
     case 0: case 8: case 13: case 14: case 15:
@@ -170,15 +170,15 @@ M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
     }
     return pm;
 }
-} } // namespace M_func_0022C8C0
+} // namespace M_func_0022C8C0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022CA18 { extern "C" {
+namespace M_func_0022CA18 {
 typedef int qword __attribute__((mode(TI)));
-qword DecomposeRotationMatrixToEuler(float *m);
+qword DecomposeRotationMatrixToEuler(float *m) __asm__("DecomposeRotationMatrixToEuler");
 // The inverse of BuildXfValueMatrix: extracts a slot's component value (translation, Euler angles, shear or scale)
 // from a matrix, by the slot's component kind. (inferred)
-qword GetXfValueFromMatrix(XF *p, float *m)
+extern "C" qword GetXfValueFromMatrix(XF *p, float *m)
 {
     qword v;
     union { qword q; float f; } r;
@@ -195,14 +195,14 @@ qword GetXfValueFromMatrix(XF *p, float *m)
     }
     return v;
 }
-} } // namespace M_func_0022CA18
+} // namespace M_func_0022CA18
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022CAD0 { extern "C" {
+namespace M_func_0022CAD0 {
 typedef int qword __attribute__((mode(TI)));
-void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
+void CalculateSinCos__FfPfT1(float g, float *ps, float *pc) __asm__("CalculateSinCos__FfPfT1");
 // Converts Euler-angle rates (b) into an angular velocity vector at the Euler angles a (pitch in y, yaw in z) (inferred).
-qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
+extern "C" qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
 {
     float s0, c0, s1, c1;
     union { qword q; float f[4]; } r;
@@ -213,15 +213,15 @@ qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
                -s0 * QwordX(b) + QwordZ(b));
     return r.q;
 }
-} } // namespace M_func_0022CAD0
+} // namespace M_func_0022CAD0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CB90 {
 typedef int qword __attribute__((mode(TI)));
 struct V {qword q;};
 struct M4 { qword r[4];  };
-extern "C" qword ConvertEulerRatesToAngularVelocity(qword,qword);
-extern "C" M4 BuildRotationDerivativeMatrix(void *,void *,V);
+extern qword ConvertEulerRatesToAngularVelocity(qword,qword) __asm__("ConvertEulerRatesToAngularVelocity");
+extern M4 BuildRotationDerivativeMatrix(void *,void *,V) __asm__("BuildRotationDerivativeMatrix");
 // The time derivative of an Euler-rotation slot's matrix: converts the angle rates to an angular velocity and builds
 // the rotation-derivative matrix from it (inferred).
 extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return m {
@@ -231,12 +231,12 @@ extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return
 } // namespace M_func_0022CB90
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022CC00 { extern "C" {
+namespace M_func_0022CC00 {
 typedef int qword __attribute__((mode(TI)));
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
 // writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix). (inferred)
-float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
+extern "C" float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
 {
     func_002333B4(m, 0, 0x40);
     switch (p->kind) {
@@ -259,7 +259,7 @@ float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
     }
     return m;
 }
-} } // namespace M_func_0022CC00
+} // namespace M_func_0022CC00
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CCD0 {
@@ -277,7 +277,7 @@ static inline void MultiplyPublished(M4 &destination,const M3 &basis,M3 &first,M
  asm("vmulax.xyz ACC,%0,%2x\n\tvmadday.xyz ACC,%4,%2y\n\tvmaddz.xyz %2,%5,%2z\n\tvmulax.xyz ACC,%0,%1x\n\tvmadday.xyz ACC,%4,%1y\n\tvmaddz.xyz %1,%5,%1z\n\tsqc2 %2,32+%3\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,%4,%6y\n\tvmaddz.xyz %0,%5,%6z\n\tsqc2 %1,%3\n\tsqc2 %0,16+%3":"+j"(a0),"+j"(b0),"+j"(b2),"=m"(*(M3 *)&destination):"j"(a1),"j"(a2),"j"(b1));
  asm volatile("sqc2 %6,%3\n\tsqc2 %6,%0\n\tsqc2 %7,%4\n\tsqc2 %7,%1\n\tsqc2 %8,%5\n\tsqc2 %8,%2":"=m"(first.r[0]),"=m"(first.r[1]),"=m"(first.r[2]),"=m"(second.r[0]),"=m"(second.r[1]),"=m"(second.r[2]):"j"(b0),"j"(a0),"j"(b2));
 }
-extern "C" void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
+extern void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 // Write the skew-symmetric (cross-product) matrix of value into m's 3x3 part; returns &m.
 static inline M4 *PublishSkew(M4 &m,qword value){
  register M4 *result asm("$2");
@@ -305,15 +305,15 @@ namespace M_func_0022CDC0 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 {qword r[3];};
-extern "C" { extern qword D_002A2DD0; }
-extern "C" void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
-extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
-extern "C" M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M3 *basis, qword v);
-extern "C" M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M3 *basis, qword c, qword d);
-extern "C" M4 *BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v);
-extern "C" qword GetXfValueFromMatrix(XF *pa, const M4 *matrix);
-extern "C" qword DecomposeRotationMatrixToEuler(const M3 *rotation);
-extern "C" void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
+extern void *func_002333B4(void *p, int c, int n) __asm__("memset");
+extern M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M3 *basis, qword v) __asm__("BuildRotationDerivativeMatrix");
+extern M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M3 *basis, qword c, qword d) __asm__("BuildEulerDerivativeMatrix");
+extern M4 *BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueDerivativeMatrix");
+extern qword GetXfValueFromMatrix(XF *pa, const M4 *matrix) __asm__("GetXfValueFromMatrix");
+extern qword DecomposeRotationMatrixToEuler(const M3 *rotation) __asm__("DecomposeRotationMatrixToEuler");
+extern void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc) __asm__("EvaluateBezierPos");
 // Evaluate the object's Bezier segment position at the current time into the three outputs.
 static __inline__ void Eval(XF *po, qword *pa, qword *pb, qword *pc)
 {
@@ -433,16 +433,16 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po)
 } // namespace M_func_0022CDC0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022D148 { extern "C" {
+namespace M_func_0022D148 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
-void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
+void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
+void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) __asm__("__ml__FRC7MATRIX4T0");
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po);
+M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po) __asm__("EvaluateXfSlotMatrixDerivative");
 // Element-wise sum of two 4x4 matrices into pmDst.
-static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
+extern "C" { static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
 {
     int i;
     for (i = 0; i < 4; i++) {
@@ -450,9 +450,9 @@ static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(pmA->r[i]), "j"(pmB->r[i]));
         pmDst->r[i] = r;
     }
-}
+} }
 // Angular velocity of a transform (up to poStop) by finite differences of its slot matrices. (inferred)
-M4 *GetXfAngularVelocity(M4 *pm, XF *po, XF *poStop)
+extern "C" M4 *GetXfAngularVelocity(M4 *pm, XF *po, XF *poStop)
 {
     M4 mB, mA, mE, mC, mD;
     XF *p;
@@ -496,20 +496,20 @@ M4 *GetXfAngularVelocity(M4 *pm, XF *po, XF *poStop)
     }
     return pm;
 }
-} } // namespace M_func_0022D148
+} // namespace M_func_0022D148
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_GetXfVelocity {
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 union V {qword q;float f[4];};
-extern "C" { extern qword D_002A2DD0; }
-extern "C" {
-M4 InvertMatrix4Rigid(const M4 *);
-M4 EvaluateXfSlotMatrixDerivative(XF *);
-void UpdateXfJobRange(void *,XF *);
-void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
-}
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+
+M4 InvertMatrix4Rigid(const M4 *) __asm__("InvertMatrix4Rigid");
+M4 EvaluateXfSlotMatrixDerivative(XF *) __asm__("EvaluateXfSlotMatrixDerivative");
+void UpdateXfJobRange(void *,XF *) __asm__("UpdateXfJobRange");
+void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *) __asm__("EvaluateBezierPos");
+
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4 &m,qword v) {qword r=m.r[0];
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
@@ -588,15 +588,15 @@ extern "C" qword GetXfVelocity(XF *p,XF *stop,qword in) {
 } // namespace M_GetXfVelocity
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022D670 { extern "C" {
-extern int D_004437A0;
-extern int D_004437A8[];
+namespace M_func_0022D670 {
+extern int D_004437A0 __asm__("D_004437A0");
+extern int D_004437A8[] __asm__("D_004437A8");
 // Pushes a transform table base onto the id-resolution context stack (used while loading nested objects). (inferred)
-void PushXfContext(int v)
+extern "C" void PushXfContext(int v)
 {
     D_004437A8[D_004437A0++] = v;
 }
-} } // namespace M_func_0022D670
+} // namespace M_func_0022D670
 
 /* Pops the transform stack (D_004437A8[D_004437A0], pushed by PushXfContext). */
 // Pops the id-resolution context stack. (inferred)
@@ -606,12 +606,12 @@ extern "C" void PopXfContext()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022D6B0 { extern "C" {
-extern int D_004437A0;
-extern int D_004437A8[];
+namespace M_func_0022D6B0 {
+extern int D_004437A0 __asm__("D_004437A0");
+extern int D_004437A8[] __asm__("D_004437A8");
 // Resolves a transform id to an address: the high bits choose the local table (c), the parent's table (b) or the top
 // of the context stack; the low bits index 0x100-byte transform records. (inferred)
-int ResolveXfId(int a, SO *b, SO *c)
+int ResolveXfId(int a, SO *b, SO *c) __asm__("ResolveXfId"); int ResolveXfId(int a, SO *b, SO *c)
 {
     int r = 0;
     switch (a & 0x3000) {
@@ -621,7 +621,7 @@ int ResolveXfId(int a, SO *b, SO *c)
     }
     return r;
 }
-} } // namespace M_func_0022D6B0
+} // namespace M_func_0022D6B0
 
 // Resolves a transform id against the object's parent table (the result is not used in this build, inferred).
 extern "C" void ResolveXfIdInParent(LO *plo, int grf)
@@ -643,28 +643,28 @@ typedef unsigned int uint;
 /* The acts made here (act.h ACT1/ACT2/ACT4/ACT9) are built by hand: AllocAct, then the vtable store at +0x18. */
 #define ACT_VPTR(p) (*(void **)((char *)(p) + 0x18))
 struct REQ {int size,kind;};
-extern "C" { extern char D_002CA820[] __asm__("_vt$4ACT1"),D_002CA7E0[] __asm__("_vt$4ACT2"),D_002CA7A0[] __asm__("_vt$4ACT4"),D_002CA6A0[] __asm__("_vt$4ACT9"); }
-extern "C" {
-int S16Read__18CBinaryInputStream(void *);
-int S32Read__18CBinaryInputStream(void *);
-int S8Read__18CBinaryInputStream(void *);
-int U8Read__18CBinaryInputStream(void *);
-float F32Read__18CBinaryInputStream(void *);
-void ReadCb12__18CBinaryInputStreamPv(void *,void *);
-void ReadCb8__18CBinaryInputStreamPv(void *,void *);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *,void *);
-void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,MATRIX4 *);
-void *AllocClearedFromWorldHeap(REQ *);
-void *AllocAct(int);
+extern char D_002CA820[] __asm__("_vt$4ACT1"),D_002CA7E0[] __asm__("_vt$4ACT2"),D_002CA7A0[] __asm__("_vt$4ACT4"),D_002CA6A0[] __asm__("_vt$4ACT9");
+
+int S16Read__18CBinaryInputStream(void *) __asm__("S16Read__18CBinaryInputStream");
+int S32Read__18CBinaryInputStream(void *) __asm__("S32Read__18CBinaryInputStream");
+int S8Read__18CBinaryInputStream(void *) __asm__("S8Read__18CBinaryInputStream");
+int U8Read__18CBinaryInputStream(void *) __asm__("U8Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(void *) __asm__("F32Read__18CBinaryInputStream");
+void ReadCb12__18CBinaryInputStreamPv(void *,void *) __asm__("ReadCb12__18CBinaryInputStreamPv");
+void ReadCb8__18CBinaryInputStreamPv(void *,void *) __asm__("ReadCb8__18CBinaryInputStreamPv");
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *,void *) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,MATRIX4 *) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
+void *AllocClearedFromWorldHeap(REQ *) __asm__("AllocClearedFromWorldHeap");
+void *AllocAct(int) __asm__("AllocAct");
 void *func_002333B4(void *,int,int) __asm__("memset");
-qword GetXfValueFromMatrix(XF *,MATRIX4 *);
-void ResetXfValueRef(SO *,XF *);
-void AddXfAct(SO *,XF *,ACT *);
-void UpdateSoXfWorldMatrices(SO *);
-void LoadSoIkFromBrx(SO *,void *);
-void LoadXfmConstraintsFromBrx(SO *,void *);
-void LoadSoChainsFromBrx(SO *,void *);
-}
+qword GetXfValueFromMatrix(XF *,MATRIX4 *) __asm__("GetXfValueFromMatrix");
+void ResetXfValueRef(SO *,XF *) __asm__("ResetXfValueRef");
+void AddXfAct(SO *,XF *,ACT *) __asm__("AddXfAct");
+void UpdateSoXfWorldMatrices(SO *) __asm__("UpdateSoXfWorldMatrices");
+void LoadSoIkFromBrx(SO *,void *) __asm__("LoadSoIkFromBrx");
+void LoadXfmConstraintsFromBrx(SO *,void *) __asm__("LoadXfmConstraintsFromBrx");
+void LoadSoChainsFromBrx(SO *,void *) __asm__("LoadSoChainsFromBrx");
+
 // Allocate and set up an act of kind 1 (vtable D_002CA820, selector 2).
 static inline ACT1 *CreateJ1(){ACT1 *j;j=(ACT1 *)AllocAct(sizeof(ACT1));ACT_VPTR(j)=D_002CA820;j->ack=1;j->phase=2;return j;}
 // Allocate and set up an act of kind 2 (vtable D_002CA7E0).
@@ -730,12 +730,12 @@ extern "C" void LoadSoXfsFromBrx(SO *p,void *stream){
 } // namespace M_LoadSoXfsFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022DD00 { extern "C" {
-void ResetXfValueRef(void *pa, XF *p);
-void SetXfRole(void *pa, XF *p, int state);
+namespace M_func_0022DD00 {
+void ResetXfValueRef(void *pa, XF *p) __asm__("ResetXfValueRef");
+void SetXfRole(void *pa, XF *p, int state) __asm__("SetXfRole");
 // Keeps an animated slot's time inside its [segmentStartTime, segmentEndTime] window: when it leaves the window (or the
 // phase is done) the slot's act is updated (slot 4) and the slot switches to a settling role. (inferred)
-void UpdateXfJobRange(void *pa, XF *p)
+extern "C" void UpdateXfJobRange(void *pa, XF *p)
 {
     float g = *p->timeSource;
     if (g < p->segmentStartTime || p->segmentEndTime < g || p->phase >= 3) {
@@ -763,7 +763,7 @@ void UpdateXfJobRange(void *pa, XF *p)
         }
     }
 }
-} } // namespace M_func_0022DD00
+} // namespace M_func_0022DD00
 
 // UpdateSoSlots: ported from Lilly's personal Sly 2 decomp (src/P2/xf.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
@@ -1640,15 +1640,15 @@ void UpdateSoSlots(SO *so)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022FA20 { extern "C" {
+namespace M_func_0022FA20 {
 typedef unsigned long ulong;
 struct T { char pad[0xA4]; int k; };
 struct S { char pad[0x10]; int a; int b; char pad2[0x10]; ulong f; char pad3[0x30]; struct T *t; char pad4[0xDC]; int k; };
-void RemoveLoFromRenderTree(struct S *p);
-void AddLoToRenderTree(struct S *p);
-void ResortSwBusyEntry(void *g, int b);
+void RemoveLoFromRenderTree(struct S *p) __asm__("RemoveLoFromRenderTree");
+void AddLoToRenderTree(struct S *p) __asm__("AddLoToRenderTree");
+void ResortSwBusyEntry(void *g, int b) __asm__("ResortSwBusyEntry");
 // After a slot update: for objects with the "needs refresh" flag (bit 60), runs the class-specific refresh. (inferred)
-void RefreshSoAfterSlotUpdate(struct S *p)
+void RefreshSoAfterSlotUpdate(struct S *p) __asm__("RefreshSoAfterSlotUpdate"); void RefreshSoAfterSlotUpdate(struct S *p)
 {
     if (!!((p->f >> 60) & 1)) {
         int k = p->k;
@@ -1656,14 +1656,14 @@ void RefreshSoAfterSlotUpdate(struct S *p)
         if (p->a == 0) ResortSwBusyEntry(&g_sw, p->b);
     }
 }
-} } // namespace M_func_0022FA20
+} // namespace M_func_0022FA20
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateSoXfWorldMatrices {
 // Update linked world matrices through the VU matrix microprogram.
 typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
-extern "C" { extern M4 D_002A2D30; }
+extern M4 D_002A2D30 __asm__("D_002A2D30");
 // Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
 extern "C" void UpdateSoXfWorldMatrices(SO *p) {
     if(p->numTransforms>0) {
@@ -1703,35 +1703,35 @@ extern "C" void UpdateLoXfWorldHierarchy()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateSoXfWorldHierarchy { extern "C" {
+namespace M_UpdateSoXfWorldHierarchy {
 struct O { int a[3]; VTE *vt; char pad[0x14]; struct O *next; };
 struct S : LO { char pad[0x64 - 0x50]; struct O *first; int a[2]; struct O *end; };
-void UpdateSoXfWorldMatrices(struct S *p);
+void UpdateSoXfWorldMatrices(struct S *p) __asm__("UpdateSoXfWorldMatrices");
 // Recomputes an SO's world matrices and then those of its children.
-void UpdateSoXfWorldHierarchy(struct S *p)
+extern "C" void UpdateSoXfWorldHierarchy(struct S *p)
 {
     struct O *o;
     UpdateSoXfWorldMatrices(p);
     for (o = p->first; o != p->end; o = o->next)
         ((void (*)(void *))o->vt[18].pfn)((char *)o + o->vt[18].d);
 }
-} } // namespace M_UpdateSoXfWorldHierarchy
+} // namespace M_UpdateSoXfWorldHierarchy
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022FC48 { extern "C" {
+namespace M_func_0022FC48 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pd, M4 *ps);
+void InvertMatrix4Rigid(M4 *pd, M4 *ps) __asm__("InvertMatrix4Rigid");
 // Transform point v by the 4x4 matrix m.
-static inline qword MulPos(const M4 *m, qword v)
+extern "C" { static inline qword MulPos(const M4 *m, qword v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
             : "=j"(r) : "j"(v), "j"(m->r[0]), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3]));
     return r;
-}
+} }
 // Converts a point from transform a's space to transform b's space (0 = world).
-qword TransformXfPos(XF *a, XF *b, qword v)
+extern "C" qword TransformXfPos(XF *a, XF *b, qword v)
 {
     if (a) v = MulPos((M4 *)&a->worldMatrix, v);
     if (b) {
@@ -1741,23 +1741,23 @@ qword TransformXfPos(XF *a, XF *b, qword v)
     }
     return v;
 }
-} } // namespace M_func_0022FC48
+} // namespace M_func_0022FC48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ConvertXfVec { extern "C" {
+namespace M_ConvertXfVec {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-void InvertMatrix3Cofactor(M3 *pd, M3 *ps);
+void InvertMatrix3Cofactor(M3 *pd, M3 *ps) __asm__("InvertMatrix3Cofactor");
 // Rotate v by the 3x3 matrix m.
-static inline qword Mul3(const M3 *m, qword v)
+extern "C" { static inline qword Mul3(const M3 *m, qword v)
 {
     qword r;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
             : "=j"(r) : "j"(v), "j"(m->r[0]), "j"(m->r[1]), "j"(m->r[2]));
     return r;
-}
+} }
 // Converts a direction (no translation) from transform a's space to transform b's space (0 = world).
-qword ConvertXfVec(XF *a, XF *b, qword v)
+extern "C" qword ConvertXfVec(XF *a, XF *b, qword v)
 {
     if (a) v = Mul3((M3 *)&a->worldMatrix, v);
     if (b) {
@@ -1767,14 +1767,14 @@ qword ConvertXfVec(XF *a, XF *b, qword v)
     }
     return v;
 }
-} } // namespace M_ConvertXfVec
+} // namespace M_ConvertXfVec
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ConvertXfMat {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-extern "C" M3 InvertMatrix3Cofactor(const M3 *pm);
-extern "C" void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
+extern M3 InvertMatrix3Cofactor(const M3 *pm) __asm__("InvertMatrix3Cofactor");
+extern void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
 // Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
@@ -1809,14 +1809,14 @@ extern "C" M3 *ConvertXfMat(M3 *pr, XF *pa, XF *pb, const M3 *pm)
 } // namespace M_ConvertXfMat
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0022FF40 { extern "C" {
+namespace M_func_0022FF40 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
-void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
+void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
+void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) __asm__("__ml__FRC7MATRIX4T0");
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 // Converts a 4x4 matrix from transform a's space to transform b's space. (inferred)
-M4 *GetRelativeXfMatrix(M4 *pr, XF *pa, XF *pb, M4 *pm)
+extern "C" M4 *GetRelativeXfMatrix(M4 *pr, XF *pa, XF *pb, M4 *pm)
 {
     M4 m, mT, mInv;
     if (pa) {
@@ -1840,15 +1840,15 @@ M4 *GetRelativeXfMatrix(M4 *pr, XF *pa, XF *pb, M4 *pm)
     }
     return pr;
 }
-} } // namespace M_func_0022FF40
+} // namespace M_func_0022FF40
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddXfAct { extern "C" {
-void WakeXfOwner(void *, XF *);
+namespace M_AddXfAct {
+void WakeXfOwner(void *, XF *) __asm__("WakeXfOwner");
 
 // Inserts an action into a transform slot's action list, sorted by priority; if it becomes the head (the action in
 // effect) the slot is woken and the old head detached / new head attached, else the head is told (slot 3).
-void AddXfAct(void *ctx, XF *s, ACT *n)
+extern "C" void AddXfAct(void *ctx, XF *s, ACT *n)
 {
     ACT **pp = &s->firstActuator;
     ACT *head = s->firstActuator;
@@ -1866,14 +1866,14 @@ void AddXfAct(void *ctx, XF *s, ACT *n)
         head->SwitchTarget();
     }
 }
-} } // namespace M_AddXfAct
+} // namespace M_AddXfAct
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230100 { extern "C" {
-void WakeXfOwner(void *, XF *);
+namespace M_func_00230100 {
+void WakeXfOwner(void *, XF *) __asm__("WakeXfOwner");
 
 // Unlinks an action from a transform slot's list and wakes the slot. (inferred)
-void RemoveXfAct(void *ctx, XF *s, ACT *n)
+extern "C" void RemoveXfAct(void *ctx, XF *s, ACT *n)
 {
     ACT *head = s->firstActuator;
     ACT **pp = &s->firstActuator;
@@ -1894,16 +1894,16 @@ void RemoveXfAct(void *ctx, XF *s, ACT *n)
         pp = &e->pactNext;
     }
 }
-} } // namespace M_func_00230100
+} // namespace M_func_00230100
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_002301D0 { extern "C" {
+namespace M_func_002301D0 {
 /* (Claude agent, lane E13) Matched. c is reused as the insertion index (for (c--; ...)), and the sorted insert is
    an if + do-while instead of a for loop. */
-void WakeXfOwner(void *, XF *);
+void WakeXfOwner(void *, XF *) __asm__("WakeXfOwner");
 
 // Re-sorts a slot's actions (up to 16) by priority after priorities changed, re-attaching the new head. (inferred)
-void SortXfActs(void *ctx, XF *s)
+extern "C" void SortXfActs(void *ctx, XF *s)
 {
     ACT *a[16];
     int c = 0;
@@ -1939,14 +1939,14 @@ void SortXfActs(void *ctx, XF *s)
         head->SwitchTarget();
     }
 }
-} } // namespace M_func_002301D0
+} // namespace M_func_002301D0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230310 { extern "C" {
+namespace M_func_00230310 {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 // True for slot roles that move the value (1-3, 7-12, 17-21). (inferred)
-int IsXfRoleMoving(int n)
+extern "C" int IsXfRoleMoving(int n)
 {
     switch (n) {
     case 1: case 2: case 3: case 7: case 8: case 9: case 10: case 11: case 12: case 17: case 18: case 19: case 20: case 21:
@@ -1954,14 +1954,14 @@ int IsXfRoleMoving(int n)
     }
     return 0;
 }
-} } // namespace M_func_00230310
+} // namespace M_func_00230310
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230348 { extern "C" {
+namespace M_func_00230348 {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 // True for slot roles that are at rest (0, 3, 10, 12, 19). (inferred)
-int IsXfRoleAtRest(int n)
+extern "C" int IsXfRoleAtRest(int n)
 {
     switch (n) {
     case 0: case 3: case 10: case 12: case 19:
@@ -1969,14 +1969,14 @@ int IsXfRoleAtRest(int n)
     }
     return 0;
 }
-} } // namespace M_func_00230348
+} // namespace M_func_00230348
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230380 { extern "C" {
+namespace M_func_00230380 {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 // True for velocity-driven slot roles (1-3). (inferred)
-int IsXfRoleVelocity(int n)
+extern "C" int IsXfRoleVelocity(int n)
 {
     switch (n) {
     case 1: case 2: case 3:
@@ -1984,10 +1984,10 @@ int IsXfRoleVelocity(int n)
     }
     return 0;
 }
-} } // namespace M_func_00230380
+} // namespace M_func_00230380
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_002303A0 { extern "C" {
+namespace M_func_002303A0 {
 typedef struct MATRIX4 M4;
 struct V { float x, y, z; } __attribute__((aligned(16)));   /* mat.h/vec.h VECTOR (16-byte aligned), not basic.h's */
 typedef struct P {
@@ -2000,23 +2000,23 @@ typedef struct P {
     V unknownF0;
 } P;
 // Set the three components of pv.
-static inline void SetV(V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
-int IsXfRoleMoving(int);
-int IsXfRoleAtRest(int);
-int IsXfRoleVelocity(int);
-M4 EvaluateXfSlotMatrixDerivative(P *);
-M4 InvertMatrix4Rigid(P *);
-M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
+extern "C" { static inline void SetV(V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; } }
+int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
+int IsXfRoleAtRest(int) __asm__("IsXfRoleAtRest");
+int IsXfRoleVelocity(int) __asm__("IsXfRoleVelocity");
+M4 EvaluateXfSlotMatrixDerivative(P *) __asm__("EvaluateXfSlotMatrixDerivative");
+M4 InvertMatrix4Rigid(P *) __asm__("InvertMatrix4Rigid");
+M4 __ml__FRC7MATRIX4T0(M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0");
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void func_0022CDC0P(M4 *pm, P *p) __asm__("EvaluateXfSlotMatrixDerivative");
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
-void ResetXfValueRef(SO *, P *);
+void ResetXfValueRef(SO *, P *) __asm__("ResetXfValueRef");
 
 // Sets a slot's motion role: entering a moving role from a non-moving one captures the slot's current velocity
 // (+0xB0, read off its derivative matrix: translation, shear, scale or the rotation rate), velocity roles clear
 // +0xF0, and the SO is woken unless the new role is at rest. (inferred) Lilly's jtstate.c port calls it SlotSetRole.
-void SetXfRole(SO *so, P *xf, int role)
+extern "C" void SetXfRole(SO *so, P *xf, int role)
 {
     if (role == xf->role)
         return;
@@ -2059,16 +2059,16 @@ void SetXfRole(SO *so, P *xf, int role)
     if (!IsXfRoleAtRest(role))
         so->SetFlags(4);
 }
-} } // namespace M_func_002303A0
+} // namespace M_func_002303A0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SlotUnsettle { extern "C" {
+namespace M_SlotUnsettle {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 typedef struct { char pad[0x98]; unsigned short role; } B;
-void SetXfRole(void *, B *, int);
+void SetXfRole(void *, B *, int) __asm__("SetXfRole");
 // Puts a settled slot back into motion (inferred: the counterpart of SettleXfSlot).
-void UnsettleXfSlot(void *a, B *b)
+extern "C" void UnsettleXfSlot(void *a, B *b)
 {
     switch ((short)b->role) {
     case 6: case 10: SetXfRole(a, b, 7); break;
@@ -2077,14 +2077,14 @@ void UnsettleXfSlot(void *a, B *b)
     case 3: SetXfRole(a, b, 1); break;
     }
 }
-} } // namespace M_SlotUnsettle
+} // namespace M_SlotUnsettle
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230630 { extern "C" {
-void SetXfRole(void *, XF *, int);
+namespace M_func_00230630 {
+void SetXfRole(void *, XF *, int) __asm__("SetXfRole");
 
 // Moves a slot whose motion has finished to the matching resting role (by kind and phase). (inferred)
-void SettleXfSlot(void *p, XF *s)
+extern "C" void SettleXfSlot(void *p, XF *s)
 {
     switch (s->role) {
     case 7:
@@ -2107,7 +2107,7 @@ void SettleXfSlot(void *p, XF *s)
         break;
     }
 }
-} } // namespace M_func_00230630
+} // namespace M_func_00230630
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230710 {
@@ -2125,18 +2125,18 @@ typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 { qword r[3]; };
 
 struct OB { char pad[0x18]; VTE *vt; };   /* the XF's act (act.h ACT) as the slot-5 call reads it: GetGoal called without its dt */
-extern "C" {
-int IsXfRoleMoving(int);
-M4 *BuildXfValueMatrix(M4 *pm, XF *po, qword v);
-M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M4 *basis, qword c, qword d);
-void BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v);
-M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M4 *basis, qword v);
-M3 *BuildRotationMatrixFromVector(M3 *, qword);
-qword GetXfValueFromMatrix(XF *pa, const M4 *matrix);
-qword *VECTOR_opAssign(qword *, qword);
+
+int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
+M4 *BuildXfValueMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueMatrix");
+M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M4 *basis, qword c, qword d) __asm__("BuildEulerDerivativeMatrix");
+void BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueDerivativeMatrix");
+M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M4 *basis, qword v) __asm__("BuildRotationDerivativeMatrix");
+M3 *BuildRotationMatrixFromVector(M3 *, qword) __asm__("BuildRotationMatrixFromVector");
+qword GetXfValueFromMatrix(XF *pa, const M4 *matrix) __asm__("GetXfValueFromMatrix");
+qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
 void *func_002333B4(void *, int, int) __asm__("memset");
-void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g);
-}
+void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g) __asm__("GetXfSlotMatrixAndDerivative");
+
 // Float broadcast into a VU0 register (passed through an FPU register first).
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Float broadcast into a VU0 register (with a volatile barrier for scheduling).
@@ -2240,12 +2240,12 @@ void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g)
 } // namespace M_func_00230710
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadIdentityMatrix4 { extern "C" {
+namespace M_LoadIdentityMatrix4 {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-void *func_002333B4(void *, int, int) __asm__("memset"); void AccumulateXfChainVelocity(void *, void *, float, float *, float *);
+void *func_002333B4(void *, int, int) __asm__("memset"); void AccumulateXfChainVelocity(void *, void *, float, float *, float *) __asm__("AccumulateXfChainVelocity");
 // Helper of the chain velocity code: an identity matrix (the default when no matrix is given, inferred).
-void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
+extern "C" void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
 {
     if (m) {
         func_002333B4(m, 0, 0x40);
@@ -2254,20 +2254,20 @@ void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
     if (n) func_002333B4(n, 0, 0x40);
     AccumulateXfChainVelocity(a, b, f, m, n);
 }
-} } // namespace M_LoadIdentityMatrix4
+} // namespace M_LoadIdentityMatrix4
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230A98 { extern "C" {
+namespace M_func_00230A98 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 void *func_002333B4(void *, int, int) __asm__("memset");
-void GetXfSlotMatrixAndDerivative(XF *, M4 *, M4 *, float);
+void GetXfSlotMatrixAndDerivative(XF *, M4 *, M4 *, float) __asm__("GetXfSlotMatrixAndDerivative");
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
 
 // Element-wise sum of two 4x4 matrices into d.
-static inline void AddM4(M4 *d, M4 *a, M4 *b)
+extern "C" { static inline void AddM4(M4 *d, M4 *a, M4 *b)
 {
     int i;
     for (i = 0; i < 4; i++) {
@@ -2275,11 +2275,11 @@ static inline void AddM4(M4 *d, M4 *a, M4 *b)
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a->r[i]), "j"(b->r[i]));
         d->r[i] = r;
     }
-}
+} }
 
 // Walks a chain of slots, accumulating the product matrix and its derivative by the product rule, i.e. the velocity of
 // the chain's end transform. (inferred)
-void AccumulateXfChainVelocity(XF *first, XF *end, M4 *pA, M4 *pB, float f)
+extern "C" void AccumulateXfChainVelocity(XF *first, XF *end, M4 *pA, M4 *pB, float f)
 {
     M4 m1, m2, a, b, s, t1, t2;
     XF *p;
@@ -2309,36 +2309,36 @@ void AccumulateXfChainVelocity(XF *first, XF *end, M4 *pA, M4 *pB, float f)
     if (pB)
         *pB = b;
 }
-} } // namespace M_func_00230A98
+} // namespace M_func_00230A98
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230CD0 { extern "C" {
+namespace M_func_00230CD0 {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0
-void AccumulateXfChainVelocity(float);
+void AccumulateXfChainVelocity(float) __asm__("AccumulateXfChainVelocity");
 // Calls AccumulateXfChainVelocity with only a zero float argument (an unprototyped C caller, inferred to be dead code).
-void AccumulateXfChainVelocityStub(void) { AccumulateXfChainVelocity(0.0f); }
-} } // namespace M_func_00230CD0
+extern "C" void AccumulateXfChainVelocityStub(void) { AccumulateXfChainVelocity(0.0f); }
+} // namespace M_func_00230CD0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00230CF0 { extern "C" {
+namespace M_func_00230CF0 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 
 /* The ASEGA's ACTSEG/OVRA lists (aseg.h, act.h); the acts' objects and transforms as LO/XF, the
    override curves through their vtable (slot 2). */
 #define CURVE_VT(pac) (*(VTE **)(pac))
-extern qword D_002A2DD0;
-int IsAsegaRetracted(ASEGA *);
-int IsActCurrent(ACT *);
-void UpdateXfJobRange(LO *, XF *);
-qword GetXfValueFromMatrix(XF *, MATRIX4 *);
-qword DecomposeRotationMatrixToEuler(MATRIX3 *);   /* phase 5: the rotation rows stored at +0xC0 */
-M4 BuildXfValueMatrix(XF *, qword);
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+int IsAsegaRetracted(ASEGA *) __asm__("IsAsegaRetracted");
+int IsActCurrent(ACT *) __asm__("IsActCurrent");
+void UpdateXfJobRange(LO *, XF *) __asm__("UpdateXfJobRange");
+qword GetXfValueFromMatrix(XF *, MATRIX4 *) __asm__("GetXfValueFromMatrix");
+qword DecomposeRotationMatrixToEuler(MATRIX3 *) __asm__("DecomposeRotationMatrixToEuler");   /* phase 5: the rotation rows stored at +0xC0 */
+M4 BuildXfValueMatrix(XF *, qword) __asm__("BuildXfValueMatrix");
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int) __asm__("EvaluateBezierPos");
 
 // Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot. (inferred)
-void EvaluateXfSlotValue(ASEGA *a, int flag)
+extern "C" void EvaluateXfSlotValue(ASEGA *a, int flag)
 {
     LO *list[16];
     int n;
@@ -2405,14 +2405,14 @@ void EvaluateXfSlotValue(ASEGA *a, int flag)
             ((void (*)(void *, int, int, float, float))CURVE_VT(e->pac)[2].pfn)((char *)e->pac + CURVE_VT(e->pac)[2].d, e->targetIndex, 0, a->time, a->speed);
     }
 }
-} } // namespace M_func_00230CF0
+} // namespace M_func_00230CF0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_VECTOR_opAssign { extern "C" {
+namespace M_VECTOR_opAssign {
 typedef int qword __attribute__((mode(TI)));
 // Assign v to *p and return p (VECTOR's operator=, emitted as the linkonce copy).
-inline qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }   /* inline, after its callers: the linkonce copy */
-} } // namespace M_VECTOR_opAssign
+extern "C" { inline qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; } }   /* inline, after its callers: the linkonce copy */
+} // namespace M_VECTOR_opAssign
 
 
 // ---- xf's .bss (tu-merging.md "Data": .bss gaps): 0x4437A0..0x443800, after wipe's .bss in TU order and before the

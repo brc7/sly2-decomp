@@ -501,7 +501,7 @@ namespace M_func_001A87F0 {
 typedef int qword __attribute__((mode(TI)));
 struct SCALAR;
 struct VECTOR;
-extern "C" SCALAR *InitVuTemp(SCALAR *);
+extern SCALAR *InitVuTemp(SCALAR *) __asm__("InitVuTemp");
 extern "C" inline VECTOR *DefaultConstructVector(VECTOR *);   /* defined after its callers (end of file) */
 // VU temporary initialised through InitVuTemp.
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
@@ -517,10 +517,10 @@ struct A { char pad[0x90]; POINTS points; };
 struct SURFACE { qword plane; char pad10[8]; int flags; };
 struct EDGE { unsigned short ends[2]; };
 struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
-extern "C" {
-extern const float D_002A6AD0;   /* defined below where the ELF has it (.rodata order) */
-void AddXp(W *, A *, B *, qword, float, qword, int, int, int, XP **);
-}
+
+extern const float D_002A6AD0 __asm__("D_002A6AD0");   /* defined below where the ELF has it (.rodata order) */
+void AddXp(W *, A *, B *, qword, float, qword, int, int, int, XP **) __asm__("AddXp");
+
 
 /* signed distance of pos from plane: dot(plane.xyz, pos.xyz) - plane.w, via VU0 macro mode */
 static inline float PlaneDist(VU_VECTOR4 plane, qword pos)
@@ -605,7 +605,7 @@ typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct SCALAR;
-extern "C" SCALAR *InitVuTemp(SCALAR *);
+extern SCALAR *InitVuTemp(SCALAR *) __asm__("InitVuTemp");
 // VU temporary initialised through InitVuTemp.
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct SCENE;
@@ -617,16 +617,16 @@ struct SHAPE { SPACE *space; void *owner; char pad8[0x8C]; QWROW *apos; int pad9
 struct NODE { unsigned int left, right; SURF *psurf; };
 struct LSG { QWROW apos[2], anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };
 struct XP { char pad0[0x9C]; int kind; void *first, *second; int padA8; XP *next; };
-extern "C" {
-extern QWROW D_002A2DC0;
+
+extern QWROW D_002A2DC0 __asm__("D_002A2DC0");
 int ClsgClipSoAllEdges(SCENE *, SHAPE *, SHAPE *, NODE *, int, LSG *) __asm__("ClipSoAllEdges");
-int ClipSoBspEdges(SCENE *, SHAPE *, SHAPE *, int, NODE *, int, LSG *);
+int ClipSoBspEdges(SCENE *, SHAPE *, SHAPE *, int, NODE *, int, LSG *) __asm__("ClipSoBspEdges");
 void CategorizeClippedSegments(int, LSG *, int *, int *, LSG **, LSG **) __asm__("CategorizeClippedSegments__FiP3LSGPiT2PP3LSGT4");
-void AddEmbeddedVertexXps(SCENE *, SHAPE *, SHAPE *, int, int *, LSG **, CONTACT **);
-int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **);
-int ClosestPointsOfLines(qword, qword, qword, qword, float *, QWROW *);
-void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTACT **);
-}
+void AddEmbeddedVertexXps(SCENE *, SHAPE *, SHAPE *, int, int *, LSG **, CONTACT **) __asm__("AddEmbeddedVertexXps");
+int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **) __asm__("FindEdgePath__FP4SURFiiP3LSGPP3LSG");
+int ClosestPointsOfLines(qword, qword, qword, qword, float *, QWROW *) __asm__("ClosestPointsOfLines");
+void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTACT **) __asm__("AddXp");
+
 
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes MarkSoContactsBspBsp (10/365 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -774,12 +774,12 @@ struct HIT{qword p;char pad10[0x30];float time;char pad44[0x1C];};
 struct OUT{qword p,plane;int kind;};
 union SCR{REQ req;QWROW u;};
 struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;QWROW position,endpoint;};
-extern "C" FRAME*STACKSCOPE_ctor(FRAME*);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
-extern "C" void*AllocFromStack(REQ*);
-extern "C" int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**);
-extern "C" int func_00118668(ENTRY*,int,qword,qword,int,HIT*);
-extern "C" void InitPlaneFromNormalPos(qword*,qword,qword);
+extern FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");
+extern void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
+extern void*AllocFromStack(REQ*) __asm__("AllocFromStack");
+extern int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**) __asm__("PruneBspBySphere");
+extern int func_00118668(ENTRY*,int,qword,qword,int,HIT*) __asm__("func_00118668");
+extern void InitPlaneFromNormalPos(qword*,qword,qword) __asm__("InitPlaneFromNormalPos");
 // Return a - b.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
 // Unit vector along v (pinned to vf2/vf3).
@@ -960,7 +960,7 @@ static inline qword QwNormalize(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwNormal) : "j"(qw), "j"(v));
     return qwNormal;
 }
-extern "C" void InitPlaneFromNormalPos(SURF *psurf, qword qwNormal, qword qwPos);
+extern void InitPlaneFromNormalPos(SURF *psurf, qword qwNormal, qword qwPos) __asm__("InitPlaneFromNormalPos");
 void ContactInsideBsp(float sRadius, BSP *absp, BSP *pbspLimit, GEOM *pgeom, qword pos, CMCONTACT *pcontact) __asm__("FindContactInsideBsp");   /* float first: this caller's order */
 struct VERTCAND
 {
@@ -1219,9 +1219,9 @@ struct LO;struct CONTACT;struct NODE;
 struct S { struct S0 *transform; struct LO *so; float radius; };
 union DETAIL {void*pointer;int word;};
 struct E {qword point,plane;int kind;DETAIL detail;};
-extern "C" int IntersectSphereBsp(qword pos, struct S*b,int c,int d,struct NODE*e,int n, struct E *buf, float f);
-extern "C" U*InitVuTemp(U*p);
-extern "C" void AddXp(void *a, struct S*s,struct S*b,qword p, qword q, int kind, void*z, void*feature,struct CONTACT**g,float f);
+extern int IntersectSphereBsp(qword pos, struct S*b,int c,int d,struct NODE*e,int n, struct E *buf, float f) __asm__("IntersectSphereBsp");
+extern U*InitVuTemp(U*p) __asm__("InitVuTemp");
+extern void AddXp(void *a, struct S*s,struct S*b,qword p, qword q, int kind, void*z, void*feature,struct CONTACT**g,float f) __asm__("AddXp");
 // Construct a VU temporary via InitVuTemp.
 inline U::U() { (void)InitVuTemp(this); }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -1361,9 +1361,9 @@ struct A{LO*lo;int so;float radius;int oid;unsigned long flags;int zapKinds,firs
 struct B{LO*lo;char pad4[0xC];unsigned long flags;char pad18[8];M4 m;char pad60[0x48];int oldGeneration,generation;};
 struct HIT{qword p;char pad10[0x30];float time;int unknown44,unknown48,tag;char pad50[0x10];};
 struct W;struct C;
-extern "C" M4 InvertMatrix4Rigid(const M4*);
-extern "C" int ClipEdgeToObject(B*,qword,qword,int,HIT*);
-extern "C" void AddXp(W*,A*,B*,qword,qword,int,int,int,C**,float);
+extern M4 InvertMatrix4Rigid(const M4*) __asm__("InvertMatrix4Rigid");
+extern int ClipEdgeToObject(B*,qword,qword,int,HIT*) __asm__("ClipEdgeToObject");
+extern void AddXp(W*,A*,B*,qword,qword,int,int,int,C**,float) __asm__("AddXp");
 // Transform point p by the 4x4 matrix m into a new register.
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
 // Transform point p by the 4x4 matrix m in place.
@@ -1484,9 +1484,9 @@ extern BSP D_002BBB20;      /* the "outside" leaf (bsp.cpp) */
 extern "C" {
 void *AllocFromStack(const ALLOCREQ &req);
 int PruneBspP(BSP *pbsp, BSP *pbspLimit, qword pos, float sRadius, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");   /* AddSoXps's view: position first */
-void MarkSoContactsSweptVertices(SW *psw, SOPART *ppart, SOPART *ppartOther, XP **ppxp);
-void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp);
-void MarkSoContactsBspBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, BSP *pbspLast, XP **ppxp);
+extern "C++" { void MarkSoContactsSweptVertices(SW *psw, SOPART *ppart, SOPART *ppartOther, XP **ppxp) __asm__("MarkSoContactsSweptVertices"); }
+extern "C++" { void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp) __asm__("MarkSoContactsSphereBsp"); }
+extern "C++" { void MarkSoContactsBspBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, BSP *pbspLast, XP **ppxp) __asm__("MarkSoContactsBspBsp"); }
 }
 // Squared length of the xyz part of v as a float.
 static inline float LengthSq(qword v)
