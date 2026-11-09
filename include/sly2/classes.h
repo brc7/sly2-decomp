@@ -1846,7 +1846,11 @@ typedef char assert_PIPE_dleGrab[SLY2_OFFSETOF(PIPE, dleGrab) == 0x1B4 ? 1 : -1]
 struct RAIL : SHAPE, GRABSPOT
 {
     DLE dleGrab;            /* +0x1B4 link in g_sw.dlCid13 (grab.cpp GatherJtGrabCandidates, grab mask 0x200) */
-    char pad1BC[0x1D0 - 0x1BC];
+    int fSlide;             /* +0x1BC the held player slides along it (grab.cpp PresetJtAccelHide); zero on an open rail:
+                               the ends hold the player (UpdateJtInternalXpsHide) */
+    float svSlide;          /* +0x1C0 slide speed limit (1000 at init) */
+    float rSlide;           /* +0x1C4 slide gain on the gravity component along the rail (1 at init) */
+    char pad1C8[0x1D0 - 0x1C8];
     virtual void OnAdd() __asm__("OnRailAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRailClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRail");   /* slot 7 */
@@ -1861,6 +1865,7 @@ struct RAIL : SHAPE, GRABSPOT
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];
 typedef char assert_RAIL_dleGrab[SLY2_OFFSETOF(RAIL, dleGrab) == 0x1B4 ? 1 : -1];
+typedef char assert_RAIL_rSlide[SLY2_OFFSETOF(RAIL, rSlide) == 0x1C4 ? 1 : -1];
 
 /* 61 RAJAN (0x1020); vtable 0x2D7188, 90 slots */
 struct RAJAN : STEPGUARD

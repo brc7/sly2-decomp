@@ -1685,18 +1685,14 @@ namespace M_UpdateJtInternalXpsHide { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 typedef struct {qword row[4];} M4;
-struct LO;
 struct PROJECTION {qword direction;int kind;};
-struct LO { char pad[0xC]; VTE *vt; char pad2[0x190 - 0x10]; qword x190; char pad3[0x218 - 0x1A0]; qword *x218; };
-struct T { char pad[0xE4]; int xe4; char pad2[0x1BC - 0xE8]; int x1bc; };
-struct S { struct LO *x0; int x4; int x8; int xc; int x10; struct T *x14; int x18; float x1c; float x20; };
 extern qword D_002A2DB0;
 qword GetLoWorldPos(void *p);
-M4 *GetLoWorldMatrix(struct LO *p);
-void FindShapeClosestPointFromParam(struct T *t, qword a, struct PROJECTION *projection, qword *p0, qword *p1, float *pf0, float *pf1, float g);
-float GetShapeMinDistance(struct T *t);
-float GetShapeMaxDistance(struct T *t);
-void EvaluateShapeAtDistance(struct T *t, float g, qword *point, qword *direction);
+M4 *GetLoWorldMatrix(STEPPLAYER *p);
+void FindShapeClosestPointFromParam(RAIL *t, qword a, struct PROJECTION *projection, qword *p0, qword *p1, float *pf0, float *pf1, float g);
+float GetShapeMinDistance(RAIL *t);
+float GetShapeMaxDistance(RAIL *t);
+void EvaluateShapeAtDistance(RAIL *t, float g, qword *point, qword *direction);
 // Dot product of the xyz parts of a and b as a float.
 static __inline__ float Dot(qword a, qword b)
 {
@@ -1720,36 +1716,36 @@ static __inline__ float Dot2(qword a, qword b)
 }
 // Adds the contact constraints for the held object (state 4: point constraint; state 3: rail/edge ...).
 // Sly 1 name and body.
-void UpdateJtInternalXpsHide(struct S *p)
+void UpdateJtInternalXpsHide(JTGRAB *p)
 {
-    switch (p->x8) {
+    switch (p->state) {
     case 4: {
         U pos;
-        pos.q = GetLoWorldPos(p->x14);
-        ((void (*)(void *, int, void *, qword, qword, qword))p->x0->vt[82].pfn)((char *)p->x0 + p->x0->vt[82].d, 0x23, p->x14, pos.q, D_002A2DB0, *p->x0->x218);
+        pos.q = GetLoWorldPos(p->grabbedObject);
+        p->player->AddAxisXps(0x23, p->grabbedObject, pos.q, D_002A2DB0, *p->player->unknown218);
         break;
     }
     case 3: {
         U v0, v1;
-        struct T *t = p->x14;
+        RAIL *t = (RAIL *)p->grabbedObject;
         int k;
-        FindShapeClosestPointFromParam(t, *p->x0->x218, 0, &v0.q, &v1.q, &p->x1c, &p->x20, p->x1c);
+        FindShapeClosestPointFromParam(t, *p->player->unknown218, 0, &v0.q, &v1.q, &p->spotParam, &p->spotDistance, p->spotParam);
         k = 0x22;
-        if (t->x1bc == 0 && t->xe4 == 0) {
+        if (t->fSlide == 0 && t->isClosed == 0) {
             U vel;
             M4 *m;
             register qword w __asm__("vf2");
             float d0, d1;
-            vel.q = ((qword (*)(void *))p->x0->vt[33].pfn)((char *)p->x0 + p->x0->vt[33].d);
+            vel.q = p->player->GetVelocity();
             d0 = Dot(vel.q, v1.q);
-            m = GetLoWorldMatrix(p->x0);
-            w=p->x0->x190;
+            m = GetLoWorldMatrix(p->player);
+            w=p->player->qwUnknown190;
             __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(w):"j"(m->row[0]),"j"(m->row[1]),"j"(m->row[2]));
             d1 = -Dot2(w, v1.q);
-            if ((d0 < -2.0f || d1 < 2.0f) && p->x20 < GetShapeMinDistance(t) + 50.0f) {
+            if ((d0 < -2.0f || d1 < 2.0f) && p->spotDistance < GetShapeMinDistance(t) + 50.0f) {
                 k = 0x2A;
                 EvaluateShapeAtDistance(t, GetShapeMinDistance(t) + 50.0f, &v0.q, 0);
-            } else if ((2.0f < d0 || -2.0f < d1) && GetShapeMaxDistance(t) - 50.0f < p->x20) {
+            } else if ((2.0f < d0 || -2.0f < d1) && GetShapeMaxDistance(t) - 50.0f < p->spotDistance) {
                 U s;
                 k = 0x2A;
                 EvaluateShapeAtDistance(t, GetShapeMaxDistance(t) - 50.0f, &v0.q, 0);
@@ -1760,22 +1756,12 @@ void UpdateJtInternalXpsHide(struct S *p)
                 v1.q = v1q;
             }
         }
-        ((void (*)(void *, int, void *, qword, qword, qword))p->x0->vt[82].pfn)((char *)p->x0 + p->x0->vt[82].d, k, t, v0.q, v1.q, *p->x0->x218);
+        p->player->AddAxisXps(k, t, v0.q, v1.q, *p->player->unknown218);
         break;
     }
     }
 }
 
-typedef char offset_0_vt[(unsigned)&((struct LO*)0)->vt==12?1:-1];
-typedef char offset_0_x190[(unsigned)&((struct LO*)0)->x190==400?1:-1];
-typedef char offset_0_x218[(unsigned)&((struct LO*)0)->x218==536?1:-1];
-typedef char offset_1_xe4[(unsigned)&((struct T*)0)->xe4==228?1:-1];
-typedef char offset_1_x1bc[(unsigned)&((struct T*)0)->x1bc==444?1:-1];
-typedef char offset_2_x0[(unsigned)&((struct S*)0)->x0==0?1:-1];
-typedef char offset_2_x8[(unsigned)&((struct S*)0)->x8==8?1:-1];
-typedef char offset_2_x14[(unsigned)&((struct S*)0)->x14==20?1:-1];
-typedef char offset_2_x1c[(unsigned)&((struct S*)0)->x1c==28?1:-1];
-typedef char offset_2_x20[(unsigned)&((struct S*)0)->x20==32?1:-1];
 typedef char offset_3_direction[(unsigned)&((struct PROJECTION*)0)->direction==0?1:-1];
 typedef char offset_3_kind[(unsigned)&((struct PROJECTION*)0)->kind==16?1:-1];
 typedef char offset_6_row[(unsigned)&((M4*)0)->row==0?1:-1];
@@ -1783,9 +1769,6 @@ typedef char size_0[sizeof(qword)==16?1:-1];
 typedef char size_1[sizeof(U)==16?1:-1];
 typedef char size_2[sizeof(M4)==64?1:-1];
 typedef char size_6[sizeof(struct PROJECTION)==32?1:-1];
-typedef char size_7[sizeof(struct LO)==544?1:-1];
-typedef char size_8[sizeof(struct T)==448?1:-1];
-typedef char size_9[sizeof(struct S)==36?1:-1];
 typedef char size_10[sizeof(int)==4?1:-1];
 typedef char size_11[sizeof(float)==4?1:-1];
 typedef char size_12[sizeof(short)==2?1:-1];
@@ -1794,7 +1777,6 @@ typedef char alignment_0[__alignof__(U)==16?1:-1];
 typedef char alignment_1[__alignof__(qword)==16?1:-1];
 typedef char alignment_2[__alignof__(M4)==16?1:-1];
 typedef char alignment_4[__alignof__(struct PROJECTION)==16?1:-1];
-typedef char alignment_5[__alignof__(struct S)==4?1:-1];
 } } // namespace M_UpdateJtInternalXpsHide
 
 // Sets the hide/grab facing kind (+0x2C) and its time; kind 3 and 1/2 adjust the camera flag.
@@ -1848,50 +1830,26 @@ void ResetJtGrabTnParams(JTGRAB *grab)
 namespace M_PresetJtAccelHide { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct E8 { char pad[0x80]; qword x80; };
-struct O : LO { char pad2[0xE8-0x50]; struct E8 *xe8; };
-struct S { char pad[0x1BC]; int x1bc; float x1c0; float x1c4; };
-struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; float x1c; };
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700;
-void EvaluateShapeAtParam(struct S *s, U *position, U *direction, float g);
+void EvaluateShapeAtParam(RAIL *prail, U *position, U *direction, float g);
 float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
-void AddSoAcceleration(struct O *o, qword q);
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
-typedef char E8_x80_Offset[FIELD_OFFSET(E8,x80)==128?1:-1];
-typedef char O_xe8_Offset[FIELD_OFFSET(O,xe8)==232?1:-1];
-typedef char S_x1bc_Offset[FIELD_OFFSET(S,x1bc)==444?1:-1];
-typedef char S_x1c0_Offset[FIELD_OFFSET(S,x1c0)==448?1:-1];
-typedef char S_x1c4_Offset[FIELD_OFFSET(S,x1c4)==452?1:-1];
-typedef char P_x0_Offset[FIELD_OFFSET(P,x0)==0?1:-1];
-typedef char P_x8_Offset[FIELD_OFFSET(P,x8)==8?1:-1];
-typedef char P_x14_Offset[FIELD_OFFSET(P,x14)==20?1:-1];
-typedef char P_x1c_Offset[FIELD_OFFSET(P,x1c)==28?1:-1];
-typedef char SMP_a_Offset[FIELD_OFFSET(SMP,a)==0?1:-1];
-typedef char SMP_b_Offset[FIELD_OFFSET(SMP,b)==4?1:-1];
-typedef char SMP_c_Offset[FIELD_OFFSET(SMP,c)==8?1:-1];
-typedef char E8_PrefixSize[sizeof(struct E8)==144?1:-1];
-typedef char O_PrefixSize[sizeof(struct O)==240?1:-1];   /* an LO-derived view: tail padding to the base's alignment */
-typedef char S_PrefixSize[sizeof(struct S)==456?1:-1];
-typedef char P_PrefixSize[sizeof(struct P)==32?1:-1];
-typedef char SMP_PrefixSize[sizeof(struct SMP)==12?1:-1];
-typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char U_Size[sizeof(U)==16?1:-1];
+void AddSoAcceleration(STEPPLAYER *pstepplayer, qword q);
 // Grab physics preset: in grab state 3 on a curve object smooths the velocity along the curve. Sly 1 name and body.
-void PresetJtAccelHide(struct P *p)
+void PresetJtAccelHide(JTGRAB *p)
 {
     U v, w, r, k;
     float a, b;
-    struct S *s;
+    RAIL *s;
     float d1, d2, x;
     struct SMP *psmp;
-    if (p->x8 != 3)
+    if (p->state != 3)
         return;
-    s = p->x14;
-    if (!s->x1bc)
+    s = (RAIL *)p->grabbedObject;
+    if (!s->fSlide)
         return;
-    v.q = p->x0->GetVelocity();
-    EvaluateShapeAtParam(s, 0, &w, p->x1c);
+    v.q = p->player->GetVelocity();
+    EvaluateShapeAtParam(s, 0, &w, p->spotParam);
     psmp = &D_002BF700;
     {
     register float goal __asm__("$f13");
@@ -1903,11 +1861,11 @@ void PresetJtAccelHide(struct P *p)
         register qword one __asm__("vf4");
         __asm__("vmul.xyz %0,%2,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "+j"(velocity), "=&j"(one) : "j"(direction));
         __asm__("qmfc2.ni %0,%1" : "=r"(d1) : "j"(velocity));
-        other = p->x0->xe8->x80;
+        other = *(qword *)&p->player->physics->gravity;   // the gravity VECTOR read as a quadword
         __asm__("vmul.xyz %0,%0,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "+j"(direction), "=&j"(one) : "j"(other));
         {
             int bits;
-            goal = s->x1c0;
+            goal = s->svSlide;
             __asm__("qmfc2.ni %0,%1" : "=r"(bits) : "j"(direction));
             dt = g_clock.deltaTime;
             __asm__ __volatile__("mtc1 %1,%0" : "=f"(d2) : "r"(bits));
@@ -1915,14 +1873,14 @@ void PresetJtAccelHide(struct P *p)
     }
     (void)SmoothValue__FfffP3SMPPf(d1, goal, dt, psmp, &a);
     }
-    (void)SmoothValue__FfffP3SMPPf(d1, -s->x1c0, g_clock.deltaTime, psmp, &b);
-    x = Clamp(s->x1c4 * d2, b, a) - d2;
+    (void)SmoothValue__FfffP3SMPPf(d1, -s->svSlide, g_clock.deltaTime, psmp, &b);
+    x = Clamp(s->rSlide * d2, b, a) - d2;
     qword kq, rq;
     __asm__("qmtc2.ni %1, %0" : "=j"(kq) : "r"(x));
     k.q = kq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(rq) : "j"(w.q), "j"(k.q));
     r.q = rq;
-    AddSoAcceleration(p->x0, r.q);
+    AddSoAcceleration(p->player, r.q);
 }
 } } // namespace M_PresetJtAccelHide
 
