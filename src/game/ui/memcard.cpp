@@ -28,6 +28,7 @@
 #include "sly2/widget.h"
 #include "sly2/clock.h"
 #include "sly2/game.h"
+#include "sly2/vtables.h"
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -116,7 +117,6 @@ enum
 extern "C" {
 extern int D_004425D8;
 extern char D_003D9ED0[];       /* the pause menu */
-extern void *D_002D3750[] __asm__("_vt$14CMemcardDialog");      /* CMemcardDialog vtable (emitted here) */
 /* CMemcardDialog (DRAFT name, from its functions' annotations): the memory-card dialog screen, vtable 0x2D3750, emitted
    here. Defined before CMcStatus (below), whose vtable comes out before it. MCDLG is the view the bodies read. */
 struct CMemcardDialog : SCREEN
@@ -1421,7 +1421,7 @@ extern "C" int McDelete(SAVE *saveManager, const char *pchz)
 extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
 {
     ConstructScreen(dialog);
-    dialog->vtable = D_002D3750;
+    SLY2_SET_VPTR(dialog, CMemcardDialog);
     dialog->id = 0x52C;
     dialog->nState = -1;
     ResetScreenMode(dialog);
