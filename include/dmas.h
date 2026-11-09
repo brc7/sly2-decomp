@@ -4,7 +4,7 @@
 #include "qw.h"
 
 struct HEAP;
-struct ALLOCREQ { int cb; int cbAlign; };       /* passed by value to the allocator */
+#include "sly2/swalloc.h"   /* SWALLOC, the allocation request AllocFromStack takes */
 
 class DMAS
 {
@@ -38,7 +38,7 @@ public:
 };
 
 extern HEAP g_heapSw __asm__("D_002DD590");
-void *AllocFromStack(ALLOCREQ *preq) __asm__("AllocFromStack"); /* 0x1AE318 */
+void *AllocFromStack(SWALLOC *preq) __asm__("AllocFromStack"); /* 0x1AE318 */
 void *AllocCopyFromHeap(HEAP *pheap, int cb, void *pv, int n); /* 0x116970 */
 void CopyAqw(void *pvDst, void *pvSrc, int cqw);        /* 0x1AE528 */
 #endif

@@ -268,15 +268,11 @@ extern char D_002DE750[];
 template <class T> struct EMITBREFS { static void *s_apvNull[5]; };
 
 /* an allocation request for the level heap (TU-private copies of the same struct exist in several merged files) */
-#ifndef SLY2_STRUCT_AREQ
-#define SLY2_STRUCT_AREQ
-struct AREQ { int cb; int cbAlign; };
-#endif
 /* allocate from the level heap (AllocClearedFromWorldHeap); a C++ name bound by label, so that the merged files' own extern "C"
-   declarations of AllocClearedFromWorldHeap (on their AREQ copies) do not conflict with it where classes.h is included */
-void *PvAllocLevelHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
-void *PvAllocLevelHeapUncleared(AREQ *preq) __asm__("AllocFromWorldHeap");   /* allocate (uncleared); labelled as above */
-void *PvAllocLevelHeapCopy(AREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");   /* allocate a copy of pv */
+   declarations of AllocClearedFromWorldHeap (on their private request copies) do not conflict with it where classes.h is included */
+void *PvAllocLevelHeap(SWALLOC *preq) __asm__("AllocClearedFromWorldHeap");
+void *PvAllocLevelHeapUncleared(SWALLOC *preq) __asm__("AllocFromWorldHeap");   /* allocate (uncleared); labelled as above */
+void *PvAllocLevelHeapCopy(SWALLOC *preq, void *pv) __asm__("AllocCopyFromWorldHeap");   /* allocate a copy of pv */
 extern "C" void InitEmitBlock(EMITB *pemitb); /* InitEmitb: zero the block, install the EMITO/EMITV defaults */
 extern "C" void ColorCorrectRgba(RGBA *prgba);
 /* CBinaryInputStream's readers by their symbols (the class is only forward-declared in the sly2 headers: bis.h's
@@ -362,7 +358,7 @@ template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
         p->fDirty = ensk;
         if (p->pemitb->cref >= 2)
         {
-            AREQ req;
+            SWALLOC req;
             p->pemitb->cref--;
             req.cb = 0x100;
             req.cbAlign = 0x10;
@@ -382,7 +378,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
     int i;
     EMITV *pv;
     EMITBLIPCLRS *pclrs;
-    union { AREQ req; RGBAW rgba; } u;   /* one stack slot for the request and the colour */
+    union { SWALLOC req; RGBAW rgba; } u;   /* one stack slot for the request and the colour */
     if (n == 0)
         return;
     pv = &p->pemitb->v;
@@ -404,7 +400,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
 /* LoadFromBrx (slot 14): a fresh block, the XFM part, the emit mesh (EMITO kind 3), the blip colours */
 template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
 {
-    AREQ req;
+    SWALLOC req;
     req.cb = 0x100;
     req.cbAlign = 0x10;
     InitEmitBlock(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
@@ -426,8 +422,8 @@ template <class T> void CloneEmitter(T *p, LO *ploBase)
 template <class T> void func_002586D8(T *p)
 {
     LO *aplo[5];
-    AREQ req;
-    AREQ *preq;
+    SWALLOC req;
+    SWALLOC *preq;
     EMITB *pemitb;
     int oid1;
     int oid2 = -1;
@@ -543,9 +539,9 @@ template <class T> void func_00258A00(T *p, int k)
     pemitb->emito.originKind = k;
     switch (k)
     {
-    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 1: { SWALLOC req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
     case 2: pemitb->emito.pvEmito = -1; break;
-    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 3: { SWALLOC req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
     }
 }
 

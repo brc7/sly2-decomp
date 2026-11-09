@@ -168,10 +168,8 @@ typedef char assert_MATRIX3Q_size[sizeof(MATRIX3Q) == sizeof(MATRIX3) ? 1 : -1];
 typedef char assert_MATRIX4Q_size[sizeof(MATRIX4Q) == sizeof(MATRIX4) ? 1 : -1];
 
 /* Small records that the per-function decompilation had copied into many TUs (census tier E), one definition each. */
-/* SWALLOC: a world-heap / stack allocation request (byte count, alignment), passed by pointer to the allocators
-   (AllocClearedFromWorldHeap, AllocFromStack...; Sly 1's PvAllocSwImpl family). The TU copies were named MSG, AL, REQ,
-   REQUEST. Same bytes as emitter.h's AREQ and dmas.h's ALLOCREQ (not folded yet). */
-struct SWALLOC { int cb; int cbAlign; };
+/* SWALLOC: a world-heap / stack allocation request (byte count, alignment); sly2/swalloc.h */
+#include "sly2/swalloc.h"
 /* LONGU: an 8-byte record passed by value in one 64-bit register (the packed-long callback / pointer-to-member pairs) */
 struct LONGU { long l; } __attribute__((packed));
 /* FLOATWORD: a float and its bit pattern */

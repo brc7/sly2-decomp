@@ -5,7 +5,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001B4708
 #include "sly2/so.h"
 #include "sly2/slotheap.h"
-#include "dmas.h"          /* ALLOCREQ */
+#include "dmas.h"          /* SWALLOC */
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 
@@ -74,7 +74,7 @@ extern "C" void CollectVisibleMsGlobs(int *countOut, GLOBREF ***globsOut)
 {
       GLOBOWNER *mesh;
       GLOBREF **globs, **nextSlot;
-      ALLOCREQ req;
+      SWALLOC req;
       int count = 0, i;
 
       for (mesh = (*(GLOBOWNER * *)&g_sw.objectsByClass[49]); mesh; mesh = mesh->nextOwner)

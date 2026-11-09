@@ -66,7 +66,7 @@ void DMAS::Reset()
 // Gives the builder a fresh buffer of cqw quadwords from the frame slot heap (16-byte aligned).
 void DMAS::AllocSw(int cqw)
 {
-    ALLOCREQ req;
+    SWALLOC req;
     int cb = cqw << 4;
     req.cb = cb;
     req.cbAlign = 0x10;

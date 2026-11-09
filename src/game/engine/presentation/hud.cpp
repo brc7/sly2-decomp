@@ -1768,7 +1768,7 @@ float F32Read__18CBinaryInputStream(BIS *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,MATRIX3Q *);
 void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
 void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
-void *AllocClearedFromStack(ALLOCREQ *);
+void *AllocClearedFromStack(SWALLOC *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(SW *,OWNER *,PMF,SPRITE *);
 }
@@ -1777,7 +1777,7 @@ extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern QW D_002A2E10; }
 extern "C" { extern char D_00000650[],D_00000140[]; }
 // Fill the request and allocate bytes with the given alignment.
-static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
+static inline void *Acquire(SWALLOC *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
 // Copy the xy parts of the three rows of src into a 2x3 affine matrix.
 static inline void CopyXY(M23 &dst,const MATRIX3Q &src){
  const float *a=(const float *)&src.r[0].q,*b=(const float *)&src.r[1].q,*c=(const float *)&src.r[2].q;
@@ -1852,7 +1852,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
  case SPRITE_KIND_GEOMETRY:{
   sprite->data.geometry.count=U16Read__18CBinaryInputStream(stream);
   RECORD *records;GROUP *groups;int i;
-  { ALLOCREQ request;
+  { SWALLOC request;
   records=(RECORD *)Acquire(&request,sprite->data.geometry.count*sizeof(RECORD),16);
   groups=(GROUP *)Acquire(&request,sprite->data.geometry.count*sizeof(GROUP),16);
   for(i=0;i<sprite->data.geometry.count;i++){
