@@ -1230,25 +1230,21 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FMatchJtXmg {
-typedef int qword __attribute__((mode(TI)));
 struct HIT { qword v0; char pad[0x28 - 0x10]; float g28; char pad1[0x40 - 0x2C]; float g40; char pad2[0x60 - 0x44]; };
-struct M { char pad[0x4]; int x4; char pad1[0x10 - 0x8]; qword v10; char pad2[0x30 - 0x20]; qword v30; qword v40; qword v50;
-    char pad3[0x08]; float g48; };
-struct O { char pad[0xEC]; int xEC; char pad1[0x208 - 0xF0]; int x208; };
 extern "C" {
 qword ConvertPosBetweenLos(void *p, void *q, qword v);
-void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
+void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE *ptree, int *pn0, int *pn1);
 int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void SetActRotationGoal(void *p, qword v);
 void ShouldKeepSoPair();
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-int TryMatchJtXmg(O *p, M *pm, void *px);
+int TryMatchJtXmg(JT *pjt, XMG *pxmg, void *px);
 }
 // Probes the ground along the foot geometry's lines (normal z > 0.7) and sets the foot target; nonzero on a match.
-int TryMatchJtXmg(O *jt, M *pm, void *px)
+int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
 {
-    if (pm->x4) {
+    if (pm->isValid) {
         HIT hit;
         STACKSCOPE cls;
         union {
@@ -1256,10 +1252,10 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
         } u;
         int n0, n1;
         qword a, b, c;
-        a = ConvertPosBetweenLos(jt, 0, pm->v30);
-        b = ConvertPosBetweenLos(jt, 0, pm->v40);
-        c = ConvertPosBetweenLos(jt, 0, pm->v50);
-        IntersectSwBoundingBox(&g_sw, VuMin(a, VuMin(b, c)), VuMax(a, VuMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
+        a = ConvertPosBetweenLos(jt, 0, pm->upPosition);
+        b = ConvertPosBetweenLos(jt, 0, pm->downPosition);
+        c = ConvertPosBetweenLos(jt, 0, pm->sphereLowPosition);
+        IntersectSwBoundingBox(&g_sw, VuMin(a, VuMin(b, c)), VuMax(a, VuMax(b, c)), (void *)ShouldKeepSoPair, jt->physicsTree,
                                &n0, &n1);
         if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) ||
              FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
@@ -1268,11 +1264,11 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
             hit.v0 = VuSub(hit.v0, D_002A2DC0);
             w = ConvertPosBetweenLos(0, jt, hit.v0);
             u.q = w;
-            SetActRotationGoal(px, VuSub(w, pm->v10));
+            SetActRotationGoal(px, VuSub(w, pm->extremePosition));
             return 1;
         } else {
             SetActRotationGoal(px, D_002A2DD0);
-            if (jt->x208 && ((float *)&pm->v40)[2] < -85.0f)
+            if (jt->floorContact && ((float *)&pm->downPosition)[2] < -85.0f)
                 return 0;
             return 1;
         }
@@ -1287,40 +1283,33 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 struct T { char pad[0x4C]; SO *po; };   /* the floor contact (XP): the other side's object */
-struct S {
-    char pad[0xC]; VTE *vt; char p0[0x198]; float g1a8; char p1[0x5C]; struct T *pt208;
-    char p2[0xE1C]; void *x1028; char p3[8]; void *x1034; char p4[0x4DC]; int x1514; char p5[8];
-    char x1520[0x100]; char x1620[0x3B4]; int x19d4, x19d8, x19dc, x19e0; char p6[0xC]; int x19f0, x19f4;
-};
-int GetStepplayerLeanFlags(struct S *p);
-void SetSmaMask(void *p, int n);
+int GetStepplayerLeanFlags(JT *pjt);
+void SetSmaMask(SMA *psma, int n);
 float ClampAbs__Fff(float g, float h);
-void SetStepTargetHeading(struct S *p, float g);
-void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
-int TryMatchJtXmg(struct S *p, void *pv, int n);
-int FindSmStateOptional__FP2SM3OID(void *p, int n);
-void SnapSma(void *p, int n);
+void SetStepTargetHeading(JT *pjt, float g);
+void RebuildJtXmg(JT *pjt, void *pv0, void *pv1, ACT5 *pact5, float g, XMG *pxmg);
+int TryMatchJtXmg(JT *pjt, XMG *pxmg, ACT5 *pact5);
+int FindSmStateOptional__FP2SM3OID(SM *psm, int n);
+void SnapSma(SMA *psma, int n);
 // Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
-void UpdateJtStand(struct S *jt)
+void UpdateJtStand(JT *jt)
 {
-    VTE *e;
-    SetSmaMask(jt->x1034, GetStepplayerLeanFlags(jt));
-    e = &jt->vt[92];
-    if (!((int (*)(void *))e->pfn)((char *)jt + e->d) && jt->pt208) {
-        SO *o = jt->pt208->po;
+    SetSmaMask(jt->activeStateMachine, GetStepplayerLeanFlags(jt));
+    if (!jt->TryFaceAttachedObject() && jt->floorContact) {
+        SO *o = ((struct T *)jt->floorContact)->po;
         UV u;
         u.q = o->GetAngularVelocity();
         u.v.z = ClampAbs__Fff(u.v.z, 10.0f);
-        SetStepTargetHeading(jt, jt->g1a8 + u.v.z * g_clock.deltaTime);
+        SetStepTargetHeading(jt, jt->targetHeading + u.v.z * g_clock.deltaTime);
     }
-    if (!jt->x19f0)
+    if (!jt->pact5Unk19f0)
         return;
-    RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
-    RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
-    if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
-        !jt->x1514 && jt->x1028) {
-        if (FindSmStateOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
-        jt->x1514 = 1;
+    RebuildJtXmg(jt, jt->unknown19D8, jt->unknown19E0, jt->pact5Unk19f0, 5.0f, &jt->unknown1520[0]);
+    RebuildJtXmg(jt, jt->unknown19D4, jt->unknown19DC, jt->pact5Unk19f4, 5.0f, &jt->unknown1520[1]);
+    if ((!TryMatchJtXmg(jt, &jt->unknown1520[0], jt->pact5Unk19f0) || !TryMatchJtXmg(jt, &jt->unknown1520[1], jt->pact5Unk19f4)) &&
+        !jt->unknown1514 && jt->unknown1028) {
+        if (FindSmStateOptional__FP2SM3OID(jt->unknown1028, 0x17C) >= 0) SnapSma(jt->activeStateMachine, 0x17C);
+        jt->unknown1514 = 1;
     }
 }
 } } // namespace M_UpdateJtStand
@@ -4120,18 +4109,17 @@ void UseJtGadget(char *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DD78 { extern "C" {
-struct S : STEPPLAYER { char pad[0x2044 - 0x1320]; void *p2044; };
 void SetClockRate(struct CLOCK *pclock, int n, float g);
-void StopSnd(void *p, float g);
-void RcPtr_Assign(void **pp, int n);
-void StopStepplayerGadget(struct S *p, int n);
+void StopSnd(SND *psnd, float g);
+void RcPtr_Assign(SND **pp, int n);
+void StopStepplayerGadget(JT *pjt, int n);
 // JT slot 102: for gadgets 0x1D/0x2A restores the clock rate 1.0 and stops the sound, else the STEPPLAYER base.
-void EndJtGadget(struct S *jt, int n)
+void EndJtGadget(JT *jt, int n)
 {
     if (n == 0x1D || n == 0x2A) {
-        void **pp;
+        SND **pp;
         SetClockRate(&g_clock, 1, 1.0f);
-        pp = &jt->p2044;
+        pp = &jt->psndGadget.m_p;
         if (*pp) {
             StopSnd(*pp, 0.0f);
             RcPtr_Assign(pp, 0);
