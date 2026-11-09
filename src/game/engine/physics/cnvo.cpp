@@ -12,6 +12,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }   /* the real class behind the views below, for its virtual calls */
 #include "sly2/vu0.h"
 #include "sly2/dli.h"
 
@@ -157,7 +158,7 @@ static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb 
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
 /* The world matrix: virtual slot 31. */
-static inline MATRIX4Q *GetMat(CID14V *p) { return ((MATRIX4Q *(*)(CID14V *))p->vt[31].pfn)((CID14V *)((char *)p + p->vt[31].d)); }
+static inline MATRIX4Q *GetMat(CID14V *p) { return (MATRIX4Q *)AsLo(p)->GetWorldMatrix(); }
 // Transform point v by the 4x4 matrix m.
 static inline qword MulPt(MATRIX4Q *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0].q), "j"(v), "j"(m->r[1].q), "j"(m->r[2].q), "j"(m->r[3].q)); return r; }
 
@@ -611,7 +612,7 @@ void DetachCid14FromOwner(CID14V *polygon)
         pv->owner = 0;
         if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlCid14Pending, pv)) AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Pending, pv);
     }
-    ((void (*)(void *))polygon->vt[9].pfn)((char *)polygon + polygon->vt[9].d);
+    AsLo(polygon)->Remove();
     AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, polygon);
     D_002DD2FC = dli.m_pdliNext;
 }
@@ -784,14 +785,14 @@ CID14V *NewMergedCid14Obstacle(void)
             req.cb = 0x1F0;
             req.cbAlign = 0x10;
             q->edgePlanes = (qword *)AllocFromWorldHeap(&req);
-            ((void (*)(void *))q->vt[9].pfn)((char *)q + q->vt[9].d);
+            AsLo(q)->Remove();
             AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, q);
         }
         p = (CID14V *)((DL *)&g_sw.dlCid14Free)->head;
     }
     RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, p);
     p->planeStamp = -1;
-    ((void (*)(void *))p->vt[8].pfn)((char *)p + p->vt[8].d);
+    AsLo(p)->Add();
     p->owner = 0;
     return p;
 }
@@ -899,7 +900,7 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
     k = -16;
     do {
         px = polygons[polygon];
-        MATRIX4Q m=*((MATRIX4Q *(*)(CID14V *))px->vt[31].pfn)((CID14V *)((char *)px + px->vt[31].d));   /* virtual GetMatrix() */
+        MATRIX4Q m=*((MATRIX4Q *(*)(CID14V *))px->vt[31].pfn)((CID14V *)((char *)px + px->vt[31].d));   /* GetWorldMatrix by hand: a real call changes MergeCid14Obstacles (36 off) */
         j = 0;
         if (j < px->numPoints - 1) {
             qword *pw = (qword*)((unsigned)k + (unsigned)apos);
@@ -938,7 +939,7 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
                 pv->owner = 0;
                 AddCid14ToMerged(pv, pNew);
             }
-            ((void (*)(CID14V *))px->vt[9].pfn)((CID14V *)((char *)px + px->vt[9].d));
+            ((void (*)(CID14V *))px->vt[9].pfn)((CID14V *)((char *)px + px->vt[9].d));   /* Remove by hand, as above */
             AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, px);
             D_002DD2FC = dli.m_pdliNext;
         } else {
