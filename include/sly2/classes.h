@@ -657,7 +657,10 @@ typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 /* 33 EXPLS (0x110); vtable 0x2CE4D0, 52 slots */
 struct EXPLS : EXPLO
 {
-    char padF0[0x110 - 0xF0];
+    int unkF0[4];
+    void *pripg;                /* +0x100 its rip group (forgotten when that object goes away: HandleExplsMessage) */
+    void *pblipg;               /* +0x104 its blip group */
+    int unk108[2];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleExplsMessage");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplsClassDesc");   /* slot 6 */
     virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplsExplso");   /* slot 51 */

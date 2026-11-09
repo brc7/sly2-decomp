@@ -1822,22 +1822,17 @@ void ExplodeExplgExplso(S *group, EXPLSO *explso)
 }
 } // namespace M_ExplodeExplgExplso
 
-namespace M_HandleExplsMessage {
-struct O { char pad[0x100]; void *pripg; void *pblipg; };   /* EXPLS: its particle groups (+0x100, +0x104) */
-} // namespace M_HandleExplsMessage
 // EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
-    using namespace M_HandleExplsMessage;
-    M_HandleExplsMessage::O *o = (M_HandleExplsMessage::O *)this;
     int msgid = (int)msgid_m;
     if (msgid == 1) {
-        if (pv == o->pripg) {
-            UnsubscribeLoObject(pv, o);
-            o->pripg = 0;
-        } else if (pv == o->pblipg) {
-            UnsubscribeLoObject(pv, o);
-            o->pblipg = 0;
+        if (pv == pripg) {
+            UnsubscribeLoObject(pv, this);
+            pripg = 0;
+        } else if (pv == pblipg) {
+            UnsubscribeLoObject(pv, this);
+            pblipg = 0;
         }
     }
 }
