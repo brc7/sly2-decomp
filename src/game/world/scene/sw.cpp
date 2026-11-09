@@ -102,7 +102,7 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
 // Runs again in place on every level change.
 extern "C" SW *SW_ctor(SW *world)
 {
-    ((BASICWORDS *)world)->frame=0;((BASICWORDS *)world)->sidebag=0;SLY2_SET_VPTR(((BASICWORDS *)world), SW);
+    ((BASICWORDS *)world)->frame=0;((BASICWORDS *)world)->sidebag=0;SLY2_SET_VPTR(world, SW);
     InitSlotheap(&world->slotheapLoroot,0x14,0x100,0x10);
     InitSlotheap(&world->slotheapEvent,0x14,0x100,0x10);
     InitSlotheap(&world->slotheapCallback,0x14,0x100,0x10);
