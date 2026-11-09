@@ -6,7 +6,7 @@ CRef *RefThunk_GetMusicTime(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
-    SetF32__4CReff(&ref, GetMusicTime(pbasic));
+    SetF32__4CReff(&ref, GetMusicTime((s32)pbasic));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

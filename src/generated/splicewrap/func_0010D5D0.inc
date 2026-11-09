@@ -12,7 +12,7 @@ CRef *func_0010D5D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
     temp_v0 = M2C_FIELD(pbasic, void **, 0xC);
-    M2C_FIELD(temp_v0, void (**)(void *, s32), 0x19C)(pbasic + M2C_FIELD(temp_v0, s16 *, 0x198), arg0_v);
+    M2C_FIELD(temp_v0, void (**)(void *, s32), 0x19C)((char *)pbasic + M2C_FIELD(temp_v0, s16 *, 0x198), arg0_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

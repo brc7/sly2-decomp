@@ -9,7 +9,7 @@ CRef *func_001021D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x10;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    SetF32__4CReff(&ref, GetDialogStreamDuration(pbasic, arg0_v));
+    SetF32__4CReff(&ref, GetDialogStreamDuration((s32)pbasic, arg0_v));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

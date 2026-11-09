@@ -37,7 +37,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The thunks use sly2/cref.h's CRef; the vector result goes through the C-named setter. */
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);
-extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe");
 
 // ---- The generated Splice wrappers (src/generated/splicewrap/*.inc, tools/gen_splicewrap.py output) ----
 // Each wrapper is C as the generator wrote it (CRef as a plain struct, constructor/destructor calls spelled out),
@@ -225,7 +225,7 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkSoPOINT_IN_BSP_QUICK (was src/game/app/splice_thunks/RefThunkSoPOINT_IN_BSP_QUICK.cpp) ----
 namespace T_RefThunkSoPOINT_IN_BSP_QUICK {
-extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
+CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe");
 extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(SO *p, int c, void *aref);
 // Splice binding for option 108 on SO (g_aeopid[43], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls virtual and returns a bool to the script.
@@ -1771,7 +1771,7 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_FindClosestSwPo (was src/game/app/splice_thunks/RefThunk_FindClosestSwPo.cpp) ----
 namespace T_RefThunk_FindClosestSwPo {
 extern "C" {
-CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an);
+extern "C++" { CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, void *an) __asm__("RefSetArgsFromSplice__FiP4CRefP4OTYPe"); }
 void *FindClosestSwPo(void *p, qword q);
 CRef RefThunk_FindClosestSwPo(void *p, int c, void *aref);
 }
