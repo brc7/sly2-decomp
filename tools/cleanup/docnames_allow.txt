@@ -39,3 +39,5 @@ fNoShowBudDistractWarning
 MASK  # glTF alphaMode value (docs/formats/meshes-scene.md), not a symbol
 VOLUME
 gotoSgf
+# --- skills/decomp-cleanup placeholders (example command arguments, the agent progress log)
+../base-worktree base.json census.json PROGRESS.md

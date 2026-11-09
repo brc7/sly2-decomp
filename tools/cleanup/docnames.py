@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check code-like names cited in docs/**/*.md and README.md against the current tree.
+"""Check code-like names cited in docs/**/*.md, skills/**/*.md and README.md against the current tree.
 
 Usage: docnames.py [REPO] [--all] [--file=PATTERN] [--comments] [--allow FILE]
   REPO     repository root (default: the one this script is in)
@@ -190,7 +190,7 @@ def ident_ok(t):
     return False
 
 
-doc_files = sorted(f for f in files if (f.startswith('docs/') and f.endswith('.md')) or f == 'README.md')
+doc_files = sorted(f for f in files if (f.startswith(('docs/', 'skills/')) and f.endswith('.md')) or f == 'README.md')
 only = [a.split('=', 1)[1] for a in ARGS if a.startswith('--file=')]
 if only:
     doc_files = [f for f in doc_files if any(o in f for o in only)]

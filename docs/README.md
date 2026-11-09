@@ -60,6 +60,10 @@ On-disc data, for tools and the port: [disc records](formats/disc-records.md),
 - [guides/full-link.md](guides/full-link.md) — linking the whole ELF from source and what it still takes from the
   original.
 - [guides/port-plan.md](guides/port-plan.md) — the plan for a native port.
+- [guides/cleanup-playbook.md](guides/cleanup-playbook.md) — the end-to-end cleanup method (names, TU merging, view
+  unification, sweeps, verification, integration, agent orchestration) with the lessons from this decomp, for the next
+  one; the agent checklist is [skills/decomp-cleanup/SKILL.md](../skills/decomp-cleanup/SKILL.md) and the scripts are
+  in tools/cleanup/.
 - [guides/tu-merging.md](guides/tu-merging.md) — editing a translation unit without breaking the match: mismatch
   causes, vtable emission, unifying private views with the shared headers, islands, linkonce copies, data layout.
 - [archive/view-unification-history.md](archive/view-unification-history.md) — the per-round records of vtable
