@@ -32,6 +32,7 @@
 #include "sly2/clock.h"
 #include "sly2/game.h"
 #include "sly2/save.h"
+#include "sly2/classes.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -79,6 +80,9 @@ int IsStepplayerInScriptState(STEPPLAYER *pstepplayer);
 void SetStepplayerGrabTarget(STEPPLAYER *pstepplayer, LO *plo);
 }
 void ClearBhvstk(BHVSTK *pbhvstk);
+/* g_agadgetdesc D_002BCD00 (defined in this file's data, below): one 0x20-byte record per power-up id (43): +0x0 the
+   gadget slot state the gadget starts in, +0xC the MP cost the gadget slots check and ChargeGadgetMp charges. */
+struct GADGETDESC { int x0; int x4; int x8; int mp; int x10; int ids0; int ids1; int x1C; };
 
 namespace M_InitStepplayer { extern "C" {
 void InitStep(STEPPLAYER *p);
@@ -478,14 +482,13 @@ int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 
 namespace M_func_00140C30 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct Y { char pad[0x28]; unsigned long fl; };
 void SetJtAirJump(JTAIR *p, int a, int b, int c);
-void AddStepAxisXps(STEPPLAYER *p, void *a, struct Y *b, qword d);
+void AddStepAxisXps(STEPPLAYER *p, void *a, LO *b, qword d);
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-void AddStepplayerAxisXps(STEPPLAYER *player, void *a, struct Y *b, qword v)
+void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v)
 {
     qword d;
-    if ((((b->fl >> 60) & 1) == 0)) {
+    if (((int)b->isInWorld & 1) == 0) {
         SetJtAirJump(&player->jtair, 0, 0, 0);
         return;
     }
@@ -990,9 +993,8 @@ void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
 } } // namespace M_func_00141968
 
 namespace M_UpdateStepplayerGadgets { extern "C" {
-struct T { int x0; int x4; int x8; int xC; char pad[0x10]; };
 extern int D_002C3258[];
-extern struct T D_002BCD00[];
+extern GADGETDESC D_002BCD00[];
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, int mask, float g);
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *p, int n);
@@ -1017,7 +1019,7 @@ void UpdateStepplayerGadgets(STEPPLAYER *player)
                     SetSndSourceLo(CreateSfxSound(0x2E), 0);
                 } else {
                     int n = GetStepplayerMp(player);
-                    if (n < D_002BCD00[id].xC) {
+                    if (n < D_002BCD00[id].mp) {
                         SetSndSourceLo(CreateSfxSound(0x2E), 0);
                         player->lastGadgetUseTime = g_clock.time;
                     } else {
@@ -1068,15 +1070,14 @@ extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int st
 }
 
 namespace M_ChargeGadgetMp { extern "C" {
-struct E { int a, b, c, d; int pad[4]; };
-extern struct E D_002BCD00[];
-int GetStepplayerMp(void *p);
-void SetStepplayerMp(void *p, int a);
+extern GADGETDESC D_002BCD00[];
+int GetStepplayerMp(STEPPLAYER *p);
+void SetStepplayerMp(STEPPLAYER *p, int a);
 // Subtracts the gadget's MP cost from the player's MP and stamps the use time.
-void ChargeGadgetMp(char *p, int i)
+void ChargeGadgetMp(STEPPLAYER *p, int i)
 {
-    if (i != -1) SetStepplayerMp(p, GetStepplayerMp(p) - D_002BCD00[i].d);
-    *(float *)(p + 0x1304) = g_clock.time;
+    if (i != -1) SetStepplayerMp(p, GetStepplayerMp(p) - D_002BCD00[i].mp);
+    p->lastGadgetUseTime = g_clock.time;
 }
 } } // namespace M_ChargeGadgetMp
 
@@ -1368,23 +1369,19 @@ extern "C" int IsStepplayerNotInGrabStateC(STEPPLAYER *player)
 
 namespace M_StartStepplayerFollow { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0xC]; VTE *vt; char pad2[0x30 - 0x10]; int n30; char pad3[0x40 - 0x34]; qword q40; };
-void ClearBhvstk__FP6BHVSTK(void *p);
-struct O *PushStepBehavior(void *p, int n);
+BHV *PushStepBehavior(STEPPLAYER *p, int n);
 // Splice op 446: clears the behaviour stack and, with a leader, starts following it.
 // Runtime: the task t1_recon_brawl uses it to make Murray follow Sly.
-void StartStepplayerFollow(char *player, int a, qword q)
+void StartStepplayerFollow(STEPPLAYER *player, PO *leader, qword q)
 {
-    struct O *o;
-    VTE *e;
-    ClearBhvstk__FP6BHVSTK(player + 0x26C);
-    if (!a)
+    BHVFOLLOW *o;
+    ClearBhvstk(&player->behaviors);
+    if (!leader)
         return;
-    o = PushStepBehavior(player, 0xC2);
-    o->n30 = a;
-    o->q40 = q;
-    e = &o->vt[8];
-    ((void (*)(void *))e->pfn)((char *)o + e->d);
+    o = (BHVFOLLOW *)PushStepBehavior(player, 0xC2);
+    o->leader = leader;
+    o->followOffset = q;
+    o->Start();
 }
 } } // namespace M_StartStepplayerFollow
 
@@ -2548,8 +2545,7 @@ SMPA D_002BCCB8 = {4000.0f, 0.0f, 4.0f, 0.0f};
 SMPA D_002BCCC8 = {4000.0f, 0.0f, 0.3f, 0.0f};
 SMPA D_002BCCD8 = {1500.0f, 0.0f, 0.5f, 0.0f};
 VECTOR4 D_002BCCF0 = {1.5f, -0.5f, 0.0f, 0.0f};
-/* g_agadgetdesc: one 0x20-byte record per power-up id (43); +0xC is the MP cost the gadget slots check. */
-struct GADGETDESC { int x0; int x4; int x8; int mp; int x10; int ids0; int ids1; int x1C; };
+/* g_agadgetdesc (GADGETDESC, defined at the top of the file). */
 GADGETDESC D_002BCD00[43] = {{-1, 0, 0, 0, 0, 0, 0, 0}, {-1, 0, 0, 0, 0, 0, 0, 0}, {-1, 0, 0, 0, 0, 0, 0, 0},
     {-1, 0, 0, 0, 0, 0, 0, 0}, {2, 0, 0, 0, 0, 0, 0, 0}, {2, 0, 0, 0, 0, 0, 0, 0}, {1, 0, 0, 0, 0, 0, 0, 0},
     {2, 8, 200, 0, 1, 129, 130, 209}, {2, 8, 500, 5, 2, 131, 132, 205}, {2, 8, 550, 5, 3, 133, 134, 204},
