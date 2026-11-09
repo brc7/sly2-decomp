@@ -88,7 +88,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
             ACT3 *action;
             link=&chain->links[j];
             link->chain=chain;
-            { VTE *ve=&so->vt[51]; link->pxf=(XF *)((struct O *(*)(void *,int))ve->pfn)((char *)so+ve->d,S16Read__18CBinaryInputStream(stream)); }
+            link->pxf=((SO *)so)->GetXfFromIndex(S16Read__18CBinaryInputStream(stream));
             *(struct MATRIX3Q *)&link->restMatrix=LXF(link)->mat;
             action=(ACT3 *)AllocAct(0x20);
             ACT_VPTR(action)=D_002DB338;

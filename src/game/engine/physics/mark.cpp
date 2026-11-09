@@ -62,9 +62,6 @@ typedef char assert_XP_size[sizeof(XP) == 0xC0 ? 1 : -1];   /* CloneXpList copie
 /* The world position of a transform (XF::worldMatrix's translation row) as a quadword. */
 #define QW_XF_POS(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
 
-/* Hand-made call of an SO virtual whose so.h declaration has no parameters (slot 55): g++ 2.95 vtable entries
-   {delta, pfn}, entry 0 unused, so slot n is entry n + 1. */
-#define PVT(pso) (*(VTE **)((char *)(pso) + 0xC))
 
 extern "C" {
 float D_002BFD30 = 0.5f;    /* default contact friction (mark's .data) */
@@ -269,7 +266,7 @@ extern "C" void RecalcSwXpMovement(SW *world, int count, XP **contacts)
                 SO *pso;
                 pxps->v = GetXfVelocity(pxps->pxf, 0, pxps->pos);
                 pso = pxps->pso;
-                ((void (*)(SO *, XP *, int))PVT(pso)[56].pfn)((SO *)((char *)pso + PVT(pso)[56].d), pxp, j);   /* slot 55 */
+                pso->UnknownSlot56(pxp, j);
             }
         }
         for (j = 0; j < 2; j++) {

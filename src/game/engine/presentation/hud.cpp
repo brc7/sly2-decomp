@@ -3503,24 +3503,23 @@ extern "C" void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
 namespace M_HandleSpriteKeyEvents {
 // Dispatch sprite actions and manage sound slots.
 struct O;
-struct M { char pad[0xC]; VTE *vt; };
-struct E { char pad[0x14]; struct M *pm; };
+struct E { char pad[0x14]; CID151 *pm; };
 struct R { char pad[8]; struct E *ae; };
 struct A { int kind; int id; };
 struct F { char pad[0x18]; unsigned char count; char pad1[3]; struct A *aa; };
 struct S { char pad[4]; struct F *af; char pad1[8]; struct R *r; };
-extern struct M *CreateSfxSound(int id) __asm__("CreateSfxSound");
-extern void SetSndSourceLo(struct M *, struct O *) __asm__("SetSndSourceLo");
-extern void StopSnd(struct M *, float) __asm__("StopSnd");
-extern void RcPtr_Assign(struct M **pp, struct M *m) __asm__("RcPtr_Assign");
+extern CID151 *CreateSfxSound(int id) __asm__("CreateSfxSound");
+extern void SetSndSourceLo(CID151 *, struct O *) __asm__("SetSndSourceLo");
+extern void StopSnd(CID151 *, float) __asm__("StopSnd");
+extern void RcPtr_Assign(CID151 **pp, CID151 *m) __asm__("RcPtr_Assign");
 extern void *StartDialog(void *p,int a,int b) __asm__("StartDialog");
 extern void StopDialog(void *p) __asm__("StopDialog");
 // Load the sound from its slot into $4.
-static inline M *SlotSound(M *const &slot){register M *value asm("$4");asm("lw %0,0(%1)":"=r"(value):"r"(&slot),"m"(slot));return value;}
+static inline CID151 *SlotSound(CID151 *const &slot){register CID151 *value asm("$4");asm("lw %0,0(%1)":"=r"(value):"r"(&slot),"m"(slot));return value;}
 // Stop the slot's sound and drop the reference, if any.
-static inline void Stop(M **pp){if(pp){M *sound=SlotSound(*pp);if(sound){StopSnd(sound,0.0f);RcPtr_Assign(pp,0);}}}
+static inline void Stop(CID151 **pp){if(pp){CID151 *sound=SlotSound(*pp);if(sound){StopSnd(sound,0.0f);RcPtr_Assign(pp,0);}}}
 // Load the slot word (non-zero when a sound is present) into $3.
-static inline unsigned int Presence(M *const &slot){register unsigned int value asm("$3");__asm__("lw %0,%1":"=r"(value):"m"(slot));return value;}
+static inline unsigned int Presence(CID151 *const &slot){register unsigned int value asm("$3");__asm__("lw %0,%1":"=r"(value):"m"(slot));return value;}
 // index * stride (mult).
 static inline int EntryOffset(int index,int stride){int value;__asm__("mult %0,%1,%2":"=r"(value):"r"(index),"r"(stride):"hi","lo");return value;}
 // Load the action's kind into $3.
@@ -3532,7 +3531,7 @@ static inline R *StopReceiver(const S *owner){register R *value asm("$3");asm("l
 // Load the receiver's entry array into $4.
 static inline E *StopArray(const R *receiver){register E *value asm("$4");asm("lw %0,%1":"=r"(value):"m"(receiver->ae));return value;}
 // Address of the sound slot at the end of an entry.
-static inline M **SlotAddress(E *entry){M **value;asm("addiu %0,%0,%2":"=r"(value):"0"(entry),"i"(sizeof(E)-sizeof(M *)));return value;}
+static inline CID151 **SlotAddress(E *entry){CID151 **value;asm("addiu %0,%0,%2":"=r"(value):"0"(entry),"i"(sizeof(E)-sizeof(CID151 *)));return value;}
 // Address of the entry at byte offset `offset` in the array.
 static inline E *StopEntry(E *array,int offset){register E *value asm("$2");asm("addu %0,%1,%2":"=r"(value):"r"(offset),"r"(array));return value;}
 // Runs a sprite key's actions: start / stop sounds, start / stop dialog.
@@ -3546,9 +3545,9 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
         struct A *a=(struct A *)(j*sizeof(A)+(int)f->aa);
         switch(ActionKind(*a)) {
         case 0: {
-            struct M *m=CreateSfxSound(a->id);
+            CID151 *m=CreateSfxSound(a->id);
             SetSndSourceLo(m,0);
-            if(((int (*)(void *))m->vt[8].pfn)((char *)m+m->vt[8].d)==2)
+            if(m->GetKind()==2)
                 RcPtr_Assign(&((E *)(createOffset+(int)p->r->ae))->pm,m);
             break;
         }

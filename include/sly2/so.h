@@ -257,7 +257,7 @@ struct SO : public LO
       virtual SOTREE *NewTree() __asm__("NewSoTree");
       virtual void OnContactFreed(SO *pso) __asm__("OnSoContactFreed");
       virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustSoNewXp");
-      virtual void UnknownSlot56() __asm__("IgnoreSoSlot56");   /* slot 56: empty in every class that has it; meaning not known */
+      virtual void UnknownSlot56(XP *pxp, int ixpd) __asm__("IgnoreSoSlot56");   /* slot 56: empty in every class that has it; meaning not known (mark.cpp calls it per contact with the XP and its side, as slots 55 and 57 take) */
       virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustSoXpVelocity");
       virtual void AdjustXps() __asm__("AdjustSoXps");
       virtual void AddExtraXps() __asm__("IgnoreSoSlot59");   /* slot 59: adds class-specific contacts (STEPPLAYER components, STEPGUARD attachments); SO: nothing (inferred) */
