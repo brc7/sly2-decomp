@@ -75,8 +75,6 @@ typedef char assert_DIRACT_size[sizeof(DIRACT) == 0x40 ? 1 : -1];
 
 /* The three clip markers (0x22..0x24) of PostAsegArcLoad's curve. */
 struct V3 { float x, y, z; };
-struct CV { VTE *vt; };
-#define CURVECALL(pcv, pq, pd, t, s) ((void (*)(void *, qword *, qword *, float, float))(pcv)->vt[3].pfn)((char *)(pcv) + (pcv)->vt[3].d, pq, pd, t, s)
 struct BLCURVE { OID oid; ASEG *paseg; float a; float b; float c; float ca; float cb; FLOATWORD dist; V3 v; int pad; int fInit; };
 
 struct SLOTHEAP;
@@ -332,7 +330,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
     U v0, v1, v2;
     qword d;
     int n;
-    register CV *thirdCurve __asm__("$7");
+    register AC *thirdCurve __asm__("$7");
     register float start __asm__("$f12");
     register qword *derivative __asm__("$6");
     float h;
@@ -359,8 +357,8 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
     p->ca = p->c - p->a;
     c = FindAsegChannel(p->paseg, arg, 1, 1);
     if (c) {
-        CURVECALL((CV *)c->pac, &v0.q, 0, p->a, 1.0f);
-        CURVECALL((CV *)c->pac, &v1.q, 0, p->c, 1.0f);
+        c->pac->Evaluate(p->a, 1.0f, &v0.q, 0);
+        c->pac->Evaluate(p->c, 1.0f, &v1.q, 0);
         __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->a));
         h = p->c;
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu "
@@ -371,7 +369,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
         __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4"
                 : "=&r"(n), "=m"(p->dist.bits), "=r"(thirdCurve)
                 : "j"(d), "m"(c->pac));
-        CURVECALL(thirdCurve, &v2.q, derivative, start + h, 1.0f);
+        thirdCurve->Evaluate(start + h, 1.0f, &v2.q, derivative);
         {
             V3 *pv = &p->v;
             pv->x = 0;
