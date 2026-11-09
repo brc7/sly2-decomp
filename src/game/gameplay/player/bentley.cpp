@@ -849,7 +849,7 @@ void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleBentleyMessage { extern "C" {
 /* The spawned tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): its gadget id and slot 76. */
-struct O { char pad[0xC]; VTE *pvt; char pad2[0x15C - 0x10]; int x15C; };
+struct O { char pad[0xC]; void *vptr; char pad2[0x15C - 0x10]; int x15C; };
 struct M { void *x0; int x4; int x8; };
 void HandleStepplayerMessage(BENTLEY *p, int k, struct M *pm);
 LO *AcquireProxyObject(PROXY *pv, int n);
@@ -871,7 +871,7 @@ void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
                 LockProxyObject(bentley->ppocketCur->proxy, bentley->ploHeld);
                 ((struct O *)bentley->ploHeld)->x15C = bentley->ppocketCur->idGadget;
                 object = (struct O *)bentley->ploHeld;
-                ((void (*)(void *, int))object->pvt[76].pfn)((char *)object + object->pvt[76].d, 0);
+                ((CID100 *)object)->SetState(0);
             }
         } else if (pm->x0 == bentley->pasegaAim) {
             if (pm->x8 == 0x243)
@@ -1071,7 +1071,7 @@ void SetBentleySubState(BENTLEY *bentley, int n) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136118 { extern "C" {
 /* The held tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): state, a stick target and slot 76. */
-struct O { char pad[0xC]; VTE *vt; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
+struct O { char pad[0xC]; void *vptr; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
 int IsAsegaRetracted(ASEGA *pv);
 void SetBentleySubState(BENTLEY *p, int n);
 void StickTossable(struct O *po, int n);
@@ -1098,7 +1098,7 @@ void UpdateBentleySubState(BENTLEY *bentley)
                 ReleaseBentleyHeldObject(bentley);
                 SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if (object->x158 == 4 || !POCTL_IsButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->ppocketCur->idGadget) | BUTTON_ALT_ATTACK)) {
-                ((void (*)(void *, int))object->vt[76].pfn)((char *)object + object->vt[76].d, 1);
+                ((CID100 *)object)->SetState(1);
                 ReleaseBentleyHeldObject(bentley);
                 SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if
