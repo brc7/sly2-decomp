@@ -21,7 +21,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef union { qword q; float f[4]; } VU;
 typedef struct { qword q[4]; } M4;
 
-/* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
+/* Hand-made virtual calls of slots whose class is not known (slot 51 on the matched object, slot 1 of the pickup
+   effect) and of one scheduling-pinned SetVelocity: the vtable pointer of an object is at +0xC. */
 struct VT { VTE a[64]; };
 #define VCALL(po, slot, T) ((T)((void (*)())(po)->pvt->a[slot].pfn))((char *)(po) + (po)->pvt->a[slot].d
 
@@ -391,10 +392,7 @@ void ReturnDroppedBooty(BOOTYV *booty, int) {
 // v3 (Claude agent, laneC5 2026-10-23): aligned 46 -> 13: case-4 `pot4 = p->pot` read (gives the s0 copy), Dist sqrt asm split from its qmfc2, LINKE macro as a plain block (do/while(0) added a nop). Left: case 3 LINKE scheduling.
 // ~235/598 diffs, mostly offsets after a few small sched diffs (Dist/vsqrt scheduling, GMax regs, loop nops); frame 0x110 and layout match.
 struct MSG { int k; void *p; };
-typedef void (*PFN3)(void *, int, int, int, int, int);
-typedef void (*PFNV)(void *);
 typedef void (*PFNQ)(void *, qword);
-typedef void *(*PFNP)(void *);
 typedef void (*PFNM)(void *, MSG *);
 typedef void (*PFNE)(void *, qword, int, float);
 // Distance between two points.
@@ -433,7 +431,7 @@ static inline float Dist3(qword a, qword b, float k)
     { SA0 *ps = &booty->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
     booty->pmatch->p104 = (PA); \
     LaunchMatch(booty->pmatch); \
-    VCALL(booty, 8, PFNV)); \
+    ((LO *)booty)->Add(); \
 }
 #define LINKE3(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
@@ -446,7 +444,7 @@ static inline float Dist3(qword a, qword b, float k)
     { SA0 *ps = &booty->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
     booty->pmatch->p104 = (PA); \
     LaunchMatch(booty->pmatch); \
-    VCALL(booty, 8, PFNV)); \
+    ((LO *)booty)->Add(); \
 }
 // Sends message kind k about the object to itself (vtable slot 51).
 static inline void Notify(RLO *pr, int k)
@@ -508,7 +506,7 @@ void SetBootyState(BOOTYV *booty, int st)
             BroadcastGameEvent(&g_game, 0x2F, booty);
         booty->pcont->pbooty = 0;
         booty->pcont = 0;
-        VCALL(booty, 3, PFN3), 5, 0, 0, 0, 0);
+        ((LO *)booty)->HandleSpliceEvent(5, 0, 0, 0, 0);
         break;
     case 2:
         booty->pmatch = 0;
@@ -521,7 +519,7 @@ void SetBootyState(BOOTYV *booty, int st)
     case 4:
         pot4 = booty->phero;
         booty->phero = 0;
-        VCALL(pot4->pr, 9, PFNV));
+        ((LO *)pot4->pr)->Remove();
         pot4->pbooty = 0;
         if (booty->pbootyeCur->partsId != -1)
             ShowSoPartsById(booty, booty->pbootyeCur->partsId);
@@ -534,8 +532,8 @@ void SetBootyState(BOOTYV *booty, int st)
             Notify(pr, 1);
         SetSoCnstrForce(booty, 1);
         SetSoCnstrTorque(booty, 1);
-        VCALL(booty, 35, PFNQ), D_002A2DD0);
-        VCALL(booty, 36, PFNQ), D_002A2DD0);
+        ((LO *)booty)->SetVelocity(D_002A2DD0);
+        ((LO *)booty)->SetAngularVelocity(D_002A2DD0);
         SetSoGravity(booty, D_002A2DD0);
         break;
     }
@@ -549,41 +547,41 @@ void SetBootyState(BOOTYV *booty, int st)
     case 0:
         booty->pbootyeCur = 0;
         SetLoParent(booty, 0, 0);
-        VCALL(booty, 9, PFNV));
+        ((LO *)booty)->Remove();
         break;
     case 1:
         ReplaceHeldSwNoise(&g_sw, -1, D_002A2DD0, 0, (char *)booty->pcont + 0x198);
-        SetLoXfFromMat(booty, VCALL(booty->pcont, 31, PFNP)));
+        SetLoXfFromMat(booty, (void *)((LO *)booty->pcont)->GetWorldMatrix());
         SetLoParent(booty, (void *)booty->pcont->parent, 3);
         booty->pcont->pbooty = booty;
         if (stOld != 3) {
-            VCALL(booty, 9, PFNV));
+            ((LO *)booty)->Remove();
             FadeSoIn(booty, 0.5f);
         }
-        VCALL(booty, 3, PFN3), 6, 0, 0, 0, 0);
+        ((LO *)booty)->HandleSpliceEvent(6, 0, 0, 0, 0);
         break;
     case 2:
     case 6:
-        VCALL(booty->phero->pr, 8, PFNV));
+        ((LO *)booty->phero->pr)->Add();
         if (booty->st == 2) {
             booty->pmatch = NewRipInGroup(&g_sw, 6, 0);
         } else {
             booty->pmatch = 0;
-            VCALL(booty, 3, PFN3), 6, 0, 0, 0, 0);
-            VCALL(booty, 3, PFN3), 5, 0, 0, 0, 0);
+            ((LO *)booty)->HandleSpliceEvent(6, 0, 0, 0, 0);
+            ((LO *)booty)->HandleSpliceEvent(5, 0, 0, 0, 0);
         }
         {
             MATCH *pe = booty->pmatch;
             if (pe)
                 LINKE(pe, booty, booty->phero->pr);
         }
-        SetLoXfFromMat(booty, VCALL(booty->phero->pr, 31, PFNP)));
+        SetLoXfFromMat(booty, (void *)((LO *)booty->phero->pr)->GetWorldMatrix());
         SetLoParent(booty, booty->phero->pr, 3);
         if (!booty->pmatch)
             SetBootyState(booty, 4);
         break;
     case 3: {
-        SetLoXfFromMat(booty, VCALL(booty->pcont, 31, PFNP)));
+        SetLoXfFromMat(booty, (void *)((LO *)booty->pcont)->GetWorldMatrix());
         SetLoParent(booty, (void *)booty->pcont->parent, 3);
         booty->pmatch = NewRipInGroup(&g_sw, 6, 0);
         if (booty->pmatch)
@@ -609,7 +607,7 @@ void SetBootyState(BOOTYV *booty, int st)
         SetSoCnstrForce(booty, 0);
         SetSoCnstrTorque(booty, 0);
         {
-            qword *pv = (qword *)VCALL(booty, 31, PFNP));
+            qword *pv = (qword *)((LO *)booty)->GetWorldMatrix();
             qword vv = *pv;
             VT *pvt;
             qword sq, vq;
@@ -626,7 +624,7 @@ void SetBootyState(BOOTYV *booty, int st)
         u.f[0] = a;
         u.f[1] = b;
         u.f[2] = c;
-        VCALL(booty, 36, PFNQ), u.q);
+        ((LO *)booty)->SetAngularVelocity(u.q);
         SetSoGravity(booty, D_002A4B60.q);
         BroadcastGameEvent(&g_game, 0x30, booty);
         break;
