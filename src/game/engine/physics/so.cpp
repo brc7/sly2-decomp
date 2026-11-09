@@ -105,8 +105,6 @@ struct VU_VECTOR4
 /* SO::psobounds is sly2/light.h's SOBOUNDS. */
 /* The record only CanSoTakeDamage reads (its +0x44 word). */
 struct SOWATCH { char pad0[0x44]; int unknown44; };
-/* Hand-made virtual calls for the slots so.h does not declare with these signatures (g++ 2.95 {delta, pfn}). */
-#define PVTE(p) (*(VTE **)((char *)(p) + 0xC))
 
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
@@ -414,7 +412,7 @@ extern "C" void EnsureSoTree(SO *so)
     if (so->physicsTree == 0) {
         psoRoot = FindSoPhysRoot(so);
         if (psoRoot->physicsTree == 0) {
-            psoRoot->physicsTree = ((SOTREE *(*)(void *))PVTE(psoRoot)[53].pfn)((char *)psoRoot + PVTE(psoRoot)[53].d);
+            psoRoot->physicsTree = psoRoot->NewTree();
             RefreshSwObjectCollisionFilter(&g_sw, psoRoot);
         }
         so->physicsTree = psoRoot->physicsTree;
@@ -720,7 +718,7 @@ void SetLoVisMask(SO *,int);
 }
 /* LO::unknown40 is a tagged word: bit 0 clear means it points at the flag word */
 /* GetXfFromIndex (slot 51) called by hand: as a virtual call inside the part loop it keeps the vptr in a register */
-static inline XF *Lookup(SO *p,int id){VTE *v=&(*(VTE **)((char *)p+0xC))[51];return ((XF *(*)(SO *,int))v->pfn)((SO *)((char *)p+v->d),id);}
+static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
 static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)*(uint *)f|=8;else p->unknown40=f|8;}
 extern "C" void LoadSoFromBrx(SO *so,void *stream)
 {
@@ -1575,7 +1573,7 @@ extern "C" void SetSoXf(struct SOIsland *so, XF *pa)
     setpos((char*)so+delta,rr);
     }
     {
-        ((void (*)(void *, qword))so->pvt[36].pfn)((char *)so + so->pvt[36].d, q);
+        ((SO *)so)->SetAngularVelocity(q);
     }
 }
 } // namespace M_func_001F4A80
@@ -1816,7 +1814,7 @@ extern "C" int IsSoFixed(SO *so)
 extern "C" void WakeSo(SO *so)
 {
     if (so->physicsTree != 0) {
-        ((void (*)(void *, int))PVTE(so)[47].pfn)((char *)so + PVTE(so)[47].d, 4);
+        so->SetFlags(4);
         if (so->physics != 0) {
             UnsettleXfSlot(so, so->positionXf);
             UnsettleXfSlot(so, so->rotationXf);
