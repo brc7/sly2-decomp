@@ -88,11 +88,13 @@ PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare")
 
 int FCanAcquireProxy(PROXY *pproxy) __asm__("CanAcquireProxy");
 
-/* The gadget id of a tossable (classes.h CID100, +0x15C); classes.h leaves CID100's words padded (objects family). */
+/* The gadget id and thrower of a tossable (classes.h CID100); classes.h leaves CID100's words padded (objects family). */
 struct CID100GADGET : SO
 {
     char pad150[0x15C - 0x150];
     int idGadget;           /* +0x15C */
+    char pad160[0x16C - 0x160];
+    LO *ploThrower;         /* +0x16C the player that throws it (UseJtGadget) */
 };
 
 float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
@@ -3961,10 +3963,6 @@ int JT::CanUseGadget(int gadgetId)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UseJtGadget { extern "C" {
-typedef struct REC { int x0; int x4; int x8; } REC;
-typedef struct OBJ { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *x16C; } OBJ;
-#define F(T, o) (*(T *)((char *)p + (o)))
-#define A(o) ((char *)p + (o))
 
 extern float D_002BF3EC;
 extern float D_002BF3F0;
@@ -3972,46 +3970,44 @@ extern float D_002BF3F0;
 extern void BroadcastGameEvent(void *p, int n, void *pv);
 extern void ChargeGadgetMp(void *p, int n);
 extern void SetClockRate(void *p, int n, float g);
-extern void *CreateSfxSound(int n);
-extern void SetSndSourceLo(void *p, int n);
-extern void RcPtr_Assign(void *p, void *pv);
+extern SND *CreateSfxSound(int n);
+extern void SetSndSourceLo(SND *p, int n);
+extern void RcPtr_Assign(SND **pp, SND *psnd);
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void SetJtAirState(void *p, int a, int b);
-extern REC *GetJtGadgetRecord(void *p, int n);
-extern void SetJtThrowState(void *p, int n);
-extern void SetJtGrabState(void *p, int a, int b, int c);
-extern OBJ *AcquireProxyObject(int oid, int n);
-extern int IsThrowableGadget(OBJ *p);
-extern void SetGadgetRecordObject(void *p, REC *prec, OBJ *pobj);
+extern void SetJtAirState(JTAIR *p, int a, int b);
+extern JTPOCKET *GetJtGadgetRecord(void *p, int n);
+extern void SetJtThrowState(JTTHROW *p, int n);
+extern CID100GADGET *AcquireProxyObject(PROXY *pproxy, int n);
+extern int IsThrowableGadget(CID100GADGET *p);
 extern void GetGadgetButtonMask(void *p, int n);
-extern void ExplodeWithDefaults(int x);
-extern void SetJtAirJump(void *p, int a, int b, int c);
+extern void ExplodeWithDefaults(EXPL *pexpl);
+extern void SetJtAirJump(JTAIR *p, int a, int b, int c);
 extern void StartStepplayerGadget(void *p, int n);
 
 // JT slot 100: per-gadget action (slow motion through the clock rate and sounds, decoys, throws ...).
-void UseJtGadget(char *p, int n)
+void UseJtGadget(JT *p, int n)
 {
     g_game.idGadgetLast = n;
     BroadcastGameEvent(&g_game, 0x3C, p);
     switch (n) {
     case 0x1D: {
-        void *pv;
+        SND *pv;
         ChargeGadgetMp(p, n);
         SetClockRate(&g_clock, 1, D_002BF3EC);
         g_sw.unknown475C = -1.0f;
         pv = CreateSfxSound(0x67);
         SetSndSourceLo(pv, 0);
-        RcPtr_Assign(A(0x2044), pv);
+        RcPtr_Assign(&p->psndGadget.m_p, pv);
         break;
     }
     case 0x2A: {
-        void *pv;
+        SND *pv;
         ChargeGadgetMp(p, n);
         SetClockRate(&g_clock, 1, D_002BF3F0);
         g_sw.unknown475C = 0.7f;
         pv = CreateSfxSound(0x66);
         SetSndSourceLo(pv, 0);
-        RcPtr_Assign(A(0x2044), pv);
+        RcPtr_Assign(&p->psndGadget.m_p, pv);
         break;
     }
     case 0x21:
@@ -4020,44 +4016,44 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x1B:
         ChargeGadgetMp(p, n);
-        SetJtAirState(A(0x2C0), 0x13, 0);
+        SetJtAirState(&p->jtair, 0x13, 0);
         break;
     case 0x1A:
     case 0x25:
     case 0x26:
     case 0x29: {
-        REC *record = GetJtGadgetRecord(p, n);
-        OBJ *pobj;
-        if ((unsigned int)(AsJt(p)->jtthrow.state - 4) < 3) {
-            SetJtThrowState(A(0x11B0), 7);
+        JTPOCKET *record = GetJtGadgetRecord(p, n);
+        CID100GADGET *pobj;
+        if ((unsigned int)(p->jtthrow.state - 4) < 3) {
+            SetJtThrowState(&p->jtthrow, 7);
             break;
         }
-        if (record->x8) {
-            SetJtGrabState(A(0x4C0), 0xB, record->x8, 0);
+        if (record->pcid100) {
+            SetJtGrabState(&p->jtgrab, 0xB, record->pcid100, 0);
             break;
         }
-        pobj = AcquireProxyObject(record->x4, 0);
+        pobj = AcquireProxyObject(record->proxy, 0);
         if (!pobj)
             break;
-        pobj->x15C = record->x0;
+        pobj->idGadget = record->idGadget;
         if (IsThrowableGadget(pobj)) {
-            pobj->x16C = p;
+            pobj->ploThrower = p;
             SetGadgetRecordObject(p, record, pobj);
         }
-        F(OBJ *, 0x11C0) = pobj;
+        p->jtthrow.ploCarried = pobj;
         GetGadgetButtonMask(p, n);
         SetJtState__FP2JT3JTS4JTBS(p, JTS_Throw, -1);
-        SetJtThrowState(A(0x11B0), 4);
+        SetJtThrowState(&p->jtthrow, 4);
         break;
     }
     case 0x22:
     case 0x23:
-        F(int, 0x9BC) = n;
+        p->jtgrab.gadgetId = n;
         if (n == 0x23)
-            F(int, 0x130C) = F(int, 0x1FE0);
+            p->unknown130C = p->unknown1FE0;
         else
-            F(int, 0x130C) = F(int, 0x1FE4);
-        SetJtGrabState(A(0x4C0), 0xB, 0, 0);
+            p->unknown130C = p->unknown1FE4;
+        SetJtGrabState(&p->jtgrab, 0xB, 0, 0);
         break;
     case 0x18:
         ChargeGadgetMp(p, n);
@@ -4073,17 +4069,17 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x28:
         ChargeGadgetMp(p, n);
-        SetJtGrabState(A(0x4C0), 2, 0, 0);
+        SetJtGrabState(&p->jtgrab, 2, 0, 0);
         break;
     case 0x1F:
-        if (F(int, 0x204C))
-            ExplodeWithDefaults(F(int, 0x204C));
+        if (p->unknown204C)
+            ExplodeWithDefaults(p->unknown204C);
         ChargeGadgetMp(p, n);
-        SetJtAirJump(A(0x2C0), 9, 0, 0);
+        SetJtAirJump(&p->jtair, 9, 0, 0);
         break;
     case 0x1E:
         ChargeGadgetMp(p, n);
-        SetJtAirJump(A(0x2C0), 0xE, 0, 0);
+        SetJtAirJump(&p->jtair, 0xE, 0, 0);
         break;
     default:
         StartStepplayerGadget(p, n);
