@@ -23,6 +23,7 @@
 #include "sly2/sw.h"
 #include "sly2/clock.h"
 #include "sly2/joy.h"
+#include "sly2/vtables.h"
 
 /* g_cm: the camera, constructed by CM_ctor and destroyed by ~CM (_$_2CM, defined at the end of the file). */
 CM g_cm;
@@ -30,12 +31,7 @@ CM g_cm;
 // 0x14F930 StaticInit_cm (g_cm's construction and destruction, then the six slot pools) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The vtable pointer of a CM or a policy (after three words of data). */
-#define PVTCM(p) (*(void **)((char *)(p) + 0xC))
-
 extern "C" {
-extern void *D_002CA4D0[] __asm__("_vt$2CM");  /* CM vtable */
-extern void *D_002CD378[] __asm__("_vt$9CPTWOSHOT");  /* CPTWOSHOT vtable */
 CMPART1 *CMPART1_ctor(CMPART1 *p);
 CMPART2 *CPTN_ctor(CMPART2 *p);
 CPLOOK *CPLOOK_ctor(CPLOOK *p);
@@ -51,14 +47,14 @@ void UpdateCmMat4(CM *pcm);
 void RecalcCmFrustrum(CM *pcm);
 void SetCmNearClip(CM *pcm, float sNearClip);
 
-// CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera policies at
+// CM constructor: BASIC header, vptr 0x2CA4D0 (CM vtable), then constructs the 9 embedded camera policies at
 // +0x3A0..+0x600.
 extern "C" CM *CM_ctor(CM *pcm)
 {
     CPTWOSHOT *pcptwoshot = &pcm->twoShotPolicy;
     pcm->scriptFrame.m_p = 0;
     pcm->scriptVariables.m_p = 0;
-    PVTCM(pcm) = D_002CA4D0;
+    SLY2_SET_VPTR(pcm, CM);
     CMPART1_ctor(&pcm->part3a0);
     CPTN_ctor(&pcm->tunnelPolicy);
     CPLOOK_ctor(&pcm->cplook);
@@ -68,7 +64,7 @@ extern "C" CM *CM_ctor(CM *pcm)
     CPZOOM_ctor(&pcm->cpzoom);
     CPTURRET_ctor(&pcm->turretPolicy);
     CPLCY_ctor(pcptwoshot);
-    PVTCM(pcptwoshot) = D_002CD378;
+    SLY2_SET_VPTR(pcptwoshot, CPTWOSHOT);
     return pcm;
 }
 
