@@ -170,7 +170,7 @@ struct EARLY { M4 product, temporary, inverse; };
 union STAGE { EARLY early; CTXCOPY late; };
 struct WORK { U position; M3 basis; STAGE stage; float t, result, projection; U saved; };
 // Placement new: construct at destination.
-static inline void *operator new(unsigned size, void *destination) { return destination; }
+inline void *operator new(unsigned size, void *destination) { return destination; }
 struct COPYPREFIX { U position; M3 basis; M4 product; };
 // Publish the product and basis words of the work record (register-pinned) and return the hands context.
 static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)

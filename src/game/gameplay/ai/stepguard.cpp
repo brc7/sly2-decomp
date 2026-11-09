@@ -1184,7 +1184,7 @@ void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv) __asm__("AppendDlEntry__FP
 extern "C" void OnStepguardAdd(STEPGUARD *guard)
 {
     OnSoAdd(guard);
-    AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard);
+    AppendDlEntry__FP2DLPv((struct DL *)&g_sw.dlStepguard, guard);
     guard->removalTime = D_002A8868;
 }
 } // namespace M_OnStepguardAdd
@@ -1626,7 +1626,7 @@ extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *object)
 namespace M_FAddStepguardDetectTarget {
 struct DETECTORTARGETIsland; struct DETECTORIsland; 
 // Placement new.
-inline void *operator new(unsigned int,void *storage){return storage;}
+} inline void *operator new(unsigned int,void *storage){return storage;} namespace M_FAddStepguardDetectTarget {  // global (ISO C++: no operator new in a namespace)
 
 /* A detector target entry (DETECTOR's DTE) and the detector's target list. */
 /* island: placement-new constructor for the pinned insert */
