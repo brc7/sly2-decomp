@@ -351,7 +351,7 @@ struct SW : public BASIC
 
       float hudTimerEndTime; /* game time the HUD countdown ends */
       int csecHudTimerShown;   /* seconds currently shown on the HUD timer */
-      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (InitEpisodeMenu registers itself, episodemenu.cpp); was _pad_357 */
+      struct WIDGET131 *pepmenu; /* +0x4774 [S] the episode menu widget (classes.h WIDGET131; WIDGET131::Init registers itself, episodemenu.cpp); was _pad_357 */
       int cpemitTracked;   /* number of tracked emitters */
       struct EMITTER *apemitTracked[4];   /* the tracked emitters */
       uint32_t   _pad_360    [ 1 ] ;
