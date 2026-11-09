@@ -22,7 +22,7 @@ struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor
 struct FADEV
 {
     int pad0[3];
-    VTE *vtable;              /* +0x0C */
+    void *vptr;               /* +0x0C (the calls go through the real LO) */
     byte pad10[0x28 - 0x10];
     unsigned long loFlags;    /* +0x28 bit 60: LO::isInWorld (the fade is running) */
     byte pad30[0x40 - 0x30];
@@ -66,8 +66,7 @@ extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 {
     UpdateLo(fade, dt);
     if (g_clock.time - fade->startTime > fade->fadeInTime + fade->holdTime + fade->fadeOutTime) {
-        VTE *entry = &fade->vtable[9];
-        ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
+        ((LO *)fade)->Remove();
     }
 }
 
@@ -147,8 +146,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
 extern "C" void StartScreenFade(FADEV *fade)
 {
     if (((int)(fade->loFlags >> 60) & 1) == 0) {
-        VTE *entry = &fade->vtable[8];
         fade->startTime = g_clock.time;
-        ((void (*)(void *))entry->pfn)((char *)fade + entry->d);
+        ((LO *)fade)->Add();
     }
 }
