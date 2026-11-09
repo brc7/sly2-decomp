@@ -124,6 +124,7 @@ struct CMemcardDialog : SCREEN
     virtual void PostLoad() __asm__("CMemcardDialog_PostLoad");   /* slot 12; key function */
     virtual void Update() __asm__("CMemcardDialog_Update");   /* slot 7 */
     virtual void Reset() __asm__("CMemcardDialog_Slot13");   /* slot 13 */
+    int nState;             /* +0x40 the dialog state (-1 none) */
     virtual void SetMode(int nMode) __asm__("CMemcardDialog_SetMode");   /* slot 14 */
 };
 extern char D_002A38E8[];   /* the icon file */
@@ -1450,31 +1451,26 @@ extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
     ResetScreen(dialog);
 }
 
-namespace M_SetMcDialogState {
-struct O { char pad[0xC]; VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
-// Sets the dialog state; when the dialog is shown, refreshes it (slot 10) and shows its child widget.
-void SetMcDialogState(struct O *dialog, int state) __asm__("SetMcDialogState"); void SetMcDialogState(struct O *dialog, int state)
+// Sets the dialog state; when the dialog has its widget, shows the dialog and the widget.
+void SetMcDialogState(CMemcardDialog *dialog, int state) __asm__("SetMcDialogState");
+void SetMcDialogState(CMemcardDialog *dialog, int state)
 {
-    dialog->state = state;
-    if (dialog->child) {
-        { VTE *e = &dialog->vt[10]; ((void (*)(...))e->pfn)((char *)dialog + e->d); }
-        dialog->child->Show(-1);
+    dialog->nState = state;
+    if (dialog->pchild) {
+        dialog->Show();
+        dialog->pchild->Show(-1);
     }
 }
-} // namespace M_SetMcDialogState
 
-namespace M_ClearMcDialogState {
-struct O { char pad[0xC]; VTE *vt; char pad2[0x14]; WIDGET *child; char pad3[0x18]; int state; };
-// Clears the dialog state and hides the dialog (slot 11) and its child widget.
-extern "C" void ClearMcDialogState(struct O *dialog)
+// Clears the dialog state and hides the dialog and its widget.
+extern "C" void ClearMcDialogState(CMemcardDialog *dialog)
 {
-    dialog->state = -1;
-    if (dialog->child) {
-        { VTE *e = &dialog->vt[11]; ((void (*)(...))e->pfn)((char *)dialog + e->d); }
-        dialog->child->Hide();
+    dialog->nState = -1;
+    if (dialog->pchild) {
+        dialog->Hide();
+        dialog->pchild->Hide();
     }
 }
-} // namespace M_ClearMcDialogState
 
 // CMemcardDialog slot 14: sets the mode, stamping the real time when it changes.
 /* slot 14: set the mode (stamping the real time). */
