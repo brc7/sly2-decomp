@@ -19,13 +19,11 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/jt.h"
+#include "sly2/classes.h"
 
 /* vec.h's quadword-aligned VECTOR (basic.h's has no alignment). */
 struct VECTORV { float x, y, z; } __attribute__((aligned(16)));
 typedef union { qword q; float f[4]; } U;
-/* A place's grab spot (JTPLACE::grabSpot) as called here: vtable at +0x20, slot 3 evaluates a point at a distance,
-   slot 6 returns its object (classes.h's GRABSPOT declares these virtuals without their signatures). */
-struct PLACESO { char pad[0x20]; VTE *vt; };
 /* The surface the player stands on (STEP::floorContact): no shared XP definition yet. */
 struct XP { char pad[0x40]; SOPART *part; char pad44[0x8]; SO *surface; char pad50[0x10]; qword pos; char pad70[0x18]; float normalZ; };
 /* The hang object (JT::hangHandle, CID19): +0x100 its grab spot, +0x10C nonzero: no place is recorded on it. */
@@ -68,7 +66,7 @@ int FindSwObjectsByClass(SW *g, int k, int n, int m, int c, STEP **apv);
 float ScoreJtPlace(JTPLACES *p, JTPLACE *e, int c, STEP **apv);
 qword GetLoWorldPos(void *p);
 void AddJtPlaceAtPosition(JTPLACES *p, SOPART *a, qword q);
-void AddJtPlaceOnCurve(JTPLACES *p, PLACESO *b, float g);
+void AddJtPlaceOnCurve(JTPLACES *p, GRABSPOT *b, float g);
 void RecordJtGrabPlace(void *p);
 void RecordJtPipePlace(void *p);
 void *memmove(void *dst, const void *src, unsigned int cb);
@@ -96,8 +94,8 @@ extern "C" qword GetJtPlacePosition(STEPPLAYER *jt, JTPLACE *q, float g)
     qword v;
     qword r;
     if (q->grabSpot) {
-        PLACESO *s = (PLACESO *)q->grabSpot;
-        ((void (*)(void *, STEPPLAYER *, U *, int, float))s->vt[3].pfn)((char *)s + s->vt[3].d, jt, &t, 0, q->grabSpotParam);
+        GRABSPOT *s = q->grabSpot;
+        s->GetGrabPos(q->grabSpotParam, jt, &t.q, 0);
         o = q->object->GetLocalTransform(0);
         v = TransformXfPos(0, o, t.q);
     } else {
@@ -260,7 +258,7 @@ extern "C" void UpdateJtPlaces(JT *jt)
     {
         B *pb = (B *)jt->hangHandle;
         if (!pb->unknown10C)
-            AddJtPlaceOnCurve(&jt->jtplaces, pb ? (PLACESO *)((char *)pb + 0x100) : 0, 0.0f);
+            AddJtPlaceOnCurve(&jt->jtplaces, pb ? (GRABSPOT *)((char *)pb + 0x100) : 0, 0.0f);
         break;
     }
     case 7:
@@ -273,13 +271,13 @@ extern "C" void UpdateJtPlaces(JT *jt)
 }
 
 // Inserts (object, curve distance) at the front of the place table, merging an entry on the same object within 50.
-extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
+extern "C" void AddJtPlaceOnCurve(JTPLACES *places, GRABSPOT *s, float g)
 {
     int i;
     JTPLACE *e;
     for (i = 1; i < places->cplace; i++) {
         e = &places->aplace[i];
-        if (s == (PLACESO *)e->grabSpot && __builtin_fabsf(g - e->grabSpotParam) < 50.0f) {
+        if (s == e->grabSpot && __builtin_fabsf(g - e->grabSpotParam) < 50.0f) {
             if (i != 1) {
                 JTPLACE t = *e;
                 memmove(&places->aplace[2], &places->aplace[1], (i - 1) * sizeof(JTPLACE));
@@ -295,8 +293,8 @@ extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
     }
     e = &places->aplace[0];
     func_002333B4(e, 0, sizeof(JTPLACE));
-    places->aplace[0].object = ((LO *(*)(void *))s->vt[6].pfn)((char *)s + s->vt[6].d);
-    e->grabSpot = (GRABSPOT *)s;
+    places->aplace[0].object = s->GetOwner();
+    e->grabSpot = s;
     e->grabSpotParam = g;
     e->rememberedTime = g_clock.time;
     places->aplace[0].object->clearsPlacesOnRemove = 1;
