@@ -9,9 +9,6 @@
 #define SLY2_RELAY_H
 #include "sly2/basic.h"
 
-/* RELAYV: relay.cpp's view of RELAY (classes.h RELAY has no fields past LO yet; it belongs to the class-registry
-   family). Retype RELAYJSG::relay/prelayWait to RELAY* once RELAY carries crelaycmd/arelaycmd/dlJsg/pjsgSignal. */
-struct RELAYV;
 struct SSG;
 
 /* One relay command (AddRelayCommand appends it to RELAY's arelaycmd). */
@@ -485,7 +482,7 @@ typedef char assert_RELAYCMD_size[sizeof(RELAYCMD) == 0x50 ? 1 : -1];
 struct RELAYJSG : BASIC
 {
       int cref;
-      RELAYV *relay;
+      RELAY *relay;
       LO *ploContext;
       LO *ploBlock;
       LO *ploActorDefault;
@@ -500,7 +497,7 @@ struct RELAYJSG : BASIC
       LO *pjt;
       int fHoldBtn10;
       ASEGA *pasegaCur;
-      RELAYV *prelayWait;
+      RELAY *prelayWait;
       STEP *pstepAseg;
       SMA *psmaCur;
       int fSmaReached;

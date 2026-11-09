@@ -1945,10 +1945,26 @@ struct LASEN : SENSOR
 };
 typedef char assert_LASEN_size[sizeof(LASEN) == 0x1D0 ? 1 : -1];
 
-/* 114 RELAY (0xB0): cutscene / sequence script; vtable 0x2D8C48, 48 slots */
+/* 114 RELAY (0xB0): cutscene / sequence script; vtable 0x2D8C48, 48 slots. A list of RELAYCMD commands built by the
+   AddRelay* Splice builtins (sly2/relay.h) and run by RELAYJSG scripts when the relay fires. Layout from
+   src/game/gameplay/cutscene/relay.cpp (the former RELAYV view and the per-function views of Init/LoadFromBrx/Clone/
+   Update/FireRelay/StopRelay/AddRelayCommand); Sly 1 has no relay class, names from use. */
 struct RELAY : LO
 {
-    char pad50[0xB0 - 0x50];
+    int crelaycmd;              /* +0x50 commands in arelaycmd */
+    struct RELAYCMD *arelaycmd; /* +0x54 the command list (stack buffer while loading, then world heap) */
+    int crelaycmdMax;           /* +0x58 the relay's own command limit, -1 = the default 0x200 (SetRelayCommandLimit) */
+    DL dlJsg;                   /* +0x5C running scripts (RELAYJSG, link at +0xE4) */
+    struct RELAYJSG *pjsgSignal; /* +0x68 the script waiting on a Signal command */
+    LO *ploFirer;               /* +0x6C who fired the relay */
+    float tFired;               /* +0x70 time since it fired (real time when the LO runs unpaused) */
+    int fFiring;                /* +0x74 */
+    int fBusy;                  /* +0x78 holds the LO busy mark (SetLoBusyKind) */
+    int fAppendEnd;             /* +0x7C close the command list with a BlockEnd before firing */
+    int fOwnCommands;           /* +0x80 crelaycmdMax was set: Clone copies the command array (inferred) */
+    int calarm;                 /* +0x84 alarms raised by the relay's scripts */
+    struct ALARM *apalarm[8];   /* +0x88 */
+    int anUnkA8[2];             /* +0xA8 unused by relay.cpp */
     virtual void Init() __asm__("InitRelay");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRelayClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRelayFromBrx");   /* slot 14 */
@@ -1956,6 +1972,9 @@ struct RELAY : LO
     virtual void Clone(LO *ploBase) __asm__("CloneRelay");   /* slot 41 */
 };
 typedef char assert_RELAY_size[sizeof(RELAY) == 0xB0 ? 1 : -1];
+typedef char assert_RELAY_dlJsg[SLY2_OFFSETOF(RELAY, dlJsg) == 0x5C ? 1 : -1];
+typedef char assert_RELAY_fOwnCommands[SLY2_OFFSETOF(RELAY, fOwnCommands) == 0x80 ? 1 : -1];
+typedef char assert_RELAY_apalarm[SLY2_OFFSETOF(RELAY, apalarm) == 0x88 ? 1 : -1];
 
 /* 106 CID106 (0x160): mesh deformed along a path; vtable 0x2D8DD8, 75 slots */
 struct CID106 : SO
