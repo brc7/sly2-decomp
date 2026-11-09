@@ -10,6 +10,7 @@
 #include "sly2/shd.h"
 #include "sly2/vu0.h"
 #include "sly2/classes.h"
+#include "sly2/vtables.h"
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }   /* the real class behind the views below, for its virtual calls */
 #include "sly2/dli.h"
 #include "sly2/sw.h"
@@ -127,7 +128,6 @@ QW D_002DD5C0[4];       /* the two blip GIF packets (blip's .bss) */
 QW D_002DD600[4];
 extern DL D_002DEAF0;
 extern DL D_002DEB00;
-extern VTE D_002CB5D8[] __asm__("_vt$5BLIPG");
 extern qwordV D_002A2DD0;
 int D_002BC9C0 = 0;     /* blip's .data: force the CPU projection */
 extern int D_002C3C5C;
@@ -233,7 +233,7 @@ extern "C" BLIPGV *NewBlipGroup(SW *psw)
     func_002333B4(p, 0, 0x460);
     p->basic0 = 0;
     p->basic4 = 0;
-    p->pvt = D_002CB5D8;
+    SLY2_SET_VPTR(p, BLIPG);
     i = 31;
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
                                  `while (--i != -1) ;` loads 30 as C++ */
