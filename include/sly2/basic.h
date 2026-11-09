@@ -313,7 +313,7 @@ template <class T> void CRefPtr<T>::Attach(T *p)
 /* VTE: one g++ 2.95 vtable entry: the this-adjustment and the function (the vtable a BASIC's vptr at +0xC points to
    is an array of these, slot 0 unused). Code that cannot call the real virtual yet (the class has no header, or the
    slot's signature is unknown) calls through it as ((T)pvt[i].pfn)((char *)p + pvt[i].d, ...), T the function type
-   it matched with. arrayv.h keeps its own copy in namespace ArrayV. */
+   it matched with. The tables code stores by hand are declared in sly2/vtables.h. */
 struct VTE
 {
       short d;     /* this-adjustment added to the object pointer */
