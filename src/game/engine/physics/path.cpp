@@ -61,23 +61,23 @@ int IsEdgeBlockedByCbsp(CG *pcg, qword posFrom, qword posTo, int grf);
 void InitDl(DL *pdl, int ibDle);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PcgtPointInCbspQuick { extern "C" {
+namespace M_PcgtPointInCbspQuick {
 typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of a and b as a float.
-static __inline__ float Dot(qword a, qword b)
+extern "C" { static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
     float f;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
 // Walks the graph's 2D BSP and returns the triangle containing pos, or 0 (Sly 1 PcgtPointInCbspQuick; the flags
 // argument is new in Sly 2).
-LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
+LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags) __asm__("FindNavTriangleQuick"); LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 {
     union { qword q; float f; } u;
     NODE *pn, *pnEnd, *anode;
@@ -103,28 +103,28 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
     }
     return 0;
 }
-} } // namespace M_PcgtPointInCbspQuick
+} // namespace M_PcgtPointInCbspQuick
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PcgtPointInCbspSafe { extern "C" {
+namespace M_PcgtPointInCbspSafe {
 typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of a and b as a float.
-static __inline__ float Dot(qword a, qword b)
+extern "C" { static __inline__ float Dot(qword a, qword b)
 {
     qword d, one;
     float f;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
-float D_002C0C00 = 0.01f;   /* path's .data starts here: the plane-side epsilon */
+float D_002C0C00 __asm__("D_002C0C00") = 0.01f;   /* path's .data starts here: the plane-side epsilon */
 namespace PATH_DATA { float r_D_002C0C04 __asm__("D_002C0C04") = 50.0f; }   /* FindPathPoints's route spacing (declared const there) */
 // Tolerant BSP walk: returns the triangle containing pos or, failing that, the nearest one (Sly 1
 // PcgtPointInCbspSafe).
-LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
+extern "C" LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
 {
     union { qword q; float f; } u;
     NODE *pnEnd, *anode;
@@ -169,19 +169,19 @@ LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
     }
     return 0;
 }
-} } // namespace M_PcgtPointInCbspSafe
+} // namespace M_PcgtPointInCbspSafe
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CbskFromG__Ff { extern "C" {
+namespace M_CbskFromG__Ff {
 // Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name: CbskFromG.
-int ClassifyPlaneDistance__Ff(float distance)
+extern "C" int ClassifyPlaneDistance__Ff(float distance)
 {
 extern float D_002C0C00;
     if (D_002C0C00 < distance) return 0;
     if (distance < -D_002C0C00) return 1;
     return 2;
 }
-} } // namespace M_CbskFromG__Ff
+} // namespace M_CbskFromG__Ff
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ClsgClipEdgeToCbsp {
@@ -207,8 +207,8 @@ struct STATE { NODE *node; TRI *leaf; float t; QWROW plane; };
 struct ROW { QWROW a, b, planeA, planeB; float t0, t1; int flags; TRI *leaf; char tail[16]; };
 typedef char STATE_Size[sizeof(STATE) == 0x20 ? 1 : -1];
 typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
-extern "C" void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
-extern "C" int ClassifyPlaneDistance__Ff(float);                      // 0: above +eps, 1: below -eps, 2: on the plane
+extern void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
+extern int ClassifyPlaneDistance__Ff(float) __asm__("ClassifyPlaneDistance__Ff");                      // 0: above +eps, 1: below -eps, 2: on the plane
 
 // x lane of q as a float.
 static inline float GetX(const qword &q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -250,7 +250,7 @@ static inline VU_VECTOR Lerp(const qword &a, const qword &b, float t)
 
 // Clips a segment against the graph's BSP, writing the walkable leaf spans it crosses as LSG rows; returns the
 // count (Sly 1 ClsgClipEdgeToCbsp).
-extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags)
+int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags) __asm__("ClipEdgeToCbsp"); int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags)
 {
     STATE st[33]; // st[0] is the current state, st[1..32] the stack of pending far sides
     STATE *top;
@@ -376,26 +376,26 @@ extern "C" int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW 
 } // namespace M_ClsgClipEdgeToCbsp
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FClipEdgeToCbsp { extern "C" {
+namespace M_FClipEdgeToCbsp {
 
 typedef int qword __attribute__((mode(TI)));
 typedef struct GRAPH GRAPH;
 typedef struct TRI TRI;
 typedef struct ROW{QWROW begin,end,beginPlane,endPlane;float low,high;int flags;TRI*leaf;char tail[16];}ROW;
-extern int ClipEdgeToCbsp(GRAPH*,qword,qword,int,ROW*,int);
+extern int ClipEdgeToCbsp(GRAPH*,qword,qword,int,ROW*,int) __asm__("ClipEdgeToCbsp");
 typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char ROW_Size[sizeof(ROW)==96?1:-1];
 typedef char ROW_Low_Offset[(unsigned int)&((ROW*)0)->low==0x40?1:-1];
 typedef char ROW_High_Offset[(unsigned int)&((ROW*)0)->high==0x44?1:-1];
 // Returns 1 when the segment leaves walkable space (no span, or the span does not cover [0, 1]).
-int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
+int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags) __asm__("IsEdgeBlockedByCbsp"); int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
  ROW spans[2];
  int count=ClipEdgeToCbsp(g,from,to,2,spans,flags|2);
  int result=0;
  if(!count||spans[0].low!=0.0f||spans[0].high!=1.0f)result=1;
  return result;
 }
-} } // namespace M_FClipEdgeToCbsp
+} // namespace M_FClipEdgeToCbsp
 
 // Index of a graph vertex from its pointer.
 int GetCgVertexIndex(CG *graph, CGV *vertex)
@@ -413,11 +413,11 @@ struct E { V *pv; float cost; };
 struct V { qword pos; int cEdge; E *aEdge; };
 struct G { int c; };
 struct NODE { V *pv; float f; float g; NODE *parent; int depth; NODE *next; };
-extern "C" {
-void *AllocFromStack(const AREQ &r);
-void *AllocClearedFromStack(const AREQ &r);
-int GetCgVertexIndex__FP2CGP3CGV(G *p, V *pv);
-}
+
+void *AllocFromStack(const AREQ &r) __asm__("AllocFromStack");
+void *AllocClearedFromStack(const AREQ &r) __asm__("AllocClearedFromStack");
+int GetCgVertexIndex__FP2CGP3CGV(G *p, V *pv) __asm__("GetCgVertexIndex__FP2CGP3CGV");
+
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *Alloc(int cb) { return AllocFromStack(AREQ(cb, 0x10)); }
 // Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
@@ -504,18 +504,18 @@ extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int 
 } // namespace M_FindPathAStar
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SimplifyApcgvNeighbor { extern "C" {
+namespace M_SimplifyApcgvNeighbor {
 typedef int qword __attribute__((mode(TI)));
 struct CTX { int a[4]; };
-void STACKSCOPE_ctor(struct CTX *c);
+void STACKSCOPE_ctor(struct CTX *c) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(struct SWALLOC *r);
-void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n);
+void *AllocFromStack(struct SWALLOC *r) __asm__("AllocFromStack");
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb) __asm__("CopyAb__FPvT0Ui");
+int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n) __asm__("IsEdgeBlockedByCbsp");
 // Fill the request and allocate cb bytes (alignment nKind) from the frame stack.
-static __inline__ void *PvAllocReq(struct SWALLOC *preq, int cb, int nKind) { preq->cb = cb; preq->cbAlign = nKind; return AllocFromStack(preq); }
+extern "C" { static __inline__ void *PvAllocReq(struct SWALLOC *preq, int cb, int nKind) { preq->cb = cb; preq->cbAlign = nKind; return AllocFromStack(preq); } }
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
-void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
+extern "C" void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 {
     struct CTX c;
     struct SWALLOC req;
@@ -547,7 +547,7 @@ void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
     *count = k;
     STACKSCOPE_ctor_1AE4A0(&c, 2);
 }
-} } // namespace M_SimplifyApcgvNeighbor
+} // namespace M_SimplifyApcgvNeighbor
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ClosestPointOnCgt {
@@ -568,11 +568,11 @@ union U { qword q; float f[4]; };
 struct T { qword *a, *b, *c; };
 // Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
-extern "C" {
-extern qword D_002A2DC0; // (0, 0, 1, 0)
-void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist);
-qword GetClosestPointOnNavTriangle(T *t, qword p);
-}
+
+extern qword D_002A2DC0 __asm__("D_002A2DC0"); // (0, 0, 1, 0)
+void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist) __asm__("FindClosestPointOnLineSegment");
+extern "C" { qword GetClosestPointOnNavTriangle(T *t, qword p); }
+
 // z lane of a as a float.
 static inline float Z(qword a) { float z; __asm__("qmfc2.ni %0,%1\n\tpextuw %0,$zero,%0" : "=r"(z) : "j"(a)); return z; }
 // Dot product of the xyz parts of a and b (x lane).
@@ -593,7 +593,7 @@ static inline qword AddScaled(qword a, qword b, float g)
 }
 
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
-extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
+extern "C" qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
 {
     U result;
     qword a = *triangle->a, b = *triangle->b, c = *triangle->c;
@@ -611,7 +611,7 @@ extern "C" { qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
         result.q = AddScaled(pos, D_002A2DC0, g);
     }
     return result.q;
-} }
+}
 } // namespace M_ClosestPointOnCgt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -636,18 +636,18 @@ struct BSP;
 struct G { int pad0[3]; TRI *atri; int cv; BSP *pbsp; };
 // Allocation request; Set(n) fills it for n bytes, 16-byte aligned.
 struct AREQ { int cb, align; AREQ() {} AREQ *Set(int n) { cb = n; align = 16; return this; } };
-extern "C" { extern const float D_002C0C04; } // minimum spacing between route points (50.0f)
-extern "C" { extern qword D_002A2DA0; }       // (1, 0, 0, 0)
-extern "C" {
-TRI *FindNavTriangleSafe(G *, BSP *, qword, int);
-qword GetClosestPointOnNavTriangle(TRI *, qword);
-void STACKSCOPE_ctor(void *);
+extern const float D_002C0C04 __asm__("D_002C0C04"); // minimum spacing between route points (50.0f)
+extern qword D_002A2DA0 __asm__("D_002A2DA0");       // (1, 0, 0, 0)
+
+TRI *FindNavTriangleSafe(G *, BSP *, qword, int) __asm__("FindNavTriangleSafe");
+qword GetClosestPointOnNavTriangle(TRI *, qword) __asm__("GetClosestPointOnNavTriangle");
+void STACKSCOPE_ctor(void *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(AREQ *);
-void FindPathAStar(G *, V *, V *, int, int *, V **);
-void SimplifyPathByLineOfSight(G *, int *, V **);
-int FindPathPoints(G *, qword, qword, int, QWROW *);
-}
+void *AllocFromStack(AREQ *) __asm__("AllocFromStack");
+void FindPathAStar(G *, V *, V *, int, int *, V **) __asm__("FindPathAStar");
+void SimplifyPathByLineOfSight(G *, int *, V **) __asm__("SimplifyPathByLineOfSight");
+int FindPathPoints(G *, qword, qword, int, QWROW *) __asm__("FindPathPoints");
+
 // the unused second output keeps gcse from hoisting the qmtc2 out of the loops (not single_set)
 static inline qword ToVF(qword v) { qword r; int dummy; __asm__("qmtc2.ni %2,%0" : "=j"(r), "=r"(dummy) : "r"(v)); return r; }
 // Distance between a and b in the XY plane, returned as raw float bits.
@@ -770,13 +770,13 @@ int FindPathPoints(G *graph, qword from, qword to, int capacity, QWROW *out)
 } // namespace M_CposFindPath
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C02D0 { extern "C" {
+namespace M_func_001C02D0 {
 struct T { char pad[0xE8]; int ne8; char pad2[8]; int nf4; };
-int FindPathPoints(void *p, int a, int b, int c, int d);
-void MeasureShape(struct T *pt);
+int FindPathPoints(void *p, int a, int b, int c, int d) __asm__("FindPathPoints");
+void MeasureShape(struct T *pt) __asm__("MeasureShape");
 // Finds a path (max 16 points) in a path zone into a path curve object and rebuilds the curve; returns 0 when
 // fewer than 2 points were found.
-int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
+extern "C" int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
 {
     int n = FindPathPoints(p + 0xE0, a, b, 0x10, pt->nf4);
     if (n < 2) return 0;
@@ -784,23 +784,23 @@ int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
     MeasureShape(pt);
     return 1;
 }
-} } // namespace M_func_001C02D0
+} // namespace M_func_001C02D0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FindClosestPointInCg { extern "C" {
+namespace M_FindClosestPointInCg {
 typedef int qword __attribute__((mode(TI)));
 struct S { int a[5]; int bspNodes; };
-void *FindNavTriangleSafe(struct S *p, int n, qword q);
-qword GetClosestPointOnNavTriangle(void *p, qword q);
+void *FindNavTriangleSafe(struct S *p, int n, qword q) __asm__("FindNavTriangleSafe");
+qword GetClosestPointOnNavTriangle(void *p, qword q) __asm__("GetClosestPointOnNavTriangle");
 // Closest point of the graph to pos (nearest triangle, then the closest point on it); returns 1 when found.
-int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
+int FindClosestPointInCg(struct S *graph, qword pos, qword *closest) __asm__("FindClosestPointInCg"); int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 {
     void *pv = FindNavTriangleSafe(graph, graph->bspNodes, pos);
     if (!pv) return 0;
     *closest = GetClosestPointOnNavTriangle(pv, pos);
     return 1;
 }
-} } // namespace M_FindClosestPointInCg
+} // namespace M_FindClosestPointInCg
 
 // CID 17 slot 7 (Init): InitXfm, ids -1 and the obstacle list.
 void PATHZONE::Init()
@@ -813,7 +813,7 @@ void PATHZONE::Init()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadPathzoneFromBrx { extern "C" {
+namespace M_LoadPathzoneFromBrx {
 typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int cost; };
@@ -821,17 +821,17 @@ struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
 struct F { struct V *apv[3]; };
 struct P { float x, y, z; unsigned short c, d; };
 struct S { char pad[0x18]; int oid; char p0[0xE0 - 0x1C]; int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
-void LoadXfmFromBrx(struct S *p, void *pbis);
-int U16Read__18CBinaryInputStream(void *pbis);
-int U8Read__18CBinaryInputStream(void *pbis);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv);
-float F32Read__18CBinaryInputStream(void *pbis);
-void *AllocClearedFromWorldHeap(struct A *pa);
-void *AllocFromWorldHeap(struct A *pa);
-void ComputeCgEdgeCosts(int *p);
+void LoadXfmFromBrx(struct S *p, void *pbis) __asm__("LoadXfmFromBrx");
+int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
+int U8Read__18CBinaryInputStream(void *pbis) __asm__("U8Read__18CBinaryInputStream");
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+float F32Read__18CBinaryInputStream(void *pbis) __asm__("F32Read__18CBinaryInputStream");
+void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
+void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
+void ComputeCgEdgeCosts(int *p) __asm__("ComputeCgEdgeCosts");
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
 // ComputeCgEdgeCosts. Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadPathzoneFromBrx(struct S *zone, void *stream)
+extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
 {
     struct A a;
     int i, j, k;
@@ -878,10 +878,10 @@ void LoadPathzoneFromBrx(struct S *zone, void *stream)
         g_sw.pcid17Default = (CID17 *)zone;
     zone->version = ++g_sw.pathzoneVersion;
 }
-} } // namespace M_LoadPathzoneFromBrx
+} // namespace M_LoadPathzoneFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitDefaultPathzoneCg { extern "C" {
+namespace M_InitDefaultPathzoneCg {
 typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int cost; };
@@ -893,18 +893,18 @@ struct P { float x, y; int z; unsigned short c, d; };
 struct S : XFM { int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
 /* The default navigation graph (path's .data): four corner vertices of a 200000-unit square, each with its
  * neighbour indices (-1: unused), and its two triangles. */
-struct VS D_002C0C10[4] = {
+struct VS D_002C0C10[4] __asm__("D_002C0C10") = {
     {{{-100000.0f, -100000.0f, 0.0f, 0.0f}}, 3, {1, 2, 3}},
     {{{100000.0f, -100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
     {{{100000.0f, 100000.0f, 0.0f, 0.0f}}, 3, {0, 1, 3}},
     {{{-100000.0f, 100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
 };
-struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
-void *AllocClearedFromWorldHeap(struct A *pa);
-void *AllocFromWorldHeap(struct A *pa);
-void ComputeCgEdgeCosts(int *p);
+struct FS D_002C0C90[2] __asm__("D_002C0C90") = {{{0, 1, 2}}, {{0, 2, 3}}};
+void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
+void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
+void ComputeCgEdgeCosts(int *p) __asm__("ComputeCgEdgeCosts");
 // Builds a trivial graph for a level without zones: 4 vertices, 2 triangles and one diagonal BSP node from tables.
-void InitDefaultPathzoneCg(struct S *zone)
+extern "C" void InitDefaultPathzoneCg(struct S *zone)
 {
     struct A a;
     int i, j, k;
@@ -949,16 +949,16 @@ void InitDefaultPathzoneCg(struct S *zone)
     ComputeCgEdgeCosts(&zone->numVertices);
     zone->version = ++g_sw.pathzoneVersion;
 }
-} } // namespace M_InitDefaultPathzoneCg
+} // namespace M_InitDefaultPathzoneCg
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_HookupCg { extern "C" {
+namespace M_HookupCg {
 typedef int qword __attribute__((mode(TI)));
 struct F { qword *pq; int d; };
 struct E { qword pos; int c; struct F *af; };
 struct A { int c; struct E *ae; };
 // Distance between a and b in the XY plane, returned as raw float bits.
-static inline int Dist(qword a, qword b)
+extern "C" { static inline int Dist(qword a, qword b)
 {
     qword d;
     register int f __asm__("$2");
@@ -968,9 +968,9 @@ static inline int Dist(qword a, qword b)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 // Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name: HookupCg.
-void ComputeCgEdgeCosts(struct A *graph)
+extern "C" void ComputeCgEdgeCosts(struct A *graph)
 {
     int i, j;
     for (i = 0; i < graph->c; i++) {
@@ -982,7 +982,7 @@ void ComputeCgEdgeCosts(struct A *graph)
         }
     }
 }
-} } // namespace M_HookupCg
+} // namespace M_HookupCg
 
 // Returns 1 when pos lies on a walkable triangle of the zone.
 extern "C" int IsPosInPathzone(PATHZONEV *zone, qword pos, int flags)
@@ -1009,14 +1009,14 @@ extern "C" int IsEdgeBlockedByPathzone(PATHZONEV *zone, qword from, qword to, in
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C09A0 { extern "C" {
+namespace M_func_001C09A0 {
 typedef int qword __attribute__((mode(TI)));
 struct S : XFM { char graph[4]; };
-void *FindNavTriangleQuick(void *p,qword pos,int flags);
-int FindPathzoneObstacles(struct S *p, int a, qword q0, qword q1, int c, void **ap);
-int IsPosInConvexObstacle(void *pv, qword q);
+void *FindNavTriangleQuick(void *p,qword pos,int flags) __asm__("FindNavTriangleQuick");
+int FindPathzoneObstacles(struct S *p, int a, qword q0, qword q1, int c, void **ap) __asm__("FindPathzoneObstacles");
+int IsPosInConvexObstacle(void *pv, qword q) __asm__("IsPosInConvexObstacle");
 // Returns 1 when a point is walkable in the zone and not inside any registered obstacle.
-int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
+extern "C" int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
 {
     void *ap[0x80];
     int n, i;
@@ -1027,19 +1027,19 @@ int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
     }
     return 1;
 }
-} } // namespace M_func_001C09A0
+} // namespace M_func_001C09A0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C0A40 { extern "C" {
+namespace M_func_001C0A40 {
 typedef int qword __attribute__((mode(TI)));
 struct S { int a[0x30]; };
-void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e);
-int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap);
-void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps);
-void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one);
+void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e) __asm__("ClipEdgeToPathzone");
+int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap) __asm__("FindPathzoneObstacles");
+void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps) __asm__("ClipEdgeToConvexObstacle");
+void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one) __asm__("MergeSegmentLists");
 // Clips a segment to the zone, then against its obstacles; returns the blocking obstacle (or 0) and the clipped end.
 // (inferred)
-void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
+extern "C" void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
 {
     void *ap[0x80];
     struct S s;
@@ -1056,33 +1056,33 @@ void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
 out:
     return pv;
 }
-} } // namespace M_func_001C0A40
+} // namespace M_func_001C0A40
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A76DC __asm__("D_002A76DC") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C0B50 { extern "C" {
+namespace M_func_001C0B50 {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct HIT {qword pos[2];char pad[0x40];};
 struct S : XFM {char bsp[8];int count;int padEC;int padF0;qword*vertices;};
-extern const float D_002A76DC;   /* defined below where the ELF has it (.rodata order) */
-void *FindNavTriangleQuick(void*,qword,int);
-qword GetClosestPointOnNavTriangle(void*,qword);
-int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**);
-int IsPosInConvexObstacle(void*,qword);
-qword ConvertPosBetweenLos(void*,void*,qword);
-int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int);
-void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-int FindPathzoneClosestPoint(struct S*,qword,qword*,int);
+extern const float D_002A76DC __asm__("D_002A76DC");   /* defined below where the ELF has it (.rodata order) */
+void *FindNavTriangleQuick(void*,qword,int) __asm__("FindNavTriangleQuick");
+qword GetClosestPointOnNavTriangle(void*,qword) __asm__("GetClosestPointOnNavTriangle");
+int FindPathzoneObstacles(struct S*,void*,qword,qword,int,void**) __asm__("FindPathzoneObstacles");
+int IsPosInConvexObstacle(void*,qword) __asm__("IsPosInConvexObstacle");
+qword ConvertPosBetweenLos(void*,void*,qword) __asm__("ConvertPosBetweenLos");
+int ClipEdgeToPathzone(struct S*,qword,qword,int,struct HIT*,int) __asm__("ClipEdgeToPathzone");
+void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*) __asm__("FindClosestPointOnLineSegment");
+int FindPathzoneClosestPoint(struct S*,qword,qword*,int) __asm__("FindPathzoneClosestPoint");
 // Spill vertex to home and store point's z into home->f[2]; returns that z as a float.
-static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;}
+extern "C" { static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;} }
 // Load p->count.
-static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;}
+extern "C" { static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;} }
 // Closest point to pos that is walkable in the zone and outside every obstacle.
-int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
+extern "C" int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  void*objects[128];
  union U a,b;
  union {qword q;int i[4];}best;
@@ -1122,17 +1122,17 @@ int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
 
 #define OFF(T,F) ((unsigned long)&((T*)0)->F)
 typedef char region_projection_layout[(sizeof(void*)==4 && sizeof(float)==4 && sizeof(int)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(union U)==16 && sizeof(struct HIT)==0x60 && sizeof(void*[128])==0x200 && OFF(struct S,bsp)==0xE0 && OFF(struct S,count)==0xE8 && OFF(struct S,vertices)==0xF4 && OFF(struct HIT,pos)==0 && sizeof(((struct HIT*)0)->pos)==0x20 && sizeof(((struct HIT*)0)->pos[0])==0x10 && OFF(union U,q)==0 && OFF(union U,f)==0 && OFF(union U,f[2])==8)?1:-1];
-} } // namespace M_func_001C0B50
+} // namespace M_func_001C0B50
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PpathzoneFromPos { extern "C" {
+namespace M_PpathzoneFromPos {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct N { qword *pplane; unsigned short ach[2]; };
 struct B { int c; struct N *an; int numPlanes, planes; int numZones; int zoneIds; void **zones; };
-void InitVuTemp(void *p);
+void InitVuTemp(void *p) __asm__("InitVuTemp");
 // 1 if pos is strictly in front of the plane (plane.xyz . pos - plane.w > 0), else 0.
-static __inline__ int ISide(qword plane, qword pos)
+extern "C" { static __inline__ int ISide(qword plane, qword pos)
 {
     U d, one;
     qword td, tone;
@@ -1149,9 +1149,9 @@ static __inline__ int ISide(qword plane, qword pos)
     } else
         i = 0;
     return i;
-}
+} }
 // Walks the world's zone BSP (SW +0x45CC) to the path zone containing pos; falls back to the world's default zone.
-void *FindPathzoneAtPos(qword pos, int flags)
+extern "C" void *FindPathzoneAtPos(qword pos, int flags)
 {
     struct B *pb = ((struct B *)g_sw.pregtree);
     struct N *pn, *pnEnd, *an;
@@ -1175,17 +1175,17 @@ void *FindPathzoneAtPos(qword pos, int flags)
 leaf:
     return zones[c & 0x7FFF];
 }
-} } // namespace M_PpathzoneFromPos
+} // namespace M_PpathzoneFromPos
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadSwZoneBspFromBrx { extern "C" {
+namespace M_LoadSwZoneBspFromBrx {
 struct G { char pad[0x45CC]; void *p45cc; };
-int U32Read__18CBinaryInputStream(void *pbis);
-void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
-void LoadZoneBspFromBrx(void *p, int n, void *pbis);
+int U32Read__18CBinaryInputStream(void *pbis) __asm__("U32Read__18CBinaryInputStream");
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
+void LoadZoneBspFromBrx(void *p, int n, void *pbis) __asm__("LoadZoneBspFromBrx");
 // Reads the world's zone BSP from the level stream when present.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadSwZoneBspFromBrx(struct G *world, void *stream)
+extern "C" void LoadSwZoneBspFromBrx(struct G *world, void *stream)
 {
     int n = U32Read__18CBinaryInputStream(stream);
     if (n) {
@@ -1196,22 +1196,22 @@ void LoadSwZoneBspFromBrx(struct G *world, void *stream)
         LoadZoneBspFromBrx(world->p45cc, n, stream);
     }
 }
-} } // namespace M_LoadSwZoneBspFromBrx
+} // namespace M_LoadSwZoneBspFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadZoneBspFromBrx { extern "C" {
+namespace M_LoadZoneBspFromBrx {
 struct E { VECTOR4 *pv; short a; short b; };
 struct S { int numNodes; struct E *nodes; int numPlanes; VECTOR4 *planes; int numZones; int *zoneIds; void *zones; };
 struct A { int cb; int align; };
-int U32Read__18CBinaryInputStream(void *pbis);
-int U16Read__18CBinaryInputStream(void *pbis);
-void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR4 *pv);
-int S32Read__18CBinaryInputStream(void *pbis);
-void *AllocFromWorldHeap(struct A *pa);
-void *AllocClearedFromWorldHeap(struct A *pa);
+int U32Read__18CBinaryInputStream(void *pbis) __asm__("U32Read__18CBinaryInputStream");
+int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
+void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR4 *pv) __asm__("ReadVector4__18CBinaryInputStreamP7VECTOR4");
+int S32Read__18CBinaryInputStream(void *pbis) __asm__("S32Read__18CBinaryInputStream");
+void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
+void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
 // Reads a zone BSP: nodes (plane index and two children), planes and leaf zone ids.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
+extern "C" void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
 {
     struct A a;
     int i, j;
@@ -1241,18 +1241,18 @@ void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
     for (j = 0; j < bsp->numZones; j++)
         bsp->zoneIds[j] = S32Read__18CBinaryInputStream(stream);
 }
-} } // namespace M_LoadZoneBspFromBrx
+} // namespace M_LoadZoneBspFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PostLoadSwPathzones { extern "C" {
+namespace M_PostLoadSwPathzones {
 struct G { char pad[0x45C8]; void *defaultPathzone; void *zoneBsp; };
-void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void InitDefaultPathzoneCg(void *p);
-void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
-void BindSwPathzones(void *p);
+void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d) __asm__("CreateLo__F3CIDP2SO3OIDi");
+void InitDefaultPathzoneCg(void *p) __asm__("InitDefaultPathzoneCg");
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
+void BindSwPathzones(void *p) __asm__("BindSwPathzones");
 // After level load: with no zone BSP creates a default path zone (oid 0x2CA) with the trivial graph; then binds the
 // zones and their links.
-void PostLoadSwPathzones(struct G *world)
+extern "C" void PostLoadSwPathzones(struct G *world)
 {
     if (!world->zoneBsp) {
         struct SWALLOC msg;
@@ -1264,25 +1264,25 @@ void PostLoadSwPathzones(struct G *world)
     }
     BindSwPathzones(world->zoneBsp);
 }
-} } // namespace M_PostLoadSwPathzones
+} // namespace M_PostLoadSwPathzones
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1138 { extern "C" {
+namespace M_func_001C1138 {
 struct LO { char pad[0x124]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
 struct S { char pad[0x10]; int c; int *zoneIds; struct LO **zones; int linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
-struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
-int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
-void *AllocCopyFromWorldHeap(const struct SWALLOC *pal, const void *pv);
+struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap) __asm__("FindSwObjectsByClass");
+void *AllocCopyFromWorldHeap(const struct SWALLOC *pal, const void *pv) __asm__("AllocCopyFromWorldHeap");
 // Zero in $7 (the null scope argument of the following call).
-static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;}
+extern "C" { static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;} }
 // Fill the allocation request for count 4-byte links with the given alignment and set owner->numLinks = count.
-static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct SWALLOC*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;}
+extern "C" { static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct SWALLOC*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;} }
 // High address page of the world D_003DD490.
-static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_sw));return page;}
+extern "C" { static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_sw));return page;} }
 // Address of the world D_003DD490 from its high page.
-static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(&g_sw));return world;}
+extern "C" { static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(&g_sw));return world;} }
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
-void BindSwPathzones(struct S *world)
+extern "C" void BindSwPathzones(struct S *world)
 {
     int i,n;register int c __asm__("$6");
     struct LO *ap[0x400];
@@ -1307,26 +1307,26 @@ void BindSwPathzones(struct S *world)
 
 #define OFF(t,m) ((int)&((t*)0)->m)
 typedef char actor_layout[(sizeof(void*)==4 && sizeof(int)==4 && sizeof(struct SWALLOC)==8 && OFF(struct SWALLOC,cb)==0 && OFF(struct SWALLOC,cbAlign)==4 && OFF(struct LO,zoneIndex)==0x124 && OFF(struct LO,linkIndex)==0x150 && OFF(struct S,c)==0x10 && OFF(struct S,zoneIds)==0x14 && OFF(struct S,zones)==0x18 && OFF(struct S,numLinks)==0x20 && OFF(struct S,links)==0x24 && OFF(struct S,isBound)==0x2C)?1:-1];
-} } // namespace M_func_001C1138
+} // namespace M_func_001C1138
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1260 { extern "C" {
+namespace M_func_001C1260 {
 struct H { int a[4]; };
 struct A { int cb; int align; };
 struct R { char pad[0x124]; int zoneIndex; };
 struct Q { char pad[0x124]; struct R *zoneIndex; int toZone; };
 struct B { int c; int *p; };
 struct S { char pad[0x10]; int numZones; int unknown14[2]; struct B *linkLists; int numLinks; struct Q **links; };
-int STACKSCOPE_ctor(struct H *p);
+int STACKSCOPE_ctor(struct H *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct H *p, int n) __asm__("_$_10STACKSCOPE");
-int *AllocClearedFromStack(struct A *pa);
-void *AllocFromWorldHeap(struct A *pa);
+int *AllocClearedFromStack(struct A *pa) __asm__("AllocClearedFromStack");
+void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
 // Allocate the request zeroed, 16-byte aligned, from the frame stack.
-static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return AllocClearedFromStack(pa); }
+extern "C" { static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return AllocClearedFromStack(pa); } }
 // Allocate the request 16-byte aligned from the world heap.
-static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return AllocFromWorldHeap(pa); }
+extern "C" { static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return AllocFromWorldHeap(pa); } }
 // Buckets the path links by the zone of their first endpoint, for FindPathlinkRoute.
-void BuildPathzoneLinkLists(struct S *world)
+extern "C" void BuildPathzoneLinkLists(struct S *world)
 {
     struct H h;
     struct A a;
@@ -1357,7 +1357,7 @@ void BuildPathzoneLinkLists(struct S *world)
     }
     STACKSCOPE_ctor_1AE4A0(&h, 2);
 }
-} } // namespace M_func_001C1260
+} // namespace M_func_001C1260
 
 /* The obstacle query cursor (FindPathzoneObstacles' C): one membership bit per obstacle along x and z, the zone
    version it was built for, and the min/max positions in the x and z event arrays. */
@@ -1379,11 +1379,11 @@ extern "C" void InitObstacleQueryCursor(PATHZONEV *zone, PATHSEARCH *cursor)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C14A8 { extern "C" {
+namespace M_func_001C14A8 {
 /* (Claude agent) Event bitset sweep: walk ae[] backward/forward from i toward time g, toggling grf bits of events whose kind==f. */
 struct E { float t; unsigned short k; unsigned short bit; };
 // Moves the cursor through sorted begin/end events, toggling each obstacle's membership bit.
-int SweepObstacleEvents(struct E *events, int index, float coordinate, unsigned int *membership, int f)
+extern "C" int SweepObstacleEvents(struct E *events, int index, float coordinate, unsigned int *membership, int f)
 {
     if (coordinate <= events[index].t) {
         for (;;) {
@@ -1416,14 +1416,14 @@ int SweepObstacleEvents(struct E *events, int index, float coordinate, unsigned 
     }
     return index;
 }
-} } // namespace M_func_001C14A8
+} // namespace M_func_001C14A8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C15F8 { extern "C" {
+namespace M_func_001C15F8 {
 struct E { float f; int x; };
-int SweepObstacleEvents(struct E *a, int i, float g, void *p, int f);
+int SweepObstacleEvents(struct E *a, int i, float g, void *p, int f) __asm__("SweepObstacleEvents");
 // Advances the min and max cursors of one axis to a new query range.
-void SweepObstacleRange(struct E *events, int *minCursor, int *maxCursor, void *p, float rangeMin, float rangeMax)
+extern "C" void SweepObstacleRange(struct E *events, int *minCursor, int *maxCursor, void *p, float rangeMin, float rangeMax)
 {
     int i1 = *minCursor;
     int i2 = *maxCursor;
@@ -1437,20 +1437,20 @@ void SweepObstacleRange(struct E *events, int *minCursor, int *maxCursor, void *
     *minCursor = i1;
     *maxCursor = i2;
 }
-} } // namespace M_func_001C15F8
+} // namespace M_func_001C15F8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1700 { extern "C" {
+namespace M_func_001C1700 {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;unsigned int words[4];};
 struct C {qword x,z;int version;int xmin,xmax,zmin,zmax;};
 struct S : XFM { char pad[0xFC - 0xE0]; int obstacleCapacity,numEvents;void*xEvents,*zEvents;void**obstacles;int unknown110,version;};
-void InitObstacleQueryCursor(struct S*,struct C*);
-void SweepObstacleRange(void*,int*,int*,qword*,float,float);
+void InitObstacleQueryCursor(struct S*,struct C*) __asm__("InitObstacleQueryCursor");
+void SweepObstacleRange(void*,int*,int*,qword*,float,float) __asm__("SweepObstacleRange");
 // Bitwise AND of two 128-bit values (pand).
-static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;}
+extern "C" { static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;} }
 // Sweep-and-prune query: collects the obstacles whose x and y intervals overlap the segment's box; returns the obstacleCapacity.
-int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
+extern "C" int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
  struct C local;
  union U mask,copy;
  qword hi,lo;
@@ -1474,14 +1474,14 @@ int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int 
  cursor->version=zone->version;
  return n;
 }
-} } // namespace M_func_001C1700
+} // namespace M_func_001C1700
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C18B8 { extern "C" {
+namespace M_func_001C18B8 {
 struct E { int coordinate; unsigned short isBegin; unsigned short obstacleIndex; };
-void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb) __asm__("CopyAb__FPvT0Ui");
 // Deletes the begin/end event pair of an obstacle from a sorted event array.
-void RemoveObstacleEvents(int count, struct E *events, int key)
+extern "C" void RemoveObstacleEvents(int count, struct E *events, int key)
 {
     int i, iFirst, iLast;
     struct E *pe;
@@ -1498,15 +1498,15 @@ void RemoveObstacleEvents(int count, struct E *events, int key)
     CopyAb__FPvT0Ui(&events[iFirst], &events[iFirst] + 1, (iLast - iFirst - 1) * sizeof(struct E));
     CopyAb__FPvT0Ui(&events[iLast] - 1, &events[iLast] + 1, (count - iLast - 1) * sizeof(struct E));
 }
-} } // namespace M_func_001C18B8
+} // namespace M_func_001C18B8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1968 { extern "C" {
+namespace M_func_001C1968 {
 struct E;
 struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; int *obstacles; int unknown110; int version; };
-void RemoveObstacleEvents(int n, struct E *a, int key);
+void RemoveObstacleEvents(int n, struct E *a, int key) __asm__("RemoveObstacleEvents");
 // Unregisters an obstacle from both axes of its zone and bumps the world's navigation version.
-void RemovePathzoneObstacle(struct S *zone, int key)
+extern "C" void RemovePathzoneObstacle(struct S *zone, int key)
 {
     int i;
     for (i = 0; i < zone->obstacleCapacity; i++) {
@@ -1519,19 +1519,19 @@ void RemovePathzoneObstacle(struct S *zone, int key)
     zone->numEvents -= 2;
     zone->version = ++g_sw.pathzoneVersion;
 }
-} } // namespace M_func_001C1968
+} // namespace M_func_001C1968
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1A38 { extern "C" {
+namespace M_func_001C1A38 {
 /* Insert a begin event (g0, kind 1) and an end event (g1, kind 0) into a time-sorted array of 8-byte events
    (lane 10).  The memmove goes through an inline helper: its parameters get their own pseudos, which gives the
    target's "pointer copied into a0/a1, then a0 += 16" argument setup. */
 struct E { float t; unsigned short k; unsigned short bit; };
-void *memmove(void *dst, const void *src, unsigned int cb);
+void *memmove(void *dst, const void *src, unsigned int cb) __asm__("memmove");
 // memmove cb bytes.
-static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { memmove(pvDst, pvSrc, cb); }
+extern "C" { static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { memmove(pvDst, pvSrc, cb); } }
 // Inserts an obstacle's begin/end events into a sorted event array.
-void InsertObstacleEvents(int count, struct E *events, int bit, float begin, float end)
+extern "C" void InsertObstacleEvents(int count, struct E *events, int bit, float begin, float end)
 {
     int i, j;
     for (i = 0; i < count; i++)
@@ -1547,23 +1547,23 @@ void InsertObstacleEvents(int count, struct E *events, int bit, float begin, flo
     events[i].t = begin;
     events[i].k = 1;
 }
-} } // namespace M_func_001C1A38
+} // namespace M_func_001C1A38
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1BA0 { extern "C" {
+namespace M_func_001C1BA0 {
 typedef int qword __attribute__((mode(TI)));
 struct E;
 struct O { char pad[0x1A0]; union { qword q; float g[4]; } a; union { qword q; float g[4]; } b; char p1[0x1DC - 0x1C0]; struct S *pathzone; };
 struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; struct O **obstacles; int unknown110; int version; };
 struct M { struct O *po; void *pv; };
-int FindPathzoneObstacles(struct S *p, int z, qword a, qword b, int c, void **ap);
-int DoConvexObstaclesOverlap(struct O *po, void *pv);
-void MergeCid14Obstacles(int n, struct M *pm);
-void GrowPathzoneObstacleArrays(struct S *p);
-void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1);
+int FindPathzoneObstacles(struct S *p, int z, qword a, qword b, int c, void **ap) __asm__("FindPathzoneObstacles");
+int DoConvexObstaclesOverlap(struct O *po, void *pv) __asm__("DoConvexObstaclesOverlap");
+void MergeCid14Obstacles(int n, struct M *pm) __asm__("MergeCid14Obstacles");
+void GrowPathzoneObstacleArrays(struct S *p) __asm__("GrowPathzoneObstacleArrays");
+void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1) __asm__("InsertObstacleEvents");
 // Registers an obstacle in a zone unless it overlaps an existing one (then the polygon gets message 2 to merge),
 // growing the arrays as needed.
-void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
+extern "C" void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
 {
     void *ap[0x20];
     int n, i;
@@ -1592,22 +1592,22 @@ void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
     zone->numEvents += 2;
     zone->version = ++g_sw.pathzoneVersion;
 }
-} } // namespace M_func_001C1BA0
+} // namespace M_func_001C1BA0
 
 namespace RO_ORDER { extern const float r_D_002A76E0 __asm__("D_002A76E0") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A76E4 __asm__("D_002A76E4") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1D20 { extern "C" {
+namespace M_func_001C1D20 {
 struct E { float t; unsigned short k; unsigned short bit; };
 struct S : XFM { char pad[0xFC - 0xE0]; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; void **obstacles; };
 struct A { int cb; int align; };
-extern const float D_002A76E0;   /* defined below where the ELF has it (.rodata order) */
-extern const float D_002A76E4;   /* defined below where the ELF has it (.rodata order) */
-void *AllocFromWorldHeap(struct A *pa);
-void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
+extern const float D_002A76E0 __asm__("D_002A76E0");   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A76E4 __asm__("D_002A76E4");   /* defined below where the ELF has it (.rodata order) */
+void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
+void CopyAb__FPvT0Ui(void *dst, void *src, int cb) __asm__("CopyAb__FPvT0Ui");
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 // Grows a zone's obstacle and event arrays (0 -> 16 -> 128) with sentinel events.
-void GrowPathzoneObstacleArrays(struct S *zone)
+extern "C" void GrowPathzoneObstacleArrays(struct S *zone)
 {
     struct A a;
     int n;
@@ -1653,18 +1653,18 @@ void GrowPathzoneObstacleArrays(struct S *zone)
         zone->numEvents = 2;
     }
 }
-} } // namespace M_func_001C1D20
+} // namespace M_func_001C1D20
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1EC0 { extern "C" {
+namespace M_func_001C1EC0 {
 typedef int qword __attribute__((mode(TI)));
 struct S { void *p0; void *p4; int pad[2]; qword q10; };
-extern char D_003DD020[];
-void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e);
-qword GetLoWorldPos(void *p);
+extern char D_003DD020[] __asm__("D_003DD020");
+void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e) __asm__("FindShapeClosestPoint");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint: the closest point on its shape, else its object's position, else the stored
 // vector.
-qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
+extern "C" qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
 {
     qword q;
     if (endpoint->p0) {
@@ -1676,17 +1676,17 @@ qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
     }
     return q;
 }
-} } // namespace M_func_001C1EC0
+} // namespace M_func_001C1EC0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1F28 { extern "C" {
+namespace M_func_001C1F28 {
 typedef int qword __attribute__((mode(TI)));
 struct S { void *p0; void *p4; int pad[2]; qword q10; };
-float GetShapeMaxDistance(void *p);
-void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g);
-qword GetLoWorldPos(void *p);
+float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
+void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g) __asm__("EvaluateShapeAtDistance");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint using the shape's midpoint.
-qword GetPathlinkEndpointCenter(struct S *endpoint)
+extern "C" qword GetPathlinkEndpointCenter(struct S *endpoint)
 {
     qword q;
     if (endpoint->p0) {
@@ -1698,16 +1698,16 @@ qword GetPathlinkEndpointCenter(struct S *endpoint)
     }
     return q;
 }
-} } // namespace M_func_001C1F28
+} // namespace M_func_001C1F28
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C1FA0 { extern "C" {
+namespace M_func_001C1FA0 {
 typedef int qword __attribute__((mode(TI)));
 struct LO { char pad[0x218]; qword *pq; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
-qword GetPathlinkEndpointPos(void *p, qword q);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+qword GetPathlinkEndpointPos(void *p, qword q) __asm__("GetPathlinkEndpointPos");
 // Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects). (inferred)
-int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
+extern "C" int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 {
     qword a, b, d;
     float f;
@@ -1718,22 +1718,22 @@ int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f <= radius;
 }
-} } // namespace M_func_001C1FA0
+} // namespace M_func_001C1FA0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitPathlink { extern "C" {
+namespace M_InitPathlink {
 struct S : LO { char pad[0x120 - 0x50]; int kind; char pad2[0x2c]; int linkIndex; };
-void InitLo(struct S *p);
-} } // namespace M_InitPathlink
+void InitLo(struct S *p) __asm__("InitLo");
+} // namespace M_InitPathlink
 // CID 124 slot 7 (Init): InitLo.
 void PATHLINK::Init() { using namespace M_InitPathlink; M_InitPathlink::S *p = (M_InitPathlink::S *)this; InitLo(p); p->kind = -1; p->linkIndex = -1; }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddPathlinkHierarchy { extern "C" {
+namespace M_AddPathlinkHierarchy {
 struct O { char pad[0x28]; int n; };
-void AddLoHierarchy(void *p);
+void AddLoHierarchy(void *p) __asm__("AddLoHierarchy");
 // CID 124 slot 11: AddLoHierarchy, then bumps the world's navigation version.
-void AddPathlinkHierarchy(void *pathlink)
+extern "C" void AddPathlinkHierarchy(void *pathlink)
 {
     SW *pg;
     int c;
@@ -1743,14 +1743,14 @@ void AddPathlinkHierarchy(void *pathlink)
     pg->unknown3D74 = c;
     ((struct O *)pg->pregtree)->n = c;
 }
-} } // namespace M_AddPathlinkHierarchy
+} // namespace M_AddPathlinkHierarchy
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_RemovePathlinkHierarchy { extern "C" {
+namespace M_RemovePathlinkHierarchy {
 struct O { char pad[0x28]; int n; };
-void RemoveLoHierarchy(void *p);
+void RemoveLoHierarchy(void *p) __asm__("RemoveLoHierarchy");
 // CID 124 slot 12: RemoveLoHierarchy, then bumps the world's navigation version.
-void RemovePathlinkHierarchy(void *pathlink)
+extern "C" void RemovePathlinkHierarchy(void *pathlink)
 {
     SW *pg;
     int c;
@@ -1760,45 +1760,45 @@ void RemovePathlinkHierarchy(void *pathlink)
     pg->unknown3D74 = c;
     ((struct O *)pg->pregtree)->n = c;
 }
-} } // namespace M_RemovePathlinkHierarchy
+} // namespace M_RemovePathlinkHierarchy
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C20E8 { extern "C" {
+namespace M_func_001C20E8 {
 struct E { void *p0; void *p4; int pad[6]; };
 struct S : LO { int c; char pad2[0xC]; struct E a[6]; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Appends an endpoint to a path link (a shape for class 10, otherwise an object); max 6.
-void AddPathlinkEndpointObject(struct S *pathlink, void *object)
+extern "C" void AddPathlinkEndpointObject(struct S *pathlink, void *object)
 {
     if ((unsigned)pathlink->c < 6) {
         struct E *pe = &pathlink->a[pathlink->c++];
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 10)) pe->p0 = object; else pe->p4 = object;
     }
 }
-} } // namespace M_func_001C20E8
+} // namespace M_func_001C20E8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C2148 { extern "C" {
+namespace M_func_001C2148 {
 typedef int qword __attribute__((mode(TI)));
 struct E { qword q; int pad[4]; };
 struct S : LO { int c; char pad2[0x1c]; struct E a[6]; };
 // Appends a fixed-position endpoint to a path link; max 6.
-void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
+extern "C" void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
 {
     if ((unsigned)pathlink->c < 6) { struct E *pe = &pathlink->a[pathlink->c++]; pe->q = pos; }
 }
-} } // namespace M_func_001C2148
+} // namespace M_func_001C2148
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PostPathlinkLoad { extern "C" {
+namespace M_PostPathlinkLoad {
 typedef int qword __attribute__((mode(TI)));
 struct E { qword q; int pad[4]; };
 struct S : LO { int c; char pad2[0xC]; struct E a[6]; char pad3[4]; int fromZone; int toZone; int pad4; qword fromPos; qword toPos; };
-void PostLoLoad(struct S *p);
-qword GetPathlinkEndpointCenter(struct E *pe);
-int FindPathzoneAtPos(qword q, int n);
+void PostLoLoad(struct S *p) __asm__("PostLoLoad");
+qword GetPathlinkEndpointCenter(struct E *pe) __asm__("GetPathlinkEndpointCenter");
+int FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");
 // CID 124 slot 15 (PostLoad): PostLoLoad, caches the first and last endpoint positions and their path zones.
-void PostPathlinkLoad(struct S *pathlink)
+extern "C" void PostPathlinkLoad(struct S *pathlink)
 {
     PostLoLoad(pathlink);
     pathlink->fromPos = GetPathlinkEndpointCenter(&pathlink->a[0]);
@@ -1806,7 +1806,7 @@ void PostPathlinkLoad(struct S *pathlink)
     pathlink->toPos = GetPathlinkEndpointCenter(/*B*/&pathlink->a[pathlink->c] - 1/*E*/);
     pathlink->toZone = FindPathzoneAtPos(pathlink->toPos, 0);
 }
-} } // namespace M_PostPathlinkLoad
+} // namespace M_PostPathlinkLoad
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindPathlinkRoute {
@@ -1824,22 +1824,22 @@ struct ADJ { int cedge; int *aiedge; };
 struct GRAPH { char pad[0x10]; int cnav; char pad14[8]; ADJ *aadj; int cedge; EDGE **apedge; };
 struct NODE { NAV *pnav; EDGE *pedge; NODE *pnodeParent; float gCost; float gEstimate; int state; NODE *pnodeNext; NODE *pnodePrev; };
 
-extern "C" {
-void *STACKSCOPE_ctor(void *pframe);
+
+void *STACKSCOPE_ctor(void *pframe) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
-void *AllocClearedFromStack(SWALLOC *pmsg);
-void *AllocFromStack(SWALLOC *pmsg);
+void *AllocClearedFromStack(SWALLOC *pmsg) __asm__("AllocClearedFromStack");
+void *AllocFromStack(SWALLOC *pmsg) __asm__("AllocFromStack");
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
-qword GetLoWorldPos(void *pv);
-NAV *FindPathzoneAtPos(qword pos, int f);
-void ClearDl__FP2DL(DL *pdl);
-void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
-void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
-void InsertDlEntryBefore__FP2DLPvT1(DL *pdl, void *pvNext, void *pv);
-int IsDlEmpty__FP2DL(DL *pdl);
-int CanUsePathlink(GRAPH *pgraph, EDGE *pedge, void *pvActor);
-int IsPosInPathzone(NAV *pnav, qword pos, int f);
-}
+qword GetLoWorldPos(void *pv) __asm__("GetLoWorldPos");
+NAV *FindPathzoneAtPos(qword pos, int f) __asm__("FindPathzoneAtPos");
+void ClearDl__FP2DL(DL *pdl) __asm__("ClearDl__FP2DL");
+void AppendDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
+void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
+void InsertDlEntryBefore__FP2DLPvT1(DL *pdl, void *pvNext, void *pv) __asm__("InsertDlEntryBefore__FP2DLPvT1");
+int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
+int CanUsePathlink(GRAPH *pgraph, EDGE *pedge, void *pvActor) __asm__("CanUsePathlink");
+int IsPosInPathzone(NAV *pnav, qword pos, int f) __asm__("IsPosInPathzone");
+
 
 // Allocate cb zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocZeroedFromHeap(int cb) { SWALLOC msg; msg.cb = cb; msg.cbAlign = 0x10; return AllocClearedFromStack(&msg); }
@@ -1982,13 +1982,13 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
 } // namespace M_FindPathlinkRoute
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001C26E0 { extern "C" {
+namespace M_func_001C26E0 {
 struct PATHLINKV : LO { char pad50[0x120 - 0x50]; int kind; int fromZone; int toZone; };   /* classes.h PATHLINK : LO */
 /* The actor asking (inferred: a guard-like object): the zones it may enter and the link kinds it may use. */
 struct G : STEP { char pad[0xE94 - 0x2C0]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
 // Returns 1 when the actor may traverse the path link: the link is in the world, the actor allows its kind (kind 1
 // needs bit 0 as well as bit 1), and, when the actor has a zone list, both end zones are on it. (inferred)
-int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
+extern "C" int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
 {
     int requiredKinds, i, hasFrom, hasTo, numZones;
     if ((pathlink->isInWorld & 1) == 0) return 0;
@@ -2008,5 +2008,5 @@ int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
     }
     return 1;
 }
-} } // namespace M_func_001C26E0
+} // namespace M_func_001C26E0
 

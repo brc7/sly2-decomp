@@ -69,14 +69,14 @@ void SetLoXfFromMat(LO *plo, MATRIX4 *matrix);
 void RemoveDlEntry(DL *pdl, void *pv);
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 
-namespace M_InitLo { extern "C" {
-void EnsureLoroot(LO *s);
-void GetLoChildDl(SO *p, void **a, void ***b);
-void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, LO *s);
+namespace M_InitLo {
+void EnsureLoroot(LO *s) __asm__("EnsureLoroot");
+void GetLoChildDl(SO *p, void **a, void ***b) __asm__("GetLoChildDl");
+void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, LO *s) __asm__("InsertDlEntryBefore__FP2DLPvT1");
 // LO initialization (vtable slot 7): sets the busy defaults (busy kind 2 "never", busy distance 1e10), inherits the
 // root record and the in-world bit from the parent (or makes its own root), sets the default flags and proxy-ref list,
 // and links the object into its parent's child list. Every object class calls it from its own Init.
-} } // namespace M_InitLo
+} // namespace M_InitLo
 // LO::Init: base initialisation for every object (root record, in-world bit, default flags, proxy refs, parent link);
 // see the comment above.
 void LO::Init()
@@ -112,13 +112,13 @@ extern "C" void EnsureLoroot(LO *plo)
     }
 }
 
-namespace M_FreeLoroot { extern "C" {
-int IsEntryInDl__FP2DLPv(void *, void *);
-void RemoveDlEntry__FP2DLPv(void *, void *);
-void RemoveFromSwBusyList(void *, void *);
-void FreeSlotheapSlot(void *, void *);
+namespace M_FreeLoroot {
+int IsEntryInDl__FP2DLPv(void *, void *) __asm__("IsEntryInDl__FP2DLPv");
+void RemoveDlEntry__FP2DLPv(void *, void *) __asm__("RemoveDlEntry__FP2DLPv");
+void RemoveFromSwBusyList(void *, void *) __asm__("RemoveFromSwBusyList");
+void FreeSlotheapSlot(void *, void *) __asm__("FreeSlotheapSlot");
 // Unlinks the object's root record from the world's root and busy lists, frees it and clears the object's pointer.
-void FreeLoroot(LO *p)
+extern "C" void FreeLoroot(LO *p)
 {
     DL *pdl = &g_sw.busyRoots;
     if (IsEntryInDl__FP2DLPv(pdl, p->root))
@@ -127,30 +127,30 @@ void FreeLoroot(LO *p)
     FreeSlotheapSlot(&g_sw.slotheapLoroot, p->root);
     p->root = 0;
 }
-} } // namespace M_FreeLoroot
+} // namespace M_FreeLoroot
 
-namespace M_GetLoChildDl { extern "C" {
+namespace M_GetLoChildDl {
 struct G { int a[4]; };
 // Returns the child list an object lives in and its "first removed child" slot: the parent's when there is one, else
 // the world's top-level list.
-void GetLoChildDl(SO *parent, void **childList, void **firstRemovedSlot)
+void GetLoChildDl(SO *parent, void **childList, void **firstRemovedSlot) __asm__("GetLoChildDl"); void GetLoChildDl(SO *parent, void **childList, void **firstRemovedSlot)
 {
     if (parent) { *childList = &parent->children; *firstRemovedSlot = &parent->ploRemovedFirst; }
     else { *childList = &(*(struct G *)&g_sw.dlChild); *firstRemovedSlot = (char *)&(*(struct G *)&g_sw.dlChild) + 0xC; }
 }
-} } // namespace M_GetLoChildDl
+} // namespace M_GetLoChildDl
 
-namespace M_AddLo { extern "C" {
-void GetLoChildDl(SO *p, void **a, LO ***firstRemoved);
-void RemoveDlEntry__FP2DLPv(void *a, LO *s);
-void InsertDlEntryBefore__FP2DLPvT1(void *a, LO *firstRemoved, LO *s);
-void ResortSwBusyEntry(void *g, LOROOT *n);
-int IsLoInWorld(LO *s);
-void UpdateSoBusy(void *g, LO *s);
+namespace M_AddLo {
+void GetLoChildDl(SO *p, void **a, LO ***firstRemoved) __asm__("GetLoChildDl");
+void RemoveDlEntry__FP2DLPv(void *a, LO *s) __asm__("RemoveDlEntry__FP2DLPv");
+void InsertDlEntryBefore__FP2DLPvT1(void *a, LO *firstRemoved, LO *s) __asm__("InsertDlEntryBefore__FP2DLPvT1");
+void ResortSwBusyEntry(void *g, LOROOT *n) __asm__("ResortSwBusyEntry");
+int IsLoInWorld(LO *s) __asm__("IsLoInWorld");
+void UpdateSoBusy(void *g, LO *s) __asm__("UpdateSoBusy");
 // Adds the object to the world (vtable slot 8): clears the removed bit, moves it into the in-world part of its parent's
 // child list, runs AddHierarchy when the parent is in the world, registers its root in the busy list and adds the
 // children recursively, then calls OnAdd.
-void AddLo(LO *object)
+extern "C" void AddLo(LO *object)
 {
     unsigned long isParentInWorld;
     void *childList;
@@ -183,18 +183,18 @@ void AddLo(LO *object)
         UpdateSoBusy(&g_sw, object);
     }
 }
-} } // namespace M_AddLo
+} // namespace M_AddLo
 
-namespace M_RemoveLo { extern "C" {
+namespace M_RemoveLo {
 
-int IsLoInWorld(LO *s);
-void RemoveDlEntry__FP2DLPv(void *a, void *firstRemoved);
-void RemoveFromSwBusyList(void *a, LOROOT *b);
-void GetLoChildDl(void *p, void **a, LO ***firstRemoved);
-void AppendDlEntry__FP2DLPv(void *a, LO *s);
+int IsLoInWorld(LO *s) __asm__("IsLoInWorld");
+void RemoveDlEntry__FP2DLPv(void *a, void *firstRemoved) __asm__("RemoveDlEntry__FP2DLPv");
+void RemoveFromSwBusyList(void *a, LOROOT *b) __asm__("RemoveFromSwBusyList");
+void GetLoChildDl(void *p, void **a, LO ***firstRemoved) __asm__("GetLoChildDl");
+void AppendDlEntry__FP2DLPv(void *a, LO *s) __asm__("AppendDlEntry__FP2DLPv");
 // Removes the object from the world (vtable slot 9): unregisters it, moves it to the removed tail of its parent's child
 // list, sets the removed bit, removes the children recursively and runs RemoveHierarchy when it was in the world.
-void RemoveLo(LO *object)
+extern "C" void RemoveLo(LO *object)
 {
     unsigned long wasInWorld;
     void *childList;
@@ -226,7 +226,7 @@ void RemoveLo(LO *object)
         object->RemoveHierarchy();
     }
 }
-} } // namespace M_RemoveLo
+} // namespace M_RemoveLo
 
 // Unlinks the object from its parent's child list without any add/remove callbacks.
 extern "C" void SnipLo(LO *plo)
@@ -240,45 +240,45 @@ extern "C" void SnipLo(LO *plo)
     RemoveDlEntry(pdl, plo);
 }
 
-namespace M_AddLoHierarchy { extern "C" {
+namespace M_AddLoHierarchy {
 // vtable slot 11: sets the in-world bit and sends the "added" notification (SendMessage, message 0).
-void AddLoHierarchy(LO *object)
+extern "C" void AddLoHierarchy(LO *object)
 {
     object->isInWorld = 1;
     object->SendMessage((MSGID)0, object);
 }
-} } // namespace M_AddLoHierarchy
+} // namespace M_AddLoHierarchy
 
-namespace M_RemoveLoHierarchy { extern "C" {
-void RemoveSwPlacesOf(void *g, LO *s, int n);
+namespace M_RemoveLoHierarchy {
+void RemoveSwPlacesOf(void *g, LO *s, int n) __asm__("RemoveSwPlacesOf");
 // vtable slot 12: clears the in-world bit, clears references to the object when it is flagged for that, and sends the
 // "removed" notification (SendMessage, message 1).
-void RemoveLoHierarchy(LO *object)
+extern "C" void RemoveLoHierarchy(LO *object)
 {
     object->isInWorld = 0;
     if (object->clearsPlacesOnRemove)
         RemoveSwPlacesOf(&g_sw, object, 0);
     object->SendMessage((MSGID)1, object);
 }
-} } // namespace M_RemoveLoHierarchy
+} // namespace M_RemoveLoHierarchy
 
-namespace M_SetLoParent_1A58D0 { extern "C" {
+namespace M_SetLoParent_1A58D0 {
 // Reparents an object: calls its SetParent (vtable slot 10) with the new parent and flags.
-void SetLoParent(LO *object, SO *a, int b) { object->SetParent(a, 0, b); }
-} } // namespace M_SetLoParent_1A58D0
+extern "C" void SetLoParent(LO *object, SO *a, int b) { object->SetParent(a, 0, b); }
+} // namespace M_SetLoParent_1A58D0
 
-namespace M_func_001A5900 { extern "C" {
+namespace M_func_001A5900 {
 /* (Claude agent) MATCH: parent bit via (int)(bit)&1, fNew via if(!removed) fNew=1; else fNew=0; (gives addiu/movn). */
-void GetLoChildDl(SO *p, void **ppdl, LO ***pppalo);
-void RemoveDlEntry__FP2DLPv(void *pdl, void *p);
-void AppendDlEntry__FP2DLPv(void *pdl, void *p);
-void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p);
-int IsLoInWorld(LO *p);
-void UpdateSoBusy(void *g, LO *p);
+void GetLoChildDl(SO *p, void **ppdl, LO ***pppalo) __asm__("GetLoChildDl");
+void RemoveDlEntry__FP2DLPv(void *pdl, void *p) __asm__("RemoveDlEntry__FP2DLPv");
+void AppendDlEntry__FP2DLPv(void *pdl, void *p) __asm__("AppendDlEntry__FP2DLPv");
+void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p) __asm__("InsertDlEntryBefore__FP2DLPvT1");
+int IsLoInWorld(LO *p) __asm__("IsLoInWorld");
+void UpdateSoBusy(void *g, LO *p) __asm__("UpdateSoBusy");
 // LO's SetParent (vtable slot 10): moves the object from the old to the new parent's child list keeping its in-world
 // state, freezes it while in the world, sets the parent pointer, updates the root record (slot 13) and the children,
 // and re-adds or notifies as needed.
-void LO_SetParent(LO *object, SO *newParent, XF *pxfParent, int grf)
+extern "C" void LO_SetParent(LO *object, SO *newParent, XF *pxfParent, int grf)
 {
     unsigned long wasInWorld = object->isInWorld & 1;
     unsigned long isInWorld = 0;
@@ -329,7 +329,7 @@ void LO_SetParent(LO *object, SO *newParent, XF *pxfParent, int grf)
     else if (!object->parent && isInWorld)
         UpdateSoBusy(&g_sw, object);
 }
-} } // namespace M_func_001A5900
+} // namespace M_func_001A5900
 
 // vtable slot 13: with a parent, shares the parent's root record (freeing its own if it had one); without a parent and
 // when makeRoot is set, makes its own root.
@@ -356,11 +356,11 @@ extern "C" int LO_GetChildren()
     return 0;
 }
 
-namespace M_PsoFromLo { extern "C" {
-int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
+namespace M_PsoFromLo {
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
-SO *GetSoFromLo(LO *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return (SO *)object; return object->parent; }
-} } // namespace M_PsoFromLo
+extern "C" SO *GetSoFromLo(LO *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return (SO *)object; return object->parent; }
+} // namespace M_PsoFromLo
 
 // Loads an LO from the BRX (vtable slot 14): reads its option records until the end marker.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -369,14 +369,14 @@ extern "C" void LoadLoFromBrx(LO *plo, CBinaryInputStream *stream)
     LoadOptionsFromBrx(plo, stream);
 }
 
-namespace M_PostLoLoad { extern "C" {
-extern float D_002A6A40;
-void RunLoDeferredCallbacks(LO *s);
-int FindBindingPtr__6CFrameUii(void *p, int a, int b);
-void SetLoBusyKind(LO *s, int n);
+namespace M_PostLoLoad {
+extern float D_002A6A40 __asm__("D_002A6A40");
+void RunLoDeferredCallbacks(LO *s) __asm__("RunLoDeferredCallbacks");
+int FindBindingPtr__6CFrameUii(void *p, int a, int b) __asm__("FindBindingPtr__6CFrameUii");
+void SetLoBusyKind(LO *s, int n) __asm__("SetLoBusyKind");
 // After the level load (vtable slot 15): runs the deferred callbacks and sends Splice message 0; an object whose Splice
 // frame binds an update handler becomes busy and wants Splice updates, others get the default next Splice time.
-void PostLoLoad(LO *object)
+extern "C" void PostLoLoad(LO *object)
 {
     RunLoDeferredCallbacks(object);
     object->HandleSpliceEvent(0, 1, 0, 0, 0);
@@ -391,12 +391,12 @@ void PostLoLoad(LO *object)
         object->nextSpliceTime = D_002A6A40;
     }
 }
-} } // namespace M_PostLoLoad
+} // namespace M_PostLoLoad
 
-namespace M_DeferLoRemoveCallback { extern "C" {
+namespace M_DeferLoRemoveCallback {
 // The deferred-callback body that removes the object (its Remove, vtable slot 9).
-void DeferLoRemoveCallback(LO *object) { object->Remove(); }
-} } // namespace M_DeferLoRemoveCallback
+void DeferLoRemoveCallback(LO *object) __asm__("DeferLoRemoveCallback"); void DeferLoRemoveCallback(LO *object) { object->Remove(); }
+} // namespace M_DeferLoRemoveCallback
 
 // Queues the object's removal to run with its deferred callbacks instead of immediately.
 extern "C" void DeferLoRemove(LO *plo)
@@ -415,9 +415,9 @@ extern "C" LORUN *AddLoDeferredCallback(LO *plo)
     return plorun;
 }
 
-namespace M_RunLoDeferredCallbacks { extern "C" {
+namespace M_RunLoDeferredCallbacks {
 // Runs every deferred callback queued on the object, in the order they were added.
-void RunLoDeferredCallbacks(LO *object)
+extern "C" void RunLoDeferredCallbacks(LO *object)
 {
     LORUN *a[32];
     LORUN *e = object->firstRunCallback;
@@ -428,34 +428,34 @@ void RunLoDeferredCallbacks(LO *object)
     do { a[n] = e; n++; e = e->next; } while (e);
     for (n--; n >= 0; n--) { e = a[n]; e->pfn(object, e->argument); }
 }
-} } // namespace M_RunLoDeferredCallbacks
+} // namespace M_RunLoDeferredCallbacks
 
-namespace M_UpdateLo { extern "C" {
+namespace M_UpdateLo {
 // LO's per-frame update (vtable slot 16): when the object's next Splice time has come, sends Splice message 1 (the
 // update event).
-void UpdateLo(LO *object)
+extern "C" void UpdateLo(LO *object)
 {
     if (object->nextSpliceTime <= g_clock.time) {
         object->HandleSpliceEvent(1, 1, 0, 0, 0);
     }
 }
-} } // namespace M_UpdateLo
+} // namespace M_UpdateLo
 
-namespace M_func_001A5E80 { extern "C" {
+namespace M_func_001A5E80 {
 // Clear flags fl: on p->flags when bit 0 is set, otherwise on the word p->flags points to.
-static inline void ClearFlag(LO *p, unsigned int fl)
+extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
     unsigned int v = p->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
     else p->unknown40 = v & ~fl;
-}
+} }
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
 // is not known; the parent's flag word is read through its pointer form). (inferred)
-void InheritLoFlag4(LO *object)
+extern "C" void InheritLoFlag4(LO *object)
 {
     if (!object->parent || !(*(unsigned int *)object->parent->unknown40 & 4)) ClearFlag(object, 4);
 }
-} } // namespace M_func_001A5E80
+} // namespace M_func_001A5E80
 
 // LO's RenderSelf (vtable slot 19): a plain LO draws nothing.
 /* default (empty) virtual */
@@ -469,14 +469,14 @@ extern "C" void RenderLoAll()
 {
 }
 
-namespace M_func_001A5EE8 { extern "C" {
+namespace M_func_001A5EE8 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword q[4]; } M4;
-void InvertMatrix4Rigid(M4 *out, void *in);
-void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
+void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
+void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
-void RenderLoAtMatrix(LO *object, void *m, float a, float b)
+extern "C" void RenderLoAtMatrix(LO *object, void *m, float a, float b)
 {
     M4 t;
     M4 r;
@@ -488,21 +488,21 @@ void RenderLoAtMatrix(LO *object, void *m, float a, float b)
     t = r;
     object->RenderAll((MATRIX4 *)&t, a, b, 0);
 }
-} } // namespace M_func_001A5EE8
+} // namespace M_func_001A5EE8
 
-namespace M_func_001A5FB8 { extern "C" {
+namespace M_func_001A5FB8 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 struct M4 { U r[4]; };
-qword *VECTOR_opAssign(qword *p, qword v);
-void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
+qword *VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
+void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b) __asm__("RenderLoAtMatrix");
 // Length of the xyz part of v (x lane).
-static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; }
+extern "C" { static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; } }
 // Unit vector along v.
-static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; }
+extern "C" { static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; } }
 // Draws an object stretched along the segment start->end, facing the camera (width scaling, 0.01 epsilon), through
 // RenderLoAtMatrix. Used for beams and similar effects. (inferred)
-void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
+extern "C" void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
 {
  U x,y,z;
  struct M4 m; struct M4 *pm;
@@ -533,7 +533,7 @@ void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
   RenderLoAtMatrix(object,pm,scale,scale);
  }
 }
-} } // namespace M_func_001A5FB8
+} // namespace M_func_001A5FB8
 
 // LO's TranslateToPos (vtable slot 29): a plain LO has no position to change.
 /* default (empty) virtual */
@@ -584,27 +584,27 @@ extern "C" void OnLoAdd(LO *plo)
     AddLoToSwUpdateList(&g_sw, plo);
 }
 
-namespace M_func_001A61A0 { extern "C" {
-int IsEntryInDl__FP2DLPv(struct DL *pdl, void *pv);
+namespace M_func_001A61A0 {
+int IsEntryInDl__FP2DLPv(struct DL *pdl, void *pv) __asm__("IsEntryInDl__FP2DLPv");
 // True when the object's in-world bit is set and its root record is in the world's in-world list.
-int IsLoInWorld(LO *object)
+extern "C" int IsLoInWorld(LO *object)
 {
     int r = 0;
     if ((int)object->isInWorld & 1) r = IsEntryInDl__FP2DLPv((DL *)&g_sw.busyRoots, object->root) != 0;
     return r;
 }
-} } // namespace M_func_001A61A0
+} // namespace M_func_001A61A0
 
-namespace M_HandleLoSpliceEvent { extern "C" {
+namespace M_HandleLoSpliceEvent {
 void HandleBasicSpliceEvent(void *p, int n, int deferred, int argumentCount,
-                   void *const *arguments, CRefData *output);
-void BroadcastGameEvent(void *p, int n, void *q);
+                   void *const *arguments, CRefData *output) __asm__("HandleBasicSpliceEvent");
+void BroadcastGameEvent(void *p, int n, void *q) __asm__("BroadcastGameEvent");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
 typedef char Int_Size[sizeof(int)==4?1:-1];
 // LO's Splice event handler (vtable slot 3): the BASIC handling, then the trigger (5) and untrigger (6) events are also
 // reported to the game progress object (as game events 0x1A/0x1B).
-void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
+extern "C" void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
                    void *const *arguments, CRefData *output)
 {
     HandleBasicSpliceEvent(object, n, deferred, argumentCount, arguments, output);
@@ -617,12 +617,12 @@ void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
         break;
     }
 }
-} } // namespace M_HandleLoSpliceEvent
+} // namespace M_HandleLoSpliceEvent
 #undef FIELD_OFFSET
 
-namespace M_OidProxyLo { extern "C" {
+namespace M_OidProxyLo {
 // Returns the oid of the proxy the object was cloned from (the last proxy record owned by it), or -1.
-int GetLoProxyOid(LO *object)
+extern "C" int GetLoProxyOid(LO *object)
 {
     int r = -1;
     PXR *node = object->proxyRecord;
@@ -633,11 +633,11 @@ int GetLoProxyOid(LO *object)
     }
     return r;
 }
-} } // namespace M_OidProxyLo
+} // namespace M_OidProxyLo
 
-namespace M_FMatchesLoName { extern "C" {
+namespace M_FMatchesLoName {
 // True when the object's oid, or the oid of one of its proxy records, equals oid.
-int HasLoOid(LO *object, int oid)
+extern "C" int HasLoOid(LO *object, int oid)
 {
     PXR *node;
     if (object->oid == oid) return 1;
@@ -645,7 +645,7 @@ int HasLoOid(LO *object, int oid)
         if (node->proxyOid == oid) return 1;
     return 0;
 }
-} } // namespace M_FMatchesLoName
+} // namespace M_FMatchesLoName
 
 // LO's world matrix (vtable slot 31): a plain LO returns the identity.
 extern "C" MATRIX4 *LO_GetWorldMatrix()
@@ -666,24 +666,24 @@ extern "C" void GetLoWorldMatrix(LO *plo)
     plo->GetWorldMatrix();
 }
 
-namespace M_func_001A6340 { extern "C" {
+namespace M_func_001A6340 {
 typedef int qword __attribute__((mode(TI)));
-extern void *GetLoWorldMatrix(void);
-extern qword DecomposeRotationMatrixToEuler(void *p);
+extern void *GetLoWorldMatrix(void) __asm__("GetLoWorldMatrix");
+extern qword DecomposeRotationMatrixToEuler(void *p) __asm__("DecomposeRotationMatrixToEuler");
 // Returns the object's world orientation as Euler angles in degrees.
-qword GetLoEulerDegrees(void)
+extern "C" qword GetLoEulerDegrees(void)
 {
     union { qword q; float f; } r;
     qword v = DecomposeRotationMatrixToEuler(GetLoWorldMatrix());
     r.q = QwordFromFloats<qword>(QwordX(v) * 57.2957763671875f, QwordY(v) * 57.2957763671875f, QwordZ(v) * 57.2957763671875f);
     return r.q;
 }
-} } // namespace M_func_001A6340
+} // namespace M_func_001A6340
 
-namespace M_func_001A63B0 { extern "C" {
+namespace M_func_001A63B0 {
 typedef int qword __attribute__((mode(TI)));
 // Pack x, y, z into a 128-bit GPR value.
-static __inline__ qword Make(float x, float y, float z)
+extern "C" { static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
     __asm__("mfc1 %0,%2
@@ -693,10 +693,10 @@ static __inline__ qword Make(float x, float y, float z)
 	pcpyld %0,%1,%0"
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
-}
-void LoadRotateMatrixEuler(MATRIX3Q *pm, qword v);
+} }
+void LoadRotateMatrixEuler(MATRIX3Q *pm, qword v) __asm__("LoadRotateMatrixEuler");
 // Sets the object's orientation from Euler angles in degrees (through RotateToMat, slot 30).
-void SetLoEulerDegrees(struct LO *object, qword v)
+extern "C" void SetLoEulerDegrees(struct LO *object, qword v)
 {
     MATRIX3Q c;
     union { qword q; float f; } r;
@@ -706,12 +706,12 @@ void SetLoEulerDegrees(struct LO *object, qword v)
     c = m;
     object->RotateToMat((MATRIX3 *)&c);   /* a 3x3 rotation (M3) */
 }
-} } // namespace M_func_001A63B0
+} // namespace M_func_001A63B0
 
-namespace M_func_001A6450 { extern "C" {
+namespace M_func_001A6450 {
 // LO's ApplyTransform (vtable slot 37: premultiply by a matrix; XFM_ApplyTransform is the XFM version): a plain LO
 // has no transform of its own, so it forwards the matrix to every child returned by slot 28. (inferred)
-void LO_ApplyTransform(LO *object, MATRIX4 *arg)
+extern "C" void LO_ApplyTransform(LO *object, MATRIX4 *arg)
 {
     LO **list;
     int n, i;
@@ -721,19 +721,19 @@ void LO_ApplyTransform(LO *object, MATRIX4 *arg)
         p->ApplyProxy(arg);
     }
 }
-} } // namespace M_func_001A6450
+} // namespace M_func_001A6450
 
-namespace M_BindLoOidTable { extern "C" {
+namespace M_BindLoOidTable {
 struct E {int flags,id,fieldOffset;};   /* one reference: how to find it, its id, where to store it */
 enum { BIND_PART = 0x10, BIND_SO_PART = 0x20, BIND_SO_GLOBS = 0x40, BIND_HIDE_OR_REMOVE = 0x200 };
-void*FindSoPart(SO*,int);
-void HideSoPart(SO*, void*);
-void*FindSoGlob(SO*,int);
-void HideSoGlobsById(SO*,int);
-struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,SO*);
+void*FindSoPart(SO*,int) __asm__("FindSoPart");
+void HideSoPart(SO*, void*) __asm__("HideSoPart");
+void*FindSoGlob(SO*,int) __asm__("FindSoGlob");
+void HideSoGlobsById(SO*,int) __asm__("HideSoGlobsById");
+struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,SO*) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // Resolves a table of {flags, id, field offset} object references into pointer fields of the object: transforms (XF) by oid,
 // SO sub-objects, or objects found by oid in the world; flag 0x200 removes the object found.
-void BindLoOidTable(SO *object, int numEntries, struct E *entries)
+extern "C" void BindLoOidTable(SO *object, int numEntries, struct E *entries)
 {
     int i = 0;
     while (i < numEntries) {
@@ -801,28 +801,28 @@ typedef char layout_entry_offset[OFFSET(struct E,fieldOffset)==8?1:-1];
 typedef char layout_entry_size[sizeof(struct E)==12?1:-1];
 typedef char layout_word_size[sizeof(int)==4?1:-1];
 typedef char layout_pointer_size[sizeof(void*)==4?1:-1];
-} } // namespace M_BindLoOidTable
+} // namespace M_BindLoOidTable
 #undef OFFSET
 
-namespace M_func_001A66C8 { extern "C" {
+namespace M_func_001A66C8 {
 // vtable slot 47: sets bits in the object's flag word.
-void SetLoFlags(LO *object, unsigned int fl)
+extern "C" void SetLoFlags(LO *object, unsigned int fl)
 {
     unsigned int v = object->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
     else object->unknown40 = v | fl;
 }
-} } // namespace M_func_001A66C8
+} // namespace M_func_001A66C8
 
-namespace M_func_001A66F8 { extern "C" {
+namespace M_func_001A66F8 {
 // vtable slot 48: clears bits in the object's flag word.
-void ClearLoFlags(LO *object, unsigned int fl)
+extern "C" void ClearLoFlags(LO *object, unsigned int fl)
 {
     unsigned int v = object->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
     else object->unknown40 = v & ~fl;
 }
-} } // namespace M_func_001A66F8
+} // namespace M_func_001A66F8
 
 namespace M_CloneLo {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
@@ -871,28 +871,28 @@ typedef char P_scale_Offset[FIELD_OFFSET(P,scale)==56?1:-1];
 typedef char P_nodes_Offset[FIELD_OFFSET(P,nodes)==60?1:-1];
 typedef char P_tag_Offset[FIELD_OFFSET(P,tag)==64?1:-1];
 typedef char META_bytes_Offset[FIELD_OFFSET(META,bytes)==12?1:-1];
-extern "C"{
-extern char g_gc[],D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"),D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
-void CGc_UpdateRecyclable(void*);
+
+extern char g_gc[] __asm__("g_gc"),D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"),D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
+void CGc_UpdateRecyclable(void*) __asm__("CGc_UpdateRecyclable");
 void func_00257250(void*,int) __asm__("_$_t7CRefPtr1Z5CVarb");
-void Decref__4CRef(void*);
-void Unlink__t6CGcObj1Z5CVarb(void*);
-void Unlink__t6CGcObj1Z8CSidebag(void*);
-void FreeSlotheapSlot(void*,void*);
+void Decref__4CRef(void*) __asm__("Decref__4CRef");
+void Unlink__t6CGcObj1Z5CVarb(void*) __asm__("Unlink__t6CGcObj1Z5CVarb");
+void Unlink__t6CGcObj1Z8CSidebag(void*) __asm__("Unlink__t6CGcObj1Z8CSidebag");
+void FreeSlotheapSlot(void*,void*) __asm__("FreeSlotheapSlot");
 void func_00257078(ROOT*,int) __asm__("_$_6CFrame");
-void AssignSidebagRef(FIELD**,FIELD*);
+void AssignSidebagRef(FIELD**,FIELD*) __asm__("AssignSidebagRef");
 void FramePtr_Assign(ROOT**,ROOT*) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-int MakeRoot__t6CGcObj1Z8CSidebag(FIELD*);
-int MakeRoot__t6CGcObj1Z6CFrame(ROOT*);
-RF CSidebag_CloneTo(FIELD*,P*);
-RR CFrame_CloneTo(ROOT*,P*);
-void*AllocCopyFromWorldHeap(REQUEST*,void*);
-void ClearSle(int*);
-void ClearSl(void*);
-void AppendSlEntry(void*,NODE*);
-void*GetSwProxyRefBucket(SW*,int);
+int MakeRoot__t6CGcObj1Z8CSidebag(FIELD*) __asm__("MakeRoot__t6CGcObj1Z8CSidebag");
+int MakeRoot__t6CGcObj1Z6CFrame(ROOT*) __asm__("MakeRoot__t6CGcObj1Z6CFrame");
+RF CSidebag_CloneTo(FIELD*,P*) __asm__("CSidebag_CloneTo");
+RR CFrame_CloneTo(ROOT*,P*) __asm__("CFrame_CloneTo");
+void*AllocCopyFromWorldHeap(REQUEST*,void*) __asm__("AllocCopyFromWorldHeap");
+void ClearSle(int*) __asm__("ClearSle");
+void ClearSl(void*) __asm__("ClearSl");
+void AppendSlEntry(void*,NODE*) __asm__("AppendSlEntry");
+void*GetSwProxyRefBucket(SW*,int) __asm__("GetSwProxyRefBucket");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-}
+
 struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);Decref__4CRef(b->cref);Unlink__t6CGcObj1Z5CVarb(b);FreeSlotheapSlot(D_004520D0,b);}Unlink__t6CGcObj1Z8CSidebag(f);FreeSlotheapSlot(D_00452148,f);}}};
 struct RR{ROOT*p;RR(){}RR(const RR&r):p(r.p){if(p)++p->refs;}~RR(){ROOT*r=p;if(r&&!--r->refs)func_00257078(r,3);}};
 typedef char FieldRefSize[sizeof(RF)==4?1:-1];
@@ -939,14 +939,14 @@ extern "C" void CloneLo(P*object,const P*source){
 } // namespace M_CloneLo
 #undef FIELD_OFFSET
 
-namespace M_CloneLoHierarchy { extern "C" {
+namespace M_CloneLoHierarchy {
 // vtable slot 40: clones the hierarchy by forwarding to Clone (slot 41).
-void CloneLoHierarchy(LO *object, LO *a) { object->Clone(a); }
-} } // namespace M_CloneLoHierarchy
+extern "C" void CloneLoHierarchy(LO *object, LO *a) { object->Clone(a); }
+} // namespace M_CloneLoHierarchy
 
-namespace M_FFindLoParent { extern "C" {
+namespace M_FFindLoParent {
 // True when other is the object itself or one of its ancestors.
-int IsLoSelfOrDescendantOf(LO *a, LO *b)
+extern "C" int IsLoSelfOrDescendantOf(LO *a, LO *b)
 {
     while (a) {
         if (a == b) break;
@@ -954,14 +954,14 @@ int IsLoSelfOrDescendantOf(LO *a, LO *b)
     }
     return a != 0;
 }
-} } // namespace M_FFindLoParent
+} // namespace M_FFindLoParent
 
-namespace M_func_001A6B30 { extern "C" {
-extern XF D_002C44F0;   /* a static identity transform */
+namespace M_func_001A6B30 {
+extern XF D_002C44F0 __asm__("D_002C44F0");   /* a static identity transform */
 void func_002333B4(void *p, int c, int n) __asm__("memset");
 // LO's local transform (vtable slot 32): writes the identity into *matrix when given and returns a static identity
 // transform.
-XF *LO_GetLocalTransform(LO *unused, MATRIX4 *pm)
+extern "C" XF *LO_GetLocalTransform(LO *unused, MATRIX4 *pm)
 {
     if (pm) {
         func_002333B4(pm, 0, 0x40);
@@ -969,7 +969,7 @@ XF *LO_GetLocalTransform(LO *unused, MATRIX4 *pm)
     }
     return &D_002C44F0;
 }
-} } // namespace M_func_001A6B30
+} // namespace M_func_001A6B30
 
 // vtable slot 38: moves the object onto another object's world transform (warps and relays use it to place objects).
 extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
@@ -990,15 +990,15 @@ extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *matrix)
     plo->RotateToMat((MATRIX3 *)matrix);   /* its rotation rows */
 }
 
-namespace M_func_001A6C48 { extern "C" {
-void ResortSwBusyEntry(SW *g, void *p);
+namespace M_func_001A6C48 {
+void ResortSwBusyEntry(SW *g, void *p) __asm__("ResortSwBusyEntry");
 // vtable slot 42: sets the busy distance (default 1e10) and re-sorts the root in the world's busy list.
-void SetLoBusyDistance(LO *object, float g)
+extern "C" void SetLoBusyDistance(LO *object, float g)
 {
     object->busyRadius = g;
     if (!object->parent && ((int)object->isInWorld & 1)) ResortSwBusyEntry(&g_sw, object->root);
 }
-} } // namespace M_func_001A6C48
+} // namespace M_func_001A6C48
 
 // Returns the busy kind (signed 4-bit field: 0 busy near the camera, 1 always, 2 never, 3 busy near the hero).
 extern "C" int GetLoBusyKind(LO *plo)
@@ -1006,11 +1006,11 @@ extern "C" int GetLoBusyKind(LO *plo)
     return plo->busyKind;
 }
 
-namespace M_SetLoBusyk { extern "C" {
-void ResortSwBusyEntry(void *, void *);
+namespace M_SetLoBusyk {
+void ResortSwBusyEntry(void *, void *) __asm__("ResortSwBusyEntry");
 // Sets the busy kind (0 busy within the busy distance of the camera, 1 always busy, 2 never busy, 3 busy within the
 // busy distance of the hero) and re-sorts the root in the world's busy list when it is in the world.
-void SetLoBusyKind(LO *object, int busyk)
+extern "C" void SetLoBusyKind(LO *object, int busyk)
 {
     if (busyk != object->busyKind) {
         object->busyKind = busyk;
@@ -1018,12 +1018,12 @@ void SetLoBusyKind(LO *object, int busyk)
             ResortSwBusyEntry(&g_sw, object->root);
     }
 }
-} } // namespace M_SetLoBusyk
+} // namespace M_SetLoBusyk
 
-namespace M_func_001A6D28 { extern "C" {
-void ResortSwBusyEntry(void *, void *);
+namespace M_func_001A6D28 {
+void ResortSwBusyEntry(void *, void *) __asm__("ResortSwBusyEntry");
 // Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into every ancestor.
-void SetLoVisMask(LO *object, int b)
+extern "C" void SetLoVisMask(LO *object, int b)
 {
     LO *ancestor;
     if ((unsigned char)object->root->topObject->isInWorld)
@@ -1032,7 +1032,7 @@ void SetLoVisMask(LO *object, int b)
     for (ancestor = object->parent; ancestor; ancestor = ancestor->parent)
         ancestor->visibilityMask |= b;
 }
-} } // namespace M_func_001A6D28
+} // namespace M_func_001A6D28
 
 // LO's SetVisMask (vtable slot 46): stores the visibility mask byte.
 extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
@@ -1040,10 +1040,10 @@ extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
     plo->visibilityMask = grfvis;
 }
 
-namespace M_SetSoVisMask { extern "C" {
-void SetLoVisMask(LO *, int);
+namespace M_SetSoVisMask {
+void SetLoVisMask(LO *, int) __asm__("SetLoVisMask");
 // SO's SetVisMask (vtable slot 46): stores the mask and propagates it to the children that do not keep their own.
-void SetSoVisMask(SO *object, int b)
+extern "C" void SetSoVisMask(SO *object, int b)
 {
     LO *q;
     object->visibilityMask = b;
@@ -1052,38 +1052,38 @@ void SetSoVisMask(SO *object, int b)
             SetLoVisMask(q, b);
     }
 }
-} } // namespace M_SetSoVisMask
+} // namespace M_SetSoVisMask
 
-namespace M_func_001A6E38 { extern "C" {
+namespace M_func_001A6E38 {
 // Sets or clears the "keeps its own visibility mask" bit (a parent's SetVisMask then skips it).
-void SetLoOwnVisMask(LO *object, int f) { object->keepsOwnVisMask = f; }
-} } // namespace M_func_001A6E38
+extern "C" void SetLoOwnVisMask(LO *object, int f) { object->keepsOwnVisMask = f; }
+} // namespace M_func_001A6E38
 
-namespace M_func_001A6E70 { extern "C" {
+namespace M_func_001A6E70 {
 // True when the object keeps its own visibility mask.
-int HasLoOwnVisMask(LO *object) { return (int)object->keepsOwnVisMask & 1; }
-} } // namespace M_func_001A6E70
+extern "C" int HasLoOwnVisMask(LO *object) { return (int)object->keepsOwnVisMask & 1; }
+} // namespace M_func_001A6E70
 
-namespace M_func_001A6E80 { extern "C" {
-static inline void SetFlag(LO *p, unsigned int fl)
+namespace M_func_001A6E80 {
+extern "C" { static inline void SetFlag(LO *p, unsigned int fl)
 {
     unsigned int v = p->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
     else p->unknown40 = v | fl;
-}
-static inline void ClearFlag(LO *p, unsigned int fl)
+} }
+extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
     unsigned int v = p->unknown40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
     else p->unknown40 = v & ~fl;
-}
+} }
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)
-void SetLoFlag8(LO *object, int f)
+extern "C" void SetLoFlag8(LO *object, int f)
 {
     if (f) SetFlag(object, 8);
     else ClearFlag(object, 8);
 }
-} } // namespace M_func_001A6E80
+} // namespace M_func_001A6E80
 
 // LO's default for vtable slot 43: returns 0 (the slot's meaning is not known).
 extern "C" int LO_Slot43Default()
@@ -1103,11 +1103,11 @@ extern "C" void LO_Slot45Default()
 {
 }
 
-namespace M_ConvertAloPos { extern "C" {
+namespace M_ConvertAloPos {
 typedef int qword __attribute__((mode(TI)));
-void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn);
+void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn) __asm__("InvertMatrix4Rigid");
 // Converts a point from one object's space to another's (through world space; a null object means world space).
-qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
+extern "C" qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
     if (a) {
         MATRIX4Q *pm = (MATRIX4Q *)a->GetWorldMatrix();
@@ -1122,14 +1122,14 @@ qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
     }
     return v;
 }
-} } // namespace M_ConvertAloPos
+} // namespace M_ConvertAloPos
 
-namespace M_ConvertAloVec { extern "C" {
+namespace M_ConvertAloVec {
 typedef int qword __attribute__((mode(TI)));
-MATRIX3Q *GetLoWorldMatrix(void *p);
-void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn);
+MATRIX3Q *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
+void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn) __asm__("InvertMatrix3Cofactor");
 // Converts a direction vector from one object's space to another's (rotation only).
-qword ConvertVecBetweenLos(void *a, void *b, qword v)
+extern "C" qword ConvertVecBetweenLos(void *a, void *b, qword v)
 {
     if (a) {
         MATRIX3Q *pm = GetLoWorldMatrix(a);
@@ -1144,12 +1144,12 @@ qword ConvertVecBetweenLos(void *a, void *b, qword v)
     }
     return v;
 }
-} } // namespace M_ConvertAloVec
+} // namespace M_ConvertAloVec
 
 namespace M_ConvertAloMat {
 typedef int qword __attribute__((mode(TI)));
-extern "C" MATRIX3Q *GetLoWorldMatrix(void *p);
-extern "C" MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *b);
+extern MATRIX3Q *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
+extern MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *b) __asm__("InvertMatrix3Cofactor");
 static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
 {
     qword a0 = a.r[0].q, a1 = a.r[1].q, a2 = a.r[2].q;
@@ -1161,7 +1161,7 @@ static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
         : "=j"(r.r[2].q) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2].q));
 }
 // Converts a 3x3 matrix from one object's space to another's.
-extern "C" { MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
+extern "C" MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
 {
     MATRIX3Q result;
     if (a) result = Mul(*GetLoWorldMatrix(a), *m);
@@ -1170,16 +1170,16 @@ extern "C" { MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
         result = Mul(InvertMatrix3Cofactor(GetLoWorldMatrix(b)), result);
     }
     return result;
-} }
+}
 } // namespace M_ConvertAloMat
 
-namespace M_ConvertAloMat4 { extern "C" {
+namespace M_ConvertAloMat4 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword q[4]; } M4;
-void InvertMatrix4Rigid(M4 *out, void *in);
-void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
+void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
+void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
 // Converts a 4x4 matrix from one object's space to another's.
-M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
+extern "C" M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
 {
     M4 t;
     M4 r;
@@ -1199,13 +1199,13 @@ M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
     }
     return t;
 }
-} } // namespace M_ConvertAloMat4
+} // namespace M_ConvertAloMat4
 
-namespace M_func_001A72D0 { extern "C" {
+namespace M_func_001A72D0 {
 typedef int qword __attribute__((mode(TI)));
-void InvertMatrix4Rigid(MATRIX4Q *pm);
+void InvertMatrix4Rigid(MATRIX4Q *pm) __asm__("InvertMatrix4Rigid");
 // Converts a point through an explicit matrix, or through its inverse when inverse is set. (inferred)
-qword ConvertMatPos(MATRIX4Q *pm, int f, qword v)
+extern "C" qword ConvertMatPos(MATRIX4Q *pm, int f, qword v)
 {
     if (pm) {
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
@@ -1219,13 +1219,13 @@ qword ConvertMatPos(MATRIX4Q *pm, int f, qword v)
     }
     return v;
 }
-} } // namespace M_func_001A72D0
+} // namespace M_func_001A72D0
 
-namespace M_func_001A7348 { extern "C" {
+namespace M_func_001A7348 {
 typedef int qword __attribute__((mode(TI)));
-void InvertMatrix3Cofactor(MATRIX3Q *pm);
+void InvertMatrix3Cofactor(MATRIX3Q *pm) __asm__("InvertMatrix3Cofactor");
 // Converts a direction vector through an explicit 3x3 matrix or its inverse. (inferred)
-qword ConvertMatVec(MATRIX3Q *pm, int f, qword v)
+extern "C" qword ConvertMatVec(MATRIX3Q *pm, int f, qword v)
 {
     if (pm) {
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
@@ -1239,7 +1239,7 @@ qword ConvertMatVec(MATRIX3Q *pm, int f, qword v)
     }
     return v;
 }
-} } // namespace M_func_001A7348
+} // namespace M_func_001A7348
 
 // 0x1A73B0..0x1A73BC: 2 dead-code scraps (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xe0");

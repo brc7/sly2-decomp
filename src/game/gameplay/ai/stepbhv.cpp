@@ -122,13 +122,13 @@ extern "C" void UpdateBhvwalkgoal(BHVWALKGOAL *behavior)
 }
 
 // Keeps its .data and VU0 helpers in a namespace of its own (see the file header).
-namespace M_UpdateBhvwalkgoalPoctl { extern "C" {
-float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
-extern float D_002BBB60[2];
-float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
+namespace M_UpdateBhvwalkgoalPoctl {
+float D_002BD2E0[3] __asm__("D_002BD2E0") = {0.0f, 0.01f, 0.0f};
+extern float D_002BBB60[2] __asm__("D_002BBB60");
+float D_002BD2F0 __asm__("D_002BD2F0") __attribute__((aligned(16))) = 500.0f;
 
 // VU0 helper: horizontal (xy) length of a vector.
-static __inline__ float LenXY(qword d)
+extern "C" { static __inline__ float LenXY(qword d)
 {
     float g;
     qword t;
@@ -137,9 +137,9 @@ static __inline__ float LenXY(qword d)
     __asm__("vsqrt Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "+j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 // VU0 helper: horizontal (xy) length of a vector (second instruction pattern for the match).
-static __inline__ float LenXY2(qword d)
+extern "C" { static __inline__ float LenXY2(qword d)
 {
     float g;
     qword t;
@@ -150,32 +150,32 @@ static __inline__ float LenXY2(qword d)
     __asm__("vsqrt Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "+j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 
 // True if two points are farther apart (horizontally) than the .data limit.
-static __inline__ int IsFarApart(qword a, qword b)
+extern "C" { static __inline__ int IsFarApart(qword a, qword b)
 {
     qword d;
     float lim = D_002BD2F0;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     return lim < LenXY2(d);
-}
+} }
 // VU0 helper: dot product.
-static __inline__ qword Dot(qword a, qword b) { register qword r __asm__("vf2"); register qword t __asm__("vf4");
+extern "C" { static __inline__ qword Dot(qword a, qword b) { register qword r __asm__("vf2"); register qword t __asm__("vf4");
         __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
-                : "=&j"(t), "=&j"(r) : "j"(a), "j"(b)); return r; }
+                : "=&j"(t), "=&j"(r) : "j"(a), "j"(b)); return r; } }
 // VU0 helper: component of d perpendicular to an axis.
-static __inline__ qword Perp(qword d, qword axis) { qword v, r;
+extern "C" { static __inline__ qword Perp(qword d, qword axis) { qword v, r;
         v = Dot(d, axis);
         __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(v) : "j"(axis));
-        __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; }
+        __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; } }
 // Evaluates a quadratic a0 + g (a1 + g a2).
-static __inline__ float EvaluatePolynomial(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
+extern "C" { static __inline__ float EvaluatePolynomial(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); } }
 // 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
 // (path states 0/1) sets the POCTL stick: speed from the horizontal distance to the goal (scaled) and heading
 // toward it; holds button 8 when asked or when far from the mirrored PO, and after a delay copies that PO's masked
 // buttons (an AI partner copying the player's presses, inferred).
-void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, POCTL *poctl)
+extern "C" void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
     if (behavior->state < 2) if (behavior->state >= 0) {
@@ -212,7 +212,7 @@ void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, POCTL *poctl)
         }
     }
 }
-} } // namespace M_UpdateBhvwalkgoalPoctl
+} // namespace M_UpdateBhvwalkgoalPoctl
 
 // 0x144E20: Walk-to behaviour (BHV193) vtable slot 7 (OnPush): base, defaults (arrival radius 40, flags 1, speed
 // scale 1).
@@ -307,14 +307,14 @@ extern "C" void CloseBhvfollow(BHVFOLLOW *behavior)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4E30 __asm__("D_002A4E30") = 3.40282347e+38f; }
 // Keeps its .data and VU0 helpers in a namespace of its own (see the file header).
-namespace M_func_001450E0 { extern "C" {
-extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
-CLQ D_002BD300 __attribute__((aligned(16))) = {{{-200.0f, 0.8f, 0.0f, 0.0f}}};
-CLQ D_002BD310 = {{{200.0f, 1.0f, 0.0f, 0.0f}}};
-CLQ D_002BD320 = {{{-400.0f, 1.0f, 0.0f, 0.0f}}};
+namespace M_func_001450E0 {
+extern const float D_002A4E30 __asm__("D_002A4E30");   /* defined below where the ELF has it (.rodata order) */
+CLQ D_002BD300 __asm__("D_002BD300") __attribute__((aligned(16))) = {{{-200.0f, 0.8f, 0.0f, 0.0f}}};
+CLQ D_002BD310 __asm__("D_002BD310") = {{{200.0f, 1.0f, 0.0f, 0.0f}}};
+CLQ D_002BD320 __asm__("D_002BD320") = {{{-400.0f, 1.0f, 0.0f, 0.0f}}};
 
 // VU0 helper: distance between two points.
-static __inline__ float Distance(qword a, qword b)
+extern "C" { static __inline__ float Distance(qword a, qword b)
 {
     qword d, t;
     float distance;
@@ -328,14 +328,14 @@ static __inline__ float Distance(qword a, qword b)
         "vaddq.x %0, $vf0, Q" : "+j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(distance) : "j"(d));
     return distance;
-}
+} }
 // Evaluates a CLQ quadratic at distance.
-static __inline__ float EvaluateQuadratic(float distance, CLQ *clq) { return clq->g0 + distance * (clq->g1 + distance * clq->g2); }
+extern "C" { static __inline__ float EvaluateQuadratic(float distance, CLQ *clq) { return clq->g0 + distance * (clq->g1 + distance * clq->g2); } }
 
 // 0x1450E0: Picks the follow behaviour's threat: the guard nearest the leader among those engaged with the follower
 // (its engagement record, STEPPLAYER +0x1088) or (distance re-weighted) with the leader, skipping KO'd/juggled/thrown
 // ones; the current threat and striking guards get their own distance weights (inferred: who the partner should fight).
-STEPGUARD *PickBhvfollowTarget(BHVFOLLOW *behavior)
+extern "C" STEPGUARD *PickBhvfollowTarget(BHVFOLLOW *behavior)
 {
     STEPGUARD *best = 0;
     float bestDistance = D_002A4E30;
@@ -384,19 +384,19 @@ STEPGUARD *PickBhvfollowTarget(BHVFOLLOW *behavior)
     }
     return best;
 }
-} } // namespace M_func_001450E0
+} // namespace M_func_001450E0
 
 namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.40282347e+38f; }
 // Keeps its .data and VU0 helpers in a namespace of its own (see the file header).
-namespace M_UpdateBhvfollow { extern "C" {
+namespace M_UpdateBhvfollow {
 // UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1; now `onNewGround`), inline ClampInPlace.
-extern const float D_002A4E34;   /* defined below where the ELF has it (.rodata order) */
-struct LM D_002BD330 = {0.0f, 600.0f};
-struct LM D_002BD338 = {0.0f, 1200.0f};
-float D_002BD340 = 200.0f;
+extern const float D_002A4E34 __asm__("D_002A4E34");   /* defined below where the ELF has it (.rodata order) */
+struct LM D_002BD330 __asm__("D_002BD330") = {0.0f, 600.0f};
+struct LM D_002BD338 __asm__("D_002BD338") = {0.0f, 1200.0f};
+float D_002BD340 __asm__("D_002BD340") = 200.0f;
 
 // VU0 helper: horizontal (xy) length of a vector.
-static __inline__ float LenXY(qword d)
+extern "C" { static __inline__ float LenXY(qword d)
 {
     float g;
     qword t;
@@ -404,9 +404,9 @@ static __inline__ float LenXY(qword d)
     __asm__("vsqrt Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "+j"(t));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(t));
     return g;
-}
+} }
 // VU0 helper: length of a vector.
-static __inline__ float Len(qword d)
+extern "C" { static __inline__ float Len(qword d)
 {
     qword t;
     float g;
@@ -414,17 +414,17 @@ static __inline__ float Len(qword d)
     __asm__("vsqrt Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "+j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 // Clamps *pg into [lo, hi].
-static __inline__ void ClampInPlace(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
+extern "C" { static __inline__ void ClampInPlace(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; } }
 // True if two points are farther apart (horizontally) than the .data limit.
-static __inline__ int IsFarApart(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(VuSub(a, b)); }
+extern "C" { static __inline__ int IsFarApart(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(VuSub(a, b)); } }
 
 // 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
 // standing, walking and running, re-pathing when far. State 0 follows (re-targets the follow point when the leader moved, animation speed
 // from the leader distance), 1 waits for the leader to land on new ground, 2 fights the threat until the partner's
 // interact behaviour goes idle or the threat leaves the band.
-void UpdateBhvfollow(BHVFOLLOW *behavior)
+extern "C" void UpdateBhvfollow(BHVFOLLOW *behavior)
 {
     STEPPLAYER *follower;
     qword followerPos, leaderPos;
@@ -504,7 +504,7 @@ void UpdateBhvfollow(BHVFOLLOW *behavior)
         }
     }
 }
-} } // namespace M_UpdateBhvfollow
+} // namespace M_UpdateBhvfollow
 
 // Keeps its matrix view and VU0 helpers in a namespace of its own (see the file header).
 namespace M_func_001457A8 {
@@ -515,11 +515,11 @@ namespace M_func_001457A8 {
 // its operands in (a, s, b) order.
 struct M3 { qword r[3]; };
 struct M4 { qword r[4]; };
-extern "C" {
-M3 *GetLoWorldMatrix(void *p);
-M3 BuildAxisAngleRotationMatrix(qword axis, float g);
-void UpdateBhvfollowPosition(BHVFOLLOW *p);
-}
+
+M3 *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
+M3 BuildAxisAngleRotationMatrix(qword axis, float g) __asm__("BuildAxisAngleRotationMatrix");
+void UpdateBhvfollowPosition(BHVFOLLOW *p) __asm__("UpdateBhvfollowPosition");
+
 // Float broadcast into a VU0 register (copyable).
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
 // Wrap a qword as a VU_VECTOR.
@@ -710,15 +710,15 @@ extern "C" int IsBhvInteractIdle(BHV195 *behavior)
 }
 
 // Keeps its .data and VU0 code in a namespace of its own (see the file header).
-namespace M_func_00145DB0 { extern "C" {
-float D_002BD344 = 300.0f;
-struct { float near; float far; } D_002BD348 = {250.0f, 350.0f};
-qword *GetLoWorldMatrix(void *);
+namespace M_func_00145DB0 {
+float D_002BD344 __asm__("D_002BD344") = 300.0f;
+extern "C" { struct { float near; float far; } D_002BD348 = {250.0f, 350.0f}; }
+qword *GetLoWorldMatrix(void *) __asm__("GetLoWorldMatrix");
 
 // 0x145DB0: Interact behaviour vtable slot 10 (Update): approaches the target (+0x38, a guard) and interacts; aborts
 // when Murray is busy (hurt state +0xDF4) or the target is gone or knocked out. State 0 walks up and interacts
 // (state 2) once close and facing it, 1 runs back into the distance band, 2 interacts until the attack ends.
-void UpdateBhvInteract(BHV195 *behavior)
+extern "C" void UpdateBhvInteract(BHV195 *behavior)
 {
     QWROW toTarget;
     qword targetPos, ownerPos, delta, length, one, normalized;
@@ -786,7 +786,7 @@ void UpdateBhvInteract(BHV195 *behavior)
             break;
     }
 }
-} } // namespace M_func_00145DB0
+} // namespace M_func_00145DB0
 
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
 extern "C" void SteerBhvInteract(BHV195 *behavior, POCTL *poctl)
@@ -860,14 +860,14 @@ extern "C" int IsBhvInteract2Idle(BHV196 *behavior)
 }
 
 // Keeps its .data and VU0 code in a namespace of its own (see the file header).
-namespace M_func_001462A8 { extern "C" {
-float D_002BD350 = 350.0f;
-struct { float near; float far; } D_002BD358 = {250.0f, 350.0f};
-qword *GetLoWorldMatrix(void *);
+namespace M_func_001462A8 {
+float D_002BD350 __asm__("D_002BD350") = 350.0f;
+extern "C" { struct { float near; float far; } D_002BD358 = {250.0f, 350.0f}; }
+qword *GetLoWorldMatrix(void *) __asm__("GetLoWorldMatrix");
 
 // 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions (Bentley:
 // the attack is his crosshair, BTBLENDS state +0x1714).
-void UpdateBhvInteract2(BHV196 *behavior)
+extern "C" void UpdateBhvInteract2(BHV196 *behavior)
 {
     QWROW toTarget;
     qword targetPos, ownerPos, delta, length, one, normalized;
@@ -935,7 +935,7 @@ void UpdateBhvInteract2(BHV196 *behavior)
             break;
     }
 }
-} } // namespace M_func_001462A8
+} // namespace M_func_001462A8
 
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
 extern "C" void SteerBhvInteract2(BHV196 *behavior, POCTL *poctl)
@@ -1009,16 +1009,16 @@ extern "C" int IsBhvInteract3Idle(BHV197 *behavior)
 }
 
 // Keeps its .data, matrix-row view and VU0 helpers in a namespace of its own (see the file header).
-namespace M_func_001467A0 { extern "C" {
+namespace M_func_001467A0 {
 struct M3 { qword r[3]; };
-float D_002BD360 = 450.0f;                                  /* attack distance */
-float D_002BD368 __attribute__((aligned(8))) = 400.0f;    /* band: near */
-float D_002BD36C = 550.0f;                                  /* band: far */
-float D_002BD370 = 0.2f;                                    /* air time before the air attack */
-struct M3 *GetLoWorldMatrix(void *p);
+float D_002BD360 __asm__("D_002BD360") = 450.0f;                                  /* attack distance */
+float D_002BD368 __asm__("D_002BD368") __attribute__((aligned(8))) = 400.0f;    /* band: near */
+float D_002BD36C __asm__("D_002BD36C") = 550.0f;                                  /* band: far */
+float D_002BD370 __asm__("D_002BD370") = 0.2f;                                    /* air time before the air attack */
+struct M3 *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
 
 // VU0 helper: dot product.
-static __inline__ float Dot(qword a, qword b)
+extern "C" { static __inline__ float Dot(qword a, qword b)
 {
     qword r, t;
     float g;
@@ -1026,10 +1026,10 @@ static __inline__ float Dot(qword a, qword b)
             : "=j"(r), "=j"(t) : "j"(a), "j"(b));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(r));
     return g;
-}
+} }
 
 // VU0 helper: normalizes *pv in place (or uses the default for a zero vector) and returns the length.
-static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
+extern "C" { static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
 {
     register qword v __asm__("vf3") = *pv;
     qword t, l;
@@ -1048,11 +1048,11 @@ static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
     }
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
     return g;
-}
+} }
 
 // 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states: when close and facing
 // the target, 30% of the time it jumps (3) and attacks in the air after 0.2 s (4) instead of the ground attack (2).
-void UpdateBhvInteract3(BHV197 *behavior)
+extern "C" void UpdateBhvInteract3(BHV197 *behavior)
 {
     union { qword q; float f[4]; } toTarget;
     float distance;
@@ -1116,26 +1116,26 @@ void UpdateBhvInteract3(BHV197 *behavior)
         }
     } while (behavior->state != state);
 }
-} } // namespace M_func_001467A0
+} // namespace M_func_001467A0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00146B18 { extern "C" {
+namespace M_func_00146B18 {
 // MATCH (Claude agent for Lilly, T1657 2026-10-25). Case 3 builds CLQ clq = {-0.25, 0.0015625} and LM lm = {0.1, 1.0} on the
 // stack: poctl->leftStickDeflection = ClampToLimits(&lm, EvaluateQuadratic(|d.xy|, &clq)), poctl->leftStickAngle = atan2(d.y, d.x) with d = pos(target) - pos(owner).
 // What finished it (the old 1-off was the por/li.s order of the clq init): see notes/140000.md (T1657).
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));   /* basic.h CLQ with the 16-byte stack alignment the frame needs */
 // VU0 helper: square root through the POCTL register.
-static __inline__ float SqrtQ(qword t)
+extern "C" { static __inline__ float SqrtQ(qword t)
 {
     float g;
     __asm__ __volatile__("vsqrt Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "+j"(t));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(t));
     return g;
-}
+} }
 // Evaluates a CLQ quadratic at g.
-static __inline__ float EvaluateQuadratic(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
+extern "C" { static __inline__ float EvaluateQuadratic(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); } }
 // Clamps g to an LM range.
-static __inline__ float ClampToLimits(struct LM *plm, float g)
+extern "C" { static __inline__ float ClampToLimits(struct LM *plm, float g)
 {
     float gMin = plm->minValue, gMax = plm->maxValue;
     if (g < gMin)
@@ -1143,10 +1143,10 @@ static __inline__ float ClampToLimits(struct LM *plm, float g)
     if (gMax < g)
         return gMax;
     return g;
-}
+} }
 /* b: allocation-only "j" input (Claude agent). It keeps b live past the clamp, so b gets its own early qmtc2 instead of
    staying in v0 until the vsub (then the clq clear can use v0 like the target). */
-static __inline__ float AngleXYKeepAlive(qword d, qword b)
+extern "C" { static __inline__ float AngleXYKeepAlive(qword d, qword b)
 {
     register qword r __asm__("v1"); /* register pin (Claude agent) */
     float x;
@@ -1157,19 +1157,19 @@ static __inline__ float AngleXYKeepAlive(qword d, qword b)
         __asm__("prot3w %0,%1" : "=r"(y) : "0"(r));
         return atan2f(y, x);
     }
-}
+} }
 /* y via an int + mtc1 (as in CalculateVectorPanTilt): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
-static __inline__ float AngleXY(qword d)
+extern "C" { static __inline__ float AngleXY(qword d)
 {
     int y;
     float fy;
     __asm__("prot3w %0,%1" : "=r"(y) : "r"(d));
     __asm__("mtc1 %1,%0" : "=f"(fy) : "r"(y));
     return atan2f(fy, QwordX(d));
-}
+} }
 // 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
 // toward the target; states 2 and 4 press the attack button (0x80) and state 3 jumps (0x40) for their first 0.1 s.
-void SteerBhvInteract3(BHV197 *behavior, POCTL *poctl)
+extern "C" void SteerBhvInteract3(BHV197 *behavior, POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
     switch (behavior->state) {
@@ -1225,7 +1225,7 @@ void SteerBhvInteract3(BHV197 *behavior, POCTL *poctl)
     }
     }
 }
-} } // namespace M_func_00146B18
+} // namespace M_func_00146B18
 
 // 0x146E18: Third interact behaviour state change (busy in states 2..4).
 extern "C" void SetBhvInteract3State(BHV197 *behavior, int state)
@@ -1261,20 +1261,20 @@ extern "C" void CloseBhvMurray(BHV198 *behavior)
 }
 
 // Keeps its .data in a namespace of its own (see the file header).
-namespace M_func_00146F18 { extern "C" {
-extern void *D_002E1E40;
-float D_002BD374 = 0.5f, D_002BD378 = 15.0f;   /* heading window (rad), turn rate (rad/s) */
-void SetStepTargetHeadingFromVector(MURRAY *step, qword direction);
-float NormalizeAngle__Ff(float g);
-float GetStepHeading(MURRAY *step);
-float ClampAbs__Fff(float g, float dg);
-void SetStepTargetHeading(MURRAY *step, float heading);
+namespace M_func_00146F18 {
+extern void *D_002E1E40 __asm__("D_002E1E40");
+float D_002BD374 __asm__("D_002BD374") = 0.5f, D_002BD378 __asm__("D_002BD378") = 15.0f;   /* heading window (rad), turn rate (rad/s) */
+void SetStepTargetHeadingFromVector(MURRAY *step, qword direction) __asm__("SetStepTargetHeadingFromVector");
+float NormalizeAngle__Ff(float g) __asm__("NormalizeAngle__Ff");
+float GetStepHeading(MURRAY *step) __asm__("GetStepHeading");
+float ClampAbs__Fff(float g, float dg) __asm__("ClampAbs__Fff");
+void SetStepTargetHeading(MURRAY *step, float heading) __asm__("SetStepTargetHeading");
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
 // 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
 // (the current player, inferred) and remembers that heading; in 1 he keeps turning toward it (at most 15 rad/s) while
 // it stays within 0.5 rad of the remembered heading.
-void UpdateBhvMurray(BHV198 *behavior)
+extern "C" void UpdateBhvMurray(BHV198 *behavior)
 {
     UpdateBhv(behavior);
     switch (((MURRAY *)behavior->owner)->subState) {
@@ -1309,5 +1309,5 @@ void UpdateBhvMurray(BHV198 *behavior)
         break;
     }
 }
-} } // namespace M_func_00146F18
+} // namespace M_func_00146F18
 

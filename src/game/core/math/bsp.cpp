@@ -608,17 +608,17 @@ extern "C" inline void *InitVuTemp(void *p)
 // compares against it, mark.cpp links to the outside leaf). Names by address; under asm labels so that no declaration
 // above has to agree with the definitions' types.
 namespace BSP_DATA {
-extern "C" {
+
 extern float d_D_002BBAD0[8] __asm__("D_002BBAD0");
 extern float d_D_002BBAF0[8] __asm__("D_002BBAF0");
-}
+
 float d_D_002BBAD0[8] __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, -1.0e8f, 0.0f, 0.0f, 0.0f, 0.0f};
 float d_D_002BBAF0[8] __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 1.0e8f, 0.0f, 0.0f, 0.0f, 0.0f};
 struct LEAF { void *pbspNeg; void *pbspPos; void *pplane; } __attribute__((aligned(16)));
-extern "C" {
+
 extern LEAF d_D_002BBB10 __asm__("D_002BBB10");
 extern LEAF d_D_002BBB20 __asm__("D_002BBB20");
-}
+
 LEAF d_D_002BBB10 = {0, 0, d_D_002BBAD0};
 LEAF d_D_002BBB20 = {0, 0, d_D_002BBAF0};
 }

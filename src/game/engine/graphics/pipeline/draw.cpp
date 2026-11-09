@@ -276,12 +276,12 @@ void BeginRpRenderTarget1() __asm__("BeginRpRenderTarget1");
 void BeginRpForeground() __asm__("BeginRpForeground");
 void BeginRpCutout() __asm__("BeginRpCutout");
 void EndRpCutout() __asm__("EndRpCutout");
-extern "C" { PFNRP D_002BDD88[12][2] = {
+PFNRP D_002BDD88[12][2] __asm__("D_002BDD88") = {
     {(PFNRP)BeginRpGlob, (PFNRP)EndRpGlob}, {(PFNRP)BeginRpCelBorder, (PFNRP)EndRpCelBorder},
     {(PFNRP)BeginRpBlip, (PFNRP)EndRpBlip}, {(PFNRP)BeginRpBackground, (PFNRP)EndRpBackground},
     {(PFNRP)BeginRpRelight, (PFNRP)EndRpRelight}, {(PFNRP)BeginRpHud, (PFNRP)EndRpHud},
     {(PFNRP)BeginRpProjVolume, (PFNRP)EndRpProjVolume}, {(PFNRP)BeginRpProjVolume, (PFNRP)EndRpProjVolume},
     {(PFNRP)BeginRpRenderTarget0, (PFNRP)EndRpGlob}, {(PFNRP)BeginRpRenderTarget1, (PFNRP)EndRpGlob},
     {(PFNRP)BeginRpForeground, (PFNRP)EndRpGlob}, {(PFNRP)BeginRpCutout, (PFNRP)EndRpCutout}
-}; }
+};
 }

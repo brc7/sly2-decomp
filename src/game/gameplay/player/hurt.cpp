@@ -84,29 +84,29 @@ struct P{char pad0[12];VTE*vt;char pad10[0x150-0x10];CONTROL*control;char pad154
 struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
 struct POLY{float a,b,c;};
 struct LIMIT{float lo,hi;};
-extern "C"{
- extern U D_002A2DD0;
+
+ extern U D_002A2DD0 __asm__("D_002A2DD0");
  // hurt's .data starts here (address order across the namespaces below). This namespace has no extern "C" block, so
  // the definitions carry it themselves (C symbols).
- extern "C" U D_002BFA00;
-extern "C" U D_002BFA10;
- extern "C" POLY D_002BFA20;
- extern LIMIT D_002BBB60;
-extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rodata order) */
- int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
- float atan2f(float,float);
- float NormalizeAngle__Ff(float);
- void SetStepTargetHeading(P*,float);
- void FixStepAngularVelocity(P*);
- void SetStepTargetHeadingFromVector(P*,qword);
- qword GetLoWorldPos(P*);
- float GetStepHeading(P*);
- void InvalidateSoAaox(P*);
- void ReleaseAsega(ASEGA**);
- void ReleaseSma(COMPONENT**);
- void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**);
- void ReplaceSma(void*,P*,int,void*,COMPONENT**);
-}
+ extern U D_002BFA00 __asm__("D_002BFA00");
+extern U D_002BFA10 __asm__("D_002BFA10");
+ extern POLY D_002BFA20 __asm__("D_002BFA20");
+ extern LIMIT D_002BBB60 __asm__("D_002BBB60");
+extern const float D_002A6720 __asm__("D_002A6720");   /* defined below where the ELF has it (.rodata order) */
+ int IsBasicDerivedFrom__FP5BASIC3CID(P*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+ float atan2f(float,float) __asm__("atan2f");
+ float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+ void SetStepTargetHeading(P*,float) __asm__("SetStepTargetHeading");
+ void FixStepAngularVelocity(P*) __asm__("FixStepAngularVelocity");
+ void SetStepTargetHeadingFromVector(P*,qword) __asm__("SetStepTargetHeadingFromVector");
+ qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
+ float GetStepHeading(P*) __asm__("GetStepHeading");
+ void InvalidateSoAaox(P*) __asm__("InvalidateSoAaox");
+ void ReleaseAsega(ASEGA**) __asm__("ReleaseAsega");
+ void ReleaseSma(COMPONENT**) __asm__("ReleaseSma");
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+ void ReplaceSma(void*,P*,int,void*,COMPONENT**) __asm__("ReplaceSma");
+
 // The actor's velocity (virtual slot 33).
 static inline qword Vector(P*p){VTE*v=&p->vt[33];return ((qword(*)(P*))v->pfn)((P*)((char*)p+v->d));}
 // Set the actor's vector at virtual slot 36.
@@ -199,7 +199,7 @@ typedef char P_Prefix_Size[sizeof(P)==0x19C0?1:-1];
 typedef char C_Prefix_Size[sizeof(C)==0xD4?1:-1];
 // Hurt sub-state switch (leave/enter): Sly-specific settings for CID 0x35, facing and launch from the hit direction,
 // retracting/applying hit clips, and the death states 8..12.
-extern "C" void SetJtHurtState(C *hurt, int next)
+void SetJtHurtState(C *hurt, int next) __asm__("SetJtHurtState"); void SetJtHurtState(C *hurt, int next)
 {
     U velocity, camera0, camera1;
     if (next == hurt->mode)
@@ -329,13 +329,13 @@ extern "C" void SetJtHurtState(C *hurt, int next)
 } // namespace M_SetJtHurtState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001A1098 { extern "C" {
+namespace M_func_001A1098 {
 struct D { int a; int b; };
-extern HURTZ D_002BFA30[7];
-HURTZ *AllocCopyFromWorldHeap(struct D *d, void *p);
-XF *FindSoXf(STEPPLAYER *a, int b, int c);
+extern HURTZ D_002BFA30[7] __asm__("D_002BFA30");
+HURTZ *AllocCopyFromWorldHeap(struct D *d, void *p) __asm__("AllocCopyFromWorldHeap");
+XF *FindSoXf(STEPPLAYER *a, int b, int c) __asm__("FindSoXf");
 // Post-load: allocates the 7-entry hurt table and looks up the hurt-related child transforms.
-void PostLoadJtHurt(JTHURT *s)
+extern "C" void PostLoadJtHurt(JTHURT *s)
 {
     struct D d;
     int i;
@@ -348,7 +348,7 @@ void PostLoadJtHurt(JTHURT *s)
         e->pxf = FindSoXf(s->player, e->id, 6);
     }
 }
-} } // namespace M_func_001A1098
+} // namespace M_func_001A1098
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelZap {
@@ -356,10 +356,10 @@ typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x80]; qword v80; };
 struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(QWROW &u); };
 struct P { struct O *o; int state; };
-extern "C" qword D_002A2DD0;
-extern "C" float D_002BFA90[3];   /* the zap spring */
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern float D_002BFA90[3] __asm__("D_002BFA90");   /* the zap spring */
 
-extern "C" void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c);
+extern void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c) __asm__("AccelSoTowardPosSpring");
 // Broadcast g into a VU0 register and store it to u.
 static inline qword BroadcastTo(float g,QWROW *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
 // Set the vector to -xE8->v80 (keeping the -1 broadcast in u).
@@ -407,25 +407,25 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateJtActiveZap { extern "C" {
+namespace M_UpdateJtActiveZap {
 typedef int qword __attribute__((mode(TI)));
 struct LO;
 struct LO { int x0, x4, x8; VTE *vt; char pad10[0xD0 - 0x10]; float xD0; char padD4[0x1A8 - 0xD4]; float x1A8; char pad1AC[0x208 - 0x1AC]; int x208; };
 struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
-extern float D_002BFAA0[3];
-extern float D_002BFAB0[3];
-extern float D_002BFAC0[3];
-extern float D_002BBB60[2];
-void InvalidateSoAaox(struct LO *po);
-float cosf(float g);
-float atan2f(float y, float x);
-float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c);
-void SetStepTargetHeading(struct LO *po, float g);
-int IsJtStuck(struct LO *po, int n, float g);
-void RunJtHurtCallback(struct S *s);
+extern float D_002BFAA0[3] __asm__("D_002BFAA0");
+extern float D_002BFAB0[3] __asm__("D_002BFAB0");
+extern float D_002BFAC0[3] __asm__("D_002BFAC0");
+extern float D_002BBB60[2] __asm__("D_002BBB60");
+void InvalidateSoAaox(struct LO *po) __asm__("InvalidateSoAaox");
+float cosf(float g) __asm__("cosf");
+float atan2f(float y, float x) __asm__("atan2f");
+float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c) __asm__("SmoothAngle__FfffP3SMPPf");
+void SetStepTargetHeading(struct LO *po, float g) __asm__("SetStepTargetHeading");
+int IsJtStuck(struct LO *po, int n, float g) __asm__("IsJtStuck");
+void RunJtHurtCallback(struct S *s) __asm__("RunJtHurtCallback");
 // Per-frame update of the hurt state (jts 4): smooths the heading, advances timers, runs the pending callback and
 // escapes when stuck (IsJtStuck).
-void UpdateJtActiveZap(struct S *s)
+extern "C" void UpdateJtActiveZap(struct S *s)
 {
     if (s->x90 != -1) {
         float u;
@@ -465,20 +465,20 @@ done:
     }
     }
 }
-} } // namespace M_UpdateJtActiveZap
+} // namespace M_UpdateJtActiveZap
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001A15B0 { extern "C" {
+namespace M_func_001A15B0 {
 // Stores a pointer-to-member callback to run when the hurt animation ends.
-void SetJtHurtCallback(JTHURT *hurt, HURTEND k) { hurt->hurtend = k; }
-} } // namespace M_func_001A15B0
+extern "C" void SetJtHurtCallback(JTHURT *hurt, HURTEND k) { hurt->hurtend = k; }
+} // namespace M_func_001A15B0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_RunJtHurtCallback { extern "C" {
+namespace M_RunJtHurtCallback {
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 // Takes and clears the pending callback and calls it; with none, the death states return to a safe place and the
 // others start a fall (SetJtAirJump).
-void RunJtHurtCallback(JTHURT *s)
+extern "C" void RunJtHurtCallback(JTHURT *s)
 {
     HURTEND pmf = s->hurtend;
     func_002333B4(&s->hurtend, 0, sizeof(s->hurtend));
@@ -492,7 +492,7 @@ void RunJtHurtCallback(JTHURT *s)
         SetJtAirJump(&s->player->jtair, 11, 0, 0);
     }
 }
-} } // namespace M_RunJtHurtCallback
+} // namespace M_RunJtHurtCallback
 
 // Callback thunk: ReturnJtToSafePlace(owner, null).
 extern "C" void ReturnJtToSafePlaceCallback(JTHURT *hurt)
@@ -501,37 +501,37 @@ extern "C" void ReturnJtToSafePlaceCallback(JTHURT *hurt)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001A16C8 { extern "C" {
+namespace M_func_001A16C8 {
 // Select and blend the movement vector for the active mode.
 typedef int qword __attribute__((mode(TI)));
 typedef union U{float f[4];qword q;int bits[4];}U;   // floats first: U globals are initialized
 typedef union F{float value;int bits;}F;
 struct M3{U row[3];};
 struct P{LO*self;char pad4[0x30-4];LO*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
-extern F D_002BFACC;
-extern F D_002BFAD0;
-extern F D_002BFAD4;
-extern U D_002BFAE0;
-extern U D_002BFAF0;
-extern F D_002BFB00;
-extern F D_002BFB04;
-extern U D_002A2DA0,D_002A2DC0;
-int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int);
-qword LimitVectorLength(qword,float);
-qword GetLoWorldPos(LO*);
-struct M3*GetLoWorldMatrix(LO*);
-qword ConvertVecBetweenLos(LO*,LO*,qword);
-void SetJtHurtState(struct P*,int);
+extern F D_002BFACC __asm__("D_002BFACC");
+extern F D_002BFAD0 __asm__("D_002BFAD0");
+extern F D_002BFAD4 __asm__("D_002BFAD4");
+extern U D_002BFAE0 __asm__("D_002BFAE0");
+extern U D_002BFAF0 __asm__("D_002BFAF0");
+extern F D_002BFB00 __asm__("D_002BFB00");
+extern F D_002BFB04 __asm__("D_002BFB04");
+extern U D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0");
+int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
+qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
+struct M3*GetLoWorldMatrix(LO*) __asm__("GetLoWorldMatrix");
+qword ConvertVecBetweenLos(LO*,LO*,qword) __asm__("ConvertVecBetweenLos");
+void SetJtHurtState(struct P*,int) __asm__("SetJtHurtState");
 // Broadcast a float into a VU0 register (via a GPR).
-static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
+extern "C" { static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;} }
 // Move a float's bits into a GPR qword.
-static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;}
+extern "C" { static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;} }
 // Return v scaled by k.x.
-static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;}
+extern "C" { static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;} }
 // y lane of q as a float.
-static inline float Z(qword q){register int bits __asm__("$3");float f;__asm__("prot3w %0,%1":"=r"(bits):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
+extern "C" { static inline float Z(qword q){register int bits __asm__("$3");float f;__asm__("prot3w %0,%1":"=r"(bits):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;} }
 // Unit vector along *u, or fallback when its length is too small (register-pinned).
-static inline qword Normal(U*u,qword fallback){
+extern "C" { static inline qword Normal(U*u,qword fallback){
     register qword v __asm__("vf3")=u->q;
     register qword d __asm__("vf1"),one __asm__("vf2"),r __asm__("vf4");
     register int bits __asm__("$3");float length;
@@ -542,11 +542,11 @@ static inline qword Normal(U*u,qword fallback){
     if(length<0.0001f)return fallback;
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(d),"j"(v));
     return r;
-}
+} }
 // Return a*direction.x + b*z.x (operands as in the original).
-static inline qword Blend(qword direction,qword z,qword a,qword b){__asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(z):"j"(direction),"j"(a),"j"(b));return z;}
+extern "C" { static inline qword Blend(qword direction,qword z,qword a,qword b){__asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(z):"j"(direction),"j"(a),"j"(b));return z;} }
 // self - (target + basis.row0 * negative).
-static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
+extern "C" { static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
     register qword position __asm__("vf2")=target->q;
     register qword axis __asm__("vf1")=basis->row[0].q;
     register qword scale __asm__("vf3")=negative->q;
@@ -554,18 +554,18 @@ static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
     position=self->q;
     __asm__("vsub.xyzw %0,%0,%1":"+j"(position):"j"(axis));
     return position;
-}
+} }
 // *first - target (register-pinned).
-static inline qword Difference(U*first,qword target){
+extern "C" { static inline qword Difference(U*first,qword target){
     register qword a __asm__("vf2");
     register qword b __asm__("vf3");
     register qword r __asm__("vf1");
     __asm__("lqc2 %0,%2\n\tqmtc2.ni %3,%1":"=j"(a),"=j"(b):"m"(first->q),"r"(target));
     __asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;
-}
+} }
 // Selects and blends the knockback velocity from the damage kind flags (0x200, 0x8000, ...) and the source
 // direction, limits its length, then enters the hurt state.
-void StartJtKnockback(struct P*p){
+extern "C" void StartJtKnockback(struct P*p){
     U output=p->velocity;
     U scratch,scalar;
     U selfPosition,targetPosition,negative,otherPosition;
@@ -636,7 +636,7 @@ void StartJtKnockback(struct P*p){
     }
     SetJtHurtState(p,7);
 }
-} } // namespace M_func_001A16C8
+} // namespace M_func_001A16C8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FTakeJtDamage {
@@ -655,26 +655,26 @@ struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;c
  void Stop() __asm__("JtHurtFallCallback");
  void Finish() __asm__("ReturnJtToSafePlaceCallback");
 };
-extern "C"{
- extern char D_002DE578[];
- extern qword D_002A2DD0;
+
+ extern char D_002DE578[] __asm__("D_002DE578");
+ extern qword D_002A2DD0 __asm__("D_002A2DD0");
  union VQ{float f[4];qword q;};
- extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
- int ShouldJtVetoDamage(C*,RECORD*);
- int ScaleByDifficulty(void*,int);
- void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
- int IsBasicDerivedFrom__FP5BASIC3CID(P*,int);
- void DropStepplayerBooty(P*);
- void BroadcastGameEvent(void*,int,P*);
- void SetJtHurtCallback(C*,ACTION);
- void StartJtKnockback(C*);
- void SetJtHurtState(C*,int);
- int GetBasicCid(P*);
- void*CreateSfxSound(int);
- void SetSndSourceLo(void*,P*);
- qword GetLoWorldPos(P*);
- void*NewNoise(STIMK*,qword,P*);
-}
+ extern VQ D_002BFB10 __asm__("D_002BFB10");   // C symbol: this namespace has no extern "C" block
+ int ShouldJtVetoDamage(C*,RECORD*) __asm__("ShouldJtVetoDamage");
+ int ScaleByDifficulty(void*,int) __asm__("ScaleByDifficulty");
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+ int IsBasicDerivedFrom__FP5BASIC3CID(P*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+ void DropStepplayerBooty(P*) __asm__("DropStepplayerBooty");
+ void BroadcastGameEvent(void*,int,P*) __asm__("BroadcastGameEvent");
+ void SetJtHurtCallback(C*,ACTION) __asm__("SetJtHurtCallback");
+ void StartJtKnockback(C*) __asm__("StartJtKnockback");
+ void SetJtHurtState(C*,int) __asm__("SetJtHurtState");
+ int GetBasicCid(P*) __asm__("GetBasicCid");
+ void*CreateSfxSound(int) __asm__("CreateSfxSound");
+ void SetSndSourceLo(void*,P*) __asm__("SetSndSourceLo");
+ qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
+ void*NewNoise(STIMK*,qword,P*) __asm__("NewNoise");
+
 // a + b with unsigned wrap.
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
 // Ask the actor whether to reject the hit with these flags (virtual slot 76).
@@ -937,18 +937,18 @@ extern "C" void AdjustJtHurtXp(JTHURT *hurt, XP *xp)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001A2160 { extern "C" {
+namespace M_func_001A2160 {
 struct Q { unsigned int x0; char pad[0x30]; int x34; };
 struct S { int x0; int x4; };
 // Camera-definition hook: hurt states 5 and 8..12 clear +0x34; always sets bit 0 of the flags. (inferred)
-void AddJtHurtCpdefiFlags(struct S *hurt, struct Q *q)
+extern "C" void AddJtHurtCpdefiFlags(struct S *hurt, struct Q *q)
 {
     switch (hurt->x4) {
     case 5: case 8: case 9: case 10: case 11: case 12: q->x34 = 0; break; case 4: break;
     }
     q->x0 |= 1;
 }
-} } // namespace M_func_001A2160
+} // namespace M_func_001A2160
 
 /* Invulnerable to zap kind zpk in some player states (3, 8, 21, 22: kind 0x4000; 7: whatever the grab allows), else
    as any step player. */
@@ -1057,16 +1057,16 @@ extern "C" int GetJtHurtStatus(JTHURT *hurt)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001A23F8 { extern "C" {
-extern float D_002BFB20;
-extern float D_002BFB24;   /* hurt's contact friction and elasticity */
-extern int D_002BFB28[14];   /* parent state, -1: none */
+namespace M_func_001A23F8 {
+extern float D_002BFB20 __asm__("D_002BFB20");
+extern float D_002BFB24 __asm__("D_002BFB24");   /* hurt's contact friction and elasticity */
+extern int D_002BFB28[14] __asm__("D_002BFB28");   /* parent state, -1: none */
 // The adjust record for the current hurt state, falling back through the parent-state table D_002BFB28.
-SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
+extern "C" SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 {
     int i; SOPART *r = 0; for (i = hurt->state; i != -1 && (r = hurt->aprecHurt[i]) == 0; i = D_002BFB28[i]) ; *pout = 0; return r;
 }
-} } // namespace M_func_001A23F8
+} // namespace M_func_001A23F8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2460 {
@@ -1076,12 +1076,12 @@ struct EFFECT {char pad[0xC];VTE*vt;};
 struct L {char pad[0xC];VTE*vt;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
 struct HIT {L*target;int pad4;STEPPLAYER*source;int tag,kind;char pad14[0xC];QWROW point,direction;char pad40[0x20];};
 struct MSG {int type;char pad4[0x1C];QWROW position;};
-extern "C" qword GetLoWorldPos(LO*);
-extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
-extern "C" void*DeliverZapToSo(HIT*);
-extern "C" int ProbeStepplayerSurface(STEPPLAYER*,L*,qword*);
-extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
-extern "C" M4 __ml__FRC7MATRIX4T0(const M4*,const M4*);
+extern qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
+extern void*func_002333B4(void*,int,int) __asm__("memset");
+extern void*DeliverZapToSo(HIT*) __asm__("DeliverZapToSo");
+extern int ProbeStepplayerSurface(STEPPLAYER*,L*,qword*) __asm__("ProbeStepplayerSurface");
+extern void LoadIdentityMatrix4(void*,void*,M4*,M4*,float) __asm__("LoadIdentityMatrix4");
+extern M4 __ml__FRC7MATRIX4T0(const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
 // From UpdateStepplayer: if the player's height-adjusted point is inside the linked volume, inflicts the zap/drown
 // damage and probes for the surface (ProbeStepplayerSurface).
 extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
@@ -1161,15 +1161,15 @@ namespace M_func_001A2788 {
 typedef int qword __attribute__((mode(TI)));
 struct HIT { qword pos; char pad[0x5F0]; };
 struct L { char pad[0xE0]; int xE0; };
-extern "C" {
-extern qword D_002A2DD0;
-qword GetLoWorldPos(void *p);
-void *AllocFromStack(SWALLOC *pmsg);
-int CollectSoParts(L *pl, void *pfn, int n, void *pv);
-int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
-void CanWaterInflictZap(void);
-int ProbeStepplayerSurface(STEPPLAYER *po, L *pl, qword *pv);
-}
+
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void *AllocFromStack(SWALLOC *pmsg) __asm__("AllocFromStack");
+int CollectSoParts(L *pl, void *pfn, int n, void *pv) __asm__("CollectSoParts");
+int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit) __asm__("ClipEdgeToObjects");
+void CanWaterInflictZap(void) __asm__("CanWaterInflictZap");
+int ProbeStepplayerSurface(STEPPLAYER *po, L *pl, qword *pv) __asm__("ProbeStepplayerSurface");
+
 // Line test from the player down to the linked volume's surface; writes the hit position.
 int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 {
@@ -1202,20 +1202,20 @@ int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 } // namespace M_func_001A2788
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001A28B0 { extern "C" {
-int ProbeStepplayerSurface(STEPPLAYER *p,void *o,qword *pos);
-void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
-void AddSoWaterAcceleration(STEPPLAYER *p,void *o);
-qword GetLoWorldPos(STEPPLAYER *p);
-float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,SMPA *s,float *result);
-void AddSoAcceleration(STEPPLAYER *p,qword v);
+namespace M_func_001A28B0 {
+int ProbeStepplayerSurface(STEPPLAYER *p,void *o,qword *pos) __asm__("ProbeStepplayerSurface");
+void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v) __asm__("CalculateWaterCurrent");
+void AddSoWaterAcceleration(STEPPLAYER *p,void *o) __asm__("AddSoWaterAcceleration");
+qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
+float SmoothValueWithAccel__FffffP4SMPAPf(float pos,float vel,float target,float dt,SMPA *s,float *result) __asm__("SmoothValueWithAccel__FffffP4SMPAPf");
+void AddSoAcceleration(STEPPLAYER *p,qword v) __asm__("AddSoAcceleration");
 // Rotate *v by the 3x3 matrix m.
-static inline qword Mul(const qword *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m[0]),"j"(m[1]),"j"(m[2]));return r; }
+extern "C" { static inline qword Mul(const qword *m,const qword *v) { qword r; __asm__("vmulax.xyz ACC,%2,%1x\n\tvmadday.xyz ACC,%3,%1y\n\tvmaddz.xyz %0,%4,%1z" : "=j"(r) : "j"(*v),"j"(m[0]),"j"(m[1]),"j"(m[2]));return r; } }
 // Broadcast int bits into a VU0 register.
-static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; }
+extern "C" { static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; } }
 // STEPPLAYER vtable slot 72 (shared by Sly and Murray): in water/vertical states applies the water current and
 // buoyancy; otherwise the SO base.
-void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
+extern "C" void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
 {
  QWROW origin,vel,pos,local,dir,v50,accel,bcast;
  float z,g;
@@ -1252,7 +1252,7 @@ void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
   break;
  }
 }
-} } // namespace M_func_001A28B0
+} // namespace M_func_001A28B0
 
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
@@ -1260,44 +1260,44 @@ void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_hurt {
 void p_func_001A2080() __asm__("JtHurtFallCallback2");
-extern "C" {
-}
+
+
 } // namespace ANPTR_hurt
 
 // ---- hurt's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-namespace M_SetJtHurtState { extern "C" {
-extern "C" U D_002BFA00={{0.0f,0.0f,-750.0f,0.0f}};
-extern "C" U D_002BFA10={{0.0f,0.0f,500.0f,0.0f}};
-extern "C" POLY D_002BFA20={-1.0f,0.004f,0.0f};
-} } // namespace M_SetJtHurtState extern "C"
-namespace M_func_001A1098 { extern "C" {
-HURTZ D_002BFA30[7] = {{0xD, 30.0f, 0}, {0xC, 30.0f, 0}, {0x13, 30.0f, 0}, {0x12, 30.0f, 0}, {0x16, 60.0f, 0}, {0xF7, 30.0f, 0},
+namespace M_SetJtHurtState {
+extern U D_002BFA00 __asm__("D_002BFA00")={{0.0f,0.0f,-750.0f,0.0f}};
+extern U D_002BFA10 __asm__("D_002BFA10")={{0.0f,0.0f,500.0f,0.0f}};
+extern POLY D_002BFA20 __asm__("D_002BFA20")={-1.0f,0.004f,0.0f};
+} // namespace M_SetJtHurtState extern "C"
+namespace M_func_001A1098 {
+HURTZ D_002BFA30[7] __asm__("D_002BFA30") = {{0xD, 30.0f, 0}, {0xC, 30.0f, 0}, {0x13, 30.0f, 0}, {0x12, 30.0f, 0}, {0x16, 60.0f, 0}, {0xF7, 30.0f, 0},
     {0x13D, 30.0f, 0}};
-} } // namespace M_func_001A1098 extern "C"
+} // namespace M_func_001A1098 extern "C"
 namespace M_PresetJtAccelZap {
-extern "C" float D_002BFA90[3] __attribute__((aligned(16))) = {0.0f, 10.0f, 0.01f};
+extern float D_002BFA90[3] __asm__("D_002BFA90") __attribute__((aligned(16))) = {0.0f, 10.0f, 0.01f};
 } // namespace M_PresetJtAccelZap
-namespace M_UpdateJtActiveZap { extern "C" {
-float D_002BFAA0[3] = {1.0f, 0.0f, -0.75f};
-float D_002BFAB0[3] = {0.7f, 0.3f, 0.0f};
-float D_002BFAC0[3] = {3.5f, 0.0f, 0.5f};
-} } // namespace M_UpdateJtActiveZap extern "C"
-namespace M_func_001A16C8 { extern "C" {
+namespace M_UpdateJtActiveZap {
+float D_002BFAA0[3] __asm__("D_002BFAA0") = {1.0f, 0.0f, -0.75f};
+float D_002BFAB0[3] __asm__("D_002BFAB0") = {0.7f, 0.3f, 0.0f};
+float D_002BFAC0[3] __asm__("D_002BFAC0") = {3.5f, 0.0f, 0.5f};
+} // namespace M_UpdateJtActiveZap extern "C"
+namespace M_func_001A16C8 {
 /* The F words are plain floats (4-aligned in the ELF; the one-float union would be 8-aligned), defined under
  * their asm labels so the declarations above stay as the functions see them. */
 namespace HURT_DATA { float r_D_002BFACC __asm__("D_002BFACC") = 0.25f; }
 namespace HURT_DATA { float r_D_002BFAD0 __asm__("D_002BFAD0") = 700.0f; }
 namespace HURT_DATA { float r_D_002BFAD4 __asm__("D_002BFAD4") = 1200.0f; }
-U D_002BFAE0={{1000.0f,900.0f,950.0f,0.0f}};
-U D_002BFAF0={{1000.0f,-900.0f,950.0f,0.0f}};
+U D_002BFAE0 __asm__("D_002BFAE0")={{1000.0f,900.0f,950.0f,0.0f}};
+U D_002BFAF0 __asm__("D_002BFAF0")={{1000.0f,-900.0f,950.0f,0.0f}};
 namespace HURT_DATA { float r_D_002BFB00 __asm__("D_002BFB00") = 600.0f; }
 namespace HURT_DATA { float r_D_002BFB04 __asm__("D_002BFB04") = 800.0f; }
-} } // namespace M_func_001A16C8 extern "C"
-namespace M_FTakeJtDamage { extern "C" {
-extern "C" VQ D_002BFB10={{0.0f,0.0f,-1000.0f,0.0f}};
-} } // namespace M_FTakeJtDamage extern "C"
-namespace M_func_001A23F8 { extern "C" {
-float D_002BFB20 = 1.0f;
-float D_002BFB24 = 0.3f;
-int D_002BFB28[14] = {-1, 0, 0, 0, -1, 0, 0, 0, 0, -1, 8, 8, 5, 4};
-} }
+} // namespace M_func_001A16C8 extern "C"
+namespace M_FTakeJtDamage {
+extern VQ D_002BFB10 __asm__("D_002BFB10")={{0.0f,0.0f,-1000.0f,0.0f}};
+} // namespace M_FTakeJtDamage extern "C"
+namespace M_func_001A23F8 {
+float D_002BFB20 __asm__("D_002BFB20") = 1.0f;
+float D_002BFB24 __asm__("D_002BFB24") = 0.3f;
+int D_002BFB28[14] __asm__("D_002BFB28") = {-1, 0, 0, 0, -1, 0, 0, 0, 0, -1, 8, 8, 5, 4};
+}

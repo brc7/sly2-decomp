@@ -91,7 +91,7 @@ struct VECTOR; struct MATRIX4;
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
-extern "C" CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args);
+extern CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinAdd__FiP4CRefP6CFrame");
 
 // The node a script reference points to.
 static inline CPair *NodeFromRef(CRef *p) { return p->u.ppair; }
@@ -164,7 +164,7 @@ struct VECTOR; struct MATRIX4;
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
-extern "C" CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args);
+extern CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinSubtract__FiP4CRefP6CFrame");
 
 // The node a script reference points to.
 static inline CPair *NodeFromRef(CRef *p) { return p->u.ppair; }
@@ -270,11 +270,11 @@ struct VU_FLOAT_F {
 struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
 struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v) __asm__("__9VU_VECTORRC6VECTOR"); };
 qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
-extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
-extern "C" { MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b); }
-extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
-extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);   /* CRef = VU_VECTOR (tag 0x1A) */
-extern "C" CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args);
+extern qword *VECTOR_opAssign(VECTOR *p, qword v) __asm__("VECTOR_opAssign");
+MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
+CRef CRef_CloneTo(CRef *pref, void *a, void *b) __asm__("CRef_CloneTo");
+extern CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec) __asm__("CRef_SetVector_VU_VECTOR");   /* CRef = VU_VECTOR (tag 0x1A) */
+extern CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinMultiply__FiP4CRefP6CFrame");
 
 // Return *pv scaled by g.
 static inline qword MulVF(const qword *pv, float g)
@@ -478,9 +478,9 @@ struct VU_FLOAT {
 struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
 struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v) __asm__("__9VU_VECTORRC6VECTOR"); };
 qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
-extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
-extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
-extern "C" CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args);
+extern qword *VECTOR_opAssign(VECTOR *p, qword v) __asm__("VECTOR_opAssign");
+CRef CRef_CloneTo(CRef *pref, void *a, void *b) __asm__("CRef_CloneTo");
+extern CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinDivide__FiP4CRefP6CFrame");
 
 struct VU_FLOAT_V {
     qword q;
@@ -618,11 +618,11 @@ extern "C" CRefData *BuiltinPrintFrame__FiP4CRefP6CFrame(CRefData *pref)
 }
 
 // 0x120330 BuiltinPrintSidebag__FiP4CRefP6CFrame
-namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
+namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 // Splice builtin "print-sidebag": returns Void (local CRef then InitTag 0x24).
-CRefData *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRefData *ret)
+extern "C" CRefData *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRefData *ret)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -630,13 +630,13 @@ CRefData *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRefData *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame
+} // namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame
 
 // 0x120370 BuiltinIntEqual__FiP4CRefP6CFrame
-namespace M_BuiltinIntEqual__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIntEqual__FiP4CRefP6CFrame {
 // Splice builtin "=": bool(tag0==tag1 payload ints equal).
 // Compares only the two payload words, never the tags (Sly 1's '=').
-CRefData *BuiltinIntEqual__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinIntEqual__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int a = args[0].u.n;
     int b = args[1].u.n;
@@ -644,12 +644,12 @@ CRefData *BuiltinIntEqual__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefDat
     ret->u.n = a == b;
     return ret;
 }
-} } // namespace M_BuiltinIntEqual__FiP4CRefP6CFrame
+} // namespace M_BuiltinIntEqual__FiP4CRefP6CFrame
 
 // 0x120398 CompareNumericArgs__FP4CRef4CMPK
-namespace M_CompareNumericArgs__FP4CRef4CMPK { extern "C" {
+namespace M_CompareNumericArgs__FP4CRef4CMPK {
 // Numeric compare of args[0],args[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool.
-CRefData *CompareNumericArgs__FP4CRef4CMPK(CRefData *ret, CRefData *args, int op)
+extern "C" CRefData *CompareNumericArgs__FP4CRef4CMPK(CRefData *ret, CRefData *args, int op)
 {
     float ag[2];
     int i;
@@ -678,7 +678,7 @@ CRefData *CompareNumericArgs__FP4CRef4CMPK(CRefData *ret, CRefData *args, int op
     ret->m_tagk = TAGK_BOOL;
     return ret;
 }
-} } // namespace M_CompareNumericArgs__FP4CRef4CMPK
+} // namespace M_CompareNumericArgs__FP4CRef4CMPK
 
 // 0x120488 BuiltinLess__FiP4CRefP6CFrame
 // Splice builtin "<": CompareNumericArgs(args,0) <.
@@ -716,7 +716,7 @@ extern "C" CRefData *BuiltinGreaterOrEqual__FiP4CRefP6CFrame(CRefData *pref, int
 namespace M_BuiltinEqv__FiP4CRefP6CFrame {
 // MATCH (Claude agent laneB14, 2026-10-23), from BuiltinEqv__FiP4CRefP6CFrame.cpp (6). FEq body written out with one commented register pin (pb in a1)
 // plus one empty asm whose only job is extra uses of f (f is live from entry on the default path, so its priority was below the return pointer's).
-extern "C" CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinEqv__FiP4CRefP6CFrame");
 // Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare.
 CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -752,7 +752,7 @@ struct W; struct X;
 struct W { int cref; int n4; int n8; CRef ref; int n14; CPair *pnext; };
 struct X { int cref; int n4; int n8; int nC; };
 
-extern "C" CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b);
+extern CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b) __asm__("AreRefsStructurallyEqual__FP4CRefT0");
 // Recursive structural equality (lists, vectors, matrices) -> Bool.
 CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b)
 {
@@ -835,128 +835,128 @@ extern "C" CRefData *BuiltinEqual__FiP4CRefP6CFrame(CRefData *pref, int cref, CR
 }
 
 // 0x120820 BuiltinIsBoolean__FiP4CRefP6CFrame
-namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame {
 // Splice builtin "boolean?": tag==0x17.
-CRefData *BuiltinIsBoolean__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsBoolean__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_BOOL;
     return ret;
 }
-} } // namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame
 
 // 0x120840 BuiltinIsNum__FiP4CRefP6CFrame
-namespace M_BuiltinIsNum__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsNum__FiP4CRefP6CFrame {
 // Splice builtin "number?": tag==0x15||0x16.
-CRefData *BuiltinIsNum__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsNum__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_S32 || tagk == TAGK_F32;
     return ret;
 }
-} } // namespace M_BuiltinIsNum__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsNum__FiP4CRefP6CFrame
 
 // 0x120860 BuiltinIsFloat__FiP4CRefP6CFrame
-namespace M_BuiltinIsFloat__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsFloat__FiP4CRefP6CFrame {
 // Splice builtin "float?": tag==0x16 (F32).
-CRefData *BuiltinIsFloat__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsFloat__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_F32;
     return ret;
 }
-} } // namespace M_BuiltinIsFloat__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsFloat__FiP4CRefP6CFrame
 
 // 0x120880 BuiltinIsInteger__FiP4CRefP6CFrame
-namespace M_BuiltinIsInteger__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsInteger__FiP4CRefP6CFrame {
 // Splice builtin "integer?": tag==0x15 (S32).
-CRefData *BuiltinIsInteger__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsInteger__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_S32;
     return ret;
 }
-} } // namespace M_BuiltinIsInteger__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsInteger__FiP4CRefP6CFrame
 
 // 0x1208A0 BuiltinIsSymbol__FiP4CRefP6CFrame
-namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame {
 // Splice builtin "symbol?": tag==0x18.
-CRefData *BuiltinIsSymbol__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsSymbol__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_SYMID;
     return ret;
 }
-} } // namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame
 
 // 0x1208C0 BuiltinIsVector__FiP4CRefP6CFrame
-namespace M_BuiltinIsVector__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsVector__FiP4CRefP6CFrame {
 // Splice builtin "vector?": tag==0x1A.
-CRefData *BuiltinIsVector__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsVector__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_VECTOR;
     return ret;
 }
-} } // namespace M_BuiltinIsVector__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsVector__FiP4CRefP6CFrame
 
 // 0x1208E0 BuiltinIsMatrix__FiP4CRefP6CFrame
-namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame {
 // Splice builtin "matrix?": tag==0x1B.
-CRefData *BuiltinIsMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_MATRIX;
     return ret;
 }
-} } // namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame
 
 // 0x120900 BuiltinIsClq__FiP4CRefP6CFrame
-namespace M_BuiltinIsClq__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsClq__FiP4CRefP6CFrame {
 // Splice builtin "clq?": tag==0x1C.
-CRefData *BuiltinIsClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_CLQ;
     return ret;
 }
-} } // namespace M_BuiltinIsClq__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsClq__FiP4CRefP6CFrame
 
 // 0x120920 BuiltinIsLm__FiP4CRefP6CFrame
-namespace M_BuiltinIsLm__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsLm__FiP4CRefP6CFrame {
 // Splice builtin "lm?": tag==0x1D.
-CRefData *BuiltinIsLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_LM;
     return ret;
 }
-} } // namespace M_BuiltinIsLm__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsLm__FiP4CRefP6CFrame
 
 // 0x120940 BuiltinIsSmp__FiP4CRefP6CFrame
-namespace M_BuiltinIsSmp__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsSmp__FiP4CRefP6CFrame {
 // Splice builtin "smp?": tag==0x1E.
-CRefData *BuiltinIsSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_SMP;
     return ret;
 }
-} } // namespace M_BuiltinIsSmp__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsSmp__FiP4CRefP6CFrame
 
 // 0x120960 BuiltinIsList__FiP4CRefP6CFrame
 namespace M_BuiltinIsList__FiP4CRefP6CFrame {
-extern "C" CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref);
+extern CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref) __asm__("BuiltinIsList__FiP4CRefP6CFrame");
 
 // Splice builtin "list?": tag==0x1F||tag==0.
 CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
@@ -967,28 +967,28 @@ CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 } // namespace M_BuiltinIsList__FiP4CRefP6CFrame
 
 // 0x120990 BuiltinIsNull__FiP4CRefP6CFrame
-namespace M_BuiltinIsNull__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsNull__FiP4CRefP6CFrame {
 // Splice builtin "null?": tag==0.
-CRefData *BuiltinIsNull__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsNull__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == 0;
     return ret;
 }
-} } // namespace M_BuiltinIsNull__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsNull__FiP4CRefP6CFrame
 
 // 0x1209B0 BuiltinIsObject__FiP4CRefP6CFrame
-namespace M_BuiltinIsObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsObject__FiP4CRefP6CFrame {
 // Splice builtin "object?": tag==0x21.
-CRefData *BuiltinIsObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_BASIC;
     return ret;
 }
-} } // namespace M_BuiltinIsObject__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsObject__FiP4CRefP6CFrame
 
 // 0x1209D0 BuiltinIsNullObj__FiP4CRefP6CFrame
 // Splice builtin "null-obj?": tag==0x21 && ptr==NULL.
@@ -1006,20 +1006,20 @@ extern "C" CRefData *BuiltinIsNullObj__FiP4CRefP6CFrame(CRefData *pref, int cref
 }
 
 // 0x120A00 BuiltinIsMethod__FiP4CRefP6CFrame
-namespace M_BuiltinIsMethod__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinIsMethod__FiP4CRefP6CFrame {
 // Splice builtin "method?": tag==0x22.
-CRefData *BuiltinIsMethod__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
+extern "C" CRefData *BuiltinIsMethod__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
     ret->m_tagk = TAGK_BOOL;
     ret->u.n = tagk == TAGK_METHOD;
     return ret;
 }
-} } // namespace M_BuiltinIsMethod__FiP4CRefP6CFrame
+} // namespace M_BuiltinIsMethod__FiP4CRefP6CFrame
 
 // 0x120A20 BuiltinIsProcedure__FiP4CRefP6CFrame
 namespace M_BuiltinIsProcedure__FiP4CRefP6CFrame {
-extern "C" CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref);
+extern CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref) __asm__("BuiltinIsProcedure__FiP4CRefP6CFrame");
 
 // Splice builtin "procedure?": tag==0x20||0x19.
 CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
@@ -1030,10 +1030,10 @@ CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 } // namespace M_BuiltinIsProcedure__FiP4CRefP6CFrame
 
 // 0x120A58 BuiltinAreNear__FiP4CRefP6CFrame
-namespace M_BuiltinAreNear__FiP4CRefP6CFrame { extern "C" {
-int AreFloatsNear__Ffff(float a, float b, float c);
+namespace M_BuiltinAreNear__FiP4CRefP6CFrame {
+int AreFloatsNear__Ffff(float a, float b, float c) __asm__("AreFloatsNear__Ffff");
 // Splice builtin "near?": AreFloatsNear(a,b,eps).
-CRefData *BuiltinAreNear__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinAreNear__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float ag[3];
     int i;
@@ -1047,7 +1047,7 @@ CRefData *BuiltinAreNear__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData
     ret->u.n = f;
     return ret;
 }
-} } // namespace M_BuiltinAreNear__FiP4CRefP6CFrame
+} // namespace M_BuiltinAreNear__FiP4CRefP6CFrame
 
 // 0x120AE0 BuiltinNot__FiP4CRefP6CFrame
 // Splice builtin "not": true iff arg is Bool false.
@@ -1068,10 +1068,10 @@ extern "C" CRefData *BuiltinNot__FiP4CRefP6CFrame(CRefData *pref, int cref, CRef
 namespace M_BuiltinCons__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -1080,7 +1080,7 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinCons__FiP4CRefP6CFrame");
 // Splice builtin "cons": new pair node (ref=a0, next=a1 if list).
 CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -1117,12 +1117,12 @@ extern "C" CRefData *BuiltinCdr__FiP4CRefP6CFrame(CRefData *pref, int cref, CRef
 }
 
 // 0x120C48 BuiltinSetCadr__FiP4CRefP6CFrame4BIFK
-namespace M_BuiltinSetCadr__FiP4CRefP6CFrame4BIFK { extern "C" {
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
+namespace M_BuiltinSetCadr__FiP4CRefP6CFrame4BIFK {
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
 void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 // Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void.
-CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, CRefData *args, int cref, int k)
+extern "C" CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, CRefData *args, int cref, int k)
 {
     char *p = (__typeof__(p))args[0].u.pv;
     if (k == 0x23)
@@ -1134,29 +1134,29 @@ CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, CRe
     SetTag__4CRef4TAGK(ret, 0x24);
     return ret;
 }
-} } // namespace M_BuiltinSetCadr__FiP4CRefP6CFrame4BIFK
+} // namespace M_BuiltinSetCadr__FiP4CRefP6CFrame4BIFK
 
 // 0x120CC8 BuiltinSetCar__FiP4CRefP6CFrame
-namespace M_BuiltinSetCar__FiP4CRefP6CFrame { extern "C" {
-void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k);
+namespace M_BuiltinSetCar__FiP4CRefP6CFrame {
+void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "set-car!": BuiltinSetCadr(...,0x23).
-CRefData *BuiltinSetCar__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinSetCar__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x23);
     return ret;
 }
-} } // namespace M_BuiltinSetCar__FiP4CRefP6CFrame
+} // namespace M_BuiltinSetCar__FiP4CRefP6CFrame
 
 // 0x120CF8 BuiltinSetCdr__FiP4CRefP6CFrame
-namespace M_BuiltinSetCdr__FiP4CRefP6CFrame { extern "C" {
-void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k);
+namespace M_BuiltinSetCdr__FiP4CRefP6CFrame {
+void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "set-cdr!": BuiltinSetCadr(...,0x24).
-CRefData *BuiltinSetCdr__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinSetCdr__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x24);
     return ret;
 }
-} } // namespace M_BuiltinSetCdr__FiP4CRefP6CFrame
+} // namespace M_BuiltinSetCdr__FiP4CRefP6CFrame
 
 // 0x120D28 BuiltinLength__FiP4CRefP6CFrame
 // Splice builtin "length": count of list nodes -> S32.
@@ -1180,14 +1180,14 @@ extern "C" CRefData *BuiltinLength__FiP4CRefP6CFrame(CRefData *pref, int cref, C
 }
 
 // 0x120D78 BuiltinNth__FiP4CRefP6CFrame
-namespace M_BuiltinNth__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinNth__FiP4CRefP6CFrame {
 struct PAIR;
 typedef struct PAIR { int a; int b; CRefData ref; struct PAIR *pnext; } PAIR;
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
-void Decref__4CRef(CRefData *pref);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "nth": walk list to index a1.
-CRefData *BuiltinNth__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinNth__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     SetTag__4CRef4TAGK(&ref, 0);
@@ -1206,15 +1206,15 @@ CRefData *BuiltinNth__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *ar
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinNth__FiP4CRefP6CFrame
+} // namespace M_BuiltinNth__FiP4CRefP6CFrame
 
 // 0x120E10 BuiltinIsMember__FiP4CRefP6CFrame
 namespace M_BuiltinIsMember__FiP4CRefP6CFrame {
 
-extern "C" {
-CRef BuiltinEqual__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
-CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx);
-}
+
+CRef BuiltinEqual__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx) __asm__("BuiltinEqual__FiP4CRefP6CFrame");
+CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx) __asm__("BuiltinIsMember__FiP4CRefP6CFrame");
+
 // Splice builtin "member?": loop calling BuiltinEqual on each element.
 CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
 {
@@ -1251,11 +1251,11 @@ namespace M_BuiltinShuffle {
 struct SPN;
 // (Claude agent, laneB10) MATCH: the !fShuffle reassign goes through an inline SetSpn(SPN*, CPair*) so &spRes is substituted directly (no pseudo for gcse to share with pspHead).
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-int RandomIntInRange__Fii(int nLo, int nHi);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+int RandomIntInRange__Fii(int nLo, int nHi) __asm__("RandomIntInRange__Fii");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -1266,7 +1266,7 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern "C" CRef BuiltinShuffle(void *pbasic, CRef *args);
+extern CRef BuiltinShuffle(void *pbasic, CRef *args) __asm__("BuiltinShuffle");
 // Assign pn to a pair pointer.
 static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
 // Insert the pair held by sp at the front of the list psp.
@@ -1337,10 +1337,10 @@ CRef BuiltinShuffle(void *pbasic, CRef *args)
 namespace M_BuiltinAppend__FiP4CRefP6CFrame {
 struct SP;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SP {
     CPair *p;
     // Empty pair pointer.
@@ -1352,8 +1352,8 @@ struct SP {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" SP CPair_CloneTo(CPair *src, void *a, void *b);
-extern "C" CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern SP CPair_CloneTo(CPair *src, void *a, void *b) __asm__("CPair_CloneTo");
+extern CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinAppend__FiP4CRefP6CFrame");
 // Splice builtin "append": concatenates list args (copies all but last).
 CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -1391,10 +1391,10 @@ CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 namespace M_BuildCallListForTwoArgs {
 struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -1408,7 +1408,7 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2);
+extern SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2) __asm__("BuildCallListForTwoArgs");
 // Allocates a 3-node call list (proc a b) and returns pointers to the two arg slots, for map/filter/for-each.
 SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
 {
@@ -1437,10 +1437,10 @@ SPN BuildCallListForTwoArgs(CRef **ppref1, CRef **ppref2)
 namespace M_BuiltinMap__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -1450,9 +1450,9 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
-extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
-extern "C" CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
+extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("BuildCallListForTwoArgs");
+extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
+extern CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) __asm__("BuiltinMap__FiP4CRefP6CFrame");
 // Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results.
 CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
@@ -1490,10 +1490,10 @@ CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 namespace M_BuiltinFilter__FiP4CRefP6CFrame {
 struct SP; struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SP {
     CPair *p;
     // Empty pair pointer.
@@ -1514,9 +1514,9 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
-extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
-extern "C" CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
+extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("BuildCallListForTwoArgs");
+extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
+extern CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) __asm__("BuiltinFilter__FiP4CRefP6CFrame");
 // Splice builtin "filter": same, keeps elems where result true.
 CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
@@ -1560,10 +1560,10 @@ CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 namespace M_BuiltinForEach__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn);
@@ -1572,9 +1572,9 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb);
-extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
-extern "C" CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs);
+extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("BuildCallListForTwoArgs");
+extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
+extern CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) __asm__("BuiltinForEach__FiP4CRefP6CFrame");
 // Splice builtin "for-each": same, discards results.
 CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
@@ -1600,10 +1600,10 @@ CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 namespace M_BuiltinEval__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -1612,8 +1612,8 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args);
-extern "C" CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args);
+extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
+extern CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args) __asm__("BuiltinEval__FiP4CRefP6CFrame");
 // Splice builtin "eval": wraps arg in list and applies 0x127838.
 CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 {
@@ -1627,10 +1627,10 @@ CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 // 0x121DD8 BuiltinVector__FiP4CRefP6CFrame
 namespace M_BuiltinVector__FiP4CRefP6CFrame {
 
-extern "C" {
-CRef CRef_CoerceF32(CRef *pref);
-CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref);
-}
+
+CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref) __asm__("BuiltinVector__FiP4CRefP6CFrame");
+
 // Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs).
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
 {
@@ -1674,11 +1674,11 @@ namespace M_BuiltinMatrix__FiP4CRefP6CFrame {
 struct MATRIX4;
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float m[4][4]; };
-extern "C" {
+
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
-CRef CRef_CoerceF32(CRef *pref);
-CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref);
-}
+CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref) __asm__("BuiltinMatrix__FiP4CRefP6CFrame");
+
 // Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based.
 CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
 {
@@ -1723,12 +1723,12 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
 } // namespace M_BuiltinMatrix__FiP4CRefP6CFrame
 
 // 0x1220B8 BuiltinClq__FiP4CRefP6CFrame
-namespace M_BuiltinClq__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
+namespace M_BuiltinClq__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq": 3 floats -> tag 0x1C.
-CRefData *BuiltinClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     int i;
@@ -1745,15 +1745,15 @@ CRefData *BuiltinClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *ar
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinClq__FiP4CRefP6CFrame
+} // namespace M_BuiltinClq__FiP4CRefP6CFrame
 
 // 0x122168 BuiltinLm__FiP4CRefP6CFrame
-namespace M_BuiltinLm__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
+namespace M_BuiltinLm__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "lm": 2 floats -> tag 0x1D.
-CRefData *BuiltinLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     int i;
@@ -1770,15 +1770,15 @@ CRefData *BuiltinLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *arg
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinLm__FiP4CRefP6CFrame
+} // namespace M_BuiltinLm__FiP4CRefP6CFrame
 
 // 0x122218 BuiltinSmp__FiP4CRefP6CFrame
-namespace M_BuiltinSmp__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
+namespace M_BuiltinSmp__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "smp": 3 floats -> tag 0x1E.
-CRefData *BuiltinSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     int i;
@@ -1795,21 +1795,21 @@ CRefData *BuiltinSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *ar
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinSmp__FiP4CRefP6CFrame
+} // namespace M_BuiltinSmp__FiP4CRefP6CFrame
 
 // 0x1222C8 BuiltinGetElement__FiP4CRefP6CFrame
-namespace M_BuiltinGetElement__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinGetElement__FiP4CRefP6CFrame {
 struct VECTOR; struct IDX;
 /* MATCH (Claude agent laneB9, 2026-10-23): v3 + second commented pin, pv in $5 (a1), pf = (i << 4) + pv. */
 /* v3 (Claude agent laneB8, 2026-10-23): aligned 10 -> 2. ONE commented register pin: pf in $2 (v0), plus the tail written as `pf += j; f(*pf)` in all three arms (the sum then reuses pf like the target). Left: 1B-else `sll v0,a1,4; lw a1,pv` (target puts i<<4 in pf/v0, pv in a1; ours sll a1 in place, pv in v0). Tried: (i<<4)+char*, int sums, pf = base + i*4, &[i].x, j pin instead, i pin: 2-18. */
 /* v2 (Claude agent, 2026-10-17): aligned 22 -> 10. Shared function-scope i / j / float *pf across cases (pidx = pidx->pnext reused) gives the target t0/a1/a3 registers and the cross-jumped pf[j] tail. Left: pf in v1, j in v0 (target pf v0, j v1) in the pf[j] tail. */
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
 typedef struct IDX { int pad[3]; int i; struct IDX *pnext; } IDX;
-void Decref__4CRef(CRefData *pref);
-CRefData *SetF32__4CReff(CRefData *pref, float g);
-CRefData *CRef_SetVector(CRefData *pref, VECTOR *pv);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+CRefData *SetF32__4CReff(CRefData *pref, float g) __asm__("SetF32__4CReff");
+CRefData *CRef_SetVector(CRefData *pref, VECTOR *pv) __asm__("CRef_SetVector");
 // Splice builtin "get-element": element of vector/matrix by index list.
-CRefData *BuiltinGetElement__FiP4CRefP6CFrame(CRefData *ret, int carg, CRefData *args)
+extern "C" CRefData *BuiltinGetElement__FiP4CRefP6CFrame(CRefData *ret, int carg, CRefData *args)
 {
     CRefData ref;
     IDX *pidx;
@@ -1850,16 +1850,16 @@ CRefData *BuiltinGetElement__FiP4CRefP6CFrame(CRefData *ret, int carg, CRefData 
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinGetElement__FiP4CRefP6CFrame
+} // namespace M_BuiltinGetElement__FiP4CRefP6CFrame
 
 // 0x1223C0 BuiltinRandom__FiP4CRefP6CFrame
 namespace M_BuiltinRandom__FiP4CRefP6CFrame {
-extern "C" {
-CRef CRef_CoerceF32(CRef *pref);
-int RandomIntInRange__Fii(int a, int b);
-float RandomFloatInRange__Fff(float a, float b);
-CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+int RandomIntInRange__Fii(int a, int b) __asm__("RandomIntInRange__Fii");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinRandom__FiP4CRefP6CFrame");
+
 // Splice builtin "random": RandomIntInRange for ints else RandomFloatInRange.
 CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -1876,13 +1876,13 @@ CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinRandom__FiP4CRefP6CFrame
 
 // 0x1224A8 ApplyUnaryFloatOp__FP4CRef4UFOK
-namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK { extern "C" {
+namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK {
 typedef float (*PFNG)(float);
-extern PFNG D_002BBB70[];
-void SetF32__4CReff(CRefData *pref, float g);
-void Decref__4CRef(CRefData *pref);
+extern PFNG D_002BBB70[] __asm__("D_002BBB70");
+void SetF32__4CReff(CRefData *pref, float g) __asm__("SetF32__4CReff");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7).
-CRefData *ApplyUnaryFloatOp__FP4CRef4UFOK(CRefData *ret, CRefData *parg, int i)
+extern "C" CRefData *ApplyUnaryFloatOp__FP4CRef4UFOK(CRefData *ret, CRefData *parg, int i)
 {
     CRefData ref;
     float g;
@@ -1897,7 +1897,7 @@ CRefData *ApplyUnaryFloatOp__FP4CRef4UFOK(CRefData *ret, CRefData *parg, int i)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK
+} // namespace M_ApplyUnaryFloatOp__FP4CRef4UFOK
 
 // 0x122530 BuiltinSqrt__FiP4CRefP6CFrame
 // Splice builtin "sqrt": ApplyUnaryFloatOp(arg,0).
@@ -1964,10 +1964,10 @@ extern "C" CRefData *BuiltinRadNormalize__FiP4CRefP6CFrame(CRefData *pref, int c
 }
 
 // 0x1226B0 BuiltinAtan2__FiP4CRefP6CFrame
-namespace M_BuiltinAtan2__FiP4CRefP6CFrame { extern "C" {
-float atan2f(float y, float x);
+namespace M_BuiltinAtan2__FiP4CRefP6CFrame {
+float atan2f(float y, float x) __asm__("atan2f");
 // Splice builtin "atan2": atan2f(a0,a1).
-CRefData *BuiltinAtan2__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinAtan2__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float ag[2];
     int i;
@@ -1981,13 +1981,13 @@ CRefData *BuiltinAtan2__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *
     ret->m_tagk = TAGK_F32;
     return ret;
 }
-} } // namespace M_BuiltinAtan2__FiP4CRefP6CFrame
+} // namespace M_BuiltinAtan2__FiP4CRefP6CFrame
 
 // 0x122730 BuiltinVectorDotProduct__FiP4CRefP6CFrame
-namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of *pa and *pb, as raw float bits.
-static __inline__ int DotProduct3(qword *pa, qword *pb)
+extern "C" { static __inline__ int DotProduct3(qword *pa, qword *pb)
 {
     register qword a __asm__("vf1") = *pa;
     register qword b __asm__("vf2") = *pb;
@@ -1999,24 +1999,24 @@ static __inline__ int DotProduct3(qword *pa, qword *pb)
         "vmaddz.x %0, %1, %0z" : "+j"(a), "=j"(t) : "j"(b));
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
-}
+} }
 // Splice builtin "vector-dot-product": VU dot xyz.
-CRefData *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int g = DotProduct3((qword *)args[0].u.n, (qword *)args[1].u.n);
     ret->m_tagk = TAGK_F32;
     *(volatile int *)&ret->u.n = g;
     return ret;
 }
-} } // namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame
 
 // 0x122770 BuiltinVectorCrossProduct__FiP4CRefP6CFrame
-namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
-CRefData *CRef_ctor(CRefData *pref, qword v);
-void Decref__4CRef(CRefData *pref);
+CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-cross-product": VU outer product (cross).
-CRefData *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     register qword a __asm__("vf1") = *(qword *)args[0].u.n;
@@ -2029,13 +2029,13 @@ CRefData *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasi
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame
 
 // 0x1227D0 BuiltinVectorLength__FiP4CRefP6CFrame
-namespace M_BuiltinVectorLength__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorLength__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
 // Length of the xyz part of *pa, as raw float bits.
-static __inline__ int VectorLength3(qword *pa)
+extern "C" { static __inline__ int VectorLength3(qword *pa)
 {
     register qword a __asm__("vf1") = *pa;
     register qword t __asm__("vf2");
@@ -2049,26 +2049,26 @@ static __inline__ int VectorLength3(qword *pa)
         "vaddq.x %0, $vf0, Q" : "+j"(a));
     __asm__ ("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
-}
+} }
 // Splice builtin "vector-lth": VU length.
-CRefData *BuiltinVectorLength__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinVectorLength__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int g = VectorLength3((qword *)args[0].u.n);
     ret->m_tagk = TAGK_F32;
     *(volatile int *)&ret->u.n = g;
     return ret;
 }
-} } // namespace M_BuiltinVectorLength__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorLength__FiP4CRefP6CFrame
 
 // 0x122810 BuiltinVectorDistance__FiP4CRefP6CFrame
 namespace M_BuiltinVectorDistance__FiP4CRefP6CFrame {
 struct W;
 typedef int qword __attribute__((mode(TI)));
 struct W { char pad[0xC]; qword *pv; };
-extern "C" { extern qword D_002A2DD0; }
-extern "C" {
-CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+
+CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorDistance__FiP4CRefP6CFrame");
+
 // Distance between *pa and *pb.
 static inline float SDist(qword *pa, qword *pb)
 {
@@ -2108,10 +2108,10 @@ namespace M_BuiltinVectorDistanceSquared__FiP4CRefP6CFrame {
 struct W;
 typedef int qword __attribute__((mode(TI)));
 struct W { char pad[0xC]; qword *pv; };
-extern "C" { extern qword D_002A2DD0; }
-extern "C" {
-CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+
+CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorDistanceSquared__FiP4CRefP6CFrame");
+
 // Squared distance between *pa and *pb.
 static inline float SDistSq(qword *pa, qword *pb)
 {
@@ -2147,8 +2147,8 @@ namespace M_BuiltinVectorNormalize__FiP4CRefP6CFrame {
 struct W;
 typedef int qword __attribute__((mode(TI)));
 struct W { char pad[0xC]; qword *pv; };
-extern "C" { extern qword D_002A2DD0; }
-extern "C" CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorNormalize__FiP4CRefP6CFrame");
 // Length of the xyz part of c, in the x lane.
 static __inline__ qword VLen(qword c)
 {
@@ -2202,12 +2202,12 @@ CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinVectorNormalize__FiP4CRefP6CFrame
 
 // 0x122B08 BuiltinVectorProjectNormal__FiP4CRefP6CFrame
-namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
-CRefData *CRef_ctor(CRefData *pref, qword v);
-void Decref__4CRef(CRefData *pref);
+CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-project-normal": (a.b)b.
-CRefData *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     register qword a __asm__("vf1") = *(qword *)args[0].u.n;
@@ -2223,15 +2223,15 @@ CRefData *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRefData *ret, void *pbas
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame
 
 // 0x122B70 BuiltinVectorProjectTangent__FiP4CRefP6CFrame
-namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
-CRefData *CRef_ctor(CRefData *pref, qword v);
-void Decref__4CRef(CRefData *pref);
+CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-project-tangent": a-(a.b)b.
-CRefData *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     register qword a __asm__("vf3") = *(qword *)args[0].u.n;
@@ -2249,7 +2249,7 @@ CRefData *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRefData *ret, void *pba
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame
+} // namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame
 
 // 0x122BE0 BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame
 namespace M_BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame {
@@ -2259,11 +2259,11 @@ union VQ { struct { float x, y, z, w; } v; qword q; };
 struct XFM { char pad[0x80]; qword pos; };
 struct O { char pad[0xE8]; XFM *pxfm; };
 struct W { char pad[0xC]; O *po; };
-extern "C" {
-CRef CRef_CoerceF32(CRef *pref);
-qword CalculateBallisticLaunchVelocity(qword a, qword b, qword c, float g);
-CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+qword CalculateBallisticLaunchVelocity(qword a, qword b, qword c, float g) __asm__("CalculateBallisticLaunchVelocity");
+CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame");
+
 // Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with gravity (0,0,-1750)
 // or object xfm.
 CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
@@ -2289,10 +2289,10 @@ namespace M_BuiltinVectorRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
 typedef int qword __attribute__((mode(TI)));
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -2301,8 +2301,8 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" float AngleBetweenVectors(qword a, qword b, void *pvec);
-extern "C" CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern float AngleBetweenVectors(qword a, qword b, void *pvec) __asm__("AngleBetweenVectors");
+extern CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorRadianNormal__FiP4CRefP6CFrame");
 // Splice builtin "vector-radian-normal": list (rad vector) from AngleBetweenVectors-like 0x11E4B0.
 CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2317,12 +2317,12 @@ CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinVectorRadianNormal__FiP4CRefP6CFrame
 
 // 0x122DE0 BuiltinMatrixTranspose__FiP4CRefP6CFrame
-namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void TransposeMatrix4(MATRIX4 *pmat, int n);
+namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void TransposeMatrix4(MATRIX4 *pmat, int n) __asm__("TransposeMatrix4");
 // Splice builtin "matrix-transpose": 0x11C1D8.
-CRefData *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     MATRIX4 mat;
@@ -2332,7 +2332,7 @@ CRefData *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, 
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrixTranspose__FiP4CRefP6CFrame
 
 // 0x122E40 BuiltinMatrixInvert__FiP4CRefP6CFrame
 // Splice builtin "matrix-invert": 0x11C2F0.
@@ -2365,12 +2365,12 @@ struct MATRIX4; // Script matrix-slerp builtin. Matched by Claude agent (2026-10
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float g; } UF;
 struct MATRIX4 { float m[4][4]; };
-extern "C" {
-MATRIX3Q MulMatrix3Matrix3(MATRIX3Q *pa, MATRIX3Q *pb);
-void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3Q *pmat, float *prad, qword *pvec);
-MATRIX3Q BuildAxisAngleRotationMatrix(float rad, qword axis);
+
+MATRIX3Q MulMatrix3Matrix3(MATRIX3Q *pa, MATRIX3Q *pb) __asm__("MulMatrix3Matrix3");
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3Q *pmat, float *prad, qword *pvec) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
+MATRIX3Q BuildAxisAngleRotationMatrix(float rad, qword axis) __asm__("BuildAxisAngleRotationMatrix");
 void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-}
+
 // Return the 3x3 matrix product a * *pb.
 static inline MATRIX3Q MulM3(const MATRIX3Q &a, MATRIX3Q *pb) return m
 {
@@ -2386,7 +2386,7 @@ static inline MATRIX3Q MulM3(const MATRIX3Q &a, MATRIX3Q *pb) return m
             : "=j"(r2) : "j"(a.r[0].q), "j"(a.r[1].q), "j"(a.r[2].q), "j"(pb->r[2].q));
     m.r[2].q = r2; t.r[2].q = r2;
 }
-extern "C" CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args);
+extern CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame");
 // Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500).
 CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
@@ -2426,13 +2426,13 @@ extern "C" CRefData *BuiltinMatrixDecomposeToRotate__FiP4CRefP6CFrame(CRefData *
 }
 
 // 0x1230C8 BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame
-namespace M_BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame {
 typedef int TI __attribute__((mode(TI)));
-void Decref__4CRef(CRefData *pref);
-void CRef_ctor(CRefData *pref, TI vec);
-TI DecomposeRotationMatrixToEuler(int n);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_ctor(CRefData *pref, TI vec) __asm__("CRef_ctor");
+TI DecomposeRotationMatrixToEuler(int n) __asm__("DecomposeRotationMatrixToEuler");
 // Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler.
-CRefData *BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     CRef_ctor(&ref, DecomposeRotationMatrixToEuler(args->u.n));
@@ -2440,16 +2440,16 @@ CRefData *BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRefData *ret, void *p
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame
+} // namespace M_BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame
 
 // 0x123118 BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -2458,8 +2458,8 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec);
-extern "C" CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
+extern CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame");
 // Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad.
 CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2481,11 +2481,11 @@ struct MATRIX3; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { VECTOR4 mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
-extern "C" { extern qword D_002A2DC0; }
-extern "C" {
-MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b);
-CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+
+MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
+CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMatrixLookAt__FiP4CRefP6CFrame");
+
 // Return *pb - *pa.
 static inline qword SubtractVectors(qword *pb, qword *pa)
 {
@@ -2521,11 +2521,11 @@ typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { VECTOR4 mat[3]; };
 struct MATRIX4 { VECTOR4 mat[3]; VECTOR4 pos; };
 struct XF { char pad[0x30]; qword pos; };
-extern "C" {
-void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat);
-VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qword q);
-CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat) __asm__("TiltMatUpright");
+VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qword q) __asm__("VECTOR_opAssign");
+CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMatrixTiltUpright__FiP4CRefP6CFrame");
+
 // Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright.
 CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2544,11 +2544,11 @@ CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinMatrixTiltUpright__FiP4CRefP6CFrame
 
 // 0x123380 BuiltinClqEvaluate__FiP4CRefP6CFrame
-namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
+namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq-evaluate": a0+t(a1+t a2).
-CRefData *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float *a = (float *)args[0].u.pv;
     CRefData ref;
@@ -2561,16 +2561,16 @@ CRefData *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRef
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame
+} // namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame
 
 // 0x1233F0 BuiltinClqEvaluateLm__FiP4CRefP6CFrame
-namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame {
 struct LM;
 typedef struct LM { float minValue; float maxValue; } LM;
-void Decref__4CRef(CRefData *pref);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.
-CRefData *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float *c = (float *)args[0].u.pv;
     LM *plm = (LM *)args[1].u.pv;
@@ -2583,15 +2583,15 @@ CRefData *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CR
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame
+} // namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame
 
 // 0x123498 BuiltinClqFit__FiP4CRefP6CFrame
 namespace M_BuiltinClqFit__FiP4CRefP6CFrame {
-extern "C" {
-CRef CRef_CoerceF32(CRef *pref);
-void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d);
-CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d) __asm__("FitClq__FffffP3CLQ");
+CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinClqFit__FiP4CRefP6CFrame");
+
 // Splice builtin "clq-fit": FitClq.
 CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2611,12 +2611,12 @@ CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinClqFit__FiP4CRefP6CFrame
 
 // 0x1235A8 BuiltinLmLimit__FiP4CRefP6CFrame
-namespace M_BuiltinLmLimit__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
-float ClampToLimits__FP2LMf(int n, float g);
+namespace M_BuiltinLmLimit__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
+float ClampToLimits__FP2LMf(int n, float g) __asm__("ClampToLimits__FP2LMf");
 // Splice builtin "lm-limit": ClampToLimits.
-CRefData *BuiltinLmLimit__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinLmLimit__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int n = args[0].u.n;
     CRefData ref;
@@ -2628,15 +2628,15 @@ CRefData *BuiltinLmLimit__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinLmLimit__FiP4CRefP6CFrame
+} // namespace M_BuiltinLmLimit__FiP4CRefP6CFrame
 
 // 0x123608 BuiltinLmCheck__FiP4CRefP6CFrame
-namespace M_BuiltinLmCheck__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
-int IsWithinLimits__FP2LMf(int n, float g);
+namespace M_BuiltinLmCheck__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
+int IsWithinLimits__FP2LMf(int n, float g) __asm__("IsWithinLimits__FP2LMf");
 // Splice builtin "lm-check?": FCheckLm.
-CRefData *BuiltinLmCheck__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinLmCheck__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int n = args[0].u.n;
     CRefData ref;
@@ -2648,63 +2648,63 @@ CRefData *BuiltinLmCheck__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinLmCheck__FiP4CRefP6CFrame
+} // namespace M_BuiltinLmCheck__FiP4CRefP6CFrame
 
 // 0x123668 BuiltinFloor__FiP4CRefP6CFrame
-namespace M_BuiltinFloor__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFloor__FiP4CRefP6CFrame {
 // Splice builtin "floor": (int)g.
-CRefData *BuiltinFloor__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinFloor__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
     ret->m_tagk = TAGK_S32;
     *(int *)&ret->u.g = (int)g;
     return ret;
 }
-} } // namespace M_BuiltinFloor__FiP4CRefP6CFrame
+} // namespace M_BuiltinFloor__FiP4CRefP6CFrame
 
 // 0x123688 BuiltinCeiling__FiP4CRefP6CFrame
-namespace M_BuiltinCeiling__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinCeiling__FiP4CRefP6CFrame {
 // Splice builtin "ceiling": (int)(g+1).
-CRefData *BuiltinCeiling__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinCeiling__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
     ret->m_tagk = TAGK_S32;
     *(int *)&ret->u.g = (int)(g + 1.0f);
     return ret;
 }
-} } // namespace M_BuiltinCeiling__FiP4CRefP6CFrame
+} // namespace M_BuiltinCeiling__FiP4CRefP6CFrame
 
 // 0x1236B0 BuiltinRound__FiP4CRefP6CFrame
-namespace M_BuiltinRound__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinRound__FiP4CRefP6CFrame {
 // Splice builtin "round": (int)(g+0.5).
-CRefData *BuiltinRound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinRound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
     ret->m_tagk = TAGK_S32;
     *(int *)&ret->u.g = (int)(g + 0.5f);
     return ret;
 }
-} } // namespace M_BuiltinRound__FiP4CRefP6CFrame
+} // namespace M_BuiltinRound__FiP4CRefP6CFrame
 
 // 0x1236D8 BuiltinTruncate__FiP4CRefP6CFrame
-namespace M_BuiltinTruncate__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinTruncate__FiP4CRefP6CFrame {
 // Splice builtin "truncate": (int)g.
-CRefData *BuiltinTruncate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinTruncate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
     ret->m_tagk = TAGK_S32;
     *(int *)&ret->u.g = (int)g;
     return ret;
 }
-} } // namespace M_BuiltinTruncate__FiP4CRefP6CFrame
+} // namespace M_BuiltinTruncate__FiP4CRefP6CFrame
 
 // 0x1236F8 BuiltinAbs__FiP4CRefP6CFrame
-namespace M_BuiltinAbs__FiP4CRefP6CFrame { extern "C" {
-void SetS32__4CRefi(CRefData *pref, int n);
-void SetF32__4CReff(CRefData *pref, float g);
-void Decref__4CRef(CRefData *pref);
+namespace M_BuiltinAbs__FiP4CRefP6CFrame {
+void SetS32__4CRefi(CRefData *pref, int n) __asm__("SetS32__4CRefi");
+void SetF32__4CReff(CRefData *pref, float g) __asm__("SetF32__4CReff");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "abs": abs int/float.
-CRefData *BuiltinAbs__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinAbs__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -2720,13 +2720,13 @@ CRefData *BuiltinAbs__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *ar
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinAbs__FiP4CRefP6CFrame
+} // namespace M_BuiltinAbs__FiP4CRefP6CFrame
 
 // 0x123788 BuiltinMaximum__FiP4CRefP6CFrame
 namespace M_BuiltinMaximum__FiP4CRefP6CFrame {
 
 // same shape as BuiltinMinimum (max instead of min): list pointer reuses the args parameter variable
-extern "C" CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMaximum__FiP4CRefP6CFrame");
 // Splice builtin "max": max over varargs.
 CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2764,7 +2764,7 @@ CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 namespace M_BuiltinMinimum__FiP4CRefP6CFrame {
 
 // pn reuses the args parameter variable (if/else, tag != 0 arm first) -> beql s0=0
-extern "C" CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args);
+extern CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMinimum__FiP4CRefP6CFrame");
 // Splice builtin "min": min over varargs.
 CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -2799,28 +2799,28 @@ CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinMinimum__FiP4CRefP6CFrame
 
 // 0x1239D8 BuiltinModulo__FiP4CRefP6CFrame
-namespace M_BuiltinModulo__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinModulo__FiP4CRefP6CFrame {
 // Splice builtin "modulo": int %.
-CRefData *BuiltinModulo__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinModulo__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int r = args[0].u.n % args[1].u.n;
     ret->m_tagk = TAGK_S32;
     ret->u.n = r;
     return ret;
 }
-} } // namespace M_BuiltinModulo__FiP4CRefP6CFrame
+} // namespace M_BuiltinModulo__FiP4CRefP6CFrame
 
 // 0x123A08 BuiltinCurrentTime__FiP4CRefP6CFrame
-namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame { extern "C" {
-extern float D_002DDED0;   /* g_clock.time as a float: the CLOCK field access schedules the load differently */
+namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame {
+extern float D_002DDED0 __asm__("D_002DDED0");   /* g_clock.time as a float: the CLOCK field access schedules the load differently */
 // Splice builtin "current-time": F32 = g_clock.time (D_002DDED0).
-CRefData *BuiltinCurrentTime__FiP4CRefP6CFrame(CRefData *ret)
+extern "C" CRefData *BuiltinCurrentTime__FiP4CRefP6CFrame(CRefData *ret)
 {
     ret->m_tagk = TAGK_F32;
     ret->u.g = D_002DDED0;
     return ret;
 }
-} } // namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame
+} // namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame
 
 // 0x123A28 BuiltinCurrentLevel
 // S32 of global D_003E1110 (0x210A88) = current load-filter/job id used by IsCurrentLevelInList.
@@ -2901,13 +2901,13 @@ namespace M_BuiltinScheduleCallback__FiP4CRefP6CFrame {
 struct R; struct SPN;
 
 struct OBJ;
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
 struct R { char pad[0xC]; int handle; };   /* a scheduled callback: its handle at +0xC */
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-CRef CRef_CoerceF32(CRef *pref);
-R *ScheduleSwSpliceCallback(SW *pg, int n, CPair *pnode, float t);
-}
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+R *ScheduleSwSpliceCallback(SW *pg, int n, CPair *pnode, float t) __asm__("ScheduleSwSpliceCallback");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -2916,7 +2916,7 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern "C" CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args);
+extern CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args) __asm__("BuiltinScheduleCallback__FiP4CRefP6CFrame");
 // Splice builtin "schedule-callback": builds (proc obj args...) and calls 0x133040(g_sw,..,t) -> S32 handle.
 CRef BuiltinScheduleCallback__FiP4CRefP6CFrame(int c, CRef *args)
 {
@@ -2959,12 +2959,12 @@ extern "C" CRefData *BuiltinCancelCallback(CRefData *pref, int cref, CRefData *a
 }
 
 // 0x123E18 BuiltinDeferObjectUpdate__FiP4CRefP6CFrame
-namespace M_BuiltinDeferObjectUpdate__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
+namespace M_BuiltinDeferObjectUpdate__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "defer-object-update": obj+0x30 = g_clock.time + dt.
-CRefData *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     CRefData refT;
@@ -2980,17 +2980,17 @@ CRefData *BuiltinDeferObjectUpdate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinDeferObjectUpdate__FiP4CRefP6CFrame
+} // namespace M_BuiltinDeferObjectUpdate__FiP4CRefP6CFrame
 
 // 0x123EB0 BuiltinObjectOption__FiP4CRefP6CFrame4BIFK
 namespace M_BuiltinObjectOption__FiP4CRefP6CFrame4BIFK {
-extern "C" {
-CRef AddBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
-CRef EnsureBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
-CRef SetBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref);
-CRef GetBasicOption__FP5BASICi(void *a, void *b);
-CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op);
-}
+
+CRef AddBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref) __asm__("AddBasicOption__FP5BASICiP4CRef");
+CRef EnsureBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref) __asm__("EnsureBasicOption__FP5BASICiP4CRef");
+CRef SetBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref) __asm__("SetBasicOption__FP5BASICiP4CRef");
+CRef GetBasicOption__FP5BASICi(void *a, void *b) __asm__("GetBasicOption__FP5BASICi");
+CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+
 // Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
 // AddBasicOption/EnsureBasicOption/SetBasicOption/GetBasicOption.
 CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
@@ -3017,54 +3017,54 @@ CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *
 } // namespace M_BuiltinObjectOption__FiP4CRefP6CFrame4BIFK
 
 // 0x123FB8 BuiltinAddOption__FiP4CRefP6CFrame
-namespace M_BuiltinAddOption__FiP4CRefP6CFrame { extern "C" {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k);
+namespace M_BuiltinAddOption__FiP4CRefP6CFrame {
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> AddBasicOption.
-CRefData *BuiltinAddOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinAddOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
     return ret;
 }
-} } // namespace M_BuiltinAddOption__FiP4CRefP6CFrame
+} // namespace M_BuiltinAddOption__FiP4CRefP6CFrame
 
 // 0x123FE8 BuiltinEnsureOption__FiP4CRefP6CFrame
-namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame { extern "C" {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k);
+namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame {
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "ensureo": op 0x6D EnsureBasicOption.
-CRefData *BuiltinEnsureOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinEnsureOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
     return ret;
 }
-} } // namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame
+} // namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame
 
 // 0x124018 BuiltinSetOption__FiP4CRefP6CFrame
-namespace M_BuiltinSetOption__FiP4CRefP6CFrame { extern "C" {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k);
+namespace M_BuiltinSetOption__FiP4CRefP6CFrame {
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "seto!": op 0x6E SetBasicOption.
-CRefData *BuiltinSetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinSetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
     return ret;
 }
-} } // namespace M_BuiltinSetOption__FiP4CRefP6CFrame
+} // namespace M_BuiltinSetOption__FiP4CRefP6CFrame
 
 // 0x124048 BuiltinGetOption__FiP4CRefP6CFrame
-namespace M_BuiltinGetOption__FiP4CRefP6CFrame { extern "C" {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k);
+namespace M_BuiltinGetOption__FiP4CRefP6CFrame {
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "geto": op 0x6F GetBasicOption.
-CRefData *BuiltinGetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinGetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
     return ret;
 }
-} } // namespace M_BuiltinGetOption__FiP4CRefP6CFrame
+} // namespace M_BuiltinGetOption__FiP4CRefP6CFrame
 
 // 0x124078 BuildListFromObjects__FiPP2LO
 namespace M_BuildListFromObjects__FiPP2LO {
-extern "C" {
-CRef BuildListFromObjects__FiPP2LO(int c, LO **apo);
-}
+
+CRef BuildListFromObjects__FiPP2LO(int c, LO **apo) __asm__("BuildListFromObjects__FiPP2LO");
+
 // Builds a Splice list of CRef(BASIC*) from an LO* array.
 CRef BuildListFromObjects__FiPP2LO(int c, LO **apo)
 {
@@ -3087,15 +3087,15 @@ CRef BuildListFromObjects__FiPP2LO(int c, LO **apo)
 } // namespace M_BuildListFromObjects__FiPP2LO
 
 // 0x124150 BuiltinFindObject__FiP4CRefP6CFrame
-namespace M_BuiltinFindObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFindObject__FiP4CRefP6CFrame {
 struct ARGCTX;
 /* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
 struct ARGCTX { char pad[0xC]; LO *plo; };
-void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c);
-void CRef_SetBasic(CRefData *pref, void *p);
-void Decref__4CRef(CRefData *pref);
+void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c) __asm__("FindSwObjectInProxyScope");
+void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root.
-CRefData *BuiltinFindObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinFindObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     LO *b;
@@ -3118,18 +3118,18 @@ CRefData *BuiltinFindObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefD
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinFindObject__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindObject__FiP4CRefP6CFrame
 
 // 0x1241E8 BuiltinFindObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjects__FiP4CRefP6CFrame {
 struct ARGCTX;
 /* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
 struct ARGCTX { char pad[0xC]; LO *plo; };
-extern "C" {
-int FindSwObjectsInProxyScope(SW *psw, int k, void *a, LO *b, void *c, int n, void **ap);
-CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
-CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+int FindSwObjectsInProxyScope(SW *psw, int k, void *a, LO *b, void *c, int n, void **ap) __asm__("FindSwObjectsInProxyScope");
+CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjects__FiPP2LO");
+CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindObjects__FiP4CRefP6CFrame");
+
 // Splice builtin "find-objects": 0x15E678 + BuildListFromObjects.
 CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3159,10 +3159,10 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 namespace M_BuiltinFindObjectsFromOids {
 struct SPN; struct LOV; struct OW;
 
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -3175,8 +3175,8 @@ struct SPN {
 struct LO;
 struct LOV { char pad[0x3C]; int n3C; };   /* the search root's proxy context (+0x3C) */
 struct OW { char pad[0xC]; LOV *psw; };
-extern "C" LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, int n2);
-extern "C" CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args);
+extern LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, int n2) __asm__("FindSwObjectInProxyScope");
+extern CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args) __asm__("BuiltinFindObjectsFromOids");
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
 CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
 {
@@ -3216,15 +3216,15 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
 } // namespace M_BuiltinFindObjectsFromOids
 
 // 0x1244E8 BuiltinFindNearestObject__FiP4CRefP6CFrame
-namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame {
 struct ARGCTX;
 /* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
 struct ARGCTX { char pad[0xC]; LO *plo; };
-void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c);
-void CRef_SetBasic(CRefData *pref, void *p);
-void Decref__4CRef(CRefData *pref);
+void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c) __asm__("FindSwObjectInProxyScope");
+void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "find-nearest-object": like find-object with k=4.
-CRefData *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     LO *b;
@@ -3246,18 +3246,18 @@ CRefData *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame
 
 // 0x124578 BuiltinFindNearestObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame {
 struct ARGCTX;
 /* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
 struct ARGCTX { char pad[0xC]; LO *plo; };
-extern "C" {
-int FindSwObjectsInProxyScope(SW *psw, int k, void *a, LO *b, void *c, int n, void **ap);
-CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
-CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+int FindSwObjectsInProxyScope(SW *psw, int k, void *a, LO *b, void *c, int n, void **ap) __asm__("FindSwObjectsInProxyScope");
+CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjects__FiPP2LO");
+CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindNearestObjects__FiP4CRefP6CFrame");
+
 // Splice builtin "find-nearest-objects": 0x15E678 k=4 + BuildListFromObjects.
 CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3283,11 +3283,11 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 } // namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame
 
 // 0x124640 BuiltinFindWorldObject__FiP4CRefP6CFrame
-namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_SetBasic(CRefData *pref, void *p);
+namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
 // Splice builtin "find-world-object": CRef(BASIC*) of &D_003DD490 (g_sw).
-CRefData *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRefData *ret)
+extern "C" CRefData *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRefData *ret)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -3296,15 +3296,15 @@ CRefData *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRefData *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame
 
 // 0x124690 BuiltinFindSoundObject
-namespace M_BuiltinFindSoundObject { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_SetBasic(CRefData *pref, void *p);
+namespace M_BuiltinFindSoundObject {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
 // CRef(BASIC*) of static object D_003DD040 (the object LoadSwFromBrx passes to 0x1FD0E8 sound-section loader).
 // The object is the sound manager g_sndmgr; scripts call StartDialog and its other methods on it.
-CRefData *BuiltinFindSoundObject(CRefData *ret)
+extern "C" CRefData *BuiltinFindSoundObject(CRefData *ret)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -3313,14 +3313,14 @@ CRefData *BuiltinFindSoundObject(CRefData *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinFindSoundObject
+} // namespace M_BuiltinFindSoundObject
 
 // 0x1246E0 BuiltinFindCameraObject__FiP4CRefP6CFrame
-namespace M_BuiltinFindCameraObject__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_SetBasic(CRefData *pref, void *p);
+namespace M_BuiltinFindCameraObject__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
 // Splice builtin "find-camera-object": CRef(BASIC*) of &g_cm.
-CRefData *BuiltinFindCameraObject__FiP4CRefP6CFrame(CRefData *ret)
+extern "C" CRefData *BuiltinFindCameraObject__FiP4CRefP6CFrame(CRefData *ret)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -3329,15 +3329,15 @@ CRefData *BuiltinFindCameraObject__FiP4CRefP6CFrame(CRefData *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinFindCameraObject__FiP4CRefP6CFrame
+} // namespace M_BuiltinFindCameraObject__FiP4CRefP6CFrame
 
 // 0x124730 BuiltinFindClassObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindClassObjects__FiP4CRefP6CFrame {
-extern "C" {
-int FindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap);
-CRef BuildListFromObjects__FiPP2LO(int c, void **ap);
-CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+int FindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap) __asm__("FindSwObjectsByClass");
+CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjects__FiPP2LO");
+CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindClassObjects__FiP4CRefP6CFrame");
+
 // Splice builtin "find-class-objects": 0x15E9C8 by class + BuildListFromObjects.
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3353,12 +3353,12 @@ CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x1247D8 BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
-extern "C" {
-void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap);
-void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
-CRef BuildListFromObjects__FiPP2LO(int c, void *ap);
-CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap) __asm__("IntersectSwBoundingBox");
+void BuildUniqueSoList(int c, void *ap, int *pc, void **pap) __asm__("BuildUniqueSoList");
+CRef BuildListFromObjects__FiPP2LO(int c, void *ap) __asm__("BuildListFromObjects__FiPP2LO");
+CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame");
+
 // Splice builtin "find-objects-in-bounding-box": 0x20FAA0 box query + 0x20FDC8 filter.
 CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3378,12 +3378,12 @@ CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x1248B0 BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame {
 typedef int qword __attribute__((mode(TI)));
-extern "C" {
-void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
-void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
-CRef BuildListFromObjects__FiPP2LO(int c, void *ap);
-CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args);
-}
+
+void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap) __asm__("IntersectSwBoundingSphere");
+void BuildUniqueSoList(int c, void *ap, int *pc, void **pap) __asm__("BuildUniqueSoList");
+CRef BuildListFromObjects__FiPP2LO(int c, void *ap) __asm__("BuildListFromObjects__FiPP2LO");
+CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame");
+
 // Splice builtin "find-objects-in-bounding-sphere": 0x20FC60 sphere query + 0x20FDC8.
 CRef BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
@@ -3413,10 +3413,10 @@ struct SPN; struct HIT;
 typedef int qword __attribute__((mode(TI)));
 
 struct LO;
-extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
-extern "C" {
-void FreeSlotheapSlot(void *pheap, void *pv);
-}
+extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
+
+void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
+
 struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
@@ -3434,7 +3434,7 @@ struct HIT {
     qword normal;
     int pad[16];
 };
-extern "C" int ClipEdgeToObject(SOPART *pso, qword pos0, qword pos1, int f, HIT *phit);
+extern int ClipEdgeToObject(SOPART *pso, qword pos0, qword pos1, int f, HIT *phit) __asm__("ClipEdgeToObject");
 
 /* Script builtin: ray-cast segment aref[1]->aref[2] against every SO of each LO in list aref[0].
    pv == 0x7B: return list of (lo pos normal) for all hits; otherwise return (lo normal) of the first hit. */
@@ -3500,10 +3500,10 @@ extern "C" CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, 
 
 // 0x124F00 BuiltinHitTestObjects__FiP4CRefP6CFrame
 namespace M_BuiltinHitTestObjects__FiP4CRefP6CFrame {
-extern "C" {
-CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
-CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c);
-}
+
+CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c) __asm__("BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame");
+CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c) __asm__("BuiltinHitTestObjects__FiP4CRefP6CFrame");
+
 // Splice builtin "hit-test-objects": BuiltinHitTestObjectsImpl(0x7B=own BIFK) -> list of (lo pos normal).
 CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c)
 {
@@ -3515,10 +3515,10 @@ CRef BuiltinHitTestObjects__FiP4CRefP6CFrame(void *a, void *b, void *c)
 
 // 0x124F80 BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame
 namespace M_BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame {
-extern "C" {
-CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
-CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c);
-}
+
+CRef BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c) __asm__("BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame");
+CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c) __asm__("BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame");
+
 // Splice builtin "hit-test-objects-first": Impl(0x7C) -> first hit.
 CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c)
 {
@@ -3529,14 +3529,14 @@ CRef BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame(void *a, void *b, void *c)
 } // namespace M_BuiltinHitTestObjectsFirst__FiP4CRefP6CFrame
 
 // 0x125000 BuiltinConvertObjectPosition__FiP4CRefP6CFrame
-namespace M_BuiltinConvertObjectPosition__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinConvertObjectPosition__FiP4CRefP6CFrame {
 typedef int TI __attribute__((mode(TI)));
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void CRef_ctor(CRefData *pref, TI vec);
-TI ConvertPosBetweenLos(int a, int b, TI v);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void CRef_ctor(CRefData *pref, TI vec) __asm__("CRef_ctor");
+TI ConvertPosBetweenLos(int a, int b, TI v) __asm__("ConvertPosBetweenLos");
 // Splice builtin "convert-object-position": ConvertPosBetweenLos 0x1A6F00.
-CRefData *BuiltinConvertObjectPosition__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinConvertObjectPosition__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     CRef_ctor(&ref, ConvertPosBetweenLos(args[0].u.n, args[1].u.n, *(TI *)args[2].u.n));
@@ -3544,16 +3544,16 @@ CRefData *BuiltinConvertObjectPosition__FiP4CRefP6CFrame(CRefData *ret, void *pb
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinConvertObjectPosition__FiP4CRefP6CFrame
+} // namespace M_BuiltinConvertObjectPosition__FiP4CRefP6CFrame
 
 // 0x125060 BuiltinConvertObjectVector__FiP4CRefP6CFrame
-namespace M_BuiltinConvertObjectVector__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinConvertObjectVector__FiP4CRefP6CFrame {
 typedef int TI __attribute__((mode(TI)));
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-TI ConvertVecBetweenLos(void *a, void *b, TI v);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+TI ConvertVecBetweenLos(void *a, void *b, TI v) __asm__("ConvertVecBetweenLos");
 // Splice builtin "convert-object-vector": ConvertVecBetweenLos 0x1A6FC0.
-CRefData *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     TI *pv;
@@ -3564,18 +3564,18 @@ CRefData *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRefData *ret, void *pbas
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinConvertObjectVector__FiP4CRefP6CFrame
+} // namespace M_BuiltinConvertObjectVector__FiP4CRefP6CFrame
 
 // 0x1250D8 BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
-namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame {
 struct MATRIX4;
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX4 { qword a[4]; } MATRIX4;
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c);
-void Decref__4CRef(CRefData *pref);
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c) __asm__("ConvertMat4BetweenLos");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "convert-object-matrix": ConvertMatBetweenLos 0x1A71B0.
-CRefData *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     MATRIX4 mat;
@@ -3588,15 +3588,15 @@ CRefData *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbas
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
+} // namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
 
 // 0x125168 BuiltinNearClipCenter__FiP4CRefP6CFrame
-namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame { extern "C" {
+namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame {
 
 typedef int qword __attribute__((mode(TI)));
-CRefData *CRef_ctor(CRefData *pref, qword v);
+CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 // Set *pv to (x, y, z) with a packed 128-bit store.
-static __inline__ void SetVector(VECTOR4 *pv, float x, float y, float z)
+extern "C" { static __inline__ void SetVector(VECTOR4 *pv, float x, float y, float z)
 {
     register qword t __asm__("$6");
     register int ix __asm__("$6"), iy __asm__("$4"), iz __asm__("$4");
@@ -3604,9 +3604,9 @@ static __inline__ void SetVector(VECTOR4 *pv, float x, float y, float z)
     __asm__ __volatile__ ("mfc1 %0, %1" : "=r"(iz) : "f"(z));
     __asm__ ("pcpyld %0, %1, %2" : "=r"(t) : "r"(iz), "r"(t));
     *(qword *)pv = t;
-}
+} }
 // Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix.
-CRefData *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRefData *ret)
+extern "C" CRefData *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRefData *ret)
 {
     VECTOR4 vec;
     CM *pcm = &g_cm;
@@ -3626,17 +3626,17 @@ CRefData *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRefData *ret)
     }
     return ret;
 }
-} } // namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame
+} // namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame
 
 // 0x1251E8 BuiltinStartSound__FiP4CRefP6CFrame
-namespace M_BuiltinStartSound__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-void CRef_ctor_BASIC(CRefData *pref, void *p);
+namespace M_BuiltinStartSound__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
+void CRef_ctor_BASIC(CRefData *pref, void *p) __asm__("CRef_ctor_BASIC");
 // Splice builtin "start-sound": 0x1FBB90/0x1FB2F8 sound start, returns CRef(BASIC*) of sound.
-CRefData *BuiltinStartSound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinStartSound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int n = args[1].u.n;
     void *p = CreateSfxSound(args[0].u.n);
@@ -3644,16 +3644,16 @@ CRefData *BuiltinStartSound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefD
     CRef_ctor_BASIC(ret, p);
     return ret;
 }
-} } // namespace M_BuiltinStartSound__FiP4CRefP6CFrame
+} // namespace M_BuiltinStartSound__FiP4CRefP6CFrame
 
 // 0x125248 BuiltinStartRumble__FiP4CRefP6CFrame
-namespace M_BuiltinStartRumble__FiP4CRefP6CFrame { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc);
-void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float g);
+namespace M_BuiltinStartRumble__FiP4CRefP6CFrame {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
+void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float g) __asm__("TriggerJoyRumbleRumk__FP3JOY4RUMKf");
 // Splice builtin "start-rumble": TriggerJoyRumbleRumk-like 0x187E28.
-CRefData *BuiltinStartRumble__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinStartRumble__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     void *p = &g_joy;
     int n = args[0].u.n;
@@ -3666,16 +3666,16 @@ CRefData *BuiltinStartRumble__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRef
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinStartRumble__FiP4CRefP6CFrame
+} // namespace M_BuiltinStartRumble__FiP4CRefP6CFrame
 
 // 0x1252D0 FillAsFromPair
-namespace M_FillAsFromPair { extern "C" {
+namespace M_FillAsFromPair {
 struct AREQ; struct ARR;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct ARR { int c; short *a; } ARR;
-short *AllocFromStack(AREQ *preq);
+short *AllocFromStack(AREQ *preq) __asm__("AllocFromStack");
 // Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements (save-var path).
-void FillAsFromPair(CPair *pnode, ARR *parr)
+extern "C" void FillAsFromPair(CPair *pnode, ARR *parr)
 {
     CPair *p;
     int i;
@@ -3694,17 +3694,17 @@ void FillAsFromPair(CPair *pnode, ARR *parr)
         }
     }
 }
-} } // namespace M_FillAsFromPair
+} // namespace M_FillAsFromPair
 
 // 0x125398 BuiltinGetSaveVar
 namespace M_BuiltinGetSaveVar {
 struct X;
 struct X { int a[4]; };
-extern "C" {
-void FillAsFromPair(void *pv, X *px);
-CRef GetSaveVar(void *a, X *px, void *b);
-CRef BuiltinGetSaveVar(void *pbasic, CRef *args);
-}
+
+void FillAsFromPair(void *pv, X *px) __asm__("FillAsFromPair");
+CRef GetSaveVar(void *a, X *px, void *b) __asm__("GetSaveVar");
+CRef BuiltinGetSaveVar(void *pbasic, CRef *args) __asm__("BuiltinGetSaveVar");
+
 // Converts path list to U16 array (0x1252D0) and returns GetSaveVar(D_003E0EA8,..).
 CRef BuiltinGetSaveVar(void *pbasic, CRef *args)
 {
@@ -3721,11 +3721,11 @@ CRef BuiltinGetSaveVar(void *pbasic, CRef *args)
 namespace M_BuiltinSetSaveVar {
 struct X;
 struct X { int a[4]; };
-extern "C" {
-void FillAsFromPair(void *pv, X *px);
-CRef SetSaveVar(void *a, X *px, CRef *pref, void *b);
-CRef BuiltinSetSaveVar(void *pbasic, CRef *args);
-}
+
+void FillAsFromPair(void *pv, X *px) __asm__("FillAsFromPair");
+CRef SetSaveVar(void *a, X *px, CRef *pref, void *b) __asm__("SetSaveVar");
+CRef BuiltinSetSaveVar(void *pbasic, CRef *args) __asm__("BuiltinSetSaveVar");
+
 // Path list + value -> SetSaveVar 0x1D80C8. Unused by retail scripts.
 CRef BuiltinSetSaveVar(void *pbasic, CRef *args)
 {
@@ -3741,7 +3741,7 @@ CRef BuiltinSetSaveVar(void *pbasic, CRef *args)
 // 0x125510 BuiltinFindBindingOrNoop
 namespace M_BuiltinFindBindingOrNoop {
 enum { BIFK_NOOP = 0x86 };   /* builtin 134, noop~ */
-extern "C" CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, CFrame *pframe);
+extern CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, CFrame *pframe) __asm__("BuiltinFindBindingOrNoop");
 // Looks up a symbol in the calling object frame chain (CFrame::FindBindingPtr(sym,1)); if unbound returns Bifk 0x86
 // (slot 134 no-op builtin).
 CRef BuiltinFindBindingOrNoop(void *pbasic, CRef *args, CFrame *frame)
@@ -3818,13 +3818,13 @@ extern "C" CRefData *BuiltinBitOr(CRefData *pref, int cref, CRefData *args)
 }
 
 // 0x125690 BuiltinFindHintboxObject
-namespace M_func_00125690 { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_SetBasic(CRefData *pref, void *p);
-extern char D_003DA0C0[];
+namespace M_func_00125690 {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
+extern char D_003DA0C0[] __asm__("D_003DA0C0");
 // Splice builtin slot 137: returns a reference to the static object D_003DA0C0, which Lilly-derived code treats as a
 // HINTBOX (ClearIfSlotId) and the save TU uses; hence the name (inferred).
-CRefData *BuiltinFindHintboxObject(CRefData *ret)
+extern "C" CRefData *BuiltinFindHintboxObject(CRefData *ret)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -3833,15 +3833,15 @@ CRefData *BuiltinFindHintboxObject(CRefData *ret)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_func_00125690
+} // namespace M_func_00125690
 
 // 0x1256E0 BuiltinIsPowerUpAcquired
-namespace M_BuiltinIsPowerUpAcquired { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void CRef_SetBool(CRefData *pref, int f);
-int IsPowerupAcquired(int n);
+namespace M_BuiltinIsPowerUpAcquired {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void CRef_SetBool(CRefData *pref, int f) __asm__("CRef_SetBool");
+int IsPowerupAcquired(int n) __asm__("IsPowerupAcquired");
 // Bool: save var powerUps.mppukfAcquired[n] via 0x1DAEA8.
-CRefData *BuiltinIsPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinIsPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     ref.m_tagk = -1;
@@ -3850,15 +3850,15 @@ CRefData *BuiltinIsPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinIsPowerUpAcquired
+} // namespace M_BuiltinIsPowerUpAcquired
 
 // 0x125738 BuiltinSetPowerUpAcquired
-namespace M_BuiltinSetPowerUpAcquired { extern "C" {
-void Decref__4CRef(CRefData *pref);
-void SetTag__4CRef4TAGK(CRefData *pref, int tagk);
-void SetPowerupAcquired(int a, int b);
+namespace M_BuiltinSetPowerUpAcquired {
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
+void SetPowerupAcquired(int a, int b) __asm__("SetPowerupAcquired");
 // Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set).
-CRefData *BuiltinSetPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
+extern "C" CRefData *BuiltinSetPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
     SetTag__4CRef4TAGK(&ref, 0x24);
@@ -3867,7 +3867,7 @@ CRefData *BuiltinSetPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
     Decref__4CRef(&ref);
     return ret;
 }
-} } // namespace M_BuiltinSetPowerUpAcquired
+} // namespace M_BuiltinSetPowerUpAcquired
 
 
 
@@ -4088,12 +4088,12 @@ void p_cosf() __asm__("cosf");
 void p_sinf() __asm__("sinf");
 void p_sqrtf() __asm__("sqrtf");
 void p_tanf() __asm__("tanf");
-extern "C" {
-extern unsigned int D_002BBB70[8] = {(unsigned int)p_sqrtf, (unsigned int)p_sinf, (unsigned int)p_cosf, (unsigned int)p_tanf, (unsigned int)p_asinf, (unsigned int)p_acosf, (unsigned int)p_atanf, (unsigned int)p_RadNormalize__Ff};
-}
+
+extern unsigned int D_002BBB70[8] __asm__("D_002BBB70") = {(unsigned int)p_sqrtf, (unsigned int)p_sinf, (unsigned int)p_cosf, (unsigned int)p_tanf, (unsigned int)p_asinf, (unsigned int)p_acosf, (unsigned int)p_atanf, (unsigned int)p_RadNormalize__Ff};
+
 } // namespace ANPTR_bif
 struct BIF { void (*pfn)(); int cargMin; int fRest; };   /* pfn: CRef (*)(int, CRef *, CFrame *) */
-extern "C" { BIF D_002BBB90[169] = {
+BIF D_002BBB90[169] __asm__("D_002BBB90") = {
     {BuiltinAdd, 1, 1}, {BuiltinSubtract, 1, 1}, {BuiltinMultiply, 1, 1}, {BuiltinDivide, 1, 1}, {BuiltinPrint, 1, 0},
     {BuiltinPrintFrame, 0, 1}, {BuiltinPrintSidebag, 1, 0}, {BuiltinIntEqual, 2, 0}, {BuiltinLess, 2, 0}, {BuiltinLessOrEqual, 2, 0},
     {BuiltinGreater, 2, 0}, {BuiltinGreaterOrEqual, 2, 0}, {BuiltinEqv, 2, 0}, {BuiltinEqual, 2, 0}, {BuiltinIsBoolean, 1, 0},
@@ -4136,5 +4136,5 @@ extern "C" { BIF D_002BBB90[169] = {
     {BuiltinStub157, 1, 0}, {BuiltinStub158, 0, 0}, {BuiltinStub159, 1, 0}, {BuiltinStub160, 0, 0},
     {BuiltinStub161, 0, 0}, {BuiltinStub162, 3, 0}, {BuiltinStub163, 2, 0}, {BuiltinStub164, 1, 0},
     {BuiltinStub165, 0, 0}, {BuiltinStub166, 2, 0}, {BuiltinStub167, 0, 0}, {BuiltinStub168, 0, 0}
-}; }
+};
 }

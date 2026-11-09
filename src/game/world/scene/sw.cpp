@@ -85,12 +85,12 @@ LO *FindSwObject(SW *world, int grffso, OID oid, LO *plo);
 namespace M_SW_ctor {
 /* BASIC's words as the constructor stores them: the two counted pointers cleared and the vptr set as plain words. */
 struct BASICWORDS { void *frame; void *sidebag; int unknown8; void *vt; };
-extern "C" { extern char D_002DC018[] __asm__("_vt$2SW"); }   /* SW's vtable (sly2/sw.h) */
-extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
-extern "C" void InitDl__FP2DLi(DL *,int);
-extern "C" void InitSl(SL *,int);
-extern "C" int GetMaxRipSize(void);
-extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
+extern char D_002DC018[] __asm__("_vt$2SW");   /* SW's vtable (sly2/sw.h) */
+extern float D_002C3E60 __asm__("D_002C3E60"),D_002C3E64 __asm__("D_002C3E64"),D_002C3E68 __asm__("D_002C3E68"),D_002C3E6C __asm__("D_002C3E6C");
+extern void InitDl__FP2DLi(DL *,int) __asm__("InitDl__FP2DLi");
+extern void InitSl(SL *,int) __asm__("InitSl");
+extern int GetMaxRipSize(void) __asm__("GetMaxRipSize");
+extern void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 /* The world names (g_apchzWorld, the save-variable key of each world's progress), defined oidBuckets: the strings are
    the oidBuckets of sw's .rodata (a definition's literals are emitted with it) and the table lies in the oidBuckets part of
    .rodata, with the objects' named constants in TU order (.rodata.early, tu-merging.md "Phase 6"). Asm-labelled:
@@ -219,31 +219,31 @@ extern "C" void SetSwTransition(SW *world, TRANS *request)
     world->transition = *request;
 }
 
-namespace M_func_0020E040 { extern "C" {
-extern int D_00443740;
+namespace M_func_0020E040 {
+extern int D_00443740 __asm__("D_00443740");
 // True while a level transition is pending or the wipe is wiping out (D_00443740 state 1).
-int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; return D_00443740 == 1; }
-} } // namespace M_func_0020E040
+extern "C" int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) return 1; return D_00443740 == 1; }
+} // namespace M_func_0020E040
 
-namespace M_DeleteSw { extern "C" {
-extern char D_003D9E70[];
+namespace M_DeleteSw {
+extern char D_003D9E70[] __asm__("D_003D9E70");
 
-extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
-extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
-void BroadcastGameEvent(void *p, int a, int b);
-void AbortJob(LO *pjob);
-void ResetScreens(void *p);
-void DeleteSwSplice(SW *psw);
-void ClearGameDifficulty(void *p);
-void ResetCameraPolicies(void *p);
-void ResetSndmgr(void *p);
-void ClearShaderGsState(void);
-void SetRumbleRums__FP6RUMBLE4RUMS(RUMBLE *prumble, int rums);
-void FreeSw__Fv(void);
+extern int D_002E1E40 __asm__("D_002E1E40"), D_002F7900 __asm__("D_002F7900"), D_002DD5BC __asm__("D_002DD5BC"), D_002DD648 __asm__("D_002DD648"), D_003D4A54 __asm__("D_003D4A54"), D_002DE570 __asm__("D_002DE570"), D_002DFB80 __asm__("D_002DFB80"), D_002DFBC4 __asm__("D_002DFBC4");
+extern int D_003E1C40 __asm__("D_003E1C40"), D_003E1C44 __asm__("D_003E1C44"), D_003E1C48 __asm__("D_003E1C48"), D_003E1C4C __asm__("D_003E1C4C"), D_003E1C50 __asm__("D_003E1C50"), D_003DD48C __asm__("D_003DD48C");
+void BroadcastGameEvent(void *p, int a, int b) __asm__("BroadcastGameEvent");
+void AbortJob(LO *pjob) __asm__("AbortJob");
+void ResetScreens(void *p) __asm__("ResetScreens");
+void DeleteSwSplice(SW *psw) __asm__("DeleteSwSplice");
+void ClearGameDifficulty(void *p) __asm__("ClearGameDifficulty");
+void ResetCameraPolicies(void *p) __asm__("ResetCameraPolicies");
+void ResetSndmgr(void *p) __asm__("ResetSndmgr");
+void ClearShaderGsState(void) __asm__("ClearShaderGsState");
+void SetRumbleRums__FP6RUMBLE4RUMS(RUMBLE *prumble, int rums) __asm__("SetRumbleRums__FP6RUMBLE4RUMS");
+void FreeSw__Fv(void) __asm__("FreeSw__Fv");
 
 // Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
 // manager, clears about 15 global object pointers and frees the world's memory.
-void DeleteSw(SW *world)
+extern "C" void DeleteSw(SW *world)
 {
     void *pv = &g_game;
     BroadcastGameEvent(pv, 1, 0);
@@ -274,21 +274,21 @@ void DeleteSw(SW *world)
     D_003DD48C = 0;
     FreeSw__Fv();
 }
-} } // namespace M_DeleteSw
+} // namespace M_DeleteSw
 
-namespace M_func_0020E180 { extern "C" {
+namespace M_func_0020E180 {
 struct ZPR { char ab[0x630]; };
-void *AllocFromWorldHeap(struct SWALLOC *pmsg);
-void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg);
-void InitSl(void *p, int n);
+void *AllocFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocFromWorldHeap");
+void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
+void InitSl(void *p, int n) __asm__("InitSl");
 void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
-void InitRenderTargets(void *p, struct ZPR *pz);
-void BroadcastGameEvent(void *p, int a, int b);
+void InitRenderTargets(void *p, struct ZPR *pz) __asm__("InitRenderTargets");
+void BroadcastGameEvent(void *p, int a, int b) __asm__("BroadcastGameEvent");
 
 // Sets up a fresh world for loading: the three AAOX buffers (0x4800 bytes each), the update list (0x8000 bytes), the root
 // proxy record, the two render targets (one ZPR init),
 // game callback 2.
-void InitSwLoadBuffers(SW *world)
+extern "C" void InitSwLoadBuffers(SW *world)
 {
     struct SWALLOC msg;
     struct ZPR zpr;
@@ -315,15 +315,15 @@ void InitSwLoadBuffers(SW *world)
         world->unknown3E38 = 1;
     BroadcastGameEvent(&g_game, 2, 0);
 }
-} } // namespace M_func_0020E180
+} // namespace M_func_0020E180
 
-namespace M_func_0020E2B0 { extern "C" {
+namespace M_func_0020E2B0 {
 struct O { char pad[0xB8]; int priority; char p2[0xC]; struct RENDERBLOCK *pblockRender; };   /* an MS object; priority (inferred): the largest wins */
-int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, struct O **apo);
-void SetLoVisMask(struct O *o, int n);
+int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, struct O **apo) __asm__("FindSwObjectsByClass");
+void SetLoVisMask(struct O *o, int n) __asm__("SetLoVisMask");
 // Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its render block (+0xC8) as SW::pblockRender and makes
 // it visible to every camera mask. (inferred)
-void SelectSwMainMs(SW *world)
+extern "C" void SelectSwMainMs(SW *world)
 {
     struct O *found[16];
     int numFound = FindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
@@ -341,14 +341,14 @@ void SelectSwMainMs(SW *world)
         SetLoVisMask(best, 0xFF);
     }
 }
-} } // namespace M_func_0020E2B0
+} // namespace M_func_0020E2B0
 
 namespace M_func_0020E338 {
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5();
  virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); };
 class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
 struct S { char pad[0x3E60]; O *screenTint; };
-extern "C" O *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
+extern O *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
 // Creates the world's screen tint/fill object (class 0x74, CID116 in docs/engine.md section 7; parameters 0.1 and
 // 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
 extern "C" void CreateSwScreenTint(S *world)
@@ -448,27 +448,27 @@ void ResolveSwSaveVars(SW *world)
     BroadcastGameEvent(&g_game, 3, 0);
 }
 
-namespace M_PostSwLoad { extern "C" {
-extern char D_003D9E70[];
-void PrimeSlotheap(void *p);
-void CreateSwScreenTint(SW *psw);
-void SelectSwMainMs(SW *psw);
-void ClearSwSpliceTable(SW *psw);
-void InitSwProxySpares(SW *psw);
-void BindSwTimerHud(SW *psw);
-void CreateSwNoiseTypes(SW *psw);
-void EnsureSwDefaultLight(SW *psw);
-void PostLoadSwPathzones(SW *psw);
-void BindSwBootyProxy(SW *psw);
-void PostLoadGrabMarker(SW *psw);
-void PostLoadScreens(void *p);
-void ProcessSwCallbacks(SW *psw);
-void BuildPathzoneLinkLists(void *p);
-void SetupCm__FP2CM(void *p);
+namespace M_PostSwLoad {
+extern char D_003D9E70[] __asm__("D_003D9E70");
+void PrimeSlotheap(void *p) __asm__("PrimeSlotheap");
+void CreateSwScreenTint(SW *psw) __asm__("CreateSwScreenTint");
+void SelectSwMainMs(SW *psw) __asm__("SelectSwMainMs");
+void ClearSwSpliceTable(SW *psw) __asm__("ClearSwSpliceTable");
+void InitSwProxySpares(SW *psw) __asm__("InitSwProxySpares");
+void BindSwTimerHud(SW *psw) __asm__("BindSwTimerHud");
+void CreateSwNoiseTypes(SW *psw) __asm__("CreateSwNoiseTypes");
+void EnsureSwDefaultLight(SW *psw) __asm__("EnsureSwDefaultLight");
+void PostLoadSwPathzones(SW *psw) __asm__("PostLoadSwPathzones");
+void BindSwBootyProxy(SW *psw) __asm__("BindSwBootyProxy");
+void PostLoadGrabMarker(SW *psw) __asm__("PostLoadGrabMarker");
+void PostLoadScreens(void *p) __asm__("PostLoadScreens");
+void ProcessSwCallbacks(SW *psw) __asm__("ProcessSwCallbacks");
+void BuildPathzoneLinkLists(void *p) __asm__("BuildPathzoneLinkLists");
+void SetupCm__FP2CM(void *p) __asm__("SetupCm__FP2CM");
 
 // After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
 // until the queue is empty, resets the camera and runs game callback 4.
-void PostSwLoad(SW *world)
+extern "C" void PostSwLoad(SW *world)
 {
     LO **ppo;
     PrimeSlotheap(&world->slotheapRipg);
@@ -499,7 +499,7 @@ void PostSwLoad(SW *world)
     SetupCm__FP2CM(&g_cm);
     BroadcastGameEvent(&g_game, 4, 0);
 }
-} } // namespace M_PostSwLoad
+} // namespace M_PostSwLoad
 
 namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
@@ -509,51 +509,51 @@ struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct FRAME;
 struct STREAM;
-extern "C" { extern char D_002F7980[], D_002F66B0[], D_00443740[], D_002E1E88[]; }
-extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
-extern "C" {
-void FlushFrames__Fi(int);
-FRAME *STACKSCOPE_ctor(FRAME *);
+extern char D_002F7980[] __asm__("D_002F7980"), D_002F66B0[] __asm__("D_002F66B0"), D_00443740[] __asm__("D_00443740"), D_002E1E88[] __asm__("D_002E1E88");
+extern ACTOR *D_002E1E40 __asm__("D_002E1E40"),*D_002DD5BC __asm__("D_002DD5BC"),*D_002F7900 __asm__("D_002F7900");
+
+void FlushFrames__Fi(int) __asm__("FlushFrames__Fi");
+FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-void SetPhase__F5PHASE(int);
-void InitFileKey(KEY *);
-STREAM *CStreamBis_ctor(STREAM *,int,void *,int);
-int OpenStreamFromFileKey(STREAM *,KEY *);
+void SetPhase__F5PHASE(int) __asm__("SetPhase__F5PHASE");
+void InitFileKey(KEY *) __asm__("InitFileKey");
+STREAM *CStreamBis_ctor(STREAM *,int,void *,int) __asm__("CStreamBis_ctor");
+int OpenStreamFromFileKey(STREAM *,KEY *) __asm__("OpenStreamFromFileKey");
 void DestroyCStreamBis(STREAM *,int) __asm__("_$_10CStreamBis");
-void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *);
-void CStreamBis_Refill(STREAM *);
-void DeleteSw(SW *);
-void ResetClock(void *);
-void AddGrfusr__Fi(int);
+void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *) __asm__("SetDecompress__18CBinaryInputStreamiPUc");
+void CStreamBis_Refill(STREAM *) __asm__("CStreamBis_Refill");
+void DeleteSw(SW *) __asm__("DeleteSw");
+void ResetClock(void *) __asm__("ResetClock");
+void AddGrfusr__Fi(int) __asm__("AddGrfusr__Fi");
 void *func_002333B4(void *,int,uint) __asm__("memset");
-int CMpeg_ExecuteOids(void *);
-void InitCm__FP2CM(void *);
-void InitSwLoadBuffers(SW *);
-void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
-void CStreamBis_Close(STREAM *);
-void PostSwLoad(SW *);
-void ShowCountdownHud(SW *,float);
-void ClearCheatItems(void);
-CONTEXT *FindWarpByOid(SW *,int,int);
-void TriggerWarp(CONTEXT *);
-ACTOR *GetHeroPo(SW *);
-ACTOR *GetCurrentPo(SW *);
-ACTOR *FindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
-int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
-int GetPoCtlState(ACTOR *);
-int GetCurrentWorld(void);
-void SetWidgetState(WIDGET *,int);
-void UpdateCmLast__FP2CM(void *);
-void CutCm__FP2CM(void *);
-void BroadcastGameEvent(void *,int,void *);
-void ClearPhase(int);
-void ResumeWipeAfterLoad(void *);
-void RunNextStartupStep(void *);
-}
+int CMpeg_ExecuteOids(void *) __asm__("CMpeg_ExecuteOids");
+void InitCm__FP2CM(void *) __asm__("InitCm__FP2CM");
+void InitSwLoadBuffers(SW *) __asm__("InitSwLoadBuffers");
+void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *) __asm__("LoadSwFromBrx__FP2SWP18CBinaryInputStream");
+void CStreamBis_Close(STREAM *) __asm__("CStreamBis_Close");
+void PostSwLoad(SW *) __asm__("PostSwLoad");
+void ShowCountdownHud(SW *,float) __asm__("ShowCountdownHud");
+void ClearCheatItems(void) __asm__("ClearCheatItems");
+CONTEXT *FindWarpByOid(SW *,int,int) __asm__("FindWarpByOid");
+void TriggerWarp(CONTEXT *) __asm__("TriggerWarp");
+ACTOR *GetHeroPo(SW *) __asm__("GetHeroPo");
+ACTOR *GetCurrentPo(SW *) __asm__("GetCurrentPo");
+ACTOR *FindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int GetPoCtlState(ACTOR *) __asm__("GetPoCtlState");
+int GetCurrentWorld(void) __asm__("GetCurrentWorld");
+void SetWidgetState(WIDGET *,int) __asm__("SetWidgetState");
+void UpdateCmLast__FP2CM(void *) __asm__("UpdateCmLast__FP2CM");
+void CutCm__FP2CM(void *) __asm__("CutCm__FP2CM");
+void BroadcastGameEvent(void *,int,void *) __asm__("BroadcastGameEvent");
+void ClearPhase(int) __asm__("ClearPhase");
+void ResumeWipeAfterLoad(void *) __asm__("ResumeWipeAfterLoad");
+void RunNextStartupStep(void *) __asm__("RunNextStartupStep");
+
 // Empty scope object (its constructor and destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
-extern "C" CRef GetSaveVarByName(const char *,...);
+extern CRef GetSaveVarByName(const char *,...) __asm__("GetSaveVarByName");
 // The frame clock's current time.
 static inline float Time(){return g_clock.time;}
 // True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
@@ -659,27 +659,27 @@ extern "C" void ExecuteSwTransition(SW *world)
 }
 } // namespace M_ExecuteSwTransition
 
-namespace M_IncrementSwHandsOff { extern "C" {
-void AddGrfusr__Fi(int n);
-void AcquireSwLetterbox(SW *p);
-void IncrementSwInputLock(SW *p);
+namespace M_IncrementSwHandsOff {
+void AddGrfusr__Fi(int n) __asm__("AddGrfusr__Fi");
+void AcquireSwLetterbox(SW *p) __asm__("AcquireSwLetterbox");
+void IncrementSwInputLock(SW *p) __asm__("IncrementSwInputLock");
 // Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
 // flag 2 also locks input.
-void IncrementSwHandsOff(SW *world, int fl)
+extern "C" void IncrementSwHandsOff(SW *world, int fl)
 {
     if (++world->handsOffCount == 1) AddGrfusr__Fi(2);
     if (fl & 1) AcquireSwLetterbox(world);
     if (fl & 2) IncrementSwInputLock(world);
 }
-} } // namespace M_IncrementSwHandsOff
+} // namespace M_IncrementSwHandsOff
 
-namespace M_DecrementSwHandsOff { extern "C" {
-void RemoveGrfusr__Fi(int n);
-void ClearJoyButtons(JOY *pjoy, int grfbtn);
-void ReleaseSwLetterbox(SW *p);
-void DecrementSwInputLock(SW *p);
+namespace M_DecrementSwHandsOff {
+void RemoveGrfusr__Fi(int n) __asm__("RemoveGrfusr__Fi");
+void ClearJoyButtons(JOY *pjoy, int grfbtn) __asm__("ClearJoyButtons");
+void ReleaseSwLetterbox(SW *p) __asm__("ReleaseSwLetterbox");
+void DecrementSwInputLock(SW *p) __asm__("DecrementSwInputLock");
 // Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
-void DecrementSwHandsOff(SW *world, int grf)
+extern "C" void DecrementSwHandsOff(SW *world, int grf)
 {
     if (--world->handsOffCount == 0) {
         RemoveGrfusr__Fi(2);
@@ -688,7 +688,7 @@ void DecrementSwHandsOff(SW *world, int grf)
     if (grf & 1) ReleaseSwLetterbox(world);
     if (grf & 2) DecrementSwInputLock(world);
 }
-} } // namespace M_DecrementSwHandsOff
+} // namespace M_DecrementSwHandsOff
 
 // True while the player has no control (hands-off count > 0).
 extern "C" int IsSwHandsOff(SW *world)
@@ -753,17 +753,17 @@ extern "C" int IsSwInputLocked(SW *world)
     return world->unknown3D84 > 0;
 }
 
-namespace M_UpdateSwIllum { extern "C" {
+namespace M_UpdateSwIllum {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef union { qword q; VECTOR v; } UV;
-extern char D_002BBB60[];
-void ConvertUserRgbToUserHsv(VECTOR *pin, UV *pout);
-void ColorCorrectVector(UV *pv);
-float ClampToLimits__FP2LMf(void *p, float g);
+extern char D_002BBB60[] __asm__("D_002BBB60");
+void ConvertUserRgbToUserHsv(VECTOR *pin, UV *pout) __asm__("ConvertUserRgbToUserHsv");
+void ColorCorrectVector(UV *pv) __asm__("ColorCorrectVector");
+float ClampToLimits__FP2LMf(void *p, float g) __asm__("ClampToLimits__FP2LMf");
 // Recomputes the ambient light colour from the world's HSV colour scaled by the midtone and shadow levels and bumps
 // the illumination change counter.
-void UpdateSwIllum(SW *world)
+extern "C" void UpdateSwIllum(SW *world)
 {
     float k = 1.0f / 255.0f;
     VECTOR c;
@@ -788,7 +788,7 @@ void UpdateSwIllum(SW *world)
         world->shadowScale = ClampToLimits__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
     world->relightStamp++;
 }
-} } // namespace M_UpdateSwIllum
+} // namespace M_UpdateSwIllum
 
 // Sets the world's illumination HSV colour and recomputes the ambient light.
 extern "C" void SetSwIllumHsv(SW *world, qword hsv)
@@ -880,13 +880,13 @@ struct LEVELLIST
       int c;
       short *a;
 };
-extern "C" { extern int D_003E1C38; }
-extern "C" { extern int D_003E1C3C; }
-extern "C" { extern FILEREC *D_003E1C40; }
-extern "C" { extern int *D_003E1C44; }
-extern "C" { extern int *D_003E1C48; }
-extern "C" { extern LEVELLIST *D_003E1C4C; }
-extern "C" { extern FILEREC *D_003E1C50; }
+extern int D_003E1C38 __asm__("D_003E1C38");
+extern int D_003E1C3C __asm__("D_003E1C3C");
+extern FILEREC *D_003E1C40 __asm__("D_003E1C40");
+extern int *D_003E1C44 __asm__("D_003E1C44");
+extern int *D_003E1C48 __asm__("D_003E1C48");
+extern LEVELLIST *D_003E1C4C __asm__("D_003E1C4C");
+extern FILEREC *D_003E1C50 __asm__("D_003E1C50");
 extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream) __asm__("LoadLevelTableFromBrx");
 // Reads the level table: per level its file record, world, episode, entry flag and level numbers (fills the level
 // list, the world and episode of each level and the world entry records).
@@ -915,14 +915,14 @@ extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream)
 }
 } // namespace M_LoadLevelTableFromBrx
 
-namespace M_LoadSwSharedHeaderFromBrx { extern "C" {
-extern int D_003E1C30;
-extern int D_003E1C54;
-extern int D_003E1C58;
-int S32Read__18CBinaryInputStream(void *stream);
+namespace M_LoadSwSharedHeaderFromBrx {
+extern int D_003E1C30 __asm__("D_003E1C30");
+extern int D_003E1C54 __asm__("D_003E1C54");
+extern int D_003E1C58 __asm__("D_003E1C58");
+int S32Read__18CBinaryInputStream(void *stream) __asm__("S32Read__18CBinaryInputStream");
 // Reads the header (size, id) of the data block shared across levels and flags a reload when the id changed or when
 // forced. Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadSwSharedHeaderFromBrx(int a, void *stream)
+extern "C" void LoadSwSharedHeaderFromBrx(int a, void *stream)
 {
     int x = S32Read__18CBinaryInputStream(stream);
     int y = S32Read__18CBinaryInputStream(stream);
@@ -931,25 +931,25 @@ void LoadSwSharedHeaderFromBrx(int a, void *stream)
     D_003E1C54 = a;
     D_003E1C58 = y;
 }
-} } // namespace M_LoadSwSharedHeaderFromBrx
+} // namespace M_LoadSwSharedHeaderFromBrx
 
-namespace M_LoadSwSharedDataFromBrx { extern "C" {
-extern int D_003E1C54;
-extern int D_003E1C30;
+namespace M_LoadSwSharedDataFromBrx {
+extern int D_003E1C54 __asm__("D_003E1C54");
+extern int D_003E1C30 __asm__("D_003E1C30");
 struct L { int a[4]; };
 struct M { int a; int b; int c[2]; };
-void Align__18CBinaryInputStreami(void *q, int n);
-void STACKSCOPE_ctor(struct L *pl);
-void *AllocFromStack(struct M *pm);
-void Read__18CBinaryInputStreamiPv(void *q, int a, void *x);
-void RelocateSharedColorTables(void *x);
-void UploadBitmaps__FP3GSB(void *p);
+void Align__18CBinaryInputStreami(void *q, int n) __asm__("Align__18CBinaryInputStreami");
+void STACKSCOPE_ctor(struct L *pl) __asm__("STACKSCOPE_ctor");
+void *AllocFromStack(struct M *pm) __asm__("AllocFromStack");
+void Read__18CBinaryInputStreamiPv(void *q, int a, void *x) __asm__("Read__18CBinaryInputStreamiPv");
+void RelocateSharedColorTables(void *x) __asm__("RelocateSharedColorTables");
+void UploadBitmaps__FP3GSB(void *p) __asm__("UploadBitmaps__FP3GSB");
 void STACKSCOPE_ctor_1AE4A0(struct L *pl, int n) __asm__("_$_10STACKSCOPE");
-void Skip__18CBinaryInputStreami(void *q, int a);
-void AllocGsbBitmaps(void *p);
+void Skip__18CBinaryInputStreami(void *q, int a) __asm__("Skip__18CBinaryInputStreami");
+void AllocGsbBitmaps(void *p) __asm__("AllocGsbBitmaps");
 // Reads the shared data block when it changed (and rebuilds from it), otherwise skips it and reuses the loaded copy.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadSwSharedDataFromBrx(void *world, void *q)
+extern "C" void LoadSwSharedDataFromBrx(void *world, void *q)
 {
     Align__18CBinaryInputStreami(q, 0x10);
     if (D_003E1C54) {
@@ -970,18 +970,18 @@ void LoadSwSharedDataFromBrx(void *world, void *q)
         AllocGsbBitmaps(world);
     }
 }
-} } // namespace M_LoadSwSharedDataFromBrx
+} // namespace M_LoadSwSharedDataFromBrx
 
-namespace M_func_0020F710 { extern "C" {
-extern int D_002C3E70[4];
+namespace M_func_0020F710 {
+extern int D_002C3E70[4] __asm__("D_002C3E70");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context);
-void SetWidgetXf(WIDGET *widget, SPRITEXF *pxf);
-int CountCollectedClues(void);
-int GetMaxClueCount(void);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void SetWidgetXf(WIDGET *widget, SPRITEXF *pxf) __asm__("SetWidgetXf");
+int CountCollectedClues(void) __asm__("CountCollectedClues");
+int GetMaxClueCount(void) __asm__("GetMaxClueCount");
 // Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
 // (inferred)
-void BindSwTimerHud(SW *world)
+extern "C" void BindSwTimerHud(SW *world)
 {
     SPRITEXF l;
     int i;
@@ -999,19 +999,19 @@ void BindSwTimerHud(SW *world)
     world->numCluesCollected = CountCollectedClues();
     world->numClues = GetMaxClueCount();
 }
-} } // namespace M_func_0020F710
+} // namespace M_func_0020F710
 
-namespace M_func_0020F7E0 { extern "C" {
-extern char D_002C3E88[];
-extern float D_002C3E80;
-int IsWidgetVisible(WIDGET *widget);
-float SmoothValueWithAccel__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, void *source);
+namespace M_func_0020F7E0 {
+extern char D_002C3E88[] __asm__("D_002C3E88");
+extern float D_002C3E80 __asm__("D_002C3E80");
+int IsWidgetVisible(WIDGET *widget) __asm__("IsWidgetVisible");
+float SmoothValueWithAccel__FffffP4SMPAPf(float a, float b, float c, void *p, float *pv, float dt) __asm__("SmoothValueWithAccel__FffffP4SMPAPf");
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, void *source) __asm__("SetSndSourceLo");
 
 // Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
 // (0x30/0x31) once a second. (inferred)
-void UpdateSwTimerHud(SW *world)
+extern "C" void UpdateSwTimerHud(SW *world)
 {
     float z;
     float t = 0.0f;
@@ -1044,13 +1044,13 @@ void UpdateSwTimerHud(SW *world)
         }
     }
 }
-} } // namespace M_func_0020F7E0
+} // namespace M_func_0020F7E0
 
-namespace M_FFilterSoPair { extern "C" {
-int MaxInt(int a, int b);
+namespace M_FFilterSoPair {
+int MaxInt(int a, int b) __asm__("MaxInt");
 // Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
 // or 3.
-int ShouldKeepSoPair(SOTREE *object, SOPART *e)
+extern "C" int ShouldKeepSoPair(SOTREE *object, SOPART *e)
 {
     SOTREE *ps = e->owner->physicsTree;
     int a, b, r;
@@ -1063,14 +1063,14 @@ int ShouldKeepSoPair(SOTREE *object, SOPART *e)
     r = MaxInt(a, b);
     return r != 1 && r != 3;
 }
-} } // namespace M_FFilterSoPair
+} // namespace M_FFilterSoPair
 
-namespace M_func_0020FA10 { extern "C" {
+namespace M_func_0020FA10 {
 struct O { char pad[0x70]; long fl; };
 struct P : LO { char pad[0xEC - 0x50]; struct O *po; };
 struct S { int a; struct P *pp; char pad[8]; long fl; };
 // Intersection filter: keeps objects that are not the context object and do not have flag 4.
-int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
+extern "C" int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
     int r = 0;
     if (!(p->fl & 0x1000000000000L)) {
         struct O *o = p->pp->po;
@@ -1078,25 +1078,25 @@ int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
     }
     return r;
 }
-} } // namespace M_func_0020FA10
+} // namespace M_func_0020FA10
 
-namespace M_func_0020FA50 { extern "C" {
-int ShouldKeepSoNotSelf(void *pv, SOPART *p);
+namespace M_func_0020FA50 {
+int ShouldKeepSoNotSelf(void *pv, SOPART *p) __asm__("ShouldKeepSoNotSelf");
 // Intersection filter: ShouldKeepSoNotSelf and the owner's IsFixed (slot 62).
-int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepSoNotSelf(pv, p)) return 0; return p->owner->IsFixed(); }
-} } // namespace M_func_0020FA50
+extern "C" int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepSoNotSelf(pv, p)) return 0; return p->owner->IsFixed(); }
+} // namespace M_func_0020FA50
 
-namespace M_IntersectSwBoundingBox { extern "C" {
+namespace M_IntersectSwBoundingBox {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-void *AllocFromStack(struct SWALLOC *pmsg);
-void FlushSwBoundsUpdates(SW *p);
-void UpdateSwAaox(SW *p);
+void *AllocFromStack(struct SWALLOC *pmsg) __asm__("AllocFromStack");
+void FlushSwBoundsUpdates(SW *p) __asm__("FlushSwBoundsUpdates");
+void UpdateSwAaox(SW *p) __asm__("UpdateSwAaox");
 
 // Collects up to 256 SOs whose bounding groups overlap the box spanned by two points, with an optional filter; the
 // result is a slot-allocated array.
-void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+extern "C" void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     QWROW mn, mx;
     struct SWALLOC msg;
@@ -1137,18 +1137,18 @@ void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O
     *pap = ap;
     *pc = c;
 }
-} } // namespace M_IntersectSwBoundingBox
+} // namespace M_IntersectSwBoundingBox
 
-namespace M_IntersectSwBoundingSphere { extern "C" {
+namespace M_IntersectSwBoundingSphere {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
-void *AllocFromStack(struct SWALLOC *pmsg);
-void FlushSwBoundsUpdates(SW *p);
-void UpdateSwAaox(SW *p);
+void *AllocFromStack(struct SWALLOC *pmsg) __asm__("AllocFromStack");
+void FlushSwBoundsUpdates(SW *p) __asm__("FlushSwBoundsUpdates");
+void UpdateSwAaox(SW *p) __asm__("UpdateSwAaox");
 
 // Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
-void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+extern "C" void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     struct SWALLOC msg;
     struct O **ap;
@@ -1182,15 +1182,15 @@ void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, str
     *pap = ap;
     *pc = c;
 }
-} } // namespace M_IntersectSwBoundingSphere
+} // namespace M_IntersectSwBoundingSphere
 
-namespace M_func_0020FDC8 { extern "C" {
+namespace M_func_0020FDC8 {
 struct O : LO { char pad[0x148 - 0x50]; long fl; };
 struct A { int pad; struct O *po; };
 struct M { int cb; int align; int pad[2]; };
-void *AllocFromStack(struct M *pm);
+void *AllocFromStack(struct M *pm) __asm__("AllocFromStack");
 // Builds the list of distinct SOs referenced by an array of entries (marking them while collecting).
-void BuildUniqueSoList(int n, struct A **apa, int *pc, struct O ***pppo)
+extern "C" void BuildUniqueSoList(int n, struct A **apa, int *pc, struct O ***pppo)
 {
     struct M m;
     struct O **apo;
@@ -1211,16 +1211,16 @@ void BuildUniqueSoList(int n, struct A **apa, int *pc, struct O ***pppo)
     *pc = c;
     *pppo = apo;
 }
-} } // namespace M_func_0020FDC8
+} // namespace M_func_0020FDC8
 
-namespace M_FAddRsmg__FP2SWP4RSMGiPii3OIDN25 { extern "C" {
+namespace M_FAddRsmg__FP2SWP4RSMGiPii3OIDN25 {
 typedef int OID;
 typedef struct RSMG { OID oidRoot; OID oidSM; OID oidTrigger; OID oidNoTrigger; } RSMG;
-int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
-    __asm__("AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25");
+extern "C" { int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
+    __asm__("AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25"); }
 // Adds or updates a rsmg record ((root, state machine) -> goal on trigger or untrigger) in a bounded array.
 // (Sly 1-derived name: FAddRsmg.)
-int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
+extern "C" int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
 {
     int i;
     for (i = 0; i < *pcrsmg; i++) {
@@ -1247,13 +1247,13 @@ int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigg
     }
     return 1;
 }
-} } // namespace M_FAddRsmg__FP2SWP4RSMGiPii3OIDN25
+} // namespace M_FAddRsmg__FP2SWP4RSMGiPii3OIDN25
 
-namespace M_TriggerRsmg { extern "C" {
+namespace M_TriggerRsmg {
 typedef struct QW { int a[4]; } QW;
-void TriggerOneRsmg(void *p, QW *pq, int a, int b, int c, int d);
+void TriggerOneRsmg(void *p, QW *pq, int a, int b, int c, int d) __asm__("TriggerOneRsmg");
 // Applies every rsmg record of an array (TriggerOneRsmg on each).
-void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
+extern "C" void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 {
     int i;
     for (i = 0; i < c; i++) {
@@ -1261,19 +1261,19 @@ void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 
     }
 }
-} } // namespace M_TriggerRsmg
+} // namespace M_TriggerRsmg
 
-namespace M_func_0020FFF0 { extern "C" {
+namespace M_func_0020FFF0 {
 struct D { int a; int b; int c; int d; };
-int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-BASIC *FindLiveSma(void *o, int b);
-void SubscribeLoObject(BASIC *y, int x);
-void SeekSma(BASIC *y, int id);
-void SetSmaGoal(BASIC *y, int id);
+int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo) __asm__("FindSwObjects");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+BASIC *FindLiveSma(void *o, int b) __asm__("FindLiveSma");
+void SubscribeLoObject(BASIC *y, int x) __asm__("SubscribeLoObject");
+void SeekSma(BASIC *y, int id) __asm__("SeekSma");
+void SetSmaGoal(BASIC *y, int id) __asm__("SetSmaGoal");
 // Applies one rsmg record: finds the root object and its state machine by oid, then seeks or sets the trigger or
 // untrigger goal; optionally returns the state machine.
-void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASIC **ppy)
+extern "C" void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASIC **ppy)
 {
     void *o;
     BASIC *y;
@@ -1303,7 +1303,7 @@ void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASIC **ppy)
     else
         SetSmaGoal(y, id);
 }
-} } // namespace M_func_0020FFF0
+} // namespace M_func_0020FFF0
 
 // Returns the next free 12-byte record of the world's deferred-callback array (AddLoDeferredCallback uses it).
 /* The next 12-byte record of the array at +0x39D0. */
@@ -1323,13 +1323,13 @@ extern "C" void *AllocSwPostLoadRecord(SW *world)
     return (char *)world->unknown39D8 + i * 0xC;
 }
 
-namespace M_func_00210140 { extern "C" {
+namespace M_func_00210140 {
 struct E;
 struct O { char pad[0x40]; struct E *e; };
 struct E { unsigned int grf; struct O *o; };
 // Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
 // when it is full or more than 10% holes.
-void AddLoToSwUpdateList(SW *g, struct O *o)
+extern "C" void AddLoToSwUpdateList(SW *g, struct O *o)
 {
     struct E *e;
     if ((unsigned int)o->e & 0x40)
@@ -1362,7 +1362,7 @@ void AddLoToSwUpdateList(SW *g, struct O *o)
     e->grf = (unsigned int)o->e;
     o->e = e;
 }
-} } // namespace M_func_00210140
+} // namespace M_func_00210140
 
 // Takes an object off the update array: restores its +0x40 word, clears the entry and counts the hole.
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
@@ -1387,7 +1387,7 @@ struct XB { char pad[0xC];
   virtual void v21(); virtual void v22(); virtual void v23(); virtual void v24();
 };
 struct X : XB { char pad10[0x10]; X *next; };
-extern "C" void SetSwPoOverride(SW *p, int k);
+extern void SetSwPoOverride(SW *p, int k) __asm__("SetSwPoOverride");
 // Calls vtable slot 24 on every object of the 199 class lists, after 0x1C4A60(world, 0). (inferred: the slot's
 // meaning is not known; PROXY uses it to release its spares)
 extern "C" void CallSlot24OnSwObjects(SW *world)
@@ -1411,10 +1411,10 @@ namespace M_ShowSwAsegObject {
 struct X { char pad[0xC];
   virtual void v1(); virtual void v2(); virtual void v3(); virtual void v4();
   virtual void v5(); virtual void v6(); virtual void v7(); virtual void v8(); virtual void v9(); };
-extern "C" X *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
-extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-extern "C" void FadeSoIn(X *p, float f);
-extern "C" void FadeSoOut(X *p, float f);
+extern X *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+extern void FadeSoIn(X *p, float f) __asm__("FadeSoIn");
+extern void FadeSoOut(X *p, float f) __asm__("FadeSoOut");
 // Animation event 7/8: shows or hides an object, fading SOs in or out over dt when dt is non-zero, else adding or
 // removing it.
 extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
@@ -1437,13 +1437,13 @@ extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
 }
 } // namespace M_ShowSwAsegObject
 
-namespace M_func_00210408 { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void ShowSoGlobsById(void *p, void *q);
-void HideSoGlobsById(void *p, void *q);
+namespace M_func_00210408 {
+void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void ShowSoGlobsById(void *p, void *q) __asm__("ShowSoGlobsById");
+void HideSoGlobsById(void *p, void *q) __asm__("HideSoGlobsById");
 // Animation event 13/14: shows or hides the target SO's globs with the given id (ShowSoGlobsById / HideSoGlobsById).
-void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
+extern "C" void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
     if (id == -1)
@@ -1457,15 +1457,15 @@ void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
             HideSoGlobsById(p, q);
     }
 }
-} } // namespace M_func_00210408
+} // namespace M_func_00210408
 
-namespace M_func_002104A0 { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void ShowSoPartsById(void *p, void *q);
-void HideSoPartsById(void *p, void *q);
+namespace M_func_002104A0 {
+void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id, void *ctx) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void ShowSoPartsById(void *p, void *q) __asm__("ShowSoPartsById");
+void HideSoPartsById(void *p, void *q) __asm__("HideSoPartsById");
 // Animation event 15/16: shows or hides the target SO's parts with the given id (ShowSoPartsById / 0x1F6B48).
-void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
+extern "C" void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
     if (id == -1)
@@ -1479,14 +1479,14 @@ void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
             HideSoPartsById(p, q);
     }
 }
-} } // namespace M_func_002104A0
+} // namespace M_func_002104A0
 
-namespace M_func_00210538 { extern "C" {
+namespace M_func_00210538 {
 struct X { char pad[0xC]; VTE *vtable; };
 struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
-struct X *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
+struct X *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // Animation event 17: finds the object and up to two others and sends them a message.
-void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *ctx)
+extern "C" void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *ctx)
 {
     struct X *x = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid, ctx);
     struct MSG msg;
@@ -1520,17 +1520,17 @@ void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *
     }
     ((void (*)(void *, void *))x->vtable[51].pfn)((char *)x + x->vtable[51].d, &msg);
 }
-} } // namespace M_func_00210538
+} // namespace M_func_00210538
 
-namespace M_func_00210678 { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id);
-void *FindShaderAnimById(int id);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void SetSoEyesClosed(void *p, float f);
-void SetEyesClosed(void *p, float f);
+namespace M_func_00210678 {
+void *FindSwObject__FP2SWi3OIDP2LO(void *pv, int k, int id) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindShaderAnimById(int id) __asm__("FindShaderAnimById");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void SetSoEyesClosed(void *p, float f) __asm__("SetSoEyesClosed");
+void SetEyesClosed(void *p, float f) __asm__("SetEyesClosed");
 // Animation event 20: sets how closed the eyes are, on the target SO's EYES children (SetSoEyesClosed) or on an EYES
 // object (SetEyesClosed).
-void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
+extern "C" void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
 {
     void *p1 = 0;
     void *p2 = 0;
@@ -1549,30 +1549,30 @@ void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
     if (p2)
         SetEyesClosed(p2, f);
 }
-} } // namespace M_func_00210678
+} // namespace M_func_00210678
 
-namespace M_StartSwAsegSound { extern "C" {
+namespace M_StartSwAsegSound {
 // Complete WIP; true source-object lookup and sound-reference contracts.
-static inline void Clamp(float *f,float *b) {float lo=b[0],hi=b[1]; if(*f<lo)*f=lo; else if(hi<*f)*f=hi;}
+extern "C" { static inline void Clamp(float *f,float *b) {float lo=b[0],hi=b[1]; if(*f<lo)*f=lo; else if(hi<*f)*f=hi;} }
 struct M { char pad[0xC]; VTE *vt; };
 struct C { char pad[0x20]; float value; };
 struct O { char pad[0xFC4]; struct C *curve; };
-extern float D_002C3EA0[3];
-extern float D_002C3EB0[2];
-struct O *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, void *);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
-struct M *CreateSfxSound(int);
-void SetSndSourceLo(struct M *, struct O *);
-void SetSndRange(struct M *, float, float);
-void SetSndVolume(struct M *, float);
-void SetSndPitch(struct M *, float);
-void SetSndDoppler(struct M *, float);
-void RcPtr_Assign(struct M **, struct M *);
+extern float D_002C3EA0[3] __asm__("D_002C3EA0");
+extern float D_002C3EB0[2] __asm__("D_002C3EB0");
+struct O *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, void *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+struct M *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(struct M *, struct O *) __asm__("SetSndSourceLo");
+void SetSndRange(struct M *, float, float) __asm__("SetSndRange");
+void SetSndVolume(struct M *, float) __asm__("SetSndVolume");
+void SetSndPitch(struct M *, float) __asm__("SetSndPitch");
+void SetSndDoppler(struct M *, float) __asm__("SetSndDoppler");
+void RcPtr_Assign(struct M **, struct M *) __asm__("RcPtr_Assign");
 // Copy the object pointer through a register move.
-static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
+extern "C" { static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;} }
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
-void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
+extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
 {
     struct O *o;
     struct M *m;
@@ -1597,14 +1597,14 @@ void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int 
     if (((int (*)(void *))m->vt[8].pfn)((char *)m + m->vt[8].d) == 2)
         RcPtr_Assign(out, m);
 }
-} } // namespace M_StartSwAsegSound
+} // namespace M_StartSwAsegSound
 
-namespace M_StopSwAsegSound { extern "C" {
+namespace M_StopSwAsegSound {
 struct O { char pad[0x60]; int id; };
-void StopSnd(struct O *p, float f);
-void RcPtr_Assign(struct O **pp, int a);
+void StopSnd(struct O *p, float f) __asm__("StopSnd");
+void RcPtr_Assign(struct O **pp, int a) __asm__("RcPtr_Assign");
 // Animation event 1: stops the stored looping sound (optionally only with a matching id) and releases it.
-void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
+extern "C" void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 {
     struct O *p = *pp;
     if (!p)
@@ -1614,7 +1614,7 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
     StopSnd(p, 0.0f);
     RcPtr_Assign(pp, 0);
 }
-} } // namespace M_StopSwAsegSound
+} // namespace M_StopSwAsegSound
 
 // Finds the proxy object with oid 0x620 and stores it at SW+0x4638: the proxy source booties are acquired from and
 // locked on (booty.cpp).
@@ -1632,17 +1632,17 @@ extern "C" SW *SetSwUnknown3EA8(SW *world, int n)
     return world;
 }
 
-namespace M_func_00210990 { extern "C" {
+namespace M_func_00210990 {
 struct E { char pad[0x40]; };
-extern struct E *D_003E1C40;
+extern struct E *D_003E1C40 __asm__("D_003E1C40");
 // Returns the file record of level index levelIndex, or null for -1.
-struct E *GetLevelFileRecord(int i)
+extern "C" struct E *GetLevelFileRecord(int i)
 {
     if (i == -1)
         return 0;
     return &D_003E1C40[i];
 }
-} } // namespace M_func_00210990
+} // namespace M_func_00210990
 
 // Returns the level-list entry of level index levelIndex.
 extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
@@ -1650,21 +1650,21 @@ extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
     return &D_003E1C4C[ilevel];
 }
 
-namespace M_func_002109D0 { extern "C" {
+namespace M_func_002109D0 {
 struct X { char pad[8]; int sectorKey; char padc[0x2C]; int sectorXor; };   /* a file record: obfuscated sector (cf. GetDiscFileEntrySize) */
-extern int D_003E1C38;
-struct X *GetLevelFileRecord(int i);
+extern int D_003E1C38 __asm__("D_003E1C38");
+struct X *GetLevelFileRecord(int i) __asm__("GetLevelFileRecord");
 // True when two file records name the same file (same pointer, or equal key words).
-static inline int FEqual(struct X *a, struct X *b)
+extern "C" { static inline int FEqual(struct X *a, struct X *b)
 {
     if (a == b)
         return 1;
     if (!a || !b)
         return 0;
     return (a->sectorKey ^ a->sectorXor) == (b->sectorKey ^ b->sectorXor);
-}
+} }
 // Returns the index of the level whose file record equals the given one, or -1.
-int FindLevelIndexByFileRecord(struct X *px)
+extern "C" int FindLevelIndexByFileRecord(struct X *px)
 {
     int i;
     for (i = 0; i < D_003E1C38; i++) {
@@ -1673,7 +1673,7 @@ int FindLevelIndexByFileRecord(struct X *px)
     }
     return -1;
 }
-} } // namespace M_func_002109D0
+} // namespace M_func_002109D0
 
 // Returns the current level index.
 int GetCurrentLevelIndex()
@@ -1681,37 +1681,37 @@ int GetCurrentLevelIndex()
     return g_sw.loadFilter;
 }
 
-namespace M_NEpisodeCur { extern "C" {
-extern int *D_003E1C48;
-int GetCurrentLevelIndex__Fv(void);
+namespace M_NEpisodeCur {
+extern int *D_003E1C48 __asm__("D_003E1C48");
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
 // Returns the episode of the current level, or -1.
-int GetCurrentEpisode(void)
+extern "C" int GetCurrentEpisode(void)
 {
     int i = GetCurrentLevelIndex__Fv();
     if (i == -1)
         return -1;
     return D_003E1C48[i];
 }
-} } // namespace M_NEpisodeCur
+} // namespace M_NEpisodeCur
 
-namespace M_NWorldCur { extern "C" {
-extern int *D_003E1C44;
-int GetCurrentLevelIndex__Fv(void);
+namespace M_NWorldCur {
+extern int *D_003E1C44 __asm__("D_003E1C44");
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
 // Returns the world of the current level, or -1.
-int GetCurrentWorld(void)
+extern "C" int GetCurrentWorld(void)
 {
     int i = GetCurrentLevelIndex__Fv();
     if (i == -1)
         return -1;
     return D_003E1C44[i];
 }
-} } // namespace M_NWorldCur
+} // namespace M_NWorldCur
 
-namespace M_NEpisodeBest { extern "C" {
-void GetSaveVarByName(CRefData *r, char *s, int a);
-void Decref__4CRef(CRefData *r);
+namespace M_NEpisodeBest {
+void GetSaveVarByName(CRefData *r, char *s, int a) __asm__("GetSaveVarByName");
+void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 // Returns the best episode reached (save variable "episodeBest").
-int GetBestEpisode(void)
+extern "C" int GetBestEpisode(void)
 {
     CRefData r;
     int v;
@@ -1720,7 +1720,7 @@ int GetBestEpisode(void)
     Decref__4CRef(&r);
     return v;
 }
-} } // namespace M_NEpisodeBest
+} // namespace M_NEpisodeBest
 
 // Always returns 0 (a stub). (inferred)
 extern "C" int SwStubFalse()
@@ -1751,17 +1751,17 @@ extern "C" FILEREC *GetWorldEntry(int nWorld)
     return (f == 0) ? 0 : prec;
 }
 
-namespace M_func_00210BE0 { extern "C" {
+namespace M_func_00210BE0 {
 typedef struct { char *pch; char *pchOut; } ENT;
 typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
 typedef struct { int a[4]; } ALLOC;
-extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
-extern char *FindSwLocalizedString__FP2SWi(SW *, char *);
+extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int) __asm__("__11CLinearHeapiPUc");
+extern char *FindSwLocalizedString__FP2SWi(SW *, char *) __asm__("FindSwLocalizedString__FP2SWi");
 extern int strlen_(char *) __asm__("strlen");
-extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
+extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int) __asm__("PchzAllocCopy__FP4HEAPPci");
 
 // Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
-void LocalizeSwStringTable(TBL *table)
+extern "C" void LocalizeSwStringTable(TBL *table)
 {
     ALLOC heap;
     int i;
@@ -1777,7 +1777,7 @@ void LocalizeSwStringTable(TBL *table)
             e->pchOut = 0;
     }
 }
-} } // namespace M_func_00210BE0
+} // namespace M_func_00210BE0
 
 // Returns the value stored under key in a {key, value} table, or "" when absent.
 /* The value stored under key in a {key, value} table, or the empty default. */

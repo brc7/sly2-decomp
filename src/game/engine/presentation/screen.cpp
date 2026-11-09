@@ -241,28 +241,28 @@ extern "C" void *InitScreenList(void *pv)
     return pv;
 }
 
-namespace M_func_001D9408 { extern "C" {
-extern int D_002DD318;
-extern char D_003D9E80[], D_003D9ED0[], D_002E1E60[], D_003DA0F0[], D_003DA150[], D_003DA0C0[], D_003DA3C0[];
-extern char D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
-void ResetHudMeter(void *);
-void ResetPauseMenu(void *);
-void ResetLetterbox(void *);
-void ResetGadgetMenu(void *);
-void ResetThiefnet(void *);
-void ResetNotice(void *);
-void ResetJobList(void *);
-void CMemcardDialog_Slot13(void *);
-void ResetScreen(void *);
+namespace M_func_001D9408 {
+extern int D_002DD318 __asm__("D_002DD318");
+extern char D_003D9E80[] __asm__("D_003D9E80"), D_003D9ED0[] __asm__("D_003D9ED0"), D_002E1E60[] __asm__("D_002E1E60"), D_003DA0F0[] __asm__("D_003DA0F0"), D_003DA150[] __asm__("D_003DA150"), D_003DA0C0[] __asm__("D_003DA0C0"), D_003DA3C0[] __asm__("D_003DA3C0");
+extern char D_002E6550[] __asm__("D_002E6550"), D_002E65A0[] __asm__("D_002E65A0"), D_003DA4F0[] __asm__("D_003DA4F0"), D_003DA530[] __asm__("D_003DA530");
+void ResetHudMeter(void *) __asm__("ResetHudMeter");
+void ResetPauseMenu(void *) __asm__("ResetPauseMenu");
+void ResetLetterbox(void *) __asm__("ResetLetterbox");
+void ResetGadgetMenu(void *) __asm__("ResetGadgetMenu");
+void ResetThiefnet(void *) __asm__("ResetThiefnet");
+void ResetNotice(void *) __asm__("ResetNotice");
+void ResetJobList(void *) __asm__("ResetJobList");
+void CMemcardDialog_Slot13(void *) __asm__("CMemcardDialog_Slot13");
+void ResetScreen(void *) __asm__("ResetScreen");
 // Return the current element of the iterator and advance it along the element's link field.
-static inline void *NextListEntry(DLI *pdli)
+extern "C" { static inline void *NextListEntry(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
-}
+} }
 // Resets every HUD screen (each one's slot 13) and the list of shown screens (level teardown). (inferred)
-void ResetScreens(DL *pdl)
+extern "C" void ResetScreens(DL *pdl)
 {
     DLI dli;
     SCREENBASE *plo;
@@ -283,7 +283,7 @@ void ResetScreens(DL *pdl)
     ResetScreen(D_003DA530);
     D_002DD2FC = dli.m_pdliNext;
 }
-} } // namespace M_func_001D9408
+} // namespace M_func_001D9408
 
 /* PostLoad (slot 12) of every global screen. */
 // After a level loads: runs every HUD screen's post-load (slot 12), which binds each screen to its widget object.
@@ -303,11 +303,11 @@ extern "C" void PostLoadScreens()
     PostLoadScreen((SCREEN *)&D_003DA530);
 }
 
-namespace M_func_001D95B8 { extern "C" {
+namespace M_func_001D95B8 {
 struct S { SCREENBASE *requested; int a, b; SCREENBASE *focused; };   /* the shown-screen list: head, focused screen */
 // If the screen at the head of the shown list (the requested top screen) differs from the focused one, tells the old one
 // it lost focus and focuses the new one. (inferred)
-void UpdateScreenFocus(struct S *list) {
+void UpdateScreenFocus(struct S *list) __asm__("UpdateScreenFocus"); void UpdateScreenFocus(struct S *list) {
     SCREENBASE *requested = list->requested;
     SCREENBASE *previous;
     if (requested == list->focused) return;
@@ -322,33 +322,33 @@ void UpdateScreenFocus(struct S *list) {
         requested->SetFocus(1, previous);
     }
 }
-} } // namespace M_func_001D95B8
+} // namespace M_func_001D95B8
 
-namespace M_func_001D9648 { extern "C" {
-extern int D_002DFBC0;
-extern int D_002DFBC4;
-extern JOY D_002E0D00;   /* the second JOY */
-extern char D_003D9ED0[], D_003DA150[], D_003DA0F0[], D_002DDEC0[], D_00443740[], D_003D9E80[];
-extern char D_003DA0C0[], D_003DA3C0[], D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
-void RemoveGrfusr__Fi(int);
-int HandleJoyButtons(JOY *, int);
-void ClearJoyButtons(JOY *, int);
-int TryOpenPauseMenu(int);
-int IsDlEmpty__FP2DL(void *);
-void UpdatePauseMenu(void *);
-void UpdateThiefnet(void *);
-void UpdateGadgetMenu(void *);
-void UpdateCodes(void *);
-void UpdateWipe(void *);
-void UpdateHudMeter(void *);
-void UpdateNotice(void *);
-void UpdateJobList(void *);
-void CMemcardDialog_Update(void *);
-void CMcStatus_Update(void *);
-void UpdateTimedScreen(void *);
-void UpdateTitleScreen(void *);
+namespace M_func_001D9648 {
+extern int D_002DFBC0 __asm__("D_002DFBC0");
+extern int D_002DFBC4 __asm__("D_002DFBC4");
+extern JOY D_002E0D00 __asm__("D_002E0D00");   /* the second JOY */
+extern char D_003D9ED0[] __asm__("D_003D9ED0"), D_003DA150[] __asm__("D_003DA150"), D_003DA0F0[] __asm__("D_003DA0F0"), D_002DDEC0[] __asm__("D_002DDEC0"), D_00443740[] __asm__("D_00443740"), D_003D9E80[] __asm__("D_003D9E80");
+extern char D_003DA0C0[] __asm__("D_003DA0C0"), D_003DA3C0[] __asm__("D_003DA3C0"), D_002E6550[] __asm__("D_002E6550"), D_002E65A0[] __asm__("D_002E65A0"), D_003DA4F0[] __asm__("D_003DA4F0"), D_003DA530[] __asm__("D_003DA530");
+void RemoveGrfusr__Fi(int) __asm__("RemoveGrfusr__Fi");
+int HandleJoyButtons(JOY *, int) __asm__("HandleJoyButtons");
+void ClearJoyButtons(JOY *, int) __asm__("ClearJoyButtons");
+int TryOpenPauseMenu(int) __asm__("TryOpenPauseMenu");
+int IsDlEmpty__FP2DL(void *) __asm__("IsDlEmpty__FP2DL");
+void UpdatePauseMenu(void *) __asm__("UpdatePauseMenu");
+void UpdateThiefnet(void *) __asm__("UpdateThiefnet");
+void UpdateGadgetMenu(void *) __asm__("UpdateGadgetMenu");
+void UpdateCodes(void *) __asm__("UpdateCodes");
+void UpdateWipe(void *) __asm__("UpdateWipe");
+void UpdateHudMeter(void *) __asm__("UpdateHudMeter");
+void UpdateNotice(void *) __asm__("UpdateNotice");
+void UpdateJobList(void *) __asm__("UpdateJobList");
+void CMemcardDialog_Update(void *) __asm__("CMemcardDialog_Update");
+void CMcStatus_Update(void *) __asm__("CMcStatus_Update");
+void UpdateTimedScreen(void *) __asm__("UpdateTimedScreen");
+void UpdateTitleScreen(void *) __asm__("UpdateTitleScreen");
 // Per-frame HUD screen update: handles the pause / menu buttons and runs every screen's Update (slot 7). (inferred)
-void UpdateScreens(void *pdl)
+extern "C" void UpdateScreens(void *pdl)
 {
     JOY *pad;
     if (D_002DFBC4 & 8) {
@@ -383,7 +383,7 @@ void UpdateScreens(void *pdl)
     UpdateTimedScreen(D_003DA4F0);
     UpdateTitleScreen(D_003DA530);
 }
-} } // namespace M_func_001D9648
+} // namespace M_func_001D9648
 
 // Draws the UI (called from the main loop): runs the draw slot of the three main HUD screens, then sends the two HUD DMA
 // streams.
@@ -448,7 +448,7 @@ enum HudMeterState { HUDMETER_HIDDEN, HUDMETER_STEADY, HUDMETER_DAMAGE, HUDMETER
 /* Notice banner states (SetNoticeState): hidden, appearing, shown, hiding, swapping to the queued text. */
 enum NoticeState { NOTICE_HIDDEN, NOTICE_APPEARING, NOTICE_SHOWN, NOTICE_HIDING, NOTICE_SWAPPING };
 
-namespace M_PostHudMeterLoad { extern "C" {
+namespace M_PostHudMeterLoad {
 typedef struct {
     char pad[0xDFC];
     int maxHealth;
@@ -457,14 +457,14 @@ typedef struct {
     int maxPower;
 } Q;
 #define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int);
-int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
-int GetStepplayerMp(Q *);
-void PlayWidgetAnim(WIDGET *, int);
-void SetWidgetAnimPhase(WIDGET *, int, float);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int GetStepplayerMp(Q *) __asm__("GetStepplayerMp");
+void PlayWidgetAnim(WIDGET *, int) __asm__("PlayWidgetAnim");
+void SetWidgetAnimPhase(WIDGET *, int, float) __asm__("SetWidgetAnimPhase");
 // Post-load of the health / gadget-power meter: finds its widget, reads the hero's health and power fractions and picks
 // the per-character animations.
-void PostHudMeterLoad(HUDMETER *p)
+void PostHudMeterLoad(HUDMETER *p) __asm__("PostHudMeterLoad"); void PostHudMeterLoad(HUDMETER *p)
 {
     Q *hero;
     WIDGET *widget;
@@ -509,7 +509,7 @@ void PostHudMeterLoad(HUDMETER *p)
         SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
     }
 }
-} } // namespace M_PostHudMeterLoad
+} // namespace M_PostHudMeterLoad
 
 // Resets the meter: state 0, no widget.
 extern "C" void ResetHudMeter(HUDMETER *hudmeter)
@@ -518,18 +518,18 @@ extern "C" void ResetHudMeter(HUDMETER *hudmeter)
     hudmeter->widget = 0;
 }
 
-namespace M_SetHudMeterState { extern "C" {
+namespace M_SetHudMeterState {
 typedef struct { int a, b, c, powerCost; int pad[4]; } REC;
-extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
-extern REC D_002BCD00[];
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int IsPowerupAcquired(int);
-void PlayWidgetAnim(WIDGET *, int);
-void StopWidgetAnim(WIDGET *, int);
-void SetWidgetAnimPhase(WIDGET *, int, float);
+extern GMITEM D_002C2DE8[] __asm__("D_002C2DE8"), D_002C3028[] __asm__("D_002C3028"), D_002C3148[] __asm__("D_002C3148");
+extern REC D_002BCD00[] __asm__("D_002BCD00");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int IsPowerupAcquired(int) __asm__("IsPowerupAcquired");
+void PlayWidgetAnim(WIDGET *, int) __asm__("PlayWidgetAnim");
+void StopWidgetAnim(WIDGET *, int) __asm__("StopWidgetAnim");
+void SetWidgetAnimPhase(WIDGET *, int, float) __asm__("SetWidgetAnimPhase");
 // Switches the meter's state: hide / appear animations, steady (health gauge, plus the power gauge only if the character
 // owns a power-up that costs power), damage, and the alternate animations.
-void SetHudMeterState(HUDMETER *p, int s)
+extern "C" void SetHudMeterState(HUDMETER *p, int s)
 {
     int old = p->state;
     if (old == s)
@@ -592,9 +592,9 @@ void SetHudMeterState(HUDMETER *p, int s)
         break;
     }
 }
-} } // namespace M_SetHudMeterState
+} // namespace M_SetHudMeterState
 
-namespace M_UpdateHudMeter { extern "C" {
+namespace M_UpdateHudMeter {
 typedef struct { char pad0[0xC]; void *vt; } SUB;
 typedef struct Q {
     char pad0[0xDFC];
@@ -608,14 +608,14 @@ typedef struct Q {
     int maxPower;
 } Q;
 #define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
-extern char D_002C3248[];
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int GetStepplayerMp(Q *);
-int AreFloatsNear__Ffff(float, float, float);
-float SmoothValue__FfffP3SMPPf(void *, int, float, float, float);
-int IsWidgetAnimPlaying(WIDGET *, int);
-void SetWidgetAnimPhase(WIDGET *, int, float);
-} } // namespace M_UpdateHudMeter
+extern char D_002C3248[] __asm__("D_002C3248");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int GetStepplayerMp(Q *) __asm__("GetStepplayerMp");
+int AreFloatsNear__Ffff(float, float, float) __asm__("AreFloatsNear__Ffff");
+float SmoothValue__FfffP3SMPPf(void *, int, float, float, float) __asm__("SmoothValue__FfffP3SMPPf");
+int IsWidgetAnimPlaying(WIDGET *, int) __asm__("IsWidgetAnimPlaying");
+void SetWidgetAnimPhase(WIDGET *, int, float) __asm__("SetWidgetAnimPhase");
+} // namespace M_UpdateHudMeter
 // Per-frame meter update (slot 7): follows the current hero, animates health drain / fill and power changes smoothly,
 // flashes on damage and plays special animations.
 void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the namespace's views) */
@@ -732,7 +732,7 @@ extern "C" void ResetNotice(SCREEN *screen)
     SetNoticeState(screen, NOTICE_HIDDEN);
 }
 
-namespace M_UpdateNotice { extern "C" {
+namespace M_UpdateNotice {
 typedef struct { char pad[0x58]; int visibility; } W;
 typedef struct {
     char pad[0x10];
@@ -744,12 +744,12 @@ typedef struct {
     float queuedDuration;
     W *widget;
 } OBJ;
-void SetNoticeState(OBJ *, int);
-int IsWidgetVisible(W *);
-int IsWidgetAnimPlaying(W *, int);
+void SetNoticeState(OBJ *, int) __asm__("SetNoticeState");
+int IsWidgetVisible(W *) __asm__("IsWidgetVisible");
+int IsWidgetAnimPlaying(W *, int) __asm__("IsWidgetAnimPlaying");
 // Per-frame notice banner update: marks it shown once the widget is fully visible, times it out (only while hidden),
 // or swaps to the queued text; hides it at the end.
-void UpdateNotice(OBJ *p)
+extern "C" void UpdateNotice(OBJ *p)
 {
     if (p->widget == 0)
         return;
@@ -784,9 +784,9 @@ void UpdateNotice(OBJ *p)
         break;
     }
 }
-} } // namespace M_UpdateNotice
+} // namespace M_UpdateNotice
 
-namespace M_PostNotice { extern "C" {
+namespace M_PostNotice {
 typedef struct {
     char pad[0x10];
     int state;
@@ -796,10 +796,10 @@ typedef struct {
     int queuedTextId;
     float queuedDuration;
 } OBJ;
-void CancelNotice(OBJ *, int);
-void SetNoticeState(OBJ *, int);
+void CancelNotice(OBJ *, int) __asm__("CancelNotice");
+void SetNoticeState(OBJ *, int) __asm__("SetNoticeState");
 // Requests a notice text for a duration, queued behind the current one; -1 cancels.
-void PostNotice(OBJ *p, int textId, float duration)
+extern "C" void PostNotice(OBJ *p, int textId, float duration)
 {
     if (textId == -1) {
         CancelNotice(p, -1);
@@ -827,12 +827,12 @@ void PostNotice(OBJ *p, int textId, float duration)
         break;
     }
 }
-} } // namespace M_PostNotice
+} // namespace M_PostNotice
 
-namespace M_CancelNotice { extern "C" {
+namespace M_CancelNotice {
 struct S { char pad[0x18]; int textId; int duration; int queuedTextId; };
 // Cancels a notice text: the current one times out now, or the queued one is dropped; -1 cancels the queue.
-void CancelNotice(struct S *p, int n) {
+extern "C" void CancelNotice(struct S *p, int n) {
     if (n == -1) {
         p->queuedTextId = -1;
         p->duration = 0;
@@ -842,7 +842,7 @@ void CancelNotice(struct S *p, int n) {
         p->queuedTextId = -1;
     }
 }
-} } // namespace M_CancelNotice
+} // namespace M_CancelNotice
 
 /* The text id queued, else the one shown. */
 // Text id of the notice being shown, or of the queued one. (inferred)
@@ -855,7 +855,7 @@ extern "C" int GetCurrentNoticeTextId(SCREEN *screen)
     return ids;
 }
 
-namespace M_SetNoticeState { extern "C" {
+namespace M_SetNoticeState {
 typedef struct {
     char pad[0x10];
     int state;
@@ -866,11 +866,11 @@ typedef struct {
     float queuedDuration;
     WIDGET *widget;
 } OBJ;
-void StartWidgetMainAnim(WIDGET *, int);
-void ShowWidgetArgs(WIDGET *, int, int *);
+void StartWidgetMainAnim(WIDGET *, int) __asm__("StartWidgetMainAnim");
+void ShowWidgetArgs(WIDGET *, int, int *) __asm__("ShowWidgetArgs");
 // Switches the notice banner's state: show the widget with the text, hide it, swap animation, or main animation after
 // a swap.
-void SetNoticeState(OBJ *p, int n)
+void SetNoticeState(OBJ *p, int n) __asm__("SetNoticeState"); void SetNoticeState(OBJ *p, int n)
 {
     WIDGET *plo;
     if (n == p->state)
@@ -908,12 +908,12 @@ void SetNoticeState(OBJ *p, int n)
     p->state = n;
     p->stateTime = g_clock.time;
 }
-} } // namespace M_SetNoticeState
+} // namespace M_SetNoticeState
 
-namespace M_func_001DA728 { extern "C" {
+namespace M_func_001DA728 {
 extern char D_002D85E8[] __asm__("_vt$6SCREEN");
 // Base SCREEN constructor: vtable, no widget (oid -1), then resets the mode.
-SCREEN *ConstructScreen(SCREEN *p) {
+extern "C" SCREEN *ConstructScreen(SCREEN *p) {
     p->scriptFrame.m_p = 0;
     p->scriptVariables.m_p = 0;
     *(void **)((char *)p + 0xC) = D_002D85E8;
@@ -921,7 +921,7 @@ SCREEN *ConstructScreen(SCREEN *p) {
     ResetScreenMode(p);
     return p;
 }
-} } // namespace M_func_001DA728
+} // namespace M_func_001DA728
 
 /* screen slot 12: resolve the widget. */
 // Base screen post-load (slot 12): finds the screen's widget object by its OID.
@@ -947,20 +947,20 @@ extern "C" void ResetScreenMode(SCREEN *screen)
     SetScreenMode(screen, -1, -1);
 }
 
-namespace M_func_001DA808 { extern "C" {
-void UpdateScreenDefault(SCREEN *p);
+namespace M_func_001DA808 {
+void UpdateScreenDefault(SCREEN *p) __asm__("UpdateScreenDefault");
 // Screen update that closes the screen when its mode timer expires. (inferred)
-void UpdateTimedScreen(SCREEN *p) {
+extern "C" void UpdateTimedScreen(SCREEN *p) {
     UpdateScreenDefault(p);
     if (p->tPopupEnd <= g_clock.realTime) SetScreenMode(p, -1, -1);
 }
-} } // namespace M_func_001DA808
+} // namespace M_func_001DA808
 
-namespace M_UpdateScreenStickDir { extern "C" {
-float atan2f(float, float);
+namespace M_UpdateScreenStickDir {
+float atan2f(float, float) __asm__("atan2f");
 // Turns the left stick into an 8-way direction for menus: calls the screen's slot 14 with the direction when the
 // stick is pushed past 0.8, and with -1 when it returns under 0.5.
-void UpdateScreenStickDir(SCREEN *p)
+extern "C" void UpdateScreenStickDir(SCREEN *p)
 {
     JOY *joy = p->pjoy;
     int mode;
@@ -978,14 +978,14 @@ void UpdateScreenStickDir(SCREEN *p)
         p->SetMode(-1);
     }
 }
-} } // namespace M_UpdateScreenStickDir
+} // namespace M_UpdateScreenStickDir
 
-namespace M_func_001DA950 { extern "C" {
-extern float D_002A7984, D_002C3254;
-void *CreateSfxSound(int timerKind);
-void SetSndSourceLo(void *p, int timerKind);
+namespace M_func_001DA950 {
+extern float D_002A7984 __asm__("D_002A7984"), D_002C3254 __asm__("D_002C3254");
+void *CreateSfxSound(int timerKind) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int timerKind) __asm__("SetSndSourceLo");
 // Sets a screen's mode and argument; mode 0 plays the menu sound and starts the timeout. (inferred)
-void SetScreenMode(SCREEN *p, int timerKind, int modeArg) {
+extern "C" void SetScreenMode(SCREEN *p, int timerKind, int modeArg) {
     p->idsPopup = modeArg;
     p->nPopup = timerKind;
     switch (timerKind) {
@@ -1003,7 +1003,7 @@ void SetScreenMode(SCREEN *p, int timerKind, int modeArg) {
         break;
     }
 }
-} } // namespace M_func_001DA950
+} // namespace M_func_001DA950
 
 // Clears a screen's mode (closes it). (inferred)
 extern "C" void CloseScreen(SCREEN *screen)
@@ -1039,20 +1039,20 @@ extern "C" void ClearGadgetMenu(GADGETMENU *gadgetMenu)
 /* Gadget menu pages (SetGadgetMenuState): closed, or the page of Sly, Bentley or Murray. */
 enum GadgetMenuPage { GADGETMENU_CLOSED = -1, GADGETMENU_SLY, GADGETMENU_BENTLEY, GADGETMENU_MURRAY };
 
-namespace M_UpdateGadgetMenu { extern "C" {
-extern int D_002C3258[];
-void UpdateTimedScreen(GADGETMENU *);
-int HandleJoyButtons(void *, int);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void UpdateScreenStickDir(GADGETMENU *);
-GMITEM *FindScreenEntry(GADGETMENU *, int);
-void SetScreenMode(GADGETMENU *, int, int);
-void *CreateSfxSound(int);
-void SetSndSourceLo(void *, int);
-void SetStepplayerGadget(void *, int, int);
+namespace M_UpdateGadgetMenu {
+extern int D_002C3258[] __asm__("D_002C3258");
+void UpdateTimedScreen(GADGETMENU *) __asm__("UpdateTimedScreen");
+int HandleJoyButtons(void *, int) __asm__("HandleJoyButtons");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void UpdateScreenStickDir(GADGETMENU *) __asm__("UpdateScreenStickDir");
+GMITEM *FindScreenEntry(GADGETMENU *, int) __asm__("FindScreenEntry");
+void SetScreenMode(GADGETMENU *, int, int) __asm__("SetScreenMode");
+void *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
+void SetStepplayerGadget(void *, int, int) __asm__("SetStepplayerGadget");
 // Per-frame gadget menu: circle closes, the info button shows a message, and the three slot buttons assign the selected
 // power-up (if owned) to that slot.
-void UpdateGadgetMenu(GADGETMENU *p)
+extern "C" void UpdateGadgetMenu(GADGETMENU *p)
 {
     void *hero;
     GMITEM *r;
@@ -1095,29 +1095,29 @@ void UpdateGadgetMenu(GADGETMENU *p)
         }
     }
 }
-} } // namespace M_UpdateGadgetMenu
+} // namespace M_UpdateGadgetMenu
 
-namespace M_func_001DAC58 { extern "C" {
+namespace M_func_001DAC58 {
 typedef struct { float x, y, dx, dy; char pad[0x10]; } TXT;
 typedef struct { char ab[0xA0]; } FONT;
 typedef struct { int n; int a; int b; } SLOT;
 typedef struct { char pad[0x1180]; SLOT gadgetSlots[3]; } Q;
-extern float D_002C3264;
-extern int D_002C3268[];
-int IsWidgetVisible(void *);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void CTextBox_SetPos(TXT *, float, float);
-void CTextBox_SetSize(TXT *, float, float);
-void CTextBox_SetTextColor(TXT *, unsigned int *);
-void CTextBox_SetHorizontalJust(TXT *, int);
-void CTextBox_SetVerticalJust(TXT *, int);
-FONT *CRichText_ctor(FONT *, int, float);
-void DrawRichText2(FONT *, TXT *, int);
+extern float D_002C3264 __asm__("D_002C3264");
+extern int D_002C3268[] __asm__("D_002C3268");
+int IsWidgetVisible(void *) __asm__("IsWidgetVisible");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void CTextBox_SetPos(TXT *, float, float) __asm__("CTextBox_SetPos");
+void CTextBox_SetSize(TXT *, float, float) __asm__("CTextBox_SetSize");
+void CTextBox_SetTextColor(TXT *, unsigned int *) __asm__("CTextBox_SetTextColor");
+void CTextBox_SetHorizontalJust(TXT *, int) __asm__("CTextBox_SetHorizontalJust");
+void CTextBox_SetVerticalJust(TXT *, int) __asm__("CTextBox_SetVerticalJust");
+FONT *CRichText_ctor(FONT *, int, float) __asm__("CRichText_ctor");
+void DrawRichText2(FONT *, TXT *, int) __asm__("DrawRichText2");
 // 0.0f materialised from $zero.
-static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;}
+extern "C" { static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;} }
 // While the gadget menu is visible, draws the slot button glyph next to each power-up that is equipped in a slot.
 // (inferred)
-void DrawGadgetMenuSlotLabels(GADGETMENU *p)
+extern "C" void DrawGadgetMenuSlotLabels(GADGETMENU *p)
 {
     Q *hero;
     int i;
@@ -1154,11 +1154,11 @@ void DrawGadgetMenuSlotLabels(GADGETMENU *p)
         }
     }
 }
-} } // namespace M_func_001DAC58
+} // namespace M_func_001DAC58
 
-namespace M_func_001DAE20 { extern "C" {
+namespace M_func_001DAE20 {
 // Finds the item entry (0x20 bytes) with the given gadget id in the screen's item list, or null.
-GMITEM *FindScreenEntry(GADGETMENU *p, int gadgetId) {
+extern "C" GMITEM *FindScreenEntry(GADGETMENU *p, int gadgetId) {
     int i;
     for (i = 0; i < p->citem; i++) {
         GMITEM *pe = &p->aitem[i];
@@ -1166,29 +1166,29 @@ GMITEM *FindScreenEntry(GADGETMENU *p, int gadgetId) {
     }
     return 0;
 }
-} } // namespace M_func_001DAE20
+} // namespace M_func_001DAE20
 
-namespace M_func_001DAE58 { extern "C" {
+namespace M_func_001DAE58 {
 struct E { int a[4]; int unlockEpisode; int b[3]; };
-extern struct E D_002BCD00[];
-int GetBestEpisode(void);
+extern struct E D_002BCD00[] __asm__("D_002BCD00");
+int GetBestEpisode(void) __asm__("GetBestEpisode");
 // True when power-up item i is unlocked by the story progress (its episode threshold). (inferred)
 // Runtime-checked against the ThiefNet list.
-int IsScreenItemUnlocked(int i) {
+extern "C" int IsScreenItemUnlocked(int i) {
     struct E *pe = &D_002BCD00[i];
     if (pe->unlockEpisode == -1) return 0;
     return GetBestEpisode() >= pe->unlockEpisode;
 }
-} } // namespace M_func_001DAE58
+} // namespace M_func_001DAE58
 
-namespace M_FPowerupAcquired { extern "C" {
-extern char D_002A79A0[], D_002A79A8[], D_002A79B8[];
-void sprintf(char *pch, char *fmt, int n);
-void GetSaveVarByName(CRefData *pref, char *a, char *b, char *c, int d);
+namespace M_FPowerupAcquired {
+extern char D_002A79A0[] __asm__("D_002A79A0"), D_002A79A8[] __asm__("D_002A79A8"), D_002A79B8[] __asm__("D_002A79B8");
+void sprintf(char *pch, char *fmt, int n) __asm__("sprintf");
+void GetSaveVarByName(CRefData *pref, char *a, char *b, char *c, int d) __asm__("GetSaveVarByName");
 void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
-void Decref__4CRef(CRefData *pref);
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // True when the power-up has been bought (save data).
-int IsPowerupAcquired(int n) {
+extern "C" int IsPowerupAcquired(int n) {
     CRefData ref;
     char ach[0x20];
     CRefData tmp;
@@ -1203,15 +1203,15 @@ int IsPowerupAcquired(int n) {
     Decref__4CRef(&ref);
     return r;
 }
-} } // namespace M_FPowerupAcquired
+} // namespace M_FPowerupAcquired
 
 namespace M_SetPowerupAcquired {
-extern "C" { extern char D_002A79A0[]; }
-extern "C" { extern char D_002A79A8[]; }
-extern "C" { extern char D_002A79B8[]; }
-extern "C" { int sprintf(char *, const char *, ...); }
-extern "C" { CRef SetSaveVarByName(const CRef &, const char *, ...); }
-extern "C" { void BroadcastGameEvent(GAME *, int, int); }
+extern char D_002A79A0[] __asm__("D_002A79A0");
+extern char D_002A79A8[] __asm__("D_002A79A8");
+extern char D_002A79B8[] __asm__("D_002A79B8");
+int sprintf(char *, const char *, ...) __asm__("sprintf");
+CRef SetSaveVarByName(const CRef &, const char *, ...) __asm__("SetSaveVarByName");
+void BroadcastGameEvent(GAME *, int, int) __asm__("BroadcastGameEvent");
 // Marks a power-up bought or not; buying broadcasts the "power-up acquired" game event.
 extern "C" void SetPowerupAcquired(int n, int f)
 {
@@ -1249,18 +1249,18 @@ struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; ch
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
-extern "C" { extern float D_002C3280, D_002C3274, D_002C3278, D_002C327C, D_002A79C8; }
+extern float D_002C3280 __asm__("D_002C3280"), D_002C3274 __asm__("D_002C3274"), D_002C3278 __asm__("D_002C3278"), D_002C327C __asm__("D_002C327C"), D_002A79C8 __asm__("D_002A79C8");
 
-extern "C" {
-GMITEM *FindScreenEntry(GADGETMENU *sel, int id);
-int ClipEdgeToSphere(qword point, qword start, qword end, int flags, HIT *hit, float radius);
-void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance);
-void SelectGadgetMenuItem(GADGETMENU *sel, int id);
-void CloseScreen(GADGETMENU *sel);
-void *CreateSfxSound(int id);
-void SetSndSourceLo(void *sound, int flags);
-void SetGadgetMenuStickDir(GADGETMENU *sel, int mode);
-}
+
+GMITEM *FindScreenEntry(GADGETMENU *sel, int id) __asm__("FindScreenEntry");
+int ClipEdgeToSphere(qword point, qword start, qword end, int flags, HIT *hit, float radius) __asm__("ClipEdgeToSphere");
+void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance) __asm__("FindClosestPointOnLineSegment");
+void SelectGadgetMenuItem(GADGETMENU *sel, int id) __asm__("SelectGadgetMenuItem");
+void CloseScreen(GADGETMENU *sel) __asm__("CloseScreen");
+void *CreateSfxSound(int id) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *sound, int flags) __asm__("SetSndSourceLo");
+void SetGadgetMenuStickDir(GADGETMENU *sel, int mode) __asm__("SetGadgetMenuStickDir");
+
 
 // Pack x, y, z into a 128-bit GPR value (home is a scratch slot).
 static inline qword XYZ(float x, float y, float z, QWROW &home)
@@ -1352,11 +1352,11 @@ void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
 }
 } // namespace M_SetGadgetMenuStickDir
 
-namespace M_SelectGadgetMenuItem { extern "C" {
-void StopWidgetAnim(void *, int);
-void PlayWidgetAnim(void *, int);
+namespace M_SelectGadgetMenuItem {
+void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
+void PlayWidgetAnim(void *, int) __asm__("PlayWidgetAnim");
 // Selects an item and sets every item's highlight animation (selected / acquired / unlocked).
-void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
+extern "C" void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
 {
     int i;
     p->idSelected = gadgetId;
@@ -1380,7 +1380,7 @@ void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
         }
     }
 }
-} } // namespace M_SelectGadgetMenuItem
+} // namespace M_SelectGadgetMenuItem
 
 // Opens the gadget-menu page of the current hero (Sly, Bentley or Murray).
 extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
@@ -1401,19 +1401,19 @@ extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
     }
 }
 
-namespace M_SetGadgetMenuState { extern "C" {
-extern GMITEM D_002C2DE8[], D_002C3028[], D_002C3148[];
-extern float D_002A79CC;
-void SetClockRate(CLOCK *, float, int);
-void IncrementSwHandsOff(void *, int);
-void DecrementSwHandsOff(void *, int);
-void SelectGadgetMenuItem(GADGETMENU *, int);
-void SetScreenMode(GADGETMENU *, int, int);
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
-void SetGadgetMenuState(GADGETMENU *p, int s);
+namespace M_SetGadgetMenuState {
+extern GMITEM D_002C2DE8[] __asm__("D_002C2DE8"), D_002C3028[] __asm__("D_002C3028"), D_002C3148[] __asm__("D_002C3148");
+extern float D_002A79CC __asm__("D_002A79CC");
+void SetClockRate(CLOCK *, float, int) __asm__("SetClockRate");
+void IncrementSwHandsOff(void *, int) __asm__("IncrementSwHandsOff");
+void DecrementSwHandsOff(void *, int) __asm__("DecrementSwHandsOff");
+void SelectGadgetMenuItem(GADGETMENU *, int) __asm__("SelectGadgetMenuItem");
+void SetScreenMode(GADGETMENU *, int, int) __asm__("SetScreenMode");
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+extern "C" { void SetGadgetMenuState(GADGETMENU *p, int s); }
 // Opens or closes the gadget menu: opening freezes the clock, takes player control and shows the hero's page; closing
 // restores them.
-void SetGadgetMenuState(GADGETMENU *p, int s)
+extern "C" void SetGadgetMenuState(GADGETMENU *p, int s)
 {
     if (s == p->nState)
         return;
@@ -1486,21 +1486,21 @@ void SetGadgetMenuState(GADGETMENU *p, int s)
         }
     }
 }
-} } // namespace M_SetGadgetMenuState
+} // namespace M_SetGadgetMenuState
 
-namespace M_func_001DB7A8 { extern "C" {
+namespace M_func_001DB7A8 {
 extern char D_002D84E8[] __asm__("_vt$8THIEFNET");
-THIEFNET *ConstructScreen(THIEFNET *p);
-void ClearThiefnet(THIEFNET *p);
+THIEFNET *ConstructScreen(THIEFNET *p) __asm__("ConstructScreen");
+void ClearThiefnet(THIEFNET *p) __asm__("ClearThiefnet");
 // Constructor of the ThiefNet shop screen (widget 0x378, a 64-entry item list). (inferred)
-THIEFNET *ConstructThiefnetScreen(THIEFNET *p) {
+THIEFNET *ConstructThiefnetScreen(THIEFNET *p) __asm__("ConstructThiefnetScreen"); THIEFNET *ConstructThiefnetScreen(THIEFNET *p) {
     ConstructScreen(p);
     *(void **)((char *)p + 0xC) = D_002D84E8;
     p->idTextQueued = 0x378;
     ClearThiefnet(p);
     return p;
 }
-} } // namespace M_func_001DB7A8
+} // namespace M_func_001DB7A8
 
 // ThiefNet shop reset (slot 13).
 void THIEFNET::Reset()   /* key function */
@@ -1510,9 +1510,9 @@ void THIEFNET::Reset()   /* key function */
     ClearThiefnet(screen);
 }
 
-namespace M_ClearThiefnet { extern "C" {
+namespace M_ClearThiefnet {
 // ThiefNet: state -1, empty item list, no animation handles.
-void ClearThiefnet(THIEFNET *p) {
+void ClearThiefnet(THIEFNET *p) __asm__("ClearThiefnet"); void ClearThiefnet(THIEFNET *p) {
     unsigned int i;
     p->nTab = -1;
     p->tTab = g_clock.realTime;
@@ -1524,32 +1524,32 @@ void ClearThiefnet(THIEFNET *p) {
         p->aitem[i].idAnimIcon = -1;
     }
 }
-} } // namespace M_ClearThiefnet
+} // namespace M_ClearThiefnet
 
 namespace M_UpdateThiefnet {
 struct REC { int a, b, price; int pad[5]; };
 struct REC12 { int sellPrice, x4, price; };
-extern "C" {
-extern REC D_002BCD00[];
-extern REC12 D_002C3288[];
-extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
-void UpdateTimedScreen(THIEFNET *);
-int HandleJoyButtons(void *, int);
-void SetThiefnetTab(THIEFNET *, int);
-int GetCoinCount(void *);
-void SetCoinCount(void *, int);
-void SetScreenMode(THIEFNET *, int, int);
-void SetPowerupAcquired(int, int);
-void RefreshThiefnetItems(THIEFNET *);
-void *CreateSfxSound(int);
-void SetSndSourceLo(void *, int);
-void RefreshPlayersAfterPowerupChange(void *);
-void sprintf(char *, const char *, ...);
-CRef GetSaveVarByName(const char *, ...);
-CRef SetSaveVarByName(const CRef &, const char *, ...);
-void UpdateScreenStickDir(THIEFNET *);
-void UpdateThiefnetWidgets(THIEFNET *);
-}
+
+extern REC D_002BCD00[] __asm__("D_002BCD00");
+extern REC12 D_002C3288[] __asm__("D_002C3288");
+extern char D_002A79A0[] __asm__("D_002A79A0"), D_002A79D0[] __asm__("D_002A79D0"), D_002A79D8[] __asm__("D_002A79D8");
+void UpdateTimedScreen(THIEFNET *) __asm__("UpdateTimedScreen");
+int HandleJoyButtons(void *, int) __asm__("HandleJoyButtons");
+void SetThiefnetTab(THIEFNET *, int) __asm__("SetThiefnetTab");
+int GetCoinCount(void *) __asm__("GetCoinCount");
+void SetCoinCount(void *, int) __asm__("SetCoinCount");
+void SetScreenMode(THIEFNET *, int, int) __asm__("SetScreenMode");
+void SetPowerupAcquired(int, int) __asm__("SetPowerupAcquired");
+void RefreshThiefnetItems(THIEFNET *) __asm__("RefreshThiefnetItems");
+void *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
+void RefreshPlayersAfterPowerupChange(void *) __asm__("RefreshPlayersAfterPowerupChange");
+void sprintf(char *, const char *, ...) __asm__("sprintf");
+CRef GetSaveVarByName(const char *, ...) __asm__("GetSaveVarByName");
+CRef SetSaveVarByName(const CRef &, const char *, ...) __asm__("SetSaveVarByName");
+void UpdateScreenStickDir(THIEFNET *) __asm__("UpdateScreenStickDir");
+void UpdateThiefnetWidgets(THIEFNET *) __asm__("UpdateThiefnetWidgets");
+
 // Per-frame ThiefNet: on the buy tab buys the selected power-up (coin check, confirmation, payment, notification); on the
 // sell tab sells one loot item.
 extern "C" void UpdateThiefnet(THIEFNET *p)
@@ -1617,11 +1617,11 @@ extern "C" void UpdateThiefnet(THIEFNET *p)
 }
 } // namespace M_UpdateThiefnet
 
-namespace M_func_001DBBA0 { extern "C" {
-extern int D_002C35B4;
-extern int D_003DA570;
+namespace M_func_001DBBA0 {
+extern int D_002C35B4 __asm__("D_002C35B4");
+extern int D_003DA570 __asm__("D_003DA570");
 // Index just past the last visible row of the scrolling list (window size adjusted for the scroll arrows). (inferred)
-int GetThiefnetRowEnd(THIEFNET *p) {
+extern "C" int GetThiefnetRowEnd(THIEFNET *p) {
     int n = p->iFirstVisible + D_002C35B4;
     if (D_003DA570) {
         n -= (p->iFirstVisible > 0);
@@ -1629,15 +1629,15 @@ int GetThiefnetRowEnd(THIEFNET *p) {
     }
     return n;
 }
-} } // namespace M_func_001DBBA0
+} // namespace M_func_001DBBA0
 
-namespace M_SelectThiefnetItem { extern "C" {
-extern int D_003DA570;
-extern int D_002C35B4;
-int GetThiefnetRowEnd(THIEFNET *);
-void CloseScreen(THIEFNET *);
+namespace M_SelectThiefnetItem {
+extern int D_003DA570 __asm__("D_003DA570");
+extern int D_002C35B4 __asm__("D_002C35B4");
+int GetThiefnetRowEnd(THIEFNET *) __asm__("GetThiefnetRowEnd");
+void CloseScreen(THIEFNET *) __asm__("CloseScreen");
 // Selects iconAnim row (clamped), scrolls the window to it and records the selected power-up / loot id.
-void SelectThiefnetItem(THIEFNET *p, int row)
+extern "C" void SelectThiefnetItem(THIEFNET *p, int row)
 {
     if (p->citem == 0) {
         p->iFirstVisible = 0;
@@ -1665,17 +1665,17 @@ void SelectThiefnetItem(THIEFNET *p, int row)
     }
     CloseScreen(p);
 }
-} } // namespace M_SelectThiefnetItem
+} // namespace M_SelectThiefnetItem
 
 namespace M_RefreshThiefnetItems {
-extern "C" { extern char D_002A79A0[]; }
-extern "C" { extern char D_002A79D0[]; }
-extern "C" { extern char D_002A79D8[]; }
-extern "C" int sprintf(char *, const char *, ...);
-extern "C" CRef GetSaveVarByName(const char *, ...);
-extern "C" int IsScreenItemUnlocked(int);
-extern "C" int IsPowerupAcquired(int);
-extern "C" void SelectThiefnetItem(THIEFNET *, int);
+extern char D_002A79A0[] __asm__("D_002A79A0");
+extern char D_002A79D0[] __asm__("D_002A79D0");
+extern char D_002A79D8[] __asm__("D_002A79D8");
+extern int sprintf(char *, const char *, ...) __asm__("sprintf");
+extern CRef GetSaveVarByName(const char *, ...) __asm__("GetSaveVarByName");
+extern int IsScreenItemUnlocked(int) __asm__("IsScreenItemUnlocked");
+extern int IsPowerupAcquired(int) __asm__("IsPowerupAcquired");
+extern void SelectThiefnetItem(THIEFNET *, int) __asm__("SelectThiefnetItem");
 // Rebuilds the ThiefNet list: buy tab = unlocked power-ups not yet bought; sell tab = loot kinds the player owns.
 extern "C" void RefreshThiefnetItems(THIEFNET *p)
 {
@@ -1719,25 +1719,25 @@ extern "C" void RefreshThiefnetItems(THIEFNET *p)
 }
 } // namespace M_RefreshThiefnetItems
 
-namespace M_UpdateThiefnetWidgets { extern "C" {
+namespace M_UpdateThiefnetWidgets {
 typedef struct { float a[8]; } M2;
 typedef struct { int visibility; } SUBX;
 typedef struct { char pad[0x58]; int visibility; } SUB;
 typedef struct { int a, category; int pad[6]; } REC;
-extern int D_003DA570;
-extern float D_002C35B0;
-extern int D_002C3588[];
-extern REC D_002BCD00[];
+extern int D_003DA570 __asm__("D_003DA570");
+extern float D_002C35B0 __asm__("D_002C35B0");
+extern int D_002C3588[] __asm__("D_002C3588");
+extern REC D_002BCD00[] __asm__("D_002BCD00");
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-int GetThiefnetRowEnd(THIEFNET *);
-void SetWidgetAnimXf(void *, int, M2 *);
-void SwitchWidgetAnim(void *, int, int *);
-void PlayWidgetAnimWithArg(void *, int, int);
-void PlayWidgetAnimsWithArg(void *, int, int);
-void PlayWidgetAnim(void *, int);
-void StopWidgetAnim(void *, int);
+int GetThiefnetRowEnd(THIEFNET *) __asm__("GetThiefnetRowEnd");
+void SetWidgetAnimXf(void *, int, M2 *) __asm__("SetWidgetAnimXf");
+void SwitchWidgetAnim(void *, int, int *) __asm__("SwitchWidgetAnim");
+void PlayWidgetAnimWithArg(void *, int, int) __asm__("PlayWidgetAnimWithArg");
+void PlayWidgetAnimsWithArg(void *, int, int) __asm__("PlayWidgetAnimsWithArg");
+void PlayWidgetAnim(void *, int) __asm__("PlayWidgetAnim");
+void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
 // Drives the ThiefNet widget animations: scroll arrows, row icons by item kind, cursor and popup.
-void UpdateThiefnetWidgets(THIEFNET *p)
+extern "C" void UpdateThiefnetWidgets(THIEFNET *p)
 {
     M2 m;
     int end;
@@ -1813,9 +1813,9 @@ void UpdateThiefnetWidgets(THIEFNET *p)
     }
     SwitchWidgetAnim(p->pchild, (p->nPopup != -1) ? 0x43B : 0x439, &p->idAnimPopup);
 }
-} } // namespace M_UpdateThiefnetWidgets
+} // namespace M_UpdateThiefnetWidgets
 
-namespace M_SetThiefnetTab { extern "C" {
+namespace M_SetThiefnetTab {
 typedef struct SUB {
     char pad0[0x58];
     int visibility;
@@ -1824,17 +1824,17 @@ typedef struct SUB {
     int pageAnimFirst;
     int pageAnimThird;
 } SUB;
-void SetClockRate(CLOCK *, float, int);
-void IncrementSwHandsOff(void *, int);
-void DecrementSwHandsOff(void *, int);
-void SetWidgetState(void *, int);
-void SetWidgetRequest(void *, int);
-void *CreateSfxSound(int);
-void SetSndSourceLo(void *, int);
-void RefreshThiefnetItems(THIEFNET *);
-void SelectThiefnetItem(THIEFNET *, int);
+void SetClockRate(CLOCK *, float, int) __asm__("SetClockRate");
+void IncrementSwHandsOff(void *, int) __asm__("IncrementSwHandsOff");
+void DecrementSwHandsOff(void *, int) __asm__("DecrementSwHandsOff");
+void SetWidgetState(void *, int) __asm__("SetWidgetState");
+void SetWidgetRequest(void *, int) __asm__("SetWidgetRequest");
+void *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
+void RefreshThiefnetItems(THIEFNET *) __asm__("RefreshThiefnetItems");
+void SelectThiefnetItem(THIEFNET *, int) __asm__("SelectThiefnetItem");
 // Opens ThiefNet on a tab (buy or sell) or closes it (-1), freezing / resuming the clock and player control.
-void SetThiefnetTab(THIEFNET *p, int s)
+extern "C" void SetThiefnetTab(THIEFNET *p, int s)
 {
     int old;
     if (!p->pchild)
@@ -1891,7 +1891,7 @@ void SetThiefnetTab(THIEFNET *p, int s)
     SelectThiefnetItem(p, 0);
     p->SetMode(-1);
 }
-} } // namespace M_SetThiefnetTab
+} // namespace M_SetThiefnetTab
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
@@ -1908,13 +1908,13 @@ namespace RO_ORDER { extern const float r_D_002A79C8 __asm__("D_002A79C8") = 3.4
 namespace RO_ORDER { extern const float r_D_002A79CC __asm__("D_002A79CC") = 3.40282347e+38f; }
 namespace RO_ORDER { extern const char r_D_002A79D0[] __asm__("D_002A79D0") = "loot"; }
 namespace RO_ORDER { extern const char r_D_002A79D8[] __asm__("D_002A79D8") = "mplootkc"; }
-namespace M_func_001DC4B0 { extern "C" {
-void SetThiefnetTab(THIEFNET *, int);
-void SelectThiefnetItem(THIEFNET *, int);
-void *CreateSfxSound(int);
-void SetSndSourceLo(void *, int);
+namespace M_func_001DC4B0 {
+void SetThiefnetTab(THIEFNET *, int) __asm__("SetThiefnetTab");
+void SelectThiefnetItem(THIEFNET *, int) __asm__("SelectThiefnetItem");
+void *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
 // ThiefNet stick handler (slot 14): left / right switch tabs, up / down move the selection (with sounds). (inferred)
-void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
+extern "C" void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
 {
     if (n == p->nMode)
         return;
@@ -1949,23 +1949,23 @@ void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
         break;
     }
 }
-} } // namespace M_func_001DC4B0
+} // namespace M_func_001DC4B0
 
-namespace M_BuildGadgetMenuInfoText { extern "C" {
+namespace M_BuildGadgetMenuInfoText {
 typedef struct { int pad[5]; int nameTextId; int detailTextId; int descriptionTextId; } REC;
-extern GADGETMENU D_003DA0F0;
-extern REC D_002BCD00[];
-extern char *D_002C3268[];
-extern char D_002A7A10[], D_002A7A18[], D_002A7A28[];
-char *FindSwLocalizedString__FP2SWi(void *, int);
-char *strcpy(char *, char *);
-int sprintf(char *, char *, ...);
-GMITEM *FindScreenEntry(GADGETMENU *,int);
-void *GetHeroPo(void *);
-int GetGadgetSlotFromId(void *, int);
+extern GADGETMENU D_003DA0F0 __asm__("D_003DA0F0");
+extern REC D_002BCD00[] __asm__("D_002BCD00");
+extern char *D_002C3268[] __asm__("D_002C3268");
+extern char D_002A7A10[] __asm__("D_002A7A10"), D_002A7A18[] __asm__("D_002A7A18"), D_002A7A28[] __asm__("D_002A7A28");
+char *FindSwLocalizedString__FP2SWi(void *, int) __asm__("FindSwLocalizedString__FP2SWi");
+char *strcpy(char *, char *) __asm__("strcpy");
+int sprintf(char *, char *, ...) __asm__("sprintf");
+GMITEM *FindScreenEntry(GADGETMENU *,int) __asm__("FindScreenEntry");
+void *GetHeroPo(void *) __asm__("GetHeroPo");
+int GetGadgetSlotFromId(void *, int) __asm__("GetGadgetSlotFromId");
 // Text callback for the gadget-menu info boxes: the popup message, "none", or the selected power-up's name, slot button
 // and description.
-void BuildGadgetMenuInfoText(char *out)
+extern "C" void BuildGadgetMenuInfoText(char *out)
 {
     char buf[256];
     unsigned char *s;
@@ -1992,15 +1992,15 @@ void BuildGadgetMenuInfoText(char *out)
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
     }
 }
-} } // namespace M_BuildGadgetMenuInfoText
+} // namespace M_BuildGadgetMenuInfoText
 
-namespace M_BuildThiefnetPowerupNameText { extern "C" {
-extern THIEFNET D_003DA150;
+namespace M_BuildThiefnetPowerupNameText {
+extern THIEFNET D_003DA150 __asm__("D_003DA150");
 struct T { int a[5]; int id; int b[2]; };
-extern struct T D_002BCD00[];
-void strcpy(char *p, void *q);
+extern struct T D_002BCD00[] __asm__("D_002BCD00");
+void strcpy(char *p, void *q) __asm__("strcpy");
 // Text callback: the power-up name of list row i.
-void BuildThiefnetPowerupNameText(char *pch, int i) {
+extern "C" void BuildThiefnetPowerupNameText(char *pch, int i) {
     THIEFNET *pg = &D_003DA150;
     unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     int id = -1;
@@ -2008,16 +2008,16 @@ void BuildThiefnetPowerupNameText(char *pch, int i) {
     if (id != -1) strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, id));
     else *pch = 0;
 }
-} } // namespace M_BuildThiefnetPowerupNameText
+} // namespace M_BuildThiefnetPowerupNameText
 
-namespace M_func_001DC820 { extern "C" {
-extern THIEFNET D_003DA150;
+namespace M_func_001DC820 {
+extern THIEFNET D_003DA150 __asm__("D_003DA150");
 struct T { int a[2]; char *pch; int b[5]; };
-extern struct T D_002BCD00[];
-extern char D_002A79A0[];
-void sprintf(char *pch, char *fmt, char *s);
+extern struct T D_002BCD00[] __asm__("D_002BCD00");
+extern char D_002A79A0[] __asm__("D_002A79A0");
+void sprintf(char *pch, char *fmt, char *s) __asm__("sprintf");
 // Text callback: the power-up cost of list row i. (inferred)
-void BuildThiefnetPowerupCostText(char *pch, int i) {
+extern "C" void BuildThiefnetPowerupCostText(char *pch, int i) {
     THIEFNET *pg = &D_003DA150;
     unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     char *s = 0;
@@ -2025,19 +2025,19 @@ void BuildThiefnetPowerupCostText(char *pch, int i) {
     if (s) sprintf(pch, D_002A79A0, s);
     else *pch = 0;
 }
-} } // namespace M_func_001DC820
+} // namespace M_func_001DC820
 
 namespace M_BuildThiefnetLootNameText {
 struct REC { char *name; int ids; int pad; };
-extern "C" { extern THIEFNET D_003DA150; }
-extern "C" { extern REC D_002C3288[]; }
-extern "C" { extern char D_002A79A0[]; }
-extern "C" { extern char D_002A79D0[]; }
-extern "C" { extern char D_002A79D8[]; }
-extern "C" { extern char D_002A7A30[]; }
-extern "C" int sprintf(char *, const char *, ...);
-extern "C" char *strcpy(char *, const char *);
-extern "C" CRef GetSaveVarByName(const char *, ...);
+extern THIEFNET D_003DA150 __asm__("D_003DA150");
+extern REC D_002C3288[] __asm__("D_002C3288");
+extern char D_002A79A0[] __asm__("D_002A79A0");
+extern char D_002A79D0[] __asm__("D_002A79D0");
+extern char D_002A79D8[] __asm__("D_002A79D8");
+extern char D_002A7A30[] __asm__("D_002A7A30");
+extern int sprintf(char *, const char *, ...) __asm__("sprintf");
+extern char *strcpy(char *, const char *) __asm__("strcpy");
+extern CRef GetSaveVarByName(const char *, ...) __asm__("GetSaveVarByName");
 // Text callback: the loot name of list row i, with the count when more than one is owned.
 extern "C" void BuildThiefnetLootNameText(char *pch, int k)
 {
@@ -2062,14 +2062,14 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
 }
 } // namespace M_BuildThiefnetLootNameText
 
-namespace M_func_001DC9C0 { extern "C" {
-extern THIEFNET D_003DA150;
+namespace M_func_001DC9C0 {
+extern THIEFNET D_003DA150 __asm__("D_003DA150");
 struct T { char *pch; int b[2]; };
-extern struct T D_002C3288[];
-extern char D_002A79A0[];
-void sprintf(char *pch, char *fmt, char *s);
+extern struct T D_002C3288[] __asm__("D_002C3288");
+extern char D_002A79A0[] __asm__("D_002A79A0");
+void sprintf(char *pch, char *fmt, char *s) __asm__("sprintf");
 // Text callback: the loot sale price of list row i. (inferred)
-void BuildThiefnetLootPriceText(char *pch, int i) {
+extern "C" void BuildThiefnetLootPriceText(char *pch, int i) {
     THIEFNET *pg = &D_003DA150;
     unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     char *s = 0;
@@ -2077,14 +2077,14 @@ void BuildThiefnetLootPriceText(char *pch, int i) {
     if (s) sprintf(pch, D_002A79A0, s);
     else *pch = 0;
 }
-} } // namespace M_func_001DC9C0
+} // namespace M_func_001DC9C0
 
-namespace M_func_001DCA30 { extern "C" {
-extern THIEFNET D_003DA150;
+namespace M_func_001DCA30 {
+extern THIEFNET D_003DA150 __asm__("D_003DA150");
 #define D_003DA180 (*(int *)((char *)base_D_003DA150 + 0x30))   /* screen's object+0x30 */
-void strcpy(char *p, void *q);
+void strcpy(char *p, void *q) __asm__("strcpy");
 // Text callback: the popup prompt text for the popup mode. (inferred)
-void BuildThiefnetPromptText(char *pch) {
+extern "C" void BuildThiefnetPromptText(char *pch) {
     int id;
     switch (D_003DA150.nPopup) {
     case -1: id = 0xDE; break;
@@ -2094,27 +2094,27 @@ void BuildThiefnetPromptText(char *pch) {
     }
     strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, id));
 }
-} } // namespace M_func_001DCA30
+} // namespace M_func_001DCA30
 #undef D_003DA180
 
-namespace M_BuildThiefnetInfoText { extern "C" {
+namespace M_BuildThiefnetInfoText {
 typedef struct { int unknown0,category,cost,powerCost,unlockEpisode,nameTextId,detailTextId,descriptionTextId; } REC;   /* a power-up (D_002BCD00) */
 typedef struct { char *name; int ids,pad; } REC2;
-extern THIEFNET D_003DA150;
-extern REC D_002BCD00[];
-extern REC2 D_002C3288[];
-extern char D_002A7A38[];
-int GetCoinCount(void *);
-int sprintf(char *,const char *,...);
-char *strcpy(char *,const char *);
+extern THIEFNET D_003DA150 __asm__("D_003DA150");
+extern REC D_002BCD00[] __asm__("D_002BCD00");
+extern REC2 D_002C3288[] __asm__("D_002C3288");
+extern char D_002A7A38[] __asm__("D_002A7A38");
+int GetCoinCount(void *) __asm__("GetCoinCount");
+int sprintf(char *,const char *,...) __asm__("sprintf");
+char *strcpy(char *,const char *) __asm__("strcpy");
 // Copy the localized string `id` into p.
-static inline void CopyId(char *p,int id)
+extern "C" { static inline void CopyId(char *p,int id)
 {
     strcpy(p,FindSwLocalizedString__FP2SWi(&g_sw,id));
-}
+} }
 // Text callback: the popup message, or the selected power-up's name, description and affordability, or the loot sell
 // line.
-void BuildThiefnetInfoText(char *pch)
+extern "C" void BuildThiefnetInfoText(char *pch)
 {
     THIEFNET *pt=&D_003DA150;
     if(pt->nPopup!=-1) {
@@ -2155,21 +2155,21 @@ void BuildThiefnetInfoText(char *pch)
         }
     }
 }
-} } // namespace M_BuildThiefnetInfoText
+} // namespace M_BuildThiefnetInfoText
 
-namespace M_func_001DCC58 { extern "C" {
+namespace M_func_001DCC58 {
 extern char D_002D8468[] __asm__("_vt$7JOBLIST");
-JOBLIST *ConstructScreen(JOBLIST *p);
-void ClearJobList(JOBLIST *p);
+JOBLIST *ConstructScreen(JOBLIST *p) __asm__("ConstructScreen");
+void ClearJobList(JOBLIST *p) __asm__("ClearJobList");
 // Constructor of the job-list screen (widget 0x4E0). (inferred)
-JOBLIST *ConstructJobListScreen(JOBLIST *p) {
+JOBLIST *ConstructJobListScreen(JOBLIST *p) __asm__("ConstructJobListScreen"); JOBLIST *ConstructJobListScreen(JOBLIST *p) {
     ConstructScreen(p);
     *(void **)((char *)p + 0xC) = D_002D8468;
     p->idTextQueued = 0x4E0;
     ClearJobList(p);
     return p;
 }
-} } // namespace M_func_001DCC58
+} // namespace M_func_001DCC58
 
 // Job-list post-load: base post-load, then marks the widget.
 void JOBLIST::PostLoad()   /* key function */
@@ -2188,30 +2188,30 @@ extern "C" void ResetJobList(SCREEN *screen)
     ClearJobList(screen);
 }
 
-namespace M_ClearJobList { extern "C" {
+namespace M_ClearJobList {
 // Job list: state -1, time stamp, no animation handles.
-void ClearJobList(JOBLIST *p) {
+void ClearJobList(JOBLIST *p) __asm__("ClearJobList"); void ClearJobList(JOBLIST *p) {
     p->nPage = -1; //P
     p->tPage = g_clock.realTime; //P
     p->idAnimPopup = -1; //P
     p->idAnimScrollUp = -1; //P
     p->idAnimScrollDown = -1; //P
 }
-} } // namespace M_ClearJobList
+} // namespace M_ClearJobList
 
-namespace M_UpdateJobList { extern "C" {
+namespace M_UpdateJobList {
 typedef struct { char pad[0xC]; VTE *vt; char pad10[0x58 - 0x10]; int visibility; } W;
-void UpdateTimedScreen(JOBLIST *);
-int AreWidgetLoadsIdle(void);
-void SetWidgetState(void *, int);
-void SetWidgetRequest(void *, int);
-int HandleJoyButtons(void *, int);
-void SetJobListPage(JOBLIST *, int);
-void UpdateScreenStickDir(JOBLIST *);
-void UpdateJobListWidgets(JOBLIST *);
+void UpdateTimedScreen(JOBLIST *) __asm__("UpdateTimedScreen");
+int AreWidgetLoadsIdle(void) __asm__("AreWidgetLoadsIdle");
+void SetWidgetState(void *, int) __asm__("SetWidgetState");
+void SetWidgetRequest(void *, int) __asm__("SetWidgetRequest");
+int HandleJoyButtons(void *, int) __asm__("HandleJoyButtons");
+void SetJobListPage(JOBLIST *, int) __asm__("SetJobListPage");
+void UpdateScreenStickDir(JOBLIST *) __asm__("UpdateScreenStickDir");
+void UpdateJobListWidgets(JOBLIST *) __asm__("UpdateJobListWidgets");
 // Per-frame job list: waits for the widget to load; START / circle closes; direction buttons switch between the jobs page
 // and the tasks page.
-void UpdateJobList(JOBLIST *p)
+extern "C" void UpdateJobList(JOBLIST *p)
 {
     UpdateTimedScreen(p);
     if (p->nPage == -1)
@@ -2254,12 +2254,12 @@ void UpdateJobList(JOBLIST *p)
     UpdateScreenStickDir(p);
     UpdateJobListWidgets(p);
 }
-} } // namespace M_UpdateJobList
+} // namespace M_UpdateJobList
 
-namespace M_SelectJobListItem { extern "C" {
-void CloseScreen(JOBLIST *p);
+namespace M_SelectJobListItem {
+void CloseScreen(JOBLIST *p) __asm__("CloseScreen");
 // Selects a job-list row (clamped).
-void SelectJobListItem(JOBLIST *p, int i) {
+extern "C" void SelectJobListItem(JOBLIST *p, int i) {
     int entryCount = p->centry;
     int n;
     if (entryCount == 0) n = -1;
@@ -2267,7 +2267,7 @@ void SelectJobListItem(JOBLIST *p, int i) {
     p->iSelected = n;
     CloseScreen(p);
 }
-} } // namespace M_SelectJobListItem
+} // namespace M_SelectJobListItem
 
 namespace M_RefreshJobListEntries {
 struct SO : LO {
@@ -2280,16 +2280,16 @@ struct SO : LO {
     char pad70[0x7C - 0x70];
     SO *job;
 };
-extern "C" {
-void StopWidgetAnim(void *, int);
+
+void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
 void func_002333B4(void *, int, unsigned int) __asm__("memset");
-void SortTasksTopologically(int *, SO ***);
-void qsort(void *, int, int, int (*)(const void *, const void *));
-int CompareTasks(const void *, const void *);
-int GetJobState(SO *);
-void memmove(void *, void *, unsigned int);
-void SelectJobListItem(JOBLIST *, int);
-}
+void SortTasksTopologically(int *, SO ***) __asm__("SortTasksTopologically");
+void qsort(void *, int, int, int (*)(const void *, const void *)) __asm__("qsort");
+int CompareTasks(const void *, const void *) __asm__("CompareTasks");
+int GetJobState(SO *) __asm__("GetJobState");
+void memmove(void *, void *, unsigned int) __asm__("memmove");
+void SelectJobListItem(JOBLIST *, int) __asm__("SelectJobListItem");
+
 // Rebuilds the job list: tasks sorted by dependency then order; page 0 lists started jobs, page 1 the tasks of the
 // selected job up to the first unfinished one.
 extern "C" void RefreshJobListEntries(JOBLIST *p)
@@ -2365,13 +2365,13 @@ extern "C" void RefreshJobListEntries(JOBLIST *p)
 }
 } // namespace M_RefreshJobListEntries
 
-namespace M_UpdateJobListWidgets { extern "C" {
+namespace M_UpdateJobListWidgets {
 typedef struct { char pad[0x58]; int visibility; } W;   /* widget: 2 = fully shown */
-void SwitchWidgetAnim(void *, int, int *);
-int IsJobComplete(void *);
-int IsTaskComplete(void *);
+void SwitchWidgetAnim(void *, int, int *) __asm__("SwitchWidgetAnim");
+int IsJobComplete(void *) __asm__("IsJobComplete");
+int IsTaskComplete(void *) __asm__("IsTaskComplete");
 // Drives the job-list row highlights and completion check marks.
-void UpdateJobListWidgets(JOBLIST *p)
+extern "C" void UpdateJobListWidgets(JOBLIST *p)
 {
     int i;
     if (((W *)p->pchild)->visibility != 2)
@@ -2392,9 +2392,9 @@ void UpdateJobListWidgets(JOBLIST *p)
         SwitchWidgetAnim(p->pchild, f ? i + 0x507 : -1, &pe->idAnimCheck);
     }
 }
-} } // namespace M_UpdateJobListWidgets
+} // namespace M_UpdateJobListWidgets
 
-namespace M_SetJobListPage { extern "C" {
+namespace M_SetJobListPage {
 typedef struct SUB {
     char pad0[0xC];
     VTE *vt;
@@ -2405,14 +2405,14 @@ typedef struct SUB {
     int pageAnimFirst;
     int pageAnimThird;
 } SUB;
-void IncrementSwHandsOff(void *, int);
-void DecrementSwHandsOff(void *, int);
-void SetWidgetState(void *, int);
-void SetWidgetRequest(void *, int);
-void RefreshJobListEntries(JOBLIST *);
+void IncrementSwHandsOff(void *, int) __asm__("IncrementSwHandsOff");
+void DecrementSwHandsOff(void *, int) __asm__("DecrementSwHandsOff");
+void SetWidgetState(void *, int) __asm__("SetWidgetState");
+void SetWidgetRequest(void *, int) __asm__("SetWidgetRequest");
+void RefreshJobListEntries(JOBLIST *) __asm__("RefreshJobListEntries");
 #define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 // Opens the job list on a page (jobs or tasks) or closes it (-1), holding player control while open.
-void SetJobListPage(JOBLIST *p, int s)
+extern "C" void SetJobListPage(JOBLIST *p, int s)
 {
     int old;
     if (!p->pchild)
@@ -2475,7 +2475,7 @@ void SetJobListPage(JOBLIST *p, int s)
     RefreshJobListEntries(p);
     p->SetMode(-1);
 }
-} } // namespace M_SetJobListPage
+} // namespace M_SetJobListPage
 #undef VCALL
 
 namespace RO_ORDER { extern const char r_D_002A7A10[] __asm__("D_002A7A10") = ""; }
@@ -2483,13 +2483,13 @@ namespace RO_ORDER { extern const char r_D_002A7A18[] __asm__("D_002A7A18") = "%
 namespace RO_ORDER { extern const char r_D_002A7A28[] __asm__("D_002A7A28") = ": "; }
 namespace RO_ORDER { extern const char r_D_002A7A30[] __asm__("D_002A7A30") = "%s (%d)"; }
 namespace RO_ORDER { extern const char r_D_002A7A38[] __asm__("D_002A7A38") = "%s: %s. %s"; }
-namespace M_SetJobListStickDir { extern "C" {
-void SetJobListPage(JOBLIST *, int);
-void SelectJobListItem(JOBLIST *, int);
-void *CreateSfxSound(int);
-void SetSndSourceLo(void *, int);
+namespace M_SetJobListStickDir {
+void SetJobListPage(JOBLIST *, int) __asm__("SetJobListPage");
+void SelectJobListItem(JOBLIST *, int) __asm__("SelectJobListItem");
+void *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
 // Job-list stick handler (slot 14): left / right switch pages, up / down move the selection.
-void SetJobListStickDir(JOBLIST *p, unsigned int n)
+extern "C" void SetJobListStickDir(JOBLIST *p, unsigned int n)
 {
     if (n == p->nMode)
         return;
@@ -2521,21 +2521,21 @@ void SetJobListStickDir(JOBLIST *p, unsigned int n)
         break;
     }
 }
-} } // namespace M_SetJobListStickDir
+} // namespace M_SetJobListStickDir
 
-namespace M_func_001DD648 { extern "C" {
+namespace M_func_001DD648 {
 extern char D_002D83E8[] __asm__("_vt$7SCRN52D");
-SCRN52D *ConstructScreen(SCRN52D *p);
-void ResetScreenMode(SCRN52D *p);
+SCRN52D *ConstructScreen(SCRN52D *p) __asm__("ConstructScreen");
+void ResetScreenMode(SCRN52D *p) __asm__("ResetScreenMode");
 // Constructor of screen 0x52D (widget 0x52D; its role is unknown). (inferred)
-SCRN52D *ConstructScreen52D(SCRN52D *p) {
+SCRN52D *ConstructScreen52D(SCRN52D *p) __asm__("ConstructScreen52D"); SCRN52D *ConstructScreen52D(SCRN52D *p) {
     ConstructScreen(p);
     *(void **)((char *)p + 0xC) = D_002D83E8;
     p->idTextQueued = 0x52D;
     ResetScreenMode(p);
     return p;
 }
-} } // namespace M_func_001DD648
+} // namespace M_func_001DD648
 
 // Post-load of screen 0x52D: base post-load, then marks the widget.
 void SCRN52D::PostLoad()   /* key function */
@@ -2547,9 +2547,9 @@ void SCRN52D::PostLoad()   /* key function */
     }
 }
 
-namespace M_func_001DD6C8 { extern "C" {
+namespace M_func_001DD6C8 {
 // Shows screen 0x52D and its widget. (inferred)
-void ShowScreen52D(SCRN52D *p) {
+extern "C" void ShowScreen52D(SCRN52D *p) {
     if (p->pchild) {
         p->Show();   /* slot 10 */
         {
@@ -2558,11 +2558,11 @@ void ShowScreen52D(SCRN52D *p) {
         }
     }
 }
-} } // namespace M_func_001DD6C8
+} // namespace M_func_001DD6C8
 
-namespace M_func_001DD728 { extern "C" {
+namespace M_func_001DD728 {
 // Hides screen 0x52D and its widget. (inferred)
-void HideScreen52D(SCRN52D *p) {
+extern "C" void HideScreen52D(SCRN52D *p) {
     if (p->pchild) {
         p->Hide();   /* slot 11 */
         {
@@ -2571,18 +2571,18 @@ void HideScreen52D(SCRN52D *p) {
         }
     }
 }
-} } // namespace M_func_001DD728
+} // namespace M_func_001DD728
 
-namespace M_func_001DD780 { extern "C" {
+namespace M_func_001DD780 {
 struct O : LO { char pad[0x58 - 0x50]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
 // True when the screen's widget is fully shown. (inferred)
-int IsScreen52DShown(SCRN52D *p) {
+extern "C" int IsScreen52DShown(SCRN52D *p) {
     struct O *po = (struct O *)p->pchild;
     if (!po) return 0;
     if (po->visibility != 2) return 0;
     return po->requestedVisibility == 2;
 }
-} } // namespace M_func_001DD780
+} // namespace M_func_001DD780
 
 /* slot 14: set the mode (stamping the real time). */
 // Screen 0x52D's slot 14: records a new state and the time it changed. (inferred)
@@ -2594,24 +2594,24 @@ extern "C" void SetScreenState(SCREEN *screen, int mode)
     }
 }
 
-namespace M_func_001DD7D8 { extern "C" {
+namespace M_func_001DD7D8 {
 extern char D_002D8368[] __asm__("_vt$5TITLE");
-TITLE *ConstructScreen(TITLE *p);
-void ResetScreenMode(TITLE *p);
+TITLE *ConstructScreen(TITLE *p) __asm__("ConstructScreen");
+void ResetScreenMode(TITLE *p) __asm__("ResetScreenMode");
 // Constructor of the title screen (widget 0x5D2). (inferred)
-TITLE *ConstructTitleScreen(TITLE *p) {
+TITLE *ConstructTitleScreen(TITLE *p) __asm__("ConstructTitleScreen"); TITLE *ConstructTitleScreen(TITLE *p) {
     ConstructScreen(p);
     *(void **)((char *)p + 0xC) = D_002D8368;
     p->idTextQueued = 0x5D2;
     ResetScreenMode(p);
     return p;
 }
-} } // namespace M_func_001DD7D8
+} // namespace M_func_001DD7D8
 
-namespace M_func_001DD820 { extern "C" {
-void EnsureRumbleModeDefault(void);
+namespace M_func_001DD820 {
+void EnsureRumbleModeDefault(void) __asm__("EnsureRumbleModeDefault");
 // Shows the title screen and its widget and resets rumble. (inferred)
-void ShowTitleScreen(TITLE *p) {
+extern "C" void ShowTitleScreen(TITLE *p) {
     if (p->pchild) {
         p->Show();   /* slot 10 */
         {
@@ -2621,11 +2621,11 @@ void ShowTitleScreen(TITLE *p) {
         EnsureRumbleModeDefault();
     }
 }
-} } // namespace M_func_001DD820
+} // namespace M_func_001DD820
 
-namespace M_HideTitleScreen { extern "C" {
+namespace M_HideTitleScreen {
 // Hides the title screen and its widget.
-void HideTitleScreen(TITLE *p) {
+extern "C" void HideTitleScreen(TITLE *p) {
     if (p->pchild) {
         p->Hide();   /* slot 11 */
         {
@@ -2634,43 +2634,43 @@ void HideTitleScreen(TITLE *p) {
         }
     }
 }
-} } // namespace M_HideTitleScreen
+} // namespace M_HideTitleScreen
 
-namespace M_SelectLanguageItem { extern "C" {
+namespace M_SelectLanguageItem {
 struct S { char p0[8]; void *p8; };
-void SetLanguage(void *p);
-void WipeToWorldWarp(void *g, int a, int b, int c, int d, int e);
+void SetLanguage(void *p) __asm__("SetLanguage");
+void WipeToWorldWarp(void *g, int a, int b, int c, int d, int e) __asm__("WipeToWorldWarp");
 // Language-menu item callback: sets the language and warps to the title world.
-void SelectLanguageItem(struct S *p) {
+extern "C" void SelectLanguageItem(struct S *p) {
     SetLanguage(p->p8);
     WipeToWorldWarp(&g_sw, 0, 0x189, -1, 1, -1);
 }
-} } // namespace M_SelectLanguageItem
+} // namespace M_SelectLanguageItem
 
-namespace M_UpdateTitleScreen { extern "C" {
+namespace M_UpdateTitleScreen {
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
-extern char D_002E6550[];
-extern char D_003D9ED0[];
-extern ITEM D_003DA578[];
-extern int D_002C35B8[];
-extern char D_002C35F0[];
-void SelectLanguageItem(void);
-void UpdateTimedScreen(TITLE *);
-int HandleJoyButtons(JOY *, int);
-int GetJoyButtonsPressed(JOY *, int);
-void SetJoyBtnHandled(JOY *, int);
-void OpenPauseOptionsPage(int);
-void SetMcDialogPhase(void *, int);
-void StartGameFromSave(void *);
-void StartNewGame(TITLE *);
-int CountRegionLanguages(void);
-void *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int);
-void GetRegionLanguages(int *, int **);
+extern char D_002E6550[] __asm__("D_002E6550");
+extern char D_003D9ED0[] __asm__("D_003D9ED0");
+extern ITEM D_003DA578[] __asm__("D_003DA578");
+extern int D_002C35B8[] __asm__("D_002C35B8");
+extern char D_002C35F0[] __asm__("D_002C35F0");
+void SelectLanguageItem(void) __asm__("SelectLanguageItem");
+void UpdateTimedScreen(TITLE *) __asm__("UpdateTimedScreen");
+int HandleJoyButtons(JOY *, int) __asm__("HandleJoyButtons");
+int GetJoyButtonsPressed(JOY *, int) __asm__("GetJoyButtonsPressed");
+void SetJoyBtnHandled(JOY *, int) __asm__("SetJoyBtnHandled");
+void OpenPauseOptionsPage(int) __asm__("OpenPauseOptionsPage");
+void SetMcDialogPhase(void *, int) __asm__("SetMcDialogPhase");
+void StartGameFromSave(void *) __asm__("StartGameFromSave");
+void StartNewGame(TITLE *) __asm__("StartNewGame");
+int CountRegionLanguages(void) __asm__("CountRegionLanguages");
+void *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void GetRegionLanguages(int *, int **) __asm__("GetRegionLanguages");
 void *func_002333B4(void *, int, int) __asm__("memset");
-void PushPauseMenuPage(void *, int, ITEM *, void *, void *);
+void PushPauseMenuPage(void *, int, ITEM *, void *, void *) __asm__("PushPauseMenuPage");
 // Per-frame title screen: START continues from the memory card or starts a new game; SELECT opens the options; X opens
 // the language list when the region has several languages.
-void UpdateTitleScreen(TITLE *p)
+extern "C" void UpdateTitleScreen(TITLE *p)
 {
     void *pv;
     int c;
@@ -2713,20 +2713,20 @@ void UpdateTitleScreen(TITLE *p)
     }
     PushPauseMenuPage(D_003D9ED0, c, D_003DA578, pv, D_002C35F0);
 }
-} } // namespace M_UpdateTitleScreen
+} // namespace M_UpdateTitleScreen
 
 namespace M_StartNewGame {
-extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
-extern "C" { 
- }
-extern "C" { extern void *D_002E1E40; }
-extern "C" { extern void *D_002DD5BC; }
-extern "C" { extern void *D_002F7900; }
-extern "C" {
-CRef SetGlobalSaveVar(void *, const CRef &, SAVEDATA *);
-void BindStepplayerHpMp(void *, int);
-void StartGameFromSave(SAVEDATA *);
-}
+void *__4CRefRC4CRef(void *, const void *) __asm__("__4CRefRC4CRef"); void Decref__4CRef(void *) __asm__("Decref__4CRef");
+
+
+extern void *D_002E1E40 __asm__("D_002E1E40");
+extern void *D_002DD5BC __asm__("D_002DD5BC");
+extern void *D_002F7900 __asm__("D_002F7900");
+
+CRef SetGlobalSaveVar(void *, const CRef &, SAVEDATA *) __asm__("SetGlobalSaveVar");
+void BindStepplayerHpMp(void *, int) __asm__("BindStepplayerHpMp");
+void StartGameFromSave(SAVEDATA *) __asm__("StartGameFromSave");
+
 /* The unused third parameter is deliberate: it is the same SetPv form as SetBootyContainerKind / ClearStepplayerBootySave,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &g_gs); }
@@ -2759,11 +2759,11 @@ void TITLE::SetMode(int mode)   /* key function */
 }
 
 namespace M_BuildTitlePromptText {
-extern "C" { extern char D_002A7A70[]; }
-extern "C" char *strcpy(char *, const char *);
-extern "C" char *strcpy1(char *, const char *);
-extern "C" int CountRegionLanguages(void);
-extern "C" { CRef GetGlobalSaveVar(void *, void *); }
+extern char D_002A7A70[] __asm__("D_002A7A70");
+extern char *strcpy(char *, const char *) __asm__("strcpy");
+extern char *strcpy1(char *, const char *) __asm__("strcpy1");
+extern int CountRegionLanguages(void) __asm__("CountRegionLanguages");
+CRef GetGlobalSaveVar(void *, void *) __asm__("GetGlobalSaveVar");
 // Text callback: the title prompt (continue or new game, options, language).
 extern "C" void BuildTitlePromptText(char *pch)
 {
@@ -2793,9 +2793,9 @@ extern "C" void BuildTitlePromptText(char *pch)
 } // namespace M_BuildTitlePromptText
 
 namespace RO_ORDER { extern const char r_D_002A7A70[] __asm__("D_002A7A70") = "\n"; }
-namespace M_IdsFromWorld { extern "C" {
+namespace M_IdsFromWorld {
 // Episode-name string id of a world index (0-8).
-int GetWorldNameTextId(int n) {
+extern "C" int GetWorldNameTextId(int n) {
     int r = -1;
     switch (n) {
     case 0: r = 0x6D; break;
@@ -2810,7 +2810,7 @@ int GetWorldNameTextId(int n) {
     }
     return r;
 }
-} } // namespace M_IdsFromWorld
+} // namespace M_IdsFromWorld
 
 // Text callback: the current episode's name.
 extern "C" void BuildJobListWorldText(char *pch)
@@ -2834,27 +2834,27 @@ extern "C" void BuildJobNameText(char *pch)
     }
 }
 
-namespace M_BuildJobListRowText { extern "C" {
+namespace M_BuildJobListRowText {
 struct O : LO { char pad[0x6C - 0x50]; int n; };
-extern JOBLIST D_003DA3C0;
-void strcpy(void *p, void *q);
+extern JOBLIST D_003DA3C0 __asm__("D_003DA3C0");
+void strcpy(void *p, void *q) __asm__("strcpy");
 // Text callback: the job name of row i.
-void BuildJobListRowText(void *p, int i) {
+extern "C" void BuildJobListRowText(void *p, int i) {
     JOBLIST *pg = &D_003DA3C0;
     if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
 }
-} } // namespace M_BuildJobListRowText
+} // namespace M_BuildJobListRowText
 
-namespace M_BuildJobListTaskRowText { extern "C" {
+namespace M_BuildJobListTaskRowText {
 struct O : LO { char pad[0x5C - 0x50]; int n; };
-extern JOBLIST D_003DA3C0;
-void strcpy(void *p, void *q);
+extern JOBLIST D_003DA3C0 __asm__("D_003DA3C0");
+void strcpy(void *p, void *q) __asm__("strcpy");
 // Text callback: the task name of row i.
-void BuildJobListTaskRowText(void *p, int i) {
+extern "C" void BuildJobListTaskRowText(void *p, int i) {
     JOBLIST *pg = &D_003DA3C0;
     if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
 }
-} } // namespace M_BuildJobListTaskRowText
+} // namespace M_BuildJobListTaskRowText
 
 // Text callback: a title-screen string followed by a button glyph. (inferred)
 extern "C" void BuildTitleScreenButtonText(char *pch)
@@ -2870,21 +2870,21 @@ extern "C" void BuildTitleCompletionText(char *pch)
 }
 
 
-namespace M_func_00258348 { extern "C" {
+namespace M_func_00258348 {
 typedef struct R1 { int cref; int unknown4; int unknown8; int ref[2]; int varbRef[1]; } R1;
 typedef struct R2 { int cref; } R2;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern char D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"), D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
 void func_00257250(void *, int) __asm__("_$_t7CRefPtr1Z5CVarb");
-void Decref__4CRef(void *);
-void Unlink__t6CGcObj1Z5CVarb(void *);
-void Unlink__t6CGcObj1Z8CSidebag(void *);
-void FreeSlotheapSlot(void *, void *);
+void Decref__4CRef(void *) __asm__("Decref__4CRef");
+void Unlink__t6CGcObj1Z5CVarb(void *) __asm__("Unlink__t6CGcObj1Z5CVarb");
+void Unlink__t6CGcObj1Z8CSidebag(void *) __asm__("Unlink__t6CGcObj1Z8CSidebag");
+void FreeSlotheapSlot(void *, void *) __asm__("FreeSlotheapSlot");
 void func_00257078(void *, int) __asm__("_$_6CFrame");
 void func_001AE520(void *) __asm__("__builtin_delete");
 
 // Drop a reference to an R1 record; on the last one release it and free its slot.
-static inline void Release1(R1 *r)
+extern "C" { static inline void Release1(R1 *r)
 {
     if (r) {
         if (--r->cref == 0) {
@@ -2894,10 +2894,10 @@ static inline void Release1(R1 *r)
             FreeSlotheapSlot(D_004520D0, r);
         }
     }
-}
+} }
 
 // Drop a reference to an R4 record; on the last one release it and free its slot.
-static inline void Release4(R4 *r)
+extern "C" { static inline void Release4(R4 *r)
 {
     if (r) {
         if (--r->cref == 0) {
@@ -2906,7 +2906,7 @@ static inline void Release4(R4 *r)
             FreeSlotheapSlot(D_00452148, r);
         }
     }
-}
+} }
 
 typedef struct S { R2 *p0; R4 *p4; } S;
 
@@ -2915,8 +2915,8 @@ typedef struct S { R2 *p0; R4 *p4; } S;
 // .gnu.linkonce.t._$_5BASIC (as bif.cpp's operator*), rather than a BASIC::~BASIC() definition: a user-written
 // destructor of the polymorphic BASIC stores the vptr on entry (g++ 2.95 omits that only in an implicit destructor's
 // empty body), and this body does not.
-void BASIC_dtor(S *p, int flags) __asm__("_$_5BASIC") __attribute__((weak, section(".gnu.linkonce.t._$_5BASIC")));
-void BASIC_dtor(S *p, int flags)
+extern "C" { void BASIC_dtor(S *p, int flags) __asm__("_$_5BASIC") __attribute__((weak, section(".gnu.linkonce.t._$_5BASIC"))); }
+extern "C" void BASIC_dtor(S *p, int flags)
 {
     Release4(p->p4);
     {
@@ -2929,7 +2929,7 @@ void BASIC_dtor(S *p, int flags)
     if (flags & 1)
         func_001AE520(p);
 }
-} } // namespace M_func_00258348
+} // namespace M_func_00258348
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
@@ -2981,4 +2981,4 @@ int D_002C35B4 = 6;
 int D_002C35B8[14] = {88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101};
 int D_002C35F0[8] = {790, 792, 791, 793, 795, 794, 796, 797};
 int D_003DA570;
-namespace M_UpdateTitleScreen { extern "C" { ITEM D_003DA578[14]; } }   /* one per region language */
+namespace M_UpdateTitleScreen { ITEM D_003DA578[14] __asm__("D_003DA578"); }   /* one per region language */

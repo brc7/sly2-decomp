@@ -65,11 +65,11 @@ enum
 };
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitStep { extern "C" {
-void InitPo(PO *ppo);
-void ScaleStepSpinSpeed(STEP *pstep, float r);
-void InitBhvstk(BHVSTK *pbhvstk, STEP *pstep);
-} } // namespace M_InitStep
+namespace M_InitStep {
+void InitPo(PO *ppo) __asm__("InitPo");
+void ScaleStepSpinSpeed(STEP *pstep, float r) __asm__("ScaleStepSpinSpeed");
+void InitBhvstk(BHVSTK *pbhvstk, STEP *pstep) __asm__("InitBhvstk");
+} // namespace M_InitStep
 // Slot 7 (Init): InitPo, then walking defaults: gravity ratio 1, spin ratio 1 (ScaleStepSpinSpeed), target heading
 // 0, base radius 30, step-down height -50, and the behaviour stack.
 void STEP::Init()
@@ -103,16 +103,16 @@ extern "C" void CloneStep(STEP *step, STEP *pstepBase)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PostStepLoad { extern "C" {
-void PostSoLoad(SO *pso);
-void *NewSampledShape(int a, int b);
-void SetXfRole(SO *pso, XF *pxf, int f);
-void BuildStepPhysPart(STEP *pstep, SOPART *ppart);
-void HideSoPart(SO *pso, SOPART *ppart);
-void PostBhvstkLoad(BHVSTK *pbhvstk);
+namespace M_PostStepLoad {
+void PostSoLoad(SO *pso) __asm__("PostSoLoad");
+void *NewSampledShape(int a, int b) __asm__("NewSampledShape");
+void SetXfRole(SO *pso, XF *pxf, int f) __asm__("SetXfRole");
+void BuildStepPhysPart(STEP *pstep, SOPART *ppart) __asm__("BuildStepPhysPart");
+void HideSoPart(SO *pso, SOPART *ppart) __asm__("HideSoPart");
+void PostBhvstkLoad(BHVSTK *pbhvstk) __asm__("PostBhvstkLoad");
 // Slot 15 (PostLoad): PostSoLoad, allocates the step's sampled shape, gives its two child transforms role 1 and
 // builds the collision ("phys") part from the mesh part named by oidPhys (BuildStepPhysPart).
-void PostStepLoad(STEP *step)
+extern "C" void PostStepLoad(STEP *step)
 {
     PostSoLoad(step);
     step->unknown294 = NewSampledShape(0x2C9, 0x10);
@@ -127,7 +127,7 @@ void PostStepLoad(STEP *step)
     }
     PostBhvstkLoad(&step->behaviors);
 }
-} } // namespace M_PostStepLoad
+} // namespace M_PostStepLoad
 
 // Slot 19 (RenderSelf): just RenderSoSelf.
 extern "C" void RenderStepSelf(STEP *step, void *pcm, void *pro)
@@ -140,7 +140,7 @@ extern "C" void RenderStepSelf(STEP *step, void *pcm, void *pro)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A85F0 __asm__("D_002A85F0") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00203AF0 { extern "C" {
+namespace M_func_00203AF0 {
 /* (Claude agent) matched: mesh->localPoints loaded into a $2 pointer after qmtc2, vmadd fed the VF3 scalar directly, slot = firstHelper*16 + (int)dst computed before the u.q store. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -153,19 +153,19 @@ struct S {
     char pad3[0x210 - 0xE8]; float baseHeight; int stepDownHeightBits; char *basePoint; char *topPoint; char pad4[0x240 - 0x220]; qword basePos;
     char pad5[0x258 - 0x250]; struct Q *physPart;
 };
-extern const float D_002A85F0;   /* defined below where the ELF has it (.rodata order) */
-extern qword D_002A2DC0;
-extern qword D_002A2DD0;
-void RemoveSoParts(struct S *p);
-void AddSoParts(struct S *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
-void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q);
-void EnsureSoPartMesh(struct Q *q);
-void UpdateGeomWorld(void *a, void *b, void *firstHelper);
+extern const float D_002A85F0 __asm__("D_002A85F0");   /* defined below where the ELF has it (.rodata order) */
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void RemoveSoParts(struct S *p) __asm__("RemoveSoParts");
+void AddSoParts(struct S *p) __asm__("AddSoParts");
+int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q) __asm__("CloneSoPartGeomInserting");
+void EnsureSoPartMesh(struct Q *q) __asm__("EnsureSoPartMesh");
+void UpdateGeomWorld(void *a, void *b, void *firstHelper) __asm__("UpdateGeomWorld");
 
 // Builds the step's collision part from a mesh part: appends a new SOPART, copies the geometry, records the lowest
 // point as the base height (+0x210) and adds two helper points. (inferred)
-void BuildStepPhysPart(struct S *step, struct M *m)
+extern "C" void BuildStepPhysPart(struct S *step, struct M *m)
 {
     int n, allPinned, i, firstHelper;
     float lowestZ;
@@ -210,7 +210,7 @@ void BuildStepPhysPart(struct S *step, struct M *m)
     if ((int)(step->flags >> 60) & 1)
         AddSoParts(step);
 }
-} } // namespace M_func_00203AF0
+} // namespace M_func_00203AF0
 
 // Looks up a part by oid and makes it the current phys shape (SetStepPhys).
 extern "C" void SetStepPhysByOid(STEP *step, OID oid, int n)
@@ -223,17 +223,17 @@ extern "C" void SetStepPhysByOid(STEP *step, OID oid, int n)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetStepPhys { extern "C" {
+namespace M_SetStepPhys {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[4]; } MATRIX4;   /* qword rows (TU-private; XF's matrices are converted at the call) */
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb);
+void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb) __asm__("__ml__FRC7MATRIX4T0");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // Sets the current phys part (psopartPhys). With fForceSnap the body part (psopartBody) takes its points at once (in the body
 // part's frame) and the per-point velocities are cleared.
-void SetStepPhys(STEP *step, SOPART *pm, int f)
+extern "C" void SetStepPhys(STEP *step, SOPART *pm, int f)
 {
     step->psopartPhys = pm;
     if (f) {
@@ -260,10 +260,10 @@ void SetStepPhys(STEP *step, SOPART *pm, int f)
         InvalidateSoAaox(step);
     }
 }
-} } // namespace M_SetStepPhys
+} // namespace M_SetStepPhys
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateStepPhys { extern "C" {
+namespace M_UpdateStepPhys {
 typedef int qword __attribute__((mode(TI)));
 typedef struct {qword a[4];} M4;
 union V {qword q;float f[4];};
@@ -273,13 +273,13 @@ struct M {struct X *px;char pad4[0xC];struct B *pb;char pad14[8];int count;char 
 struct S : PO { char pad258[0x258 - 0x180]; struct M *pm0,*pm1;};
 /* step's .data starts here: the contact side signs (medium: gadget and murray read them too) and the point
  * smoothing SMP; the rest is defined in the per-function namespaces below, in address order. */
-extern float D_002C3C60[2];
-extern float D_002C3C68[3];
-M4 *InvertMatrix4Rigid(M4 *,const M4 *);
-M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
-float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *);
+extern float D_002C3C60[2] __asm__("D_002C3C60");
+extern float D_002C3C68[3] __asm__("D_002C3C68");
+M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *) __asm__("SmoothValue__FfffP3SMPPf");
 // Copy a 4x4 matrix through four GPR quadword loads/stores.
-static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
+extern "C" { static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
     register qword row0 __asm__("$2");
     register qword row1 __asm__("$3");
     register qword row2 __asm__("$4");
@@ -289,10 +289,10 @@ static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
       :"m"(source->a[0]),"m"(source->a[1]),"m"(source->a[2]),"m"(source->a[3]));
     destination->a[1]=row1;destination->a[2]=row2;
     destination->a[3]=row3;destination->a[0]=row0;
-}
+} }
 // Per frame: moves each body-part point toward the phys part's point with SmoothValue and stores the point's velocity
 // ((new - old) / dt), so shape changes (crouch, stand) blend instead of popping.
-void UpdateStepPhys(struct S *input)
+extern "C" void UpdateStepPhys(struct S *input)
 {
     void *context=input;
     M4 m;
@@ -362,7 +362,7 @@ void UpdateStepPhys(struct S *input)
     }while(i>=0);
     }
 }
-} } // namespace M_UpdateStepPhys
+} // namespace M_UpdateStepPhys
 
 // Sets the "no base" option (+0x204); turning it on drops the cached floor contact (+0x208).
 extern "C" void SetStepNoBase(STEP *step, int n)
@@ -376,7 +376,7 @@ extern "C" void SetStepNoBase(STEP *step, int n)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateStep { extern "C" {
+namespace M_UpdateStep {
 struct VT;
 struct S {
     char pad0[0xC]; struct VT *vt;
@@ -385,16 +385,16 @@ struct S {
     char pad3[0x208 - 0x1AC]; int floorContact; float lastFloorContactTime;
 };
 struct VT { VTE e[32]; };
-extern float D_002C3C80[3];   /* turn-rate speed factor polynomial */
-extern float D_002BBB60[2];
-void UpdateSo(struct S *p);
-void UpdateStepPhys(struct S *p);
-float atan2f(float y, float x);
-float NormalizeAngle__Ff(float a);
+extern float D_002C3C80[3] __asm__("D_002C3C80");   /* turn-rate speed factor polynomial */
+extern float D_002BBB60[2] __asm__("D_002BBB60");
+void UpdateSo(struct S *p) __asm__("UpdateSo");
+void UpdateStepPhys(struct S *p) __asm__("UpdateStepPhys");
+float atan2f(float y, float x) __asm__("atan2f");
+float NormalizeAngle__Ff(float a) __asm__("NormalizeAngle__Ff");
 
 // Slot 16 (Update): UpdateSo, UpdateStepPhys, then the turn-rate speed factor (+0x180) from how far the heading is
 // from the target heading.
-void UpdateStep(struct S *step)
+extern "C" void UpdateStep(struct S *step)
 {
     UpdateSo(step);
     UpdateStepPhys(step);
@@ -424,7 +424,7 @@ void UpdateStep(struct S *step)
     if (step->floorContact)
         step->lastFloorContactTime = g_clock.time;
 }
-} } // namespace M_UpdateStep
+} // namespace M_UpdateStep
 
 // Slot 85: ground-probe flags for AddStepCustomXps: 0 with the no-base option, else 7 (probe, use top point, ...).
 extern "C" int GetStepGroundProbeFlags(STEP *step)
@@ -433,7 +433,7 @@ extern "C" int GetStepGroundProbeFlags(STEP *step)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PresetStepAccel { extern "C" {
+namespace M_PresetStepAccel {
 /* (Claude agent) clock dt word loaded via ClockPage/ClockWord asm (same form as src/game/engine/fx/rip/ProjectRipTransform.cpp, lw into the lui register); volatile on the lw keeps it after the targetAngularVelocity lqc2. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -441,21 +441,21 @@ typedef struct { float x,y,z; } VECTOR3;
 typedef struct { qword row[3]; } M3;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
 struct S : LO { char pad[0x5C - 0x50]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
-void PresetSoAccel(struct S *p);
+void PresetSoAccel(struct S *p) __asm__("PresetSoAccel");
 // Read the frame clock's delta-time word (D_002DDED0) given its high address page.
-static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&g_clock.deltaTimeBits),"m"(*(const int*)(page-0x212C)));return word;}
+extern "C" { static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&g_clock.deltaTimeBits),"m"(*(const int*)(page-0x212C)));return word;} }
 // High address page (lui) of the frame clock D_002DDED0.
-static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_clock.deltaTimeBits));return page;}
-void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *);
+extern "C" { static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_clock.deltaTimeBits));return page;} }
+void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *) __asm__("AccelSoTowardMatBounded");
 // Broadcast int bits into vf4 and store them to *value.
-static inline void InitScalar(U *value,int bits) {
+extern "C" { static inline void InitScalar(U *value,int bits) {
     register qword scalar __asm__("vf4");
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
     value->q=scalar;
-}
+} }
 // Slot 70: PresetSoAccel, then steering: mode 0 accelerates the rotation toward the target heading matrix with the
 // spin smoothing (AccelSoTowardMatBounded); mode 1 fixes the angular velocity directly (FixStepAngularVelocity).
-void PresetStepAccel(struct S *step)
+extern "C" void PresetStepAccel(struct S *step)
 {
     PresetSoAccel(step);
     switch (step->steeringMode) {
@@ -488,7 +488,7 @@ void PresetStepAccel(struct S *step)
         break;
     }
 }
-} } // namespace M_PresetStepAccel
+} // namespace M_PresetStepAccel
 
 // Slot 29: TranslateSoToPos, then refreshes the world base position (+0x230) from the local one (+0x240).
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
@@ -517,7 +517,7 @@ extern "C" int GetStepExtraPartCount()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AdjustStepNewXp { extern "C" {
+namespace M_AdjustStepNewXp {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
    side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
 typedef int qword __attribute__((mode(TI)));
@@ -525,22 +525,22 @@ struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int
 struct XP { struct ENDPOINT ae[2]; QWROW normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
 struct STATE { char pad[0xD0]; float mass; };
 struct P : LO { char padE8[0xE8 - 0x50]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
-extern qword D_002A2DA0;
-extern float D_002C3C60[];
-extern float D_002C3C90;   /* base contact friction */
-void AdjustSoNewXp(void);
-void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+extern float D_002C3C60[] __asm__("D_002C3C60");
+extern float D_002C3C90 __asm__("D_002C3C90");   /* base contact friction */
+void AdjustSoNewXp(void) __asm__("AdjustSoNewXp");
+void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g) __asm__("AddXp");
 
 /* The endpoint positions are passed by address (like C++ const VECTOR & operands): the address
    then comes out as offset + x, and the second read of the other position is a reload. */
-static inline qword Sub(const qword *pa, const qword *pb)
+extern "C" { static inline qword Sub(const qword *pa, const qword *pb)
 {
     qword a = *pa, b = *pb, r;
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
     return r;
-}
+} }
 // Return a scaled by g.
-static inline qword Scale(qword a, float g)
+extern "C" { static inline qword Scale(qword a, float g)
 {
     qword k;
     QWROW u;
@@ -548,18 +548,18 @@ static inline qword Scale(qword a, float g)
     u.q = k;
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(a) : "j"(a), "j"(k));
     return a;
-}
+} }
 // Dot product of the xyz parts of a and b as a float.
-static inline float Dot(qword a, qword b)
+extern "C" { static inline float Dot(qword a, qword b)
 {
     qword d, one;
     float g;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=&j"(d), "=&j"(one) : "j"(a), "j"(b));
     __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 // Normalize *v in place, or set it to fallback when its length is below 1e-4 (length pinned to vf1).
-static inline void Normal(QWROW *v, qword fallback)
+extern "C" { static inline void Normal(QWROW *v, qword fallback)
 {
     qword a = v->q;
     register qword d __asm__("vf1"); /* the one pin: the length/result lives in vf1 (as in TakeHackDamage) */
@@ -573,9 +573,9 @@ static inline void Normal(QWROW *v, qword fallback)
     else
         __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(d) : "j"(d), "j"(a));
     v->q = d;
-}
+} }
 // Return *pa + b * g.
-static inline qword AddScaled(const qword *pa, qword b, float g)
+extern "C" { static inline qword AddScaled(const qword *pa, qword b, float g)
 {
     qword a = *pa, k;
     QWROW u;
@@ -583,11 +583,11 @@ static inline qword AddScaled(const qword *pa, qword b, float g)
     u.q = k;
     __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "=j"(a) : "j"(b), "j"(k), "0"(a));
     return a;
-}
+} }
 
 // Slot 55: sets up a new contact: resets friction and response; a floor contact (kind 14) with an upward normal
 // (z > 0.7) gets the step's floor friction and a force limit from its weight.
-void AdjustStepNewXp(struct P *step, struct XP *x, int side)
+extern "C" void AdjustStepNewXp(struct P *step, struct XP *x, int side)
 {
     QWROW dir, diff, point;
     float d;
@@ -625,7 +625,7 @@ void AdjustStepNewXp(struct P *step, struct XP *x, int side)
         AddXp(&g_sw, step->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
     }
 }
-} } // namespace M_AdjustStepNewXp
+} // namespace M_AdjustStepNewXp
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AdjustStepXpVelocity {
@@ -678,11 +678,11 @@ struct STEP : PO
 };
 
 
-extern "C" float D_002C3C98[3];   /* the two closing-speed SMPs */
-extern "C" float D_002C3CA8[3];
+extern float D_002C3C98[3] __asm__("D_002C3C98");   /* the two closing-speed SMPs */
+extern float D_002C3CA8[3] __asm__("D_002C3CA8");
 
-extern "C" { void AdjustSoXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd); }
-extern "C" { float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
+void AdjustSoXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd) __asm__("AdjustSoXpVelocity");
+float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");
 
 
 
@@ -762,32 +762,32 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 } // namespace M_AdjustStepXpVelocity
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00204660 { extern "C" {
+namespace M_func_00204660 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
-extern qword D_002A2DC0;
-MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 struct S : PO { char pad[0x1A8 - 0x180]; float g; int pad2; MATRIX3 m; };
 // Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
-void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
-} } // namespace M_func_00204660
+void SetStepTargetHeading(struct S *p, float g) __asm__("SetStepTargetHeading"); void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
+} // namespace M_func_00204660
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetStepRadTargetVec { extern "C" {
+namespace M_SetStepRadTargetVec {
 typedef int qword __attribute__((mode(TI)));
-float atan2f(float y, float x);
-void SetStepTargetHeading(void *p, float g);
+float atan2f(float y, float x) __asm__("atan2f");
+void SetStepTargetHeading(void *p, float g) __asm__("SetStepTargetHeading");
 // Sets the target heading toward a direction vector (atan2 of its y and x).
-void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(QwordY(v), QwordX(v))); }
-} } // namespace M_SetStepRadTargetVec
+extern "C" void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(QwordY(v), QwordX(v))); }
+} // namespace M_SetStepRadTargetVec
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FaceStepToward { extern "C" {
+namespace M_FaceStepToward {
 typedef int qword __attribute__((mode(TI)));
-qword GetLoWorldPos(void *p);
-void SetStepTargetHeadingFromVector(void *p, qword v);
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void SetStepTargetHeadingFromVector(void *p, qword v) __asm__("SetStepTargetHeadingFromVector");
 // Turns the target heading toward another object's world position.
-void FaceStepToward(void *step, void *q)
+extern "C" void FaceStepToward(void *step, void *q)
 {
     qword a, b, d;
     a = GetLoWorldPos(q);
@@ -795,7 +795,7 @@ void FaceStepToward(void *step, void *q)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     SetStepTargetHeadingFromVector(step, d);
 }
-} } // namespace M_FaceStepToward
+} // namespace M_FaceStepToward
 
 /* The heading of the step's root transform (atan2 of its world x axis). */
 // Returns the current heading: atan2 of the rotation matrix's first row (y, x).
@@ -807,7 +807,7 @@ extern "C" float GetStepHeading(STEP *step)
 
 namespace RO_ORDER { extern const float r_D_002A85F4 __asm__("D_002A85F4") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00204768 { extern "C" {
+namespace M_func_00204768 {
 typedef int qword __attribute__((mode(TI)));
 struct P;
 struct Endpoint { char pad[8]; struct P *owner,*other; char pad10[0x30]; };
@@ -815,14 +815,14 @@ struct N { struct Endpoint e[2]; qword q80; float value; char pad94[8]; int kind
 struct L { struct N *first; struct L *next; struct N **back; };
 struct G { char pad[0x64]; struct L *groups; struct N *def; };
 struct P : LO { char pad[0xEC - 0x50]; struct G *g; char padF0[0x118]; struct N *best; float t; char pad210[0x20]; qword position; };
-extern const float D_002A85F4;   /* defined below where the ELF has it (.rodata order) */
-void AdjustSoXps(struct P *);
-void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *);
+extern const float D_002A85F4 __asm__("D_002A85F4");   /* defined below where the ELF has it (.rodata order) */
+void AdjustSoXps(struct P *) __asm__("AdjustSoXps");
+void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *) __asm__("FreeSwXpList__FP2SWP2XP");
 // The other endpoint of contact n, seen from p.
-static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;}
+extern "C" { static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;} }
 // Slot 58: base AdjustSoXps, then keeps only the best floor contact (kind 14, lowest distance) as the cached base
 // contact (+0x208) with its stamp (+0x20C) and position (+0x230).
-void AdjustStepXps(struct P *step)
+extern "C" void AdjustStepXps(struct P *step)
 {
     struct N *best;
     struct L *group;
@@ -862,10 +862,10 @@ void AdjustStepXps(struct P *step)
         FreeSwXpList__FP2SWP2XP(&g_sw,removed);
     }
 }
-} } // namespace M_func_00204768
+} // namespace M_func_00204768
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_002048C8 { extern "C" {
+namespace M_func_002048C8 {
 // HasStepFloorNearby (Claude agent, 2026-10-17): breadth-first polygon adjacency search. MATCH.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
@@ -874,10 +874,10 @@ struct E {ushort vertices[2],faces[2];struct E *next0,*next1;};
 struct POLY {float normal[3];int unknown;struct E *head0,*head1;int flags,pad;};
 struct GEOM {char pad94[0x94];qword *positions;int unknown;struct POLY *polygons;};
 struct P : PO { char pad210[0x210 - 0x180]; float height;char pad214[0x34];float previous;};
-void FindClosestPointOnLineSegment(qword,qword,qword,qword *,float *,float *);
+void FindClosestPointOnLineSegment(qword,qword,qword,qword *,float *,float *) __asm__("FindClosestPointOnLineSegment");
 // Returns 1 when, starting from a hit mesh polygon, a breadth-first walk over adjacent polygons (max 32) reaches
 // one whose height is inside the step-height window: there is floor nearby to step onto. (inferred)
-int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY *first)
+extern "C" int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];
     union V closest;
@@ -917,27 +917,27 @@ int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY 
     }while(++current<count);
     return 0;
 }
-} } // namespace M_func_002048C8
+} // namespace M_func_002048C8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddStepCustomXps { extern "C" {
+namespace M_AddStepCustomXps {
 typedef int qword __attribute__((mode(TI)));
 struct EC { char pad[0x60]; void *rootSo; };
 struct X4 : LO { char pad[0xEC - 0x50]; struct EC *tree; };
 struct X { int pad; struct X4 *so; };
 struct S { char pad[0xC]; VTE *vt; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t; int unknown44; int unknown48; int tag; char pad[0x10]; };
-extern qword D_002A2DC0;
-void AddSoCustomXps(void);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-qword GetLoWorldPos(void *p);
-int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
-int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n);
-void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+void AddSoCustomXps(void) __asm__("AddSoCustomXps");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit) __asm__("ClipEdgeToObjectPruned");
+int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n) __asm__("HasStepFloorNearby");
+void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f) __asm__("AddXp");
 
 // Slot 60: if the ground-probe flags allow it, casts a ray down from the base point (ClipEdgeToObjectPruned) and
 // adds a floor contact (kind 14) at the hit.
-void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a5)
+extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a5)
 {
     unsigned int fl;
     struct HIT hit;
@@ -969,7 +969,7 @@ void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a
         AddXp(&g_sw, step->bodyPart, x, *step->basePoint, n, 0xE, 0, 0, a5, f);   /* kind 14: the floor contact */
     }
 }
-} } // namespace M_AddStepCustomXps
+} // namespace M_AddStepCustomXps
 
 // Slot 54: a contact is being freed; drops the cached floor contact if it is that one.
 extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
@@ -983,15 +983,15 @@ extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FixStepAngularVelocity { extern "C" {
+namespace M_FixStepAngularVelocity {
 typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0xB0]; qword v; };
 struct S { char pad[0xC]; VTE *vt; char pad2[0x5C - 0x10]; struct B *pb; char pad3[0x1A8 - 0x60]; float g; char pad4[0x1F4 - 0x1AC]; int x; };
-float atan2f(float y, float x);
-void SmoothAngle__FfffP3SMPPf(float a, float b, float c, int *p, float *pf);
+float atan2f(float y, float x) __asm__("atan2f");
+void SmoothAngle__FfffP3SMPPf(float a, float b, float c, int *p, float *pf) __asm__("SmoothAngle__FfffP3SMPPf");
 // Smooths the heading toward the target heading (SmoothAngle with the spin parameters) and sets the resulting
 // angular velocity about Z.
-void FixStepAngularVelocity(struct S *step)
+extern "C" void FixStepAngularVelocity(struct S *step)
 {
     QWROW v;
     float *a, *b;
@@ -1001,13 +1001,13 @@ void FixStepAngularVelocity(struct S *step)
     SmoothAngle__FfffP3SMPPf(atan2f(a[1], b[0]), step->g, 0.0f, &step->x, &v.f[2]);
     ((void (*)(void *, qword))step->vt[36].pfn)((char *)step + step->vt[36].d, v.q);
 }
-} } // namespace M_FixStepAngularVelocity
+} // namespace M_FixStepAngularVelocity
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00204D48 { extern "C" {
-extern VECTOR D_002C3CB8;   /* the default spin smoothing */
+namespace M_func_00204D48 {
+extern VECTOR D_002C3CB8 __asm__("D_002C3CB8");   /* the default spin smoothing */
 // Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (rSpin).
-void ScaleStepSpinSpeed(STEP *step, float g)
+extern "C" void ScaleStepSpinSpeed(STEP *step, float g)
 {
     step->vSpin = D_002C3CB8;
     step->vSpin.x *= g;
@@ -1015,7 +1015,7 @@ void ScaleStepSpinSpeed(STEP *step, float g)
     step->vSpin.z *= 1.0f / SqrtFloat(g);
     step->rSpin = g;
 }
-} } // namespace M_func_00204D48
+} // namespace M_func_00204D48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204DA8 {
@@ -1024,7 +1024,7 @@ namespace M_func_00204DA8 {
    the gravity is read as a struct member, and the old ratio goes into vf3 straight from memory ("rV"). No register pins. */
 #include "sly2/step.h"
 struct VU_FLOAT { qword qw; };
-extern "C" void SetSoMass(struct STEP *pso, float m);   /* SetSoMass */
+extern void SetSoMass(struct STEP *pso, float m) __asm__("SetSoMass");   /* SetSoMass */
 
 // Sets the gravity ratio (clamped to >= 0.1): rescales the mass and the gravity vector by the ratio change and
 // stores it (+0x260).
@@ -1052,14 +1052,14 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
 } // namespace M_func_00204DA8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00204E38 { extern "C" {
+namespace M_func_00204E38 {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-int IsAsegaRetracted(ASEGA *pasega);
-CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
+CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check) __asm__("FindAsegChannel");
 // If the step's animation (ASEGA) is live, evaluates its translation channel for this object; else zero.
 // Used for root motion (BHVANIM events, Murray, Sly's acceleration preset, dancers).
-qword GetStepAsegaTranslation(void *step, ASEGA *q, float g)
+extern "C" qword GetStepAsegaTranslation(void *step, ASEGA *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !IsAsegaRetracted(q)) {
@@ -1069,16 +1069,16 @@ qword GetStepAsegaTranslation(void *step, ASEGA *q, float g)
     }
     return r;
 }
-} } // namespace M_func_00204E38
+} // namespace M_func_00204E38
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00204ED8 { extern "C" {
+namespace M_func_00204ED8 {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-int IsAsegaRetracted(ASEGA *pasega);
-CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
+CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check) __asm__("FindAsegChannel");
 // Same as GetStepAsegaTranslation for the rotation channel.
-qword GetStepAsegaRotation(void *step, ASEGA *q, float g)
+extern "C" qword GetStepAsegaRotation(void *step, ASEGA *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !IsAsegaRetracted(q)) {
@@ -1088,24 +1088,24 @@ qword GetStepAsegaRotation(void *step, ASEGA *q, float g)
     }
     return r;
 }
-} } // namespace M_func_00204ED8
+} // namespace M_func_00204ED8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00204F78 { extern "C" {
+namespace M_func_00204F78 {
 struct O { char pad[0x10]; struct O *parent; char p2[0xEC - 0x14]; void *tree; };
-void *GetSoFromLo(void *pv);
-void UpdateSwPox(SW *pg, void *a, void *b, int n);
-void InvalidateSoAaox(struct O *p);
+void *GetSoFromLo(void *pv) __asm__("GetSoFromLo");
+void UpdateSwPox(SW *pg, void *a, void *b, int n) __asm__("UpdateSwPox");
+void InvalidateSoAaox(struct O *p) __asm__("InvalidateSoAaox");
 // Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
 // attachment pair through UpdateSwPox. (inferred)
-void LinkStepAttachment(struct O *step, void *pv, int f)
+extern "C" void LinkStepAttachment(struct O *step, void *pv, int f)
 {
     struct O *o = (struct O *)GetSoFromLo(pv);
     while (o && !o->tree) o = o->parent;
     if (step->tree && o && o->tree) UpdateSwPox(&g_sw, step->tree, o->tree, f ? 1 : 2);
     InvalidateSoAaox(step);
 }
-} } // namespace M_func_00204F78
+} // namespace M_func_00204F78
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepAxisXps {
@@ -1122,12 +1122,12 @@ struct LO;
 struct LINK { XP *pxpFirst; LINK *plinkNext; XP **ppxpOut; SO *pso; };
 struct ATT { char pad0[0x34]; SOPART *psopart; char pad38[0x60 - 0x38]; SO *pso; LINK *plinkFirst; XP *pxpFirst; };
 struct SO { char pad0[0x10]; SO *psoParent; char pad14[0xEC - 0x14]; ATT *patt; char padF0[0x258 - 0xF0]; SOPART *psopart; };
-extern "C" { extern qword D_002A2DC0; }   // g_normalZ
-extern "C" {
-SO *GetSoFromLo(LO *);                 // PsoZapTarget
-M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
-void AddXp(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // AddXp
-}
+extern qword D_002A2DC0 __asm__("D_002A2DC0");   // g_normalZ
+
+SO *GetSoFromLo(LO *) __asm__("GetSoFromLo");                 // PsoZapTarget
+M3 BuildOrthonormalMatrixZ(qword, qword) __asm__("BuildOrthonormalMatrixZ");          // BuildOrthonormalMatrixZ
+void AddXp(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **) __asm__("AddXp");  // AddXp
+
 // Return a - b.
 static inline qword Sub(const qword &a, const qword &b) {
     qword r;
@@ -1184,7 +1184,7 @@ extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, q
 } // namespace M_AddStepAxisXps
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_MatchStepXf { extern "C" {
+namespace M_MatchStepXf {
 // Set the parent matrix, position and inherited motion.
 typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f; } U;
@@ -1198,24 +1198,24 @@ typedef struct P {
     char pad3[0x1048 - 0x250]; FLOATWORD amount;
     char pad4[0x1060 - 0x104C]; qword adjusted;
 } P;
-extern qword D_002A2DD0, D_002A2DC0;
-extern int IsBasicDerivedFrom__FP5BASIC3CID(B *, int);
-extern void MatchSoXf(P *, B *);
+extern qword D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DC0 __asm__("D_002A2DC0");
+extern int IsBasicDerivedFrom__FP5BASIC3CID(B *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+extern void MatchSoXf(P *, B *) __asm__("MatchSoXf");
 // Transform v by the matrix rows with `last` as the translation, storing it to *published; returns the result through
 // a GPR.
-static inline qword Transform(const M4*m,qword v,qword last,qword*published){
+extern "C" { static inline qword Transform(const M4*m,qword v,qword last,qword*published){
  register qword result __asm__("vf7"),argument __asm__("$5"),origin __asm__("vf1")=last;
  __asm__ volatile("vmulax.xyz $ACC,%3,%7x\n\tvmadday.xyz $ACC,%4,%7y\n\tvmaddaz.xyz $ACC,%5,%7z\n\tvmaddw.xyz %0,%6,$vf0w\n\tqmfc2.ni %1,%0\n\tsqc2 %6,%2"
   :"=&j"(result),"=&r"(argument),"=m"(*published):"j"(m->row[0]),"j"(m->row[1]),"j"(m->row[2]),"j"(origin),"j"(v));
  return argument;
-}
+} }
 // Broadcast a float into vf6.
-static inline qword Broadcast(float f){register qword r __asm__("vf6");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;}
+extern "C" { static inline qword Broadcast(float f){register qword r __asm__("vf6");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(f));return r;} }
 // Return v scaled by s.x (vf2).
-static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
+extern "C" { static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;} }
 // Slot 38: copies another object's pose (its world matrix, including the base offset +0x240) and resets the
 // velocities; non-STEP sources fall back to MatchSoXf.
-extern void MatchStepXf(P *step, B *other)
+extern "C" { extern void MatchStepXf(P *step, B *other)
 {
     if (!other) return;
     if (IsBasicDerivedFrom__FP5BASIC3CID(other, 3)) {
@@ -1252,7 +1252,7 @@ extern void MatchStepXf(P *step, B *other)
     } else {
         MatchSoXf(step,other);
     }
-}
+} }
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_scalar[(sizeof(U)==16)?1:-1];
@@ -1270,7 +1270,7 @@ typedef char layout_count[((unsigned)&((P*)0)->count==0x208)?1:-1];
 typedef char layout_offset[((unsigned)&((P*)0)->offset==0x240)?1:-1];
 typedef char layout_amount[((unsigned)&((P*)0)->amount==0x1048)?1:-1];
 typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
-} } // namespace M_MatchStepXf
+} // namespace M_MatchStepXf
 
 // Pushes a new behaviour onto the step's behaviour stack and initializes it (the class id passes through to
 // PushBhvstk in a1).
@@ -1286,14 +1286,14 @@ extern "C" BHV *FindStepBehavior(STEP *step, CID cid)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00205478 { extern "C" {
-int GetDialogRoleSmOid(void *p, int i);
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps);
-void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps);
-void ApplySmGetSma(void *x, STEP *ps, int a, int b, void **ppv);
+namespace M_func_00205478 {
+int GetDialogRoleSmOid(void *p, int i) __asm__("GetDialogRoleSmOid");
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps) __asm__("FindSmaForObject__FP2SMP3ALO");
+void ApplySmGetSma(void *x, STEP *ps, int a, int b, void **ppv) __asm__("ApplySmGetSma");
 // Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (acrefDialogSm); the first reference
 // ensures a state-machine instance (SMA) of the role's dialog SM. (inferred)
-void AddStepDialogSmRefs(STEP *step, int mask)
+extern "C" void AddStepDialogSmRefs(STEP *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1313,16 +1313,16 @@ void AddStepDialogSmRefs(STEP *step, int mask)
         }
     }
 }
-} } // namespace M_func_00205478
+} // namespace M_func_00205478
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00205588 { extern "C" {
-int GetDialogRoleSmOid(void *p, int i);
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps);
-void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps);
-void RetractSma(void *y);
+namespace M_func_00205588 {
+int GetDialogRoleSmOid(void *p, int i) __asm__("GetDialogRoleSmOid");
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, STEP *ps) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSmaForObject__FP2SMP3ALO(void *x, STEP *ps) __asm__("FindSmaForObject__FP2SMP3ALO");
+void RetractSma(void *y) __asm__("RetractSma");
 // Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted. (inferred)
-void RemoveStepDialogSmRefs(STEP *step, int mask)
+extern "C" void RemoveStepDialogSmRefs(STEP *step, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1344,29 +1344,29 @@ void RemoveStepDialogSmRefs(STEP *step, int mask)
         }
     }
 }
-} } // namespace M_func_00205588
+} // namespace M_func_00205588
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00205670 { extern "C" {
+namespace M_func_00205670 {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DC0;
-void BuildStepFootprint(STEP*,QWROW*);
-int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+void BuildStepFootprint(STEP*,QWROW*) __asm__("BuildStepFootprint");
+int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*) __asm__("IntersectRayTriangle");
 // Return *a - *b (vf3).
-static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
+extern "C" { static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;} }
 // Return a scaled by f (broadcast through k).
-static inline qword Scale(qword a,float f,QWROW *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;}
+extern "C" { static inline qword Scale(qword a,float f,QWROW *k){qword q,r;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));k->q=q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k->q));return r;} }
 // Normalize *v in place (or set it to *fallback when its length is below 1e-4); returns the length.
-static inline float Normal(QWROW*v,const qword*fallback){qword a=v->q;register qword d __asm__("vf1");register qword one __asm__("vf2");float g,r;
+extern "C" { static inline float Normal(QWROW*v,const qword*fallback){qword a=v->q;register qword d __asm__("vf1");register qword one __asm__("vf2");float g,r;
 __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));
 __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(one):"j"(d));
 __asm__("qmfc2.ni %0,%1":"=r"(g):"j"(one));
 if(g<0.0001f)v->q=*fallback;
 else {register qword normalized __asm__("vf1");__asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"=&j"(normalized):"j"(a),"j"(one));v->q=normalized;}
-__asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
+__asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;} }
 // When the step has a floor contact, intersects the segment from->to with its two footprint triangles; returns 1
 // and the hit point on a hit.
-int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output)
+extern "C" int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output)
 {
  QWROW tri[6],d,k;
  float distance,length;
@@ -1389,7 +1389,7 @@ int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output)
  }while(t<end);
  return 0;
 }
-} } // namespace M_func_00205670
+} // namespace M_func_00205670
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002057E8 {
@@ -1397,11 +1397,11 @@ typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M3 { qword r[3]; };
-extern "C" {
-M3 *GetLoWorldMatrix(LO *p);
-qword GetLoWorldPos(LO *p);
-extern int D_002C3CC8[2][3];
-}
+
+M3 *GetLoWorldMatrix(LO *p) __asm__("GetLoWorldMatrix");
+qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
+extern int D_002C3CC8[2][3] __asm__("D_002C3CC8");
+
 // Return v scaled by g.
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 // Load a vector into a VU0 register.
@@ -1467,24 +1467,24 @@ struct VU_FLOAT {qword qw;};
 struct FRAME {FRAME(){}~FRAME(){}};
 struct P : LO { char pad0[0xEC - 0x50]; void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
 struct HEIGHT {float min,max;};
-extern "C" { extern qword D_002A2DC0; }
-extern "C" const float D_002A85F8;   /* defined below where the ELF has it (.rodata order) */
-extern "C" float D_002C3CE0;   /* the probe drop along the up row */
-extern "C" int D_002C3CE4;
-extern "C" float D_002C3CE8;    /* the angle limit */
-extern "C" {
-MATRIX3 BuildAxisAngleRotationMatrix(qword,float);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern const float D_002A85F8 __asm__("D_002A85F8");   /* defined below where the ELF has it (.rodata order) */
+extern float D_002C3CE0 __asm__("D_002C3CE0");   /* the probe drop along the up row */
+extern int D_002C3CE4 __asm__("D_002C3CE4");
+extern float D_002C3CE8 __asm__("D_002C3CE8");    /* the angle limit */
+
+MATRIX3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("BuildAxisAngleRotationMatrix");
-MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-qword GetLoWorldPos(P *);
-qword *VECTOR_opAssign(qword *,qword);
-FRAME *STACKSCOPE_ctor(FRAME *);
+MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+qword GetLoWorldPos(P *) __asm__("GetLoWorldPos");
+qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
+FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-void IntersectSwBoundingSphere(SW *,qword,float,int (*)(void *,void *),void *,int *,void ***);
-int ShouldKeepSoNotSelfSlot62(void *,void *);
-int SnapToGround(qword *,float,float,int,void *);
-void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
-}
+void IntersectSwBoundingSphere(SW *,qword,float,int (*)(void *,void *),void *,int *,void ***) __asm__("IntersectSwBoundingSphere");
+int ShouldKeepSoNotSelfSlot62(void *,void *) __asm__("ShouldKeepSoNotSelfSlot62");
+int SnapToGround(qword *,float,float,int,void *) __asm__("SnapToGround");
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
+
 // Length of v as a float.
 static inline float GLength(qword v){return VuToFloat(VuLength(v));}
 // Length of v (x lane), with the squared length kept in its own register.
@@ -1599,28 +1599,28 @@ extern "C" void IgnoreStepSlot87()
 
 
 // ---- step's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-namespace M_UpdateStepPhys { extern "C" {
-float D_002C3C60[2] = {1.0f, -1.0f};
-float D_002C3C68[3] = {300.0f, 0.0f, 0.25f};
-} } // namespace M_UpdateStepPhys extern "C"
-namespace M_UpdateStep { extern "C" {
-float D_002C3C80[3] __attribute__((aligned(16))) = {1.5f, -1.0f, 0.0f};
-} } // namespace M_UpdateStep extern "C"
-namespace M_AdjustStepNewXp { extern "C" {
-float D_002C3C90 __attribute__((aligned(16))) = 1.5f;
-} } // namespace M_AdjustStepNewXp extern "C"
+namespace M_UpdateStepPhys {
+float D_002C3C60[2] __asm__("D_002C3C60") = {1.0f, -1.0f};
+float D_002C3C68[3] __asm__("D_002C3C68") = {300.0f, 0.0f, 0.25f};
+} // namespace M_UpdateStepPhys extern "C"
+namespace M_UpdateStep {
+float D_002C3C80[3] __asm__("D_002C3C80") __attribute__((aligned(16))) = {1.5f, -1.0f, 0.0f};
+} // namespace M_UpdateStep extern "C"
+namespace M_AdjustStepNewXp {
+float D_002C3C90 __asm__("D_002C3C90") __attribute__((aligned(16))) = 1.5f;
+} // namespace M_AdjustStepNewXp extern "C"
 namespace M_AdjustStepXpVelocity {
-extern "C" float D_002C3C98[3] = {3000.0f, 0.0f, 0.35f};
-extern "C" float D_002C3CA8[3] = {3000.0f, 0.0f, 0.5f};
+extern float D_002C3C98[3] __asm__("D_002C3C98") = {3000.0f, 0.0f, 0.35f};
+extern float D_002C3CA8[3] __asm__("D_002C3CA8") = {3000.0f, 0.0f, 0.5f};
 } // namespace M_AdjustStepXpVelocity
-namespace M_func_00204D48 { extern "C" {
-VECTOR D_002C3CB8 = {25.0f, 0.0f, 0.25f};
-} } // namespace M_func_00204D48 extern "C"
-namespace M_func_002057E8 { extern "C" {
-int D_002C3CC8[2][3] = {{0, 1, 3}, {0, 2, 4}};
-} } // namespace M_func_002057E8 extern "C"
+namespace M_func_00204D48 {
+VECTOR D_002C3CB8 __asm__("D_002C3CB8") = {25.0f, 0.0f, 0.25f};
+} // namespace M_func_00204D48 extern "C"
+namespace M_func_002057E8 {
+int D_002C3CC8[2][3] __asm__("D_002C3CC8") = {{0, 1, 3}, {0, 2, 4}};
+} // namespace M_func_002057E8 extern "C"
 namespace M_func_00205910 {
-extern "C" float D_002C3CE0 = -24.0f;
-extern "C" int D_002C3CE4 = 2;
-extern "C" float D_002C3CE8 = 0.6f;
+extern float D_002C3CE0 __asm__("D_002C3CE0") = -24.0f;
+extern int D_002C3CE4 __asm__("D_002C3CE4") = 2;
+extern float D_002C3CE8 __asm__("D_002C3CE8") = 0.6f;
 }

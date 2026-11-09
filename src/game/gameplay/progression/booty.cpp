@@ -785,9 +785,9 @@ extern "C" void SetBootyContainerKind(CID37V *container, int n)
 namespace ANPTR_booty {
 void p_func_0013C4E0() __asm__("ReturnDroppedBooty");
 void p_func_0013CF38() __asm__("SpawnBootyInContainer");
-extern "C" {
-extern const unsigned int D_002A4BB0[2] = {0xFFFF0000, (unsigned int)p_func_0013CF38};
-}
+
+extern const unsigned int D_002A4BB0[2] __asm__("D_002A4BB0") = {0xFFFF0000, (unsigned int)p_func_0013CF38};
+
 } // namespace ANPTR_booty
 
 namespace RO_ORDER { extern const char r_D_002A4BB8[] __asm__("D_002A4BB8") = "booty"; }

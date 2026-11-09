@@ -52,19 +52,19 @@ void RemoveDlEntry(DL *pdl, void *pv);
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 
-namespace M_InitGrabspot { extern "C" {
-extern float D_002A5680;
-void SetLoBusyKind(void *p, int n);
+namespace M_InitGrabspot {
+extern float D_002A5680 __asm__("D_002A5680");
+void SetLoBusyKind(void *p, int n) __asm__("SetLoBusyKind");
 // Initializes the GRABSPOT mix-in (the part of an object the player can grab): no current grabber, default busy
 // value, player class mask 7 (all players), owner via slot 6, busy kind 3.
-void InitGrabspot(GRABSPOT *grabspot)
+void InitGrabspot(GRABSPOT *grabspot) __asm__("InitGrabspot"); void InitGrabspot(GRABSPOT *grabspot)
 {
     grabspot->nUnk14 = -1;
     grabspot->sBusy = D_002A5680;
     grabspot->grfPlayers = 7;
     SetLoBusyKind(grabspot->GetOwner(), 3);
 }
-} } // namespace M_InitGrabspot
+} // namespace M_InitGrabspot
 
 // GRABSPOT default: no wrap range (returns 0).
 int GRABSPOT::GetGrabRange(float *pasRange)   /* key function: GRABSPOT's vtable comes out here */
@@ -72,44 +72,44 @@ int GRABSPOT::GetGrabRange(float *pasRange)   /* key function: GRABSPOT's vtable
     return 0;
 }
 
-namespace M_func_00182CC8 { extern "C" {
+namespace M_func_00182CC8 {
 // GRABSPOT default: closest parameter 0.
-void GetGrabspotClosestParam(void *p, int a, int *pn)
+extern "C" void GetGrabspotClosestParam(void *p, int a, int *pn)
 {
     *pn = 0;
 }
-} } // namespace M_func_00182CC8
+} // namespace M_func_00182CC8
 
 // GRABSPOT default: no position (no-op).
 extern "C" void GetGrabspotGrabPosition()
 {
 }
 
-namespace M_func_00182CD8 { extern "C" {
+namespace M_func_00182CD8 {
 // The grab position nearest the player: closest parameter (slot 0xB), then the position at it (slot 0xC).
-void GetGrabspotPositionNear(GRABSPOT *grabspot, STEPPLAYER *pstepplayer, float *pg, qword *ppos, float *pgHeading)
+extern "C" void GetGrabspotPositionNear(GRABSPOT *grabspot, STEPPLAYER *pstepplayer, float *pg, qword *ppos, float *pgHeading)
 {
     float g;
     grabspot->GetClosestParam(pstepplayer, &g);
     grabspot->GetGrabPos(g, pstepplayer, ppos, pgHeading);
     if (pg) *pg = g;
 }
-} } // namespace M_func_00182CD8
+} // namespace M_func_00182CD8
 
 // GRABSPOT default: leaves the candidate score unchanged.
 extern "C" void AdjustGrabspotScore()
 {
 }
 
-namespace M_func_00182D78 { extern "C" {
+namespace M_func_00182D78 {
 typedef int qword __attribute__((mode(TI)));
-extern qword GetLoWorldPos(void *p);
-extern qword SetVectorSphere(float a, float b, float c);
-extern float RandomFloatInRange__Fff(float a, float b);
-extern float D_002BE8B0;
-extern qword D_002A2DC0;
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern qword SetVectorSphere(float a, float b, float c) __asm__("SetVectorSphere");
+extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+extern float D_002BE8B0 __asm__("D_002BE8B0");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // GRABSPOT default sparkle position: a random point in a sphere around the owner, zero direction.
-void GetGrabspotSparklePosition(GRABSPOT *grabspot, qword *pv, qword *pdv)
+extern "C" void GetGrabspotSparklePosition(GRABSPOT *grabspot, qword *pv, qword *pdv)
 {
     void *object = grabspot->GetOwner();
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
@@ -119,7 +119,7 @@ void GetGrabspotSparklePosition(GRABSPOT *grabspot, qword *pv, qword *pdv)
     *pv = VuAdd(GetLoWorldPos(object), SetVectorSphere(gPan, gTilt, gR));
     *pdv = D_002A2DC0;
 }
-} } // namespace M_func_00182D78
+} // namespace M_func_00182D78
 
 // GRABSPOT's own slot 6 (secondary vtable): the owner getter, which every grab-spot class overrides to return its object (see sly2/xfm.h; GetGrabspotSparklePosition calls it); the base has no owner and returns 0.
 extern "C" int GetGrabspotOwner()
@@ -127,17 +127,17 @@ extern "C" int GetGrabspotOwner()
     return 0;
 }
 
-namespace M_func_00182E80 { extern "C" {
-void InitShape(SHAPE *p);
-void InitGrabspot(GRABSPOT *p);
+namespace M_func_00182E80 {
+void InitShape(SHAPE *p) __asm__("InitShape");
+void InitGrabspot(GRABSPOT *p) __asm__("InitGrabspot");
 // Wall grab spot (CID12, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
-void InitWallGrabspot(CID12 *wall)
+extern "C" void InitWallGrabspot(CID12 *wall)
 {
     InitShape(wall);
     InitGrabspot((GRABSPOT *)&wall->ptn);   /* its GRABSPOT, addressed by its first field (a base conversion adds a null test) */
     wall->unknown1BC = 3;
 }
-} } // namespace M_func_00182E80
+} // namespace M_func_00182E80
 
 // OnAdd: LO base, then joins the world's wall-grab list (g_sw.dlCid12).
 void CID12::OnAdd()
@@ -154,36 +154,36 @@ extern "C" void OnWallGrabspotRemove(LO *lo)
     RemoveDlEntry(&g_sw.dlCid12, lo);
 }
 
-namespace M_func_00182F28 { extern "C" {
-extern float D_002BE8B4;
-void PostLoLoad(LO *p);
-void SetTnTnsOverride(void *p, int n);
-float UpdateShapeBoundingSphere(SHAPE *p);
+namespace M_func_00182F28 {
+extern float D_002BE8B4 __asm__("D_002BE8B4");
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+void SetTnTnsOverride(void *p, int n) __asm__("SetTnTnsOverride");
+float UpdateShapeBoundingSphere(SHAPE *p) __asm__("UpdateShapeBoundingSphere");
 // Post-load: LO base, private TN override off, default busy radius = bounding radius + D_002BE8B4.
-void PostWallGrabspotLoad(CID12 *wall)
+extern "C" void PostWallGrabspotLoad(CID12 *wall)
 {
     PostLoLoad(wall);
     if (wall->ptn) SetTnTnsOverride(wall->ptn, 0);
     if (wall->busyRadius == 1e10f) wall->busyRadius = UpdateShapeBoundingSphere(wall) + D_002BE8B4;
 }
-} } // namespace M_func_00182F28
+} // namespace M_func_00182F28
 
-namespace M_func_00182FA0 { extern "C" {
-void CloneShape(SHAPE *p);
+namespace M_func_00182FA0 {
+void CloneShape(SHAPE *p) __asm__("CloneShape");
 // Clone: clones the shape but keeps its own 8-byte field.
-void CloneWallGrabspot(CID12 *wall)
+extern "C" void CloneWallGrabspot(CID12 *wall)
 {
     DLE dle = wall->dleGrab;
     CloneShape(wall);
     wall->dleGrab = dle;
 }
-} } // namespace M_func_00182FA0
+} // namespace M_func_00182FA0
 
-namespace M_func_00182FE8 { extern "C" {
-float GetShapeMinDistance(SHAPE *p);
-float GetShapeMaxDistance(SHAPE *p);
+namespace M_func_00182FE8 {
+float GetShapeMinDistance(SHAPE *p) __asm__("GetShapeMinDistance");
+float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 // For an open shape outputs [GetShapeMinDistance, GetShapeMaxDistance] and returns 1.
-int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
+extern "C" int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
 {
     if (wall->isClosed) {
         pg[0] = GetShapeMinDistance(wall);
@@ -192,16 +192,16 @@ int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
     }
     return 0;
 }
-} } // namespace M_func_00182FE8
+} // namespace M_func_00182FE8
 
-namespace M_func_00183040 { extern "C" {
+namespace M_func_00183040 {
 typedef int qword __attribute__((mode(TI)));
 struct T { char pad[0x218]; qword *pq; };
 struct V { float a[4]; };
-void FindShapeClosestPoint(SHAPE *p, qword q, int a, struct V *pv, int b, int c, float *pg);
-float GetShapeMaxDistance(SHAPE *p);
+void FindShapeClosestPoint(SHAPE *p, qword q, int a, struct V *pv, int b, int c, float *pg) __asm__("FindShapeClosestPoint");
+float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
-void GetWallGrabspotClosestParam(CID12 *wall, struct T *t, float *pg)
+extern "C" void GetWallGrabspotClosestParam(CID12 *wall, struct T *t, float *pg)
 {
     struct V v;
     FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
@@ -213,33 +213,33 @@ void GetWallGrabspotClosestParam(CID12 *wall, struct T *t, float *pg)
     else if (lim < g) g = lim;
     *pg = g;
 }
-} } // namespace M_func_00183040
+} // namespace M_func_00183040
 
-namespace M_func_001830D8 { extern "C" {
+namespace M_func_001830D8 {
 typedef int qword __attribute__((mode(TI)));
-extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir);
-extern float atan2f(float y, float x);
-extern qword D_002A2DC0;
-extern qword D_002A2DA0;
+extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir) __asm__("EvaluateShapeAtDistance");
+extern float atan2f(float y, float x) __asm__("atan2f");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
 // Length of the xyz part of c, in the x lane.
-static __inline__ qword VLen(qword c)
+extern "C" { static __inline__ qword VLen(qword c)
 {
     qword l, one;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(l), "=&j"(one) : "j"(c));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
-}
+} }
 // Broadcast int bits into a VU0 register.
-static __inline__ qword Bc(int g)
+extern "C" { static __inline__ qword Bc(int g)
 {
     QWROW u;
     qword s;
     __asm__ __volatile__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
     u.q = s;
     return s;
-}
+} }
 // Unit vector along c; falls back to k when its length is below 1e-4.
-static __inline__ qword VNormalize(qword c, qword k)
+extern "C" { static __inline__ qword VNormalize(qword c, qword k)
 {
     qword l;
     register qword t __asm__("vf1");
@@ -253,9 +253,9 @@ static __inline__ qword VNormalize(qword c, qword k)
         __asm__ __volatile__("nop\n\tnop\n\tvdiv Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, Q" : "=j"(t) : "j"(c), "j"(l));
     }
     return t;
-}
+} }
 // Position and facing (atan2 of tangent x up) on the shape at the given distance.
-void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, float *pg)
+extern "C" void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
     QWROW pos, dir;
     qword n;
@@ -286,28 +286,28 @@ void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qword *pv, fl
     }
     *pg = atan2f(QwordY(n), QwordX(n));
 }
-} } // namespace M_func_001830D8
+} // namespace M_func_001830D8
 
-namespace M_func_00183218 { extern "C" {
+namespace M_func_00183218 {
 typedef int qword __attribute__((mode(TI)));
-extern float GetRandomShapeDistanceInRange(void *p, float g, float h);
-extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir);
-extern float RandomFloatInRange__Fff(float a, float b);
-extern float D_002BE8B8;
-extern float D_002BE8BC;
-extern qword D_002A2DC0;
-extern qword D_002A2DA0;
+extern float GetRandomShapeDistanceInRange(void *p, float g, float h) __asm__("GetRandomShapeDistanceInRange");
+extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir) __asm__("EvaluateShapeAtDistance");
+extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+extern float D_002BE8B8 __asm__("D_002BE8B8");
+extern float D_002BE8BC __asm__("D_002BE8BC");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
 // Length of the xyz part of c, in the x lane.
-static __inline__ qword VLen(qword c)
+extern "C" { static __inline__ qword VLen(qword c)
 {
     qword l, one;
     __asm__("vmul.xyz %0, %1, %1" : "=j"(l) : "j"(c));
     __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one), "+j"(l));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
-}
+} }
 // A random point along the shape with an outward offset (grab-hint sparkle).
-void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
+extern "C" void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
 {
     QWROW pos, dir, u;
     qword n;
@@ -335,7 +335,7 @@ void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
     }
     *pdv = D_002A2DC0;
 }
-} } // namespace M_func_00183218
+} // namespace M_func_00183218
 
 // Pole (CID34) Init: transform init and its GRABSPOT part.
 extern "C" void InitPoleGrabspot(CID34 *pole)
@@ -359,29 +359,29 @@ extern "C" void OnPoleGrabspotRemove(LO *lo)
     RemoveDlEntry(&g_sw.dlCid34, lo);
 }
 
-namespace M_func_001833E0 { extern "C" {
-extern float D_002BE8C0;
-void PostLoLoad(LO *p);
-void SetTnTnsOverride(void *p, int n);
+namespace M_func_001833E0 {
+extern float D_002BE8C0 __asm__("D_002BE8C0");
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+void SetTnTnsOverride(void *p, int n) __asm__("SetTnTnsOverride");
 // Post-load: LO base, TN override off, default busy radius = pole radius + D_002BE8C0.
-void PostPoleGrabspotLoad(CID34 *pole)
+extern "C" void PostPoleGrabspotLoad(CID34 *pole)
 {
     PostLoLoad(pole);
     if (pole->ptn) SetTnTnsOverride(pole->ptn, 0);
     if (pole->busyRadius == 1e10f) pole->busyRadius = pole->sRadius + D_002BE8C0;
 }
-} } // namespace M_func_001833E0
+} // namespace M_func_001833E0
 
-namespace M_func_00183450 { extern "C" {
-void CloneXfm(XFM *p);
+namespace M_func_00183450 {
+void CloneXfm(XFM *p) __asm__("CloneXfm");
 // Clone: clones the transform but keeps its own field.
-void ClonePoleGrabspot(CID34 *pole)
+extern "C" void ClonePoleGrabspot(CID34 *pole)
 {
     DLE dle = pole->dleGrab;
     CloneXfm(pole);
     pole->dleGrab = dle;
 }
-} } // namespace M_func_00183450
+} // namespace M_func_00183450
 
 /* CID 34 grab range: [-pi r, pi r] around the pole. */
 // Wrap range [-pi r, pi r]: the circumference of the pole (radius at +0x10C), so the player can circle it.
@@ -392,13 +392,13 @@ extern "C" int GetPoleGrabspotWrapRange(CID34 *ppole, float *ag)
     return 1;
 }
 
-namespace M_func_001834D0 { extern "C" {
+namespace M_func_001834D0 {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x218]; qword *p218; };
-qword GetLoWorldPos(void *p);
-float atan2f(float y, float x);
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+float atan2f(float y, float x) __asm__("atan2f");
 // The arc-length parameter of the player's angle around the pole axis.
-void GetPoleGrabspotClosestParam(CID34 *pole, struct Q *q, float *pg)
+extern "C" void GetPoleGrabspotClosestParam(CID34 *pole, struct Q *q, float *pg)
 {
     qword a = *q->p218;
     qword b = GetLoWorldPos(pole);
@@ -406,13 +406,13 @@ void GetPoleGrabspotClosestParam(CID34 *pole, struct Q *q, float *pg)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     *pg = atan2f(QwordY(d), QwordX(d)) * pole->sRadius;
 }
-} } // namespace M_func_001834D0
+} // namespace M_func_001834D0
 
-namespace M_func_00183540 { extern "C" {
-extern qword GetLoWorldPos(void *p);
-extern qword SetVectorCylind(float a, float b, float c);
+namespace M_func_00183540 {
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 // The point at angle param / r on the circle of radius r + the player's radius.
-void GetPoleGrabspotGrabPosition(CID34 *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
+extern "C" void GetPoleGrabspotGrabPosition(CID34 *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
     float gPan = g / pole->sRadius;
     float gR = pole->sRadius + pj->grabRadius;
@@ -425,24 +425,24 @@ void GetPoleGrabspotGrabPosition(CID34 *pole, float g, STEPPLAYER *pj, qword *pv
         *pg = gPan;
     }
 }
-} } // namespace M_func_00183540
+} // namespace M_func_00183540
 
-namespace M_func_00183600 { extern "C" {
+namespace M_func_00183600 {
 typedef int qword __attribute__((mode(TI)));
-extern qword GetLoWorldPos(void *p);
-extern qword SetVectorCylind(float a, float b, float c);
-extern float RandomFloatInRange__Fff(float a, float b);
-extern float D_002BE8C4;
-extern qword D_002A2DC0;
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
+extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+extern float D_002BE8C4 __asm__("D_002BE8C4");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // A random point on a ring around the pole.
-void GetPoleGrabspotSparklePosition(CID34 *pole, qword *pv, qword *pdv)
+extern "C" void GetPoleGrabspotSparklePosition(CID34 *pole, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->sRadius;
     *pv = VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
-} } // namespace M_func_00183600
+} // namespace M_func_00183600
 
 // CID38 hold point Init: transform init and its GRABSPOT part. (class role inferred)
 extern "C" void InitHoldGrabspot(CID38 *hold)
@@ -466,37 +466,37 @@ extern "C" void OnHoldGrabspotRemove(LO *lo)
     RemoveDlEntry(&g_sw.dlCid38, lo);
 }
 
-namespace M_func_00183768 { extern "C" {
-extern float D_002BE8C8;
-void PostLoLoad(LO *p);
-void SetTnTnsOverride(void *p, int n);
+namespace M_func_00183768 {
+extern float D_002BE8C8 __asm__("D_002BE8C8");
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+void SetTnTnsOverride(void *p, int n) __asm__("SetTnTnsOverride");
 // Post-load: LO base, TN override off, default busy radius D_002BE8C8.
-void PostHoldGrabspotLoad(CID38 *hold)
+extern "C" void PostHoldGrabspotLoad(CID38 *hold)
 {
     PostLoLoad(hold);
     if (hold->ptn) SetTnTnsOverride(hold->ptn, 0);
     if (hold->busyRadius == 1e10f) hold->busyRadius = D_002BE8C8;
 }
-} } // namespace M_func_00183768
+} // namespace M_func_00183768
 
-namespace M_func_001837D0 { extern "C" {
-void CloneXfm(XFM *p);
+namespace M_func_001837D0 {
+void CloneXfm(XFM *p) __asm__("CloneXfm");
 // Clone: clones the transform but keeps its own field.
-void CloneHoldGrabspot(CID38 *hold)
+extern "C" void CloneHoldGrabspot(CID38 *hold)
 {
     DLE dle = hold->dleGrab;
     CloneXfm(hold);
     hold->dleGrab = dle;
 }
-} } // namespace M_func_001837D0
+} // namespace M_func_001837D0
 
-namespace M_func_00183818 { extern "C" {
+namespace M_func_00183818 {
 typedef int qword __attribute__((mode(TI)));
-extern qword GetLoWorldPos(void *p);
-extern qword *GetLoWorldMatrix(void *p);
-extern float atan2f(float y, float x);
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern qword *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
+extern float atan2f(float y, float x) __asm__("atan2f");
 // Hold position and heading from the object matrix, pushed out by the player's radius unless +0x10C is set.
-void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *pv, float *pg)
+extern "C" void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *pv, float *pg)
 {
     float g = 0.0f;
     qword d;
@@ -520,7 +520,7 @@ void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *pv, float *
         *pg = gAng;
     }
 }
-} } // namespace M_func_00183818
+} // namespace M_func_00183818
 
 // Barrel (CID88, a liftable object) Init: SO init, its GRABSPOT part, state 0, radius 300, free flag, zap mask.
 extern "C" void InitBarrel(BARREL *barrel)
@@ -557,16 +557,16 @@ extern "C" void OnBarrelRemove(SO *so)
     RemoveDlEntry(&g_sw.dlCid88, so);
 }
 
-namespace M_CloneBarrel { extern "C" {
-void CloneSo(SO *p);
+namespace M_CloneBarrel {
+void CloneSo(SO *p) __asm__("CloneSo");
 // Clone: SO clone keeping its own field.
-void CloneBarrel(BARREL *barrel)
+extern "C" void CloneBarrel(BARREL *barrel)
 {
     DLE dle = barrel->dleGrab;
     CloneSo(barrel);
     barrel->dleGrab = dle;
 }
-} } // namespace M_CloneBarrel
+} // namespace M_CloneBarrel
 
 /* BARREL slot 61: also ignore a stepplayer that is holding this barrel. */
 // Intersection filter (slot 61): SO base, and ignores a player that is holding this barrel (grab state 1 on it).
@@ -585,17 +585,17 @@ extern "C" int ShouldBarrelIgnoreIntersection(BARREL *barrel, LO *lo)
     return grf;
 }
 
-namespace M_func_00183B00 { extern "C" {
+namespace M_func_00183B00 {
 typedef int qword __attribute__((mode(TI)));
 struct M { float a[12]; };
-extern qword D_002A2DD0;
-extern char D_002BE8D0[], D_002BE8E0[];
-void PresetSoAccel(BARREL *p);
-void *GetLoWorldMatrix(BARREL *p);
-void TiltMatUpright(void *p, int n, struct M *pm);
-void AccelSoTowardMatSpring(BARREL *p, struct M *pm, void *a, qword q, void *b);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern char D_002BE8D0[] __asm__("D_002BE8D0"), D_002BE8E0[] __asm__("D_002BE8E0");
+void PresetSoAccel(BARREL *p) __asm__("PresetSoAccel");
+void *GetLoWorldMatrix(BARREL *p) __asm__("GetLoWorldMatrix");
+void TiltMatUpright(void *p, int n, struct M *pm) __asm__("TiltMatUpright");
+void AccelSoTowardMatSpring(BARREL *p, struct M *pm, void *a, qword q, void *b) __asm__("AccelSoTowardMatSpring");
 // Physics preset (slot 70): pending velocity, and while free (state 0) springs the barrel upright.
-void PresetBarrelAccel(BARREL *barrel)
+extern "C" void PresetBarrelAccel(BARREL *barrel)
 {
     PresetSoAccel(barrel);
     if (!barrel->isFree || barrel->carryState)
@@ -604,7 +604,7 @@ void PresetBarrelAccel(BARREL *barrel)
     TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
     AccelSoTowardMatSpring(barrel, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
 }
-} } // namespace M_func_00183B00
+} // namespace M_func_00183B00
 
 namespace M_func_00183B80 {
 typedef int qword __attribute__((mode(TI)));
@@ -612,22 +612,22 @@ typedef struct { qword a[3]; } MATRIX3;
 struct XV { int x, y; float z; int w; };
 /* The carrier (a STEPPLAYER) as the barrel reads it: two candidate attach transforms. */
 struct T { char pad[0x60]; XF *p60; char pad1[0x10BC - 0x64]; XF *p10BC; };
-extern "C" {
-extern qword D_002A2DD0;
-extern qword D_002BE8F0;
-void SetLoParent(BARREL *p, int a, int b);
-void SetXfRole(BARREL *p, XF *px, int n);
-void SetSoCnstrForce(BARREL *p, int n);
-void SetSoCnstrTorque(BARREL *p, int n);
-void SetSoPartsBit48(BARREL *p, int n);
-void UpdateSwBusyList(void *p);
-void *GetLoWorldMatrix(BARREL *p);
-void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
-MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
-qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
-qword TransformXfPos(void *pv, void *pvA0, qword v);
-void SetBarrelState(BARREL *p, int n);
-}
+
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern qword D_002BE8F0 __asm__("D_002BE8F0");
+void SetLoParent(BARREL *p, int a, int b) __asm__("SetLoParent");
+void SetXfRole(BARREL *p, XF *px, int n) __asm__("SetXfRole");
+void SetSoCnstrForce(BARREL *p, int n) __asm__("SetSoCnstrForce");
+void SetSoCnstrTorque(BARREL *p, int n) __asm__("SetSoCnstrTorque");
+void SetSoPartsBit48(BARREL *p, int n) __asm__("SetSoPartsBit48");
+void UpdateSwBusyList(void *p) __asm__("UpdateSwBusyList");
+void *GetLoWorldMatrix(BARREL *p) __asm__("GetLoWorldMatrix");
+void TiltMatUpright(void *pv, int n, MATRIX3 *pm) __asm__("TiltMatUpright");
+MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm) __asm__("ConvertXfMat");
+qword DecomposeRotationMatrixToEuler(MATRIX3 *pm) __asm__("DecomposeRotationMatrixToEuler");
+qword TransformXfPos(void *pv, void *pvA0, qword v) __asm__("TransformXfPos");
+void SetBarrelState(BARREL *p, int n) __asm__("SetBarrelState");
+
 
 // Carry state switch (0 free .. 3): reparents to/from the carrier, force/torque constraints, part flags.
 void SetBarrelState(BARREL *barrel, int n)
@@ -692,18 +692,18 @@ void SetBarrelState(BARREL *barrel, int n)
 }
 } // namespace M_func_00183B80
 
-namespace M_func_00183E08 { extern "C" {
+namespace M_func_00183E08 {
 typedef int qword __attribute__((mode(TI)));
 /* The carrier (a STEPPLAYER) as the zap handler uses it: its slot 88 and its JTMODE at +0xF00. */
 struct O { char pad[0xC]; struct VTE *vt; char p1[0xEF0]; char xf00[4]; };
 struct M { ZPR *q; void *pv; };
-int CanSoTakeDamage(BARREL *p, ZPR *q);
-qword GetLoWorldPos(BARREL *p);
-void EmitSwNoise(void *g, int n, qword pos, BARREL *p);
-void SetJtModeState__FP6JTMODEi(void *p, int n);
-void SetBarrelState(BARREL *p, int n);
+int CanSoTakeDamage(BARREL *p, ZPR *q) __asm__("CanSoTakeDamage");
+qword GetLoWorldPos(BARREL *p) __asm__("GetLoWorldPos");
+void EmitSwNoise(void *g, int n, qword pos, BARREL *p) __asm__("EmitSwNoise");
+void SetJtModeState__FP6JTMODEi(void *p, int n) __asm__("SetJtModeState__FP6JTMODEi");
+void SetBarrelState(BARREL *p, int n) __asm__("SetBarrelState");
 // Barrel zap handler (own slot 75): on a qualifying zap, makes a noise event and drops/changes state.
-int HandleBarrelZap(BARREL *barrel, ZPR *q)
+extern "C" int HandleBarrelZap(BARREL *barrel, ZPR *q)
 {
     struct M m;
     struct VTE *e;
@@ -724,7 +724,7 @@ int HandleBarrelZap(BARREL *barrel, ZPR *q)
     barrel->HandleSpliceEvent(0xB, 0, 2, (void **)&m, 0);
     return 1;
 }
-} } // namespace M_func_00183E08
+} // namespace M_func_00183E08
 
 /* CID 35 Init. */
 // Mission trigger spot (CID35) Init: transform init, its GRABSPOT part, enabled, radius 200, player mask 0.
@@ -737,17 +737,17 @@ extern "C" void InitTriggerGrabspot(CID35 *trigger)
     trigger->grfPlayers = 0;
 }
 
-namespace M_func_00183F50 { extern "C" {
-extern float D_002BE900;
-void PostLoLoad(LO *p);
+namespace M_func_00183F50 {
+extern float D_002BE900 __asm__("D_002BE900");
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
 // Post-load: LO base, player mask default 7, default busy radius D_002BE900.
-void PostTriggerGrabspotLoad(CID35 *trigger)
+extern "C" void PostTriggerGrabspotLoad(CID35 *trigger)
 {
     PostLoLoad(trigger);
     if (!trigger->grfPlayers) trigger->grfPlayers = 7;
     if (trigger->busyRadius == 1e10f) trigger->busyRadius = D_002BE900;
 }
-} } // namespace M_func_00183F50
+} // namespace M_func_00183F50
 
 // OnAdd (shared with CID36): unfreeze, then joins its grab list.
 void CID35::OnAdd()
@@ -770,9 +770,9 @@ extern "C" void AddGrabspotPlayerMask(CID35 *grabspot, STEPPLAYER *player)
     grabspot->grfPlayers |= GRFPLAYER(player);
 }
 
-namespace M_func_00184040 { extern "C" {
+namespace M_func_00184040 {
 // Maps a player class to the mask: STEPPLAYER (0x34) -> 7 (everyone), JT (0x35) -> Sly only, ...
-void SetGrabspotPlayerClass(CID35 *grabspot, int n)
+extern "C" void SetGrabspotPlayerClass(CID35 *grabspot, int n)
 {
     switch (n) {
     case 0x34: grabspot->grfPlayers = 7; break;
@@ -781,33 +781,33 @@ void SetGrabspotPlayerClass(CID35 *grabspot, int n)
     case 0x36: grabspot->grfPlayers |= 4; break;
     }
 }
-} } // namespace M_func_00184040
+} // namespace M_func_00184040
 
-namespace M_func_001840B8 { extern "C" {
-void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w);
+namespace M_func_001840B8 {
+void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w) __asm__("AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25");
 // Registers a state-machine message link (AddOrUpdateRsmg) for the trigger spot.
-void AddTriggerGrabspotRsmg(CID35 *trigger, int y, int z, int w)
+extern "C" void AddTriggerGrabspotRsmg(CID35 *trigger, int y, int z, int w)
 {
     AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(&g_sw, trigger->arsmg, 4, &trigger->crsmg, 1, y, z, w);
 }
-} } // namespace M_func_001840B8
+} // namespace M_func_001840B8
 
-namespace M_func_001840F8 { extern "C" {
-void AppendBoundedPair(void *g, void *pb, int n, void *pa, int x, int y);
+namespace M_func_001840F8 {
+void AppendBoundedPair(void *g, void *pb, int n, void *pa, int x, int y) __asm__("AppendBoundedPair");
 // Registers a pair (FAddPair) for the trigger spot.
-void AddTriggerGrabspotPair(CID35 *trigger, int x, int y)
+extern "C" void AddTriggerGrabspotPair(CID35 *trigger, int x, int y)
 {
     AppendBoundedPair(&g_game, trigger->apair, 4, &trigger->cpair, x, y);
 }
-} } // namespace M_func_001840F8
+} // namespace M_func_001840F8
 
-namespace M_func_00184130 { extern "C" {
-void TriggerRsmg(void *g, int a, OID (*pb)[4], CID35 *p, int n);
-void ApplyTaskStates(void *g, int a, int (*pb)[2], CID35 *p);
-void FireRelay(void *p, int n);
+namespace M_func_00184130 {
+void TriggerRsmg(void *g, int a, OID (*pb)[4], CID35 *p, int n) __asm__("TriggerRsmg");
+void ApplyTaskStates(void *g, int a, int (*pb)[2], CID35 *p) __asm__("ApplyTaskStates");
+void FireRelay(void *p, int n) __asm__("FireRelay");
 // Fires the trigger: sets its state, sends message 6, triggers the linked state machines, applies task states and
 // fires its relay.
-void FireTriggerGrabspot(CID35 *trigger, int n)
+void FireTriggerGrabspot(CID35 *trigger, int n) __asm__("FireTriggerGrabspot"); void FireTriggerGrabspot(CID35 *trigger, int n)
 {
     trigger->nFired = n;
     trigger->SendMessage((MSGID)6, trigger);
@@ -816,7 +816,7 @@ void FireTriggerGrabspot(CID35 *trigger, int n)
     trigger->HandleSpliceEvent(5, 0, 0, 0, 0);
     if (trigger->relay) FireRelay(trigger->relay, n);
 }
-} } // namespace M_func_00184130
+} // namespace M_func_00184130
 
 // Whether the grab spot's player mask contains the player's class bit (+0x1000).
 extern "C" int CanGrabspotAcceptPlayer(CID35 *grabspot, STEPPLAYER *player)
@@ -824,15 +824,15 @@ extern "C" int CanGrabspotAcceptPlayer(CID35 *grabspot, STEPPLAYER *player)
     return (grabspot->grfPlayers & GRFPLAYER(player)) != 0;
 }
 
-namespace M_func_00184208 { extern "C" {
+namespace M_func_00184208 {
 typedef int qword __attribute__((mode(TI)));
-qword GetLoWorldPos(void *a, void *b);
+qword GetLoWorldPos(void *a, void *b) __asm__("GetLoWorldPos");
 // The trigger spot's grab position: its owner's world position.
-void GetTriggerGrabspotGrabPosition(void *a, void *b, qword *p)
+extern "C" void GetTriggerGrabspotGrabPosition(void *a, void *b, qword *p)
 {
     if (p) *p = GetLoWorldPos(a, b);
 }
-} } // namespace M_func_00184208
+} // namespace M_func_00184208
 
 // Biases the candidate score by the spot's radius: score -= radius - (D_002BF660 - 150).
 extern "C" void AdjustTriggerGrabspotScore(CID35 *trigger, float *pgScore)
@@ -840,9 +840,9 @@ extern "C" void AdjustTriggerGrabspotScore(CID35 *trigger, float *pgScore)
     *pgScore -= trigger->sRadius - (D_002BF660 - 150.0f);
 }
 
-namespace M_func_00184268 { extern "C" {
+namespace M_func_00184268 {
 // Carry grab spot (CID36, child of CID35) Init: CID35 init and four oids -1.
-void InitCarryGrabspot(CID36 *carry)
+extern "C" void InitCarryGrabspot(CID36 *carry)
 {
     InitTriggerGrabspot(carry);
     carry->oid1 = OID_Nil;
@@ -852,7 +852,7 @@ void InitCarryGrabspot(CID36 *carry)
     carry->nPriority = -1;
     carry->grfPlayers = 4;
 }
-} } // namespace M_func_00184268
+} // namespace M_func_00184268
 
 // Post-load: CID35 post-load and resolves three oids.
 /* CID 36 PostLoad. */
@@ -874,16 +874,16 @@ extern "C" void OnTriggerGrabspotGrabbed(CID36 *trigger, LO *lo)
     }
 }
 
-namespace M_func_00184380 { extern "C" {
+namespace M_func_00184380 {
 struct T { char pad[0xF4]; int n; };
-int IsLoSelfOrDescendantOf(struct T *q, LO *x);
+int IsLoSelfOrDescendantOf(struct T *q, LO *x) __asm__("IsLoSelfOrDescendantOf");
 // 1 if the ids differ, else whether the object is a parent of the spot (IsLoSelfOrDescendantOf). (inferred)
-int ShouldTriggerGrabspotSkipTarget(CID36 *trigger, struct T *q)
+extern "C" int ShouldTriggerGrabspotSkipTarget(CID36 *trigger, struct T *q)
 {
     if (q->n != trigger->oidTarget) return 1;
     return IsLoSelfOrDescendantOf(q, trigger->unknown180);
 }
-} } // namespace M_func_00184380
+} // namespace M_func_00184380
 
 // Table grab spot (CID27, hide under) Init: transform init and its GRABSPOT part.
 extern "C" void InitTableGrabspot(CID27 *table)
@@ -892,14 +892,14 @@ extern "C" void InitTableGrabspot(CID27 *table)
     InitGrabspot(&table->ptn);   /* its GRABSPOT, addressed by its first field */
 }
 
-namespace M_func_001843F0 { extern "C" {
+namespace M_func_001843F0 {
 typedef int qword __attribute__((mode(TI)));
-extern void PostLoLoad(LO *p);
-extern qword GetLoWorldPos(void *p);
-extern qword ConvertPosBetweenLos(void *p, void *q, qword v);
-extern float D_002BE904;
+extern void PostLoLoad(LO *p) __asm__("PostLoLoad");
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern qword ConvertPosBetweenLos(void *p, void *q, qword v) __asm__("ConvertPosBetweenLos");
+extern float D_002BE904 __asm__("D_002BE904");
 // Distance between a and b as a float.
-static __inline__ float DistanceBetween(qword a, qword b)
+extern "C" { static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, one;
     float g;
@@ -909,16 +909,16 @@ static __inline__ float DistanceBetween(qword a, qword b)
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 // Post-load: LO base; default busy radius = distance to its point + D_002BE904.
-void PostTableGrabspotLoad(CID27 *table)
+extern "C" void PostTableGrabspotLoad(CID27 *table)
 {
     PostLoLoad(table);
     if (table->busyRadius == 1e10f) {
         table->busyRadius = DistanceBetween(GetLoWorldPos(table), ConvertPosBetweenLos(table, 0, table->boundsCenter)) + D_002BE904;
     }
 }
-} } // namespace M_func_001843F0
+} // namespace M_func_001843F0
 
 // OnAdd: unfreeze, then joins the world's table list (g_sw.dlCid27).
 void CID27::OnAdd()
@@ -935,16 +935,16 @@ extern "C" void OnTableGrabspotRemove(LO *lo)
     RemoveDlEntry(&g_sw.dlCid27, lo);
 }
 
-namespace M_func_00184510 { extern "C" {
+namespace M_func_00184510 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-extern int D_002DFB84;
-extern float D_002BE908;
-qword GetLoWorldPos(void *p);
-qword ConvertPosBetweenLos(CID27 *p, int n, qword q);
+extern int D_002DFB84 __asm__("D_002DFB84");
+extern float D_002BE908 __asm__("D_002BE908");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword ConvertPosBetweenLos(CID27 *p, int n, qword q) __asm__("ConvertPosBetweenLos");
 // The hold position (the debug flag D_002DFB84 uses a child's position plus an offset).
-void GetTableGrabspotGrabPosition(CID27 *table, int unused, UV *pv)
+extern "C" void GetTableGrabspotGrabPosition(CID27 *table, int unused, UV *pv)
 {
     if (!pv)
         return;
@@ -956,29 +956,29 @@ void GetTableGrabspotGrabPosition(CID27 *table, int unused, UV *pv)
         pv->v.z = QwordZ(GetLoWorldPos(table->ploHold)) + D_002BE908;
     }
 }
-} } // namespace M_func_00184510
+} // namespace M_func_00184510
 
-namespace M_func_001845A0 { extern "C" {
+namespace M_func_001845A0 {
 typedef int qword __attribute__((mode(TI)));
-extern qword ConvertPosBetweenLos(void *p, void *q, qword v);
-extern qword SetVectorCylind(float a, float b, float c);
-extern float RandomFloatInRange__Fff(float a, float b);
-extern float D_002BE90C;
-extern qword D_002A2DC0;
+extern qword ConvertPosBetweenLos(void *p, void *q, qword v) __asm__("ConvertPosBetweenLos");
+extern qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
+extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+extern float D_002BE90C __asm__("D_002BE90C");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // A random point on a disc around its point.
-void GetTableGrabspotSparklePosition(CID27 *table, qword *pv, qword *pdv)
+extern "C" void GetTableGrabspotSparklePosition(CID27 *table, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE90C);
     *pv = VuAdd(ConvertPosBetweenLos(table, 0, table->boundsCenter), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
-} } // namespace M_func_001845A0
+} // namespace M_func_001845A0
 
-namespace M_PgrabspotFromLo { extern "C" {
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+namespace M_PgrabspotFromLo {
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // The GRABSPOT part of an object by class (barrel +0x150, table +0x130, pole +0xE0, wall +0x190, ...), or null.
-void *GetGrabspotFromLo(char *p)
+extern "C" void *GetGrabspotFromLo(char *p)
 {
     if (!p) return 0;
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return p + 0x150;
@@ -992,7 +992,7 @@ void *GetGrabspotFromLo(char *p)
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x27)) return p + 0xE0;
     return 0;
 }
-} } // namespace M_PgrabspotFromLo
+} // namespace M_PgrabspotFromLo
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
@@ -1015,4 +1015,4 @@ float D_002BE90C = 75.0f;
 /* grabspot's .bss (0x2DFB84, after hack's ship singleton D_002DFB80): the hold-position debug flag read above.
    Extent unclear (60 bytes to joy's D_002DFBC0; no other name in between). Under an asm label so that the
    declarations above need not agree. */
-namespace BSS_GRABSPOT { extern "C" { extern int b_D_002DFB84 __asm__("D_002DFB84"); } int b_D_002DFB84; }
+namespace BSS_GRABSPOT { extern int b_D_002DFB84 __asm__("D_002DFB84"); int b_D_002DFB84; }

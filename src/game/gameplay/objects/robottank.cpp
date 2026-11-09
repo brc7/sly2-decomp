@@ -41,13 +41,13 @@ void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitRobottank { extern "C" {
-void InitPo(PO *ppo);
+namespace M_InitRobottank {
+void InitPo(PO *ppo) __asm__("InitPo");
 // Sets the three coefficients of a quadratic.
-static inline void SetVector(CLQ *pclq, float x, float y, float z) { pclq->g0 = x; pclq->g1 = y; pclq->g2 = z; }
+extern "C" { static inline void SetVector(CLQ *pclq, float x, float y, float z) { pclq->g0 = x; pclq->g1 = y; pclq->g2 = z; } }
 // CID 77 vtable slot 7 Init: InitPo, drive 500, traction 1500 - 1000 x, speed limits 0..1500, reverse 2500, max
 // health 100, ammo maxima 30, state -1. (inferred)
-void InitRobottank(ROBOTTANK *tank) {
+extern "C" void InitRobottank(ROBOTTANK *tank) {
     InitPo(tank);
     tank->driveMax = 500.0f; //P
     tank->state = -1; //P
@@ -62,13 +62,13 @@ void InitRobottank(ROBOTTANK *tank) {
     tank->aammo[0].cAmmoMax = 30;
     tank->lmSpeed.minValue = 0.0f;
 }
-} } // namespace M_InitRobottank
+} // namespace M_InitRobottank
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneRobottank {
-extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
-struct X;extern "C" void InitRobottankWeapon(X*,ROBOTTANK*);
-extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
+extern char D_002C94A0[] __asm__("_vt$3JSG");
+struct X;extern void InitRobottankWeapon(X*,ROBOTTANK*) __asm__("InitRobottankWeapon");
+extern void *func_001AE4F8(int) __asm__("__builtin_new");
 // Two-word header with a trivial constructor.
 struct A { int x0; int x4; A() {} };
 struct B : A {
@@ -89,12 +89,12 @@ struct X : B {
 
     char pad[0xB0 - 0x10];
 };
-extern "C" {
-void ClonePo(ROBOTTANK *);
-void CopyRobottankWeapon(X *, X *);
+
+void ClonePo(ROBOTTANK *) __asm__("ClonePo");
+void CopyRobottankWeapon(X *, X *) __asm__("CopyRobottankWeapon");
 // CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
 // copy 0x9C bytes). (inferred)
-void CloneRobottank(ROBOTTANK *tank)
+extern "C" void CloneRobottank(ROBOTTANK *tank)
 {
     int i;
     ClonePo(tank);
@@ -105,7 +105,7 @@ void CloneRobottank(ROBOTTANK *tank)
         tank->apjsgWeapon[i] = (JSG *)n;
     }
 }
-}
+
 
 #define OFF(T,F) ((unsigned int)&((T*)0)->F)
 typedef char native_layout_0[(sizeof(int)==4)?1:-1];
@@ -150,19 +150,19 @@ struct ATTACH {char pad[0x18];int id;void *object;void *binding;char pad24[8];in
 union CURRENT {E*entry;SIDE*side;ATTACH*attachment;};
 union SCALE {const qword*axis;int stride;};
 struct P : SO { char pad150[0x190 - 0x150];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
-extern "C" {
-extern qword D_002A2DC0,D_002A2DD0;
-void PostSoLoad(P *);
-REF *FindSoXf(P *,int,int);
-void *memmove(void *,const void *,int);
-qword ConvertPosBetweenLos(void *,P *,qword);
-void *NewPositionAct(P *,REF *,int,int,int,qword);
-void *FindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
-void *ApplySmToObject(void *,P *,int,int);
-void *NewSampledShape(int,int);
-void ReplaceSma(void *,P *,int,int,void **);
-void ResetRobottankHealth(P *);
-}
+
+extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");
+void PostSoLoad(P *) __asm__("PostSoLoad");
+REF *FindSoXf(P *,int,int) __asm__("FindSoXf");
+void *memmove(void *,const void *,int) __asm__("memmove");
+qword ConvertPosBetweenLos(void *,P *,qword) __asm__("ConvertPosBetweenLos");
+void *NewPositionAct(P *,REF *,int,int,int,qword) __asm__("NewPositionAct");
+void *FindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *ApplySmToObject(void *,P *,int,int) __asm__("ApplySmToObject");
+void *NewSampledShape(int,int) __asm__("NewSampledShape");
+void ReplaceSma(void *,P *,int,int,void **) __asm__("ReplaceSma");
+void ResetRobottankHealth(P *) __asm__("ResetRobottankHealth");
+
 // Helpers Zero, CPU (small asm wrappers/accessors shaped for the match).
 static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 // Move a VU0 register to a 128-bit GPR value.
@@ -383,37 +383,37 @@ struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];flo
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
 struct P {char pad0[0xC];VTE *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
-extern "C" { extern const qword D_002A2DC0; }
-extern "C" POLY D_002C2040;
-extern "C" POLY D_002C2060;
-extern "C" POLY D_002C2080;
-extern "C" LIMITS D_002C2050;
-extern "C" LIMITS D_002C2070;
-extern "C" LIMITS D_002C2090;
-extern "C" float D_002C2030;
-extern "C" float D_002C20A4;
-extern "C" { extern char D_002C2098[],D_002C20A8[]; }
-extern "C" {
-void UpdateSo(P *);
-float atan2f(float,float);
-int HasRobottankWeaponAmmo(ATTACH *);
-void SetSmaGoal(void *,int);
-void ReadRobottankInput(P *);
-void UpdateRobottankAi(P *);
-float NormalizeAngle__Ff(float);
-qword SetVectorCylind(float,float,float);
-qword ConvertXfVec(FRAME *,FRAME *,qword);
-float ClampToLimits__FP2LMf(const LIMITS *,float);
-void SetActPositionGoal(void *,qword);
-float SmoothAngle__FfffP3SMPPf(float,float,float,void *,float *);
-qword GetLoWorldPos(P *);
-int AreFloatsNear__Ffff(float,float,float);
-float SmoothValue__FfffP3SMPPf(float,float,float,void *,float *);
-void SetSndVolume(SOUND *,float);
-void SetSndPitch(SOUND *,float);
-void ResumeSnd(SOUND *);
-void WakeSo(P *);
-}
+extern const qword D_002A2DC0 __asm__("D_002A2DC0");
+extern POLY D_002C2040 __asm__("D_002C2040");
+extern POLY D_002C2060 __asm__("D_002C2060");
+extern POLY D_002C2080 __asm__("D_002C2080");
+extern LIMITS D_002C2050 __asm__("D_002C2050");
+extern LIMITS D_002C2070 __asm__("D_002C2070");
+extern LIMITS D_002C2090 __asm__("D_002C2090");
+extern float D_002C2030 __asm__("D_002C2030");
+extern float D_002C20A4 __asm__("D_002C20A4");
+extern char D_002C2098[] __asm__("D_002C2098"),D_002C20A8[] __asm__("D_002C20A8");
+
+void UpdateSo(P *) __asm__("UpdateSo");
+float atan2f(float,float) __asm__("atan2f");
+int HasRobottankWeaponAmmo(ATTACH *) __asm__("HasRobottankWeaponAmmo");
+void SetSmaGoal(void *,int) __asm__("SetSmaGoal");
+void ReadRobottankInput(P *) __asm__("ReadRobottankInput");
+void UpdateRobottankAi(P *) __asm__("UpdateRobottankAi");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+qword SetVectorCylind(float,float,float) __asm__("SetVectorCylind");
+qword ConvertXfVec(FRAME *,FRAME *,qword) __asm__("ConvertXfVec");
+float ClampToLimits__FP2LMf(const LIMITS *,float) __asm__("ClampToLimits__FP2LMf");
+void SetActPositionGoal(void *,qword) __asm__("SetActPositionGoal");
+float SmoothAngle__FfffP3SMPPf(float,float,float,void *,float *) __asm__("SmoothAngle__FfffP3SMPPf");
+qword GetLoWorldPos(P *) __asm__("GetLoWorldPos");
+int AreFloatsNear__Ffff(float,float,float) __asm__("AreFloatsNear__Ffff");
+float SmoothValue__FfffP3SMPPf(float,float,float,void *,float *) __asm__("SmoothValue__FfffP3SMPPf");
+void SetSndVolume(SOUND *,float) __asm__("SetSndVolume");
+void SetSndPitch(SOUND *,float) __asm__("SetSndPitch");
+void ResumeSnd(SOUND *) __asm__("ResumeSnd");
+void WakeSo(P *) __asm__("WakeSo");
+
 // Helpers X, Y, Pack, PackMesh, Dot, ShotLength, DistanceAndVelocity, Evaluate, Clamp, Abs (small asm wrappers/accessors shaped for the match).
 static inline float Y(qword q){qword r;__asm__("prot3w %0,%1":"=r"(r):"r"(q));return QwordX(r);}
 // Pack x, y, z into a 128-bit GPR value.
@@ -665,7 +665,7 @@ typedef char guard_80[(OFF(P,attachments[1])-OFF(P,attachments[0])==4)?1:-1];
 } // namespace M_UpdateRobottank
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ReadRobottankInput { extern "C" {
+namespace M_ReadRobottankInput {
 typedef struct {
     char pad[0x18];
     float stick;
@@ -692,12 +692,12 @@ typedef struct {
     float wheelAngle;
     float drive;
 } OBJ;
-int HasRobottankWeaponAmmo(ITEM *);
-void SetSmaGoal(void *, int);
-int ConsumeButtonsPressedWithin__5POCTLUif(POCTL_VIEW *, int, float);
+int HasRobottankWeaponAmmo(ITEM *) __asm__("HasRobottankWeaponAmmo");
+void SetSmaGoal(void *, int) __asm__("SetSmaGoal");
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL_VIEW *, int, float) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
 // Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires
 // (SMA goal 0x68) or held-flag variant (0x67). (inferred)
-void ReadRobottankInput(OBJ *tank)
+extern "C" void ReadRobottankInput(OBJ *tank)
 {
     int i;
     POCTL_VIEW *ps = tank->control;
@@ -720,14 +720,14 @@ void ReadRobottankInput(OBJ *tank)
         }
     }
 }
-} } // namespace M_ReadRobottankInput
+} // namespace M_ReadRobottankInput
 
 // Keeps its per-function views in weapons namespace of its own (see the file header).
-namespace M_func_001D2240 { extern "C" {
+namespace M_func_001D2240 {
 struct O { char pad[0x80]; int state; };   /* the weapon (JSG) */
-int HasRobottankWeaponAmmo(struct O *po);
+int HasRobottankWeaponAmmo(struct O *po) __asm__("HasRobottankWeaponAmmo");
 // First weapon with enough ammo whose state is not 4. (inferred)
-struct O *FindReadyRobottankWeapon(ROBOTTANK *tank) {
+extern "C" struct O *FindReadyRobottankWeapon(ROBOTTANK *tank) {
     int i;
     for (i = 0; i < tank->cjsgWeapon; i++) {
         struct O *po = (struct O *)tank->apjsgWeapon[i];
@@ -735,22 +735,22 @@ struct O *FindReadyRobottankWeapon(ROBOTTANK *tank) {
     }
     return 0;
 }
-} } // namespace M_func_001D2240
+} // namespace M_func_001D2240
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7810 __asm__("D_002A7810") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D22D0 { extern "C" {
+namespace M_func_001D22D0 {
 typedef int qword __attribute__((mode(TI)));
-extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
-extern float D_002C20C0[3];
-qword GetLoWorldPos(LO *plo);
-int FindSwObjectsByClass(void *, int, int, int, int, CID108 **);
+extern const float D_002A7810 __asm__("D_002A7810");   /* defined below where the ELF has it (.rodata order) */
+extern float D_002C20C0[3] __asm__("D_002C20C0");
+qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
+int FindSwObjectsByClass(void *, int, int, int, int, CID108 **) __asm__("FindSwObjectsByClass");
 // Nearest ammo pickup (class 0x6C, CID108) via FindSwObjectsByClass, biased by its ammo slot (and against the last
 // one chosen). (inferred)
-CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
+extern "C" CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
 {
     CID108 *best = 0;
     CID108 *apickup[16];
@@ -776,14 +776,14 @@ CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
     }
     return best;
 }
-} } // namespace M_func_001D22D0
+} // namespace M_func_001D22D0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D2420 { extern "C" {
+namespace M_func_001D2420 {
 typedef int qword __attribute__((mode(TI)));
-qword GetLoWorldPos(LO *plo);
+qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
 // Restart at the path's start and put every control vertex of the path at the tank's height. (inferred)
-void ResetRobottankWheelHeights(ROBOTTANK *tank) {
+extern "C" void ResetRobottankWheelHeights(ROBOTTANK *tank) {
     qword q;
     int i;
     tank->sPath = 0;
@@ -792,10 +792,10 @@ void ResetRobottankWheelHeights(ROBOTTANK *tank) {
         tank->pshapePath->vertexPositions[i].z = QwordZ(q);
     }
 }
-} } // namespace M_func_001D2420
+} // namespace M_func_001D2420
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D2490 { extern "C" {
+namespace M_func_001D2490 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z; } __attribute__((aligned(16))) VECTOR;
 typedef union { qword q; float f; } U;
@@ -810,13 +810,13 @@ typedef struct {
     void *path;
     float cursor;
 } OBJ;
-extern float D_002C20D0[3];
-extern float D_002C20E0[2];
-qword GetLoWorldPos(void *);
-void FindShapeClosestPointFromDistance(void *,qword,void *,qword *,qword *,float *,float *,float);
-float atan2f(float, float);
+extern float D_002C20D0[3] __asm__("D_002C20D0");
+extern float D_002C20E0[2] __asm__("D_002C20E0");
+qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
+void FindShapeClosestPointFromDistance(void *,qword,void *,qword *,qword *,float *,float *,float) __asm__("FindShapeClosestPointFromDistance");
+float atan2f(float, float) __asm__("atan2f");
 // Distance between two points in the xy plane.
-static inline float Dist2D(qword a, qword b)
+extern "C" { static inline float Dist2D(qword a, qword b)
 {
     qword d;
     float f;
@@ -825,10 +825,10 @@ static inline float Dist2D(qword a, qword b)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
-}
+} }
 // Clamps a value to a range.
 // base + vec * scale.
-static inline qword AddScaled(qword a, qword b, float f)
+extern "C" { static inline qword AddScaled(qword a, qword b, float f)
 {
     U u;
     register qword v __asm__("vf1");
@@ -837,9 +837,9 @@ static inline qword AddScaled(qword a, qword b, float f)
     u.q=scalar;
     __asm__("vadda.xyzw $ACC, %2, $vf0\n\tvmaddx.xyzw %0, %3, %1x" : "=j"(v) : "j"(u.q), "j"(a), "j"(b));
     return v;
-}
+} }
 // Unit vector of v, or the fallback for a near-zero vector.
-static inline qword NormalizeOr(qword value,qword fallback)
+extern "C" { static inline qword NormalizeOr(qword value,qword fallback)
 {
     register qword length __asm__("vf1");
     register qword one __asm__("vf3");
@@ -856,9 +856,9 @@ static inline qword NormalizeOr(qword value,qword fallback)
         __asm__("qmfc2.ni %0,%1":"=r"(cpu):"j"(result));
     }
     return cpu;
-}
+} }
 // Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal goalHeading/drive. (inferred)
-void SteerRobottankAlongPath(OBJ *tank)
+extern "C" void SteerRobottankAlongPath(OBJ *tank)
 {
     VECTOR va, vb;
     qword pos,v,dir,point;
@@ -879,7 +879,7 @@ void SteerRobottankAlongPath(OBJ *tank)
     tank->goalHeading = atan2f(QwordY(dir), QwordX(dir));
     tank->drive = tank->maxDrive * 0.75f;
 }
-} } // namespace M_func_001D2490
+} // namespace M_func_001D2490
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankAi {
@@ -917,34 +917,34 @@ struct P : PO {
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];
     P *target; void *navigator; PATH *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
 };
-extern "C" { extern const qword D_002A2DA0, D_002A2DC0; }
-extern "C" float D_002C20E8;
-extern "C" float D_002C20EC;
-extern "C" float D_002C20F0;
-extern "C" float D_002C20F4;
-extern "C" float D_002C20F8;
-extern "C" {
-qword GetLoWorldPos(P *);
-ATTACH *FindReadyRobottankWeapon(P *);
-P *FindNearestRobottankPickup(P *);
-int IsWithinLimits__FP2LMf(LM *, float);
-void SetRobottankTactic(P *, int);
-float acosf(float);
-M3 BuildAxisAngleRotationMatrix(qword, float);
-int ClipEdgeToPathzone(void *, qword, qword, int, HIT *, int);
-void MeasureShape(PATH *);
-void ResetRobottankWheelHeights(P *);
-void FindPathzonePathCurve(void *, qword, qword, PATH *);
-float atan2f(float, float);
-M3 *GetLoWorldMatrix(P *);
-qword GetXfValueFromMatrix(void *, void *);
-float NormalizeAngle__Ff(float);
-void SetSmaGoal(void *, int);
-float RandomFloatInRange__Fff(float, float);
-void SteerRobottankAlongPath(P *);
-int HasRobottankWeaponAmmo(ATTACH *);
-int IsPointInVol(void *, qword);
-}
+extern const qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0");
+extern float D_002C20E8 __asm__("D_002C20E8");
+extern float D_002C20EC __asm__("D_002C20EC");
+extern float D_002C20F0 __asm__("D_002C20F0");
+extern float D_002C20F4 __asm__("D_002C20F4");
+extern float D_002C20F8 __asm__("D_002C20F8");
+
+qword GetLoWorldPos(P *) __asm__("GetLoWorldPos");
+ATTACH *FindReadyRobottankWeapon(P *) __asm__("FindReadyRobottankWeapon");
+P *FindNearestRobottankPickup(P *) __asm__("FindNearestRobottankPickup");
+int IsWithinLimits__FP2LMf(LM *, float) __asm__("IsWithinLimits__FP2LMf");
+void SetRobottankTactic(P *, int) __asm__("SetRobottankTactic");
+float acosf(float) __asm__("acosf");
+M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
+int ClipEdgeToPathzone(void *, qword, qword, int, HIT *, int) __asm__("ClipEdgeToPathzone");
+void MeasureShape(PATH *) __asm__("MeasureShape");
+void ResetRobottankWheelHeights(P *) __asm__("ResetRobottankWheelHeights");
+void FindPathzonePathCurve(void *, qword, qword, PATH *) __asm__("FindPathzonePathCurve");
+float atan2f(float, float) __asm__("atan2f");
+M3 *GetLoWorldMatrix(P *) __asm__("GetLoWorldMatrix");
+qword GetXfValueFromMatrix(void *, void *) __asm__("GetXfValueFromMatrix");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+void SetSmaGoal(void *, int) __asm__("SetSmaGoal");
+float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
+void SteerRobottankAlongPath(P *) __asm__("SteerRobottankAlongPath");
+int HasRobottankWeaponAmmo(ATTACH *) __asm__("HasRobottankWeaponAmmo");
+int IsPointInVol(void *, qword) __asm__("IsPointInVol");
+
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct VU_FLOAT { qword q; };
@@ -1195,30 +1195,30 @@ struct P : LO {
     char pad55C[0x64]; float lastCorrection;
 };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
-extern "C" { extern const qword D_002A2DC0, D_002A2DD0; }
-extern "C" POLY D_002C2100;
-extern "C" POLY D_002C2120;
-extern "C" POLY D_002C2130;
-extern "C" float D_002C2110;
-extern "C" float D_002C2114;
-extern "C" float D_002C2140;
-extern "C" float D_002C2144;
-extern "C" float D_002C2148;
-extern "C" {
-void PresetSoAccel(P *);
-M3 *GetLoWorldMatrix(P *);
-void TiltMatUpright(const M3 *, M3 *, M3 *);
-void AccelSoTowardMatSpring(P *, const M3 *, const POLY *, qword, const POLY *);
-CONTACT *FindDeepestRobottankWheelXp(P *, ENTRY *);
-qword GetXfVelocity(MOTION *, MOTION *, qword);
-void ApplySoImpulse(P *, qword, qword);
-qword ConvertXfVec(MOTION *, MOTION *, qword);
-float ClampAbs__Fff(float, float);
-void AddSoAngularAcceleration(P *, qword);
-M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
-qword LimitVectorLength(float, qword);
-void AddSoAcceleration(P *, qword);
-}
+extern const qword D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0");
+extern POLY D_002C2100 __asm__("D_002C2100");
+extern POLY D_002C2120 __asm__("D_002C2120");
+extern POLY D_002C2130 __asm__("D_002C2130");
+extern float D_002C2110 __asm__("D_002C2110");
+extern float D_002C2114 __asm__("D_002C2114");
+extern float D_002C2140 __asm__("D_002C2140");
+extern float D_002C2144 __asm__("D_002C2144");
+extern float D_002C2148 __asm__("D_002C2148");
+
+void PresetSoAccel(P *) __asm__("PresetSoAccel");
+M3 *GetLoWorldMatrix(P *) __asm__("GetLoWorldMatrix");
+void TiltMatUpright(const M3 *, M3 *, M3 *) __asm__("TiltMatUpright");
+void AccelSoTowardMatSpring(P *, const M3 *, const POLY *, qword, const POLY *) __asm__("AccelSoTowardMatSpring");
+CONTACT *FindDeepestRobottankWheelXp(P *, ENTRY *) __asm__("FindDeepestRobottankWheelXp");
+qword GetXfVelocity(MOTION *, MOTION *, qword) __asm__("GetXfVelocity");
+void ApplySoImpulse(P *, qword, qword) __asm__("ApplySoImpulse");
+qword ConvertXfVec(MOTION *, MOTION *, qword) __asm__("ConvertXfVec");
+float ClampAbs__Fff(float, float) __asm__("ClampAbs__Fff");
+void AddSoAngularAcceleration(P *, qword) __asm__("AddSoAngularAcceleration");
+M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float) __asm__("BuildAxisAngleRotationMatrix");
+qword LimitVectorLength(float, qword) __asm__("LimitVectorLength");
+void AddSoAcceleration(P *, qword) __asm__("AddSoAcceleration");
+
 // Helpers ScalarBits, TimeStep, Scalar, Subtract, Scale (small asm wrappers/accessors shaped for the match).
 static inline VV ScalarBits(int b) { qword r; __asm__("qmtc2 %1,%0" : "=j"(r) : "rV"(b)); return r; }
 // Broadcast the clock's dt into a VU0 register.
@@ -1373,8 +1373,8 @@ struct VECTOR4 { float x, y, z, w; };   /* BLKmode on purpose: all block locals 
 
 struct SCALAR;
 struct VECTOR;
-extern "C" SCALAR *InitVuTemp(SCALAR *);
-extern "C" VECTOR *DefaultConstructVector(VECTOR *);
+extern SCALAR *InitVuTemp(SCALAR *) __asm__("InitVuTemp");
+extern VECTOR *DefaultConstructVector(VECTOR *) __asm__("DefaultConstructVector");
 // VU temporary initialised through InitVuTemp.
 struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 // Vector default-constructed through DefaultConstructVector.
@@ -1396,8 +1396,8 @@ struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };
 struct WHEEL { char pad0[0x20]; float radius, bottom, top; char pad2C[0x24]; qword pos; };
 struct CONTACT;
-extern "C" { extern const qword D_002A2DC0; }
-extern "C" { extern const qword D_002C2150[5]; }
+extern const qword D_002A2DC0 __asm__("D_002A2DC0");
+extern const qword D_002C2150[5] __asm__("D_002C2150");
 /* VU_FLOAT's mfc1 is partially redundant in the ray pass, so gcse PRE hoists the radius/height conversions to the
    top of the function as two new pseudos; PRE numbers its pseudos in expression-hash-bucket order, and that number
    order is the spill-slot order (i+1 at 0xFD8 < the two conversion qwords at 0xFE0/0xFF0 < &asupport at 0x1000). An asm's
@@ -1406,18 +1406,18 @@ extern "C" { extern const qword D_002C2150[5]; }
 struct VU_FLOAT { qword q; VU_FLOAT(float g) { __asm__("mfc1 %0,%1" : "=r"(q) : "f"(g)); } };
 /* -FLT_MAX / FLT_MAX below are constant-pool literals (0x2A7838/0x2A783C), not globals: their REG_EQUAL sets order f24/f26 */
 
-extern "C" {
-qword ConvertPosBetweenLos(OWNER *, OWNER *, qword);
-qword *VECTOR_opAssign(qword *, qword);
-M4 InvertMatrix4Rigid(const M4 *);
-void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
+
+qword ConvertPosBetweenLos(OWNER *, OWNER *, qword) __asm__("ConvertPosBetweenLos");
+qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
+M4 InvertMatrix4Rigid(const M4 *) __asm__("InvertMatrix4Rigid");
+void InitPlaneFromNormalPos(VECTOR4 *, qword, qword) __asm__("InitPlaneFromNormalPos");
 void *func_002333B4(void *, int, uint) __asm__("memset");
-void *AllocFromStack(SWALLOC *);
-int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **);
-int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);
-qword TransformPlane(M4 *, qword);
-void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
-}
+void *AllocFromStack(SWALLOC *) __asm__("AllocFromStack");
+int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **) __asm__("PruneBspBySphere");
+int func_00118668(BSP *, BSP *, qword, qword, int, LSG *) __asm__("func_00118668");
+qword TransformPlane(M4 *, qword) __asm__("TransformPlane");
+void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float) __asm__("AddXp");
+
 
 // Helpers GetMatrix, PvAllocStack, ClearAb, Sqrt (small asm wrappers/accessors shaped for the match).
 static inline M4 *GetMatrix(OWNER *p) { return ((M4 *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d); }
@@ -1693,7 +1693,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
 #line 1694 "src/game/gameplay/objects/robottank.cpp"
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddRobottankCustomXps { extern "C" {
+namespace M_AddRobottankCustomXps {
 typedef struct { char a[8]; char b[0x58]; } ENT;
 typedef struct {
     char pad[0x190];
@@ -1701,11 +1701,11 @@ typedef struct {
     char pad2[0xC];
     ENT ae[8];
 } OBJ;
-void AddSoCustomXps(void);
-void func_001D3450(OBJ *, ENT *, SOPART *, int, int, int, void *);
+void AddSoCustomXps(void) __asm__("AddSoCustomXps");
+void func_001D3450(OBJ *, ENT *, SOPART *, int, int, int, void *) __asm__("func_001D3450");
 // CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel when the other part's physics root
 // IsFixed (slot 62). (inferred)
-void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
+extern "C" void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
 {
     int i;
     SO *psoRoot;
@@ -1716,25 +1716,25 @@ void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
             func_001D3450(tank, &tank->ae[i], ppart, x, y, z, tank->ae[i].b);
     }
 }
-} } // namespace M_AddRobottankCustomXps
+} // namespace M_AddRobottankCustomXps
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D3F30 { extern "C" {
-void OnSoContactFreed(SO *pso, SO *psoOther);
-void RemoveSoContactsWith(SO *pso, SO *psoOther, XP **ppxpFirst);
+namespace M_func_001D3F30 {
+void OnSoContactFreed(SO *pso, SO *psoOther) __asm__("OnSoContactFreed");
+void RemoveSoContactsWith(SO *pso, SO *psoOther, XP **ppxpFirst) __asm__("RemoveSoContactsWith");
 // CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
-void RemoveRobottankContactsWith(ROBOTTANK *tank, SO *psoOther) {
+extern "C" void RemoveRobottankContactsWith(ROBOTTANK *tank, SO *psoOther) {
     int i;
     OnSoContactFreed(tank, psoOther);
     for (i = 0; i < tank->cwheel; i++) RemoveSoContactsWith(tank, psoOther, &tank->awheel[i].pxpFirst);
 }
-} } // namespace M_func_001D3F30
+} // namespace M_func_001D3F30
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D3FA8 { extern "C" {
+namespace M_func_001D3FA8 {
 struct O { char pad[0x14]; int id; };   /* the weapon (JSG) */
 // Find weapon record by id. (inferred)
-struct O *FindRobottankWeapon(ROBOTTANK *tank, int id) {
+extern "C" struct O *FindRobottankWeapon(ROBOTTANK *tank, int id) {
     int i;
     for (i = 0; i < tank->cjsgWeapon; i++) {
         struct O *po = (struct O *)tank->apjsgWeapon[i];
@@ -1742,13 +1742,13 @@ struct O *FindRobottankWeapon(ROBOTTANK *tank, int id) {
     }
     return 0;
 }
-} } // namespace M_func_001D3FA8
+} // namespace M_func_001D3FA8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D3FF0 { extern "C" {
+namespace M_func_001D3FF0 {
 // Pickup callback: if the pickup is not collected yet, add its ammo to the tank's slot (clamped to the max) and set
 // the pickup's state 2. (inferred)
-void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
+extern "C" void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
     if (pickup->state != 2) {
         ROBOTTANKAMMO *pammo = &tank->aammo[pickup->iammo];
         int n = pammo->cAmmo + pickup->cAmmo;
@@ -1756,10 +1756,10 @@ void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
         SetRcPickupState(pickup, 2);
     }
 }
-} } // namespace M_func_001D3FF0
+} // namespace M_func_001D3FF0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AdjustRobottankNewXp { extern "C" {
+namespace M_AdjustRobottankNewXp {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct {
@@ -1769,14 +1769,14 @@ typedef struct {
     float elasticity;
     float friction;
 } OBJ;
-extern const LONGU D_002A7840;
-void AdjustSoNewXp(void *, OBJ *, int);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void EnsureSwCallback(void *, void *, long, void *);
+extern const LONGU D_002A7840 __asm__("D_002A7840");
+void AdjustSoNewXp(void *, OBJ *, int) __asm__("AdjustSoNewXp");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void EnsureSwCallback(void *, void *, long, void *) __asm__("EnsureSwCallback");
 // Lane z as a float.
 // CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID
 // 0x6C pickup schedules CollectRcCarPickup. (inferred)
-void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
+extern "C" void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
 {
     void *other;
     qword v;
@@ -1801,16 +1801,16 @@ void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
     if (IsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
         EnsureSwCallback(&g_sw, tank, D_002A7840.l, other);
 }
-} } // namespace M_AdjustRobottankNewXp
+} // namespace M_AdjustRobottankNewXp
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateRobottankBounds { extern "C" {
+namespace M_UpdateRobottankBounds {
 typedef int qword __attribute__((mode(TI)));
-void UpdateSoTreeBounds(SO *pso);
-qword ConvertPosBetweenLos(LO *plo, int n, qword q);
-void ExtendSoTreeBounds(SO *pso, qword q, float g);
+void UpdateSoTreeBounds(SO *pso) __asm__("UpdateSoTreeBounds");
+qword ConvertPosBetweenLos(LO *plo, int n, qword q) __asm__("ConvertPosBetweenLos");
+void ExtendSoTreeBounds(SO *pso, qword q, float g) __asm__("ExtendSoTreeBounds");
 // CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred)
-void UpdateRobottankBounds(ROBOTTANK *tank) {
+extern "C" void UpdateRobottankBounds(ROBOTTANK *tank) {
     int i;
     UpdateSoTreeBounds(tank);
     for (i = 0; i < tank->cwheel; i++) {
@@ -1818,7 +1818,7 @@ void UpdateRobottankBounds(ROBOTTANK *tank) {
         ExtendSoTreeBounds(tank, ConvertPosBetweenLos(tank, 0, pwheel->posBottom), pwheel->sRadius);
     }
 }
-} } // namespace M_UpdateRobottankBounds
+} // namespace M_UpdateRobottankBounds
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_RenderRobottankSelf {
@@ -1832,20 +1832,20 @@ struct CONTACT{char pad[0x90];float height;};
 struct ENTRY{int unknown;NODE*node;CONTACT*contacts;char padC[8];float tilt,speed,angle,radius;char pad24[12];float x,y;char pad38[0x20];float height;char pad5C[4];};
 struct P;
 struct P{char pad[0xC];VTE*vt;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
-extern "C" { extern qword D_002A2DC0,D_002A2DB0; }
-extern "C" { extern char D_002C21A0[],D_002C21B0[],D_002C21C0[]; }
-extern "C" float D_002C21CC;
-extern "C" {
-qword ConvertVecBetweenLos(P*,P*,qword);
-qword TransformXfPos(P*,NODE*,qword);
-CONTACT*FindDeepestRobottankWheelXp(P*,ENTRY*);
-float SmoothValue__FfffP3SMPPf(float,float,float,void*,float*);
-float NormalizeAngle__Ff(float);
-M3*BuildAxisAngleRotationMatrix(M3*,qword,float);
-qword*VECTOR_opAssign(qword*,qword);
-void UpdateSoXfWorldMatrices(P*);
-void RenderSoSelf(P*);
-}
+extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DB0 __asm__("D_002A2DB0");
+extern char D_002C21A0[] __asm__("D_002C21A0"),D_002C21B0[] __asm__("D_002C21B0"),D_002C21C0[] __asm__("D_002C21C0");
+extern float D_002C21CC __asm__("D_002C21CC");
+
+qword ConvertVecBetweenLos(P*,P*,qword) __asm__("ConvertVecBetweenLos");
+qword TransformXfPos(P*,NODE*,qword) __asm__("TransformXfPos");
+CONTACT*FindDeepestRobottankWheelXp(P*,ENTRY*) __asm__("FindDeepestRobottankWheelXp");
+float SmoothValue__FfffP3SMPPf(float,float,float,void*,float*) __asm__("SmoothValue__FfffP3SMPPf");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+M3*BuildAxisAngleRotationMatrix(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");
+qword*VECTOR_opAssign(qword*,qword) __asm__("VECTOR_opAssign");
+void UpdateSoXfWorldMatrices(P*) __asm__("UpdateSoXfWorldMatrices");
+void RenderSoSelf(P*) __asm__("RenderSoSelf");
+
 // Rotation matrix about axis by angle.
 static inline M3 Rotation(qword axis,float angle) return r{BuildAxisAngleRotationMatrix(&r,axis,angle);}
 // Matrix product.
@@ -1930,23 +1930,23 @@ struct VU_FLOAT { qword q; VU_FLOAT() {} VU_FLOAT(float f) { __asm__("mfc1 %0, %
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "r"(g)); return v; }
 struct P { char pad0[0xC]; VTE *vt; char pad10[0x550]; int remaining; };
 struct EVENT { P *sender; char pad4[8]; int kind, change; };
-extern "C" { extern qword D_002A2DA0, D_002A2DC0; }
-extern "C" float D_002C21D0[2];
-extern "C" float D_002C21D8[2];
-extern "C" float D_002C21E0[2];
-extern "C" float D_002C21E8[2];
-extern "C" float D_002C21F0[2];
-extern "C" float D_002C21F8[2];
-extern "C" float D_002C2200[2];
-extern "C" {
-int CanSoTakeDamage(P *, EVENT *);
-void UpdateRobottankHealthMeter(P *);
-void SetRobottankState(P *, int);
-float RandomFloatInRange__Fff(float, float);
-qword SetVectorCylind(float, float, float);
-qword GetLoWorldPos(P *);
-int TakeRobottankDamage(P *, EVENT *);
-}
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0");
+extern float D_002C21D0[2] __asm__("D_002C21D0");
+extern float D_002C21D8[2] __asm__("D_002C21D8");
+extern float D_002C21E0[2] __asm__("D_002C21E0");
+extern float D_002C21E8[2] __asm__("D_002C21E8");
+extern float D_002C21F0[2] __asm__("D_002C21F0");
+extern float D_002C21F8[2] __asm__("D_002C21F8");
+extern float D_002C2200[2] __asm__("D_002C2200");
+
+int CanSoTakeDamage(P *, EVENT *) __asm__("CanSoTakeDamage");
+void UpdateRobottankHealthMeter(P *) __asm__("UpdateRobottankHealthMeter");
+void SetRobottankState(P *, int) __asm__("SetRobottankState");
+float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
+qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
+qword GetLoWorldPos(P *) __asm__("GetLoWorldPos");
+int TakeRobottankDamage(P *, EVENT *) __asm__("TakeRobottankDamage");
+
 // Helpers Zero, VecZero, Add, Sub, Sqrt (small asm wrappers/accessors shaped for the match).
 static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = VuZero<VV>(); return v; }
 // Same idiom as sly2/vu0.h VuAdd; kept local because its callers pass mixed operand types (the template wants one).
@@ -2046,7 +2046,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
 } // namespace M_func_001D4568
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetRobottankState { extern "C" {
+namespace M_SetRobottankState {
 struct OBJ : PO {
     int state;
     float t;
@@ -2058,20 +2058,20 @@ struct OBJ : PO {
     void *engineSound;
     int engineSoundId;
 };
-extern int D_002C2208[];
-void PlayWidgetAnim(WIDGET *, int);
-void UpdateRobottankHealthMeter(OBJ *);
-void *CreateSfxSound(int);
-void SetSndSourceLo(void *, OBJ *);
-void RcPtr_Assign(void **, void *);
-void SetSndRange(void *, float, float);
-void PauseSnd(void *);
-void StopSnd(void *, float);
-void SetRobottankTactic(OBJ *, int);
-void SetSmaGoalIfReachable(void *, int);
+extern int D_002C2208[] __asm__("D_002C2208");
+void PlayWidgetAnim(WIDGET *, int) __asm__("PlayWidgetAnim");
+void UpdateRobottankHealthMeter(OBJ *) __asm__("UpdateRobottankHealthMeter");
+void *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *, OBJ *) __asm__("SetSndSourceLo");
+void RcPtr_Assign(void **, void *) __asm__("RcPtr_Assign");
+void SetSndRange(void *, float, float) __asm__("SetSndRange");
+void PauseSnd(void *) __asm__("PauseSnd");
+void StopSnd(void *, float) __asm__("StopSnd");
+void SetRobottankTactic(OBJ *, int) __asm__("SetRobottankTactic");
+void SetSmaGoalIfReachable(void *, int) __asm__("SetSmaGoalIfReachable");
 // Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vtable slot 3 msg 5); drives body SMA
 // goal from D_002C2208[state]. (inferred)
-void SetRobottankState(OBJ *tank, int n)
+void SetRobottankState(OBJ *tank, int n) __asm__("SetRobottankState"); void SetRobottankState(OBJ *tank, int n)
 {
     WIDGET *pw;
     if (n == tank->state)
@@ -2122,7 +2122,7 @@ void SetRobottankState(OBJ *tank, int n)
     if (tank->sma && tank->state != -1)
         SetSmaGoalIfReachable(tank->sma, D_002C2208[tank->state]);
 }
-} } // namespace M_SetRobottankState
+} // namespace M_SetRobottankState
 
 // Set AI tactic x188 with timestamp x18C. (inferred)
 /* Sets the second state (+0x188), stamping the time. */
@@ -2135,9 +2135,9 @@ extern "C" void SetRobottankTactic(ROBOTTANK *tank, int nState)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D4B48 { extern "C" {
+namespace M_func_001D4B48 {
 // Append a wheel (oid, radius, travel) if fewer than 8. (inferred)
-void AddRobottankWheel(ROBOTTANK *tank, OID oid, LM *plm, float sRadius) {
+extern "C" void AddRobottankWheel(ROBOTTANK *tank, OID oid, LM *plm, float sRadius) {
     if ((unsigned int)tank->cwheel < 8) {
         ROBOTTANKWHEEL *pwheel = &tank->awheel[tank->cwheel++];
         pwheel->oid = oid;
@@ -2145,14 +2145,14 @@ void AddRobottankWheel(ROBOTTANK *tank, OID oid, LM *plm, float sRadius) {
         pwheel->lmTravel = *plm;
     }
 }
-} } // namespace M_func_001D4B48
+} // namespace M_func_001D4B48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4B90 {
-extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
+extern char D_002C94A0[] __asm__("_vt$3JSG");
 struct X;
-extern "C" void InitRobottankWeapon(X *,ROBOTTANK *);
-extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
+extern void InitRobottankWeapon(X *,ROBOTTANK *) __asm__("InitRobottankWeapon");
+extern void *func_001AE4F8(int) __asm__("__builtin_new");
 struct A { int x0; };
 struct B : A {
     int x4;
@@ -2217,39 +2217,39 @@ typedef char native_layout_13[(OFF(X,unknown38)==0x38)?1:-1];
 } // namespace M_func_001D4B90
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D4C48 { extern "C" {
+namespace M_func_001D4C48 {
 // Append a side attachment (oid, angle limits) if fewer than 4. (inferred)
-void AddRobottankAttachment(ROBOTTANK *tank, OID oid, LM *plm) {
+extern "C" void AddRobottankAttachment(ROBOTTANK *tank, OID oid, LM *plm) {
     if ((unsigned int)tank->cside < 4) {
         ROBOTTANKSIDE *pside = &tank->aside[tank->cside++];
         pside->oid = oid;
         pside->lmAngle = *plm;
     }
 }
-} } // namespace M_func_001D4C48
+} // namespace M_func_001D4C48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateRobottankHealthMeter { extern "C" {
-void SetWidgetAnimPhase(WIDGET *pwidget, int n, float g);
+namespace M_UpdateRobottankHealthMeter {
+void SetWidgetAnimPhase(WIDGET *pwidget, int n, float g) __asm__("SetWidgetAnimPhase");
 // Set meter value 0x34F = health/max (inverted if fHealthMeterInverted). (inferred)
-void UpdateRobottankHealthMeter(ROBOTTANK *tank) {
+extern "C" void UpdateRobottankHealthMeter(ROBOTTANK *tank) {
     if (tank->pwidgetHealth) {
         float g = (float)tank->cHealth / (float)tank->cHealthMax;
         if (tank->fHealthMeterInverted) g = 1.0f - g;
         SetWidgetAnimPhase(tank->pwidgetHealth, 0x34F, g);
     }
 }
-} } // namespace M_UpdateRobottankHealthMeter
+} // namespace M_UpdateRobottankHealthMeter
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D4CE0 { extern "C" {
+namespace M_func_001D4CE0 {
 // Set ammo slot i's pickup bias and maximum. (inferred)
-void SetRobottankAmmo(ROBOTTANK *tank, int i, float gPickupBias, int cAmmoMax) {
+extern "C" void SetRobottankAmmo(ROBOTTANK *tank, int i, float gPickupBias, int cAmmoMax) {
     ROBOTTANKAMMO *pammo = &tank->aammo[i];
     pammo->cAmmoMax = cAmmoMax;
     pammo->gPickupBias = gPickupBias;
 }
-} } // namespace M_func_001D4CE0
+} // namespace M_func_001D4CE0
 
 // Get field +0x574 of 12-byte slot i. (inferred)
 extern "C" int GetRobottankSlotValue(ROBOTTANK *tank, int i)
@@ -2264,7 +2264,7 @@ extern "C" void SetRobottankSlotValue(ROBOTTANK *tank, int i, int n)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D4D30 { extern "C" {
+namespace M_func_001D4D30 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { int a, b; } S8;
 typedef struct {
@@ -2285,12 +2285,12 @@ typedef struct {
     float unknown9C;
 } OBJ;
 // float pairs read as their bits: {-1.57f, 1.57f}, {250.0f, 2500.0f}, {0.5f, 1.5f}
-extern S8 D_002C2218;
-extern S8 D_002C2220;
-extern S8 D_002C2240;
-extern qword D_002C2230;
+extern S8 D_002C2218 __asm__("D_002C2218");
+extern S8 D_002C2220 __asm__("D_002C2220");
+extern S8 D_002C2240 __asm__("D_002C2240");
+extern qword D_002C2230 __asm__("D_002C2230");
 // Weapon record defaults (owner, default vectors D_002C2218..) (inferred)
-void InitRobottankWeapon(OBJ *weapon, void *owner)
+extern "C" void InitRobottankWeapon(OBJ *weapon, void *owner)
 {
     weapon->owner = owner;
     weapon->aimAngleRange = D_002C2218;
@@ -2305,7 +2305,7 @@ void InitRobottankWeapon(OBJ *weapon, void *owner)
     weapon->unknown98 = 1.0f;
     weapon->unknown9C = 1.5f;
 }
-} } // namespace M_func_001D4D30
+} // namespace M_func_001D4D30
 
 // CopyAb 0x9C bytes from +0x14. (inferred)
 /* Copies 0x9C bytes from +0x14 of one object to the other. */
@@ -2315,31 +2315,31 @@ extern "C" void CopyRobottankWeapon(char *pvDst, char *pvSrc)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D4E08 { extern "C" {
+namespace M_func_001D4E08 {
 struct S { char p0[0x10]; ROBOTTANK *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };   /* the weapon (JSG) */
 // ammo of the weapon's slot >= its cost. (inferred)
-int HasRobottankWeaponAmmo(struct S *weapon) {
+extern "C" int HasRobottankWeaponAmmo(struct S *weapon) {
     return weapon->owner->aammo[weapon->ammoSlot].cAmmo >= weapon->ammoCost;
 }
-} } // namespace M_func_001D4E08
+} // namespace M_func_001D4E08
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001D4E30 { extern "C" {
+namespace M_func_001D4E30 {
 struct S { char p0[0x10]; ROBOTTANK *owner; char p1[0x6C-0x14]; int ammoSlot; int ammoCost; };   /* the weapon (JSG) */
 // Subtract weapon cost from its slot, clamp 0. (inferred)
-void UseRobottankWeaponAmmo(struct S *weapon) {
+extern "C" void UseRobottankWeaponAmmo(struct S *weapon) {
     ROBOTTANKAMMO *slot = &weapon->owner->aammo[weapon->ammoSlot];
     int count = slot->cAmmo - weapon->ammoCost;
     if (count < 0) count = 0;
     slot->cAmmo = count;
 }
-} } // namespace M_func_001D4E30
+} // namespace M_func_001D4E30
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitRcPickup { extern "C" {
-void InitSo(SO *pso);
+namespace M_InitRcPickup {
+void InitSo(SO *pso) __asm__("InitSo");
 // CID 108 vtable slot 7 Init: InitSo, ammo amount 30, state -1. (inferred)
-void InitRcPickup(CID108 *pickup) {
+extern "C" void InitRcPickup(CID108 *pickup) {
     int v;
     InitSo(pickup);
     pickup->cAmmo = 0x1E;
@@ -2348,19 +2348,19 @@ void InitRcPickup(CID108 *pickup) {
     if ((v ^ 1) & 1) *(int *)v |= 2;
     else pickup->unknown40 = v | 2;
 }
-} } // namespace M_InitRcPickup
+} // namespace M_InitRcPickup
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PostRcPickupLoad { extern "C" {
-void PostSoLoad(SO *pso);
-void ReplaceSma(SM *psm, LO *plo, int b, int c, SMA **ppsma);
+namespace M_PostRcPickupLoad {
+void PostSoLoad(SO *pso) __asm__("PostSoLoad");
+void ReplaceSma(SM *psm, LO *plo, int b, int c, SMA **ppsma) __asm__("ReplaceSma");
 // CID 108 vtable slot 15: PostSoLoad, SMA binding, state 0. (inferred)
-void PostRcPickupLoad(CID108 *pickup) {
+extern "C" void PostRcPickupLoad(CID108 *pickup) {
     PostSoLoad(pickup);
     ReplaceSma(pickup->psm, pickup, -1, 0, &pickup->psma);
     SetRcPickupState(pickup, 0);
 }
-} } // namespace M_PostRcPickupLoad
+} // namespace M_PostRcPickupLoad
 
 // CID 108 vtable slot 26: proxy base then state -1 -> 0 (respawn). (inferred)
 extern "C" void ResetRobottankPickup(CID108 *pickup)
@@ -2378,17 +2378,17 @@ void CID108::Update()
     if (state == 0 && positionXf->role == 3) SetRcPickupState(this, 1);
 }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetRcPickupState { extern "C" {
-extern int D_002C2248[];
-void SetSmaGoalIfReachable(SMA *psma, int n);
+namespace M_SetRcPickupState {
+extern int D_002C2248[] __asm__("D_002C2248");
+void SetSmaGoalIfReachable(SMA *psma, int n) __asm__("SetSmaGoalIfReachable");
 // Pickup state with time; SMA goal from D_002C2248[state]. (inferred)
-void SetRcPickupState(CID108 *pickup, int n) {
+extern "C" void SetRcPickupState(CID108 *pickup, int n) {
     if (n == pickup->state) return;
     pickup->state = n;
     pickup->stateTime = g_clock.time;
     if (pickup->psma && n != -1) SetSmaGoalIfReachable(pickup->psma, D_002C2248[n]);
 }
-} } // namespace M_SetRcPickupState
+} // namespace M_SetRcPickupState
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
@@ -2408,49 +2408,49 @@ void SetRcPickupState(CID108 *pickup, int n) {
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_robottank {
 void p_func_001D3FF0() __asm__("CollectRobottankPickup");
-extern "C" {
-extern const unsigned int D_002A7840[2] = {0xFFFF0000, (unsigned int)p_func_001D3FF0};
-}
+
+extern const unsigned int D_002A7840[2] __asm__("D_002A7840") = {0xFFFF0000, (unsigned int)p_func_001D3FF0};
+
 } // namespace ANPTR_robottank
 
 // ---- robottank's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 namespace M_UpdateRobottank {
-extern "C" float D_002C2030 = 500.0f;
-extern "C" POLY D_002C2040 __attribute__((aligned(16))) = {0.0f, 0.8f, 0.0f};
-extern "C" LIMITS D_002C2050 = {-0.5f, 0.5f};
-extern "C" POLY D_002C2060 __attribute__((aligned(16))) = {1.5f, -0.5f, 0.0f};
-extern "C" LIMITS D_002C2070 = {0.3f, 1.0f};
-extern "C" POLY D_002C2080 __attribute__((aligned(16))) = {-0.5f, 1.0f, 0.0f};
-extern "C" LIMITS D_002C2090 = {1.0f, 2.5f};
+extern float D_002C2030 __asm__("D_002C2030") = 500.0f;
+extern POLY D_002C2040 __asm__("D_002C2040") __attribute__((aligned(16))) = {0.0f, 0.8f, 0.0f};
+extern LIMITS D_002C2050 __asm__("D_002C2050") = {-0.5f, 0.5f};
+extern POLY D_002C2060 __asm__("D_002C2060") __attribute__((aligned(16))) = {1.5f, -0.5f, 0.0f};
+extern LIMITS D_002C2070 __asm__("D_002C2070") = {0.3f, 1.0f};
+extern POLY D_002C2080 __asm__("D_002C2080") __attribute__((aligned(16))) = {-0.5f, 1.0f, 0.0f};
+extern LIMITS D_002C2090 __asm__("D_002C2090") = {1.0f, 2.5f};
 } // namespace M_UpdateRobottank
 SMP D_002C2098 = {10.0f, 0.0f, 0.25f};
 namespace M_UpdateRobottank {
-extern "C" float D_002C20A4 = 400.0f;
+extern float D_002C20A4 __asm__("D_002C20A4") = 400.0f;
 } // namespace M_UpdateRobottank
 SMPA D_002C20A8 = {1.0f, 0.0f, 0.25f, 0.0f};
-namespace M_func_001D22D0 { extern "C" {
-float D_002C20C0[3] __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f};
-} } // namespace M_func_001D22D0 extern "C"
-namespace M_func_001D2490 { extern "C" {
-float D_002C20D0[3] = {150.0f, -1.0f, 0.0f};
-float D_002C20E0[2] = {0.0f, 150.0f};
-} } // namespace M_func_001D2490 extern "C"
+namespace M_func_001D22D0 {
+float D_002C20C0[3] __asm__("D_002C20C0") __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f};
+} // namespace M_func_001D22D0 extern "C"
+namespace M_func_001D2490 {
+float D_002C20D0[3] __asm__("D_002C20D0") = {150.0f, -1.0f, 0.0f};
+float D_002C20E0[2] __asm__("D_002C20E0") = {0.0f, 150.0f};
+} // namespace M_func_001D2490 extern "C"
 namespace M_UpdateRobottankAi {
-extern "C" float D_002C20E8 = 1.25f;
-extern "C" float D_002C20EC = 0.3f;
-extern "C" float D_002C20F0 = 0.3f;
-extern "C" float D_002C20F4 = 0.3f;
-extern "C" float D_002C20F8 = 0.3f;
+extern float D_002C20E8 __asm__("D_002C20E8") = 1.25f;
+extern float D_002C20EC __asm__("D_002C20EC") = 0.3f;
+extern float D_002C20F0 __asm__("D_002C20F0") = 0.3f;
+extern float D_002C20F4 __asm__("D_002C20F4") = 0.3f;
+extern float D_002C20F8 __asm__("D_002C20F8") = 0.3f;
 } // namespace M_UpdateRobottankAi
 namespace M_PresetRobottankAccel {
-extern "C" POLY D_002C2100 = {0.0f, 15.0f, 1.0f};
-extern "C" float D_002C2110 __attribute__((aligned(16))) = 15.0f;
-extern "C" float D_002C2114 = 90.0f;
-extern "C" POLY D_002C2120 __attribute__((aligned(16))) = {0.0f, 0.25f, 0.75f};
-extern "C" POLY D_002C2130 = {0.0f, 0.0f, 1.0f};
-extern "C" float D_002C2140 __attribute__((aligned(16))) = 11250.0f;
-extern "C" float D_002C2144 = 0.5f;
-extern "C" float D_002C2148 = 0.25f;
+extern POLY D_002C2100 __asm__("D_002C2100") = {0.0f, 15.0f, 1.0f};
+extern float D_002C2110 __asm__("D_002C2110") __attribute__((aligned(16))) = 15.0f;
+extern float D_002C2114 __asm__("D_002C2114") = 90.0f;
+extern POLY D_002C2120 __asm__("D_002C2120") __attribute__((aligned(16))) = {0.0f, 0.25f, 0.75f};
+extern POLY D_002C2130 __asm__("D_002C2130") = {0.0f, 0.0f, 1.0f};
+extern float D_002C2140 __asm__("D_002C2140") __attribute__((aligned(16))) = 11250.0f;
+extern float D_002C2144 __asm__("D_002C2144") = 0.5f;
+extern float D_002C2148 __asm__("D_002C2148") = 0.25f;
 } // namespace M_PresetRobottankAccel
 VECTOR4 D_002C2150[5] = {{-1.0f, 0.0f, 0.0f, 0.0f}, {-0.707f, 0.0f, -0.707f, 0.0f}, {0.0f, 0.0f, -1.0f, 0.0f},
     {0.707f, 0.0f, -0.707f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f}};
@@ -2458,24 +2458,24 @@ SMPA D_002C21A0 = {1500.0f, 500.0f, 0.1f, 0.0f};
 SMPA D_002C21B0 = {20.0f, 5.0f, 0.2f, 0.0f};
 SMP D_002C21C0 = {5.0f, 0.0f, 0.2f};
 namespace M_RenderRobottankSelf {
-extern "C" float D_002C21CC = 0.25f;
+extern float D_002C21CC __asm__("D_002C21CC") = 0.25f;
 } // namespace M_RenderRobottankSelf
 namespace M_func_001D4568 {
-extern "C" float D_002C21D0[2] = {50.0f, 100.0f};
-extern "C" float D_002C21D8[2] = {300.0f, 400.0f};
-extern "C" float D_002C21E0[2] = {2.0f, 5.0f};
-extern "C" float D_002C21E8[2] = {50.0f, 100.0f};
-extern "C" float D_002C21F0[2] = {50.0f, 75.0f};
-extern "C" float D_002C21F8[2] = {2.5f, 3.0f};
-extern "C" float D_002C2200[2] = {-0.5f, 0.5f};
+extern float D_002C21D0[2] __asm__("D_002C21D0") = {50.0f, 100.0f};
+extern float D_002C21D8[2] __asm__("D_002C21D8") = {300.0f, 400.0f};
+extern float D_002C21E0[2] __asm__("D_002C21E0") = {2.0f, 5.0f};
+extern float D_002C21E8[2] __asm__("D_002C21E8") = {50.0f, 100.0f};
+extern float D_002C21F0[2] __asm__("D_002C21F0") = {50.0f, 75.0f};
+extern float D_002C21F8[2] __asm__("D_002C21F8") = {2.5f, 3.0f};
+extern float D_002C2200[2] __asm__("D_002C2200") = {-0.5f, 0.5f};
 } // namespace M_func_001D4568
 int D_002C2208[4] = {115, 116, 117, 118};
-namespace M_func_001D4D30 { extern "C" {
-S8 D_002C2218 = {(int)0xBFC8F5C3, 0x3FC8F5C3};
-S8 D_002C2220 = {0x437A0000, 0x451C4000};
-} } // namespace M_func_001D4D30 extern "C"
+namespace M_func_001D4D30 {
+S8 D_002C2218 __asm__("D_002C2218") = {(int)0xBFC8F5C3, 0x3FC8F5C3};
+S8 D_002C2220 __asm__("D_002C2220") = {0x437A0000, 0x451C4000};
+} // namespace M_func_001D4D30 extern "C"
 VECTOR4 D_002C2230 = {0.5f, 0.001f, 0.0f, 0.0f};
-namespace M_func_001D4D30 { extern "C" {
-S8 D_002C2240 = {0x3F000000, 0x3FC00000};
-} } // namespace M_func_001D4D30 extern "C"
+namespace M_func_001D4D30 {
+S8 D_002C2240 __asm__("D_002C2240") = {0x3F000000, 0x3FC00000};
+} // namespace M_func_001D4D30 extern "C"
 int D_002C2248[3] = {119, 120, 121};

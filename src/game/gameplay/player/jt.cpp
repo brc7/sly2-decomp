@@ -233,18 +233,18 @@ extern "C" float GetShapeMinDistance(SHAPE *pshape);
 extern "C" void EvaluateShapeAtParam(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitJt { extern "C" {
-extern JT *D_002E1E40;
-void InitStepplayer(JT *p);
-void InitGait(GAIT *pv, JT *p, int n);
-void ScaleStepSpinSpeed(JT *p, float g);
-void InitBentleyHelper(JTREC *pv, JT *p);
-void ResetJtHands(JTHANDS *pv);
+namespace M_InitJt {
+extern JT *D_002E1E40 __asm__("D_002E1E40");
+void InitStepplayer(JT *p) __asm__("InitStepplayer");
+void InitGait(GAIT *pv, JT *p, int n) __asm__("InitGait");
+void ScaleStepSpinSpeed(JT *p, float g) __asm__("ScaleStepSpinSpeed");
+void InitBentleyHelper(JTREC *pv, JT *p) __asm__("InitBentleyHelper");
+void ResetJtHands(JTHANDS *pv) __asm__("ResetJtHands");
 // Initialise a limit record from its two float fields and clear its int field.
-static __inline__ void InitLm(SMPA *range, float g8, float gc) { range->fastDuration = g8; range->maxSpeedChange = gc; range->slowSpeed = 0; }
+extern "C" { static __inline__ void InitLm(SMPA *range, float g8, float gc) { range->fastDuration = g8; range->maxSpeedChange = gc; range->slowSpeed = 0; } }
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
-void InitJt(JT *jt)
+extern "C" void InitJt(JT *jt)
 {
     InitStepplayer(jt);
     jt->rBounds = 15.0f;
@@ -275,16 +275,16 @@ void InitJt(JT *jt)
     ResetJtHands(&jt->hands);
     D_002E1E40 = jt;
 }
-} } // namespace M_InitJt
+} // namespace M_InitJt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadJtFromBrx { extern "C" {
-extern char D_002BE990[];
-void LoadStepFromBrx(JT *p);
-void BindLoOidTable(JT *p, int n, void *pv);
+namespace M_LoadJtFromBrx {
+extern char D_002BE990[] __asm__("D_002BE990");
+void LoadStepFromBrx(JT *p) __asm__("LoadStepFromBrx");
+void BindLoOidTable(JT *p, int n, void *pv) __asm__("BindLoOidTable");
 // JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) pivot offset and binds his object table (0xAD entries).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void LoadJtFromBrx(JT *jt)
+extern "C" void LoadJtFromBrx(JT *jt)
 {
     VECTOR *pv;
     LoadStepFromBrx(jt);
@@ -294,36 +294,36 @@ void LoadJtFromBrx(JT *jt)
     pv->z = -75.0f;
     BindLoOidTable(jt, 0xAD, D_002BE990);
 }
-} } // namespace M_LoadJtFromBrx
+} // namespace M_LoadJtFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PostJtLoad { extern "C" {
+namespace M_PostJtLoad {
 typedef int qword __attribute__((mode(TI)));
 #define F(T, o) (*(T *)((char *)p + (o)))
 #define A(o) ((char *)p + (o))
 
-extern void PostLoadStepplayer(void *p);
-extern void BindLoOidTable(void *p, int n, void *pv);
-extern int FindSoXf(void *p, int a, int b);
-extern void PostJtLoadGait(void *p);
-extern void InitDirectionalBlend(void *p, void *a, void *b);
-extern void PostJtLoadSwing(void *p, void *a, void *b);
-extern int NewOffsetAct(void *p, int a, int b);
-extern int NewPositionAct(void *p, int a, int b, int c, int d, qword q);
-extern void RemoveXfAct(void *p, int a, int b);
-extern void AttachStepplayerToStartMarker(void *p, int a);
-extern void CacheJtRestPose(void *p);
-extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g);
-extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b);
-extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void SetLoBusyKind(void *p, int a);
-extern int ApplySmToObject(int a, int b, int c, int d);
-extern char D_002BF1B0[];
-extern qword D_002A2DD0;
+extern void PostLoadStepplayer(void *p) __asm__("PostLoadStepplayer");
+extern void BindLoOidTable(void *p, int n, void *pv) __asm__("BindLoOidTable");
+extern int FindSoXf(void *p, int a, int b) __asm__("FindSoXf");
+extern void PostJtLoadGait(void *p) __asm__("PostJtLoadGait");
+extern void InitDirectionalBlend(void *p, void *a, void *b) __asm__("InitDirectionalBlend");
+extern void PostJtLoadSwing(void *p, void *a, void *b) __asm__("PostJtLoadSwing");
+extern int NewOffsetAct(void *p, int a, int b) __asm__("NewOffsetAct");
+extern int NewPositionAct(void *p, int a, int b, int c, int d, qword q) __asm__("NewPositionAct");
+extern void RemoveXfAct(void *p, int a, int b) __asm__("RemoveXfAct");
+extern void AttachStepplayerToStartMarker(void *p, int a) __asm__("AttachStepplayerToStartMarker");
+extern void CacheJtRestPose(void *p) __asm__("CacheJtRestPose");
+extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
+extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b) __asm__("InitJtHands__FP7JTHANDSP2SOPP5ASEGA");
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
+extern void SetLoBusyKind(void *p, int a) __asm__("SetLoBusyKind");
+extern int ApplySmToObject(int a, int b, int c, int d) __asm__("ApplySmToObject");
+extern char D_002BF1B0[] __asm__("D_002BF1B0");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 // JT post-load (slot 15): STEPPLAYER post-load, then looks up about ten named child objects/actuators (hands, hook,
 // lean actuators) and builds his animation blends.
-void PostJtLoad(char *p)
+extern "C" void PostJtLoad(char *p)
 {
     int n;
     PostLoadStepplayer(p);
@@ -369,7 +369,7 @@ void PostJtLoad(char *p)
     if (F(int, 0x1D24))
         F(int, 0x1D28) = ApplySmToObject(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
 }
-} } // namespace M_PostJtLoad
+} // namespace M_PostJtLoad
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00188960 {
@@ -384,20 +384,20 @@ struct M4{U r[4];};
 struct ACTOR{char pad[0x80];qword response;};
 struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct WORK{U a,b;};
-extern "C"{
-extern qword D_002A2DC0;
-extern float D_002BF288;
-extern float D_002BF28C;
-extern float D_002BF290;
-extern float D_002BF294;
-void PresetSoAccel(P*);void PresetStepAccel(P*);
-void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
-void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void CorrectBentleyRideVelocity(void*);
-qword GetStepAsegaTranslation(P*,ASEGA*,float);float GetAsegLabelTime(void*,int);
-void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
-M4*GetLoWorldMatrix(P*);float SplitVectorAlongAxis(qword,qword,qword*,qword*);
-M3 BuildAxisAngleRotationMatrix(qword,float);
-}
+
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern float D_002BF288 __asm__("D_002BF288");
+extern float D_002BF28C __asm__("D_002BF28C");
+extern float D_002BF290 __asm__("D_002BF290");
+extern float D_002BF294 __asm__("D_002BF294");
+void PresetSoAccel(P*) __asm__("PresetSoAccel");void PresetStepAccel(P*) __asm__("PresetStepAccel");
+void PresetJtAccelHang__FP2JT(P*) __asm__("PresetJtAccelHang__FP2JT");void PresetJtAccelPipe(void*) __asm__("PresetJtAccelPipe");void PresetJtAccelJump(void*) __asm__("PresetJtAccelJump");
+void PresetJtAccelZap(void*) __asm__("PresetJtAccelZap");void PresetJtAccelHide(void*) __asm__("PresetJtAccelHide");void CorrectBentleyRideVelocity(void*) __asm__("CorrectBentleyRideVelocity");
+qword GetStepAsegaTranslation(P*,ASEGA*,float) __asm__("GetStepAsegaTranslation");float GetAsegLabelTime(void*,int) __asm__("GetAsegLabelTime");
+void AddSoAcceleration(P*,qword) __asm__("AddSoAcceleration");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
+M4*GetLoWorldMatrix(P*) __asm__("GetLoWorldMatrix");float SplitVectorAlongAxis(qword,qword,qword*,qword*) __asm__("SplitVectorAlongAxis");
+M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+
 struct VU_FLOAT{qword qw;};
 // Broadcast a float into a VU0 register.
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
@@ -494,27 +494,27 @@ typedef char P_lookup_Offset[((unsigned)&((P*)0)->lookup==6788)?1:-1];
 } // namespace M_func_00188960
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00188CC8 { extern "C" {
+namespace M_func_00188CC8 {
 typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x80]; float x80, y84, g88; char pad1[0x94 - 0x8C]; float g94; int n98; int n9C; };
 struct B { char pad[0x1BC]; int x1BC; };
 struct O : STEP { char pad[0x4C8 - 0x2C0]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
     char hurt[0xF50 - 0xDF0]; char pipe[0x18C8 - 0xF50]; int state; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
-extern float D_002BF298;
-extern float D_002BF29C;
-extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
-extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv);
-extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv);
-extern void SetBentleyXpFriction(void *p, struct A *pa, void *pv);
+extern float D_002BF298 __asm__("D_002BF298");
+extern float D_002BF29C __asm__("D_002BF29C");
+extern "C" { extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv); }
+extern "C" { extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv); }
+extern "C" { extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv); }
+extern "C" { extern void SetBentleyXpFriction(void *p, struct A *pa, void *pv); }
 // v when g is below lo, otherwise g.
-static __inline__ float ReplaceIfBelow(float g, float lo, float v)
+extern "C" { static __inline__ float ReplaceIfBelow(float g, float lo, float v)
 {
     if (g < lo) return v;
     return g;
-}
+} }
 // JT contact adjust (slot 55): STEP base, then per state (pipe 8 -> ResetJtPipeAdjust, grab 7 friction-like scale ...).
-void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
+extern "C" void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 {
     AdjustStepNewXp(jt, pa, pv);
     switch (jt->state) {
@@ -554,17 +554,17 @@ void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
         break;
     }
 }
-} } // namespace M_func_00188CC8
+} // namespace M_func_00188CC8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00188E78 { extern "C" {
+namespace M_func_00188E78 {
 typedef int qword __attribute__((mode(TI)));
 struct E { char pad[0xC]; SO *po; qword v10; qword v20; qword v30; };   /* a contact (XP): first side's object, point, velocity */
-extern void AdjustStepXpVelocity(void *p, struct E *ae, int i);
-extern qword GetLoWorldPos(void *p);
+extern void AdjustStepXpVelocity(void *p, struct E *ae, int i) __asm__("AdjustStepXpVelocity");
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // JT slot 57: STEP base; for a contact on Sly himself, removes the rotational part (angular velocity x offset) from
 // the contact velocity. (inferred)
-void AdjustJtXpVelocity(void *p, struct E *ae, int i)
+extern "C" void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 {
     struct E *pe;
     SO *object;
@@ -578,10 +578,10 @@ void AdjustJtXpVelocity(void *p, struct E *ae, int i)
     qword x = pe->v10;
     pe->v30 = VuSub(v, VuCross(w, VuSub(x, GetLoWorldPos(object))));
 }
-} } // namespace M_func_00188E78
+} // namespace M_func_00188E78
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_HandleJtMessage { extern "C" {
+namespace M_HandleJtMessage {
 typedef int qword __attribute__((mode(TI)));
 
 typedef struct MSG9 { void *x0; int x4; int x8; } MSG9;
@@ -589,32 +589,32 @@ typedef struct LOB { char pad[0xC]; int xC; char pad1[0x44 - 0x10]; int x44; } L
 typedef struct MSGB { int x0; void *x4; LOB *x8; } MSGB;
 typedef struct CLR { int a, b, c; } CLR;
 
-extern char D_002BF2A0[];
-extern char D_002BF2B8[];
+extern char D_002BF2A0[] __asm__("D_002BF2A0");
+extern char D_002BF2B8[] __asm__("D_002BF2B8");
 
-extern void HandleStepplayerMessage(void *p, int msg, void *pv);
-extern void SetJtCaneState__FP2JTi(void *p, int n);
-extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void DetachXfActById(void *a, void *p, void *c);
-extern void DetachSoActsMatching(void *a, void *p, int c, void *d);
-extern qword GetLoWorldPos(void *p);
-extern LO *PickpocketStepguard(void *a, qword q);
-extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-extern int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
-extern void StartStepplayerGrabStateC(void *p, int oid, void *pv, int n);
-extern void *FindStepBehavior(void *p, int n);
-extern void SetBhvjuggledState(void *p, int n);
-extern void EmitSwNoise(void *p, int a, qword q, void *c);
-extern void SetGadgetRecordObject(void *p, JTPOCKET *pe, void *c);
+extern void HandleStepplayerMessage(void *p, int msg, void *pv) __asm__("HandleStepplayerMessage");
+extern void SetJtCaneState__FP2JTi(void *p, int n) __asm__("SetJtCaneState__FP2JTi");
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
+extern void DetachXfActById(void *a, void *p, void *c) __asm__("DetachXfActById");
+extern void DetachSoActsMatching(void *a, void *p, int c, void *d) __asm__("DetachSoActsMatching");
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern LO *PickpocketStepguard(void *a, qword q) __asm__("PickpocketStepguard");
+extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+extern int FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+extern void StartStepplayerGrabStateC(void *p, int oid, void *pv, int n) __asm__("StartStepplayerGrabStateC");
+extern void *FindStepBehavior(void *p, int n) __asm__("FindStepBehavior");
+extern void SetBhvjuggledState(void *p, int n) __asm__("SetBhvjuggledState");
+extern void EmitSwNoise(void *p, int a, qword q, void *c) __asm__("EmitSwNoise");
+extern void SetGadgetRecordObject(void *p, JTPOCKET *pe, void *c) __asm__("SetGadgetRecordObject");
 
 
 // Zero the three fields of px.
-static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
+extern "C" { static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; } }
 
 
 // JT message handler (slot 5): STEPPLAYER base, then message 3 (animation finished) and the animation events of Sly's
 // clips (cane hits, footsteps, effects).
-void HandleJtMessage(JT *p, int msg, void *pv)
+extern "C" void HandleJtMessage(JT *p, int msg, void *pv)
 {
     HandleStepplayerMessage(p, msg, pv);
     switch (msg) {
@@ -767,7 +767,7 @@ void HandleJtMessage(JT *p, int msg, void *pv)
     }
     }
 }
-} } // namespace M_HandleJtMessage
+} // namespace M_HandleJtMessage
 
 // JT slot 92: if Sly is attached to an object (x18C0) faces it and returns 1.
 // Murray's override returns 0; Bentley's does nothing.
@@ -785,10 +785,10 @@ extern "C" int TryFaceJtAttachedObject(JT *jt)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00189488 { extern "C" {
-int GetStepplayerMovementNoise(JT *p);
+namespace M_func_00189488 {
+int GetStepplayerMovementNoise(JT *p) __asm__("GetStepplayerMovementNoise");
 // JT slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1; then 1 (noisy) in JTS_Run/5/JTS_Interact/9, else -1.
-int GetJtMovementNoise(JT *jt)
+extern "C" int GetJtMovementNoise(JT *jt)
 {
     int r = GetStepplayerMovementNoise(jt);
     if (r != -1) return r;
@@ -798,12 +798,12 @@ int GetJtMovementNoise(JT *jt)
     }
     return -1;
 }
-} } // namespace M_func_00189488
+} // namespace M_func_00189488
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001894F8 { extern "C" {
+namespace M_func_001894F8 {
 // JT slot 94: 1 for the free-movement states 0, 1, 5, 10, 12, 24. (inferred)
-int IsJtFreeMoving(JT *jt)
+extern "C" int IsJtFreeMoving(JT *jt)
 {
     switch (jt->state) {
     case 0: case 1: case 5: case 10: case 12: case 24:
@@ -811,15 +811,15 @@ int IsJtFreeMoving(JT *jt)
     }
     return 0;
 }
-} } // namespace M_func_001894F8
+} // namespace M_func_001894F8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00189530 { extern "C" {
-void IgnoreStepSlot87(JT *p, int f);
+namespace M_func_00189530 {
+void IgnoreStepSlot87(JT *p, int f) __asm__("IgnoreStepSlot87");
 // Set the object's flag 8 to n (virtual slot 21).
-static __inline__ void Call(LO *o, int n) { o->SetFlag8(n); }
+extern "C" { static __inline__ void Call(LO *o, int n) { o->SetFlag8(n); } }
 // JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
-void SetJtPlayable(JT *jt, int f)
+extern "C" void SetJtPlayable(JT *jt, int f)
 {
     IgnoreStepSlot87(jt, f);
     if (f) {
@@ -832,7 +832,7 @@ void SetJtPlayable(JT *jt, int f)
         jt->unknown19A8->SetFlag8(1);
     }
 }
-} } // namespace M_func_00189530
+} // namespace M_func_00189530
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtLean__FP2JT {
@@ -856,13 +856,13 @@ static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
-extern "C" { extern LM D_002BBB60; }
+extern LM D_002BBB60 __asm__("D_002BBB60");
 float SmoothValueWithAccel(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext) __asm__("SmoothValueWithAccel__FffffP4SMPAPf");
 float ModPositive(float gDividend, float gDivisor) __asm__("ModPositive__Fff");
 
 
 
-extern "C" { extern qword D_002A2DD0; }
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 
 
@@ -882,10 +882,10 @@ extern "C" { extern qword D_002A2DD0; }
 
 
 
-extern "C" {
-}
-extern "C" {
-}
+
+
+
+
 
 
 
@@ -932,18 +932,18 @@ static inline qword NormalizeVec(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(qwNormal) : "j"(qw), "j"(v));
     return qwNormal;
 }
-extern "C" { qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos); }
-extern "C" float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("SplitVectorAlongAxis");
-extern "C" { extern qword D_002A2DC0; }
-extern "C" float D_002BF2D0;
-extern "C" float D_002BF2D4;
-extern "C" float D_002BF2D8;
-extern "C" float D_002BF2DC;
-extern "C" float D_002BF2E0;
-extern "C" float D_002BF300;
-extern "C" { extern CLQ D_002BF310; }
-extern "C" { extern SMPA D_002BF320; }
-extern "C" { extern CLQ D_002BF330; }
+qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("GetXfVelocity");
+extern float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("SplitVectorAlongAxis");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern float D_002BF2D0 __asm__("D_002BF2D0");
+extern float D_002BF2D4 __asm__("D_002BF2D4");
+extern float D_002BF2D8 __asm__("D_002BF2D8");
+extern float D_002BF2DC __asm__("D_002BF2DC");
+extern float D_002BF2E0 __asm__("D_002BF2E0");
+extern float D_002BF300 __asm__("D_002BF300");
+extern CLQ D_002BF310 __asm__("D_002BF310");
+extern SMPA D_002BF320 __asm__("D_002BF320");
+extern CLQ D_002BF330 __asm__("D_002BF330");
 // Return vec scaled by scale.
 static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 {
@@ -1162,10 +1162,10 @@ static inline qword AddScaledVec(qword qwBase, qword vec, VU_FLOAT scale)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(vec), "j"(scale.qw));
     return qw;
 }
-extern "C" { extern qword D_002A2DC0; }
-extern "C" int D_002BF340;          // 50.0f, read as its bits
-extern "C" int D_002BF344;     // -50.0f, read as its bits
-extern "C" void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern int D_002BF340 __asm__("D_002BF340");          // 50.0f, read as its bits
+extern int D_002BF344 __asm__("D_002BF344");     // -50.0f, read as its bits
+extern void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
 // Foot placement for one foot: when the foot clip changes, rebuilds the reach geometry (sphere the leg can reach,
 // vertical probe lines).
@@ -1227,16 +1227,16 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FMatchJtXmg {
 struct HIT { qword v0; char pad[0x28 - 0x10]; float g28; char pad1[0x40 - 0x2C]; float g40; char pad2[0x60 - 0x44]; };
-extern "C" {
-qword ConvertPosBetweenLos(void *p, void *q, qword v);
-void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE *ptree, int *pn0, int *pn1);
-int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit);
-void SetActRotationGoal(void *p, qword v);
-void ShouldKeepSoPair();
-extern qword D_002A2DC0;
-extern qword D_002A2DD0;
-int TryMatchJtXmg(JT *pjt, XMG *pxmg, void *px);
-}
+
+qword ConvertPosBetweenLos(void *p, void *q, qword v) __asm__("ConvertPosBetweenLos");
+void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE *ptree, int *pn0, int *pn1) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit) __asm__("FindFirstObjectHitByLine");
+void SetActRotationGoal(void *p, qword v) __asm__("SetActRotationGoal");
+void ShouldKeepSoPair() __asm__("ShouldKeepSoPair");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+int TryMatchJtXmg(JT *pjt, XMG *pxmg, void *px) __asm__("TryMatchJtXmg");
+
 // Probes the ground along the foot geometry's lines (normal z > 0.7) and sets the foot target; nonzero on a match.
 int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
 {
@@ -1274,21 +1274,21 @@ int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
 } // namespace M_FMatchJtXmg
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateJtStand { extern "C" {
+namespace M_UpdateJtStand {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 struct T { char pad[0x4C]; SO *po; };   /* the floor contact (XP): the other side's object */
-int GetStepplayerLeanFlags(JT *pjt);
-void SetSmaMask(SMA *psma, int n);
-float ClampAbs__Fff(float g, float h);
-void SetStepTargetHeading(JT *pjt, float g);
-void RebuildJtXmg(JT *pjt, void *pv0, void *pv1, ACT5 *pact5, float g, XMG *pxmg);
-int TryMatchJtXmg(JT *pjt, XMG *pxmg, ACT5 *pact5);
-int FindSmStateOptional__FP2SM3OID(SM *psm, int n);
-void SnapSma(SMA *psma, int n);
+int GetStepplayerLeanFlags(JT *pjt) __asm__("GetStepplayerLeanFlags");
+void SetSmaMask(SMA *psma, int n) __asm__("SetSmaMask");
+float ClampAbs__Fff(float g, float h) __asm__("ClampAbs__Fff");
+void SetStepTargetHeading(JT *pjt, float g) __asm__("SetStepTargetHeading");
+void RebuildJtXmg(JT *pjt, void *pv0, void *pv1, ACT5 *pact5, float g, XMG *pxmg) __asm__("RebuildJtXmg");
+int TryMatchJtXmg(JT *pjt, XMG *pxmg, ACT5 *pact5) __asm__("TryMatchJtXmg");
+int FindSmStateOptional__FP2SM3OID(SM *psm, int n) __asm__("FindSmStateOptional__FP2SM3OID");
+void SnapSma(SMA *psma, int n) __asm__("SnapSma");
 // Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
-void UpdateJtStand(JT *jt)
+extern "C" void UpdateJtStand(JT *jt)
 {
     SetSmaMask(jt->activeStateMachine, GetStepplayerLeanFlags(jt));
     if (!jt->TryFaceAttachedObject() && jt->floorContact) {
@@ -1308,7 +1308,7 @@ void UpdateJtStand(JT *jt)
         jt->unknown1514 = 1;
     }
 }
-} } // namespace M_UpdateJtStand
+} // namespace M_UpdateJtStand
 
 // JT render (slot 19): while hanging (state 3) applies the hand IK first, then the STEPPLAYER render.
 extern "C" void RenderJtSelf(JT *jt, void *camera)
@@ -1320,13 +1320,13 @@ extern "C" void RenderJtSelf(JT *jt, void *camera)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018A278 { extern "C" {
+namespace M_func_0018A278 {
 typedef int qword __attribute__((mode(TI)));
-qword GetLoWorldPos(void *p);
-void UpdateSoXfWorld(JT *p);
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void UpdateSoXfWorld(JT *p) __asm__("UpdateSoXfWorld");
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
 // (inferred)
-void UpdateJtWorldTransform(JT *jt)
+extern "C" void UpdateJtWorldTransform(JT *jt)
 {
     jt->aposBounds[1] = GetLoWorldPos(jt->unknown19A4);
     jt->cposBounds = 0;
@@ -1339,32 +1339,32 @@ void UpdateJtWorldTransform(JT *jt)
         jt->cposBounds = 0;
     }
 }
-} } // namespace M_func_0018A278
+} // namespace M_func_0018A278
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018A2E0 { extern "C" {
+namespace M_func_0018A2E0 {
 typedef int qword __attribute__((mode(TI)));
-void UpdateSoTreeBounds(JT *p);
-void ExtendSoTreeBounds(JT *p, qword q, float g);
+void UpdateSoTreeBounds(JT *p) __asm__("UpdateSoTreeBounds");
+void ExtendSoTreeBounds(JT *p, qword q, float g) __asm__("ExtendSoTreeBounds");
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
-void UpdateJtExtraEntries(JT *jt)
+extern "C" void UpdateJtExtraEntries(JT *jt)
 {
     int i;
     UpdateSoTreeBounds(jt);
     for (i = 0; i < jt->cposBounds; i++)
         ExtendSoTreeBounds(jt, jt->aposBounds[i], jt->rBounds);
 }
-} } // namespace M_func_0018A2E0
+} // namespace M_func_0018A2E0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018A350 { extern "C" {
+namespace M_func_0018A350 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-qword GetLoWorldPos(void *p);
-void GetStepplayerCameraFocusPosition(JT *p, UV *pv);
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void GetStepplayerCameraFocusPosition(JT *p, UV *pv) __asm__("GetStepplayerCameraFocusPosition");
 // JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
-void GetJtCameraTarget(JT *jt, UV *pv)
+extern "C" void GetJtCameraTarget(JT *jt, UV *pv)
 {
     switch (jt->state) {
     case 3:
@@ -1383,14 +1383,14 @@ void GetJtCameraTarget(JT *jt, UV *pv)
         break;
     }
 }
-} } // namespace M_func_0018A350
+} // namespace M_func_0018A350
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018A428 { extern "C" {
-void GetStepplayerCpdefi(JT *p, int *pf);
-void GetJtPipeVelocity(void *p, int *pf);
+namespace M_func_0018A428 {
+void GetStepplayerCpdefi(JT *p, int *pf) __asm__("GetStepplayerCpdefi");
+void GetJtPipeVelocity(void *p, int *pf) __asm__("GetJtPipeVelocity");
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
-void GetJtCpdefi(JT *jt, int *pf)
+extern "C" void GetJtCpdefi(JT *jt, int *pf)
 {
     if (jt->state != 0 && jt->state != 0x12 && jt->jtgrab.kind && jt->jtpipe.state != 1)
         jt->lastMoveTime = g_clock.time;
@@ -1404,7 +1404,7 @@ void GetJtCpdefi(JT *jt, int *pf)
         break;
     }
 }
-} } // namespace M_func_0018A428
+} // namespace M_func_0018A428
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A4E8 {
@@ -1422,16 +1422,16 @@ typedef struct S {
 } S;
 typedef struct R { unsigned int x0; char pad[0x30 - 4]; float g30; int x34; int pad38; int x3C; } R;
 
-extern "C" SMP D_002BF348;
+extern SMP D_002BF348 __asm__("D_002BF348");
 
 extern "C" float GetStepHeading(A *p);
-extern "C" int IsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
-extern "C" float GetShapeMaxDistance(B *p);
-extern "C" float GetShapeMinDistance(B *p);
-extern "C" void EvaluateShapeAtDistance(B *p, qword *pv, qword *direction, float g);
+extern int IsBasicDerivedFrom__FP5BASIC3CID(B *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+extern float GetShapeMaxDistance(B *p) __asm__("GetShapeMaxDistance");
+extern float GetShapeMinDistance(B *p) __asm__("GetShapeMinDistance");
+extern void EvaluateShapeAtDistance(B *p, qword *pv, qword *direction, float g) __asm__("EvaluateShapeAtDistance");
 extern "C" qword GetLoWorldPos(A *p);
 extern "C" M *GetLoWorldMatrix(A *p);
-extern "C" float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
+extern float SmoothValue__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output) __asm__("SmoothValue__FfffP3SMPPf");
 
 
 // base + m.row1 * scalar (one asm block, register-pinned).
@@ -1680,8 +1680,8 @@ int FIsSmaRetracted(SMA *psma) __asm__("IsSmaRetracted");
 
 
 
-extern "C" {
-}
+
+
 
 
 
@@ -1692,32 +1692,32 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-extern "C" {
-void UpdateJtAirInput(JTAIR *pjtair);
-}
-extern "C" {
-void UpdateJtGrabInput(JTGRAB *pjtgrab);
-}
-extern "C" {
+
+void UpdateJtAirInput(JTAIR *pjtair) __asm__("UpdateJtAirInput");
+
+
+void UpdateJtGrabInput(JTGRAB *pjtgrab) __asm__("UpdateJtGrabInput");
+
+
 int GetHeroMp(STEPPLAYER *pstepplayer) __asm__("GetStepplayerMp");
-}
-extern "C" {
+
+
 uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
-}
-extern "C" {
+
+
 int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("IsStepplayerNearInteractTarget");
-}
-extern "C" {
+
+
 qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity) __asm__("CalculateBallisticLaunchVelocity");
-}
+
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("TryGrabJtNearestCandidate");
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
-extern "C" float D_002BF354;
-extern "C" float D_002BF360;
-extern "C" float D_002BF364;
-extern "C" { extern qword D_002BF370; }
-extern "C" { extern qword D_002A2DA0; }
-extern "C" { extern qword D_002A2DC0; }
+extern float D_002BF354 __asm__("D_002BF354");
+extern float D_002BF360 __asm__("D_002BF360");
+extern float D_002BF364 __asm__("D_002BF364");
+extern qword D_002BF370 __asm__("D_002BF370");
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // Remove v's component along the unit normal n: v - (v.n) n.
 static inline qword ProjectOutVec(qword v, qword n)
 {
@@ -2033,13 +2033,13 @@ extern "C" void ChooseJtGroundState(JT *jt)
 } // namespace M_JtChooseGroundState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018B2C0 { extern "C" {
-int IsStepplayerInJtMode(JT *p);
-int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g);
-void EndJtMode(void *p);
-void UpdateJtMode(void *p);
+namespace M_func_0018B2C0 {
+int IsStepplayerInJtMode(JT *p) __asm__("IsStepplayerInJtMode");
+int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
+void EndJtMode(void *p) __asm__("EndJtMode");
+void UpdateJtMode(void *p) __asm__("UpdateJtMode");
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
-void UpdateJtModeInput(JT *p)
+extern "C" void UpdateJtModeInput(JT *p)
 {
     if (!IsStepplayerInJtMode(p))
         return;
@@ -2048,26 +2048,26 @@ void UpdateJtModeInput(JT *p)
         EndJtMode(&p->jtmode);
     UpdateJtMode(&p->jtmode);
 }
-} } // namespace M_func_0018B2C0
+} // namespace M_func_0018B2C0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018B348 { extern "C" {
+namespace M_func_0018B348 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } MATRIX4;
-extern float GetAsegLabelTime(void *p, int n);
-extern void PredictAsegTransform(void *a, float g, JT *p, float h, void *b, void *c, MATRIX4 *pm, int n);
-extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm);
-extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm);
+extern float GetAsegLabelTime(void *p, int n) __asm__("GetAsegLabelTime");
+extern void PredictAsegTransform(void *a, float g, JT *p, float h, void *b, void *c, MATRIX4 *pm, int n) __asm__("PredictAsegTransform");
+extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm) __asm__("DecomposeRotationMatrixToEuler");
+extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm) __asm__("InvertMatrix4Rigid");
 // Transform point v by the 4x4 matrix pm.
-static __inline__ qword Mul(MATRIX4 *pm, qword v)
+extern "C" { static __inline__ qword Mul(MATRIX4 *pm, qword v)
 {
     qword o;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
             : "=j"(o) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return o;
-}
+} }
 // From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
-void CacheJtRestPose(JT *jt)
+extern "C" void CacheJtRestPose(JT *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
@@ -2085,10 +2085,10 @@ void CacheJtRestPose(JT *jt)
     InvertMatrix4Rigid(&mi, &m2);
     jt->posPickpocketHandLocal = Mul(&mi, jt->posPickpocketHand);
 }
-} } // namespace M_func_0018B348
+} // namespace M_func_0018B348
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018B460 { extern "C" {
+namespace M_func_0018B460 {
 // Update attachment correction and decay inactive responses.
 
 typedef int qword __attribute__((mode(TI)));
@@ -2100,19 +2100,19 @@ struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];str
 struct DV{char pad[0x20];qword value;};
 struct P : LO { char pad[0x60 - 0x50]; struct SPACE*space;char pad64[0x1030-0x64];struct ASEGA*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct FOCUS*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
-extern float D_002BF380;
-extern float D_002BF3A0;
-extern float D_002BF3B8;
-extern float D_002BF3BC;
-extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;
-void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
-qword TransformXfPos(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
-float atan2f(float,float);float ClampToLimits__FP2LMf(struct LM*,float);
-struct M3 *LoadRotateMatrixEuler(struct M3 *, qword);
-qword *VECTOR_opAssign(qword *, qword);
-void SetActRotationGoal(struct DV *, qword);
+extern float D_002BF380 __asm__("D_002BF380");
+extern float D_002BF3A0 __asm__("D_002BF3A0");
+extern float D_002BF3B8 __asm__("D_002BF3B8");
+extern float D_002BF3BC __asm__("D_002BF3BC");
+extern qword D_002BF390 __asm__("D_002BF390");extern struct LM D_002BF3A8 __asm__("D_002BF3A8"),D_002BF3B0 __asm__("D_002BF3B0");
+void FaceStepToward(struct P*,struct AIM*) __asm__("FaceStepToward");void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float) __asm__("LoadIdentityMatrix4");
+qword TransformXfPos(struct SPACE*,struct SPACE*,qword) __asm__("TransformXfPos");qword ConvertXfVec(struct SPACE*,struct SPACE*,qword) __asm__("ConvertXfVec");
+float atan2f(float,float) __asm__("atan2f");float ClampToLimits__FP2LMf(struct LM*,float) __asm__("ClampToLimits__FP2LMf");
+struct M3 *LoadRotateMatrixEuler(struct M3 *, qword) __asm__("LoadRotateMatrixEuler");
+qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
+void SetActRotationGoal(struct DV *, qword) __asm__("SetActRotationGoal");
 // Transform the point *a by the 4x4 matrix m (register-pinned) and fetch the source space.
-static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **source)
+extern "C" { static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **source)
 {
     register qword r __asm__("vf6"), row0 __asm__("vf5") = m->r[0].q;
     register struct SPACE *sourceValue __asm__("$4");
@@ -2125,9 +2125,9 @@ static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **sou
         : "vf1", "vf2", "vf3", "vf4");
     *source = sourceValue;
     return r;
-}
+} }
 // Length of the position after adding the correction (position + correction), register-pinned.
-static inline float CorrectionDistance(struct P *p, qword correction)
+extern "C" { static inline float CorrectionDistance(struct P *p, qword correction)
 {
     register qword d __asm__("vf1");
     register float result __asm__("$3");
@@ -2148,9 +2148,9 @@ static inline float CorrectionDistance(struct P *p, qword correction)
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(d));
     __asm__("qmfc2.ni %0,%1" : "=r"(result) : "j"(d));
     return result;
-}
+} }
 // State 11 handler: corrects the attachment and decays inactive responses. (inferred)
-void UpdateJtAttachCorrection(struct P *jt)
+extern "C" void UpdateJtAttachCorrection(struct P *jt)
 {
     struct WORK w;
     register float ratio __asm__("$f20");
@@ -2385,12 +2385,12 @@ typedef char M4_Row_Count[(sizeof(((struct M4 *)0)->r) / sizeof(U) == 4) ? 1 : -
 typedef char PHASE_Size[(sizeof(((struct WORK *)0)->phase) == 64) ? 1 : -1];
 typedef char PHASE_Predicted_Offset[((unsigned)&((struct WORK *)0)->phase.predicted == 0) ? 1 : -1];
 typedef char PHASE_Scalar_Offset[((unsigned)&((struct WORK *)0)->phase.scalar == 0) ? 1 : -1];
-}
+
 } // namespace M_func_0018B460
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtPre {
-extern "C" {
+
 
 typedef int qword __attribute__((mode(TI)));
 typedef union {
@@ -2459,80 +2459,80 @@ union PHASE {
     qword direction;
     U scalar;
 };
-extern qword D_002A2DD0;
-extern float D_002BF3C0;
-extern float D_002BF3C4;
-extern float D_002BF3C8;
-extern float D_002BF3CC;
-extern float D_002BF35C;
-float GetStepHeading(struct P *);
-float NormalizeAngle__Ff(float);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *, struct P *, unsigned int);
-void UpdateJtModeInput(struct P *);
-void ChooseJtGroundState(struct P *);
-void UpdateJtActiveCane__FP2JT(struct P *);
-struct BINDING *FindAsegChannel(void *, struct P *, void *, int);
-void UpdateJtActiveHang__FP2JT(struct P *);
-void UpdateJtActiveJump(void *);
-void UpdateJtActiveHide(void *);
-void FaceBentleyInteractTarget(void *);
-void UpdateDirectionalAcceleration(struct P *, void *, int, float, float);
-void UpdateJtAttachCorrection(struct P *);
-void UpdateGaitBlend(void *, float);
-void FaceStepToward(struct P *, void *);
-qword SetVectorCylind(float, float, float);
-qword ConvertVecBetweenLos(void *, void *, qword);
-int IsPowerupAcquired(int);
-void UpdateJtFaceTarget(struct P *);
-qword GetStepAsegaTranslation(struct P *, struct MODEL *, float);
-void SetAsegaSpeed__FP5ASEGAf(struct MODEL *, float);
-void SetStepTargetHeading(struct P *, float);
-void DrainStepplayerMp(struct P *, float);
-void SetJtState__FP2JT3JTS4JTBS(struct P *, int, int);
-float ClampAbs__Fff(float, float);
-void RecalculateAsegBlend(void *);
-void UpdateJtActiveZap(void *);
-void UpdateJtPlaces(struct P *);
-int IsAsegaRetracted(void *);
-void DropAsegaRef(void **);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern float D_002BF3C0 __asm__("D_002BF3C0");
+extern float D_002BF3C4 __asm__("D_002BF3C4");
+extern float D_002BF3C8 __asm__("D_002BF3C8");
+extern float D_002BF3CC __asm__("D_002BF3CC");
+extern float D_002BF35C __asm__("D_002BF35C");
+float GetStepHeading(struct P *) __asm__("GetStepHeading");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *, struct P *, unsigned int) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
+void UpdateJtModeInput(struct P *) __asm__("UpdateJtModeInput");
+void ChooseJtGroundState(struct P *) __asm__("ChooseJtGroundState");
+void UpdateJtActiveCane__FP2JT(struct P *) __asm__("UpdateJtActiveCane__FP2JT");
+struct BINDING *FindAsegChannel(void *, struct P *, void *, int) __asm__("FindAsegChannel");
+void UpdateJtActiveHang__FP2JT(struct P *) __asm__("UpdateJtActiveHang__FP2JT");
+void UpdateJtActiveJump(void *) __asm__("UpdateJtActiveJump");
+void UpdateJtActiveHide(void *) __asm__("UpdateJtActiveHide");
+void FaceBentleyInteractTarget(void *) __asm__("FaceBentleyInteractTarget");
+void UpdateDirectionalAcceleration(struct P *, void *, int, float, float) __asm__("UpdateDirectionalAcceleration");
+void UpdateJtAttachCorrection(struct P *) __asm__("UpdateJtAttachCorrection");
+void UpdateGaitBlend(void *, float) __asm__("UpdateGaitBlend");
+void FaceStepToward(struct P *, void *) __asm__("FaceStepToward");
+qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
+qword ConvertVecBetweenLos(void *, void *, qword) __asm__("ConvertVecBetweenLos");
+int IsPowerupAcquired(int) __asm__("IsPowerupAcquired");
+void UpdateJtFaceTarget(struct P *) __asm__("UpdateJtFaceTarget");
+qword GetStepAsegaTranslation(struct P *, struct MODEL *, float) __asm__("GetStepAsegaTranslation");
+void SetAsegaSpeed__FP5ASEGAf(struct MODEL *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
+void SetStepTargetHeading(struct P *, float) __asm__("SetStepTargetHeading");
+void DrainStepplayerMp(struct P *, float) __asm__("DrainStepplayerMp");
+void SetJtState__FP2JT3JTS4JTBS(struct P *, int, int) __asm__("SetJtState__FP2JT3JTS4JTBS");
+float ClampAbs__Fff(float, float) __asm__("ClampAbs__Fff");
+void RecalculateAsegBlend(void *) __asm__("RecalculateAsegBlend");
+void UpdateJtActiveZap(void *) __asm__("UpdateJtActiveZap");
+void UpdateJtPlaces(struct P *) __asm__("UpdateJtPlaces");
+int IsAsegaRetracted(void *) __asm__("IsAsegaRetracted");
+void DropAsegaRef(void **) __asm__("DropAsegaRef");
 // Address p + offset.
-static inline void *At(struct P *p, int offset)
+extern "C" { static inline void *At(struct P *p, int offset)
 {
     return (char *)p + offset;
-}
+} }
 // Evaluate the binding's component (virtual slot 3) at the model's base and scale into *out.
-static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
+extern "C" { static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
 {
     struct COMPONENT *c = b->component;
     VTE *entry = &c->vt[3];
     ((void (*)(void *, int, qword *, float, float))entry->pfn)((char *)c + entry->d, 0, out, m->base, m->scale);
-}
+} }
 // Return a scaled by b.x in place.
-static inline qword ScaleIn(qword a, qword b)
+extern "C" { static inline qword ScaleIn(qword a, qword b)
 {
     __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(a) : "j"(b));
     return a;
-}
+} }
 // Load *input, broadcast g into out and return the input scaled by it.
-static inline qword FirstNegative(const qword *input, U *out, float g)
+extern "C" { static inline qword FirstNegative(const qword *input, U *out, float g)
 {
     qword a, s;
     register qword bits __asm__("$2");
     __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tqmtc2.ni %1,%2" : "=j"(a), "=&r"(bits), "=j"(s) : "m"(*input), "f"(g));
     out->q = s;
     return ScaleIn(a, out->q);
-}
+} }
 // Load *input, broadcast g into out and return the input scaled by it (second variant).
-static inline qword SecondNegative(const qword *input, U *out, float g)
+extern "C" { static inline qword SecondNegative(const qword *input, U *out, float g)
 {
     qword a, s;
     register qword bits __asm__("$3");
     __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tqmtc2.ni %1,%2" : "=j"(a), "=&r"(bits), "=j"(s) : "m"(*input), "f"(g));
     out->q = s;
     return ScaleIn(a, out->q);
-}
+} }
 // The model's step-animation translation negated (scaled by -1 broadcast through u).
-static inline qword NegativeModelNative(struct P *p, U *u)
+extern "C" { static inline qword NegativeModelNative(struct P *p, U *u)
 {
     qword v = GetStepAsegaTranslation(p, p->model, p->model->base), s;
     register qword bits __asm__("$4");
@@ -2540,10 +2540,10 @@ static inline qword NegativeModelNative(struct P *p, U *u)
     __asm__("qmtc2.ni %1,%0" : "=j"(s) : "r"(bits));
     u->q = s;
     return VuScaleByX(v, u->q);
-}
+} }
 
 // The negated step-animation translation, also loading the state pointer and a 0.0f for the caller.
-static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut, float *zeroOut)
+extern "C" { static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut, float *zeroOut)
 {
     qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
     register qword v __asm__("vf3");
@@ -2561,15 +2561,15 @@ static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut
     *zeroOut = zero;
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(result) : "j"(v), "j"(u->q));
     return result;
-}
+} }
 
 // Store value to *destination and scalar to *scalarOut in one asm block.
-static inline void WriteVectorPair(qword value, qword *destination, qword scalar, qword *scalarOut)
+extern "C" { static inline void WriteVectorPair(qword value, qword *destination, qword scalar, qword *scalarOut)
 {
     __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(*destination), "=m"(*scalarOut) : "j"(value), "j"(scalar));
-}
+} }
 // Step-animation translation setup: load the model and state pointers and the scale factor for the caller.
-static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, struct STATE **stateOut)
+extern "C" { static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, struct STATE **stateOut)
 {
     qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
     register qword v __asm__("vf3");
@@ -2586,11 +2586,11 @@ static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, 
     WriteVectorPair(result, &p->velocity, scalar, &u->q);
     *modelOut = model;
     *stateOut = state;
-}
+} }
 
 // Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
 // input.
-void UpdateJtPre(struct P *jt)
+extern "C" void UpdateJtPre(struct P *jt)
 {
     union PHASE phase;
     U scalar;
@@ -2745,47 +2745,47 @@ typedef char P_left_Offset[((unsigned)&((struct P*)0)->left==8212)?1:-1];
 typedef char P_middle_Offset[((unsigned)&((struct P*)0)->middle==8224)?1:-1];
 typedef char P_right_Offset[((unsigned)&((struct P*)0)->right==8236)?1:-1];
 typedef char P_blend_Offset[((unsigned)&((struct P*)0)->blend==8248)?1:-1];
-}
+
 } // namespace M_UpdateJtPre
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateJt { extern "C" {
+namespace M_UpdateJt {
 // Update actor movement modes and curve transition checks.
 
 
 typedef union { qword q; float f[4]; } VU;
 
-extern float D_002BF3D4;
-extern float D_002BF3D8;
+extern float D_002BF3D4 __asm__("D_002BF3D4");
+extern float D_002BF3D8 __asm__("D_002BF3D8");
 
-extern float D_002BF3DC;
+extern float D_002BF3DC __asm__("D_002BF3DC");
 
-extern void UpdateStepplayer(void *p);
-extern void UpdateJtPre(void *p);
-extern void SetStepTargetHeading(void *p, float g);
-extern void UpdateGaitBlend(void *p, float g);
-extern void UpdateGaitFootsteps(void *p);
-extern void UpdateDirectionalBlend(void *p, void *a, void *animation);
-extern void UpdateJtStand(void *p);
-extern void UpdateJtHangIkGoals__FP2JT(void *p);
-extern void UpdateJtMeshAttachment(void *p);
-extern void UpdateJtSmoothing(void *p);
+extern void UpdateStepplayer(void *p) __asm__("UpdateStepplayer");
+extern void UpdateJtPre(void *p) __asm__("UpdateJtPre");
+extern void SetStepTargetHeading(void *p, float g) __asm__("SetStepTargetHeading");
+extern void UpdateGaitBlend(void *p, float g) __asm__("UpdateGaitBlend");
+extern void UpdateGaitFootsteps(void *p) __asm__("UpdateGaitFootsteps");
+extern void UpdateDirectionalBlend(void *p, void *a, void *animation) __asm__("UpdateDirectionalBlend");
+extern void UpdateJtStand(void *p) __asm__("UpdateJtStand");
+extern void UpdateJtHangIkGoals__FP2JT(void *p) __asm__("UpdateJtHangIkGoals__FP2JT");
+extern void UpdateJtMeshAttachment(void *p) __asm__("UpdateJtMeshAttachment");
+extern void UpdateJtSmoothing(void *p) __asm__("UpdateJtSmoothing");
 
-extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *response, void *d);
+extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *response, void *d) __asm__("RebuildJtXmg");
 #define C40(p,a,b,c,d,g) RebuildJtXmg(p,a,g,b,c,d)
 
-extern int TryMatchJtXmg(void *p, void *a, void *response);
-extern void UpdateJtCane__FP2JT(void *p);
-extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-extern void FindShapeClosestPointFromDistance(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
-extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern qword GetLoWorldPos(void *p);
-extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
-extern void UpdateJtLean__FP2JT(void *p);
+extern int TryMatchJtXmg(void *p, void *a, void *response) __asm__("TryMatchJtXmg");
+extern void UpdateJtCane__FP2JT(void *p) __asm__("UpdateJtCane__FP2JT");
+extern int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+extern void FindShapeClosestPointFromDistance(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g) __asm__("FindShapeClosestPointFromDistance");
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction) __asm__("FindClosestPointBetweenLineSegments");
+extern void UpdateJtLean__FP2JT(void *p) __asm__("UpdateJtLean__FP2JT");
 
 
 // JT Update (slot 16): STEPPLAYER update, UpdateJtPre, actuators and animation, UpdateJtStand, feet, cane, lean.
-void UpdateJt(JT *p)
+extern "C" void UpdateJt(JT *p)
 {
     VU u;
     qword av[3];
@@ -2898,16 +2898,16 @@ typedef char layout_long[(sizeof(long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_VU[(sizeof(VU)==16)?1:-1];
 typedef char layout_VU_alignment[(__alignof__(VU)==16)?1:-1];
-} } // namespace M_UpdateJt
+} // namespace M_UpdateJt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018C060 { extern "C" {
-SOPART *GetJtGrabAdjustRecord(JTGRAB *p, int *pn);
-SOPART *GetJtHurtAdjustRecord(JTHURT *p, int *pn);
-SOPART *GetJtAirAdjustRecord(JTAIR *p, int *pn);
-void SetStepPhys(JT *p, SOPART *pv, int n);
+namespace M_func_0018C060 {
+SOPART *GetJtGrabAdjustRecord(JTGRAB *p, int *pn) __asm__("GetJtGrabAdjustRecord");
+SOPART *GetJtHurtAdjustRecord(JTHURT *p, int *pn) __asm__("GetJtHurtAdjustRecord");
+SOPART *GetJtAirAdjustRecord(JTAIR *p, int *pn) __asm__("GetJtAirAdjustRecord");
+void SetStepPhys(JT *p, SOPART *pv, int n) __asm__("SetStepPhys");
 // JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
-void ApplyJtStateStepParams(JT *jt)
+extern "C" void ApplyJtStateStepParams(JT *jt)
 {
     int n = 0;
     SOPART *pv;
@@ -2921,7 +2921,7 @@ void ApplyJtStateStepParams(JT *jt)
     if (!pv) pv = jt->aprecJts[0];
     SetStepPhys(jt, pv, n);
 }
-} } // namespace M_func_0018C060
+} // namespace M_func_0018C060
 
 /* Shows (bit set) or hides each of the seven act5s by the bits of grf (bit 0x20 is +0x19FC, 0x40 +0x19F8). */
 // Enables or disables the five lean actuators (x19E4..x19F4).
@@ -2966,7 +2966,7 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtState
-extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
+extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("ApplySmWithKind");
 int FindSmStateOptional(SM *psm, OID oid) __asm__("FindSmStateOptional__FP2SM3OID");
@@ -2975,7 +2975,7 @@ float NormalizeAngle(float rad) __asm__("NormalizeAngle__Ff");
 
 
 
-extern "C" { extern qword D_002A2DD0; }
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 
 
@@ -3011,76 +3011,76 @@ static inline VU_FLOAT VuFloat(float g)
 void ExplodeExpl(EXPL *pexpl) __asm__("ExplodeWithDefaults");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
 void CalculateJtHangAccel(JT *pjt) __asm__("CalculateJtHangAccel__FP2JT");
-extern "C" {
+
 void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtCaneState__FP2JTi");
-}
-extern "C" {
-void SetJtHurtState(JTHURT *pjthurt, int nState);
-}
-extern "C" {
-void SetJtThrowState(JTTHROW *pjtthrow, int nState);
-}
-extern "C" {
-void SetJtGrabKind(JTGRAB *pjtgrab, int nPhase);
-}
-extern "C" {
+
+
+void SetJtHurtState(JTHURT *pjthurt, int nState) __asm__("SetJtHurtState");
+
+
+void SetJtThrowState(JTTHROW *pjtthrow, int nState) __asm__("SetJtThrowState");
+
+
+void SetJtGrabKind(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
+
+
 void UpdateJtPounceArc(JT *pjt) __asm__("UpdateJtFaceTarget");
-}
-extern "C" {
+
+
 void JtHangFrame(JT *pjt, float *prad) __asm__("GetJtHangHeading__FP2JTPf");
-}
-extern "C" {
+
+
 int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("GetStepplayerLeanFlags");
-}
-extern "C" {
+
+
 void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("ScheduleIdleTimer");
-}
-extern "C" {
+
+
 int FPowerUpAcquired(int ipowerup) __asm__("IsPowerupAcquired");
-}
-extern "C" {
-void UnsubscribeLoObject(void *pvTarget, void *pvRef);
-}
-extern "C" {
-void SubscribeLoObject(void *pvTarget, void *pvRef);
-}
-extern "C" {
+
+
+void UnsubscribeLoObject(void *pvTarget, void *pvRef) __asm__("UnsubscribeLoObject");
+
+
+void SubscribeLoObject(void *pvTarget, void *pvRef) __asm__("SubscribeLoObject");
+
+
 void UpdateJtHangPlace(JT *pjt) __asm__("UpdateJtHangIkGoals__FP2JT");
-}
-extern "C" {
-qword GetJtHangHandlePosition(JT *pjt);
-}
-extern "C" {
-void SetSndSourcePos(SND *psnd, qword qwPos);
-}
-extern "C" {
+
+
+qword GetJtHangHandlePosition(JT *pjt) __asm__("GetJtHangHandlePosition");
+
+
+void SetSndSourcePos(SND *psnd, qword qwPos) __asm__("SetSndSourcePos");
+
+
 void GuardCapVelocityForPounce(STEPGUARD *pguard) __asm__("StunStepguardThrownOp2");
-}
-extern "C" {
+
+
 void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("InitIdleTimer");
-}
-extern "C" {
+
+
 void SetJtUnk1d30(JT *pjt, int n) __asm__("SetJtUnknown1D30");
-}
-extern "C" {
+
+
 void ClearGaitFootDown(GAIT *pgait) __asm__("ResetGaitFeet");
-}
-extern "C" {
+
+
 void PredictAsegEffect(float t, float svt, ASEG *paseg, ALO *palo, XF *pxfPart, XF *pxfRoot, MATRIX4 *pmat, int n) __asm__("PredictAsegTransform");
-}
-extern "C" {
-void SetSoCnstrForce(SO *pso, int fOn);
-}
-extern "C" {
-void FixStepAngularVelocity(STEP *pstep);
-}
+
+
+void SetSoCnstrForce(SO *pso, int fOn) __asm__("SetSoCnstrForce");
+
+
+void FixStepAngularVelocity(STEP *pstep) __asm__("FixStepAngularVelocity");
+
 void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("SetXfRole");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
-extern "C" float D_002BF3E0;
-extern "C" float D_002BF3E4;
-extern "C" float D_002BF3E8;
-extern "C" float D_002BF358;
-extern "C" { extern float D_002BF35C; }
+extern float D_002BF3E0 __asm__("D_002BF3E0");
+extern float D_002BF3E4 __asm__("D_002BF3E4");
+extern float D_002BF3E8 __asm__("D_002BF3E8");
+extern float D_002BF358 __asm__("D_002BF358");
+extern float D_002BF35C __asm__("D_002BF35C");
 // Zero the xyz components of pvec.
 static inline void ClearXyz(VECTOR *pvec)
 {
@@ -3725,17 +3725,17 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 } // namespace M_SetJtJts__FP2JT3JTS4JTBS
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018D500 { extern "C" {
-int IsCameraPolicyActive__FP5CPLCY(void *p);
+namespace M_func_0018D500 {
+int IsCameraPolicyActive__FP5CPLCY(void *p) __asm__("IsCameraPolicyActive__FP5CPLCY");
 // JT slot 106: 0 while the look mode runs (jtmode.state == 1) or the camera policy at g_cm+0x3A0 is on top, else 1 (inferred: the free-camera test, cf. CanJtUseGadget case 3).
-int IsJtCameraFree(JT *jt)
+extern "C" int IsJtCameraFree(JT *jt)
 {
     int r = 1;
     if (jt->jtmode.state == r) return 0;
     if (IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
     return r;
 }
-} } // namespace M_func_0018D500
+} // namespace M_func_0018D500
 
 // JT slot 91: cancels the cane state (SetJtCaneState(-1)).
 void JT::EndMeleeAttack()
@@ -3745,10 +3745,10 @@ void JT::EndMeleeAttack()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetJtPlayerState { extern "C" {
-void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
+namespace M_SetJtPlayerState {
+void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m) __asm__("SetJtState__FP2JT3JTS4JTBS");
 // JT slot 88: maps a generic player state 0..8 to SetJtState (0, 2, 7, 4, 0x12, 0x13, 0x14, 0x17, 8).
-void SetJtPlayerState(void *p, int n)
+extern "C" void SetJtPlayerState(void *p, int n)
 {
     switch (n) {
     case 0: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
@@ -3762,12 +3762,12 @@ void SetJtPlayerState(void *p, int n)
     case 8: SetJtState__FP2JT3JTS4JTBS(p, 8, -1); break;
     }
 }
-} } // namespace M_SetJtPlayerState
+} // namespace M_SetJtPlayerState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_GetJtPlayerState { extern "C" {
+namespace M_GetJtPlayerState {
 // JT slot 89: the inverse map, jts -> generic state 0..8 or -1.
-int GetJtPlayerState(JT *jt)
+extern "C" int GetJtPlayerState(JT *jt)
 {
     switch (jt->state) {
     case 0: return 0;
@@ -3782,7 +3782,7 @@ int GetJtPlayerState(JT *jt)
     }
     return -1;
 }
-} } // namespace M_GetJtPlayerState
+} // namespace M_GetJtPlayerState
 
 /* Moves a pocket's subscription from its current object (+8) to plo. */
 // Releases the gadget record's object, stores the new one and registers it.
@@ -3801,9 +3801,9 @@ extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PgadrecFromJtGadget { extern "C" {
+namespace M_PgadrecFromJtGadget {
 // Sly's gadget record for gadget ids 0x1A/0x25/0x26/0x29, or null.
-void *GetJtGadgetRecord(char *p, int n)
+extern "C" void *GetJtGadgetRecord(char *p, int n)
 {
     switch (n) {
     case 0x1A: return p + 0x1FB0;
@@ -3813,7 +3813,7 @@ void *GetJtGadgetRecord(char *p, int n)
     }
     return 0;
 }
-} } // namespace M_PgadrecFromJtGadget
+} // namespace M_PgadrecFromJtGadget
 
 // CanJtUseGadget__2JTi: ported from Lilly's personal Sly 2 decomp (src/P2/jtgadget.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
@@ -3962,30 +3962,30 @@ int JT::CanUseGadget(int gadgetId)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UseJtGadget { extern "C" {
+namespace M_UseJtGadget {
 
-extern float D_002BF3EC;
-extern float D_002BF3F0;
+extern float D_002BF3EC __asm__("D_002BF3EC");
+extern float D_002BF3F0 __asm__("D_002BF3F0");
 
-extern void BroadcastGameEvent(void *p, int n, void *pv);
-extern void ChargeGadgetMp(void *p, int n);
-extern void SetClockRate(void *p, int n, float g);
-extern SND *CreateSfxSound(int n);
-extern void SetSndSourceLo(SND *p, int n);
-extern void RcPtr_Assign(SND **pp, SND *psnd);
-extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void SetJtAirState(JTAIR *p, int a, int b);
-extern JTPOCKET *GetJtGadgetRecord(void *p, int n);
-extern void SetJtThrowState(JTTHROW *p, int n);
-extern CID100GADGET *AcquireProxyObject(PROXY *pproxy, int n);
-extern int IsThrowableGadget(CID100GADGET *p);
-extern void GetGadgetButtonMask(void *p, int n);
-extern void ExplodeWithDefaults(EXPL *pexpl);
-extern void SetJtAirJump(JTAIR *p, int a, int b, int c);
-extern void StartStepplayerGadget(void *p, int n);
+extern void BroadcastGameEvent(void *p, int n, void *pv) __asm__("BroadcastGameEvent");
+extern void ChargeGadgetMp(void *p, int n) __asm__("ChargeGadgetMp");
+extern void SetClockRate(void *p, int n, float g) __asm__("SetClockRate");
+extern SND *CreateSfxSound(int n) __asm__("CreateSfxSound");
+extern void SetSndSourceLo(SND *p, int n) __asm__("SetSndSourceLo");
+extern void RcPtr_Assign(SND **pp, SND *psnd) __asm__("RcPtr_Assign");
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
+extern void SetJtAirState(JTAIR *p, int a, int b) __asm__("SetJtAirState");
+extern JTPOCKET *GetJtGadgetRecord(void *p, int n) __asm__("GetJtGadgetRecord");
+extern void SetJtThrowState(JTTHROW *p, int n) __asm__("SetJtThrowState");
+extern CID100GADGET *AcquireProxyObject(PROXY *pproxy, int n) __asm__("AcquireProxyObject");
+extern int IsThrowableGadget(CID100GADGET *p) __asm__("IsThrowableGadget");
+extern void GetGadgetButtonMask(void *p, int n) __asm__("GetGadgetButtonMask");
+extern void ExplodeWithDefaults(EXPL *pexpl) __asm__("ExplodeWithDefaults");
+extern void SetJtAirJump(JTAIR *p, int a, int b, int c) __asm__("SetJtAirJump");
+extern void StartStepplayerGadget(void *p, int n) __asm__("StartStepplayerGadget");
 
 // JT slot 100: per-gadget action (slow motion through the clock rate and sounds, decoys, throws ...).
-void UseJtGadget(JT *p, int n)
+extern "C" void UseJtGadget(JT *p, int n)
 {
     g_game.idGadgetLast = n;
     BroadcastGameEvent(&g_game, 0x3C, p);
@@ -4086,16 +4086,16 @@ void UseJtGadget(JT *p, int n)
         break;
     }
 }
-} } // namespace M_UseJtGadget
+} // namespace M_UseJtGadget
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018DD78 { extern "C" {
-void SetClockRate(struct CLOCK *pclock, int n, float g);
-void StopSnd(SND *psnd, float g);
-void RcPtr_Assign(SND **pp, int n);
-void StopStepplayerGadget(JT *pjt, int n);
+namespace M_func_0018DD78 {
+void SetClockRate(struct CLOCK *pclock, int n, float g) __asm__("SetClockRate");
+void StopSnd(SND *psnd, float g) __asm__("StopSnd");
+void RcPtr_Assign(SND **pp, int n) __asm__("RcPtr_Assign");
+void StopStepplayerGadget(JT *pjt, int n) __asm__("StopStepplayerGadget");
 // JT slot 102: for gadgets 0x1D/0x2A restores the clock rate 1.0 and stops the sound, else the STEPPLAYER base.
-void EndJtGadget(JT *jt, int n)
+extern "C" void EndJtGadget(JT *jt, int n)
 {
     if (n == 0x1D || n == 0x2A) {
         SND **pp;
@@ -4110,7 +4110,7 @@ void EndJtGadget(JT *jt, int n)
         StopStepplayerGadget(jt, n);
     }
 }
-} } // namespace M_func_0018DD78
+} // namespace M_func_0018DD78
 
 // JT slot 103: the save-variable namespace string for Sly (D_002A5EF0). (inferred, as Bentley's "bentley")
 extern "C" char *GetJtSaveVarRoot()
@@ -4136,10 +4136,10 @@ extern "C" void SetJtGrabObject(JT *jt, LO *lo)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const char r_D_002A5EF0[] __asm__("D_002A5EF0") = "sly"; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018DE80 { extern "C" {
-void GetStepplayerStunHold(JT *p, STUNHOLD *pf);
+namespace M_func_0018DE80 {
+void GetStepplayerStunHold(JT *p, STUNHOLD *pf) __asm__("GetStepplayerStunHold");
 // JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
-void GetJtStunHold(JT *jt, STUNHOLD *pf)
+extern "C" void GetJtStunHold(JT *jt, STUNHOLD *pf)
 {
     GetStepplayerStunHold(jt, pf);
     switch (jt->state) {
@@ -4147,13 +4147,13 @@ void GetJtStunHold(JT *jt, STUNHOLD *pf)
         pf->fValid = 1;
     }
 }
-} } // namespace M_func_0018DE80
+} // namespace M_func_0018DE80
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018DEE0 { extern "C" {
-int GetStepplayerGroundProbeFlags(JT *p);
+namespace M_func_0018DEE0 {
+int GetStepplayerGroundProbeFlags(JT *p) __asm__("GetStepplayerGroundProbeFlags");
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
-int GetJtGroundProbeFlags(JT *p)
+extern "C" int GetJtGroundProbeFlags(JT *p)
 {
     if (p->unknown204) return 0;
     switch (p->state) {
@@ -4166,7 +4166,7 @@ int GetJtGroundProbeFlags(JT *p)
     }
     return GetStepplayerGroundProbeFlags(p);
 }
-} } // namespace M_func_0018DEE0
+} // namespace M_func_0018DEE0
 
 // Stores an int at x1D30 (meaning not identified).
 extern "C" void SetJtUnknown1D30(JT *jt, int n)
@@ -4192,15 +4192,15 @@ struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
 struct P{char pad[0xC];VTE*vt;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
 struct SMP{float a,b,c;};
-extern "C" qword D_002A2DC0;
-extern "C" SMP D_002BF3F8;
-extern "C" SMP D_002BF408;
-extern "C" M4*GetLoWorldMatrix(P*);
-extern "C" qword GetLoWorldPos(P*);
-extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
-extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
-extern "C" qword ConvertVecBetweenLos(O*,O*,qword);
-extern "C" void RecalculateAsegBlend(ANIM*);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern SMP D_002BF3F8 __asm__("D_002BF3F8");
+extern SMP D_002BF408 __asm__("D_002BF408");
+extern M4*GetLoWorldMatrix(P*) __asm__("GetLoWorldMatrix");
+extern qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
+extern void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float) __asm__("SmoothMatrix");
+extern qword PosSmooth(qword,qword,SMP*,qword*,float) __asm__("PosSmooth");
+extern qword ConvertVecBetweenLos(O*,O*,qword) __asm__("ConvertVecBetweenLos");
+extern void RecalculateAsegBlend(ANIM*) __asm__("RecalculateAsegBlend");
 // Unit vector along vin (or the negative fallback vector when it is too short); register-pinned.
 static inline qword Normalize(qword vin, const U *negative, U *u)
 {
@@ -4406,25 +4406,25 @@ typedef char M4_Basis_Prefix[(sizeof(M3)==(unsigned)&((M4*)0)->r[3])?1:-1];
 } // namespace M_func_0018DF60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018E1E0 { extern "C" {
+namespace M_func_0018E1E0 {
 typedef struct { qword r[3]; } M3;
-extern qword GetLoWorldPos(void *p);
-extern void SetStepTargetHeadingFromVector(JT *p, qword v);
-extern float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
-extern M3 *InvertMatrix3Cofactor(M3 *pmOut, qword *aqwRows);
-extern float D_002BF414;
-extern char D_002BF418[];
-extern qword D_002A2DA0;
+extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+extern void SetStepTargetHeadingFromVector(JT *p, qword v) __asm__("SetStepTargetHeadingFromVector");
+extern float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg) __asm__("SmoothValue__FfffP3SMPPf");
+extern M3 *InvertMatrix3Cofactor(M3 *pmOut, qword *aqwRows) __asm__("InvertMatrix3Cofactor");
+extern float D_002BF414 __asm__("D_002BF414");
+extern char D_002BF418[] __asm__("D_002BF418");
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
 // Length of the xyz part of c, in the x lane.
-static __inline__ qword VLen(qword c)
+extern "C" { static __inline__ qword VLen(qword c)
 {
     qword l, one;
     __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one), "=&j"(l) : "j"(c));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
-}
+} }
 // Turns Sly toward the interact target with smoothing.
-void UpdateJtFaceTarget(JT *jt)
+extern "C" void UpdateJtFaceTarget(JT *jt)
 {
     QWROW n;
     M3 ms, m;
@@ -4457,14 +4457,14 @@ void UpdateJtFaceTarget(JT *jt)
         : "=j"(r) : "j"(ms.r[0]), "j"(ms.r[1]), "j"(ms.r[2]), "j"(n.q));
     jt->qwUnknown190 = r;
 }
-} } // namespace M_func_0018E1E0
+} // namespace M_func_0018E1E0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018E330 { extern "C" {
-int FindSwObjectsByClass(void *g, int a, int b, int c, int cMax, void **ap);
-void UpdateStepguardPickpocket(void *p);
+namespace M_func_0018E330 {
+int FindSwObjectsByClass(void *g, int a, int b, int c, int cMax, void **ap) __asm__("FindSwObjectsByClass");
+void UpdateStepguardPickpocket(void *p) __asm__("UpdateStepguardPickpocket");
 // World callback registered by OnJtActive: runs UpdateStepguardPickpocket on every guard (CID 0x38, at most 32).
-void UpdateAllGuardsPickpocket(void)
+extern "C" void UpdateAllGuardsPickpocket(void)
 {
     void *ap[32];
     int c, i;
@@ -4472,20 +4472,20 @@ void UpdateAllGuardsPickpocket(void)
     for (i = 0; i < c; i++)
         UpdateStepguardPickpocket(ap[i]);
 }
-} } // namespace M_func_0018E330
+} // namespace M_func_0018E330
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_0018E3A0 { extern "C" {
-extern const LONGU D_002A5F98;
-void OnStepplayerActive(void *p);
-void EnsureSwCallback(void *, void *, long, int);
+namespace M_func_0018E3A0 {
+extern const LONGU D_002A5F98 __asm__("D_002A5F98");
+void OnStepplayerActive(void *p) __asm__("OnStepplayerActive");
+void EnsureSwCallback(void *, void *, long, int) __asm__("EnsureSwCallback");
 // JT slot 78 (becomes active): STEPPLAYER base, then registers the guard pickpocket callback.
-void OnJtActive(void *p)
+extern "C" void OnJtActive(void *p)
 {
     OnStepplayerActive(p);
     EnsureSwCallback(&g_sw, p, D_002A5F98.l, 0);
 }
-} } // namespace M_func_0018E3A0
+} // namespace M_func_0018E3A0
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
@@ -4509,9 +4509,9 @@ LO *D_002E1E40;   /* g_pjt */
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_jt {
 void p_func_0018E330() __asm__("UpdateAllGuardsPickpocket");
-extern "C" {
-extern const unsigned int D_002A5F98[2] = {0xFFFF0000, (unsigned int)p_func_0018E330};
-}
+
+extern const unsigned int D_002A5F98[2] __asm__("D_002A5F98") = {0xFFFF0000, (unsigned int)p_func_0018E330};
+
 } // namespace ANPTR_jt
 
 // ---- jt's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
@@ -4559,88 +4559,88 @@ SNIP D_002BF1B0[0x12] = {{0x0, 0x13C, 0x19A0}, {0x0, 0x13D, 0x19A4}, {0x200, 0x1
     {0x300, 0x115, 0x1C84}, {0x100, 0x5F5, 0x1D20}, {0x100, 0x5F6, 0x1D24}, {0x220, 0x14C, 0x1A88},
     {0x220, 0x14D, 0x1A8C}, {0x220, 0x14E, 0x1A90}, {0x220, 0x14F, 0x1A94}, {0x220, 0x151, 0x1A98},
     {0x220, 0x152, 0x1A9C}};
-namespace M_func_00188960 { extern "C" {
-float D_002BF288 = 4000.0f;
-float D_002BF28C = 4500.0f;
-float D_002BF290 = 100.0f;
-float D_002BF294 = 1.0f;
-} } // namespace M_func_00188960 extern "C"
-namespace M_func_00188CC8 { extern "C" {
-float D_002BF298 = 0.25f;
-float D_002BF29C = 3.0f;
-} } // namespace M_func_00188CC8 extern "C"
+namespace M_func_00188960 {
+float D_002BF288 __asm__("D_002BF288") = 4000.0f;
+float D_002BF28C __asm__("D_002BF28C") = 4500.0f;
+float D_002BF290 __asm__("D_002BF290") = 100.0f;
+float D_002BF294 __asm__("D_002BF294") = 1.0f;
+} // namespace M_func_00188960 extern "C"
+namespace M_func_00188CC8 {
+float D_002BF298 __asm__("D_002BF298") = 0.25f;
+float D_002BF29C __asm__("D_002BF29C") = 3.0f;
+} // namespace M_func_00188CC8 extern "C"
 int D_002BF2A0[3][2] = {{24, -1}, {19, -1}, {21, -1}};
 int D_002BF2B8[3][2] = {{25, -1}, {18, -1}, {20, -1}};
 namespace M_UpdateJtLean__FP2JT {
-extern "C" float D_002BF2D0 = 0.1f;
-extern "C" float D_002BF2D4 = 1000.0f;
-extern "C" float D_002BF2D8 = 20.0f;
-extern "C" float D_002BF2DC = -7.5f;
-extern "C" float D_002BF2E0 = 0.5f;
-extern "C" float D_002BF2F0[4] __attribute__((aligned(16))) = {0.0f, 2.0f, -1.0f, 0.0f};   /* gap object: no code reads it by this address */
-extern "C" float D_002BF300 = 1000.0f;
+extern float D_002BF2D0 __asm__("D_002BF2D0") = 0.1f;
+extern float D_002BF2D4 __asm__("D_002BF2D4") = 1000.0f;
+extern float D_002BF2D8 __asm__("D_002BF2D8") = 20.0f;
+extern float D_002BF2DC __asm__("D_002BF2DC") = -7.5f;
+extern float D_002BF2E0 __asm__("D_002BF2E0") = 0.5f;
+extern float D_002BF2F0[4] __asm__("D_002BF2F0") __attribute__((aligned(16))) = {0.0f, 2.0f, -1.0f, 0.0f};   /* gap object: no code reads it by this address */
+extern float D_002BF300 __asm__("D_002BF300") = 1000.0f;
 } // namespace M_UpdateJtLean__FP2JT
 CLQ D_002BF310 __attribute__((aligned(16))) = {{{0.0f, 2.0f, -1.0f, 0.0f}}};
 SMPA D_002BF320 = {4.0f, 0.0f, 0.5f, 10.0f};
 CLQ D_002BF330 = {{{0.0f, 0.5f, 0.0f, 0.0f}}};
 namespace M_RebuildJtXmg {
-extern "C" int D_002BF340 = 0x42480000;
-extern "C" int D_002BF344 = (int)0xC2480000;
+extern int D_002BF340 __asm__("D_002BF340") = 0x42480000;
+extern int D_002BF344 __asm__("D_002BF344") = (int)0xC2480000;
 } // namespace M_RebuildJtXmg
 namespace M_func_0018A4E8 {
-extern "C" SMP D_002BF348 = {600.0f, 300.0f, 0.1f};
+extern SMP D_002BF348 __asm__("D_002BF348") = {600.0f, 300.0f, 0.1f};
 } // namespace M_func_0018A4E8
 namespace M_JtChooseGroundState {
-extern "C" float D_002BF354 = 150.0f;
+extern float D_002BF354 __asm__("D_002BF354") = 150.0f;
 } // namespace M_JtChooseGroundState
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
-extern "C" float D_002BF358 = 3.0f;
+extern float D_002BF358 __asm__("D_002BF358") = 3.0f;
 } // namespace M_SetJtJts__FP2JT3JTS4JTBS
-namespace M_UpdateJtPre { extern "C" {
-float D_002BF35C = 0.1f;
-} } // namespace M_UpdateJtPre extern "C"
+namespace M_UpdateJtPre {
+float D_002BF35C __asm__("D_002BF35C") = 0.1f;
+} // namespace M_UpdateJtPre extern "C"
 namespace M_JtChooseGroundState {
-extern "C" float D_002BF360 = 5.0f;
-extern "C" float D_002BF364 = 0.5f;
+extern float D_002BF360 __asm__("D_002BF360") = 5.0f;
+extern float D_002BF364 __asm__("D_002BF364") = 0.5f;
 } // namespace M_JtChooseGroundState
 VECTOR4 D_002BF370 = {-50.0f, 0.0f, 300.0f, 0.0f};
-namespace M_func_0018B460 { extern "C" {
-float D_002BF380 = 0.15f;
-} } // namespace M_func_0018B460 extern "C"
+namespace M_func_0018B460 {
+float D_002BF380 __asm__("D_002BF380") = 0.15f;
+} // namespace M_func_0018B460 extern "C"
 VECTOR4 D_002BF390 = {0.0f, 0.0f, 25.0f, 0.0f};
-namespace M_func_0018B460 { extern "C" {
-float D_002BF3A0 = 0.75f;
-} } // namespace M_func_0018B460 extern "C"
+namespace M_func_0018B460 {
+float D_002BF3A0 __asm__("D_002BF3A0") = 0.75f;
+} // namespace M_func_0018B460 extern "C"
 LM D_002BF3A8 = {-1.0f, 1.0f};
 LM D_002BF3B0 = {-50.0f, 35.0f};
-namespace M_func_0018B460 { extern "C" {
-float D_002BF3B8 = 120.0f;
-float D_002BF3BC = 0.25f;
-} } // namespace M_func_0018B460 extern "C"
-namespace M_UpdateJtPre { extern "C" {
-float D_002BF3C0 = 1000.0f;
-float D_002BF3C4 = 1.0f;
-float D_002BF3C8 = 0.4f;
-float D_002BF3CC = 0.5f;
-float D_002BF3D0 = 0.25f;   /* gap object: no code reads it by this address */
-} } // namespace M_UpdateJtPre extern "C"
-namespace M_UpdateJt { extern "C" {
-float D_002BF3D4 = 1.3f;
-float D_002BF3D8 = 0.85f;
-float D_002BF3DC = 20.0f;
-} } // namespace M_UpdateJt extern "C"
+namespace M_func_0018B460 {
+float D_002BF3B8 __asm__("D_002BF3B8") = 120.0f;
+float D_002BF3BC __asm__("D_002BF3BC") = 0.25f;
+} // namespace M_func_0018B460 extern "C"
+namespace M_UpdateJtPre {
+float D_002BF3C0 __asm__("D_002BF3C0") = 1000.0f;
+float D_002BF3C4 __asm__("D_002BF3C4") = 1.0f;
+float D_002BF3C8 __asm__("D_002BF3C8") = 0.4f;
+float D_002BF3CC __asm__("D_002BF3CC") = 0.5f;
+float D_002BF3D0 __asm__("D_002BF3D0") = 0.25f;   /* gap object: no code reads it by this address */
+} // namespace M_UpdateJtPre extern "C"
+namespace M_UpdateJt {
+float D_002BF3D4 __asm__("D_002BF3D4") = 1.3f;
+float D_002BF3D8 __asm__("D_002BF3D8") = 0.85f;
+float D_002BF3DC __asm__("D_002BF3DC") = 20.0f;
+} // namespace M_UpdateJt extern "C"
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
-extern "C" float D_002BF3E0 = 400.0f;
-extern "C" float D_002BF3E4 = 0.25f;
-extern "C" float D_002BF3E8 = 1000.0f;
+extern float D_002BF3E0 __asm__("D_002BF3E0") = 400.0f;
+extern float D_002BF3E4 __asm__("D_002BF3E4") = 0.25f;
+extern float D_002BF3E8 __asm__("D_002BF3E8") = 1000.0f;
 } // namespace M_SetJtJts__FP2JT3JTS4JTBS
 float D_002BF3EC = 0.25f;
 float D_002BF3F0 = 1.35f;
 namespace M_func_0018DF60 {
-extern "C" SMP D_002BF3F8 = {25.0f, 0.0f, 0.25f};
-extern "C" SMP D_002BF408 = {1000.0f, 0.0f, 0.25f};
+extern SMP D_002BF3F8 __asm__("D_002BF3F8") = {25.0f, 0.0f, 0.25f};
+extern SMP D_002BF408 __asm__("D_002BF408") = {1000.0f, 0.0f, 0.25f};
 } // namespace M_func_0018DF60
-namespace M_func_0018E1E0 { extern "C" {
-float D_002BF414 = 200.0f;
-} } // namespace M_func_0018E1E0 extern "C"
+namespace M_func_0018E1E0 {
+float D_002BF414 __asm__("D_002BF414") = 200.0f;
+} // namespace M_func_0018E1E0 extern "C"
 SMPA D_002BF418 = {1000.0f, 0.0f, 0.5f, 0.0f};

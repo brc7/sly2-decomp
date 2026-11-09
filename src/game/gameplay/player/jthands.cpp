@@ -767,7 +767,7 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_jthands {
 void p_func_001CCA20() __asm__("UpdateJtHandsCallback");
-extern "C" {
-extern const unsigned int D_002A77C8[2] = {0xFFFF0000, (unsigned int)p_func_001CCA20};
-}
+
+extern const unsigned int D_002A77C8[2] __asm__("D_002A77C8") = {0xFFFF0000, (unsigned int)p_func_001CCA20};
+
 } // namespace ANPTR_jthands

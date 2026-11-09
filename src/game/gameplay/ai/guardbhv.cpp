@@ -210,27 +210,27 @@ extern "C" STEPGUARD *GetStepguardFromLo(LO *p) {
 }
 
 // 0x174920 InitBhvanim
-namespace M_InitBhvanim { extern "C" {
+namespace M_InitBhvanim {
 
-void InitBhv(BHVANIM *p);
+void InitBhv(BHVANIM *p) __asm__("InitBhv");
 // 0x174920: BHVANIM vtable slot 7 (OnPush): base, state -1, no guard flag (shared by BHV160).
-void InitBhvanim(BHVANIM *behavior)
+extern "C" void InitBhvanim(BHVANIM *behavior)
 {
     InitBhv(behavior);
     behavior->sgf = 0;
     behavior->state = -1;
 }
-} } // namespace M_InitBhvanim
+} // namespace M_InitBhvanim
 
 // 0x174950 StartBhvanim
-namespace M_StartBhvanim { extern "C" {
+namespace M_StartBhvanim {
 
-void StartBhv(BHVANIM *p);
-void AddStepguardSgf(void *p, int n);
-ANIMBINDING *FindCurrentAnimBinding(void *p);
+void StartBhv(BHVANIM *p) __asm__("StartBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
+ANIMBINDING *FindCurrentAnimBinding(void *p) __asm__("FindCurrentAnimBinding");
 // 0x174950: BHVANIM vtable slot 8 (Start): raises the behaviour's guard flag, picks the animation binding for the
 // guard's current flags and enters state 0 (playing), or state 1 (done) when there is none.
-void StartBhvanim(BHVANIM *behavior) {
+extern "C" void StartBhvanim(BHVANIM *behavior) {
     StartBhv(behavior);
     AddStepguardSgf(behavior->owner, behavior->sgf);
     if (!behavior->binding) {
@@ -239,19 +239,19 @@ void StartBhvanim(BHVANIM *behavior) {
     }
     SetBhvanimState(behavior, 0);
 }
-} } // namespace M_StartBhvanim
+} // namespace M_StartBhvanim
 
 // 0x1749C0 SetBhvanimState
-namespace M_SetBhvanimState { extern "C" {
-void SetStepguardMoverDriver(void *p, BHVANIM *ps);
-void ResetStepguardMover(void *p, BHVANIM *ps);
-int StepguardHasSgf(STEPGUARD *o, int n);
-void StartAnimBinding(ANIMBINDING *e, STEPGUARD *o, int n, float g);
-void StopAnimBinding(ANIMBINDING *e);
-void ClearBhvBusy(BHVANIM *p);
+namespace M_SetBhvanimState {
+void SetStepguardMoverDriver(void *p, BHVANIM *ps) __asm__("SetStepguardMoverDriver");
+void ResetStepguardMover(void *p, BHVANIM *ps) __asm__("ResetStepguardMover");
+int StepguardHasSgf(STEPGUARD *o, int n) __asm__("StepguardHasSgf");
+void StartAnimBinding(ANIMBINDING *e, STEPGUARD *o, int n, float g) __asm__("StartAnimBinding");
+void StopAnimBinding(ANIMBINDING *e) __asm__("StopAnimBinding");
+void ClearBhvBusy(BHVANIM *p) __asm__("ClearBhvBusy");
 // 0x1749C0: BHVANIM state switch: 0 becomes the mover's driver and starts the binding (continuing the walk cycle
 // phase for flag 9); 1 clears busy, saves the walk phase, stops the binding and releases the mover.
-void SetBhvanimState(BHVANIM *behavior, int n) {
+extern "C" void SetBhvanimState(BHVANIM *behavior, int n) {
     if (behavior->state == n) return;
     behavior->state = n;
     behavior->stateTime = g_clock.time;
@@ -281,7 +281,7 @@ void SetBhvanimState(BHVANIM *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvanimState
+} // namespace M_SetBhvanimState
 
 // 0x174B28 CloseBhvanim
 // 0x174B28: BHVANIM vtable slot 9 (Close): base, state 1 (stop the animation), lowers its guard flag.
@@ -294,12 +294,12 @@ void BHVANIM::Close()
 }
 
 // 0x174B68 UpdateBhvanim
-namespace M_UpdateBhvanim { extern "C" {
+namespace M_UpdateBhvanim {
 
-void UpdateBhv(BHVANIM *p);
-int IsAnimBindingDone(void *p);
+void UpdateBhv(BHVANIM *p) __asm__("UpdateBhv");
+int IsAnimBindingDone(void *p) __asm__("IsAnimBindingDone");
 // 0x174B68: BHVANIM vtable slot 10 (Update): finishes (state 1) when the animation is done.
-void UpdateBhvanim(BHVANIM *behavior) {
+extern "C" void UpdateBhvanim(BHVANIM *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -307,22 +307,22 @@ void UpdateBhvanim(BHVANIM *behavior) {
         if (s == 0 && IsAnimBindingDone(behavior->binding)) SetBhvanimState(behavior, 1);
     } while (s != behavior->state);
 }
-} } // namespace M_UpdateBhvanim
+} // namespace M_UpdateBhvanim
 
 // 0x174BD0 HandleBhvanimMessage
-namespace M_BHVANIM_FHandleMessage { extern "C" {
+namespace M_BHVANIM_FHandleMessage {
 typedef union { qword q; float f; } U;
-extern LO *D_002F7900;          /* one of the three heroes (screen.cpp) */
-qword GetStepAsegaTranslation(STEP *pstep, ASEGA *asega, float f);
-void LockStepguardMover(GUARDMOVER *pmover, BHVANIM *s);
-void UnlockStepguardMover(GUARDMOVER *pmover, BHVANIM *s);
-BHV *FindStepBehavior(STEP *pstep, int cid);
-LO *GetHeroPo(SW *psw);
-void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
-int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor);
-void JoltCamera(void *p, int n);
-void SetSoZapMode(SO *pso, int n);
-} } // namespace M_BHVANIM_FHandleMessage
+extern LO *D_002F7900 __asm__("D_002F7900");          /* one of the three heroes (screen.cpp) */
+qword GetStepAsegaTranslation(STEP *pstep, ASEGA *asega, float f) __asm__("GetStepAsegaTranslation");
+void LockStepguardMover(GUARDMOVER *pmover, BHVANIM *s) __asm__("LockStepguardMover");
+void UnlockStepguardMover(GUARDMOVER *pmover, BHVANIM *s) __asm__("UnlockStepguardMover");
+BHV *FindStepBehavior(STEP *pstep, int cid) __asm__("FindStepBehavior");
+LO *GetHeroPo(SW *psw) __asm__("GetHeroPo");
+void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f) __asm__("TriggerJoyRumbleRumk__FP3JOY4RUMKf");
+int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor) __asm__("IsLoSelfOrDescendantOf");
+void JoltCamera(void *p, int n) __asm__("JoltCamera");
+void SetSoZapMode(SO *pso, int n) __asm__("SetSoZapMode");
+} // namespace M_BHVANIM_FHandleMessage
 // 0x174BD0: BHVANIM vtable slot 13 (HandleMessage): message 9 carries an ASEG event of the playing animation: 0x15E
 // root-motion translation, 0x25/0x26 lock/unlock the mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, rumble
 // and camera events, and so on; other messages go to the base.
@@ -397,26 +397,26 @@ extern "C" int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm
 }
 
 // 0x174EA0 GetBhvanimGroundProbeFlags
-namespace M_BHVANIM_GrfGroundProbe { extern "C" {
+namespace M_BHVANIM_GrfGroundProbe {
 struct U; 
 struct U { char pad[0x10]; int mode; };
-int GetBhvGroundProbeFlags(BHVANIM *p);
+int GetBhvGroundProbeFlags(BHVANIM *p) __asm__("GetBhvGroundProbeFlags");
 // 0x174EA0: BHVANIM vtable slot 12 (ground-probe flags): when the binding drives a kind-2 payload, from its mode (7
 // for modes 0/3/4, else 1); else the base value.
-int GetBhvanimGroundProbeFlags(BHVANIM *behavior) {
+extern "C" int GetBhvanimGroundProbeFlags(BHVANIM *behavior) {
     if (behavior->binding->kind == 2) {
         switch (((struct U *)behavior->binding->asega)->mode) { case 0: case 3: case 4: return 7; default: return 1; }
     }
     return GetBhvGroundProbeFlags(behavior);
 }
-} } // namespace M_BHVANIM_GrfGroundProbe
+} // namespace M_BHVANIM_GrfGroundProbe
 
 // 0x174F08 UpdateBhvanimMotion
-namespace M_UpdateBhvanimMotion { extern "C" {
-void DriveStepguardFromAnim(ANIMBINDING *binding, STEPGUARD *guard);
-float atan2f(float y, float x);
-void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f);
-} } // namespace M_UpdateBhvanimMotion
+namespace M_UpdateBhvanimMotion {
+void DriveStepguardFromAnim(ANIMBINDING *binding, STEPGUARD *guard) __asm__("DriveStepguardFromAnim");
+float atan2f(float y, float x) __asm__("atan2f");
+void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f) __asm__("SetStepguardMoverRadTarget");
+} // namespace M_UpdateBhvanimMotion
 // 0x174F08: BHVANIM vtable slot 11 (UpdateMotion): while playing, drives the guard's velocity from the animation's
 // root motion (else zero) and faces the look-at object.
 extern "C" void UpdateBhvanimMotion(BHVANIM *behavior)
@@ -452,18 +452,18 @@ void BHVIDLE::OnPush()
 }
 
 // 0x174FF8 StartBhvidle
-namespace M_StartBhvidle { extern "C" {
+namespace M_StartBhvidle {
 
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-void StartBhvanim(BHVIDLE *p);
-int StepguardHasSgf(STEPGUARD *t, int n);
-void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q);
-void ResetDetectorTargets(void *p);
-void SetXfRole(STEPGUARD *t, XF *a, int b);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void StartBhvanim(BHVIDLE *p) __asm__("StartBhvanim");
+int StepguardHasSgf(STEPGUARD *t, int n) __asm__("StepguardHasSgf");
+void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q) __asm__("SetStepguardAttack");
+void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
+void SetXfRole(STEPGUARD *t, XF *a, int b) __asm__("SetXfRole");
 // 0x174FF8: BHVIDLE vtable slot 8 (Start): BHVANIM Start; with the hands-off flag (1) also cancels the attack and
 // resets the detector targets; sets the XF roles.
-void StartBhvidle(BHVIDLE *behavior) {
+extern "C" void StartBhvidle(BHVIDLE *behavior) {
     StartBhvanim(behavior);
     if (StepguardHasSgf(((STEPGUARD *)behavior->owner), 1)) {
         SetStepguardAttack(((STEPGUARD *)behavior->owner), 0, 0, D_002A2DD0);
@@ -473,12 +473,12 @@ void StartBhvidle(BHVIDLE *behavior) {
     SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->positionXf, 1);
     if (!behavior->lookAt) SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 1);
 }
-} } // namespace M_StartBhvidle
+} // namespace M_StartBhvidle
 
 // 0x175090 CloseBhvidle
-namespace M_CloseBhvidle { extern "C" {
-void SetXfRole(STEPGUARD *t, XF *a, int b);
-} } // namespace M_CloseBhvidle
+namespace M_CloseBhvidle {
+void SetXfRole(STEPGUARD *t, XF *a, int b) __asm__("SetXfRole");
+} // namespace M_CloseBhvidle
 // 0x175090: BHVIDLE vtable slot 9 (Close): BHVANIM Close and restores the XF roles.
 extern "C" void CloseBhvidle(BHVIDLE *behavior)
 {
@@ -511,17 +511,17 @@ extern "C" int HandleBhvidleMessage(BHVIDLE *behavior, int msg, ASEGEVENTMSG *pm
 }
 
 // 0x1751C0 InitBhvstrike
-namespace M_InitBhvstrike { extern "C" {
+namespace M_InitBhvstrike {
 
-void InitBhvanim(BHVSTRIKE *p);
+void InitBhvanim(BHVSTRIKE *p) __asm__("InitBhvanim");
 // 0x1751C0: BHVSTRIKE vtable slot 7 (OnPush): BHVANIM OnPush with the attacking flag (3, which broadcasts game
 // event 0x14).
-void InitBhvstrike(BHVSTRIKE *behavior)
+extern "C" void InitBhvstrike(BHVSTRIKE *behavior)
 {
     InitBhvanim(behavior);
     behavior->sgf = 3;
 }
-} } // namespace M_InitBhvstrike
+} // namespace M_InitBhvstrike
 
 // 0x1751F0 StartBhvstrike
 // 0x1751F0: BHVSTRIKE vtable slot 8 (Start): marks the guard engaged-busy (+0xF3C), BHVANIM Start, and enables the
@@ -541,15 +541,15 @@ void BHVSTRIKE::Start()
 }
 
 // 0x175258 UpdateBhvstrike
-namespace M_UpdateBhvstrike { extern "C" {
+namespace M_UpdateBhvstrike {
 
 typedef int qword __attribute__((mode(TI)));
-void UpdateBhvanim(BHVSTRIKE *p);
-qword GetLoWorldPos(void *p);
-void SetLeapTarget(void *p, qword q);
+void UpdateBhvanim(BHVSTRIKE *p) __asm__("UpdateBhvanim");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void SetLeapTarget(void *p, qword q) __asm__("SetLeapTarget");
 // 0x175258: BHVSTRIKE vtable slot 10 (Update): BHVANIM update; while the leap is enabled keeps its target on the
 // victim.
-void UpdateBhvstrike(BHVSTRIKE *behavior)
+extern "C" void UpdateBhvstrike(BHVSTRIKE *behavior)
 {
     UpdateBhvanim(behavior);
     if (!behavior->binding || !behavior->binding->asega)
@@ -559,24 +559,24 @@ void UpdateBhvstrike(BHVSTRIKE *behavior)
         SetLeapTarget(t->asega, GetLoWorldPos(behavior->lookAt));
     }
 }
-} } // namespace M_UpdateBhvstrike
+} // namespace M_UpdateBhvstrike
 
 // 0x1752C0 CloseBhvstrike
-namespace M_CloseBhvstrike { extern "C" {
+namespace M_CloseBhvstrike {
 
-void CloseBhvanim(BHVSTRIKE *p);
+void CloseBhvanim(BHVSTRIKE *p) __asm__("CloseBhvanim");
 // 0x1752C0: BHVSTRIKE vtable slot 9 (Close): BHVANIM Close and clears engaged-busy.
-void CloseBhvstrike(BHVSTRIKE *behavior)
+extern "C" void CloseBhvstrike(BHVSTRIKE *behavior)
 {
     CloseBhvanim(behavior);
     ((STEPGUARD *)behavior->owner)->isEngagedBusy = 0;
 }
-} } // namespace M_CloseBhvstrike
+} // namespace M_CloseBhvstrike
 
 // 0x1752F0 HandleBhvstrikeMessage
-namespace M_BHVSTRIKE_FHandleMessage { extern "C" {
-void ReleaseLeapConstraint(void *pleap);
-} } // namespace M_BHVSTRIKE_FHandleMessage
+namespace M_BHVSTRIKE_FHandleMessage {
+void ReleaseLeapConstraint(void *pleap) __asm__("ReleaseLeapConstraint");
+} // namespace M_BHVSTRIKE_FHandleMessage
 // 0x1752F0: BHVSTRIKE vtable slot 13 (HandleMessage): ASEG events 0x2D/0x2E open/close the hit window, 0x30
 // releases the leap; else the BHVANIM handler.
 extern "C" int HandleBhvstrikeMessage(BHVSTRIKE *behavior, int msg, ASEGEVENTMSG *pm) {
@@ -591,18 +591,18 @@ extern "C" int HandleBhvstrikeMessage(BHVSTRIKE *behavior, int msg, ASEGEVENTMSG
 }
 
 // 0x1753D8 InitBhvattack
-namespace M_InitBhvattack { extern "C" {
+namespace M_InitBhvattack {
 
-void InitBhv(BHVATTACK *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHVATTACK *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x1753D8: BHVATTACK vtable slot 7 (OnPush): raises flag 0x18 (attack in progress), state -1.
-void InitBhvattack(BHVATTACK *behavior)
+extern "C" void InitBhvattack(BHVATTACK *behavior)
 {
     InitBhv(behavior);
     AddStepguardSgf(behavior->owner, SGF_ATTACK);
     behavior->state = -1;
 }
-} } // namespace M_InitBhvattack
+} // namespace M_InitBhvattack
 
 // 0x175410 StartBhvattack
 // 0x175410: BHVATTACK vtable slot 8 (Start): state 0 (strike), busy.
@@ -624,10 +624,10 @@ extern "C" void CloseBhvattack(BHVATTACK *behavior)
 }
 
 // 0x175488 SetBhvattackState
-namespace M_SetBhvattackState { extern "C" {
-void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, XF *pxf, qword v);
-BHV *PushStepBehavior(void *pstep, int cid);
-} } // namespace M_SetBhvattackState
+namespace M_SetBhvattackState {
+void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, XF *pxf, qword v) __asm__("SetStepguardAimAct");
+BHV *PushStepBehavior(void *pstep, int cid) __asm__("PushStepBehavior");
+} // namespace M_SetBhvattackState
 // 0x175488: BHVATTACK state switch: 0 subscribes to the victim and pushes a BHVSTRIKE with the chosen attack and
 // aim; 1 pushes the follow-through animation (flag 4) after a confirmed hit; -1 clears busy.
 extern "C" void SetBhvattackState(BHVATTACK *behavior, int n) {
@@ -672,14 +672,14 @@ extern "C" void SetBhvattackState(BHVATTACK *behavior, int n) {
 }
 
 // 0x175600 UpdateBhvattack
-namespace M_UpdateBhvattack { extern "C" {
+namespace M_UpdateBhvattack {
 
-void UpdateBhv(BHVATTACK *p);
-int IsBhvBusyAbove(BHVATTACK *p);
-int IsBhvanimDone(void *p);
+void UpdateBhv(BHVATTACK *p) __asm__("UpdateBhv");
+int IsBhvBusyAbove(BHVATTACK *p) __asm__("IsBhvBusyAbove");
+int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
 // 0x175600: BHVATTACK vtable slot 10 (Update): after the strike, goes to the follow-through if the victim confirmed
 // the hit, else finishes.
-void UpdateBhvattack(BHVATTACK *behavior) {
+extern "C" void UpdateBhvattack(BHVATTACK *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -696,7 +696,7 @@ void UpdateBhvattack(BHVATTACK *behavior) {
         }
     } while (s != behavior->state);
 }
-} } // namespace M_UpdateBhvattack
+} // namespace M_UpdateBhvattack
 
 // 0x1756C0 HandleBhvattackMessage
 // 0x1756C0: BHVATTACK vtable slot 13 (HandleMessage): message 0xB from the victim naming this guard means the hit
@@ -724,18 +724,18 @@ extern "C" int IsBhvattackDone(BHVATTACK *behavior)
 }
 
 // 0x175758 InitBhvcombat
-namespace M_InitBhvcombat { extern "C" {
+namespace M_InitBhvcombat {
 
-void InitBhv(BHVCOMBAT *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHVCOMBAT *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x175758: BHVCOMBAT vtable slot 7 (OnPush): raises flag 0x1D (engaged), state -1.
-void InitBhvcombat(BHVCOMBAT *behavior)
+extern "C" void InitBhvcombat(BHVCOMBAT *behavior)
 {
     InitBhv(behavior);
     AddStepguardSgf(behavior->owner, SGF_COMBAT);
     behavior->state = -1;
 }
-} } // namespace M_InitBhvcombat
+} // namespace M_InitBhvcombat
 
 // 0x175790 StartBhvcombat
 // 0x175790: BHVCOMBAT vtable slot 8 (Start): state 3 (pursue) and sets the guard's target.
@@ -764,21 +764,21 @@ extern "C" int IsBhvcombatDone(BHVCOMBAT *behavior)
 }
 
 // 0x175820 FilterAttackLineOfSightHit
-namespace M_func_00175820 { extern "C" {
+namespace M_func_00175820 {
 struct U; struct O; struct Y;
 struct U { char pad[0x70]; unsigned long unknownFlags70; };   /* the hit object's SOTREE (so.h names it to +0x6C) */
 struct O { char pad[0xEC]; struct U *unknownEC; };
 struct Y { int pad; struct O *hitObject; int pad2[2]; unsigned long hitFlags; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
-int FilterAttackLineOfSightHit(CID120 *x, struct Y *p) {
+extern "C" int FilterAttackLineOfSightHit(CID120 *x, struct Y *p) {
     if (p->hitFlags & (1UL << 48)) return 0;
     if (p->hitObject->unknownEC->unknownFlags70 & 4) return 0;
     if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
     return !IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
 }
-} } // namespace M_func_00175820
+} // namespace M_func_00175820
 
 // 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
@@ -792,7 +792,7 @@ union U { qword q; float f[4]; };
 struct SCALE { char pad[0x20]; float value; };   /* STEPGUARD::scale's record */
 struct LSG { U point; char rest[0x50]; };
 struct LOS { U start, end; LSG hit; };
-extern "C" void Decref__4CRef(void *);
+extern void Decref__4CRef(void *) __asm__("Decref__4CRef");
 struct POLY { float a, b, c; };
 struct BASIC {
     char pad0[0xC];
@@ -800,20 +800,20 @@ struct BASIC {
     virtual void Release();
     virtual void HandleSpliceEvent(unsigned symidEvent, int fPost, int cargs, void **ppvargs, CRef *pref);
 };
-extern "C" {
-extern POLY D_002BE600;
-extern LM D_002BBB60;
-int DoesTargetRecordAllowGuard(void *, STEPGUARD *);
-unsigned GetSourceIndexFromProxyId__Fi(unsigned);
-int IsWithinLimits__FP2LMf(LM *, float);
-qword ConvertPosBetweenLos(LO *, LO *, qword);
-float atan2f(float, float);
-int FilterAttackLineOfSightHit(void *, void *);
-void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
-int FindFirstObjectHitByLine(int, qword, qword, int, void **, LSG *);
-void SetStepguardAttack(STEPGUARD *, CID120 *, XF *, qword);
-void SetTargetRecordState(void *, int);
-}
+
+extern POLY D_002BE600 __asm__("D_002BE600");
+extern LM D_002BBB60 __asm__("D_002BBB60");
+int DoesTargetRecordAllowGuard(void *, STEPGUARD *) __asm__("DoesTargetRecordAllowGuard");
+unsigned GetSourceIndexFromProxyId__Fi(unsigned) __asm__("GetSourceIndexFromProxyId__Fi");
+int IsWithinLimits__FP2LMf(LM *, float) __asm__("IsWithinLimits__FP2LMf");
+qword ConvertPosBetweenLos(LO *, LO *, qword) __asm__("ConvertPosBetweenLos");
+float atan2f(float, float) __asm__("atan2f");
+int FilterAttackLineOfSightHit(void *, void *) __asm__("FilterAttackLineOfSightHit");
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int, qword, qword, int, void **, LSG *) __asm__("FindFirstObjectHitByLine");
+void SetStepguardAttack(STEPGUARD *, CID120 *, XF *, qword) __asm__("SetStepguardAttack");
+void SetTargetRecordState(void *, int) __asm__("SetTargetRecordState");
+
 // VU0 helper: vector difference.
 /* the second "j"(v) is allocation-only (same helper as GetHeroInteractDistance): it fixes the from/to lqc2 reloads */
 static inline qword VuLengthXY(qword v)
@@ -941,23 +941,23 @@ extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gat
 } // namespace M_PentryChooseStepguardAttack
 
 // 0x175D00 CanBhvcombatShoot
-namespace M_FBhvcombatCanShoot { extern "C" {
+namespace M_FBhvcombatCanShoot {
 struct X; struct Y; struct R;
 struct X { int a[4]; };          /* the STACKSCOPE (constructed and destroyed by hand: the out-of-line pair) */
 struct Y { char pad[0x60]; };    /* the line test's hit record */
 struct R { int pad; LO *hitObject; };
-float GetStepHeading(STEP *pstep);
-void GetVectorSphere(qword v, float *a, float *b, float *c);
-int IsWithinLimits__FP2LMf(LM *plm, float f);
-float NormalizeAngle__Ff(float f);
-qword *GetLoWorldMatrix(LO *plo);
-void CalculateVectorPanTilt(qword v, int n, float *pf);
-void STACKSCOPE_ctor(struct X *x);
+float GetStepHeading(STEP *pstep) __asm__("GetStepHeading");
+void GetVectorSphere(qword v, float *a, float *b, float *c) __asm__("GetVectorSphere");
+int IsWithinLimits__FP2LMf(LM *plm, float f) __asm__("IsWithinLimits__FP2LMf");
+float NormalizeAngle__Ff(float f) __asm__("NormalizeAngle__Ff");
+qword *GetLoWorldMatrix(LO *plo) __asm__("GetLoWorldMatrix");
+void CalculateVectorPanTilt(qword v, int n, float *pf) __asm__("CalculateVectorPanTilt");
+void STACKSCOPE_ctor(struct X *x) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
-int ShouldKeepSoNotSelf(void);
-void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, int *pb);
-struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, int d, struct Y *y);
-} } // namespace M_FBhvcombatCanShoot
+int ShouldKeepSoNotSelf(void) __asm__("ShouldKeepSoNotSelf");
+void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, int *pb) __asm__("IntersectSwBoundingBox");
+struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, int d, struct Y *y) __asm__("FindFirstObjectHitByLine");
+} // namespace M_FBhvcombatCanShoot
 // 0x175D00: True if the guard should use its ranged attack now: it can shoot (capability bit 3), no attack is
 // running, the target is inside its range/pan/tilt limits and visible; immediately when the target is out of melee
 // reach (hanging, on a ledge, ...).
@@ -1052,11 +1052,11 @@ extern "C" int TryBhvcombatChooseAttack(BHVCOMBAT *behavior)
 }
 
 // 0x176060 HasBhvcombatLostTarget
-namespace M_FBhvcombatLostTarget { extern "C" {
+namespace M_FBhvcombatLostTarget {
 
-int IsTargetRecordStale(void *p);
+int IsTargetRecordStale(void *p) __asm__("IsTargetRecordStale");
 // 0x176060: True if the target is lost: no hit confirmed and the shared target record is stale.
-int HasBhvcombatLostTarget(BHVCOMBAT *behavior)
+extern "C" int HasBhvcombatLostTarget(BHVCOMBAT *behavior)
 {
     int f;
     if (behavior->isHitConfirmed)
@@ -1067,10 +1067,10 @@ int HasBhvcombatLostTarget(BHVCOMBAT *behavior)
         f = IsTargetRecordStale(((STEPGUARD *)behavior->owner)->pvEngage);
     return f;
 }
-} } // namespace M_FBhvcombatLostTarget
+} // namespace M_FBhvcombatLostTarget
 
 // 0x176098 UpdateBhvcombat
-namespace M_UpdateBhvcombat { extern "C" {
+namespace M_UpdateBhvcombat {
 union U; struct SCALE; struct X; struct WORK;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef union U{qword q;float f[4];}U;
@@ -1078,25 +1078,25 @@ typedef struct SCALE{char pad[0x20];float value;}SCALE;   /* STEPGUARD::scale's 
 /* a PATHLINKEND without its clearing constructor (ClearPointerPair is called by hand, after the distance tests) */
 typedef struct X{void*a,*b;char pad8[8];qword point;}X;
 typedef struct WORK{X frame;QWROW point;}WORK;
-extern float D_002BE614;
+extern float D_002BE614 __asm__("D_002BE614");
 
-int IsStepguardHandsOff(STEPGUARD*);
-int HasBhvcombatLostTarget(BHVCOMBAT*);
-struct CID17*FindPathzoneAtPos(qword,int);
-void ClearPointerPair(X*);
-void SetBhvgotoGoal(void*,X*);
-int IsBhvattackDone(void*);
-int IsBhvshootDone(void*);
-int IsBhvanimDone(void*);
-void EmitStepguardStimulus(STEPGUARD*,LO*);
+int IsStepguardHandsOff(STEPGUARD*) __asm__("IsStepguardHandsOff");
+int HasBhvcombatLostTarget(BHVCOMBAT*) __asm__("HasBhvcombatLostTarget");
+struct CID17*FindPathzoneAtPos(qword,int) __asm__("FindPathzoneAtPos");
+void ClearPointerPair(X*) __asm__("ClearPointerPair");
+void SetBhvgotoGoal(void*,X*) __asm__("SetBhvgotoGoal");
+int IsBhvattackDone(void*) __asm__("IsBhvattackDone");
+int IsBhvshootDone(void*) __asm__("IsBhvshootDone");
+int IsBhvanimDone(void*) __asm__("IsBhvanimDone");
+void EmitStepguardStimulus(STEPGUARD*,LO*) __asm__("EmitStepguardStimulus");
 // Stores a quadword (keeps the target's instruction choice).
-static inline void StorePoint(QWROW*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
+extern "C" { static inline void StorePoint(QWROW*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");} }
 // VU0 helper: x of a VU register as a float (register-pinned).
-static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
+extern "C" { static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;} }
 // VU0 helper: square root of x.
-static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;}
+extern "C" { static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;} }
 // Matching helper (register-pinned asm): horizontal distance from `pos` to a point; also returns the actor and its mode.
-static inline float DistanceXY(BHVCOMBAT *p, QWROW *point, qword pos, STEPGUARD **actor, int *mode)
+extern "C" { static inline float DistanceXY(BHVCOMBAT *p, QWROW *point, qword pos, STEPGUARD **actor, int *mode)
 {
     register qword a __asm__("vf2"), b __asm__("vf3"), d __asm__("vf1");
     STEPGUARD *o;
@@ -1114,11 +1114,11 @@ static inline float DistanceXY(BHVCOMBAT *p, QWROW *point, qword pos, STEPGUARD 
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(n));
     *actor = o;
     return f;
-}
+} }
 // Returns the region object of the actor's tuning owner (NULL if none).
-static inline struct CID17*ActorRegion(STEPGUARD*actor){REGENT*owner=actor->physics?actor->physics->pregent:0;return owner?owner->pathzone:0;}
+extern "C" { static inline struct CID17*ActorRegion(STEPGUARD*actor){REGENT*owner=actor->physics?actor->physics->pregent:0;return owner?owner->pathzone:0;} }
 // Matching helper (register-pinned asm): true if the actor moved farther than a .data threshold from `point`.
-static inline int Moved(BHVCOMBAT *p, QWROW *point)
+extern "C" { static inline int Moved(BHVCOMBAT *p, QWROW *point)
 {
     register qword a __asm__("vf2"), d __asm__("vf1");
     qword one;
@@ -1138,7 +1138,7 @@ static inline int Moved(BHVCOMBAT *p, QWROW *point)
     distance = XFloat(d);
     result = threshold < distance ? result : 0;
     return result;
-}
+} }
 typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char X_Size[sizeof(X)==32?1:-1];
 typedef char WORK_Size[sizeof(WORK)==48?1:-1];
@@ -1151,7 +1151,7 @@ typedef char WORK_point_Offset[FIELD_OFFSET(WORK,point)==32?1:-1];
 // 0x176098: BHVCOMBAT vtable slot 10 (Update): state machine 0 close in / 3 pursue -> 1 melee attack, 2 ranged
 // attack, 4 give up, 5 hands-off; re-goals the pursuit when the target moves far or changes path zone; emits a
 // stimulus to alert others.
-void UpdateBhvcombat(BHVCOMBAT *behavior)
+extern "C" void UpdateBhvcombat(BHVCOMBAT *behavior)
 {
     WORK work;
     int old;
@@ -1250,26 +1250,26 @@ void UpdateBhvcombat(BHVCOMBAT *behavior)
 typedef char Pointer_Size[sizeof(void*)==4?1:-1];
 typedef char Integer_Size[sizeof(int)==4?1:-1];
 typedef char Qword_Size[sizeof(qword)==16?1:-1];
-} } // namespace M_UpdateBhvcombat
+} // namespace M_UpdateBhvcombat
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A5408 __asm__("D_002A5408") = 3.40282347e+38f; }
 // 0x176458 SetBhvcombatState
-namespace M_SetBhvcombatState { extern "C" {
+namespace M_SetBhvcombatState {
 typedef int qword __attribute__((mode(TI)));
-extern float D_002A5408;
-void PopBhv(void *p);
-float RandomFloatInRange__Fff(float a, float b);
-BHV *PushStepBehavior(void *p, int n);
-void SetTargetRecordState(void *p, int n);
-void SetBhvgotoGoal(BHVGOTO *p, PATHLINKEND *x);
-struct CID17 *FindPathzoneAtPos(qword v, int n);
-void SetDetectorTargetStateById(void *p, LO *a, int b);
+extern float D_002A5408 __asm__("D_002A5408");
+void PopBhv(void *p) __asm__("PopBhv");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+void SetTargetRecordState(void *p, int n) __asm__("SetTargetRecordState");
+void SetBhvgotoGoal(BHVGOTO *p, PATHLINKEND *x) __asm__("SetBhvgotoGoal");
+struct CID17 *FindPathzoneAtPos(qword v, int n) __asm__("FindPathzoneAtPos");
+void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x176458: BHVCOMBAT state switch: 0 circle (BHVCIRCLE), 1 attack (BHVATTACK), 2 shoot (BHVSHOOT), 3 run toward
 // the target (BHVGOTO with flag 0x1C), 4 lost-him animation (flag 0xD) and drop the target, 5 hands-off idle.
-void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
+extern "C" void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
     if (behavior->state == 1) {
@@ -1341,7 +1341,7 @@ void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvcombatState
+} // namespace M_SetBhvcombatState
 
 // 0x1766D8 InitBhvguard
 // 0x1766D8: BHVGUARD vtable slot 7 (OnPush): no mode (-1).
@@ -1352,10 +1352,10 @@ void BHVGUARD::OnPush()
 }
 
 // 0x176708 StartBhvguard
-namespace M_StartBhvguard { extern "C" {
+namespace M_StartBhvguard {
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m);
-} } // namespace M_StartBhvguard
+void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) __asm__("SetBhvguardMode");
+} // namespace M_StartBhvguard
 // 0x176708: BHVGUARD vtable slot 8 (Start): mode 0 (which immediately becomes patrol).
 extern "C" void StartBhvguard(BHV156 *p)
 {
@@ -1368,16 +1368,16 @@ extern "C" void StartBhvguard(BHV156 *p)
 }
 
 // 0x176750 SetBhvguardMode
-namespace M_SetBhvguardMode { extern "C" {
-extern float D_002BE618[2];
-int IsBhvguardModeSame(BHVGUARDRECDATA *a, BHVGUARDRECDATA *b);
-void PopBhv(void *p);
-BHV *PushStepBehavior(STEPGUARD *p, int n);
-void SetBhvScriptScript(BHV169 *o, void *a, int b, int c);
-void SetBhvSearchWatched(BHV171 *o, void *n);
-float RandomFloatInRange__Fff(float a, float b);
-void SetStepguardTarget(STEPGUARD *p, int n);
-} }
+namespace M_SetBhvguardMode {
+extern float D_002BE618[2] __asm__("D_002BE618");
+int IsBhvguardModeSame(BHVGUARDRECDATA *a, BHVGUARDRECDATA *b) __asm__("IsBhvguardModeSame");
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(STEPGUARD *p, int n) __asm__("PushStepBehavior");
+void SetBhvScriptScript(BHV169 *o, void *a, int b, int c) __asm__("SetBhvScriptScript");
+void SetBhvSearchWatched(BHV171 *o, void *n) __asm__("SetBhvSearchWatched");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+void SetStepguardTarget(STEPGUARD *p, int n) __asm__("SetStepguardTarget");
+}
 // 0x176750: BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the new
 // mode: 1 patrol, 2 search a stimulus, 3 alert animation, 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, and the
 // special modes.
@@ -1540,10 +1540,10 @@ extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
 // (end of SetBhvguardMode: M_SetBhvguardMode)
 
 // 0x176B80 InflictBhvguardZap
-namespace M_InflictBhvguardZap { extern "C" {
+namespace M_InflictBhvguardZap {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void DeliverZapToSo(ZPR *pzpr);
-} } // namespace M_InflictBhvguardZap
+void DeliverZapToSo(ZPR *pzpr) __asm__("DeliverZapToSo");
+} // namespace M_InflictBhvguardZap
 // 0x176B80: Inflicts a zap of kind 0x40000 and `amount` on the guard from `source`.
 extern "C" void InflictBhvguardZap(BHVGUARD *behavior, int amount, SO *source)
 {
@@ -1564,27 +1564,27 @@ union U; struct WORK; struct OFFSETINPUTS;
 union U{qword q;float f[4];};
 struct WORK{BHVGUARDRECDATA next;U scalar,own,other,copy,delta;};
 struct OFFSETINPUTS{qword own,other,copy;};
-extern "C"{
-extern MURRAY*D_002F7900;
-extern float D_002BE620;
+
+extern MURRAY*D_002F7900 __asm__("D_002F7900");
+extern float D_002BE620 __asm__("D_002BE620");
 void*func_002333B4(void*,int,unsigned) __asm__("memset");
-MATRIX4*GetLoWorldMatrix(LO*);
-qword ConvertVecBetweenLos(LO*,LO*,qword);
-void SpawnMurrayHitEffectUnchecked(MURRAY*,qword);
-void SpawnMurrayHitEffect(MURRAY*,qword);
-LO*NewNoise(void*,qword,STEPGUARD*);
-void SetStepguardSpecial(STEPGUARD*,int);
-void SetSoZapMode(SO*,int);
-unsigned GetSoZapResponseFlags(SO*,unsigned);
-int GetZapKindIndex(unsigned);
-void SetTargetRecordState(TARGETREC*,int);
-void SetBhvSleepState(BHV175*,int);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,STEPGUARD*,float,float,int,ASEGA**);
-unsigned long GetSgfMask(int);
-int IsStepguardTargetValidEx(STEPGUARD*,LO*,unsigned long);
-int IsStepguardTargetValid(STEPGUARD*,LO*,unsigned long);
-void*FindBestAnimBinding(STEPGUARD*,unsigned long);
-}
+MATRIX4*GetLoWorldMatrix(LO*) __asm__("GetLoWorldMatrix");
+qword ConvertVecBetweenLos(LO*,LO*,qword) __asm__("ConvertVecBetweenLos");
+void SpawnMurrayHitEffectUnchecked(MURRAY*,qword) __asm__("SpawnMurrayHitEffectUnchecked");
+void SpawnMurrayHitEffect(MURRAY*,qword) __asm__("SpawnMurrayHitEffect");
+LO*NewNoise(void*,qword,STEPGUARD*) __asm__("NewNoise");
+void SetStepguardSpecial(STEPGUARD*,int) __asm__("SetStepguardSpecial");
+void SetSoZapMode(SO*,int) __asm__("SetSoZapMode");
+unsigned GetSoZapResponseFlags(SO*,unsigned) __asm__("GetSoZapResponseFlags");
+int GetZapKindIndex(unsigned) __asm__("GetZapKindIndex");
+void SetTargetRecordState(TARGETREC*,int) __asm__("SetTargetRecordState");
+void SetBhvSleepState(BHV175*,int) __asm__("SetBhvSleepState");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,STEPGUARD*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+unsigned long GetSgfMask(int) __asm__("GetSgfMask");
+int IsStepguardTargetValidEx(STEPGUARD*,LO*,unsigned long) __asm__("IsStepguardTargetValidEx");
+int IsStepguardTargetValid(STEPGUARD*,LO*,unsigned long) __asm__("IsStepguardTargetValid");
+void*FindBestAnimBinding(STEPGUARD*,unsigned long) __asm__("FindBestAnimBinding");
+
 // Clears a mode record.
 static __inline__ void Clear(BHVGUARDRECDATA*s){(void)func_002333B4(s,0,sizeof(*s));}
 // The guard's zap-reaction binding tables (STEPGUARD::knockdownReactions and hurtReactions), indexed by zap kind.
@@ -1872,26 +1872,26 @@ typedef char layout_WORK_delta[((unsigned long)&((WORK*)0)->delta==0xB0)?1:-1];
 
 // 0x177618 UpdateBhvguard
 namespace M_UpdateBhvguard {
-extern "C"{
- int IsBhvguardEscortActive(BHV156*);
- int HasBhvguardTargetList(BHV*);
- int IsBhvguardModeSame(const BHVGUARDRECDATA*,const BHVGUARDRECDATA*);
- void SetBhvguardMode(BHV156*,const BHVGUARDRECDATA*);
+
+ int IsBhvguardEscortActive(BHV156*) __asm__("IsBhvguardEscortActive");
+ int HasBhvguardTargetList(BHV*) __asm__("HasBhvguardTargetList");
+ int IsBhvguardModeSame(const BHVGUARDRECDATA*,const BHVGUARDRECDATA*) __asm__("IsBhvguardModeSame");
+ void SetBhvguardMode(BHV156*,const BHVGUARDRECDATA*) __asm__("SetBhvguardMode");
  void*func_002333B4(void*,int,unsigned int) __asm__("memset");
- int IsStepguardForceClass(STEPGUARD*,LO*);
- float GetRandomStepguardDelay(STEPGUARD*);
- STIMULUS*ChooseStepguardStimulus(STEPGUARD*,STIMULUS*);
- void SetBhvSearchWatched(BHV171*,STIMULUS*);
- int IsBhvSearchIdle(BHV171*);
- int IsBhvScriptDone(BHV*);
- LO*EmitSwNoise(SW*,int,qword,STEPGUARD*);
- void RemoveNoise(LO*);
- void InflictBhvguardZap(BHV156*,int,SO*);
- int IsBhvThrownDone(BHV*);
- int IsBhvRelocateDone(BHV*);
- int IsBhvStalkDone(BHV*);
- void ResumeBhvguard(BHV156*);
-}
+ int IsStepguardForceClass(STEPGUARD*,LO*) __asm__("IsStepguardForceClass");
+ float GetRandomStepguardDelay(STEPGUARD*) __asm__("GetRandomStepguardDelay");
+ STIMULUS*ChooseStepguardStimulus(STEPGUARD*,STIMULUS*) __asm__("ChooseStepguardStimulus");
+ void SetBhvSearchWatched(BHV171*,STIMULUS*) __asm__("SetBhvSearchWatched");
+ int IsBhvSearchIdle(BHV171*) __asm__("IsBhvSearchIdle");
+ int IsBhvScriptDone(BHV*) __asm__("IsBhvScriptDone");
+ LO*EmitSwNoise(SW*,int,qword,STEPGUARD*) __asm__("EmitSwNoise");
+ void RemoveNoise(LO*) __asm__("RemoveNoise");
+ void InflictBhvguardZap(BHV156*,int,SO*) __asm__("InflictBhvguardZap");
+ int IsBhvThrownDone(BHV*) __asm__("IsBhvThrownDone");
+ int IsBhvRelocateDone(BHV*) __asm__("IsBhvRelocateDone");
+ int IsBhvStalkDone(BHV*) __asm__("IsBhvStalkDone");
+ void ResumeBhvguard(BHV156*) __asm__("ResumeBhvguard");
+
 // Clears a mode record.
 static inline void Clear(BHVGUARDRECDATA*s){func_002333B4(s,0,sizeof(*s));}
 // Fills a mode record to engage `object`: a timed forced-class attack (kind 18, random delay) for forced classes, else plain combat (kind 3).
@@ -2103,22 +2103,22 @@ extern "C" void UpdateBhvguard(BHV156 *behavior)
 } // namespace M_UpdateBhvguard
 
 // 0x177BA0 ResumeBhvguard
-namespace M_ResumeBhvguard { extern "C" {
+namespace M_ResumeBhvguard {
 typedef int qword __attribute__((mode(TI)));
-extern float D_002A54D0;
-int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *p, int n);
-void *GetHeroPo(SW *g);
-int HasBhvguardTargetList(BHVGUARD *p);
-int ShouldBhvguardUseNeelaBehavior(BHV *p);
-int IsStepguardForceClass(STEPGUARD *p, void *q);
-float GetRandomStepguardDelay(STEPGUARD *p);
-qword GetLoWorldPos(STEPGUARD *p);
-void *EmitSwNoise(SW *g, int n, qword v, STEPGUARD *p);
-void SetBhvguardMode(BHVGUARD *p, BHVGUARDREC *f);
+extern float D_002A54D0 __asm__("D_002A54D0");
+int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void *GetHeroPo(SW *g) __asm__("GetHeroPo");
+int HasBhvguardTargetList(BHVGUARD *p) __asm__("HasBhvguardTargetList");
+int ShouldBhvguardUseNeelaBehavior(BHV *p) __asm__("ShouldBhvguardUseNeelaBehavior");
+int IsStepguardForceClass(STEPGUARD *p, void *q) __asm__("IsStepguardForceClass");
+float GetRandomStepguardDelay(STEPGUARD *p) __asm__("GetRandomStepguardDelay");
+qword GetLoWorldPos(STEPGUARD *p) __asm__("GetLoWorldPos");
+void *EmitSwNoise(SW *g, int n, qword v, STEPGUARD *p) __asm__("EmitSwNoise");
+void SetBhvguardMode(BHVGUARD *p, BHVGUARDREC *f) __asm__("SetBhvguardMode");
 // 0x177BA0: Picks the mode to resume after an interrupting mode ends: flee (Dimitri), stalk the hero (special
 // 0x15), the target list, Neela's chase, combat or stalk on the current target, investigate its own position after
 // being hit, else patrol.
-void ResumeBhvguard(BHVGUARD *behavior) {
+extern "C" void ResumeBhvguard(BHVGUARD *behavior) {
     BHVGUARDREC f;   /* cleared by its constructor (memset) */
     if (IsBasicDerivedFrom__FP5BASIC3CID((STEPGUARD *)behavior->owner, CID_DIMITRI) && ((DIMITRI *)behavior->owner)->routeCount > 0) {
         f.kind = GUARD_MODE_FLEE;
@@ -2159,7 +2159,7 @@ void ResumeBhvguard(BHVGUARD *behavior) {
     }
     SetBhvguardMode(behavior, &f);
 }
-} } // namespace M_ResumeBhvguard
+} // namespace M_ResumeBhvguard
 
 // 0x177D20 HasBhvguardTargetList
 // 0x177D20: True if the guard has designated targets or avoid objects.
@@ -2220,9 +2220,9 @@ extern "C" int IsBhvguardModeSame(BHVGUARDRECDATA *a, BHVGUARDRECDATA *b) {
 }
 
 // 0x177E80 InitBhvpath
-namespace M_InitBhvpath { extern "C" {
-extern float D_002BE624, D_002BE628, D_002BE62C;
-} } // namespace M_InitBhvpath
+namespace M_InitBhvpath {
+extern float D_002BE624 __asm__("D_002BE624"), D_002BE628 __asm__("D_002BE628"), D_002BE62C __asm__("D_002BE62C");
+} // namespace M_InitBhvpath
 // 0x177E80: BHVPATH vtable slot 7 (OnPush): no path, default speeds and radii, state -1.
 void BHVPATH::OnPush()
 {
@@ -2239,16 +2239,16 @@ void BHVPATH::OnPush()
 }
 
 // 0x177EF0 StartBhvpath
-namespace M_StartBhvpath { extern "C" {
+namespace M_StartBhvpath {
 
 typedef int qword __attribute__((mode(TI)));
-extern float D_002BE624, D_002BE628, D_002BE62C;
-void StartBhv(BHVPATH *p);
-qword GetLoWorldPos(void *p);
+extern float D_002BE624 __asm__("D_002BE624"), D_002BE628 __asm__("D_002BE628"), D_002BE62C __asm__("D_002BE62C");
+void StartBhv(BHVPATH *p) __asm__("StartBhv");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // The larger of two values.
 // The smaller of two values.
 // 0x177EF0: BHVPATH vtable slot 8 (Start): remembers the start position, clamps the radii from the speed, state 0.
-void StartBhvpath(BHVPATH *behavior) {
+extern "C" void StartBhvpath(BHVPATH *behavior) {
     float g;
     StartBhv(behavior);
     behavior->startPosition = GetLoWorldPos(behavior->owner);
@@ -2258,7 +2258,7 @@ void StartBhvpath(BHVPATH *behavior) {
     behavior->farRadius = Min(g, D_002BE628);
     behavior->SetPathState(0);
 }
-} } // namespace M_StartBhvpath
+} // namespace M_StartBhvpath
 
 // 0x177F78 StepBhvpathAlongShape
 namespace M_StepBhvpathAlongShape {
@@ -2360,21 +2360,21 @@ struct LM
 {
     float minValue, maxValue;
 };
-extern "C" {
-extern char D_003DD020[];
-extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0;
-extern float D_002BE630, D_002BE634, D_002BE658, D_002BE65C, D_002BE660, D_002BE664, D_002BE668, D_002BE66C, D_002BE670, D_002BE674, D_002BE690;
-extern CLQ D_002BE640, D_002BE680;
-extern LM D_002BE650, D_002BBB60;
-qword GetLoWorldPos(void *pobj);
-float WrapShapeDistance(CURVE *pcrv, float s);
-float GetShapeMaxDistance(CURVE *pcrv);
-void FindShapeClosestPointFromDistance(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
-void EvaluateShapeAtDistance(CURVE *pcrv, float s, VEC *ppos, VEC *pdir);
-int IsBhvpathAtEnd(S *p);
-void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1);
-int FindPathzoneClosestFreePoint(CONTEXT *pctx, qword pos, VEC *pv);
-}
+
+extern char D_003DD020[] __asm__("D_003DD020");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0");
+extern float D_002BE630 __asm__("D_002BE630"), D_002BE634 __asm__("D_002BE634"), D_002BE658 __asm__("D_002BE658"), D_002BE65C __asm__("D_002BE65C"), D_002BE660 __asm__("D_002BE660"), D_002BE664 __asm__("D_002BE664"), D_002BE668 __asm__("D_002BE668"), D_002BE66C __asm__("D_002BE66C"), D_002BE670 __asm__("D_002BE670"), D_002BE674 __asm__("D_002BE674"), D_002BE690 __asm__("D_002BE690");
+extern CLQ D_002BE640 __asm__("D_002BE640"), D_002BE680 __asm__("D_002BE680");
+extern LM D_002BE650 __asm__("D_002BE650"), D_002BBB60 __asm__("D_002BBB60");
+qword GetLoWorldPos(void *pobj) __asm__("GetLoWorldPos");
+float WrapShapeDistance(CURVE *pcrv, float s) __asm__("WrapShapeDistance");
+float GetShapeMaxDistance(CURVE *pcrv) __asm__("GetShapeMaxDistance");
+void FindShapeClosestPointFromDistance(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps) __asm__("FindShapeClosestPointFromDistance");
+void EvaluateShapeAtDistance(CURVE *pcrv, float s, VEC *ppos, VEC *pdir) __asm__("EvaluateShapeAtDistance");
+int IsBhvpathAtEnd(S *p) __asm__("IsBhvpathAtEnd");
+void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1) __asm__("FindClosestPointOnLineSegment");
+int FindPathzoneClosestFreePoint(CONTEXT *pctx, qword pos, VEC *pv) __asm__("FindPathzoneClosestFreePoint");
+
 struct VU_FLOAT
 {
     qword qw;
@@ -2764,18 +2764,18 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
 } // namespace M_StepBhvpathAlongShape
 
 // 0x1789F8 UpdateBhvpath
-namespace M_UpdateBhvpath { extern "C" {
+namespace M_UpdateBhvpath {
 struct T;
 struct G;
-extern struct G D_003DD020;
+extern struct G D_003DD020 __asm__("D_003DD020");
 /* the blocker FindShapeFreePoint returns: a shape-derived object with a flag at +0x1D8 (class unidentified) */
 struct T { char pad[0x28]; unsigned long loFlags; char pad2[0x1D8 - 0x30]; int unknown1D8; };
-void StepBhvpathAlongShape(BHVPATH *p);
-int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
-void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-float GetShapeDistanceBetween(struct T *p, float a, float b);
+void StepBhvpathAlongShape(BHVPATH *p) __asm__("StepBhvpathAlongShape");
+int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g) __asm__("FindShapeFreePoint");
+void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+float GetShapeDistanceBetween(struct T *p, float a, float b) __asm__("GetShapeDistanceBetween");
 // VU0 helper: distance between two points.
-static inline float Dist(qword a, qword b) {
+extern "C" { static inline float Dist(qword a, qword b) {
     qword d;
     float f;
     __asm__("vsub.xyzw %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
@@ -2783,10 +2783,10 @@ static inline float Dist(qword a, qword b) {
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 // 0x1789F8: BHVPATH vtable slot 10 (Update): follows the path; detects blockers on the shape and switches between
 // move, wait and end (3) states.
-void UpdateBhvpath(BHVPATH *behavior) {
+extern "C" void UpdateBhvpath(BHVPATH *behavior) {
     float g;
     qword pos;
     int s;
@@ -2847,7 +2847,7 @@ void UpdateBhvpath(BHVPATH *behavior) {
         }
     } while (behavior->state != s);
 }
-} } // namespace M_UpdateBhvpath
+} // namespace M_UpdateBhvpath
 
 // 0x178CD8 SetBhvpathState
 // 0x178CD8: BHVPATH state change: stores the state and its time.
@@ -2863,12 +2863,12 @@ extern "C" void SetBhvpathState(BHVPATH *behavior, int nState)
 SLY2_SCRAP("nop");
 
 // 0x178D00 IsBhvpathAtEnd
-namespace M_FBhvpathAtEnd { extern "C" {
+namespace M_FBhvpathAtEnd {
 
 typedef int qword __attribute__((mode(TI)));
-qword GetLoWorldPos(void *);
+qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
 // VU0 helper: distance between two points.
-static inline float Dist(qword a, qword b) {
+extern "C" { static inline float Dist(qword a, qword b) {
     qword d;
     float f;
     __asm__("vsub.xyzw %0, %2, %1" : "=&j"(d) : "j"(b), "j"(a));
@@ -2876,15 +2876,15 @@ static inline float Dist(qword a, qword b) {
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 // 0x178D00: True if the path end is defined and the guard is within the arrival radius of the end point.
-int IsBhvpathAtEnd(BHVPATH *behavior)
+extern "C" int IsBhvpathAtEnd(BHVPATH *behavior)
 {
     if (!behavior->hasEnd)
         return 0;
     return Dist(GetLoWorldPos(behavior->owner), behavior->endPoint) <= behavior->arrivalRadius;
 }
-} } // namespace M_FBhvpathAtEnd
+} // namespace M_FBhvpathAtEnd
 
 // 0x178D80 IsBhvpathFinished
 // 0x178D80: True if the path behaviour reached the end (state 3).
@@ -2894,15 +2894,15 @@ extern "C" int IsBhvpathFinished(BHVPATH *behavior)
 }
 
 // 0x178D90 SetBhvpathShape
-namespace M_SetBhvpathShape { extern "C" {
+namespace M_SetBhvpathShape {
 struct G;
-extern struct G D_003DD020;
-void FindShapeClosestPointFromDistance(SHAPE *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-void FindShapeClosestPoint(SHAPE *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-float GetShapeMinDistance(SHAPE *shape);
-float GetShapeMaxDistance(SHAPE *shape);
-void EvaluateShapeAtDistance(SHAPE *shape, float g, qword *pv, int n);
-} } // namespace M_SetBhvpathShape
+extern struct G D_003DD020 __asm__("D_003DD020");
+void FindShapeClosestPointFromDistance(SHAPE *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPointFromDistance");
+void FindShapeClosestPoint(SHAPE *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+float GetShapeMinDistance(SHAPE *shape) __asm__("GetShapeMinDistance");
+float GetShapeMaxDistance(SHAPE *shape) __asm__("GetShapeMaxDistance");
+void EvaluateShapeAtDistance(SHAPE *shape, float g, qword *pv, int n) __asm__("EvaluateShapeAtDistance");
+} // namespace M_SetBhvpathShape
 // 0x178D90: Sets the shape to follow and the direction: finds the start parameter (closest point) and, for open
 // shapes, the end point.
 extern "C" void SetBhvpathShape(BHVPATH *behavior, SHAPE *shape, int n) {
@@ -2926,10 +2926,10 @@ extern "C" void SetBhvpathShape(BHVPATH *behavior, SHAPE *shape, int n) {
 }
 
 // 0x178E98 InitBhvwalkpath
-namespace M_InitBhvwalkpath { extern "C" {
-extern float D_002BE694;
-void InitBhvpath(BHVPATH *p);
-} } // namespace M_InitBhvwalkpath
+namespace M_InitBhvwalkpath {
+extern float D_002BE694 __asm__("D_002BE694");
+void InitBhvpath(BHVPATH *p) __asm__("InitBhvpath");
+} // namespace M_InitBhvwalkpath
 // 0x178E98: BHVWALKPATH vtable slot 7 (OnPush): BHVPATH OnPush, walk animation flag 9, rate 1.
 void BHVWALKPATH::OnPush()
 {
@@ -2950,18 +2950,18 @@ struct MODEL { char pad[0x10]; qword velocity; };
 struct CONTROL { char pad[0x24]; void *animation; };
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
-extern "C" {
-extern CLQ D_002BE6A0;
-extern LM D_002BBB60;
-extern float D_002BE694, D_002BE6B0;
-extern qword D_002A2DC0;
-void UpdateBhvpath(BHVPATH *);
-MATRIX3 *GetLoWorldMatrix(LO *);
-void SetAsegaSpeed__FP5ASEGAf(void *, float);
-float atan2f(float, float);
-void SetStepguardMoverRadTarget(GUARDMOVER *, float);
-void SelectDirAnim(CONTROL *, qword);
-}
+
+extern CLQ D_002BE6A0 __asm__("D_002BE6A0");
+extern LM D_002BBB60 __asm__("D_002BBB60");
+extern float D_002BE694 __asm__("D_002BE694"), D_002BE6B0 __asm__("D_002BE6B0");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+void UpdateBhvpath(BHVPATH *) __asm__("UpdateBhvpath");
+MATRIX3 *GetLoWorldMatrix(LO *) __asm__("GetLoWorldMatrix");
+void SetAsegaSpeed__FP5ASEGAf(void *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
+float atan2f(float, float) __asm__("atan2f");
+void SetStepguardMoverRadTarget(GUARDMOVER *, float) __asm__("SetStepguardMoverRadTarget");
+void SelectDirAnim(CONTROL *, qword) __asm__("SelectDirAnim");
+
 // VU0 helper: a float in a VU register.
 static inline VU_FLOAT VuFloat(float g)
 {
@@ -3096,16 +3096,16 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
 } // namespace M_UpdateBhvwalkpath
 
 // 0x1791C8 SetBhvwalkpathState
-namespace M_SetBhvwalkpathState { extern "C" {
+namespace M_SetBhvwalkpathState {
 typedef int qword __attribute__((mode(TI)));
-extern float D_002BE694;
-void SetBhvpathState(BHVWALKPATH *p, int n);
-void PopBhv(void *p);
-BHV *PushStepBehavior(void *p, int n);
-qword GetLoWorldPos(void *p);
+extern float D_002BE694 __asm__("D_002BE694");
+void SetBhvpathState(BHVWALKPATH *p, int n) __asm__("SetBhvpathState");
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // 0x1791C8: BHVWALKPATH state change: moving states push the walk animation (its flag, 8 when carrying an object),
 // stopped states push BHVIDLE.
-void SetBhvwalkpathState(BHVWALKPATH *behavior, int n) {
+extern "C" void SetBhvwalkpathState(BHVWALKPATH *behavior, int n) {
     int old = behavior->state;
     if (n == old) return;
     SetBhvpathState(behavior, n);
@@ -3133,13 +3133,13 @@ void SetBhvwalkpathState(BHVWALKPATH *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvwalkpathState
+} // namespace M_SetBhvwalkpathState
 
 // 0x1792E8 IsBhvwalkpathStuck
-namespace M_FBhvwalkpathStuck { extern "C" {
+namespace M_FBhvwalkpathStuck {
 
 // 0x1792E8: True if the guard is walking and the stuck timer ran out.
-int IsBhvwalkpathStuck(BHVWALKPATH *behavior)
+extern "C" int IsBhvwalkpathStuck(BHVWALKPATH *behavior)
 {
     int f = 0;
     if (behavior->state < 2) {
@@ -3148,27 +3148,27 @@ int IsBhvwalkpathStuck(BHVWALKPATH *behavior)
     }
     return f;
 }
-} } // namespace M_FBhvwalkpathStuck
+} // namespace M_FBhvwalkpathStuck
 
 // 0x179328 StartBhvhit
-namespace M_StartBhvhit { extern "C" {
+namespace M_StartBhvhit {
 struct E4;
-extern float D_002A5584;
-extern LO *D_002F7900;
+extern float D_002A5584 __asm__("D_002A5584");
+extern LO *D_002F7900 __asm__("D_002F7900");
 /* the kind-2 (leap) binding's handle record (leap.h pads LEAP) */
 struct E4 { char pad[0x1C]; float knockbackDistance; };
-float atan2f(float y, float x);
-float *GetLoWorldMatrix(LO *plo);
-void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f);
-float NormalizeAngle__Ff(float f);
-qword SetVectorCylind(float a, float b, float c);
-void SetLeapTarget(void *p, qword v);
-void SetStepguardAttack(STEPGUARD *guard, int b, int c, qword v);
-void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, CID147 **ppnoise);
-LO *GetHeroPo(SW *psw);
-int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor);
-void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
-} } // namespace M_StartBhvhit
+float atan2f(float y, float x) __asm__("atan2f");
+float *GetLoWorldMatrix(LO *plo) __asm__("GetLoWorldMatrix");
+void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f) __asm__("SetStepguardMoverRadTarget");
+float NormalizeAngle__Ff(float f) __asm__("NormalizeAngle__Ff");
+qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
+void SetLeapTarget(void *p, qword v) __asm__("SetLeapTarget");
+void SetStepguardAttack(STEPGUARD *guard, int b, int c, qword v) __asm__("SetStepguardAttack");
+void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, CID147 **ppnoise) __asm__("ReplaceHeldSwNoise");
+LO *GetHeroPo(SW *psw) __asm__("GetHeroPo");
+int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor) __asm__("IsLoSelfOrDescendantOf");
+void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f) __asm__("TriggerJoyRumbleRumk__FP3JOY4RUMKf");
+} // namespace M_StartBhvhit
 // 0x179328: BHVHIT vtable slot 8 (Start): BHVANIM Start, faces away from the hit, knock-back leap, cancels the
 // attack, holds a pain noise, arms the rumble and zap-mode timers.
 extern "C" void StartBhvhit(BHVHIT *behavior) {
@@ -3226,14 +3226,14 @@ void BHVHIT::Close()
 
 namespace RO_ORDER { extern const float r_D_002A5584 __asm__("D_002A5584") = 3.40282347e+38f; }
 // 0x1795E8 UpdateBhvhit
-namespace M_UpdateBhvhit { extern "C" {
-void UpdateBhvanim(BHVHIT *p);
-qword GetLoWorldPos(void *p);
-void JoltCamera(void *p, int n);
-void SetSoZapMode(STEPGUARD *t, int n);
+namespace M_UpdateBhvhit {
+void UpdateBhvanim(BHVHIT *p) __asm__("UpdateBhvanim");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void JoltCamera(void *p, int n) __asm__("JoltCamera");
+void SetSoZapMode(STEPGUARD *t, int n) __asm__("SetSoZapMode");
 // 0x1795E8: BHVHIT vtable slot 10 (Update): BHVANIM update, keeps the held noise at the guard, fires the delayed
 // camera jolt and zap-mode change.
-void UpdateBhvhit(BHVHIT *behavior) {
+extern "C" void UpdateBhvhit(BHVHIT *behavior) {
     float t;
     UpdateBhvanim(behavior);
     {
@@ -3245,7 +3245,7 @@ void UpdateBhvhit(BHVHIT *behavior) {
     if (behavior->cameraJoltTime < t) { behavior->cameraJoltTime = 3.40282346638528859812e+38f; JoltCamera(&g_cm, 0); }
     if (behavior->zapModeTime < t) { behavior->zapModeTime = 3.40282346638528859812e+38f; SetSoZapMode(((STEPGUARD *)behavior->owner), 2); }
 }
-} } // namespace M_UpdateBhvhit
+} // namespace M_UpdateBhvhit
 
 // 0x1796A0 InitBhvHurt
 // 0x1796A0: Hurt behaviour (BHV161) vtable slot 7 (OnPush): BHVHIT OnPush with the hurt flag (5).
@@ -3256,21 +3256,21 @@ void BHV161::OnPush()
 }
 
 // 0x1796D0 StartBhvHurt
-namespace M_func_001796D0 { extern "C" {
-int GetZapKindIndex(int p);
-void StartBhvhit(BHV161 *p);
-void BroadcastGameEvent(void *g, int event, void *p);
-void SetDetectorTargetStateById(void *p, LO *a, int b);
+namespace M_func_001796D0 {
+int GetZapKindIndex(int p) __asm__("GetZapKindIndex");
+void StartBhvhit(BHV161 *p) __asm__("StartBhvhit");
+void BroadcastGameEvent(void *g, int event, void *p) __asm__("BroadcastGameEvent");
+void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x1796D0: Hurt behaviour vtable slot 8 (Start): picks the reaction from the hurt table by zap kind, BHVHIT Start,
 // broadcasts game event 0x15 and marks the attacker on the detector.
-void StartBhvHurt(BHV161 *behavior) {
+extern "C" void StartBhvHurt(BHV161 *behavior) {
     behavior->binding = &((STEPGUARD *)behavior->owner)->hurtReactions[GetZapKindIndex(behavior->zapKind)];
     if (behavior->binding->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
     BroadcastGameEvent(&g_game, 0x15, ((STEPGUARD *)behavior->owner));
     SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->attacker, 2);
 }
-} } // namespace M_func_001796D0
+} // namespace M_func_001796D0
 
 // 0x179750 InitBhvKnockdown
 // 0x179750: Knockdown behaviour (BHV162) vtable slot 7 (OnPush): BHVHIT OnPush with the knockdown flag (6).
@@ -3281,14 +3281,14 @@ void BHV162::OnPush()
 }
 
 // 0x179780 StartBhvKnockdown
-namespace M_func_00179780 { extern "C" {
-int GetZapKindIndex(int p);
-void StartBhvhit(BHV162 *p);
-void BroadcastGameEvent(void *g, int event, void *p);
-void SetDetectorTargetStateById(void *p, LO *a, int b);
+namespace M_func_00179780 {
+int GetZapKindIndex(int p) __asm__("GetZapKindIndex");
+void StartBhvhit(BHV162 *p) __asm__("StartBhvhit");
+void BroadcastGameEvent(void *g, int event, void *p) __asm__("BroadcastGameEvent");
+void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x179780: Knockdown behaviour vtable slot 8 (Start): reaction from the knockdown table, BHVHIT Start, game event
 // 0x15, starts the helper component (+0xFEC).
-void StartBhvKnockdown(BHV162 *behavior) {
+extern "C" void StartBhvKnockdown(BHV162 *behavior) {
     behavior->binding = &((STEPGUARD *)behavior->owner)->knockdownReactions[GetZapKindIndex(behavior->zapKind)];
     if (behavior->binding->kind == -1) behavior->binding = 0;
     StartBhvhit(behavior);
@@ -3296,46 +3296,46 @@ void StartBhvKnockdown(BHV162 *behavior) {
     SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->attacker, 2);
     { LO *o = ((STEPGUARD *)behavior->owner)->knockdownHelper; if (o) o->Add(); }
 }
-} } // namespace M_func_00179780
+} // namespace M_func_00179780
 
 // 0x179820 CloseBhvKnockdown
-namespace M_func_00179820 { extern "C" {
-void CloseBhvhit(BHV162 *p);
+namespace M_func_00179820 {
+void CloseBhvhit(BHV162 *p) __asm__("CloseBhvhit");
 // 0x179820: Knockdown behaviour vtable slot 9 (Close): BHVHIT Close and takes the helper object out of the world.
-void CloseBhvKnockdown(BHV162 *behavior)
+extern "C" void CloseBhvKnockdown(BHV162 *behavior)
 {
     LO *o;
     CloseBhvhit(behavior);
     o = ((STEPGUARD *)behavior->owner)->knockdownHelper;
     if (o) o->Remove();
 }
-} } // namespace M_func_00179820
+} // namespace M_func_00179820
 
 // 0x179868 InitBhvko
-namespace M_InitBhvko { extern "C" {
+namespace M_InitBhvko {
 
-void InitBhvanim(BHVKO *p);
+void InitBhvanim(BHVKO *p) __asm__("InitBhvanim");
 // 0x179868: BHVKO vtable slot 7 (OnPush): BHVHIT OnPush with the KO flag (7).
-void InitBhvko(BHVKO *behavior)
+extern "C" void InitBhvko(BHVKO *behavior)
 {
     InitBhvanim(behavior);
     behavior->sgf = 7;
 }
-} } // namespace M_InitBhvko
+} // namespace M_InitBhvko
 
 // 0x179898 StartBhvko
-namespace M_StartBhvko { extern "C" {
+namespace M_StartBhvko {
 /* StartBhvko (Claude agent lane G2, 2026-10-24). Count() is an inline whose else arm starts with the
    for-init `n = 0` (keeps the target's bltz/then-first layout). The coinDropPos vector is read into q before the call. */
-extern char D_002DE578[];
-int GetZapKindIndex(int mask);
-LO *GetHeroPo(SW *psw);
-void BroadcastGameEvent(void *a, int n, STEPGUARD *p);
-qword ConvertPosBetweenLos(LO *source, LO *target, qword v);
-void SprayDifficultyPrizes(void *a, qword v, int n, int m, STEPGUARD *p);
-void ResetDetectorTargets(DETECTOR *p);
+extern char D_002DE578[] __asm__("D_002DE578");
+int GetZapKindIndex(int mask) __asm__("GetZapKindIndex");
+LO *GetHeroPo(SW *psw) __asm__("GetHeroPo");
+void BroadcastGameEvent(void *a, int n, STEPGUARD *p) __asm__("BroadcastGameEvent");
+qword ConvertPosBetweenLos(LO *source, LO *target, qword v) __asm__("ConvertPosBetweenLos");
+void SprayDifficultyPrizes(void *a, qword v, int n, int m, STEPGUARD *p) __asm__("SprayDifficultyPrizes");
+void ResetDetectorTargets(DETECTOR *p) __asm__("ResetDetectorTargets");
 // Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
-static inline int Count(STEPGUARD *a) {
+extern "C" { static inline int Count(STEPGUARD *a) {
     int n, i;
     if (a->coinCountOverride >= 0) {
         n = a->coinCountOverride;
@@ -3347,10 +3347,10 @@ static inline int Count(STEPGUARD *a) {
         n = (n + 1) / 2;
     }
     return n;
-}
+} }
 // 0x179898: BHVKO vtable slot 8 (Start): reaction from the KO table, BHVHIT Start; the first time: marks the guard
 // KO, broadcasts 0x18 (by the hero) or 0x17, drops coins from its loot and resets the detector.
-void StartBhvko(BHVKO *behavior) {
+extern "C" void StartBhvko(BHVKO *behavior) {
     int n;
     STEPGUARD *a;
     ANIMBINDING *pe = &((STEPGUARD *)behavior->owner)->koReactions[GetZapKindIndex(behavior->zapKind)];
@@ -3381,7 +3381,7 @@ void StartBhvko(BHVKO *behavior) {
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_int[(sizeof(int)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
-} } // namespace M_StartBhvko
+} // namespace M_StartBhvko
 
 // 0x179A20 CloseBhvko
 // 0x179A20: BHVKO vtable slot 9 (Close): BHVHIT Close and refreshes the world filter.
@@ -3393,32 +3393,32 @@ void BHVKO::Close()
 }
 
 // 0x179A58 InitBhvpatrol
-namespace M_InitBhvpatrol { extern "C" {
+namespace M_InitBhvpatrol {
 
-void InitBhv(BHVPATROL *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHVPATROL *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x179A58: BHVPATROL vtable slot 7 (OnPush): raises flag 0x1E (patrolling), timers off.
-void InitBhvpatrol(BHVPATROL *behavior)
+extern "C" void InitBhvpatrol(BHVPATROL *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
     behavior->walkEndTime = behavior->pauseEndTime = 3.40282346638528859812e+38f;
     AddStepguardSgf(behavior->owner, SGF_PATROL);
 }
-} } // namespace M_InitBhvpatrol
+} // namespace M_InitBhvpatrol
 
 // 0x179AA0 StartBhvpatrol
-namespace M_StartBhvpatrol { extern "C" {
+namespace M_StartBhvpatrol {
 
 typedef int qword __attribute__((mode(TI)));
-void StartBhv(BHVPATROL *p);
-void SetBhvpatrolState(BHVPATROL *p, int n);
-qword GetLoWorldPos(void *p);
-void ChooseGuardScriptNearestCommand(CID113 *script, qword q, SSGRESUME *presume);
-int IsStepguardHandsOff(STEPGUARD *t);
+void StartBhv(BHVPATROL *p) __asm__("StartBhv");
+void SetBhvpatrolState(BHVPATROL *p, int n) __asm__("SetBhvpatrolState");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void ChooseGuardScriptNearestCommand(CID113 *script, qword q, SSGRESUME *presume) __asm__("ChooseGuardScriptNearestCommand");
+int IsStepguardHandsOff(STEPGUARD *t) __asm__("IsStepguardHandsOff");
 // 0x179AA0: BHVPATROL vtable slot 8 (Start): takes the patrol script (or the alternate one with capability 2),
 // resumes at the nearest script point, then walks (0), stands (2) or is hands-off (3).
-void StartBhvpatrol(BHVPATROL *behavior) {
+extern "C" void StartBhvpatrol(BHVPATROL *behavior) {
     STEPGUARD *t;
     StartBhv(behavior);
     t = ((STEPGUARD *)behavior->owner);
@@ -3428,7 +3428,7 @@ void StartBhvpatrol(BHVPATROL *behavior) {
     if (((STEPGUARD *)behavior->owner)->scriptResumePoint.command) ChooseGuardScriptNearestCommand(behavior->script, GetLoWorldPos(((STEPGUARD *)behavior->owner)), &((STEPGUARD *)behavior->owner)->scriptResumePoint);
     if (IsStepguardHandsOff(((STEPGUARD *)behavior->owner))) SetBhvpatrolState(behavior, 3); else SetBhvpatrolState(behavior, 0);
 }
-} } // namespace M_StartBhvpatrol
+} // namespace M_StartBhvpatrol
 
 // 0x179B60 CloseBhvpatrol
 // 0x179B60: BHVPATROL vtable slot 9 (Close): stops, lowers flag 0x1E.
@@ -3441,15 +3441,15 @@ void BHVPATROL::Close()
 }
 
 // 0x179BA0 UpdateBhvpatrol
-namespace M_UpdateBhvpatrol { extern "C" {
-void UpdateBhv(BHVPATROL *p);
-int IsStepguardHandsOff(void *p);
-int IsBhvBusyAbove(BHVPATROL *p);
-void SetBhvpatrolState(BHVPATROL *p, int n);
-int IsBhvScriptDone(void *p);
+namespace M_UpdateBhvpatrol {
+void UpdateBhv(BHVPATROL *p) __asm__("UpdateBhv");
+int IsStepguardHandsOff(void *p) __asm__("IsStepguardHandsOff");
+int IsBhvBusyAbove(BHVPATROL *p) __asm__("IsBhvBusyAbove");
+void SetBhvpatrolState(BHVPATROL *p, int n) __asm__("SetBhvpatrolState");
+int IsBhvScriptDone(void *p) __asm__("IsBhvScriptDone");
 // 0x179BA0: BHVPATROL vtable slot 10 (Update): alternates walking the script for a random time and standing idle
 // for a random time; stands forever when the script ends; pauses while hands-off.
-void UpdateBhvpatrol(BHVPATROL *behavior) {
+extern "C" void UpdateBhvpatrol(BHVPATROL *behavior) {
     int f, s;
     UpdateBhv(behavior);
     f = IsStepguardHandsOff(behavior->owner);
@@ -3479,18 +3479,18 @@ void UpdateBhvpatrol(BHVPATROL *behavior) {
         break;
     }
 }
-} } // namespace M_UpdateBhvpatrol
+} // namespace M_UpdateBhvpatrol
 
 // 0x179D30 SetBhvpatrolState
-namespace M_SetBhvpatrolState { extern "C" {
-BHV *PushStepBehavior(void *p, int n);
-void SaveBhvScriptResumeState(BHV *p, SSGRESUME *presume);
-void SetBhvScriptScript(BHV169 *o, CID113 *script, int a, SSGRESUME *presume);
-void ArmBhvpatrolPauseTimer(BHVPATROL *p);
-void ArmBhvpatrolWalkTimer(BHVPATROL *p);
+namespace M_SetBhvpatrolState {
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+void SaveBhvScriptResumeState(BHV *p, SSGRESUME *presume) __asm__("SaveBhvScriptResumeState");
+void SetBhvScriptScript(BHV169 *o, CID113 *script, int a, SSGRESUME *presume) __asm__("SetBhvScriptScript");
+void ArmBhvpatrolPauseTimer(BHVPATROL *p) __asm__("ArmBhvpatrolPauseTimer");
+void ArmBhvpatrolWalkTimer(BHVPATROL *p) __asm__("ArmBhvpatrolWalkTimer");
 // 0x179D30: BHVPATROL state switch: 0 runs the patrol script (BHV169, saving the resume point), 1/2 idle, 3
 // hands-off idle.
-void SetBhvpatrolState(BHVPATROL *behavior, int n) {
+void SetBhvpatrolState(BHVPATROL *behavior, int n) __asm__("SetBhvpatrolState"); void SetBhvpatrolState(BHVPATROL *behavior, int n) {
     if (n == behavior->state) return;
     if (behavior->state == 0) SaveBhvScriptResumeState(behavior->pbhvNext, &((STEPGUARD *)behavior->owner)->scriptResumePoint);
     PopBhv(&behavior->pbhvNext);
@@ -3523,13 +3523,13 @@ void SetBhvpatrolState(BHVPATROL *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvpatrolState
+} // namespace M_SetBhvpatrolState
 
 // 0x179E80 ArmBhvpatrolWalkTimer
-namespace M_ArmBhvpatrolWalkTimer { extern "C" {
-float RandomFloatInRange__Fff(float a, float b);
+namespace M_ArmBhvpatrolWalkTimer {
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 // 0x179E80: Arms the patrol walk timer from the guard's walk-time range (FLT_MAX = forever).
-void ArmBhvpatrolWalkTimer(BHVPATROL *behavior)
+extern "C" void ArmBhvpatrolWalkTimer(BHVPATROL *behavior)
 {
     if (behavior->walkEndTime < 3.40282346638528859812e+38f)
         return;
@@ -3540,13 +3540,13 @@ void ArmBhvpatrolWalkTimer(BHVPATROL *behavior)
         behavior->walkEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->walkTimes.minValue, ((STEPGUARD *)behavior->owner)->walkTimes.maxValue);
     }
 }
-} } // namespace M_ArmBhvpatrolWalkTimer
+} // namespace M_ArmBhvpatrolWalkTimer
 
 // 0x179EF8 ArmBhvpatrolPauseTimer
-namespace M_ArmBhvpatrolPauseTimer { extern "C" {
-float RandomFloatInRange__Fff(float a, float b);
+namespace M_ArmBhvpatrolPauseTimer {
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 // 0x179EF8: Arms the patrol pause timer from the guard's pause-time range.
-void ArmBhvpatrolPauseTimer(BHVPATROL *behavior)
+extern "C" void ArmBhvpatrolPauseTimer(BHVPATROL *behavior)
 {
     if (behavior->pauseEndTime < 3.40282346638528859812e+38f)
         return;
@@ -3557,19 +3557,19 @@ void ArmBhvpatrolPauseTimer(BHVPATROL *behavior)
         behavior->pauseEndTime = t + RandomFloatInRange__Fff(((STEPGUARD *)behavior->owner)->pauseTimes.minValue, ((STEPGUARD *)behavior->owner)->pauseTimes.maxValue);
     }
 }
-} } // namespace M_ArmBhvpatrolPauseTimer
+} // namespace M_ArmBhvpatrolPauseTimer
 
 // 0x179F70 InitBhvleap
-namespace M_InitBhvleap { extern "C" {
+namespace M_InitBhvleap {
 
-void InitBhvanim(BHVLEAP *p);
+void InitBhvanim(BHVLEAP *p) __asm__("InitBhvanim");
 // 0x179F70: BHVLEAP vtable slot 7 (OnPush): BHVANIM OnPush with the leaping flag (0xF).
-void InitBhvleap(BHVLEAP *behavior)
+extern "C" void InitBhvleap(BHVLEAP *behavior)
 {
     InitBhvanim(behavior);
     behavior->sgf = 0xF;
 }
-} } // namespace M_InitBhvleap
+} // namespace M_InitBhvleap
 
 // 0x179FA0 StartBhvleap
 namespace M_StartBhvleap {
@@ -3581,29 +3581,29 @@ struct INFO{char pad[0x58];LO*target;int reverse;int extra;};   /* the leap (bin
 union TEMP{struct{U direction;MATRIX3Q rotation;}first;MATRIX3Q basis;};
 struct WORK{TEMP temp;float curve;};
 struct LIMIT{float low,high;};
-extern "C"{
- extern unsigned long D_002DFB70;
- extern int D_002DFB78;
- extern qword D_002A2DC0;
- extern LIMIT D_002BE6B8;
- unsigned long GetSgfMask(int);
- int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
- qword GetLoWorldPos(void*);
- MATRIX3Q*GetLoWorldMatrix(void*);
- void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*);
- float atan2f(float,float);
- float NormalizeAngle__Ff(float);
- void BuildAxisAngleRotationMatrix(MATRIX3Q*,float,qword);
- MATRIX3Q*BuildOrthonormalMatrixZ(MATRIX3Q*,qword,qword);
- void GetPipeGoalMatrix(LO*,int,MATRIX3Q*,float);
- void AdjustBhvleapAttachPoint(BHVLEAP*);
- int SnapToGround(qword*,float,float,int,int(*)(void));
- void StartBhvanim(BHVLEAP*);
- void SetStepguardMoverRadTarget(GUARDMOVER*,float);
- void SetStepguardMoverTargetMatrix(GUARDMOVER*,MATRIX3Q*);
- void SetLeapTarget(INFO*,qword);
- void SetBhvBusy(BHVLEAP*);
-}
+
+ extern unsigned long D_002DFB70 __asm__("D_002DFB70");
+ extern int D_002DFB78 __asm__("D_002DFB78");
+ extern qword D_002A2DC0 __asm__("D_002A2DC0");
+ extern LIMIT D_002BE6B8 __asm__("D_002BE6B8");
+ unsigned long GetSgfMask(int) __asm__("GetSgfMask");
+ int IsBasicDerivedFrom__FP5BASIC3CID(void*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+ qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
+ MATRIX3Q*GetLoWorldMatrix(void*) __asm__("GetLoWorldMatrix");
+ void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*) __asm__("FindShapeClosestPoint");
+ float atan2f(float,float) __asm__("atan2f");
+ float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+ void BuildAxisAngleRotationMatrix(MATRIX3Q*,float,qword) __asm__("BuildAxisAngleRotationMatrix");
+ MATRIX3Q*BuildOrthonormalMatrixZ(MATRIX3Q*,qword,qword) __asm__("BuildOrthonormalMatrixZ");
+ void GetPipeGoalMatrix(LO*,int,MATRIX3Q*,float) __asm__("GetPipeGoalMatrix");
+ void AdjustBhvleapAttachPoint(BHVLEAP*) __asm__("AdjustBhvleapAttachPoint");
+ int SnapToGround(qword*,float,float,int,int(*)(void)) __asm__("SnapToGround");
+ void StartBhvanim(BHVLEAP*) __asm__("StartBhvanim");
+ void SetStepguardMoverRadTarget(GUARDMOVER*,float) __asm__("SetStepguardMoverRadTarget");
+ void SetStepguardMoverTargetMatrix(GUARDMOVER*,MATRIX3Q*) __asm__("SetStepguardMoverTargetMatrix");
+ void SetLeapTarget(INFO*,qword) __asm__("SetLeapTarget");
+ void SetBhvBusy(BHVLEAP*) __asm__("SetBhvBusy");
+
 // Heading (atan2) of a vector's xy components.
 static inline float Angle(qword delta)
 {
@@ -3758,29 +3758,29 @@ void BHVLEAP::Close()
 }
 
 // 0x17A400 UpdateBhvleap
-namespace M_UpdateBhvleap { extern "C" {
+namespace M_UpdateBhvleap {
 struct U; struct T; 
 struct U { char pad[0x10]; int mode; };
 struct T { int a, b; struct U *payload; };
-void UpdateBhvanim(BHVLEAP *p);
-void SetStepguardMoverTargetMatrix(void *p, void *q);
+void UpdateBhvanim(BHVLEAP *p) __asm__("UpdateBhvanim");
+void SetStepguardMoverTargetMatrix(void *p, void *q) __asm__("SetStepguardMoverTargetMatrix");
 // 0x17A400: BHVLEAP vtable slot 10 (Update): BHVANIM update; after the jump phase locks the heading to the attach
 // basis.
-void UpdateBhvleap(BHVLEAP *behavior)
+extern "C" void UpdateBhvleap(BHVLEAP *behavior)
 {
     UpdateBhvanim(behavior);
     if (behavior->hasAttachBasis && !behavior->state && ((struct T *)behavior->binding)->payload->mode >= 2)
         SetStepguardMoverTargetMatrix((&((STEPGUARD *)behavior->owner)->mover), &behavior->attachBasis);
 }
-} } // namespace M_UpdateBhvleap
+} // namespace M_UpdateBhvleap
 
 // 0x17A468 AdjustBhvleapAttachPoint
-namespace M_func_0017A468 { extern "C" {
+namespace M_func_0017A468 {
 struct B; struct C;
 struct B { char pad[0x90]; qword v; };   /* the guard's attach point (STEPGUARD +0xF90, untyped) */
 struct C { char pad[0x30]; qword v; };   /* the root XF */
 // 0x17A468: Offsets the leap landing point by the guard's attach-point offset in the attach basis.
-void AdjustBhvleapAttachPoint(BHVLEAP *behavior)
+extern "C" void AdjustBhvleapAttachPoint(BHVLEAP *behavior)
 {
     STEPGUARD *a = (STEPGUARD *)behavior->owner;
     qword *attachBasis = (qword *)&behavior->attachBasis;
@@ -3791,7 +3791,7 @@ void AdjustBhvleapAttachPoint(BHVLEAP *behavior)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(d), "j"(t));
     behavior->landingPoint = d;
 }
-} } // namespace M_func_0017A468
+} // namespace M_func_0017A468
 
 // 0x17A4B0 InitBhvSleep
 // 0x17A4B0: Sleep behaviour (BHV175) vtable slot 7 (OnPush): BHVANIM OnPush with the sleeping flag (0x10),
@@ -3805,15 +3805,15 @@ void BHV175::OnPush()
 }
 
 // 0x17A4E8 StartBhvSleep
-namespace M_func_0017A4E8 { extern "C" {
-void StartBhvanim(BHV175 *p);
-void SetBhvSleepState(BHV175 *p, int n);
-void ResetDetectorTargets(void *p);
-qword GetLoWorldPos(void *p);
-void ReplaceHeldSwNoise(SW *g, int a, qword q, void *b, void *pv);
+namespace M_func_0017A4E8 {
+void StartBhvanim(BHV175 *p) __asm__("StartBhvanim");
+void SetBhvSleepState(BHV175 *p, int n) __asm__("SetBhvSleepState");
+void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void ReplaceHeldSwNoise(SW *g, int a, qword q, void *b, void *pv) __asm__("ReplaceHeldSwNoise");
 // 0x17A4E8: Sleep behaviour vtable slot 8 (Start): BHVANIM Start, sub-state 0 (asleep, random duration), resets the
 // detector, holds a snoring noise.
-void StartBhvSleep(BHV175 *behavior)
+extern "C" void StartBhvSleep(BHV175 *behavior)
 {
     StartBhvanim(behavior);
     SetBhvSleepState(behavior, 0);
@@ -3821,31 +3821,31 @@ void StartBhvSleep(BHV175 *behavior)
     ReplaceHeldSwNoise(&g_sw, 1, GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner),
                        &((STEPGUARD *)behavior->owner)->heldNoise);
 }
-} } // namespace M_func_0017A4E8
+} // namespace M_func_0017A4E8
 
 // 0x17A558 CloseBhvSleep
-namespace M_func_0017A558 { extern "C" {
+namespace M_func_0017A558 {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-void CloseBhvanim(BHV175 *p);
-void SetBhvSleepState(BHV175 *p, int n);
-void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void CloseBhvanim(BHV175 *p) __asm__("CloseBhvanim");
+void SetBhvSleepState(BHV175 *p, int n) __asm__("SetBhvSleepState");
+void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv) __asm__("ReplaceHeldSwNoise");
 // 0x17A558: Sleep behaviour vtable slot 9 (Close): BHVANIM Close, releases the held noise.
-void CloseBhvSleep(BHV175 *behavior)
+extern "C" void CloseBhvSleep(BHV175 *behavior)
 {
     CloseBhvanim(behavior);
     SetBhvSleepState(behavior, -1);
     ReplaceHeldSwNoise(&g_sw, -1, D_002A2DD0, 0, &((STEPGUARD *)behavior->owner)->heldNoise);
 }
-} } // namespace M_func_0017A558
+} // namespace M_func_0017A558
 
 // 0x17A5B0 SetBhvSleepState
-namespace M_func_0017A5B0 { extern "C" {
-void SetSmaGoal(void *p, int n);
-float RandomFloatInRange__Fff(float a, float b);
+namespace M_func_0017A5B0 {
+void SetSmaGoal(void *p, int n) __asm__("SetSmaGoal");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 // 0x17A5B0: Sleep behaviour sub-state: 0 asleep (state machine goal 0x44, arms the wake timer), 1 waking up (goal
 // 0x43).
-void SetBhvSleepState(BHV175 *behavior, int n) {
+extern "C" void SetBhvSleepState(BHV175 *behavior, int n) {
     if (n == behavior->sleepState) return;
     behavior->sleepState = n;
     behavior->sleepStateF = n;
@@ -3859,16 +3859,16 @@ void SetBhvSleepState(BHV175 *behavior, int n) {
         break;
     }
 }
-} } // namespace M_func_0017A5B0
+} // namespace M_func_0017A5B0
 
 // 0x17A670 UpdateBhvSleep
-namespace M_func_0017A670 { extern "C" {
-void UpdateBhvanim(BHV175 *p);
-void SetBhvSleepState(BHV175 *p, int n);
-qword GetLoWorldPos(void *p);
+namespace M_func_0017A670 {
+void UpdateBhvanim(BHV175 *p) __asm__("UpdateBhvanim");
+void SetBhvSleepState(BHV175 *p, int n) __asm__("SetBhvSleepState");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // 0x17A670: Sleep behaviour vtable slot 10 (Update): wakes up when the timer expires; keeps the held noise at the
 // guard.
-void UpdateBhvSleep(BHV175 *behavior) {
+extern "C" void UpdateBhvSleep(BHV175 *behavior) {
     int s;
     UpdateBhvanim(behavior);
     do {
@@ -3881,37 +3881,37 @@ void UpdateBhvSleep(BHV175 *behavior) {
         v->position = GetLoWorldPos(t);
     }
 }
-} } // namespace M_func_0017A670
+} // namespace M_func_0017A670
 
 // 0x17A6F8 InitBhvThrown
-namespace M_func_0017A6F8 { extern "C" {
+namespace M_func_0017A6F8 {
 
-void InitBhv(BHV176 *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHV176 *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17A6F8: Thrown behaviour (BHV176) vtable slot 7 (OnPush): raises flag 0x16 (thrown), state -1.
-void InitBhvThrown(BHV176 *behavior)
+extern "C" void InitBhvThrown(BHV176 *behavior)
 {
     InitBhv(behavior);
     AddStepguardSgf(behavior->owner, 0x16);
     behavior->state = -1;
 }
-} } // namespace M_func_0017A6F8
+} // namespace M_func_0017A6F8
 
 // 0x17A730 StartBhvThrown
-namespace M_func_0017A730 { extern "C" {
+namespace M_func_0017A730 {
 
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-void StartBhv(BHV176 *p);
-void DetachStepguard(STEPGUARD *t);
-void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q);
-void FreeSoContacts(STEPGUARD *t);
-void SetBhvBusy(BHV176 *p);
-void ResetDetectorTargets(void *p);
-void SetDetectorTargetStateById(void *p, int a, int b);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void StartBhv(BHV176 *p) __asm__("StartBhv");
+void DetachStepguard(STEPGUARD *t) __asm__("DetachStepguard");
+void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q) __asm__("SetStepguardAttack");
+void FreeSoContacts(STEPGUARD *t) __asm__("FreeSoContacts");
+void SetBhvBusy(BHV176 *p) __asm__("SetBhvBusy");
+void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
+void SetDetectorTargetStateById(void *p, int a, int b) __asm__("SetDetectorTargetStateById");
 // 0x17A730: Thrown behaviour vtable slot 8 (Start): state 0; detaches, cancels the attack, frees contacts, busy,
 // resets the detector and marks the thrower.
-void StartBhvThrown(BHV176 *behavior)
+extern "C" void StartBhvThrown(BHV176 *behavior)
 {
     StartBhv(behavior);
     SetBhvThrownState(behavior, 0);
@@ -3923,7 +3923,7 @@ void StartBhvThrown(BHV176 *behavior)
     if (behavior->thrower)
         SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->thrower, 2);
 }
-} } // namespace M_func_0017A730
+} // namespace M_func_0017A730
 
 // 0x17A7B8 CloseBhvThrown
 // 0x17A7B8: Thrown behaviour vtable slot 9 (Close): state -1, lowers flag 0x16.
@@ -3936,14 +3936,14 @@ void BHV176::Close()
 }
 
 // 0x17A7F8 UpdateBhvThrown
-namespace M_func_0017A7F8 { extern "C" {
-extern float D_002BE6C0;
-void UpdateBhv(BHV176 *p);
-qword GetLoWorldPos(void *p);
-CID147 *NewNoise(void *p, qword q, STEPGUARD *t);
+namespace M_func_0017A7F8 {
+extern float D_002BE6C0 __asm__("D_002BE6C0");
+void UpdateBhv(BHV176 *p) __asm__("UpdateBhv");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+CID147 *NewNoise(void *p, qword q, STEPGUARD *t) __asm__("NewNoise");
 // 0x17A7F8: Thrown behaviour vtable slot 10 (Update): ends after landing (states 2/3); emits a yelling noise
 // periodically while airborne.
-void UpdateBhvThrown(BHV176 *behavior) {
+extern "C" void UpdateBhvThrown(BHV176 *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -3958,16 +3958,16 @@ void UpdateBhvThrown(BHV176 *behavior) {
         }
     }
 }
-} } // namespace M_func_0017A7F8
+} // namespace M_func_0017A7F8
 
 // 0x17A8C8 SetBhvThrownState
-namespace M_func_0017A8C8 { extern "C" {
-void PopBhv(void *p);
-void ClearBhvBusy(BHV176 *p);
-BHVANIM *PushStepBehavior(void *p, int n);
+namespace M_func_0017A8C8 {
+void PopBhv(void *p) __asm__("PopBhv");
+void ClearBhvBusy(BHV176 *p) __asm__("ClearBhvBusy");
+BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17A8C8: Thrown behaviour state switch: pushes the animation for the state (flags 18/19/20/21/19 for states 0-4)
 // and sets the airborne flag for states 0-1; -1 clears busy.
-void SetBhvThrownState(BHV176 *behavior, int n) {
+extern "C" void SetBhvThrownState(BHV176 *behavior, int n) {
     if (behavior->state == n) return;
     PopBhv(&behavior->pbhvNext);
     behavior->state = n;
@@ -3988,7 +3988,7 @@ void SetBhvThrownState(BHV176 *behavior, int n) {
         break;
     }
 }
-} } // namespace M_func_0017A8C8
+} // namespace M_func_0017A8C8
 
 // 0x17A9C0 IsBhvThrownDone
 // 0x17A9C0: True if the thrown behaviour has finished (state -1).
@@ -4007,18 +4007,18 @@ extern "C" void InitBhvjuggled(BHVJUGGLED *behavior)
 }
 
 // 0x17AA08 StartBhvjuggled
-namespace M_StartBhvjuggled { extern "C" {
+namespace M_StartBhvjuggled {
 
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-void StartBhvanim(BHVJUGGLED *p);
-void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q);
-void DetachStepguard(STEPGUARD *t);
-void SetBhvBusy(BHVJUGGLED *p);
-void SetDetectorTargetStateById(void *p, LO *a, int b);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void StartBhvanim(BHVJUGGLED *p) __asm__("StartBhvanim");
+void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q) __asm__("SetStepguardAttack");
+void DetachStepguard(STEPGUARD *t) __asm__("DetachStepguard");
+void SetBhvBusy(BHVJUGGLED *p) __asm__("SetBhvBusy");
+void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x17AA08: BHVJUGGLED vtable slot 8 (Start): BHVANIM Start, cancels the attack, detaches, state 0 (attached to the
 // holder's hold point), busy.
-void StartBhvjuggled(BHVJUGGLED *behavior)
+extern "C" void StartBhvjuggled(BHVJUGGLED *behavior)
 {
     StartBhvanim(behavior);
     SetStepguardAttack(((STEPGUARD *)behavior->owner), 0, 0, D_002A2DD0);
@@ -4027,19 +4027,19 @@ void StartBhvjuggled(BHVJUGGLED *behavior)
     SetBhvBusy(behavior);
     SetDetectorTargetStateById(((STEPGUARD *)behavior->owner)->pdetector, behavior->holder, 2);
 }
-} } // namespace M_StartBhvjuggled
+} // namespace M_StartBhvjuggled
 
 // 0x17AA78 CalculateBhvjuggledHoldPoint
-namespace M_func_0017AA78 { extern "C" {
+namespace M_func_0017AA78 {
 typedef union {qword q;float g[4];} U;
-extern qword D_002A2DC0,D_002A2DA0;
-extern float D_002BE6C4;
-qword GetLoWorldPos(void*);
+extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DA0 __asm__("D_002A2DA0");
+extern float D_002BE6C4 __asm__("D_002BE6C4");
+qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
 // VU0 helper: moves a CPU quadword into a VU register.
-static inline qword ToVU(qword word){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(word));return r;}
+extern "C" { static inline qword ToVU(qword word){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(word));return r;} }
 // VU0 helper: vector difference.
 // VU0 helper: a minus its projection on n.
-static inline qword Reject(qword a, qword n)
+extern "C" { static inline qword Reject(qword a, qword n)
 {
     qword d, one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
@@ -4047,9 +4047,9 @@ static inline qword Reject(qword a, qword n)
             : "j"(a), "j"(n));
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(d) : "j"(n), "j"(d));
     return VuSub(a, d);
-}
+} }
 // VU0 helper: normalized a, or `fallback` for a zero vector.
-static inline qword Normal(qword a, qword fallback)
+extern "C" { static inline qword Normal(qword a, qword fallback)
 {
     register qword d __asm__("vf1");
     qword one;
@@ -4065,10 +4065,10 @@ static inline qword Normal(qword a, qword fallback)
         __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(d) : "j"(d), "j"(a));
     }
     return d;
-}
+} }
 
 // VU0 helper: offset point along a direction and up axis (register-pinned asm).
-static inline qword NativePoint(qword point, qword direction, qword along, qword up, qword height, unsigned int *high)
+extern "C" { static inline qword NativePoint(qword point, qword direction, qword along, qword up, qword height, unsigned int *high)
 {
     register unsigned int h __asm__("$2");
     __asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddax.xyzw ACC,%2,%3x\n\tvmaddx.xyzw %0,%4,%5x\n\tlui %1,%%hi(%6)"
@@ -4076,21 +4076,21 @@ static inline qword NativePoint(qword point, qword direction, qword along, qword
             : "j"(direction), "j"(along), "j"(up), "j"(height), "i"(&D_002BE6C4));
     *high = h;
     return point;
-}
+} }
 // VU0 helper: heading point: point + up * height (register-pinned asm).
-static inline qword NativeHeading(qword point, qword up, qword height)
+extern "C" { static inline qword NativeHeading(qword point, qword up, qword height)
 {
     __asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(point) : "j"(up), "j"(height));
     return point;
-}
+} }
 // Stores a point and a scalar (register-pinned asm for the match).
-static inline void PublishPoint(U *home, qword scalar, qword *out, qword point)
+extern "C" { static inline void PublishPoint(U *home, qword scalar, qword *out, qword point)
 {
     __asm__ volatile("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(home->q), "=m"(*out) : "j"(scalar), "j"(point));
-}
+} }
 // 0x17AA78: Computes the hold point and direction from the holder's request (its vtable slot 96) relative to the
 // guard.
-void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, STUNHOLD *request, qword *outPoint, qword *outDirection)
+extern "C" void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, STUNHOLD *request, qword *outPoint, qword *outDirection)
 {
     qword first = ToVU(GetLoWorldPos(behavior->owner));
     qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->holder)), D_002A2DC0), D_002A2DA0);
@@ -4130,19 +4130,19 @@ typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
 typedef char U_Alignment[__alignof__(U)==16?1:-1];
 typedef char U_q_Offset[(unsigned)&((U*)0)->q==0?1:-1];
 typedef char U_scalar_Offset[(unsigned)&((U*)0)->g==0?1:-1];
-} } // namespace M_func_0017AA78
+} // namespace M_func_0017AA78
 
 // 0x17ABC8 UpdateBhvjuggledHoldAct
-namespace M_func_0017ABC8 { extern "C" {
+namespace M_func_0017ABC8 {
 struct U; struct W;
 struct U { char pad[0x1C]; float endTime; };
 struct W { char pad[0xA0]; int unknownA0; };
-void CalculateBhvjuggledHoldPoint(BHVJUGGLED *p, STUNHOLD *r, qword *a, qword *b);
-qword TransformXfPos(int a, int b, qword q);
-qword ConvertXfVec(int a, int b, qword q);
-void SetRestActPose(struct U *u, qword a, qword b);
+void CalculateBhvjuggledHoldPoint(BHVJUGGLED *p, STUNHOLD *r, qword *a, qword *b) __asm__("CalculateBhvjuggledHoldPoint");
+qword TransformXfPos(int a, int b, qword q) __asm__("TransformXfPos");
+qword ConvertXfVec(int a, int b, qword q) __asm__("ConvertXfVec");
+void SetRestActPose(struct U *u, qword a, qword b) __asm__("SetRestActPose");
 // 0x17ABC8: Re-queries the holder and updates the attach act's target.
-void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
+extern "C" void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
     STUNHOLD r;
     qword holdPoint, holdDirection;
     struct W *w;
@@ -4155,28 +4155,28 @@ void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
     a = TransformXfPos(0, w->unknownA0, holdPoint);
     SetRestActPose(((struct U *)behavior->holdAct), a, ConvertXfVec(0, w->unknownA0, holdDirection));
 }
-} } // namespace M_func_0017ABC8
+} // namespace M_func_0017ABC8
 
 // 0x17AC90 UpdateBhvjuggled
-namespace M_UpdateBhvjuggled { extern "C" {
+namespace M_UpdateBhvjuggled {
 struct C; struct B; struct Y; struct X; struct OUT;
 // Update the movement-state controller.
-extern float D_002BE6C8, D_002BE6CC;
+extern float D_002BE6C8 __asm__("D_002BE6C8"), D_002BE6CC __asm__("D_002BE6CC");
 struct C { char pad[0x1C]; float endTime; };
 struct B { char pad[0x90]; struct C *currentAct; };
 struct Y { char pad[0x60]; void *frame; };
 struct X { char pad[0x19A4]; struct Y *unknown19A4; };
 struct OUT { char pad[0x30]; qword v; };
-void UpdateBhvanim(BHVJUGGLED *p);
-void UpdateBhvjuggledHoldAct(BHVJUGGLED *p);
-qword GetLoWorldPos(void *a);
-void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
+void UpdateBhvanim(BHVJUGGLED *p) __asm__("UpdateBhvanim");
+void UpdateBhvjuggledHoldAct(BHVJUGGLED *p) __asm__("UpdateBhvjuggledHoldAct");
+qword GetLoWorldPos(void *a) __asm__("GetLoWorldPos");
+void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g) __asm__("LoadIdentityMatrix4");
 // Returns the frame object of the actor's +0x19A4 record.
-static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;}
+extern "C" { static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;} }
 // VU0 helper: z component of a vector.
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
 // landed), prediction states 4-5.
-void UpdateBhvjuggled(BHVJUGGLED *behavior) {
+extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
     qword v;
     int s;
     UpdateBhvanim(behavior);
@@ -4259,28 +4259,28 @@ typedef char layout_B_control[((unsigned)&((struct B*)0)->currentAct==0x90)?1:-1
 typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
 typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
 typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
-} } // namespace M_UpdateBhvjuggled
+} // namespace M_UpdateBhvjuggled
 
 // 0x17AF30 HandleBhvjuggledMessage
-namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
+namespace M_BHVJUGGLED_FHandleMessage {
 struct O; struct X;
-extern void *D_002BE6D0[];
-extern int D_002BE6E8[];
+extern void *D_002BE6D0[] __asm__("D_002BE6D0");
+extern int D_002BE6E8[] __asm__("D_002BE6E8");
 struct O { char pad[0xC]; VTE *vt; };
 struct X { int a; int pad[7]; qword v; qword pad2; };
-int IsAnimBindingDone(ANIMBINDING *c);
-void StopAnimBinding(ANIMBINDING *c);
-void StartAnimBinding(ANIMBINDING *c, STEPGUARD *a, int fl, float g);
-float *FindAsegLabel(void *p, void *q);
-void SeekAsega(void *p, float a, float b, int n);
-struct O *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, int c);
+int IsAnimBindingDone(ANIMBINDING *c) __asm__("IsAnimBindingDone");
+void StopAnimBinding(ANIMBINDING *c) __asm__("StopAnimBinding");
+void StartAnimBinding(ANIMBINDING *c, STEPGUARD *a, int fl, float g) __asm__("StartAnimBinding");
+float *FindAsegLabel(void *p, void *q) __asm__("FindAsegLabel");
+void SeekAsega(void *p, float a, float b, int n) __asm__("SeekAsega");
+struct O *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, int c) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-qword GetLoWorldPos(STEPGUARD *a);
-void NewNoise(void *p, qword v, STEPGUARD *a);
+qword GetLoWorldPos(STEPGUARD *a) __asm__("GetLoWorldPos");
+void NewNoise(void *p, qword v, STEPGUARD *a) __asm__("NewNoise");
 // 0x17AF30: BHVJUGGLED vtable slot 13 (HandleMessage): BHVANIM events; ASEG event 0x3D resets the hit count; a
 // 0x200000 zap while held is an extra hit (animation seek, effect, hit value, noise). The payload is the event
 // (message 9) or the zap (message 0xC).
-int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTMSG *pm) {
+extern "C" int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTMSG *pm) {
     if (HandleBhvanimMessage(behavior, msg, pm)) return 1;
     switch (msg) {
     case 9:
@@ -4333,7 +4333,7 @@ int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTMSG *pm) {
     }
     return 0;
 }
-} } // namespace M_BHVJUGGLED_FHandleMessage
+} // namespace M_BHVJUGGLED_FHandleMessage
 
 // 0x17B178 CloseBhvjuggled
 // 0x17B178: BHVJUGGLED vtable slot 9 (Close): state -1 (restores the mass), BHVANIM Close.
@@ -4356,26 +4356,26 @@ struct GROUP{char pad[0xA0];void*space;};
 struct VOBJ{char pad0[12];VTE*vt;};   /* the guard's vtable as BlendSet's asm reads it */
 struct ENTRY{float value;int kind,key,pad;};
 struct DELTA;
-extern "C"{
- extern float D_002BE6FC,D_002BE700,D_002BE704;
- extern F D_002BE708;
- extern U D_002A2DC0;
- void SetSoMass(STEP*,float);
- void SeekAsega(ASEGA*,int,float,float);
- void ReleaseAct(DELTA**);
- void SetXfRole(STEP*,GROUP*,int);
- void RefreshSwObjectCollisionFilter(void*,STEP*);
- void FreeSoContacts(STEP*);
- void SetBhvanimState(BHVJUGGLED*,int);
- void CalculateBhvjuggledHoldPoint(BHVJUGGLED*,STUNHOLD*,U*,U*);
- qword GetLoWorldPos(void*);
- qword TransformXfPos(void*,void*,qword);
- qword ConvertXfVec(void*,void*,qword);
- DELTA*NewBezierAct(STEP*,GROUP*,void*,float,qword,qword);
- LO*GetHeroPo(void*);
- void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
- ENTRY*FindAsegLabel(void*,int);
-}
+
+ extern float D_002BE6FC __asm__("D_002BE6FC"),D_002BE700 __asm__("D_002BE700"),D_002BE704 __asm__("D_002BE704");
+ extern F D_002BE708 __asm__("D_002BE708");
+ extern U D_002A2DC0 __asm__("D_002A2DC0");
+ void SetSoMass(STEP*,float) __asm__("SetSoMass");
+ void SeekAsega(ASEGA*,int,float,float) __asm__("SeekAsega");
+ void ReleaseAct(DELTA**) __asm__("ReleaseAct");
+ void SetXfRole(STEP*,GROUP*,int) __asm__("SetXfRole");
+ void RefreshSwObjectCollisionFilter(void*,STEP*) __asm__("RefreshSwObjectCollisionFilter");
+ void FreeSoContacts(STEP*) __asm__("FreeSoContacts");
+ void SetBhvanimState(BHVJUGGLED*,int) __asm__("SetBhvanimState");
+ void CalculateBhvjuggledHoldPoint(BHVJUGGLED*,STUNHOLD*,U*,U*) __asm__("CalculateBhvjuggledHoldPoint");
+ qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
+ qword TransformXfPos(void*,void*,qword) __asm__("TransformXfPos");
+ qword ConvertXfVec(void*,void*,qword) __asm__("ConvertXfVec");
+ DELTA*NewBezierAct(STEP*,GROUP*,void*,float,qword,qword) __asm__("NewBezierAct");
+ LO*GetHeroPo(void*) __asm__("GetHeroPo");
+ void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float) __asm__("TriggerJoyRumbleRumk__FP3JOY4RUMKf");
+ ENTRY*FindAsegLabel(void*,int) __asm__("FindAsegLabel");
+
 // Matching helper (register-pinned asm): blends the guard toward a desired vector with a gain from .data; kept as asm for the match.
 static inline void BlendSet(BHVJUGGLED *p, qword current, U *desired, U *scale, U *scratch)
 {
@@ -4530,23 +4530,23 @@ extern "C" void SetBhvjuggledState(BHVJUGGLED *behavior, int next)
 } // namespace M_SetBhvjuggledState
 
 // 0x17B578 GetBhvjuggledGroundProbeFlags
-namespace M_BHVJUGGLED_GrfGroundProbe { extern "C" {
+namespace M_BHVJUGGLED_GrfGroundProbe {
 
 // 0x17B578: BHVJUGGLED vtable slot 12 (ground-probe flags): 7 once landed (state 3), else 1.
-int GetBhvjuggledGroundProbeFlags(BHVJUGGLED *behavior) { return behavior->juggleState != 3 ? 1 : 7; }
-} } // namespace M_BHVJUGGLED_GrfGroundProbe
+extern "C" int GetBhvjuggledGroundProbeFlags(BHVJUGGLED *behavior) { return behavior->juggleState != 3 ? 1 : 7; }
+} // namespace M_BHVJUGGLED_GrfGroundProbe
 
 // 0x17B590 InitBhvshoot
-namespace M_InitBhvshoot { extern "C" {
+namespace M_InitBhvshoot {
 
-void InitBhv(BHVSHOOT *p);
+void InitBhv(BHVSHOOT *p) __asm__("InitBhv");
 // 0x17B590: BHVSHOOT vtable slot 7 (OnPush): state -1.
-void InitBhvshoot(BHVSHOOT *behavior)
+extern "C" void InitBhvshoot(BHVSHOOT *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
 }
-} } // namespace M_InitBhvshoot
+} // namespace M_InitBhvshoot
 
 // 0x17B5C0 StartBhvshoot
 // 0x17B5C0: BHVSHOOT vtable slot 8 (Start): state 0.
@@ -4583,9 +4583,9 @@ extern "C" void UpdateBhvshoot(BHVSHOOT *behavior)
 }
 
 // 0x17B690 HandleBhvshootMessage
-namespace M_BHVSHOOT_FHandleMessage { extern "C" {
+namespace M_BHVSHOOT_FHandleMessage {
 // 0x17B690: BHVSHOOT vtable slot 13 (HandleMessage): ASEG events 0x31/0x32 open/close the firing window (+0xF60).
-int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, ASEGEVENTMSG *pm) {
+extern "C" int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, ASEGEVENTMSG *pm) {
     if (msg == 9 && !behavior->state && ((BHVANIM *)behavior->pbhvNext)->binding && GetAnimBindingInstance(((BHVANIM *)behavior->pbhvNext)->binding) == pm->asega) {
         switch (pm->event) {
         case 0x31: ((STEPGUARD *)behavior->owner)->firingWindow = 1; return 1;
@@ -4594,16 +4594,16 @@ int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, ASEGEVENTMSG *pm) {
     }
     return HandleBhvMessage(behavior, msg, pm);
 }
-} } // namespace M_BHVSHOOT_FHandleMessage
+} // namespace M_BHVSHOOT_FHandleMessage
 
 // 0x17B750 SetBhvshootState
-namespace M_SetBhvshootState { extern "C" {
+namespace M_SetBhvshootState {
 
-void PopBhv(void *p);
-BHVANIM *PushStepBehavior(void *p, int n);
+void PopBhv(void *p) __asm__("PopBhv");
+BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17B750: BHVSHOOT state change: 0 pushes the shooting animation (flag 0x11) aimed at the target and opens the
 // firing state.
-void SetBhvshootState(BHVSHOOT *behavior, int n) {
+extern "C" void SetBhvshootState(BHVSHOOT *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
     if (!behavior->state) ((STEPGUARD *)behavior->owner)->firingWindow = 0;
@@ -4617,7 +4617,7 @@ void SetBhvshootState(BHVSHOOT *behavior, int n) {
     o->Start();
     ((STEPGUARD *)behavior->owner)->firingWindow = 1;
 }
-} } // namespace M_SetBhvshootState
+} // namespace M_SetBhvshootState
 
 // 0x17B7F8 IsBhvshootDone
 // 0x17B7F8: True if the shoot behaviour has finished (state -1).
@@ -4627,18 +4627,18 @@ extern "C" int IsBhvshootDone(BHVSHOOT *behavior)
 }
 
 // 0x17B808 InitBhvTargets
-namespace M_func_0017B808 { extern "C" {
+namespace M_func_0017B808 {
 
-void InitBhv(BHV178 *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHV178 *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17B808: Targets behaviour (BHV178) vtable slot 7 (OnPush): raises flag 0x20, state -1.
-void InitBhvTargets(BHV178 *behavior)
+extern "C" void InitBhvTargets(BHV178 *behavior)
 {
     InitBhv(behavior);
     AddStepguardSgf(behavior->owner, 0x20);
     behavior->state = -1;
 }
-} } // namespace M_func_0017B808
+} // namespace M_func_0017B808
 
 // 0x17B840 StartBhvTargets
 // 0x17B840: Targets behaviour vtable slot 8 (Start): state 0.
@@ -4659,13 +4659,13 @@ extern "C" void CloseBhvTargets(BHV178 *behavior)
 }
 
 // 0x17B8B0 SetBhvTargetsState
-namespace M_func_0017B8B0 { extern "C" {
-void PopBhv(void *p);
-BHV *PushStepBehavior(void *p, int n);
-void SetStepguardTarget(void *p, int n);
+namespace M_func_0017B8B0 {
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+void SetStepguardTarget(void *p, int n) __asm__("SetStepguardTarget");
 // 0x17B8B0: Targets behaviour state change: 0 idle without a target, 1 combat (BHVCOMBAT) on the chosen target, 2
 // hands-off idle.
-void SetBhvTargetsState(BHV178 *behavior, int n)
+extern "C" void SetBhvTargetsState(BHV178 *behavior, int n)
 {
     if (n == behavior->state)
         return;
@@ -4692,7 +4692,7 @@ void SetBhvTargetsState(BHV178 *behavior, int n)
     } break;
     }
 }
-} } // namespace M_func_0017B8B0
+} // namespace M_func_0017B8B0
 
 // 0x17B9C0 ChooseBhvTargetsTarget
 namespace M_func_0017B9C0 {
@@ -4701,13 +4701,13 @@ union U; struct RANGE; struct POLY; struct WORK;
 struct RANGE{float lo,hi;};
 struct POLY{float a,b,c;};
 struct WORK{float t,d,t2,d2;QWROW origin,bestPoint;};
-extern "C"{
- extern RANGE D_002BE740;
- extern POLY D_002BE720,D_002BE730;
- float RandomFloatInRange__Fff(float,float);
- qword GetLoWorldPos(void*);
- void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*);
-}
+
+ extern RANGE D_002BE740 __asm__("D_002BE740");
+ extern POLY D_002BE720 __asm__("D_002BE720"),D_002BE730 __asm__("D_002BE730");
+ float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
+ qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
+ void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*) __asm__("FindClosestPointOnLine");
+
 // VU0 helper: moves a CPU quadword into a VU register.
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 // VU0 helper: loads a quadword into a VU register.
@@ -4859,14 +4859,14 @@ typedef char WORK_Alignment[__alignof__(WORK)==16?1:-1];
 } // namespace M_func_0017B9C0
 
 // 0x17BD78 UpdateBhvTargets
-namespace M_func_0017BD78 { extern "C" {
-void UpdateBhv(BHV178 *p);
-int IsStepguardHandsOff(void *p);
-void ChooseBhvTargetsTarget(BHV178 *p);
-int IsBhvBusyAbove(BHV178 *p);
+namespace M_func_0017BD78 {
+void UpdateBhv(BHV178 *p) __asm__("UpdateBhv");
+int IsStepguardHandsOff(void *p) __asm__("IsStepguardHandsOff");
+void ChooseBhvTargetsTarget(BHV178 *p) __asm__("ChooseBhvTargetsTarget");
+int IsBhvBusyAbove(BHV178 *p) __asm__("IsBhvBusyAbove");
 // 0x17BD78: Targets behaviour vtable slot 10 (Update): re-chooses and (re)engages the designated targets; pauses
 // while hands-off.
-void UpdateBhvTargets(BHV178 *behavior) {
+extern "C" void UpdateBhvTargets(BHV178 *behavior) {
     int f, s;
     UpdateBhv(behavior);
     f = IsStepguardHandsOff(behavior->owner);
@@ -4892,30 +4892,30 @@ void UpdateBhvTargets(BHV178 *behavior) {
         break;
     }
 }
-} } // namespace M_func_0017BD78
+} // namespace M_func_0017BD78
 
 // 0x17BED0 InitBhvCircle
-namespace M_func_0017BED0 { extern "C" {
+namespace M_func_0017BED0 {
 
-void InitBhv(BHV179 *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHV179 *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17BED0: Circle behaviour (BHV179) vtable slot 7 (OnPush): raises flag 0x19, state -1.
-void InitBhvCircle(BHV179 *behavior)
+extern "C" void InitBhvCircle(BHV179 *behavior)
 {
     InitBhv(behavior);
     AddStepguardSgf(behavior->owner, 0x19);
     behavior->state = -1;
 }
-} } // namespace M_func_0017BED0
+} // namespace M_func_0017BED0
 
 // 0x17BF08 StartBhvCircle
-namespace M_func_0017BF08 { extern "C" {
-void StartBhv(BHV179 *p);
-qword GetLoWorldPos(void *p);
-void FindPathzonePathCurve(void *p, qword a, qword b, void *path);
+namespace M_func_0017BF08 {
+void StartBhv(BHV179 *p) __asm__("StartBhv");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void FindPathzonePathCurve(void *p, qword a, qword b, void *path) __asm__("FindPathzonePathCurve");
 // 0x17BF08: Circle behaviour vtable slot 8 (Start): with the path-zone capability (bit 2) walks to a spacing point,
 // else stands facing the target.
-void StartBhvCircle(BHV179 *behavior) {
+extern "C" void StartBhvCircle(BHV179 *behavior) {
     StartBhv(behavior);
     if (((STEPGUARD *)behavior->owner)->capabilityFlags & 4) {
         REGENT *c = behavior->owner->physics ? behavior->owner->physics->pregent : 0;
@@ -4927,7 +4927,7 @@ void StartBhvCircle(BHV179 *behavior) {
         SetBhvCircleState(behavior, 0);
     }
 }
-} } // namespace M_func_0017BF08
+} // namespace M_func_0017BF08
 
 // 0x17BFB8 CloseBhvCircle
 // 0x17BFB8: Circle behaviour vtable slot 9 (Close): state -1, lowers flag 0x19.
@@ -4952,16 +4952,16 @@ union U{qword q;float f[4];int i[4];};
 struct SCALE{char pad[0x20];float value;};   /* STEPGUARD::scale's record (untyped) */
 struct FLOW{float polarAngle,polarLength,candidateAngle,candidateLength,distance;};
 struct SEGMENT{qword a,b;char data[0x40];};
-extern "C"{
-extern float D_002A5600;
-qword GetLoWorldPos(void*);
-void GetVectorCylind(qword,float*,float*,float*);
-float NormalizeAngle__Ff(float);float ClampAbs__Fff(float,float);float ClampToLimits__FP2LMf(LM*,float);
-qword SetVectorCylind(float,float,float);int IsWithinLimits__FP2LMf(LM*,float);
-int FindPathzoneClosestFreePoint(void*,qword,qword*);
-int FindPathzoneSegmentBlocker(void*,qword,qword,int,SEGMENT*);
-void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-}
+
+extern float D_002A5600 __asm__("D_002A5600");
+qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
+void GetVectorCylind(qword,float*,float*,float*) __asm__("GetVectorCylind");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");float ClampAbs__Fff(float,float) __asm__("ClampAbs__Fff");float ClampToLimits__FP2LMf(LM*,float) __asm__("ClampToLimits__FP2LMf");
+qword SetVectorCylind(float,float,float) __asm__("SetVectorCylind");int IsWithinLimits__FP2LMf(LM*,float) __asm__("IsWithinLimits__FP2LMf");
+int FindPathzoneClosestFreePoint(void*,qword,qword*) __asm__("FindPathzoneClosestFreePoint");
+int FindPathzoneSegmentBlocker(void*,qword,qword,int,SEGMENT*) __asm__("FindPathzoneSegmentBlocker");
+void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*) __asm__("FindClosestPointOnLineSegment");
+
 struct VU_FLOAT{qword qw;};
 // VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
@@ -5075,19 +5075,19 @@ extern "C" qword ChooseBhvCirclePosition(BHV179 *behavior, void *region, qword o
 } // namespace M_func_0017BFF8
 
 // 0x17C3E8 UpdateBhvCircle
-namespace M_func_0017C3E8 { extern "C" {
-extern float D_002BE748;
-void UpdateBhv(BHV179 *p);
-float GetTargetRecordFacing(TARGETREC *engagement);
-qword GetLoWorldPos(void *p);
-void GetVectorCylind(qword v, float *a, float *b, int n);
-float NormalizeAngle__Ff(float f);
-int IsWithinLimits__FP2LMf(void *p, float f);
-qword ChooseBhvCirclePosition(BHV179 *p, void *pathzone, float f, qword v);
-void FindPathzonePathCurve(void *pathzone, qword a, qword b, SHAPE *c);
+namespace M_func_0017C3E8 {
+extern float D_002BE748 __asm__("D_002BE748");
+void UpdateBhv(BHV179 *p) __asm__("UpdateBhv");
+float GetTargetRecordFacing(TARGETREC *engagement) __asm__("GetTargetRecordFacing");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void GetVectorCylind(qword v, float *a, float *b, int n) __asm__("GetVectorCylind");
+float NormalizeAngle__Ff(float f) __asm__("NormalizeAngle__Ff");
+int IsWithinLimits__FP2LMf(void *p, float f) __asm__("IsWithinLimits__FP2LMf");
+qword ChooseBhvCirclePosition(BHV179 *p, void *pathzone, float f, qword v) __asm__("ChooseBhvCirclePosition");
+void FindPathzonePathCurve(void *pathzone, qword a, qword b, SHAPE *c) __asm__("FindPathzonePathCurve");
 // 0x17C3E8: Circle behaviour vtable slot 10 (Update): when out of the distance band or off-heading relative to the
 // target, re-paths to a new spacing point.
-void UpdateBhvCircle(BHV179 *behavior) {
+extern "C" void UpdateBhvCircle(BHV179 *behavior) {
     STEPGUARD *a;
     SOPHYS *c;
     REGENT *d;
@@ -5128,14 +5128,14 @@ repath:
     }
     SetBhvpathShape(walk, b, 0);
 }
-} } // namespace M_func_0017C3E8
+} // namespace M_func_0017C3E8
 
 // 0x17C550 SetBhvCircleState
-namespace M_func_0017C550 { extern "C" {
-void PopBhv(void *p);
-BHV *PushStepBehavior(void *p, int n);
+namespace M_func_0017C550 {
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's path shape (BHVWALKPATH).
-void SetBhvCircleState(BHV179 *behavior, int n)
+extern "C" void SetBhvCircleState(BHV179 *behavior, int n)
 {
     if (n == behavior->state)
         return;
@@ -5156,7 +5156,7 @@ void SetBhvCircleState(BHV179 *behavior, int n)
     } break;
     }
 }
-} } // namespace M_func_0017C550
+} // namespace M_func_0017C550
 
 // 0x17C638 InitBhvEscort
 // 0x17C638: Escort behaviour (BHV183) vtable slot 7 (OnPush): raises flag 0x26, state -1.
@@ -5185,31 +5185,31 @@ void BHV183::Start()
 }
 
 // 0x17C6D0 UpdateBhvEscort
-namespace M_func_0017C6D0 { extern "C" {
+namespace M_func_0017C6D0 {
 /* UpdateBhvEscort (Claude agent): state-machine controller. pos is a plain qword (spilled pseudo) so p->v60=pos goes qmfc2+sq; the goto loop + explicit 250.0f local stops loop.c hoisting the case-1 constant. */
 typedef union {qword q;float f[4];} U;
-void UpdateBhv(BHV183*);
-int IsBhvBusyAbove(BHV183*);
-qword GetLoWorldPos(void*);
-qword ConvertPosBetweenLos(void*,void*,qword);
-int IsStepguardHandsOff(void*);
-void SetBhvgotoGoal(BHVGOTO*,PATHLINKEND*);
+void UpdateBhv(BHV183*) __asm__("UpdateBhv");
+int IsBhvBusyAbove(BHV183*) __asm__("IsBhvBusyAbove");
+qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
+qword ConvertPosBetweenLos(void*,void*,qword) __asm__("ConvertPosBetweenLos");
+int IsStepguardHandsOff(void*) __asm__("IsStepguardHandsOff");
+void SetBhvgotoGoal(BHVGOTO*,PATHLINKEND*) __asm__("SetBhvgotoGoal");
 // VU0 helper: vector difference.
-static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
+extern "C" { static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;} }
 // VU0 helper: a -= b.
-static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+extern "C" { static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;} }
 // VU0 helper: horizontal (xy) length of a vector.
-static inline float LenXY(qword v)
+extern "C" { static inline float LenXY(qword v)
 {
     float r;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(v) : "0"(v));
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(v) : "0"(v));
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(v));
     return r;
-}
+} }
 // 0x17C6D0: Escort behaviour vtable slot 10 (Update): follows the escorted object at a local offset: walks when
 // within 700, runs (state 1) beyond 1000, re-goals after the object moves 250.
-void UpdateBhvEscort(BHV183 *behavior)
+extern "C" void UpdateBhvEscort(BHV183 *behavior)
 {
     qword pos;
     float dist;
@@ -5265,22 +5265,22 @@ typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
 typedef char layout_float[(sizeof(float)==4)?1:-1];
-} } // namespace M_func_0017C6D0
+} // namespace M_func_0017C6D0
 
 // 0x17C928 SetBhvEscortState
-namespace M_func_0017C928 { extern "C" {
-void PopBhv(void *p);
-BHV *PushStepBehavior(void *p, int n);
-qword GetLoWorldPos(void *p);
-qword ConvertPosBetweenLos(void *p, int n, qword v);
+namespace M_func_0017C928 {
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword ConvertPosBetweenLos(void *p, int n, qword v) __asm__("ConvertPosBetweenLos");
 /* PATHLINKEND cleared by an explicit ClearPointerPair call at function scope: its constructor (a scoped PATHLINKEND)
    swaps two instructions in case 0 (scheduling). */
 struct PATHLINKENDIsland { qword a; qword v; };
-void ClearPointerPair(PATHLINKENDIsland *x);
-void SetBhvgotoGoal(BHVGOTO *p, PATHLINKENDIsland *x);
+void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
+void SetBhvgotoGoal(BHVGOTO *p, PATHLINKENDIsland *x) __asm__("SetBhvgotoGoal");
 // 0x17C928: Escort behaviour state change: 0 go to the offset point, 1 run to the object (flag 0x1C), 2 hands-off
 // idle.
-void SetBhvEscortState(BHV183 *behavior, int n) {
+extern "C" void SetBhvEscortState(BHV183 *behavior, int n) {
     PATHLINKENDIsland x;
     if (n == behavior->state) return;
     PopBhv(&behavior->pbhvNext);
@@ -5326,22 +5326,22 @@ void SetBhvEscortState(BHV183 *behavior, int n) {
         break;
     }
 }
-} } // namespace M_func_0017C928
+} // namespace M_func_0017C928
 
 // 0x17CAC8 InitBhvrail
-namespace M_InitBhvrail { extern "C" {
+namespace M_InitBhvrail {
 
-void InitBhv(BHVRAIL *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHVRAIL *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17CAC8: BHVRAIL vtable slot 7 (OnPush): raises flag 0x1B (on a rail), state -1.
-void InitBhvrail(BHVRAIL *behavior)
+extern "C" void InitBhvrail(BHVRAIL *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
     behavior->animSpeed = 1.0f;
     AddStepguardSgf(behavior->owner, SGF_ON_RAIL);
 }
-} } // namespace M_InitBhvrail
+} // namespace M_InitBhvrail
 
 // 0x17CB10 StartBhvrail
 // 0x17CB10: BHVRAIL vtable slot 8 (Start): state 0.
@@ -5362,23 +5362,23 @@ extern "C" void CloseBhvrail(BHVRAIL *behavior)
 }
 
 // 0x17CB80 UpdateBhvrail
-namespace M_UpdateBhvrail { extern "C" {
+namespace M_UpdateBhvrail {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-extern float D_002BE74C;
+extern float D_002BE74C __asm__("D_002BE74C");
 union V;
 union V { qword q; float f[4]; };
-void UpdateBhv(BHVRAIL *p);
-qword GetLoWorldPos(void *p);
-float WrapShapeDistance(void *p, float f);
-void FindShapeClosestPointFromDistance(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
-int HasBhvrailArrived(BHVRAIL *p);
-float atan2f(float y, float x);
-void SetStepguardMoverRadTarget(void *p, float f);
-void SetAsegaSpeed__FP5ASEGAf(void *p, float f);
+void UpdateBhv(BHVRAIL *p) __asm__("UpdateBhv");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+float WrapShapeDistance(void *p, float f) __asm__("WrapShapeDistance");
+void FindShapeClosestPointFromDistance(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt) __asm__("FindShapeClosestPointFromDistance");
+int HasBhvrailArrived(BHVRAIL *p) __asm__("HasBhvrailArrived");
+float atan2f(float y, float x) __asm__("atan2f");
+void SetStepguardMoverRadTarget(void *p, float f) __asm__("SetStepguardMoverRadTarget");
+void SetAsegaSpeed__FP5ASEGAf(void *p, float f) __asm__("SetAsegaSpeed__FP5ASEGAf");
 // 0x17CB80: BHVRAIL vtable slot 10 (Update): walks along the attached rail shape toward the goal parameter; stands
 // on arrival.
-void UpdateBhvrail(BHVRAIL *behavior) {
+extern "C" void UpdateBhvrail(BHVRAIL *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -5408,15 +5408,15 @@ void UpdateBhvrail(BHVRAIL *behavior) {
         }
     } while (behavior->state != s);
 }
-} } // namespace M_UpdateBhvrail
+} // namespace M_UpdateBhvrail
 
 // 0x17CD00 SetBhvrailState
-namespace M_SetBhvrailState { extern "C" {
+namespace M_SetBhvrailState {
 
-void PopBhv(void *p);
-BHVANIM *PushStepBehavior(void *p, int n);
+void PopBhv(void *p) __asm__("PopBhv");
+BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17CD00: BHVRAIL state change: 0 walk animation (flag 9), 1 stand (flag 2).
-void SetBhvrailState(BHVRAIL *behavior, int n) {
+extern "C" void SetBhvrailState(BHVRAIL *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
     behavior->state = n;
@@ -5438,15 +5438,15 @@ void SetBhvrailState(BHVRAIL *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvrailState
+} // namespace M_SetBhvrailState
 
 // 0x17CDB8 SetBhvrailGoal
-namespace M_SetBhvrailGoal { extern "C" {
+namespace M_SetBhvrailGoal {
 
-float GetShapeMaxDistance(void *p);
-float GetShapeMinDistance(void *p);
+float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
+float GetShapeMinDistance(void *p) __asm__("GetShapeMinDistance");
 // 0x17CDB8: Sets the rail goal to the rail's maximum or minimum parameter, the direction, and starts walking.
-void SetBhvrailGoal(BHVRAIL *behavior, int f)
+extern "C" void SetBhvrailGoal(BHVRAIL *behavior, int f)
 {
     void *pv = ((STEPGUARD *)behavior->owner)->attachObject;
     if (f)
@@ -5456,14 +5456,14 @@ void SetBhvrailGoal(BHVRAIL *behavior, int f)
     ((STEPGUARD *)behavior->owner)->isMovingForward = ((STEPGUARD *)behavior->owner)->attachParam < behavior->goalParam;
     SetBhvrailState(behavior, 0);
 }
-} } // namespace M_SetBhvrailGoal
+} // namespace M_SetBhvrailGoal
 
 // 0x17CE30 HasBhvrailArrived
-namespace M_FBhvrailArrived { extern "C" {
+namespace M_FBhvrailArrived {
 
 // 0x17CE30: True if the rail parameter is within 50 of the goal.
-int HasBhvrailArrived(BHVRAIL *behavior) { return __builtin_fabsf(((STEPGUARD *)behavior->owner)->attachParam - behavior->goalParam) < 50.0f; }
-} } // namespace M_FBhvrailArrived
+extern "C" int HasBhvrailArrived(BHVRAIL *behavior) { return __builtin_fabsf(((STEPGUARD *)behavior->owner)->attachParam - behavior->goalParam) < 50.0f; }
+} // namespace M_FBhvrailArrived
 
 // 0x17CE68 InitBhvpipe
 // 0x17CE68: BHVPIPE vtable slot 7 (OnPush): raises flag 0x27 (on a pipe), state -1.
@@ -5493,19 +5493,19 @@ extern "C" void CloseBhvpipe(BHVPIPE *behavior)
 }
 
 // 0x17CF10 UpdateBhvpipe
-namespace M_UpdateBhvpipe { extern "C" {
+namespace M_UpdateBhvpipe {
 struct O; struct L;
-extern float D_002DFB7C;
+extern float D_002DFB7C __asm__("D_002DFB7C");
 struct O : PO { char pad[0x198 - 0x180]; float moveSpeed; char pad2[0x14]; char orientation[0xF84 - 0x1B0]; int attachObject; float attachParam; int isMovingForward; };
 struct L { float a, b, c; };
-void UpdateBhv(BHVPIPE *p);
-int HasBhvpipeArrived(BHVPIPE *p);
-float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n);
-float WrapShapeDistance(int n, float g);
-void GetPipeGoalMatrix(int a, float g, int b, void *pv);
+void UpdateBhv(BHVPIPE *p) __asm__("UpdateBhv");
+int HasBhvpipeArrived(BHVPIPE *p) __asm__("HasBhvpipeArrived");
+float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n) __asm__("SmoothValue__FfffP3SMPPf");
+float WrapShapeDistance(int n, float g) __asm__("WrapShapeDistance");
+void GetPipeGoalMatrix(int a, float g, int b, void *pv) __asm__("GetPipeGoalMatrix");
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps
 // the pipe goal matrix.
-void UpdateBhvpipe(BHVPIPE *behavior) {
+extern "C" void UpdateBhvpipe(BHVPIPE *behavior) {
     int s;
     UpdateBhv(behavior);
     do {
@@ -5536,15 +5536,15 @@ void UpdateBhvpipe(BHVPIPE *behavior) {
         GetPipeGoalMatrix(o->attachObject, o->attachParam, o->isMovingForward, o->orientation);
     }
 }
-} } // namespace M_UpdateBhvpipe
+} // namespace M_UpdateBhvpipe
 
 // 0x17D058 SetBhvpipeState
-namespace M_SetBhvpipeState { extern "C" {
+namespace M_SetBhvpipeState {
 
-void PopBhv(void *p);
-BHVANIM *PushStepBehavior(void *p, int n);
+void PopBhv(void *p) __asm__("PopBhv");
+BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17D058: BHVPIPE state change: 0 move animation (flag 9), 1 stand (flag 2).
-void SetBhvpipeState(BHVPIPE *behavior, int n) {
+extern "C" void SetBhvpipeState(BHVPIPE *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
     behavior->state = n;
@@ -5562,15 +5562,15 @@ void SetBhvpipeState(BHVPIPE *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvpipeState
+} // namespace M_SetBhvpipeState
 
 // 0x17D110 SetBhvpipeGoal
-namespace M_SetBhvpipeGoal { extern "C" {
+namespace M_SetBhvpipeGoal {
 
-float GetShapeMaxDistance(void *p);
-float GetShapeMinDistance(void *p);
+float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
+float GetShapeMinDistance(void *p) __asm__("GetShapeMinDistance");
 // 0x17D110: Sets the pipe goal to the pipe's maximum or minimum parameter.
-void SetBhvpipeGoal(BHVPIPE *behavior, int f)
+extern "C" void SetBhvpipeGoal(BHVPIPE *behavior, int f)
 {
     void *pv = ((STEPGUARD *)behavior->owner)->attachObject;
     if (f)
@@ -5580,14 +5580,14 @@ void SetBhvpipeGoal(BHVPIPE *behavior, int f)
     ((STEPGUARD *)behavior->owner)->isMovingForward = ((STEPGUARD *)behavior->owner)->attachParam < behavior->goalParam;
     SetBhvpipeState(behavior, 0);
 }
-} } // namespace M_SetBhvpipeGoal
+} // namespace M_SetBhvpipeGoal
 
 // 0x17D188 HasBhvpipeArrived
-namespace M_FBhvpipeArrived { extern "C" {
+namespace M_FBhvpipeArrived {
 
 // 0x17D188: True if the pipe parameter is within 50 of the goal.
-int HasBhvpipeArrived(BHVPIPE *behavior) { return __builtin_fabsf(((STEPGUARD *)behavior->owner)->attachParam - behavior->goalParam) < 50.0f; }
-} } // namespace M_FBhvpipeArrived
+extern "C" int HasBhvpipeArrived(BHVPIPE *behavior) { return __builtin_fabsf(((STEPGUARD *)behavior->owner)->attachParam - behavior->goalParam) < 50.0f; }
+} // namespace M_FBhvpipeArrived
 
 // 0x17D1C0 InitBhvAttachCid19
 // 0x17D1C0: Attach behaviour for cid 0x13 objects (BHV187) vtable slot 7 (OnPush): raises flag 0x28.
@@ -5599,17 +5599,17 @@ void BHV187::OnPush()
 }
 
 // 0x17D1F0 StartBhvAttachCid19
-namespace M_func_0017D1F0 { extern "C" {
+namespace M_func_0017D1F0 {
 struct M3;
 struct M3 { qword a, b, c; };
-extern qword D_002A2DC0;
-void StartBhv(BHV187 *p);
-BHVANIM *PushStepBehavior(void *p, int n);
-qword *GetLoWorldMatrix(void *p);
-struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+void StartBhv(BHV187 *p) __asm__("StartBhv");
+BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+qword *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
+struct M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
 // 0x17D1F0: Attach behaviour (cid 0x13) vtable slot 8 (Start): pushes the stand animation and aligns to the attach
 // object's frame.
-void StartBhvAttachCid19(BHV187 *behavior)
+extern "C" void StartBhvAttachCid19(BHV187 *behavior)
 {
     BHVANIM *o;
     STEPGUARD *t;
@@ -5620,7 +5620,7 @@ void StartBhvAttachCid19(BHV187 *behavior)
     t = (STEPGUARD *)behavior->owner;
     *(M3 *)t->aqwTarget = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->attachObject), D_002A2DC0);
 }
-} } // namespace M_func_0017D1F0
+} // namespace M_func_0017D1F0
 
 // 0x17D280 CloseBhvAttachCid19
 // 0x17D280: Attach behaviour (cid 0x13) vtable slot 9 (Close): lowers flag 0x28.
@@ -5640,11 +5640,11 @@ void BHV188::OnPush()
 }
 
 // 0x17D2E0 StartBhvAttachCid39
-namespace M_func_0017D2E0 { extern "C" {
-void StartBhv(BHV188 *p);
-BHVANIM *PushStepBehavior(void *p, int n);
+namespace M_func_0017D2E0 {
+void StartBhv(BHV188 *p) __asm__("StartBhv");
+BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17D2E0: Attach behaviour (cid 0x27) vtable slot 8 (Start): pushes the stand animation.
-void StartBhvAttachCid39(BHV188 *behavior)
+extern "C" void StartBhvAttachCid39(BHV188 *behavior)
 {
     BHVANIM *o;
     StartBhv(behavior);
@@ -5652,7 +5652,7 @@ void StartBhvAttachCid39(BHV188 *behavior)
     o->sgf = 2;
     o->Start();
 }
-} } // namespace M_func_0017D2E0
+} // namespace M_func_0017D2E0
 
 // 0x17D330 CloseBhvAttachCid39
 // 0x17D330: Attach behaviour (cid 0x27) vtable slot 9 (Close): lowers flag 0x29.
@@ -5665,12 +5665,12 @@ extern "C" void CloseBhvAttachCid39(BHV *behavior)
 namespace RO_ORDER { extern const float r_D_002A55FC __asm__("D_002A55FC") = 3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A5600 __asm__("D_002A5600") = 3.40282347e+38f; }
 // 0x17D360 InitBhvgoto
-namespace M_InitBhvgoto { extern "C" {
+namespace M_InitBhvgoto {
 struct T;
 struct T { char pad[0x28]; int version; };
-void InitBhv(BHVGOTO *p);
+void InitBhv(BHVGOTO *p) __asm__("InitBhv");
 // 0x17D360: BHVGOTO vtable slot 7 (OnPush): no flag, state -1, stamps the path-graph version.
-void InitBhvgoto(BHVGOTO *behavior)
+extern "C" void InitBhvgoto(BHVGOTO *behavior)
 {
     InitBhv(behavior);
     behavior->state = -1;
@@ -5678,7 +5678,7 @@ void InitBhvgoto(BHVGOTO *behavior)
     behavior->planTime = -3.40282346638528859812e+38f;
     behavior->pathGraphVersion = ((struct T *)g_sw.pregtree)->version;
 }
-} } // namespace M_InitBhvgoto
+} // namespace M_InitBhvgoto
 
 // 0x17D3B0 StartBhvgoto
 // 0x17D3B0: BHVGOTO vtable slot 8 (Start): raises the caller-chosen flag (e.g. 0x1C run), stands and plans the
@@ -5710,11 +5710,11 @@ void BHVGOTO::Close()
 }
 
 // 0x17D450 SetBhvgotoState
-namespace M_SetBhvgotoState { extern "C" {
-void PopBhv(void *p);
-BHV *PushStepBehavior(STEPGUARD *guard, int n);
-void SetBhvpathShape(BHVPATH *o, void *shape, int b);
-} }
+namespace M_SetBhvgotoState {
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(STEPGUARD *guard, int n) __asm__("PushStepBehavior");
+void SetBhvpathShape(BHVPATH *o, void *shape, int b) __asm__("SetBhvpathShape");
+}
 // 0x17D450: BHVGOTO state change: 4 stand (BHVIDLE), 1/2 walk the path (BHVWALKPATH, the run animation when
 // allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHV191 on the relocate goal).
 extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
@@ -5814,15 +5814,15 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
-extern "C" { extern float D_002BE750; }
-extern "C" { extern float D_002BE754; }
-extern "C" { extern qword D_002A2DC0; }
-extern "C" {
-void CollectVisibleMsGlobs(int *pcpso, SOPART ***papso);
-}
-extern "C" {
+extern float D_002BE750 __asm__("D_002BE750");
+extern float D_002BE754 __asm__("D_002BE754");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+
+void CollectVisibleMsGlobs(int *pcpso, SOPART ***papso) __asm__("CollectVisibleMsGlobs");
+
+
 SOPART *HitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
-}
+
 // VU0 helper: base + vector * scale.
 static inline qword VuMulAdd(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
@@ -5851,15 +5851,15 @@ int SnapPositionToSurfaceAbove(qword *ppos)
 } // namespace M_FSnapPosToSurfaceAbove
 
 // 0x17D6C8 UpdateBhvgoto
-namespace M_UpdateBhvgoto { extern "C" {
-extern float D_002BE758, D_002BE75C;
+namespace M_UpdateBhvgoto {
+extern float D_002BE758 __asm__("D_002BE758"), D_002BE75C __asm__("D_002BE75C");
 struct W { int pad[0x28 / 4]; int version; };
-int IsBhvwalkpathStuck(BHVPATH *t);
-float GetShapeMaxDistance(SHAPE *p);
-void EvaluateShapeAtDistance(SHAPE *p, float f, qword *pv, int n);
-int IsBhvpathlinkDone(BHV *t);
-int IsBhvRelocateDone(BHV *t);
-} }
+int IsBhvwalkpathStuck(BHVPATH *t) __asm__("IsBhvwalkpathStuck");
+float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
+void EvaluateShapeAtDistance(SHAPE *p, float f, qword *pv, int n) __asm__("EvaluateShapeAtDistance");
+int IsBhvpathlinkDone(BHV *t) __asm__("IsBhvpathlinkDone");
+int IsBhvRelocateDone(BHV *t) __asm__("IsBhvRelocateDone");
+}
 // 0x17D6C8: BHVGOTO vtable slot 10 (Update): re-plans when stale or the path graph changed; at a path link's start
 // traverses it; relocates when stuck.
 void BHVGOTO::Update() {
@@ -5903,15 +5903,15 @@ void BHVGOTO::Update() {
 }
 
 // 0x17D8A8 FindBhvgotoRoute
-namespace M_FindBhvgotoRoute { extern "C" {
-qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(PATHLINKEND *p, qword goalPos);
-struct CID17 *FindPathzoneAtPos(qword goalPos, int n);
-int FindPathlinkRoute(void *a, STEPGUARD *b, qword goalPos, int c, int d, PATHLINK **pp);
-void FindPathzoneClosestPoint(void *a, qword goalPos, qword *pv, int n);
+namespace M_FindBhvgotoRoute {
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword GetPathlinkEndpointPos(PATHLINKEND *p, qword goalPos) __asm__("GetPathlinkEndpointPos");
+struct CID17 *FindPathzoneAtPos(qword goalPos, int n) __asm__("FindPathzoneAtPos");
+int FindPathlinkRoute(void *a, STEPGUARD *b, qword goalPos, int c, int d, PATHLINK **pp) __asm__("FindPathlinkRoute");
+void FindPathzoneClosestPoint(void *a, qword goalPos, qword *pv, int n) __asm__("FindPathzoneClosestPoint");
 // 0x17D8A8: Routes the goal through the path zones: directly within one zone, else through path links (optionally
 // allowing partial routes), else stops at the closest reachable point.
-void FindBhvgotoRoute(BHVGOTO *behavior) {
+extern "C" void FindBhvgotoRoute(BHVGOTO *behavior) {
     behavior->numRouteLinks = 0;
     behavior->waypoint = behavior->goal;
     if (behavior->isDirect != 0)
@@ -5959,26 +5959,26 @@ void FindBhvgotoRoute(BHVGOTO *behavior) {
         behavior->waypoint.pos = pos;
     }
 }
-} } // namespace M_FindBhvgotoRoute
+} // namespace M_FindBhvgotoRoute
 
 // 0x17DA28 PlanBhvgoto
-namespace M_PlanBhvgoto { extern "C" {
+namespace M_PlanBhvgoto {
 struct W;
 struct W { int pad[0x28 / 4]; int version; };   /* the region tree (REGTREE has no layout yet): its path-graph version */
-void FindBhvgotoRoute(BHVGOTO *p);
-qword GetLoWorldPos(void *p);
+void FindBhvgotoRoute(BHVGOTO *p) __asm__("FindBhvgotoRoute");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 /* PATHLINKEND cleared by an explicit ClearPointerPair call: its constructor at that point changes the register of
    the numRouteLinks load (v0/v1). */
 struct PATHLINKENDIsland { SHAPE *shape; LO *object; int unknown8[2]; qword pos; };
-void ClearPointerPair(PATHLINKENDIsland *x);
-qword GetPathlinkEndpointPos(PATHLINKENDIsland *s, qword v);
-void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
-void MeasureShape(SHAPE *b);
-int FindPathzonePathCurve(void *q, qword a, qword b, SHAPE *c);
+void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
+qword GetPathlinkEndpointPos(PATHLINKENDIsland *s, qword v) __asm__("GetPathlinkEndpointPos");
+void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n) __asm__("FindClosestPointOnLineSegment");
+void MeasureShape(SHAPE *b) __asm__("MeasureShape");
+int FindPathzonePathCurve(void *q, qword a, qword b, SHAPE *c) __asm__("FindPathzonePathCurve");
 // VU0 helper: z component of a vector.
 // 0x17DA28: Plans the move: routes, builds the path curve to the next waypoint or path link (or a straight
 // two-point shape) and picks the state.
-void PlanBhvgoto(BHVGOTO *behavior) {
+extern "C" void PlanBhvgoto(BHVGOTO *behavior) {
     PATHLINKENDIsland nextGoal;
     int nextState;
     if (behavior->state == -1) return;
@@ -6040,7 +6040,7 @@ void PlanBhvgoto(BHVGOTO *behavior) {
     behavior->planTime = g_clock.time;
     behavior->pathGraphVersion = ((struct W *)g_sw.pregtree)->version;
 }
-} } // namespace M_PlanBhvgoto
+} // namespace M_PlanBhvgoto
 
 // 0x17DCB8 HasBhvgotoArrived
 // 0x17DCB8: True if walking directly (state 1) and at the path end.
@@ -6057,11 +6057,11 @@ extern "C" int HasBhvgotoArrived(BHVGOTO *behavior)
 }
 
 // 0x17DCF8 IsBhvgotoPathFinished
-namespace M_FBhvgotoPathFinished { extern "C" {
+namespace M_FBhvgotoPathFinished {
 
-int IsBhvpathFinished(void *p);
+int IsBhvpathFinished(void *p) __asm__("IsBhvpathFinished");
 // 0x17DCF8: True if walking (states 1-2) and the walk path has finished.
-int IsBhvgotoPathFinished(BHVGOTO *behavior)
+extern "C" int IsBhvgotoPathFinished(BHVGOTO *behavior)
 {
     if (behavior->state >= 3)
         return 0;
@@ -6069,7 +6069,7 @@ int IsBhvgotoPathFinished(BHVGOTO *behavior)
         return 0;
     return IsBhvpathFinished(behavior->pbhvNext);
 }
-} } // namespace M_FBhvgotoPathFinished
+} // namespace M_FBhvgotoPathFinished
 
 // 0x17DD38 SetBhvgotoGoal
 // 0x17DD38: Sets the goal and re-plans.
@@ -6081,18 +6081,18 @@ extern "C" void SetBhvgotoGoal(BHVGOTO *behavior, PATHLINKEND *pq)
 }
 
 // 0x17DD70 InitBhvStalk
-namespace M_func_0017DD70 { extern "C" {
+namespace M_func_0017DD70 {
 
-void InitBhv(BHV189 *p);
-void AddStepguardSgf(void *p, int n);
+void InitBhv(BHV189 *p) __asm__("InitBhv");
+void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17DD70: Stalk behaviour (BHV189) vtable slot 7 (OnPush): raises flag 0x2B, state -1.
-void InitBhvStalk(BHV189 *behavior)
+extern "C" void InitBhvStalk(BHV189 *behavior)
 {
     InitBhv(behavior);
     AddStepguardSgf(behavior->owner, 0x2B);
     behavior->state = -1;
 }
-} } // namespace M_func_0017DD70
+} // namespace M_func_0017DD70
 
 // 0x17DDA8 StartBhvStalk
 // 0x17DDA8: Stalk behaviour vtable slot 8 (Start): state 0 (alert animation at the target) and sets the target.
@@ -6105,13 +6105,13 @@ void BHV189::Start()
 }
 
 // 0x17DDE8 CloseBhvStalk
-namespace M_func_0017DDE8 { extern "C" {
-void CloseBhv(BHV189 *p);
-void ResetDetectorTargets(void *p);
-void SetStepguardTarget(STEPGUARD *t, int n);
+namespace M_func_0017DDE8 {
+void CloseBhv(BHV189 *p) __asm__("CloseBhv");
+void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
+void SetStepguardTarget(STEPGUARD *t, int n) __asm__("SetStepguardTarget");
 // 0x17DDE8: Stalk behaviour vtable slot 9 (Close): state -1, resets the detector, clears the target, lowers flag
 // 0x2B.
-void CloseBhvStalk(BHV189 *behavior)
+extern "C" void CloseBhvStalk(BHV189 *behavior)
 {
     CloseBhv(behavior);
     SetBhvStalkState(behavior, -1);
@@ -6119,7 +6119,7 @@ void CloseBhvStalk(BHV189 *behavior)
     SetStepguardTarget((STEPGUARD *)behavior->owner, 0);
     RemoveStepguardSgf((STEPGUARD *)behavior->owner, 0x2B);
 }
-} } // namespace M_func_0017DDE8
+} // namespace M_func_0017DDE8
 
 // 0x17DE40 IsBhvStalkDone
 // 0x17DE40: True if the stalk behaviour has finished (state -1).
@@ -6129,19 +6129,19 @@ extern "C" int IsBhvStalkDone(BHV189 *behavior)
 }
 
 // 0x17DE50 UpdateBhvStalk
-namespace M_func_0017DE50 { extern "C" {
-extern float D_002BE760, D_002BE764, D_002BE768;
-void UpdateBhv(BHV189 *p);
-int IsBhvBusyAbove(BHV189 *p);
-int IsBhvanimDone(void *p);
-int IsStepguardHandsOff(void *p);
-int IsStepguardForceClass(STEPGUARD *a, void *o);
-float GetRandomStepguardDelay(STEPGUARD *a);
-qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v);
-void RegoalBhvStalk(BHV189 *p);
+namespace M_func_0017DE50 {
+extern float D_002BE760 __asm__("D_002BE760"), D_002BE764 __asm__("D_002BE764"), D_002BE768 __asm__("D_002BE768");
+void UpdateBhv(BHV189 *p) __asm__("UpdateBhv");
+int IsBhvBusyAbove(BHV189 *p) __asm__("IsBhvBusyAbove");
+int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
+int IsStepguardHandsOff(void *p) __asm__("IsStepguardHandsOff");
+int IsStepguardForceClass(STEPGUARD *a, void *o) __asm__("IsStepguardForceClass");
+float GetRandomStepguardDelay(STEPGUARD *a) __asm__("GetRandomStepguardDelay");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v) __asm__("GetPathlinkEndpointPos");
+void RegoalBhvStalk(BHV189 *p) __asm__("RegoalBhvStalk");
 // VU0 helper: distance between two points.
-static __inline__ float Dist(qword a, qword b) {
+extern "C" { static __inline__ float Dist(qword a, qword b) {
     qword d;
     float f;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
@@ -6149,10 +6149,10 @@ static __inline__ float Dist(qword a, qword b) {
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 // 0x17DE50: Stalk behaviour vtable slot 10 (Update): after the alert animation, runs near the forced-class target
 // and keeps re-positioning; leaves when the delay expires and the target is no longer forced.
-void UpdateBhvStalk(BHV189 *behavior) {
+extern "C" void UpdateBhvStalk(BHV189 *behavior) {
     int s;
     UpdateBhv(behavior);
     while (s = behavior->state, !IsBhvBusyAbove(behavior)) {
@@ -6199,21 +6199,21 @@ void UpdateBhvStalk(BHV189 *behavior) {
         }
     }
 }
-} } // namespace M_func_0017DE50
+} // namespace M_func_0017DE50
 
 // 0x17E0E0 RegoalBhvStalk
 namespace M_func_0017E0E0 {
-extern "C" {
-extern float D_002BE76C;
-extern float D_002BE770[16];
-qword GetLoWorldPos(void *p);
-float atan2f(float y, float x);
-qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v);
-qword SetVectorCylind(float a, float b, float c);
-int FindPathzoneClosestFreePoint(void *q, qword v, qword *out);
+
+extern float D_002BE76C __asm__("D_002BE76C");
+extern float D_002BE770[16] __asm__("D_002BE770");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+float atan2f(float y, float x) __asm__("atan2f");
+qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v) __asm__("GetPathlinkEndpointPos");
+qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
+int FindPathzoneClosestFreePoint(void *q, qword v, qword *out) __asm__("FindPathzoneClosestFreePoint");
 struct PATHLINKENDIsland;
-void ClearPointerPair(PATHLINKENDIsland *x);
-}
+void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
+
 /* PATHLINKEND with an inline constructor around ClearPointerPair: PATHLINKEND's own (out-of-line) constructor keeps &x
    in a saved register instead of rematerializing it (1 instruction). */
 struct PATHLINKENDIsland { qword a; qword v; PATHLINKENDIsland() { ClearPointerPair(this); } };
@@ -6264,13 +6264,13 @@ extern "C" void RegoalBhvStalk(BHV189 *behavior) {
 } // namespace M_func_0017E0E0
 
 // 0x17E278 SetBhvStalkState
-namespace M_func_0017E278 { extern "C" {
-void PopBhv(void *p);
-BHV *PushStepBehavior(void *p, int n);
-void RegoalBhvStalk(BHV189 *p);
+namespace M_func_0017E278 {
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+void RegoalBhvStalk(BHV189 *p) __asm__("RegoalBhvStalk");
 // 0x17E278: Stalk behaviour state change: 0 alert animation (flag 0xB) at the target, 1 run (BHVGOTO with flag
 // 0x1C), 2 hands-off idle.
-void SetBhvStalkState(BHV189 *behavior, int n)
+extern "C" void SetBhvStalkState(BHV189 *behavior, int n)
 {
     if (n == behavior->state)
         return;
@@ -6298,7 +6298,7 @@ void SetBhvStalkState(BHV189 *behavior, int n)
     } break;
     }
 }
-} } // namespace M_func_0017E278
+} // namespace M_func_0017E278
 
 // 0x17E3A0 InitBhvpathlink
 // 0x17E3A0: BHVPATHLINK vtable slot 7 (OnPush): raises flag 0x2C, state -1.
@@ -6330,16 +6330,16 @@ extern "C" void CloseBhvpathlink(BHVPATHLINK *behavior)
 }
 
 // 0x17E458 UpdateBhvpathlink
-namespace M_UpdateBhvpathlink { extern "C" {
-void UpdateBhv(BHVPATHLINK *p);
-int IsBhvpathlinkDone(BHVPATHLINK *p);
-int IsBhvRelocateDone(void *p);
-int IsBhvanimDone(void *p);
-int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *p);
-int IsBhvpathAtEnd(void *p);
+namespace M_UpdateBhvpathlink {
+void UpdateBhv(BHVPATHLINK *p) __asm__("UpdateBhv");
+int IsBhvpathlinkDone(BHVPATHLINK *p) __asm__("IsBhvpathlinkDone");
+int IsBhvRelocateDone(void *p) __asm__("IsBhvRelocateDone");
+int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
+int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *p) __asm__("IsBhvpathlinkAtSegmentEnd");
+int IsBhvpathAtEnd(void *p) __asm__("IsBhvpathAtEnd");
 // 0x17E458: BHVPATHLINK vtable slot 10 (Update): per segment, kind 0 walks (with a timeout) and kind 1 leaps;
 // advances at the segment end; a final relocation step.
-void UpdateBhvpathlink(BHVPATHLINK *behavior) {
+extern "C" void UpdateBhvpathlink(BHVPATHLINK *behavior) {
     UpdateBhv(behavior);
     if (IsBhvpathlinkDone(behavior)) return;
     switch (behavior->state) {
@@ -6370,7 +6370,7 @@ void UpdateBhvpathlink(BHVPATHLINK *behavior) {
     }
     }
 }
-} } // namespace M_UpdateBhvpathlink
+} // namespace M_UpdateBhvpathlink
 
 // 0x17E570 IsBhvpathlinkDone
 // 0x17E570: True if the path-link traversal has finished (state -1).
@@ -6396,43 +6396,43 @@ extern "C" void AdvanceBhvpathlink(BHVPATHLINK *behavior)
 }
 
 // 0x17E5F0 IsBhvpathlinkAtSegmentEnd
-namespace M_FBhvpathlinkAtSegmentEnd { extern "C" {
-int IsNearPathlinkEndpoint(void *pe, void *p, float g);
+namespace M_FBhvpathlinkAtSegmentEnd {
+int IsNearPathlinkEndpoint(void *pe, void *p, float g) __asm__("IsNearPathlinkEndpoint");
 // 0x17E5F0: True if the guard is within 25 of the current segment's end point.
-int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *behavior)
+extern "C" int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *behavior)
 {
     return IsNearPathlinkEndpoint(&behavior->pathlink->aend[behavior->segmentIndex], behavior->owner, 25.0f);
 }
-} } // namespace M_FBhvpathlinkAtSegmentEnd
+} // namespace M_FBhvpathlinkAtSegmentEnd
 
 // 0x17E628 PushBhvpathlinkLeap
-namespace M_PushBhvpathlinkLeap { extern "C" {
+namespace M_PushBhvpathlinkLeap {
 
-BHVLEAP *PushStepBehavior(void *p, int n);
-qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(void *pe, qword q);
+BHVLEAP *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword GetPathlinkEndpointPos(void *pe, qword q) __asm__("GetPathlinkEndpointPos");
 // 0x17E628: Pushes a leap (BHVLEAP) to the current segment's end point.
-void PushBhvpathlinkLeap(BHVPATHLINK *behavior) {
+extern "C" void PushBhvpathlinkLeap(BHVPATHLINK *behavior) {
     BHVLEAP *o = PushStepBehavior(behavior->owner, CID_BHVLEAP);
     o->extra = 1;
     o->landingPoint = GetPathlinkEndpointPos(&behavior->pathlink->aend[behavior->segmentIndex], GetLoWorldPos(behavior->owner));
     o->Start();
 }
-} } // namespace M_PushBhvpathlinkLeap
+} // namespace M_PushBhvpathlinkLeap
 
 // 0x17E6B0 SetBhvpathlinkState
-namespace M_SetBhvpathlinkState { extern "C" {
+namespace M_SetBhvpathlinkState {
 struct SEG;
-extern float D_002BE7B0, D_002BE7B4;
+extern float D_002BE7B0 __asm__("D_002BE7B0"), D_002BE7B4 __asm__("D_002BE7B4");
 struct SEG { qword a; qword b; };   /* a PATHLINKEND as two quadwords (the relocate goal is copied so) */
-void PopBhv(void *p);
-BHV *PushStepBehavior(void *p, int n);
-qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v);
-void MeasureShape(SHAPE *b);
-void PushBhvpathlinkLeap(BHVPATHLINK *p);
+void PopBhv(void *p) __asm__("PopBhv");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v) __asm__("GetPathlinkEndpointPos");
+void MeasureShape(SHAPE *b) __asm__("MeasureShape");
+void PushBhvpathlinkLeap(BHVPATHLINK *p) __asm__("PushBhvpathlinkLeap");
 // 0x17E6B0: BHVPATHLINK state change: 0 the segment (a two-point walk with a timeout, or a leap), 1 relocate.
-void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
+extern "C" void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
     behavior->state = n;
@@ -6484,7 +6484,7 @@ void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
         break;
     }
 }
-} } // namespace M_SetBhvpathlinkState
+} // namespace M_SetBhvpathlinkState
 
 // 0x17E888 InitBhvRelocate
 // 0x17E888: Relocate behaviour (BHV191) vtable slot 7 (OnPush): raises flag 0x2D.
@@ -6512,33 +6512,33 @@ extern "C" void CloseBhvRelocate(BHV *behavior)
 }
 
 // 0x17E918 UpdateBhvRelocate
-namespace M_func_0017E918 { extern "C" {
-void UpdateBhv(BHV191 *p);
-int IsBhvanimDone(void *p);
-int IsNearPathlinkEndpoint(void *pe, void *p, float g);
-void MoveBhvRelocateToPoint(BHV191 *p);
+namespace M_func_0017E918 {
+void UpdateBhv(BHV191 *p) __asm__("UpdateBhv");
+int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
+int IsNearPathlinkEndpoint(void *pe, void *p, float g) __asm__("IsNearPathlinkEndpoint");
+void MoveBhvRelocateToPoint(BHV191 *p) __asm__("MoveBhvRelocateToPoint");
 // 0x17E918: Relocate behaviour vtable slot 10 (Update): retries until within 25 of the point.
-void UpdateBhvRelocate(BHV191 *behavior) {
+extern "C" void UpdateBhvRelocate(BHV191 *behavior) {
     UpdateBhv(behavior);
     if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
         if (IsBhvanimDone(behavior->pbhvNext) && !IsNearPathlinkEndpoint(&behavior->end, behavior->owner, 25.0f)) MoveBhvRelocateToPoint(behavior);
     } else if (!IsNearPathlinkEndpoint(&behavior->end, behavior->owner, 25.0f)) MoveBhvRelocateToPoint(behavior);
 }
-} } // namespace M_func_0017E918
+} // namespace M_func_0017E918
 
 // 0x17E9B0 MoveBhvRelocateToPoint
-namespace M_func_0017E9B0 { extern "C" {
-extern qword D_002A2DD0;
-void PopBhv(void *p);
-qword GetLoWorldPos(void *p);
-qword GetPathlinkEndpointPos(void *p, qword q);
-int SnapToGround(qword *pq, float a, float b, int n, void *pfn);
-void SnapPositionToSurfaceAbove(qword *pq);
-BHV *PushStepBehavior(void *p, int n);
-void DetachStepguard(STEPGUARD *p);
+namespace M_func_0017E9B0 {
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void PopBhv(void *p) __asm__("PopBhv");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword GetPathlinkEndpointPos(void *p, qword q) __asm__("GetPathlinkEndpointPos");
+int SnapToGround(qword *pq, float a, float b, int n, void *pfn) __asm__("SnapToGround");
+void SnapPositionToSurfaceAbove(qword *pq) __asm__("SnapPositionToSurfaceAbove");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+void DetachStepguard(STEPGUARD *p) __asm__("DetachStepguard");
 // 0x17E9B0: Snaps the relocation point to the ground (or the surface above), then leaps there (capability bit 0) or
 // teleports (detach, set the position, zero the velocities).
-void MoveBhvRelocateToPoint(BHV191 *behavior) {
+void MoveBhvRelocateToPoint(BHV191 *behavior) __asm__("MoveBhvRelocateToPoint"); void MoveBhvRelocateToPoint(BHV191 *behavior) {
     union { qword q; float a[4]; } u;
     PopBhv(&behavior->pbhvNext);
     u.q = GetPathlinkEndpointPos(&behavior->end, GetLoWorldPos(behavior->owner));
@@ -6559,14 +6559,14 @@ void MoveBhvRelocateToPoint(BHV191 *behavior) {
         behavior->owner->SetAngularVelocity(D_002A2DD0);
     }
 }
-} } // namespace M_func_0017E9B0
+} // namespace M_func_0017E9B0
 
 // 0x17EAE8 IsBhvRelocateDone
-namespace M_func_0017EAE8 { extern "C" {
-int IsBhvanimDone(void *p);
-int IsNearPathlinkEndpoint(void *pe, void *p, float g);
+namespace M_func_0017EAE8 {
+int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
+int IsNearPathlinkEndpoint(void *pe, void *p, float g) __asm__("IsNearPathlinkEndpoint");
 // 0x17EAE8: True if the relocation is complete: the leap (if any) finished and the guard is within 25 of the point.
-int IsBhvRelocateDone(BHV191 *behavior)
+extern "C" int IsBhvRelocateDone(BHV191 *behavior)
 {
     if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
         if (!IsBhvanimDone(behavior->pbhvNext))
@@ -6574,7 +6574,7 @@ int IsBhvRelocateDone(BHV191 *behavior)
     }
     return IsNearPathlinkEndpoint(&behavior->end, behavior->owner, 25.0f);
 }
-} } // namespace M_func_0017EAE8
+} // namespace M_func_0017EAE8
 
 // 0x17EB48 InitBhvpatrolpath
 // 0x17EB48: BHVPATROLPATH vtable slot 7 (OnPush): raises flag 0x2E, no parameter.
@@ -6586,18 +6586,18 @@ extern "C" void InitBhvpatrolpath(BHVPATROLPATH *behavior)
 }
 
 // 0x17EB88 StartBhvpatrolpath
-namespace M_StartBhvpatrolpath { extern "C" {
+namespace M_StartBhvpatrolpath {
 struct G;
-extern struct G D_003DD020;
-void StartBhv(BHVPATROLPATH *p);
-qword GetLoWorldPos(void *p);
-void FindShapeClosestPointFromDistance(SHAPE *a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-void FindShapeClosestPoint(SHAPE *a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-BHV *PushStepBehavior(void *p, int n);
-void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *p, int n);
+extern struct G D_003DD020 __asm__("D_003DD020");
+void StartBhv(BHVPATROLPATH *p) __asm__("StartBhv");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void FindShapeClosestPointFromDistance(SHAPE *a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPointFromDistance");
+void FindShapeClosestPoint(SHAPE *a, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
+void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *p, int n) __asm__("AdvanceBhvpatrolpathGoal");
 // 0x17EB88: BHVPATROLPATH vtable slot 8 (Start): starts at the closest parameter on the path shape, pushes the goto
 // child and its first goal.
-void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
+extern "C" void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
     BHVGOTO *o;
     StartBhv(behavior);
     if (behavior->pathParam >= 0.0f)
@@ -6611,7 +6611,7 @@ void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
     AdvanceBhvpatrolpathGoal(behavior, 1);
     o->Start();
 }
-} } // namespace M_StartBhvpatrolpath
+} // namespace M_StartBhvpatrolpath
 
 // 0x17EC80 CloseBhvpatrolpath
 // 0x17EC80: BHVPATROLPATH vtable slot 9 (Close): lowers flag 0x2E.
@@ -6633,24 +6633,24 @@ extern "C" void UpdateBhvpatrolpath(BHV *behavior)
 }
 
 // 0x17ECF0 AdvanceBhvpatrolpathGoal
-namespace M_AdvanceBhvpatrolpathGoal { extern "C" {
+namespace M_AdvanceBhvpatrolpathGoal {
 struct R;
-extern float D_002BE7BC, D_002BE7C0, D_002BE7C4;
+extern float D_002BE7BC __asm__("D_002BE7BC"), D_002BE7C0 __asm__("D_002BE7C0"), D_002BE7C4 __asm__("D_002BE7C4");
 struct R { float start; float end; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-float GetShapeMinDistance(SHAPE *b);
-float GetShapeMaxDistance(SHAPE *b);
-float WrapShapeDistance(SHAPE *b, float f);
-void BuildShapeValidRanges(void *p);
-struct R *FindRangeContaining(void *p, float f);
-void EvaluateShapeAtDistance(SHAPE *b, float f, qword *pv, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+float GetShapeMinDistance(SHAPE *b) __asm__("GetShapeMinDistance");
+float GetShapeMaxDistance(SHAPE *b) __asm__("GetShapeMaxDistance");
+float WrapShapeDistance(SHAPE *b, float f) __asm__("WrapShapeDistance");
+void BuildShapeValidRanges(void *p) __asm__("BuildShapeValidRanges");
+struct R *FindRangeContaining(void *p, float f) __asm__("FindRangeContaining");
+void EvaluateShapeAtDistance(SHAPE *b, float f, qword *pv, int n) __asm__("EvaluateShapeAtDistance");
 /* PATHLINKEND cleared by an explicit ClearPointerPair call (block scope): its constructor at that point changes the
    schedule (2 instructions). */
 struct PATHLINKENDIsland { qword a; qword v; };
-void ClearPointerPair(PATHLINKENDIsland *x);
+void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
 // 0x17ECF0: Steps the shape parameter by a class-dependent distance in the travel direction (clamping or wrapping,
 // skipping invalid ranges) and sends it to the goto child.
-void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) {
+void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) __asm__("AdvanceBhvpatrolpathGoal"); void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) {
     float d;
     float t;
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->owner, CID_GUARD)) d = D_002BE7BC; else d = D_002BE7C0;
@@ -6682,42 +6682,42 @@ void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) {
         SetBhvgotoGoal(q, (PATHLINKEND *)&x);
     }
 }
-} } // namespace M_AdvanceBhvpatrolpathGoal
+} // namespace M_AdvanceBhvpatrolpathGoal
 
 // 0x17EE78 IsBhvpatrolpathDone
-namespace M_FBhvpatrolpathDone { extern "C" {
+namespace M_FBhvpatrolpathDone {
 
-int IsBhvpatrolpathAtEnd(BHVPATROLPATH *p);
-int HasBhvgotoArrived(void *p);
+int IsBhvpatrolpathAtEnd(BHVPATROLPATH *p) __asm__("IsBhvpatrolpathAtEnd");
+int HasBhvgotoArrived(void *p) __asm__("HasBhvgotoArrived");
 // 0x17EE78: True if the patrol path reached the end of an open shape and arrived.
-int IsBhvpatrolpathDone(BHVPATROLPATH *behavior)
+extern "C" int IsBhvpatrolpathDone(BHVPATROLPATH *behavior)
 {
     if (!IsBhvpatrolpathAtEnd(behavior)) return 0;
     return HasBhvgotoArrived(behavior->pbhvNext);
 }
-} } // namespace M_FBhvpatrolpathDone
+} // namespace M_FBhvpatrolpathDone
 
 // 0x17EEB8 IsBhvpatrolpathAtEnd
-namespace M_FBhvpatrolpathAtEnd { extern "C" {
-extern float D_002BE7B8;
-float GetShapeMaxDistance(SHAPE *p);
-float GetShapeMinDistance(SHAPE *p);
+namespace M_FBhvpatrolpathAtEnd {
+extern float D_002BE7B8 __asm__("D_002BE7B8");
+float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
+float GetShapeMinDistance(SHAPE *p) __asm__("GetShapeMinDistance");
 // 0x17EEB8: True if the shape is open and the parameter is within tolerance of its end.
-int IsBhvpatrolpathAtEnd(BHVPATROLPATH *behavior) {
+extern "C" int IsBhvpatrolpathAtEnd(BHVPATROLPATH *behavior) {
     float g;
     if (behavior->shape->isClosed) return 0;
     if (behavior->isForward) g = GetShapeMaxDistance(behavior->shape); else g = GetShapeMinDistance(behavior->shape);
     if (D_002BE7B8 < __builtin_fabsf(behavior->pathParam - g)) return 0;
     return 1;
 }
-} } // namespace M_FBhvpatrolpathAtEnd
+} // namespace M_FBhvpatrolpathAtEnd
 
 // 0x2562A8 ClearPointerPair
-namespace M_func_002562A8 { extern "C" {
+namespace M_func_002562A8 {
 typedef struct { int a; int b; } P;
 // 0x2562A8: Inline default constructor of a two-pointer record (both cleared); linkonce copy emitted here.
-inline void ClearPointerPair(P *p) { p->a = 0; p->b = 0; }   /* inline, after its callers: they call it and g++ emits the linkonce copy */
-} } // namespace M_func_002562A8
+extern "C" { inline void ClearPointerPair(P *p) { p->a = 0; p->b = 0; } }   /* inline, after its callers: they call it and g++ emits the linkonce copy */
+} // namespace M_func_002562A8
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

@@ -342,12 +342,12 @@ void SM::PostLoad()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetSmPendingApply { extern "C" {
+namespace M_SetSmPendingApply {
 struct CB { int cb; int n; };
-SMINIT *AllocFromWorldHeap(struct CB *);
+SMINIT *AllocFromWorldHeap(struct CB *) __asm__("AllocFromWorldHeap");
 // Records that the machine should start by itself after loading (root OID and initial state/flags), consumed by the
 // after-load hook.
-void SetSmPendingApply(SM *p, OID a, OID b, GRFAPL c)
+extern "C" void SetSmPendingApply(SM *p, OID a, OID b, GRFAPL c)
 {
     struct CB cb;
     SMINIT *pt;
@@ -356,24 +356,24 @@ void SetSmPendingApply(SM *p, OID a, OID b, GRFAPL c)
     p->psminit = pt;
     pt->oidRoot = a; pt->oidInitialState = b; pt->grfapl = c;
 }
-} } // namespace M_SetSmPendingApply
+} // namespace M_SetSmPendingApply
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PsmaApplySmOut { extern "C" {
-void ApplySmCore(int, int, int, int, int, int);
+namespace M_PsmaApplySmOut {
+void ApplySmCore(int, int, int, int, int, int) __asm__("ApplySmCore");
 // Starts the machine on an object (kind 4) and returns the activation through the last argument.
-void ApplySmGetSma(int a, int b, int c, int d, int e) { ApplySmCore(a, b, c, d, 4, e); }
-} } // namespace M_PsmaApplySmOut
+extern "C" void ApplySmGetSma(int a, int b, int c, int d, int e) { ApplySmCore(a, b, c, d, 4, e); }
+} // namespace M_PsmaApplySmOut
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ApplySmCore {
 /* The SMA is built by hand (slot heap, memset, then the vtable store at +0xC). */
-extern "C" { extern char D_002D9768[] __asm__("_vt$3SMA"); }
-extern "C" {
+extern char D_002D9768[] __asm__("_vt$3SMA");
+
 void *func_002333B4(void *, int, int) __asm__("memset");
-void AppendDlEntry__FP2DLPv(DL *, SMA *);
-int FindSmStateRequired(SM *, int);
-}
+void AppendDlEntry__FP2DLPv(DL *, SMA *) __asm__("AppendDlEntry__FP2DLPv");
+int FindSmStateRequired(SM *, int) __asm__("FindSmStateRequired");
+
 struct Lock {
     SM *p;
     // Scope guard: hold a reference (AddRef on entry, Release on exit).
@@ -415,18 +415,18 @@ extern "C" void ApplySmCore(SM *p, ALO *a, int b, int c, int d, SMA **pps)
 } // namespace M_ApplySmCore
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001F0380 { extern "C" {
-void ApplySmCore(int, int, int, int, int, int *);
+namespace M_func_001F0380 {
+void ApplySmCore(int, int, int, int, int, int *) __asm__("ApplySmCore");
 // Starts the machine on an object (kind 4) and returns the activation.
-int ApplySmToObject(int a, int b, int c, int d) { int r; ApplySmCore(a, b, c, d, 4, &r); return r; }
-} } // namespace M_func_001F0380
+int ApplySmToObject(int a, int b, int c, int d) __asm__("ApplySmToObject"); int ApplySmToObject(int a, int b, int c, int d) { int r; ApplySmCore(a, b, c, d, 4, &r); return r; }
+} // namespace M_func_001F0380
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PsmaApplySmEx { extern "C" {
-void ApplySmCore(int, int, int, int, int, int *);
+namespace M_PsmaApplySmEx {
+void ApplySmCore(int, int, int, int, int, int *) __asm__("ApplySmCore");
 // Starts the machine on an object with an explicit kind and returns the activation.
-int ApplySmWithKind(int a, int b, int c, int d, int e) { int r; ApplySmCore(a, b, c, d, e, &r); return r; }
-} } // namespace M_PsmaApplySmEx
+extern "C" int ApplySmWithKind(int a, int b, int c, int d, int e) { int r; ApplySmCore(a, b, c, d, e, &r); return r; }
+} // namespace M_PsmaApplySmEx
 
 /* The machine's activation on palo, or 0. The unused array is part of the original frame.
    (Sly 1-derived name: PsmaFindSm.) */
@@ -456,22 +456,22 @@ extern "C" void FindSmStateRequired(SM *psm, OID oid)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PsmdFindSm { extern "C" {
+namespace M_PsmdFindSm {
 // Returns the first distance-table record whose mask intersects the given mask, or null.
-SMRT *FindSmDistanceTable(SM *p, int m)
+extern "C" SMRT *FindSmDistanceTable(SM *p, int m)
 {
     int i;
     for (i = 0; i < p->csmrt; i++) { SMRT *pe = &p->asmrt[i]; if (pe->grf & m) return pe; }
     return 0;
 }
-} } // namespace M_PsmdFindSm
+} // namespace M_PsmdFindSm
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CsmtDistanceSm { extern "C" {
-SMRT *FindSmDistanceTable(SM *p, int n);
+namespace M_CsmtDistanceSm {
+SMRT *FindSmDistanceTable(SM *p, int n) __asm__("FindSmDistanceTable");
 // Number of transitions (hops) from one state to another using only transitions allowed by the mask (precomputed
 // table).
-int CountSmTransitionHops(SM *p, int n, int y, int x)
+extern "C" int CountSmTransitionHops(SM *p, int n, int y, int x)
 {
     SMRT *pq = FindSmDistanceTable(p, n);
     int r = 0;
@@ -479,13 +479,13 @@ int CountSmTransitionHops(SM *p, int n, int y, int x)
         r = pq->ab[y * p->csms + x];
     return r;
 }
-} } // namespace M_CsmtDistanceSm
+} // namespace M_CsmtDistanceSm
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_OidFromSmIsms { extern "C" {
+namespace M_OidFromSmIsms {
 // OID of the state at an index, or -1 when out of range.
-OID GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return (OID)-1; return p->asms[n].oid; }
-} } // namespace M_OidFromSmIsms
+extern "C" OID GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return (OID)-1; return p->asms[n].oid; }
+} // namespace M_OidFromSmIsms
 
 // Adds a reference to the activation (slot 1).
 void SMA::AddRef()
@@ -509,13 +509,13 @@ extern "C" void DecrefSma(SMA *psma)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001F0598 { extern "C" {
+namespace M_func_001F0598 {
 struct DL;
-void RetractAsega(void *);
-void RemoveDlEntry__FP2DLPv(void *, void *);
+void RetractAsega(void *) __asm__("RetractAsega");
+void RemoveDlEntry__FP2DLPv(void *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 // Stops an activation: drops its running animation, unlinks it from the machine's and the world's lists, sends the
 // "retracted" message (3) and drops the list's reference.
-void RetractSma(SMA *p)
+extern "C" void RetractSma(SMA *p)
 {
     if (!IsSmaRetracted(p)) {
         void *pv = p->pasegaCur;
@@ -529,7 +529,7 @@ void RetractSma(SMA *p)
         p->Release();
     }
 }
-} } // namespace M_func_001F0598
+} // namespace M_func_001F0598
 
 /* Whether the activation is no longer on the world's list (SW::dlSma). */
 // True when the activation is no longer on the world's live SMA list.
@@ -540,8 +540,8 @@ extern "C" int IsSmaRetracted(SMA *psma)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaGoal {
-extern "C" int FindSmStateRequired(void *, int);
-extern "C" void RetractAsega(void *);
+extern int FindSmStateRequired(void *, int) __asm__("FindSmStateRequired");
+extern void RetractAsega(void *) __asm__("RetractAsega");
 struct Lock {
     SMA *p;
     // Scope guard: hold a reference (AddRef on entry, Release on exit).
@@ -565,12 +565,12 @@ extern "C" void SetSmaGoal(SMA *p, int n)
 } // namespace M_SetSmaGoal
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetSmaGoalIfReachable { extern "C" {
-int FindSmStateOptional__FP2SM3OID(void *, int);
-int ChooseSmTransitionTowardGoal(void *, int, int, int, int);
-void SetSmaGoal(SMA *, int);
+namespace M_SetSmaGoalIfReachable {
+int FindSmStateOptional__FP2SM3OID(void *, int) __asm__("FindSmStateOptional__FP2SM3OID");
+int ChooseSmTransitionTowardGoal(void *, int, int, int, int) __asm__("ChooseSmTransitionTowardGoal");
+void SetSmaGoal(SMA *, int) __asm__("SetSmaGoal");
 // Sets the goal only if a path to it exists under the current transition mask.
-void SetSmaGoalIfReachable(SMA *p, int n)
+extern "C" void SetSmaGoalIfReachable(SMA *p, int n)
 {
     if (!IsSmaRetracted(p) && n != -1) {
         int r = FindSmStateOptional__FP2SM3OID(p->stateMachine, n);
@@ -578,7 +578,7 @@ void SetSmaGoalIfReachable(SMA *p, int n)
             SetSmaGoal(p, n);
     }
 }
-} } // namespace M_SetSmaGoalIfReachable
+} // namespace M_SetSmaGoalIfReachable
 
 // OID of the activation's goal state.
 extern "C" OID GetSmaGoal(SMA *psma)
@@ -594,9 +594,9 @@ extern "C" OID GetSmaCurrentState(SMA *psma)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_GetSmaNext { extern "C" {
+namespace M_GetSmaNext {
 // OID of the state the running transition leads to, else of the current state.
-int GetSmaNext(SMA *p)
+extern "C" int GetSmaNext(SMA *p)
 {
     int i = p->nextState;
     if (i >= 0) return p->stateMachine->asms[i].oid;
@@ -604,11 +604,11 @@ int GetSmaNext(SMA *p)
     if (i >= 0) return p->stateMachine->asms[i].oid;
     return -1;
 }
-} } // namespace M_GetSmaNext
+} // namespace M_GetSmaNext
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaSvt {
-extern "C" void SetAsegaSpeed__FP5ASEGAf(void *, float);
+extern void SetAsegaSpeed__FP5ASEGAf(void *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
 // Sets the activation's playback speed and passes it to the running animation.
 extern "C" void SetSmaSvt(SMA *p, float g)
 {
@@ -621,13 +621,13 @@ extern "C" void SetSmaSvt(SMA *p, float g)
 } // namespace M_SetSmaSvt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AbortSmaTransition { extern "C" {
-void SeekAsega(ASEGA *, int, float, float);
-void RetractAsega(ASEGA *);
-void EndSmaTransition(SMA *);
+namespace M_AbortSmaTransition {
+void SeekAsega(ASEGA *, int, float, float) __asm__("SeekAsega");
+void RetractAsega(ASEGA *) __asm__("RetractAsega");
+void EndSmaTransition(SMA *) __asm__("EndSmaTransition");
 // Aborts the running transition: seeks its animation to the start or end (by the sign of the speed), retracts it and
 // ends the transition there.
-void AbortSmaTransition(SMA *p)
+extern "C" void AbortSmaTransition(SMA *p)
 {
     ASEGA *po = p->pasegaCur;
     if (po) {
@@ -638,11 +638,11 @@ void AbortSmaTransition(SMA *p)
         EndSmaTransition(p);
     }
 }
-} } // namespace M_AbortSmaTransition
+} // namespace M_AbortSmaTransition
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SeekSma {
-extern "C" int FindSmStateRequired(void *, int);
+extern int FindSmStateRequired(void *, int) __asm__("FindSmStateRequired");
 // Sets a goal and immediately re-chooses (aborting the running transition), so the machine heads for it right away.
 extern "C" void SeekSma(SMA *p, int n)
 {
@@ -657,8 +657,8 @@ extern "C" void SeekSma(SMA *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SnapSma {
-extern "C" int FindSmStateRequired(void *, int);
-extern "C" void RetractAsega(void *);
+extern int FindSmStateRequired(void *, int) __asm__("FindSmStateRequired");
+extern void RetractAsega(void *) __asm__("RetractAsega");
 // Jumps straight to a state without animating: stops the running animation, sets current and goal, notifies the state
 // entry and chooses the next transition.
 extern "C" void SnapSma(SMA *p, int n)
@@ -684,10 +684,10 @@ extern "C" void SnapSma(SMA *p, int n)
 } // namespace M_SnapSma
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PsmtChooseWeighted { extern "C" {
-float RandomFloatInRange__Fff(float, float);
+namespace M_PsmtChooseWeighted {
+float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 // Picks one of n transitions at random in proportion to their weights (a cumulative walk); null if none is picked.
-SMT *ChooseWeightedSmTransition(void *p, int n, SMT **ape)
+extern "C" SMT *ChooseWeightedSmTransition(void *p, int n, SMT **ape)
 {
     float sum = 0.0f;
 
@@ -700,15 +700,15 @@ SMT *ChooseWeightedSmTransition(void *p, int n, SMT **ape)
     }
     return 0;
 }
-} } // namespace M_PsmtChooseWeighted
+} // namespace M_PsmtChooseWeighted
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PsmtChooseTowardGoal { extern "C" {
-int CountSmTransitionHops(SM *, int, int, int);
-int ChooseWeightedSmTransition(SM *, int, SMT **);
+namespace M_PsmtChooseTowardGoal {
+int CountSmTransitionHops(SM *, int, int, int) __asm__("CountSmTransitionHops");
+int ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
 // Picks a transition out of the current state (or a reversible one) that brings the machine one hop closer to the goal,
 // weighted at random among the candidates.
-int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
+extern "C" int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
 {
     SMT *ap[64];
     int c;
@@ -730,13 +730,13 @@ int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
     if (c == 0) return 0;
     return ChooseWeightedSmTransition(p, c, ap);
 }
-} } // namespace M_PsmtChooseTowardGoal
+} // namespace M_PsmtChooseTowardGoal
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PsmtChooseFrom { extern "C" {
-int ChooseWeightedSmTransition(SM *, int, SMT **);
+namespace M_PsmtChooseFrom {
+int ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
 // Picks any allowed transition out of a state, weighted at random (wandering when there is no goal).
-int ChooseRandomSmTransition(SM *p, int mask, int k)
+extern "C" int ChooseRandomSmTransition(SM *p, int mask, int k)
 {
     SMT *ape[64];
     int n = 0;
@@ -749,23 +749,23 @@ int ChooseRandomSmTransition(SM *p, int mask, int k)
     if (n == 0) return 0;
     return ChooseWeightedSmTransition(p, n, ape);
 }
-} } // namespace M_PsmtChooseFrom
+} // namespace M_PsmtChooseFrom
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ChooseSmaTransition { extern "C" {
+namespace M_ChooseSmaTransition {
 /* SMS::ismsNext here: the goal a state moves on to by itself (-1 stay, -2 random). */
-SMT *ChooseRandomSmTransition(SM *, int, int, int);
-SMT *ChooseSmTransitionTowardGoal(SM *, int, int, int, int);
-void ApplyAsegCore(ASEG *, ALO *, float, float, int, ASEGA **);
-void SubscribeLoObject(ASEGA *, SMA *);
-void RetractAsega(ASEGA *);
+SMT *ChooseRandomSmTransition(SM *, int, int, int) __asm__("ChooseRandomSmTransition");
+SMT *ChooseSmTransitionTowardGoal(SM *, int, int, int, int) __asm__("ChooseSmTransitionTowardGoal");
+void ApplyAsegCore(ASEG *, ALO *, float, float, int, ASEGA **) __asm__("ApplyAsegCore");
+void SubscribeLoObject(ASEGA *, SMA *) __asm__("SubscribeLoObject");
+void RetractAsega(ASEGA *) __asm__("RetractAsega");
 // Copy p into $4 (register-pinned for matching).
-static inline SMA *Receiver(SMA *p){register SMA *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
+extern "C" { static inline SMA *Receiver(SMA *p){register SMA *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;} }
 // Byte offset of 8-byte entry `index`.
-static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;}
+extern "C" { static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;} }
 // The machine's driver: with no goal (or at the goal) it wanders, otherwise it heads toward the goal; starts the chosen
 // transition's animation segment on the root object, records the next state and notifies.
-void ChooseSmaTransition(SMA *p, int k)
+extern "C" void ChooseSmaTransition(SMA *p, int k)
 {
     SMT *pa;
     int nx;
@@ -854,7 +854,7 @@ test:
 typedef char int_Width[sizeof(int)==4?1:-1];
 typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
-} } // namespace M_ChooseSmaTransition
+} // namespace M_ChooseSmaTransition
 
 /* The transition is over: the next state becomes current and the splice is told. */
 // Finishes a transition: the next state becomes current and the splice "entered state" notification is sent.
@@ -872,7 +872,7 @@ extern "C" void EndSmaTransition(SMA *psma)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001F0FD8 {
-extern "C" void SendLoMessage(SMA *, int, int);
+extern void SendLoMessage(SMA *, int, int) __asm__("SendLoMessage");
 struct Lock {
     SMA *p;
     // Scope guard: hold a reference (AddRef on entry, Release on exit).
@@ -906,8 +906,8 @@ extern "C" void HandleSmaMessage(SMA *p, MSGID msgid, void *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SkipSma {
-extern "C" void RetractAsega(ASEGA *);
-extern "C" void SeekAsega(ASEGA *, int, float, float);
+extern void RetractAsega(ASEGA *) __asm__("RetractAsega");
+extern void SeekAsega(ASEGA *, int, float, float) __asm__("SeekAsega");
 // Skips the activation forward by t seconds, through as many transitions as that covers.
 extern "C" void SkipSma(SMA *p, float t)
 {
@@ -928,19 +928,19 @@ extern "C" void SkipSma(SMA *p, float t)
 } // namespace M_SkipSma
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_DtSmaToState { extern "C" {
-extern char D_002DE578[];
-int FindSmStateRequired(void *, int);
-SMT *ChooseSmTransitionTowardGoal(void *, int, int, int, int);
-float GetDifficulty(void *);
+namespace M_DtSmaToState {
+extern char D_002DE578[] __asm__("D_002DE578");
+int FindSmStateRequired(void *, int) __asm__("FindSmStateRequired");
+SMT *ChooseSmTransitionTowardGoal(void *, int, int, int, int) __asm__("ChooseSmTransitionTowardGoal");
+float GetDifficulty(void *) __asm__("GetDifficulty");
 // Evaluate the quadratic g0 + g1*t + g2*t^2.
-static inline float Eval(CLQ *pclq, float t)
+extern "C" { static inline float Eval(CLQ *pclq, float t)
 {
     return pclq->g0 + t * (pclq->g1 + t * pclq->g2);
-}
+} }
 // Estimated time to reach a state: what is left of the running transition plus the durations of the transitions on the
 // path (from fitted per-transition duration curves).
-float EstimateSmaTimeToState(SMA *p, int k)
+extern "C" float EstimateSmaTimeToState(SMA *p, int k)
 {
     float r = 0.0f;
     int end, cur;
@@ -976,7 +976,7 @@ float EstimateSmaTimeToState(SMA *p, int k)
     }
     return r;
 }
-} } // namespace M_DtSmaToState
+} // namespace M_DtSmaToState
 
 /* Sets the route mask; a running transition that the mask breaks is aborted and a new one chosen. */
 // Sets the transition mask (which transitions may be used); if the running transition is no longer allowed, aborts it
@@ -991,12 +991,12 @@ extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_NotifySmaSpliceOnEnterState { extern "C" {
+namespace M_NotifySmaSpliceOnEnterState {
 struct L { SMA *p; int a; int b; };
-int GetSmStateOid(void *, int);
+int GetSmStateOid(void *, int) __asm__("GetSmStateOid");
 // Tells the activation's listeners (message 10) and splice scripts (event with the from/to state OIDs) that a state was
 // entered.
-void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
+extern "C" void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
 {
     struct L l;
     void *ap[2];
@@ -1008,15 +1008,15 @@ void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
     ap[1] = &l.b;
     p->HandleSpliceEvent(8, 0, 2, (void **)ap, 0);
 }
-} } // namespace M_NotifySmaSpliceOnEnterState
+} // namespace M_NotifySmaSpliceOnEnterState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ReplaceSma { extern "C" {
-void RetractSma(SMA *);
-SMA *ApplySmToObject(void *, int, int, int);
+namespace M_ReplaceSma {
+void RetractSma(SMA *) __asm__("RetractSma");
+SMA *ApplySmToObject(void *, int, int, int) __asm__("ApplySmToObject");
 // Replaces a "current activation" slot: retracts and releases the old one and, if a machine is given, starts it on the
 // object and keeps a reference.
-void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
+extern "C" void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
@@ -1029,14 +1029,14 @@ void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
         px->AddRef();
     }
 }
-} } // namespace M_ReplaceSma
+} // namespace M_ReplaceSma
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ReplaceSmaEx { extern "C" {
-void RetractSma(SMA *);
-SMA *ApplySmWithKind(void *, int, int, int, int);
+namespace M_ReplaceSmaEx {
+void RetractSma(SMA *) __asm__("RetractSma");
+SMA *ApplySmWithKind(void *, int, int, int, int) __asm__("ApplySmWithKind");
 // ReplaceSma with an explicit kind.
-void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
+extern "C" void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
@@ -1049,14 +1049,14 @@ void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
         px->AddRef();
     }
 }
-} } // namespace M_ReplaceSmaEx
+} // namespace M_ReplaceSmaEx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ReleaseSma { extern "C" {
+namespace M_ReleaseSma {
 struct S { SMA *po; };
-void RetractSma(SMA *);
+void RetractSma(SMA *) __asm__("RetractSma");
 // Retracts the activation in a slot, releases it and clears the slot.
-void ReleaseSma(struct S *p)
+extern "C" void ReleaseSma(struct S *p)
 {
     if (p->po) {
         RetractSma(p->po);
@@ -1064,7 +1064,7 @@ void ReleaseSma(struct S *p)
         p->po = 0;
     }
 }
-} } // namespace M_ReleaseSma
+} // namespace M_ReleaseSma
 
 // 0x1F1608: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x20");

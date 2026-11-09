@@ -246,7 +246,7 @@ void p_func_0014C190(void *) __asm__("CheatWarpToEpisode");
 void p_CheatSetFlag(void *) __asm__("CheatSetFlag");
 void p_func_0014C200(void *) __asm__("CheatUnlockCompletionReward");
 void p_CheatGiveGadget(void *) __asm__("CheatGiveGadget");
-extern "C" int k_002BE26C __asm__("D_002BE26C");
+extern int k_002BE26C __asm__("D_002BE26C");
 int b_002BD4C8[6] __asm__("D_002BD4C8") = {PAD_LEFT, PAD_R1, PAD_UP, PAD_DOWN, PAD_UP, PAD_LEFT};
 CODEREC b_002BD4E0 __asm__("D_002BD4E0") = {b_002BD4C8, 6, p_func_0014C140, 0};
 int b_002BD500[6] __asm__("D_002BD500") = {PAD_RIGHT, PAD_LEFT, PAD_UP, PAD_UP, PAD_UP, PAD_R1};
