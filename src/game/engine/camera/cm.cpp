@@ -105,7 +105,7 @@ void UpdateCmLast__FP2CM(CM *cm)
             if (focus) {
                 cpdefi = &cm->cpdefi;
                 if (focus != lastFocus) {
-                    VTE *e = &((struct O *)focus)->vt[50];
+                    VTE *e = &((struct O *)focus)->vt[50];   /* SO::GetCpdefi; so.h is not included this early (it renumbers s_rgba below) */
                     ((void (*)(void *, ...))e->pfn)((char *)focus + e->d, cpdefi);
                     if (lastUpdated || focus != cm->focus)
                         ResetCmAdjust(cm, cpdefi);
@@ -805,7 +805,7 @@ void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
     if ((SO *)po == p->focus) {
         *ps = p->cpdefi;
     } else {
-        VTE *e = &po->vt[50];
+        VTE *e = &po->vt[50];   /* SO::GetCpdefi by hand: so.h cannot be included here (header clash) */
         qword q, r;
         ((void (*)(void *, CPDEFI *))e->pfn)((char *)po + e->d, ps);
         q = CalcCmAdjust(p, ps);
@@ -1478,7 +1478,7 @@ int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
 /* 0x256278 (the matrix option's setter, forwarding to SetCmMat): an inline function in sly2/cm.h. */
 
 namespace M_DestroyCm { extern "C" {
-typedef struct { int pad[3]; VTE *vt; } O;   /* a reference-counted SND; the called vtable entry (+0x10) is its release (inferred) */
+typedef struct { int pad[3]; void *vptr; } O;   /* a reference-counted SND; released through BASIC::Release (slot 2) */
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
    zoomStopSound and CPZOOM::psndZoom / zoomStopSound) */
 typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
@@ -1490,10 +1490,10 @@ void BASIC_dtor(S *, int) __asm__("_$_5BASIC");   /* ~BASIC (screen.cpp), passed
 void DestroyCm(S *p, int x) __asm__("_$_2CM") __attribute__((weak, section(".gnu.linkonce.t._$_2CM")));
 void DestroyCm(S *p, int x)
 {
-    if (p->zoomSound2) ((void (*)(void *))p->zoomSound2->vt[2].pfn)((char *)p->zoomSound2 + p->zoomSound2->vt[2].d);
-    if (p->zoomZoomSound) ((void (*)(void *))p->zoomZoomSound->vt[2].pfn)((char *)p->zoomZoomSound + p->zoomZoomSound->vt[2].d);
-    if (p->lookSound2) ((void (*)(void *))p->lookSound2->vt[2].pfn)((char *)p->lookSound2 + p->lookSound2->vt[2].d);
-    if (p->lookZoomSound) ((void (*)(void *))p->lookZoomSound->vt[2].pfn)((char *)p->lookZoomSound + p->lookZoomSound->vt[2].d);
+    if (p->zoomSound2) ((BASIC *)p->zoomSound2)->Release();
+    if (p->zoomZoomSound) ((BASIC *)p->zoomZoomSound)->Release();
+    if (p->lookSound2) ((BASIC *)p->lookSound2)->Release();
+    if (p->lookZoomSound) ((BASIC *)p->lookZoomSound)->Release();
     BASIC_dtor(p, x);
 }
 } } // namespace M_DestroyCm
