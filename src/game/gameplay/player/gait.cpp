@@ -132,7 +132,6 @@ int IsDirAnimStopped(DIRACT *p);
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* IsBasicDerivedFrom__FP5BASIC3CID */
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* FindSwObject__FP2SWi3OIDP2LO */
-#define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 // Initializes a gait record (walk/run locomotion): owner, footstep sound id, walk volume 0.6, run volume 1.0.
 extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
