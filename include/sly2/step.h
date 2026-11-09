@@ -81,7 +81,11 @@ struct STEP : public PO
       qword *unknown21C;
       float baseRadius;   /* +0x220 radius of the base (floor contact) footprint (STEP::Init: 30) */
       undefined4 unknown224[3];
-      qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
+      union
+      {
+            qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
+            VECTOR vecUnknown230;   /* the same, by component (GetStepplayerCameraFocusPosition reads z) */
+      };
       union
       {
             qword pivotOffset;   /* the offset from the origin to the pivot that grab/landing positions are placed by (LoadJtFromBrx sets

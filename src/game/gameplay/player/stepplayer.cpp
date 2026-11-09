@@ -227,8 +227,6 @@ void AcknowledgeStepplayerHint(void)
 } } // namespace M_func_00140338
 
 namespace M_UpdateStepplayer { extern "C" {
-/* A behaviour as called here: its slot 14 (BHV::UpdateSteering, declared without the controller argument it takes). */
-struct O { int pad[3]; VTE *vt; };
 extern char D_003DA0F0[];
 void UpdateStep(STEPPLAYER *p);
 void UpdateStepplayerGadgets(STEPPLAYER *p);
@@ -839,26 +837,24 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
 #undef F
 
 namespace M_GetStepplayerCmFocusPos { extern "C" {
-typedef int qword __attribute__((mode(TI)));
-struct V { float x, y, z; } __attribute__((aligned(16)));
-void GetJtPipePosition(void *p, struct V *v);
-qword GetLoWorldPos(void *p);
+void GetJtPipePosition(JTPIPE *pjtpipe, VECTOR4 *ppos);
+qword GetLoWorldPos(STEPPLAYER *p);
 // Slot 97: the camera focus point (the pipe hand position on a pipe, else the world position raised in z).
-void GetStepplayerCameraFocusPosition(char *player, struct V *v)
+void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
 {
     float z;
-    if (*(int *)(player + 0xF54) != -1) {
-        GetJtPipePosition(player + 0xF50, v);
+    if (player->jtpipe.state != -1) {
+        GetJtPipePosition(&player->jtpipe, v);
         return;
     }
     *(qword *)v = GetLoWorldPos(player);
-    if (*(int *)(player + 0x208)) {
-        z = *(float *)(player + 0x238) + *(float *)(player + 0x1048);
-    } else if (*(int *)(player + 0x2DC) == 0x14 || g_cm.nCut != 0 || (void *)g_cm.focus != (void *)player) {
-        v->z += *(float *)(player + 0x248) + *(float *)(player + 0x1048);
+    if (player->floorContact) {
+        z = player->vecUnknown230.z + player->unknown1048;
+    } else if (player->jtair.state == 0x14 || g_cm.nCut != 0 || (void *)g_cm.focus != (void *)player) {
+        v->z += player->vecPivotOffset.z + player->unknown1048;
         return;
     } else {
-        z = *(float *)(player + 0x104C);
+        z = player->unknown104C;
     }
     v->z = z;
 }
