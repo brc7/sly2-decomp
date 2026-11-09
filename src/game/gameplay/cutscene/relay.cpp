@@ -460,13 +460,13 @@ void SetStepplayerRide(LO *pjt, RELAYJSG *script);
 }
 
 // 0x1DFAD8 InitRelay
-namespace M_InitRelay { extern "C" {
+namespace M_InitRelay {
 struct S;
 struct S : LO { char pad50[0x58 - 0x50]; int n58; struct DL dl; };   /* RELAY's own fields */
-void InitLo(struct S *p);
-void InitDl__FP2DLi(struct DL *pdl, int ib);
+void InitLo(struct S *p) __asm__("InitLo");
+void InitDl__FP2DLi(struct DL *pdl, int ib) __asm__("InitDl__FP2DLi");
 // RELAY vtable slot 7 (Init): LO defaults, no private command limit (-1), and an empty list of running scripts.
-} } // namespace M_InitRelay
+} // namespace M_InitRelay
 // RELAY::Init: LO defaults, no private command limit (-1) and an empty running-script list.
 void RELAY::Init() { using namespace M_InitRelay; M_InitRelay::S *p = (M_InitRelay::S *)this;
     InitLo(p);
@@ -485,11 +485,11 @@ struct OBJ : LO {   /* RELAY's own fields */
     char pad5c[0x7C - 0x5C];
     int f7C;
 };
-extern "C" { void *AllocFromStack(SWALLOC *); }
-extern "C" { void *AllocFromWorldHeap(SWALLOC *); }
-extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
-extern "C" { void AddRelayBlockBegin(OBJ *, int); }
-extern "C" { void LoadLoFromBrx(OBJ *, void *); }
+void *AllocFromStack(SWALLOC *) __asm__("AllocFromStack");
+void *AllocFromWorldHeap(SWALLOC *) __asm__("AllocFromWorldHeap");
+void CopyAb__FPvT0Ui(void *, void *, int) __asm__("CopyAb__FPvT0Ui");
+void AddRelayBlockBegin(OBJ *, int) __asm__("AddRelayBlockBegin");
+void LoadLoFromBrx(OBJ *, void *) __asm__("LoadLoFromBrx");
 // The larger of two values.
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
@@ -517,24 +517,24 @@ extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
 } // namespace M_LoadRelayFromBrx
 
 // 0x1DFBF8 CloneRelay
-namespace M_CloneRelay { extern "C" {
+namespace M_CloneRelay {
 struct MSG; struct S;
 struct S : LO { char pad50[0x54 - 0x50]; void *pv; int c; char p1[0x80-0x5C]; int f80; };   /* RELAY's own fields */
-void CloneLo(struct S *p);
-void *AllocCopyFromWorldHeap(struct SWALLOC *pmsg, void *pv);
+void CloneLo(struct S *p) __asm__("CloneLo");
+void *AllocCopyFromWorldHeap(struct SWALLOC *pmsg, void *pv) __asm__("AllocCopyFromWorldHeap");
 // Resizes a world-heap block (request size and kind, then reallocate).
-static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
+extern "C" { static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); } }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
-void CloneRelay(struct S *relay) {
+extern "C" void CloneRelay(struct S *relay) {
     struct SWALLOC msg;
     CloneLo(relay);
     if (relay->f80) relay->pv = PvReallocMsg(&msg, relay->c * 0x50, 0x10, relay->pv);
 }
-} } // namespace M_CloneRelay
+} // namespace M_CloneRelay
 
 // 0x1DFC50 UpdateRelay
-namespace M_UpdateRelay { extern "C" {
+namespace M_UpdateRelay {
 struct OBJ : LO {   /* RELAY's own fields */
     char pad50[0x5C - 0x50];
     DL scripts;
@@ -542,22 +542,22 @@ struct OBJ : LO {   /* RELAY's own fields */
     float firedTime;
     int isFiring;
 };
-void UpdateLo(OBJ *);
-void UpdateRelayScript(void *);
-int IsDlEmpty__FP2DL(DL *);
-void StopRelay(OBJ *);
+void UpdateLo(OBJ *) __asm__("UpdateLo");
+void UpdateRelayScript(void *) __asm__("UpdateRelayScript");
+int IsDlEmpty__FP2DL(DL *) __asm__("IsDlEmpty__FP2DL");
+void StopRelay(OBJ *) __asm__("StopRelay");
 enum { LO_FLAG_UNPAUSED = 0x100 };   /* runs on real time while the game clock is paused (inferred) */
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
-static inline unsigned int GetLoFlags(OBJ *lo)
+extern "C" { static inline unsigned int GetLoFlags(OBJ *lo)
 {
     unsigned int fl = lo->unknown40;
     if ((fl ^ 1) & 1)
         fl = *(unsigned int *)fl;
     return fl;
-}
+} }
 // RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
 // update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
-void UpdateRelay(OBJ *relay)
+extern "C" void UpdateRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
@@ -577,10 +577,10 @@ void UpdateRelay(OBJ *relay)
         StopRelay(relay);
     D_002DD2FC = dli.m_pdliNext;
 }
-} } // namespace M_UpdateRelay
+} // namespace M_UpdateRelay
 
 // 0x1DFD58 FireRelay
-namespace M_FireRelay { extern "C" {
+namespace M_FireRelay {
 struct OBJ;
 typedef struct OBJ OBJ;
 struct OBJ : LO {   /* RELAY's own fields */
@@ -595,33 +595,33 @@ struct OBJ : LO {   /* RELAY's own fields */
     int isMarkedBusy;
     int needsBlockEnd;
 };
-void AddRelayBlockEnd(OBJ *);
-void *NewRelayJsg(OBJ *, void *, int);
-void UpdateRelayScript(void *);
-int IsDlEmpty__FP2DL(DL *);
-void StopRelay(OBJ *);
-void SetLoBusyKind(OBJ *, int);
+void AddRelayBlockEnd(OBJ *) __asm__("AddRelayBlockEnd");
+void *NewRelayJsg(OBJ *, void *, int) __asm__("NewRelayJsg");
+void UpdateRelayScript(void *) __asm__("UpdateRelayScript");
+int IsDlEmpty__FP2DL(DL *) __asm__("IsDlEmpty__FP2DL");
+void StopRelay(OBJ *) __asm__("StopRelay");
+void SetLoBusyKind(OBJ *, int) __asm__("SetLoBusyKind");
 enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by several Init functions; meaning inferred only that far) */
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
-static inline int GetLoFlags(OBJ *lo)
+extern "C" { static inline int GetLoFlags(OBJ *lo)
 {
     int fl = lo->unknown40;
     if ((fl ^ 1) & 1)
         fl = *(int *)fl;
     return fl;
-}
+} }
 // Sets bits of the LO flag word wherever it lives.
-static inline void SetLoFlagBits(OBJ *lo, int bits)
+extern "C" { static inline void SetLoFlagBits(OBJ *lo, int bits)
 {
     if ((lo->unknown40 ^ 1) & 1)
         *(int *)lo->unknown40 |= bits;
     else
         lo->unknown40 |= bits;
-}
+} }
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
 // still running afterwards the relay marks itself busy.
-void FireRelay(OBJ *relay, int n)
+void FireRelay(OBJ *relay, int n) __asm__("FireRelay"); void FireRelay(OBJ *relay, int n)
 {
     if (relay->isFiring)
         return;
@@ -648,7 +648,7 @@ void FireRelay(OBJ *relay, int n)
     SetLoFlagBits(relay, LO_FLAG_02);
     relay->isMarkedBusy = 1;
 }
-} } // namespace M_FireRelay
+} // namespace M_FireRelay
 
 // 0x1DFE80 FireRelayFromPlayer
 // Fires the relay with the current player character as the firer.
@@ -659,7 +659,7 @@ extern "C" void FireRelayFromPlayer(RELAYV *relay)
 }
 
 // 0x1DFEB8 StopRelay
-namespace M_StopRelay { extern "C" {
+namespace M_StopRelay {
 struct OBJ;
 typedef struct OBJ OBJ;
 struct OBJ : LO {   /* RELAY's own fields */
@@ -671,21 +671,21 @@ struct OBJ : LO {   /* RELAY's own fields */
     int isFiring;
     int isMarkedBusy;
 };
-void RemoveJsg(void *);
-void ClearRelayAlarms(OBJ *);
-void SetLoBusyKind(OBJ *, int);
+void RemoveJsg(void *) __asm__("RemoveJsg");
+void ClearRelayAlarms(OBJ *) __asm__("ClearRelayAlarms");
+void SetLoBusyKind(OBJ *, int) __asm__("SetLoBusyKind");
 enum { LO_FLAG_02 = 2 };
 // Clears bits of the LO flag word, stored inline or (bit 0 clear) behind a pointer.
-static inline void ClearLoFlagBits(OBJ *lo, int bits)
+extern "C" { static inline void ClearLoFlagBits(OBJ *lo, int bits)
 {
     if ((lo->unknown40 ^ 1) & 1)
         *(int *)lo->unknown40 &= ~bits;
     else
         lo->unknown40 &= ~bits;
-}
+} }
 // Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
 // the busy mark and tells itself (message 6). (inferred)
-void StopRelay(OBJ *relay)
+void StopRelay(OBJ *relay) __asm__("StopRelay"); void StopRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
@@ -705,7 +705,7 @@ void StopRelay(OBJ *relay)
     relay->HandleSpliceEvent(6, 0, 0, 0, 0);
     D_002DD2FC = dli.m_pdliNext;
 }
-} } // namespace M_StopRelay
+} // namespace M_StopRelay
 
 // 0x1DFFD8 IsRelayFiring
 // Whether the relay is firing.
@@ -715,17 +715,17 @@ extern "C" int IsRelayFiring(RELAYV *relay)
 }
 
 // 0x1DFFE0 ResetRelay
-namespace M_ResetRelay { extern "C" {
-void AddRelayBlockBegin(RELAYV *p, int n);
+namespace M_ResetRelay {
+void AddRelayBlockBegin(RELAYV *p, int n) __asm__("AddRelayBlockBegin");
 // Stops the relay and empties its command list back to the implicit BlockBegin(-1) (used before a script rebuilds
 // it). (inferred)
-void ResetRelay(RELAYV *relay) {
+extern "C" void ResetRelay(RELAYV *relay) {
     StopRelay(relay);
     relay->crelaycmd = 0;
     AddRelayBlockBegin(relay, -1);
     relay->fAppendEnd = 1;
 }
-} } // namespace M_ResetRelay
+} // namespace M_ResetRelay
 
 // 0x1E0020 EnsureSggAlarm__FP3SGGP5ALARM
 // Adds an alarm to the relay's alarm list (at most eight) unless it is already there.
@@ -739,12 +739,12 @@ void EnsureSggAlarm(SGG *psgg, ALARM *palarm)
 }
 
 // 0x1E0070 RemoveAlarmFromRelay
-namespace M_func_001E0070 { extern "C" {
+namespace M_func_001E0070 {
 struct SGG;
 struct SGG : LO { char pad[0x84 - 0x50]; int calarm; void *apalarm[8]; };
-void *memmove(void *d, void *s, int cb);
+void *memmove(void *d, void *s, int cb) __asm__("memmove");
 // Removes an alarm from the relay's alarm list. (inferred)
-void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
+extern "C" void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
 {
     int i;
     for (i = 0; i < psgg->calarm; i++) {
@@ -755,14 +755,14 @@ void RemoveAlarmFromRelay(struct SGG *psgg, void *palarm)
         }
     }
 }
-} } // namespace M_func_001E0070
+} // namespace M_func_001E0070
 
 // 0x1E00E8 IsRelayAlarm
-namespace M_FWipingAseg__FP4ASEG { extern "C" {
+namespace M_FWipingAseg__FP4ASEG {
 struct ASEG;
 struct ASEG : LO { char pad[0x84 - 0x50]; int c; int a[1]; };
 // Whether the alarm is in the relay's alarm list.
-int IsRelayAlarm(struct ASEG *paseg, int n)
+extern "C" int IsRelayAlarm(struct ASEG *paseg, int n)
 {
     int i;
     for (i = 0; i < paseg->c; i++) {
@@ -770,7 +770,7 @@ int IsRelayAlarm(struct ASEG *paseg, int n)
     }
     return 0;
 }
-} } // namespace M_FWipingAseg__FP4ASEG
+} // namespace M_FWipingAseg__FP4ASEG
 
 // 0x1E0120 ClearRelayAlarms
 // Empties the relay's alarm list.
@@ -805,13 +805,13 @@ extern "C" void SetRelaySignalContext(RELAYV *relay, LO *plo)
 }
 
 // 0x1E0180 FindRelayBlockScript
-namespace M_func_001E0180 { extern "C" {
+namespace M_func_001E0180 {
 struct T; struct O; struct S;
 struct T { char pad[0x10]; int n; };
 struct O { char pad[0x28]; struct T *pt; char pad2[0xE4-0x2C]; struct O *pNext; };
 struct S : LO { char pad[0x5C - 0x50]; struct O *pFirst; };
 // Finds a running script of this relay whose block has the given label, ignoring one script. (inferred)
-struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
+extern "C" struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
 {
     int unused[4];
     struct O *p;
@@ -820,12 +820,12 @@ struct O *FindRelayBlockScript(struct S *s, int n, struct O *pSkip)
     }
     return 0;
 }
-} } // namespace M_func_001E0180
+} // namespace M_func_001E0180
 
 // 0x1E01C8 SetRelayCommandLimit
-namespace M_func_001E01C8 { extern "C" {
+namespace M_func_001E01C8 {
 // Splice: gives the relay its own command limit n (0 < n < 0x200), allowed only before commands are added. (inferred)
-void SetRelayCommandLimit(RELAYV *relay, int n)
+extern "C" void SetRelayCommandLimit(RELAYV *relay, int n)
 {
     if (n > 0) {
         if (n < 0x200 && relay->crelaycmd < 2) {
@@ -834,18 +834,18 @@ void SetRelayCommandLimit(RELAYV *relay, int n)
         }
     }
 }
-} } // namespace M_func_001E01C8
+} // namespace M_func_001E01C8
 
 // 0x1E01F8 AddRelayCommand
-namespace M_PrelaycmdAddRelay { extern "C" {
+namespace M_PrelaycmdAddRelay {
 struct CMD; struct Q;
 struct CMD { int kind; int b; char pad[0x48]; };
 struct Q : LO { int c; struct CMD *a; int cMax; };
-extern struct CMD D_003DA740;
+extern struct CMD D_003DA740 __asm__("D_003DA740");
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 // Appends a zeroed command of the given kind (async flag set as asked) to the relay and returns it for the builder to
 // fill; past the limit it returns a scratch command (D_003DA740) so builders never fail. (inferred)
-struct CMD *AddRelayCommand(struct Q *pq, int kind, int b)
+struct CMD *AddRelayCommand(struct Q *pq, int kind, int b) __asm__("AddRelayCommand"); struct CMD *AddRelayCommand(struct Q *pq, int kind, int b)
 {
     struct CMD *p;
     int cMax = pq->cMax;
@@ -857,7 +857,7 @@ struct CMD *AddRelayCommand(struct Q *pq, int kind, int b)
     p->b = b;
     return p;
 }
-} } // namespace M_PrelaycmdAddRelay
+} // namespace M_PrelaycmdAddRelay
 
 // 0x1E0290 AddRelayBlockBegin
 // Splice builtin: append a RELAYCK 0x0 (BlockBegin) command to the relay (AddRelayCommand(prelay,0x0,fAsync)) and
@@ -884,16 +884,16 @@ extern "C" void AddRelayStopBlock(RELAYV *relay, OID oidLabel)
 }
 
 // 0x1E0310 AddRelayWaitBlocks
-namespace M_AddRelayWaitBlocks { extern "C" {
+namespace M_AddRelayWaitBlocks {
 struct CMD;
 struct CMD { char pad[0x10]; unsigned int c; int a[4]; };
-void SetValuesFromSpliceList(CRefData *pref, void *x, int a, int b, unsigned int *pc, int *pa);
-struct CMD *AddRelayCommand(void *pq, int kind, int b);
-void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb);
-void Decref__4CRef(CRefData *pref);
+void SetValuesFromSpliceList(CRefData *pref, void *x, int a, int b, unsigned int *pc, int *pa) __asm__("SetValuesFromSpliceList");
+struct CMD *AddRelayCommand(void *pq, int kind, int b) __asm__("AddRelayCommand");
+void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb) __asm__("CopyAb__FPvT0Ui");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin: append a RELAYCK 0x3 (WaitBlocks) command to the relay (AddRelayCommand(prelay,0x3,fAsync)) and
 // fill its args. (inferred)
-void AddRelayWaitBlocks(void *pq, void *x)
+extern "C" void AddRelayWaitBlocks(void *pq, void *x)
 {
     int a[8];
     CRefData ref;
@@ -909,7 +909,7 @@ void AddRelayWaitBlocks(void *pq, void *x)
     }
     Decref__4CRef(&ref);
 }
-} } // namespace M_AddRelayWaitBlocks
+} // namespace M_AddRelayWaitBlocks
 
 // 0x1E03A0 AddRelayWaitAlarm
 // Splice builtin: append a RELAYCK 0x4 (WaitAlarm) command to the relay (AddRelayCommand(prelay,0x4,fAsync)) and fill
@@ -1785,31 +1785,31 @@ extern "C" void ReleaseJsg(RELAYJSG *script)
 }
 
 // 0x1E1BC8 HandleJsgMessage
-namespace M_HandleJsgMessage { extern "C" {
+namespace M_HandleJsgMessage {
 struct T; struct M; struct S;
 typedef struct T { char pad[0x18]; int targetState; } T;
 typedef struct M { int a; int b; int c; } M;
 typedef struct S { char pad[0x30]; T *currentCommand; char pad2[0x24]; int sma; int isSmaReached; } S;
-void HandleBasicMessage(S *p, int a, M *m);
+void HandleBasicMessage(S *p, int a, M *m) __asm__("HandleBasicMessage");
 // BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state -> fSmaReached(+0x5C)=1.
 // (inferred)
-void HandleJsgMessage(S *script, int a, M *m)
+extern "C" void HandleJsgMessage(S *script, int a, M *m)
 {
     HandleBasicMessage(script, a, m);
     if (a == 10 && m->a == script->sma && m->c == script->currentCommand->targetState) script->isSmaReached = 1;
 }
-} } // namespace M_HandleJsgMessage
+} // namespace M_HandleJsgMessage
 
 // 0x1E1C40 UpdateRelayScript
 namespace M_func_001E1C40 {
-extern "C" {
-void NextJsgCommand__FP3JSG(RELAYJSG *p);
-int IsJsgRemoved(RELAYJSG *p);
-void ReleaseJsgJtIfComplete(RELAYJSG *p);
-int IsJsgCommandComplete__FP3JSGP8RELAYCMD(RELAYJSG *p, RELAYCMD *pe);
-void RemoveJsg(RELAYJSG *p);
-void UpdateRelayScript(RELAYJSG *p);
-}
+
+void NextJsgCommand__FP3JSG(RELAYJSG *p) __asm__("NextJsgCommand__FP3JSG");
+int IsJsgRemoved(RELAYJSG *p) __asm__("IsJsgRemoved");
+void ReleaseJsgJtIfComplete(RELAYJSG *p) __asm__("ReleaseJsgJtIfComplete");
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(RELAYJSG *p, RELAYCMD *pe) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
+void RemoveJsg(RELAYJSG *p) __asm__("RemoveJsg");
+void UpdateRelayScript(RELAYJSG *p) __asm__("UpdateRelayScript");
+
 // Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
 // is fAsync or complete (IsJsgCommandComplete); release JT if done; remove the JSG past the block end.
 void UpdateRelayScript(RELAYJSG *script)
@@ -1831,15 +1831,15 @@ void UpdateRelayScript(RELAYJSG *script)
 } // namespace M_func_001E1C40
 
 // 0x1E1D48 ReleaseJsgJtIfComplete
-namespace M_ReleaseJsgJtIfComplete { extern "C" {
+namespace M_ReleaseJsgJtIfComplete {
 struct O; struct S;
 struct O { int n0; char pad[0xC]; int n10; };
 struct S { char pad[0x40]; struct O *po; };
-int IsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po);
-void SetRelayScriptActor(struct S *p, int a, int b);
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
+void SetRelayScriptActor(struct S *p, int a, int b) __asm__("SetRelayScriptActor");
 // If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release
 // it (SetJsgJt(p,0,0)). (inferred)
-void ReleaseJsgJtIfComplete(struct S *script)
+extern "C" void ReleaseJsgJtIfComplete(struct S *script)
 {
     if (script->po && IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->po)) {
         int f = 1;
@@ -1847,18 +1847,18 @@ void ReleaseJsgJtIfComplete(struct S *script)
         if (f) SetRelayScriptActor(script, 0, 0);
     }
 }
-} } // namespace M_ReleaseJsgJtIfComplete
+} // namespace M_ReleaseJsgJtIfComplete
 
 // 0x1E1DB8 FindJsgObject
-namespace M_func_001E1DB8 { extern "C" {
+namespace M_func_001E1DB8 {
 struct S;
 typedef struct S { char pad[0x18]; int context; } S;
-void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int x);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-void *GetProxyCurrentObject(void *p);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int x) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void *GetProxyCurrentObject(void *p) __asm__("GetProxyCurrentObject");
 // Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their current object.
 // (inferred)
-void *FindJsgObject(S *script, int id)
+extern "C" void *FindJsgObject(S *script, int id)
 {
     void *q;
     if (id == -1) {
@@ -1869,7 +1869,7 @@ void *FindJsgObject(S *script, int id)
     }
     return q;
 }
-} } // namespace M_func_001E1DB8
+} // namespace M_func_001E1DB8
 
 // 0x1E1E30 NextJsgCommand__FP3JSG
 namespace M_NextJsgCommand__FP3JSG {
@@ -1883,9 +1883,9 @@ namespace M_NextJsgCommand__FP3JSG {
 // end it (StopBlock on itself).
 typedef unsigned  size_t;
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-extern "C" {
+
 /* memset: sly2/classes.h's declaration */
-}
+
 // The LO update flags (tagged word, maybe behind a pointer).
 inline int GrfUpdateLo(LO *plo)
 {
@@ -1949,27 +1949,27 @@ void PlayAsegSoundEvent(SW *psw, int sfxid, OID oid, int sNear, int sFar, float 
                         ASEG *paseg, CRefPtr<SND> *ppsnd) __asm__("StartSwAsegSound");
 
 
-extern "C" { extern SUBTITLE D_004435F0; }
+extern SUBTITLE D_004435F0 __asm__("D_004435F0");
 
 
-extern "C" void RelayFire(RELAYV *relay, LO *ploFirer) __asm__("FireRelay");
-extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("PushStepBehavior");
-extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
-extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
-extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("LaunchStepplayer");
-extern "C" void RespawnAtSafeSpot(STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("ReturnJtToSafePlace");
-extern "C" void PlayJtAsegDefault(LO *plo, LO *ploOther, int n) __asm__("ApplyDancerAseg");
-extern "C" int StartDialogueLine(SNDMGR *psndmgr, int idLine, int fWait) __asm__("StartDialog");
-extern "C" void StartMusic(SNDMGR *psndmgr, int idMusic) __asm__("PushMusic");
-extern "C" void StopMusic(SNDMGR *psndmgr, int idMusic) __asm__("StopMusic");
-extern "C" void SetHintBoxText(HINTBOX *phintbox, int idText, float dt) __asm__("PostNotice");
-extern "C" void ClearIfSlotId(HINTBOX *phintbox, int idText) __asm__("CancelNotice");
-extern "C" { extern HINTBOX D_003DA0C0; }
-extern "C" { extern char D_003DA530[]; }
-extern "C" { extern LO *D_002DE570; }
-extern "C" { extern float D_002A7AD0; }
-extern "C" { extern qword D_002A2DD0; }
-extern "C" { extern qword D_002A2DC0; }
+extern void RelayFire(RELAYV *relay, LO *ploFirer) __asm__("FireRelay");
+extern BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("PushStepBehavior");
+extern void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
+extern void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
+extern void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("LaunchStepplayer");
+extern void RespawnAtSafeSpot(STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("ReturnJtToSafePlace");
+extern void PlayJtAsegDefault(LO *plo, LO *ploOther, int n) __asm__("ApplyDancerAseg");
+extern int StartDialogueLine(SNDMGR *psndmgr, int idLine, int fWait) __asm__("StartDialog");
+extern void StartMusic(SNDMGR *psndmgr, int idMusic) __asm__("PushMusic");
+extern void StopMusic(SNDMGR *psndmgr, int idMusic) __asm__("StopMusic");
+extern void SetHintBoxText(HINTBOX *phintbox, int idText, float dt) __asm__("PostNotice");
+extern void ClearIfSlotId(HINTBOX *phintbox, int idText) __asm__("CancelNotice");
+extern HINTBOX D_003DA0C0 __asm__("D_003DA0C0");
+extern char D_003DA530[] __asm__("D_003DA530");
+extern LO *D_002DE570 __asm__("D_002DE570");
+extern float D_002A7AD0 __asm__("D_002A7AD0");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
 // The script's default actor: the one set on the script, else its block's object, else the relay's firer.
 static inline LO *PloJsgActorDefault(RELAYJSG *script)
 {
@@ -3169,25 +3169,25 @@ static inline float GLengthXY(qword v)
 
 
 
-extern "C" { extern SUBTITLE D_004435F0; }
+extern SUBTITLE D_004435F0 __asm__("D_004435F0");
 
 // Lane x of a 128-bit register as a float.
-extern "C" { extern char D_003DA530[]; }
-extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("FindStepBehavior");
-extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("HasLoOid");
-extern "C" int IsWidgetIdle(LO *plo);
-extern "C" void ClearJsgWidget(RELAYJSG *script);
-extern "C" int HandleJoyButtons(JOY *pjoy, uint grfbtn);
-extern "C" int IsScreenShown(void *pv);
-extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("IsDialogPlaying");
-extern "C" float GetDialogTime(SNDMGR *psndmgr);
-extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("GetMusicTime");
-extern "C" void ClearBhvstk(BHVSTK *pbhvstk) __asm__("ClearBhvstk__FP6BHVSTK");
-extern "C" { extern float D_002BD850; }
-extern "C" { extern float D_002C3620; }
-extern "C" { extern float D_002C3624; }
-extern "C" { extern float D_002C3628; }
-extern "C" { extern float D_002C362C; }
+extern char D_003DA530[] __asm__("D_003DA530");
+extern BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("FindStepBehavior");
+extern int FObjHasTarget(LO *plo, OID oid) __asm__("HasLoOid");
+extern int IsWidgetIdle(LO *plo) __asm__("IsWidgetIdle");
+extern void ClearJsgWidget(RELAYJSG *script) __asm__("ClearJsgWidget");
+extern int HandleJoyButtons(JOY *pjoy, uint grfbtn) __asm__("HandleJoyButtons");
+extern int IsScreenShown(void *pv) __asm__("IsScreenShown");
+extern int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("IsDialogPlaying");
+extern float GetDialogTime(SNDMGR *psndmgr) __asm__("GetDialogTime");
+extern float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("GetMusicTime");
+extern void ClearBhvstk(BHVSTK *pbhvstk) __asm__("ClearBhvstk__FP6BHVSTK");
+extern float D_002BD850 __asm__("D_002BD850");
+extern float D_002C3620 __asm__("D_002C3620");
+extern float D_002C3624 __asm__("D_002C3624");
+extern float D_002C3628 __asm__("D_002C3628");
+extern float D_002C362C __asm__("D_002C362C");
 // Current time for a script: real time when its relay runs unpaused (update flag 0x100), else game time.
 static inline float TJsgNow(RELAYJSG *script)
 {
@@ -3756,26 +3756,26 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
 } // namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD
 
 // 0x1E4530 GetJsgCommandDuration
-namespace M_func_001E4530 { extern "C" {
+namespace M_func_001E4530 {
 struct G; union U; struct P; struct C; struct O;
 struct G { int a; };
-extern struct G D_002DE578;
-extern float D_002BD850;
+extern struct G D_002DE578 __asm__("D_002DE578");
+extern float D_002BD850 __asm__("D_002BD850");
 union U { int n; float g; };
 struct P { int kind; int isAsync; int pad[2]; union U u10; union U u14; int targetState; };
 struct C { char pad[0x18]; int context; };
 struct O : LO { char pad[0x74 - 0x50]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
-struct O *FindJsgObject(struct C *script, int n);
-float GetDifficulty(struct G *pg);
-void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, int b);
-void *FindLiveSma(void *p, int n);
-float EstimateSmaTimeToState(void *p, int n);
-float GetDialogStreamDuration(SNDMGR *psndmgr, int n);
+struct O *FindJsgObject(struct C *script, int n) __asm__("FindJsgObject");
+float GetDifficulty(struct G *pg) __asm__("GetDifficulty");
+void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, int b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindLiveSma(void *p, int n) __asm__("FindLiveSma");
+float EstimateSmaTimeToState(void *p, int n) __asm__("EstimateSmaTimeToState");
+float GetDialogStreamDuration(SNDMGR *psndmgr, int n) __asm__("GetDialogStreamDuration");
 // Clamps g to [lo, hi].
 // Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
-float GetJsgCommandDuration(struct C *script, struct P *command)
+extern "C" float GetJsgCommandDuration(struct C *script, struct P *command)
 {
     float g = 0.0f;
     if (command->isAsync) return g;
@@ -3816,7 +3816,7 @@ float GetJsgCommandDuration(struct C *script, struct P *command)
     }
     return g;
 }
-} } // namespace M_func_001E4530
+} // namespace M_func_001E4530
 
 // 0x1E46A0 UpdateJsgJtControl
 namespace M_func_001E46A0 {
@@ -3831,24 +3831,24 @@ struct ACTOR {char padC[0xC];void *vtable;char pad10[0x4C8-0x10];int mode,active
 struct P {char pad24[0x24];ACTOR *overrideActor;char pad28[0x40-0x28];PARAM *param;ACTOR *actor;int blocked;char pad4C[0x2C];float previousMotion,previousCurve;};
 struct OUTPUT {char pad10[0x10];float x,y,heading,speed;char pad20[0x10];uint flags;char pad34[0xC];qword basis[3];};
 struct WORK {U from,to,normal;float heading;qword first,second;};
-extern "C" {
-extern qword D_002A2DA0;
-extern float D_002C3630[3],D_002BBB60[2],D_002C3640;
-float ClampShapeDistance(PATH*,float);
-void EvaluateShapeAtDistance(PATH*,qword*,qword*,float);
-qword GetPoctlLateralVector(OUTPUT*,qword);
-float atan2f(float,float);
-float GetShapeMaxDistance(PATH*),GetShapeMaxParam(PATH*);
-float NormalizeAngle__Ff(float);
-ACTOR *FindJsgObject(P*,int);
-void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
-void SetStepTargetHeading(ACTOR*,float);
-void EvaluateShapeAtParam(PATH*,float,qword*,qword*);
-qword GetLoWorldPos(ACTOR*);
-qword ConvertVecBetweenLos(void*,ACTOR*,qword);
-void UpdatePoctlPressed(OUTPUT*);
-int AreFloatsNear__Ffff(float,float,float);
-}
+
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+extern float D_002C3630[3] __asm__("D_002C3630"),D_002BBB60[2] __asm__("D_002BBB60"),D_002C3640 __asm__("D_002C3640");
+float ClampShapeDistance(PATH*,float) __asm__("ClampShapeDistance");
+void EvaluateShapeAtDistance(PATH*,qword*,qword*,float) __asm__("EvaluateShapeAtDistance");
+qword GetPoctlLateralVector(OUTPUT*,qword) __asm__("GetPoctlLateralVector");
+float atan2f(float,float) __asm__("atan2f");
+float GetShapeMaxDistance(PATH*) __asm__("GetShapeMaxDistance"),GetShapeMaxParam(PATH*) __asm__("GetShapeMaxParam");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+ACTOR *FindJsgObject(P*,int) __asm__("FindJsgObject");
+void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*) __asm__("GetJsgTargetPosHeading");
+void SetStepTargetHeading(ACTOR*,float) __asm__("SetStepTargetHeading");
+void EvaluateShapeAtParam(PATH*,float,qword*,qword*) __asm__("EvaluateShapeAtParam");
+qword GetLoWorldPos(ACTOR*) __asm__("GetLoWorldPos");
+qword ConvertVecBetweenLos(void*,ACTOR*,qword) __asm__("ConvertVecBetweenLos");
+void UpdatePoctlPressed(OUTPUT*) __asm__("UpdatePoctlPressed");
+int AreFloatsNear__Ffff(float,float,float) __asm__("AreFloatsNear__Ffff");
+
 // Helpers Sub, ToVU, X, Y, Z, Root, LengthXY (small asm wrappers/accessors shaped for the match).
 static inline qword ToVU(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 // Square root of the x lane of a.
@@ -4091,18 +4091,18 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 } // namespace M_func_001E46A0
 
 // 0x1E4D40 GetJsgTargetPosHeading
-namespace M_GetJsgTargetPosHeading { extern "C" {
+namespace M_GetJsgTargetPosHeading {
 struct O; struct P;
 typedef int qword __attribute__((mode(TI)));
 struct O { int pad[3]; void *vptr; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-qword GetLoWorldPos(struct O *po);
-void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
-float atan2f(float y, float x);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+qword GetLoWorldPos(struct O *po) __asm__("GetLoWorldPos");
+void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c) __asm__("FindShapeClosestPoint");
+float atan2f(float y, float x) __asm__("atan2f");
 // Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
 // else object pos and its matrix heading). (inferred)
-void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg)
+extern "C" void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;
     float ag[4];
@@ -4137,7 +4137,7 @@ void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg
     if (pv) *pv = uv.q;
     if (pg) *pg = g;
 }
-} } // namespace M_GetJsgTargetPosHeading
+} // namespace M_GetJsgTargetPosHeading
 
 // 0x1E4EB8 SetRelayScriptActor
 // Set prelaycmdJt (+0x40) and the controlled character pjt (+0x44), detaching the old one and attaching the new one
@@ -4162,13 +4162,13 @@ extern "C" void SetRelayScriptActor(RELAYJSG *script, RELAYCMD *prelaycmdJt, LO 
 }
 
 // 0x1E4F20 SetJsgTunnel
-namespace M_SetJsgTunnel { extern "C" {
-void SetTnTnsOverride(TN *po, int n);
-int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
-LO *GetCurrentPo(SW *pg);
+namespace M_SetJsgTunnel {
+void SetTnTnsOverride(TN *po, int n) __asm__("SetTnTnsOverride");
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+LO *GetCurrentPo(SW *pg) __asm__("GetCurrentPo");
 // Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
-void SetJsgTunnel(RELAYJSG *script, TN *po)
+extern "C" void SetJsgTunnel(RELAYJSG *script, TN *po)
 {
     if (script->ptnCur) {
         SetTnTnsOverride(script->ptnCur, -1);
@@ -4183,21 +4183,21 @@ void SetJsgTunnel(RELAYJSG *script, TN *po)
     po->hero = (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x30)) ? script->ploActor : GetCurrentPo(&g_sw);
     SetTnTnsOverride(po, 1);
 }
-} } // namespace M_SetJsgTunnel
+} // namespace M_SetJsgTunnel
 
 // 0x1E5000 SetRelayScriptFocus
-namespace M_func_001E5000 { extern "C" {
+namespace M_func_001E5000 {
 struct X; struct P;
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x1044]; int n1044; float f1048; char pad2[0x1060 - 0x104C]; qword v1060; qword v1070; };
 struct P { char pad[0x24]; struct X *p24; char pad2[0x74 - 0x28]; void *p74; };
-extern qword D_002A2DD0;
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-qword GetLoWorldPos(struct X *);
-void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+qword GetLoWorldPos(struct X *) __asm__("GetLoWorldPos");
+void GetJsgTargetPosHeading(struct P *, void *, qword *, int) __asm__("GetJsgTargetPosHeading");
 // Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
 // +0x1044/+0x1060/+0x1070). (inferred)
-void SetRelayScriptFocus(struct P *script, void *pv)
+extern "C" void SetRelayScriptFocus(struct P *script, void *pv)
 {
     struct X *px;
     if (script->p24 && IsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x34))
@@ -4224,29 +4224,29 @@ void SetRelayScriptFocus(struct P *script, void *pv)
     }
     script->p74 = pv;
 }
-} } // namespace M_func_001E5000
+} // namespace M_func_001E5000
 
 // 0x1E50E0 SetRelayScriptHandsOff
-namespace M_func_001E50E0 { extern "C" {
+namespace M_func_001E50E0 {
 struct P;
 struct P { char pad[0x38]; int fOn; int id; };
-void DecrementSwHandsOff(SW *pg, int id);
-void DecrementSwNoPause(SW *pg);
-void IncrementSwHandsOff(SW *pg, int id);
-void IncrementSwNoPause(SW *pg);
+void DecrementSwHandsOff(SW *pg, int id) __asm__("DecrementSwHandsOff");
+void DecrementSwNoPause(SW *pg) __asm__("DecrementSwNoPause");
+void IncrementSwHandsOff(SW *pg, int id) __asm__("IncrementSwHandsOff");
+void IncrementSwNoPause(SW *pg) __asm__("IncrementSwNoPause");
 // Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
 // (IncrementSwHandsOff/DecrementSwHandsOff) + 0x20F0C0/0x20F0F0. (inferred)
-void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
+extern "C" void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
 {
 if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == script->id) return; DecrementSwHandsOff(&g_sw, script->id); DecrementSwNoPause(&g_sw); } IncrementSwHandsOff(&g_sw, id); IncrementSwNoPause(&g_sw); script->fOn = fOn; script->id = id; return; } DecrementSwHandsOff(&g_sw, script->id); DecrementSwNoPause(&g_sw); script->fOn = fOn; script->id = id;
 }
-} } // namespace M_func_001E50E0
+} // namespace M_func_001E50E0
 
 // 0x1E51A0 AddJsgStepHold
-namespace M_AddJsgStepHold { extern "C" {
-int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
+namespace M_AddJsgStepHold {
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
-void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
+void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b) __asm__("AddJsgStepHold"); void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 {
     int i;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
@@ -4259,16 +4259,16 @@ void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
     script->cstepHold++;
     po->AddDialogSmRefs(a, b);
 }
-} } // namespace M_AddJsgStepHold
+} // namespace M_AddJsgStepHold
 
 // 0x1E5280 RemoveJsgStepHold
-namespace M_RemoveJsgStepHold { extern "C" {
-int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid);
-void *memmove(void *pdst, const void *psrc, unsigned int cb);
+namespace M_RemoveJsgStepHold {
+int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void *memmove(void *pdst, const void *psrc, unsigned int cb) __asm__("memmove");
 // index * 4 in $a0 (shapes the register choice).
-static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
+extern "C" { static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;} }
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
-void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
+void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b) __asm__("RemoveJsgStepHold"); void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 {
     int i;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
@@ -4288,16 +4288,16 @@ void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 
 typedef char layout_JSGV_count[SLY2_OFFSETOF(RELAYJSG, cstepHold) == 0xA4 ? 1 : -1];
 typedef char layout_JSGV_array[SLY2_OFFSETOF(RELAYJSG, apstepHold) == 0xA8 ? 1 : -1];
-} } // namespace M_RemoveJsgStepHold
+} // namespace M_RemoveJsgStepHold
 
 // 0x1E5370 ClearJsgAseg
-namespace M_ClearJsgAseg { extern "C" {
+namespace M_ClearJsgAseg {
 struct S;
 struct S { char pad[0x4C]; BASIC *po; int n50; void *pv; };
-void RetractAsega(BASIC *po);
-void StopStepplayerScriptAnim(void *pv);
+void RetractAsega(BASIC *po) __asm__("RetractAsega");
+void StopStepplayerScriptAnim(void *pv) __asm__("StopStepplayerScriptAnim");
 // Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8). (inferred)
-void ClearJsgAseg(struct S *script)
+extern "C" void ClearJsgAseg(struct S *script)
 {
     if (script->po) {
         RetractAsega(script->po);
@@ -4309,7 +4309,7 @@ void ClearJsgAseg(struct S *script)
         script->pv = 0;
     }
 }
-} } // namespace M_ClearJsgAseg
+} // namespace M_ClearJsgAseg
 
 // 0x1E53D8 ClearJsgRelayWait
 // Stop the relay this script fired and is waiting on (+0x50) and clear it. (inferred)
@@ -4324,10 +4324,10 @@ extern "C" void ClearJsgRelayWait(RELAYJSG *script)
 }
 
 // 0x1E5410 ClearJsgSma
-namespace M_ClearJsgSma { extern "C" {
-void UnsubscribeLoObject(BASIC *po, RELAYJSG *p);
+namespace M_ClearJsgSma {
+void UnsubscribeLoObject(BASIC *po, RELAYJSG *p) __asm__("UnsubscribeLoObject");
 // Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
-void ClearJsgSma(RELAYJSG *script)
+extern "C" void ClearJsgSma(RELAYJSG *script)
 {
     if (script->psmaCur) {
         UnsubscribeLoObject(script->psmaCur, script);
@@ -4336,7 +4336,7 @@ void ClearJsgSma(RELAYJSG *script)
         script->fSmaReached = 0;
     }
 }
-} } // namespace M_ClearJsgSma
+} // namespace M_ClearJsgSma
 
 // 0x1E5468 ClearJsgWidget
 // Hides the script's widget (slot 50) and forgets it.
@@ -4363,27 +4363,27 @@ extern "C" void ClearJsgJtMode(RELAYJSG *script)
 }
 
 // 0x1E54E8 ClearJsgStepHolds
-namespace M_ClearJsgStepHolds { extern "C" {
+namespace M_ClearJsgStepHolds {
 // RemoveJsgStepHold for every held step. (inferred)
-void ClearJsgStepHolds(RELAYJSG *script)
+extern "C" void ClearJsgStepHolds(RELAYJSG *script)
 {
     while (script->cstepHold) {
         RemoveJsgStepHold(script, script->apstepHold[script->cstepHold - 1], script->anHold5[script->cstepHold - 1],
                           script->anHold6[script->cstepHold - 1]);
     }
 }
-} } // namespace M_ClearJsgStepHolds
+} // namespace M_ClearJsgStepHolds
 
 // 0x1E5570 AbortJsgMove
-namespace M_func_001E5570 { extern "C" {
+namespace M_func_001E5570 {
 struct O; struct P;
 struct O : PO { char pad[0x26C - 0x180]; int a; };
 struct P { char pad[0x24]; struct O *po; int *pnMin; int *pnMax; int *pn; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid);
-void ClearBhvstk__FP6BHVSTK(void *p);
+int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void ClearBhvstk__FP6BHVSTK(void *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // If the current command is FollowPath (0x27) or WalkTo (0x28) and the actor is a STEPPLAYER, ClearBhvstk on it.
 // (inferred)
-void AbortJsgMove(struct P *script)
+extern "C" void AbortJsgMove(struct P *script)
 {
     if (script->pnMin < script->pn && script->pn < script->pnMax) {
         switch (*script->pn) {
@@ -4396,27 +4396,27 @@ void AbortJsgMove(struct P *script)
         }
     }
 }
-} } // namespace M_func_001E5570
+} // namespace M_func_001E5570
 
 // 0x1E5628 RemoveJsg
 namespace M_RemoveJsg {
-extern "C" {
-int IsJsgRemoved(RELAYJSG *p);
-void RemoveDlEntry__FP2DLPv(DL *pdl, RELAYJSG *p);
-void ClearJsgAseg(RELAYJSG *p);
-void ClearJsgSma(RELAYJSG *p);
-void ClearJsgStepHolds(RELAYJSG *p);
-void AbortJsgMove(RELAYJSG *p);
-void SetClockRate(CLOCK *pclock, int n, float g);
-void SetRelayScriptActor(RELAYJSG *p, int a, int b);
-void SetJsgTunnel(RELAYJSG *p, void *po);
-void SetRelayScriptFocus(RELAYJSG *p, int a);
-void SetRelayScriptHandsOff(RELAYJSG *p, int a, int b);
-void StopSnd(void *pv, float g);
-void RcPtr_Assign(void **ppv, int n);
-void EndJsgCamBlend(RELAYJSG *p, int n);
-void RemoveJsg(RELAYJSG *p);
-}
+
+int IsJsgRemoved(RELAYJSG *p) __asm__("IsJsgRemoved");
+void RemoveDlEntry__FP2DLPv(DL *pdl, RELAYJSG *p) __asm__("RemoveDlEntry__FP2DLPv");
+void ClearJsgAseg(RELAYJSG *p) __asm__("ClearJsgAseg");
+void ClearJsgSma(RELAYJSG *p) __asm__("ClearJsgSma");
+void ClearJsgStepHolds(RELAYJSG *p) __asm__("ClearJsgStepHolds");
+void AbortJsgMove(RELAYJSG *p) __asm__("AbortJsgMove");
+void SetClockRate(CLOCK *pclock, int n, float g) __asm__("SetClockRate");
+void SetRelayScriptActor(RELAYJSG *p, int a, int b) __asm__("SetRelayScriptActor");
+void SetJsgTunnel(RELAYJSG *p, void *po) __asm__("SetJsgTunnel");
+void SetRelayScriptFocus(RELAYJSG *p, int a) __asm__("SetRelayScriptFocus");
+void SetRelayScriptHandsOff(RELAYJSG *p, int a, int b) __asm__("SetRelayScriptHandsOff");
+void StopSnd(void *pv, float g) __asm__("StopSnd");
+void RcPtr_Assign(void **ppv, int n) __asm__("RcPtr_Assign");
+void EndJsgCamBlend(RELAYJSG *p, int n) __asm__("EndJsgCamBlend");
+void RemoveJsg(RELAYJSG *p) __asm__("RemoveJsg");
+
 // Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA, widget, JT mode,
 // step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera blend), then drop the relay's
 // reference. (inferred)
@@ -4455,27 +4455,27 @@ extern "C" int IsJsgRemoved(RELAYJSG *script)
 }
 
 // 0x1E57A0 StartRelayScriptCamBlend
-namespace M_func_001E57A0 { extern "C" {
+namespace M_func_001E57A0 {
 struct A; struct P;
 typedef int qword __attribute__((mode(TI)));
 struct A { int n0; int n4; int pad8[2]; CAMPOSE t; float f40; int n44; };
 struct P { char pad[0x80]; float f80; CAMMOVE sub; };
-extern qword D_002A2DD0;
-extern float D_002A8124;
-int AreFloatsNear__Ffff(float, float, float);
-float NormalizeAngle__Ff(float);
-qword DecomposeRotationMatrixToEuler(void *);
-int IsCameraPolicyActive__FP5CPLCY(void *);
-void RevokeCmPolicy(void *, int, int, void *, int, void *);
-void SetCmPolicy(void *, int, void *, int, void *);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern float D_002A8124 __asm__("D_002A8124");
+int AreFloatsNear__Ffff(float, float, float) __asm__("AreFloatsNear__Ffff");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+qword DecomposeRotationMatrixToEuler(void *) __asm__("DecomposeRotationMatrixToEuler");
+int IsCameraPolicyActive__FP5CPLCY(void *) __asm__("IsCameraPolicyActive__FP5CPLCY");
+void RevokeCmPolicy(void *, int, int, void *, int, void *) __asm__("RevokeCmPolicy");
+void SetCmPolicy(void *, int, void *, int, void *) __asm__("SetCmPolicy");
 // Whether two points are equal within 0.0001 per axis.
-static inline int FNear(qword a, qword b)
+extern "C" { static inline int FNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f) && AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f) && AreFloatsNear__Ffff(QwordZ(b), QwordZ(a), 0.0001f);
-}
+} }
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)
-void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, float t)
+extern "C" void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, float t)
 {
     float tBase;
     int i;
@@ -4523,37 +4523,37 @@ void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, floa
         RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, g_cm.cpcamblend.pcammove);
     SetCmPolicy(&g_cm, 10, &g_cm.cpcamblend, 0, &script->sub);
 }
-} } // namespace M_func_001E57A0
+} // namespace M_func_001E57A0
 
 // 0x1E5A98 EndJsgCamBlend
-namespace M_func_001E5A98 { extern "C" {
+namespace M_func_001E5A98 {
 struct S;
 struct S : BASIC { char pad[0x84 - 0x10]; int a84[3]; int n90; int n94; int n98; int n9C; };
-void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
+void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f) __asm__("RevokeCmPolicy");
 // Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
-void EndJsgCamBlend(struct S *script, int n)
+extern "C" void EndJsgCamBlend(struct S *script, int n)
 {
     script->n90 = n;
     script->n9C = 0;
     RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, script->a84);
 }
-} } // namespace M_func_001E5A98
+} // namespace M_func_001E5A98
 
 // 0x1E5AE0 NewRelayJsg
-namespace M_PjsgNew { extern "C" {
+namespace M_PjsgNew {
 struct E; struct A; struct C; struct S;
 struct E { int kind; char pad4[0xC]; int oid; char pad14[0x3C]; };   /* RELAYCMD: kind, then (BlockBegin) the block object's oid at +0x10 */
 struct A : LO { int commandCount; struct E *commands; char pad2[4]; char dl[1]; };
 struct C { char pad[0x18]; int context; };
 struct S { int unknown0; int unknown4; int pad8; VTE *pvt; int pad10; struct A *relay; int context; int block; int pad20[2]; struct E *firstCommand; struct E *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
 extern VTE D_002D8C08[] __asm__("_vt$8RELAYJSG");
-struct S *AllocZeroedFromSlotheap(void *);
+struct S *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
 void *func_002333B4(void *, int, int) __asm__("memset");
-int FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
-void PrependDlEntry__FP2DLPv(void *, void *);
+int FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void PrependDlEntry__FP2DLPv(void *, void *) __asm__("PrependDlEntry__FP2DLPv");
 // Sets the script's last command to the BlockEnd that closes the block opened at `first` (nesting counted), or to its
 // first command when the block is never closed.
-static inline void SetBlockEnd(struct S *script, struct E *first, struct E *last)
+extern "C" { static inline void SetBlockEnd(struct S *script, struct E *first, struct E *last)
 {
     int depth = 1;
     struct E *pe;
@@ -4571,10 +4571,10 @@ static inline void SetBlockEnd(struct S *script, struct E *first, struct E *last
         }
     }
     script->lastCommand = script->firstCommand;
-}
+} }
 // Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block
 // (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
-struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
+extern "C" struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
 {
     struct S *p = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapJsg));
     struct E *peLast;
@@ -4597,7 +4597,7 @@ struct S *NewRelayJsg(struct A *relay, struct E *pe, struct C *pc)
     ((BASIC *)p)->AddRef();
     return p;
 }
-} } // namespace M_PjsgNew
+} // namespace M_PjsgNew
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
@@ -4609,7 +4609,7 @@ extern const float D_002A8124 = 3.40282347e+38f;
 
 
 
-namespace M_PrelaycmdAddRelay { extern "C" { struct CMD D_003DA740; } }
+namespace M_PrelaycmdAddRelay { struct CMD D_003DA740 __asm__("D_003DA740"); }
 
 // ---- relay's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 float D_002C3620 = 7.0f;

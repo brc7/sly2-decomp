@@ -170,7 +170,7 @@ struct EARLY { M4 product, temporary, inverse; };
 union STAGE { EARLY early; CTXCOPY late; };
 struct WORK { U position; M3 basis; STAGE stage; float t, result, projection; U saved; };
 // Placement new: construct at destination.
-static inline void *operator new(unsigned size, void *destination) { return destination; }
+inline void *operator new(unsigned size, void *destination) { return destination; }
 struct COPYPREFIX { U position; M3 basis; M4 product; };
 // Publish the product and basis words of the work record (register-pinned) and return the hands context.
 static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)
@@ -767,7 +767,7 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_jthands {
 void p_func_001CCA20() __asm__("UpdateJtHandsCallback");
-extern "C" {
-extern const unsigned int D_002A77C8[2] = {0xFFFF0000, (unsigned int)p_func_001CCA20};
-}
+
+extern const unsigned int D_002A77C8[2] __asm__("D_002A77C8") = {0xFFFF0000, (unsigned int)p_func_001CCA20};
+
 } // namespace ANPTR_jthands

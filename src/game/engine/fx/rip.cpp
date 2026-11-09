@@ -100,14 +100,14 @@ void SetRipgEmitb(RIPG *ripGroup, EMITB *pemitb)
 }
 
 namespace M_OnRipgRemove__FP4RIPG {
-extern "C" {
-void RemoveSoHierarchy(RIPG *p);
-void RemoveObjectFromBroadPhase(SW *psw, void *pv);
-void SnipLo(RIPG *p);
-void RemoveSlEntry(void *pl, RIPG *p);
-void FreeLoroot(RIPG *p);
-void FreeSlotheapSlot(void *pool, void *pv);
-}
+
+void RemoveSoHierarchy(RIPG *p) __asm__("RemoveSoHierarchy");
+void RemoveObjectFromBroadPhase(SW *psw, void *pv) __asm__("RemoveObjectFromBroadPhase");
+void SnipLo(RIPG *p) __asm__("SnipLo");
+void RemoveSlEntry(void *pl, RIPG *p) __asm__("RemoveSlEntry");
+void FreeLoroot(RIPG *p) __asm__("FreeLoroot");
+void FreeSlotheapSlot(void *pool, void *pv) __asm__("FreeSlotheapSlot");
+
 // RIPG vt slot 12 (OnRemove): removes every rip, forgets the group if it is the world's shared one, takes it out of
 // the hierarchy, the SW's AAOBR (bounds) table and the class list, frees its LO root when unparented and returns it
 // to the pool.
@@ -133,21 +133,21 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPG *ripGroup)
 }
 } // namespace M_OnRipgRemove__FP4RIPG
 
-namespace M_ProjectRipgTransform { extern "C" {
+namespace M_ProjectRipgTransform {
 // Recompute the group's bounds from its rips: run the due rips' project step, accumulate the min/max of their current
 // and previous positions, grow by boundsPadding, then (when the group has a tree record) store the corners, centre and
 // radius and mark the tree's bounds dirty.
 union U { qword q; float f[4]; };
-extern const float D_002A77D0, D_002A77D4;
-void MarkSoTreeBoundsDirty(SO *);
+extern const float D_002A77D0 __asm__("D_002A77D0"), D_002A77D4 __asm__("D_002A77D4");
+void MarkSoTreeBoundsDirty(SO *) __asm__("MarkSoTreeBoundsDirty");
 // (a + b) * k.x.  The second "j"(k) operand is allocation-only: it gives k the register priority the original had.
-static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(r) : "j"(a), "j"(b), "j"(k), "j"(k)); return r; }
+extern "C" { static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(r) : "j"(a), "j"(b), "j"(k), "j"(k)); return r; } }
 // Length of a vector in two steps (sum of squares, then sqrt).  The "memory" clobbers keep the stores around the steps in source order.
 #define LEN1(d, one, v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v) : "memory")
 #define LEN2(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d) : : "memory")
 // RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set
 // center/radius. (inferred)
-void ProjectRipgTransform(RIPG *p)
+extern "C" void ProjectRipgTransform(RIPG *p)
 {
     DLI dli;
     union U lo, hi, t, half;
@@ -189,7 +189,7 @@ void ProjectRipgTransform(RIPG *p)
     }
     D_002DD2FC = dli.m_pdliNext;
 }
-} } // namespace M_ProjectRipgTransform
+} // namespace M_ProjectRipgTransform
 #undef LEN1
 #undef LEN2
 
@@ -206,13 +206,13 @@ extern "C" void UpdateRipgBounds(RIPG *ripGroup)
     ClearSoTreeBoundsDirty(ripGroup);
 }
 
-namespace M_UpdateRipg { extern "C" {
-void AddRipRef__FP3RIP(RIP *prip);
-int IsLoInWorld(RIPG *p);
-int IsDlEmpty__FP2DL(DL *pdl);
-void BounceRipgRips__FP4RIPG(RIPG *p);
+namespace M_UpdateRipg {
+void AddRipRef__FP3RIP(RIP *prip) __asm__("AddRipRef__FP3RIP");
+int IsLoInWorld(RIPG *p) __asm__("IsLoInWorld");
+int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
+void BounceRipgRips__FP4RIPG(RIPG *p) __asm__("BounceRipgRips__FP4RIPG");
 // RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active.
-void UpdateRipg(RIPG *ripGroup)
+extern "C" void UpdateRipg(RIPG *ripGroup)
 {
     DLI dli;
     RIP *prip;
@@ -229,7 +229,7 @@ void UpdateRipg(RIPG *ripGroup)
         BounceRipgRips__FP4RIPG(ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
-} } // namespace M_UpdateRipg
+} // namespace M_UpdateRipg
 
 namespace M_BounceRipgRips__FP4RIPG {
 /* BounceRipgRips (Claude agent, wave-3 lane 6): for an active particle system (mode 1), walk the subject nodes and their shape lists; for
@@ -255,16 +255,16 @@ struct STATE {   /* the group's SO::physicsTree (an SOTREE) as this function rea
 struct OBJ { char padEC[0xEC]; STATE *state; };
 struct NODE { int pad; NODE *next; char pad8[4]; OBJ *object; };
 struct FRAME { int a[4]; };
-extern "C" {
-FRAME *STACKSCOPE_ctor(FRAME *);
+
+FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *AllocFromStack(const SWALLOC *);
-int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
-int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int IsDlEmpty__FP2DL(DL *);
-void BounceRipgRips__FP4RIPG(RIPG *);
-}
+void *AllocFromStack(const SWALLOC *) __asm__("AllocFromStack");
+int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **) __asm__("PruneBspBySphere");
+int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *) __asm__("ClipEdgeToObjectPruned");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int IsDlEmpty__FP2DL(DL *) __asm__("IsDlEmpty__FP2DL");
+void BounceRipgRips__FP4RIPG(RIPG *) __asm__("BounceRipgRips__FP4RIPG");
+
 /* the scratch request and the rip iterator share one stack slot */
 union PHASE { SWALLOC request; DLI rip; };
 // Set an allocation request's alignment.
@@ -456,10 +456,10 @@ extern "C" RIP *NewRipInGroup(SW *p, int ript, RIPG *q)
     return 0;
 }
 
-namespace M_InitRip { extern "C" {
-extern qword D_002C1F50;
-extern RIPM3 D_002A2D00;
-} } // namespace M_InitRip
+namespace M_InitRip {
+extern qword D_002C1F50 __asm__("D_002C1F50");
+extern RIPM3 D_002A2D00 __asm__("D_002A2D00");
+} // namespace M_InitRip
 // RIP default Init (vt entry 1): touch object, 1 s life starting now, initial scale, default alpha curve, both
 // positions at `pos`, identity orientation.
 void RIP::Init(qword pos, float scale, SO *psoTouch)   /* key function: RIP's vtable comes out here */
@@ -568,16 +568,16 @@ struct WORK {
     qw contact;
     U firstTorque, frictionTorque, frictionAxis, inertia, normal, offset;
 };
-extern "C" {
-extern float D_002C1F60,D_002C1F64,D_002C1F68,D_002C1F6C;
-extern qw D_002A2DA0,D_002A2DD0;
-int IsBasicDerivedFrom__FP5BASIC3CID(void*,int);
-void CalculateWaterCurrent(void*,qw,qw*,qw*);
-qw GetXfVelocity(void*,void*,qw);
-void ForceRipFade__FP3RIPf(RIP*,float);
-void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
-int HandleRipBounce(RIP*,SHAPE*,qw,qw);
-}
+
+extern float D_002C1F60 __asm__("D_002C1F60"),D_002C1F64 __asm__("D_002C1F64"),D_002C1F68 __asm__("D_002C1F68"),D_002C1F6C __asm__("D_002C1F6C");
+extern qw D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DD0 __asm__("D_002A2DD0");
+int IsBasicDerivedFrom__FP5BASIC3CID(void*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void CalculateWaterCurrent(void*,qw,qw*,qw*) __asm__("CalculateWaterCurrent");
+qw GetXfVelocity(void*,void*,qw) __asm__("GetXfVelocity");
+void ForceRipFade__FP3RIPf(RIP*,float) __asm__("ForceRipFade__FP3RIPf");
+void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*) __asm__("FindClosestPointOnLineSegment");
+int HandleRipBounce(RIP*,SHAPE*,qw,qw) __asm__("HandleRipBounce");
+
 // Evaluate the quadratic a + b*t + c*t^2 (Horner form) at t.
 static inline float Evaluate(POLY *p, float t)
 {
@@ -1041,10 +1041,10 @@ typedef char layout_ceb08_69[(sizeof(((PROX*)0)->fraction)==4)?1:-1];
 typedef char layout_ceb08_70[(sizeof(((PROX*)0)->distance)==4)?1:-1];
 } // namespace M_HandleRipBounce
 
-namespace M_IsVectorShorterThan2 { extern "C" {
+namespace M_IsVectorShorterThan2 {
 typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 4. (inferred)
-int IsVectorShorterThan2(qword v)
+extern "C" int IsVectorShorterThan2(qword v)
 {
     float g;
     float lim;
@@ -1057,12 +1057,12 @@ int IsVectorShorterThan2(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
-} } // namespace M_IsVectorShorterThan2
+} // namespace M_IsVectorShorterThan2
 
-namespace M_IsVectorNearlyZero { extern "C" {
+namespace M_IsVectorNearlyZero {
 typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 0.0004. (inferred)
-int IsVectorNearlyZero(qword v)
+extern "C" int IsVectorNearlyZero(qword v)
 {
     float g;
     float lim;
@@ -1075,12 +1075,12 @@ int IsVectorNearlyZero(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
-} } // namespace M_IsVectorNearlyZero
+} // namespace M_IsVectorNearlyZero
 
-namespace M_IsVectorShorterThan5 { extern "C" {
+namespace M_IsVectorShorterThan5 {
 typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 25. (inferred)
-int IsVectorShorterThan5(qword v)
+extern "C" int IsVectorShorterThan5(qword v)
 {
     float g;
     float lim;
@@ -1093,7 +1093,7 @@ int IsVectorShorterThan5(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
-} } // namespace M_IsVectorShorterThan5
+} // namespace M_IsVectorShorterThan5
 
 namespace M_ProjectRipTransform {
 typedef int qword __attribute__((mode(TI)));
@@ -1135,11 +1135,11 @@ struct S {
     qword omega;
     float touchWord, angularDamping;
 }; /* +0xE0: the touch object (unused here) */
-extern "C" {
-int IsVectorNearlyZero(qword);int IsVectorShorterThan2(qword);int IsVectorShorterThan5(qword);
-M3*BuildAxisAngleRotationMatrix(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
-void ProjectRipTransform(S*);
-}
+
+int IsVectorNearlyZero(qword) __asm__("IsVectorNearlyZero");int IsVectorShorterThan2(qword) __asm__("IsVectorShorterThan2");int IsVectorShorterThan5(qword) __asm__("IsVectorShorterThan5");
+M3*BuildAxisAngleRotationMatrix(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
+void ProjectRipTransform(S*) __asm__("ProjectRipTransform");
+
 // Squared length of the xyz part of a (x lane of the result).
 static inline qword Sq(qword a)
 {
@@ -1355,14 +1355,14 @@ struct S {
     int pad2;
     POLY alpha;
 };
-extern "C" { extern struct LIMIT { float lo,hi; } D_002BBB60; }
-extern "C" {
-int IsInCameraFrustum(CM*,qword,qword);
-int IsWithinCameraRenderDistance(CM*,qword,float,float*);
-M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
-void RenderLoAtMatrix(LO*,const M4&,float,float);
-int RenderRipAtPose(S*,qword,const M3&);
-}
+extern struct LIMIT { float lo,hi; } D_002BBB60 __asm__("D_002BBB60");
+
+int IsInCameraFrustum(CM*,qword,qword) __asm__("IsInCameraFrustum");
+int IsWithinCameraRenderDistance(CM*,qword,float,float*) __asm__("IsWithinCameraRenderDistance");
+M4 LoadMatrixFromPosRotScalar(qword,const M3&,float) __asm__("LoadMatrixFromPosRotScalar");
+void RenderLoAtMatrix(LO*,const M4&,float,float) __asm__("RenderLoAtMatrix");
+int RenderRipAtPose(S*,qword,const M3&) __asm__("RenderRipAtPose");
+
 // Evaluate the quadratic a + b*t + c*t^2 at t.
 static inline float Poly(POLY *p, float t)
 {
@@ -1475,16 +1475,16 @@ union U {
     float f[4];
 };
 typedef RIPM3 M3;
-extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
-extern "C" {
-STUCK *NewRipInGroup(void*,void*,void*);
-qword TransformXfPos(void*,LO*,qword);
-float RandomFloatInRange__Fff(float,float);
-void GetNormalVectors(qword,qword,qword,qword*);
-M3 LoadRotateMatrixEuler(qword);
-M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword);
-}
+extern qword D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DB0 __asm__("D_002A2DB0"),D_002A2DC0 __asm__("D_002A2DC0");
+
+STUCK *NewRipInGroup(void*,void*,void*) __asm__("NewRipInGroup");
+qword TransformXfPos(void*,LO*,qword) __asm__("TransformXfPos");
+float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
+void GetNormalVectors(qword,qword,qword,qword*) __asm__("GetNormalVectors");
+M3 LoadRotateMatrixEuler(qword) __asm__("LoadRotateMatrixEuler");
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword) __asm__("CreateStuck");
+
 // Evaluate the quadratic a + b*t + c*t^2 at t.
 static inline float Polynomial(CLQ *pclq, float t)
 {
@@ -1579,13 +1579,13 @@ STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direc
 }
 } // namespace M_CreateStuck
 
-namespace M_HandleFlyingBounce { extern "C" {
+namespace M_HandleFlyingBounce {
 typedef int qword __attribute__((mode(TI)));
 struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
-extern int D_002C1F70[1];
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-void CreateStuck(FLYING *p, void *a, void *b, qword q0, qword q1);
-} } // namespace M_HandleFlyingBounce
+extern int D_002C1F70[1] __asm__("D_002C1F70");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void CreateStuck(FLYING *p, void *a, void *b, qword q0, qword q1) __asm__("CreateStuck");
+} // namespace M_HandleFlyingBounce
 // FLYING HandleBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
 // the flying rip.
 int FLYING::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
@@ -1610,12 +1610,12 @@ void STUCK::Update()   /* key function: STUCK's vtable comes out here */
 
 namespace M_RenderStuck {
 typedef int qword __attribute__((mode(TI)));
-extern "C" {
-qword TransformXfPos(LO *plo, int n, qword q);
-RIPM3 ConvertXfMat(LO *plo, int n, RIPM3 *pm);
-int RenderRipAtPose(RIP *prip, qword q, RIPM3 m);
-void RenderStuck(STUCK *pstuck);
-}
+
+qword TransformXfPos(LO *plo, int n, qword q) __asm__("TransformXfPos");
+RIPM3 ConvertXfMat(LO *plo, int n, RIPM3 *pm) __asm__("ConvertXfMat");
+int RenderRipAtPose(RIP *prip, qword q, RIPM3 m) __asm__("RenderRipAtPose");
+void RenderStuck(STUCK *pstuck) __asm__("RenderStuck");
+
 // STUCK Render: its position and orientation taken from the host object's space to world, then rendered.
 void RenderStuck(STUCK *pstuck)
 {
@@ -1629,13 +1629,13 @@ void RenderStuck(STUCK *pstuck)
 namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
-extern "C" {
-extern LM D_002C1F78;
-extern float D_002C1F80[3];
-extern LM D_002BBB60;
-float RandomFloatInRange__Fff(float gMin, float gMax);
-void PostRipEmit(SHRAPNEL *psh, EMITB *pemitb);
-}
+
+extern LM D_002C1F78 __asm__("D_002C1F78");
+extern float D_002C1F80[3] __asm__("D_002C1F80");
+extern LM D_002BBB60 __asm__("D_002BBB60");
+float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
+void PostRipEmit(SHRAPNEL *psh, EMITB *pemitb) __asm__("PostRipEmit");
+
 // Length of the xyz part of v (x lane), via VU0 sqrt.
 static inline qword VLen(qword v)
 {
@@ -1694,15 +1694,15 @@ typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)
 } // namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB
 #undef OFF
 
-namespace M_HandleShrapnelBounce { extern "C" {
+namespace M_HandleShrapnelBounce {
 typedef int qword __attribute__((mode(TI)));
 struct C { char pad[0x60]; void *unknown60; };
 struct B { char pad[0xEC]; struct C *unknownEC; };   /* the hit body */
 struct A { int x0; struct B *pb; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
-void RemoveRip__FP3RIP(void *p);
-} } // namespace M_HandleShrapnelBounce
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1) __asm__("HandleRipBounce");
+void RemoveRip__FP3RIP(void *p) __asm__("RemoveRip__FP3RIP");
+} // namespace M_HandleShrapnelBounce
 // SHRAPNEL HandleBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
 int SHRAPNEL::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
@@ -1738,8 +1738,8 @@ struct SHRAPNEL {
     F depth;
 };
 struct CM;
-extern "C" { extern qword D_002A2DC0; }
-extern "C" int RenderRipAtPose(SHRAPNEL *,qword,const M3 &);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern int RenderRipAtPose(SHRAPNEL *,qword,const M3 &) __asm__("RenderRipAtPose");
 // Return p + a * k.x.
 static inline qword AddScaled(qword p, qword a, qword k)
 {
@@ -1831,13 +1831,13 @@ struct S {
     char pad2[0x40 - 0x20]; MAT3 mat; qword pos; qword previousPos; qword v; qword a;
     char pad3[0xF0 - 0xB0]; qword axis; float rad; LO *plo;
 };
-extern "C" {
-MAT3 *GetLoWorldMatrix(LO *plo);
-void LoadIdentityMatrix4(void *p, int n, MAT4 *pm, int k, float g);
-MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2);
-void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MAT3 *pm, float *pg, qword *pv);
-void LaunchMatch__FP5MATCH(S *p);
-}
+
+MAT3 *GetLoWorldMatrix(LO *plo) __asm__("GetLoWorldMatrix");
+void LoadIdentityMatrix4(void *p, int n, MAT4 *pm, int k, float g) __asm__("LoadIdentityMatrix4");
+MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2) __asm__("MulMatrix3Matrix3");
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MAT3 *pm, float *pg, qword *pv) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
+void LaunchMatch__FP5MATCH(S *p) __asm__("LaunchMatch__FP5MATCH");
+
 // Broadcast a float into a VU0 register (with a stack home copy).
 static inline qword Bc(float g)
 {
@@ -1885,12 +1885,12 @@ struct S {
     char pad[0x14]; float start, duration; X *x; char pad20[0x40 - 0x20];
     M3 mat; qword pos, prev, vel, accel; char padB0[0xF0 - 0xB0]; qword axis; float angle;
 };
-extern "C" {
-void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float);
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
-M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
-void ProjectMatchTransform(S *);
-}
+
+void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float) __asm__("LoadIdentityMatrix4");
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
+M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float) __asm__("BuildAxisAngleRotationMatrix");
+void ProjectMatchTransform(S *) __asm__("ProjectMatchTransform");
+
 // returns an M3 built by BuildAxisAngleRotationMatrix straight into the (named) return slot
 static inline M3 Rotation(qword axis, float angle) return result { BuildAxisAngleRotationMatrix(&result, axis, angle); }
 // broadcast a float into a VU register; the union local is the dead scratch store the original left on the stack
@@ -1939,9 +1939,9 @@ void ProjectMatchTransform(S *p)
 } // namespace M_ProjectMatchTransform
 #undef OFF
 
-namespace M_UpdateMatch { extern "C" {
-void LaunchMatch__FP5MATCH(MATCH *p);
-} } // namespace M_UpdateMatch
+namespace M_UpdateMatch {
+void LaunchMatch__FP5MATCH(MATCH *p) __asm__("LaunchMatch__FP5MATCH");
+} // namespace M_UpdateMatch
 // MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
 // render object (LO::Add, vtable slot 8) and removes itself.
 void MATCH::Update()   /* key function (the namespace's declarations) */
@@ -2009,17 +2009,17 @@ struct RIP {
     char pad3C[0x34];
     qword position;
 };
-extern "C" { extern POLY D_002C1FB0,D_002C1FD0,D_002C1FF0; }
-extern "C" { extern float D_002C1FC0[2],D_002C1FE0[2],D_002BBB60[2]; }
-extern "C" { extern const qword D_002A2DA0,D_002A2DC0; }
-extern "C" {
-void RemoveRip__FP3RIP(RIP *);
-int IsInCameraFrustum(CM *,qword,qword);
-M3 BuildOrthonormalMatrixZ(qword,qword);
-M3 BuildAxisAngleRotationMatrix(qword,float);
-M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
-void RenderLoAtMatrix(void *,const M4 &,float,float);
-}
+extern POLY D_002C1FB0 __asm__("D_002C1FB0"),D_002C1FD0 __asm__("D_002C1FD0"),D_002C1FF0 __asm__("D_002C1FF0");
+extern float D_002C1FC0[2] __asm__("D_002C1FC0"),D_002C1FE0[2] __asm__("D_002C1FE0"),D_002BBB60[2] __asm__("D_002BBB60");
+extern const qword D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0");
+
+void RemoveRip__FP3RIP(RIP *) __asm__("RemoveRip__FP3RIP");
+int IsInCameraFrustum(CM *,qword,qword) __asm__("IsInCameraFrustum");
+M3 BuildOrthonormalMatrixZ(qword,qword) __asm__("BuildOrthonormalMatrixZ");
+M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float) __asm__("LoadMatrixFromPosRotScalar");
+void RenderLoAtMatrix(void *,const M4 &,float,float) __asm__("RenderLoAtMatrix");
+
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // Return a scaled by s.
@@ -2102,7 +2102,7 @@ extern "C" void RenderGlint(RIP *rip)
 }
 } // namespace M_RenderGlint
 
-namespace M_InitSmack { extern "C" {
+namespace M_InitSmack {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z; } V3;
 typedef struct {
@@ -2126,14 +2126,14 @@ typedef struct {
     char padf4[0x100 - 0xF4];
     qword screenPos;        /* position in screen space */
 } OBJ;   /* SMACK */
-extern float D_002C2000;
-extern qword D_002BBB50;
-void InitRip(OBJ *, qword);
-qword ConvertCmWorldToScreen(void *, qword);
-float RandomFloatInRange__Fff(float, float);
+extern float D_002C2000 __asm__("D_002C2000");
+extern qword D_002BBB50 __asm__("D_002BBB50");
+void InitRip(OBJ *, qword) __asm__("InitRip");
+qword ConvertCmWorldToScreen(void *, qword) __asm__("ConvertCmWorldToScreen");
+float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 // SMACK (RIPT 9) Init: base init, its position converted to screen space, a random velocity between the
 // definition's bounds, fixed duration, default alpha and the definition's scale curve.
-void InitSmack(OBJ *object, qword q)
+extern "C" void InitSmack(OBJ *object, qword q)
 {
     DEF *d;
     float x, y;
@@ -2153,9 +2153,9 @@ void InitSmack(OBJ *object, qword q)
     object->alpha = D_002BBB50;
     object->scale = d->scale;
 }
-} } // namespace M_InitSmack
+} // namespace M_InitSmack
 
-namespace M_ProjectSmackTransform { extern "C" {
+namespace M_ProjectSmackTransform {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a; qword b; } Q2;
 typedef struct {
@@ -2171,17 +2171,17 @@ typedef struct {
     char padf4[0x100 - 0xF4];
     qword screenPos;
 } OBJ;   /* SMACK */
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
-qword ConvertCmScreenToWorld(void *, qword);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int) __asm__("EvaluateBezierPos");
+qword ConvertCmScreenToWorld(void *, qword) __asm__("ConvertCmScreenToWorld");
 // SMACK Project: moves along a Bezier in screen space toward the definition's target, arriving at the end of its life,
 // and converts back to world space.
-void ProjectSmackTransform(OBJ *object)
+extern "C" void ProjectSmackTransform(OBJ *object)
 {
     EvaluateBezierPos(StdMax(object->startTime + object->duration - g_clock.time, g_clock.deltaTime), g_clock.deltaTime, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
     object->previousPosition = object->position;
     object->position = ConvertCmScreenToWorld(&g_cm, object->screenPos);
 }
-} } // namespace M_ProjectSmackTransform
+} // namespace M_ProjectSmackTransform
 
 namespace M_RenderSmack {
 typedef int qword __attribute__((mode(TI)));
@@ -2198,14 +2198,14 @@ struct S {
     char padF4[0x100 - 0xF4];
     qword pos;
 };
-extern "C" {
-qword ConvertCmScreenToWorld(CM*,qword);
-M3 MulMatrix3Matrix3(const M3&,const M3&);
-void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*);
-M3 BuildAxisAngleRotationMatrix(qword,float);
-int RenderRipAtPose(S*,qword,const M3&);
-void RenderSmack(S*);
-}
+
+qword ConvertCmScreenToWorld(CM*,qword) __asm__("ConvertCmScreenToWorld");
+M3 MulMatrix3Matrix3(const M3&,const M3&) __asm__("MulMatrix3Matrix3");
+void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
+M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+int RenderRipAtPose(S*,qword,const M3&) __asm__("RenderRipAtPose");
+void RenderSmack(S*) __asm__("RenderSmack");
+
 // Return the 3x3 matrix product of a and b.
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
@@ -2250,7 +2250,7 @@ struct OBJ {
     C *target;
     void *argument;
 };   /* SMACK */
-extern "C" void RemoveRip__FP3RIP(OBJ *);
+extern void RemoveRip__FP3RIP(OBJ *) __asm__("RemoveRip__FP3RIP");
 } // namespace M_UpdateSmack
 // SMACK Update: at the end of its life calls the definition's completion member on the target, then removes itself.
 void SMACK::Update()   /* key function (the namespace's views) */
@@ -2273,9 +2273,9 @@ typedef struct {
     char pad0[0x40];
     MATRIX3 orientation;
 } OBJ;
-extern "C" void PostRipEmit(OBJ *);
-extern "C" float RandomFloatInRange__Fff(float, float);
-extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword);
+extern void PostRipEmit(OBJ *) __asm__("PostRipEmit");
+extern float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
+extern MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword) __asm__("LoadLookAtMatrix");
 // Build a look-at basis matrix whose forward axis is vector.
 static inline MATRIX3 MakeBasis(qword vector) return r
 {
@@ -2320,13 +2320,13 @@ namespace M_ProjectLeafTransform {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct P { char pad0[0x40]; M3 matrix; char pad70[0x20]; qword vel; char padA0[0x24]; float drag; };
-extern "C" {
-extern float D_002C2010[3], D_002C2020[2], D_002C2028, D_002C202C;
-extern qword D_002A2DA0;
-M3 BuildAxisAngleRotationMatrix(qword, float);
-float SplitVectorAlongAxis(qword, qword, qword *, qword *);
-void ProjectRipTransform(P *);
-}
+
+extern float D_002C2010[3] __asm__("D_002C2010"), D_002C2020[2] __asm__("D_002C2020"), D_002C2028 __asm__("D_002C2028"), D_002C202C __asm__("D_002C202C");
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
+float SplitVectorAlongAxis(qword, qword, qword *, qword *) __asm__("SplitVectorAlongAxis");
+void ProjectRipTransform(P *) __asm__("ProjectRipTransform");
+
 // VU_FLOAT broadcasts a float into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 // VU_VECTOR wraps a qword so overloads can tell vectors from scalars.
@@ -2465,7 +2465,7 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
     return pvEmit;
 }
 
-namespace M_UpdateRipt1 { extern "C" {
+namespace M_UpdateRipt1 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { char pad[0xE0]; int numEdges; char *edges; } Q;   /* the touch object: its 0xB0-byte collision records (inferred) */
 typedef struct {
@@ -2478,13 +2478,13 @@ typedef struct {
     LO *nextRenderObject;   /* +0xF4 the ripple's render object */
 } OBJ;
 typedef struct { qword pos; char rest[0x50]; } HIT;
-int ClipEdgeToObject(void *, qword, qword, int, HIT *);
-RIP *NewRipInGroup(SW *, int, int);
-void TouchRip__FP3RIPi(OBJ *, int);
+int ClipEdgeToObject(void *, qword, qword, int, HIT *) __asm__("ClipEdgeToObject");
+RIP *NewRipInGroup(SW *, int, int) __asm__("NewRipInGroup");
+void TouchRip__FP3RIPi(OBJ *, int) __asm__("TouchRip__FP3RIPi");
 // RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
 // the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
 // render object; then the base TouchRip.
-void UpdateRipt1(OBJ *object, int isTouching)
+extern "C" void UpdateRipt1(OBJ *object, int isTouching)
 {
     HIT hit;
     int i;
@@ -2508,7 +2508,7 @@ found:
 done:
     TouchRip__FP3RIPi(object, isTouching);
 }
-} } // namespace M_UpdateRipt1
+} // namespace M_UpdateRipt1
 
 extern "C" { extern qword D_002C1F40; }
 // RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, damping -8.
@@ -2525,7 +2525,7 @@ void RIPT0::Init(qword pos, float scale, SO *psoTouch)
     damping = -8.0f;
 }
 
-namespace M_ProjectBubletTransform { extern "C" {
+namespace M_ProjectBubletTransform {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct B {
@@ -2535,21 +2535,21 @@ struct MIX_STATE {
     union U direction, scalar;
 };
 struct S { char pad[0x70]; qword pos; char pad80[0x10]; qword vel; };
-extern qword D_002A2DD0,D_002A2DA0,D_002A2DC0;
-void ProjectRipTransform(struct S*);
-float RandomFloatInRange__Fff(float,float);
-int AreFloatsNear__Ffff(float,float,float);
-void GetNormalVectors(qword,qword,qword,struct B*);
-void CalculateSinCos__FfPfT1(float,float*,float*);
+extern qword D_002A2DD0 __asm__("D_002A2DD0"),D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0");
+void ProjectRipTransform(struct S*) __asm__("ProjectRipTransform");
+float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
+int AreFloatsNear__Ffff(float,float,float) __asm__("AreFloatsNear__Ffff");
+void GetNormalVectors(qword,qword,qword,struct B*) __asm__("GetNormalVectors");
+void CalculateSinCos__FfPfT1(float,float*,float*) __asm__("CalculateSinCos__FfPfT1");
 // High address page of the frame clock's dt word (D_002DDED0+4).
-static inline const void *ClockHigh(void)
+extern "C" { static inline const void *ClockHigh(void)
 {
     register const void *page __asm__("$2");
     __asm__("lui %0,%%hi(D_002DDED0+4)" : "=r"(page));
     return page;
-}
+} }
 // Scale the two speed coefficients cs[0..1] by speed into *first/*second and broadcast the frame dt into vf5.
-static inline qword Factors(const float *cs, float speed, float *first, float *second)
+extern "C" { static inline qword Factors(const float *cs, float speed, float *first, float *second)
 {
     register float a __asm__("$f1") = cs[0], b __asm__("$f0");
     const void *page = ClockHigh();
@@ -2562,30 +2562,30 @@ static inline qword Factors(const float *cs, float speed, float *first, float *s
     *first = a;
     *second = b;
     return dt;
-}
+} }
 // Set *pf when a and b are equal within 0.0001 on x, y and z (leaves it untouched otherwise).
-static inline void FNear(int *pf, qword a, qword b)
+extern "C" { static inline void FNear(int *pf, qword a, qword b)
 {
     if (AreFloatsNear__Ffff(QwordX(b), QwordX(a), 0.0001f))
         if (AreFloatsNear__Ffff(QwordY(b), QwordY(a), 0.0001f))
             *pf = AreFloatsNear__Ffff(QwordZ(b), QwordZ(a), 0.0001f) != 0;
-}
+} }
 // Broadcast a float into vf3.
-static inline qword BcX(float f)
+extern "C" { static inline qword BcX(float f)
 {
     register qword value __asm__("vf3");
     __asm__("qmtc2.ni %1,%0" : "=j"(value) : "r"(f));
     return value;
-}
+} }
 // Store x to the home slot and broadcast f into vf4.
-static inline qword BcYAndPublishX(float f, qword x, union U *home)
+extern "C" { static inline qword BcYAndPublishX(float f, qword x, union U *home)
 {
     register qword value __asm__("vf4");
     __asm__("sqc2 %2,%1\n\tmfc1 $2,%3\n\tqmtc2.ni $2,%0" : "=j"(value), "=m"(home->q) : "j"(x), "f"(f) : "$2");
     return value;
-}
+} }
 // Advance the owner's position by the basis mixed with the coefficients times dt, saving the mix state.
-static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct MIX_STATE *state, qword sx, qword sy,
+extern "C" { static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct MIX_STATE *state, qword sx, qword sy,
                                  qword dt)
 {
     register qword y __asm__("vf1") = basis->y, x __asm__("vf2") = basis->x;
@@ -2595,9 +2595,9 @@ static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct 
             "vmaddx.xyzw %1,%0,%6x\n\tsqc2 %1,%2\n\tsqc2 %0,%3\n\tsqc2 %6,16+%3"
             : "+&j"(x), "+&j"(y), "+m"(owner->pos), "=m"(*state)
             : "j"(coefficientX), "j"(coefficientY), "j"(time));
-}
+} }
 // Compute the owner velocity's squared length and the addresses of the up and x reference axes in one asm block.
-static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qword *xAxis, qword *upAxis)
+extern "C" { static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qword *xAxis, qword *upAxis)
 {
     register qword velocity __asm__("vf1"), length __asm__("vf2");
     register qword *up __asm__("$2");
@@ -2616,18 +2616,18 @@ static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qwor
     *xAxis = xValue;
     *upAxis = upValue;
     return length;
-}
+} }
 // Move the normal into a GPR argument and the destination basis address into $7 for the following call.
-static inline void BasisArguments(qword normal, struct B *destination, qword *argument, struct B **receiver)
+extern "C" { static inline void BasisArguments(qword normal, struct B *destination, qword *argument, struct B **receiver)
 {
     register qword value __asm__("$4");
     register struct B *output __asm__("$7");
     __asm__("qmfc2.ni %0,%2\n\tla %1,%a3" : "=&r"(value), "=r"(output) : "j"(normal), "p"(destination));
     *argument = value;
     *receiver = output;
-}
+} }
 // RIPT 0 Project: wobble + base ProjectRipTransform. (inferred)
-void ProjectBubletTransform(struct S *p)
+extern "C" void ProjectBubletTransform(struct S *p)
 {
     int near = 0, choose = 0;
     float roll;
@@ -2684,7 +2684,7 @@ typedef char layout_union_qword[(MIX_OFF(union U,q)==0)?1:-1];
 typedef char layout_union_float[(MIX_OFF(union U,f)==0)?1:-1];
 typedef char layout_word_float[(MIX_OFF(union FLOATWORD,value)==0)?1:-1];
 typedef char layout_word_integer[(MIX_OFF(union FLOATWORD,bits)==0)?1:-1];
-} } // namespace M_ProjectBubletTransform
+} // namespace M_ProjectBubletTransform
 #undef MIX_OFF
 
 // RIPT 0 Touch: TouchRip. (inferred)
@@ -2724,7 +2724,7 @@ void REMIT::Update()   /* key function */
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 /* D_002C1F40/F90/FA0 are declared qword at file scope (read whole); defined as float vectors under C linkage
    in a namespace, which g++ 2.95 accepts beside the file-scope declaration (same symbol). */
-namespace M_rip_data { extern "C" {  } }
+namespace M_rip_data { }
 
 
 
@@ -2733,15 +2733,15 @@ namespace M_rip_data { extern "C" {  } }
 
 
 
-namespace M_rip_data { extern "C" {
+namespace M_rip_data {
 
 
-} }
+}
 
 // ---- rip's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-namespace M_rip_data { extern "C" {
-VECTOR4 D_002C1F40 = {0.0f, 0.0f, -1750.0f, 0.0f};
-} } // namespace M_rip_data extern "C"
+namespace M_rip_data {
+VECTOR4 D_002C1F40 __asm__("D_002C1F40") = {0.0f, 0.0f, -1750.0f, 0.0f};
+} // namespace M_rip_data extern "C"
 VECTOR4 D_002C1F50 = {1.0f, 1.666667f, -2.666667f, 0.0f};
 float D_002C1F60 = 0.5f;
 float D_002C1F64 = 0.5f;
@@ -2750,10 +2750,10 @@ float D_002C1F6C = 0.25f;
 int D_002C1F70[1] = {50};
 LM D_002C1F78 = {0.75f, 1.25f};
 float D_002C1F80[3] = {0.0f, 0.001f, 0.0f};
-namespace M_rip_data { extern "C" {
-VECTOR4 D_002C1F90 = {0.0f, 4.0f, -4.0f, 0.0f};
-VECTOR4 D_002C1FA0 = {0.25f, 3.0f, -3.0f, 0.0f};
-} } // namespace M_rip_data extern "C"
+namespace M_rip_data {
+VECTOR4 D_002C1F90 __asm__("D_002C1F90") = {0.0f, 4.0f, -4.0f, 0.0f};
+VECTOR4 D_002C1FA0 __asm__("D_002C1FA0") = {0.25f, 3.0f, -3.0f, 0.0f};
+} // namespace M_rip_data extern "C"
 CLQ D_002C1FB0 = {{{0.0f, 0.75f, 0.0f, 0.0f}}};
 float D_002C1FC0[2] = {1.0f, 5.0f};
 CLQ D_002C1FD0 __attribute__((aligned(16))) = {{{0.5f, 0.0f, 0.5f, 0.0f}}};

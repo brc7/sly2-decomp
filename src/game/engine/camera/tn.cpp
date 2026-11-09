@@ -1513,9 +1513,9 @@ extern "C" {
 LM D_002C41A8 = {-3.40282347e+38f, 3.40282347e+38f};
 } // extern "C"
 LM D_002C41B0 = {-0.5f, 1.5550884f};
-namespace M_tn_data { extern "C" {
-VECTOR4 D_002C41C0 = {0.0f, 0.5f, 0.0f, 0.0f};
-} } // namespace M_tn_data extern "C"
+namespace M_tn_data {
+VECTOR4 D_002C41C0 __asm__("D_002C41C0") = {0.0f, 0.5f, 0.0f, 0.0f};
+} // namespace M_tn_data extern "C"
 extern "C" {
 LM D_002C41D0 = {0.0f, 3.40282347e+38f};
 } // extern "C"
@@ -1539,7 +1539,7 @@ float D_002C4274 = -10.0f;
 float D_002C4278 = -5.0f;
 float D_002C427C = -10.0f;
 float D_002C4280 = -5.0f;
-namespace M_tn_data { extern "C" {
-VECTOR4 D_002C4290[5] = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, -50.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 75.0f, 0.0f},
+namespace M_tn_data {
+VECTOR4 D_002C4290[5] __asm__("D_002C4290") = {{0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, -50.0f, 0.0f, 0.0f}, {0.0f, 50.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 75.0f, 0.0f},
     {0.0f, 0.0f, -50.0f, 0.0f}};
-} }
+}

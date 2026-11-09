@@ -84,11 +84,11 @@ void *FindStepBehavior(LO *object, int cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001709A8 { extern "C" {
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+namespace M_func_001709A8 {
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x1709A8: Classifies a script target for moving along it: 0 for a rail-like object (cid 0xD), 1 for a pipe-like
 // object (cid 0xB), else -1 (inferred nouns).
-int GetShapeMoveKind(void *p)
+extern "C" int GetShapeMoveKind(void *p)
 {
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, CID_RAIL))
         return 0;
@@ -96,7 +96,7 @@ int GetShapeMoveKind(void *p)
         return 1;
     return -1;
 }
-} } // namespace M_func_001709A8
+} // namespace M_func_001709A8
 
 // 0x1709F8: Guard script (cid 0x71) vtable slot 7 (Init): LO Init, then an empty command list.
 extern "C" void InitGuardScript(CID113 *script)
@@ -114,13 +114,13 @@ void CID113::PostLoad()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00170A58 { extern "C" {
-LO *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, LO *context);
-int GetShapeMoveKind(LO *object);
-void EnsureShapeVolumeSegments(LO *shape);
+namespace M_func_00170A58 {
+LO *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, LO *context) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int GetShapeMoveKind(LO *object) __asm__("GetShapeMoveKind");
+void EnsureShapeVolumeSegments(LO *shape) __asm__("EnsureShapeVolumeSegments");
 // 0x170A58: Walks the command list resolving targets: set-context commands (kind 0) change the lookup context;
 // move-along-shape commands (kind 6) prepare their target shape.
-void PrepareGuardScriptTargets(LO *context)
+void PrepareGuardScriptTargets(LO *context) __asm__("PrepareGuardScriptTargets"); void PrepareGuardScriptTargets(LO *context)
 {
     SSGE *command;
     for (command = (SSGE *)((CID113 *)context)->commands.head; command; command = command->next) {   /* context starts as the script itself */
@@ -137,7 +137,7 @@ void PrepareGuardScriptTargets(LO *context)
         }
     }
 }
-} } // namespace M_func_00170A58
+} // namespace M_func_00170A58
 
 // 0x170B40: Splice option: appends command kind 0, set the lookup context object (oid).
 extern "C" void AddGuardScriptSetContext(CID113 *script, int id)
@@ -146,18 +146,18 @@ extern "C" void AddGuardScriptSetContext(CID113 *script, int id)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00170B60 { extern "C" {
-SSGE *AddGuardScriptCommand(void *script, int kind, int id);
+namespace M_func_00170B60 {
+SSGE *AddGuardScriptCommand(void *script, int kind, int id) __asm__("AddGuardScriptCommand");
 // 0x170B60: Splice option: appends command kind 1, set the guard's walk-time range (copied to guard +0x2CC).
-void AddGuardScriptSetWalkTimes(void *script, LM *range) { AddGuardScriptCommand(script, SSGK_SET_WALK_TIMES, -1)->range = *range; }
-} } // namespace M_func_00170B60
+extern "C" void AddGuardScriptSetWalkTimes(void *script, LM *range) { AddGuardScriptCommand(script, SSGK_SET_WALK_TIMES, -1)->range = *range; }
+} // namespace M_func_00170B60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00170BA0 { extern "C" {
-SSGE *AddGuardScriptCommand(void *script, int kind, int id);
+namespace M_func_00170BA0 {
+SSGE *AddGuardScriptCommand(void *script, int kind, int id) __asm__("AddGuardScriptCommand");
 // 0x170BA0: Splice option: appends command kind 2, set the guard's pause-time range (guard +0x2D4).
-void AddGuardScriptSetPauseTimes(void *script, LM *range) { AddGuardScriptCommand(script, SSGK_SET_PAUSE_TIMES, -1)->range = *range; }
-} } // namespace M_func_00170BA0
+extern "C" void AddGuardScriptSetPauseTimes(void *script, LM *range) { AddGuardScriptCommand(script, SSGK_SET_PAUSE_TIMES, -1)->range = *range; }
+} // namespace M_func_00170BA0
 
 // 0x170BE0: Splice option: appends command kind 3, teleport the guard to a target (oid).
 extern "C" void AddGuardScriptTeleport(CID113 *script, int id)
@@ -273,17 +273,17 @@ extern "C" void StartGuardScriptOnGuard(CID113 *script, LO *object)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A52B0 __asm__("D_002A52B0") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00170E90 { extern "C" {
+namespace M_func_00170E90 {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
-extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata order) */
-LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,LO*);
-void GetGuardScriptTargetPose(LO*,qword,LO*,qword*,float*);
-void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*);
-void FindShapeClosestPointFromDistance(LO*,qword,void*,qword*,qword*,float*,float*,float);
+extern const float D_002A52B0 __asm__("D_002A52B0");   /* defined below where the ELF has it (.rodata order) */
+LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,LO*) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void GetGuardScriptTargetPose(LO*,qword,LO*,qword*,float*) __asm__("GetGuardScriptTargetPose");
+void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPointFromDistance(LO*,qword,void*,qword*,qword*,float*,float*,float) __asm__("FindShapeClosestPointFromDistance");
 // VU0 helper: vector difference.
 // VU0 helper: length of a vector.
-static inline float Length(qword v)
+extern "C" { static inline float Length(qword v)
 {
     qword d, one;
     float f;
@@ -293,11 +293,11 @@ static inline float Length(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "0"(d));
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 // Choose the closest eligible point while walking the selector chain.
 // 0x170E90: Picks the command (kind 3/7 point or kind 6 shape) whose point is closest to a position, skipping
 // commands inside busy-on/off brackets; used to resume a script near the guard.
-void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *out)
+extern "C" void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *out)
 {
     SSGRESUME choice;
     U hit;
@@ -372,19 +372,19 @@ void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *out)
     if (out)
         *out = choice;
 }
-} } // namespace M_func_00170E90
+} // namespace M_func_00170E90
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001710F8 { extern "C" {
+namespace M_func_001710F8 {
 typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; };
-int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid);
-void FindShapeClosestPoint(LO *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c);
-float atan2f(float y, float x);
-qword GetLoWorldPos(LO *object);
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void FindShapeClosestPoint(LO *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c) __asm__("FindShapeClosestPoint");
+float atan2f(float y, float x) __asm__("atan2f");
+qword GetLoWorldPos(LO *object) __asm__("GetLoWorldPos");
 // 0x1710F8: Position and heading of a target: the closest point and tangent on a SHAPE (cid 0xA), else the object's
 // position and yaw.
-void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qword *posOut, float *headingOut)
+extern "C" void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qword *posOut, float *headingOut)
 {
     union { qword q; } u;
 #define q u.q
@@ -410,7 +410,7 @@ void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qword *posOut
     if (headingOut)
         *headingOut = heading;
 }
-} } // namespace M_func_001710F8
+} // namespace M_func_001710F8
 #undef q
 
 // 0x1711F0: Finds the label command (kind 9) with the given id.
@@ -434,10 +434,10 @@ void BHV169::OnPush()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171258 { extern "C" {
+namespace M_func_00171258 {
 void FramePtr_Assign(CRefPtr<CFrame> *pref, CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void AssignSidebagRef(CRefPtr<CSidebag> *pref, CSidebag *sidebag);
-} }
+void AssignSidebagRef(CRefPtr<CSidebag> *pref, CSidebag *sidebag) __asm__("AssignSidebagRef");
+}
 // 0x171258: Switches the script a script behaviour runs: stops the old one (splice event 3), starts the new one
 // (event 2) at its first command or at a saved resume point.
 extern "C" void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPartialRoute, SSGRESUME *resume)
@@ -520,16 +520,16 @@ extern "C" int IsBhvScriptDone(BHV169 *behavior)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171468 { extern "C" {
-int IsBhvpatrolpathDone(void *bhv);
-int HasBhvrailArrived(void *bhv);
-int HasBhvpipeArrived(void *bhv);
-int HasBhvgotoArrived(void *bhv);
-int IsBhvanimDone(void *bhv);
-void SetStepguardMoverRadTarget(GUARDMOVER *mover, float heading);
+namespace M_func_00171468 {
+int IsBhvpatrolpathDone(void *bhv) __asm__("IsBhvpatrolpathDone");
+int HasBhvrailArrived(void *bhv) __asm__("HasBhvrailArrived");
+int HasBhvpipeArrived(void *bhv) __asm__("HasBhvpipeArrived");
+int HasBhvgotoArrived(void *bhv) __asm__("HasBhvgotoArrived");
+int IsBhvanimDone(void *bhv) __asm__("IsBhvanimDone");
+void SetStepguardMoverRadTarget(GUARDMOVER *mover, float heading) __asm__("SetStepguardMoverRadTarget");
 // 0x171468: True while the running command's child behaviour (goto, look, wait, kinds 13/14) is still active; pops
 // it when done.
-int IsBhvScriptCommandBusy(BHV169 *behavior) {
+extern "C" int IsBhvScriptCommandBusy(BHV169 *behavior) {
     if (!behavior->isCommandBusy) return 0;
     switch (behavior->currentCommand->kind) {
     case SSGK_FOLLOW_PATH:
@@ -561,38 +561,38 @@ int IsBhvScriptCommandBusy(BHV169 *behavior) {
     if (!behavior->isCommandBusy) PopBhv(&behavior->pbhvNext);
     return behavior->isCommandBusy;
 }
-} } // namespace M_func_00171468
+} // namespace M_func_00171468
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001715B8 { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, LO *context);
+namespace M_func_001715B8 {
+void *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, LO *context) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // 0x1715B8: Finds a world object by oid relative to the script's current context object.
-void *FindBhvScriptTarget(BHV169 *behavior, int oid)
+extern "C" void *FindBhvScriptTarget(BHV169 *behavior, int oid)
 {
     LO *context = behavior->context;
     int findKind = context ? 4 : 5;
     return FindSwObject__FP2SWi3OIDP2LO(&g_sw, findKind, oid, context);
 }
-} } // namespace M_func_001715B8
+} // namespace M_func_001715B8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001715F0 { extern "C" {
-void *FindBhvScriptTarget(BHV169 *behavior, int oid);
-void GetBhvScriptTargetPose(BHV169 *behavior, void *target, qword *posOut, float *headingOut);
-void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading);
-BHV *PushStepBehavior(STEPGUARD *guard, int cid);
-void EnsureShapeVolumeSegments(void *shape);
-void SetBhvrailGoal(BHV *bhv, int goal);
-void SetBhvpipeGoal(BHV *bhv, int goal);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid);
-void SetBhvgotoGoal(BHVGOTO *bhv, PATHLINKEND *goal);
-void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed);
-void SetBhvBusy(BHV169 *behavior);
-void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
-void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
+namespace M_func_001715F0 {
+void *FindBhvScriptTarget(BHV169 *behavior, int oid) __asm__("FindBhvScriptTarget");
+void GetBhvScriptTargetPose(BHV169 *behavior, void *target, qword *posOut, float *headingOut) __asm__("GetBhvScriptTargetPose");
+void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading) __asm__("TeleportBhvScriptGuard");
+BHV *PushStepBehavior(STEPGUARD *guard, int cid) __asm__("PushStepBehavior");
+void EnsureShapeVolumeSegments(void *shape) __asm__("EnsureShapeVolumeSegments");
+void SetBhvrailGoal(BHV *bhv, int goal) __asm__("SetBhvrailGoal");
+void SetBhvpipeGoal(BHV *bhv, int goal) __asm__("SetBhvpipeGoal");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void SetBhvgotoGoal(BHVGOTO *bhv, PATHLINKEND *goal) __asm__("SetBhvgotoGoal");
+void ApplyAsegCore(void *aseg, int guard, int b, void *asega, float start, float speed) __asm__("ApplyAsegCore");
+void SetBhvBusy(BHV169 *behavior) __asm__("SetBhvBusy");
+void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard) __asm__("ReleaseAnimBinding");
+void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard) __asm__("ResolveAnimBinding");
 void func_001E0020(void *sgg, int alarm) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
-void ClearPointerPair(void *goal);
-}
+void ClearPointerPair(void *goal) __asm__("ClearPointerPair");
+
 }
 
 // 0x1715F0: Script behaviour vtable slot 15: executes one script command (kinds 0-15): set context, set times,
@@ -751,10 +751,10 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171AF8 { extern "C" {
-qword GetLoWorldPos(LO *p);
-void GetGuardScriptTargetPose(CID113 *script, qword pos, int target, int posOut, int headingOut);
-} }
+namespace M_func_00171AF8 {
+qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
+void GetGuardScriptTargetPose(CID113 *script, qword pos, int target, int posOut, int headingOut) __asm__("GetGuardScriptTargetPose");
+}
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
 extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, int target, int posOut, int headingOut)
 {
@@ -763,11 +763,11 @@ extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, int target, int posOut,
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171B60 { extern "C" {
-extern qword D_002A2DD0;
-void DetachStepguard(STEPGUARD *guard);
-void SetStepTargetHeading(STEPGUARD *guard, float heading);
-} }
+namespace M_func_00171B60 {
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void DetachStepguard(STEPGUARD *guard) __asm__("DetachStepguard");
+void SetStepTargetHeading(STEPGUARD *guard, float heading) __asm__("SetStepTargetHeading");
+}
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
 extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading)
 {
@@ -782,9 +782,9 @@ extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float headin
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171C18 { extern "C" {
+namespace M_func_00171C18 {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-} }
+}
 // 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
 extern "C" void SaveBhvScriptResumeState(BHV169 *behavior, SSGRESUME *resume)
 {
@@ -816,12 +816,12 @@ extern "C" void JumpBhvScriptToLabel(BHV169 *behavior, int id)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171CF8 { extern "C" {
-void *FindStepBehavior(void *guard, int cid);
+namespace M_func_00171CF8 {
+void *FindStepBehavior(void *guard, int cid) __asm__("FindStepBehavior");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
-void StartGuardScript(void *guard, int script)
+void StartGuardScript(void *guard, int script) __asm__("StartGuardScript"); void StartGuardScript(void *guard, int script)
 {
     BHVGUARDRECDATA mode;
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
@@ -832,15 +832,15 @@ void StartGuardScript(void *guard, int script)
         SetBhvguardMode(bhv, &mode);
     }
 }
-} } // namespace M_func_00171CF8
+} // namespace M_func_00171CF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00171D58 { extern "C" {
-void *FindStepBehavior(void *guard, int cid);
+namespace M_func_00171D58 {
+void *FindStepBehavior(void *guard, int cid) __asm__("FindStepBehavior");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode);
+void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
-void SetGuardRoutineMode(void *guard)
+extern "C" void SetGuardRoutineMode(void *guard)
 {
     BHVGUARDRECDATA mode;
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
@@ -850,7 +850,7 @@ void SetGuardRoutineMode(void *guard)
         SetBhvguardMode(bhv, &mode);
     }
 }
-} } // namespace M_func_00171D58
+} // namespace M_func_00171D58
 
 // 0x171DA8: True if the guard's root behaviour is in mode 5 running this script.
 /* Whether plo's guard behaviour (CID 0x9C) is in mode 5 on script command id. */

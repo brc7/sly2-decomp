@@ -143,15 +143,15 @@ extern "C" void StartupGame()
     BeginStartupSequence(D_002E1E88);
 }
 
-namespace M_InitGame { extern "C" {
-extern char D_002DE578[];
-extern int D_002E1E00;
+namespace M_InitGame {
+extern char D_002DE578[] __asm__("D_002DE578");
+extern int D_002E1E00 __asm__("D_002E1E00");
 void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-void ResetSaveGs(void *p, int n);
-void InitDifficulty(void *p);
+void ResetSaveGs(void *p, int n) __asm__("ResetSaveGs");
+void InitDifficulty(void *p) __asm__("InitDifficulty");
 // Resets the game record g_game: zeroed, no current job, task or pending task; resets the save blob and the
 // difficulty.
-void InitGame(GAME *game)
+extern "C" void InitGame(GAME *game)
 {
     func_002333B4(game, 0, sizeof(*game));
     game->oidJobCur = -1;
@@ -161,7 +161,7 @@ void InitGame(GAME *game)
     InitDifficulty(D_002DE578);
     D_002E1E00 = 0;
 }
-} } // namespace M_InitGame
+} // namespace M_InitGame
 
 // Clears the samples of the global difficulty object.
 extern "C" void ClearGameDifficulty()
@@ -170,13 +170,13 @@ extern "C" void ClearGameDifficulty()
 }
 
 namespace M_UpdateGameTimers {
-extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
+void *__4CRefRC4CRef(void *, const void *) __asm__("__4CRefRC4CRef"); void Decref__4CRef(void *) __asm__("Decref__4CRef");
 struct OPT;
-extern "C" { extern char D_002DE578[]; }
-extern "C" CRef GetGlobalSaveVar(OPT *, void *);
-extern "C" CRef SetGlobalSaveVar(OPT *, const CRefData &, void *);
-extern "C" int GetCurrentWorld();
-extern "C" void ChangeDifficulty(void *, float);
+extern char D_002DE578[] __asm__("D_002DE578");
+extern CRef GetGlobalSaveVar(OPT *, void *) __asm__("GetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(OPT *, const CRefData &, void *) __asm__("SetGlobalSaveVar");
+extern int GetCurrentWorld() __asm__("GetCurrentWorld");
+extern void ChangeDifficulty(void *, float) __asm__("ChangeDifficulty");
 // Read a global save variable as a float.
 static inline float GetFloat(OPT *p, void *context) { const CRef &r = GetGlobalSaveVar(p, context); return r.u.g; }
 // Store a script reference into a global save variable.
@@ -229,8 +229,8 @@ typedef char Float_Size[sizeof(float)==4?1:-1];
 
 namespace M_NEpisodePercentComplete {
 struct ALLOCREQ { int cb; int nKind; };
-extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
+extern void *AllocClearedFromStack(ALLOCREQ *preq) __asm__("AllocClearedFromStack");
+extern int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv) __asm__("FindSwObjectsByClass");
 // Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -272,11 +272,11 @@ extern "C" int GetEpisodePercentComplete()
 }
 } // namespace M_NEpisodePercentComplete
 
-namespace M_func_00161798 { extern "C" {
-void GetGlobalSaveVar(CRefData *pref, int a, void *b);
-void Decref__4CRef(CRefData *pref);
+namespace M_func_00161798 {
+void GetGlobalSaveVar(CRefData *pref, int a, void *b) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Returns the coin count (save variable loot.ccoin, through g_sw+0x3B20).
-int GetCoinCount(void)
+extern "C" int GetCoinCount(void)
 {
     CRefData ref;
     int n;
@@ -285,14 +285,14 @@ int GetCoinCount(void)
     Decref__4CRef(&ref);
     return n;
 }
-} } // namespace M_func_00161798
+} // namespace M_func_00161798
 
 namespace M_func_001617E0 {
 struct O;
-extern "C" CRef SetGlobalSaveVar(O *, const CRef &, void *);
+extern CRef SetGlobalSaveVar(O *, const CRef &, void *) __asm__("SetGlobalSaveVar");
 // Store a script reference into a global save variable.
 static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=SetGlobalSaveVar(pv,arg,&g_gs);}
-extern "C" void RestartHudWidget1(SW *pg);
+extern void RestartHudWidget1(SW *pg) __asm__("RestartHudWidget1");
 // Sets the coin count (loot.ccoin) and restarts its HUD widget (ahudstack[1], RestartHudWidget1).
 extern "C" void SetCoinCount(void *pv, int n)
 {
@@ -328,10 +328,10 @@ extern "C" void RestartHudWidget2(SW *world)
     }
 }
 
-namespace M_func_001618F8 { extern "C" {
+namespace M_func_001618F8 {
 // Shows the HUD widget of ahudstack[3] and hides it again after dt seconds (g_sw+0x476C); UpdateSwTimerHud plays the
 // tick/tock sounds while that countdown runs, so this is the countdown display. (inferred)
-void ShowCountdownHud(SW *world, float dt)
+extern "C" void ShowCountdownHud(SW *world, float dt)
 {
     WIDGET *widget = world->ahudstack[3].widget;
     if (widget) {
@@ -340,12 +340,12 @@ void ShowCountdownHud(SW *world, float dt)
     }
     world->hudTimerEndTime = g_clock.time + dt;
 }
-} } // namespace M_func_001618F8
+} // namespace M_func_001618F8
 
-namespace M_func_00161958 { extern "C" {
+namespace M_func_00161958 {
 
 // Hides the HUD widget of ahudstack[3] and clears its hide time.
-void HideCountdownHud(SW *world)
+extern "C" void HideCountdownHud(SW *world)
 {
     WIDGET *widget = (WIDGET *)world->ahudstack[3].widget;
     if (widget) {
@@ -353,17 +353,17 @@ void HideCountdownHud(SW *world)
     }
     world->hudTimerEndTime = 0;
 }
-} } // namespace M_func_00161958
+} // namespace M_func_00161958
 
-namespace M_BroadcastGameEvent { extern "C" {
-extern SW D_003DD490;   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
-extern char D_002DE578[];
-void HandleGameEvent(void *pv, int n, void *p);
-void HandleDifficultyMessage(void *pv, int n, void *p);
-void SendTaskGameEvent(TASK *task, int n, void *p);
-void HandleJobGameEvent(void *pv, int n, void *p);
+namespace M_BroadcastGameEvent {
+extern SW D_003DD490 __asm__("D_003DD490");   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
+extern char D_002DE578[] __asm__("D_002DE578");
+void HandleGameEvent(void *pv, int n, void *p) __asm__("HandleGameEvent");
+void HandleDifficultyMessage(void *pv, int n, void *p) __asm__("HandleDifficultyMessage");
+void SendTaskGameEvent(TASK *task, int n, void *p) __asm__("SendTaskGameEvent");
+void HandleJobGameEvent(void *pv, int n, void *p) __asm__("HandleJobGameEvent");
 // The game event bus: the game record, the difficulty, every available task of the current job, then the current job.
-void BroadcastGameEvent(void *pv, int n, void *p)
+void BroadcastGameEvent(void *pv, int n, void *p) __asm__("BroadcastGameEvent"); void BroadcastGameEvent(void *pv, int n, void *p)
 {
     TASK *task;
     HandleGameEvent(pv, n, p);
@@ -375,40 +375,40 @@ void BroadcastGameEvent(void *pv, int n, void *p)
     if (D_003DD490.currentJob)
         HandleJobGameEvent(D_003DD490.currentJob, n, p);
 }
-} } // namespace M_BroadcastGameEvent
+} // namespace M_BroadcastGameEvent
 
 namespace M_HandleGameEvent {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 struct P{char pad[0x11A8];void*widget;};   /* a step player (its booty widget) */
 struct CHECK{int words[16];};
 struct LEASE;
-extern "C"{
- extern CHECK D_002A37E8;
 
- int FindSwObjectsByClass(SW*,int,int,P*,int,P**);
- int GetCurrentBootyEntryId(void*);
- void*ClearStepplayerBootySave(P*,int);
- void InitGame(GAME*);
- void ApplyPendingSaveData();
- void ReloadSaveSlots(SAVE*);
- int GetCurrentWorld();
- void ApplyGsSettings(void*);
- void RestoreTasksAfterLoad(GAME*);
- LEASE*STACKSCOPE_ctor(LEASE*);
+ extern CHECK D_002A37E8 __asm__("D_002A37E8");
+
+ int FindSwObjectsByClass(SW*,int,int,P*,int,P**) __asm__("FindSwObjectsByClass");
+ int GetCurrentBootyEntryId(void*) __asm__("GetCurrentBootyEntryId");
+ void*ClearStepplayerBootySave(P*,int) __asm__("ClearStepplayerBootySave");
+ void InitGame(GAME*) __asm__("InitGame");
+ void ApplyPendingSaveData() __asm__("ApplyPendingSaveData");
+ void ReloadSaveSlots(SAVE*) __asm__("ReloadSaveSlots");
+ int GetCurrentWorld() __asm__("GetCurrentWorld");
+ void ApplyGsSettings(void*) __asm__("ApplyGsSettings");
+ void RestoreTasksAfterLoad(GAME*) __asm__("RestoreTasksAfterLoad");
+ LEASE*STACKSCOPE_ctor(LEASE*) __asm__("STACKSCOPE_ctor");
  void STACKSCOPE_ctor_1AE4A0(LEASE*,int) __asm__("_$_10STACKSCOPE");
- void SortTasksTopologically(int*,TASK***);
- void RestoreTaskState(TASK*);
- void UpdateTaskSaveVars(TASK*);
- LO*FindSwObject__FP2SWi3OIDP2LO(SW*,int,int,LO*);
- void SetSwJobCur(SW*,LO*);
- void SetSwTaskCur(SW*,LO*);
- void BeginTask(TASK*);
- void AnnounceTaskJob(TASK*);
- void WipeToWorldWarp(SW*,CHECK*,int,int,int,int);
-}
+ void SortTasksTopologically(int*,TASK***) __asm__("SortTasksTopologically");
+ void RestoreTaskState(TASK*) __asm__("RestoreTaskState");
+ void UpdateTaskSaveVars(TASK*) __asm__("UpdateTaskSaveVars");
+ LO*FindSwObject__FP2SWi3OIDP2LO(SW*,int,int,LO*) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+ void SetSwJobCur(SW*,LO*) __asm__("SetSwJobCur");
+ void SetSwTaskCur(SW*,LO*) __asm__("SetSwTaskCur");
+ void BeginTask(TASK*) __asm__("BeginTask");
+ void AnnounceTaskJob(TASK*) __asm__("AnnounceTaskJob");
+ void WipeToWorldWarp(SW*,CHECK*,int,int,int,int) __asm__("WipeToWorldWarp");
+
 // Stack-allocation scope: opens a STACKSCOPE on construction; Release frees it.
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-extern "C" CRef GetGlobalSaveVar(void*,void*);
+extern CRef GetGlobalSaveVar(void*,void*) __asm__("GetGlobalSaveVar");
 // Read a global save variable as a float.
 static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.u.g;}
 // True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
@@ -511,11 +511,11 @@ extern "C" void HandleGameEvent(GAME *game, int action)
 } // namespace M_HandleGameEvent
 #undef FIELD_OFFSET
 
-namespace M_func_00161F10 { extern "C" {
+namespace M_func_00161F10 {
 struct E { int a; int b; };
 // Appends a pair (a, b) to a bounded array when there is room (the first argument is unused). Exits, warps and buttons
 // use it for their task-state and listener lists.
-int AppendBoundedPair(int x, struct E *ae, int cMax, int *pc, int a, int b)
+extern "C" int AppendBoundedPair(int x, struct E *ae, int cMax, int *pc, int a, int b)
 {
     struct E *pe;
     if (*pc < cMax) {
@@ -526,14 +526,14 @@ int AppendBoundedPair(int x, struct E *ae, int cMax, int *pc, int a, int b)
     }
     return 0;
 }
-} } // namespace M_func_00161F10
+} // namespace M_func_00161F10
 
-namespace M_ApplyTaskStates { extern "C" {
+namespace M_ApplyTaskStates {
 struct E { int oid; int n; };
-void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
-void RequestTaskState(void *p, int n, void *owner);
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void RequestTaskState(void *p, int n, void *owner) __asm__("RequestTaskState");
 // For each (task oid, state) pair, finds the task and requests that state (RequestTaskState).
-void ApplyTaskStates(void *pv, int c, struct E *ae, void *owner)
+extern "C" void ApplyTaskStates(void *pv, int c, struct E *ae, void *owner)
 {
     int i;
     for (i = 0; i < c; i++) {
@@ -542,21 +542,21 @@ void ApplyTaskStates(void *pv, int c, struct E *ae, void *owner)
             RequestTaskState(p, ae[i].n, owner);
     }
 }
-} } // namespace M_ApplyTaskStates
+} // namespace M_ApplyTaskStates
 
-namespace M_GrfFromState { extern "C" {
+namespace M_GrfFromState {
 // Returns the bit of a state (1 << state), or 0 for -1.
-int GetStateBit(int i)
+extern "C" int GetStateBit(int i)
 {
     if (i == -1) return 0;
     return (int)(1L << i);
 }
-} } // namespace M_GrfFromState
+} // namespace M_GrfFromState
 
-namespace M_GrfFromStates { extern "C" {
-int GetStateBit(int i);
+namespace M_GrfFromStates {
+int GetStateBit(int i) __asm__("GetStateBit");
 // ORs the bits of an array of states.
-int GetStateMask(int c, int *ai)
+extern "C" int GetStateMask(int c, int *ai)
 {
     int grf = 0;
     int i;
@@ -564,14 +564,14 @@ int GetStateMask(int c, int *ai)
         grf |= GetStateBit(ai[i]);
     return grf;
 }
-} } // namespace M_GrfFromStates
+} // namespace M_GrfFromStates
 
-namespace M_func_00162050 { extern "C" {
-void SetValuesFromSpliceList(CRefData *pref, void *p, int n, int c, int *pc, int *ai);
-int GetStateMask(int c, int *ai);
-void Decref__4CRef(CRefData *pref);
+namespace M_func_00162050 {
+void SetValuesFromSpliceList(CRefData *pref, void *p, int n, int c, int *pc, int *ai) __asm__("SetValuesFromSpliceList");
+int GetStateMask(int c, int *ai) __asm__("GetStateMask");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Converts a Splice list of state numbers (at most six) into a state bit mask.
-int GetStateMaskFromSplice(void *p)
+extern "C" int GetStateMaskFromSplice(void *p)
 {
     int ai[8];
     CRefData ref;
@@ -582,13 +582,13 @@ int GetStateMaskFromSplice(void *p)
     Decref__4CRef(&ref);
     return grf;
 }
-} } // namespace M_func_00162050
+} // namespace M_func_00162050
 
 namespace M_ApplyStateLoVisibility {
-extern "C" int GetStateBit(int n);
-extern "C" int GetStateMask(int numRecords, int *states);
-extern "C" int GetCurrentLevelIndex__Fv();
-extern "C" void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
+extern int GetStateBit(int n) __asm__("GetStateBit");
+extern int GetStateMask(int numRecords, int *states) __asm__("GetStateMask");
+extern int GetCurrentLevelIndex__Fv() __asm__("GetCurrentLevelIndex__Fv");
+extern void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // On a job or task state change: for each visibility record whose mask covers the state group and whose level
 // matches, adds the object when the state's bit is set and removes it otherwise.
 extern "C" void ApplyStateLoVisibility(void *object, int nState, int numRecords, STATEVIS *records)
@@ -621,16 +621,16 @@ extern "C" void ApplyStateLoVisibility(void *object, int nState, int numRecords,
 }
 } // namespace M_ApplyStateLoVisibility
 
-namespace M_TriggerStateRsmg { extern "C" {
-int GetCurrentLevelIndex__Fv(void);
-int FindSwObjects(SW *pg, int kind, int oid, int a, int c, void **apv);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n);
-void *FindLiveSma(void *pv, int n);
-void SeekSma(void *p, int goal);
-void SetSmaGoal(void *p, int goal);
+namespace M_TriggerStateRsmg {
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
+int FindSwObjects(SW *pg, int kind, int oid, int a, int c, void **apv) __asm__("FindSwObjects");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void *FindLiveSma(void *pv, int n) __asm__("FindLiveSma");
+void SeekSma(void *p, int goal) __asm__("SeekSma");
+void SetSmaGoal(void *p, int goal) __asm__("SetSmaGoal");
 // Applies one state rsmg record matching the new state: finds the state machine and seeks or sets the goal (default
 // goals 0x612..0x615 for states 0..3).
-void TriggerStateRsmg(void *pvUnused, STATERSMG *record, int newState, int source)
+extern "C" void TriggerStateRsmg(void *pvUnused, STATERSMG *record, int newState, int source)
 {
     void *root;
     void *sma;
@@ -658,18 +658,18 @@ void TriggerStateRsmg(void *pvUnused, STATERSMG *record, int newState, int sourc
             SetSmaGoal(sma, goal);
     }
 }
-} } // namespace M_TriggerStateRsmg
+} // namespace M_TriggerStateRsmg
 
-namespace M_TriggerStateRsmgs { extern "C" {
-void TriggerStateRsmg(void *p, STATERSMG *pe, void *q, int n);
+namespace M_TriggerStateRsmgs {
+void TriggerStateRsmg(void *p, STATERSMG *pe, void *q, int n) __asm__("TriggerStateRsmg");
 // Applies TriggerStateRsmg over an array of records.
-void TriggerStateRsmgs(void *p, void *q, int c, STATERSMG *ae, int n)
+extern "C" void TriggerStateRsmgs(void *p, void *q, int c, STATERSMG *ae, int n)
 {
     int i;
     for (i = 0; i < c; i++)
         TriggerStateRsmg(p, &ae[i], q, n);
 }
-} } // namespace M_TriggerStateRsmgs
+} // namespace M_TriggerStateRsmgs
 
 // JOB initialization (slot 7): LO init, difficulty-ease thresholds 480/720 s, no ids, its task list.
 void JOB::Init()
@@ -689,10 +689,10 @@ void JOB::Init()
 namespace M_LoadJobFromBrx {
 struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream;
-extern "C" void *AllocFromStack(ALLOCREQ *preq);
-extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
-extern "C" void LoadLoFromBrx(LO *p, CBinaryInputStream *stream);
-extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
+extern void *AllocFromStack(ALLOCREQ *preq) __asm__("AllocFromStack");
+extern void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");
+extern void LoadLoFromBrx(LO *p, CBinaryInputStream *stream) __asm__("LoadLoFromBrx");
+extern void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream) __asm__("CBinaryInputStream_SkipStringSw");
 // Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -726,51 +726,51 @@ extern "C" void LoadJobFromBrx(JOB *job, CBinaryInputStream *stream)
 }
 } // namespace M_LoadJobFromBrx
 
-namespace M_AddJobCompleteEvent { extern "C" {
+namespace M_AddJobCompleteEvent {
 // Splice: adds a game-event id that completes the job when it arrives (at most 32).
-void AddJobCompleteEvent(JOB *job, int eventId)
+extern "C" void AddJobCompleteEvent(JOB *job, int eventId)
 {
     if (job->ceventComplete < 32) {
         job->aeventComplete[job->ceventComplete++] = eventId;
     }
 }
-} } // namespace M_AddJobCompleteEvent
+} // namespace M_AddJobCompleteEvent
 
-namespace M_func_00162630 { extern "C" {
+namespace M_func_00162630 {
 // Splice: adds a game-event id that fails the job when it arrives (at most 32).
-void AddJobFailEvent(JOB *job, int eventId)
+extern "C" void AddJobFailEvent(JOB *job, int eventId)
 {
     if (job->ceventFail < 32) {
         job->aeventFail[job->ceventFail++] = eventId;
     }
 }
-} } // namespace M_func_00162630
+} // namespace M_func_00162630
 
-namespace M_func_00162660 { extern "C" {
+namespace M_func_00162660 {
 // Splice: sets the job's completion widget oid and its intro and outro labels.
-void SetJobCompletionWidget(JOB *job, int widgetOid, int introLabel, int outroLabel)
+extern "C" void SetJobCompletionWidget(JOB *job, int widgetOid, int introLabel, int outroLabel)
 {
     job->completionWidgetOid = widgetOid;
     job->introLabel = introLabel;
     job->outroLabel = outroLabel;
 }
-} } // namespace M_func_00162660
+} // namespace M_func_00162660
 
-namespace M_FJobLive { extern "C" {
-int IsSwTransitionBusy(void *p);
+namespace M_FJobLive {
+int IsSwTransitionBusy(void *p) __asm__("IsSwTransitionBusy");
 // True when the job is enabled, its state source is not 2/3 and no world transition is in progress.
-int IsJobLive(JOB *job)
+extern "C" int IsJobLive(JOB *job)
 {
     if (job->isDisabled == 0 && job->stateSource != STATE_SOURCE_GO_TO_TASK && job->stateSource != STATE_SOURCE_LOAD_RESET)
         return IsSwTransitionBusy(&g_sw) == 0;
     return 0;
 }
-} } // namespace M_FJobLive
+} // namespace M_FJobLive
 
-namespace M_func_001626C0 { extern "C" {
-int GetStateBit(int i);
+namespace M_func_001626C0 {
+int GetStateBit(int i) __asm__("GetStateBit");
 // Splice: adds a visibility record {object, context, state mask, level} to the job.
-void AddJobStateVisibility(JOB *job, int object, int state, int context, int level)
+extern "C" void AddJobStateVisibility(JOB *job, int object, int state, int context, int level)
 {
     if (job->isDisabled == 0 && job->cvis < 32) {
         STATEVIS *pe = &job->avis[job->cvis++];
@@ -780,30 +780,30 @@ void AddJobStateVisibility(JOB *job, int object, int state, int context, int lev
         pe->level = level;
     }
 }
-} } // namespace M_func_001626C0
+} // namespace M_func_001626C0
 
-namespace M_func_00162728 { extern "C" {
+namespace M_func_00162728 {
 // Splice: adds a state rsmg record {state, root, state machine, goal, level} to the job.
-void AddJobStateRsmg(JOB *job, int state, int root, int stateMachine, int goal, int level)
+extern "C" void AddJobStateRsmg(JOB *job, int state, int root, int stateMachine, int goal, int level)
 {
     if (job->isDisabled == 0 && job->crsmg < 32) {
         STATERSMG *pe = &job->arsmg[job->crsmg++];
         pe->level = level; pe->nState = state; pe->oidRoot = root; pe->oidSm = stateMachine; pe->oidGoal = goal; pe->fRestoreOnly = 0;
     }
 }
-} } // namespace M_func_00162728
+} // namespace M_func_00162728
 
-namespace M_PostJobLoad { extern "C" {
-void PostLoLoad(LO *p);
-void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
-void GetGlobalSaveVar(CRefData *pref, void *a, void *b);
-void Decref__4CRef(CRefData *pref);
-void *GetSaveVarAddress(void *p, void *q, void *r);
-void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
+namespace M_PostJobLoad {
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
+void GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void *GetSaveVarAddress(void *p, void *q, void *r) __asm__("GetSaveVarAddress");
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // JOB post-load (slot 15): applies the inactive visuals when it is not current, restores its counters from the save
 // variables and finds its completion widgets.
-void PostJobLoad(JOB *job)
+extern "C" void PostJobLoad(JOB *job)
 {
     CRefData ref;
     SVKEY *pk;
@@ -833,7 +833,7 @@ void PostJobLoad(JOB *job)
         job->completionWidget = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, job->completionWidgetOid, 0);
     job->widgetShared = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, 0x379, 0);
 }
-} } // namespace M_PostJobLoad
+} // namespace M_PostJobLoad
 
 // Empty option setter referenced from the job property table.
 /* empty option setter (property table 0x2B8994) */
@@ -860,11 +860,11 @@ extern "C" void EndCurrentJob(JOB *job)
     }
 }
 
-namespace M_ResetJobTasks { extern "C" {
-void UpdateTaskSaveVars(TASK *p);
-void UpdateJobSaveVars(JOB *p);
+namespace M_ResetJobTasks {
+void UpdateTaskSaveVars(TASK *p) __asm__("UpdateTaskSaveVars");
+void UpdateJobSaveVars(JOB *p) __asm__("UpdateJobSaveVars");
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
-void ResetJobTasks(JOB *job)
+extern "C" void ResetJobTasks(JOB *job)
 {
     TASK *task;
     for (task = (TASK *)job->sltask.head; task; task = (TASK *)task->sleJob.next) {
@@ -874,14 +874,14 @@ void ResetJobTasks(JOB *job)
     job->counter = 0;
     UpdateJobSaveVars(job);
 }
-} } // namespace M_ResetJobTasks
+} // namespace M_ResetJobTasks
 
 namespace M_BeginJob {
-extern "C" void SetSwJobCur(SW *pg, JOB *p);
-extern "C" void UpdateJobSaveVars(JOB *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, JOB *p);
-extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
+extern void SetSwJobCur(SW *pg, JOB *p) __asm__("SetSwJobCur");
+extern void UpdateJobSaveVars(JOB *p) __asm__("UpdateJobSaveVars");
+extern void BroadcastGameEvent(void *pv, int n, JOB *p) __asm__("BroadcastGameEvent");
+extern void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+extern void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
 // Makes the job current; when live: counts the start, game event 0x21, active visuals and rsmgs, Splice event 0x13.
 extern "C" void BeginJob(JOB *job)
 {
@@ -899,13 +899,13 @@ extern "C" void BeginJob(JOB *job)
 
 namespace M_EndJob {
 struct W { int unknown0, unknown4, sectorKey; char pad[0x38 - 0xC]; int sectorXor; };   /* a file record */
-extern "C" void SetSwJobCur(SW *pg, JOB *p);
-extern "C" W *GetCurrentWorldEntry();
-extern "C" int GetCurrentLevelIndex__Fv();
-extern "C" W *GetLevelFileRecord(int n);
-extern "C" void BroadcastGameEvent(void *pv, int n, JOB *p);
-extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
+extern void SetSwJobCur(SW *pg, JOB *p) __asm__("SetSwJobCur");
+extern W *GetCurrentWorldEntry() __asm__("GetCurrentWorldEntry");
+extern int GetCurrentLevelIndex__Fv() __asm__("GetCurrentLevelIndex__Fv");
+extern W *GetLevelFileRecord(int n) __asm__("GetLevelFileRecord");
+extern void BroadcastGameEvent(void *pv, int n, JOB *p) __asm__("BroadcastGameEvent");
+extern void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+extern void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
 // True when two file records name the same file (same pointer, or equal key words 2 ^ 14).
 static inline int IsSameFileRecord(W *a, W *b)
 {
@@ -935,10 +935,10 @@ extern "C" void EndJob(JOB *job)
 } // namespace M_EndJob
 
 namespace M_HandleJobGameEvent {
-extern "C" int IsSwTransitionBusy(SW *pg);
-extern "C" void SignalJobComplete(JOB *p);
-extern "C" void FailJob(JOB *p);
-extern "C" void RestartJob(JOB *p);
+extern int IsSwTransitionBusy(SW *pg) __asm__("IsSwTransitionBusy");
+extern void SignalJobComplete(JOB *p) __asm__("SignalJobComplete");
+extern void FailJob(JOB *p) __asm__("FailJob");
+extern void RestartJob(JOB *p) __asm__("RestartJob");
 // The job's game-event hook: when live, forwards the event (Splice event 0x11) and checks the complete and fail lists;
 // when not live, event 0x10 restarts it.
 extern "C" void HandleJobGameEvent(JOB *job, int eventId, int eventArg)
@@ -1015,29 +1015,29 @@ extern "C" void RestartJob(JOB *job)
     GoToTask(job->firstTask);
 }
 
-namespace M_func_00162E38 { extern "C" {
-int IsSwTransitionBusy(SW *p);
-int GetCurrentWorldEntry(void);
-void WipeToWorldWarp(SW *p, int n, int a, int b, int c, int d);
+namespace M_func_00162E38 {
+int IsSwTransitionBusy(SW *p) __asm__("IsSwTransitionBusy");
+int GetCurrentWorldEntry(void) __asm__("GetCurrentWorldEntry");
+void WipeToWorldWarp(SW *p, int n, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Fails the current job: records it for abort and, unless a transition is busy, wipes back to the current world's
 // entry warp (0x189).
-void FailJob(int job)
+extern "C" void FailJob(int job)
 {
     SW *pg = &g_sw;
     pg->ploJobFailed = (LO *)job;
     if (!IsSwTransitionBusy(pg) && !pg->pexitTaken)
         WipeToWorldWarp(pg, GetCurrentWorldEntry(), 0x189, -1, 0, -1);
 }
-} } // namespace M_func_00162E38
+} // namespace M_func_00162E38
 
-namespace M_AbortJob { extern "C" {
-void ResetJobTasks(JOB *p);
-void SetTaskStateCascade(TASK *p, int n);
-void DeactivateTask(TASK *p);
-void BroadcastGameEvent(void *p, int n, JOB *job);
+namespace M_AbortJob {
+void ResetJobTasks(JOB *p) __asm__("ResetJobTasks");
+void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
+void DeactivateTask(TASK *p) __asm__("DeactivateTask");
+void BroadcastGameEvent(void *p, int n, JOB *job) __asm__("BroadcastGameEvent");
 // Aborts the job: resets its tasks, makes the start task available again, ends the current task when it belongs to
 // the job, event 0x1F, ends the job.
-void AbortJob(JOB *job)
+extern "C" void AbortJob(JOB *job)
 {
     ResetJobTasks(job);
     SetTaskStateCascade(job->firstTask, TASK_STATE_AVAILABLE);
@@ -1047,7 +1047,7 @@ void AbortJob(JOB *job)
     BroadcastGameEvent(&g_game, 0x1F, job);
     EndCurrentJob(job);
 }
-} } // namespace M_AbortJob
+} // namespace M_AbortJob
 
 // Completes the job: runs the completion sequence when it has a widget, else finishes it and continues.
 extern "C" void CompleteJob(JOB *job, TASK *task)
@@ -1060,12 +1060,12 @@ extern "C" void CompleteJob(JOB *job, TASK *task)
     ContinueAfterJob(job);
 }
 
-namespace M_FinishJob { extern "C" {
-void SetTaskStateCascade(TASK *p, int n);
-void BroadcastGameEvent(void *p, int n, JOB *job);
-void AutosaveGame(void *p, int n);
+namespace M_FinishJob {
+void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
+void BroadcastGameEvent(void *p, int n, JOB *job) __asm__("BroadcastGameEvent");
+void AutosaveGame(void *p, int n) __asm__("AutosaveGame");
 // Finishes the job: marks the end task complete, event 0x20, ends the job and autosaves.
-void FinishJob(JOB *job)
+void FinishJob(JOB *job) __asm__("FinishJob"); void FinishJob(JOB *job)
 {
     if (!job->fReplay)
         SetTaskStateCascade(job->finalTask, TASK_STATE_COMPLETE);
@@ -1074,26 +1074,26 @@ void FinishJob(JOB *job)
     if (!job->fReplay)
         AutosaveGame(&g_save, 0);
 }
-} } // namespace M_FinishJob
+} // namespace M_FinishJob
 
-namespace M_func_00162FD0 { extern "C" {
+namespace M_func_00162FD0 {
 /* SetLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
-static inline void SetLoFlagsInline(LO *plo, int bits)
+extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
         plo->unknown40 = v | bits;
-}
-extern char D_002E1E88[];
-int HasPendingStartupSteps(void *p);
-void RunNextStartupStep(void *p);
-void RequestTaskState(TASK *p, int n, JOB *ps);
-void TakeExit(LO *plo);
+} }
+extern char D_002E1E88[] __asm__("D_002E1E88");
+int HasPendingStartupSteps(void *p) __asm__("HasPendingStartupSteps");
+void RunNextStartupStep(void *p) __asm__("RunNextStartupStep");
+void RequestTaskState(TASK *p, int n, JOB *ps) __asm__("RequestTaskState");
+void TakeExit(LO *plo) __asm__("TakeExit");
 // After a job: steps the game sequence queue when it is not empty, else activates the next task or takes the exit
 // object.
-void ContinueAfterJob(JOB *job)
+extern "C" void ContinueAfterJob(JOB *job)
 {
     char *pv = D_002E1E88;
     if (HasPendingStartupSteps(pv)) {
@@ -1105,16 +1105,16 @@ void ContinueAfterJob(JOB *job)
         TakeExit(job->ploExit);
     }
 }
-} } // namespace M_func_00162FD0
+} // namespace M_func_00162FD0
 
-namespace M_UpdateJob { extern "C" {
+namespace M_UpdateJob {
 enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };   /* as SetJobCompletionPhase */
-void UpdateLo(LO *p);
-int IsWidgetAnimPlaying(void *p, int n);
-void FinishJob(JOB *p);
+void UpdateLo(LO *p) __asm__("UpdateLo");
+int IsWidgetAnimPlaying(void *p, int n) __asm__("IsWidgetAnimPlaying");
+void FinishJob(JOB *p) __asm__("FinishJob");
 // JOB per-frame update (slot 16): steps the completion sequence (intro label, outro, shared widget, done) as each
 // widget label finishes.
-void UpdateJob(JOB *job)
+extern "C" void UpdateJob(JOB *job)
 {
     UpdateLo(job);
     switch (job->phase) {
@@ -1139,36 +1139,36 @@ void UpdateJob(JOB *job)
         break;
     }
 }
-} } // namespace M_UpdateJob
+} // namespace M_UpdateJob
 
-namespace M_SetJobCompletionPhase { extern "C" {
+namespace M_SetJobCompletionPhase {
 /* Completion sequence phases of a JOB. */
 enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3 };
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
-static inline void SetLoFlagsInline(LO *plo, int bits)
+extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
         plo->unknown40 = v | bits;
-}
+} }
 // Clear flag bits: on plo->flags when bit 0 is set, otherwise on the word plo->flags points to.
-static inline void ClearLoFlagsInline(LO *plo, int bits)
+extern "C" { static inline void ClearLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
         *(int *)v &= ~bits;
     else
         plo->unknown40 = v & ~bits;
-}
-void SetLoBusyKind(LO *p, int n);
-void IncrementSwHandsOff(void *pg, int n);
-void DecrementSwHandsOff(void *pg, int n);
-void PlayWidgetAnim(WIDGET *pwidget, int n);
+} }
+void SetLoBusyKind(LO *p, int n) __asm__("SetLoBusyKind");
+void IncrementSwHandsOff(void *pg, int n) __asm__("IncrementSwHandsOff");
+void DecrementSwHandsOff(void *pg, int n) __asm__("DecrementSwHandsOff");
+void PlayWidgetAnim(WIDGET *pwidget, int n) __asm__("PlayWidgetAnim");
 // Sets the completion phase (0 none, 1 intro, 2 outro, 3 shared widget): leaving 0 finds the next task and takes
 // control from the player; returning to 0 hides the widgets and gives control back.
-void SetJobCompletionPhase(JOB *job, int phase)
+extern "C" void SetJobCompletionPhase(JOB *job, int phase)
 {
     int i;
     if (job->phase == phase) return;
@@ -1219,7 +1219,7 @@ void SetJobCompletionPhase(JOB *job, int phase)
         break;
     }
 }
-} } // namespace M_SetJobCompletionPhase
+} // namespace M_SetJobCompletionPhase
 
 // True when the job is the current job.
 extern "C" int IsCurrentJob(JOB *job)
@@ -1238,19 +1238,19 @@ extern "C" int IsJobComplete(JOB *job)
     return f;
 }
 
-namespace M_func_00163430 { extern "C" {
+namespace M_func_00163430 {
 // Same idiom as sly2/util.h StdMaxInt; kept local because the shared helper changes GetJobState (1/11 instructions off).
-static inline int StdMaxIntLocal(int a, int b) { return a > b ? a : b; }
+extern "C" { static inline int StdMaxIntLocal(int a, int b) { return a > b ? a : b; } }
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
-int GetJobState(JOB *job)
+extern "C" int GetJobState(JOB *job)
 {
     int state = job->firstTask->state;
     return state < TASK_STATE_DONE ? state : StdMaxIntLocal(job->finalTask->state, TASK_STATE_AVAILABLE);
 }
-} } // namespace M_func_00163430
+} // namespace M_func_00163430
 
 namespace M_UpdateJobSaveVars {
-extern "C" CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*);
+extern CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*) __asm__("SetGlobalSaveVar");
 static inline void SetPv(SVKEY*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,&g_gs);}
 static inline void SetInt(SVKEY*p,int n){CRef r(n,0x15);SetPv(p,r);}
 static inline void SetBool(SVKEY*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
@@ -1302,12 +1302,12 @@ public:
     int U8Read() __asm__("U8Read__18CBinaryInputStream");
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
-extern "C" void *AllocFromStack(ALLOCREQ *preq);
-extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
-extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
-extern "C" void *AllocFromWorldHeap(ALLOCREQ *preq);
-extern "C" void LoadLoFromBrx(LO *p, CBinaryInputStream *stream);
-extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
+extern void *AllocFromStack(ALLOCREQ *preq) __asm__("AllocFromStack");
+extern void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");
+extern void *AllocClearedFromWorldHeap(ALLOCREQ *preq) __asm__("AllocClearedFromWorldHeap");
+extern void *AllocFromWorldHeap(ALLOCREQ *preq) __asm__("AllocFromWorldHeap");
+extern void LoadLoFromBrx(LO *p, CBinaryInputStream *stream) __asm__("LoadLoFromBrx");
+extern void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream) __asm__("CBinaryInputStream_SkipStringSw");
 // Fill the request and allocate cb bytes of kind nKind.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -1362,21 +1362,21 @@ extern "C" void LoadTaskFromBrx(TASK *task, CBinaryInputStream *stream)
 }
 } // namespace M_LoadTaskFromBrx
 
-namespace M_FTaskLive { extern "C" {
-int IsSwTransitionBusy(void *p);
+namespace M_FTaskLive {
+int IsSwTransitionBusy(void *p) __asm__("IsSwTransitionBusy");
 // True when the task is enabled, its state source is not 2/3 and no world transition is in progress.
-int IsTaskLive(TASK *task)
+extern "C" int IsTaskLive(TASK *task)
 {
     if (task->isDisabled == 0 && task->stateSource != STATE_SOURCE_GO_TO_TASK && task->stateSource != STATE_SOURCE_LOAD_RESET)
         return IsSwTransitionBusy(&g_sw) == 0;
     return 0;
 }
-} } // namespace M_FTaskLive
+} // namespace M_FTaskLive
 
-namespace M_func_00163838 { extern "C" {
-int GetStateMaskFromSplice(void *p);
+namespace M_func_00163838 {
+int GetStateMaskFromSplice(void *p) __asm__("GetStateMaskFromSplice");
 // Splice: adds a visibility record (state mask from a Splice list) to the task.
-void AddTaskStateVisibility(TASK *task, int object, void *states, int context, int level)
+extern "C" void AddTaskStateVisibility(TASK *task, int object, void *states, int context, int level)
 {
     if (task->isDisabled == 0 && task->cvis < 32) {
         STATEVIS *pe = &task->avis[task->cvis++];
@@ -1386,41 +1386,41 @@ void AddTaskStateVisibility(TASK *task, int object, void *states, int context, i
         pe->level = level;
     }
 }
-} } // namespace M_func_00163838
+} // namespace M_func_00163838
 
-namespace M_func_001638A0 { extern "C" {
+namespace M_func_001638A0 {
 // Splice: adds a state rsmg record to the task.
-void AddTaskStateRsmg(TASK *task, int state, int root, int stateMachine, int goal, int restoreOnly, int level)
+extern "C" void AddTaskStateRsmg(TASK *task, int state, int root, int stateMachine, int goal, int restoreOnly, int level)
 {
     if (task->isDisabled == 0 && task->crsmg < 32) {
         STATERSMG *pe = &task->arsmg[task->crsmg++];
         pe->nState = state; pe->oidRoot = root; pe->oidSm = stateMachine; pe->oidGoal = goal; pe->fRestoreOnly = restoreOnly; pe->level = level;
     }
 }
-} } // namespace M_func_001638A0
+} // namespace M_func_001638A0
 
-namespace M_PostTaskLoad { extern "C" {
+namespace M_PostTaskLoad {
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
-static inline void SetLoFlagsInline(LO *plo, int bits)
+extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
         *(int *)v |= bits;
     else
         plo->unknown40 = v | bits;
-}
-void PostLoLoad(LO *p);
-void AppendSlEntry(SL *psl, TASK *p);
-void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
-int IsTaskLive(TASK *p);
-void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
-CRefData *GetGlobalSaveVar(CRefData *pref, void *a, void *b);
-void Decref__4CRef(CRefData *pref);
-void SetLoBusyKind(LO *p, int n);
+} }
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+void AppendSlEntry(SL *psl, TASK *p) __asm__("AppendSlEntry");
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsTaskLive(TASK *p) __asm__("IsTaskLive");
+void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
+CRefData *GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetLoBusyKind(LO *p, int n) __asm__("SetLoBusyKind");
 // TASK post-load (slot 15): links it into its job, resolves the prerequisite and successor oids, applies the
 // inactive visuals when live, restores its save variables and makes it busy when timed or marked.
-void PostTaskLoad(TASK *task)
+extern "C" void PostTaskLoad(TASK *task)
 {
     CRefData ref;
     int i;
@@ -1475,14 +1475,14 @@ void PostTaskLoad(TASK *task)
 }
 
 typedef char layout_CRef[(sizeof(CRef)==8)?1:-1];
-} } // namespace M_PostTaskLoad
+} // namespace M_PostTaskLoad
 
-namespace M_UpdateTask { extern "C" {
-void UpdateLo(LO *p);
-void SendTaskTimeout(TASK *p, int n);
+namespace M_UpdateTask {
+void UpdateLo(LO *p) __asm__("UpdateLo");
+void SendTaskTimeout(TASK *p, int n) __asm__("SendTaskTimeout");
 // TASK per-frame update (slot 16): sends the timeout of a timed available task and shows its marker object only while
 // it is available and no job is current.
-void UpdateTask(TASK *task)
+extern "C" void UpdateTask(TASK *task)
 {
     LO *marker;
     UpdateLo(task);
@@ -1502,11 +1502,11 @@ void UpdateTask(TASK *task)
             marker->Remove();
     }
 }
-} } // namespace M_UpdateTask
+} // namespace M_UpdateTask
 
 namespace M_ActivateTask {
-extern "C" void DeactivateTask(TASK *px);
-extern "C" void BeginTask(TASK *px);
+extern void DeactivateTask(TASK *px) __asm__("DeactivateTask");
+extern void BeginTask(TASK *px) __asm__("BeginTask");
 // Makes the task current unless it already is, ending the previous one.
 extern "C" void ActivateTask(TASK *task)
 {
@@ -1537,16 +1537,16 @@ static inline void SetLoFlagsInline(LO *plo, int bits)
     else
         plo->unknown40 = v | bits;
 }
-extern "C" { extern char D_003DA0C0[]; }
-extern "C" void SetSwTaskCur(SW *world, TASK *p);
-extern "C" void SetSwTaskPending(SW *world, TASK *p);
-extern "C" int IsTaskLive(TASK *p);
-extern "C" void UpdateTaskSaveVars(TASK *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
-extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
-extern "C" void PostNotice(void *pv, int n, float g);
-extern "C" void TakeExit(LO *plo);
+extern char D_003DA0C0[] __asm__("D_003DA0C0");
+extern void SetSwTaskCur(SW *world, TASK *p) __asm__("SetSwTaskCur");
+extern void SetSwTaskPending(SW *world, TASK *p) __asm__("SetSwTaskPending");
+extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
+extern void UpdateTaskSaveVars(TASK *p) __asm__("UpdateTaskSaveVars");
+extern void BroadcastGameEvent(void *pv, int n, TASK *p) __asm__("BroadcastGameEvent");
+extern void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+extern void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
+extern void PostNotice(void *pv, int n, float g) __asm__("PostNotice");
+extern void TakeExit(LO *plo) __asm__("TakeExit");
 // Makes the task current (and pending when it has a warp) and activates its job; when live: counts the start,
 // game event 0x23, active visuals, starts its music, Splice event 0x13.
 extern "C" void BeginTask(TASK *task)
@@ -1575,8 +1575,8 @@ extern "C" void BeginTask(TASK *task)
 } // namespace M_BeginTask
 
 namespace M_func_00163E88 {
-extern "C" int IsTaskLive(TASK *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
+extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
+extern void BroadcastGameEvent(void *pv, int n, TASK *p) __asm__("BroadcastGameEvent");
 // Rejects a state change: game event 0x27 and Splice event 0x12(state) to the task and its job.
 extern "C" void RejectTaskState(TASK *task, int state)
 {
@@ -1593,13 +1593,13 @@ extern "C" void RejectTaskState(TASK *task, int state)
 } // namespace M_func_00163E88
 
 namespace M_EndTask {
-extern "C" { extern char D_003DA0C0[]; }
-extern "C" void SetSwTaskCur(SW *pg, TASK *p);
-extern "C" int IsTaskLive(TASK *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
-extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
-extern "C" void CancelNotice(void *pv, int n);
+extern char D_003DA0C0[] __asm__("D_003DA0C0");
+extern void SetSwTaskCur(SW *pg, TASK *p) __asm__("SetSwTaskCur");
+extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
+extern void BroadcastGameEvent(void *pv, int n, TASK *p) __asm__("BroadcastGameEvent");
+extern void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+extern void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
+extern void CancelNotice(void *pv, int n) __asm__("CancelNotice");
 // Ends the task; when live: game event 0x24, inactive visuals and rsmgs, stops its music, Splice event 0x14.
 extern "C" void EndTask(TASK *task)
 {
@@ -1621,11 +1621,11 @@ extern "C" int IsCurrentTask(TASK *task)
     return g_sw.currentTask == task;
 }
 
-namespace M_FTaskComplete { extern "C" {
-void GetGlobalSaveVar(CRefData *pref, void *a, void *b);
-void Decref__4CRef(CRefData *pref);
+namespace M_FTaskComplete {
+void GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // True when the task is complete (state >= 2; an unset task uses its saved flag).
-int IsTaskComplete(TASK *task)
+extern "C" int IsTaskComplete(TASK *task)
 {
     if (task->state == TASK_STATE_UNSET && task->svkComplete.c) {
         CRefData ref;
@@ -1637,11 +1637,11 @@ int IsTaskComplete(TASK *task)
     }
     return task->state >= TASK_STATE_DONE;
 }
-} } // namespace M_FTaskComplete
+} // namespace M_FTaskComplete
 
-namespace M_OidFromTaskState { extern "C" {
+namespace M_OidFromTaskState {
 // Returns the default state-machine goal oid of the task's state (0x612..0x615 for 0..3), else -1.
-int GetTaskStateGoalOid(TASK *task)
+extern "C" int GetTaskStateGoalOid(TASK *task)
 {
     switch (task->state) {
     case TASK_STATE_LOCKED: return 0x612;
@@ -1651,7 +1651,7 @@ int GetTaskStateGoalOid(TASK *task)
     }
     return -1;
 }
-} } // namespace M_OidFromTaskState
+} // namespace M_OidFromTaskState
 
 namespace M_VisitTaskTopo {
 // Topological visit: records the depth and emits the task once all its prerequisites are visited, then visits the
@@ -1675,12 +1675,12 @@ extern "C" void VisitTaskTopo(TASK *task, int *count, TASK **order, int depth, i
 }
 } // namespace M_VisitTaskTopo
 
-namespace M_RestoreTaskState { extern "C" {
-void GetGlobalSaveVar(CRefData *pref, void *a, void *b);
-void Decref__4CRef(CRefData *pref);
-void SetTaskState(TASK *p, int n);
+namespace M_RestoreTaskState {
+void GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+void SetTaskState(TASK *p, int n) __asm__("SetTaskState");
 // Restores the task's state from its save variables (SetTaskState), with the job start-task cases.
-void RestoreTaskState(TASK *task)
+extern "C" void RestoreTaskState(TASK *task)
 {
     CRefData ref;
     SVKEY *key;
@@ -1722,11 +1722,11 @@ void RestoreTaskState(TASK *task)
         state = task->numPrerequisites == 0;   /* a locked root task is available */
     SetTaskState(task, state);
 }
-} } // namespace M_RestoreTaskState
+} // namespace M_RestoreTaskState
 
 namespace M_UpdateTaskSaveVars {
-extern "C" CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*);
-extern "C" void UpdateJobSaveVars(void*);
+extern CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*) __asm__("SetGlobalSaveVar");
+extern void UpdateJobSaveVars(void*) __asm__("UpdateJobSaveVars");
 // Store a script reference into a global save variable.
 static inline void SetPv(SVKEY*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,&g_gs);}
 // Store an int into a global save variable.
@@ -1772,9 +1772,9 @@ extern "C" void UpdateTaskSaveVars(TASK *task)
 }
 } // namespace M_UpdateTaskSaveVars
 
-namespace M_FTaskPrereqsMet { extern "C" {
+namespace M_FTaskPrereqsMet {
 // True when every prerequisite is complete or optional and available.
-int AreTaskPrereqsMet(TASK *task)
+extern "C" int AreTaskPrereqsMet(TASK *task)
 {
     int met = 1;
     int i;
@@ -1786,13 +1786,13 @@ int AreTaskPrereqsMet(TASK *task)
     }
     return met;
 }
-} } // namespace M_FTaskPrereqsMet
+} // namespace M_FTaskPrereqsMet
 
 namespace M_RequestTaskState {
-extern "C" int AreTaskPrereqsMet(TASK *p);
-extern "C" void SetTaskStateCascade(TASK *p, int newState);
-extern "C" void ActivateTask(TASK *p);
-extern "C" void RejectTaskState(TASK *p, int newState);
+extern int AreTaskPrereqsMet(TASK *p) __asm__("AreTaskPrereqsMet");
+extern void SetTaskStateCascade(TASK *p, int newState) __asm__("SetTaskStateCascade");
+extern void ActivateTask(TASK *p) __asm__("ActivateTask");
+extern void RejectTaskState(TASK *p, int newState) __asm__("RejectTaskState");
 // Validated state request: 4 activates, 5 deactivates, 0..3 only one step up or when the prerequisites are met;
 // otherwise rejected.
 extern "C" void RequestTaskState(TASK *task, int newState, int requester)
@@ -1853,9 +1853,9 @@ extern "C" void RequestTaskState(TASK *task, int newState, int requester)
 } // namespace M_RequestTaskState
 
 namespace M_ForceTaskState {
-extern "C" int AreTaskPrereqsMet(TASK *p);
-extern "C" void SetTaskStateCascade(TASK *p, int newState);
-extern "C" void ActivateTask(TASK *p);
+extern int AreTaskPrereqsMet(TASK *p) __asm__("AreTaskPrereqsMet");
+extern void SetTaskStateCascade(TASK *p, int newState) __asm__("SetTaskStateCascade");
+extern void ActivateTask(TASK *p) __asm__("ActivateTask");
 // Unvalidated state change (ForceTaskState): like RequestTaskState without the checks.
 extern "C" void ForceTaskState(TASK *task, int newState, int requester)
 {
@@ -1884,10 +1884,10 @@ extern "C" void ForceTaskState(TASK *task, int newState, int requester)
 }
 } // namespace M_ForceTaskState
 
-namespace M_UpdateCurrentJob { extern "C" {
-int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
+namespace M_UpdateCurrentJob {
+int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv) __asm__("FindSwObjectsByClass");
 // Switches the current job to the one whose start task is complete and whose end task is not.
-void UpdateCurrentJob(void)
+extern "C" void UpdateCurrentJob(void)
 {
     JOB *jobs[256];
     JOB *found = 0;
@@ -1905,11 +1905,11 @@ void UpdateCurrentJob(void)
             SetCurrentJob(found);
     }
 }
-} } // namespace M_UpdateCurrentJob
+} // namespace M_UpdateCurrentJob
 
 namespace M_func_00164AA8 {
-extern "C" void ForceTaskState(TASK *px, int a, int b);
-extern "C" void UpdateCurrentJob();
+extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 0 and updates the current job.
 extern "C" void ForceTaskState0(TASK *task)
 {
@@ -1920,8 +1920,8 @@ extern "C" void ForceTaskState0(TASK *task)
 } // namespace M_func_00164AA8
 
 namespace M_func_00164B38 {
-extern "C" void ForceTaskState(TASK *px, int a, int b);
-extern "C" void UpdateCurrentJob();
+extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 1 and updates the current job.
 extern "C" void ForceTaskState1(TASK *task)
 {
@@ -1932,8 +1932,8 @@ extern "C" void ForceTaskState1(TASK *task)
 } // namespace M_func_00164B38
 
 namespace M_func_00164BC8 {
-extern "C" void ForceTaskState(TASK *px, int a, int b);
-extern "C" void UpdateCurrentJob();
+extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 2 and updates the current job.
 extern "C" void ForceTaskState2(TASK *task)
 {
@@ -1944,8 +1944,8 @@ extern "C" void ForceTaskState2(TASK *task)
 } // namespace M_func_00164BC8
 
 namespace M_func_00164C58 {
-extern "C" void ForceTaskState(TASK *px, int a, int b);
-extern "C" void UpdateCurrentJob();
+extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 3 and updates the current job.
 extern "C" void ForceTaskState3(TASK *task)
 {
@@ -1955,11 +1955,11 @@ extern "C" void ForceTaskState3(TASK *task)
 }
 } // namespace M_func_00164C58
 
-namespace M_CollectTaskCascade { extern "C" {
+namespace M_CollectTaskCascade {
 // Collects the prerequisites whose state must be raised along with the task (a task done in its job completes the
 // prerequisites outside it: state 2 becomes 3 across jobs). (The round-4 view named the prerequisite list +0x94/+0x98
 // "followers".)
-void CollectTaskCascade(TASK *task, int newState, int *count, TASK **collected)
+extern "C" void CollectTaskCascade(TASK *task, int newState, int *count, TASK **collected)
 {
     int i;
     for (i = 0; i < task->numPrerequisites; i++) {
@@ -1977,29 +1977,29 @@ void CollectTaskCascade(TASK *task, int newState, int *count, TASK **collected)
         task->nStatePending = newState;
     }
 }
-} } // namespace M_CollectTaskCascade
+} // namespace M_CollectTaskCascade
 
 namespace M_SetTaskStateCascade {
 // Allocation request: byte count and alignment.
 struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){}};
 
-extern "C"{
-extern int D_002DEB28;
+
+extern int D_002DEB28 __asm__("D_002DEB28");
 
 
-STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
-void*AllocClearedFromStack(const REQUEST&);
+STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
+void*AllocClearedFromStack(const REQUEST&) __asm__("AllocClearedFromStack");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-void CollectTaskCascade(TASK*,int,int*,TASK**);
-void SetTaskStatePropagate(TASK*,int);
-int GetCurrentWorld(void);
-int GetEpisodePercentComplete(void*);
-int IsTaskLive(TASK*);
-void AutosaveGame(void*,int);
-}
+void CollectTaskCascade(TASK*,int,int*,TASK**) __asm__("CollectTaskCascade");
+void SetTaskStatePropagate(TASK*,int) __asm__("SetTaskStatePropagate");
+int GetCurrentWorld(void) __asm__("GetCurrentWorld");
+int GetEpisodePercentComplete(void*) __asm__("GetEpisodePercentComplete");
+int IsTaskLive(TASK*) __asm__("IsTaskLive");
+void AutosaveGame(void*,int) __asm__("AutosaveGame");
+
 // Allocate n zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
-extern "C" CRef SetGlobalSaveVar(void*,const CRef&,void*);
+extern CRef SetGlobalSaveVar(void*,const CRef&,void*) __asm__("SetGlobalSaveVar");
 // Store a script reference into a global save variable.
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,&g_gs);}
 // Store an int into a global save variable.
@@ -2070,7 +2070,7 @@ extern "C" void SetTaskStateCascade(TASK *task, int state)
 } // namespace M_SetTaskStateCascade
 
 namespace M_func_00165118 {
-extern "C" int IsTaskLive(TASK *p);
+extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
 // When live, sends the task's timeout Splice event (0x17).
 extern "C" void SendTaskTimeout(TASK *task, int n)
 {
@@ -2083,7 +2083,7 @@ extern "C" void SendTaskTimeout(TASK *task, int n)
 } // namespace M_func_00165118
 
 namespace M_SendTaskGameEvent {
-extern "C" int IsTaskLive(TASK *p);
+extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
 // When live, forwards a game event to the task (Splice event 0x11).
 extern "C" void SendTaskGameEvent(TASK *task, int n, int m)
 {
@@ -2096,12 +2096,12 @@ extern "C" void SendTaskGameEvent(TASK *task, int n, int m)
 }
 } // namespace M_SendTaskGameEvent
 
-namespace M_func_001651D8 { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
-void GoToTask(void *p);
-void WipeToWorldWarp(SW *pg, int n, int a, int b, int c, int d);
+namespace M_func_001651D8 {
+void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void GoToTask(void *p) __asm__("GoToTask");
+void WipeToWorldWarp(SW *pg, int n, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Goes to the task with the given oid, or, when it is not in this level, stores it as pending and warps to the level.
-void StartTaskByOid(void *pv, int worldEntry, int oid)
+extern "C" void StartTaskByOid(void *pv, int worldEntry, int oid)
 {
     SW *pg = &g_sw;
     void *task = FindSwObject__FP2SWi3OIDP2LO(pg, 0x105, oid, 0);
@@ -2115,17 +2115,17 @@ void StartTaskByOid(void *pv, int worldEntry, int oid)
         WipeToWorldWarp(pg, worldEntry, 0x189, -1, 8, -1);
     }
 }
-} } // namespace M_func_001651D8
+} // namespace M_func_001651D8
 
 namespace M_RestoreTasksAfterLoad {
-extern "C" { extern char D_002A5238[]; }
-extern "C" void SortTasksTopologically(int *pc, TASK ***papx);
-extern "C" void RestoreTaskState(TASK *p);
-extern "C" TASK *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);
-extern "C" void SetTaskStateCascade(TASK *p, int n);
-extern "C" void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n);
-extern "C" void Decref__4CRef(CRefData *pref);
-extern "C" void SetTaskState(TASK *p, int n);
+extern char D_002A5238[] __asm__("D_002A5238");
+extern void SortTasksTopologically(int *pc, TASK ***papx) __asm__("SortTasksTopologically");
+extern void RestoreTaskState(TASK *p) __asm__("RestoreTaskState");
+extern TASK *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+extern void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
+extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) __asm__("SetSaveVarByName");
+extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+extern void SetTaskState(TASK *p, int n) __asm__("SetTaskState");
 // After a load (event 4, world flag 8): recomputes the tasks in topological order, makes the pending task available,
 // picks the current character from it and sets the warp.
 extern "C" void RestoreTasksAfterLoad(GAME *game)
@@ -2169,15 +2169,15 @@ extern "C" void RestoreTasksAfterLoad(GAME *game)
 } // namespace M_RestoreTasksAfterLoad
 
 namespace M_GoToTask {
-extern "C" { extern char D_002A5238[]; }
-extern "C" void AbortJob(JOB *p);
-extern "C" void SetTaskStateCascade(TASK *p, int n);
-extern "C" void ActivateTask(TASK *p);
-extern "C" void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n);
-extern "C" void Decref__4CRef(CRefData *pref);
-extern "C" int GetCurrentLevelIndex__Fv();
-extern "C" void *GetLevelFileRecord(int n);
-extern "C" void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d);
+extern char D_002A5238[] __asm__("D_002A5238");
+extern void AbortJob(JOB *p) __asm__("AbortJob");
+extern void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
+extern void ActivateTask(TASK *p) __asm__("ActivateTask");
+extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) __asm__("SetSaveVarByName");
+extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+extern int GetCurrentLevelIndex__Fv() __asm__("GetCurrentLevelIndex__Fv");
+extern void *GetLevelFileRecord(int n) __asm__("GetLevelFileRecord");
+extern void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Goes to a task: switches to its job, makes it available and current, picks its character and wipes to its level and
 // warp.
 extern "C" void GoToTask(TASK *task)
@@ -2222,16 +2222,16 @@ extern "C" void AnnounceTaskJob(TASK *task)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const char r_D_002A5238[] __asm__("D_002A5238") = "oidPoCurrent"; }
 namespace M_SetTaskState {
-extern "C" { 
- }
-extern "C" int IsTaskLive(TASK *p);
-extern "C" void BroadcastGameEvent(void *pv, int n, TASK *p);
-extern "C" void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
-extern "C" void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
-extern "C" void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a);
-extern "C" void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b);
-extern "C" void UpdateTaskSaveVars(TASK *p);
-extern "C" void ActivateTask(TASK *p);
+
+
+extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
+extern void BroadcastGameEvent(void *pv, int n, TASK *p) __asm__("BroadcastGameEvent");
+extern void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
+extern void AppendDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
+extern void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("ApplyStateLoVisibility");
+extern void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
+extern void UpdateTaskSaveVars(TASK *p) __asm__("UpdateTaskSaveVars");
+extern void ActivateTask(TASK *p) __asm__("ActivateTask");
 // Low-level task state set: game events 0x26/0x25, the available-task list, counts, save variables, Splice events
 // 0x16/0x15 and the follow-up activate/deactivate.
 extern "C" void SetTaskState(TASK *task, int n)
@@ -2299,10 +2299,10 @@ extern "C" void SetTaskState(TASK *task, int n)
 } // namespace M_SetTaskState
 
 namespace M_SetTaskStatePropagate {
-extern "C" void SetTaskState(TASK *task, int state);
+extern void SetTaskState(TASK *task, int state) __asm__("SetTaskState");
     // Scope guard: record the state source/requester on the task (or job) for the duration of a state change and
     // restore the saved values afterwards.
-extern "C" void RecomputeTaskState(TASK *follower, int n);
+extern void RecomputeTaskState(TASK *follower, int n) __asm__("RecomputeTaskState");
 // SetTaskState, then recomputes each successor.
 extern "C" void SetTaskStatePropagate(TASK *task, int newState)
 {
@@ -2317,10 +2317,10 @@ extern "C" void SetTaskStatePropagate(TASK *task, int newState)
 }
 } // namespace M_SetTaskStatePropagate
 
-namespace M_RecomputeTaskState { extern "C" {
-void SetTaskStatePropagate(TASK *task, int state);
+namespace M_RecomputeTaskState {
+void SetTaskStatePropagate(TASK *task, int state) __asm__("SetTaskStatePropagate");
 // Derives a successor's state from its prerequisites (locked until all are complete, then available).
-void RecomputeTaskState(TASK *task, int prerequisiteState)
+extern "C" void RecomputeTaskState(TASK *task, int prerequisiteState)
 {
     int newState; int state;
     if (task->nStatePending != -1) return;
@@ -2350,11 +2350,11 @@ void RecomputeTaskState(TASK *task, int prerequisiteState)
     }
     SetTaskStatePropagate(task, newState);
 }
-} } // namespace M_RecomputeTaskState
+} // namespace M_RecomputeTaskState
 
-namespace M_func_00165C28 { extern "C" {
+namespace M_func_00165C28 {
 // Task sort order: depth, job oid, +0x100, task oid.
-int CompareTasks(TASK **ppx1, TASK **ppx2)
+extern "C" int CompareTasks(TASK **ppx1, TASK **ppx2)
 {
     TASK *task1 = *ppx1;
     TASK *task2 = *ppx2;
@@ -2366,13 +2366,13 @@ int CompareTasks(TASK **ppx1, TASK **ppx2)
     if (task1->depth != task2->depth) return task1->depth - task2->depth;
     return task1->oid - task2->oid;
 }
-} } // namespace M_func_00165C28
+} // namespace M_func_00165C28
 
 namespace M_SortTasksTopologically {
 struct ALLOCREQ { int cb; int nKind; };
-extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
-extern "C" void VisitTaskTopo(TASK *px, int *count, void *pv, int a, int b);
+extern void *AllocClearedFromStack(ALLOCREQ *preq) __asm__("AllocClearedFromStack");
+extern int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv) __asm__("FindSwObjectsByClass");
+extern void VisitTaskTopo(TASK *px, int *count, void *pv, int a, int b) __asm__("VisitTaskTopo");
 // Returns all tasks in prerequisite order (VisitTaskTopo from every root).
 extern "C" void SortTasksTopologically(int *count, void **order)
 {
@@ -2430,20 +2430,20 @@ extern "C" void SetSwTaskPending(SW *world, LO *plo)
     g_game.oidTaskPending = -1;
 }
 
-namespace M_func_00165E38 { extern "C" {
-extern void *D_002DEB4C;
-extern char D_003DA530[];
-extern char D_002A3828[];
-CRefData *GetGlobalSaveVar(CRefData *pref, void *a, void *b);
-void Decref__4CRef(CRefData *pref);
-int IsScreenShown(void *p);
-void ResetRumbleSaveVar(void);
-void HideTitleScreen(void *p);
-void *GetWorldEntry(int n);
-void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d);
+namespace M_func_00165E38 {
+extern void *D_002DEB4C __asm__("D_002DEB4C");
+extern char D_003DA530[] __asm__("D_003DA530");
+extern char D_002A3828[] __asm__("D_002A3828");
+CRefData *GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
+int IsScreenShown(void *p) __asm__("IsScreenShown");
+void ResetRumbleSaveVar(void) __asm__("ResetRumbleSaveVar");
+void HideTitleScreen(void *p) __asm__("HideTitleScreen");
+void *GetWorldEntry(int n) __asm__("GetWorldEntry");
+void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Starts play from a save slot: a new game goes to the first task (0x62F) in world entry 0, otherwise the saved
 // episode (or the hub level when it is complete).
-void StartGameFromSave(void *pv)
+extern "C" void StartGameFromSave(void *pv)
 {
     CRefData ref;
     float playTime;
@@ -2491,14 +2491,14 @@ void StartGameFromSave(void *pv)
     }
     WipeToWorldWarp(&g_sw, worldEntry, 0x189, -1, 0x40, -1);
 }
-} } // namespace M_func_00165E38
+} // namespace M_func_00165E38
 
-namespace M_func_00166008 { extern "C" {
-extern SAVEDATA *D_002DEB4C;
-void ResetRumbleSaveVar(void);
-void ApplyGsSettings(SAVEDATA *p);
+namespace M_func_00166008 {
+extern SAVEDATA *D_002DEB4C __asm__("D_002DEB4C");
+void ResetRumbleSaveVar(void) __asm__("ResetRumbleSaveVar");
+void ApplyGsSettings(SAVEDATA *p) __asm__("ApplyGsSettings");
 // Copies the pending save data into the save blob and applies its settings.
-void ApplyPendingSaveData(void)
+extern "C" void ApplyPendingSaveData(void)
 {
     if (D_002DEB4C) {
         g_gs = *D_002DEB4C;
@@ -2507,7 +2507,7 @@ void ApplyPendingSaveData(void)
         ApplyGsSettings(&g_gs);
     }
 }
-} } // namespace M_func_00166008
+} // namespace M_func_00166008
 
 // Re-initializes the game sequence queue.
 extern "C" void ResetGameSequence()
@@ -2515,17 +2515,17 @@ extern "C" void ResetGameSequence()
     BeginStartupSequence(D_002E1E88);
 }
 
-namespace M_RefGetGlobalSaveVar { extern "C" {
- void GetSaveVar(void *, void *, int, int);
+namespace M_RefGetGlobalSaveVar {
+ void GetSaveVar(void *, void *, int, int) __asm__("GetSaveVar");
 // Read a save variable from the world's global save store into a.
-inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; }
-} } // namespace M_RefGetGlobalSaveVar
+extern "C" { inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; } }
+} // namespace M_RefGetGlobalSaveVar
 
-namespace M_RefSetGlobalSaveVar { extern "C" {
- void SetSaveVar(void *, void *, int, int, int);
+namespace M_RefSetGlobalSaveVar {
+ void SetSaveVar(void *, void *, int, int, int) __asm__("SetSaveVar");
 // Write a save variable into the world's global save store.
-inline void *SetGlobalSaveVar(void *a, int b, int c, int d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; }
-} } // namespace M_RefSetGlobalSaveVar
+extern "C" { inline void *SetGlobalSaveVar(void *a, int b, int c, int d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; } }
+} // namespace M_RefSetGlobalSaveVar
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.

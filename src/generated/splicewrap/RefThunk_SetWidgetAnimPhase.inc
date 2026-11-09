@@ -9,7 +9,7 @@ CRef *RefThunk_SetWidgetAnimPhase(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    SetWidgetAnimPhase(pbasic, arg1_v, arg0_v);
+    SetWidgetAnimPhase((s32)pbasic, arg1_v, arg0_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

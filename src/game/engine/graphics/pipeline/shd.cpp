@@ -120,12 +120,12 @@ extern "C" ulong Tex0FromTexIframeCtk(TEX *ptex, int iframe, int ipass)
 }
 
 // Keeps its GS register views in a namespace of its own (see the file header).
-namespace M_PackTexGifs { extern "C" {
+namespace M_PackTexGifs {
 struct TEX1 { ulong LCM : 1; ulong pad1 : 1; ulong MXL : 3; ulong MMAG : 1; ulong MMIN : 3; ulong MTBA : 1; ulong pad2 : 9; ulong L : 2; ulong pad3 : 11; ulong K : 12; ulong pad4 : 20; };
 struct CLAMP { ulong WMS : 2; ulong WMT : 2; ulong MINU : 10; ulong MAXU : 10; ulong MINV : 10; ulong MAXV : 10; ulong pad : 20; };
 void *func_002333B4(void *p, int b, int cb) __asm__("memset");
 // Pack the TEX0 per bitmap plus TEX1 (LCM/MMAG/MMIN by pass kind) and CLAMP regs into a GIF A+D stream. (inferred)
-void PackTexGifs(TEX *ptex, int ipass, GIFS *pgifs)
+extern "C" void PackTexGifs(TEX *ptex, int ipass, GIFS *pgifs)
 {
     struct TEX1 tex1;
     struct CLAMP clamp;
@@ -147,19 +147,19 @@ void PackTexGifs(TEX *ptex, int ipass, GIFS *pgifs)
     if (ptex->grftex & 2) clamp.WMT = 1;
     pgifs->PackAD(8, *(ulong *)&clamp);
 }
-} } // namespace M_PackTexGifs
+} // namespace M_PackTexGifs
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
-namespace M_LoadClutFromBrx { extern "C" {
+namespace M_LoadClutFromBrx {
 struct AR { int cb; int cbAlign; };
-void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
-void Skip__18CBinaryInputStreami(void *pbis, int cb);
-int IsCurrentLevelInList__FiPs(int cch, void *pw);
-CLUT *FindClutInHash(int id);
-void *AllocFromWorldHeap(struct AR *par);
+void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
+void Skip__18CBinaryInputStreami(void *pbis, int cb) __asm__("Skip__18CBinaryInputStreami");
+int IsCurrentLevelInList__FiPs(int cch, void *pw) __asm__("IsCurrentLevelInList__FiPs");
+CLUT *FindClutInHash(int id) __asm__("FindClutInHash");
+void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via
 // PclutFindHash; color-correct entries.
-void LoadClutFromBrx(void *pbis, CLUT *pclut)
+extern "C" void LoadClutFromBrx(void *pbis, CLUT *pclut)
 {
     union { short aw[0x80]; struct AR ar; } u;
     unsigned int cb;
@@ -191,7 +191,7 @@ void LoadClutFromBrx(void *pbis, CLUT *pclut)
     }
     pclut->cqwPal = (cb + 15) >> 4;
 }
-} } // namespace M_LoadClutFromBrx
+} // namespace M_LoadClutFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BuildWorldBackgroundImage {
@@ -201,13 +201,13 @@ typedef int qword __attribute__((mode(TI)));
 struct VEC3 { float x, y, z; VEC3() {} };
 // Packed color word with a no-op constructor.
 struct CLR { unsigned int n; CLR() {} };
-extern "C" {
-extern int D_002C3680[3];   /* shd's .data starts here (the zero word after it is alignment) */
-extern int D_002DE598;
-void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *);
-void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, QW *);
-void BuildWorldBackgroundImage(SW *psw, GSB *pgsb);
-}
+
+extern int D_002C3680[3] __asm__("D_002C3680");   /* shd's .data starts here (the zero word after it is alignment) */
+extern int D_002DE598 __asm__("D_002DE598");
+void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *) __asm__("ConvertUserHsvToUserRgb__FP6VECTORT0");
+void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, QW *) __asm__("SendDmaSyncGsFinish__FP10sceDmaChanP2QW");
+void BuildWorldBackgroundImage(SW *psw, GSB *pgsb) __asm__("BuildWorldBackgroundImage");
+
 // Clear a packed color to zero.
 static inline void ClearClr(CLR *pc)
 {
@@ -310,13 +310,13 @@ extern "C" CLUT *CopyClutHeader(CLUT *pclut, CLUTHDR *pcluthdr)
 }
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
-namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream { extern "C" {
+namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream {
 struct AR { int cb; int cbAlign; };
-int U16Read__18CBinaryInputStream(void *pbis);
-void *AllocClearedFromStack(struct AR *par);
-void LoadClutFromBrx(void *pbis, CLUT *pclut);
+int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
+void *AllocClearedFromStack(struct AR *par) __asm__("AllocClearedFromStack");
+void LoadClutFromBrx(void *pbis, CLUT *pclut) __asm__("LoadClutFromBrx");
 // Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count.
-void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
+extern "C" void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
     int i = 0;
@@ -331,18 +331,18 @@ void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
     }
     if (D_003DCF9C < D_003DCFF8 - D_003DCF9C) D_003DCF9C = D_003DCFF8 - D_003DCF9C;
 }
-} } // namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream
+} // namespace M_LoadColorTablesFromBrx__FP18CBinaryInputStream
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
-namespace M_LoadBmpFromBrx { extern "C" {
+namespace M_LoadBmpFromBrx {
 struct AR { int cb; int cbAlign; };
-void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
-void Skip__18CBinaryInputStreami(void *pbis, int cb);
-int IsCurrentLevelInList__FiPs(int cch, void *pw);
-BMP *FindBitmapInHash(int id);
-void *AllocFromWorldHeap(struct AR *par);
+void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
+void Skip__18CBinaryInputStreami(void *pbis, int cb) __asm__("Skip__18CBinaryInputStreami");
+int IsCurrentLevelInList__FiPs(int cch, void *pw) __asm__("IsCurrentLevelInList__FiPs");
+BMP *FindBitmapInHash(int id) __asm__("FindBitmapInHash");
+void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
-void LoadBmpFromBrx(void *pbis, BMP *pbmp)
+extern "C" void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 {
     union { short aw[0x80]; struct AR ar; } u;
     Read__18CBinaryInputStreamiPv(pbis, sizeof(BMPHDR), pbmp);
@@ -371,7 +371,7 @@ void LoadBmpFromBrx(void *pbis, BMP *pbmp)
     }
     pbmp->cqw = (pbmp->cb + 15) >> 4;
 }
-} } // namespace M_LoadBmpFromBrx
+} // namespace M_LoadBmpFromBrx
 
 // Copies a bitmap header and derives its size in qwords (bytes rounded up to 16).
 extern "C" BMP *CopyBitmapHeader(BMP *pbmp, BMPHDR *pbmphdr)
@@ -382,13 +382,13 @@ extern "C" BMP *CopyBitmapHeader(BMP *pbmp, BMPHDR *pbmphdr)
 }
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
-namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream { extern "C" {
+namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream {
 struct AR { int cb; int cbAlign; };
-int U16Read__18CBinaryInputStream(void *pbis);
-void *AllocClearedFromStack(struct AR *par);
-void LoadBmpFromBrx(void *pbis, BMP *pbmp);
+int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
+void *AllocClearedFromStack(struct AR *par) __asm__("AllocClearedFromStack");
+void LoadBmpFromBrx(void *pbis, BMP *pbmp) __asm__("LoadBmpFromBrx");
 // Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each.
-void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *pbis)
+extern "C" void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
     int i = 0;
@@ -403,16 +403,16 @@ void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *pbis)
     }
     if (D_003DCF98 < D_003DCFF0 - D_003DCF98) D_003DCF98 = D_003DCFF0 - D_003DCF98;
 }
-} } // namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream
+} // namespace M_LoadBitmapsFromBrx__FP18CBinaryInputStream
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
-namespace M_LoadTexFromBrx { extern "C" {
+namespace M_LoadTexFromBrx {
 struct AR { int cb; int cbAlign; };
-void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
-int U16Read__18CBinaryInputStream(void *pbis);
-void *AllocFromWorldHeap(struct AR *par);
+void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
+int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
+void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) (inferred)
-void LoadTexFromBrx(void *pbis, TEX *ptex)
+extern "C" void LoadTexFromBrx(void *pbis, TEX *ptex)
 {
     struct AR ar;
     int i;
@@ -435,24 +435,24 @@ void LoadTexFromBrx(void *pbis, TEX *ptex)
         }
     }
 }
-} } // namespace M_LoadTexFromBrx
+} // namespace M_LoadTexFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadShdFromBrx { extern "C" {
-void Read__18CBinaryInputStreamiPv(void *, int, void *);
-int S16Read__18CBinaryInputStream(void *);
-void *AllocClearedFromWorldHeap(struct SWALLOC *);
-void LoadTexFromBrx(void *, TEX *);
+namespace M_LoadShdFromBrx {
+void Read__18CBinaryInputStreamiPv(void *, int, void *) __asm__("Read__18CBinaryInputStreamiPv");
+int S16Read__18CBinaryInputStream(void *) __asm__("S16Read__18CBinaryInputStream");
+void *AllocClearedFromWorldHeap(struct SWALLOC *) __asm__("AllocClearedFromWorldHeap");
+void LoadTexFromBrx(void *, TEX *) __asm__("LoadTexFromBrx");
 // Set the entry count to n and allocate n zeroed 16-byte records from the world heap.
-static inline void InitEnt(SHDP *pe, int n, struct SWALLOC *pmsg)
+extern "C" { static inline void InitEnt(SHDP *pe, int n, struct SWALLOC *pmsg)
 {
     pe->cqw = n;
     pmsg->cb = n * 16;
     pmsg->cbAlign = 0x10;
     pe->aqw = (QW *)AllocClearedFromWorldHeap(pmsg);
-}
+} }
 // Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data.
-void LoadShdFromBrx(void *pbis, SHD *p)
+extern "C" void LoadShdFromBrx(void *pbis, SHD *p)
 {
     struct SWALLOC msg;
     int i, j;
@@ -540,14 +540,14 @@ void LoadShdFromBrx(void *pbis, SHD *p)
     }
     }
 }
-} } // namespace M_LoadShdFromBrx
+} // namespace M_LoadShdFromBrx
 
 // Keeps its callee declarations in a namespace of its own (see the file header).
-namespace M_BuildShaderTex0List { extern "C" {
-void *AllocClearedFromWorldHeap(struct SWALLOC *);
+namespace M_BuildShaderTex0List {
+void *AllocClearedFromWorldHeap(struct SWALLOC *) __asm__("AllocClearedFromWorldHeap");
 // Builds the compact shader record blips use from a SHD: its OID, flags and colour, and one TEX0 register word per
 // frame of its first texture (Tex0FromTexIframeCtk).
-void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
+extern "C" void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
 {
     TEX *ptex;
     struct SWALLOC msg;
@@ -570,26 +570,26 @@ void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
         *pe = Tex0FromTexIframeCtk(ptex, i, 0);
     }
 }
-} } // namespace M_BuildShaderTex0List
+} // namespace M_BuildShaderTex0List
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadShadersFromBrx { extern "C" {
-extern void *D_003DCFA8[16];   /* the permanent uploads (the file-scope definition is a char block) */
-void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *);
-void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *);
-int U16Read__18CBinaryInputStream(void *);
-void *AllocClearedFromStack(struct SWALLOC *);
-void *AllocClearedFromWorldHeap(struct SWALLOC *);
-SAA *LoadSaaFromBrx(int, void *);
-void LoadShdFromBrx(void *, SHD *);
-void LoadSwSharedDataFromBrx(void *, void *);
-void *UploadPermShaders(int, int);
-void BuildShaderGifPackets(void);
-void BuildShaderTex0List(SHD *, SHDBLIP *);
-void AppendSlEntry(void *, void *);
+namespace M_LoadShadersFromBrx {
+extern void *D_003DCFA8[16] __asm__("D_003DCFA8");   /* the permanent uploads (the file-scope definition is a char block) */
+void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *) __asm__("LoadColorTablesFromBrx__FP18CBinaryInputStream");
+void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *) __asm__("LoadBitmapsFromBrx__FP18CBinaryInputStream");
+int U16Read__18CBinaryInputStream(void *) __asm__("U16Read__18CBinaryInputStream");
+void *AllocClearedFromStack(struct SWALLOC *) __asm__("AllocClearedFromStack");
+void *AllocClearedFromWorldHeap(struct SWALLOC *) __asm__("AllocClearedFromWorldHeap");
+SAA *LoadSaaFromBrx(int, void *) __asm__("LoadSaaFromBrx");
+void LoadShdFromBrx(void *, SHD *) __asm__("LoadShdFromBrx");
+void LoadSwSharedDataFromBrx(void *, void *) __asm__("LoadSwSharedDataFromBrx");
+void *UploadPermShaders(int, int) __asm__("UploadPermShaders");
+void BuildShaderGifPackets(void) __asm__("BuildShaderGifPackets");
+void BuildShaderTex0List(SHD *, SHDBLIP *) __asm__("BuildShaderTex0List");
+void AppendSlEntry(void *, void *) __asm__("AppendSlEntry");
 // Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures
 // (0x1ECE58); build shader packets.
-void LoadShadersFromBrx(void *p, int k, void *pbis)
+extern "C" void LoadShadersFromBrx(void *p, int k, void *pbis)
 {
     struct SWALLOC msg;
     int i, j;
@@ -625,12 +625,12 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
         }
     }
 }
-} } // namespace M_LoadShadersFromBrx
+} // namespace M_LoadShadersFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BuildShaderGifPackets {
-extern "C" void PackTexGifs(TEX*,int,GIFS*);
-extern "C" void BuildShaderGifPackets();
+extern void PackTexGifs(TEX*,int,GIFS*) __asm__("PackTexGifs");
+extern void BuildShaderGifPackets() __asm__("BuildShaderGifPackets");
 // GS RGBAQ word for the entry: rgb, plus the alpha byte when flag 2 is set, with Q = 1.0 in the high word.
 static inline ulong ColorWord(const SHDRGBA&color,const SHD*entry){ulong value=(ulong)color.r|((ulong)color.g<<8)|((ulong)color.b<<16);if(entry->grfshd&2)return (value|((ulong)color.a<<24))|(1UL<<32);return value|(1UL<<32);}
 // Add two bulk primitive register descriptors (first, first+1) to the GIF stream.
@@ -867,9 +867,9 @@ extern "C" SHD *FindShader(int oid)
 }
 
 // Keeps its own declaration in a namespace (FindShdOrDefault calls it through the file's argument-less one).
-namespace M_FindShaderById { extern "C" {
+namespace M_FindShaderById {
 // Find an entry by oid in the blip shader list g_sw.slShd (next +0x18) (inferred)
-SHDBLIP *FindShaderById(int oid)
+SHDBLIP *FindShaderById(int oid) __asm__("FindShaderById"); SHDBLIP *FindShaderById(int oid)
 {
     int unused[4];
     SHDBLIP *pshdblip;
@@ -879,7 +879,7 @@ SHDBLIP *FindShaderById(int oid)
     }
     return 0;
 }
-} } // namespace M_FindShaderById
+} // namespace M_FindShaderById
 
 // 0x1EC880(oid) or the list head. (inferred)
 /* FindShaderById's shader, else the default one ((*(void * *)&g_sw.slShd)). */
@@ -900,13 +900,13 @@ extern "C" SHD *GetShdByIndex(int ishd)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FindShaderAnimById { extern "C" {
+namespace M_FindShaderAnimById {
 struct O { char pad[0x14]; int id; char pad2[0x30-0x18]; struct O *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 // 0x1EC910: dead-code scrap (sly2/scrap.h)
-SLY2_SCRAP("addu $2, $2, $4");
+extern "C" { SLY2_SCRAP("addu $2, $2, $4"); }
 
 // Find an SAA by id (+0x14) in list (*(struct O * *)&g_sw.slSaa) (stops at entries with a child) (inferred)
-struct O *FindShaderAnimById(int n)
+extern "C" struct O *FindShaderAnimById(int n)
 {
     int unused[4];
     struct O *p;
@@ -917,14 +917,14 @@ struct O *FindShaderAnimById(int n)
     }
     return 0;
 }
-} } // namespace M_FindShaderAnimById
+} // namespace M_FindShaderAnimById
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateShaders { extern "C" {
+namespace M_UpdateShaders {
 struct O { char pad[0xC]; VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
-int ShouldUpdateSaa__FP3SAA(struct O *p);
+int ShouldUpdateSaa__FP3SAA(struct O *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // For each SAA in (*(struct O * *)&g_sw.slSaa): if ShouldUpdateSaa call its vt8 (Update) (inferred)
-void UpdateShaders(void)
+extern "C" void UpdateShaders(void)
 {
     int unused[4];
     struct O *p;
@@ -932,7 +932,7 @@ void UpdateShaders(void)
         if (ShouldUpdateSaa__FP3SAA(p)) ((void (*)(void *))p->vt[8].pfn)((char *)p + p->vt[8].d);
     }
 }
-} } // namespace M_UpdateShaders
+} // namespace M_UpdateShaders
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 // Fill TEX2-style CLUT fields.
@@ -968,14 +968,14 @@ void BuildBmpTex0(BMP *pbmp, int tbp)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_BuildBmpGifs { extern "C" {
-void BuildImageGifs__FiiiiiiP4GIFS(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs);
+namespace M_BuildBmpGifs {
+void BuildImageGifs__FiiiiiiP4GIFS(int dbp, int dbw, int psm, int w, int h, int cqw, void *pgifs) __asm__("BuildImageGifs__FiiiiiiP4GIFS");
 // BuildImageGifs for a bitmap. (inferred)
-void BuildBmpGifs(BMP *pbmp, int dbp, void *pgifs)
+extern "C" void BuildBmpGifs(BMP *pbmp, int dbp, void *pgifs)
 {
     BuildImageGifs__FiiiiiiP4GIFS(dbp, pbmp->cbw, pbmp->psm, pbmp->cx, pbmp->cy, pbmp->cqw, pgifs);
 }
-} } // namespace M_BuildBmpGifs
+} // namespace M_BuildBmpGifs
 
 int IgsAllocGsb(GSB *pgsb, int cgsb);
 extern "C" {
@@ -1111,8 +1111,8 @@ struct RGBA { unsigned char r, g, b, a;
 };
 struct BF { unsigned short r : 5; unsigned short g : 5; unsigned short b : 5; unsigned short a : 1; };
 union U { unsigned short w; BF bf; };
-extern "C" { 
- void ColorCorrectRgba(RGBA *prgba); void ColorCorrectRgba16(U *pu); }
+
+ void ColorCorrectRgba(RGBA *prgba) __asm__("ColorCorrectRgba"); void ColorCorrectRgba16(U *pu) __asm__("ColorCorrectRgba16");
 // Pack an RGBA color into 16-bit 5:5:5:1.
 static inline U Pack(RGBA c) { U u; u.bf.r = c.r >> 3; u.bf.g = c.g >> 3; u.bf.b = c.b >> 3; u.bf.a = c.a >> 7; return u; }
 // 0x1ED1A0: dead-code scrap (sly2/scrap.h)
@@ -1129,14 +1129,14 @@ void ColorCorrectRgba16(U *pu)
 } // namespace M_ColorCorrectRgba16
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ColorCorrectRgba { extern "C" {
+namespace M_ColorCorrectRgba {
 struct RGBA { unsigned char r, g, b, a; };
 struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
-void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv);
-void ColorCorrectVector(struct VECTOR *pv);
-void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba);
+void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv) __asm__("ConvertRgbaToFloats");
+void ColorCorrectVector(struct VECTOR *pv) __asm__("ColorCorrectVector");
+void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba) __asm__("ConvertVectorToRgba");
 // If color correction enabled (g_sw.unknown3E38): RGBA -> vector -> ColorCorrectVector -> RGBA. (inferred)
-void ColorCorrectRgba(struct RGBA *prgba)
+void ColorCorrectRgba(struct RGBA *prgba) __asm__("ColorCorrectRgba"); void ColorCorrectRgba(struct RGBA *prgba)
 {
     struct VECTOR v;
     struct RGBA rgba;
@@ -1147,23 +1147,23 @@ void ColorCorrectRgba(struct RGBA *prgba)
         ConvertVectorToRgba(&v, prgba->a, prgba);
     }
 }
-} } // namespace M_ColorCorrectRgba
+} // namespace M_ColorCorrectRgba
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ColorCorrectVector { extern "C" {
+namespace M_ColorCorrectVector {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) VEC;
 struct G3 { float x, y, z; };
-extern float D_002C3690;
-extern float D_002C3694;
-extern float D_002C3698;
-extern char D_002BBB60[];
-float powf(float, float);
-float ClampToLimits__FP2LMf(void *, float);
-void ConvertUserRgbToUserHsv(struct G3 *, VEC *);
+extern float D_002C3690 __asm__("D_002C3690");
+extern float D_002C3694 __asm__("D_002C3694");
+extern float D_002C3698 __asm__("D_002C3698");
+extern char D_002BBB60[] __asm__("D_002BBB60");
+float powf(float, float) __asm__("powf");
+float ClampToLimits__FP2LMf(void *, float) __asm__("ClampToLimits__FP2LMf");
+void ConvertUserRgbToUserHsv(struct G3 *, VEC *) __asm__("ConvertUserRgbToUserHsv");
 // Adjust a color vector: luminance (0.3,0.6,0.1) through a gamma curve (powf, LM limits D_002C369x) and rebuild via
 // HSV. (inferred)
-void ColorCorrectVector(VEC *p)
+extern "C" void ColorCorrectVector(VEC *p)
 {
     struct G3 c;
     VEC w;
@@ -1182,19 +1182,19 @@ void ColorCorrectVector(VEC *p)
     c.z = ClampToLimits__FP2LMf(D_002BBB60, powf(dot, D_002C3698));
     ConvertUserRgbToUserHsv(&c, p);
 }
-} } // namespace M_ColorCorrectVector
+} // namespace M_ColorCorrectVector
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AllocateTextureHashTables { extern "C" {
+namespace M_AllocateTextureHashTables {
 struct AR { int cb; int cbAlign; };
-void *AllocFromStack(struct AR *par);
+void *AllocFromStack(struct AR *par) __asm__("AllocFromStack");
 void *func_002333B4(void *p, int b, int cb) __asm__("memset");
-extern void *D_003DD010;
-extern void *D_003DD018;
-extern int D_003DD00C;
-extern int D_003DD014;
+extern void *D_003DD010 __asm__("D_003DD010");
+extern void *D_003DD018 __asm__("D_003DD018");
+extern int D_003DD00C __asm__("D_003DD00C");
+extern int D_003DD014 __asm__("D_003DD014");
 // Allocate two 0x3FFD-entry hash tables (bitmaps D_003DD010, cluts D_003DD018) (inferred)
-void AllocateTextureHashTables(void)
+extern "C" void AllocateTextureHashTables(void)
 {
     struct AR ar;
     void **pp1 = &D_003DD010;
@@ -1209,25 +1209,25 @@ void AllocateTextureHashTables(void)
     func_002333B4(*pp2, 0, 0xFFF4);
     D_003DD00C = D_003DD014 = 0;
 }
-} } // namespace M_AllocateTextureHashTables
+} // namespace M_AllocateTextureHashTables
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ClearTextureHashTables { extern "C" {
-extern int D_003DD00C, D_003DD010, D_003DD014, D_003DD018;
+namespace M_ClearTextureHashTables {
+extern int D_003DD00C __asm__("D_003DD00C"), D_003DD010 __asm__("D_003DD010"), D_003DD014 __asm__("D_003DD014"), D_003DD018 __asm__("D_003DD018");
 // Null both hash tables and counts. (inferred)
-void ClearTextureHashTables(void)
+extern "C" void ClearTextureHashTables(void)
 {
     D_003DD010 = 0;
     D_003DD018 = 0;
     D_003DD00C = D_003DD014 = 0;
 }
-} } // namespace M_ClearTextureHashTables
+} // namespace M_ClearTextureHashTables
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddBitmapToHash { extern "C" {
+namespace M_AddBitmapToHash {
 enum {TABLE_PAGE=0x003E0000};
 // Insert a record into the bitmap hash (key % 0x3FFD, linear probe) (inferred)
-void AddBitmapToHash(BMP *input){
+extern "C" void AddBitmapToHash(BMP *input){
     BMP *p;
     register int nextIndex __asm__("$3");
 
@@ -1260,13 +1260,13 @@ insert:
 
 typedef char Table_Pointer_Size[sizeof(BMP**)==4?1:-1];
 typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
-} } // namespace M_AddBitmapToHash
+} // namespace M_AddBitmapToHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FindBitmapInHash { extern "C" {
+namespace M_FindBitmapInHash {
 enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
 // Look up a bitmap by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
-BMP *FindBitmapInHash(int id)
+extern "C" BMP *FindBitmapInHash(int id)
 {
     if (!D_003DD010) return 0;
     for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
@@ -1274,13 +1274,13 @@ BMP *FindBitmapInHash(int id)
         if (!entry || entry->n0 == id) return entry;
     }
 }
-} } // namespace M_FindBitmapInHash
+} // namespace M_FindBitmapInHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddClutToHash { extern "C" {
+namespace M_AddClutToHash {
 enum {TABLE_PAGE=0x003E0000};
 // Insert into the clut hash. (inferred)
-void AddClutToHash(CLUT *input){
+extern "C" void AddClutToHash(CLUT *input){
     CLUT *p;
     register int nextIndex __asm__("$3");
 
@@ -1313,13 +1313,13 @@ insert:
 
 typedef char Table_Pointer_Size[sizeof(CLUT**)==4?1:-1];
 typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
-} } // namespace M_AddClutToHash
+} // namespace M_AddClutToHash
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FindClutInHash { extern "C" {
+namespace M_FindClutInHash {
 enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
 // Look up a clut by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
-CLUT *FindClutInHash(int id)
+extern "C" CLUT *FindClutInHash(int id)
 {
     if (!D_003DD018) return 0;
     for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
@@ -1327,14 +1327,14 @@ CLUT *FindClutInHash(int id)
         if (!entry || entry->n0 == id) return entry;
     }
 }
-} } // namespace M_FindClutInHash
+} // namespace M_FindClutInHash
 
 // ---- shd's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-namespace M_BuildWorldBackgroundImage { extern "C" {
-int D_002C3680[3] = {8, -16, 8};
-} } // namespace M_BuildWorldBackgroundImage extern "C"
-namespace M_ColorCorrectVector { extern "C" {
-float D_002C3690 __attribute__((aligned(16))) = 60.0f;
-float D_002C3694 = 0.0f;
-float D_002C3698 = 0.6f;
-} }
+namespace M_BuildWorldBackgroundImage {
+int D_002C3680[3] __asm__("D_002C3680") = {8, -16, 8};
+} // namespace M_BuildWorldBackgroundImage extern "C"
+namespace M_ColorCorrectVector {
+float D_002C3690 __asm__("D_002C3690") __attribute__((aligned(16))) = 60.0f;
+float D_002C3694 __asm__("D_002C3694") = 0.0f;
+float D_002C3698 __asm__("D_002C3698") = 0.6f;
+}

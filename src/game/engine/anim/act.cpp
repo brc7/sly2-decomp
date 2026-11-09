@@ -57,7 +57,7 @@ static inline void ZeroVector(VECTOR *pv)
 
 namespace M_PacNewKind {
 struct AREQ { int cb; int cbAlign; };
-extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
+extern void *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
 } // namespace M_PacNewKind
 /* The factories construct in place: as class members, the allocators and constructors would get out-of-line copies
    in act.cpp, the classes' key TU (g++ 2.95 emits a class's inline members with its vtable). */
@@ -65,7 +65,7 @@ inline void *operator new(unsigned int, void *pv) { return pv; }
 // Allocate cb bytes, 16-byte aligned, for a vector curve.
 static inline void *AllocVecCurve(unsigned int cb) { M_PacNewKind::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind {
-extern "C" AC *PacNewKind(int k);
+extern AC *PacNewKind(int k) __asm__("PacNewKind");
 // Curve factory: creates a vector curve of kind 0..5 (constant, two keyed kinds, two per-component kinds, blended).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 AC *PacNewKind(int k)
@@ -95,7 +95,7 @@ void AC0::LoadFromBrx(CBinaryInputStream *stream)
     stream->Read(0xC, &vec);
 }
 
-namespace M_func_0012B520 { extern "C" {
+namespace M_func_0012B520 {
 typedef struct VECTOR { float x, y, z; } __attribute__((aligned(16))) VECTOR;
 typedef struct T {   /* the transform slot (XF) */
     char pad[0x80];
@@ -112,10 +112,10 @@ typedef struct T {   /* the transform slot (XF) */
     VECTOR segmentEndTangent;     /* 0xF0 */
 } T;
 // Zero the xyz components of pv.
-static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
+extern "C" { static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; } }
 // Prepares a transform slot's motion segment from a constant curve (slot 2): start and end value are the constant,
 // velocities zero, motion kind "still" (2). (inferred)
-void PrepareConstCurveSegment(AC0 *curve, T *xf)
+extern "C" void PrepareConstCurveSegment(AC0 *curve, T *xf)
 {
     xf->segmentKind = 2;
     xf->segmentEndTime = 1.0f;
@@ -127,7 +127,7 @@ void PrepareConstCurveSegment(AC0 *curve, T *xf)
     ClearVec(&xf->segmentStartTangent);
     ClearVec(&xf->segmentEndTangent);
 }
-} } // namespace M_func_0012B520
+} // namespace M_func_0012B520
 
 /* Evaluates a constant vector curve: the value, and a zero derivative. */
 // Evaluates a constant vector curve (slot 3): the constant, and a zero derivative. (inferred)
@@ -141,13 +141,13 @@ extern "C" void EvaluateConstCurve(AC0 *curve, VECTOR *pvec, VECTOR *pdvec)
     }
 }
 
-namespace M_LoadAcVecAFromBrx { extern "C" {
+namespace M_LoadAcVecAFromBrx {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *stream);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR *pv);
-ACKEYV2 *AllocClearedFromWorldHeap(AREQ *preq);
+int U16Read__18CBinaryInputStream(void *stream) __asm__("U16Read__18CBinaryInputStream");
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+ACKEYV2 *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
 
-} } // namespace M_LoadAcVecAFromBrx
+} // namespace M_LoadAcVecAFromBrx
 // Loads a keyed vector curve: the key count, then each key's time, value and in / out tangents.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
@@ -174,9 +174,9 @@ void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
     }
 }
 
-namespace M_func_0012B6D8 { extern "C" {
+namespace M_func_0012B6D8 {
 // Index of the first key after time t (the key interval containing t ends there). (inferred)
-int FindVecCurveAKey(AC1 *t, float g)
+extern "C" int FindVecCurveAKey(AC1 *t, float g)
 {
     int i;
     for (i = 1; i < t->ckey - 1; i++) {
@@ -185,18 +185,18 @@ int FindVecCurveAKey(AC1 *t, float g)
     }
     return i;
 }
-} } // namespace M_func_0012B6D8
+} // namespace M_func_0012B6D8
 
-namespace M_func_0012B738 { extern "C" {
+namespace M_func_0012B738 {
 typedef int qword __attribute__((mode(TI)));
-int AreFloatsNear__Ffff(float a, float b, float eps);
-extern qword D_002A2DD0;
+int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
-static __inline__ int AreVectorsNear(qword a, qword b)
+extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
-}
+} }
 typedef union V3Q { VECTOR v; qword q; } V3Q;
 typedef struct OBJ {
     char pad[0x80];
@@ -211,10 +211,10 @@ typedef struct OBJ {
     V3Q pos1;
     qword dpos1;
 } OBJ;
-int FindVecCurveAKey(AC1 *t, float g);
+int FindVecCurveAKey(AC1 *t, float g) __asm__("FindVecCurveAKey");
 // Prepares a transform slot's motion segment (slot 2) from the key interval containing the slot's time: start / end
 // values, tangents and times; marks the segment still when both ends match with zero tangents. (inferred)
-void PrepareVecCurveASegment(AC1 *t, OBJ *po)
+extern "C" void PrepareVecCurveASegment(AC1 *t, OBJ *po)
 {
     int i = FindVecCurveAKey(t, *po->pt);
     int f;
@@ -228,16 +228,16 @@ void PrepareVecCurveASegment(AC1 *t, OBJ *po)
             AreVectorsNear(D_002A2DD0, po->dpos1);
     po->segmentKind = f ? 2 : 1;
 }
-} } // namespace M_func_0012B738
+} // namespace M_func_0012B738
 
-namespace M_func_0012B9D0 { extern "C" {
+namespace M_func_0012B9D0 {
 typedef int qword __attribute__((mode(TI)));
 typedef union V3Q { VECTOR v; qword q; } V3Q;
-int FindVecCurveAKey(AC1 *t, float g);
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
+int FindVecCurveAKey(AC1 *t, float g) __asm__("FindVecCurveAKey");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n) __asm__("EvaluateBezierPos");
 // Evaluates the keyed vector curve at time t (slot 3): value and derivative from the Bezier of its key interval.
 // (inferred)
-void EvaluateVecCurveA(AC1 *t, void *pv, void *pdv, float g, float dtScale)
+extern "C" void EvaluateVecCurveA(AC1 *t, void *pv, void *pdv, float g, float dtScale)
 {
     int i = FindVecCurveAKey(t, g);
     V3Q u0, u1;
@@ -245,15 +245,15 @@ void EvaluateVecCurveA(AC1 *t, void *pv, void *pdv, float g, float dtScale)
     u1.v = t->akey[i].pos;
     EvaluateBezierPos(t->akey[i].t - t->akey[i - 1].t, g - t->akey[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->akey[i] - 0x10), u1.q, t->akey[i].dposIn.q, pv, pdv, 0);   /* the previous key's dposOut */
 }
-} } // namespace M_func_0012B9D0
+} // namespace M_func_0012B9D0
 
-namespace M_LoadAcVecBFromBrx { extern "C" {
+namespace M_LoadAcVecBFromBrx {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *stream);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR *pv);
-ACKEYV1 *AllocClearedFromWorldHeap(AREQ *preq);
+int U16Read__18CBinaryInputStream(void *stream) __asm__("U16Read__18CBinaryInputStream");
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+ACKEYV1 *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
 
-} } // namespace M_LoadAcVecBFromBrx
+} // namespace M_LoadAcVecBFromBrx
 // Loads the second keyed vector curve kind (keys with a different tangent layout).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void AC2::LoadFromBrx(CBinaryInputStream *streamArg)
@@ -279,9 +279,9 @@ void AC2::LoadFromBrx(CBinaryInputStream *streamArg)
     }
 }
 
-namespace M_func_0012BB70 { extern "C" {
+namespace M_func_0012BB70 {
 // Key search for the second keyed vector curve kind. (inferred)
-int FindVecCurveBKey(AC2 *t, float g)
+extern "C" int FindVecCurveBKey(AC2 *t, float g)
 {
     int i;
     for (i = 1; i < t->ckey - 1; i++) {
@@ -290,18 +290,18 @@ int FindVecCurveBKey(AC2 *t, float g)
     }
     return i;
 }
-} } // namespace M_func_0012BB70
+} // namespace M_func_0012BB70
 
-namespace M_func_0012BBD0 { extern "C" {
+namespace M_func_0012BBD0 {
 typedef int qword __attribute__((mode(TI)));
-int AreFloatsNear__Ffff(float a, float b, float eps);
-extern qword D_002A2DD0;
+int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
-static __inline__ int AreVectorsNear(qword a, qword b)
+extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
-}
+} }
 typedef union V3Q { VECTOR v; qword q; } V3Q;
 typedef struct OBJ {
     char pad[0x80];
@@ -316,9 +316,9 @@ typedef struct OBJ {
     V3Q pos1;
     qword dpos1;
 } OBJ;
-int FindVecCurveBKey(AC2 *t, float g);
+int FindVecCurveBKey(AC2 *t, float g) __asm__("FindVecCurveBKey");
 // Prepares a slot's motion segment from the second keyed vector curve kind (slot 2). (inferred)
-void PrepareVecCurveBSegment(AC2 *t, OBJ *po)
+extern "C" void PrepareVecCurveBSegment(AC2 *t, OBJ *po)
 {
     int i = FindVecCurveBKey(t, *po->pt);
     int f;
@@ -332,30 +332,30 @@ void PrepareVecCurveBSegment(AC2 *t, OBJ *po)
             AreVectorsNear(D_002A2DD0, po->dpos1);
     po->segmentKind = f ? 2 : 1;
 }
-} } // namespace M_func_0012BBD0
+} // namespace M_func_0012BBD0
 
-namespace M_func_0012BE68 { extern "C" {
+namespace M_func_0012BE68 {
 typedef int qword __attribute__((mode(TI)));
 typedef union V3Q { VECTOR v; qword q; } V3Q;
-int FindVecCurveBKey(AC2 *t, float g);
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
+int FindVecCurveBKey(AC2 *t, float g) __asm__("FindVecCurveBKey");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n) __asm__("EvaluateBezierPos");
 // Evaluates the second keyed vector curve kind at time t (slot 3). (inferred)
-void EvaluateVecCurveB(AC2 *t, void *pv, void *pdv, float g, float dtScale)
+extern "C" void EvaluateVecCurveB(AC2 *t, void *pv, void *pdv, float g, float dtScale)
 {
     int i = FindVecCurveBKey(t, g);
     V3Q u0, u1; u0.v = t->akey[i - 1].pos; u1.v = t->akey[i].pos; EvaluateBezierPos(t->akey[i].t - t->akey[i - 1].t, g - t->akey[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->akey[i] - 0x10), u1.q, t->akey[i].dpos.q, pv, pdv, 0);
 }
-} } // namespace M_func_0012BE68
+} // namespace M_func_0012BE68
 
-namespace M_LoadAcFloatAFromBrx { extern "C" {
+namespace M_LoadAcFloatAFromBrx {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
-int U16Read__18CBinaryInputStream(void *stream);
-int U8Read__18CBinaryInputStream(void *stream);
-float F32Read__18CBinaryInputStream(void *stream);
-void *AllocFromWorldHeap(AREQ *preq);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+int U16Read__18CBinaryInputStream(void *stream) __asm__("U16Read__18CBinaryInputStream");
+int U8Read__18CBinaryInputStream(void *stream) __asm__("U8Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(void *stream) __asm__("F32Read__18CBinaryInputStream");
+void *AllocFromWorldHeap(AREQ *preq) __asm__("AllocFromWorldHeap");
 
-} } // namespace M_LoadAcFloatAFromBrx
+} // namespace M_LoadAcFloatAFromBrx
 // Loads a per-component curve: the key count, flags saying which components are animated, and float keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
@@ -396,9 +396,9 @@ void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
     }
 }
 
-namespace M_func_0012C0E0 { extern "C" {
+namespace M_func_0012C0E0 {
 // Key search for the per-component curve. (inferred)
-int FindFloatCurveAKey(AC3 *t, float g)
+extern "C" int FindFloatCurveAKey(AC3 *t, float g)
 {
     int i;
     for (i = 1; i < t->ckey - 1; i++) {
@@ -407,18 +407,18 @@ int FindFloatCurveAKey(AC3 *t, float g)
     }
     return i;
 }
-} } // namespace M_func_0012C0E0
+} // namespace M_func_0012C0E0
 
-namespace M_func_0012C140 { extern "C" {
+namespace M_func_0012C140 {
 typedef int qword __attribute__((mode(TI)));
-int AreFloatsNear__Ffff(float a, float b, float eps);
-extern qword D_002A2DD0;
+int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
-static __inline__ int AreVectorsNear(qword a, qword b)
+extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
-}
+} }
 typedef union VQ { float af[4]; qword q; } VQ;
 typedef struct OBJ {
     char pad[0x80];
@@ -434,9 +434,9 @@ typedef struct OBJ {
     VQ pos1;
     VQ dpos1;
 } OBJ;
-int FindFloatCurveAKey(AC3 *t, float g);
+int FindFloatCurveAKey(AC3 *t, float g) __asm__("FindFloatCurveAKey");
 // Prepares a slot's motion segment from the per-component curve (slot 2). (inferred)
-void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
+extern "C" void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
 {
     int i;
     unsigned int j;
@@ -471,15 +471,15 @@ void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
         AreVectorsNear(D_002A2DD0, po->dpos1.q);
     po->segmentKind = f ? 2 : 1;
 }
-} } // namespace M_func_0012C140
+} // namespace M_func_0012C140
 
-namespace M_func_0012C440 { extern "C" {
+namespace M_func_0012C440 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
-int FindFloatCurveAKey(AC3 *t, float g);
-void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
+int FindFloatCurveAKey(AC3 *t, float g) __asm__("FindFloatCurveAKey");
+void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates the per-component curve at time t, each component through its float Bezier (slot 3). (inferred)
-void EvaluateFloatCurveA(AC3 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
+extern "C" void EvaluateFloatCurveA(AC3 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
         *(qword *)pv = t->value.q;
@@ -505,17 +505,17 @@ void EvaluateFloatCurveA(AC3 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale
         }
     }
 }
-} } // namespace M_func_0012C440
+} // namespace M_func_0012C440
 
-namespace M_LoadAcFloatBFromBrx { extern "C" {
+namespace M_LoadAcFloatBFromBrx {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
-int U16Read__18CBinaryInputStream(void *stream);
-int U8Read__18CBinaryInputStream(void *stream);
-float F32Read__18CBinaryInputStream(void *stream);
-void *AllocFromWorldHeap(AREQ *preq);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+int U16Read__18CBinaryInputStream(void *stream) __asm__("U16Read__18CBinaryInputStream");
+int U8Read__18CBinaryInputStream(void *stream) __asm__("U8Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(void *stream) __asm__("F32Read__18CBinaryInputStream");
+void *AllocFromWorldHeap(AREQ *preq) __asm__("AllocFromWorldHeap");
 
-} } // namespace M_LoadAcFloatBFromBrx
+} // namespace M_LoadAcFloatBFromBrx
 // Loads the second per-component curve kind. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void AC4::LoadFromBrx(CBinaryInputStream *streamArg)
 {
@@ -554,9 +554,9 @@ void AC4::LoadFromBrx(CBinaryInputStream *streamArg)
     }
 }
 
-namespace M_func_0012C708 { extern "C" {
+namespace M_func_0012C708 {
 // Key search for the second per-component curve kind. (inferred)
-int FindFloatCurveBKey(AC4 *t, float g)
+extern "C" int FindFloatCurveBKey(AC4 *t, float g)
 {
     int i;
     for (i = 1; i < t->ckey - 1; i++) {
@@ -565,18 +565,18 @@ int FindFloatCurveBKey(AC4 *t, float g)
     }
     return i;
 }
-} } // namespace M_func_0012C708
+} // namespace M_func_0012C708
 
-namespace M_func_0012C768 { extern "C" {
+namespace M_func_0012C768 {
 typedef int qword __attribute__((mode(TI)));
-int AreFloatsNear__Ffff(float a, float b, float eps);
-extern qword D_002A2DD0;
+int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
-static __inline__ int AreVectorsNear(qword a, qword b)
+extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
-}
+} }
 typedef union VQ { float af[4]; qword q; } VQ;
 typedef struct OBJ {
     char pad[0x80];
@@ -592,9 +592,9 @@ typedef struct OBJ {
     VQ pos1;
     VQ dpos1;
 } OBJ;
-int FindFloatCurveBKey(AC4 *t, float g);
+int FindFloatCurveBKey(AC4 *t, float g) __asm__("FindFloatCurveBKey");
 // Prepares a slot's motion segment from the second per-component curve kind (slot 2). (inferred)
-void PrepareFloatCurveBSegment(AC4 *t, OBJ *po)
+extern "C" void PrepareFloatCurveBSegment(AC4 *t, OBJ *po)
 {
     int i;
     unsigned int j;
@@ -629,15 +629,15 @@ void PrepareFloatCurveBSegment(AC4 *t, OBJ *po)
         AreVectorsNear(D_002A2DD0, po->dpos1.q);
     po->segmentKind = f ? 2 : 1;
 }
-} } // namespace M_func_0012C768
+} // namespace M_func_0012C768
 
-namespace M_func_0012CA68 { extern "C" {
+namespace M_func_0012CA68 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
-int FindFloatCurveBKey(AC4 *t, float g);
-void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
+int FindFloatCurveBKey(AC4 *t, float g) __asm__("FindFloatCurveBKey");
+void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates the second per-component curve kind at time t (slot 3). (inferred)
-void EvaluateFloatCurveB(AC4 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
+extern "C" void EvaluateFloatCurveB(AC4 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
         *(qword *)pv = t->value.q;
@@ -663,16 +663,16 @@ void EvaluateFloatCurveB(AC4 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale
         }
     }
 }
-} } // namespace M_func_0012CA68
+} // namespace M_func_0012CA68
 
 namespace M_PacNewKind2 {
 struct AREQ { int cb; int cbAlign; };
-extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
+extern void *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
 } // namespace M_PacNewKind2
 // Allocate cb bytes, 16-byte aligned, for a float curve.
 static inline void *AllocFloatCurve(unsigned int cb) { M_PacNewKind2::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind2::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind2 {
-extern "C" ACG *PacNewKind2(int k);
+extern ACG *PacNewKind2(int k) __asm__("PacNewKind2");
 // Float-curve factory: creates a float curve of kind 0..2 (constant, keyed, blended).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 ACG *PacNewKind2(int k)
@@ -710,13 +710,13 @@ extern "C" void EvaluateConstFloatCurve(ACG0 *curve, float *pg, int *pdg)
     }
 }
 
-namespace M_LoadAcFloatKeysFromBrx { extern "C" {
+namespace M_LoadAcFloatKeysFromBrx {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *stream);
-float F32Read__18CBinaryInputStream(void *stream);
-ACKEYF *AllocClearedFromWorldHeap(AREQ *preq);
+int U16Read__18CBinaryInputStream(void *stream) __asm__("U16Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(void *stream) __asm__("F32Read__18CBinaryInputStream");
+ACKEYF *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
 
-} } // namespace M_LoadAcFloatKeysFromBrx
+} // namespace M_LoadAcFloatKeysFromBrx
 // Loads a keyed float curve: the key count and the float keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
@@ -743,10 +743,10 @@ void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
     }
 }
 
-namespace M_func_0012CDA0 { extern "C" {
-void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale, float g0, float dg0, float g1, float dg1);
+namespace M_func_0012CDA0 {
+void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates a keyed float curve at time t (float Bezier of its key interval). (inferred)
-void EvaluateKeyedFloatCurve(ACG1 *t, float *pg, float *pdg, float g, float dtScale)
+extern "C" void EvaluateKeyedFloatCurve(ACG1 *t, float *pg, float *pdg, float g, float dtScale)
 {
     int i;
     ACKEYF *k0, *k1;
@@ -758,7 +758,7 @@ void EvaluateKeyedFloatCurve(ACG1 *t, float *pg, float *pdg, float g, float dtSc
     k0 = k1 - 1;
     EvaluateBezierFloat(pg, pdg, k1->t - k0->t, g - k0->t, dtScale, k0->g, k0->dgOut, k1->g, k1->dgIn);
 }
-} } // namespace M_func_0012CDA0
+} // namespace M_func_0012CDA0
 
 // Allocates an override application record (OVRA) from the world's pool, cleared. (inferred)
 extern "C" void *AllocOvra()
@@ -786,10 +786,10 @@ extern "C" void DetachActBase()
 {
 }
 
-namespace M_func_0012CEE0 { extern "C" {
+namespace M_func_0012CEE0 {
 // True when the act is the one in effect on its transform: first in the XF's act list, directly or wrapped by an
 // offset act. (inferred)
-int IsActCurrent(ACT *p)
+extern "C" int IsActCurrent(ACT *p)
 {
     ACT *q = p->transform->firstActuator;
     if (q == p)
@@ -798,7 +798,7 @@ int IsActCurrent(ACT *p)
         return 1;
     return 0;
 }
-} } // namespace M_func_0012CEE0
+} // namespace M_func_0012CEE0
 
 /* empty vtable slot */
 // Base act slot 3: nothing. (inferred)
@@ -824,10 +824,10 @@ extern "C" void GetActGoalDefault(ACT *act, qword *ppos, VECTOR *pdvec)
     }
 }
 
-namespace M_CloneAct { extern "C" {
-void CopyAb__FPvT0Ui(void *dst, void *src, unsigned int cb);
+namespace M_CloneAct {
+void CopyAb__FPvT0Ui(void *dst, void *src, unsigned int cb) __asm__("CopyAb__FPvT0Ui");
 // Copies an act onto another object / transform: the header fields, then the class body.
-void CloneAct(ACT *t, ACT *src, ALO *palo, XF *pxf)
+extern "C" void CloneAct(ACT *t, ACT *src, ALO *palo, XF *pxf)
 {
     t->ack = src->ack;
     t->priority = src->priority;
@@ -836,7 +836,7 @@ void CloneAct(ACT *t, ACT *src, ALO *palo, XF *pxf)
     t->transform = pxf;
     CopyAb__FPvT0Ui((char *)t + sizeof(ACT), (char *)src + sizeof(ACT), g_sw.slotheapAct.cb - 0x1C);   /* the class body after the vptr */
 }
-} } // namespace M_CloneAct
+} // namespace M_CloneAct
 
 // Inserts the act into its transform's action list unless it is already there. (inferred)
 extern "C" void AttachAct(ACT *act)
@@ -854,9 +854,9 @@ extern "C" void DetachAct(ACT *act)
     }
 }
 
-namespace M_func_0012D058 { extern "C" {
+namespace M_func_0012D058 {
 // True when the act is in its transform's act list (attached).
-int IsActAttached(ACT *p)
+extern "C" int IsActAttached(ACT *p)
 {
     ACT *q = p->transform->firstActuator;
     while (q) {
@@ -866,7 +866,7 @@ int IsActAttached(ACT *p)
     }
     return 0;
 }
-} } // namespace M_func_0012D058
+} // namespace M_func_0012D058
 
 /* vtable 0x2CA830 slot 4. */
 // Position act update (slot 4).
@@ -890,20 +890,20 @@ extern "C" void GetPhaseActGoal(ACT1 *act, qword *ppos, VECTOR *pdvec)
     }
 }
 
-namespace M_SetActPositionGoal { extern "C" {
+namespace M_SetActPositionGoal {
 typedef int qword __attribute__((mode(TI)));
-int AreFloatsNear__Ffff(float a, float b, float eps);
-void UnsettleXfSlot(void *pv, void *px);
-extern qword D_002A2DD0;
+int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
+void UnsettleXfSlot(void *pv, void *px) __asm__("UnsettleXfSlot");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
-static __inline__ int AreVectorsNear(qword a, qword b)
+extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
-}
+} }
 // Stores a new position goal; if this act drives its transform and the goal moved, copies it to the transform and puts
 // the slot back into motion.
-void SetActPositionGoal(ACT1 *p, qword v)
+extern "C" void SetActPositionGoal(ACT1 *p, qword v)
 {
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->goalValue));
@@ -913,18 +913,18 @@ void SetActPositionGoal(ACT1 *p, qword v)
         UnsettleXfSlot(p->animatedObject, p->transform);
     }
 }
-} } // namespace M_SetActPositionGoal
+} // namespace M_SetActPositionGoal
 
-namespace M_func_0012D210 { extern "C" {
+namespace M_func_0012D210 {
 // Look-at act detach (slot 2): clears its tracking state. (inferred)
-void DetachLookAtAct(ACT2 *p)
+extern "C" void DetachLookAtAct(ACT2 *p)
 {
     p->ptarget = 0;
     p->hasPreviousAim = 0;
 }
-} } // namespace M_func_0012D210
+} // namespace M_func_0012D210
 
-namespace M_UpdateActLookAt { extern "C" {
+namespace M_UpdateActLookAt {
 /* MATCH (Claude agent laneB22, 2026-10-23): from v8 (3). 2nd block: dt read as the scalar D_002DDED4 (g_clock.deltaTime) through an "rV" asm input: expand keeps the MEM (V allows memory) but only r fits at reload, so reload loads it at the asm through the dying %hi reg (target lw v0,lo(v0) after the lqc2s); vsub then pin-free as "+j"(d = s.pos). */
 /* v8 (Claude agent laneB21, 2026-10-23): aligned 7 -> 3. posT load: x8 ($v0) and a dummy z ($v1) kept live across it by two commented empty allocation-only asms, so the reload reg for the spilled posT is $a1 like the target (find_reg takes the first free reg in alloc order); the keep-alive asm has an output (+r po) so it is not volatile and reload_cse removes the a1 reload. Left: 2nd-block dt load (target: lui early + lw v0,lo(v0) right before the vsub = reload of a MEM). */
 /* v7 (Claude agent laneB19, 2026-10-23): aligned 8 -> 7. Allocation-only "r"(p->x8) on the 2nd-block vsub/qmtc2 asm gives x8 $v1. Left: posT lq v0+por (target lq a1), lw dt scheduled before the lqc2s and dt in $a0 (target: reload-style lw v0,lo(v0) right before the vsub). */
@@ -935,18 +935,18 @@ namespace M_UpdateActLookAt { extern "C" {
 /* v2 (Claude agent, 2026-10-23): aligned 15 -> 13: qmtc2 asm before the vsub, vsub as "=j"(d) : s.pos, goalValue (+0xC0) (gets dt vf3). Left: target schedules vsub before qmtc2 with s.pos vf2/goalValue (+0xC0) vf1, output vf2. */
 // WIP (Claude agent): 15 diffs - VU reg numbering only: dv reload should be vf3 / one-vector vf2 (ours swapped), second block wants lw of g_clock.deltaTime after the lqc2s and vsub in vf2; posT lq via $a1.
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DD0;
-extern float D_002A45A8;
-void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
-void *FindClosestSwPo(void *pg, qword pos);
-qword GetLoWorldPos(void *po);
-void SortXfActs(void *a, XF *b);
-qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword v);
-void CalculateVectorPanTilt(qword q, float *pa, float *pb);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern float D_002A45A8 __asm__("D_002A45A8");
+void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindClosestSwPo(void *pg, qword pos) __asm__("FindClosestSwPo");
+qword GetLoWorldPos(void *po) __asm__("GetLoWorldPos");
+void SortXfActs(void *a, XF *b) __asm__("SortXfActs");
+qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword v) __asm__("ConvertXfVec");
+void CalculateVectorPanTilt(qword q, float *pa, float *pb) __asm__("CalculateVectorPanTilt");
 // Evaluate the quadratic g0 + g1*t + g2*t^2 at t.
-static __inline__ float EvaluateQuadratic(CLQ *pp, float t) { return pp->g0 + t * (pp->g1 + t * pp->g2); }
+extern "C" { static __inline__ float EvaluateQuadratic(CLQ *pp, float t) { return pp->g0 + t * (pp->g1 + t * pp->g2); } }
 // Length of the xyz part of a as a float (pv is a scratch home).
-static __inline__ float VectorLength(QWROW *pv, qword a)
+extern "C" { static __inline__ float VectorLength(QWROW *pv, qword a)
 {
     qword t;
     float g;
@@ -954,10 +954,10 @@ static __inline__ float VectorLength(QWROW *pv, qword a)
     __asm__("vsqrt Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "+j"(a));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
     return g;
-}
+} }
 
 // Look-at act update: finds the target object and computes the pan / tilt that aims the transform at it.
-void UpdateActLookAt(ACT2 *p)
+extern "C" void UpdateActLookAt(ACT2 *p)
 {
     struct { qword pos; qword vel; } s;
     QWROW dt;
@@ -1033,7 +1033,7 @@ void UpdateActLookAt(ACT2 *p)
     p->transform->rate = s.vel;
     p->transform->phase = 3;
 }
-} } // namespace M_UpdateActLookAt
+} // namespace M_UpdateActLookAt
 
 /* vtable 0x2CA7F0 slot 4. */
 // Look-at act goal (slot 5).
@@ -1114,13 +1114,13 @@ struct X {
 };
 #define XFV(p) ((X *)(p)->transform)
 
-extern "C" {
-extern qword D_002A2DD0, D_002A2DC0, D_002BC380;
-void UpdateXfJobRange(void *pv, X *px);
-void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n);
-M3 BuildOrthonormalMatrixZ(qword a, qword b);
-void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc);
-}
+
+extern qword D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002BC380 __asm__("D_002BC380");
+void UpdateXfJobRange(void *pv, X *px) __asm__("UpdateXfJobRange");
+void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n) __asm__("EvaluateBezierPos");
+M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
+void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc) __asm__("ConvertXfMat");
+
 
 // Store m as the transform's segment matrix and mark the segment kind as a matrix (5).
 static inline void SetMat(X *px, const M3 &m)
@@ -1227,8 +1227,8 @@ void ACT4::Update()
 }
 #undef XFV
 
-namespace M_func_0012D858 { extern "C" {
-} } // namespace M_func_0012D858
+namespace M_func_0012D858 {
+} // namespace M_func_0012D858
 // Offset act attach (slot 1): attaches the wrapped act.
 void ACT5::Attach()
 {
@@ -1238,9 +1238,9 @@ void ACT5::Attach()
         p->Attach();
 }
 
-namespace M_func_0012D890 { extern "C" {
+namespace M_func_0012D890 {
 // Offset act detach (slot 2): detaches the wrapped act and forgets it. (inferred)
-void DetachOffsetAct(ACT5 *t)
+extern "C" void DetachOffsetAct(ACT5 *t)
 {
     ACT *p = t->pactCur;
     if (p) {
@@ -1248,13 +1248,13 @@ void DetachOffsetAct(ACT5 *t)
         t->pactCur = 0;
     }
 }
-} } // namespace M_func_0012D890
+} // namespace M_func_0012D890
 
-namespace M_func_0012D8D8 { extern "C" {
-void WakeXfOwner(void *a, void *b);
+namespace M_func_0012D8D8 {
+void WakeXfOwner(void *a, void *b) __asm__("WakeXfOwner");
 // Offset act slot 3: when the act to wrap changed, wakes the transform, detaches the old wrapped act and attaches the
 // new one. (inferred)
-void SwitchOffsetActTarget(ACT5 *t)
+extern "C" void SwitchOffsetActTarget(ACT5 *t)
 {
     ACT *p;
     if (t->pactCur != t->pactNext) {
@@ -1268,24 +1268,24 @@ void SwitchOffsetActTarget(ACT5 *t)
             p->Attach();
     }
 }
-} } // namespace M_func_0012D8D8
+} // namespace M_func_0012D8D8
 
-namespace M_func_0012D958 { extern "C" {
+namespace M_func_0012D958 {
 typedef int qword __attribute__((mode(TI)));
 /* The transform's goal value (+0xC0) and its +0xE0 accumulator, as this function adds the offset to them. */
 typedef struct SW { char pad[0xC0]; qword a; char pad2[0x10]; qword b; } SW;
-void UpdateActDefault(ACT *p);
+void UpdateActDefault(ACT *p) __asm__("UpdateActDefault");
 // Add *ps to *pd (register-pinned to vf1/vf2).
-static __inline__ void AddV(qword *pd, qword *ps)
+extern "C" { static __inline__ void AddV(qword *pd, qword *ps)
 {
     register qword b __asm__("vf2") = *ps;
     register qword a __asm__("vf1") = *pd;
     __asm__ ("vadd.xyzw %0, %0, %1" : "+j"(a) : "j"(b));
     *pd = a;
-}
+} }
 // Offset act update (slot 4): updates the wrapped act and adds the offset to the world's accumulators (falls back to
 // the default update when nothing is wrapped). (inferred)
-void UpdateOffsetAct(ACT5 *p)
+extern "C" void UpdateOffsetAct(ACT5 *p)
 {
     ACT *po = p->pactCur;
     if (po) {
@@ -1296,12 +1296,12 @@ void UpdateOffsetAct(ACT5 *p)
         UpdateActDefault(p);
     }
 }
-} } // namespace M_func_0012D958
+} // namespace M_func_0012D958
 
-namespace M_func_0012D9D0 { extern "C" {
+namespace M_func_0012D9D0 {
 typedef int qword __attribute__((mode(TI)));
 // Offset act goal (slot 5): the wrapped act's goal plus the offset. (inferred)
-void GetOffsetActGoal(ACT5 *p, qword *pv, VECTOR *pdv, float dt)
+extern "C" void GetOffsetActGoal(ACT5 *p, qword *pv, VECTOR *pdv, float dt)
 {
     ACT *po = p->pactCur;
     po->GetGoal((::qword *)pv, pdv, dt);
@@ -1312,27 +1312,27 @@ void GetOffsetActGoal(ACT5 *p, qword *pv, VECTOR *pdv, float dt)
         *pv = a;
     }
 }
-} } // namespace M_func_0012D9D0
+} // namespace M_func_0012D9D0
 
-namespace M_func_0012DA30 { extern "C" {
+namespace M_func_0012DA30 {
 // v3 (Claude agent): MATCHES, but only with an unused duplicate "j"(dv) input on the first vadd (emits nothing).
 // The extra VF-class use makes regclass put dv in the VU register class, so it is spilled to 0(sp) across the calls
 // like the target. Kept here pending a policy decision / a natural source form giving dv one more "j" use.
 // wip (Claude agent): sibling of matched SetActPositionGoal. ~60 diff: target spills dv (vsub result) to the stack
 // (sqc2 vf3,0(sp); lq before prot3w/pextuw; lqc2 vf2 for the vadds) and uses only s0-s2; ours keeps dv in $s1.
 typedef int qword __attribute__((mode(TI)));
-int AreFloatsNear__Ffff(float a, float b, float eps);
-void UnsettleXfSlot(void *pv, void *px);
-extern qword D_002A2DD0;
+int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
+void UnsettleXfSlot(void *pv, void *px) __asm__("UnsettleXfSlot");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
-static __inline__ int AreVectorsNear(qword a, qword b)
+extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 {
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 1e-4f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 1e-4f) &&
            AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 1e-4f);
-}
+} }
 // Stores a new goal vector; if this act drives its transform and the goal moved, shifts the transform's goal values by
 // the change and puts the slot back into motion. (inferred)
-void SetActRotationGoal(ACT1 *p, qword v)
+extern "C" void SetActRotationGoal(ACT1 *p, qword v)
 {
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->goalValue));
@@ -1351,11 +1351,11 @@ void SetActRotationGoal(ACT1 *p, qword v)
         UnsettleXfSlot(p->animatedObject, p->transform);
     }
 }
-} } // namespace M_func_0012DA30
+} // namespace M_func_0012DA30
 
-namespace M_func_0012DB50 { extern "C" {
+namespace M_func_0012DB50 {
 // Creates an act of a kind for (object, transform, owner) with its priority / role, not yet attached. (inferred)
-ACT *NewActOfKind(int ack, ALO *palo, XF *pxf, int nPriority, int nRole)
+extern "C" ACT *NewActOfKind(int ack, ALO *palo, XF *pxf, int nPriority, int nRole)
 {
     ACT *t = InitActOfKind(ack);
     t->animatedObject = palo;
@@ -1364,26 +1364,26 @@ ACT *NewActOfKind(int ack, ALO *palo, XF *pxf, int nPriority, int nRole)
     t->role = nRole;
     return t;
 }
-} } // namespace M_func_0012DB50
+} // namespace M_func_0012DB50
 
-namespace M_func_0012DBB0 { extern "C" {
-void *NewActOfKind(int k, void *a, void *b, void *c, int d);
-void AddXfAct(void *a, void *b, void *p);
+namespace M_func_0012DBB0 {
+void *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
+void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates an offset act (kind 5) and attaches it to its transform. (inferred)
-void *NewOffsetAct(void *a, void *b, void *c)
+extern "C" void *NewOffsetAct(void *a, void *b, void *c)
 {
     void *p = NewActOfKind(5, a, b, c, -1);
     AddXfAct(a, b, p);
     return p;
 }
-} } // namespace M_func_0012DBB0
+} // namespace M_func_0012DBB0
 
-namespace M_func_0012DC18 { extern "C" {
+namespace M_func_0012DC18 {
 typedef int qword __attribute__((mode(TI)));
-ACT1 *NewActOfKind(int k, void *a, void *b, void *c, int d);
-void AddXfAct(void *a, void *b, void *p);
+ACT1 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
+void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates a position act (kind 1) with a role and a goal vector and attaches it. (inferred)
-ACT1 *NewPositionAct(void *a, void *b, void *c, int d, int e, qword goalValue)
+extern "C" ACT1 *NewPositionAct(void *a, void *b, void *c, int d, int e, qword goalValue)
 {
     ACT1 *p = NewActOfKind(1, a, b, c, d);
     p->phase = e;
@@ -1391,13 +1391,13 @@ ACT1 *NewPositionAct(void *a, void *b, void *c, int d, int e, qword goalValue)
     AddXfAct(a, b, p);
     return p;
 }
-} } // namespace M_func_0012DC18
+} // namespace M_func_0012DC18
 
-namespace M_func_0012DCA0 { extern "C" {
-ACT4 *NewActOfKind(int k, void *a, void *b, void *c, void *d);
-void AddXfAct(void *a, void *b, ACT4 *p);
+namespace M_func_0012DCA0 {
+ACT4 *NewActOfKind(int k, void *a, void *b, void *c, void *d) __asm__("NewActOfKind");
+void AddXfAct(void *a, void *b, ACT4 *p) __asm__("AddXfAct");
 // Creates a path act (kind 4) with its two parameters and attaches it. (inferred)
-ACT4 *NewPathAct(void *a, void *b, void *c, void *d, float lookAheadWeight, float lookAheadTime)
+extern "C" ACT4 *NewPathAct(void *a, void *b, void *c, void *d, float lookAheadWeight, float lookAheadTime)
 {
     ACT4 *p = NewActOfKind(4, a, b, c, d);
     p->lookAheadWeight = lookAheadWeight;
@@ -1405,28 +1405,28 @@ ACT4 *NewPathAct(void *a, void *b, void *c, void *d, float lookAheadWeight, floa
     AddXfAct(a, b, p);
     return p;
 }
-} } // namespace M_func_0012DCA0
+} // namespace M_func_0012DCA0
 
-namespace M_func_0012DD28 { extern "C" {
-ACT7 *NewActOfKind(int k, void *a, void *b, void *c, int d);
-void AddXfAct(void *a, void *b, ACT7 *p);
+namespace M_func_0012DD28 {
+ACT7 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
+void AddXfAct(void *a, void *b, ACT7 *p) __asm__("AddXfAct");
 // Creates an IK act (kind 7) for an IK record and attaches it (its role depends on whether the transform is the
 // record's first bone). (inferred)
-ACT7 *NewIkAct(void *a, void *b, void *c, IKREC *q)
+extern "C" ACT7 *NewIkAct(void *a, void *b, void *c, IKREC *q)
 {
     ACT7 *p = NewActOfKind(7, a, b, c, b == q->pxfLower ? 0xE : 0xD);
     p->pikrec = q;
     AddXfAct(a, b, p);
     return p;
 }
-} } // namespace M_func_0012DD28
+} // namespace M_func_0012DD28
 
-namespace M_func_0012DDB0 { extern "C" {
+namespace M_func_0012DDB0 {
 typedef struct M4 { int q[16]; } __attribute__((aligned(16))) M4;
-ACT6 *NewActOfKind(int k, void *a, void *b, void *c, void *d);
-void AddXfAct(void *a, void *b, ACT6 *p);
+ACT6 *NewActOfKind(int k, void *a, void *b, void *c, void *d) __asm__("NewActOfKind");
+void AddXfAct(void *a, void *b, ACT6 *p) __asm__("AddXfAct");
 // Creates a matrix act (kind 6) with a matrix and attaches it. (inferred)
-ACT6 *NewMatrixAct(void *a, void *b, void *c, void *d, XF *pxfBase, M4 *pmat)
+extern "C" ACT6 *NewMatrixAct(void *a, void *b, void *c, void *d, XF *pxfBase, M4 *pmat)
 {
     ACT6 *p = NewActOfKind(6, a, b, c, d);
     p->pxfBase = pxfBase;
@@ -1434,14 +1434,14 @@ ACT6 *NewMatrixAct(void *a, void *b, void *c, void *d, XF *pxfBase, M4 *pmat)
     AddXfAct(a, b, p);
     return p;
 }
-} } // namespace M_func_0012DDB0
+} // namespace M_func_0012DDB0
 
-namespace M_func_0012DE58 { extern "C" {
+namespace M_func_0012DE58 {
 typedef int qword __attribute__((mode(TI)));
-ACT8 *NewActOfKind(int k, void *a, void *b, void *c, int d);
-void AddXfAct(void *a, void *b, void *p);
+ACT8 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
+void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates a Bezier act (kind 8, role 0x11) with a duration and two vectors and attaches it. (inferred)
-ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qword pos, qword vel)
+extern "C" ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qword pos, qword vel)
 {
     ACT8 *p = NewActOfKind(8, a, b, c, 0x11);
     p->arrivalTime = arrivalTime;
@@ -1450,17 +1450,17 @@ ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qword pos, qwor
     AddXfAct(a, b, p);
     return p;
 }
-} } // namespace M_func_0012DE58
+} // namespace M_func_0012DE58
 
 namespace M_func_0012DEF0 {
 typedef int qword __attribute__((mode(TI)));
-extern "C" { extern qword D_002A2DD0; }
-extern "C" {
-MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat);
-MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
-qword GetXfValueFromMatrix(XF *xf, MATRIX4 mat);
-void UpdateMatrixAct(ACT6 *x);
-}
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+
+MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat) __asm__("InvertMatrix4Rigid");
+MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
+qword GetXfValueFromMatrix(XF *xf, MATRIX4 mat) __asm__("GetXfValueFromMatrix");
+void UpdateMatrixAct(ACT6 *x) __asm__("UpdateMatrixAct");
+
 // Matrix act update: the transform's local matrix from a world matrix relative to its parent. (inferred)
 void UpdateMatrixAct(ACT6 *x)
 {
@@ -1498,12 +1498,12 @@ void ACT8::Update()
     ResetXfValueRef(animatedObject, transform);
 }
 
-namespace M_func_0012E060 { extern "C" {
+namespace M_func_0012E060 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, int n);
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, int n) __asm__("EvaluateBezierPos");
 // Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)
-void GetBezierActGoal(ACT8 *p, qword *ppos, qword *pvel, float dt)
+extern "C" void GetBezierActGoal(ACT8 *p, qword *ppos, qword *pvel, float dt)
 {
     float now = g_clock.time;
     Q *xf = (Q *)p->transform;
@@ -1514,7 +1514,7 @@ void GetBezierActGoal(ACT8 *p, qword *ppos, qword *pvel, float dt)
         EvaluateBezierPos(xf->endTime - now, dt, 1.0f, xf->startPos, xf->startVelocity, p->goalPosition, p->goalVelocity, ppos, pvel, 0);
     }
 }
-} } // namespace M_func_0012E060
+} // namespace M_func_0012E060
 
 // Sets a rest act's pose and velocity; if it is in effect, also the transform's rest values. (inferred)
 extern "C" void SetRestActPose(ACT8 *act, qword pos, qword v)
@@ -1528,23 +1528,23 @@ extern "C" void SetRestActPose(ACT8 *act, qword pos, qword v)
     }
 }
 
-namespace M_func_0012E120 { extern "C" {
+namespace M_func_0012E120 {
 /* VU normalize + length; register vars pin the dead qmfc2 output and the py reloads */
 typedef int qword __attribute__((mode(TI)));
 typedef struct Y { char pad[0xB0]; qword velocity; qword direction; int length; char pad2[0xE0 - 0xD4]; int unknownE0; } Y;
 #define XFV(p) ((Y *)(p)->transform)
-extern qword D_002A2DA0;
-void AttachActBase(ACT *x);
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+void AttachActBase(ACT *x) __asm__("AttachActBase");
 // Length of the xyz part of c, in the x lane.
-static __inline__ qword VLen(qword c)
+extern "C" { static __inline__ qword VLen(qword c)
 {
     qword l, one;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(l), "=&j"(one) : "j"(c));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     return l;
-}
+} }
 // Normalize *pv in place (or replace it with *pdef when its length is below 1e-4); returns the original length.
-static __inline__ qword Normalize1(qword *pv, qword *pdef)
+extern "C" { static __inline__ qword Normalize1(qword *pv, qword *pdef)
 {
     qword c;
     qword l;
@@ -1560,9 +1560,9 @@ static __inline__ qword Normalize1(qword *pv, qword *pdef)
         *pv = rn;
     }
     return l;
-}
+} }
 
-} } // namespace M_func_0012E120
+} // namespace M_func_0012E120
 // Attach of act kind 9 (slot 1).
 void ACT9::Attach()
 {
@@ -1600,12 +1600,12 @@ extern "C" void FreeAct(void *pv)
 }
 
 namespace M_func_0012E238 {
-extern "C" void *AllocAct(unsigned int cb);
-extern "C" void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
+extern void *AllocAct(unsigned int cb) __asm__("AllocAct");
+extern void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 struct MATRIX4 { float m[4][4]; };
 } // namespace M_func_0012E238
 namespace M_func_0012E238 {
-extern "C" ACT *InitActOfKind(int k);
+extern ACT *InitActOfKind(int k) __asm__("InitActOfKind");
 #define SLY2_NEW_ACT(T) new (AllocAct(sizeof(T))) T
 // Act factory: allocates an act and constructs it by kind (0..9). (inferred)
 ACT *InitActOfKind(int k)

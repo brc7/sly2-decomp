@@ -514,7 +514,7 @@ extern "C" void SetAsegMasterSpeed(ASEG *p, float g) {
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_aseg {
 void p_PostAsegLoadCallback() __asm__("PostAsegLoadCallback");
-extern "C" {
-extern const unsigned int D_002A46C8[2] = {0xFFFF0000, (unsigned int)p_PostAsegLoadCallback};
-}
+
+extern const unsigned int D_002A46C8[2] __asm__("D_002A46C8") = {0xFFFF0000, (unsigned int)p_PostAsegLoadCallback};
+
 } // namespace ANPTR_aseg

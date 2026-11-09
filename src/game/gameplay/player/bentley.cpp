@@ -73,13 +73,13 @@ void FaceStepToward(STEP *pstep, LO *plo);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_InitBentley { extern "C" {
-BENTLEY *D_002DD5BC;   /* the Bentley object (bentley's .bss; medium: by layout) */
-void InitStepplayer(BENTLEY *p);
-void InitGait(GAIT *pv, BENTLEY *p, int n);
+namespace M_InitBentley {
+BENTLEY *D_002DD5BC __asm__("D_002DD5BC");   /* the Bentley object (bentley's .bss; medium: by layout) */
+void InitStepplayer(BENTLEY *p) __asm__("InitStepplayer");
+void InitGait(GAIT *pv, BENTLEY *p, int n) __asm__("InitGait");
 // BENTLEY Init (vtable slot 7): STEPPLAYER init, then Bentley's defaults: camera offsets 45/125, the two gait records
 // (+0x1320/+0x1600) and his gadget slot kinds (7/9/11 ...).
-void InitBentley(BENTLEY *bentley)
+extern "C" void InitBentley(BENTLEY *bentley)
 {
     InitStepplayer(bentley);
 //{
@@ -115,7 +115,7 @@ void InitBentley(BENTLEY *bentley)
     bentley->unknown1870 = 5;
     D_002DD5BC = bentley;
 }
-} } // namespace M_InitBentley
+} // namespace M_InitBentley
 
 // BENTLEY LoadFromBrx (slot 14): STEP base, then binds his class-specific object table (0x76 entries).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -126,20 +126,20 @@ extern "C" void LoadBentleyFromBrx(BENTLEY *bentley, CBinaryInputStream *pbis)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PostBentleyLoad { extern "C" {
+namespace M_PostBentleyLoad {
 typedef int ti128 __attribute__((mode(TI)));
 union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialized, read as a quadword (.q) */
-extern VQ D_002BC920;
-void PostLoadStepplayer(BENTLEY *);
-void *FindSoXf(BENTLEY *, int, int);
-void InitDirectionalBlend(BENTLEY *, void *, void *);
-void PostJtLoadGait(void *);
-void InitBentleyCrosshair(void *, BENTLEY *, ti128, float, float);
-void AttachStepplayerToStartMarker(BENTLEY *, int);
-void SetBentleyState(BENTLEY *, int);
+extern VQ D_002BC920 __asm__("D_002BC920");
+void PostLoadStepplayer(BENTLEY *) __asm__("PostLoadStepplayer");
+void *FindSoXf(BENTLEY *, int, int) __asm__("FindSoXf");
+void InitDirectionalBlend(BENTLEY *, void *, void *) __asm__("InitDirectionalBlend");
+void PostJtLoadGait(void *) __asm__("PostJtLoadGait");
+void InitBentleyCrosshair(void *, BENTLEY *, ti128, float, float) __asm__("InitBentleyCrosshair");
+void AttachStepplayerToStartMarker(BENTLEY *, int) __asm__("AttachStepplayerToStartMarker");
+void SetBentleyState(BENTLEY *, int) __asm__("SetBentleyState");
 // BENTLEY post-load (slot 15): STEPPLAYER post-load, finds child SO 0xB, binds the animation blends, initializes the
 // crosshair (InitBentleyCrosshair) and attaches him to his start marker.
-void PostBentleyLoad(BENTLEY *bentley) {
+extern "C" void PostBentleyLoad(BENTLEY *bentley) {
     PostLoadStepplayer(bentley);
     bentley->unknown10B8 = FindSoXf(bentley, 0xb, 1);
     InitDirectionalBlend(bentley, bentley->abldirA, &bentley->pasegblA);
@@ -150,31 +150,31 @@ void PostBentleyLoad(BENTLEY *bentley) {
     AttachStepplayerToStartMarker(bentley, 0x16);
     SetBentleyState(bentley, BENTLEY_IDLE);
 }
-} } // namespace M_PostBentleyLoad
+} // namespace M_PostBentleyLoad
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateBentleyStateMachine { extern "C" {
-extern float D_002BC930;
-void SetJtAirJump(JTAIR *pv, int a, int b, int c);
-int IsStepplayerNearInteractTarget(BENTLEY *p, int n);
-void SetBentleyState(BENTLEY *p, int n);
-void UpdateJtAirInput(JTAIR *pv);
-void UpdateJtGrabInput(JTGRAB *pv);
-void UpdateJtHurtInput(JTHURT *pv);
-void StartJtMode(JTMODE *pv, int a, int b, int c);
-void TryGrabJtNearestCandidate(JTGRAB *pv, int a, int b);
-JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int n);
-void UpdateJtActivePipe(JTPIPE *pv);
-void UpdateBentleySubState(BENTLEY *p);
-void UpdateBentleyStateMisc(BENTLEY *p);
-void UpdateJtThrow(JTTHROW *pv);
-int IsAsegaRetracted(ASEGA *pv);
-int IsSmaRetracted(SMA *pv);
-void UpdateBentleyAim(BENTLEY *p);
+namespace M_UpdateBentleyStateMachine {
+extern float D_002BC930 __asm__("D_002BC930");
+void SetJtAirJump(JTAIR *pv, int a, int b, int c) __asm__("SetJtAirJump");
+int IsStepplayerNearInteractTarget(BENTLEY *p, int n) __asm__("IsStepplayerNearInteractTarget");
+void SetBentleyState(BENTLEY *p, int n) __asm__("SetBentleyState");
+void UpdateJtAirInput(JTAIR *pv) __asm__("UpdateJtAirInput");
+void UpdateJtGrabInput(JTGRAB *pv) __asm__("UpdateJtGrabInput");
+void UpdateJtHurtInput(JTHURT *pv) __asm__("UpdateJtHurtInput");
+void StartJtMode(JTMODE *pv, int a, int b, int c) __asm__("StartJtMode");
+void TryGrabJtNearestCandidate(JTGRAB *pv, int a, int b) __asm__("TryGrabJtNearestCandidate");
+JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int n) __asm__("GetBentleyGadgetFromId");
+void UpdateJtActivePipe(JTPIPE *pv) __asm__("UpdateJtActivePipe");
+void UpdateBentleySubState(BENTLEY *p) __asm__("UpdateBentleySubState");
+void UpdateBentleyStateMisc(BENTLEY *p) __asm__("UpdateBentleyStateMisc");
+void UpdateJtThrow(JTTHROW *pv) __asm__("UpdateJtThrow");
+int IsAsegaRetracted(ASEGA *pv) __asm__("IsAsegaRetracted");
+int IsSmaRetracted(SMA *pv) __asm__("IsSmaRetracted");
+void UpdateBentleyAim(BENTLEY *p) __asm__("UpdateBentleyAim");
 
 // Per-frame Bentley state transitions driven by the component states, then the sub-machines (sub-state,
 // aim, hover).
-void UpdateBentleyStateMachine(BENTLEY *p)
+extern "C" void UpdateBentleyStateMachine(BENTLEY *p)
 {
     int s;
     do {
@@ -289,26 +289,26 @@ void UpdateBentleyStateMachine(BENTLEY *p)
         UpdateBentleyAim(p);
     } while (p->state != s);
 }
-} } // namespace M_UpdateBentleyStateMachine
+} // namespace M_UpdateBentleyStateMachine
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00134D30 { extern "C" {
-int IsStepplayerInJtMode(BENTLEY *);
-int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
-void EndJtMode(void *);
-void UpdateJtMode(void *);
+namespace M_func_00134D30 {
+int IsStepplayerInJtMode(BENTLEY *) __asm__("IsStepplayerInJtMode");
+int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
+void EndJtMode(void *) __asm__("EndJtMode");
+void UpdateJtMode(void *) __asm__("UpdateJtMode");
 // While in a look mode: in recon (mode 1, kind 0) the face buttons (mask 0x4F0) end it; then updates the mode.
-void UpdateBentleyJtMode(BENTLEY *bentley) {
+extern "C" void UpdateBentleyJtMode(BENTLEY *bentley) {
     if (!IsStepplayerInJtMode(bentley))
         return;
     void *pv = &bentley->jtmode;
     if (bentley->jtmode.state == 1 && bentley->jtmode.kind == 0 && ConsumeButtonsPressedWithin__5POCTLUif(bentley->controller, BUTTON_FACE | BUTTON_LOOK, 0.25f)) EndJtMode(pv);
     UpdateJtMode(pv);
 }
-} } // namespace M_func_00134D30
+} // namespace M_func_00134D30
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateBentley { extern "C" {
+namespace M_UpdateBentley {
 /* MATCH (Claude agent laneB18, 2026-10-23): case 5 uses LenXY5, which adds allocation-only "r"(p150) on the vsqrt asm and two "r"(p1030) on the qmfc2 asm (one "r"(p1030): 5). One register pin (MulT vf3). */
 /* v6 (Claude agent laneB16, 2026-10-23): aligned 7 -> 1. Case 11 uses PullB: qmtc2 into a plain qword t, then VOLATILE stores p->v190 = r and u.q = t (keeps the v190 store before the u store in sched1, so u lives longer and local-alloc gives r vf1 / u vf2 like the target; the lw p1030 now hoists too). Cases 10/14 keep Pull (their target order differs). Left: case 5 lw p150 before the LenXY vmul. */
 /* v5 (Claude agent laneB11, 2026-10-23): aligned 16 -> 7. MulT: r pinned to vf3 (one commented pin) + inputs (r[1], r[2]) order. Left: case 5 LenXY lw p150 after vaddy (target before vmul), case 11 Pull: lw p1030 / u vs r VF swap (vf1/vf2) and sqc2 order. */
@@ -316,45 +316,45 @@ namespace M_UpdateBentley { extern "C" {
 /* v3 (Claude agent, laneB4, 2026-10-23): aligned 37 -> 17. LenXY as two asms: vmul.xy alone, then vaddy.x+vsqrt+vwaitq+vaddq.x fused (fixes the extra-instruction offset). */
 /* v2 (Claude agent, 2026-10-23): aligned 42 -> 37. MulT asm operand order: outputs (r, one, t0, t1, t2), inputs (v, r[2], r[1]) gives the target's temp VF numbers (t0 vf7, one vf8, t1 vf6, t2 vf5). Left: r = r[0] lands in vf1 (target vf3; "0"(r[0]) tie same), LenXY: target loads p150 before the vmul and p1030 after vaddq (fused LenXY asm worse, 46-54), the mtc1/add.s nop in case 6. */
 struct POLY { float a; float b; float c; };
-extern struct LM D_002BBB60;
-extern float D_002BC934;
-extern struct POLY D_002BC940;
-extern struct POLY D_002BC950;
-extern float D_002BC960;
-void UpdateStepplayer(BENTLEY *p);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, BENTLEY *p, int n);
-void UpdateBentleyJtMode(BENTLEY *p);
-void UpdateBentleyStateMachine(BENTLEY *p);
-void SetStepTargetHeading(BENTLEY *p, float g);
-int GetStepplayerLeanFlags(BENTLEY *p);
-void SetSmaMask(SMA *a, int b);
-void UpdateGaitBlend(GAIT *pv, float g);
-void UpdateGaitFootsteps(GAIT *pv);
-void UpdateJtActiveJump(JTAIR *pv);
-void UpdateJtActiveHide(JTGRAB *pv);
-void FaceStepToward(BENTLEY *p, LO *plo);
-qword SetVectorCylind(float a, float b, float c);
-void UpdateDirectionalBlend(BENTLEY *p, BLDIR *pv, ASEGBL *n);
-qword GetStepAsegaTranslation(BENTLEY *p, struct ASEGA *px, float g);
-void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *px, float g);
-float NormalizeAngle__Ff(float g);
-float ClampAbs__Fff(float g, float dg);
-void UpdateBentleyPlaces(BENTLEY *p);
-void UpdateJtActiveZap(JTHURT *pv);
+extern struct LM D_002BBB60 __asm__("D_002BBB60");
+extern float D_002BC934 __asm__("D_002BC934");
+extern struct POLY D_002BC940 __asm__("D_002BC940");
+extern struct POLY D_002BC950 __asm__("D_002BC950");
+extern float D_002BC960 __asm__("D_002BC960");
+void UpdateStepplayer(BENTLEY *p) __asm__("UpdateStepplayer");
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, BENTLEY *p, int n) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
+void UpdateBentleyJtMode(BENTLEY *p) __asm__("UpdateBentleyJtMode");
+void UpdateBentleyStateMachine(BENTLEY *p) __asm__("UpdateBentleyStateMachine");
+void SetStepTargetHeading(BENTLEY *p, float g) __asm__("SetStepTargetHeading");
+int GetStepplayerLeanFlags(BENTLEY *p) __asm__("GetStepplayerLeanFlags");
+void SetSmaMask(SMA *a, int b) __asm__("SetSmaMask");
+void UpdateGaitBlend(GAIT *pv, float g) __asm__("UpdateGaitBlend");
+void UpdateGaitFootsteps(GAIT *pv) __asm__("UpdateGaitFootsteps");
+void UpdateJtActiveJump(JTAIR *pv) __asm__("UpdateJtActiveJump");
+void UpdateJtActiveHide(JTGRAB *pv) __asm__("UpdateJtActiveHide");
+void FaceStepToward(BENTLEY *p, LO *plo) __asm__("FaceStepToward");
+qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
+void UpdateDirectionalBlend(BENTLEY *p, BLDIR *pv, ASEGBL *n) __asm__("UpdateDirectionalBlend");
+qword GetStepAsegaTranslation(BENTLEY *p, struct ASEGA *px, float g) __asm__("GetStepAsegaTranslation");
+void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *px, float g) __asm__("SetAsegaSpeed__FP5ASEGAf");
+float NormalizeAngle__Ff(float g) __asm__("NormalizeAngle__Ff");
+float ClampAbs__Fff(float g, float dg) __asm__("ClampAbs__Fff");
+void UpdateBentleyPlaces(BENTLEY *p) __asm__("UpdateBentleyPlaces");
+void UpdateJtActiveZap(JTHURT *pv) __asm__("UpdateJtActiveZap");
 
 // Evaluate the quadratic a + b*t + c*t^2.
-static __inline__ float EvaluatePoly(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
+extern "C" { static __inline__ float EvaluatePoly(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); } }
 // Clamp g to the range [minValue, maxValue] of range.
-static __inline__ float ClampF(float g, struct LM *range)
+extern "C" { static __inline__ float ClampF(float g, struct LM *range)
 {
     float lo = range->minValue;
     float hi = range->maxValue;
     if (g < lo) return lo;
     if (hi < g) return hi;
     return g;
-}
+} }
 // XY length of v as a float.
-static __inline__ float LenXY(qword v)
+extern "C" { static __inline__ float LenXY(qword v)
 {
     qword l;
     float g;
@@ -362,9 +362,9 @@ static __inline__ float LenXY(qword v)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
     return g;
-}
+} }
 // XY length of v as a float (pa and pb only influence register allocation).
-static __inline__ float LenXY5(qword v, POCTL *pa, struct ASEGA *pb)
+extern "C" { static __inline__ float LenXY5(qword v, POCTL *pa, struct ASEGA *pb)
 {
     qword l;
     float g;
@@ -372,9 +372,9 @@ static __inline__ float LenXY5(qword v, POCTL *pa, struct ASEGA *pb)
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l), "r"(pa));  /* allocation-only "r"(pa): raises the lw p150 sched priority so it issues before the vmul */
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l), "r"(pb), "r"(pb));  /* allocation-only "r"(pb) x2: raises p1030's local-alloc priority above p150 (p1030 $v0, p150 $v1) */
     return g;
-}
+} }
 // Rotate v by the transpose of the 3x3 matrix pm (result pinned to vf3).
-static __inline__ qword MulT(qword *pm, qword v)
+extern "C" { static __inline__ qword MulT(qword *pm, qword v)
 {
     register qword r __asm__("vf3");  /* register pin: VF allocation tie, target keeps the result in vf3 */
     qword t0, t1, t2, one;
@@ -382,18 +382,18 @@ static __inline__ qword MulT(qword *pm, qword v)
     __asm__("vmul.xyzw %2, %0, %5\n\tvmaxw.xyzw %1, $vf0, $vf0w\n\tvmul.xyzw %3, %6, %5\n\tvmul.xyzw %4, %7, %5\n\tvadday.x $ACC, %2, %2y\n\tvmaddz.x %0, %1, %2z\n\tvaddax.y $ACC, %3, %3x\n\tvmaddz.y %0, %1, %3z\n\tvaddax.z $ACC, %4, %4x\n\tvmaddy.z %0, %1, %4y"
             : "+j"(r), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(v), "j"(pm[1]), "j"(pm[2]));
     return r;
-}
+} }
 // Set the actor's qwUnknown190 velocity to v rotated by its target orientation, reset blendSide and update the
 // directional blend.
-static __inline__ void SetVel(BENTLEY *p, qword v, BLDIR *pv, ASEGBL *n)
+extern "C" { static __inline__ void SetVel(BENTLEY *p, qword v, BLDIR *pv, ASEGBL *n)
 {
     p->qwUnknown190 = v;
     p->qwUnknown190 = MulT(p->aqwTarget, v);
     p->blendSide = -1;
     UpdateDirectionalBlend(p, pv, n);
-}
+} }
 // Set v190 to the negated step-animation translation of the current action.
-static __inline__ void Pull(BENTLEY *p)
+extern "C" { static __inline__ void Pull(BENTLEY *p)
 {
     QWROW u;
     qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
@@ -403,9 +403,9 @@ static __inline__ void Pull(BENTLEY *p)
     u.q = uq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(u.q));
     p->qwUnknown190 = r;
-}
+} }
 // Set v190 to the negated step-animation translation of the current action (volatile stores keep the original order).
-static __inline__ void PullB(BENTLEY *p)
+extern "C" { static __inline__ void PullB(BENTLEY *p)
 {
     QWROW u;
     qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
@@ -414,16 +414,16 @@ static __inline__ void PullB(BENTLEY *p)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(t));
     *(volatile qword *)&p->qwUnknown190 = r;
     *(volatile qword *)&u.q = t;
-}
+} }
 // Update the gait blend by g and then the footsteps.
-static __inline__ void Kick(GAIT *pv, float g)
+extern "C" { static __inline__ void Kick(GAIT *pv, float g)
 {
     UpdateGaitBlend(pv, g);
     UpdateGaitFootsteps(pv);
-}
+} }
 
 // BENTLEY Update (slot 16): UpdateStepplayer, then (if in the world) the state machine and per-state actions.
-void UpdateBentley(BENTLEY *bentley)
+extern "C" void UpdateBentley(BENTLEY *bentley)
 {
     UpdateStepplayer(bentley);
     if (((bentley->isInWorld) & 1) == 0)
@@ -495,38 +495,38 @@ void UpdateBentley(BENTLEY *bentley)
     UpdateBentleyPlaces(bentley);
     UpdateJtActiveZap(&bentley->jthurt);
 }
-} } // namespace M_UpdateBentley
+} // namespace M_UpdateBentley
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetBentleyState { extern "C" {
+namespace M_SetBentleyState {
 /* The held tossable (classes.h CID100: its slot 76 is not declared there). */
 struct VO { char pad[0xC]; VTE *vt; };
-extern qword D_002A2DD0;
-void SetXfRole(BENTLEY *, XF *, int);
-void ScheduleIdleTimer(BENTLEY *);
-void ExplodeWithDefaults(LO *);
-void SetJtAirState(JTAIR *, int, int);
-void SetJtGrabKind(JTGRAB *, int);
-void SetJtHurtState(JTHURT *, int);
-void SetJtPipeState(JTPIPE *, int);
-void ReleaseBentleyHeldObject(BENTLEY *);
-void SetBentleySubState(BENTLEY *, int);
-void SetBentleyHoverState(BENTLEY *, int);
-void SetJtThrowState(JTTHROW *, int);
-int FindSmStateOptional__FP2SM3OID(void *, int);
-int GetStepplayerLeanFlags(BENTLEY *);
-void InitIdleTimer(BENTLEY *, int);
-void ResetGaitFeet(GAIT *);
-void SetJtModeState__FP6JTMODEi(JTMODE *, int);
-void ReleaseAsega(ASEGA **);
-void ReleaseSma(SMA **);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, BENTLEY *, int, ASEGA **, float, float);
-void ReplaceSmaEx(void *, BENTLEY *, int, int, int, SMA **);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void SetXfRole(BENTLEY *, XF *, int) __asm__("SetXfRole");
+void ScheduleIdleTimer(BENTLEY *) __asm__("ScheduleIdleTimer");
+void ExplodeWithDefaults(LO *) __asm__("ExplodeWithDefaults");
+void SetJtAirState(JTAIR *, int, int) __asm__("SetJtAirState");
+void SetJtGrabKind(JTGRAB *, int) __asm__("SetJtGrabKind");
+void SetJtHurtState(JTHURT *, int) __asm__("SetJtHurtState");
+void SetJtPipeState(JTPIPE *, int) __asm__("SetJtPipeState");
+void ReleaseBentleyHeldObject(BENTLEY *) __asm__("ReleaseBentleyHeldObject");
+void SetBentleySubState(BENTLEY *, int) __asm__("SetBentleySubState");
+void SetBentleyHoverState(BENTLEY *, int) __asm__("SetBentleyHoverState");
+void SetJtThrowState(JTTHROW *, int) __asm__("SetJtThrowState");
+int FindSmStateOptional__FP2SM3OID(void *, int) __asm__("FindSmStateOptional__FP2SM3OID");
+int GetStepplayerLeanFlags(BENTLEY *) __asm__("GetStepplayerLeanFlags");
+void InitIdleTimer(BENTLEY *, int) __asm__("InitIdleTimer");
+void ResetGaitFeet(GAIT *) __asm__("ResetGaitFeet");
+void SetJtModeState__FP6JTMODEi(JTMODE *, int) __asm__("SetJtModeState__FP6JTMODEi");
+void ReleaseAsega(ASEGA **) __asm__("ReleaseAsega");
+void ReleaseSma(SMA **) __asm__("ReleaseSma");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(struct ASEG *, BENTLEY *, int, ASEGA **, float, float) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void ReplaceSmaEx(void *, BENTLEY *, int, int, int, SMA **) __asm__("ReplaceSmaEx");
 
 #define VCALL1(p, n, a) ((void (*)(void *, int))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d, a)
 
 // Bentley state change: exit/enter actions, animations and component state changes.
-void SetBentleyState(BENTLEY *p, int k)
+extern "C" void SetBentleyState(BENTLEY *p, int k)
 {
     int kOld;
     struct ASEG *asega;
@@ -691,25 +691,25 @@ void SetBentleyState(BENTLEY *p, int k)
     ReplaceSmaEx(jt, p, anim, n, c, &p->activeStateMachine);
     p->ApplyStateStepParams();
 }
-} } // namespace M_SetBentleyState
+} // namespace M_SetBentleyState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001356E8 { extern "C" {
+namespace M_func_001356E8 {
 typedef int ti128 __attribute__((mode(TI)));
 struct C { int a[4]; };
 struct LSG { ti128 pos; int pad[0x14]; };
 union VQ { float af[4]; ti128 q; };
-extern VQ D_002BC970;    /* screen points for ConvertCmScreenToWorld */
-extern VQ D_002BC980;
-ti128 ConvertCmScreenToWorld(void *, ti128);
-struct C *STACKSCOPE_ctor(struct C *);
+extern VQ D_002BC970 __asm__("D_002BC970");    /* screen points for ConvertCmScreenToWorld */
+extern VQ D_002BC980 __asm__("D_002BC980");
+ti128 ConvertCmScreenToWorld(void *, ti128) __asm__("ConvertCmScreenToWorld");
+struct C *STACKSCOPE_ctor(struct C *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
-void ShouldKeepSoNotSelf();
-void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), SOTREE *, int *, int *);
-int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *);
+void ShouldKeepSoNotSelf() __asm__("ShouldKeepSoNotSelf");
+void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), SOTREE *, int *, int *) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *) __asm__("FindFirstObjectHitByLine");
 // Casts a ray through two screen points into the world (box query plus line test against objects) and stores the hit
 // (or the far point) as the aim point.
-void UpdateBentleyAimPoint(BENTLEY *bentley) {
+extern "C" void UpdateBentleyAimPoint(BENTLEY *bentley) {
     struct C ctx;
     struct LSG lsg;
     int cso;
@@ -722,22 +722,22 @@ void UpdateBentleyAimPoint(BENTLEY *bentley) {
     else bentley->aimPoint = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
-} } // namespace M_func_001356E8
+} // namespace M_func_001356E8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_FireBentleyDart { extern "C" {
+namespace M_FireBentleyDart {
 typedef int ti128 __attribute__((mode(TI)));
 /* The launcher (BENTLEY::psoLauncher, CID 112) as written here: its target and a flag. */
 struct Q { char pad[0x50]; ti128 v50; int f60; };
-extern ti128 D_002A2DD0;
-void UpdateBentleyAimPoint(BENTLEY *);
-SO *AcquireProxyObject(PROXY *, int);
-void LaunchSoFromLauncher(struct Q *, SO *);
-void PrimeBomb__FP4BOMBf(SO *, float);
-void SetBentleyAimState(BENTLEY *, int);
+extern ti128 D_002A2DD0 __asm__("D_002A2DD0");
+void UpdateBentleyAimPoint(BENTLEY *) __asm__("UpdateBentleyAimPoint");
+SO *AcquireProxyObject(PROXY *, int) __asm__("AcquireProxyObject");
+void LaunchSoFromLauncher(struct Q *, SO *) __asm__("LaunchSoFromLauncher");
+void PrimeBomb__FP4BOMBf(SO *, float) __asm__("PrimeBomb__FP4BOMBf");
+void SetBentleyAimState(BENTLEY *, int) __asm__("SetBentleyAimState");
 // Fires the binocucom crossbow dart: clones the selected projectile template and launches it from the launcher
 // (CID112) toward the aim point. (runtime-verified: the dart, not a bomb)
-void FireBentleyDart(BENTLEY *bentley, int a) {
+extern "C" void FireBentleyDart(BENTLEY *bentley, int a) {
     PROXY *pv;
     SO *object;
     struct Q *pq;
@@ -760,7 +760,7 @@ void FireBentleyDart(BENTLEY *bentley, int a) {
     SetBentleyAimState(bentley, 1);
     bentley->lastDartTime = g_clock.time;
 }
-} } // namespace M_FireBentleyDart
+} // namespace M_FireBentleyDart
 
 // BENTLEY camera definition (slot 50): GetStepplayerCpdefi plus per-state tweaks (pipe 13 uses the pipe velocity,
 // state 5 sets a flag).
@@ -783,21 +783,21 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00135940 { extern "C" {
+namespace M_func_00135940 {
 typedef union { qword q; float f; } U;
 /* Bentley as the register-pinned drag code reads him: the g++ vtable pointer at +0xC. */
 struct VOBJ { char pad[0xC]; VTE *pvt; };
-extern float D_002BC990;
-void PresetSoAccel(BENTLEY *p);
-void PresetStepAccel(BENTLEY *p);
-void PresetJtAccelJump(JTAIR *p);
-void PresetJtAccelHide(JTGRAB *p);
-void PresetJtAccelZap(JTHURT *p);
-void PresetJtAccelPipe(JTPIPE *p);
-void AddSoAcceleration(BENTLEY *p, qword v);
+extern float D_002BC990 __asm__("D_002BC990");
+void PresetSoAccel(BENTLEY *p) __asm__("PresetSoAccel");
+void PresetStepAccel(BENTLEY *p) __asm__("PresetStepAccel");
+void PresetJtAccelJump(JTAIR *p) __asm__("PresetJtAccelJump");
+void PresetJtAccelHide(JTGRAB *p) __asm__("PresetJtAccelHide");
+void PresetJtAccelZap(JTHURT *p) __asm__("PresetJtAccelZap");
+void PresetJtAccelPipe(JTPIPE *p) __asm__("PresetJtAccelPipe");
+void AddSoAcceleration(BENTLEY *p, qword v) __asm__("AddSoAcceleration");
 // BENTLEY physics preset (slot 70): per state, the pipe / air / grab / hurt component's preset; state 6 sub-state 2
 // applies drag.
-void PresetBentleyAccel(BENTLEY *bentley)
+extern "C" void PresetBentleyAccel(BENTLEY *bentley)
 {
     if (bentley->state == BENTLEY_PIPE)
         PresetSoAccel(bentley);
@@ -825,17 +825,17 @@ void PresetBentleyAccel(BENTLEY *bentley)
         break;
     }
 }
-} } // namespace M_func_00135940
+} // namespace M_func_00135940
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00135A48 { extern "C" {
+namespace M_func_00135A48 {
 struct O { char pad[0x10]; unsigned long grf; };
 struct E { struct O *po; char pad[0x3c]; };
-void AdjustJtHurtXp(void *, struct E *);
-void ResetJtPipeAdjust(void *, struct E *);
-void AdjustStepNewXp(BENTLEY *, struct E *, int);
+void AdjustJtHurtXp(void *, struct E *) __asm__("AdjustJtHurtXp");
+void ResetJtPipeAdjust(void *, struct E *) __asm__("ResetJtPipeAdjust");
+void AdjustStepNewXp(BENTLEY *, struct E *, int) __asm__("AdjustStepNewXp");
 // BENTLEY contact adjust (slot 55): hurt -> AdjustJtHurtXp, pipe -> ResetJtPipeAdjust, else the STEP base.
-void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
+extern "C" void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
     struct E *pe = &ae[i];
     if (pe->po->grf & (0x8000L << 33)) return;
     switch (bentley->state) {
@@ -844,22 +844,22 @@ void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
     default: AdjustStepNewXp(bentley, ae, i); break;
     }
 }
-} } // namespace M_func_00135A48
+} // namespace M_func_00135A48
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_HandleBentleyMessage { extern "C" {
+namespace M_HandleBentleyMessage {
 /* The spawned tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): its gadget id and slot 76. */
 struct O { char pad[0xC]; void *vptr; char pad2[0x15C - 0x10]; int x15C; };
 struct M { void *x0; int x4; int x8; };
-void HandleStepplayerMessage(BENTLEY *p, int k, struct M *pm);
-LO *AcquireProxyObject(PROXY *pv, int n);
-void LockProxyObject(PROXY *pv, LO *po);
-void FireBentleyDart(BENTLEY *p, int n);
-void HandleBentleyCrosshairMessage(BTBLENDS *pv, int k, struct M *pm);
-void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, int n);
+void HandleStepplayerMessage(BENTLEY *p, int k, struct M *pm) __asm__("HandleStepplayerMessage");
+LO *AcquireProxyObject(PROXY *pv, int n) __asm__("AcquireProxyObject");
+void LockProxyObject(PROXY *pv, LO *po) __asm__("LockProxyObject");
+void FireBentleyDart(BENTLEY *p, int n) __asm__("FireBentleyDart");
+void HandleBentleyCrosshairMessage(BTBLENDS *pv, int k, struct M *pm) __asm__("HandleBentleyCrosshairMessage");
+void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, int n) __asm__("SetGadgetRecordObject");
 // BENTLEY message handler (slot 5): HandleStepplayerMessage, then Bentley-specific animation events (message 9 kinds:
 // 0x216 spawns an object from a template, ...).
-void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
+extern "C" void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
 {
     HandleStepplayerMessage(bentley, k, pm);
     switch (k) {
@@ -891,13 +891,13 @@ void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
     }
     }
 }
-} } // namespace M_HandleBentleyMessage
+} // namespace M_HandleBentleyMessage
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_SetBentleyPlayerState { extern "C" {
-void SetBentleyState(void *, int);
+namespace M_SetBentleyPlayerState {
+void SetBentleyState(void *, int) __asm__("SetBentleyState");
 // BENTLEY slot 88: maps a generic player state 0..8 to Bentley states (0, 2, 3, 4, 9, 10, 11, 12, 13).
-void SetBentleyPlayerState(void *bentley, unsigned int n)
+extern "C" void SetBentleyPlayerState(void *bentley, unsigned int n)
 {
     switch (n) {
     case 0: SetBentleyState(bentley, BENTLEY_IDLE); break;
@@ -911,12 +911,12 @@ void SetBentleyPlayerState(void *bentley, unsigned int n)
     case 8: SetBentleyState(bentley, BENTLEY_PIPE); break;
     }
 }
-} } // namespace M_SetBentleyPlayerState
+} // namespace M_SetBentleyPlayerState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_BENTLEY_PlayerStateCur { extern "C" {
+namespace M_BENTLEY_PlayerStateCur {
 // BENTLEY slot 89: the inverse map, Bentley state -> generic player state 0..8 (else -1).
-int GetBentleyPlayerState(BENTLEY *bentley) {
+extern "C" int GetBentleyPlayerState(BENTLEY *bentley) {
     switch (bentley->state) {
     case BENTLEY_IDLE: return 0;
     case BENTLEY_AIR: return 1;
@@ -930,17 +930,17 @@ int GetBentleyPlayerState(BENTLEY *bentley) {
     }
     return -1;
 }
-} } // namespace M_BENTLEY_PlayerStateCur
+} // namespace M_BENTLEY_PlayerStateCur
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00135D80 { extern "C" {
-SOPART *GetJtGrabAdjustRecord(JTGRAB *, int *);
-SOPART *GetJtAirAdjustRecord(JTAIR *, int *);
-SOPART *GetJtHurtAdjustRecord(JTHURT *, int *);
-void SetStepPhys(BENTLEY *, SOPART *, int);
+namespace M_func_00135D80 {
+SOPART *GetJtGrabAdjustRecord(JTGRAB *, int *) __asm__("GetJtGrabAdjustRecord");
+SOPART *GetJtAirAdjustRecord(JTAIR *, int *) __asm__("GetJtAirAdjustRecord");
+SOPART *GetJtHurtAdjustRecord(JTHURT *, int *) __asm__("GetJtHurtAdjustRecord");
+void SetStepPhys(BENTLEY *, SOPART *, int) __asm__("SetStepPhys");
 // BENTLEY slot 90: asks the active component (air/grab/hurt) for the per-state STEP parameter block, default +0x268,
 // then applies it (STEP base).
-void ApplyBentleyStateStepParams(BENTLEY *bentley) {
+extern "C" void ApplyBentleyStateStepParams(BENTLEY *bentley) {
     int n = 0;
     SOPART *r;
     switch (bentley->state) {
@@ -952,7 +952,7 @@ void ApplyBentleyStateStepParams(BENTLEY *bentley) {
     if (!r) r = bentley->ppartPhysMesh;
     SetStepPhys(bentley, r, n);
 }
-} } // namespace M_func_00135D80
+} // namespace M_func_00135D80
 
 // BENTLEY slot 91 (end the melee attack; Sly cancels his cane state here): Bentley has none, empty.
 extern "C" void EndBentleyMeleeAttack()
@@ -966,11 +966,11 @@ extern "C" int TryFaceBentleyAttachedObject()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00135E40 { extern "C" {
-int GetStepplayerMovementNoise(BENTLEY *);
+namespace M_func_00135E40 {
+int GetStepplayerMovementNoise(BENTLEY *) __asm__("GetStepplayerMovementNoise");
 // BENTLEY slot 98, movement-noise class (inferred; see GetStepplayerMovementNoise): the base result unless it is -1;
 // then 1 (noisy) in BENTLEY_RUN/NEAR_TARGET/ADRENALINE, else -1.
-int GetBentleyMovementNoise(BENTLEY *bentley) {
+extern "C" int GetBentleyMovementNoise(BENTLEY *bentley) {
     int r = GetStepplayerMovementNoise(bentley);
     if (r != -1) return r;
     switch (bentley->state) {
@@ -978,19 +978,19 @@ int GetBentleyMovementNoise(BENTLEY *bentley) {
     }
     return -1;
 }
-} } // namespace M_func_00135E40
+} // namespace M_func_00135E40
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00135EB0 { extern "C" {
+namespace M_func_00135EB0 {
 typedef int ti128 __attribute__((mode(TI)));
 struct Q { char pad[0x148]; unsigned long grf; };
 /* The floor contact (STEP::floorContact; XP has no shared definition yet) and its surface material flags. */
 struct A { char pad[0x40]; int f40; char pad1[8]; struct Q *pq; char pad2[0x60 - 0x50]; ti128 v60; char pad3[0x88 - 0x70]; float f88; };
-void AddJtPlaceAtPosition(void *, int, ti128);
-void RecordJtGrabPlace(void *);
-void RecordJtPipePlace(void *);
+void AddJtPlaceAtPosition(void *, int, ti128) __asm__("AddJtPlaceAtPosition");
+void RecordJtGrabPlace(void *) __asm__("RecordJtGrabPlace");
+void RecordJtPipePlace(void *) __asm__("RecordJtPipePlace");
 // Per state: records standing places when on solid ground (AddJtPlaceAtPosition), or the grab/pipe updates.
-void UpdateBentleyPlaces(BENTLEY *bentley) {
+extern "C" void UpdateBentleyPlaces(BENTLEY *bentley) {
     struct A *pa;
     switch (bentley->state) {
     case BENTLEY_IDLE: case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_GADGET: case BENTLEY_WALK: case BENTLEY_SCRIPT_SMA: case BENTLEY_THROW: case BENTLEY_ADRENALINE:
@@ -1006,36 +1006,36 @@ void UpdateBentleyPlaces(BENTLEY *bentley) {
         break;
     }
 }
-} } // namespace M_func_00135EB0
+} // namespace M_func_00135EB0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_BENTLEY_FInvulnerable { extern "C" {
-int IsJtGrabBusy(JTGRAB *, int);
-int IsStepplayerInvulnerable(BENTLEY *, int);
+namespace M_BENTLEY_FInvulnerable {
+int IsJtGrabBusy(JTGRAB *, int) __asm__("IsJtGrabBusy");
+int IsStepplayerInvulnerable(BENTLEY *, int) __asm__("IsStepplayerInvulnerable");
 // BENTLEY slot 76: on a pipe with zap kind 0x4000, or the grab check, else the STEPPLAYER base.
-int IsBentleyInvulnerable(BENTLEY *bentley, int msg) {
+extern "C" int IsBentleyInvulnerable(BENTLEY *bentley, int msg) {
     switch (bentley->state) { case BENTLEY_PIPE: if (msg == 0x4000) return 1; break; case BENTLEY_GRAB: if (IsJtGrabBusy(&bentley->jtgrab, msg)) return 1; break; }
     return IsStepplayerInvulnerable(bentley, msg);
 }
-} } // namespace M_BENTLEY_FInvulnerable
+} // namespace M_BENTLEY_FInvulnerable
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00135FF0 { extern "C" {
+namespace M_func_00135FF0 {
 // BENTLEY slot 94: 1 in states 0/1/5/7 (free movement), else 0. (inferred)
-int IsBentleyFreeMoving(BENTLEY *bentley) {
+extern "C" int IsBentleyFreeMoving(BENTLEY *bentley) {
     switch (bentley->state) {
     case BENTLEY_IDLE: case BENTLEY_RUN: case BENTLEY_NEAR_TARGET: case BENTLEY_WALK: return 1;
     }
     return 0;
 }
-} } // namespace M_func_00135FF0
+} // namespace M_func_00135FF0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136040 { extern "C" {
-void ReleaseSma(void *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, float, float, int, ASEGA **);
+namespace M_func_00136040 {
+void ReleaseSma(void *) __asm__("ReleaseSma");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, float, float, int, ASEGA **) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Sets the +0x16B0 sub-state and plays its animation.
-void SetBentleySubState(BENTLEY *bentley, int n) {
+extern "C" void SetBentleySubState(BENTLEY *bentley, int n) {
     ASEG *aseg;
     int grfapl;
     if (n == bentley->subState) return;
@@ -1066,21 +1066,21 @@ void SetBentleySubState(BENTLEY *bentley, int n) {
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(aseg, bentley, 0.0f, 1.0f, grfapl, &bentley->activeAnimation);
     bentley->ApplyStateStepParams();
 }
-} } // namespace M_func_00136040
+} // namespace M_func_00136040
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136118 { extern "C" {
+namespace M_func_00136118 {
 /* The held tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): state, a stick target and slot 76. */
 struct O { char pad[0xC]; void *vptr; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
-int IsAsegaRetracted(ASEGA *pv);
-void SetBentleySubState(BENTLEY *p, int n);
-void StickTossable(struct O *po, int n);
-int GetGadgetButtonMask(BENTLEY *p, int n);
-int POCTL_IsButtonDown(POCTL *pv, int n);
-void ReleaseBentleyHeldObject(BENTLEY *p);
-void SetJtAirJump(JTAIR *pv, int a, int b, int c);
+int IsAsegaRetracted(ASEGA *pv) __asm__("IsAsegaRetracted");
+void SetBentleySubState(BENTLEY *p, int n) __asm__("SetBentleySubState");
+void StickTossable(struct O *po, int n) __asm__("StickTossable");
+int GetGadgetButtonMask(BENTLEY *p, int n) __asm__("GetGadgetButtonMask");
+int POCTL_IsButtonDown(POCTL *pv, int n) __asm__("POCTL_IsButtonDown");
+void ReleaseBentleyHeldObject(BENTLEY *p) __asm__("ReleaseBentleyHeldObject");
+void SetJtAirJump(JTAIR *pv, int a, int b, int c) __asm__("SetJtAirJump");
 // The subState machine.
-void UpdateBentleySubState(BENTLEY *bentley)
+extern "C" void UpdateBentleySubState(BENTLEY *bentley)
 {
     int s;
     for (;;) {
@@ -1114,7 +1114,7 @@ void UpdateBentleySubState(BENTLEY *bentley)
             break;
     }
 }
-} } // namespace M_func_00136118
+} // namespace M_func_00136118
 
 /* Hands the proxy held at +0x186C back: hooks it to Bentley if IsThrowableGadget allows, then unlocks it in the
    current pocket's proxy. */
@@ -1143,17 +1143,17 @@ extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateBentleyAim { extern "C" {
-extern float D_002BC994;
-int IsStepplayerInJtMode(BENTLEY *p);
-int ConsumeButtonsPressedWithin__5POCTLUif(void *pv, int n, float g);
-void FireBentleyDart(BENTLEY *p, int n);
-void UpdateBentleyCrosshair(void *pv, int n);
-int FindSmStateOptional__FP2SM3OID(void *pv, int n);
-void SnapSma(void *pv, int n);
+namespace M_UpdateBentleyAim {
+extern float D_002BC994 __asm__("D_002BC994");
+int IsStepplayerInJtMode(BENTLEY *p) __asm__("IsStepplayerInJtMode");
+int ConsumeButtonsPressedWithin__5POCTLUif(void *pv, int n, float g) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
+void FireBentleyDart(BENTLEY *p, int n) __asm__("FireBentleyDart");
+void UpdateBentleyCrosshair(void *pv, int n) __asm__("UpdateBentleyCrosshair");
+int FindSmStateOptional__FP2SM3OID(void *pv, int n) __asm__("FindSmStateOptional__FP2SM3OID");
+void SnapSma(void *pv, int n) __asm__("SnapSma");
 // Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; the fire button within
 // 0.25 s while ready fires (FireBentleyDart). The cool-down is 2.0 s.
-void UpdateBentleyAim(BENTLEY *bentley)
+extern "C" void UpdateBentleyAim(BENTLEY *bentley)
 {
     int s;
     do {
@@ -1197,29 +1197,29 @@ void UpdateBentleyAim(BENTLEY *bentley)
         }
     } while (s != bentley->aimState);
 }
-} } // namespace M_UpdateBentleyAim
+} // namespace M_UpdateBentleyAim
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136530 { extern "C" {
+namespace M_func_00136530 {
 typedef struct { qword r[3]; qword pos; } M4;
-extern MURRAY *D_002F7900;
-extern qword D_002A2DD0;
-void SetLoParent(BENTLEY *, int, int);
-void ReleaseAct(ACT **);
-void SetXfRole(BENTLEY *, XF *, int);
-float GetStepHeading(BENTLEY *);
-void SetStepTargetHeading(BENTLEY *, float);
-void FixStepAngularVelocity(BENTLEY *);
-void SetJtThrowState(JTTHROW *, int);
-M4 GetRelativeXfMatrix(void *, void *, M4 *);
-ACT *NewPositionAct(BENTLEY *p, XF *pxf, int a, int b, int c, qword q);
-qword DecomposeRotationMatrixToEuler(M4 *pm);
-void ReleaseSma(SMA **);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, int, ASEGA **, float, float);
+extern MURRAY *D_002F7900 __asm__("D_002F7900");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void SetLoParent(BENTLEY *, int, int) __asm__("SetLoParent");
+void ReleaseAct(ACT **) __asm__("ReleaseAct");
+void SetXfRole(BENTLEY *, XF *, int) __asm__("SetXfRole");
+float GetStepHeading(BENTLEY *) __asm__("GetStepHeading");
+void SetStepTargetHeading(BENTLEY *, float) __asm__("SetStepTargetHeading");
+void FixStepAngularVelocity(BENTLEY *) __asm__("FixStepAngularVelocity");
+void SetJtThrowState(JTTHROW *, int) __asm__("SetJtThrowState");
+M4 GetRelativeXfMatrix(void *, void *, M4 *) __asm__("GetRelativeXfMatrix");
+ACT *NewPositionAct(BENTLEY *p, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
+qword DecomposeRotationMatrixToEuler(M4 *pm) __asm__("DecomposeRotationMatrixToEuler");
+void ReleaseSma(SMA **) __asm__("ReleaseSma");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, int, ASEGA **, float, float) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 
 // State machine on hoverState with reparenting and actuator teardown; also called from the throw code. (inferred: hover
 // pack)
-void SetBentleyHoverState(BENTLEY *bentley, int k)
+extern "C" void SetBentleyHoverState(BENTLEY *bentley, int k)
 {
     ASEG *pv;
     if (k == bentley->hoverState)
@@ -1279,13 +1279,13 @@ void SetBentleyHoverState(BENTLEY *bentley, int k)
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, bentley, 9, &bentley->activeAnimation, 0.0f, 1.0f);
     bentley->ApplyStateStepParams();
 }
-} } // namespace M_func_00136530
+} // namespace M_func_00136530
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001367D8 { extern "C" {
-void SetBentleyState(BENTLEY *, int);
+namespace M_func_001367D8 {
+void SetBentleyState(BENTLEY *, int) __asm__("SetBentleyState");
 // Small transition loop: state 1 returns to 0 and makes Bentley the current player object.
-void UpdateBentleyStateMisc(BENTLEY *bentley) {
+extern "C" void UpdateBentleyStateMisc(BENTLEY *bentley) {
     int st;
     do {
         st = bentley->hoverState;
@@ -1300,26 +1300,26 @@ void UpdateBentleyStateMisc(BENTLEY *bentley) {
         }
     } while (bentley->hoverState != st && bentley->hoverState != -1);
 }
-} } // namespace M_func_001367D8
+} // namespace M_func_001367D8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_BENTLEY_FCanUseGadget { extern "C" {
+namespace M_BENTLEY_FCanUseGadget {
 /* MATCH (Claude agent laneB13, 2026-10-23), from v4 (4). One register pin (f in v1) plus commented empty asms that emulate the original toolchain's reorg/cross-jump state: case 12 has its own `return 0` (with an empty asm so it isn't merged with the shared fail), the shared fail has one too, the 1CADE0 path ends in `return 0`, and an empty asm using pe in the pv != 0 block keeps v0 live so reorg annuls the beql slot. */
 /* v4 (Claude agent laneB12, 2026-10-23): aligned 10 -> 4. f pinned to v1 (one commented pin) and used for case 12's x15C and the ChooseProxySpare result; cases 2/3/13 test their call results directly; an empty volatile asm "+r"(f) after the 1CADE0 call keeps the target's `daddu v1,v0; bnez v1` (cse otherwise tests v0). Left: reorg fill choices: case 12 beq slot (target steals li v0,1 from `one`, ours takes li v0,0 from the fallthrough; `if (f != k) goto fail` flips the layout: 4), and the pv == 0 test (target beql, ours beqz). */
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
 /* The carried tossable (classes.h CID100 has no fields yet): its gadget id. */
 struct A { char pad[0x15C]; int x15C; };
-extern int D_002DFBC0;
-int IsStepplayerInJtMode();
-int CanJtUseGadgetInAir(void *pv, int k);
-int CanJtUseGadgetInGrab(void *pv, int k);
-int CanJtUseGadgetOnPipe(void *pv, int k);
-JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k);
-int IsTossableActive(void *pv);
-int ChooseProxySpare(void *pv, int n);
-int IsCameraPolicyActive__FP5CPLCY(void *pv);
+extern int D_002DFBC0 __asm__("D_002DFBC0");
+int IsStepplayerInJtMode() __asm__("IsStepplayerInJtMode");
+int CanJtUseGadgetInAir(void *pv, int k) __asm__("CanJtUseGadgetInAir");
+int CanJtUseGadgetInGrab(void *pv, int k) __asm__("CanJtUseGadgetInGrab");
+int CanJtUseGadgetOnPipe(void *pv, int k) __asm__("CanJtUseGadgetOnPipe");
+JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k) __asm__("GetBentleyGadgetFromId");
+int IsTossableActive(void *pv) __asm__("IsTossableActive");
+int ChooseProxySpare(void *pv, int n) __asm__("ChooseProxySpare");
+int IsCameraPolicyActive__FP5CPLCY(void *pv) __asm__("IsCameraPolicyActive__FP5CPLCY");
 // BENTLEY slot 99: per-state checks and the per-gadget record's availability.
-int CanBentleyUseGadget(BENTLEY *bentley, int k)
+extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
 {
     register int f __asm__("$3");  /* register pin: target keeps x15C and the ChooseProxySpare result in v1 */
     void *pv;
@@ -1388,13 +1388,13 @@ int CanBentleyUseGadget(BENTLEY *bentley, int k)
         goto fail;
     }
 }
-} } // namespace M_BENTLEY_FCanUseGadget
+} // namespace M_BENTLEY_FCanUseGadget
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_PgadgetBentleyFromId { extern "C" {
+namespace M_PgadgetBentleyFromId {
 /* Sly 2 version takes a base pointer in $a0 and saak in $a1 and returns a pointer into it. */
 // The gadget record for a gadget id.
-int GetBentleyGadgetFromId(char *bentley, int saak)
+extern "C" int GetBentleyGadgetFromId(char *bentley, int saak)
 {
     switch (saak) {
     case 5: return (int)(bentley + 0x1824);
@@ -1406,25 +1406,25 @@ int GetBentleyGadgetFromId(char *bentley, int saak)
     }
     return 0;
 }
-} } // namespace M_PgadgetBentleyFromId
+} // namespace M_PgadgetBentleyFromId
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_StartBentleyGadget { extern "C" {
+namespace M_StartBentleyGadget {
 /* The spawned tossable (classes.h CID100 has no fields yet): its gadget id and owner. */
 struct O { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *p16C; };
-void BroadcastGameEvent(GAME *pg, int n, BENTLEY *p);
-JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k);
-void SetJtThrowState(JTTHROW *pv, int n);
-void SetJtGrabState(JTGRAB *pv, int n, void *pv2, int m);
-struct O *AcquireProxyObject(PROXY *pv, int n);
-int IsThrowableGadget(struct O *po);
-void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct O *po);
-void GetGadgetButtonMask(BENTLEY *p, int k);
-void SetBentleyState(BENTLEY *p, int n);
-void ChargeGadgetMp(BENTLEY *p, int k);
-void StartStepplayerGadget(BENTLEY *p, int k);
+void BroadcastGameEvent(GAME *pg, int n, BENTLEY *p) __asm__("BroadcastGameEvent");
+JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k) __asm__("GetBentleyGadgetFromId");
+void SetJtThrowState(JTTHROW *pv, int n) __asm__("SetJtThrowState");
+void SetJtGrabState(JTGRAB *pv, int n, void *pv2, int m) __asm__("SetJtGrabState");
+struct O *AcquireProxyObject(PROXY *pv, int n) __asm__("AcquireProxyObject");
+int IsThrowableGadget(struct O *po) __asm__("IsThrowableGadget");
+void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct O *po) __asm__("SetGadgetRecordObject");
+void GetGadgetButtonMask(BENTLEY *p, int k) __asm__("GetGadgetButtonMask");
+void SetBentleyState(BENTLEY *p, int n) __asm__("SetBentleyState");
+void ChargeGadgetMp(BENTLEY *p, int k) __asm__("ChargeGadgetMp");
+void StartStepplayerGadget(BENTLEY *p, int k) __asm__("StartStepplayerGadget");
 // BENTLEY slot 100: broadcasts game event 0x3C, then per gadget id starts the throw/grab/air action using its record.
-void StartBentleyGadget(BENTLEY *bentley, int k)
+extern "C" void StartBentleyGadget(BENTLEY *bentley, int k)
 {
     g_game.idGadgetLast = k;
     BroadcastGameEvent(&g_game, 0x3C, bentley);
@@ -1473,7 +1473,7 @@ void StartBentleyGadget(BENTLEY *bentley, int k)
         return;
     }
 }
-} } // namespace M_StartBentleyGadget
+} // namespace M_StartBentleyGadget
 
 // BENTLEY slot 105: base, then enables feature 0x24D if he is the current player with gadget 0xC equipped, else
 // disables it.
@@ -1495,10 +1495,10 @@ extern "C" char *GetBentleySaveVarRoot()
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136CC0 { extern "C" {
-int GetStepplayerGroundProbeFlags(BENTLEY *);
+namespace M_func_00136CC0 {
+int GetStepplayerGroundProbeFlags(BENTLEY *) __asm__("GetStepplayerGroundProbeFlags");
 // BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
-int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
+extern "C" int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
     if (bentley->unknown204) return 0;
     switch (bentley->state) {
     case BENTLEY_PIPE: return 0;
@@ -1507,14 +1507,14 @@ int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
     }
     return GetStepplayerGroundProbeFlags(bentley);
 }
-} } // namespace M_func_00136CC0
+} // namespace M_func_00136CC0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136D28 { extern "C" {
+namespace M_func_00136D28 {
 typedef int ti128 __attribute__((mode(TI)));
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(BENTLEY *, int, int, JTAIRBL *, int, int, int, ASEGBL **);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(BENTLEY *, int, int, JTAIRBL *, int, int, int, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 // Initializes the six blended animation slots of the crosshair/aim helper (+0x1710).
-void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, float g0, float g1) {
+extern "C" void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, float g0, float g1) {
     unsigned int i;
     bentley->pbentley = a;
     bentley->restPosition = v;
@@ -1522,15 +1522,15 @@ void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, float g0, floa
     bentley->state = -1;
     for (i = 0; i < 6; i++) EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(bentley->pbentley, 0xc, 2, bentley->abtblend[i].abl, 0, 0, 0, &bentley->abtblend[i].blendedAnimation);
 }
-} } // namespace M_func_00136D28
+} // namespace M_func_00136D28
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136DC0 { extern "C" {
-int IsAsegaRetracted(void *p);
-int GetButtonsPressedWithin__5POCTLUif(POCTL *pa, int grf, float g);
-void ClearPoctlJoyPressed(POCTL *pa, int n);
+namespace M_func_00136DC0 {
+int IsAsegaRetracted(void *p) __asm__("IsAsegaRetracted");
+int GetButtonsPressedWithin__5POCTLUif(POCTL *pa, int grf, float g) __asm__("GetButtonsPressedWithin__5POCTLUif");
+void ClearPoctlJoyPressed(POCTL *pa, int n) __asm__("ClearPoctlJoyPressed");
 // Crosshair update: on button 0x80 when gadget 2 is usable, restarts it.
-void UpdateBentleyCrosshair(BTBLENDS *bentley, int k)
+extern "C" void UpdateBentleyCrosshair(BTBLENDS *bentley, int k)
 {
     if (bentley->pasega && IsAsegaRetracted(bentley->pasega))
         SetBentleyCrosshairState(bentley, -1);
@@ -1548,14 +1548,14 @@ void UpdateBentleyCrosshair(BTBLENDS *bentley, int k)
 
         bentley->unknown14 = 1;
 }
-} } // namespace M_func_00136DC0
+} // namespace M_func_00136DC0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136ED0 { extern "C" {
+namespace M_func_00136ED0 {
 struct M { ASEGA *pasega; int f4; int f8; };
-void DetachXfActById(ASEGA *, BENTLEY *, void *);
+void DetachXfActById(ASEGA *, BENTLEY *, void *) __asm__("DetachXfActById");
 // Crosshair message handler: message 9 kinds 0x16E/0x242.
-void HandleBentleyCrosshairMessage(BTBLENDS *bentley, int msg, struct M *pm) {
+extern "C" void HandleBentleyCrosshairMessage(BTBLENDS *bentley, int msg, struct M *pm) {
     if (msg != 9 || pm->pasega != bentley->pasega)
         return;
     switch (pm->f8) {
@@ -1563,23 +1563,23 @@ void HandleBentleyCrosshairMessage(BTBLENDS *bentley, int msg, struct M *pm) {
     case 0x242: bentley->unknown0C = 1; break;
     }
 }
-} } // namespace M_func_00136ED0
+} // namespace M_func_00136ED0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_00136F48 { extern "C" {
+namespace M_func_00136F48 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float a[4]; } QF;
-extern qword D_002A2DD0;
-void ChooseJtAttackTarget(BENTLEY *, int, void *, int *, QF *, float, float, float);
-qword ConvertPosBetweenLos(void *, BENTLEY *, qword);
-void SetStepTargetHeadingFromVector(BENTLEY *, qword);
-void FixStepAngularVelocity(BENTLEY *);
-void RecalculateAsegBlend(void *);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, BENTLEY *, int, ASEGA **, float, float);
-void DetachXfActById(ASEGA *, BENTLEY *, void *);
-void SetAsegaChannelWeight(ASEGA *, float);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void ChooseJtAttackTarget(BENTLEY *, int, void *, int *, QF *, float, float, float) __asm__("ChooseJtAttackTarget");
+qword ConvertPosBetweenLos(void *, BENTLEY *, qword) __asm__("ConvertPosBetweenLos");
+void SetStepTargetHeadingFromVector(BENTLEY *, qword) __asm__("SetStepTargetHeadingFromVector");
+void FixStepAngularVelocity(BENTLEY *) __asm__("FixStepAngularVelocity");
+void RecalculateAsegBlend(void *) __asm__("RecalculateAsegBlend");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, BENTLEY *, int, ASEGA **, float, float) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void DetachXfActById(ASEGA *, BENTLEY *, void *) __asm__("DetachXfActById");
+void SetAsegaChannelWeight(ASEGA *, float) __asm__("SetAsegaChannelWeight");
 // Crosshair state change.
-void SetBentleyCrosshairState(BTBLENDS *ps, int state)
+extern "C" void SetBentleyCrosshairState(BTBLENDS *ps, int state)
 {
     void *pv;
     float dt;
@@ -1636,7 +1636,7 @@ void SetBentleyCrosshairState(BTBLENDS *ps, int state)
     if (ps->pasega && dt != 0.0f)
         SetAsegaChannelWeight(ps->pasega, g_clock.time + dt);
 }
-} } // namespace M_func_00136F48
+} // namespace M_func_00136F48
 
 // Initializes the blend/helper record (players.h BTBLENDS): owner and state -1. (inferred)
 extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
@@ -1646,15 +1646,15 @@ extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001371C8 { extern "C" {
-int IsAsegaRetracted(ASEGA *pasega);
+namespace M_func_001371C8 {
+int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 // When the owner's current action has retracted, returns him to generic player state 0 (SetPlayerState).
-void EndBentleyHelperWhenRetracted(JTREC *prec) {
+extern "C" void EndBentleyHelperWhenRetracted(JTREC *prec) {
     if (IsAsegaRetracted(prec->player->activeAnimation)) {
         prec->player->SetPlayerState(0);
     }
 }
-} } // namespace M_func_001371C8
+} // namespace M_func_001371C8
 
 // Turns Bentley toward his interact target, if any.
 extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
@@ -1739,19 +1739,19 @@ static inline void SafeDiv(UQ &v, qword len, const qword &vDef)
         v.q = VuDivByX(v.q, len);
 }
 
-extern "C" {
-extern float D_002BC998;
-extern float D_002BC99C;
-extern float D_002BC9A0;
-extern SMP D_002BC9A8;
-extern qword D_002A2DC0, D_002A2DA0;
-qword GetLoWorldPos(LO *p);
-float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
-float ClampAbs__Fff(float g, float gMax);
-MATRIX3Q BuildAxisAngleRotationMatrix(qword axis, float g);
-qword LimitVectorLength(qword v, float g);
-void AddSoAcceleration(STEPPLAYER *p, qword v);
-}
+
+extern float D_002BC998 __asm__("D_002BC998");
+extern float D_002BC99C __asm__("D_002BC99C");
+extern float D_002BC9A0 __asm__("D_002BC9A0");
+extern SMP D_002BC9A8 __asm__("D_002BC9A8");
+extern qword D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DA0 __asm__("D_002A2DA0");
+qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
+float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");
+float ClampAbs__Fff(float g, float gMax) __asm__("ClampAbs__Fff");
+MATRIX3Q BuildAxisAngleRotationMatrix(qword axis, float g) __asm__("BuildAxisAngleRotationMatrix");
+qword LimitVectorLength(qword v, float g) __asm__("LimitVectorLength");
+void AddSoAcceleration(STEPPLAYER *p, qword v) __asm__("AddSoAcceleration");
+
 
 // Corrects Bentley's relative velocity and position against the object he rides. (inferred)
 extern "C" void CorrectBentleyRideVelocity(JTREC *s)
@@ -1791,13 +1791,13 @@ extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_func_001374F0 { extern "C" {
+namespace M_func_001374F0 {
 typedef int qword __attribute__((mode(TI)));
-qword SetVectorCylind(float a, float b, float c);
-qword GetLoWorldPos(void *p);
+qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // With a target and a positive range: 1 if the target lies behind Bentley's facing, 0 if in front; otherwise returns
 // the record's stored flag. (inferred)
-int IsBentleyHelperTargetBehind(BTBLENDS *bentley)
+extern "C" int IsBentleyHelperTargetBehind(BTBLENDS *bentley)
 {
     float zero = 0.0f;
     POCTL *pq = bentley->pbentley->controller;
@@ -1818,7 +1818,7 @@ int IsBentleyHelperTargetBehind(BTBLENDS *bentley)
     }
     return bentley->unknown0C;
 }
-} } // namespace M_func_001374F0
+} // namespace M_func_001374F0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001375D0 {
@@ -1870,14 +1870,14 @@ struct Q {
     virtual void Eval(int n, qword *pv, float g0, float g1);
 };
 struct R { int x0; Q *pq; };
-extern "C" {
-extern float D_002BC9B4;   /* contact friction */
-extern float D_002BC9B8;
-void FaceStepToward(STEPPLAYER *p, LO *plo);
-CHN *FindAsegChannel(ASEG *px, STEPPLAYER *p, int a, int b);
-void ReleaseSma(SMA **ppsma);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *px, STEPPLAYER *p, int n, ASEGA **ppasega, float g0, float g1);
-}
+
+extern float D_002BC9B4 __asm__("D_002BC9B4");   /* contact friction */
+extern float D_002BC9B8 __asm__("D_002BC9B8");
+void FaceStepToward(STEPPLAYER *p, LO *plo) __asm__("FaceStepToward");
+CHN *FindAsegChannel(ASEG *px, STEPPLAYER *p, int a, int b) __asm__("FindAsegChannel");
+void ReleaseSma(SMA **ppsma) __asm__("ReleaseSma");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *px, STEPPLAYER *p, int n, ASEGA **ppasega, float g0, float g1) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+
 
 // Helper state change: plays the state's clip and, on leaving, scales the velocity. (inferred)
 extern "C" void SetBentleyHelperState(JTREC *s, int k)
@@ -1956,35 +1956,35 @@ SNIP D_002BC390[0x76] = {
     {0x300, 0x155, 0x1874}, {0x300, 0x24C, 0x1878},
 };
 } // extern "C"
-namespace M_PostBentleyLoad { extern "C" {
-VQ D_002BC920 = {{175.0f, 0.0f, 0.0f, 0.0f}};
-} } // namespace M_PostBentleyLoad extern "C"
-namespace M_UpdateBentleyStateMachine { extern "C" {
-float D_002BC930 = 2.0f;
-} } // namespace M_UpdateBentleyStateMachine extern "C"
-namespace M_UpdateBentley { extern "C" {
-float D_002BC934 = 0.5f;
-struct POLY D_002BC940 __attribute__((aligned(16))) = {-1.0f, 2.0f, 0.0f};
-struct POLY D_002BC950 = {1.0f, 0.0f, 0.0f};
-float D_002BC960 __attribute__((aligned(16))) = 5.0f;
-} } // namespace M_UpdateBentley extern "C"
-namespace M_func_001356E8 { extern "C" {
-VQ D_002BC970 = {{0.0f, 0.0f, 10.0f, 0.0f}};
-VQ D_002BC980 = {{0.0f, 0.0f, 40000.0f, 0.0f}};
-} } // namespace M_func_001356E8 extern "C"
-namespace M_func_00135940 { extern "C" {
-float D_002BC990 = 2.5f;
-} } // namespace M_func_00135940 extern "C"
-namespace M_UpdateBentleyAim { extern "C" {
-float D_002BC994 = 2.0f;
-} } // namespace M_UpdateBentleyAim extern "C"
-namespace M_func_00137248 { extern "C" {
-float D_002BC998 = 250.0f;
-float D_002BC99C = 1500.0f;
-float D_002BC9A0 = 1500.0f;
-SMP D_002BC9A8 = {500.0f, 0.0f, 0.5f};
-} } // namespace M_func_00137248 extern "C"
-namespace M_func_001375D0 { extern "C" {
-float D_002BC9B4 = 0.0f;
-float D_002BC9B8 = 0.5f;
-} }
+namespace M_PostBentleyLoad {
+VQ D_002BC920 __asm__("D_002BC920") = {{175.0f, 0.0f, 0.0f, 0.0f}};
+} // namespace M_PostBentleyLoad extern "C"
+namespace M_UpdateBentleyStateMachine {
+float D_002BC930 __asm__("D_002BC930") = 2.0f;
+} // namespace M_UpdateBentleyStateMachine extern "C"
+namespace M_UpdateBentley {
+float D_002BC934 __asm__("D_002BC934") = 0.5f;
+struct POLY D_002BC940 __asm__("D_002BC940") __attribute__((aligned(16))) = {-1.0f, 2.0f, 0.0f};
+struct POLY D_002BC950 __asm__("D_002BC950") = {1.0f, 0.0f, 0.0f};
+float D_002BC960 __asm__("D_002BC960") __attribute__((aligned(16))) = 5.0f;
+} // namespace M_UpdateBentley extern "C"
+namespace M_func_001356E8 {
+VQ D_002BC970 __asm__("D_002BC970") = {{0.0f, 0.0f, 10.0f, 0.0f}};
+VQ D_002BC980 __asm__("D_002BC980") = {{0.0f, 0.0f, 40000.0f, 0.0f}};
+} // namespace M_func_001356E8 extern "C"
+namespace M_func_00135940 {
+float D_002BC990 __asm__("D_002BC990") = 2.5f;
+} // namespace M_func_00135940 extern "C"
+namespace M_UpdateBentleyAim {
+float D_002BC994 __asm__("D_002BC994") = 2.0f;
+} // namespace M_UpdateBentleyAim extern "C"
+namespace M_func_00137248 {
+float D_002BC998 __asm__("D_002BC998") = 250.0f;
+float D_002BC99C __asm__("D_002BC99C") = 1500.0f;
+float D_002BC9A0 __asm__("D_002BC9A0") = 1500.0f;
+SMP D_002BC9A8 __asm__("D_002BC9A8") = {500.0f, 0.0f, 0.5f};
+} // namespace M_func_00137248 extern "C"
+namespace M_func_001375D0 {
+float D_002BC9B4 __asm__("D_002BC9B4") = 0.0f;
+float D_002BC9B8 __asm__("D_002BC9B8") = 0.5f;
+}

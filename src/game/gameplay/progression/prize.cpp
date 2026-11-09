@@ -52,12 +52,12 @@ int IsVaultOpened();
 void SetVaultState(VAULT *pvault, int n);
 }
 
-namespace M_InitDprize { extern "C" {
-extern float D_002A7710;
-void InitSo(DPRIZE *p);
-void SetSoZapResponse(DPRIZE *p, int a, int b);
+namespace M_InitDprize {
+extern float D_002A7710 __asm__("D_002A7710");
+void InitSo(DPRIZE *p) __asm__("InitSo");
+void SetSoZapResponse(DPRIZE *p, int a, int b) __asm__("SetSoZapResponse");
 // DPRIZE::Init (vtable slot 7): InitSo + 0x1F7918 setup.
-void InitDprize(DPRIZE *prize)
+extern "C" void InitDprize(DPRIZE *prize)
 {
     int v;
     InitSo(prize);
@@ -78,7 +78,7 @@ void InitDprize(DPRIZE *prize)
     prize->unknown224 = OID_Nil;
     if (IsPointer(v)) *(int *)v |= 2; else prize->unknown40 = v | 2;
 }
-} } // namespace M_InitDprize
+} // namespace M_InitDprize
 
 // DPRIZE::LoadFromBrx (vtable slot 14): LoadSoFromBrx + snip objects (BindLoOidTable).
 extern "C" void LoadDprizeFromBrx(DPRIZE *prize, CBinaryInputStream *pbis)
@@ -90,12 +90,12 @@ extern "C" void LoadDprizeFromBrx(DPRIZE *prize, CBinaryInputStream *pbis)
     BindLoOidTable(prize, 1, D_002C0D40);
 }
 
-namespace M_PostDprizeLoad { extern "C" {
-void PostSoLoad(DPRIZE *p);
-LO *FindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, DPRIZE *p);
-LO *FindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, DPRIZE *p);
+namespace M_PostDprizeLoad {
+void PostSoLoad(DPRIZE *p) __asm__("PostSoLoad");
+LO *FindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, DPRIZE *p) __asm__("FindSwObjectByClass__FP2SWi3CIDP2LO");
+LO *FindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, DPRIZE *p) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
-void PostDprizeLoad(DPRIZE *prize)
+extern "C" void PostDprizeLoad(DPRIZE *prize)
 {
     LO *plo;
     PostSoLoad(prize);
@@ -111,15 +111,15 @@ void PostDprizeLoad(DPRIZE *prize)
     if (prize->vanishListenerOid != -1) prize->vanishListener = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, prize->vanishListenerOid, prize);
     prize->SetState(prize->initialState);
 }
-} } // namespace M_PostDprizeLoad
+} // namespace M_PostDprizeLoad
 
-namespace M_HandleDprizeMessage { extern "C" {
+namespace M_HandleDprizeMessage {
 struct LISTENER { char pad[0xC]; void *vptr; };   /* the vanish listener: an EXPL */
 struct A { int c; void *pv; int pad[14]; };
 struct M { SMA *sender; int x4; int goalAnim; };
-void HandleBasicMessage(DPRIZE *p, int n, struct M *pm);
+void HandleBasicMessage(DPRIZE *p, int n, struct M *pm) __asm__("HandleBasicMessage");
 // DPRIZE vtable slot 5 HandleMessage: base HandleBasicMessage + prize-specific msgs. (inferred)
-void HandleDprizeMessage(DPRIZE *prize, int n, struct M *pm)
+extern "C" void HandleDprizeMessage(DPRIZE *prize, int n, struct M *pm)
 {
     struct A a;
     HandleBasicMessage(prize, n, pm);
@@ -133,7 +133,7 @@ void HandleDprizeMessage(DPRIZE *prize, int n, struct M *pm)
         prize->SetState(2);
     }
 }
-} } // namespace M_HandleDprizeMessage
+} // namespace M_HandleDprizeMessage
 
 namespace M_ProjectDprizeTransform {
 // ProjectDprizeTransform (w2lane4, wave 2): per-frame update of an animated object (state 6 only forwards to UpdateSoXfWorld).
@@ -157,14 +157,14 @@ union M3 { qword rows[3]; float values[12]; };
    the local rotation rows, the local position (row 3), the world stamp and the velocity as quadwords. */
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
 struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
-extern "C" {
-extern float D_002C0D4C;
-extern qword D_002A2DC0;
-void UpdateSoXfWorld(DPRIZE *);
-qword *VECTOR_opAssign(qword *, qword);
-M3 BuildOrthonormalMatrixZ(qword, qword);
-M3 LoadRotateMatrixEuler(qword);
-}
+
+extern float D_002C0D4C __asm__("D_002C0D4C");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+void UpdateSoXfWorld(DPRIZE *) __asm__("UpdateSoXfWorld");
+qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
+M3 BuildOrthonormalMatrixZ(qword, qword) __asm__("BuildOrthonormalMatrixZ");
+M3 LoadRotateMatrixEuler(qword) __asm__("LoadRotateMatrixEuler");
+
 
 struct VU_FLOAT {
     qword q;
@@ -291,18 +291,18 @@ extern "C" void ProjectDprizeTransform(DPRIZE *prize)
 }
 } // namespace M_ProjectDprizeTransform
 
-namespace M_IsDprizeCollisionCandidate { extern "C" {
+namespace M_IsDprizeCollisionCandidate {
 struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // collision filter callback (FIsCidDerived test). (inferred)
-int IsDprizeCollisionCandidate(void *prize, struct Q *q)
+extern "C" int IsDprizeCollisionCandidate(void *prize, struct Q *q)
 {
     void *s;
     /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (IsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || IsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
 }
-} } // namespace M_IsDprizeCollisionCandidate
+} // namespace M_IsDprizeCollisionCandidate
 
 namespace M_CheckDprizeBounce {
 // CheckDprizeBounce: one commented pin (QwNormalizeInto), one allocation-only asm operand (GFromVf), VU one-op asm helpers only.
@@ -321,17 +321,17 @@ struct XF { char pad[0x70]; qword pos; };
 struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
 
-extern "C" {
-extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002A2DE0;
-extern float D_002C0D74, D_002C0D78;
-void STACKSCOPE_ctor(STACKSCOPE *);
+
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DE0 __asm__("D_002A2DE0");
+extern float D_002C0D74 __asm__("D_002C0D74"), D_002C0D78 __asm__("D_002C0D78");
+void STACKSCOPE_ctor(STACKSCOPE *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
-qword GetLoWorldPos(DPRIZE *);
-int IsDprizeCollisionCandidate(void *, SOPART *);
-void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
-int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
-float SplitVectorAlongAxis(qword, qword, qword *, qword *);
-}
+qword GetLoWorldPos(DPRIZE *) __asm__("GetLoWorldPos");
+int IsDprizeCollisionCandidate(void *, SOPART *) __asm__("IsDprizeCollisionCandidate");
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***) __asm__("IntersectSwBoundingBox");
+int IntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *) __asm__("IntersectSphereBsp");
+float SplitVectorAlongAxis(qword, qword, qword *, qword *) __asm__("SplitVectorAlongAxis");
+
 
 struct VU_FLOAT {
     qword qw;
@@ -469,36 +469,36 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
 }
 } // namespace M_CheckDprizeBounce
 
-namespace M_FCheckDprizeCollect { extern "C" {
+namespace M_FCheckDprizeCollect {
 typedef int qword __attribute__((mode(TI)));
 struct Q { int enabled,pad4; float radius; SO *so; };
-extern float D_002C0D7C;
-qword GetLoWorldPos(void *);
-int IntersectSphereBsp(qword,SOPART *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
+extern float D_002C0D7C __asm__("D_002C0D7C");
+qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
+int IntersectSphereBsp(qword,SOPART *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius) __asm__("IntersectSphereBsp");
 // Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
-static inline void Trigger(DPRIZE *p)
+extern "C" { static inline void Trigger(DPRIZE *p)
 {
     p->SetState(1);
-}
+} }
 // Moves a 128-bit EE register into a VU register.
-static inline qword ToVu(qword a)
+extern "C" { static inline qword ToVu(qword a)
 {
     qword b;
     __asm__("qmtc2 %1,%0":"=j"(b):"r"(a));
     return b;
-}
+} }
 // Vector difference.
 // Squared length of a vector.
-static inline float LenSq(qword a)
+extern "C" { static inline float LenSq(qword a)
 {
     qword d,one;
     float f;
     __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(a));
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
-}
+} }
 // test one collector (PZI) against the prize: in range -> collect. (inferred)
-int TryCollectDprize(DPRIZE *prize,struct Q *q)
+extern "C" int TryCollectDprize(DPRIZE *prize,struct Q *q)
 {
     char scratch[0x30] __attribute__((aligned(16)));
     qword pos;
@@ -536,15 +536,15 @@ int TryCollectDprize(DPRIZE *prize,struct Q *q)
 
 #define OFF(t,m) ((unsigned int)&((t*)0)->m)
 typedef char trigger_layout[(sizeof(void*)==4 && sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(unsigned long)==8 && sizeof(struct Q)==0x10 && OFF(struct Q,enabled)==0 && OFF(struct Q,radius)==8 && OFF(struct Q,so)==0xC)?1:-1];
-} } // namespace M_FCheckDprizeCollect
+} // namespace M_FCheckDprizeCollect
 #undef OFF
 
-namespace M_CheckDprizeCollect { extern "C" {
-int CollectActivePickupInfos(void *pg, int c, void **ap);
-int IsBasicDerivedFrom__FP5BASIC3CID(DPRIZE *p, int n);
-int TryCollectDprize(DPRIZE *p, void *pv);
+namespace M_CheckDprizeCollect {
+int CollectActivePickupInfos(void *pg, int c, void **ap) __asm__("CollectActivePickupInfos");
+int IsBasicDerivedFrom__FP5BASIC3CID(DPRIZE *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int TryCollectDprize(DPRIZE *p, void *pv) __asm__("TryCollectDprize");
 // for each collector PZI (CppziCur) check collection. (inferred)
-void CheckDprizeCollect(DPRIZE *prize)
+extern "C" void CheckDprizeCollect(DPRIZE *prize)
 {
     void *ap[0x10];
     int i, n;
@@ -560,7 +560,7 @@ void CheckDprizeCollect(DPRIZE *prize)
         if (TryCollectDprize(prize, ap[i])) break;
     }
 }
-} } // namespace M_CheckDprizeCollect
+} // namespace M_CheckDprizeCollect
 
 // DPRIZE::TakeDamage: a collectable prize hit by a zap with flag 8 counts as collected.
 int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out here */
@@ -577,16 +577,16 @@ int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out h
 namespace RO_ORDER { extern const float r_D_002A7710 __asm__("D_002A7710") = 3.40282347e+38f; }
 namespace M_UpdateDprize {
 typedef int qword __attribute__((mode(TI)));
-extern "C" {
-extern float D_002C0D50;
-}
-extern "C" {
-void UpdateSo(DPRIZE *p);
-void EmitDprizeGlint(DPRIZE *p);
-void CheckDprizeBounce(DPRIZE *p);
-void CheckDprizeCollect(DPRIZE *p);
-void UpdateDprize(DPRIZE *p);
-}
+
+extern float D_002C0D50 __asm__("D_002C0D50");
+
+
+void UpdateSo(DPRIZE *p) __asm__("UpdateSo");
+void EmitDprizeGlint(DPRIZE *p) __asm__("EmitDprizeGlint");
+void CheckDprizeBounce(DPRIZE *p) __asm__("CheckDprizeBounce");
+void CheckDprizeCollect(DPRIZE *p) __asm__("CheckDprizeCollect");
+void UpdateDprize(DPRIZE *p) __asm__("UpdateDprize");
+
 // Squared length of a vector.
 static inline float LenSq(qword v)
 {
@@ -635,15 +635,15 @@ namespace M_RenderDprizeSelf {
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword a, b, c, d; };
 struct V { float x, y, z, w; } __attribute__((aligned(16)));
-extern "C" {
-CHN *FindAsegChannel(void *p, DPRIZE *plo, int a, int b);
-qword GetLoWorldPos(DPRIZE *plo);
-void *GetLoWorldMatrix(DPRIZE *plo);
-void RenderSoSelf(DPRIZE *plo);
-void RenderDprizeSelf(DPRIZE *p);
-}
-extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
-extern "C" { void RenderLoAtMatrix(DPRIZE *plo, M4 m, float a, float b); }
+
+CHN *FindAsegChannel(void *p, DPRIZE *plo, int a, int b) __asm__("FindAsegChannel");
+qword GetLoWorldPos(DPRIZE *plo) __asm__("GetLoWorldPos");
+void *GetLoWorldMatrix(DPRIZE *plo) __asm__("GetLoWorldMatrix");
+void RenderSoSelf(DPRIZE *plo) __asm__("RenderSoSelf");
+void RenderDprizeSelf(DPRIZE *p) __asm__("RenderDprizeSelf");
+
+M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec) __asm__("LoadMatrixFromPosRotScale");
+void RenderLoAtMatrix(DPRIZE *plo, M4 m, float a, float b) __asm__("RenderLoAtMatrix");
 // DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
 void RenderDprizeSelf(DPRIZE *prize)
 {
@@ -668,22 +668,22 @@ void RenderDprizeSelf(DPRIZE *prize)
 } // namespace M_RenderDprizeSelf
 
 namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.40282347e+38f; }
-namespace M_SetDprizeDprizes { extern "C" {
+namespace M_SetDprizeDprizes {
 typedef int qword __attribute__((mode(TI)));
 /* The position XF as quadwords (local translation +0x30, velocity +0xB0). */
 struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
-extern qword D_002A2DD0;
-extern qword D_002C0D60;
-extern float D_002A773C;
-void SetLoParent(DPRIZE *p, int a, int b);
-LO *GetProxyCopyValue(DPRIZE *p);
-void UnlockProxyObject(LO *q, DPRIZE *p);
-SMA *ApplySmToObject(SM *a, DPRIZE *p, int anim, int z);
-void SkipSma(SMA *q, float g);
-void SetSmaGoal(SMA *q, int anim);
-void RetractSma(SMA *q);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern qword D_002C0D60 __asm__("D_002C0D60");
+extern float D_002A773C __asm__("D_002A773C");
+void SetLoParent(DPRIZE *p, int a, int b) __asm__("SetLoParent");
+LO *GetProxyCopyValue(DPRIZE *p) __asm__("GetProxyCopyValue");
+void UnlockProxyObject(LO *q, DPRIZE *p) __asm__("UnlockProxyObject");
+SMA *ApplySmToObject(SM *a, DPRIZE *p, int anim, int z) __asm__("ApplySmToObject");
+void SkipSma(SMA *q, float g) __asm__("SkipSma");
+void SetSmaGoal(SMA *q, int anim) __asm__("SetSmaGoal");
+void RetractSma(SMA *q) __asm__("RetractSma");
 // DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps).
-void SetDprizeDprizes(DPRIZE *prize, int n)
+extern "C" void SetDprizeDprizes(DPRIZE *prize, int n)
 {
     int anim = -1;
     LO *q;
@@ -749,21 +749,21 @@ void SetDprizeDprizes(DPRIZE *prize, int n)
         prize->sma = 0;
     }
 }
-} } // namespace M_SetDprizeDprizes
+} // namespace M_SetDprizeDprizes
 
-namespace M_func_001C6308 { extern "C" {
+namespace M_func_001C6308 {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct XFS { char pad[0xB0]; qword scale; };   /* the prize's second XF (SO unknown5C) as the glint reads it */
 struct Q { char pad[0x18]; float duration; void *owner; char pad20[0xEC-0x20]; void *vptr; void *emit; };
-extern qword D_002C0D80;
-extern float D_002C0D90;
-qword ConvertVecBetweenLos(DPRIZE *,void *,qword);
-float RandomFloatInRange__Fff(float,float);
-struct Q *NewRipInGroup(SW *,void *,void *);
-qword GetLoWorldPos(void *);
+extern qword D_002C0D80 __asm__("D_002C0D80");
+extern float D_002C0D90 __asm__("D_002C0D90");
+qword ConvertVecBetweenLos(DPRIZE *,void *,qword) __asm__("ConvertVecBetweenLos");
+float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
+struct Q *NewRipInGroup(SW *,void *,void *) __asm__("NewRipInGroup");
+qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
 // Dot product.
-static inline float Dot(qword a,qword b)
+extern "C" { static inline float Dot(qword a,qword b)
 {
     qword d,one;
     float f;
@@ -771,15 +771,15 @@ static inline float Dot(qword a,qword b)
     __asm__("vadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d):"j"(one));
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
-}
+} }
 // Larger of two floats.
-static inline float Max(float a,float b)
+extern "C" { static inline float Max(float a,float b)
 {
     __asm__("max.s %0,%0,%1":"+f"(a):"f"(b));
     return a;
-}
+} }
 // spawn sparkle rip (NewRipInGroup) at prize position periodically. (inferred)
-void EmitDprizeGlint(DPRIZE *prize)
+extern "C" void EmitDprizeGlint(DPRIZE *prize)
 {
     union U scale;
     qword direction;
@@ -814,16 +814,16 @@ changed:
         prize->glintSide=side;
     }
 }
-} } // namespace M_func_001C6308
+} // namespace M_func_001C6308
 
-namespace M_func_001C64F8 { extern "C" {
+namespace M_func_001C64F8 {
 // Splice setter: the oids of the glint owner and the left / right glint emitters (resolved at post-load).
-void SetDprizeParams(DPRIZE *p, OID glintOwnerOid, OID leftEmitterOid, OID rightEmitterOid) { p->glintOwnerOid = glintOwnerOid; p->leftEmitterOid = leftEmitterOid; p->rightEmitterOid = rightEmitterOid; }
-} } // namespace M_func_001C64F8
+extern "C" void SetDprizeParams(DPRIZE *p, OID glintOwnerOid, OID leftEmitterOid, OID rightEmitterOid) { p->glintOwnerOid = glintOwnerOid; p->leftEmitterOid = leftEmitterOid; p->rightEmitterOid = rightEmitterOid; }
+} // namespace M_func_001C64F8
 
-namespace M_func_001C6508 { extern "C" {
+namespace M_func_001C6508 {
 // CID 91 Init (sprayable pickup; coin?). (inferred)
-void InitCoin(COIN *coin)
+extern "C" void InitCoin(COIN *coin)
 {
     InitDprize(coin);
     coin->bounceRadius = 45.0f;
@@ -836,12 +836,12 @@ void InitCoin(COIN *coin)
     coin->lifetimeMin = 5.0f;
     coin->lifetimeMax = 5.0f;
 }
-} } // namespace M_func_001C6508
+} // namespace M_func_001C6508
 
-namespace M_func_001C6588 { extern "C" {
-void UpdateDprize(DPRIZE *p);
+namespace M_func_001C6588 {
+void UpdateDprize(DPRIZE *p) __asm__("UpdateDprize");
 // COIN Update: UpdateDprize, then while idle counts the lifetime down and starts vanishing at zero.
-} } // namespace M_func_001C6588
+} // namespace M_func_001C6588
 // COIN::Update: prize update, then while idle count the lifetime down and vanish at zero.
 void COIN::Update() { using namespace M_func_001C6588;
     UpdateDprize(this);
@@ -851,7 +851,7 @@ void COIN::Update() { using namespace M_func_001C6588;
     }
 }
 
-namespace M_func_001C65F8 { extern "C" {
+namespace M_func_001C65F8 {
 typedef int qword __attribute__((mode(TI)));
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; void *vptr; };
@@ -860,19 +860,19 @@ struct X {
     char p2[0xEC - 0x70]; void *vptr; void *smackDef; LO *smackTarget; int smackArg;
 };
 struct M { int n; DPRIZE *p; int pad[14]; };
-extern char D_002C0DA0[];
-float RandomFloatInRange__Fff(float a, float b);
-struct X *NewRipInGroup(void *pg, int a, int b);
-qword GetLoWorldPos(COIN *p);
-struct MAT *GetLoWorldMatrix(COIN *p);
-void AwardCoin(COIN *p, int n);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-void RestartHudWidget1(void *pg);
-void BroadcastGameEvent(void *p, int n, COIN *ps);
-void SetDprizeDprizes(DPRIZE *p, int n);
+extern char D_002C0DA0[] __asm__("D_002C0DA0");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+struct X *NewRipInGroup(void *pg, int a, int b) __asm__("NewRipInGroup");
+qword GetLoWorldPos(COIN *p) __asm__("GetLoWorldPos");
+struct MAT *GetLoWorldMatrix(COIN *p) __asm__("GetLoWorldMatrix");
+void AwardCoin(COIN *p, int n) __asm__("AwardCoin");
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
+void RestartHudWidget1(void *pg) __asm__("RestartHudWidget1");
+void BroadcastGameEvent(void *p, int n, COIN *ps) __asm__("BroadcastGameEvent");
+void SetDprizeDprizes(DPRIZE *p, int n) __asm__("SetDprizeDprizes");
 // CID 91 state setter: on collect play sound, emit rip, award (AwardCoin). (inferred)
-void SetCoinDprizes(COIN *coin, int n)
+extern "C" void SetCoinDprizes(COIN *coin, int n)
 {
     if (coin->state == n) return;
     switch (n) {
@@ -909,7 +909,7 @@ void SetCoinDprizes(COIN *coin, int n)
     }
     SetDprizeDprizes(coin, n);
 }
-} } // namespace M_func_001C65F8
+} // namespace M_func_001C65F8
 
 // increments a game counter via 0x1617E0/0x161798. (inferred)
 extern "C" void AwardCoin()
@@ -917,9 +917,9 @@ extern "C" void AwardCoin()
     SetCoinCount(&g_game, GetCoinCount(&g_game) + 1);
 }
 
-namespace M_func_001C67D8 { extern "C" {
+namespace M_func_001C67D8 {
 // CID 93 Init (sprayable pickup 0x5D). (inferred)
-void InitMedicine(MEDICINE *medicine)
+extern "C" void InitMedicine(MEDICINE *medicine)
 {
     InitDprize(medicine);
     medicine->bounceRadius = 45.0f;
@@ -934,12 +934,12 @@ void InitMedicine(MEDICINE *medicine)
     medicine->lifetimeMin = 4.0f;
     medicine->lifetimeMax = 5.0f;
 }
-} } // namespace M_func_001C67D8
+} // namespace M_func_001C67D8
 
-namespace M_func_001C6880 { extern "C" {
-void UpdateDprize(DPRIZE *p);
+namespace M_func_001C6880 {
+void UpdateDprize(DPRIZE *p) __asm__("UpdateDprize");
 // MEDICINE Update: as COIN's (lifetime countdown while idle, then vanish).
-} } // namespace M_func_001C6880
+} // namespace M_func_001C6880
 // MEDICINE::Update: prize update, then while idle count the lifetime down and vanish at zero.
 void MEDICINE::Update() { using namespace M_func_001C6880;
     UpdateDprize(this);
@@ -949,7 +949,7 @@ void MEDICINE::Update() { using namespace M_func_001C6880;
     }
 }
 
-namespace M_func_001C68F0 { extern "C" {
+namespace M_func_001C68F0 {
 typedef int qword __attribute__((mode(TI)));
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; void *vptr; };
@@ -958,20 +958,20 @@ struct X {
     char p2[0xEC - 0x70]; void *vptr; void *smackDef; LO *smackTarget; int smackArg;
 };
 struct M { int n; DPRIZE *p; int pad[14]; };
-extern char D_002C0E10[];
-float RandomFloatInRange__Fff(float a, float b);
-struct X *NewRipInGroup(void *pg, int a, int b);
-PO *GetHeroPo(void *pg);
-qword GetLoWorldPos(MEDICINE *p);
-struct MAT *GetLoWorldMatrix(MEDICINE *p);
-void OnMedicineSmackDone(MEDICINE *p, int n);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-void RestartHudWidget1(void *pg);
-void BroadcastGameEvent(void *p, int n, MEDICINE *ps);
-void SetDprizeDprizes(DPRIZE *p, int n);
+extern char D_002C0E10[] __asm__("D_002C0E10");
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+struct X *NewRipInGroup(void *pg, int a, int b) __asm__("NewRipInGroup");
+PO *GetHeroPo(void *pg) __asm__("GetHeroPo");
+qword GetLoWorldPos(MEDICINE *p) __asm__("GetLoWorldPos");
+struct MAT *GetLoWorldMatrix(MEDICINE *p) __asm__("GetLoWorldMatrix");
+void OnMedicineSmackDone(MEDICINE *p, int n) __asm__("OnMedicineSmackDone");
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
+void RestartHudWidget1(void *pg) __asm__("RestartHudWidget1");
+void BroadcastGameEvent(void *p, int n, MEDICINE *ps) __asm__("BroadcastGameEvent");
+void SetDprizeDprizes(DPRIZE *p, int n) __asm__("SetDprizeDprizes");
 // CID 93 setter (uses GetCurrentPo - gives to current character). (inferred)
-void SetMedicineDprizes(MEDICINE *medicine, int n)
+extern "C" void SetMedicineDprizes(MEDICINE *medicine, int n)
 {
     if (medicine->state == n) return;
     switch (n) {
@@ -1012,7 +1012,7 @@ void SetMedicineDprizes(MEDICINE *medicine, int n)
     }
     SetDprizeDprizes(medicine, n);
 }
-} } // namespace M_func_001C68F0
+} // namespace M_func_001C68F0
 
 // Empty callback: nothing to do when the medicine pickup's smack animation ends.
 extern "C" void OnMedicineSmackDone()
@@ -1031,13 +1031,13 @@ void KEY::Init() {
     glintChance = 0.75f;
 }
 
-namespace M_func_001C6B28 { extern "C" {
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-void RequestTaskState(void *p, int n, KEY *plo);
-void SetDprizeDprizes(KEY *p, int n);
+namespace M_func_001C6B28 {
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
+void RequestTaskState(void *p, int n, KEY *plo) __asm__("RequestTaskState");
+void SetDprizeDprizes(KEY *p, int n) __asm__("SetDprizeDprizes");
 // CID 92 setter (sound on collect). (inferred)
-void SetKeyDprizes(KEY *key, int n)
+extern "C" void SetKeyDprizes(KEY *key, int n)
 {
     if (key->state == n) return;
     if (n == 1) {
@@ -1048,22 +1048,22 @@ void SetKeyDprizes(KEY *key, int n)
     }
     SetDprizeDprizes(key, n);
 }
-} } // namespace M_func_001C6B28
+} // namespace M_func_001C6B28
 
-namespace M_LaunchSprayedDprize { extern "C" {
+namespace M_LaunchSprayedDprize {
 typedef int qword __attribute__((mode(TI)));
-extern char D_002A2D00[];
-extern const float D_002A7758;
-void SetLoParent(DPRIZE *p, int a, int b);
+extern char D_002A2D00[] __asm__("D_002A2D00");
+extern const float D_002A7758 __asm__("D_002A7758");
+void SetLoParent(DPRIZE *p, int a, int b) __asm__("SetLoParent");
 // Zeroes a 3-float vector.
-static inline void Zero(VECTOR4 *pv)
+extern "C" { static inline void Zero(VECTOR4 *pv)
 {
     pv->z = 0.0f;
     pv->y = 0.0f;
     pv->x = 0.0f;
-}
+} }
 // re-parent spawned prize (SetLoParent) and init motion. (inferred)
-void LaunchSprayedDprize(DPRIZE *prize, qword q1, qword q2, float f1, float f2)
+extern "C" void LaunchSprayedDprize(DPRIZE *prize, qword q1, qword q2, float f1, float f2)
 {
     prize->Add();
     SetLoParent(prize, 0, 0);
@@ -1077,14 +1077,14 @@ void LaunchSprayedDprize(DPRIZE *prize, qword q1, qword q2, float f1, float f2)
     prize->velocity = q2;
     prize->expireTime = (f2 == D_002A7758) ? D_002A7758 : g_clock.time + f2;
 }
-} } // namespace M_LaunchSprayedDprize
+} // namespace M_LaunchSprayedDprize
 
-namespace M_PdprizeNewSpray { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
-DPRIZE *AcquireProxyObject(void *pg, int n);
-void LockProxyObject(void *pg, DPRIZE *plo);
+namespace M_PdprizeNewSpray {
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+DPRIZE *AcquireProxyObject(void *pg, int n) __asm__("AcquireProxyObject");
+void LockProxyObject(void *pg, DPRIZE *plo) __asm__("LockProxyObject");
 // make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)
-int NewSprayedDprize(void *prize, int kind, int n, DPRIZE **aplo)
+extern "C" int NewSprayedDprize(void *prize, int kind, int n, DPRIZE **aplo)
 {
     int id, i, c;
     void *pg;
@@ -1109,7 +1109,7 @@ int NewSprayedDprize(void *prize, int kind, int n, DPRIZE **aplo)
     }
     return c;
 }
-} } // namespace M_PdprizeNewSpray
+} // namespace M_PdprizeNewSpray
 
 namespace M_func_001C6DE8 {
 // FindDprizeLanding: find a landing point on the objects below/above `point` (used three times by SprayDprizes, which sits
@@ -1141,13 +1141,13 @@ struct VU_FLOAT {
 };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
-extern "C" {
-int IsDprizeCollisionCandidate(void *, CANDIDATE *);
-void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
+
+int IsDprizeCollisionCandidate(void *, CANDIDATE *) __asm__("IsDprizeCollisionCandidate");
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***) __asm__("IntersectSwBoundingBox");
 CANDIDATE *PsoHitTestLineObjects(int, qword, qword, int, CANDIDATE **, LSG *)
     __asm__("FindFirstObjectHitByLine");
-extern qword D_002A2DC0;
-}
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+
 // base + v * g
 static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
 {
@@ -1211,29 +1211,29 @@ union VECTOR4 { qword q; float f[4]; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
 struct CANDIDATE;
-extern "C" { extern qword D_002A2DA0, D_002A2DC0, D_002A2DE0, D_002C0D60; }
-extern "C" { extern float D_002A775C, D_002A7760, D_002C0D70; }
-extern "C" { extern float D_002C0E80, D_002C0E84, D_002C0E88, D_002C0E8C, D_002C0E90, D_002C0E94; }
-extern "C" { extern CLQ D_002C0EA0; }
-extern "C" { extern LM D_002C0EB0; }
-extern "C" { extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4; }
-extern "C" {
-int FindDprizeLanding(float, float, float, qword, int, CANDIDATE **, qword *);
-SO *GetHeroPo(void *);
-REGION *FindPathzoneAtPos(qword, int);
-int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
-int IsEdgeBlockedByPathzone(REGION *, qword, qword, int);
-qword GetLoWorldPos(SO *);
-void *AllocFromStack(ALLOCREQ *);
-int NewSprayedDprize(void *, int, int, DPRIZE **);
-int IsDprizeCollisionCandidate(void *, CANDIDATE *);
-void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
-float RandomFloatInRange__Fff(float, float);
-float NormalizeAngle__Ff(float);
-qword SetVectorCylind(float, float, float);
-float ComputeMaxBallisticTime(qword, qword, float, float, float, float);
-void LaunchSprayedDprize(DPRIZE *, qword, qword, float, float);
-}
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DE0 __asm__("D_002A2DE0"), D_002C0D60 __asm__("D_002C0D60");
+extern float D_002A775C __asm__("D_002A775C"), D_002A7760 __asm__("D_002A7760"), D_002C0D70 __asm__("D_002C0D70");
+extern float D_002C0E80 __asm__("D_002C0E80"), D_002C0E84 __asm__("D_002C0E84"), D_002C0E88 __asm__("D_002C0E88"), D_002C0E8C __asm__("D_002C0E8C"), D_002C0E90 __asm__("D_002C0E90"), D_002C0E94 __asm__("D_002C0E94");
+extern CLQ D_002C0EA0 __asm__("D_002C0EA0");
+extern LM D_002C0EB0 __asm__("D_002C0EB0");
+extern float D_002C0EB8 __asm__("D_002C0EB8"), D_002C0EBC __asm__("D_002C0EBC"), D_002C0EC0 __asm__("D_002C0EC0"), D_002C0EC4 __asm__("D_002C0EC4");
+
+int FindDprizeLanding(float, float, float, qword, int, CANDIDATE **, qword *) __asm__("FindDprizeLanding");
+SO *GetHeroPo(void *) __asm__("GetHeroPo");
+REGION *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
+int FindPathzoneClosestPoint(REGION *, qword, qword *, int) __asm__("FindPathzoneClosestPoint");
+int IsEdgeBlockedByPathzone(REGION *, qword, qword, int) __asm__("IsEdgeBlockedByPathzone");
+qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
+void *AllocFromStack(ALLOCREQ *) __asm__("AllocFromStack");
+int NewSprayedDprize(void *, int, int, DPRIZE **) __asm__("NewSprayedDprize");
+int IsDprizeCollisionCandidate(void *, CANDIDATE *) __asm__("IsDprizeCollisionCandidate");
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***) __asm__("IntersectSwBoundingBox");
+float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
+float ComputeMaxBallisticTime(qword, qword, float, float, float, float) __asm__("ComputeMaxBallisticTime");
+void LaunchSprayedDprize(DPRIZE *, qword, qword, float, float) __asm__("LaunchSprayedDprize");
+
 struct VU_FLOAT {
     qword q;
     // Broadcast a float into a VU0 register.
@@ -1377,9 +1377,9 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
 }
 } // namespace M_SprayDprizes
 
-namespace M_InitLoot { extern "C" {
+namespace M_InitLoot {
 // CID 94 Init. (inferred)
-void InitLoot(LOOT *loot)
+extern "C" void InitLoot(LOOT *loot)
 {
     InitDprize(loot);
     loot->bounceRadius = 35.0f;
@@ -1391,18 +1391,18 @@ void InitLoot(LOOT *loot)
     loot->lifetimeMin = 8.0f;
     loot->lifetimeMax = 10.0f;
 }
-} } // namespace M_InitLoot
+} // namespace M_InitLoot
 
-namespace M_LoadLootFromBrx { extern "C" {
+namespace M_LoadLootFromBrx {
 struct STACKSCOPE_STORAGE { int a, b, c, d; };
 struct ALLOCREQ_VIEW { int cb; int cbAlign; int pad[2]; };
-struct STACKSCOPE_STORAGE *STACKSCOPE_ctor(struct STACKSCOPE_STORAGE *ph);
-LOOTE *AllocFromStack(struct ALLOCREQ_VIEW *pal);
-LOOTE *AllocCopyFromWorldHeap(struct ALLOCREQ_VIEW *pal, void *pv);
+struct STACKSCOPE_STORAGE *STACKSCOPE_ctor(struct STACKSCOPE_STORAGE *ph) __asm__("STACKSCOPE_ctor");
+LOOTE *AllocFromStack(struct ALLOCREQ_VIEW *pal) __asm__("AllocFromStack");
+LOOTE *AllocCopyFromWorldHeap(struct ALLOCREQ_VIEW *pal, void *pv) __asm__("AllocCopyFromWorldHeap");
 void STACKSCOPE_ctor_1AE4A0(struct STACKSCOPE_STORAGE *ph, int n) __asm__("_$_10STACKSCOPE");
-void LoadDprizeFromBrx(LOOT *p, void *pv);
+void LoadDprizeFromBrx(LOOT *p, void *pv) __asm__("LoadDprizeFromBrx");
 // CID 94 LoadFromBrx (base + copies table on stack heap). (inferred)
-void LoadLootFromBrx(LOOT *loot, void *pv)
+extern "C" void LoadLootFromBrx(LOOT *loot, void *pv)
 {
     struct STACKSCOPE_STORAGE h;
     struct ALLOCREQ_VIEW al;
@@ -1419,12 +1419,12 @@ void LoadLootFromBrx(LOOT *loot, void *pv)
     loot->entries = AllocCopyFromWorldHeap(pal, loot->entries);
     STACKSCOPE_ctor_1AE4A0(&h, 2);
 }
-} } // namespace M_LoadLootFromBrx
+} // namespace M_LoadLootFromBrx
 
-namespace M_func_001C7778 { extern "C" {
-void UpdateDprize(DPRIZE *p);
+namespace M_func_001C7778 {
+void UpdateDprize(DPRIZE *p) __asm__("UpdateDprize");
 // LOOT Update: as COIN's (lifetime countdown while idle, then vanish).
-} } // namespace M_func_001C7778
+} // namespace M_func_001C7778
 // LOOT::Update: prize update, then while idle count the lifetime down and vanish at zero.
 void LOOT::Update() { using namespace M_func_001C7778;
     UpdateDprize(this);
@@ -1435,21 +1435,21 @@ void LOOT::Update() { using namespace M_func_001C7778;
 }
 
 namespace M_SetLootDprizes {
-extern "C" {
-void Decref__4CRef(void *p);
+
+void Decref__4CRef(void *p) __asm__("Decref__4CRef");
 void func_00129658(void *p, const void *q) __asm__("__as__4CRefRC4CRef");
-float RandomFloatInRange__Fff(float a, float b);
-void sprintf(char *buf, const char *fmt, ...);
-void SetDprizeDprizes(void *p, int n);
-}
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
+void sprintf(char *buf, const char *fmt, ...) __asm__("sprintf");
+void SetDprizeDprizes(void *p, int n) __asm__("SetDprizeDprizes");
+
 struct LISTENER { char pad[0xC]; void *vptr; };
 struct M { int n; DPRIZE *p; int pad[14]; };
-extern "C" { extern char D_002A7768[]; }
-extern "C" { extern char D_002A7770[]; }
-extern "C" { extern char D_002A7778[]; }
-extern "C" { CRef GetSaveVarByName(char *a, char *b, char *c, int n); }
-extern "C" { CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n); }
-extern "C" void SetLootDprizes(LOOT *p, int n);
+extern char D_002A7768[] __asm__("D_002A7768");
+extern char D_002A7770[] __asm__("D_002A7770");
+extern char D_002A7778[] __asm__("D_002A7778");
+CRef GetSaveVarByName(char *a, char *b, char *c, int n) __asm__("GetSaveVarByName");
+CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n) __asm__("SetSaveVarByName");
+extern void SetLootDprizes(LOOT *p, int n) __asm__("SetLootDprizes");
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
 void SetLootDprizes(LOOT *loot, int n)
 {
@@ -1528,12 +1528,12 @@ extern "C" int GetCurrentLootEntryId(LOOT *loot)
     return id;
 }
 
-namespace M_func_001C7A58 { extern "C" {
-void HideSoAllGlobs(LOOT *p);
-void ShowSoGlobsById(LOOT *p, void *pv);
+namespace M_func_001C7A58 {
+void HideSoAllGlobs(LOOT *p) __asm__("HideSoAllGlobs");
+void ShowSoGlobsById(LOOT *p, void *pv) __asm__("ShowSoGlobsById");
 // Makes the entry with this id current (the first entry when none matches), then hides the loot's globs
 // (func_001F6A68, inferred) and shows the entry's ones. Used by StageLootPouchLoot.
-void SelectLootEntry(LOOT *loot, int id)
+extern "C" void SelectLootEntry(LOOT *loot, int id)
 {
     int i, j, count;
     LOOTE *entry;
@@ -1553,7 +1553,7 @@ void SelectLootEntry(LOOT *loot, int id)
     HideSoAllGlobs(loot);
     for (i = 0; i < loot->currentEntry->globCount; i++) ShowSoGlobsById(loot, loot->currentEntry->globIds[i]);
 }
-} } // namespace M_func_001C7A58
+} // namespace M_func_001C7A58
 
 // The loot's current entry (or null).
 extern "C" LOOTE *GetCurrentLootEntry(LOOT *loot)
@@ -1561,20 +1561,20 @@ extern "C" LOOTE *GetCurrentLootEntry(LOOT *loot)
     return loot->currentEntry;
 }
 
-namespace M_FClueCollected { extern "C" {
+namespace M_FClueCollected {
 // Append the clue property and identifier to the selected key array.
 struct K { short a, b; };
 struct A { int c; short *pk; };
-extern const char D_002A7768[],D_002A7788[];
-int GetCurrentLevelIndex__Fv(void);
-int sprintf(char *buf,const char *fmt,...);
-int FindSaveSymbol(SVNHASH *pt,const char *s);
-struct A *GetLevelListEntry(int h);
-struct A *ConcatSaveKeys(struct A *p, struct A *pa);
+extern const char D_002A7768[] __asm__("D_002A7768"),D_002A7788[] __asm__("D_002A7788");
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
+int sprintf(char *buf,const char *fmt,...) __asm__("sprintf");
+int FindSaveSymbol(SVNHASH *pt,const char *s) __asm__("FindSaveSymbol");
+struct A *GetLevelListEntry(int h) __asm__("GetLevelListEntry");
+struct A *ConcatSaveKeys(struct A *p, struct A *pa) __asm__("ConcatSaveKeys");
 // Index of a save symbol by name.
-static inline int Find(SAVEVARS *px, const char *s) { return FindSaveSymbol(&px->symtab,s); }
+extern "C" { static inline int Find(SAVEVARS *px, const char *s) { return FindSaveSymbol(&px->symtab,s); } }
 // query save data for bit n of 'afClue' for the current level. (inferred)
-struct A *GetClueSaveKey(int input)
+extern "C" struct A *GetClueSaveKey(int input)
 {
     register int n __asm__("$17")=input;
     int h;
@@ -1590,19 +1590,19 @@ struct A *GetClueSaveKey(int input)
     a.pk = (short *)&k;
     return ConcatSaveKeys(GetLevelListEntry(h), &a);
 }
-} } // namespace M_FClueCollected
+} // namespace M_FClueCollected
 
 namespace M_func_001C7BB8 {
-extern "C" {
-void STACKSCOPE_ctor(void *p);
+
+void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void Decref__4CRef(void *p);
-void *GetClueSaveKey(void *p);
-}
-extern "C" void GetGlobalSaveVar(CRefData *pref, void *pv, void *p);
+void Decref__4CRef(void *p) __asm__("Decref__4CRef");
+void *GetClueSaveKey(void *p) __asm__("GetClueSaveKey");
+
+extern void GetGlobalSaveVar(CRefData *pref, void *pv, void *p) __asm__("GetGlobalSaveVar");
 // Reads an int global save variable.
 static inline int NFromPv(void *pv) { CRefData ref; int n; GetGlobalSaveVar(&ref, pv, &g_gs); n = ref.u.n; Decref__4CRef(&ref); return n; }
-extern "C" int IsClueCollected(void *p);
+extern int IsClueCollected(void *p) __asm__("IsClueCollected");
 // wrapper of GetClueSaveKey. (inferred)
 int IsClueCollected(void *clue)
 {
@@ -1614,18 +1614,18 @@ int IsClueCollected(void *clue)
 } // namespace M_func_001C7BB8
 
 namespace M_func_001C7C30 {
-extern "C" {
-void *STACKSCOPE_ctor(void *p);
+
+void *STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void Decref__4CRef(void *p);
-void __4CRefRC4CRef(void *p, const void *q);
-void *GetClueSaveKey(int n);
-int CountCollectedClues(void);
-void SetClueCollected(int n, int f);
-}
-extern "C" { 
- }
-extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
+void Decref__4CRef(void *p) __asm__("Decref__4CRef");
+void __4CRefRC4CRef(void *p, const void *q) __asm__("__4CRefRC4CRef");
+void *GetClueSaveKey(int n) __asm__("GetClueSaveKey");
+int CountCollectedClues(void) __asm__("CountCollectedClues");
+void SetClueCollected(int n, int f) __asm__("SetClueCollected");
+
+
+
+extern CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p) __asm__("SetGlobalSaveVar");
 /* Copy the reference into the setter's value argument. */
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
@@ -1652,19 +1652,19 @@ extern "C" int GetMaxClueCount()
     return 0x1E;
 }
 
-namespace M_CClueCollected { extern "C" {
+namespace M_CClueCollected {
 struct K { int a; short b; short c; short d; short e; int f; };
 struct S { int k; struct K *pk; };
 struct T { SVENT *px; int n; };   /* save.cpp's SVFIND */
-extern char D_002A7788[];
-int GetCurrentLevelIndex__Fv(void);
-struct { int a; int b; } *GetLevelListEntry(int n);
-void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
-void *FindSaveVar(void *a, void *b, struct T *pt);
-short FindSaveSymbol(SVNHASH *a, char *s);
-unsigned int *GetSaveVarAddress(void *a, void *b, void *c);
+extern char D_002A7788[] __asm__("D_002A7788");
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
+struct LEVELENTRYAB { int a; int b; }; LEVELENTRYAB *GetLevelListEntry(int n) __asm__("GetLevelListEntry");
+void CopyAb__FPvT0Ui(struct K *pk, int a, int b) __asm__("CopyAb__FPvT0Ui");
+void *FindSaveVar(void *a, void *b, struct T *pt) __asm__("FindSaveVar");
+short FindSaveSymbol(SVNHASH *a, char *s) __asm__("FindSaveSymbol");
+unsigned int *GetSaveVarAddress(void *a, void *b, void *c) __asm__("GetSaveVarAddress");
 // count collected clue bottles: popcount of afClue words over the level's entries. (inferred)
-int CountCollectedClues(void)
+extern "C" int CountCollectedClues(void)
 {
     int n;
     int c;
@@ -1692,7 +1692,7 @@ int CountCollectedClues(void)
     }
     return c;
 }
-} } // namespace M_CClueCollected
+} // namespace M_CClueCollected
 
 // CID 95 Init (clue bottle). (inferred)
 void CLUE::Init()
@@ -1701,43 +1701,43 @@ void CLUE::Init()
     collectRadius = 50.0f;
 }
 
-namespace M_func_001C7E68 { extern "C" {
-void SO_ResetForProxy(CLUE *p);
+namespace M_func_001C7E68 {
+void SO_ResetForProxy(CLUE *p) __asm__("SO_ResetForProxy");
 // CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
-void ResetClue(CLUE *clue)
+extern "C" void ResetClue(CLUE *clue)
 {
     SO_ResetForProxy(clue);
     clue->SetState(0);
 }
-} } // namespace M_func_001C7E68
+} // namespace M_func_001C7E68
 
-namespace M_func_001C7EA8 { extern "C" {
-void SO_Slot27(CLUE *p);
+namespace M_func_001C7EA8 {
+void SO_Slot27(CLUE *p) __asm__("SO_Slot27");
 // CID 95 vtable slot 27. (inferred)
-void ClearClueState(CLUE *clue)
+extern "C" void ClearClueState(CLUE *clue)
 {
     SO_Slot27(clue);
     clue->SetState(-1);
 }
-} } // namespace M_func_001C7EA8
+} // namespace M_func_001C7EA8
 
-namespace M_SetClueDprizes { extern "C" {
+namespace M_SetClueDprizes {
 typedef int qword __attribute__((mode(TI)));
 struct LISTENER { char pad[0xC]; void *vptr; };   /* an EXPL */
 struct M { int n; DPRIZE *p; int pad[14]; };
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-qword GetLoWorldPos(CLUE *p);
-void *EmitSwNoise(void *pg, int n, qword q, CLUE *p);
-CLUEPROXY *GetProxyCopyValue(CLUE *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n);
-void SetClueCollected(int n, int f);
-void RestartHudWidget2(void *pg);
-void SetDprizeDprizes(CLUE *p, int n);
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
+qword GetLoWorldPos(CLUE *p) __asm__("GetLoWorldPos");
+void *EmitSwNoise(void *pg, int n, qword q, CLUE *p) __asm__("EmitSwNoise");
+CLUEPROXY *GetProxyCopyValue(CLUE *p) __asm__("GetProxyCopyValue");
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void SetClueCollected(int n, int f) __asm__("SetClueCollected");
+void RestartHudWidget2(void *pg) __asm__("RestartHudWidget2");
+void SetDprizeDprizes(CLUE *p, int n) __asm__("SetDprizeDprizes");
 // Does the object's GetProxyCopyValue owner derive from class 7?
-static inline int FTest(CLUE *p) { CLUEPROXY *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+extern "C" { static inline int FTest(CLUE *p) { CLUEPROXY *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); } }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
-void SetClueDprizes(CLUE *clue, int n)
+extern "C" void SetClueDprizes(CLUE *clue, int n)
 {
     CLUEPROXY *q;
     SW *pg;
@@ -1768,13 +1768,13 @@ void SetClueDprizes(CLUE *clue, int n)
     }
     SetDprizeDprizes(clue, n);
 }
-} } // namespace M_SetClueDprizes
+} // namespace M_SetClueDprizes
 
-namespace M_func_001C8030 { extern "C" {
-void PostLoLoad(LO *p);
-int IsClueCollected(int n);
+namespace M_func_001C8030 {
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+int IsClueCollected(int n) __asm__("IsClueCollected");
 // CID 7 (PROXY child) vtable slot 15: base + hide if clue already collected. (inferred)
-} } // namespace M_func_001C8030
+} // namespace M_func_001C8030
 // CLUEPROXY::PostLoad: LO post-load, take the next clue index and hide the proxy when that clue is already collected.
 void CLUEPROXY::PostLoad() { using namespace M_func_001C8030; CLUEPROXY *p = this;
     PostLoLoad(p);
@@ -1792,15 +1792,15 @@ namespace RO_ORDER { extern const char r_D_002A7788[] __asm__("D_002A7788") = "a
 namespace M_FVaultOpened {
 struct X { int c; short *ps; };
 struct B { int a, b; int c; short Find(char *s) ; };
-extern "C" { 
- }
-extern "C" {
-int GetCurrentLevelIndex__Fv(void);
-void *GetLevelListEntry(int n);
-int ConcatSaveKeys(void *p, X *px);
-int GetVaultSaveKey(void);
-short FindSaveSymbol(int *p, char *s);
-}
+
+
+
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
+void *GetLevelListEntry(int n) __asm__("GetLevelListEntry");
+int ConcatSaveKeys(void *p, X *px) __asm__("ConcatSaveKeys");
+int GetVaultSaveKey(void) __asm__("GetVaultSaveKey");
+short FindSaveSymbol(int *p, char *s) __asm__("FindSaveSymbol");
+
 // Index of a save symbol by name.
 inline short B::Find(char *s) { return FindSaveSymbol(&c, s); }
 // Builds the save key of the current level's 'fVault' flag (null outside a level); like GetClueSaveKey, the name of
@@ -1819,16 +1819,16 @@ int GetVaultSaveKey(void)
 } // namespace M_FVaultOpened
 
 namespace M_func_001C8110 {
-extern "C" {
-void STACKSCOPE_ctor(void *p);
+
+void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void Decref__4CRef(void *p);
-void *GetVaultSaveKey(void);
-}
-extern "C" void GetGlobalSaveVar(CRefData *pref, void *pv, void *p);
+void Decref__4CRef(void *p) __asm__("Decref__4CRef");
+void *GetVaultSaveKey(void) __asm__("GetVaultSaveKey");
+
+extern void GetGlobalSaveVar(CRefData *pref, void *pv, void *p) __asm__("GetGlobalSaveVar");
 // Reads an int global save variable.
 static inline int NFromPv(void *pv) { CRefData ref; int n; GetGlobalSaveVar(&ref, pv, &g_gs); n = ref.u.n; Decref__4CRef(&ref); return n; }
-extern "C" int IsVaultOpened(void);
+extern int IsVaultOpened(void) __asm__("IsVaultOpened");
 // Whether the current level's vault has been opened (reads the 'fVault' save flag).
 int IsVaultOpened(void)
 {
@@ -1840,22 +1840,22 @@ int IsVaultOpened(void)
 } // namespace M_func_001C8110
 
 namespace M_func_001C8188 {
-extern "C" {
-void *STACKSCOPE_ctor(void *p);
-void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void Decref__4CRef(void *p);
-void *__4CRefRC4CRef(void *p, const void *q);
-void *GetVaultSaveKey(void);
-void AutosaveGame(void *p, int n);
-}
 
-extern "C" CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p);
-extern "C" CRefData *GetGlobalSaveVar(CRefData *pr, void *pv, void *p);
+void *STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
+void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
+void Decref__4CRef(void *p) __asm__("Decref__4CRef");
+void *__4CRefRC4CRef(void *p, const void *q) __asm__("__4CRefRC4CRef");
+void *GetVaultSaveKey(void) __asm__("GetVaultSaveKey");
+void AutosaveGame(void *p, int n) __asm__("AutosaveGame");
+
+
+extern CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p) __asm__("SetGlobalSaveVar");
+extern CRefData *GetGlobalSaveVar(CRefData *pr, void *pv, void *p) __asm__("GetGlobalSaveVar");
 // Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
 static inline int NFromPv(void *pv,CRefData &ref) { int n; GetGlobalSaveVar(&ref,pv,&g_gs);n=ref.u.n;Decref__4CRef(&ref);return n; }
 // Store r into the global save variable pv.
 static inline void SetPv(void *pv,const CRef&r) { CRef arg(r); const CRef &ret=SetGlobalSaveVar(pv,arg,&g_gs); }
-extern "C" void SetVaultOpened(int f);
+extern void SetVaultOpened(int f) __asm__("SetVaultOpened");
 // Records in the save whether the current level's vault is open. (inferred)
 void SetVaultOpened(int f)
 {
@@ -1870,11 +1870,11 @@ void SetVaultOpened(int f)
 }
 } // namespace M_func_001C8188
 
-namespace M_InitVault { extern "C" {
-void InitPo(VAULT *vault);
+namespace M_InitVault {
+void InitPo(VAULT *vault) __asm__("InitPo");
 // VAULT vtable slot 7 (Init): PO defaults; the default combination is 123 (0x7B), no dialogs or reward powerup,
 // state and dial selection off (-1).
-void InitVault(VAULT *vault)
+extern "C" void InitVault(VAULT *vault)
 {
     int v;
     InitPo(vault);
@@ -1888,7 +1888,7 @@ void InitVault(VAULT *vault)
     vault->selectedDigit = -1;
     if (IsPointer(v)) *(int *)v |= 2; else vault->unknown40 = v | 2;
 }
-} } // namespace M_InitVault
+} // namespace M_InitVault
 
 // VAULT vtable slot 15 (PostLoad): binds its parts by oid, finds the dial timer frame, and starts closed (state 0) or
 // already opened (state 5) from the save.
@@ -1900,15 +1900,15 @@ void VAULT::PostLoad()
     SetVaultState(this, (IsVaultOpened() == 0) ? 0 : 5);
 }
 
-namespace M_func_001C8350 { extern "C" {
-void UpdateSo(VAULT *vault);
-int IsRelayFiring(void *vault);
-void UpdateVaultInput(VAULT *vault);
-void SetVaultOpened(int f);
+namespace M_func_001C8350 {
+void UpdateSo(VAULT *vault) __asm__("UpdateSo");
+int IsRelayFiring(void *vault) __asm__("IsRelayFiring");
+void UpdateVaultInput(VAULT *vault) __asm__("UpdateVaultInput");
+void SetVaultOpened(int f) __asm__("SetVaultOpened");
 // VAULT vtable slot 16 (Update). States: 0 closed, 1 intro relay playing, 2 dialling (UpdateVaultInput) until the
 // relay ends, then 3 if the entered code equals the combination else 4 (wrong code, back to 0), 3 opening (records
 // the vault as opened), 5 open.
-void UpdateVault(VAULT *vault)
+extern "C" void UpdateVault(VAULT *vault)
 {
     int s;
     UpdateSo(vault);
@@ -1942,7 +1942,7 @@ void UpdateVault(VAULT *vault)
         }
     } while (vault->state != s);
 }
-} } // namespace M_func_001C8350
+} // namespace M_func_001C8350
 
 namespace M_func_001C84D8 {
 /* (Claude agent) UpdateVaultInput: VU nearest-of-9 selection state machine. The copy of p->index into a register
@@ -1951,12 +1951,12 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct TIMER {char pad[0xA8];float end;};   /* the dial timer XF: +0xA8 is its end time (so.h names it as an XF pointer) */
 struct SGG;struct ALARM;
-extern "C" { extern float D_002C0FE8,D_002A7798; }
-extern "C" { extern qword D_002C0FF0[9]; }
-extern "C" int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float);
-extern "C" void func_001E0020(void*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
-extern "C" void SetVaultDialState(VAULT*,int);
-extern "C" int IsAsegaRetracted(void*);
+extern float D_002C0FE8 __asm__("D_002C0FE8"),D_002A7798 __asm__("D_002A7798");
+extern qword D_002C0FF0[9] __asm__("D_002C0FF0");
+extern int ConsumeButtonsPressedWithin__5POCTLUif(void*,int,float) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
+extern void func_001E0020(void*,ALARM*) __asm__("EnsureSggAlarm__FP3SGGP5ALARM");
+extern void SetVaultDialState(VAULT*,int) __asm__("SetVaultDialState");
+extern int IsAsegaRetracted(void*) __asm__("IsAsegaRetracted");
 // Helpers Pack, Sub, Len, ClockTime, MinimumPage, SelectionTablePage, TableWithMinimum (small asm wrappers/accessors shaped for the match).
 static inline qword Pack(float x,float y,float z){register qword result __asm__("$3");register unsigned word __asm__("$2");__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(result),"=&r"(word):"f"(x),"f"(y),"f"(z));return result;}
 // Length of the xyz part of a as a float (register-pinned).
@@ -2016,21 +2016,21 @@ extern "C" void UpdateVaultInput(VAULT*vault){
 } // namespace M_func_001C84D8
 
 namespace RO_ORDER { extern const float r_D_002A7798 __asm__("D_002A7798") = 3.40282347e+38f; }
-namespace M_func_001C8730 { extern "C" {
-void StopDialog(void *vault);
-void StopRelay(void *vault);
-void SetVaultDialState(VAULT *vault, int n);
-void ReleaseSwLetterbox(void *vault);
-void SetPowerupAcquired(int n, int f);
-int StartDialog(void *vault, int q, int f);
-void IncrementSwInputLock(void *vault);
-void AcquireSwLetterbox(void *vault);
-void DecrementSwInputLock(void *vault);
-void FireRelay(void *vault, PO *q);
+namespace M_func_001C8730 {
+void StopDialog(void *vault) __asm__("StopDialog");
+void StopRelay(void *vault) __asm__("StopRelay");
+void SetVaultDialState(VAULT *vault, int n) __asm__("SetVaultDialState");
+void ReleaseSwLetterbox(void *vault) __asm__("ReleaseSwLetterbox");
+void SetPowerupAcquired(int n, int f) __asm__("SetPowerupAcquired");
+int StartDialog(void *vault, int q, int f) __asm__("StartDialog");
+void IncrementSwInputLock(void *vault) __asm__("IncrementSwInputLock");
+void AcquireSwLetterbox(void *vault) __asm__("AcquireSwLetterbox");
+void DecrementSwInputLock(void *vault) __asm__("DecrementSwInputLock");
+void FireRelay(void *vault, PO *q) __asm__("FireRelay");
 // Vault state change: stops the current dialog and relay, leaves the old state (dialling releases the letterbox; opening
 // grants the reward powerup and plays the opened dialog) and enters the new one (dialling takes the letterbox, resets
 // the dial and plays the intro dialog; other states fire the vault's own events). (inferred)
-void SetVaultState(VAULT *vault, int n)
+extern "C" void SetVaultState(VAULT *vault, int n)
 {
     void *pv;
     if (n == vault->state) return;
@@ -2087,31 +2087,31 @@ void SetVaultState(VAULT *vault, int n)
     if (pv)
         FireRelay(pv, vault->user);
 }
-} } // namespace M_func_001C8730
+} // namespace M_func_001C8730
 
-namespace M_func_001C8918 { extern "C" {
+namespace M_func_001C8918 {
 typedef int qword __attribute__((mode(TI)));
 struct X {   /* the dial timer XF as the dial reads it (so.h names +0xA8 as an XF pointer) */
     char pad[0xA0]; void *parentFrame; int pA4; float endTime; int pAC; qword startPoint; qword digitPoint; qword endPoint; };
-extern qword D_002C1080;
-extern qword D_002C1090;
-void DropAsegaRef(void *vault);
-void SetStepplayerGrabTarget(void *vault, void *q);
-qword ConvertVecBetweenLos(void *vault, void *frame, qword q);
-qword ConvertXfVec(void *frame, void *vault, qword q);
-qword GetLoWorldPos(void *vault);
-qword TransformXfPos(void *frame, void *vault, qword q);
-void SetXfRole(VAULT *vault, XF *px, int n);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, VAULT *owner, float position, float speed, int flags, void *output);
+extern qword D_002C1080 __asm__("D_002C1080");
+extern qword D_002C1090 __asm__("D_002C1090");
+void DropAsegaRef(void *vault) __asm__("DropAsegaRef");
+void SetStepplayerGrabTarget(void *vault, void *q) __asm__("SetStepplayerGrabTarget");
+qword ConvertVecBetweenLos(void *vault, void *frame, qword q) __asm__("ConvertVecBetweenLos");
+qword ConvertXfVec(void *frame, void *vault, qword q) __asm__("ConvertXfVec");
+qword GetLoWorldPos(void *vault) __asm__("GetLoWorldPos");
+qword TransformXfPos(void *frame, void *vault, qword q) __asm__("TransformXfPos");
+void SetXfRole(VAULT *vault, XF *px, int n) __asm__("SetXfRole");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, VAULT *owner, float position, float speed, int flags, void *output) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Loads the vault dial's selected index and its timer object (register-pinned for the match).
-static inline void Selection(const VAULT*vault,int*index,struct X**timer){
+extern "C" { static inline void Selection(const VAULT*vault,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(vault),"m"(vault->selectedDigit),"m"(vault->dialTimer));
  *index=selected;*timer=receiver;
-}
+} }
 // Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
 // animation and timer for the new sub-state. (inferred)
-void SetVaultDialState(VAULT *vault, int n)
+extern "C" void SetVaultDialState(VAULT *vault, int n)
 {
     struct X *px;
     qword q;
@@ -2150,16 +2150,16 @@ void SetVaultDialState(VAULT *vault, int n)
 
 #define OFF(t,m) ((int)&((t*)0)->m)
 typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 && OFF(struct CLOCK,deltaTime)==4 && OFF(struct X,parentFrame)==0xA0 && OFF(struct X,endTime)==0xA8 && OFF(struct X,startPoint)==0xB0 && OFF(struct X,digitPoint)==0xC0 && OFF(struct X,endPoint)==0xD0)?1:-1];
-} } // namespace M_func_001C8918
+} // namespace M_func_001C8918
 #undef OFF
 
-namespace M_func_001C8AF0 { extern "C" {
-void RestartHudWidget2(SW *pg);
-void StartDialog(SNDMGR *ph, int n, int m);
+namespace M_func_001C8AF0 {
+void RestartHudWidget2(SW *pg) __asm__("RestartHudWidget2");
+void StartDialog(SNDMGR *ph, int n, int m) __asm__("StartDialog");
 // Splice entry, when the player uses the vault: with enough clue bottles collected (g_sw counters at +0x4764/+0x4768)
 // it remembers the user and starts the intro (state 1); otherwise it shows the clue count HUD and plays the
 // not-enough-clues dialog. (inferred)
-void TriggerVault(VAULT *vault, PO *n)
+extern "C" void TriggerVault(VAULT *vault, PO *n)
 {
     SW *pg = &g_sw;
     if (pg->numCluesCollected >= pg->numClues) {
@@ -2170,7 +2170,7 @@ void TriggerVault(VAULT *vault, PO *n)
         if (vault->notEnoughCluesDialog != -1) StartDialog(&g_sndmgr, vault->notEnoughCluesDialog, 1);
     }
 }
-} } // namespace M_func_001C8AF0
+} // namespace M_func_001C8AF0
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees cluesCollected definition (keeps the code as matched); the namespaced declarations above refer to these.

@@ -102,16 +102,16 @@ extern "C" void BuildContextText(char *pchz, char *pchzContext)
 }
 
 // 0x210ED8 BuildCoinCountText
-namespace M_BuildCoinCountText { extern "C" {
-extern char D_002A8AA0[];
-void GetGlobalSaveVar(CRefData *r, int *p, void *q);
-void Decref__4CRef(CRefData *r);
+namespace M_BuildCoinCountText {
+extern char D_002A8AA0[] __asm__("D_002A8AA0");
+void GetGlobalSaveVar(CRefData *r, int *p, void *q) __asm__("GetGlobalSaveVar");
+void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // 0x210ED0: dead-code scrap (sly2/scrap.h)
-SLY2_SCRAP("addiu $sp, $sp, 0x10");
+extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0x10"); }
 
 // HUD text 0x2CF: the player's coin count.
-void BuildCoinCountText(void *f, int **pp)
+extern "C" void BuildCoinCountText(void *f, int **pp)
 {
     int *p = *pp;
     if (p && *p) {
@@ -124,25 +124,25 @@ void BuildCoinCountText(void *f, int **pp)
         fiprintf(f, fmt, v);
     }
 }
-} } // namespace M_BuildCoinCountText
+} // namespace M_BuildCoinCountText
 
 // 0x210F50 BuildClueCountText
-namespace M_BuildClueCountText { extern "C" {
-extern char D_002A8AA8[];
+namespace M_BuildClueCountText {
+extern char D_002A8AA8[] __asm__("D_002A8AA8");
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D0: clue bottles collected / total in this level. Runtime-checked counters SW+0x4764 / +0x4768.
-void BuildClueCountText(void *f)
+extern "C" void BuildClueCountText(void *f)
 {
     fiprintf(f, D_002A8AA8, g_sw.numCluesCollected, g_sw.numClues);
 }
-} } // namespace M_BuildClueCountText
+} // namespace M_BuildClueCountText
 
 // 0x210F80 BuildTimerText
-namespace M_BuildTimerText { extern "C" {
-extern char D_002A8AB0[];
+namespace M_BuildTimerText {
+extern char D_002A8AB0[] __asm__("D_002A8AB0");
 void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
-void BuildTimerText(void *f)
+extern "C" void BuildTimerText(void *f)
 {
     float t = -g_clock.time + g_sw.hudTimerEndTime; int n; t = (t < 0.0f) ? 0.0f : t;
     n = (int)t;
@@ -151,18 +151,18 @@ void BuildTimerText(void *f)
         fiprintf(f, D_002A8AB0, q, n - q * 60);
     }
 }
-} } // namespace M_BuildTimerText
+} // namespace M_BuildTimerText
 
 // 0x210FE0 BuildBinocularReadoutText
-namespace M_func_00210FE0 { extern "C" {
+namespace M_func_00210FE0 {
 struct X : STEP { char pad[0xF20 - 0x2C0]; int modeKind; char padf24[0x18]; float hudZoom; };   /* STEPPLAYER jtmode.kind (0 look, 1 zoom), jtmode.hud.zoom */
-extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
-int IsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
-int sprintf(char *, char *, ...);
-int fptodp(float);
+extern char D_002A8AB8[] __asm__("D_002A8AB8"), D_002A8AC0[] __asm__("D_002A8AC0"), D_002A8AC8[] __asm__("D_002A8AC8"), D_002A8AD0[] __asm__("D_002A8AD0"), D_002A8AD8[] __asm__("D_002A8AD8");
+int IsBasicDerivedFrom__FP5BASIC3CID(struct X *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int sprintf(char *, char *, ...) __asm__("sprintf");
+int fptodp(float) __asm__("fptodp");
 // HUD text 0x2DC: the binocucom readout, per character (Sly: zoom "x%d", Bentley: "x%5.3f", Murray: distance words).
 // (inferred)
-void BuildBinocularReadoutText(char *text)
+extern "C" void BuildBinocularReadoutText(char *text)
 {
     struct X *hero = (struct X *)GetHeroPo(&g_sw);
     float zoom;
@@ -190,7 +190,7 @@ void BuildBinocularReadoutText(char *text)
             sprintf(text, D_002A8AD8, distance);
     }
 }
-} } // namespace M_func_00210FE0
+} // namespace M_func_00210FE0
 
 // 0x211148 BuildReconSelectionText
 /* STRINGGEN getter (context 0 selected, 1 pending): the recon text of the hero's mode HUD, if the hero is a JT. */
@@ -215,14 +215,14 @@ extern "C" void BuildReconSelectionText(char *text, int which)
 }
 
 // 0x2111F0 BuildReconTargetText
-namespace M_BuildReconTargetText { extern "C" {
+namespace M_BuildReconTargetText {
 struct Z { char pad[0xF8]; int nameTextId; };
 struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
 struct X : STEP { char pad[0xF38 - 0x2C0]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.unknown14 */
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void strcpy(char *dst, char *src);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void strcpy(char *dst, char *src) __asm__("strcpy");
 // HUD texts 0x2DF-0x2E4: the name of recon target i, if there is one.
-void BuildReconTargetText(char *dst, int i)
+extern "C" void BuildReconTargetText(char *dst, int i)
 {
     SW *sw = &g_sw;
     struct X *hero = (struct X *)GetHeroPo(sw);
@@ -232,20 +232,20 @@ void BuildReconTargetText(char *dst, int i)
             strcpy(dst, FindSwLocalizedString(sw, selector->targets[i]->nameTextId));
     }
 }
-} } // namespace M_BuildReconTargetText
+} // namespace M_BuildReconTargetText
 
 // 0x211298 BuildMenuCarouselText
-namespace M_func_00211298 { extern "C" {
+namespace M_func_00211298 {
 struct F { int id; char pad[0x1C]; };
 struct E { int numEntries; struct F *entries; char pad[0xC]; int selection; char pad2[4]; };   /* a menu page */
 #undef D_003D9EDC
 extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes BuildMenuCarouselText (CSE of the base) */
 #undef D_003D9EF4
 extern int D_003D9EF4 __asm__("D_003D9ED0+0x24");   /* screen's object+0x24; see D_003D9EDC */
-char *strcpy(char *dst, const char *src);
+char *strcpy(char *dst, const char *src) __asm__("strcpy");
 // HUD texts 0x2D2-0x2DB: the name of the menu entry k places from the selection on the current menu page (wrapping).
 // (inferred)
-void BuildMenuCarouselText(char *dst, int k)
+extern "C" void BuildMenuCarouselText(char *dst, int k)
 {
     struct E *page = &D_003D9EDC[D_003D9EF4];
     if (page->numEntries) {
@@ -256,14 +256,14 @@ void BuildMenuCarouselText(char *dst, int k)
         (void)strcpy(dst, FindSwLocalizedString(&g_sw, page->entries[j % n].id));
     }
 }
-} } // namespace M_func_00211298
+} // namespace M_func_00211298
 #undef D_003D9EDC
 #undef D_003D9EF4
 
 // 0x211348 BuildWidgetArgText
-namespace M_BuildWidgetArgText { extern "C" {
-void strcpy(void *p, int v);
-} } // namespace M_BuildWidgetArgText
+namespace M_BuildWidgetArgText {
+void strcpy(void *p, int v) __asm__("strcpy");
+} // namespace M_BuildWidgetArgText
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
 extern "C" void BuildWidgetArgText(void *text, int i, WIDGET *widget)
 {
@@ -294,19 +294,19 @@ extern "C" void BuildTickerText(char *pchz)
 }
 
 // 0x211420 BuildHeldItemText
-namespace M_func_00211420 { extern "C" {
+namespace M_func_00211420 {
 struct E { char *name; int nameTextId; int sellPrice; };
-extern struct E D_002C3288[];   /* the loot table (screen.cpp's Thiefnet screens) */
+extern struct E D_002C3288[] __asm__("D_002C3288");   /* the loot table (screen.cpp's Thiefnet screens) */
 struct Z { int unknown0; int lootIndex; };
 struct Y { char pad[0x224]; int keyTextId; char pad228[0x1C]; struct Z *loot; };
 /* STEPPLAYER: jtgrab.state, the grabbed object (inferred), the default text id (inferred) */
 struct X : STEP { char pad[0x4C8 - 0x2C0]; int grabState; char pad4cc[0x9A0 - 0x4CC]; struct Y *heldObject; char pad9a4[0x1318 - 0x9A4]; int heldTextId; };
 enum { GRAB_STATE_HOLDING = 0xC };   /* (inferred) */
-int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-char *FindSwLocalizedString__FP2SWi(void *, int);
-void strcpy(char *, char *);
+int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+char *FindSwLocalizedString__FP2SWi(void *, int) __asm__("FindSwLocalizedString__FP2SWi");
+void strcpy(char *, char *) __asm__("strcpy");
 // HUD text 0x2F4: the name of the object the player is operating (in the "operate" mode). (inferred)
-void BuildHeldItemText(char *text)
+extern "C" void BuildHeldItemText(char *text)
 {
     int id = -1;
     struct X *hero = (struct X *)GetHeroPo(&g_sw);
@@ -329,22 +329,22 @@ void BuildHeldItemText(char *text)
     else
         *text = 0;
 }
-} } // namespace M_func_00211420
+} // namespace M_func_00211420
 
 // 0x211528 StartupHudGifPackets
 namespace M_func_00211528 {
 // Initialize the fixed GIF register packets.
-extern "C" { extern QW D_004421B0[7]; }
-extern "C" { extern QW D_00442240[0x27]; }
-extern "C" { extern QW D_00442210[3]; }
-extern "C" { extern QW D_004424B0[2]; }
-extern "C" { extern QW D_004424D0[2]; }
-extern "C" { extern QW D_00442560[4]; }
-extern "C" { extern QW D_004425A0[3]; }
-extern "C" { extern QW D_004424F0[3]; }
-extern "C" { extern QW D_00442520[4]; }
-extern "C" { extern int D_002DEDB0; }
-extern "C" { extern ulong D_002DEBE0[] __asm__("D_002DEBE0"), D_002DECD0[] __asm__("D_002DECD0"); }   /* gs.cpp's draw environments (sceGsDrawEnv1) */
+extern QW D_004421B0[7] __asm__("D_004421B0");
+extern QW D_00442240[0x27] __asm__("D_00442240");
+extern QW D_00442210[3] __asm__("D_00442210");
+extern QW D_004424B0[2] __asm__("D_004424B0");
+extern QW D_004424D0[2] __asm__("D_004424D0");
+extern QW D_00442560[4] __asm__("D_00442560");
+extern QW D_004425A0[3] __asm__("D_004425A0");
+extern QW D_004424F0[3] __asm__("D_004424F0");
+extern QW D_00442520[4] __asm__("D_00442520");
+extern int D_002DEDB0 __asm__("D_002DEDB0");
+extern ulong D_002DEBE0[] __asm__("D_002DEBE0"), D_002DECD0[] __asm__("D_002DECD0");   /* gs.cpp's draw environments (sceGsDrawEnv1) */
 // Boot-time setup (startup table): builds the static GIF register packets used by sprite and HUD rendering. (inferred)
 extern "C" void StartupHudGifPackets(){
  GIFS setup;
@@ -394,14 +394,14 @@ extern "C" void StartupHudGifPackets(){
 
 // 0x211A80 BeginRpHud
 void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd);   /* uploads a VU1 microprogram once */
-namespace M_BeginRpHud { extern "C" {
-extern char D_0025AFA0[], D_0025B870[];
-extern QW D_002DF800[];
-extern char D_004421A0[], D_004424B0[], D_004424D0[], D_004424F0[], D_00442520[], D_004425A0[], D_00442560[];
-extern QW D_00442240[];
-extern char D_000000C0[], D_00000100[];   /* VU1 micro memory addresses */
+namespace M_BeginRpHud {
+extern char D_0025AFA0[] __asm__("D_0025AFA0"), D_0025B870[] __asm__("D_0025B870");
+extern QW D_002DF800[] __asm__("D_002DF800");
+extern char D_004421A0[] __asm__("D_004421A0"), D_004424B0[] __asm__("D_004424B0"), D_004424D0[] __asm__("D_004424D0"), D_004424F0[] __asm__("D_004424F0"), D_00442520[] __asm__("D_00442520"), D_004425A0[] __asm__("D_004425A0"), D_00442560[] __asm__("D_00442560");
+extern QW D_00442240[] __asm__("D_00442240");
+extern char D_000000C0[] __asm__("D_000000C0"), D_00000100[] __asm__("D_00000100");   /* VU1 micro memory addresses */
 // Begins the HUD render pass: uploads the HUD VU1 microprogram and its constants and sets the GS state for HUD drawing.
-void BeginRpHud(VIFS *p)
+extern "C" void BeginRpHud(VIFS *p)
 {
     EnsureVu1Code(p, D_0025AFA0, D_0025B870);
     p->AddDmaCnt();
@@ -424,7 +424,7 @@ void BeginRpHud(VIFS *p)
     p->AddVifFlusha();
     p->EndDmaCnt();
 }
-} } // namespace M_BeginRpHud
+} // namespace M_BeginRpHud
 
 // 0x211C10 EndRpHud
 /* Ends the HUD render pass: run the VU1 microprogram at 0xC0, then FLUSHA. */
@@ -443,10 +443,10 @@ extern "C" void EndRpHud(VIFS *pvifs)
 WIDGET130::WIDGET130() { actorChoice = -1; risingChoice = -1; fallingChoice = -1; nearChoice = -1; emptyChoice = -1; }
 
 // 0x211CA8 ShowModalBoxWidget
-namespace M_func_00211CA8 { extern "C" {
-void IncrementSwHandsOff(SW *g, int a);
-void PlayWidgetAnim(WIDGET *p, int a);
-} } // namespace M_func_00211CA8
+namespace M_func_00211CA8 {
+void IncrementSwHandsOff(SW *g, int a) __asm__("IncrementSwHandsOff");
+void PlayWidgetAnim(WIDGET *p, int a) __asm__("PlayWidgetAnim");
+} // namespace M_func_00211CA8
 // Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
 // open animation. (inferred)
 void WIDGET127::Show(int idLabel)
@@ -469,14 +469,14 @@ void WIDGET127::Init()
 }
 
 // 0x211D38 UpdateModalBoxWidget
-namespace M_func_00211D38 { extern "C" {
-extern int D_002DD318;
-extern char D_002E6550[], D_003DA4F0[];
-int IsScreenShown(void *);
-int HandleJoyButtons(void *, int);
-void DecrementSwHandsOff(SW *, int);
-void RestartJob(void *);
-} } // namespace M_func_00211D38
+namespace M_func_00211D38 {
+extern int D_002DD318 __asm__("D_002DD318");
+extern char D_002E6550[] __asm__("D_002E6550"), D_003DA4F0[] __asm__("D_003DA4F0");
+int IsScreenShown(void *) __asm__("IsScreenShown");
+int HandleJoyButtons(void *, int) __asm__("HandleJoyButtons");
+void DecrementSwHandsOff(SW *, int) __asm__("DecrementSwHandsOff");
+void RestartJob(void *) __asm__("RestartJob");
+} // namespace M_func_00211D38
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
 void WIDGET127::Update()
@@ -528,9 +528,9 @@ extern "C" void AddItemCounterOidB(WIDGET129 *widget, int oid)
 }
 
 // 0x211EC0 PostLoadItemCounterWidget
-namespace M_func_00211EC0 { extern "C" {
-void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int z);
-} } // namespace M_func_00211EC0
+namespace M_func_00211EC0 {
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int z) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+} // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
 void WIDGET129::PostLoad()
 {
@@ -550,14 +550,14 @@ void WIDGET129::PostLoad()
 }
 
 // 0x211F90 UpdateItemCounterWidget
-namespace M_func_00211F90 { extern "C" {
+namespace M_func_00211F90 {
 enum { TASK_STATE_ACTIVE = 1 };   /* (inferred) */
-extern char D_002C3EC0[0x90];
-extern char D_002A8AA0[];
-int IsTaskComplete(TASK *);
-int IsWidgetAnimPlaying(WIDGET *,int);
-int sprintf(char *,char *,...);
-} } // namespace M_func_00211F90
+extern char D_002C3EC0[0x90] __asm__("D_002C3EC0");
+extern char D_002A8AA0[] __asm__("D_002A8AA0");
+int IsTaskComplete(TASK *) __asm__("IsTaskComplete");
+int IsWidgetAnimPlaying(WIDGET *,int) __asm__("IsWidgetAnimPlaying");
+int sprintf(char *,char *,...) __asm__("sprintf");
+} // namespace M_func_00211F90
 // Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
 // texts, shows while any is active and hides when all are done. (inferred)
 // Runtime-checked: it counts the complete tasks.
@@ -602,12 +602,12 @@ void WIDGET129::Update()
 }
 
 // 0x212158 WIDGET_ctor
-namespace M_WIDGET_ctor { extern "C" {
+namespace M_WIDGET_ctor {
 struct S { void *frame; void *sidebag; char pad[4]; void *vt; char pad2[0x6C]; int mainAnimId; char pad3[0x4C]; int argTextIds[10]; char pad4[8]; char childList[4]; };
 extern char D_002DAF30[] __asm__("_vt$6WIDGET");
-void InitSl(void *p, int n);
+void InitSl(void *p, int n) __asm__("InitSl");
 // WIDGET constructor: vtable, no main animation (-1), the ten argument text ids -1 and an empty child list.
-struct S *WIDGET_ctor(struct S *widget)
+extern "C" struct S *WIDGET_ctor(struct S *widget)
 {
     unsigned int i;
     widget->vt = D_002DAF30;
@@ -619,7 +619,7 @@ struct S *WIDGET_ctor(struct S *widget)
     InitSl(widget->childList, 0x68);   /* InitSl */
     return widget;
 }
-} } // namespace M_WIDGET_ctor
+} // namespace M_WIDGET_ctor
 
 // 0x2121C8 IsWidgetIdle
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
@@ -654,18 +654,18 @@ extern "C" int IsWidgetAnimPlaying(WIDGET *widget, int animId)
 }
 
 // 0x212298 LoadWidgetFromBrx
-namespace M_LoadWidgetFromBrx { extern "C" {
+namespace M_LoadWidgetFromBrx {
 typedef struct { int cb; int cbAlign; } AREQ;
-extern char D_003E1C70[], D_003E1C80[];
-int S8Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
-int U32Read__18CBinaryInputStream(void *pbis);
-WIDGETLOAD *AllocClearedFromWorldHeap(AREQ *preq);
-void CBinaryInputStream_ReadCb64(void *pbis, WIDGETLOAD *po);
-void AppendSlEntry(void *, WIDGETLOAD *po);
-void LoadSpriteTable(WIDGET *p, void *pbis, WIDGET *p2, int *pa, SPRITEDESC **pb);
-void LoadSpriteGroups(WIDGET *p, void *pbis, WIDGET *p2);
-} } // namespace M_LoadWidgetFromBrx
+extern char D_003E1C70[] __asm__("D_003E1C70"), D_003E1C80[] __asm__("D_003E1C80");
+int S8Read__18CBinaryInputStream(void *pbis) __asm__("S8Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(void *pbis) __asm__("F32Read__18CBinaryInputStream");
+int U32Read__18CBinaryInputStream(void *pbis) __asm__("U32Read__18CBinaryInputStream");
+WIDGETLOAD *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
+void CBinaryInputStream_ReadCb64(void *pbis, WIDGETLOAD *po) __asm__("CBinaryInputStream_ReadCb64");
+void AppendSlEntry(void *, WIDGETLOAD *po) __asm__("AppendSlEntry");
+void LoadSpriteTable(WIDGET *p, void *pbis, WIDGET *p2, int *pa, SPRITEDESC **pb) __asm__("LoadSpriteTable");
+void LoadSpriteGroups(WIDGET *p, void *pbis, WIDGET *p2) __asm__("LoadSpriteGroups");
+} // namespace M_LoadWidgetFromBrx
 // Loads a widget: default animation ids, the LO part, whether its sprites are streamed, duration, size and font flag;
 // its sprites load now or later. Layout parse-verified: a parser following it reads every byte of 4 levels.
 void WIDGET::LoadFromBrx(CBinaryInputStream *pbis)
@@ -701,10 +701,10 @@ void WIDGET::LoadFromBrx(CBinaryInputStream *pbis)
 }
 
 // 0x2123C8 PostWidgetLoad
-namespace M_PostWidgetLoad { extern "C" {
-LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, LO *);
-void SetLoBusyKind(LO *p, int);
-} } // namespace M_PostWidgetLoad
+namespace M_PostWidgetLoad {
+LO *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, LO *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void SetLoBusyKind(LO *p, int) __asm__("SetLoBusyKind");
+} // namespace M_PostWidgetLoad
 // Widget post-load: finds the font object, centres the widget on screen from its size, shows it if flagged, marks it
 // busy.
 void WIDGET::PostLoad()
@@ -744,24 +744,24 @@ struct BIS {int grf;char unknown4[0x2C];void *vt;int cbSpool;char *abSpool;int u
 typedef struct {int keyLo,keyHi,kind;char filename[0x104];} KEY;   /* a file lookup key (inferred) */
 typedef union {MSG msg;char magic[4];} TMP;
 typedef struct {char pad[0xC];int priority;} POOL;
-extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
-extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-extern "C" BIS *CStreamBis_ctor(BIS *,int,void *,int);
-extern "C" void DestroyCStreamBis(BIS *,int) __asm__("_$_10CStreamBis");
-extern "C" void InitFileKey(KEY *);
-extern "C" void *AllocFromStack(MSG *);
-extern "C" int OpenStreamFromFileKey(BIS *,KEY *);
-extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
-extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
-extern "C" unsigned short U16Read__18CBinaryInputStream(BIS *);
-extern "C" int strncmp(const void *,const void *,unsigned int);
-extern "C" void LoadSpriteTable(WIDGET *,BIS *,WIDGET *,int *,SPRITEDESC **);
-extern "C" void LoadSpriteGroups(WIDGET *,BIS *,WIDGET *);
-extern "C" { 
- }
-extern "C" { extern POOL D_003E1C70; }
-extern "C" { extern int D_002BE538; }
-extern "C" { extern char D_002A8AE8[]; }
+extern FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
+extern void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
+extern BIS *CStreamBis_ctor(BIS *,int,void *,int) __asm__("CStreamBis_ctor");
+extern void DestroyCStreamBis(BIS *,int) __asm__("_$_10CStreamBis");
+extern void InitFileKey(KEY *) __asm__("InitFileKey");
+extern void *AllocFromStack(MSG *) __asm__("AllocFromStack");
+extern int OpenStreamFromFileKey(BIS *,KEY *) __asm__("OpenStreamFromFileKey");
+extern void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *) __asm__("SetDecompress__18CBinaryInputStreamiPUc");
+extern unsigned char U8Read__18CBinaryInputStream(BIS *) __asm__("U8Read__18CBinaryInputStream");
+extern unsigned short U16Read__18CBinaryInputStream(BIS *) __asm__("U16Read__18CBinaryInputStream");
+extern int strncmp(const void *,const void *,unsigned int) __asm__("strncmp");
+extern void LoadSpriteTable(WIDGET *,BIS *,WIDGET *,int *,SPRITEDESC **) __asm__("LoadSpriteTable");
+extern void LoadSpriteGroups(WIDGET *,BIS *,WIDGET *) __asm__("LoadSpriteGroups");
+
+
+extern POOL D_003E1C70 __asm__("D_003E1C70");
+extern int D_002BE538 __asm__("D_002BE538");
+extern char D_002A8AE8[] __asm__("D_002A8AE8");
 // Build the file's decryption key from its load record (kind 2, lo = (k0^k2)+0xCA0, hi = k1^k3); returns whether the
 // key is usable (hi != 0).
 static inline int SetKey(KEY *key,WIDGETLOAD *load) {
@@ -830,9 +830,9 @@ load:
 } // namespace M_LoadWidgetSprites
 
 // 0x212780 UnloadWidgetSprites
-namespace M_UnloadWidgetSprites { extern "C" {
-void ClearSl(SL *psl);
-} } // namespace M_UnloadWidgetSprites
+namespace M_UnloadWidgetSprites {
+void ClearSl(SL *psl) __asm__("ClearSl");
+} // namespace M_UnloadWidgetSprites
 // Drops a widget's sprite tables and lists (on entering the unloaded state).
 extern "C" void UnloadWidgetSprites(WIDGET *widget)
 {
@@ -850,9 +850,9 @@ extern "C" void UnloadWidgetSprites(WIDGET *widget)
 }
 
 // 0x2127C8 AreWidgetLoadsIdle
-namespace M_func_002127C8 { extern "C" {
-extern int D_002BE538;
-} } // namespace M_func_002127C8
+namespace M_func_002127C8 {
+extern int D_002BE538 __asm__("D_002BE538");
+} // namespace M_func_002127C8
 // True when no deferred widget sprite load is younger than two frames (used to wait for widgets before continuing).
 // (inferred)
 extern "C" int AreWidgetLoadsIdle(void)
@@ -875,11 +875,11 @@ extern "C" int AreWidgetLoadsIdle(void)
 }
 
 // 0x212828 ShowWidgetArgsFromSplice
-namespace M_ShowWidgetArgsFromSplice { extern "C" {
+namespace M_ShowWidgetArgsFromSplice {
 struct L { int words[4]; };
-void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d);
-void Decref__4CRef(CRefData *r);
-} } // namespace M_ShowWidgetArgsFromSplice
+void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d) __asm__("SetValuesFromSpliceList");
+void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
+} // namespace M_ShowWidgetArgsFromSplice
 // Shows a widget with argument ids taken from a splice list (at most 10).
 extern "C" void ShowWidgetArgsFromSplice(WIDGET *widget, void *spliceList)
 {
@@ -972,14 +972,14 @@ namespace RO_ORDER { extern const char r_D_002A8AD8[] __asm__("D_002A8AD8") = "Y
 namespace RO_ORDER { extern const char r_D_002A8AE0[] __asm__("D_002A8AE0") = "&2S&."; }   /* the string D_002C40A0 points at (emitted with its definition in the original) */
 namespace RO_ORDER { extern const char r_D_002A8AE8[] __asm__("D_002A8AE8") = "ZRB."; }
 // 0x212A70 SetWidgetState
-namespace M_SetWidgetState { extern "C" {
-extern int D_002DD318;
-extern int D_002BE538;
-void SetClockRate(CLOCK *,int,float);
-void LoadWidgetSprites(WIDGET *);
-void StopWidgetMainAnim(WIDGET *);
-void StartWidgetMainAnim(WIDGET *,int);
-} } // namespace M_SetWidgetState
+namespace M_SetWidgetState {
+extern int D_002DD318 __asm__("D_002DD318");
+extern int D_002BE538 __asm__("D_002BE538");
+void SetClockRate(CLOCK *,int,float) __asm__("SetClockRate");
+void LoadWidgetSprites(WIDGET *) __asm__("LoadWidgetSprites");
+void StopWidgetMainAnim(WIDGET *) __asm__("StopWidgetMainAnim");
+void StartWidgetMainAnim(WIDGET *,int) __asm__("StartWidgetMainAnim");
+} // namespace M_SetWidgetState
 // The widget state machine: 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing; keeps the world's visible
 // widget count and pauses the clock for pausing widgets.
 extern "C" void SetWidgetState(WIDGET *widget, int state)
@@ -1018,9 +1018,9 @@ extern "C" void SetWidgetState(WIDGET *widget, int state)
 }
 
 // 0x212C50 UpdateWidget
-namespace M_UpdateWidget { extern "C" {
-void AdvanceWidgetSprite(void *,float);
-} } // namespace M_UpdateWidget
+namespace M_UpdateWidget {
+void AdvanceWidgetSprite(void *,float) __asm__("AdvanceWidgetSprite");
+} // namespace M_UpdateWidget
 // Per-frame widget update: advances the state machine from requests, animation completion and duration, and advances
 // the main sprite. Runtime-checked: state 1 hidden, 2 visible.
 void WIDGET::Update()
@@ -1069,10 +1069,10 @@ void WIDGET::Update()
 }
 
 // 0x212E40 SetWidgetAnimPhase
-namespace M_SetWidgetAnimPhase { extern "C" {
-void SetSpriteDefaultPhase(SPRITEGRP *pa, float phase);
-void SetSpriteAnimPhase(SPRITEGRP *pa, int animIndex, float g, int z);
-} } // namespace M_SetWidgetAnimPhase
+namespace M_SetWidgetAnimPhase {
+void SetSpriteDefaultPhase(SPRITEGRP *pa, float phase) __asm__("SetSpriteDefaultPhase");
+void SetSpriteAnimPhase(SPRITEGRP *pa, int animIndex, float g, int z) __asm__("SetSpriteAnimPhase");
+} // namespace M_SetWidgetAnimPhase
 // Seeks a widget animation (0x314 = main) to a fraction of its length (meters and gauges).
 extern "C" void SetWidgetAnimPhase(WIDGET *widget, int animId, float phase)
 {
@@ -1100,12 +1100,12 @@ extern "C" void SetWidgetAnimPhase(WIDGET *widget, int animId, float phase)
 }
 
 // 0x212F80 SetWidgetAnimTime
-namespace M_func_00212F80 { extern "C" {
-void SetSpriteDefaultTime(SPRITEGRP *pa, float phase);
-void SetSpriteAnimTime(SPRITEGRP *pa, int animIndex, float g, int z);
+namespace M_func_00212F80 {
+void SetSpriteDefaultTime(SPRITEGRP *pa, float phase) __asm__("SetSpriteDefaultTime");
+void SetSpriteAnimTime(SPRITEGRP *pa, int animIndex, float g, int z) __asm__("SetSpriteAnimTime");
 // 0x212F78: dead-code scrap (sly2/scrap.h)
-SLY2_SCRAP("addiu $sp, $sp, 0xb0");
-} } // namespace M_func_00212F80
+extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0xb0"); }
+} // namespace M_func_00212F80
 // Seeks a widget animation to an absolute time. (inferred)
 extern "C" void SetWidgetAnimTime(WIDGET *widget, int animId, float phase)
 {
@@ -1133,24 +1133,24 @@ extern "C" void SetWidgetAnimTime(WIDGET *widget, int animId, float phase)
 }
 
 // 0x2130C0 QueueWidgetRenderSetup
-namespace M_QueueWidgetRenderSetup { extern "C" {
+namespace M_QueueWidgetRenderSetup {
 // Queue the render initialization payloads in a DMA packet.
 
-extern VIFS D_002DEA28;
-extern char D_00442210[],D_002DF010[];
-void CopyAqw__FPvT0i(void *,void *,int);
-RPL *AllocRenderListEntry(void);
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
+extern char D_00442210[] __asm__("D_00442210"),D_002DF010[] __asm__("D_002DF010");
+void CopyAqw__FPvT0i(void *,void *,int) __asm__("CopyAqw__FPvT0i");
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
-static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
+extern "C" { static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;} }
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
+extern "C" { static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);} }
 // Append n quadwords from source to the packet.
-static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;}
+extern "C" { static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;} }
 // Append a VIF DIRECT code for n quadwords (aligned so the data starts on a quadword) followed by the data.
-static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
+extern "C" { static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);} }
 // 0x2130B8: dead-code scrap (sly2/scrap.h)
-SLY2_SCRAP("addiu $sp, $sp, 0xb0");
-} } // namespace M_QueueWidgetRenderSetup
+extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0xb0"); }
+} // namespace M_QueueWidgetRenderSetup
 // Queues the DMA packet that sets up rendering before the widget sprites.
 extern "C" void QueueWidgetRenderSetup(WIDGET *p){
     using namespace M_QueueWidgetRenderSetup;
@@ -1194,16 +1194,16 @@ struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload
 struct LIST {Q *first,*last;};
 /* WIDGET island: a WIDGET-typed p (even the same pointer) moves the Align loop's registers (291/316 off) */
 struct WIDGETIsland {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
-extern "C" { extern VIFS D_002DEA28; }
-extern "C" {
-void RenderLoSelf(WIDGETIsland *);
-int IsWidgetVisible(WIDGETIsland *);
-void DrawSprite(void *);
-void QueueWidgetRenderSetup(WIDGETIsland *);
-void QueueSpriteVuProgram(WIDGETIsland *,int,float);
-void RenderSpritePayload(void *,void *,PARAM *,int);
-void ClearSl(LIST *);
-}
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
+
+void RenderLoSelf(WIDGETIsland *) __asm__("RenderLoSelf");
+int IsWidgetVisible(WIDGETIsland *) __asm__("IsWidgetVisible");
+void DrawSprite(void *) __asm__("DrawSprite");
+void QueueWidgetRenderSetup(WIDGETIsland *) __asm__("QueueWidgetRenderSetup");
+void QueueSpriteVuProgram(WIDGETIsland *,int,float) __asm__("QueueSpriteVuProgram");
+void RenderSpritePayload(void *,void *,PARAM *,int) __asm__("RenderSpritePayload");
+void ClearSl(LIST *) __asm__("ClearSl");
+
 // Pad the packet with zero words to a 64-byte boundary.
 static inline void Align(VIFS *r){while((uint)r->m_pb&63){*(uint *)r->m_pb=0;r->m_pb+=4;}}
 // Store the color offset (each channel minus 127).
@@ -1275,9 +1275,9 @@ extern "C" int IsWidgetObscured(WIDGET *widget)
 }
 
 // 0x213830 StartWidgetMainAnim
-namespace M_StartWidgetMainAnim { extern "C" {
-void StartSpriteAnimById(SPRITEGRP *p);
-} } // namespace M_StartWidgetMainAnim
+namespace M_StartWidgetMainAnim {
+void StartSpriteAnimById(SPRITEGRP *p) __asm__("StartSpriteAnimById");
+} // namespace M_StartWidgetMainAnim
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
 extern "C" void StartWidgetMainAnim(WIDGET *widget, int animId)
 {
@@ -1303,9 +1303,9 @@ extern "C" void StopWidgetMainAnim(WIDGET *widget)
 }
 
 // 0x213928 StopWidgetAnim
-namespace M_StopWidgetAnim { extern "C" {
-void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z);
-} } // namespace M_StopWidgetAnim
+namespace M_StopWidgetAnim {
+void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z) __asm__("RestartNestedSprite");
+} // namespace M_StopWidgetAnim
 // Returns the sprite that plays an animation id to its rest animation.
 extern "C" void StopWidgetAnim(WIDGET *widget, int animId)
 {
@@ -1332,9 +1332,9 @@ extern "C" void StopWidgetAnim(WIDGET *widget, int animId)
 }
 
 // 0x213A08 PlayWidgetAnimsWithArg
-namespace M_func_00213A08 { extern "C" {
-void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z);
-} } // namespace M_func_00213A08
+namespace M_func_00213A08 {
+void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z) __asm__("RestartNestedSpriteWithArg");
+} // namespace M_func_00213A08
 // Starts every sprite that has the animation id, with an argument. (inferred)
 extern "C" void PlayWidgetAnimsWithArg(WIDGET *widget, int animId, int arg)
 {
@@ -1351,9 +1351,9 @@ extern "C" void PlayWidgetAnimsWithArg(WIDGET *widget, int animId, int arg)
 }
 
 // 0x213B00 PlayWidgetAnim
-namespace M_PlayWidgetAnim { extern "C" {
-void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z);
-} } // namespace M_PlayWidgetAnim
+namespace M_PlayWidgetAnim {
+void RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int y, int z) __asm__("RestartNestedSprite");
+} // namespace M_PlayWidgetAnim
 // Starts the animation id on the sprite that owns it (restarting in place if it is instanced).
 extern "C" void PlayWidgetAnim(WIDGET *widget, int animId)
 {
@@ -1382,9 +1382,9 @@ extern "C" void PlayWidgetAnim(WIDGET *widget, int animId)
 }
 
 // 0x213BD8 PlayWidgetAnimWithArg
-namespace M_func_00213BD8 { extern "C" {
-void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z);
-} } // namespace M_func_00213BD8
+namespace M_func_00213BD8 {
+void RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int x, int y, int z) __asm__("RestartNestedSpriteWithArg");
+} // namespace M_func_00213BD8
 // Starts the first sprite that has the animation id, with an argument. (inferred)
 extern "C" void PlayWidgetAnimWithArg(WIDGET *widget, int animId, int arg)
 {
@@ -1477,9 +1477,9 @@ namespace M_func_00213F70 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-extern "C" void ClearSle(SLE *p);
-extern "C" int FindFreeSpriteSlot(SPRITEGRP *pa);
-extern "C" void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern void ClearSle(SLE *p) __asm__("ClearSle");
+extern int FindFreeSpriteSlot(SPRITEGRP *pa) __asm__("FindFreeSpriteSlot");
+extern void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1) __asm__("StartSpriteAnimAt");
 // Recursively finds nested sprite item k and restarts it on animation z. (inferred)
 extern "C" int RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex, int numItems, SPRITEITEM *items)
 {
@@ -1520,9 +1520,9 @@ namespace M_func_00214100 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-extern "C" void ClearSle(SLE *p);
-extern "C" int FindFreeSpriteSlot(SPRITEGRP *pa);
-extern "C" void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern void ClearSle(SLE *p) __asm__("ClearSle");
+extern int FindFreeSpriteSlot(SPRITEGRP *pa) __asm__("FindFreeSpriteSlot");
+extern void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1) __asm__("StartSpriteAnimAt");
 // RestartNestedSprite with an extra argument. (inferred)
 extern "C" int RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int arg, int numItems, SPRITEITEM *items)
 {
@@ -1590,12 +1590,12 @@ extern "C" void SetWidgetExclusive(WIDGET *widget, int isNonExclusive)
 }
 
 // 0x214398 LoadSpriteTable
-namespace M_LoadSpriteTable { extern "C" {
-extern int D_002C40A4;
-int U16Read__18CBinaryInputStream(void *a);
-int AllocZeroedFromHeap__FP4HEAPii(void *heap, int cb, int k);
-void LoadSpriteDescriptor(WIDGET *p, void *a, void *b, int n, int m);
-} } // namespace M_LoadSpriteTable
+namespace M_LoadSpriteTable {
+extern int D_002C40A4 __asm__("D_002C40A4");
+int U16Read__18CBinaryInputStream(void *a) __asm__("U16Read__18CBinaryInputStream");
+int AllocZeroedFromHeap__FP4HEAPii(void *heap, int cb, int k) __asm__("AllocZeroedFromHeap__FP4HEAPii");
+void LoadSpriteDescriptor(WIDGET *p, void *a, void *b, int n, int m) __asm__("LoadSpriteDescriptor");
+} // namespace M_LoadSpriteTable
 // Loads a sprite table: the count, then each sprite descriptor.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSpriteTable(WIDGET *p, void *a, void *b, int *pn, int *pm)
@@ -1632,17 +1632,17 @@ struct ANIM {ushort count,pad2;KEY *keys;float duration;ROOT *owner;GROUP *group
 struct REUSE {int count;FRAME *frames;short index,phase;void *previous;float elapsed;int pad14;};
 struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[0x14];int index;ROOT *owner;int first;int pad2C;};
 struct ROOT {char pad[0x80];ushort groupCount,pad82;GROUP *groups;};
-extern "C" {
-int U16Read__18CBinaryInputStream(BIS *);
-uint U32Read__18CBinaryInputStream(BIS *);
-int U8Read__18CBinaryInputStream(BIS *);
-int S16Read__18CBinaryInputStream(BIS *);
-int S32Read__18CBinaryInputStream(BIS *);
-float F32Read__18CBinaryInputStream(BIS *);
-void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
-void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
-void InitSpriteItem(FRAME *);
-}
+
+int U16Read__18CBinaryInputStream(BIS *) __asm__("U16Read__18CBinaryInputStream");
+uint U32Read__18CBinaryInputStream(BIS *) __asm__("U32Read__18CBinaryInputStream");
+int U8Read__18CBinaryInputStream(BIS *) __asm__("U8Read__18CBinaryInputStream");
+int S16Read__18CBinaryInputStream(BIS *) __asm__("S16Read__18CBinaryInputStream");
+int S32Read__18CBinaryInputStream(BIS *) __asm__("S32Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(BIS *) __asm__("F32Read__18CBinaryInputStream");
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *) __asm__("ReadMatrix__18CBinaryInputStreamP7MATRIX3");
+void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int) __asm__("AllocZeroedFromHeap__FP4HEAPii");
+void InitSpriteItem(FRAME *) __asm__("InitSpriteItem");
+
 // Copy the xy parts of the three rows of src into a 2x3 affine matrix.
 static inline void CopyXY(M23 *dst,const M3 &src){
  dst->a[0]=src.row[0].x;dst->a[1]=src.row[0].y;
@@ -1757,25 +1757,25 @@ struct RECORD {int kind,id;RAWCOLOR color;uchar count,padD[3];int budget;uchar f
 struct GROUP {int count,budget,samples;RECORD *begin,*end;};
 // Native two-word member callback, stored as {delta,index,function}.
 typedef void (OWNER::*PMF)(SPRITE *);
-extern "C" {
-int U16Read__18CBinaryInputStream(BIS *);
-uint U32Read__18CBinaryInputStream(BIS *);
-int U8Read__18CBinaryInputStream(BIS *);
-int S16Read__18CBinaryInputStream(BIS *);
-int S8Read__18CBinaryInputStream(BIS *);
-int S32Read__18CBinaryInputStream(BIS *);
-float F32Read__18CBinaryInputStream(BIS *);
-void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,MATRIX3Q *);
-void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
-void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int);
-void *AllocClearedFromStack(SWALLOC *);
-void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
-void PostSwCallback(SW *,OWNER *,PMF,SPRITE *);
-}
-extern "C" { extern int D_002C40A4; }
-extern "C" { extern PMF D_002A8B08; }
-extern "C" { extern QW D_002A2E10; }
-extern "C" { extern char D_00000650[],D_00000140[]; }
+
+int U16Read__18CBinaryInputStream(BIS *) __asm__("U16Read__18CBinaryInputStream");
+uint U32Read__18CBinaryInputStream(BIS *) __asm__("U32Read__18CBinaryInputStream");
+int U8Read__18CBinaryInputStream(BIS *) __asm__("U8Read__18CBinaryInputStream");
+int S16Read__18CBinaryInputStream(BIS *) __asm__("S16Read__18CBinaryInputStream");
+int S8Read__18CBinaryInputStream(BIS *) __asm__("S8Read__18CBinaryInputStream");
+int S32Read__18CBinaryInputStream(BIS *) __asm__("S32Read__18CBinaryInputStream");
+float F32Read__18CBinaryInputStream(BIS *) __asm__("F32Read__18CBinaryInputStream");
+void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,MATRIX3Q *) __asm__("ReadMatrix__18CBinaryInputStreamP7MATRIX3");
+void Read__18CBinaryInputStreamiPv(BIS *,int,void *) __asm__("Read__18CBinaryInputStreamiPv");
+void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int) __asm__("AllocZeroedFromHeap__FP4HEAPii");
+void *AllocClearedFromStack(SWALLOC *) __asm__("AllocClearedFromStack");
+void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **) __asm__("LoadSpriteTable");
+void PostSwCallback(SW *,OWNER *,PMF,SPRITE *) __asm__("PostSwCallback");
+
+extern int D_002C40A4 __asm__("D_002C40A4");
+extern PMF D_002A8B08 __asm__("D_002A8B08");
+extern QW D_002A2E10 __asm__("D_002A2E10");
+extern char D_00000650[] __asm__("D_00000650"),D_00000140[] __asm__("D_00000140");
 // Fill the request and allocate bytes with the given alignment.
 static inline void *Acquire(SWALLOC *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
 // Copy the xy parts of the three rows of src into a 2x3 affine matrix.
@@ -1912,14 +1912,14 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
 
 // 0x2155C0 BuildSpritePictureTexPacket
 namespace M_func_002155C0 {
-extern "C" {
-void STACKSCOPE_ctor(void *p);
+
+void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-SHDBLIP *FindShaderById(int oid);
-}
+SHDBLIP *FindShaderById(int oid) __asm__("FindShaderById");
+
 /* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
 struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; QW *texPacket; };
-extern "C" void BuildSpritePictureTexPacket(WIDGET *p, Q *q);
+extern void BuildSpritePictureTexPacket(WIDGET *p, Q *q) __asm__("BuildSpritePictureTexPacket");
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
 void BuildSpritePictureTexPacket(WIDGET *owner, Q *sprite)
 {
@@ -1950,8 +1950,8 @@ struct CP { RGBA c0, c1; };
 /* A sprite frame item (0x70 bytes): three colour pairs, its descriptor, its slot in a nested group, an argument,
    a list link. */
 struct S { CP colors; char pad[0x28]; int descriptor, unknown34, unknown38; CP colorsB; void *matrix; int unknown48; CP colorsC; int unknown54, spriteSlot, unknown5C; int pad2; int arg; char link[4]; };
-extern "C" char D_002A3A10[];
-extern "C" void ClearSle(void *p);
+extern char D_002A3A10[] __asm__("D_002A3A10");
+extern void ClearSle(void *p) __asm__("ClearSle");
 // Sets a sprite item's defaults: neutral colours, identity transform, no ids.
 extern "C" void InitSpriteItem(S *item)
 {
@@ -1980,10 +1980,10 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-extern "C" int FindFreeSpriteSlot(void *p);
-extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
-extern "C" void *FindObjectForRenderTarget(int);
-extern "C" void *AcquireRenderTarget(void *);
+extern int FindFreeSpriteSlot(void *p) __asm__("FindFreeSpriteSlot");
+extern void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1) __asm__("StartSpriteAnimSlot");
+extern void *FindObjectForRenderTarget(int) __asm__("FindObjectForRenderTarget");
+extern void *AcquireRenderTarget(void *) __asm__("AcquireRenderTarget");
 // Binds a sprite item to its payload by kind (a nested sprite starts its main animation). (inferred)
 extern "C" void SetSpriteItemSource(SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
@@ -2013,7 +2013,7 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
+extern void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1) __asm__("UpdateSpriteSlot");
 // Forwards a frame update (time, transform, colours) to a nested sprite item. (inferred)
 extern "C" void UpdateSpriteItem(float time, SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
@@ -2023,14 +2023,14 @@ extern "C" void UpdateSpriteItem(float time, SPRITEDESC *sprite, SPRITEITEM *ite
 } // namespace M_func_00215850
 
 // 0x2158C0 ReleaseSpriteItem
-namespace M_func_002158C0 { extern "C" {
+namespace M_func_002158C0 {
 struct Q { char pad[0x20]; void *resource; };   /* a texture reference */
 struct S { int id; int kind; WIDGET *owner; int unknownC; int index; struct Q *texture; };
-void StopSpriteSlot(void *p, int a);
-void ReleaseRenderTarget(void *p);
-void InitSpriteItem(SPRITEITEM *item);
+void StopSpriteSlot(void *p, int a) __asm__("StopSpriteSlot");
+void ReleaseRenderTarget(void *p) __asm__("ReleaseRenderTarget");
+void InitSpriteItem(SPRITEITEM *item) __asm__("InitSpriteItem");
 // Releases a sprite item's payload (stops a nested sprite, drops a texture reference) and resets it. (inferred)
-void ReleaseSpriteItem(struct S *sprite, SPRITEITEM *item)
+extern "C" void ReleaseSpriteItem(struct S *sprite, SPRITEITEM *item)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
@@ -2046,14 +2046,14 @@ void ReleaseSpriteItem(struct S *sprite, SPRITEITEM *item)
     }
     InitSpriteItem(item);
 }
-} } // namespace M_func_002158C0
+} // namespace M_func_002158C0
 
 // 0x215960 QueueSpriteItem
-namespace M_func_00215960 { extern "C" {
-void DrawSpriteSlot(void *p, int a, int b);
-void PrependSlEntry(SL *psl, SPRITEITEM *item);
+namespace M_func_00215960 {
+void DrawSpriteSlot(void *p, int a, int b) __asm__("DrawSpriteSlot");
+void PrependSlEntry(SL *psl, SPRITEITEM *item) __asm__("PrependSlEntry");
 // Queues a sprite item for drawing (nested sprites draw recursively). (inferred)
-void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFlags)
+extern "C" void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFlags)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
@@ -2071,16 +2071,16 @@ void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFlags)
         break;
     }
 }
-} } // namespace M_func_00215960
+} // namespace M_func_00215960
 
 // 0x2159E0 RenderSpritePayload
-namespace M_func_002159E0 { extern "C" {
+namespace M_func_002159E0 {
 struct S { int id; int kind; };
-void RenderSpriteText(struct S *p, int a, int b, int c);
-void RenderSpriteGeometry(struct S *p, int a, int b, int c);
-void RenderSpritePicture(struct S *p, int a, int b, int c);
+void RenderSpriteText(struct S *p, int a, int b, int c) __asm__("RenderSpriteText");
+void RenderSpriteGeometry(struct S *p, int a, int b, int c) __asm__("RenderSpriteGeometry");
+void RenderSpritePicture(struct S *p, int a, int b, int c) __asm__("RenderSpritePicture");
 // Renders a queued sprite payload by kind: text, geometry or picture. (inferred)
-void RenderSpritePayload(struct S *sprite, int matrix, int params, int channel)
+extern "C" void RenderSpritePayload(struct S *sprite, int matrix, int params, int channel)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_TEXT:
@@ -2100,14 +2100,14 @@ void RenderSpritePayload(struct S *sprite, int matrix, int params, int channel)
         break;
     }
 }
-} } // namespace M_func_002159E0
+} // namespace M_func_002159E0
 
 // 0x215A50 GetGlyphIndex__8CFontBrxc
-namespace M_IglyffFromCh__8CFontBrxc { extern "C" {
+namespace M_IglyffFromCh__8CFontBrxc {
 struct CFontBrx { char pad[0x20]; int numGlyphs; unsigned int *glyphChars; };   /* glyphChars sorted, for the binary search */
 // Glyph index of a character in a font (0 when the font has no glyph for it, inferred).
 // (Sly 1-derived name: CFontBrx::PglyffFromCh.)
-int GetGlyphIndex__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
+extern "C" int GetGlyphIndex__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 {
     int lo = 0;
     int hi = p->numGlyphs - 1;
@@ -2123,7 +2123,7 @@ int GetGlyphIndex__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
     }
     return 0;
 }
-} } // namespace M_IglyffFromCh__8CFontBrxc
+} // namespace M_IglyffFromCh__8CFontBrxc
 
 // 0x215AC0 CRichText_ctor
 namespace M_CRichText_ctor {
@@ -2131,8 +2131,8 @@ namespace M_CRichText_ctor {
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct F { char pad[0x54]; char *fonts; };   /* the HUD font object: 0x40-byte fonts */
-extern "C" Q D_002A2E10;
-extern "C" Q D_002A2E20;
+extern Q D_002A2E10 __asm__("D_002A2E10");
+extern Q D_002A2E20 __asm__("D_002A2E20");
 /* CRichText2 (0x98 bytes; the field names are the same in every view of this file):
    text, cursor, current / base / alternate font, current / base / alternate colour, the two float colour vectors
    the glyphs draw with and their base values, a style-change flag, the screen origin, the box (offset, size,
@@ -2140,7 +2140,7 @@ extern "C" Q D_002A2E20;
 struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; RGBA baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
   char pad60[4]; float originX; float originY; int offsetX; int offsetY; int width; int height; float scaleX; float scaleY; float lineHeight; float fontScale;
   int vAlign; int hAlign; int priority; };
-extern "C" void ResetRichText2(S *p, int i);
+extern void ResetRichText2(S *p, int i) __asm__("ResetRichText2");
 // Rich-text constructor from a string, a font and a scale.
 extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
 {
@@ -2178,7 +2178,7 @@ struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; 
 struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
   char pad60[4]; float originX; float originY; int offsetX; int offsetY; float width; float height; float scaleX; float scaleY; float lineHeight; float fontScale;
   int vAlign; int hAlign; int priority; };
-extern "C" void ResetRichText2(S *p, int i);
+extern void ResetRichText2(S *p, int i) __asm__("ResetRichText2");
 // Rich-text constructor from a sprite text element (width, height, colour). (inferred)
 extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style)
 {
@@ -2208,12 +2208,12 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
 } // namespace M_func_00215BA8
 
 // 0x215CA8 ResetRichText2
-namespace M_func_00215CA8 { extern "C" {
+namespace M_func_00215CA8 {
 struct S { int text; int cur; int font; int baseFont; int altFont; struct RGBA color; struct RGBA baseColor; unsigned int altColor; };
-void UpdateRichText2Color(struct S *p);
+void UpdateRichText2Color(struct S *p) __asm__("UpdateRichText2Color");
 // Resets the rich-text cursor: optional new text, start of text, base font and colour. (inferred)
 // Same role as Sly 1's CRichText::Reset, but this HUD rich text is a second class (Reset__9CRichText is 0x15F970).
-void ResetRichText2(struct S *rt, int text)
+extern "C" void ResetRichText2(struct S *rt, int text)
 {
     if (text)
         rt->text = text;
@@ -2224,32 +2224,32 @@ void ResetRichText2(struct S *rt, int text)
     ((unsigned char *)&rt->altColor)[3] = rt->color.alpha;   /* ... at the current alpha */
     UpdateRichText2Color(rt);
 }
-} } // namespace M_func_00215CA8
+} // namespace M_func_00215CA8
 
 // 0x215D00 SetRichText2BaseColor
-namespace M_func_00215D00 { extern "C" {
+namespace M_func_00215D00 {
 struct S { char pad[0x14]; struct RGBA color; struct RGBA baseColor; };
-void UpdateRichText2Color(struct S *p);
+void UpdateRichText2Color(struct S *p) __asm__("UpdateRichText2Color");
 // Sets the rich text's base and current colour. (inferred)
-void SetRichText2BaseColor(struct S *rt, struct RGBA *color)
+extern "C" void SetRichText2BaseColor(struct S *rt, struct RGBA *color)
 {
     rt->baseColor = *color;
     rt->color = rt->baseColor;
     UpdateRichText2Color(rt);
 }
-} } // namespace M_func_00215D00
+} // namespace M_func_00215D00
 
 // 0x215D40 GetRichText2NextChar
-namespace M_func_00215D40 { extern "C" {
+namespace M_func_00215D40 {
 struct S {
     int text; unsigned char *cur; int font; int baseFont; int altFont;
     struct RGBA color; struct RGBA baseColor; struct RGBA altColor;
     char pad20[0x40]; int changed;
 };
-void UpdateRichText2Color(struct S *p);
+void UpdateRichText2Color(struct S *p) __asm__("UpdateRichText2Color");
 // Returns the next printable character, processing '&' escape codes (colour, font, glyph changes) on the way.
 // (inferred)
-unsigned char GetRichText2NextChar(struct S *rt)
+extern "C" unsigned char GetRichText2NextChar(struct S *rt)
 {
     int isDone = 0;
     rt->changed = 0;
@@ -2279,14 +2279,14 @@ unsigned char GetRichText2NextChar(struct S *rt)
     }
     return *rt->cur++;
 }
-} } // namespace M_func_00215D40
+} // namespace M_func_00215D40
 
 // 0x215E30 CRichText_CountChars
-namespace M_CRichText_Cch { extern "C" {
-void ResetRichText2(void *p, int a);
-int GetRichText2NextChar(void *p);
+namespace M_CRichText_Cch {
+void ResetRichText2(void *p, int a) __asm__("ResetRichText2");
+int GetRichText2NextChar(void *p) __asm__("GetRichText2NextChar");
 // Number of printable characters in the rich text.
-int CRichText_CountChars(void *rt)
+extern "C" int CRichText_CountChars(void *rt)
 {
     int count = 0;
     ResetRichText2(rt, 0);
@@ -2294,31 +2294,31 @@ int CRichText_CountChars(void *rt)
         count++;
     return count;
 }
-} } // namespace M_CRichText_Cch
+} // namespace M_CRichText_Cch
 
 // 0x215E80 CRichText_Trim
-namespace M_CRichText_Trim { extern "C" {
+namespace M_CRichText_Trim {
 struct S { int text; char *cur; };
-void ResetRichText2(struct S *p, int a);
-int GetRichText2NextChar(struct S *p);
+void ResetRichText2(struct S *p, int a) __asm__("ResetRichText2");
+int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
 // Truncates the rich text after n printable characters.
-void CRichText_Trim(struct S *rt, int n)
+extern "C" void CRichText_Trim(struct S *rt, int n)
 {
     ResetRichText2(rt, 0);
     while (GetRichText2NextChar(rt) && n != 0)
         n--;
     *rt->cur = 0;
 }
-} } // namespace M_CRichText_Trim
+} // namespace M_CRichText_Trim
 
 // 0x215ED8 CRichText_GetWidth
-namespace M_CRichText_Dx { extern "C" {
+namespace M_CRichText_Dx {
 struct S { char pad[8]; void *font; char pad2[0x7C]; float fontScale; };
-void ResetRichText2(struct S *p, int a);
-int GetRichText2NextChar(struct S *p);
-float GetFontGlyphWidth2(void *p, int ch);
+void ResetRichText2(struct S *p, int a) __asm__("ResetRichText2");
+int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
+float GetFontGlyphWidth2(void *p, int ch) __asm__("GetFontGlyphWidth2");
 // Width of the rich text (glyph widths times scale).
-float CRichText_GetWidth(struct S *p)
+extern "C" float CRichText_GetWidth(struct S *p)
 {
     float sum = 0.0f;
     int ch;
@@ -2327,22 +2327,22 @@ float CRichText_GetWidth(struct S *p)
         sum += GetFontGlyphWidth2(p->font, ch) * p->fontScale;
     return sum;
 }
-} } // namespace M_CRichText_Dx
+} // namespace M_CRichText_Dx
 
 // 0x215F40 WrapRichText2Lines
 namespace M_func_00215F40 {
-extern "C" {
+
 struct S { unsigned char *text; unsigned char *cur; void *font; char pad[0x74-0xC]; float width; char pad1[0x88-0x78]; float fontScale; };
 extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
-void ResetRichText2(struct S *,unsigned char *);
-unsigned char GetRichText2NextChar(struct S *);
-float GetFontGlyphWidth2(void *,unsigned char);
+void ResetRichText2(struct S *,unsigned char *) __asm__("ResetRichText2");
+unsigned char GetRichText2NextChar(struct S *) __asm__("GetRichText2NextChar");
+float GetFontGlyphWidth2(void *,unsigned char) __asm__("GetFontGlyphWidth2");
 // The newline character (10) materialised in a register.
-static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,10":"=r"(value));return value;}
+extern "C" { static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,10":"=r"(value));return value;} }
 // Store one byte.
-static inline void StoreByte(unsigned char *p,int c){*p=c;}
+extern "C" { static inline void StoreByte(unsigned char *p,int c){*p=c;} }
 // Counts lines, inserting line breaks where a line would exceed the box width. (inferred)
-int WrapRichText2Lines(struct S *p) {
+extern "C" int WrapRichText2Lines(struct S *p) {
     float width=0.0f;
     int lines=1;
     unsigned char c;
@@ -2374,11 +2374,11 @@ int WrapRichText2Lines(struct S *p) {
     return lines;
 }
 
-}
+
 } // namespace M_func_00215F40
 
 // 0x2160D8 UpdateRichText2Color
-namespace M_func_002160D8 { extern "C" {
+namespace M_func_002160D8 {
 struct S {
     char pad[0x14]; struct RGBA color; struct RGBA baseColor;
     char pad1c[4];
@@ -2387,7 +2387,7 @@ struct S {
     float baseColor0R, baseColor0G, baseColor0B, baseColor0W, baseColor1R, baseColor1G, baseColor1B, baseColor1A;
 };
 // Converts the current colour to clamped float colours for drawing. (inferred)
-void UpdateRichText2Color(struct S *rt)
+extern "C" void UpdateRichText2Color(struct S *rt)
 {
     float alphaScale = rt->baseColor1A * 0.007874016f;   /* 1 / 127 */
     float alpha;
@@ -2401,16 +2401,16 @@ void UpdateRichText2Color(struct S *rt)
     rt->color1B = rt->baseColor1B;
     rt->color1A = Clamp(alpha, 0.0f, 1.0f);
 }
-} } // namespace M_func_002160D8
+} // namespace M_func_002160D8
 
 // 0x2161C8 GetRichText2MaxLineWidth
-namespace M_func_002161C8 { extern "C" {
+namespace M_func_002161C8 {
 struct S { char pad[8]; void *font; char padc[0x7C]; float fontScale; };
-void ResetRichText2(struct S *p, int i);
-int GetRichText2NextChar(struct S *p);
-float GetFontGlyphWidth2(void *p, int ch);
+void ResetRichText2(struct S *p, int i) __asm__("ResetRichText2");
+int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
+float GetFontGlyphWidth2(void *p, int ch) __asm__("GetFontGlyphWidth2");
 // Width of the widest line. (inferred)
-float GetRichText2MaxLineWidth(struct S *rt)
+extern "C" float GetRichText2MaxLineWidth(struct S *rt)
 {
     float maxWidth = 0.0f;
     float lineWidth = maxWidth;
@@ -2427,15 +2427,15 @@ float GetRichText2MaxLineWidth(struct S *rt)
     maxWidth = (maxWidth > lineWidth) ? maxWidth : lineWidth;
     return maxWidth;
 }
-} } // namespace M_func_002161C8
+} // namespace M_func_002161C8
 
 // 0x216260 CRichText_GetExtents
-namespace M_CRichText_GetExtents { extern "C" {
+namespace M_CRichText_GetExtents {
 struct S { char pad[0x84]; float lineHeight; };
-int WrapRichText2Lines(struct S *p);
-float GetRichText2MaxLineWidth(struct S *p);
+int WrapRichText2Lines(struct S *p) __asm__("WrapRichText2Lines");
+float GetRichText2MaxLineWidth(struct S *p) __asm__("GetRichText2MaxLineWidth");
 // Width (widest line) and height (lines x line height) of the rich text.
-void CRichText_GetExtents(struct S *rt, float *width, float *height)
+extern "C" void CRichText_GetExtents(struct S *rt, float *width, float *height)
 {
     int numLines = WrapRichText2Lines(rt);
     float maxWidth = GetRichText2MaxLineWidth(rt);
@@ -2445,14 +2445,14 @@ void CRichText_GetExtents(struct S *rt, float *width, float *height)
     if (height)
         *height = totalHeight;
 }
-} } // namespace M_CRichText_GetExtents
+} // namespace M_CRichText_GetExtents
 
 // 0x2162D8 BuildRichTextMatrix
-namespace M_func_002162D8 { extern "C" {
+namespace M_func_002162D8 {
 struct S { char pad[0x64]; float originX; float originY; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // Builds a glyph matrix from a 2D transform (pixel aspect scales and the GS screen offset). (inferred)
-void BuildRichTextMatrix(struct S *rt, float *m, float *xf)
+extern "C" void BuildRichTextMatrix(struct S *rt, float *m, float *xf)
 {
     /* HUD units to GS pixels: x * 0.8 (640 -> 512), y / 2.2; 786432 (3 * 2^18) is the float-to-fixed bias */
     func_002333B4(m, 0, 0x40);
@@ -2465,7 +2465,7 @@ void BuildRichTextMatrix(struct S *rt, float *m, float *xf)
     m[10] = 1.0f;
     m[15] = 1.0f;
 }
-} } // namespace M_func_002162D8
+} // namespace M_func_002162D8
 
 // 0x2163B0 DrawRichText2
 namespace M_func_002163B0 {
@@ -2476,14 +2476,14 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
 struct RT {char pad[0x6C];float offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
-extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
+extern void *func_002333B4(void *,int,int) __asm__("memset");
 // 2x3 affine matrix (padded to 8 floats), optionally zeroed.
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
-extern "C" { extern VIFS D_002DEA28; }
-extern "C" { extern char D_00442210[],D_002DF010[]; }
-extern "C" void CopyAqw__FPvT0i(void *,void *,int);
-extern "C" RPL *AllocRenderListEntry(void);
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
+extern char D_00442210[] __asm__("D_00442210"),D_002DF010[] __asm__("D_002DF010");
+extern void CopyAqw__FPvT0i(void *,void *,int) __asm__("CopyAqw__FPvT0i");
+extern RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
 static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
@@ -2493,10 +2493,10 @@ static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,sour
 // Append a VIF DIRECT code for n quadwords followed by the data.
 static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 
-extern "C" void SetRichText2BaseColor(struct RT *,RGBA *);
-extern "C" void BuildRichTextMatrix(struct RT *,struct MATRIX4Q *,struct M23 *);
-extern "C" void DrawRichText2Glyphs(struct RT *,struct MATRIX4Q *,struct DATA *);
-extern "C" { extern qword D_002A2E10,D_002A2E20; }
+extern void SetRichText2BaseColor(struct RT *,RGBA *) __asm__("SetRichText2BaseColor");
+extern void BuildRichTextMatrix(struct RT *,struct MATRIX4Q *,struct M23 *) __asm__("BuildRichTextMatrix");
+extern void DrawRichText2Glyphs(struct RT *,struct MATRIX4Q *,struct DATA *) __asm__("DrawRichText2Glyphs");
+extern qword D_002A2E10 __asm__("D_002A2E10"),D_002A2E20 __asm__("D_002A2E20");
 // Configures box, alignment and colour and queues the rich text for drawing. (inferred)
 extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     RGBA color;
@@ -2532,19 +2532,19 @@ extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
 } // namespace M_func_002163B0
 
 // 0x2166B0 DrawRichText2AtXf
-namespace M_func_002166B0 { extern "C" {
+namespace M_func_002166B0 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float a[6]; } __attribute__((aligned(16))) T;
 typedef struct { float a[16]; } __attribute__((aligned(16))) O;
 struct RT {char pad[8];void *font;char padC[0x14];qword color0,color1;char pad40[0x20];int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword color0,color1;};
 
-void BuildRichTextMatrix(struct RT *p, O *po, T *pt);
-void DrawRichText2Glyphs(struct RT *p, O *po, struct DATA *q);
+void BuildRichTextMatrix(struct RT *p, O *po, T *pt) __asm__("BuildRichTextMatrix");
+void DrawRichText2Glyphs(struct RT *p, O *po, struct DATA *q) __asm__("DrawRichText2Glyphs");
 // Store the x scale (register-pinned to $f2).
-static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->scaleX):"f"(x));}
+extern "C" { static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->scaleX):"f"(x));} }
 // Draws rich text at a sprite transform (font scale, line height). (inferred)
-void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
+extern "C" void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
 {
     T t = *pt;
     O o;
@@ -2556,10 +2556,10 @@ void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
     BuildRichTextMatrix(p, &o, &t);
     DrawRichText2Glyphs(p, &o, q);
 }
-} } // namespace M_func_002166B0
+} // namespace M_func_002166B0
 
 // 0x216750 DrawRichText2Glyphs
-namespace M_func_00216750 { extern "C" {
+namespace M_func_00216750 {
 // Align, clip, and queue rich-text glyphs with their current colors.
 typedef unsigned int uint;
 typedef unsigned long ulong;
@@ -2568,23 +2568,23 @@ struct RT {char pad[8];void *font;char padc[0x14];qword color0,color1;char pad40
 union M4 {qword r[4];float a[16];};
 struct DATA {uint color;int mode;float priority;uint limit;qword color0,color1;};
 struct GLYPH {int a;void *data;char pad8[0xA];unsigned short mode;char pad14[8];void *address;char pad20[0x20];};
-extern VIFS D_002DEA28;
-extern float D_002C40A8,D_002C40AC,D_002C40B0,D_002C40B4;
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
+extern float D_002C40A8 __asm__("D_002C40A8"),D_002C40AC __asm__("D_002C40AC"),D_002C40B0 __asm__("D_002C40B0"),D_002C40B4 __asm__("D_002C40B4");
 void *func_002333B4(void *,int,int) __asm__("memset");
-void ResetRichText2(struct RT *,char *);
-int GetRichText2NextChar(struct RT *);
-float GetFontGlyphWidth2(void *,int);
-struct GLYPH *GetGlyph__8CFontBrxc(void *,int);
-void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int);
-RPL *AllocRenderListEntry(void);
+void ResetRichText2(struct RT *,char *) __asm__("ResetRichText2");
+int GetRichText2NextChar(struct RT *) __asm__("GetRichText2NextChar");
+float GetFontGlyphWidth2(void *,int) __asm__("GetFontGlyphWidth2");
+struct GLYPH *GetGlyph__8CFontBrxc(void *,int) __asm__("GetGlyph__8CFontBrxc");
+void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int) __asm__("BuildGlyphPacket");
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
-static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
+extern "C" { static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;} }
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
+extern "C" { static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);} }
 // True when the matrix translation (a[8], a[9]) lies inside the bounds [*left, D_002C40AC] x [D_002C40B0, D_002C40B4].
-static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
+extern "C" { static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;} }
 // Aligns, clips and queues the glyphs with their colours. (inferred)
-void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
+extern "C" void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
     float widths[32];
     unsigned char *tag=D_002DEA28.m_pb;
     int line=0;
@@ -2645,33 +2645,33 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
         e->kind=0x15;e->depth=style->priority+(p->priority<<18);e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
     }
 }
-} } // namespace M_func_00216750
+} // namespace M_func_00216750
 
 // 0x216B40 GetGlyph__8CFontBrxc
-namespace M_PglyffFromCh__8CFontBrxc { extern "C" {
+namespace M_PglyffFromCh__8CFontBrxc {
 struct G { char pad[0x40]; };
 struct S { char pad[0x14]; struct G *glyphs; };
-int GetGlyphIndex__8CFontBrxc(struct S *p, unsigned char ch);
+int GetGlyphIndex__8CFontBrxc(struct S *p, unsigned char ch) __asm__("GetGlyphIndex__8CFontBrxc");
 // Returns the glyph record for a character, or null when the font has none (Sly 1's
 // CFontBrx::FindGlyphForChar contract).
-struct G *GetGlyph__8CFontBrxc(struct S *p, unsigned char ch)
+extern "C" struct G *GetGlyph__8CFontBrxc(struct S *p, unsigned char ch)
 {
     int i = GetGlyphIndex__8CFontBrxc(p, ch);
     return i ? &p->glyphs[i] : 0;
 }
-} } // namespace M_PglyffFromCh__8CFontBrxc
+} // namespace M_PglyffFromCh__8CFontBrxc
 
 // 0x216B80 GetFontGlyphWidth2
-namespace M_func_00216B80 { extern "C" {
+namespace M_func_00216B80 {
 struct S { char pad[0x1C]; float *glyphWidths; };
-int GetGlyphIndex__8CFontBrxc(struct S *p, unsigned char ch);
+int GetGlyphIndex__8CFontBrxc(struct S *p, unsigned char ch) __asm__("GetGlyphIndex__8CFontBrxc");
 // Width of a character's glyph in the font. (inferred)
-float GetFontGlyphWidth2(struct S *p, unsigned char ch)
+extern "C" float GetFontGlyphWidth2(struct S *p, unsigned char ch)
 {
     int i = GetGlyphIndex__8CFontBrxc(p, ch);
     return i ? p->glyphWidths[i - 1] : 0.0f;
 }
-} } // namespace M_func_00216B80
+} // namespace M_func_00216B80
 
 // 0x216BC8 RenderSpriteText
 namespace M_RenderSpriteText {
@@ -2685,24 +2685,24 @@ typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float 
 typedef struct {char *text,*cur;void *font,*baseFont,*altFont;RGBA color,baseColor,altColor;char pad20[0x20];qword baseColor0,baseColor1;int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;} RT;
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
-extern "C" { extern STRINGGEN D_003E1C88[]; }
-extern "C" { extern const char D_002A8B80[],D_002A8B88[]; }
-extern "C" { extern char D_004435F0[]; }
+extern STRINGGEN D_003E1C88[] __asm__("D_003E1C88");
+extern const char D_002A8B80[] __asm__("D_002A8B80"),D_002A8B88[] __asm__("D_002A8B88");
+extern char D_004435F0[] __asm__("D_004435F0");
 #define D_004435F4 (*(RGBA *)((char *)base_D_004435F0 + 4))   /* g_subtitle's colour (subtitle's SPEAKERLABEL +0x4) */
-extern "C" { extern SCROLL D_003DA0C0; }
-extern "C" { extern const float D_002C40B8; }
-extern "C" char *strcpy(char *,const char *);
-extern "C" char *strcpy1(char *,const char *);
-extern "C" RT *ConstructRichText2FromSprite(RT *,char *,S *,DATA *);
-extern "C" int WrapRichText2Lines(RT *);
-extern "C" void TrimSubtitleToVoiceProgress(void *,RT *);
-extern "C" void ResetRichText2(RT *,char *);
-extern "C" int GetRichText2NextChar(RT *);
-extern "C" void SetRichText2BaseColor(RT *,RGBA *);
-extern "C" float CRichText_GetWidth(RT *);
-extern "C" float ModPositive__Fff(float,float);
-extern "C" void SetNoticeState(SCROLL *,int);
-extern "C" void DrawRichText2AtXf(RT *,T *,DATA *);
+extern SCROLL D_003DA0C0 __asm__("D_003DA0C0");
+extern const float D_002C40B8 __asm__("D_002C40B8");
+extern char *strcpy(char *,const char *) __asm__("strcpy");
+extern char *strcpy1(char *,const char *) __asm__("strcpy1");
+extern RT *ConstructRichText2FromSprite(RT *,char *,S *,DATA *) __asm__("ConstructRichText2FromSprite");
+extern int WrapRichText2Lines(RT *) __asm__("WrapRichText2Lines");
+extern void TrimSubtitleToVoiceProgress(void *,RT *) __asm__("TrimSubtitleToVoiceProgress");
+extern void ResetRichText2(RT *,char *) __asm__("ResetRichText2");
+extern int GetRichText2NextChar(RT *) __asm__("GetRichText2NextChar");
+extern void SetRichText2BaseColor(RT *,RGBA *) __asm__("SetRichText2BaseColor");
+extern float CRichText_GetWidth(RT *) __asm__("CRichText_GetWidth");
+extern float ModPositive__Fff(float,float) __asm__("ModPositive__Fff");
+extern void SetNoticeState(SCROLL *,int) __asm__("SetNoticeState");
+extern void DrawRichText2AtXf(RT *,T *,DATA *) __asm__("DrawRichText2AtXf");
 enum { TEXT_SOURCE_LANGSTR = 0, TEXT_SOURCE_TABLE = 1 };
 enum { TEXT_ID_SUBTITLE = 0x2EF, TEXT_ID_TICKER = 0x2F1 };   /* BuildSubtitleText, BuildTickerText */
 
@@ -2780,30 +2780,30 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
 } // namespace M_RenderSpriteText
 
 // 0x217058 BuildGlyphPacket
-namespace M_func_00217058 { extern "C" {
+namespace M_func_00217058 {
 // Build a matrix/parameter DMA packet ending in the supplied call tag.
 struct S { char pad[0x12]; unsigned short mode; char pad1[8]; void *address; };
 struct D { int a; int mode; int b; int xC; char pad[0x20]; };
-extern VIFS D_002DEA28;
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
 // Copy n words: the n mod 4 leftovers first, then whole quadwords.
-static inline void CopyWords(int *d,const int *s,int n){
+extern "C" { static inline void CopyWords(int *d,const int *s,int n){
     int rem=n&3,cBulk=n-rem,i;
     for(i=0;i<rem;i++)*d++=*s++;
     for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}
-}
+} }
 // Append one word to the packet.
-static inline void Word(VIFS *r,unsigned int word) {
+extern "C" { static inline void Word(VIFS *r,unsigned int word) {
     *(unsigned int *)r->m_pb=word;
     r->m_pb+=4;
-}
+} }
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(VIFS *r) {
+extern "C" { static inline void Align(VIFS *r) {
     while((int)r->m_pb&15) { *(int *)r->m_pb=0; r->m_pb+=4; }
-}
+} }
 // Append a VIF code header and then n words from s.
-static inline void Unpack(VIFS *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;}
+extern "C" { static inline void Unpack(VIFS *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;} }
 // Builds the matrix / parameter DMA packet for a glyph run, ending in a call tag. (inferred)
-void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
+extern "C" void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
     unsigned char *tag=D_002DEA28.m_pb;
     *(unsigned long *)tag=0x10000000UL;
     D_002DEA28.m_pb+=16;
@@ -2823,24 +2823,24 @@ void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
     *(unsigned long *)D_002DEA28.m_pb=0x50000000UL | ((unsigned long)p->address<<32);
     D_002DEA28.m_pb+=16;
 }
-} } // namespace M_func_00217058
+} // namespace M_func_00217058
 
 // 0x217298 QueueSpriteVuProgram
-namespace M_func_00217298 { extern "C" {
+namespace M_func_00217298 {
 // Queue the selected VU microprogram pair in a DMA packet.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-extern VIFS D_002DEA28;
-extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
-RPL *AllocRenderListEntry(void);
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
+extern char D_00000000[] __asm__("D_00000000"),D_00000030[] __asm__("D_00000030"),D_00000060[] __asm__("D_00000060"),D_00000090[] __asm__("D_00000090"),D_000000C0[] __asm__("D_000000C0"),D_00000100[] __asm__("D_00000100");
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
-static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
+extern "C" { static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;} }
 // Append a VIF MSCAL code starting the VU1 microprogram at entry.
-static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
+extern "C" { static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)entry>>3));} }
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
+extern "C" { static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}} }
 // Queues the VU microprogram pair for a sprite render mode. (inferred)
-void QueueSpriteVuProgram(WIDGET *p,int mode,float priority){
+extern "C" void QueueSpriteVuProgram(WIDGET *p,int mode,float priority){
     unsigned char *tag=D_002DEA28.m_pb;
     RPL *e;
     *(ulong *)tag=0x10000000UL;
@@ -2862,10 +2862,10 @@ void QueueSpriteVuProgram(WIDGET *p,int mode,float priority){
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=priority+(p->priority<<18);e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
 }
-} } // namespace M_func_00217298
+} // namespace M_func_00217298
 
 // 0x2174C8 RenderSpriteGeometry
-namespace M_RenderSpriteGeometry { extern "C" {
+namespace M_RenderSpriteGeometry {
 // Queue transformed sprite parameters with optional fade limiting.
 typedef unsigned int uint;
 typedef unsigned long ulong;
@@ -2873,19 +2873,19 @@ struct S {char pad[8];WIDGET *owner;char padc[6];unsigned short mode;int count;c
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
-extern VIFS D_002DEA28;
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
 void *func_002333B4(void *,int,int) __asm__("memset");
-RPL *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
-static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
+extern "C" { static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;} }
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
+extern "C" { static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}} }
 // Copy n words: the n mod 4 leftovers first, then whole quadwords.
-static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
+extern "C" { static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}} }
 // Append a VIF code header and then n words from s.
-static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;}
+extern "C" { static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;} }
 // Renders a geometry sprite with its transform and optional fade.
-void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
+extern "C" void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     struct M4 m;
     unsigned char *tag;
     RPL *e;
@@ -2918,10 +2918,10 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);
     e->pvCall=(void *)p->tag;
 }
-} } // namespace M_RenderSpriteGeometry
+} // namespace M_RenderSpriteGeometry
 
 // 0x2177E0 RenderSpritePicture
-namespace M_func_002177E0 { extern "C" {
+namespace M_func_002177E0 {
 // Queue transformed sprite parameters and a direct GIF payload.
 typedef unsigned int uint;
 typedef unsigned long ulong;
@@ -2930,25 +2930,25 @@ struct S {int pad,type;WIDGET *owner;char padc[8];union {struct GEO *geo;int raw
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
-extern VIFS D_002DEA28;
+extern VIFS D_002DEA28 __asm__("D_002DEA28");
 void *func_002333B4(void *,int,int) __asm__("memset");
-RPL *AllocRenderListEntry(void);
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
-static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;}
+extern "C" { static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;} }
 // Pad the packet with zero words to a quadword boundary.
-static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}}
+extern "C" { static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}} }
 // Copy n words: the n mod 4 leftovers first, then whole quadwords.
-static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
+extern "C" { static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}} }
 // Append a VIF code header and then n words from s.
-static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;}
+extern "C" { static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;} }
 
-void CopyAqw__FPvT0i(void *,void *,int);
+void CopyAqw__FPvT0i(void *,void *,int) __asm__("CopyAqw__FPvT0i");
 // Pad the packet with zero words until the cursor is at word `word` of a quadword.
-static inline void AlignTo(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);}
+extern "C" { static inline void AlignTo(VIFS *r,int word){while(((uint)r->m_pb&15)!=4*word)Word(r,0);} }
 // Append a VIF DIRECT code for n quadwords followed by the data.
-static inline void Direct(VIFS *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;}
+extern "C" { static inline void Direct(VIFS *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;} }
 // Renders a picture sprite: transformed parameters plus a direct GIF payload. (inferred)
-void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
+extern "C" void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     struct M4 m;
     unsigned char *tag;
     RPL *e;
@@ -2978,14 +2978,14 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);
     if(p->type==SPRITE_KIND_EFFECT)e->pvCall=(void *)p->tag;else e->pvCall=(void *)p->rawtag;
 }
-} } // namespace M_func_002177E0
+} // namespace M_func_002177E0
 
 // 0x217BA0 StartSpriteAnimById
-namespace M_func_00217BA0 { extern "C" {
-void StartSpriteAnim(SPRITEGRP *group, int i);
+namespace M_func_00217BA0 {
+void StartSpriteAnim(SPRITEGRP *group, int i) __asm__("StartSpriteAnim");
 // 0x217B98: dead-code scrap (sly2/scrap.h)
-SLY2_SCRAP("sd $zero, 0x10($4)");
-} } // namespace M_func_00217BA0
+extern "C" { SLY2_SCRAP("sd $zero, 0x10($4)"); }
+} // namespace M_func_00217BA0
 // Starts the sprite animation with the given id (0x314 = the first). (inferred)
 extern "C" void StartSpriteAnimById(SPRITEGRP *group, int animId)
 {
@@ -3006,9 +3006,9 @@ extern "C" void StartSpriteAnimById(SPRITEGRP *group, int animId)
 namespace M_func_00217C20 {
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
-extern "C" char D_002A3A10[];
-extern "C" void StopSprite(SPRITEGRP *p, int i);
-extern "C" void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern char D_002A3A10[] __asm__("D_002A3A10");
+extern void StopSprite(SPRITEGRP *p, int i) __asm__("StopSprite");
+extern void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1) __asm__("StartSpriteAnimAt");
 // Starts sprite animation i from time 0 with default colours (stopping it first if instanced). (inferred)
 extern "C" void StartSpriteAnim(SPRITEGRP *group, int animIndex)
 {
@@ -3029,7 +3029,7 @@ struct RGBA {
     // Copy a color as one word.
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-extern "C" void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
+extern void StartSpriteAnimAt(SPRITEGRP *p, int i, int z, void *q, float f, RGBA c0, RGBA c1) __asm__("StartSpriteAnimAt");
 // Starts animation k in a reusable sprite slot. (inferred)
 extern "C" void StartSpriteAnimSlot(SPRITEGRP *group, int animId, int slot, void *matrix, RGBA c0, RGBA c1)
 {
@@ -3078,7 +3078,7 @@ static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void AdvanceSpriteAnim(float,SPRITEANIM *pf, int z, SPRITEXF *pm, RGBA c0, RGBA c1);
+extern void AdvanceSpriteAnim(float,SPRITEANIM *pf, int z, SPRITEXF *pm, RGBA c0, RGBA c1) __asm__("AdvanceSpriteAnim");
 // Starts a sprite animation at a given frame / time and draws it. (inferred)
 extern "C" void StartSpriteAnimAt(SPRITEGRP *group, int animIndex, int slot, SPRITEXF *matrix, float t, RGBA c0, RGBA c1)
 {
@@ -3113,25 +3113,25 @@ extern "C" int FindFreeSpriteSlot(SPRITEGRP *group)
 }
 
 // 0x217F38 ResetSpriteSlotItems
-namespace M_func_00217F38 { extern "C" {
-void ReleaseSpriteItem(void *p, SPRITEITEM *y);
-void InitSpriteItem(SPRITEITEM *y);
+namespace M_func_00217F38 {
+void ReleaseSpriteItem(void *p, SPRITEITEM *y) __asm__("ReleaseSpriteItem");
+void InitSpriteItem(SPRITEITEM *y) __asm__("InitSpriteItem");
 // Release each item's sprite descriptor.
-static inline void ReleaseItems(int n, SPRITEITEM *items)
+extern "C" { static inline void ReleaseItems(int n, SPRITEITEM *items)
 {
     int k; for (k = 0; k < n; k++) { SPRITEITEM *item = &items[k]; if (item->descriptor) ReleaseSpriteItem(item->descriptor, item); else InitSpriteItem(item); }
-}
+} }
 // Resets / releases every item of sprite slot i. (inferred)
-void ResetSpriteSlotItems(SPRITEGRP *group, int slot)
+extern "C" void ResetSpriteSlotItems(SPRITEGRP *group, int slot)
 {
     ReleaseItems(group->slots[slot].numItems, group->slots[slot].items);
 }
-} } // namespace M_func_00217F38
+} // namespace M_func_00217F38
 
 // 0x217FB8 SetSpriteDefaultPhase
-namespace M_func_00217FB8 { extern "C" {
-void SetSpriteAnimPhase(SPRITEGRP *p, int a, int b);
-} } // namespace M_func_00217FB8
+namespace M_func_00217FB8 {
+void SetSpriteAnimPhase(SPRITEGRP *p, int a, int b) __asm__("SetSpriteAnimPhase");
+} // namespace M_func_00217FB8
 // Seeks the default animation by phase. (inferred)
 extern "C" void SetSpriteDefaultPhase(SPRITEGRP *group)
 {
@@ -3141,10 +3141,10 @@ extern "C" void SetSpriteDefaultPhase(SPRITEGRP *group)
 }
 
 // 0x217FE0 SetSpriteAnimPhase
-namespace M_func_00217FE0 { extern "C" {
-void SetSpriteAnimTime(SPRITEGRP *p, int i, int j, float f);
+namespace M_func_00217FE0 {
+void SetSpriteAnimTime(SPRITEGRP *p, int i, int j, float f) __asm__("SetSpriteAnimTime");
 // Seeks a sprite animation to a fraction (clamped to 0..1) of its duration. (inferred)
-void SetSpriteAnimPhase(SPRITEGRP *group, int slot, int item, float phase)
+extern "C" void SetSpriteAnimPhase(SPRITEGRP *group, int slot, int item, float phase)
 {
     int animIndex;
     float clamped = 0.0f;
@@ -3155,12 +3155,12 @@ void SetSpriteAnimPhase(SPRITEGRP *group, int slot, int item, float phase)
     if (animIndex >= 0)
         SetSpriteAnimTime(group, slot, item, group->anims[animIndex].duration * clamped);
 }
-} } // namespace M_func_00217FE0
+} // namespace M_func_00217FE0
 
 // 0x218038 SetSpriteDefaultTime
-namespace M_func_00218038 { extern "C" {
-void SetSpriteAnimTime(SPRITEGRP *p, int a, int b);
-} } // namespace M_func_00218038
+namespace M_func_00218038 {
+void SetSpriteAnimTime(SPRITEGRP *p, int a, int b) __asm__("SetSpriteAnimTime");
+} // namespace M_func_00218038
 // Seeks the default animation by time. (inferred)
 extern "C" void SetSpriteDefaultTime(SPRITEGRP *group)
 {
@@ -3183,11 +3183,11 @@ struct RGBA {
     // Assign a color as one word.
     RGBA &operator=(const RGBA &c){*(RGBA2 *)this=*(const RGBA2 *)&c;return *this;}
 } __attribute__((aligned(16)));
-extern "C" int FindSpriteItemPose(WIDGET *p, int k, SPRITEXF *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
-extern "C" void ResetSpriteSlotItems(SPRITEGRP *p, int i);
+extern int FindSpriteItemPose(WIDGET *p, int k, SPRITEXF *pq, RGBA *pc0, RGBA *pc1, int c, void *ay) __asm__("FindSpriteItemPose");
+extern void ResetSpriteSlotItems(SPRITEGRP *p, int i) __asm__("ResetSpriteSlotItems");
 // F12 is independent of the integer slots. These pointers address real
 // independent caller copies of the nontrivial by-value colors (A3/T0).
-extern "C" void UpdateSpriteSlot(float g, SPRITEGRP *p, int i, SPRITEXF *pq, const RGBA *c0, const RGBA *c1);
+extern void UpdateSpriteSlot(float g, SPRITEGRP *p, int i, SPRITEXF *pq, const RGBA *c0, const RGBA *c1) __asm__("UpdateSpriteSlot");
 // Seeks a reused sprite animation to a clamped time (refreshing it at time 0 first). (inferred)
 extern "C" void SetSpriteAnimTime(SPRITEGRP *group, int slot, SPRITEITEM *item, float time)
 {
@@ -3223,10 +3223,10 @@ namespace M_func_00218220 {
 typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
-extern "C" SPRITEXF D_002A3A10;
-extern "C" qword GetLoWorldPos(void *);
-extern "C" qword ConvertCmWorldToScreen(void *,qword);
-extern "C" void UpdateSpriteSlot(SPRITEGRP *,int,SPRITEXF *,float,const RGBA &,const RGBA &);
+extern SPRITEXF D_002A3A10 __asm__("D_002A3A10");
+extern qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
+extern qword ConvertCmWorldToScreen(void *,qword) __asm__("ConvertCmWorldToScreen");
+extern void UpdateSpriteSlot(SPRITEGRP *,int,SPRITEXF *,float,const RGBA &,const RGBA &) __asm__("UpdateSpriteSlot");
 // Compose two 2x3 affine matrices (q then n).
 static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 {
@@ -3276,8 +3276,8 @@ static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void InterpolateSpriteSlot(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA);
-extern "C" void AdvanceSpriteAnim(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA);
+extern void InterpolateSpriteSlot(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA) __asm__("InterpolateSpriteSlot");
+extern void AdvanceSpriteAnim(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA) __asm__("AdvanceSpriteAnim");
 // Forwards a sprite slot's update to the reusable or the full animation path. (inferred)
 extern "C" void UpdateSpriteSlot(SPRITEGRP *group,int slot,SPRITEXF *matrix,float dt,RGBA c0,RGBA c1) {
     SPRITESLOT *state=&group->slots[slot];
@@ -3329,21 +3329,21 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 }
 
 // 0x218660 StopSpriteSlot
-namespace M_func_00218660 { extern "C" {
+namespace M_func_00218660 {
 struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
-void StopSnd(void *p, float f);
-void RcPtr_Assign(void **pp, void *next);
-void ResetSpriteSlotItems(SPRITEGRP *p, int i);
+void StopSnd(void *p, float f) __asm__("StopSnd");
+void RcPtr_Assign(void **pp, void *next) __asm__("RcPtr_Assign");
+void ResetSpriteSlotItems(SPRITEGRP *p, int i) __asm__("ResetSpriteSlotItems");
 // Stop the sound and drop the reference, if any.
-static inline void Release(void **pp)
+extern "C" { static inline void Release(void **pp)
 {
     if (pp && *pp) {
         StopSnd(*pp, 0.0f);
         RcPtr_Assign(pp, 0);
     }
-}
+} }
 // Stops a sprite slot's sounds and resets its items. (inferred)
-void StopSpriteSlot(SPRITEGRP *group, int slot)
+extern "C" void StopSpriteSlot(SPRITEGRP *group, int slot)
 {
     SPRITESLOT *state = (SPRITESLOT*)(slot*sizeof(SPRITESLOT)+(int)group->slots);   /* &group->slots[slot] */
     if (state->animIndex >= 0) {
@@ -3359,7 +3359,7 @@ void StopSpriteSlot(SPRITEGRP *group, int slot)
     }
     ResetSpriteSlotItems(group, slot);
 }
-} } // namespace M_func_00218660
+} // namespace M_func_00218660
 
 // 0x218710 IsSpriteAnimActive
 // True while the sprite animation is running.
@@ -3379,15 +3379,15 @@ extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 }
 
 // 0x218748 FinishSpriteSoundEvent
-namespace M_func_00218748 { extern "C" {
-void PauseSnd(void *p);
+namespace M_func_00218748 {
+void PauseSnd(void *p) __asm__("PauseSnd");
 // The record's entry array (word at +8).
-static inline SPRITESLOT *Entries(const SPRITEGRP *p){SPRITESLOT *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
+extern "C" { static inline SPRITESLOT *Entries(const SPRITEGRP *p){SPRITESLOT *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;} }
 // Load a sound pointer from its slot into $3.
-static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;}
+extern "C" { static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;} }
 // Address of entry `index` (register-pinned arithmetic).
-static inline SPRITESLOT *EntryAt(SPRITESLOT *entries,int index){register SPRITESLOT *value asm("$2");register int bytes asm("$5")=index*sizeof(SPRITESLOT);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
-} } // namespace M_func_00218748
+extern "C" { static inline SPRITESLOT *EntryAt(SPRITESLOT *entries,int index){register SPRITESLOT *value asm("$2");register int bytes asm("$5")=index*sizeof(SPRITESLOT);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;} }
+} // namespace M_func_00218748
 // Marks a sprite sound event done and stops or pauses its sound. (inferred)
 extern "C" void FinishSpriteSoundEvent(SPRITEGRP *p, int slot)
 {
@@ -3400,9 +3400,9 @@ extern "C" void FinishSpriteSoundEvent(SPRITEGRP *p, int slot)
 }
 
 // 0x218790 CombineSpriteColors
-namespace M_CombineSpriteColors { extern "C" {
+namespace M_CombineSpriteColors {
 // Combines parent and child colours (additive and multiplicative).
-void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc, unsigned char *pd,
+extern "C" void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc, unsigned char *pd,
                    unsigned char *pout0, unsigned char *pout1)
 {
     int i;
@@ -3415,7 +3415,7 @@ void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc
         pout1[i] = (int)(StdMax(StdMin(x * d + e, 128.0f), -127.0f) + 127.0f);
     }
 }
-} } // namespace M_CombineSpriteColors
+} // namespace M_CombineSpriteColors
 
 // 0x2188B0 InterpolateSpriteSlot
 namespace M_func_002188B0 {
@@ -3433,11 +3433,11 @@ struct REUSE {int count;ITEM *items;ushort index,phase;float time;int field10,fi
 struct ANIM;
 struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[0x14];int index;void *owner;int first,pad2C;};
 struct ANIM {ushort count,pad2;void *keys;float duration;void *owner;GROUP *group;int id;};
-extern "C" {
-void ClearSle(int *);
-void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *);
-void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
-}
+
+void ClearSle(int *) __asm__("ClearSle");
+void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *) __asm__("CombineSpriteColors");
+void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA) __asm__("UpdateSpriteItem");
+
 // Interpolate each channel between previous and next at t.
 static inline RGBA BlendColors(float t,RGBA previous,RGBA next){
  RGBA result;
@@ -3485,10 +3485,10 @@ extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M
 } // namespace M_func_002188B0
 
 // 0x2190F8 FinishSpriteSoundEvents
-namespace M_func_002190F8 { extern "C" {
-void FinishSpriteSoundEvent(void *p, int k);
+namespace M_func_002190F8 {
+void FinishSpriteSoundEvent(void *p, int k) __asm__("FinishSpriteSoundEvent");
 // Finishes every sound event (action 7) of a sprite key. (inferred)
-void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
+extern "C" void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
 {
     SPRITEKEY *keyData = &anim->keys[key];
     int j;
@@ -3497,7 +3497,7 @@ void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
             FinishSpriteSoundEvent(anim->group, slot);
     }
 }
-} } // namespace M_func_002190F8
+} // namespace M_func_002190F8
 
 // 0x219190 HandleSpriteKeyEvents
 namespace M_HandleSpriteKeyEvents {
@@ -3509,12 +3509,12 @@ struct R { char pad[8]; struct E *ae; };
 struct A { int kind; int id; };
 struct F { char pad[0x18]; unsigned char count; char pad1[3]; struct A *aa; };
 struct S { char pad[4]; struct F *af; char pad1[8]; struct R *r; };
-extern "C" struct M *CreateSfxSound(int id);
-extern "C" void SetSndSourceLo(struct M *, struct O *);
-extern "C" void StopSnd(struct M *, float);
-extern "C" void RcPtr_Assign(struct M **pp, struct M *m);
-extern "C" void *StartDialog(void *p,int a,int b);
-extern "C" void StopDialog(void *p);
+extern struct M *CreateSfxSound(int id) __asm__("CreateSfxSound");
+extern void SetSndSourceLo(struct M *, struct O *) __asm__("SetSndSourceLo");
+extern void StopSnd(struct M *, float) __asm__("StopSnd");
+extern void RcPtr_Assign(struct M **pp, struct M *m) __asm__("RcPtr_Assign");
+extern void *StartDialog(void *p,int a,int b) __asm__("StartDialog");
+extern void StopDialog(void *p) __asm__("StopDialog");
 // Load the sound from its slot into $4.
 static inline M *SlotSound(M *const &slot){register M *value asm("$4");asm("lw %0,0(%1)":"=r"(value):"r"(&slot),"m"(slot));return value;}
 // Stop the slot's sound and drop the reference, if any.
@@ -3566,11 +3566,11 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
 } // namespace M_HandleSpriteKeyEvents
 
 // 0x219348 ResetSpriteKeyItems
-namespace M_ResetSpriteKeyItems { extern "C" {
-void ReleaseSpriteItem(void *p, SPRITEITEM *y);
-void InitSpriteItem(SPRITEITEM *y);
+namespace M_ResetSpriteKeyItems {
+void ReleaseSpriteItem(void *p, SPRITEITEM *y) __asm__("ReleaseSpriteItem");
+void InitSpriteItem(SPRITEITEM *y) __asm__("InitSpriteItem");
 // Resets the items a sprite key refers to.
-void ResetSpriteKeyItems(SPRITEANIM *anim, int key, int slot)
+extern "C" void ResetSpriteKeyItems(SPRITEANIM *anim, int key, int slot)
 {
     SPRITEKEY *keyData = &anim->keys[key];
     SPRITEITEM *items = anim->group->slots[slot].items;
@@ -3583,7 +3583,7 @@ void ResetSpriteKeyItems(SPRITEANIM *anim, int key, int slot)
             InitSpriteItem(item);
     }
 }
-} } // namespace M_ResetSpriteKeyItems
+} // namespace M_ResetSpriteKeyItems
 
 // 0x219400 ApplySpriteKeyPoses
 namespace M_ApplySpriteKeyPoses {
@@ -3672,16 +3672,16 @@ struct KEY {
 };
 struct ROOT { char pad[0x54]; SPRITE *sprites; };
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
-extern "C" {
-void ClearSle(int *);
+
+void ClearSle(int *) __asm__("ClearSle");
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-void SetSpriteItemSource(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
-void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
-void ReleaseSpriteItem(SPRITE *, ITEM *);
-void CombineSpriteColors(RGBA *, RGBA *, RGBA *, RGBA *, RGBA *, RGBA *);
+void SetSpriteItemSource(SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("SetSpriteItemSource");
+extern "C" { void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *); }
+void ReleaseSpriteItem(SPRITE *, ITEM *) __asm__("ReleaseSpriteItem");
+void CombineSpriteColors(RGBA *, RGBA *, RGBA *, RGBA *, RGBA *, RGBA *) __asm__("CombineSpriteColors");
 void UpdateMatchingSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("UpdateSpriteItem");
 void UpdateCurrentSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("UpdateSpriteItem");
-}
+
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
 
@@ -3931,16 +3931,16 @@ struct KEY {
 };
 struct ANIM { ushort count, pad2; KEY *keys; float duration; void *owner; GROUP *group; int id; };
 
-extern "C" {
-void ClearSle(int *);
-void HandleSpriteKeyEvents(ANIM *, int, int);
-void FinishSpriteSoundEvents(ANIM *, int, int);
-void ResetSpriteKeyItems(ANIM *, int, int);
-void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
-void ReleaseSpriteItem(SPRITE *, ITEM *);
-void CombineSpriteColors(RGBA *, RGBA *, RGBA *, RGBA *, RGBA *, RGBA *);
-void UpdateSpriteItem(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA);
-}
+
+void ClearSle(int *) __asm__("ClearSle");
+void HandleSpriteKeyEvents(ANIM *, int, int) __asm__("HandleSpriteKeyEvents");
+void FinishSpriteSoundEvents(ANIM *, int, int) __asm__("FinishSpriteSoundEvents");
+void ResetSpriteKeyItems(ANIM *, int, int) __asm__("ResetSpriteKeyItems");
+void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *) __asm__("ApplySpriteKeyPoses");
+void ReleaseSpriteItem(SPRITE *, ITEM *) __asm__("ReleaseSpriteItem");
+void CombineSpriteColors(RGBA *, RGBA *, RGBA *, RGBA *, RGBA *, RGBA *) __asm__("CombineSpriteColors");
+void UpdateSpriteItem(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("UpdateSpriteItem");
+
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
 
@@ -4042,12 +4042,12 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
 } // namespace M_AdvanceSpriteAnim
 
 // 0x21A998 DrawSpriteItems
-namespace M_func_0021A998 { extern "C" {
-void QueueSpriteItem(void *descriptor, SPRITEITEM *item, int drawFlags);
-void PrependSlEntry(SL *psl, SPRITEITEM *y);
+namespace M_func_0021A998 {
+void QueueSpriteItem(void *descriptor, SPRITEITEM *item, int drawFlags) __asm__("QueueSpriteItem");
+void PrependSlEntry(SL *psl, SPRITEITEM *y) __asm__("PrependSlEntry");
 // Queue a sprite's items for drawing, last first: items with a descriptor through QueueSpriteItem, descriptor-less
 // kind-4 items straight onto the widget's render queue.
-static inline void Draw(SPRITEANIM *anim, int n, SPRITEITEM *items, int drawFlags)
+extern "C" { static inline void Draw(SPRITEANIM *anim, int n, SPRITEITEM *items, int drawFlags)
 {
     int k;
     for (k = n - 1; k >= 0; k--) {
@@ -4057,13 +4057,13 @@ static inline void Draw(SPRITEANIM *anim, int n, SPRITEITEM *items, int drawFlag
         else if (item->kind == 4)   /* no descriptor: queued as is (inferred) */
             PrependSlEntry(&anim->owner->renderQueue, item);
     }
-}
+} }
 // Queues a sprite's items for drawing in reverse order. (inferred)
-void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags)
+extern "C" void DrawSpriteItems(SPRITEANIM *anim, int slot, int drawFlags)
 {
     Draw(anim, anim->group->slots[slot].numItems, anim->group->slots[slot].items, drawFlags);
 }
-} } // namespace M_func_0021A998
+} // namespace M_func_0021A998
 
 // 0x21AA60 StaticInit_hud
 namespace M_StaticInit_hud {
@@ -4071,132 +4071,132 @@ namespace M_StaticInit_hud {
 struct LINEAR {void *vtable;int limit;void *buffer;int used;};
 struct HEAP {void *vtable;int field4;};
 struct POOL;
-extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
+extern void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 struct STRINGGEN {
  int id;void (*get)(char *,void *,void *);void *context;
  // Zero the whole string generator.
  STRINGGEN(){func_002333B4(this,0,sizeof(*this));}
 };
-extern "C" {
-LINEAR *__11CLinearHeapiPUc(LINEAR *,int,void *);
-POOL *InitSlotheap(POOL *,int,int,int);
-void BuildContextText(char *,void *,void *);
-}
-extern "C" { extern LINEAR D_003E1C70; }
-extern "C" { extern HEAP D_003E1C80; }
-extern "C" { extern char D_003E21A0[],D_002CA578[] __asm__("_vt$7CSwHeap"); }
-extern "C" { extern STRINGGEN D_003E1C88[108]; }
-extern "C" { extern void *D_002C40A0; }
-extern "C" { extern int D_002DD2E0 __asm__("__sn_t9CSlotPool2i20i8192$s_pool"),D_002DD2E4 __asm__("__sn_t9CSlotPool2i24i2048$s_pool"),D_002DD2E8 __asm__("__sn_t9CSlotPool2i40i512$s_pool"),D_002DD2EC __asm__("__sn_t9CSlotPool2i28i2048$s_pool"),D_002DD2F0 __asm__("__sn_t9CSlotPool2i12i200$s_pool"),D_002DD2F4 __asm__("__sn_t9CSlotPool2i20i256$s_pool"); }
-extern "C" { extern POOL D_004520A8 __asm__("_t9CSlotPool2i20i8192$s_pool"),D_004520D0 __asm__("_t9CSlotPool2i24i2048$s_pool"),D_004520F8 __asm__("_t9CSlotPool2i40i512$s_pool"),D_00452120 __asm__("_t9CSlotPool2i28i2048$s_pool"),D_00452148 __asm__("_t9CSlotPool2i12i200$s_pool"),D_00452170 __asm__("_t9CSlotPool2i20i256$s_pool"); }
+
+LINEAR *__11CLinearHeapiPUc(LINEAR *,int,void *) __asm__("__11CLinearHeapiPUc");
+POOL *InitSlotheap(POOL *,int,int,int) __asm__("InitSlotheap");
+void BuildContextText(char *,void *,void *) __asm__("BuildContextText");
+
+extern LINEAR D_003E1C70 __asm__("D_003E1C70");
+extern HEAP D_003E1C80 __asm__("D_003E1C80");
+extern char D_003E21A0[] __asm__("D_003E21A0"),D_002CA578[] __asm__("_vt$7CSwHeap");
+extern STRINGGEN D_003E1C88[108] __asm__("D_003E1C88");
+extern void *D_002C40A0 __asm__("D_002C40A0");
+extern int D_002DD2E0 __asm__("__sn_t9CSlotPool2i20i8192$s_pool"),D_002DD2E4 __asm__("__sn_t9CSlotPool2i24i2048$s_pool"),D_002DD2E8 __asm__("__sn_t9CSlotPool2i40i512$s_pool"),D_002DD2EC __asm__("__sn_t9CSlotPool2i28i2048$s_pool"),D_002DD2F0 __asm__("__sn_t9CSlotPool2i12i200$s_pool"),D_002DD2F4 __asm__("__sn_t9CSlotPool2i20i256$s_pool");
+extern POOL D_004520A8 __asm__("_t9CSlotPool2i20i8192$s_pool"),D_004520D0 __asm__("_t9CSlotPool2i24i2048$s_pool"),D_004520F8 __asm__("_t9CSlotPool2i40i512$s_pool"),D_00452120 __asm__("_t9CSlotPool2i28i2048$s_pool"),D_00452148 __asm__("_t9CSlotPool2i12i200$s_pool"),D_00452170 __asm__("_t9CSlotPool2i20i256$s_pool");
 // Existing constant records are twelve bytes each; the linker separates them by sixteen.
-extern "C" { extern const STRINGGEN D_002A8B90; }
-extern "C" { extern const STRINGGEN D_002A8BA0; }
-extern "C" { extern const STRINGGEN D_002A8BB0; }
-extern "C" { extern const STRINGGEN D_002A8BC0; }
-extern "C" { extern const STRINGGEN D_002A8BD0; }
-extern "C" { extern const STRINGGEN D_002A8BE0; }
-extern "C" { extern const STRINGGEN D_002A8BF0; }
-extern "C" { extern const STRINGGEN D_002A8C00; }
-extern "C" { extern const STRINGGEN D_002A8C10; }
-extern "C" { extern const STRINGGEN D_002A8C20; }
-extern "C" { extern const STRINGGEN D_002A8C30; }
-extern "C" { extern const STRINGGEN D_002A8C40; }
-extern "C" { extern const STRINGGEN D_002A8C50; }
-extern "C" { extern const STRINGGEN D_002A8C60; }
-extern "C" { extern const STRINGGEN D_002A8C70; }
-extern "C" { extern const STRINGGEN D_002A8C80; }
-extern "C" { extern const STRINGGEN D_002A8C90; }
-extern "C" { extern const STRINGGEN D_002A8CA0; }
-extern "C" { extern const STRINGGEN D_002A8CB0; }
-extern "C" { extern const STRINGGEN D_002A8CC0; }
-extern "C" { extern const STRINGGEN D_002A8CD0; }
-extern "C" { extern const STRINGGEN D_002A8CE0; }
-extern "C" { extern const STRINGGEN D_002A8CF0; }
-extern "C" { extern const STRINGGEN D_002A8D00; }
-extern "C" { extern const STRINGGEN D_002A8D10; }
-extern "C" { extern const STRINGGEN D_002A8D20; }
-extern "C" { extern const STRINGGEN D_002A8D30; }
-extern "C" { extern const STRINGGEN D_002A8D40; }
-extern "C" { extern const STRINGGEN D_002A8D50; }
-extern "C" { extern const STRINGGEN D_002A8D60; }
-extern "C" { extern const STRINGGEN D_002A8D70; }
-extern "C" { extern const STRINGGEN D_002A8D80; }
-extern "C" { extern const STRINGGEN D_002A8D90; }
-extern "C" { extern const STRINGGEN D_002A8DA0; }
-extern "C" { extern const STRINGGEN D_002A8DB0; }
-extern "C" { extern const STRINGGEN D_002A8DC0; }
-extern "C" { extern const STRINGGEN D_002A8DD0; }
-extern "C" { extern const STRINGGEN D_002A8DE0; }
-extern "C" { extern const STRINGGEN D_002A8DF0; }
-extern "C" { extern const STRINGGEN D_002A8E00; }
-extern "C" { extern const STRINGGEN D_002A8E10; }
-extern "C" { extern const STRINGGEN D_002A8E20; }
-extern "C" { extern const STRINGGEN D_002A8E30; }
-extern "C" { extern const STRINGGEN D_002A8E40; }
-extern "C" { extern const STRINGGEN D_002A8E50; }
-extern "C" { extern const STRINGGEN D_002A8E60; }
-extern "C" { extern const STRINGGEN D_002A8E70; }
-extern "C" { extern const STRINGGEN D_002A8E80; }
-extern "C" { extern const STRINGGEN D_002A8E90; }
-extern "C" { extern const STRINGGEN D_002A8EA0; }
-extern "C" { extern const STRINGGEN D_002A8EB0; }
-extern "C" { extern const STRINGGEN D_002A8EC0; }
-extern "C" { extern const STRINGGEN D_002A8ED0; }
-extern "C" { extern const STRINGGEN D_002A8EE0; }
-extern "C" { extern const STRINGGEN D_002A8EF0; }
-extern "C" { extern const STRINGGEN D_002A8F00; }
-extern "C" { extern const STRINGGEN D_002A8F10; }
-extern "C" { extern const STRINGGEN D_002A8F20; }
-extern "C" { extern const STRINGGEN D_002A8F30; }
-extern "C" { extern const STRINGGEN D_002A8F40; }
-extern "C" { extern const STRINGGEN D_002A8F50; }
-extern "C" { extern const STRINGGEN D_002A8F60; }
-extern "C" { extern const STRINGGEN D_002A8F70; }
-extern "C" { extern const STRINGGEN D_002A8F80; }
-extern "C" { extern const STRINGGEN D_002A8F90; }
-extern "C" { extern const STRINGGEN D_002A8FA0; }
-extern "C" { extern const STRINGGEN D_002A8FB0; }
-extern "C" { extern const STRINGGEN D_002A8FC0; }
-extern "C" { extern const STRINGGEN D_002A8FD0; }
-extern "C" { extern const STRINGGEN D_002A8FE0; }
-extern "C" { extern const STRINGGEN D_002A8FF0; }
-extern "C" { extern const STRINGGEN D_002A9000; }
-extern "C" { extern const STRINGGEN D_002A9010; }
-extern "C" { extern const STRINGGEN D_002A9020; }
-extern "C" { extern const STRINGGEN D_002A9030; }
-extern "C" { extern const STRINGGEN D_002A9040; }
-extern "C" { extern const STRINGGEN D_002A9050; }
-extern "C" { extern const STRINGGEN D_002A9060; }
-extern "C" { extern const STRINGGEN D_002A9070; }
-extern "C" { extern const STRINGGEN D_002A9080; }
-extern "C" { extern const STRINGGEN D_002A9090; }
-extern "C" { extern const STRINGGEN D_002A90A0; }
-extern "C" { extern const STRINGGEN D_002A90B0; }
-extern "C" { extern const STRINGGEN D_002A90C0; }
-extern "C" { extern const STRINGGEN D_002A90D0; }
-extern "C" { extern const STRINGGEN D_002A90E0; }
-extern "C" { extern const STRINGGEN D_002A90F0; }
-extern "C" { extern const STRINGGEN D_002A9100; }
-extern "C" { extern const STRINGGEN D_002A9110; }
-extern "C" { extern const STRINGGEN D_002A9120; }
-extern "C" { extern const STRINGGEN D_002A9130; }
-extern "C" { extern const STRINGGEN D_002A9140; }
-extern "C" { extern const STRINGGEN D_002A9150; }
-extern "C" { extern const STRINGGEN D_002A9160; }
-extern "C" { extern const STRINGGEN D_002A9170; }
-extern "C" { extern const STRINGGEN D_002A9180; }
-extern "C" { extern const STRINGGEN D_002A9190; }
-extern "C" { extern const STRINGGEN D_002A91A0; }
-extern "C" { extern const STRINGGEN D_002A91B0; }
-extern "C" { extern const STRINGGEN D_002A91C0; }
-extern "C" { extern const STRINGGEN D_002A91D0; }
-extern "C" { extern const STRINGGEN D_002A91E0; }
-extern "C" { extern const STRINGGEN D_002A91F0; }
-extern "C" { extern const STRINGGEN D_002A9200; }
-extern "C" { extern const STRINGGEN D_002A9210; }
-extern "C" { extern const STRINGGEN D_002A9220; }
-extern "C" { extern const STRINGGEN D_002A9230; }
+extern const STRINGGEN D_002A8B90 __asm__("D_002A8B90");
+extern const STRINGGEN D_002A8BA0 __asm__("D_002A8BA0");
+extern const STRINGGEN D_002A8BB0 __asm__("D_002A8BB0");
+extern const STRINGGEN D_002A8BC0 __asm__("D_002A8BC0");
+extern const STRINGGEN D_002A8BD0 __asm__("D_002A8BD0");
+extern const STRINGGEN D_002A8BE0 __asm__("D_002A8BE0");
+extern const STRINGGEN D_002A8BF0 __asm__("D_002A8BF0");
+extern const STRINGGEN D_002A8C00 __asm__("D_002A8C00");
+extern const STRINGGEN D_002A8C10 __asm__("D_002A8C10");
+extern const STRINGGEN D_002A8C20 __asm__("D_002A8C20");
+extern const STRINGGEN D_002A8C30 __asm__("D_002A8C30");
+extern const STRINGGEN D_002A8C40 __asm__("D_002A8C40");
+extern const STRINGGEN D_002A8C50 __asm__("D_002A8C50");
+extern const STRINGGEN D_002A8C60 __asm__("D_002A8C60");
+extern const STRINGGEN D_002A8C70 __asm__("D_002A8C70");
+extern const STRINGGEN D_002A8C80 __asm__("D_002A8C80");
+extern const STRINGGEN D_002A8C90 __asm__("D_002A8C90");
+extern const STRINGGEN D_002A8CA0 __asm__("D_002A8CA0");
+extern const STRINGGEN D_002A8CB0 __asm__("D_002A8CB0");
+extern const STRINGGEN D_002A8CC0 __asm__("D_002A8CC0");
+extern const STRINGGEN D_002A8CD0 __asm__("D_002A8CD0");
+extern const STRINGGEN D_002A8CE0 __asm__("D_002A8CE0");
+extern const STRINGGEN D_002A8CF0 __asm__("D_002A8CF0");
+extern const STRINGGEN D_002A8D00 __asm__("D_002A8D00");
+extern const STRINGGEN D_002A8D10 __asm__("D_002A8D10");
+extern const STRINGGEN D_002A8D20 __asm__("D_002A8D20");
+extern const STRINGGEN D_002A8D30 __asm__("D_002A8D30");
+extern const STRINGGEN D_002A8D40 __asm__("D_002A8D40");
+extern const STRINGGEN D_002A8D50 __asm__("D_002A8D50");
+extern const STRINGGEN D_002A8D60 __asm__("D_002A8D60");
+extern const STRINGGEN D_002A8D70 __asm__("D_002A8D70");
+extern const STRINGGEN D_002A8D80 __asm__("D_002A8D80");
+extern const STRINGGEN D_002A8D90 __asm__("D_002A8D90");
+extern const STRINGGEN D_002A8DA0 __asm__("D_002A8DA0");
+extern const STRINGGEN D_002A8DB0 __asm__("D_002A8DB0");
+extern const STRINGGEN D_002A8DC0 __asm__("D_002A8DC0");
+extern const STRINGGEN D_002A8DD0 __asm__("D_002A8DD0");
+extern const STRINGGEN D_002A8DE0 __asm__("D_002A8DE0");
+extern const STRINGGEN D_002A8DF0 __asm__("D_002A8DF0");
+extern const STRINGGEN D_002A8E00 __asm__("D_002A8E00");
+extern const STRINGGEN D_002A8E10 __asm__("D_002A8E10");
+extern const STRINGGEN D_002A8E20 __asm__("D_002A8E20");
+extern const STRINGGEN D_002A8E30 __asm__("D_002A8E30");
+extern const STRINGGEN D_002A8E40 __asm__("D_002A8E40");
+extern const STRINGGEN D_002A8E50 __asm__("D_002A8E50");
+extern const STRINGGEN D_002A8E60 __asm__("D_002A8E60");
+extern const STRINGGEN D_002A8E70 __asm__("D_002A8E70");
+extern const STRINGGEN D_002A8E80 __asm__("D_002A8E80");
+extern const STRINGGEN D_002A8E90 __asm__("D_002A8E90");
+extern const STRINGGEN D_002A8EA0 __asm__("D_002A8EA0");
+extern const STRINGGEN D_002A8EB0 __asm__("D_002A8EB0");
+extern const STRINGGEN D_002A8EC0 __asm__("D_002A8EC0");
+extern const STRINGGEN D_002A8ED0 __asm__("D_002A8ED0");
+extern const STRINGGEN D_002A8EE0 __asm__("D_002A8EE0");
+extern const STRINGGEN D_002A8EF0 __asm__("D_002A8EF0");
+extern const STRINGGEN D_002A8F00 __asm__("D_002A8F00");
+extern const STRINGGEN D_002A8F10 __asm__("D_002A8F10");
+extern const STRINGGEN D_002A8F20 __asm__("D_002A8F20");
+extern const STRINGGEN D_002A8F30 __asm__("D_002A8F30");
+extern const STRINGGEN D_002A8F40 __asm__("D_002A8F40");
+extern const STRINGGEN D_002A8F50 __asm__("D_002A8F50");
+extern const STRINGGEN D_002A8F60 __asm__("D_002A8F60");
+extern const STRINGGEN D_002A8F70 __asm__("D_002A8F70");
+extern const STRINGGEN D_002A8F80 __asm__("D_002A8F80");
+extern const STRINGGEN D_002A8F90 __asm__("D_002A8F90");
+extern const STRINGGEN D_002A8FA0 __asm__("D_002A8FA0");
+extern const STRINGGEN D_002A8FB0 __asm__("D_002A8FB0");
+extern const STRINGGEN D_002A8FC0 __asm__("D_002A8FC0");
+extern const STRINGGEN D_002A8FD0 __asm__("D_002A8FD0");
+extern const STRINGGEN D_002A8FE0 __asm__("D_002A8FE0");
+extern const STRINGGEN D_002A8FF0 __asm__("D_002A8FF0");
+extern const STRINGGEN D_002A9000 __asm__("D_002A9000");
+extern const STRINGGEN D_002A9010 __asm__("D_002A9010");
+extern const STRINGGEN D_002A9020 __asm__("D_002A9020");
+extern const STRINGGEN D_002A9030 __asm__("D_002A9030");
+extern const STRINGGEN D_002A9040 __asm__("D_002A9040");
+extern const STRINGGEN D_002A9050 __asm__("D_002A9050");
+extern const STRINGGEN D_002A9060 __asm__("D_002A9060");
+extern const STRINGGEN D_002A9070 __asm__("D_002A9070");
+extern const STRINGGEN D_002A9080 __asm__("D_002A9080");
+extern const STRINGGEN D_002A9090 __asm__("D_002A9090");
+extern const STRINGGEN D_002A90A0 __asm__("D_002A90A0");
+extern const STRINGGEN D_002A90B0 __asm__("D_002A90B0");
+extern const STRINGGEN D_002A90C0 __asm__("D_002A90C0");
+extern const STRINGGEN D_002A90D0 __asm__("D_002A90D0");
+extern const STRINGGEN D_002A90E0 __asm__("D_002A90E0");
+extern const STRINGGEN D_002A90F0 __asm__("D_002A90F0");
+extern const STRINGGEN D_002A9100 __asm__("D_002A9100");
+extern const STRINGGEN D_002A9110 __asm__("D_002A9110");
+extern const STRINGGEN D_002A9120 __asm__("D_002A9120");
+extern const STRINGGEN D_002A9130 __asm__("D_002A9130");
+extern const STRINGGEN D_002A9140 __asm__("D_002A9140");
+extern const STRINGGEN D_002A9150 __asm__("D_002A9150");
+extern const STRINGGEN D_002A9160 __asm__("D_002A9160");
+extern const STRINGGEN D_002A9170 __asm__("D_002A9170");
+extern const STRINGGEN D_002A9180 __asm__("D_002A9180");
+extern const STRINGGEN D_002A9190 __asm__("D_002A9190");
+extern const STRINGGEN D_002A91A0 __asm__("D_002A91A0");
+extern const STRINGGEN D_002A91B0 __asm__("D_002A91B0");
+extern const STRINGGEN D_002A91C0 __asm__("D_002A91C0");
+extern const STRINGGEN D_002A91D0 __asm__("D_002A91D0");
+extern const STRINGGEN D_002A91E0 __asm__("D_002A91E0");
+extern const STRINGGEN D_002A91F0 __asm__("D_002A91F0");
+extern const STRINGGEN D_002A9200 __asm__("D_002A9200");
+extern const STRINGGEN D_002A9210 __asm__("D_002A9210");
+extern const STRINGGEN D_002A9220 __asm__("D_002A9220");
+extern const STRINGGEN D_002A9230 __asm__("D_002A9230");
 // The TU's static initializer (generated by g++): the HUD linear heap, a level-heap object and the 108-entry text table.
 extern "C" void StaticInit_hud(int initialize,int priority){
  if(priority==0xFFFF&&initialize){
@@ -4387,116 +4387,116 @@ void p_func_00211390() __asm__("BuildSubtitleText");
 void p_func_002113B8() __asm__("BuildSubtitleButtonText");
 void p_func_00211420() __asm__("BuildHeldItemText");
 void p_func_002155C0() __asm__("BuildSpritePictureTexPacket");
-extern "C" char d_D_002C3EC0[] __asm__("D_002C3EC0");
-extern "C" {
-extern const unsigned int D_002A8B90[4] = {0x2CF, (unsigned int)p_BuildCoinCountText, (unsigned int)&g_sw.psvpCcoin, 0};
-extern const unsigned int D_002A8BA0[4] = {0x2D0, (unsigned int)p_BuildClueCountText, 0, 0};
-extern const unsigned int D_002A8BB0[4] = {0x2D1, (unsigned int)p_BuildTimerText, 0, 0};
-extern const unsigned int D_002A8BC0[4] = {0x2D2, (unsigned int)p_func_00211298, 0, 0};
-extern const unsigned int D_002A8BD0[4] = {0x2D3, (unsigned int)p_func_00211298, 1, 0};
-extern const unsigned int D_002A8BE0[4] = {0x2D4, (unsigned int)p_func_00211298, 2, 0};
-extern const unsigned int D_002A8BF0[4] = {0x2D5, (unsigned int)p_func_00211298, 3, 0};
-extern const unsigned int D_002A8C00[4] = {0x2D6, (unsigned int)p_func_00211298, 4, 0};
-extern const unsigned int D_002A8C10[4] = {0x2D7, (unsigned int)p_func_00211298, 5, 0};
-extern const unsigned int D_002A8C20[4] = {0x2D8, (unsigned int)p_func_00211298, 6, 0};
-extern const unsigned int D_002A8C30[4] = {0x2D9, (unsigned int)p_func_00211298, 7, 0};
-extern const unsigned int D_002A8C40[4] = {0x2DA, (unsigned int)p_func_00211298, 8, 0};
-extern const unsigned int D_002A8C50[4] = {0x2DB, (unsigned int)p_func_00211298, 9, 0};
-extern const unsigned int D_002A8C60[4] = {0x2DC, (unsigned int)p_func_00210FE0, 0, 0};
-extern const unsigned int D_002A8C70[4] = {0x2DD, (unsigned int)p_BuildReconSelectionText, 0, 0};
-extern const unsigned int D_002A8C80[4] = {0x2DE, (unsigned int)p_BuildReconSelectionText, 1, 0};
-extern const unsigned int D_002A8C90[4] = {0x2DF, (unsigned int)p_BuildReconTargetText, 0, 0};
-extern const unsigned int D_002A8CA0[4] = {0x2E0, (unsigned int)p_BuildReconTargetText, 1, 0};
-extern const unsigned int D_002A8CB0[4] = {0x2E1, (unsigned int)p_BuildReconTargetText, 2, 0};
-extern const unsigned int D_002A8CC0[4] = {0x2E2, (unsigned int)p_BuildReconTargetText, 3, 0};
-extern const unsigned int D_002A8CD0[4] = {0x2E3, (unsigned int)p_BuildReconTargetText, 4, 0};
-extern const unsigned int D_002A8CE0[4] = {0x2E4, (unsigned int)p_BuildReconTargetText, 5, 0};
-extern const unsigned int D_002A8CF0[4] = {0x2E5, (unsigned int)p_BuildWidgetArgText, 0, 0};
-extern const unsigned int D_002A8D00[4] = {0x2E6, (unsigned int)p_BuildWidgetArgText, 1, 0};
-extern const unsigned int D_002A8D10[4] = {0x2E7, (unsigned int)p_BuildWidgetArgText, 2, 0};
-extern const unsigned int D_002A8D20[4] = {0x2E8, (unsigned int)p_BuildWidgetArgText, 3, 0};
-extern const unsigned int D_002A8D30[4] = {0x2E9, (unsigned int)p_BuildWidgetArgText, 4, 0};
-extern const unsigned int D_002A8D40[4] = {0x2EA, (unsigned int)p_BuildWidgetArgText, 5, 0};
-extern const unsigned int D_002A8D50[4] = {0x2EB, (unsigned int)p_BuildWidgetArgText, 6, 0};
-extern const unsigned int D_002A8D60[4] = {0x2EC, (unsigned int)p_BuildWidgetArgText, 7, 0};
-extern const unsigned int D_002A8D70[4] = {0x2ED, (unsigned int)p_BuildWidgetArgText, 8, 0};
-extern const unsigned int D_002A8D80[4] = {0x2EE, (unsigned int)p_BuildWidgetArgText, 9, 0};
-extern const unsigned int D_002A8D90[4] = {0x2FF, (unsigned int)p_BuildContextText, (unsigned int)d_D_002C3EC0, 0};
-extern const unsigned int D_002A8DA0[4] = {0x300, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x30), 0};
-extern const unsigned int D_002A8DB0[4] = {0x301, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x60), 0};
-extern const unsigned int D_002A8DC0[4] = {0x302, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x90), 0};
-extern const unsigned int D_002A8DD0[4] = {0x303, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0xC0), 0};
-extern const unsigned int D_002A8DE0[4] = {0x304, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0xF0), 0};
-extern const unsigned int D_002A8DF0[4] = {0x305, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x120), 0};
-extern const unsigned int D_002A8E00[4] = {0x306, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x150), 0};
-extern const unsigned int D_002A8E10[4] = {0x307, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x180), 0};
-extern const unsigned int D_002A8E20[4] = {0x308, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x1B0), 0};
-extern const unsigned int D_002A8E30[4] = {0x2EF, (unsigned int)p_func_00211390, 0, 0};
-extern const unsigned int D_002A8E40[4] = {0x2F0, (unsigned int)p_func_002113B8, 0, 0};
-extern const unsigned int D_002A8E50[4] = {0x37B, (unsigned int)p_BuildGadgetMenuInfoText, 0, 0};
-extern const unsigned int D_002A8E60[4] = {0x37A, (unsigned int)p_BuildGadgetMenuInfoText, 0, 0};
-extern const unsigned int D_002A8E70[4] = {0x43C, (unsigned int)p_BuildThiefnetPowerupNameText, 0, 0};
-extern const unsigned int D_002A8E80[4] = {0x43D, (unsigned int)p_BuildThiefnetPowerupNameText, 1, 0};
-extern const unsigned int D_002A8E90[4] = {0x43E, (unsigned int)p_BuildThiefnetPowerupNameText, 2, 0};
-extern const unsigned int D_002A8EA0[4] = {0x43F, (unsigned int)p_BuildThiefnetPowerupNameText, 3, 0};
-extern const unsigned int D_002A8EB0[4] = {0x440, (unsigned int)p_BuildThiefnetPowerupNameText, 4, 0};
-extern const unsigned int D_002A8EC0[4] = {0x441, (unsigned int)p_BuildThiefnetPowerupNameText, 5, 0};
-extern const unsigned int D_002A8ED0[4] = {0x442, (unsigned int)p_func_001DC820, 0, 0};
-extern const unsigned int D_002A8EE0[4] = {0x443, (unsigned int)p_func_001DC820, 1, 0};
-extern const unsigned int D_002A8EF0[4] = {0x444, (unsigned int)p_func_001DC820, 2, 0};
-extern const unsigned int D_002A8F00[4] = {0x445, (unsigned int)p_func_001DC820, 3, 0};
-extern const unsigned int D_002A8F10[4] = {0x446, (unsigned int)p_func_001DC820, 4, 0};
-extern const unsigned int D_002A8F20[4] = {0x447, (unsigned int)p_func_001DC820, 5, 0};
-extern const unsigned int D_002A8F30[4] = {0x436, (unsigned int)p_func_001DCA30, 0, 0};
-extern const unsigned int D_002A8F40[4] = {0x435, (unsigned int)p_BuildThiefnetInfoText, 0, 0};
-extern const unsigned int D_002A8F50[4] = {0x448, (unsigned int)p_BuildThiefnetLootNameText, 0, 0};
-extern const unsigned int D_002A8F60[4] = {0x449, (unsigned int)p_BuildThiefnetLootNameText, 1, 0};
-extern const unsigned int D_002A8F70[4] = {0x44A, (unsigned int)p_BuildThiefnetLootNameText, 2, 0};
-extern const unsigned int D_002A8F80[4] = {0x44B, (unsigned int)p_BuildThiefnetLootNameText, 3, 0};
-extern const unsigned int D_002A8F90[4] = {0x44C, (unsigned int)p_BuildThiefnetLootNameText, 4, 0};
-extern const unsigned int D_002A8FA0[4] = {0x44D, (unsigned int)p_BuildThiefnetLootNameText, 5, 0};
-extern const unsigned int D_002A8FB0[4] = {0x44E, (unsigned int)p_func_001DC9C0, 0, 0};
-extern const unsigned int D_002A8FC0[4] = {0x44F, (unsigned int)p_func_001DC9C0, 1, 0};
-extern const unsigned int D_002A8FD0[4] = {0x450, (unsigned int)p_func_001DC9C0, 2, 0};
-extern const unsigned int D_002A8FE0[4] = {0x451, (unsigned int)p_func_001DC9C0, 3, 0};
-extern const unsigned int D_002A8FF0[4] = {0x452, (unsigned int)p_func_001DC9C0, 4, 0};
-extern const unsigned int D_002A9000[4] = {0x453, (unsigned int)p_func_001DC9C0, 5, 0};
-extern const unsigned int D_002A9010[4] = {0x2F1, (unsigned int)p_BuildTickerText, 0, 0};
-extern const unsigned int D_002A9020[4] = {0x51B, (unsigned int)p_BuildJobListWorldText, 0, 0};
-extern const unsigned int D_002A9030[4] = {0x51C, (unsigned int)p_func_001DDE58, 0, 0};
-extern const unsigned int D_002A9040[4] = {0x51D, (unsigned int)p_func_001DDE10, 0, 0};
-extern const unsigned int D_002A9050[4] = {0x51E, (unsigned int)p_BuildJobListRowText, 0, 0};
-extern const unsigned int D_002A9060[4] = {0x51F, (unsigned int)p_BuildJobListRowText, 1, 0};
-extern const unsigned int D_002A9070[4] = {0x520, (unsigned int)p_BuildJobListRowText, 2, 0};
-extern const unsigned int D_002A9080[4] = {0x521, (unsigned int)p_BuildJobListRowText, 3, 0};
-extern const unsigned int D_002A9090[4] = {0x522, (unsigned int)p_BuildJobListRowText, 4, 0};
-extern const unsigned int D_002A90A0[4] = {0x523, (unsigned int)p_BuildJobListRowText, 5, 0};
-extern const unsigned int D_002A90B0[4] = {0x524, (unsigned int)p_BuildJobListRowText, 6, 0};
-extern const unsigned int D_002A90C0[4] = {0x525, (unsigned int)p_BuildJobListRowText, 7, 0};
-extern const unsigned int D_002A90D0[4] = {0x526, (unsigned int)p_BuildJobListRowText, 8, 0};
-extern const unsigned int D_002A90E0[4] = {0x527, (unsigned int)p_BuildJobListRowText, 9, 0};
-extern const unsigned int D_002A90F0[4] = {0x528, (unsigned int)p_BuildJobListTaskRowText, 0, 0};
-extern const unsigned int D_002A9100[4] = {0x529, (unsigned int)p_BuildJobListTaskRowText, 1, 0};
-extern const unsigned int D_002A9110[4] = {0x52A, (unsigned int)p_BuildJobListTaskRowText, 2, 0};
-extern const unsigned int D_002A9120[4] = {0x52B, (unsigned int)p_BuildJobListTaskRowText, 3, 0};
-extern const unsigned int D_002A9130[4] = {0x2F2, (unsigned int)p_func_001AD7E0, 0, 0};
-extern const unsigned int D_002A9140[4] = {0x2F3, (unsigned int)p_func_001AD820, 0, 0};
-extern const unsigned int D_002A9150[4] = {0x5CB, (unsigned int)p_func_001AD928, 0, 0};
-extern const unsigned int D_002A9160[4] = {0x5CC, (unsigned int)p_func_001AD980, 0, 0};
-extern const unsigned int D_002A9170[4] = {0x5CD, (unsigned int)p_func_001ADA20, 0, 0};
-extern const unsigned int D_002A9180[4] = {0x5CE, (unsigned int)p_func_001ADBB8, 0, 0};
-extern const unsigned int D_002A9190[4] = {0x5CF, (unsigned int)p_func_001ADC40, 0, 0};
-extern const unsigned int D_002A91A0[4] = {0x5D0, (unsigned int)p_func_001ADC40, 1, 0};
-extern const unsigned int D_002A91B0[4] = {0x5D1, (unsigned int)p_func_001ADC40, 2, 0};
-extern const unsigned int D_002A91C0[4] = {0x5D3, (unsigned int)p_BuildTitlePromptText, 0, 0};
-extern const unsigned int D_002A91D0[4] = {0x5D7, (unsigned int)p_func_001DDF60, 0, 0};
-extern const unsigned int D_002A91E0[4] = {0x5D5, (unsigned int)p_BuildTitleCompletionText, 0, 0};
-extern const unsigned int D_002A91F0[4] = {0x52F, (unsigned int)p_FormatEpisodePercent, 0, 0};
-extern const unsigned int D_002A9200[4] = {0x530, (unsigned int)p_FormatEpisodePlayTime, 0, 0};
-extern const unsigned int D_002A9210[4] = {0x2F4, (unsigned int)p_func_00211420, 0, 0};
-extern const unsigned int D_002A9220[4] = {0x5BF, (unsigned int)p_func_0015DA88, 1, 0};
-extern const unsigned int D_002A9230[4] = {0x5C0, (unsigned int)p_func_0015DA88, 0, 0};
-}
+extern char d_D_002C3EC0[] __asm__("D_002C3EC0");
+
+extern const unsigned int D_002A8B90[4] __asm__("D_002A8B90") = {0x2CF, (unsigned int)p_BuildCoinCountText, (unsigned int)&g_sw.psvpCcoin, 0};
+extern const unsigned int D_002A8BA0[4] __asm__("D_002A8BA0") = {0x2D0, (unsigned int)p_BuildClueCountText, 0, 0};
+extern const unsigned int D_002A8BB0[4] __asm__("D_002A8BB0") = {0x2D1, (unsigned int)p_BuildTimerText, 0, 0};
+extern const unsigned int D_002A8BC0[4] __asm__("D_002A8BC0") = {0x2D2, (unsigned int)p_func_00211298, 0, 0};
+extern const unsigned int D_002A8BD0[4] __asm__("D_002A8BD0") = {0x2D3, (unsigned int)p_func_00211298, 1, 0};
+extern const unsigned int D_002A8BE0[4] __asm__("D_002A8BE0") = {0x2D4, (unsigned int)p_func_00211298, 2, 0};
+extern const unsigned int D_002A8BF0[4] __asm__("D_002A8BF0") = {0x2D5, (unsigned int)p_func_00211298, 3, 0};
+extern const unsigned int D_002A8C00[4] __asm__("D_002A8C00") = {0x2D6, (unsigned int)p_func_00211298, 4, 0};
+extern const unsigned int D_002A8C10[4] __asm__("D_002A8C10") = {0x2D7, (unsigned int)p_func_00211298, 5, 0};
+extern const unsigned int D_002A8C20[4] __asm__("D_002A8C20") = {0x2D8, (unsigned int)p_func_00211298, 6, 0};
+extern const unsigned int D_002A8C30[4] __asm__("D_002A8C30") = {0x2D9, (unsigned int)p_func_00211298, 7, 0};
+extern const unsigned int D_002A8C40[4] __asm__("D_002A8C40") = {0x2DA, (unsigned int)p_func_00211298, 8, 0};
+extern const unsigned int D_002A8C50[4] __asm__("D_002A8C50") = {0x2DB, (unsigned int)p_func_00211298, 9, 0};
+extern const unsigned int D_002A8C60[4] __asm__("D_002A8C60") = {0x2DC, (unsigned int)p_func_00210FE0, 0, 0};
+extern const unsigned int D_002A8C70[4] __asm__("D_002A8C70") = {0x2DD, (unsigned int)p_BuildReconSelectionText, 0, 0};
+extern const unsigned int D_002A8C80[4] __asm__("D_002A8C80") = {0x2DE, (unsigned int)p_BuildReconSelectionText, 1, 0};
+extern const unsigned int D_002A8C90[4] __asm__("D_002A8C90") = {0x2DF, (unsigned int)p_BuildReconTargetText, 0, 0};
+extern const unsigned int D_002A8CA0[4] __asm__("D_002A8CA0") = {0x2E0, (unsigned int)p_BuildReconTargetText, 1, 0};
+extern const unsigned int D_002A8CB0[4] __asm__("D_002A8CB0") = {0x2E1, (unsigned int)p_BuildReconTargetText, 2, 0};
+extern const unsigned int D_002A8CC0[4] __asm__("D_002A8CC0") = {0x2E2, (unsigned int)p_BuildReconTargetText, 3, 0};
+extern const unsigned int D_002A8CD0[4] __asm__("D_002A8CD0") = {0x2E3, (unsigned int)p_BuildReconTargetText, 4, 0};
+extern const unsigned int D_002A8CE0[4] __asm__("D_002A8CE0") = {0x2E4, (unsigned int)p_BuildReconTargetText, 5, 0};
+extern const unsigned int D_002A8CF0[4] __asm__("D_002A8CF0") = {0x2E5, (unsigned int)p_BuildWidgetArgText, 0, 0};
+extern const unsigned int D_002A8D00[4] __asm__("D_002A8D00") = {0x2E6, (unsigned int)p_BuildWidgetArgText, 1, 0};
+extern const unsigned int D_002A8D10[4] __asm__("D_002A8D10") = {0x2E7, (unsigned int)p_BuildWidgetArgText, 2, 0};
+extern const unsigned int D_002A8D20[4] __asm__("D_002A8D20") = {0x2E8, (unsigned int)p_BuildWidgetArgText, 3, 0};
+extern const unsigned int D_002A8D30[4] __asm__("D_002A8D30") = {0x2E9, (unsigned int)p_BuildWidgetArgText, 4, 0};
+extern const unsigned int D_002A8D40[4] __asm__("D_002A8D40") = {0x2EA, (unsigned int)p_BuildWidgetArgText, 5, 0};
+extern const unsigned int D_002A8D50[4] __asm__("D_002A8D50") = {0x2EB, (unsigned int)p_BuildWidgetArgText, 6, 0};
+extern const unsigned int D_002A8D60[4] __asm__("D_002A8D60") = {0x2EC, (unsigned int)p_BuildWidgetArgText, 7, 0};
+extern const unsigned int D_002A8D70[4] __asm__("D_002A8D70") = {0x2ED, (unsigned int)p_BuildWidgetArgText, 8, 0};
+extern const unsigned int D_002A8D80[4] __asm__("D_002A8D80") = {0x2EE, (unsigned int)p_BuildWidgetArgText, 9, 0};
+extern const unsigned int D_002A8D90[4] __asm__("D_002A8D90") = {0x2FF, (unsigned int)p_BuildContextText, (unsigned int)d_D_002C3EC0, 0};
+extern const unsigned int D_002A8DA0[4] __asm__("D_002A8DA0") = {0x300, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x30), 0};
+extern const unsigned int D_002A8DB0[4] __asm__("D_002A8DB0") = {0x301, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x60), 0};
+extern const unsigned int D_002A8DC0[4] __asm__("D_002A8DC0") = {0x302, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x90), 0};
+extern const unsigned int D_002A8DD0[4] __asm__("D_002A8DD0") = {0x303, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0xC0), 0};
+extern const unsigned int D_002A8DE0[4] __asm__("D_002A8DE0") = {0x304, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0xF0), 0};
+extern const unsigned int D_002A8DF0[4] __asm__("D_002A8DF0") = {0x305, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x120), 0};
+extern const unsigned int D_002A8E00[4] __asm__("D_002A8E00") = {0x306, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x150), 0};
+extern const unsigned int D_002A8E10[4] __asm__("D_002A8E10") = {0x307, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x180), 0};
+extern const unsigned int D_002A8E20[4] __asm__("D_002A8E20") = {0x308, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x1B0), 0};
+extern const unsigned int D_002A8E30[4] __asm__("D_002A8E30") = {0x2EF, (unsigned int)p_func_00211390, 0, 0};
+extern const unsigned int D_002A8E40[4] __asm__("D_002A8E40") = {0x2F0, (unsigned int)p_func_002113B8, 0, 0};
+extern const unsigned int D_002A8E50[4] __asm__("D_002A8E50") = {0x37B, (unsigned int)p_BuildGadgetMenuInfoText, 0, 0};
+extern const unsigned int D_002A8E60[4] __asm__("D_002A8E60") = {0x37A, (unsigned int)p_BuildGadgetMenuInfoText, 0, 0};
+extern const unsigned int D_002A8E70[4] __asm__("D_002A8E70") = {0x43C, (unsigned int)p_BuildThiefnetPowerupNameText, 0, 0};
+extern const unsigned int D_002A8E80[4] __asm__("D_002A8E80") = {0x43D, (unsigned int)p_BuildThiefnetPowerupNameText, 1, 0};
+extern const unsigned int D_002A8E90[4] __asm__("D_002A8E90") = {0x43E, (unsigned int)p_BuildThiefnetPowerupNameText, 2, 0};
+extern const unsigned int D_002A8EA0[4] __asm__("D_002A8EA0") = {0x43F, (unsigned int)p_BuildThiefnetPowerupNameText, 3, 0};
+extern const unsigned int D_002A8EB0[4] __asm__("D_002A8EB0") = {0x440, (unsigned int)p_BuildThiefnetPowerupNameText, 4, 0};
+extern const unsigned int D_002A8EC0[4] __asm__("D_002A8EC0") = {0x441, (unsigned int)p_BuildThiefnetPowerupNameText, 5, 0};
+extern const unsigned int D_002A8ED0[4] __asm__("D_002A8ED0") = {0x442, (unsigned int)p_func_001DC820, 0, 0};
+extern const unsigned int D_002A8EE0[4] __asm__("D_002A8EE0") = {0x443, (unsigned int)p_func_001DC820, 1, 0};
+extern const unsigned int D_002A8EF0[4] __asm__("D_002A8EF0") = {0x444, (unsigned int)p_func_001DC820, 2, 0};
+extern const unsigned int D_002A8F00[4] __asm__("D_002A8F00") = {0x445, (unsigned int)p_func_001DC820, 3, 0};
+extern const unsigned int D_002A8F10[4] __asm__("D_002A8F10") = {0x446, (unsigned int)p_func_001DC820, 4, 0};
+extern const unsigned int D_002A8F20[4] __asm__("D_002A8F20") = {0x447, (unsigned int)p_func_001DC820, 5, 0};
+extern const unsigned int D_002A8F30[4] __asm__("D_002A8F30") = {0x436, (unsigned int)p_func_001DCA30, 0, 0};
+extern const unsigned int D_002A8F40[4] __asm__("D_002A8F40") = {0x435, (unsigned int)p_BuildThiefnetInfoText, 0, 0};
+extern const unsigned int D_002A8F50[4] __asm__("D_002A8F50") = {0x448, (unsigned int)p_BuildThiefnetLootNameText, 0, 0};
+extern const unsigned int D_002A8F60[4] __asm__("D_002A8F60") = {0x449, (unsigned int)p_BuildThiefnetLootNameText, 1, 0};
+extern const unsigned int D_002A8F70[4] __asm__("D_002A8F70") = {0x44A, (unsigned int)p_BuildThiefnetLootNameText, 2, 0};
+extern const unsigned int D_002A8F80[4] __asm__("D_002A8F80") = {0x44B, (unsigned int)p_BuildThiefnetLootNameText, 3, 0};
+extern const unsigned int D_002A8F90[4] __asm__("D_002A8F90") = {0x44C, (unsigned int)p_BuildThiefnetLootNameText, 4, 0};
+extern const unsigned int D_002A8FA0[4] __asm__("D_002A8FA0") = {0x44D, (unsigned int)p_BuildThiefnetLootNameText, 5, 0};
+extern const unsigned int D_002A8FB0[4] __asm__("D_002A8FB0") = {0x44E, (unsigned int)p_func_001DC9C0, 0, 0};
+extern const unsigned int D_002A8FC0[4] __asm__("D_002A8FC0") = {0x44F, (unsigned int)p_func_001DC9C0, 1, 0};
+extern const unsigned int D_002A8FD0[4] __asm__("D_002A8FD0") = {0x450, (unsigned int)p_func_001DC9C0, 2, 0};
+extern const unsigned int D_002A8FE0[4] __asm__("D_002A8FE0") = {0x451, (unsigned int)p_func_001DC9C0, 3, 0};
+extern const unsigned int D_002A8FF0[4] __asm__("D_002A8FF0") = {0x452, (unsigned int)p_func_001DC9C0, 4, 0};
+extern const unsigned int D_002A9000[4] __asm__("D_002A9000") = {0x453, (unsigned int)p_func_001DC9C0, 5, 0};
+extern const unsigned int D_002A9010[4] __asm__("D_002A9010") = {0x2F1, (unsigned int)p_BuildTickerText, 0, 0};
+extern const unsigned int D_002A9020[4] __asm__("D_002A9020") = {0x51B, (unsigned int)p_BuildJobListWorldText, 0, 0};
+extern const unsigned int D_002A9030[4] __asm__("D_002A9030") = {0x51C, (unsigned int)p_func_001DDE58, 0, 0};
+extern const unsigned int D_002A9040[4] __asm__("D_002A9040") = {0x51D, (unsigned int)p_func_001DDE10, 0, 0};
+extern const unsigned int D_002A9050[4] __asm__("D_002A9050") = {0x51E, (unsigned int)p_BuildJobListRowText, 0, 0};
+extern const unsigned int D_002A9060[4] __asm__("D_002A9060") = {0x51F, (unsigned int)p_BuildJobListRowText, 1, 0};
+extern const unsigned int D_002A9070[4] __asm__("D_002A9070") = {0x520, (unsigned int)p_BuildJobListRowText, 2, 0};
+extern const unsigned int D_002A9080[4] __asm__("D_002A9080") = {0x521, (unsigned int)p_BuildJobListRowText, 3, 0};
+extern const unsigned int D_002A9090[4] __asm__("D_002A9090") = {0x522, (unsigned int)p_BuildJobListRowText, 4, 0};
+extern const unsigned int D_002A90A0[4] __asm__("D_002A90A0") = {0x523, (unsigned int)p_BuildJobListRowText, 5, 0};
+extern const unsigned int D_002A90B0[4] __asm__("D_002A90B0") = {0x524, (unsigned int)p_BuildJobListRowText, 6, 0};
+extern const unsigned int D_002A90C0[4] __asm__("D_002A90C0") = {0x525, (unsigned int)p_BuildJobListRowText, 7, 0};
+extern const unsigned int D_002A90D0[4] __asm__("D_002A90D0") = {0x526, (unsigned int)p_BuildJobListRowText, 8, 0};
+extern const unsigned int D_002A90E0[4] __asm__("D_002A90E0") = {0x527, (unsigned int)p_BuildJobListRowText, 9, 0};
+extern const unsigned int D_002A90F0[4] __asm__("D_002A90F0") = {0x528, (unsigned int)p_BuildJobListTaskRowText, 0, 0};
+extern const unsigned int D_002A9100[4] __asm__("D_002A9100") = {0x529, (unsigned int)p_BuildJobListTaskRowText, 1, 0};
+extern const unsigned int D_002A9110[4] __asm__("D_002A9110") = {0x52A, (unsigned int)p_BuildJobListTaskRowText, 2, 0};
+extern const unsigned int D_002A9120[4] __asm__("D_002A9120") = {0x52B, (unsigned int)p_BuildJobListTaskRowText, 3, 0};
+extern const unsigned int D_002A9130[4] __asm__("D_002A9130") = {0x2F2, (unsigned int)p_func_001AD7E0, 0, 0};
+extern const unsigned int D_002A9140[4] __asm__("D_002A9140") = {0x2F3, (unsigned int)p_func_001AD820, 0, 0};
+extern const unsigned int D_002A9150[4] __asm__("D_002A9150") = {0x5CB, (unsigned int)p_func_001AD928, 0, 0};
+extern const unsigned int D_002A9160[4] __asm__("D_002A9160") = {0x5CC, (unsigned int)p_func_001AD980, 0, 0};
+extern const unsigned int D_002A9170[4] __asm__("D_002A9170") = {0x5CD, (unsigned int)p_func_001ADA20, 0, 0};
+extern const unsigned int D_002A9180[4] __asm__("D_002A9180") = {0x5CE, (unsigned int)p_func_001ADBB8, 0, 0};
+extern const unsigned int D_002A9190[4] __asm__("D_002A9190") = {0x5CF, (unsigned int)p_func_001ADC40, 0, 0};
+extern const unsigned int D_002A91A0[4] __asm__("D_002A91A0") = {0x5D0, (unsigned int)p_func_001ADC40, 1, 0};
+extern const unsigned int D_002A91B0[4] __asm__("D_002A91B0") = {0x5D1, (unsigned int)p_func_001ADC40, 2, 0};
+extern const unsigned int D_002A91C0[4] __asm__("D_002A91C0") = {0x5D3, (unsigned int)p_BuildTitlePromptText, 0, 0};
+extern const unsigned int D_002A91D0[4] __asm__("D_002A91D0") = {0x5D7, (unsigned int)p_func_001DDF60, 0, 0};
+extern const unsigned int D_002A91E0[4] __asm__("D_002A91E0") = {0x5D5, (unsigned int)p_BuildTitleCompletionText, 0, 0};
+extern const unsigned int D_002A91F0[4] __asm__("D_002A91F0") = {0x52F, (unsigned int)p_FormatEpisodePercent, 0, 0};
+extern const unsigned int D_002A9200[4] __asm__("D_002A9200") = {0x530, (unsigned int)p_FormatEpisodePlayTime, 0, 0};
+extern const unsigned int D_002A9210[4] __asm__("D_002A9210") = {0x2F4, (unsigned int)p_func_00211420, 0, 0};
+extern const unsigned int D_002A9220[4] __asm__("D_002A9220") = {0x5BF, (unsigned int)p_func_0015DA88, 1, 0};
+extern const unsigned int D_002A9230[4] __asm__("D_002A9230") = {0x5C0, (unsigned int)p_func_0015DA88, 0, 0};
+
 } // namespace ANPTR_hud
 
 // ---- hud's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.

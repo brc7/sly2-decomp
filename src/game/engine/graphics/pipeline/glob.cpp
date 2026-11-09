@@ -269,7 +269,7 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadPoseSetsFromBrx { extern "C" {
+namespace M_LoadPoseSetsFromBrx {
 typedef unsigned int uint;
 typedef unsigned long ulong;
 struct META {
@@ -319,10 +319,10 @@ struct VECTOR;
 void ReadVector__18CBinaryInputStreamP6VECTOR(struct STREAM*,struct VECTOR*) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
 float F32Read__18CBinaryInputStream(struct STREAM*) __asm__("F32Read__18CBinaryInputStream");
 unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
-void*AllocClearedFromWorldHeap(struct SWALLOC*);
+void*AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldHeap");
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
-void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
+extern "C" void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
 {
     int count = S16Read__18CBinaryInputStream(stream);
     if (count) {
@@ -372,7 +372,7 @@ void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
         p->groups = groups;
     }
 }
-} } // namespace M_LoadPoseSetsFromBrx
+} // namespace M_LoadPoseSetsFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
@@ -381,13 +381,13 @@ struct GRP { int a; XF *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
 struct HDR { signed char c0; signed char citem; char pad[0x12]; };
 struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
 struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int relightStamp; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (numPieces, subMeshes, pieces, relightStamp, pwrbgFirst) */
-extern "C" { 
- }
-extern "C" SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner);   /* the found object is an SO here */
-extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
-extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
-extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern "C" void AddWrWarpGroup(SO *plo, X *px);
+
+
+extern SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");   /* the found object is an SO here */
+extern void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
+extern void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
+extern void AddWrWarpGroup(SO *plo, X *px) __asm__("AddWrWarpGroup");
 // Resolves globset bone references after load: finds each referenced SO by oid, its bone, and computes the relative
 // bind matrix. (inferred)
 extern "C" void BindGlobset(S *p)
@@ -430,21 +430,21 @@ extern "C" void BindGlobset(S *p)
 } // namespace M_BindGlobset
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ExpandSphereForProjection { extern "C" {
+namespace M_ExpandSphereForProjection {
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
-extern const qword D_002BE570;
+extern const qword D_002BE570 __asm__("D_002BE570");
 // Transform point p by the 4x4 matrix m.
-static inline qword Transform(const struct M4 *m, qword p)
+extern "C" { static inline qword Transform(const struct M4 *m, qword p)
 {
     qword r;
     __asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w"
             : "=j"(r)
             : "j"(m->r[0]), "j"(m->r[1]), "j"(p), "j"(m->r[2]), "j"(m->r[3]));
     return r;
-}
+} }
 // Length of the xyz part of v as a float.
-static inline float Length(qword v)
+extern "C" { static inline float Length(qword v)
 {
     qword d, one;
     float f;
@@ -454,17 +454,17 @@ static inline float Length(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "j"(d));
     __asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(d));
     return f;
-}
+} }
 // Return p + v * k.x.
-static inline qword MAdd(qword p, qword v, qword k)
+extern "C" { static inline qword MAdd(qword p, qword v, qword k)
 {
     qword r;
     __asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(p), "j"(v), "j"(k));
     return r;
-}
+} }
 // Grows a sub/model cull sphere to include its projection through pshd->pmatClip (projected-volume geometry)
 // (inferred)
-qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
+extern "C" qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
 {
     QWROW u;
     qword d = VuSub(Transform(m, D_002BE570), p);
@@ -477,10 +477,10 @@ qword ExpandSphereForProjection(const struct M4 *m, qword p, float *radius)
     }
     return p;
 }
-} } // namespace M_ExpandSphereForProjection
+} // namespace M_ExpandSphereForProjection
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_StoreRelightColors { extern "C" {
+namespace M_StoreRelightColors {
 /* RGBA (one byte per qword lane) -> 1555 conversion. The C16 bitfield struct copy gives the target's dead
    register copies after each sh. */
 typedef struct { unsigned char r, pad0[3], g, pad1[3], b, pad2[3], a, pad3[3]; } CQW;
@@ -491,7 +491,7 @@ struct S { char pad[0x3010]; int pbBase; char pad2[0x3070 - 0x3014]; struct X x;
 typedef struct { unsigned short rgb : 15, a : 1; } C16;
 // Relight readback: converts the two RGBA results per vertex in VU1 data memory to RGBA5551 into the glob's EE colour
 // buffers (+alpha bytes) (inferred)
-void StoreRelightColors(struct S *p)
+extern "C" void StoreRelightColors(struct S *p)
 {
     struct X *px = &p->x;
     int pbBase = p->pbBase;
@@ -526,15 +526,15 @@ void StoreRelightColors(struct S *p)
             *pb2++ = pqwA->a;
     }
 }
-} } // namespace M_StoreRelightColors
+} // namespace M_StoreRelightColors
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_VU1_Interrupt { extern "C" {
-void StoreRelightColors(int n);
-void iFlushCache(int n);
+namespace M_VU1_Interrupt {
+void StoreRelightColors(int n) __asm__("StoreRelightColors");
+void iFlushCache(int n) __asm__("iFlushCache");
 // INTC VIF1/VU1 interrupt handler: reads back VU1 data memory results (colour conversion), clears the VIF1 stall
 // (VIF1_FBRST=8), returns -1. (inferred)
-int VU1_Interrupt(void)
+extern "C" int VU1_Interrupt(void)
 {
     StoreRelightColors(0x1100C320);
     iFlushCache(0);
@@ -542,16 +542,16 @@ int VU1_Interrupt(void)
     asm volatile("sync\n\tei");
     return -1;
 }
-} } // namespace M_VU1_Interrupt
+} // namespace M_VU1_Interrupt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpRelight {
 struct X { char pad[0x120]; QW amat[3]; int pad150[4]; int isDisabled; };   /* a light: 3 qwords of relight data; isDisabled (inferred): skipped */
-extern "C" { extern char D_0025E090[]; }
-extern "C" { extern char D_0025E668[]; }
-extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern "C" int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv);
-extern "C" void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
+extern char D_0025E090[] __asm__("D_0025E090");
+extern char D_0025E668[] __asm__("D_0025E668");
+extern void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd) __asm__("EnsureVu1Code__FP4VIFSPvT1");
+extern int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv) __asm__("FindSwObjectsByClass");
+extern void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb) __asm__("CopyAb__FPvT0Ui");
 // Pass 4 begin (kind 0): upload relight microprogram D_0025E090..D_0025E668 (compute only), BASE 0x32 OFFSET 0, upload
 // up to 256 lights x 3 qw. (inferred)
 extern "C" void BeginRpRelight(VIFS *pvifs)
@@ -686,13 +686,13 @@ struct PACKET
     U sphere;
     M4 matrix;
 };
-extern "C" {
-void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
+
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
-float GetMaxRowLengthMatrix3(const M3 *pmat);
-RPL *AllocRenderListEntry(void);
-}
+M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+float GetMaxRowLengthMatrix3(const M3 *pmat) __asm__("GetMaxRowLengthMatrix3");
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
+
 // Transform point qwPos by the 4x4 matrix pmat.
 static inline qword QwTransformPos(M4 *pmat, qword qwPos)
 {
@@ -806,7 +806,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
 } // namespace M_SubmitGlobsetRelight
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UnpackSubglobBones { extern "C" {
+namespace M_UnpackSubglobBones {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef struct M4 { qword r[4]; } M4;
@@ -827,15 +827,15 @@ typedef struct DESC {
 typedef struct ENTRY { char pad0[0x18]; BONE *bones; } ENTRY;
 
 // Load a 128-bit value with lq into a GPR (no VU0 round trip).
-static __inline__ qword ReadCPU(const qword *source)
+extern "C" { static __inline__ qword ReadCPU(const qword *source)
 {
     qword value;
     __asm__("lq %0,%1" : "=r"(value) : "m"(*source));
     return value;
-}
+} }
 
 // Pad the DMA packet with zero words until its cursor is at the given offset within a quadword.
-static __inline__ void Align(uint align)
+extern "C" { static __inline__ void Align(uint align)
 {
     VIFS *dma = &D_002DEA28;
     qword *output = (qword *)dma->m_pb;
@@ -844,10 +844,10 @@ static __inline__ void Align(uint align)
         dma->m_pb += 4;
         output = (qword *)dma->m_pb;
     }
-}
+} }
 
 // Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet. (inferred)
-void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
+extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
 {
     uint opcode;
     BONE *bone, *last;
@@ -928,7 +928,7 @@ typedef char layout_M4_row0[((unsigned long)&((M4*)0)->r[0]==0x0)?1:-1];
 typedef char layout_M4_row1[((unsigned long)&((M4*)0)->r[1]==0x10)?1:-1];
 typedef char layout_M4_row2[((unsigned long)&((M4*)0)->r[2]==0x20)?1:-1];
 typedef char layout_M4_row3[((unsigned long)&((M4*)0)->r[3]==0x30)?1:-1];
-} } // namespace M_UnpackSubglobBones
+} // namespace M_UnpackSubglobBones
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_RenderSoGlobset {
@@ -1071,20 +1071,20 @@ struct MODEL
         float scale;
     };
 };
-extern "C" { extern MATRIX4 D_002A2D30; }
-extern "C" {
-void SubmitGlobsetRelight(MODEL *pmodel);
-int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
-void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
+extern MATRIX4 D_002A2D30 __asm__("D_002A2D30");
+
+void SubmitGlobsetRelight(MODEL *pmodel) __asm__("SubmitGlobsetRelight");
+int ShouldUpdateSaa__FP3SAA(OBJ *pobj) __asm__("ShouldUpdateSaa__FP3SAA");
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
-void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
-float GetMaxRowLengthMatrix3(const MATRIX4 *pmat);
-qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius);
-int IsWithinCameraRenderDistance(CM *pcm, qword qwDpos, float sRange, float *pgVis);
-void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
-RPL *AllocRenderListEntry(void);
-}
+void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
+float GetMaxRowLengthMatrix3(const MATRIX4 *pmat) __asm__("GetMaxRowLengthMatrix3");
+qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius) __asm__("ExpandSphereForProjection");
+int IsWithinCameraRenderDistance(CM *pcm, qword qwDpos, float sRange, float *pgVis) __asm__("IsWithinCameraRenderDistance");
+void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub) __asm__("UnpackSubglobBones");
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
+
 // Return the 4x4 matrix product matA * matB.
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
@@ -1567,19 +1567,19 @@ struct MODEL
     char pad48[8];
     float scale;
 };
-extern "C" { extern MATRIX4 D_002A2D30; }
-extern "C" {
+extern MATRIX4 D_002A2D30 __asm__("D_002A2D30");
+
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void BuildLightPackets(SW *pg, int c, void **apv, SOBOUNDS *pshd);
-int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
-int GetRenderTargetTexture(ALO *palo, int n);
-void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
-void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
-void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
-qword GetLoWorldPos(ALO *palo);
-RPL *AllocRenderListEntry(void);
-}
+void BuildLightPackets(SW *pg, int c, void **apv, SOBOUNDS *pshd) __asm__("BuildLightPackets");
+int ShouldUpdateSaa__FP3SAA(OBJ *pobj) __asm__("ShouldUpdateSaa__FP3SAA");
+int GetRenderTargetTexture(ALO *palo, int n) __asm__("GetRenderTargetTexture");
+void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
+void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
+qword GetLoWorldPos(ALO *palo) __asm__("GetLoWorldPos");
+RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
+
 // Return the 4x4 matrix product matA * matB.
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
@@ -1843,11 +1843,11 @@ extern "C" int CompareSortRecs(VERTREC *prec0, VERTREC *prec1)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_LoadSubglobInstancesFromBrx { extern "C" {
-void LoadSubglobInstanceFromBrx(GLOBSET *pglobset, SUBGLOB *psubglobBase, GLOB *pglobBase, SUBGLOBX *psubglobxBase, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis);
+namespace M_LoadSubglobInstancesFromBrx {
+void LoadSubglobInstanceFromBrx(GLOBSET *pglobset, SUBGLOB *psubglobBase, GLOB *pglobBase, SUBGLOBX *psubglobxBase, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("LoadSubglobInstanceFromBrx");
 // For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance record (0x169AC8)
 // (inferred)
-void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob, GLOB *aglob, SUBGLOBX *asubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis)
+extern "C" void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob, GLOB *aglob, SUBGLOBX *asubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis)
 {
     int i;
     for (i = 0; i < cSubExtra; i++) {
@@ -1857,7 +1857,7 @@ void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob, GLOB *agl
         LoadSubglobInstanceFromBrx(pglobset, asubglob, aglob, asubglobx, psubglob, pglob, psubglobx, cbatch, acbatch, apbatch, pbis);
     }
 }
-} } // namespace M_LoadSubglobInstancesFromBrx
+} // namespace M_LoadSubglobInstancesFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobInstanceFromBrx {
@@ -1966,20 +1966,20 @@ typedef char BINDING_sets_Offset[FIELD_OFFSET(BINDING,sets)==4?1:-1];
 typedef char BINDING_indices_Offset[FIELD_OFFSET(BINDING,indices)==8?1:-1];
 typedef char LINK_second_Offset[FIELD_OFFSET(LINK,second)==2?1:-1];
 typedef char LINK_kind_Offset[FIELD_OFFSET(LINK,kind)==4?1:-1];
-extern "C"{
+
 char S8Read__18CBinaryInputStream(STREAM*) __asm__("S8Read__18CBinaryInputStream");
 uint U32Read__18CBinaryInputStream(STREAM*) __asm__("U32Read__18CBinaryInputStream");
 short S16Read__18CBinaryInputStream(STREAM*) __asm__("S16Read__18CBinaryInputStream");
 int S32Read__18CBinaryInputStream(STREAM*) __asm__("S32Read__18CBinaryInputStream");
-void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*);
-void*AllocFromWorldHeap(const REQUEST&);
-void*AllocCopyFromWorldHeap(const REQUEST&,void*);
-STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
+void*AllocFromWorldHeap(const REQUEST&) __asm__("AllocFromWorldHeap");
+void*AllocCopyFromWorldHeap(const REQUEST&,void*) __asm__("AllocCopyFromWorldHeap");
+STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-BINDING*LoadClutsetFromBrx(P*,STREAM*);
-M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
+BINDING*LoadClutsetFromBrx(P*,STREAM*) __asm__("LoadClutsetFromBrx");
+M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-}
+
 // Allocate bytes, 16-byte aligned, from the world heap.
 static inline void *Allocate(int bytes)
 {
@@ -2056,15 +2056,15 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
 } // namespace M_LoadSubglobInstanceFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_CopyRelocateDmaChain { extern "C" {
+namespace M_CopyRelocateDmaChain {
 typedef union QW { unsigned int aun[4]; unsigned short aus[8]; } QW;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
 struct X { int pad[4]; int cqw; };
 struct Y { int pad[4]; QW *aqw; char *pb; };
-QW *AllocCopyFromWorldHeap(ALLOCREQ *preq, QW *aqw);
+QW *AllocCopyFromWorldHeap(ALLOCREQ *preq, QW *aqw) __asm__("AllocCopyFromWorldHeap");
 // Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by a delta.
 // (inferred)
-void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
+extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
 {
     ALLOCREQ req;
     QW *aqw;
@@ -2093,7 +2093,7 @@ void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int f
         }
     }
 }
-} } // namespace M_CopyRelocateDmaChain
+} // namespace M_CopyRelocateDmaChain
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 
@@ -2198,15 +2198,15 @@ void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("AllocClearedFromStack");
 void *PvAllocStackImpl(SWALLOCC *pswalloc) __asm__("AllocFromStack");
-extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui"); }
+void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 struct UVF
 {
     float u, v;
 };
-extern "C" { extern char D_00000000[]; }
-extern "C" {
+extern char D_00000000[] __asm__("D_00000000");
+
 void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType0FromBrx");
-}
+
 // Allocate cb bytes, 16-byte aligned, from the world heap.
 static inline void *PvAllocSw(int cb)
 {
@@ -2221,22 +2221,22 @@ static inline void *PvAllocSwCopy(int cb, void *pvBase)
 }
 SHD *PshdFromIshd(int ishd) __asm__("GetShdByIndex");
 int AddVifUnpackShdp(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("AddShaderVifUnpack");
-extern "C" { extern uint D_002BE540[]; }
-extern "C" { extern int D_002BE558[]; }
-extern "C" { extern QW D_002DEB60; }
+extern uint D_002BE540[] __asm__("D_002BE540");
+extern int D_002BE558[] __asm__("D_002BE558");
+extern QW D_002DEB60 __asm__("D_002DEB60");
 void CalcRecipFitParams(float gScale, CM *pcm, float *pgOut) __asm__("BuildCmFgfn");
 CLUTSET *LoadClutSetFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("LoadClutsetFromBrx");
 void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("LoadSubglobInstancesFromBrx");
 int CompareVertRec(const void *pv1, const void *pv2) __asm__("CompareSortRecs");
 void CopyDmaRefsChainSw(SUBGLOB *psubglob, GLOB *pglob, int cqw, void *pvBase, int cqwMain, char *pbNew, char *pbOld) __asm__("CopyRelocateDmaChain");
-extern "C" {
-void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));
-}
-extern "C" void ReadCb12__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
-extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
+
+void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *)) __asm__("qsort");
+
+extern void ReadCb12__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv) __asm__("ReadCb12__18CBinaryInputStreamPv");
+extern void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv) __asm__("ReadCb8__18CBinaryInputStreamPv");
 void FixupRgba(RGBA *prgba) __asm__("ColorCorrectRgba");
-extern "C" { 
- }
+
+
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocFromStack16(int cb)
 {
@@ -2255,26 +2255,26 @@ static inline void *AllocClearedFromWorldHeap16(int cb)
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwClearImpl(&swalloc);
 }
-extern "C" SHD *FindShader(int oid);
-extern "C" int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
-extern "C" int AddSaaCopyRecord(SAA *psaa, int iqw, VIFS *pvifs);
-extern "C" void RelocateShaderUploadRecords(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
-extern "C" { extern int D_003DA790; }
-extern "C" { 
- }
-extern "C" int D_002BE580;
-extern "C" { extern int D_002DEB54; }
-extern "C" const float D_002A52A0;   /* defined below where the ELF has it (.rodata order) */
-extern "C" { extern char D_00003628[]; }
-extern "C" { extern char D_000037A8[]; }
-extern "C" { extern char D_00002EF8[]; }
-extern "C" { extern char D_00002E20[]; }
-extern "C" { extern char D_00002F80[]; }
-extern "C" { extern char D_00002E68[]; }
-extern "C" { extern char D_00002FC8[]; }
-extern "C" { extern char D_00002EB0[]; }
-extern "C" { extern char D_00003358[]; }
-extern "C" { extern char D_00002EE8[]; }
+extern SHD *FindShader(int oid) __asm__("FindShader");
+extern int AddShaderVifUnpackQword(SHD *pshd, int ishdp, int iqw, VIFS *pvifs) __asm__("AddShaderVifUnpackQword");
+extern int AddSaaCopyRecord(SAA *psaa, int iqw, VIFS *pvifs) __asm__("AddSaaCopyRecord");
+extern void RelocateShaderUploadRecords(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew) __asm__("RelocateShaderUploadRecords");
+extern int D_003DA790 __asm__("D_003DA790");
+
+
+extern int D_002BE580 __asm__("D_002BE580");
+extern int D_002DEB54 __asm__("D_002DEB54");
+extern const float D_002A52A0 __asm__("D_002A52A0");   /* defined below where the ELF has it (.rodata order) */
+extern char D_00003628[] __asm__("D_00003628");
+extern char D_000037A8[] __asm__("D_000037A8");
+extern char D_00002EF8[] __asm__("D_00002EF8");
+extern char D_00002E20[] __asm__("D_00002E20");
+extern char D_00002F80[] __asm__("D_00002F80");
+extern char D_00002E68[] __asm__("D_00002E68");
+extern char D_00002FC8[] __asm__("D_00002FC8");
+extern char D_00002EB0[] __asm__("D_00002EB0");
+extern char D_00003358[] __asm__("D_00003358");
+extern char D_00002EE8[] __asm__("D_00002EE8");
 // Number of texture words for a sub-glob: its binding count, capped at 4.
 static inline int CwtFromSubglob(SUBGLOB *psubglob)
 {
@@ -3152,8 +3152,8 @@ public:
     int U16Read() __asm__("U16Read__18CBinaryInputStream");
     int S16Read() __asm__("S16Read__18CBinaryInputStream");
 };
-extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
-extern "C" void ColorCorrectRgba16(ushort *pus);
+extern void *AllocClearedFromStack(ALLOCREQ *preq) __asm__("AllocClearedFromStack");
+extern void ColorCorrectRgba16(ushort *pus) __asm__("ColorCorrectRgba16");
 // Fill the request and allocate cb zeroed bytes of kind nKind from the frame stack.
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
@@ -3236,19 +3236,19 @@ struct REQUEST {
     // Allocation request: byte count and alignment.
     REQUEST(int cb, int a) : bytes(cb), alignment(a) {}
 };
-extern "C"{
-void*STACKSCOPE_ctor(void*);
+
+void*STACKSCOPE_ctor(void*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
-void*AllocClearedFromWorldHeap(const REQUEST&);
-OBJECT*GetShdByIndex(int);
-int AddShaderVifUnpack(OBJECT*,int,int,VIFS*);
-void LoadSubglobInstancesFromBrx(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
-void*memset(void*,int,uint);
-extern QW D_002DEB60;
-extern uint D_002BE540[];
-extern UPK D_002BE558[];
-extern char D_00000000[],D_00001910[],D_00001A68[];
-}
+void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHeap");
+OBJECT*GetShdByIndex(int) __asm__("GetShdByIndex");
+int AddShaderVifUnpack(OBJECT*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
+void LoadSubglobInstancesFromBrx(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
+void*memset(void*,int,uint) __asm__("memset");
+extern QW D_002DEB60 __asm__("D_002DEB60");
+extern uint D_002BE540[] __asm__("D_002BE540");
+extern UPK D_002BE558[] __asm__("D_002BE558");
+extern char D_00000000[] __asm__("D_00000000"),D_00001910[] __asm__("D_00001910"),D_00001A68[] __asm__("D_00001A68");
+
 struct LEASE {
     // Open a stack-allocation scope (STACKSCOPE): allocations after it are freed by Release.
     LEASE() { STACKSCOPE_ctor(this); }
@@ -3293,7 +3293,7 @@ typedef char HEADER_bones_Offset[FIELD_OFFSET(HEADER,bones)==24?1:-1];
 typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 // Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline.
-extern "C" void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups,
+void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType2FromBrx"); void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
     int i = 0;
@@ -3436,24 +3436,24 @@ struct REQUEST {
     void *Allocate();
     void *AllocateZero();
 };
-extern "C"{
-void*STACKSCOPE_ctor(void*);
+
+void*STACKSCOPE_ctor(void*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
-void*AllocClearedFromWorldHeap(const REQUEST&);
-void*AllocFromStack(const REQUEST&);
+void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHeap");
+void*AllocFromStack(const REQUEST&) __asm__("AllocFromStack");
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-OBJECT*GetShdByIndex(int);
-int AddShaderVifUnpack(OBJECT*,int,int,VIFS*);
-void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
+OBJECT*GetShdByIndex(int) __asm__("GetShdByIndex");
+int AddShaderVifUnpack(OBJECT*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
+void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
 /* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
-extern QW D_002DEB60;
-extern uint D_002BE540[];
-extern UPK D_002BE558[];
-extern char D_00000000[],D_00001910[],D_00001A68[];
-}
+extern QW D_002DEB60 __asm__("D_002DEB60");
+extern uint D_002BE540[] __asm__("D_002BE540");
+extern UPK D_002BE558[] __asm__("D_002BE558");
+extern char D_00000000[] __asm__("D_00000000"),D_00001910[] __asm__("D_00001910"),D_00001A68[] __asm__("D_00001A68");
+
 struct MARK {
     // Open a stack-allocation scope (STACKSCOPE).
     MARK() { STACKSCOPE_ctor(this); }
@@ -3688,22 +3688,22 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
 } // namespace M_LoadSubglobType3FromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_AddFramePatch { extern "C" {
+namespace M_AddFramePatch {
 struct D { int a; char *b; int c; char *d; };
 struct H { short a; short b; };
 // Records a (framebuffer word index, qword offset+0x23) patch for the VU1 microprogram, which fills FRAME/TEX0 of the
 // current buffer from VU qw 0xB/0xC. (inferred)
-void AddFramePatch(int n, struct D *pd, struct H **pph)
+extern "C" void AddFramePatch(int n, struct D *pd, struct H **pph)
 {
     struct H *ph = (*pph)++;
     ph->a = n;
     ph->b = ((pd->d - pd->b) >> 4) + 0x23;
 }
-} } // namespace M_AddFramePatch
+} // namespace M_AddFramePatch
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BuildProjectedVolumeGifs {
-extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
+extern void AddFramePatch(int n, GIFS *pgifs, short **pps) __asm__("AddFramePatch");
 // Builds one projected-volume stencil/apply GIF prim (FRAME_2 mask, TEX0_2, TEX1, ALPHA...) selected by grf bits.
 // (inferred)
 extern "C" void BuildProjectedVolumeGifs(GIFS *pgifs, uint grf, short **pps)
@@ -3752,16 +3752,16 @@ extern "C" void BuildProjectedVolumeGifs(GIFS *pgifs, uint grf, short **pps)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpProjVolume {
-extern "C" { extern char D_0025C1C0[]; }
-extern "C" { extern char D_0025E040[]; }
-extern "C" { extern char D_00001AA0[]; }
-extern "C" { 
- }
-extern "C" { extern QW D_002DF800[]; }
-extern "C" { extern int D_002DEB70[2]; }
-extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern "C" void AddFramePatch(int n, GIFS *pgifs, short **pps);
-extern "C" void BuildProjectedVolumeGifs(GIFS *pgifs, uint grf, short **pps);
+extern char D_0025C1C0[] __asm__("D_0025C1C0");
+extern char D_0025E040[] __asm__("D_0025E040");
+extern char D_00001AA0[] __asm__("D_00001AA0");
+
+
+extern QW D_002DF800[] __asm__("D_002DF800");
+extern int D_002DEB70[2] __asm__("D_002DEB70");
+extern void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd) __asm__("EnsureVu1Code__FP4VIFSPvT1");
+extern void AddFramePatch(int n, GIFS *pgifs, short **pps) __asm__("AddFramePatch");
+extern void BuildProjectedVolumeGifs(GIFS *pgifs, uint grf, short **pps) __asm__("BuildProjectedVolumeGifs");
 // Pass 6/7 begin (kinds 7/8): upload projected-volume microprogram D_0025C1C0..D_0025E040, build/kick (MSCAL 0x1AA0)
 // the masked full-screen stencil-init strips. (inferred)
 extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
@@ -3822,14 +3822,14 @@ namespace M_EndRpProjVolume {
 struct COMMAND {
     short kind, index;
 };
-extern "C" { extern SW D_003DD490; }   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
-extern "C" { extern int D_002DEB70[2]; }
-extern "C" { 
- }
-extern "C" { extern QW*D_002DEA4C __asm__("g_pfrmOpen"); }
-extern "C" { extern QW D_002DEA50[],D_002DF940[],D_002DFA80[]; }
-extern "C" void AddFramePatch(int,GIFS*,COMMAND**);
-extern "C" void BuildProjectedVolumeGifs(GIFS*,uint,COMMAND**);
+extern SW D_003DD490 __asm__("D_003DD490");   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
+extern int D_002DEB70[2] __asm__("D_002DEB70");
+
+
+extern QW*D_002DEA4C __asm__("g_pfrmOpen");
+extern QW D_002DEA50[] __asm__("D_002DEA50"),D_002DF940[] __asm__("D_002DF940"),D_002DFA80[] __asm__("D_002DFA80");
+extern void AddFramePatch(int,GIFS*,COMMAND**) __asm__("AddFramePatch");
+extern void BuildProjectedVolumeGifs(GIFS*,uint,COMMAND**) __asm__("BuildProjectedVolumeGifs");
 typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
 typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
@@ -3937,11 +3937,11 @@ typedef char ULONG_Size[sizeof(ulong)==8?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpGlob {
-extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
-extern "C" { extern char D_0025E680[]; }
-extern "C" { extern char D_00262320[]; }
-extern "C" { extern char D_00000000[]; }
+extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
+extern void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd) __asm__("EnsureVu1Code__FP4VIFSPvT1");
+extern char D_0025E680[] __asm__("D_0025E680");
+extern char D_00262320[] __asm__("D_00262320");
+extern char D_00000000[] __asm__("D_00000000");
 // Pass 0 begin: upload main glob microprogram D_0025E680..D_00262320, zero the 11-qw batch descriptor at TOPS+0xA,
 // MSCAL 0. (inferred)
 extern "C" void BeginRpGlob(VIFS *pvifs)
@@ -3958,8 +3958,8 @@ extern "C" void BeginRpGlob(VIFS *pvifs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_EndRpGlob {
-extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern "C" { extern char D_00003AB0[]; }
+extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
+extern char D_00003AB0[] __asm__("D_00003AB0");
 // Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA. (inferred)
 extern "C" void EndRpGlob(VIFS *pvifs)
 {
@@ -3975,9 +3975,9 @@ extern "C" void EndRpGlob(VIFS *pvifs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpBackground {
-extern "C" { extern int D_003DCFA0; }
-extern "C" { extern QW *D_003DCFA8[]; }
-extern "C" void BeginRpGlob(VIFS *pvifs);
+extern int D_003DCFA0 __asm__("D_003DCFA0");
+extern QW *D_003DCFA8[] __asm__("D_003DCFA8");
+extern void BeginRpGlob(VIFS *pvifs) __asm__("BeginRpGlob");
 // Pass 3 begin (kind 1 sky/background): BeginRpGlob + DMA CALL each per-frame texture upload chain
 // D_003DCFA8[0..D_003DCFA0) (inferred)
 extern "C" void BeginRpBackground(VIFS *pvifs)
@@ -4001,20 +4001,20 @@ extern "C" void AddVifDirectFlushed(VIFS *pvifs, int cqw, QW *aqw)
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_EndRpBackground { extern "C" {
-extern int D_003DCFA0;
-extern char D_002DF010[];
-void EndRpGlob(void *p);
-void AddVifDirectFlushed(void *p, int n, void *pv);
+namespace M_EndRpBackground {
+extern int D_003DCFA0 __asm__("D_003DCFA0");
+extern char D_002DF010[] __asm__("D_002DF010");
+void EndRpGlob(void *p) __asm__("EndRpGlob");
+void AddVifDirectFlushed(void *p, int n, void *pv) __asm__("AddVifDirectFlushed");
 // Pass 3 end: EndRpGlob + Z-only clear (D_002DF010) when per-frame uploads were made (textures parked in Z-buffer
 // memory) (inferred)
-void EndRpBackground(void *p)
+extern "C" void EndRpBackground(void *p)
 {
     EndRpGlob(p);
     if (D_003DCFA0 > 0)
         AddVifDirectFlushed(p, 0x25, D_002DF010);
 }
-} } // namespace M_EndRpBackground
+} // namespace M_EndRpBackground
 
 // Pass 11 begin (kinds 4/6): BeginRpGlob + DIRECT FBA_1=1 packet D_002DF700. (inferred)
 extern "C" void BeginRpCutout(VIFS *pvifs)
@@ -4065,19 +4065,19 @@ struct REQUEST {
     // Allocation request: byte count and alignment.
     REQUEST(int cb, int a) : bytes(cb), alignment(a) {}
 };
-extern "C"{
-void*STACKSCOPE_ctor(void*);
+
+void*STACKSCOPE_ctor(void*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
-void*AllocClearedFromWorldHeap(const REQUEST&);
-void BuildCmFgfn(CM*,float*,float);
+void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHeap");
+void BuildCmFgfn(CM*,float*,float) __asm__("BuildCmFgfn");
 void*func_002333B4(void*,int,uint) __asm__("memset");
-void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
-extern uint D_002DEB50;
-extern QW D_002DEB60;
-extern uint D_002BE540[];
-extern UPK D_002BE558[];
-extern char D_00000000[],D_00000738[],D_000007F0[];
-}
+void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
+extern uint D_002DEB50 __asm__("D_002DEB50");
+extern QW D_002DEB60 __asm__("D_002DEB60");
+extern uint D_002BE540[] __asm__("D_002BE540");
+extern UPK D_002BE558[] __asm__("D_002BE558");
+extern char D_00000000[] __asm__("D_00000000"),D_00000738[] __asm__("D_00000738"),D_000007F0[] __asm__("D_000007F0");
+
 struct LEASE {
     // Empty destructor (the scope is released explicitly).
     ~LEASE() {}
@@ -4126,7 +4126,7 @@ typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 typedef char DMAS_m_ab_Offset[FIELD_OFFSET(DMAS,m_ab)==4?1:-1];
 typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 // Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader.
-extern "C" void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
+void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType1FromBrx"); void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
     int i = 0;
@@ -4355,17 +4355,17 @@ typedef char SO_vectors_Offset[FIELD_OFFSET(SO,vectors)==72?1:-1];
 typedef char LINK_bounds_Offset[FIELD_OFFSET(LINK,bounds)==4?1:-1];
 typedef char LINK_object_Offset[FIELD_OFFSET(LINK,object)==12?1:-1];
 typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
-extern "C"{
-extern int D_003DA790;
-extern LINK D_003DA798[];
-void*AllocCopyFromWorldHeap(SWALLOC*,void*);
-SO*CloneSaa(SO*);
-void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*);
+
+extern int D_003DA790 __asm__("D_003DA790");
+extern LINK D_003DA798[] __asm__("D_003DA798");
+void*AllocCopyFromWorldHeap(SWALLOC*,void*) __asm__("AllocCopyFromWorldHeap");
+SO*CloneSaa(SO*) __asm__("CloneSaa");
+void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*) __asm__("CopyRelocateDmaChain");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-void ClearSle(int*);
-void PrependSlEntry(void*,LINK*);
-void RelocateShaderUploadRecords(int,int,int,uint,uint);
-}
+void ClearSle(int*) __asm__("ClearSle");
+void PrependSlEntry(void*,LINK*) __asm__("PrependSlEntry");
+void RelocateShaderUploadRecords(int,int,int,uint,uint) __asm__("RelocateShaderUploadRecords");
+
 // Allocate bytes, 16-byte aligned, from the world heap and copy source into them.
 static inline void *Copy(int bytes, void *source)
 {
@@ -4463,20 +4463,20 @@ extern "C" void CloneGlobset(P *p, SO *owner, STREAM *stream)
 } // namespace M_CloneGlobset
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_ResetGlobAttachment { extern "C" {
+namespace M_ResetGlobAttachment {
 typedef int qword __attribute__((mode(TI)));
 struct V4 { float x, y, z, w; } __attribute__((aligned(16)));   /* attribute on the struct (C++) */
 typedef struct { char pad[0x148]; unsigned long renderFlags; } A;   /* the attached ALO: its 64-bit flag word at +0x148 */
 typedef struct { float x, y, z, w; int a, b; } E;
 typedef struct { A *pa; int pad[3]; V4 offset; float radius; int pad2[8]; E *ae; } S;
-extern V4 D_002A2DD0;
-void RemoveLoFromRenderTree(A *pa);
+extern V4 D_002A2DD0 __asm__("D_002A2DD0");
+void RemoveLoFromRenderTree(A *pa) __asm__("RemoveLoFromRenderTree");
 /* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
 
 // Resets an attachment record (clear flag on attached object, zero vector, radius 1e6) (inferred)
-void ResetGlobAttachment(S *p, int i)
+extern "C" void ResetGlobAttachment(S *p, int i)
 {
     float g = 1000000.0f;
     E *pe;
@@ -4496,7 +4496,7 @@ void ResetGlobAttachment(S *p, int i)
     pe->z = z;
     pe->w = g;
 }
-} } // namespace M_ResetGlobAttachment
+} // namespace M_ResetGlobAttachment
 
 // Return v[0] [game linkonce (inline/template)]. (inferred)
 // 0x2599D8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
@@ -4541,5 +4541,5 @@ uint D_002BE540[5] = {0, 0x54545454, 0x50505050, 0x40404040, 0};
 int D_002BE558[5] = {-1, 2, 6, 10, 14};
 VECTOR4 D_002BE570 = {0.0f, 0.0f, 1.5f, 0.0f};
 namespace M_LoadSubglobType0FromBrx {
-extern "C" int D_002BE580 = 0;
+extern int D_002BE580 __asm__("D_002BE580") = 0;
 }

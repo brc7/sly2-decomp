@@ -132,12 +132,12 @@ void SetStepGravityRatio(STEP *pstep, float rGravity) __asm__("SetStepGravityRat
 void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 
 //////// 0x195950 InitJtAir
-namespace M_InitJtAir { extern "C" {
+namespace M_InitJtAir {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002BF740;
+extern qword D_002BF740 __asm__("D_002BF740");
 // Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
 // tuning.
-void InitJtAir(JTAIR *t, STEPPLAYER *a)
+extern "C" void InitJtAir(JTAIR *t, STEPPLAYER *a)
 {
     t->player = a;
     t->jumpKind = -1;
@@ -151,14 +151,14 @@ void InitJtAir(JTAIR *t, STEPPLAYER *a)
     t->unknown118 = -150.0f;
     t->unknown164 = 1.0f;
 }
-} } // namespace M_InitJtAir
+} // namespace M_InitJtAir
 
 //////// 0x1959C0 PostLoadJtAir
-namespace M_PostLoadJtAir { extern "C" {
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *, int, int, void *, int, int, int, ASEGBL **);
+namespace M_PostLoadJtAir {
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *, int, int, void *, int, int, int, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 // Post-load: creates the 5-entry dynamic jump animation blend.
-void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, 0xC, 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
-} } // namespace M_PostLoadJtAir
+extern "C" void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, 0xC, 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
+} // namespace M_PostLoadJtAir
 
 //////// 0x195A00 SetJtAirJump
 namespace M_func_00195A00 {
@@ -169,7 +169,7 @@ namespace M_func_00195A00 {
 // Every kind but the double jump (6) restarts the record (its timers, zStart, the JT's landing clue). The launch velocity comes from JtPlanLaunchVz; kinds
 // 3 / 0xE add a push along the facing when the stick is at rest, 0x11 (wall run) flattens it and adds 400 up. Then the sub-state (SetJtAirState) and the
 // per-kind ratios.
-extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
+extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 
@@ -187,17 +187,17 @@ qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 void DecomposeCylind(qword v, float *prad, float *psXY, float *pz) __asm__("GetVectorCylind");
-extern "C" { extern qword D_002A2DC0; }
-extern "C" { extern qword D_002BF770; }
-extern "C" { extern float D_002BF750; }
-extern "C" { extern float D_002BF754; }
-extern "C" { extern float D_002BF758; }
-extern "C" { extern float D_002BF75C; }
-extern "C" { extern float D_002BF760; }
-extern "C" { extern float D_002BF764; }
-extern "C" { extern float D_002BF76C; }
-extern "C" { extern float D_002BF730; }
-extern "C" { extern float D_002BF768; }
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002BF770 __asm__("D_002BF770");
+extern float D_002BF750 __asm__("D_002BF750");
+extern float D_002BF754 __asm__("D_002BF754");
+extern float D_002BF758 __asm__("D_002BF758");
+extern float D_002BF75C __asm__("D_002BF75C");
+extern float D_002BF760 __asm__("D_002BF760");
+extern float D_002BF764 __asm__("D_002BF764");
+extern float D_002BF76C __asm__("D_002BF76C");
+extern float D_002BF730 __asm__("D_002BF730");
+extern float D_002BF768 __asm__("D_002BF768");
 // Remove v's component along the unit normal n: v - (v.n) n.
 static inline qword ProjectOutVec(qword v, qword n)
 {
@@ -405,9 +405,9 @@ struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct 
 struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];QWROW relative,direction,offset;char pad100[0x20];ASEG*base[5];ASEG*alternate[5];ASEG*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;ASEG*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];ASEG*multi;SOURCE*scriptFocus;char pad1C0[8];ASEG*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
 struct RANGE{float low,high;};struct TWO_ROWS{QWROW row[2];};
 struct WORK{QWROW temp;M3 basis;QWROW scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
-extern "C"{extern ACTOR*D_002E1E40;extern QWROW D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void LinkStepAttachment(ACTOR*,void*,int);void RefreshSwObjectCollisionFilter(SW*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
-qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(ASEG*);int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**);}
+extern ACTOR*D_002E1E40 __asm__("D_002E1E40");extern QWROW D_002A2DB0 __asm__("D_002A2DB0"),D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");extern float D_002BF780[] __asm__("D_002BF780"),D_002BF7A0 __asm__("D_002BF7A0");extern RANGE D_002BF798 __asm__("D_002BF798");
+void LinkStepAttachment(ACTOR*,void*,int) __asm__("LinkStepAttachment");void RefreshSwObjectCollisionFilter(SW*,void*) __asm__("RefreshSwObjectCollisionFilter");void SetBarrelState(SOURCE*,int) __asm__("SetBarrelState");void SetXfRole(ACTOR*,BODY*,int) __asm__("SetXfRole");void SetJtHandsTarget(SECONDARY*,int) __asm__("SetJtHandsTarget");void SetJtCaneState__FP2JTi(ACTOR*,int) __asm__("SetJtCaneState__FP2JTi");void SetSmaGoal(EFFECT*,int) __asm__("SetSmaGoal");void SetStepplayerTnOverride(ACTOR*,void*) __asm__("SetStepplayerTnOverride");void ReleaseAct(EVENT**) __asm__("ReleaseAct");void SetSoTreeFlag2(ACTOR*,int) __asm__("SetSoTreeFlag2");
+qword TransformXfPos(SPACE*,SPACE*,qword) __asm__("TransformXfPos");qword ConvertXfVec(SPACE*,SPACE*,qword) __asm__("ConvertXfVec");void GetNormalVectors(qword,qword,qword,TWO_ROWS*) __asm__("GetNormalVectors");qword GetLoWorldPos(ACTOR*) __asm__("GetLoWorldPos");void SetStepGravityRatio(ACTOR*,float) __asm__("SetStepGravityRatio");qword PlanJtLaunchVelocity(CONTEXT*,int) __asm__("PlanJtLaunchVelocity");void SetStepTargetHeading(ACTOR*,float) __asm__("SetStepTargetHeading");void RecalculateAsegBlend(ASEG*) __asm__("RecalculateAsegBlend");int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");qword GetJtPlacePosition(ACTOR*,QUERY*,float) __asm__("GetJtPlacePosition");float ComputeMaxBallisticTime(qword,qword,float,float,float,float) __asm__("ComputeMaxBallisticTime");EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword) __asm__("NewBezierAct");void SetStepTargetHeadingFromVector(ACTOR*,qword) __asm__("SetStepTargetHeadingFromVector");void ReleaseSma(COMPONENT*) __asm__("ReleaseSma");void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Zero the xyz words of v.
 static inline void ClearXYZ(QWROW*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 // Zero the actor's velocity.
@@ -534,7 +534,7 @@ typedef void(*VECTOR_SETTER)(void*,qword);
 static inline void PublishReal(QWROW*home,qword value){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(value));}
 // Air sub-state change: leaves the old one and enters the new one (clips, cane state, landing target, velocities,
 // state-machine flags).
-extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
+void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirState"); void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
 {
     WORK w;
     if (newMode == air->mode)
@@ -903,33 +903,33 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
 } // namespace M_func_00195FB8
 
 //////// 0x196928 ComputeMaxBallisticTime
-namespace M_func_00196928 { extern "C" {
+namespace M_func_00196928 {
 /* ComputeMaxBallisticTime: largest non-negative limit from two quadratic root sets and two sqrt cone terms
    (lane 6, 2026-10-24).  v and a are VECTORs passed by value in single GPRs. */
 typedef int qword __attribute__((mode(TI)));
 
 /* quadratic solver: returns the root count, roots written to the float buffer */
-int SolveQuadratic__FfffPf(float a, float b, float c, float *roots);
+int SolveQuadratic__FfffPf(float a, float b, float c, float *roots) __asm__("SolveQuadratic__FfffPf");
 
 // Single-precision square root (sqrt.s).
-static inline float Sqrt(float x) { float r; __asm__("sqrt.s %0,%1" : "=&f"(r) : "f"(x)); return r; }
+extern "C" { static inline float Sqrt(float x) { float r; __asm__("sqrt.s %0,%1" : "=&f"(r) : "f"(x)); return r; } }
 /* v.z as a float; Zin overwrites its (copied) input, Z reads it */
-static inline float Zin(qword v) { float f; __asm__("pextuw %0,$zero,%0" : "=r"(f) : "0"(v)); return f; }
+extern "C" { static inline float Zin(qword v) { float f; __asm__("pextuw %0,$zero,%0" : "=r"(f) : "0"(v)); return f; } }
 /* length of the xy part through VU0.  The duplicated "j"(v) input is allocation-only: it makes v prefer
    a VU register class, so it is spilled to the stack (sq at entry, lqc2 reload) instead of living in $s1. */
-static inline float LenXY(qword v) {
+extern "C" { static inline float LenXY(qword v) {
     register qword d __asm__("vf1");
     float r;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=&j"(d) : "j"(v), "j"(v));
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(d) : "0"(d));
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(d));
     return r;
-}
+} }
 
 // The largest non-negative time at which a projectile with the given vertical velocity and acceleration reaches the
 // low/high bounds (two quadratic root sets) and two cone terms. Used to plan launches toward safe places and targets.
 // (inferred)
-float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slope0, float slope1) {
+extern "C" float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slope0, float slope1) {
     QWROW r0, r1;
     float az = QwordZ(a) * 0.5f, naz = -az;
     float vz, best = 0.0f, l, t;
@@ -946,7 +946,7 @@ float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slo
     if (t > 0.0f) best = StdMax(Sqrt(t), best);
     return best;
 }
-} } // namespace M_func_00196928
+} // namespace M_func_00196928
 
 //////// 0x196AA8 ProjectJtVelocityOnContacts
 namespace M_func_00196AA8 {
@@ -955,7 +955,7 @@ struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];QWROW normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
 struct FRAME{};union SCRATCH{QWROW scalar;SWALLOC request;};struct WORK{QWROW normals[64];SCRATCH scratch;FRAME frame;QWROW residual,original;};
-extern "C"{extern QWROW D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(SWALLOC*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
+extern QWROW D_002A2DC0 __asm__("D_002A2DC0");extern float D_002A63B0 __asm__("D_002A63B0");FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(SWALLOC*) __asm__("AllocFromStack");void SolveInequalities(int,float*,float*,float*,float) __asm__("SolveInequalities");void SetJtAirState(MOVE*,int,void*) __asm__("SetJtAirState");
 // Store a VU0 register to home (volatile).
 static inline void Publish(QWROW*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 // Return v scaled by k.x.
@@ -1126,8 +1126,8 @@ struct SMP{float maximum,minimum,duration;};struct RANGE{float low,high;};struct
 /* The basis writer and later vectors share their actual stack homes. */
 union BASE_PHASE{M3 returned;struct{QWROW local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{QWROW local,scalar;M3 basis,rotation,returned;QWROW original;}turn;struct{QWROW direction;M3 basis;BASE_PHASE phase;}move;QWROW scalar;};
-extern "C"{extern QWROW D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,QWROW*);}
+extern QWROW D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");extern SMP D_002BF7A8 __asm__("D_002BF7A8"),D_002BF7B8 __asm__("D_002BF7B8"),D_002BF7C8 __asm__("D_002BF7C8");extern float D_002BF7D4 __asm__("D_002BF7D4"),D_002BF7F0 __asm__("D_002BF7F0"),D_002BF7F4 __asm__("D_002BF7F4"),D_002BF7F8 __asm__("D_002BF7F8"),D_002BF810 __asm__("D_002BF810"),D_002BF814 __asm__("D_002BF814");extern PARAMS D_002BF7E0 __asm__("D_002BF7E0");extern POLY D_002BF800 __asm__("D_002BF800");extern RANGE D_002BBB60 __asm__("D_002BBB60");
+qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword) __asm__("ConvertVecBetweenLos");M3*BuildRotationMatrixFromVector(M3*,qword) __asm__("BuildRotationMatrixFromVector");M3*LoadLookAtMatrix(M3*,qword) __asm__("LoadLookAtMatrix");M4*GetLoWorldMatrix(ACTOR*) __asm__("GetLoWorldMatrix");float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*) __asm__("SmoothValue__FfffP3SMPPf");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");void AddSoAcceleration(ACTOR*,qword) __asm__("AddSoAcceleration");void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*) __asm__("AccelSoTowardPosSpring");void ProjectJtVelocityOnContacts(CONTEXT*,QWROW*) __asm__("ProjectJtVelocityOnContacts");
 // Rotate vector by the 3x3 matrix rows r0..r2 (seed provides the output register).
 static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(seed):"j"(r0),"j"(r1),"j"(r2),"j"(vector));return seed;}
 // Rotate vector by the 3x3 matrix m (seed provides the output register).
@@ -1442,14 +1442,14 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
 } // namespace M_PresetJtAccelJump
 
 //////// 0x197370 StartJtAirTurn
-namespace M_func_00197370 { extern "C" {
-float atan2f(float y, float x);
-float NormalizeAngle__Ff(float g);
-void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, STEPPLAYER *o, int n, ASEGA **b, float g, float h);
+namespace M_func_00197370 {
+float atan2f(float y, float x) __asm__("atan2f");
+float NormalizeAngle__Ff(float g) __asm__("NormalizeAngle__Ff");
+void ReleaseSma(void *p) __asm__("ReleaseSma");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, STEPPLAYER *o, int n, ASEGA **b, float g, float h) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 #define Get(p, i) ((p)->state == 2 ? (p)->apasegDoubleJump[i] : (p)->apasegJump[i])
 // Marks a mid-air turn and starts the turn/flip clip chosen from the heading difference.
-void StartJtAirTurn(JTAIR *p)
+extern "C" void StartJtAirTurn(JTAIR *p)
 {
     float d, ad;
     ASEGA *s;
@@ -1474,12 +1474,12 @@ void StartJtAirTurn(JTAIR *p)
     ReleaseSma(&p->player->activeStateMachine);
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(pv, p->player, 1, &p->player->activeAnimation, s->time, s->speed);
 }
-} } // namespace M_func_00197370
+} // namespace M_func_00197370
 
 //////// 0x1974C8 GetFirstNonNullEntry
-namespace M_func_001974C8 { extern "C" {
+namespace M_func_001974C8 {
 // Returns the first contact of the tree's contact lists (the first XPLIST with a contact).
-XP *GetFirstNonNullEntry(SOTREE *o)
+extern "C" XP *GetFirstNonNullEntry(SOTREE *o)
 {
     XPLIST *p = o->pxplistFirst;
     while (p) {
@@ -1489,7 +1489,7 @@ XP *GetFirstNonNullEntry(SOTREE *o)
     }
     return 0;
 }
-} } // namespace M_func_001974C8
+} // namespace M_func_001974C8
 
 //////// 0x197500 UpdateJtAirInput
 namespace M_UpdateJtAirInput {
@@ -1499,7 +1499,7 @@ namespace M_UpdateJtAirInput {
 // 0x00197500 UpdateJtAirInput (our name; KB FUN_00197500)
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-extern "C" { qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv); }
+qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv) __asm__("PosSmooth");
 
 
 
@@ -1530,14 +1530,14 @@ static inline VU_FLOAT VuFloat(float g)
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
-extern "C" { extern STEPPLAYER *D_002E1E40; }
-extern "C" { extern MURRAY *D_002F7900; }
-extern "C" { extern qword D_002A2DD0; }
-extern "C" { extern float D_002BF818; }
-extern "C" { extern float D_002BF81C; }
-extern "C" { extern SMP D_002BF820; }
-extern "C" { extern float D_002BF82C; }
-extern "C" { extern float D_002BF830; }
+extern STEPPLAYER *D_002E1E40 __asm__("D_002E1E40");
+extern MURRAY *D_002F7900 __asm__("D_002F7900");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern float D_002BF818 __asm__("D_002BF818");
+extern float D_002BF81C __asm__("D_002BF81C");
+extern SMP D_002BF820 __asm__("D_002BF820");
+extern float D_002BF82C __asm__("D_002BF82C");
+extern float D_002BF830 __asm__("D_002BF830");
 // SetJtAirJump: the file-scope extern "C" declaration (line 32) is used; a second declaration here became ambiguous after the rename.
 void SteerJtAirClip(JTAIR *pjtair) __asm__("StartJtAirTurn");
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
@@ -1546,15 +1546,15 @@ int FJtLandsWithin(float dt, STEP *pstep) __asm__("WillStepplayerLand");
 XP *PxpFirstOfTree(SOTREE *ptree) __asm__("GetFirstNonNullEntry");
 void TryJtAirGrab(JTAIR *pjtair, LO *plo) __asm__("ChooseJtLanding");
 int FJtAirWedged(float tState, STEPPLAYER *pstepplayer, float *ptCheck) __asm__("IsJtStuck");
-extern "C" XP *FindJtEdgeGrabContact(JTAIR *pjtair, int *pixpd, VECTOR4 *pnormal) __asm__("FindJtBestEdge__FP2JTPiP6VECTOR");
-extern "C" int FCheckJtEdgeGrab(JTAIR *pjtair, SOPART *ppart, qword posHold, int xpk, void *pv, qword *pnormal) __asm__("IsJtEdgeGrabbable");
-extern "C" void StartJtGrabForAirKind(JTAIR *pjtair) __asm__("GrabJtAirTarget");
-extern "C" void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, JTPLACE *pplace);
-extern "C" void SetJtThrowState(JTTHROW *pjtthrow, int nState);
-extern "C" int FPowerUpAcquired(int ipowerup) __asm__("IsPowerupAcquired");
-extern "C" uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
-extern "C" void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot);
-extern "C" qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("GetJtPlacePosition");
+extern XP *FindJtEdgeGrabContact(JTAIR *pjtair, int *pixpd, VECTOR4 *pnormal) __asm__("FindJtBestEdge__FP2JTPiP6VECTOR");
+extern int FCheckJtEdgeGrab(JTAIR *pjtair, SOPART *ppart, qword posHold, int xpk, void *pv, qword *pnormal) __asm__("IsJtEdgeGrabbable");
+extern void StartJtGrabForAirKind(JTAIR *pjtair) __asm__("GrabJtAirTarget");
+extern void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("ReturnJtToSafePlace");
+extern void SetJtThrowState(JTTHROW *pjtthrow, int nState) __asm__("SetJtThrowState");
+extern int FPowerUpAcquired(int ipowerup) __asm__("IsPowerupAcquired");
+extern uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
+extern void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
+extern qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("GetJtPlacePosition");
 // Return vec scaled by scale.
 static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 {
@@ -1880,42 +1880,42 @@ struct PATH : BASE_E0, SAMPLER {};
 struct SPLINE : BASE_190, SAMPLER {};
 struct VU_FLOAT { qword q; };
 
-extern "C" {
-extern ACTOR *D_002E1E40;
-extern qword D_002A2DD0, D_002A2DC0, D_002A2DA0, D_002BF890;
-extern float D_002BF780[];
-extern float D_002BF730, D_002BF734, D_002BF834, D_002BF838, D_002BF83C, D_002BF840, D_002BF844, D_002BF848;
-extern float D_002BF878, D_002BF87C, D_002BF880, D_002BF8A0;
-extern LM D_002BF798, D_002BF850, D_002BF858, D_002BF870;
-extern SMP D_002BF860;
-qword GetLoWorldPos(void *);
-void MeasureJtJumpToTarget(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *);
-void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
-qword GetXfVelocity(SPACE *, SPACE *, qword);
-qword TransformXfPos(SPACE *, SPACE *, qword);
-qword ConvertXfVec(SPACE *, SPACE *, qword);
-void SetJtAirState(CONTEXT *, int, void *);
-void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
-float GetStepHeading(ACTOR *);
-float NormalizeAngle__Ff(float);
-void CalculateSinCos__FfPfT1(float, float *, float *);
-float SmoothValue__FfffP3SMPPf(float, float, float, SMP *, float *);
-void RecalculateAsegBlend(CLIP *);
-void EvaluateShapeAtParam(void *, float, qword *, qword *);
-void UpdateJtHands(void *);
-void SetStepTargetHeadingFromVector(ACTOR *, qword);
-void SetStepTargetHeading(ACTOR *, float);
-void DrainStepplayerMp(ACTOR *, float);
-qword SetVectorCylind(float, float, float);
-M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
-M3 BuildAxisAngleRotationMatrix(qword, float);
-float atan2f(float, float);
-float cosf(float);
-float SplitVectorAlongAxis(qword, qword, qword *, qword *);
-qword LimitVectorLength(qword, float);
-void SetStepplayerTnOverride(ACTOR *, void *);
-}
+
+extern ACTOR *D_002E1E40 __asm__("D_002E1E40");
+extern qword D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DA0 __asm__("D_002A2DA0"), D_002BF890 __asm__("D_002BF890");
+extern float D_002BF780[] __asm__("D_002BF780");
+extern float D_002BF730 __asm__("D_002BF730"), D_002BF734 __asm__("D_002BF734"), D_002BF834 __asm__("D_002BF834"), D_002BF838 __asm__("D_002BF838"), D_002BF83C __asm__("D_002BF83C"), D_002BF840 __asm__("D_002BF840"), D_002BF844 __asm__("D_002BF844"), D_002BF848 __asm__("D_002BF848");
+extern float D_002BF878 __asm__("D_002BF878"), D_002BF87C __asm__("D_002BF87C"), D_002BF880 __asm__("D_002BF880"), D_002BF8A0 __asm__("D_002BF8A0");
+extern LM D_002BF798 __asm__("D_002BF798"), D_002BF850 __asm__("D_002BF850"), D_002BF858 __asm__("D_002BF858"), D_002BF870 __asm__("D_002BF870");
+extern SMP D_002BF860 __asm__("D_002BF860");
+qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
+void MeasureJtJumpToTarget(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *) __asm__("MeasureJtJumpToTarget");
+void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *) __asm__("FindClosestPointOnLineSegment");
+qword GetXfVelocity(SPACE *, SPACE *, qword) __asm__("GetXfVelocity");
+qword TransformXfPos(SPACE *, SPACE *, qword) __asm__("TransformXfPos");
+qword ConvertXfVec(SPACE *, SPACE *, qword) __asm__("ConvertXfVec");
+void SetJtAirState(CONTEXT *, int, void *) __asm__("SetJtAirState");
+void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *) __asm__("LoadIdentityMatrix4");
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
+float GetStepHeading(ACTOR *) __asm__("GetStepHeading");
+float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
+void CalculateSinCos__FfPfT1(float, float *, float *) __asm__("CalculateSinCos__FfPfT1");
+float SmoothValue__FfffP3SMPPf(float, float, float, SMP *, float *) __asm__("SmoothValue__FfffP3SMPPf");
+void RecalculateAsegBlend(CLIP *) __asm__("RecalculateAsegBlend");
+void EvaluateShapeAtParam(void *, float, qword *, qword *) __asm__("EvaluateShapeAtParam");
+void UpdateJtHands(void *) __asm__("UpdateJtHands");
+void SetStepTargetHeadingFromVector(ACTOR *, qword) __asm__("SetStepTargetHeadingFromVector");
+void SetStepTargetHeading(ACTOR *, float) __asm__("SetStepTargetHeading");
+void DrainStepplayerMp(ACTOR *, float) __asm__("DrainStepplayerMp");
+qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
+float atan2f(float, float) __asm__("atan2f");
+float cosf(float) __asm__("cosf");
+float SplitVectorAlongAxis(qword, qword, qword *, qword *) __asm__("SplitVectorAlongAxis");
+qword LimitVectorLength(qword, float) __asm__("LimitVectorLength");
+void SetStepplayerTnOverride(ACTOR *, void *) __asm__("SetStepplayerTnOverride");
+
 
 // The object's reference frame: its local transform (LO slot 32).
 static inline SPACE *GetFrame(void *p) { return (SPACE *)AsLo(p)->GetLocalTransform(0); }
@@ -2345,16 +2345,16 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 } // namespace M_UpdateJtActiveJump
 
 //////// 0x1991A0 AddJtWallRunXps
-namespace M_func_001991A0 { extern "C" {
+namespace M_func_001991A0 {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
-extern qword D_002A2DB0;
-extern qword D_002A2DC0;
-qword GetLoWorldPos(void *p);
-void GetNormalVectors(qword a, qword b, qword c, qword *pm);
+extern qword D_002A2DB0 __asm__("D_002A2DB0");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void GetNormalVectors(qword a, qword b, qword c, qword *pm) __asm__("GetNormalVectors");
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
-void AddJtWallRunXps(JTAIR *p)
+extern "C" void AddJtWallRunXps(JTAIR *p)
 {
     if (p->state != 0x11)
         return;
@@ -2377,11 +2377,11 @@ void AddJtWallRunXps(JTAIR *p)
     r.q = rq;
     p->player->AddAxisXps(7, p->edge->owner, r.q, D_002A2DB0, q.q);
 }
-} } // namespace M_func_001991A0
+} // namespace M_func_001991A0
 
 //////// 0x199298 FreeJtWallRunXps
 namespace M_func_00199298 {
-extern "C" void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
+extern void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp) __asm__("FreeSwXpList__FP2SWP2XP");
 // During a wall run (kind 0x11) frees the wall-run contact list.
 extern "C" void FreeJtWallRunXps(JTAIR *p)
 {
@@ -2423,7 +2423,7 @@ namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR {
 typedef int qword __attribute__((mode(TI)));
 struct JT;
 union VECTOR {qword q;float f[4];int n[4];};
-extern "C" { extern qword D_002A2DA0; }
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
 // Normalize *v in place, or use fallback when its length is too small.
 static inline void Normal(VECTOR*v,qword fallback){qword a=v->q;register qword d __asm__("vf1");qword one;float g;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(d));if(g<0.0001f){a=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%0,$Q":"=j"(a):"j"(d),"0"(a));}v->q=a;}
 // Dot product of the xyz parts of a and b as a float.
@@ -2466,8 +2466,8 @@ typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of QWROW rows with copy constructor and assignment.
 struct M3 {QWROW r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
 struct M4 {QWROW r[4];};
-extern "C" { extern qword D_002A2DC0; }
-extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
 // Pack x, y, z into a 128-bit value.
 static inline qword Pack(float x,float y,float z){QWROW u;qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));u.q=q;return q;}
 // Rotate v by the 3x3 matrix m.
@@ -2526,14 +2526,14 @@ struct M4 { M3 m; U pos; };
 struct PLANE { qword q; };
 // HIT is cleared 0x60 bytes at a time by the collision routines; the original frame reserves 0x70 for it.
 struct HIT { U point[2]; U plane[2]; float parameter[2]; int kind; PLANE *face[2]; int unk54[5]; };
-extern "C" { extern qword D_002A2DC0; }
-extern "C" { extern qword D_002A2DB0; }
-extern "C" {
-void GetNormalVectors(qword a, qword b, qword c, qword *pm);
-qword *VECTOR_opAssign(qword *pq, qword q);
-void BuildJtEdgeProbeArc(JTAIR *p, const M4 *pm, int n, U *apt);
-int ClipEdgeToObject(SOPART *s, qword a, qword b, int n, HIT *ph);
-}
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DB0 __asm__("D_002A2DB0");
+
+void GetNormalVectors(qword a, qword b, qword c, qword *pm) __asm__("GetNormalVectors");
+qword *VECTOR_opAssign(qword *pq, qword q) __asm__("VECTOR_opAssign");
+void BuildJtEdgeProbeArc(JTAIR *p, const M4 *pm, int n, U *apt) __asm__("BuildJtEdgeProbeArc");
+int ClipEdgeToObject(SOPART *s, qword a, qword b, int n, HIT *ph) __asm__("ClipEdgeToObject");
+
 
 // Clip the segment (a, b) against the object; returns the hit count and fills h.
 static inline int HitSegment(SOPART *s, const qword *a, const qword *b, HIT *h)
@@ -2601,13 +2601,13 @@ namespace M_func_001999D0 {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
 struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; SURF *firstFace, *lastFace; };
-extern "C" {
-extern QWROW D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
-int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **);
-int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JTAIR *, SOPART *, EDGE *, QWROW *);   // FCheckJtSingleEdge
-int func_00118668(BSP *, int, qword, qword, int, SPAN *);
-int IsJtEdgeNormalValid(JTAIR *, qword, qword);
-}
+
+extern QWROW D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DA0 __asm__("D_002A2DA0");   // zero vector, fallback direction
+int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **) __asm__("CollectEdgesAtGeomPoint");
+int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JTAIR *, SOPART *, EDGE *, QWROW *) __asm__("IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR");   // FCheckJtSingleEdge
+int func_00118668(BSP *, int, qword, qword, int, SPAN *) __asm__("func_00118668");
+int IsJtEdgeNormalValid(JTAIR *, qword, qword) __asm__("IsJtEdgeNormalValid");
+
 
 // Return a + b.
 static inline qword Add(qword a, qword b)
@@ -2692,7 +2692,7 @@ extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind
 } // namespace M_func_001999D0
 
 //////// 0x199D48 FindJtBestEdge
-namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR { extern "C" {
+namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR {
 /* Pick the best supporting contact of a probe object: walk its contact groups, skip contacts
    whose other body sits under a kind-2 object, test the callback (IsJtEdgeGrabbable), then probe a
    point offset along the contact direction and reject it if it lies inside the other body's BSP.
@@ -2743,48 +2743,48 @@ typedef char CONTACT_kind_Offset[FIELD_OFFSET(CONTACT,kind)==156?1:-1];
 typedef char CONTACT_info_Offset[FIELD_OFFSET(CONTACT,info)==160?1:-1];
 typedef char CONTACT_next_Offset[FIELD_OFFSET(CONTACT,next)==172?1:-1];
 typedef char CONTACT_difference_Offset[FIELD_OFFSET(CONTACT,difference)==176?1:-1];
-extern float D_002C3C60[],D_002BF8A4;
-extern int D_002BF8A8;
-extern qword D_002A2DC0;
-extern int IsStepplayerPushing(LO *);
-extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,QWROW *);
-extern void RecalcSwXpMovement(void *,int,CONTACT **);
-extern BSPNODE *FindBspLeafContainingPointFast(BSPNODE *,BSPNODE *,qword);
+extern float D_002C3C60[] __asm__("D_002C3C60"),D_002BF8A4 __asm__("D_002BF8A4");
+extern int D_002BF8A8 __asm__("D_002BF8A8");
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern int IsStepplayerPushing(LO *) __asm__("IsStepplayerPushing");
+extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,QWROW *) __asm__("IsJtEdgeGrabbable");
+extern void RecalcSwXpMovement(void *,int,CONTACT **) __asm__("RecalcSwXpMovement");
+extern BSPNODE *FindBspLeafContainingPointFast(BSPNODE *,BSPNODE *,qword) __asm__("FindBspLeafContainingPointFast");
 // Project position onto the plane through back with the given normal, offset along axis and lifted by lift (inferred
 // from the operands).
-static inline qword Project(qword position,qword normal,qword back,qword axis,qword lift)
+extern "C" { static inline qword Project(qword position,qword normal,qword back,qword axis,qword lift)
 {
     register qword n __asm__("vf5")=normal;     /* the one pin: direction in vf5, lift in vf4 as in the original */
     __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x":"+j"(position):"j"(n),"j"(back),"j"(axis),"j"(lift));
     return position;
-}
+} }
 // The kind field of a flag word.
-static inline int Extract(FLAG flags) { return flags.kind; }
+extern "C" { static inline int Extract(FLAG flags) { return flags.kind; } }
 // The object's kind (from its flags).
-static inline int Kind(LO *lo) { return Extract(lo->flags); }
+extern "C" { static inline int Kind(LO *lo) { return Extract(lo->flags); } }
 // Which endpoint of the contact belongs to owner (0 or 1).
-static inline int Side(LO *owner,CONTACT *contact)
+extern "C" { static inline int Side(LO *owner,CONTACT *contact)
 {
     uint different=(uint)owner ^ (uint)contact->endpoints[0].object;
     return different!=0;
-}
+} }
 // Position of the contact's endpoint opposite `side`.
-static inline qword InputPosition(CONTACT *c,int side) { return ((ENDPOINT *)(((1-side)<<6)+(uint)c))->position.q; }
+extern "C" { static inline qword InputPosition(CONTACT *c,int side) { return ((ENDPOINT *)(((1-side)<<6)+(uint)c))->position.q; } }
 // The contact's endpoint opposite `side`.
-static inline ENDPOINT *Opposite(CONTACT *contact,int side)
+extern "C" { static inline ENDPOINT *Opposite(CONTACT *contact,int side)
 {
     int one=1;
     return (ENDPOINT *)((char *)contact+((one-side)<<6));
-}
+} }
 /* same endpoint with the offset as the first addend (fixes the addu operand order) */
-static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
+extern "C" { static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
 {
     int one=1;
     return (ENDPOINT *)(((one-side)<<6)+(uint)contact);
-}
+} }
 // Picks the best supporting ledge contact of the player (walks the contact groups, IsJtEdgeGrabbable, BSP point test)
 // and returns it with its index and normal.
-CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
+extern "C" CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
 {
     QWROW direction, point;
 
@@ -2879,7 +2879,7 @@ CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
     }
     return best;
 }
-} } // namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR
+} // namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR
 
 //////// 0x19A098 IsJtStuck
 namespace M_FCheckJtStuck {
@@ -2893,14 +2893,14 @@ struct COLLISION{char pad[0x64];LINK*groups;};
 struct P{char pad[0xEC];COLLISION*collision;char padF0[0x118];int mode;};
 union WORK{SWALLOC request;U scalar;};
 
-extern "C"{
-extern qword D_002A2DC0;
-extern float D_002A656C;
-STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
+
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern float D_002A656C __asm__("D_002A656C");
+STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-void*AllocFromStack(SWALLOC*);
-void SolveInequalities(int,float*,float*,float*,float);
-}
+void*AllocFromStack(SWALLOC*) __asm__("AllocFromStack");
+void SolveInequalities(int,float*,float*,float*,float) __asm__("SolveInequalities");
+
 // Copy a VU0 register (vmove).
 static inline qword Copy(qword v){qword q;__asm__("vmove.xyzw %0,%1":"=j"(q):"j"(v));return q;}
 // The contact normal as seen from p (negated when p is not the contact's owner).
@@ -3045,11 +3045,11 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
 } // namespace M_FCheckJtStuck
 
 //////// 0x19A400 SolveJtJumpTimeToTarget
-namespace M_FTimeJtJumpToTarget { extern "C" {
+namespace M_FTimeJtJumpToTarget {
 typedef int qword __attribute__((mode(TI)));
-int SolveQuadratic__FfffPf(float, float, float, float *);
+int SolveQuadratic__FfffPf(float, float, float, float *) __asm__("SolveQuadratic__FfffPf");
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
-int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qword d, float *pg) {
+extern "C" int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
     int n = SolveQuadratic__FfffPf(p->player->physics->gravity.z * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
     if (n <= 0) return 0;
@@ -3060,41 +3060,41 @@ int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qword d, float 
     }
     return 1;
 }
-} } // namespace M_FTimeJtJumpToTarget
+} // namespace M_FTimeJtJumpToTarget
 
 //////// 0x19A4A0 MeasureJtJumpToTarget
-namespace M_MeasureJtJumpToTarget { extern "C" {
+namespace M_MeasureJtJumpToTarget {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct WORK{U u0,v10,v20,s;float at;U uq;qword incoming;U sum;};
 struct C { char pad[0x88]; float g88; };
 struct B { char pad[0xE8]; struct C *pc; };
 struct S { struct B *pb; };
-qword GetLoWorldPos(void *p);
-qword GetXfVelocity(XF *p, XF *stop, qword q);
-int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword GetXfVelocity(XF *p, XF *stop, qword q) __asm__("GetXfVelocity");
+int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) __asm__("SolveJtJumpTimeToTarget");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa) __asm__("EvaluateBezierPos");
 // XY length of v, in $2.
-static __inline__ float LenXY0(qword v)
+extern "C" { static __inline__ float LenXY0(qword v)
 {
     register float r __asm__("$2");
     __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y" : "+j"(v));
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(v));
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v));
     return r;
-}
+} }
 // XY length of v as raw float bits, in $3.
-static __inline__ unsigned LenXY1(qword v)
+extern "C" { static __inline__ unsigned LenXY1(qword v)
 {
     register unsigned bits __asm__("$3");
     __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y" : "+j"(v));
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(v));
     __asm__("qmfc2.ni %0, %1" : "=r"(bits) : "j"(v));
     return bits;
-}
+} }
 // Predicts a jump from Sly's position and velocity to a point on a (possibly moving) object: time, cost, and the
 // predicted position and velocity at landing.
-void MeasureJtJumpToTarget(struct S *p, qword aInput, LO *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
+extern "C" void MeasureJtJumpToTarget(struct S *p, qword aInput, LO *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
 {
     struct WORK w;
     register qword q __asm__("$16");
@@ -3201,7 +3201,7 @@ typedef char WORK_at[OFF(struct WORK,at)==0x40?1:-1];
 typedef char WORK_uq[OFF(struct WORK,uq)==0x50?1:-1];
 typedef char WORK_incoming[OFF(struct WORK,incoming)==0x60?1:-1];
 typedef char WORK_sum[OFF(struct WORK,sum)==0x70?1:-1];
-} } // namespace M_MeasureJtJumpToTarget
+} // namespace M_MeasureJtJumpToTarget
 
 //////// 0x19A750 PlanJtLaunchVelocity
 namespace M_func_0019A750 {
@@ -3244,16 +3244,16 @@ static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
     float maxValue = range->maxValue;
     return Clamp(g, minValue, maxValue);
 }
-extern "C" { extern float D_002BF8C8; }
-extern "C" { extern float D_002BF8CC; }
-extern "C" { extern float D_002BF8D0; }
-extern "C" { extern float D_002BF8D4; }
-extern "C" { extern float D_002BF8D8; }
-extern "C" { extern float D_002BF8DC; }
-extern "C" { extern float D_002BF738; }
-extern "C" { extern float D_002BF73C; }
-extern "C" { extern CLQ D_002BF8B0; }
-extern "C" { extern LM D_002BF8C0; }
+extern float D_002BF8C8 __asm__("D_002BF8C8");
+extern float D_002BF8CC __asm__("D_002BF8CC");
+extern float D_002BF8D0 __asm__("D_002BF8D0");
+extern float D_002BF8D4 __asm__("D_002BF8D4");
+extern float D_002BF8D8 __asm__("D_002BF8D8");
+extern float D_002BF8DC __asm__("D_002BF8DC");
+extern float D_002BF738 __asm__("D_002BF738");
+extern float D_002BF73C __asm__("D_002BF73C");
+extern CLQ D_002BF8B0 __asm__("D_002BF8B0");
+extern LM D_002BF8C0 __asm__("D_002BF8C0");
 // Square root of g (early-clobber output).
 static inline float SqrtfEarly(float g)
 {
@@ -3348,13 +3348,13 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
 } // namespace M_func_0019A750
 
 //////// 0x19AA58 MeasureJumpToRail
-namespace M_GMeasureJumpRail { extern "C" {
+namespace M_GMeasureJumpRail {
 
 typedef int qword __attribute__((mode(TI)));
 typedef struct CONTROL CONTROL;typedef struct MOVE MOVE;typedef struct OBJECT OBJECT;
 typedef struct S{CONTROL*a;MOVE*b;OBJECT*c;int padC;qword q;}S;
-void GetJtRailLanding(CONTROL*,OBJECT*,qword*,qword*,float);
-void MeasureJtJumpToTarget(MOVE*,qword,OBJECT*,qword,qword,float*,float*,qword*,qword*);
+void GetJtRailLanding(CONTROL*,OBJECT*,qword*,qword*,float) __asm__("GetJtRailLanding");
+void MeasureJtJumpToTarget(MOVE*,qword,OBJECT*,qword,qword,float*,float*,qword*,qword*) __asm__("MeasureJtJumpToTarget");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char S_Size[sizeof(S)==32?1:-1];
@@ -3363,7 +3363,7 @@ typedef char S_b_Offset[FIELD_OFFSET(S,b)==4?1:-1];
 typedef char S_c_Offset[FIELD_OFFSET(S,c)==8?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
 // MinimizeRange callback: the rail landing at parameter u (GetJtRailLanding), then the MeasureJtJumpToTarget cost.
-float MeasureJumpToRail(S *s, float parameter)
+extern "C" float MeasureJumpToRail(S *s, float parameter)
 {
     float r;
     qword a, b;
@@ -3371,7 +3371,7 @@ float MeasureJumpToRail(S *s, float parameter)
     MeasureJtJumpToTarget(s->b, s->q, s->c, a, b, 0, &r, 0, 0);
     return r;
 }
-} } // namespace M_GMeasureJumpRail
+} // namespace M_GMeasureJumpRail
 
 //////// 0x19AAB8 MeasureJumpToHidePoint
 namespace M_func_0019AAB8 {
@@ -3382,8 +3382,8 @@ class A0{public:char pad[224];};
 class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,QWROW*,void*,float);};
 class Y:public A0,public O{};
 struct S{MOVE*move;Y*object;int pad8[2];qword q;};
-extern "C" { extern qword D_002A2DD0; }
-extern "C" void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*) __asm__("MeasureJtJumpToTarget");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char V_Size[sizeof(QWROW)==16?1:-1];
@@ -3417,8 +3417,8 @@ class A0{public:char pad[400];};
 class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,QWROW*,void*,float);};
 class Y:public A0,public O{};
 struct S{MOVE*move;Y*object;int pad8[2];qword q;};
-extern "C" { extern qword D_002A2DD0; }
-extern "C" void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*);
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+extern void MeasureJtJumpToTarget(MOVE*,qword,Y*,qword,qword,float*,float*,qword*,qword*) __asm__("MeasureJtJumpToTarget");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char V_Size[sizeof(QWROW)==16?1:-1];
@@ -3443,30 +3443,30 @@ extern "C" float MeasureJumpToHideShape(S *s, float parameter)
 } // namespace M_func_0019AB38
 
 //////// 0x19ABB8 MeasureJumpTargetAtTime
-namespace M_GMeasureJumpTargetTime { extern "C" {
+namespace M_GMeasureJumpTargetTime {
 typedef int qword __attribute__((mode(TI)));
 struct CONTEXT; struct OBJECT;
 struct S { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
-void MeasureJtJumpToTargetAtTime(struct CONTEXT *, struct OBJECT *, qword, float *, qword *, qword *, float);
+void MeasureJtJumpToTargetAtTime(struct CONTEXT *, struct OBJECT *, qword, float *, qword *, qword *, float) __asm__("MeasureJtJumpToTargetAtTime");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char S_Size[sizeof(struct S)==32?1:-1];
 typedef char S_Context_Offset[FIELD_OFFSET(struct S,a)==0?1:-1];
 typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
 typedef char S_Local_Point_Offset[FIELD_OFFSET(struct S,q)==16?1:-1];
 // MinimizeRange callback over time: the MeasureJtJumpToTargetAtTime cost after dt.
-float MeasureJumpTargetAtTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
-} } // namespace M_GMeasureJumpTargetTime
+extern "C" float MeasureJumpTargetAtTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
+} // namespace M_GMeasureJumpTargetTime
 
 //////// 0x19ABF0 MeasureJumpToPipe
-namespace M_GMeasureJumpPipe { extern "C" {
+namespace M_GMeasureJumpPipe {
 typedef int qword __attribute__((mode(TI)));
 struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
-void EvaluateShapeAtDistance(struct OBJECT *, float, QWROW *, QWROW *);
-qword ConvertPosBetweenLos(struct OBJECT *, struct OBJECT *, qword);
-float MeasureJumpTargetAtTime(void *, float);
-void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
+void EvaluateShapeAtDistance(struct OBJECT *, float, QWROW *, QWROW *) __asm__("EvaluateShapeAtDistance");
+qword ConvertPosBetweenLos(struct OBJECT *, struct OBJECT *, qword) __asm__("ConvertPosBetweenLos");
+float MeasureJumpTargetAtTime(void *, float) __asm__("MeasureJumpTargetAtTime");
+void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char V_Size[sizeof(QWROW)==16?1:-1];
 typedef char T_Size[sizeof(struct T)==32?1:-1];
@@ -3477,7 +3477,7 @@ typedef char T_Context_Offset[FIELD_OFFSET(struct T,a)==0?1:-1];
 typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 // Callback: evaluates the pipe curve at s, then minimizes over time with MeasureJumpTargetAtTime.
-float MeasureJumpToPipe(struct S *s, float parameter) {
+extern "C" float MeasureJumpToPipe(struct S *s, float parameter) {
     QWROW v; struct T t; float r;
     struct OBJECT *b = s->b;
     EvaluateShapeAtDistance(b, parameter, &v, 0);
@@ -3487,10 +3487,10 @@ float MeasureJumpToPipe(struct S *s, float parameter) {
     MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
     return r;
 }
-} } // namespace M_GMeasureJumpPipe
+} // namespace M_GMeasureJumpPipe
 
 //////// 0x19AC88 MeasureJumpAlongPath
-namespace M_func_0019AC88 { extern "C" {
+namespace M_func_0019AC88 {
 // MeasureJumpAlongPath: speed-limited trajectory time/length helper. Builds a path with PredictMeshContact (3 outputs), integrates
 // the velocity with EvaluateBezierPos at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
 // Trick: the halved time goes into a NEW local (h), not back into t. Overwriting t adds an anti-dependence to the
@@ -3498,11 +3498,11 @@ namespace M_func_0019AC88 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct P { JTAIR *a; void *p4; int pad[2]; qword v10; };   /* the callback context */
-qword GetLoWorldPos(void *p);
-int PredictMeshContact(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+int PredictMeshContact(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2) __asm__("PredictMeshContact");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r) __asm__("EvaluateBezierPos");
 // Length of the xyz part of v as a float.
-static inline float Len(qword v)
+extern "C" { static inline float Len(qword v)
 {
     qword l, one;
     float r;
@@ -3512,9 +3512,9 @@ static inline float Len(qword v)
     __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));
     __asm__("qmfc2.ni %0,%1" : "=r"(r) : "j"(l));
     return r;
-}
+} }
 // Callback: speed-limited path length and time to a target along a Bezier path; returns min(1e6, (v0 + v1) * t / 2).
-float MeasureJumpAlongPath(struct P *p, float t)
+extern "C" float MeasureJumpAlongPath(struct P *p, float t)
 {
     U a, b, c, d, e;
     qword pos, vel;
@@ -3534,19 +3534,19 @@ float MeasureJumpAlongPath(struct P *p, float t)
     g *= h;
     return g < 1000000.0f ? g : 1000000.0f;
 }
-} } // namespace M_func_0019AC88
+} // namespace M_func_0019AC88
 
 //////// 0x19AE00 FindJtObstruction
 namespace M_FFindJtObstruction {
 typedef int qword __attribute__((mode(TI)));
-extern "C" {
-void STACKSCOPE_ctor(void *p);
+
+void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
 struct HIT;
-int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit);
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, int m, int n);
-}
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit) __asm__("FindFirstObjectHitByLine");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, int m, int n) __asm__("EvaluateBezierPos");
+
 struct HIT { qword pos; char pad[0x34]; float x44; char pad2[0x18]; };
 // Distance between a and b as a float.
 static inline float Dist(qword a, qword b)
@@ -3558,7 +3558,7 @@ static inline float Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
-extern "C" int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
+extern int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc) __asm__("FindJtObstruction");
 // Checks the predicted Bezier jump path for obstructions (box query plus line tests per segment); returns nonzero
 // with the hit point.
 int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
@@ -3610,10 +3610,10 @@ extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 }
 
 //////// 0x19B0A8 FilterJtObstruction
-namespace M_func_0019B0A8 { extern "C" {
+namespace M_func_0019B0A8 {
 struct L { int c; SOTREE **a; };   /* the trees to ignore */
 // Obstruction filter: ignores flagged contacts, objects with flag 4 and objects in an ignore list.
-int FilterJtObstruction(struct L *l, SOPART *x) {
+extern "C" int FilterJtObstruction(struct L *l, SOPART *x) {
     SOTREE *so;
     int i;
     if (x->unknownFlag10A) return 0;
@@ -3622,7 +3622,7 @@ int FilterJtObstruction(struct L *l, SOPART *x) {
     for (i = 0; i < l->c; i++) if (so == l->a[i]) return 0;
     return 1;
 }
-} } // namespace M_func_0019B0A8
+} // namespace M_func_0019B0A8
 
 //////// 0x19B110 ChooseJtLanding
 namespace M_JtbsChooseJtLanding {
@@ -3744,46 +3744,46 @@ struct SOLIST { int cpso; void **apso; };                                       
 
 typedef float (*PFNSCORE)(void *, float);
 
-extern "C" {
-extern STEPPLAYER *D_002F7900;      // the partner
-extern qword D_002A2DD0;            // zero vector
-extern float D_002BF8E0;            // score limit
-extern float D_002BF8E4, D_002BF8E8, D_002BF8EC, D_002BF8F0, D_002BF8F4, D_002BF8F8, D_002BF8FC, D_002BF904, D_002BF908;
-extern float D_002BF90C, D_002BF914, D_002BF918;
 
-qword GetLoWorldPos(void *plo);                                         // PosLoWorld
+extern STEPPLAYER *D_002F7900 __asm__("D_002F7900");      // the partner
+extern qword D_002A2DD0 __asm__("D_002A2DD0");            // zero vector
+extern float D_002BF8E0 __asm__("D_002BF8E0");            // score limit
+extern float D_002BF8E4 __asm__("D_002BF8E4"), D_002BF8E8 __asm__("D_002BF8E8"), D_002BF8EC __asm__("D_002BF8EC"), D_002BF8F0 __asm__("D_002BF8F0"), D_002BF8F4 __asm__("D_002BF8F4"), D_002BF8F8 __asm__("D_002BF8F8"), D_002BF8FC __asm__("D_002BF8FC"), D_002BF904 __asm__("D_002BF904"), D_002BF908 __asm__("D_002BF908");
+extern float D_002BF90C __asm__("D_002BF90C"), D_002BF914 __asm__("D_002BF914"), D_002BF918 __asm__("D_002BF918");
+
+qword GetLoWorldPos(void *plo) __asm__("GetLoWorldPos");                                         // PosLoWorld
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                         // memset
-qword PlanJtLaunchVelocity(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
-int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
+qword PlanJtLaunchVelocity(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");                         // JtPlanLaunchVz
+int IsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
-                   VECTOR *ppos, VECTOR *pv);
-float AdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
+                   VECTOR *ppos, VECTOR *pv) __asm__("MeasureJtJumpToTarget");
+float AdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg) __asm__("AdjustJtLandingScore");
 int FindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
-                  VECTOR *ppos);
-void ShouldKeepSoPair();
-void FilterJtObstruction();
-void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
-void FindShapeBestVertex(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
-float GetShapeParamSearchStep(CURVE *pcurve);
-float GetShapeParamAtDistance(CURVE *pcurve, float s);
-float GetShapeMaxDistance(CURVE *pcurve);
-float GetShapeDistanceAtParam(CURVE *pcurve, float u);
-void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
-float MeasureJumpToRail(void *pv, float u);
-float MeasureJumpTargetAtTime(void *pv, float u);
-float MeasureJumpToPipe(void *pv, float u);
-float MeasureJumpAlongPath(void *pv, float u);
-float MeasureJumpToHidePoint(void *pv, float u);
-float MeasureJumpToHideShape(void *pv, float u);
-void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u);
-void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
-void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
-int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv);
-void EvaluateShapeAtDistance(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
-qword ConvertPosBetweenLos(void *pvFrom, void *pvTo, qword pos);
-float atan2f(float y, float x);                                 // atan2f
-void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
-}
+                  VECTOR *ppos) __asm__("FindJtObstruction");
+void ShouldKeepSoPair() __asm__("ShouldKeepSoPair");
+void FilterJtObstruction() __asm__("FilterJtObstruction");
+void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps) __asm__("FindShapeClosestPoint");
+void FindShapeBestVertex(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut) __asm__("FindShapeBestVertex");
+float GetShapeParamSearchStep(CURVE *pcurve) __asm__("GetShapeParamSearchStep");
+float GetShapeParamAtDistance(CURVE *pcurve, float s) __asm__("GetShapeParamAtDistance");
+float GetShapeMaxDistance(CURVE *pcurve) __asm__("GetShapeMaxDistance");
+float GetShapeDistanceAtParam(CURVE *pcurve, float u) __asm__("GetShapeDistanceAtParam");
+void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
+float MeasureJumpToRail(void *pv, float u) __asm__("MeasureJumpToRail");
+float MeasureJumpTargetAtTime(void *pv, float u) __asm__("MeasureJumpTargetAtTime");
+float MeasureJumpToPipe(void *pv, float u) __asm__("MeasureJumpToPipe");
+float MeasureJumpAlongPath(void *pv, float u) __asm__("MeasureJumpAlongPath");
+float MeasureJumpToHidePoint(void *pv, float u) __asm__("MeasureJumpToHidePoint");
+float MeasureJumpToHideShape(void *pv, float u) __asm__("MeasureJumpToHideShape");
+void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u) __asm__("GetJtRailLanding");
+void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t) __asm__("MeasureJtJumpToTargetAtTime");
+void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal) __asm__("FindMeshClosestPoint");
+int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv) __asm__("PredictMeshContact");
+void EvaluateShapeAtDistance(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal) __asm__("EvaluateShapeAtDistance");
+qword ConvertPosBetweenLos(void *pvFrom, void *pvTo, qword pos) __asm__("ConvertPosBetweenLos");
+float atan2f(float y, float x) __asm__("atan2f");                                 // atan2f
+void SetJtAirState(JTAIR *pjtair, int nKind, void *plo) __asm__("SetJtAirState");
+
 
 // Squared length of the xyz part of v as a float.
 static inline float LengthSquared(qword v)
@@ -4181,13 +4181,13 @@ struct OBJECT {
 };
 struct CONTEXT { OBJECT *owner; };
 struct SPACE;
-extern "C" {
-    qword GetLoWorldPos(OBJECT *);
-    void LoadIdentityMatrix4(SPACE *,SPACE *,M4 *,M4 *,float);
-    M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
-    extern qword D_002A2DD0;
-    extern float D_002BF910;
-}
+
+    qword GetLoWorldPos(OBJECT *) __asm__("GetLoWorldPos");
+    void LoadIdentityMatrix4(SPACE *,SPACE *,M4 *,M4 *,float) __asm__("LoadIdentityMatrix4");
+    M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+    extern qword D_002A2DD0 __asm__("D_002A2DD0");
+    extern float D_002BF910 __asm__("D_002BF910");
+
 typedef qword (*VECTOR_GETTER)(OBJECT *);
 typedef SPACE *(*INVERSE_GETTER)(OBJECT *,M4 *);
 typedef char Qword_Size[(sizeof(qword))==16?1:-1];
@@ -4396,20 +4396,20 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
 } // namespace M_MeasureJtJumpToTargetAtTime
 
 //////// 0x19C688 GrabJtAirTarget
-namespace M_func_0019C688 { extern "C" {
+namespace M_func_0019C688 {
 struct C { char pad[0x10C]; int x10c; char pad2[0x124-0x110]; int x124; };
 struct O { char pad[0xC]; void *vptr; char pad2[0x4C0-0x10]; char grab[0xF5C-0x4C0]; struct C *xf5c; float xf60;
     char pad3[0x18C4-0xF64]; struct C *hangHandle; char pad4[0x1F18-0x18C8]; struct C *x1f18; };
 struct P { struct O *x0; int x4; int x8; struct C *xc; int x10; float x14; int x18; int x1c; };
-extern int D_002DD5BC;
-void SetJtGrabState(void *p, int n, struct C *c, void *b);
-void SetJtState__FP2JT3JTS4JTBS(struct O *o, int a, int b);
-void SetBentleyState(int a, int b);
-void SetJtAirState(struct P *p, int a, int b);
+extern int D_002DD5BC __asm__("D_002DD5BC");
+void SetJtGrabState(void *p, int n, struct C *c, void *b) __asm__("SetJtGrabState");
+void SetJtState__FP2JT3JTS4JTBS(struct O *o, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
+void SetBentleyState(int a, int b) __asm__("SetBentleyState");
+void SetJtAirState(struct P *p, int a, int b) __asm__("SetJtAirState");
 #define B(c, off) ((c) ? (void *)((char *)(c) + (off)) : (void *)0)
 // On reaching a grab target, switches per air kind (6, 11, 12, 13, ...) to SetJtGrabState with the target's GRABSPOT
 // part.
-void GrabJtAirTarget(struct P *p)
+extern "C" void GrabJtAirTarget(struct P *p)
 {
     switch (p->x1c) {
     case 6:
@@ -4461,7 +4461,7 @@ void GrabJtAirTarget(struct P *p)
         break;
     }
 }
-} } // namespace M_func_0019C688
+} // namespace M_func_0019C688
 
 //////// 0x19C828 LandJtAir
 // Lands: a wall run (kind 0x11) becomes a jump (SetJtAirJump kind 3), otherwise air state 4.
@@ -4475,9 +4475,9 @@ extern "C" void LandJtAir(JTAIR *air)
 }
 
 //////// 0x19C870 GetJtAirAdjustRecord
-namespace M_func_0019C870 { extern "C" {
+namespace M_func_0019C870 {
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
-SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
+extern "C" SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
     SOPART *v;
     switch (s->state) {
     case 0xB: case 0xC: case 0xD: v = s->player->jtgrab.unknown60; break;
@@ -4487,7 +4487,7 @@ SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
     *pn = 0;
     return v;
 }
-} } // namespace M_func_0019C870
+} // namespace M_func_0019C870
 
 //////// 0x19C8B0 AddJtAirCpdefiFlags
 // Camera-definition hook: ORs the air flags into *flags when +0x28 is set. (inferred)
@@ -4499,11 +4499,11 @@ extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 }
 
 //////// 0x19C8D0 CanJtUseGadgetInAir
-namespace M_func_0019C8D0 { extern "C" {
-extern int D_002DFBC0;
-int IsCameraPolicyActive__FP5CPLCY(void *);
+namespace M_func_0019C8D0 {
+extern int D_002DFBC0 __asm__("D_002DFBC0");
+int IsCameraPolicyActive__FP5CPLCY(void *) __asm__("IsCameraPolicyActive__FP5CPLCY");
 // Whether gadget/action k can be used in the current air sub-state.
-int CanJtUseGadgetInAir(JTAIR *p, int k) {
+extern "C" int CanJtUseGadgetInAir(JTAIR *p, int k) {
     switch (k) {
     case 22:
         if (p->jumpKind >= 17) goto L;
@@ -4530,7 +4530,7 @@ int CanJtUseGadgetInAir(JTAIR *p, int k) {
         return 1;
     }
 }
-} } // namespace M_func_0019C8D0
+} // namespace M_func_0019C8D0
 
 //////// 0x19C9B8 InitJmt
 // JMT Init (slot 7): transform init, radius 100. (JMT: an air jump target marker, inferred)
@@ -4558,13 +4558,13 @@ extern "C" void RemoveJmtHierarchy(XFM *pjmt)
 }
 
 //////// 0x19CA58 CloneJmt
-namespace M_CloneJmt { extern "C" {
+namespace M_CloneJmt {
 struct K { int a, b; };
 struct S : XFM { struct K k; };
-void CloneXfm(struct S *);
+void CloneXfm(struct S *) __asm__("CloneXfm");
 // JMT Clone (slot 41): clones the transform but keeps its own list entry.
-void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
-} } // namespace M_CloneJmt
+extern "C" void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
+} // namespace M_CloneJmt
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). At the end of the file so no
 // function sees a definition; the namespaced extern "C" declarations above refer to these symbols.

@@ -50,7 +50,7 @@ void AccelSoTowardMatBounded(JT*,M3P*,float*);
 M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P BuildAxisAngleRotationMatrix(qword,float);
 qword DecomposeRotationMatrixToEuler(M3P*);
-void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
+void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);extern "C++" { void SetStepTargetHeading(JT*,float) __asm__("SetStepTargetHeading"); }float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GetButtonsPressedWithin__5POCTLUif(POCTL*,uint,float);void ClearPoctlJoyPressed(POCTL*,int);void StartJtMode(void*,int,JT*,void*);
 float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ASEG*);float ClampAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);

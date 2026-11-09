@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void SetS32__4CRefi(void *, s32);                 /* extern */
+extern "C++" { void SetS32__4CRefi(void *, s32) __asm__("SetS32__4CRefi"); }                 /* extern */
 s32 GetDetectorTargetStateById(s32, s32);                        /* extern */
 
 CRef *RefThunkStepguard_GetDetectorTargetStateById(CRef *ret, void *pbasic, s32 cref, CRef *aref)

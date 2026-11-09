@@ -85,20 +85,20 @@ void ClearBhvstk(BHVSTK *pbhvstk);
    gadget slot state the gadget starts in, +0xC the MP cost the gadget slots check and ChargeGadgetMp charges. */
 struct GADGETDESC { int x0; int x4; int x8; int mp; int x10; int ids0; int ids1; int x1C; };
 
-namespace M_InitStepplayer { extern "C" {
-void InitStep(STEPPLAYER *p);
-void InitJtAir(JTAIR *pv, STEPPLAYER *p);
-void InitJtGrab(JTGRAB *pv, STEPPLAYER *p);
-void InitJtPlaces(JTPLACES *pv, STEPPLAYER *p);
-void InitJtHurt(JTHURT *pv, STEPPLAYER *p);
-void InitJtMode(JTMODE *pv, STEPPLAYER *p);
-void InitThrow(JTTHROW *pv, STEPPLAYER *p);
-void InitJtPipe(JTPIPE *pv, STEPPLAYER *p);
-void InitJtgoal(JTGOAL *pv, STEPPLAYER *p);
-void SetSoZapResponse(STEPPLAYER *p, int mask, int n);
+namespace M_InitStepplayer {
+void InitStep(STEPPLAYER *p) __asm__("InitStep");
+void InitJtAir(JTAIR *pv, STEPPLAYER *p) __asm__("InitJtAir");
+void InitJtGrab(JTGRAB *pv, STEPPLAYER *p) __asm__("InitJtGrab");
+void InitJtPlaces(JTPLACES *pv, STEPPLAYER *p) __asm__("InitJtPlaces");
+void InitJtHurt(JTHURT *pv, STEPPLAYER *p) __asm__("InitJtHurt");
+void InitJtMode(JTMODE *pv, STEPPLAYER *p) __asm__("InitJtMode");
+void InitThrow(JTTHROW *pv, STEPPLAYER *p) __asm__("InitThrow");
+void InitJtPipe(JTPIPE *pv, STEPPLAYER *p) __asm__("InitJtPipe");
+void InitJtgoal(JTGOAL *pv, STEPPLAYER *p) __asm__("InitJtgoal");
+void SetSoZapResponse(STEPPLAYER *p, int mask, int n) __asm__("SetSoZapResponse");
 // STEPPLAYER Init (vtable slot 7), shared by Sly, Bentley and Murray: STEP init, then the embedded components (air
 // +0x2C0, grab +0x4C0, places +0x9E0, hurt +0xDF0, mode +0xF00, pipe +0xF50, throw ...) and the player defaults.
-void InitStepplayer(STEPPLAYER *player)
+extern "C" void InitStepplayer(STEPPLAYER *player)
 {
     InitStep(player);
     InitJtAir(&player->jtair, player);
@@ -131,35 +131,35 @@ void InitStepplayer(STEPPLAYER *player)
     SetSoZapResponse(player, 0x3FFFFFF, 0);
     SetSoZapResponse(player, 0x10FF00, 8);
 }
-} } // namespace M_InitStepplayer
+} // namespace M_InitStepplayer
 
-namespace M_PostLoadStepplayer { extern "C" {
+namespace M_PostLoadStepplayer {
 struct K { int a; int b; };
-extern const struct LONGU D_002A4D10;
+extern const struct LONGU D_002A4D10 __asm__("D_002A4D10");
 struct AREQ { int cb; int cbAlign; };
-extern char D_002BC9F0[];
-void PostStepLoad(STEPPLAYER *);
-void BindLoOidTable(STEPPLAYER *, int, void *);
-void PostLoadJtAir(void *);
-void PostLoadJtGrab(void *);
-void PostLoadJtPlaces(void *);
-void PostLoadJtHurt(void *);
-void PostLoadJtMode(void *);
-void PostJtThrowLoad(void *);
-void PostJtLoadPipe(void *);
-int FindSwObjects(SW *, int, int, STEPPLAYER *, int, void **);
-void *AllocClearedFromWorldHeap(struct AREQ *);
-void LoadStepplayerGadgets(STEPPLAYER *);
-void BindStepplayerHpMp(STEPPLAYER *, int);
-void *EnsureTargetRecordById(STEPPLAYER *);
-void SetSoMass(STEPPLAYER *, float);
-qword GetLoWorldPos(STEPPLAYER *);
-struct MATRIX3Q *GetLoWorldMatrix(STEPPLAYER *);
+extern char D_002BC9F0[] __asm__("D_002BC9F0");
+void PostStepLoad(STEPPLAYER *) __asm__("PostStepLoad");
+void BindLoOidTable(STEPPLAYER *, int, void *) __asm__("BindLoOidTable");
+void PostLoadJtAir(void *) __asm__("PostLoadJtAir");
+void PostLoadJtGrab(void *) __asm__("PostLoadJtGrab");
+void PostLoadJtPlaces(void *) __asm__("PostLoadJtPlaces");
+void PostLoadJtHurt(void *) __asm__("PostLoadJtHurt");
+void PostLoadJtMode(void *) __asm__("PostLoadJtMode");
+void PostJtThrowLoad(void *) __asm__("PostJtThrowLoad");
+void PostJtLoadPipe(void *) __asm__("PostJtLoadPipe");
+int FindSwObjects(SW *, int, int, STEPPLAYER *, int, void **) __asm__("FindSwObjects");
+void *AllocClearedFromWorldHeap(struct AREQ *) __asm__("AllocClearedFromWorldHeap");
+void LoadStepplayerGadgets(STEPPLAYER *) __asm__("LoadStepplayerGadgets");
+void BindStepplayerHpMp(STEPPLAYER *, int) __asm__("BindStepplayerHpMp");
+void *EnsureTargetRecordById(STEPPLAYER *) __asm__("EnsureTargetRecordById");
+void SetSoMass(STEPPLAYER *, float) __asm__("SetSoMass");
+qword GetLoWorldPos(STEPPLAYER *) __asm__("GetLoWorldPos");
+struct MATRIX3Q *GetLoWorldMatrix(STEPPLAYER *) __asm__("GetLoWorldMatrix");
 void *func_002333B4(void *, int, int) __asm__("memset");
-void PostSwCallback(SW *, STEPPLAYER *, long, int);
+void PostSwCallback(SW *, STEPPLAYER *, long, int) __asm__("PostSwCallback");
 
 // STEPPLAYER post-load (slot 15): STEP base, then each component's post-load, hp/mp binding and gadget slots.
-void PostLoadStepplayer(STEPPLAYER *player)
+extern "C" void PostLoadStepplayer(STEPPLAYER *player)
 {
     void *apv[16];
     int c;
@@ -209,17 +209,17 @@ void PostLoadStepplayer(STEPPLAYER *player)
     }
     PostSwCallback(&g_sw, player, D_002A4D10.l, 0);
 }
-} } // namespace M_PostLoadStepplayer
+} // namespace M_PostLoadStepplayer
 
-namespace M_func_00140338 { extern "C" {
-int GetCurrentWorld(void);
-void RestartHudWidget1(void *p);
-int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
-void RestartHudWidget2(void *p);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
+namespace M_func_00140338 {
+int GetCurrentWorld(void) __asm__("GetCurrentWorld");
+void RestartHudWidget1(void *p) __asm__("RestartHudWidget1");
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, int e) __asm__("FindSwObjectsByClass");
+void RestartHudWidget2(void *p) __asm__("RestartHudWidget2");
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
 // On the hint button (mask 0x200) when allowed, dismisses/acknowledges the pending hint. (inferred)
-void AcknowledgeStepplayerHint(void)
+extern "C" void AcknowledgeStepplayerHint(void)
 {
     if (!GetCurrentWorld())
         return;
@@ -229,28 +229,28 @@ void AcknowledgeStepplayerHint(void)
     g_sw.unknown4754 = g_clock.time;
     g_cm.cplook.numActivations++;   /* the look policy's activation count (ActivateCplook/ActivateCpzoom also bump it) */
 }
-} } // namespace M_func_00140338
+} // namespace M_func_00140338
 
-namespace M_UpdateStepplayer { extern "C" {
-extern char D_003DA0F0[];
-void UpdateStep(STEPPLAYER *p);
-void UpdateStepplayerGadgets(STEPPLAYER *p);
-void AcknowledgeStepplayerHint(STEPPLAYER *p);
-void UpdateJtgoal(JTGOAL *pl);
-int IsJtgoalHolding(JTGOAL *pl);
-void UpdateJsgJtControl(RELAYJSG *p, POCTL *q);
-void UpdateStepplayerInteractCandidates(STEPPLAYER *p);
-void UpdateStepplayerWater(STEPPLAYER *p);
-void UpdateStepplayerHideBlend(STEPPLAYER *p);
-void PickHeroInteractTarget(STEPPLAYER *p);
-int IsAsegaRetracted(ASEGA *x);
-void DropAsegaRef(ASEGA **px);
-int IsCameraPolicyActive__FP5CPLCY(void *p);
-void SetJoyBtnHandled(JOY *pg, int n);
-void OpenGadgetMenuForHero(void *p);
-void UpdateBhvstk(BHVSTK *p);
+namespace M_UpdateStepplayer {
+extern char D_003DA0F0[] __asm__("D_003DA0F0");
+void UpdateStep(STEPPLAYER *p) __asm__("UpdateStep");
+void UpdateStepplayerGadgets(STEPPLAYER *p) __asm__("UpdateStepplayerGadgets");
+void AcknowledgeStepplayerHint(STEPPLAYER *p) __asm__("AcknowledgeStepplayerHint");
+void UpdateJtgoal(JTGOAL *pl) __asm__("UpdateJtgoal");
+int IsJtgoalHolding(JTGOAL *pl) __asm__("IsJtgoalHolding");
+void UpdateJsgJtControl(RELAYJSG *p, POCTL *q) __asm__("UpdateJsgJtControl");
+void UpdateStepplayerInteractCandidates(STEPPLAYER *p) __asm__("UpdateStepplayerInteractCandidates");
+void UpdateStepplayerWater(STEPPLAYER *p) __asm__("UpdateStepplayerWater");
+void UpdateStepplayerHideBlend(STEPPLAYER *p) __asm__("UpdateStepplayerHideBlend");
+void PickHeroInteractTarget(STEPPLAYER *p) __asm__("PickHeroInteractTarget");
+int IsAsegaRetracted(ASEGA *x) __asm__("IsAsegaRetracted");
+void DropAsegaRef(ASEGA **px) __asm__("DropAsegaRef");
+int IsCameraPolicyActive__FP5CPLCY(void *p) __asm__("IsCameraPolicyActive__FP5CPLCY");
+void SetJoyBtnHandled(JOY *pg, int n) __asm__("SetJoyBtnHandled");
+void OpenGadgetMenuForHero(void *p) __asm__("OpenGadgetMenuForHero");
+void UpdateBhvstk(BHVSTK *p) __asm__("UpdateBhvstk");
 // STEPPLAYER Update (slot 16): STEP update, input and actions, the ride component, water, gadgets, booty, interact.
-void UpdateStepplayer(STEPPLAYER *player)
+extern "C" void UpdateStepplayer(STEPPLAYER *player)
 {
     JTGOAL *pl;
     UpdateStep(player);
@@ -285,13 +285,13 @@ void UpdateStepplayer(STEPPLAYER *player)
     if (!IsJtgoalHolding(pl))
         UpdateBhvstk(&player->behaviors);
 }
-} } // namespace M_UpdateStepplayer
+} // namespace M_UpdateStepplayer
 
-namespace M_UpdateStepplayerInteractCandidates { extern "C" {
-extern float D_002A4D18;
-int GuardEvalInteractMode(STEPGUARD *pso, STEPPLAYER *p, float *pg);
+namespace M_UpdateStepplayerInteractCandidates {
+extern float D_002A4D18 __asm__("D_002A4D18");
+int GuardEvalInteractMode(STEPGUARD *pso, STEPPLAYER *p, float *pg) __asm__("GuardEvalInteractMode");
 // Unless interaction is locked (+0x10E0), scans the guard list for interact candidates (pickpocket/takedown).
-void UpdateStepplayerInteractCandidates(STEPPLAYER *player)
+extern "C" void UpdateStepplayerInteractCandidates(STEPPLAYER *player)
 {
     STEPGUARD *so, *pso0, *pso1;
     int n0, n1;
@@ -320,12 +320,12 @@ void UpdateStepplayerInteractCandidates(STEPPLAYER *player)
     }
     player->SetPlayerInteractMode(n0, pso0, n1, pso1);
 }
-} } // namespace M_UpdateStepplayerInteractCandidates
+} // namespace M_UpdateStepplayerInteractCandidates
 
-namespace M_SetStepplayerPlayerInteractMode { extern "C" {
-void ReleaseInteractTargetMark(STEPPLAYER *p, int a, LO *b, int c, LO *d);
+namespace M_SetStepplayerPlayerInteractMode {
+void ReleaseInteractTargetMark(STEPPLAYER *p, int a, LO *b, int c, LO *d) __asm__("ReleaseInteractTargetMark");
 // Slot 95: stores the interact kind, target, mode and fight target.
-void SetStepplayerPlayerInteractMode(STEPPLAYER *player, int a, LO *b, int c, LO *d)
+extern "C" void SetStepplayerPlayerInteractMode(STEPPLAYER *player, int a, LO *b, int c, LO *d)
 {
     if (b != player->interactTarget) ReleaseInteractTargetMark(player, a, b, c, d);
     player->interactTarget = b;
@@ -333,35 +333,35 @@ void SetStepplayerPlayerInteractMode(STEPPLAYER *player, int a, LO *b, int c, LO
     player->ploFightTarget = d;
     player->interactMode = c;
 }
-} } // namespace M_SetStepplayerPlayerInteractMode
+} // namespace M_SetStepplayerPlayerInteractMode
 
-namespace M_SetStepplayerCtlState { extern "C" {
-void SetPoCtlState(void *p, int n);
-void SetSoTargetRecordParams(void *p, int a, int b);
-void ClearBhvstk__FP6BHVSTK(void *p);
+namespace M_SetStepplayerCtlState {
+void SetPoCtlState(void *p, int n) __asm__("SetPoCtlState");
+void SetSoTargetRecordParams(void *p, int a, int b) __asm__("SetSoTargetRecordParams");
+void ClearBhvstk__FP6BHVSTK(void *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // Slot 79: PO control state, then the camera hookup; on becoming the current player refreshes the HUD/camera.
-void SetStepplayerCtlState(char *player, int n)
+extern "C" void SetStepplayerCtlState(char *player, int n)
 {
     SetPoCtlState(player, n);
     SetSoTargetRecordParams(player, n == 1 ? 0 : -1, 0);
     if (n == 1) ClearBhvstk__FP6BHVSTK(player + 0x26C);
 }
-} } // namespace M_SetStepplayerCtlState
+} // namespace M_SetStepplayerCtlState
 
-namespace M_func_00140750 { extern "C" {
+namespace M_func_00140750 {
 /* UpdateStepplayerHideBlend (Claude agent): matched. MinF/MaxF as `b < a ? b : a`, block-local dt per case, and the x10C8 state as `if (xDF4 != -1 || (g = x10CC) == 0) -1; else if (g == 1 || (x10C8 == 1 && 0 < g)) 1; else 0`. */
 typedef int qword __attribute__((mode(TI)));
-extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
-int TestStepplayerHidden(STEPPLAYER *p);
-qword GetLoWorldPos(STEPPLAYER *p);
-void CreateNoise(void *a, qword pos, STEPPLAYER *p, int n);
+extern float D_002BCC6C __asm__("D_002BCC6C"), D_002BCC70 __asm__("D_002BCC70"), D_002BCC74 __asm__("D_002BCC74"), D_002BCC78 __asm__("D_002BCC78");
+int TestStepplayerHidden(STEPPLAYER *p) __asm__("TestStepplayerHidden");
+qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
+void CreateNoise(void *a, qword pos, STEPPLAYER *p, int n) __asm__("CreateNoise");
 
 
 // Larger of a and b.
-static inline float MaxF(float a, float b) { return b > a ? b : a; }
+extern "C" { static inline float MaxF(float a, float b) { return b > a ? b : a; } }
 
 // If a hide noise source exists: smooths the hide blend toward 1 while hidden, 0 otherwise.
-void UpdateStepplayerHideBlend(STEPPLAYER *player)
+extern "C" void UpdateStepplayerHideBlend(STEPPLAYER *player)
 {
     int k;
     float g;
@@ -396,7 +396,7 @@ void UpdateStepplayerHideBlend(STEPPLAYER *player)
     }
     if (player->noiseBuildup == 1.0f) CreateNoise(player->hideNoise, GetLoWorldPos(player), player, 0);
 }
-} } // namespace M_func_00140750
+} // namespace M_func_00140750
 
 // Slot 98 base, movement-noise class (inferred): 0 (silent) while the world is hands-off, else -1 (no opinion: the subclass decides). UpdateStepplayerHideBlend resets its noise meter on 0 and fills it at one of two rates otherwise; a full meter makes noise.
 extern "C" int GetStepplayerMovementNoise()
@@ -404,17 +404,17 @@ extern "C" int GetStepplayerMovementNoise()
     return (IsSwHandsOff(&g_sw) != 0) ? 0 : -1;
 }
 
-namespace M_func_001409E8 { extern "C" {
+namespace M_func_001409E8 {
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x104]; struct X *pxNext; };
-int IsStepplayerInJtMode(STEPPLAYER *p);
-qword GetLoWorldPos(STEPPLAYER *p);
-void *NewNoise(void *a, qword pos, STEPPLAYER *p);
-int StepguardHasSgf(STEPGUARD *pstepguard, int n);
-int CanListenerHearNoise(struct X *px, void *q);
-void RemoveNoise(void *q);
+int IsStepplayerInJtMode(STEPPLAYER *p) __asm__("IsStepplayerInJtMode");
+qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
+void *NewNoise(void *a, qword pos, STEPPLAYER *p) __asm__("NewNoise");
+int StepguardHasSgf(STEPGUARD *pstepguard, int n) __asm__("StepguardHasSgf");
+int CanListenerHearNoise(struct X *px, void *q) __asm__("CanListenerHearNoise");
+void RemoveNoise(void *q) __asm__("RemoveNoise");
 // 2 if in a look mode or no hide query is possible; else 1 if any guard can see the player, 0 otherwise. (inferred)
-int TestStepplayerHidden(STEPPLAYER *player)
+extern "C" int TestStepplayerHidden(STEPPLAYER *player)
 {
     int unused[4];
     void *q;
@@ -440,15 +440,15 @@ int TestStepplayerHidden(STEPPLAYER *player)
     RemoveNoise(q);
     return r;
 }
-} } // namespace M_func_001409E8
+} // namespace M_func_001409E8
 
-namespace M_FStepplayerNearInteractTarget { extern "C" {
+namespace M_FStepplayerNearInteractTarget {
 typedef int qword __attribute__((mode(TI)));
-extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-qword GetLoWorldPos(void *p);
+extern float D_002BCC7C __asm__("D_002BCC7C"), D_002BCC80 __asm__("D_002BCC80"), D_002BCC84 __asm__("D_002BCC84"), D_002BCC88 __asm__("D_002BCC88"), D_002BCC8C __asm__("D_002BCC8C"), D_002BCC90 __asm__("D_002BCC90");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // True in interact mode 4 (kind != 3) when the target is within reach.
-int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
+extern "C" int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 {
     float gDist, minValue, maxValue;
     qword a, b, t;
@@ -479,14 +479,14 @@ int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
     if (g < gDist && minValue < d.f[2] && d.f[2] < maxValue) f = 1;
     return f;
 }
-} } // namespace M_FStepplayerNearInteractTarget
+} // namespace M_FStepplayerNearInteractTarget
 
-namespace M_func_00140C30 { extern "C" {
+namespace M_func_00140C30 {
 typedef int qword __attribute__((mode(TI)));
-void SetJtAirJump(JTAIR *p, int a, int b, int c);
-void AddStepAxisXps(STEPPLAYER *p, void *a, LO *b, qword d);
+void SetJtAirJump(JTAIR *p, int a, int b, int c) __asm__("SetJtAirJump");
+void AddStepAxisXps(STEPPLAYER *p, void *a, LO *b, qword d) __asm__("AddStepAxisXps");
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v)
+extern "C" void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v)
 {
     qword d;
     if (((int)b->isInWorld & 1) == 0) {
@@ -496,7 +496,7 @@ void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->unknown1010));
     AddStepAxisXps(player, a, b, d);
 }
-} } // namespace M_func_00140C30
+} // namespace M_func_00140C30
 
 // If this is the current player, swaps the camera TN override (+0x1024).
 extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
@@ -513,20 +513,20 @@ extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
     }
 }
 
-namespace M_func_00140D00 { extern "C" {
-void IgnoreSoSlot59(void *p);
-void AddJtWallRunXps(void *p);
-void UpdateJtInternalXpsHide(void *p);
-void UpdateJtInternalXpsPipe(void *p);
+namespace M_func_00140D00 {
+void IgnoreSoSlot59(void *p) __asm__("IgnoreSoSlot59");
+void AddJtWallRunXps(void *p) __asm__("AddJtWallRunXps");
+void UpdateJtInternalXpsHide(void *p) __asm__("UpdateJtInternalXpsHide");
+void UpdateJtInternalXpsPipe(void *p) __asm__("UpdateJtInternalXpsPipe");
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
-void AddStepplayerComponentXps(char *player)
+extern "C" void AddStepplayerComponentXps(char *player)
 {
     IgnoreSoSlot59(player);
     if (*(int *)(player + 0x2DC) != -1) AddJtWallRunXps(player + 0x2C0);
     if (*(int *)(player + 0x4CC) != -1) UpdateJtInternalXpsHide(player + 0x4C0);
     if (*(int *)(player + 0xF54) != -1) UpdateJtInternalXpsPipe(player + 0xF50);
 }
-} } // namespace M_func_00140D00
+} // namespace M_func_00140D00
 
 // Slot 58: STEP base, then FreeJtWallRunXps when in the air. (inferred: frees component contacts)
 void STEPPLAYER::AdjustXps()   /* key function: STEPPLAYER's vtable comes out here */
@@ -538,7 +538,7 @@ void STEPPLAYER::AdjustXps()   /* key function: STEPPLAYER's vtable comes out he
     }
 }
 
-namespace M_func_00140DB0 { extern "C" {
+namespace M_func_00140DB0 {
 /* HandleStepplayerContactImpulse (Claude agent for Lilly, T1644): saves s->v, scales it by 0.01 when the
    other entry's k (s->ae[1 - i].k) is one of three known values and p allows it
    (p->controller->state != 1 or IsStepplayerPushing(p)), calls CalculateSoContactResponse with the same arguments,
@@ -550,13 +550,13 @@ namespace M_func_00140DB0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { int a, b, k; char pad[0x34]; };
 struct S { char pad[0x40]; qword v; struct E *ae; };
-extern int D_002E1E40;
-extern int D_002DD5BC;
-extern int D_002F7900;
-int IsStepplayerPushing(STEPPLAYER *p);
-void CalculateSoContactResponse(STEPPLAYER *p, void *a, struct S *s, void *b, int i);
+extern int D_002E1E40 __asm__("D_002E1E40");
+extern int D_002DD5BC __asm__("D_002DD5BC");
+extern int D_002F7900 __asm__("D_002F7900");
+int IsStepplayerPushing(STEPPLAYER *p) __asm__("IsStepplayerPushing");
+void CalculateSoContactResponse(STEPPLAYER *p, void *a, struct S *s, void *b, int i) __asm__("CalculateSoContactResponse");
 // Slot 68 (contact impulse): special handling when the other body is one of the player characters.
-void HandleStepplayerContactImpulse(STEPPLAYER *player, void *a, struct S *s, void *b, int i)
+extern "C" void HandleStepplayerContactImpulse(STEPPLAYER *player, void *a, struct S *s, void *b, int i)
 {
     QWROW c;
     qword save;
@@ -578,7 +578,7 @@ void HandleStepplayerContactImpulse(STEPPLAYER *player, void *a, struct S *s, vo
     CalculateSoContactResponse(player, a, s, b, i);
     s->v = save;
 }
-} } // namespace M_func_00140DB0
+} // namespace M_func_00140DB0
 
 // Slot 93: broadcasts game event 0x10 with the player.
 extern "C" void OnStepplayerHeroDied(STEPPLAYER *player)
@@ -586,19 +586,19 @@ extern "C" void OnStepplayerHeroDied(STEPPLAYER *player)
     BroadcastGameEvent(&g_game, 0x10, player);
 }
 
-namespace M_STEPPLAYER_FInvulnerable { extern "C" {
-extern void *D_003D4A54;
-int IsPoCurrent(void *p);
-int ShouldStepplayerIgnoreZap(void *p, int a);
+namespace M_STEPPLAYER_FInvulnerable {
+extern void *D_003D4A54 __asm__("D_003D4A54");
+int IsPoCurrent(void *p) __asm__("IsPoCurrent");
+int ShouldStepplayerIgnoreZap(void *p, int a) __asm__("ShouldStepplayerIgnoreZap");
 // Slot 76 base: invulnerable while a look mode runs, in air state 0x15, or while the global invulnerability flag is set.
-int IsStepplayerInvulnerable(char *player, int a)
+extern "C" int IsStepplayerInvulnerable(char *player, int a)
 {
     if (*(int *)(player + 0xF20) == 1) return 1;
     if (*(int *)(player + 0x2DC) == 0x15) return 1;
     if (D_003D4A54 && IsPoCurrent(D_003D4A54)) return 1;
     return ShouldStepplayerIgnoreZap(player + 0xDF0, a);
 }
-} } // namespace M_STEPPLAYER_FInvulnerable
+} // namespace M_STEPPLAYER_FInvulnerable
 
 // Slot 75: forwards the damage to the hurt component (TakeJtDamage).
 extern "C" void TakeStepplayerDamage(STEPPLAYER *player, ZPR *damage)
@@ -620,7 +620,7 @@ void p_func_00143BD8() __asm__("RestoreStepplayerBooty");
 extern const unsigned int r_D_002A4D10[2] __asm__("D_002A4D10") = {0xFFFF0000, (unsigned int)p_func_00143BD8};
 }
 namespace RO_ORDER { extern const float r_D_002A4D18 __asm__("D_002A4D18") = 3.40282347e+38f; }
-namespace M_HandleStepplayerMessage { extern "C" {
+namespace M_HandleStepplayerMessage {
 // HandleStepplayerMessage (0x140F90): message handler (p, msg, pv): msg 3 resets x1038 and stops the 0xDF0/0x11B0 actions, msg 9 (pso->p18 == p)
 // switches on pmsg->k (0x15E: x190 = -v and virtual slot 35 called with the 0x1B0 rows times v; 0x161/0x162; 0x27B/0x27C; 0x1C7/0x1C8),
 // msgs 4/5 call virtual slots 8/9 on the 0x1090 entries, msg 1 / msg 11 release 0x4D4 / 0x1310; then forwards to HandleBhvstkMessage/HandlePoMessage.
@@ -628,48 +628,48 @@ namespace M_HandleStepplayerMessage { extern "C" {
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
 typedef int qword __attribute__((mode(TI)));
-extern DLI *D_002DD2FC;     /* g_pdliFirst */
+/* D_002DD2FC (g_pdliFirst): sly2/dli.h's declaration (one entity with the inline DLI helpers) */
 #define F(T, p, off) (*(T *)((char *)(p) + (off)))
 struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
 struct ENT { void *po; int x4; };
 struct GG { char pad[0x2010]; void *p2010; };
-extern struct GG *D_002E1E40;
-extern float D_002BCC94;
-void RunJtHurtCallback(void *p);
-void SetJtThrowState(void *p, int n);
-qword GetStepAsegaTranslation(void *p, struct SO *pso, float g);
-qword GetLoWorldPos(void *p);
-void ReleaseJtThrowObject(void *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int IsTossableActive(void *p);
-void TriggerTossable(void *p);
-void ReleaseAsega(void *p);
-void ChargeGadgetMp(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
-void SetGuardOverride(void *p, int n);
-void SetAllGuardsSpecialState(void *p, int n);
-void *AcquireProxyObject(void *p, int n);
-void SetLoParent(void *p, int a, int b);
-void RemoveNoise(void *p);
-void StartJtHandsCarry(void *p, void *q);
-void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
-void AttachJtHandsObject(void *p, void *q);
-void UnsubscribeLoObject(void *p, void *q);
-void HandleBhvstkMessage(void *p, int msg, void *pmsg);
-void HandlePoMessage(void *p, int msg, void *pmsg);
+extern struct GG *D_002E1E40 __asm__("D_002E1E40");
+extern float D_002BCC94 __asm__("D_002BCC94");
+void RunJtHurtCallback(void *p) __asm__("RunJtHurtCallback");
+void SetJtThrowState(void *p, int n) __asm__("SetJtThrowState");
+qword GetStepAsegaTranslation(void *p, struct SO *pso, float g) __asm__("GetStepAsegaTranslation");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void ReleaseJtThrowObject(void *p) __asm__("ReleaseJtThrowObject");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int IsTossableActive(void *p) __asm__("IsTossableActive");
+void TriggerTossable(void *p) __asm__("TriggerTossable");
+void ReleaseAsega(void *p) __asm__("ReleaseAsega");
+void ChargeGadgetMp(void *p) __asm__("ChargeGadgetMp");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void SetGuardOverride(void *p, int n) __asm__("SetGuardOverride");
+void SetAllGuardsSpecialState(void *p, int n) __asm__("SetAllGuardsSpecialState");
+void *AcquireProxyObject(void *p, int n) __asm__("AcquireProxyObject");
+void SetLoParent(void *p, int a, int b) __asm__("SetLoParent");
+void RemoveNoise(void *p) __asm__("RemoveNoise");
+void StartJtHandsCarry(void *p, void *q) __asm__("StartJtHandsCarry");
+void SetAsegaSpeed__FP5ASEGAf(void *p, float g) __asm__("SetAsegaSpeed__FP5ASEGAf");
+void AttachJtHandsObject(void *p, void *q) __asm__("AttachJtHandsObject");
+void UnsubscribeLoObject(void *p, void *q) __asm__("UnsubscribeLoObject");
+void HandleBhvstkMessage(void *p, int msg, void *pmsg) __asm__("HandleBhvstkMessage");
+void HandlePoMessage(void *p, int msg, void *pmsg) __asm__("HandlePoMessage");
 
 // Return the current element of the iterator and advance it along the element's link field.
-static inline void *NextDliItem(DLI *pdli)
+extern "C" { static inline void *NextDliItem(DLI *pdli)
 {
     void *pv = *pdli->m_ppv;
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
-}
+} }
 
 // STEPPLAYER message handler (slot 5): message 3 (reset), animation events (message 9 kinds 0x15E/0x161 ...).
-void HandleStepplayerMessage(void *player, int msg, void *pv)
+extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
 {
     switch (msg) {
     case 3:
@@ -835,14 +835,14 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
     HandleBhvstkMessage(&AsStepplayer(player)->behaviors, msg, pv);
     HandlePoMessage(player, msg, pv);
 }
-} } // namespace M_HandleStepplayerMessage
+} // namespace M_HandleStepplayerMessage
 #undef F
 
-namespace M_GetStepplayerCmFocusPos { extern "C" {
-void GetJtPipePosition(JTPIPE *pjtpipe, VECTOR4 *ppos);
-qword GetLoWorldPos(STEPPLAYER *p);
+namespace M_GetStepplayerCmFocusPos {
+void GetJtPipePosition(JTPIPE *pjtpipe, VECTOR4 *ppos) __asm__("GetJtPipePosition");
+qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
 // Slot 97: the camera focus point (the pipe hand position on a pipe, else the world position raised in z).
-void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
+extern "C" void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
 {
     float z;
     if (player->jtpipe.state != -1) {
@@ -860,9 +860,9 @@ void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
     }
     v->z = z;
 }
-} } // namespace M_GetStepplayerCmFocusPos
+} // namespace M_GetStepplayerCmFocusPos
 
-namespace M_GetStepplayerCpdefi { extern "C" {
+namespace M_GetStepplayerCpdefi {
 /* VU0 length via asm; qmfc2 into an int then explicit mtc1 (gives the original GPR/FPR allocation). */
 typedef int qword __attribute__((mode(TI)));
 struct XP { char pad[0x10]; QWROW pos; char pad2[0x34 - 0x20]; float g34; };
@@ -872,24 +872,24 @@ struct JT {
     char pad4[0xDF0 - 0x4D0]; char axDF0[4]; int xDF4; char pad5[0x1044 - 0xDF8]; int x1044; int pad6;
     float x104C; float x1050; char pad7[0x1060 - 0x1054]; QWROW x1060; qword x1070;
 };
-extern float D_002BCC98, D_002BCC9C, D_002BCCA0, D_002BCCA4, D_002BCCA8, D_002BCCAC, D_002BCCB0, D_002BCCB4;
-extern char D_002BCCB8[], D_002BCCC8[], D_002BCCD8[];
-extern struct { float a, b, c; } D_002BCCF0;
-extern struct { float lo, hi; } D_002BBB60;
-extern qword D_002A2DD0;
-void GetSoCameraDefaults(struct JT *, struct XP *);
-qword GetLoWorldPos(void *);
-float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
-qword PosSmooth(qword a, qword b, float dt, void *pv, int n);
-void AddJtAirCpdefiFlags(void *, struct XP *);
-void SmoothJtCameraCurveTarget(void *, struct XP *);
-void AddJtHurtCpdefiFlags(void *, struct XP *);
+extern float D_002BCC98 __asm__("D_002BCC98"), D_002BCC9C __asm__("D_002BCC9C"), D_002BCCA0 __asm__("D_002BCCA0"), D_002BCCA4 __asm__("D_002BCCA4"), D_002BCCA8 __asm__("D_002BCCA8"), D_002BCCAC __asm__("D_002BCCAC"), D_002BCCB0 __asm__("D_002BCCB0"), D_002BCCB4 __asm__("D_002BCCB4");
+extern char D_002BCCB8[] __asm__("D_002BCCB8"), D_002BCCC8[] __asm__("D_002BCCC8"), D_002BCCD8[] __asm__("D_002BCCD8");
+extern struct { float a, b, c; } D_002BCCF0 __asm__("D_002BCCF0");
+extern struct { float lo, hi; } D_002BBB60 __asm__("D_002BBB60");
+extern qword D_002A2DD0 __asm__("D_002A2DD0");
+void GetSoCameraDefaults(struct JT *, struct XP *) __asm__("GetSoCameraDefaults");
+qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n) __asm__("SmoothValue__FfffP3SMPPf");
+qword PosSmooth(qword a, qword b, float dt, void *pv, int n) __asm__("PosSmooth");
+void AddJtAirCpdefiFlags(void *, struct XP *) __asm__("AddJtAirCpdefiFlags");
+void SmoothJtCameraCurveTarget(void *, struct XP *) __asm__("SmoothJtCameraCurveTarget");
+void AddJtHurtCpdefiFlags(void *, struct XP *) __asm__("AddJtHurtCpdefiFlags");
 
 // Evaluate the quadratic a + b*x + c*x^2.
-static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); }
+extern "C" { static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); } }
 
 // STEPPLAYER camera definition (slot 50): SO base, then the camera focus height and flags.
-void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
+extern "C" void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
 {
     GetSoCameraDefaults(jt, xp);
     if (jt->x1044) {
@@ -949,7 +949,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         xp->g34 *= Clamp(k, D_002BBB60.lo, D_002BBB60.hi);
     }
 }
-} } // namespace M_GetStepplayerCpdefi
+} // namespace M_GetStepplayerCpdefi
 
 /* STEPPLAYER RemoveHierarchy. */
 // Slot 12: base, then stops two actions and clears the behaviour stack.
@@ -961,12 +961,12 @@ extern "C" void RemoveStepplayerHierarchy(STEPPLAYER *player)
     ClearBhvstk(&player->behaviors);
 }
 
-namespace M_func_00141968 { extern "C" {
-qword GetLoWorldPos(STEPPLAYER *p);
-qword CalculateBallisticLaunchVelocity(qword a, qword b, float g, qword c);
-void SetJtAirJump(JTAIR *p, int a, int b, int c);
+namespace M_func_00141968 {
+qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
+qword CalculateBallisticLaunchVelocity(qword a, qword b, float g, qword c) __asm__("CalculateBallisticLaunchVelocity");
+void SetJtAirJump(JTAIR *p, int a, int b, int c) __asm__("SetJtAirJump");
 // Splice: computes the ballistic velocity from the player's position toward a target and applies it.
-void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
+extern "C" void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
 {
     union { qword q; float f[4]; } pos;
     union { qword q; float f[4]; } r;
@@ -986,18 +986,18 @@ void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
         player->jtair.unknown2C = 0;
     }
 }
-} } // namespace M_func_00141968
+} // namespace M_func_00141968
 
-namespace M_UpdateStepplayerGadgets { extern "C" {
-extern int D_002C3258[];
-extern GADGETDESC D_002BCD00[];
-int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, int mask, float g);
-void *CreateSfxSound(int n);
-void SetSndSourceLo(void *p, int n);
-int GetStepplayerMp(STEPPLAYER *p);
-void SetGadgetSlotState(STEPPLAYER *p, GADGETSLOT *pe, int n);
+namespace M_UpdateStepplayerGadgets {
+extern int D_002C3258[] __asm__("D_002C3258");
+extern GADGETDESC D_002BCD00[] __asm__("D_002BCD00");
+int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *p, int mask, float g) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
+void *CreateSfxSound(int n) __asm__("CreateSfxSound");
+void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
+int GetStepplayerMp(STEPPLAYER *p) __asm__("GetStepplayerMp");
+void SetGadgetSlotState(STEPPLAYER *p, GADGETSLOT *pe, int n) __asm__("SetGadgetSlotState");
 // Per frame for the three gadget slots (buttons 4/1/2): starts, updates and stops held gadgets.
-void UpdateStepplayerGadgets(STEPPLAYER *player)
+extern "C" void UpdateStepplayerGadgets(STEPPLAYER *player)
 {
     int i;
     int *pmask;
@@ -1034,7 +1034,7 @@ void UpdateStepplayerGadgets(STEPPLAYER *player)
         pmask++;
     } while (++i < 3);
 }
-} } // namespace M_UpdateStepplayerGadgets
+} // namespace M_UpdateStepplayerGadgets
 
 // Slot 99 default: no gadget is usable (returns 0).
 int STEPPLAYER::CanUseGadget(int gadgetId)
@@ -1063,17 +1063,17 @@ extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int st
     }
 }
 
-namespace M_ChargeGadgetMp { extern "C" {
-extern GADGETDESC D_002BCD00[];
-int GetStepplayerMp(STEPPLAYER *p);
-void SetStepplayerMp(STEPPLAYER *p, int a);
+namespace M_ChargeGadgetMp {
+extern GADGETDESC D_002BCD00[] __asm__("D_002BCD00");
+int GetStepplayerMp(STEPPLAYER *p) __asm__("GetStepplayerMp");
+void SetStepplayerMp(STEPPLAYER *p, int a) __asm__("SetStepplayerMp");
 // Subtracts the gadget's MP cost from the player's MP and stamps the use time.
-void ChargeGadgetMp(STEPPLAYER *p, int i)
+extern "C" void ChargeGadgetMp(STEPPLAYER *p, int i)
 {
     if (i != -1) SetStepplayerMp(p, GetStepplayerMp(p) - D_002BCD00[i].mp);
     p->lastGadgetUseTime = g_clock.time;
 }
-} } // namespace M_ChargeGadgetMp
+} // namespace M_ChargeGadgetMp
 
 // Slot 100 base: gadgets 14/21/23 go through the grab component (state 0xB); others ...
 extern "C" void StartStepplayerGadget(STEPPLAYER *player, int gadgetId)
@@ -1092,12 +1092,12 @@ extern "C" void StartStepplayerGadget(STEPPLAYER *player, int gadgetId)
     }
 }
 
-namespace M_UpdateStepplayerGadget { extern "C" {
-extern float D_002BD260;
-extern float D_002BD264;
-void DrainStepplayerMp(void *p, float f);
+namespace M_UpdateStepplayerGadget {
+extern float D_002BD260 __asm__("D_002BD260");
+extern float D_002BD264 __asm__("D_002BD264");
+void DrainStepplayerMp(void *p, float f) __asm__("DrainStepplayerMp");
 // Slot 101: while a gadget is held, drains MP at its per-second rate.
-void UpdateStepplayerGadget(void *player, int *pm)
+extern "C" void UpdateStepplayerGadget(void *player, int *pm)
 {
     switch (*pm) {
     case 0x1D:
@@ -1108,29 +1108,29 @@ void UpdateStepplayerGadget(void *player, int *pm)
         break;
     }
 }
-} } // namespace M_UpdateStepplayerGadget
+} // namespace M_UpdateStepplayerGadget
 
 // Slot 102 base: empty (called when a held gadget slot leaves state 1).
 extern "C" void StopStepplayerGadget()
 {
 }
 
-namespace M_func_00141E30 { extern "C" {
+namespace M_func_00141E30 {
 // Slot 104: sends Splice event 0x1A to itself (after a power-up purchase, see RefreshPlayersAfterPowerupChange).
-void SendStepplayerPowerupEvent(STEPPLAYER *player)
+extern "C" void SendStepplayerPowerupEvent(STEPPLAYER *player)
 {
     player->HandleSpliceEvent(0x1A, 0, 0, 0, 0);
 }
-} } // namespace M_func_00141E30
+} // namespace M_func_00141E30
 
 // Slot 105 base: empty; called after the gadget slot assignment changes or loads.
 extern "C" void OnStepplayerGadgetsChanged()
 {
 }
 
-namespace M_IGadgetSlotFromId { extern "C" {
+namespace M_IGadgetSlotFromId {
 // Index (0..2) of the gadget slot holding the id, else -1.
-int GetGadgetSlotFromId(STEPPLAYER *p, int id)
+extern "C" int GetGadgetSlotFromId(STEPPLAYER *p, int id)
 {
     int i;
     for (i = 0; i < 3; i++) {
@@ -1138,12 +1138,12 @@ int GetGadgetSlotFromId(STEPPLAYER *p, int id)
     }
     return -1;
 }
-} } // namespace M_IGadgetSlotFromId
+} // namespace M_IGadgetSlotFromId
 
-namespace M_GrfbtnGadget { extern "C" {
-extern int D_002C3258[];
+namespace M_GrfbtnGadget {
+extern int D_002C3258[] __asm__("D_002C3258");
 // Button mask of every slot holding the gadget id.
-int GetGadgetButtonMask(STEPPLAYER *p, int id)
+extern "C" int GetGadgetButtonMask(STEPPLAYER *p, int id)
 {
     int i;
     int m = 0;
@@ -1152,19 +1152,19 @@ int GetGadgetButtonMask(STEPPLAYER *p, int id)
     }
     return m;
 }
-} } // namespace M_GrfbtnGadget
+} // namespace M_GrfbtnGadget
 
-namespace M_LoadStepplayerGadgets { extern "C" {
-extern char D_002A4D50[];
-extern char D_002A4D58[];
-int sprintf(char *, const char *, ...);
-void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d);
-void Decref__4CRef(CRefData *r);
+namespace M_LoadStepplayerGadgets {
+extern char D_002A4D50[] __asm__("D_002A4D50");
+extern char D_002A4D58[] __asm__("D_002A4D58");
+int sprintf(char *, const char *, ...) __asm__("sprintf");
+void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d) __asm__("GetSaveVarByName");
+void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 // 0x141EF0: dead-code scrap (sly2/scrap.h)
-SLY2_SCRAP("addiu $sp, $sp, 0x20");
+extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0x20"); }
 
 // Reads the three gadget slots from the save variables (root.apukCur[i]), then slot 105.
-void LoadStepplayerGadgets(STEPPLAYER *player)
+extern "C" void LoadStepplayerGadgets(STEPPLAYER *player)
 {
     int i;
     for (i = 0; i < 3; i++) {
@@ -1177,17 +1177,17 @@ void LoadStepplayerGadgets(STEPPLAYER *player)
     }
     player->OnGadgetsChanged();
 }
-} } // namespace M_LoadStepplayerGadgets
+} // namespace M_LoadStepplayerGadgets
 
 namespace M_SetStepplayerGadget {
-extern "C" void Decref__4CRef(CRef *);
+extern void Decref__4CRef(CRef *) __asm__("Decref__4CRef");
 
-extern "C" {
-extern char D_002A4D50[];
-extern char D_002A4D58[];
-int sprintf(char *pch, const char *fmt, ...);
-}
-extern "C" { CRef SetSaveVarByName(const CRef &ref, void *o, const char *fmt, ...); }
+
+extern char D_002A4D50[] __asm__("D_002A4D50");
+extern char D_002A4D58[] __asm__("D_002A4D58");
+int sprintf(char *pch, const char *fmt, ...) __asm__("sprintf");
+
+CRef SetSaveVarByName(const CRef &ref, void *o, const char *fmt, ...) __asm__("SetSaveVarByName");
 // Assigns a gadget id to slot i: stops the old one, clears duplicates in other slots, writes the save variable.
 extern "C" void SetStepplayerGadget(STEPPLAYER *player, unsigned int i, int id)
 {
@@ -1244,14 +1244,14 @@ extern "C" void SetStepplayerGrabTargetAlt(STEPPLAYER *player, LO *lo)
     }
 }
 
-namespace M_func_00142278 { extern "C" {
+namespace M_func_00142278 {
 typedef int qword __attribute__((mode(TI)));
-void FadeSoIn(void *p, float f);
-qword GetLoWorldPos(void *p);
-void UpdateJtThrowArc(JTTHROW *p, int n);
-void SetJtThrowState(JTTHROW *p, int n);
+void FadeSoIn(void *p, float f) __asm__("FadeSoIn");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+void UpdateJtThrowArc(JTTHROW *p, int n) __asm__("UpdateJtThrowArc");
+void SetJtThrowState(JTTHROW *p, int n) __asm__("SetJtThrowState");
 // Splice: makes object a the carried object (+0x11C0) aimed at object b's position.
-void StartStepplayerThrowAt(STEPPLAYER *player, LO *a, void *b)
+extern "C" void StartStepplayerThrowAt(STEPPLAYER *player, LO *a, void *b)
 {
     FadeSoIn(a, 0.25f);
     player->jtthrow.ploCarried = a;
@@ -1260,11 +1260,11 @@ void StartStepplayerThrowAt(STEPPLAYER *player, LO *a, void *b)
     player->SetPlayerState(7);
     SetJtThrowState(&player->jtthrow, 7);
 }
-} } // namespace M_func_00142278
+} // namespace M_func_00142278
 
-namespace M_func_00142310 { extern "C" {
+namespace M_func_00142310 {
 // Splice: stores the throw parameters (four floats, a range and two vectors) in the throw controller.
-void SetStepplayerThrowParams(STEPPLAYER *player, LM *ps, qword q1, qword q2, float a, float b, float c, float d)
+extern "C" void SetStepplayerThrowParams(STEPPLAYER *player, LM *ps, qword q1, qword q2, float a, float b, float c, float d)
 {
     player->jtthrow.holdTurnAngle = a;
     player->jtthrow.aimTurnAngle = b;
@@ -1274,7 +1274,7 @@ void SetStepplayerThrowParams(STEPPLAYER *player, LM *ps, qword q1, qword q2, fl
     player->jtthrow.qwPosLaunchLocal = q1;
     player->jtthrow.qwWLaunchLocal = q2;
 }
-} } // namespace M_func_00142310
+} // namespace M_func_00142310
 
 // Splice: grab state 9 with the object, or leaves state 9.
 extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
@@ -1286,22 +1286,22 @@ extern "C" void SetStepplayerGrabState9(STEPPLAYER *player, LO *lo)
     }
 }
 
-namespace M_func_001423A0 { extern "C" {
+namespace M_func_001423A0 {
 struct BUF { char pad[0x30]; qword pos; };
 /* The hand position actuator (JTHANDS::pactPos; act.h ACT) as read here: +0x1C its end time. */
 struct X994 { char pad[0x1C]; float t; };
-void LoadIdentityMatrix4(XF *a, int b, MATRIX4Q *pm, int c, float g);
-qword GetLoWorldPos(void *p);
+void LoadIdentityMatrix4(XF *a, int b, MATRIX4Q *pm, int c, float g) __asm__("LoadIdentityMatrix4");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Transform point v by the 4x4 matrix pm.
-static __inline__ qword Mul(MATRIX4Q *pm, qword v)
+extern "C" { static __inline__ qword Mul(MATRIX4Q *pm, qword v)
 {
     qword o;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
             : "=j"(o) : "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q), "j"(pm->r[3].q), "j"(v));
     return o;
-}
+} }
 // Distance between a and b as a float.
-static __inline__ float DistanceBetween(qword a, qword b)
+extern "C" { static __inline__ float DistanceBetween(qword a, qword b)
 {
     qword d, t;
     float g;
@@ -1315,9 +1315,9 @@ static __inline__ float DistanceBetween(qword a, qword b)
         "vaddq.x %0, $vf0, Q" : "+j"(d));
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
-}
+} }
 // Splice predicate: true unless in grab state 5 with a target farther than 5 units from its goal.
-int IsStepplayerGrabReady(STEPPLAYER *player)
+extern "C" int IsStepplayerGrabReady(STEPPLAYER *player)
 {
     struct BUF buf;
     MATRIX4Q m;
@@ -1330,7 +1330,7 @@ int IsStepplayerGrabReady(STEPPLAYER *player)
     if (g_clock.time < ((X994 *)player->jtgrab.hands.pactPos)->t) return 0;
     return 1;
 }
-} } // namespace M_func_001423A0
+} // namespace M_func_001423A0
 
 // Splice predicate: the throw controller is idle (state -1).
 extern "C" int IsStepplayerNotThrowing(STEPPLAYER *player)
@@ -1361,12 +1361,12 @@ extern "C" int IsStepplayerNotInGrabStateC(STEPPLAYER *player)
     return player->jtgrab.state != 0xC;
 }
 
-namespace M_StartStepplayerFollow { extern "C" {
+namespace M_StartStepplayerFollow {
 typedef int qword __attribute__((mode(TI)));
-BHV *PushStepBehavior(STEPPLAYER *p, int n);
+BHV *PushStepBehavior(STEPPLAYER *p, int n) __asm__("PushStepBehavior");
 // Splice op 446: clears the behaviour stack and, with a leader, starts following it.
 // Runtime: the task t1_recon_brawl uses it to make Murray follow Sly.
-void StartStepplayerFollow(STEPPLAYER *player, PO *leader, qword q)
+extern "C" void StartStepplayerFollow(STEPPLAYER *player, PO *leader, qword q)
 {
     BHVFOLLOW *o;
     ClearBhvstk(&player->behaviors);
@@ -1377,17 +1377,17 @@ void StartStepplayerFollow(STEPPLAYER *player, PO *leader, qword q)
     o->followOffset = q;
     o->Start();
 }
-} } // namespace M_StartStepplayerFollow
+} // namespace M_StartStepplayerFollow
 
-namespace M_RenderStepplayerSelf { extern "C" {
-extern JT *D_002E1E40;
-extern float D_002BD268, D_002BD26C;
-extern char D_002BD270[];
-void RefreshSoBoundsRecord(STEPPLAYER *p);
-float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
-void RenderSoGlobset(GLOBSET *p, int n, struct SOBOUNDS *m, float a, float b);
+namespace M_RenderStepplayerSelf {
+extern JT *D_002E1E40 __asm__("D_002E1E40");
+extern float D_002BD268 __asm__("D_002BD268"), D_002BD26C __asm__("D_002BD26C");
+extern char D_002BD270[] __asm__("D_002BD270");
+void RefreshSoBoundsRecord(STEPPLAYER *p) __asm__("RefreshSoBoundsRecord");
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n) __asm__("SmoothValue__FfffP3SMPPf");
+void RenderSoGlobset(GLOBSET *p, int n, struct SOBOUNDS *m, float a, float b) __asm__("RenderSoGlobset");
 // Slot 19: renders when visible to the current camera; smooths the transparency.
-void RenderStepplayerSelf(STEPPLAYER *player)
+extern "C" void RenderStepplayerSelf(STEPPLAYER *player)
 {
     float g0, g1;
     if (!(player->visibilityMask & (*(int *)&g_cm.grfvis))) return;
@@ -1408,33 +1408,33 @@ void RenderStepplayerSelf(STEPPLAYER *player)
     }
     RenderSoGlobset(&player->model, 0, player->psobounds, player->opacity * player->renderAlpha, player->opacity * player->renderAlpha2);
 }
-} } // namespace M_RenderStepplayerSelf
+} // namespace M_RenderStepplayerSelf
 
-namespace M_func_001426E8 { extern "C" {
-XF *FindSoXf(STEPPLAYER *p, int x, int n);
+namespace M_func_001426E8 {
+XF *FindSoXf(STEPPLAYER *p, int x, int n) __asm__("FindSoXf");
 void InvertMatrix3CofactorP(MATRIX3Q *pmOut, void *pm) __asm__("InvertMatrix3Cofactor");
-qword DecomposeRotationMatrixToEuler(qword *aqwRows);
-ACT *NewPositionAct(STEPPLAYER *p, XF *pxf, int a, int b, int c, qword q);
-void DetachAct(ACT *pact);
+qword DecomposeRotationMatrixToEuler(qword *aqwRows) __asm__("DecomposeRotationMatrixToEuler");
+ACT *NewPositionAct(STEPPLAYER *p, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
+void DetachAct(ACT *pact) __asm__("DetachAct");
 // Rotate v by the 3x3 matrix pm.
-static __inline__ qword MulV(MATRIX3Q *pm, qword v)
+extern "C" { static __inline__ qword MulV(MATRIX3Q *pm, qword v)
 {
     qword o;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(o) : "j"(pm->r[0].q), "j"(pm->r[1].q), "j"(pm->r[2].q), "j"(v));
     return o;
-}
+} }
 // Return the 3x3 matrix product *pa * *pb.
-static __inline__ MATRIX3Q MulM3(MATRIX3Q *pa, MATRIX3Q *pb)
+extern "C" { static __inline__ MATRIX3Q MulM3(MATRIX3Q *pa, MATRIX3Q *pb)
 {
     MATRIX3Q m;
     m.r[0].q = MulV(pa, pb->r[0].q);
     m.r[1].q = MulV(pa, pb->r[1].q);
     m.r[2].q = MulV(pa, pb->r[2].q);
     return m;
-}
+} }
 // Finds the start-marker child and places the player relative to it.
-void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
+extern "C" void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
 {
     XF *so = FindSoXf(player, x, 6);
     MATRIX3Q m, a;
@@ -1452,7 +1452,7 @@ void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
     player->pactStartMarker = NewPositionAct(player, so, 3, 7, 2, DecomposeRotationMatrixToEuler(player->aqwStartMarker));
     DetachAct(player->pactStartMarker);
 }
-} } // namespace M_func_001426E8
+} // namespace M_func_001426E8
 
 // Sets the lean target object (+0x10F8) and lean kind (+0x10FC); restarts the idle timer on a new target.
 extern "C" void SetStepplayerLeanTarget(STEPPLAYER *player, int nLeanKind, LO *ploLean)
@@ -1469,15 +1469,15 @@ extern "C" void SetStepplayerLeanTarget(STEPPLAYER *player, int nLeanKind, LO *p
     }
 }
 
-namespace M_ForceStepplayerLeanTarget { extern "C" {
-void SetStepplayerLeanTarget(void *p, int a, int b);
+namespace M_ForceStepplayerLeanTarget {
+void SetStepplayerLeanTarget(void *p, int a, int b) __asm__("SetStepplayerLeanTarget");
 // Splice: SetStepplayerLeanTarget, then locks it (+0x1100 = 1).
-void ForceStepplayerLeanTarget(char *player, int a, int b)
+extern "C" void ForceStepplayerLeanTarget(char *player, int a, int b)
 {
     SetStepplayerLeanTarget(player, a, b);
     *(int *)(player + 0x1100) = 1;
 }
-} } // namespace M_ForceStepplayerLeanTarget
+} // namespace M_ForceStepplayerLeanTarget
 
 // Unlocks the lean target (+0x1100 = 0).
 extern "C" void UnlockStepplayerLeanTarget(STEPPLAYER *player)
@@ -1488,19 +1488,19 @@ extern "C" void UnlockStepplayerLeanTarget(STEPPLAYER *player)
 namespace RO_ORDER { extern const char r_D_002A4D50[] __asm__("D_002A4D50") = "%d"; }
 namespace RO_ORDER { extern const char r_D_002A4D58[] __asm__("D_002A4D58") = "apukCur"; }
 namespace RO_ORDER { extern const float r_D_002A4D60 __asm__("D_002A4D60") = 3.40282347e+38f; }
-namespace M_func_00142868 { extern "C" {
+namespace M_func_00142868 {
 // Sets an idle timer's kind and makes it never fire (FLT_MAX).
-void InitIdleTimer(STEPPLAYER *p, int a)
+extern "C" void InitIdleTimer(STEPPLAYER *p, int a)
 {
     p->idleKind = a;
     p->tNextIdle = 3.40282346638528859812e+38f;
 }
-} } // namespace M_func_00142868
+} // namespace M_func_00142868
 
-namespace M_func_00142880 { extern "C" {
-float RandomFloatInRange__Fff(float a, float b);
+namespace M_func_00142880 {
+float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 // Next idle event = now + a random time in the chosen range.
-void ScheduleIdleTimer(STEPPLAYER *p)
+extern "C" void ScheduleIdleTimer(STEPPLAYER *p)
 {
     float t;
     if (p->idleKind) {
@@ -1513,7 +1513,7 @@ void ScheduleIdleTimer(STEPPLAYER *p)
         p->tNextIdle = t;
     }
 }
-} } // namespace M_func_00142880
+} // namespace M_func_00142880
 
 namespace M_HeroInteractDistance {
 // GetHeroInteractDistance: ported from Lilly's personal Sly 2 decomp (src/P2/stepplayer_raw.c), reduced to the declarations it needs.
@@ -1547,11 +1547,11 @@ static inline float EvaluateClq(CLQ *clq, float x)
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
 void *PvAllocSwClearImpl(SWALLOC *pswalloc);
-extern "C" { extern CLQ D_002BD280; }
-extern "C" { extern CLQ D_002BD290; }
-extern "C" { extern CLQ D_002BD2A0; }
-extern "C" { extern CLQ D_002BD2B0; }
-extern "C" { extern LM D_002BBB60; }
+extern CLQ D_002BD280 __asm__("D_002BD280");
+extern CLQ D_002BD290 __asm__("D_002BD290");
+extern CLQ D_002BD2A0 __asm__("D_002BD2A0");
+extern CLQ D_002BD2B0 __asm__("D_002BD2B0");
+extern LM D_002BBB60 __asm__("D_002BBB60");
 // Return a - b.
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
@@ -1586,7 +1586,7 @@ static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
         return maxValue;
     return g;
 }
-extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
+extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 extern "C" void GetHeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pploCur, float *psDist, float *pdz) __asm__("GetHeroInteractDistance");
 // Distance score of an object for interact picking: xy distance plus biases (hysteresis for the current target).
 extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur, float *psDist, float *pdz)
@@ -1641,28 +1641,28 @@ struct P : LO {
     LM lmPan; LM lmTilt; float g1130; float g1134; char pad8[0x1148 - 0x1138]; int n1148; float g114C;
     MATRIX3Q m1150;
 };
-extern "C" {
-extern int D_002DD640;
-extern float D_002A4D68;
-extern qword D_002A2DA0;
-void ScheduleIdleTimer(P *p);
-void SetStepplayerLeanTarget(P *p, int n, S *ps);
-void GetHeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
-int IsWithinLimits__FP2LMf(void *p, float g);
-void AttachAct(Q *pq);
-void DetachAct(Q *pq);
-qword GetLoWorldPos(void *p);
-qword ConvertPosBetweenLos(int n, P *p, qword q);
-void CalculateVectorPanTilt(qword v, float *pa, float *pb);
-float ClampAngleToRange(LM *plm, float g);
-MATRIX3Q LoadRotateMatrixPanTilt(float a, float b);
-MATRIX3Q BuildAxisAngleRotationMatrix(qword v, float g);
-MATRIX3Q ConvertXfMat(void *pvFrom, void *pvTo, MATRIX3Q *pm);
-MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *pm);
-qword DecomposeRotationMatrixToEuler(MATRIX3Q *pm);
-void SetActPositionGoal(Q *pq, qword q);
-void PickHeroInteractTarget(P *p);
-}
+
+extern int D_002DD640 __asm__("D_002DD640");
+extern float D_002A4D68 __asm__("D_002A4D68");
+extern qword D_002A2DA0 __asm__("D_002A2DA0");
+void ScheduleIdleTimer(P *p) __asm__("ScheduleIdleTimer");
+void SetStepplayerLeanTarget(P *p, int n, S *ps) __asm__("SetStepplayerLeanTarget");
+void GetHeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2) __asm__("GetHeroInteractDistance");
+int IsWithinLimits__FP2LMf(void *p, float g) __asm__("IsWithinLimits__FP2LMf");
+void AttachAct(Q *pq) __asm__("AttachAct");
+void DetachAct(Q *pq) __asm__("DetachAct");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword ConvertPosBetweenLos(int n, P *p, qword q) __asm__("ConvertPosBetweenLos");
+void CalculateVectorPanTilt(qword v, float *pa, float *pb) __asm__("CalculateVectorPanTilt");
+float ClampAngleToRange(LM *plm, float g) __asm__("ClampAngleToRange");
+MATRIX3Q LoadRotateMatrixPanTilt(float a, float b) __asm__("LoadRotateMatrixPanTilt");
+MATRIX3Q BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3Q ConvertXfMat(void *pvFrom, void *pvTo, MATRIX3Q *pm) __asm__("ConvertXfMat");
+MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *pm) __asm__("InvertMatrix3Cofactor");
+qword DecomposeRotationMatrixToEuler(MATRIX3Q *pm) __asm__("DecomposeRotationMatrixToEuler");
+void SetActPositionGoal(Q *pq, qword q) __asm__("SetActPositionGoal");
+void PickHeroInteractTarget(P *p) __asm__("PickHeroInteractTarget");
+
 struct VU_VECTOR4 { qword qw; };
 // 3x3 matrix product matL * matR.
 inline MATRIX3Q operator*(const MATRIX3Q &matL, const MATRIX3Q &matR) return mat
@@ -1790,26 +1790,26 @@ void PickHeroInteractTarget(P *p)
 }
 } // namespace M_func_00142AF8
 
-namespace M_func_00143090 { extern "C" {
+namespace M_func_00143090 {
 // Copies three pairs of idle-timer ranges into the record.
-void SetStepplayerIdleParams(STEPPLAYER *player, LM *a, LM *b, LM *c)
+extern "C" void SetStepplayerIdleParams(STEPPLAYER *player, LM *a, LM *b, LM *c)
 {
     player->almIdle[0] = *a;
     player->almIdle[1] = *b;
     player->almIdle[2] = *c;
 }
-} } // namespace M_func_00143090
+} // namespace M_func_00143090
 
 namespace RO_ORDER { extern const float r_D_002A4D68 __asm__("D_002A4D68") = 3.40282347e+38f; }
-namespace M_func_001430C8 { extern "C" {
+namespace M_func_001430C8 {
 typedef int qword __attribute__((mode(TI)));
-extern float D_002BD2C0;
-extern float D_002BD2C4;
-qword GetLoWorldPos(void *p);
-qword ConvertPosBetweenLos(void *pm, STEPPLAYER *p, qword v);
-float atan2f(float y, float x);
+extern float D_002BD2C0 __asm__("D_002BD2C0");
+extern float D_002BD2C4 __asm__("D_002BD2C4");
+qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+qword ConvertPosBetweenLos(void *pm, STEPPLAYER *p, qword v) __asm__("ConvertPosBetweenLos");
+float atan2f(float y, float x) __asm__("atan2f");
 // Lean flags from the lean target's direction (quadrant in local space) and the lean kind.
-int GetStepplayerLeanFlags(STEPPLAYER *player)
+extern "C" int GetStepplayerLeanFlags(STEPPLAYER *player)
 {
     int n;
     int r;
@@ -1832,7 +1832,7 @@ int GetStepplayerLeanFlags(STEPPLAYER *player)
     }
     return r;
 }
-} } // namespace M_func_001430C8
+} // namespace M_func_001430C8
 
 /* Clears the interaction target's behaviour 0xB1 hold on this player. */
 // If the interact target's takedown behaviour (0xB1) points at the player, clears its mark.
@@ -1847,12 +1847,12 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
     }
 }
 
-namespace M_GetStepplayerStunHold { extern "C" {
+namespace M_GetStepplayerStunHold {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DC0;
-qword GetLoWorldPos(LO *p);
+extern qword D_002A2DC0 __asm__("D_002A2DC0");
+qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
-void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
+extern "C" void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
 {
     qword v, h, pos, s, r;
     QWROW u;
@@ -1873,16 +1873,16 @@ void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
     u.q = s;
     ps->fValid = 0;
 }
-} } // namespace M_GetStepplayerStunHold
+} // namespace M_GetStepplayerStunHold
 
-namespace M_func_001432E0 { extern "C" {
-int GetCurrentBootyEntryId(void *p);
-void DropStepplayerBooty(void *p);
-void *AcquireProxyObject(void *p, int n);
-void SelectBootyEntry(void *p, int n);
-void SetBootyState(void *p, int n);
+namespace M_func_001432E0 {
+int GetCurrentBootyEntryId(void *p) __asm__("GetCurrentBootyEntryId");
+void DropStepplayerBooty(void *p) __asm__("DropStepplayerBooty");
+void *AcquireProxyObject(void *p, int n) __asm__("AcquireProxyObject");
+void SelectBootyEntry(void *p, int n) __asm__("SelectBootyEntry");
+void SetBootyState(void *p, int n) __asm__("SetBootyState");
 // If carrying booty not shown yet: releases the old marker and clones the template.
-void SpawnStepplayerBootyMarker(char *player, int n)
+extern "C" void SpawnStepplayerBootyMarker(char *player, int n)
 {
     void *q = *(void **)(player + 0x11A8);
     char *o;
@@ -1896,7 +1896,7 @@ void SpawnStepplayerBootyMarker(char *player, int n)
     SetBootyState(o, 6);
     SetBootyState(o, 4);
 }
-} } // namespace M_func_001432E0
+} // namespace M_func_001432E0
 
 // If carrying booty: booty save case 2 (dropped), its state 5.
 extern "C" void DropStepplayerBooty(STEPPLAYER *player)
@@ -1921,17 +1921,17 @@ struct KEY { int c; unsigned short *a; };
 struct OUT { SVENT *pe; int n; };
 // Allocation request: byte count and alignment.
 struct AREQ { int cb; int cbAlign; AREQ(int c, int a) { cb = c; cbAlign = a; } };
-extern "C" {
-extern char D_002A4D88[];
-extern char D_002A4D90[];
-extern char D_002A4D98[];
-extern char D_002A4DA0[];
-short FindSaveSymbol(SVNHASH *, char *);
-int FindSaveVar(SAVEVARS *, KEY *, OUT *);
-CRef GetSaveVar(SAVEVARS *p, KEY *key, SAVEDATA *pb);
-void *AllocFromStack(const AREQ &);
-void CopyAb__FPvT0Ui(void *, void *, int);
-}
+
+extern char D_002A4D88[] __asm__("D_002A4D88");
+extern char D_002A4D90[] __asm__("D_002A4D90");
+extern char D_002A4D98[] __asm__("D_002A4D98");
+extern char D_002A4DA0[] __asm__("D_002A4DA0");
+short FindSaveSymbol(SVNHASH *, char *) __asm__("FindSaveSymbol");
+int FindSaveVar(SAVEVARS *, KEY *, OUT *) __asm__("FindSaveVar");
+CRef GetSaveVar(SAVEVARS *p, KEY *key, SAVEDATA *pb) __asm__("GetSaveVar");
+void *AllocFromStack(const AREQ &) __asm__("AllocFromStack");
+void CopyAb__FPvT0Ui(void *, void *, int) __asm__("CopyAb__FPvT0Ui");
+
 // Look up a save variable by key.
 static inline CRef Lookup(KEY &k) { return GetSaveVar(&g_sw.savevars, &k, &g_gs); }
 // Allocate cb bytes, 16-byte aligned.
@@ -1989,9 +1989,9 @@ extern "C" KEY *FindBootySaveVar(int id)
 namespace M_UpdateStepplayerBootySave {
 // MATCH (Claude agent, laneC20 2026-10-23): v4 + __4CRefRC4CRef (CRef copy ctor) declared returning void * instead of void.
 struct CRefIsland;
-extern "C" void Decref__4CRef(CRefIsland *);
-extern "C" void *__4CRefRC4CRef(CRefIsland *, const CRefIsland *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
-extern "C" CRefIsland *func_00129658(CRefIsland *, const CRefIsland *) __asm__("__as__4CRefRC4CRef");
+extern void Decref__4CRef(CRefIsland *) __asm__("Decref__4CRef");
+extern void *__4CRefRC4CRef(CRefIsland *, const CRefIsland *) __asm__("__4CRefRC4CRef"); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
+extern CRefIsland *func_00129658(CRefIsland *, const CRefIsland *) __asm__("__as__4CRefRC4CRef");
 /* CRefIsland: CRef with its copy constructor inline over the void*-returning copy function (cref.h's out-of-line
    copy constructor moves the stack slots: 37/286 off; matching-only form). */
 struct CRefIsland {
@@ -2017,21 +2017,21 @@ struct SO { char pad[0x180]; int x180; };
 struct K { char pad[0xC]; unsigned short xC; };
 struct S { int c; K *pk; };
 struct BL { int c; void *pv; };
-extern "C" {
-extern char D_002A4DB0[], D_002A4D50[], D_002A4DC0[], D_002A4DC8[];
-void *FindBootySaveVar(void *p);
-int GetCurrentBootyEntryId(void *p);
-void *GetBootyContainerSaveKey(Q *p);
-S *ClearStepplayerBootySave(LO *p, int n);
-int GetCurrentLevelIndex__Fv(void);
-BL *GetLevelListEntry(int);
+
+extern char D_002A4DB0[] __asm__("D_002A4DB0"), D_002A4D50[] __asm__("D_002A4D50"), D_002A4DC0[] __asm__("D_002A4DC0"), D_002A4DC8[] __asm__("D_002A4DC8");
+void *FindBootySaveVar(void *p) __asm__("FindBootySaveVar");
+int GetCurrentBootyEntryId(void *p) __asm__("GetCurrentBootyEntryId");
+void *GetBootyContainerSaveKey(Q *p) __asm__("GetBootyContainerSaveKey");
+S *ClearStepplayerBootySave(LO *p, int n) __asm__("ClearStepplayerBootySave");
+int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
+BL *GetLevelListEntry(int) __asm__("GetLevelListEntry");
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
-int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
-int sprintf(char *, const char *, ...);
-CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, SAVEDATA *pv);
-}
-extern "C" { CRefIsland SetSaveVarByName(const CRefIsland &ref, const void *o, ...); }
-extern "C" { CRefIsland GetSaveVarByName(const char *, ...); }
+int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso) __asm__("FindSwObjectsByClass");
+int sprintf(char *, const char *, ...) __asm__("sprintf");
+CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, SAVEDATA *pv) __asm__("SetGlobalSaveVar");
+
+CRefIsland SetSaveVarByName(const CRefIsland &ref, const void *o, ...) __asm__("SetSaveVarByName");
+CRefIsland GetSaveVarByName(const char *, ...) __asm__("GetSaveVarByName");
 // Store ref into the global save variable pv.
 static inline void Send(void *pv, CRefIsland ref) { SetGlobalSaveVar(pv, ref, &g_gs); }
 // Store the reference r into the save variable pv.
@@ -2044,7 +2044,7 @@ static inline void SetPv(void *pv, const CRefIsland &r, void *)
 }
 
 // Booty save-state transitions: 0 picked up, 1 delivered, 2 dropped ...
-extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
+void UpdateStepplayerBootySave(LO *lo, int n, Q *q) __asm__("UpdateStepplayerBootySave"); void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
 {
     STACKSCOPE m;
     switch (n) {
@@ -2108,15 +2108,15 @@ extern "C" void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
 } // namespace M_UpdateStepplayerBootySave
 
 namespace M_func_00143AF0 {
-extern "C" void Decref__4CRef(CRef *);
-extern "C" void __4CRefRC4CRef(CRef *, const CRef *);
+extern void Decref__4CRef(CRef *) __asm__("Decref__4CRef");
+extern void __4CRefRC4CRef(CRef *, const CRef *) __asm__("__4CRefRC4CRef");
 struct LO { char pad[0xC]; void *vptr; char pad2[0x18 - 0x10]; void *p18; };
-extern "C" { extern char D_002A4DB0[]; }
-extern "C" {
-void *FindBootySaveVar(void *p);
-CRef SetGlobalSaveVar(void *p, const CRef &ref, SAVEDATA *pv);
-CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n);
-}
+extern char D_002A4DB0[] __asm__("D_002A4DB0");
+
+void *FindBootySaveVar(void *p) __asm__("FindBootySaveVar");
+CRef SetGlobalSaveVar(void *p, const CRef &ref, SAVEDATA *pv) __asm__("SetGlobalSaveVar");
+CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n) __asm__("SetSaveVarByName");
+
 /* Same SetPv form as SetBootyContainerKind: the unused dummy param makes gcc set up %hi(D_003D4A60)
    before the copy (lui in the copy-ctor jal slot). The copy is made in a raw struct with explicit
    copy/dtor calls: an inlined ~CRef would put &arg in a pseudo that gcse PRE then shares with
@@ -2143,15 +2143,15 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
 }
 } // namespace M_func_00143AF0
 
-namespace M_func_00143BD8 { extern "C" {
+namespace M_func_00143BD8 {
 struct O { char pad[0xC]; void *vptr; };
-extern char D_002A4DB0[];
-void GetSaveVarByName(CRefData *r, void *a, void *b, int c);
-void Decref__4CRef(CRefData *r);
-void ClearStepplayerBootySave(struct O *p, int n);
-void SpawnStepplayerBootyMarker(struct O *p, int n);
+extern char D_002A4DB0[] __asm__("D_002A4DB0");
+void GetSaveVarByName(CRefData *r, void *a, void *b, int c) __asm__("GetSaveVarByName");
+void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
+void ClearStepplayerBootySave(struct O *p, int n) __asm__("ClearStepplayerBootySave");
+void SpawnStepplayerBootyMarker(struct O *p, int n) __asm__("SpawnStepplayerBootyMarker");
 // On load: restores or clears the carried booty depending on the transition flags.
-void RestoreStepplayerBooty(struct O *player)
+extern "C" void RestoreStepplayerBooty(struct O *player)
 {
     CRefData r;
     int n;
@@ -2162,7 +2162,7 @@ void RestoreStepplayerBooty(struct O *player)
     if (g_sw.transition.flags & 0x40) ClearStepplayerBootySave(player, n);
     else SpawnStepplayerBootyMarker(player, n);
 }
-} } // namespace M_func_00143BD8
+} // namespace M_func_00143BD8
 
 namespace RO_ORDER { extern const char r_D_002A4D88[] __asm__("D_002A4D88") = "episode"; }
 namespace RO_ORDER { extern const char r_D_002A4D90[] __asm__("D_002A4D90") = "level"; }
@@ -2171,9 +2171,9 @@ namespace RO_ORDER { extern const char r_D_002A4DA0[] __asm__("D_002A4DA0") = "a
 namespace RO_ORDER { extern const char r_D_002A4DB0[] __asm__("D_002A4DB0") = "oidBooty"; }
 namespace RO_ORDER { extern const char r_D_002A4DC0[] __asm__("D_002A4DC0") = "loot"; }
 namespace RO_ORDER { extern const char r_D_002A4DC8[] __asm__("D_002A4DC8") = "mplootkc"; }
-namespace M_func_00143C78 { extern "C" {
+namespace M_func_00143C78 {
 // Slot 85 base: the ground-probe flags (step.cpp PROBE_*) from the component states (0 if +0x204, 4 in grab 3/4, 1 in the air, 7 = default ...).
-int GetStepplayerGroundProbeFlags(char *player)
+extern "C" int GetStepplayerGroundProbeFlags(char *player)
 {
     if (*(int *)(player + 0x204)) return 0;
     switch (*(int *)(player + 0x4C8)) {
@@ -2195,7 +2195,7 @@ int GetStepplayerGroundProbeFlags(char *player)
     }
     return 0;
 }
-} } // namespace M_func_00143C78
+} // namespace M_func_00143C78
 
 // Slot 29: base translate, then forgets the recorded safe places.
 extern "C" void TranslateStepplayerToPos(STEPPLAYER *player, qword pos)
@@ -2204,11 +2204,11 @@ extern "C" void TranslateStepplayerToPos(STEPPLAYER *player, qword pos)
     player->jtplaces.cplace = 0;
 }
 
-namespace M_func_00143D20 { extern "C" {
-qword GetLoWorldPos(STEPPLAYER *p);
-int SnapToGround(qword *ppos, int a, int b, float f, float g);
+namespace M_func_00143D20 {
+qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
+int SnapToGround(qword *ppos, int a, int b, float f, float g) __asm__("SnapToGround");
 // Predicts the height after dt under gravity; if at or below the ground, tests for ground at that point.
-int WillStepplayerLand(STEPPLAYER *so, float dt)
+extern "C" int WillStepplayerLand(STEPPLAYER *so, float dt)
 {
     union { qword q; float f[4]; } pos;
     float h = so->vecPivotOffset.z;
@@ -2219,15 +2219,15 @@ int WillStepplayerLand(STEPPLAYER *so, float dt)
     pos.q = GetLoWorldPos(so);
     return SnapToGround(&pos.q, 0, 0, 0.0f, h);
 }
-} } // namespace M_func_00143D20
+} // namespace M_func_00143D20
 
-namespace M_func_00143DE8 { extern "C" {
-void ClearBhvstk__FP6BHVSTK(void *p);
-int IsStepplayerInJtMode(STEPPLAYER *p);
-void SetJtModeState__FP6JTMODEi(void *p, int n);
+namespace M_func_00143DE8 {
+void ClearBhvstk__FP6BHVSTK(void *p) __asm__("ClearBhvstk__FP6BHVSTK");
+int IsStepplayerInJtMode(STEPPLAYER *p) __asm__("IsStepplayerInJtMode");
+void SetJtModeState__FP6JTMODEi(void *p, int n) __asm__("SetJtModeState__FP6JTMODEi");
 // Sets the job sequence scripting the hero (+0x1084): the old one is released (leaving grab states 5/6), the new one
 // referenced; the behaviour stack is cleared and a recon mode left.
-void SetStepplayerRide(STEPPLAYER *player, RELAYJSG *lo)
+extern "C" void SetStepplayerRide(STEPPLAYER *player, RELAYJSG *lo)
 {
     RELAYJSG *old = player->pjsgScript;
     if (lo == old) return;
@@ -2248,18 +2248,18 @@ void SetStepplayerRide(STEPPLAYER *player, RELAYJSG *lo)
     if (player->jtthrow.state != -1 && player->pjsgScript->prelaycmdJt->relayck != RELAYCK_StepCmd1E)
         player->SetPlayerState(0);
 }
-} } // namespace M_func_00143DE8
+} // namespace M_func_00143DE8
 
-namespace M_func_00143EE0 { extern "C" {
-void StopStepplayerScriptAnim(STEPPLAYER *p);
-void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, STEPPLAYER *p);
-int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-void ReleaseSma(void *p);
-void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, STEPPLAYER *p, int a, void *b, float f, float g);
-void ReleaseAsega(void *p);
-void ReplaceSma(void *o, STEPPLAYER *p, int n, int a, void *b);
+namespace M_func_00143EE0 {
+void StopStepplayerScriptAnim(STEPPLAYER *p) __asm__("StopStepplayerScriptAnim");
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, STEPPLAYER *p) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void ReleaseSma(void *p) __asm__("ReleaseSma");
+void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, STEPPLAYER *p, int a, void *b, float f, float g) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void ReleaseAsega(void *p) __asm__("ReleaseAsega");
+void ReplaceSma(void *o, STEPPLAYER *p, int n, int a, void *b) __asm__("ReplaceSma");
 // oid -1 stops; otherwise finds the object and plays the scripted animation on the player.
-void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int b)
+extern "C" void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int b)
 {
     void *o;
     if (oid == -1) {
@@ -2278,7 +2278,7 @@ void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int b)
         ReplaceSma(o, player, -1, a, &player->activeStateMachine);
     }
 }
-} } // namespace M_func_00143EE0
+} // namespace M_func_00143EE0
 
 // In the scripted generic states 5/6 returns to state 0.
 extern "C" void StopStepplayerScriptAnim(STEPPLAYER *player)
@@ -2313,14 +2313,14 @@ int STEPPLAYER::CanBeHealed()
     return GetJtHurtStatus(&jthurt) != 2;
 }
 
-namespace M_BindStepplayerHpMp { extern "C" {
-extern char D_002A4E18[];
-extern char D_002A4E20[];
-int *GetSaveVarAddressV(void *p, char *name, int n);
-void SetStepplayerHp(STEPPLAYER *p, int n);
-void SetStepplayerMp(STEPPLAYER *p, int n);
+namespace M_BindStepplayerHpMp {
+extern char D_002A4E18[] __asm__("D_002A4E18");
+extern char D_002A4E20[] __asm__("D_002A4E20");
+int *GetSaveVarAddressV(void *p, char *name, int n) __asm__("GetSaveVarAddressV");
+void SetStepplayerHp(STEPPLAYER *p, int n) __asm__("SetStepplayerHp");
+void SetStepplayerMp(STEPPLAYER *p, int n) __asm__("SetStepplayerMp");
 // Binds hp/mp to the save variables hpCur/mpCur under the character's root, with defaults when unset.
-void BindStepplayerHpMp(STEPPLAYER *player, int f)
+extern "C" void BindStepplayerHpMp(STEPPLAYER *player, int f)
 {
     player->jthurt.hitPoints = GetSaveVarAddressV(player->GetSaveVarRoot(), D_002A4E18, 0);
     player->gadgetPower = GetSaveVarAddressV(player->GetSaveVarRoot(), D_002A4E20, 0);
@@ -2330,7 +2330,7 @@ void BindStepplayerHpMp(STEPPLAYER *player, int f)
     SetStepplayerMp(player, player->maxGadgetPower);
     player->gadgetPowerDrainRemainder = 0;
 }
-} } // namespace M_BindStepplayerHpMp
+} // namespace M_BindStepplayerHpMp
 
 // Sets hp, clamped to the maximum.
 extern "C" void SetStepplayerHp(STEPPLAYER *player, int hp)
@@ -2339,15 +2339,15 @@ extern "C" void SetStepplayerHp(STEPPLAYER *player, int hp)
     *player->jthurt.hitPoints = (hp >= hpMax) ? hpMax : hp;
 }
 
-namespace M_MpStepplayerCur { extern "C" {
+namespace M_MpStepplayerCur {
 // Current MP (the bound value, or the maximum when unbound).
-int GetStepplayerMp(char *player)
+extern "C" int GetStepplayerMp(char *player)
 {
     int *q = *(int **)(player + 0x12FC);
     if (!q) return *(int *)(player + 0x1300);
     return *q;
 }
-} } // namespace M_MpStepplayerCur
+} // namespace M_MpStepplayerCur
 
 // Sets MP, clamped to the maximum.
 extern "C" void SetStepplayerMp(STEPPLAYER *player, int mp)
@@ -2359,12 +2359,12 @@ extern "C" void SetStepplayerMp(STEPPLAYER *player, int mp)
     }
 }
 
-namespace M_DrainStepplayerMp { extern "C" {
+namespace M_DrainStepplayerMp {
 /* only diff: hazard nop placement (target: no nop after mfc1 before beqz, nop after mtc1); assembler-level */
-int GetStepplayerMp(void *p);
-void SetStepplayerMp(void *p, int n);
+int GetStepplayerMp(void *p) __asm__("GetStepplayerMp");
+void SetStepplayerMp(void *p, int n) __asm__("SetStepplayerMp");
 // Accumulates rate * dt and subtracts whole MP units (floored at 0).
-void DrainStepplayerMp(STEPPLAYER *player, float f)
+extern "C" void DrainStepplayerMp(STEPPLAYER *player, float f)
 {
     int n;
     player->gadgetPowerDrainRemainder += f * g_clock.deltaTime;
@@ -2376,28 +2376,28 @@ void DrainStepplayerMp(STEPPLAYER *player, float f)
     x = GetStepplayerMp(player) - n;
     SetStepplayerMp(player, x > -1 ? x : 0);
 }
-} } // namespace M_DrainStepplayerMp
+} // namespace M_DrainStepplayerMp
 
-namespace M_AddStepplayerHpMp { extern "C" {
-void AddPoHpMp(void *p, int a, int b);
-void SetStepplayerHp(void *p, int a);
-int GetStepplayerMp(void *p);
-void SetStepplayerMp(void *p, int a);
+namespace M_AddStepplayerHpMp {
+void AddPoHpMp(void *p, int a, int b) __asm__("AddPoHpMp");
+void SetStepplayerHp(void *p, int a) __asm__("SetStepplayerHp");
+int GetStepplayerMp(void *p) __asm__("GetStepplayerMp");
+void SetStepplayerMp(void *p, int a) __asm__("SetStepplayerMp");
 // Slot 81: PO base, then adds hp and mp (clamped).
-void AddStepplayerHpMp(char *player, int a, int b)
+extern "C" void AddStepplayerHpMp(char *player, int a, int b)
 {
     AddPoHpMp(player, a, b);
     SetStepplayerHp(player, **(int **)(player + 0xE00) + a);
     SetStepplayerMp(player, GetStepplayerMp(player) + b);
 }
-} } // namespace M_AddStepplayerHpMp
+} // namespace M_AddStepplayerHpMp
 
-namespace M_func_001442D0 { extern "C" {
-void AddStepDialogSmRefs(void *p, int a, int b);
-void PlayStepplayerScriptAnim(void *p, int a, int b, int c);
-void SetJtModeState__FP6JTMODEi(void *p, int a);
+namespace M_func_001442D0 {
+void AddStepDialogSmRefs(void *p, int a, int b) __asm__("AddStepDialogSmRefs");
+void PlayStepplayerScriptAnim(void *p, int a, int b, int c) __asm__("PlayStepplayerScriptAnim");
+void SetJtModeState__FP6JTMODEi(void *p, int a) __asm__("SetJtModeState__FP6JTMODEi");
 // Slot 83 (STEP behaviour push hook): base; when the count goes 0 -> 1 plays the scripted animation. (inferred)
-void AddStepplayerDialogSmRefs(char *player, int a, int b)
+extern "C" void AddStepplayerDialogSmRefs(char *player, int a, int b)
 {
     AddStepDialogSmRefs(player, a, b);
     if (!b)
@@ -2407,33 +2407,33 @@ void AddStepplayerDialogSmRefs(char *player, int a, int b)
         SetJtModeState__FP6JTMODEi(player + 0xF00, -1);
     }
 }
-} } // namespace M_func_001442D0
+} // namespace M_func_001442D0
 
-namespace M_func_00144338 { extern "C" {
-void RemoveStepDialogSmRefs(void *p, int a, int b);
-void StopStepplayerScriptAnim(void *p);
+namespace M_func_00144338 {
+void RemoveStepDialogSmRefs(void *p, int a, int b) __asm__("RemoveStepDialogSmRefs");
+void StopStepplayerScriptAnim(void *p) __asm__("StopStepplayerScriptAnim");
 // Slot 84 (STEP behaviour pop hook): base; when the count drops to 0 stops the scripted animation. (inferred)
-void RemoveStepplayerDialogSmRefs(char *player, int a, int b)
+extern "C" void RemoveStepplayerDialogSmRefs(char *player, int a, int b)
 {
     RemoveStepDialogSmRefs(player, a, b);
     if (b) {
         if (--*(int *)(player + 0x12F4) == 0) StopStepplayerScriptAnim(player);
     }
 }
-} } // namespace M_func_00144338
+} // namespace M_func_00144338
 
-namespace M_FIgnoreIntersection__10STEPPLAYERP2SO { extern "C" {
-int ShouldSoIgnoreIntersection(void *p, int a);
-int AdjustJtThrowFindFlags(void *p, int a, int b);
-void GetJtHandsIgnoreFlags(void *p, int a, int b);
+namespace M_FIgnoreIntersection__10STEPPLAYERP2SO {
+int ShouldSoIgnoreIntersection(void *p, int a) __asm__("ShouldSoIgnoreIntersection");
+int AdjustJtThrowFindFlags(void *p, int a, int b) __asm__("AdjustJtThrowFindFlags");
+void GetJtHandsIgnoreFlags(void *p, int a, int b) __asm__("GetJtHandsIgnoreFlags");
 // Slot 61: SO base flags, then the throw controller (AdjustJtThrowFindFlags) and grab component add theirs.
-void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
+extern "C" void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
     int x = ShouldSoIgnoreIntersection(p, a);
     x = AdjustJtThrowFindFlags(p + 0x11B0, a, x);
     GetJtHandsIgnoreFlags(p + 0x900, a, x);
 }
-} } // namespace M_FIgnoreIntersection__10STEPPLAYERP2SO
+} // namespace M_FIgnoreIntersection__10STEPPLAYERP2SO
 
 // Whether a look mode is active (state 0..2).
 extern "C" int IsStepplayerInJtMode(STEPPLAYER *player)
@@ -2459,11 +2459,11 @@ extern "C" int IsStepplayerJtModeKind2(STEPPLAYER *player)
     return player->jtmode.kind == 2;
 }
 
-namespace M_func_00144418 { extern "C" {
+namespace M_func_00144418 {
 /* only diff: original assembler padded a backward branch (to a jr) with a nop at 0x14443C; asfix.py does not pad when a jump is in between. Code otherwise identical. */
 struct Q { char pad[0xC]; int c; int n; };
 // Slot 86 (IsZapLethal): 1 when the zap's damage (-n) reaches the word at +0xDFC (the hit points, inferred) and its kind is not 0, 1, 0x80000 or 0x100000; else 0. (inferred)
-int IsStepplayerZapLethal(char *player, struct Q *q)
+extern "C" int IsStepplayerZapLethal(char *player, struct Q *q)
 {
     if (-q->n < *(int *)(player + 0xDFC)) return 0;
     switch (q->c) {
@@ -2475,13 +2475,13 @@ int IsStepplayerZapLethal(char *player, struct Q *q)
     }
     return 1;
 }
-} } // namespace M_func_00144418
+} // namespace M_func_00144418
 
-namespace M_OnStepplayerActive { extern "C" {
-void OnPoActive(void *p, int a);
-void ReleaseAsega(void *p);
+namespace M_OnStepplayerActive {
+void OnPoActive(void *p, int a) __asm__("OnPoActive");
+void ReleaseAsega(void *p) __asm__("ReleaseAsega");
 // Slot 78: PO base, then slot 105; when deactivated stops the current action.
-void OnStepplayerActive(STEPPLAYER *player, int a)
+extern "C" void OnStepplayerActive(STEPPLAYER *player, int a)
 {
     OnPoActive(player, a);
     player->OnGadgetsChanged();
@@ -2490,7 +2490,7 @@ void OnStepplayerActive(STEPPLAYER *player, int a)
         player->idGadgetOverlay = -1;
     }
 }
-} } // namespace M_OnStepplayerActive
+} // namespace M_OnStepplayerActive
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
