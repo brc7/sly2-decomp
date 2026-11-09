@@ -1554,28 +1554,27 @@ extern "C" void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
 namespace M_StartSwAsegSound {
 // Complete WIP; true source-object lookup and sound-reference contracts.
 extern "C" { static inline void Clamp(float *f,float *b) {float lo=b[0],hi=b[1]; if(*f<lo)*f=lo; else if(hi<*f)*f=hi;} }
-struct M { char pad[0xC]; VTE *vt; };
 struct C { char pad[0x20]; float value; };
 struct O { char pad[0xFC4]; struct C *curve; };
 extern float D_002C3EA0[3] __asm__("D_002C3EA0");
 extern float D_002C3EB0[2] __asm__("D_002C3EB0");
 struct O *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, void *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-struct M *CreateSfxSound(int) __asm__("CreateSfxSound");
-void SetSndSourceLo(struct M *, struct O *) __asm__("SetSndSourceLo");
-void SetSndRange(struct M *, float, float) __asm__("SetSndRange");
-void SetSndVolume(struct M *, float) __asm__("SetSndVolume");
-void SetSndPitch(struct M *, float) __asm__("SetSndPitch");
-void SetSndDoppler(struct M *, float) __asm__("SetSndDoppler");
-void RcPtr_Assign(struct M **, struct M *) __asm__("RcPtr_Assign");
+CID151 *CreateSfxSound(int) __asm__("CreateSfxSound");
+void SetSndSourceLo(CID151 *, struct O *) __asm__("SetSndSourceLo");
+void SetSndRange(CID151 *, float, float) __asm__("SetSndRange");
+void SetSndVolume(CID151 *, float) __asm__("SetSndVolume");
+void SetSndPitch(CID151 *, float) __asm__("SetSndPitch");
+void SetSndDoppler(CID151 *, float) __asm__("SetSndDoppler");
+void RcPtr_Assign(CID151 **, CID151 *) __asm__("RcPtr_Assign");
 // Copy the object pointer through a register move.
 extern "C" { static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;} }
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
-extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
+extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, CID151 **out)
 {
     struct O *o;
-    struct M *m;
+    CID151 *m;
     if (id == -1)
         return;
     __asm__ volatile("" : : : "$4");
@@ -1594,7 +1593,7 @@ extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, i
     SetSndVolume(m, scale);
     SetSndPitch(m, offset);
     SetSndDoppler(m, fade);
-    if (((int (*)(void *))m->vt[8].pfn)((char *)m + m->vt[8].d) == 2)
+    if (m->GetKind() == 2)
         RcPtr_Assign(out, m);
 }
 } // namespace M_StartSwAsegSound
