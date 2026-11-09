@@ -171,11 +171,9 @@ extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
 void DANCER::PostLoad()
 {
     DANCERV *dancer = (DANCERV *)this;
-    VTE *entry;
     PostStepLoad(dancer);
     BindDancerMoves(dancer);
-    entry = &dancer->vt[79];
-    ((void (*)(void *, int))entry->pfn)((char *)dancer + entry->d, 0);
+    SetCtlState(0);
 }
 
 // Vector scaled by a float.
@@ -239,12 +237,12 @@ extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *mess
                 break;
             case SEGMENT_EVENT_LAUNCH: {
                 qwordV localVelocity = GetStepAsegaTranslation(target, message->segment, message->time);
-                VTE *vt = target->vt;
+                VTE *vt = target->vt;   /* loaded before the transform, as the original schedules it (a SetVelocity call reloads it after: 14 of 64 off) */
                 qwordV *rows = target->orientation;
                 qwordV worldVelocity;
                 target->velocity = VecMul(localVelocity, -1.0f);
                 __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z" : "=j"(worldVelocity) : "j"(rows[0]), "j"(localVelocity), "j"(rows[1]), "j"(rows[2]));
-                ((void (*)(void *, qwordV))vt[35].pfn)((char *)target + vt[35].d, worldVelocity);
+                ((void (*)(void *, qwordV))vt[35].pfn)((char *)target + vt[35].d, worldVelocity);   /* LO::SetVelocity */
                 break;
             }
             }
@@ -306,8 +304,7 @@ extern "C" void AddDancerMove(DANCERV *dancer, int key, int successOid, int succ
 void *FindDancerMoveObject(DANCERV *dancer, int oid) {
     DANCERV *clip = (DANCERV *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, oid, dancer);
     if (clip != 0) {
-        VTE *vt = clip->vt;
-        ((void (*)(void *))vt[9].pfn)((char *)clip + vt[9].d);
+        ((LO *)clip)->Remove();
     }
     return clip;
 }
