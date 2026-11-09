@@ -40,6 +40,8 @@ static inline JT *AsJt(void *p) { return (JT *)p; }
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
+// The real class behind the per-function object views below, for its virtual calls.
+static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 
 /* .bss (tu-merging.md "Data": .bss gaps): D_002E1E00, the word whose bit 0 makes the player invulnerable (po's
    IsPoInvulnerable, hurt, hack; InitGame clears it), at the head of jt's .bss before g_pjt D_002E1E40; sized
@@ -54,8 +56,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef unsigned size_t;
 
-/* Hand-made STEPPLAYER virtual call (g++ 2.95 vtable entries {delta, pfn}; slot n is entry n + 1). */
-#define PVTJ(p) (*(VTE **)((char *)(p) + 0xC))
 /* A JT quadword stepplayer.h leaves unnamed (+0x1FA0). */
 #define QW1FA0(pjt) (*(qword *)((char *)(pjt) + 0x1FA0))
 extern "C" {
@@ -382,7 +382,7 @@ union U{qword q;float f[4];};
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 struct M4{U r[4];};
 struct ACTOR{char pad[0x80];qword response;};
-struct P{char pad0[0xC];VTE*vt;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
+struct P{char pad0[0xC];void *vptr;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct WORK{U a,b;};
 extern "C"{
 extern qword D_002A2DC0;
@@ -434,8 +434,7 @@ extern "C" void PresetJtAccel(P *jt)
     case 7: PresetJtAccelHide(&AsStepplayer(jt)->jtgrab); break;
     case 6: CorrectBentleyRideVelocity((char *)jt + 0x1FF0); break;
     case 14: {
-        VTE *e = &jt->vt[33];
-        w.a.q = ((qword(*)(void *))e->pfn)((char *)jt + e->d);
+        w.a.q = AsJt(jt)->GetVelocity();
         w.b.q = GetStepAsegaTranslation(jt, jt->model, jt->model->time);
         float cap = GetAsegLabelTime(jt->lookup, 0x16D);
         if (jt->model->time < cap) {
@@ -450,10 +449,8 @@ extern "C" void PresetJtAccel(P *jt)
     }
     case 24:
         if (jt->submode == 13) {
-            VTE *e = &jt->vt[33];
-            qword position = ((qword(*)(void *))e->pfn)((char *)jt + e->d);
-            e = &jt->vt[34];
-            qword direction = ((qword(*)(void *))e->pfn)((char *)jt + e->d);
+            qword position = AsJt(jt)->GetVelocity();
+            qword direction = AsJt(jt)->GetAngularVelocity();
             M4 *m = GetLoWorldMatrix(jt);
             M3 basis;
             basis.r[0] = m->r[0];
@@ -485,7 +482,7 @@ typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
 //typedef char WORK_Size[(sizeof(WORK)==0x90)?1:-1];
 typedef char ACTOR_response_Offset[((unsigned)&((ACTOR*)0)->response==128)?1:-1];
-typedef char P_vt_Offset[((unsigned)&((P*)0)->vt==12)?1:-1];
+typedef char P_vptr_Offset[((unsigned)&((P*)0)->vptr==12)?1:-1];
 typedef char P_actor_Offset[((unsigned)&((P*)0)->actor==232)?1:-1];
 typedef char P_model_Offset[((unsigned)&((P*)0)->model==4144)?1:-1];
 typedef char P_mode_Offset[((unsigned)&((P*)0)->mode==6344)?1:-1];
@@ -2409,16 +2406,13 @@ struct MODEL {
     char pad20[0x20];
     float scale;
 };
-struct COMPONENT {
-    VTE *vt;
-};
 struct BINDING {
     int key;
-    struct COMPONENT *component;
+    AC *component;   /* the channel's curve */
 };
 struct P {
     char padC[0xC];
-    VTE *vt;
+    void *vptr;
     char pad10[0x150 - 0x10];
     struct STATE *state;
     char pad154[0x190 - 0x154];
@@ -2503,9 +2497,7 @@ static inline void *At(struct P *p, int offset)
 // Evaluate the binding's component (virtual slot 3) at the model's base and scale into *out.
 static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
 {
-    struct COMPONENT *c = b->component;
-    VTE *entry = &c->vt[3];
-    ((void (*)(void *, int, qword *, float, float))entry->pfn)((char *)c + entry->d, 0, out, m->base, m->scale);
+    b->component->Evaluate(m->base, m->scale, 0, out);
 }
 // Return a scaled by b.x in place.
 static inline qword ScaleIn(qword a, qword b)
@@ -2676,7 +2668,6 @@ void UpdateJtPre(struct P *jt)
         register float one __asm__("$f20");
         register float weight __asm__("$f1");
         qword velocity;
-        VTE *entry;
         DrainStepplayerMp(jt, D_002BF3C4);
         if (jt->submode == 12) {
             float angle = NormalizeAngle__Ff(GetStepHeading(jt) - jt->heading);
@@ -2685,8 +2676,7 @@ void UpdateJtPre(struct P *jt)
         } else
             SetStepTargetHeading(jt, jt->state->heading);
         one = 1.0f;
-        entry = &jt->vt[34];
-        velocity = ((qword(*)(void *))entry->pfn)((char *)jt + entry->d);
+        velocity = AsJt(jt)->GetAngularVelocity();
         weight = D_002BF3CC * ClampAbs__Fff(QwordZ(velocity) / (jt->factor * D_002BF35C), one);
         {
             register float zero __asm__("$f2") = 0.0f;
@@ -2724,9 +2714,8 @@ typedef char STATE_amount_Offset[((unsigned)&((struct STATE*)0)->amount==28)?1:-
 typedef char MODEL_table_Offset[((unsigned)&((struct MODEL*)0)->table==20)?1:-1];
 typedef char MODEL_base_Offset[((unsigned)&((struct MODEL*)0)->base==28)?1:-1];
 typedef char MODEL_scale_Offset[((unsigned)&((struct MODEL*)0)->scale==64)?1:-1];
-typedef char COMPONENT_vt_Offset[((unsigned)&((struct COMPONENT*)0)->vt==0)?1:-1];
 typedef char BINDING_component_Offset[((unsigned)&((struct BINDING*)0)->component==4)?1:-1];
-typedef char P_vt_Offset[((unsigned)&((struct P*)0)->vt==12)?1:-1];
+typedef char P_vptr_Offset[((unsigned)&((struct P*)0)->vptr==12)?1:-1];
 typedef char P_state_Offset[((unsigned)&((struct P*)0)->state==336)?1:-1];
 typedef char P_velocity_Offset[((unsigned)&((struct P*)0)->velocity==400)?1:-1];
 typedef char P_heading_Offset[((unsigned)&((struct P*)0)->heading==424)?1:-1];
@@ -4126,8 +4115,7 @@ extern "C" void SetJtGrabObject(JT *jt, LO *lo)
         jt->jtgrab.unknown500 = 1;
         SetJtGrabState(&jt->jtgrab, 6, lo, 0);
     } else if (jt->jtgrab.state == 6) {
-        VTE *entry = &PVTJ(jt)[88];
-        ((void (*)(void *, int))entry->pfn)((char *)jt + entry->d, 0);
+        jt->SetPlayerState(0);
     }
 }
 
@@ -4187,10 +4175,10 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M3{qword r[3];};
 struct M4{qword r[4];};
-struct O{char pad[0xC];VTE*vt;};
+struct O{char pad[0xC];void *vptr;};
 struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
-struct P{char pad[0xC];VTE*vt;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
+struct P{char pad[0xC];void *vptr;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
 struct SMP{float a,b,c;};
 extern "C" qword D_002A2DC0;
 extern "C" SMP D_002BF3F8;
@@ -4293,7 +4281,7 @@ static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, u
 // Smooths Sly's matrix and position and updates the directional animation weight.
 extern "C" void UpdateJtSmoothing(P *jt)
 {
-    M4 m = *((M4 * (*)(void *)) jt->object->vt[31].pfn)((char *)jt->object + jt->object->vt[31].d);
+    M4 m = *(M4 *)AsLo(jt->object)->GetWorldMatrix();
     U direction, position, scratch, negative;
     *(M3 *)&jt->matrix = *(M3 *)&m;
     M4 *current = GetLoWorldMatrix(jt);
@@ -4304,11 +4292,11 @@ extern "C" void UpdateJtSmoothing(P *jt)
     SMP *sample;
     float smoothDt = SmoothInputs(current, clock, factor, samplePage, receiver, optional, sample);
     SmoothMatrix(receiver, &jt->matrix, sample, optional, &direction.q, smoothDt);
-    ((void (*)(void *, qword))jt->vt[36].pfn)((char *)jt + jt->vt[36].d, direction.q);
+    AsJt(jt)->SetAngularVelocity(direction.q);
     U target;
     P *owner = NegativeTarget(m, jt->offset, &negative, &scratch, &target, jt);
     (void)PosSmooth(GetLoWorldPos(owner), target.q, &D_002BF408, &position.q, clock->deltaTime * factor);
-    ((void (*)(void *, qword))jt->vt[35].pfn)((char *)jt + jt->vt[35].d, position.q);
+    AsJt(jt)->SetVelocity(position.q);
     qword relative;
     {
         register PARAM *params __asm__("$3");
@@ -4381,14 +4369,14 @@ typedef char U_q_Offset[((unsigned)&((U*)0)->q==0)?1:-1];
 typedef char U_f_Offset[((unsigned)&((U*)0)->f==0)?1:-1];
 typedef char M3_r_Offset[((unsigned)&((M3*)0)->r==0)?1:-1];
 typedef char M4_r_Offset[((unsigned)&((M4*)0)->r==0)?1:-1];
-typedef char O_vt_Offset[((unsigned)&((O*)0)->vt==12)?1:-1];
+typedef char O_vptr_Offset[((unsigned)&((O*)0)->vptr==12)?1:-1];
 typedef char PARAM_y_Offset[((unsigned)&((PARAM*)0)->y==16)?1:-1];
 typedef char PARAM_z_Offset[((unsigned)&((PARAM*)0)->z==20)?1:-1];
 typedef char PARAM_weight_Offset[((unsigned)&((PARAM*)0)->weight==28)?1:-1];
 typedef char SMP_a_Offset[((unsigned)&((SMP*)0)->a==0)?1:-1];
 typedef char SMP_b_Offset[((unsigned)&((SMP*)0)->b==4)?1:-1];
 typedef char SMP_c_Offset[((unsigned)&((SMP*)0)->c==8)?1:-1];
-typedef char P_vt_Offset[((unsigned)&((P*)0)->vt==12)?1:-1];
+typedef char P_vptr_Offset[((unsigned)&((P*)0)->vptr==12)?1:-1];
 typedef char P_params_Offset[((unsigned)&((P*)0)->params==336)?1:-1];
 typedef char P_matrix_Offset[((unsigned)&((P*)0)->matrix==432)?1:-1];
 typedef char P_object_Offset[((unsigned)&((P*)0)->object==6340)?1:-1];
