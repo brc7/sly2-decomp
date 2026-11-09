@@ -106,13 +106,6 @@ ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLo
 void TriggerJoyRumbleRumk(JOY *pjoy, RUMK rumk, float dt);
 
 
-struct WARPV : XFM
-{
-      undefined4 unk_0xe0[(0x16c - 0xe0) / 4];
-      int coidAlias;
-      OID aoidAlias[4];
-};
-
 void JoltCm(CM *pcm, int nUnk61c) __asm__("JoltCamera");
 
 void CutCm(CM *pcm);
@@ -347,7 +340,7 @@ void ReleaseJsgSma(RELAYJSG *script) __asm__("ClearJsgSma");
 
 extern "C" void StartJtThrowFlight(JTTHROW *pjtthrow, LO *plo);
 
-void PutSwHeroAtWarp(WARPV *pwarp) __asm__("PutHeroAtWarp");
+void PutSwHeroAtWarp(WARP *pwarp) __asm__("PutHeroAtWarp");
 
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 
@@ -2232,7 +2225,7 @@ void NextJsgCommand(RELAYJSG *script)
         LO *plo = PloFindJsgObject(script, prelaycmd->teleportTo.oidWhere);
         if (plo && IsBasicDerivedFrom(plo, (CID)41))
         {
-            PutSwHeroAtWarp((WARPV *)plo);
+            PutSwHeroAtWarp((WARP *)plo);
             break;
         }
         if (!script->ploActor)

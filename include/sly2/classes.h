@@ -2419,25 +2419,55 @@ struct CID41 : XFM
 };
 typedef char assert_CID41_size[sizeof(CID41) == 0xE0 ? 1 : -1];
 
-/* 26 EXIT (0x190): level exit volume; vtable 0x2DC6F0, 50 slots */
+/* 26 EXIT (0x190): level exit volume; vtable 0x2DC6F0, 50 slots. Sends the player to another world: plays the
+   queued movies, then wipes to the target world. Layout from src/game/level/exit_warp.cpp (the former EXITV view). */
 struct EXIT : VOL
 {
-    char pad130[0x190 - 0x130];
+    int isDefault;              /* +0x130 the exit taken by default */
+    int redirectsToDefault;     /* +0x134 taking it takes the default exit instead */
+    int skipWipe;               /* +0x138 */
+    int state;                  /* +0x13C 0 player inside, 1 left, 2 off, 3 armed, 4 warping */
+    float stateTime;            /* +0x140 time of the last state change */
+    void *targetWorld;          /* +0x144 target world blob */
+    int movieCount;             /* +0x148 movies played before the wipe */
+    void **movies;              /* +0x14C */
+    int targetWarpOid;          /* +0x150 (0x189) */
+    int wipeOid;                /* +0x154 (-1) */
+    float wipeTime;             /* +0x158 */
+    float rearmDelay;           /* +0x15C after leaving, re-armed once this has passed */
+    float wipeDelay;            /* +0x160 delay from taking the exit to the wipe */
+    int taskStateCount;         /* +0x164 */
+    TASKSTATE taskStates[4];    /* +0x168 */
+    int unk188[2];              /* +0x188 unused by exit_warp.cpp */
     virtual void Init() __asm__("InitExit");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExitClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExitFromBrx");   /* slot 14 */
     virtual void Update() __asm__("UpdateExit");   /* slot 16 */
 };
 typedef char assert_EXIT_size[sizeof(EXIT) == 0x190 ? 1 : -1];
+typedef char assert_EXIT_taskStates[SLY2_OFFSETOF(EXIT, taskStates) == 0x168 ? 1 : -1];
 
-/* 42 WARP (0x180): destinations; entrance_* aliases; vtable 0x2DC550, 50 slots */
+/* WARPPAIR: an object a warp moves on trigger, and the object it is moved to (MatchTransform). */
+struct WARPPAIR { OID object; OID target; };
+
+/* 42 WARP (0x180): destinations; entrance_* aliases; vtable 0x2DC550, 50 slots. A point the player is placed at on
+   arrival: moves the paired objects to their targets, applies its rsmgs and task states and resets every exit. Layout
+   from src/game/level/exit_warp.cpp (the former WARPV view; relay.cpp reads the aliases). */
 struct WARP : XFM
 {
-    char padE0[0x180 - 0xE0];
+    int rsmgCount;              /* +0xE0 */
+    RSMG rsmgs[4];              /* +0xE4 */
+    int taskStateCount;         /* +0x124 */
+    TASKSTATE taskStates[4];    /* +0x128 */
+    unsigned int pairCount;     /* +0x148 objects moved on trigger */
+    WARPPAIR pairs[4];          /* +0x14C */
+    int aliasCount;             /* +0x16C other oids the warp answers to */
+    OID aliases[4];             /* +0x170 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWarpFromBrx");   /* slot 14 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWarpClassDesc");   /* slot 6 */
 };
 typedef char assert_WARP_size[sizeof(WARP) == 0x180 ? 1 : -1];
+typedef char assert_WARP_aliases[SLY2_OFFSETOF(WARP, aliases) == 0x170 ? 1 : -1];
 
 /* 89 WATER (0x190): zap kind 0x2000; vtable 0x2DCA30, 75 slots */
 struct WATER : SO
