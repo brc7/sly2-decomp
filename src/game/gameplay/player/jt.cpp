@@ -2750,12 +2750,7 @@ typedef char P_blend_Offset[((unsigned)&((struct P*)0)->blend==8248)?1:-1];
 namespace M_UpdateJt { extern "C" {
 // Update actor movement modes and curve transition checks.
 
-typedef int qword __attribute__((mode(TI)));
-#define F(T, o) (*(T *)((char *)p + (o)))
-#define A(o) ((char *)p + (o))
 
-struct X150 { char pad[0x18]; float g18; };
-struct X1854 { char pad[0x124]; int x124; };
 typedef union { qword q; float f[4]; } VU;
 
 extern float D_002BF3D4;
@@ -2788,101 +2783,101 @@ extern void UpdateJtLean__FP2JT(void *p);
 
 
 // JT Update (slot 16): STEPPLAYER update, UpdateJtPre, actuators and animation, UpdateJtStand, feet, cane, lean.
-void UpdateJt(char *p)
+void UpdateJt(JT *p)
 {
     VU u;
     qword av[3];
     VU w;
     float ag[4];
     int i;
-    struct X1854 *object;
+    HND *object;
 
     UpdateStepplayer(p);
-    if ((uchar)((LO *)p)->isInWorld == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
+    if ((uchar)p->isInWorld == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
         return;
-    if (F(void *, 0x150))
+    if (p->controller)
         UpdateJtPre(p);
-    switch (AsJt(p)->state) {
+    switch (p->state) {
     case JTS_Run: {
         qword s, motion;
-        SetStepTargetHeading(p, F(struct X150 *, 0x150)->g18);
-        UpdateGaitBlend(A(0x1320), 1.0f);
-        UpdateGaitFootsteps(A(0x1320));
+        SetStepTargetHeading(p, p->controller->leftStickAngle);
+        UpdateGaitBlend(&p->gait, 1.0f);
+        UpdateGaitFootsteps(&p->gait);
         {
             unsigned page;
             __asm__("lui %0,%%hi(%2)\n\tlqc2 %1,%3"
                     : "=&r"(page), "=j"(motion)
-                    : "i"(&D_002BF3D4), "m"(F(qword, 0x190)));
+                    : "i"(&D_002BF3D4), "m"(p->qwUnknown190));
             __asm__("lw %0,%%lo(%2)(%0)\n\tqmtc2.ni %0,%1" : "+r"(page), "=j"(s) : "i"(&D_002BF3D4) : "memory");
         }
         u.q = s;
-        F(qword, 0x190) = VuScaleByX(motion, s);
+        p->qwUnknown190 = VuScaleByX(motion, s);
 
         break;
     }
     case 5:
-        if (AsJt(p)->bodyState == 5) {
+        if (p->bodyState == 5) {
             qword s, motion;
-            UpdateDirectionalBlend(p, A(0x13D0), F(void *, 0x14D0));
+            UpdateDirectionalBlend(p, p->unknown13D0, p->unknown14D0);
             {
                 unsigned page;
                 __asm__("lui %0,%%hi(%3)\n\tlqc2 %1,%4\n\tlw %0,%%lo(%3)(%0)\n\tqmtc2.ni %0,%2"
                         : "=&r"(page), "=j"(motion), "=j"(s)
-                        : "i"(&D_002BF3D8), "m"(F(qword, 0x190))
+                        : "i"(&D_002BF3D8), "m"(p->qwUnknown190)
                         : "memory");
             }
             u.q = s;
-            F(qword, 0x190) = VuScaleByX(motion, s);
+            p->qwUnknown190 = VuScaleByX(motion, s);
 
-            F(float, 0x180) = 1.0f;
+            p->unknown180 = 1.0f;
         }
         break;
-    case 0xA: UpdateDirectionalBlend(p, A(0x1AC0), F(void *, 0x1BC0)); break;
+    case 0xA: UpdateDirectionalBlend(p, p->unknown1AC0, p->unknown1BC0); break;
     case JTS_Stand: UpdateJtStand(p); break;
     case JTS_Hang: UpdateJtHangIkGoals__FP2JT(p); break;
-    case JTS_Gait2: UpdateGaitFootsteps(A(0x1C30)); break;
+    case JTS_Gait2: UpdateGaitFootsteps(&p->gaitB); break;
     case JTS_SurfaceClimb: UpdateJtMeshAttachment(p); break;
     case JTS_HangFollow: UpdateJtSmoothing(p); break;
     case 0x18:
-        if (F(void *, 0x19F0)) {
-            C40(p, F(void *, 0x19D8), F(void *, 0x19E0), F(void *, 0x19F0), A(0x1520), D_002BF3DC);
-            C40(p, F(void *, 0x19D4), F(void *, 0x19DC), F(void *, 0x19F4), A(0x1620), D_002BF3DC);
-            (void)TryMatchJtXmg(p, A(0x1520), F(void *, 0x19F0));
-            (void)TryMatchJtXmg(p, A(0x1620), F(void *, 0x19F4));
+        if (p->pact5Unk19f0) {
+            C40(p, p->unknown19D8, p->unknown19E0, p->pact5Unk19f0, &p->unknown1520[0], D_002BF3DC);
+            C40(p, p->unknown19D4, p->unknown19DC, p->pact5Unk19f4, &p->unknown1520[1], D_002BF3DC);
+            (void)TryMatchJtXmg(p, &p->unknown1520[0], p->pact5Unk19f0);
+            (void)TryMatchJtXmg(p, &p->unknown1520[1], p->pact5Unk19f4);
         }
         break;
     }
     UpdateJtCane__FP2JT(p);
-    if (AsJt(p)->animState == 0) {
-        if (IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
-            void *po2 = AsJt(p)->hands.ploTarget;
+    if (p->animState == 0) {
+        if (IsBasicDerivedFrom__FP5BASIC3CID(p->hands.ploTarget, 0xB)) {
+            void *po2 = p->hands.ploTarget;
             for (i = 0; i < 3; i++)
-                FindShapeClosestPointFromDistance(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, AsJt(p)->hands.distanceAlong);
+                FindShapeClosestPointFromDistance(po2, p->aposBounds[i], 0, &av[i], 0, 0, 0, p->hands.distanceAlong);
         } else {
             qword q;
-            if (!IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13))
+            if (!IsBasicDerivedFrom__FP5BASIC3CID(p->hands.ploTarget, 0x13))
                 goto end;
-            q = GetLoWorldPos(AsJt(p)->hands.ploTarget);
+            q = GetLoWorldPos(p->hands.ploTarget);
             av[2] = q;
             av[1] = q;
             av[0] = q;
         }
-        for (i = 1; i < F(int, 0x1880); i++) {
-            qword *aq = (qword *)A(0x1890);
+        for (i = 1; i < p->cposBounds; i++) {
+            qword *aq = p->aposBounds;
             FindClosestPointBetweenLineSegments(aq[i - 1], aq[i], av[i - 1], av[i], u.f, ag, &w.q);
 
-            if (ag[0] < F(float, 0x19AC)) {
-                if (IsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13)) {
-                    object = F(struct X1854 *, 0x1854);
-                    F(struct X1854 *, 0x18C4) = object;
-                    if (object->x124 == 3)
+            if (ag[0] < p->rBounds) {
+                if (IsBasicDerivedFrom__FP5BASIC3CID(p->hands.ploTarget, 0x13)) {
+                    object = (HND *)p->hands.ploTarget;
+                    p->hangHandle = object;
+                    if (object->nHangKind == 3)
                         SetJtState__FP2JT3JTS4JTBS(p, JTS_HangFollow, -1);
                     else
                         SetJtState__FP2JT3JTS4JTBS(p, JTS_Hang, 1);
 
                 } else {
-                    F(void *, 0xF5C) = F(void *, 0x1854);
-                    AsJt(p)->jtpipe.s = AsJt(p)->hands.distanceAlong;
+                    p->jtpipe.pipeCurve = (SHAPE *)p->hands.ploTarget;
+                    p->jtpipe.s = p->hands.distanceAlong;
                     SetJtState__FP2JT3JTS4JTBS(p, 8, -1);
                 }
                 break;
@@ -2901,10 +2896,6 @@ typedef char layout_long[(sizeof(long)==8)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_VU[(sizeof(VU)==16)?1:-1];
 typedef char layout_VU_alignment[(__alignof__(VU)==16)?1:-1];
-typedef char layout_STATE[(sizeof(struct X150)==0x1C)?1:-1];
-typedef char layout_STATE_heading[((unsigned)&((struct X150*)0)->g18==0x18)?1:-1];
-typedef char layout_TARGET[(sizeof(struct X1854)==0x128)?1:-1];
-typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-1];
 } } // namespace M_UpdateJt
 
 // Keeps its per-function views in a namespace of its own (see the file header).
