@@ -91,7 +91,7 @@ extern "C" void BASIC_Slot2Default(void) {
 // True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
 // range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
 int IsBasicDerivedFrom(BASICV *object, CIDV n) {
-    CLASSINFO *pr = ((CLASSINFO *(*)(void *))object->vtable[6].pfn)((char *)object + object->vtable[6].d);
+    CLASSINFO *pr = ((::BASIC *)object)->GetClassInfo();
     int x = pr->cid;
     int f = 0;
     if (x >= n) { CIDDESC *pt = &D_002BAAE8[n]; f = x < pt->cidLast; }
@@ -329,10 +329,10 @@ extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int 
 
 // Sends the Splice trigger event (5) to the object (vtable slot 3, not posted). BASIC option 12. Buttons, exits, warps
 // and camera volumes send event 5 when triggered and 6 when untriggered.
-extern "C" void SendTriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
+extern "C" void SendTriggerEvent(BASICV *p) { ((::BASIC *)p)->HandleSpliceEvent(5, 0, 0, 0, 0); }
 
 // Sends the Splice untrigger event (6) to the object (vtable slot 3, not posted). BASIC option 13.
-extern "C" void SendUntriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
+extern "C" void SendUntriggerEvent(BASICV *p) { ((::BASIC *)p)->HandleSpliceEvent(6, 0, 0, 0, 0); }
 
 // Subscribes target to the object's messages: adds it to the object's subscriber list (counted, so repeated
 // subscriptions need as many unsubscribes).
@@ -368,11 +368,11 @@ extern "C" void UnsubscribeLoAll(LO *object) {
 // BASIC's SendMessage (vtable slot 4): the object handles the message itself (slot 5), then every subscriber does.
 extern "C" void SendLoMessage(LO *object, int a, int b) {
     REFNODE *pn;
-    ((void (*)(void *, int, int))object->vtable[5].pfn)((char *)object + object->vtable[5].d, a, b);
+    ((::BASIC *)object)->HandleMessage((MSGID)a, (void *)b);
     for (pn = object->prefnodeFirst; pn; ) {
         LO *po = pn->plo;
         pn = pn->pnext;
-        ((void (*)(void *, int, int))po->vtable[5].pfn)((char *)po + po->vtable[5].d, a, b);
+        ((::BASIC *)po)->HandleMessage((MSGID)a, (void *)b);
     }
 }
 
