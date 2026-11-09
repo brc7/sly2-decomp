@@ -16,6 +16,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
+#include "sly2/vtables.h"
 #define SLY2_KEY_TU_ROBOTTANK   /* this TU is the class's key TU: see sly2/classes.h */
 #include "sly2/classes.h"
 #include "sly2/tank.h"
@@ -69,7 +70,6 @@ extern "C" void InitRobottank(ROBOTTANK *tank) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneRobottank {
-extern char D_002C94A0[] __asm__("_vt$3JSG");
 struct X;extern void InitRobottankWeapon(X*,ROBOTTANK*) __asm__("InitRobottankWeapon");
 extern void *func_001AE4F8(int) __asm__("__builtin_new");
 // Two-word header with a trivial constructor.
@@ -85,7 +85,7 @@ struct X : B {
  register X *receiver __asm__("$4");
  __asm__("daddu %0,%2,$zero\n\tsw $zero,%1"
          : "=&r"(receiver), "=m"(x0) : "r"(this) : "memory");
- x4=0;vt=D_002C94A0;InitRobottankWeapon(receiver,p);
+ x4=0;vt=SLY2_VTBL(JSG);InitRobottankWeapon(receiver,p);
 }
     // Allocate through func_001AE4F8.
     void *operator new(unsigned int cb) { return func_001AE4F8(cb); }
@@ -95,7 +95,7 @@ struct X : B {
 
 void ClonePo(ROBOTTANK *) __asm__("ClonePo");
 void CopyRobottankWeapon(X *, X *) __asm__("CopyRobottankWeapon");
-// CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
+// CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable 0x2C94A0, init 0x1D4D30,
 // copy 0x9C bytes). (inferred)
 extern "C" void CloneRobottank(ROBOTTANK *tank)
 {
@@ -2140,7 +2140,6 @@ extern "C" void AddRobottankWheel(ROBOTTANK *tank, OID oid, LM *plm, float sRadi
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4B90 {
-extern char D_002C94A0[] __asm__("_vt$3JSG");
 struct X;
 extern void InitRobottankWeapon(X *,ROBOTTANK *) __asm__("InitRobottankWeapon");
 extern void *func_001AE4F8(int) __asm__("__builtin_new");
@@ -2160,20 +2159,20 @@ struct X : B {
     int unknown38;
     char pad[0xB0 - 0x3C];
 };
-// Allocates a weapon record from the world heap and sets its vtable (D_002C94A0).
+// Allocates a weapon record from the world heap and sets its vtable (0x2C94A0).
 static inline X *CreateItem(ROBOTTANK *owner) {
  void *allocated=func_001AE4F8(sizeof(X));
  register X *item __asm__("$16");
  register unsigned page __asm__("$3");
  __asm__("lui %0,%%hi(%3)\n\tdaddu %1,%2,$zero"
-         : "=&r"(page), "=r"(item) : "r"(allocated), "i"(D_002C94A0));
+         : "=&r"(page), "=r"(item) : "r"(allocated), "i"(SLY2_VTBL(JSG)));
  register char *vtable __asm__("$3");
- __asm__("addiu %0,%1,%%lo(%2)":"=r"(vtable):"r"(page),"i"(D_002C94A0));
+ __asm__("addiu %0,%1,%%lo(%2)":"=r"(vtable):"r"(page),"i"(SLY2_VTBL(JSG)));
  item->x0=0;
  __asm__("sw %1,%0":"=m"(item->vt):"r"(vtable):"memory");
  register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));InitRobottankWeapon(receiver,owner);return item;
 }
-// Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8. (inferred)
+// Allocate and append weapon record (0xB0, vtable 0x2C94A0) with ids/costs if fewer than 8. (inferred)
 extern "C" void AddRobottankWeapon(ROBOTTANK *tank, int a, int b, int inputC, int inputD)
 {
     register int c __asm__("$20")=inputC;
