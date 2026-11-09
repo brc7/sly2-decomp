@@ -1855,11 +1855,10 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 
 namespace M_GetStepplayerStunHold { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { int k; float g4; float g8; int pad; qword pos; qword dir; };
 extern qword D_002A2DC0;
 qword GetLoWorldPos(LO *p);
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
-void GetStepplayerStunHold(STEPPLAYER *player, struct S *ps, float g)
+void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
 {
     qword v, h, pos, s, r;
     QWROW u;
@@ -1873,12 +1872,12 @@ void GetStepplayerStunHold(STEPPLAYER *player, struct S *ps, float g)
     pos = GetLoWorldPos(player);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
     __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos), "j"(h), "j"(s));
-    ps->dir = h;
-    ps->g4 = 150.0f;
-    ps->g8 = 75.0f;
-    ps->pos = r;
+    ps->qwVel = h;
+    ps->gSide = 150.0f;
+    ps->gUp = 75.0f;
+    ps->qwPos = r;
     u.q = s;
-    ps->k = 0;
+    ps->fValid = 0;
 }
 } } // namespace M_GetStepplayerStunHold
 
