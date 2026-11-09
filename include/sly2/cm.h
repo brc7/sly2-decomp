@@ -348,6 +348,7 @@ struct CM : public CMBASE
       float stereoEyeOffset;   /* stereo eye offset along the right axis (BuildStereoEyeViewProj), smoothed in stereo mode */
       float stereoFocusDistance;   /* its target (ResetCameraPolicies: 10) */
     CM() __asm__("CM_ctor");   /* out of line: camera/cm/CM_ctor.c */
+    ~CM();   /* _$_2CM: out of line, emitted by cm.cpp as a weak linkonce copy over a view (it releases the policies' sound references, then ~BASIC) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCmClassDesc");   /* slot 6 */
 };
 typedef char assert_CM_size[sizeof(CM) == 0x630 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
@@ -375,7 +376,7 @@ inline MATRIX4 *func_002562A0(CM *pcm) { return &pcm->mat; }          /* get; it
 extern "C" void SetCmMat(CM *pcm, MATRIX3 *pmat);
 inline void func_00256278(CM *pcm, MATRIX3 *pmat) { SetCmMat(pcm, pmat); }   /* set: forwards to SetCmMat */
 
-/* g_cm: the one camera (cm.cpp defines it under its address name as a CMG). */
+/* g_cm: the one camera (defined in cm.cpp; its static constructor and destructor are CM_ctor and _$_2CM). */
 extern CM g_cm __asm__("D_002DDF40");
 
 #endif /* SLY2_CM_H */

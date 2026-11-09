@@ -1,12 +1,12 @@
 // cm.cpp -- the camera (CM, the global g_cm at D_002DDF40): construction with its embedded policies, setup, the
 // view matrix / frustum / fog setters, the visibility zone, adjustment and cuts, the policy stack, the camera
-// filters. TU 0x14D3D8..0x14FAC8 (53 functions, address order), then the inline ~CM body DestroyCm (defined
-// after its callers: the linkonce copy 0x258290); the matrix setter 0x256278 is an inline function in sly2/cm.h.
+// filters. TU 0x14D3D8..0x14FAC8 (53 functions, address order), then ~CM (_$_2CM, the linkonce copy 0x258290,
+// defined over a view at the end of the file); the matrix setter 0x256278 is an inline function in sly2/cm.h.
 //
 // Types: sly2/cm.h's CM and policy classes for the m2c bodies; the hand-written per-function files keep their views
 // in namespaces named after each function (as jt.cpp does), and their C++-named definitions are C-linkage
 // definitions of their literal symbols there (the namespace would change the mangling), as in wave 9.
-// g_cm is defined here: its constructor (CM_ctor) and destructor (DestroyCm, ~CM with g++'s in-charge flag 2)
+// g_cm is defined here: its constructor (CM_ctor) and destructor (_$_2CM, ~CM with g++'s in-charge flag 2)
 // make the static initializer a constructor-and-destructor one (86 instructions) with a _GLOBAL_$D$ stub
 // (func_0014FAA8) next to the _GLOBAL_$I$ one.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cm
@@ -24,23 +24,8 @@
 #include "sly2/clock.h"
 #include "sly2/joy.h"
 
-/* g_cm: a view of the CM bytes whose inline constructor and destructor call the C-named CM_ctor and ~CM (as heap.cpp's
-   level heap and gc.cpp's g_gc are spelled). Code in this file reads it as a CM through G_CM. */
-struct CMG;
-extern "C" {
-CM *CM_ctor(CM *pcm);
-void DestroyCm(CMG *pcm, int grfDelete);   /* ~CM (linkonce, below) */
-}
-struct CMG
-{
-    char ab[sizeof(CM)];
-    // Construct the camera through CM_ctor.
-    CMG() { CM_ctor((CM *)this); }
-    // Destroy the camera (DestroyCm with the delete flag 2).
-    ~CMG() { DestroyCm(this, 2); }
-} __attribute__((aligned(16)));
-CMG D_002DDF40;
-#define G_CM (*(CM *)&D_002DDF40)
+/* g_cm: the camera, constructed by CM_ctor and destroyed by ~CM (_$_2CM, defined at the end of the file). */
+CM g_cm;
 
 // 0x14F930 StaticInit_cm (g_cm's construction and destruction, then the six slot pools) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -1497,10 +1482,13 @@ typedef struct { int pad[3]; VTE *vt; } O;   /* a reference-counted SND; the cal
 /* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
    zoomStopSound and CPZOOM::psndZoom / zoomStopSound) */
 typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
-void BASIC_dtor(S *, int) __asm__("_$_5BASIC");   /* ~BASIC (screen.cpp), passed DestroyCm's in-charge flag */
-// The CM destructor (an inline, emitted linkonce): releases the policies' four sound references in reverse member
-// order, then runs the base destructor (~BASIC, _$_5BASIC, shared with SW and the screens) with the in-charge flag.
-inline void DestroyCm(S *p, int x)
+void BASIC_dtor(S *, int) __asm__("_$_5BASIC");   /* ~BASIC (screen.cpp), passed ~CM's in-charge flag */
+// ~CM (_$_2CM): releases the policies' four sound references in reverse member order, then runs the base destructor
+// (~BASIC, _$_5BASIC, shared with SW and the screens) with the in-charge flag. Defined over this view, labelled and weak
+// in .gnu.linkonce.t._$_2CM (as screen.cpp's ~BASIC): a CM::~CM() definition would need SND complete for the
+// CRefPtr<SND> members, and the implicit destructor would be inlined into the static destructor, which calls it.
+void DestroyCm(S *p, int x) __asm__("_$_2CM") __attribute__((weak, section(".gnu.linkonce.t._$_2CM")));
+void DestroyCm(S *p, int x)
 {
     if (p->zoomSound2) ((void (*)(void *))p->zoomSound2->vt[2].pfn)((char *)p->zoomSound2 + p->zoomSound2->vt[2].d);
     if (p->zoomZoomSound) ((void (*)(void *))p->zoomZoomSound->vt[2].pfn)((char *)p->zoomZoomSound + p->zoomZoomSound->vt[2].d);

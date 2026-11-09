@@ -338,7 +338,7 @@ struct BASIC
          is set: _$_5BASIC (0x258348), a linkonce copy screen.cpp emits over its own view (a user-written definition
          would store the vptr on entry; the original's destructor was implicit). The static objects of
          sw/sound/memcard/screen call it as their base destructor with g++'s in-charge flag 2. Declared, never
-         defined in C++: an implicit destructor would be inlined into every caller (and cm.cpp's DestroyCm and
+         defined in C++: an implicit destructor would be inlined into every caller (and cm.cpp's ~CM view and
          sound.cpp's Decref* call it through C views with their own flag). */
       ~BASIC();
       virtual void AddRef() __asm__("BASIC_Slot1Default");

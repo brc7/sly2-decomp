@@ -89,9 +89,11 @@ A StaticInit whose `else` branch (initp == 0) calls destructors, and a third stu
 `(0, 0xFFFF)`, means the TU defines global objects with a constructor and a destructor. Five TUs had them: cm (g_cm),
 sw (g_sw and a four-word table header), memcard (two dialog widgets), screen (nine screens) and sound (g_sndmgr).
 What matched in all five: define each object in the merged file, in the original order and before
-`SLY2_INSTANTIATE_SLOT_POOLS()`, as a view of its bytes whose inline constructor calls the C-named constructor and
-whose inline destructor calls the linkonce destructor with g++'s in-charge flag (`~CMG() { func_00258290(this, 2); }`);
-g++ then emits the destruction in reverse order itself. Add `// SLY2_ALIAS: _GLOBAL_$D$*=<stub>` next to the other two
+`SLY2_INSTANTIATE_SLOT_POOLS()`, either as its real class with an out-of-line constructor and destructor (`SW g_sw`,
+`CM g_cm`: the constructor asm-labelled to its C name, the destructor declared and emitted as its mangled symbol
+`_$_2CM` by a weak linkonce C view, as `_$_5BASIC` is) or as a view of its bytes whose inline constructor calls the
+C-named constructor and whose inline destructor calls the linkonce destructor with g++'s in-charge flag; g++ then
+emits the destruction in reverse order itself. Add `// SLY2_ALIAS: _GLOBAL_$D$*=<stub>` next to the other two
 aliases. Several objects of one shape: a small template over the size (screen's `SCRINL<CB>` / `SCRCTOR<CB>`); an
 inline constructor taking a selector folds after inlining (memcard). When the destruction first releases member
 pointers and then calls the base destructor (sound: three counted pointers, one an array of eight, then ~BASIC), make
@@ -1135,8 +1137,8 @@ Representation decisions:
 
 - **Globals under their real names.** sw.h, cm.h, clock.h and joy.h declare `extern SW g_sw __asm__("D_003DD490");`
   (g_cm, g_clock, g_joy alike), the existing pattern for globals whose config name is an address name
-  (`g_heapSw`, `g_pdliFirst`). The defining TU keeps its address-named definition (cm.cpp's `CMG D_002DDF40`, which
-  carries the constructor/destructor; sw.cpp defines `SW g_sw` since names/basic-dtor), and the per-file `extern SW D_003DD490;` declarations are unchanged (follow-up:
+  (`g_heapSw`, `g_pdliFirst`). The defining TU defines the real name (`SW g_sw` in sw.cpp, `CM g_cm` in cm.cpp, both
+  with out-of-line constructor and destructor), and the per-file `extern SW D_003DD490;` declarations are unchanged (follow-up:
   rename them to g_sw file by file).
 - **View type at the use.** Where a file's view type for the name equals the field's type the use is plain
   (`g_sw.slotheapJsg`); otherwise it keeps the file's type with a cast at the use, `(*(struct X * *)&g_sw.dlTaskActive)`
