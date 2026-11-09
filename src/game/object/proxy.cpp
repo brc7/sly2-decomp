@@ -874,7 +874,7 @@ struct BIND {int kind,pad4;void *resource;void *begin,*end;P *object;};
 struct TABLE {int count;P **objects;int capacity,used;char pad10[0x54];void *states;NODE *nodes;};
 struct P {void *resource;char pad4[8];VTE *vt;void *context;char pad14[0x24];float scale;char pad3C[0x14];void *channel;char pad54[0xC];M4 matrix;char padA0[0x40];TABLE *table;int disabled;NODE *head;int bindCount;BIND *binds;};
 struct DESC {int kind,flags;char pad8[0x20];};
-struct STREAM {int flags;unsigned char *cursor;int remaining,consumed;unsigned char *raw;int rawCount,compression,pending,word20;unsigned char *decompressed;int word28,word2C;VTE *vt;void *begin,*end;};
+struct STREAM {int flags;unsigned char *cursor;int remaining,consumed;unsigned char *raw;int rawCount,compression,pending,word20;unsigned char *decompressed;int word28,word2C;void *vptr;void *begin,*end;};
 struct WORK {int id;P *found,*child;void *cursor;P *owner;};
 extern "C" {
 extern DESC D_002AC880[];
@@ -892,18 +892,8 @@ void CFrame_AddParent(void *,void *);
 void FramePtr_Assign(void **,void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void CMemInputStream_dtor(STREAM *,int);
 }
-// The object pointer adjusted by the vtable entry's this-delta.
-static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.d);}
-// Call the object's channel virtual (slot 10).
-static inline void Channel(P *p,void *context,void *channel){VTE &v=p->vt[10];((void(*)(P *,void *,void *,int))v.pfn)(Adjusted(p,v),context,channel,0);}
-// Apply a matrix through the object's virtual slot 37.
-static inline void Matrix(P *p,const M4 *m){VTE &v=p->vt[37];((void(*)(P *,const M4 *))v.pfn)(Adjusted(p,v),m);}
-// Reset the object (virtual slot 8).
-static inline void Reset(P *p){VTE &v=p->vt[8];((void(*)(P *))v.pfn)(Adjusted(p,v));}
-// Set the object's parent (virtual slot 26).
-static inline void Parent(P *p,P *parent){VTE &v=p->vt[26];((void(*)(P *,P *))v.pfn)(Adjusted(p,v),parent);}
-// Query the object's children of class 14 (virtual slot 3) into *cursor.
-static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,int,int,void **,int))v.pfn)(Adjusted(p,v),14,0,1,cursor,0);}
+// The real class behind the P view, for its virtual calls.
+static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 // Acquires a spare copy for the proxy: chooses one, takes it from its previous owner, places its objects at the
 // proxy and applies the init records (slot 26 on each object). Returns the spare or null.
 extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
@@ -937,11 +927,16 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
  for(int i=0;i<proxy->table->count;i++){
  void **cursor=&work.cursor;
   P *child=proxy->table->objects[row*proxy->table->count+i];
-  VTE &entry=child->vt[42];
+  VTE &entry=child->vt[42];   /* slot 42 SetBusyDistance by hand: its entry is loaded before the work.child store */
   work.child=child;
-  ((void(*)(P *,float))entry.pfn)(Adjusted(child,entry),proxy->scale);Channel(work.child,proxy->context,proxy->channel);Matrix(work.child,&proxy->matrix);Reset(work.child);Parent(work.child,proxy);
-  work.cursor=&work.child;Query(proxy,cursor);
-  work.cursor=&work.owner;Query(work.child,cursor);
+  ((void(*)(P *,float))entry.pfn)((P *)((char *)child+entry.d),proxy->scale);
+  AsLo(work.child)->SetParent((SO *)proxy->context,(XF *)proxy->channel,0);
+  AsLo(work.child)->ApplyProxy((MATRIX4 *)&proxy->matrix);
+  AsLo(work.child)->Add();
+  AsLo(work.child)->OnProxyAcquire(AsLo(proxy));
+  /* Splice event 14 to each other, with the other as the one argument */
+  work.cursor=&work.child;AsLo(proxy)->HandleSpliceEvent(14,0,1,cursor,0);
+  work.cursor=&work.owner;AsLo(work.child)->HandleSpliceEvent(14,0,1,cursor,0);
  }
  return node;
 }
