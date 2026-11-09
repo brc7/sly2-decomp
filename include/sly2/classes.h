@@ -220,7 +220,12 @@ typedef char assert_CID43_size[sizeof(CID43) == 0x100 ? 1 : -1];
 /* 86 BARRIER (0x180); vtable 0x2CAF88, 75 slots */
 struct BARRIER : SO
 {
-    char pad150[0x180 - 0x150];
+    int numObjects;             /* +0x150 objects named by the barrier (barrier.cpp) */
+    OID objects[4];             /* +0x154 */
+    int numClasses;             /* +0x164 classes named by the barrier */
+    CID classes[4];             /* +0x168 */
+    int letsNamedThrough;       /* +0x178 named objects pass (else: only named objects are stopped) */
+    SO *impactObject;           /* +0x17C the object reported by the current impact event */
     virtual void Init() __asm__("InitBarrier");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBarrierClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostBarrierLoad");   /* slot 15 */
@@ -295,10 +300,73 @@ struct CID104 : SO
 };
 typedef char assert_CID104_size[sizeof(CID104) == 0x180 ? 1 : -1];
 
-/* 83 BUTTON (0x300): instances: bouncers, buoys; vtable 0x2CC950, 75 slots */
+/* RSMG: a state-machine trigger of a button, exit or warp (Sly 1 RSMG): when triggered, the state machine oidSM under
+   oidRoot goes to oidTriggerGoal; when untriggered, to oidUntriggerGoal (-1: none). AddOrUpdateRsmg fills one. */
+struct RSMG
+{
+    OID oidRoot;
+    OID oidSM;
+    OID oidTriggerGoal;
+    OID oidUntriggerGoal;
+};
+typedef char assert_RSMG_size[sizeof(RSMG) == 0x10 ? 1 : -1];
+
+/* TASKSTATEREQ: a (task, state) pair; ApplyTaskStates requests each state of its task (game.cpp; the states are
+   game.cpp's enum TASKSTATE). Name inferred. */
+struct TASKSTATEREQ
+{
+    OID oidTask;
+    int state;
+};
+
+/* ASHE/ASH: a list of animation segments to play (oids at load, resolved to the segments by PostAshLoad). From
+   src/game/gameplay/objects/button.cpp; names from its functions (AddAshEntry, PostAshLoad). */
+struct ASHE
+{
+    union { OID oid; ASEG *paseg; } u;
+    int ensureArg;          /* last argument of EnsureAsegPlayer (inferred: a segment flag) */
+};
+struct ASH
+{
+    int count;
+    ASHE entries[8];
+};
+
+/* BTN: the trigger logic BUTTON and VOLBTN share (button.cpp): it plays its "on"/"off" segment lists, fires a relay,
+   applies rsmgs and task states and tells its object. States: button.cpp's BTN_STATE. */
+struct BTN
+{
+    LO *plo;                    /* +0x00 the button object */
+    ASH animLists[2];           /* +0x04 played on trigger (0) and on untrigger (1) */
+    float segmentSpeed;         /* +0x8C (1.0; negative plays backwards) */
+    int state;                  /* +0x90 BTN_STATE (-1 until the first SetBtnButtons) */
+    float stateTime;            /* +0x94 time of the last state change */
+    float resetDelay;           /* +0x98 seconds a pressed button waits before it resets (1.0; negative: never) */
+    int isSilent;               /* +0x9C no click sound on trigger */
+    int seeksBySpeedSign;       /* +0xA0 seek the segments by the sign of segmentSpeed */
+    int staysTriggered;         /* +0xA4 trigger does not move on to BTN_PRESSED */
+    void *relayArg;             /* +0xA8 relay argument (a volume button stores the first object inside) */
+    void *relay;                /* +0xAC fired on trigger */
+    int numRsmgs;               /* +0xB0 */
+    RSMG rsmgs[8];              /* +0xB4 */
+    int numTaskStates;          /* +0x134 */
+    TASKSTATEREQ taskStates[4];    /* +0x138 applied on trigger */
+};
+typedef char assert_BTN_size[sizeof(BTN) == 0x158 ? 1 : -1];
+
+/* 83 BUTTON (0x300): instances: bouncers, buoys; vtable 0x2CC950, 75 slots. An SO pressed by contact, a player state
+   or a worker (button.cpp's BUTTON_PRESS_KIND); layout from button.cpp (the former BUTTONV view). */
 struct BUTTON : SO
 {
-    char pad150[0x300 - 0x150];
+    BTN btn;                    /* +0x150 */
+    int pressKind;              /* +0x2A8 BUTTON_PRESS_KIND */
+    int numPushObjects;         /* +0x2AC objects that may press it (none: any) */
+    LO *pushObjects[8];         /* +0x2B0 */
+    int numPushClasses;         /* +0x2D0 classes that may press it (none: any) */
+    CID pushClasses[8];         /* +0x2D4 */
+    struct HND *phndPress;      /* +0x2F4 the hang handle Sly presses it by hanging from (compared with JT's) */
+    LO *pusher;                 /* +0x2F8 the object pressing it */
+    int unk2FC;                 /* +0x2FC unused by button.cpp */
     virtual void Clone(LO *ploBase) __asm__("CloneButton");   /* slot 41 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetButtonClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitButton");   /* slot 7 */
@@ -309,11 +377,21 @@ struct BUTTON : SO
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeButtonDamage");   /* slot 75 */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTON) == 0x300 ? 1 : -1];
+typedef char assert_BUTTON_pusher[SLY2_OFFSETOF(BUTTON, pusher) == 0x2F8 ? 1 : -1];
 
 /* 24 VOLBTN (0x2D0): REVIEW, high; vtable 0x2CC7B0, 50 slots */
+/* A VOL pressed by objects inside it; layout from button.cpp (the former VOLBTNV view). */
 struct VOLBTN : VOL
 {
-    char pad130[0x2D0 - 0x130];
+    BTN btn;                    /* +0x130 */
+    int numPushObjects;         /* +0x288 objects that may press it */
+    LO *pushObjects[8];         /* +0x28C */
+    int numPushClasses;         /* +0x2AC classes that may press it */
+    CID pushClasses[4];         /* +0x2B0 */
+    int numInside;              /* +0x2C0 objects inside (sorted), kept when tracksInside */
+    LO **objectsInside;         /* +0x2C4 */
+    int tracksInside;           /* +0x2C8 */
+    int unk2CC;                 /* +0x2CC unused by button.cpp */
     virtual void Clone(LO *ploBase) __asm__("CloneVolbtn");   /* slot 41 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetVolbtnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitVolbtn");   /* slot 7 */
@@ -323,6 +401,7 @@ struct VOLBTN : VOL
     virtual void Update() __asm__("UpdateVolbtn");   /* slot 16 */
 };
 typedef char assert_VOLBTN_size[sizeof(VOLBTN) == 0x2D0 ? 1 : -1];
+typedef char assert_VOLBTN_tracksInside[SLY2_OFFSETOF(VOLBTN, tracksInside) == 0x2C8 ? 1 : -1];
 
 /* 25 CID25 (0x2D0): VOLBTN variant; vtable 0x2C9C20, 50 slots */
 struct CID25 : VOLBTN
@@ -564,7 +643,9 @@ typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
 /* 31 EXPLG (0xF0); vtable 0x2CE828, 51 slots */
 struct EXPLG : EXPL
 {
-    char padE0[0xF0 - 0xE0];
+    int numChildren;            /* +0xE0 the explosions of the group (emitter.cpp LoadExplgFromBrx) */
+    LO **children;              /* +0xE4 */
+    int unkE8[2];
     virtual int GetChildren(LO ***paplo) __asm__("CploExplgChildren");   /* slot 28 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplgClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExplgFromBrx");   /* slot 14 */
@@ -576,7 +657,10 @@ typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 /* 33 EXPLS (0x110); vtable 0x2CE4D0, 52 slots */
 struct EXPLS : EXPLO
 {
-    char padF0[0x110 - 0xF0];
+    int unkF0[4];
+    void *pripg;                /* +0x100 its rip group (forgotten when that object goes away: HandleExplsMessage) */
+    void *pblipg;               /* +0x104 its blip group */
+    int unk108[2];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleExplsMessage");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExplsClassDesc");   /* slot 6 */
     virtual void ExplodeExplso(EXPLSO *pexplso) __asm__("ExplodeExplsExplso");   /* slot 51 */
@@ -1782,15 +1866,43 @@ struct CID45 : XFM
 };
 typedef char assert_CID45_size[sizeof(CID45) == 0x130 ? 1 : -1];
 
+/* A navigation graph (CG): vertices (CGV, 0x20 bytes each), triangles (three vertex pointers each), the 2D BSP
+   nodes, and the zone's dynamic obstacles with their sorted x and z begin/end events (sweep and prune; the event
+   arrays start with two sentinels, so numEvents is 2 + 2 per obstacle). path.cpp's 2D BSP walkers see it as GRAPH.
+   Moved from src/game/engine/physics/path.cpp with PATHZONE. */
+struct CGV { int an[8]; };
+struct CG
+{
+    int ccgv;               /* number of vertices */
+    CGV *acgv;              /* +0x04 vertices */
+    int numTriangles;       /* +0x08 */
+    void *triangles;        /* +0x0C */
+    int numBspNodes;        /* +0x10 */
+    void *bspNodes;         /* +0x14 */
+    int numObstacles;       /* +0x18 */
+    int obstacleCapacity;   /* +0x1C */
+    int numEvents;          /* +0x20 */
+    void *xEvents;          /* +0x24 */
+    void *zEvents;          /* +0x28 */
+    void **obstacles;       /* +0x2C */
+};
+typedef char assert_CG_size[sizeof(CG) == 0x30 ? 1 : -1];
+
 /* 17 PATHZONE (0x130): *_pz; vtable 0x2D52B0, 50 slots */
 struct PATHZONE : XFM
 {
-    char padE0[0x130 - 0xE0];
+    CG cg;                      /* +0xE0 the zone's navigation graph */
+    int unknown110;             /* +0x110 (Init: -1) */
+    int version;                /* +0x114 navigation version it was last changed in (g_sw.pathzoneVersion) */
+    DL unknownList118;          /* +0x118 (entries link at +0x60) */
+    int zoneIndex;              /* +0x124 its index in the world's zone BSP (BindSwPathzones) */
+    int unk128[2];
     virtual void Init() __asm__("InitPathzone");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPathzoneClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPathzoneFromBrx");   /* slot 14 */
 };
 typedef char assert_PATHZONE_size[sizeof(PATHZONE) == 0x130 ? 1 : -1];
+typedef char assert_PATHZONE_zoneIndex[SLY2_OFFSETOF(PATHZONE, zoneIndex) == 0x124 ? 1 : -1];
 
 /* 124 PATHLINK (0x160): BHVPATHLINK walks it; REVIEW; vtable 0x2D5120, 48 slots */
 struct PATHLINK : LO
@@ -1870,7 +1982,8 @@ typedef char assert_RAIL_rSlide[SLY2_OFFSETOF(RAIL, rSlide) == 0x1C4 ? 1 : -1];
 /* 61 RAJAN (0x1020); vtable 0x2D7188, 90 slots */
 struct RAJAN : STEPGUARD
 {
-    char pad1010[0x1020 - 0x1010];
+    int hasCameraPolicy;        /* +0x1010 camera policy 6 is set (rajan.cpp SetRajanCameraFocus) */
+    int unk1014[3];
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRajanClassDesc");   /* slot 6 */
     virtual int CanSenseStimulus(struct STIMULUS *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
@@ -1945,10 +2058,26 @@ struct LASEN : SENSOR
 };
 typedef char assert_LASEN_size[sizeof(LASEN) == 0x1D0 ? 1 : -1];
 
-/* 114 RELAY (0xB0): cutscene / sequence script; vtable 0x2D8C48, 48 slots */
+/* 114 RELAY (0xB0): cutscene / sequence script; vtable 0x2D8C48, 48 slots. A list of RELAYCMD commands built by the
+   AddRelay* Splice builtins (sly2/relay.h) and run by RELAYJSG scripts when the relay fires. Layout from
+   src/game/gameplay/cutscene/relay.cpp (the former RELAYV view and the per-function views of Init/LoadFromBrx/Clone/
+   Update/FireRelay/StopRelay/AddRelayCommand); Sly 1 has no relay class, names from use. */
 struct RELAY : LO
 {
-    char pad50[0xB0 - 0x50];
+    int crelaycmd;              /* +0x50 commands in arelaycmd */
+    struct RELAYCMD *arelaycmd; /* +0x54 the command list (stack buffer while loading, then world heap) */
+    int crelaycmdMax;           /* +0x58 the relay's own command limit, -1 = the default 0x200 (SetRelayCommandLimit) */
+    DL dlJsg;                   /* +0x5C running scripts (RELAYJSG, link at +0xE4) */
+    struct RELAYJSG *pjsgSignal; /* +0x68 the script waiting on a Signal command */
+    LO *ploFirer;               /* +0x6C who fired the relay */
+    float tFired;               /* +0x70 time since it fired (real time when the LO runs unpaused) */
+    int fFiring;                /* +0x74 */
+    int fBusy;                  /* +0x78 holds the LO busy mark (SetLoBusyKind) */
+    int fAppendEnd;             /* +0x7C close the command list with a BlockEnd before firing */
+    int fOwnCommands;           /* +0x80 crelaycmdMax was set: Clone copies the command array (inferred) */
+    int calarm;                 /* +0x84 alarms raised by the relay's scripts */
+    struct ALARM *apalarm[8];   /* +0x88 */
+    int anUnkA8[2];             /* +0xA8 unused by relay.cpp */
     virtual void Init() __asm__("InitRelay");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRelayClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRelayFromBrx");   /* slot 14 */
@@ -1956,6 +2085,9 @@ struct RELAY : LO
     virtual void Clone(LO *ploBase) __asm__("CloneRelay");   /* slot 41 */
 };
 typedef char assert_RELAY_size[sizeof(RELAY) == 0xB0 ? 1 : -1];
+typedef char assert_RELAY_dlJsg[SLY2_OFFSETOF(RELAY, dlJsg) == 0x5C ? 1 : -1];
+typedef char assert_RELAY_fOwnCommands[SLY2_OFFSETOF(RELAY, fOwnCommands) == 0x80 ? 1 : -1];
+typedef char assert_RELAY_apalarm[SLY2_OFFSETOF(RELAY, apalarm) == 0x88 ? 1 : -1];
 
 /* 106 CID106 (0x160): mesh deformed along a path; vtable 0x2D8DD8, 75 slots */
 struct CID106 : SO
@@ -2072,7 +2204,8 @@ typedef char assert_CIRCLER_size[sizeof(CIRCLER) == 0x60 ? 1 : -1];
 /* 97 SKY (0x160): sky dome; render kind 1; vtable 0x2D9500, 75 slots */
 struct SKY : SO
 {
-    char pad150[0x160 - 0x150];
+    int followCameraZ;          /* +0x150 nonzero: also follow the camera's height (sky.cpp) */
+    int unk154[3];
     virtual void PostLoad() __asm__("PostSkyLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSkyClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateSky");   /* slot 16 */
@@ -2177,7 +2310,12 @@ typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];
 /* 21 CID21 (0x100): camera-related XFM (task visibility lists); vtable 0x2DB378, 50 slots */
 struct CID21 : XFM
 {
-    char padE0[0x100 - 0xE0];
+    DLE listLink;               /* +0xE0 link in g_sw.dlCid21 (target.cpp) */
+    float maxDistance;          /* +0xE8 ignored beyond this distance (inferred) */
+    float rangeMin;             /* +0xEC LM limits of the second distance (height or lateral offset; inferred) */
+    float rangeMax;             /* +0xF0 */
+    int priority;               /* +0xF4 higher wins over nearer (inferred) */
+    int unkF8[2];
     virtual void OnAdd() __asm__("OnLookTargetAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid21ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLookTarget");   /* slot 7 */
@@ -2186,10 +2324,29 @@ struct CID21 : XFM
 };
 typedef char assert_CID21_size[sizeof(CID21) == 0x100 ? 1 : -1];
 
-/* 100 CID100 (0x1B0): tossables (alarm clock tossable_distract, music box); vtable 0x2DBB10, 76 slots */
+/* 100 CID100 (0x1B0): tossables (alarm clock tossable_distract, music box); vtable 0x2DBB10, 76 slots. Slot functions
+   are named Tossable (InitTossable, UpdateTossable...); the gadgets (CID101/CID102) derive from it. Layout from
+   src/game/gameplay/objects/gadget.cpp's CID100V view (names from there; also relay.cpp's/air.cpp's copies and
+   throw.cpp's reads). */
 struct CID100 : SO
 {
-    char pad150[0x1B0 - 0x150];
+    int state;                  /* +0x150 gadget.cpp's TOSSABLE_STATE */
+    float time;                 /* +0x154 time of the last state change */
+    int pendingContact;         /* +0x158 -1 none; 2 a surface to stick to was found; 4 touched while held (inferred) */
+    int gadgetKind;             /* +0x15C GADGET_KIND or another gadget id (throw.cpp charges its gadget mp) */
+    SO *nearest;                /* +0x160 homing target (gadget 0x29) */
+    SM *stateMachine;           /* +0x164 */
+    SMA *smApplication;         /* +0x168 its goal follows the state */
+    LO *thrower;                /* +0x16C */
+    float maxThrowerDistance;   /* +0x170 farther than this from the thrower it is fired (3000) */
+    int blastZapKind;           /* +0x174 zap kind of the blast hits (inferred, as BOMB's) */
+    int blastDamage;            /* +0x178 damage of the blast hits (-10) */
+    ACT *rotationJob;           /* +0x17C */
+    ACT *positionJob;           /* +0x180 */
+    int unk184[3];
+    qword stickNormal;          /* +0x190 contact normal of the surface to stick to */
+    SO *stickTarget;            /* +0x1A0 */
+    int unk1A4[3];
     virtual void RemoveHierarchy() __asm__("RemoveTossableHierarchy");   /* slot 12 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid100ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleTossableMessage");   /* slot 5 */
@@ -2205,6 +2362,7 @@ struct CID100 : SO
     virtual void SetState(int state) __asm__("SetTossableState");   /* slot 76 */
 };
 typedef char assert_CID100_size[sizeof(CID100) == 0x1B0 ? 1 : -1];
+typedef char assert_CID100_stickNormal[SLY2_OFFSETOF(CID100, stickNormal) == 0x190 ? 1 : -1];
 
 /* 101 CID101 (0x1B0): Bentley trigger bomb / mines (gadget object); vtable 0x2C9810, 76 slots */
 struct CID101 : CID100
@@ -2327,25 +2485,55 @@ struct CID41 : XFM
 };
 typedef char assert_CID41_size[sizeof(CID41) == 0xE0 ? 1 : -1];
 
-/* 26 EXIT (0x190): level exit volume; vtable 0x2DC6F0, 50 slots */
+/* 26 EXIT (0x190): level exit volume; vtable 0x2DC6F0, 50 slots. Sends the player to another world: plays the
+   queued movies, then wipes to the target world. Layout from src/game/level/exit_warp.cpp (the former EXITV view). */
 struct EXIT : VOL
 {
-    char pad130[0x190 - 0x130];
+    int isDefault;              /* +0x130 the exit taken by default */
+    int redirectsToDefault;     /* +0x134 taking it takes the default exit instead */
+    int skipWipe;               /* +0x138 */
+    int state;                  /* +0x13C 0 player inside, 1 left, 2 off, 3 armed, 4 warping */
+    float stateTime;            /* +0x140 time of the last state change */
+    void *targetWorld;          /* +0x144 target world blob */
+    int movieCount;             /* +0x148 movies played before the wipe */
+    void **movies;              /* +0x14C */
+    int targetWarpOid;          /* +0x150 (0x189) */
+    int wipeOid;                /* +0x154 (-1) */
+    float wipeTime;             /* +0x158 */
+    float rearmDelay;           /* +0x15C after leaving, re-armed once this has passed */
+    float wipeDelay;            /* +0x160 delay from taking the exit to the wipe */
+    int taskStateCount;         /* +0x164 */
+    TASKSTATEREQ taskStates[4];    /* +0x168 */
+    int unk188[2];              /* +0x188 unused by exit_warp.cpp */
     virtual void Init() __asm__("InitExit");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetExitClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExitFromBrx");   /* slot 14 */
     virtual void Update() __asm__("UpdateExit");   /* slot 16 */
 };
 typedef char assert_EXIT_size[sizeof(EXIT) == 0x190 ? 1 : -1];
+typedef char assert_EXIT_taskStates[SLY2_OFFSETOF(EXIT, taskStates) == 0x168 ? 1 : -1];
 
-/* 42 WARP (0x180): destinations; entrance_* aliases; vtable 0x2DC550, 50 slots */
+/* WARPPAIR: an object a warp moves on trigger, and the object it is moved to (MatchTransform). */
+struct WARPPAIR { OID object; OID target; };
+
+/* 42 WARP (0x180): destinations; entrance_* aliases; vtable 0x2DC550, 50 slots. A point the player is placed at on
+   arrival: moves the paired objects to their targets, applies its rsmgs and task states and resets every exit. Layout
+   from src/game/level/exit_warp.cpp (the former WARPV view; relay.cpp reads the aliases). */
 struct WARP : XFM
 {
-    char padE0[0x180 - 0xE0];
+    int rsmgCount;              /* +0xE0 */
+    RSMG rsmgs[4];              /* +0xE4 */
+    int taskStateCount;         /* +0x124 */
+    TASKSTATEREQ taskStates[4];    /* +0x128 */
+    unsigned int pairCount;     /* +0x148 objects moved on trigger */
+    WARPPAIR pairs[4];          /* +0x14C */
+    int aliasCount;             /* +0x16C other oids the warp answers to */
+    OID aliases[4];             /* +0x170 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWarpFromBrx");   /* slot 14 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWarpClassDesc");   /* slot 6 */
 };
 typedef char assert_WARP_size[sizeof(WARP) == 0x180 ? 1 : -1];
+typedef char assert_WARP_aliases[SLY2_OFFSETOF(WARP, aliases) == 0x170 ? 1 : -1];
 
 /* 89 WATER (0x190): zap kind 0x2000; vtable 0x2DCA30, 75 slots */
 struct WATER : SO
@@ -2367,7 +2555,22 @@ typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 /* 107 WAYPT (0x190): job marker mission_start_*; vtable 0x2DCC98, 75 slots */
 struct WAYPT : SO
 {
-    char pad150[0x190 - 0x150];
+    int mode;                   /* +0x150 when it shows: 0 unless unknown3B0C, 1 only with unknown3B0C, 2 for a job */
+    int triggerClass;           /* +0x154 class of hero that activates it */
+    float inactiveRadius;       /* +0x158 activation radius while inactive */
+    float activeRadius;         /* +0x15C ... and while active */
+    struct TASK *attachment;    /* +0x160 the task it marks (the label is its job's name plate) */
+    int isActive;               /* +0x164 */
+    LO *source;                 /* +0x168 the marked object (the beam stands on it) */
+    SO *marker;                 /* +0x16C the marker at the top */
+    SO *beam;                   /* +0x170 */
+    SO *base;                   /* +0x174 */
+    int clipFrame;              /* +0x178 camera frame of the last height clip */
+    int hasCurtainHit;          /* +0x17C */
+    float height;               /* +0x180 beam height added to clear the scenery (CalculateWayptCurtainExtraHeight) */
+    int requiredPowerup;        /* +0x184 hidden once this powerup is acquired (-1: none) */
+    void *jobCondition;         /* +0x188 shown only while this job condition holds */
+    int unk18C;
     virtual void PostLoad() __asm__("PostWayptLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWayptClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWaypt");   /* slot 7 */

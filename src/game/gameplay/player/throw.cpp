@@ -30,7 +30,6 @@ static inline ::CID100 *AsTossable(void *p) { return (::CID100 *)p; }
 struct VOBJ {char pad[0xC];VTE *vt;};
 /* A tossable (classes.h CID100, no fields there yet) carried as JTTHROW::ploCarried: its slot-76 virtual (not declared
    in classes.h) and two words. */
-struct CID100V {char pad[0xC];void *vptr;char pad10[0x158 - 0x10];int nUnk158,idGadget;};
 /* A frame of the aim marker's arc: the time it was written, 1 when the point exists, a length (0) and the matrix. */
 struct ARCFRAME {float t,gValid,s;M4 mat;};
 /* The aim marker (EFFECT in the state code; Lilly's ploMarker): vtable, active flag, its ring of arc frames. */
@@ -419,7 +418,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
         case 4:
         case 5:
         case 6: {
-            if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64) && ((CID100V *)s->ploCarried)->nUnk158 != -1) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64) && ((CID100 *)s->ploCarried)->pendingContact != -1) {
                 s->player->SetPlayerState(0);
                 break;
             }
@@ -1113,7 +1112,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     case 7:
         animation = s->pasegblC;
         if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64))
-            ChargeGadgetMp(s->player, ((CID100V *)s->ploCarried)->idGadget);
+            ChargeGadgetMp(s->player, ((CID100 *)s->ploCarried)->gadgetKind);
         break;
     }
     ReleaseSma(&s->player->activeStateMachine);
