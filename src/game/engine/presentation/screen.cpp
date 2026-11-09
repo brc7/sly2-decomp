@@ -2200,7 +2200,7 @@ void ClearJobList(JOBLIST *p) __asm__("ClearJobList"); void ClearJobList(JOBLIST
 } // namespace M_ClearJobList
 
 namespace M_UpdateJobList {
-typedef struct { char pad[0xC]; VTE *vt; char pad10[0x58 - 0x10]; int visibility; } W;
+typedef struct { char pad[0x58]; int visibility; } W;
 void UpdateTimedScreen(JOBLIST *) __asm__("UpdateTimedScreen");
 int AreWidgetLoadsIdle(void) __asm__("AreWidgetLoadsIdle");
 void SetWidgetState(void *, int) __asm__("SetWidgetState");
@@ -2223,7 +2223,7 @@ extern "C" void UpdateJobList(JOBLIST *p)
             return;
         SetWidgetState(p->pchild, 1);
         SetWidgetRequest(p->pchild, 2);
-        ((void (*)(void *))((W *)p->pchild)->vt[16].pfn)((char *)p->pchild + ((W *)p->pchild)->vt[16].d);
+        p->pchild->Update();
     }
     if (HandleJoyButtons(p->pjoy, 0x800)) {
         SetJobListPage(p, -1);
@@ -2396,9 +2396,7 @@ extern "C" void UpdateJobListWidgets(JOBLIST *p)
 
 namespace M_SetJobListPage {
 typedef struct SUB {
-    char pad0[0xC];
-    VTE *vt;
-    char pad10[0x58 - 0x10];
+    char pad0[0x58];
     int visibility;
     char pad5c[0x70 - 0x5C];
     int pageAnimSecond;
@@ -2410,7 +2408,6 @@ void DecrementSwHandsOff(void *, int) __asm__("DecrementSwHandsOff");
 void SetWidgetState(void *, int) __asm__("SetWidgetState");
 void SetWidgetRequest(void *, int) __asm__("SetWidgetRequest");
 void RefreshJobListEntries(JOBLIST *) __asm__("RefreshJobListEntries");
-#define VCALL(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 // Opens the job list on a page (jobs or tasks) or closes it (-1), holding player control while open.
 extern "C" void SetJobListPage(JOBLIST *p, int s)
 {
@@ -2447,7 +2444,7 @@ extern "C" void SetJobListPage(JOBLIST *p, int s)
         if (((SUB *)p->pchild)->visibility) {
             SetWidgetState(p->pchild, 1);
             SetWidgetRequest(p->pchild, 2);
-            VCALL(((SUB *)p->pchild), 16);
+            p->pchild->Update();
         }
         break;
     case 1: {
@@ -2467,7 +2464,7 @@ extern "C" void SetJobListPage(JOBLIST *p, int s)
         if (((SUB *)p->pchild)->visibility) {
             SetWidgetState(p->pchild, 1);
             SetWidgetRequest(p->pchild, 2);
-            VCALL(((SUB *)p->pchild), 16);
+            p->pchild->Update();
         }
         break;
     }
@@ -2476,7 +2473,6 @@ extern "C" void SetJobListPage(JOBLIST *p, int s)
     p->SetMode(-1);
 }
 } // namespace M_SetJobListPage
-#undef VCALL
 
 namespace RO_ORDER { extern const char r_D_002A7A10[] __asm__("D_002A7A10") = ""; }
 namespace RO_ORDER { extern const char r_D_002A7A18[] __asm__("D_002A7A18") = "%s%s%s. %s"; }
