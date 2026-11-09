@@ -31,6 +31,9 @@
 #include "sly2/classes.h"
 #include "sly2/clock.h"
 
+// The real class behind the per-function SO views below, for its virtual calls.
+static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
+
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
 struct RGBAW { uint rgba; RGBAW(uint n) { rgba = n; } };
@@ -1005,7 +1008,7 @@ struct SPH
 struct OBJ
 {
     char pad[0xC];
-    VTE *pvt;
+    void *vptr;
     char pad10[0x18];
     SPH sph;
     char pad40[0x20];
@@ -1287,8 +1290,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         OBJ *pobj = pmodel->apobj[i];
         if (ShouldUpdateSaa__FP3SAA(pobj))
         {
-            VTE *pvte = &pobj->pvt[8];
-            ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
+            AsSo(pobj)->Add();
         }
     }
     int fAlt = 0;
@@ -1496,7 +1498,7 @@ struct XF
 struct OBJ
 {
     char pad[0xC];
-    VTE *pvt;
+    void *vptr;
 };
 struct ALO
 {
@@ -1676,8 +1678,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
         OBJ *pobj = pmodel->apobj[i];
         if (ShouldUpdateSaa__FP3SAA(pobj))
         {
-            VTE *pvte = &pobj->pvt[8];
-            ((void (*)(void *))pvte->pfn)((char *)pobj + pvte->d);
+            AsSo(pobj)->Add();
         }
     }
     for (i = 0; i < pmodel->csub; i++)
@@ -1900,7 +1901,7 @@ struct SPHERE {
 struct SO;
 struct SO {
     char pad[0xC];
-    VTE *vt;
+    void *vptr;
 };
 struct P{SO*owner;};
 struct REQUEST {
@@ -1954,7 +1955,7 @@ typedef char SPHERE_radius_Offset[FIELD_OFFSET(SPHERE,radius)==12?1:-1];
 typedef char SPHERE_limit_Offset[FIELD_OFFSET(SPHERE,limit)==16?1:-1];
 typedef char SPHERE_metadata_Offset[FIELD_OFFSET(SPHERE,metadata)==20?1:-1];
 typedef char TRANSFORM_matrix_Offset[FIELD_OFFSET(TRANSFORM,matrix)==64?1:-1];
-typedef char SO_vt_Offset[FIELD_OFFSET(SO,vt)==12?1:-1];
+typedef char SO_vptr_Offset[FIELD_OFFSET(SO,vptr)==12?1:-1];
 typedef char FACE_flags_Offset[FIELD_OFFSET(FACE,flags)==8?1:-1];
 typedef char FACE_indices_Offset[FIELD_OFFSET(FACE,indices)==20?1:-1];
 typedef char FACE_first_Offset[FIELD_OFFSET(FACE,first)==36?1:-1];
@@ -2004,11 +2005,7 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
         sphere->metadata = U32Read__18CBinaryInputStream(stream);
     }
     {
-        SO *object = p->owner;
-        VTE *method = &object->vt[51];
-        SO *receiver = (SO *)((char *)object + method->d);
-        int index = S16Read__18CBinaryInputStream(stream);
-        entry->transform = ((TRANSFORM *(*)(SO *, int))method->pfn)(receiver, index);
+        entry->transform = (TRANSFORM *)AsSo(p->owner)->GetXfFromIndex(S16Read__18CBinaryInputStream(stream));
     }
     if (entry->flags.word & 0x1000)
         ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, &matrix);
@@ -4270,7 +4267,7 @@ struct STREAM;
 struct SO;
 struct SO {
     char pad[0xC];
-    VTE *vt;
+    void *vptr;
     char pad10[0x10];
     uint flags;
     char position[0x10];
@@ -4349,7 +4346,7 @@ typedef char P_count_Offset[FIELD_OFFSET(P,count)==56?1:-1];
 typedef char P_descriptors_Offset[FIELD_OFFSET(P,descriptors)==60?1:-1];
 typedef char P_entries_Offset[FIELD_OFFSET(P,entries)==64?1:-1];
 typedef char P_word58_Offset[FIELD_OFFSET(P,word58)==88?1:-1];
-typedef char SO_vt_Offset[FIELD_OFFSET(SO,vt)==12?1:-1];
+typedef char SO_vptr_Offset[FIELD_OFFSET(SO,vptr)==12?1:-1];
 typedef char SO_flags_Offset[FIELD_OFFSET(SO,flags)==32?1:-1];
 typedef char SO_position_Offset[FIELD_OFFSET(SO,position)==36?1:-1];
 typedef char SO_list_Offset[FIELD_OFFSET(SO,list)==52?1:-1];
@@ -4377,11 +4374,10 @@ static inline void *Copy(int bytes, void *source)
     request.cbAlign = 16;
     return AllocCopyFromWorldHeap(&request, source);
 }
-// Call the object's readTransform virtual (vtable slot 52) to load a transform from the stream.
+// The object's slot 52 (SO::CloneXfRef, named from CloneSoXfRef) with the stream as its first argument.
 static inline void ReadTransform(SO *object, STREAM *stream, TRANSFORM **output)
 {
-    VTE *method = &object->vt[52];
-    ((void (*)(SO *, STREAM *, TRANSFORM **))method->pfn)((SO *)((char *)object + method->d), stream, output);
+    AsSo(object)->CloneXfRef((LO *)stream, (XF **)output);
 }
 // If any of p's objects has flag 4, replace p's object array with a heap copy (so it can be edited without touching
 // the shared one) (inferred).
