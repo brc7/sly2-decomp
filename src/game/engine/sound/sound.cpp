@@ -157,7 +157,7 @@ namespace M_SND_ctor {
 // Base sound constructor: BASIC header cleared, SND vtable, volume 1, audible from 300 to 3000 units.
 extern "C" CID151 *SND_ctor(CID151 *sound)
 {
-    SLY2_SET_VPTR(((SNDOBJ *)sound), CID151);   /* the vptr, by hand (a C-named constructor) */
+    SLY2_SET_VPTR(sound, CID151);   /* the vptr, by hand (a C-named constructor) */
     sound->scriptFrame.m_p = 0;
     sound->scriptVariables.m_p = 0;
     sound->volume = 1.0f;
@@ -497,7 +497,7 @@ extern "C" BANKSND *BANKSND_ctor(BANKSND *sound, int sfxId)
 {
     SND_ctor(sound);
     sound->sfxId = sfxId;
-    SLY2_SET_VPTR(((SNDOBJ *)sound), BANKSND);   /* the vptr, stored by hand (a C-named constructor) */
+    SLY2_SET_VPTR(sound, BANKSND);   /* the vptr, stored by hand (a C-named constructor) */
     SetSndFlags(sound, SND_START, SND_START);
     return sound;
 }
@@ -728,7 +728,7 @@ extern "C" STREAMSND *STREAMSND_ctor(STREAMSND *sound, FILEREC *pfilerec, int st
     SNDMGR *soundManager;
     SND_ctor(sound);
     sound->record.pfilerec = pfilerec;
-    SLY2_SET_VPTR(((SNDOBJ *)sound), STREAMSND);   /* the vptr, by hand (a C-named constructor) */
+    SLY2_SET_VPTR(sound, STREAMSND);   /* the vptr, by hand (a C-named constructor) */
     sound->streamKind = streamKind;
     for (i = 0; i < 6; i++)
         sound->groupVolumes[i] = 1.0f;

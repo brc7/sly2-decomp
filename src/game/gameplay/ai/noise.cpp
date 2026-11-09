@@ -99,7 +99,7 @@ extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outN
     noise->type = type;
     noise->position = pos;
     noise->startPosition = pos;
-    SLY2_SET_VPTR(((NOISEHDR *)noise), CID147);
+    SLY2_SET_VPTR(noise, CID147);
     noise->loudness = loudness;
     noise->serial = ++g_sw.stimulusSerial;
     noise->startTime = g_clock.time;
