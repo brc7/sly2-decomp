@@ -6,22 +6,23 @@
  * vptr: it stores the vtable's address itself. g++ 2.95 names a class's vtable _vt$<length><name> (with -fno-rtti, one
  * table per class; data/vtables emits them in their key TUs, see docs/guides/tu-merging.md "Emitting vtables").
  *
- *   SLY2_VTBL(CLASS)                 the vtable of CLASS, as an array of VTE (the table's first entry is slot 0)
+ *   SLY2_VTBL(CLASS)                 the vtable of CLASS (its address; the table is an array of VTE, sly2/basic.h)
  *   SLY2_SET_VPTR(p, CLASS)          p's vptr at +0xC (BASIC's, so every registry class's) = CLASS's vtable
- *   SLY2_SET_VPTR_AT(p, off, CLASS)  the same for a class whose vptr is elsewhere (ACT +0x18, a RIP's part +0xEC...)
+ *   SLY2_SET_VPTR_AT(p, off, CLASS)  the same for a class whose vptr is elsewhere (ACT +0x18, CBinaryInputStream +0x30,
+ *                                    a RIP's +0xEC...)
  *
  * The declarations only name symbols: an unused one emits nothing (no undefined symbol, no data), and none of them
  * defines an object, so including this header moves nothing in .bss or .data. A TU that also emits one of these
  * vtables (its class's key TU) refers to its own weak copy through the same name. The stores are plain word stores of
  * the table's address (lui/addiu, sw), byte-identical to the per-file forms they replace (member stores, PVT macros,
- * `*(void **)((char *)p + 0xC) = ...`). The addresses in the comments are the tables' places in the ELF. */
+ * `*(void **)((char *)p + 0xC) = ...`). The header needs no other (the symbols are declared as char arrays), so any TU
+ * can include it. The addresses in the comments are the tables' places in the ELF. */
 #ifndef SLY2_VTABLES_H
 #define SLY2_VTABLES_H
-#include "sly2/basic.h"
 
 #define SLY2_VTBL(CLASS) vtbl_##CLASS
-#define SLY2_DECLARE_VTBL(LEN, CLASS) extern VTE SLY2_VTBL(CLASS)[] __asm__("_vt$" #LEN #CLASS)
-#define SLY2_SET_VPTR_AT(p, off, CLASS) (*(VTE **)((char *)(p) + (off)) = SLY2_VTBL(CLASS))
+#define SLY2_DECLARE_VTBL(LEN, CLASS) extern char SLY2_VTBL(CLASS)[] __asm__("_vt$" #LEN #CLASS)
+#define SLY2_SET_VPTR_AT(p, off, CLASS) (*(void **)((char *)(p) + (off)) = SLY2_VTBL(CLASS))
 #define SLY2_SET_VPTR(p, CLASS) SLY2_SET_VPTR_AT(p, 0xC, CLASS)
 
 SLY2_DECLARE_VTBL(4, ACT1);         /* 0x2CA820 */
