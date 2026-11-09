@@ -28,7 +28,7 @@ struct VECTORV { union { struct { float x, y, z; } v; qwordV q; }; };
 struct M3 { qwordV r[3]; };
 struct M4 { qwordV r[4]; };
 
-extern "C" DLI *D_002DD2FC;     /* g_pdliFirst */
+extern DLI *D_002DD2FC;     /* g_pdliFirst */
 
 
 
