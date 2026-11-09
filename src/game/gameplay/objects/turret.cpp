@@ -292,9 +292,9 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
             if (!v) return;
             turret->lastLaunched = v;
             if (turret->launcher) LaunchSoFromLauncher(turret->launcher, v);
-            ((void (*)(void *, int, int, int, int, int))turret->vt[3].pfn)((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
+            ((::LO *)turret)->HandleSpliceEvent(5, 0, 0, 0, 0);
         } else
-            ((void (*)(void *, int, int, int, int, int))turret->vt[3].pfn)((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
+            ((::LO *)turret)->HandleSpliceEvent(5, 0, 0, 0, 0);
     }
 }
 
