@@ -678,7 +678,7 @@ static inline int ToInt(float f){return (int)f;}
 // Set m to the identity matrix.
 // SO::GetXfFromIndex (slot 51) through the vtable by hand: the real virtual call puts the loop variables in other
 // registers and grows the frame (349 words off). This form exists to reproduce the original codegen.
-static inline XF *Lookup(SO *p,int id){VTE *ve=&(*(VTE **)((char *)p+0xC))[51];return ((XF *(*)(void *,int))ve->pfn)((char *)p+ve->d,id);}
+static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
 static inline void Identity(MATRIX4 *m){func_002333B4(m,0,sizeof(*m));m->mat[3][3]=1.0f;m->mat[2][2]=1.0f;m->mat[1][1]=1.0f;m->mat[0][0]=1.0f;}
 // Clear flag 0x20: on LO::unknown40 when bit 0 is set, otherwise on the word it points to.
 static inline void ClearFlag(SO *p){int f=p->unknown40;if((f^1)&1)*(int *)f&=~0x20;else p->unknown40=f&~0x20;}
@@ -1704,7 +1704,7 @@ extern "C" void UpdateLoXfWorldHierarchy()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateSoXfWorldHierarchy { extern "C" {
-struct O { int a[3]; VTE *vt; char pad[0x14]; struct O *next; };
+struct O { int a[3]; void *vptr; char pad[0x14]; struct O *next; };
 struct S : LO { char pad[0x64 - 0x50]; struct O *first; int a[2]; struct O *end; };
 void UpdateSoXfWorldMatrices(struct S *p);
 // Recomputes an SO's world matrices and then those of its children.
@@ -1713,7 +1713,7 @@ void UpdateSoXfWorldHierarchy(struct S *p)
     struct O *o;
     UpdateSoXfWorldMatrices(p);
     for (o = p->first; o != p->end; o = o->next)
-        ((void (*)(void *))o->vt[18].pfn)((char *)o + o->vt[18].d);
+        ((LO *)o)->UpdateXfWorldHierarchy();
 }
 } } // namespace M_UpdateSoXfWorldHierarchy
 
