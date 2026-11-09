@@ -637,7 +637,7 @@ struct STEPPLAYER : public STEP
     virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepplayerZapLethal");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void UpdateGadget(GADGETSLOT *pslot) __asm__("UpdateStepplayerGadget");   /* slot 101: a held gadget's slot each frame (UpdateStepplayerGadgets) */
-    virtual void StopGadget() __asm__("StopStepplayerGadget");   /* slot 102: named from its overrides (inferred) */
+    virtual void StopGadget(int idGadget) __asm__("StopStepplayerGadget");   /* slot 102: a held gadget slot leaves state 1 (SetGadgetSlotState); named from its overrides (inferred) */
     virtual void *GetSaveVarRoot() __asm__("__pure_virtual");   /* slot 103: the character's save-variable root (named from its overrides, inferred) */
     virtual void SendPowerupEvent() __asm__("SendStepplayerPowerupEvent");   /* slot 104: named from its overrides (inferred) */
     virtual void OnGadgetsChanged() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: named from its overrides (inferred) */
