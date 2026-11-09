@@ -17,7 +17,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
 #include "sly2/classes.h"
-typedef struct SOX { char pad[0xC]; VTE *vt; } SOX;   /* any SO, for its virtual calls */
+#include "sly2/emitter.h"   /* EXPL, EXPLSO */
+typedef struct SOX { char pad[0xC]; void *vptr; } SOX;   /* any SO */
+// The real classes behind the views below, for their virtual calls.
+static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
 /* A trigger class (cid, armed) or an action (kind, value). */
 struct I { int a; int b; };
 /* An event: its id, how many firings it takes (n <= 0: once), its actions. */
@@ -28,7 +31,7 @@ struct XPO;
 struct TRIG
 {
     int x0, x4, x8;
-    VTE *vt;                    /* 0x0C */
+    void *vptr;                    /* 0x0C */
     int x10, x14;
     int oid;                    /* 0x18 */
     char pad1C[0xE8 - 0x1C];
@@ -225,10 +228,10 @@ void SetBreakableStage(TRIG *breakable, int id)
                 }
                 switch ((unsigned int)pi->a) {
                 case 0:
-                    ((void (*)(void *))ps->vt[8].pfn)((char *)ps + ps->vt[8].d);
+                    AsSo(ps)->Add();
                     break;
                 case 1:
-                    ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
+                    AsSo(ps)->Remove();
                     break;
                 case 2:
                     ShowSoGlobsById(breakable, pi->b);
@@ -267,10 +270,10 @@ void SetBreakableStage(TRIG *breakable, int id)
                 }
                 switch ((unsigned int)pi->a) {
                 case 0:
-                    ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
+                    AsSo(ps)->Remove();
                     break;
                 case 1:
-                    ((void (*)(void *))ps->vt[8].pfn)((char *)ps + ps->vt[8].d);
+                    AsSo(ps)->Add();
                     break;
                 case 2:
                     HideSoGlobsById(breakable, pi->b);
@@ -325,8 +328,8 @@ void CID98::AdjustXps()
                     break;
                 }
             }
-            ((void (*)(void *, TRIG *))breakable->vt[54].pfn)((char *)breakable + breakable->vt[54].d, pl->po);
-            ((void (*)(void *, TRIG *))pl->po->vt[54].pfn)((char *)pl->po + pl->po->vt[54].d, breakable);
+            AsSo(breakable)->OnContactFreed(AsSo(pl->po));
+            AsSo(pl->po)->OnContactFreed(AsSo(breakable));
             FreeSwXpList__FP2SWP2XP(&g_sw, pl->x0);
             *pl->px8 = 0;
             pl->x0 = 0;
@@ -352,7 +355,7 @@ void TRIG::Action()
         else
             p->reactionMask = 0;
     }
-    ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 0x10, 0, 0, 0, 0);
+    AsSo(p)->HandleSpliceEvent(0x10, 0, 0, 0, 0);
     if (p->reactionMask & 1) return;
     pe = &p->stages[p->stage];
     RunBreakableStageActions(p, p->stages - 1);
@@ -364,8 +367,8 @@ void TRIG::Action()
         if (++p->firingCount >= pe->n) {
             p->firingCount = 0;
             if (++p->stage >= p->stageCount) {
-                ((void (*)(void *, int, TRIG *))p->vt[4].pfn)((char *)p + p->vt[4].d, 0x10, p);
-                ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+                AsSo(p)->SendMessage((MSGID)0x10, p);
+                AsSo(p)->HandleSpliceEvent(5, 0, 0, 0, 0);
                 BroadcastGameEvent(&g_game, 0x11, p);
             }
         }
@@ -400,10 +403,10 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
             psPrev = ps;
             break;
         case 0:
-            ((void (*)(void *))ps->vt[8].pfn)((char *)ps + ps->vt[8].d);
+            AsSo(ps)->Add();
             break;
         case 1:
-            ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
+            AsSo(ps)->Remove();
             break;
         case 2:
             ShowSoGlobsById(breakable, pi->b);
@@ -422,7 +425,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
                 MSGS msg;
                 msg.a = 1;
                 msg.ps = psPrev ? psPrev : ps;
-                ((void (*)(void *, MSGS *))ps->vt[51].pfn)((char *)ps + ps->vt[51].d, &msg);
+                ((EXPL *)ps)->ExplodeExplso((EXPLSO *)&msg);   /* MSGS: EXPLSO grf 1 and ploReference */
             }
             break;
         case 8:
@@ -442,7 +445,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
         case 11: {
             int *apv[1];
             apv[0] = &pi->b;
-            ((void (*)(void *, int, int, int, int **, int))breakable->vt[3].pfn)((char *)breakable + breakable->vt[3].d, 4, 0, 1, apv, 0);
+            AsSo(breakable)->HandleSpliceEvent(4, 0, 1, (void **)apv, 0);
             break;
         }
         case 12:
