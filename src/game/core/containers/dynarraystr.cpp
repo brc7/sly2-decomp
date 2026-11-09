@@ -92,7 +92,7 @@ template <> void CHash<char *, int>::Resize(int bucketCount)
         }
     }
     hash->c = bucketCount;
-    hash->ap = ((ArrayV::HENT **(*)(void *, void *, int, int))hash->pa->vt[2].pfn)((char *)hash->pa + hash->pa->vt[2].d, hash->ap, bucketCount * 4, 3);
+    hash->ap = (ArrayV::HENT **)hash->pa->Realloc(hash->ap, bucketCount * 4, 3);
     ArrayV_Memset(hash->ap, 0, hash->c * 4);
     for (entry = list; entry; entry = nextEntry) {
         unsigned int bucket;

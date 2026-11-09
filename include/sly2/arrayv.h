@@ -21,6 +21,8 @@
 #ifndef SLY2_ARRAYV_H
 #define SLY2_ARRAYV_H
 
+#include "heap.h"
+
 struct CBinaryInputStream;
 
 extern "C" {
@@ -38,38 +40,26 @@ void ArrayV_Free(void *pary) __asm__("Free__9CDynArray");
 }
 
 namespace ArrayV {
-/* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; void *pfn; };
 /* the per-function views the bodies matched with */
 struct OWNER1 { int x0; int x4; };
 struct ATTACH1 { OWNER1 *p0; char pad[0x20]; int x24; };
 struct OWNER2 { int *x0; char pad[0x24]; int x28; };
 struct ATTACH2 { int *x0; int x4, x8; OWNER2 *xC; int x10; char pad[0xC]; int x20; };
-struct LISTENER { int x0; LISTENER *next; VTE *vt; };
-struct ARYV { char pad[0xC]; VTE *vt; int *data; int c; char pad18[0x10]; LISTENER *first; };
-struct VTINIT { char pad[0x30]; short d; short p; void (*f)(void *, void *); };   /* entry 6 (NotifyAdd) */
-struct ARR { int *data; int c; };
-struct ARYV2 { char pad[0xC]; VTINIT *vt; ARR arr; };
 // Load-allocation request: byte count and alignment.
 struct LOADDESC { int cb; int align; LOADDESC(int c, int a) { cb = c; align = a; } };
 struct SCOPEMARK { int a[4]; };
-struct ARYV3 { char pad[0xC]; VTE *vt; char x10[4]; };
-struct HALLOC { VTE *vt; };
 struct HENT { unsigned int key; int k; int v; HENT *next; };
-struct HASH { int c; HENT **ap; int count; HALLOC *pa; };
-struct IDXBASE { char pad[0x10]; int *base; };
-struct HASHINDEX { char pad[0xC]; IDXBASE *pb; int (*pfn)(int *); char h[0x10]; };
+struct HASH { int c; HENT **ap; int count; HEAP *pa; };
 }
-#define ARRAYV_HFREE(pa, p) ((void (*)(void *, void *))(pa)->vt[3].pfn)((char *)(pa) + (pa)->vt[3].d, p)
 
-/* A chained hash table: bucket count, buckets, entry count, the allocator (its vtable: 1 alloc, 2 realloc, 3 free). */
+/* A chained hash table: bucket count, buckets, entry count, the allocator of the entries and buckets. */
 template <class K, class V> class CHash
 {
 public:
     int m_c;                  /* +0x00 bucket count (0 until the first Insert) */
     void **m_ap;              /* +0x04 buckets */
     int m_count;              /* +0x08 number of entries */
-    void *m_palloc;           /* +0x0C allocator of the entries */
+    HEAP *m_palloc;           /* +0x0C allocator of the entries */
 
     void Clear();
     void Resize(int c);       /* rehash into c buckets (only the <char *, int> specialization is defined) */
@@ -104,7 +94,7 @@ public:
 template <class T> class CDynArrayV : public CDynArrayVBase
 {
 public:
-    char m_ary[0x18];                 /* +0x10 CDynArray */
+    CDynArray m_ary;                  /* +0x10 the elements */
     CArrayListener<T> *m_plistener;   /* +0x28 first listener */
 
     virtual void Init(void *powner);
@@ -153,30 +143,27 @@ template <class T> void CHashIndex<T>::Init(CDynArrayV<T> *pary, void *pfnKey)
 /* 0x256588: every listener's OnAdd (slot 2). */
 template <class T> void CDynArrayV<T>::NotifyAdd(T *pt)
 {
-    ArrayV::ARYV *p = (ArrayV::ARYV *)this;
-    ArrayV::LISTENER *l;
-    for (l = p->first; l; l = l->next)
-        ((void (*)(void *, void *))l->vt[2].pfn)((char *)l + l->vt[2].d, pt);
+    CArrayListener<T> *l;
+    for (l = m_plistener; l; l = l->m_pnext)
+        l->OnAdd(pt);
 }
 
 /* 0x2565E0: append one element, then NotifyAdd (slot 6) with the new element. */
 template <class T> T *CDynArrayV<T>::Add(T *pt)
 {
-    ArrayV::ARYV2 *p = (ArrayV::ARYV2 *)this;
-    ArrayV::ARR *a = &p->arr;
+    CDynArray *a = &m_ary;
     ArrayV_DynArrayAppend(a, (int)pt, 1);
-    p->vt->f((char *)p + p->vt->d, &p->arr.data[a->c - 1]);
-    return (T *)&p->arr.data[a->c - 1];
+    NotifyAdd(&((T *)m_ary.m_pv)[a->m_c - 1]);
+    return &((T *)m_ary.m_pv)[a->m_c - 1];
 }
 
 /* 0x256658: free the elements, then every listener's Clear (slot 1). */
 template <class T> void CDynArrayV<T>::Clear()
 {
-    ArrayV::ARYV *p = (ArrayV::ARYV *)this;
-    ArrayV::LISTENER *l;
-    ArrayV_Free(&p->data);
-    for (l = p->first; l; l = l->next)
-        ((void (*)(void *))l->vt[1].pfn)((char *)l + l->vt[1].d);
+    CArrayListener<T> *l;
+    m_ary.Free();
+    for (l = m_plistener; l; l = l->m_pnext)
+        l->Clear();
 }
 
 /* 0x2566B0: one element's bytes. */
@@ -188,19 +175,18 @@ template <class T> void CDynArrayV<T>::ReadElement(T *pt, CBinaryInputStream *pb
 /* 0x2566D8: Clear (slot 2), then a count and per element: clear a scratch element, ReadElement (slot 4), Add (5). */
 template <class T> void CDynArrayV<T>::Load(CBinaryInputStream *pbis)
 {
-    ArrayV::ARYV3 *p = (ArrayV::ARYV3 *)this;
     void *pv = pbis;
-    ((void (*)(void *))p->vt[2].pfn)((char *)p + p->vt[2].d);
+    Clear();
     ArrayV::SCOPEMARK m;
     ArrayV_StackScopeCtor(&m);
     ArrayV::LOADDESC d(4, 0x10);
     void *buf = ArrayV_ScratchAlloc(&d);
     int n = ArrayV_S32Read(pv);
-    ArrayV_Reserve(p->x10, n);
+    m_ary.Reserve(n);
     if (n > 0) do {
         ArrayV_Memset(buf, 0, 4);
-        ((void (*)(void *, void *, void *))p->vt[4].pfn)((char *)p + p->vt[4].d, buf, pv);
-        ((void (*)(void *, void *))p->vt[5].pfn)((char *)p + p->vt[5].d, buf);
+        ReadElement((T *)buf, (CBinaryInputStream *)pv);
+        Add((T *)buf);
     } while (--n);
     ArrayV_StackScopeDtor(&m, 2);
 }
@@ -214,13 +200,13 @@ template <class K, class V> void CHash<K, V>::Clear()
         ArrayV::HENT *e = h->ap[i];
         while (e) {
             ArrayV::HENT *next = e->next;
-            ARRAYV_HFREE(h->pa, e);
+            h->pa->Free(e);
             e = next;
         }
     }
     ArrayV_Memset(h->ap, 0, h->c * 4);
     h->count = 0;
-    ARRAYV_HFREE(h->pa, h->ap);
+    h->pa->Free(h->ap);
     h->c = 0;
     h->ap = 0;
 }
@@ -245,7 +231,7 @@ template <class K, class V> V *CHash<K, V>::Insert(K *pk, V *pvValue)
         Resize(0x35);
     hash = ArrayV_HashPchz(*(int *)pk);
     i = hash % (unsigned int)h->c;
-    e = ((ArrayV::HENT *(*)(void *, int, int))h->pa->vt[1].pfn)((char *)h->pa + h->pa->vt[1].d, 0x10, 3);
+    e = (ArrayV::HENT *)h->pa->Alloc(0x10, 3);
     ArrayV_Memset(e, 0, 0x10);
     e->key = hash;
     e->k = *(int *)pk;
@@ -258,12 +244,10 @@ template <class K, class V> V *CHash<K, V>::Insert(K *pk, V *pvValue)
 /* 0x256AF0: insert (key of the element, its index) into the hash. */
 template <class T> void CHashIndex<T>::OnAdd(T *pt)
 {
-    ArrayV::HASHINDEX *p = (ArrayV::HASHINDEX *)this;
-    int *px = (int *)pt;
     int a[2];
-    CHash<T, int> *h = (CHash<T, int> *)p->h;
-    a[1] = px - p->pb->base;
-    a[0] = p->pfn(px);
+    CHash<T, int> *h = &m_hash;
+    a[1] = pt - (T *)m_pary->m_ary.m_pv;
+    a[0] = m_pfnKey(pt);
     h->Insert((T *)&a[0], &a[1]);
 }
 
