@@ -257,7 +257,7 @@ extern "C" void BindHackshipParts(HACKSHIP *ship) {
     for (i = 0; i < ship->cpart; i++) {
         HACKSHIPPART *ppart = &ship->apart[i];
         ppart->pxf = FindSoXf(ship, ppart->oidXf, 6);
-        ppart->plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, ppart->oidObject, ship);
+        ppart->plo = FindSwObject(&g_sw, 4, ppart->oidObject, ship);
         if (ppart->pxf) ppart->pact = NewPositionAct(ship, ppart->pxf, 0, 7, 2, D_002A2DD0);
         if (ppart->plo) ppart->psma = ApplySmToObject(ppart->plo, ship, -1, 0);
     }

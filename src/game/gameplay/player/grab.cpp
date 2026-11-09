@@ -2725,11 +2725,11 @@ float D_002BF668 __asm__("D_002BF668") = 0.2f;
  * weights) that ResetJtGrabTnParams points a target at (+0x114); 0x90 bytes, 16-aligned. */
 namespace GRAB_DATA { struct CPDINIT { int cid; float ag[35]; };
 extern CPDINIT r_D_002BF670 __asm__("D_002BF670") __attribute__((aligned(16))); }
-extern "C" { GRAB_DATA::CPDINIT GRAB_DATA::r_D_002BF670 = {0x30, {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -225.0f,
+GRAB_DATA::CPDINIT GRAB_DATA::r_D_002BF670 = {0x30, {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -225.0f,
     1.0f, 0.0f, 0.0f, 20.0f, 1.0f, 0.0f, 0.0f, -3.40282347e+38f,
     3.40282347e+38f, -3.40282347e+38f, 3.40282347e+38f, -3.40282347e+38f, 3.40282347e+38f, 0.0f, 0.0f, 1.0f,
     0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, -3.40282347e+38f, 3.40282347e+38f}}; }
+    1.0f, -3.40282347e+38f, 3.40282347e+38f}};
 } // namespace M_GetJtRailLanding extern "C"
 namespace M_PresetJtAccelHide {
 struct SMP D_002BF700 __asm__("D_002BF700") = {2500.0f, 0.0f, 1.0f};

@@ -3803,7 +3803,7 @@ extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PgadrecFromJtGadget {
 // Sly's gadget record for gadget ids 0x1A/0x25/0x26/0x29, or null.
-extern "C" void *GetJtGadgetRecord(char *p, int n)
+void *GetJtGadgetRecord(char *p, int n) __asm__("GetJtGadgetRecord"); void *GetJtGadgetRecord(char *p, int n)
 {
     switch (n) {
     case 0x1A: return p + 0x1FB0;

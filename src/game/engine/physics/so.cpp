@@ -1108,7 +1108,7 @@ extern "C" void OnSoRemove(SO *so)
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) q->OnRemove();
     if (so->physicsTree && so->physicsTree->root == so) {
         so->UpdateBounds();
-        RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->physicsTree);
+        M_func_001F37C8::RemoveDlEntry__FP2DLPv(&g_sw.dlSoTree, so->physicsTree);
     }
 }
 } // namespace M_OnSoRemove
@@ -1132,7 +1132,7 @@ extern "C" void OnSoAdd(SO *so)
     }
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) q->OnAdd();
     if (so->physicsTree && so->physicsTree->root == so) {
-        if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlSoTree, so->physicsTree)) AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->physicsTree);
+        if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlSoTree, so->physicsTree)) M_func_001F37C8::AppendDlEntry__FP2DLPv(&g_sw.dlSoTree, so->physicsTree);
         so->UpdateBounds();
     }
 }
@@ -1434,7 +1434,7 @@ extern "C" void SetSoAngularVelocity(SO *so,qword position)
 {
     XF *object=so->rotationXf;
     if(!object || object->kind!=6)return;
-    if(!IsXfRoleMoving(object->role))SetXfRole(so,object,1);
+    if(!M_SetSoAngularVelocity::IsXfRoleMoving(object->role))SetXfRole(so,object,1);
     const M3 *rotation=(const M3 *)&object->worldMatq;
     Clear(&object->velq);
     M3 normalized;
@@ -2267,7 +2267,7 @@ extern "C" void AccelSoTowardMatBounded(SO *so,const M3 *orientation,const CLQ *
         owner->acceleration=Add(owner->acceleration,change.q);
     }
     frame=BuildFrame(owner->parent,orientation);
-    NormalizeRotateMatrix3__FP7MATRIX3(&frame);
+    M_func_001F59A0::NormalizeRotateMatrix3__FP7MATRIX3(&frame);
     {M3 out;MulMatrix3Matrix3(&out,(M3 *)&owner->localMatq,&frame);relative=out;}
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&relative,&angle,&axis.q);
     desired=ClampAbs__Fff((angle/stopAngle)*maximum,maximum);
@@ -3149,7 +3149,7 @@ extern "C" void ExpireSwZapRecords(SW *so)
     InitDli(&dli, &so->dlZprHit);
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
         if (g_clock.time < pe->t + 0.25f) continue;
-        RemoveDlEntry__FP2DLPv(&so->dlZprHit, pe);
+        M_func_001F37C8::RemoveDlEntry__FP2DLPv(&so->dlZprHit, pe);
         FreeSlotheapSlot(&so->slotheapZprHit, pe);
     }
     D_002DD2FC = dli.m_pdliNext;

@@ -1889,9 +1889,9 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
     DL dlOpen;
     DL dlClosed;
     ClearDl__FP2DL(&dlOpen);
-    InitDl__FP2DLi(&dlOpen, 0x18);
+    InitDl(&dlOpen, 0x18);
     ClearDl__FP2DL(&dlClosed);
-    InitDl__FP2DLi(&dlClosed, 0x18);
+    InitDl(&dlClosed, 0x18);
     EMPTY e;
     NODE *pnode = &anode[pnavStart->index];
     pnode->pnav = pnavStart;

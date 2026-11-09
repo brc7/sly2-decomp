@@ -109,8 +109,8 @@ struct STREAMSND : CID151
    constructors: g_sndmgr's members are not constructed (SNDMGR_ctor clears them), and a default constructor would make
    g++ emit a construction loop for the music stack. */
 struct SNDREF;
-extern "C" void InitSoundRef(SNDREF *psndref, STREAMSND *psnd);
-extern "C" void AssignSoundRef(SNDREF *psndref, STREAMSND *psnd);
+void InitSoundRef(SNDREF *psndref, STREAMSND *psnd) __asm__("InitSoundRef");
+void AssignSoundRef(SNDREF *psndref, STREAMSND *psnd) __asm__("AssignSoundRef");
 struct SNDREF
 {
     STREAMSND *p;

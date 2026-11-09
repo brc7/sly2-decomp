@@ -60,7 +60,7 @@ extern "C" {
 void InitJtModeHud(JTMODEHUD *phud, JTMODE *pjtmode);
 void PostLoadJtModeHud(JTMODEHUD *phud);
 int IsAsegaRetracted(ASEGA *pasega);
-void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g);
+extern "C++" { void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g) __asm__("SetStepTargetHeading"); }
 void UpdateJtModeHud(JTMODEHUD *phud);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
 void InitReconSel(int *psel, JTMODE *pjtmode);

@@ -43,7 +43,7 @@ void UpdateCplcy(CPLCY *pcplcy, void *pv, JOY *pjoy);
 void ActivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv);
 void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv);
 void SnapCpzoom(CPZOOM *pcpzoom);
-void RcPtr_Assign(CRefPtr<SND> *ppsnd, SND *psnd);
+extern "C++" { void RcPtr_Assign(CRefPtr<SND> *ppsnd, SND *psnd) __asm__("RcPtr_Assign"); }
 void ReleaseAct(ACT1 **ppact);   /* releases the act and clears the pointer (HYPOTHESIS: by its use) */
 }
 void SetCmNearClip(CM *pcm, float sNearClip);
@@ -89,7 +89,7 @@ extern "C" void CPLCY_Revoke()
 }
 
 // Default (empty) slot 6 Update(pcpdefi, pjoy)
-extern "C" void UpdateCplcy()
+void UpdateCplcy() __asm__("UpdateCplcy"); void UpdateCplcy()
 {
 }
 

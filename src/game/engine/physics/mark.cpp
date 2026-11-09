@@ -1484,9 +1484,9 @@ extern BSP D_002BBB20;      /* the "outside" leaf (bsp.cpp) */
 extern "C" {
 void *AllocFromStack(const ALLOCREQ &req);
 int PruneBspP(BSP *pbsp, BSP *pbspLimit, qword pos, float sRadius, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");   /* AddSoXps's view: position first */
-void MarkSoContactsSweptVertices(SW *psw, SOPART *ppart, SOPART *ppartOther, XP **ppxp);
-void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp);
-void MarkSoContactsBspBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, BSP *pbspLast, XP **ppxp);
+extern "C++" { void MarkSoContactsSweptVertices(SW *psw, SOPART *ppart, SOPART *ppartOther, XP **ppxp) __asm__("MarkSoContactsSweptVertices"); }
+extern "C++" { void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp) __asm__("MarkSoContactsSphereBsp"); }
+extern "C++" { void MarkSoContactsBspBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, BSP *pbspLast, XP **ppxp) __asm__("MarkSoContactsBspBsp"); }
 }
 // Squared length of the xyz part of v as a float.
 static inline float LengthSq(qword v)

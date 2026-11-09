@@ -404,7 +404,7 @@ void SCREENBASE::Update()   /* key function: SCREENBASE's vtable comes out here 
 
 /* screen slot 8 (empty) */
 // Base screen draw (slot 8, shared by all screens): nothing. (inferred)
-extern "C" void DrawScreen()
+void DrawScreen() __asm__("DrawScreen"); void DrawScreen()
 {
 }
 
@@ -2005,7 +2005,7 @@ extern "C" void BuildThiefnetPowerupNameText(char *pch, int i) {
     unsigned int n = pg->aitem[pg->iFirstVisible + i].id;
     int id = -1;
     if (n < 0x2B) id = D_002BCD00[n].id;
-    if (id != -1) strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, id));
+    if (id != -1) strcpy(pch, M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw, id));
     else *pch = 0;
 }
 } // namespace M_BuildThiefnetPowerupNameText
@@ -2053,7 +2053,7 @@ extern "C" void BuildThiefnetLootNameText(char *pch, int k)
         ids = D_002C3288[i].ids;
     }
     if (ids != -1) {
-        strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, ids));
+        strcpy(pch, M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw, ids));
         if (c >= 2)
             sprintf(pch, D_002A7A30, pch, c);
     } else {
@@ -2092,7 +2092,7 @@ extern "C" void BuildThiefnetPromptText(char *pch) {
     case 1: id = 0xE0; break;
     default: *pch = 0; return;
     }
-    strcpy(pch, FindSwLocalizedString__FP2SWi(&g_sw, id));
+    strcpy(pch, M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw, id));
 }
 } // namespace M_func_001DCA30
 #undef D_003DA180
@@ -2110,7 +2110,7 @@ char *strcpy(char *,const char *) __asm__("strcpy");
 // Copy the localized string `id` into p.
 extern "C" { static inline void CopyId(char *p,int id)
 {
-    strcpy(p,FindSwLocalizedString__FP2SWi(&g_sw,id));
+    strcpy(p,M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw,id));
 } }
 // Text callback: the popup message, or the selected power-up's name, description and affordability, or the loot sell
 // line.
@@ -2131,9 +2131,9 @@ extern "C" void BuildThiefnetInfoText(char *pch)
                     int idsT=count<*pc?0xD9:0xDA;
                     SW *pg=&g_sw;
                     char *fmt=D_002A7A38;
-                    char *pch1=FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].nameTextId);
-                    char *pch2=FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].detailTextId);
-                    sprintf(pch,fmt,pch1,pch2,FindSwLocalizedString__FP2SWi(pg,idsT));
+                    char *pch1=M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].nameTextId);
+                    char *pch2=M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(pg,D_002BCD00[i].detailTextId);
+                    sprintf(pch,fmt,pch1,pch2,M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(pg,idsT));
                     return;
                 }
             }
@@ -2143,7 +2143,7 @@ extern "C" void BuildThiefnetInfoText(char *pch)
         case 1: {
             unsigned int i=pt->idLootSelected;
             if(i<0x40) {
-                sprintf(pch,FindSwLocalizedString__FP2SWi(&g_sw,0xDB),D_002C3288[i].name);
+                sprintf(pch,M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw,0xDB),D_002C3288[i].name);
                 return;
             }
             CopyId(pch,0xE3);
@@ -2841,7 +2841,7 @@ void strcpy(void *p, void *q) __asm__("strcpy");
 // Text callback: the job name of row i.
 extern "C" void BuildJobListRowText(void *p, int i) {
     JOBLIST *pg = &D_003DA3C0;
-    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
+    if (i < pg->centry) strcpy(p, M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
 }
 } // namespace M_BuildJobListRowText
 
@@ -2852,7 +2852,7 @@ void strcpy(void *p, void *q) __asm__("strcpy");
 // Text callback: the task name of row i.
 extern "C" void BuildJobListTaskRowText(void *p, int i) {
     JOBLIST *pg = &D_003DA3C0;
-    if (i < pg->centry) strcpy(p, FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
+    if (i < pg->centry) strcpy(p, M_BuildGadgetMenuInfoText::FindSwLocalizedString__FP2SWi(&g_sw, ((struct O *)pg->aentry[i].ptask)->n));
 }
 } // namespace M_BuildJobListTaskRowText
 

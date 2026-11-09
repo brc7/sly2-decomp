@@ -136,7 +136,7 @@ int FindTargetRecordGuardIndex(TARGETREC *record, STEPGUARD *guard);
 void SetTargetRecordState(TARGETREC *record, int n);
 TARGETREC *EnsureTargetRecordById(LO *object);
 void WakeSo(STEPGUARD *guard);
-void SetStepTargetHeading(STEPGUARD *guard);
+extern "C++" { void SetStepTargetHeading(STEPGUARD *guard) __asm__("SetStepTargetHeading"); }
 unsigned long GetSgfMaskFromSpliceList(int list);
 ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, unsigned long sgfMask);
 void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
