@@ -1663,7 +1663,7 @@ struct S { int k; struct K *pk; };
 struct T { SVENT *px; int n; };   /* save.cpp's SVFIND */
 extern char D_002A7788[] __asm__("D_002A7788");
 int GetCurrentLevelIndex__Fv(void) __asm__("GetCurrentLevelIndex__Fv");
-extern "C" { struct { int a; int b; } *GetLevelListEntry(int n); }
+struct LEVELENTRYAB { int a; int b; }; LEVELENTRYAB *GetLevelListEntry(int n) __asm__("GetLevelListEntry");
 void CopyAb__FPvT0Ui(struct K *pk, int a, int b) __asm__("CopyAb__FPvT0Ui");
 void *FindSaveVar(void *a, void *b, struct T *pt) __asm__("FindSaveVar");
 short FindSaveSymbol(SVNHASH *a, char *s) __asm__("FindSaveSymbol");
