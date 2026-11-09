@@ -31,6 +31,7 @@
 #include "sly2/clock.h"
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
+#include "sly2/vtables.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -85,7 +86,6 @@ LO *FindSwObject(SW *world, int grffso, OID oid, LO *plo);
 namespace M_SW_ctor {
 /* BASIC's words as the constructor stores them: the two counted pointers cleared and the vptr set as plain words. */
 struct BASICWORDS { void *frame; void *sidebag; int unknown8; void *vt; };
-extern char D_002DC018[] __asm__("_vt$2SW");   /* SW's vtable (sly2/sw.h) */
 extern float D_002C3E60 __asm__("D_002C3E60"),D_002C3E64 __asm__("D_002C3E64"),D_002C3E68 __asm__("D_002C3E68"),D_002C3E6C __asm__("D_002C3E6C");
 extern void InitDl__FP2DLi(DL *,int) __asm__("InitDl__FP2DLi");
 extern void InitSl(SL *,int) __asm__("InitSl");
@@ -102,7 +102,7 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
 // Runs again in place on every level change.
 extern "C" SW *SW_ctor(SW *world)
 {
-    ((BASICWORDS *)world)->frame=0;((BASICWORDS *)world)->sidebag=0;((BASICWORDS *)world)->vt=D_002DC018;
+    ((BASICWORDS *)world)->frame=0;((BASICWORDS *)world)->sidebag=0;SLY2_SET_VPTR(((BASICWORDS *)world), SW);
     InitSlotheap(&world->slotheapLoroot,0x14,0x100,0x10);
     InitSlotheap(&world->slotheapEvent,0x14,0x100,0x10);
     InitSlotheap(&world->slotheapCallback,0x14,0x100,0x10);
