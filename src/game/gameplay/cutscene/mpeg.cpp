@@ -12,6 +12,7 @@
 #include "gifs.h"
 #include "sly2/joy.h"
 #include "sly2/sndmgr.h"
+#include "sly2/vtables.h"
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
@@ -112,7 +113,6 @@ char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern int D_004425DC;
 extern char D_004435F0[];
-extern char D_002D4220[] __asm__("_vt$15CQueueOutputIpu");
 extern int D_002E1E54, D_002DEDBC;
 /* Two movie file references (16 hashed words, sly2/sw.h FILEREC layout; the first is the intro movie, the same record
  * as startup's D_002A3868), read as K. */
@@ -545,7 +545,7 @@ int FeedMpegVideoDecoder__FP7sceMpegP13sceMpegCbDataP5CMpeg(int a, int b, CMPEG 
         }
         if (v == 1) Update__10CMpegAudio(&player->audio);
     }
-    buf[0] = D_002D4220;
+    buf[0] = SLY2_VTBL(CQueueOutputIpu);
     FreeDrain__10CByteQueuei(&player->qVideo, 0);
     DrainToOutput__10CByteQueueiP12CQueueOutput(&player->qVideo, 0, buf);
     return 1;
