@@ -2199,20 +2199,20 @@ void SetAmbienceGroupMix(int unused, int groupId, int pan, float volume)
 
 
 namespace M_func_00259B48 { extern "C" {
-typedef struct { int pad[3]; VTE *vt; } O;
+typedef struct { int pad[3]; void *vptr; } O;   /* a SND (BASIC: AddRef/Release) */
 // Reference-counted pointer assignment: add a reference to o, release the old target, store o.
 inline void AssignSoundRef(O **pp, O *o)
 {
-    if (o) ((void (*)(void *))o->vt[1].pfn)((char *)o + o->vt[1].d);
-    if (*pp) ((void (*)(void *))(*pp)->vt[2].pfn)((char *)*pp + (*pp)->vt[2].d);
+    if (o) ((BASIC *)o)->AddRef();
+    if (*pp) ((BASIC *)*pp)->Release();
     *pp = o;
 }
 } } // namespace M_func_00259B48
 
 namespace M_func_00259BB0 { extern "C" {
-typedef struct { int pad[3]; VTE *vt; } O;
+typedef struct { int pad[3]; void *vptr; } O;   /* a SND (BASIC: AddRef/Release) */
 // Initialise a counted pointer to o, adding a reference.
-inline void InitSoundRef(O **pp, O *o) { if (o) ((void (*)(void *))o->vt[1].pfn)((char *)o + o->vt[1].d); *pp = o; }
+inline void InitSoundRef(O **pp, O *o) { if (o) ((BASIC *)o)->AddRef(); *pp = o; }
 } } // namespace M_func_00259BB0
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
