@@ -87,8 +87,8 @@ struct XFM : public LO
     virtual qword GetAngularVelocity() __asm__("GetXfmAngularVelocity");   /* slot 34 */
     virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("XFM_ApplyTransform");   /* slot 37 */
     virtual void Clone(LO *ploBase) __asm__("CloneXfm");   /* slot 41 */
-    virtual void ResolveXfInParent() __asm__("ResolveXfIdInParent");   /* slot 49: named from its override (inferred) */
-    virtual void RemapClonedXf() __asm__("XFM_RemapClonedXf");   /* slot 50: named from its override (inferred) */
+    virtual XF *ResolveXfInParent(int ixf) __asm__("ResolveXfIdInParent");   /* slot 49: the XF for a transform id, from the parent's table (LoadXfmXfFromBrx; xf.cpp's override drops the result in this build) (inferred) */
+    virtual void RemapClonedXf(XFM *pxfmBase, XF **ppxf) __asm__("XFM_RemapClonedXf");   /* slot 50: after a clone, rebases *ppxf from the base's parent XF array to this one's (CloneXfm) (inferred) */
 };
 typedef char assert_XFM_size[sizeof(XFM) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_XFM_matWorld[SLY2_OFFSETOF(XFM, matWorld) == 0xA0 ? 1 : -1];   /* translation at +0xD0 (CONFIRMED runtime) */
