@@ -21,18 +21,17 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 union V {qword q;float f[4];int n[4];};
 struct M3 {V r[3];};
 struct M4 {M3 basis;V position;};
-/* g++ 2.95 vtable entry with the call shapes used here. */
-struct VE {short delta,pad;union {void (*plain)(void *);void (*integer)(void *,int);void (*vector)(void *,qword);void (*evaluate)(void *,int,V *,float,float);} f;};
+/* Vtable entries are basic.h's VTE; each hand call casts pfn to the shape it calls. */
 /* the clip channel FindAsegChannel returns: aseg.h CHN, its curve act.h AC */
 /* Any BASIC as the register-pinned launch helper calls it: the g++ vtable pointer at +0xC. */
-struct VOBJ {char pad[0xC];VE *vt;};
+struct VOBJ {char pad[0xC];VTE *vt;};
 /* A tossable (classes.h CID100, no fields there yet) carried as JTTHROW::ploCarried: its slot-76 virtual (not declared
    in classes.h) and two words. */
-struct CID100V {char pad[0xC];VE *vt;char pad10[0x158 - 0x10];int nUnk158,idGadget;};
+struct CID100V {char pad[0xC];VTE *vt;char pad10[0x158 - 0x10];int nUnk158,idGadget;};
 /* A frame of the aim marker's arc: the time it was written, 1 when the point exists, a length (0) and the matrix. */
 struct ARCFRAME {float t,gValid,s;M4 mat;};
 /* The aim marker (EFFECT in the state code; Lilly's ploMarker): vtable, active flag, its ring of arc frames. */
-struct EFFECT {char pad[0xC];VE *vt;char pad10[0x144];int active,cframe;ARCFRAME *aframe;int reset;};
+struct EFFECT {char pad[0xC];VTE *vt;char pad10[0x144];int active,cframe;ARCFRAME *aframe;int reset;};
 union SCRATCH {V vector;LM range;};
 struct WORK {SCRATCH scratch;V delta;float angle,radius;V ownerPosition,speed,vector,playerPosition;};
 /* The line-test filter's argument. */
@@ -120,9 +119,9 @@ extern "C" void PostJtThrowLoad(JTTHROW *thrower)
 }
 
 // Update the controller target and consume state/animation transitions.
-static inline void IntCall(CID100V *o,int slot,int value){VE *v=o->vt;v[slot].f.integer((char *)o+v[slot].delta,value);}
+static inline void IntCall(CID100V *o,int slot,int value){VTE *v=o->vt;((void (*)(void *,int))v[slot].pfn)((char *)o+v[slot].d,value);}
 // Call the effect's no-argument virtual at vtable slot `slot`.
-static inline void EffectCall(EFFECT *o,int slot){VE *v=o->vt;v[slot].f.plain((char *)o+v[slot].delta);}
+static inline void EffectCall(EFFECT *o,int slot){VTE *v=o->vt;((void (*)(void *))v[slot].pfn)((char *)o+v[slot].d);}
 // Move a float's bits into a GPR qword ($2).
 static inline qword CPUFloat(float f){register qword r asm("$2");__asm__("mfc1 %0,%1":"=r"(r):"f"(f));return r;}
 // Store value to home and return the stored copy.
@@ -227,11 +226,11 @@ static inline qword LaunchVelocity(qword direction, qword speed, qword up, qword
 static inline void LaunchVectorCall(BENTLEY *owner, const V &home)
 {
     qword velocity = LoadVF(home);
-    VE *table = ((VOBJ *)owner)->vt;
+    VTE *table = ((VOBJ *)owner)->vt;
     register int delta asm("$4");
     register qword argument asm("$5");
-    asm("lh %0,%2\n\tqmfc2.ni %1,%3" : "=&r"(delta), "=r"(argument) : "m"(table[35].delta), "j"(velocity));
-    table[35].f.vector((char *)owner + delta, argument);
+    asm("lh %0,%2\n\tqmfc2.ni %1,%3" : "=&r"(delta), "=r"(argument) : "m"(table[35].d), "j"(velocity));
+    ((void (*)(void *,qword))table[35].pfn)((char *)owner + delta, argument);
 }
 // Unit vector of input with its component along up removed.
 static inline qword PlanarUnit(qword input, qword up)
@@ -862,7 +861,7 @@ extern "C" void ReleaseJtThrowObject(JTTHROW *thrower)
         IntCall((CID100V *)thrower->ploCarried, 76, 1);
 tail:
     if (((EFFECT *)thrower->ploMarker))
-        ((EFFECT *)thrower->ploMarker)->vt[9].f.plain((char *)((EFFECT *)thrower->ploMarker) + ((EFFECT *)thrower->ploMarker)->vt[9].delta);
+        ((void (*)(void *))((EFFECT *)thrower->ploMarker)->vt[9].pfn)((char *)((EFFECT *)thrower->ploMarker) + ((EFFECT *)thrower->ploMarker)->vt[9].d);
 }
 
 // Transition controller states and select the corresponding animation.

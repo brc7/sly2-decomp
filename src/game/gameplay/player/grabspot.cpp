@@ -694,7 +694,6 @@ void SetBarrelState(BARREL *barrel, int n)
 
 namespace M_func_00183E08 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pfn)(...); };
 /* The carrier (a STEPPLAYER) as the zap handler uses it: its slot 88 and its JTMODE at +0xF00. */
 struct O { char pad[0xC]; struct VTE *vt; char p1[0xEF0]; char xf00[4]; };
 struct M { ZPR *q; void *pv; };

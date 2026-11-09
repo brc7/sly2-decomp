@@ -112,7 +112,6 @@ void PostDprizeLoad(DPRIZE *prize)
 } } // namespace M_PostDprizeLoad
 
 namespace M_HandleDprizeMessage { extern "C" {
-struct VTE { short d; short pad; void (*pf)(); };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };   /* the vanish listener: its slot 51 is called by hand (class not known) */
 struct A { int c; void *pv; int pad[14]; };
 struct M { SMA *sender; int x4; int goalAnim; };
@@ -127,7 +126,7 @@ void HandleDprizeMessage(DPRIZE *prize, int n, struct M *pm)
         if (plo) {
             a.c = 1;
             a.pv = prize;
-            ((void (*)(void *, struct A *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &a);
+            ((void (*)(void *, struct A *))plo->vt[51].pfn)((char *)plo + plo->vt[51].d, &a);
         }
         prize->SetState(2);
     }
@@ -753,7 +752,6 @@ void SetDprizeDprizes(DPRIZE *prize, int n)
 namespace M_func_001C6308 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
-struct VTE { short delta,pad; void (*fn)(void *,qword,float,int); };
 struct XFS { char pad[0xB0]; qword scale; };   /* the prize's second XF (SO unknown5C) as the glint reads it */
 struct Q { char pad[0x18]; float duration; void *owner; char pad20[0xEC-0x20]; struct VTE *vt; void *emit; };
 extern qword D_002C0D80;
@@ -800,9 +798,9 @@ void EmitDprizeGlint(DPRIZE *prize)
                 prize->glintTime=g_clock.time;
                 {
                     struct VTE *method=&q->vt[1];
-                    void *ctx=(char *)q+method->delta;
+                    void *ctx=(char *)q+method->d;
                     qword pos=GetLoWorldPos(emitter);
-                    method->fn(ctx,pos,1,0);
+                    ((void (*)(void *,qword,float,int))method->pfn)(ctx,pos,1,0);
                 }
                 {
                     void *owner=prize->glintOwner;
@@ -856,7 +854,6 @@ void COIN::Update() { using namespace M_func_001C6588;
 
 namespace M_func_001C65F8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };
 struct X {
@@ -892,7 +889,7 @@ void SetCoinDprizes(COIN *coin, int n)
             px->smackDef = D_002C0DA0;
             px->smackArg = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(coin), 0, 1.0f);
+            ((void (*)(void *, qword, int, float))e->pfn)((char *)px + e->d, GetLoWorldPos(coin), 0, 1.0f);
             px->attachedLo = coin;
             px->mat = *GetLoWorldMatrix(coin);
         } else {
@@ -904,7 +901,7 @@ void SetCoinDprizes(COIN *coin, int n)
             struct M m;
             m.n = 1;
             m.p = coin;
-            ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
+            ((void (*)(void *, struct M *))plo->vt[51].pfn)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
         coin->HandleSpliceEvent(5, 0, 0, 0, 0);
@@ -957,7 +954,6 @@ void MEDICINE::Update() { using namespace M_func_001C6880;
 
 namespace M_func_001C68F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };
 struct X {
@@ -1000,7 +996,7 @@ void SetMedicineDprizes(MEDICINE *medicine, int n)
             px->smackDef = D_002C0E10;
             px->smackArg = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(medicine), 0, 1.0f);
+            ((void (*)(void *, qword, int, float))e->pfn)((char *)px + e->d, GetLoWorldPos(medicine), 0, 1.0f);
             px->attachedLo = medicine;
             px->mat = *GetLoWorldMatrix(medicine);
         } else {
@@ -1012,7 +1008,7 @@ void SetMedicineDprizes(MEDICINE *medicine, int n)
             struct M m;
             m.n = 1;
             m.p = medicine;
-            ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
+            ((void (*)(void *, struct M *))plo->vt[51].pfn)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
         medicine->HandleSpliceEvent(5, 0, 0, 0, 0);
@@ -1444,7 +1440,6 @@ void LOOT::Update() { using namespace M_func_001C7778;
 }
 
 namespace M_SetLootDprizes {
-struct VTE { short d; short pad; void (*pf)(); };
 extern "C" {
 void Decref__4CRef(void *p);
 void func_00129658(void *p, const void *q) __asm__("__as__4CRefRC4CRef");
@@ -1479,7 +1474,7 @@ void SetLootDprizes(LOOT *loot, int n)
             M m;
             m.n = n;
             m.p = loot;
-            ((void (*)(void *, M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
+            ((void (*)(void *, M *))plo->vt[51].pfn)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
         loot->HandleSpliceEvent(5, 0, 0, 0, 0);
@@ -1733,7 +1728,6 @@ void ClearClueState(CLUE *clue)
 
 namespace M_SetClueDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct VTE { short d; short pad; void (*pf)(); };
 struct LISTENER { char pad[0xC]; struct VTE *vt; };   /* slot 51 is not declared in a header */
 struct M { int n; DPRIZE *p; int pad[14]; };
 void *CreateSfxSound(int n);
@@ -1760,7 +1754,7 @@ void SetClueDprizes(CLUE *clue, int n)
             struct M m;
             m.n = n;
             m.p = clue;
-            ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
+            ((void (*)(void *, struct M *))plo->vt[51].pfn)((char *)plo + plo->vt[51].d, &m);
         } else {
             SetSndSourceLo(CreateSfxSound(0x29), 0);
         }
