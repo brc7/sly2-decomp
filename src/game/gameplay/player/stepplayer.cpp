@@ -403,12 +403,11 @@ extern "C" int GetStepplayerMovementNoise()
 
 namespace M_func_001409E8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct SO { char pad[0xC]; VTE *vt; char pad2[0xFE0 - 0x10]; struct SO *psoNext; };
 struct X { char pad[0x104]; struct X *pxNext; };
 int IsStepplayerInJtMode(STEPPLAYER *p);
 qword GetLoWorldPos(STEPPLAYER *p);
 void *NewNoise(void *a, qword pos, STEPPLAYER *p);
-int StepguardHasSgf(struct SO *pso, int n);
+int StepguardHasSgf(STEPGUARD *pstepguard, int n);
 int CanListenerHearNoise(struct X *px, void *q);
 void RemoveNoise(void *q);
 // 2 if in a look mode or no hide query is possible; else 1 if any guard can see the player, 0 otherwise. (inferred)
@@ -417,19 +416,19 @@ int TestStepplayerHidden(STEPPLAYER *player)
     int unused[4];
     void *q;
     int r;
-    struct SO *so;
+    STEPGUARD *so;
     struct X *px;
     if (IsStepplayerInJtMode(player)) return 2;
     q = 0;
     if (player->hideNoise) q = NewNoise(player->hideNoise, GetLoWorldPos(player), player);
     if (!q) return 2;
     r = 0;
-    so = (*(struct SO * *)&g_sw.dlStepguard);
+    so = (STEPGUARD *)g_sw.dlStepguard.head;
     for (;;) {
         if (!so) break;
         if (StepguardHasSgf(so, 0x1D) || StepguardHasSgf(so, 0xB)) { r = 2; break; }
-        if (((int (*)(void *, void *))so->vt[89].pfn)((char *)so + so->vt[89].d, q)) { r = 1; break; }
-        so = so->psoNext;
+        if (so->CanSenseStimulus((STIMULUS *)q)) { r = 1; break; }
+        so = (STEPGUARD *)so->dleGuard.next;
     }
     if (r == 0) {
         for (px = (*(struct X * *)&g_sw.dlCid47); px; px = px->pxNext)
@@ -540,7 +539,7 @@ void STEPPLAYER::AdjustXps()   /* key function: STEPPLAYER's vtable comes out he
 namespace M_func_00140DB0 { extern "C" {
 /* HandleStepplayerContactImpulse (Claude agent for Lilly, T1644): saves s->v, scales it by 0.01 when the
    other entry's k (s->ae[1 - i].k) is one of three known values and p allows it
-   (p->p150->x80 != 1 or IsStepplayerPushing(p)), calls CalculateSoContactResponse with the same arguments,
+   (p->controller->state != 1 or IsStepplayerPushing(p)), calls CalculateSoContactResponse with the same arguments,
    then restores s->v.
    Matching notes: `save` is a plain qword that is only read by "j" asm operands, so it
    becomes a VU-class pseudo that is spilled across the call (the game's lq/sq v1 + lqc2
@@ -549,15 +548,13 @@ namespace M_func_00140DB0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { int a, b, k; char pad[0x34]; };
 struct S { char pad[0x40]; qword v; struct E *ae; };
-struct X150 { char pad[0x80]; int x80; };
-struct P : SO { struct X150 *controller; };
 extern int D_002E1E40;
 extern int D_002DD5BC;
 extern int D_002F7900;
-int IsStepplayerPushing(struct P *p);
-void CalculateSoContactResponse(struct P *p, void *a, struct S *s, void *b, int i);
+int IsStepplayerPushing(STEPPLAYER *p);
+void CalculateSoContactResponse(STEPPLAYER *p, void *a, struct S *s, void *b, int i);
 // Slot 68 (contact impulse): special handling when the other body is one of the player characters.
-void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void *b, int i)
+void HandleStepplayerContactImpulse(STEPPLAYER *player, void *a, struct S *s, void *b, int i)
 {
     QWROW c;
     qword save;
@@ -566,7 +563,7 @@ void HandleStepplayerContactImpulse(struct P *player, void *a, struct S *s, void
     off = (1 - i) * 64;
     kk = ((struct E *)((char *)s->ae + off))->k;
     if ((kk == D_002E1E40 || kk == D_002DD5BC || kk == D_002F7900) &&
-        (player->controller->x80 != 1 || IsStepplayerPushing(player))) {
+        (player->controller->state != 1 || IsStepplayerPushing(player))) {
         qword vo;
         {
             qword qwcqOut;
