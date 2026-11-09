@@ -295,10 +295,72 @@ struct CID104 : SO
 };
 typedef char assert_CID104_size[sizeof(CID104) == 0x180 ? 1 : -1];
 
-/* 83 BUTTON (0x300): instances: bouncers, buoys; vtable 0x2CC950, 75 slots */
+/* RSMG: a state-machine trigger of a button, exit or warp (Sly 1 RSMG): when triggered, the state machine oidSM under
+   oidRoot goes to oidTriggerGoal; when untriggered, to oidUntriggerGoal (-1: none). AddOrUpdateRsmg fills one. */
+struct RSMG
+{
+    OID oidRoot;
+    OID oidSM;
+    OID oidTriggerGoal;
+    OID oidUntriggerGoal;
+};
+typedef char assert_RSMG_size[sizeof(RSMG) == 0x10 ? 1 : -1];
+
+/* TASKSTATE: a (task, state) pair; ApplyTaskStates requests each state of its task (game.cpp). Name inferred. */
+struct TASKSTATE
+{
+    OID oidTask;
+    int state;
+};
+
+/* ASHE/ASH: a list of animation segments to play (oids at load, resolved to the segments by PostAshLoad). From
+   src/game/gameplay/objects/button.cpp; names from its functions (AddAshEntry, PostAshLoad). */
+struct ASHE
+{
+    union { OID oid; ASEG *paseg; } u;
+    int ensureArg;          /* last argument of EnsureAsegPlayer (inferred: a segment flag) */
+};
+struct ASH
+{
+    int count;
+    ASHE entries[8];
+};
+
+/* BTN: the trigger logic BUTTON and VOLBTN share (button.cpp): it plays its "on"/"off" segment lists, fires a relay,
+   applies rsmgs and task states and tells its object. States: button.cpp's BTN_STATE. */
+struct BTN
+{
+    LO *plo;                    /* +0x00 the button object */
+    ASH animLists[2];           /* +0x04 played on trigger (0) and on untrigger (1) */
+    float segmentSpeed;         /* +0x8C (1.0; negative plays backwards) */
+    int state;                  /* +0x90 BTN_STATE (-1 until the first SetBtnButtons) */
+    float stateTime;            /* +0x94 time of the last state change */
+    float resetDelay;           /* +0x98 seconds a pressed button waits before it resets (1.0; negative: never) */
+    int isSilent;               /* +0x9C no click sound on trigger */
+    int seeksBySpeedSign;       /* +0xA0 seek the segments by the sign of segmentSpeed */
+    int staysTriggered;         /* +0xA4 trigger does not move on to BTN_PRESSED */
+    void *relayArg;             /* +0xA8 relay argument (a volume button stores the first object inside) */
+    void *relay;                /* +0xAC fired on trigger */
+    int numRsmgs;               /* +0xB0 */
+    RSMG rsmgs[8];              /* +0xB4 */
+    int numTaskStates;          /* +0x134 */
+    TASKSTATE taskStates[4];    /* +0x138 applied on trigger */
+};
+typedef char assert_BTN_size[sizeof(BTN) == 0x158 ? 1 : -1];
+
+/* 83 BUTTON (0x300): instances: bouncers, buoys; vtable 0x2CC950, 75 slots. An SO pressed by contact, a player state
+   or a worker (button.cpp's BUTTON_PRESS_KIND); layout from button.cpp (the former BUTTONV view). */
 struct BUTTON : SO
 {
-    char pad150[0x300 - 0x150];
+    BTN btn;                    /* +0x150 */
+    int pressKind;              /* +0x2A8 BUTTON_PRESS_KIND */
+    int numPushObjects;         /* +0x2AC objects that may press it (none: any) */
+    LO *pushObjects[8];         /* +0x2B0 */
+    int numPushClasses;         /* +0x2D0 classes that may press it (none: any) */
+    CID pushClasses[8];         /* +0x2D4 */
+    struct HND *phndPress;      /* +0x2F4 the hang handle Sly presses it by hanging from (compared with JT's) */
+    LO *pusher;                 /* +0x2F8 the object pressing it */
+    int unk2FC;                 /* +0x2FC unused by button.cpp */
     virtual void Clone(LO *ploBase) __asm__("CloneButton");   /* slot 41 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetButtonClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitButton");   /* slot 7 */
@@ -309,11 +371,21 @@ struct BUTTON : SO
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeButtonDamage");   /* slot 75 */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTON) == 0x300 ? 1 : -1];
+typedef char assert_BUTTON_pusher[SLY2_OFFSETOF(BUTTON, pusher) == 0x2F8 ? 1 : -1];
 
 /* 24 VOLBTN (0x2D0): REVIEW, high; vtable 0x2CC7B0, 50 slots */
+/* A VOL pressed by objects inside it; layout from button.cpp (the former VOLBTNV view). */
 struct VOLBTN : VOL
 {
-    char pad130[0x2D0 - 0x130];
+    BTN btn;                    /* +0x130 */
+    int numPushObjects;         /* +0x288 objects that may press it */
+    LO *pushObjects[8];         /* +0x28C */
+    int numPushClasses;         /* +0x2AC classes that may press it */
+    CID pushClasses[4];         /* +0x2B0 */
+    int numInside;              /* +0x2C0 objects inside (sorted), kept when tracksInside */
+    LO **objectsInside;         /* +0x2C4 */
+    int tracksInside;           /* +0x2C8 */
+    int unk2CC;                 /* +0x2CC unused by button.cpp */
     virtual void Clone(LO *ploBase) __asm__("CloneVolbtn");   /* slot 41 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetVolbtnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitVolbtn");   /* slot 7 */
@@ -323,6 +395,7 @@ struct VOLBTN : VOL
     virtual void Update() __asm__("UpdateVolbtn");   /* slot 16 */
 };
 typedef char assert_VOLBTN_size[sizeof(VOLBTN) == 0x2D0 ? 1 : -1];
+typedef char assert_VOLBTN_tracksInside[SLY2_OFFSETOF(VOLBTN, tracksInside) == 0x2C8 ? 1 : -1];
 
 /* 25 CID25 (0x2D0): VOLBTN variant; vtable 0x2C9C20, 50 slots */
 struct CID25 : VOLBTN

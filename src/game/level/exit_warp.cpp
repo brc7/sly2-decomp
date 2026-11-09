@@ -21,8 +21,6 @@ typedef int qwordV __attribute__((mode(TI)));
    the given one) on the hero and on the paired objects. */
 
 struct LO;
-struct RSMG { int a[4]; };
-struct TASKSTATE { int a[2]; };
 
 /* EXITV : VOL (sizeof(VOL) == 0x130). The VOL part is a view of the fields used here, not the sly2/xfm.h class. */
 struct EXITV

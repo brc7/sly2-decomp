@@ -105,13 +105,6 @@ ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLo
 
 void TriggerJoyRumbleRumk(JOY *pjoy, RUMK rumk, float dt);
 
-struct RSMG
-{
-    OID oidRoot;
-    OID oidSM;
-    OID oidTriggerGoal;
-    OID oidUntriggerGoal;
-};
 
 struct WARPV : XFM
 {
