@@ -2802,7 +2802,7 @@ extern "C" void UpdateBhvpath(BHVPATH *behavior) {
             if (!behavior->ignoresBlockers) {
                 SOPHYS *x = behavior->owner->physics;
                 REGENT *y = x ? x->pregent : 0;
-                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->pregent->unknown20, behavior->shape, behavior->isReversed == 0, &((struct T *)behavior->blocker), &behavior->blockerRange, behavior->pathParam);
+                int n = FindShapeFreePoint(pos, y ? y->pathzone : 0, x->pregent->unknown20, behavior->shape, behavior->isReversed == 0, (struct T **)&behavior->blocker, &behavior->blockerRange, behavior->pathParam);
                 behavior->isBlocked = n;
                 switch (n) {
                 case 0:
@@ -4495,7 +4495,7 @@ extern "C" void SetBhvjuggledState(BHVJUGGLED *behavior, int next)
             float end = *(float *)(clockCarrier + (short)(clockAddress & 0xffff)) + D_002BE700;
             qword localPoint = TransformXfPos(0, first->space, point.q);
             qword localDirection = ConvertXfVec(0, first->space, direction.q);
-            ((DELTA *)behavior->holdAct) = NewBezierAct(behavior->owner, first, 0, end, localPoint, localDirection);
+            *(DELTA **)&behavior->holdAct = NewBezierAct(behavior->owner, first, 0, end, localPoint, localDirection);
         }
         int owned = 0;
         if (request.fValid)

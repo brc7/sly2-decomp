@@ -538,7 +538,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
             SetSndSourceLo(e, 0);
             SetSndSourcePos(e, GetLoWorldPos(pipe->player));
         }
-        ((PATH *)pipe->pipeCurve) = 0;
+        *(PATH **)&pipe->pipeCurve = 0;
         return;
     }
     case 0:
