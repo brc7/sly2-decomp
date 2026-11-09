@@ -35,9 +35,6 @@ struct VALSMP { SMPV smp; int cref; };                      /* tag 0x1E, CSplice
 #define HEAP_LM (&CSpliceHeap<0xC, 0x40>::s_heap.slotheap)
 #define HEAP_SMP (&CSpliceHeap<0x10, 0x20>::s_heap.slotheap)
 
-/* A basic (engine) object: reference counting through its vtable (slot 1 adds, slot 2 releases; g++ 2.95 vtable
-   entries are {short delta; short pad; pfn}). */
-struct BASICOBJ { int pad[3]; VTE *vt; };
 
 extern "C" {
 int func_00233178(const void *a, const void *b, int cb) __asm__("memcmp");   /* memcmp */
@@ -159,10 +156,10 @@ extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
 }
 
 // Constructs a game-object value (tag 0x21), taking a reference through the object's vtable slot 1 when non-null.
-extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
+extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASIC *object)
 {
     if (object)
-        ((void (*)(void *))object->vt[1].pfn)((char *)object + object->vt[1].d);
+        object->AddRef();
     pref->u.pv = object;
     pref->m_tagk = 0x21;
     return pref;
@@ -328,10 +325,10 @@ extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 }
 
 // Assigns a game object (tag 0x21), referencing it through vtable slot 1.
-extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
+extern "C" CRef *CRef_SetBasic(CRef *pref, BASIC *object)
 {
     if (object)
-        ((void (*)(void *))object->vt[1].pfn)((char *)object + object->vt[1].d);
+        object->AddRef();
     pref->Decref();
     pref->u.pv = object;
     pref->m_tagk = 0x21;
@@ -451,9 +448,9 @@ void CRef::Incref()
         break;
     case 0x21:
     {
-        BASICOBJ *object = (BASICOBJ *)u.pv;
+        BASIC *object = (BASIC *)u.pv;
         if (object)
-            ((void (*)(void *))object->vt[1].pfn)((char *)object + object->vt[1].d);
+            object->AddRef();
         break;
     }
     case 0x1F:
@@ -521,9 +518,9 @@ void CRef::Decref()
     }
     case 0x21:
     {
-        BASICOBJ *p = (BASICOBJ *)u.pv;
+        BASIC *p = (BASIC *)u.pv;
         if (p)
-            ((void (*)(void *))p->vt[2].pfn)((char *)p + p->vt[2].d);
+            p->Release();
         break;
     }
     case 0x22:
