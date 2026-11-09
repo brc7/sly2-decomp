@@ -658,7 +658,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];}M3&operator=(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];return *this;}};
 struct M4{U r[4];};
 /* The objects the attack target is chosen from (g_sw.dlTarget: next +0xE0, flags +0xE8) and the JT itself (was ALO). */
-struct ATTACKOBJ{char pad[0xC];VTE*vt;char pad10[0xD0];ATTACKOBJ*next;int padE4;int flags;};
+struct ATTACKOBJ{char pad[0xC];void*vptr;char pad10[0xD0];ATTACKOBJ*next;int padE4;int flags;};
 extern "C" const qword D_002A2DC0;
 extern "C" float D_002BF4B8;
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
@@ -677,10 +677,10 @@ static inline qword AddScaled(qword p,qword v,VU_FLOAT k){qword q;__asm__("vadda
 static inline qword Rotate(const M3&m,qword v){qword q;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(q):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"0"(v));return q;}
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4&m,qword v){qword q;q = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, v);return q;}
-// The object's velocity (virtual slot 33).
-static inline qword GetVelocity(ATTACKOBJ*p){VTE*e=&p->vt[33];qword(*f)(void*)=(qword(*)(void*))e->pfn;return f((char*)p+e->d);}
-// The object's reference frame into out (virtual slot 32).
-static inline void*GetFrame(ATTACKOBJ*p,M4*out){return ((void*(*)(void*,M4*))p->vt[32].pfn)((char*)p+p->vt[32].d,out);}
+// The object's velocity (LO::GetVelocity).
+static inline qword GetVelocity(ATTACKOBJ*p){return ((LO*)p)->GetVelocity();}
+// The object's reference frame into out (LO::GetLocalTransform).
+static inline void*GetFrame(ATTACKOBJ*p,M4*out){return ((LO*)p)->GetLocalTransform((MATRIX4*)out);}
 // Absolute value of f.
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 // Find the world's object of class 0x33 (search mode 3) after n.
