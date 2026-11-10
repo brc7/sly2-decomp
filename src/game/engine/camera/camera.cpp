@@ -1,6 +1,6 @@
 // camera.cpp -- CAMERA (class cid 0x2C), a camera placed in the level by the designers (an XFM with an optional
 // look-at target, a focal length and a field of view), and CPCAMERA, the camera policy that puts the camera manager at
-// such a camera. A camera pushes the policy when it enters the world hierarchy (or at load, flag bit 60) and revokes
+// such a camera. A camera pushes the policy when it enters the world hierarchy (or at load, when lo.h's isInWorld bit is set) and revokes
 // it when it leaves. Entry points: CID44::Init, PostCameraLoad, Add/RemoveCameraHierarchy, CPCAMERA::Activate,
 // DeactivateCpcamera, UpdateCpcamera (VU0 asm). TU 0x12E600..0x12EB48 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_camera
@@ -20,22 +20,7 @@ typedef struct { qwordV r[3]; } M3;
 typedef struct { qwordV r[4]; } M4;
 
 /* View of the camera object. */
-struct CAMERA
-{
-    char pad0[0x28];
-    unsigned long flags;    /* +0x028 bit 60: policy on at load */
-    char pad30[0xB0];
-    CAMERA *lookAtTarget;   /* +0x0E0 look-at target (0: use the object's matrix) */
-    char padE4[0x1C];
-    qwordV axis100;          /* +0x100 initialized to D_002A2DA0 (meaning unknown) */
-    qwordV axis110;          /* +0x110 initialized to g_normalZ (meaning unknown) */
-    int cutOnEnd;           /* +0x120 cut the camera when the policy ends */
-    int hasPolicy;          /* +0x124 the policy is set while in the hierarchy */
-    float focalLength;      /* +0x128 focal length (field of view = 2 atan(18 / focalLength)) */
-    int fovRequests;        /* +0x12C > 0: set the field of view from focalLength */
-    float fov;              /* +0x130 field of view set on activation (0: keep) */
-};
-typedef char assert_CAMERA_fov[(unsigned int)&((CAMERA *)0)->fov == 0x130 ? 1 : -1];
+typedef CID44 CAMERA;   /* the camera object (classes.h CID44; was a whole-object view) */
 extern U D_002A2DA0, g_normalZ;
 extern "C" {
 void InitXfm(CAMERA *p);
@@ -66,13 +51,13 @@ void CID44::Init()
     camera->axis110 = g_normalZ.q;
 }
 
-// Post-load (vtable slot 15): LO post-load, marks the camera as policy-bearing, and if its flags say so (bit 60) pushes
+// Post-load (vtable slot 15): LO post-load, marks the camera as policy-bearing, and if it is already in the world (lo.h isInWorld) pushes
 // the camera manager's CPCAMERA policy (g_cm+0x4A8, priority 10) with this camera right away.
 extern "C" void PostCameraLoad(CAMERA *camera)
 {
     PostLoLoad(camera);
     camera->hasPolicy = 1;
-    if ((int)(camera->flags >> 60) & 1)
+    if ((int)camera->isInWorld & 1)   /* lo.h isInWorld: bit 60 of the doubleword at +0x28 (the original read it so) */
         SetCmPolicy(&g_cm, 10, &g_cm.fixedCameraPolicy, 0, camera);
 }
 

@@ -192,7 +192,16 @@ typedef char assert_GUARD_size[sizeof(GUARD) == 0x1010 ? 1 : -1];
 /* 44 CID44 (0x140): camera marker (CPCAMERA target); vtable 0x2CA9F0, 50 slots */
 struct CID44 : XFM
 {
-    char padE0[0x140 - 0xE0];
+    CID44 *lookAtTarget;    /* +0x0E0 look-at target (0: use the object's matrix) (camera.cpp) */
+    undefined4 unknownE4[7];
+    qword axis100;          /* +0x100 initialized to (1, 0, 0, 0) (InitCamera; meaning unknown) */
+    qword axis110;          /* +0x110 initialized to g_normalZ (meaning unknown) */
+    int cutOnEnd;           /* +0x120 cut the camera when the policy ends */
+    int hasPolicy;          /* +0x124 the policy is set while in the hierarchy */
+    float focalLength;      /* +0x128 focal length (field of view = 2 atan(18 / focalLength)) */
+    int fovRequests;        /* +0x12C > 0: set the field of view from focalLength */
+    float fov;              /* +0x130 field of view set on activation (0: keep) */
+    undefined4 unknown134[3];
     virtual void Init() __asm__("InitCamera");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid44ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCameraHierarchy");   /* slot 11 */
@@ -203,6 +212,7 @@ struct CID44 : XFM
     virtual void ReleaseAnimatedField(int id) __asm__("DecrementCameraFovRequests");   /* slot 45 */
 };
 typedef char assert_CID44_size[sizeof(CID44) == 0x140 ? 1 : -1];
+typedef char assert_CID44_fov[SLY2_OFFSETOF(CID44, fov) == 0x130 ? 1 : -1];   /* camera.cpp */
 
 /* 43 CID43 (0x100): ambient-sound XFM (OnAdd/OnRemove start/stop); vtable 0x2CABD8, 50 slots */
 struct CID43 : XFM
