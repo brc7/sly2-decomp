@@ -8,8 +8,8 @@ typedef int __int32_t;
 typedef unsigned int __uint32_t;
 typedef union { float value; __uint32_t word; } ieee_float_shape_type;
 #define GET_FLOAT_WORD(i,d) do { ieee_float_shape_type gf_u; gf_u.value = (d); (i) = gf_u.word; } while (0)
-float func_00244EF8(float x);
-#define fabsf func_00244EF8
+float fabsf(float x);
+#define fabsf fabsf
 
 static const float atanhi[] = {
   4.6364760399e-01, 7.8539812565e-01, 9.8279368877e-01, 1.5707962513e+00 };

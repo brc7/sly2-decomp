@@ -22,9 +22,9 @@ typedef struct {
 } SifDmaTransfer;
 extern SifCmdResetData D_0044C280 __attribute__((aligned(64)));
 void func_0023A920(int, int);
-void func_00234CF0(void);
+void sceSifStopDma(void);
 unsigned int sceSifGetReg(unsigned int);
-unsigned int func_00234E20(unsigned int, unsigned int);
+unsigned int sceSifSetReg(unsigned int, unsigned int);
 void func_0023B170(void *, int);
 unsigned int sceSifSetDma(SifDmaTransfer *, int);
 int sceSifResetIop(const char *arg, int mode)
@@ -35,7 +35,7 @@ int sceSifResetIop(const char *arg, int mode)
 
     func_0023A920(0, 0);
     func_0023A920(1, 0);
-    func_00234CF0();
+    sceSifStopDma();
     dest = (void *)sceSifGetReg(0x80000000);
     D_0044C280.flag = mode;
     for (i = 0; arg[i] != 0; i++)
@@ -50,12 +50,12 @@ int sceSifResetIop(const char *arg, int mode)
     dmat.size = sizeof(SifCmdResetData);
     dmat.attr = 0x44;
     func_0023B170(&D_0044C280, sizeof(SifCmdResetData));
-    func_00234E20(4, 0x40000);
+    sceSifSetReg(4, 0x40000);
     if (sceSifSetDma(&dmat, 1) != 0) {
-        func_00234E20(4, 0x10000);
-        func_00234E20(4, 0x20000);
-        func_00234E20(0x80000002, 0);
-        func_00234E20(0x80000000, 0);
+        sceSifSetReg(4, 0x10000);
+        sceSifSetReg(4, 0x20000);
+        sceSifSetReg(0x80000002, 0);
+        sceSifSetReg(0x80000000, 0);
         return 1;
     }
     return 0;

@@ -122,8 +122,9 @@ side, redo that join.
 - **Aliases are not endorsements.** An alias records upstream's name; nobody re-checked its meaning. A few look
   misattributed: for example, 0x1D9820 (our `DrawUi`) is a member of the garbage collector upstream
   (`UpdateRecyclable__3CGc`). Review those before adopting them under strategy B or C.
-- **One suspected wrong name.** Our `s1_GetThreadId` at 0x2348F0 is syscall 45, which is `ReleaseWaitThread`, as
-  upstream has it.
+- **One wrong name (fixed).** Our `s1_GetThreadId` at 0x2348F0 was syscall 45, which is `ReleaseWaitThread`, as
+  upstream has it; renamed (names/naming-sweep), with `s1_CreateThread` (-27, `_iDisableIntc`) and
+  `s1_ChangeThreadPriority` (-255, `iReleaseAlarm`).
 
 ## Three strategies
 

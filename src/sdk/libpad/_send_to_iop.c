@@ -9,7 +9,7 @@ extern PadSt D_004505D0[2][4];
 extern int D_002C830C;
 extern char D_002AB6D0[];
 int sceSifDmaStat(unsigned int);
-void func_00234F48(void *, void *);
+void SyncDCache(void *, void *);
 unsigned int sceSifSetDma(SifDmaData *, int);
 void func_00236960(const char *, ...);
 
@@ -30,7 +30,7 @@ int _send_to_iop(int port, int slot)
     n = c->x0 + 1;
     dest = D_004505D0[port][slot].dest + ((n & 1) << 5);
     c->x0 = n;
-    func_00234F48(c, (char *)c + 0x1F);
+    SyncDCache(c, (char *)c + 0x1F);
     dma[0].dest = (void *)dest;
     dma[0].src = c;
     dma[0].size = 0x20;

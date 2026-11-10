@@ -10,7 +10,7 @@ extern TLBINFO D_002C6098;
 extern char D_002AAD98[], D_002AADD0[], D_002AADE8[], D_002AAE00[];
 int func_002369E0(const char *, ...);
 void func_002398D0(int);
-void func_0023B358(int, unsigned int, unsigned int, unsigned int, unsigned int);
+void SetTLBEntry(int, unsigned int, unsigned int, unsigned int, unsigned int);
 
 int InitTLB32MB(void)
 {
@@ -33,7 +33,7 @@ int InitTLB32MB(void)
     }
     p = D_002C6098.pKernel;
     for (; i < n; i++, p++)
-        func_0023B358(i, p->PageMask, p->EntryHi, p->EntryLo0, p->EntryLo1);
+        SetTLBEntry(i, p->PageMask, p->EntryHi, p->EntryLo0, p->EntryLo1);
 
     n = i + D_002C6098.nDefault;
     if (n > 48) {
@@ -42,7 +42,7 @@ int InitTLB32MB(void)
     }
     p = D_002C6098.pDefault;
     for (; i < n; i++, p++)
-        func_0023B358(i, p->PageMask, p->EntryHi, p->EntryLo0, p->EntryLo1);
+        SetTLBEntry(i, p->PageMask, p->EntryHi, p->EntryLo0, p->EntryLo1);
 
     D_002C6098.nWired = i;
     __asm__ __volatile__("mtc0 %0, $6\n\tsync.p" : : "r"(i));
@@ -55,9 +55,9 @@ int InitTLB32MB(void)
         }
         p = D_002C6098.pExtended;
         for (; i < n; i++, p++)
-            func_0023B358(i, p->PageMask, p->EntryHi, p->EntryLo0, p->EntryLo1);
+            SetTLBEntry(i, p->PageMask, p->EntryHi, p->EntryLo0, p->EntryLo1);
     }
     for (j = i; j < 48; j++)
-        func_0023B358(j, 0, 0xE0000000 + (j << 13), 0, 0);
+        SetTLBEntry(j, 0, 0xE0000000 + (j << 13), 0, 0);
     return i;
 }

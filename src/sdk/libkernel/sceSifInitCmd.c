@@ -28,12 +28,12 @@ int func_00239450(void);
 void EIntr(void);
 void func_00234CA0(int);
 void sceSifSetDChain(void);
-int func_00234730(int, void *, int);
-int func_00235248(int);
+int AddDmacHandler(int, void *, int);
+int EnableDmac(int);
 unsigned int sceSifGetReg(unsigned int);
-unsigned int func_00234E20(unsigned int, unsigned int);
+unsigned int sceSifSetReg(unsigned int, unsigned int);
 void func_0023AFA8(unsigned int, void *, unsigned int, void *, void *, unsigned int);
-void func_0023AAB8(void *, void *);
+void _sceSifCmdChangeAddr(void *, void *);
 void func_0023AA98(void *, void *);
 void func_0023B028(void);
 
@@ -61,7 +61,7 @@ void sceSifInitCmd(void)
     }
     for (i = 0; i < 32; i++)
         D_0044EF80[i] = 0;
-    D_0044EE00[0].func = func_0023AAB8;
+    D_0044EE00[0].func = _sceSifCmdChangeAddr;
     D_0044EE00[0].data = &D_0044EDD8;
     D_0044EE00[1].func = func_0023AA98;
     D_0044EE00[1].data = &D_0044EDD8;
@@ -71,8 +71,8 @@ void sceSifInitCmd(void)
         *(volatile unsigned int *)0x1000E010 = 0x20;
     if (!(*(volatile unsigned int *)0x1000C000 & 0x100))
         sceSifSetDChain();
-    D_0044EDD4 = func_00234730(5, (void *)func_0023B028, 0);
-    func_00235248(5);
+    D_0044EDD4 = AddDmacHandler(5, (void *)func_0023B028, 0);
+    EnableDmac(5);
     D_0044EDD8.iopbuf = (void *)sceSifGetReg(0x80000000);
     if (D_0044EDD8.iopbuf) {
         D_0044EDC0.buf = D_0044ED00;
@@ -83,8 +83,8 @@ void sceSifInitCmd(void)
         while (!(sceSifGetReg(4) & 0x20000))
             ;
         D_0044EDD8.iopbuf = (void *)sceSifGetReg(2);
-        func_00234E20(0x80000000, (unsigned int)D_0044EDD8.iopbuf);
-        func_00234E20(0x80000001, (unsigned int)&D_0044EDD8);
+        sceSifSetReg(0x80000000, (unsigned int)D_0044EDD8.iopbuf);
+        sceSifSetReg(0x80000001, (unsigned int)&D_0044EDD8);
         D_0044EDC0.buf = D_0044ED00;
         D_0044EDC0.opt = 0;
         func_0023AFA8(0x80000002, &D_0044EDC0, 0x14, 0, 0, 0);

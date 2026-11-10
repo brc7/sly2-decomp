@@ -18,13 +18,13 @@ void *func_002333B4(void *, int, int);
 void func_0024FA38(void *, const char *, int);
 void func_0024FA90(void *, const char *, int);
 void func_0024B8F8(void *, void *, int);
-int func_0024B930(void *, void *, int, int);
+int _alalcAlloc(void *, void *, int, int);
 void func_0024A908(void *);
 void func_0024B590(sceMpeg *);
 int func_0024B7A8(sceMpeg *);
-void func_0024B910(void *);
-int func_0024B9A0();
-int func_0024B9C8();
+void _alalcSetDynamic(void *);
+int _defStopDMA();
+int _defRestartDMA();
 extern char D_002AC2F8[], D_002AC2A8[], D_002AC2D0[];
 int sceMpegCreate(sceMpeg *mp, unsigned char *work, int size)
 {
@@ -57,9 +57,9 @@ int sceMpegCreate(sceMpeg *mp, unsigned char *work, int size)
     W(0xF8) = 0; W(0xFC) = 0; W(0x108) = 0;
     CBS[0].func = 0; CBS[1].func = 0; CBS[4].func = 0; CBS[5].func = 0; CBS[6].func = 0;
     L(0x100) = -1;
-    CBS[2].func = func_0024B9A0;
-    CBS[3].func = func_0024B9C8;
-    r = func_0024B930(d, bs, 0x800, 8);
+    CBS[2].func = _defStopDMA;
+    CBS[3].func = _defRestartDMA;
+    r = _alalcAlloc(d, bs, 0x800, 8);
     W(0x64) = 0;
     W(0x10C) = 0; W(0x110) = 0; W(0x114) = 0;
     W(0x8C) = 0;
@@ -84,7 +84,7 @@ int sceMpegCreate(sceMpeg *mp, unsigned char *work, int size)
     P(0x1E8) = d + 0x468;
     P(0x1EC) = d + 0x4D0;
     P(0x1F4) = d + 0x538;
-    func_0024B910(bs);
+    _alalcSetDynamic(bs);
     W(0x860) = -1;
     W(0x85C) = 0;
     W(0x864) = 0;

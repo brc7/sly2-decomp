@@ -7,7 +7,7 @@ extern int D_004484C0[];
 extern char D_00448440[];
 int snd_StreamSafeCdSync(int);
 void printf(const char *, ...);
-void func_00234F48(void *, void *);
+void SyncDCache(void *, void *);
 void snd_FlushSoundCommands(void);
 void func_00234CA0(int) __asm__("FlushCache");
 int func_00237488(void *) __asm__("sceSifCheckStatRpc");
@@ -27,7 +27,7 @@ int snd_BankLoadByLoc(int a, int b)
         return 0;
     }
     gLoadReturnValue[0] = 0xFFFFFFFF;
-    func_00234F48(gLoadReturnValue, gLoadReturnValue + 1);
+    SyncDCache(gLoadReturnValue, gLoadReturnValue + 1);
     D_004484C0[0] = a;
     D_004484C0[1] = b;
     while (func_00237488(D_00448440)) {

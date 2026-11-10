@@ -12,7 +12,7 @@ struct exception {
 };
 extern const int __fdlib_version;
 float __ieee754_sqrtf(float x);
-int func_0024A0C0(float x);
+int isnanf(float x);
 int matherr(struct exception *x);
 int *func_002401C8(void);
 float sqrtf(float x)
@@ -21,7 +21,7 @@ float sqrtf(float x)
     float z;
 
     z = __ieee754_sqrtf(x);
-    if (__fdlib_version == -1 || func_0024A0C0(x))
+    if (__fdlib_version == -1 || isnanf(x))
         return z;
     if (x < (float)0.0) {
         exc.type = 1;

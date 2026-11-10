@@ -5,7 +5,7 @@ extern char D_002AACD0[];
 extern char D_002AACE0[];
 int func_00236960(const char *, ...);
 void func_00236A60(int);
-void func_00236C00(void);
+void sceSifExitRpc(void);
 int func_00239198(const char *, int);
 int sceSifRebootIop(const char *img)
 {
@@ -27,7 +27,7 @@ int sceSifRebootIop(const char *img)
         return 0;
     }
     func_00236A60(0);
-    func_00236C00();
+    sceSifExitRpc();
     {
         register char *q asm("$3") = param;
         while ((check = *s) != 0)

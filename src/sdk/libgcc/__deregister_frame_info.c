@@ -10,8 +10,8 @@ extern struct object *D_00450278;
 #define objects D_00450278
 void func_001AE4F0(void *);
 #define free func_001AE4F0
-void func_00240328(void);
-#define abort func_00240328
+void abort(void);
+#define abort abort
 typedef int __gthread_mutex_t;
 static __gthread_mutex_t object_mutex;
 static inline int __gthread_mutex_lock(__gthread_mutex_t *m) { return 0; }
