@@ -7,7 +7,7 @@
 // hand-tuned functions (PostRobottankLoad, UpdateRobottank, UpdateRobottankAi, PresetRobottankAccel, the wheel
 // contact generator, RenderRobottankSelf, TakeRobottankDamage, SetRobottankState) and the weapon (JSG) functions still
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp do).
-// func_001D3450 is the known path-hash case ("Path-hash quirk" in docs/guides/tu-merging.md): its namespace keeps
+// MarkWheel is the known path-hash case ("Path-hash quirk" in docs/guides/tu-merging.md): its namespace keeps
 // the verbatim `#line 13 "<its per-function path>"` pin, and the `#line` after it restores this file's name.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_robottank
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D5130
@@ -1352,7 +1352,7 @@ extern "C" void PresetRobottankAccel(P *tank)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D3450 {
-// func_001D3450 (MATCH, T1816 from w4lane10/w5lane3): wheel/suspension support contacts of a SOPART's pruned BSP.
+// MarkWheel (MATCH, T1816 from w4lane10/w5lane3): wheel/suspension support contacts of a SOPART's pruned BSP.
 // Build the wheel frame (owner matrix rotation + wheel world position), prune the part's BSP to the wheel sphere, then:
 //  1. edge pass: every edge between two pruned surfaces that crosses the wheel plane gives a support point (wheel space)
 //     inside the wheel profile (radius circle below the axle, |x| <= radius above it);
@@ -1512,7 +1512,7 @@ static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b
 
 // Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post
 // deepest tangency as kind-10 contact (AddXp AddXp). (inferred)
-extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3, int unused4, BSP *pbspRoot, CONTACT **ppcontact)
+extern "C" void MarkWheel(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3, int unused4, BSP *pbspRoot, CONTACT **ppcontact)
 {
     int csupport = 0;
     M4 *pmat = GetMatrix(owner);
@@ -1703,7 +1703,7 @@ typedef struct {
     ENT ae[8];
 } OBJ;
 void AddSoCustomXps(void) __asm__("AddSoCustomXps");
-void func_001D3450(OBJ *, ENT *, SOPART *, int, int, int, void *) __asm__("func_001D3450");
+void MarkWheel(OBJ *, ENT *, SOPART *, int, int, int, void *) __asm__("MarkWheel");
 // CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel when the other part's physics root
 // IsFixed (slot 62). (inferred)
 extern "C" void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
@@ -1714,7 +1714,7 @@ extern "C" void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, in
     psoRoot = ppart->owner->physicsTree->root;
     if (psoRoot->IsFixed()) {
         for (i = 0; i < tank->c; i++)
-            func_001D3450(tank, &tank->ae[i], ppart, x, y, z, tank->ae[i].b);
+            MarkWheel(tank, &tank->ae[i], ppart, x, y, z, tank->ae[i].b);
     }
 }
 } // namespace M_AddRobottankCustomXps

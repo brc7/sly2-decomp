@@ -3749,6 +3749,7 @@ SteerRobottankAlongPath = 0x1D2490; // type:func
 UpdateRobottankAi = 0x1D2610; // type:func
 FindDeepestRobottankWheelXp = 0x1D2DD0; // type:func
 PresetRobottankAccel = 0x1D2E18; // type:func
+MarkWheel = 0x1D3450; // type:func
 AddRobottankCustomXps = 0x1D3E48; // type:func
 RemoveRobottankContactsWith = 0x1D3F30; // type:func
 FindRobottankWeapon = 0x1D3FA8; // type:func

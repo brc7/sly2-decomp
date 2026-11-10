@@ -491,7 +491,7 @@ GCC 2.95 hashes the source file name and the line number into the gcse ordering 
 functions that ordering decides stack-slot numbering, so the match depends on (sum of path bytes, line) mod 287.
 A merge changes both the path and the line of every function. If a merged function that contains inline asm misses
 only by a few stack offsets, pin the name with `#line N "<repo-relative path>"` and keep the asm helper in the line
-window that matches (example: func_001D3450 in `src/game/gameplay/objects/robottank.cpp`, namespace M_func_001D3450).
+window that matches (example: MarkWheel, formerly func_001D3450, in `src/game/gameplay/objects/robottank.cpp`, namespace M_func_001D3450).
 
 What wave 2 measured (on func_001D3450, by changing only its `#line 13 "<path>"` pin; MATCH unless noted):
 

@@ -4119,7 +4119,7 @@ SteerRobottankAlongPath,0x1D2490,95,match,src/game/gameplay/objects/robottank.cp
 UpdateRobottankAi,0x1D2610,496,match,src/game/gameplay/objects/robottank.cpp
 FindDeepestRobottankWheelXp,0x1D2DD0,17,match,src/game/gameplay/objects/robottank.cpp
 PresetRobottankAccel,0x1D2E18,397,match,src/game/gameplay/objects/robottank.cpp
-func_001D3450,0x1D3450,637,match,src/game/gameplay/objects/robottank.cpp
+MarkWheel,0x1D3450,637,match,src/game/gameplay/objects/robottank.cpp
 AddRobottankCustomXps,0x1D3E48,57,match,src/game/gameplay/objects/robottank.cpp
 RemoveRobottankContactsWith,0x1D3F30,30,match,src/game/gameplay/objects/robottank.cpp
 FindRobottankWeapon,0x1D3FA8,17,match,src/game/gameplay/objects/robottank.cpp
