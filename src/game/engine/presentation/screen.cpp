@@ -25,6 +25,7 @@
 #include "sly2/joy.h"
 #include "sly2/screen.h"
 #include "sly2/classes.h"
+#include "sly2/stepplayer.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/dli.h"
@@ -449,14 +450,8 @@ enum HudMeterState { HUDMETER_HIDDEN, HUDMETER_STEADY, HUDMETER_DAMAGE, HUDMETER
 enum NoticeState { NOTICE_HIDDEN, NOTICE_APPEARING, NOTICE_SHOWN, NOTICE_HIDING, NOTICE_SWAPPING };
 
 namespace M_PostHudMeterLoad {
-typedef struct {
-    char pad[0xDFC];
-    int maxHealth;
-    int *healthPtr;
-    char padE04[0x1300 - 0xE04];
-    int maxPower;
-} Q;
-#define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
+typedef STEPPLAYER Q;   /* the hero (stepplayer.h) */
+#define HERO(p) ((p)->hero)
 WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int GetStepplayerMp(Q *) __asm__("GetStepplayerMp");
@@ -480,8 +475,8 @@ void PostHudMeterLoad(HUDMETER *p) __asm__("PostHudMeterLoad"); void PostHudMete
         p->shownPower = p->power = 0.0f;
         return;
     }
-    p->shownHealth = p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
-    p->shownPower = p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
+    p->shownHealth = p->health = (float)*HERO(p)->jthurt.hitPoints / (float)HERO(p)->jthurt.maxHitPoints;
+    p->shownPower = p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxGadgetPower;
     if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x37)) {
             p->idAnimSteady = 0x347;
             p->idAnimDamage = 0x348;
@@ -598,18 +593,8 @@ extern "C" void SetHudMeterState(HUDMETER *p, int s)
 
 namespace M_UpdateHudMeter {
 typedef struct { char pad0[0xC]; void *vt; } SUB;
-typedef struct Q {
-    char pad0[0xDFC];
-    int maxHealth;
-    int *healthPtr;
-    char pad[0x10C8 - 0xE04];
-    int unknown10C8;
-    char pad2[0x10EC - 0x10CC];
-    int unknown10EC;
-    char pad3[0x1300 - 0x10F0];
-    int maxPower;
-} Q;
-#define HERO(p) ((Q *)(p)->hero)   /* the hero through the STEPPLAYER view */
+typedef STEPPLAYER Q;   /* the hero (stepplayer.h) */
+#define HERO(p) ((p)->hero)
 extern char D_002C3248[] __asm__("D_002C3248");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int GetStepplayerMp(Q *) __asm__("GetStepplayerMp");
@@ -653,16 +638,16 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(HERO(p), 0x36)) {
             p->idAnimSteady = 0x342; p->idAnimDamage = 0x343; p->idAnimHide = 0x344; p->idAnimState6 = 0x345; p->idAnimState7 = 0x346;
         }
-        p->shownHealth = p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
-        p->shownPower = p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
+        p->shownHealth = p->health = (float)*HERO(p)->jthurt.hitPoints / (float)HERO(p)->jthurt.maxHitPoints;
+        p->shownPower = p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxGadgetPower;
     }
     switch (p->state) {
     case HUDMETER_STEADY:
     case HUDMETER_STATE6:
     case HUDMETER_STATE7:
-        p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
-        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
-        if (*HERO(p)->healthPtr <= 0) {
+        p->health = (float)*HERO(p)->jthurt.hitPoints / (float)HERO(p)->jthurt.maxHitPoints;
+        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxGadgetPower;
+        if (*HERO(p)->jthurt.hitPoints <= 0) {
             SetHudMeterState(p, HUDMETER_HIDDEN);
         } else if (p->shownHealth > p->health) {
             SetHudMeterState(p, HUDMETER_DAMAGE);
@@ -670,9 +655,9 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         } else if (!AreFloatsNear__Ffff(p->shownPower, p->power, 0.0001f)) {
             SetHudMeterState(p, HUDMETER_POWER_CHANGE);
-        } else if (HERO(p)->unknown10EC == 4) {
+        } else if (HERO(p)->interactMode == 4) {
             SetHudMeterState(p, HUDMETER_STATE7);
-        } else if (HERO(p)->unknown10C8 != -1) {
+        } else if (HERO(p)->hideState != -1) {
             SetHudMeterState(p, HUDMETER_STATE6);
         } else {
             SetHudMeterState(p, HUDMETER_STEADY);
@@ -687,8 +672,8 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     case HUDMETER_HIDDEN:
-        p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
-        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
+        p->health = (float)*HERO(p)->jthurt.hitPoints / (float)HERO(p)->jthurt.maxHitPoints;
+        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxGadgetPower;
         if (p->shownHealth < p->health) {
             p->shownHealth = p->health;
             SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
@@ -698,7 +683,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         }
         break;
     case HUDMETER_HEALTH_FILL:
-        p->health = (float)*HERO(p)->healthPtr / (float)HERO(p)->maxHealth;
+        p->health = (float)*HERO(p)->jthurt.hitPoints / (float)HERO(p)->jthurt.maxHitPoints;
         if (p->shownHealth < p->health)
             p->shownHealth = p->health;
         else
@@ -708,7 +693,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, HUDMETER_STEADY);
         break;
     case HUDMETER_POWER_CHANGE:
-        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxPower;
+        p->power = (float)GetStepplayerMp(HERO(p)) / (float)HERO(p)->maxGadgetPower;
         if (p->shownPower < p->power)
             p->shownPower = p->power;
         else
@@ -2288,23 +2273,14 @@ extern "C" void SelectJobListItem(JOBLIST *p, int i) {
 } // namespace M_SelectJobListItem
 
 namespace M_RefreshJobListEntries {
-struct SO : LO {
-    char pad0[0x54 - 0x50];
-    int taskState;
-    char pad58[0x5C - 0x58];
-    int taskTextId;
-    char pad60[0x6C - 0x60];
-    int jobTextId;
-    char pad70[0x7C - 0x70];
-    SO *job;
-};
+/* The sorted tasks are task.h TASKs, their jobs JOBs (was one LO view over both). */
 
 void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
 void func_002333B4(void *, int, unsigned int) __asm__("memset");
-void SortTasksTopologically(int *, SO ***) __asm__("SortTasksTopologically");
+void SortTasksTopologically(int *, TASK ***) __asm__("SortTasksTopologically");
 void qsort(void *, int, int, int (*)(const void *, const void *)) __asm__("qsort");
 int CompareTasks(const void *, const void *) __asm__("CompareTasks");
-int GetJobState(SO *) __asm__("GetJobState");
+int GetJobState(JOB *) __asm__("GetJobState");
 void memmove(void *, void *, unsigned int) __asm__("memmove");
 void SelectJobListItem(JOBLIST *, int) __asm__("SelectJobListItem");
 
@@ -2329,17 +2305,17 @@ extern "C" void RefreshJobListEntries(JOBLIST *p)
     func_002333B4(p->aentry, 0, p->centry * sizeof(JLENTRY));
     STACKSCOPE frame;
     int c;
-    SO **aso;
+    TASK **aso;
     SortTasksTopologically(&c, &aso);
     qsort(aso, c, 4, CompareTasks);
     switch (p->nPage) {
     case 0: {
-        SO *last = 0;
+        JOB *last = 0;
         for (int i = 0; i < c; i++) {
-            SO *so = aso[i]->job;
+            JOB *so = aso[i]->pjob;
             if (so && last != so) {
                 last = so;
-                if (GetJobState(so) > 0 && so->jobTextId != -1) {
+                if (GetJobState(so) > 0 && so->labelNameId != -1) {
                     JLENTRY *e = &p->aentry[p->centry++];
                     e->ptask = so;
                     e->idAnimCheck = -1;
@@ -2354,17 +2330,17 @@ extern "C" void RefreshJobListEntries(JOBLIST *p)
     case 1: {
         int flag = 0;
         for (int i = 0; i < c; i++) {
-            SO *so = aso[i];
-            if (p->pjobSelected == so->job && so->taskTextId != -1) {
-                if (flag && !so->taskState)
+            TASK *so = aso[i];
+            if (p->pjobSelected == so->pjob && so->objectiveTextId != -1) {
+                if (flag && !so->state)
                     break;
                 JLENTRY *e = &p->aentry[p->centry++];
                 e->ptask = so;
                 e->idAnimCheck = -1;
                 e->idAnimIcon = -1;
-                if (so->taskState == 1)
+                if (so->state == 1)
                     flag = 1;
-                if (!so->taskState)
+                if (!so->state)
                     break;
             }
         }
