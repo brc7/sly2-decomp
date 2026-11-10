@@ -338,7 +338,7 @@ extern "C" void BuildHeldItemText(char *text)
 // 0x211528 StartupHudGifPackets
 namespace M_func_00211528 {
 // Initialize the fixed GIF register packets.
-extern QW D_004421B0[7] __asm__("D_004421B0");
+extern QW D_004421A0q[8] __asm__("D_004421A0");   /* the packet: a header quadword, then the 7 AllocStatic fills */
 extern QW D_00442240[0x27] __asm__("D_00442240");
 extern QW D_00442210[3] __asm__("D_00442210");
 extern QW D_004424B0[2] __asm__("D_004424B0");
@@ -352,10 +352,10 @@ extern ulong D_002DEBE0[] __asm__("D_002DEBE0"), D_002DECD0[] __asm__("D_002DECD
 // Boot-time setup (startup table): builds the static GIF register packets used by sprite and HUD rendering. (inferred)
 extern "C" void StartupHudGifPackets(){
  GIFS setup;
- QW *data=D_004421B0;
- QW *header=(QW *)((int)data-0x10);
+ QW *data=&D_004421A0q[1];
+ QW *header=&D_004421A0q[0];
  setup.AllocStatic(7,data);
- ((QW *)((int)data-0x10))->aul[0]=1UL<<60;header->aul[1]=5;
+ header->aul[0]=1UL<<60;header->aul[1]=5;
  setup.AddPrimBulk(0x44,0,1,1,0);header[1].aul[0]|=1;
  setup.AddPrimBulk(0x84,0,1,1,0);header[2].aul[0]|=1;
  setup.AddPrimBulk(0x45,0,1,1,0);header[3].aul[0]|=1;
@@ -4521,8 +4521,7 @@ M_StaticInit_hud::LINEAR b_003E1C70 __asm__("D_003E1C70");
 M_StaticInit_hud::HEAP b_003E1C80 __asm__("D_003E1C80");
 STRINGGENREC b_003E1C88[108] __asm__("D_003E1C88");
 qword b_003E21A0[0x60000 / 16] __asm__("D_003E21A0");
-qword b_004421A0 __asm__("D_004421A0");
-qword b_004421B0[6] __asm__("D_004421B0");
+qword b_004421A0[7] __asm__("D_004421A0");   /* StartupHudGifPackets' packet (was split at 0x4421B0) */
 qword b_00442210[3] __asm__("D_00442210");
 qword b_00442240[39] __asm__("D_00442240");
 qword b_004424B0[2] __asm__("D_004424B0");
