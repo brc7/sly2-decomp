@@ -146,12 +146,16 @@ typedef int qword __attribute__((mode(TI)));
 union F {float value;int bits;};
 union U {qword q;float a[4];};
 struct P;
-struct E {int id;XF *reference;int pad8;float x,y;char pad14[0x10];F lower,upper;int pad2C;U position; qword top,bottom;};
-struct SIDE {int id;XF *reference;void *binding;int padC,pad10;};
-struct ATTACH {char pad[0x18];int id;void *object;void *binding;char pad24[8];int meshId;XF *mesh;void *meshBinding;int extraId;void *extra;};
+struct E {int id;XF *reference;void *pxpFirst;float x,y;float tilt,speed,angle,sRadius;F lower,upper;int n2C;U position; qword top,bottom;};   /* a ROBOTTANKWHEEL (tank.h) */
+struct SIDE {int id;XF *reference;void *binding;float lmAngle[2];};   /* a ROBOTTANKSIDE (tank.h) */
+struct ATTACH {void *scriptFrame,*scriptVariables,*firstSubscriber;VTE *vt;void *p10;int n14;int id;void *object;void *binding;int n24,n28;int meshId;XF *mesh;void *meshBinding;int extraId;void *extra;};   /* a weapon JSG (BASIC; snapshot: +0x10 an object, +0x14/+0x24/+0x28 ints) */
 union CURRENT {E*entry;SIDE*side;ATTACH*attachment;};
 union SCALE {const qword*axis;int stride;};
-struct P : SO { char pad150[0x190 - 0x150];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
+/* The tank (tank.h ROBOTTANK; names in comments are tank.h's). */
+struct P : PO { int state; float stateTime; int tactic; float tacticTime; int count/*cwheel*/;int unknown194[3];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];
+    float driveMax; float clqTraction[4]; float lmSpeed[2]; float sReverseMax, gContactScale, heading, goalHeading, steering, wheelAngle, drive, turn, acceleration;
+    int cHealthMax, cHealth, fHealthMeterInverted; void *pwidgetHealth; void *asset; void *binding/*psma*/; int aammo[9]; void *psndEngine; int sfxidEngine; float uRateEngine;
+    void *psoTarget; void *pvPathzone; void *path/*pshapePath*/;};
 
 extern qword g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");
 void PostSoLoad(P *) __asm__("PostSoLoad");
