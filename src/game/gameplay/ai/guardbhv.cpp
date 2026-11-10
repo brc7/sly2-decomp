@@ -4414,7 +4414,7 @@ union U; union F; struct VOBJ; struct GROUP; struct ENTRY;
 union U{qword q;float f[4];int bits[4];void Assign(const U&v){q=v.q;}};
 union F{float value;int bits;};
 struct GROUP{char pad[0xA0];void*space;};
-struct VOBJ{char pad0[12];VTE*vt;};   /* the guard's vtable as BlendSet's asm reads it */
+struct VOBJ{void *scriptFrame; void *scriptVariables; void *firstSubscriber;VTE*vt;};   /* the guard's vtable as BlendSet's asm reads it */
 struct ENTRY{float value;int kind,key,pad;};
 struct DELTA;
 
