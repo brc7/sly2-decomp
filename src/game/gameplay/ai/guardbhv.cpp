@@ -3631,11 +3631,10 @@ extern "C" void InitBhvleap(BHVLEAP *behavior)
 
 // 0x179FA0 StartBhvleap
 namespace M_StartBhvleap {
-union U;  struct HND; struct INFO; union TEMP; struct WORK; struct LIMIT;
+union U;  struct HND; union TEMP; struct WORK; struct LIMIT;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 union U{qword q;float f[4];};
 struct HND{char pad[0x124];int kind;};   /* the CID19 hang handle (no header yet): its kind */
-struct INFO{char pad[0x58];LO*target;int reverse;int extra;};   /* the leap (binding payload; leap.h pads LEAP) */
 union TEMP{struct{U direction;MATRIX3Q rotation;}first;MATRIX3Q basis;};
 struct WORK{TEMP temp;float curve;};
 struct LIMIT{float low,high;};
@@ -3659,7 +3658,7 @@ struct LIMIT{float low,high;};
  void StartBhvanim(BHVLEAP*) __asm__("StartBhvanim");
  void SetStepguardMoverRadTarget(GUARDMOVER*,float) __asm__("SetStepguardMoverRadTarget");
  void SetStepguardMoverTargetMatrix(GUARDMOVER*,MATRIX3Q*) __asm__("SetStepguardMoverTargetMatrix");
- void SetLeapTarget(INFO*,qword) __asm__("SetLeapTarget");
+ void SetLeapTarget(LEAP*,qword) __asm__("SetLeapTarget");
  void SetBhvBusy(BHVLEAP*) __asm__("SetBhvBusy");
 
 // Heading (atan2) of a vector's xy components.
@@ -3702,9 +3701,6 @@ typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(MATRIX3Q)==48?1:-1];
 typedef char TEMP_Size[sizeof(TEMP)==64?1:-1];
 typedef char WORK_Size[sizeof(WORK)==80?1:-1];
-typedef char INFO_target_Offset[FIELD_OFFSET(INFO,target)==88?1:-1];
-typedef char INFO_reverse_Offset[FIELD_OFFSET(INFO,reverse)==92?1:-1];
-typedef char INFO_extra_Offset[FIELD_OFFSET(INFO,extra)==96?1:-1];
 typedef char WORK_temp_Offset[FIELD_OFFSET(WORK,temp)==0?1:-1];
 typedef char WORK_curve_Offset[FIELD_OFFSET(WORK,curve)==64?1:-1];
 typedef char TEMP_first_direction_Offset[FIELD_OFFSET(TEMP,first.direction)==0?1:-1];
@@ -3798,10 +3794,10 @@ extern "C" void StartBhvleap(BHVLEAP *behavior)
             break;
         }
         }
-        ((INFO *)behavior->binding->payload)->extra = behavior->extra;
-        ((INFO *)behavior->binding->payload)->target = behavior->target;
-        ((INFO *)behavior->binding->payload)->reverse = behavior->isReversed;
-        SetLeapTarget((INFO *)behavior->binding->payload, behavior->landingPoint);
+        ((LEAP *)behavior->binding->payload)->extra = behavior->extra;
+        ((LEAP *)behavior->binding->payload)->target = behavior->target;
+        ((LEAP *)behavior->binding->payload)->isReversed = behavior->isReversed;
+        SetLeapTarget((LEAP *)behavior->binding->payload, behavior->landingPoint);
     }
     SetBhvBusy(behavior);
 }
