@@ -1612,8 +1612,8 @@ extern "C" void MarkSoTreeBoundsDirty(SO *so)
 
 // 0x1F4BA8 ClearSoTreeBoundsDirty
 namespace M_func_001F4BA8 {
-struct DL;
-void RemoveDlEntry__FP2DLPv(struct DL *, void *) __asm__("RemoveDlEntry__FP2DLPv");
+// Uses the file-scope RemoveDlEntry(DL *, void *) (symbol RemoveDlEntry__FP2DLPv); a local `struct DL;` here would
+// declare an unrelated M_func_001F4BA8::DL.
 // Clears the tree's bounds-dirty flag and removes it from g_sw.dlSoTreeQueue1.
 // Also known as: UnmarkOxaDirty1 (upstream readable / Sly 1 name; UnmarkOxaDirty1__FP3ALO).
 extern "C" void ClearSoTreeBoundsDirty(SO *so)
@@ -1622,7 +1622,7 @@ extern "C" void ClearSoTreeBoundsDirty(SO *so)
     if (!pt) return;
     if (pt->isInFirstQueue == 0) return;
     pt->isInFirstQueue = 0;
-    RemoveDlEntry__FP2DLPv(&g_sw.dlSoTreeQueue1, so->physicsTree);
+    RemoveDlEntry(&g_sw.dlSoTreeQueue1, so->physicsTree);
 }
 } // namespace M_func_001F4BA8
 
