@@ -1756,21 +1756,19 @@ extern "C" void ReleaseJsgJtIfComplete(struct S *script)
 
 // 0x1E1DB8 FindJsgObject
 namespace M_func_001E1DB8 {
-struct S;
-typedef struct S { char pad[0x18]; int context; } S;
-void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int x) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, LO *x) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void *GetProxyCurrentObject(void *p) __asm__("GetProxyCurrentObject");
 // Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their current object.
 // (inferred)
 // Also known as: PloFind (upstream readable / Sly 1 name; PloFind__FP3RUNi).
-extern "C" void *FindJsgObject(S *script, int id)
+extern "C" void *FindJsgObject(RELAYJSG *script, int id)
 {
     void *q;
     if (id == -1) {
         q = 0;
     } else {
-        q = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, id, script->context);
+        q = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, id, script->ploContext);
         if (q && IsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = GetProxyCurrentObject(q);
     }
     return q;
@@ -4206,21 +4204,19 @@ typedef char layout_JSGV_array[SLY2_OFFSETOF(RELAYJSG, apstepHold) == 0xA8 ? 1 :
 
 // 0x1E5370 ClearJsgAseg
 namespace M_ClearJsgAseg {
-struct S;
-struct S { char pad[0x4C]; BASIC *po; int n50; void *pv; };
 void RetractAsega(BASIC *po) __asm__("RetractAsega");
 void StopStepplayerScriptAnim(void *pv) __asm__("StopStepplayerScriptAnim");
 // Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8). (inferred)
-extern "C" void ClearJsgAseg(struct S *script)
+extern "C" void ClearJsgAseg(RELAYJSG *script)
 {
-    if (script->po) {
-        RetractAsega(script->po);
-        script->po->Release();
-        script->po = 0;
+    if (script->pasegaCur) {
+        RetractAsega(script->pasegaCur);
+        script->pasegaCur->Release();
+        script->pasegaCur = 0;
     }
-    if (script->pv) {
-        StopStepplayerScriptAnim(script->pv);
-        script->pv = 0;
+    if (script->pstepAseg) {
+        StopStepplayerScriptAnim(script->pstepAseg);
+        script->pstepAseg = 0;
     }
 }
 } // namespace M_ClearJsgAseg
@@ -4444,16 +4440,14 @@ extern "C" void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct 
 
 // 0x1E5A98 EndJsgCamBlend
 namespace M_func_001E5A98 {
-struct S;
-struct S : BASIC { char pad[0x84 - 0x10]; int a84[3]; int n90; int n94; int n98; int n9C; };
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f) __asm__("RevokeCmPolicy");
 // Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
 // Also known as: EndRunCamera (upstream readable / Sly 1 name; EndRunCamera__FP3RUNi).
-extern "C" void EndJsgCamBlend(struct S *script, int n)
+extern "C" void EndJsgCamBlend(RELAYJSG *script, int n)
 {
-    script->n90 = n;
-    script->n9C = 0;
-    RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, script->a84);
+    script->nUnk90 = n;
+    script->fUnk9c = 0;
+    RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, script->unk_0x84);
 }
 } // namespace M_func_001E5A98
 
