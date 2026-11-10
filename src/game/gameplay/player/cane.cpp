@@ -20,7 +20,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
 struct EFFECT;struct ATTACKOBJ;
 /* The hang object (JT::hangHandle, CID19): +0x130 the effect played when leaving the cane state. */
-struct HNDV{char pad0[0x130];int exitEffect;};
+struct HNDV{void *scriptFrame; void *scriptVariables; void *firstSubscriber; void *vptr; void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x4C - 0x40]; void *unknown4C; void *parentTransform; char pad54[0x6C - 0x54]; void *unknown6C; char pad70[0x7C - 0x70]; void *unknown7C; char pad80[0x8C - 0x80]; void *unknown8C; char pad90[0xBC - 0x90]; void *unknownBC; char padC0[0xCC - 0xC0]; void *unknownCC; char padD0[0xE0 - 0xD0]; void *unknownE0; void *unknownE4; char padE8[0x120 - 0xE8]; void *unknown120; char pad124[0x130 - 0x124];int exitEffect;};
 /* An XF (JT::wristXf) as read here: +0x70 its world position. */
 struct POINT{char pad0[0x70];U position;};
 struct WORK{U average,half,first;};
