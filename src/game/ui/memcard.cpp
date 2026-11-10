@@ -94,7 +94,7 @@ struct MCTBLDIR
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
 struct MCDLG
 {
-    char pad0[0xC];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     void *vtable;              /* +0x0C */
     char pad10[0x20 - 0x10];
     int id;                 /* +0x20 */
@@ -903,7 +903,7 @@ extern "C" void StartSaveSlotJob(SAVE *saveManager)
 } // namespace M_func_001ABD40
 
 namespace M_func_001ABD98 {
-struct H { char pad[0x4C]; int followUpAction; };   /* the memcard dialog */
+struct H { char pad[0xC]; void *unknownC; void *unknown10; char pad14[0x24 - 0x14]; WIDGET *unknown24; char pad28[0x4C - 0x28]; int followUpAction; };   /* the memcard dialog */
 extern struct H D_002E6550 __asm__("D_002E6550");
 extern int D_002DEB4C __asm__("D_002DEB4C");
 extern char D_002E65A0[] __asm__("D_002E65A0");
@@ -1531,7 +1531,7 @@ extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (
 }
 namespace M_CMemcardDialog_Update {
 struct PMF { short delta; short index; void (*pfn)(void *); };
-struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
+struct S { char pad[0xC]; void *unknownC; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 extern char D_003D9ED0[] __asm__("D_003D9ED0");
 extern const struct LONGU D_002A6D88 __asm__("D_002A6D88");
 int IsSwTransitionBusy(void *g) __asm__("IsSwTransitionBusy");
