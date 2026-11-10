@@ -2310,28 +2310,26 @@ extern "C" int CRichText_CountChars(void *rt)
 
 // 0x215E80 CRichText_Trim
 namespace M_CRichText_Trim {
-struct S { int text; char *cur; };
-void ResetRichText2(struct S *p, int a) __asm__("ResetRichText2");
-int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
+void ResetRichText2(CRichText2 *p, int a) __asm__("ResetRichText2");
+int GetRichText2NextChar(CRichText2 *p) __asm__("GetRichText2NextChar");
 // Truncates the rich text after n printable characters.
-extern "C" void CRichText_Trim(struct S *rt, int n)
+extern "C" void CRichText_Trim(CRichText2 *rt, int n)
 {
     ResetRichText2(rt, 0);
     while (GetRichText2NextChar(rt) && n != 0)
         n--;
-    *rt->cur = 0;
+    *rt->cursor = 0;
 }
 } // namespace M_CRichText_Trim
 
 // 0x215ED8 CRichText_GetWidth
 namespace M_CRichText_Dx {
-struct S { char pad[8]; void *font; char pad2[0x7C]; float fontScale; };
-void ResetRichText2(struct S *p, int a) __asm__("ResetRichText2");
-int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
+void ResetRichText2(CRichText2 *p, int a) __asm__("ResetRichText2");
+int GetRichText2NextChar(CRichText2 *p) __asm__("GetRichText2NextChar");
 float GetFontGlyphWidth2(void *p, int ch) __asm__("GetFontGlyphWidth2");
 // Width of the rich text (glyph widths times scale).
 // Also known as: DxTextUi (upstream readable / Sly 1 name; DxTextUi__FP7FONTBRX).
-extern "C" float CRichText_GetWidth(struct S *p)
+extern "C" float CRichText_GetWidth(CRichText2 *p)
 {
     float sum = 0.0f;
     int ch;
@@ -2345,10 +2343,9 @@ extern "C" float CRichText_GetWidth(struct S *p)
 // 0x215F40 WrapRichText2Lines
 namespace M_func_00215F40 {
 
-struct S { unsigned char *text; unsigned char *cur; void *font; char pad[0x74-0xC]; float width; char pad1[0x88-0x78]; float fontScale; };
 extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
-void ResetRichText2(struct S *,unsigned char *) __asm__("ResetRichText2");
-unsigned char GetRichText2NextChar(struct S *) __asm__("GetRichText2NextChar");
+void ResetRichText2(CRichText2 *,unsigned char *) __asm__("ResetRichText2");
+unsigned char GetRichText2NextChar(CRichText2 *) __asm__("GetRichText2NextChar");
 float GetFontGlyphWidth2(void *,unsigned char) __asm__("GetFontGlyphWidth2");
 // The newline character (10) materialised in a register.
 extern "C" { static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,10":"=r"(value));return value;} }
@@ -2356,7 +2353,7 @@ extern "C" { static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,
 extern "C" { static inline void StoreByte(unsigned char *p,int c){*p=c;} }
 // Counts lines, inserting line breaks where a line would exceed the box width. (inferred)
 // Also known as: StrWrapped (upstream readable / Sly 1 name; StrWrapped__FP7FONTBRX).
-extern "C" int WrapRichText2Lines(struct S *p) {
+extern "C" int WrapRichText2Lines(CRichText2 *p) {
     float width=0.0f;
     int lines=1;
     unsigned char c;
@@ -2368,10 +2365,10 @@ extern "C" int WrapRichText2Lines(struct S *p) {
             width+=GetFontGlyphWidth2(p->font,c)*p->fontScale;
         }
         if(p->width!=0.0f && p->width<width) {
-                unsigned char *q=p->cur-1;
+                unsigned char *q=p->cursor-1;
                 while(q>=p->text && *q!='\n') {
                     if((*q==' ' || *q=='\t') && !(D_002AA6A1[q[1]]&0x10)) {
-                        p->cur=q+1;
+                        p->cursor=q+1;
                         StoreByte(q,newline);
                         lines++;
                         width=0.0f;
@@ -2379,8 +2376,8 @@ extern "C" int WrapRichText2Lines(struct S *p) {
                     }
                     q--;
                 }
-                if(width!=0.0f && *p->cur) {
-                    StoreByte(p->cur,newline); lines++; width=0.0f;
+                if(width!=0.0f && *p->cursor) {
+                    StoreByte(p->cursor,newline); lines++; width=0.0f;
                 }
             }
 
