@@ -4232,7 +4232,7 @@ void CopyRelocateDmaChain(SUBGLOB*,GLOB*,int,void*,int,void*,void*) __asm__("Cop
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 void ClearSle(int*) __asm__("ClearSle");
 void PrependSlEntry(void*,LINK*) __asm__("PrependSlEntry");
-void RelocateShaderUploadRecords(int,int,int,uint,uint) __asm__("RelocateShaderUploadRecords");
+void RelocateShaderUploadRecords(int,int,int,void*,void*) __asm__("RelocateShaderUploadRecords");
 
 // Allocate bytes, 16-byte aligned, from the world heap and copy source into them.
 static inline void *Copy(int bytes, void *source)
@@ -4324,7 +4324,7 @@ extern "C" void CloneGlobset(GLOBSET *p, ::SO *owner, STREAM *stream)
                 ClearSle(&link->next);
                 PrependSlEntry(&link->object->instances, link);
             }
-            RelocateShaderUploadRecords(entry->iUnkFirst, entry->iUnkEnd, bytes, (uint)old, (uint)data);
+            RelocateShaderUploadRecords(entry->iUnkFirst, entry->iUnkEnd, bytes, old, data);
         }
     }
 }
