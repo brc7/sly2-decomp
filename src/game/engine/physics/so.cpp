@@ -25,6 +25,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
+#include "sly2/classes.h"
 #include "sly2/light.h"
 #include "sly2/vu0.h"
 #include "sly2/act.h"
@@ -878,24 +879,22 @@ extern "C" void UpdateSo(SO *so)
 
 // 0x1F37C8 SetSoPhysRegion
 namespace M_func_001F37C8 {
-struct Q;
-struct Q : XFM { char pad[0x118 - 0xE0]; char dl[1]; };   /* a PATHZONE: its list of region links (+0x118) */
 int IsEntryInDl__FP2DLPv(void *, void *) __asm__("IsEntryInDl__FP2DLPv");
 void RemoveDlEntry__FP2DLPv(void *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 void AppendDlEntry__FP2DLPv(void *, void *) __asm__("AppendDlEntry__FP2DLPv");
-void InitObstacleQueryCursor(struct Q *, void *) __asm__("InitObstacleQueryCursor");
+void InitObstacleQueryCursor(PATHZONE *, void *) __asm__("InitObstacleQueryCursor");
 // Moves the object's region link from its current region's list to region q.
-extern "C" void SetSoPhysRegion(SO *so, struct Q *q)
+extern "C" void SetSoPhysRegion(SO *so, PATHZONE *q)
 {
     REGENT *o = so->physics->pregent;
-    struct Q *old = (struct Q *)o->pathzone;
+    PATHZONE *old = (PATHZONE *)o->pathzone;
     if (old == q) return;
     if (old) {
-        if (IsEntryInDl__FP2DLPv(old->dl, o)) RemoveDlEntry__FP2DLPv(old->dl, o);
+        if (IsEntryInDl__FP2DLPv(&old->dlRegent, o)) RemoveDlEntry__FP2DLPv(&old->dlRegent, o);
     }
     if (q) {
-        if (!IsEntryInDl__FP2DLPv(q->dl, o)) {
-            AppendDlEntry__FP2DLPv(q->dl, o);
+        if (!IsEntryInDl__FP2DLPv(&q->dlRegent, o)) {
+            AppendDlEntry__FP2DLPv(&q->dlRegent, o);
             InitObstacleQueryCursor(q, o->unknown20);
         }
     }

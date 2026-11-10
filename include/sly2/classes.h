@@ -1903,7 +1903,7 @@ struct PATHZONE : XFM
     CG cg;                      /* +0xE0 the zone's navigation graph */
     int unknown110;             /* +0x110 (Init: -1) */
     int version;                /* +0x114 navigation version it was last changed in (g_sw.pathzoneVersion) */
-    DL unknownList118;          /* +0x118 (entries link at +0x60) */
+    DL dlRegent;                /* +0x118 the REGENT records of the objects in the zone (SetSoPhysRegion; link at +0x60) */
     int zoneIndex;              /* +0x124 its index in the world's zone BSP (BindSwPathzones) */
     int unk128[2];
     virtual void Init() __asm__("InitPathzone");   /* slot 7 */

@@ -778,7 +778,7 @@ void PATHZONE::Init()
     PATHZONE *ppathzone = this;
     InitXfm(ppathzone);
     ppathzone->unknown110 = -1;
-    InitDl(&ppathzone->unknownList118, 0x60);
+    InitDl(&ppathzone->dlRegent, 0x60);
     ppathzone->zoneIndex = -1;
 }
 
