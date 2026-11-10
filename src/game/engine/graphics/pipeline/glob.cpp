@@ -932,22 +932,23 @@ struct SUB
     int pad20;
     qword *ppos;
 };
-struct MODEL
+struct MODEL   /* so.h GLOBSET (SO +0x80) */
 {
     OBJ *powner;
     float t;
-    char pad8[8];
+    int zero08, zero0C;     /* GLOBSET unknown08: zero in every snapshot */
     VECTOR4 posCenter;
     float rad;
     int cobj;
     OBJ **apobj;
-    char pad2C[8];
+    int numShaderOids;
+    int *shaderOids;
     uint grfMode;
     int csub;
     SUBDESC *asubdesc;
     SUB *asub;
     SPH *asph;
-    int pad48;
+    void *aposeset;         /* GLOBSET aposeset (POSESET *) */
     int nStamp;
     union
     {
