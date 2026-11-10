@@ -3,7 +3,7 @@
 // SLY2_ASM: gnu-reorder-db
 void func_00239450(void);
 void func_00234EA0(unsigned int, unsigned int);
-void func_002394A0(void);
+void EIntr(void);
 void func_00234F48(unsigned int start, unsigned int end)
 {
     int s;
@@ -11,5 +11,5 @@ void func_00234F48(unsigned int start, unsigned int end)
     s &= 0x10000;
     if (s) func_00239450();
     func_00234EA0(start & ~0x3F, end & ~0x3F);
-    if (s) func_002394A0();
+    if (s) EIntr();
 }

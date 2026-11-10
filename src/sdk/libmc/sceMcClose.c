@@ -9,14 +9,14 @@ extern int D_00451E40[];
 extern int D_002C8354;
 extern int D_002C8350;
 void func_00243ED8(void *);
-int func_00234A70(int);
+int PollSema(int);
 int func_00234A40(int);
 int func_00237288(void *cd, int fno, unsigned int mode, void *send, int ssize, void *recv, int rsize, void *end, void *earg);
 int sceMcClose(int fd)
 {
     if (D_00450880.server == 0)
         return -100;
-    if (func_00234A70(D_002C8354) < 0)
+    if (PollSema(D_002C8354) < 0)
         return -200;
     D_00450900[0] = fd;
     if (func_00237288(&D_00450880, 3, 1, D_00450900, 0x30, D_00451E40, 4, func_00243ED8, 0) == 0) {

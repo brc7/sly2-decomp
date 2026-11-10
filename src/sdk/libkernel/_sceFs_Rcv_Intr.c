@@ -14,7 +14,7 @@ extern int D_002C4A78;
 extern volatile int D_002C49F8[32];
 extern FsPkt D_0044B300[];
 void *func_0023320C(void *, const void *, unsigned int);
-int func_00234A50(int);
+int iSignalSema(int);
 
 void _sceFs_Rcv_Intr(SifCmdHdr *cmd, void *userData)
 {
@@ -100,5 +100,5 @@ void _sceFs_Rcv_Intr(SifCmdHdr *cmd, void *userData)
         }
         return;
     }
-    func_00234A50(h.sema);
+    iSignalSema(h.sema);
 }

@@ -86,7 +86,7 @@ int D_002DFB4C, D_002DFB50;             /* vblank / GS-finish semaphores */
 int D_002DFB54, D_002DFB58, D_002DFB5C, D_002DFB60;
 extern int D_003DCF9C, D_003DCF98;
 
-void func_00234A50(int sid);
+void iSignalSema(int sid);
 void func_00234A60(int sid) __asm__("WaitSema");
 void func_00234CA0(int n) __asm__("FlushCache");
 void sceGsPutDispEnv(DISPENV *pdisp);
@@ -203,7 +203,7 @@ int VBlankS_Interrupt(int ch)
 {
     if (D_002DFB58) {
         D_002DFB58 = 0;
-        func_00234A50(D_002DFB4C);
+        iSignalSema(D_002DFB4C);
     }
     switch (D_002DEDBC) {
     case 1:
@@ -311,7 +311,7 @@ int ResetGs()
 {
     if (D_002DFB54 && (*(volatile long *)0x12001000 & 2)) {
         D_002DFB54 = 0;
-        func_00234A50(D_002DFB50);
+        iSignalSema(D_002DFB50);
     }
     asm volatile("sync\n\tei");
     return -1;

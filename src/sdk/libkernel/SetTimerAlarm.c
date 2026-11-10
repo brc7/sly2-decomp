@@ -9,7 +9,7 @@ typedef struct Alarm {
 } Alarm;
 extern Alarm *D_0044E700;
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 int func_0023A298(void);
 int func_0023A518(int, long, void *, void *);
 int func_0023A3A0(int);
@@ -32,7 +32,7 @@ int SetTimerAlarm(long sched, void *func, void *arg)
     p = AllocAlarm();
     if (p == 0) {
         if (st)
-            func_002394A0();
+            EIntr();
         return 0x80008005;
     }
     id = func_0023A298();
@@ -42,7 +42,7 @@ int SetTimerAlarm(long sched, void *func, void *arg)
         p->next = h;
         p->id = 0;
         if (st)
-            func_002394A0();
+            EIntr();
         return id;
     }
     p->func = func;
@@ -51,6 +51,6 @@ int SetTimerAlarm(long sched, void *func, void *arg)
     func_0023A518(id, sched, func_0023A668, p);
     func_0023A3A0(id);
     if (st)
-        func_002394A0();
+        EIntr();
     return ((int)p << 4) | (id & 0xFE) | 1;
 }

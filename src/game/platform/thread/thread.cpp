@@ -34,11 +34,11 @@ extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an objec
 extern "C" {
 void *MemsetNoBuiltin(void *p, int c, int n) __asm__("memset");     /* memset */
 int CreateSema(SemaParam *semaParam) __asm__("CreateSema");               /* CreateSema */
-int func_00234910(void);                        /* GetThreadId */
+int GetThreadId(void);                        /* GetThreadId */
 int WaitSema(int semaphore) __asm__("WaitSema");                    /* WaitSema */
 int SignalSema(int sema);
-void func_002348B0(int tid, int prio);          /* ChangeThreadPriority */
-int func_00234820(ThreadParam *threadParam);             /* CreateThread */
+void ChangeThreadPriority(int tid, int prio);          /* ChangeThreadPriority */
+int CreateThread(ThreadParam *threadParam);             /* CreateThread */
 }
 void FrameRenderLoop(void *);
 
@@ -66,7 +66,7 @@ void InitCritSect(CRITSECT *critSect)
 // semaphore and then takes ownership.
 void EnterCritSect(CRITSECT *critSect)
 {
-    int threadId = func_00234910();
+    int threadId = GetThreadId();
     if (threadId != critSect->ownerThread)
     {
         WaitSema(critSect->semaphore);
@@ -99,15 +99,15 @@ void StartupThread()
 {
     ThreadParam threadParam;
     int *threadIds = D_004425D0;
-    *threadIds = func_00234910();
-    func_002348B0(*threadIds, 5);
+    *threadIds = GetThreadId();
+    ChangeThreadPriority(*threadIds, 5);
     MemsetNoBuiltin(&threadParam, 0, sizeof(threadParam));
     threadParam.stackSize = 0x1000;
     threadParam.stack = D_004425F0;
     threadParam.initPriority = 2;
     threadParam.gpReg = D_002E5270;
     threadParam.entry = (void *)FrameRenderLoop;
-    threadIds[1] = func_00234820(&threadParam);
+    threadIds[1] = CreateThread(&threadParam);
 }
 
 // ---- thread's .bss (tu-merging.md "Data": .bss gaps): 0x4425D0..0x4435F0, after hud's .bss in TU order. The

@@ -15,7 +15,7 @@ typedef struct {
     int len;      /* 0x8 */
 } RpcData;
 void func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 void *func_00236C28(RpcData *rd)
 {
     Pkt *p;
@@ -35,10 +35,10 @@ void *func_00236C28(RpcData *rd)
             }
             p->pkt_addr = p;
             p->pid = pid;
-            func_002394A0();
+            EIntr();
             return p;
         }
     }
-    func_002394A0();
+    EIntr();
     return 0;
 }

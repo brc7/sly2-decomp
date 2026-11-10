@@ -133,7 +133,7 @@ void *memset(void *pv, int b, unsigned int cb);
 char *strcpy(char *pchDst, const char *pchSrc);
 void SignalSema(int sema);
 void WaitSema(int sema);
-void func_002348B0(int tid, int prio);
+void ChangeThreadPriority(int tid, int prio);
 int McSyncResult(MEMCARD *worker, int nResult, int nJob, int n);
 int sceMcFormat(int port, int slot);
 int sceMcMkdir(int port, int slot, const char *pchz);
@@ -400,7 +400,7 @@ extern char D_002E2080[] __asm__("D_002E2080");
 extern int D_004425D8[] __asm__("D_004425D8");
 void MemcardThreadMain(MEMCARD *worker) __asm__("MemcardThreadMain");
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
-int func_00234820(struct ThreadParam *tp) __asm__("func_00234820");
+int CreateThread(struct ThreadParam *tp) __asm__("CreateThread");
 void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 // Queues a job (a pointer to a SAVE member function) for the worker thread and starts the thread, after waiting for
 // the previous job.
@@ -416,7 +416,7 @@ extern "C" void CreateMemcardThread(MEMCARD *worker, MCJOBPMF pmf)
     tp.gpReg = D_002E5270;
     tp.stackSize = 0x4000;
     tp.initPriority = 3;
-    worker->tid = func_00234820(&tp);
+    worker->tid = CreateThread(&tp);
     D_004425D8[0] = worker->tid;
     func_002355E0(worker->tid, worker);
 }
@@ -426,7 +426,7 @@ extern "C" void CreateMemcardThread(MEMCARD *worker, MCJOBPMF pmf)
 void SetMemcardThreadHighPrio(MEMCARD *worker)
 {
     if (IsMemcardThreadValid(worker) != 0) {
-        func_002348B0(worker->tid, 1);
+        ChangeThreadPriority(worker->tid, 1);
     }
     WaitSema(worker->sema);
     SignalSema(worker->sema);

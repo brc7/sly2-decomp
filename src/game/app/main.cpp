@@ -100,7 +100,7 @@ int sceCdDiskReady_2425F0(int n);
 int sceSifInitIopHeap(void);
 void *sceSifAllocIopHeap(int cb);
 void func_00234CA0(int n) __asm__("FlushCache");
-int func_00234DE0(struct DMA *p, int n);
+int sceSifSetDma(struct DMA *p, int n);
 int sceSifLoadModuleBuffer(void *h, int argumentBytes, const char *arguments);
 int sceSifFreeIopHeap(void *h);
 }
@@ -177,7 +177,7 @@ void StartupSif()
             u.dma.bytes = chunk;
             u.dma.attributes = 0;
             func_00234CA0(operation);
-            while (!func_00234DE0(&u.dma, 1))
+            while (!sceSifSetDma(&u.dma, 1))
                 ;
             bytesLeft -= chunk;
             offset += chunk;

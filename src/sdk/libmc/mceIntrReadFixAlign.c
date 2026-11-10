@@ -3,7 +3,7 @@
 // SLY2_ASM: gnu-reorder-db
 typedef struct { int size1; int size2; char *dst1; char *dst2; char buf1[0x40]; char buf2[0x40]; } FixAlign;
 extern int D_002C8358;
-int func_00234A50(int);
+int iSignalSema(int);
 void mceIntrReadFixAlign(void *data)
 {
     FixAlign *p = (FixAlign *)((unsigned int)data | 0x20000000);
@@ -23,5 +23,5 @@ void mceIntrReadFixAlign(void *data)
             *du++ = *d++ = p->buf2[i];
         }
     }
-    func_00234A50(D_002C8358);
+    iSignalSema(D_002C8358);
 }

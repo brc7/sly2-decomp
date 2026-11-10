@@ -24,10 +24,10 @@ extern unsigned char D_00449600[];
 extern unsigned char D_00449E00[];
 extern RpcData D_0044A600;
 int DIntr(void);
-void func_002394A0(void);
+void EIntr(void);
 void sceSifInitCmd(void);
 void sceSifAddCmdHandler(unsigned int cid, void (*h)(void *, void *), void *data);
-int func_00234E30(unsigned int reg);
+int sceSifGetReg(unsigned int reg);
 void func_00234E20(unsigned int reg, int val);
 unsigned int sceSifSendCmd(unsigned int cid, void *pkt, int size, void *src, void *dst, int n);
 int func_0023AAC8(int);
@@ -40,11 +40,11 @@ void sceSifInitRpc(unsigned int mode)
     Cmd *cmd;
     DIntr();
     if (D_002C49F0) {
-        func_002394A0();
+        EIntr();
         return;
     }
     D_002C49F0 = 1;
-    func_002394A0();
+    EIntr();
     sceSifInitCmd();
     DIntr();
     D_0044A600.pkt_table = UNCACHED(D_00448E00);
@@ -61,8 +61,8 @@ void sceSifInitRpc(unsigned int mode)
     sceSifAddCmdHandler(0x80000009, _request_bind, &D_0044A600);
     sceSifAddCmdHandler(0x8000000A, _request_call, &D_0044A600);
     sceSifAddCmdHandler(0x8000000C, _request_rdata, &D_0044A600);
-    func_002394A0();
-    if (func_00234E30(0x80000002) != 0)
+    EIntr();
+    if (sceSifGetReg(0x80000002) != 0)
         return;
     cmd = (Cmd *)(D_00448E00 + 0x40);
     cmd->xc = 1;

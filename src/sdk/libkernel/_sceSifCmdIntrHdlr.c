@@ -13,7 +13,7 @@ typedef struct {
     int nusr;
 } CmdData;
 extern CmdData D_0044EDD8;
-void func_00234E10(void);
+void isceSifSetDChain(void);
 static inline void *SetGP(void *gp)
 {
     void *old;
@@ -49,7 +49,7 @@ int _sceSifCmdIntrHdlr(void)
         qword *dest = buf;
         do { *dest++ = *src++; } while (--i);
     }
-    func_00234E10();
+    isceSifSetDChain();
     {
         register int firstId asm("$3") = FID;
         if (firstId < 0) {

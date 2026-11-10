@@ -2,13 +2,13 @@
 __asm__(
     ".set noreorder\n"
     ".text\n"
-    ".globl func_00234840\n"
-    ".ent func_00234840\n"
-    "func_00234840:\n"
+    ".globl StartThread\n"
+    ".ent StartThread\n"
+    "StartThread:\n"
     "addiu $3, $0, 34\n"
     "syscall\n"
     "jr $31\n"
     "nop\n"
-    ".end func_00234840\n"
+    ".end StartThread\n"
     ".set reorder\n"
 );

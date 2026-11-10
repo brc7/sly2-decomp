@@ -19,7 +19,7 @@ void _sceMpegError(D *d, const char *msg);
 int _sceMpegDispatchMpegCallback(void *mp, CB *cb);
 void _waitIpuIdle(D *d);
 int DIntr(void);
-int func_002394A0(void);
+int EIntr(void);
 void _extensionAndUserData(D *d);
 void _initSeq(void *mp);
 static inline void _loadQM(D *d, unsigned char *qm, unsigned int cmd)
@@ -37,7 +37,7 @@ static inline void _loadQM(D *d, unsigned char *qm, unsigned int cmd)
     R(0x1000B420) = 4;
     R(0x1000B400) = 0x101;
     if (e)
-        func_002394A0();
+        EIntr();
     R(0x10002000) = cmd;
     d->cmd = cmd & 0xF0000000;
     d->x828 = 1;

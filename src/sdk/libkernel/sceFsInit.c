@@ -20,7 +20,7 @@ extern int D_002C4A7C;
 extern int D_002C4A80;
 void func_00236A60(int);
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 void *func_0023ADA8(unsigned int, void *, void *);
 void _sceFs_Rcv_Intr(void *);
 void _sceFs_Poff_Intr(void *);
@@ -41,7 +41,7 @@ int sceFsInit(void)
     oldei = func_00239450();
     func_0023ADA8(0x80000011, _sceFs_Rcv_Intr, D_0044BDC0);
     func_0023ADA8(0x80000013, _sceFs_Poff_Intr, p);
-    if (oldei) func_002394A0();
+    if (oldei) EIntr();
     while (1) {
         if (sceSifBindRpc(&D_0044BD80, 0x80000001, 0) < 0)
             return -22;

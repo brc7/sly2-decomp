@@ -123,7 +123,7 @@ int func_00234A60(int) __asm__("WaitSema");
 int func_00234A40(int) __asm__("SignalSema");
 int SignalSema(int);
 int WaitSema(int);
-int func_00234820(TP *ptp);
+int CreateThread(TP *ptp);
 int func_002355E0(int tid, void *arg) __asm__("StartThread_2355E0");
 void LoadingScreenThread(void *);
 int ReferSemaStatus(int,SEMA *);
@@ -245,7 +245,7 @@ extern "C" void StartupLoadingScreen(void)
     threadParams.gp_reg = D_002E5270;
     threadParams.initial_priority = 4;
     threadParams.func = (void *)LoadingScreenThread;
-    D_004425D0.tid = func_00234820(&threadParams);
+    D_004425D0.tid = CreateThread(&threadParams);
     D_003D3A3C = SemaCreate(0, 1);
     D_003D3A40 = SemaCreate(0, 1);
     D_003D3A44 = SemaCreate(0, 1);

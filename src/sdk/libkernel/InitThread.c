@@ -11,11 +11,11 @@ extern int D_00448940;
 extern WQ D_00448948;
 extern int D_002C49E8;
 int func_00234A20(SemaParam *);
-int func_00234A30(int);
-int func_00234820(ThreadParam *);
+int DeleteSema(int);
+int CreateThread(ThreadParam *);
 int func_002355E0(int, void *);
-int func_00234910(void);
-int func_002348B0(int, int);
+int GetThreadId(void);
+int ChangeThreadPriority(int, int);
 void topThread(void *);
 int InitThread(void)
 {
@@ -38,16 +38,16 @@ int InitThread(void)
         tp.gpReg = D_002E5270;
         tp.option = (unsigned int)name;
         tp.initPriority = 0;
-        D_002C49E8 = func_00234820(&tp);
+        D_002C49E8 = CreateThread(&tp);
         if (D_002C49E8 < 0) {
-            func_00234A30(D_00448940);
+            DeleteSema(D_00448940);
         fail:
             return -1;
         }
         D_00448948.x0 = 0;
         D_00448948.idx = 0;
         func_002355E0(D_002C49E8, &D_00448948);
-        func_002348B0(func_00234910(), 1);
+        ChangeThreadPriority(GetThreadId(), 1);
     }
     return D_002C49E8;
 }

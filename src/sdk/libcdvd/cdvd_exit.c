@@ -9,7 +9,7 @@ extern int D_002C6768;
 extern int D_002C676C;
 extern int D_002C6770;
 int func_00234A40(int);
-int func_00234A30(int);
+int DeleteSema(int);
 int DIntr(void);
 int EIntr(void);
 int func_0023AE20(unsigned int);
@@ -20,10 +20,10 @@ void cdvd_exit(void)
         D_002C67A0 = -1;
         func_00234A40(*(volatile int *)&D_002C6760);
     }
-    func_00234A30(D_002C6768);
-    func_00234A30(D_002C676C);
-    func_00234A30(D_002C6770);
-    func_00234A30(D_002C6760);
+    DeleteSema(D_002C6768);
+    DeleteSema(D_002C676C);
+    DeleteSema(D_002C6770);
+    DeleteSema(D_002C6760);
     r = DIntr();
     func_0023AE20(0x80000012);
     if (r) EIntr();

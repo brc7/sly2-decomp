@@ -2,8 +2,8 @@
 // SLY2_CFLAGS: -O2 -G0
 // SLY2_ASM: gnu-reorder-db
 extern int D_002C8358;
-int func_00234A50(int);
+int iSignalSema(int);
 void func_00243ED8(void)
 {
-    func_00234A50(D_002C8358);
+    iSignalSema(D_002C8358);
 }

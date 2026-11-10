@@ -25,12 +25,12 @@ extern HANDLER D_0044EE00[32];
 extern int D_0044EF80[32];
 
 int func_00239450(void);
-void func_002394A0(void);
+void EIntr(void);
 void func_00234CA0(int);
-void func_00234E00(void);
+void sceSifSetDChain(void);
 int func_00234730(int, void *, int);
 int func_00235248(int);
-unsigned int func_00234E30(unsigned int);
+unsigned int sceSifGetReg(unsigned int);
 unsigned int func_00234E20(unsigned int, unsigned int);
 void func_0023AFA8(unsigned int, void *, unsigned int, void *, void *, unsigned int);
 void func_0023AAB8(void *, void *);
@@ -43,7 +43,7 @@ void sceSifInitCmd(void)
 
     func_00239450();
     if (D_002C5A60) {
-        func_002394A0();
+        EIntr();
         return;
     }
     D_002C5A60 = 1;
@@ -65,24 +65,24 @@ void sceSifInitCmd(void)
     D_0044EE00[0].data = &D_0044EDD8;
     D_0044EE00[1].func = func_0023AA98;
     D_0044EE00[1].data = &D_0044EDD8;
-    func_002394A0();
+    EIntr();
     func_00234CA0(0);
     if (*(volatile unsigned int *)0x1000E010 & 0x20)
         *(volatile unsigned int *)0x1000E010 = 0x20;
     if (!(*(volatile unsigned int *)0x1000C000 & 0x100))
-        func_00234E00();
+        sceSifSetDChain();
     D_0044EDD4 = func_00234730(5, (void *)func_0023B028, 0);
     func_00235248(5);
-    D_0044EDD8.iopbuf = (void *)func_00234E30(0x80000000);
+    D_0044EDD8.iopbuf = (void *)sceSifGetReg(0x80000000);
     if (D_0044EDD8.iopbuf) {
         D_0044EDC0.buf = D_0044ED00;
         func_0023AFA8(0x80000000, &D_0044EDC0, 0x14, 0, 0, 0);
         return;
     }
     {
-        while (!(func_00234E30(4) & 0x20000))
+        while (!(sceSifGetReg(4) & 0x20000))
             ;
-        D_0044EDD8.iopbuf = (void *)func_00234E30(2);
+        D_0044EDD8.iopbuf = (void *)sceSifGetReg(2);
         func_00234E20(0x80000000, (unsigned int)D_0044EDD8.iopbuf);
         func_00234E20(0x80000001, (unsigned int)&D_0044EDD8);
         D_0044EDC0.buf = D_0044ED00;

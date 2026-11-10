@@ -5,7 +5,7 @@
 typedef struct { int currentCount; int maxCount; int initCount; int numWaitThreads; unsigned int attr; unsigned int option; } SemaParam;
 extern char D_002AA7F0[];
 int func_00234A20(SemaParam *);
-int func_00234A30(int);
+int DeleteSema(int);
 int func_00234A60(int);
 long func_0023A598(int, int);
 int func_0023A6C8(long, void *, int);
@@ -28,9 +28,9 @@ int DelayThread(int usec)
     al = func_0023A6C8(func_0023A598(0, usec), _DelayThreadHandler, sema);
     if (al >= 0) {
         func_00234A60(sema);
-        func_00234A30(sema);
+        DeleteSema(sema);
         return 0;
     }
-    func_00234A30(sema);
+    DeleteSema(sema);
     return al;
 }

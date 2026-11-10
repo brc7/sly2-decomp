@@ -14,7 +14,7 @@ void func_00239AB0(int);
 void func_00239AC0(int);
 void func_00239AD0(int);
 int func_00235178(int);
-int func_002394A0(void);
+int EIntr(void);
 int InitTimer(int mode)
 {
     TimerSys *ts = &D_002C5A30;
@@ -55,6 +55,6 @@ int InitTimer(int mode)
     }
     func_00239AC0(m);
     func_00235178(0xB);
-    if (oldei) func_002394A0();
+    if (oldei) EIntr();
     return 0;
 }

@@ -10,7 +10,7 @@ extern int D_00451E40[];
 extern int D_002C8354;
 extern int D_002C8350;
 void func_00243ED8(void *);
-int func_00234A70(int);
+int PollSema(int);
 int func_00234A40(int);
 char *func_00233638(char *, const char *, unsigned int);
 void func_0023B170(void *, int);
@@ -19,7 +19,7 @@ int sceMcGetDir(int port, int slot, const char *name, unsigned int mode, int max
 {
     if (D_00450880.server == 0)
         return -100;
-    if (func_00234A70(D_002C8354) < 0)
+    if (PollSema(D_002C8354) < 0)
         return -200;
     if (name == 0 || name[0] == 0) {
         func_00234A40(D_002C8354);

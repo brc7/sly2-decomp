@@ -32,7 +32,7 @@ void *func_00236C28(void *);
 void func_00236CD0(void *);
 int func_00234A20(struct SemaParam *);
 int func_0023AFA8(unsigned int, void *, int, void *, void *, int);
-int func_00234A30(int);
+int DeleteSema(int);
 int func_00234A60(int);
 int sceSifBindRpc(ClientData *bd, unsigned int request, unsigned int mode)
 {
@@ -60,11 +60,11 @@ int sceSifBindRpc(ClientData *bd, unsigned int request, unsigned int mode)
         }
         if (func_0023AFA8(0x80000009, bind, 0x40, 0, 0, 0) == 0) {
             func_00236CD0(bind);
-            func_00234A30(bd->sema);
+            DeleteSema(bd->sema);
             return -2;
         }
         func_00234A60(bd->sema);
-        func_00234A30(bd->sema);
+        DeleteSema(bd->sema);
     } else {
         bd->sema = -1;
         if (func_0023AFA8(0x80000009, bind, 0x40, 0, 0, 0) == 0) {

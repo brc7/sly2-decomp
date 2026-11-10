@@ -8,9 +8,9 @@ typedef struct { void *src; void *dest; int size; int attr; } SifDmaData;
 extern PadSt D_004505D0[2][4];
 extern int D_002C830C;
 extern char D_002AB6D0[];
-int func_00234DC0(unsigned int);
+int sceSifDmaStat(unsigned int);
 void func_00234F48(void *, void *);
-unsigned int func_00234DE0(SifDmaData *, int);
+unsigned int sceSifSetDma(SifDmaData *, int);
 void func_00236960(const char *, ...);
 
 int _send_to_iop(int port, int slot)
@@ -22,7 +22,7 @@ int _send_to_iop(int port, int slot)
     int n;
 
     c = D_004505D0[port][slot].cmd;
-    if (D_004505D0[port][slot].dmaid != 0 && func_00234DC0(D_004505D0[port][slot].dmaid) >= 0) {
+    if (D_004505D0[port][slot].dmaid != 0 && sceSifDmaStat(D_004505D0[port][slot].dmaid) >= 0) {
         if (D_002C830C)
             func_00236960(D_002AB6D0);
         return 0;
@@ -35,7 +35,7 @@ int _send_to_iop(int port, int slot)
     dma[0].src = c;
     dma[0].size = 0x20;
     dma[0].attr = 0;
-    id = func_00234DE0(dma, 1);
+    id = sceSifSetDma(dma, 1);
     if (id == 0) {
         if (D_002C830C)
             func_00236960(D_002AB6D0);

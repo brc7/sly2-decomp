@@ -7,7 +7,7 @@ extern char D_00450580[];
 extern int D_004507C0[];
 int func_00237288(void *cd, int fno, unsigned int mode, void *send, int ssize, void *recv, int rsize, void *end, void *earg);
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 void func_0023ADA8(int, void *, void *);
 int _pad_intr_hdr(void *);
 int scePadInit2(int mode)
@@ -28,6 +28,6 @@ int scePadInit2(int mode)
         return 0;
     s = func_00239450();
     func_0023ADA8(0x80000019, _pad_intr_hdr, 0);
-    if (s == 1) func_002394A0();
+    if (s == 1) EIntr();
     return D_004507C0[3];
 }

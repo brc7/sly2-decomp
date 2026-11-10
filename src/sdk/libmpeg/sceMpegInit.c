@@ -3,7 +3,7 @@
 // SLY2_ASM: gnu-reorder-db
 // NOTE: exact MATCH when compiled WITH delayed-branch filling + GNU as reorder (see notes/245000.md round 9); not with current gnu-reorder ().
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 void sceIpuInit(void);
 #define REG(a) (*(volatile unsigned int *)(a))
 int sceMpegInit(void)
@@ -13,7 +13,7 @@ int sceMpegInit(void)
   REG(0x1000B000) = REG(0x1000B000) & ~0x100;
   REG(0x1000B400) = REG(0x1000B400) & ~0x100;
   REG(0x1000F590) = REG(0x1000F520) & ~0x10000;
-  if (s) func_002394A0();
+  if (s) EIntr();
   REG(0x1000B020) = 0;
   REG(0x1000B420) = 0;
   sceIpuInit();

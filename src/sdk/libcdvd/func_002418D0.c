@@ -8,7 +8,7 @@ extern volatile int D_002C6768;
 extern volatile int D_002C6754;
 extern volatile int D_002C6760;
 extern volatile int D_004502C0;
-int func_00234A50(int);
+int iSignalSema(int);
 void func_002418D0(int *data)
 {
     D_002C67A0 = *data;
@@ -18,9 +18,9 @@ void func_002418D0(int *data)
         D_002C6774 = 0;
         return;
     }
-    func_00234A50(D_002C6768);
+    iSignalSema(D_002C6768);
     if (D_002C6754 != 0 && D_004502C0 != 0)
-        func_00234A50(D_002C6760);
+        iSignalSema(D_002C6760);
     else
         D_002C6774 = 0;
     D_002C67A0 = 0;

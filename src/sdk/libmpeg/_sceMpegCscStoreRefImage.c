@@ -21,7 +21,7 @@ int func_00235248(int ch);
 int func_002351E0(int ch);
 void FlushCache(int);
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 int _sceMpegDispatchMpegCallback(void *mp, CB *cb);
 void _doCSC2(D *d, unsigned int out, int n);
 
@@ -54,7 +54,7 @@ static inline void cscStore(D *d, int n)
         *q = qwc;
         *c = 0x100; }
         if (e)
-            func_002394A0();
+            EIntr();
         ipuCmd(d, n | 0x70000000);
         pcb->type = 4;
         _sceMpegDispatchMpegCallback(d->mp, &cb2);
@@ -96,7 +96,7 @@ void _sceMpegCscStoreRefImage(D *d, P *p)
         *q = 0xFFFF;
         *c = 0x101; }
         if (e)
-            func_002394A0();
+            EIntr();
         st.addr = (st.addr + 0xFFFF0) & 0x0FFFFFFF;
         st.size -= 0xFFFF;
         cscStore(d, n);
@@ -109,7 +109,7 @@ void _sceMpegCscStoreRefImage(D *d, P *p)
         *q = st.size;
         *c = 0x101; }
         if (e)
-            func_002394A0();
+            EIntr();
         st.size = 0;
         cscStore(d, n);
     }

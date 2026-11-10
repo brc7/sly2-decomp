@@ -27,7 +27,7 @@ void func_00237BD8(void);
 int func_00237DE0(void);
 struct iob *func_00237558(void);
 int func_00234A20(struct SemaParam *);
-int func_00234A30(int);
+int DeleteSema(int);
 int func_00234A40(int);
 int func_00234A60(int);
 int func_002375E0(void *, int, int, void *, int, void *, int, void *, void *, int);
@@ -72,18 +72,18 @@ int sceOpen(const char *name, int flags, ...)
     arg->sema = sema;
     arg->rsize = 4;
     if (func_002375E0(D_0044BD80, 0, 0, &D_0044A680, 0x418, D_0044B2C0, 4, 0, 0, 0) < 0) {
-        func_00234A30(sema);
+        DeleteSema(sema);
         func_00237B80();
         return -11;
     }
     r = *(volatile int *)((unsigned int)D_0044B2C0 | 0x20000000);
     func_00237B80();
     if (r == 0) {
-        func_00234A30(sema);
+        DeleteSema(sema);
         return -11;
     }
     func_00234A60(sema);
-    func_00234A30(sema);
+    DeleteSema(sema);
     if (res < 0) {
         func_00234A60(D_002C4A88);
         io->flags = 0;

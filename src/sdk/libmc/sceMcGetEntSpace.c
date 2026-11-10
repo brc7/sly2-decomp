@@ -9,7 +9,7 @@ extern int D_00451E40[];
 extern int D_002C8354;
 extern int D_002C8350;
 void func_00243ED8(void *);
-int func_00234A70(int);
+int PollSema(int);
 int func_00234A40(int);
 char *func_00233638(char *, const char *, unsigned int);
 int func_00237288(void *cd, int fno, unsigned int mode, void *send, int ssize, void *recv, int rsize, void *end, void *earg);
@@ -17,7 +17,7 @@ int sceMcGetEntSpace(int port, int slot, const char *path)
 {
     if (D_00450880.server == 0)
         return -100;
-    if (func_00234A70(D_002C8354) < 0)
+    if (PollSema(D_002C8354) < 0)
         return -200;
     if (path == 0 || path[0] == 0) {
         func_00234A40(D_002C8354);

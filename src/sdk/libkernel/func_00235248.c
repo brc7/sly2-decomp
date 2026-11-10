@@ -2,7 +2,7 @@
 // SLY2_CFLAGS: -O2 -G0 
 // SLY2_ASM: gnu-reorder-db
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 int func_00234780(int);
 int func_00235248(int ch)
 {
@@ -13,6 +13,6 @@ int func_00235248(int ch)
     if (st) func_00239450();
     r = func_00234780(ch);
     __asm__ volatile("sync");
-    if (st) func_002394A0();
+    if (st) EIntr();
     return r;
 }

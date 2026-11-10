@@ -12,9 +12,9 @@ extern int D_00450550[];
 extern int D_002C7940[];
 int printf(const char *fmt, ...);
 int func_00239450(void);
-int func_002394A0(void);
+int EIntr(void);
 void func_00241A30(void);
-int func_00234A70(int);
+int PollSema(int);
 int func_00241F28(int);
 void func_00236A60(int);
 int func_002370A8(sceSifClientData *, unsigned int, int);
@@ -33,9 +33,9 @@ int sceCdDiskReady_old(int mode)
     if (D_002C6750 > 0) printf("DiskReady 0\n");
     r = func_00239450();
     D_002C6780 = 1;
-    if (r) func_002394A0();
+    if (r) EIntr();
     func_00241A30();
-    if (D_002C676C != func_00234A70(D_002C676C)) return 6;
+    if (D_002C676C != PollSema(D_002C676C)) return 6;
     if (func_00241F28(1)) {
         func_00234A40(D_002C676C);
         if (mode == 8) return -1;

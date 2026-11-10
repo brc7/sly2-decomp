@@ -6,7 +6,7 @@ typedef struct { char p0[0x868]; void *mp; } D;
 void _sceMpegError(D *d, const char *msg);
 int _sceMpegDispatchMpegCallback(void *mp, CB *cb);
 int DIntr(void);
-int func_002394A0(void);
+int EIntr(void);
 void _sceMpegErrorBdec(D *d)
 {
     CB cb;
@@ -22,6 +22,6 @@ void _sceMpegErrorBdec(D *d)
     *(volatile unsigned int *)0x1000F590 = *(volatile unsigned int *)0x1000F520 | 0x10000;
     *(volatile unsigned int *)0x1000B000 = 0;
     *(volatile unsigned int *)0x1000F590 = *(volatile unsigned int *)0x1000F520 & ~0x10000;
-    if (e) func_002394A0();
+    if (e) EIntr();
     *(volatile unsigned int *)0x1000B020 = 0;
 }

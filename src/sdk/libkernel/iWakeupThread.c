@@ -6,8 +6,8 @@ typedef struct { int x0; int idx; WQE q[0x200]; } WQ;
 extern int D_00448940;
 extern WQ D_00448948;
 extern int D_002C49E8;
-int func_00234960(int);
-int func_00234A50(int);
+int _iWakeupThread(int);
+int iSignalSema(int);
 int iWakeupThread(int id)
 {
     int cur;
@@ -15,7 +15,7 @@ int iWakeupThread(int id)
     int i;
     __asm__ volatile("addiu $3, $0, -0x2F\n\tsyscall\n\tmove %0, $2" : "=r"(cur) : : "$2", "$3");
     if (cur != id)
-        return func_00234960(id);
+        return _iWakeupThread(id);
     if ((unsigned)cur >= 0x100 || D_002C49E8 == 0)
         return -1;
     q = &D_00448948;
@@ -23,6 +23,6 @@ int iWakeupThread(int id)
     q->idx = i + 1;
     q->q[i].cmd = 0;
     q->q[i].id = cur;
-    func_00234A50(D_00448940);
+    iSignalSema(D_00448940);
     return cur;
 }

@@ -12,7 +12,7 @@ int RemoveDmacHandler(int ch, int id);
 int EnableDmac(int ch);
 int DisableDmac(int ch);
 int DIntr(void);
-int func_002394A0(void);
+int EIntr(void);
 int _sceMpegDispatchMpegCallback(void *mp, CB *cb);
 void _sceMpegError(D *d, const char *msg);
 void _doCSC2(D *d, unsigned int out, int n)
@@ -38,7 +38,7 @@ void _doCSC2(D *d, unsigned int out, int n)
     *q = 0xFFC0;
     *c = 0x100; }
     if (e)
-        func_002394A0();
+        EIntr();
     R(0x10002000) = 0x700003FF;
     cb.type = 4;
     _sceMpegDispatchMpegCallback(d->mp, &cb);

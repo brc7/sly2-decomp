@@ -17,7 +17,7 @@ extern int D_002C8354;
 extern int D_002C8358;
 extern char D_002AB7B0[], D_002AB7C0[], D_002AB7D8[], D_002AB7F0[], D_002AB818[];
 int func_00234A20(struct SemaParam *);
-int func_00234A30(int);
+int DeleteSema(int);
 int func_00234A40(int);
 int func_00234A60(int);
 void func_00244450(int, int, int);
@@ -54,7 +54,7 @@ int sceMcInit(void)
         r = func_00234A20(&sp);
         D_002C8358 = r;
         if (r == m1) {
-            func_00234A30(D_002C8354);
+            DeleteSema(D_002C8354);
             D_002C8354 = r;
             return -101;
         }

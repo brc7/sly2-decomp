@@ -33,7 +33,7 @@ void func_00237B80(void);
 void func_00237BD8(void);
 void func_0023B170(void *, int);
 int func_00234A20(struct SemaParam *);
-int func_00234A30(int);
+int DeleteSema(int);
 int func_00234A40(int);
 int func_00234A60(int);
 int func_002375E0(void *, int, int, void *, int, void *, int, void *, void *, int);
@@ -105,17 +105,17 @@ int sceIoctl(int fd, int req, void *data)
     arg->rsize = 4;
     func_0023B170(&D_0044A680, 0x420);
     if (func_002375E0(D_0044BD80, 5, 0, &D_0044A680, 0x420, D_0044B2C0, 4, 0, 0, 0) < 0) {
-        func_00234A30(sema);
+        DeleteSema(sema);
         func_00237B80();
         return -11;
     }
     r = *(volatile int *)((unsigned int)D_0044B2C0 | 0x20000000);
     func_00237B80();
     if (r == 0) {
-        func_00234A30(sema);
+        DeleteSema(sema);
         return -11;
     }
     func_00234A60(sema);
-    func_00234A30(sema);
+    DeleteSema(sema);
     return res;
 }

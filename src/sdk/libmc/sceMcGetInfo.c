@@ -14,7 +14,7 @@ extern int *D_004508B0;
 extern int D_002C8354;
 extern int D_002C8350;
 void mceGetInfoApdx(void *);
-int func_00234A70(int);
+int PollSema(int);
 int func_00234A40(int);
 void func_0023B170(void *, int);
 int func_00237288(void *cd, int fno, unsigned int mode, void *send, int ssize, void *recv, int rsize, void *end, void *earg);
@@ -22,7 +22,7 @@ int sceMcGetInfo(int port, int slot, int *type, int *free, int *format)
 {
     if (D_00450880.server == 0)
         return -100;
-    if (func_00234A70(D_002C8354) < 0)
+    if (PollSema(D_002C8354) < 0)
         return -200;
     D_00450900.port = port;
     D_00450900.slot = slot;

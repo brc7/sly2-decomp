@@ -42,7 +42,7 @@ void *func_00236C28(void *);
 void func_00236CD0(void *);
 int func_00234A20(struct SemaParam *);
 int func_0023AFA8(unsigned int, void *, int, void *, void *, int);
-int func_00234A30(int);
+int DeleteSema(int);
 int func_00234A60(int);
 void func_0023B170(void *, int);
 int sceSifCallRpc(ClientData *bd, unsigned int fno, unsigned int mode, void *send, int ssize,
@@ -103,10 +103,10 @@ int sceSifCallRpc(ClientData *bd, unsigned int fno, unsigned int mode, void *sen
     call->rmode = 1;
     if (func_0023AFA8(0x8000000A, call, 0x40, send, bd->cbuff, ssize) != 0) {
         func_00234A60(bd->sema);
-        func_00234A30(bd->sema);
+        DeleteSema(bd->sema);
         return 0;
     }
-    func_00234A30(bd->sema);
+    DeleteSema(bd->sema);
     func_00236CD0(call);
     return -2;
 }

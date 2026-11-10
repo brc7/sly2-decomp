@@ -6,9 +6,9 @@ typedef struct { int count; int pad; TopReq req[512]; } TopArg;
 extern int D_00448940;
 extern char D_002AA7B0[];
 int func_00234A60(int);
-int func_00234950(int);
-int func_002348D0(int);
-int func_00234990(int);
+int WakeupThread(int);
+int RotateThreadReadyQueue(int);
+int SuspendThread(int);
 int func_002369E0(const char *, ...);
 void topThread(TopArg *ta)
 {
@@ -19,13 +19,13 @@ void topThread(TopArg *ta)
         ta->count = idx + 1;
         switch (ta->req[idx].mode) {
         case 0:
-            func_00234950(ta->req[idx].data);
+            WakeupThread(ta->req[idx].data);
             break;
         case 1:
-            func_002348D0(ta->req[idx].data);
+            RotateThreadReadyQueue(ta->req[idx].data);
             break;
         case 2:
-            func_00234990(ta->req[idx].data);
+            SuspendThread(ta->req[idx].data);
             break;
         default:
             func_002369E0(D_002AA7B0);

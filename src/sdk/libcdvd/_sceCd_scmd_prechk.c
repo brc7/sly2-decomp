@@ -10,7 +10,7 @@ extern int D_002C6794;
 extern char D_002AB530[];
 extern char D_002AB558[];
 void func_00241A30(void);
-int func_00234A70(int);
+int PollSema(int);
 int func_00234A40(int);
 int func_00236960(const char *, ...);
 int func_00241F28(int);
@@ -25,7 +25,7 @@ int _sceCd_scmd_prechk(int cmd)
 {
     int i;
     func_00241A30();
-    if (D_002C676C != func_00234A70(D_002C676C)) {
+    if (D_002C676C != PollSema(D_002C676C)) {
         if (D_002C6750 > 0) func_00236960(D_002AB530, cmd, D_002C6758);
         return 0;
     }

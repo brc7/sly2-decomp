@@ -130,15 +130,15 @@ int IsWithinLimits__FP2LMf(const LM *, float);
 void SwapGsBuffers__Fv(void);
 int SemaCreate__Fii(int a, int b);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-int func_00234820(ThreadParam *ptp);
+int CreateThread(ThreadParam *ptp);
 int func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 int snd_InitMovieSound(int a, int b, int c, int d, int e, int f);
 char *AllocFromStack(const AREQ &r);
 void *AllocClearedFromStack(const AREQ &r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void func_00234CA0(int n) __asm__("FlushCache");
-int func_00234DE0(void *r, int n);
-int func_00234DC0(int h);
+int sceSifSetDma(void *r, int n);
+int sceSifDmaStat(int h);
 void func_00232FE8(int b, int x);
 int func_00233018(void);
 unsigned int snd_GetTransStatus(void);
@@ -253,7 +253,7 @@ void StartupMpeg()
     tp.gpReg = D_002E5270;
     tp.stackSize = 0x1000;
     tp.initPriority = 2;
-    D_004425DC = func_00234820(&tp);
+    D_004425DC = CreateThread(&tp);
     func_002355E0(D_004425DC, 0);
 }
 
@@ -372,8 +372,8 @@ int CQueueOutputIop_SendBytes(CQueueOutputIop *queue, int b, char *c)
     req.c = b;
     req.d = 0;
     func_00234CA0(0);
-    h = func_00234DE0(&req, 1);
-    while (func_00234DC0(h) >= 0) ;
+    h = sceSifSetDma(&req, 1);
+    while (sceSifDmaStat(h) >= 0) ;
     if (queue->format == 0x10) {
         int col, row;
         n = queue->totalSent / 1024;
