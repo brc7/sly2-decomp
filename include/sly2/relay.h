@@ -8,6 +8,7 @@
 #ifndef SLY2_RELAY_H
 #define SLY2_RELAY_H
 #include "sly2/basic.h"
+#include "sly2/cm.h"   /* CAMMOVE */
 
 struct SSG;
 
@@ -510,10 +511,7 @@ struct RELAYJSG : BASIC
       float sGoTo;
       float sPipe;
       float tBlendEnd;
-      undefined4 unk_0x84[(0x90 - 0x84) / 4];
-      int nUnk90;
-      undefined4 unk_0x94[(0x9c - 0x94) / 4];
-      int fUnk9c;
+      CAMMOVE cammove;   /* +0x84 the script's camera blend (StartRelayScriptCamBlend; SetCmPolicy's move, its pevent the script) */
       STEPPLAYER *pstepplayerMode;
       int cstepHold;
       STEP *apstepHold[4];

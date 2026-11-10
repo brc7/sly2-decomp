@@ -2702,7 +2702,7 @@ void NextJsgCommand(RELAYJSG *script)
         }
         else
         {
-            script->fUnk9c = 0;
+            script->cammove.nUnk18 = 0;
         }
         break;
     case RELAYCK_Unk3A:
@@ -3431,7 +3431,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             }
             else
             {
-                script->fUnk9c = 0;
+                script->cammove.nUnk18 = 0;
             }
         }
         break;
@@ -4336,7 +4336,7 @@ void RemoveJsg(RELAYJSG *script)
         StopSnd(*ppv, 0.0f);
         RcPtr_Assign(ppv, 0);
     }
-    if (script->fUnk9c) EndJsgCamBlend(script, 1);
+    if (script->cammove.nUnk18) EndJsgCamBlend(script, 1);
     script->Release();
 }
 } // namespace M_RemoveJsg
@@ -4350,10 +4350,9 @@ extern "C" int IsJsgRemoved(RELAYJSG *script)
 
 // 0x1E57A0 StartRelayScriptCamBlend
 namespace M_func_001E57A0 {
-struct A; struct P;
+struct A;
 typedef int qword __attribute__((mode(TI)));
 struct A { int n0; int n4; int pad8[2]; CAMPOSE t; float f40; int n44; };
-struct P { char pad[0x80]; float f80; CAMMOVE sub; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern float D_002A8124 __asm__("D_002A8124");
 int AreFloatsNear__Ffff(float, float, float) __asm__("AreFloatsNear__Ffff");
@@ -4370,24 +4369,24 @@ extern "C" { static inline int FNear(qword a, qword b)
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)
 // Also known as: StartRunCamera (upstream readable / Sly 1 name; StartRunCamera__FP3RUNP7SCPTCMDT1f).
-extern "C" void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, float t)
+extern "C" void StartRelayScriptCamBlend(RELAYJSG *script, struct A *pa, struct A *pb, float t)
 {
     float tBase;
     int i;
     float *pga, *pgb;
     if (pa->f40 == 0.0f) {
-        script->f80 = D_002A8124;
+        script->tBlendEnd = D_002A8124;
     } else {
         pb->n4 = 0;
-        script->f80 = g_clock.time + t;
+        script->tBlendEnd = g_clock.time + t;
     }
-    script->sub.pposeFrom = &pa->t;
-    script->sub.pposeTo = &pb->t;
-    script->sub.dt = t;
-    script->sub.fCutOnLeave = 1;
-    script->sub.iCurve = pa->n44;
-    script->sub.pevent = (CAMEVENT *)script;
-    script->sub.nUnk18 = 1;
+    script->cammove.pposeFrom = &pa->t;
+    script->cammove.pposeTo = &pb->t;
+    script->cammove.dt = t;
+    script->cammove.fCutOnLeave = 1;
+    script->cammove.iCurve = pa->n44;
+    script->cammove.pevent = (CAMEVENT *)script;
+    script->cammove.nUnk18 = 1;
     pga = &pa->t.eul.x;
     pgb = &pb->t.eul.x;
     for (i = 2; i >= 0; i--) {
@@ -4396,7 +4395,7 @@ extern "C" void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct 
         pgb++;
     }
     {
-        CAMPOSE **ppt = &script->sub.pposeFrom;
+        CAMPOSE **ppt = &script->cammove.pposeFrom;
         unsigned j;
         qword *zero=&D_002A2DD0;
         for (j = 0; j < 2; j++, ppt++) {
@@ -4412,11 +4411,11 @@ extern "C" void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct 
                 pt->radFov = g_cm.fieldOfView;
         }
     }
-    if (script->sub.dt == 0.0f)
-        script->sub.dt = D_002A8124;
+    if (script->cammove.dt == 0.0f)
+        script->cammove.dt = D_002A8124;
     if (IsCameraPolicyActive__FP5CPLCY(&g_cm.cpcamblend))
         RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, g_cm.cpcamblend.pcammove);
-    SetCmPolicy(&g_cm, 10, &g_cm.cpcamblend, 0, &script->sub);
+    SetCmPolicy(&g_cm, 10, &g_cm.cpcamblend, 0, &script->cammove);
 }
 } // namespace M_func_001E57A0
 
@@ -4427,9 +4426,9 @@ void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f) __asm__("Rev
 // Also known as: EndRunCamera (upstream readable / Sly 1 name; EndRunCamera__FP3RUNi).
 extern "C" void EndJsgCamBlend(RELAYJSG *script, int n)
 {
-    script->nUnk90 = n;
-    script->fUnk9c = 0;
-    RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, script->unk_0x84);
+    script->cammove.fCutOnLeave = n;
+    script->cammove.nUnk18 = 0;
+    RevokeCmPolicy(&g_cm, 2, 10, &g_cm.cpcamblend, 0, &script->cammove);
 }
 } // namespace M_func_001E5A98
 
