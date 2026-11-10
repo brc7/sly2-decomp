@@ -35,7 +35,7 @@ public:
     int useAltTex0;         /* 0x3C */
     unsigned long altTex0; /* 0x40 */
     int depth;                /* 0x48 */
-    int pad4C;
+    int unused4C;             /* 0x4C zero in every snapshot (the alignment word before tex0) */
     union { unsigned long tex0; TEX0 tex0Bits; };  /* 0x50 */
     int bitmapUploadQwords;           /* 0x58 bitmap upload packet */
     QW *bitmapUpload;           /* 0x5C */
