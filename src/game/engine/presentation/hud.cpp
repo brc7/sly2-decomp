@@ -2390,38 +2390,30 @@ extern "C" int WrapRichText2Lines(CRichText2 *p) {
 
 // 0x2160D8 UpdateRichText2Color
 namespace M_func_002160D8 {
-struct S {
-    char pad[0x14]; struct RGBA color; struct RGBA baseColor;
-    char pad1c[4];
-    /* the two vectors the glyphs draw with (an offset and a scale, as RenderWidget's PARAM) and their bases */
-    float color0R, color0G, color0B, color0W, color1R, color1G, color1B, color1A;
-    float baseColor0R, baseColor0G, baseColor0B, baseColor0W, baseColor1R, baseColor1G, baseColor1B, baseColor1A;
-};
 // Converts the current colour to clamped float colours for drawing. (inferred)
-extern "C" void UpdateRichText2Color(struct S *rt)
+extern "C" void UpdateRichText2Color(CRichText2 *rt)
 {
-    float alphaScale = rt->baseColor1A * 0.007874016f;   /* 1 / 127 */
+    float alphaScale = rt->baseColor1.f[3] * 0.007874016f;   /* 1 / 127 */
     float alpha;
     alpha = alphaScale * (float)rt->color.alpha;
-    rt->color0R = StdMin(rt->baseColor0R + (float)rt->color.red, 255.0f);
-    rt->color0G = StdMin(rt->baseColor0G + (float)rt->color.green, 255.0f);
-    rt->color0B = StdMin(rt->baseColor0B + (float)rt->color.blue, 255.0f);
-    rt->color0W = rt->baseColor0W;
-    rt->color1R = rt->baseColor1R;
-    rt->color1G = rt->baseColor1G;
-    rt->color1B = rt->baseColor1B;
-    rt->color1A = Clamp(alpha, 0.0f, 1.0f);
+    rt->color0.f[0] = StdMin(rt->baseColor0.f[0] + (float)rt->color.red, 255.0f);
+    rt->color0.f[1] = StdMin(rt->baseColor0.f[1] + (float)rt->color.green, 255.0f);
+    rt->color0.f[2] = StdMin(rt->baseColor0.f[2] + (float)rt->color.blue, 255.0f);
+    rt->color0.f[3] = rt->baseColor0.f[3];
+    rt->color1.f[0] = rt->baseColor1.f[0];
+    rt->color1.f[1] = rt->baseColor1.f[1];
+    rt->color1.f[2] = rt->baseColor1.f[2];
+    rt->color1.f[3] = Clamp(alpha, 0.0f, 1.0f);
 }
 } // namespace M_func_002160D8
 
 // 0x2161C8 GetRichText2MaxLineWidth
 namespace M_func_002161C8 {
-struct S { char pad[8]; void *font; char padc[0x7C]; float fontScale; };
-void ResetRichText2(struct S *p, int i) __asm__("ResetRichText2");
-int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
+void ResetRichText2(CRichText2 *p, int i) __asm__("ResetRichText2");
+int GetRichText2NextChar(CRichText2 *p) __asm__("GetRichText2NextChar");
 float GetFontGlyphWidth2(void *p, int ch) __asm__("GetFontGlyphWidth2");
 // Width of the widest line. (inferred)
-extern "C" float GetRichText2MaxLineWidth(struct S *rt)
+extern "C" float GetRichText2MaxLineWidth(CRichText2 *rt)
 {
     float maxWidth = 0.0f;
     float lineWidth = maxWidth;
@@ -2442,11 +2434,10 @@ extern "C" float GetRichText2MaxLineWidth(struct S *rt)
 
 // 0x216260 CRichText_GetExtents
 namespace M_CRichText_GetExtents {
-struct S { char pad[0x84]; float lineHeight; };
-int WrapRichText2Lines(struct S *p) __asm__("WrapRichText2Lines");
-float GetRichText2MaxLineWidth(struct S *p) __asm__("GetRichText2MaxLineWidth");
+int WrapRichText2Lines(CRichText2 *p) __asm__("WrapRichText2Lines");
+float GetRichText2MaxLineWidth(CRichText2 *p) __asm__("GetRichText2MaxLineWidth");
 // Width (widest line) and height (lines x line height) of the rich text.
-extern "C" void CRichText_GetExtents(struct S *rt, float *width, float *height)
+extern "C" void CRichText_GetExtents(CRichText2 *rt, float *width, float *height)
 {
     int numLines = WrapRichText2Lines(rt);
     float maxWidth = GetRichText2MaxLineWidth(rt);
@@ -2460,10 +2451,9 @@ extern "C" void CRichText_GetExtents(struct S *rt, float *width, float *height)
 
 // 0x2162D8 BuildRichTextMatrix
 namespace M_func_002162D8 {
-struct S { char pad[0x64]; float originX; float originY; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // Builds a glyph matrix from a 2D transform (pixel aspect scales and the GS screen offset). (inferred)
-extern "C" void BuildRichTextMatrix(struct S *rt, float *m, float *xf)
+extern "C" void BuildRichTextMatrix(CRichText2 *rt, float *m, float *xf)
 {
     /* HUD units to GS pixels: x * 0.8 (640 -> 512), y / 2.2; 786432 (3 * 2^18) is the float-to-fixed bias */
     func_002333B4(m, 0, 0x40);
@@ -2485,7 +2475,6 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
-struct RT {char pad[0x6C];float offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
 extern void *func_002333B4(void *,int,int) __asm__("memset");
 // 2x3 affine matrix (padded to 8 floats), optionally zeroed.
@@ -2504,12 +2493,12 @@ static inline void Bulk(VIFS *r,int n,void *source){CopyAqw__FPvT0i(r->m_pb,sour
 // Append a VIF DIRECT code for n quadwords followed by the data.
 static inline void Direct(VIFS *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 
-extern void SetRichText2BaseColor(struct RT *,RGBA *) __asm__("SetRichText2BaseColor");
-extern void BuildRichTextMatrix(struct RT *,struct MATRIX4Q *,struct M23 *) __asm__("BuildRichTextMatrix");
-extern void DrawRichText2Glyphs(struct RT *,struct MATRIX4Q *,struct DATA *) __asm__("DrawRichText2Glyphs");
+extern void SetRichText2BaseColor(CRichText2 *,RGBA *) __asm__("SetRichText2BaseColor");
+extern void BuildRichTextMatrix(CRichText2 *,struct MATRIX4Q *,struct M23 *) __asm__("BuildRichTextMatrix");
+extern void DrawRichText2Glyphs(CRichText2 *,struct MATRIX4Q *,struct DATA *) __asm__("DrawRichText2Glyphs");
 extern qword D_002A2E10 __asm__("D_002A2E10"),D_002A2E20 __asm__("D_002A2E20");
 // Configures box, alignment and colour and queues the rich text for drawing. (inferred)
-extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
+extern "C" void DrawRichText2(CRichText2 *p,struct CONFIG *config,int priority){
     RGBA color;
     unsigned char *tag;
     RPL *e;
