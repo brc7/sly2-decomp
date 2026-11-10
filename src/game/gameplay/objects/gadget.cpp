@@ -185,11 +185,10 @@ M3 *BuildOrthonormalMatrixZP(M3 *, qwordV, qwordV) __asm__("BuildOrthonormalMatr
 int FindSwObjectsByClass(SW *, int, int, int, int, SOV **);
 void FadeSoOut(CID100V *, float);
 void SetSmaGoalIfReachable(SMA *, int);
-struct R30 { char pad[0x30]; int state; };
-R30 *FindStepBehavior(ACTOR *, int);
-int IsBhvThrownDone(R30 *);
+BHV176 *FindStepBehavior(ACTOR *, int);
+int IsBhvThrownDone(BHV176 *);
 void SetStepguardMoverTargetMatrix(CONTROL *, const M3 *);
-void SetBhvThrownState(R30 *, int);
+void SetBhvThrownState(BHV176 *, int);
 void SetActPositionGoal(void *, qwordV);
 void SprayDprizes(SW *, int, qwordV, void *, int);
 void BroadcastGameEvent(GAME *, int, void *);
@@ -802,7 +801,7 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
     do {
         oldState = gadget->state;
         if (oldState == TOSSABLE_EXTRACTING) {
-            R30 *behavior;
+            BHV176 *behavior;
             if (!gadget->actor) {
                 SetStateVirtual(gadget, TOSSABLE_DETONATE);
             } else if (!(behavior = FindStepBehavior(gadget->actor, 0xB0)) || IsBhvThrownDone(behavior)) {
@@ -892,7 +891,7 @@ extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
     if (state == gadget->state)
         return;
     if (gadget->state == 5 && gadget->actor) {
-        R30 *behavior;
+        BHV176 *behavior;
         RemoveSoXa(gadget->actor, &gadget->hook);
         behavior = FindStepBehavior(gadget->actor, 0xB0);
         if (behavior)
