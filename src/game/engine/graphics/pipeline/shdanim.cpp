@@ -29,7 +29,7 @@ struct SAAF
 };
 /* The kinds (LOOP, PINGPONG, SHUFFLE, EYES, SCROLLER, CIRCLER) are classes.h's classes. */
 /* An SAA class: its size and constructor (the BRX class table D_002BAAE8, virtual slot 6). */
-struct SAACLS { int a[3]; int cb; SAA *(*pfnNew)(void); };
+struct SAACLS : CLASSINFO { SAA *(*pfnNew)(void); };   /* basic.h CLASSINFO (parentClass is a pointer) + the constructor */
 
 extern "C" {
 extern SAACLS D_002BAAE8[];
@@ -80,7 +80,7 @@ extern "C" SAA *LoadSaaFromBrx(int isGlobsetOwned, void *pbis)
 extern "C" SAA *CloneSaa(SAA *saa) {
     SAACLS *pcls = (SAACLS *)saa->GetClassInfo();
     SAA *pNew = pcls->pfnNew();
-    CopyAb__FPvT0Ui(pNew, saa, pcls->cb);
+    CopyAb__FPvT0Ui(pNew, saa, pcls->instanceSize);
     ClearSl(&pNew->instances);
     ClearSle(&pNew->next);
     AppendSlEntry((SL *)&g_sw.slSaa, pNew);

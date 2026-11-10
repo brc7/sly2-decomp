@@ -88,9 +88,8 @@ struct CLoadCollectorProxy : CLoadCollector
 };
 
 /* Class descriptor table (D_002BAAE8, 0x14-byte records indexed by CID; IsCidDerivedFrom walks it): +0x10 the factory. */
-struct CLSNEW
+struct CLSNEW : CLASSINFO   /* basic.h CLASSINFO (parentClass is a pointer) + the constructor */
 {
-    int unk0[4];
     LO *(*pfnNew)();
 };
 typedef char assert_CLSNEW_size[sizeof(CLSNEW) == 0x14 ? 1 : -1];
