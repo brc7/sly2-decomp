@@ -2552,7 +2552,11 @@ typedef char assert_WARP_aliases[SLY2_OFFSETOF(WARP, aliases) == 0x170 ? 1 : -1]
 /* 89 WATER (0x190): zap kind 0x2000; vtable 0x2DCA30, 75 slots */
 struct WATER : SO
 {
-    char pad150[0x190 - 0x150];
+    char pad150[0x178 - 0x150];
+    SO *splashObject;           /* +0x178 emitted at fast entries (WakeSoWater; an SO in the snapshots) */
+    SO *rippleObject;           /* +0x17C emitted at wakes (WakeSoWater; an SO in the snapshots) */
+    int hasWakeSound;           /* +0x180 objects moving through it play their wake sound (WakeSoWater) */
+    char pad184[0x190 - 0x184];
     virtual void PostLoad() __asm__("PostWaterLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWaterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleWaterMessage");   /* slot 5 */
@@ -2564,7 +2568,7 @@ struct WATER : SO
     virtual void AddExternalAccelerations() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
     virtual int IsPosInside(qword pos) __asm__("IsPosInWater");   /* slot 73 */
 };
-typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
+typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1]; typedef char assert_WATER_hasWakeSound[SLY2_OFFSETOF(WATER, hasWakeSound) == 0x180 ? 1 : -1];
 
 /* 107 WAYPT (0x190): job marker mission_start_*; vtable 0x2DCC98, 75 slots */
 struct WAYPT : SO

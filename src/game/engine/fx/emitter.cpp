@@ -774,9 +774,7 @@ typedef char check_emitp[(sizeof(EMITVIsland) == 0x40) ? 1 : -1];
 typedef char check_emitv[(sizeof(EMITVELIsland) == 0x70) ? 1 : -1];
 
 struct SND { char pad[0x170]; float lastWakeTime; void *wakeSound; };   /* the SO as a sound-carrying object (CID 0x32) */
-struct EX { char pad[0x18]; int oid; };   /* an LO */
-struct WATER { char pad[0x18]; int oid; char pad1c[0x178 - 0x1C]; EX *splashObject; EX *rippleObject; int hasWakeSound; };
-struct E { int pad0[2]; EX *renderObject; EX *nextRenderObject; WATER *touchObject; };   /* the resolved objects (EMITB+0x08's block) */
+struct E { int pad0[2]; LO *renderObject; LO *nextRenderObject; WATER *touchObject; };   /* the resolved objects (EMITB+0x08's block) */
 union V4 { qword q; float a[4]; };
 
 
