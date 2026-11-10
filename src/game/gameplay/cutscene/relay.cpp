@@ -1688,18 +1688,17 @@ extern "C" void ReleaseJsg(RELAYJSG *script)
 
 // 0x1E1BC8 HandleJsgMessage
 namespace M_HandleJsgMessage {
-struct T; struct M; struct S;
-typedef struct T { char pad[0x18]; int targetState; } T;
-typedef struct M { int a; int b; int c; } M;
-typedef struct S { char pad[0x30]; T *currentCommand; char pad2[0x24]; int sma; int isSmaReached; } S;
-void HandleBasicMessage(S *p, int a, M *m) __asm__("HandleBasicMessage");
+struct M;
+/* The state-machine message (10): the SMA, then the state it reached at +0x8. */
+typedef struct M { SMA *psma; int b; int c; } M;
+void HandleBasicMessage(RELAYJSG *p, int a, M *m) __asm__("HandleBasicMessage");
 // BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state -> fSmaReached(+0x5C)=1.
 // (inferred)
 // Also known as: OnSmaState (upstream readable / Sly 1 name; OnSmaState__3RUNiP8SMAMSG10).
-extern "C" void HandleJsgMessage(S *script, int a, M *m)
+extern "C" void HandleJsgMessage(RELAYJSG *script, int a, M *m)
 {
     HandleBasicMessage(script, a, m);
-    if (a == 10 && m->a == script->sma && m->c == script->currentCommand->targetState) script->isSmaReached = 1;
+    if (a == 10 && m->psma == script->psmaCur && m->c == script->prelaycmdCur->applySm.oidState) script->fSmaReached = 1;
 }
 } // namespace M_HandleJsgMessage
 
