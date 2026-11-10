@@ -31,20 +31,20 @@ struct CID14V
 {
     int unknown0, unknown4, unknown8;
     VTE *vt;                    /* 0x0C */
-    char pad10[0x50 - 0x10];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x4C - 0x40]; void *unknown4C;
     CID14O *frame;              /* 0x50 */
-    char pad54[0x60 - 0x54];
+    char pad54[0x5C - 0x54]; void *unknown5C;
     float mat[16];              /* 0x60: local matrix (identity for merged polygons) */
-    int matWorld[0x10];         /* 0xA0 */
+    int matWorld[(0xAC - 0xA0) / 4]; void *unknownAC; int padB0[(0xE0 - 0xB0) / 4];         /* 0xA0 */
     int curveMode;              /* 0xE0: SHAPE mode (0: linear) */
     int isClosed;               /* 0xE4 */
     int numPoints;              /* 0xE8 */
     float *times;               /* 0xEC */
     void *distances;            /* 0xF0 */
     qword *points;              /* 0xF4 */
-    char padF8[0x190 - 0xF8];
+    char padF8[0x10C - 0xF8]; void *unknown10C; char pad110[0x11C - 0x110]; void *unknown11C; char pad120[0x12C - 0x120]; void *unknown12C; char pad130[0x140 - 0x130]; void *incomingTangents; void *outgoingTangents; char pad148[0x14C - 0x148]; void *unknown14C; char pad150[0x15C - 0x150]; void *unknown15C; char pad160[0x170 - 0x160]; void *unknown170; char pad174[0x17C - 0x174]; void *chain; void *pranges; char pad184[0x18C - 0x184]; void *unknown18C;
     int winding;                /* 0x190: ClassifyCid14Polygon's result (WINDING_*) */
-    char pad194[0x1A0 - 0x194];
+    char pad194[0x198 - 0x194]; void *unknown198; void *unknown19C;
     U boundsMin, boundsMax;     /* 0x1A0 */
     int isMerged;               /* 0x1C0: a pooled merged polygon (NewMergedCid14Obstacle) */
     DL members;                /* 0x1C4: the polygons merged into this one */
