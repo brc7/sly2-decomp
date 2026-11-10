@@ -1780,20 +1780,18 @@ extern "C" void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostPathlinkLoad {
 typedef int qword __attribute__((mode(TI)));
-struct E { qword q; int pad[4]; };
-struct S : LO { int c; char pad2[0xC]; struct E a[6]; char pad3[4]; int fromZone; int toZone; int pad4; qword fromPos; qword toPos; };
-void PostLoLoad(struct S *p) __asm__("PostLoLoad");
-qword GetPathlinkEndpointCenter(struct E *pe) __asm__("GetPathlinkEndpointCenter");
-int FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");
+void PostLoLoad(LO *p) __asm__("PostLoLoad");
+qword GetPathlinkEndpointCenter(PATHLINKEND *pe) __asm__("GetPathlinkEndpointCenter");
+CID17 *FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");
 // CID 124 slot 15 (PostLoad): PostLoLoad, caches the first and last endpoint positions and their path zones.
 // Also known as: ResolveNavLink (upstream readable / Sly 1 name; ResolveNavLink__FP7NAVLINK).
-extern "C" void PostPathlinkLoad(struct S *pathlink)
+extern "C" void PostPathlinkLoad(PATHLINK *pathlink)
 {
     PostLoLoad(pathlink);
-    pathlink->fromPos = GetPathlinkEndpointCenter(&pathlink->a[0]);
-    pathlink->fromZone = FindPathzoneAtPos(pathlink->fromPos, 0);
-    pathlink->toPos = GetPathlinkEndpointCenter(/*B*/&pathlink->a[pathlink->c] - 1/*E*/);
-    pathlink->toZone = FindPathzoneAtPos(pathlink->toPos, 0);
+    pathlink->startPos = GetPathlinkEndpointCenter(&pathlink->aend[0]);
+    pathlink->startZone = FindPathzoneAtPos(pathlink->startPos, 0);
+    pathlink->endPos = GetPathlinkEndpointCenter(/*B*/&pathlink->aend[pathlink->numEnds] - 1/*E*/);
+    pathlink->endZone = FindPathzoneAtPos(pathlink->endPos, 0);
 }
 } // namespace M_PostPathlinkLoad
 

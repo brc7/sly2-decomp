@@ -1920,9 +1920,10 @@ struct PATHLINK : LO
     int unknown54[3];
     PATHLINKEND aend[6];    /* +0x60 aend[0]/aend[1]: the link's start and end (PlanBhvgoto) */
     int kind;               /* +0x120 0: a walkable segment (PlanBhvgoto tests the guard's distance to it) */
-    int unknown124;
+    struct CID17 *startZone; /* +0x124 the path zone at its near end (PostPathlinkLoad; a PATHZONE in every snapshot) */
     struct CID17 *endZone;  /* +0x128 the path zone at its far end (FindBhvgotoRoute) */
-    char pad12C[0x160 - 0x12C];
+    char pad12C[0x130 - 0x12C]; qword startPos; qword endPos; /* +0x130/+0x140 aend[0]'s / aend[numEnds-1]'s centre (PostPathlinkLoad) */
+    char pad150[0x160 - 0x150];
     virtual void Init() __asm__("InitPathlink");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddPathlinkHierarchy");   /* slot 11 */
@@ -1930,7 +1931,7 @@ struct PATHLINK : LO
     virtual void PostLoad() __asm__("PostPathlinkLoad");   /* slot 15 */
 };
 typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
-typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -1];
+typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -1]; typedef char assert_PATHLINK_endPos[SLY2_OFFSETOF(PATHLINK, endPos) == 0x140 ? 1 : -1];
 
 /* 99 CID99 (0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
 struct CID99 : SO
