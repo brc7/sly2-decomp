@@ -1384,7 +1384,7 @@ struct OBJ
     char pad[0xC];
     void *vptr;
 };
-struct ALO
+struct ALOV
 {
     char pad[0x104];
     int cpshd;
@@ -1457,11 +1457,11 @@ void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void BuildLightPackets(SW *pg, int c, void **apv, SOBOUNDS *pshd) __asm__("BuildLightPackets");
 int ShouldUpdateSaa__FP3SAA(OBJ *pobj) __asm__("ShouldUpdateSaa__FP3SAA");
-int GetRenderTargetTexture(ALO *palo, int n) __asm__("GetRenderTargetTexture");
+int GetRenderTargetTexture(ALOV *palo, int n) __asm__("GetRenderTargetTexture");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
-qword GetLoWorldPos(ALO *palo) __asm__("GetLoWorldPos");
+qword GetLoWorldPos(ALOV *palo) __asm__("GetLoWorldPos");
 RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 
 // Return the 4x4 matrix product matA * matB.
@@ -1541,7 +1541,7 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
 }
 // Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin matrices) and queues it
 // with its sort distance. (inferred)
-extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
+extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
 {
     SOBOUNDS shd;
     MATRIX4 matModel;

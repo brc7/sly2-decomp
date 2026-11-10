@@ -717,10 +717,10 @@ extern "C" void LoadSoXfsFromBrx(SO *p,void *stream){
    ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->localMatrix);e->restValue=e->unknownE0=GetXfValueFromMatrix(e,&e->localMatrix);break;
   }
   ResetXfValueRef(p,e);
-  if(has1){j1->animatedObject=(ALO *)p;j1->transform=e;j1->priority=-1;j1->goalValue=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j1);}
-  if(has2){j2->animatedObject=(ALO *)p;j2->transform=e;j2->priority=j2->farPriority;j2->restAim=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j2);}
-  if(has4){j4->animatedObject=(ALO *)p;j4->transform=e;j4->priority=-1;AddXfAct(p,e,j4);}
-  if(flags){j9->animatedObject=(ALO *)p;j9->transform=e;j9->priority=-1;AddXfAct(p,e,j9);}
+  if(has1){j1->animatedObject=p;j1->transform=e;j1->priority=-1;j1->goalValue=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j1);}
+  if(has2){j2->animatedObject=p;j2->transform=e;j2->priority=j2->farPriority;j2->restAim=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j2);}
+  if(has4){j4->animatedObject=p;j4->transform=e;j4->priority=-1;AddXfAct(p,e,j4);}
+  if(flags){j9->animatedObject=p;j9->transform=e;j9->priority=-1;AddXfAct(p,e,j9);}
  }
  UpdateSoXfWorldMatrices(p);
  LoadSoIkFromBrx(p,stream);

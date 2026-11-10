@@ -442,7 +442,7 @@ tossable gadget objects (CID100-102), critters (CID96), the screen tint/fade (CI
 
 | Area | Sly 1 | Sly 2 |
 |---|---|---|
-| Classes | C function-pointer tables, vptr at +0, ALO class | real C++ virtuals (vptr +0xC), no ALO (split into LO + XFM), SW and CM are BASIC children |
+| Classes | C function-pointer tables, vptr at +0, ALO class | real C++ virtuals (vptr +0xC), ALO kept but empty (LO -> ALO -> SO; its transform moved to XFM), SW and CM are BASIC children |
 | Activation | OnAdd/OnRemove + separate FreezeAlo | one OnAdd/OnRemove pair driven by structure and proximity |
 | Level file | one object tree, objects without sizes | world entries instanced `c8` times; every object record carries its byte size |
 | Guards | SGS state machine in STEPGUARD | BHV classes on a per-character stack; STEPGUARD hosts perception and flags |

@@ -166,7 +166,7 @@ void PostJtLoadGait(GAIT *gait)
         ASEG *aseg = pblgait->animation;
         if (aseg != 0)
         {
-            CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->player, 1, 1);
+            CHN *pchn = PchnFindAseg(aseg, gait->player, 1, 1);
             VECTOR4 vStart, vEnd;
             pchn->pac->Evaluate(0.0f, 1.0f, (qword *)&vStart, 0);
             pchn->pac->Evaluate(aseg->duration, 1.0f, (qword *)&vEnd, 0);
@@ -176,7 +176,7 @@ void PostJtLoadGait(GAIT *gait)
             pblgait->vRoot = DivVec(qwDiff, vuT);
         }
     }
-    EnsureAsegBlendDynamic((ALO *)gait->player, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->blendedAnimation);
+    EnsureAsegBlendDynamic(gait->player, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->blendedAnimation);
     for (int ichn = 0; ichn < gait->blendedAnimation->cchn; ichn++)
     {
         CHN *pchn = &gait->blendedAnimation->achn[ichn];
@@ -194,7 +194,7 @@ void PostJtLoadGait(GAIT *gait)
         }
         SO *so;
         XF *xf;
-        FindAsegChannelTarget(gait->blendedAnimation, (ALO *)gait->player, pchn, &so, &xf);
+        FindAsegChannelTarget(gait->blendedAnimation, gait->player, pchn, &so, &xf);
         switch (xf->oid)
         {
             case 0x10:
