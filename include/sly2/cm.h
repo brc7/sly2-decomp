@@ -371,10 +371,10 @@ typedef char assert_CM_cpzoom_rZoomMax[SLY2_OFFSETOF(CM, cpzoom.rZoomMax) == 0x5
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline qword func_00256298(CM *pcm) { return *(qword *)&pcm->pos; }   /* get; its set is SetCmPos */
-inline MATRIX4 *func_002562A0(CM *pcm) { return &pcm->mat; }          /* get; its set is func_00256278 (SetCmMat) */
+inline qword GetCmPos(CM *pcm) { return *(qword *)&pcm->pos; }   /* get; its set is SetCmPos */
+inline MATRIX4 *GetCmMat(CM *pcm) { return &pcm->mat; }          /* get; its set is SetCmMatOption (SetCmMat) */
 extern "C" void SetCmMat(CM *pcm, MATRIX3 *pmat);
-inline void func_00256278(CM *pcm, MATRIX3 *pmat) { SetCmMat(pcm, pmat); }   /* set: forwards to SetCmMat */
+inline void SetCmMatOption(CM *pcm, MATRIX3 *pmat) { SetCmMat(pcm, pmat); }   /* set: forwards to SetCmMat */
 
 /* g_cm: the one camera (defined in cm.cpp; its static constructor and destructor are CM_ctor and _$_2CM). */
 extern CM g_cm __asm__("g_cm");

@@ -139,6 +139,6 @@ typedef char assert_STEP_behaviors[SLY2_OFFSETOF(STEP, behaviors) == 0x26C ? 1 :
  * copies". Name is a placeholder. */
 namespace STEP_H { extern "C" void SetStepTargetHeading(STEP *pstep, float rad); }   /* set the target heading (step.cpp);
    in a namespace because includers declare the C function on their own views (stepguard, mode) */
-inline void func_00259D18(STEP *pstep, float rad) { STEP_H::SetStepTargetHeading(pstep, rad); }
+inline void SetStepTargetHeadingOption(STEP *pstep, float rad) { STEP_H::SetStepTargetHeading(pstep, rad); }
 
 #endif /* SLY2_STEP_H */

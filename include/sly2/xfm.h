@@ -314,33 +314,33 @@ typedef char assert_TN_size[sizeof(TN) == 0x1C0 ? 1 : -1];   /* class descriptor
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
- * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Names (inferred): what they return. */
 /* The "ensure" accessors of these classes return the start of the class's own fields (the end of its base part); the
  * option records address fields relative to it. The classes have no header yet, so only their names are used. */
 struct CID12; struct CID27; struct CID34; struct CID35; struct CID38; struct CID39; struct HND; struct PIPE; struct RAIL;
-inline void *func_002599F8(CID12 *p) { return (char *)p + sizeof(SHAPE); }    /* CID12 : SHAPE */
-inline void *func_00259A08(CID34 *p) { return (char *)p + sizeof(XFM); }      /* CID34 : XFM */
-inline void *func_00259A18(CID38 *p) { return (char *)p + sizeof(XFM); }      /* CID38 : XFM */
-inline void *func_00259A38(CID35 *p) { return (char *)p + sizeof(XFM); }      /* CID35 : XFM */
-inline void *func_00259A48(CID27 *p) { return (char *)p + sizeof(VOL); }      /* CID27 : VOL */
-inline void *func_00259A78(HND *phnd) { return (char *)phnd + sizeof(TARGET); }  /* HND : TARGET */
-inline void *func_00259B00(PIPE *ppipe) { return (char *)ppipe + sizeof(SHAPE); }  /* PIPE : SHAPE */
-inline void *func_00259B10(RAIL *prail) { return (char *)prail + sizeof(SHAPE); }  /* RAIL : SHAPE */
-inline void *func_00259C10(CID39 *p) { return (char *)p + sizeof(XFM); }      /* CID39 : XFM */
+inline void *GetCid12OwnFields(CID12 *p) { return (char *)p + sizeof(SHAPE); }    /* CID12 : SHAPE */
+inline void *GetCid34OwnFields(CID34 *p) { return (char *)p + sizeof(XFM); }      /* CID34 : XFM */
+inline void *GetCid38OwnFields(CID38 *p) { return (char *)p + sizeof(XFM); }      /* CID38 : XFM */
+inline void *GetCid35OwnFields(CID35 *p) { return (char *)p + sizeof(XFM); }      /* CID35 : XFM */
+inline void *GetCid27OwnFields(CID27 *p) { return (char *)p + sizeof(VOL); }      /* CID27 : VOL */
+inline void *GetHndOwnFields(HND *phnd) { return (char *)phnd + sizeof(TARGET); }  /* HND : TARGET */
+inline void *GetPipeOwnFields(PIPE *ppipe) { return (char *)ppipe + sizeof(SHAPE); }  /* PIPE : SHAPE */
+inline void *GetRailOwnFields(RAIL *prail) { return (char *)prail + sizeof(SHAPE); }  /* RAIL : SHAPE */
+inline void *GetCid39OwnFields(CID39 *p) { return (char *)p + sizeof(XFM); }      /* CID39 : XFM */
 
 /* The GRABSPOT owner getters: slot 6 of each class's GRABSPOT vtable (the entry's delta brings `this` back to the
  * object's start) returns the object itself; GRABSPOT's own slot 6 (GetGrabspotOwner) returns 0. In the linkonce area
  * each sits right before its class's ensure accessor above (BARREL's in sly2/so.h). HYPOTHESIS: inline virtual
  * overrides in the original; free inline functions here, emitted by the key TU of each class, whose vtable names
  * them through classes.h's GetOwner labels (a label equal to the mangled name makes g++ emit the inline function). */
-inline void *func_002599F0(CID12 *p) { return p; }
-inline void *func_00259A00(CID34 *p) { return p; }
-inline void *func_00259A10(CID38 *p) { return p; }
-inline void *func_00259A30(CID35 *p) { return p; }
-inline void *func_00259A40(CID27 *p) { return p; }
-inline void *func_00259A70(HND *phnd) { return phnd; }
-inline void *func_00259AF8(PIPE *ppipe) { return ppipe; }
-inline void *func_00259B08(RAIL *prail) { return prail; }
-inline void *func_00259C08(CID39 *p) { return p; }
+inline void *GetCid12GrabspotOwner(CID12 *p) { return p; }
+inline void *GetCid34GrabspotOwner(CID34 *p) { return p; }
+inline void *GetCid38GrabspotOwner(CID38 *p) { return p; }
+inline void *GetCid35GrabspotOwner(CID35 *p) { return p; }
+inline void *GetCid27GrabspotOwner(CID27 *p) { return p; }
+inline void *GetHndGrabspotOwner(HND *phnd) { return phnd; }
+inline void *GetPipeGrabspotOwner(PIPE *ppipe) { return ppipe; }
+inline void *GetRailGrabspotOwner(RAIL *prail) { return prail; }
+inline void *GetCid39GrabspotOwner(CID39 *p) { return p; }
 
 #endif /* SLY2_XFM_H */
