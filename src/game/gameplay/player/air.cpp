@@ -392,18 +392,19 @@ struct SPACE;struct OBJECT;struct PROVIDER;struct REFERENCE;struct EVENT;struct 
 struct DATA{char pad0[4];float amount;};struct SOURCE{char pad0[0x114];DATA*data;char pad118[0x64];int state;};
 struct COMPONENT{void*object;};
 struct BODY{char pad0[0x70];QWROW position;char pad80[0x20];SPACE*frame;};struct MOTION{char pad0[0x80];QWROW acceleration;};
-struct ACTOR{char pad0[12];VTE*vt;char pad10[0x48];BODY*body;char pad5C[0x8C];MOTION*motion;char padEC[0x28];DATA*data;char pad118[0x78];QWROW velocity;char pad1A0[8];float heading;char pad1AC[0x31C];int category;char pad4CC[0x434];char secondary[0x30];ASEG*secondaryClip;char pad934[0x50];SOURCE*secondaryFocus;char pad988[0x688];QWROW offset;char pad1020[0x10];ASEGA*animation;COMPONENT component;char pad1038[0x4DC];ASEG*clip1514;ASEG*clip1518;char pad151C[0x338];SOURCE*primaryFocus;char pad1858[0x4D0];EFFECT*effect;};
+typedef JT ACTOR;   /* Sly (the JT); was a whole-object view */
+#define PVT(p) (*(VTE **)((char *)(p) + 0xC))   /* the vtable pointer of a BASIC (g++ 2.95 puts it at +0xC) */
 struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct TRACK{int opaque;WORD control;float weight;};struct QUERY{OBJECT*object;PROVIDER*provider;REFERENCE*reference;int tag;QWROW point;};
 struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];QWROW relative,direction,offset;char pad100[0x20];ASEG*base[5];ASEG*alternate[5];ASEG*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;ASEG*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];ASEG*multi;SOURCE*scriptFocus;char pad1C0[8];ASEG*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
 struct RANGE{float low,high;};struct TWO_ROWS{QWROW row[2];};
 struct WORK{QWROW temp;M3 basis;QWROW scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern ACTOR*D_002E1E40 __asm__("D_002E1E40");extern QWROW D_002A2DB0 __asm__("D_002A2DB0"),g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");extern float D_002BF780[] __asm__("D_002BF780"),D_002BF7A0 __asm__("D_002BF7A0");extern RANGE D_002BF798 __asm__("D_002BF798");
-void LinkStepAttachment(ACTOR*,void*,int) __asm__("LinkStepAttachment");void RefreshSwObjectCollisionFilter(SW*,void*) __asm__("RefreshSwObjectCollisionFilter");void SetBarrelState(SOURCE*,int) __asm__("SetBarrelState");void SetXfRole(ACTOR*,BODY*,int) __asm__("SetXfRole");void SetJtHandsTarget(SECONDARY*,int) __asm__("SetJtHandsTarget");void SetJtCaneState__FP2JTi(ACTOR*,int) __asm__("SetJtCaneState__FP2JTi");void SetSmaGoal(EFFECT*,int) __asm__("SetSmaGoal");void SetStepplayerTnOverride(ACTOR*,void*) __asm__("SetStepplayerTnOverride");void ReleaseAct(EVENT**) __asm__("ReleaseAct");void SetSoTreeFlag2(ACTOR*,int) __asm__("SetSoTreeFlag2");
-qword TransformXfPos(SPACE*,SPACE*,qword) __asm__("TransformXfPos");qword ConvertXfVec(SPACE*,SPACE*,qword) __asm__("ConvertXfVec");void GetNormalVectors(qword,qword,qword,TWO_ROWS*) __asm__("GetNormalVectors");qword GetLoWorldPos(ACTOR*) __asm__("GetLoWorldPos");void SetStepGravityRatio(ACTOR*,float) __asm__("SetStepGravityRatio");qword PlanJtLaunchVelocity(CONTEXT*,int) __asm__("PlanJtLaunchVelocity");void SetStepTargetHeading(ACTOR*,float) __asm__("SetStepTargetHeading");void RecalculateAsegBlend(ASEG*) __asm__("RecalculateAsegBlend");int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");qword GetJtPlacePosition(ACTOR*,QUERY*,float) __asm__("GetJtPlacePosition");float ComputeMaxBallisticTime(qword,qword,float,float,float,float) __asm__("ComputeMaxBallisticTime");EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword) __asm__("NewBezierAct");void SetStepTargetHeadingFromVector(ACTOR*,qword) __asm__("SetStepTargetHeadingFromVector");void ReleaseSma(COMPONENT*) __asm__("ReleaseSma");void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+void LinkStepAttachment(ACTOR*,void*,int) __asm__("LinkStepAttachment");void RefreshSwObjectCollisionFilter(SW*,void*) __asm__("RefreshSwObjectCollisionFilter");void SetBarrelState(SOURCE*,int) __asm__("SetBarrelState");void SetXfRole(ACTOR*,BODY*,int) __asm__("SetXfRole");void SetJtHandsTarget(SECONDARY*,int) __asm__("SetJtHandsTarget");void SetJtCaneState__FP2JTi(ACTOR*,int) __asm__("SetJtCaneState__FP2JTi");void SetSmaGoal(SMA*,int) __asm__("SetSmaGoal");void SetStepplayerTnOverride(ACTOR*,void*) __asm__("SetStepplayerTnOverride");void ReleaseAct(EVENT**) __asm__("ReleaseAct");void SetSoTreeFlag2(ACTOR*,int) __asm__("SetSoTreeFlag2");
+qword TransformXfPos(SPACE*,SPACE*,qword) __asm__("TransformXfPos");qword ConvertXfVec(SPACE*,SPACE*,qword) __asm__("ConvertXfVec");void GetNormalVectors(qword,qword,qword,TWO_ROWS*) __asm__("GetNormalVectors");qword GetLoWorldPos(ACTOR*) __asm__("GetLoWorldPos");void SetStepGravityRatio(ACTOR*,float) __asm__("SetStepGravityRatio");qword PlanJtLaunchVelocity(CONTEXT*,int) __asm__("PlanJtLaunchVelocity");void SetStepTargetHeading(ACTOR*,float) __asm__("SetStepTargetHeading");void RecalculateAsegBlend(ASEG*) __asm__("RecalculateAsegBlend");int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");qword GetJtPlacePosition(ACTOR*,QUERY*,float) __asm__("GetJtPlacePosition");float ComputeMaxBallisticTime(qword,qword,float,float,float,float) __asm__("ComputeMaxBallisticTime");EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword) __asm__("NewBezierAct");void SetStepTargetHeadingFromVector(ACTOR*,qword) __asm__("SetStepTargetHeadingFromVector");void ReleaseSma(SMA**) __asm__("ReleaseSma");void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Zero the xyz words of v.
 static inline void ClearXYZ(QWROW*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 // Zero the actor's velocity.
-static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
+static inline void ClearVelocity(ACTOR*p){ClearXYZ((QWROW *)&p->qwUnknown190);}
 // x < limit.
 static inline bool Less(int x,int limit){return x<limit;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -421,7 +422,6 @@ typedef char SOURCE_Size[sizeof(SOURCE)==384?1:-1];
 typedef char COMPONENT_Size[sizeof(COMPONENT)==4?1:-1];
 typedef char BODY_Size[sizeof(BODY)==176?1:-1];
 typedef char MOTION_Size[sizeof(MOTION)==144?1:-1];
-typedef char ACTOR_Size[sizeof(ACTOR)==7472?1:-1];
 typedef char LINK_Size[sizeof(LINK)==8?1:-1];
 typedef char WORD_Size[sizeof(WORD)==4?1:-1];
 typedef char WORD_bits_Offset[FIELD_OFFSET(WORD,bits)==0?1:-1];
@@ -439,23 +439,6 @@ typedef char COMPONENT_object_Offset[FIELD_OFFSET(COMPONENT,object)==0?1:-1];
 typedef char BODY_position_Offset[FIELD_OFFSET(BODY,position)==112?1:-1];
 typedef char BODY_frame_Offset[FIELD_OFFSET(BODY,frame)==160?1:-1];
 typedef char MOTION_acceleration_Offset[FIELD_OFFSET(MOTION,acceleration)==128?1:-1];
-typedef char ACTOR_vt_Offset[FIELD_OFFSET(ACTOR,vt)==12?1:-1];
-typedef char ACTOR_body_Offset[FIELD_OFFSET(ACTOR,body)==88?1:-1];
-typedef char ACTOR_motion_Offset[FIELD_OFFSET(ACTOR,motion)==232?1:-1];
-typedef char ACTOR_data_Offset[FIELD_OFFSET(ACTOR,data)==276?1:-1];
-typedef char ACTOR_velocity_Offset[FIELD_OFFSET(ACTOR,velocity)==400?1:-1];
-typedef char ACTOR_heading_Offset[FIELD_OFFSET(ACTOR,heading)==424?1:-1];
-typedef char ACTOR_category_Offset[FIELD_OFFSET(ACTOR,category)==1224?1:-1];
-typedef char ACTOR_secondary_Offset[FIELD_OFFSET(ACTOR,secondary)==2304?1:-1];
-typedef char ACTOR_secondaryClip_Offset[FIELD_OFFSET(ACTOR,secondaryClip)==2352?1:-1];
-typedef char ACTOR_secondaryFocus_Offset[FIELD_OFFSET(ACTOR,secondaryFocus)==2436?1:-1];
-typedef char ACTOR_offset_Offset[FIELD_OFFSET(ACTOR,offset)==4112?1:-1];
-typedef char ACTOR_animation_Offset[FIELD_OFFSET(ACTOR,animation)==4144?1:-1];
-typedef char ACTOR_component_Offset[FIELD_OFFSET(ACTOR,component)==4148?1:-1];
-typedef char ACTOR_clip1514_Offset[FIELD_OFFSET(ACTOR,clip1514)==5396?1:-1];
-typedef char ACTOR_clip1518_Offset[FIELD_OFFSET(ACTOR,clip1518)==5400?1:-1];
-typedef char ACTOR_primaryFocus_Offset[FIELD_OFFSET(ACTOR,primaryFocus)==6228?1:-1];
-typedef char ACTOR_effect_Offset[FIELD_OFFSET(ACTOR,effect)==7464?1:-1];
 typedef char LINK_space_Offset[FIELD_OFFSET(LINK,space)==0?1:-1];
 typedef char LINK_target_Offset[FIELD_OFFSET(LINK,target)==4?1:-1];
 typedef char TRACK_opaque_Offset[FIELD_OFFSET(TRACK,opaque)==0?1:-1];
@@ -546,13 +529,13 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
     case 6: {
         SOURCE *old = air->source;
         air->source = 0;
-        if (air->actor->category != 1) {
+        if (air->actor->jtgrab.state != 1) {
             RefreshSwObjectCollisionFilter(&g_sw, old);
             if (old->state == 1)
                 SetBarrelState(old, 0);
         }
-        SetXfRole(air->actor, air->actor->body, 2);
-        air->actor->velocity.q = D_002A2DD0.q;
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 2);
+        air->actor->qwUnknown190 = D_002A2DD0.q;
         break;
     }
     case 8:
@@ -565,11 +548,11 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
     case 15:
     case 16:
     case 18:
-        SetXfRole(air->actor, air->actor->body, 2);
-        air->actor->velocity.q = D_002A2DD0.q;
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 2);
+        air->actor->qwUnknown190 = D_002A2DD0.q;
         if (Less(air->mode, 16) && !Less(air->mode, 14)) {
             if (air->actor != D_002E1E40)
-                SetJtHandsTarget((SECONDARY *)air->actor->secondary, -1);
+                SetJtHandsTarget((SECONDARY *)&air->actor->jtgrab.hands, -1);
             else
                 SetJtCaneState__FP2JTi(air->actor, -1);
         }
@@ -578,20 +561,20 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
     case 20:
         if (Less(newMode, 21) && !Less(newMode, 19))
             break;
-        if (air->actor->effect)
-            SetSmaGoal(air->actor->effect, 0x5F8);
+        if (air->actor->unknown1D28)
+            SetSmaGoal(air->actor->unknown1D28, 0x5F8);
         SetStepplayerTnOverride(air->actor, 0);
         break;
     case 21:
         ReleaseAct(&air->event);
-        SetXfRole(air->actor, air->actor->body, 2);
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 2);
         SetSoTreeFlag2(air->actor, 0);
         break;
     }
     register unsigned clockHigh __asm__("$3"), savedClockHigh __asm__("$21");
     __asm__("lui %0,%%hi(%1)" : "=r"(clockHigh) : "i"(&g_clock));
     __asm__("daddu %0,%1,$zero" : "=r"(savedClockHigh) : "r"(clockHigh));
-    ASEGA *active = air->actor->animation;
+    ASEGA *active = air->actor->activeAnimation;
     ASEG *clip = 0;
     air->mode = newMode;
     air->source = source;
@@ -649,7 +632,7 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
             register qword position __asm__("vf1");
             __asm__("qmtc2.ni %1,%0" : "=j"(position) : "r"(point));
             __asm__("vsub.xyzw %0,%0,%1" : "+j"(delta) : "j"(position));
-            actor->offset.q = delta;
+            actor->unknown1010 = delta;
         }
         ClearVelocity(air->actor);
         air->flags28 = 0;
@@ -669,8 +652,8 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
         switch (air->state) {
         case 13: clip = air->special148; break;
         case 14: clip = air->special158; break;
-        case 16: clip = air->actor->clip1514; break;
-        case 15: clip = air->actor->clip1518; break;
+        case 16: clip = (ASEG *)air->actor->unknown1514; break;   /* JT+0x1514 is an int flag elsewhere (jt.cpp) */
+        case 15: clip = air->actor->unknown1518; break;
         }
         if (!clip)
             clip = air->base[air->variant];
@@ -690,14 +673,14 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
         air->flags28 = 0;
         break;
     case 6:
-        SetXfRole(air->actor, air->actor->body, 17);
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 17);
         RefreshSwObjectCollisionFilter(&g_sw, source);
         SetBarrelState(source, 1);
         ClearVelocity(air->actor);
-        clip = air->actor->animation->animation;
+        clip = air->actor->activeAnimation->animation;
         break;
     case 8:
-        SetXfRole(air->actor, air->actor->body, 17);
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 17);
         ClearVelocity(air->actor);
         clip = active->animation;
         break;
@@ -706,7 +689,7 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
     case 13:
     case 14:
     case 15:
-        SetXfRole(air->actor, air->actor->body, 17);
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 17);
         ClearVelocity(air->actor);
         air->flags28 = 0;
         air->variant = 0;
@@ -714,13 +697,13 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
         if (Less(air->mode, 16) && !Less(air->mode, 14)) {
             ACTOR *actor = air->actor;
             if (actor == D_002E1E40) {
-                actor->primaryFocus = air->source;
+                actor->hands.ploTarget = (LO *)air->source;
                 SetJtCaneState__FP2JTi(actor, 0);
             } else {
-                actor->secondaryFocus = air->source;
+                actor->jtgrab.hands.ploTarget = (LO *)air->source;
                 weight = 0.0f;
-                SetJtHandsTarget((SECONDARY *)air->actor->secondary, 0);
-                clip = air->actor->secondaryClip;
+                SetJtHandsTarget((SECONDARY *)&air->actor->jtgrab.hands, 0);
+                clip = air->actor->jtgrab.hands.blendedAnimation;
                 blend = clip->duration * 0.5f;
             }
         }
@@ -729,7 +712,7 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
     case 10:
     case 16:
     case 18: {
-        SetXfRole(air->actor, air->actor->body, 17);
+        SetXfRole(air->actor, (BODY *)air->actor->positionXf, 17);
         ClearVelocity(air->actor);
         air->flags28 = 0;
         AsStepplayer(air->actor)->SetVelocity(PlanJtLaunchVelocity(air, 4));
@@ -751,13 +734,13 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
         air->state = -1;
         break;
     case 19:
-        SetStepTargetHeading(air->actor, air->actor->heading - D_002BF780[air->variant]);
+        SetStepTargetHeading(air->actor, air->actor->targetHeading - D_002BF780[air->variant]);
         air->flags28 = 0;
         clip = air->scripted;
         SetStepplayerTnOverride(air->actor, air->scriptFocus);
         air->scriptFocus->data->amount = D_002BF798.low * 0.5f + D_002BF798.high * 0.5f;
-        if (air->actor->effect)
-            SetSmaGoal(air->actor->effect, 0x5F7);
+        if (air->actor->unknown1D28)
+            SetSmaGoal(air->actor->unknown1D28, 0x5F7);
         break;
     case 20:
         air->tracks[0].control.bits = 0;
@@ -803,7 +786,7 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
         register qword deltaArg __asm__("$4"), accelerationArg __asm__("$2");
         __asm__("lw %1,0xE8(%3)\n\tlq %0,%4\n\tlq %1,0x80(%1)\n\tsq %1,%2"
                 : "=r"(deltaArg), "=&r"(accelerationArg), "=m"(w.acceleration.q)
-                : "r"(queryOwner), "m"(w.delta.q), "m"(queryOwner->motion)
+                : "r"(queryOwner), "m"(w.delta.q), "m"(queryOwner->physics)
                 : "memory");
         float solved =
             ComputeMaxBallisticTime(deltaArg, accelerationArg, rangeLimit, minimumArg, durationUnit, maximumArg);
@@ -820,7 +803,7 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
             __asm__("lqc2 $vf2,%4\n\tmfc1 %3,%5\n\tqmtc2.ni %3,%0\n\tlw %2,%6\n\tmfc1 %3,%7\n\tvdiv "
                     "$Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %1,$vf2,$Q"
                     : "=j"(full), "=j"(quotient), "=r"(vt), "=&r"(halfBits)
-                    : "m"(w.delta.q), "f"(maximum), "m"(velocityOwner->vt), "f"(negativeHalf)
+                    : "m"(w.delta.q), "f"(maximum), "m"(PVT(velocityOwner)), "f"(negativeHalf)
                     : "vf2");
             register qword half __asm__("vf2"), velocity __asm__("vf4");
             __asm__("lqc2 %1,%4\n\tqmtc2.ni %2,%0\n\tvadda.xyzw $ACC,%3,$vf0\n\tvmaddx.xyzw %1,%1,%0x"
@@ -862,8 +845,8 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
                          : "m"(air->actor), "j"(fullAfter)
                          : "$3", "memory");
         qword localGoal = TransformXfPos(coordinateSpace, coordinateBody->frame, goalArg);
-        qword localEnd = ConvertXfVec(0, air->actor->body->frame, w.endVelocity.q);
-        air->event = NewBezierAct(air->actor, air->actor->body, 5, deadline, localGoal, localEnd);
+        qword localEnd = ConvertXfVec(0, ((BODY *)air->actor->positionXf)->frame, w.endVelocity.q);
+        air->event = NewBezierAct(air->actor, (BODY *)air->actor->positionXf, 5, deadline, localGoal, localEnd);
         SetSoTreeFlag2(air->actor, 1);
         {
             register ACTOR *cleared __asm__("$3");
@@ -888,8 +871,8 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
     if (air->mode == -1)
         return;
     if (!active || active->animation != clip) {
-        ReleaseSma(&air->actor->component);
-        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->animation);
+        ReleaseSma(&air->actor->activeStateMachine);
+        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->activeAnimation);
     }
     AsStepplayer(air->actor)->ApplyStateStepParams();
 }

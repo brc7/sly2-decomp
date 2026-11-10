@@ -87,8 +87,9 @@ struct JT : public STEPPLAYER
       ASEG *unknown14D4;
       ASEG *unknown14D8;
       undefined4 unk_0x14dc[(0x1514 - 0x14dc) / 4];
-      int unknown1514;
-      ASEG *unknown1518;
+      int unknown1514;   /* +0x1514 flag: jt.cpp sets 1 after snapping the stand state machine, 0 on entering JTS_Stand (snapshot:
+                            int, values 0/1); SetJtAirState reads the word as the air clip of air state 16 */
+      ASEG *unknown1518;   /* +0x1518 the air clip of air state 15 (SetJtAirState) */
       undefined4 unknown151C;
       XMG unknown1520[2];
       SOPART *aprecJts[JTS_Max];   /* per-movement-state records (indexed by JTS) */
@@ -260,6 +261,8 @@ typedef char assert_JT_attachedTo[SLY2_OFFSETOF(JT, attachedTo) == 0x18C0 ? 1 : 
 typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 1 : -1];
 typedef char assert_JT_aposMeshProbe[SLY2_OFFSETOF(JT, aposMeshProbe) == 0x1F30 ? 1 : -1];
 typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
+typedef char assert_JT_unknown1514[SLY2_OFFSETOF(JT, unknown1514) == 0x1514 ? 1 : -1];   /* jt.cpp, air.cpp SetJtAirState */
+typedef char assert_JT_unknown1D28[SLY2_OFFSETOF(JT, unknown1D28) == 0x1D28 ? 1 : -1];   /* air.cpp SetJtAirState (SetSmaGoal) */
 typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
 typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */ typedef char assert_JT_abldirJts5[SLY2_OFFSETOF(JT, abldirJts5) == 0x13D0 ? 1 : -1]; typedef char assert_JT_abldirJts10[SLY2_OFFSETOF(JT, abldirJts10) == 0x1AC0 ? 1 : -1]; typedef char assert_JT_ablHangFollow[SLY2_OFFSETOF(JT, ablHangFollow) == 0x1F60 ? 1 : -1]; typedef char assert_JT_pasegblLean[SLY2_OFFSETOF(JT, pasegblLean) == 0x2038 ? 1 : -1];
 
