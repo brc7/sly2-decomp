@@ -27,7 +27,6 @@ struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]
 
 /* A node of the world's cell tree (32 bytes; brx_sw.cpp loads it): a plane, then the children or leaf indices. The
    leaves' light masks are sly2/sw.h's LIGHTMASK. */
-struct CELL { qword plane; CELL *left, *right; int leftLeaf, rightLeaf; };
 typedef char Size_NODE[sizeof(CELL) == 32 ? 1 : -1];
 
 struct M3R { qword r[3]; };
@@ -344,16 +343,16 @@ void InsertLightInTree(SW *s, CELL *n, qword pos, float r, int bit)
     one.q = tone;
     d.q = td;
     if (dist < r) {
-        if (n->left)
-            InsertLightInTree(s, n->left, pos, r, bit);
+        if (n->pcellNeg)
+            InsertLightInTree(s, n->pcellNeg, pos, r, bit);
         else
-            SetBit((int *)s->aleaf[n->leftLeaf].aw, bit);
+            SetBit((int *)s->aleaf[n->ileafNeg].aw, bit);
     }
     if (-r < dist) {
-        if (n->right)
-            InsertLightInTree(s, n->right, pos, r, bit);
+        if (n->pcellPos)
+            InsertLightInTree(s, n->pcellPos, pos, r, bit);
         else
-            SetBit((int *)s->aleaf[n->rightLeaf].aw, bit);
+            SetBit((int *)s->aleaf[n->ileafPos].aw, bit);
     }
 }
 
@@ -511,11 +510,11 @@ void FindLightsAffectingPoint(SW *p, qword pos, int capacity, RESULT *results)
         do {
             score = PlaneDistance(&w.distance, &w.unity, n->plane, pos);
             if (score < 0.0f) {
-                if (n->left) n = n->left;
-                else { leaf = &p->aleaf[n->leftLeaf]; break; }
+                if (n->pcellNeg) n = n->pcellNeg;
+                else { leaf = &p->aleaf[n->ileafNeg]; break; }
             } else {
-                if (n->right) n = n->right;
-                else { leaf = &p->aleaf[n->rightLeaf]; break; }
+                if (n->pcellPos) n = n->pcellPos;
+                else { leaf = &p->aleaf[n->ileafPos]; break; }
             }
         } while (n);
         for (i = 0; i < 8; i++) w.mask.aw[i] |= leaf->aw[i];

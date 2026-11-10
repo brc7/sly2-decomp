@@ -352,14 +352,6 @@ struct JSGENT
 
 void LatchButtonEdges(JOY *pjoy, uint grfbtn) __asm__("SetJoyBtnHandled");
 
-struct CELL
-{
-      qword plane;
-      CELL *pcellNeg;
-      CELL *pcellPos;
-      int ileafNeg;
-      int ileafPos;
-};
 
 
 /* SVN: sly2/sw.h */

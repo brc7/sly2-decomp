@@ -54,8 +54,8 @@ void LoadSoundSectionFromBrx(void *p, BIS *stream);
 void PostSoundLoad(void *p);
 void LoadSaveSchemaFromBrx(void *p, BIS *stream);
 void LoadLevelTableFromBrx(void *world, BIS *stream);
-void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
-void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
+void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream);
+void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *p, BIS *stream);
 void InitSwSpliceFrame(void *world);
 void ResolveSwSaveVars__FP2SW(void *world);
@@ -217,15 +217,12 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     EndLoadingScreen(&h);
 }
 
-/* Language strings as LoadSwLocalizedStringsFromBrx sees the SW (offsets only). */
-struct SWLANG { char pad[0x4640]; int c; LANGSTR *ae; };
 extern int D_002E1E54;
 extern char D_003E1C20[];
 // Reads the localized string table (U8 language count and ids, then per string an S16 id and one string per language)
 // and keeps only the current language's strings (g_nLang) in the world's string array.
-extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
+extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(SW *p, BIS *pbs)
 {
-    SWLANG *p = (SWLANG *)world;
     AREQ req;
     int i;
     int iMatch = 0;
@@ -238,12 +235,12 @@ extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *
         }
     }
     i = 0;
-    p->c = S16Read__18CBinaryInputStream(pbs);
+    p->clangstr = S16Read__18CBinaryInputStream(pbs);
     req.cbAlign = 0x10;
-    req.cb = p->c * sizeof(LANGSTR);
-    p->ae = (LANGSTR *)AllocFromWorldHeap(&req);
-    for (; i < p->c; i++) {
-        LANGSTR *pe = &p->ae[i];
+    req.cb = p->clangstr * sizeof(LANGSTR);
+    p->alangstr = (LANGSTR *)AllocFromWorldHeap(&req);
+    for (; i < p->clangstr; i++) {
+        LANGSTR *pe = &p->alangstr[i];
         int j;
         pe->id = S16Read__18CBinaryInputStream(pbs);
         for (j = 0; j < c; j++) {
@@ -256,39 +253,35 @@ extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *
     LocalizeSwStringTable(D_003E1C20);
 }
 
-/* Cells as LoadSwCellsFromBrx sees the SW (offsets only). */
-struct CELL { char pad[0x10]; CELL *front; CELL *back; int frontLeaf; int backLeaf; };   /* a BSP node: plane, then children or leaf indices */
-struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *leaves; };
 // Reads the cell BSP: per node a plane (VECTOR4) and front/back children (a negative child starts a new leaf).
 // Allocates the world's cell and leaf arrays (0x20 bytes each).
-extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
+extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(SW *p, BIS *pbs)
 {
-    SWCELLS *p = (SWCELLS *)world;
     AREQ req;
     int i;
     int c = U16Read__18CBinaryInputStream(pbs);
     req.cbAlign = 0x10;
     req.cb = c * sizeof(CELL);
-    p->c = c;
-    p->ae = (CELL *)AllocClearedFromWorldHeap(&req);
-    p->n = 0;
-    for (i = 0; i < p->c; i++) {
-        CELL *pe = &p->ae[i];
+    p->ccell = c;
+    p->acell = (CELL *)AllocClearedFromWorldHeap(&req);
+    p->cleaf = 0;
+    for (i = 0; i < p->ccell; i++) {
+        CELL *pe = &p->acell[i];
         int j;
-        ReadVector4__18CBinaryInputStreamP7VECTOR4(pbs, pe);
+        ReadVector4__18CBinaryInputStreamP7VECTOR4(pbs, &pe->plane);
         j = S16Read__18CBinaryInputStream(pbs);
         if (j >= 0)
-            pe->front = &p->ae[j];
+            pe->pcellNeg = &p->acell[j];
         else
-            pe->frontLeaf = p->n++;
+            pe->ileafNeg = p->cleaf++;
         j = S16Read__18CBinaryInputStream(pbs);
         if (j >= 0)
-            pe->back = &p->ae[j];
+            pe->pcellPos = &p->acell[j];
         else
-            pe->backLeaf = p->n++;
+            pe->ileafPos = p->cleaf++;
     }
     req.cbAlign = 0x10;
-    req.cb = p->n * sizeof(CELL);
-    p->leaves = AllocClearedFromWorldHeap(&req);
+    req.cb = p->cleaf * sizeof(CELL);
+    p->aleaf = (LIGHTMASK *)AllocClearedFromWorldHeap(&req);
 }
 

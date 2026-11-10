@@ -116,6 +116,17 @@ struct RENDERTGT
 };
 typedef char assert_RENDERTGT_size[sizeof(RENDERTGT) == 0x28 ? 1 : -1];
 
+/* CELL: a node of the world's light BSP (SW::acell): its plane, then the two children; a null child is a leaf whose
+   index (into SW::aleaf) is in ileafNeg/ileafPos (LoadSwCellsFromBrx, InsertLightInTree). */
+struct CELL
+{
+    qword plane;
+    CELL *pcellNeg;
+    CELL *pcellPos;
+    int ileafNeg;
+    int ileafPos;
+};
+
 /* LIGHTMASK: a set of light slots (256 bits; SW::aplight indices), as two quadwords or eight words (light.cpp). */
 union LIGHTMASK
 {
