@@ -2654,17 +2654,15 @@ extern "C" void CloneSoHierarchy(SO *pa, SO *so)
 
 // 0x1F6788 FindAsegaByOid
 namespace M_func_001F6788 {
-struct B; struct N;
-struct B { char pad[0x18]; int oid; };
-struct N { char pad[0x14]; struct B *owner; int oid; char pad2[8]; struct N *next; };
-// Searches the world's ASEGA list for an entry with the given oid (and owner oid m unless m is -1). (inferred)
-extern "C" struct N *FindAsegaByOid(int n, int m)
+// Searches the world's ASEGA list for the application on root object palo (of the segment with oid oidAseg unless
+// oidAseg is -1). sensor.cpp's declaration gives the parameter types.
+extern "C" ASEGA *FindAsegaByOid(ALO *palo, OID oidAseg)
 {
-    struct N *p;
+    ASEGA *p;
     int unused[4];
-    for (p = (*(struct N * *)&g_sw.dlAsega); p; p = p->next) {
-        if (p->oid == n) {
-            if (m == -1 || p->owner->oid == m)
+    for (p = (*(ASEGA * *)&g_sw.dlAsega); p; p = (ASEGA *)p->dleSw.next) {
+        if (p->rootObject == palo) {
+            if (oidAseg == -1 || p->animation->oid == oidAseg)
                 return p;
         }
     }
@@ -2674,18 +2672,16 @@ extern "C" struct N *FindAsegaByOid(int n, int m)
 
 // 0x1F67E0 FindLiveSma
 namespace M_func_001F67E0 {
-struct B; struct N;
-struct B { char pad[0x18]; int oid; };
-struct N { char pad[0x1C]; struct N *next; int pad2; struct B *owner; int oid; };
-// The same search over the world's list of live state-machine instances (SMA). (inferred)
+// The same search over the world's list of live state-machine applications (SMA): the one on root object palo, of
+// the machine with oid oidSm unless oidSm is -1. relay.cpp's PsmaFindOnAlo declaration gives the parameter types.
 // Also known as: PsmaFindAloSm (upstream readable / Sly 1 name; PsmaFindAloSm__Fi3OID).
-extern "C" struct N *FindLiveSma(int n, int m)
+extern "C" SMA *FindLiveSma(ALO *palo, OID oidSm)
 {
-    struct N *p;
+    SMA *p;
     int unused[4];
-    for (p = (*(struct N * *)&g_sw.dlSma); p; p = p->next) {
-        if (p->oid == n) {
-            if (m == -1 || p->owner->oid == m)
+    for (p = (*(SMA * *)&g_sw.dlSma); p; p = (SMA *)p->dleSw.next) {
+        if (p->paloRoot == palo) {
+            if (oidSm == -1 || p->stateMachine->oid == oidSm)
                 return p;
         }
     }
