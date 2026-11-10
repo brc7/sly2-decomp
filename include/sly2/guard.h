@@ -256,7 +256,7 @@ typedef char assert_CID120_guard[SLY2_OFFSETOF(CID120, guard) == 0xAC ? 1 : -1];
 struct STEPGUARD : public STEP
 {
       unsigned long grfsg;          /* +0x2C0 [R] guard flag word == union of the flags of the behaviours on bhvstk (all
-                                       guards in all states, ram_inspector check). 64-bit: on ee-gcc long = 8 bytes, long long = 16 */
+                                       guards in all states, ram_inspector check); bit n = SGF n (GetSgfMask). The "alert nibble" the name check sees (bits 28..31: 8 -> 2 when a search turns into a chase) is SGF 0x1F SEARCH giving way to 0x1D COMBAT, flags, not a level. 64-bit: on ee-gcc long = 8 bytes, long long = 16 */
       undefined4 unk_0x2c8;
       LM walkTimes;         /* +0x2CC [S] patrol walk duration range (BHVPATROL; script command 1 copies it whole) */
       LM pauseTimes;        /* +0x2D4 [S] patrol pause duration range (BHVPATROL; script command 2) */
@@ -459,7 +459,7 @@ typedef char assert_STEPGUARD_lootPouch[SLY2_OFFSETOF(STEPGUARD, lootPouch) == 0
 typedef char assert_STEPGUARD_lookTimes[SLY2_OFFSETOF(STEPGUARD, lookTimes) == 0xE6C ? 1 : -1];
 typedef char assert_STEPGUARD_unknownF40[SLY2_OFFSETOF(STEPGUARD, unknownF40) == 0xF40 ? 1 : -1];
 typedef char assert_STEPGUARD_removalMode[SLY2_OFFSETOF(STEPGUARD, removalMode) == 0x1000 ? 1 : -1];
-typedef char assert_STEPGUARD_busyCount[SLY2_OFFSETOF(STEPGUARD, busyCount) == 0xFFC ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_STEPGUARD_busyCount[SLY2_OFFSETOF(STEPGUARD, busyCount) == 0xFFC ? 1 : -1]; /* CONFIRMED runtime */ /* name-check "drift" fields (one CARMELITA, one RAJAN instance disagree; the code that uses them fixes these offsets): */ typedef char assert_STEPGUARD_staggerProgress[SLY2_OFFSETOF(STEPGUARD, staggerProgress) == 0x344 ? 1 : -1]; typedef char assert_STEPGUARD_heldAnimation[SLY2_OFFSETOF(STEPGUARD, heldAnimation) == 0x34C ? 1 : -1]; typedef char assert_STEPGUARD_heldNoise[SLY2_OFFSETOF(STEPGUARD, heldNoise) == 0x35C ? 1 : -1]; typedef char assert_STEPGUARD_forcedTarget[SLY2_OFFSETOF(STEPGUARD, forcedTarget) == 0x390 ? 1 : -1]; typedef char assert_STEPGUARD_generatedTargetCount[SLY2_OFFSETOF(STEPGUARD, generatedTargetCount) == 0x3A4 ? 1 : -1]; typedef char assert_STEPGUARD_ignoreClasses[SLY2_OFFSETOF(STEPGUARD, ignoreClasses) == 0x3AC ? 1 : -1]; typedef char assert_STEPGUARD_isLootStaged[SLY2_OFFSETOF(STEPGUARD, isLootStaged) == 0x48C ? 1 : -1]; typedef char assert_STEPGUARD_sleepDartAseg[SLY2_OFFSETOF(STEPGUARD, sleepDartAseg) == 0xE8C ? 1 : -1]; typedef char assert_STEPGUARD_allowedZones[SLY2_OFFSETOF(STEPGUARD, allowedZones) == 0xE98 ? 1 : -1]; typedef char assert_STEPGUARD_currentAttack[SLY2_OFFSETOF(STEPGUARD, currentAttack) == 0xF00 ? 1 : -1]; typedef char assert_STEPGUARD_aimAttack[SLY2_OFFSETOF(STEPGUARD, aimAttack) == 0xF08 ? 1 : -1]; typedef char assert_STEPGUARD_attachParam[SLY2_OFFSETOF(STEPGUARD, attachParam) == 0xF88 ? 1 : -1]; typedef char assert_STEPGUARD_designatedTargets[SLY2_OFFSETOF(STEPGUARD, designatedTargets) == 0xF98 ? 1 : -1]; typedef char assert_STEPGUARD_isHandsOff[SLY2_OFFSETOF(STEPGUARD, isHandsOff) == 0xFC8 ? 1 : -1]; typedef char assert_STEPGUARD_handsOffLookAt[SLY2_OFFSETOF(STEPGUARD, handsOffLookAt) == 0xFCC ? 1 : -1];
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
