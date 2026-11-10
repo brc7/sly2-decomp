@@ -322,26 +322,27 @@ extern "C" void InitSwLoadBuffers(SW *world)
 } // namespace M_func_0020E180
 
 namespace M_func_0020E2B0 {
-struct O { char pad[0xB8]; int priority; char p2[0xC]; struct RENDERBLOCK *pblockRender; };   /* an MS object; priority (inferred): the largest wins */
-int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, struct O **apo) __asm__("FindSwObjectsByClass");
-void SetLoVisMask(struct O *o, int n) __asm__("SetLoVisMask");
-// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its render block (+0xC8) as SW::pblockRender and makes
-// it visible to every camera mask. (inferred)
+int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, MS **apo) __asm__("FindSwObjectsByClass");
+void SetLoVisMask(MS *o, int n) __asm__("SetLoVisMask");
+// Picks the main MS object (class 0x31): of up to 16, the one with the most model pieces (GLOBSET::numPieces,
+// +0xB8); stores its GLOBSET word +0x48 as SW::pblockRender and makes it visible to every camera mask. (inferred)
+// The header names that word GLOBSET::aposeset (POSESET *), but here it is the level's render-tree root block: one
+// of the two names is wrong (unresolved; the snapshots show a heap pointer either way).
 extern "C" void SelectSwMainMs(SW *world)
 {
-    struct O *found[16];
+    MS *found[16];
     int numFound = FindSwObjectsByClass(world, 5, 0x31, 0, 16, found);
     int maxPriority = 0;
-    struct O *best = 0;
+    MS *best = 0;
     int i;
     for (i = 0; i < numFound; i++) {
-        if (found[i]->priority > maxPriority) {
-            maxPriority = found[i]->priority;
+        if (found[i]->model.numPieces > maxPriority) {
+            maxPriority = found[i]->model.numPieces;
             best = found[i];
         }
     }
     if (best) {
-        world->pblockRender = best->pblockRender;
+        world->pblockRender = (RENDERBLOCK *)best->model.aposeset;
         SetLoVisMask(best, 0xFF);
     }
 }
