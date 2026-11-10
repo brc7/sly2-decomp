@@ -5,7 +5,8 @@ logic, puzzles, ambushes and cutscene triggers in it; the world file carries the
 numbered **options** (properties and methods) that scripts read, write and call. This guide covers the virtual
 machine (values, frames, evaluator, garbage collector), how scripts are loaded and bound to objects, how events reach
 scripts, how game objects expose options, and the builtin library. The serialized form on disc is in
-[formats/splice-scripts.md](../formats/splice-scripts.md).
+[formats/splice-scripts.md](../formats/splice-scripts.md). Script authors: the language reference (special forms, every builtin,
+per-class options, events) is [reference/splice-language.md](../reference/splice-language.md).
 
 ## 1. The pieces
 
