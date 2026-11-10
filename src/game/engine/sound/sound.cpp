@@ -34,11 +34,12 @@ struct SNDMGRG;
 extern "C" {
 void SNDMGR_ctor(SNDMGRG *soundManager);
 }
+/* The pads follow SNDMGR's layout (sly2/sndmgr.h), so the fields below sit where SNDMGR has them on any target. */
 struct SNDMGRBASE
 {
-    char ab[0x4C];
+    char ab[SLY2_OFFSETOF(SNDMGR, dirtySounds)];
     DL dlSndDirty;          /* +0x4C [S] draft name: the sounds RemoveSndFromDirtyList takes out (was the address name D_003DD08C) */
-    char ab58[0x200 - 0x58];
+    char ab58[SLY2_OFFSETOF(SNDMGR, dialogSound) - SLY2_OFFSETOF(SNDMGR, isPaused)];
     // Destroy the object (~BASIC, in-charge flag 2).
     ~SNDMGRBASE() { ((BASIC *)this)->BASIC::~BASIC(); }
 };

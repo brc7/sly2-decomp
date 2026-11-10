@@ -10,6 +10,10 @@
  *   SLY2_SET_VPTR(p, CLASS)          p's vptr at +0xC (BASIC's, so every registry class's) = CLASS's vtable
  *   SLY2_SET_VPTR_AT(p, off, CLASS)  the same for a class whose vptr is elsewhere (ACT +0x18, CBinaryInputStream +0x30,
  *                                    a RIP's +0xEC...)
+ *   SLY2_STORE_VPTR_AT(p, off, vtbl) the store itself, for a table address held in a variable; the macros above and
+ *                                    below expand to it. A port whose ABI puts the vptr elsewhere (first, past an
+ *                                    RTTI header...) overrides this one alone.
+ *   SLY2_STORE_VPTR(p, vtbl)         the same at BASIC's +0xC (screen.cpp's inline screen headers)
  *
  * The declarations only name symbols: an unused one emits nothing (no undefined symbol, no data), and none of them
  * defines an object, so including this header moves nothing in .bss or .data. A TU that also emits one of these
@@ -22,8 +26,12 @@
 
 #define SLY2_VTBL(CLASS) vtbl_##CLASS
 #define SLY2_DECLARE_VTBL(LEN, CLASS) extern char SLY2_VTBL(CLASS)[] __asm__("_vt$" #LEN #CLASS)
-#define SLY2_SET_VPTR_AT(p, off, CLASS) (*(void **)((char *)(p) + (off)) = SLY2_VTBL(CLASS))
+#ifndef SLY2_STORE_VPTR_AT
+#define SLY2_STORE_VPTR_AT(p, off, vtbl) (*(void **)((char *)(p) + (off)) = (vtbl))
+#endif
+#define SLY2_SET_VPTR_AT(p, off, CLASS) SLY2_STORE_VPTR_AT(p, off, SLY2_VTBL(CLASS))
 #define SLY2_SET_VPTR(p, CLASS) SLY2_SET_VPTR_AT(p, 0xC, CLASS)
+#define SLY2_STORE_VPTR(p, vtbl) SLY2_STORE_VPTR_AT(p, 0xC, vtbl)
 
 SLY2_DECLARE_VTBL(4, ACT1);         /* 0x2CA820 */
 SLY2_DECLARE_VTBL(4, ACT2);         /* 0x2CA7E0 */

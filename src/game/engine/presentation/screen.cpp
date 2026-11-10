@@ -51,18 +51,16 @@ void *ConstructTitleScreen(void *pv);      /* title screen constructor */
 }
 struct SCRLIST
 {
-    char ab[0x10];
+    union { DL dl; char ab[0x10]; };   /* the list; 0x10 bytes on the EE */
     // Construct an empty screen list.
     SCRLIST() { InitScreenList(this); }
 };
-/* A screen whose base fields are set inline (pframe, psidebag, vtable). */
+/* A screen whose BASIC part is set inline (scriptFrame, scriptVariables, vtable). */
 template <int CB> struct SCRINL
 {
-    int x0, x4, x8;
-    void *pvt;
-    char ab[CB - 0x10];
-    // Inline screen header: zeroed fields and the given vtable.
-    SCRINL(void *pvtInit) { x0 = 0; x4 = 0; pvt = pvtInit; }
+    char ab[CB];
+    // Inline screen header: BASIC's counted pointers cleared and the given vtable.
+    SCRINL(void *pvtInit) { BASIC *b = (BASIC *)this; b->scriptFrame.m_p = 0; b->scriptVariables.m_p = 0; SLY2_STORE_VPTR(this, pvtInit); }
     // Destroy the screen object (~BASIC, in-charge flag 2).
     ~SCRINL() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
@@ -2901,19 +2899,17 @@ extern "C" { static inline void Release4(R4 *r)
     }
 } }
 
-typedef struct S { R2 *p0; R4 *p4; } S;
-
 // BASIC's destructor _$_5BASIC (sly2/basic.h ~BASIC; the original's implicit one, emitted linkonce): releases the side
 // bag, then the Splice frame, and frees the object when the in-charge flag's bit 0 is set. A C view, weak in
 // .gnu.linkonce.t._$_5BASIC (as bif.cpp's operator*), rather than a BASIC::~BASIC() definition: a user-written
 // destructor of the polymorphic BASIC stores the vptr on entry (g++ 2.95 omits that only in an implicit destructor's
 // empty body), and this body does not.
-extern "C" { void BASIC_dtor(S *p, int flags) __asm__("_$_5BASIC") __attribute__((weak, section(".gnu.linkonce.t._$_5BASIC"))); }
-extern "C" void BASIC_dtor(S *p, int flags)
+extern "C" { void BASIC_dtor(BASIC *p, int flags) __asm__("_$_5BASIC") __attribute__((weak, section(".gnu.linkonce.t._$_5BASIC"))); }
+extern "C" void BASIC_dtor(BASIC *p, int flags)
 {
-    Release4(p->p4);
+    Release4((R4 *)p->scriptVariables.m_p);   /* the side bag (R4: its slot record) */
     {
-        R2 *r = p->p0;
+        R2 *r = (R2 *)p->scriptFrame.m_p;
         if (r) {
             if (--r->cref == 0)
                 func_00257078(r, 3);
