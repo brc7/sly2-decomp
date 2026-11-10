@@ -119,6 +119,9 @@ side, redo that join.
   name finds the definition. The symbol is included when its signature part differs from ours. 20 of the upstream
   names are Ghidra `FUN_xxxxxxxx` labels, kept because they point at the SafeHouse/Sly 1 function.
 - **Not changed.** Every other conflict keeps our name (the maintainer's decision for this branch).
+- **Aliases are not endorsements.** An alias records upstream's name; nobody re-checked its meaning. A few look
+  misattributed: for example, 0x1D9820 (our `DrawUi`) is a member of the garbage collector upstream
+  (`UpdateRecyclable__3CGc`). Review those before adopting them under strategy B or C.
 - **One suspected wrong name.** Our `s1_GetThreadId` at 0x2348F0 is syscall 45, which is `ReleaseWaitThread`, as
   upstream has it.
 
