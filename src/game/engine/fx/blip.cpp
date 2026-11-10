@@ -72,12 +72,12 @@ struct BLIPGV
 {
     int basic0, basic4, basic8;
     VTE *pvt;               /* 0x0C */
-    int psoParent;          /* 0x10 */
-    int pad14;
+    void *psoParent;          /* 0x10 */
+    void *pad14;
     int oid;                /* 0x18 */
     void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
     float sBusy;            /* 0x38 */
-    int pad3C;
+    void *pad3C;
     int flags40;            /* 0x40 tagged word (pointer, or odd flags) */
     char pad44[0x50 - 0x44]; void *parentTransform; char pad54[0x68 - 0x54]; void *unknown68; char pad6C[0x7C - 0x6C]; void *unknown7C; char pad80[0x90 - 0x80]; void *unknown90; char pad94[0xA0 - 0x94]; void *unknownA0; void *unknownA4; char padA8[0xB8 - 0xA8]; void *unknownB8; char padBC[0xCC - 0xBC]; void *unknownCC; char padD0[0xE0 - 0xD0];
     EMITTER *plo;            /* 0xE0 subscribed object (CID 0x1D) */
@@ -86,7 +86,7 @@ struct BLIPGV
     float boundsRadius;     /* 0x100 */
     char pad104[0x108 - 0x104]; void *unknown108; char pad10C[0x110 - 0x10C];
     POLY poly;              /* 0x110 size over the normalized life (the EMITB's scale CLQ / lifetime) */
-    int pad11C;
+    void *pad11C;
     float maxSize;          /* 0x120 the largest |size| over a life (pads the bounds) */
     char pad124[0x130 - 0x124];
     char alphaCurve[0x10];       /* 0x130 alpha CLQ over the normalized life */
