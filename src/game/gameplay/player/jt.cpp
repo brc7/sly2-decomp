@@ -2402,66 +2402,18 @@ typedef char PHASE_Scalar_Offset[((unsigned)&((struct WORK *)0)->phase.scalar ==
 namespace M_UpdateJtPre {
 
 
-typedef int qword __attribute__((mode(TI)));
+/* qword: the header's (the hero's qwUnknown190 is one) */
 typedef union {
     qword q;
     float f[4];
 } U;
-struct STATE {
-    char pad[0x18];
-    float heading, amount;
-};
-struct MODEL {
-    char pad14[0x14];
-    void *table;
-    char pad18[4];
-    float base;
-    char pad20[0x20];
-    float scale;
-};
+/* the controller is the header POCTL (leftStickAngle, leftStickDeflection) */
+/* the playing animation is the header ASEGA (animation, time, speed) */
 struct BINDING {
     int key;
     AC *component;   /* the channel's curve */
 };
-struct P {
-    char padC[0xC];
-    void *vptr;
-    char pad10[0x150 - 0x10];
-    struct STATE *state;
-    char pad154[0x190 - 0x154];
-    qword velocity;
-    char pad1A0[8];
-    float heading;
-    char pad1AC[0x1F4 - 0x1AC];
-    float factor;
-    char pad1F8[0x1030 - 0x1F8];
-    struct MODEL *model;
-    char pad1034[0x10DC - 0x1034];
-    void *owner;
-    char pad10E0[0x1310 - 0x10E0];
-    void *animation;
-    int animationKind;
-    char pad1318[0x14D0 - 0x1318];
-    int axesAEnabled;
-    char pad14D4[0x18C8 - 0x14D4];
-    int mode;
-    char pad18CC[4];
-    int submode;
-    char pad18D4[0x1BC0 - 0x18D4];
-    int axesBEnabled;
-    char pad1BC4[0x1D1C - 0x1BC4];
-    void *table;
-    char pad1D20[0xC];
-    int enabled;
-    char pad1D30[0x2014 - 0x1D30];
-    float left;
-    char pad2018[8];
-    float middle;
-    char pad2024[8];
-    float right;
-    char pad2030[8];
-    void *blend;
-};
+/* the hero is the header JT */
 union PHASE {
     qword direction;
     U scalar;
@@ -2472,45 +2424,40 @@ extern float D_002BF3C4 __asm__("D_002BF3C4");
 extern float D_002BF3C8 __asm__("D_002BF3C8");
 extern float D_002BF3CC __asm__("D_002BF3CC");
 extern float D_002BF35C __asm__("D_002BF35C");
-float GetStepHeading(struct P *) __asm__("GetStepHeading");
+float GetStepHeading(JT *) __asm__("GetStepHeading");
 float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *, struct P *, unsigned int) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
-void UpdateJtModeInput(struct P *) __asm__("UpdateJtModeInput");
-void ChooseJtGroundState(struct P *) __asm__("ChooseJtGroundState");
-void UpdateJtActiveCane__FP2JT(struct P *) __asm__("UpdateJtActiveCane__FP2JT");
-struct BINDING *FindAsegChannel(void *, struct P *, void *, int) __asm__("FindAsegChannel");
-void UpdateJtActiveHang__FP2JT(struct P *) __asm__("UpdateJtActiveHang__FP2JT");
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *, JT *, unsigned int) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
+void UpdateJtModeInput(JT *) __asm__("UpdateJtModeInput");
+void ChooseJtGroundState(JT *) __asm__("ChooseJtGroundState");
+void UpdateJtActiveCane__FP2JT(JT *) __asm__("UpdateJtActiveCane__FP2JT");
+struct BINDING *FindAsegChannel(void *, JT *, void *, int) __asm__("FindAsegChannel");
+void UpdateJtActiveHang__FP2JT(JT *) __asm__("UpdateJtActiveHang__FP2JT");
 void UpdateJtActiveJump(void *) __asm__("UpdateJtActiveJump");
 void UpdateJtActiveHide(void *) __asm__("UpdateJtActiveHide");
 void FaceBentleyInteractTarget(void *) __asm__("FaceBentleyInteractTarget");
-void UpdateDirectionalAcceleration(struct P *, void *, int, float, float) __asm__("UpdateDirectionalAcceleration");
-void UpdateJtAttachCorrection(struct P *) __asm__("UpdateJtAttachCorrection");
+void UpdateDirectionalAcceleration(JT *, BLDIR *, ASEGBL *, float, float) __asm__("UpdateDirectionalAcceleration");
+void UpdateJtAttachCorrection(JT *) __asm__("UpdateJtAttachCorrection");
 void UpdateGaitBlend(void *, float) __asm__("UpdateGaitBlend");
-void FaceStepToward(struct P *, void *) __asm__("FaceStepToward");
+/* FaceStepToward: the file-scope declaration (STEP *, LO *) */
 qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
 qword ConvertVecBetweenLos(void *, void *, qword) __asm__("ConvertVecBetweenLos");
 int IsPowerupAcquired(int) __asm__("IsPowerupAcquired");
-void UpdateJtFaceTarget(struct P *) __asm__("UpdateJtFaceTarget");
-qword GetStepAsegaTranslation(struct P *, struct MODEL *, float) __asm__("GetStepAsegaTranslation");
-void SetAsegaSpeed__FP5ASEGAf(struct MODEL *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
-void SetStepTargetHeading(struct P *, float) __asm__("SetStepTargetHeading");
-void DrainStepplayerMp(struct P *, float) __asm__("DrainStepplayerMp");
-void SetJtState__FP2JT3JTS4JTBS(struct P *, int, int) __asm__("SetJtState__FP2JT3JTS4JTBS");
+void UpdateJtFaceTarget(JT *) __asm__("UpdateJtFaceTarget");
+qword GetStepAsegaTranslation(JT *, ASEGA *, float) __asm__("GetStepAsegaTranslation");
+void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
+void SetStepTargetHeading(JT *, float) __asm__("SetStepTargetHeading");
+void DrainStepplayerMp(JT *, float) __asm__("DrainStepplayerMp");
+void SetJtState__FP2JT3JTS4JTBS(JT *, int, int) __asm__("SetJtState__FP2JT3JTS4JTBS");
 float ClampAbs__Fff(float, float) __asm__("ClampAbs__Fff");
 void RecalculateAsegBlend(void *) __asm__("RecalculateAsegBlend");
 void UpdateJtActiveZap(void *) __asm__("UpdateJtActiveZap");
-void UpdateJtPlaces(struct P *) __asm__("UpdateJtPlaces");
+void UpdateJtPlaces(JT *) __asm__("UpdateJtPlaces");
 int IsAsegaRetracted(void *) __asm__("IsAsegaRetracted");
-void DropAsegaRef(void **) __asm__("DropAsegaRef");
-// Address p + offset.
-extern "C" { static inline void *At(struct P *p, int offset)
-{
-    return (char *)p + offset;
-} }
+void DropAsegaRef(ASEGA **) __asm__("DropAsegaRef");
 // Evaluate the binding's component (virtual slot 3) at the model's base and scale into *out.
-extern "C" { static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
+extern "C" { static inline void ReadBinding(struct BINDING *b, ASEGA *m, qword *out)
 {
-    b->component->Evaluate(m->base, m->scale, 0, out);
+    b->component->Evaluate(m->time, m->speed, 0, out);
 } }
 // Return a scaled by b.x in place.
 extern "C" { static inline qword ScaleIn(qword a, qword b)
@@ -2537,9 +2484,9 @@ extern "C" { static inline qword SecondNegative(const qword *input, U *out, floa
     return ScaleIn(a, out->q);
 } }
 // The model's step-animation translation negated (scaled by -1 broadcast through u).
-extern "C" { static inline qword NegativeModelNative(struct P *p, U *u)
+extern "C" { static inline qword NegativeModelNative(JT *p, U *u)
 {
-    qword v = GetStepAsegaTranslation(p, p->model, p->model->base), s;
+    qword v = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time), s;
     register qword bits __asm__("$4");
     __asm__("mfc1 %0,%1" : "=r"(bits) : "f"(-1.0f));
     __asm__("qmtc2.ni %1,%0" : "=j"(s) : "r"(bits));
@@ -2548,18 +2495,18 @@ extern "C" { static inline qword NegativeModelNative(struct P *p, U *u)
 } }
 
 // The negated step-animation translation, also loading the state pointer and a 0.0f for the caller.
-extern "C" { static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut, float *zeroOut)
+extern "C" { static inline qword NegativeWithState(JT *p, U *u, POCTL **stateOut, float *zeroOut)
 {
-    qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
+    qword input = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
     register qword v __asm__("vf3");
     register qword s __asm__("vf1");
     register qword result __asm__("vf2");
     register float zero __asm__("$f1");
     register qword bits __asm__("$4");
-    register struct STATE *state __asm__("$3");
+    register POCTL *state __asm__("$3");
     __asm__("qmtc2.ni %3,%0\n\tlw %1,%4\n\tmfc1 %2,%5"
             : "=j"(v), "=r"(state), "=&r"(bits)
-            : "r"(input), "m"(p->state), "f"(-1.0f));
+            : "r"(input), "m"(p->controller), "f"(-1.0f));
     __asm__("qmtc2.ni %2,%0\n\tmtc1 $zero,%1" : "=j"(s), "=f"(zero) : "r"(bits));
     u->q = s;
     *stateOut = state;
@@ -2574,21 +2521,21 @@ extern "C" { static inline void WriteVectorPair(qword value, qword *destination,
     __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(*destination), "=m"(*scalarOut) : "j"(value), "j"(scalar));
 } }
 // Step-animation translation setup: load the model and state pointers and the scale factor for the caller.
-extern "C" { static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, struct STATE **stateOut)
+extern "C" { static inline void PrepareAnimation(JT *p, U *u, ASEGA **modelOut, POCTL **stateOut)
 {
-    qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
+    qword input = GetStepAsegaTranslation(p, p->activeAnimation, p->activeAnimation->time);
     register qword v __asm__("vf3");
     register qword scalar __asm__("vf2");
     register qword result __asm__("vf1");
     register qword bits __asm__("$3");
-    register struct MODEL *model __asm__("$4");
-    register struct STATE *state __asm__("$3");
+    register ASEGA *model __asm__("$4");
+    register POCTL *state __asm__("$3");
     __asm__("qmtc2.ni %3,%0\n\tlw %1,%4\n\tmfc1 %2,%5"
             : "=j"(v), "=r"(model), "=&r"(bits)
-            : "r"(input), "m"(p->model), "f"(-1.0f));
+            : "r"(input), "m"(p->activeAnimation), "f"(-1.0f));
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
-    __asm__("vmulx.xyzw %0,%2,%3x\n\tlw %1,%4" : "=j"(result), "=r"(state) : "j"(v), "j"(scalar), "m"(p->state));
-    WriteVectorPair(result, &p->velocity, scalar, &u->q);
+    __asm__("vmulx.xyzw %0,%2,%3x\n\tlw %1,%4" : "=j"(result), "=r"(state) : "j"(v), "j"(scalar), "m"(p->controller));
+    WriteVectorPair(result, &p->qwUnknown190, scalar, &u->q);
     *modelOut = model;
     *stateOut = state;
 } }
@@ -2596,28 +2543,28 @@ extern "C" { static inline void PrepareAnimation(struct P *p, U *u, struct MODEL
 // Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
 // input.
 // Also known as: UpdateSlyInput (upstream readable / Sly 1 name; UpdateSlyInput__FP3SLY).
-extern "C" void UpdateJtPre(struct P *jt)
+extern "C" void UpdateJtPre(JT *jt)
 {
     union PHASE phase;
     U scalar;
     float initialHeading;
     initialHeading = GetStepHeading(jt);
-    (void)NormalizeAngle__Ff(jt->state->heading - initialHeading);
+    (void)NormalizeAngle__Ff(jt->controller->leftStickAngle - initialHeading);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&g_sw, jt, 0xFFFF);
     UpdateJtModeInput(jt);
     ChooseJtGroundState(jt);
     UpdateJtActiveCane__FP2JT(jt);
-    switch (jt->mode) {
+    switch (jt->state) {
     case 4:
     case 9: {
-        struct MODEL *m = jt->model;
+        ASEGA *m = jt->activeAnimation;
         struct BINDING *b;
-        jt->velocity = D_002A2DD0;
+        jt->qwUnknown190 = D_002A2DD0;
         if (m) {
-            b = FindAsegChannel(m->table, jt, (void *)1, 1);
+            b = FindAsegChannel(m->animation, jt, (void *)1, 1);
             if (b) {
                 ReadBinding(b, m, &phase.direction);
-                jt->velocity = FirstNegative(&phase.direction, &scalar, -1.0f);
+                jt->qwUnknown190 = FirstNegative(&phase.direction, &scalar, -1.0f);
             }
         }
         break;
@@ -2625,57 +2572,57 @@ extern "C" void UpdateJtPre(struct P *jt)
     case 3: UpdateJtActiveHang__FP2JT(jt); break;
     case 2: UpdateJtActiveJump(&AsStepplayer(jt)->jtair); break;
     case 7: UpdateJtActiveHide(&AsStepplayer(jt)->jtgrab); break;
-    case 6: FaceBentleyInteractTarget(At(jt, 0x1FF0)); break;
+    case 6: FaceBentleyInteractTarget(&jt->jtrec); break;
     case 10:
-        UpdateDirectionalAcceleration(jt, At(jt, 0x1AC0), jt->axesBEnabled, jt->state->heading, jt->state->amount);
+        UpdateDirectionalAcceleration(jt, jt->abldirJts10, jt->pasegblJts10, jt->controller->leftStickAngle, jt->controller->leftStickDeflection);
         break;
     case 11: UpdateJtAttachCorrection(jt); break;
     case 12:
-        UpdateGaitBlend(At(jt, 0x1C30), jt->state->amount);
-        SetStepTargetHeading(jt, jt->state->heading);
+        UpdateGaitBlend(&jt->gaitB, jt->controller->leftStickDeflection);
+        SetStepTargetHeading(jt, jt->controller->leftStickAngle);
         break;
     case 5:
-        switch (jt->submode) {
+        switch (jt->bodyState) {
         case 4:
-            if (jt->owner)
-                FaceStepToward(jt, jt->owner);
+            if (jt->interactTarget)
+                FaceStepToward(jt, jt->interactTarget);
             break;
         case 5:
-            UpdateDirectionalAcceleration(jt, At(jt, 0x13D0), jt->axesAEnabled, jt->state->heading, jt->state->amount);
+            UpdateDirectionalAcceleration(jt, jt->abldirJts5, jt->pasegblJts5, jt->controller->leftStickAngle, jt->controller->leftStickDeflection);
             break;
         case 8:
         case 9:
-            phase.direction = SetVectorCylind(jt->state->heading + 3.14159265f, jt->state->amount * D_002BF3C0, 0.0f);
-            jt->velocity = ConvertVecBetweenLos(0, jt, phase.direction);
+            phase.direction = SetVectorCylind(jt->controller->leftStickAngle + 3.14159265f, jt->controller->leftStickDeflection * D_002BF3C0, 0.0f);
+            jt->qwUnknown190 = ConvertVecBetweenLos(0, jt, phase.direction);
             break;
         }
         break;
     case 16:
         if (IsPowerupAcquired(0x1C))
             UpdateJtFaceTarget(jt);
-        else if (jt->enabled) {
-            struct BINDING *b = FindAsegChannel(jt->table, jt, (void *)1, 1);
+        else if (jt->unknown1D2C) {
+            struct BINDING *b = FindAsegChannel(jt->unknown1D1C, jt, (void *)1, 1);
             if (b) {
-                ReadBinding(b, jt->model, &phase.direction);
-                jt->velocity = SecondNegative(&phase.direction, &scalar, -1.0f);
+                ReadBinding(b, jt->activeAnimation, &phase.direction);
+                jt->qwUnknown190 = SecondNegative(&phase.direction, &scalar, -1.0f);
             }
         }
         break;
-    case 19: jt->velocity = NegativeModelNative(jt, &phase.scalar); break;
+    case 19: jt->qwUnknown190 = NegativeModelNative(jt, &phase.scalar); break;
     case 20: {
-        struct MODEL *model;
-        struct STATE *state;
+        ASEGA *model;
+        POCTL *state;
         PrepareAnimation(jt, &phase.scalar, &model, &state);
-        SetAsegaSpeed__FP5ASEGAf(model, state->amount);
-        SetStepTargetHeading(jt, jt->state->heading);
+        SetAsegaSpeed__FP5ASEGAf(model, state->leftStickDeflection);
+        SetStepTargetHeading(jt, jt->controller->leftStickAngle);
         break;
     }
     case 17: {
-        struct STATE *state;
+        POCTL *state;
         float zero;
-        jt->velocity = NegativeWithState(jt, &phase.scalar, &state, &zero);
-        if (zero < state->amount)
-            SetStepTargetHeading(jt, state->heading);
+        jt->qwUnknown190 = NegativeWithState(jt, &phase.scalar, &state, &zero);
+        if (zero < state->leftStickDeflection)
+            SetStepTargetHeading(jt, state->leftStickAngle);
         break;
     }
     case 24: {
@@ -2683,15 +2630,15 @@ extern "C" void UpdateJtPre(struct P *jt)
         register float weight __asm__("$f1");
         qword velocity;
         DrainStepplayerMp(jt, D_002BF3C4);
-        if (jt->submode == 12) {
-            float angle = NormalizeAngle__Ff(GetStepHeading(jt) - jt->heading);
+        if (jt->bodyState == 12) {
+            float angle = NormalizeAngle__Ff(GetStepHeading(jt) - jt->targetHeading);
             if (__builtin_fabsf(angle) < D_002BF3C8)
                 SetJtState__FP2JT3JTS4JTBS(jt, 24, 13);
         } else
-            SetStepTargetHeading(jt, jt->state->heading);
+            SetStepTargetHeading(jt, jt->controller->leftStickAngle);
         one = 1.0f;
         velocity = AsJt(jt)->GetAngularVelocity();
-        weight = D_002BF3CC * ClampAbs__Fff(QwordZ(velocity) / (jt->factor * D_002BF35C), one);
+        weight = D_002BF3CC * ClampAbs__Fff(QwordZ(velocity) / (jt->vSpin.x * D_002BF35C), one);
         {
             register float zero __asm__("$f2") = 0.0f;
             register float magnitude __asm__("$f3");
@@ -2700,11 +2647,11 @@ extern "C" void UpdateJtPre(struct P *jt)
                     : "=f"(magnitude), "=f"(left), "+f"(weight)
                     : "f"(zero));
             __asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3"
-                    : "=m"(jt->left), "+f"(one), "+f"(zero), "=m"(jt->right)
+                    : "=m"(jt->ablLean[0].weight), "+f"(one), "+f"(zero), "=m"(jt->ablLean[2].weight)
                     : "f"(left), "f"(magnitude), "f"(weight));
-            jt->middle = one;
+            jt->ablLean[1].weight = one;
         }
-        RecalculateAsegBlend(jt->blend);
+        RecalculateAsegBlend(jt->pasegblLean);
         break;
     }
     case 0:
@@ -2712,42 +2659,42 @@ extern "C" void UpdateJtPre(struct P *jt)
     }
     UpdateJtActiveZap(&AsStepplayer(jt)->jthurt);
     UpdateJtPlaces(jt);
-    if (jt->animation && IsAsegaRetracted(jt->animation)) {
-        DropAsegaRef(&jt->animation);
-        jt->animationKind = -1;
+    if (jt->pasegaGadgetOverlay && IsAsegaRetracted(jt->pasegaGadgetOverlay)) {
+        DropAsegaRef(&jt->pasegaGadgetOverlay);
+        jt->idGadgetOverlay = -1;
     }
 }
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char PHASE_Size[(sizeof(union PHASE)==16)?1:-1];
-typedef char STATE_Size[(sizeof(struct STATE)==32)?1:-1];
+typedef char POCTL_Size[(sizeof(POCTL)==0xE0)?1:-1];
 typedef char BINDING_Size[(sizeof(struct BINDING)==8)?1:-1];
-typedef char STATE_heading_Offset[((unsigned)&((struct STATE*)0)->heading==24)?1:-1];
-typedef char STATE_amount_Offset[((unsigned)&((struct STATE*)0)->amount==28)?1:-1];
-typedef char MODEL_table_Offset[((unsigned)&((struct MODEL*)0)->table==20)?1:-1];
-typedef char MODEL_base_Offset[((unsigned)&((struct MODEL*)0)->base==28)?1:-1];
-typedef char MODEL_scale_Offset[((unsigned)&((struct MODEL*)0)->scale==64)?1:-1];
+typedef char POCTL_heading_Offset[((unsigned)&((POCTL*)0)->leftStickAngle==24)?1:-1];
+typedef char POCTL_amount_Offset[((unsigned)&((POCTL*)0)->leftStickDeflection==28)?1:-1];
+typedef char ASEGA_table_Offset[((unsigned)&((ASEGA*)0)->animation==20)?1:-1];
+typedef char ASEGA_base_Offset[((unsigned)&((ASEGA*)0)->time==28)?1:-1];
+typedef char ASEGA_scale_Offset[((unsigned)&((ASEGA*)0)->speed==64)?1:-1];
 typedef char BINDING_component_Offset[((unsigned)&((struct BINDING*)0)->component==4)?1:-1];
-typedef char P_vptr_Offset[((unsigned)&((struct P*)0)->vptr==12)?1:-1];
-typedef char P_state_Offset[((unsigned)&((struct P*)0)->state==336)?1:-1];
-typedef char P_velocity_Offset[((unsigned)&((struct P*)0)->velocity==400)?1:-1];
-typedef char P_heading_Offset[((unsigned)&((struct P*)0)->heading==424)?1:-1];
-typedef char P_factor_Offset[((unsigned)&((struct P*)0)->factor==500)?1:-1];
-typedef char P_model_Offset[((unsigned)&((struct P*)0)->model==4144)?1:-1];
-typedef char P_owner_Offset[((unsigned)&((struct P*)0)->owner==4316)?1:-1];
-typedef char P_animation_Offset[((unsigned)&((struct P*)0)->animation==4880)?1:-1];
-typedef char P_animationKind_Offset[((unsigned)&((struct P*)0)->animationKind==4884)?1:-1];
-typedef char P_axesAEnabled_Offset[((unsigned)&((struct P*)0)->axesAEnabled==5328)?1:-1];
-typedef char P_mode_Offset[((unsigned)&((struct P*)0)->mode==6344)?1:-1];
-typedef char P_submode_Offset[((unsigned)&((struct P*)0)->submode==6352)?1:-1];
-typedef char P_axesBEnabled_Offset[((unsigned)&((struct P*)0)->axesBEnabled==7104)?1:-1];
-typedef char P_table_Offset[((unsigned)&((struct P*)0)->table==7452)?1:-1];
-typedef char P_enabled_Offset[((unsigned)&((struct P*)0)->enabled==7468)?1:-1];
-typedef char P_left_Offset[((unsigned)&((struct P*)0)->left==8212)?1:-1];
-typedef char P_middle_Offset[((unsigned)&((struct P*)0)->middle==8224)?1:-1];
-typedef char P_right_Offset[((unsigned)&((struct P*)0)->right==8236)?1:-1];
-typedef char P_blend_Offset[((unsigned)&((struct P*)0)->blend==8248)?1:-1];
+/* P_vptr: the vptr (+0xC, BASIC's) */
+typedef char JT_controller_Offset[((unsigned)&((JT*)0)->controller==336)?1:-1];
+typedef char JT_qwUnknown190_Offset[((unsigned)&((JT*)0)->qwUnknown190==400)?1:-1];
+typedef char JT_targetHeading_Offset[((unsigned)&((JT*)0)->targetHeading==424)?1:-1];
+typedef char JT_vSpin_Offset[((unsigned)&((JT*)0)->vSpin==500)?1:-1];
+typedef char JT_activeAnimation_Offset[((unsigned)&((JT*)0)->activeAnimation==4144)?1:-1];
+typedef char JT_interactTarget_Offset[((unsigned)&((JT*)0)->interactTarget==4316)?1:-1];
+typedef char JT_pasegaGadgetOverlay_Offset[((unsigned)&((JT*)0)->pasegaGadgetOverlay==4880)?1:-1];
+typedef char JT_idGadgetOverlay_Offset[((unsigned)&((JT*)0)->idGadgetOverlay==4884)?1:-1];
+typedef char JT_pasegblJts5_Offset[((unsigned)&((JT*)0)->pasegblJts5==5328)?1:-1];
+typedef char JT_state_Offset[((unsigned)&((JT*)0)->state==6344)?1:-1];
+typedef char JT_bodyState_Offset[((unsigned)&((JT*)0)->bodyState==6352)?1:-1];
+typedef char JT_pasegblJts10_Offset[((unsigned)&((JT*)0)->pasegblJts10==7104)?1:-1];
+typedef char JT_unknown1D1C_Offset[((unsigned)&((JT*)0)->unknown1D1C==7452)?1:-1];
+typedef char JT_unknown1D2C_Offset[((unsigned)&((JT*)0)->unknown1D2C==7468)?1:-1];
+typedef char JT_ablLean_Offset[((unsigned)&((JT*)0)->ablLean==8212)?1:-1];
+/* P_middle: inside ablLean (the weights of entries 1 and 2) */
+/* P_right: inside ablLean (the weights of entries 1 and 2) */
+typedef char JT_pasegblLean_Offset[((unsigned)&((JT*)0)->pasegblLean==8248)?1:-1];
 
 } // namespace M_UpdateJtPre
 
