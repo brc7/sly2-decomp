@@ -42,7 +42,7 @@ Reader primitives (`include/bis.h`, `src/game/core/binstream/bis.cpp`):
 | U16Read / S16Read | `U16Read` / `S16Read` | 2 bytes |
 | U32Read / S32Read / F32Read | `U32Read` / `S32Read` / `F32Read` | 4 bytes |
 | Read(cb) / Skip(cb) | `Read` / `Skip` | cb bytes. A **negative cb reads nothing** (CbRead's loop doesn't run) |
-| ReadFileRecord | inline Read(0x40) (`CBinaryInputStream_ReadCb64`) | 64 bytes |
+| file record | inline Read(0x40) (`CBinaryInputStream_ReadCb64`) | 64 bytes |
 | ReadVector4 | `ReadVector4` | 16 bytes |
 | string16 | `CBinaryInputStream_ReadStringSw` | `U16 cch; cch bytes`. No NUL on disc. cch=0 means a NULL pointer |
 | skip string16 | `CBinaryInputStream_SkipStringSw` | `U16 cch; skip cch` |
