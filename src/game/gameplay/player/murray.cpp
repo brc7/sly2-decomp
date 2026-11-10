@@ -1537,16 +1537,15 @@ extern "C" void StartMurrayLiftGuard(MURRAY *murray, LO *pspot)
 } // namespace M_StartMurrayLiftGuard
 
 namespace M_FTryMurrayTakedown {
-/* The interaction target as read here: a guard (STEPGUARD, AI family): its behaviour stack and +0xFEC. */
-struct O { char pad[0x26C]; char x26C[0xFEC - 0x26C]; void *xFEC; };
-struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
+/* The interaction target is a guard (STEPGUARD): its behaviour stack and knockdown helper; the behaviour found is a
+   BHVJUGGLED. */
 extern float D_002C09AC __asm__("D_002C09AC"), D_002C09B8 __asm__("D_002C09B8");
 extern char D_002C09B0[] __asm__("D_002C09B0"), D_002C09C0[] __asm__("D_002C09C0");
 int StepguardHasSgf(LO *po, int n) __asm__("StepguardHasSgf");
-struct S *FindBhvInBhvstk(void *p, int n) __asm__("FindBhvInBhvstk");
+BHVJUGGLED *FindBhvInBhvstk(void *p, int n) __asm__("FindBhvInBhvstk");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 int IsWithinLimits__FP2LMf(void *p, float g) __asm__("IsWithinLimits__FP2LMf");
-void SetBhvjuggledState(struct S *p, int n) __asm__("SetBhvjuggledState");
+void SetBhvjuggledState(BHVJUGGLED *p, int n) __asm__("SetBhvjuggledState");
 void StartMurrayLiftGuard(MURRAY *p, void *q) __asm__("StartMurrayLiftGuard");
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 void SetMurrayAttack(MURRAY *p, int n) __asm__("SetMurrayAttack");
@@ -1569,16 +1568,16 @@ extern "C" { static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0,
 extern "C" int TryMurrayTakedown(MURRAY *murray)
 {
     union { qword q; float f[4]; } u;
-    struct S *ps;
+    BHVJUGGLED *ps;
     if (!murray->interactTarget)
         return 0;
     if (!StepguardHasSgf(murray->interactTarget, 0x17) ||
         !murray->controller->GetButtonsPressedWithin(BUTTON_ACTION | BUTTON_ATTACK, 0.15f))
         goto ret0;
-    ps = FindBhvInBhvstk(((O *)murray->interactTarget)->x26C, 0xB1);
-    if (ps->x50 >= 3)
+    ps = FindBhvInBhvstk(&((STEPGUARD *)murray->interactTarget)->behaviors, 0xB1);
+    if (ps->juggleState >= 3)
         return 0;
-    if (ps->x5C != murray) {
+    if (ps->holder != murray) {
     ret0:
         return 0;
     }
@@ -1588,11 +1587,11 @@ extern "C" int TryMurrayTakedown(MURRAY *murray)
     qword d = GetLoWorldPos(murray);
     __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
     u.q = d;
-    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && ((O *)murray->interactTarget)->xFEC)
+    if (LenXY(d) < D_002C09AC && IsWithinLimits__FP2LMf(D_002C09B0, QwordZ(d)) && ((STEPGUARD *)murray->interactTarget)->knockdownHelper)
         f = murray->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.15f) != 0;
     if (f) {
         SetBhvjuggledState(ps, 2);
-        StartMurrayLiftGuard(murray, ((O *)murray->interactTarget)->xFEC);
+        StartMurrayLiftGuard(murray, ((STEPGUARD *)murray->interactTarget)->knockdownHelper);
         return 1;
     }
     d = u.q;
