@@ -1924,8 +1924,8 @@ struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() cons
 struct VU_FLOAT { qword q; VU_FLOAT() {} VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); } };
 // A float into a VU register.
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "r"(g)); return v; }
-struct P { char pad0[0xC]; void *vptr; char pad10[0x550]; int remaining; };
-struct EVENT { P *sender; char pad4[8]; int kind, change; };
+/* the tank is the header ROBOTTANK (its health count cHealth at +0x560) */
+struct EVENT { LO *sender; char pad4[8]; int kind, change; };
 extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ");
 extern float D_002C21D0[2] __asm__("D_002C21D0");
 extern float D_002C21D8[2] __asm__("D_002C21D8");
@@ -1935,13 +1935,13 @@ extern float D_002C21F0[2] __asm__("D_002C21F0");
 extern float D_002C21F8[2] __asm__("D_002C21F8");
 extern float D_002C2200[2] __asm__("D_002C2200");
 
-int CanSoTakeDamage(P *, EVENT *) __asm__("CanSoTakeDamage");
-void UpdateRobottankHealthMeter(P *) __asm__("UpdateRobottankHealthMeter");
-void SetRobottankState(P *, int) __asm__("SetRobottankState");
+int CanSoTakeDamage(SO *, EVENT *) __asm__("CanSoTakeDamage");
+/* UpdateRobottankHealthMeter, SetRobottankState: the file-scope declarations (they take the ROBOTTANK) */
+
 float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
-qword GetLoWorldPos(P *) __asm__("GetLoWorldPos");
-int TakeRobottankDamage(P *, EVENT *) __asm__("TakeRobottankDamage");
+qword GetLoWorldPos(LO *) __asm__("GetLoWorldPos");
+int TakeRobottankDamage(ROBOTTANK *, EVENT *) __asm__("TakeRobottankDamage");
 
 // Helpers Zero, VecZero, Add, Sub, Sqrt (small asm wrappers/accessors shaped for the match).
 static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = VuZero<VV>(); return v; }
@@ -1986,16 +1986,16 @@ static inline float Random(const float *range) { return RandomFloatInRange__Fff(
 
 // CID 77 vtable slot 75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or
 // sender-relative knock-back impulse. (inferred) Also known as: AcceptVehicleContact (upstream readable / Sly 1 name; AcceptVehicleContact__FP3ALOP5CTMSG).
-int TakeRobottankDamage(P *tank, EVENT *event)
+int TakeRobottankDamage(ROBOTTANK *tank, EVENT *event)
 {
     if (!CanSoTakeDamage(tank, event))
         return 0;
-    int remaining = tank->remaining + event->change;
+    int remaining = tank->cHealth + event->change;
     if (remaining < 0)
         remaining = 0;
-    tank->remaining = remaining;
+    tank->cHealth = remaining;
     UpdateRobottankHealthMeter(tank);
-    if (!tank->remaining)
+    if (!tank->cHealth)
         SetRobottankState(tank, 3);
     VU_VECTOR4 linear, angular;
     linear = VecZero();
