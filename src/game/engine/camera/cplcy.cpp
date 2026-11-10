@@ -12,6 +12,7 @@
 #include "sly2/cm.h"
 #include "sly2/act.h"
 #include "sly2/lo.h"
+#include "sly2/po.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
 #include "sly2/cref.h"
@@ -1051,7 +1052,8 @@ extern "C" CPTURRET *CPTURRET_ctor(CPTURRET *pcpturret)
 }
 
 namespace M_ActivateCpturret {
-struct B { char pad[0x1BC]; float turretFov; };
+/* The turret (classes.h TURRET, a PO; fields as turret.cpp's TURRETV): +0x1BC is what TURRETV calls strength. */
+struct B : PO { void *target; int aim, follow; float pitch, yaw, vpitch, vyaw; LM yawRange, pitchRange, range; float blend, velocity; float turretFov; };
 void ActivateCplcy(void *a, struct B *b) __asm__("ActivateCplcy");
 } // namespace M_ActivateCpturret
 // CPLCY::Activate; near clip 49; targetFieldOfView = turret +0x1BC. (inferred)
