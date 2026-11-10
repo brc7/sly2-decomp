@@ -4228,18 +4228,15 @@ extern "C" void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
 
 // 0x17AC90 UpdateBhvjuggled
 namespace M_UpdateBhvjuggled {
-struct C; struct B; struct Y; struct X; struct OUT;
+struct Y; struct X;
 // Update the movement-state controller.
 extern float D_002BE6C8 __asm__("D_002BE6C8"), D_002BE6CC __asm__("D_002BE6CC");
-struct C { char pad[0x1C]; float endTime; };
-struct B { char pad[0x90]; struct C *currentAct; };
 struct Y { char pad[0x60]; void *frame; };
 struct X { char pad[0x19A4]; struct Y *unknown19A4; };
-struct OUT { char pad[0x30]; qword v; };
 void UpdateBhvanim(BHVJUGGLED *p) __asm__("UpdateBhvanim");
 void UpdateBhvjuggledHoldAct(BHVJUGGLED *p) __asm__("UpdateBhvjuggledHoldAct");
 qword GetLoWorldPos(void *a) __asm__("GetLoWorldPos");
-void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g) __asm__("LoadIdentityMatrix4");
+void LoadIdentityMatrix4(void *a, void *b, MATRIX4Q *pm, MATRIX4Q *other, float g) __asm__("LoadIdentityMatrix4");
 // Returns the frame object of the actor's +0x19A4 record.
 extern "C" { static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;} }
 // VU0 helper: z component of a vector.
@@ -4258,7 +4255,7 @@ extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
         case 1:
             if (behavior->juggleState == 1 && behavior->owner->floorContact) {
                 SetBhvjuggledState(behavior, 3);
-            } else if (((struct B *)behavior->owner->positionXf)->currentAct != ((struct C *)behavior->holdAct) || ((struct B *)behavior->owner->positionXf)->currentAct->endTime < g_clock.time) {
+            } else if (behavior->owner->positionXf->firstActuator != (ACT *)behavior->holdAct || ((ACT8 *)behavior->owner->positionXf->firstActuator)->arrivalTime < g_clock.time) {
                 SetBhvjuggledState(behavior, 2);
             } else if (QwordZ(v) < 0.0f && behavior->juggleState == 0) {
                 SetBhvjuggledState(behavior, 1);
@@ -4273,7 +4270,7 @@ extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
             break;
         case 4:
         case 5: {
-            struct OUT out;
+            MATRIX4Q out;
             QWROW a, b, t, vel, ud;
             qword tq, c;
             float dt;
@@ -4288,8 +4285,8 @@ extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
                 /* Preserve velocity and prepare the prediction inputs. */
                 __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(((struct X *)behavior->holder)));
             }
-            LoadIdentityMatrix4(Frame(frameLink), nullSource, &out, (struct OUT *)nullOutput, dt);
-            t.q = out.v;
+            LoadIdentityMatrix4(Frame(frameLink), nullSource, &out, (MATRIX4Q *)nullOutput, dt);
+            t.q = out.r[3].q;
             t.f[2] += D_002BE6C8;
             tq = t.q;
             c = GetLoWorldPos(behavior->owner);
@@ -4317,18 +4314,12 @@ extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_U[(sizeof(QWROW)==16)?1:-1];
-typedef char layout_C[(sizeof(struct C)==0x20)?1:-1];
-typedef char layout_B[(sizeof(struct B)==0x94)?1:-1];
 typedef char layout_X[(sizeof(struct X)==0x19A8)?1:-1];
 typedef char layout_Y[(sizeof(struct Y)==0x64)?1:-1];
-typedef char layout_OUT[(sizeof(struct OUT)==0x40)?1:-1];
 typedef char layout_U_q[((unsigned)&((QWROW*)0)->q==0)?1:-1];
 typedef char layout_U_f[((unsigned)&((QWROW*)0)->f==0)?1:-1];
-typedef char layout_C_gain[((unsigned)&((struct C*)0)->endTime==0x1C)?1:-1];
-typedef char layout_B_control[((unsigned)&((struct B*)0)->currentAct==0x90)?1:-1];
 typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
 typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
-typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 } // namespace M_UpdateBhvjuggled
 
 // 0x17AF30 HandleBhvjuggledMessage
