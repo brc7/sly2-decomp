@@ -1500,7 +1500,7 @@ extern "C" void UpdateHackwall(HACKWALL *wall)
     int i;
     struct V v;
     UpdateSo(wall);
-    if (!wall->fActive) return;
+    if (!wall->ploTarget) return;
     for (i = 0; i < wall->cseg; i++) {
         HACKWALLSEG *pseg = &wall->aseg[i];
         SHAPE *pshape = pseg->pshape;
