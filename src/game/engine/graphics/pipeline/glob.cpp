@@ -1771,24 +1771,10 @@ struct BINDING {
     LINKS *sets;
     int *indices;
 };
-struct FACE {
-    int count, pad4;
-    uint flags;
-    char padC[8];
-    int *indices;
-    char pad18[12];
-    int first, second, pad2C, kind;
-    char pad34[12];
-};
-typedef char FaceSize[sizeof(FACE)==64?1:-1];
+typedef BATCH FACE;   /* the vertex batches (BATCH above; LoadGlobsetFromBrx's apbatch) */
 typedef char LinkSize[sizeof(LINK)==6?1:-1];
 typedef char LinkSetSize[sizeof(LINKS)==8?1:-1];
 typedef char BindingSize[sizeof(BINDING)==12?1:-1];
-typedef char FACE_flags_Offset[FIELD_OFFSET(FACE,flags)==8?1:-1];
-typedef char FACE_indices_Offset[FIELD_OFFSET(FACE,indices)==20?1:-1];
-typedef char FACE_first_Offset[FIELD_OFFSET(FACE,first)==36?1:-1];
-typedef char FACE_second_Offset[FIELD_OFFSET(FACE,second)==40?1:-1];
-typedef char FACE_kind_Offset[FIELD_OFFSET(FACE,kind)==48?1:-1];
 typedef char LINKS_links_Offset[FIELD_OFFSET(LINKS,links)==4?1:-1];
 typedef char BINDING_sets_Offset[FIELD_OFFSET(BINDING,sets)==4?1:-1];
 typedef char BINDING_indices_Offset[FIELD_OFFSET(BINDING,indices)==8?1:-1];
@@ -1864,13 +1850,13 @@ extern "C" void LoadSubglobInstanceFromBrx(GLOBSET *p, const SUBGLOB *sourceD, c
                 FACE *set = faces[g];
                 for (int i = 0; i < count; i++) {
                     FACE *face = &set[i];
-                    if (face->flags & 0x20) {
+                    if (face->grf & 0x20) {
                         uint base = (uint)entry->pbChain;   /* int arithmetic: a char * sum swaps the addu operands */
-                        unsigned short *first = (unsigned short *)((uint)face->first + base);
-                        unsigned short *second = (unsigned short *)((uint)face->second + base);
-                        unsigned char *kind = (unsigned char *)((uint)face->kind + base);
-                        for (int j = 0; j < face->count; j++) {
-                            int index = face->indices[j];
+                        unsigned short *first = (unsigned short *)((uint)face->pbColorA + base);
+                        unsigned short *second = (unsigned short *)((uint)face->pbColorB + base);
+                        unsigned char *kind = (unsigned char *)((uint)face->pbAlphaUnpack + base);
+                        for (int j = 0; j < face->cvtx; j++) {
+                            int index = face->aivtx[j];
                             LINKS *links = &binding->sets[binding->indices[g]];
                             first[j] = links->links[index].first;
                             second[j] = links->links[index].second;
