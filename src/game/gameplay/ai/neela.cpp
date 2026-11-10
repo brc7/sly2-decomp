@@ -39,9 +39,7 @@ enum {
 #include "sly2/classes.h"
 union U{float f[4];qword q;};   /* floats first, so a U global can be initialized */
 struct M3{qword rows[3];};
-struct SPACE;
-/* NEELA::propPart, the part turned toward the target (a joint: position, its space; type not identified). */
-struct NODE{char pad[0x30];qword position;char pad40[0x60];SPACE*space;};
+/* NEELA::propPart, the part turned toward the target, is an XF (its local position, row 3, and its parent). */
 /* NEELA::aimAct, the act driving the part (an ACT: its angle goal at +0x20). */
 struct MOTION{char pad[0x20];qword angles;};
 struct L { char pad[0x30]; qword unknown30; };
@@ -53,7 +51,7 @@ void InitStepguard(NEELA *p);
 void PostStepguardLoad(NEELA *p);
 void BindLoOidTable(NEELA *p, int n, void *pv);
 float *FindAsegLabel(void *p, int n);
-void PredictAsegTransform(void *p, NEELA *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
+void PredictAsegTransform(void *p, NEELA *ps, void *p1, XF *pspace, L *pl, int m, float a, float b);
 void SetSoMass(NEELA *p, float g);
 void ResetStepguardToHome(NEELA *p);
 int GetBasicCid(void *pv);
@@ -64,7 +62,7 @@ qword ConvertPosBetweenLos(NEELA*,void*,qword);
 int IsPointInVol(VOL*,qword);
 void SetNeelaState(NEELA*,int);
 int IsAsegaRetracted(ASEGA*);
-qword TransformXfPos(SPACE*,SPACE*,qword);
+qword TransformXfPos(XF*,XF*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword DecomposeRotationMatrixToEuler(M3*);
 int FilterCid98(void*,ROW*);
@@ -74,7 +72,7 @@ void ReleaseAct(struct ACT **p);
 BHV *FindStepBehavior(NEELA *p, int n);
 void ScaleStepSpinSpeed(NEELA *p, float f);
 void ApplyAsegCore(void *a, NEELA *p, int n, ASEGA **ppo, float f1, float f2);
-struct ACT *NewPositionAct(NEELA *p, NODE *a, int b, int c, int d, qword q);
+struct ACT *NewPositionAct(NEELA *p, XF *a, int b, int c, int d, qword q);
 void InitBhv(BHV174 *p);
 void StartBhv(BHV174 *p);
 void CloseBhv(BHV174 *p);
@@ -133,9 +131,9 @@ extern "C" void PostNeelaLoad(NEELA *neela)
     PostStepguardLoad(neela);
     BindLoOidTable(neela, 3, D_002C0A50);
     pg = FindAsegLabel(neela->propAnimation, 0x5DB);
-    PredictAsegTransform(neela->propAnimation, neela, neela->unknown1030, ((NODE *)neela->propPart)->space, &l, 0, *pg, 1.0f);
+    PredictAsegTransform(neela->propAnimation, neela, neela->unknown1030, ((XF *)neela->propPart)->parent, &l, 0, *pg, 1.0f);
     a = l.unknown30;
-    b = ((NODE *)neela->propPart)->position;
+    b = ((XF *)neela->propPart)->localMatq.r[3].q;
     d = VuSub(a, b);
     neela->giveUpBinding.kind = 0;
     neela->propAxis = d;
@@ -173,8 +171,6 @@ static inline float Square(qword a)
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char ROW_Size[sizeof(ROW)==8?1:-1];
-typedef char NODE_position_Offset[FIELD_OFFSET(NODE,position)==48?1:-1];
-typedef char NODE_space_Offset[FIELD_OFFSET(NODE,space)==160?1:-1];
 typedef char MOTION_angles_Offset[FIELD_OFFSET(MOTION,angles)==32?1:-1];
 typedef char ROW_object_Offset[FIELD_OFFSET(ROW,object)==4?1:-1];
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -238,10 +234,10 @@ extern "C" void UpdateNeela(NEELA *neela)
             SetNeelaState(neela, 0);
             break;
         }
-        NODE *node = (NODE *)neela->propPart;
+        XF *node = (XF *)neela->propPart;
         qword position = GetLoWorldPos(neela->target);
-        qword local = TransformXfPos(0, node->space, position);
-        qword direction = VuSub(local, ((NODE *)neela->propPart)->position);
+        qword local = TransformXfPos(0, node->parent, position);
+        qword direction = VuSub(local, ((XF *)neela->propPart)->localMatq.r[3].q);
         M3 matrix;
         BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix, neela->propAxis, direction);
         MOTION *motion = (MOTION *)neela->aimAct;
@@ -274,7 +270,7 @@ extern "C" void SetNeelaState(NEELA *neela, int st)
     if (st != 1) return;
     ApplyAsegCore(neela->propAnimation, neela, 1, &neela->propAsega, 0.0f, 1.0f);
     ((BASIC *)neela->propAsega)->AddRef();
-    neela->aimAct = NewPositionAct(neela, (NODE *)neela->propPart, 5, 8, 3, D_002A2DD0);
+    neela->aimAct = NewPositionAct(neela, (XF *)neela->propPart, 5, 8, 3, D_002A2DD0);
     if (StepguardHasSgf(neela, SGF_IDLE)) {
         ((BHVIDLE *)FindStepBehavior(neela, CID_BHVIDLE))->lookAt = neela->target;
         ScaleStepSpinSpeed(neela, 4.0f);
