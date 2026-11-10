@@ -82,7 +82,7 @@ void STEP::Init()
     using namespace M_InitStep;
     InitPo(this);
     oidPhys = -1;
-    unknown260 = 1.0f;
+    gravityRatio = 1.0f;
     unknown200 = 1.0f;
     ScaleStepSpinSpeed(this, 1.0f);
     SetStepTargetHeading(this, 0.0f);
@@ -1055,7 +1055,7 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
     float r = 0.1f;
     qword qwScaled;
     r = rGravity > r ? rGravity : r;
-    SetSoMass(step, step->physics->m * step->unknown260 / r);
+    SetSoMass(step, step->physics->m * step->gravityRatio / r);
     {
         struct VU_FLOAT vuR;
         qword qwGrav = *(qword *)&step->physics->gravity;
@@ -1065,11 +1065,11 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
     {
         struct VU_FLOAT vuOld;
         qword qwResult;
-        __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&step->unknown260));
+        __asm__("qmtc2 %1, %0" : "=j"(vuOld.qw) : "rV"(*(int *)&step->gravityRatio));
         __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qwResult) : "j"(qwScaled), "j"(vuOld.qw));
         *(qword *)&step->physics->gravity = qwResult;
     }
-    step->unknown260 = r;
+    step->gravityRatio = r;
 }
 } // namespace M_func_00204DA8
 

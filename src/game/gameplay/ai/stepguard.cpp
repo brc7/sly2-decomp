@@ -232,7 +232,7 @@ void STEPGUARD::Init()
     guard->koZapMask = 0xF800;
     guard->pulseStartTime = -10.0f;
     guard->unknown4A0 = 1;
-    guard->unknown260 = 1.5f;
+    guard->gravityRatio = 1.5f;
     guard->unknownBits148A = 2;
     guard->unknown3F0 = -200;
     guard->coinCountOverride = -1;
@@ -301,7 +301,7 @@ void STEPGUARD::PostLoad()
     void *x;
     STEP::PostLoad();
     BindLoOidTable(guard, 1, D_002C3CF8);
-    SetStepGravityRatio(guard, guard->unknown260);
+    SetStepGravityRatio(guard, guard->gravityRatio);
     SetXfRole(guard, guard->positionXf, 2);
     SetXfRole(guard, guard->rotationXf, 2);
     ResolveStepguardAnimBindings(guard);

@@ -97,7 +97,7 @@ struct STEP : public PO
       SOPART *psopartBody;   /* +0x258 the body part: its points follow the phys part (step.cpp SetStepPhys/UpdateStepPhys); its
                                 world mesh vertices are the hero's outline (carmelita UpdateBhvRouteChase) */
       SOPART *psopartPhys;   /* +0x25C the current phys part (step.cpp SetStepPhys) */
-      float unknown260;   /* +0x260 the gravity ratio (SetStepGravityRatio stores it and rescales mass and gravity by its change;
+      float gravityRatio; /* +0x260 the gravity ratio (SetStepGravityRatio stores it and rescales mass and gravity by its change;
                              STEP::Init: 1) */
       int oidPhys;   /* +0x264 oid of the mesh part the phys part is built from (-1 none; LoadJtFromBrx: 0xC7; PostStepLoad) */
       SOPART *ppartPhysMesh;   /* +0x268 that mesh part (PostStepLoad: BuildStepPhysPart from it, then hidden) */

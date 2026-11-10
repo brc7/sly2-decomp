@@ -222,7 +222,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
     }
     if (kind == 9)
     {
-        air->rGravitySaved = air->player->unknown260;
+        air->rGravitySaved = air->player->gravityRatio;
         SetStepGravityRatio(air->player, D_002BF750);
     }
     vel = JtPlanLaunchVz(air, kind);
