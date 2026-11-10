@@ -333,53 +333,46 @@ extern "C" void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
-struct ITEM { int oid; SO *plo; int n8; XF *pbone; MATRIX4 mat; };
-struct GRP { int a; XF *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
-struct HDR { signed char c0; signed char citem; char pad[0x12]; };
-struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
-struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int relightStamp; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (numPieces, subMeshes, pieces, relightStamp, pwrbgFirst) */
-
-
 extern SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");   /* the found object is an SO here */
 extern void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
 extern void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
 extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern void AddWrWarpGroup(SO *plo, X *px) __asm__("AddWrWarpGroup");
+extern void AddWrWarpGroup(SO *plo, WRBG *pwrbg) __asm__("AddWrWarpGroup");
 // Resolves globset bone references after load: finds each referenced SO by oid, its bone, and computes the relative
 // bind matrix. (inferred)
-extern "C" void BindGlobset(S *p)
+extern "C" void BindGlobset(GLOBSET *p)
 {
     if (p->relightStamp != -1)
         p->relightStamp = g_sw.relightStamp;
-    for (int i = 0; i < p->cgrp; i++) {
-        HDR *phdr = &p->ahdr[i];
-        GRP *pgrp = &p->agrp[i];
-        for (int j = 0; j < phdr->citem; j++) {
-            ITEM *pitem = &pgrp->aitem[j];
-            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, pitem->oid, p->pvOwner);
+    for (int i = 0; i < p->numPieces; i++) {
+        SUBGLOB *phdr = &p->subMeshes[i];
+        GLOB *pgrp = &p->pieces[i];
+        for (int j = 0; j < phdr->cbnd; j++) {
+            BND *pitem = &pgrp->abnd[j];
+            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, pitem->oid, p->owner);
             if (pitem->plo)
-                pitem->pbone = pitem->plo->GetXfFromIndex(pitem->n8);
-            if (pitem->pbone) {
+                pitem->pxf = ((SO *)pitem->plo)->GetXfFromIndex(pitem->ixf);
+            if (pitem->pxf) {
                 MATRIX4 mat;
-                if (pgrp->pbone) {
+                if (pgrp->transform) {
                     MATRIX4 matT;
-                    InvertMatrix4Rigid(&matT, &pitem->pbone->worldMatrix);
-                    __ml__FRC7MATRIX4T0(&mat, &matT, &pgrp->pbone->worldMatrix);
+                    InvertMatrix4Rigid(&matT, &pitem->pxf->worldMatrix);
+                    __ml__FRC7MATRIX4T0(&mat, &matT, &pgrp->transform->worldMatrix);
                 } else {
-                    InvertMatrix4Rigid(&mat, &pitem->pbone->worldMatrix);
+                    InvertMatrix4Rigid(&mat, &pitem->pxf->worldMatrix);
                 }
-                pitem->mat = mat;
-            } else if (pgrp->pbone) {
-                pitem->mat = pgrp->pbone->worldMatrix;
+                pitem->matInv = mat;
+            } else if (pgrp->transform) {
+                pitem->matInv = pgrp->transform->worldMatrix;
             } else {
-                MATRIX4 *pmat = &pitem->mat;
+                MATRIX4 *pmat = &pitem->matInv;
                 func_002333B4(pmat, 0, sizeof(MATRIX4));
                 pmat->mat[0][0] = pmat->mat[1][1] = pmat->mat[2][2] = pmat->mat[3][3] = 1.0f;
             }
         }
     }
-    for (X *px = p->pxFirst; px; px = px->pxNext) {
-        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, px->oid, p->pvOwner);
+    for (WRBG *px = p->pwrbgFirst; px; px = px->pwrbgNextGlobset) {
+        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, px->oid, p->owner);
         if (plo)
             AddWrWarpGroup(plo, px);
     }
