@@ -2192,11 +2192,9 @@ extern "C" void SetSoGravity(SO *so, qword q)
 
 // 0x1F58F0 GetSoCameraDefaults
 namespace M_GetSoCpdefi {
-struct V;
 typedef int qword __attribute__((mode(TI)));
-struct V { float x, y, z, w; float pad[8]; };
 qword GetXfVelocity(XF *, int, qword) __asm__("GetXfVelocity");
-void TiltMatUpright(void *, int, struct V *) __asm__("TiltMatUpright");
+void TiltMatUpright(void *, int, MATRIX3 *) __asm__("TiltMatUpright");
 float atan2f(float, float) __asm__("atan2f");
 // Slot 50: the camera's default info for this object: base position and velocity, home heading from the upright
 // matrix, adjustment 100, no flags, last-move time now.
@@ -2204,14 +2202,14 @@ float atan2f(float, float) __asm__("atan2f");
 extern "C" void GetSoCameraDefaults(SO *so, CPDEFI *po)
 {
     XF *o = so->rootTransform;
-    struct V v;
+    MATRIX3 v;
     void *ps;
     qword q = o->worldMatq.r[3].q;
     *(qword *)&po->basePosition = q;
     ps = &o->worldMatrix;
     *(qword *)&po->vBase = GetXfVelocity(o, 0, q);
     TiltMatUpright(ps, 0, &v);
-    po->homeHeading = atan2f(-v.y, -v.x); po->adjustDistance = 100.0f; po->grfcpd = 0; po->lastMoveTime = g_clock.time; po->turnAxis = 0;
+    po->homeHeading = atan2f(-v.mat[0][1], -v.mat[0][0]); po->adjustDistance = 100.0f; po->grfcpd = 0; po->lastMoveTime = g_clock.time; po->turnAxis = 0;
 }
 } // namespace M_GetSoCpdefi
 
