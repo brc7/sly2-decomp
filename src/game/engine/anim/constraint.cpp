@@ -19,7 +19,7 @@ struct XFV
 {
     M4 local;                   /* +0x0 local */
     M4 world;                 /* +0x40 world */
-    char pad80[0xA0 - 0x80];
+    char pad80[0x88 - 0x80]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0xA0 - 0x94];
     XFV *parent;            /* +0xA0 */
     int stamp;              /* +0xA4 */
     XFMCONSTR *constraint;     /* +0xA8 */
