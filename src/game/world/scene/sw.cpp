@@ -32,6 +32,7 @@
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
+#include "bis.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -819,42 +820,6 @@ namespace M_LoadLevelTableFromBrx {
 // u32 clevel, u32 (unused); clevel x { file record (0x40 bytes); u8 world; u8 episode; u8 fEntry (the record is also the entry of its world:
 // copied to g_aWorldEntryRecord[world]); u8 n + n u16 level numbers }.
 #include "sly2/sw.h"
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
-    ushort U16Read() __asm__("U16Read__18CBinaryInputStream");
-    uint U32Read() __asm__("U32Read__18CBinaryInputStream");
-    void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
-};
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 // Allocate cb bytes with alignment cbAlign from the world heap.
@@ -901,7 +866,7 @@ extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream)
     D_003E1C50 = (FILEREC *)PvAllocSwClearLoad(9 * sizeof(FILEREC), 0x10);
     for (int ilevel = 0; ilevel < D_003E1C38; ilevel++)
     {
-        stream->ReadFileRecord(&D_003E1C40[ilevel]);
+        CBinaryInputStream_ReadCb64(stream, &D_003E1C40[ilevel]);
         D_003E1C44[ilevel] = stream->U8Read();
         D_003E1C48[ilevel] = stream->U8Read();
         if (stream->U8Read())

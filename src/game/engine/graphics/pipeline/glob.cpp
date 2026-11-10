@@ -55,50 +55,7 @@ void AddVifDirectFlushed(VIFS *pvifs, int cqw, QW *aqw);
 
 
 
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    void Read(int cb, void *pv);
-    void Skip(int cb);
-    uchar U8Read();
-    ushort U16Read();
-    uint U32Read();
-    char S8Read();
-    short S16Read();
-    int S32Read();
-    float F32Read();
-    void ReadVector(VECTOR *pvec);
-    void ReadMatrix4(MATRIX4 *pmat);
-};
+#include "bis.h"
 
 struct BND
 {

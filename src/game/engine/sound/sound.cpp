@@ -26,6 +26,7 @@
 #include "sly2/sw.h"
 #include "sly2/clock.h"
 #include "sly2/vtables.h"
+#include "bis.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct SNDOBJ { char pad0[0xC]; VTE *vtable; };
@@ -1257,45 +1258,6 @@ typedef unsigned short   ushort;
 typedef unsigned int     uint;
 typedef uchar byte;
 typedef unsigned long ulong;
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    void Read(int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
-    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
-    char S8Read() __asm__("S8Read__18CBinaryInputStream");
-    short S16Read() __asm__("S16Read__18CBinaryInputStream");
-    int S32Read() __asm__("S32Read__18CBinaryInputStream");
-    float F32Read() __asm__("F32Read__18CBinaryInputStream");
-    void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
-};
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 // Allocate cb bytes with alignment cbAlign from the world heap.
@@ -1338,7 +1300,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
 extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream *input)
 {
     FILEREC bankRecord;
-    input->ReadFileRecord(&bankRecord);
+    CBinaryInputStream_ReadCb64(input, &bankRecord);
     if (!IsSameFileRecord(&bankRecord, &soundManager->bankRecord))
     {
         soundManager->bankRecord = bankRecord;
@@ -1368,7 +1330,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
     if (soundManager->numAmbienceGroups > 0)
     {
         soundManager->ambienceRecord = (FILEREC *)AllocClearedWorldHeapBlock(sizeof(FILEREC), 0x10);
-        input->ReadFileRecord(soundManager->ambienceRecord);
+        CBinaryInputStream_ReadCb64(input, soundManager->ambienceRecord);
         STREAMSND *sound = PstreamsndNew(soundManager->ambienceRecord, 4);
         AssignSoundRef(&soundManager->ambienceSound, sound);
     }
@@ -1392,7 +1354,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
         for (int language = 0; language < numLanguages; language++)
         {
             FILEREC record;
-            input->ReadFileRecord(&record);
+            CBinaryInputStream_ReadCb64(input, &record);
             int excludeFromHeadset = input->S8Read();
             float duration = input->F32Read();
             if (language == currentLanguage)
@@ -1414,7 +1376,7 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
     {
         SNDFILE *musicFile = &musicFiles[i];
         musicFile->id = input->S16Read();
-        input->ReadFileRecord(musicFile);
+        CBinaryInputStream_ReadCb64(input, musicFile);
         musicFile->next = soundManager->firstMusicFile;
         soundManager->firstMusicFile = musicFile;
     }
