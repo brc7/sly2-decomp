@@ -17,26 +17,37 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct LO : public BASIC
 {
     LO *parent;            /* +0x10 psoParent */
-    char pad14[4];          /* +0x14 ploroot */
+    void *root;            /* +0x14 ploroot (lo.h root) */
     int oid;                /* +0x18 */
     LO *nextInOidBucket;          /* +0x1C sleOid */
     LO *nextInClass;         /* +0x20 sleCid */
     LO *nextSibling;           /* +0x24 dleChild */
-    int unknown28;                /* +0x28 */
+    LO *prevSibling;           /* +0x28 dleChild.prev (lo.h siblingLink.prev) */
     signed char searchDepth;        /* +0x2C cpaloFindSwObjects: scope depth during a search */
     char visMask;               /* +0x2D grfvis */
     long proxyMatchKind : 4;
     unsigned long unknownBits : 8;
     unsigned int isInWorld : 1;
-    char pad30[0xC];
+    float nextSpliceTime;       /* +0x30 lo.h */
+    void *firstRunCallback;     /* +0x34 lo.h (LORUN) */
+    float busyRadius;           /* +0x38 lo.h */
     void *proxyChain;              /* +0x3C proxy chain */
-    char pad40[0x64 - 0x40];
-    LO *firstChild;             /* +0x64 (SO) first child */
-    char pad68[8];
-    LO *childEnd;          /* +0x70 */
+    void *ploupd;               /* +0x40 lo.h unknown40/ploupd (a tagged pointer) */
+    int unknown44[3];           /* +0x44 lo.h */
 };
 typedef char assert_LO_proxyChain[SLY2_OFFSETOF(LO, proxyChain) == 0x3C ? 1 : -1];
-typedef char assert_LO_childEnd[SLY2_OFFSETOF(LO, childEnd) == 0x70 ? 1 : -1];
+typedef char assert_LO_size[sizeof(LO) == 0x50 ? 1 : -1];
+/* The search scope's children (an SO; names on the right are so.h's). */
+struct SOV : LO
+{
+    int numTransforms;          /* +0x50 */
+    void *transforms, *positionXf, *rotationXf, *rootTransform;   /* +0x54 */
+    LO *firstChild;             /* +0x64 children.head: first child */
+    void *childrenTail;         /* +0x68 children.tail */
+    int childrenLinkOffset;     /* +0x6C children.linkOffset */
+    LO *childEnd;               /* +0x70 ploRemovedFirst */
+};
+typedef char assert_SOV_childEnd[SLY2_OFFSETOF(SOV, childEnd) == 0x70 ? 1 : -1];
 
 /* One bucket of the SW hash tables (an SL: head, tail, link offset). */
 /* A proxy-root entry in the pxr hash. */
@@ -288,9 +299,9 @@ extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context
     case 2: {
         LO *childEnd = 0;
         if (flags & 0x100)
-            childEnd = context->childEnd;
+            childEnd = ((SOV *)context)->childEnd;
         f = flags & 0x200;
-        for (p = context->firstChild; p != childEnd; p = p->nextSibling) {
+        for (p = ((SOV *)context)->firstChild; p != childEnd; p = p->nextSibling) {
             if (!IsBasicDerivedFrom(p, (CID)cid))
                 continue;
             if (count < maxCount)
