@@ -483,9 +483,17 @@ struct CONTESSA : STEPGUARD
 typedef char assert_CONTESSA_size[sizeof(CONTESSA) == 0x1010 ? 1 : -1];
 
 /* 68 DANCER (0x410): rhythm-game performer; vtable 0x2CD748, 87 slots */
+/* A dancer's move (rhythm.cpp): its button, then three clips (oid, the clip once loaded, apply flags): 0 played on
+   success, 1 on a failed press, 2 on a miss. */
+struct DMR { int oid; void *clip; int applyFlags; };
+struct DMOVE { int key; DMR clips[3]; };
 struct DANCER : STEP
 {
-    char pad2C0[0x410 - 0x2C0];
+    void *idleSegment;          /* +0x2C0 the clip played between moves (UpdateDancer) */
+    union { unsigned int numMovesU; int numMoves; };   /* +0x2C4 (AddDancerMove compares it unsigned) */
+    DMOVE moves[8];             /* +0x2C8 */
+    ASEGA *segmentAnim;         /* +0x408 the playing segment */
+    int isPerforming;           /* +0x40C set/cleared by Splice messages 0x27/0x28 (inferred: a scripted move plays) */
     virtual void PostLoad() __asm__("PostDancerLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetDancerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleDancerMessage");   /* slot 5 */
@@ -494,6 +502,8 @@ struct DANCER : STEP
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetDancerCpdefi");   /* slot 50 */
 };
 typedef char assert_DANCER_size[sizeof(DANCER) == 0x410 ? 1 : -1];
+typedef char assert_DANCER_moves[SLY2_OFFSETOF(DANCER, moves) == 0x2C8 ? 1 : -1];   /* rhythm.cpp */
+typedef char assert_DANCER_segmentAnim[SLY2_OFFSETOF(DANCER, segmentAnim) == 0x408 ? 1 : -1];
 
 /* 121 CID121 (0x10B0): rhythm-game manager; vtable 0x2CD5B8, 48 slots */
 struct CID121 : LO

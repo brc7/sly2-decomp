@@ -18,42 +18,18 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
-/* A dancer's move: its button, then three clips (oid, the clip once loaded, apply flags): 0 played on success, 1 on
-   a failed press, 2 on a miss. */
-struct DMR { int oid; void *clip; int applyFlags; };
-struct DMOVE { int key; DMR clips[3]; };
+/* DMR / DMOVE (a dancer's moves) and the dancer's own fields: sly2/classes.h DANCER. */
 enum { MOVE_CLIP_SUCCESS = 0, MOVE_CLIP_FAIL = 1, MOVE_CLIP_MISS = 2 };
 enum { ANY_KEY = -1 };   /* PlayDancerMove: the move whose button the controller reports pressed */
 
-/* A dancer (a step object) as this TU reads it. */
-struct DANCERV
-{
-    int pad0[3];
-    VTE *vt;                    /* 0x00C */
-    char pad10[0x58 - 0x10];
-    void *unknown58, *unknown5C;    /* 0x058 handed to func_002303A0 before a move plays (inferred: blend channels) */
-    char pad60[0x150 - 0x60];
-    void *controller;           /* 0x150 POCTL: the dancer's button input */
-    char pad154[0x190 - 0x154];
-    qwordV velocity;            /* 0x190 */
-    char pad1A0[0x1B0 - 0x1A0];
-    qwordV orientation[3];      /* 0x1B0 rotation matrix rows */
-    char pad1E0[0x2C0 - 0x1E0];
-    void *idleSegment;          /* 0x2C0 */
-    union { unsigned int numMovesU; int numMoves; };  /* 0x2C4 */
-    DMOVE moves[8];             /* 0x2C8 */
-    ASEGA *segmentAnim;        /* 0x408 the playing segment */
-    int isPerforming;           /* 0x40C set/cleared by Splice messages 0x27/0x28 (inferred: a scripted move plays) */
-};
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef char DANCER_408[FIELD_OFFSET(DANCERV,segmentAnim)==0x408?1:-1];
 
 /* A note on the drawn track (0x30). */
 struct ENT { float time; int buttonMask; char pad[8]; union { qwordV screenPos; VECTOR4 screenPosV; }; int isHit; char pad2[0x30 - 0x24]; };
 /* A cue: the dancer, its button and the move that follows, when it is due (music time). */
 struct CUE
 {
-    DANCERV *dancer;
+    DANCER *dancer;
     int key;
     int nextKey;
     float time;
@@ -114,14 +90,14 @@ extern char D_002DE578[];
 extern const LONGU D_002A5010;
 extern float D_002BDBE0[3];
 extern LM g_lmZeroOne;
-void RemoveSoHierarchy(DANCERV *p);
-void PostStepLoad(DANCERV *o);
-void UpdateStep(DANCERV *p);
+void RemoveSoHierarchy(DANCER *p);
+void PostStepLoad(DANCER *o);
+void UpdateStep(DANCER *p);
 int IsAsegaRetracted(ASEGA *pa);
-void SetXfRole(DANCERV *p, void *pv, int n);
-qwordV GetStepAsegaTranslation(DANCERV *p, void *pa, float g);
-void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
-void GetSoCameraDefaults(DANCERV *p, CPDEFI *pc);
+void SetXfRole(DANCER *p, void *pv, int n);
+qwordV GetStepAsegaTranslation(DANCER *p, void *pa, float g);
+void HandlePoMessage(DANCER *p, int msgk, struct MSGD *pmsg);
+void GetSoCameraDefaults(DANCER *p, CPDEFI *pc);
 int POCTL_ConsumeAnyPressed(void *p, int a);
 int GetButtonsPressedWithin__5POCTLUif(void *, int, float);
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *paseg, void *palo, float a, float b, int n, ASEGA **pp);
@@ -146,15 +122,15 @@ int AreFloatsNear__Ffff(float, float, float);
 float GetDifficulty(void *p);
 float ClampToLimits__FP2LMf(LM *plm, float g);
 
-void ApplyDancerAseg(DANCERV *p, void *paseg, int n);
-void PlayDancerMove(DANCERV *p, int id, int idNew, int j);
-void *FindDancerMoveObject(DANCERV *p, int id);
-void BindDancerMoves(DANCERV *p);
+void ApplyDancerAseg(DANCER *p, void *paseg, int n);
+void PlayDancerMove(DANCER *p, int id, int idNew, int j);
+void *FindDancerMoveObject(DANCER *p, int id);
+void BindDancerMoves(DANCER *p);
 int GetGradeIndexForOid(int k);
 int GetGradeOidForIndex(int k);
 void UpdateRhythmManagerGrades(RHYTHMMGR *p);
 void SetRhythmMgrState(RHYTHMMGR *p, int s);
-void JudgeRhythmPress(RHYTHMMGR *p, DANCERV *po);
+void JudgeRhythmPress(RHYTHMMGR *p, DANCER *po);
 float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q);
 float AdjustRhythmScore(RHYTHMMGR *p, float g);
 void AddRhythmScore(RHYTHMMGR *p, float g);
@@ -162,7 +138,7 @@ float GetAverageRhythmScore(RHYTHMMGR *p);
 }
 
 // DANCER (cid 0x44) vtable slot 12 (RemoveHierarchy): SO removal, then stops the dancer's segment.
-extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
+extern "C" void RemoveDancerHierarchy(DANCER *dancer) {
     RemoveSoHierarchy(dancer);
     ApplyDancerAseg(dancer, 0, 0);
 }
@@ -171,7 +147,7 @@ extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
 // Also known as: PostLoadDancer (upstream readable / Sly 1 name; PostLoadDancer__FP2LO).
 void DANCER::PostLoad()
 {
-    DANCERV *dancer = (DANCERV *)this;
+    DANCER *dancer = this;
     PostStepLoad(dancer);
     BindDancerMoves(dancer);
     SetCtlState(0);
@@ -192,13 +168,13 @@ static inline qwordV VecMul(qwordV v, float g)
 // rhythm manager (D_002DE570) is idle the player dances freely (any pressed button plays its move); while it plays,
 // presses are judged (JudgeRhythmPress). The velocity follows the playing segment's root motion. (inferred)
 // Also known as: UpdateDancer (upstream readable / Sly 1 name; UpdateDancer__FP2LO).
-extern "C" void UpdateDancer(DANCERV *dancer)
+extern "C" void UpdateDancer(DANCER *dancer)
 {
     int managerState;
     UpdateStep(dancer);
     if (!dancer->segmentAnim || IsAsegaRetracted(dancer->segmentAnim)) {
-        SetXfRole(dancer, dancer->unknown58, 1);
-        SetXfRole(dancer, dancer->unknown5C, 1);
+        SetXfRole(dancer, dancer->positionXf, 1);
+        SetXfRole(dancer, dancer->rotationXf, 1);
         dancer->isPerforming = 0;
         ApplyDancerAseg(dancer, dancer->idleSegment, 8);
     }
@@ -213,11 +189,11 @@ extern "C" void UpdateDancer(DANCERV *dancer)
         break;
     }
     if (dancer->segmentAnim)
-        dancer->velocity = VecMul(GetStepAsegaTranslation(dancer, dancer->segmentAnim, dancer->segmentAnim->time), -1.0f);
+        dancer->qwUnknown190 = VecMul(GetStepAsegaTranslation(dancer, dancer->segmentAnim, dancer->segmentAnim->time), -1.0f);
 }
 
 /* A segment event message (kind 9): the segment, its time and the event kind. */
-struct SOM { char pad[0x18]; DANCERV *target; };
+struct SOM { char pad[0x18]; DANCER *target; };
 struct MSGD { SOM *segment; float time; int eventKind; };
 enum { MESSAGE_SEGMENT_EVENT = 9 };
 enum { SEGMENT_EVENT_PERFORM_BEGIN = 0x27, SEGMENT_EVENT_PERFORM_END = 0x28, SEGMENT_EVENT_LAUNCH = 0x15E };   /* (inferred) */
@@ -225,11 +201,11 @@ enum { SEGMENT_EVENT_PERFORM_BEGIN = 0x27, SEGMENT_EVENT_PERFORM_END = 0x28, SEG
 // end a performed move; 0x15E takes the segment's root velocity and hands it, rotated into world space, to vtable
 // slot 35. (inferred)
 // Also known as: OnDancerMessage (upstream readable / Sly 1 name; OnDancerMessage__FP2LO5MSGIDPv).
-extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *message)
+extern "C" void HandleDancerMessage(DANCER *dancer, int messageKind, MSGD *message)
 {
     HandlePoMessage(dancer, messageKind, message);
     if (messageKind == MESSAGE_SEGMENT_EVENT) {
-        DANCERV *target = message->segment->target;
+        DANCER *target = message->segment->target;
         if (target == dancer) {
             switch (message->eventKind) {
             case SEGMENT_EVENT_PERFORM_BEGIN:
@@ -240,10 +216,10 @@ extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *mess
                 break;
             case SEGMENT_EVENT_LAUNCH: {
                 qwordV localVelocity = GetStepAsegaTranslation(target, message->segment, message->time);
-                VTE *vt = target->vt;   /* loaded before the transform, as the original schedules it (a SetVelocity call reloads it after: 14 of 64 off) */
-                qwordV *rows = target->orientation;
+                VTE *vt = *(VTE **)((char *)target + 0xC);   /* loaded before the transform, as the original schedules it (a SetVelocity call reloads it after: 14 of 64 off) */
+                qwordV *rows = (qwordV *)target->aqwTarget;
                 qwordV worldVelocity;
-                target->velocity = VecMul(localVelocity, -1.0f);
+                target->qwUnknown190 = VecMul(localVelocity, -1.0f);
                 __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z" : "=j"(worldVelocity) : "j"(rows[0]), "j"(localVelocity), "j"(rows[1]), "j"(rows[2]));
                 ((void (*)(void *, qwordV))vt[35].pfn)((char *)target + vt[35].d, worldVelocity);   /* LO::SetVelocity */
                 break;
@@ -254,7 +230,7 @@ extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *mess
 }
 
 // DANCER vtable slot 50 (GetCpdefi): the SO camera definition with its home angle swung by -3*PI/4 (135 degrees).
-extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFI *cameraDef) {
+extern "C" void GetDancerCpdefi(DANCER *dancer, CPDEFI *cameraDef) {
     GetSoCameraDefaults(dancer, cameraDef);
     cameraDef->homeHeading = cameraDef->homeHeading - 2.3561945f;   /* 3*PI/4 */
 }
@@ -262,7 +238,7 @@ extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFI *cameraDef) {
 // Plays clip clipIndex of a move: the move for key, or (ANY_KEY) the first move whose button the controller reports
 // pressed (consuming it). nextClipOid, when set, replaces the move's success clip first. (inferred)
 // Also known as: PlayDancerMove (upstream readable / Sly 1 name; PlayDancerMove__FP2LOiii).
-void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
+void PlayDancerMove(DANCER *dancer, int key, int nextClipOid, int clipIndex)
 {
     int i;
     for (i = 0; i < dancer->numMoves; i++) {
@@ -273,8 +249,8 @@ void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
                 if (clip)
                     move->clips[MOVE_CLIP_SUCCESS].clip = clip;
             }
-            SetXfRole(dancer, dancer->unknown58, 2);
-            SetXfRole(dancer, dancer->unknown5C, 2);
+            SetXfRole(dancer, dancer->positionXf, 2);
+            SetXfRole(dancer, dancer->rotationXf, 2);
             ApplyDancerAseg(dancer, move->clips[clipIndex].clip, move->clips[clipIndex].applyFlags);
             return;
         }
@@ -284,13 +260,13 @@ void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
 // Plays a segment on the dancer from its start at speed 1 (apply flags | 1), keeping its ASEGA in segmentAnim;
 // a null segment stops it.
 // Also known as: PlayDancerAseg (upstream readable / Sly 1 name; PlayDancerAseg__FP2LOT0i).
-void ApplyDancerAseg(DANCERV *dancer, void *segment, int applyFlags)
+void ApplyDancerAseg(DANCER *dancer, void *segment, int applyFlags)
 {
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, dancer, 0.0f, 1.0f, applyFlags | 1, &dancer->segmentAnim);
 }
 
 // Splice: adds a move (at most 8): its button, the success clip and its apply flags, the fail and miss clips.
-extern "C" void AddDancerMove(DANCERV *dancer, int key, int successOid, int successFlags, int failOid, int missOid)
+extern "C" void AddDancerMove(DANCER *dancer, int key, int successOid, int successFlags, int failOid, int missOid)
 {
     if (dancer->numMovesU < 8) {
         DMOVE *move = &dancer->moves[dancer->numMovesU++];
@@ -307,8 +283,8 @@ extern "C" void AddDancerMove(DANCERV *dancer, int key, int successOid, int succ
 // Finds a clip by oid (searched from the dancer) and removes it from the world (vtable slot 9), so it only plays as
 // a move.
 // Also known as: PloDanceAseg (upstream readable / Sly 1 name; PloDanceAseg__FP2LO3OIDiiiii).
-void *FindDancerMoveObject(DANCERV *dancer, int oid) {
-    DANCERV *clip = (DANCERV *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, oid, dancer);
+void *FindDancerMoveObject(DANCER *dancer, int oid) {
+    DANCER *clip = (DANCER *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, oid, dancer);
     if (clip != 0) {
         ((LO *)clip)->Remove();
     }
@@ -317,7 +293,7 @@ void *FindDancerMoveObject(DANCERV *dancer, int oid) {
 
 // Resolves the three clip oids of every move.
 // Also known as: InitDancer (upstream readable / Sly 1 name; InitDancer__FP2LO).
-void BindDancerMoves(DANCERV *dancer)
+void BindDancerMoves(DANCER *dancer)
 {
     int i, j;
     for (i = 0; i < dancer->numMoves; i++) {
@@ -714,7 +690,7 @@ extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *manager, int state, int numNo
 // Splice: queues a cue for a dancer (its button, the next move's clip, the due time); with three queued the oldest
 // is dropped.
 // Also known as: AddDanceBeat (upstream readable / Sly 1 name; AddDanceBeat__FP2LOiiif).
-extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *dancer, int key, int nextKey, float time)
+extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCER *dancer, int key, int nextKey, float time)
 {
     CUE *cue;
     if (manager->numCues == 3) {
@@ -738,7 +714,7 @@ extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *dancer, int ke
 // 0x35: too early, or a second press, plays the fail clip with that penalty; the right button plays the move and
 // scores the timing (and marks the note hit); a wrong button plays the fail clip with the wrong-button penalty.
 // Also known as: CheckDancerBeat (upstream readable / Sly 1 name; CheckDancerBeat__FP2LOP5DANCE).
-void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
+void JudgeRhythmPress(RHYTHMMGR *manager, DANCER *dancer)
 {
     void *controller = dancer->controller;
     int i, j;
