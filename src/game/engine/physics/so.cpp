@@ -250,23 +250,10 @@ extern "C" void ReleaseSoBoundsHierarchy(SO *so)
 
 // 0x1F2500 EnsureSoBounds
 namespace M_EnsureSoBounds {
-struct Origin; struct Stats; struct Node;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
-struct Node;
-struct Origin {char pad[0x70];qword pos;};
-struct Stats {struct Node *owner;qword *origin;int count,unusedC;float low;int unused14,unused18;float high,scale;};
-struct Node {
- char pad[0x10];struct Node *parent;
- char pad14[0x60-0x14];struct Origin *reference;
- char pad64[0xA0-0x64];float radius;
- char padA4[0xD0-0xA4];ulong flags;
- char padD8[0x134-0xD8];struct Stats *stats;
- int unused138;float scale;
- char pad140[8];ulong state;
-};
-struct Stats *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
-qword GetLoWorldPos(struct Node *) __asm__("GetLoWorldPos");
+SOBOUNDS *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
+qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
 // Distance between a and b (xyz) as a float.
 extern "C" { static inline float Distance(qword a,qword b) {
  qword d,one;
@@ -277,63 +264,61 @@ extern "C" { static inline float Distance(qword a,qword b) {
  __asm__("mtc1 %1,%0":"=f"(result):"r"(d));
  return result;
 } }
-// Load the node's 64-bit state word.
-extern "C" { static inline ulong LoadState(struct Node *p)
+// Load the 64-bit bitfield unit at +0x148 (dhpHit, dhpTouch, unknownBits148A/B, ...) as one doubleword.
+extern "C" { static inline ulong LoadState(SO *p)
 {
     register ulong value __asm__("$2");
-    __asm__("ld %0,%1":"=r"(value):"m"(p->state));
+    __asm__("ld %0,%1":"=r"(value):"m"(*(ulong *)&p->dhpHit));
     return value;
 } }
 // Attaches the object to its root's bounds record (allocating one if needed) and grows the record's radii to cover
 // the object's radius plus its distance from the root's origin.
-extern "C" void EnsureSoBounds(struct Node *so) {
- struct Node *top;
- struct Stats *attached;
- if (!(so->flags & (3UL<<32))) return;
+extern "C" void EnsureSoBounds(SO *so) {
+ SO *top;
+ SOBOUNDS *attached;
+ if (!(so->model.grf50 & (3UL<<32))) return;
  top=so;
- attached=so->stats;
+ attached=so->psobounds;
  if(!attached) {
   do {
-   register struct Node *next __asm__("$4")=top->parent;
+   register SO *next __asm__("$4")=top->parent;
    register int one __asm__("$3")=1;
    if(!next || ((int)((unsigned int)(int)LoadState(top)<<8)>>28)==one) {
      register char*pool __asm__("$4");
-     struct Stats *s;
+     SOBOUNDS *s;
      __asm__("lui %0,0x3e":"=r"(pool));
      s=AllocZeroedFromSlotheap(pool+0x12D4);
-     top->stats=s;
-     so->stats=s;
-     s->origin=&top->reference->pos;
-     ++so->stats->count;
-     so->stats->scale=so->scale;
-     so->stats->owner=so;
+     top->psobounds=s;
+     so->psobounds=s;
+     s->pposCenter=&top->rootTransform->worldMatq.r[3].q;
+     ++so->psobounds->refCount;
+     so->psobounds->scale=so->unknown13C;
+     so->psobounds->pso=so;
      if(top==so)goto position;
-     attached=so->stats;
+     attached=so->psobounds;
      goto count;
    }
    top=next;
-   attached=top->stats;
+   attached=top->psobounds;
   } while(!attached);
-  so->stats=attached;
+  so->psobounds=attached;
  }
 count:
- ++attached->count;
+ ++attached->refCount;
 position:
 
  {
    qword position=GetLoWorldPos(so);
-   float radius=so->radius+Distance(position,*so->stats->origin);
-   if(so->flags&(1UL<<32)) {
-     if(so->stats->low<radius) so->stats->low=radius;
+   float radius=so->model.boundsRadius+Distance(position,*so->psobounds->pposCenter);
+   if(so->model.grf50&(1UL<<32)) {
+     if(so->psobounds->strength<radius) so->psobounds->strength=radius;
    }
-   if(so->flags&(1UL<<33)) {
-     if(so->stats->high<radius) so->stats->high=radius;
+   if(so->model.grf50&(1UL<<33)) {
+     if(so->psobounds->sRadius<radius) so->psobounds->sRadius=radius;
    }
  }
 }
 
-#define OFF(T,F) ((unsigned long)&((T*)0)->F)
-typedef char ancestor_layout[(sizeof(qword)==16 && __alignof__(qword)==16 && sizeof(void*)==4 && sizeof(float)==4 && sizeof(int)==4 && sizeof(unsigned)==4 && sizeof(ulong)==8 && sizeof(struct Origin)==0x80 && __alignof__(struct Origin)==16 && sizeof(struct Stats)==0x24 && __alignof__(struct Stats)==4 && sizeof(struct Node)==0x150 && __alignof__(struct Node)==8 && OFF(struct Origin,pos)==0x70 && OFF(struct Stats,owner)==0x0 && OFF(struct Stats,origin)==0x4 && OFF(struct Stats,count)==0x8 && OFF(struct Stats,low)==0x10 && OFF(struct Stats,high)==0x1c && OFF(struct Stats,scale)==0x20 && OFF(struct Node,parent)==0x10 && OFF(struct Node,reference)==0x60 && OFF(struct Node,radius)==0xa0 && OFF(struct Node,flags)==0xd0 && OFF(struct Node,stats)==0x134 && OFF(struct Node,scale)==0x13c && OFF(struct Node,state)==0x148)?1:-1];
 } // namespace M_EnsureSoBounds
 
 // 0x1F2688 SetSoBoundsScale
