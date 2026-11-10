@@ -945,20 +945,19 @@ typedef int qword __attribute__((mode(TI)));
 struct EC { char pad[0x60]; void *rootSo; };
 struct X4 : LO { char pad[0xEC - 0x50]; struct EC *tree; };
 struct X { int pad; struct X4 *so; };
-struct S { char pad[0xC]; void *vptr; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t; int unknown44; int unknown48; int tag; char pad[0x10]; };
 extern qword g_normalZ __asm__("g_normalZ");
 void AddSoCustomXps(void) __asm__("AddSoCustomXps");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit) __asm__("ClipEdgeToObjectPruned");
-int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n) __asm__("HasStepFloorNearby");
+int HasStepFloorNearby(STEP *p, qword v, struct X *x, int n) __asm__("HasStepFloorNearby");
 void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f) __asm__("AddXp");
 
 // Slot 60: if the ground-probe flags allow it, casts a ray down from the base point (ClipEdgeToObjectPruned) and
 // adds a floor contact (kind 14) at the hit.
 // Also known as: AddStepFloorXps (upstream readable / Sly 1 name; AddStepFloorXps__FP3ALOP3SOEiiii).
-extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a5)
+extern "C" void AddStepCustomXps(STEP *step, struct X *x, int a2, int a3, int a4, int a5)
 {
     unsigned int fl;
     struct HIT hit;
@@ -971,7 +970,7 @@ extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, in
     if (IsBasicDerivedFrom__FP5BASIC3CID(x->so->tree->rootSo, 0x33))
         return;
     pos = GetLoWorldPos(step);
-    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & PROBE_FROM_TOP) ? step->topPoint : step->basePoint), 1, &hit) <= 0)
+    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & PROBE_FROM_TOP) ? step->unknown21C : step->unknown218), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
         if (fl & PROBE_KEEP_NORMAL)
@@ -980,14 +979,14 @@ extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, in
             n = g_normalZ;
         else if (hit.unknown48)
             n = hit.normal;
-        else if (HasStepFloorNearby(step, *step->basePoint, x, hit.tag))
+        else if (HasStepFloorNearby(step, *step->unknown218, x, hit.tag))
             n = g_normalZ;
         else
             n = hit.normal;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->basePoint), "j"(hit.pos));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->unknown218), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        AddXp(&g_sw, step->bodyPart, x, *step->basePoint, n, 0xE, 0, 0, a5, f);   /* kind 14: the floor contact */
+        AddXp(&g_sw, step->psopartBody, x, *step->unknown218, n, 0xE, 0, 0, a5, f);   /* kind 14: the floor contact */
     }
 }
 } // namespace M_AddStepCustomXps
