@@ -548,10 +548,14 @@ static inline void Enable(ACTOR *actor,int mode){actor->SetCtlState(mode);}
 static inline void Attach(ACTOR *actor,CONTEXT *context){actor->MatchTransform((LO *)context);}
 // Call the actor's deactivate virtual (slot 9).
 static inline void Hide(ACTOR *actor){actor->Remove();}
-// v != 0 (sltu).
+// v != 0 (sltu); the stream record's address, in $4. The asm only pins the instructions for the match.
+#ifdef SLY2_EE_ASM
 static inline int NonZero(int v){int r; __asm__("sltu %0,$zero,%1":"=r"(r):"r"(v));return r;}
-// Address of the stream record, in $4.
 static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("$4");__asm__("la %0,%a1":"=r"(result):"p"(home));return result;}
+#else
+static inline int NonZero(int v){return v!=0;}
+static inline STREAM *StreamHome(STREAM *home){return home;}
+#endif
 // Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
 // the BRX (LoadSwFromBrx, PostSwLoad), restores the checkpoint and the current actor, sets up the camera and runs game
 // callback 5. Called once per frame by the main loop.
@@ -580,7 +584,11 @@ extern "C" void ExecuteSwTransition(SW *world)
     STREAM stream;
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
-    __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
+#ifdef SLY2_EE_ASM
+    __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));   /* a copy the compiler cannot fold */
+#else
+    reader=argument;
+#endif
     CStreamBis_ctor(argument,0xD8000,D_002F7980,0);
     if(hasFile&&!OpenStreamFromFileKey(reader,&key)){DestroyCStreamBis(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)SLY2_HW_SCRATCHPAD);
@@ -1526,7 +1534,11 @@ void SetSndPitch(CID151 *, float) __asm__("SetSndPitch");
 void SetSndDoppler(CID151 *, float) __asm__("SetSndDoppler");
 void RcPtr_Assign(CID151 **, CID151 *) __asm__("RcPtr_Assign");
 // Copy the object pointer through a register move.
+#ifdef SLY2_EE_ASM
 extern "C" { static inline O *SelectedValue(O *p){O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;} }
+#else
+extern "C" { static inline O *SelectedValue(O *p){return p;} }
+#endif
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
 // Also known as: PlayAsegaSound (upstream readable / Sly 1 name; PlayAsegaSound__FfffPviiiiN33PPv).
