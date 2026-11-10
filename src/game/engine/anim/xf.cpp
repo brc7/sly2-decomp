@@ -1646,19 +1646,19 @@ void UpdateSoSlots(SO *so)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022FA20 {
 typedef unsigned long ulong;
-struct T { char pad[0xA4]; int k; };
-struct S { char pad[0x10]; int a; int b; char pad2[0x10]; ulong f; char pad3[0x30]; struct T *t; char pad4[0xDC]; int k; };
-void RemoveLoFromRenderTree(struct S *p) __asm__("RemoveLoFromRenderTree");
-void AddLoToRenderTree(struct S *p) __asm__("AddLoToRenderTree");
-void ResortSwBusyEntry(void *g, int b) __asm__("ResortSwBusyEntry");
-// After a slot update: for objects with the "needs refresh" flag (bit 60), runs the class-specific refresh. (inferred)
+void RemoveLoFromRenderTree(SO *p) __asm__("RemoveLoFromRenderTree");
+void AddLoToRenderTree(SO *p) __asm__("AddLoToRenderTree");
+void ResortSwBusyEntry(void *g, LOROOT *b) __asm__("ResortSwBusyEntry");
+// After a slot update, for an object in the world (LO::isInWorld): re-inserts it in the render tree when its root XF's
+// stamp moved, and re-sorts a top-level object in the busy list. (inferred)
 // Also known as: PostUpdateAloXfs (upstream readable / Sly 1 name; PostUpdateAloXfs__FP3ALO).
-void RefreshSoAfterSlotUpdate(struct S *p) __asm__("RefreshSoAfterSlotUpdate"); void RefreshSoAfterSlotUpdate(struct S *p)
+void RefreshSoAfterSlotUpdate(SO *p) __asm__("RefreshSoAfterSlotUpdate"); void RefreshSoAfterSlotUpdate(SO *p)
 {
-    if (!!((p->f >> 60) & 1)) {
-        int k = p->k;
-        if (k != -1 && p->t->k != k) { RemoveLoFromRenderTree(p); AddLoToRenderTree(p); }
-        if (p->a == 0) ResortSwBusyEntry(&g_sw, p->b);
+    bool f = p->isInWorld;   /* through a bool, as SetSoBusyDistance: g++ then shifts the bit out (dsrl32; andi 1) */
+    if (f) {
+        int k = p->renderStamp;
+        if (k != -1 && p->rootTransform->worldStamp != k) { RemoveLoFromRenderTree(p); AddLoToRenderTree(p); }
+        if (p->parent == 0) ResortSwBusyEntry(&g_sw, p->root);
     }
 }
 } // namespace M_func_0022FA20
