@@ -41,3 +41,5 @@ VOLUME
 gotoSgf
 # --- skills/decomp-cleanup placeholders (example command arguments, the agent progress log)
 ../base-worktree base.json census.json PROGRESS.md
+# --- upstream readable names and upstream main paths cited in docs/upstream/ (names upstream uses, not in this tree)
+BASE.json Clq FDamageFatal__FP5ACTORP5CTMSG FUN_xxxxxxxx NGuardStatus__FP5GUARD NRandInRange__Fii OffKind0 OffKind1 PvAllocSwImpl__Fi PvRealloc__11CLinearHeapPvii RadTargetrec__FP9TARGETREC RefSoeHandle RefSoundMethod RefXfHandle__FP2LOiPv RefXfhLook ResolveEmits SetKind0Payload SetKind1Payload SetPositionKind g_clqZero s_pdliFirst src/auto src/hand src/hand/func_0012ABCD.c src/lib

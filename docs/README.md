@@ -66,6 +66,10 @@ On-disc data, for tools and the port: [disc records](formats/disc-records.md),
   in tools/cleanup/.
 - [guides/tu-merging.md](guides/tu-merging.md) — editing a translation unit without breaking the match: mismatch
   causes, vtable emission, unifying private views with the shared headers, islands, linkonce copies, data layout.
+- [upstream/ONBOARDING.md](upstream/ONBOARDING.md) — for contributors coming from upstream main: what this tree
+  changed and how to port per-function work and verify it; [upstream/NAME_CONFLICTS.md](upstream/NAME_CONFLICTS.md)
+  compares upstream readable's original names with ours, with the crosswalk
+  [upstream/name_crosswalk.csv](upstream/name_crosswalk.csv) and three reconciliation strategies.
 - [archive/view-unification-history.md](archive/view-unification-history.md) — the per-round records of vtable
   emission and view unification (what each round changed and left), kept for reference.
 - [archive/tu-merge-history.md](archive/tu-merge-history.md) — the per-wave notes of the translation-unit merge, kept
