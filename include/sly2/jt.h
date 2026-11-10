@@ -82,8 +82,8 @@ struct SURFLOC
 struct JT : public STEPPLAYER
 {
       GAIT gait;   /* +0x1320 Sly's walk/run gait (InitJt) */
-      undefined4 abldirJts5[0x100 / 4];
-      ASEGBL *pasegblJts5;
+      BLDIR abldirJts5[8];   /* +0x13D0 the directional blends of state 5 / body state 5 (InitJt InitDirectionalBlend; UpdateJt) */
+      ASEGBL *pasegblJts5;   /* +0x14D0 their blended segment */
       ASEG *unknown14D4;
       ASEG *unknown14D8;
       undefined4 unk_0x14dc[(0x1514 - 0x14dc) / 4];
@@ -154,8 +154,8 @@ struct JT : public STEPPLAYER
       struct EXPL *pexplDustLand;   /* dust effect on landing */
       struct EXPL *pexplDustGrab;   /* dust effect on grabbing */
       undefined4 unk_0x1ab0[(0x1ac0 - 0x1ab0) / 4];
-      undefined4 abldirJts10[0x100 / 4];
-      ASEGBL *pasegblJts10;
+      BLDIR abldirJts10[8];   /* +0x1AC0 the directional blends of state 10 (InitJt InitDirectionalBlend; UpdateJt) */
+      ASEGBL *pasegblJts10;   /* +0x1BC0 their blended segment */
       SM *unknown1BC4;
       ASEG *pasegPickpocket;   /* pickpocket animation */
       LO *ploPickpocket;   /* the object being pickpocketed */
@@ -194,8 +194,8 @@ struct JT : public STEPPLAYER
                                          distance kept from the surface */
             VECTOR4 avecMeshProbe[3];   /* the same, by component (air.cpp MeasureJumpAlongPath reads [0].x) */
       };
-      undefined4 ablHangFollow[0x30 / 4];
-      ASEGBL *pasegblHangFollow;
+      BLLEAN ablHangFollow[4];   /* +0x1F60 the hang-follow blends (InitJt EnsureAsegBlendDynamic, entries of 0xC) */
+      ASEGBL *pasegblHangFollow;   /* +0x1F90 their blended segment (JTS_HangFollow plays it) */
       float unknown1F94;   /* possibly curvePosition (low-confidence guess: -1..1 position mapped onto a shape and an angle) */
       float unknown1F98;
       undefined4 unk_0x1f9c[(0x1fb0 - 0x1f9c) / 4];
@@ -208,7 +208,7 @@ struct JT : public STEPPLAYER
       undefined4 unk_0x2008[(0x2010 - 0x2008) / 4];
       PROXY *unknown2010;
       JTAIRBL ablLean[3];   /* lean blends in the air (inferred) */
-      ASEGBL *pasegblLean;
+      ASEGBL *pasegblLean;   /* +0x2038 ablLean's blended segment (InitJt; JTS_Unk18 reblends and plays it) */
       undefined4 unk_0x203c[(0x2044 - 0x203c) / 4];
       CRefPtr<SND> psndGadget;   /* +0x2044 [R] looping gadget sound (ram_inspector) */
 
@@ -261,6 +261,6 @@ typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 
 typedef char assert_JT_aposMeshProbe[SLY2_OFFSETOF(JT, aposMeshProbe) == 0x1F30 ? 1 : -1];
 typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
 typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
-typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */
+typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */ typedef char assert_JT_abldirJts5[SLY2_OFFSETOF(JT, abldirJts5) == 0x13D0 ? 1 : -1]; typedef char assert_JT_abldirJts10[SLY2_OFFSETOF(JT, abldirJts10) == 0x1AC0 ? 1 : -1]; typedef char assert_JT_ablHangFollow[SLY2_OFFSETOF(JT, ablHangFollow) == 0x1F60 ? 1 : -1]; typedef char assert_JT_pasegblLean[SLY2_OFFSETOF(JT, pasegblLean) == 0x2038 ? 1 : -1];
 
 #endif /* SLY2_JT_H */
