@@ -27,7 +27,6 @@ struct XEC { char pad[0x30]; float g30; char pad34[0x2C]; void *pso60; XPL *pl; 
 struct CXP { qword pos; qword normal; int n20; SO *plo; int pad[2]; };
 typedef char assert_CXP_size[sizeof(CXP) == 0x30 ? 1 : -1];
 struct POV;
-struct Q18 { char pad[0x18]; int f18; };
 struct LOROOTV { void *plo; };
 struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
 {
@@ -48,7 +47,7 @@ struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
     qword angularVelocityAtDetonation; /* +0x1D0 */
     int makesNoise;            /* +0x1E0 detonation creates a noise stimulus (func_00156698), inferred */
     int detonatesOnContact;    /* +0x1E4 (inferred: kind-1 bombs detonate on contact only when set) */
-    Q18 *thrower;              /* +0x1E8 the thrower */
+    LO *thrower;               /* +0x1E8 the thrower (a guard, by the snapshot pipeline's prototype match) */
     int zapKind;               /* +0x1EC zap kind of the blast message (0x100) */
     int blastDamage;           /* +0x1F0 damage of the blast message (-10) */
     int fCustomXps;            /* +0x1F4 */
@@ -102,7 +101,7 @@ void AdjustSoXps(BOMBV *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);
 void PostSwCallback(SW *pg, BOMBV *p, long k, void *x);
-void SetLoParent(BOMBV *, Q18 *, int);
+void SetLoParent(BOMBV *, LO *, int);
 void SetSoPosXfVelocityLocal(BOMBV *, qword);
 void SetSoRotXfVelocityLocal(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
@@ -431,9 +430,9 @@ extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
 // BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event
 // 0x1B. (inferred)
 // Also known as: AttachStickyProjectile (upstream readable / Sly 1 name; AttachStickyProjectile__FPvT0).
-extern "C" void ApplyBombThrow(BOMBV *bomb, Q18 *q) {
+extern "C" void ApplyBombThrow(BOMBV *bomb, LO *q) {
     bomb->thrower = q;
-    SetLoParent(bomb, q->f18 != 1 ? q : 0, 3);
+    SetLoParent(bomb, q->oid != 1 ? q : 0, 3);
     SetSoPosXfVelocityLocal(bomb, D_002A2DD0);
     SetSoRotXfVelocityLocal(bomb, D_002A2DD0);
     SetSoCnstrForce(bomb, 1);
