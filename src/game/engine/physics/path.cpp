@@ -1147,21 +1147,20 @@ leaf:
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSwZoneBspFromBrx {
-struct G { char pad[0x45CC]; void *p45cc; };
 int U32Read__18CBinaryInputStream(void *pbis) __asm__("U32Read__18CBinaryInputStream");
 void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
 void LoadZoneBspFromBrx(void *p, int n, void *pbis) __asm__("LoadZoneBspFromBrx");
 // Reads the world's zone BSP from the level stream when present.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadSwZoneBspFromBrx(struct G *world, void *stream)
+extern "C" void LoadSwZoneBspFromBrx(SW *world, void *stream)
 {
     int n = U32Read__18CBinaryInputStream(stream);
     if (n) {
         struct SWALLOC msg;
         msg.cb = 0x30;
         msg.cbAlign = 0x10;
-        world->p45cc = AllocClearedFromWorldHeap(&msg);
-        LoadZoneBspFromBrx(world->p45cc, n, stream);
+        world->pregtree = (REGTREE *)AllocClearedFromWorldHeap(&msg);
+        LoadZoneBspFromBrx(world->pregtree, n, stream);
     }
 }
 } // namespace M_LoadSwZoneBspFromBrx
@@ -1213,24 +1212,23 @@ extern "C" void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostLoadSwPathzones {
-struct G { char pad[0x45C8]; void *defaultPathzone; void *zoneBsp; };
 void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d) __asm__("CreateLo__F3CIDP2SO3OIDi");
 void InitDefaultPathzoneCg(void *p) __asm__("InitDefaultPathzoneCg");
 void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
 void BindSwPathzones(void *p) __asm__("BindSwPathzones");
 // After level load: with no zone BSP creates a default path zone (oid 0x2CA) with the trivial graph; then binds the
 // zones and their links.
-extern "C" void PostLoadSwPathzones(struct G *world)
+extern "C" void PostLoadSwPathzones(SW *world)
 {
-    if (!world->zoneBsp) {
+    if (!world->pregtree) {
         struct SWALLOC msg;
-        world->defaultPathzone = CreateLo__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
-        InitDefaultPathzoneCg(world->defaultPathzone);
+        world->pcid17Default = (CID17 *)CreateLo__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
+        InitDefaultPathzoneCg(world->pcid17Default);
         msg.cb = 0x30;
         msg.cbAlign = 0x10;
-        world->zoneBsp = AllocClearedFromWorldHeap(&msg);
+        world->pregtree = (REGTREE *)AllocClearedFromWorldHeap(&msg);
     }
-    BindSwPathzones(world->zoneBsp);
+    BindSwPathzones(world->pregtree);
 }
 } // namespace M_PostLoadSwPathzones
 
