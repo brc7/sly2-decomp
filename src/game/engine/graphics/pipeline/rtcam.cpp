@@ -11,6 +11,7 @@
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
+#include "sly2/stepplayer.h"
 #include "sly2/shd.h"
 #include "sly2/gs.h"
 
@@ -58,8 +59,8 @@ struct RTCAM : XFM
 typedef char assert_RTCAM_prt[(unsigned int)&((RTCAM *)0)->prt == 0x128 ? 1 : -1];
 struct MATRIX4;
 struct SW; struct LO; struct BASIC;
-/* The hero's PO view: a 0x34-derived hero hands on to the object at +0xF40. */
-struct POV : PO { char pad180[0xF40 - 0x180]; POV *controlled; };   /* (inferred) the object the hero currently controls */
+/* The hero: a PO; a STEPPLAYER (cid 0x34) hands on to the object it controls (stepplayer.h jtmode.pstepOther, +0xF40). */
+typedef PO POV;
 
 /* The two render targets' lookup rows (26 ints each, -1: none), indexed by GetRenderTargetTexture (rtcam's .data). */
 int D_002C0B28[26] = {-1, -1, -1, 15, 15, 16, 16, -1, -1, 17, -1, -1, -1, -1, -1, 15, 16, 17, 15, 16, 17, -1, 15, 16, 17, -1};
@@ -353,8 +354,8 @@ extern "C" void RenderRtcam(RTCAM *rtcam)
     }
 }
 
-// The object a POV controls when po is a POV-derived object (cid 0x34), otherwise po itself.
-static __inline__ POV *Get(POV *po) { return (po && IsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->controlled : po; }
+// The object a STEPPLAYER hero (cid 0x34) controls, otherwise po itself.
+static __inline__ POV *Get(POV *po) { return (po && IsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? (POV *)((STEPPLAYER *)po)->jtmode.pstepOther : po; }
 // Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
 // player object, or what it controls), others in the whole world. (inferred)
 // Also known as: PvRtgtOwnerOfId (upstream readable / Sly 1 name; PvRtgtOwnerOfId__Fi).

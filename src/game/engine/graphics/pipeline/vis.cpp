@@ -14,14 +14,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct VIS : public XFM
 {
-    int unknownE0;            /* +0xE0 read from the BRX */
-    int unknownE4;
-    struct
-    {
-        byte pad[0xC];
-        int rootBsp;        /* +0xF4 root BSP node (an address) */
-    } bspc;                   /* +0xE8 BSPC (CBinaryInputStream_ReadBspc) */
-    byte geom[0x110 - 0xF8];  /* +0xF8 GEOM (ReadGeom) */
+    int valueE0;              /* +0xE0 read from the BRX */
+    int wordE4;
+    BSPC bspc;                /* +0xE8 xfm.h BSPC (CBinaryInputStream_ReadBspc); +0xF4 nodes: the root BSP node */
+    GEOM geom;                /* +0xF8 xfm.h GEOM (ReadGeom) */
     int isInside;             /* +0x110 -1 after init (unknown) */
     float changeTime;            /* +0x114 g_clock.time when fInside last changed */
 };
@@ -35,7 +31,7 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);
 void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *pv, void *pbis);
 qword ConvertPosBetweenLos(int a, VIS *pvis, qword pos);
-int FindBspLeafContainingPointFast(int pbsp, int n, qword pos);
+int FindBspLeafContainingPointFast(BSP *pbsp, int n, qword pos);
 void SetVisInside(VIS *vis, int isInside);
 }
 
@@ -53,9 +49,9 @@ void CID5::Init()
 extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 {
     LoadXfmXfFromBrx(vis, stream);
-    vis->unknownE0 = U32Read__18CBinaryInputStream(stream);
-    ReadGeom__18CBinaryInputStreamP4GEOM(stream, vis->geom);
-    CBinaryInputStream_ReadBspc(stream, vis->geom, &vis->bspc);
+    vis->valueE0 = U32Read__18CBinaryInputStream(stream);
+    ReadGeom__18CBinaryInputStreamP4GEOM(stream, &vis->geom);
+    CBinaryInputStream_ReadBspc(stream, &vis->geom, &vis->bspc);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(vis, stream);
 }
 
@@ -63,7 +59,7 @@ extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 // result with SetVisInside. Called by the camera for every zone each frame.
 extern "C" void UpdateVisInside(VIS *vis, qword worldPos)
 {
-    SetVisInside(vis, FindBspLeafContainingPointFast(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertPosBetweenLos(0, vis, worldPos)) != 0);
+    SetVisInside(vis, FindBspLeafContainingPointFast(vis->bspc.nodes, 0x7FFFFFFF, ConvertPosBetweenLos(0, vis, worldPos)) != 0);
 }
 
 // Stores the zone's inside state; on a change also stamps the time (g_clock.time) it changed.
