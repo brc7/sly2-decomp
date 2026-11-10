@@ -82,9 +82,19 @@ struct SPRITEITEM
     SPRITEXF matrix;             /* +0x10 */
     SPRITEDESC *descriptor;      /* +0x30 */
     int kind;                    /* +0x34 4: queued as is when it has no descriptor (inferred) */
-    char pad38[0x58 - 0x38];
+    /* +0x38..+0x57: the two key poses ApplySpriteKeyPoses interpolates between (names from its view; InitSpriteItem
+       sets the previous matrix to the identity, D_002A3A10) (inferred) */
+    float previousTime;          /* +0x38 */
+    RGBA previousColor0;         /* +0x3C */
+    RGBA previousColor1;         /* +0x40 */
+    SPRITEXF *previousMatrix;    /* +0x44 */
+    float nextTime;              /* +0x48 */
+    RGBA nextColor0;             /* +0x4C */
+    RGBA nextColor1;             /* +0x50 */
+    SPRITEXF *nextMatrix;        /* +0x54 */
     int spriteSlot;              /* +0x58 NESTED: the slot of the nested group */
-    char pad5C[0x61 - 0x5C];
+    float cachedTime;            /* +0x5C the time the pose was last evaluated at (inferred) */
+    uchar interpolate;           /* +0x60 the keys are interpolated (inferred) */
     uchar drawFlags;             /* +0x61 QueueSpriteItem's flags (RenderWidget's channel) */
     char pad62[0x64 - 0x62];
     int arg;                     /* +0x64 */
@@ -92,6 +102,10 @@ struct SPRITEITEM
     int unknown6C;               /* +0x6C */
 };
 typedef char assert_SPRITEITEM_size[sizeof(SPRITEITEM) == 0x70 ? 1 : -1];
+typedef char assert_SPRITEITEM_previousTime[SLY2_OFFSETOF(SPRITEITEM, previousTime) == 0x38 ? 1 : -1];
+typedef char assert_SPRITEITEM_previousMatrix[SLY2_OFFSETOF(SPRITEITEM, previousMatrix) == 0x44 ? 1 : -1];
+typedef char assert_SPRITEITEM_nextMatrix[SLY2_OFFSETOF(SPRITEITEM, nextMatrix) == 0x54 ? 1 : -1];
+typedef char assert_SPRITEITEM_cachedTime[SLY2_OFFSETOF(SPRITEITEM, cachedTime) == 0x5C ? 1 : -1];
 
 /* A sprite group's playback slot (0x18 bytes): its sprite items, the animation playing (-1 none), the key, the time,
    whether it finished (or holds a seeked time), its sound. */

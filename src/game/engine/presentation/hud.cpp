@@ -1967,31 +1967,27 @@ void BuildSpritePictureTexPacket(WIDGET *owner, Q *sprite)
 
 // 0x2156B8 InitSpriteItem
 namespace M_InitSpriteItem {
-// Packed color word.
-struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
-struct CP { RGBA c0, c1; };
-/* A sprite frame item (0x70 bytes): three colour pairs, its descriptor, its slot in a nested group, an argument,
-   a list link. */
-struct S { CP colors; char pad[0x28]; int descriptor, unknown34, unknown38; CP colorsB; void *matrix; int unknown48; CP colorsC; int unknown54, spriteSlot, unknown5C; int pad2; int arg; char link[4]; };
-extern char D_002A3A10[] __asm__("D_002A3A10");
+extern SPRITEXF D_002A3A10 __asm__("D_002A3A10");   /* the identity 2x3 matrix (inferred) */
 extern void ClearSle(void *p) __asm__("ClearSle");
+// Stores a colour as one aligned word (RGBA itself is byte-aligned, so a struct copy would be stored unaligned).
+static inline void SetRgbaBits(RGBA &c, unsigned int bits) { *(unsigned int *)&c = bits; }
 // Sets a sprite item's defaults: neutral colours, identity transform, no ids.
-extern "C" void InitSpriteItem(S *item)
+extern "C" void InitSpriteItem(SPRITEITEM *item)
 {
-    item->matrix = D_002A3A10;   /* the identity 2x3 matrix (inferred) */
+    item->previousMatrix = &D_002A3A10;
     item->descriptor = 0;
-    item->unknown54 = 0;
+    item->nextMatrix = 0;
     /* colour pairs: offset 0x7F (neutral), scale 0xFF (full) per channel */
-    item->colors.c0 = RGBA(0x7F7F7F7F); item->colors.c1 = RGBA(0xFFFFFFFF);
-    item->colorsB.c0 = RGBA(0x7F7F7F7F); item->colorsB.c1 = RGBA(0xFFFFFFFF);
-    item->colorsC.c0 = RGBA(0x7F7F7F7F); item->colorsC.c1 = RGBA(0xFFFFFFFF);
+    SetRgbaBits(item->color0, 0x7F7F7F7F); SetRgbaBits(item->color1, 0xFFFFFFFF);
+    SetRgbaBits(item->previousColor0, 0x7F7F7F7F); SetRgbaBits(item->previousColor1, 0xFFFFFFFF);
+    SetRgbaBits(item->nextColor0, 0x7F7F7F7F); SetRgbaBits(item->nextColor1, 0xFFFFFFFF);
     item->arg = -1;
     item->spriteSlot = 0;
-    item->unknown34 = 0;
-    item->unknown5C = 0;
-    item->unknown38 = 0;
-    item->unknown48 = 0;
-    ClearSle(item->link);
+    item->kind = 0;
+    item->cachedTime = 0;
+    item->previousTime = 0;
+    item->nextTime = 0;
+    ClearSle(&item->link);
 }
 } // namespace M_InitSpriteItem
 
