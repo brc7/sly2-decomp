@@ -2149,20 +2149,15 @@ extern "C" int GetGlyphIndex__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 // 0x215AC0 CRichText_ctor
 namespace M_CRichText_ctor {
 // Packed color word.
-struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
-struct Q { int a[4]; } __attribute__((aligned(16)));
-extern Q D_002A2E10 __asm__("D_002A2E10");
-extern Q D_002A2E20 __asm__("D_002A2E20");
+extern QWROW D_002A2E10 __asm__("D_002A2E10");
+extern QWROW D_002A2E20 __asm__("D_002A2E20");
 /* CRichText2 (0x98 bytes; the field names are the same in every view of this file):
    text, cursor, current / base / alternate font, current / base / alternate colour, the two float colour vectors
    the glyphs draw with and their base values, a style-change flag, the screen origin, the box (offset, size,
    scale), line height, font scale, alignment (0 top/left, 1 centre, 2 bottom/right) and render priority. */
-struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; RGBA baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
-  char pad60[4]; float originX; float originY; int offsetX; int offsetY; int width; int height; float scaleX; float scaleY; float lineHeight; float fontScale;
-  int vAlign; int hAlign; int priority; };
-extern void ResetRichText2(S *p, int i) __asm__("ResetRichText2");
+extern void ResetRichText2(CRichText2 *p, int i) __asm__("ResetRichText2");
 // Rich-text constructor from a string, a font and a scale.
-extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
+extern "C" CRichText2 *CRichText_ctor(CRichText2 *rt, uchar *text, float fontScale)
 {
     rt->text = text;
     rt->scaleX = 1.0f;
@@ -2180,7 +2175,7 @@ extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
     rt->priority = 6;
     rt->font = rt->baseFont = (char *)((WIDGET *)g_sw.ploHudFont)->sprites;
     rt->altFont = (char *)(((WIDGET *)g_sw.ploHudFont)->sprites + 1);
-    rt->baseColor = RGBA(0x80808080);
+    *(uint *)&rt->baseColor = 0x80808080;
     rt->baseColor0 = D_002A2E10;
     rt->baseColor1 = D_002A2E20;
     ResetRichText2(rt, 0);
@@ -2190,16 +2185,12 @@ extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
 
 // 0x215BA8 ConstructRichText2FromSprite
 namespace M_func_00215BA8 {
-struct Q { int a[4]; } __attribute__((aligned(16)));
-struct Q3 { Q a, b, c; };
+struct Q3 { QWROW a, b, c; };
 /* a text sprite descriptor (RenderSpriteText's S) */
 struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
-struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
-  char pad60[4]; float originX; float originY; int offsetX; int offsetY; float width; float height; float scaleX; float scaleY; float lineHeight; float fontScale;
-  int vAlign; int hAlign; int priority; };
-extern void ResetRichText2(S *p, int i) __asm__("ResetRichText2");
+extern void ResetRichText2(CRichText2 *p, int i) __asm__("ResetRichText2");
 // Rich-text constructor from a sprite text element (width, height, colour). (inferred)
-extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style)
+extern "C" CRichText2 *ConstructRichText2FromSprite(CRichText2 *rt, uchar *text, R *sprite, Q3 *style)
 {
     Q3 styleCopy = *style;
     rt->text = text;
@@ -2218,7 +2209,7 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
     rt->fontScale = rt->lineHeight * 0.01953125f;   /* 1 / 51.2 */
     rt->font = rt->baseFont = (char *)((WIDGET *)g_sw.ploHudFont)->sprites;
     rt->altFont = (char *)(((WIDGET *)g_sw.ploHudFont)->sprites + 1);
-    rt->baseColor = sprite->color;
+    *(int *)&rt->baseColor = sprite->color;
     rt->baseColor0 = styleCopy.b;
     rt->baseColor1 = styleCopy.c;
     ResetRichText2(rt, 0);
