@@ -17,13 +17,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* View of the rail (a SHAPE). */
 struct K { int a, b; };
-struct RAILV
+struct RAILV : BASIC 
 {
-    char pad0[0x38];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
     float length;           /* +0x038 1e10 at load: the shape's length (UpdateShapeBoundingSphere) plus D_002C1EC0 */
-    char pad3C[0xA8];
+    void *proxyRecord; char pad40[0x50 - 0x40]; void *parentTransform; char pad54[0xE4 - 0x54];
     int isClosed;           /* +0x0E4 non-zero: a closed shape, no range clamp */
-    char pad0E8[0xA8];
+    char pad0E8[0xEC - 0xE8]; void *vertexParams; void *vertexArcLengths; void *vertexPositions; char padF8[0x140 - 0xF8]; void *incomingTangents; void *outgoingTangents; char pad148[0x17C - 0x148]; void *chain; void *pranges; char pad184[0x18C - 0x184]; void *unknown18C;
     char grabspot[0x24];    /* +0x190 GRABSPOTDATA */
     K k;                    /* +0x1B4 kept across CloneShape */
     char pad1BC[4];
