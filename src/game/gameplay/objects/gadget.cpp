@@ -34,7 +34,7 @@ struct ACT;
 struct GAME;
 
 /* An XF (sly2/so.h: mat rows + position, world rows + position, parent, velocity). */
-struct XFV { M3 basis; qwordV orientation; M3 basisWorld; V position; char pad80[0xA0 - 0x80]; XFV *parent; char padA4[0xC]; V velocity; };
+struct XFV { M3 basis; qwordV orientation; M3 basisWorld; V position; char pad80[0x88 - 0x80]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0xA0 - 0x94]; XFV *parent; char padA4[0xA8 - 0xA4]; void *unknownA8; char padAC[0xB0 - 0xAC]; V velocity; };
 /* SO::physics and SO::physicsTree as read here. */
 struct SOPHYSV { char pad[0x80]; qwordV acceleration; char pad90[0xD4 - 0x90]; float unknownD4; float unknownD8; };   /* acceleration: inferred (PushGuardTrapAway cancels it) */
 /* A contact (elasticity at +0x98). */
@@ -44,21 +44,21 @@ struct SOTREEV { char pad[0x60]; SOV *owner; struct LN *contactLists; };
 /* A generic SO (the bodies the blast pushes, the objects the gadget meets). */
 struct SOV
 {
-    int pad0[3];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     void *vptr;               /* 0x0C */
     SOV *parent;            /* 0x10 */
-    char pad14[0x18 - 0x14];
+    void *root;
     int oid;                /* 0x18 */
-    char pad1C[0x40 - 0x1C];
+    void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord;
     int taggedFlags;        /* 0x40 tagged flags word */
-    char pad44[0x58 - 0x44];
+    char pad44[0x54 - 0x44]; void *transforms;
     XFV *positionXf;        /* 0x58 */
     XFV *rotationXf;        /* 0x5C */
     XFV *rootXf;            /* 0x60 */
-    char pad64[0xE8 - 0x64];
+    void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts;
     SOPHYSV *physics;       /* 0xE8 */
     SOTREEV *tree;          /* 0xEC */
-    char padF0[0x150 - 0xF0];
+    char padF0[0x134 - 0xF0]; void *psobounds; void *pxa; char pad13C[0x144 - 0x13C]; void *prender; char pad148[0x150 - 0x148];
 };
 typedef char assert_SO_size[sizeof(SOV) == 0x150 ? 1 : -1];
 
