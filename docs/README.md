@@ -69,6 +69,10 @@ On-disc data, for tools and the port: [disc records](formats/disc-records.md),
   unification, sweeps, verification, integration, agent orchestration) with the lessons from this decomp, for the next
   one; the agent checklist is [skills/decomp-cleanup/SKILL.md](../skills/decomp-cleanup/SKILL.md) and the scripts are
   in tools/cleanup/.
+- Cleanup tools for snapshots and 64-bit readiness: [tools/cleanup/snapshots](../tools/cleanup/snapshots/README.md)
+  (RAM-snapshot object discovery, field typing, name checks, per-level state capture over PINE) and the exact
+  32-vs-64-bit danger test in tools/cleanup/ptr64/ (dt.py, judge.py). Method and lessons:
+  [playbook sections 11-12](guides/cleanup-playbook.md#11-snapshot-driven-work).
 - [guides/tu-merging.md](guides/tu-merging.md) — editing a translation unit without breaking the match: mismatch
   causes, vtable emission, unifying private views with the shared headers, islands, linkonce copies, data layout.
 - [upstream/ONBOARDING.md](upstream/ONBOARDING.md) — for contributors coming from upstream main: what this tree

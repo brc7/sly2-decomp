@@ -19,7 +19,9 @@ verification. The short version:
 7. verification discipline throughout (the part that decides whether the rest can be trusted);
 8. the g++ 2.95 traps that each cost a round;
 9. integration: one branch, merges in order, checkpoints;
-10. agent orchestration and quota.
+10. agent orchestration and quota;
+11. snapshot-driven work: RAM snapshots of the running game for field typing, live classes and name checks;
+12. 64-bit readiness: the exact 32-vs-64 danger test and its cheap fixes.
 
 ## 1. Prerequisites
 
@@ -221,6 +223,11 @@ and fixes", "Traps") and the compiler facts in [MATCHING_NOTES.md](../MATCHING_N
   extra temporary; this is a g++ 2.95 extension that other compilers reject (a port needs overrides).
 - **User-written destructors store the vptr.** Only an implicit destructor's body leaves the vptr store out; a real
   base destructor can therefore be impossible to write in matching source.
+- **C library names in SDK C files become builtins.** Renaming a libm-style function to its real name (`fabsf`,
+  `isnan`, `scalbn`, ...) lets gcc recognise it as a builtin and inline or fold it, so the call (or the whole
+  function) changes. Never declare the library name directly: keep the old identifier and give it an `__asm__` label
+  with the new symbol, at the declaration *and* at every call site that declares it locally. Only the platform-only
+  builds (the Docker SDK build) compile these files, so run them before calling such a rename done.
 
 ## 9. Integration workflow
 
@@ -256,3 +263,52 @@ and fixes", "Traps") and the compiler facts in [MATCHING_NOTES.md](../MATCHING_N
   surfaces decisions the maintainer must make (a config alias, a representation choice) as soon as they appear.
 - **Prompts**: a common prompt per phase (environment, rules, context to read, the task, how to verify, the final
   report format) plus one family line; the template is in the skill.
+- **A second team (the port) coordinates through a message board outside both repositories**, not through either
+  tree: one file per request, and one writer per log file (each side appends only to its own log), so no edit ever
+  needs a merge. The port lives in its own repository and pins the decomp; requests cross the board, code does not.
+
+## 11. Snapshot-driven work
+
+RAM snapshots of the running game (PCSX2 save states; tools in tools/cleanup/snapshots/, rerun order in its
+README) answer questions the code answers only slowly: which classes are alive in a level, and what a slot actually
+holds.
+
+- **Object discovery.** Every BASIC-derived object has its vtable pointer at +0xC (a few roots differ: animation
+  curves at 0, actions at +0x18, particles further in). Scan the heap for words equal to a known vtable address,
+  subtract the offset, and cross-check against the world's per-class lists, which also tells stale copies in freed
+  memory from live objects.
+- **Field typing across instances.** Classify each 4-byte slot over every instance of a class in every snapshot
+  (zero, vptr, object pointer with the target's class, interior pointer, code, global, heap, small int, float) and
+  merge with the header. This is what snapshots are good at: field types, pointer targets, and the live class set
+  of a level.
+- **What they are weak at:** the class behind a TU-private view. Prototypes and declared types only bound it
+  ("is-a T", not "is T"), and layout matching against the inferred slots can propagate one wrong slot into many
+  views. When a snapshot and the code disagree, the code wins: the code is what the game does; a snapshot is one
+  moment of it.
+- **Behaviour objects only exist while pushed.** Guard behaviours, mission and minigame states appear in RAM only
+  while active, so "never seen" usually means "not captured in that situation", not dead code. States inside the
+  situation matter more than more images of a level already seen.
+- **Collecting states cheaply.** Warping by memory writes (the world's level-request block) through a PINE bridge
+  that serves a job queue (one JSON file per job in an inbox, results in an outbox) captures one state per level
+  unattended. After each load the game pauses on a memory-card dialog; dismiss it with SQUARE held through the
+  joypad state (a forced-button mask does not reach menus). See tools/cleanup/snapshots/warp_tour.py.
+
+**Name checking against snapshots** (tools/cleanup/snapshots/namecheck.py). Names and types imply kinds
+(`p` prefix or pointer type: pointer; `f` or float: plausible float; counts and flags: small ints), checked against
+every live instance of every class that contains the field. Paired-state checks compare fields across two snapshots
+of a known situation (a coin collected, a jump, a guard alerted) and confirm or refute names like counters and
+states. Mismatches that cluster at one layout region are usually sampling artifacts (few instances, a union, a slot
+only used in some states), not offset drift: verify against the code that reads the field before moving offsets.
+
+## 12. 64-bit readiness
+
+The port compiles the decomp natively, so every TU-private view must put each field at the right 64-bit offset.
+
+- **The exact danger test** (tools/cleanup/ptr64/dt.py, then judge.py). clang dumps each view's layout for x32 and
+  x86-64; a view is dangerous only if a field the code actually accesses moves, judged against the real object's
+  pointer slots (from the header, or the snapshots when the class is known). Use the EE data model: pointers are 4
+  bytes but `long` is 8, so plain `long` is not a hazard. Fields never accessed do not count.
+- **The cheap fix is deriving the view from the real base** (`struct V : REAL { ... }`), which carries the right
+  pointer slots for free; next, type pointer slots that hide in pads (`void *` instead of a word of a byte array).
+- **Write the judgement down.** When a view's pads are declared pointer-free (a file record, hardware words), record
+  why in tools/cleanup/ptr64/evidence.json; judge.py reads it, and the next round does not re-litigate it.

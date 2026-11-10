@@ -1,7 +1,7 @@
 # Snapshot tools
 
 Tools that read PS2 RAM snapshots of the running game to type fields, find live classes and check names. Background
-and lessons: [cleanup playbook, snapshot-driven work](../../../docs/guides/cleanup-playbook.md#snapshot-driven-work).
+and lessons: [cleanup playbook, snapshot-driven work](../../../docs/guides/cleanup-playbook.md#11-snapshot-driven-work).
 
 Game data never goes in git. Every tool takes the ELF, RAM images and save states as paths. The default work
 directory is `build/snapshots/` (git-ignored). Shared options (`--root`, `--elf`, `--work`, `--census`,

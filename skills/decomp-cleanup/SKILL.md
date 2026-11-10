@@ -22,6 +22,10 @@ docstring lists its options).
 - One worktree and one scratch directory per agent; never `git stash`; commit after every file; keep a progress log
   in scratch that a resumed agent can follow.
 - Linker symbols are renamed only with the rename tool, never by hand.
+- In SDK C files never declare a C library or builtin name (`fabsf`, `isnan`, `scalbn`, ...): gcc inlines it. Keep
+  the old identifier with an `__asm__` label for the new symbol, at declarations and call sites, and run the
+  platform-only (Docker SDK) builds before calling the rename done.
+- Game data (ELF, RAM dumps, save states, extracted assets) never goes in git; tools take it as paths.
 
 ## Phases
 
@@ -35,6 +39,8 @@ docstring lists its options).
 | 5 signatures | integration done | cross-family virtual/constructor signature changes in lockstep | no slot moved (reloc + nm diff 0) |
 | 6 sweeps | stable base | scripted mechanical edits (vtable-entry copies, wrong-typed externs, repeated helpers) with skip lists | re-run on the final base, not merged |
 | 7 integrate | family branches verified | one integration branch, merge in order, reconcile duplicates, checkpoint | full verify clean; bundle to the maintainer |
+| side: snapshots | RAM snapshots of the levels in question | object discovery (vptr at +0xC), field typing across instances, name checks (tools/cleanup/snapshots/) | field types / names confirmed against the code that uses them; code wins on disagreement |
+| side: 64-bit | views unified as far as they go | exact danger test (tools/cleanup/ptr64/dt.py + judge.py, EE long = 8, accessed fields only); derive views from the real base; type pointer slots in pads; record pointer-free judgements in evidence.json | 0 dangerous in the milestone's files, unverifiable ones listed |
 
 ## Verification commands
 
@@ -51,7 +57,18 @@ python3 tools/cleanup/docnames.py    # 0 unexplained misses
 tools/verify.sh                  # all of the above in one summary
 # census for view unification (re-run after each integration)
 python3 tools/cleanup/census/dump_offsets.py && python3 tools/cleanup/census/census_all.py --config census.json
+# snapshots (RAM images in build/snapshots/ram; rerun order in tools/cleanup/snapshots/README.md)
+export SNAP_ELF=<ELF>   # or --elf on each script
+python3 -I tools/cleanup/snapshots/snapshot_objects.py && python3 -I tools/cleanup/snapshots/infer_layout.py
+python3 -I tools/cleanup/snapshots/namecheck.py all
+# 64-bit danger test
+python3 -I tools/cleanup/ptr64/dt.py . facts.json && python3 -I tools/cleanup/ptr64/judge.py facts.json judged.json
 ```
+
+Snapshot caveats: they type fields and list live classes well, but bound a view's class only as "is-a" (prototypes,
+declared types), and layout matching can spread one wrong slot. Behaviour objects exist only while pushed, so capture
+states inside the situation. A cluster of name mismatches is usually a sampling artifact, not drift: read the code
+before moving offsets.
 
 ## Agent prompt template (one family, one round)
 
@@ -94,3 +111,5 @@ full verify, bundle).
 - Re-run the agent's verification yourself before merging; run the whole-tree gates at each checkpoint.
 - Under quota pressure run one or two agents; park branches at clean commits and resume them one at a time.
 - Surface maintainer decisions (config aliases, representation choices, renames to review) as soon as they appear.
+- With a second team (the port, its own repository), coordinate through a message board outside both repos: one file
+  per request, one writer per log file.
