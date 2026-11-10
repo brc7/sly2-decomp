@@ -63,7 +63,7 @@ struct BND
       LO *plo;
       int ixf;
       XF *pxf;
-      MATRIX4 matInv;
+      union { MATRIX4 matInv; MATRIX4Q matqInv; };   /* the quadword rows for UnpackSubglobBones */
 };
 
 
@@ -717,24 +717,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UnpackSubglobBones {
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
-typedef struct M4 { qword r[4]; } M4;
-typedef struct TRANSFORM { char pad0[0x40]; M4 world; } TRANSFORM;
-typedef struct BONE {
-    int value, unknown4, index;
-    TRANSFORM *transform;
-    M4 local;
-} BONE;
-typedef struct DESC {
-    unsigned char flags;
-    signed char count;
-    unsigned short channel;
-    float distance;
-    int unknown8;
-    uint base;
-} DESC;
-typedef struct ENTRY { char pad0[0x18]; BONE *bones; } ENTRY;
 
 // Load a 128-bit value with lq into a GPR (no VU0 round trip).
 extern "C" { static __inline__ qword ReadCPU(const qword *source)
@@ -757,11 +740,11 @@ extern "C" { static __inline__ void Align(uint align)
 } }
 
 // Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet. (inferred)
-extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
+extern "C" void UnpackSubglobBones(void *context, SUBGLOB *descriptor, GLOB *entry)
 {
     uint opcode;
-    BONE *bone, *last;
-    TRANSFORM *parent;
+    BND *bone, *last;
+    XF *parent;
     qword *output;
     qword p0, p1, p2, p3, n0, n1, n2, n3;
     register qword v1 __asm__("vf1"), v2 __asm__("vf2");
@@ -770,34 +753,34 @@ extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry
     register qword v7 __asm__("vf7"), v8 __asm__("vf8");
 
     Align(12);
-    opcode = (uint)descriptor->count << 18;
+    opcode = (uint)descriptor->cbnd << 18;
     opcode |= 0x6000C000;
     opcode |= 0x0C000000;
-    opcode |= descriptor->base;
+    opcode |= descriptor->iqwBone;
     *(uint *)D_002DEA28.m_pb = opcode;
     D_002DEA28.m_pb += 4;
     output = (qword *)D_002DEA28.m_pb;
-    bone = entry->bones;
-    last = bone + descriptor->count - 1;
-    parent = bone->transform;
-    v5 = bone->local.r[0]; v6 = bone->local.r[1];
-    v7 = bone->local.r[2]; v8 = bone->local.r[3];
-    v1 = parent->world.r[0]; v2 = parent->world.r[1];
-    v3 = parent->world.r[2]; v4 = parent->world.r[3];
+    bone = entry->abnd;
+    last = bone + descriptor->cbnd - 1;
+    parent = bone->pxf;
+    v5 = bone->matqInv.r[0].q; v6 = bone->matqInv.r[1].q;
+    v7 = bone->matqInv.r[2].q; v8 = bone->matqInv.r[3].q;
+    v1 = parent->worldMatq.r[0].q; v2 = parent->worldMatq.r[1].q;
+    v3 = parent->worldMatq.r[2].q; v4 = parent->worldMatq.r[3].q;
     for (;;) {
         __asm__ __volatile__("vcallms 0x60" : :
                 "j"(v1), "j"(v2), "j"(v3), "j"(v4),
                 "j"(v5), "j"(v6), "j"(v7), "j"(v8));
         if (bone < last) {
-            TRANSFORM *next = bone[1].transform;
-            p0 = ReadCPU(&next->world.r[0]);
-            p1 = ReadCPU(&next->world.r[1]);
-            p2 = ReadCPU(&next->world.r[2]);
-            p3 = ReadCPU(&next->world.r[3]);
-            n0 = ReadCPU(&bone[1].local.r[0]);
-            n1 = ReadCPU(&bone[1].local.r[1]);
-            n2 = ReadCPU(&bone[1].local.r[2]);
-            n3 = ReadCPU(&bone[1].local.r[3]);
+            XF *next = bone[1].pxf;
+            p0 = ReadCPU(&next->worldMatq.r[0].q);
+            p1 = ReadCPU(&next->worldMatq.r[1].q);
+            p2 = ReadCPU(&next->worldMatq.r[2].q);
+            p3 = ReadCPU(&next->worldMatq.r[3].q);
+            n0 = ReadCPU(&bone[1].matqInv.r[0].q);
+            n1 = ReadCPU(&bone[1].matqInv.r[1].q);
+            n2 = ReadCPU(&bone[1].matqInv.r[2].q);
+            n3 = ReadCPU(&bone[1].matqInv.r[3].q);
         }
         {
             int sync;
@@ -825,19 +808,7 @@ extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
-typedef char layout_M4[(sizeof(M4)==0x40)?1:-1];
-typedef char layout_BONE[(sizeof(BONE)==0x50)?1:-1];
-typedef char layout_DESC[(sizeof(DESC)==0x10)?1:-1];
-typedef char layout_TRANSFORM_world[((unsigned long)&((TRANSFORM*)0)->world==0x40)?1:-1];
-typedef char layout_BONE_transform[((unsigned long)&((BONE*)0)->transform==0xc)?1:-1];
-typedef char layout_BONE_local[((unsigned long)&((BONE*)0)->local==0x10)?1:-1];
-typedef char layout_DESC_count[((unsigned long)&((DESC*)0)->count==0x1)?1:-1];
-typedef char layout_DESC_base[((unsigned long)&((DESC*)0)->base==0xc)?1:-1];
-typedef char layout_ENTRY_bones[((unsigned long)&((ENTRY*)0)->bones==0x18)?1:-1];
-typedef char layout_M4_row0[((unsigned long)&((M4*)0)->r[0]==0x0)?1:-1];
-typedef char layout_M4_row1[((unsigned long)&((M4*)0)->r[1]==0x10)?1:-1];
-typedef char layout_M4_row2[((unsigned long)&((M4*)0)->r[2]==0x20)?1:-1];
-typedef char layout_M4_row3[((unsigned long)&((M4*)0)->r[3]==0x30)?1:-1];
+
 } // namespace M_UnpackSubglobBones
 
 // Keeps its per-function views in a namespace of its own (see the file header).
