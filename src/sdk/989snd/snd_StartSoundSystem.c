@@ -2,10 +2,10 @@
 // SLY2_CFLAGS: -O2 -G0
 typedef struct CB { void (*fn)(int, long); int pad; long arg; } CB;
 typedef struct RPC { int x[16]; } RPC;
-extern int *D_002C4660[2];
-extern int D_002C4668[2];
+extern int *gSndCommandBuffePtr[2];
+extern int gCommandBuffeBytesAvail[2];
 extern CB *gSndCommandReturnDefPtr[2];
-extern int *D_002C4678[2];
+extern int *gReturnValuesPtr[2];
 extern int gLoadBusy, D_002C46B8;
 extern CB gLoadReturnDef;
 extern int D_00443B80[], D_00444B80[], D_00447B80[], D_00447FC0[];
@@ -24,10 +24,10 @@ void snd_StartSoundSystem(int flags)
     int i;
     int buf[2];
 
-    D_002C4660[0] = D_00443B80;
-    D_002C4660[1] = D_00444B80;
-    D_002C4678[0] = D_00447B80;
-    D_002C4678[1] = D_00447FC0;
+    gSndCommandBuffePtr[0] = D_00443B80;
+    gSndCommandBuffePtr[1] = D_00444B80;
+    gReturnValuesPtr[0] = D_00447B80;
+    gReturnValuesPtr[1] = D_00447FC0;
     gSndCommandReturnDefPtr[0] = D_00445B80;
     gSndCommandReturnDefPtr[1] = D_00446B80;
     if (flags & 2)
@@ -63,10 +63,10 @@ void snd_StartSoundSystem(int flags)
     ((volatile int *)gStats)[4] = 0;
     *D_00443B80 = 0;
     *D_00444B80 = 0;
-    D_002C4668[0] = 0xFFC;
+    gCommandBuffeBytesAvail[0] = 0xFFC;
     buf[0] = (int)gStats;
     buf[1] = flags;
-    D_002C4668[1] = 0xFFC;
+    gCommandBuffeBytesAvail[1] = 0xFFC;
     snd_SendIOPCommandAndWait__FiiPc(0, 8, buf);
 }
 

@@ -39,17 +39,17 @@ struct CODES
     float checkTime;           /* +0xC */
 };
 
-/* Safe iterator over an SL (the SL counterpart of sly2/dli.h; its own stack at D_002DD2F8). */
+/* Safe iterator over an SL (the SL counterpart of sly2/dli.h; its own stack at g_psliFirst). */
 struct SLI { SL *m_psl; void **m_ppv; int m_ibSle; SLI *m_psliNext; };
-extern SLI *D_002DD2F8;
-// Starts a safe iteration over an SL: pushes the iterator on the iterator stack D_002DD2F8.
+extern SLI *g_psliFirst;
+// Starts a safe iteration over an SL: pushes the iterator on the iterator stack g_psliFirst.
 static inline void InitSli(SLI *psli, SL *psl)
 {
     psli->m_psl = psl;
     psli->m_ppv = (void **)psl;
     psli->m_ibSle = psl->linkOffset;
-    psli->m_psliNext = D_002DD2F8;
-    D_002DD2F8 = psli;
+    psli->m_psliNext = g_psliFirst;
+    g_psliFirst = psli;
 }
 // Returns the current element and advances the iterator to the next one.
 static inline void *PvNextSli(SLI *psli)
@@ -154,7 +154,7 @@ extern "C" void UpdateCodes(CODES *codes)
         }
         ResetCheatCodeProgress(codes);
         codes->checkTime = 0.0f;
-        D_002DD2F8 = sli.m_psliNext;
+        g_psliFirst = sli.m_psliNext;
     }
 }
 

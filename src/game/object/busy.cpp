@@ -20,7 +20,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* View of the camera (zone mask +0x14, position +0x90). */
 
 float g_busyRescanDistance = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment) */
-extern DLI *D_002DD2FC;     /* g_pdliFirst */
+extern DLI *g_pdliFirst;     /* g_pdliFirst */
 extern "C" {
 void *GetHeroPo(void);
 qword GetLoWorldPos(void *p);
@@ -155,7 +155,7 @@ extern "C" void UpdateSwBusyList(SW *world)
             }
         }
     }
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 
 /* UpdateSoBusy (Claude agent): case 2 before case 0, and a block-local r per case (so the g38 load ties to f20). */

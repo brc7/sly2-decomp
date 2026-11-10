@@ -3,10 +3,10 @@
 typedef struct CB { void (*fn)(int, long); int pad; long arg; } CB;
 extern int gCommBusy;
 extern void (*gCdCallback)(int);
-extern int gSSRead, gSSReadDone, gLoadingFromFS, D_002C4680, gCaching, gLoadBusy;
-extern int *D_002C4660[2];
+extern int gSSRead, gSSReadDone, gLoadingFromFS, gCommandFillBuffer, gCaching, gLoadBusy;
+extern int *gSndCommandBuffePtr[2];
 extern CB *gSndCommandReturnDefPtr[2];
-extern int *D_002C4678[2];
+extern int *gReturnValuesPtr[2];
 extern void (*gLoadCB)(int, long);
 extern long gLoadUserData;
 extern CB gLoadReturnDef;
@@ -27,10 +27,10 @@ int snd_FlushSoundCommands(void)
             gLoadCB = 0;
             gLoadingFromFS = 0;
         } else {
-            int other = D_002C4680 != 1;
-            for (i = 0; i < *D_002C4660[other]; i++) {
+            int other = gCommandFillBuffer != 1;
+            for (i = 0; i < *gSndCommandBuffePtr[other]; i++) {
                 if (gSndCommandReturnDefPtr[other][i].fn)
-                    gSndCommandReturnDefPtr[other][i].fn(D_002C4678[other][i + 1], gSndCommandReturnDefPtr[other][i].arg);
+                    gSndCommandReturnDefPtr[other][i].fn(gReturnValuesPtr[other][i + 1], gSndCommandReturnDefPtr[other][i].arg);
             }
         }
     }
@@ -49,7 +49,7 @@ int snd_FlushSoundCommands(void)
         }
     }
     if (!gCommBusy) {
-        if (*D_002C4660[D_002C4680] && !gCaching)
+        if (*gSndCommandBuffePtr[gCommandFillBuffer] && !gCaching)
             snd_SendCurrentBatch__Fv();
     }
     if (gSSRead) {

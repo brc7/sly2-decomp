@@ -1,9 +1,9 @@
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0
 typedef struct CB { void (*fn)(int, long); int pad; long arg; } CB;
-extern int gCommBusy, D_002C4680, gCaching, D_002C46B8;
-extern int *D_002C4660[2];
-extern int D_002C4668[2];
+extern int gCommBusy, gCommandFillBuffer, gCaching, D_002C46B8;
+extern int *gSndCommandBuffePtr[2];
+extern int gCommandBuffeBytesAvail[2];
 extern CB *gSndCommandReturnDefPtr[2];
 extern int gSyncBuffer[];
 extern char D_00443800[];
@@ -45,21 +45,21 @@ void snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl(int cmd, int size, unsigned char *
         while (1)
             ;
     }
-    while (*D_002C4660[D_002C4680] == 0x100 || D_002C4668[D_002C4680] < len) {
+    while (*gSndCommandBuffePtr[gCommandFillBuffer] == 0x100 || gCommandBuffeBytesAvail[gCommandFillBuffer] < len) {
         if (gCaching) {
             gCaching = 0;
             held = 1;
         }
         snd_FlushSoundCommands();
         if (tries == 1 && !D_002C46B8)
-            printf(D_002AA610, D_002C4680, *D_002C4660[D_002C4680]);
+            printf(D_002AA610, gCommandFillBuffer, *gSndCommandBuffePtr[gCommandFillBuffer]);
         tries++;
     }
     if (tries && !D_002C46B8)
         printf(D_002AA670, tries);
     if (held)
         gCaching = 1;
-    p = (unsigned char *)D_002C4660[D_002C4680] - (D_002C4668[D_002C4680] - 0x1000);
+    p = (unsigned char *)gSndCommandBuffePtr[gCommandFillBuffer] - (gCommandBuffeBytesAvail[gCommandFillBuffer] - 0x1000);
     *(short *)p = cmd;
     p += 2;
     *(short *)p = size;
@@ -72,8 +72,8 @@ void snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl(int cmd, int size, unsigned char *
             p[i] = buf[i];
         func_0023320C(p + 0xC, *(void **)(buf + 0xC), *(int *)(buf + 8));
     }
-    D_002C4668[D_002C4680] -= len;
-    gSndCommandReturnDefPtr[D_002C4680][*D_002C4660[D_002C4680]].fn = fn;
-    gSndCommandReturnDefPtr[D_002C4680][*D_002C4660[D_002C4680]].arg = arg;
+    gCommandBuffeBytesAvail[gCommandFillBuffer] -= len;
+    gSndCommandReturnDefPtr[gCommandFillBuffer][*gSndCommandBuffePtr[gCommandFillBuffer]].fn = fn;
+    gSndCommandReturnDefPtr[gCommandFillBuffer][*gSndCommandBuffePtr[gCommandFillBuffer]].arg = arg;
     snd_PostMessage__Fv();
 }

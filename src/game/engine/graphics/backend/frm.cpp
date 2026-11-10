@@ -238,7 +238,7 @@ void ClearPendingFrame(FRM *frame)
             object->Release();
         }
         ClearDl__FP2DL(&frame->releaseList);
-        D_002DD2FC = iter.m_pdliNext;
+        g_pdliFirst = iter.m_pdliNext;
     }
     if (!IsDlEmpty__FP2DL(&frame->freeList)) {
         DLI iter;
@@ -250,7 +250,7 @@ void ClearPendingFrame(FRM *frame)
             FreeSlotheapSlot(&g_sw.slotheapBlip, object);
         }
         ClearDl__FP2DL(&frame->freeList);
-        D_002DD2FC = iter.m_pdliNext;
+        g_pdliFirst = iter.m_pdliNext;
     }
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))

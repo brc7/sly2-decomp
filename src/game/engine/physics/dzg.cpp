@@ -194,7 +194,7 @@ extern "C" void SolveDzg(DZGXP *group, int flags)
         }
     }
     EnforceDzgDz(group, 0);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
     for (;;) {
         DZ *worstRow = 0;
         float minResidual = -0.01f;

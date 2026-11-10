@@ -1,7 +1,7 @@
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0
-extern int gCommBusy, D_002C4680, gCaching, D_002C46B8;
-extern int *D_002C4660[2];
+extern int gCommBusy, gCommandFillBuffer, gCaching, D_002C46B8;
+extern int *gSndCommandBuffePtr[2];
 extern unsigned char D_00443880[];
 extern unsigned char D_0044388C[];
 extern int gSyncBuffer[];
@@ -52,7 +52,7 @@ int snd_SendIOPCommandAndWait__FiiPc(int cmd, int size, unsigned char *buf)
     while (!snd_GotReturns__Fv())
         ;
     ret = gSyncBuffer[1];
-    if (*D_002C4660[D_002C4680] && !gCaching)
+    if (*gSndCommandBuffePtr[gCommandFillBuffer] && !gCaching)
         snd_SendCurrentBatch__Fv();
     return ret;
 }

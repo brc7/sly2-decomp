@@ -17,7 +17,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct DLI { DL *pdl; void **ppv; int ibDle; DLI *pdliNext; int nUnused; };
 
 typedef struct FRAME { int an[4]; } FRAME;
-extern DLI *g_pdliFirst __asm__("D_002DD2FC");
+extern DLI *g_pdliFirst __asm__("g_pdliFirst");
 extern "C" {
 extern const float D_002A4120;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A4124;   /* defined below where the ELF has it (.rodata order) */
@@ -222,7 +222,7 @@ void EnforceDzgDz(DZG *dzg, DZ *dz)
     }
 }
 
-// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (D_002DD2FC).
+// Start iterating display list pdl with iterator pdli and push it on the global iterator stack (g_pdliFirst).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;

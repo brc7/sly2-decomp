@@ -86,7 +86,7 @@ void SW::Update()
         UpdatePendingCid14Obstacles();
         UpdateShaders();
         ProcessSwCallbacks(world);
-        D_002DD2FC = dli.m_pdliNext;
+        g_pdliFirst = dli.m_pdliNext;
     }
     UpdateSave__FP4SAVE(&g_save);
     UpdateSndmgr(&g_sndmgr);
@@ -125,5 +125,5 @@ extern "C" void UpdateSwObjects(SW *world)
         }
     }
     world->piloupdCur = 0;
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }

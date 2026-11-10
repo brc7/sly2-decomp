@@ -67,8 +67,8 @@ int sn_pool_1C_800 __asm__("__sn_t9CSlotPool2i28i2048$s_pool") SBSS = 0;    /* 0
 int sn_pool_C_C8 __asm__("__sn_t9CSlotPool2i12i200$s_pool") SBSS = 0;       /* 0x2DD2F0 */
 int sn_pool_14_100 __asm__("__sn_t9CSlotPool2i20i256$s_pool") SBSS = 0;     /* 0x2DD2F4 */
 // dl's iterator stacks (core/containers/dl.cpp): g_psliFirst, g_pdliFirst (sly2/dli.h). In .sbss, so commons too.
-SLI *g_psliFirst __asm__("D_002DD2F8") SBSS = 0;                            /* 0x2DD2F8 */
-DLI *g_pdliFirst __asm__("D_002DD2FC") SBSS = 0;                            /* 0x2DD2FC */
+SLI *g_psliFirst __asm__("g_psliFirst") SBSS = 0;                            /* 0x2DD2F8 */
+DLI *g_pdliFirst __asm__("g_pdliFirst") SBSS = 0;                            /* 0x2DD2FC */
 // The five splice heaps' sentries (splice/ref.cpp, spliceutils.cpp).
 int sn_heap_20_100 __asm__("__sn_t11CSpliceHeap2i32i256$s_heap") SBSS = 0;  /* 0x2DD300 */
 int sn_heap_50_100 __asm__("__sn_t11CSpliceHeap2i80i256$s_heap") SBSS = 0;  /* 0x2DD304 */

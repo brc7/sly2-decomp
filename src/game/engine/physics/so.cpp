@@ -600,7 +600,7 @@ extern "C" void RemoveSoHierarchy(SO *so)
     InitDli(&dli, &so->children);
     while ((po = (__typeof__(po))PvNextDli(&dli)) != 0 && !po->isRemoved)
         po->RemoveHierarchy();
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_RemoveSoHierarchy
 
@@ -3151,7 +3151,7 @@ extern "C" void ExpireSwZapRecords(SW *so)
         M_func_001F37C8::RemoveDlEntry__FP2DLPv(&so->dlZprHit, pe);
         FreeSlotheapSlot(&so->slotheapZprHit, pe);
     }
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_ExpireSwZapRecords
 

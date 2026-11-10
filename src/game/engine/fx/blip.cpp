@@ -30,7 +30,7 @@ struct VECTORV { union { struct { float x, y, z; } v; qwordV q; }; };
 struct M3 { qwordV r[3]; };
 struct M4 { qwordV r[4]; };
 
-extern DLI *D_002DD2FC;     /* g_pdliFirst */
+extern DLI *g_pdliFirst;     /* g_pdliFirst */
 
 
 
@@ -272,7 +272,7 @@ void OnBlipgRemove(BLIPGV *blipGroup)
     SnipLo(blipGroup);
     if (!blipGroup->psoParent) FreeLoroot(blipGroup);
     AppendDlEntry(&D_002DEAF0, blipGroup);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 
 // BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070. (inferred)
@@ -594,7 +594,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
         float g = GFromQw(QwLength(VuSubRef(c, vMax.q)));
         blipGroup->boundsRadius = g + blipGroup->maxSize;
     }
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
     }
 }
 
@@ -723,7 +723,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
         __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l));
         blipGroup->boundsRadius = g + blipGroup->maxSize;
     }
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
     }
 }
 #undef CA

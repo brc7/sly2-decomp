@@ -614,7 +614,7 @@ void DetachCid14FromOwner(CID14V *polygon)
     }
     AsLo(polygon)->Remove();
     AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, polygon);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 
 // Among the obstacles overlapping a segment, returns the one the segment enters first.
@@ -941,7 +941,7 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
             }
             ((void (*)(CID14V *))px->vt[9].pfn)((CID14V *)((char *)px + px->vt[9].d));   /* Remove by hand, as above */
             AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, px);
-            D_002DD2FC = dli.m_pdliNext;
+            g_pdliFirst = dli.m_pdliNext;
         } else {
             AddCid14ToMerged(px, pNew);
         }

@@ -513,7 +513,7 @@ extern "C" void UpdateRelay(RELAY *relay)
         UpdateRelayScript(pv);
     if (IsDlEmpty__FP2DL(&relay->dlJsg))
         StopRelay(relay);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_UpdateRelay
 
@@ -615,7 +615,7 @@ extern "C" void StopRelay(RELAY *relay)
         ClearLoFlagBits(relay, LO_FLAG_02);
     }
     relay->HandleSpliceEvent(6, 0, 0, 0, 0);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_StopRelay
 

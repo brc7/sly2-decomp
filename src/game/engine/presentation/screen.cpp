@@ -280,7 +280,7 @@ extern "C" void ResetScreens(DL *pdl)
     ResetScreen(D_002E65A0);
     ResetScreen(D_003DA4F0);
     ResetScreen(D_003DA530);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_func_001D9408
 

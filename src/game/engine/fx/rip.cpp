@@ -125,7 +125,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPG *ripGroup)
     RemoveSlEntry(GetSwClassList(psw, 0x57), ripGroup);
     if (!ripGroup->parent) FreeLoroot(ripGroup);
     FreeSlotheapSlot(&psw->slotheapRipg, ripGroup);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
 
@@ -183,7 +183,7 @@ extern "C" void ProjectRipgTransform(RIPG *p)
         p->boundsData[2] = mid;
         MarkSoTreeBoundsDirty(p);
     }
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_ProjectRipgTransform
 #undef LEN1
@@ -223,7 +223,7 @@ extern "C" void UpdateRipg(RIPG *ripGroup)
         ripGroup->Remove();
     else
         BounceRipgRips__FP4RIPG(ripGroup);
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_UpdateRipg
 
@@ -313,11 +313,11 @@ void BounceRipgRips__FP4RIPG(RIPG *p)
                             i++;
                         } while (i < count);
                     }
-                    D_002DD2FC = phase.rip.m_pdliNext;
+                    g_pdliFirst = phase.rip.m_pdliNext;
                     STACKSCOPE_ctor_1AE4A0(&frame, 2);
                 }
             }
-            D_002DD2FC = shapes.m_pdliNext;
+            g_pdliFirst = shapes.m_pdliNext;
         }
         if (IsDlEmpty__FP2DL(&p->ripList)) p->Remove();
     }
@@ -336,7 +336,7 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPG *ripGroup, CM *pcm, RO *pro
         if (g_clock.time <= prip->startTime) continue;
         prip->Render();
     }
-    D_002DD2FC = dli.m_pdliNext;
+    g_pdliFirst = dli.m_pdliNext;
 }
 } // namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO
 

@@ -628,7 +628,7 @@ namespace M_HandleStepplayerMessage {
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
 typedef int qword __attribute__((mode(TI)));
-/* D_002DD2FC (g_pdliFirst): sly2/dli.h's declaration (one entity with the inline DLI helpers) */
+/* g_pdliFirst (g_pdliFirst): sly2/dli.h's declaration (one entity with the inline DLI helpers) */
 #define F(T, p, off) (*(T *)((char *)(p) + (off)))
 struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
@@ -771,7 +771,7 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == player)
                                 RemoveNoise(po2);
                         }
-                        D_002DD2FC = dli.m_pdliNext;
+                        g_pdliFirst = dli.m_pdliNext;
                         g_sw.guardAlertResumeTime = g_clock.time + D_002BCC94;
                         break;
                     }
