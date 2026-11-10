@@ -758,7 +758,7 @@ extern "C" void FireBentleyDart(BENTLEY *bentley, int a) {
     object = AcquireProxyObject(pv, 0);
     if (!object) return;
     object->parts->zapKindFlags = a;
-    pq = (struct Q *)bentley->psoLauncher;
+    pq = (struct Q *)bentley->launcher;
     pq->f60 = 0;
     pq->v50 = bentley->aimPoint;
     LaunchSoFromLauncher(pq, object);
