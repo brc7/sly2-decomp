@@ -2154,7 +2154,6 @@ namespace M_CRichText_ctor {
 // Packed color word.
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct Q { int a[4]; } __attribute__((aligned(16)));
-struct F { char pad[0x54]; char *fonts; };   /* the HUD font object: 0x40-byte fonts */
 extern Q D_002A2E10 __asm__("D_002A2E10");
 extern Q D_002A2E20 __asm__("D_002A2E20");
 /* CRichText2 (0x98 bytes; the field names are the same in every view of this file):
@@ -2182,8 +2181,8 @@ extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
     rt->hAlign = 1;
     rt->vAlign = 1;
     rt->priority = 6;
-    rt->font = rt->baseFont = ((F *)g_sw.ploHudFont)->fonts;
-    rt->altFont = ((F *)g_sw.ploHudFont)->fonts + 0x40;
+    rt->font = rt->baseFont = (char *)((WIDGET *)g_sw.ploHudFont)->sprites;
+    rt->altFont = (char *)(((WIDGET *)g_sw.ploHudFont)->sprites + 1);
     rt->baseColor = RGBA(0x80808080);
     rt->baseColor0 = D_002A2E10;
     rt->baseColor1 = D_002A2E20;
@@ -2196,7 +2195,6 @@ extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
 namespace M_func_00215BA8 {
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
-struct F { char pad[0x54]; char *fonts; };
 /* a text sprite descriptor (RenderSpriteText's S) */
 struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
 struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
@@ -2221,8 +2219,8 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
     rt->priority = sprite->owner->priority;
     rt->lineHeight = sprite->scale;
     rt->fontScale = rt->lineHeight * 0.01953125f;   /* 1 / 51.2 */
-    rt->font = rt->baseFont = ((F *)g_sw.ploHudFont)->fonts;
-    rt->altFont = ((F *)g_sw.ploHudFont)->fonts + 0x40;
+    rt->font = rt->baseFont = (char *)((WIDGET *)g_sw.ploHudFont)->sprites;
+    rt->altFont = (char *)(((WIDGET *)g_sw.ploHudFont)->sprites + 1);
     rt->baseColor = sprite->color;
     rt->baseColor0 = styleCopy.b;
     rt->baseColor1 = styleCopy.c;
