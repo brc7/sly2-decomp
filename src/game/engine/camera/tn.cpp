@@ -1438,7 +1438,6 @@ float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n)
 /* AvoidCptnSegmentObstacles: moves the camera eye off obstacles: the clear position nearest the hero, then the best of a fan of
    cylindrical offsets around begin -> end, squished against the camera hulls (SquishCmEye with GetPlaneDistance).
    (Claude agent) MATCH: the loop's SetVectorCylind result is a plain qword local; gcc emits the qmtc2 itself and schedules it. */
-struct CAMS {void *object;char pad[0x30];int state;};
 // Stack-allocation scope: opens a STACKSCOPE on construction and releases it on destruction.
 struct SCOPEW {SCOPEW(){(void)STACKSCOPE_ctor((MARK *)this);}~SCOPEW(){STACKSCOPE_ctor_1AE4A0((MARK *)this,2);}};
 union V {qword q;float f[4];};
@@ -1458,8 +1457,8 @@ static inline void StoreVF(qword *p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q
 namespace RO_ORDER { extern const float r_D_002A9700 __asm__("D_002A9700") = 3.40282347e+38f; }
 // Camera segment avoidance (objects in box, UpdateCmFade) (inferred)
 // Also known as: PosEyeCut (upstream readable / Sly 1 name; PosEyeCut__FP8CPFOLLOWG9VU_VECTORT1P6VECTOR).
-extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *out){
-    void *object=p->object;
+extern "C" void AvoidCptnSegmentObstacles(CMPART2 *p,qword begin,qword end,qword *out){
+    void *object=p->pvHero;
     WORK w;
     qword final;
     float initialAngle=0.0f;
@@ -1472,7 +1471,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
     FindCameraClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
     if(w.high<one){
         float angle=initialAngle;
-        p->state=4;
+        p->mode=4;
         GetVectorCylind(SubIn(end,begin),&w.phase,&w.radius,&w.height);
         float bestCost=D_002A9700;
         float minGap=initialAngle;
