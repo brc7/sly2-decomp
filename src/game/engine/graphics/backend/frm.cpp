@@ -74,7 +74,7 @@ extern char D_002DEBE0[];
 extern char D_002DECD0[];
 extern "C" {
 void AddIntcHandler(int n, int (*pfn)(), int m);
-void func_00235178(int n);
+void EnableIntc(int n);
 void InitDl__FP2DLi(DL *pdl, int ib);
 void func_002355E0(int n, int m) __asm__("StartThread_2355E0");
 int VU1_Interrupt();
@@ -106,7 +106,7 @@ void BlendPrevFrame();
 void StartupFrame()
 {
     AddIntcHandler(5, VU1_Interrupt, 0);
-    func_00235178(5);
+    EnableIntc(5);
     D_002DEB18 = SemaCreate(0, 2);
     D_002DEB1C = SemaCreate(2, 2);
     InitDl__FP2DLi(&D_002DEAF0, 0x454);

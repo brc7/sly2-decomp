@@ -3537,7 +3537,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     FixStepAngularVelocity(jt);
                     float tLabel = TFindAsegLabel(aseg, (OID)0x173);
                     MATRIX4 matHand;
-                    PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->unknown19A4->rootTransform, jt->rootTransform, &matHand, 0);
+                    PredictAsegEffect(tLabel, gZero, aseg, jt, jt->unknown19A4->rootTransform, jt->rootTransform, &matHand, 0);
                     tLabel /= aseg->masterSpeed;
                     qword posHold = PosLoWorld(jt->interactTarget);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->interactTarget->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
@@ -3720,12 +3720,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
     }
     if (aseg != 0)
     {
-        ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->activeAnimation);
+        ApplyAseg(aseg, jt, tStart, svt, grfapl, &jt->activeAnimation);
         jt->activeAnimation->AddRef();
     }
     else if (stateMachine != 0)
     {
-        jt->activeStateMachine = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
+        jt->activeStateMachine = PsmaApplySm(stateMachine, jt, oid, grfapl, grfRoute);
         jt->activeStateMachine->AddRef();
     }
 }

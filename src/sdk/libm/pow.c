@@ -13,8 +13,8 @@ struct exception {
 extern const int __fdlib_version;
 extern const double __infinity_d;
 double func_00246300(double x, double y);
-int func_00249C80(double x);
-int func_00249C60(double x);
+int isnan(double x);
+int finite(double x);
 double func_00249CE0(double x);
 int matherr(struct exception *x);
 int *func_002401C8(void);
@@ -30,8 +30,8 @@ int *func_002401C8(void);
 #define ERANGE 34
 #define HUGE 3.40282346638528859812e+38
 #define HUGE_VAL __infinity_d
-#define isnan func_00249C80
-#define finite func_00249C60
+#define isnan isnan
+#define finite finite
 #define rint func_00249CE0
 double pow(double x, double y)
 {

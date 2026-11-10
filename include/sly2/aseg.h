@@ -11,15 +11,8 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* ALO: Sly 1's "actor level object" (an LO with a transform and children). Sly 2 has no such class (docs/systems/
-   object-model.md: it was split into LO + XFM, the child list moved to SO), but the animation code's Sly 1 symbols
-   still say ALO (ApplyAsegCore__FP4ASEGP3ALO..., ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA), so the name stays for
-   the root object a segment or a state machine animates (SMA::paloRoot, ASEGA::rootObject, ACT::animatedObject): any
-   LO, in practice the SO at the root of a hierarchy. An empty derived struct keeps those mangled names and lets the
-   code use the object as the LO it is (its virtual calls, GetLoWorldPos...) without casts. */
-struct ALO : public LO
-{
-};
+/* ALO (the object a segment or state machine animates) is in sly2/alo.h. */
+#include "sly2/alo.h"
 
 /* EA: an animation event: something a segment triggers at a local time (sound, effect, message...), with a
    kind-dependent payload.

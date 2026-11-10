@@ -10,6 +10,7 @@
 #define SLY2_SO_H
 #include "sly2/basic.h"
 #include "sly2/lo.h"
+#include "sly2/alo.h"
 #include "sly2/xfm.h"
 
 /* GLOB: one model piece of a GLOBSET: its oid, the transform it is drawn with, render flags and its shader
@@ -173,7 +174,7 @@ struct REGENT
 
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (23 copies in Lilly ports) */
-struct SO : public LO
+struct SO : public ALO   /* LO -> ALO -> SO (sly2/alo.h) */
 {
       int numTransforms; /* number of transforms */
       XF *transforms; /* the transforms (XF) of the model hierarchy */

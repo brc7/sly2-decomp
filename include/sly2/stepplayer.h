@@ -663,6 +663,6 @@ typedef char assert_STEPPLAYER_idGadgetOverlay[SLY2_OFFSETOF(STEPPLAYER, idGadge
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline int func_00258280(STEPPLAYER *pstepplayer) { return *pstepplayer->jthurt.hitPoints; } /* get; its set is SetStepplayerHp */
+inline int GetStepplayerHp(STEPPLAYER *pstepplayer) { return *pstepplayer->jthurt.hitPoints; } /* get; its set is SetStepplayerHp */
 
 #endif /* SLY2_STEPPLAYER_H */

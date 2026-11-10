@@ -168,7 +168,7 @@ void LoadMissileFromBrx(MISSILE *missile, CBinaryInputStream *stream)
 void OnMissileRemove(MISSILE *missile)
 {
     RemoveSoHierarchy(missile);
-    ReplaceCurrentAseg(0, (ALO *)missile, 0.0f, 1.0f, 0, &missile->flightAnimState);
+    ReplaceCurrentAseg(0, missile, 0.0f, 1.0f, 0, &missile->flightAnimState);
     ReleaseAct(&missile->flightAction);
 }
 
@@ -181,7 +181,7 @@ extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
     v = *targetPos;
     missile->targetObject = targetObject;
     *(V *)&missile->targetPos = v;
-    ReplaceCurrentAseg(missile->flightAnim, (ALO *)missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
+    ReplaceCurrentAseg(missile->flightAnim, missile, 0.0f, 1.0f, 8, &missile->flightAnimState);
     if (missile->hasFlightAction)
         missile->flightAction = NewPathAct(missile, missile->rotationXf, 0, 5, missile->flightActionParam, 0.0f);
 }

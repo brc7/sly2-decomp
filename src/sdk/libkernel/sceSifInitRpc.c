@@ -28,7 +28,7 @@ void EIntr(void);
 void sceSifInitCmd(void);
 void sceSifAddCmdHandler(unsigned int cid, void (*h)(void *, void *), void *data);
 int sceSifGetReg(unsigned int reg);
-void func_00234E20(unsigned int reg, int val);
+void sceSifSetReg(unsigned int reg, int val);
 unsigned int sceSifSendCmd(unsigned int cid, void *pkt, int size, void *src, void *dst, int n);
 int func_0023AAC8(int);
 void _request_end(void *, void *);
@@ -69,5 +69,5 @@ void sceSifInitRpc(unsigned int mode)
     sceSifSendCmd(0x80000002, cmd, 16, 0, 0, 0);
     while (func_0023AAC8(0) == 0)
         ;
-    func_00234E20(0x80000002, 1);
+    sceSifSetReg(0x80000002, 1);
 }

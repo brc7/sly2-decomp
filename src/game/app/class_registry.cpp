@@ -10,8 +10,8 @@
 // Entry points: the factories and descriptor getters (reached through the class descriptor table, one per class
 // id), the Splice thunks and wrappers (reached through the option table g_aeopid when a script reads or sets an
 // object option), and the crt0 fragments _start relies on. The factories' and getters' names (New<Class>,
-// Get<Class>ClassDesc) and the generated wrappers are kept as generated; only the hand-written functions below carry
-// doc comments.
+// Get<Class>ClassDesc) and the generated wrappers' bodies are kept as generated (thunks: RefThunk<Class><OPTION> or
+// RefThunk_<Native>, naming-workflow.md section 1); only the hand-written functions below carry doc comments.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_crt0_splicewrap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001147B8
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31 -fno-exceptions -fno-rtti -fpermissive
@@ -192,14 +192,14 @@ CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunkBasicCUSTOM_VECTOR_PROPERTY
 
-SLY2_SPLICEWRAP_BEGIN(func_00100760)
-#include "../../generated/splicewrap/func_00100760.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_EnsureLoSidebagBasic)
+#include "../../generated/splicewrap/RefThunk_EnsureLoSidebagBasic.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001007E8)
-#include "../../generated/splicewrap/func_001007E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SendTriggerEvent)
+#include "../../generated/splicewrap/RefThunk_SendTriggerEvent.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00100860)
-#include "../../generated/splicewrap/func_00100860.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SendUntriggerEvent)
+#include "../../generated/splicewrap/RefThunk_SendUntriggerEvent.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkLoMATCHES_NAMEQ)
 #include "../../generated/splicewrap/RefThunkLoMATCHES_NAMEQ.inc"
@@ -207,8 +207,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetLoParent)
 #include "../../generated/splicewrap/RefThunk_SetLoParent.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00100A00)
-#include "../../generated/splicewrap/func_00100A00.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_MoveLoToObject)
+#include "../../generated/splicewrap/RefThunk_MoveLoToObject.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkLoADD)
 #include "../../generated/splicewrap/RefThunkLoADD.inc"
@@ -219,8 +219,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkLoREMOVEFn)
 #include "../../generated/splicewrap/RefThunkLoREMOVEFn.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00100C08)
-#include "../../generated/splicewrap/func_00100C08.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearSoAnimIndex)
+#include "../../generated/splicewrap/RefThunk_ClearSoAnimIndex.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkSoPOINT_IN_BSP_QUICK (was src/game/app/splice_thunks/RefThunkSoPOINT_IN_BSP_QUICK.cpp) ----
@@ -251,11 +251,11 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkSo_HideSoPartsById)
 #include "../../generated/splicewrap/RefThunkSo_HideSoPartsById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00100F38)
-#include "../../generated/splicewrap/func_00100F38.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSoPartsZapKindsById)
+#include "../../generated/splicewrap/RefThunk_SetSoPartsZapKindsById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00100FE0)
-#include "../../generated/splicewrap/func_00100FE0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSoZapResponse)
+#include "../../generated/splicewrap/RefThunk_SetSoZapResponse.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_GetSoZapResponseFlags)
 #include "../../generated/splicewrap/RefThunk_GetSoZapResponseFlags.inc"
@@ -266,20 +266,20 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkSoFADE_IN)
 #include "../../generated/splicewrap/RefThunkSoFADE_IN.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00101218)
-#include "../../generated/splicewrap/func_00101218.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSoScrollerSpeeds)
+#include "../../generated/splicewrap/RefThunk_SetSoScrollerSpeeds.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001012C0)
-#include "../../generated/splicewrap/func_001012C0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSoSaaParams)
+#include "../../generated/splicewrap/RefThunk_SetSoSaaParams.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_FindSoSaa)
 #include "../../generated/splicewrap/RefThunk_FindSoSaa.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001013E8)
-#include "../../generated/splicewrap/func_001013E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FindAsegaByOid)
+#include "../../generated/splicewrap/RefThunk_FindAsegaByOid.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00101468)
-#include "../../generated/splicewrap/func_00101468.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FindLiveSma)
+#include "../../generated/splicewrap/RefThunk_FindLiveSma.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void *NewSoXfHandle(void *p, int a, int b);
@@ -337,8 +337,8 @@ extern "C" CRef RefThunk_AddAmbSound(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00101848)
-#include "../../generated/splicewrap/func_00101848.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddAmbLinkedSound)
+#include "../../generated/splicewrap/RefThunk_AddAmbLinkedSound.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegAPPLY (was src/game/app/splice_thunks/RefThunkAsegAPPLY.cpp) ----
@@ -359,8 +359,8 @@ CRef RefThunkAsegAPPLY(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunkAsegAPPLY
 
-SLY2_SPLICEWRAP_BEGIN(func_001019D0)
-#include "../../generated/splicewrap/func_001019D0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAsegAutoStart)
+#include "../../generated/splicewrap/RefThunk_SetAsegAutoStart.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegENSURE (was src/game/app/splice_thunks/RefThunkAsegENSURE.cpp) ----
@@ -395,8 +395,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkAsegaRETRACT)
 #include "../../generated/splicewrap/RefThunkAsegaRETRACT.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00101D98)
-#include "../../generated/splicewrap/func_00101D98.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_EvaluateXfSlotValue)
+#include "../../generated/splicewrap/RefThunk_EvaluateXfSlotValue.inc"
 SLY2_SPLICEWRAP_END
 // Also known as: RefSoundMethod (upstream readable / Sly 1 name; RefSoundMethod__FP5BASICiP4CRef).
 SLY2_SPLICEWRAP_BEGIN(RefThunk_PauseSnd)
@@ -430,29 +430,29 @@ CRef RefThunk_StartDialog(void *object, int argCount, void *args)
 SLY2_SPLICEWRAP_BEGIN(RefThunk_StopDialog)
 #include "../../generated/splicewrap/RefThunk_StopDialog.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102150)
-#include "../../generated/splicewrap/func_00102150.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsDialogPlaying)
+#include "../../generated/splicewrap/RefThunk_IsDialogPlaying.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001021D0)
-#include "../../generated/splicewrap/func_001021D0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_GetDialogStreamDuration)
+#include "../../generated/splicewrap/RefThunk_GetDialogStreamDuration.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102250)
-#include "../../generated/splicewrap/func_00102250.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddMusicLayer2Request)
+#include "../../generated/splicewrap/RefThunk_AddMusicLayer2Request.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001022C8)
-#include "../../generated/splicewrap/func_001022C8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveMusicLayer2Request)
+#include "../../generated/splicewrap/RefThunk_RemoveMusicLayer2Request.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102340)
-#include "../../generated/splicewrap/func_00102340.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddMusicLayer0Request)
+#include "../../generated/splicewrap/RefThunk_AddMusicLayer0Request.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001023B8)
-#include "../../generated/splicewrap/func_001023B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveMusicLayer0Request)
+#include "../../generated/splicewrap/RefThunk_RemoveMusicLayer0Request.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_PushMusic)
 #include "../../generated/splicewrap/RefThunk_PushMusic.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001024B0)
-#include "../../generated/splicewrap/func_001024B0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StopMusic)
+#include "../../generated/splicewrap/RefThunk_StopMusic.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_GetMusicTime)
 #include "../../generated/splicewrap/RefThunk_GetMusicTime.inc"
@@ -470,20 +470,20 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkCmCUT)
 #include "../../generated/splicewrap/RefThunkCmCUT.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001027E0)
-#include "../../generated/splicewrap/func_001027E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearTnCpd)
+#include "../../generated/splicewrap/RefThunk_ClearTnCpd.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102858)
-#include "../../generated/splicewrap/func_00102858.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepPhysByOid)
+#include "../../generated/splicewrap/RefThunk_SetStepPhysByOid.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102900)
-#include "../../generated/splicewrap/func_00102900.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardAttackOid)
+#include "../../generated/splicewrap/RefThunk_AddStepguardAttackOid.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102988)
-#include "../../generated/splicewrap/func_00102988.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddAndResolveStepguardAttackOid)
+#include "../../generated/splicewrap/RefThunk_AddAndResolveStepguardAttackOid.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00102A10)
-#include "../../generated/splicewrap/func_00102A10.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearStepguardAttacks)
+#include "../../generated/splicewrap/RefThunk_ClearStepguardAttacks.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepguardAnimBinding(void *p, void *, int, int);
@@ -595,59 +595,59 @@ extern "C" CRef RefThunk_SetAndResolveStepguardAnimBindingKind2(void *p, int c, 
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00103048)
-#include "../../generated/splicewrap/func_00103048.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepguardHurtReactions)
+#include "../../generated/splicewrap/RefThunk_SetStepguardHurtReactions.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103100)
-#include "../../generated/splicewrap/func_00103100.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAndResolveStepguardHurtReactions_Opt372)
+#include "../../generated/splicewrap/RefThunk_SetAndResolveStepguardHurtReactions_Opt372.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001031B8)
-#include "../../generated/splicewrap/func_001031B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepguardKnockdownReactions)
+#include "../../generated/splicewrap/RefThunk_SetStepguardKnockdownReactions.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103270)
-#include "../../generated/splicewrap/func_00103270.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAndResolveStepguardHurtReactions_Opt373)
+#include "../../generated/splicewrap/RefThunk_SetAndResolveStepguardHurtReactions_Opt373.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103328)
-#include "../../generated/splicewrap/func_00103328.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepguardKoReactions)
+#include "../../generated/splicewrap/RefThunk_SetStepguardKoReactions.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001033E0)
-#include "../../generated/splicewrap/func_001033E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAndResolveStepguardKoReactions)
+#include "../../generated/splicewrap/RefThunk_SetAndResolveStepguardKoReactions.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103498)
-#include "../../generated/splicewrap/func_00103498.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardDetectTargetBack)
+#include "../../generated/splicewrap/RefThunk_AddStepguardDetectTargetBack.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103520)
-#include "../../generated/splicewrap/func_00103520.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardPreferClass)
+#include "../../generated/splicewrap/RefThunk_AddStepguardPreferClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001035A8)
-#include "../../generated/splicewrap/func_001035A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveStepguardPreferClass)
+#include "../../generated/splicewrap/RefThunk_RemoveStepguardPreferClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103630)
-#include "../../generated/splicewrap/func_00103630.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearStepguardGeneratedTargets)
+#include "../../generated/splicewrap/RefThunk_ClearStepguardGeneratedTargets.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001036A8)
-#include "../../generated/splicewrap/func_001036A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveStepguardDetectTarget)
+#include "../../generated/splicewrap/RefThunk_RemoveStepguardDetectTarget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103730)
-#include "../../generated/splicewrap/func_00103730.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearStepguardTargetLists)
+#include "../../generated/splicewrap/RefThunk_ClearStepguardTargetLists.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001037A8)
-#include "../../generated/splicewrap/func_001037A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardIgnoreClass)
+#include "../../generated/splicewrap/RefThunk_AddStepguardIgnoreClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103830)
-#include "../../generated/splicewrap/func_00103830.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveStepguardIgnoreClass)
+#include "../../generated/splicewrap/RefThunk_RemoveStepguardIgnoreClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001038B8)
-#include "../../generated/splicewrap/func_001038B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearStepguardIgnoreClasses)
+#include "../../generated/splicewrap/RefThunk_ClearStepguardIgnoreClasses.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103930)
-#include "../../generated/splicewrap/func_00103930.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardForceClass)
+#include "../../generated/splicewrap/RefThunk_AddStepguardForceClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001039B8)
-#include "../../generated/splicewrap/func_001039B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveStepguardForceClass)
+#include "../../generated/splicewrap/RefThunk_RemoveStepguardForceClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103A40)
-#include "../../generated/splicewrap/func_00103A40.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearStepguardForceClasses)
+#include "../../generated/splicewrap/RefThunk_ClearStepguardForceClasses.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_StepguardHasSgf)
 #include "../../generated/splicewrap/RefThunk_StepguardHasSgf.inc"
@@ -668,23 +668,23 @@ extern "C" CRef RefThunk_SetStepguardTargetLists(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00103C18)
-#include "../../generated/splicewrap/func_00103C18.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardLootCoins)
+#include "../../generated/splicewrap/RefThunk_AddStepguardLootCoins.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103CA0)
-#include "../../generated/splicewrap/func_00103CA0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardLootItem_Opt433)
+#include "../../generated/splicewrap/RefThunk_AddStepguardLootItem_Opt433.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103D28)
-#include "../../generated/splicewrap/func_00103D28.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddStepguardLootItem_Opt434)
+#include "../../generated/splicewrap/RefThunk_AddStepguardLootItem_Opt434.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103DB0)
-#include "../../generated/splicewrap/func_00103DB0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartGuardScript)
+#include "../../generated/splicewrap/RefThunk_StartGuardScript.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103E38)
-#include "../../generated/splicewrap/func_00103E38.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetGuardRoutineMode)
+#include "../../generated/splicewrap/RefThunk_SetGuardRoutineMode.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00103EC0)
-#include "../../generated/splicewrap/func_00103EC0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsGuardRunningScript)
+#include "../../generated/splicewrap/RefThunk_IsGuardRunningScript.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepguardEscortPoint(void *p, int n, qword q);
@@ -702,8 +702,8 @@ extern "C" CRef RefThunk_SetStepguardEscortPoint(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00103FE8)
-#include "../../generated/splicewrap/func_00103FE8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RestartStepguard)
+#include "../../generated/splicewrap/RefThunk_RestartStepguard.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkStepguard_SetDetectorTargetStateById)
 #include "../../generated/splicewrap/RefThunkStepguard_SetDetectorTargetStateById.inc"
@@ -735,14 +735,14 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkDetector_GetDetectorTargetStateById)
 #include "../../generated/splicewrap/RefThunkDetector_GetDetectorTargetStateById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00104350)
-#include "../../generated/splicewrap/func_00104350.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetGuardAttackOids)
+#include "../../generated/splicewrap/RefThunk_SetGuardAttackOids.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00104408)
-#include "../../generated/splicewrap/func_00104408.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetGuardAttackBinding)
+#include "../../generated/splicewrap/RefThunk_SetGuardAttackBinding.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001044B0)
-#include "../../generated/splicewrap/func_001044B0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAndResolveGuardAttackBinding)
+#include "../../generated/splicewrap/RefThunk_SetAndResolveGuardAttackBinding.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetGuardAttackBindingKind2(void *p, int, float, float, float, float);
@@ -868,11 +868,11 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkBombDETONATE)
 #include "../../generated/splicewrap/RefThunkBombDETONATE.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00104D70)
-#include "../../generated/splicewrap/func_00104D70.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddMissileSpecialObject)
+#include "../../generated/splicewrap/RefThunk_AddMissileSpecialObject.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00104DF8)
-#include "../../generated/splicewrap/func_00104DF8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddMissileSpecialClass)
+#include "../../generated/splicewrap/RefThunk_AddMissileSpecialClass.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_FireMissile (was src/game/app/splice_thunks/RefThunk_FireMissile.cpp) ----
@@ -904,8 +904,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkButtonSET_SM_GOAL)
 #include "../../generated/splicewrap/RefThunkButtonSET_SM_GOAL.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00105158)
-#include "../../generated/splicewrap/func_00105158.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddButtonEventListener)
+#include "../../generated/splicewrap/RefThunk_AddButtonEventListener.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkButtonTRIGGER)
 #include "../../generated/splicewrap/RefThunkButtonTRIGGER.inc"
@@ -922,8 +922,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkVolbtnSET_SM_GOAL)
 #include "../../generated/splicewrap/RefThunkVolbtnSET_SM_GOAL.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00105508)
-#include "../../generated/splicewrap/func_00105508.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddVolbtnEventListener)
+#include "../../generated/splicewrap/RefThunk_AddVolbtnEventListener.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkVolbtnTRIGGER)
 #include "../../generated/splicewrap/RefThunkVolbtnTRIGGER.inc"
@@ -977,8 +977,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkEmitterUNPAUSE)
 #include "../../generated/splicewrap/RefThunkEmitterUNPAUSE.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00105AF0)
-#include "../../generated/splicewrap/func_00105AF0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddEmitterToHeroFollowers)
+#include "../../generated/splicewrap/RefThunk_AddEmitterToHeroFollowers.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkExplEXPLODE)
 #include "../../generated/splicewrap/RefThunkExplEXPLODE.inc"
@@ -1007,11 +1007,11 @@ CRef RefThunkExplEXPLODE_OVR(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunkExplEXPLODE_OVR
 
-SLY2_SPLICEWRAP_BEGIN(func_00105CD0)
-#include "../../generated/splicewrap/func_00105CD0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartGuardScriptOnGuard)
+#include "../../generated/splicewrap/RefThunk_StartGuardScriptOnGuard.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00105D58)
-#include "../../generated/splicewrap/func_00105D58.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptSetContext)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptSetContext.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddGuardScriptSetWalkTimes(void *p, void *pv);
@@ -1042,50 +1042,50 @@ extern "C" CRef RefThunk_AddGuardScriptSetPauseTimes(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00105F00)
-#include "../../generated/splicewrap/func_00105F00.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptTeleport)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptTeleport.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00105F88)
-#include "../../generated/splicewrap/func_00105F88.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptMessage)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptMessage.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106010)
-#include "../../generated/splicewrap/func_00106010.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptWait)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptWait.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106098)
-#include "../../generated/splicewrap/func_00106098.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptFollowPath)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptFollowPath.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106150)
-#include "../../generated/splicewrap/func_00106150.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptGoto)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptGoto.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106208)
-#include "../../generated/splicewrap/func_00106208.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptAnim)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptAnim.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106290)
-#include "../../generated/splicewrap/func_00106290.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptLabel)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptLabel.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106318)
-#include "../../generated/splicewrap/func_00106318.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptJump)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptJump.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001063A0)
-#include "../../generated/splicewrap/func_001063A0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptLeap)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptLeap.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106448)
-#include "../../generated/splicewrap/func_00106448.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptBusyOn)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptBusyOn.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001064C0)
-#include "../../generated/splicewrap/func_001064C0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptBusyOff)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptBusyOff.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106538)
-#include "../../generated/splicewrap/func_00106538.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptPlayBinding)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptPlayBinding.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001065E0)
-#include "../../generated/splicewrap/func_001065E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptEnsureRelayAlarm)
+#include "../../generated/splicewrap/RefThunk_AddGuardScriptEnsureRelayAlarm.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkRelayTRIGGER)
 #include "../../generated/splicewrap/RefThunkRelayTRIGGER.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00106710)
-#include "../../generated/splicewrap/func_00106710.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FireRelayFromPlayer)
+#include "../../generated/splicewrap/RefThunk_FireRelayFromPlayer.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkRelayUNTRIGGER)
 #include "../../generated/splicewrap/RefThunkRelayUNTRIGGER.inc"
@@ -1220,8 +1220,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayPipeTo)
 #include "../../generated/splicewrap/RefThunk_AddRelayPipeTo.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00107B18)
-#include "../../generated/splicewrap/func_00107B18.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWaitAndReleaseGrab)
+#include "../../generated/splicewrap/RefThunk_AddRelayWaitAndReleaseGrab.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayHeroState)
 #include "../../generated/splicewrap/RefThunk_AddRelayHeroState.inc"
@@ -1247,11 +1247,11 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkRelayPAUSE)
 #include "../../generated/splicewrap/RefThunkRelayPAUSE.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00108140)
-#include "../../generated/splicewrap/func_00108140.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayGoTo)
+#include "../../generated/splicewrap/RefThunk_AddRelayGoTo.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00108230)
-#include "../../generated/splicewrap/func_00108230.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayGoToAlt)
+#include "../../generated/splicewrap/RefThunk_AddRelayGoToAlt.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayRunOn)
 #include "../../generated/splicewrap/RefThunk_AddRelayRunOn.inc"
@@ -1432,8 +1432,8 @@ CRef RefThunk_AddRelayCamBlendTo(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunk_AddRelayCamBlendTo
 
-SLY2_SPLICEWRAP_BEGIN(func_001092D0)
-#include "../../generated/splicewrap/func_001092D0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayPopCamBlend)
+#include "../../generated/splicewrap/RefThunk_AddRelayPopCamBlend.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStartJtMode)
 #include "../../generated/splicewrap/RefThunk_AddRelayStartJtMode.inc"
@@ -1476,8 +1476,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayButtonPrompt)
 #include "../../generated/splicewrap/RefThunk_AddRelayButtonPrompt.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00109868)
-#include "../../generated/splicewrap/func_00109868.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWaitPlayerState)
+#include "../../generated/splicewrap/RefThunk_AddRelayWaitPlayerState.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStopLine)
 #include "../../generated/splicewrap/RefThunk_AddRelayStopLine.inc"
@@ -1488,17 +1488,17 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayClearSubtitle)
 #include "../../generated/splicewrap/RefThunk_AddRelayClearSubtitle.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00109AB8)
-#include "../../generated/splicewrap/func_00109AB8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepHold)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepHold.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00109B70)
-#include "../../generated/splicewrap/func_00109B70.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayStepRelease)
+#include "../../generated/splicewrap/RefThunk_AddRelayStepRelease.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00109C28)
-#include "../../generated/splicewrap/func_00109C28.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayRhythmSequence)
+#include "../../generated/splicewrap/RefThunk_AddRelayRhythmSequence.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00109CB0)
-#include "../../generated/splicewrap/func_00109CB0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayRhythmCue)
+#include "../../generated/splicewrap/RefThunk_AddRelayRhythmCue.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayPlayAsegDefault)
 #include "../../generated/splicewrap/RefThunk_AddRelayPlayAsegDefault.inc"
@@ -1512,17 +1512,17 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWaitTimer)
 #include "../../generated/splicewrap/RefThunk_AddRelayWaitTimer.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00109FB8)
-#include "../../generated/splicewrap/func_00109FB8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayMurrayApplySma)
+#include "../../generated/splicewrap/RefThunk_AddRelayMurrayApplySma.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A0A8)
-#include "../../generated/splicewrap/func_0010A0A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWaitBentleyGadget)
+#include "../../generated/splicewrap/RefThunk_AddRelayWaitBentleyGadget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A130)
-#include "../../generated/splicewrap/func_0010A130.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWaitBentleyGadgetDone)
+#include "../../generated/splicewrap/RefThunk_AddRelayWaitBentleyGadgetDone.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A1B8)
-#include "../../generated/splicewrap/func_0010A1B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayWaitLine)
+#include "../../generated/splicewrap/RefThunk_AddRelayWaitLine.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayHintBox)
 #include "../../generated/splicewrap/RefThunk_AddRelayHintBox.inc"
@@ -1536,17 +1536,17 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayResetStepGoal)
 #include "../../generated/splicewrap/RefThunk_AddRelayResetStepGoal.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A4E0)
-#include "../../generated/splicewrap/func_0010A4E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayMurrayThrowAim)
+#include "../../generated/splicewrap/RefThunk_AddRelayMurrayThrowAim.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A568)
-#include "../../generated/splicewrap/func_0010A568.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayBentleyJumpOnMurray)
+#include "../../generated/splicewrap/RefThunk_AddRelayBentleyJumpOnMurray.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A620)
-#include "../../generated/splicewrap/func_0010A620.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayMurrayMoveTo)
+#include "../../generated/splicewrap/RefThunk_AddRelayMurrayMoveTo.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A6D8)
-#include "../../generated/splicewrap/func_0010A6D8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRelayMurrayMoveToAndControl)
+#include "../../generated/splicewrap/RefThunk_AddRelayMurrayMoveToAndControl.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void LaunchStepplayer(void *p, qword, float, float);
@@ -1565,11 +1565,11 @@ extern "C" CRef RefThunk_LaunchStepplayer(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_0010A848)
-#include "../../generated/splicewrap/func_0010A848.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepplayerGrabTarget)
+#include "../../generated/splicewrap/RefThunk_SetStepplayerGrabTarget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010A8D0)
-#include "../../generated/splicewrap/func_0010A8D0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsStepplayerGrabReady)
+#include "../../generated/splicewrap/RefThunk_IsStepplayerGrabReady.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_StartStepplayerFollow (was src/game/app/splice_thunks/RefThunk_StartStepplayerFollow.cpp) ----
@@ -1590,29 +1590,29 @@ CRef RefThunk_StartStepplayerFollow(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunk_StartStepplayerFollow
 
-SLY2_SPLICEWRAP_BEGIN(func_0010A9E8)
-#include "../../generated/splicewrap/func_0010A9E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartStepplayerThrowAt)
+#include "../../generated/splicewrap/RefThunk_StartStepplayerThrowAt.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010AA90)
-#include "../../generated/splicewrap/func_0010AA90.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsStepplayerNotThrowing)
+#include "../../generated/splicewrap/RefThunk_IsStepplayerNotThrowing.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010AB00)
-#include "../../generated/splicewrap/func_0010AB00.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepplayerGrabState9)
+#include "../../generated/splicewrap/RefThunk_SetStepplayerGrabState9.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010AB88)
-#include "../../generated/splicewrap/func_0010AB88.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsStepplayerNotInGrabState9)
+#include "../../generated/splicewrap/RefThunk_IsStepplayerNotInGrabState9.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010ABF8)
-#include "../../generated/splicewrap/func_0010ABF8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepplayerGrabTargetEx)
+#include "../../generated/splicewrap/RefThunk_SetStepplayerGrabTargetEx.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010AC80)
-#include "../../generated/splicewrap/func_0010AC80.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepplayerGrabTargetAlt)
+#include "../../generated/splicewrap/RefThunk_SetStepplayerGrabTargetAlt.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010AD08)
-#include "../../generated/splicewrap/func_0010AD08.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartStepplayerGrabStateC)
+#include "../../generated/splicewrap/RefThunk_StartStepplayerGrabStateC.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010ADB8)
-#include "../../generated/splicewrap/func_0010ADB8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_IsStepplayerNotInGrabStateC)
+#include "../../generated/splicewrap/RefThunk_IsStepplayerNotInGrabStateC.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepplayerIdleParams(void *p, void *, void *, void *);
@@ -1634,20 +1634,20 @@ extern "C" CRef RefThunk_SetStepplayerIdleParams(void *p, int c, void *aref)
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ForceStepplayerLeanTarget)
 #include "../../generated/splicewrap/RefThunk_ForceStepplayerLeanTarget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010AFB0)
-#include "../../generated/splicewrap/func_0010AFB0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_UnlockStepplayerLeanTarget)
+#include "../../generated/splicewrap/RefThunk_UnlockStepplayerLeanTarget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B028)
-#include "../../generated/splicewrap/func_0010B028.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetStepplayerPlayerState)
+#include "../../generated/splicewrap/RefThunk_SetStepplayerPlayerState.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B0B8)
-#include "../../generated/splicewrap/func_0010B0B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SpawnStepplayerBootyMarker)
+#include "../../generated/splicewrap/RefThunk_SpawnStepplayerBootyMarker.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B140)
-#include "../../generated/splicewrap/func_0010B140.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_DropStepplayerBooty)
+#include "../../generated/splicewrap/RefThunk_DropStepplayerBooty.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B1B8)
-#include "../../generated/splicewrap/func_0010B1B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_DeliverStepplayerBooty)
+#include "../../generated/splicewrap/RefThunk_DeliverStepplayerBooty.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetStepplayerThrowParams(void *p, float, float, void *, float, float, qword, qword);
@@ -1692,11 +1692,11 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_GetGadgetSlotFromId)
 #include "../../generated/splicewrap/RefThunk_GetGadgetSlotFromId.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B510)
-#include "../../generated/splicewrap/func_0010B510.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetJtGrabObject)
+#include "../../generated/splicewrap/RefThunk_SetJtGrabObject.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B598)
-#include "../../generated/splicewrap/func_0010B598.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetJtUnknown1D30)
+#include "../../generated/splicewrap/RefThunk_SetJtUnknown1D30.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetJtMeshProbePoints(void *p, qword, qword, qword);
@@ -1729,8 +1729,8 @@ extern "C" CRef RefThunk_SetJtUnknown1FA0(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_0010B760)
-#include "../../generated/splicewrap/func_0010B760.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_PutHeroAtWarp)
+#include "../../generated/splicewrap/RefThunk_PutHeroAtWarp.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkExitTRIGGER)
 #include "../../generated/splicewrap/RefThunkExitTRIGGER.inc"
@@ -1738,20 +1738,20 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddExitTaskState)
 #include "../../generated/splicewrap/RefThunk_AddExitTaskState.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B8F8)
-#include "../../generated/splicewrap/func_0010B8F8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddWarpAliasStart)
+#include "../../generated/splicewrap/RefThunk_AddWarpAliasStart.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B970)
-#include "../../generated/splicewrap/func_0010B970.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddWarpAliasEnd)
+#include "../../generated/splicewrap/RefThunk_AddWarpAliasEnd.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010B9E8)
-#include "../../generated/splicewrap/func_0010B9E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddWarpOidAlias)
+#include "../../generated/splicewrap/RefThunk_AddWarpOidAlias.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkWarpSET_SM_GOAL)
 #include "../../generated/splicewrap/RefThunkWarpSET_SM_GOAL.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010BB38)
-#include "../../generated/splicewrap/func_0010BB38.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddWarpTaskState)
+#include "../../generated/splicewrap/RefThunk_AddWarpTaskState.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddWarpOidPair)
 #include "../../generated/splicewrap/RefThunk_AddWarpOidPair.inc"
@@ -1759,14 +1759,14 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_FInvulnerablePo)
 #include "../../generated/splicewrap/RefThunk_FInvulnerablePo.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010BD10)
-#include "../../generated/splicewrap/func_0010BD10.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetDprizeParams)
+#include "../../generated/splicewrap/RefThunk_SetDprizeParams.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddLootEntry)
 #include "../../generated/splicewrap/RefThunk_AddLootEntry.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010BE70)
-#include "../../generated/splicewrap/func_0010BE70.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearCurrentLootEntry)
+#include "../../generated/splicewrap/RefThunk_ClearCurrentLootEntry.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddLootEntryObject)
 #include "../../generated/splicewrap/RefThunk_AddLootEntryObject.inc"
@@ -1807,11 +1807,11 @@ CRef RefThunk_EmitSwNoise(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunk_EmitSwNoise
 
-SLY2_SPLICEWRAP_BEGIN(func_0010C0A8)
-#include "../../generated/splicewrap/func_0010C0A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_CallSlot24OnSwObjects)
+#include "../../generated/splicewrap/RefThunk_CallSlot24OnSwObjects.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C120)
-#include "../../generated/splicewrap/func_0010C120.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAmbienceGroupMix)
+#include "../../generated/splicewrap/RefThunk_SetAmbienceGroupMix.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkSwHANDS_OFF)
 #include "../../generated/splicewrap/RefThunkSwHANDS_OFF.inc"
@@ -1819,8 +1819,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkSwHANDS_ON)
 #include "../../generated/splicewrap/RefThunkSwHANDS_ON.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C2E8)
-#include "../../generated/splicewrap/func_0010C2E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetGrabMarkerProxy)
+#include "../../generated/splicewrap/RefThunk_SetGrabMarkerProxy.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkWrADD_CIRCLE_WARP)
 #include "../../generated/splicewrap/RefThunkWrADD_CIRCLE_WARP.inc"
@@ -1834,11 +1834,11 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkWrADD_SWIVEL_NOISE)
 #include "../../generated/splicewrap/RefThunkWrADD_SWIVEL_NOISE.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C5F0)
-#include "../../generated/splicewrap/func_0010C5F0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetCritterLink)
+#include "../../generated/splicewrap/RefThunk_SetCritterLink.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C6A8)
-#include "../../generated/splicewrap/func_0010C6A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartScreenFade)
+#include "../../generated/splicewrap/RefThunk_StartScreenFade.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_POCTL_ConsumeAnyPressed)
 #include "../../generated/splicewrap/RefThunk_POCTL_ConsumeAnyPressed.inc"
@@ -1846,95 +1846,95 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_POCTL_IsButtonDown)
 #include "../../generated/splicewrap/RefThunk_POCTL_IsButtonDown.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C820)
-#include "../../generated/splicewrap/func_0010C820.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableTriggerClass)
+#include "../../generated/splicewrap/RefThunk_AddBreakableTriggerClass.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C8C8)
-#include "../../generated/splicewrap/func_0010C8C8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableStage)
+#include "../../generated/splicewrap/RefThunk_AddBreakableStage.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C950)
-#include "../../generated/splicewrap/func_0010C950.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_InitBreakablePreStage)
+#include "../../generated/splicewrap/RefThunk_InitBreakablePreStage.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010C9C8)
-#include "../../generated/splicewrap/func_0010C9C8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetBreakableStageParam)
+#include "../../generated/splicewrap/RefThunk_SetBreakableStageParam.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CA50)
-#include "../../generated/splicewrap/func_0010CA50.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableJoltCamera)
+#include "../../generated/splicewrap/RefThunk_AddBreakableJoltCamera.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CAD8)
-#include "../../generated/splicewrap/func_0010CAD8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableRumble)
+#include "../../generated/splicewrap/RefThunk_AddBreakableRumble.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CB60)
-#include "../../generated/splicewrap/func_0010CB60.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableSound)
+#include "../../generated/splicewrap/RefThunk_AddBreakableSound.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CBE8)
-#include "../../generated/splicewrap/func_0010CBE8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableShowGlobs)
+#include "../../generated/splicewrap/RefThunk_AddBreakableShowGlobs.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CC70)
-#include "../../generated/splicewrap/func_0010CC70.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ShowSoGlobsById)
+#include "../../generated/splicewrap/RefThunk_ShowSoGlobsById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CCF8)
-#include "../../generated/splicewrap/func_0010CCF8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableShowParts)
+#include "../../generated/splicewrap/RefThunk_AddBreakableShowParts.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CD80)
-#include "../../generated/splicewrap/func_0010CD80.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ShowSoPartsById)
+#include "../../generated/splicewrap/RefThunk_ShowSoPartsById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CE08)
-#include "../../generated/splicewrap/func_0010CE08.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableRemoveObject)
+#include "../../generated/splicewrap/RefThunk_AddBreakableRemoveObject.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CE90)
-#include "../../generated/splicewrap/func_0010CE90.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableHideGlobs)
+#include "../../generated/splicewrap/RefThunk_AddBreakableHideGlobs.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CF18)
-#include "../../generated/splicewrap/func_0010CF18.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_HideSoGlobsById)
+#include "../../generated/splicewrap/RefThunk_HideSoGlobsById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010CFA0)
-#include "../../generated/splicewrap/func_0010CFA0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableHideParts)
+#include "../../generated/splicewrap/RefThunk_AddBreakableHideParts.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D028)
-#include "../../generated/splicewrap/func_0010D028.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_HideSoPartsById)
+#include "../../generated/splicewrap/RefThunk_HideSoPartsById.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D0B0)
-#include "../../generated/splicewrap/func_0010D0B0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBreakableTaskStates)
+#include "../../generated/splicewrap/RefThunk_AddBreakableTaskStates.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D158)
-#include "../../generated/splicewrap/func_0010D158.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ScheduleBreakableReaction)
+#include "../../generated/splicewrap/RefThunk_ScheduleBreakableReaction.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D1D8)
-#include "../../generated/splicewrap/func_0010D1D8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetBreakableStage)
+#include "../../generated/splicewrap/RefThunk_SetBreakableStage.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_StartMurrayLiftGrabspot)
 #include "../../generated/splicewrap/RefThunk_StartMurrayLiftGrabspot.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D2E8)
-#include "../../generated/splicewrap/func_0010D2E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ThrowMurrayCarriedAt)
+#include "../../generated/splicewrap/RefThunk_ThrowMurrayCarriedAt.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D370)
-#include "../../generated/splicewrap/func_0010D370.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_EnterMurrayThrowAim)
+#include "../../generated/splicewrap/RefThunk_EnterMurrayThrowAim.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D3E8)
-#include "../../generated/splicewrap/func_0010D3E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearMurrayBehaviors)
+#include "../../generated/splicewrap/RefThunk_ClearMurrayBehaviors.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D468)
-#include "../../generated/splicewrap/func_0010D468.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartMurrayFlop)
+#include "../../generated/splicewrap/RefThunk_StartMurrayFlop.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D4E0)
-#include "../../generated/splicewrap/func_0010D4E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AcquireRenderTargetNoResult)
+#include "../../generated/splicewrap/RefThunk_AcquireRenderTargetNoResult.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D558)
-#include "../../generated/splicewrap/func_0010D558.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ReleaseRenderTarget)
+#include "../../generated/splicewrap/RefThunk_ReleaseRenderTarget.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D5D0)
-#include "../../generated/splicewrap/func_0010D5D0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FireTriggerGrabspot)
+#include "../../generated/splicewrap/RefThunk_FireTriggerGrabspot.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D660)
-#include "../../generated/splicewrap/func_0010D660.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_CanGrabspotAcceptPlayer)
+#include "../../generated/splicewrap/RefThunk_CanGrabspotAcceptPlayer.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D6E0)
-#include "../../generated/splicewrap/func_0010D6E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddTriggerGrabspotRsmg)
+#include "../../generated/splicewrap/RefThunk_AddTriggerGrabspotRsmg.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D798)
-#include "../../generated/splicewrap/func_0010D798.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddTriggerGrabspotPair)
+#include "../../generated/splicewrap/RefThunk_AddTriggerGrabspotPair.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void * NewNoise(void *p, qword, int);
@@ -1950,17 +1950,17 @@ extern "C" CRef RefThunk_NewNoise(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_0010D8E0)
-#include "../../generated/splicewrap/func_0010D8E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RemoveNoise)
+#include "../../generated/splicewrap/RefThunk_RemoveNoise.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D958)
-#include "../../generated/splicewrap/func_0010D958.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StickTossable)
+#include "../../generated/splicewrap/RefThunk_StickTossable.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010D9E0)
-#include "../../generated/splicewrap/func_0010D9E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_DropTossable)
+#include "../../generated/splicewrap/RefThunk_DropTossable.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010DA68)
-#include "../../generated/splicewrap/func_0010DA68.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SendRootBhvMode15)
+#include "../../generated/splicewrap/RefThunk_SendRootBhvMode15.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ShowWidget)
 #include "../../generated/splicewrap/RefThunk_ShowWidget.inc"
@@ -1977,8 +1977,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetWidgetAnimPhase)
 #include "../../generated/splicewrap/RefThunk_SetWidgetAnimPhase.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010DDB0)
-#include "../../generated/splicewrap/func_0010DDB0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetWidgetAnimTime)
+#include "../../generated/splicewrap/RefThunk_SetWidgetAnimTime.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_ShowWidgetArgsFromSplice (was src/game/app/splice_thunks/RefThunk_ShowWidgetArgsFromSplice.cpp) ----
@@ -1998,23 +1998,23 @@ CRef RefThunk_ShowWidgetArgsFromSplice(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunk_ShowWidgetArgsFromSplice
 
-SLY2_SPLICEWRAP_BEGIN(func_0010DEF8)
-#include "../../generated/splicewrap/func_0010DEF8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddItemCounterOidA)
+#include "../../generated/splicewrap/RefThunk_AddItemCounterOidA.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010DF80)
-#include "../../generated/splicewrap/func_0010DF80.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddItemCounterOidB)
+#include "../../generated/splicewrap/RefThunk_AddItemCounterOidB.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBootyEntry)
 #include "../../generated/splicewrap/RefThunk_AddBootyEntry.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010E0C0)
-#include "../../generated/splicewrap/func_0010E0C0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ClearCurrentBootyEntry)
+#include "../../generated/splicewrap/RefThunk_ClearCurrentBootyEntry.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddBootyEntryObject)
 #include "../../generated/splicewrap/RefThunk_AddBootyEntryObject.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010E1C0)
-#include "../../generated/splicewrap/func_0010E1C0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetBootyContainerKind)
+#include "../../generated/splicewrap/RefThunk_SetBootyContainerKind.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_CanAcquireProxy)
 #include "../../generated/splicewrap/RefThunk_CanAcquireProxy.inc"
@@ -2031,8 +2031,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_UnlockProxyObject)
 #include "../../generated/splicewrap/RefThunk_UnlockProxyObject.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010E4A8)
-#include "../../generated/splicewrap/func_0010E4A8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_StartFrameCapture)
+#include "../../generated/splicewrap/RefThunk_StartFrameCapture.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" qword GetShapeClosestPoint(void *p, qword q);
@@ -2109,23 +2109,23 @@ extern "C" CRef RefThunk_SetXfHandleKind16Params(void *p, int c, void *aref)
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddJobCompleteEvent)
 #include "../../generated/splicewrap/RefThunk_AddJobCompleteEvent.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010E998)
-#include "../../generated/splicewrap/func_0010E998.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddJobFailEvent)
+#include "../../generated/splicewrap/RefThunk_AddJobFailEvent.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010EA20)
-#include "../../generated/splicewrap/func_0010EA20.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SignalJobComplete)
+#include "../../generated/splicewrap/RefThunk_SignalJobComplete.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010EA98)
-#include "../../generated/splicewrap/func_0010EA98.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_RestartJob)
+#include "../../generated/splicewrap/RefThunk_RestartJob.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010EB10)
-#include "../../generated/splicewrap/func_0010EB10.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FailJob)
+#include "../../generated/splicewrap/RefThunk_FailJob.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ResetJobTasks)
 #include "../../generated/splicewrap/RefThunk_ResetJobTasks.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010EC00)
-#include "../../generated/splicewrap/func_0010EC00.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddJobStateVisibility)
+#include "../../generated/splicewrap/RefThunk_AddJobStateVisibility.inc"
 SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkJobSET_SM_GOAL (was src/game/app/splice_thunks/RefThunkJobSET_SM_GOAL.cpp) ----
@@ -2149,8 +2149,8 @@ CRef RefThunkJobSET_SM_GOAL(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunkJobSET_SM_GOAL
 
-SLY2_SPLICEWRAP_BEGIN(func_0010EDA8)
-#include "../../generated/splicewrap/func_0010EDA8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetJobCompletionWidget)
+#include "../../generated/splicewrap/RefThunk_SetJobCompletionWidget.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_RequestTaskState)
 #include "../../generated/splicewrap/RefThunk_RequestTaskState.inc"
@@ -2158,8 +2158,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ForceTaskState)
 #include "../../generated/splicewrap/RefThunk_ForceTaskState.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010EFB0)
-#include "../../generated/splicewrap/func_0010EFB0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SendTaskTimeout)
+#include "../../generated/splicewrap/RefThunk_SendTaskTimeout.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddTaskStateVisibility(void *p, int, void *, int, int);
@@ -2182,17 +2182,17 @@ extern "C" CRef RefThunk_AddTaskStateVisibility(void *p, int c, void *aref)
 SLY2_SPLICEWRAP_BEGIN(RefThunkTaskSET_SM_GOAL)
 #include "../../generated/splicewrap/RefThunkTaskSET_SM_GOAL.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010F208)
-#include "../../generated/splicewrap/func_0010F208.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ForceTaskState0)
+#include "../../generated/splicewrap/RefThunk_ForceTaskState0.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010F280)
-#include "../../generated/splicewrap/func_0010F280.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ForceTaskState1)
+#include "../../generated/splicewrap/RefThunk_ForceTaskState1.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010F2F8)
-#include "../../generated/splicewrap/func_0010F2F8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ForceTaskState2)
+#include "../../generated/splicewrap/RefThunk_ForceTaskState2.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010F370)
-#include "../../generated/splicewrap/func_0010F370.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ForceTaskState3)
+#include "../../generated/splicewrap/RefThunk_ForceTaskState3.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ActivateTask)
 #include "../../generated/splicewrap/RefThunk_ActivateTask.inc"
@@ -2224,8 +2224,8 @@ CRef RefThunk_SetPoChoices(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunk_SetPoChoices
 
-SLY2_SPLICEWRAP_BEGIN(func_0010F6E8)
-#include "../../generated/splicewrap/func_0010F6E8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddDimitriRoute)
+#include "../../generated/splicewrap/RefThunk_AddDimitriRoute.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" qword ChooseEscapePosition(void *p, qword q);
@@ -2261,35 +2261,35 @@ CRef RefThunk_AddDancerMove(void *object, int argCount, void *args)
 }
 } // namespace T_RefThunk_AddDancerMove
 
-SLY2_SPLICEWRAP_BEGIN(func_0010F918)
-#include "../../generated/splicewrap/func_0010F918.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRhythmManagerGrade)
+#include "../../generated/splicewrap/RefThunk_AddRhythmManagerGrade.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ResetRhythmScore)
 #include "../../generated/splicewrap/RefThunk_ResetRhythmScore.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FA38)
-#include "../../generated/splicewrap/func_0010FA38.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_JumpBhvScriptToLabel)
+#include "../../generated/splicewrap/RefThunk_JumpBhvScriptToLabel.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FAC0)
-#include "../../generated/splicewrap/func_0010FAC0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SendCarmelitaRootBhvValue)
+#include "../../generated/splicewrap/RefThunk_SendCarmelitaRootBhvValue.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FB48)
-#include "../../generated/splicewrap/func_0010FB48.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRoutePoint)
+#include "../../generated/splicewrap/RefThunk_AddRoutePoint.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FBF0)
-#include "../../generated/splicewrap/func_0010FBF0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_KillHack)
+#include "../../generated/splicewrap/RefThunk_KillHack.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FC80)
-#include "../../generated/splicewrap/func_0010FC80.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ResetHack)
+#include "../../generated/splicewrap/RefThunk_ResetHack.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_AddHackshipOidPair)
 #include "../../generated/splicewrap/RefThunk_AddHackshipOidPair.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FDA8)
-#include "../../generated/splicewrap/func_0010FDA8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetHackshipEntry)
+#include "../../generated/splicewrap/RefThunk_SetHackshipEntry.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_0010FE60)
-#include "../../generated/splicewrap/func_0010FE60.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetHackenemyEntry)
+#include "../../generated/splicewrap/RefThunk_SetHackenemyEntry.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetHackenemyEntryVectors(void *p, int, void *, void *);
@@ -2324,26 +2324,26 @@ extern "C" CRef RefThunk_SetHackenemyEntrySecondVectors(void *p, int c, void *ar
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_001100B8)
-#include "../../generated/splicewrap/func_001100B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetHackbulletMode)
+#include "../../generated/splicewrap/RefThunk_SetHackbulletMode.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00110140)
-#include "../../generated/splicewrap/func_00110140.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetHacklockEntry)
+#include "../../generated/splicewrap/RefThunk_SetHacklockEntry.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkHacklockSET_SM_GOAL)
 #include "../../generated/splicewrap/RefThunkHacklockSET_SM_GOAL.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001102C0)
-#include "../../generated/splicewrap/func_001102C0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_ActivateHackshipFromHacklock)
+#include "../../generated/splicewrap/RefThunk_ActivateHackshipFromHacklock.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkHacklockTRIGGER)
 #include "../../generated/splicewrap/RefThunkHacklockTRIGGER.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001103B0)
-#include "../../generated/splicewrap/func_001103B0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddHackwallSegment)
+#include "../../generated/splicewrap/RefThunk_AddHackwallSegment.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00110478)
-#include "../../generated/splicewrap/func_00110478.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_UseRobottankWeaponAmmo)
+#include "../../generated/splicewrap/RefThunk_UseRobottankWeaponAmmo.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddRobottankWheel(void *p, int n, void *pu, float g);
@@ -2362,8 +2362,8 @@ extern "C" CRef RefThunk_AddRobottankWheel(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_001105B8)
-#include "../../generated/splicewrap/func_001105B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_AddRobottankWeapon)
+#include "../../generated/splicewrap/RefThunk_AddRobottankWeapon.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddRobottankAttachment(void *p, int n, void *pu);
@@ -2381,20 +2381,20 @@ extern "C" CRef RefThunk_AddRobottankAttachment(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00110738)
-#include "../../generated/splicewrap/func_00110738.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_FindRobottankWeapon)
+#include "../../generated/splicewrap/RefThunk_FindRobottankWeapon.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001107B8)
-#include "../../generated/splicewrap/func_001107B8.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_GetRobottankSlotValue)
+#include "../../generated/splicewrap/RefThunk_GetRobottankSlotValue.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00110838)
-#include "../../generated/splicewrap/func_00110838.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetRobottankSlotValue)
+#include "../../generated/splicewrap/RefThunk_SetRobottankSlotValue.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_001108E0)
-#include "../../generated/splicewrap/func_001108E0.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetRobottankAmmo)
+#include "../../generated/splicewrap/RefThunk_SetRobottankAmmo.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00110998)
-#include "../../generated/splicewrap/func_00110998.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetRajanCameraFocus)
+#include "../../generated/splicewrap/RefThunk_SetRajanCameraFocus.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunkVaultTRIGGER)
 #include "../../generated/splicewrap/RefThunkVaultTRIGGER.inc"

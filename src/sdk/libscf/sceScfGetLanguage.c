@@ -11,18 +11,18 @@ typedef struct {
   unsigned int language:5;
   unsigned int timezoneOffset:11;
 } sceOsdConfigParam;
-void func_00234AD0(sceOsdConfigParam *p);
+void GetOsdConfigParam(sceOsdConfigParam *p);
 int func_0024A820(void);
 extern unsigned char D_002C8374[];
 int sceScfGetLanguage(void)
 {
   sceOsdConfigParam cp;
   int r;
-  func_00234AD0(&cp);
+  GetOsdConfigParam(&cp);
   if (func_0024A820()) {
     r = D_002C8374[0];
   } else {
-    func_00234AD0(&cp);
+    GetOsdConfigParam(&cp);
     if (cp.version == 0)
       r = cp.japLanguage;
     else

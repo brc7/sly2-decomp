@@ -464,10 +464,10 @@ typedef char assert_STEPGUARD_busyCount[SLY2_OFFSETOF(STEPGUARD, busyCount) == 0
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline void func_00259D38(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetector->pvolNear = pvol; }   /* set */
-inline void func_00259D48(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetector->pvolFar = pvol; }    /* set */
-inline VOL *func_00259D60(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolNear; }   /* get */
-inline VOL *func_00259D70(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolFar; }    /* get */
+inline void SetStepguardNearVol(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetector->pvolNear = pvol; }   /* set */
+inline void SetStepguardFarVol(STEPGUARD *pstepguard, VOL *pvol) { pstepguard->pdetector->pvolFar = pvol; }    /* set */
+inline VOL *GetStepguardNearVol(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolNear; }   /* get */
+inline VOL *GetStepguardFarVol(STEPGUARD *pstepguard) { return pstepguard->pdetector->pvolFar; }    /* get */
 
 /* BHVGUARD's mode record (0x70; BHVGUARD.md): the awareness mode and its argument, or for the zap modes the zap.
    SetBhvguardMode copies it whole; IsBhvguardModeSame compares two. The data part; classes.h's BHVGUARDREC adds the

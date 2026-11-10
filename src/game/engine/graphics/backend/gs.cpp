@@ -97,13 +97,13 @@ void sceGsSyncPath(int a, int b);
 void sceGsResetGraph(int a, int b, int c, int d);
 void sceGsSetDefDBuff(DISPENVW *p, int a, int b, int c, int d, int e, int f);
 int sceGsGetIMR();
-void func_00240AA0(int n);
+void sceGsPutIMR(int n);
 void sceDmaSend(sceDmaChan *pch, QW *pqw);
 void sceDmaSync(sceDmaChan *pch, int a, int b);
 void FlushCache(int);
 void *func_002333B4(void *, int, uint) __asm__("memset");
 void AddIntcHandler(int a, void *pfn, int b);
-void func_00235178(int a);
+void EnableIntc(int a);
 STACKSCOPEMK *STACKSCOPE_ctor(STACKSCOPEMK *pm);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n) __asm__("_$_10STACKSCOPE");
 }
@@ -324,7 +324,7 @@ void SendDmaSyncGsFinish(sceDmaChan *pch, QW *pqw)
     EnterCritSect(&D_002DFB40);
     D_002DFB54 = 1;
     *(volatile long *)0x12001000 |= 2;
-    func_00240AA0(sceGsGetIMR() & ~0x200);
+    sceGsPutIMR(sceGsGetIMR() & ~0x200);
     func_00234CA0(0);
     sceDmaSend(pch, pqw);
     func_00234A60(D_002DFB50);
@@ -511,9 +511,9 @@ void StartupGs()
     D_002DFB4C = SemaCreate(0, 1);
     D_002DFB50 = SemaCreate(0, 1);
     AddIntcHandler(2, (void *)VBlankS_Interrupt, 0);
-    func_00235178(2);
+    EnableIntc(2);
     AddIntcHandler(0, (void *)ResetGs, 0);
-    func_00235178(0);
+    EnableIntc(0);
     GS_InterruptV();
     *(volatile int *)0x10003010 = 0;
 }

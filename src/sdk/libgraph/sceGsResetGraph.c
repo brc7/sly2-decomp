@@ -10,7 +10,7 @@ typedef struct {
     int handler_id;
 } sceGsGParam;
 sceGsGParam *sceGsGetGParam(void);
-int sceGsPutIMR(unsigned long);
+int GsPutIMR(unsigned long);
 int DisableIntc(int);
 int RemoveIntcHandler(int, int);
 void SetGsCrt(short, short, short);
@@ -24,7 +24,7 @@ void sceGsResetGraph(short mode, short inter, short omode, short ffmode)
         gp->sceGsInterMode = inter;
         gp->sceGsOutMode = omode;
         gp->sceGsVersion = (*(volatile unsigned long *)0x12001000 >> 16) & 0xFF;
-        sceGsPutIMR(0xFF00);
+        GsPutIMR(0xFF00);
         gp->sceGsFFMode = (ffmode != 0);
         if (gp->vsync_id) {
             DisableIntc(2);

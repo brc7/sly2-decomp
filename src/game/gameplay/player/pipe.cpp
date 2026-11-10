@@ -1,7 +1,7 @@
 // pipe.cpp -- PIPE, a shape the player can climb along (a SHAPE with GRABSPOTDATA at +0x190), kept in a global list:
 // init/load/add/remove/clone, the climbing frame at a distance (GetPipeGoalMatrix), the closest point and range, and a
 // random point/direction on it. VU0 and EE asm. TU 0x1C3390..0x1C3D70 (13 functions, address order); PIPE's
-// GRABSPOT owner getter func_00259AF8 is an inline function in sly2/xfm.h.
+// GRABSPOT owner getter GetPipeGrabspotOwner is an inline function in sly2/xfm.h.
 // Entry points: InitPipe/PostPipeLoad/ClonePipe, the world pipe list, GetPipeGoalMatrix (climbing frame) and the
 // GRABSPOT virtuals (GetPipeWrapRange, GetPipeClosestParam, GetPipeGrabPosition, GetPipeSparklePosition).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_pipe

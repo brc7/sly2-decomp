@@ -22,17 +22,20 @@ BASIC                    script context + message subscribers; the vptr follows 
  └─ LO                   level object: oid, parent, hierarchy root, activation, Splice update time
      ├─ XFM              LO + a transform (local and world matrix); lights, proxies, shapes, volumes, warps...
      ├─ ASEG, SM, WIDGET, JOB, TASK, RELAY, ...   LO children with no transform of their own
-     └─ SO               solid object: XF array, collision parts, physics, model
-         └─ PO           playable object (controller, health)
-             └─ STEP     walking character (behaviour stack)
-                 ├─ STEPPLAYER -> JT (Sly), MURRAY, BENTLEY
-                 └─ STEPGUARD  -> the guard classes
+     └─ ALO              (Sly 1's actor level object; empty here, see below)
+         └─ SO           solid object: XF array, collision parts, physics, model
+             └─ PO           playable object (controller, health)
+                 └─ STEP     walking character (behaviour stack)
+                     ├─ STEPPLAYER -> JT (Sly), MURRAY, BENTLEY
+                     └─ STEPGUARD  -> the guard classes
 ```
 
-**There is no ALO in Sly 2.** Sly 1's ALO ("actor level object": an LO with a transform and children) was split: the
-transform part became `XFM`, the child list moved to `SO`. Some code views still say `ALO` (local `ALO` structs, e.g.
-inside `lo.cpp`); they operate on any `LO` and the name is historical. Functions Sly 1 named for ALO now say `Lo`
-(`ConvertPosBetweenLos`, `ConvertMat4BetweenLos`).
+**ALO sits between LO and SO, but is (so far) empty.** Sly 1's ALO ("actor level object": an LO with a transform and
+children) lost its transform part to `XFM` and its child list to `SO`, but the class itself is still there: the
+animation code's Sly 1 symbols say `ALO` (`ReplaceCurrentAseg__FP4ASEGP3ALO...`), and every ALO-typed pointer in 121
+memory snapshots (SMA, ASEGA and ACT roots) points to an SO subclass, so the tree is LO -> ALO -> SO as in Sly 1
+(`include/sly2/alo.h`; no fields or slots identified). Some code views still say `ALO` for any `LO` (local structs,
+e.g. inside `lo.cpp`). Functions Sly 1 named for ALO now say `Lo` (`ConvertPosBetweenLos`, `ConvertMat4BetweenLos`).
 
 **Where the classes are declared.** `include/sly2/basic.h` (BASIC, CLASSINFO, lists, value types), `lo.h` (LO, LOROOT,
 LORUN, PXR), `xfm.h` (XFM, PROXY and other light classes), `so.h`, `po.h`, `step.h`, `stepplayer.h`, `jt.h`,

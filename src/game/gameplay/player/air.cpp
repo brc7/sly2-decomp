@@ -1802,7 +1802,7 @@ void UpdateJtAirInput(JTAIR *air)
                 }
                 if (air->canDoubleJump && air->player->positionXf->velocity.z < 0.0f)
                 {
-                    ReplaceCurrentAseg(air->apasegDoubleJump[0], (ALO *)air->player, 0.0f, 1.0f, 1, &air->player->activeAnimation);
+                    ReplaceCurrentAseg(air->apasegDoubleJump[0], air->player, 0.0f, 1.0f, 1, &air->player->activeAnimation);
                     air->canDoubleJump = 0;
                     air->player->SetVelocity(JtPlanLaunchVz(air, 6));
                     break;

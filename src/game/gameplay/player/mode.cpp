@@ -277,7 +277,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
     }
     if (aseg && !jtMode->player->IsFreeMoving())
         aseg = 0;
-    ReplaceCurrentAseg(aseg, (ALO *)jtMode->player, 0.0f, 1.0f, 1, &jtMode->animationPlayback);
+    ReplaceCurrentAseg(aseg, jtMode->player, 0.0f, 1.0f, 1, &jtMode->animationPlayback);
 }
 
 // Per-frame mode state machine: state 0 waits for the start clip then runs, state 1 turns the player toward the look

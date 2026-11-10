@@ -69,10 +69,10 @@ static inline unsigned read_4byte (void *p) { union unaligned *up = p; return up
 void *memcpy (void *, const void *, size_t);
 void *func_001AE4E8 (size_t);
 void func_001AE4F0 (void *);
-void func_00240328 (void) __attribute__ ((noreturn));
+void abort (void) __attribute__ ((noreturn));
 #define malloc func_001AE4E8
 #define free func_001AE4F0
-#define abort func_00240328
+#define abort abort
 void *decode_uleb128 (unsigned char *buf, unsigned *r);
 
 void *

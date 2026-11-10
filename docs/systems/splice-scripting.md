@@ -117,9 +117,11 @@ applied as a deferred removal. The camera and the world itself also take options
 **Thunks.** A method record points to a thunk `CRef thunk(BASIC *self, int cargs, CRef *args)` that converts the
 arguments with `RefSetArgsFromSplice` (one `OTYP` per argument) and calls the native function, for example
 `RefThunkBombPRIME` calling the bomb's prime function. Most thunks are generated wrappers in
-`src/generated/splicewrap/` (one `.inc` per thunk, named `RefThunk<Class><SCRIPT_NAME>`, included by
-`app/class_registry.cpp`); the rest are hand-written in `class_registry.cpp`. The script-side names in the wrapper file
-names (`DETONATE`, `SEEK`, `CUSTOM_INT_PROPERTY`, ...) are the best available names for the options.
+`src/generated/splicewrap/` (one `.inc` per thunk, file named after the thunk's symbol, included by
+`app/class_registry.cpp`); the rest are hand-written in `class_registry.cpp`. Thunk names follow
+[naming-workflow.md](../guides/naming-workflow.md) section 1 ("Splice thunks"): `RefThunk<Class><SCRIPT_NAME>` where the
+script-side option name is known (`DETONATE`, `SEEK`, `CUSTOM_INT_PROPERTY`, ...: the best available names for the
+options), otherwise `RefThunk_<Native>` after the native function the thunk calls.
 
 ## 6. Events: how the engine calls scripts
 

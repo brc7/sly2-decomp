@@ -26,7 +26,7 @@ typedef struct {
 extern TimerSys D_002C5A30;
 #define T_COUNT (*(volatile unsigned int *)0x10001000)
 #define T_MODE  (*(volatile unsigned int *)0x10001010)
-void func_00239AC0(unsigned int);
+void SetT2_MODE(unsigned int);
 Counter *func_00239EF0(Counter *);
 void func_00239E68(Counter *);
 void func_00239CD8(unsigned long);
@@ -38,7 +38,7 @@ static inline unsigned long GetTime(void)
     mode = T_MODE;
     if (mode & 0x800) {
         D_002C5A30.ovf++;
-        func_00239AC0(mode & ~0x400);
+        SetT2_MODE(mode & ~0x400);
         cnt = T_COUNT;
     }
     return ((D_002C5A30.ovf << 16) | cnt) << ((mode & 3) * 4);

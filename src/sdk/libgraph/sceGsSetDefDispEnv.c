@@ -22,7 +22,7 @@ typedef struct {
 extern char D_002AB330[];
 sceGsGParam *sceGsGetGParam(void);
 int checkModelVersion(void);
-void func_00240C28(int, int *, int *, int *, int *);
+void _GetGsDxDyOffset(int, int *, int *, int *, int *);
 int func_00236960(const char *, ...);
 void sceGsSetDefDispEnv(sceGsDispEnv *disp, short psm, short w, short h, short dx, short dy)
 {
@@ -30,7 +30,7 @@ void sceGsSetDefDispEnv(sceGsDispEnv *disp, short psm, short w, short h, short d
     int ox, oy, ow, oh;
 
     if (gp->sceGsOutMode != 2 && gp->sceGsOutMode != 3 && checkModelVersion()) {
-        func_00240C28(gp->sceGsOutMode, &ox, &oy, &ow, &oh);
+        _GetGsDxDyOffset(gp->sceGsOutMode, &ox, &oy, &ow, &oh);
     } else {
         ox = oy = ow = oh = 0;
     }

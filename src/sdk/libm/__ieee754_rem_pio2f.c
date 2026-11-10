@@ -8,8 +8,8 @@ typedef union { float value; __uint32_t word; } ieee_float_shape_type;
 #define GET_FLOAT_WORD(i,d) do { ieee_float_shape_type gf_u; gf_u.value = (d); (i) = gf_u.word; } while (0)
 #define SET_FLOAT_WORD(d,i) do { ieee_float_shape_type sf_u; sf_u.word = (i); (d) = sf_u.value; } while (0)
 #define FLT_UWORD_IS_FINITE(x) ((x)<0x7f800000L)
-float func_00244EF8(float x);
-#define fabsf func_00244EF8
+float fabsf(float x);
+#define fabsf fabsf
 int func_00248F38(float *x, float *y, int e0, int nx, int prec, const __int32_t *ipio2);
 #define __kernel_rem_pio2f func_00248F38
 extern const __int32_t two_over_pi[];

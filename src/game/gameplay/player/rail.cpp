@@ -1,6 +1,6 @@
 // rail.cpp -- RAIL, a shape the player can grab and slide along (a SHAPE with GRABSPOTDATA at +0x190), kept in a global
 // list: init/load/add/remove/clone, its range, closest point and a random point/direction on it. VU0 and EE asm.
-// TU 0x1CB908..0x1CBEB0 (11 functions, address order); RAIL's GRABSPOT owner getter func_00259B08 is an inline
+// TU 0x1CB908..0x1CBEB0 (11 functions, address order); RAIL's GRABSPOT owner getter GetRailGrabspotOwner is an inline
 // function in sly2/xfm.h.
 // Entry points: InitRail/PostRailLoad/CloneRail, the world rail list (RAIL::OnAdd, OnRailRemove) and the
 // GRABSPOT virtuals (GetRailWrapRange, GetRailClosestParam, GetRailGrabPosition, GetRailSparklePosition).
