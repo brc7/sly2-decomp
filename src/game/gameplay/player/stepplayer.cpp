@@ -891,8 +891,8 @@ struct JT {
 };
 extern float D_002BCC98 __asm__("D_002BCC98"), D_002BCC9C __asm__("D_002BCC9C"), D_002BCCA0 __asm__("D_002BCCA0"), D_002BCCA4 __asm__("D_002BCCA4"), D_002BCCA8 __asm__("D_002BCCA8"), D_002BCCAC __asm__("D_002BCCAC"), D_002BCCB0 __asm__("D_002BCCB0"), D_002BCCB4 __asm__("D_002BCCB4");
 extern char D_002BCCB8[] __asm__("D_002BCCB8"), D_002BCCC8[] __asm__("D_002BCCC8"), D_002BCCD8[] __asm__("D_002BCCD8");
-extern struct { float a, b, c; } D_002BCCF0 __asm__("D_002BCCF0");
-extern struct { float lo, hi; } g_lmZeroOne __asm__("g_lmZeroOne");
+extern struct S_D_002BCCF0 { float a, b, c; } D_002BCCF0 __asm__("D_002BCCF0");
+extern struct S_lmZeroOne { float lo, hi; } g_lmZeroOne __asm__("g_lmZeroOne");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void GetSoCameraDefaults(struct JT *, struct XP *) __asm__("GetSoCameraDefaults");
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
