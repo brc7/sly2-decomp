@@ -28,7 +28,6 @@ struct BASICV { CFrame *frame; SIDEBAG *psidebag; REFNODE *prefnodeFirst; VTE *v
 struct LO : BASICV { };
 /* A subscription: the subscriber and its count. */
 struct REFNODE { LO *plo; int cref; REFNODE *pnext; };
-struct CIDDESC { int f0, f4, cidLast, fc, f10; };   /* D_002BAAE8[cid]: the last cid derived from it (exclusive) */
 enum CIDV { CIDV_Nil = -1 };
 enum OPTID { OPTID_Nil = -1 };
 struct CLQ;
@@ -45,7 +44,7 @@ struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEven
 struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
 
 extern "C" {
-extern CIDDESC D_002BAAE8[];
+extern CLASSDESC D_002BAAE8[];   /* the class descriptor table (sly2/basic.h) */
 extern int D_0027A1D8[];   /* s_aiEvtParm (class_registry_options.inc) */
 extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 
@@ -95,7 +94,7 @@ int IsBasicDerivedFrom(BASICV *object, CIDV n) {
     CLASSINFO *pr = ((::BASIC *)object)->GetClassInfo();
     int x = pr->cid;
     int f = 0;
-    if (x >= n) { CIDDESC *pt = &D_002BAAE8[n]; f = x < pt->cidLast; }
+    if (x >= n) { CLASSDESC *pt = &D_002BAAE8[n]; f = x < (int)pt->lastDescendantCid; }   /* exclusive bound */
     return f;
 }
 

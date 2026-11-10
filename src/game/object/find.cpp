@@ -54,10 +54,7 @@ typedef char assert_SOV_childEnd[SLY2_OFFSETOF(SOV, childEnd) == 0x70 ? 1 : -1];
 struct PXRENT { int unknown0; void *proxyChain; int oid; PXRENT *next; LO *object; };
 /* A proxy chain link. */
 struct CH { void *id; CH *next; };
-/* Class descriptor (0x14 bytes, table D_002BAAE8) as far as the derivation test reads it. */
-struct CLASSDESC { CLASSDESC *base; int cid; int pad[3]; };
-
-extern CLASSDESC D_002BAAE8[];
+extern CLASSDESC D_002BAAE8[];   /* the class descriptor table (sly2/basic.h) */
 
 extern "C" {
 SL *GetSwOidBucket(char *world, int oid);
@@ -262,8 +259,8 @@ extern "C" LO *FindSwObjectInProxyScope(SW *world, int flags, int oid, LO *conte
 // True when class cid is cidBase or derives from it (walks the class-descriptor parent chain).
 extern "C" int IsCidDerivedFrom(int cid, int cidBase)
 {
-    CLASSDESC *classDesc;
-    for (classDesc = &D_002BAAE8[cid]; classDesc; classDesc = classDesc->base)
+    CLASSINFO *classDesc;
+    for (classDesc = &D_002BAAE8[cid]; classDesc; classDesc = classDesc->parentClass)
         if (classDesc->cid == cidBase)
             return 1;
     return 0;

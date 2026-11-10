@@ -87,16 +87,10 @@ struct CLoadCollectorProxy : CLoadCollector
     int idProxy;   /* -1, or set on each object with LO::SetIdProxy(proxyId, 1) */
 };
 
-/* Class descriptor table (D_002BAAE8, 0x14-byte records indexed by CID; IsCidDerivedFrom walks it): +0x10 the factory. */
-struct CLSNEW : CLASSINFO   /* basic.h CLASSINFO (parentClass is a pointer) + the constructor */
-{
-    LO *(*pfnNew)();
-};
-typedef char assert_CLSNEW_size[sizeof(CLSNEW) == 0x14 ? 1 : -1];
 
 /* SW::alangstr entry (the same view as proxy/ and brx_sw). */
 
-extern CLSNEW D_002BAAE8[];
+extern CLASSDESC D_002BAAE8[];   /* the class descriptor table (sly2/basic.h) */
 extern EOPID D_002AC880[];   /* g_aeopid */
 extern const char D_002A4BE0[] = "";   /* the empty string (a zero-filled .rodata row) */
 extern "C" {
@@ -158,7 +152,7 @@ char *FindSwLocalizedString(SW *world, int id)
 LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
 {
     SW *world;
-    LO *plo = (D_002BAAE8 + cid)->pfnNew();
+    LO *plo = (LO *)(D_002BAAE8 + cid)->pfnNew();
     plo->parent = psoParent;
     plo->oid = oid;
     world = &g_sw;

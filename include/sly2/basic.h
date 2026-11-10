@@ -361,6 +361,15 @@ struct CLASSINFO
       int instanceSize; /* instance size in bytes */
 };
 
+/* CLASSDESC: an entry of the class descriptor table D_002BAAE8 (one per CID, defined by app/class_registry.cpp): the
+   CLASSINFO that GetClassInfo returns, then the class's factory. Users declare the table themselves (a header
+   declaration of it would be harmless, but the table's TU keeps its own). */
+struct CLASSDESC : CLASSINFO
+{
+      void *(*pfnNew)();   /* allocates and constructs an instance (NewXxx); cast the result to the class */
+};
+typedef char assert_CLASSDESC_size[sizeof(CLASSDESC) == 0x14 ? 1 : -1];
+
 /* CLOCK: sly2/clock.h (included above). */
 
 /* SL: a singly linked intrusive list header: first and last element and the offset of the SLE link inside each

@@ -28,11 +28,9 @@ struct SAAF
     union { unsigned short cLoop; int cLoopWord; };    /* 0x1C (also read as a whole word) */
 };
 /* The kinds (LOOP, PINGPONG, SHUFFLE, EYES, SCROLLER, CIRCLER) are classes.h's classes. */
-/* An SAA class: its size and constructor (the BRX class table D_002BAAE8, virtual slot 6). */
-struct SAACLS : CLASSINFO { SAA *(*pfnNew)(void); };   /* basic.h CLASSINFO (parentClass is a pointer) + the constructor */
 
 extern "C" {
-extern SAACLS D_002BAAE8[];
+extern CLASSDESC D_002BAAE8[];   /* the class descriptor table (sly2/basic.h): an SAA class's size and factory */
 extern int D_003DA790;
 extern COPYREC D_003DA798[];
 int U16Read__18CBinaryInputStream(void *pbis);
@@ -68,7 +66,7 @@ extern "C" SAA *LoadSaaFromBrx(int isGlobsetOwned, void *pbis)
     int i = U16Read__18CBinaryInputStream(pbis);
     SAA *p;
     if (i == -1) return 0;
-    p = (D_002BAAE8 + i)->pfnNew();
+    p = (SAA *)(D_002BAAE8 + i)->pfnNew();
     p->isGlobsetOwned = isGlobsetOwned;
     Read__18CBinaryInputStreamiPv(pbis, 0x20, buf);
     p->Init((SAAF *)buf);
@@ -78,8 +76,8 @@ extern "C" SAA *LoadSaaFromBrx(int isGlobsetOwned, void *pbis)
 // Duplicate an SAA (size from its class descriptor via vt6), reset its lists and link it into the SAA list g_sw.slSaa.
 // (inferred)
 extern "C" SAA *CloneSaa(SAA *saa) {
-    SAACLS *pcls = (SAACLS *)saa->GetClassInfo();
-    SAA *pNew = pcls->pfnNew();
+    CLASSDESC *pcls = (CLASSDESC *)saa->GetClassInfo();
+    SAA *pNew = (SAA *)pcls->pfnNew();
     CopyAb__FPvT0Ui(pNew, saa, pcls->instanceSize);
     ClearSl(&pNew->instances);
     ClearSle(&pNew->next);
