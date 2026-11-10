@@ -41,21 +41,21 @@ static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
 struct LOV { int pad0[3]; void *pvt; char pad10[0x74 - 0x10]; float duration; float masterSpeed; };   /* duration/speed: as an ASEG */
 
 /* The XFs at SO+0x58/+0x5C as far as this TU reads them. */
-struct XFV { char pad0[0x98]; short role; char pad9A[0xF0 - 0x9A]; V3 unknownF0; };   /* unknownF0: a vector cleared as three words */
+struct XFV { char pad0[0x88]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0x98 - 0x94]; short role; char pad9A[0xA0 - 0x9A]; void *parent; char padA4[0xA8 - 0xA4]; void *unknownA8; char padAC[0xF0 - 0xAC]; V3 unknownF0; };   /* unknownF0: a vector cleared as three words */
 
 /* Per-state animation: the clip's OID until PostLoad resolves it to the ASEG, and its apply flags. */
 struct E96 { OID oid; ASEG *paseg; int applyFlags; };
 
 struct CID96V
 {
-    int pad0[3];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     void *pvt;              /* 0x0C */
-    char pad10[0x40 - 0x10];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord;
     unsigned int taggedFlags; /* 0x40 tagged word (pointer, or odd flags) */
-    char pad44[0x58 - 0x44];
+    char pad44[0x54 - 0x44]; void *transforms;
     XFV *positionXf;        /* 0x58 */
     XFV *rotationXf;        /* 0x5C ("group" of the state controller) */
-    char pad60[0x150 - 0x60];
+    void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts; void *physics; void *physicsTree; char padF0[0x134 - 0xF0]; void *psobounds; void *pxa; char pad13C[0x14C - 0x13C]; void *unknown14C;
     float nearDistance;     /* 0x150 a player this close startles it */
     float farDistance;      /* 0x154 ... or this close while moving faster than 150 */
     float idleWaitMin, idleWaitMax;     /* 0x158 random time spent idle */
