@@ -48,7 +48,7 @@ struct SHAPEV
     VTE *pvt;               /* 0x0C */
     void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x50 - 0x40]; void *parentTransform; char pad54[0xE8 - 0x54];
     int cpos;               /* 0xE8 */
-    int padEC;
+    void *padEC;
     void *padF0;
     qword *apos;            /* 0xF4 */
 };
