@@ -1264,43 +1264,40 @@ extern "C" void *AllocSwPostLoadRecord(SW *world)
 }
 
 namespace M_func_00210140 {
-struct E;
-struct O { char pad[0x40]; struct E *e; };
-struct E { unsigned int grf; struct O *o; };
 // Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
 // when it is full or more than 10% holes.
-extern "C" void AddLoToSwUpdateList(SW *g, struct O *o)
+extern "C" void AddLoToSwUpdateList(SW *g, LO *o)
 {
-    struct E *e;
-    if ((unsigned int)o->e & 0x40)
+    LOUPD *e;
+    if (o->unknown40 & 0x40)
         return;
     if (g->cloupd >= 0x1000 || (float)g->cloupdHole / (float)g->cloupd > 0.1f) {
-        struct E *end = ((struct E *)g->aloupd) + g->cloupd;
-        struct E *tracked;
-        struct E *write;
-        struct E *read;
+        LOUPD *end = g->aloupd + g->cloupd;
+        LOUPD *tracked;
+        LOUPD *write;
+        LOUPD *read;
         if (g->piloupdCur)
-            tracked = ((struct E *)g->aloupd) + *((int *)g->piloupdCur);
+            tracked = g->aloupd + *((int *)g->piloupdCur);
         else
             tracked = 0;
-        write = ((struct E *)g->aloupd);
-        for (read = ((struct E *)g->aloupd); read < end; read++) {
+        write = g->aloupd;
+        for (read = g->aloupd; read < end; read++) {
             if (read == tracked)
                 tracked = write;
-            if (read->o) {
-                read->o->e = write;
+            if (read->plo) {
+                read->plo->ploupd = write;
                 *write++ = *read;
             }
         }
         g->cloupdHole = 0;
-        g->cloupd = write - ((struct E *)g->aloupd);
+        g->cloupd = write - g->aloupd;
         if (g->piloupdCur)
-            *((int *)g->piloupdCur) = tracked - ((struct E *)g->aloupd);
+            *((int *)g->piloupdCur) = tracked - g->aloupd;
     }
-    e = &((struct E *)g->aloupd)[g->cloupd++];
-    e->o = o;
-    e->grf = (unsigned int)o->e;
-    o->e = e;
+    e = &g->aloupd[g->cloupd++];
+    e->plo = o;
+    e->grf = o->unknown40;
+    o->ploupd = e;
 }
 } // namespace M_func_00210140
 
@@ -1310,7 +1307,7 @@ extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
     int n = plo->unknown40;
     if (((n ^ 1) & 1) != 0) {
-        LOUPD *ploupd = (LOUPD *)n;
+        LOUPD *ploupd = plo->ploupd;
         plo->unknown40 = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;

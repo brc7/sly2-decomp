@@ -43,7 +43,7 @@ void CGc_UpdateRecyclable(void *pv);
 }
 
 /* The tagged LO flag word (lo.cpp SetLoFlags): a clear low bit means it points at a shared word. */
-static __inline__ unsigned int GetLoFlags(LO *object) { unsigned int x = object->unknown40;   /* the tagged flag word */ return ((x ^ 1) & 1) ? *(unsigned int *)x : x; }
+static __inline__ unsigned int GetLoFlags(LO *object) { unsigned int x = object->unknown40;   /* the tagged flag word */ return ((x ^ 1) & 1) ? object->ploupd->grf : x; }
 /* Object entry flags tested here (inferred from the two passes): 0x2 updates every frame; 0x100 also while the game
    clock is stopped; 0x4 (without 0x20) gets the stopped-clock slot-17 call. */
 enum { ENTRY_UPDATE = 0x2, ENTRY_PAUSED_CALL = 0x4, ENTRY_PAUSED_CALL_OFF = 0x20, ENTRY_UPDATE_WHEN_PAUSED = 0x100 };

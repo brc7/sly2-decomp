@@ -557,7 +557,7 @@ extern "C" void AddSoHierarchy(SO *so)
     UpdateSoXfWorldMatrices(so);
     AddSoParts(so);
     v = so->unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= 0x14;
+    if ((v ^ 1) & 1) so->ploupd->grf |= 0x14;
     else so->unknown40 = v | 0x14;
     pv = so->physics ? so->physics->pregent : 0;
     if (pv) {
@@ -648,7 +648,7 @@ extern "C" void SetSoGrf(SO *so, int f)
     LO *q;
     int unused[4];
     int v = so->unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= f;
+    if ((v ^ 1) & 1) so->ploupd->grf |= f;
     else so->unknown40 = v | f;
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
         q->SetFlags(f);
@@ -663,7 +663,7 @@ extern "C" void ClearSoGrf(SO *so, int f)
     LO *q;
     int unused[4];
     int v = so->unknown40;
-    if ((v ^ 1) & 1) *(int *)v &= ~f;
+    if ((v ^ 1) & 1) so->ploupd->grf &= ~f;
     else so->unknown40 = v & ~f;
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
         q->ClearFlags(f);
@@ -721,7 +721,7 @@ void SetLoVisMask(SO *,int) __asm__("SetLoVisMask");
 /* LO::unknown40 is a tagged word: bit 0 clear means it points at the flag word */
 /* GetXfFromIndex (slot 51) called by hand: as a virtual call inside the part loop it keeps the vptr in a register */
 static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
-static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)*(uint *)f|=8;else p->unknown40=f|8;}
+static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)p->ploupd->grf|=8;else p->unknown40=f|8;}
 extern "C" void LoadSoFromBrx(SO *so,void *stream)
 {
     int i=0;SOPART *e;
@@ -1125,7 +1125,7 @@ extern "C" void OnSoAdd(SO *so)
     OnLoAdd(so);
     if (so->isRenderable) {
         int v = so->unknown40;
-        if ((v ^ 1) & 1) v = *(int *)v;
+        if ((v ^ 1) & 1) v = so->ploupd->grf;
         if (v & 8) AddLoToRenderTree(so);
     }
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) q->OnAdd();
@@ -3360,7 +3360,7 @@ extern "C" void SetSoFadeRate(SO *so, float g)
         int v;
         so->Add();
         v = so->unknown40;
-        if ((v ^ 1) & 1) *(int *)v |= 2;
+        if ((v ^ 1) & 1) so->ploupd->grf |= 2;
         else so->unknown40 = v | 2;
     }
     so->opacitySpeed = g;

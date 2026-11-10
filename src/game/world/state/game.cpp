@@ -1082,7 +1082,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
-        *(int *)v |= bits;
+        plo->ploupd->grf |= bits;
     else
         plo->unknown40 = v | bits;
 } }
@@ -1149,7 +1149,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
-        *(int *)v |= bits;
+        plo->ploupd->grf |= bits;
     else
         plo->unknown40 = v | bits;
 } }
@@ -1158,7 +1158,7 @@ extern "C" { static inline void ClearLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
-        *(int *)v &= ~bits;
+        plo->ploupd->grf &= ~bits;
     else
         plo->unknown40 = v & ~bits;
 } }
@@ -1405,7 +1405,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
-        *(int *)v |= bits;
+        plo->ploupd->grf |= bits;
     else
         plo->unknown40 = v | bits;
 } }
@@ -1533,7 +1533,7 @@ static inline void SetLoFlagsInline(LO *plo, int bits)
 {
     int v = plo->unknown40;
     if ((v ^ 1) & 1)
-        *(int *)v |= bits;
+        plo->ploupd->grf |= bits;
     else
         plo->unknown40 = v | bits;
 }
