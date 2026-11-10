@@ -477,13 +477,7 @@ struct HEIGHT { float min, max; };
 struct ENTRY { float weight; int active; char pad8[8]; U direction; };
 struct PROGRAM { void *owner; void *clip; char pad8[0x18]; float x20; char pad24[0x3C]; float x60; char pad64[0x40]; };
 struct FOCUS { char pad0[0xE4]; int cyclic; char padE8[0x18C - 0xE8]; int enabled; char pad190[0x1BC - 0x190]; uint flags; char pad1C0[8]; FOCUS *other; };
-struct ACTOR {
-    char pad0[0xC]; void *vptr; char pad10[0x150 - 0x10]; JOY *pjoy; char pad154[0x190 - 0x154]; U velocity;
-    char pad1A0[8]; float heading; char pad1AC[4]; M3 local; char pad1E0[0x218 - 0x1E0]; qword *ppos;
-    char pad21C[0x2C0 - 0x21C]; char control[0x1024 - 0x2C0]; void *x1024; char pad1028[0x1030 - 0x1028]; ASEGA *anim;
-    char pad1034[0x1040 - 0x1034]; int role; char pad1044[0x1520 - 0x1044]; char x1520[0x100]; char x1620[0x19D4 - 0x1620];
-    void *x19D4, *x19D8, *x19DC, *x19E0; char pad19E4[0x19F0 - 0x19E4]; void *x19F0, *x19F4;
-};
+typedef JT ACTOR;   /* Sly (the JT); was a whole-object view */
 struct CONTEXT {
     ACTOR *actor; float stamp; int action; int step; float tHold; FOCUS *focus; void *setting; float parameter;
     float value; int reversed; int index; int x2C; char pad30[0x50 - 0x30]; float maximum; char pad54[0x68 - 0x54];
@@ -604,7 +598,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     U velOld;
     pos.q = GetLoWorldPos(ctx->actor);
     velOld.q = AsStepplayer(ctx->actor)->GetVelocity();
-    JOY *joy = ctx->actor->pjoy;
+    JOY *joy = ((JOY *)ctx->actor->controller);
 
     switch (ctx->action) {
     case 0:
@@ -613,10 +607,10 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         float heading;
         GetGrabspotPositionNear(ctx->setting, ctx->actor, &ctx->value, &goal, &heading);
         float speedMax;
-        if (ctx->actor->role == 1)
-            speedMax = LengthOf(ctx->axes[2].direction.q) * ctx->actor->anim->speed;
+        if (ctx->actor->unknown1040 == 1)
+            speedMax = LengthOf(ctx->axes[2].direction.q) * ctx->actor->activeAnimation->speed;
         else
-            speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->anim->speed;
+            speedMax = LengthOf(ctx->axes[4].direction.q) * ctx->actor->activeAnimation->speed;
         goal.f[2] = pos.f[2];
         SMP smp;
         smp.fastSpeed = speedMax;
@@ -632,7 +626,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         } else {
             U side;
             float angle;
-            if (ctx->actor->role == 1)
+            if (ctx->actor->unknown1040 == 1)
                 angle = heading - 1.5707964f;
             else
                 angle = heading + 1.5707964f;
@@ -658,20 +652,20 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             offset = ScaleVec(side.q, VuFloat(s));
         }
         ACTOR *actor = ctx->actor;
-        actor->velocity.q = ScaleVec(MulM3Vec(&actor->local, VuAdd(vel.q, offset)), VuFloat(-1.0f));
+        actor->qwUnknown190 = ScaleVec(MulM3Vec((M3 *)&actor->matqTarget, VuAdd(vel.q, offset)), VuFloat(-1.0f));
         int step;
-        if (25.0f < LengthOf(ctx->actor->velocity.q)) {
+        if (25.0f < LengthOf(ctx->actor->qwUnknown190)) {
             step = 1;
             if (ctx->action == 0) {
                 if (45.0f < LengthOf(vel.q)) {
                     SetJtHideFacingKind__FP2JT4HFDK(ctx, 0);
-                } else if (20.0f < ctx->actor->velocity.f[1]) {
-                    if (ctx->actor->role == 1)
+                } else if (20.0f < ((U *)&ctx->actor->qwUnknown190)->f[1]) {
+                    if (ctx->actor->unknown1040 == 1)
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
                     else
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
-                } else if (ctx->actor->velocity.f[1] < -20.0f) {
-                    if (ctx->actor->role == 1)
+                } else if (((U *)&ctx->actor->qwUnknown190)->f[1] < -20.0f) {
+                    if (ctx->actor->unknown1040 == 1)
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
                     else
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
@@ -682,9 +676,9 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (IsBasicDerivedFrom__FP5BASIC3CID(ctx->focus, 12)) {
                 FOCUS *focus = ctx->focus;
                 if (lateral < -25.0f && (focus->flags & 1)) {
-                    step = ctx->action == 0 && ctx->actor->role == 0 ? 3 : 2;
+                    step = ctx->action == 0 && ctx->actor->unknown1040 == 0 ? 3 : 2;
                 } else if (25.0f < lateral && (focus->flags & 2)) {
-                    step = ctx->action == 0 && ctx->actor->role == 0 ? 2 : 3;
+                    step = ctx->action == 0 && ctx->actor->unknown1040 == 0 ? 2 : 3;
                 }
             }
             if (ctx->action == 0)
@@ -700,7 +694,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         if (ctx->focus->enabled && 0.0f < joy->amount && ctx->program180.clip) {
             SetJtGrabKind(ctx, 4);
             UpdateGaitBlend(&ctx->program180, joy->amount);
-            SetStepTargetHeading(ctx->actor, ctx->actor->pjoy->heading);
+            SetStepTargetHeading(ctx->actor, ((JOY *)ctx->actor->controller)->heading);
             UpdateGaitFootsteps(&ctx->program180);
         } else {
             SetJtGrabKind(ctx, 0);
@@ -722,10 +716,10 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     case 3: {
         FOCUS *focus = ctx->focus;
         U point, tangent;
-        FindShapeClosestPointFromParam(focus, *ctx->actor->ppos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
+        FindShapeClosestPointFromParam(focus, *ctx->actor->unknown218, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
         if (focus->flags && !focus->cyclic &&
             (ctx->parameter < GetShapeMinParam(focus) + 0.01f || GetShapeMaxParam(focus) - 0.01f < ctx->parameter)) {
-            SetJtAirJump(ctx->actor->control, 0, 0, 0);
+            SetJtAirJump(&ctx->actor->jtair, 0, 0, 0);
             break;
         }
         tangent.f[2] = 0.0f;
@@ -737,7 +731,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         if (!focus->other)
             dir = tangent;
         else
-            FindShapeClosestPoint(focus->other, *ctx->actor->ppos, 0, 0, &dir, 0, 0);
+            FindShapeClosestPoint(focus->other, *ctx->actor->unknown218, 0, 0, &dir, 0, 0);
         dir.f[2] = 0.0f;
         dir.q = NormalizeVec(dir.q, D_002A2DA0);
         float g = QwordX(DotVec(input.q, dir.q));
@@ -824,12 +818,12 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 ENTRY *e = &ctx->axes2[3];
                 if (!e->active)
                     e = &ctx->axes2[2];
-                SetXYZ(&ctx->actor->velocity, -joy->y * LengthXYOf(e->direction.q), joy->x * LengthXYOf(ctx->axes2[1].direction.q), 0.0f);
+                SetXYZ((U *)&ctx->actor->qwUnknown190, -joy->y * LengthXYOf(e->direction.q), joy->x * LengthXYOf(ctx->axes2[1].direction.q), 0.0f);
                 UpdateDirectionalBlend(ctx->actor, ctx->axes2, ctx->request2);
                 ACTOR *actor = ctx->actor;
-                float turn = -actor->velocity.f[1] / D_002BF5CC;
-                actor->velocity.q = ScaleVecX(D_002A2DA0, DotVec(actor->velocity.q, D_002A2DA0));
-                SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * g_clock.deltaTime);
+                float turn = -((U *)&actor->qwUnknown190)->f[1] / D_002BF5CC;
+                actor->qwUnknown190 = ScaleVecX(D_002A2DA0, DotVec(actor->qwUnknown190, D_002A2DA0));
+                SetStepTargetHeading(ctx->actor, ctx->actor->targetHeading + turn * g_clock.deltaTime);
             } else {
                 SetJtGrabKind(ctx, 9);
             }
@@ -846,7 +840,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         v.f[1] = 0.0f;
         v.f[0] = 0.0f;
         ACTOR *actor = ctx->actor;
-        ASEGA *anim = actor->anim;
+        ASEGA *anim = actor->activeAnimation;
         if (anim) {
             CHN *b = FindAsegChannel(anim->animation, actor, 1, 1);
             if (b) {
@@ -854,7 +848,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 v.q = ScaleVec(v.q, VuFloat(-1.0f));
             }
         }
-        ctx->actor->velocity = v;
+        *(U *)&ctx->actor->qwUnknown190 = v;
         break;
     }
     case 11:
@@ -868,7 +862,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     switch (ctx->step) {
     case 1:
         UpdateDirectionalBlend(ctx->actor, ctx->axes, ctx->request);
-        if (ctx->actor->x1024 == ctx->x68) {
+        if (ctx->actor->unknown1024 == ctx->x68) {
             switch (ctx->x2C) {
             case 1:
             case 2:
@@ -883,10 +877,10 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     case 0:
         if (ctx->action == 3) {
             ACTOR *actor = ctx->actor;
-            RebuildJtXmg(actor, actor->x19D8, actor->x19E0, actor->x19F0, 5.0f, actor->x1520);
-            RebuildJtXmg(actor, actor->x19D4, actor->x19DC, actor->x19F4, 5.0f, actor->x1620);
-            ClampJtGrabCurveParam(actor, actor->x1520, actor->x19F0);
-            ClampJtGrabCurveParam(actor, actor->x1620, actor->x19F4);
+            RebuildJtXmg(actor, actor->unknown19D8, actor->unknown19E0, actor->pact5Unk19f0, 5.0f, &actor->unknown1520[0]);
+            RebuildJtXmg(actor, actor->unknown19D4, actor->unknown19DC, actor->pact5Unk19f4, 5.0f, &actor->unknown1520[1]);
+            ClampJtGrabCurveParam(actor, &actor->unknown1520[0], actor->pact5Unk19f0);
+            ClampJtGrabCurveParam(actor, &actor->unknown1520[1], actor->pact5Unk19f4);
         }
         break;
     }
