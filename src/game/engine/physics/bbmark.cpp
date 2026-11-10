@@ -18,7 +18,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct X;
 /* View of a solid object (an SO; V suffix next to sly2/so.h, decision 1.6): +0x14 its parent, +0xEC its AAOBR (the
    SO's physics tree record, seen here as X). Virtual calls go through the real SO. */
-struct LOV { int pad[3]; void *vptr; int unknown10; void *parent; char pad18[0xD4]; X *aaobr; };
+struct LOV { void *scriptFrame; void *scriptVariables; void *firstSubscriber; void *vptr; int unknown10; void *parent; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0xEC - 0x40]; X *aaobr; };
 typedef char assert_LOV_px[(unsigned int)&((LOV *)0)->aaobr == 0xEC ? 1 : -1];
 /* A POX link: one overlapping pair, seen from one side (the other side's link is pother). */
 struct L { void *contacts; L *next; L *other; LOV *object; int isForced; };
