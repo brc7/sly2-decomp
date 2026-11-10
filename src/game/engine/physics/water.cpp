@@ -41,7 +41,6 @@ struct VE
     } f;
 };
 struct EVENT { int kind, pad4; float strength; int padC; qwordV normal; V position; char pad30[0x10]; };
-struct NODE { char pad[0x98]; short kind; };
 struct CONSTRAINT { qwordV direction; int kind; };
 /* Physics parameters (+0xE8). */
 struct PHYS { char pad[0x80]; V direction; char pad90[0x20]; CONSTRAINT constraint; float mass, spring, friction; };
@@ -64,9 +63,9 @@ struct SOW
     char pad10[0x30];
     int loFlags;
     char pad44[0x14];
-    NODE *body;               /* +0x58 */
-    NODE *rotation;
-    union { NODE *motion; void *pxfMotion; };
+    XF *body;               /* +0x58 */
+    XF *rotation;
+    union { XF *motion; void *pxfMotion; };
     char pad64[0xE0 - 0x64];
     int count;                /* +0xE0 colliders */
     COLL *colliders;
@@ -152,7 +151,7 @@ void SetSndVolume(void *, float);
 void UpdateSwXaList(SOW *, N **);
 qwordV GetLoWorldPos(void *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
-qwordV ApplyConstr(CONSTRAINT *, NODE *, qwordV);
+qwordV ApplyConstr(CONSTRAINT *, XF *, qwordV);
 void AddSoAcceleration(SOW *, qwordV);
 void CalculateWaterCurrent(SOW *, qwordV, qwordV *, qwordV *);
 float SplitVectorAlongAxis(qwordV, qwordV, qwordV *, qwordV *);
@@ -298,7 +297,7 @@ extern "C" void UpdateWater(SOW *water){
  work.count=CollectSoParts(water,CanWaterInflictZap,0,objects);
  for(link=water->state->first;link;link=link->next){
   SOW *object=link->object;
-  if(!object->physics||object->physics->spring<1e-4f||GetSoTreeFlag2(object)||!IsXfRoleVelocity(object->body->kind))continue;
+  if(!object->physics||object->physics->spring<1e-4f||GetSoTreeFlag2(object)||!IsXfRoleVelocity(object->body->role))continue;
   if(GetWaterSubmergedFraction(water,object,0,0)==0.0f)continue;
   object->flags|=0x100000000L;
   if(object->flags&0x80000000L)continue;
@@ -572,14 +571,14 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
   qwordV linear=Get(object,33);qwordV relative=VuSub(work.velocity.q,linear);
   float dot=SplitVectorAlongAxis(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
-  if(IsXfRoleVelocity(object->body->kind)){
+  if(IsXfRoleVelocity(object->body->role)){
    COEF *coefficients=&work.axis.coefficients;
    GAIN2(D_002C4470,factor,friction);
    AccelSoTowardPosSpring(object,D_002A2DD0,0,AddNormal(linear,work.phase.vectors[1]),coefficients);
    GAIN2(D_002C4470,span,friction);
    AccelSoTowardPosSpring(object,D_002A2DD0,0,AddTangent(linear,work.phase.vectors[2]),coefficients);
   }
-  if(IsXfRoleVelocity(object->rotation->kind)){
+  if(IsXfRoleVelocity(object->rotation->role)){
    qwordV angular=Get(object,34);
    qwordV k;
    qwordV negative=NegativeAngular(angular,-1.0f,k);
