@@ -91,12 +91,20 @@ struct DESC
     void *chain;
     int padC[2];
 };
-struct SCENE
+struct SCENE   /* so.h GLOBSET (names in comments) */
 {
-    char pad[0x24];
+    SO *owner;
+    float f04;              /* GLOBSET unknown04 */
+    int zero08, zero0C;     /* GLOBSET unknown08: zero in every snapshot */
+    float boundsCenter[3];
+    int zero1C;             /* GLOBSET unknown1C: zero in every snapshot */
+    float boundsRadius;
     int cobj;
     SAA **apobj;
-    char pad2C[0x10];
+    int numShaderOids;
+    int *shaderOids;
+    int selectedShader;
+    int numPieces;
     DESC *adesc;
     MESH *amesh;
     void *pv44;

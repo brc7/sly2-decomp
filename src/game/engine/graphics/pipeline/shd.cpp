@@ -917,7 +917,7 @@ extern "C" SHD *GetShdByIndex(int ishd)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindShaderAnimById {
-struct O { char pad[0x14]; int id; char pad2[0x30-0x18]; struct O *pChild; char pad3[0x40-0x34]; struct O *pNext; };
+struct O { void *scriptFrame; void *scriptVariables; void *firstSubscriber; void *vt; float updateTime; int id, n18, numFrames; unsigned int grf; short uOffset, vOffset; unsigned short frame; short n2A; int isDirty; int isGlobsetOwned; void *instancesHead, *instancesTail; int instancesLinkOffset; struct O *pNext; };   /* a SAA (classes.h; names from it) */
 // 0x1EC910: dead-code scrap (sly2/scrap.h)
 extern "C" { SLY2_SCRAP("addu $2, $2, $4"); }
 
@@ -928,7 +928,7 @@ extern "C" struct O *FindShaderAnimById(int n)
     struct O *p;
     if (n == -1) return 0;
     for (p = (*(struct O * *)&g_sw.slSaa); p; p = p->pNext) {
-        if (p->pChild) break;
+        if (p->isGlobsetOwned) break;
         if (p->id == n) return p;
     }
     return 0;
@@ -937,14 +937,14 @@ extern "C" struct O *FindShaderAnimById(int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateShaders {
-struct O { void *scriptFrame; void *scriptVariables; void *firstSubscriber; VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
+struct O { void *scriptFrame; void *scriptVariables; void *firstSubscriber; VTE *vt; float updateTime; int id, n18, numFrames; unsigned int grf; short uOffset, vOffset; unsigned short frame; short n2A; int isDirty; int isGlobsetOwned; void *instancesHead, *instancesTail; int instancesLinkOffset; struct O *pNext; };   /* a SAA (classes.h; names from it) */
 int ShouldUpdateSaa__FP3SAA(struct O *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // For each SAA in (*(struct O * *)&g_sw.slSaa): if ShouldUpdateSaa call its vt8 (Update) (inferred)
 extern "C" void UpdateShaders(void)
 {
     int unused[4];
     struct O *p;
-    for (p = (*(struct O * *)&g_sw.slSaa); p && !p->pChild; p = p->pNext) {
+    for (p = (*(struct O * *)&g_sw.slSaa); p && !p->isGlobsetOwned; p = p->pNext) {
         if (ShouldUpdateSaa__FP3SAA(p)) ((void (*)(void *))p->vt[8].pfn)((char *)p + p->vt[8].d);
     }
 }
