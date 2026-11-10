@@ -4000,23 +4000,21 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 
 // 0x1E4D40 GetJsgTargetPosHeading
 namespace M_GetJsgTargetPosHeading {
-struct O;
 typedef int qword __attribute__((mode(TI)));
-struct O { int pad[3]; void *vptr; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-qword GetLoWorldPos(struct O *po) __asm__("GetLoWorldPos");
-void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c) __asm__("FindShapeClosestPoint");
+qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
+void FindShapeClosestPoint(LO *po, qword q, int a, qword *pv, float *pg, int b, int c) __asm__("FindShapeClosestPoint");
 float atan2f(float y, float x) __asm__("atan2f");
 // Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
 // else object pos and its matrix heading). (inferred)
 // Also known as: GetRunAim (upstream readable / Sly 1 name; GetRunAim__FP3RUNP2LOP6VECTORPf).
-extern "C" void GetJsgTargetPosHeading(RELAYJSG *script, struct O *po, qword *pv, float *pg)
+extern "C" void GetJsgTargetPosHeading(RELAYJSG *script, LO *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;
     float ag[4];
     float g;
-    struct O *px = (struct O *)script->ploActor;
-    if (!px) px = (struct O *)script->pjt;
+    LO *px = script->ploActor;
+    if (!px) px = script->pjt;
     if (po) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             FindShapeClosestPoint(po, GetLoWorldPos(px), 0, &uv.q, ag, 0, 0);
@@ -4024,21 +4022,21 @@ extern "C" void GetJsgTargetPosHeading(RELAYJSG *script, struct O *po, qword *pv
         } else {
             float *p1, *p2;
             uv.q = GetLoWorldPos(po);
-            p1 = (float *)((LO *)po)->GetWorldMatrix();
-            p2 = (float *)((LO *)po)->GetWorldMatrix();
+            p1 = (float *)po->GetWorldMatrix();
+            p2 = (float *)po->GetWorldMatrix();
             g = atan2f(p1[1], p2[0]);
         }
     } else {
         uv.q = GetLoWorldPos(px);
         if (IsBasicDerivedFrom__FP5BASIC3CID(px, 0x33)) {
             qword q;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(q) : "j"(uv.q), "j"(px->v240));
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(q) : "j"(uv.q), "j"(((STEP *)px)->pivotOffset));
             uv.q = q;
-            g = px->g1A8;
+            g = ((STEP *)px)->targetHeading;
         } else {
             float *p1, *p2;
-            p1 = (float *)((LO *)px)->GetWorldMatrix();
-            p2 = (float *)((LO *)px)->GetWorldMatrix();
+            p1 = (float *)px->GetWorldMatrix();
+            p2 = (float *)px->GetWorldMatrix();
             g = atan2f(p1[1], p2[0]);
         }
     }
@@ -4096,39 +4094,37 @@ extern "C" void SetJsgTunnel(RELAYJSG *script, TN *po)
 
 // 0x1E5000 SetRelayScriptFocus
 namespace M_func_001E5000 {
-struct X;
 typedef int qword __attribute__((mode(TI)));
-struct X { char pad[0x1044]; int n1044; float f1048; char pad2[0x1060 - 0x104C]; qword v1060; qword v1070; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-qword GetLoWorldPos(struct X *) __asm__("GetLoWorldPos");
-void GetJsgTargetPosHeading(RELAYJSG *, void *, qword *, int) __asm__("GetJsgTargetPosHeading");
+qword GetLoWorldPos(STEPPLAYER *) __asm__("GetLoWorldPos");
+void GetJsgTargetPosHeading(RELAYJSG *, void *, void *, int) __asm__("GetJsgTargetPosHeading");
 // Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
 // +0x1044/+0x1060/+0x1070). (inferred)
 extern "C" void SetRelayScriptFocus(RELAYJSG *script, void *pv)
 {
-    struct X *px;
+    STEPPLAYER *px;
     if (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x34))
-        px = (struct X *)script->ploActor;
+        px = (STEPPLAYER *)script->ploActor;
     else
         px = 0;
     if (script->pvFocus) {
         if (px) {
-            qword v = px->v1060, q, d;
-            px->n1044 = 0;
+            qword v = px->unknown1060, q, d;
+            px->unknown1044 = 0;
             q = GetLoWorldPos(px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(q));
-            px->v1070 = d;
-            ((float *)&px->v1070)[2] = 0.0f;
+            px->unknown1070 = d;
+            ((float *)&px->unknown1070)[2] = 0.0f;
         }
         script->pvFocus = 0;
     }
     if (!pv) return;
     if (px) {
-        px->n1044 = 1;
-        GetJsgTargetPosHeading(script, pv, &px->v1060, 0);
-        ((float *)&px->v1060)[2] += px->f1048;
-        px->v1070 = D_002A2DD0;
+        px->unknown1044 = 1;
+        GetJsgTargetPosHeading(script, pv, &px->unknown1060, 0);
+        ((float *)&px->unknown1060)[2] += px->unknown1048;
+        px->unknown1070 = D_002A2DD0;
     }
     script->pvFocus = pv;
 }
@@ -4285,22 +4281,19 @@ extern "C" void ClearJsgStepHolds(RELAYJSG *script)
 
 // 0x1E5570 AbortJsgMove
 namespace M_func_001E5570 {
-struct O; struct P;
-struct O : PO { char pad[0x26C - 0x180]; int a; };
-struct P { char pad[0x24]; struct O *po; int *pnMin; int *pnMax; int *pn; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void ClearBhvstk__FP6BHVSTK(void *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // If the current command is FollowPath (0x27) or WalkTo (0x28) and the actor is a STEPPLAYER, ClearBhvstk on it.
 // (inferred)
-extern "C" void AbortJsgMove(struct P *script)
+extern "C" void AbortJsgMove(RELAYJSG *script)
 {
-    if (script->pnMin < script->pn && script->pn < script->pnMax) {
-        switch (*script->pn) {
+    if (script->prelaycmdFirst < script->prelaycmdCur && script->prelaycmdCur < script->prelaycmdLast) {
+        switch (script->prelaycmdCur->relayck) {
         case 0x27:
-            if (script->po && IsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
+            if (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x34)) ClearBhvstk__FP6BHVSTK(&((STEPPLAYER *)script->ploActor)->behaviors);
             break;
         case 0x28:
-            if (script->po && IsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
+            if (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x34)) ClearBhvstk__FP6BHVSTK(&((STEPPLAYER *)script->ploActor)->behaviors);
             break;
         }
     }
