@@ -469,8 +469,8 @@ extern "C" void PostSwLoad(SW *world)
     }
     world->pploNew = 0;
     world->aploNew = 0;
-    world->unknown39D8 = 0;
-    world->unknown39D0 = 0;
+    world->pvPostLoadPool = 0;
+    world->pvLorunPool = 0;
     BuildPathzoneLinkLists(world->pregtree);
     SetupCm__FP2CM(&g_cm);
     BroadcastGameEvent(&g_game, 4, 0);
@@ -1249,18 +1249,18 @@ extern "C" void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASI
 /* The next 12-byte record of the array at +0x39D0. */
 extern "C" void *AllocSwLoCallbackRecord(SW *world)
 {
-    int i = world->unknown39D4;
-    world->unknown39D4 = i + 1;
-    return (char *)world->unknown39D0 + i * 0xC;
+    int i = world->clorunPool;
+    world->clorunPool = i + 1;
+    return (char *)world->pvLorunPool + i * 0xC;
 }
 
 // Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
 /* The next 12-byte record of the array at +0x39D8. */
 extern "C" void *AllocSwPostLoadRecord(SW *world)
 {
-    int i = world->unknown39DC;
-    world->unknown39DC = i + 1;
-    return (char *)world->unknown39D8 + i * 0xC;
+    int i = world->cpostLoadPool;
+    world->cpostLoadPool = i + 1;
+    return (char *)world->pvPostLoadPool + i * 0xC;
 }
 
 namespace M_func_00210140 {

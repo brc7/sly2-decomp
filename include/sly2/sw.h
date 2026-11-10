@@ -147,10 +147,11 @@ struct SW : public BASIC
       uint32_t   _pad_185    [ 1 ] ;
       qword cameraBusyPosition; /* camera position of the last full busy pass (busy.cpp UpdateSwBusyList) */
       qword heroBusyPosition; /* hero position of that pass */
-      void *unknown39D0;    /* +0x39D0 load-time buffer (LoadSwFromBrx); PostSwLoad clears it */
-      int unknown39D4;
-      void *unknown39D8;    /* +0x39D8 load-time buffer (LoadSwFromBrx); PostSwLoad clears it */
-      int unknown39DC;
+      void *pvLorunPool;    /* +0x39D0 load-time pool of 12-byte deferred-callback records (AllocSwLoCallbackRecord; 0x6000
+                               bytes of frame stack from LoadSwFromBrx); PostSwLoad clears it */
+      int clorunPool;       /* records used */
+      void *pvPostLoadPool; /* +0x39D8 load-time pool of 12-byte post-load records (AllocSwPostLoadRecord; 0x3000 bytes) */
+      int cpostLoadPool;    /* records used */
       LO **aploNew;   /* objects created during the current load */
       LO **pploNew;   /* next free entry of aploNew (PostSwLoad runs PostLoad on aploNew..pploNew until it stays empty) */
       SPLCS *psplcs;   /* Splice call sites (inferred) */
