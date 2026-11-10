@@ -63,14 +63,14 @@ struct SUBGLOB
 struct POSE
 {
       VECTOR pos;   /* position */
-      float unknown0C;
-      float unknown10;
-      long nKind : 4;
-    ulong unknownBits10A : 8;
-    ulong unknownBits10B : 6;
+      float sRadius;   /* radius around pos (LoadPoseSetsFromBrx) */
+      float sLimit;   /* distance limit, at most 1e10 (LoadPoseSetsFromBrx) */
+      long nKind : 4;   /* 0: a GLOB, 1: another POSESET, 3: a GLOB with its own matrix, -1: unused */
+    ulong nCount : 8;   /* a count byte from the file (inferred) */
+    ulong nChannel : 6;   /* the GLOB's SUBGLOB::unknown00 */
     ulong isHidden : 1; /* hidden in this pose */
     long iglob : 13;   /* index of the GLOB */
-      void *unknown18;
+      void *pvLink;   /* kind 1: the POSESET; kind 3 (a GLOB with flag 0x1000): its GLOB::pqwChain */
       undefined4 unknown1C;
 };
 

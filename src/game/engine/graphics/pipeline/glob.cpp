@@ -229,47 +229,7 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 namespace M_LoadPoseSetsFromBrx {
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct META {
-    float limit;
-    long kind : 4;
-    ulong count : 8;
-    ulong channel : 6;
-    ulong feature : 1;
-    ulong index : 13;
-};
-struct RECORD {
-    float position[3];
-    float radius;
-    struct META meta;
-    void *link;
-    int pad1C;
-};
-struct GROUP{struct RECORD records[4];};
-struct D {
-    signed char channel;
-    char pad1[7];
-    void *chain;
-    char padC[8];
-};
-struct E {
-    char pad[0xC];
-    uint flags;
-    void *matrix;
-    int word;
-    char pad18[0xC];
-    struct RECORD *sphere;
-};
-struct P {
-    char pad[0x3C];
-    struct D *descriptors;
-    struct E *entries;
-    void *localSpheres;
-    struct GROUP *groups;
-};
 struct STREAM;
-typedef char MetaSize[sizeof(struct META)==8?1:-1];
-typedef char RecordSize[sizeof(struct RECORD)==0x20?1:-1];
-typedef char EntrySize[sizeof(struct E)==0x28?1:-1];
 short S16Read__18CBinaryInputStream(struct STREAM*) __asm__("S16Read__18CBinaryInputStream");
 char S8Read__18CBinaryInputStream(struct STREAM*) __asm__("S8Read__18CBinaryInputStream");
 struct VECTOR;
@@ -279,54 +239,54 @@ unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CB
 void*AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldHeap");
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
-extern "C" void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
+extern "C" void LoadPoseSetsFromBrx(GLOBSET *p, struct STREAM *stream)
 {
     int count = S16Read__18CBinaryInputStream(stream);
     if (count) {
         struct SWALLOC request;
-        struct GROUP *groups;
+        POSESET *groups;
         int i;
-        request.cb = count * sizeof(struct GROUP);
+        request.cb = count * sizeof(POSESET);
         request.cbAlign = 0x10;
-        groups = (struct GROUP *)AllocClearedFromWorldHeap(&request);
+        groups = (POSESET *)AllocClearedFromWorldHeap(&request);
         for (i = 0; i < count; i++) {
-            struct GROUP *group = &groups[i];
+            POSESET *group = &groups[i];
             uint j;
             for (j = 0; j < 4; j++) {
-                struct RECORD *record = &group->records[j];
-                record->meta.kind = S8Read__18CBinaryInputStream(stream);
-                if ((int)record->meta.kind == -1) {
+                POSE *record = &group->apose[j];
+                record->nKind = S8Read__18CBinaryInputStream(stream);
+                if ((int)record->nKind == -1) {
                     for (; j < 4; j++)
-                        group->records[j].meta.kind = -1;
+                        group->apose[j].nKind = -1;
                     break;
                 }
-                ReadVector__18CBinaryInputStreamP6VECTOR(stream, (struct VECTOR *)record->position);
-                record->radius = F32Read__18CBinaryInputStream(stream);
-                record->meta.limit = F32Read__18CBinaryInputStream(stream);
-                record->meta.count = U8Read__18CBinaryInputStream(stream);
-                record->meta.limit = FpuMin(1.0e10f, record->meta.limit);
-                switch (record->meta.kind) {
+                ReadVector__18CBinaryInputStreamP6VECTOR(stream, (struct VECTOR *)&record->pos);
+                record->sRadius = F32Read__18CBinaryInputStream(stream);
+                record->sLimit = F32Read__18CBinaryInputStream(stream);
+                record->nCount = U8Read__18CBinaryInputStream(stream);
+                record->sLimit = FpuMin(1.0e10f, record->sLimit);
+                switch (record->nKind) {
                 case 0: {
                     int index = S16Read__18CBinaryInputStream(stream);
-                    struct D *descriptor = &p->descriptors[index];
-                    struct E *entry = &p->entries[index];
-                    if (entry->flags & 0x1000) {
-                        record->meta.kind = 3;
-                        record->link = entry->matrix;
+                    SUBGLOB *descriptor = &p->subMeshes[index];
+                    GLOB *entry = &p->pieces[index];
+                    if (entry->grf & 0x1000) {
+                        record->nKind = 3;
+                        record->pvLink = entry->pqwChain;
                     }
-                    record->meta.channel = descriptor->channel;
-                    record->meta.feature = (entry->flags >> 11) & 1;
-                    record->meta.index = index;
-                    entry->sphere = record;
+                    record->nChannel = descriptor->unknown00;
+                    record->isHidden = (entry->grf >> 11) & 1;
+                    record->iglob = index;
+                    entry->ppose = record;
                     break;
                 }
                 case 1:
-                    record->link = &groups[S16Read__18CBinaryInputStream(stream)];
+                    record->pvLink = &groups[S16Read__18CBinaryInputStream(stream)];
                     break;
                 }
             }
         }
-        p->groups = groups;
+        p->aposeset = groups;
     }
 }
 } // namespace M_LoadPoseSetsFromBrx
