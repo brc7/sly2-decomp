@@ -103,22 +103,21 @@ extern "C" OID GetOidFromProxyId(int id)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C99D8 {
-struct N { int id; struct N *pnParent; int oid; int unknownC; int unknown10; struct N *pnNext; struct DL dl; int pad; };
 void *AllocClearedFromWorldHeap(const struct SWALLOC *pal) __asm__("AllocClearedFromWorldHeap");
-void InitSl(struct DL *pdl, int ib) __asm__("InitSl");
+void InitSl(SL *psl, int ib) __asm__("InitSl");
 int GetOidFromProxyId(int id) __asm__("GetOidFromProxyId");
-struct DL *GetSwProxyRefBucket(void *p, int id) __asm__("GetSwProxyRefBucket");
-void AppendSlEntry(struct DL *pl, void *pv) __asm__("AppendSlEntry");
+SL *GetSwProxyRefBucket(void *p, int id) __asm__("GetSwProxyRefBucket");
+void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 // Finds the proxy-reference (PXR) node for the id path ids[0..count) under a parent node, creating the missing nodes
 // from the world heap. Proxy objects keep their path so they can be found by their source's oids.
-extern "C" struct N *FindProxyRefPath(struct N *parentNode, int c, const int *aid)
+extern "C" PXR *FindProxyRefPath(PXR *parentNode, int c, const int *aid)
 {
-    struct N *pn, *pnParent, *pnNew;
+    PXR *pn, *pnParent, *pnNew;
     struct SWALLOC al;
     int i;
 again:
-    for (pn = (struct N *)parentNode->dl.head; pn; pn = pn->pnNext) {
-        if (pn->id == *aid) {
+    for (pn = (PXR *)parentNode->children.head; pn; pn = (PXR *)pn->siblingLink.next) {
+        if (pn->proxyId == *aid) {
             if (c == 1) return pn;
             parentNode = pn;
             c--;
@@ -126,18 +125,18 @@ again:
             goto again;
         }
     }
-    al.cb = c * sizeof(struct N);
+    al.cb = c * sizeof(PXR);
     al.cbAlign = 0x10;
-    pnNew = (struct N *)AllocClearedFromWorldHeap(&al);
+    pnNew = (PXR *)AllocClearedFromWorldHeap(&al);
     pnParent = parentNode;
     for (i = 0; i < c; i++) {
         pn = &pnNew[i];
-        InitSl(&pn->dl, 0x14);
-        pn->id = aid[i];
-        pn->oid = GetOidFromProxyId(pn->id);
-        AppendSlEntry(GetSwProxyRefBucket(&g_sw, pn->oid), pn);
-        pn->pnParent = pnParent;
-        AppendSlEntry(&pnParent->dl, pn);
+        InitSl(&pn->children, 0x14);
+        pn->proxyId = aid[i];
+        pn->proxyOid = GetOidFromProxyId(pn->proxyId);
+        AppendSlEntry(GetSwProxyRefBucket(&g_sw, pn->proxyOid), pn);
+        pn->parent = pnParent;
+        AppendSlEntry(&pnParent->children, pn);
         pnParent = pn;
     }
     return pn;
