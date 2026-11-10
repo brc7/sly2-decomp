@@ -53,12 +53,12 @@ SW g_sw __attribute__((aligned(16)));
 /* D_003E1C20: four words built at startup (a table header {0, D_002C3EB8, 0, D_003E1C60}). */
 struct O1C20
 {
-    int unknown0;
+    int count0;   /* zeroed by the constructor (a count for table0, inferred) */
     void *table0;
-    int unknown8;
+    int count8;   /* likewise for table1 (inferred) */
     void *table1;
     // Initialise the record with its two tables and zero counters.
-    O1C20() { unknown0 = 0; table0 = D_002C3EB8; unknown8 = 0; table1 = D_003E1C60; }
+    O1C20() { count0 = 0; table0 = D_002C3EB8; count8 = 0; table1 = D_003E1C60; }
 };
 O1C20 D_003E1C20;
 
@@ -485,8 +485,8 @@ namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
 typedef unsigned int uint;
 struct FILEKEY {int name,tag,kind;char filename[0x110 - 0xC];};   /* a file key (FILEKEY: memcard.cpp InitFileKey, sound.cpp K): two key words, the kind, then the file name; no pointers (the earlier pointer slots came from the unrelated FILEKEY class) */
-struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
-struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
+typedef STEPPLAYER ACTOR;   /* the hero (stepplayer.h); jtmode.hud.pwidgetHud (+0xF2C) its HUD widget */
+typedef WARP CONTEXT;   /* the destination warp (classes.h WARP) */
 struct FRAME;
 struct STREAM;
 extern char D_002F7980[] __asm__("D_002F7980"), D_002F66B0[] __asm__("D_002F66B0"), D_00443740[] __asm__("D_00443740"), D_002E1E88[] __asm__("D_002E1E88");
@@ -546,7 +546,7 @@ static inline void Activate(ACTOR *actor){actor->Add();}
 // Call the actor's virtual slot 79 with mode.
 static inline void Enable(ACTOR *actor,int mode){actor->SetCtlState(mode);}
 // Attach the actor to the context (virtual slot 38).
-static inline void Attach(ACTOR *actor,CONTEXT *context){actor->MatchTransform((LO *)context);}   /* the warp object (an LO; CONTEXT views its fields) */
+static inline void Attach(ACTOR *actor,CONTEXT *context){actor->MatchTransform((LO *)context);}
 // Call the actor's deactivate virtual (slot 9).
 static inline void Hide(ACTOR *actor){actor->Remove();}
 // v != 0 (sltu).
@@ -616,8 +616,8 @@ extern "C" void ExecuteSwTransition(SW *world)
             Enable(selected,1);
             if(context){
                 int i;
-                for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->oid)break;
-                if(i>=context->count)Attach(selected,context);
+                for(i=0;i<(int)context->pairCount;i++)if(context->pairs[i].object==selected->oid)break;
+                if(i>=(int)context->pairCount)Attach(selected,context);
             }
             for(int i=0;i<(int)world->cpo;i++){
                 ACTOR *actor=(ACTOR *)world->playerObjects[i];
@@ -627,7 +627,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     }
     if(!GetCurrentWorld()){
         ACTOR *actor=GetHeroPo(world);
-        if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->state)SetWidgetState(actor->widget,1);
+        if(actor&&IsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->jtmode.hud.pwidgetHud&&!actor->jtmode.hud.pwidgetHud->state)SetWidgetState(actor->jtmode.hud.pwidgetHud,1);
     }
     UpdateCmLast__FP2CM(&g_cm);
     CutCm__FP2CM(&g_cm);
@@ -1514,34 +1514,34 @@ namespace M_StartSwAsegSound {
 // Complete WIP; true source-object lookup and sound-reference contracts.
 extern "C" { static inline void Clamp(float *f,float *b) {float lo=b[0],hi=b[1]; if(*f<lo)*f=lo; else if(hi<*f)*f=hi;} }
 struct C { char pad[0x20]; float value; };
-struct O { char pad[0xFC4]; struct C *curve; };
+typedef STEPGUARD O;   /* a STEPGUARD (cid 0x38): +0xFC4 guard.h scale, a curve whose value scales the sound */
 extern float D_002C3EA0[3] __asm__("D_002C3EA0");
 extern float D_002C3EB0[2] __asm__("D_002C3EB0");
-struct O *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, void *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+O *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, void *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int IsBasicDerivedFrom__FP5BASIC3CID(O *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 CID151 *CreateSfxSound(int) __asm__("CreateSfxSound");
-void SetSndSourceLo(CID151 *, struct O *) __asm__("SetSndSourceLo");
+void SetSndSourceLo(CID151 *, O *) __asm__("SetSndSourceLo");
 void SetSndRange(CID151 *, float, float) __asm__("SetSndRange");
 void SetSndVolume(CID151 *, float) __asm__("SetSndVolume");
 void SetSndPitch(CID151 *, float) __asm__("SetSndPitch");
 void SetSndDoppler(CID151 *, float) __asm__("SetSndDoppler");
 void RcPtr_Assign(CID151 **, CID151 *) __asm__("RcPtr_Assign");
 // Copy the object pointer through a register move.
-extern "C" { static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;} }
+extern "C" { static inline O *SelectedValue(O *p){O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;} }
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
 // Also known as: PlayAsegaSound (upstream readable / Sly 1 name; PlayAsegaSound__FfffPviiiiN33PPv).
-extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, CID151 **out)
+extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, O *fallback, void *owner, void *unused, CID151 **out)
 {
-    struct O *o;
+    O *o;
     CID151 *m;
     if (id == -1)
         return;
     __asm__ volatile("" : : : "$4");
     if(oid!=-1)fallback=FindSwObject__FP2SWi3OIDP2LO(p,4,oid,owner);
     o=SelectedValue(fallback);
-    if (o && IsBasicDerivedFrom__FP5BASIC3CID(o, 0x38) && o->curve) {
-        float v = o->curve->value;
+    if (o && IsBasicDerivedFrom__FP5BASIC3CID(o, 0x38) && ((struct C *)o->scale)) {
+        float v = ((struct C *)o->scale)->value;
         float f = D_002C3EA0[0] + v * (D_002C3EA0[1] + v * D_002C3EA0[2]);
         Clamp(&f, D_002C3EB0);
         offset += f;
@@ -1559,17 +1559,17 @@ extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, i
 } // namespace M_StartSwAsegSound
 
 namespace M_StopSwAsegSound {
-struct O { char pad[0x60]; int id; };
-void StopSnd(struct O *p, float f) __asm__("StopSnd");
-void RcPtr_Assign(struct O **pp, int a) __asm__("RcPtr_Assign");
+typedef BANKSND O;   /* the playing sound (snd.h BANKSND: its sfx id at +0x60) */
+void StopSnd(O *p, float f) __asm__("StopSnd");
+void RcPtr_Assign(O **pp, int a) __asm__("RcPtr_Assign");
 // Animation event 1: stops the stored looping sound (optionally only with a matching id) and releases it.
 // Also known as: StopAsegaSound (upstream readable / Sly 1 name; StopAsegaSound__FP5ASEGAiPvT2).
-extern "C" void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
+extern "C" void StopSwAsegSound(void *a, int id, void *b, O **pp)
 {
-    struct O *p = *pp;
+    O *p = *pp;
     if (!p)
         return;
-    if (id != -1 && p->id != id)
+    if (id != -1 && p->sfxId != id)
         return;
     StopSnd(p, 0.0f);
     RcPtr_Assign(pp, 0);
