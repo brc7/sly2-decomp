@@ -77,9 +77,8 @@ struct SOV;
 struct XP;
 /* The touching-object links of a tree (SOTREEV::ptlFirst). */
 struct TL { XP *pxp; TL *ptlNext; int pad; SOV *pso; };
-struct NODE { char pad10[0x10]; unsigned long flags; char pad18[0x48]; NODE *next; };
 /* SO::physicsTree (+0xEC); the SW also chains the trees (+0x40) with their root object (+0x60). */
-struct SOTREEV { char pad0[0x34]; NODE *first; char pad38[8]; SOTREEV *ptreeNext; char pad44[0x1C]; SOV *pso; TL *ptlFirst; XP *pxpFirst; };
+struct SOTREEV { char pad0[0x34]; SOPART *first; char pad38[8]; SOTREEV *ptreeNext; char pad44[0x1C]; SOV *pso; TL *ptlFirst; XP *pxpFirst; };
 
 struct SOV
 {
@@ -131,7 +130,7 @@ qword *VECTOR_opAssign(qword *, qword);
 M3C *BuildRotationMatrixFromVector(M3C *, qword);
 void NormalizeRotateMatrix3__FP7MATRIX3(M3C *);
 void UpdateSoPartMatrices(SOV *);
-void UpdateSoPartGeom(NODE *);
+void UpdateSoPartGeom(SOPART *);
 void ClearSoTreeDirty(SOV *);
 void SettleXfSlot(SOV *, XFV *);
 M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps);
@@ -493,7 +492,7 @@ void IntegrateSoGroupTransforms(SOV *p)
     float coefficient=-0.5f;
     CLOCK *clock;
     SW *global;
-    NODE *node;
+    SOPART *node;
     SettleXfSlot(p,position);
     SettleXfSlot(p,rotation);
     clock=&g_clock;
@@ -512,8 +511,8 @@ void IntegrateSoGroupTransforms(SOV *p)
     ((SO *)p)->UpdateXfWorldHierarchy();
     UpdateSoPartMatrices(p);
     if(p->physicsTree){
-        for(node=p->physicsTree->first;node;node=node->next){
-            if(!(node->flags&(1UL<<50)))UpdateSoPartGeom(node);
+        for(node=p->physicsTree->first;node;node=(SOPART *)node->dle.next){
+            if(!node->isHidden)UpdateSoPartGeom(node);
         }
     }
     ClearSoTreeDirty(p);
