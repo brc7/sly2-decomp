@@ -6,7 +6,7 @@ NGetY unk_XX unknown4C8 Class xOFF Cf_PREFIXCt PLAN.csv batch.json msg.txt batch
 # --- MIPS/VU instruction mnemonics that look like file names; .c/.cpp extension pair
 min.s abs.s c.cond.s div.s sqrt.s rsqrt.s .c/.cpp
 # --- labelled history (in git history / "formerly") or proposed new headers in the layering analysis
-tools/permute.sh notes/ game/core/linkonce/unhomed app/eopid_linkonce.cpp actor/po_query.h world/scene/sw.h
+tools/permute.sh notes/ game/core/linkonce/unhomed app/eopid_linkonce.cpp actor/po_query.h world/scene/sw.h s1_GetThreadId s1_CreateThread s1_ChangeThreadPriority
 # --- labelled Sly 1 names (Sly 1 column / "Sly 1's ...")
 FreezeAlo BLOT pfnLoadLoFromBrx symidMax
 # --- out-of-repo research write-ups used as provenance labels (engine.md legend explains) / research paths
