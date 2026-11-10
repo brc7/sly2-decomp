@@ -26,6 +26,7 @@
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 #include "sly2/hud.h"
+#include "sly2/richtext.h"
 #include "heap.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
@@ -2227,29 +2228,27 @@ extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style
 
 // 0x215CA8 ResetRichText2
 namespace M_func_00215CA8 {
-struct S { int text; int cur; int font; int baseFont; int altFont; struct RGBA color; struct RGBA baseColor; unsigned int altColor; };
-void UpdateRichText2Color(struct S *p) __asm__("UpdateRichText2Color");
+void UpdateRichText2Color(CRichText2 *p) __asm__("UpdateRichText2Color");
 // Resets the rich-text cursor: optional new text, start of text, base font and colour. (inferred)
 // Same role as Sly 1's CRichText::Reset, but this HUD rich text is a second class (Reset__9CRichText is 0x15F970).
-extern "C" void ResetRichText2(struct S *rt, int text)
+extern "C" void ResetRichText2(CRichText2 *rt, uchar *text)
 {
     if (text)
         rt->text = text;
-    rt->cur = rt->text;
+    rt->cursor = rt->text;
     rt->font = rt->baseFont;
     rt->color = rt->baseColor;
-    rt->altColor = 0x80000000;                         /* black ... */
-    ((unsigned char *)&rt->altColor)[3] = rt->color.alpha;   /* ... at the current alpha */
+    *(uint *)&rt->altColor = 0x80000000;               /* black ... */
+    rt->altColor.alpha = rt->color.alpha;              /* ... at the current alpha */
     UpdateRichText2Color(rt);
 }
 } // namespace M_func_00215CA8
 
 // 0x215D00 SetRichText2BaseColor
 namespace M_func_00215D00 {
-struct S { char pad[0x14]; struct RGBA color; struct RGBA baseColor; };
-void UpdateRichText2Color(struct S *p) __asm__("UpdateRichText2Color");
+void UpdateRichText2Color(CRichText2 *p) __asm__("UpdateRichText2Color");
 // Sets the rich text's base and current colour. (inferred)
-extern "C" void SetRichText2BaseColor(struct S *rt, struct RGBA *color)
+extern "C" void SetRichText2BaseColor(CRichText2 *rt, struct RGBA *color)
 {
     rt->baseColor = *color;
     rt->color = rt->baseColor;
@@ -2259,33 +2258,28 @@ extern "C" void SetRichText2BaseColor(struct S *rt, struct RGBA *color)
 
 // 0x215D40 GetRichText2NextChar
 namespace M_func_00215D40 {
-struct S {
-    int text; unsigned char *cur; int font; int baseFont; int altFont;
-    struct RGBA color; struct RGBA baseColor; struct RGBA altColor;
-    char pad20[0x40]; int changed;
-};
-void UpdateRichText2Color(struct S *p) __asm__("UpdateRichText2Color");
+void UpdateRichText2Color(CRichText2 *p) __asm__("UpdateRichText2Color");
 // Returns the next printable character, processing '&' escape codes (colour, font, glyph changes) on the way.
 // (inferred)
-extern "C" unsigned char GetRichText2NextChar(struct S *rt)
+extern "C" unsigned char GetRichText2NextChar(CRichText2 *rt)
 {
     int isDone = 0;
     rt->changed = 0;
     while (!isDone) {
-        unsigned char *pch = rt->cur;
+        unsigned char *pch = rt->cursor;
         unsigned char c = *pch;
         if (c == '&') {
             if (pch[1] == c) {            /* "&&": a literal '&' */
-                rt->cur = pch + 1;
+                rt->cursor = pch + 1;
                 isDone = 1;
             } else if (pch[1] == '.') {   /* "&.": back to the base font and colour */
-                rt->cur = pch + 2;
+                rt->cursor = pch + 2;
                 rt->font = rt->baseFont;
                 rt->color = rt->baseColor;
                 rt->changed = 1;
                 UpdateRichText2Color(rt);
             } else {                      /* "&x": the alternate font and colour */
-                rt->cur = pch + 2;
+                rt->cursor = pch + 2;
                 rt->font = rt->altFont;
                 rt->color = rt->altColor;
                 rt->changed = 1;
@@ -2295,7 +2289,7 @@ extern "C" unsigned char GetRichText2NextChar(struct S *rt)
             isDone = 1;
         }
     }
-    return *rt->cur++;
+    return *rt->cursor++;
 }
 } // namespace M_func_00215D40
 
