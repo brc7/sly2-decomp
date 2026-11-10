@@ -4139,24 +4139,22 @@ extern "C" void SetJtUnknown1FA0(JT *jt, qword qw)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DF60 {
 // Smooth movement and update directional animation weights.
-typedef int qword __attribute__((mode(TI)));
+/* qword: the header's (JT::posHangFollowOffset is one) */
 union U {qword q;float f[4];};
 struct M3{qword r[3];};
 struct M4{qword r[4];};
 struct O{char pad[0xC];void *vptr;};
-struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
-struct ANIM;
-struct P{char pad[0xC];void *vptr;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
+/* the hero is the header JT, its controller the header POCTL */
 struct SMP{float a,b,c;};
 extern qword g_normalZ __asm__("g_normalZ");
 extern SMP D_002BF3F8 __asm__("D_002BF3F8");
 extern SMP D_002BF408 __asm__("D_002BF408");
-extern M4*GetLoWorldMatrix(P*) __asm__("GetLoWorldMatrix");
-extern qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
+extern M4*GetLoWorldMatrix(JT*) __asm__("GetLoWorldMatrix");
+extern qword GetLoWorldPos(JT*) __asm__("GetLoWorldPos");
 extern void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float) __asm__("SmoothMatrix");
 extern qword PosSmooth(qword,qword,SMP*,qword*,float) __asm__("PosSmooth");
 extern qword ConvertVecBetweenLos(O*,O*,qword) __asm__("ConvertVecBetweenLos");
-extern void RecalculateAsegBlend(ANIM*) __asm__("RecalculateAsegBlend");
+extern void RecalculateAsegBlend(ASEGBL*) __asm__("RecalculateAsegBlend");
 // Unit vector along vin (or the negative fallback vector when it is too short); register-pinned.
 static inline qword Normalize(qword vin, const U *negative, U *u)
 {
@@ -4188,12 +4186,12 @@ static inline qword Normalize(qword vin, const U *negative, U *u)
 }
 
 // Target point setup: negate the offset along the matrix axes into target and fetch the owner (register-pinned).
-static inline P *NegativeTarget(const M4 &m, const qword &offset, U *negative, U *scratch, U *target, P *p)
+static inline JT *NegativeTarget(const M4 &m, const qword &offset, U *negative, U *scratch, U *target, JT *p)
 {
     register float minus __asm__("$f0") = -1.0f;
     register qword raw __asm__("$2");
     register qword axis1 __asm__("vf4"), axis2 __asm__("vf3"), scaled __asm__("vf2");
-    register P *owner __asm__("$4");
+    register JT *owner __asm__("$4");
     {
         register qword scalar __asm__("vf1");
         __asm__("daddu %0,%3,$zero\n\tmfc1 %1,%4\n\tlqc2 %2,%5"
@@ -4248,11 +4246,11 @@ static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, u
 
 // Smooths Sly's matrix and position and updates the directional animation weight.
 // Also known as: UpdateSlyHangFollow (upstream readable / Sly 1 name; UpdateSlyHangFollow__FP3SLY).
-extern "C" void UpdateJtSmoothing(P *jt)
+extern "C" void UpdateJtSmoothing(JT *jt)
 {
-    M4 m = *(M4 *)AsLo(jt->object)->GetWorldMatrix();
+    M4 m = *(M4 *)AsLo(jt->hangHandle)->GetWorldMatrix();
     U direction, position, scratch, negative;
-    *(M3 *)&jt->matrix = *(M3 *)&m;
+    *(M3 *)&jt->matTarget = *(M3 *)&m;
     M4 *current = GetLoWorldMatrix(jt);
     CLOCK *clock = &g_clock;
     float factor = 0.5f;
@@ -4260,26 +4258,26 @@ extern "C" void UpdateJtSmoothing(P *jt)
     M3 *receiver, *optional;
     SMP *sample;
     float smoothDt = SmoothInputs(current, clock, factor, samplePage, receiver, optional, sample);
-    SmoothMatrix(receiver, &jt->matrix, sample, optional, &direction.q, smoothDt);
+    SmoothMatrix(receiver, (M3 *)&jt->matTarget, sample, optional, &direction.q, smoothDt);
     AsJt(jt)->SetAngularVelocity(direction.q);
     U target;
-    P *owner = NegativeTarget(m, jt->offset, &negative, &scratch, &target, jt);
+    JT *owner = NegativeTarget(m, jt->posHangFollowOffset, &negative, &scratch, &target, jt);
     (void)PosSmooth(GetLoWorldPos(owner), target.q, &D_002BF408, &position.q, clock->deltaTime * factor);
     AsJt(jt)->SetVelocity(position.q);
     qword relative;
     {
-        register PARAM *params __asm__("$3");
+        register POCTL *params __asm__("$3");
         register M3 *camera __asm__("$2");
         register float zero __asm__("$f2");
         __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)"
                 : "=&r"(params), "=r"(camera), "=f"(zero)
-                : "m"(jt->params), "i"(&(*(M3 *)&g_cm.mat)));
+                : "m"(jt->controller), "i"(&(*(M3 *)&g_cm.mat)));
         register float y __asm__("$f0"), z __asm__("$f1");
         register O *root __asm__("$4");
         register qword axis2 __asm__("vf3");
         __asm__("lwc1 %0,%4\n\tdaddu %1,$zero,$zero\n\tlwc1 %2,%5\n\tneg.s %0,%0\n\tlqc2 %3,%6"
                 : "=f"(y), "=&r"(root), "=f"(z), "=j"(axis2)
-                : "m"(params->y), "m"(params->z), "m"(camera->r[2]));
+                : "m"(params->dxLeft), "m"(params->dyLeft), "m"(camera->r[2]));
         qword local = QwordFromFloats<qword>(zero, y, z);
         register qword axis0 __asm__("vf2"), axis1 __asm__("vf1"), rotated __asm__("vf4");
         __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2"
@@ -4288,7 +4286,7 @@ extern "C" void UpdateJtSmoothing(P *jt)
         register O *object __asm__("$5");
         __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2"
                 : "+j"(rotated), "=&r"(object), "=m"(scratch.q)
-                : "j"(axis0), "j"(axis1), "j"(axis2), "m"(jt->object), "r"(local));
+                : "j"(axis0), "j"(axis1), "j"(axis2), "m"(jt->hangHandle), "r"(local));
         relative = ConvertVecBetweenLos(root, object, rotated);
     }
     qword normalized = Normalize(relative, &negative, &scratch);
@@ -4298,21 +4296,21 @@ extern "C" void UpdateJtSmoothing(P *jt)
     register float right __asm__("$f4") = FpuMax(amount, zero);
     register float left __asm__("$f1") = -amount;
     register float middle __asm__("$f3");
-    register PARAM *params __asm__("$2");
+    register POCTL *params __asm__("$2");
     __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6"
-            : "=&r"(params), "=m"(jt->amount), "+f"(left), "=&f"(middle)
-            : "m"(jt->params), "f"(amount), "f"(zero), "f"(one), "f"(right));
-    register ANIM *animation __asm__("$4");
+            : "=&r"(params), "=m"(jt->unknown1F94), "+f"(left), "=&f"(middle)
+            : "m"(jt->controller), "f"(amount), "f"(zero), "f"(one), "f"(right));
+    register ASEGBL *animation __asm__("$4");
     register float weight __asm__("$f0");
     __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4"
-            : "=&r"(animation), "+&f"(middle), "=f"(weight), "+f"(left), "=m"(jt->weight)
-            : "m"(jt->anim), "m"(params->weight));
+            : "=&r"(animation), "+&f"(middle), "=f"(weight), "+f"(left), "=m"(jt->unknown1F98)
+            : "m"(jt->pasegblHangFollow), "m"(params->leftStickDeflection));
     __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3"
-            : "+&f"(one), "+&f"(right), "+&f"(middle), "=m"(jt->left)
+            : "+&f"(one), "+&f"(right), "+&f"(middle), "=m"(jt->ablHangFollow[1].weight)
             : "f"(weight), "f"(left));
-    jt->right = right;
-    jt->middle = middle;
-    jt->base = one;
+    jt->ablHangFollow[3].weight = right;
+    jt->ablHangFollow[2].weight = middle;
+    jt->ablHangFollow[0].weight = one;
     RecalculateAsegBlend(animation);
 }
 
@@ -4326,37 +4324,30 @@ typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==48)?1:-1];
 typedef char M4_Size[(sizeof(M4)==64)?1:-1];
 typedef char O_Size[(sizeof(O)==16)?1:-1];
-typedef char PARAM_Size[(sizeof(PARAM)==32)?1:-1];
 typedef char SMP_Size[(sizeof(SMP)==12)?1:-1];
-typedef char P_Size[(sizeof(P)==8112)?1:-1];
 typedef char qword_Alignment[(__alignof__(qword)==16)?1:-1];
 typedef char U_Alignment[(__alignof__(U)==16)?1:-1];
 typedef char M3_Alignment[(__alignof__(M3)==16)?1:-1];
 typedef char M4_Alignment[(__alignof__(M4)==16)?1:-1];
-typedef char P_Alignment[(__alignof__(P)==16)?1:-1];
 typedef char U_q_Offset[((unsigned)&((U*)0)->q==0)?1:-1];
 typedef char U_f_Offset[((unsigned)&((U*)0)->f==0)?1:-1];
 typedef char M3_r_Offset[((unsigned)&((M3*)0)->r==0)?1:-1];
 typedef char M4_r_Offset[((unsigned)&((M4*)0)->r==0)?1:-1];
 typedef char O_vptr_Offset[((unsigned)&((O*)0)->vptr==12)?1:-1];
-typedef char PARAM_y_Offset[((unsigned)&((PARAM*)0)->y==16)?1:-1];
-typedef char PARAM_z_Offset[((unsigned)&((PARAM*)0)->z==20)?1:-1];
-typedef char PARAM_weight_Offset[((unsigned)&((PARAM*)0)->weight==28)?1:-1];
+typedef char POCTL_dxLeft_Offset[((unsigned)&((POCTL*)0)->dxLeft==16)?1:-1];
+typedef char POCTL_dyLeft_Offset[((unsigned)&((POCTL*)0)->dyLeft==20)?1:-1];
+typedef char POCTL_leftStickDeflection_Offset[((unsigned)&((POCTL*)0)->leftStickDeflection==28)?1:-1];
 typedef char SMP_a_Offset[((unsigned)&((SMP*)0)->a==0)?1:-1];
 typedef char SMP_b_Offset[((unsigned)&((SMP*)0)->b==4)?1:-1];
 typedef char SMP_c_Offset[((unsigned)&((SMP*)0)->c==8)?1:-1];
-typedef char P_vptr_Offset[((unsigned)&((P*)0)->vptr==12)?1:-1];
-typedef char P_params_Offset[((unsigned)&((P*)0)->params==336)?1:-1];
-typedef char P_matrix_Offset[((unsigned)&((P*)0)->matrix==432)?1:-1];
-typedef char P_object_Offset[((unsigned)&((P*)0)->object==6340)?1:-1];
-typedef char P_base_Offset[((unsigned)&((P*)0)->base==8032)?1:-1];
-typedef char P_left_Offset[((unsigned)&((P*)0)->left==8044)?1:-1];
-typedef char P_middle_Offset[((unsigned)&((P*)0)->middle==8056)?1:-1];
-typedef char P_right_Offset[((unsigned)&((P*)0)->right==8068)?1:-1];
-typedef char P_anim_Offset[((unsigned)&((P*)0)->anim==8080)?1:-1];
-typedef char P_amount_Offset[((unsigned)&((P*)0)->amount==8084)?1:-1];
-typedef char P_weight_Offset[((unsigned)&((P*)0)->weight==8088)?1:-1];
-typedef char P_offset_Offset[((unsigned)&((P*)0)->offset==8096)?1:-1];
+typedef char JT_controller_Offset[((unsigned)&((JT*)0)->controller==336)?1:-1];
+typedef char JT_matTarget_Offset[((unsigned)&((JT*)0)->matTarget==432)?1:-1];
+typedef char JT_hangHandle_Offset[((unsigned)&((JT*)0)->hangHandle==6340)?1:-1];
+typedef char JT_ablHangFollow_Offset[((unsigned)&((JT*)0)->ablHangFollow==8032)?1:-1];
+typedef char JT_pasegblHangFollow_Offset[((unsigned)&((JT*)0)->pasegblHangFollow==8080)?1:-1];
+typedef char JT_unknown1F94_Offset[((unsigned)&((JT*)0)->unknown1F94==8084)?1:-1];
+typedef char JT_unknown1F98_Offset[((unsigned)&((JT*)0)->unknown1F98==8088)?1:-1];
+typedef char JT_posHangFollowOffset_Offset[((unsigned)&((JT*)0)->posHangFollowOffset==8096)?1:-1];
 typedef char M3_Row_Count[(sizeof(((M3*)0)->r)/sizeof(qword)==3)?1:-1];
 typedef char M4_Row_Count[(sizeof(((M4*)0)->r)/sizeof(qword)==4)?1:-1];
 typedef char M4_Basis_Prefix[(sizeof(M3)==(unsigned)&((M4*)0)->r[3])?1:-1];

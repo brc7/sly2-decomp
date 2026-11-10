@@ -198,7 +198,7 @@ struct JT : public STEPPLAYER
       ASEGBL *pasegblHangFollow;   /* +0x1F90 their blended segment (JTS_HangFollow plays it) */
       float unknown1F94;   /* possibly curvePosition (low-confidence guess: -1..1 position mapped onto a shape and an angle) */
       float unknown1F98;
-      undefined4 unk_0x1f9c[(0x1fb0 - 0x1f9c) / 4];
+      undefined4 unk_0x1f9c; qword posHangFollowOffset;   /* +0x1FA0 Sly's offset from the hang handle while hang-following: UpdateJtSmoothing smooths him toward the handle's world point at minus this offset (inferred) */
       JTPOCKET gadgetPockets[4]; /* the gadget slots */
       ASEG *pasegGadget23;   /* +0x1FE0 the use clip of gadget 0x23 (copied to pasegGadget) */
       ASEG *pasegGadget22;   /* +0x1FE4 the use clip of gadget 0x22 */
