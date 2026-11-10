@@ -1441,39 +1441,39 @@ extern "C" void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, vo
 
 namespace M_func_00210538 {
 struct X { char pad[0xC]; VTE *vtable; };
-struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
+typedef EXPLSO MSG;   /* what an explosion explodes with (emitter.h EXPLSO; EXPL slot 51) */
 struct X *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // Animation event 17: finds the object and up to two others and sends them a message.
 extern "C" void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *ctx)
 {
     struct X *x = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid, ctx);
-    struct MSG msg;
+    MSG msg;
     if (!x)
         return;
     msg.grf = 0;
     if (oid1 != -1) {
         struct X *y = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid1, ctx);
         if (y) {
-            msg.p4 = y;
+            msg.ploReference = (LO *)y;
             msg.grf |= 1;
         }
     }
     {
         unsigned int v = msg.grf;
         if ((v ^ 1) & 1) {
-            msg.p4 = x;
+            msg.ploReference = (LO *)x;
             msg.grf = v | 1;
         }
     }
     if (oid2 != -1) {
         struct X *z = FindSwObject__FP2SWi3OIDP2LO(world, 4, oid2, ctx);
         if (z) {
-            msg.p30 = z;
+            msg.ploTouch = (LO *)z;
             msg.grf |= 0x20;
         }
     }
     if (g != 1.0f) {
-        msg.g8 = g;
+        msg.scale = g;
         msg.grf |= 0x18;
     }
     ((void (*)(void *, void *))x->vtable[51].pfn)((char *)x + x->vtable[51].d, &msg);
