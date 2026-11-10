@@ -146,20 +146,19 @@ typedef int qword __attribute__((mode(TI)));
 union F {float value;int bits;};
 union U {qword q;float a[4];};
 struct P;
-struct REF {char pad[0x70];qword position;};
-struct E {int id;REF *reference;int pad8;float x,y;char pad14[0x10];F lower,upper;int pad2C;U position; qword top,bottom;};
-struct SIDE {int id;REF *reference;void *binding;int padC,pad10;};
-struct ATTACH {char pad[0x18];int id;void *object;void *binding;char pad24[8];int meshId;REF *mesh;void *meshBinding;int extraId;void *extra;};
+struct E {int id;XF *reference;int pad8;float x,y;char pad14[0x10];F lower,upper;int pad2C;U position; qword top,bottom;};
+struct SIDE {int id;XF *reference;void *binding;int padC,pad10;};
+struct ATTACH {char pad[0x18];int id;void *object;void *binding;char pad24[8];int meshId;XF *mesh;void *meshBinding;int extraId;void *extra;};
 union CURRENT {E*entry;SIDE*side;ATTACH*attachment;};
 union SCALE {const qword*axis;int stride;};
 struct P : SO { char pad150[0x190 - 0x150];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
 
 extern qword g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");
 void PostSoLoad(P *) __asm__("PostSoLoad");
-REF *FindSoXf(P *,int,int) __asm__("FindSoXf");
+XF *FindSoXf(P *,int,int) __asm__("FindSoXf");
 void *memmove(void *,const void *,int) __asm__("memmove");
 qword ConvertPosBetweenLos(void *,P *,qword) __asm__("ConvertPosBetweenLos");
-void *NewPositionAct(P *,REF *,int,int,int,qword) __asm__("NewPositionAct");
+void *NewPositionAct(P *,XF *,int,int,int,qword) __asm__("NewPositionAct");
 void *FindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void *ApplySmToObject(void *,P *,int,int) __asm__("ApplySmToObject");
 void *NewSampledShape(int,int) __asm__("NewSampledShape");
@@ -185,7 +184,7 @@ extern "C" void PostRobottankLoad(P *tank){
  E *next=tank->entries+1,*cursor=tank->entries;
  do {
   current.entry=cursor;
-  REF *reference=FindSoXf(tank,current.entry->id,13);
+  XF *reference=FindSoXf(tank,current.entry->id,13);
   current.entry->reference=reference;
   if(!reference){
    unsigned bytes=(tank->count-i)*stride-sizeof(E);
@@ -194,7 +193,7 @@ extern "C" void PostRobottankLoad(P *tank){
    memmove(current.entry,source,bytes);
    --tank->count;
   }else{
-   qword returned=ConvertPosBetweenLos(0,tank,reference->position);
+   qword returned=ConvertPosBetweenLos(0,tank,reference->worldMatq.r[3].q);
    register qword position __asm__("vf2");register int upper __asm__("$2");
    asm("qmtc2.ni %3,%0\n\tsqc2 %0,%1\n\tlw %2,%4":"=j"(position),"=m"(current.entry->position.q),"=r"(upper):"r"(returned),"m"(current.entry->upper.bits));
    register qword high __asm__("vf3"),low __asm__("vf4");
@@ -242,7 +241,7 @@ extern "C" void PostRobottankLoad(P *tank){
  scale.stride=0x14;
  SIDE*next=tank->sides+1;current.side=tank->sides;
  do {
-  REF *reference=FindSoXf(tank,current.side->id,6);
+  XF *reference=FindSoXf(tank,current.side->id,6);
   current.side->reference=reference;
   if(!reference){
    unsigned bytes=(tank->sideCount-i)*scale.stride-sizeof(SIDE);
@@ -301,9 +300,6 @@ typedef char native_layout_5[(sizeof(F)==4)?1:-1];
 typedef char native_layout_6[(__alignof__(F)==4)?1:-1];
 typedef char native_layout_7[(sizeof(U)==16)?1:-1];
 typedef char native_layout_8[(__alignof__(U)==16)?1:-1];
-typedef char native_layout_9[(sizeof(REF)==0x80)?1:-1];
-typedef char native_layout_10[(__alignof__(REF)==16)?1:-1];
-typedef char native_layout_11[(OFF(REF,position)==0x70)?1:-1];
 typedef char native_layout_12[(sizeof(E)==0x60)?1:-1];
 typedef char native_layout_13[(__alignof__(E)==16)?1:-1];
 typedef char native_layout_14[(OFF(E,id)==0)?1:-1];
