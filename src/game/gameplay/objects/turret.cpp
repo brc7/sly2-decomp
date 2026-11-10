@@ -21,8 +21,6 @@ union V {qword q;float f[4];};
 struct M3 {qword r[3];};
 struct M4 {qword r[4];};
 struct SMPV {float a,b,c,d;};
-/* The controller as the turret reads it (POCTL). */
-struct CONTROL {char pad[0x10];float x,y;char pad18[8];float z;float zoom;};
 struct SHAPEV {char pad[0x30];float radius;};
 /* The aim target. */
 struct O {char pad[0x60];void *component;char pad64[0x88];SHAPEV *shape;};
@@ -34,7 +32,7 @@ struct TURRETV
     char pad10[0x4C];
     int rotationXf;     /* +0x05C the rotation XF (an SO's pxf at +0x5C), handed to the rotation act */
     char pad60[0xF0];
-    CONTROL *control;   /* +0x150 */
+    POCTL *control;   /* +0x150 */
     char pad154[0x2C];
     O *target;          /* +0x180 */
     int aim;            /* +0x184 aim at the target */
@@ -84,7 +82,7 @@ void SetActPositionGoal(void *,qword);
 CRef GetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
-int POCTL_ConsumeAnyPressed(CONTROL *x, int a);
+int POCTL_ConsumeAnyPressed(POCTL *x, int a);
 void *AcquireProxyObject(LO *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *ShouldSoIgnoreIntersection(TURRETV *p);
@@ -172,8 +170,8 @@ extern "C" void UpdateTurretAim(TURRETV *turret)
     } else {
         if (turret->control) {
             /* stick input, cubed for fine aim, scaled by the zoom strength */
-            float x = ClampAbs__Fff(turret->control->x + turret->control->z, 1.0f);
-            float y = ClampAbs__Fff(turret->control->y, 1.0f);
+            float x = ClampAbs__Fff(turret->control->dxLeft + turret->control->dxRight, 1.0f);
+            float y = ClampAbs__Fff(turret->control->dyLeft, 1.0f);
             float strength = turret->strength;
             float gain = (1.0f - strength) * 0.5f + strength;
             float cubic = -x * x;
@@ -279,7 +277,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         turret->blend = SmoothValueWithAccel__FffffP4SMPAPf(turret->blend, turret->velocity, target, g_clock.deltaTime, &spring, &turret->velocity);
     } else {
         if (turret->control) {
-            float blend = turret->blend, zoom = turret->control->zoom;
+            float blend = turret->blend, zoom = turret->control->dyRight;
             turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * Abs(zoom);
             turret->blend = ClampToLimits__FP2LMf(&g_lmZeroOne, blend + turret->velocity * g_clock.deltaTime);
         }
