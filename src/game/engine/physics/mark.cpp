@@ -1368,14 +1368,11 @@ extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *par
 namespace M_func_001A9D38 {
 typedef int qword __attribute__((mode(TI)));
 struct M4{qword r[4];};
-struct LO{char pad[0x40];M4 m;};
-struct A{LO*lo;int so;float radius;int oid;unsigned long flags;int zapKinds,first;M4 m;char pad60[0x18];int count;qword*vertices;char pad80[0x10];int probeCount;qword*probes;};
-struct B{LO*lo;char pad4[0xC];unsigned long flags;char pad18[8];M4 m;char pad60[0x48];int oldGeneration,generation;};
 struct HIT{qword p;char pad10[0x30];float time;int unknown44,unknown48,tag;char pad50[0x10];};
 struct W;struct C;
 extern M4 InvertMatrix4Rigid(const M4*) __asm__("InvertMatrix4Rigid");
-extern int ClipEdgeToObject(B*,qword,qword,int,HIT*) __asm__("ClipEdgeToObject");
-extern void AddXp(W*,A*,B*,qword,qword,int,int,int,C**,float) __asm__("AddXp");
+extern int ClipEdgeToObject(SOPART*,qword,qword,int,HIT*) __asm__("ClipEdgeToObject");
+extern void AddXp(W*,SOPART*,SOPART*,qword,qword,int,int,int,C**,float) __asm__("AddXp");
 // Transform point p by the 4x4 matrix m into a new register.
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
 // Transform point p by the 4x4 matrix m in place.
@@ -1401,13 +1398,13 @@ do {float d=Dot(VuSub(*points,p),n);if(d<best)best=d;points++;}while(--count);}
 // Sweeps the vertices of one part from the previous frame's pose to the current one with line tests against the
 // other part, adding a contact at each first hit; catches fast objects that would tunnel through.
 // Also known as: MarkSweptVertices (upstream readable / Sly 1 name; MarkSweptVertices__FP3SOET0PP2XPPv).
-extern "C" void MarkSoContactsSweptVertices(W*w,A*a,B*b,C**out){
+extern "C" void MarkSoContactsSweptVertices(W*w,SOPART*a,SOPART*b,C**out){
  int i;
- for(i=a->first;i<a->count;i++){
+ for(i=a->unknown1C;i<a->meshLocal.numPositions;i++){
   HIT hits[2];
-  qword pos=TransformNew(&a->m,a->vertices[i]);
-  if(b->oldGeneration!=b->generation)pos=Transform(&b->lo->m,Transform(&InvertMatrix4Rigid(&b->m),pos));
-  qword dest=a->probes[i];
+  qword pos=TransformNew((M4 *)&a->matWorld,*(qword *)&a->meshLocal.positions[i]);
+  if(b->meshStamp!=b->worldStamp)pos=Transform((M4 *)&b->transform->worldMatrix,Transform(&InvertMatrix4Rigid((M4 *)&b->matWorld),pos));
+  qword dest=*(qword *)&a->meshWorld.positions[i];
   int count=ClipEdgeToObject(b,pos,dest,2,hits);
   if(count){
    int skip=hits[0].time==0.0f;
@@ -1415,10 +1412,10 @@ extern "C" void MarkSoContactsSweptVertices(W*w,A*a,B*b,C**out){
     qword dir=Normal(SubN(pos,dest));
     qword hit=hits[0].p;
     float g=0.0f;
-    g=MinDistance(hit,dir,a->probeCount,&a->probes);
-    if(a->flags&(1UL<<49)){float d=Dot(VuSub(a->lo->m.r[3],hit),dir)-a->radius;if(d<g)g=d;}
-    int kind=(b->flags&(1UL<<49))?9:8;
-    int tag=(b->flags&(1UL<<49))?0:hits[0].tag;
+    g=MinDistance(hit,dir,a->meshWorld.numPositions,(const qword *const *)&a->meshWorld.positions);
+    if(a->unknownFlag10B){float d=Dot(VuSub(*(qword *)&a->transform->worldMatq.r[3],hit),dir)-a->radius;if(d<g)g=d;}
+    int kind=b->unknownFlag10B?9:8;
+    int tag=b->unknownFlag10B?0:hits[0].tag;
     AddXp(w,a,b,hit,dir,kind,tag,0,out,g);
    }
   }
