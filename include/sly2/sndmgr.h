@@ -112,7 +112,8 @@ struct SNDMGR : public BASIC
     float dialogEventTime;       /* +0x248 */
     float dialogElapsed;         /* +0x24C */
 };
-/* g_sndmgr, defined by sound.cpp (as its construct-and-destruct form). */
+/* g_sndmgr, defined by sound.cpp (as its construct-and-destruct form, the whole SNDMGR: the dialog fields at +0x22C
+   are read through SNDMGR pointers, so they are members; see sound.cpp's SNDMGRG). */
 extern SNDMGR g_sndmgr __asm__("D_003DD040");
 
 typedef char assert_SNDMGR_size[sizeof(SNDMGR) == 0x250 ? 1 : -1];

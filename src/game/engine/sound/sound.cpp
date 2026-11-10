@@ -49,12 +49,24 @@ struct SNDMGRG : public SNDMGRBASE
     int musicStackCount;     /* +0x204 */
     SNDREF musicStack[8];    /* +0x208 */
     SNDREF ambienceSound;    /* +0x228 */
+    /* The dialog state at the end of SNDMGR. g_sndmgr is the whole 0x250-byte SNDMGR: ApplyDialogEvent, UpdateDialog,
+       StartDialog and StopDialog read these words through their SNDMGR pointer argument (ApplyDialogEvent:
+       lw 0x22C(soundManager + role * 4)), so they are members, not separate globals; and sprbuf.cpp's 64-byte aligned
+       .bss (D_003DD2C0) starts where a 0x250-byte object ending at 0x3DD290 puts it, while the earlier 0x22C-byte
+       definition left a 0x40-byte gap the link had to assign. No constructor or destructor touches them. */
+    BASIC *dialogRoleObjects[6]; /* +0x22C */
+    int dialogEventIndex;    /* +0x244 */
+    float dialogEventTime;   /* +0x248 */
+    float dialogElapsed;     /* +0x24C */
     // Construct the sound manager through SNDMGR_ctor.
     SNDMGRG() { SNDMGR_ctor(this); }
     // Empty destructor.
     ~SNDMGRG() {}
 };
 SNDMGRG D_003DD040;
+/* The definition is the whole SNDMGR on every target; 0x250 bytes on the EE (sly2/sndmgr.h). */
+typedef char assert_SNDMGRG_size[sizeof(SNDMGRG) == sizeof(SNDMGR) ? 1 : -1];
+typedef char assert_SNDMGRG_tail[SLY2_OFFSETOF(SNDMGRG, dialogRoleObjects) == SLY2_OFFSETOF(SNDMGR, dialogRoleObjects) ? 1 : -1];
 
 // 0x1FF188 StaticInit_sound (g_sndmgr, then the six slot pools; g_sndmgr's destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
