@@ -1488,7 +1488,7 @@ extern "C" void StartBentleyGadget(BENTLEY *bentley, int k)
         return;
     case 8:
         bentley->jtgrab.gadgetId = k;
-        bentley->pasegGadget = bentley->unknown1874;
+        bentley->pasegGadget = bentley->pasegGadgetUse;
         SetJtGrabState(&bentley->jtgrab, 0xB, 0, 0);
         return;
     default:

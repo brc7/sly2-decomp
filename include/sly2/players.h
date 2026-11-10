@@ -120,7 +120,7 @@ struct MURRAY : public STEPPLAYER
       SOPART *aprecState[0x16];   /* per-state records */
       SOPART *aprecCarry[4];   /* per-carry-slot records */
       int isBehaviorActive;   /* +0x1AC0 1 while Murray's behaviour (BHV198) runs: set by its Start, cleared by its Close (inferred) */
-      int unknown1AC4;
+      int pasegGadgetUse;
       float unknown1AC8;
       struct ACT1 *pact1Unk1acc;
       SO *psoHitEffect;   /* +0x1AD0 hit effect object placed at a hit with power-up 0x11 (SpawnMurrayHitEffect) */
@@ -245,7 +245,7 @@ struct BENTLEY : public STEPPLAYER
       JTPOCKET apocket[6];   /* the gadget slots */
       LO *ploHeld;   /* +0x186C the proxy object Bentley holds (bentley.cpp) */
       int unknown1870;
-      int unknown1874;
+      int pasegGadgetUse;
       struct ASEG *pasegAdrenaline;   /* +0x1878 the adrenaline clip (else gaitA's run clip at 1.5x; SetBentleyState) */
       undefined4 unknown187C;
     virtual void OnGadgetsChanged() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
