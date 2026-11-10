@@ -83,7 +83,7 @@ struct M2 {float a[8];M2(){}void Identity();};
 struct V2 { float x, y; };
 struct SEMA {int count,maxCount,initialCount,waitThreads;uint attributes,option;};
 /* The render frame (frm.cpp FRM) as the loading screen touches it. */
-struct FRM {int n0;void *p4;char pad8[0x1C];void *packet;char pad28[8];int flags;};
+struct FRM {int n0;void *p4;void *gifsBuffer;int gifsBufferQwords;int vifsQwordCount;void *vifsChain;void *vifsBuffer;int vifsBufferQwords;int drawQwordCount;void *packet;int unused28,uploadedTextureBits;int flags;};
 /* Thread creation parameters. */
 struct TP { int status; void *func; void *stack; int stack_size; void *gp_reg; int initial_priority; int pad[6]; };
 struct THREADS { char pad[0x10]; int tid; };

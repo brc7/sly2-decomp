@@ -29,7 +29,7 @@ struct FRM {
     int vifsBufferQwords;  /* 0x1c */
     int drawQwordCount;     /* 0x20 VIF qwords from drawChain to the end */
     QW *drawChain;         /* 0x24 start of the frame VIF chain sent to VIF1 (DrawSw sets it) */
-    int unknown28;         /* 0x28 */
+    int unused28;          /* 0x28 zero in every snapshot; no code writes it */
     int uploadedTextureBits; /* 0x2c per-frame bits of textures already uploaded (fonts) (inferred) */
     int blendFlags;         /* 0x30 bit 0: blend the previous frame */
     DL releaseList;         /* 0x34 objects to notify when the frame is done (vtable slot 2) */
@@ -39,7 +39,7 @@ struct FRM {
 typedef char assert_FRM_size[sizeof(FRM) == 0x50 ? 1 : -1];
 struct sceDmaChan;
 /* The records on freeList. */
-struct Y { char pad[0x1088]; void *storage; };   /* a removed BLIP (blip.cpp RemoveBlip): its spline block at +0x1088 */
+struct Y { char abuf[2][0x840]; int i, c; void *storage; };   /* a removed BLIP (blip.cpp BLIPV: two particle buffers of float vectors, index, count): its spline block at +0x1088 */
 /* GS registers written through A+D packets here (GS manual numbering) */
 enum GS_REG {
     GS_RGBAQ = 0x01, GS_TEX0_1 = 0x06, GS_CLAMP_1 = 0x08, GS_TEX1_1 = 0x14, GS_TEXFLUSH = 0x3F, GS_SCISSOR_1 = 0x40,

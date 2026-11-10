@@ -13,7 +13,11 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 enum PHASE { PHASE_Nil = 0 };   /* values 2 and 3 select the two buffer layouts below (names unknown) */
 
 /* This TU's view of FRM (frm.cpp): only the two packet buffers it assigns are named. */
-struct BUF { int pad0[2]; char *gifBuffer; int gifBufferQwords; int pad1[2]; char *vifBuffer; int vifBufferQwords; int pad2[12]; };
+/* The render frames D_002DEA50[2] (frm.cpp FRM, 0x50): the finished chain, buffer and size of the GIF and VIF packets,
+   the frame chain, flags, and the release/free lists (DL: head, tail, link offset). */
+struct BUF { int gifsQwordCount; void *gifsChain; char *gifBuffer; int gifBufferQwords; int vifsQwordCount; void *vifsChain; char *vifBuffer;
+    int vifBufferQwords; int drawQwordCount; void *drawChain; int unused28, uploadedTextureBits, blendFlags; void *releaseHead, *releaseTail;
+    int releaseLinkOffset; void *freeHead, *freeTail; int freeLinkOffset; int cameraVisFlags; };
 extern struct BUF D_002DEA50[2];
 /* phasemem's .bss (address order): the phase buffers (phase 3: two 0x6000 + two 0x58000 halves; phase 2: two
  * 0x1800 + two 0x800 in one 0x4000 block), the RPL buffer between them (no code here names it: render, draw and
