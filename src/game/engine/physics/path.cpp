@@ -1202,16 +1202,16 @@ extern "C" void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
     bsp->numNodes = count;
     bsp->numPlanes = U32Read__18CBinaryInputStream(stream);
     bsp->numZones = U32Read__18CBinaryInputStream(stream);
-    a.cb = bsp->numNodes * 8;
+    a.cb = bsp->numNodes * (int)sizeof(struct E);
     a.align = 0x10;
     bsp->nodes = (__typeof__(bsp->nodes))AllocFromWorldHeap(&a);
-    a.cb = bsp->numPlanes * 16;
+    a.cb = bsp->numPlanes * (int)sizeof(VECTOR4);
     a.align = 0x10;
     bsp->planes = (__typeof__(bsp->planes))AllocFromWorldHeap(&a);
-    a.cb = bsp->numZones * 4;
+    a.cb = bsp->numZones * (int)sizeof(LO *);
     a.align = 0x10;
     bsp->zones = AllocClearedFromWorldHeap(&a);
-    a.cb = bsp->numZones * 4;
+    a.cb = bsp->numZones * (int)sizeof(int);
     a.align = 0x10;
     bsp->zoneIds = (__typeof__(bsp->zoneIds))AllocFromWorldHeap(&a);
     for (i = 0; i < bsp->numNodes; i++) {
@@ -1252,8 +1252,9 @@ extern "C" void PostLoadSwPathzones(SW *world)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1138 {
-struct LO : ::LO { char pad[0x124 - 0x50]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
-struct S { char pad[0x10]; int c; int *zoneIds; struct LO **zones; int linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
+struct LO : ::LO { char pad[SLY2_OFFSETOF(PATHZONE, zoneIndex) - sizeof(::LO)]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
+/* the zone BSP (world->pregtree; M_LoadZoneBspFromBrx's S) from its zone table on */
+struct S { int numNodes; void *nodes; int numPlanes; void *planes; int c; int *zoneIds; struct LO **zones; void *linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
 struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap) __asm__("FindSwObjectsByClass");
 void *AllocCopyFromWorldHeap(const struct SWALLOC *pal, const void *pv) __asm__("AllocCopyFromWorldHeap");
@@ -1297,10 +1298,11 @@ typedef char actor_layout[(sizeof(void*)==4 && sizeof(int)==4 && sizeof(struct S
 namespace M_func_001C1260 {
 struct H { int a[4]; };
 struct A { int cb; int align; };
-struct R { char pad[0x124]; int zoneIndex; };
-struct Q { char pad[0x124]; struct R *zoneIndex; int toZone; };
+typedef PATHZONE R;
+struct Q { char pad[0x124]; R *zoneIndex; R *toZone; };   /* a path link (CID 124): its two zones */
 struct B { int c; int *p; };
-struct S { char pad[0x10]; int numZones; int unknown14[2]; struct B *linkLists; int numLinks; struct Q **links; };
+/* the zone BSP (world->pregtree; M_LoadZoneBspFromBrx's S) */
+struct S { int numNodes; void *nodes; int numPlanes; void *planes; int numZones; int *zoneIds; void *zones; struct B *linkLists; int numLinks; struct Q **links; };
 int STACKSCOPE_ctor(struct H *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct H *p, int n) __asm__("_$_10STACKSCOPE");
 int *AllocClearedFromStack(struct A *pa) __asm__("AllocClearedFromStack");
@@ -1317,19 +1319,19 @@ extern "C" void BuildPathzoneLinkLists(struct S *world)
     int *ac;
     int i, j, k;
     STACKSCOPE_ctor(&h);
-    a.cb = world->numZones * 4;
+    a.cb = world->numZones * (int)sizeof(int);
     ac = Alloc1(&a);
     for (i = 0; i < world->numLinks; i++) {
         struct Q *q = world->links[i];
         if (q->zoneIndex && q->toZone)
             ac[q->zoneIndex->zoneIndex]++;
     }
-    a.cb = world->numZones * 8;
+    a.cb = world->numZones * (int)sizeof(struct B);
     world->linkLists = (__typeof__(world->linkLists))Alloc2(&a);
     for (j = 0; j < world->numZones; j++) {
         struct B *pb = &world->linkLists[j];
         pb->c = 0;
-        a.cb = ac[j] * 4;
+        a.cb = ac[j] * (int)sizeof(int);
         pb->p = (__typeof__(pb->p))Alloc2(&a);
     }
     for (k = 0; k < world->numLinks; k++) {

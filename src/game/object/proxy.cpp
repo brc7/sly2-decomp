@@ -131,7 +131,7 @@ again:
     pnParent = parentNode;
     for (i = 0; i < c; i++) {
         pn = &pnNew[i];
-        InitSl(&pn->children, 0x14);
+        InitSl(&pn->children, SLY2_OFFSETOF(PXR, siblingLink));
         pn->proxyId = aid[i];
         pn->proxyOid = GetOidFromProxyId(pn->proxyId);
         AppendSlEntry(GetSwProxyRefBucket(&g_sw, pn->proxyOid), pn);
@@ -531,7 +531,7 @@ extern "C" void InitSwProxySpares(SW *world)
             px->mat = *GetLoWorldMatrix(plo);
             NormalizeRotateMatrix3__FP7MATRIX3(&px->mat);
         }
-        a.cb = (pr->ccopy - pr->icopyNext) * 0x50;
+        a.cb = (pr->ccopy - pr->icopyNext) * (int)sizeof(PROXYSPARE);
         a.align = 0x10;
         pr->aspare = (PROXYSPARE *)AllocClearedFromWorldHeap(&a);
         for (j = pr->icopyNext; j < pr->ccopy; j++)

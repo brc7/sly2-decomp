@@ -109,7 +109,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     int fNever = 0;
     StartupSplice();
     world->cproxysrc = S16Read__18CBinaryInputStream(stream);
-    world->aproxysrc = (PROXYSRC *)AllocZ(&u.req, world->cproxysrc * 0x6C, 0x10);
+    world->aproxysrc = (PROXYSRC *)AllocZ(&u.req, world->cproxysrc * (int)sizeof(PROXYSRC), 0x10);
     int h;
     BeginLoadingScreen(&h);
     UpdateLoadingScreen(&h, D_002A4BD0);
@@ -121,8 +121,8 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
         pwe->id = S32Read__18CBinaryInputStream(stream);
         pwe->nUnk14 = S32Read__18CBinaryInputStream(stream);
         pwe->ccopy = S32Read__18CBinaryInputStream(stream);
-        pwe->aoid = (OID *)Alloc(&u.req, pwe->ccopy * 4, 0x10);
-        func_002333B4(pwe->aoid, -1, pwe->ccopy * 4);
+        pwe->aoid = (OID *)Alloc(&u.req, pwe->ccopy * (int)sizeof(OID), 0x10);
+        func_002333B4(pwe->aoid, -1, pwe->ccopy * (int)sizeof(OID));
     }
     if (fNever) { // STAND-IN, see the header
         Read__18CBinaryInputStreamiPv(stream, 0x40, world);
@@ -193,8 +193,8 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
             ResetShaders();
             world->psplcs = 0;
             pwe->cplo = u.lol.c;
-            pwe->aplo = (LO **)AllocZ(&req2, pwe->cplo * pwe->ccopy * 4, 0x10);
-            CopyAb__FPvT0Ui(pwe->aplo, u.lol.apo, pwe->cplo * 4);
+            pwe->aplo = (LO **)AllocZ(&req2, pwe->cplo * pwe->ccopy * (int)sizeof(LO *), 0x10);
+            CopyAb__FPvT0Ui(pwe->aplo, u.lol.apo, pwe->cplo * (int)sizeof(LO *));
             ppo = &pwe->aplo[pwe->cplo];
             for (j = 1; j < pwe->ccopy; j++)
                 for (k = 0; k < pwe->cplo; k++)

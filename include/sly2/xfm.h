@@ -215,6 +215,7 @@ struct PROXYSPARE
       undefined4 unk_0xc;
       MATRIX4 mat;   /* where it is placed */
 };
+typedef char assert_PROXYSPARE_size[sizeof(PROXYSPARE) == 0x50 ? 1 : -1];   /* proxy.cpp allocates ccopy of them */
 
 /* PROXYREST: the rest pose of one object of a proxy copy. Moved from object/proxy.cpp. */
 struct PROXYREST
@@ -240,6 +241,7 @@ struct PROXYSRC
       PROXYREST *aposRest;   /* rest pose of each object */
       PROXYSPARE *aspare;   /* the spares */
 };
+typedef char assert_PROXYSRC_size[sizeof(PROXYSRC) == 0x6C ? 1 : -1];   /* brx_sw.cpp allocates cproxysrc of them */
 
 /* PROXY: a proxy: a spawner that clones a template hierarchy (its PROXYSRC) into the world on demand, keeping spare
    copies.
