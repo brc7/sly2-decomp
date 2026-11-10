@@ -4211,94 +4211,15 @@ namespace M_CloneGlobset {
 typedef unsigned int uint;
 struct TRANSFORM;
 struct STREAM;
-struct SO;
-struct SO {
-    char pad[0xC];
-    void *vptr;
-    char pad10[0x10];
-    uint flags;
-    char position[0x10];
-    char list[0x10];
-    int vectorCount;
-    void *vectors;
-};
-struct D {
-    char channel, segments;
-    int flags : 8;
-    char kind;
-    char pad4[4];
-    void *chain;
-    char padC[4];
-    int words;
-};
-union FLAGS {
-    uint word;
-    struct {
-        uint pad : 11, feature : 1, matrix : 1, first : 9, last : 9, reserved : 1;
-    } bits;
-};
-struct E {
-    int value;
-    TRANSFORM *transform;
-    void *parent;
-    FLAGS flags;
-    char *data;
-    uint base;
-    char *segments;
-    int word1C;
-    SO *object;
-    void *sphere;
-};
-struct P {
-    SO *owner;
-    char pad4[0x20];
-    int objectCount;
-    SO **objects;
-    char pad2C[12];
-    int count;
-    D *descriptors;
-    E *entries;
-    char pad44[0x14];
-    int word58;
-};
 struct LINK {
     int pad0;
     void *bounds;
     int pad8;
-    SO *object;
+    SAA *object;
     int next;
 };
-typedef char D_Size[sizeof(D)==20?1:-1];
-typedef char E_Size[sizeof(E)==40?1:-1];
 typedef char LINK_Size[sizeof(LINK)==20?1:-1];
 typedef char REQUEST_Size[sizeof(SWALLOC)==8?1:-1];
-typedef char FLAGS_Size[sizeof(FLAGS)==4?1:-1];
-typedef char D_channel_Offset[FIELD_OFFSET(D,channel)==0?1:-1];
-typedef char D_segments_Offset[FIELD_OFFSET(D,segments)==1?1:-1];
-typedef char D_kind_Offset[FIELD_OFFSET(D,kind)==3?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char E_transform_Offset[FIELD_OFFSET(E,transform)==4?1:-1];
-typedef char E_parent_Offset[FIELD_OFFSET(E,parent)==8?1:-1];
-typedef char E_flags_Offset[FIELD_OFFSET(E,flags)==12?1:-1];
-typedef char E_data_Offset[FIELD_OFFSET(E,data)==16?1:-1];
-typedef char E_base_Offset[FIELD_OFFSET(E,base)==20?1:-1];
-typedef char E_segments_Offset[FIELD_OFFSET(E,segments)==24?1:-1];
-typedef char E_object_Offset[FIELD_OFFSET(E,object)==32?1:-1];
-typedef char E_sphere_Offset[FIELD_OFFSET(E,sphere)==36?1:-1];
-typedef char P_owner_Offset[FIELD_OFFSET(P,owner)==0?1:-1];
-typedef char P_objectCount_Offset[FIELD_OFFSET(P,objectCount)==36?1:-1];
-typedef char P_objects_Offset[FIELD_OFFSET(P,objects)==40?1:-1];
-typedef char P_count_Offset[FIELD_OFFSET(P,count)==56?1:-1];
-typedef char P_descriptors_Offset[FIELD_OFFSET(P,descriptors)==60?1:-1];
-typedef char P_entries_Offset[FIELD_OFFSET(P,entries)==64?1:-1];
-typedef char P_word58_Offset[FIELD_OFFSET(P,word58)==88?1:-1];
-typedef char SO_vptr_Offset[FIELD_OFFSET(SO,vptr)==12?1:-1];
-typedef char SO_flags_Offset[FIELD_OFFSET(SO,flags)==32?1:-1];
-typedef char SO_position_Offset[FIELD_OFFSET(SO,position)==36?1:-1];
-typedef char SO_list_Offset[FIELD_OFFSET(SO,list)==52?1:-1];
-typedef char SO_vectorCount_Offset[FIELD_OFFSET(SO,vectorCount)==68?1:-1];
-typedef char SO_vectors_Offset[FIELD_OFFSET(SO,vectors)==72?1:-1];
 typedef char LINK_bounds_Offset[FIELD_OFFSET(LINK,bounds)==4?1:-1];
 typedef char LINK_object_Offset[FIELD_OFFSET(LINK,object)==12?1:-1];
 typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
@@ -4306,8 +4227,8 @@ typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
 extern int D_003DA790 __asm__("D_003DA790");
 extern LINK D_003DA798[] __asm__("D_003DA798");
 void*AllocCopyFromWorldHeap(SWALLOC*,void*) __asm__("AllocCopyFromWorldHeap");
-SO*CloneSaa(SO*) __asm__("CloneSaa");
-void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*) __asm__("CopyRelocateDmaChain");
+SAA*CloneSaa(SAA*) __asm__("CloneSaa");
+void CopyRelocateDmaChain(SUBGLOB*,GLOB*,int,void*,int,void*,void*) __asm__("CopyRelocateDmaChain");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 void ClearSle(int*) __asm__("ClearSle");
 void PrependSlEntry(void*,LINK*) __asm__("PrependSlEntry");
@@ -4322,88 +4243,88 @@ static inline void *Copy(int bytes, void *source)
     return AllocCopyFromWorldHeap(&request, source);
 }
 // The object's slot 52 (SO::CloneXfRef, named from CloneSoXfRef) with the stream as its first argument.
-static inline void ReadTransform(SO *object, STREAM *stream, TRANSFORM **output)
+static inline void ReadTransform(::SO *object, STREAM *stream, XF **output)
 {
-    AsSo(object)->CloneXfRef((LO *)stream, (XF **)output);
+    object->CloneXfRef((LO *)stream, output);
 }
 // If any of p's objects has flag 4, replace p's object array with a heap copy (so it can be edited without touching
 // the shared one) (inferred).
-static inline void CopyObjects(P *p)
+static inline void CopyObjects(GLOBSET *p)
 {
-    for (int i = 0; i < p->objectCount; i++) {
-        if (p->objects[i]->flags & 4) {
-            p->objects = (SO **)Copy(p->objectCount * 4, p->objects);
+    for (int i = 0; i < p->cpsaa; i++) {
+        if (p->apsaa[i]->grf & 4) {
+            p->apsaa = (SAA **)Copy(p->cpsaa * 4, p->apsaa);
             return;
         }
     }
 }
 // Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned objects, relocates
 // packet copies. (inferred)
-extern "C" void CloneGlobset(P *p, SO *owner, STREAM *stream)
+extern "C" void CloneGlobset(GLOBSET *p, ::SO *owner, STREAM *stream)
 {
     int bytes;
     p->owner = owner;
-    p->entries = (E *)Copy(p->count * sizeof(E), p->entries);
-    p->word58 = 0;
+    p->pieces = (GLOB *)Copy(p->numPieces * sizeof(GLOB), p->pieces);
+    p->pwrbgFirst = 0;
     CopyObjects(p);
-    for (int i = 0; i < p->count; i++) {
-        D *descriptor = &p->descriptors[i];
-        E *entry = &p->entries[i];
+    for (int i = 0; i < p->numPieces; i++) {
+        SUBGLOB *descriptor = &p->subMeshes[i];
+        GLOB *entry = &p->pieces[i];
         ReadTransform(owner, stream, &entry->transform);
-        entry->segments = (char *)Copy(descriptor->segments * 0x50, entry->segments);
-        for (int j = 0; j < descriptor->segments; j++) {
-            uint address = (uint)entry->segments;
-            address += j * 0x50;
-            ReadTransform(owner, stream, (TRANSFORM **)(address + 0xC));
+        entry->abnd = (BND *)Copy(descriptor->cbnd * sizeof(BND), entry->abnd);
+        for (int j = 0; j < descriptor->cbnd; j++) {
+            char *pb = (char *)entry->abnd;   /* byte arithmetic, as the original */
+            pb += j * sizeof(BND);
+            ReadTransform(owner, stream, &((BND *)pb)->pxf);
         }
-        int cloned = entry->object && (entry->object->flags & 4);
+        int cloned = entry->psaa && (entry->psaa->grf & 4);
         if (cloned) {
-            SO *object = CloneSaa(entry->object);
-            for (int j = 0; j < p->objectCount; j++)
-                if (p->objects[j] == entry->object) {
-                    p->objects[j] = object;
+            SAA *object = CloneSaa(entry->psaa);
+            for (int j = 0; j < p->cpsaa; j++)
+                if (p->apsaa[j] == entry->psaa) {
+                    p->apsaa[j] = object;
                     break;
                 }
-            entry->object = object;
+            entry->psaa = object;
         }
-        if (!descriptor->chain && !cloned)
+        if (!descriptor->pvLit && !cloned)
             continue;
         int count = 0;
         void *old = 0;
         void *data = 0;
-        if (descriptor->flags & 1) {
-            count = descriptor->words;
-            old = entry->data;
-            entry->data = (char *)Copy(count * 16, old);
-            data = entry->data;
+        if (descriptor->unknown02 & 1) {
+            count = descriptor->cqw;
+            old = entry->pqwChain;
+            entry->pqwChain = (QW *)Copy(count * 16, old);
+            data = entry->pqwChain;
         } else {
-            if (entry->object) {
-                count = entry->object->vectorCount;
-                old = data = entry->object->vectors;
+            if (entry->psaa) {
+                count = entry->psaa->cqwMain;
+                old = data = entry->psaa->pvMain;
                 if (cloned) {
-                    entry->object->vectors = Copy(count * 16, data);
-                    data = entry->object->vectors;
+                    entry->psaa->pvMain = Copy(count * 16, data);
+                    data = entry->psaa->pvMain;
                 }
             }
-            CopyRelocateDmaChain(descriptor, entry, descriptor->words, entry->data, count, data, old);
+            CopyRelocateDmaChain(descriptor, entry, descriptor->cqw, entry->pqwChain, count, data, old);
         }
-        if (entry->object) {
+        if (entry->psaa) {
             bytes = count * 16;
-            int span = entry->flags.bits.last - entry->flags.bits.first;
-            CopyAb__FPvT0Ui(&D_003DA798[D_003DA790], &D_003DA798[entry->flags.bits.first], span * sizeof(LINK));
-            entry->flags.bits.first = D_003DA790;
+            int span = entry->iUnkEnd - entry->iUnkFirst;
+            CopyAb__FPvT0Ui(&D_003DA798[D_003DA790], &D_003DA798[entry->iUnkFirst], span * sizeof(LINK));
+            entry->iUnkFirst = D_003DA790;
             D_003DA790 += span;
-            entry->flags.bits.last = D_003DA790;
-            for (uint j = entry->flags.bits.first; j < entry->flags.bits.last; j++) {
+            entry->iUnkEnd = D_003DA790;
+            for (uint j = entry->iUnkFirst; j < entry->iUnkEnd; j++) {
                 LINK *link = &D_003DA798[j];
                 if (cloned) {
-                    link->bounds = &entry->object->position;
-                    link->object = entry->object;
+                    link->bounds = &entry->psaa->uOffset;
+                    link->object = entry->psaa;
                 }
                 ClearSle(&link->next);
-                PrependSlEntry(link->object->list, link);
+                PrependSlEntry(&link->object->instances, link);
             }
-            RelocateShaderUploadRecords(entry->flags.bits.first, entry->flags.bits.last, bytes, (uint)old, (uint)data);
+            RelocateShaderUploadRecords(entry->iUnkFirst, entry->iUnkEnd, bytes, (uint)old, (uint)data);
         }
     }
 }
