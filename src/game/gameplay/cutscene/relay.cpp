@@ -3663,17 +3663,16 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
 
 // 0x1E4530 GetJsgCommandDuration
 namespace M_func_001E4530 {
-struct G; union U; struct P; struct C; struct O;
+struct G; union U; struct P; struct O;
 struct G { int a; };
 extern struct G D_002DE578 __asm__("D_002DE578");
 extern float DT_CmJoltMax __asm__("DT_CmJoltMax");
 union U { int n; float g; };
 struct P { int kind; int isAsync; int pad[2]; union U u10; union U u14; int targetState; };
-struct C { char pad[0x18]; int context; };
 struct O : LO { char pad[0x74 - 0x50]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
-struct O *FindJsgObject(struct C *script, int n) __asm__("FindJsgObject");
+struct O *FindJsgObject(RELAYJSG *script, int n) __asm__("FindJsgObject");
 float GetDifficulty(struct G *pg) __asm__("GetDifficulty");
-void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, int b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, LO *b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void *FindLiveSma(void *p, int n) __asm__("FindLiveSma");
 float EstimateSmaTimeToState(void *p, int n) __asm__("EstimateSmaTimeToState");
 float GetDialogStreamDuration(SNDMGR *psndmgr, int n) __asm__("GetDialogStreamDuration");
@@ -3682,7 +3681,7 @@ float GetDialogStreamDuration(SNDMGR *psndmgr, int n) __asm__("GetDialogStreamDu
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
 // Also known as: GCmdDuration (upstream readable / Sly 1 name; GCmdDuration__FP3RUNP7SCPTCMD).
-extern "C" float GetJsgCommandDuration(struct C *script, struct P *command)
+extern "C" float GetJsgCommandDuration(RELAYJSG *script, struct P *command)
 {
     float g = 0.0f;
     if (command->isAsync) return g;
@@ -3698,7 +3697,7 @@ extern "C" float GetJsgCommandDuration(struct C *script, struct P *command)
     }
     case 0xD:
         if (command->targetState != -1) {
-            void *px = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, command->u10.n, script->context);
+            void *px = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, command->u10.n, script->ploContext);
             if (px) {
                 void *py = FindLiveSma(px, command->u14.n);
                 if (py) g = EstimateSmaTimeToState(py, command->targetState);
@@ -3727,7 +3726,7 @@ extern "C" float GetJsgCommandDuration(struct C *script, struct P *command)
 
 // 0x1E46A0 UpdateJsgJtControl
 namespace M_func_001E46A0 {
-union U; union ARG; struct PATH; struct PARAM; struct ACTOR; struct P; struct OUTPUT; struct WORK;
+union U; union ARG; struct PATH; struct PARAM; struct ACTOR; struct OUTPUT; struct WORK;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 union U {qword q;float f[4];};
@@ -3735,7 +3734,6 @@ union ARG {int id;float gain;};
 struct PATH : XFM { char padE4[0xE4 - 0xE0]; int cyclic;};
 struct PARAM {int kind;char pad4[0xC];int target;ARG value;char pad18[0xC];int flag;};
 struct ACTOR {char padC[0xC];void *vtable;char pad10[0x4C8-0x10];int mode,active;int word4D0;PATH *motion;int word4D8;float motionTime;char pad4E0[0xA7C];PATH *curve;float curveTime;char padF64[0xA8C];qword oldPosition;char pad1A00[0x20];qword position;};
-struct P {char pad24[0x24];ACTOR *overrideActor;char pad28[0x40-0x28];PARAM *param;ACTOR *actor;int blocked;char pad4C[0x2C];float previousMotion,previousCurve;};
 struct OUTPUT {char pad10[0x10];float x,y,heading,speed;char pad20[0x10];uint flags;char pad34[0xC];qword basis[3];};
 struct WORK {U from,to,normal;float heading;qword first,second;};
 
@@ -3747,8 +3745,8 @@ qword GetPoctlLateralVector(OUTPUT*,qword) __asm__("GetPoctlLateralVector");
 float atan2f(float,float) __asm__("atan2f");
 float GetShapeMaxDistance(PATH*) __asm__("GetShapeMaxDistance"),GetShapeMaxParam(PATH*) __asm__("GetShapeMaxParam");
 float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
-ACTOR *FindJsgObject(P*,int) __asm__("FindJsgObject");
-void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*) __asm__("GetJsgTargetPosHeading");
+ACTOR *FindJsgObject(RELAYJSG*,int) __asm__("FindJsgObject");
+void GetJsgTargetPosHeading(RELAYJSG*,ACTOR*,qword*,float*) __asm__("GetJsgTargetPosHeading");
 void SetStepTargetHeading(ACTOR*,float) __asm__("SetStepTargetHeading");
 void EvaluateShapeAtParam(PATH*,float,qword*,qword*) __asm__("EvaluateShapeAtParam");
 qword GetLoWorldPos(ACTOR*) __asm__("GetLoWorldPos");
@@ -3828,8 +3826,8 @@ static inline int NearZInputs(qword previous,qword current,float tolerance){
 // Per-frame steering of a script-controlled player character: follow a path/curve or head to a target and write
 // stick/heading/speed into the step's control output. (inferred)
 // Also known as: DriveScptActor (upstream readable / Sly 1 name; DriveScptActor__FPvP6PADCTL).
-extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
- WORK work;PARAM *param=script->param;ACTOR *actor=script->actor;
+extern "C" void UpdateJsgJtControl(RELAYJSG *script,OUTPUT *out){
+ WORK work;PARAM *param=(PARAM *)script->prelaycmdJt;ACTOR *actor=(ACTOR *)script->pjt;
  typedef char layout_local_work[(sizeof(work)==0x60)?1:-1];
  typedef char layout_local_work_align[(__alignof__(work)==16)?1:-1];
 
@@ -3845,10 +3843,10 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){
    float forward,backward;
-   if(script->previousCurve<actor->curveTime){forward=actor->curveTime-script->previousCurve;backward=GetShapeMaxDistance(actor->curve)+script->previousCurve-actor->curveTime;}
-   else {backward=script->previousCurve-actor->curveTime;forward=GetShapeMaxDistance(actor->curve)+actor->curveTime-script->previousCurve;}
+   if(script->sPipe<actor->curveTime){forward=actor->curveTime-script->sPipe;backward=GetShapeMaxDistance(actor->curve)+script->sPipe-actor->curveTime;}
+   else {backward=script->sPipe-actor->curveTime;forward=GetShapeMaxDistance(actor->curve)+actor->curveTime-script->sPipe;}
    if(forward<backward)reverse=1;
-  }else if(script->previousCurve<actor->curveTime)reverse=1;
+  }else if(script->sPipe<actor->curveTime)reverse=1;
   if(reverse){out->heading=NormalizeAngle__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
   out->speed=1.0f;break;
  }
@@ -3875,10 +3873,10 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
    if(motion->cyclic){
     float forward,backward;
-    if(script->previousMotion<actor->motionTime){forward=actor->motionTime-script->previousMotion;backward=GetShapeMaxParam(motion)+script->previousMotion-actor->motionTime;}
-    else {backward=script->previousMotion-actor->motionTime;forward=GetShapeMaxParam(motion)+actor->motionTime-script->previousMotion;}
+    if(script->sGoTo<actor->motionTime){forward=actor->motionTime-script->sGoTo;backward=GetShapeMaxParam(motion)+script->sGoTo-actor->motionTime;}
+    else {backward=script->sGoTo-actor->motionTime;forward=GetShapeMaxParam(motion)+actor->motionTime-script->sGoTo;}
     if(forward<backward)reverse=1;
-   }else if(script->previousMotion<actor->motionTime)reverse=1;
+   }else if(script->sGoTo<actor->motionTime)reverse=1;
    if(reverse)out->heading=NormalizeAngle__Ff(out->heading+3.1415927f);
   }else{
    GetJsgTargetPosHeading(script,target,&work.from.q,0);
@@ -3937,10 +3935,10 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
   out->speed=0.0f;UpdatePoctlPressed(out);break;
  }
  case 0x2A:out->speed=0.0f;break;
- case 0x50:script->blocked=1;break;
- case 0x51:script->blocked=0;break;
+ case 0x50:script->fHoldBtn10=1;break;
+ case 0x51:script->fHoldBtn10=0;break;
  }
- if(script->blocked){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
+ if(script->fHoldBtn10){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
@@ -3953,7 +3951,6 @@ typedef char layout_U_align[(__alignof__(U)==16)?1:-1];
 typedef char layout_ARG[(sizeof(ARG)==4)?1:-1];
 typedef char layout_PARAM_prefix[(sizeof(PARAM)==0x28)?1:-1];
 typedef char layout_ACTOR_prefix[(sizeof(ACTOR)==0x1A30)?1:-1];
-typedef char layout_P_prefix[(sizeof(P)==0x80)?1:-1];
 typedef char layout_OUTPUT_prefix[(sizeof(OUTPUT)==0x70)?1:-1];
 typedef char layout_OUTPUT_align[(__alignof__(OUTPUT)==16)?1:-1];
 typedef char layout_PATH_prefix[(sizeof(PATH)==0xF0)?1:-1];
@@ -3973,12 +3970,6 @@ typedef char layout_ACTOR_curveTime[((unsigned)&((ACTOR*)0)->curveTime==0xf60)?1
 typedef char layout_ACTOR_oldPosition[((unsigned)&((ACTOR*)0)->oldPosition==0x19f0)?1:-1];
 typedef char layout_ACTOR_position[((unsigned)&((ACTOR*)0)->position==0x1a20)?1:-1];
 typedef char layout_PATH_cyclic[((unsigned)&((PATH*)0)->cyclic==0xe4)?1:-1];
-typedef char layout_P_overrideActor[((unsigned)&((P*)0)->overrideActor==0x24)?1:-1];
-typedef char layout_P_param[((unsigned)&((P*)0)->param==0x40)?1:-1];
-typedef char layout_P_actor[((unsigned)&((P*)0)->actor==0x44)?1:-1];
-typedef char layout_P_blocked[((unsigned)&((P*)0)->blocked==0x48)?1:-1];
-typedef char layout_P_previousMotion[((unsigned)&((P*)0)->previousMotion==0x78)?1:-1];
-typedef char layout_P_previousCurve[((unsigned)&((P*)0)->previousCurve==0x7c)?1:-1];
 typedef char layout_OUTPUT_x[((unsigned)&((OUTPUT*)0)->x==0x10)?1:-1];
 typedef char layout_OUTPUT_y[((unsigned)&((OUTPUT*)0)->y==0x14)?1:-1];
 typedef char layout_OUTPUT_heading[((unsigned)&((OUTPUT*)0)->heading==0x18)?1:-1];
