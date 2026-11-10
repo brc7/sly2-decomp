@@ -210,18 +210,6 @@ struct XP
     XP *nextContact;            /* 0xAC */
 };
 
-/* Zap message (0x60). */
-struct ZAP
-{
-    LASENV *plasen;
-    void *pv4;
-    void *pv8;
-    int grf;                /* 0x1000 */
-    int dhp;                /* -10 */
-    int pad14[3];
-    qword pos;
-    char pad30[0x30];
-};
 
 /* Temporary-heap allocation request. */
 struct ALLOCREQ { int cb; int cbAlign; };
@@ -271,7 +259,7 @@ void AddSoCustomXps(SOV *pso, REQUEST *preq, int a2, int a3, int a4, XP **ppxp);
 int ClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
 int IntersectStepFootprint(void *pso, qword posA, qword posB, qword *ppos);
 void AddXp(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, int s, int x, XP **ppxp, float g);
-void DeliverZapToSo(ZAP *pzap);   /* InflictZap */
+void DeliverZapToSo(ZPR *pzpr);   /* InflictZap */
 void UpdateSo(SOV *pso, float dt);
 float fmodf(float, float);
 void AppendDlEntry__FP2DLPv(void *pdl, SOTREEV *ptree);
@@ -762,7 +750,7 @@ void LASENV::ZapBeams(int)
     int i;
     for (i = 0; i < laser->numBeams; i++) {
         qword apos[2];
-        ZAP zap;
+        ZPR zap;
         float s;
         BEAM *beam = &laser->beams[i];
         GetLasenBeamEnds(laser, beam->ends, apos, &s);
@@ -779,12 +767,12 @@ void LASENV::ZapBeams(int)
                 }
             }
             func_002333B4(&zap, 0, sizeof(zap));
-            zap.plasen = laser;
-            zap.pv4 = pxpMin->axps[0].pv0;
-            zap.pv8 = pxpMin->axps[1].pvC;
-            zap.grf = 0x1000;
+            zap.ploSource = (LO *)laser;   /* LASENV is still a private SO view here */
+            zap.part = (SOPART *)pxpMin->axps[0].pv0;
+            zap.unknown08 = (LO *)pxpMin->axps[1].pvC;
+            zap.zpk = 0x1000;
             zap.dhp = -10;
-            zap.pos = pxpMin->axps[0].qwPos;
+            zap.position = pxpMin->axps[0].qwPos;
             DeliverZapToSo(&zap);
             beam->visibleLength = sMin;
         }

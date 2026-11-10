@@ -48,9 +48,7 @@ struct CONTACTL { CONTACT *firstContact; CONTACTL *next; };
 
 
 
-/* A worker as TakeButtonDamage sees it. */
-struct WKR { LO *source; char pad[0x40]; int flags; };
-enum { WKR_FLAG_NO_PRESS = 4 };   /* (inferred: hits with this flag never press buttons) */
+enum { ZPR_FLAG_NO_PRESS = 4 };   /* (inferred: zaps with this ZPR::grfzpr flag never press buttons) */
 
 /* The pressing hero (CID 0x34) as UpdateButtonPlayerPush sees it. */
 struct PUSHER { char pad[0x2C4]; int unknown2C4; char pad2C8[0x2DC - 0x2C8]; int state; float stateTime; };
@@ -81,7 +79,7 @@ void CloneSo(BUTTON *pbutton, BUTTON *pbuttonBase);
 void UpdateSo(BUTTON *pbutton, float dt);
 void RemoveSoHierarchy(BUTTON *pbutton);
 void EnsureSwCallback(SW *psw, void *pv, long k, int n);
-void *CanSoTakeDamage(BUTTON *pbutton, WKR *pwkr);
+void *CanSoTakeDamage(BUTTON *pbutton, ZPR *pzpr);
 void InitXfm(VOLBTN *pvolbtn);
 void SetLoBusyKind(VOLBTN *pvolbtn, int busyk);
 void LoadVolFromBrx(VOLBTN *pvolbtn, void *pbis);
@@ -462,10 +460,10 @@ extern "C" void UpdateButton(BUTTON *button, float dt)
 // BUTTON vtable slot 75 (absorb a worker hit): after the base absorb, an allowed hit presses a worker button that is
 // up, or toggles a toggle button (pressing it only once resetDelay has passed). Returns the base result.
 // Also known as: FAbsorbButtonWkr (upstream readable / Sly 1 name; FAbsorbButtonWkr__FP6BUTTONP3WKR).
-extern "C" void *TakeButtonDamage(BUTTON *button, WKR *hit)
+extern "C" void *TakeButtonDamage(BUTTON *button, ZPR *hit)
 {
     void *result = CanSoTakeDamage(button, hit);
-    if (result && !(hit->flags & WKR_FLAG_NO_PRESS) && CanObjectPushButton(button, hit->source))
+    if (result && !(hit->grfzpr & ZPR_FLAG_NO_PRESS) && CanObjectPushButton(button, hit->ploSource))
     {
         switch (button->pressKind)
         {
