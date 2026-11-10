@@ -105,8 +105,6 @@ struct VU_VECTOR4
 };
 
 /* SO::psobounds is sly2/light.h's SOBOUNDS. */
-/* The record only CanSoTakeDamage reads (its +0x44 word). */
-struct SOWATCH { char pad0[0x44]; int unknown44; };
 
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
@@ -3056,15 +3054,13 @@ extern "C" int IsPosInSo(SO *so, qword pos)
 
 // 0x1F7410 InflictSoContactZaps
 namespace M_func_001F7410 {
-struct H; struct N; struct M;
+struct H; struct N;
 typedef int qword __attribute__((mode(TI)));
 /* XP as seen from one side (two of them, 0x40 each) and the contact chain. */
 struct H { SOPART *part; int pad; void *so; void *object; qword pos; qword posLocal; qword velocity; };
 struct N { struct H h[2]; char pad[0xAC - 0x80]; struct N *next; };
-struct M { void *source; void *part; void *so; int zapKinds; int damage; int pad[3]; qword posLocal; qword velocity; char pad2[0x60 - 0x40]; };
-void *FindZapResponder(void *, int) __asm__("FindZapResponder");
-void func_002333B4(void *, int, int) __asm__("memset");
-int DeliverZapToSo(struct M *) __asm__("DeliverZapToSo");
+LO *FindZapResponder(void *, int) __asm__("FindZapResponder");
+int DeliverZapToSo(ZPR *) __asm__("DeliverZapToSo");
 void FreeSwXpList__FP2SWP2XP(SW *, void *) __asm__("FreeSwXpList__FP2SWP2XP");
 // Slot 74: for each contact whose other part has zap kinds, builds a zap record and delivers it; frees the list.
 // (inferred)
@@ -3077,16 +3073,16 @@ extern "C" void InflictSoContactZaps(SO *so)
         struct H *ph = (struct H *)((char *)pn + (i << 6));
         if (ph->part->zapKindFlags) {
             struct H *pot = (struct H *)((char *)pn + ((1 - i) << 6));
-            void *r = FindZapResponder(pot->object, ph->part->zapKindFlags);
+            LO *r = FindZapResponder(pot->object, ph->part->zapKindFlags);
             if (r) {
-                struct M m;
+                ZPR m;
                 func_002333B4(&m, 0, 0x60);
-                m.source = so;
+                m.ploSource = so;
                 m.part = ph->part;
-                m.so = r;
-                m.zapKinds = ph->part->zapKindFlags;
-                m.damage = ph->part->damage;
-                m.posLocal = pot->pos;
+                m.unknown08 = r;
+                m.zpk = ph->part->zapKindFlags;
+                m.dhp = ph->part->damage;
+                m.position = pot->pos;
                 m.velocity = ph->velocity;
                 DeliverZapToSo(&m);
                 if (!so->physicsTree) break;
@@ -3116,30 +3112,25 @@ extern "C" LO *FindZapResponder(LO *lo, void *q)
 } // namespace M_func_001F7530
 
 // 0x1F7588 CanSoTakeDamage
-// Slot 75 (so.h TakeDamage): returns 1 when the zap record's damage field (+0x44) is nonzero, i.e. the zap
+// Slot 75 (so.h TakeDamage): returns 1 when the zap record has any flag bits (grfzpr, +0x44), i.e. the zap
 // hurts (inferred).
 // Also known as: FAbsorbSoWkr (upstream readable / Sly 1 name; FAbsorbSoWkr__FP2SOP3WKR).
-extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
+extern "C" int CanSoTakeDamage(SO *so, ZPR *pzpr)
 {
-    return pwatch->unknown44 != 0;
+    return pzpr->grfzpr != 0;
 }
 
 // 0x1F7598 DeliverZapToSo
 namespace M_func_001F7598 {
-struct K; struct N; struct M; struct M2; struct M3;
+struct M; struct M2; struct M3;
 typedef int qword __attribute__((mode(TI)));
-struct K {
-    SO *source; int part; void *target; int zapKinds;
-    char pad[0x44 - 0x10];
-    int responseFlags; SO *responder; float time; char dle[0x10];
-} __attribute__((aligned(16)));
-struct N { int source; int part; int pad8; int zapKinds; char pad[0x48 - 0x10]; SO *responder; char pad2[0x50 - 0x4C]; struct N *next; };
-struct M { SO *po; int n; struct K *zpr; };
+/* The zap message (MSGID 0xB) payload. */
+struct M { SO *po; LO *ploSource; ZPR *zpr; };
 struct M2 { SO **pso; int *zapKinds; };
-struct M3 { struct K *zpr; };
+struct M3 { ZPR *zpr; };
 SO *GetSoFromLo(void *) __asm__("GetSoFromLo");
 int GetSoZapResponseFlags(SO *, int) __asm__("GetSoZapResponseFlags");
-struct K *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
+ZPR *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
 void ClearDle__FP3DLE(void *) __asm__("ClearDle__FP3DLE");
 void AppendDlEntry__FP2DLPv(void *, void *) __asm__("AppendDlEntry__FP2DLPv");
 
@@ -3147,35 +3138,35 @@ void AppendDlEntry__FP2DLPv(void *, void *) __asm__("AppendDlEntry__FP2DLPv");
 // recent-zap list, computes the response and calls the object's zap handler.
 // Sly 1 zap.cpp vocabulary (InflictZpdZap, FInflictSoZap).
 // Also known as: PaloAcceptContact (upstream readable / Sly 1 name; PaloAcceptContact__FP5CTMSG).
-extern "C" SO *DeliverZapToSo(struct K *pk)
+extern "C" SO *DeliverZapToSo(ZPR *pk)
 {
     int unused[4];
     struct M m;
     struct M2 m2;
     SO *po;
-    for (po = GetSoFromLo(pk->target); po; po = po->parent) {
-        struct N *pn;
-        for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->next) {
-            if (pn->source == (int)pk->source && pn->part == pk->part && pn->zapKinds == pk->zapKinds && pn->responder == po) return 0;
+    for (po = GetSoFromLo(pk->unknown08); po; po = po->parent) {
+        ZPR *pn;
+        for (pn = *(ZPR **)&g_sw.dlZprHit; pn; pn = (ZPR *)pn->dle.next) {
+            if (pn->ploSource == pk->ploSource && pn->part == pk->part && pn->zpk == pk->zpk && pn->psoHit == po) return 0;
         }
-        pk->responseFlags = GetSoZapResponseFlags(po, pk->zapKinds);
-        if (po->TakeDamage((ZPR *)pk)) {
-            struct K *pkNew;
-            pk->responder = po;
+        pk->grfzpr = GetSoZapResponseFlags(po, pk->zpk);
+        if (po->TakeDamage(pk)) {
+            ZPR *pkNew;
+            pk->psoHit = po;
             pkNew = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapZprHit));
             *pkNew = *pk;
-            pkNew->time = g_clock.time;
-            ClearDle__FP3DLE(pkNew->dle);
-            AppendDlEntry__FP2DLPv(&(*(struct N * *)&g_sw.dlZprHit), pkNew);
-            if (pk->responseFlags & 0xF8) {
+            pkNew->hitTime = g_clock.time;
+            ClearDle__FP3DLE(&pkNew->dle);
+            AppendDlEntry__FP2DLPv(&g_sw.dlZprHit, pkNew);
+            if (pk->grfzpr & 0xF8) {
                 {
-                    m.po = po; m.n = (int)pk->source; m.zpr = pk;
+                    m.po = po; m.ploSource = pk->ploSource; m.zpr = pk;
                     po->SendMessage((MSGID)0xB, &m);
-                    pk->source->SendMessage((MSGID)0xB, &m);
+                    pk->ploSource->SendMessage((MSGID)0xB, &m);
                 }
                 {
-                    m2.pso = &po; m2.zapKinds = &pk->zapKinds;
-                    pk->source->HandleSpliceEvent(0xA, 1, 2, (void **)&m2, 0);
+                    m2.pso = &po; m2.zapKinds = &pk->zpk;
+                    pk->ploSource->HandleSpliceEvent(0xA, 1, 2, (void **)&m2, 0);
                 }
                 {
                     m2.pso = (SO **)pk;
@@ -3191,17 +3182,15 @@ extern "C" SO *DeliverZapToSo(struct K *pk)
 
 // 0x1F77C0 ExpireSwZapRecords
 namespace M_ExpireSwZapRecords {
-struct E;
-struct E { char pad[0x4C]; float t; };
 // Drops zap-history entries older than 0.25 s from the world's list.
 // Also known as: AgeSwContacts (upstream readable / Sly 1 name; AgeSwContacts__FPv).
 extern "C" void ExpireSwZapRecords(SW *so)
 {
     struct DLI dli;
-    struct E *pe;
+    ZPR *pe;
     InitDli(&dli, &so->dlZprHit);
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
-        if (g_clock.time < pe->t + 0.25f) continue;
+        if (g_clock.time < pe->hitTime + 0.25f) continue;
         M_func_001F37C8::RemoveDlEntry__FP2DLPv(&so->dlZprHit, pe);
         FreeSlotheapSlot(&so->slotheapZprHit, pe);
     }
@@ -3246,24 +3235,22 @@ extern "C" void SetSoZapResponse(SO *so, int f, int b)
 
 // 0x1F7950 HandleSoTouchZaps
 namespace M_func_001F7950 {
-struct M; struct G2;
+struct G2;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
-struct M { void *source; int n4; void *target; int zapKinds; int damage; int pad[3]; qword pos; qword velocity; char pad2[0x60 - 0x40]; };
-struct G2 { void *p; };
+struct G2 { LO *p; };
 extern struct G2 D_002F7900 __asm__("D_002F7900");
 void SetSoZapMode(SO *, int) __asm__("SetSoZapMode");
-void func_002333B4(void *, int, int) __asm__("memset");
 qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-void DeliverZapToSo(struct M *) __asm__("DeliverZapToSo");
+void DeliverZapToSo(ZPR *) __asm__("DeliverZapToSo");
 // Deferred touch callback: processes the contacts' zaps (slot 74), then emits the object's own zap according to
 // its zap mode. (inferred)
 // Also known as: EmitAloContact (upstream readable / Sly 1 name; EmitAloContact__FP3ALO).
 extern "C" void HandleSoTouchZaps(SO *so)
 {
     int k;
-    struct M m;
+    ZPR m;
     if (!so->physicsTree) return;
     if (so->physicsTree->firstZapContact) so->InflictContactZaps();
     if (!so->physicsTree) return;
@@ -3271,13 +3258,13 @@ extern "C" void HandleSoTouchZaps(SO *so)
     if (!k) return;
     SetSoZapMode(so, 0);
     func_002333B4(&m, 0, 0x60);
-    m.target = so;
-    m.pos = GetLoWorldPos(so);
+    m.unknown08 = so;
+    m.position = GetLoWorldPos(so);
     m.velocity = so->GetVelocity();
     if (k == 3 && IsBasicDerivedFrom__FP5BASIC3CID(so, 0x38)) {
-        m.zapKinds = 0x40000; m.damage = -50; m.source = D_002F7900.p;
+        m.zpk = 0x40000; m.dhp = -50; m.ploSource = D_002F7900.p;
     } else {
-        m.source = so; m.zapKinds = 0x20000; m.damage = so->dhpTouch;
+        m.ploSource = so; m.zpk = 0x20000; m.dhp = so->dhpTouch;
     }
     DeliverZapToSo(&m);
 }
