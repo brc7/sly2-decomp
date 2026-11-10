@@ -162,7 +162,7 @@ extern "C" void InitSo(SO *so)
     so->opacity = 1.0f;
     so->unknown13C = D_002C3B90;
     so->isRenderable = (uchar)(so->parent ? so->parent->isRenderable : 1);
-    so->unknownStamp140 = -1;
+    so->renderStamp = -1;
 }
 } // namespace M_InitSo
 
@@ -678,7 +678,7 @@ extern "C" void SetSoBusyDistance(SO *so, float t)
     LO *q;
     int unused[4];
     so->busyRadius = t;
-    if (so->unknownStamp140 != -1) {
+    if (so->renderStamp != -1) {
         RemoveLoFromRenderTree(so);
         AddLoToRenderTree(so);
     }
