@@ -4000,10 +4000,9 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 
 // 0x1E4D40 GetJsgTargetPosHeading
 namespace M_GetJsgTargetPosHeading {
-struct O; struct P;
+struct O;
 typedef int qword __attribute__((mode(TI)));
 struct O { int pad[3]; void *vptr; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
-struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(struct O *po) __asm__("GetLoWorldPos");
 void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c) __asm__("FindShapeClosestPoint");
@@ -4011,13 +4010,13 @@ float atan2f(float y, float x) __asm__("atan2f");
 // Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
 // else object pos and its matrix heading). (inferred)
 // Also known as: GetRunAim (upstream readable / Sly 1 name; GetRunAim__FP3RUNP2LOP6VECTORPf).
-extern "C" void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg)
+extern "C" void GetJsgTargetPosHeading(RELAYJSG *script, struct O *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;
     float ag[4];
     float g;
-    struct O *px = script->po24;
-    if (!px) px = script->po44;
+    struct O *px = (struct O *)script->ploActor;
+    if (!px) px = (struct O *)script->pjt;
     if (po) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             FindShapeClosestPoint(po, GetLoWorldPos(px), 0, &uv.q, ag, 0, 0);
@@ -4097,24 +4096,23 @@ extern "C" void SetJsgTunnel(RELAYJSG *script, TN *po)
 
 // 0x1E5000 SetRelayScriptFocus
 namespace M_func_001E5000 {
-struct X; struct P;
+struct X;
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x1044]; int n1044; float f1048; char pad2[0x1060 - 0x104C]; qword v1060; qword v1070; };
-struct P { char pad[0x24]; struct X *p24; char pad2[0x74 - 0x28]; void *p74; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(struct X *) __asm__("GetLoWorldPos");
-void GetJsgTargetPosHeading(struct P *, void *, qword *, int) __asm__("GetJsgTargetPosHeading");
+void GetJsgTargetPosHeading(RELAYJSG *, void *, qword *, int) __asm__("GetJsgTargetPosHeading");
 // Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
 // +0x1044/+0x1060/+0x1070). (inferred)
-extern "C" void SetRelayScriptFocus(struct P *script, void *pv)
+extern "C" void SetRelayScriptFocus(RELAYJSG *script, void *pv)
 {
     struct X *px;
-    if (script->p24 && IsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x34))
-        px = script->p24;
+    if (script->ploActor && IsBasicDerivedFrom__FP5BASIC3CID(script->ploActor, 0x34))
+        px = (struct X *)script->ploActor;
     else
         px = 0;
-    if (script->p74) {
+    if (script->pvFocus) {
         if (px) {
             qword v = px->v1060, q, d;
             px->n1044 = 0;
@@ -4123,7 +4121,7 @@ extern "C" void SetRelayScriptFocus(struct P *script, void *pv)
             px->v1070 = d;
             ((float *)&px->v1070)[2] = 0.0f;
         }
-        script->p74 = 0;
+        script->pvFocus = 0;
     }
     if (!pv) return;
     if (px) {
@@ -4132,7 +4130,7 @@ extern "C" void SetRelayScriptFocus(struct P *script, void *pv)
         ((float *)&px->v1060)[2] += px->f1048;
         px->v1070 = D_002A2DD0;
     }
-    script->p74 = pv;
+    script->pvFocus = pv;
 }
 } // namespace M_func_001E5000
 

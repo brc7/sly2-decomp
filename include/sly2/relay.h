@@ -506,7 +506,7 @@ struct RELAYJSG : BASIC
       RELAYCMD *prelaycmdLine;
       TN *ptnCur;
       int fHideTn;
-      undefined4 unk_0x74;
+      void *pvFocus;   /* +0x74 what SetRelayScriptFocus aims the actor at (an LO or SHAPE; GetJsgTargetPosHeading) (inferred) */
       float sGoTo;
       float sPipe;
       float tBlendEnd;
