@@ -1,0 +1,118 @@
+{
+ "src/game/world/scene/sw.cpp::M_ExecuteSwTransition::FILEKEY": {
+  "nonptr": 1,
+  "why": "stack file key: InitFileKey (memcard.cpp FILEKEY {int an[2]; int n8; char bC...}), sound.cpp K: key words, kind, file name buffer"
+ },
+ "src/game/app/startup.cpp::MPEGV": {
+  "nonptr": 1,
+  "why": "mpeg.cpp CMPEG: count, K ae[4] (0x40-byte scrambled file records, uint words), psubt typed"
+ },
+ "src/game/app/startup.cpp::FILEREF": {
+  "nonptr": 1,
+  "why": "a FILEREC (sw.h: uint aw[16]): hash0 = aw[0], checkA = aw[1], checkB = aw[15]"
+ },
+ "src/game/app/startup.cpp::HV": {
+  "cls": "SCREEN",
+  "why": "D_002E6550 is memcard.cpp's MCDLGG (0x50 in .bss: SCREEN + state +0x40, phase +0x44); the snapshot's 0x40 is SCREEN's size"
+ },
+ "src/game/object/proxy.cpp::M_func_001CB360::R": {
+  "nonptr": 1,
+  "why": "BuildSpliceListFromUniformValues fills a CRefData (8 bytes; stepguard.cpp passes CRefData *); the two words past it are only the 16-byte return slot the original used"
+ },
+ "src/game/object/proxy.cpp::M_PspareAcquire::P": {
+  "cls": "PROXY",
+  "why": "AcquireProxySpare's proxy argument (table/head/binds = xfm.h PROXY source/firstSpare/inits); copies reached through it share the LO prefix"
+ },
+ "src/game/engine/camera/cm.cpp::M_SetCmRgbaFog__FP2CMP4RGBA::S4": {
+  "nonptr": 1,
+  "why": "four colour bytes (the RGBA fog colour)"
+ },
+ "src/game/engine/graphics/pipeline/rtcam.cpp::U": {
+  "nonptr": 1,
+  "why": "a quadword vector union (qword / float[4] / int[4])"
+ },
+ "src/game/engine/presentation/prog.cpp::TRI": {
+  "nonptr": 1,
+  "why": "three vertex indices"
+ },
+ "src/game/engine/graphics/backend/gs.cpp::DRAWENV": {
+  "nonptr": 1,
+  "why": "GS register packet (sceGsDrawEnv: 64-bit register values and A+D addresses)"
+ },
+ "src/game/platform/memory/sprbuf.cpp::DMAC": {
+  "nonptr": 1,
+  "why": "EE DMA channel register block (CHCR +0, ..., SADR +0x80): 32-bit hardware registers"
+ },
+ "src/game/engine/presentation/prog.cpp::THREADS": {
+  "nonptr": 1,
+  "why": "thread.cpp's thread-id table D_004425D0 (int[8]); +0x10 is a thread id"
+ },
+ "src/game/level/exit_warp.cpp::WARPBLOB": {
+  "nonptr": 1,
+  "why": "0x40-byte warp blob header read from the brx stream (file data)"
+ },
+ "src/game/world/state/difficulty.cpp::DIFFPARAMS": {
+  "nonptr": 1,
+  "why": "all fields typed (LM, floats, ints); countdownRanges is an int table"
+ },
+ "src/game/engine/presentation/screen.cpp::M_func_001DAE58::E": {
+  "nonptr": 1,
+  "why": "the ThiefNet item table D_002BCD00 (screen.cpp REC {a, b, price, pad[5]}): initialized .data with no address words (ELF)"
+ },
+ "src/game/engine/presentation/prog.cpp::CProg": {
+  "nonptr": 1,
+  "why": "CProg (0x70, main's stack object): all its member functions are here (ctor, Begin, SetRemain, End, Draw) and touch only the named fields; +0x11..0x4F is never stored to"
+ },
+ "src/game/engine/graphics/backend/frm.cpp::Y": {
+  "nonptr": 1,
+  "why": "a BLIP (blip.cpp BLIPV): BUF abuf[2] are float-vector arrays (VEC a/b/c[0x2B]), then i, c; storage typed"
+ },
+ "src/game/engine/graphics/pipeline/rtcam.cpp::RTCAM": {
+  "nonptr": 1,
+  "why": "every field after the XFM is typed (c, ap[4], af[4] flag words, numShown, shown[4], parent, fov/clip, prt); af is an int array, not a pad"
+ },
+ "src/game/engine/physics/so.cpp::CPQ": {
+  "nonptr": 1,
+  "why": "D_003DD020 (a const query passed by address to FindShapeClosestPoint*): axis (0,0,1), flag 1, the rest zero in every snapshot"
+ },
+ "src/game/engine/presentation/hud.cpp::M_func_002188B0::ITEM": {
+  "nonptr": 1,
+  "why": "a sprite item (hud.h SPRITEITEM, private to hud.cpp): +0x08..0x0F is named by no code (every view and hud.h pad it), the other words are typed"
+ },
+ "src/game/engine/presentation/hud.cpp::M_ApplySpriteKeyPoses::ITEM": {
+  "nonptr": 1,
+  "why": "a sprite item (hud.h SPRITEITEM, private to hud.cpp): +0x08..0x0F is named by no code (every view and hud.h pad it), the other words are typed"
+ },
+ "src/game/engine/presentation/hud.cpp::M_AdvanceSpriteAnim::ITEM": {
+  "nonptr": 1,
+  "why": "a sprite item (hud.h SPRITEITEM, private to hud.cpp): +0x08..0x0F is named by no code (every view and hud.h pad it), the other words are typed"
+ },
+ "src/game/engine/presentation/hud.cpp::M_RenderWidget::Q": {
+  "nonptr": 1,
+  "why": "a sprite item (hud.h SPRITEITEM, private to hud.cpp): +0x08..0x0F is named by no code (every view and hud.h pad it), the other words are typed"
+ },
+ "src/game/engine/presentation/hud.cpp::M_ApplySpriteKeyPoses::KEYPOSE": {
+  "nonptr": 1,
+  "why": "a sprite key item: AllocZeroedFromHeap'd and filled field by field from the stream (LoadSpriteGroups, hud.cpp 1709): the pads stay zero"
+ },
+ "src/game/engine/presentation/hud.cpp::M_RenderWidget::PARAM": {
+  "nonptr": 1,
+  "why": "a stack parameter block (constructor sets mode, priority, offset, scale; the pad words are alignment)"
+ },
+ "src/game/world/scene/sw.cpp::M_func_002109D0::X": {
+  "nonptr": 1,
+  "why": "a level file record (GetLevelFileRecord: a FILEREC, sw.h uint aw[16]; sectorKey = aw[2], sectorXor = aw[15])"
+ },
+ "src/game/gameplay/objects/robottank.cpp::M_PostRobottankLoad::P": {
+  "cls": "ROBOTTANK",
+  "why": "PostRobottankLoad's object (ROBOTTANK; the snapshot identifies the same view in RenderRobottankSelf / func_001D4568 by vptr)"
+ },
+ "src/game/platform/runtime/stream.cpp::OSTRM": {
+  "nonptr": 1,
+  "why": "the accessed char buffer[0x400] is the stream's staging bytes (CbWrite copies data into it); every other word typed"
+ },
+ "src/game/level/brx_sw.cpp::ODD": {
+  "nonptr": 1,
+  "why": "a stack file key (FILEKEY 0x110: InitFileKey's key words, mode 2 at +8, the file name): no pointers"
+ }
+}
