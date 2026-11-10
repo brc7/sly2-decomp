@@ -108,6 +108,7 @@ struct GLOBSET
       union
     {
         float unknown50;
+        ulong grf50;   /* the bit-fields below as one word (LoadSubglobType2FromBrx sets bit 33) */
         struct
         {
             ulong unknownBits50A : 32;
