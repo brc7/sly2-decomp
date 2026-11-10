@@ -131,53 +131,11 @@ struct GRABSPOTV : public GRABSPOTDATA
 
 void ClearSoXps(SO *pso) __asm__("FreeSoContacts");
 
-struct BHV166 : public BHV
-{
-      void *pvUnk30;
-      float gUnk34;
-      int nUnk38;
-      int fHasEnd;
-      int nUnk40;
-      undefined4 unk_0x44;
-      float gUnk48;
-      int nMode;
-      float tMode;
-      void *pshapeUnk54;
-      int nUnk58;
-      float uUnk5c;
-      float uUnk60;
-      float sUnk64;
-      float sUnk68;
-      float sUnk6c;
-      undefined4 unk_0x70[4];
-      qword posStart;
-      undefined4 unk_0x90[4];
-      int nUnkA0;
-      undefined4 unk_0xa4[3];
-      qword posEnd;
-};
+/* The behaviours the scripts push: BHVPATH (166), BHVWALKGOAL (168) and BHV193 (sly2/classes.h). */
 
-struct BHV168 : public BHV166
-{
-      struct POCTL *pctlLeader;
-      int nUnkc4;
-      float gUnkc8;
-      int nUnkcc;
-      float gUnkd0;
-};
+void SetBhv193Goal(BHV193 *pbhv, qword qwPos) __asm__("SetBhvWalkToGoal");
 
-struct BHV193V : public BHV
-{
-      undefined4 nUnk30;
-      float gUnk34;
-      int nUnk38;
-      float gUnk3c;
-      qword qwUnk40;
-};
-
-void SetBhv193Goal(BHV193V *pbhv, qword qwPos) __asm__("SetBhvWalkToGoal");
-
-void SetBhv166Path(BHV166 *pbhv, void *pshape, int nUnk38) __asm__("SetBhvpathShape");
+void SetBhv166Path(BHVPATH *pbhv, void *pshape, int nUnk38) __asm__("SetBhvpathShape");
 
 void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("SetStepTargetHeading");
 
@@ -361,9 +319,9 @@ void LatchButtonEdges(JOY *pjoy, uint grfbtn) __asm__("SetJoyBtnHandled");
 
 int FAsegaStopped(ASEGA *pasega) __asm__("IsAsegaRetracted");
 
-int FBhv193AtGoal(BHV193V *pbhv) __asm__("IsBhvWalkToDone");
+int FBhv193AtGoal(BHV193 *pbhv) __asm__("IsBhvWalkToDone");
 
-int FBhv166NearEnd(BHV166 *pbhv) __asm__("IsBhvpathAtEnd");
+int FBhv166NearEnd(BHVPATH *pbhv) __asm__("IsBhvpathAtEnd");
 
 void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit) __asm__("GetJtPipeDistanceRange");
 
@@ -2492,10 +2450,10 @@ void NextJsgCommand(RELAYJSG *script)
             {
                 PlayStepClip((STEPPLAYER *)pstep, (OID)prelaycmd->followPath.idClip, 9, 6);
             }
-            BHV168 *pbhv = (BHV168 *)PbhvPushStep(pstep, 0xA8);
-            pbhv->nUnk40 = script->fRun;
-            pbhv->nUnkcc = prelaycmd->followPath.nUnk6;
-            pbhv->gUnkd0 = prelaycmd->followPath.gUnk7;
+            BHVWALKGOAL *pbhv = (BHVWALKGOAL *)PbhvPushStep(pstep, 0xA8);
+            pbhv->ignoresBlockers = script->fRun;
+            pbhv->forcesButton8 = prelaycmd->followPath.nUnk6;
+            pbhv->speedScale = prelaycmd->followPath.gUnk7;
             SetBhv166Path(pbhv, plo, prelaycmd->followPath.nPathMode == 0);
             pbhv->Start();
         }
@@ -2516,11 +2474,11 @@ void NextJsgCommand(RELAYJSG *script)
             {
                 PlayStepClip((STEPPLAYER *)pstep, (OID)prelaycmd->walkTo.idClip, 9, 6);
             }
-            BHV193V *pbhv = (BHV193V *)PbhvPushStep(pstep, 0xC1);
-            pbhv->nUnk30 = script->fRun;
-            pbhv->gUnk34 = prelaycmd->walkTo.gUnk5;
-            pbhv->nUnk38 = prelaycmd->walkTo.nUnk6;
-            pbhv->gUnk3c = prelaycmd->walkTo.gUnk7;
+            BHV193 *pbhv = (BHV193 *)PbhvPushStep(pstep, 0xC1);
+            pbhv->usesStraightPath = script->fRun;
+            pbhv->arrivalRadius = prelaycmd->walkTo.gUnk5;
+            pbhv->forcesButton8 = prelaycmd->walkTo.nUnk6;
+            pbhv->speedScale = prelaycmd->walkTo.gUnk7;
             SetBhv193Goal(pbhv, *(qword *)&pos);
             pbhv->Start();
         }
@@ -3309,7 +3267,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             STEP *pstep = (STEP *)script->ploActor;
-            BHV166 *pbhv = (BHV166 *)PbhvFindStep(pstep, 0xA8);
+            BHVPATH *pbhv = (BHVPATH *)PbhvFindStep(pstep, 0xA8);
             fComplete = 0;
             if (!pbhv || FBhv166NearEnd(pbhv))
             {
@@ -3335,7 +3293,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             STEP *pstep = (STEP *)script->ploActor;
             BHV *pbhv = PbhvFindStep(pstep, 0xC1);
             fComplete = 0;
-            if (!pbhv || FBhv193AtGoal((BHV193V *)pbhv))
+            if (!pbhv || FBhv193AtGoal((BHV193 *)pbhv))
             {
                 fComplete = 1;
             }
