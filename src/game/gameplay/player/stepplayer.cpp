@@ -650,8 +650,7 @@ struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
 struct ENT { void *po; int x4; };
-struct GG { char pad[0x2010]; void *p2010; };
-extern struct GG *D_002E1E40 __asm__("D_002E1E40");
+extern JT *D_002E1E40 __asm__("D_002E1E40");   /* the hero JT */
 extern float D_002BCC94 __asm__("D_002BCC94");
 void RunJtHurtCallback(void *p) __asm__("RunJtHurtCallback");
 void SetJtThrowState(void *p, int n) __asm__("SetJtThrowState");
@@ -780,7 +779,7 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
                     case 0x17: {
                         DLI dli;
                         void *po2;
-                        void *pa = AcquireProxyObject(D_002E1E40->p2010, 0);
+                        void *pa = AcquireProxyObject(D_002E1E40->unknown2010, 0);
                         if (pa)
                             SetLoParent(pa, 0, 3);
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
@@ -2185,15 +2184,14 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
 } // namespace M_func_00143AF0
 
 namespace M_func_00143BD8 {
-struct O { char pad[0xC]; void *vptr; };
 extern char D_002A4DB0[] __asm__("D_002A4DB0");
 void GetSaveVarByName(CRefData *r, void *a, void *b, int c) __asm__("GetSaveVarByName");
 void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
-void ClearStepplayerBootySave(struct O *p, int n) __asm__("ClearStepplayerBootySave");
-void SpawnStepplayerBootyMarker(struct O *p, int n) __asm__("SpawnStepplayerBootyMarker");
+void ClearStepplayerBootySave(STEPPLAYER *p, int n) __asm__("ClearStepplayerBootySave");
+void SpawnStepplayerBootyMarker(STEPPLAYER *p, int n) __asm__("SpawnStepplayerBootyMarker");
 // On load: restores or clears the carried booty depending on the transition flags.
 // Also known as: PostLoadActorBooty (upstream readable / Sly 1 name; PostLoadActorBooty__FP5ACTOR).
-extern "C" void RestoreStepplayerBooty(struct O *player)
+extern "C" void RestoreStepplayerBooty(STEPPLAYER *player)
 {
     CRefData r;
     int n;
