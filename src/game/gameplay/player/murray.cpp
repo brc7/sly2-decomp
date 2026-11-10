@@ -64,9 +64,8 @@ extern const char D_002A75E0[];   /* "murray" */
 void SetMurrayState(MURRAY *pmurray, int nState, void *pv);
 }
 
-/* The carry target MURRAY::ploCarried points at: a carry grab spot (classes.h CID36, no fields there yet); +0x180 is the
-   object it holds (the one Murray lifts), +0x190/+0x198 the objects whose transforms are the hands' IK goals. */
-struct CARRYSPOTV { char pad[0x180]; LO *plo; char pad184[0x190 - 0x184]; SO *psoGoalA; int pad194; SO *psoGoalB; };
+/* The carry target MURRAY::ploCarried points at is a carry grab spot (classes.h CID36): unknown180 is the object it
+   holds (the one Murray lifts), plo2 / plo3 the objects whose transforms are the hands' IK goals. */
 
 namespace M_InitMurray {
 /* InitMurray: actor defaults init. The int -1 stores come before the float stores in source; gcc schedules them so strafeSubstate lands right after baseRadius. (Claude agent) */
@@ -528,7 +527,7 @@ extern "C" void UpdateMurrayCarry(MURRAY *murray)
         s = murray->carrySubstate;
         switch (s) {
         case 0: case 1: case 2:
-            if ((((int)((CARRYSPOTV *)murray->ploCarried)->plo->isInWorld & 1) == 0)) {
+            if ((((int)((CID36 *)murray->ploCarried)->unknown180->isInWorld & 1) == 0)) {
                 DetachMurrayCarried(murray);
                 murray->ploCarried = 0;
                 SetMurrayState(murray, MURRAY_IDLE);
@@ -1518,7 +1517,7 @@ extern "C" void StartMurrayLiftGrabspot(MURRAY *murray, LO *pspot)
     murray->ploCarried = pspot;
     murray->liftClip = 0;
     SetMurrayState(murray, MURRAY_LIFT);
-    FaceStepToward(murray, ((CARRYSPOTV *)murray->ploCarried)->plo);
+    FaceStepToward(murray, ((CID36 *)murray->ploCarried)->unknown180);
 }
 } // namespace M_StartMurrayLiftGrabspot
 
@@ -1533,7 +1532,7 @@ extern "C" void StartMurrayLiftGuard(MURRAY *murray, LO *pspot)
     murray->ploCarried = pspot;
     murray->liftClip = 1;
     SetMurrayState(murray, MURRAY_LIFT);
-    FaceStepToward(murray, ((CARRYSPOTV *)murray->ploCarried)->plo);
+    FaceStepToward(murray, ((CID36 *)murray->ploCarried)->unknown180);
 }
 } // namespace M_StartMurrayLiftGuard
 
@@ -1748,7 +1747,7 @@ extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation
  qword end;
  switch(owner->liftClip){
  case 0:{
-  struct XFV*parent=((XFV*)((SO*)((CARRYSPOTV*)owner->ploCarried)->plo)->positionXf)->parent;
+  struct XFV*parent=((XFV*)((SO*)((CID36*)owner->ploCarried)->unknown180)->positionXf)->parent;
   qword first=ConvertXfVec(0,parent,Scale(g_normalZ,2500.0f,&roots));
   {
    register struct XFV*space __asm__("$4");register int bits __asm__("$2");
@@ -1764,9 +1763,9 @@ extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation
   float t;
   int count;
   {
-   CARRYSPOTV*x=(CARRYSPOTV*)owner->ploCarried;
+   CID36*x=(CID36*)owner->ploCarried;
    register SO*object __asm__("$3");
-   __asm__("lw %0,%1":"=r"(object):"m"(x->plo));
+   __asm__("lw %0,%1":"=r"(object):"m"(x->unknown180));
    {
     register struct XFV*lo __asm__("$2");register SOPHYS*source __asm__("$5");
     register qword velocity __asm__("$3"),argument __asm__("$6");
@@ -1849,7 +1848,7 @@ extern "C" void ThrowMurrayCarried(MURRAY *murray)
 {
     struct LO *object;
     DetachMurrayCarried(murray);
-    object = ((CARRYSPOTV *)murray->ploCarried)->plo;
+    object = ((CID36 *)murray->ploCarried)->unknown180;
     murray->ploCarried = 0;
     if ((int)object->isInWorld & 1) {
         float t;
@@ -1899,7 +1898,7 @@ extern "C" void TossMurrayCarried(MURRAY *murray)
     SO *object;
     qword q;
     DetachMurrayCarried(murray);
-    object = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    object = (SO *)((CID36 *)murray->ploCarried)->unknown180;
     murray->ploCarried = 0;
     if ((int)object->isInWorld & 1) {
         if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
@@ -1938,7 +1937,7 @@ extern "C" void DropMurrayCarried(MURRAY *murray)
         return;
     }
     DetachMurrayCarried(murray);
-    x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    x = (SO *)((CID36 *)murray->ploCarried)->unknown180;
     if (IsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
     else SetSoZapMode(x, 1);
     switch (murray->state) {
@@ -1981,7 +1980,7 @@ extern "C" void DetachMurrayCarried(MURRAY *murray)
     o = murray->ploCarried;
     if (!o) return;
     o->HandleSpliceEvent(6, 0, 0, 0, 0);
-    x = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+    x = (SO *)((CID36 *)murray->ploCarried)->unknown180;
     SetXfRole(x, x->positionXf, murray->xfRoleA);
     SetXfRole(x, x->rotationXf, murray->xfRoleB);
     SetSoTreeFlag2(x, 0);
@@ -2116,7 +2115,7 @@ extern "C" void SetMurrayPlayable(MURRAY *p, int b)
     IgnoreStepSlot87(p, b);
     if (b) {
         if (!p->ploCarried) return;
-        o = ((CARRYSPOTV *)p->ploCarried)->plo;
+        o = ((CID36 *)p->ploCarried)->unknown180;
         if (!o) return;
         p->jtmode.ploHidden = o;
         o->SetFlag8(0);
@@ -2711,7 +2710,7 @@ extern "C" void UpdateMurrayLift(MURRAY *murray)
         case 1:
             if (murray->fLiftGrabbed) {
                 if (!murray->ploCarried) SetMurrayState(murray, MURRAY_IDLE);
-                else if ((((int)((CARRYSPOTV *)murray->ploCarried)->plo->isInWorld & 1) == 0)) {
+                else if ((((int)((CID36 *)murray->ploCarried)->unknown180->isInWorld & 1) == 0)) {
                     SetMurrayState(murray, MURRAY_IDLE);
                     murray->ploCarried = 0;
                 }
@@ -2775,7 +2774,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
     case 1: {
         if (!murray->ploCarried)
             goto failed;
-        owner = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+        owner = (SO *)((CID36 *)murray->ploCarried)->unknown180;
         if ((int)owner->isInWorld & 1)
             goto attach;
         else
@@ -2806,7 +2805,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
     case 2: {
         if (!murray->ploCarried)
             goto failed;
-        owner = (SO *)((CARRYSPOTV *)murray->ploCarried)->plo;
+        owner = (SO *)((CID36 *)murray->ploCarried)->unknown180;
         if ((int)owner->isInWorld & 1)
             goto valid;
     failed:
@@ -2823,8 +2822,8 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         GetMurrayGripFrame(murray, root->rootTransform, &D_002A2D30, &rotation.q, &position.q);
         murray->apactCarryA[1] = NewPositionAct(owner, owner->rotationXf, (void *)5, 7, 2, rotation.q);
         murray->apactCarryA[0] = NewPositionAct(owner, owner->positionXf, (void *)5, 7, 2, position.q);
-        if (((CARRYSPOTV *)murray->ploCarried)->psoGoalA) {
-            SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalA;
+        if ((SO *)((CID36 *)murray->ploCarried)->plo2) {
+            SO *goal = (SO *)((CID36 *)murray->ploCarried)->plo2;
             PARTLINK *stretch = murray->ikChainA;
             stretch->pxfGoal = goal->GetLocalTransform((MATRIX4 *)&frame);
             stretch->posGoal = frame.row[3].q;
@@ -2834,8 +2833,8 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             murray->apactCarryB[1] =
                 NewMatrixAct(murray, murray->unknown15F4, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
-        if (((CARRYSPOTV *)murray->ploCarried)->psoGoalB) {
-            SO *goal = ((CARRYSPOTV *)murray->ploCarried)->psoGoalB;
+        if ((SO *)((CID36 *)murray->ploCarried)->plo3) {
+            SO *goal = (SO *)((CID36 *)murray->ploCarried)->plo3;
             PARTLINK *stretch = murray->ikChainB;
             stretch->pxfGoal = goal->GetLocalTransform((MATRIX4 *)&frame);
             stretch->posGoal = frame.row[3].q;
@@ -2900,7 +2899,7 @@ extern "C" int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
         break;
     case MURRAY_CARRY:
         if (k == 3) return 1;
-        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(((CARRYSPOTV *)p->ploCarried)->plo, 0x38)) return 1; }
+        if (k == 19) { if (IsBasicDerivedFrom__FP5BASIC3CID(((CID36 *)p->ploCarried)->unknown180, 0x38)) return 1; }
         return 0;
     default:
         return 0;
