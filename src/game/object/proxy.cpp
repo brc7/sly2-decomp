@@ -466,27 +466,25 @@ extern "C" void SetSoIdProxy(SO *object, int a)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CA370 {
 struct Z { VTE *vt; };   /* the load collector (CLoadCollector) */
-struct R { int n; LO **ap; int numCopies; int c; int unknown10; int spareTag; void **ap18; char pad[0x6C - 0x1C]; };   /* a proxy source (as below) */
-struct G { char pad[0x3F08]; struct R *ar; };
 int MakeProxyId__Fii(int i, int c) __asm__("MakeProxyId__Fii");
 // Takes the next unused copy of proxy source sourceIndex: sets its proxy id, adds and reparents its objects, applies
 // the placement (slot 37) to each, reports them to the load collector and advances the source's next-copy index.
-extern "C" void AddProxyCopy(struct G *world, int i, SO *a, XF *b, void *x, MATRIX4 *y, struct Z *pz)
+extern "C" void AddProxyCopy(SW *world, int i, SO *a, XF *b, OID oid, MATRIX4 *y, struct Z *pz)
 {
-    struct R *pr = &world->ar[i];
-    int v = MakeProxyId__Fii(i, pr->c);
+    PROXYSRC *pr = &world->aproxysrc[i];
+    int v = MakeProxyId__Fii(i, pr->icopyNext);
     int j;
-    pr->ap18[pr->c] = x;
-    for (j = 0; j < pr->n; j++) {
-        LO *plo = pr->ap[pr->c * pr->n + j];
+    pr->aoid[pr->icopyNext] = oid;
+    for (j = 0; j < pr->cplo; j++) {
+        LO *plo = pr->aplo[pr->icopyNext * pr->cplo + j];
         plo->SetIdProxy(v, 1);
         plo->Add();
         plo->SetParent(a, b, 0);
         plo->ApplyProxy(y);
     }
     if (pz)
-        ((void (*)(void *, int, LO **))pz->vt[1].pfn)((char *)pz + pz->vt[1].d, pr->n, &pr->ap[pr->c * pr->n]);
-    pr->c++;
+        ((void (*)(void *, int, LO **))pz->vt[1].pfn)((char *)pz + pz->vt[1].d, pr->cplo, &pr->aplo[pr->icopyNext * pr->cplo]);
+    pr->icopyNext++;
 }
 } // namespace M_func_001CA370
 
@@ -1010,25 +1008,23 @@ void SO_Slot27(SO *object, LO *plo)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB658 {
-struct F { int v; char pad[0x4C]; };
-struct E { int pad[3]; int iFirst; char p2[0x68 - 0x10]; struct F *af; };
 
 int GetSourceIndexFromProxyId__Fi(int id) __asm__("GetSourceIndexFromProxyId__Fi");
 int GetCopyIndexFromProxyId(int id) __asm__("GetCopyIndexFromProxyId");
-// Returns the per-copy value stored in the proxy source table for the object's proxy id (0 when the object is not a
+// Returns the proxy holding the spare the object belongs to (PROXYSPARE::proxy of its copy; 0 when the object is not a
 // proxy copy). (inferred)
-extern "C" int GetProxyCopyValue(LO *proxy)
+extern "C" PROXY *GetProxyCopyValue(LO *proxy)
 {
     PXR *pa = proxy->proxyRecord;
     int i, j;
-    struct E *pe;
-    struct F *pf;
+    PROXYSRC *pe;
+    PROXYSPARE *pf;
     if (!pa || !pa->isCopy) return 0;
     i = GetSourceIndexFromProxyId__Fi(pa->proxyId);
     j = GetCopyIndexFromProxyId(proxy->proxyRecord->proxyId);
-    pe = &(*(struct E * *)&g_sw.aproxysrc)[i];
-    pf = &pe->af[j - pe->iFirst];
-    return pf->v;
+    pe = &g_sw.aproxysrc[i];
+    pf = &pe->aspare[j - pe->icopyNext];
+    return pf->proxy;
 }
 } // namespace M_func_001CB658
 
