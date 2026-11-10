@@ -529,18 +529,18 @@ struct POLY {
 };
 struct RIP {
     int kind;
-    char p4[0x10];
+    char p4[0x8 - 0x4]; void *unknown8; void *unknownC; void *unknown10;
     float start, duration;
-    char p1C[4];
+    void *unknown1C;
     POLY scale;
-    char p2C[0x44];
+    char p2C[0x4C - 0x2C]; void *unknown4C; char pad50[0x70 - 0x50];
     U position;
     char p80[0x10];
     U velocity;
     U acceleration;
     char pB0[0x20];
     U angular;
-    char pE0[0x10];
+    void *unknownE0; char padE4[0xE8 - 0xE4]; void *unknownE8; void *unknownEC;
     float radius, restitution, friction;
 };
 struct SHAPE {
@@ -1117,7 +1117,7 @@ struct PHYS {
     float rate, scale;
 };
 struct S {
-    char pad[0x40];
+    char pad[0x8]; void *unknown8; void *unknownC; void *unknown10; char pad14[0x1C - 0x14]; void *unknown1C; char pad20[0x40 - 0x20];
     M3 mat;
     qword pos, prev, vel;
     PHYS phys;
@@ -1725,10 +1725,10 @@ union F {
 };
 struct M3 {qword rows[3];};
 struct SHRAPNEL {
-    char pad40[0x40];
+    void *unknown0; char pad4[0x8 - 0x4]; void *unknown8; void *unknownC; void *unknown10; char pad14[0x1C - 0x14]; void *unknown1C; char pad20[0x40 - 0x20];
     M3 matrix;
     qword position;
-    char pad80[0x70];
+    char pad80[0xA0 - 0x80]; void *unknownA0; char padA4[0xEC - 0xA4]; void *unknownEC;
     F depth;
 };
 struct CM;
