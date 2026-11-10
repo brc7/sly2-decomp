@@ -13,7 +13,7 @@ struct exception {
 extern const int __fdlib_version;
 extern double __infinity_d;
 double func_00246178(double x);
-int isnan(double x);
+int func_00249C80(double x) __asm__("isnan");
 int matherr(struct exception *x);
 int *func_002401C8(void);
 double log10(double x)

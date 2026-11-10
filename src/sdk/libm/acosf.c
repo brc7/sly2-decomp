@@ -12,8 +12,8 @@ struct exception {
 };
 extern const int __fdlib_version;
 float __ieee754_acosf(float x);
-int isnanf(float x);
-float fabsf(float x);
+int func_0024A0C0(float x) __asm__("isnanf");
+float func_00244EF8(float x) __asm__("fabsf");
 int matherr(struct exception *x);
 int *func_002401C8(void);
 float acosf(float x)

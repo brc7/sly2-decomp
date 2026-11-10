@@ -11,8 +11,8 @@ typedef int __int32_t;
 typedef union { float value; unsigned int word; } ieee_float_shape_type;
 #define GET_FLOAT_WORD(i,d) do { ieee_float_shape_type gf_u; gf_u.value = (d); (i) = gf_u.word; } while (0)
 #define SET_FLOAT_WORD(d,i) do { ieee_float_shape_type sf_u; sf_u.word = (i); (d) = sf_u.value; } while (0)
-float fabsf(float);
-#define fabsf fabsf
+float func_00244EF8(float) __asm__("fabsf");
+#define fabsf func_00244EF8
 static const float
 one   =  1.0000000000e+00,
 pio4  =  7.8539812565e-01,

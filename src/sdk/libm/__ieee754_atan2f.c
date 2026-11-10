@@ -14,8 +14,8 @@ typedef union { float value; __uint32_t word; } ieee_float_shape_type;
 #define FLT_UWORD_IS_ZERO(x) ((x)==0)
 #define FLT_UWORD_IS_INFINITE(x) ((x)==0x7f800000L)
 float atanf(float x);
-float fabsf(float x);
-#define fabsf fabsf
+float func_00244EF8(float x) __asm__("fabsf");
+#define fabsf func_00244EF8
 
 static const float
 tiny  = 1.0e-30,

@@ -12,7 +12,7 @@ struct exception {
 };
 extern const int __fdlib_version;
 float __ieee754_fmodf(float x, float y);
-int isnanf(float x);
+int func_0024A0C0(float x) __asm__("isnanf");
 int matherr(struct exception *x);
 int *func_002401C8(void);
 float fmodf(float x, float y)

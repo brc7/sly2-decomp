@@ -21,8 +21,8 @@ double func_00249C28(double);
 #define fabs func_00249C28
 double func_00247028(double);
 #define __ieee754_sqrt func_00247028
-double scalbn(double, int);
-#define scalbn scalbn
+double func_00249EE0(double, int) __asm__("scalbn");
+#define scalbn func_00249EE0
 static const double
 bp[] = {1.0, 1.5,},
 dp_h[] = { 0.0, 5.84962487220764160156e-01,},
