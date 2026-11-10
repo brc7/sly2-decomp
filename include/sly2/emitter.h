@@ -39,7 +39,7 @@ struct EMITROLL { int rollKind; int hasRandomRoll; LM lmRollSpeed; };   /* rolli
 struct EMITCLQ { float g0, g1, g2, gUnused; };
 struct EMITBLIPCLRS { int c; RGBA argba[1]; };   /* count, then c colours (0x10-aligned allocation) */
 /* EMITV: the particle record at EMITB+0xC0 (0x40 bytes): a kind, the per-particle-kind fields (a union: EMITB's
-   particleKind selects which record the slot holds; func_002586D8 resolves record 1's OIDs at +0x08..+0x10 and record
+   particleKind selects which record the slot holds; ResolveEmitterRefs resolves record 1's OIDs at +0x08..+0x10 and record
    0's at +0x14), and a payload at +0x30 whose shape the kind gives. The defaults it is reset from are whole records
    (D_002BDE10: record 0, D_002BDE70: record 1). The name is the one its accessors' mangled names carry. */
 struct EMITV
@@ -89,7 +89,7 @@ typedef char assert_EMITV_ripScale[SLY2_OFFSETOF(EMITV, ripScale) == 0x14 ? 1 : 
 typedef char assert_EMITV_u[SLY2_OFFSETOF(EMITV, u) == 0x30 ? 1 : -1];
 typedef char assert_EMITV_size[sizeof(EMITV) == 0x40 ? 1 : -1];
 
-/* indices into EMITB::aploRef, the objects the block's OIDs resolve to (func_002586D8) */
+/* indices into EMITB::aploRef, the objects the block's OIDs resolve to (ResolveEmitterRefs) */
 enum EMITREF
 {
     EMITREF_Reference = 0,  /* the origin's reference object (EMITO::originOid; UpdateEmitter puts the emitter itself
@@ -152,7 +152,7 @@ struct EMITB
     int cref;               /* +0x00 share count (copy on write) */
     int particleKind;       /* +0x04 0 blips (BLIPG), 1 rips (RIPG), -1 unset; also which record the slot at +0xC0
                                holds */
-    LO **aploRef;           /* +0x08 the five objects the block's OIDs resolve to (func_002586D8, a 0x14-byte block;
+    LO **aploRef;           /* +0x08 the five objects the block's OIDs resolve to (ResolveEmitterRefs, a 0x14-byte block;
                                indexed by EMITREF) */
     char pad0C[4];
     EMITO emito;            /* +0x10 the origin record */
@@ -247,7 +247,7 @@ struct EXPLO : public EXPL
     char padE8[0xF0 - 0xE8];
     virtual CLASSINFO *GetClassInfo() __asm__("GetExploClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadEmitterFromBrx__H1Z5EXPLO_PX01P18CBinaryInputStream_v");   /* slot 14 */
-    virtual void PostLoad() __asm__("func_002586D8__H1Z5EXPLO_PX01_v");   /* slot 15 */
+    virtual void PostLoad() __asm__("ResolveEmitterRefs__H1Z5EXPLO_PX01_v");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneEmitter__H1Z5EXPLO_PX01P2LO_v");   /* slot 41 */
 };
 typedef char assert_EXPLO_size[sizeof(EXPLO) == 0xF0 ? 1 : -1];   /* class descriptor cb */
@@ -345,7 +345,7 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descript
 inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x244); }
 // EXPLO's descriptor (row 32).
 inline CLASSINFO *PclassinfoEmitb(EXPLO *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x280); }
-/* the empty reference block of each, for func_002586D8 */
+/* the empty reference block of each, for ResolveEmitterRefs */
 inline void *PvEmitbRefsNull(EMITTER *) { return EMITBREFS<EMITTER>::s_apvNull; }
 // EXPLO's empty reference block.
 inline void *PvEmitbRefsNull(EXPLO *) { return EMITBREFS<EXPLO>::s_apvNull; }
@@ -419,7 +419,7 @@ template <class T> void CloneEmitter(T *p, LO *ploBase)
 
 /* PostLoad (slot 15 of EXPLO; EMITTER's PostEmitterLoad calls it): resolve the block's OIDs to objects, and give the
    block its own reference record when they differ from the shared one */
-template <class T> void func_002586D8(T *p)
+template <class T> void ResolveEmitterRefs(T *p)
 {
     LO *aplo[5];
     SWALLOC req;
@@ -483,7 +483,7 @@ template <class T> CLASSINFO *GetEmitterClassDesc_linkonce(T *p) { return Pclass
 /* ---- the accessors (g_aeopid records: get +0xC, set +0x14, setUser +0x1C, ensure +0x24) ---- */
 
 /* ensure: the slot at +0xC0 as record 0 (reset from D_002BDE10 on a write if unset); D_002DE720 if it holds the other */
-template <class T> EMITV *func_00258898(T *p, ENSK ensk)
+template <class T> EMITV *EnsureEmitterRecord0(T *p, ENSK ensk)
 {
     EMITB *pemitb = PemitbEnsure(p, ensk);
     if (ensk == ENSK_Set && pemitb->particleKind == -1)
@@ -497,7 +497,7 @@ template <class T> EMITV *func_00258898(T *p, ENSK ensk)
 }
 
 /* ensure: the slot as record 1 (reset from D_002BDE70) */
-template <class T> EMITV *func_00258920(T *p, ENSK ensk)
+template <class T> EMITV *EnsureEmitterRecord1(T *p, ENSK ensk)
 {
     EMITB *pemitb = PemitbEnsure(p, ensk);
     if (ensk == ENSK_Set && pemitb->particleKind == -1)
@@ -516,10 +516,10 @@ template <class T> void func_002589A8(T *p, int kv)
     switch (kv)
     {
     case 0:
-        func_00258898(p, ENSK_Set);
+        EnsureEmitterRecord0(p, ENSK_Set);
         return;
     case 1:
-        func_00258920(p, ENSK_Set);
+        EnsureEmitterRecord1(p, ENSK_Set);
         break;
     }
 }
@@ -528,7 +528,7 @@ template <class T> void func_002589A8(T *p, int kv)
 template <class T> int func_002589F0(T *p) { return p->pemitb->particleKind; }
 
 /* setUser: set the EMITO kind and allocate its data (only from unset) */
-template <class T> void func_00258A00(T *p, int k)
+template <class T> void SetEmitterOriginKind(T *p, int k)
 {
     EMITB *pemitb;
     if (p->pemitb->emito.originKind == k)
@@ -552,7 +552,7 @@ template <class T> int func_00258AB8(T *p) { return p->pemitb->emito.originKind;
 template <class T> int *func_00258AC8(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
-        func_00258A00(p, 0);
+        SetEmitterOriginKind(p, 0);
     return &p->pemitb->emito.originKind;
 }
 
@@ -560,7 +560,7 @@ template <class T> int *func_00258AC8(T *p, ENSK ensk)
 template <class T> int func_00258B00(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
-        func_00258A00(p, 1);
+        SetEmitterOriginKind(p, 1);
     return p->pemitb->emito.pvEmito;
 }
 
@@ -568,14 +568,14 @@ template <class T> int func_00258B00(T *p, ENSK ensk)
 template <class T> int *func_00258B38(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
-        func_00258A00(p, 2);
+        SetEmitterOriginKind(p, 2);
     return &p->pemitb->emito.originKind;
 }
 
 /* setUser: record 1's payload kind (2, 3 or 8; only from unset), payload reset from its default */
-template <class T> void func_00258B70(T *p, int k)
+template <class T> void SetEmitterRecord1PayloadKind(T *p, int k)
 {
-    EMITV *pv = func_00258920(p, ENSK_Set);
+    EMITV *pv = EnsureEmitterRecord1(p, ENSK_Set);
     if (pv->k == k)
         return;
     if (pv->k != -1)
@@ -590,7 +590,7 @@ template <class T> void func_00258B70(T *p, int k)
 }
 
 /* get: record 1's payload kind */
-template <class T> int func_00258C40(T *p) { return func_00258920(p, ENSK_Get)->k; }
+template <class T> int func_00258C40(T *p) { return EnsureEmitterRecord1(p, ENSK_Get)->k; }
 
 /* ensure: record 1's payload as kind 2, 3, 8 (D_002DE750 if it holds another kind) */
 template <class T> void *func_00258C60(T *p, ENSK ensk)
@@ -598,11 +598,11 @@ template <class T> void *func_00258C60(T *p, ENSK ensk)
     EMITV *pv;
     if (ensk == ENSK_Set)
     {
-        func_00258B70(p, 2);
+        SetEmitterRecord1PayloadKind(p, 2);
         pv = &p->pemitb->v;
     }
     else
-        pv = func_00258920(p, ensk);
+        pv = EnsureEmitterRecord1(p, ensk);
     if (pv->k != 2)
         return D_002DE750;
     return &pv->u;
@@ -615,11 +615,11 @@ template <class T> void *func_00258CC8(T *p, ENSK ensk)
     EMITV *pv;
     if (ensk == ENSK_Set)
     {
-        func_00258B70(p, 3);
+        SetEmitterRecord1PayloadKind(p, 3);
         pv = &p->pemitb->v;
     }
     else
-        pv = func_00258920(p, ensk);
+        pv = EnsureEmitterRecord1(p, ensk);
     if (pv->k != 3)
         return D_002DE750;
     return &pv->u;
@@ -632,20 +632,20 @@ template <class T> void *func_00258D30(T *p, ENSK ensk)
     EMITV *pv;
     if (ensk == ENSK_Set)
     {
-        func_00258B70(p, 8);
+        SetEmitterRecord1PayloadKind(p, 8);
         pv = &p->pemitb->v;
     }
     else
-        pv = func_00258920(p, ensk);
+        pv = EnsureEmitterRecord1(p, ensk);
     if (pv->k != 8)
         return D_002DE750;
     return &pv->u;
 }
 
 /* setUser: record 0's payload kind (1 or 2; only from unset), payload reset from its default */
-template <class T> void func_00258D98(T *p, int k)
+template <class T> void SetEmitterRecord0PayloadKind(T *p, int k)
 {
-    EMITV *pv = func_00258898(p, ENSK_Set);
+    EMITV *pv = EnsureEmitterRecord0(p, ENSK_Set);
     if (pv->k == k)
         return;
     if (p->pemitb->v.k != 0)
@@ -659,7 +659,7 @@ template <class T> void func_00258D98(T *p, int k)
 }
 
 /* get: record 0's payload kind */
-template <class T> int func_00258E40(T *p) { return func_00258898(p, ENSK_Get)->k; }
+template <class T> int func_00258E40(T *p) { return EnsureEmitterRecord0(p, ENSK_Get)->k; }
 
 /* ensure: record 0's payload as kind 2, 1 */
 template <class T> void *func_00258E60(T *p, ENSK ensk)
@@ -667,11 +667,11 @@ template <class T> void *func_00258E60(T *p, ENSK ensk)
     EMITV *pv;
     if (ensk == ENSK_Set)
     {
-        func_00258D98(p, 2);
+        SetEmitterRecord0PayloadKind(p, 2);
         pv = &p->pemitb->v;
     }
     else
-        pv = func_00258898(p, ensk);
+        pv = EnsureEmitterRecord0(p, ensk);
     if (pv->k != 2)
         return D_002DE750;
     return &pv->u;
@@ -684,11 +684,11 @@ template <class T> void *func_00258EC8(T *p, ENSK ensk)
     EMITV *pv;
     if (ensk == ENSK_Set)
     {
-        func_00258D98(p, 1);
+        SetEmitterRecord0PayloadKind(p, 1);
         pv = &p->pemitb->v;
     }
     else
-        pv = func_00258898(p, ensk);
+        pv = EnsureEmitterRecord0(p, ensk);
     if (pv->k != 1)
         return D_002DE750;
     return &pv->u;

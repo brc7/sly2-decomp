@@ -286,7 +286,7 @@ extern "C" { static __inline__ void *AllocCopyFromHeap(int cb, void *pv)
 // the level has none.
 extern "C" void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
 {
-    ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
+    ::ResolveEmitterRefs((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
     if (pemitter->pemitb->aploRef[EMITREF_Reference])
         PostSwCallback(&g_sw, pemitter, D_002A5140.l, 0);
     if (pemitter->emitMode == EMIT_MODE_UNSET) {
@@ -2024,13 +2024,13 @@ template void LoadEmitblipColorsFromBrx(EMITTER *, CBinaryInputStream *);   /* 0
 template void LoadEmitterFromBrx(EMITTER *, CBinaryInputStream *);          /* 0x258598, EMITTER slot 14 */
 template void CloneEmitter(EMITTER *, LO *);                                /* 0x258620, slot 41 */
 template EMITB *PemitbEnsure(EMITTER *, ENSK);                              /* 0x258658 */
-template void func_002586D8(EMITTER *);                                     /* 0x2586D8 */
+template void ResolveEmitterRefs(EMITTER *);                                     /* 0x2586D8 */
 template CLASSINFO *GetEmitterClassDesc_linkonce(EMITTER *);                /* 0x258F30 */
 template void LoadEmitblipColorsFromBrx(EXPLO *, CBinaryInputStream *);     /* 0x258F40 */
 template void LoadEmitterFromBrx(EXPLO *, CBinaryInputStream *);            /* 0x259030, EXPLO slot 14 */
 template void CloneEmitter(EXPLO *, LO *);                                  /* 0x2590B8, slot 41 */
 template EMITB *PemitbEnsure(EXPLO *, ENSK);                                /* 0x2590F0 */
-template void func_002586D8(EXPLO *);                                       /* 0x259170, slot 15 */
+template void ResolveEmitterRefs(EXPLO *);                                       /* 0x259170, slot 15 */
 template CLASSINFO *GetEmitterClassDesc_linkonce(EXPLO *);                  /* 0x2599C8 */
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
