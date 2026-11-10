@@ -9,5 +9,6 @@ union QW {
     uint aun[4];
     int an[4];
     float ag[4];
+    ushort aus[8];
 } __attribute__((aligned(16)));
 #endif

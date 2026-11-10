@@ -2007,14 +2007,11 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CopyRelocateDmaChain {
-typedef union QW { unsigned int aun[4]; unsigned short aus[8]; } QW;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
-struct X { int pad[4]; int cqw; };
-struct Y { int pad[4]; QW *aqw; char *pb; };
 QW *AllocCopyFromWorldHeap(ALLOCREQ *preq, QW *aqw) __asm__("AllocCopyFromWorldHeap");
 // Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by a delta.
 // (inferred)
-extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
+extern "C" void CopyRelocateDmaChain(SUBGLOB *px, GLOB *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
 {
     ALLOCREQ req;
     QW *aqw;
@@ -2022,12 +2019,12 @@ extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aq
     req.nKind = 0x10;
     px->cqw = cqw;
     aqw = AllocCopyFromWorldHeap(&req, aqwSrc);
-    py->aqw = aqw;
-    py->pb += (char *)aqw - (char *)aqwSrc;
+    py->pqwChain = aqw;
+    py->pbChain += (char *)aqw - (char *)aqwSrc;
     if (fReloc) {
         int dn = nNew - nOld;
         QW *pqw = aqw;
-        while (pqw < py->aqw + px->cqw) {
+        while (pqw < py->pqwChain + px->cqw) {
             switch ((int)(pqw->aun[0] >> 28)) {
             case 4:
                 pqw->aun[1] += dn;
@@ -2037,7 +2034,7 @@ extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aq
                 pqw += pqw->aus[0] + 1;
                 break;
             case 6:
-                pqw = py->aqw + px->cqw;
+                pqw = py->pqwChain + px->cqw;
                 break;
             }
         }
@@ -3023,7 +3020,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         vifs.AddDmaRet();
         vifs.DetachCopySw(&cqwMain, (QW **)&pbOld, (QW **)&pbNew);
         psubglob->cqw = cqwMain;
-        pglob->unknown10 = pbNew;
+        pglob->pqwChain = (QW *)pbNew;
     }
     else
     {

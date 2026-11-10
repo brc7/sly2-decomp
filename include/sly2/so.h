@@ -36,8 +36,8 @@ struct GLOB
             uint unknownFlag0CA : 1;
         };
     };
-      void *unknown10;
-      void *unknown14;
+      union QW *pqwChain;   /* +0x10 the piece's DMA chain (world heap; CopyRelocateDmaChain copies and relocates it) */
+      char *pbChain;   /* +0x14 a pointer into that chain, rebased with it (inferred) */
       BND *abnd;   /* bounding records (BND) */
       WRBG *pwrbg;   /* warp/bend record (WRBG) */
       struct SAA *psaa;   /* shader animation (SAA) */
