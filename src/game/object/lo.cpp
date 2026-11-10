@@ -850,9 +850,12 @@ struct RR;
 struct REQUEST{int bytes,alignment;};
 struct NODE{int pad0;NODE*next;int key,chain;P*owner;int link;char list[12];int pad24;};
 struct META{char pad[0xC];uint bytes;};
-union FLAGS{ulong word;struct{ulong pad:48;int kind:4,mode:4;uint reserved:1,autoA:1,autoB:1,end:5;}bits;};
 struct TAG{int word;int Get()const{register int v __asm__("$4")=word;if(!(v&1))v=*(int*)v;return v;}void Set(int v){v&=~1;int d=word;if(!(d&1))*(int*)d=v|(*(int*)d&1);else word=v|(d&1);}};
-struct P{ROOT*root;FIELD*field;int pad8;VTE*vt;char pad10[0x18];FLAGS flags;int pad30;int word34;float scale;NODE*nodes;TAG tag;char pad44[12];};
+/* The object (an LO; names in comments are lo.h's). aligned(8) as lo.h's LO (its 64-bit bit-field units): the flag bits
+   (lo.h busyKind etc.) are then read through the doubleword at +0x28, as the original does. */
+struct P{ROOT*root;FIELD*field;void*firstSubscriber;VTE*vt;void*parent,*loroot;int oid;void*oidNext,*classNext,*siblingNext,*siblingPrev;
+    char cpaloFindSwObjects;unsigned char visibilityMask;int kind:4,mode:4;uint reserved:1,autoA:1,autoB:1,end:5;
+    float nextSpliceTime;void*firstRunCallback;float scale/*busyRadius*/;NODE*nodes/*proxyRecord*/;TAG tag;char pad44[12];} __attribute__((aligned(8)));
 typedef char BINDING_Size[sizeof(BINDING)==24?1:-1];
 typedef char FIELD_Size[sizeof(FIELD)==12?1:-1];
 typedef char ROOT_Size[sizeof(ROOT)==32?1:-1];
@@ -860,7 +863,6 @@ typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
 typedef char NODE_Size[sizeof(NODE)==40?1:-1];
 typedef char META_Size[sizeof(META)==16?1:-1];
 typedef char P_Size[sizeof(P)==80?1:-1];
-typedef char FLAGS_Size[sizeof(FLAGS)==8?1:-1];
 typedef char BINDING_refs_Offset[FIELD_OFFSET(BINDING,refs)==0?1:-1];
 typedef char BINDING_cref_Offset[FIELD_OFFSET(BINDING,cref)==12?1:-1];
 typedef char BINDING_next_Offset[FIELD_OFFSET(BINDING,next)==20?1:-1];
@@ -878,8 +880,8 @@ typedef char NODE_list_Offset[FIELD_OFFSET(NODE,list)==24?1:-1];
 typedef char P_root_Offset[FIELD_OFFSET(P,root)==0?1:-1];
 typedef char P_field_Offset[FIELD_OFFSET(P,field)==4?1:-1];
 typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_flags_Offset[FIELD_OFFSET(P,flags)==40?1:-1];
-typedef char P_word34_Offset[FIELD_OFFSET(P,word34)==52?1:-1];
+typedef char P_siblingPrev_Offset[FIELD_OFFSET(P,siblingPrev)==40?1:-1];
+typedef char P_firstRunCallback_Offset[FIELD_OFFSET(P,firstRunCallback)==52?1:-1];
 typedef char P_scale_Offset[FIELD_OFFSET(P,scale)==56?1:-1];
 typedef char P_nodes_Offset[FIELD_OFFSET(P,nodes)==60?1:-1];
 typedef char P_tag_Offset[FIELD_OFFSET(P,tag)==64?1:-1];
@@ -927,12 +929,12 @@ extern "C" void CloneLo(P*object,const P*source){
         (void)MakeRoot__t6CGcObj1Z6CFrame(object->root);
     }
     object->scale=source->scale;
-    object->flags.bits.mode=source->flags.bits.mode;
-    object->flags.bits.autoA=source->flags.bits.autoA;
-    object->flags.bits.kind=source->flags.bits.kind;
-    object->flags.bits.autoB=source->flags.bits.autoB;
+    object->mode=source->mode;
+    object->autoA=source->autoA;
+    object->kind=source->kind;
+    object->autoB=source->autoB;
     object->tag.Set(source->tag.Get());
-    object->word34=source->word34;
+    object->firstRunCallback=source->firstRunCallback;
     char*dst;const char*src;
     if(g_sw.isrcLoading!=-2){src=(const char*)source+0x50;dst=(char*)object+0x50;object->nodes=source->nodes;}
     else{
