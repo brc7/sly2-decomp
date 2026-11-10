@@ -32,6 +32,7 @@
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
+#include "sly2/classes.h"
 #include "bis.h"
 
 struct LEVELLIST8;
@@ -345,21 +346,17 @@ extern "C" void SelectSwMainMs(SW *world)
 } // namespace M_func_0020E2B0
 
 namespace M_func_0020E338 {
-class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5();
- virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); };
-class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
-struct S { char pad[0x3E60]; O *screenTint; };
-extern O *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
+extern CID116 *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
 // Creates the world's screen tint/fill object (class 0x74, CID116 in docs/engine.md section 7; parameters 0.1 and
-// 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
-extern "C" void CreateSwScreenTint(S *world)
+// 0.25, hold colour 0x80200000), stores it at SW+0x3E60 and takes it out of the world (Remove). (inferred)
+extern "C" void CreateSwScreenTint(SW *world)
 {
-    world->screenTint = CreateLo__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
-    world->screenTint->param60 = 0.1f;
-    world->screenTint->param64 = 0.25f;
-    world->screenTint->flags = 0x80200000;
-    world->screenTint->unknown6C = 1;
-    world->screenTint->V9();
+    world->pcid116Fade = CreateLo__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->pcid116Fade->dtHold = 0.1f;
+    world->pcid116Fade->dtFadeOut = 0.25f;
+    *(uint *)&world->pcid116Fade->rgbaHold = 0x80200000;   /* the packed colour */
+    world->pcid116Fade->renderKind = 1;
+    world->pcid116Fade->Remove();   /* slot 9: idle until a fade starts */
 }
 } // namespace M_func_0020E338
 

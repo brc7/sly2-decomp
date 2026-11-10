@@ -693,13 +693,22 @@ typedef char assert_WIDGET131_promptTime[SLY2_OFFSETOF(WIDGET131, promptTime) ==
 /* 116 CID116 (0x70): screen tint / fill (render kinds 14 and 1); vtable 0x2CF058, 48 slots */
 struct CID116 : LO
 {
-    char pad50[0x70 - 0x50];
+    /* fields named from screenfade.cpp's FADEV view and CreateSwScreenTint (sw.cpp) */
+    RGBA rgbaFadeIn;     /* +0x50 colour the fade starts from */
+    RGBA rgbaHold;       /* +0x54 colour held between the two blends */
+    RGBA rgbaFadeOut;    /* +0x58 colour the fade ends at */
+    float dtFadeIn;      /* +0x5C phase durations, seconds */
+    float dtHold;
+    float dtFadeOut;
+    float tStart;        /* +0x68 clock time when the fade started */
+    int renderKind;      /* +0x6C 0: render pass 1, 1: render pass 14 */
     virtual void Init() __asm__("InitScreenFade");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid116ClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateScreenFade");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderScreenFade");   /* slot 19 */
 };
 typedef char assert_CID116_size[sizeof(CID116) == 0x70 ? 1 : -1];
+typedef char assert_CID116_renderKind[SLY2_OFFSETOF(CID116, renderKind) == 0x6C ? 1 : -1];
 
 /* 57 GOMER (0x1010): instances are swarmers; vtable 0x2CF520, 89 slots */
 struct GOMER : STEPGUARD
