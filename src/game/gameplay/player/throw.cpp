@@ -97,6 +97,7 @@ qword ConvertVecBetweenLos(void *p, int a, qword q);
 static inline void SetV(VECTOR *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 // Initializes the player's carry/throw controller (JTTHROW): owner, state -1, aim ranges 500/1500, timing and the
 // default launch vectors.
+// Also known as: InitJtThrow (upstream readable / Sly 1 name; InitJtThrow__FP5ACTORUi).
 extern "C" void InitThrow(JTTHROW *thrower, STEPPLAYER *a)
 {
     thrower->player = a;
@@ -113,6 +114,7 @@ extern "C" void InitThrow(JTTHROW *thrower, STEPPLAYER *a)
 }
 
 // Post-load: builds the three aim blends (2-clip, 4-clip and 2-clip).
+// Also known as: PostLoadJtThrow (upstream readable / Sly 1 name; PostLoadJtThrow__FP7JTTHROW).
 extern "C" void PostJtThrowLoad(JTTHROW *thrower)
 {
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, 0xC, 2, thrower->abl, 0, 0, 0, &thrower->pasegbl);
@@ -322,6 +324,7 @@ static inline void CopyRange(LM &destination, const LM &source)
 }
 // Per-frame carry/aim controller: target selection, aim angles (limited), the predicted arc (UpdateJtThrowArc) and
 // state transitions (SetJtThrowState).
+// Also known as: UpdateJtThrow (upstream readable / Sly 1 name; UpdateJtThrow__FP7JTTHROW).
 extern "C" void UpdateJtThrow(JTTHROW *s)
 {
     WORK w;
@@ -500,6 +503,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
 }
 
 // Object filter for the arc's box search: rejects objects with flag 0x59, otherwise defers to the default filter.
+// Also known as: ArcEntry (upstream readable / Sly 1 name; ArcEntry__FP3OXAP3SOE).
 extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 {
     if (IsBasicDerivedFrom__FP5BASIC3CID(b->p, 0x59))
@@ -586,6 +590,7 @@ static inline float EvaluateClq(const CLQV &clq,float x){return clq.g0+x*(clq.g1
 namespace RO_ORDER { extern const float r_D_002A96A0 __asm__("D_002A96A0") = 3.40282347e+38f; }
 // Predicts the arc of the held object, line-tests 28 samples against the world, writes up to 30 points into the aim
 // marker ring and updates the aim blends.
+// Also known as: UpdateJtThrowArc (upstream readable / Sly 1 name; UpdateJtThrowArc__FP7JTTHROWi).
 extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
 {
     qword posLaunch = ConvertPosBetweenLos(thrower->player, 0, thrower->qwPosLaunchLocal);
@@ -726,6 +731,7 @@ union F32 {float f;int bits;};
 float D_002C4108 = -150.0f;
 float D_002C410C = 300.0f;   /* a plain float: 4-aligned in the ELF, where the F32 union would be 8-aligned */
 // In states 4..6 moves the hold point toward its goal (gain D_002C4108). (inferred)
+// Also known as: GetJtThrowCpdefi (upstream readable / Sly 1 name; GetJtThrowCpdefi__FP7JTTHROWP6CPDEFI).
 extern "C" void UpdateJtThrowHoldPosition(JTTHROW *owner, Q *value)
 {
     V plane, scratch;
@@ -797,6 +803,7 @@ extern "C" void UpdateJtThrowHoldPosition(JTTHROW *owner, Q *value)
 
 // Intersection-flag hook: for the carried object while carrying (state >= 3, or the player in state 0x12) adds the
 // ignore flags so the player does not collide with it; otherwise returns the flags unchanged.
+// Also known as: OverlapKindJtThrow (upstream readable / Sly 1 name; OverlapKindJtThrow__FP7JTTHROWP3ALOi).
 extern "C" int AdjustJtThrowFindFlags(JTTHROW *thrower, LO *object, int n)
 {
     if (object == thrower->ploCarried) {
@@ -821,6 +828,7 @@ static inline void PublishStart(JTTHROW *thrower,int active,float now,float span
 static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero,1":"=r"(value));return value;}
 // In states 4..6: stores the launch and target points, flight time = distance / speed, start time = now, and marks
 // the flight active.
+// Also known as: SetJtThrowTarget (upstream readable / Sly 1 name; SetJtThrowTarget__FP7JTTHROWP2LO).
 extern "C" void StartJtThrowFlight(JTTHROW *thrower, void *q)
 {
     int k = thrower->state;
@@ -843,6 +851,7 @@ extern "C" void StartJtThrowFlight(JTTHROW *thrower, void *q)
 }
 
 // Detaches the carried object and gives it its launch linear and angular velocity; removes the arc marker.
+// Also known as: ReleaseJtThrow (upstream readable / Sly 1 name; ReleaseJtThrow__FP7JTTHROW).
 extern "C" void ReleaseJtThrowObject(JTTHROW *thrower)
 {
     if (thrower->ploCarried == D_002DD5BC) {
@@ -997,6 +1006,7 @@ static inline qword SavedPlayerAndOwnerS(qword position, const JTTHROW *state, S
     return point;
 }
 // State transitions of the carry/throw controller and selection of the matching animation.
+// Also known as: SetJtThrowState (upstream readable / Sly 1 name; SetJtThrowState__FP7JTTHROWi).
 extern "C" void SetJtThrowState(JTTHROW *s, int state)
 {
     WORKS w;

@@ -124,6 +124,7 @@ extern "C" void *CloneTurret(TURRETV *turret, TURRETV *source)
 
 // TURRET vtable slot 15 (PostLoad): finishes the SO load and, if the level marked it active, activates it
 // (SetTurretActive). (inferred)
+// Also known as: PostLoadTurret (upstream readable / Sly 1 name; PostLoadTurret__FP2LO).
 void TURRET::PostLoad()
 {
     TURRETV *turret = (TURRETV *)this;
@@ -133,6 +134,7 @@ void TURRET::PostLoad()
 
 // TURRET OnActive: when the player takes the turret, installs camera policy 9 (the turret view) on g_cm;
 // revokes it when the player leaves.
+// Also known as: SetTurretFocus (upstream readable / Sly 1 name; SetTurretFocus__FP2LOi).
 extern "C" void OnTurretActive(TURRETV *turret, int b)
 {
     OnPoActive(turret, b);
@@ -141,6 +143,7 @@ extern "C" void OnTurretActive(TURRETV *turret, int b)
 }
 
 // TURRET vtable slot 16 (Update): SO update, then aim, zoom and fire.
+// Also known as: UpdateTurret (upstream readable / Sly 1 name; UpdateTurret__FP6TURRETf).
 extern "C" void UpdateTurret(TURRETV *turret, float dt)
 {
     UpdateSo(turret, dt);
@@ -151,6 +154,7 @@ extern "C" void UpdateTurret(TURRETV *turret, float dt)
 
 // Aims the turret: with a target and aiming enabled, turns pan/tilt toward it; otherwise integrates the stick into
 // smoothed angular velocities. Both are clamped to the yaw/pitch ranges, and the rotation act gets the new goal.
+// Also known as: UpdateTurretAim (upstream readable / Sly 1 name; UpdateTurretAim__FP6TURRET).
 extern "C" void UpdateTurretAim(TURRETV *turret)
 {
     if (turret->target && turret->aim) {
@@ -227,6 +231,7 @@ static inline float Fraction(LM *range,float f){if(range->minValue==range->maxVa
 // Interpolate within the range at u.
 static inline float Blend(LM *range,float u){return (1.0f-u)*range->minValue+u*range->maxValue;}
 // Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
+// Also known as: UpdateTurretZoom (upstream readable / Sly 1 name; UpdateTurretZoom__FP3ALO).
 extern "C" void UpdateTurretZoom(TURRETV *turret)
 {
     if (turret->target && turret->follow) {
@@ -284,6 +289,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
 
 // Fires on any newly pressed button: takes a projectile from the proxy pool, launches it from the launcher and fires
 // the turret's Splice event 5. (inferred)
+// Also known as: UpdateTurretFire (upstream readable / Sly 1 name; UpdateTurretFire__FP3ALO).
 extern "C" void UpdateTurretFire(TURRETV *turret)
 {
     if (turret->control && POCTL_ConsumeAnyPressed(turret->control, 0xFF)) {
@@ -300,6 +306,7 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
 
 // Intersection filter (slot 61): the SO default, plus ignoring objects made from the same proxy as the turret's
 // projectile (so the turret ignores its own shots). (inferred)
+// Also known as: OverlapKindTurret (upstream readable / Sly 1 name; OverlapKindTurret__FP3ALOT0).
 extern "C" void *FilterTurretProxySource(TURRETV *turret, LO *other)
 {
     void *v = ShouldSoIgnoreIntersection(turret);
@@ -308,6 +315,7 @@ extern "C" void *FilterTurretProxySource(TURRETV *turret, LO *other)
 }
 
 // Turns the turret on (creates the rotation act toward the current pan/tilt) or off (releases the act). (inferred)
+// Also known as: SetTurretRotate (upstream readable / Sly 1 name; SetTurretRotate__FP3ALOi).
 extern "C" void SetTurretActive(TURRETV *turret, int k)
 {
     if (turret->isActRunning != k) {

@@ -96,6 +96,7 @@ extern CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinA
 // The node a script reference points to.
 static inline CPair *NodeFromRef(CRef *p) { return p->u.ppair; }
 // Splice builtin "+": n-ary numeric add over arg list (int/float/vector/matrix promotion).
+// Also known as: RefOpAdd (upstream readable / Sly 1 name).
 CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
@@ -169,6 +170,7 @@ extern CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("Bui
 // The node a script reference points to.
 static inline CPair *NodeFromRef(CRef *p) { return p->u.ppair; }
 // Splice builtin "-": n-ary subtract, same shape as +.
+// Also known as: RefOpSub (upstream readable / Sly 1 name).
 CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
@@ -346,6 +348,7 @@ static inline void Mul2(V8 *p, float d)
     p->y *= d;
 }
 // Splice builtin "*": n-ary multiply incl. vector*scalar, matrix*matrix (VU).
+// Also known as: RefOpMult (upstream readable / Sly 1 name).
 CRef BuiltinMultiply__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
@@ -515,6 +518,7 @@ static inline void DivMatrix(MATRIX4 *pm, float d)
 }
 
 // Splice builtin "/": n-ary divide incl. int-matrix path.
+// Also known as: RefOpDiv (upstream readable / Sly 1 name).
 CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
@@ -603,6 +607,7 @@ CRef BuiltinDivide__FiP4CRefP6CFrame(void *pv, CRef *args)
 
 // 0x1202D0 BuiltinPrint__FiP4CRefP6CFrame
 // Splice builtin "print": returns Void (tag 0x24): print compiled out.
+// Also known as: RefOpPrint (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinPrint__FiP4CRefP6CFrame(CRefData *pref)
 {
     SetTag(pref, TAGK_VOID);
@@ -611,6 +616,7 @@ extern "C" CRefData *BuiltinPrint__FiP4CRefP6CFrame(CRefData *pref)
 
 // 0x120300 BuiltinPrintFrame__FiP4CRefP6CFrame
 // Splice builtin "print-frame": returns Void.
+// Also known as: RefOpPrintFrame (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinPrintFrame__FiP4CRefP6CFrame(CRefData *pref)
 {
     SetTag(pref, TAGK_VOID);
@@ -622,6 +628,7 @@ namespace M_BuiltinPrintSidebag__FiP4CRefP6CFrame {
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 // Splice builtin "print-sidebag": returns Void (local CRef then InitTag 0x24).
+// Also known as: RefOpPrintSidebag (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRefData *ret)
 {
     CRefData ref;
@@ -636,6 +643,7 @@ extern "C" CRefData *BuiltinPrintSidebag__FiP4CRefP6CFrame(CRefData *ret)
 namespace M_BuiltinIntEqual__FiP4CRefP6CFrame {
 // Splice builtin "=": bool(tag0==tag1 payload ints equal).
 // Compares only the two payload words, never the tags (Sly 1's '=').
+// Also known as: RefOpIntEqual (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIntEqual__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int a = args[0].u.n;
@@ -649,6 +657,7 @@ extern "C" CRefData *BuiltinIntEqual__FiP4CRefP6CFrame(CRefData *ret, void *pbas
 // 0x120398 CompareNumericArgs__FP4CRef4CMPK
 namespace M_CompareNumericArgs__FP4CRef4CMPK {
 // Numeric compare of args[0],args[1] (int->float promote) by CMPK 0..3 (<,<=,>,>=) -> Bool.
+// Also known as: RefCmp (upstream readable / Sly 1 name).
 extern "C" CRefData *CompareNumericArgs__FP4CRef4CMPK(CRefData *ret, CRefData *args, int op)
 {
     float ag[2];
@@ -682,6 +691,7 @@ extern "C" CRefData *CompareNumericArgs__FP4CRef4CMPK(CRefData *ret, CRefData *a
 
 // 0x120488 BuiltinLess__FiP4CRefP6CFrame
 // Splice builtin "<": CompareNumericArgs(args,0) <.
+// Also known as: RefOpL (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinLess__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CompareNumericArgs(pref, args, 0);
@@ -690,6 +700,7 @@ extern "C" CRefData *BuiltinLess__FiP4CRefP6CFrame(CRefData *pref, int cref, CRe
 
 // 0x1204B8 BuiltinLessOrEqual__FiP4CRefP6CFrame
 // Splice builtin "<=": CompareNumericArgs(args,1) <=.
+// Also known as: RefOpLE (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinLessOrEqual__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CompareNumericArgs(pref, args, 1);
@@ -698,6 +709,7 @@ extern "C" CRefData *BuiltinLessOrEqual__FiP4CRefP6CFrame(CRefData *pref, int cr
 
 // 0x1204E8 BuiltinGreater__FiP4CRefP6CFrame
 // Splice builtin ">": CompareNumericArgs(args,2) >.
+// Also known as: RefOpG (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinGreater__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CompareNumericArgs(pref, args, 2);
@@ -706,6 +718,7 @@ extern "C" CRefData *BuiltinGreater__FiP4CRefP6CFrame(CRefData *pref, int cref, 
 
 // 0x120518 BuiltinGreaterOrEqual__FiP4CRefP6CFrame
 // Splice builtin ">=": CompareNumericArgs(args,3) >=.
+// Also known as: RefOpGE (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinGreaterOrEqual__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CompareNumericArgs(pref, args, 3);
@@ -718,6 +731,7 @@ namespace M_BuiltinEqv__FiP4CRefP6CFrame {
 // plus one empty asm whose only job is extra uses of f (f is live from entry on the default path, so its priority was below the return pointer's).
 extern CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinEqv__FiP4CRefP6CFrame");
 // Splice builtin "eqv?": shallow eqv: same tag and same payload / vector compare.
+// Also known as: RefOpEqv (upstream readable / Sly 1 name).
 CRef BuiltinEqv__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef *pa = &args[0];
@@ -754,6 +768,7 @@ struct X { int cref; int n4; int n8; int nC; };
 
 extern CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b) __asm__("AreRefsStructurallyEqual__FP4CRefT0");
 // Recursive structural equality (lists, vectors, matrices) -> Bool.
+// Also known as: RefEqualHelper (upstream readable / Sly 1 name).
 CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b)
 {
     int f;
@@ -828,6 +843,7 @@ CRef AreRefsStructurallyEqual__FP4CRefT0(const CRef &a, const CRef &b)
 
 // 0x1207F0 BuiltinEqual__FiP4CRefP6CFrame
 // Splice builtin "equal?": calls AreRefsStructurallyEqual (recursive).
+// Also known as: RefOpEqual (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinEqual__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     AreRefsStructurallyEqual(pref, &args[0], &args[1]);
@@ -837,6 +853,7 @@ extern "C" CRefData *BuiltinEqual__FiP4CRefP6CFrame(CRefData *pref, int cref, CR
 // 0x120820 BuiltinIsBoolean__FiP4CRefP6CFrame
 namespace M_BuiltinIsBoolean__FiP4CRefP6CFrame {
 // Splice builtin "boolean?": tag==0x17.
+// Also known as: RefOpIsBoolean (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsBoolean__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -849,6 +866,7 @@ extern "C" CRefData *BuiltinIsBoolean__FiP4CRefP6CFrame(CRefData *ret, void *pba
 // 0x120840 BuiltinIsNum__FiP4CRefP6CFrame
 namespace M_BuiltinIsNum__FiP4CRefP6CFrame {
 // Splice builtin "number?": tag==0x15||0x16.
+// Also known as: RefOpIsNum (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsNum__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -861,6 +879,7 @@ extern "C" CRefData *BuiltinIsNum__FiP4CRefP6CFrame(CRefData *ret, void *pbasic,
 // 0x120860 BuiltinIsFloat__FiP4CRefP6CFrame
 namespace M_BuiltinIsFloat__FiP4CRefP6CFrame {
 // Splice builtin "float?": tag==0x16 (F32).
+// Also known as: RefOpIsFloat (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsFloat__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -873,6 +892,7 @@ extern "C" CRefData *BuiltinIsFloat__FiP4CRefP6CFrame(CRefData *ret, void *pbasi
 // 0x120880 BuiltinIsInteger__FiP4CRefP6CFrame
 namespace M_BuiltinIsInteger__FiP4CRefP6CFrame {
 // Splice builtin "integer?": tag==0x15 (S32).
+// Also known as: RefOpIsInteger (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsInteger__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -885,6 +905,7 @@ extern "C" CRefData *BuiltinIsInteger__FiP4CRefP6CFrame(CRefData *ret, void *pba
 // 0x1208A0 BuiltinIsSymbol__FiP4CRefP6CFrame
 namespace M_BuiltinIsSymbol__FiP4CRefP6CFrame {
 // Splice builtin "symbol?": tag==0x18.
+// Also known as: RefOpIsSymbol (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsSymbol__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -897,6 +918,7 @@ extern "C" CRefData *BuiltinIsSymbol__FiP4CRefP6CFrame(CRefData *ret, void *pbas
 // 0x1208C0 BuiltinIsVector__FiP4CRefP6CFrame
 namespace M_BuiltinIsVector__FiP4CRefP6CFrame {
 // Splice builtin "vector?": tag==0x1A.
+// Also known as: RefOpIsVector (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsVector__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -909,6 +931,7 @@ extern "C" CRefData *BuiltinIsVector__FiP4CRefP6CFrame(CRefData *ret, void *pbas
 // 0x1208E0 BuiltinIsMatrix__FiP4CRefP6CFrame
 namespace M_BuiltinIsMatrix__FiP4CRefP6CFrame {
 // Splice builtin "matrix?": tag==0x1B.
+// Also known as: RefOpIsMatrix (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -921,6 +944,7 @@ extern "C" CRefData *BuiltinIsMatrix__FiP4CRefP6CFrame(CRefData *ret, void *pbas
 // 0x120900 BuiltinIsClq__FiP4CRefP6CFrame
 namespace M_BuiltinIsClq__FiP4CRefP6CFrame {
 // Splice builtin "clq?": tag==0x1C.
+// Also known as: RefOpIsClq (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -933,6 +957,7 @@ extern "C" CRefData *BuiltinIsClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic,
 // 0x120920 BuiltinIsLm__FiP4CRefP6CFrame
 namespace M_BuiltinIsLm__FiP4CRefP6CFrame {
 // Splice builtin "lm?": tag==0x1D.
+// Also known as: RefOpIsLm (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -945,6 +970,7 @@ extern "C" CRefData *BuiltinIsLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, 
 // 0x120940 BuiltinIsSmp__FiP4CRefP6CFrame
 namespace M_BuiltinIsSmp__FiP4CRefP6CFrame {
 // Splice builtin "smp?": tag==0x1E.
+// Also known as: RefOpIsSmp (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -959,6 +985,7 @@ namespace M_BuiltinIsList__FiP4CRefP6CFrame {
 extern CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref) __asm__("BuiltinIsList__FiP4CRefP6CFrame");
 
 // Splice builtin "list?": tag==0x1F||tag==0.
+// Also known as: RefOpIsList (upstream readable / Sly 1 name).
 CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 {
     int tagk = pref->m_tagk;
@@ -969,6 +996,7 @@ CRef BuiltinIsList__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 // 0x120990 BuiltinIsNull__FiP4CRefP6CFrame
 namespace M_BuiltinIsNull__FiP4CRefP6CFrame {
 // Splice builtin "null?": tag==0.
+// Also known as: RefOpIsNull (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsNull__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -981,6 +1009,7 @@ extern "C" CRefData *BuiltinIsNull__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
 // 0x1209B0 BuiltinIsObject__FiP4CRefP6CFrame
 namespace M_BuiltinIsObject__FiP4CRefP6CFrame {
 // Splice builtin "object?": tag==0x21.
+// Also known as: RefOpIsObject (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsObject__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -993,6 +1022,7 @@ extern "C" CRefData *BuiltinIsObject__FiP4CRefP6CFrame(CRefData *ret, void *pbas
 // 0x1209D0 BuiltinIsNullObj__FiP4CRefP6CFrame
 // Splice builtin "null-obj?": tag==0x21 && ptr==NULL.
 /* (null-object? x): x is an object reference (tag 0x21) holding no object. */
+// Also known as: RefOpIsNullObj (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsNullObj__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     int f;
@@ -1008,6 +1038,7 @@ extern "C" CRefData *BuiltinIsNullObj__FiP4CRefP6CFrame(CRefData *pref, int cref
 // 0x120A00 BuiltinIsMethod__FiP4CRefP6CFrame
 namespace M_BuiltinIsMethod__FiP4CRefP6CFrame {
 // Splice builtin "method?": tag==0x22.
+// Also known as: RefOpIsMethod (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinIsMethod__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *pref)
 {
     int tagk = pref->m_tagk;
@@ -1022,6 +1053,7 @@ namespace M_BuiltinIsProcedure__FiP4CRefP6CFrame {
 extern CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref) __asm__("BuiltinIsProcedure__FiP4CRefP6CFrame");
 
 // Splice builtin "procedure?": tag==0x20||0x19.
+// Also known as: RefOpIsProcedure (upstream readable / Sly 1 name).
 CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 {
     int tagk = pref->m_tagk;
@@ -1033,6 +1065,7 @@ CRef BuiltinIsProcedure__FiP4CRefP6CFrame(void *pbasic, CRef *pref)
 namespace M_BuiltinAreNear__FiP4CRefP6CFrame {
 int AreFloatsNear__Ffff(float a, float b, float c) __asm__("AreFloatsNear__Ffff");
 // Splice builtin "near?": AreFloatsNear(a,b,eps).
+// Also known as: RefOpAreNear (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinAreNear__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float ag[3];
@@ -1052,6 +1085,7 @@ extern "C" CRefData *BuiltinAreNear__FiP4CRefP6CFrame(CRefData *ret, void *pbasi
 // 0x120AE0 BuiltinNot__FiP4CRefP6CFrame
 // Splice builtin "not": true iff arg is Bool false.
 /* (not x): true only for the boolean false. */
+// Also known as: RefOpNot (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinNot__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     int f;
@@ -1082,6 +1116,7 @@ struct SPN {
 };
 extern CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinCons__FiP4CRefP6CFrame");
 // Splice builtin "cons": new pair node (ref=a0, next=a1 if list).
+// Also known as: RefOpCons (upstream readable / Sly 1 name).
 CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
@@ -1096,6 +1131,7 @@ CRef BuiltinCons__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x120BD0 BuiltinCar__FiP4CRefP6CFrame
 // Splice builtin "car": copy of node->ref.
+// Also known as: RefOpCar (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinCar__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     __4CRefRC4CRef(pref, &args->u.ppair->ref);
@@ -1104,6 +1140,7 @@ extern "C" CRefData *BuiltinCar__FiP4CRefP6CFrame(CRefData *pref, int cref, CRef
 
 // 0x120C00 BuiltinCdr__FiP4CRefP6CFrame
 // Splice builtin "cdr": CRef(node->pnext) or Nil.
+// Also known as: RefOpCdr (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinCdr__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CPair *ppairNext;
@@ -1122,6 +1159,7 @@ void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
 void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 // Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void.
+// Also known as: RefOpSetCadr (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, CRefData *args, int cref, int k)
 {
     char *p = (__typeof__(p))args[0].u.pv;
@@ -1140,6 +1178,7 @@ extern "C" CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *
 namespace M_BuiltinSetCar__FiP4CRefP6CFrame {
 void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "set-car!": BuiltinSetCadr(...,0x23).
+// Also known as: RefOpSetCar (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinSetCar__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x23);
@@ -1151,6 +1190,7 @@ extern "C" CRefData *BuiltinSetCar__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
 namespace M_BuiltinSetCdr__FiP4CRefP6CFrame {
 void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "set-cdr!": BuiltinSetCadr(...,0x24).
+// Also known as: RefOpSetCdr (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinSetCdr__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
 {
     BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x24);
@@ -1160,6 +1200,7 @@ extern "C" CRefData *BuiltinSetCdr__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
 
 // 0x120D28 BuiltinLength__FiP4CRefP6CFrame
 // Splice builtin "length": count of list nodes -> S32.
+// Also known as: RefOpLength (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinLength__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     int c;
@@ -1187,6 +1228,7 @@ void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "nth": walk list to index a1.
+// Also known as: RefOpNth (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinNth__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -1216,6 +1258,7 @@ CRef BuiltinEqual__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx) __asm__("B
 CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx) __asm__("BuiltinIsMember__FiP4CRefP6CFrame");
 
 // Splice builtin "member?": loop calling BuiltinEqual on each element.
+// Also known as: RefOpIsMember (upstream readable / Sly 1 name).
 CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
 {
     CRef ref;
@@ -1240,6 +1283,7 @@ CRef BuiltinIsMember__FiP4CRefP6CFrame(int carg, CRef *args, void *pctx)
 
 // 0x120F80 BuiltinList__FiP4CRefP6CFrame
 // Splice builtin "list": returns the arg list itself (varargs).
+// Also known as: RefOpList (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinList__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     __4CRefRC4CRef(pref, args);
@@ -1273,6 +1317,7 @@ static inline void SetSpn(SPN *psp, CPair *pn) { *psp = pn; }
 static inline void InsertAfter(CPairPtr *psp, SPN &sp) { sp->next = psp->p; *psp = sp.p; }
 // Random permutation of a list (Fisher-Yates via RandomIntInRange 0x11D3F8), guarantees first element changes; Nil entry
 // pins tail. Scripts use it to reshuffle dialogue line lists.
+// Also known as: RefOpShuffle (upstream readable / Sly 1 name; RefOpShuffle__FiP4CRefP6CFrame).
 CRef BuiltinShuffle(void *pbasic, CRef *args)
 {
     if (args[0].m_tagk == 0) return CRef(0);
@@ -1355,6 +1400,7 @@ struct SP {
 extern SP CPair_CloneTo(CPair *src, void *a, void *b) __asm__("CPair_CloneTo");
 extern CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinAppend__FiP4CRefP6CFrame");
 // Splice builtin "append": concatenates list args (copies all but last).
+// Also known as: RefOpAppend (upstream readable / Sly 1 name).
 CRef BuiltinAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     if (args[0].m_tagk == 0)
@@ -1454,6 +1500,7 @@ extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("B
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) __asm__("BuiltinMap__FiP4CRefP6CFrame");
 // Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results.
+// Also known as: RefOpMap (upstream readable / Sly 1 name).
 CRef BuiltinMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
     if (args[1].m_tagk == 0)
@@ -1518,6 +1565,7 @@ extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("B
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) __asm__("BuiltinFilter__FiP4CRefP6CFrame");
 // Splice builtin "filter": same, keeps elems where result true.
+// Also known as: RefOpFilter (upstream readable / Sly 1 name).
 CRef BuiltinFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
     if (args[1].m_tagk == 0)
@@ -1576,6 +1624,7 @@ extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("B
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) __asm__("BuiltinForEach__FiP4CRefP6CFrame");
 // Splice builtin "for-each": same, discards results.
+// Also known as: RefOpForEach (upstream readable / Sly 1 name).
 CRef BuiltinForEach__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
 {
     if (args[1].m_tagk == TAGK_PAIR) {
@@ -1615,6 +1664,7 @@ struct SPN {
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CRef *args) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args) __asm__("BuiltinEval__FiP4CRefP6CFrame");
 // Splice builtin "eval": wraps arg in list and applies 0x127838.
+// Also known as: RefOpEval (upstream readable / Sly 1 name).
 CRef BuiltinEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *args)
 {
     SPN sp;
@@ -1632,6 +1682,7 @@ CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref) __asm__("BuiltinVector__FiP4CRefP6CFrame");
 
 // Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs).
+// Also known as: RefOpVector (upstream readable / Sly 1 name).
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
 {
     CRef ref(TAGK_VECTOR);
@@ -1680,6 +1731,7 @@ CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
 CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref) __asm__("BuiltinMatrix__FiP4CRefP6CFrame");
 
 // Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based.
+// Also known as: RefOpMatrix (upstream readable / Sly 1 name).
 CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref)
 {
     CRef ref(TAGK_MATRIX);
@@ -1728,6 +1780,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq": 3 floats -> tag 0x1C.
+// Also known as: RefOpClq (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinClq__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -1753,6 +1806,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "lm": 2 floats -> tag 0x1D.
+// Also known as: RefOpLm (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -1778,6 +1832,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "smp": 3 floats -> tag 0x1E.
+// Also known as: RefOpSmp (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinSmp__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -1809,6 +1864,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 CRefData *SetF32__4CReff(CRefData *pref, float g) __asm__("SetF32__4CReff");
 CRefData *CRef_SetVector(CRefData *pref, VECTOR *pv) __asm__("CRef_SetVector");
 // Splice builtin "get-element": element of vector/matrix by index list.
+// Also known as: RefOpGetElement (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinGetElement__FiP4CRefP6CFrame(CRefData *ret, int carg, CRefData *args)
 {
     CRefData ref;
@@ -1861,6 +1917,7 @@ float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff
 CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinRandom__FiP4CRefP6CFrame");
 
 // Splice builtin "random": RandomIntInRange for ints else RandomFloatInRange.
+// Also known as: RefOpRandom (upstream readable / Sly 1 name).
 CRef BuiltinRandom__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
@@ -1882,6 +1939,7 @@ extern PFNG D_002BBB70[] __asm__("D_002BBB70");
 void SetF32__4CReff(CRefData *pref, float g) __asm__("SetF32__4CReff");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7).
+// Also known as: RefUfo (upstream readable / Sly 1 name).
 extern "C" CRefData *ApplyUnaryFloatOp__FP4CRef4UFOK(CRefData *ret, CRefData *parg, int i)
 {
     CRefData ref;
@@ -1901,6 +1959,7 @@ extern "C" CRefData *ApplyUnaryFloatOp__FP4CRef4UFOK(CRefData *ret, CRefData *pa
 
 // 0x122530 BuiltinSqrt__FiP4CRefP6CFrame
 // Splice builtin "sqrt": ApplyUnaryFloatOp(arg,0).
+// Also known as: RefOpSqrt (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinSqrt__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 0);
@@ -1909,6 +1968,7 @@ extern "C" CRefData *BuiltinSqrt__FiP4CRefP6CFrame(CRefData *pref, int cref, CRe
 
 // 0x122560 BuiltinSin__FiP4CRefP6CFrame
 // Splice builtin "sin": ApplyUnaryFloatOp(arg,1).
+// Also known as: RefOpSin (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinSin__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 1);
@@ -1917,6 +1977,7 @@ extern "C" CRefData *BuiltinSin__FiP4CRefP6CFrame(CRefData *pref, int cref, CRef
 
 // 0x122590 BuiltinCos__FiP4CRefP6CFrame
 // Splice builtin "cos": ApplyUnaryFloatOp(arg,2).
+// Also known as: RefOpCos (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinCos__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 2);
@@ -1925,6 +1986,7 @@ extern "C" CRefData *BuiltinCos__FiP4CRefP6CFrame(CRefData *pref, int cref, CRef
 
 // 0x1225C0 BuiltinTan__FiP4CRefP6CFrame
 // Splice builtin "tan": ApplyUnaryFloatOp(arg,3).
+// Also known as: RefOpTan (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinTan__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 3);
@@ -1933,6 +1995,7 @@ extern "C" CRefData *BuiltinTan__FiP4CRefP6CFrame(CRefData *pref, int cref, CRef
 
 // 0x1225F0 BuiltinAsin__FiP4CRefP6CFrame
 // Splice builtin "asin": ApplyUnaryFloatOp(arg,4).
+// Also known as: RefOpAsin (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinAsin__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 4);
@@ -1941,6 +2004,7 @@ extern "C" CRefData *BuiltinAsin__FiP4CRefP6CFrame(CRefData *pref, int cref, CRe
 
 // 0x122620 BuiltinAcos__FiP4CRefP6CFrame
 // Splice builtin "acos": ApplyUnaryFloatOp(arg,5).
+// Also known as: RefOpAcos (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinAcos__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 5);
@@ -1949,6 +2013,7 @@ extern "C" CRefData *BuiltinAcos__FiP4CRefP6CFrame(CRefData *pref, int cref, CRe
 
 // 0x122650 BuiltinAtan__FiP4CRefP6CFrame
 // Splice builtin "atan": ApplyUnaryFloatOp(arg,6).
+// Also known as: RefOpAtan (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinAtan__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 6);
@@ -1957,6 +2022,7 @@ extern "C" CRefData *BuiltinAtan__FiP4CRefP6CFrame(CRefData *pref, int cref, CRe
 
 // 0x122680 BuiltinRadNormalize__FiP4CRefP6CFrame
 // Splice builtin "rad-normalize": ApplyUnaryFloatOp(arg,7).
+// Also known as: RefOpRadNormalize (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinRadNormalize__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     ApplyUnaryFloatOp(pref, args, 7);
@@ -1967,6 +2033,7 @@ extern "C" CRefData *BuiltinRadNormalize__FiP4CRefP6CFrame(CRefData *pref, int c
 namespace M_BuiltinAtan2__FiP4CRefP6CFrame {
 float atan2f(float y, float x) __asm__("atan2f");
 // Splice builtin "atan2": atan2f(a0,a1).
+// Also known as: RefOpAtan2 (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinAtan2__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float ag[2];
@@ -2001,6 +2068,7 @@ extern "C" { static __inline__ int DotProduct3(qword *pa, qword *pb)
     return g;
 } }
 // Splice builtin "vector-dot-product": VU dot xyz.
+// Also known as: RefOpVectorDotProduct (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int g = DotProduct3((qword *)args[0].u.n, (qword *)args[1].u.n);
@@ -2016,6 +2084,7 @@ typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-cross-product": VU outer product (cross).
+// Also known as: RefOpVectorCrossProduct (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -2051,6 +2120,7 @@ extern "C" { static __inline__ int VectorLength3(qword *pa)
     return g;
 } }
 // Splice builtin "vector-lth": VU length.
+// Also known as: RefOpVectorLth (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorLength__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int g = VectorLength3((qword *)args[0].u.n);
@@ -2089,6 +2159,7 @@ static inline float SDist(qword *pa, qword *pb)
     return g;
 }
 // Splice builtin "vector-distance": distance to a1 or origin.
+// Also known as: RefOpVectorDistance (upstream readable / Sly 1 name).
 CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
@@ -2129,6 +2200,7 @@ static inline float SDistSq(qword *pa, qword *pb)
     return g;
 }
 // Splice builtin "vector-distance-squared": squared distance.
+// Also known as: RefOpVectorDistanceSquared (upstream readable / Sly 1 name).
 CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef result;
@@ -2190,6 +2262,7 @@ static __inline__ void Normalize1(qword *pv, qword *pdef)
     }
 }
 // Splice builtin "vector-normalize": normalize with 1e-4 guard/default.
+// Also known as: RefOpVectorNormalize (upstream readable / Sly 1 name).
 CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef result((const ::VECTOR *)args[0].u.pv);
@@ -2207,6 +2280,7 @@ typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-project-normal": (a.b)b.
+// Also known as: RefOpVectorProjectNormal (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -2231,6 +2305,7 @@ typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-project-tangent": a-(a.b)b.
+// Also known as: RefOpVectorProjectTangent (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -2266,6 +2341,7 @@ CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args) 
 
 // Splice builtin "vector-ballistic-velocity": calls FCalculateMuzzleVelocity-like 0x1D6848 with gravity (0,0,-1750)
 // or object xfm.
+// Also known as: RefOpVectorBallisticVelocity (upstream readable / Sly 1 name).
 CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     VQ v;
@@ -2304,6 +2380,7 @@ struct SPN {
 extern float AngleBetweenVectors(qword a, qword b, void *pvec) __asm__("AngleBetweenVectors");
 extern CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorRadianNormal__FiP4CRefP6CFrame");
 // Splice builtin "vector-radian-normal": list (rad vector) from AngleBetweenVectors-like 0x11E4B0.
+// Also known as: RefOpVectorRadianNormal (upstream readable / Sly 1 name).
 CRef BuiltinVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
@@ -2322,6 +2399,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void TransposeMatrix4(MATRIX4 *pmat, int n) __asm__("TransposeMatrix4");
 // Splice builtin "matrix-transpose": 0x11C1D8.
+// Also known as: RefOpMatrixTranspose (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -2336,6 +2414,7 @@ extern "C" CRefData *BuiltinMatrixTranspose__FiP4CRefP6CFrame(CRefData *ret, voi
 
 // 0x122E40 BuiltinMatrixInvert__FiP4CRefP6CFrame
 // Splice builtin "matrix-invert": 0x11C2F0.
+// Also known as: RefOpMatrixInvert (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinMatrixInvert__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CRefData ref;
@@ -2348,6 +2427,7 @@ extern "C" CRefData *BuiltinMatrixInvert__FiP4CRefP6CFrame(CRefData *pref, int c
 
 // 0x122EA0 BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame
 // Splice builtin "matrix-calculate-dmat": 0x11C3D0 (CalculateDmat).
+// Also known as: RefOpMatrixCalculateDmat (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CRefData ref;
@@ -2388,6 +2468,7 @@ static inline MATRIX3Q MulM3(const MATRIX3Q &a, MATRIX3Q *pb) return m
 }
 extern CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame");
 // Splice builtin "matrix-interpolate-rotate": decompose+rebuild rotation (0x11BC00/0x11B500).
+// Also known as: RefOpMatrixInterpolateRotate (upstream readable / Sly 1 name).
 CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     MATRIX3Q mat = MulMatrix3Matrix3((MATRIX3Q *)args[0].u.pv, (MATRIX3Q *)args[1].u.pv);
@@ -2405,6 +2486,7 @@ CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *args)
 
 // 0x123038 BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame
 // Splice builtin "matrix-decompose-to-translate": translation column -> vector.
+// Also known as: RefOpMatrixDecomposeToTranslate (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CRefData ref;
@@ -2416,6 +2498,7 @@ extern "C" CRefData *BuiltinMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CRefDat
 
 // 0x123080 BuiltinMatrixDecomposeToRotate__FiP4CRefP6CFrame
 // Splice builtin "matrix-decompose-to-rotate": rotation part -> matrix.
+// Also known as: RefOpMatrixDecomposeToRotate (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinMatrixDecomposeToRotate__FiP4CRefP6CFrame(CRefData *pref, int cref, CRefData *args)
 {
     CRefData ref;
@@ -2432,6 +2515,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_ctor(CRefData *pref, TI vec) __asm__("CRef_ctor");
 TI DecomposeRotationMatrixToEuler(int n) __asm__("DecomposeRotationMatrixToEuler");
 // Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler.
+// Also known as: RefOpMatrixDecomposeToEuler (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -2461,6 +2545,7 @@ struct SPN {
 extern void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(void *pv, float *pg, void *pvec) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
 extern CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame");
 // Splice builtin "matrix-decompose-to-radian-normal": list(rad, normal) via DecomposeRotateMatrixRad.
+// Also known as: RefOpMatrixDecomposeToRadianNormal (upstream readable / Sly 1 name).
 CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     SPN sp;
@@ -2495,6 +2580,7 @@ static inline qword SubtractVectors(qword *pb, qword *pa)
     return b;
 }
 // Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default g_normalZ.
+// Also known as: RefOpMatrixLookAt (upstream readable / Sly 1 name).
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     qword *pup;
@@ -2527,6 +2613,7 @@ VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qword q) __asm__("VECTOR_opAssign");
 CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMatrixTiltUpright__FiP4CRefP6CFrame");
 
 // Splice builtin "matrix-tilt-upright": 0x11B938 tilt upright.
+// Also known as: RefOpMatrixTiltUpright (upstream readable / Sly 1 name).
 CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     MATRIX3 mat;
@@ -2548,6 +2635,7 @@ namespace M_BuiltinClqEvaluate__FiP4CRefP6CFrame {
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq-evaluate": a0+t(a1+t a2).
+// Also known as: RefOpClqEvaluate (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float *a = (float *)args[0].u.pv;
@@ -2570,6 +2658,7 @@ typedef struct LM { float minValue; float maxValue; } LM;
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.
+// Also known as: RefOpClqEvaluateLm (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float *c = (float *)args[0].u.pv;
@@ -2593,6 +2682,7 @@ void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d) __asm__("F
 CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinClqFit__FiP4CRefP6CFrame");
 
 // Splice builtin "clq-fit": FitClq.
+// Also known as: RefOpClqFit (upstream readable / Sly 1 name).
 CRef BuiltinClqFit__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref(TAGK_CLQ);
@@ -2616,6 +2706,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 float ClampToLimits__FP2LMf(int n, float g) __asm__("ClampToLimits__FP2LMf");
 // Splice builtin "lm-limit": ClampToLimits.
+// Also known as: RefOpLmLimit (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinLmLimit__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int n = args[0].u.n;
@@ -2636,6 +2727,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 int IsWithinLimits__FP2LMf(int n, float g) __asm__("IsWithinLimits__FP2LMf");
 // Splice builtin "lm-check?": FCheckLm.
+// Also known as: RefOpLmCheck (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinLmCheck__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int n = args[0].u.n;
@@ -2653,6 +2745,7 @@ extern "C" CRefData *BuiltinLmCheck__FiP4CRefP6CFrame(CRefData *ret, void *pbasi
 // 0x123668 BuiltinFloor__FiP4CRefP6CFrame
 namespace M_BuiltinFloor__FiP4CRefP6CFrame {
 // Splice builtin "floor": (int)g.
+// Also known as: RefOpFloor (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinFloor__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
@@ -2665,6 +2758,7 @@ extern "C" CRefData *BuiltinFloor__FiP4CRefP6CFrame(CRefData *ret, void *pbasic,
 // 0x123688 BuiltinCeiling__FiP4CRefP6CFrame
 namespace M_BuiltinCeiling__FiP4CRefP6CFrame {
 // Splice builtin "ceiling": (int)(g+1).
+// Also known as: RefOpCeiling (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinCeiling__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
@@ -2677,6 +2771,7 @@ extern "C" CRefData *BuiltinCeiling__FiP4CRefP6CFrame(CRefData *ret, void *pbasi
 // 0x1236B0 BuiltinRound__FiP4CRefP6CFrame
 namespace M_BuiltinRound__FiP4CRefP6CFrame {
 // Splice builtin "round": (int)(g+0.5).
+// Also known as: RefOpRound (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinRound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
@@ -2689,6 +2784,7 @@ extern "C" CRefData *BuiltinRound__FiP4CRefP6CFrame(CRefData *ret, void *pbasic,
 // 0x1236D8 BuiltinTruncate__FiP4CRefP6CFrame
 namespace M_BuiltinTruncate__FiP4CRefP6CFrame {
 // Splice builtin "truncate": (int)g.
+// Also known as: RefOpTruncate (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinTruncate__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     float g = args->u.g;
@@ -2704,6 +2800,7 @@ void SetS32__4CRefi(CRefData *pref, int n) __asm__("SetS32__4CRefi");
 void SetF32__4CReff(CRefData *pref, float g) __asm__("SetF32__4CReff");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "abs": abs int/float.
+// Also known as: RefOpAbs (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinAbs__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -2728,6 +2825,7 @@ namespace M_BuiltinMaximum__FiP4CRefP6CFrame {
 // same shape as BuiltinMinimum (max instead of min): list pointer reuses the args parameter variable
 extern CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMaximum__FiP4CRefP6CFrame");
 // Splice builtin "max": max over varargs.
+// Also known as: RefOpMaximum (upstream readable / Sly 1 name).
 CRef BuiltinMaximum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref(args[0]);
@@ -2766,6 +2864,7 @@ namespace M_BuiltinMinimum__FiP4CRefP6CFrame {
 // pn reuses the args parameter variable (if/else, tag != 0 arm first) -> beql s0=0
 extern CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMinimum__FiP4CRefP6CFrame");
 // Splice builtin "min": min over varargs.
+// Also known as: RefOpMinimum (upstream readable / Sly 1 name).
 CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref(args[0]);
@@ -2801,6 +2900,7 @@ CRef BuiltinMinimum__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x1239D8 BuiltinModulo__FiP4CRefP6CFrame
 namespace M_BuiltinModulo__FiP4CRefP6CFrame {
 // Splice builtin "modulo": int %.
+// Also known as: RefOpModulo (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinModulo__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     int r = args[0].u.n % args[1].u.n;
@@ -2814,6 +2914,7 @@ extern "C" CRefData *BuiltinModulo__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
 namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame {
 extern float g_clock __asm__("g_clock");   /* g_clock.time as a float: the CLOCK field access schedules the load differently */
 // Splice builtin "current-time": F32 = g_clock.time (g_clock).
+// Also known as: RefOpCurrentTime (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinCurrentTime__FiP4CRefP6CFrame(CRefData *ret)
 {
     ret->m_tagk = TAGK_F32;
@@ -3178,6 +3279,7 @@ struct OW { char pad[0xC]; LOV *psw; };
 extern LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, int n2) __asm__("FindSwObjectInProxyScope");
 extern CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args) __asm__("BuiltinFindObjectsFromOids");
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
+// Also known as: RefOpFindObjectsOfNames (upstream readable / Sly 1 name; RefOpFindObjectsOfNames__FiP4CRefP6CFrame).
 CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
 {
     CRef result;
@@ -3286,7 +3388,7 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame {
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
-// Splice builtin "find-world-object": CRef(BASIC*) of &g_sw (g_sw).
+// Splice builtin "find-world-object": CRef(BASIC*) of &g_sw.
 extern "C" CRefData *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRefData *ret)
 {
     CRefData ref;
@@ -3339,6 +3441,7 @@ CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjec
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindClassObjects__FiP4CRefP6CFrame");
 
 // Splice builtin "find-class-objects": 0x15E9C8 by class + BuildListFromObjects.
+// Also known as: RefOpFindObjects (upstream readable / Sly 1 name).
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
@@ -3605,7 +3708,7 @@ extern "C" { static __inline__ void SetVector(VECTOR4 *pv, float x, float y, flo
     __asm__ ("pcpyld %0, %1, %2" : "=r"(t) : "r"(iz), "r"(t));
     *(qword *)pv = t;
 } }
-// Splice builtin "near-clip-center": uses g_cm (g_cm) near-clip distance * camera matrix.
+// Splice builtin "near-clip-center": uses g_cm near-clip distance * camera matrix.
 extern "C" CRefData *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRefData *ret)
 {
     VECTOR4 vec;
@@ -3675,6 +3778,7 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct ARR { int c; short *a; } ARR;
 short *AllocFromStack(AREQ *preq) __asm__("AllocFromStack");
 // Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements (save-var path).
+// Also known as: AkeyFromList (upstream readable / Sly 1 name; AkeyFromList__FP4CRefP3ARR).
 extern "C" void FillAsFromPair(CPair *pnode, ARR *parr)
 {
     CPair *p;

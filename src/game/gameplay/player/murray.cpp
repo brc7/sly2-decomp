@@ -79,6 +79,7 @@ void InitThrow(JTTHROW *a, MURRAY *owner) __asm__("InitThrow");
 extern "C" { static inline void Init(SMPA *ps, float f, float g) { ps->maxSpeedChange = g; ps->fastDuration = f; ps->slowSpeed = 0.0f; } }
 // MURRAY Init (vtable slot 7): STEPPLAYER init, then Murray's defaults (state fields -1, throw range 1500/3500) and his
 // four locomotion blends.
+// Also known as: InitMurray (upstream readable / Sly 1 name; InitMurray__FP6MURRAY).
 extern "C" void InitMurray(MURRAY *murray)
 {
     InitStepplayer(murray);
@@ -163,6 +164,7 @@ struct ACT1 *NewPositionAct(MURRAY *p, void *a, int b, int c, int d, qword q) __
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 // MURRAY post-load (slot 15): STEPPLAYER post-load, the four locomotion blends and the strafe directional blends
 // (InitDirectionalBlend).
+// Also known as: PostMurrayLoad (upstream readable / Sly 1 name; PostMurrayLoad__FP6MURRAY).
 extern "C" void PostMurrayLoad(MURRAY *murray)
 {
     void *v;
@@ -215,6 +217,7 @@ extern int GetGadgetButtonMask(MURRAY*,int) __asm__("GetGadgetButtonMask");
 static inline POCTL *CopyPL(POCTL *source){POCTL *result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
 // Per-frame input-driven state machine (loops until the state is stable): idle/move, jump, attacks, lift/carry/throw,
 // flop, strafe. Pad bit 0x400 is look mode; gadgets are the slot buttons 0x4/0x1/0x2.
+// Also known as: UpdateMurrayTransitions (upstream readable / Sly 1 name; UpdateMurrayTransitions__FP6MURRAY).
 extern "C" void UpdateMurrayStateMachine(MURRAY *murray)
 {
     int state;
@@ -362,6 +365,7 @@ int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g) __asm__("Con
 void EndJtMode(void *p) __asm__("EndJtMode");
 void UpdateJtMode(void *p) __asm__("UpdateJtMode");
 // While a look mode is active: in mode 1 any face button (mask 0x4F0) cancels it; then updates the mode.
+// Also known as: UpdateMurrayBinoc (upstream readable / Sly 1 name; UpdateMurrayBinoc__FP6MURRAY).
 extern "C" void UpdateMurrayJtModeInput(MURRAY *murray)
 {
     if (IsStepplayerInJtMode(murray)) {
@@ -427,6 +431,7 @@ typedef char Size_8[sizeof(float)==4?1:-1];
 typedef char Size_9[sizeof(int)==4?1:-1];
 typedef char Size_10[sizeof(void*)==4?1:-1];
 // MURRAY Update (slot 16): STEPPLAYER update, grab candidates, the state machine, then per-state updates.
+// Also known as: UpdateMurray (upstream readable / Sly 1 name; UpdateMurray__FP2LO).
 extern "C" void UpdateMurray(MURRAY *murray)
 {
     UpdateStepplayer(murray);
@@ -515,6 +520,7 @@ extern "C" { static inline void NegateSource(qword value,qword*velocity,QWROW*sc
 extern "C" { static inline POCTL*CopyPL(POCTL*p){register POCTL*source __asm__("$2")=p;register POCTL*copy __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(source));return copy;} }
 // State 5 (carrying ploCarried): drops it if it is no longer active; jump with power-up 0x12, throw/toss buttons, carry
 // locomotion. Power-up 0x12 is Atlas Strength.
+// Also known as: UpdateMurrayCarryHeld (upstream readable / Sly 1 name; UpdateMurrayCarryHeld__FP6MURRAY).
 extern "C" void UpdateMurrayCarry(MURRAY *murray)
 {
     int s;
@@ -586,6 +592,7 @@ void ReplaceCurrentAseg(ASEG *pr, MURRAY *p, float f, float g, int k, ASEGA **pp
 void ReplaceSma(void *pv, MURRAY *p, int a, int k, SMA **ppsma) __asm__("ReplaceSma");
 
 // Carry sub-state: 0 stand, 1 walk (gaitB), 2 run (pasegCarryRun); restarts the animation.
+// Also known as: SetMurrayCarryMove (upstream readable / Sly 1 name; SetMurrayCarryMove__FP6MURRAYi).
 extern "C" void SetMurrayCarrySubstate(MURRAY *murray, int k)
 {
     ASEG *pr;
@@ -655,6 +662,7 @@ int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *pctl, int b, float f) __asm__(
 void SetSmaGoal(SMA *psma, int b) __asm__("SetSmaGoal");
 // State 6 (scripted struggle with a partner state machine): only while Murray is the current player and not hands-off;
 // face-button mashing advances it.
+// Also known as: UpdateMurrayHold (upstream readable / Sly 1 name; UpdateMurrayHold__FP6MURRAY).
 extern "C" void UpdateMurrayStruggle(MURRAY *murray)
 {
     int a;
@@ -722,6 +730,7 @@ static inline qword Rotate(MATRIX3Q *m, qword vector)
 }
 // State 9 (locked onto the nearby target interactTarget): exits when the lock button is released or the target is lost; allows
 // jump and takedown.
+// Also known as: UpdateMurrayBehavior (upstream readable / Sly 1 name; UpdateMurrayBehavior__FP6MURRAY).
 extern "C" void UpdateMurrayStrafe(MURRAY *murray)
 {
     int before;
@@ -797,6 +806,7 @@ void ReleaseSma(void *p) __asm__("ReleaseSma");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *a, MURRAY *p, int n, void *q, float f1, float f2) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 void ReplaceSma(SM *psm, MURRAY *p, int b, int n, void *q) __asm__("ReplaceSma");
 // Strafe sub-state (x17F4): 0 stand, 1 blend x1630, 2 clip x17F0; restarts the animation.
+// Also known as: SetMurrayBehaviorAnim (upstream readable / Sly 1 name; SetMurrayBehaviorAnim__FP6MURRAYi).
 extern "C" void SetMurrayStrafeSubstate(MURRAY *murray, int st)
 {
     void *o;
@@ -863,6 +873,7 @@ extern "C" { static inline float LenXY(qword v) {
 } }
 // Picks the throw goal: the nearest object with flag 0x10000 (not the carried one) within range and view cone.
 // Without one, the goal is 1500 units ahead.
+// Also known as: ChooseMurrayThrowTarget (upstream readable / Sly 1 name; ChooseMurrayThrowTarget__FP6MURRAY).
 extern "C" void ChooseMurrayThrowTarget(MURRAY *murray)
 {
     struct { int a[4]; } unused;
@@ -1165,6 +1176,7 @@ void GetStepplayerCpdefi(MURRAY *p, int *pf) __asm__("GetStepplayerCpdefi");
 void UpdateJtThrowHoldPosition(void *p, int *pf) __asm__("UpdateJtThrowHoldPosition");
 void GetJtPipeVelocity(void *p, int *pf) __asm__("GetJtPipeVelocity");
 // MURRAY camera definition (slot 50): stamps x1080 while moving, STEPPLAYER base, then flag bit 1 for flop/strafe.
+// Also known as: GetMurrayCpdefi (upstream readable / Sly 1 name; GetMurrayCpdefi__FP6MURRAYP9ACTORPOSE).
 extern "C" void GetMurrayCpdefi(MURRAY *murray, int *pf)
 {
     if (murray->state != MURRAY_IDLE && murray->state != MURRAY_PLAYER_STATE_4 && murray->jtgrab.kind) murray->unknown1080 = g_clock.time;
@@ -1190,6 +1202,7 @@ void PresetJtAccelZap(void *p) __asm__("PresetJtAccelZap");
 void PresetMurrayFlopAccel(MURRAY *p) __asm__("PresetMurrayFlopAccel");
 void PresetJtAccelPipe(void *p) __asm__("PresetJtAccelPipe");
 // MURRAY physics preset (slot 70): the base preset, then the per-state component presets.
+// Also known as: UpdateMurrayMotion (upstream readable / Sly 1 name; UpdateMurrayMotion__FP3ALO).
 extern "C" void PresetMurrayAccel(MURRAY *murray)
 {
     if (murray->state == MURRAY_PIPE) PresetSoAccel(murray);
@@ -1219,6 +1232,7 @@ void SetMurrayLiftSubstate(MURRAY *p, int k) __asm__("SetMurrayLiftSubstate");
 void SetMurrayState(MURRAY *p, int s) __asm__("SetMurrayState");
 
 // MURRAY message handler (slot 5): base, then animation events from his own animations (0x1A4 flop dive, ...).
+// Also known as: HandleMurrayMessage (upstream readable / Sly 1 name; HandleMurrayMessage__FP6MURRAY5MSGIDPv).
 extern "C" void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
 {
     HandleStepplayerMessage(murray, msg, pm);
@@ -1304,6 +1318,7 @@ void ReturnJtToSafePlace(MURRAY *p, int n) __asm__("ReturnJtToSafePlace");
 qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 // State 3 (air slam): ends when the animation is done; sub-state 1 waits for landing then the impact sub-state 2;
 // steering.
+// Also known as: UpdateMurrayFlop (upstream readable / Sly 1 name; UpdateMurrayFlop__FP6MURRAY).
 extern "C" void UpdateMurrayFlop(MURRAY *murray)
 {
     int s;
@@ -1353,6 +1368,7 @@ typedef char U_q_Offset[((unsigned int)&(((QWROW*)0x10000)->q)-0x10000)==0?1:-1]
 typedef char Factor_Address[FACTOR_ADDRESS==0x002C09A4?1:-1];
 // State 3 physics helper: sub-state 0 cancels ground velocity, sub-state 1 adds horizontal correction toward the
 // desired point.
+// Also known as: UpdateMurrayFlopMotion (upstream readable / Sly 1 name; UpdateMurrayFlopMotion__FP6MURRAY).
 extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
 {
     switch (murray->flopSubstate) {
@@ -1422,6 +1438,7 @@ typedef char MSG_x10_Offset[FIELD_OFFSET(MSG,x10)==16?1:-1];
 typedef char MSG_v20_Offset[FIELD_OFFSET(MSG,v20)==32?1:-1];
 typedef char MSG_v30_Offset[FIELD_OFFSET(MSG,v30)==48?1:-1];
 // Flop sub-states: 1 dive (sets downward velocity), 2 impact (zaps every contact and shakes the camera).
+// Also known as: SetMurrayFlopPhase (upstream readable / Sly 1 name; SetMurrayFlopPhase__FP6MURRAYi).
 extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
 {
     if (murray->flopSubstate == s)
@@ -1558,6 +1575,7 @@ extern "C" { static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" 
 extern "C" { static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(v)); return r; } }
 // If the target (interactTarget) is a stunned guard within reach and the attack button is pressed, lifts the guard; returns
 // nonzero if it did.
+// Also known as: FMurrayGrab (upstream readable / Sly 1 name; FMurrayGrab__FP6MURRAY).
 extern "C" int TryMurrayTakedown(MURRAY *murray)
 {
     union { qword q; float f[4]; } u;
@@ -1731,6 +1749,8 @@ typedef char U_f_Offset[FIELD_OFFSET(QWROW,f)==0?1:-1];
 typedef char qword_PrefixSize[sizeof(qword)==16?1:-1];
 typedef char U_PrefixSize[sizeof(QWROW)==16?1:-1];
 // Start/end velocities for the lift: mode 0 straight (2500/-2000), mode 1 a ballistic solve toward the hands.
+// Also known as: PickupVelocities (upstream readable / Sly 1 name;
+//   PickupVelocities__FP6MURRAYG9VU_VECTORPfT2P7VECTOR4T4).
 extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
  MURRAY*owner=CaptureActor(murray);
  QWROW roots;QWROW u;QWROW start;
@@ -1833,6 +1853,7 @@ extern "C" { static inline float Dist(qword a, qword b) {
 } }
 // Release on animation event 0x1EB in state 7: detaches the carried object and gives it the velocity to reach the
 // throw goal.
+// Also known as: ReleaseMurrayThrow (upstream readable / Sly 1 name; ReleaseMurrayThrow__FP6MURRAY).
 extern "C" void ThrowMurrayCarried(MURRAY *murray)
 {
     struct LO *object;
@@ -1858,6 +1879,7 @@ void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void SetStepTargetHeadingFromVector(MURRAY *p, qword q) __asm__("SetStepTargetHeadingFromVector");
 // Splice-callable: state 7 with the throw goal overridden by the given object's position, facing it.
+// Also known as: StartMurrayThrow (upstream readable / Sly 1 name; StartMurrayThrow__FP6MURRAYP2LO).
 extern "C" void ThrowMurrayCarriedAt(MURRAY *murray, void *pv)
 {
     qword a, b, d;
@@ -1880,6 +1902,7 @@ void StunStepguardThrownOp3(SO *p) __asm__("StunStepguardThrownOp3");
 qword ConvertVecBetweenLos(MURRAY *p, int n, qword q) __asm__("ConvertVecBetweenLos");
 void SetSoZapMode(SO *p, int n) __asm__("SetSoZapMode");
 // Release in state 8: detaches, fixed local velocity D_002C09D0, no angular velocity, zap mode 3.
+// Also known as: PutDownMurrayCarry (upstream readable / Sly 1 name; PutDownMurrayCarry__FP6MURRAY).
 extern "C" void TossMurrayCarried(MURRAY *murray)
 {
     SO *object;
@@ -1907,6 +1930,7 @@ void SetSoZapMode(SO *x, int n) __asm__("SetSoZapMode");
 qword ConvertVecBetweenLos(MURRAY *p, int n, qword q) __asm__("ConvertVecBetweenLos");
 // Aborts carrying on a forced state change: detaches the carried/lifted object and sets its velocity for the current
 // state.
+// Also known as: CancelMurrayCarry (upstream readable / Sly 1 name; CancelMurrayCarry__FP6MURRAY).
 extern "C" void DropMurrayCarried(MURRAY *murray)
 {
     LO *o;
@@ -1981,6 +2005,7 @@ namespace M_SetMurrayPlayerState {
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 void DropMurrayCarried(MURRAY *p) __asm__("DropMurrayCarried");
 // MURRAY slot 88: maps a generic player state 0..8 to Murray states (0 -> carry 5 or idle 0, 1 -> jump 2, ...).
+// Also known as: SetMurrayJumpState (upstream readable / Sly 1 name; SetMurrayJumpState__FP2LOi).
 extern "C" void SetMurrayPlayerState(MURRAY *murray, unsigned int k)
 {
     switch (k) {
@@ -2005,6 +2030,7 @@ extern "C" void SetMurrayPlayerState(MURRAY *murray, unsigned int k)
 
 namespace M_GetMurrayPlayerState {
 // MURRAY slot 89: Murray state -> generic player state 0..8 or -1.
+// Also known as: MurrayJumpKind (upstream readable / Sly 1 name; MurrayJumpKind__FP6MURRAY).
 extern "C" int GetMurrayPlayerState(MURRAY *murray)
 {
     switch (murray->state) {
@@ -2141,6 +2167,7 @@ extern "C" void UpdateMurrayPlaces(MURRAY *murray)
 namespace M_func_001B8368 {
 int GetStepplayerGroundProbeFlags(MURRAY *p) __asm__("GetStepplayerGroundProbeFlags");
 // MURRAY slot 85: 0 if x204 is set, in mode 1 or in state 20, else the STEPPLAYER base.
+// Also known as: GrfMurrayXp (upstream readable / Sly 1 name; GrfMurrayXp__FP3ALO).
 extern "C" int GetMurrayGroundProbeFlags(MURRAY *murray)
 {
     if (murray->unknown204) return 0;
@@ -2177,6 +2204,7 @@ int IsLoSelfOrDescendantOf(void *pv, void *p1) __asm__("IsLoSelfOrDescendantOf")
 int MaxInt(int n, int k) __asm__("MaxInt");
 int AdjustJtThrowFindFlags(JTTHROW *pjtthrow, void *pv, int n) __asm__("AdjustJtThrowFindFlags");
 // MURRAY slot 61: base flags, plus bit 3 for an object that is (part of) the carried object.
+// Also known as: MurrayCarryOverlapKind (upstream readable / Sly 1 name; MurrayCarryOverlapKind__FP3ALOT0).
 extern "C" int ShouldMurrayIgnoreIntersection(MURRAY *murray, void *pv)
 {
     int n = ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(murray, pv);
@@ -2204,6 +2232,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertVecBetweenLos(void *a, void *b, qword q) __asm__("ConvertVecBetweenLos");
 void SetMurrayAttack(MURRAY *p, int k) __asm__("SetMurrayAttack");
 // Square attack: state 11 with attack kind 0/1 (alternating hand, chosen by the target's side).
+// Also known as: StartMurrayPunch (upstream readable / Sly 1 name; StartMurrayPunch__FP6MURRAY).
 extern "C" void StartMurrayPunch(MURRAY *murray)
 {
     int k;
@@ -2269,6 +2298,7 @@ extern "C" { static inline qword MulM3(qword *m, qword v)
 } }
 // Attack sub-state (x1810, clip table x17FC[kind]): resets event flags, auto-faces a target within the cone, starts the
 // clip and predicts its end point.
+// Also known as: SetMurrayPunch (upstream readable / Sly 1 name; SetMurrayPunch__FP6MURRAYi).
 extern "C" void SetMurrayAttack(MURRAY *murray, int k)
 {
     void *q;
@@ -2329,6 +2359,7 @@ extern char D_002C09F8[] __asm__("D_002C09F8");
 void DetachSoActsMatching(void *a, MURRAY *p, int n, void *s) __asm__("DetachSoActsMatching");
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 // Fades the attack overlay, clears it and returns to idle.
+// Also known as: EndMurrayPunch (upstream readable / Sly 1 name; EndMurrayPunch__FP6MURRAY).
 extern "C" void CancelMurrayAttack(MURRAY *murray)
 {
     DetachSoActsMatching(murray->activeAnimation, murray, 5, D_002C09F8);
@@ -2346,6 +2377,8 @@ int TryMurrayTakedown(MURRAY *p) __asm__("TryMurrayTakedown");
 void CancelMurrayAttack(MURRAY *p) __asm__("CancelMurrayAttack");
 
 // State 11 combo: chains square (0 <-> 1) or 0x10 (2 <-> 3) within the combo window; takedown check; movement cancel.
+// Also known as: UpdateMurrayPunchTransitions (upstream readable / Sly 1 name;
+//   UpdateMurrayPunchTransitions__FP6MURRAY).
 extern "C" void UpdateMurrayAttack(MURRAY *murray)
 {
     int s;
@@ -2439,6 +2472,7 @@ extern "C" { static inline qword OrbitVector(MURRAY*p){
     return SetVectorCylind(angle,magnitude*radius,zero);
 } }
 // State 11 velocity: animation root motion, blended toward the stick direction between two animation parameters.
+// Also known as: UpdateMurrayPunch (upstream readable / Sly 1 name; UpdateMurrayPunch__FP6MURRAY).
 extern "C" void UpdateMurrayAttackVelocity(MURRAY*murray){
     QWROW scalar;
     if(murray->activeAnimation){
@@ -2478,6 +2512,7 @@ void ReleaseSma(SMA **ppsma) __asm__("ReleaseSma");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, MURRAY *p, float time, float rate, int n, ASEGA **q) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 // State 12 (gadget 20 power move) sub-states: 0 wind-up clip, 1 clip, 2 spawn/launch a script object.
+// Also known as: SetMurrayBerserk (upstream readable / Sly 1 name; SetMurrayBerserk__FP6MURRAYi).
 extern "C" void SetMurrayPowerSubstate(MURRAY *murray, int st)
 {
     ASEG *o;
@@ -2551,6 +2586,8 @@ void UpdateLeap(LEAP *p) __asm__("UpdateLeap");
 
 // State 12 update: advances sub-states on animation end, the contact trigger x1908 (set in AdjustMurrayNewXp) or a
 // timeout.
+// Also known as: UpdateMurrayBerserkTransitions (upstream readable / Sly 1 name;
+//   UpdateMurrayBerserkTransitions__FP6MURRAY).
 extern "C" void UpdateMurrayPower(MURRAY *murray)
 {
     int s;
@@ -2594,6 +2631,7 @@ namespace M_func_001B90B8 {
 typedef int qword __attribute__((mode(TI)));
 qword GetStepAsegaTranslation(MURRAY *p, ASEGA *pasega, float g) __asm__("GetStepAsegaTranslation");
 // State 12 sub-states 1/3: velocity from the animation root motion.
+// Also known as: UpdateMurrayBerserk (upstream readable / Sly 1 name; UpdateMurrayBerserk__FP6MURRAY).
 extern "C" void UpdateMurrayPowerVelocity(MURRAY *murray)
 {
     if (!(murray->subState == 1 || murray->subState == 3))
@@ -2633,6 +2671,7 @@ extern int CloneXpList(void *g, X *px) __asm__("CloneXpList");
 extern void AppendXpList(void *g, int r, void *p) __asm__("AppendXpList");
 
 // MURRAY contact adjust (slot 55): STEP base, then per-state contact handling (power-move trigger, flop impact).
+// Also known as: OnMurrayXpNew (upstream readable / Sly 1 name; OnMurrayXpNew__FP3ALOP2XPi).
 extern "C" void AdjustMurrayNewXp(MURRAY *murray, X *px, int i)
 {
     int n;
@@ -2669,6 +2708,8 @@ void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 // State 4: waits for the grab event (fLiftGrabbed), aborts if the object is gone; after attaching goes to carry (state 5)
 // when the animation ends.
+// Also known as: UpdateMurrayCarryTransitions (upstream readable / Sly 1 name;
+//   UpdateMurrayCarryTransitions__FP6MURRAY).
 extern "C" void UpdateMurrayLift(MURRAY *murray)
 {
     int s;
@@ -2726,6 +2767,7 @@ extern void SetMurrayState(MURRAY*,int) __asm__("SetMurrayState");
 // Zero the xyz words of v.
 static inline void ClearXYZ(VECTOR*v){v->x=v->y=v->z=0.0f;}
 // Lift sub-states: 1 launches the object toward the hands (constraints, velocity), 2 attaches it.
+// Also known as: SetMurrayCarry (upstream readable / Sly 1 name; SetMurrayCarry__FP6MURRAYi).
 extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
 {
     if (murray->liftSubstate == state)
@@ -2849,6 +2891,7 @@ int CanJtUseGadgetOnPipe(void *p, int k) __asm__("CanJtUseGadgetOnPipe");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int IsCameraPolicyActive__FP5CPLCY(void *p) __asm__("IsCameraPolicyActive__FP5CPLCY");
 // MURRAY slot 99: whether gadget/power k can be used in the current state (per-state allow lists, components).
+// Also known as: FMurrayAbilityOk (upstream readable / Sly 1 name; FMurrayAbilityOk__FP6MURRAYi).
 extern "C" int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
 {
     if (IsStepplayerInJtMode(p)) return 0;
@@ -2902,6 +2945,7 @@ void SetMurrayPowerSubstate(MURRAY *p, int n) __asm__("SetMurrayPowerSubstate");
 void SetJtGrabState(JTGRAB *p, int a, LO *plo, int c) __asm__("SetJtGrabState");
 // MURRAY slot 100: broadcasts game event 0x3C, then per power: 20 power move (state 12), 19 alternate toss (state 8),
 // ...
+// Also known as: StartMurrayAbility (upstream readable / Sly 1 name; StartMurrayAbility__FP5ACTORi).
 extern "C" void UseMurrayGadget(MURRAY *murray, int k)
 {
     g_game.idGadgetLast = k;
@@ -2982,6 +3026,7 @@ void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 void SeekSma(void *p, int n) __asm__("SeekSma");
 void SetSmaGoal(void *p, int n) __asm__("SetSmaGoal");
 // Enters state 6 with a partner state machine and table index; optionally sets or skips both machines to a state.
+// Also known as: StartMurrayHold (upstream readable / Sly 1 name; StartMurrayHold__FP6MURRAYP3SMAiii).
 extern "C" void StartMurrayStruggle(MURRAY *murray, SMA *psma, int n, int m, int f)
 {
     murray->psmaWork = psma;

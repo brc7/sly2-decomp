@@ -2,6 +2,7 @@
 // SLY2_CFLAGS: -O2 -G0
 typedef int u_long128 __attribute__((mode(TI)));
 extern u_long128 D_002C66C0, D_002C66D0;
+// Also known as: s1_sceGsResetPath (upstream readable / Sly 1 name).
 void sceGsResetPath(void)
 {
     int tmp;

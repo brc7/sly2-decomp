@@ -57,6 +57,7 @@ extern float D_002A7710 __asm__("D_002A7710");
 void InitSo(DPRIZE *p) __asm__("InitSo");
 void SetSoZapResponse(DPRIZE *p, int a, int b) __asm__("SetSoZapResponse");
 // DPRIZE::Init (vtable slot 7): InitSo + 0x1F7918 setup.
+// Also known as: InitPickup (upstream readable / Sly 1 name; InitPickup__FP2LO).
 extern "C" void InitDprize(DPRIZE *prize)
 {
     int v;
@@ -95,6 +96,7 @@ void PostSoLoad(DPRIZE *p) __asm__("PostSoLoad");
 LO *FindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, DPRIZE *p) __asm__("FindSwObjectByClass__FP2SWi3CIDP2LO");
 LO *FindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, DPRIZE *p) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
+// Also known as: PostLoadPickup (upstream readable / Sly 1 name; PostLoadPickup__FP2LO).
 extern "C" void PostDprizeLoad(DPRIZE *prize)
 {
     LO *plo;
@@ -119,6 +121,7 @@ struct A { int c; void *pv; int pad[14]; };
 struct M { SMA *sender; int x4; int goalAnim; };
 void HandleBasicMessage(DPRIZE *p, int n, struct M *pm) __asm__("HandleBasicMessage");
 // DPRIZE vtable slot 5 HandleMessage: base HandleBasicMessage + prize-specific msgs. (inferred)
+// Also known as: OnPickupMessage (upstream readable / Sly 1 name; OnPickupMessage__FP2LO5MSGIDPv).
 extern "C" void HandleDprizeMessage(DPRIZE *prize, int n, struct M *pm)
 {
     struct A a;
@@ -229,6 +232,7 @@ static inline void Sample(AC *motion, const ASEGA *animation, qword *value, qwor
 }
 
 // DPRIZE vtable slot 17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
+// Also known as: UpdatePickupMotion (upstream readable / Sly 1 name; UpdatePickupMotion__FP2LO).
 extern "C" void ProjectDprizeTransform(DPRIZE *prize)
 {
     if (prize->state == 6) { UpdateSoXfWorld(prize); return; }
@@ -400,6 +404,7 @@ static inline float GDot(qword a, qword b)
 // The smaller of two floats.
 
 // query nearby solids (IntersectSwBoundingBox) and resolve deepest contact (bounce). (inferred)
+// Also known as: UpdatePickupGround (upstream readable / Sly 1 name; UpdatePickupGround__FP2LO).
 extern "C" void CheckDprizeBounce(DPRIZE *prize)
 {
     STACKSCOPE frame;
@@ -498,6 +503,7 @@ extern "C" { static inline float LenSq(qword a)
     return f;
 } }
 // test one collector (PZI) against the prize: in range -> collect. (inferred)
+// Also known as: FPickupTouched (upstream readable / Sly 1 name; FPickupTouched__FP2LOP6PICKUP).
 extern "C" int TryCollectDprize(DPRIZE *prize,struct Q *q)
 {
     char scratch[0x30] __attribute__((aligned(16)));
@@ -544,6 +550,7 @@ int CollectActivePickupInfos(void *pg, int c, void **ap) __asm__("CollectActiveP
 int IsBasicDerivedFrom__FP5BASIC3CID(DPRIZE *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int TryCollectDprize(DPRIZE *p, void *pv) __asm__("TryCollectDprize");
 // for each collector PZI (CppziCur) check collection. (inferred)
+// Also known as: TestPickupCollect (upstream readable / Sly 1 name; TestPickupCollect__FP2LO).
 extern "C" void CheckDprizeCollect(DPRIZE *prize)
 {
     void *ap[0x10];
@@ -597,6 +604,7 @@ static inline float LenSq(qword v)
     return r;
 }
 // DPRIZE vtable slot 16 Update: base update, sparkle (EmitDprizeGlint), bounce, collect.
+// Also known as: UpdatePickupBase (upstream readable / Sly 1 name; UpdatePickupBase__FP2LO).
 void UpdateDprize(DPRIZE *prize)
 {
     UpdateSo(prize);
@@ -683,6 +691,7 @@ void SkipSma(SMA *q, float g) __asm__("SkipSma");
 void SetSmaGoal(SMA *q, int anim) __asm__("SetSmaGoal");
 void RetractSma(SMA *q) __asm__("RetractSma");
 // DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps).
+// Also known as: SetPickupStateBase (upstream readable / Sly 1 name; SetPickupStateBase__FP2LOi).
 extern "C" void SetDprizeDprizes(DPRIZE *prize, int n)
 {
     int anim = -1;
@@ -779,6 +788,7 @@ extern "C" { static inline float Max(float a,float b)
     return a;
 } }
 // spawn sparkle rip (NewRipInGroup) at prize position periodically. (inferred)
+// Also known as: UpdatePickupGlint (upstream readable / Sly 1 name; UpdatePickupGlint__FP2LO).
 extern "C" void EmitDprizeGlint(DPRIZE *prize)
 {
     union U scale;
@@ -843,6 +853,7 @@ void UpdateDprize(DPRIZE *p) __asm__("UpdateDprize");
 // COIN Update: UpdateDprize, then while idle counts the lifetime down and starts vanishing at zero.
 } // namespace M_func_001C6588
 // COIN::Update: prize update, then while idle count the lifetime down and vanish at zero.
+// Also known as: UpdateCoin (upstream readable / Sly 1 name; UpdateCoin__FP4COIN).
 void COIN::Update() { using namespace M_func_001C6588;
     UpdateDprize(this);
     if (!state) {
@@ -872,6 +883,7 @@ void RestartHudWidget1(void *pg) __asm__("RestartHudWidget1");
 void BroadcastGameEvent(void *p, int n, COIN *ps) __asm__("BroadcastGameEvent");
 void SetDprizeDprizes(DPRIZE *p, int n) __asm__("SetDprizeDprizes");
 // CID 91 state setter: on collect play sound, emit rip, award (AwardCoin). (inferred)
+// Also known as: SetCoinState (upstream readable / Sly 1 name; SetCoinState__FP2LOi).
 extern "C" void SetCoinDprizes(COIN *coin, int n)
 {
     if (coin->state == n) return;
@@ -971,6 +983,7 @@ void RestartHudWidget1(void *pg) __asm__("RestartHudWidget1");
 void BroadcastGameEvent(void *p, int n, MEDICINE *ps) __asm__("BroadcastGameEvent");
 void SetDprizeDprizes(DPRIZE *p, int n) __asm__("SetDprizeDprizes");
 // CID 93 setter (uses GetCurrentPo - gives to current character). (inferred)
+// Also known as: SetCharmState (upstream readable / Sly 1 name; SetCharmState__FP2LOi).
 extern "C" void SetMedicineDprizes(MEDICINE *medicine, int n)
 {
     if (medicine->state == n) return;
@@ -1037,6 +1050,7 @@ void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
 void RequestTaskState(void *p, int n, KEY *plo) __asm__("RequestTaskState");
 void SetDprizeDprizes(KEY *p, int n) __asm__("SetDprizeDprizes");
 // CID 92 setter (sound on collect). (inferred)
+// Also known as: SetPrizeState (upstream readable / Sly 1 name; SetPrizeState__FP2LOi).
 extern "C" void SetKeyDprizes(KEY *key, int n)
 {
     if (key->state == n) return;
@@ -1084,6 +1098,7 @@ void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b) __asm__("FindS
 DPRIZE *AcquireProxyObject(void *pg, int n) __asm__("AcquireProxyObject");
 void LockProxyObject(void *pg, DPRIZE *plo) __asm__("LockProxyObject");
 // make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)
+// Also known as: CpickupInstances (upstream readable / Sly 1 name; CpickupInstances__FPviiPP2LO).
 extern "C" int NewSprayedDprize(void *prize, int kind, int n, DPRIZE **aplo)
 {
     int id, i, c;
@@ -1157,6 +1172,8 @@ static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
 }
 
 // find landing point on objects below/above a point. (inferred)
+// Also known as: FFindPickupFloor (upstream readable / Sly 1 name;
+//   FFindPickupFloor__FfffG9VU_VECTORiP6VECTORPG9VU_VECTOR).
 extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword point, int ccand, CANDIDATE **apcand,
                              qword *ppos)
 {
@@ -1309,6 +1326,7 @@ static inline REGION *PregionFromLo(SO *plo)
 static inline int FFartherThan(float g, float gMax) { return gMax < g; }
 
 // spray up to cRequested prizes of a kind out of a point onto the ground region. (inferred)
+// Also known as: SpawnPickups (upstream readable / Sly 1 name; SpawnPickups__FP6VECTORiG9VU_VECTORPvi).
 extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnused, int cRequested)
 {
     VECTOR4 posOrig;
@@ -1451,6 +1469,7 @@ CRef GetSaveVarByName(char *a, char *b, char *c, int n) __asm__("GetSaveVarByNam
 CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n) __asm__("SetSaveVarByName");
 extern void SetLootDprizes(LOOT *p, int n) __asm__("SetLootDprizes");
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
+// Also known as: SetLootState (upstream readable / Sly 1 name; SetLootState__FP2LOi).
 void SetLootDprizes(LOOT *loot, int n)
 {
     if (loot->state == n) return;
@@ -1510,6 +1529,7 @@ enum OID { OID_0 };
 struct SENSORS { char pad[0x1c]; unsigned int coidSensors; OID aoidSensors[3]; };
 struct ALARM { char pad[0x244]; SENSORS *psensors; };
 // Append OID to the list behind this+0x244 (count +0x1C, max 3).
+// Also known as: AddAlarmSensor (upstream readable / Sly 1 name; AddAlarmSensor__FP5ALARM3OID).
 extern "C" void AddLootEntryObject(ALARM *palarm, OID oid)
 {
     SENSORS *p = palarm->psensors;
@@ -1533,6 +1553,7 @@ void HideSoAllGlobs(LOOT *p) __asm__("HideSoAllGlobs");
 void ShowSoGlobsById(LOOT *p, void *pv) __asm__("ShowSoGlobsById");
 // Makes the entry with this id current (the first entry when none matches), then hides the loot's globs
 // (func_001F6A68, inferred) and shows the entry's ones. Used by StageLootPouchLoot.
+// Also known as: SetPickupLootKind (upstream readable / Sly 1 name; SetPickupLootKind__FP2LOi).
 extern "C" void SelectLootEntry(LOOT *loot, int id)
 {
     int i, j, count;
@@ -1704,6 +1725,7 @@ void CLUE::Init()
 namespace M_func_001C7E68 {
 void SO_ResetForProxy(CLUE *p) __asm__("SO_ResetForProxy");
 // CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
+// Also known as: ResetCluePlacement (upstream readable / Sly 1 name; ResetCluePlacement__FP2LO).
 extern "C" void ResetClue(CLUE *clue)
 {
     SO_ResetForProxy(clue);
@@ -1714,6 +1736,7 @@ extern "C" void ResetClue(CLUE *clue)
 namespace M_func_001C7EA8 {
 void SO_Slot27(CLUE *p) __asm__("SO_Slot27");
 // CID 95 vtable slot 27. (inferred)
+// Also known as: DetachCluePlacement (upstream readable / Sly 1 name; DetachCluePlacement__FP2LO).
 extern "C" void ClearClueState(CLUE *clue)
 {
     SO_Slot27(clue);
@@ -1737,6 +1760,7 @@ void SetDprizeDprizes(CLUE *p, int n) __asm__("SetDprizeDprizes");
 // Does the object's GetProxyCopyValue owner derive from class 7?
 extern "C" { static inline int FTest(CLUE *p) { CLUEPROXY *q = GetProxyCopyValue(p); return q && IsBasicDerivedFrom__FP5BASIC3CID(q, 7); } }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
+// Also known as: SetClueState (upstream readable / Sly 1 name; SetClueState__FP2LOi).
 extern "C" void SetClueDprizes(CLUE *clue, int n)
 {
     CLUEPROXY *q;
@@ -1830,6 +1854,7 @@ extern void GetGlobalSaveVar(CRefData *pref, void *pv, void *p) __asm__("GetGlob
 static inline int NFromPv(void *pv) { CRefData ref; int n; GetGlobalSaveVar(&ref, pv, &g_gs); n = ref.u.n; Decref__4CRef(&ref); return n; }
 extern int IsVaultOpened(void) __asm__("IsVaultOpened");
 // Whether the current level's vault has been opened (reads the 'fVault' save flag).
+// Also known as: FVaultOpened (upstream readable / Sly 1 name; FVaultOpened__Fv).
 int IsVaultOpened(void)
 {
     STACKSCOPE frame;
@@ -1874,6 +1899,7 @@ namespace M_InitVault {
 void InitPo(VAULT *vault) __asm__("InitPo");
 // VAULT vtable slot 7 (Init): PO defaults; the default combination is 123 (0x7B), no dialogs or reward powerup,
 // state and dial selection off (-1).
+// Also known as: InitVault (upstream readable / Sly 1 name; InitVault__FP5VAULT).
 extern "C" void InitVault(VAULT *vault)
 {
     int v;
@@ -1908,6 +1934,7 @@ void SetVaultOpened(int f) __asm__("SetVaultOpened");
 // VAULT vtable slot 16 (Update). States: 0 closed, 1 intro relay playing, 2 dialling (UpdateVaultInput) until the
 // relay ends, then 3 if the entered code equals the combination else 4 (wrong code, back to 0), 3 opening (records
 // the vault as opened), 5 open.
+// Also known as: UpdateVault (upstream readable / Sly 1 name; UpdateVault__FP2LO).
 extern "C" void UpdateVault(VAULT *vault)
 {
     int s;
@@ -1972,6 +1999,7 @@ static inline qword*TableWithMinimum(char*minimumPage,char*tablePage,float*out){
 // Dial input: the stick picks the nearest of nine dial positions (with hysteresis for the current one), a button
 // enters it as the next digit (code = code*10 % 1000 + digit + 1), and when the entered code equals the vault's
 // combination the vault opens; another button aborts. Runs until the sub-state stops changing.
+// Also known as: UpdateVaultDial (upstream readable / Sly 1 name; UpdateVaultDial__FP2LO).
 extern "C" void UpdateVaultInput(VAULT*vault){
  union U point;
  int old;
@@ -2030,6 +2058,7 @@ void FireRelay(void *vault, PO *q) __asm__("FireRelay");
 // Vault state change: stops the current dialog and relay, leaves the old state (dialling releases the letterbox; opening
 // grants the reward powerup and plays the opened dialog) and enters the new one (dialling takes the letterbox, resets
 // the dial and plays the intro dialog; other states fire the vault's own events). (inferred)
+// Also known as: SetVaultState (upstream readable / Sly 1 name; SetVaultState__FP2LOi).
 extern "C" void SetVaultState(VAULT *vault, int n)
 {
     void *pv;
@@ -2111,6 +2140,7 @@ extern "C" { static inline void Selection(const VAULT*vault,int*index,struct X**
 } }
 // Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
 // animation and timer for the new sub-state. (inferred)
+// Also known as: SetVaultSub (upstream readable / Sly 1 name; SetVaultSub__FP2LOi).
 extern "C" void SetVaultDialState(VAULT *vault, int n)
 {
     struct X *px;
@@ -2159,6 +2189,7 @@ void StartDialog(SNDMGR *ph, int n, int m) __asm__("StartDialog");
 // Splice entry, when the player uses the vault: with enough clue bottles collected (g_sw counters at +0x4764/+0x4768)
 // it remembers the user and starts the intro (state 1); otherwise it shows the clue count HUD and plays the
 // not-enough-clues dialog. (inferred)
+// Also known as: UseVault (upstream readable / Sly 1 name; UseVault__FP2LOi).
 extern "C" void TriggerVault(VAULT *vault, PO *n)
 {
     SW *pg = &g_sw;

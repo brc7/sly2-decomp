@@ -68,6 +68,8 @@ static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
 // (resolved through the SO's vtable slot 51), a local point, the target and a second vector; measures the record
 // (InitIkRecord) and attaches an IK action to both bones. Sets the SO's "has IK" flag (bit 36 of +0x148).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadAloPairsFromBrx (upstream readable / Sly 1 name;
+//   LoadAloPairsFromBrx__FP3ALOP18CBinaryInputStream).
 extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
 {
     int count = U8Read__18CBinaryInputStream(stream);
@@ -98,6 +100,7 @@ static inline ACT*Entry(SOIK*owner,int i){register XF*entries asm("$2")=owner->e
 // For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
 // (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps
 // the solver consistent. Hand-scheduled VU0 asm. (inferred)
+// Also known as: RemeasureAloPairs (upstream readable / Sly 1 name; RemeasureAloPairs__FP3ALO).
 extern "C" void UpdateSoIkBoneLengths(SOIK*so){
  if(!(so->flags&(1UL<<36)))return;
  for(int i=0;i<so->entryCount;i++)for(ACT*node=Entry(so,i);node;node=node->pactNext)if(node->ack==7){
@@ -121,6 +124,7 @@ extern "C" void UpdateSoIkBoneLengths(SOIK*so){
 // Measures a freshly loaded IK record: snapshots both bones' local matrices, computes the two bone lengths and the rest
 // angle between the bones (AngleBetweenVectors, which also yields the bend axis), and stores the bend axis in the second
 // bone's parent space. (inferred)
+// Also known as: InitAloPairRest (upstream readable / Sly 1 name; InitAloPairRest__FP7ALOPAIR).
 extern "C" void InitIkRecord(IKREC*ikRecord){
  register int bits asm("$2");
  qwordV*axis=(qwordV*)&ikRecord->elbowAxis;
@@ -170,6 +174,7 @@ static inline float CopySnapshot(IKREC*q){float high;register FRAME*d __asm__("$
 // lengths and the distance to the target by the law of cosines (clamped acos), bends the joint about the bend axis,
 // then swings the chain so the end reaches the target and applies an optional twist curve; writes the resulting local
 // matrices and bumps the global transform stamp so world matrices are recomputed.
+// Also known as: SolveAloPair (upstream readable / Sly 1 name; SolveAloPair__FP3ALOP7ALOPAIR).
 extern "C" void SolveIk(void*context,IKREC*request){
  register IKREC*q __asm__("$17")=request;
  WORK w;

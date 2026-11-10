@@ -47,6 +47,7 @@ typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NOD
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
 // Walks the graph's 2D BSP and returns the triangle containing pos, or 0 (Sly 1 PcgtPointInCbspQuick; the flags
 // argument is new in Sly 2).
+// Also known as: ItriNav (upstream readable / Sly 1 name; ItriNav__FP9NAVREGIONG9VU_VECTORi).
 LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags) __asm__("FindNavTriangleQuick"); LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 {
     union { qword q; float f; } u;
@@ -94,6 +95,7 @@ float D_002C0C00 __asm__("D_002C0C00") = 0.01f;   /* path's .data starts here: t
 namespace PATH_DATA { float r_D_002C0C04 __asm__("D_002C0C04") = 50.0f; }   /* FindPathPoints's route spacing (declared const there) */
 // Tolerant BSP walk: returns the triangle containing pos or, failing that, the nearest one (Sly 1
 // PcgtPointInCbspSafe).
+// Also known as: ItriNavFrom (upstream readable / Sly 1 name; ItriNavFrom__FP9NAVREGIONP4NODEG9VU_VECTORi).
 extern "C" LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
 {
     union { qword q; float f; } u;
@@ -220,6 +222,7 @@ static inline VU_VECTOR Lerp(const qword &a, const qword &b, float t)
 
 // Clips a segment against the graph's BSP, writing the walkable leaf spans it crosses as LSG rows; returns the
 // count (Sly 1 ClsgClipEdgeToCbsp).
+// Also known as: CsegNav (upstream readable / Sly 1 name; CsegNav__FP9NAVREGIONG9VU_VECTORT1iP6NAVSEGi).
 int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags) __asm__("ClipEdgeToCbsp"); int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int flags)
 {
     STATE st[33]; // st[0] is the current state, st[1..32] the stack of pending far sides
@@ -358,6 +361,7 @@ typedef char ROW_Size[sizeof(ROW)==96?1:-1];
 typedef char ROW_Low_Offset[(unsigned int)&((ROW*)0)->low==0x40?1:-1];
 typedef char ROW_High_Offset[(unsigned int)&((ROW*)0)->high==0x44?1:-1];
 // Returns 1 when the segment leaves walkable space (no span, or the span does not cover [0, 1]).
+// Also known as: FNavBlocked (upstream readable / Sly 1 name; FNavBlocked__FP9NAVREGIONG9VU_VECTORT1i).
 int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags) __asm__("IsEdgeBlockedByCbsp"); int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
  ROW spans[2];
  int count=ClipEdgeToCbsp(g,from,to,2,spans,flags|2);
@@ -405,6 +409,7 @@ static inline float Dist2(const qword &a, const qword &b)
 }
 
 // A* search over the graph's vertices from a start to a goal triangle; fills the predecessor chain. Sly 1 name.
+// Also known as: AstarNav (upstream readable / Sly 1 name; AstarNav__FP9NAVREGIONPvT1iPiT1).
 extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int *count, V **path)
 {
     NODE node;
@@ -485,6 +490,7 @@ int IsEdgeBlockedByCbsp(void *ctx, qword a, qword b, int n) __asm__("IsEdgeBlock
 // Fill the request and allocate cb bytes (alignment nKind) from the frame stack.
 extern "C" { static __inline__ void *PvAllocReq(struct SWALLOC *preq, int cb, int nKind) { preq->cb = cb; preq->cbAlign = nKind; return AllocFromStack(preq); } }
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
+// Also known as: SmoothNav (upstream readable / Sly 1 name; SmoothNav__FP9NAVREGIONPiPPG9VU_VECTOR).
 extern "C" void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 {
     struct CTX c;
@@ -563,6 +569,7 @@ static inline qword AddScaled(qword a, qword b, float g)
 }
 
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
+// Also known as: PosNearestTri (upstream readable / Sly 1 name; PosNearestTri__FP9NAVREGIONG9VU_VECTOR).
 extern "C" qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
 {
     U result;
@@ -655,6 +662,7 @@ static inline qword AddScaled(qword p, qword axis, VU_FLOAT s)
 
 // Finds a route between two points over the graph: locates both triangles, runs A*, simplifies, copies at most
 // cposMax points out with a minimum spacing. Returns the point count (Sly 1 CposFindPath).
+// Also known as: CposNavPath (upstream readable / Sly 1 name; CposNavPath__FP9NAVREGIONG9VU_VECTORT1iP7VECTOR4).
 int FindPathPoints(G *graph, qword from, qword to, int capacity, QWROW *out)
 {
     TRI *first = FindNavTriangleSafe(graph, graph->pbsp, from, 1);
@@ -746,6 +754,7 @@ int FindPathPoints(void *p, int a, int b, int c, int d) __asm__("FindPathPoints"
 void MeasureShape(struct T *pt) __asm__("MeasureShape");
 // Finds a path (max 16 points) in a path zone into a path curve object and rebuilds the curve; returns 0 when
 // fewer than 2 points were found.
+// Also known as: FNavPathCrv (upstream readable / Sly 1 name; FNavPathCrv__FP9NAVREGIONiiP3CRV).
 extern "C" int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
 {
     int n = FindPathPoints(p + 0xE0, a, b, 0x10, pt->nf4);
@@ -763,6 +772,7 @@ struct S { int a[5]; int bspNodes; };
 void *FindNavTriangleSafe(struct S *p, int n, qword q) __asm__("FindNavTriangleSafe");
 qword GetClosestPointOnNavTriangle(void *p, qword q) __asm__("GetClosestPointOnNavTriangle");
 // Closest point of the graph to pos (nearest triangle, then the closest point on it); returns 1 when found.
+// Also known as: FNavPoint (upstream readable / Sly 1 name; FNavPoint__FP9NAVREGIONG9VU_VECTORP6VECTOR).
 int FindClosestPointInCg(struct S *graph, qword pos, qword *closest) __asm__("FindClosestPointInCg"); int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 {
     void *pv = FindNavTriangleSafe(graph, graph->bspNodes, pos);
@@ -801,6 +811,7 @@ void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
 void ComputeCgEdgeCosts(int *p) __asm__("ComputeCgEdgeCosts");
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
 // ComputeCgEdgeCosts. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadMeshZoneFromBrx (upstream readable / Sly 1 name; LoadMeshZoneFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
 {
     struct A a;
@@ -1007,6 +1018,7 @@ void *ClipEdgeToConvexObstacle(void *p, qword a, qword b, int n, struct S *ps) _
 void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, int one) __asm__("MergeSegmentLists");
 // Clips a segment to the zone, then against its obstacles; returns the blocking obstacle (or 0) and the clipped end.
 // (inferred)
+// Also known as: AtFreeNav (upstream readable / Sly 1 name; AtFreeNav__FP9NAVREGIONG9VU_VECTORT1ii).
 extern "C" void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
 {
     void *ap[0x80];
@@ -1050,6 +1062,7 @@ extern "C" { static inline float InitialEndpoint(union U*home,qword vertex,qword
 // Load p->count.
 extern "C" { static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->count));return value;} }
 // Closest point to pos that is walkable in the zone and outside every obstacle.
+// Also known as: FKeepOnNav (upstream readable / Sly 1 name; FKeepOnNav__FP9NAVREGIONG9VU_VECTORP6VECTOR).
 extern "C" int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  void*objects[128];
  union U a,b;
@@ -1119,6 +1132,7 @@ extern "C" { static __inline__ int ISide(qword plane, qword pos)
     return i;
 } }
 // Walks the world's zone BSP (SW +0x45CC) to the path zone containing pos; falls back to the world's default zone.
+// Also known as: PregionAt (upstream readable / Sly 1 name; PregionAt__FG9VU_VECTORi).
 extern "C" void *FindPathzoneAtPos(qword pos, int flags)
 {
     struct B *pb = ((struct B *)g_sw.pregtree);
@@ -1153,6 +1167,7 @@ void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromW
 void LoadZoneBspFromBrx(void *p, int n, void *pbis) __asm__("LoadZoneBspFromBrx");
 // Reads the world's zone BSP from the level stream when present.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadCmeshFromBrx (upstream readable / Sly 1 name; LoadCmeshFromBrx__FP2SWP18CBinaryInputStream).
 extern "C" void LoadSwZoneBspFromBrx(struct G *world, void *stream)
 {
     int n = U32Read__18CBinaryInputStream(stream);
@@ -1220,6 +1235,7 @@ void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromW
 void BindSwPathzones(void *p) __asm__("BindSwPathzones");
 // After level load: with no zone BSP creates a default path zone (oid 0x2CA) with the trivial graph; then binds the
 // zones and their links.
+// Also known as: InitSwNav (upstream readable / Sly 1 name; InitSwNav__FP2SW).
 extern "C" void PostLoadSwPathzones(struct G *world)
 {
     if (!world->zoneBsp) {
@@ -1418,6 +1434,7 @@ void SweepObstacleRange(void*,int*,int*,qword*,float,float) __asm__("SweepObstac
 // Bitwise AND of two 128-bit values (pand).
 extern "C" { static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;} }
 // Sweep-and-prune query: collects the obstacles whose x and y intervals overlap the segment's box; returns the obstacleCapacity.
+// Also known as: CpolyNear (upstream readable / Sly 1 name; CpolyNear__FP9NAVREGIONP6VECTORG9VU_VECTORT2iPP7NAVPOLY).
 extern "C" int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
  struct C local;
  union U mask,copy;
@@ -1531,6 +1548,7 @@ void GrowPathzoneObstacleArrays(struct S *p) __asm__("GrowPathzoneObstacleArrays
 void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1) __asm__("InsertObstacleEvents");
 // Registers an obstacle in a zone unless it overlaps an existing one (then the polygon gets message 2 to merge),
 // growing the arrays as needed.
+// Also known as: AddPolyToRegion (upstream readable / Sly 1 name; AddPolyToRegion__FP9NAVREGIONP7NAVPOLY).
 extern "C" void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
 {
     void *ap[0x20];
@@ -1632,6 +1650,7 @@ void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, i
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint: the closest point on its shape, else its object's position, else the stored
 // vector.
+// Also known as: PosGoal (upstream readable / Sly 1 name; PosGoal__FP4GOALG9VU_VECTOR).
 extern "C" qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
 {
     qword q;
@@ -1654,6 +1673,7 @@ float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
 void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g) __asm__("EvaluateShapeAtDistance");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint using the shape's midpoint.
+// Also known as: PosRecord (upstream readable / Sly 1 name; PosRecord__FP4GOAL).
 extern "C" qword GetPathlinkEndpointCenter(struct S *endpoint)
 {
     qword q;
@@ -1675,6 +1695,7 @@ struct LO { char pad[0x218]; qword *pq; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetPathlinkEndpointPos(void *p, qword q) __asm__("GetPathlinkEndpointPos");
 // Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects). (inferred)
+// Also known as: FNearRecord (upstream readable / Sly 1 name; FNearRecord__FP4GOALP5GUARDf).
 extern "C" int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 {
     qword a, b, d;
@@ -1736,6 +1757,7 @@ struct E { void *p0; void *p4; int pad[6]; };
 struct S : LO { int c; char pad2[0xC]; struct E a[6]; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Appends an endpoint to a path link (a shape for class 10, otherwise an object); max 6.
+// Also known as: AddNavLinkRecord (upstream readable / Sly 1 name; AddNavLinkRecord__FP7NAVLINKP2LO).
 extern "C" void AddPathlinkEndpointObject(struct S *pathlink, void *object)
 {
     if ((unsigned)pathlink->c < 6) {
@@ -1766,6 +1788,7 @@ void PostLoLoad(struct S *p) __asm__("PostLoLoad");
 qword GetPathlinkEndpointCenter(struct E *pe) __asm__("GetPathlinkEndpointCenter");
 int FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");
 // CID 124 slot 15 (PostLoad): PostLoLoad, caches the first and last endpoint positions and their path zones.
+// Also known as: ResolveNavLink (upstream readable / Sly 1 name; ResolveNavLink__FP7NAVLINK).
 extern "C" void PostPathlinkLoad(struct S *pathlink)
 {
     PostLoLoad(pathlink);
@@ -1839,6 +1862,7 @@ static inline float GDistX(const qword &a, const qword &b) { return QwordX(QwLen
 // Store the x lane of q to *p.
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
 // A* over path zones connected by path links, from an actor's zone to a goal; returns the chain of links.
+// Also known as: CNavLinkPath (upstream readable / Sly 1 name; CNavLinkPath__FP5GUARDP6VECTORG9VU_VECTORiiPP4EDGE).
 extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isExact, int maxEdges, EDGE **edges)
 {
     STACKSCOPE scope;
@@ -1956,6 +1980,7 @@ struct PATHLINKV : LO { char pad50[0x120 - 0x50]; int kind; int fromZone; int to
 struct G : STEP { char pad[0xE94 - 0x2C0]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
 // Returns 1 when the actor may traverse the path link: the link is in the world, the actor allows its kind (kind 1
 // needs bit 0 as well as bit 1), and, when the actor has a zone list, both end zones are on it. (inferred)
+// Also known as: FNavLinkAllowed (upstream readable / Sly 1 name; FNavLinkAllowed__FP7NAVLINKP5GUARDPv).
 extern "C" int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
 {
     int requiredKinds, i, hasFrom, hasTo, numZones;

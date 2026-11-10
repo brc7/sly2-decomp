@@ -202,6 +202,7 @@ extern "C" void AddCid14Hierarchy(CID14V *polygon)
 
 // Slot 12: RemoveLoHierarchy, detaches the polygon from its merged owner, unregisters the obstacle and leaves the
 // pending list.
+// Also known as: RemoveNavPoly (upstream readable / Sly 1 name; RemoveNavPoly__FP2LO).
 extern "C" void RemoveCid14Hierarchy(CID14V *polygon)
 {
     DL *pdl;
@@ -277,6 +278,7 @@ int ClassifyCid14Polygon(CID14V *polygon)
 }
 
 // Wraps a point index into [0, count - 1) for the closed outline (the last point repeats the first).
+// Also known as: IpolyWrap (upstream readable / Sly 1 name; IpolyWrap__FP7NAVPOLYi).
 int WrapCid14PointIndex(CID14V *polygon, int index)
 {
     int c = polygon->numPoints;
@@ -293,6 +295,7 @@ static __inline__ void SwapV(V4 *a, V4 *b) { V4 t = *a; *a = *b; *b = t; }
 static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t; }
 // Slot 15 (PostLoad): PostLoLoad, classifies the outline and reverses or re-measures it when needed so it is convex
 // with a known winding.
+// Also known as: ReverseLoxPath (upstream readable / Sly 1 name; ReverseLoxPath__FP2LO).
 extern "C" void PostCid14Load(CID14V *polygon)
 {
     int r, half, i, j;
@@ -353,6 +356,7 @@ static inline qword QwMix(VU_FLOAT g1, const qword &qw1, VU_FLOAT g2, const qwor
 // Return -v.
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 // Clips a segment against the polygon's side planes, writing the inside span(s) as LSG entries; returns the count.
+// Also known as: ChitPoly (upstream readable / Sly 1 name; ChitPoly__FP7NAVPOLYG9VU_VECTORT1iP7POLYHIT).
 int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSegments, LSG *segments)
 {
     BuildCid14EdgePlanes(polygon);
@@ -442,6 +446,7 @@ static __inline__ float GDistPlane(qword plane, qword pos)
     return dist;
 }
 // Returns 1 when a point is inside the polygon (in front of no side plane).
+// Also known as: FPolyContains (upstream readable / Sly 1 name; FPolyContains__FP7NAVPOLYG9VU_VECTOR).
 int IsPosInConvexObstacle(CID14V *polygon, qword pos)
 {
     int i;
@@ -463,6 +468,7 @@ static inline qword MulPos(MATRIX4Q *pm, qword v)
 }
 // Walks the polygon's edges against the path zone (IsEdgeBlockedByPathzone) to find the span of the outline that
 // lies inside walkable space. (inferred)
+// Also known as: NPolyClearSide (upstream readable / Sly 1 name; NPolyClearSide__FP7NAVPOLYP9NAVREGIONiff).
 int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float start, float end)
 {
     int i0, r, pass, k, i1;
@@ -506,6 +512,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
 }
 
 // Finds the parameter range of a shape that lies inside its path zone; returns a status code. (inferred)
+// Also known as: NPolyWay (upstream readable / Sly 1 name; NPolyWay__FP7NAVPOLYP9NAVREGIONPfif).
 int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, float param)
 {
     float at[2];
@@ -535,6 +542,7 @@ int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, fl
 }
 
 // Searches along a shape for a point inside the path zone; returns 1 and the point when found. (inferred)
+// Also known as: FPolyPointOnRegion (upstream readable / Sly 1 name; FPolyPointOnRegion__FP7NAVPOLYP9NAVREGIONffPfPv).
 int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range, float *paramOut, int c)
 {
     float d, t;
@@ -592,6 +600,7 @@ void RegisterCid14Obstacle(CID14V *polygon)
 }
 
 // Removes the polygon's obstacle registration if it has one.
+// Also known as: RemovePolyFromRegion (upstream readable / Sly 1 name; RemovePolyFromRegion__FP7NAVPOLY).
 void UnregisterCid14Obstacle(CID14V *polygon)
 {
     void *ppathzone = polygon->pathzone;
@@ -602,6 +611,7 @@ void UnregisterCid14Obstacle(CID14V *polygon)
 }
 
 // Removes the polygon from its merged owner's member list (with a safe list iterator) and queues it again.
+// Also known as: DissolveMerged (upstream readable / Sly 1 name; DissolveMerged__FP2LO).
 void DetachCid14FromOwner(CID14V *polygon)
 {
     DLI dli;
@@ -618,6 +628,7 @@ void DetachCid14FromOwner(CID14V *polygon)
 }
 
 // Among the obstacles overlapping a segment, returns the one the segment enters first.
+// Also known as: PpolyOnSegment (upstream readable / Sly 1 name; PpolyOnSegment__FP9NAVREGIONP6VECTORG9VU_VECTORT2).
 CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword start, qword end)
 {
     CID14V *buf[0x80];
@@ -672,6 +683,7 @@ void BuildCid14EdgePlanes(CID14V *polygon)
 }
 
 // Steps along a shape from a parameter until it leaves the obstacles; returns the free range found. (inferred)
+// Also known as: NPathLeavesPoly (upstream readable / Sly 1 name; NPathLeavesPoly__FP7NAVPOLYP3CRViP6VECTORPff).
 int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *posOut, float *paramOut, float param)
 {
     qword av[2];
@@ -709,6 +721,7 @@ int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *po
 }
 
 // Finds a free point on a shape around parameter g that avoids every obstacle (searching both directions). (inferred)
+// Also known as: NNavWay (upstream readable / Sly 1 name; NNavWay__FG9VU_VECTORP6VECTORP9NAVREGIONP3CRViPP7NAVPOLYPff).
 extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, int direction, CID14V **blockerOut, float *paramOut, float param)
 {
     float t;
@@ -732,6 +745,7 @@ extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, 
 }
 
 // Returns 1 when two convex polygons overlap (separating-axis test on their side planes).
+// Also known as: FPolysOverlap (upstream readable / Sly 1 name; FPolysOverlap__FP7NAVPOLYT0).
 extern "C" int DoConvexObstaclesOverlap(CID14V *polygonA, CID14V *polygonB)
 {
     int i;
@@ -753,6 +767,7 @@ extern "C" int DoConvexObstaclesOverlap(CID14V *polygonA, CID14V *polygonB)
 }
 
 // Creates a merged obstacle object (a new CID14) that will own several member polygons. (inferred)
+// Also known as: PpathNewMerged (upstream readable / Sly 1 name; PpathNewMerged__Fv).
 CID14V *NewMergedCid14Obstacle(void)
 {
     CID14V *p;
@@ -798,6 +813,7 @@ CID14V *NewMergedCid14Obstacle(void)
 }
 
 // Compares two positions by x (sort callback). (Sly 1-derived name: NCmpWkr.)
+// Also known as: NCmpWkr (upstream readable / Sly 1 name; NCmpWkr__FP3WKRT0).
 int ComparePosX(const void *a, const void *b)
 {
     int r = -1;
@@ -860,6 +876,7 @@ void BuildConvexHull(CID14V *polygon, int count, qword *points)
 }
 
 // Attaches a polygon to a merged owner and unregisters its individual obstacle.
+// Also known as: AddPolyMember (upstream readable / Sly 1 name; AddPolyMember__FP2LOT0).
 void AddCid14ToMerged(CID14V *polygon, CID14V *owner)
 {
     DL *pdl;
@@ -885,6 +902,7 @@ static inline qword MulPtP(MATRIX4Q*m,qword*point){
 }
 // Merges overlapping convex polygons: collects their points, builds the convex hull and registers it as one new
 // polygon owned by a merged object.
+// Also known as: MergePolys (upstream readable / Sly 1 name; MergePolys__FiPP7NAVPOLY).
 extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
 {
     int c = 0;
@@ -952,6 +970,7 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
 }
 
 // Drains g_sw.dlCid14Pending, registering each queued polygon as an obstacle (merging where they overlap).
+// Also known as: UpdateNavPolys (upstream readable / Sly 1 name; UpdateNavPolys__Fv).
 extern "C" void UpdatePendingCid14Obstacles(void)
 {
     while (!IsDlEmpty__FP2DL((DL *)&g_sw.dlCid14Pending)) {

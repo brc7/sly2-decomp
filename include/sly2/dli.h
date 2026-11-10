@@ -1,5 +1,5 @@
 /* include/sly2/dli.h -- DLI, the safe iterator over a DL intrusive list, and its inline helpers.
- * Live iterators form a stack (g_pdliFirst, g_pdliFirst) so code that unlinks an element can fix up iterators that point
+ * Live iterators form a stack (g_pdliFirst) so code that unlinks an element can fix up iterators that point
  * at it. Layout and helpers as the matched per-function files spell them (about 30 copies; Sly 1 names); CONFIRMED by
  * match in the merged TUs that include this header. A function pops its iterator by restoring
  * `g_pdliFirst = dli.m_pdliNext` at the end. */
@@ -17,7 +17,7 @@ struct DLI
       DLI *m_pdliNext;       /* next (older) live iterator */
 };
 
-extern DLI *g_pdliFirst;      /* g_pdliFirst */
+extern DLI *g_pdliFirst;      /* Also known as: s_pdliFirst (upstream readable / Sly 1 name). */
 
 // Start iterating display list pdl with iterator pdli and push it on the global iterator stack (g_pdliFirst), so
 // removals during the walk can fix it up.

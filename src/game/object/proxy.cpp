@@ -282,6 +282,8 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
 // Loads one proxy record from the level stream (source id, mode, placement) and instantiates the next copy of the
 // source at it, or creates a PROXY object that acquires spare copies at run time.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadProxyFromBrx (upstream readable / Sly 1 name;
+//   LoadProxyFromBrx__FP2SWP3ALO3CID3OIDiP18CBinaryInputStreamP6LOSINK).
 void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, CBinaryInputStream *stream, CLoadCollector *pcollector)
 {
     int idSource = stream->S32Read();
@@ -437,7 +439,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
 
 // SetLoIdProxy: ported from Lilly's personal Sly 2 decomp (src/P2/proxy.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: g_sw (g_sw)
+// Globals: g_sw
 // 0x001CA118 SetIdProxy__2LOii  (MATCHES Sly 2, T0879)
 // Virtual 24: puts the object in the proxy copy tree under idProxy: the path is the ids from the root
 // down to the object's current node (at most 16, deepest last) with idProxy added at the end. The
@@ -695,6 +697,7 @@ extern "C" PROXYSPARE *GetProxySpareFromCopyIndex(PROXY *proxy, int icopy)
 // world, 1 when one is in the world now).
 /* How usable a spare is: 0 locked, 4 free, else the worst of its objects (3 not in the world, 2 in the world,
    1 at once if one passes IsLoInWorld). */
+// Also known as: NScoreRow (upstream readable / Sly 1 name; NScoreRow__FP2WEPv).
 extern "C" int RateProxySpare(PROXY *proxy, PROXYSPARE *spare)
 {
     int n, icopy, iplo, nPlo;
@@ -745,6 +748,7 @@ void SetLoParent(LO *plo, SO *psoParent, int grf) __asm__("SetLoParent");
 int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare);
 void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare) __asm__("ReleaseProxySpare__FP5PROXYP10PROXYSPARE");
 // Returns a copy to the spare pool: detaches it from its owner and restores its objects to the rest pose.
+// Also known as: DetachProxy (upstream readable / Sly 1 name).
 void ReleaseProxySpare(PROXY *proxy, PROXYSPARE *spare)
 {
     int iplo;
@@ -839,6 +843,7 @@ namespace M_func_001CADE0 {
 int RateProxySpare(PROXY *p, void *pa) __asm__("RateProxySpare");
 // Picks the best-rated spare with a rating of at least minRating (keeping the current one when it qualifies); null
 // when none does.
+// Also known as: IrowProxyChoose (upstream readable / Sly 1 name; IrowProxyChoose__FP2SWi).
 extern "C" void *ChooseProxySpare(PROXY *proxy, int minRating)
 {
     int i, v, vBest;
@@ -947,6 +952,7 @@ NODE *AcquireProxySpare(P *proxy,int minimum) __asm__("AcquireProxySpare"); NODE
 
 // For a single-object proxy, acquires a spare (rating 1 when forced, else 2) and returns its object, or null.
 /* The object of an acquired spare copy (single-object sources only). */
+// Also known as: PloAcquireProxyObject (upstream readable / Sly 1 name; PloAcquireProxyObject__FP2SWi).
 extern "C" LO *AcquireProxyObject(PROXY *proxy, int fForce)
 {
     PROXYSPARE *spare; if (proxy->source->cplo != 1) return 0; spare = AcquireProxySpare(proxy, fForce ? 1 : 2); if (!spare) return 0; return proxy->source->aplo[GetCopyIndexFromProxySpare(proxy, spare)];
@@ -997,12 +1003,14 @@ R GetProxyCopyObjects(PROXY *proxy)
 
 // Returns the spare whose object is plo (single-object sources), or null.
 /* The spare whose object is plo (single-object sources only), or 0. */
+// Also known as: IrowOfObject (upstream readable / Sly 1 name; IrowOfObject__FP2SWi).
 extern "C" PROXYSPARE *FindProxySpareByObject(PROXY *proxy, LO *plo)
 {
     int icopy; PROXYSPARE *spare; if (proxy->source->cplo != 1) return 0; spare = 0; for (icopy = proxy->source->icopyNext; icopy < proxy->source->ccopy; icopy++) { if (plo == proxy->source->aplo[icopy]) { spare = GetProxySpareFromCopyIndex(proxy, icopy); break; } } return spare;
 }
 
 // Locks the spare holding plo so it cannot be taken by another proxy.
+// Also known as: LockProxyRowOf (upstream readable / Sly 1 name; LockProxyRowOf__Fv).
 extern "C" void LockProxyObject(PROXY *proxy, LO *plo)
 {
     PROXYSPARE *spare = FindProxySpareByObject(proxy, plo);
@@ -1092,6 +1100,7 @@ int GetSourceIndexFromProxyId__Fi(int id) __asm__("GetSourceIndexFromProxyId__Fi
 int GetCopyIndexFromProxyId(int id) __asm__("GetCopyIndexFromProxyId");
 // Returns the per-copy value stored in the proxy source table for the object's proxy id (0 when the object is not a
 // proxy copy). (inferred)
+// Also known as: PproxyOfInstance (upstream readable / Sly 1 name; PproxyOfInstance__FP2LO).
 extern "C" int GetProxyCopyValue(LO *proxy)
 {
     PXR *pa = proxy->proxyRecord;

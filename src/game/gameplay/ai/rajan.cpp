@@ -57,6 +57,7 @@ int RAJAN::CanSenseStimulus(STIMULUS *stimulus)
 
 // 0x1CBF90: Turns on or off the two-shot camera policy (priority 6) framing Murray and this guard (SetCmPolicy / RevokeCmPolicy),
 // remembering the state at +0x1010.
+// Also known as: SetPairCamera (upstream readable / Sly 1 name; SetPairCamera__FP2LOi).
 extern "C" void SetRajanCameraFocus(RAJAN *rajan, int enable)
 {
       if (rajan->hasCameraPolicy == enable)

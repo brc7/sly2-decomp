@@ -140,6 +140,7 @@ struct CELL
 
 // Initializes the player's grab/action context (STEPPLAYER+0x4C0): owner, state -1, kind -1, and the two directional
 // blend blocks.
+// Also known as: InitInteract (upstream readable / Sly 1 name; InitInteract__FP5ACTORi).
 extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
 {
     grab->player = player;
@@ -155,6 +156,7 @@ extern "C" void InitJtGrab(JTGRAB *grab, STEPPLAYER *player)
    lean blend (ablC) and the hands on the player's current animation. */
 // Post-load: creates the context's private camera TN object (oid 0x148) and resets its parameters; builds the
 // directional blends (InitDirectionalBlend).
+// Also known as: PostLoadInteract (upstream readable / Sly 1 name; PostLoadInteract__FP5ACTOR).
 extern "C" void PostLoadJtGrab(JTGRAB *grab)
 {
     grab->cameraTunnel = (TN *)CreateLo__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
@@ -330,6 +332,7 @@ static inline void ProbeGround(CONTEXT *p)
 
 // Per-frame input for the current grab action: X jumps off (SetJtAirJump kinds 7/1), the action buttons per state,
 // gadgets.
+// Also known as: UpdateInteractTransitions (upstream readable / Sly 1 name; UpdateInteractTransitions__FP5ACTOR).
 extern "C" void UpdateJtGrabInput(CONTEXT *grab)
 {
     JOY *joy = grab->pactor->pjoy;
@@ -602,6 +605,7 @@ static inline void SetXYZ(U *p, float x, float y, float z) { p->f[0] = x; p->f[1
 
 // Per-frame update of the grab context: dispatches on the grab state (hang, shimmy, climb, hide, press ...), chooses
 // the kind and drives SetJtGrabKind. Sly 1 name (same SetJtHfdk calls).
+// Also known as: UpdateInteract (upstream readable / Sly 1 name; UpdateInteract__FP5ACTOR).
 extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 {
     U pos;
@@ -906,6 +910,7 @@ void SetJtHandsTarget(JTHANDS *phands, int n) __asm__("SetJtHandsTarget");
 void ClearJtDetectionOutOfSight(JTGRAB *pjtgrab) __asm__("ClearJtDetectionOutOfSight");
 // Starts a grab action: resets the kind, stores the state, time, object and grab spot, and switches the player's
 // generic state to 2 (grab).
+// Also known as: StartInteract (upstream readable / Sly 1 name; StartInteract__FP5ACTORii3JTL).
 extern "C" void SetJtGrabState(JTGRAB *grab, int n, LO *plo, GRABSPOT *pspot)
 {
     SetJtGrabKind(grab, -1);
@@ -975,6 +980,7 @@ struct SCOPEDIJ { char c; STACKSCOPE frame; int i, j; };
 extern void ClearJtDetectionOutOfSight(P *p) __asm__("ClearJtDetectionOutOfSight");
 // For each guard that currently tracks the player, clears the detection when the player is out of its sight.
 // (inferred)
+// Also known as: ForgetGuardsInteract (upstream readable / Sly 1 name; ForgetGuardsInteract__FP5ACTOR).
 void ClearJtDetectionOutOfSight(P *p)
 {
     O *o;
@@ -1166,6 +1172,7 @@ static inline qword Transform(const M3 &m, qword q)
 
 // Sets the grab sub-step (kind, +0xC): leaves the old one (per-kind/per-state cleanup) and enters the new (animation
 // clips, physics, camera).
+// Also known as: SetInteractState (upstream readable / Sly 1 name; SetInteractState__FP5ACTORi).
 extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
 {
     if (step == grab->step)
@@ -1518,6 +1525,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid) __asm__("IsBasicDerivedFr
 void SetJtGrabState(JTGRAB *pjtgrab, int n, LO *plo, GRABSPOT *pspot) __asm__("SetJtGrabState");
 // Walks the sorted grab candidates (distance < D_002BF660) and maps the nearest usable one's class to a grab state;
 // returns nonzero if a grab started. Runtime: CID27 gives state 8, CID12/34 state 0, rails state 3.
+// Also known as: FInteractCircle (upstream readable / Sly 1 name; FInteractCircle__FP5ACTOR).
 extern "C" int TryGrabJtNearestCandidate(JTGRAB *grab)
 {
     SW *g = &g_sw;
@@ -1576,6 +1584,8 @@ extern "C" { static inline float Dot(qword a,qword b){qword d=b,one;float f;__as
 // Return a scaled by g.
 extern "C" { static inline qword Scale(qword a,float g){U u;qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(g));u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;} }
 // For a rail target at parameter t: the landing position offset and a velocity along the rail tangent.
+// Also known as: RailPointVelocity (upstream readable / Sly 1 name;
+//   RailPointVelocity__FP5ACTORP2LOPG9VU_VECTORP6VECTORf).
 extern "C" void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos, qword *outVel, float t)
 {
     U pos, dir, dead;
@@ -1697,6 +1707,7 @@ extern "C" { static __inline__ float Dot2(qword a, qword b)
 } }
 // Adds the contact constraints for the held object (state 4: point constraint; state 3: rail/edge ...).
 // Sly 1 name and body.
+// Also known as: AddInteractContacts (upstream readable / Sly 1 name; AddInteractContacts__FP5ACTOR).
 extern "C" void UpdateJtInternalXpsHide(JTGRAB *p)
 {
     switch (p->state) {
@@ -1765,6 +1776,7 @@ typedef char alignment_4[__alignof__(struct PROJECTION)==16?1:-1];
 /* Sets the grab's hand/foot kind (stamping the time) and from it the focus kind: 1 for kind 3, for kinds 1 and 2 2
    when the player's current TN is the grab's, else 0. The Sly 1 symbol says JT *; Sly 2's takes the JTGRAB, so it
    keeps the symbol as a C-linkage definition. */
+// Also known as: SetJtHfdk (upstream readable / Sly 1 name).
 extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *grab, HFDK hfdk)
 {
     if (hfdk == grab->hfdk) return;
@@ -1787,6 +1799,7 @@ namespace M_func_00194118 {
 extern CPD D_002BF670 __asm__("D_002BF670");   /* the grab TN's camera definition (defined below as GRAB_DATA's CPDINIT) */
 // Resets a block of the private camera TN's parameters to defaults: no BSP or path, the one camera definition
 // D_002BF670, priority 3, mode bits 5, pull on entry.
+// Also known as: ResetZoneInteract (upstream readable / Sly 1 name; ResetZoneInteract__FP2LO).
 extern "C" void ResetJtGrabTnParams(JTGRAB *grab)
 {
     TN *t = grab->cameraTunnel;
@@ -1879,6 +1892,7 @@ void AddJtPlaceAtPosition(void *p, int a, qword q) __asm__("AddJtPlaceAtPosition
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 float atan2f(float y, float x) __asm__("atan2f");
 // Per grab state, records the held spot/parameter in the player's safe-place table.
+// Also known as: UpdateSafeInteract (upstream readable / Sly 1 name; UpdateSafeInteract__FP5ACTOR).
 extern "C" void RecordJtGrabPlace(struct P *grab)
 {
     float g, s;
@@ -1942,6 +1956,7 @@ extern "C" void RecordJtGrabPlace(struct P *grab)
 
 /* The grab's record for its state and kind (unknown54/58/60/64); *pfFlip set in state 8 for kinds 9 and 10. */
 // The adjust record for the grab kind and a flag.
+// Also known as: IsoeInteractMesh (upstream readable / Sly 1 name; IsoeInteractMesh__FP5ACTORPi).
 extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
 {
     int fFlip = 0;
@@ -1985,6 +2000,7 @@ static inline int IsGrabCameraFree(JTGRAB *grab)
 /* Whether input n is allowed in the current grab state (n 3: only in states 0, 1, 3, 4 and 13 with the camera
    free; states 3 and 4 allow only 1, 2 and 0x1F; states 1, 8, 11 and 12 none). */
 // Whether gadget/action k can be used in this grab kind (kinds 1/8/11/12 forbid; 3/4 allow ...).
+// Also known as: FInteractCanDo (upstream readable / Sly 1 name; FInteractCanDo__FP5ACTORi).
 extern "C" int CanJtUseGadgetInGrab(JTGRAB *grab, int n)
 {
     if (n == 3) {
@@ -2028,7 +2044,7 @@ extern "C" int IsJtGrabBusy(JTGRAB *grab)
 namespace M_AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND {
 // AddJtGrabCandidate: ported from Lilly's personal Sly 2 decomp (src/P2/jtgrab.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF664 (D_002BF664), D_002E1E4C (D_002E1E4C), D_002E1E40 (g_SheetGangSly), g_clock (g_clock)
+// Globals: D_002BF664 (D_002BF664), D_002E1E4C (D_002E1E4C), D_002E1E40 (g_SheetGangSly), g_clock
 // 0x00194688 AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND  (MATCHES Sly 2; our name)
 // Tests one grab spot against the hero (qwPosJt is the hero's position) and, when the hero may take hold of it, puts it into the
 // sorted array of ccandMax candidates: by priority (higher first), then by distance, one entry per group (the nearer spot of a
@@ -2082,6 +2098,7 @@ static inline void MoveJtGrabCands(JTGRABCAND *pcandDst, JTGRABCAND *pcandSrc, s
 }
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
 // Tests one grab spot against the player and inserts it into the candidate list if usable.
+// Also known as: RateJt (upstream readable / Sly 1 name; RateJt__FP5ACTORP6VECTORG9VU_VECTORP2LOP5JTENTiP10JTGRABCAND).
 void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GRABSPOT *spot, int ccandMax, JTGRABCAND *candidates)
 {
     JTGRABCAND cand;
@@ -2175,7 +2192,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
 namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi {
 // GatherJtGrabCandidates: ported from Lilly's personal Sly 2 decomp (src/P2/jtgrab.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF660 (D_002BF660), D_002BF664 (D_002BF664), D_002BF70C (D_002BF70C), D_003DA0C0 (g_hintbox), g_sw (g_sw)
+// Globals: D_002BF660 (D_002BF660), D_002BF664 (D_002BF664), D_002BF70C (D_002BF70C), D_003DA0C0 (g_hintbox), g_sw
 // 0x00194A40 GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi  (MATCHES Sly 2; our name for the record)
 // Every frame (UpdateJtPre 0x18B7E8 asks with 0xFFFF; the others with a mask the current state allows): collects the hero's grab
 // candidates. grf says which of the world's grab lists to walk: 1 the HNDs (found in the TARGET list), 2 PIPEs, 4 class 27, 8 HSHAPEs,
@@ -2239,6 +2256,7 @@ extern HINTBOX D_003DA0C0 __asm__("D_003DA0C0");
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand) __asm__("AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND");
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
 // Every frame collects the player's grab candidates from the world's grab lists.
+// Also known as: UpdateJtCandidates (upstream readable / Sly 1 name; UpdateJtCandidates__FP5ACTORP10STEPPLAYERUi).
 void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
 {
     JTGRABCAND candidates[4];
@@ -2374,6 +2392,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
 
 
 // Refines the best grab candidates (parameter and position on the spot, reachability).
+// Also known as: TrackJt (upstream readable / Sly 1 name; TrackJt__FP5ACTORP5JTENTiP10JTGRABCAND).
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER *player, int ccand, JTGRABCAND *candidates)
 {
     float asRange[2];
@@ -2528,6 +2547,7 @@ static inline void GetSparkle(JTGRABCAND *candidate, QWROW *posOut, QWROW *pv)
 }
 
 // For every candidate spawns/refreshes the grab-hint sparkle effect.
+// Also known as: SprayJtSparkles (upstream readable / Sly 1 name; SprayJtSparkles__FP5ACTORP5JTENTiP10JTGRABCAND).
 void EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *world, STEPPLAYER *player, int ccand,
                                                           JTGRABCAND *candidates)
 {
@@ -2599,6 +2619,7 @@ LEmit:
 /* Moves the world's grab marker (SW::unknown4744) onto the candidate for plo: acquires a new marker there and
    removes the candidate's old one (LO slot 9). */
 // Splice entry: for the candidate with the id, acquires a new marker proxy and replaces the old one.
+// Also known as: ShowJtAura (upstream readable / Sly 1 name; ShowJtAura__FP2SWi).
 extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
 {
     JTGRABCAND *candidate;
@@ -2628,6 +2649,7 @@ extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
 /* A grab marker proxy of plo placed at the candidate: unparented, shown (LO slot 9), faded in, moved to the
    candidate's position (slot 29) with matrix D_002A2D00 (slot 30) and zero velocities (slots 35, 36). */
 // Acquires a marker proxy, unparents it, fades it in over 0.25 s and places it at the candidate.
+// Also known as: PloNewJtAura (upstream readable / Sly 1 name; PloNewJtAura__FP2LOiP5JTENT).
 extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
 {
     LO *ploMarker;

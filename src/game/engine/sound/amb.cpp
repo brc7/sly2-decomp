@@ -86,6 +86,7 @@ extern "C" void LoadAmbFromBrx(AMB *amb, void *stream)
 
 // After-load hook (slot 15): allocates the playing-sound handle array and, if the sound system has a stream-sound group,
 // registers each linked sound with it (found by sound id; inferred: these play as streamed sounds with a range).
+// Also known as: AddAmbientFalloffs (upstream readable / Sly 1 name; AddAmbientFalloffs__FP2LO).
 extern "C" void PostAmbLoad(AMB *amb)
 {
     AREQV request;
@@ -123,6 +124,7 @@ extern "C" void OnAmbAdd(AMB *amb)
 
 // Called when the emitter leaves the world (slot 22): stops every playing sound immediately and releases its handle.
 // (inferred)
+// Also known as: OnAmbientUnregistered (upstream readable / Sly 1 name; OnAmbientUnregistered__FP2LO).
 extern "C" void OnAmbRemove(AMB *amb)
 {
     int i;

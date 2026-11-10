@@ -170,15 +170,18 @@ extern "C" CID151 *SND_ctor(CID151 *sound)
 
 namespace M_PauseSnd {
 // Pauses a sound (counted: nested pauses need as many resumes); the first pause requests "pause" on the next flush.
+// Also known as: Pause (upstream readable / Sly 1 name).
 extern "C" void PauseSnd(CID151 *sound) { if (++sound->pauseCount == 1) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_PAUSE); }
 } // namespace M_PauseSnd
 
 namespace M_ResumeSnd {
 // Undoes one PauseSnd; the last one requests "continue" on the next flush.
+// Also known as: Resume (upstream readable / Sly 1 name).
 extern "C" void ResumeSnd(CID151 *sound) { if (--sound->pauseCount == 0) SetSndFlags(sound, SND_PAUSE | SND_CONTINUE, SND_CONTINUE); }
 } // namespace M_ResumeSnd
 
 // Requests that a sound stop, fading out over dtFade seconds (applied by the next UpdateSnd).
+// Also known as: Stop (upstream readable / Sly 1 name; Stop__4CSndf).
 extern "C" void StopSnd(CID151 *sound, float fadeTime)
 {
     sound->fadeTime = fadeTime;
@@ -197,6 +200,7 @@ extern "C" { static inline int AreVectorsNear(qword a, qword b)
 } // namespace M_StartSnd
 // Starts a sound (slot 7) unless it is already playing or starting: requests start and marks every parameter dirty
 // (plus pause if paused, plus positional if it has a source).
+// Also known as: Start (upstream readable / Sly 1 name).
 void CID151::Start()   /* key function: CID151's vtable comes out here (the namespace's views) */
 {
     using namespace M_StartSnd;
@@ -219,6 +223,7 @@ struct S;
 extern struct S g_lmZeroOne __asm__("g_lmZeroOne");
 float ClampToLimits__FP2LMf(struct S *, float) __asm__("ClampToLimits__FP2LMf");
 // Sets a sound's volume (clamped to 0..1); marks it dirty only if it changed by at least 1/1024.
+// Also known as: SetVolume (upstream readable / Sly 1 name; SetVolume__4CSndf).
 extern "C" void SetSndVolume(CID151 *sound, float volume)
 {
     float clamped = ClampToLimits__FP2LMf(&g_lmZeroOne, volume);
@@ -230,6 +235,7 @@ extern "C" void SetSndVolume(CID151 *sound, float volume)
 } // namespace M_func_001FB1F8
 
 // Sets a sound's pan angle in degrees (normalized to 0..359) and marks it dirty.
+// Also known as: SetPan (upstream readable / Sly 1 name; SetPan__4CSndi).
 extern "C" void SetSndPan(CID151 *sound, int deg)
 {
     int panAngle = deg % 360;
@@ -241,6 +247,7 @@ extern "C" void SetSndPan(CID151 *sound, int deg)
 }
 
 // Sets a sound's pitch and marks it dirty.
+// Also known as: SetPitch (upstream readable / Sly 1 name; SetPitch__4CSndiif).
 extern "C" void SetSndPitch(CID151 *sound, int n1, int n2, float pitchRatio)
 {
     if (pitchRatio != sound->pitchRatio) {
@@ -260,6 +267,7 @@ extern "C" { static inline int AreVectorsNear(qword a, qword b)
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
 } }
 // Makes a sound positional, following an object.
+// Also known as: SetSource (upstream readable / Sly 1 name; SetSource__4CSndPv).
 extern "C" void SetSndSourceLo(CID151 *sound, LO *source)
 {
     sound->source = source;
@@ -278,6 +286,7 @@ extern "C" { static inline int AreVectorsNear(qword a, qword b)
     return AreFloatsNear__Ffff(QwordX(a), QwordX(b), 0.0001f) && AreFloatsNear__Ffff(QwordY(a), QwordY(b), 0.0001f) && AreFloatsNear__Ffff(QwordZ(a), QwordZ(b), 0.0001f);
 } }
 // Makes a sound positional at a fixed world position (a zero vector means not positional).
+// Also known as: SetPosition (upstream readable / Sly 1 name; SetPosition__4CSndG9VU_VECTOR).
 extern "C" void SetSndSourcePos(CID151 *sound, qword position)
 {
     sound->position = position;
@@ -289,6 +298,7 @@ extern "C" void SetSndSourcePos(CID151 *sound, qword position)
 namespace M_SetSndRange {
 // Sets the distance at which a positional sound starts to fade (full) and the distance where it is silent (stop);
 // stop is forced to be at least full + 1.
+// Also known as: SetFalloff (upstream readable / Sly 1 name; SetFalloff__4CSndff).
 extern "C" void SetSndRange(CID151 *sound, float rangeNear, float rangeFar) { if (rangeFar <= rangeNear) { rangeFar = rangeNear + 1.0f; sound->rangeFar = rangeFar; } else sound->rangeFar = rangeFar; sound->rangeNear = rangeNear; }
 } // namespace M_SetSndRange
 
@@ -305,6 +315,7 @@ qword ConvertPosBetweenLos(LO *, int, qword) __asm__("ConvertPosBetweenLos");
 void CalculateSndVolPan(CID151 *, qword, float *, float *, int *) __asm__("CalculateSndVolPan");
 // Positional update (slot 16): volume from the distance to the listener and pan from its direction; switches the
 // sound's culled state when it becomes audible or silent.
+// Also known as: Update3D (upstream readable / Sly 1 name).
 extern "C" void UpdateSndPositional(CID151 *sound)
 {
     float fade;
@@ -331,6 +342,7 @@ void AddSndToDirtyList(CID151 *) __asm__("AddSndToDirtyList");
 void RemoveSndFromDirtyList(CID151 *) __asm__("RemoveSndFromDirtyList");
 // Sets the masked bits of a sound's request flags; a sound with pending requests is put on the manager's dirty list,
 // one without is taken off it.
+// Also known as: SetDirty (upstream readable / Sly 1 name; SetDirty__4CSndUiUi).
 void SetSndFlags(CID151 *sound, unsigned short mask, unsigned short value) __asm__("SetSndFlags"); void SetSndFlags(CID151 *sound, unsigned short mask, unsigned short value)
 {
     sound->flags = (sound->flags & ~mask) | (value & mask);
@@ -352,6 +364,7 @@ struct DL;
 int IsEntryInDl__FP2DLPv(struct DL *, void *) __asm__("IsEntryInDl__FP2DLPv");
 void RemoveDlEntry__FP2DLPv(struct DL *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 // Takes a sound off the dirty list and drops the list's reference.
+// Also known as: RemoveActive (upstream readable / Sly 1 name).
 extern "C" void RemoveSndFromDirtyList(CID151 *sound)
 {
     if (IsEntryInDl__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, sound)) {
@@ -427,6 +440,7 @@ struct Lock {
 };
 // Flushes a dirty sound to the sound hardware: positional update, then start, stop, status query, parameters, pause and
 // continue by its request bits (each through its virtual member).
+// Also known as: UpdateFrame (upstream readable / Sly 1 name).
 extern "C" void UpdateSnd(CID151 *sound)
 {
     Lock lock(sound);
@@ -487,6 +501,7 @@ extern "C" void OnBankSoundStatus(int isPlaying, long context)
 } // namespace M_func_001FBB30
 
 // Creates a bank sound for a sound-effect id from the manager's pool; it starts at the next flush.
+// Also known as: PsndNewPlain (upstream readable / Sly 1 name; PsndNewPlain__Fi).
 extern "C" void CreateSfxSound(int sfxId)
 {
     BANKSND_ctor((BANKSND *)AllocBanksnd(0x70), sfxId);
@@ -537,6 +552,7 @@ int GetHeroPo(void *) __asm__("GetHeroPo");
 void StepRandomSfxVariation(SNDMGR *) __asm__("StepRandomSfxVariation");
 // Starts a bank sound on the 989snd library (slot 9) with its bank, sound index, volume, pan and pitch: loopers start
 // asynchronously and get a voice handle, one-shots are fire-and-forget; some effects get special handling.
+// Also known as: StartIop (upstream readable / Sly 1 name).
 extern "C" void PlayBanksnd(BANKSND *sound)
 {
     SNDMGR *soundManager = &D_003DD040;
@@ -590,6 +606,7 @@ namespace M_StopBanksnd {
 void snd_AutoVol(int voiceHandle, int a, int b, int c) __asm__("snd_AutoVol");
 void snd_StopSound(int voiceHandle) __asm__("snd_StopSound");
 // Stops a bank sound (slot 10): a fade-out when a fade time was requested, else immediately.
+// Also known as: StopIop (upstream readable / Sly 1 name).
 extern "C" void StopBanksnd(CID151 *sound)
 {
     if (sound->fadeTime > 0.0f)
@@ -601,12 +618,14 @@ extern "C" void StopBanksnd(CID151 *sound)
 } // namespace M_StopBanksnd
 
 // Pauses a bank sound's voice (slot 11).
+// Also known as: PauseIop (upstream readable / Sly 1 name).
 extern "C" void PauseBanksnd(CID151 *sound)
 {
     snd_PauseSound(sound->voiceHandle);
 }
 
 // Resumes a bank sound's voice (slot 12).
+// Also known as: ResumeIop (upstream readable / Sly 1 name).
 extern "C" void ContinueBanksnd(CID151 *sound)
 {
     snd_ContinueSound(sound->voiceHandle);
@@ -615,6 +634,7 @@ extern "C" void ContinueBanksnd(CID151 *sound)
 namespace M_ApplyBanksndParams {
 void func_00232500(int, int, int, int, int, int) __asm__("func_00232500");   /* 989snd: set voice volume / pan / pitch (inferred) */
 // Sends a bank sound's changed volume, pan and pitch to its voice (slot 13).
+// Also known as: SendChanges (upstream readable / Sly 1 name).
 extern "C" void ApplyBanksndParams(CID151 *sound)
 {
     int flags = sound->flags;
@@ -633,6 +653,7 @@ namespace M_BANKSND_QueryStatus {
 void OnBankSoundStatus(void) __asm__("OnBankSoundStatus");
 void snd_SoundIsStillPlaying_CB(int, void (*)(void), void *) __asm__("snd_SoundIsStillPlaying_CB");
 // Asks the IOP whether a bank sound's voice is still playing (slot 14), with OnBankSoundStatus as callback.
+// Also known as: Requests (upstream readable / Sly 1 name).
 extern "C" void BANKSND_QueryStatus(CID151 *sound)
 {
     if (sound->flags & SND_QUERY_PLAYING) {
@@ -646,6 +667,7 @@ extern "C" void BANKSND_QueryStatus(CID151 *sound)
 namespace M_func_001FC018 {
 // Culling hook (slot 15): a sound that becomes audible again restarts; one that becomes silent is stopped (loopers keep
 // their parameters so they can restart). (inferred)
+// Also known as: OnAudible (upstream readable / Sly 1 name; OnAudible__9CSndPlaini).
 extern "C" void SetBankSoundCulled(CID151 *sound, int isCulled)
 {
     if (!isCulled) sound->Start();
@@ -668,6 +690,7 @@ namespace M_DecrefBanksnd {
 void BASIC_dtor(BANKSND *, int) __asm__("_$_5BASIC");   /* ~BASIC with in-charge flag 0 */
 void FreeBanksnd(BANKSND *) __asm__("FreeBanksnd");
 // Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
+// Also known as: Release (upstream readable / Sly 1 name).
 extern "C" void DecrefBanksnd(BANKSND *sound) { if (--sound->refCount == 0 && sound) { BASIC_dtor(sound, 0); FreeBanksnd(sound); } }
 } // namespace M_DecrefBanksnd
 
@@ -701,6 +724,7 @@ extern "C" void FreeBanksnd(void *pv)
 
 namespace M_PstreamsndNew {
 // Creates a streamed sound (music, dialog, ambience) for a stream record and kind, or 0 if the pool is empty.
+// Also known as: PsndNewVoice (upstream readable / Sly 1 name; PsndNewVoice__FP9SNDSTREAMPv).
 extern "C" STREAMSND *PstreamsndNew(FILEREC *pfilerec, int streamKind)
 {
     STREAMSND *px;
@@ -722,6 +746,7 @@ void PauseSnd(CID151 *) __asm__("PauseSnd");
 // Streamed-sound constructor: base constructor, STREAMSND vtable, the file record and kind, all six sub-group volumes at
 // 1; requests start and marks it timed, and starts paused when its channel's pause-fade weight is 0 or
 // the manager is paused.
+// Also known as: CSndVoice constructor (upstream readable / Sly 1 name; __9CSndVoiceii).
 extern "C" STREAMSND *STREAMSND_ctor(STREAMSND *sound, FILEREC *pfilerec, int streamKind)
 {
     int i;
@@ -746,6 +771,7 @@ extern "C" STREAMSND *STREAMSND_ctor(STREAMSND *sound, FILEREC *pfilerec, int st
 namespace M_StartStreamsnd {
 void StartSnd(STREAMSND *) __asm__("StartSnd");
 // Starts a streamed sound (slot 7): base start, then resets its play time and status queries.
+// Also known as: Start (upstream readable / Sly 1 name).
 extern "C" void StartStreamsnd(STREAMSND *sound)
 {
     /* only when not already started: no voice, not playing, flag 1 clear */
@@ -763,6 +789,7 @@ extern struct S g_lmZeroOne __asm__("g_lmZeroOne");   /* the volume limits (0..1
 float ClampToLimits__FP2LMf(struct S *, float) __asm__("ClampToLimits__FP2LMf");
 void SetSndFlags(STREAMSND *, int, int) __asm__("SetSndFlags");
 // Sets the volume of one of a stream's six sub-groups (channels of a multi-layer stream) and marks it dirty.
+// Also known as: SetVoiceVolume (upstream readable / Sly 1 name; SetVoiceVolume__9CSndVoiceif).
 extern "C" void SetStreamsndGroupVolume(STREAMSND *sound, unsigned int group, float volume)
 {
     if (group < 6) {
@@ -782,6 +809,7 @@ void SetSndFlags(STREAMSND *, int, int) __asm__("SetSndFlags");
 // Wrap an angle in degrees to 0..359.
 extern "C" { static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360; } }   /* to 0..359 */
 // Sets the pan of one of a stream's six sub-groups and marks it dirty. (inferred)
+// Also known as: SetVoicePan (upstream readable / Sly 1 name; SetVoicePan__9CSndVoiceii).
 extern "C" void SetStreamGroupPan(STREAMSND *sound, unsigned int group, int deg)
 {
     if (group < 6) {
@@ -798,6 +826,7 @@ extern "C" void SetStreamGroupPan(STREAMSND *sound, unsigned int group, int deg)
 namespace M_func_001FC408 {
 // Adds a positional source (object, volume, range) to a stream sub-group (at most 8 per group); the loudest audible
 // source drives the group's volume and pan. (inferred)
+// Also known as: AddVoiceFalloff (upstream readable / Sly 1 name; AddVoiceFalloff__9CSndVoiceiiPvf).
 extern "C" void AddStreamGroupSource(STREAMSND *sound, unsigned int group, LO *object, LM *range, float gain)
 {
     if (group < 6 && sound->groupSourceCounts[group] < 8) {
@@ -815,6 +844,7 @@ extern "C" void AddStreamGroupSource(STREAMSND *sound, unsigned int group, LO *o
 
 namespace M_func_001FC4F8 {
 // Kind of a streamed sound (slot 8): 2 when looping, else 1. (inferred)
+// Also known as: Kind (upstream readable / Sly 1 name).
 extern "C" int GetStreamSoundKind(STREAMSND *sound) { return (sound->streamKind & 4) ? 2 : 1; }
 } // namespace M_func_001FC4F8
 
@@ -846,6 +876,7 @@ extern "C" { static inline int BuildStreamFileKey(struct K *key, FILEREC *record
 } }
 // Starts a streamed sound (slot 9): resolves the stream's file and sends the start command to the IOP stream module
 // with volume and pan.
+// Also known as: StartIop (upstream readable / Sly 1 name).
 extern "C" void PlayStreamsnd(STREAMSND *sound)
 {
     struct K key;
@@ -883,18 +914,21 @@ extern "C" void PlayStreamsnd(STREAMSND *sound)
 } // namespace M_PlayStreamsnd
 
 // Stops a streamed sound on the IOP (slot 10). (inferred)
+// Also known as: StopIop (upstream readable / Sly 1 name).
 extern "C" void StopStreamSound(CID151 *sound)
 {
     func_00233088(SUKR_RPC, SUKR_STOP, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 // Pauses a streamed sound on the IOP (slot 11). (inferred)
+// Also known as: PauseIop (upstream readable / Sly 1 name).
 extern "C" void PauseStreamSound(CID151 *sound)
 {
     func_00233088(SUKR_RPC, SUKR_PAUSE, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 // Resumes a streamed sound on the IOP (slot 12). (inferred)
+// Also known as: ResumeIop (upstream readable / Sly 1 name).
 extern "C" void ResumeStreamSound(CID151 *sound)
 {
     func_00233088(SUKR_RPC, SUKR_CONTINUE, sound->voiceHandle, 0, 0, 0, 0);
@@ -902,6 +936,7 @@ extern "C" void ResumeStreamSound(CID151 *sound)
 
 namespace M_ApplyStreamsndParams {
 // Sends a stream's changed volume, pan and pitch, then each sub-group's parameters (slot 13).
+// Also known as: SendChanges (upstream readable / Sly 1 name).
 extern "C" void ApplyStreamsndParams(STREAMSND *sound)
 {
     int i;
@@ -939,6 +974,7 @@ void OnBankSoundStatus(void) __asm__("OnBankSoundStatus");
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long) __asm__("func_002330D0");
 // Queries a stream's play position and whether it is still playing (slot 14), with callbacks; accumulates paused time.
 // (inferred)
+// Also known as: Requests (upstream readable / Sly 1 name).
 extern "C" void QueryStreamSoundStatus(STREAMSND *sound)
 {
     if (sound->flags & SND_QUERY_STARTED) {
@@ -981,6 +1017,7 @@ extern "C" { static inline int AreVectorsNear(qword a, qword b)
 } }
 // Positional update of a stream (slot 16): the base update, then per sub-group the loudest audible source sets the
 // group's volume and pan.
+// Also known as: Update3D (upstream readable / Sly 1 name).
 extern "C" void UpdateStreamsndPositional(STREAMSND *sound)
 {
     int group;
@@ -1140,6 +1177,7 @@ int func_00233048(int, int, int, int, int, int, int) __asm__("func_00233048");
 long TickNow(struct CLOCK *) __asm__("TickNow");
 // Boot-time sound setup: starts the 989snd system and the IOP stream module, sets all volumes to 1 and records the start
 // time.
+// Also known as: StartupGameSound (upstream readable / Sly 1 name; StartupGameSound__Fv).
 extern "C" void StartupSound(void)
 {
     int channel, row;
@@ -1171,6 +1209,7 @@ extern "C" void OnSoundManagerStatusResult(int result, long context) { SNDMGR *s
 
 namespace M_func_001FCFA0 {
 // The record of the dialog line with the given id (0 when the level has none).
+// Also known as: PstreamFindDialog (upstream readable / Sly 1 name; PstreamFindDialog__FP8SOUNDMGRi).
 SNDSTREAM *FindDialogStream(SNDMGR *soundManager, int id) __asm__("FindDialogStream"); SNDSTREAM *FindDialogStream(SNDMGR *soundManager, int id)
 {
     SNDSTREAM *stream;
@@ -1194,6 +1233,7 @@ extern "C" float GetDialogStreamDuration(int id)
 
 namespace M_func_001FCFF8 {
 // The file record of the music track with the given id (0 when the level has none); PushMusic streams it.
+// Also known as: PstreamFindMusic (upstream readable / Sly 1 name; PstreamFindMusic__FP8SOUNDMGRi).
 extern "C" SNDFILE *FindMusicStream(SNDMGR *soundManager, int id)
 {
     SNDFILE *file;
@@ -1206,6 +1246,7 @@ extern "C" SNDFILE *FindMusicStream(SNDMGR *soundManager, int id)
 
 namespace M_PsndFromSfxid {
 // The manager's sound entry for a sound-effect id, or 0 when the level does not have it.
+// Also known as: IsoundFromSfxid (upstream readable / Sly 1 name; IsoundFromSfxid__FP8SOUNDMGRi).
 extern "C" int *FindSoundForSfxId(SNDMGR *soundManager, int sfxId)
 {
     int index;
@@ -1228,6 +1269,7 @@ namespace M_func_001FD080 {
 // Which volume channel a stream belongs to: 1 for a music track, 0 for the ambience stream, 2 for anything else (the
 // dialog streams). SetSndmgrChannelVolume confirms the mapping: channel 0 drives the ambience sound, 1 the music stack,
 // 2 the dialog sound.
+// Also known as: ItrackFromStream (upstream readable / Sly 1 name; ItrackFromStream__FP8SOUNDMGRP9SNDSTREAM).
 extern "C" int GetStreamVolumeChannel(SNDMGR *soundManager, FILEREC *record)
 {
     SNDFILE *file;
@@ -1335,6 +1377,7 @@ inline int IsSameFileRecord(FILEREC *record, FILEREC *other)
 extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream *input) __asm__("LoadSoundSectionFromBrx");
 // Loads the level's sound section: the sound bank file, the kind of each sound, the effect-id table, the ambience
 // stream and its groups, the dialog lines (current language) and the music tracks.
+// Also known as: LoadMusicFromBrx (upstream readable / Sly 1 name; LoadMusicFromBrx__FP8SOUNDMGRP18CBinaryInputStream).
 extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream *input)
 {
     FILEREC bankRecord;
@@ -1443,6 +1486,7 @@ extern "C" { static inline int BuildStreamFileKey(struct K *key, FILEREC *record
     return key->keyHi != 0;
 } }
 // After loading: loads the sound bank if needed, resolves its cross references and marks which sounds loop.
+// Also known as: LoadSoundBank (upstream readable / Sly 1 name; LoadSoundBank__FP8SOUNDMGR).
 extern "C" void PostSoundLoad(SNDMGR *soundManager)
 {
     int i;
@@ -1480,6 +1524,7 @@ void ClearDl__FP2DL(void *) __asm__("ClearDl__FP2DL");
 void ResetSndmgrVolumes(SNDMGR *) __asm__("ResetSndmgrVolumes");
 // Stops every sound and stream, flushes the hardware queues, clears the manager's state and dirty list and resets volumes
 // (level teardown).
+// Also known as: ResetSoundMgr (upstream readable / Sly 1 name; ResetSoundMgr__FP8SOUNDMGR).
 extern "C" void ResetSndmgr(SNDMGR *soundManager)
 {
     snd_StopAllStreams();
@@ -1533,6 +1578,7 @@ void UpdateSnd(CID151 *) __asm__("UpdateSnd");
 int snd_FlushSoundCommands(void) __asm__("snd_FlushSoundCommands");
 // Per-frame sound update: timing, IOP status polls, global pause while the game is paused, music mix, dialog events,
 // master fades, then flushes every dirty sound and the 989snd command queue.
+// Also known as: UpdateSoundMgr (upstream readable / Sly 1 name; UpdateSoundMgr__FPv).
 extern "C" void UpdateSndmgr(SNDMGR *soundManager)
 {
     STREAMSND *music;
@@ -1648,6 +1694,7 @@ float SmoothValue__FfffP3SMPPf(float,float,float,SMP *,float *) __asm__("SmoothV
 void SetStreamsndGroupVolume(STREAMSND *,int,float) __asm__("SetStreamsndGroupVolume");
 // Picks the music layer (0, 1 or 2) from requests and the player's state (alert, hiding, actions) and cross-fades the
 // three layers of the current music stream toward it, keeping their total power constant. (inferred)
+// Also known as: UpdateStemWeights (upstream readable / Sly 1 name; UpdateStemWeights__FPv).
 extern "C" void UpdateMusicMix(SNDMGR *input)
 {
     SNDMGR *soundManager = input;
@@ -1715,6 +1762,7 @@ void StopDialog(SNDMGR *) __asm__("StopDialog");
 void ApplyDialogEvent(SNDMGR *, DIALOGEVENT *) __asm__("ApplyDialogEvent");
 // Advances the current dialog: fires its lip-sync / animation events as the stream's play time passes them and stops the
 // dialog at its end. (inferred)
+// Also known as: UpdateDialogEvents (upstream readable / Sly 1 name; UpdateDialogEvents__FPv).
 extern "C" void UpdateDialog(SNDMGR *soundManager)
 {
     STREAMSND *dialog = soundManager->dialogSound;
@@ -1758,6 +1806,7 @@ void SetSoEyesClosed(void *, float) __asm__("SetSoEyesClosed");
 void SetSmaGoal(void *, int) __asm__("SetSmaGoal");
 // Applies one dialog event: a gesture for role 3, otherwise sets the goal state of the speaker role's state machine
 // (lip sync). (inferred)
+// Also known as: FireDialogTarget (upstream readable / Sly 1 name; FireDialogTarget__FP8SOUNDMGRPv).
 extern "C" void ApplyDialogEvent(SNDMGR *soundManager, DIALOGEVENT *event)
 {
     int role = event->role;
@@ -1786,6 +1835,7 @@ static inline void Set(RANGE *range, float near, float far) { range->near = near
 // Starts a music track: stops the current one, then either restarts the track if it is already on the stack (moving it to
 // the top) or creates a looping stream for it whose sub-groups 3 and 4 follow Bentley / Murray and Sly (positional
 // layers, 2000..5000 units), and pushes it on the 8-deep music stack. Returns the stream (0: unknown id or full stack).
+// Also known as: PsndPushMusic (upstream readable / Sly 1 name; PsndPushMusic__FP8SOUNDMGRi).
 extern "C" STREAMSND *PushMusic(SNDMGR *soundManager, int id)
 {
     SNDREFC music = FindMusic(soundManager, id);
@@ -1812,6 +1862,7 @@ namespace M_func_001FE310 {
 extern void FindMusic(SNDREF *, SNDMGR *, int) __asm__("FindMusic");   /* its by-value result, by hand */
 // Stops a music track by id: takes it off the stack (FindMusic) and, unless it had already stopped, stops it and
 // restarts the track now on top of the stack. (inferred)
+// Also known as: PopMusic (upstream readable / Sly 1 name; PopMusic__FP8SOUNDMGRi).
 extern "C" void StopMusic(SNDMGR *soundManager, int id)
 {
     SNDREF music;
@@ -1832,6 +1883,7 @@ extern "C" void StopMusic(SNDMGR *soundManager, int id)
 namespace M_TMusicCur {
 typedef unsigned long ulong;
 // Play time of the current music track in seconds.
+// Also known as: TMusicTop (upstream readable / Sly 1 name; TMusicTop__FPv).
 extern "C" float GetMusicTime(SNDMGR *soundManager)
 {
     STREAMSND *music;
@@ -1846,6 +1898,7 @@ namespace M_func_001FE478 {
 extern FILEREC *FindMusicStream(SNDMGR *, int) __asm__("FindMusicStream");
 // Takes the stream of the music track with the given id off the music stack and returns a reference to it (null when
 // the track is not on the stack); the entries above it move down. (inferred)
+// Also known as: RefTakeMusic (upstream readable / Sly 1 name; RefTakeMusic__FP8SOUNDMGRi).
 extern "C" SNDREFC FindMusic(SNDMGR *soundManager, int id)
 {
     FILEREC *file = FindMusicStream(soundManager, id);
@@ -1863,6 +1916,7 @@ extern "C" SNDREFC FindMusic(SNDMGR *soundManager, int id)
 namespace M_func_001FE5B8 {
 // Sets or clears bits of the manager's mute-when-stopped flags (bit 1: a player mode, bit 2: cutscenes clear it while
 // they run, so stopping game time then keeps the music and ambience audible). (inferred)
+// Also known as: SetSoundMgrFlags (upstream readable / Sly 1 name; SetSoundMgrFlags__FP8SOUNDMGRUii).
 extern "C" void SetSoundManagerFlags(SNDMGR *soundManager, int mask, int isSet) { if (isSet) soundManager->muteWhenStoppedFlags |= mask; else soundManager->muteWhenStoppedFlags &= ~mask; }
 } // namespace M_func_001FE5B8
 
@@ -1887,6 +1941,7 @@ BASIC *FindLiveSma(BASIC *, int) __asm__("FindLiveSma");
 // Starts a dialog line: stops the current one, creates its stream, shows its subtitle (unless noSubtitle) and, when the
 // line has events and a speaker, binds the six lip-sync roles: role 3 is the speaker object, the others the state
 // machines GetDialogRoleSmOid names on it. Each bound object is counted (vtable slot 1). Returns the stream.
+// Also known as: PsndStartDialog (upstream readable / Sly 1 name; PsndStartDialog__FP8SOUNDMGRii).
 extern "C" STREAMSND *StartDialog(SNDMGR *soundManager, int id, int noSubtitle)
 {
     SNDSTREAM *record;
@@ -1931,6 +1986,7 @@ extern "C" { static inline void Stop(SNDREF *ref)
 } }
 // Stops the current dialog: flushes its remaining events, returns the speakers' mouths to rest, stops the stream and
 // clears the dialog state.
+// Also known as: StopDialog (upstream readable / Sly 1 name; StopDialog__FP8SOUNDMGR).
 extern "C" void StopDialog(SNDMGR *soundManager)
 {
     int role;
@@ -1958,6 +2014,7 @@ namespace M_func_001FE848 {
 // The constant 1 materialised in $4.
 extern "C" { static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu %0,$zero,%1":"=r"(r):"i"(1));return r;} }
 // True while a dialog (optionally the one with the given id) is playing. (inferred)
+// Also known as: FDialogPlaying (upstream readable / Sly 1 name; FDialogPlaying__FP8SOUNDMGRi).
 extern "C" int IsDialogPlaying(SNDMGR *soundManager, int id)
 {
     SNDSTREAM *record; int isPlaying;
@@ -1980,6 +2037,7 @@ typedef unsigned long ulong;
 extern "C" { static inline float PlaySeconds(STREAMSND *sound) { return (float)sound->playTime * (1.0f / PLAY_TIME_TICKS_PER_SECOND); } }
 // Play time of the current dialog in seconds; when the stream reports none and has no voice (not started yet, or a line
 // without audio), the time measured by UpdateDialog instead. (inferred)
+// Also known as: TDialog (upstream readable / Sly 1 name; TDialog__FP8SOUNDMGR).
 extern "C" float GetDialogTime(SNDMGR *soundManager)
 {
     if (!soundManager->dialogSound) return 0.0f;
@@ -1995,6 +2053,7 @@ extern "C" float GetDialogTime(SNDMGR *soundManager)
 
 namespace M_func_001FE990 {
 // Index of an id among the ambience stream's groups, or -1 (used to attach ambient emitters to groups). (inferred)
+// Also known as: IvoiceFromTarget (upstream readable / Sly 1 name; IvoiceFromTarget__FP8SOUNDMGRi).
 extern "C" int FindStreamGroupIndex(SNDMGR *soundManager, int id)
 {
     int i;
@@ -2005,6 +2064,7 @@ extern "C" int FindStreamGroupIndex(SNDMGR *soundManager, int id)
 } // namespace M_func_001FE990
 
 // Sets the 989snd output mode (mono / stereo option) if it changed.
+// Also known as: SetSoundPlaybackMode (upstream readable / Sly 1 name; SetSoundPlaybackMode__FP8SOUNDMGRi).
 extern "C" void SetSndmgrPlaybackMode(SNDMGR *soundManager, int nMode)
 {
     if (soundManager->playbackMode != nMode) {
@@ -2020,6 +2080,7 @@ float ClampToLimits__FP2LMf(struct S *, float) __asm__("ClampToLimits__FP2LMf");
 void snd_SetMasterVolume(int, int) __asm__("snd_SetMasterVolume");
 #define SND_MASTER_VOLUME_ALL 0x10   /* 989snd: the overall master (0..3 are the per-channel masters) (inferred) */
 // Sets the master volume (clamped) on the 989snd library.
+// Also known as: SetSoundMasterVolume (upstream readable / Sly 1 name; SetSoundMasterVolume__FP8SOUNDMGRf).
 extern "C" void SetSndmgrMasterVolume(SNDMGR *soundManager, float volume)
 {
     float clamped = ClampToLimits__FP2LMf(&g_lmZeroOne, volume);
@@ -2048,6 +2109,7 @@ static inline STREAMSND *ReadReceiver(STREAMSND **pp)
 }
 // Sets one category's weight on a volume channel, recomputes the channel's output volume, sends it and updates the live
 // streams.
+// Also known as: SetSoundChannelVolume (upstream readable / Sly 1 name; SetSoundChannelVolume__FP8SOUNDMGRiif).
 extern "C" void SetSndmgrChannelVolume(SNDMGR *soundManager,int channel,int category,float volume)
 {
     if((unsigned int)category>=8)return;
@@ -2093,6 +2155,7 @@ namespace M_ResetSndmgrVolumes {
 void SetSndmgrMasterVolume(void *, float) __asm__("SetSndmgrMasterVolume");
 void SetSndmgrChannelVolume(void *, int, int, float) __asm__("SetSndmgrChannelVolume");
 // Resets the master volume and all channel weights to 1 (category 1 excepted).
+// Also known as: ResetSoundVolumes (upstream readable / Sly 1 name; ResetSoundVolumes__FPv).
 extern "C" void ResetSndmgrVolumes(void *soundManager)
 {
     int category, channel;
@@ -2151,6 +2214,7 @@ void func_002322F0(struct M *) __asm__("func_002322F0");
 // After one of the hero's own effects (PlayBanksnd), unless a music layer other than 0 is selected: a random step of the
 // variation value in -12..12 (mostly +1, sometimes -5; b picks a row of a by the value, and the higher the value the
 // more -5 entries the row has), then plays effect 0x28 with 127 x the value as its pitch modulation. (inferred)
+// Also known as: StepSoundMood (upstream readable / Sly 1 name; StepSoundMood__FP8SOUNDMGR).
 extern "C" void StepRandomSfxVariation(SNDMGR *soundManager)
 {
     int r;

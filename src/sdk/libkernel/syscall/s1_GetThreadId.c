@@ -1,4 +1,5 @@
 /* EE kernel syscall stub 45 (hand-written assembly in Sony's libkernel). */
+// Also known as: ReleaseWaitThread (upstream readable / Sly 1 name).
 __asm__(
     ".set noreorder\n"
     ".text\n"

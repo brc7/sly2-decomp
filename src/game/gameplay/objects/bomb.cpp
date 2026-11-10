@@ -141,6 +141,7 @@ void SetBombOwner(BOMBV *p, BOMBV *pbombOwner);
 void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 
 // BOMB vtable slot 7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
+// Also known as: InitBomb (upstream readable / Sly 1 name; InitBomb__FP4BOMB).
 extern "C" void InitBomb(BOMBV *bomb) {
     int x;
     InitSo(bomb);
@@ -165,12 +166,14 @@ extern "C" void CloneBomb(BOMBV *bomb, BOMBV *source)
 }
 
 // BOMB vtable slot 15: PostSoLoad, and with fCustomXps (+0x1F4) allocate the custom-XP buffer (0xC0).
+// Also known as: PostBombLoad (upstream readable / Sly 1 name; PostBombLoad__FP4BOMB).
 extern "C" void PostBombLoad(BOMBV *bomb) {
     PostSoLoad(bomb);
     if (bomb->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; bomb->axp = (CXP *)AllocFromWorldHeap(&k); }
 }
 
 // BOMB vtable slot 5: base handler; on msg 4 about itself while not primed, PrimeBomb(0).
+// Also known as: HandleBombMessage (upstream readable / Sly 1 name; HandleBombMessage__FP4BOMB5MSGIDPv).
 void BOMB::HandleMessage(MSGID msg_m, void *pm_m) { BOMBV *bomb = (BOMBV *)this; int msg = (int)msg_m; CREQ *pm = (CREQ *)pm_m;
     HandleBasicMessage(bomb, msg, pm);
     if (msg == 4 && (BOMBV *)pm->po == bomb && bomb->k == 0) PrimeBomb(bomb, 0.0f);
@@ -189,6 +192,7 @@ static __inline__ float GLength(qword v)
     return g;
 }
 // BOMB vt16: UpdateSo; if timer expired or speed above threshold DetonateBomb, else UpdateBombCustomXps when enabled.
+// Also known as: UpdateBomb (upstream readable / Sly 1 name; UpdateBomb__FP4BOMBf).
 extern "C" void UpdateBomb(BOMBV *bomb)
 {
     UpdateSo(bomb);
@@ -209,6 +213,7 @@ extern "C" void UpdateBomb(BOMBV *bomb)
 }
 
 // Drop previous forced pairs (UpdateSwPox k=2), then pair with candidate SOs carrying flag 0x100. (inferred)
+// Also known as: SweepProjectile (upstream readable / Sly 1 name; SweepProjectile__FP3ALO).
 extern "C" void UpdateBombCustomXps(BOMBV *bomb)
 {
     int i;
@@ -265,6 +270,7 @@ extern "C" void UpdateBombCustomXps(BOMBV *bomb)
 }
 
 // BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (AddXp type 9). (inferred)
+// Also known as: MarkProjectileSweep (upstream readable / Sly 1 name; MarkProjectileSweep__FP3ALOP3SOEiiii).
 extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int a2, int a3, int a4, int a5)
 {
     AddSoCustomXps(bomb, ps, a2, a3, a4, a5);
@@ -325,6 +331,7 @@ namespace RO_ORDER { extern const unsigned int r_D_002A4B10[2] __asm__("D_002A4B
 namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.40282347e+38f; }
 // BOMB vtable slot 58: after base, choose best contact/target and prime or prepare detonation (state machine on +0x170 kinds
 // 0/1/2). (inferred)
+// Also known as: ProjectileContacts (upstream readable / Sly 1 name; ProjectileContacts__FP3ALO).
 extern "C" void HandleBombContact(BOMBV *bomb)
 {
     qword pos;
@@ -413,6 +420,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
 }
 
 // 0 if any object in the chain derives from one of 4 classes (D_002BC9D0), else 1. (inferred)
+// Also known as: FStickyProjectileParent (upstream readable / Sly 1 name; FStickyProjectileParent__FP3ALOPv).
 extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
     unsigned int i;
     for (; pn; pn = pn->pparent) {
@@ -425,6 +433,7 @@ extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
 
 // BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event
 // 0x1B. (inferred)
+// Also known as: AttachStickyProjectile (upstream readable / Sly 1 name; AttachStickyProjectile__FPvT0).
 extern "C" void ApplyBombThrow(BOMBV *bomb, Q18 *q) {
     bomb->thrower = q;
     SetLoParent(bomb, q->f18 != 1 ? q : 0, 3);
@@ -444,6 +453,7 @@ static __inline__ qword VLen(qword c)
     return l;
 }
 // BOMB vt75 TakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
+// Also known as: FAcceptContactProjectile (upstream readable / Sly 1 name; FAcceptContactProjectile__FP3ALOP5CTMSG).
 extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
 {
     int r;
@@ -497,6 +507,7 @@ static __inline__ void MulStore(BOMBV *bomb, MATRIX3Q *pm)
     bomb->matDetonate = t;
 }
 // Once: record detonation pos (+0x180), save v/w, orient by mode (+0x170) using the impact normal.
+// Also known as: RecordHit (upstream readable / Sly 1 name; RecordHit__FP3ALOG9VU_VECTORT1).
 extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 {
     MATRIX3Q m;
@@ -526,12 +537,14 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 }
 
 // tDetonate = min(tDetonate, now + dt).
+// Also known as: ExpireIn (upstream readable / Sly 1 name; ExpireIn__FP3ALOf).
 void PrimeBomb(BOMBV *bomb, float f) { bomb->tDetonate = (bomb->tDetonate < g_clock.time + f) ? bomb->tDetonate : g_clock.time + f; }
 
 // (Claude agent) IntersectSphereBsp takes its float before the HIT* (see AGENT_GUIDE "Float vs. int parameter order").
 // Radius: fold turns `b >= a ? b : a` into MAX(b, a) only with both values in locals (a loaded first).
 // Objects within max(radius, radiusJt) of the detonation point (IntersectSwBoundingSphere), filtered by line of
 // sight, sorted/uniqued. (inferred)
+// Also known as: AploVictims (upstream readable / Sly 1 name; AploVictims__FP3ALOP6VECTORPv).
 extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
 {
     AREQV req;
@@ -591,6 +604,7 @@ extern "C" void SortUniqueBombVictims(BOMBV *unused, int *pc, SOV **a) {
 namespace RO_ORDER { extern const float r_D_002A4B1C __asm__("D_002A4B1C") = 3.40282347e+38f; }
 // If in world: PrepareBombDetonation, send damage/explosion messages to every victim, explode effects, reclaim or
 // remove.
+// Also known as: EndProjectile (upstream readable / Sly 1 name; EndProjectile__FP3ALO).
 extern "C" void DetonateBomb(BOMBV *bomb)
 {
     if ((bomb->isInWorld & 1) == 0)
@@ -670,6 +684,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
 
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
 // BOMB vtable slot 26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
+// Also known as: ResetProjectileInstance (upstream readable / Sly 1 name; ResetProjectileInstance__FP2LO).
 extern "C" void ResetBomb(BOMBV *bomb) {
     SO_ResetForProxy(bomb);
     bomb->isDetonationPrepared = 0;
@@ -683,6 +698,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
 }
 
 // BOMB vtable slot 61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
+// Also known as: OverlapKindProjectile (upstream readable / Sly 1 name; OverlapKindProjectile__FP3ALOT0).
 extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = ShouldSoIgnoreIntersection(bomb, pso);
@@ -693,6 +709,7 @@ extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
 }
 
 // Set owner (+0x200) and RefreshSwObjectCollisionFilter if changed. (inferred)
+// Also known as: SetProjectileLauncher (upstream readable / Sly 1 name; SetProjectileLauncher__FP3ALOP2LO).
 extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
     if (pbombOwner != bomb->owner) {

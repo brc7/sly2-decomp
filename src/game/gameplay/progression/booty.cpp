@@ -202,6 +202,7 @@ extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
 }
 
 // BOOTY (cid 0x67) vtable slot 15: PostSoLoad then SetBootyState(0). (inferred)
+// Also known as: PostLoadBooty (upstream readable / Sly 1 name; PostLoadBooty__FP2LO).
 void BOOTY::PostLoad() { BOOTYV *booty = (BOOTYV *)this;
     PostSoLoad(booty);
     SetBootyState(booty, 0);
@@ -214,6 +215,7 @@ extern "C" void ClearBootyState(BOOTYV *booty) {
 
 // cid 0x67 vtable slot 16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop
 // (DropStepplayerBooty) once the level timer D_003E1BFC passes. (inferred)
+// Also known as: UpdateBooty (upstream readable / Sly 1 name; UpdateBooty__FP2LO).
 extern "C" void UpdateBooty(BOOTYV *booty) {
     int st;
     UpdateSo(booty);
@@ -236,6 +238,7 @@ extern "C" void UpdateBooty(BOOTYV *booty) {
 // Clamps g to [gMin, gMax].
 // cid 0x67 vtable slot 19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw
 // normally. (inferred)
+// Also known as: FBootyDrawDelta (upstream readable / Sly 1 name; FBootyDrawDelta__FP3ALO).
 extern "C" void RenderBootySelf(BOOTYV *booty)
 {
     switch (booty->st) {
@@ -269,6 +272,7 @@ extern "C" void RenderBootySelf(BOOTYV *booty)
 
 // cid 0x67 vtable slot 5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3).
 // (inferred)
+// Also known as: OnBootyMessage (upstream readable / Sly 1 name; OnBootyMessage__FP2LOii).
 extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
     HandleBasicMessage(booty, msg, a);
     switch (msg) {
@@ -289,6 +293,7 @@ extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
 struct XPO { BASIC *pbasic; };
 struct XPM { char pad[0x14]; XPO *pa; };
 // BOOTY (cid 0x67) vtable slot 61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
+// Also known as: OverlapKindBooty (upstream readable / Sly 1 name; OverlapKindBooty__FP3ALOT0).
 extern "C" int ShouldBootyIgnoreIntersection(BOOTYV *booty, XPM *pm) {
     if (booty->st == 5 && IsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
     return ShouldSoIgnoreIntersection(booty, pm);
@@ -296,12 +301,14 @@ extern "C" int ShouldBootyIgnoreIntersection(BOOTYV *booty, XPM *pm) {
 
 struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
 // BOOTY (cid 0x67) vtable slot 55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
+// Also known as: OnBootyXpNew (upstream readable / Sly 1 name; OnBootyXpNew__FP3ALOP2XPi).
 extern "C" void AdjustBootyNewXp(BOOTYV *booty, XPE *ae, int i) {
     AdjustSoNewXp(booty, ae, i);
     if (booty->st == 5) { XPE *pe = &ae[1 - i]; if (!IsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, booty, D_002A4B58.l, 0); }
 }
 
 // BOOTY (cid 0x67) vtable slot 75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
+// Also known as: FAcceptBootyContact (upstream readable / Sly 1 name; FAcceptBootyContact__FP3ALO).
 extern "C" int TakeBootyDamage(BOOTYV *booty, void *pv) {
     if ((CanSoTakeDamage(booty, pv) == 0) || (booty->st != 5)) {
         return 0;
@@ -335,6 +342,7 @@ void ClearCurrentBootyEntry(BOOTYV *booty) {
 
 // Splice setter: adds an object name (at most three) to the current booty entry. The mangled symbol still carries
 // Sly 1's ALARM class name (BOOTY's old label) in its signature: renaming the type is a separate pass.
+// Also known as: AddAlarmAlbrk (upstream readable / Sly 1 name).
 void AddBootyEntryObject(ALARM *booty, OID oid)
 {
     BOOTYE *entry = booty->pbootyeCur;
@@ -342,6 +350,7 @@ void AddBootyEntryObject(ALARM *booty, OID oid)
 }
 
 // id of the current entry or -1. (inferred)
+// Also known as: IdBooty (upstream readable / Sly 1 name; IdBooty__FP2LO).
 extern "C" int GetCurrentBootyEntryId(BOOTYV *booty) {
     BOOTYE *pe;
     int id;
@@ -354,6 +363,7 @@ extern "C" int GetCurrentBootyEntryId(BOOTYV *booty) {
 }
 
 // make the entry with this id current (else the first). (inferred)
+// Also known as: SelectBootyRecord (upstream readable / Sly 1 name; SelectBootyRecord__FP2LOi).
 void SelectBootyEntry(BOOTYV *booty, int id) {
     int i;
     for (i = 0; i < booty->cbootye; i++) {
@@ -368,6 +378,7 @@ extern "C" BOOTYE *GetCurrentBootyEntry(BOOTYV *booty) {
 }
 
 // If dropped: reset to 0 and, if its container is still in world, put it back there (state 1). (inferred)
+// Also known as: ReturnThrownBooty (upstream readable / Sly 1 name; ReturnThrownBooty__FP2LO).
 void ReturnDroppedBooty(BOOTYV *booty, int) {
     CID37V *pcont;
     BOOTYE *pe;
@@ -466,6 +477,7 @@ namespace RO_ORDER { extern const VQ r_D_002A4B60 __asm__("D_002A4B60") = {{0.0f
 // stops effects) and enters the new one (registers, picks the container or carrier, starts the transfer/drop effects,
 // stamps the time). States: 0 idle, 1 in container, 2/3 transfer, 4 carried, 5 dropped and returning, 6 marker
 // (inferred from the callers).
+// Also known as: SetBootyState (upstream readable / Sly 1 name; SetBootyState__FP2LOi).
 void SetBootyState(BOOTYV *booty, int st)
 {
     int stOld;
@@ -645,6 +657,7 @@ void CID37::PostLoad() { CID37V *container = (CID37V *)this; PostTriggerGrabspot
 
 // If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its
 // entry, link and set state 1. (inferred)
+// Also known as: AttachStandBooty (upstream readable / Sly 1 name; AttachStandBooty__FP2LO).
 void SpawnBootyInContainer(CID37V *container, int) {
     SW *pg;
     int i;
@@ -664,11 +677,13 @@ void SpawnBootyInContainer(CID37V *container, int) {
 }
 
 // cid 0x25 vtable slot 23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0). (inferred)
+// Also known as: OnBootyStandRegistered (upstream readable / Sly 1 name; OnBootyStandRegistered__FP2LO).
 extern "C" void OnBootyContainerAdd(CID37V *container) { OnTriggerGrabspotAdd(container); EnsureSwCallback(&g_sw, container, D_002A4BB0.l, 0); }
 
 // cid 0x25 vtable slot 51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on
 // mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27.
 // (inferred)
+// Also known as: FUseBootyStand (upstream readable / Sly 1 name; FUseBootyStand__FP2LOP5ACTOR).
 extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
 {
     BOOTYV *pqa, *ppa;
@@ -707,6 +722,7 @@ extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
 
 struct SVKEYS { int c; short *as; };
 // Build the save key for this container (level entry + two symbols + id). (inferred)
+// Also known as: AkeyStand (upstream readable / Sly 1 name; AkeyStand__FP2LO).
 void GetBootyContainerSaveKey(CID37V *container) {
     short as[3];
     SVKEYS par;
@@ -746,6 +762,7 @@ static inline int NFromRef(void *pv)
     return n;
 }
 // Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1.
+// Also known as: IdStandSaved (upstream readable / Sly 1 name; IdStandSaved__FP2LO).
 int GetSavedBootyContainerKind(CID37V *container) {
     STACKSCOPEC ctx;
     int n;
@@ -765,6 +782,7 @@ int GetSavedBootyContainerKind(CID37V *container) {
 // Stores a CRef into a global save variable.
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &g_gs); }
 // Splice: reset current booty, save kind n, and spawn if n != -1. (inferred)
+// Also known as: SetStandBooty (upstream readable / Sly 1 name; SetStandBooty__FP2LOi).
 extern "C" void SetBootyContainerKind(CID37V *container, int n)
 {
     if (container->pbooty) SetBootyState(container->pbooty, 0);

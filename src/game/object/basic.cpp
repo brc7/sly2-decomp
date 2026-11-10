@@ -90,6 +90,7 @@ extern "C" void BASIC_Slot2Default(void) {
 
 // True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
 // range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
+// Also known as: FIsBasicDerivedFrom (upstream readable / Sly 1 name).
 int IsBasicDerivedFrom(BASICV *object, CIDV n) {
     CLASSINFO *pr = ((::BASIC *)object)->GetClassInfo();
     int x = pr->cid;

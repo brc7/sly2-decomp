@@ -67,6 +67,7 @@ extern "C" void ResetStuckWatch(STUCKWATCH *watch)
 
 // 0x20CE70: Per-frame stuck test: while the guard is on the ground and not attached, tracks how long it has been
 // stuck (IsGuardStuck); past the time limit, goes to state 2 (zap).
+// Also known as: UpdateWatchA (upstream readable / Sly 1 name; UpdateWatchA__FP6WATCHA).
 extern "C" void UpdateStuckWatch(STUCKWATCH *watch)
 {
     int isStuck, state;
@@ -104,6 +105,7 @@ extern "C" int FilterStuckProbe(void *context, FPAIR *hit)
 
 // 0x20D020: True if the line test to each of the five probe offsets around the guard hits something (the guard is
 // boxed in).
+// Also known as: FWatchA (upstream readable / Sly 1 name; FWatchA__FP6WATCHA).
 extern "C" int IsGuardStuck(STUCKWATCH *watch)
 {
     STEPGUARD *guard = watch->guard;
@@ -121,6 +123,7 @@ extern "C" int IsGuardStuck(STUCKWATCH *watch)
 }
 
 // 0x20D108: Sets the stuck watch state; state 2 zaps the guard (kind 0x4000) with its position and velocity.
+// Also known as: SetWatchA (upstream readable / Sly 1 name; SetWatchA__FP6WATCHAi).
 extern "C" void SetStuckWatchState(STUCKWATCH *watch, int state)
 {
     if (watch->state == state) return;
@@ -168,6 +171,7 @@ extern "C" void ResetHazardWatch(HAZARDWATCH *watch)
 
 // 0x20D1F8: Per-frame hazard test: while the guard is inside the watched volume (its vtable slot 73) and falling,
 // counts time; past the limit, goes to state 2.
+// Also known as: UpdateWatchB (upstream readable / Sly 1 name; UpdateWatchB__FP6WATCHB).
 extern "C" void UpdateHazardWatch(HAZARDWATCH *watch)
 {
     int state;
@@ -214,6 +218,7 @@ extern "C" void UpdateHazardWatch(HAZARDWATCH *watch)
 
 // 0x20D3C0: Sets the hazard watch state; state 2 zaps the guard with the volume's zap kind and amount
 // (+0x188/+0x184).
+// Also known as: SetWatchB (upstream readable / Sly 1 name; SetWatchB__FP6WATCHBi).
 extern "C" void SetHazardWatchState(HAZARDWATCH *watch, int state)
 {
     if (state == watch->state)

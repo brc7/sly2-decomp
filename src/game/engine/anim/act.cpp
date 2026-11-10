@@ -68,6 +68,7 @@ namespace M_PacNewKind {
 extern AC *PacNewKind(int k) __asm__("PacNewKind");
 // Curve factory: creates a vector curve of kind 0..5 (constant, two keyed kinds, two per-component kinds, blended).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: PtrkpNew (upstream readable / Sly 1 name; PtrkpNew__Fi).
 AC *PacNewKind(int k)
 {
     switch (k) {
@@ -90,6 +91,7 @@ void AC::LoadFromBrx(CBinaryInputStream *)
 
 // Loads a constant vector curve: its three floats.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: Load (upstream readable / Sly 1 name; Load__5TRKPCP18CBinaryInputStream).
 void AC0::LoadFromBrx(CBinaryInputStream *stream)
 {
     stream->Read(0xC, &vec);
@@ -115,6 +117,7 @@ typedef struct T {   /* the transform slot (XF) */
 extern "C" { static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; } }
 // Prepares a transform slot's motion segment from a constant curve (slot 2): start and end value are the constant,
 // velocities zero, motion kind "still" (2). (inferred)
+// Also known as: Setup (upstream readable / Sly 1 name; Setup__5TRKPCP2XF).
 extern "C" void PrepareConstCurveSegment(AC0 *curve, T *xf)
 {
     xf->segmentKind = 2;
@@ -131,6 +134,7 @@ extern "C" void PrepareConstCurveSegment(AC0 *curve, T *xf)
 
 /* Evaluates a constant vector curve: the value, and a zero derivative. */
 // Evaluates a constant vector curve (slot 3): the constant, and a zero derivative. (inferred)
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__5TRKPCP7VECTOR4T1ff).
 extern "C" void EvaluateConstCurve(AC0 *curve, VECTOR *pvec, VECTOR *pdvec)
 {
     if (pvec != 0) {
@@ -150,6 +154,7 @@ ACKEYV2 *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHea
 } // namespace M_LoadAcVecAFromBrx
 // Loads a keyed vector curve: the key count, then each key's time, value and in / out tangents.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: Load (upstream readable / Sly 1 name; Load__5TRKPKP18CBinaryInputStream).
 void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecAFromBrx;
@@ -176,6 +181,7 @@ void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
 
 namespace M_func_0012B6D8 {
 // Index of the first key after time t (the key interval containing t ends there). (inferred)
+// Also known as: IkeyFind (upstream readable / Sly 1 name; IkeyFind__5TRKPKf).
 extern "C" int FindVecCurveAKey(AC1 *t, float g)
 {
     int i;
@@ -214,6 +220,7 @@ typedef struct OBJ {
 int FindVecCurveAKey(AC1 *t, float g) __asm__("FindVecCurveAKey");
 // Prepares a transform slot's motion segment (slot 2) from the key interval containing the slot's time: start / end
 // values, tangents and times; marks the segment still when both ends match with zero tangents. (inferred)
+// Also known as: Setup (upstream readable / Sly 1 name; Setup__5TRKPKP2XF).
 extern "C" void PrepareVecCurveASegment(AC1 *t, OBJ *po)
 {
     int i = FindVecCurveAKey(t, *po->pt);
@@ -237,6 +244,7 @@ int FindVecCurveAKey(AC1 *t, float g) __asm__("FindVecCurveAKey");
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n) __asm__("EvaluateBezierPos");
 // Evaluates the keyed vector curve at time t (slot 3): value and derivative from the Bezier of its key interval.
 // (inferred)
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__5TRKPKP7VECTOR4T1ff).
 extern "C" void EvaluateVecCurveA(AC1 *t, void *pv, void *pdv, float g, float dtScale)
 {
     int i = FindVecCurveAKey(t, g);
@@ -358,6 +366,7 @@ void *AllocFromWorldHeap(AREQ *preq) __asm__("AllocFromWorldHeap");
 } // namespace M_LoadAcFloatAFromBrx
 // Loads a per-component curve: the key count, flags saying which components are animated, and float keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: Load (upstream readable / Sly 1 name; Load__5TRKPAP18CBinaryInputStream).
 void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatAFromBrx;
@@ -398,6 +407,7 @@ void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
 
 namespace M_func_0012C0E0 {
 // Key search for the per-component curve. (inferred)
+// Also known as: IkeyFind (upstream readable / Sly 1 name; IkeyFind__5TRKPAf).
 extern "C" int FindFloatCurveAKey(AC3 *t, float g)
 {
     int i;
@@ -436,6 +446,7 @@ typedef struct OBJ {
 } OBJ;
 int FindFloatCurveAKey(AC3 *t, float g) __asm__("FindFloatCurveAKey");
 // Prepares a slot's motion segment from the per-component curve (slot 2). (inferred)
+// Also known as: Setup (upstream readable / Sly 1 name; Setup__5TRKPAP2XF).
 extern "C" void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
 {
     int i;
@@ -479,6 +490,7 @@ typedef struct VECTOR { float x, y, z, w; } VECTOR;
 int FindFloatCurveAKey(AC3 *t, float g) __asm__("FindFloatCurveAKey");
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates the per-component curve at time t, each component through its float Bezier (slot 3). (inferred)
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__5TRKPAP7VECTOR4T1ff).
 extern "C" void EvaluateFloatCurveA(AC3 *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
@@ -675,6 +687,7 @@ namespace M_PacNewKind2 {
 extern ACG *PacNewKind2(int k) __asm__("PacNewKind2");
 // Float-curve factory: creates a float curve of kind 0..2 (constant, keyed, blended).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: PtrkgNew (upstream readable / Sly 1 name; PtrkgNew__Fi).
 ACG *PacNewKind2(int k)
 {
     switch (k) {
@@ -693,6 +706,7 @@ void ACG::LoadFromBrx(CBinaryInputStream *)
 }
 
 // Loads a constant float curve: one float. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: Load (upstream readable / Sly 1 name; Load__5TRKGCP18CBinaryInputStream).
 void ACG0::LoadFromBrx(CBinaryInputStream *stream)
 {
     g = stream->F32Read();
@@ -700,6 +714,7 @@ void ACG0::LoadFromBrx(CBinaryInputStream *stream)
 
 /* Evaluates a constant float curve: the value, and a zero derivative. */
 // Evaluates a constant float curve: the value, and a zero derivative. (inferred)
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__5TRKGCPfT1ff).
 extern "C" void EvaluateConstFloatCurve(ACG0 *curve, float *pg, int *pdg)
 {
     if (pg != 0) {
@@ -719,6 +734,7 @@ ACKEYF *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap
 } // namespace M_LoadAcFloatKeysFromBrx
 // Loads a keyed float curve: the key count and the float keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: Load (upstream readable / Sly 1 name; Load__5TRKGKP18CBinaryInputStream).
 void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatKeysFromBrx;
@@ -746,6 +762,7 @@ void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
 namespace M_func_0012CDA0 {
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates a keyed float curve at time t (float Bezier of its key interval). (inferred)
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__5TRKGKPfT1ff).
 extern "C" void EvaluateKeyedFloatCurve(ACG1 *t, float *pg, float *pdg, float g, float dtScale)
 {
     int i;
@@ -774,6 +791,7 @@ extern "C" void FreeOvra(void *pv)
 
 /* Common slot 1 of the act vtables: detach from the object. */
 // Base act attach (slot 1): sets the driven transform's role and wakes its owner so the act takes effect.
+// Also known as: Start (upstream readable / Sly 1 name).
 void ACT::Attach()
 {
     SetXfRole(animatedObject, transform, role);
@@ -789,6 +807,7 @@ extern "C" void DetachActBase()
 namespace M_func_0012CEE0 {
 // True when the act is the one in effect on its transform: first in the XF's act list, directly or wrapped by an
 // offset act. (inferred)
+// Also known as: FFirst (upstream readable / Sly 1 name).
 extern "C" int IsActCurrent(ACT *p)
 {
     ACT *q = p->transform->firstActuator;
@@ -813,6 +832,7 @@ extern "C" void UpdateActDefault()
 }
 
 // Base act goal (slot 5): the transform's current value, and zero velocity. (inferred)
+// Also known as: Query (upstream readable / Sly 1 name; Query__4CTRLP7VECTOR4T1f).
 extern "C" void GetActGoalDefault(ACT *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
@@ -839,6 +859,7 @@ extern "C" void CloneAct(ACT *t, ACT *src, ALO *palo, XF *pxf)
 } // namespace M_CloneAct
 
 // Inserts the act into its transform's action list unless it is already there. (inferred)
+// Also known as: EnsureCtrlAdded (upstream readable / Sly 1 name; EnsureCtrlAdded__FP4CTRL).
 extern "C" void AttachAct(ACT *act)
 {
     if (IsActAttached(act) == 0) {
@@ -847,6 +868,7 @@ extern "C" void AttachAct(ACT *act)
 }
 
 // Removes the act from its transform's action list if it is there. (inferred)
+// Also known as: EnsureCtrlRemoved (upstream readable / Sly 1 name; EnsureCtrlRemoved__FP4CTRL).
 extern "C" void DetachAct(ACT *act)
 {
     if (IsActAttached(act) != 0) {
@@ -856,6 +878,7 @@ extern "C" void DetachAct(ACT *act)
 
 namespace M_func_0012D058 {
 // True when the act is in its transform's act list (attached).
+// Also known as: FXfHasCtrl (upstream readable / Sly 1 name; FXfHasCtrl__FP2XF).
 extern "C" int IsActAttached(ACT *p)
 {
     ACT *q = p->transform->firstActuator;
@@ -870,6 +893,7 @@ extern "C" int IsActAttached(ACT *p)
 
 /* vtable 0x2CA830 slot 4. */
 // Position act update (slot 4).
+// Also known as: Fetch (upstream readable / Sly 1 name).
 void ACT1::Update()
 {
     transform->restValue = goalValue;
@@ -880,6 +904,7 @@ void ACT1::Update()
 
 /* vtable 0x2CA830 slot 5. */
 // Position act goal (slot 5): its stored position, and zero velocity. (inferred)
+// Also known as: Query (upstream readable / Sly 1 name; Query__7CTRLPOSP7VECTOR4T1f).
 extern "C" void GetPhaseActGoal(ACT1 *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
@@ -903,6 +928,7 @@ extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 } }
 // Stores a new position goal; if this act drives its transform and the goal moved, copies it to the transform and puts
 // the slot back into motion.
+// Also known as: SetCtrlPos (upstream readable / Sly 1 name; SetCtrlPos__FP7CTRLPOSG9VU_VECTOR).
 extern "C" void SetActPositionGoal(ACT1 *p, qword v)
 {
     qword dv;
@@ -917,6 +943,7 @@ extern "C" void SetActPositionGoal(ACT1 *p, qword v)
 
 namespace M_func_0012D210 {
 // Look-at act detach (slot 2): clears its tracking state. (inferred)
+// Also known as: End (upstream readable / Sly 1 name).
 extern "C" void DetachLookAtAct(ACT2 *p)
 {
     p->ptarget = 0;
@@ -957,6 +984,7 @@ extern "C" { static __inline__ float VectorLength(QWROW *pv, qword a)
 } }
 
 // Look-at act update: finds the target object and computes the pan / tilt that aims the transform at it.
+// Also known as: Fetch (upstream readable / Sly 1 name).
 extern "C" void UpdateActLookAt(ACT2 *p)
 {
     struct { qword pos; qword vel; } s;
@@ -1037,6 +1065,7 @@ extern "C" void UpdateActLookAt(ACT2 *p)
 
 /* vtable 0x2CA7F0 slot 4. */
 // Look-at act goal (slot 5).
+// Also known as: Query (upstream readable / Sly 1 name; Query__10CTRLLOOKATP7VECTOR4T1f).
 void ACT2::GetGoal(qword *ppos, VECTOR *pdvec, float)
 {
     qword *pv = (qword *)pdvec;
@@ -1144,6 +1173,7 @@ static inline void Fin(ACT4 *p, M3 &mT, M3 m)
 
 } // namespace M_func_0012D508
 // Path act update (slot 4): evaluates the path's Bezier and builds an orthonormal frame along it.
+// Also known as: Fetch (upstream readable / Sly 1 name).
 void ACT4::Update()
 {
     using namespace M_func_0012D508;
@@ -1230,6 +1260,7 @@ void ACT4::Update()
 namespace M_func_0012D858 {
 } // namespace M_func_0012D858
 // Offset act attach (slot 1): attaches the wrapped act.
+// Also known as: Start (upstream readable / Sly 1 name).
 void ACT5::Attach()
 {
     ACT *p = pactNext;
@@ -1240,6 +1271,7 @@ void ACT5::Attach()
 
 namespace M_func_0012D890 {
 // Offset act detach (slot 2): detaches the wrapped act and forgets it. (inferred)
+// Also known as: End (upstream readable / Sly 1 name).
 extern "C" void DetachOffsetAct(ACT5 *t)
 {
     ACT *p = t->pactCur;
@@ -1254,6 +1286,7 @@ namespace M_func_0012D8D8 {
 void WakeXfOwner(void *a, void *b) __asm__("WakeXfOwner");
 // Offset act slot 3: when the act to wrap changed, wakes the transform, detaches the old wrapped act and attaches the
 // new one. (inferred)
+// Also known as: Refresh (upstream readable / Sly 1 name).
 extern "C" void SwitchOffsetActTarget(ACT5 *t)
 {
     ACT *p;
@@ -1285,6 +1318,7 @@ extern "C" { static __inline__ void AddV(qword *pd, qword *ps)
 } }
 // Offset act update (slot 4): updates the wrapped act and adds the offset to the world's accumulators (falls back to
 // the default update when nothing is wrapped). (inferred)
+// Also known as: Fetch (upstream readable / Sly 1 name).
 extern "C" void UpdateOffsetAct(ACT5 *p)
 {
     ACT *po = p->pactCur;
@@ -1301,6 +1335,7 @@ extern "C" void UpdateOffsetAct(ACT5 *p)
 namespace M_func_0012D9D0 {
 typedef int qword __attribute__((mode(TI)));
 // Offset act goal (slot 5): the wrapped act's goal plus the offset. (inferred)
+// Also known as: Query (upstream readable / Sly 1 name; Query__10CTRLSOURCEP7VECTOR4T1f).
 extern "C" void GetOffsetActGoal(ACT5 *p, qword *pv, VECTOR *pdv, float dt)
 {
     ACT *po = p->pactCur;
@@ -1332,6 +1367,7 @@ extern "C" { static __inline__ int AreVectorsNear(qword a, qword b)
 } }
 // Stores a new goal vector; if this act drives its transform and the goal moved, shifts the transform's goal values by
 // the change and puts the slot back into motion. (inferred)
+// Also known as: SetCtrlSourceOffset (upstream readable / Sly 1 name; SetCtrlSourceOffset__FP10CTRLSOURCEG9VU_VECTOR).
 extern "C" void SetActRotationGoal(ACT1 *p, qword v)
 {
     qword dv;
@@ -1370,6 +1406,7 @@ namespace M_func_0012DBB0 {
 void *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
 void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates an offset act (kind 5) and attaches it to its transform. (inferred)
+// Also known as: PctrlNewSource (upstream readable / Sly 1 name; PctrlNewSource__FP3ALOP2XFPv).
 extern "C" void *NewOffsetAct(void *a, void *b, void *c)
 {
     void *p = NewActOfKind(5, a, b, c, -1);
@@ -1383,6 +1420,7 @@ typedef int qword __attribute__((mode(TI)));
 ACT1 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
 void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates a position act (kind 1) with a role and a goal vector and attaches it. (inferred)
+// Also known as: PctrlNewPos (upstream readable / Sly 1 name; PctrlNewPos__FP3ALOP2XFPviiG9VU_VECTOR).
 extern "C" ACT1 *NewPositionAct(void *a, void *b, void *c, int d, int e, qword goalValue)
 {
     ACT1 *p = NewActOfKind(1, a, b, c, d);
@@ -1441,6 +1479,7 @@ typedef int qword __attribute__((mode(TI)));
 ACT8 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
 void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates a Bezier act (kind 8, role 0x11) with a duration and two vectors and attaches it. (inferred)
+// Also known as: PctrlNewTarget (upstream readable / Sly 1 name; PctrlNewTarget__FP3ALOP2XFPvfG9VU_VECTORT4).
 extern "C" ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qword pos, qword vel)
 {
     ACT8 *p = NewActOfKind(8, a, b, c, 0x11);
@@ -1489,6 +1528,7 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec, float)
 
 /* vtable 0x2CA6F0 slot 4. */
 // Bezier act update (slot 4).
+// Also known as: Fetch (upstream readable / Sly 1 name).
 void ACT8::Update()
 {
     *(float *)&transform->reference = arrivalTime; /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
@@ -1517,6 +1557,7 @@ extern "C" void GetBezierActGoal(ACT8 *p, qword *ppos, qword *pvel, float dt)
 } // namespace M_func_0012E060
 
 // Sets a rest act's pose and velocity; if it is in effect, also the transform's rest values. (inferred)
+// Also known as: SetGoal (upstream readable / Sly 1 name; SetGoal__10CTRLTARGETG9VU_VECTORT1).
 extern "C" void SetRestActPose(ACT8 *act, qword pos, qword v)
 {
     XF *xf = act->transform;
@@ -1646,6 +1687,7 @@ extern "C" ACT *NewActFromParams(ACT *pactSrc, ALO *palo, XF *pxf)
 
 // Detaches and frees the act in a slot, and clears the slot.
 // The owning-pointer release around Sly 1's RetractAct (the detach).
+// Also known as: DeleteCtrl (upstream readable / Sly 1 name; DeleteCtrl__FPP4CTRL).
 extern "C" void ReleaseAct(ACT **ppact)
 {
     ACT *act = *ppact;

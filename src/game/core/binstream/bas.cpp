@@ -56,6 +56,7 @@ void ReadCdDirect(uint isector, uint csector, void *pv, int n);
 /* The constructor takes (cbSpool, pvSpool) although its current symbol mangles to (void *) only (Sly 1's signature);
    it is defined under that symbol as a C-linkage function until the symbol is renamed. */
 // Constructs a closed stream over the caller's spool buffer (spoolSize bytes at spoolMemory).
+// Also known as: CBinaryAsyncStream constructor (upstream readable / Sly 1 name; __18CBinaryAsyncStreamiPv).
 extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *stream, int spoolSize, void *spoolMemory)
 {
     stream->spoolSize = spoolSize;
@@ -76,6 +77,7 @@ extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *stre
 CBinaryAsyncStream::~CBinaryAsyncStream() { Close(); }
 
 // Opens the stream on a file key if it names a disc file (kind 2: sector range); returns whether it did.
+// Also known as: FOpenFile (upstream readable / Sly 1 name; FOpenFile__18CBinaryAsyncStreamP13CFileLocation).
 extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *stream, CDFILE *fileKey)
 {
     int opened = 0;
@@ -89,6 +91,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 // Opens the stream on `size` bytes starting at disc sector `sector` and starts the first read; returns 1.
 // (Sly 1-derived name: CBinaryAsyncStream::FOpenSector.)
+// Also known as: FOpenSector (upstream readable / Sly 1 name).
 int CBinaryAsyncStream::OpenSector(uint firstSector, uint size)
 {
     sector = firstSector;
@@ -144,6 +147,7 @@ void CBinaryAsyncStream::StartSpooling()
 }
 
 // Returns whether a read is in flight. (Sly 1-derived name: CBinaryAsyncStream::FSpooling.)
+// Also known as: FSpooling (upstream readable / Sly 1 name).
 bool CBinaryAsyncStream::IsSpooling()
 {
     return pendingSize != 0;
@@ -152,6 +156,7 @@ bool CBinaryAsyncStream::IsSpooling()
 // Returns whether the read in flight has completed, polled without blocking, and only once the consumer has used
 // the current half; a read error abandons the read (returns false).
 // (Sly 1-derived name: CBinaryAsyncStream::FSpoolingComplete.)
+// Also known as: FSpoolingComplete (upstream readable / Sly 1 name).
 bool CBinaryAsyncStream::IsSpoolingComplete()
 {
     int status = 0;

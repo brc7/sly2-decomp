@@ -114,6 +114,7 @@ static inline int FindSchemaSymbol(SAVEVARS *schema, const char *pchz) { return 
 
 // Loads the save-variable schema from the BRX: the symbol names into a hash table, then the trie of entries; resets
 // the save blob when the schema changed.
+// Also known as: LoadProgressFromBrx (upstream readable / Sly 1 name; LoadProgressFromBrx__FP2SWP18CBinaryInputStream).
 extern "C" void LoadSaveSchemaFromBrx(SAVEVARS *schema, CBinaryInputStream *stream)
 {
     MEMREQ memreq;
@@ -140,6 +141,7 @@ extern "C" void LoadSaveSchemaFromBrx(SAVEVARS *schema, CBinaryInputStream *stre
 
 // Resets the save blob when its stored schema version or checksum differs from the loaded schema, and stores the new
 // ones.
+// Also known as: ValidateGameSave (upstream readable / Sly 1 name; ValidateGameSave__FPvT0).
 extern "C" void ResetGsIfSchemaChanged(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
@@ -161,6 +163,7 @@ extern "C" int DoesGsMatchSchema(SAVEVARS *schema, SAVEDATA *saveSet)
 
 // Walks the schema trie along a key (symbol ids, numbers as array indices) and returns the entry and array index;
 // false when the key does not name a variable.
+// Also known as: FFindEntryKey (upstream readable / Sly 1 name; FFindEntryKey__FP4TRIEPP4PENTPi).
 extern "C" int FindSaveVar(SAVEVARS *schema, SVKEY *key, SVFIND *result)
 {
     SVENT *aent = schema->aent;
@@ -214,6 +217,7 @@ struct LMV { int a[2]; };
 struct SMPV { int a[3]; };
 
 // Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
+// Also known as: RefGetProgress (upstream readable / Sly 1 name; RefGetProgress__FP4TRIEP3KEYPc).
 CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
 {
     CRef ref;
@@ -269,6 +273,7 @@ CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
 }
 
 // Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
+// Also known as: FSetProgress (upstream readable / Sly 1 name; FSetProgress__FP4TRIEP4CRefT1Pc).
 CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &refVal, SAVEDATA *saveSet)
 {
     CRef ref(0x24);
@@ -383,6 +388,7 @@ extern "C" int GetCompletionPercent(SAVEVARS *schema, SAVEDATA *saveSet)
 
 // Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
 // "from_memcard". (inferred)
+// Also known as: CopyGameSaveForSlot (upstream readable / Sly 1 name; CopyGameSaveForSlot__FP6LAYOUTP8GAMESAVE).
 extern "C" void BuildMemcardGsMask(SAVEVARS *schema, SAVEDATA *saveSet)
 {
     int symid;
@@ -440,6 +446,7 @@ extern "C" void AddSaveSymbol(SVNHASH *symbolTable, char *pchz, int symid)
 }
 
 // Returns the symbol id of a name in the save symbol table, or -1.
+// Also known as: SymFromName (upstream readable / Sly 1 name; SymFromName__FP6LAYOUTPc).
 extern "C" int FindSaveSymbol(SVNHASH *symbolTable, const char *pchz)
 {
     unsigned int hash = HashSaveSymbolName(pchz);
@@ -538,6 +545,7 @@ extern "C" CRef GetSaveVarByName(const char *pchz, ...)
 }
 
 // Writes a Splice value into the named save variable (varargs path) of the global save blob.
+// Also known as: SetProgressPoCurrent (upstream readable / Sly 1 name; SetProgressPoCurrent__FP4CRefPci).
 extern "C" CRef SetSaveVarByName(const CRef &refVal, const char *pchz, ...)
 {
     CRef ref;
@@ -551,6 +559,7 @@ extern "C" CRef SetSaveVarByName(const CRef &refVal, const char *pchz, ...)
 }
 
 // Returns the address of the named save variable (varargs path) in the global save blob.
+// Also known as: PnProgressSlot (upstream readable / Sly 1 name; PnProgressSlot__FPvi).
 extern "C" void *GetSaveVarAddressV(const char *pchz, ...)
 {
     CRef ref;
@@ -587,6 +596,7 @@ static inline CRef SetGlobalSaveVarRef(SVKEY *key, CRef *pref, SAVEDATA *saveSet
 // Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
 // settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
+// Also known as: ResetSlotKeepSettings (upstream readable / Sly 1 name; ResetSlotKeepSettings__FPci).
 extern "C" void ResetSaveGs(SAVEDATA *saveSet, int fKeepSettings)
 {
     STACKSCOPE stackscope;
@@ -621,6 +631,7 @@ static inline int GetGlobalSaveVarInt(SVKEY *key, SAVEDATA *saveSet) { return Ge
 static inline float GetGlobalSaveVarFloat(SVKEY *key, SAVEDATA *saveSet) { return GetGlobalSaveVar(key, saveSet).u.g; }
 
 // Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
+// Also known as: ApplyGameSettings (upstream readable / Sly 1 name; ApplyGameSettings__FP8GAMESAVE).
 extern "C" void ApplyGsSettings(SAVEDATA *saveSet)
 {
     if ((SVKEY *)g_sw.psvpLang && CountRegionLanguages() >= 2)

@@ -69,6 +69,7 @@ void *AddSoXps(SW *, X *, X *);
 
 // Adds an object to the broad phase: allocates its AAOBR from the world pool, links it into the world lists and
 // inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
+// Also known as: PoxaAddSw (upstream readable / Sly 1 name; PoxaAddSw__FP2SWP3ALO).
 extern "C" X *AddObjectToBroadPhase(SW *world, LOV *object) {
     int axis;
     X *aaobr = (X *)AllocZeroedFromSlotheap(&world->slotheapSotree);
@@ -99,6 +100,7 @@ extern "C" X *AddObjectToBroadPhase(SW *world, LOV *object) {
 /* v2 (Claude agent laneB12, 2026-10-23): aligned 7 -> 3. The /12 pointer-diff divisions written out as (bytes * k3) >> 2 with k3 = 0xAAAAAAAB in ONE commented register pin ($21 = s5, as in the target): fixes the s4/s5 swap. Left: ori s5 before addiu fp, and i+1 (addiu s4) scheduled right after the sll instead of in the b delay slot (j = i + 1 / i = j step, split init: same 3). */
 // Removes an object's AAOBR from the broad phase: for every overlap pair both objects are notified (slot 54) and
 // the pair's contact lists freed, then the box leaves the world lists and its endpoints are deleted from the axes.
+// Also known as: RemoveSwOxa (upstream readable / Sly 1 name; RemoveSwOxa__FP2SWP3OXA).
 extern "C" void RemoveObjectFromBroadPhase(SW *world, X *aaobr)
 {
     L *pair, *nextPair;
@@ -159,6 +161,7 @@ extern "C" void RemoveObjectFromBroadPhase(SW *world, X *aaobr)
 
 // Creates or destroys the pair link between two AAOBRs. k = 1 forces the pair on, 2 forces it off, 0 decides from
 // ShouldSwPairObjects; removing a pair wakes both objects and frees its contacts.
+// Also known as: UpdateSwPox (upstream readable / Sly 1 name; UpdateSwPox__FP2SWP3OXAT1Uc).
 extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
 {
     L *pair;
@@ -215,6 +218,7 @@ extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
 }
 
 // Allocates a pair link from the world pool for px1 with px2 as the other side and pushes it on px1's pair list.
+// Also known as: PoxAddSw (upstream readable / Sly 1 name; PoxAddSw__FP2SWP3OXAT1).
 extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
 {
     L *pair = (L *)AllocZeroedFromSlotheap(&world->slotheapXplist);
@@ -225,6 +229,7 @@ extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
 }
 
 // Unlinks and returns px1's pair link whose other side is px2 (0 if none).
+// Also known as: PoxRemoveSw (upstream readable / Sly 1 name; PoxRemoveSw__FP2SWP3OXAT1).
 extern "C" L *RemoveSwObjectPair(SW *unused, X *aaobr, X *otherAaobr) {
     LOV *otherObject = otherAaobr->object;
     L *pair = aaobr->pairs;
@@ -246,6 +251,7 @@ extern "C" L *RemoveSwObjectPair(SW *unused, X *aaobr, X *otherAaobr) {
 
 // Returns 1 when two AAOBRs overlap on all three axes and neither object asks to ignore the other: both objects'
 // ignore-intersection answers (slot 61) are combined with MaxInt and the pair is made unless the result is 1 or 3.
+// Also known as: FOverlapOxa (upstream readable / Sly 1 name; FOverlapOxa__FP3OXAT0Pv).
 extern "C" int ShouldSwPairObjects(SW *unused, X *aaobrA, X *aaobrB)
 {
     int ignoreA, ignoreB, ignore;
@@ -260,6 +266,7 @@ extern "C" int ShouldSwPairObjects(SW *unused, X *aaobrA, X *aaobrB)
 
 // Drains the pending-bounds list: for each queued object calls its bounds update (slot 49, UpdateSoTreeBounds)
 // until the list is empty.
+// Also known as: FlushSwOxaDirty1 (upstream readable / Sly 1 name; FlushSwOxaDirty1__FP2SW).
 extern "C" void FlushSwBoundsUpdates(SW *world) {
     X *aaobr;
     while ((aaobr = (X *)world->dlSoTreeQueue1.head) != 0) {
@@ -269,6 +276,7 @@ extern "C" void FlushSwBoundsUpdates(SW *world) {
 
 // If the endpoint arrays are dirty, insertion-sorts each axis; whenever a min and a max endpoint swap places the
 // pair is re-evaluated with UpdateSwPox(.., 0). This is the incremental sweep-and-prune step.
+// Also known as: UpdateSwAaox (upstream readable / Sly 1 name; UpdateSwAaox__FP2SW).
 extern "C" void UpdateSwAaox(SW *world)
 {
     int axis;
@@ -306,6 +314,7 @@ extern "C" void UpdateSwAaox(SW *world)
 
 // Once per solver step: flushes bounds updates, re-sorts the axes, then walks the objects queued for contact
 // recalculation and rebuilds the XP lists of their pairs (AddSoXps), using a stack array of up to 0x300 objects.
+// Also known as: UpdateSwXps (upstream readable / Sly 1 name; UpdateSwXps__FP2SW).
 extern "C" void RecalcSwXpAll(SW *world)
 {
     C scope;
@@ -377,6 +386,7 @@ extern "C" int MaxInt(int a, int b)
 
 // When an object's collision filter changed: if it has an AAOBR (+0xEC), invalidates its box and re-evaluates its
 // pair with every other AAOBR in the world.
+// Also known as: RecalcSwOxfFilterForObject (upstream readable / Sly 1 name; RecalcSwOxfFilterForObject__FP2SWP2SO).
 extern "C" void RefreshSwObjectCollisionFilter(SW *world, LOV *object) {
     X *other;
     if (object->aaobr) {

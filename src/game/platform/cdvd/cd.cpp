@@ -114,6 +114,7 @@ SLY2_SCRAP("addiu $2, $2, 0xb8");
 
 // Returns whether the drive holds a PS2 DVD (disk type 0x14), caching the last disk type seen in g_scecd.
 // Identical to Sly 1's source.
+// Also known as: FValidCdMmode (upstream readable / Sly 1 name).
 int IsPs2DvdInDrive()
 {
     int diskType = sceCdGetDiskType();
@@ -222,6 +223,7 @@ void CdPath(char *out, char *path, int useCdromPrefix)
 // Starts an asynchronous read of sectorCount sectors at `sector` into `buffer`, retrying until the drive
 // accepts the command (sceCdRead returns 1); readMode 1 selects spindle mode 0, anything else mode 1. Records the
 // last result and error in s_retCdRead / s_retCdError. Sly 1: ReadCdDirect, plus the read-mode argument.
+// Also known as: ReadCdDirect (upstream readable / Sly 1 name; ReadCdDirect__FUiUiPv).
 extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void *buffer, int readMode)
 {
     void *cdReadMode;
@@ -237,6 +239,7 @@ extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void
 
 // Returns whether the pending CD command has completed (wait != 0 blocks until it has).
 // (Sly 1-derived name: FCdCompleted.)
+// Also known as: FCdCompleted (upstream readable / Sly 1 name).
 int IsCdCommandComplete(int wait)
 {
     return sceCdSync(wait == 0) == 0;

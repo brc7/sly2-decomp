@@ -19,7 +19,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // 0x1AE1D0/0x1AE2A0/0x1AE318 PvAllocSw/PvAllocSwClear/PvAllocStack Impl(SWALLOC *), 0x1C9058/90/98 CLoadSpin Begin/SetName/End,
 // 0x16F960 BuildClearGifs(QW *, const RGBA &, int), 0x1703F8 InitGsb, 0x258248 InitFloc, 0x1848A8/0x184950 CBinaryInputStream
 // ctor/dtor, 0x1AE478/0x1AE4A0 STACKSCOPE ctor/dtor, 0x13F888 CLoadCollectorArray ctor, 0x13FB40 LoadSwObjectsFromBrx,
-// 0x13E510 CloneLoWithParent, 0x14B690 PchzFidName. D_003DD040 = g_sndmgr, g_sw = g_sw, g_cm = g_cm.
+// 0x13E510 CloneLoWithParent, 0x14B690 PchzFidName. D_003DD040 = g_sndmgr.
 // Matching notes: the alloc helpers take cbAlign as a parameter (its copy lets loop.c hoist the loop's 0x10, which reload then
 // rematerialises); the black clear colour is stored as `unsigned int`.
 // STAND-IN (same trick as LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp / ApplySpriteKeyPoses.cpp): the five spilled gcse reaching pseudos (&gsb1, &frame, &bis,
@@ -229,6 +229,7 @@ extern int D_002E1E54;
 extern char D_003E1C20[];
 // Reads the localized string table (U8 language count and ids, then per string an S16 id and one string per language)
 // and keeps only the current language's strings (g_nLang) in the world's string array.
+// Also known as: LoadTextFromBrx (upstream readable / Sly 1 name).
 extern "C" void LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
 {
     SWLANG *p = (SWLANG *)world;
@@ -267,6 +268,7 @@ struct CELL { char pad[0x10]; CELL *front; CELL *back; int frontLeaf; int backLe
 struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *leaves; };
 // Reads the cell BSP: per node a plane (VECTOR4) and front/back children (a negative child starts a new leaf).
 // Allocates the world's cell and leaf arrays (0x20 bytes each).
+// Also known as: LoadNodesFromBrx (upstream readable / Sly 1 name).
 extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
 {
     SWCELLS *p = (SWCELLS *)world;

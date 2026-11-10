@@ -116,6 +116,7 @@ extern "C" void InitFrameCapture(CAPTUREV *capture)
 
 // CID104 vtable slot 15 (PostLoad): finishes the SO load, binds its snip table (the two placing objects), goes idle
 // and removes itself from the world until started.
+// Also known as: PostLoadAnimatedOverlay (upstream readable / Sly 1 name; PostLoadAnimatedOverlay__FP2LO).
 void CID104::PostLoad()
 {
     CAPTUREV *capture = (CAPTUREV *)this;
@@ -127,6 +128,7 @@ void CID104::PostLoad()
 
 // CID104 vtable slot 16 (Update): a started capture asks for the grab; a holding one resumes once the sound cue is
 // ready (func_001FE848 answers 0); a showing one goes idle when its animation has finished. (inferred)
+// Also known as: UpdateOverlay (upstream readable / Sly 1 name; UpdateOverlay__FP2LO).
 extern "C" void UpdateFrameCapture(CAPTUREV *capture)
 {
     switch (capture->state) {
@@ -159,6 +161,7 @@ enum
 };
 // CID104 vtable slot 5 (HandleMessage): events of its own animation switch the per-quad draw flags or, when a sound
 // cue is set, pause the animation until the cue is ready (CAPTURE_HOLDING). (inferred)
+// Also known as: OnOverlayMessage (upstream readable / Sly 1 name; OnOverlayMessage__FP2LO5MSGIDPv).
 extern "C" void HandleFrameCaptureMessage(CAPTUREV *capture, int kind, MSG *message)
 {
     HandleBasicMessage(capture, kind, message);
@@ -219,6 +222,7 @@ extern "C" void SetFrameCaptureState(CAPTUREV *capture, int state)
 }
 
 // Builds and sends the GIF/DMA packet that copies the frame buffer into the capture texture (D_002DECD0).
+// Also known as: CaptureOverlayFrame (upstream readable / Sly 1 name; CaptureOverlayFrame__Fv).
 extern "C" void CaptureFramebufferToTexture(CAPTUREV *capture)
 {
     GIFS *g = &D_002DEA00;
@@ -252,6 +256,7 @@ extern "C" void CaptureFramebufferToTexture(CAPTUREV *capture)
 
 // True unless the capture is in its closing states (2 or 3); the main loop uses it to decide whether to draw
 // normally. (inferred)
+// Also known as: FAnimatedOverlayDrawNormal (upstream readable / Sly 1 name; FAnimatedOverlayDrawNormal__FPc).
 extern "C" int IsFrameCaptureInactive(CAPTUREV *capture)
 {
     switch (capture->state) {
@@ -294,6 +299,7 @@ static inline float Screen(const float &g, const float &s) { return (g + 0.5f) *
 // drawQuad0 without drawQuad2.
 // Matching notes: unsigned loop counters (the target uses sltiu); the loop-1 counter is reused for the placer (i = quad & 1);
 // the `GIFS *pgifs = &D_002DEA00;` local at the top of the j-loop body orders the address set-ups like the target.
+// Also known as: DrawAnimatedOverlayFrame (upstream readable / Sly 1 name; DrawAnimatedOverlayFrame__FPv).
 extern "C" void DrawFrameCaptureScreen(CAPTUREV *capture)
 {
     M4 placerMatrices[2];
@@ -377,6 +383,7 @@ extern "C" void DrawFrameCaptureScreen(CAPTUREV *capture)
 
 // Splice entry: starts the transition with the animation segment oid (found from the capture; it runs on real time,
 // LO flag 0x100) and the sound cue to wait for (-1: none); all quads drawn. Nothing happens if the segment is missing.
+// Also known as: StartAnimatedOverlay (upstream readable / Sly 1 name; StartAnimatedOverlay__FP2LOii).
 extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
 {
     CAPTUREV *segment;

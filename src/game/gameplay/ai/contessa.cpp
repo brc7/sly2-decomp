@@ -43,6 +43,7 @@ void CONTESSA::Init()
 
 // 0x14FAF8: CONTESSA vtable slot 16 (Update): STEPGUARD update; then, when not attached (+0xF80 == -1) and on the
 // ground (+0x208), fits her to the terrain with three probe points and a +-200 height window (inferred).
+// Also known as: UpdateGuard40 (upstream readable / Sly 1 name; UpdateGuard40__FP2LO).
 extern "C" void UpdateContessa(GUARDV *contessa, float dt)
 {
       UpdateStepguard(contessa, dt);

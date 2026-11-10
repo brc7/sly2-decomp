@@ -226,6 +226,7 @@ void CFont::PopScaling()
 
 // Returns the advance width of a character at the current scale (glyph width + 1 pixel, or the space width when the
 // font has no glyph for it).
+// Also known as: DxFromCh (upstream readable / Sly 1 name).
 float CFontBrx::GetCharWidth(char ch)
 {
     GLYPH *pglyph = FindGlyphForChar(this, ch);
@@ -236,6 +237,7 @@ float CFontBrx::GetCharWidth(char ch)
 
 // Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs,
 // emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed. (inferred)
+// Also known as: FEnsureLoaded (upstream readable / Sly 1 name; FEnsureLoaded__8CFontBrxP4GIFS).
 int EnsureFontLoaded(CFont *pfont, GIFS *pgifs)
 {
     int fLoad;
@@ -262,6 +264,7 @@ int EnsureFontLoaded(CFont *pfont, GIFS *pgifs)
 
 // CFontBrx::SetupDraw: SCISSOR from the text box rectangle, EnsureFontLoaded, TEXFLUSH if needed, then the sprite prim
 // list setup. (inferred)
+// Also known as: SetupDraw (upstream readable / Sly 1 name; SetupDraw__8CFontBrxP8CTextBoxP4GIFS).
 void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
 {
     int fFlush;
@@ -305,6 +308,7 @@ void CFontBrx::SwitchTex0(GIFS *pgifs)
 // without the pin global-alloc gives it $f4).
 // Draws one character as a textured sprite at (x, y) in the 640x492.8 virtual screen (skipped when fully off screen)
 // and returns its advance width. Alpha is doubled into GS range (0x80 = opaque).
+// Also known as: DxDrawCh (upstream readable / Sly 1 name).
 float CFontBrx::DrawChar(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
 {
     GLYPH *pglyph = FindGlyphForChar(this, ch);
@@ -427,6 +431,7 @@ void CRichText::SetBaseColor(RGBA *rgba)
 // range), "~." restores the base colour, "~~" is a literal tilde; "&N" switches to font N (scaled to the base font's
 // line height), "&." restores the base font, "&&" is a literal ampersand; "^" escapes push or pop a text scale.
 // Returns 0 at the end of the text.
+// Also known as: ChNext (upstream readable / Sly 1 name).
 unsigned char CRichText::ReadNextChar()
 {
     int fDone = 0;
@@ -567,6 +572,7 @@ int CRichText::ClineWrap(float dxMax)
 
 // Returns the height of the text when word-wrapped to width dx: base line height (scaled) times the wrapped line
 // count. Note it wraps the text in place (ClineWrap inserts newlines).
+// Also known as: FUN_0015e1b0 (upstream readable / Sly 1 name).
 extern "C" float GetRichTextWrappedHeight(CRichText *p, float dx)
 {
     float dy = (float)p->baseFont->lineHeight * p->baseFont->yScale;
@@ -574,6 +580,7 @@ extern "C" float GetRichTextWrappedHeight(CRichText *p, float dx)
 }
 
 // Returns the width of the widest line of the text (escapes applied).
+// Also known as: DxMaxLine (upstream readable / Sly 1 name).
 float CRichText::GetMaxLineWidth()
 {
     float dxMax = 0.0f;

@@ -350,7 +350,7 @@ inline void *PvEmitbRefsNull(EMITTER *) { return EMITBREFS<EMITTER>::s_apvNull; 
 // EXPLO's empty reference block.
 inline void *PvEmitbRefsNull(EXPLO *) { return EMITBREFS<EXPLO>::s_apvNull; }
 
-/* copy on write: before a write (ENSK_Set), mark the object dirty and give it its own copy of a shared block */
+/* copy on write: before a write (ENSK_Set), mark the object dirty and give it its own copy of a shared block Also known as: PimgEmitb (upstream readable / Sly 1 name). */
 template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
@@ -370,7 +370,7 @@ template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
 }
 
 /* the blip colours: a u16 count, a byte, then count RGBA words (colour corrected; at most 32 kept)
-   Layout parse-verified: a parser following it reads every byte of 4 levels. */
+   Layout parse-verified: a parser following it reads every byte of 4 levels. Also known as: LoadEmitColorsFromBrx (upstream readable / Sly 1 name; LoadEmitColorsFromBrx__FP7LOXEMITP18CBinaryInputStream). */
 template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis)
 {
     struct RGBAW { unsigned char r, g, b, a; };   /* basic.h's RGBA cannot be a union member (operator=) */
@@ -397,7 +397,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
     }
 }
 
-/* LoadFromBrx (slot 14): a fresh block, the XFM part, the emit mesh (EMITO kind 3), the blip colours */
+/* LoadFromBrx (slot 14): a fresh block, the XFM part, the emit mesh (EMITO kind 3), the blip colours Also known as: LoadEmitterFromBrx, LoadExploFromBrx (upstream readable / Sly 1 names; LoadEmitterFromBrx__FP7EMITTERP18CBinaryInputStream, LoadExploFromBrx__FP5EXPLOP18CBinaryInputStream). */
 template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
 {
     SWALLOC req;
@@ -410,7 +410,7 @@ template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
     LoadEmitblipColorsFromBrx(p, pbis);
 }
 
-/* Clone (slot 41): the XFM part, then one more share of the block */
+/* Clone (slot 41): the XFM part, then one more share of the block Also known as: CloneEmitter, CloneExplo (upstream readable / Sly 1 names; CloneEmitter__FP7EMITTERT0, CloneExplo__FP5EXPLOT0). */
 template <class T> void CloneEmitter(T *p, LO *ploBase)
 {
     p->XFM::Clone(ploBase);
@@ -418,7 +418,7 @@ template <class T> void CloneEmitter(T *p, LO *ploBase)
 }
 
 /* PostLoad (slot 15 of EXPLO; EMITTER's PostEmitterLoad calls it): resolve the block's OIDs to objects, and give the
-   block its own reference record when they differ from the shared one */
+   block its own reference record when they differ from the shared one Also known as: ResolveEmits (upstream readable / Sly 1 name; ResolveEmits__FP8EMITTERN). */
 template <class T> void ResolveEmitterRefs(T *p)
 {
     LO *aplo[5];
@@ -482,7 +482,7 @@ template <class T> CLASSINFO *GetEmitterClassDesc_linkonce(T *p) { return Pclass
 
 /* ---- the accessors (g_aeopid records: get +0xC, set +0x14, setUser +0x1C, ensure +0x24) ---- */
 
-/* ensure: the slot at +0xC0 as record 0 (reset from D_002BDE10 on a write if unset); D_002DE720 if it holds the other */
+/* ensure: the slot at +0xC0 as record 0 (reset from D_002BDE10 on a write if unset); D_002DE720 if it holds the other Also known as: OffKind0 (upstream readable / Sly 1 name). */
 template <class T> EMITV *EnsureEmitterRecord0(T *p, ENSK ensk)
 {
     EMITB *pemitb = PemitbEnsure(p, ensk);
@@ -496,7 +496,7 @@ template <class T> EMITV *EnsureEmitterRecord0(T *p, ENSK ensk)
     return &pemitb->v;
 }
 
-/* ensure: the slot as record 1 (reset from D_002BDE70) */
+/* ensure: the slot as record 1 (reset from D_002BDE70) Also known as: OffKind1 (upstream readable / Sly 1 name). */
 template <class T> EMITV *EnsureEmitterRecord1(T *p, ENSK ensk)
 {
     EMITB *pemitb = PemitbEnsure(p, ensk);
@@ -527,7 +527,7 @@ template <class T> void func_002589A8(T *p, int kv)
 /* get: which record the slot holds */
 template <class T> int func_002589F0(T *p) { return p->pemitb->particleKind; }
 
-/* setUser: set the EMITO kind and allocate its data (only from unset) */
+/* setUser: set the EMITO kind and allocate its data (only from unset) Also known as: SetPositionKind (upstream readable / Sly 1 name). */
 template <class T> void SetEmitterOriginKind(T *p, int k)
 {
     EMITB *pemitb;
@@ -572,7 +572,7 @@ template <class T> int *func_00258B38(T *p, ENSK ensk)
     return &p->pemitb->emito.originKind;
 }
 
-/* setUser: record 1's payload kind (2, 3 or 8; only from unset), payload reset from its default */
+/* setUser: record 1's payload kind (2, 3 or 8; only from unset), payload reset from its default Also known as: SetKind1Payload (upstream readable / Sly 1 name). */
 template <class T> void SetEmitterRecord1PayloadKind(T *p, int k)
 {
     EMITV *pv = EnsureEmitterRecord1(p, ENSK_Set);
@@ -642,7 +642,7 @@ template <class T> void *func_00258D30(T *p, ENSK ensk)
     return &pv->u;
 }
 
-/* setUser: record 0's payload kind (1 or 2; only from unset), payload reset from its default */
+/* setUser: record 0's payload kind (1 or 2; only from unset), payload reset from its default Also known as: SetKind0Payload (upstream readable / Sly 1 name). */
 template <class T> void SetEmitterRecord0PayloadKind(T *p, int k)
 {
     EMITV *pv = EnsureEmitterRecord0(p, ENSK_Set);

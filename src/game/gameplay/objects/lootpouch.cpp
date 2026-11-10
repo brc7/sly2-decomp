@@ -60,6 +60,7 @@ void ClearLootPouchLoot(SPRAYER *);
 
 // CID99 vtable slot 15 (PostLoad): finishes the SO load, binds the snip table (its SMA, proxy, held item and attach
 // frame by oid) and starts the SMA.
+// Also known as: PpsmaPocket (upstream readable / Sly 1 name; PpsmaPocket__FP2LO).
 void CID99::PostLoad()
 {
     SPRAYER *pouch = (SPRAYER *)this;
@@ -69,6 +70,7 @@ void CID99::PostLoad()
 }
 
 // CID99 vtable slot 19 (RenderSelf): draws the pouch, then places the held item at the attach frame's world matrix.
+// Also known as: CollectPocketDraws (upstream readable / Sly 1 name; CollectPocketDraws__FP5SCENE).
 extern "C" void RenderLootPouchSelf(SPRAYER *pouch)
 {
     RenderSoSelf(pouch);
@@ -81,6 +83,7 @@ extern "C" void ClearLootPouchLoot(SPRAYER *pouch) { pouch->heldItem = 0; pouch-
 // Puts an item in the pouch: a PROXY (cid 6) gives a fresh copy, an SO (cid 0x30) is used directly. A clue bottle
 // (cid 0x5E) selects entry `id`; a prize (cid 0x5A) goes to state 2 (held), anything else is removed from the world.
 // Returns 0 if the pouch is already full, 1 if the proxy had no copy left, 2 for an unusable item, 3 on success.
+// Also known as: NReadyReward (upstream readable / Sly 1 name; NReadyReward__FP2LOT0iPv).
 extern "C" int StageLootPouchLoot(SPRAYER *pouch, SOV *item, int id, void *attachName)
 {
     if (pouch->heldItem) return 0;
@@ -162,6 +165,7 @@ static inline float Rand(const LM &lm) { return RandomFloatInRange__Fff(lm.minVa
 namespace RO_ORDER { extern const float r_D_002A76E8 __asm__("D_002A76E8") = 3.40282347e+38f; }
 // Launches `count` items (the held one, then copies from the proxy) toward random points around the player and
 // empties the pouch; returns the first item launched. Details below.
+// Also known as: PloLaunchReward (upstream readable / Sly 1 name; PloLaunchReward__FP2LOi).
 extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
 {
     SW *game = &g_sw;

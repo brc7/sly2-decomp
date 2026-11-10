@@ -185,7 +185,7 @@ struct LASENV : SENSORV
     LASENCAP caps[2];       /* 0x1A0 */
     float endpointSpeed;    /* 0x1C0 time scale of the moving endpoints */
 
-    void ZapBeams(int) __asm__("ZapLasenBeams");
+    void ZapBeams(int) __asm__("ZapLasenBeams");  // Also known as: ApplyLaserContacts (upstream readable / Sly 1 name; ApplyLaserContacts__FP3ALO).
 };
 typedef char assert_LASEN_cbeam[(int)(char *)&(((LASENV *)0)->numBeams) == 0x198 ? 1 : -1];
 typedef char assert_LASEN_endpointSpeed[(int)(char *)&(((LASENV *)0)->endpointSpeed) == 0x1C0 ? 1 : -1];
@@ -293,6 +293,7 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 
 // SENSOR vtable slot 61 (ShouldIgnoreIntersection): collides with nothing (1) except that objects named in the no-trigger
 // lists (by name or class) get 2 (NMaxIgnore). (inferred)
+// Also known as: LaserOverlapKind (upstream readable / Sly 1 name; LaserOverlapKind__FP3ALOT0).
 extern "C" int ShouldSensorIgnoreIntersection(SENSORV *sensor, SOV *pso)
 {
     int i, j;
@@ -343,6 +344,7 @@ static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) 
 
 // LASEN::LoadFromBrx (vtable slot 14): room for 64 beams, the SO load (its Splice init adds the beams), then the array
 // shrunk to the beams added.
+// Also known as: LoadLaserFromBrx (upstream readable / Sly 1 name; LoadLaserFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
 {
     STACKSCOPE scope;
@@ -353,6 +355,7 @@ extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
 }
 
 // LASEN::Clone (vtable slot 41): SO clone, then its own copy of the beam array.
+// Also known as: CloneLaser (upstream readable / Sly 1 name; CloneLaser__FP3ALO).
 extern "C" void CloneLasen(LASENV *laser)
 {
     ALLOCREQ req;
@@ -362,6 +365,7 @@ extern "C" void CloneLasen(LASENV *laser)
 
 // LASEN::PostLoad (vtable slot 15): SO post-load, builds the beams and their bounds, binds the end-cap animations and
 // runs a first ray pass (ZapLasenBeams(0)).
+// Also known as: PostLoadLaser (upstream readable / Sly 1 name; PostLoadLaser__FP2LO).
 void LASEN::PostLoad()
 {
     LASENV *laser = (LASENV *)this;
@@ -372,6 +376,7 @@ void LASEN::PostLoad()
 }
 
 // LASEN vtable slot 53 (PtreeNew): the SO tree node, flagged 0x20. (inferred: beams use their own contacts)
+// Also known as: AddLaserAttachment (upstream readable / Sly 1 name; AddLaserAttachment__FP3ALO).
 extern "C" SOTREEV *NewLasenTree(LASENV *laser)
 {
     SOTREEV *ptree = NewSoTree(laser);
@@ -411,6 +416,7 @@ static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1)
 
 // (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion
 // profile) and the beams' bounding box as the SO's single part. (inferred)
+// Also known as: BindEnd (upstream readable / Sly 1 name; BindEnd__FP3ALO).
 extern "C" void BuildLasenBeams(LASENV *laser)
 {
     int i;
@@ -624,6 +630,7 @@ extern "C" void BindLasenAnimations(LASENV *laser)
 
 /* Remove the beams' contacts with pso. */
 // LASEN vtable slot 54: unlinks and frees the beams' contacts with the object and queues a new ray pass.
+// Also known as: RemoveLaserContacts (upstream readable / Sly 1 name; RemoveLaserContacts__FP3ALOT0).
 extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
 {
     XP *list = 0;
@@ -717,6 +724,7 @@ static inline float Scalar(VU_VECTOR v)
 }
 
 // LASEN vtable slot 60: raycast each beam (0x14C6A0) and record what it hits (contact list per beam), then zap. (inferred)
+// Also known as: AddLaserContacts (upstream readable / Sly 1 name; AddLaserContacts__FP3ALOP3SOEiiiPP2XP).
 extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a4, XP **ppxp)
 {
     int i;
@@ -784,6 +792,7 @@ void LASENV::ZapBeams(int)
 }
 
 // LASEN::Update (vtable slot 16): UpdateSo then move path endpoints. (inferred)
+// Also known as: UpdateLaser (upstream readable / Sly 1 name; UpdateLaser__FP2LOf).
 extern "C" void UpdateLasen(LASENV *laser, float dt)
 {
     UpdateSo(laser, dt);
@@ -885,6 +894,7 @@ static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &dista
 }
 
 // LASEN::RenderSelf (vtable slot 19): RenderSoSelf + draw each visible beam (frustum test, beam matrix). (inferred)
+// Also known as: CollectLaserDraws (upstream readable / Sly 1 name; CollectLaserDraws__FP3ALO).
 extern "C" void RenderLasenSelf(LASENV *laser)
 {
     RenderSoSelf(laser);

@@ -99,6 +99,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // Returns the current region's language list through the optional out-pointers (count, array of language
 // indexes). An out-of-range region is reset to 0 first.
+// Also known as: FRegionLanguages (upstream readable / Sly 1 name; FRegionLanguages__FPiPUi).
 extern "C" void GetRegionLanguages(int *outCount, int **outLanguages)
 {
     REGIONLANGS *regionLangs;

@@ -88,11 +88,13 @@ MATRIX4 *MulMatrix4Matrix4P(MATRIX4 *pmatRet, MATRIX4 *pmatA, MATRIX4 *pmatB) __
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec);
 
 // Inverts a 3x3 matrix stored with a 4-float row stride (InvertMatrix, Gauss-Jordan).
+// Also known as: FInvertMatrix3 (upstream readable / Sly 1 name; FInvertMatrix3__FP7MATRIX3T0).
 extern "C" void InvertMatrix3(float *src, float *dst) {
     InvertMatrix__FiPfT1(4, 3, src, dst);
 }
 
 // Returns the inverse of a 3x3 matrix by cofactors (row cross products over the determinant).
+// Also known as: InverseMatrix3 (upstream readable / Sly 1 name; InverseMatrix3__FP7MATRIX3).
 extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
 {
     M3 m;
@@ -160,6 +162,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
 
 // Returns the rotation about the unit `axis` whose angle has sine s and cosine c (Rodrigues' formula).
+// Also known as: BuildRotateMatrixSinCos (upstream readable / Sly 1 name; BuildRotateMatrixSinCos__FG9VU_VECTORN20).
 M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
 {
     M3 m;
@@ -203,6 +206,7 @@ static inline qword IntToQword(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0
    they put the axis copy (a3) and the hidden return pointer (a0) after this asm, as in the target. */
 #define QWFROMN2(dst, n, a) { UN u; qword q; __asm__("" : "=r"(q), "+r"(a) : "0"(n) : "$4"); dst = q; u.q = q; }
 // Builds the rotation of `rad` radians about the unit `axis` into *outMatrix and returns it.
+// Also known as: BuildRotateMatrixAxis (upstream readable / Sly 1 name; BuildRotateMatrixAxis__FP7MATRIX3fG9VU_VECTOR).
 M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
 {
     int s, c;
@@ -222,6 +226,8 @@ M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
 }
 
 // Builds the rotation given by a rotation vector (angle = |v|, axis = v / |v|; identity for a tiny v).
+// Also known as: BuildRotateMatrixVector (upstream readable / Sly 1 name;
+//   BuildRotateMatrixVector__FP6VECTORG9VU_VECTOR).
 extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
 {
     qword d, one, l;
@@ -245,6 +251,7 @@ extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
 }
 
 // Builds a rotation matrix from Euler angles (x, y, z components of v).
+// Also known as: BuildEulerMatrix (upstream readable / Sly 1 name; BuildEulerMatrix__FP6VECTORG9VU_VECTOR).
 extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *outMatrix, qword v)
 {
     float sx, cx, sy, cy, sz, cz;
@@ -285,6 +292,7 @@ static inline void MulM3PT(M3 *pd, M3 *pa, M3 *pb)
     pd->r[2] = m.r[2];
 }
 // Builds the rotation for a pan (about z) and a tilt (about the panned y, positive up): Rz(pan) * Ry(-tilt).
+// Also known as: BuildPanTiltMatrix (upstream readable / Sly 1 name; BuildPanTiltMatrix__FPvff).
 extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
 {
     M3 c;
@@ -334,6 +342,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x70");
 
 // Builds an orthonormal basis from a primary direction and an up hint (crosses and normalises; falls back to
 // any perpendicular when they are parallel).
+// Also known as: BuildLookAtMatrix (upstream readable / Sly 1 name; BuildLookAtMatrix__FP6VECTORG9VU_VECTORT1).
 M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
 {
     qword l, l2, z;
@@ -378,6 +387,7 @@ static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
 }
 // Computes the rotation that takes the matrix's local z onto world z: optionally returns it (outDelta) and the
 // matrix with it applied (outUpright).
+// Also known as: LevelMatrix3 (upstream readable / Sly 1 name; LevelMatrix3__FP7MATRIX3T0Pv).
 extern "C" void TiltMatUpright(M3 *matrix, M3 *outDelta, M3 *outUpright)
 {
     M3 local;
@@ -417,6 +427,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0xd0");
 // Builds the minimal rotation taking direction a onto direction b (identity if either is shorter than 1e-4;
 // axis a x b, or any perpendicular when they are opposite; cosine clamped).
 // Same body as Sly 1's; its caller 0x11B938 is Sly 1's TiltMatUpright.
+// Also known as: BuildRotateVectorsMatrix (upstream readable / Sly 1 name;
+//   BuildRotateVectorsMatrix__FP7MATRIX3G9VU_VECTORT1).
 M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword b)
 {
     VU_FLOAT la, lb;
@@ -479,6 +491,7 @@ static inline M3 MulM3MM(M3 *pa, M3 *pb, M3 *pd) return m
     m.r[2] = v8;
 }
 // Multiplies two 3x3 matrices (a * b) into *outMatrix and returns it.
+// Also known as: MulMat3TransposeA (upstream readable / Sly 1 name; MulMat3TransposeA__FP7MATRIX3T0Pv).
 M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
 {
     M3 m;
@@ -576,6 +589,7 @@ extern "C" qword DecomposeRotationMatrixToVector(void *matrix)
 
 // Returns the Euler angles of a rotation matrix (asin of the clamped -m02, atan2 for the others, with a
 // gimbal-lock branch); the inverse of LoadRotateMatrixEuler.
+// Also known as: DecomposeEulerMatrix (upstream readable / Sly 1 name; DecomposeEulerMatrix__FP7MATRIX3).
 extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix)
 {
     U4 r;
@@ -609,6 +623,7 @@ MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) return mat
 }
 
 // MATRIX4 operator*: 4x4 product a * b into *outMatrix. Sly 1 symbol __ml__FRC7MATRIX4T0.
+// Also known as: MulMatrix4 (upstream readable / Sly 1 name; MulMatrix4__FP7MATRIX4T0Pv).
 M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
 {
     register qword v1 __asm__("vf1") = a->r[0];
@@ -710,11 +725,13 @@ extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *outMatrix, qword pos, M3 *rotati
 }
 
 // Inverts a general 4x4 matrix (InvertMatrix, Gauss-Jordan).
+// Also known as: FInvertMatrix4 (upstream readable / Sly 1 name; FInvertMatrix4__FP7MATRIX4T0).
 extern "C" void InvertMatrix4(float *src, float *dst) {
     InvertMatrix__FiPfT1(4, 4, src, dst);
 }
 
 // Returns the inverse of a rigid 4x4 transform (transposed rotation, translation -t * R^T).
+// Also known as: InverseAffineMatrix4 (upstream readable / Sly 1 name; InverseAffineMatrix4__FP7MATRIX4).
 M4 InvertMatrix4Rigid(M4 *matrix)
 {
     M4 m;
@@ -800,6 +817,7 @@ static inline void *AllocStackBlock(MSG *pmsg, int cb, int nKind) { pmsg->cb = c
 // Inverts the n x n matrix src (row stride `stride` floats) into dst by Gauss-Jordan elimination with partial
 // pivoting, using a scratch copy on the stack. Returns whether the matrix was invertible.
 // (Sly 1-derived name: FInvertMatrix.)
+// Also known as: FInvertMatrix (upstream readable / Sly 1 name).
 int InvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
 {
     int isInvertible = 0;
@@ -928,6 +946,7 @@ static inline float DotSq(qword v)
     return g;
 }
 // Returns the length of the longest row of a 3x3 matrix (its largest axis scale), e.g. to scale bounding spheres.
+// Also known as: GMaxRowLengthMatrix3 (upstream readable / Sly 1 name; GMaxRowLengthMatrix3__FP7MATRIX3).
 extern "C" float GetMaxRowLengthMatrix3(M3 *matrix)
 {
     float d0 = DotSq(matrix->r[0]);

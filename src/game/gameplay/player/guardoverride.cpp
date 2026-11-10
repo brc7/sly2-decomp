@@ -28,6 +28,7 @@ void SetGuardOverride(SW *world, int isActive);
 // Calls SendPowerupEvent (slot 104) on every STEPPLAYER (CID 0x34, at most 8) in the world. Called after a power-up is bought in
 // the shop screen and by the give-gadget cheat, so the slot is inferred to refresh the player's gadget/power-up
 // state. (inferred)
+// Also known as: NotifyPlayersPowerups (upstream readable / Sly 1 name; NotifyPlayersPowerups__Fv).
 extern "C" void RefreshPlayersAfterPowerupChange()
 {
       STEPPLAYER *players[8];
@@ -40,6 +41,7 @@ extern "C" void RefreshPlayersAfterPowerupChange()
 }
 
 // Per frame (from UpdateSw): ends the guard override once it has been active longer than D_002BF938 (6 s).
+// Also known as: UpdateGuardsFrozen (upstream readable / Sly 1 name; UpdateGuardsFrozen__FP2SW).
 extern "C" void UpdateSwGuardOverride(SW *world)
 {
       if (world->areGuardsFrozen != 0) {

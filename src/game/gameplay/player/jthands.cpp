@@ -135,6 +135,7 @@ extern "C" void MinimizeRange(float (*pfn)(void *, float), void *pv, float a, fl
 extern "C" void ResetJtHands(JTHANDS *hands) { hands->mode = -1; hands->holdKind = -1; }
 
 // Closest point to `point` on the segment between the two A curves (the hand transform's path) evaluated at t.
+// Also known as: GReachDist (upstream readable / Sly 1 name; GReachDist__FP5REACHG9VU_VECTORP6VECTORPff).
 extern "C" void GetClosestPointOnJtHandsCurveA(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
     qword a, b;
@@ -214,6 +215,7 @@ static inline const M4 *InverseArgument(const M4 *value)
 
 // Fits the hand curves to the grab target: finds the best clip parameter, seeks/reblends the hold clips, and sets the
 // actor's position goal and the step's turn target.
+// Also known as: UpdateReach (upstream readable / Sly 1 name; UpdateReach__FP5REACH).
 extern "C" void UpdateJtHands(JTHANDS *hands)
 {
     WORK w;
@@ -323,6 +325,7 @@ inline void *AllocFromWorldHeapAligned(int cb, int alignment)
 
 // Builds the hands record: the hand-frame matrix, the sampled A/B curves per hold clip (PredictAsegEffect) and the
 // blend between the clips.
+// Also known as: BindReach (upstream readable / Sly 1 name; BindReach__FP5REACHP5ACTORPP5ASEGA).
 void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
 {
     hands->owner = so;
@@ -408,6 +411,7 @@ extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 }
 
 // The first nearby object of class 0x14 whose flags match the hands' flags.
+// Also known as: PloReachGrip (upstream readable / Sly 1 name; PloReachGrip__FP5ACTORi).
 extern "C" CID20 *FindJtHandsTarget(STEPPLAYER *jt, LO *lo)
 {
     CID20 *apcid[4];
@@ -421,6 +425,7 @@ extern "C" CID20 *FindJtHandsTarget(STEPPLAYER *jt, LO *lo)
 
 // Chooses the grab target (closest point on a shape, or a class-0x14 object), creates the position act, reblends and
 // schedules UpdateJtHandsCallback.
+// Also known as: SetReachState (upstream readable / Sly 1 name; SetReachState__FP5REACHi).
 extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
 {
     if (nMode == hands->mode) return;
@@ -496,6 +501,7 @@ struct __attribute__((packed)) BASIS_TAIL { float firstW; qword row1, row2; };
 
 // Creates position and orientation jobs that carry the selected animated object along the predicted clip path to the
 // hand (ballistic time, reparenting).
+// Also known as: StartReachGrab (upstream readable / Sly 1 name; StartReachGrab__FP5REACHP2LO).
 extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
 {
     register JTHANDS *p __asm__("$22");
@@ -691,6 +697,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
 /* Attach the held object to the hand: parent it to the hand's XF, place it at the hand (relative to a CID 0x14
    counterpart when there is one), constrain it, and give it position/orientation acts. */
 // Attaches the held object to the hand: force/torque constraints, transform from the hand matrix, acts, fade-in.
+// Also known as: AttachReachObject (upstream readable / Sly 1 name; AttachReachObject__FP5REACHP2LO).
 extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
 {
     M4 buf;
@@ -725,6 +732,7 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
 }
 
 // Frees the three hand acts that are active.
+// Also known as: ReleaseReachObject (upstream readable / Sly 1 name; ReleaseReachObject__FP5REACH).
 extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 {
     if (hands->psoHeld == 0)
@@ -737,6 +745,7 @@ extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 
 /* Release the held object onto po (its parent, or the world) and move it there with acts; then target po. */
 // Variant of SetJtHandsTarget that parents the object and builds the position/rotation acts.
+// Also known as: PlaceReachObject (upstream readable / Sly 1 name; PlaceReachObject__FP5REACHP2LO).
 extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
 {
     M3 mat;

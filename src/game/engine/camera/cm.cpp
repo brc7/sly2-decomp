@@ -49,6 +49,7 @@ void SetCmNearClip(CM *pcm, float sNearClip);
 
 // CM constructor: BASIC header, vptr 0x2CA4D0 (CM vtable), then constructs the 9 embedded camera policies at
 // +0x3A0..+0x600.
+// Also known as: CM constructor (upstream readable / Sly 1 name).
 extern "C" CM *CM_ctor(CM *pcm)
 {
     CPTWOSHOT *pcptwoshot = &pcm->twoShotPolicy;
@@ -69,6 +70,7 @@ extern "C" CM *CM_ctor(CM *pcm)
 }
 
 // Camera setup hook called once at startup by main (after the CM constructor has run); empty in the shipped game.
+// Also known as: StartupCm (upstream readable / Sly 1 name; StartupCm__Fv).
 void SetupCm(CM *pcm)
 {
 }
@@ -87,6 +89,7 @@ float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float
 // Per-frame camera update: runs the top policy of the stack (vtable slot 6 Update, with the focus object's CPDEFI
 // from its vtable slot 50 and the current joypad), again whenever the update replaced the top policy; then the fov:
 // snapped on a cut, else smoothed toward the target; clears the cut and, in stereo mode, smooths the eye offset.
+// Also known as: UpdateCm (upstream readable / Sly 1 name).
 extern "C" void UpdateCmLast__FP2CM(CM *cm)
 {
     CPLCY *policy;
@@ -135,6 +138,7 @@ extern "C" void UpdateCmLast__FP2CM(CM *cm)
 namespace M_ResetCameraPolicies {
 // Calls ResetPolicy (vtable slot 7) on every policy on the stack, then resets the stereo eye offset (+0x620: 0) and
 // focus distance (+0x624: 10).
+// Also known as: ResetCm (upstream readable / Sly 1 name; ResetCm__FP2CM).
 extern "C" void ResetCameraPolicies(CM *p)
 {
     int i;
@@ -220,6 +224,7 @@ extern "C" void CutCm__FP2CM(CM *p)
 
 namespace M_SetCmCut {
 // Cut with explicit pan/tilt: cutPanAngle(+0x304)/cutTiltAngle(+0x308) = args, nCut = max(nCut,2) (inferred)
+// Also known as: SetCmCut (upstream readable / Sly 1 name; SetCmCut__FP2CMff).
 extern "C" void SetCmCut(CM *p, float a, float b)
 {
     int m = 2;
@@ -238,6 +243,7 @@ void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void InvertMatrix4Rigid(M4F *pmOut, M4F *pm) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb) __asm__("__ml__FRC7MATRIX4T0");
 // MatViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x)
+// Also known as: CombineEyeLookAtProj (upstream readable / Sly 1 name; CombineEyeLookAtProj__FP7MATRIX4T0Pv).
 extern "C" void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)
 {
     M4F m;
@@ -345,7 +351,7 @@ extern "C" void RecalcCmFrustrum__FP2CM(CM *pcm)
 namespace M_UpdateCmMat4__FP2CM {
 // UpdateCmMat4: ported from Lilly's personal Sly 2 decomp (src/P2/cm.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DE0 (D_002A2DE0), DT_CmJoltMax (DT_CmJoltMax), SW_CmJolt (SW_CmJolt), g_clock (g_clock), g_lmZeroOne (g_lmZeroOne), s_clqUToUJolt (s_clqUToUJolt), s_dposJolt (s_dposJolt), s_rotJolt (s_rotJolt), s_vecOffset (s_vecOffset), s_vecRange (s_vecRange)
+// Globals: D_002A2DE0 (D_002A2DE0), DT_CmJoltMax, SW_CmJolt, g_clock, g_lmZeroOne, s_clqUToUJolt, s_dposJolt, s_rotJolt, s_vecOffset, s_vecRange
 // 0x0014DC58 UpdateCmMat4__FP2CM  (T1386; Sly 1 never matched it)
 // The camera's placement CM::mat (3 rotation rows, row 3 = the position; SetCmMat4 / SetCmPanTilt / the policies set it) or its projection changed:
 //  1. the world -> clip matrix matViewProj = CombineEyeLookAtProj(eye, matProj), where eye is CM::mat itself, or, for 0.5 s after a camera jolt
@@ -518,6 +524,7 @@ int CompareCameraVisZones(const void *a, const void *b) __asm__("CompareCameraVi
 void SetCmVisZone(CM *p, struct O *po) __asm__("SetCmVisZone");
 // Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best
 // via SetCmVisZone if its kind==1.
+// Also known as: SortCmObjects (upstream readable / Sly 1 name).
 extern "C" void UpdateCmVisZone__FP2CM(CM *cm)
 {
     struct O *apo[32];
@@ -533,6 +540,7 @@ extern "C" void UpdateCmVisZone__FP2CM(CM *cm)
 } // namespace M_UpdateCmVisZone__FP2CM
 
 // If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0. (inferred)
+// Also known as: SetCmCurObject (upstream readable / Sly 1 name; SetCmCurObject__FP2CMP2LO).
 extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
 {
     if (pzon != pcm->pzonVis) {
@@ -542,6 +550,7 @@ extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
 }
 
 // Copies a 4x4 placement into CM::mat (+0x60..0x9F) then UpdateCmMat4. (inferred)
+// Also known as: SetCmPosMat (upstream readable / Sly 1 name; SetCmPosMat__FP2CMP6VECTOR).
 extern "C" void SetCmMat4(CM *pcm, qword *pmat)
 {
     ((qword *)&pcm->mat)[0] = pmat[0];
@@ -571,6 +580,7 @@ extern "C" { static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
 } }
 // Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos) (0x11EFB0), rotation
 // 0x11B720, pos row, UpdateCmMat4. (inferred)
+// Also known as: SetCmLookAt (upstream readable / Sly 1 name; SetCmLookAt__FP2CMG9VU_VECTORT1ff).
 extern "C" void SetCameraLookAt(CM *cm, qword pos, qword tgt, float da, float db)
 {
     qword d;
@@ -587,6 +597,7 @@ extern float D_002A4FF8 __asm__("D_002A4FF8");
 void FitRecipFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb) __asm__("FitRecipFunction__FffffPfT4");
 // Builds the GS fog function (FGFN) from nearFogDistance/farFogDistance/maxFog (+0x240..0x248): linear map to 0..4080, +8417280
 // bias.
+// Also known as: BuildCmFogRecip (upstream readable / Sly 1 name; BuildCmFogRecip__FP2CMPff).
 extern "C" void BuildCmFgfn(CM *p, float *af, float f)
 {
     if (f == D_002A4FF8) f = 1.0f;
@@ -608,6 +619,7 @@ void *memmove(void *dst, void *src, int cb) __asm__("memmove");
 extern "C" { static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); } }
 // Insert {cpp,pcplcy,focus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top:
 // prev vt3 Deactivate, modeStartTime=clock.time, vt2 Activate.
+// Also known as: SetCmPolicy (upstream readable / Sly 1 name; SetCmPolicy__FP2CM3CPPP5CPLCYii).
 extern "C" void SetCmPolicy(CM *p, CPP prio, CPLCY *po, SO *a, void *b)
 {
     int i;
@@ -641,6 +653,7 @@ enum { REVOKE_BY_PRIO = 1, REVOKE_BY_POLICY = 2, REVOKE_BY_FOCUS = 4, REVOKE_BY_
 // Removes the policy-stack entries that match on every field the mask selects (priority, policy, focus object,
 // parameter), calling each one's Revoke (vtable slot 5); when the top entry went, deactivates it and activates the new
 // top.
+// Also known as: RevokeCmPolicy (upstream readable / Sly 1 name; RevokeCmPolicy__FP2CMi3CPPP5CPLCYii).
 extern "C" void RevokeCmPolicy(CM *p, int grf, CPP prio, CPLCY *po, SO *a, void *b)
 {
     CPR *peOut;
@@ -684,6 +697,7 @@ namespace M_CalcCmAdjust {
 void SetVectorCylind(void *a, void *b, float x, float y, float z) __asm__("SetVectorCylind");
 // The camera adjust offset: a cylindrical vector pointing opposite the focus's home angle (homeHeading + pi) with length
 // adjustDistance (CPDEFI +0x30 / +0x34). (inferred)
+// Also known as: CalcCmAdjust (upstream readable / Sly 1 name; CalcCmAdjust__FP2CMP6CPDEFI).
 void CalcCmAdjust(void *a, CPDEFI *b) __asm__("CalcCmAdjust"); void CalcCmAdjust(void *a, CPDEFI *b)
 {
     SetVectorCylind(a, b, b->homeHeading + 3.14159265f, b->adjustDistance, 0.0f);
@@ -695,6 +709,7 @@ namespace M_ApplyCameraSpring {
 typedef int qword __attribute__((mode(TI)));
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
+// Also known as: SpringCm (upstream readable / Sly 1 name; SpringCm__FP2CMP7VECTOR4T1G9VU_VECTORff).
 extern "C" void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
     register CLOCK *pclock __asm__("v0");
@@ -745,6 +760,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k) __asm__("IsBasicDerive
 void ApplyCameraSpring(CM *p, ::qword *ppos, VECTOR *pvel, qword target, float k1, float k2) __asm__("ApplyCameraSpring");
 // Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different
 // gains; writes cpdefi.adjustedPosition = basePosition + dposAdjust.
+// Also known as: AdjustCmCpdefi (upstream readable / Sly 1 name; AdjustCmCpdefi__FP2CMP2SOP6CPDEFI).
 extern "C" void AdjustCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
 {
     qword q = CalcCmAdjust(p, ps);
@@ -782,6 +798,7 @@ static inline void ZeroVector(VECTOR *pv)
     pv->x = 0.0f;
 }
 // Resets the camera's adjust state: the adjust offset from CalcCmAdjust, and zero adjust / focus velocities.
+// Also known as: ResetCmAdjust (upstream readable / Sly 1 name; ResetCmAdjust__FP2CM).
 extern "C" void ResetCmAdjust(CM *pcm)
 {
     pcm->dposAdjust = CalcCmAdjust(pcm);
@@ -796,6 +813,7 @@ struct O { int pad[3]; VTE *vt; };
 qword CalcCmAdjust(CM *p, CPDEFI *ps) __asm__("CalcCmAdjust");
 // If pso == focus(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and adjustedPosition = basePosition +
 // CalcCmAdjust.
+// Also known as: GetCmCpdefi (upstream readable / Sly 1 name; GetCmCpdefi__FP2CMP2SOP6CPDEFI).
 extern "C" void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
 {
     if ((SO *)po == p->focus) {
@@ -821,6 +839,8 @@ int ClipSegmentBsp(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c
 int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f) __asm__("MergeSegmentLists");
 // Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
 // > duMin in *puFrom/ *puTo.
+// Also known as: FFindCmClearInterval (upstream readable / Sly 1 name;
+//   FFindCmClearInterval__FiP8CMSOLIDSG9VU_VECTORT2P6VECTORT4f).
 extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
 {
     struct HIT ahit[0x40];
@@ -890,6 +910,8 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 }
 
 // Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position.
+// Also known as: FindCmClosestClearPos (upstream readable / Sly 1 name;
+//   FindCmClosestClearPos__FP8CMSOLIDSP6VECTORG9VU_VECTORf).
 qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
 {
     float t, u;
@@ -957,6 +979,8 @@ extern "C" { static inline void *PvAlloc(int cb, int cbAlign)
 
 // Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix + constraint values via pfn,
 // solves (0x11AD30) and returns v + sum of normal impulses.
+// Also known as: SquishCmEye (upstream readable / Sly 1 name;
+//   SquishCmEye__FP2CM14PFNCMHITWEIGHTP6VECTORT2G9VU_VECTORT4ff).
 extern "C" qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, qword, struct X *),
                     qword pos, qword v, float g, float h)
 {
@@ -1062,6 +1086,7 @@ extern "C" { static __inline__ float GDot(const qword *pa, qword b)
     return g;
 } }
 // Constraint for SquishCmEye: SmoothValue(dist-to-plane, nearCornerDistance(+0x48) - k) ; return dot(vEye, normal) - smoothed.
+// Also known as: GCmAvoidWeight (upstream readable / Sly 1 name; GCmAvoidWeight__FP2CMiG9VU_VECTORP5CMHIT).
 extern "C" float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
 {
     float r;
@@ -1116,6 +1141,7 @@ static inline float GXOfQw(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=
 static inline float Length(const qword &v) { return GXOfQw(QwSqrt(QwDot(v, v))); }
 
 // VEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt.
+// Also known as: PosCmAvoid (upstream readable / Sly 1 name; PosCmAvoid__FP2CMG9VU_VECTORT1).
 qword ClipCameraEye(void *p, qword pos, qword posTarget)
 {
     CLOCK *pclock = &g_clock;
@@ -1144,6 +1170,7 @@ extern "C" { static __inline__ qword Mul(M4 *pm, qword v)
     return o;
 } }
 // Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat.
+// Also known as: ConvertCmScreenToWorld (upstream readable / Sly 1 name; ConvertCmScreenToWorld__FP2CMG9VU_VECTOR).
 extern "C" qword ConvertCmScreenToWorld(CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
@@ -1169,6 +1196,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pm, M4 *pn) __asm__("InvertMatrix4Rigid");
 // World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
+// Also known as: ConvertCmWorldToScreen (upstream readable / Sly 1 name; ConvertCmWorldToScreen__FP2CMG9VU_VECTOR).
 extern "C" qword ConvertCmWorldToScreen(CM *cm, qword v)
 {
     union { qword q; float f[4]; } r;
@@ -1304,6 +1332,7 @@ extern "C" void SetCmFov__FP2CMf(CM *cm, float f)
 
 // Option setter g_aeopid[162] (field +0x24): targetFieldOfView=f and the active policy's saved fov (acpr[0].pcplcy+4) so
 // Deactivate restores it. (inferred)
+// Also known as: SetCmFovTarget (upstream readable / Sly 1 name; SetCmFovTarget__FP2CMf).
 extern "C" void SetCmBaseFovTarget(CM *pcm, float fovTarget)
 {
     CPLCY *pcplcy = pcm->policyStack[0].policy;
@@ -1321,6 +1350,7 @@ void SetCmNearClip(CM *pcm, float sNearClip)
 }
 
 // Option setter g_aeopid[164]: SetCmNearClip and the active policy's saved near clip (pcplcy+8) (inferred)
+// Also known as: SetCmNearClipAll (upstream readable / Sly 1 name; SetCmNearClipAll__FP2CMf).
 extern "C" void SetCmBaseNearClip(CM *pcm, float sNearClip)
 {
     CPLCY *pcplcy;
@@ -1380,6 +1410,7 @@ void SetCmMrdRatio(CM *pcm, float g)
 
 namespace M_JoltCamera {
 // Starts a camera shake of the given kind now (joltTime, +0x618; joltKind, +0x61C); UpdateCmMat4 applies it for 0.5 s.
+// Also known as: JoltCm (upstream readable / Sly 1 name; JoltCm__FP2CMi).
 extern "C" void JoltCamera(CM *p, int a)
 {
     p->joltTime = g_clock.time;
@@ -1406,6 +1437,7 @@ extern "C" { static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 } }
 // Builds a view-proj from CM::mat with pos offset along the right axis by +/- stereoEyeOffset (k=1/2) via CombineEyeLookAtProj
 // into pm (proj = pv or matProj) (inferred)
+// Also known as: MatCmStereoEye (upstream readable / Sly 1 name; MatCmStereoEye__FP2CMiP7MATRIX4iPv).
 extern "C" void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
 {
     QWROW r, g;
@@ -1435,6 +1467,7 @@ typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; qword r[3]; };
 // True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
 // (inferred)
+// Also known as: FInsideCmPlanes (upstream readable / Sly 1 name; FInsideCmPlanes__FP2CMG9VU_VECTORT1).
 extern "C" int IsInCameraFrustum(struct X *p, qword v, qword w)
 {
     qword one;
@@ -1450,6 +1483,7 @@ namespace M_IsWithinCameraRenderDistance {
 typedef int qword __attribute__((mode(TI)));
 struct P { int pad[7]; float cullScale; };
 // True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
+// Also known as: FInsideCmMrd (upstream readable / Sly 1 name; FInsideCmMrd__FP2CMG9VU_VECTORfPf).
 extern "C" int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
 {
     qword l, one;

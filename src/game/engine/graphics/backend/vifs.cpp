@@ -100,6 +100,7 @@ SLY2_SCRAP("sw $5, 0x0($6)");
 
 // Writes the VIF UNPACK code for c elements of format upk to VU1 address iqw (formats >= 16 are the unsigned variants;
 // the address is relative to the double-buffer base, TOPS) and returns the payload size in bytes.
+// Also known as: CbUnpackSetup (upstream readable / Sly 1 name).
 int VIFS::WriteUnpackSetup(UPK upk, int c, int iqw)
 {
     int vifcode;

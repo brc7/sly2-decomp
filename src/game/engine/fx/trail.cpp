@@ -261,6 +261,7 @@ extern const float r_D_002A9244 __asm__("D_002A9244") = -3.40282347e+38f;
 }
 // PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and
 // builds per-vertex Sample{pos,fraction} tables. (inferred)
+// Also known as: PostLoadTrail (upstream readable / Sly 1 name; PostLoadTrail__FP2LO).
 extern "C" void PostTrailLoad(TRAIL *trail)
 {
     PostSoLoad(trail);
@@ -379,6 +380,7 @@ static inline float Sqrt(qwordV d)
 }
 // After SO::Update (0x1F3980) pushes {t, uAlpha, length, GetWorldMatrix} into ring; optional follow target moved by
 // rate/distance (0x21C5F8) (inferred)
+// Also known as: UpdatePhysics (upstream readable / Sly 1 name; UpdatePhysics__FP2LO).
 extern "C" void ProjectTrailTransform(TRAIL *trail)
 {
     UpdateSoXfWorld(trail);
@@ -495,6 +497,7 @@ extern "C" void RenderTrail(TRAIL *trail)
 
 // Copy a position to each linked mesh record.
 // Copies one position into the vertex record of every linked mesh node. (inferred)
+// Also known as: SetCenters (upstream readable / Sly 1 name; SetCenters__FP5TRAILG9VU_VECTOR).
 extern "C" void SetTrailMeshPositions(TRAIL *trail, qwordV q)
 {
     N *n;

@@ -255,6 +255,7 @@ extern "C" void UpdateNeela(NEELA *neela)
 
 // 0x1BA408: Neela state change: state 1 starts the prop animation, constrains it toward the target, points her
 // chase behaviour at it and speeds it up 4x; leaving state 1 restores them.
+// Also known as: SetStrikeState (upstream readable / Sly 1 name; SetStrikeState__FP5GUARDi).
 extern "C" void SetNeelaState(NEELA *neela, int st)
 {
     if (st == neela->state) return;
@@ -281,6 +282,7 @@ extern "C" void SetNeelaState(NEELA *neela, int st)
 }
 
 // 0x1BA560: Neela chase behaviour (BHV174) vtable slot 7 (OnPush): base, state -1, raises guard flag 0x25.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvNeelaChase(BHV174 *behavior)
 {
     InitBhv(behavior);
@@ -289,6 +291,7 @@ extern "C" void InitBhvNeelaChase(BHV174 *behavior)
 }
 
 // 0x1BA598: Neela chase behaviour vtable slot 8 (Start): base, then state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV174::Start()
 {
     BHV174 *behavior = this;
@@ -297,6 +300,7 @@ void BHV174::Start()
 }
 
 // 0x1BA5C8: Neela chase behaviour vtable slot 9 (Close): state -1, base, lowers flag 0x25.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvNeelaChase(BHV174 *behavior)
 {
     SetBhvNeelaChaseState(behavior, -1);
@@ -319,6 +323,7 @@ static inline float EvaluateQuadratic(CLQ *pp, float x) { return pp->g0 + x * (p
 // 0x1BA608: Neela chase behaviour vtable slot 10 (Update): state 0 while the player is inside the outer volume, 1
 // once outside, back to 0 inside the inner volume, 2 after a timeout; scales a child parameter by the distance to
 // the player.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvNeelaChase(BHV174 *behavior)
 {
     int s;
@@ -363,6 +368,7 @@ extern "C" void UpdateBhvNeelaChase(BHV174 *behavior)
 
 // 0x1BA828: Neela chase state change: 0 resumes the patrol script (BHV169), 1 chases the player (cid 0x9E), 2 plays
 // an animation (cid 0x9D) and broadcasts game event 0x33.
+// Also known as: SetProxState (upstream readable / Sly 1 name; SetProxState__7JOBPROXi).
 extern "C" void SetBhvNeelaChaseState(BHV174 *behavior, int st)
 {
     if (st == behavior->state) return;

@@ -168,6 +168,7 @@ extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
 }
 
 // DANCER vtable slot 15 (PostLoad): step post-load, resolves the move clips, then vtable slot 79 with 0. (inferred)
+// Also known as: PostLoadDancer (upstream readable / Sly 1 name; PostLoadDancer__FP2LO).
 void DANCER::PostLoad()
 {
     DANCERV *dancer = (DANCERV *)this;
@@ -190,6 +191,7 @@ static inline qwordV VecMul(qwordV v, float g)
 // DANCER vtable slot 16 (Update): step update; when the segment has finished the dancer goes back to idle. While the
 // rhythm manager (D_002DE570) is idle the player dances freely (any pressed button plays its move); while it plays,
 // presses are judged (JudgeRhythmPress). The velocity follows the playing segment's root motion. (inferred)
+// Also known as: UpdateDancer (upstream readable / Sly 1 name; UpdateDancer__FP2LO).
 extern "C" void UpdateDancer(DANCERV *dancer)
 {
     int managerState;
@@ -222,6 +224,7 @@ enum { SEGMENT_EVENT_PERFORM_BEGIN = 0x27, SEGMENT_EVENT_PERFORM_END = 0x28, SEG
 // DANCER vtable slot 5 (HandleMessage): the PO handler, then segment events aimed at this dancer: 0x27/0x28 begin and
 // end a performed move; 0x15E takes the segment's root velocity and hands it, rotated into world space, to vtable
 // slot 35. (inferred)
+// Also known as: OnDancerMessage (upstream readable / Sly 1 name; OnDancerMessage__FP2LO5MSGIDPv).
 extern "C" void HandleDancerMessage(DANCERV *dancer, int messageKind, MSGD *message)
 {
     HandlePoMessage(dancer, messageKind, message);
@@ -258,6 +261,7 @@ extern "C" void GetDancerCpdefi(DANCERV *dancer, CPDEFI *cameraDef) {
 
 // Plays clip clipIndex of a move: the move for key, or (ANY_KEY) the first move whose button the controller reports
 // pressed (consuming it). nextClipOid, when set, replaces the move's success clip first. (inferred)
+// Also known as: PlayDancerMove (upstream readable / Sly 1 name; PlayDancerMove__FP2LOiii).
 void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
 {
     int i;
@@ -279,6 +283,7 @@ void PlayDancerMove(DANCERV *dancer, int key, int nextClipOid, int clipIndex)
 
 // Plays a segment on the dancer from its start at speed 1 (apply flags | 1), keeping its ASEGA in segmentAnim;
 // a null segment stops it.
+// Also known as: PlayDancerAseg (upstream readable / Sly 1 name; PlayDancerAseg__FP2LOT0i).
 void ApplyDancerAseg(DANCERV *dancer, void *segment, int applyFlags)
 {
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, dancer, 0.0f, 1.0f, applyFlags | 1, &dancer->segmentAnim);
@@ -301,6 +306,7 @@ extern "C" void AddDancerMove(DANCERV *dancer, int key, int successOid, int succ
 
 // Finds a clip by oid (searched from the dancer) and removes it from the world (vtable slot 9), so it only plays as
 // a move.
+// Also known as: PloDanceAseg (upstream readable / Sly 1 name; PloDanceAseg__FP2LO3OIDiiiii).
 void *FindDancerMoveObject(DANCERV *dancer, int oid) {
     DANCERV *clip = (DANCERV *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, oid, dancer);
     if (clip != 0) {
@@ -310,6 +316,7 @@ void *FindDancerMoveObject(DANCERV *dancer, int oid) {
 }
 
 // Resolves the three clip oids of every move.
+// Also known as: InitDancer (upstream readable / Sly 1 name; InitDancer__FP2LO).
 void BindDancerMoves(DANCERV *dancer)
 {
     int i, j;
@@ -358,6 +365,7 @@ static inline void SetTaggedFlags(unsigned int *taggedFlags, int bits)
 }
 // Rhythm manager (cid 0x79) vtable slot 7 (Init): LO init; becomes the singleton D_002DE570; score range [-1.5, 1],
 // 0.4 s press windows, 8-score average, smoothing, the per-outcome scores; busy, LO flags 0xA.
+// Also known as: InitDance (upstream readable / Sly 1 name; InitDance__FP2LO).
 extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
 {
     InitLo(manager);
@@ -395,6 +403,7 @@ void CID121::PostLoad()
 
 // World callback: binds each crowd grade object's SMA (its child 0x625) with its starting grade goal, and draws its
 // score thresholds: the range split in thirds, each boundary jittered by half a third; the last is the minimum.
+// Also known as: InitDanceCrowd (upstream readable / Sly 1 name; InitDanceCrowd__FP2LO).
 extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
 {
     int i, j;
@@ -424,6 +433,7 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
 // Rhythm manager vtable slot 16 (Update), on music time: demonstrating, each due cue's move plays once; playing, each
 // due cue sends game event 0x34 (with its button) and, once its late window passes unanswered, plays the miss clip
 // and scores a miss. Then the displayed score eases toward the average and the crowd grades follow it.
+// Also known as: UpdateDance (upstream readable / Sly 1 name; UpdateDance__FP2LO).
 extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
 {
     float musicTime;
@@ -474,6 +484,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
 
 // Each bound crowd grade: a retracted SMA is released; otherwise its goal becomes the best grade whose threshold the
 // smoothed score reaches.
+// Also known as: UpdateDanceCrowd (upstream readable / Sly 1 name; UpdateDanceCrowd__FP5DANCE).
 void UpdateRhythmManagerGrades(RHYTHMMGR *manager)
 {
     int i, j;
@@ -561,6 +572,7 @@ void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, q
 // while demonstrating, or a hit/expired one) as the four button glyphs in a diamond with the note's button large; a
 // pending note as the '?' glyph; then the hint marker ('m' glyph), which flies along a Bezier to each note as it
 // comes due. Text goes through rich-text fonts ("&2<glyph>&." strings) and one text box.
+// Also known as: DrawDancePrompts (upstream readable / Sly 1 name; DrawDancePrompts__FP7FONTBRX).
 extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
 {
     RenderLoSelf(manager);
@@ -650,6 +662,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
 
 // Changes the manager state (stamping the time and dropping the cues); demonstrating holds the world hands-off
 // (input locked, kind 3) for its whole duration.
+// Also known as: SetDanceState (upstream readable / Sly 1 name; SetDanceState__FP5DANCEi).
 void SetRhythmMgrState(RHYTHMMGR *manager, int newState) {
     int oldState = manager->state;
     if (oldState != newState) {
@@ -674,6 +687,7 @@ static inline void SetVector(VECTOR4 *pv, float x, float y, float z)
 }
 // Splice: loads the note track (at most 6 notes of 0x30 bytes) and lays it out on screen: x from 100 to 540 pixels
 // by note time, y 468.8; the hint marker starts at x 10. Then enters state.
+// Also known as: SetDancePrompts (upstream readable / Sly 1 name; SetDancePrompts__FPvT0iT0).
 extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *manager, int state, int numNotes, void *notes)
 {
     manager->numNotes = numNotes;
@@ -699,6 +713,7 @@ extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *manager, int state, int numNo
 
 // Splice: queues a cue for a dancer (its button, the next move's clip, the due time); with three queued the oldest
 // is dropped.
+// Also known as: AddDanceBeat (upstream readable / Sly 1 name; AddDanceBeat__FP2LOiiif).
 extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *dancer, int key, int nextKey, float time)
 {
     CUE *cue;
@@ -722,6 +737,7 @@ extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *dancer, int ke
 // Judges a dancer's button press (any face button this frame) against its first live cue and sends game event
 // 0x35: too early, or a second press, plays the fail clip with that penalty; the right button plays the move and
 // scores the timing (and marks the note hit); a wrong button plays the fail clip with the wrong-button penalty.
+// Also known as: CheckDancerBeat (upstream readable / Sly 1 name; CheckDancerBeat__FP2LOP5DANCE).
 void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
 {
     void *controller = dancer->controller;
@@ -770,6 +786,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
 static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 // Timing score of a press for a cue: 1 - |now - due| / window (the early or late window by side), mapped linearly onto
 // the score range g_lmZeroOne (exactly on time gives its maximum).
+// Also known as: GBeatScore (upstream readable / Sly 1 name; GBeatScore__FP5DANCEP4BEAT).
 float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
 {
     float musicTime = GetMusicTime(&g_sndmgr);
@@ -789,6 +806,7 @@ float AdjustRhythmScore(RHYTHMMGR *manager, float score) {
 
 // Records a score in the 16-score history (clamped to the score range); penalties scale with the difficulty
 // (D_002BDBE0 polynomial, clamped); updates the average and sends game event 0x36.
+// Also known as: AddDanceScore (upstream readable / Sly 1 name; AddDanceScore__FP2LOiif).
 void AddRhythmScore(RHYTHMMGR *manager, float score)
 {
     float *slot;
@@ -809,6 +827,7 @@ void AddRhythmScore(RHYTHMMGR *manager, float score)
 
 // The larger of two ints.
 // Average of the last averageWindow scores (missing ones count as 0), clamped to the score range.
+// Also known as: GScoreMean (upstream readable / Sly 1 name; GScoreMean__FP5DANCE).
 float GetAverageRhythmScore(RHYTHMMGR *manager)
 {
     float sum;

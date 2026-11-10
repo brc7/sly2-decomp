@@ -65,6 +65,7 @@ void AddWarpOidAlias(WARP *warp, OID oid);
 }
 
 // Finds the WARP with the given oid, or else the WARP that lists oid among its aliases. (Sly 1: PwarpFromOid.)
+// Also known as: PloFindCheckpoint (upstream readable / Sly 1 name; PloFindCheckpoint__FP2SW3OIDT1).
 extern "C" WARP *FindWarpByOid(SW *world, OID oid, OID contextOid)
 {
     WARP *warpList[32];
@@ -122,6 +123,7 @@ void CID41::LoadFromBrx(CBinaryInputStream *stream)
 
 // Moves the hero onto this warp point (the hero's vtable slot 38) and sends the warp's Splice trigger event (5). A Splice-callable
 // method; cutscene relays call it too.
+// Also known as: TriggerWarp (upstream readable / Sly 1 name; TriggerWarp__FP4WARP).
 extern "C" void PutHeroAtWarp(WARP *warp)
 {
     LO *hero = GetHeroPo(&g_sw);
@@ -150,6 +152,8 @@ void EXIT::Init()
 
 // Reads a 0x40-byte warp blob header from the BRX and allocates a copy when it is not empty (the exit's target world).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadKeyRecordFromBrx (upstream readable / Sly 1 name;
+//   LoadKeyRecordFromBrx__FP18CBinaryInputStreamPUc).
 extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut)
 {
     WARPBLOB blob;
@@ -170,6 +174,8 @@ extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut)
 
 // Loads an EXIT from the BRX: the VOL part, its target-world blob and the list of movies played before the wipe.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadShapeKeysFromBrx (upstream readable / Sly 1 name;
+//   LoadShapeKeysFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadExitFromBrx(EXIT *exitVolume, CBinaryInputStream *stream)
 {
     int i = 0;
@@ -188,6 +194,7 @@ extern "C" void LoadExitFromBrx(EXIT *exitVolume, CBinaryInputStream *stream)
 
 // Changes the exit state (0 player inside, 1 left, 2 off, 3 armed, 4 warping) and stamps the time; entering state 4
 // takes control from the player (hands-off) and records the exit as the one being taken. (Sly 1: SetExitExits.)
+// Also known as: SetExitState (upstream readable / Sly 1 name; SetExitState__FP2LOi).
 extern "C" void SetExitExits(EXIT *exitVolume, int newState)
 {
     if (newState != exitVolume->state)
@@ -205,6 +212,7 @@ extern "C" void SetExitExits(EXIT *exitVolume, int newState)
 
 // Takes an armed exit: a redirecting exit hands over to the default exit; otherwise applies the exit's task states,
 // revokes two camera policies, switches to the warping state, schedules the wipe and sends the Splice trigger event (5).
+// Also known as: TriggerExit (upstream readable / Sly 1 name; TriggerExit__FP4EXIT).
 extern "C" void TakeExit(EXIT *exitVolume)
 {
     if (exitVolume->state != 3)
@@ -242,6 +250,7 @@ extern "C" void GetExitTargetLevelIndex(EXIT *exitVolume)
 // Per-frame EXIT update: after the LO update, tests whether the hero is inside the exit volume and steps the state
 // machine (re-arms after the hero has been out for dtRearm, takes the exit when entered while armed); in the warping
 // state, queues the movies and wipes to the target world when the wipe time arrives. Sly 1: UpdateExit.
+// Also known as: UpdateExit (upstream readable / Sly 1 name; UpdateExit__FP2LO).
 extern "C" void UpdateExit(EXIT *exitVolume, float dt)
 {
     UpdateLo(exitVolume, dt);
@@ -303,6 +312,7 @@ void WARP::LoadFromBrx(CBinaryInputStream *stream)
 
 // Triggers a warp on arrival: moves each paired object to its target, triggers the warp's rsmgs, applies its task
 // states, re-arms every exit that is not off, cuts the camera and sends the Splice trigger event (5). (Sly 1: TriggerWarp.)
+// Also known as: ApplyCheckpoint (upstream readable / Sly 1 name; ApplyCheckpoint__FP2SW).
 extern "C" void TriggerWarp(WARP *warp)
 {
     EXIT *exitList[32];
@@ -346,6 +356,8 @@ extern "C" void AddWarpTaskState(WARP *warp, int d, int e)
 }
 
 // Adds an (object, target) pair to the warp: on trigger the object is moved to the target. At most four pairs.
+// Also known as: MatchStepguardAnimationPhase (upstream readable / Sly 1 name;
+//   MatchStepguardAnimationPhase__FP9STEPGUARD3OIDN31).
 extern "C" void AddWarpOidPair(WARP *warp, OID objectOid, OID targetOid)
 {
     unsigned int c = warp->pairCount;

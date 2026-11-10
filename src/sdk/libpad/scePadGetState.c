@@ -9,6 +9,7 @@ unsigned char *scePadGetDmaStr(int port, int slot);
 // (This comment keeps the five lines of the draft block it replaced: the file uses SLY2_ASM gnu-reorder-db, which
 // cannot be built in every environment, so its line layout is left exactly as it was matched.)
 //
+// Also known as: scePadGetReqState (upstream readable / Sly 1 name).
 int scePadGetState(int port, int slot)
 {
     if (D_004505D0[port][slot].open == 0) return 0;

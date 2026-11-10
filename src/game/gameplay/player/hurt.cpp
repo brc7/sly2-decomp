@@ -57,6 +57,7 @@ int IsSwHandsOff(SW *psw);
 
 // Initializes the player's hurt/zap context (STEPPLAYER+0xDF0): owner, state -1, status -1, 2.0 s default and a
 // count of 0x28.
+// Also known as: InitDamage (upstream readable / Sly 1 name; InitDamage__FP5ACTORi).
 extern "C" void InitJtHurt(JTHURT *hurt, STEPPLAYER *player)
 {
     hurt->player = player;
@@ -196,6 +197,7 @@ typedef char P_Prefix_Size[sizeof(P)==0x19C0?1:-1];
 typedef char C_Prefix_Size[sizeof(C)==0xD4?1:-1];
 // Hurt sub-state switch (leave/enter): Sly-specific settings for CID 0x35, facing and launch from the hit direction,
 // retracting/applying hit clips, and the death states 8..12.
+// Also known as: SetDamageState (upstream readable / Sly 1 name; SetDamageState__FP5ACTORi).
 void SetJtHurtState(C *hurt, int next) __asm__("SetJtHurtState"); void SetJtHurtState(C *hurt, int next)
 {
     U velocity, camera0, camera1;
@@ -362,6 +364,7 @@ static inline qword BroadcastTo(float g,QWROW *u) { qword q=VuFromFloat<qword>(g
 // Set the vector to -xE8->v80 (keeping the -1 broadcast in u).
 inline void O::Negate(QWROW &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
 // Physics preset in the hurt state: in knockback states adds velocity or springs toward the target velocity.
+// Also known as: UpdateDamageMotion (upstream readable / Sly 1 name; UpdateDamageMotion__FP5ACTOR).
 extern "C" void PresetJtAccelZap(struct P *p)
 {
  QWROW u,v,u2;
@@ -393,6 +396,7 @@ extern "C" void PresetJtAccelZap(struct P *p)
    stops changing (or is -1). */
 // When the owner's current animation has retracted, runs the pending post-hurt callback (RunJtHurtCallback),
 // repeating while the state keeps changing. (inferred)
+// Also known as: UpdateDamageTransitions (upstream readable / Sly 1 name; UpdateDamageTransitions__FP5ACTOR).
 extern "C" void UpdateJtHurtInput(JTHURT *hurt)
 {
     int state;
@@ -422,6 +426,7 @@ int IsJtStuck(struct LO *po, int n, float g) __asm__("IsJtStuck");
 void RunJtHurtCallback(struct S *s) __asm__("RunJtHurtCallback");
 // Per-frame update of the hurt state (jts 4): smooths the heading, advances timers, runs the pending callback and
 // escapes when stuck (IsJtStuck).
+// Also known as: UpdateDamage (upstream readable / Sly 1 name; UpdateDamage__FP5ACTOR).
 extern "C" void UpdateJtActiveZap(struct S *s)
 {
     if (s->x90 != -1) {
@@ -475,6 +480,7 @@ namespace M_RunJtHurtCallback {
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 // Takes and clears the pending callback and calls it; with none, the death states return to a safe place and the
 // others start a fall (SetJtAirJump).
+// Also known as: EndDamageReaction (upstream readable / Sly 1 name; EndDamageReaction__FP5ACTOR).
 extern "C" void RunJtHurtCallback(JTHURT *s)
 {
     HURTEND pmf = s->hurtend;
@@ -562,6 +568,7 @@ extern "C" { static inline qword Difference(U*first,qword target){
 } }
 // Selects and blends the knockback velocity from the damage kind flags (0x200, 0x8000, ...) and the source
 // direction, limits its length, then enters the hurt state.
+// Also known as: ApplyDamageVelocity (upstream readable / Sly 1 name; ApplyDamageVelocity__FP5ACTOR).
 extern "C" void StartJtKnockback(struct P*p){
     U output=p->velocity;
     U scratch,scalar;
@@ -715,6 +722,7 @@ typedef char W_Prefix_Size[sizeof(W)==0x15C?1:-1];
 typedef char COUNT_Size[sizeof(COUNT)==12?1:-1];
 // Applies a damage record to the player: the owner may veto it (vt86), flag filters, damage scaled by difficulty,
 // health counter, game event broadcast, hit clip, sound, knockback and callback. Returns nonzero if taken.
+// Also known as: FAcceptDamage (upstream readable / Sly 1 name; FAcceptDamage__FP5ACTORP5CTMSG).
 extern "C" int TakeJtDamage(C *p, RECORD *input)
 {
     RECORD accepted;
@@ -854,6 +862,7 @@ extern "C" void JtHurtEndCallback(JTHURT *hurt)
    state 11; without: hurt state 8. */
 // Callback after a hazard fall: if alive, returns to a safe place when the hazard object has flag bit 33, else starts
 // a fall (SetJtAirJump kind 11); dead -> death state.
+// Also known as: NextStunned (upstream readable / Sly 1 name; NextStunned__FP5ACTOR).
 extern "C" void JtHurtFallCallback(JTHURT *hurt)
 {
     if (*hurt->hitPoints > 0) {
@@ -875,6 +884,7 @@ void SetSndSourceLo(void *psnd, int n);
 void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("SetJtHurtCallback");   /* sets the hurt callback (+0x1C) */
 }
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
+// Also known as: NextSpecial (upstream readable / Sly 1 name; NextSpecial__FP5ACTOR).
 extern "C" void JtHurtShockCallback(JTHURT *hurt)
 {
     SetSndSourceLo(CreateSfxSound(0x6A), 0);
@@ -907,6 +917,7 @@ extern const unsigned int r_D_002A6790[2] __asm__("D_002A6790") = {0xFFFF0000, (
 }
 // Contact adjust hook in the hurt state: states 4/12 set the adjust values to D_002BFB20 and 0, other states other
 // values. (inferred)
+// Also known as: AdjustDamageXp (upstream readable / Sly 1 name; AdjustDamageXp__FP5ACTORP2XP).
 extern "C" void AdjustJtHurtXp(JTHURT *hurt, XP *xp)
 {
     switch (hurt->state) {
@@ -941,6 +952,7 @@ extern "C" void AddJtHurtCpdefiFlags(struct S *hurt, struct Q *q)
    as any step player. */
 // JT vtable slot 76 (zap kind): hang/pipe/rope states ignore kind 0x4000, the grab state asks IsJtGrabBusy, else the
 // STEPPLAYER base (ShouldStepplayerIgnoreZap).
+// Also known as: FSlyImmune (upstream readable / Sly 1 name; FSlyImmune__FP5ACTORi).
 extern "C" int IsJtInvulnerable(JT *jt, int zpk)
 {
     switch (jt->state) {
@@ -963,6 +975,7 @@ extern "C" int IsJtInvulnerable(JT *jt, int zpk)
    and air states; others while hurt, in post-hit mode 1, with D_002E1E00 bit 0 set or with the world's hands off. */
 // Base invulnerability check: the object flag at x298, hands-off mode, or for zap kinds 0x2000/0x4000 depending on the
 // hurt/grab/air sub-states.
+// Also known as: FDamageImmune (upstream readable / Sly 1 name; FDamageImmune__FP5ACTORi).
 extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
 {
     if (hurt->player->unknown298)
@@ -1037,6 +1050,7 @@ extern "C" void OnJtDeath(STEPPLAYER *player)
 
 /* 0 when not hurt (1 in post-hit mode 1); hurt: 1 with hit points left, else 2. */
 // 0 none, 1 hurt, 2 dead (health <= 0) while in a hurt state; otherwise whether the status is 1.
+// Also known as: NDamageStatus (upstream readable / Sly 1 name; NDamageStatus__FP5ACTOR).
 extern "C" int GetJtHurtStatus(JTHURT *hurt)
 {
     if (hurt->state != -1) return *hurt->hitPoints <= 0 ? 2 : 1;
@@ -1049,6 +1063,7 @@ extern float D_002BFB20 __asm__("D_002BFB20");
 extern float D_002BFB24 __asm__("D_002BFB24");   /* hurt's contact friction and elasticity */
 extern int D_002BFB28[14] __asm__("D_002BFB28");   /* parent state, -1: none */
 // The adjust record for the current hurt state, falling back through the parent-state table D_002BFB28.
+// Also known as: IsoeDamageMesh (upstream readable / Sly 1 name; IsoeDamageMesh__FP5ACTORPi).
 extern "C" SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 {
     int i; SOPART *r = 0; for (i = hurt->state; i != -1 && (r = hurt->aprecHurt[i]) == 0; i = D_002BFB28[i]) ; *pout = 0; return r;
@@ -1071,6 +1086,7 @@ extern void LoadIdentityMatrix4(void*,void*,M4*,M4*,float) __asm__("LoadIdentity
 extern M4 __ml__FRC7MATRIX4T0(const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
 // From UpdateStepplayer: if the player's height-adjusted point is inside the linked volume, inflicts the zap/drown
 // damage and probes for the surface (ProbeStepplayerSurface).
+// Also known as: UpdateActorWater (upstream readable / Sly 1 name; UpdateActorWater__FP5ACTOR).
 extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 {
     QWROW point;
@@ -1158,6 +1174,7 @@ void CanWaterInflictZap(void) __asm__("CanWaterInflictZap");
 int ProbeStepplayerSurface(STEPPLAYER *po, L *pl, qword *pv) __asm__("ProbeStepplayerSurface");
 
 // Line test from the player down to the linked volume's surface; writes the hit position.
+// Also known as: FWaterSurfaceUnder (upstream readable / Sly 1 name; FWaterSurfaceUnder__FP5ACTORP3ALOP6VECTOR).
 int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
 {
     QWROW off, b, a;
@@ -1202,6 +1219,7 @@ extern "C" { static inline qword Mul(const qword *m,const qword *v) { qword r; _
 extern "C" { static inline qword Broadcast(int g) { qword r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "r"(g));return r; } }
 // STEPPLAYER vtable slot 72 (shared by Sly and Murray): in water/vertical states applies the water current and
 // buoyancy; otherwise the SO base.
+// Also known as: ApplyWaterToActor (upstream readable / Sly 1 name; ApplyWaterToActor__FP3ALOT0).
 extern "C" void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
 {
  QWROW origin,vel,pos,local,dir,v50,accel,bcast;

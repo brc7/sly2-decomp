@@ -90,6 +90,7 @@ extern "C" void PostSafehouseLoad(SAFEHOUSEV *safehouse)
 
 // 0x1D72A8: SAFEHOUSE update: SO update; while selecting (state 1), reads the joystick selection, steps the
 // character choice left/right and fires the relay bound to a pressed button in the current state.
+// Also known as: UpdateSafeHouse (upstream readable / Sly 1 name; UpdateSafeHouse__FP2LO).
 extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
 {
     JOY *joystick;
@@ -153,6 +154,7 @@ extern "C" void HandleSafehouseMessage(SAFEHOUSEV *safehouse, int controlState)
 
 // 0x1D7480: Enters or leaves character selection: swaps the state machine animation, reads the current character
 // from the save variables ('oidPoCurrent') and starts or stops the joystick selection.
+// Also known as: SetSafeHouseState (upstream readable / Sly 1 name; SetSafeHouseState__FP2SWi).
 extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
 {
     if (safehouse->state == state)
@@ -200,6 +202,7 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
 }
 
 // 0x1D7748: Splice option: appends a button binding {state, button mask, relay oid} (at most 12).
+// Also known as: AddStepguardEffect (upstream readable / Sly 1 name; AddStepguardEffect__FP9STEPGUARD3OID3ZPK).
 extern "C" void AddSafehouseEntry(SAFEHOUSEV *safehouse, void *state, int buttonMask, int oid)
 {
     if (safehouse->bindingCount < 12) {

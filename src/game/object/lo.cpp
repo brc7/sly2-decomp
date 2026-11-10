@@ -79,6 +79,7 @@ void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, LO *s) __asm__("InsertDlEn
 } // namespace M_InitLo
 // LO::Init: base initialisation for every object (root record, in-world bit, default flags, proxy refs, parent link);
 // see the comment above.
+// Also known as: InitLo (upstream readable / Sly 1 name; InitLo__FP2LO).
 void LO::Init()
 {
     using namespace M_InitLo;
@@ -242,6 +243,7 @@ extern "C" void SnipLo(LO *plo)
 
 namespace M_AddLoHierarchy {
 // vtable slot 11: sets the in-world bit and sends the "added" notification (SendMessage, message 0).
+// Also known as: OnLoAdd (upstream readable / Sly 1 name; OnLoAdd__FP2LO).
 extern "C" void AddLoHierarchy(LO *object)
 {
     object->isInWorld = 1;
@@ -253,6 +255,7 @@ namespace M_RemoveLoHierarchy {
 void RemoveSwPlacesOf(void *g, LO *s, int n) __asm__("RemoveSwPlacesOf");
 // vtable slot 12: clears the in-world bit, clears references to the object when it is flagged for that, and sends the
 // "removed" notification (SendMessage, message 1).
+// Also known as: OnLoRemove (upstream readable / Sly 1 name; OnLoRemove__FP2LO).
 extern "C" void RemoveLoHierarchy(LO *object)
 {
     object->isInWorld = 0;
@@ -264,6 +267,7 @@ extern "C" void RemoveLoHierarchy(LO *object)
 
 namespace M_SetLoParent_1A58D0 {
 // Reparents an object: calls its SetParent (vtable slot 10) with the new parent and flags.
+// Also known as: ReparentBooty (upstream readable / Sly 1 name; ReparentBooty__FP3ALOii).
 extern "C" void SetLoParent(LO *object, SO *a, int b) { object->SetParent(a, 0, b); }
 } // namespace M_SetLoParent_1A58D0
 
@@ -359,11 +363,13 @@ extern "C" int LO_GetChildren()
 namespace M_PsoFromLo {
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
+// Also known as: PaloOrParent (upstream readable / Sly 1 name; PaloOrParent__FPv).
 extern "C" SO *GetSoFromLo(LO *object) { if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return (SO *)object; return object->parent; }
 } // namespace M_PsoFromLo
 
 // Loads an LO from the BRX (vtable slot 14): reads its option records until the end marker.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadLoFromBrx (upstream readable / Sly 1 name; LoadLoFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadLoFromBrx(LO *plo, CBinaryInputStream *stream)
 {
     LoadOptionsFromBrx(plo, stream);
@@ -376,6 +382,7 @@ int FindBindingPtr__6CFrameUii(void *p, int a, int b) __asm__("FindBindingPtr__6
 void SetLoBusyKind(LO *s, int n) __asm__("SetLoBusyKind");
 // After the level load (vtable slot 15): runs the deferred callbacks and sends Splice message 0; an object whose Splice
 // frame binds an update handler becomes busy and wants Splice updates, others get the default next Splice time.
+// Also known as: PostLoLoad (upstream readable / Sly 1 name; PostLoLoad__FP2LO).
 extern "C" void PostLoLoad(LO *object)
 {
     RunLoDeferredCallbacks(object);
@@ -433,6 +440,7 @@ extern "C" void RunLoDeferredCallbacks(LO *object)
 namespace M_UpdateLo {
 // LO's per-frame update (vtable slot 16): when the object's next Splice time has come, sends Splice message 1 (the
 // update event).
+// Also known as: UpdateLo (upstream readable / Sly 1 name; UpdateLo__FP2LO).
 extern "C" void UpdateLo(LO *object)
 {
     if (object->nextSpliceTime <= g_clock.time) {
@@ -476,6 +484,7 @@ void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
+// Also known as: AppendAloExtraDraws (upstream readable / Sly 1 name; AppendAloExtraDraws__FP5SCENEP3ALOff).
 extern "C" void RenderLoAtMatrix(LO *object, void *m, float a, float b)
 {
     M4 t;
@@ -502,6 +511,7 @@ extern "C" { static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0
 extern "C" { static inline qword Normalize(qword v) { qword l=LenV(v),r; __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(l),"j"(v));return r; } }
 // Draws an object stretched along the segment start->end, facing the camera (width scaling, 0.01 epsilon), through
 // RenderLoAtMatrix. Used for beams and similar effects. (inferred)
+// Also known as: AppendLaserLine (upstream readable / Sly 1 name; AppendLaserLine__FP5SCENEG9VU_VECTORT1ff).
 extern "C" void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
 {
  U x,y,z;
@@ -655,12 +665,14 @@ extern "C" MATRIX4 *LO_GetWorldMatrix()
 
 // Returns the object's world position (the translation row of its world matrix, slot 31).
 /* The object's world position (row 3 of its world matrix). */
+// Also known as: PosOfLo (upstream readable / Sly 1 name; PosOfLo__FP2LO).
 extern "C" qword GetLoWorldPos(LO *plo)
 {
     return ((qword *)plo->GetWorldMatrix())[3];
 }
 
 // Returns the object's world matrix (vtable slot 31).
+// Also known as: MatJtLo (upstream readable / Sly 1 name; MatJtLo__FP2LO).
 extern "C" void GetLoWorldMatrix(LO *plo)
 {
     plo->GetWorldMatrix();
@@ -733,6 +745,7 @@ void HideSoGlobsById(SO*,int) __asm__("HideSoGlobsById");
 struct LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,SO*) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // Resolves a table of {flags, id, field offset} object references into pointer fields of the object: transforms (XF) by oid,
 // SO sub-objects, or objects found by oid in the world; flag 0x200 removes the object found.
+// Also known as: BindLoParts (upstream readable / Sly 1 name; BindLoParts__FP3ALOiPv).
 extern "C" void BindLoOidTable(SO *object, int numEntries, struct E *entries)
 {
     int i = 0;
@@ -902,6 +915,7 @@ static inline META*Type(P*p){VTE*v=&p->vt[6];return ((META*(*)(P*))v->pfn)((P*)(
 // LO's Clone (vtable slot 41): copies the Splice frame and sidebag references, scale, flag bits and tag word from the
 // source, clones the proxy nodes during proxy instantiation and copies the class body past the LO header (size from
 // the class info).
+// Also known as: CloneLo (upstream readable / Sly 1 name; CloneLo__FP2LOT0).
 extern "C" void CloneLo(P*object,const P*source){
     CGc_UpdateRecyclable(g_gc);
     if(source->field){
@@ -946,6 +960,7 @@ extern "C" void CloneLoHierarchy(LO *object, LO *a) { object->Clone(a); }
 
 namespace M_FFindLoParent {
 // True when other is the object itself or one of its ancestors.
+// Also known as: FLoInParentChain (upstream readable / Sly 1 name; FLoInParentChain__FP2LOT0).
 extern "C" int IsLoSelfOrDescendantOf(LO *a, LO *b)
 {
     while (a) {
@@ -972,6 +987,7 @@ extern "C" XF *LO_GetLocalTransform(LO *unused, MATRIX4 *pm)
 } // namespace M_func_001A6B30
 
 // vtable slot 38: moves the object onto another object's world transform (warps and relays use it to place objects).
+// Also known as: TeleportLo (upstream readable / Sly 1 name; TeleportLo__FP2LOT0).
 extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
 {
     SetLoXfFromMat(plo, ploOther->GetWorldMatrix());
@@ -984,6 +1000,7 @@ extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
 }
 
 // Moves the object to a world matrix: TranslateToPos (slot 29) to its position, then RotateToMat (slot 30).
+// Also known as: PlaceAloAt (upstream readable / Sly 1 name; PlaceAloAt__FP3ALOP7MATRIX4).
 extern "C" void SetLoXfFromMat(LO *plo, MATRIX4 *matrix)
 {
     plo->TranslateToPos(((qword *)matrix)[3]);
@@ -1107,6 +1124,7 @@ namespace M_ConvertAloPos {
 typedef int qword __attribute__((mode(TI)));
 void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn) __asm__("InvertMatrix4Rigid");
 // Converts a point from one object's space to another's (through world space; a null object means world space).
+// Also known as: ConvertPos (upstream readable / Sly 1 name; ConvertPos__FP2LOT0G9VU_VECTOR).
 extern "C" qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 {
     if (a) {
@@ -1129,6 +1147,7 @@ typedef int qword __attribute__((mode(TI)));
 MATRIX3Q *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
 void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn) __asm__("InvertMatrix3Cofactor");
 // Converts a direction vector from one object's space to another's (rotation only).
+// Also known as: ConvertVec (upstream readable / Sly 1 name; ConvertVec__FP2LOT0G9VU_VECTOR).
 extern "C" qword ConvertVecBetweenLos(void *a, void *b, qword v)
 {
     if (a) {

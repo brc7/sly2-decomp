@@ -241,6 +241,7 @@ void RefreshReconPendingTargets(RECONSEL *reconSel)
 }
 
 // Fades each target's marker in or out (0.25 s) by camera distance against its radius.
+// Also known as: DistanceModels (upstream readable / Sly 1 name; DistanceModels__FP11PHOTOPROMPT).
 void FadeReconTargetMarkers(RECONSEL *reconSel)
 {
     int i;
@@ -261,6 +262,7 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
 }
 
 // Per pending target plays the checklist animation on its widget: 0x33A when done, 0x33B otherwise.
+// Also known as: ListMarks (upstream readable / Sly 1 name; ListMarks__FP11PHOTOPROMPT).
 void UpdateReconChecklist(RECONSEL *reconSel)
 {
     int i;
@@ -468,6 +470,7 @@ static inline int IndirectWord(int word)
 static inline void Restore(LOV *x,uint mask){uint f=x->grf40;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->grf40=mask|(f&1);}
 // Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
 // (dialog, game event 10, target marked done).
+// Also known as: SetPhotoPromptState (upstream readable / Sly 1 name; SetPhotoPromptState__FPvi).
 void SetReconSelState(RECONSEL *reconSel, int nextState)
 {
     if (reconSel->state == nextState)
@@ -650,6 +653,7 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
 static inline float ClampF(float g,float minValue,float maxValue){return StdMax(minValue,Min(g,maxValue));}
 // Per frame: projects the target's head to the screen, scores proximity to the centre and size, drives the states and
 // takes the photo on button 10 (250 when locked).
+// Also known as: UpdatePhotoPrompt (upstream readable / Sly 1 name; UpdatePhotoPrompt__FPv).
 extern "C" void UpdateReconSel(RECONSEL *reconSel)
 {
     if (!reconSel->primary)
@@ -833,6 +837,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
 }
 
 // Recon target (CID 0x2E) Init: transform init, ids -1/-2.
+// Also known as: InitPhotoTarget (upstream readable / Sly 1 name; InitPhotoTarget__FP2LO).
 extern "C" void InitReconTarget(RECONTGT *target)
 {
     InitXfm(target);

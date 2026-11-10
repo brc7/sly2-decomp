@@ -113,6 +113,7 @@ void AddNoiseOctave(ONZ *noise, float amplitude, float frequency, float phase, f
 
 // Initializes a space warp: base LO init, no free warp matrix and no current entry yet, forces a state-vector update on
 // the first frame (tUpdate = -1), empties the warp-group list and marks the object busy (it needs per-frame updates).
+// Also known as: InitWr (upstream readable / Sly 1 name; InitWr__FP2WR).
 void WR::Init()
 {
     WR *p = this;
@@ -446,6 +447,7 @@ float UNoise(float frequency, float phase, float u1)
 
 // Schlick-style bias curve: remaps u in [0, 1] so that u = 0.5 maps to uBias, keeping 0 and 1 fixed.
 // (Sly 1-derived name: UBias.)
+// Also known as: UBias (upstream readable / Sly 1 name).
 float ApplyBiasCurve(float u, float bias)
 {
     return u / ((((1.0f / bias) - 2.0f) * (1.0f - u)) + 1.0f);
@@ -454,6 +456,7 @@ float ApplyBiasCurve(float u, float bias)
 // Evaluates a noise channel (ONZ): the amplitude-weighted average of its up to four noise octaves (ONZE), biased with
 // the channel's bias and mapped into [minValue, maxValue]. Drives the bend and swivel angles of bend warps.
 // (Sly 1-derived name: GFromOnz.)
+// Also known as: GFromOnz (upstream readable / Sly 1 name).
 float EvaluateNoiseChannel(ONZ *noise)
 {
     float gAmpl;
@@ -577,6 +580,7 @@ void AddWrBendWarp(WR *warp)
 // Returns the warp's current entry (0 if it has none) for an option setter; a "set" access (ensk == 1) also marks the
 // warp's values changed so state vectors are rebuilt. The kind argument is not checked.
 // (Sly 1-derived name: PwreGetWrCur.)
+// Also known as: PwreGetWrCur (upstream readable / Sly 1 name).
 WRE *GetCurrentWarpEntry(WR *warp, ENSK ensk, WREK kind)
 {
     if (warp->entryCount == 0) {
@@ -590,12 +594,14 @@ WRE *GetCurrentWarpEntry(WR *warp, ENSK ensk, WREK kind)
 
 // Returns the current warp entry for a circle-warp option (see GetCurrentWarpEntry).
 // (Sly 1-derived name: PwreGetWrCircle.)
+// Also known as: PwreGetWrCircle (upstream readable / Sly 1 name).
 WRE *GetCurrentCircleWarpEntry(WR *warp, ENSK ensk)
 {
     return GetCurrentWarpEntry(warp, ensk, WREK_Circle);
 }
 
 // Returns the current warp entry for a bend-warp option (see GetCurrentWarpEntry). (Sly 1-derived name: PwreGetWrBend.)
+// Also known as: PwreGetWrBend (upstream readable / Sly 1 name).
 WRE *GetCurrentBendWarpEntry(WR *warp, ENSK ensk)
 {
     return GetCurrentWarpEntry(warp, ensk, WREK_Bend);
@@ -613,6 +619,7 @@ void SetWrWavelength(WR *warp, float sWavelength)
 }
 
 // Option getter: the current circle warp's wavelength (inverse of its spatial frequency, 0 when that is 0).
+// Also known as: GetWrWavelength (upstream readable / Sly 1 name; GetWrWavelength__FP2WRPf).
 extern "C" float GetWrWavelength(WR *warp)
 {
     WRE *entry = GetCurrentCircleWarpEntry(warp, ENSK_Set);
@@ -622,6 +629,7 @@ extern "C" float GetWrWavelength(WR *warp)
 
 // Adds one noise octave (amplitude, frequency, phase, randomness) to a noise channel; at most four, extras are ignored.
 // (Sly 1-derived name: AddOnzOnze.)
+// Also known as: AddOnzOnze (upstream readable / Sly 1 name).
 void AddNoiseOctave(ONZ *noise, float amplitude, float frequency, float phase, float randomness)
 {
     unsigned int c = noise->octaveCount;

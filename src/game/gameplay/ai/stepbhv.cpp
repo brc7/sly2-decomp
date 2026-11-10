@@ -175,6 +175,7 @@ extern "C" { static __inline__ float EvaluatePolynomial(float *a, float g) { ret
 // (path states 0/1) sets the POCTL stick: speed from the horizontal distance to the goal (scaled) and heading
 // toward it; holds button 8 when asked or when far from the mirrored PO, and after a delay copies that PO's masked
 // buttons (an AI partner copying the player's presses, inferred).
+// Also known as: Drive (upstream readable / Sly 1 name; Drive__14JOBACTORFOLLOWP6PADCTL).
 extern "C" void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
@@ -216,6 +217,7 @@ extern "C" void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, POCTL *poctl)
 
 // 0x144E20: Walk-to behaviour (BHV193) vtable slot 7 (OnPush): base, defaults (arrival radius 40, flags 1, speed
 // scale 1).
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHV193::OnPush()
 {
     InitBhv(this);
@@ -226,6 +228,7 @@ void BHV193::OnPush()
 
 // 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
 // goal and starts it.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvWalkTo(BHV193 *behavior)
 {
     BHVWALKGOAL *child;
@@ -240,6 +243,7 @@ extern "C" void StartBhvWalkTo(BHV193 *behavior)
 }
 
 // 0x144EE8: True when the walk-to child has reached the end of its path or its path state is 2.
+// Also known as: FAtGoal (upstream readable / Sly 1 name).
 extern "C" int IsBhvWalkToDone(BHV193 *behavior)
 {
     BHVPATH *child = (BHVPATH *)behavior->pbhvNext;
@@ -254,6 +258,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // 0x144F48: Stores the goal and builds the child's route to it: a straight line, or a path through the navigation
 // graph (the guard's own path shape is rewritten either way).
+// Also known as: SetGoal (upstream readable / Sly 1 name; SetGoal__12JOBACTORWALKG9VU_VECTOR).
 extern "C" void SetBhvWalkToGoal(BHV193 *behavior, qword goal)
 {
     behavior->goal = goal;
@@ -277,6 +282,7 @@ extern "C" void SetBhvWalkToGoal(BHV193 *behavior, qword goal)
 
 // 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
 // factors (0.25/250/350/1.0/1.2).
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHVFOLLOW::OnPush()
 {
     InitBhv(this);
@@ -335,6 +341,7 @@ extern "C" { static __inline__ float EvaluateQuadratic(float distance, CLQ *clq)
 // 0x1450E0: Picks the follow behaviour's threat: the guard nearest the leader among those engaged with the follower
 // (its engagement record, STEPPLAYER +0x1088) or (distance re-weighted) with the leader, skipping KO'd/juggled/thrown
 // ones; the current threat and striking guards get their own distance weights (inferred: who the partner should fight).
+// Also known as: FindEnemy (upstream readable / Sly 1 name).
 extern "C" STEPGUARD *PickBhvfollowTarget(BHVFOLLOW *behavior)
 {
     STEPGUARD *best = 0;
@@ -424,6 +431,7 @@ extern "C" { static __inline__ int IsFarApart(qword a, qword b) { float lim = D_
 // standing, walking and running, re-pathing when far. State 0 follows (re-targets the follow point when the leader moved, animation speed
 // from the leader distance), 1 waits for the leader to land on new ground, 2 fights the threat until the partner's
 // interact behaviour goes idle or the threat leaves the band.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvfollow(BHVFOLLOW *behavior)
 {
     STEPPLAYER *follower;
@@ -559,6 +567,7 @@ static inline qword MulM3(const M3 &m, qword v)
 // 0x1457A8: Computes the follow position: the leader's position offset by its velocity (lead time
 // +0x68) and by the follow offset (+0x40) in the leader's frame (its heading for a step, its orientation otherwise),
 // then routes the walk-goal child there through the follower's path zone (or straight when it has none).
+// Also known as: PlanFollow (upstream readable / Sly 1 name).
 void UpdateBhvfollowPosition(BHVFOLLOW *behavior)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
@@ -597,6 +606,7 @@ void UpdateBhvfollowPosition(BHVFOLLOW *behavior)
 
 // 0x1459C0: True if the leader has landed on a different path zone than the follower's (not zone oid
 // 0x2CA); stores the snapped landing point (+0x80) for state 1.
+// Also known as: FNeedRecover (upstream readable / Sly 1 name).
 extern "C" int IsBhvfollowLeaderOnNewGround(BHVFOLLOW *behavior)
 {
     CID17 *ground = GetBhvfollowLeaderGround(behavior);
@@ -646,6 +656,7 @@ static __inline__ void Activate(BHVFOLLOW *behavior, int cid)
 // 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position
 // (mirroring the leader's button 8), 1 moves the follower to the leader's landing point, 2 pushes the partner's
 // interact behaviour (by class) against the threat.
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__12JOBCOMPANIONi).
 extern "C" void SetBhvfollowState(BHVFOLLOW *behavior, int state)
 {
     if (state == behavior->state) return;
@@ -686,6 +697,7 @@ extern "C" void InitBhvInteract(BHV195 *behavior)
 
 // 0x145D00: Interact behaviour vtable slot 8 (Start): state 0, starts interact mode 4 with the target
 // (SetPlayerInteractMode, slot 95) and sets the owner's +0x10E0 bit 1.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvInteract(BHV195 *behavior)
 {
     STEPPLAYER *owner;
@@ -718,6 +730,7 @@ qword *GetLoWorldMatrix(void *) __asm__("GetLoWorldMatrix");
 // 0x145DB0: Interact behaviour vtable slot 10 (Update): approaches the target (+0x38, a guard) and interacts; aborts
 // when Murray is busy (hurt state +0xDF4) or the target is gone or knocked out. State 0 walks up and interacts
 // (state 2) once close and facing it, 1 runs back into the distance band, 2 interacts until the attack ends.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvInteract(BHV195 *behavior)
 {
     QWROW toTarget;
@@ -789,6 +802,7 @@ extern "C" void UpdateBhvInteract(BHV195 *behavior)
 } // namespace M_func_00145DB0
 
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
+// Also known as: Drive (upstream readable / Sly 1 name; Drive__15JOBMURRAYATTACKP6PADCTL).
 extern "C" void SteerBhvInteract(BHV195 *behavior, POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
@@ -812,6 +826,7 @@ extern "C" void SteerBhvInteract(BHV195 *behavior, POCTL *poctl)
 
 // 0x146158: Interact behaviour state change; state 2 is busy.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__15JOBMURRAYATTACKi).
 extern "C" void SetBhvInteractState(BHV195 *behavior, int state)
 {
     int previous;
@@ -867,6 +882,7 @@ qword *GetLoWorldMatrix(void *) __asm__("GetLoWorldMatrix");
 
 // 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions (Bentley:
 // the attack is his crosshair, BTBLENDS state +0x1714).
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvInteract2(BHV196 *behavior)
 {
     QWROW toTarget;
@@ -938,6 +954,7 @@ extern "C" void UpdateBhvInteract2(BHV196 *behavior)
 } // namespace M_func_001462A8
 
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
+// Also known as: Drive (upstream readable / Sly 1 name; Drive__16JOBBENTLEYATTACKP6PADCTL).
 extern "C" void SteerBhvInteract2(BHV196 *behavior, POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
@@ -961,6 +978,7 @@ extern "C" void SteerBhvInteract2(BHV196 *behavior, POCTL *poctl)
 
 // 0x146650: Second interact behaviour state change.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__16JOBBENTLEYATTACKi).
 extern "C" void SetBhvInteract2State(BHV196 *behavior, int state)
 {
     int previous;
@@ -1052,6 +1070,7 @@ extern "C" { static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
 
 // 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states: when close and facing
 // the target, 30% of the time it jumps (3) and attacks in the air after 0.2 s (4) instead of the ground attack (2).
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvInteract3(BHV197 *behavior)
 {
     union { qword q; float f[4]; } toTarget;
@@ -1169,6 +1188,7 @@ extern "C" { static __inline__ float AngleXY(qword d)
 } }
 // 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
 // toward the target; states 2 and 4 press the attack button (0x80) and state 3 jumps (0x40) for their first 0.1 s.
+// Also known as: Drive (upstream readable / Sly 1 name; Drive__12JOBSLYATTACKP6PADCTL).
 extern "C" void SteerBhvInteract3(BHV197 *behavior, POCTL *poctl)
 {
     ResetBhvSteering(behavior, poctl);
@@ -1228,6 +1248,7 @@ extern "C" void SteerBhvInteract3(BHV197 *behavior, POCTL *poctl)
 } // namespace M_func_00146B18
 
 // 0x146E18: Third interact behaviour state change (busy in states 2..4).
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__12JOBSLYATTACKi).
 extern "C" void SetBhvInteract3State(BHV197 *behavior, int state)
 {
     if (state == behavior->state) return;
@@ -1244,6 +1265,7 @@ extern "C" void SetBhvInteract3State(BHV197 *behavior, int state)
 }
 
 // 0x146E98: Murray behaviour (BHV198) vtable slot 8 (Start): sets MURRAY +0x1AC0, Murray state 0xC.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV198::Start()
 {
     StartBhv(this);
@@ -1253,6 +1275,7 @@ void BHV198::Start()
 }
 
 // 0x146EE0: Murray behaviour vtable slot 9 (Close): clears +0x1AC0, Murray state 0.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvMurray(BHV198 *behavior)
 {
     CloseBhv(behavior);
@@ -1274,6 +1297,7 @@ void SetStepTargetHeading(MURRAY *step, float heading) __asm__("SetStepTargetHea
 // 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840): in 0 he faces D_002E1E40
 // (the current player, inferred) and remembers that heading; in 1 he keeps turning toward it (at most 15 rad/s) while
 // it stays within 0.5 rad of the remembered heading.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvMurray(BHV198 *behavior)
 {
     UpdateBhv(behavior);

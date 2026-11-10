@@ -39,6 +39,7 @@ float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext
 namespace V_SetVectorCylind {
 typedef int qword __attribute__((mode(TI)));
 // Builds a vector from cylindrical coordinates: angle `rad` around z, `radius` in the xy plane, height z.
+// Also known as: SetVectorCylind (upstream readable / Sly 1 name; SetVectorCylind__Ffff).
 extern "C" qword SetVectorCylind(float rad, float radius, float z)
 {
     union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = QwordFromFloats<qword>(gB * radius, gA * radius, z); return v.q;
@@ -49,6 +50,7 @@ extern "C" qword SetVectorCylind(float rad, float radius, float z)
 namespace V_SetVectorSphere {
 typedef int qword __attribute__((mode(TI)));
 // Builds a vector from spherical coordinates: pan around z, tilt above the xy plane, length r.
+// Also known as: SetVectorSphere (upstream readable / Sly 1 name; SetVectorSphere__Ffff).
 extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 {
     union { qword q; float f[4]; } v;
@@ -65,6 +67,7 @@ namespace V_SplitVectorAlongAxis {
 typedef int qword __attribute__((mode(TI)));
 // Splits a along the unit vector b: returns a . b, and optionally the parallel part (a . b) b and the
 // perpendicular part a - (a . b) b.
+// Also known as: GSplitVector (upstream readable / Sly 1 name; GSplitVector__FG9VU_VECTORT0P6VECTORT2).
 extern "C" float SplitVectorAlongAxis(qword a, qword b, qword *outParallel, qword *outPerpendicular)
 {
     qword d, p;
@@ -92,6 +95,8 @@ typedef int qword __attribute__((mode(TI)));
 #define DOT(d, one, v) __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=j"(one), "=j"(d) : "j"(v))
 // Builds two unit vectors perpendicular to `a` (outBasis[0] = normalize(b x a), or c x a when b is parallel to a;
 // outBasis[1] = normalize(a x outBasis[0])): a tangent frame around a normal.
+// Also known as: BuildOrthonormalVectors (upstream readable / Sly 1 name;
+//   BuildOrthonormalVectors__FG9VU_VECTORN20P6VECTOR).
 extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *outBasis)
 {
     register qword vb __asm__("vf1") = b;
@@ -147,6 +152,7 @@ static inline qword Normalize(qword v)
     return r;
 }
 // Returns some unit vector perpendicular to v (crosses v with the axis of its smallest component).
+// Also known as: PerpendicularVector (upstream readable / Sly 1 name; PerpendicularVector__FG9VU_VECTOR).
 extern "C" qword GetNormalVector(qword v)
 {
     float x, y, z;
@@ -225,6 +231,7 @@ static inline qword Scale(qword v, qword g)
 }
 // Returns the angle between a and b (acos of the normalised dot product) and optionally the unit rotation axis
 // a x b.
+// Also known as: RadBetweenVectors (upstream readable / Sly 1 name; RadBetweenVectors__FG9VU_VECTORT0P6VECTOR).
 extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
 {
     float la = Length(a);
@@ -276,6 +283,7 @@ static inline float DotG(qword a, qword b)
 // Closest points between the infinite lines through a, b and through c, pos: writes the two line parameters, the
 // distance between the lines (along the normal) and the unit common normal, oriented from the first line toward
 // the second. Parallel lines give parameters 0 and the normal of c - a. All three outputs are required.
+// Also known as: ClosestLineParams (upstream readable / Sly 1 name; ClosestLineParams__FG9VU_VECTORN30P6VECTORN24).
 extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword pos, float *outParams, float *outDistance, qword *outNormal)
 {
     qword ca, ba, pc, n;
@@ -349,6 +357,7 @@ static inline qword Len(qword v)
 }
 // Closest points between two segments (the line solution clamped to the segments); outputs as for
 // FindClosestPointBetweenLines.
+// Also known as: DistSegments (upstream readable / Sly 1 name; DistSegments__FG9VU_VECTORN30P6VECTORN24).
 extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword pos, float *outParams, float *outDistance, qword *outNormal)
 {
     float v;
@@ -382,6 +391,7 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 namespace V_CalculateVectorPanTilt {
 typedef int qword __attribute__((mode(TI)));
 // Returns v's pan (atan2(y, x)) and tilt (atan2(z, |xy|)), each normalised to (-pi, pi]; both optional.
+// Also known as: PanTiltFromVector (upstream readable / Sly 1 name; PanTiltFromVector__FG9VU_VECTORPfT1).
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
     if (outPan)
@@ -396,6 +406,7 @@ namespace V_LimitVectorLength {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Returns v scaled down to maxLength if it is longer, else v.
+// Also known as: LimitVectorLength (upstream readable / Sly 1 name; LimitVectorLength__FG9VU_VECTORf).
 extern "C" qword LimitVectorLength(qword v, float maxLength)
 {
     qword d, l;
@@ -471,6 +482,7 @@ static inline float DotS(qword a, qword b)
 // Closest points of the infinite lines through a, b and c, d: writes the two line parameters to outParams[0..1]
 // and the unit common normal (oriented away from a towards c) to outNormal; returns 0 if the lines are parallel.
 // Used for edge/edge contacts (mark.cpp).
+// Also known as: FClosestPointsLines (upstream readable / Sly 1 name; FClosestPointsLines__FG9VU_VECTORN30PfP6VECTOR).
 extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *outParams, qword *outNormal)
 {
     qword ca = Sub(c, a);
@@ -596,6 +608,7 @@ static inline float Dot(qword a, qword b)
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 
 // Closest point to pos on the infinite line through p0 and p1: optional point, parameter (unclamped) and distance.
+// Also known as: ParamSegPoint (upstream readable / Sly 1 name; ParamSegPoint__FG9VU_VECTORN20P6VECTORN23).
 extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *outPos, float *outT, float *outDistance)
 {
     register qword p0r __asm__("vf5") = p0; /* the one register pin: p0 copy shared by both Subs and the vadda */
@@ -655,6 +668,7 @@ static inline float Clamp(float g, float lo, float hi)
     return g;
 }
 // Closest point to pos on the segment p0-p1 (parameter clamped to 0..1): optional point, parameter and distance.
+// Also known as: PosNearestSegment (upstream readable / Sly 1 name; PosNearestSegment__FG9VU_VECTORN20P6VECTORN23).
 extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *outPos, float *outT, float *outDistance)
 {
     qword d = VuSub(p1, p0);
@@ -694,6 +708,7 @@ typedef int qword __attribute__((mode(TI)));
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // Inverse of SetVectorCylind: v's angle around z, xy radius and height (each optional).
+// Also known as: ConvertVectorToCylind (upstream readable / Sly 1 name; ConvertVectorToCylind__FG9VU_VECTORPfN21).
 extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
     if (outAngle)
@@ -724,6 +739,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%0" : "=r"(y
 // z lane of q as a float.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r"(z) : "0"(q)); return z; }
 // Inverse of SetVectorSphere: v's pan, tilt and length (each optional).
+// Also known as: ConvertVectorToSphere (upstream readable / Sly 1 name; ConvertVectorToSphere__FG9VU_VECTORPfN21).
 extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *outLength)
 {
     if (outPan) {

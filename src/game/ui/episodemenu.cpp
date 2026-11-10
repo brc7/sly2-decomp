@@ -124,6 +124,7 @@ void WIDGET131::Init()
 }
 
 // After the level load (slot 15): widget post-load, then picks the first empty slot index from the world arrays.
+// Also known as: StartEpMenu (upstream readable / Sly 1 name; StartEpMenu__FP6EPMENU).
 extern "C" void PostEpisodeMenuLoad(WIDGET131 *menu)
 {
     menu->WIDGET::PostLoad();
@@ -159,6 +160,7 @@ extern "C" void PostEpisodeMenuLoad(WIDGET131 *menu)
 
 // Per-frame update of the episode menu (slot 16): state machine, joystick navigation and actions (save variables,
 // movie replay, warps).
+// Also known as: UpdateEpMenu (upstream readable / Sly 1 name; UpdateEpMenu__FP6EPMENU).
 extern "C" void UpdateEpisodeMenu(WIDGET131 *menu)
 {
     int labelOid;
@@ -313,6 +315,7 @@ extern "C" void UpdateEpisodeMenu(WIDGET131 *menu)
 }
 
 // Returns the label oid of the current mode/sub-mode from the label tables, or -1.
+// Also known as: IdPartCur (upstream readable / Sly 1 name; IdPartCur__FP6EPMENU).
 extern "C" int GetEpisodeMenuLabelOid(WIDGET131 *menu)
 {
     int state = menu->menuState;
@@ -325,6 +328,7 @@ extern "C" int GetEpisodeMenuLabelOid(WIDGET131 *menu)
 
 // Switches the menu mode: autosaves when leaving mode 0, restores the selection in modes 4 and 6, resets the labels
 // and shows the new one (slot 49).
+// Also known as: SetEpMode (upstream readable / Sly 1 name; SetEpMode__FP6EPMENUii).
 extern "C" void SetEpisodeMenuMode(WIDGET131 *menu, int state, int sub)
 {
     if (menu->menuState != state || menu->menuSub != sub) {
@@ -363,6 +367,7 @@ extern "C" void SetEpisodeMenuMode(WIDGET131 *menu, int state, int sub)
 
 // Number of menu items for the selected episode: the table value, minus 2 when it was never played, minus 1 when it is
 // under 100%.
+// Also known as: CmovieOpen (upstream readable / Sly 1 name; CmovieOpen__FP6EPMENU).
 extern "C" int GetEpisodeMenuItemCount(WIDGET131 *menu)
 {
     void *playTimeVar, *percentVar;
@@ -385,6 +390,7 @@ extern "C" int GetEpisodeMenuItemCount(WIDGET131 *menu)
 }
 
 // Plays label 0x5BD or 0x5BE when the highlight flag changes.
+// Also known as: SetHint (upstream readable / Sly 1 name; SetHint__FP6EPMENUi).
 extern "C" void SetEpisodeMenuHighlight(WIDGET131 *menu, int promptState)
 {
     if (menu->promptState != promptState) {

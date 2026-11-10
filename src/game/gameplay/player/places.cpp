@@ -86,6 +86,7 @@ extern "C" void PostLoadJtPlaces(void)
 
 // World position of a recorded place: an object-local position converted through the object's transform, a curve
 // distance evaluated on the object, or a stored world position.
+// Also known as: PosSafeEntry (upstream readable / Sly 1 name; PosSafeEntry__FP5ACTORPvf).
 extern "C" qword GetJtPlacePosition(STEPPLAYER *jt, JTPLACE *q, float g)
 {
     U t;
@@ -114,11 +115,13 @@ extern "C" qword GetJtPlacePosition(STEPPLAYER *jt, JTPLACE *q, float g)
 }
 
 // Builds a place record for a world position and returns the player there (ReturnJtToSafePlace).
+// Also known as: RecoverTo (upstream readable / Sly 1 name; RecoverTo__FP5ACTORG9VU_VECTOR).
 extern "C" void ReturnJtToPosition(STEPPLAYER *jt, qword q) { JTPLACE f; func_002333B4(&f, 0, sizeof f); f.position = q; ReturnJtToSafePlace(jt, &f); }
 
 // Puts the player back at a safe place (the best recorded one when `place` is null): a ballistic launch toward it
 // when reachable (ComputeMaxBallisticTime, SetJtAirJump, ChooseJtLanding), otherwise a teleport with a camera cut.
 // Used after falling into hazards and by the hurt callbacks.
+// Also known as: RecoverActorTo (upstream readable / Sly 1 name; RecoverActorTo__FP5ACTORPv).
 extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
 {
     JTPLACE e;
@@ -157,6 +160,7 @@ extern "C" void ReturnJtToSafePlace(STEPPLAYER *jt, JTPLACE *q)
 static inline float EvaluateClq(CLQV *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
 // Scores a recorded place: distance from nearby STEP objects (guards) and a line-of-sight / bounding-sphere test
 // against them; lower is better. (inferred)
+// Also known as: GCostSafeEntry (upstream readable / Sly 1 name; GCostSafeEntry__FP5ACTORPviPP3LO2).
 extern "C" float ScoreJtPlace(JTPLACES *places, JTPLACE *q, int n, STEP **apo)
 {
     float g = 0.0f;
@@ -213,6 +217,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, JTPLACE *q, int n, STEP **apo)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A66A0 __asm__("D_002A66A0") = 3.40282347e+38f; }
 // Picks the best recorded place by ScoreJtPlace against up to 16 STEP objects (CID 0x33).
+// Also known as: EntryBestSafe (upstream readable / Sly 1 name; EntryBestSafe__FP5ACTORPv).
 extern "C" void ChooseJtSafePlace(JTPLACES *places, JTPLACE *pe)
 {
     STEP *apv[16];
@@ -242,6 +247,7 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, JTPLACE *pe)
 
 // Per frame: when standing on stable ground (a ground state, floor normal z > 0.7, floor not flagged) records the floor
 // object and position; the grab and pipe states record their own spot (RecordJtGrabPlace, RecordJtPipePlace).
+// Also known as: UpdateSafeGround (upstream readable / Sly 1 name; UpdateSafeGround__FP5ACTOR).
 extern "C" void UpdateJtPlaces(JT *jt)
 {
     VECTORV v = D_002A2DD0;
@@ -271,6 +277,7 @@ extern "C" void UpdateJtPlaces(JT *jt)
 }
 
 // Inserts (object, curve distance) at the front of the place table, merging an entry on the same object within 50.
+// Also known as: RecordSafeTarget (upstream readable / Sly 1 name; RecordSafeTarget__FP5ACTORP2LOf).
 extern "C" void AddJtPlaceOnCurve(JTPLACES *places, GRABSPOT *s, float g)
 {
     int i;
@@ -312,6 +319,7 @@ static __inline__ float Dist(qword a, qword b)
     return g;
 }
 // Inserts (object, position) at the front of the place table, merging an entry within 50 units.
+// Also known as: RecordSafeGround (upstream readable / Sly 1 name; RecordSafeGround__FP5ACTORP3SOEG9VU_VECTOR).
 extern "C" void AddJtPlaceAtPosition(JTPLACES *places, SOPART *s, qword q)
 {
     int i;
@@ -344,6 +352,7 @@ extern "C" void AddJtPlaceAtPosition(JTPLACES *places, SOPART *s, qword q)
 }
 
 // Compacts the place table, dropping entries that reference the given object.
+// Also known as: RemoveSafeGroundReferences (upstream readable / Sly 1 name; RemoveSafeGroundReferences__FP2LOP3SOEPv).
 extern "C" void RemoveJtPlacesOf(JTPLACES *s, LO *p0, SOPART *p8)
 {
     JTPLACE *dst = s->aplace;

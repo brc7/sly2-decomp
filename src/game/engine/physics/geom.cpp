@@ -89,6 +89,7 @@ static inline qword Normalize(qword v) {
 // Copies a GEOM's point and plane arrays into newly allocated slot-heap memory. When a transform is given, the
 // copied points are transformed by it and each plane normal is rotated, renormalised and its plane rebuilt through
 // one of the plane's points. Used when an object's geometry is cloned or instanced.
+// Also known as: CopyTransformGeom (upstream readable / Sly 1 name).
 void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
 {
  REQ request;
@@ -191,6 +192,7 @@ static inline PLANE *FinalPlane(PLANE *base,int count){
 // Brings a world GEOM up to date with its local GEOM and the owner's world matrix: points via TransformPointsVu0,
 // plane normals via the transposed inverse of the 3x3 rotation (VU0 microprogram 0x150), plane distances recomputed
 // from each plane's anchor point. Skipped when source and destination share their point array.
+// Also known as: TransformGeom (upstream readable / Sly 1 name; TransformGeom__FP7MATRIX4P4GEOMT1).
 extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  register const MATRIX4 *inverseSource asm("$16")=matrix;
  if(source->points!=dest->points){

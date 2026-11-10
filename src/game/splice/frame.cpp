@@ -31,6 +31,7 @@ SPO CFrame_CloneTo(CFrame *source, void *a);
 }
 
 // Makes parentFrame the only parent of frame (frame count 1, first slot assigned through the counted pointer).
+// Also known as: SetSingleParent (upstream readable / Sly 1 name).
 void CFrame::SetSingleParent(CFrame *parentFrame)
 {
     m_cpframeParent = 1;
@@ -38,6 +39,7 @@ void CFrame::SetSingleParent(CFrame *parentFrame)
 }
 
 // Appends parentFrame to frame's parent array (up to four parents).
+// Also known as: AddParent (upstream readable / Sly 1 name; AddParent__6CFrameP6CFrame).
 void CFrame::AddParent(CFrame *parentFrame)
 {
     CFrame *frame = this;
@@ -49,6 +51,7 @@ void CFrame::AddParent(CFrame *parentFrame)
 }
 
 // Removes parentFrame from frame's parent array, shifting the later parents down.
+// Also known as: RemoveParent (upstream readable / Sly 1 name; RemoveParent__6CFrameP6CFrame).
 void CFrame::RemoveParent(CFrame *parentFrame)
 {
     CFrame *frame = this;
@@ -66,6 +69,7 @@ void CFrame::RemoveParent(CFrame *parentFrame)
 }
 
 // Adds a new binding {sym, value} at the head of the frame's binding list; returns Void.
+// Also known as: RefAddBinding (upstream readable / Sly 1 name; RefAddBinding__6CFrameUiP4CRef).
 CRef CFrame_AddBinding(CFrame *frame, int sym, CRef *pref)
 {
     CVarbPtr *ppbFirst = &frame->m_pvarb;
@@ -80,6 +84,7 @@ CRef CFrame_AddBinding(CFrame *frame, int sym, CRef *pref)
 
 // Assigns a new value to the existing binding of sym, searching this frame and its parents; returns Void (nothing
 // happens when the symbol is unbound).
+// Also known as: RefSetBinding (upstream readable / Sly 1 name; RefSetBinding__6CFramePvP4CRef).
 CRef CFrame::AssignBinding(unsigned int sym, CRef *pref)
 {
     CRef ref;
@@ -92,6 +97,7 @@ CRef CFrame::AssignBinding(unsigned int sym, CRef *pref)
 }
 
 // Looks sym up (in the parents too when recurse is set) and copies the value into *pref; returns whether it was found.
+// Also known as: FFindBinding (upstream readable / Sly 1 name).
 int CFrame::FindBinding(unsigned int sym, int recurse, CRef *pref)
 {
     CRef *prefFound = FindBindingPtr(sym, recurse);
@@ -107,6 +113,7 @@ int CFrame::FindBinding(unsigned int sym, int recurse, CRef *pref)
 // Returns a pointer to the value bound to sym in this frame or, when recurse is set, in a parent frame (depth first).
 // The busy flag stops cycles in the parent graph. Returns null when unbound.
 // (Sly 1-derived name: CFrame::PrefFindBinding.)
+// Also known as: PrefFindBinding (upstream readable / Sly 1 name).
 CRef *CFrame::FindBindingPtr(unsigned int sym, int recurse)
 {
     CRef *pref = 0;
@@ -139,6 +146,7 @@ done:
 }
 
 // Deep-copies a frame: new frame with the same parents and a cloned binding list.
+// Also known as: CloneTo (upstream readable / Sly 1 name; CloneTo__6CFrameP6CFrame).
 SPO CFrame_CloneTo(CFrame *source, void *a)
 {
     SPO sp;

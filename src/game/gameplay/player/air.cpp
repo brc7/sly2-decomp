@@ -126,6 +126,7 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002BF740 __asm__("D_002BF740");
 // Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
 // tuning.
+// Also known as: InitJump (upstream readable / Sly 1 name; InitJump__FP4JUMPi).
 extern "C" void InitJtAir(JTAIR *t, STEPPLAYER *a)
 {
     t->player = a;
@@ -146,6 +147,7 @@ extern "C" void InitJtAir(JTAIR *t, STEPPLAYER *a)
 namespace M_PostLoadJtAir {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *, int, int, void *, int, int, int, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 // Post-load: creates the 5-entry dynamic jump animation blend.
+// Also known as: PostLoadJump (upstream readable / Sly 1 name; PostLoadJump__FP4JUMP).
 extern "C" void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, 0xC, 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
 } // namespace M_PostLoadJtAir
 
@@ -153,7 +155,7 @@ extern "C" void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT
 namespace M_func_00195A00 {
 // SetJtAirJump: ported from Lilly's personal Sly 2 decomp (src/P2/jtair.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF750 (D_002BF750), D_002BF754 (D_002BF754), D_002BF758 (D_002BF758), D_002BF75C (D_002BF75C), D_002BF760 (D_002BF760), D_002BF764 (D_002BF764), D_002BF76C (D_002BF76C), D_002BF770 (D_002BF770), D_002BF730 (g_SheetMovementMiscJumpHorizontalSpeed), D_002BF768 (g_SheetMovementMiscTurnbuckleLaunchHorizontalSpeed), g_clock (g_clock), g_normalZ (g_normalZ)
+// Globals: D_002BF750 (D_002BF750), D_002BF754 (D_002BF754), D_002BF758 (D_002BF758), D_002BF75C (D_002BF75C), D_002BF760 (D_002BF760), D_002BF764 (D_002BF764), D_002BF76C (D_002BF76C), D_002BF770 (D_002BF770), D_002BF730 (g_SheetMovementMiscJumpHorizontalSpeed), D_002BF768 (g_SheetMovementMiscTurnbuckleLaunchHorizontalSpeed), g_clock, g_normalZ
 // 0x00195A00 SetJtAirJump (curated name): starts a flight of the given kind. n2 picks the directional clip; plo is the object the sub-state works on.
 // Every kind but the double jump (6) restarts the record (its timers, zStart, the JT's landing clue). The launch velocity comes from JtPlanLaunchVz; kinds
 // 3 / 0xE add a push along the facing when the stick is at rest, 0x11 (wall run) flattens it and adds 400 up. Then the sub-state (SetJtAirState) and the
@@ -200,6 +202,7 @@ void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJu
 // Starts a flight of the given kind (jump, double jump 6, fall, wall run 0x11, rail kinds ...): resets the record
 // unless double-jumping, computes the launch velocity (PlanJtLaunchVelocity), picks the directional clip and the
 // landing target object, and enters the air state. The main way every other state launches the player into the air.
+// Also known as: SetJumpKind (upstream readable / Sly 1 name; SetJumpKind__FP4JUMPiiP2LO).
 void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
 {
     qword vel;
@@ -523,6 +526,7 @@ typedef void(*VECTOR_SETTER)(void*,qword);
 static inline void PublishReal(QWROW*home,qword value){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(value));}
 // Air sub-state change: leaves the old one and enters the new one (clips, cane state, landing target, velocities,
 // state-machine flags).
+// Also known as: SetJumpAnimState (upstream readable / Sly 1 name; SetJumpAnimState__FP4JUMPiP2LO).
 void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirState"); void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
 {
     WORK w;
@@ -918,6 +922,7 @@ extern "C" { static inline float LenXY(qword v) {
 // The largest non-negative time at which a projectile with the given vertical velocity and acceleration reaches the
 // low/high bounds (two quadratic root sets) and two cone terms. Used to plan launches toward safe places and targets.
 // (inferred)
+// Also known as: TJumpTo (upstream readable / Sly 1 name; TJumpTo__FG9VU_VECTORT0ffff).
 extern "C" float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slope0, float slope1) {
     QWROW r0, r1;
     float az = QwordZ(a) * 0.5f, naz = -az;
@@ -1006,6 +1011,7 @@ typedef char Normal_Count[sizeof(((WORK*)0)->normals)/sizeof(QWROW)==64?1:-1];
 typedef char Normal_Stride[(FIELD_OFFSET(WORK,normals[1])-FIELD_OFFSET(WORK,normals[0]))==16?1:-1];
 // Collects up to 64 contact normals (flipped when Sly is not the owner of the contact), solves the inequality system
 // and returns the residual direction the player may still move in. (inferred)
+// Also known as: PushJumpOffWalls (upstream readable / Sly 1 name; PushJumpOffWalls__FP4JUMPP6VECTOR).
 extern "C" void ProjectJtVelocityOnContacts(MOVE *p, QWROW *out)
 {
     WORK w;
@@ -1178,6 +1184,7 @@ typedef char WORK_move_phase_Offset[FIELD_OFFSET(WORK,move.phase)==64?1:-1];
 typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
 // Air physics preset: spins toward the target orientation, steers with the stick (spring toward the desired position),
 // limits horizontal speed and slides along contacts.
+// Also known as: UpdateJumpMotion (upstream readable / Sly 1 name; UpdateJumpMotion__FP4JUMP).
 extern "C" void PresetJtAccelJump(CONTEXT *p)
 {
     WORK w;
@@ -1438,6 +1445,8 @@ void ReleaseSma(void *p) __asm__("ReleaseSma");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *a, STEPPLAYER *o, int n, ASEGA **b, float g, float h) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 #define Get(p, i) ((p)->state == 2 ? (p)->apasegDoubleJump[i] : (p)->apasegJump[i])
 // Marks a mid-air turn and starts the turn/flip clip chosen from the heading difference.
+// Also known as: SelectDirectionalJumpAnimation (upstream readable / Sly 1 name;
+//   SelectDirectionalJumpAnimation__FP4JUMP).
 extern "C" void StartJtAirTurn(JTAIR *p)
 {
     float d, ad;
@@ -1484,7 +1493,7 @@ extern "C" XP *GetFirstNonNullEntry(SOTREE *o)
 namespace M_UpdateJtAirInput {
 // UpdateJtAirInput: ported from Lilly's personal Sly 2 decomp (src/P2/jtair_update.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF818 (D_002BF818), D_002BF81C (D_002BF81C), D_002BF820 (D_002BF820), D_002BF82C (D_002BF82C), D_002F7900 (g_SheetGangMurray), D_002E1E40 (g_SheetGangSly), D_002BF830 (g_SheetMovementMiscHoverPackDuration), g_clock (g_clock), D_002A2DD0 (g_qwZero)
+// Globals: D_002BF818 (D_002BF818), D_002BF81C (D_002BF81C), D_002BF820 (D_002BF820), D_002BF82C (D_002BF82C), D_002F7900 (g_SheetGangMurray), D_002E1E40 (g_SheetGangSly), D_002BF830 (g_SheetMovementMiscHoverPackDuration), g_clock, D_002A2DD0 (g_qwZero)
 // 0x00197500 UpdateJtAirInput (our name; KB FUN_00197500)
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
@@ -1554,6 +1563,7 @@ static inline qword ScaleVec(qword vec, VU_FLOAT scale)
 void UpdateJtAirInput(JTAIR *pjtair) __asm__("UpdateJtAirInput");
 // Per-frame air input: double jump, glide/hover (via the power-up sheet), throws (SetJtThrowState), grabs
 // (SetJtGrabState / GrabJtAirTarget) and gadgets. Runtime-checked: +4 is the kind, +0x1C the state.
+// Also known as: UpdateJumpTransitions (upstream readable / Sly 1 name; UpdateJumpTransitions__FP4JUMP).
 void UpdateJtAirInput(JTAIR *air)
 {
     VECTOR4 posHero;
@@ -2000,6 +2010,7 @@ static inline int IsMoving(qword v) { return D_002BF848 < LengthXYOf(v); }
 
 // Per-frame update of the jump state (jts 2): stick combo timers, a search for an interceptable jump target among the
 // world's object lists, landing detection, edge grabs and the transitions out of the air.
+// Also known as: UpdateJumpInput (upstream readable / Sly 1 name; UpdateJumpInput__FP4JUMP).
 extern "C" void UpdateJtActiveJump(CONTEXT *p)
 {
     INPUT *input = p->actor->input;
@@ -2343,6 +2354,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void GetNormalVectors(qword a, qword b, qword c, qword *pm) __asm__("GetNormalVectors");
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
+// Also known as: AddJumpLedgeContacts (upstream readable / Sly 1 name; AddJumpLedgeContacts__FP5ACTOR).
 extern "C" void AddJtWallRunXps(JTAIR *p)
 {
     if (p->state != 0x11)
@@ -2372,6 +2384,7 @@ extern "C" void AddJtWallRunXps(JTAIR *p)
 namespace M_func_00199298 {
 extern void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp) __asm__("FreeSwXpList__FP2SWP2XP");
 // During a wall run (kind 0x11) frees the wall-run contact list.
+// Also known as: PruneJumpLedgeXps (upstream readable / Sly 1 name; PruneJumpLedgeXps__FP5ACTOR).
 extern "C" void FreeJtWallRunXps(JTAIR *p)
 {
     SOTREE *ptree;
@@ -2423,6 +2436,7 @@ static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni 
 // returns nonzero if the edge is a ledge Sly can grab. (Sly 1-derived name: FCheckJtSingleEdge.)
 /* Its VECTOR (a qword/float/int union) is not basic.h's, so it keeps its symbol as a C-linkage definition. */
 /* The Sly 1 symbol says SO; in Sly 2 the shape is the part (SOPART::meshWorld). */
+// Also known as: FCheckJtSingleEdge (upstream readable / Sly 1 name).
 extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SOPART *so, EDGE *e, VECTOR *out)
 {
     GEOM *geom = &so->meshWorld;
@@ -2467,6 +2481,7 @@ static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz AC
 static inline void Set(QWROW*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
 // Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
 // ledge's surroundings.
+// Also known as: BuildEdgeProbes (upstream readable / Sly 1 name; BuildEdgeProbes__FP4JUMPP7MATRIX4iP6VECTOR).
 extern "C" void BuildJtEdgeProbeArc(JTAIR *p, const M4 *world, int count, QWROW *out)
 {
     M3 m;
@@ -2532,6 +2547,7 @@ static inline int HitSegment(SOPART *s, const qword *a, const qword *b, HIT *h)
 
 // Sweeps 11 probe segments around the edge point against every layer's shapes; true if at least two hit (a valid
 // ledge normal).
+// Also known as: FCheckEdgeNormal (upstream readable / Sly 1 name; FCheckEdgeNormal__FP4JUMPG9VU_VECTORT1).
 extern "C" int IsJtEdgeNormalValid(JTAIR *p, qword q1, qword q2)
 {
     M3 m;
@@ -2617,6 +2633,7 @@ static inline qword Normalize(qword v, qword fallback)
 
 // Tests a contact against a shape feature: for a vertex, sums IsJtSingleEdgeGrabbable over the edges meeting there
 // (at most 64) plus a BSP clip test; for an edge tests it directly. Returns nonzero with the grab normal.
+// Also known as: FCheckEdgeGrab (upstream readable / Sly 1 name; FCheckEdgeGrab__FP4JUMPP3SOEG9VU_VECTORiPvP6VECTOR).
 extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind, void *info, QWROW *out)
 {
     switch (kind) {
@@ -2773,6 +2790,7 @@ extern "C" { static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
 } }
 // Picks the best supporting ledge contact of the player (walks the contact groups, IsJtEdgeGrabbable, BSP point test)
 // and returns it with its index and normal.
+// Also known as: PxpFindJumpLedge (upstream readable / Sly 1 name; PxpFindJumpLedge__FP4JUMPPiP6VECTOR).
 extern "C" CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *outNormal)
 {
     QWROW direction, point;
@@ -2928,6 +2946,7 @@ typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
 typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
 // True if Sly is wedged: at most once per second and at least 1 s after a state change, solves the contact normals
 // against gravity and finds no free direction.
+// Also known as: FActorStuckOnContacts (upstream readable / Sly 1 name; FActorStuckOnContacts__FP5ACTORfPf).
 extern "C" int IsJtStuck(P *p, float previous, float *stamp)
 {
     float now = g_clock.time;
@@ -3038,6 +3057,7 @@ namespace M_FTimeJtJumpToTarget {
 typedef int qword __attribute__((mode(TI)));
 int SolveQuadratic__FfffPf(float, float, float, float *) __asm__("SolveQuadratic__FfffPf");
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
+// Also known as: FJumpTimeToHeight (upstream readable / Sly 1 name; FJumpTimeToHeight__FP5ACTORG9VU_VECTORN31Pf).
 extern "C" int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
     int n = SolveQuadratic__FfffPf(p->player->physics->gravity.z * 0.5f, QwordZ(b) - QwordZ(d), QwordZ(a) - QwordZ(c), ag);
@@ -3083,6 +3103,8 @@ extern "C" { static __inline__ unsigned LenXY1(qword v)
 } }
 // Predicts a jump from Sly's position and velocity to a point on a (possibly moving) object: time, cost, and the
 // predicted position and velocity at landing.
+// Also known as: FitJumpToPoint (upstream readable / Sly 1 name;
+//   FitJumpToPoint__FP4JUMPG9VU_VECTORP2LON21PfT5P6VECTORT7).
 extern "C" void MeasureJtJumpToTarget(struct S *p, qword aInput, LO *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
 {
     struct WORK w;
@@ -3254,6 +3276,7 @@ qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 namespace RO_ORDER { extern const float r_D_002A656C __asm__("D_002A656C") = 3.40282347e+38f; }
 // Launch velocity for a flight kind: the vertical part raised to the kind's apex (215/1200/250/500) or constant
 // (700/900/800), bounce and double jump solved from the current velocity.
+// Also known as: VelJumpLaunch (upstream readable / Sly 1 name; VelJumpLaunch__FP4JUMPi).
 qword JtPlanLaunchVz(JTAIR *air, int kind)
 {
     VECTOR4 pos;
@@ -3466,6 +3489,7 @@ typedef char T_Context_Offset[FIELD_OFFSET(struct T,a)==0?1:-1];
 typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 // Callback: evaluates the pipe curve at s, then minimizes over time with MeasureJumpTargetAtTime.
+// Also known as: GScorePipeS (upstream readable / Sly 1 name; GScorePipeS__FP5ACTORf).
 extern "C" float MeasureJumpToPipe(struct S *s, float parameter) {
     QWROW v; struct T t; float r;
     struct OBJECT *b = s->b;
@@ -3550,6 +3574,8 @@ static inline float Dist(qword a, qword b)
 extern int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc) __asm__("FindJtObstruction");
 // Checks the predicted Bezier jump path for obstructions (box query plus line tests per segment); returns nonzero
 // with the hit point.
+// Also known as: FJumpPathBlocked (upstream readable / Sly 1 name;
+//   FJumpPathBlocked__FP5ACTORP6VECTORT1fG9VU_VECTORN34T1).
 int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
 {
     struct V {
@@ -3588,6 +3614,7 @@ int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qwo
 //////// 0x19B088 AdjustJtLandingScore
 /* A landing score plus the bonus D_002BF900 for the object the air state prefers (unknownBC). */
 // Landing score adjustment: adds the bonus D_002BF900 for the object the air state prefers (inferred).
+// Also known as: FUN_001cf138 (upstream readable / Sly 1 name).
 extern "C" float AdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 {
     float gScore;
@@ -3800,6 +3827,7 @@ static inline float Length(qword v)
 
 // Chooses the jump target/landing among all candidate lists (hooks, rails, pipes, hide shapes, meshes ...), scoring
 // each with the jump measures, and returns the chosen landing state (jtbs).
+// Also known as: ChooseJumpTarget (upstream readable / Sly 1 name; ChooseJumpTarget__FP4JUMPP2LO).
 extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
 {
     void *ploBest = 0;
@@ -4210,6 +4238,7 @@ typedef char M4_row2_Offset[((unsigned)&((M4*)0)->row[2])==32?1:-1];
 typedef char M4_row3_Offset[((unsigned)&((M4*)0)->row[3])==48?1:-1];
 // Cost of landing on a target's local point after duration dt in the target's predicted frame; outputs the goal
 // position and velocity.
+// Also known as: GFitJump (upstream readable / Sly 1 name; GFitJump__FP5ACTORP2LOG9VU_VECTORP6VECTORN23f).
 extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qword localPoint, float *score,
                                             qword *point, qword *velocity, float duration)
 {
@@ -4398,6 +4427,7 @@ void SetJtAirState(struct P *p, int a, int b) __asm__("SetJtAirState");
 #define B(c, off) ((c) ? (void *)((char *)(c) + (off)) : (void *)0)
 // On reaching a grab target, switches per air kind (6, 11, 12, 13, ...) to SetJtGrabState with the target's GRABSPOT
 // part.
+// Also known as: ArriveJumpTarget (upstream readable / Sly 1 name; ArriveJumpTarget__FP4JUMP).
 extern "C" void GrabJtAirTarget(struct P *p)
 {
     switch (p->x1c) {
@@ -4466,6 +4496,7 @@ extern "C" void LandJtAir(JTAIR *air)
 //////// 0x19C870 GetJtAirAdjustRecord
 namespace M_func_0019C870 {
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
+// Also known as: IsoeJumpMesh (upstream readable / Sly 1 name; IsoeJumpMesh__FP5ACTORPi).
 extern "C" SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
     SOPART *v;
     switch (s->state) {

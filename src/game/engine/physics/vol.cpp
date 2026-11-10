@@ -59,6 +59,7 @@ namespace RO_ORDER { extern const float r_D_002A9880 __asm__("D_002A9880") = -3.
 // sphere around the geometry's points (centre = middle of the axis-aligned box, radius = half its diagonal). The
 // sphere is the cheap early-out of IsPointInVol.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadShapeFromBrx (upstream readable / Sly 1 name; LoadShapeFromBrx__FP5SHAPEP18CBinaryInputStream).
 void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 {
     VOLV *vol = (VOLV *)this;
@@ -89,6 +90,7 @@ void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 // Returns 1 when a world-space point is inside the volume: the point is converted into the volume's local space,
 // rejected if outside the bounding sphere, otherwise looked up in the volume's BSP. Used by guard detectors and
 // zones, buttons and the splice option CHECK_POINT.
+// Also known as: FPointInShape (upstream readable / Sly 1 name; FPointInShape__FP2LOG9VU_VECTOR).
 extern "C" int IsPointInVol(VOLV *vol, qword point)
 {
     qword localPoint = ConvertPosBetweenLos(0, vol, point), offset, distanceSquared;

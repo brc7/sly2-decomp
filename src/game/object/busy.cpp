@@ -34,6 +34,7 @@ void RemoveDlEntry(DL *pdl, void *pv);                      /* RemoveDlEntry__FP
 void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBefore__FP2DLPvT1 */
 
 // Removes a root record from the world's busy list, moving the incremental-pass cursor past it first.
+// Also known as: DequeueLoRoot (upstream readable / Sly 1 name; DequeueLoRoot__FP2SWP2LO).
 extern "C" void RemoveFromSwBusyList(SW *world, LOROOT *entry)
 {
     if (IsEntryInDl(&world->roots, entry)) {
@@ -172,6 +173,7 @@ static __inline__ float GDistSq(qword a, qword b)
 // Decides whether one object is in its activity zone (busy kind: always, never, within its busy distance of the camera
 // or of the hero, gated by the camera's zone mask) and sends the enter (slot 23) or leave (slot 22) notification
 // when that changed.
+// Also known as: CheckLoRoot (upstream readable / Sly 1 name; CheckLoRoot__FP2SWP2LO).
 extern "C" void UpdateSoBusy(SW *world, LO *object)
 {
     int cameraMask;

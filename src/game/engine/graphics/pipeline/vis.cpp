@@ -49,6 +49,7 @@ void CID5::Init()
 
 // Reads a zone from the level file (vtable slot 14): transform, a 32-bit value, the volume geometry, its BSP and the
 // object options. The payload layout is parse-verified; the meaning of the 32-bit value is not known.
+// Also known as: LoadVolumeFromBrx (upstream readable / Sly 1 name; LoadVolumeFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 {
     LoadXfmXfFromBrx(vis, stream);

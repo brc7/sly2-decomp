@@ -373,6 +373,7 @@ static inline ulong FrameFromDisp(ulong disp)
 }
 // Builds two static GIF packets (D_002DFB00/D_002DFB20) loading TEX0_2 (reg 7) with the base/width of the current and
 // the other display framebuffer (lets the framebuffer be sampled as a texture) (inferred)
+// Also known as: RememberOverlaySourceFrame (upstream readable / Sly 1 name).
 void BuildFrameTex0Gifs()
 {
     DRAWENV *pdisp;
@@ -548,6 +549,7 @@ void ClearFrameBuffers()
 SLY2_SCRAP("addiu $sp, $sp, 0x4d0");
 
 // Returns ceil(log2(value)) (0 for 0 and 1, at most 31): used for texture width/height exponents.
+// Also known as: NLog2 (upstream readable / Sly 1 name).
 uint CeilLog2(uint value)
 {
     uint log2 = 0;

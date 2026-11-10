@@ -133,6 +133,7 @@ extern EMITO D_002DE5B0 __asm__("D_002DE5B0");
 extern EMITVEL D_002DE5F0 __asm__("D_002DE5F0");   /* defined above through its initializer view (EMITDEF::EMITVELIsland) */
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
+// Also known as: InitEmitb (upstream readable / Sly 1 name; InitEmitb__FP5EMITB).
 extern "C" void InitEmitBlock(EMITB *p)
 {
     func_002333B4(p, 0, sizeof(EMITB));
@@ -151,6 +152,7 @@ void SetLoBusyKind(void *p, int n) __asm__("SetLoBusyKind");
 // EMITTER::Init: XFM init, then "unset" defaults (mode and count -1, no group, 10 particles per second, not paused),
 // an empty slaved-emitter list linked through +0x128, busy level 0, and LO flag bit 2 set (field meanings from Sly 1's
 // EMITTER, which has the same members in the same order).
+// Also known as: InitEmitter (upstream readable / Sly 1 name; InitEmitter__FP7EMITTER).
 void EMITTER::Init()
 {
     unsigned int flags;
@@ -404,6 +406,7 @@ enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
 EMITTERV * EnsureEmitter(EMITTERV *pemitter, ENSK ensk) __asm__("EnsureEmitter__FP7EMITTER4ENSK");
 // Accessor used by the property system: returns the emitter, marking it dirty (values changed) when the access is a
 // write.
+// Also known as: PemitterEnsureEmitter (upstream readable / Sly 1 name).
 EMITTERV *EnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 {
     if (ensk == ENSK_Set) {
@@ -652,6 +655,7 @@ void UnpauseEmitter(EMITTERV *pemitter)
 // Returns whether the emitter is paused: before its unpause time, or (continuous and constant-count modes) with no particles left to
 // emit.
 int IsEmitterPaused(EMITTER *pemitter) __asm__("IsEmitterPaused__FP7EMITTER");
+// Also known as: FPausedEmitter (upstream readable / Sly 1 name).
 int IsEmitterPaused(EMITTER *pemitter)
 {
     if (g_clock.time < pemitter->tUnpause)
@@ -957,6 +961,7 @@ static inline VU_VECTOR Normalize(qword d)
 // random point in a box, evenly spaced (jittered) along the curve shape, or on a random mesh triangle weighted by
 // area; the direction per normalKind. Both are then normalized / offset: the position moves a random distance
 // along the direction.
+// Also known as: ChooseEmitPosition (upstream readable / Sly 1 name; ChooseEmitPosition__FP8EMITTERNiiP6VECTORT3).
 extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITB *emitb, int index, int count, qword *ppos, qword *pdir)
 {
     ::EMITO *origin = &emitb->emito;
@@ -1201,6 +1206,8 @@ int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
 // Spawns `count` rips at the originated positions / velocities / times into the emitter's RIPG (creating and
 // subscribing it on first use): each gets a random initial scale, the EMITB's scale curve, alpha curve, motion
 // (SetEmitdvEmitb), render object and the reference object's orientation. A group left empty is removed (slot 9).
+// Also known as: EmitParticleObjects (upstream readable / Sly 1 name;
+//   EmitParticleObjects__FP8EMITTERNP6VECTORiT1PfN24).
 extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITG *emitg, int count, qword *positions, qword *velocities, float *birthTimes, float *deathTimes)
 {
     RIPG *ripGroup = 0;
@@ -1297,6 +1304,8 @@ static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValu
 // blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
 // roll speed / angle for rolling blips), plus the spline end points for spline motion; each slot is mirrored into the
 // block's second frame buffer.
+// Also known as: InsertPsysParticles (upstream readable / Sly 1 name;
+//   InsertPsysParticles__FP8EMITTERNP6VECTORiT1PfT4N21PG9VU_VECTOR).
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
@@ -1382,6 +1391,7 @@ static inline qword MulRow(const MATRIX3 &m, qword v)
 // Fills an EMITGEN with `c` new particles' positions, velocities and birth / death times: an even direction grid
 // (CalculateEmitvx), each particle's origin (ChooseEmitoPos) and velocity / age (ChooseEmitvVelocityAge), moved by
 // the origin's local transform (position, rotation, linear and angular velocity) and, when asked, into world space.
+// Also known as: ChooseEmitParticles (upstream readable / Sly 1 name; ChooseEmitParticles__FiP7EMITTERP3BUF).
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, EMITGEN *gen)
 {
     gen->apos = (qword *)PvAlloc(c * 16, 16);
@@ -1514,6 +1524,7 @@ void OriginateSplineSinkParticles(void *a, EMITB *b, EMITGEN *pgenEmit, EMITGEN 
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *b, void *c, void *a, qword *apos, qword *av, float *atBirth, float *atDeath, qword *aposStart, qword *aposEnd) __asm__("EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3");
 // Emits `count` particles from an EMITB: originates them (inside count stack-allocation scope), then hands them to
 // EmitRips or EmitBlips (spline-motion blips also get their spline end points).
+// Also known as: EmitParticles (upstream readable / Sly 1 name; EmitParticles__FP8EMITTERNP5EMITBP5EMITG).
 extern "C" void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void *emitg)
 {
     if (count) {
@@ -1545,6 +1556,7 @@ void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
 // particle and velocity records (passed by value by the callers), resolved objects (`refs`, EMITB+0x08) and rip
 // group / subscriber.
+// Also known as: LaunchWaterSpray (upstream readable / Sly 1 name; LaunchWaterSpray__FG9VU_VECTORT0P2LON22iii).
 extern "C" void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *particle, EMITVEL *velocity, LO **aploRef, RIPG **ppripg, LO *ploSubscriber)
 {
     EMITB emitb;
@@ -1627,6 +1639,7 @@ static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
 extern MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
 // Builds the matrix that advances a particle's velocity by one frame (dt): the curl rotation R (curlRate * dt about
 // the axis), plus R * (damping * v + addedVelocity) * dt, as a 4x4 acting on (v, 1).
+// Also known as: UpdatePsys (upstream readable / Sly 1 name; UpdatePsys__FP4PSYS).
 MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
 {
     MATRIX4 mScale = D_002A2D30;
@@ -1653,6 +1666,7 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
 namespace M_ExplodeWithDefaults {
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
+// Also known as: ExplodeExpl (upstream readable / Sly 1 name; ExplodeExpl__FP4EXPL).
 extern "C" void ExplodeWithDefaults(EXPL *pexpl)
 {
     EXPLSO p = {0};
@@ -1663,6 +1677,7 @@ extern "C" void ExplodeWithDefaults(EXPL *pexpl)
 namespace M_ExplodeExplParams {
 // Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51)
 // (inferred)
+// Also known as: ExplodeExplParams (upstream readable / Sly 1 name; ExplodeExplParams__FP4EXPLUiP3ALOP6VECTORT3ff).
 extern "C" void ExplodeExplParams(EXPL *pexpl, int flags, LO *reference, float scale, float radius, qword vector, qword origin)
 {
     EXPLSO p;
@@ -1695,6 +1710,7 @@ void LoadXfmChildObjectsFromBrx(EXPLG *p, void *q, struct DA *pda) __asm__("Load
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // EXPLG::LoadFromBrx: XFM load, then its child objects; the explosions (CID 0x1E and derived) become the group's
 // children, anything else gets vtable slot 9 (inferred: removal). Every child is flagged (LO bit 57).
+// Also known as: LoadExplgFromBrx (upstream readable / Sly 1 name; LoadExplgFromBrx__FP5EXPLGP18CBinaryInputStream).
 extern "C" void LoadExplgFromBrx(EXPLG *p, void *q)
 {
     struct C ctx;
@@ -1733,6 +1749,7 @@ extern "C" { static inline void *PvReallocMsg(SWALLOC *pmsg, void *pv, int cb, i
 void CloneXfm(EXPLG *p, void *pv) __asm__("CloneXfm");
 LO *CloneLoWithParent__FP2LOP2SO(LO *plo, SO *psoParent) __asm__("CloneLoWithParent__FP2LOP2SO");
 // EXPLG clone: XFM clone, then a private copy of the child array with each child cloned under the same parent.
+// Also known as: CloneExplg (upstream readable / Sly 1 name; CloneExplg__FP5EXPLGT0).
 extern "C" void CloneExplg(EXPLG *p, void *pv)
 {
     SWALLOC msg;
@@ -1789,6 +1806,7 @@ extern void ExplodeExplgExplso(S *p, EXPLSO *pp) __asm__("ExplodeExplgExplso");
 // EXPLG explode: explodes every child explosion (vtable slot 51) with a copy of the EXPLSO whose transform is the
 // child's placement relative to the group, composed with the caller's transform when it gave one; the group is the
 // reference object unless the caller set one.
+// Also known as: ExplodeExplgExplso (upstream readable / Sly 1 name; ExplodeExplgExplso__FP5EXPLGP6EXPLSO).
 void ExplodeExplgExplso(S *group, EXPLSO *explso)
 {
     EXPLSO childExplso = *explso;
@@ -1823,6 +1841,7 @@ void ExplodeExplgExplso(S *group, EXPLSO *explso)
 } // namespace M_ExplodeExplgExplso
 
 // EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
+// Also known as: HandleExplsMessage (upstream readable / Sly 1 name; HandleExplsMessage__FP5EXPLS5MSGIDPv).
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
     int msgid = (int)msgid_m;
@@ -1838,6 +1857,7 @@ void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 }
 
 // EXPLS explode: forwards to its own slot 52 (fire) (inferred)
+// Also known as: ExplodeExplsExplso (upstream readable / Sly 1 name; ExplodeExplsExplso__FP5EXPLSP6EXPLSO).
 void EXPLS::ExplodeExplso(EXPLSO *pexplso)
 {
     FireExplso(pexplso);
@@ -1845,6 +1865,7 @@ void EXPLS::ExplodeExplso(EXPLSO *pexplso)
 
 // Returns the EXPLS's sound effect, creating it on first use. Used by the class option table (five EXPLS options
 // point at it), so level data can set the explosion's sound properties.
+// Also known as: PsfxEnsureExpls (upstream readable / Sly 1 name; PsfxEnsureExpls__FP5EXPLS4ENSK).
 extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
 {
     if (explosionSound->sfx == 0) {
@@ -1890,6 +1911,7 @@ extern void SetSndPitch(void *p, float g) __asm__("SetSndPitch");
 // (reference, direction, origin point or transform, touch object, count); a scaled explosion scales the count
 // (capped at half the maximum), speed and blip size. Then plays the EXPLS's sound at the origin's centre (by
 // origin kind, through the local transform, then into world space from the reference object).
+// Also known as: FireExplsExplso (upstream readable / Sly 1 name; FireExplsExplso__FP5EXPLSP6EXPLSO).
 extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
 {
     EMITP emitp;

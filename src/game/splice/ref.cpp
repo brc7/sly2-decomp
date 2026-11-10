@@ -184,6 +184,7 @@ CRef &CRef::SetF32(float g)
 }
 
 // Assigns a boolean (tag 0x17) after releasing the old payload.
+// Also known as: SetBool (upstream readable / Sly 1 name; SetBool__4CRefi).
 extern "C" CRef *CRef_SetBool(CRef *pref, int f)
 {
     pref->Decref();
@@ -193,6 +194,7 @@ extern "C" CRef *CRef_SetBool(CRef *pref, int f)
 }
 
 // Assigns a symbol id (tag 0x18) after releasing the old payload.
+// Also known as: SetSymid (upstream readable / Sly 1 name; SetSymid__4CRefUi).
 extern "C" CRef *CRef_SetSymid(CRef *pref, int symid)
 {
     pref->Decref();
@@ -202,6 +204,7 @@ extern "C" CRef *CRef_SetSymid(CRef *pref, int symid)
 }
 
 // Assigns a built-in function index (tag 0x19) after releasing the old payload.
+// Also known as: SetBifk (upstream readable / Sly 1 name; SetBifk__4CRef4BIFK).
 extern "C" CRef *CRef_SetBifk(CRef *pref, int bifk)
 {
     pref->Decref();
@@ -235,6 +238,7 @@ extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
 }
 
 // Assigns a vector (tag 0x1A) passed by value in a quadword register.
+// Also known as: SetVector (upstream readable / Sly 1 name; SetVector__4CRefG9VU_VECTOR).
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
 {
     VALVECTOR *p;
@@ -249,6 +253,7 @@ extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
 }
 
 // Assigns a matrix (tag 0x1B) in a new box.
+// Also known as: SetMatrix (upstream readable / Sly 1 name; SetMatrix__4CRefP7MATRIX4).
 extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
 {
     VALMATRIX *p;
@@ -263,6 +268,7 @@ extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
 }
 
 // Assigns a CLQ (tag 0x1C) in a new box.
+// Also known as: SetClq (upstream readable / Sly 1 name; SetClq__4CRefP3CLQ).
 extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
 {
     VALCLQ *p;
@@ -277,6 +283,7 @@ extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
 }
 
 // Assigns an LM range (tag 0x1D) in a new box.
+// Also known as: SetLm (upstream readable / Sly 1 name; SetLm__4CRefP2LM).
 extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
 {
     VALLM *p;
@@ -291,6 +298,7 @@ extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
 }
 
 // Assigns an SMP (tag 0x1E) in a new box.
+// Also known as: SetSmp (upstream readable / Sly 1 name; SetSmp__4CRefP3SMP).
 extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
 {
     VALSMP *p;
@@ -305,6 +313,7 @@ extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
 }
 
 // Assigns a pair (tag 0x1F): references the new pair before releasing the old payload.
+// Also known as: SetPair (upstream readable / Sly 1 name; SetPair__4CRefP5CPair).
 extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
 {
     pair->m_cref++;
@@ -315,6 +324,7 @@ extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
 }
 
 // Assigns a procedure (tag 0x20).
+// Also known as: SetProc (upstream readable / Sly 1 name; SetProc__4CRefP5CProc).
 extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 {
     proc->m_cref++;
@@ -325,6 +335,7 @@ extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 }
 
 // Assigns a game object (tag 0x21), referencing it through vtable slot 1.
+// Also known as: SetBasic (upstream readable / Sly 1 name; SetBasic__4CRefP5BASIC).
 extern "C" CRef *CRef_SetBasic(CRef *pref, BASIC *object)
 {
     if (object)
@@ -336,6 +347,7 @@ extern "C" CRef *CRef_SetBasic(CRef *pref, BASIC *object)
 }
 
 // Assigns a native method (tag 0x22).
+// Also known as: SetMethod (upstream readable / Sly 1 name; SetMethod__4CRefP7CMethod).
 extern "C" CRef *CRef_SetMethod(CRef *pref, CMethod *method)
 {
     method->m_cref++;
@@ -377,6 +389,7 @@ bool CRef::operator==(const CRef &ref)
 
 // Deep copy of a value: boxes are re-allocated, pairs and procs cloned recursively (CPair_CloneTo, CProc_CloneTo),
 // objects re-referenced. Used when cloning objects with their Splice state.
+// Also known as: CloneTo (upstream readable / Sly 1 name; CloneTo__4CRefP4CRefP6CFrame).
 CRef CRef_CloneTo(CRef *pref, void *a, void *b)
 {
     switch (pref->m_tagk)
@@ -397,6 +410,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 // Returns the value coerced to an integer (floats truncated).
+// Also known as: RefCoerceS32 (upstream readable / Sly 1 name).
 extern "C" CRef *CRef_CoerceS32(CRef *pref, CRef *source)
 {
     if (source->m_tagk == 0x15)
@@ -413,6 +427,7 @@ extern "C" CRef *CRef_CoerceS32(CRef *pref, CRef *source)
 }
 
 // Returns the value coerced to a float (integers promoted); the numeric built-ins use it.
+// Also known as: RefCoerceF32 (upstream readable / Sly 1 name).
 extern "C" CRef *CRef_CoerceF32(CRef *pref, CRef *source)
 {
     if (source->m_tagk == 0x16)
@@ -534,6 +549,7 @@ void CRef::Decref()
 }
 
 // Releases the old payload and sets a new tag; boxed tags (0x1A..0x1E) get a fresh box from their pool.
+// Also known as: InitTag (upstream readable / Sly 1 name; InitTag__4CRef).
 void CRef::SetTag(TAGK tagk)
 {
     m_tagk = tagk;

@@ -383,6 +383,7 @@ struct Lock {
 // Starts a state machine on an object: takes an SMA from the world's pool, links it into the machine's and the world's
 // activation lists, sets its start state and goal, sends the "entered state" notification and chooses the first
 // transition.
+// Also known as: PsmaApplySm (upstream readable / Sly 1 name; PsmaApplySm__FP2SM3OIDiUiiPv).
 extern "C" void ApplySmCore(SM *p, ALO *a, int b, int c, int d, SMA **pps)
 {
     SMA *ps = (SMA *)AllocZeroedFromSlotheap(&g_sw.slotheapSma);
@@ -431,6 +432,7 @@ extern "C" int ApplySmWithKind(int a, int b, int c, int d, int e) { int r; Apply
 /* The machine's activation on palo, or 0. The unused array is part of the original frame.
    (Sly 1-derived name: PsmaFindSm.) */
 // Returns the machine's activation on the given root object, or 0.
+// Also known as: PsmaFindSm (upstream readable / Sly 1 name).
 SMA *FindSmaForObject(SM *psm, ALO *palo)
 {
     int unused[2];
@@ -441,6 +443,7 @@ SMA *FindSmaForObject(SM *psm, ALO *palo)
 }
 
 // Index of the state with the given OID, or -1 if the machine has none. (Sly 1-derived name: IsmsFindSmOptional.)
+// Also known as: IsmsFindSmOptional (upstream readable / Sly 1 name).
 int FindSmStateOptional(SM *psm, OID oid)
 {
     int isms;
@@ -458,6 +461,7 @@ extern "C" void FindSmStateRequired(SM *psm, OID oid)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmdFindSm {
 // Returns the first distance-table record whose mask intersects the given mask, or null.
+// Also known as: PsmgFind (upstream readable / Sly 1 name; PsmgFind__FP2SMUi).
 extern "C" SMRT *FindSmDistanceTable(SM *p, int m)
 {
     int i;
@@ -471,6 +475,7 @@ namespace M_CsmtDistanceSm {
 SMRT *FindSmDistanceTable(SM *p, int n) __asm__("FindSmDistanceTable");
 // Number of transitions (hops) from one state to another using only transitions allowed by the mask (precomputed
 // table).
+// Also known as: CsmtDistance (upstream readable / Sly 1 name; CsmtDistance__FP2SMUiii).
 extern "C" int CountSmTransitionHops(SM *p, int n, int y, int x)
 {
     SMRT *pq = FindSmDistanceTable(p, n);
@@ -484,6 +489,7 @@ extern "C" int CountSmTransitionHops(SM *p, int n, int y, int x)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_OidFromSmIsms {
 // OID of the state at an index, or -1 when out of range.
+// Also known as: OidFromSmIsms (upstream readable / Sly 1 name; OidFromSmIsms__FP2SMi).
 extern "C" OID GetSmStateOid(SM *p, int n) { if (n < 0 || n >= p->csms) return (OID)-1; return p->asms[n].oid; }
 } // namespace M_OidFromSmIsms
 
@@ -515,6 +521,7 @@ void RetractAsega(void *) __asm__("RetractAsega");
 void RemoveDlEntry__FP2DLPv(void *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 // Stops an activation: drops its running animation, unlinks it from the machine's and the world's lists, sends the
 // "retracted" message (3) and drops the list's reference.
+// Also known as: RetractSma (upstream readable / Sly 1 name; RetractSma__FP3SMA).
 extern "C" void RetractSma(SMA *p)
 {
     if (!IsSmaRetracted(p)) {
@@ -550,6 +557,7 @@ struct Lock {
 };
 // Sets the goal state (by OID, -1 = none). If it changes, either breaks off the running transition (when the transition
 // allows breaking) or chooses a new transition toward the goal.
+// Also known as: SetSmaGoal (upstream readable / Sly 1 name; SetSmaGoal__FP3SMA3OID).
 extern "C" void SetSmaGoal(SMA *p, int n)
 {
     if (IsSmaRetracted(p)) return;
@@ -570,6 +578,7 @@ int FindSmStateOptional__FP2SM3OID(void *, int) __asm__("FindSmStateOptional__FP
 int ChooseSmTransitionTowardGoal(void *, int, int, int, int) __asm__("ChooseSmTransitionTowardGoal");
 void SetSmaGoal(SMA *, int) __asm__("SetSmaGoal");
 // Sets the goal only if a path to it exists under the current transition mask.
+// Also known as: SeekSma (upstream readable / Sly 1 name; SeekSma__FP3SMA3OID).
 extern "C" void SetSmaGoalIfReachable(SMA *p, int n)
 {
     if (!IsSmaRetracted(p) && n != -1) {
@@ -610,6 +619,7 @@ extern "C" int GetSmaNext(SMA *p)
 namespace M_SetSmaSvt {
 extern void SetAsegaSpeed__FP5ASEGAf(void *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
 // Sets the activation's playback speed and passes it to the running animation.
+// Also known as: SetSmaSpeed (upstream readable / Sly 1 name; SetSmaSpeed__FP3SMAf).
 extern "C" void SetSmaSvt(SMA *p, float g)
 {
     if (!IsSmaRetracted(p)) {
@@ -627,6 +637,7 @@ void RetractAsega(ASEGA *) __asm__("RetractAsega");
 void EndSmaTransition(SMA *) __asm__("EndSmaTransition");
 // Aborts the running transition: seeks its animation to the start or end (by the sign of the speed), retracts it and
 // ends the transition there.
+// Also known as: FinishSmaTransition (upstream readable / Sly 1 name; FinishSmaTransition__FP3SMA).
 extern "C" void AbortSmaTransition(SMA *p)
 {
     ASEGA *po = p->pasegaCur;
@@ -644,6 +655,7 @@ extern "C" void AbortSmaTransition(SMA *p)
 namespace M_SeekSma {
 extern int FindSmStateRequired(void *, int) __asm__("FindSmStateRequired");
 // Sets a goal and immediately re-chooses (aborting the running transition), so the machine heads for it right away.
+// Also known as: SnapSmaGoal (upstream readable / Sly 1 name; SnapSmaGoal__FP3SMA3OID).
 extern "C" void SeekSma(SMA *p, int n)
 {
     if (!IsSmaRetracted(p)) {
@@ -661,6 +673,7 @@ extern int FindSmStateRequired(void *, int) __asm__("FindSmStateRequired");
 extern void RetractAsega(void *) __asm__("RetractAsega");
 // Jumps straight to a state without animating: stops the running animation, sets current and goal, notifies the state
 // entry and chooses the next transition.
+// Also known as: SetSmaState (upstream readable / Sly 1 name; SetSmaState__FP3SMA3OID).
 extern "C" void SnapSma(SMA *p, int n)
 {
     if (!IsSmaRetracted(p)) {
@@ -687,6 +700,7 @@ extern "C" void SnapSma(SMA *p, int n)
 namespace M_PsmtChooseWeighted {
 float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 // Picks one of n transitions at random in proportion to their weights (a cumulative walk); null if none is picked.
+// Also known as: PsmtChoose (upstream readable / Sly 1 name; PsmtChoose__FPviT0).
 extern "C" SMT *ChooseWeightedSmTransition(void *p, int n, SMT **ape)
 {
     float sum = 0.0f;
@@ -708,6 +722,7 @@ int CountSmTransitionHops(SM *, int, int, int) __asm__("CountSmTransitionHops");
 int ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
 // Picks a transition out of the current state (or a reversible one) that brings the machine one hop closer to the goal,
 // weighted at random among the candidates.
+// Also known as: PsmtPath (upstream readable / Sly 1 name; PsmtPath__FP2SMUiii).
 extern "C" int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
 {
     SMT *ap[64];
@@ -736,6 +751,7 @@ extern "C" int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
 namespace M_PsmtChooseFrom {
 int ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
 // Picks any allowed transition out of a state, weighted at random (wandering when there is no goal).
+// Also known as: PsmtLeaving (upstream readable / Sly 1 name; PsmtLeaving__FP2SMUii).
 extern "C" int ChooseRandomSmTransition(SM *p, int mask, int k)
 {
     SMT *ape[64];
@@ -765,6 +781,7 @@ extern "C" { static inline SMA *Receiver(SMA *p){register SMA *r __asm__("$4");_
 extern "C" { static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;} }
 // The machine's driver: with no goal (or at the goal) it wanders, otherwise it heads toward the goal; starts the chosen
 // transition's animation segment on the root object, records the next state and notifies.
+// Also known as: ChooseSmaTransition (upstream readable / Sly 1 name; ChooseSmaTransition__FP3SMAi).
 extern "C" void ChooseSmaTransition(SMA *p, int k)
 {
     SMT *pa;
@@ -858,6 +875,7 @@ typedef char pointer_Width[sizeof(void*)==4?1:-1];
 
 /* The transition is over: the next state becomes current and the splice is told. */
 // Finishes a transition: the next state becomes current and the splice "entered state" notification is sent.
+// Also known as: EndSmaTransition (upstream readable / Sly 1 name; EndSmaTransition__FP3SMA).
 extern "C" void EndSmaTransition(SMA *psma)
 {
     int ismsNext;
@@ -894,6 +912,7 @@ extern "C" void SendSmaMessage(SMA *p, int a, int b)
 namespace M_HandleSmaMessage {
 // Reacts to "animation finished" (message 2) from the running transition's player: ends the transition and chooses the
 // next one.
+// Also known as: OnAsegaMsg (upstream readable / Sly 1 name; OnAsegaMsg__3SMAP5ASEGAi).
 extern "C" void HandleSmaMessage(SMA *p, MSGID msgid, void *pv)
 {
     if (msgid == 2 && pv == p->pasegaCur) {
@@ -909,6 +928,7 @@ namespace M_SkipSma {
 extern void RetractAsega(ASEGA *) __asm__("RetractAsega");
 extern void SeekAsega(ASEGA *, int, float, float) __asm__("SeekAsega");
 // Skips the activation forward by t seconds, through as many transitions as that covers.
+// Also known as: AdvanceSma (upstream readable / Sly 1 name; AdvanceSma__FP3SMAf).
 extern "C" void SkipSma(SMA *p, float t)
 {
     if (!IsSmaRetracted(p)) {
@@ -981,6 +1001,7 @@ extern "C" float EstimateSmaTimeToState(SMA *p, int k)
 /* Sets the route mask; a running transition that the mask breaks is aborted and a new one chosen. */
 // Sets the transition mask (which transitions may be used); if the running transition is no longer allowed, aborts it
 // and re-chooses.
+// Also known as: SetSmaMask (upstream readable / Sly 1 name; SetSmaMask__FP3SMAUi).
 extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 {
     psma->routeFlags = grfRoute;
@@ -996,6 +1017,7 @@ struct L { SMA *p; int a; int b; };
 int GetSmStateOid(void *, int) __asm__("GetSmStateOid");
 // Tells the activation's listeners (message 10) and splice scripts (event with the from/to state OIDs) that a state was
 // entered.
+// Also known as: NotifySmaState (upstream readable / Sly 1 name; NotifySmaState__FP3SMAii).
 extern "C" void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
 {
     struct L l;
@@ -1016,6 +1038,7 @@ void RetractSma(SMA *) __asm__("RetractSma");
 SMA *ApplySmToObject(void *, int, int, int) __asm__("ApplySmToObject");
 // Replaces a "current activation" slot: retracts and releases the old one and, if a machine is given, starts it on the
 // object and keeps a reference.
+// Also known as: ReplaceSmaHandle (upstream readable / Sly 1 name; ReplaceSmaHandle__FP2SMi3OIDiPP3SMA).
 extern "C" void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
 {
     if (*ppx) {
@@ -1036,6 +1059,7 @@ namespace M_ReplaceSmaEx {
 void RetractSma(SMA *) __asm__("RetractSma");
 SMA *ApplySmWithKind(void *, int, int, int, int) __asm__("ApplySmWithKind");
 // ReplaceSma with an explicit kind.
+// Also known as: ReplaceSmaHandleMask (upstream readable / Sly 1 name; ReplaceSmaHandleMask__FP2SMi3OIDiUiPP3SMA).
 extern "C" void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
 {
     if (*ppx) {
@@ -1056,6 +1080,7 @@ namespace M_ReleaseSma {
 struct S { SMA *po; };
 void RetractSma(SMA *) __asm__("RetractSma");
 // Retracts the activation in a slot, releases it and clears the slot.
+// Also known as: ClearSmaHandle (upstream readable / Sly 1 name; ClearSmaHandle__FPP3SMA).
 extern "C" void ReleaseSma(struct S *p)
 {
     if (p->po) {

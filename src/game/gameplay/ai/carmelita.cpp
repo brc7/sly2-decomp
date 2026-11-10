@@ -153,6 +153,7 @@ extern "C" void LoadRouteFromBrx(CID123 *route, void *pbis)
 
 // 0x14A0A8: ROUTE vtable slot 15 (PostLoad): LO post-load, then builds the route's path shape (kind 0x62C) from its
 // points.
+// Also known as: PostLoadChasegraph (upstream readable / Sly 1 name; PostLoadChasegraph__FP2LO).
 void CID123::PostLoad()
 {
     CID123 *route = this;
@@ -186,6 +187,7 @@ extern "C" void AddRoutePoint(CID123 *route, int k, int oid)
 
 // 0x14A1B0: Route behaviour (BHV182) vtable slot 7 (OnPush): base, starts the music cue, raises guard flag 0x24, no
 // current or target station.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvRoute(BHV182 *behavior)
 {
     InitBhv(behavior);
@@ -197,6 +199,7 @@ extern "C" void InitBhvRoute(BHV182 *behavior)
 }
 
 // 0x14A200: Route behaviour vtable slot 8 (Start): state 0, start time, clears the guard's +0x4A4.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV182::Start()
 {
     BHV182 *behavior = this;
@@ -208,6 +211,7 @@ void BHV182::Start()
 
 // 0x14A248: Route behaviour vtable slot 9 (Close): state -1, lowers flag 0x24, stops the music cue, sets the
 // guard's +0x4A4 again.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvRoute(BHV182 *behavior)
 {
     CloseBhv(behavior);
@@ -220,6 +224,7 @@ extern "C" void CloseBhvRoute(BHV182 *behavior)
 // 0x14A2A0: Route behaviour vtable slot 10 (Update): updates the chase position, then runs the state machine: 0 at
 // a station (attack the hero if it is the best station, else advance), 1 travelling (back to 0 at the path end), 2
 // falling/recovering animation, 3 attacking, 4 hands-off pause.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvRoute(BHV182 *behavior)
 {
     int s;
@@ -282,6 +287,7 @@ extern "C" void UpdateBhvRoute(BHV182 *behavior)
 
 // 0x14A478: True if the guard is in the air and no ground lies within 100 above / 250 below it (it fell off the
 // route, inferred).
+// Also known as: FAirborne (upstream readable / Sly 1 name).
 extern "C" int IsBhvRouteOffGround(BHV182 *behavior)
 {
     STEP *guard = behavior->owner;
@@ -343,6 +349,7 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 
 // 0x14A4D0: Compares the hero's and the guard's positions and velocities along the route to pick the chase speed
 // and lead the hero (inferred).
+// Also known as: Aim (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvRouteChase(BHV182 *behavior)
 {
     SW *pg = &g_sw;
@@ -435,6 +442,7 @@ static inline float NormalizeToRange(LM *pr, float g)
 // 0x14AA30: Returns the index of the route station best placed relative to the hero: each station is scored by its
 // distance along the route from the hero's closest point (weight 0.5), its depth on screen (0.15) and its distance
 // from the screen centre (0.35), each mapped through a .data range.
+// Also known as: IBest (upstream readable / Sly 1 name).
 extern "C" int FindBhvRouteBestStation(BHV182 *behavior)
 {
     int iBest = -1;
@@ -480,6 +488,7 @@ extern "C" int FindBhvRouteBestStation(BHV182 *behavior)
 }
 
 // 0x14AD70: Advances one station toward the target station and starts the move its kind asks for (walk or leap).
+// Also known as: Step (upstream readable / Sly 1 name).
 extern "C" void AdvanceBhvRouteStation(BHV182 *behavior)
 {
     int k;
@@ -501,6 +510,7 @@ extern "C" void AdvanceBhvRouteStation(BHV182 *behavior)
 }
 
 // 0x14AE18: Returns the kind of the current route station.
+// Also known as: PloEntry (upstream readable / Sly 1 name).
 extern "C" LO *GetBhvRouteStationKind(BHV182 *behavior)
 {
     return behavior->route->stations[behavior->currentStation].object;
@@ -508,6 +518,7 @@ extern "C" LO *GetBhvRouteStationKind(BHV182 *behavior)
 
 // 0x14AE38: Route behaviour state change: pushes the child behaviour for the new state (path walk, leap, animation,
 // attack, idle).
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__8JOBCHASEi).
 extern "C" void SetBhvRouteState(BHV182 *behavior, int state)
 {
     if (state == behavior->state)
@@ -645,6 +656,7 @@ static __inline__ float Distance(qword a, qword b)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
 // 0x14B290: CARMELITA vtable slot 88 (choose target): picks the best candidate object by kind and distance.
+// Also known as: PloGuardTarget3F (upstream readable / Sly 1 name; PloGuardTarget3F__FP5GUARD).
 extern "C" LO *ChooseCarmelitaTarget(CARMELITA *guard)
 {
     LO *poBest;

@@ -41,6 +41,7 @@ float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 byt
 // Measures each active directional clip's root velocity (displacement between t=0 and t=duration, divided by the
 // duration) into axes[i].direction, then allocates the 8-entry dynamic animation blend for them and returns it in
 // *blendOut. Called once when a move that uses directional blending is set up (grab, Murray).
+// Also known as: BindRootBlend (upstream readable / Sly 1 name; BindRootBlend__FP9ROOTBLENDP3ALOPP5MULTI).
 extern "C" void InitDirectionalBlend(struct ACTOR *actor, BLDIR *axes, MULTI **blendOut)
 {
     BLDIR *axis = axes;
@@ -84,6 +85,7 @@ static inline float Float1(qword q){register int bits __asm__("$7");register flo
 // Per-frame: picks the axis set for the current side (-1 none, 0 negative, 1 positive), weights each axis by how much
 // of the player's acceleration lies along its root velocity (normalized so weights sum to at most 1, the remainder
 // going to the idle/head axis), rescales the acceleration to the blended root velocity and reblends `request`.
+// Also known as: SteerRootBlend (upstream readable / Sly 1 name; SteerRootBlend__FP5ACTORP9ROOTBLENDPv).
 extern "C" void UpdateDirectionalBlend(STEPPLAYER *player, BLDIR *axes, void *request)
 {
     int indices[5];
@@ -261,6 +263,7 @@ static inline void BlendNegative(STEPPLAYER *player, BLDIR *axes, float xin, con
 // Turns a steering input (heading and magnitude relative to the player's facing, optionally facing the lock-on
 // target) into the player's acceleration: chooses the side from the lateral input past a dead zone (D_002BF9F0),
 // removes the sideways velocity when the side flips, and blends the two side axes' root velocities. (inferred)
+// Also known as: MoveAroundTarget (upstream readable / Sly 1 name; MoveAroundTarget__FP3SLYP9ROOTBLENDiff).
 extern "C" void UpdateDirectionalAcceleration(STEPPLAYER *player, BLDIR *axes, int enabled, float heading,
                                               float magnitude)
 {

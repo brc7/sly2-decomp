@@ -27,6 +27,7 @@ SPS CSidebag_CloneTo(CSidebag *source, void *q);
 }
 
 // Adds a binding {sym, value} at the head of the object's sidebag; returns Void.
+// Also known as: RefAddBinding (upstream readable / Sly 1 name; RefAddBinding__8CSidebagiP4CRef).
 extern "C" CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref)
 {
     CRefOwner<CVarb> *firstSlot = &sidebag->m_pvarb;
@@ -41,6 +42,7 @@ extern "C" CRef CSidebag_AddBinding(CSidebag *sidebag, int sym, CRef *pref)
 
 // Assigns a new value to the sidebag's existing binding of sym (nothing happens when unbound); returns Void.
 // (Sly 1-derived name: CSidebag::RefSetBinding.)
+// Also known as: RefSetBinding (upstream readable / Sly 1 name).
 CRef CSidebag::AssignSidebagBinding(int sym, CRef *pref)
 {
     CVarb *pb;
@@ -63,6 +65,7 @@ CRef CSidebag::AssignSidebagBinding(int sym, CRef *pref)
 
 // Looks sym up in the sidebag and copies its value into *pref when pref is non-null; returns whether it was found.
 // (Sly 1-derived name: CSidebag::FFindBinding.)
+// Also known as: FFindBinding (upstream readable / Sly 1 name).
 int CSidebag::FindSidebagBinding(int sym, CRef *pref)
 {
     for (CVarb *p = m_pvarb.p; p; p = p->pnext.p) {
@@ -76,6 +79,7 @@ int CSidebag::FindSidebagBinding(int sym, CRef *pref)
 }
 
 // Clones a sidebag: a new sidebag holding a deep copy of the binding list.
+// Also known as: CloneTo (upstream readable / Sly 1 name; CloneTo__8CSidebagP8CSidebag).
 extern "C" SPS CSidebag_CloneTo(CSidebag *source, void *q)
 {
     SPS sp;

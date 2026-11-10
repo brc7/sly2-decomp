@@ -61,6 +61,7 @@ void SetEyesEyess(EYES *peyes, EYESS eyess) __asm__("SetEyesEyess__FP4EYES5EYESS
 
 // Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read
 // 0x20-byte SAAF and call vt7 Init(psaa, psaaf)
+// Also known as: PsaaLoadFromBrx (upstream readable / Sly 1 name; PsaaLoadFromBrx__FPvP18CBinaryInputStream).
 extern "C" SAA *LoadSaaFromBrx(void *pv, void *pbis)
 {
     char buf[0x20];
@@ -87,6 +88,7 @@ extern "C" SAA *CloneSaa(SAA *saa) {
 }
 
 // SAA (CID 0x8A) vt7 Init. (inferred)
+// Also known as: InitSaa (upstream readable / Sly 1 name; InitSaa__FP3SAAP4SAAF).
 void SAA::Init(SAAF *q)   /* key function: SAA's vtable comes out here */
 {
     SAA *p = this;
@@ -122,6 +124,7 @@ extern "C" int AddSaaCopyRecord(SAA *saa, int iqw, VIFS *pvifs)
 int ShouldUpdateSaa(SAA *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
 // by several shaders is advanced only once per frame.
+// Also known as: FUpdatableSaa (upstream readable / Sly 1 name).
 int ShouldUpdateSaa(SAA *saa) {
     if (saa->updateTime != g_clock.time) {
         saa->updateTime = g_clock.time;
@@ -136,11 +139,13 @@ extern "C" void UpdateSaa(SAA *saa) {
 
 float GetSaaCompletion(SAA *p) __asm__("GetSaaCompletion__FP3SAA");
 // Base completion fraction (0..1) of an animation cycle: always 0.
+// Also known as: UCompleteSaa (upstream readable / Sly 1 name).
 float GetSaaCompletion(SAA *saa) {
     return 0.0f;
 }
 
 // Set the SAI frame index (clamped to [0,c-1]) and mark dirty, unless locked. (inferred)
+// Also known as: SetSaiIframe (upstream readable / Sly 1 name; SetSaiIframe__FP3SAIi).
 void SetSaiIframe(SAA *saa, int n)
 {
     unsigned short i;
@@ -155,6 +160,7 @@ void SetSaiIframe(SAA *saa, int n)
 // Convert g to 12-bit fixed point (x4096, rounded, low 12 bits).
 static inline int ToFixed12(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
 // Set the SAI UV scroll (du,dv in 1/4096 fixed point) and mark dirty, unless locked. (inferred)
+// Also known as: SetSaiDuDv (upstream readable / Sly 1 name; SetSaiDuDv__FP3SAIff).
 void SetSaiDuDv(SAA *saa, float uOffset, float vOffset)
 {
     int u, v;
@@ -168,11 +174,13 @@ void SetSaiDuDv(SAA *saa, float uOffset, float vOffset)
 }
 
 // SAA vt10: *poid == psaa->+0x14. (inferred)
+// Also known as: PsaiFromSaaShd (upstream readable / Sly 1 name; PsaiFromSaaShd__FP3SAAP3SHD).
 int DoesSaaMatchOid(SAA *saa, int *pid) {
     return *pid == saa->id;
 }
 
 // LOOP vt7 Init.
+// Also known as: InitLoop (upstream readable / Sly 1 name; InitLoop__FP4LOOPP4SAAF).
 void LOOP::Init(SAAF *psaa)
 {
     LOOP *p = this;
@@ -219,12 +227,14 @@ void UpdateLoop(LOOP *ploop, float dt)
 
 float GetLoopCompletion(LOOP *p) __asm__("GetLoopCompletion__FP4LOOP");
 // Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
+// Also known as: UCompleteLoop (upstream readable / Sly 1 name).
 float GetLoopCompletion(LOOP *loop) {
     float frameRate = loop->frameRate;
     return (loop->frame / frameRate) / (((float)loop->numFrames / frameRate) + loop->pauseTime);
 }
 
 // PINGPONG vt7 Init. (inferred)
+// Also known as: InitPingpong (upstream readable / Sly 1 name; InitPingpong__FP8PINGPONGP4SAAF).
 void PINGPONG::Init(SAAF *psaa)
 {
     PINGPONG *p = this;
@@ -274,6 +284,7 @@ void UpdatePingpong(PINGPONG *ppingpong, float dt)
 
 float GetPingpongCompletion(PINGPONG *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
 // Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
+// Also known as: UCompletePingpong (upstream readable / Sly 1 name).
 float GetPingpongCompletion(PINGPONG *ppingpong)
 {
     float absDframe = ppingpong->frameRate;
@@ -321,6 +332,7 @@ void UpdateShuffle(SHUFFLE *pshuffle, float dt)
 }
 
 // EYES vt7 Init. (inferred)
+// Also known as: InitEyes (upstream readable / Sly 1 name; InitEyes__FP4EYESP4SAAF).
 extern "C" void InitEyes(EYES *eyes, SAAF *psaaf)
 {
     InitSaa(eyes, psaaf);
@@ -360,6 +372,7 @@ void SetEyesEyess(EYES *peyes, EYESS eyess)
 }
 
 // EYES vt8 Update. (inferred)
+// Also known as: UpdateEyes (upstream readable / Sly 1 name; UpdateEyes__FP4EYESf).
 void EYES::Update()
 {
     EYES *peyes = this;
@@ -398,6 +411,7 @@ void EYES::Update()
 }
 
 // Set EYES closed amount (called per EYES SAA by SetSoEyesClosed 0x1F80D0) (inferred)
+// Also known as: SetEyesClosed (upstream readable / Sly 1 name; SetEyesClosed__FP4EYESf).
 extern "C" void SetEyesClosed(EYES *eyes, float g)
 {
     eyes->openFraction = g;
@@ -411,6 +425,7 @@ extern "C" void SetEyesClosed(EYES *eyes, float g)
 }
 
 // EYES vt10: SAA::FMatches or *poid == +0x60. (inferred)
+// Also known as: PsaiFromEyesShd (upstream readable / Sly 1 name; PsaiFromEyesShd__FP4EYESP3SHD).
 extern "C" int DoesEyesMatchOid(EYES *eyes, int *pid)
 {
     int f = 0;
@@ -431,6 +446,7 @@ void InitScroller(SCROLLER *scroller, SAAF *psaaf) {
 }
 
 // SCROLLER vt8 Update. (inferred)
+// Also known as: UpdateScroller (upstream readable / Sly 1 name; UpdateScroller__FP8SCROLLERf).
 void SCROLLER::Update()
 {
     SCROLLER *p = this;
@@ -444,6 +460,7 @@ void SCROLLER::Update()
 float GetScrollerCompletion(SCROLLER *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
 // Completion fraction of a SCROLLER: the average of its u and v offsets as fractions of their wrap ranges (0.5 for an
 // axis that does not move).
+// Also known as: UCompleteScroller (upstream readable / Sly 1 name).
 float GetScrollerCompletion(SCROLLER *pscroller)
 {
     float uComp = 0.0f;
@@ -468,6 +485,7 @@ void SetScrollerMasterSpeeds(SCROLLER *pscroller, float uSpeedScale, float vSpee
 }
 
 // CIRCLER vt7 Init. (inferred)
+// Also known as: InitCircler (upstream readable / Sly 1 name; InitCircler__FP7CIRCLERP4SAAF).
 void CIRCLER::Init(SAAF *psaaf) { CIRCLER *p = this;
     InitSaa(p, psaaf);
     p->angularSpeed = psaaf->ag[0];
@@ -494,6 +512,7 @@ void UpdateCircler(CIRCLER *pcircler, float dt)
 
 float GetCirclerCompletion(CIRCLER *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
 // Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
+// Also known as: UCompleteCircler (upstream readable / Sly 1 name).
 float GetCirclerCompletion(CIRCLER *pcircler)
 {
     float angle = g_clock.time * pcircler->angularSpeed;

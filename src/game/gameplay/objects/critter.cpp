@@ -158,6 +158,7 @@ void SetStepSpinRatio(STEP *pstep, float r);
 
 // CID96 vtable slot 7 (Init): SO init; startle distances 400/800, idle 2-6 s, walk 6-10 s, fade 1 s; no animations yet
 // (apply flags from D_002C0230); speeds 300/1000; no state; LO flag 2.
+// Also known as: InitBird (upstream readable / Sly 1 name; InitBird__FP2LO).
 extern "C" void InitCritter(CID96V *critter)
 {
     int i;
@@ -212,6 +213,7 @@ extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *stream)
 
 // CID96 vtable slot 15 (PostLoad): SO post-load, resolves the animations, takes the walk and flee speeds from their
 // root motion, then resets.
+// Also known as: StartBird (upstream readable / Sly 1 name; StartBird__FP2LO).
 extern "C" void PostCritterLoad(CID96V *critter)
 {
     PostSoLoad(critter);
@@ -230,6 +232,7 @@ extern "C" void ResetCritterFromProxy(CID96V *critter)
 
 // Spin ratio 1; a critter with a walk path starts walking from the path's start (vtable slot 29 moves it there),
 // others idle.
+// Also known as: PlaceBird (upstream readable / Sly 1 name; PlaceBird__FP2LO).
 void ResetCritter(CID96V *critter)
 {
     qwordV v;
@@ -253,6 +256,7 @@ namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.4
 // nearby player, otherwise idle and walk alternate on their timers and a turn ends when the critter faces its
 // heading; a startled critter flees once it faces away and its animation has finished; a fleeing one fades out at
 // fleeEndTime. Then the path following.
+// Also known as: UpdateBird (upstream readable / Sly 1 name; UpdateBird__FP2LO).
 extern "C" void UpdateCritter(CID96V *critter)
 {
     int newState;
@@ -291,6 +295,7 @@ struct M96 { int kind; int pad[3]; qwordV vectorA; qwordV vectorB; qwordV vector
 struct A96 { char pad[0x20]; qwordV unknown20; qwordV unknown30; int pad1; int flags; };   /* the hit (a WKR) */
 // CID96 vtable slot 75 (absorb a hit): after the base absorb, a hit with flag 8 kills the critter (CRITTER_HIT) and
 // tells its hit listener (vtable slot 51, message 6 with the hit's two vectors). Returns the base result.
+// Also known as: FAcceptBirdContact (upstream readable / Sly 1 name; FAcceptBirdContact__FP3ALOP5CTMSG).
 extern "C" int TakeCritterDamage(CID96V *critter, A96 *hit)
 {
     int result = CanSoTakeDamage(critter, hit);
@@ -311,6 +316,7 @@ extern "C" int TakeCritterDamage(CID96V *critter, A96 *hit)
 static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
 // CID96 vtable slot 17: while turning or startled, clears both XFs' vectors and springs toward the heading (vtable
 // slot 70, PresetCritterAccel); then the SO step.
+// Also known as: UpdateBirdPhys (upstream readable / Sly 1 name; UpdateBirdPhys__FP3ALO).
 extern "C" void UpdateCritterXfWorld(CID96V *critter)
 {
     int state = critter->state;
@@ -323,6 +329,7 @@ extern "C" void UpdateCritterXfWorld(CID96V *critter)
 }
 
 // CID96 vtable slot 70: spring acceleration toward the heading basis with the spin parameters (func_001F59A0). (inferred)
+// Also known as: TurnBird (upstream readable / Sly 1 name; TurnBird__FP3ALOii).
 extern "C" void PresetCritterAccel(CID96V *critter)
 {
     AccelSoTowardMatBounded(critter, &critter->headingBasis, &critter->spinScale);
@@ -330,6 +337,7 @@ extern "C" void PresetCritterAccel(CID96V *critter)
 
 // CID96 vtable slot 5 (HandleMessage): the basic handler; when its startled animation ends (message 2 from its
 // ASEGA playing that clip) the critter flees.
+// Also known as: OnBirdMessage (upstream readable / Sly 1 name; OnBirdMessage__FP2LO5MSGIDPv).
 extern "C" void HandleCritterMessage(CID96V *critter, int kind, ASEGA *anim)
 {
     HandleBasicMessage(critter, kind, anim);
@@ -358,6 +366,7 @@ static __inline__ qwordV VLen(qwordV c)
 }
 // Path following while walking or fleeing: from the closest point on the path, aims one search step ahead and sets
 // the velocity toward it at the state's speed; a walking critter past either end turns around.
+// Also known as: MoveBirdAlongPath (upstream readable / Sly 1 name; MoveBirdAlongPath__FP2LO).
 void UpdateCritterPathFollow(CID96V *critter)
 {
     SHAPE *path;
@@ -437,6 +446,7 @@ static inline qwordV SplatBits(int bits){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(
 // doubles the spin ratio. Flee: runs along the flee path from its closest point (fading out fadeTime before the end)
 // or, without one, away from the closest player for 2 s, at the flee speed. Hit: a sound and SprayDifficultyPrizes's effect
 // at damageOffset (amount, -100), then removed (vtable slot 9). Every state but turn plays its animation.
+// Also known as: SetBirdState (upstream readable / Sly 1 name; SetBirdState__FP2LOi).
 void SetCritterState(CID96V *critter, int next)
 {
     int old = critter->state;
@@ -558,6 +568,7 @@ void SetStepSpinRatio(STEP *pstep, float ratio)
 }
 
 // Sets the heading (radians about the up axis) and its rotation.
+// Also known as: SetBirdHeading (upstream readable / Sly 1 name; SetBirdHeading__FP4BIRDf).
 void SetCritterHeading(CID96V *critter, float heading)
 {
     critter->heading = heading;
@@ -565,6 +576,7 @@ void SetCritterHeading(CID96V *critter, float heading)
 }
 
 // True when the critter's x axis (world matrix, vtable slot 31, read twice) is within 1 degree of the heading.
+// Also known as: FBirdFacing (upstream readable / Sly 1 name; FBirdFacing__FP2LO).
 int IsCritterFacingHeading(CID96V *critter)
 {
     float *a = (float *)AsSo(critter)->GetWorldMatrix();
@@ -588,6 +600,7 @@ static inline float Length(qwordV v)
 // The closest player startles the critter when within nearDistance, or within farDistance while moving at 150 or
 // more (velocity: vtable slot 33); the critter then heads the player's way (the startled turn) and the result is
 // CRITTER_STARTLED. Otherwise the current state.
+// Also known as: StBirdSees (upstream readable / Sly 1 name; StBirdSees__FP2LO).
 int ChooseCritterStateFromPlayer(CID96V *critter)
 {
     int result = critter->state;
@@ -615,6 +628,7 @@ int ChooseCritterStateFromPlayer(CID96V *critter)
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) V;
 // Root-motion speed of a clip on this critter: |x at the end - x at the start| / duration * master speed (the clip's
 // channel for the critter, FindAsegChannel, its curve evaluated with AC::Evaluate). Leaves *speed alone without one.
+// Also known as: FStepLength (upstream readable / Sly 1 name; FStepLength__FP4ASEGP3ALOPf).
 void GetAsegSpeedForObject(CID96V *critter, ASEG *clip, float *speed)
 {
     V start, end;
@@ -634,6 +648,7 @@ int IsValidCritterLinkIndex(unsigned int n)
 }
 
 // Splice: sets the animation of a state (not turn or hit) and, unless -1, its apply flags.
+// Also known as: SetStepSeg (upstream readable / Sly 1 name; SetStepSeg__FP8STEPSEGSi3OIDi).
 extern "C" void SetCritterLink(CID96V *critter, int state, OID oid, int applyFlags)
 {
     if (IsValidCritterLinkIndex(state) && state != CRITTER_TURN && state != CRITTER_HIT) {
@@ -656,6 +671,7 @@ ASEG *FindCritterLinkObject(CID96V *critter, OID oid)
 }
 
 // Resolves the pending animation oids (each only once).
+// Also known as: BindStepSegs (upstream readable / Sly 1 name; BindStepSegs__FP8STEPSEGS).
 void ResolveCritterLinks(CID96V *critter)
 {
     int i;

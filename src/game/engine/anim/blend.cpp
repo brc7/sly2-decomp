@@ -122,6 +122,7 @@ int FindSyncInterval(float t, float tMax, int syncCount, MRSG *syncTable, float 
 // Finds or creates the blend segment (ASEGBL, class 0x6E) that blends a given set of animation segments with the given
 // weights: reuses an existing blend over the same segments when there is one, otherwise builds a new one (channels per
 // blended object, MRSG timing tables for each sync point) and returns it through the last argument.
+// Also known as: NewBlend (upstream readable / Sly 1 name; NewBlend__FP3ALOiiP4ELEMiPiT5Pv).
 extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *elements, int n, int *pa, int *pb, ASEG **ppx)
 {
     ELEM *pe;
@@ -241,6 +242,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
 // Fills each blended segment's MRSG timing table: for every sync-point OID, the time at which that segment reaches it and
 // the duration to the next sync point (wrapping around the segment's length). These tables let segments of different
 // lengths stay in step while blended. (Sly 1-derived name: FillBlAmrsg.)
+// Also known as: FillBlAmrsg (upstream readable / Sly 1 name).
 void FillBlendSyncTables(int elementSize, int elementCount, void *elements, int tableOffset, int syncCount, OID *syncOids)
 {
     int elementIndex;
@@ -271,6 +273,7 @@ void FillBlendSyncTables(int elementSize, int elementCount, void *elements, int 
 // Computes the blend's own timing table as the weight-averaged durations of the segments' tables (and, through pf, the
 // blend's total length); with no sync points the length is simply the weighted average of the segment lengths.
 // (Sly 1-derived name: CalculateBlendAmrsg.)
+// Also known as: CalculateBlendAmrsg (upstream readable / Sly 1 name).
 extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableOffset, int count, MRSG *syncTable, float *totalLength)
 {
     float sum = 0.0f;
@@ -331,6 +334,7 @@ extern "C" void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *blend, int tableO
 // Finds which sync-point interval of an MRSG table contains time t (wrapping at tMax); returns its index and, through
 // pdt, the time elapsed since that sync point. Returns cmrsg when no interval matches.
 // (Sly 1-derived name: ImrsgLookUp.)
+// Also known as: ImrsgLookUp (upstream readable / Sly 1 name).
 int FindSyncInterval(float t, float duration, int syncCount, MRSG *syncTable, float *elapsed)
 {
     int i;
@@ -353,6 +357,7 @@ done:
 namespace RO_ORDER { extern const float r_D_002A4AF0 __asm__("D_002A4AF0") = -3.40282347e+38f; }
 // Records which blended segment dominates (weight above 0.9999, or -1 for none); when it changes, resets the smoothing
 // state of every live action on the blend's channels so they do not interpolate across the switch.
+// Also known as: SetBlendDominant (upstream readable / Sly 1 name; SetBlendDominant__FP6ASEGBLi).
 extern "C" void SetBlendDominantSegment(ASEG *blend, int dominant) {
     LINK *link;
     CHNE *channelEntry;
@@ -372,6 +377,7 @@ extern "C" void SetBlendDominantSegment(ASEG *blend, int dominant) {
 // Re-blends a blend segment after its weights changed (Sly 1: ReblendAsegbl): updates the dominant segment, recomputes the
 // blended timing tables and total length while keeping the links' relative times, and mirrors times onto a linked
 // blend (+0xD8) so paired blends stay in sync.
+// Also known as: RecalcBlend (upstream readable / Sly 1 name; RecalcBlend__FP6ASEGBL).
 extern "C" void RecalculateAsegBlend(ASEG *blend)
 {
     int unused[4];
@@ -428,6 +434,7 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
 // Evaluates a blended pose channel (vtable label BlendChannelPose): with a dominant segment it forwards to that segment's
 // channel; otherwise it maps the blend time onto each weighted segment through the MRSG tables, evaluates each segment's
 // channel and weight-sums the positions and rotations into the output channel record.
+// Also known as: Setup (upstream readable / Sly 1 name; Setup__6TRKPBLP2XF).
 void AC5::Prepare(CHN *pq)
 { BLCHNQ *p = (BLCHNQ *)this;
     VU c, d;
@@ -549,6 +556,7 @@ static __inline__ qword Madd(qword a, qword v, qword s)
 
 // Evaluates a blended position/rotation curve at time t (rate = time scale): maps t into each weighted segment's time
 // through the MRSG tables, evaluates the segment curves and returns their weighted sum (VU0 asm).
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__6TRKPBLP7VECTOR4T1ff).
 void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
 { BLCHNQ *p = (BLCHNQ *)this;
     float u;
@@ -633,6 +641,7 @@ done:
 
 // Evaluates a blended float curve (vtable label EvaluateBlendFloatCurve): weighted sum over the blended segments of each
 // segment's float curve value and its rate, at the MRSG-mapped time.
+// Also known as: Eval (upstream readable / Sly 1 name; Eval__6TRKGBLPfT1ff).
 void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 { BLCHNF *p = (BLCHNF *)this;
     float g0;

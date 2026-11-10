@@ -76,6 +76,7 @@ void InitBhvstk(BHVSTK *pbhvstk, STEP *pstep) __asm__("InitBhvstk");
 } // namespace M_InitStep
 // Slot 7 (Init): InitPo, then walking defaults: gravity ratio 1, spin ratio 1 (ScaleStepSpinSpeed), target heading
 // 0, base radius 30, step-down height -50, and the behaviour stack.
+// Also known as: InitStep (upstream readable / Sly 1 name; InitStep__FP4STEP).
 void STEP::Init()
 {
     using namespace M_InitStep;
@@ -92,6 +93,7 @@ void STEP::Init()
 
 // Slot 14 (LoadFromBrx): LoadPoFromBrx, caches the base position in parent space (+0x240) and ensures the physics
 // region record. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadPoFromBrx (upstream readable / Sly 1 name; LoadPoFromBrx__FP2POP18CBinaryInputStream).
 extern "C" void LoadStepFromBrx(STEP *step, CBinaryInputStream *stream)
 {
     LoadPoFromBrx(step, stream);
@@ -116,6 +118,7 @@ void HideSoPart(SO *pso, SOPART *ppart) __asm__("HideSoPart");
 void PostBhvstkLoad(BHVSTK *pbhvstk) __asm__("PostBhvstkLoad");
 // Slot 15 (PostLoad): PostSoLoad, allocates the step's sampled shape, gives its two child transforms role 1 and
 // builds the collision ("phys") part from the mesh part named by oidPhys (BuildStepPhysPart).
+// Also known as: PostStepLoad (upstream readable / Sly 1 name; PostStepLoad__FP4STEP).
 extern "C" void PostStepLoad(STEP *step)
 {
     PostSoLoad(step);
@@ -134,6 +137,7 @@ extern "C" void PostStepLoad(STEP *step)
 } // namespace M_PostStepLoad
 
 // Slot 19 (RenderSelf): just RenderSoSelf.
+// Also known as: RenderStepSelf (upstream readable / Sly 1 name; RenderStepSelf__FP4STEPP2CMP2RO).
 extern "C" void RenderStepSelf(STEP *step, void *pcm, void *pro)
 {
     RenderSoSelf(step, pcm, pro);
@@ -169,6 +173,7 @@ void UpdateGeomWorld(void *a, void *b, void *firstHelper) __asm__("UpdateGeomWor
 
 // Builds the step's collision part from a mesh part: appends a new SOPART, copies the geometry, records the lowest
 // point as the base height (+0x210) and adds two helper points. (inferred)
+// Also known as: MakeStepCustomEntry (upstream readable / Sly 1 name; MakeStepCustomEntry__FP3ALOP3SOE).
 extern "C" void BuildStepPhysPart(struct S *step, struct M *m)
 {
     int n, allPinned, i, firstHelper;
@@ -237,6 +242,7 @@ void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb) __asm__("__ml__F
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // Sets the current phys part (psopartPhys). With fForceSnap the body part (psopartBody) takes its points at once (in the body
 // part's frame) and the per-point velocities are cleared.
+// Also known as: SetStepMesh (upstream readable / Sly 1 name; SetStepMesh__FP3ALOPvi).
 extern "C" void SetStepPhys(STEP *step, SOPART *pm, int f)
 {
     step->psopartPhys = pm;
@@ -296,6 +302,7 @@ extern "C" { static __inline__ void CopyMatrix(M4 *destination,const M4 *source)
 } }
 // Per frame: moves each body-part point toward the phys part's point with SmoothValue and stores the point's velocity
 // ((new - old) / dt), so shape changes (crouch, stand) blend instead of popping.
+// Also known as: UpdateStepMesh (upstream readable / Sly 1 name; UpdateStepMesh__FP3ALO).
 extern "C" void UpdateStepPhys(struct S *input)
 {
     void *context=input;
@@ -396,6 +403,7 @@ float NormalizeAngle__Ff(float a) __asm__("NormalizeAngle__Ff");
 
 // Slot 16 (Update): UpdateSo, UpdateStepPhys, then the turn-rate speed factor (+0x180) from how far the heading is
 // from the target heading.
+// Also known as: UpdateStep (upstream readable / Sly 1 name; UpdateStep__FP4STEPf).
 extern "C" void UpdateStep(struct S *step)
 {
     UpdateSo(step);
@@ -457,6 +465,7 @@ extern "C" { static inline void InitScalar(U *value,int bits) {
 } }
 // Slot 70: PresetSoAccel, then steering: mode 0 accelerates the rotation toward the target heading matrix with the
 // spin smoothing (AccelSoTowardMatBounded); mode 1 fixes the angular velocity directly (FixStepAngularVelocity).
+// Also known as: UpdateStepPhysMotion (upstream readable / Sly 1 name; UpdateStepPhysMotion__FP3ALO).
 extern "C" void PresetStepAccel(struct S *step)
 {
     PresetSoAccel(step);
@@ -493,6 +502,7 @@ extern "C" void PresetStepAccel(struct S *step)
 } // namespace M_PresetStepAccel
 
 // Slot 29: TranslateSoToPos, then refreshes the world base position (+0x230) from the local one (+0x240).
+// Also known as: SetStepPos (upstream readable / Sly 1 name; SetStepPos__FP4STEPG9VU_VECTOR).
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
     TranslateSoToPos(step, pos);
@@ -500,6 +510,7 @@ extern "C" void TranslateStepToPos(STEP *step, qword pos)
 }
 
 // Slot 30: RotateSoToMat, then takes the new heading as target heading and stores it in the controller.
+// Also known as: SetStepRotation (upstream readable / Sly 1 name; SetStepRotation__FP4STEPP7MATRIX3).
 extern "C" void RotateStepToMat(STEP *step, MATRIX3 *matrix)
 {
     POCTL *pctl;
@@ -589,6 +600,7 @@ extern "C" { static inline qword AddScaled(const qword *pa, qword b, float g)
 
 // Slot 55: sets up a new contact: resets friction and response; a floor contact (kind 14) with an upward normal
 // (z > 0.7) gets the step's floor friction and a force limit from its weight.
+// Also known as: OnStepXpNew (upstream readable / Sly 1 name; OnStepXpNew__FP3ALOP2XPi).
 extern "C" void AdjustStepNewXp(struct P *step, struct XP *x, int side)
 {
     QWROW dir, diff, point;
@@ -726,6 +738,7 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
 
 // Slot 57: for floor contacts (kind 14) smooths the closing speed with SmoothValue, limited to dt * 9000, so the step
 // settles onto the floor without bouncing.
+// Also known as: OnStepXpUpdate (upstream readable / Sly 1 name; OnStepXpUpdate__FP3ALOP2XPi).
 extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd)
 {
     AdjustSoXpVelocity(step, pxp, ixpd);
@@ -771,6 +784,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 struct S : PO { char pad[0x1A8 - 0x180]; float g; int pad2; MATRIX3 m; };
 // Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
+// Also known as: SetStepPhysHeading (upstream readable / Sly 1 name; SetStepPhysHeading__FP3ALOf).
 void SetStepTargetHeading(struct S *p, float g) __asm__("SetStepTargetHeading"); void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(g_normalZ, g); }
 } // namespace M_func_00204660
 
@@ -789,6 +803,7 @@ typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void SetStepTargetHeadingFromVector(void *p, qword v) __asm__("SetStepTargetHeadingFromVector");
 // Turns the target heading toward another object's world position.
+// Also known as: FaceObject (upstream readable / Sly 1 name; FaceObject__FP5ACTORP2LO).
 extern "C" void FaceStepToward(void *step, void *q)
 {
     qword a, b, d;
@@ -801,6 +816,7 @@ extern "C" void FaceStepToward(void *step, void *q)
 
 /* The heading of the step's root transform (atan2 of its world x axis). */
 // Returns the current heading: atan2 of the rotation matrix's first row (y, x).
+// Also known as: RadStepHeading (upstream readable / Sly 1 name; RadStepHeading__FP4STEP).
 extern "C" float GetStepHeading(STEP *step)
 {
     XF *pxf = step->rootTransform;
@@ -824,6 +840,7 @@ void FreeSwXpList__FP2SWP2XP(struct SW *,struct N *) __asm__("FreeSwXpList__FP2S
 extern "C" { static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigned)p^(unsigned)n->e[0].owner;int i=different>0;return ((struct Endpoint *)((char *)n+(i<<6)))->other;} }
 // Slot 58: base AdjustSoXps, then keeps only the best floor contact (kind 14, lowest distance) as the cached base
 // contact (+0x208) with its stamp (+0x20C) and position (+0x230).
+// Also known as: FindStepFloor (upstream readable / Sly 1 name; FindStepFloor__FP3ALO).
 extern "C" void AdjustStepXps(struct P *step)
 {
     struct N *best;
@@ -879,6 +896,7 @@ struct P : PO { char pad210[0x210 - 0x180]; float height;char pad214[0x34];float
 void FindClosestPointOnLineSegment(qword,qword,qword,qword *,float *,float *) __asm__("FindClosestPointOnLineSegment");
 // Returns 1 when, starting from a hit mesh polygon, a breadth-first walk over adjacent polygons (max 32) reaches
 // one whose height is inside the step-height window: there is floor nearby to step onto. (inferred)
+// Also known as: FStepFloorNear (upstream readable / Sly 1 name; FStepFloorNear__FP3ALOG9VU_VECTORP3SOEP4POLY).
 extern "C" int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];
@@ -939,6 +957,7 @@ void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d,
 
 // Slot 60: if the ground-probe flags allow it, casts a ray down from the base point (ClipEdgeToObjectPruned) and
 // adds a floor contact (kind 14) at the hit.
+// Also known as: AddStepFloorXps (upstream readable / Sly 1 name; AddStepFloorXps__FP3ALOP3SOEiiii).
 extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, int a4, int a5)
 {
     unsigned int fl;
@@ -974,6 +993,7 @@ extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, in
 } // namespace M_AddStepCustomXps
 
 // Slot 54: a contact is being freed; drops the cached floor contact if it is that one.
+// Also known as: SetStepOverlap (upstream readable / Sly 1 name; SetStepOverlap__FP3ALOT0).
 extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 {
     XP *pxp;
@@ -993,6 +1013,7 @@ float atan2f(float y, float x) __asm__("atan2f");
 void SmoothAngle__FfffP3SMPPf(float a, float b, float c, int *p, float *pf) __asm__("SmoothAngle__FfffP3SMPPf");
 // Smooths the heading toward the target heading (SmoothAngle with the spin parameters) and sets the resulting
 // angular velocity about Z.
+// Also known as: TurnActorNow (upstream readable / Sly 1 name; TurnActorNow__FP5ACTOR).
 extern "C" void FixStepAngularVelocity(struct S *step)
 {
     QWROW v;
@@ -1009,6 +1030,7 @@ extern "C" void FixStepAngularVelocity(struct S *step)
 namespace M_func_00204D48 {
 extern VECTOR D_002C3CB8 __asm__("D_002C3CB8");   /* the default spin smoothing */
 // Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (rSpin).
+// Also known as: SetStepPhysScale (upstream readable / Sly 1 name; SetStepPhysScale__FP3ALOf).
 extern "C" void ScaleStepSpinSpeed(STEP *step, float g)
 {
     step->vSpin = D_002C3CB8;
@@ -1030,6 +1052,7 @@ extern void SetSoMass(struct STEP *pso, float m) __asm__("SetSoMass");   /* SetS
 
 // Sets the gravity ratio (clamped to >= 0.1): rescales the mass and the gravity vector by the ratio change and
 // stores it (+0x260).
+// Also known as: SetStepPhysSize (upstream readable / Sly 1 name; SetStepPhysSize__FP3ALOf).
 extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
 {
     float r = 0.1f;
@@ -1061,6 +1084,7 @@ int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check) __asm__("FindAsegChannel");
 // If the step's animation (ASEGA) is live, evaluates its translation channel for this object; else zero.
 // Used for root motion (BHVANIM events, Murray, Sly's acceleration preset, dancers).
+// Also known as: VelActorAnimRoot (upstream readable / Sly 1 name; VelActorAnimRoot__FP5ACTORPvf).
 extern "C" qword GetStepAsegaTranslation(void *step, ASEGA *q, float g)
 {
     qword r = D_002A2DD0;
@@ -1100,6 +1124,7 @@ void UpdateSwPox(SW *pg, void *a, void *b, int n) __asm__("UpdateSwPox");
 void InvalidateSoAaox(struct O *p) __asm__("InvalidateSoAaox");
 // Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
 // attachment pair through UpdateSwPox. (inferred)
+// Also known as: PairActorWith (upstream readable / Sly 1 name; PairActorWith__FP5ACTORP2LOi).
 extern "C" void LinkStepAttachment(struct O *step, void *pv, int f)
 {
     struct O *o = (struct O *)GetSoFromLo(pv);
@@ -1146,6 +1171,7 @@ static inline qword Rotate(const M3 &m, qword v) {
 
 // Slot 82: adds up to three contacts at a point along the axes of an orthonormal frame built around dir, one per
 // grf bit.
+// Also known as: AddActorLineXps (upstream readable / Sly 1 name; AddActorLineXps__FP5ACTORiP6VECTORG9VU_VECTORN23).
 extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, qword direction, qword pos)
 {
     XP **ppxpFirst, **ppxpOut;
@@ -1217,6 +1243,7 @@ extern "C" { static inline qword Broadcast(float f){register qword r __asm__("vf
 extern "C" { static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;} }
 // Slot 38: copies another object's pose (its world matrix, including the base offset +0x240) and resets the
 // velocities; non-STEP sources fall back to MatchSoXf.
+// Also known as: TeleportActor (upstream readable / Sly 1 name; TeleportActor__FP2LOT0).
 extern "C" { extern void MatchStepXf(P *step, B *other)
 {
     if (!other) return;
@@ -1367,6 +1394,7 @@ else {register qword normalized __asm__("vf1");__asm__("vdiv $Q,$vf0w,%2x\n\tvwa
 __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;} }
 // When the step has a floor contact, intersects the segment from->to with its two footprint triangles; returns 1
 // and the hit point on a hit.
+// Also known as: HitStepSupport (upstream readable / Sly 1 name; HitStepSupport__FP3ALOG9VU_VECTORT1P6VECTOR).
 extern "C" int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output)
 {
  QWROW tri[6],d,k;
@@ -1531,6 +1559,7 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 #define GCSE_PAD10 __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile(""); __asm__ volatile("");
 // Fits the step's orientation to the floor under three probe points (bounding-sphere query and line tests), with
 // the tilt limited to a maximum angle. (inferred)
+// Also known as: FitStepToFloor (upstream readable / Sly 1 name; FitStepToFloor__FP3ALOP6VECTORiPG9VU_VECTOR).
 extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;

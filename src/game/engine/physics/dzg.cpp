@@ -80,6 +80,7 @@ static __inline__ int Dot(qword a, qword b)
 // Initialises a DZGXP for cpxp contacts and cpso objects: base DZG init with two rows per contact, stores the
 // contact/object arrays and allocates one 0x60-byte DZX record per row.
 // The stored arrays are what Sly 1 passed to SolveDzg as arguments.
+// Also known as: InitDzg (upstream readable / Sly 1 name; InitDzg__FP3DZGiiii).
 extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int numObjects, SO **objects)
 {
     AL request;
@@ -97,6 +98,7 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
 /* AppendDzgDz: Sly 1's symbol was AppendDzgDz__FP3DZGP2DZ (two arguments); this one also takes the new row's DZX,
    so it is a plain C-linkage name. */
 // Appends one constraint row (DZ) and its contact record (DZX) to the group. Sly 1 name.
+// Also known as: AppendDzgDz (upstream readable / Sly 1 name; AppendDzgDz__FP3DZGP2DZ).
 extern "C" void AppendDzgDz(DZGXP *group, DZ *row, DZX *rowContact)
 {
     int i;
@@ -124,6 +126,7 @@ static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return Al
 
 // Fills one constraint row: each of the two bodies adds its impulse response (virtual call), then the row's
 // coupling terms against the existing rows are computed from the per-object relative vectors.
+// Also known as: CalculateDzResponses (upstream readable / Sly 1 name; CalculateDzResponses__FP3DZGiP2DZP5DZENT).
 extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
 {
     int i;
@@ -169,6 +172,7 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
 
 /* The DZX of a row. */
 // Returns the contact record (DZX) that parallels constraint row pdz: same index, 0x60-byte stride.
+// Also known as: PentFromDz (upstream readable / Sly 1 name; PentFromDz__FP3DZGP2DZ).
 extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
 {
     return &group->adzx[row - group->rows];
@@ -178,6 +182,7 @@ extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
    here they are in the DZGXP), so it is a plain C-linkage name. Rows of kind 1 are filled and made
    active, then the most violated free row is enforced until none is below -0.01. */
 // Solves the group's constraint rows for the impulses that stop interpenetration (grf selects the pass). Sly 1 name.
+// Also known as: SolveDzg (upstream readable / Sly 1 name; SolveDzg__FP3DZGiiPP2XPPiPPP2SO).
 extern "C" void SolveDzg(DZGXP *group, int flags)
 {
     DLI dli;
@@ -261,6 +266,7 @@ union VEC4 { qword q; float f[4]; };
 
 // Friction pass: repeatedly solves the rows, then adds a friction row for the free contact with the largest
 // tangential push, its limit clamped by the contact's friction coefficient, until no contact slips.
+// Also known as: SolveDzgContacts (upstream readable / Sly 1 name; SolveDzgContacts__FP3DZGi).
 extern "C" void SolveDzgFriction(DZGXP *group, int flags)
 {
     for (;;) {
@@ -345,6 +351,7 @@ static inline qword AddScale(qword a, qword b, const VUF &t)
 
 // Applies the solved row impulses to every object's linear (+0xF0) and angular (+0x100) velocity change and clamps
 // both to the maxima gDv and gDw.
+// Also known as: ApplyDzg (upstream readable / Sly 1 name; ApplyDzg__FP3DZGff).
 extern "C" void ApplyDzg(DZGXP *group, float maxDv, float maxDw)
 {
     STACKSCOPE scope;

@@ -1,4 +1,4 @@
-/* include/sly2/game.h -- GAME, the game-progress record (g_game = g_game, 0x1C bytes): the idle / camera-turn
+/* include/sly2/game.h -- GAME, the game-progress record (g_game at 0x2DEB30, 0x1C bytes): the idle / camera-turn
  * event timers, the last refused task state and gadget, and the oids of the current job, current task and pending
  * task (game.cpp keeps them in step with SW::currentJob / currentTask / pendingTask).
  *

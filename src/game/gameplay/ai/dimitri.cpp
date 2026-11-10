@@ -151,6 +151,7 @@ extern "C" void AddDimitriRoute(DIMITRI *dimitri, int a, int b, int c, int d)
 }
 
 // 0x155560: Dimitri escape behaviour (BHV180) vtable slot 7 (OnPush): base, raises guard flag 0x22, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHV180::OnPush()
 {
     BHV180 *behavior = this;
@@ -160,6 +161,7 @@ void BHV180::OnPush()
 }
 
 // 0x155598: Dimitri escape behaviour vtable slot 9 (Close): state -1, lowers flag 0x22, clears the guard's target.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvDimitriEscape(BHV180 *behavior)
 {
     CloseBhv(behavior);
@@ -170,6 +172,7 @@ extern "C" void CloseBhvDimitriEscape(BHV180 *behavior)
 
 // 0x1555E0: Dimitri escape behaviour vtable slot 8 (Start): once enough frames have passed, picks a route and starts
 // fleeing (state 0) or watching (state 1).
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvDimitriEscape(BHV180 *behavior)
 {
     StartBhv(behavior);
@@ -185,6 +188,7 @@ extern "C" void StartBhvDimitriEscape(BHV180 *behavior)
 // VU0 helper: z component of a vector.
 // 0x155660: Dimitri escape behaviour update: while watching, switches state when the player comes within 850
 // horizontally and 400 vertically.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvDimitriEscape(BHV180 *behavior)
 {
     UpdateBhv(behavior);
@@ -213,6 +217,7 @@ extern "C" void UpdateBhvDimitriEscape(BHV180 *behavior)
 
 // 0x155788: Dimitri escape behaviour state change: state 0 runs the attack behaviour (BHV181) on the chosen route
 // (and remembers his hit points); state 1 fights the target (BHVCOMBAT, cid 0xA5).
+// Also known as: SetB4State (upstream readable / Sly 1 name; SetB4State__5JOBB4i).
 extern "C" void SetBhvDimitriEscapeState(BHV180 *behavior, int k)
 {
     if (k == behavior->state)
@@ -266,6 +271,7 @@ static inline float VuXToFloat(qwordV v) { float g; __asm__ __volatile__("qmfc2.
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A5130 __asm__("D_002A5130") = -3.40282347e+38f; }
 // 0x155868: Returns the route whose nearer end is farthest from the player.
+// Also known as: PrecFarthest (upstream readable / Sly 1 name; PrecFarthest__FP5GUARD).
 extern "C" DIMITRIROUTE *FindDimitriFarthestRoute(BHV180 *behavior)
 {
     DIMITRIROUTE *peBest = 0;
@@ -307,6 +313,7 @@ extern "C" DIMITRIROUTE *FindDimitriFarthestRoute(BHV180 *behavior)
 
 namespace RO_ORDER { extern const float r_D_002A5134 __asm__("D_002A5134") = 3.40282347e+38f; }
 // 0x1559B0: Dimitri attack behaviour (BHV181) vtable slot 7 (OnPush): base, raises guard flag 0x23, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvDimitriAttack(BHV181 *behavior)
 {
     InitBhv(behavior);
@@ -316,6 +323,7 @@ extern "C" void InitBhvDimitriAttack(BHV181 *behavior)
 }
 
 // 0x1559F8: Dimitri attack behaviour vtable slot 9 (Close): state -1, lowers flag 0x23.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvDimitriAttack(BHV181 *behavior)
 {
     CloseBhv(behavior);
@@ -324,6 +332,7 @@ extern "C" void CloseBhvDimitriAttack(BHV181 *behavior)
 }
 
 // 0x155A38: Dimitri attack behaviour vtable slot 8 (Start): state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV181::Start()
 {
     BHV181 *behavior = this;
@@ -332,6 +341,7 @@ void BHV181::Start()
 }
 
 // 0x155A68: Picks which end of the route to run to (the one whose volume does not contain the player, inferred).
+// Also known as: PloEnd (upstream readable / Sly 1 name).
 extern "C" LO *ChooseBhvDimitriAttackRouteEnd(BHV181 *behavior)
 {
     if (IsPointInVol(behavior->route->firstVolume, GetLoWorldPos(behavior->target)))
@@ -347,6 +357,7 @@ namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.4
 // 0x155AE0: Dimitri attack state change: 0 turn away from the chosen route end (alert animation), 1 face the
 // target, 2 walk a two-point path to the route end (BHV167), 3 attack (BHVATTACK with the chosen attack entry);
 // leaving state 3 arms the attack cooldown.
+// Also known as: SetB5State (upstream readable / Sly 1 name; SetB5State__5JOBB5i).
 extern "C" void SetBhvDimitriAttackState(BHV181 *behavior, int k)
 {
     if (k == behavior->state) return;
@@ -426,6 +437,7 @@ extern "C" void SetBhvDimitriAttackState(BHV181 *behavior, int k)
 // 0x155D90: Dimitri attack behaviour update: after the turn, moves him to the route end (sets his position, zeroes
 // his velocities) and faces the target; attacks when an attack is available; after an attack, walks to the other
 // route end if the best end changed.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvDimitriAttack(BHV181 *behavior)
 {
     UpdateBhv(behavior);

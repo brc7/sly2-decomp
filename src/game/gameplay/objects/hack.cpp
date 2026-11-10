@@ -58,6 +58,7 @@ extern qword D_002BE7D0 __asm__("D_002BE7D0");
 extern LM D_002BE7E0 __asm__("D_002BE7E0");
 void InitSo(SO *pso) __asm__("InitSo");
 // HACK (cid 0x47) vtable slot 7: InitSo, max health 10, the default knockback gains and range. (inferred)
+// Also known as: InitHackSo (upstream readable / Sly 1 name; InitHackSo__FP2LO).
 extern "C" void InitHack(HACK *hack) {
     int v;
     InitSo(hack);
@@ -71,6 +72,7 @@ extern "C" void InitHack(HACK *hack) {
 
 // vtable slot 12: RemoveSoHierarchy, then clears the dying flag. (inferred)
 /* HACK slot 12. */
+// Also known as: OnRemoveHackSo (upstream readable / Sly 1 name; OnRemoveHackSo__FP2LO).
 void HACK::RemoveHierarchy()
 {
     RemoveSoHierarchy(this);
@@ -80,6 +82,7 @@ void HACK::RemoveHierarchy()
 namespace M_func_0017F138 {
 void PostSoLoad(SO *p) __asm__("PostSoLoad");
 // vtable slot 15: PostSoLoad then own vtable slot 83. (inferred)
+// Also known as: PostLoadHackSoBase (upstream readable / Sly 1 name; PostLoadHackSoBase__FP2LO).
 extern "C" void PostHackLoad(HACK *p) { PostSoLoad(p); p->Reset(); }
 } // namespace M_func_0017F138
 
@@ -117,6 +120,7 @@ extern "C" { static inline qword Normal(qword a,qword fallback){register qword d
 extern "C" { static inline qword AddScaled(qword a,qword b,float g){qword k;QWROW u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(g));u.q=k;__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"=j"(a):"j"(b),"j"(k),"0"(a));return a;} }
 // vt75 (msg with flag 8): health += delta; <=0 -> vt82 Die; else knockback away from hit pos (quadratic gain,
 // limited) through constraint and SetVelocity. (inferred)
+// Also known as: FHackSoHit (upstream readable / Sly 1 name; FHackSoHit__FP2LOP5CTMSG).
 extern "C" int TakeHackDamage(HACK*hack,ZPR*pzpr){
  qword dir,v;float g,t;
  if(!(pzpr->grfzpr&8))return 0;
@@ -140,6 +144,7 @@ extern "C" void InitHackAnimEntries(HACK *hack, int c, HACKE *phacke) { int i; f
 
 // Resolves each entry's oid to its animation (an ASEG) or state machine (an SM).
 /* Resolves the entries' oids. */
+// Also known as: BindHackSegs (upstream readable / Sly 1 name; BindHackSegs__FP2LOP6HACKSOPv).
 extern "C" void BindHackAnimEntries(HACK *hack, int c, HACKE *ahacke)
 {
     HACKE *phacke;
@@ -171,6 +176,7 @@ void ReleaseAsega(ASEGA **ppasega) __asm__("ReleaseAsega");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *paseg, LO *plo, float t, float svt, int grf, ASEGA **ppasega) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 void ReplaceSma(SM *psm, LO *plo, int n, int grf, SMA **ppsma) __asm__("ReplaceSma");
 // Retract the current ASEGA / SMA and apply the entry's clip and SM state. (inferred)
+// Also known as: PlayHackSeg (upstream readable / Sly 1 name; PlayHackSeg__FP2LOP6HACKSO).
 extern "C" void StartHackAnim(HACK *hack, HACKE *phacke) {
     ReleaseSma(&hack->psma);
     ReleaseAsega(&hack->pasega);
@@ -186,6 +192,7 @@ int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 int GetSmaCurrentState(SMA *psma) __asm__("GetSmaCurrentState");
 int GetSmaGoal(SMA *psma) __asm__("GetSmaGoal");
 // True when the current ASEGA retracted or the SM reached its end state. (inferred)
+// Also known as: FShipSegmentDone (upstream readable / Sly 1 name; FShipSegmentDone__FP2LO).
 extern "C" int IsHackAnimDone(HACK *hack) { if (hack->pasega) return IsAsegaRetracted(hack->pasega); { int f = 1; if (hack->psma) f = GetSmaCurrentState(hack->psma) == GetSmaGoal(hack->psma); return f; } }
 } // namespace M_func_0017F550
 
@@ -193,6 +200,7 @@ namespace M_func_0017F5B0 {
 extern const struct LONGU D_002A5630 __asm__("D_002A5630");
 void PostSwCallback(SW *g, void *p, long k, int n) __asm__("PostSwCallback");
 // Once: set the dying flag and post the Kill callback (D_002A5630: a pointer to HACK's slot 82) with n. (inferred)
+// Also known as: PostKillHackSo (upstream readable / Sly 1 name; PostKillHackSo__FP2LOi).
 extern "C" void StartHackDying(HACK *hack, int n) { if (hack->fDying) return; hack->fDying = 1; PostSwCallback(&g_sw, hack, D_002A5630.l, n); }
 } // namespace M_func_0017F5B0
 
@@ -203,6 +211,7 @@ void DeliverZapToSo(ZPR *pzpr) __asm__("DeliverZapToSo");
 void ExplodeWithDefaults(EXPL *pexpl) __asm__("ExplodeWithDefaults");
 // vtable slot 82: if it carries a damage, area damage at its position (credited to the killer); play its explosion,
 // then vtable slot 9 Remove. (inferred)
+// Also known as: KillHackSo (upstream readable / Sly 1 name; KillHackSo__FP2LOi).
 extern "C" void KillHack(HACK *hack, LO *ploKiller) {
     if (ploKiller && hack->cDamage) {
         ZPR zpr;
@@ -224,6 +233,7 @@ namespace M_func_0017F6B0 {
 extern const struct LONGU D_002A5638 __asm__("D_002A5638");
 void ClearSwCallbacks(SW *g, int a, void *p, long k, int n) __asm__("ClearSwCallbacks");
 // Health = max; cancel a pending dying callback (ClearSwCallbacks D_002A5638). (inferred)
+// Also known as: ResetHackSoBase (upstream readable / Sly 1 name; ResetHackSoBase__FP2LO).
 extern "C" void ResetHack(HACK *hack) { hack->cHealth = hack->cHealthMax; if (hack->fDying) ClearSwCallbacks(&g_sw, 1, hack, D_002A5638.l, 0); }
 } // namespace M_func_0017F6B0
 
@@ -252,6 +262,7 @@ XF *FindSoXf(SO *pso, OID oid, int n) __asm__("FindSoXf");
 ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int d, qword q) __asm__("NewPositionAct");
 SMA *ApplySmToObject(LO *plo, SO *pso, int a, int b) __asm__("ApplySmToObject");
 // Look up the parts' transforms and objects; a position actuator on each transform, the state machine on each object. (inferred)
+// Also known as: BindShipGuns (upstream readable / Sly 1 name; BindShipGuns__FP2LO).
 extern "C" void BindHackshipParts(HACKSHIP *ship) {
     int i;
     for (i = 0; i < ship->cpart; i++) {
@@ -268,12 +279,14 @@ namespace M_func_0017F850 {
 void SetXfRole(SO *p, XF *pxf, int role) __asm__("SetXfRole");
 void BindHackshipParts(HACKSHIP *p) __asm__("BindHackshipParts");
 // vtable slot 15: PostCid47Load, bind entries and parts. (inferred)
+// Also known as: PostLoadHackShip (upstream readable / Sly 1 name; PostLoadHackShip__FP2LO).
 extern "C" void PostHackshipLoad(HACKSHIP *p) { PostHackLoad(p); p->SetCtlState(0); SetXfRole(p, p->positionXf, 2); SetXfRole(p, p->rotationXf, 2); BindHackshipParts(p); BindHackAnimEntries(p, 5, p->ahacke); }
 } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 {
 void OnPoActive(PO *ppo, int f) __asm__("OnPoActive");
 // vtable slot 78: base then SetHackshipState. (inferred)
+// Also known as: SetHackShipFocus (upstream readable / Sly 1 name; SetHackShipFocus__FP2LOi).
 extern "C" void OnHackshipActive(HACKSHIP *ship, int f) { OnPoActive(ship, f); if (f) SetHackshipState(ship, 1); else if ((int)ship->isInWorld & 1) SetHackshipState(ship, 0); }
 } // namespace M_func_0017F8C8
 
@@ -299,6 +312,7 @@ struct V3 { float x, y, z; };
 extern "C" { static __inline__ void ZeroVector(qword *pq) { struct V3 *pv = (struct V3 *)pq; pv->z = 0; pv->y = 0; pv->x = 0; } }
 // vtable slot 16: UpdateSo; state 2 -> 1 when anim done; per-state movement/actuator goals from the controller's
 // sticks (POCTL's names: left stick = heading and speed, right stick = height and the parts' goal). (inferred)
+// Also known as: UpdateShip (upstream readable / Sly 1 name; UpdateShip__FP2LO).
 extern "C" void UpdateHackship(HACKSHIP *ship) {
     int s;
     UpdateSo(ship);
@@ -356,6 +370,7 @@ void AccelSoTowardPosSpring(SO *pso, qword a, int b, qword c, void *pv) __asm__(
 void PresetHackshipAccel(HACKSHIP *ship) __asm__("PresetHackshipAccel");
 
 // vtable slot 70 override. (inferred)
+// Also known as: MoveShip (upstream readable / Sly 1 name; MoveShip__FP3ALO).
 void PresetHackshipAccel(HACKSHIP *ship) {
     if (ship->state == 3) return;
     MATRIX3 m; m = BuildAxisAngleRotationMatrix(g_normalZ, ship->heading);
@@ -370,6 +385,7 @@ int IsSwHandsOff(SW *g) __asm__("IsSwHandsOff");
 int TakeHackDamage(HACK *hack, ZPR *pzpr) __asm__("TakeHackDamage");
 // vtable slot 75: ignored in states 2-4 / hands-off / global flag; HACK's TakeDamage, update the health bar, game event
 // 0xF and state 2 (hit) or 4 (defeated). (inferred)
+// Also known as: FAcceptShipContact (upstream readable / Sly 1 name; FAcceptShipContact__FP3ALOP5CTMSG).
 extern "C" int TakeHackshipDamage(HACKSHIP *ship, ZPR *pzpr) {
     if (ship->state < 5) { if (ship->state >= 2) return 0; }
     if (IsSwHandsOff(&g_sw)) return 0;
@@ -384,6 +400,7 @@ extern "C" int TakeHackshipDamage(HACKSHIP *ship, ZPR *pzpr) {
 
 // Reset health and state (ResetCid47 + SetCid48State + health bar). (inferred)
 /* HACKSHIP slot 83: reset. */
+// Also known as: ResetShip (upstream readable / Sly 1 name; ResetShip__FP2LO).
 extern "C" void ResetHackship(HACKSHIP *ship)
 {
     ResetHack(ship);
@@ -417,6 +434,7 @@ ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int c, qword v) __asm__("New
 qword DecomposeRotationMatrixToEuler(struct MATRIX4Q *pm) __asm__("DecomposeRotationMatrixToEuler");
 
 // State switch (leave/enter): health widget, engine sound, docking actuators, states 0..5. (inferred)
+// Also known as: SetShipState (upstream readable / Sly 1 name; SetShipState__FP2LOi).
 extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
     int old = ship->state;
     if (n == old) return;
@@ -497,6 +515,8 @@ extern "C" void SetHackshipState(HACKSHIP *ship, int n) {
 } // namespace M_func_0017FD08
 
 // Append (int, OID) to a 4-entry table at +0x234 (stride 0x18, count +0x230).
+// Also known as: UseStepguardDeathAnimation (upstream readable / Sly 1 name;
+//   UseStepguardDeathAnimation__FP9STEPGUARDi3OID).
 extern "C" void AddHackshipOidPair(HACKSHIP *ship, int n, OID oid)
 {
     unsigned int c = ship->cpart;
@@ -523,6 +543,7 @@ extern "C" void SetHackshipEntry(HACKSHIP *ship, unsigned int i, OID oid, int gr
 namespace M_UpdateHackshipHealthBar {
 void SetWidgetAnimPhase(WIDGET *pwidget, int anim, float phase) __asm__("SetWidgetAnimPhase");
 // Set widget anim 0x34F phase = 1 - health/max (clamped). (inferred)
+// Also known as: UpdateHackHud (upstream readable / Sly 1 name; UpdateHackHud__FP2LO).
 extern "C" void UpdateHackshipHealthBar(HACKSHIP *ship)
 {
     if (ship->pwidgetHealth) {
@@ -573,6 +594,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
 // vt16: UpdateSo; self-destruct (Kill) when its timer expires; turn toward the target with a limited turn rate. (inferred)
+// Also known as: UpdatePiece (upstream readable / Sly 1 name; UpdatePiece__FP2LO).
 extern "C" void UpdateHackbullet(HACKBULLET*bullet){
  UpdateSo(bullet);
  if(!bullet->fDying&&bullet->tExpire<=g_clock.time)bullet->Kill(0);
@@ -596,6 +618,7 @@ extern "C" void UpdateHackbullet(HACKBULLET*bullet){
 namespace M_func_001803A8 {
 int ShouldSoIgnoreIntersection(SO *pso, SO *psoOther) __asm__("ShouldSoIgnoreIntersection");
 // vtable slot 61 override: ignore contacts with the tree of the object that fired it. (inferred)
+// Also known as: OverlapKindPiece (upstream readable / Sly 1 name; OverlapKindPiece__FP3ALOT0).
 extern "C" int ShouldHackbulletIgnoreIntersection(HACKBULLET *bullet, SO *psoOther)
 {
     if (bullet->psoOwner && psoOther->physicsTree == bullet->psoOwner->physicsTree)
@@ -611,6 +634,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n) __asm__("IsBasicDerivedFrom
 void StartHackDying(HACK *hack, int n) __asm__("StartHackDying");
 // vtable slot 55: HACK's AdjustNewXp, then start dying on contact (with a hack object, or with anything unless it
 // bounces); a bouncing bullet gets elasticity 1. (inferred)
+// Also known as: OnPieceXpNew (upstream readable / Sly 1 name; OnPieceXpNew__FP3ALOP2XPi).
 extern "C" void AdjustHackbulletNewXp(HACKBULLET *bullet, struct E *ae, int i)
 {
     struct E *pe;
@@ -671,6 +695,7 @@ namespace M_func_001805C8 {
 SHAPE *NewSampledShape(int a, int b) __asm__("NewSampledShape");
 void SetXfRole(SO *pso, XF *pxf, int role) __asm__("SetXfRole");
 // vtable slot 15: PostHackLoad, the chase path shape, the transforms' roles, bind entries. (inferred)
+// Also known as: PostLoadHackEnemy (upstream readable / Sly 1 name; PostLoadHackEnemy__FP2LO).
 extern "C" void PostHackenemyLoad(HACKENEMY *enemy)
 {
     PostHackLoad(enemy);
@@ -775,6 +800,7 @@ static inline float Limit(float f,LM*p){float low=p->minValue,high=p->maxValue,r
 static inline float Clamp(float f,LM*p){float low=p->minValue,high=p->maxValue;if(f<low)f=low;else if(high<f)f=high;return f;}
 
 // vtable slot 16: UpdateSo; per-state rules: track a live target (aim/turn), switch states, anim completion. (inferred)
+// Also known as: UpdateEnemy (upstream readable / Sly 1 name; UpdateEnemy__FP2LO).
 extern "C" void UpdateHackenemy(HACKENEMY*enemy){
  U nearest,direction,unit;
  UpdateSo(enemy);
@@ -878,6 +904,7 @@ static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1,
 static inline qword Bc(int g) { qword r; __asm__("qmtc2.ni %1, %0" : "=j"(r) : "r"(g)); return r; }
 extern void PresetHackenemyAccel(HACKENEMY *enemy) __asm__("PresetHackenemyAccel");
 // vtable slot 70 override. (inferred)
+// Also known as: MoveEnemy (upstream readable / Sly 1 name; MoveEnemy__FP3ALO).
 void PresetHackenemyAccel(HACKENEMY *enemy)
 {
     if (enemy->state != 4) {
@@ -909,6 +936,7 @@ extern int D_002DFB80 __asm__("D_002DFB80");
 void AdjustHackNewXp(HACK *hack, struct E *ae, int i) __asm__("AdjustHackNewXp");
 void StartHackDying(HACK *hack, int n) __asm__("StartHackDying");
 // vtable slot 55: base, then start dying when it touches the ship. (inferred)
+// Also known as: OnEnemyXpNew (upstream readable / Sly 1 name; OnEnemyXpNew__FP3ALOP2XPi).
 extern "C" void AdjustHackenemyNewXp(HACKENEMY *enemy, struct E *ae, int i)
 {
     AdjustHackNewXp(enemy, ae, i);
@@ -931,6 +959,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 extern void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm) __asm__("HandleHackenemyMessage");
 // vtable slot 5: HandlePoMessage; on events of its current animation: 0x15E applies a translation step, 0x25..0x28
 // set and clear the two hold flags. (inferred)
+// Also known as: OnEnemyMessage (upstream readable / Sly 1 name; OnEnemyMessage__FP2LO5MSGIDPv).
 void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm)
 {
     HandlePoMessage(enemy, msg, pm);
@@ -977,6 +1006,7 @@ typedef char layout_MSG_kind[((unsigned long)&((MSG*)0)->kind==0x8)?1:-1];
 namespace M_func_001811B8 {
 int TakeHackDamage(HACK *hack, ZPR *pzpr) __asm__("TakeHackDamage");
 // vtable slot 75: HACK's TakeDamage + state change. (inferred)
+// Also known as: FAcceptEnemyContact (upstream readable / Sly 1 name; FAcceptEnemyContact__FP3ALOP5CTMSG).
 extern "C" int TakeHackenemyDamage(HACKENEMY *enemy, ZPR *pzpr)
 {
     register int four __asm__("$2") = 4; if (enemy->state == four) return 0;
@@ -990,6 +1020,7 @@ extern "C" int TakeHackenemyDamage(HACKENEMY *enemy, ZPR *pzpr)
 
 // Reset health and state. (inferred)
 /* HACKENEMY slot 83: reset. */
+// Also known as: ResetEnemy (upstream readable / Sly 1 name; ResetEnemy__FP2LO).
 void HACKENEMY::Reset()
 {
     ResetHack(this);
@@ -1001,6 +1032,7 @@ struct X { int x; int y; int z; };
 // Zeroes the step velocity that animation event 0x15E sets (HandleHackenemyMessage): its x, y, z words.
 extern "C" { static __inline__ void ClearStepVelocity(struct X *px) { px->x = px->y = px->z = 0; } }
 // State switch; from -1 reset health; start state clip (StartHackAnim). (inferred)
+// Also known as: SetEnemyState (upstream readable / Sly 1 name; SetEnemyState__FP2LOi).
 extern "C" void SetHackenemyState(HACKENEMY *enemy, int state)
 {
     if (enemy->state == state) return;
@@ -1056,6 +1088,7 @@ extern "C" void SetHackenemyEntrySecondVectors(HACKENEMY *enemy, unsigned int i,
 } // namespace M_func_00181378
 
 // Scales the default enemy scale D_002BE870 by g (x and y only). (inferred)
+// Also known as: SetEnemyTurnScale (upstream readable / Sly 1 name; SetEnemyTurnScale__FP6HACKSOf).
 extern "C" void SetHackenemyScale(HACKENEMY *enemy, float g)
 {
     enemy->aScale[0] = D_002BE870[0] * g;
@@ -1078,6 +1111,7 @@ void HACKLOCK::Init()
 
 // vtable slot 15: PostCid47Load + bind entries. (inferred)
 /* HACKLOCK slot 15. */
+// Also known as: PostLoadDock (upstream readable / Sly 1 name; PostLoadDock__FP2LO).
 extern "C" void PostHacklockLoad(HACKLOCK *lock)
 {
     PostHackLoad(lock);
@@ -1112,6 +1146,7 @@ extern "C" { static __inline__ int FClose(float g)
 } }
 // vtable slot 16: UpdateSo; state 0 waits for the ship singleton D_002DFB80 to come close to the trigger object,
 // then state/anim progression. (inferred)
+// Also known as: UpdateDock (upstream readable / Sly 1 name; UpdateDock__FP2LO).
 extern "C" void UpdateHacklock(HACKLOCK *lock)
 {
     int s;
@@ -1140,6 +1175,7 @@ namespace M_func_00181598 {
 void SetHacklockState(HACKLOCK *lock, int n) __asm__("SetHacklockState");
 void TriggerRsmg(SW *g, int crsmg, OID *arsmg, LO *plo, int fOn) __asm__("TriggerRsmg");
 // Reset health + state, and its state-machine records. (inferred)
+// Also known as: ResetDock (upstream readable / Sly 1 name; ResetDock__FP2LO).
 extern "C" void ResetHacklock(HACKLOCK *lock)
 {
     ResetHack(lock);
@@ -1150,6 +1186,7 @@ extern "C" void ResetHacklock(HACKLOCK *lock)
 
 // State switch; drives the CID 0x48 singleton (SetCid48State) and game events. (inferred)
 /* Sets the lock's state; state 1 hands the target to the ship. */
+// Also known as: SetDockState (upstream readable / Sly 1 name; SetDockState__FP2LOi).
 extern "C" void SetHacklockState(HACKLOCK *lock, int nState)
 {
     int nStatePrev = lock->state;
@@ -1243,6 +1280,7 @@ void AppendDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv")
 void AddSoParts(SO *pso) __asm__("AddSoParts");
 // vtable slot 15: resolve the segments' shapes (dropping missing ones), allocate their pieces, PostHackLoad, then one
 // extra part for the pieces (GetHackwallExtraPartCount). (inferred)
+// Also known as: PostLoadHackSwarm (upstream readable / Sly 1 name; PostLoadHackSwarm__FP2LO).
 extern "C" void PostHackwallLoad(HACKWALL *wall)
 {
     int i, j;
@@ -1285,6 +1323,7 @@ void AppendDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv")
 void ClearDl__FP2DL(DL *pdl) __asm__("ClearDl__FP2DL");
 void ResetHackwallSegment(HACKWALL *wall, HACKWALLSEG *pseg) __asm__("ResetHackwallSegment");
 // Reset: the broken pieces go back to their segments, then every segment is laid out again. (inferred)
+// Also known as: ResetSwarm (upstream readable / Sly 1 name; ResetSwarm__FP2LO).
 extern "C" void ResetHackwall(HACKWALL *wall)
 {
     HACKWALLPIECE *ppiece;
@@ -1310,6 +1349,7 @@ namespace M_func_00181A90 {
 void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg) __asm__("LayoutHackwallPieces");
 float GetShapeMaxDistance(SHAPE *pshape) __asm__("GetShapeMaxDistance");
 // Reset one segment's pieces, spread evenly along its shape. (inferred)
+// Also known as: ResetSwarmEnt (upstream readable / Sly 1 name; ResetSwarmEnt__FP2LOP5SWENT).
 extern "C" void ResetHackwallSegment(HACKWALL *wall, HACKWALLSEG *pseg)
 {
     int i = 0;
@@ -1331,6 +1371,7 @@ extern "C" void ResetHackwallSegment(HACKWALL *wall, HACKWALLSEG *pseg)
 namespace M_func_00181B60 {
 float GetShapeMaxDistance(SHAPE *pshape) __asm__("GetShapeMaxDistance");
 // Distribute the pieces along the segment shape's length (GetShapeMaxDistance). (inferred)
+// Also known as: LayoutSwarmEnt (upstream readable / Sly 1 name; LayoutSwarmEnt__FP5SWENTPv).
 extern "C" void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg)
 {
     float g = GetShapeMaxDistance(pseg->pshape);
@@ -1363,6 +1404,7 @@ extern "C" void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg)
 namespace M_func_00181CB0 {
 float GetShapeMaxDistance(SHAPE *pshape) __asm__("GetShapeMaxDistance");
 // Per-frame piece goals along the shape: each piece follows the ship's closest point within its band. (inferred)
+// Also known as: TargetSwarmEnt (upstream readable / Sly 1 name; TargetSwarmEnt__FP5SWENTPv).
 extern "C" void UpdateHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg)
 {
     float g = GetShapeMaxDistance(pseg->pshape);
@@ -1407,6 +1449,7 @@ void AppendDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv")
 void LayoutHackwallPieces(HACKWALL *wall, HACKWALLSEG *pseg) __asm__("LayoutHackwallPieces");
 // Piece state switch; a broken piece (2) moves to the wall's broken list (game event 0x3A when its segment has none
 // left) and the segment is laid out again. (inferred)
+// Also known as: SetSwarmQState (upstream readable / Sly 1 name; SetSwarmQState__FP2LOP3SWQi).
 extern "C" void SetHackwallSegmentState(HACKWALL *wall, HACKWALLPIECE *ppiece, int n)
 {
     HACKWALLSEG *pseg;
@@ -1451,6 +1494,7 @@ extern "C" { SLY2_SCRAP("daddu $2, $4, $0"); }
 
 // vtable slot 16: UpdateSo, per segment: track the ship's closest point on the shape (searched again at random
 // intervals), move the pieces toward their goals and wobble them (springs). (inferred)
+// Also known as: UpdateSwarm (upstream readable / Sly 1 name; UpdateSwarm__FP2LO).
 extern "C" void UpdateHackwall(HACKWALL *wall)
 {
     int i;
@@ -1518,6 +1562,7 @@ static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
 }
 
 // vtable slot 19: RenderSoSelf then draw each segment piece with its own matrix. (inferred)
+// Also known as: CollectHackSwarmDraws (upstream readable / Sly 1 name; CollectHackSwarmDraws__FP5SCENE).
 extern "C" void RenderHackwallSelf(HACKWALL*wall){
  int i,count;MATRIX3Q m;M4 mm;qword pos;
  RenderSoSelf(wall);
@@ -1611,6 +1656,7 @@ extern "C" { static inline float Distance(U*dot,U*one,qword plane,qword point){
  one->q=o;dot->q=d;return QwordX(d);
 } }
 // vtable slot 60: SO base then contacts against each segment (AddXp) for requests with flag bit 49. (inferred)
+// Also known as: AddSwarmXps (upstream readable / Sly 1 name; AddSwarmXps__FP3ALOP3SOEiiiPP2XP).
 extern "C" void AddHackwallXps(HACKWALL*wall,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**pout){
  WORK w;int i,count;qword center;CONTACT**out=pout;
  AddSoCustomXps(wall,q,unused2,unused3,unused4,pout);
@@ -1686,6 +1732,7 @@ void AdjustHackNewXp(HACK *hack, struct E *ae, int i) __asm__("AdjustHackNewXp")
 int IsBasicDerivedFrom__FP5BASIC3CID(int oid, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void StartHackDying(HACK *hack, int n) __asm__("StartHackDying");
 // vtable slot 55: base, then start dying on contact with a hack object. (inferred)
+// Also known as: OnSwarmXpNew (upstream readable / Sly 1 name; OnSwarmXpNew__FP3ALOP2XPi).
 extern "C" void AdjustHackwallNewXp(HACKWALL *wall, struct E *ae, int i)
 {
     AdjustHackNewXp(wall, ae, i);
@@ -1712,6 +1759,7 @@ void GetShapeBounds(SHAPE *pshape, qword *pa, qword *pb) __asm__("GetShapeBounds
 void ExtendSoTreeBounds(SO *pso, qword q, float g) __asm__("ExtendSoTreeBounds");
 // HACKWALL vtable slot 49 (tree bounds update): the SO bounds, extended to cover both ends of every wall segment
 // (with the piece radius).
+// Also known as: UpdateSwarmBounds (upstream readable / Sly 1 name; UpdateSwarmBounds__FP3ALO).
 extern "C" void UpdateHackwallTreeBounds(HACKWALL *wall)
 {
     int i;
@@ -1729,6 +1777,7 @@ extern "C" void UpdateHackwallTreeBounds(HACKWALL *wall)
 namespace M_func_00182810 {
 typedef int qword __attribute__((mode(TI)));
 // The piece nearest to a world position. (inferred)
+// Also known as: PqNearestSwarm (upstream readable / Sly 1 name; PqNearestSwarm__FP2LOG9VU_VECTOR).
 extern "C" HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos)
 {
     int i;
@@ -1768,6 +1817,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // vtable slot 75: damage the piece nearest the hit; while it holds, kick its wobble (state 1); when it breaks, play
 // the explosion there and break it (state 2). (inferred)
+// Also known as: FAcceptSwarmContact (upstream readable / Sly 1 name; FAcceptSwarmContact__FP3ALOP5CTMSG).
 extern "C" int TakeHackwallDamage(HACKWALL *wall, ZPR *pzpr)
 {
     HACKWALLPIECE *ppiece;
@@ -1805,6 +1855,7 @@ int DeliverZapToSo(ZPR *pzpr) __asm__("DeliverZapToSo");
 void ExplodeExplParams(EXPL *pexpl, int a, int b, qword q1, qword q2, float g, float h) __asm__("ExplodeExplParams");
 // vtable slot 82: area damage (credited to the killer) at the piece nearest the killer; if it lands, the explosion
 // there and the piece breaks. (inferred)
+// Also known as: KillSwarm (upstream readable / Sly 1 name; KillSwarm__FP2LOT0).
 extern "C" void KillHackwall(HACKWALL *wall, LO *ploKiller)
 {
     HACKWALLPIECE *ppiece;
@@ -1829,6 +1880,7 @@ namespace M_func_00182AB8 {
 extern int D_002BE8AC __asm__("D_002BE8AC");
 // Append a segment (max 4): shape oid, piece count, pieces side by side at most, piece radius; default piece health
 // (30), no retarget time yet. (inferred)
+// Also known as: AddSwarmEntry (upstream readable / Sly 1 name; AddSwarmEntry__FP2LOiiif).
 extern "C" void AddHackwallSegment(HACKWALL *wall, OID oid, int cpiece, int cpieceMax, float sRadius)
 {
     if ((unsigned int)wall->cseg < 4) {

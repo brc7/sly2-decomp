@@ -244,6 +244,7 @@ void ResetJtHands(JTHANDS *pv) __asm__("ResetJtHands");
 extern "C" { static __inline__ void InitLm(SMPA *range, float g8, float gc) { range->fastDuration = g8; range->maxSpeedChange = gc; range->slowSpeed = 0; } }
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
+// Also known as: InitJt (upstream readable / Sly 1 name; InitJt__FP2JT).
 extern "C" void InitJt(JT *jt)
 {
     InitStepplayer(jt);
@@ -284,6 +285,7 @@ void LoadStepFromBrx(JT *p) __asm__("LoadStepFromBrx");
 void BindLoOidTable(JT *p, int n, void *pv) __asm__("BindLoOidTable");
 // JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) pivot offset and binds his object table (0xAD entries).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadJtFromBrx (upstream readable / Sly 1 name; LoadJtFromBrx__FP2JTP18CBinaryInputStream).
 extern "C" void LoadJtFromBrx(JT *jt)
 {
     VECTOR *pv;
@@ -323,6 +325,7 @@ extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 // JT post-load (slot 15): STEPPLAYER post-load, then looks up about ten named child objects/actuators (hands, hook,
 // lean actuators) and builds his animation blends.
+// Also known as: PostJtLoad (upstream readable / Sly 1 name; PostJtLoad__FP2JT).
 extern "C" void PostJtLoad(char *p)
 {
     int n;
@@ -416,6 +419,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
 
 // JT physics preset (slot 70): the base preset (SO for states 3/8, else STEP), then the per-state handler (air, grab,
 // hang, pipe, hurt ...).
+// Also known as: UpdateSlyMotion (upstream readable / Sly 1 name; UpdateSlyMotion__FP3SLY).
 extern "C" void PresetJtAccel(P *jt)
 {
     WORK w;
@@ -511,6 +515,7 @@ extern "C" { static __inline__ float ReplaceIfBelow(float g, float lo, float v)
     return g;
 } }
 // JT contact adjust (slot 55): STEP base, then per state (pipe 8 -> ResetJtPipeAdjust, grab 7 friction-like scale ...).
+// Also known as: OnSlyXpNew (upstream readable / Sly 1 name; OnSlyXpNew__FP3ALOP2XPPv).
 extern "C" void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 {
     AdjustStepNewXp(jt, pa, pv);
@@ -561,6 +566,7 @@ extern void AdjustStepXpVelocity(void *p, struct E *ae, int i) __asm__("AdjustSt
 extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // JT slot 57: STEP base; for a contact on Sly himself, removes the rotational part (angular velocity x offset) from
 // the contact velocity. (inferred)
+// Also known as: OnSlyXpUpdate (upstream readable / Sly 1 name; OnSlyXpUpdate__FP3ALOP2XPi).
 extern "C" void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 {
     struct E *pe;
@@ -611,6 +617,7 @@ extern "C" { static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0;
 
 // JT message handler (slot 5): STEPPLAYER base, then message 3 (animation finished) and the animation events of Sly's
 // clips (cane hits, footsteps, effects).
+// Also known as: HandleJtMessage (upstream readable / Sly 1 name; HandleJtMessage__FP2JT5MSGIDPv).
 extern "C" void HandleJtMessage(JT *p, int msg, void *pv)
 {
     HandleStepplayerMessage(p, msg, pv);
@@ -835,7 +842,7 @@ extern "C" void SetJtPlayable(JT *jt, int f)
 namespace M_UpdateJtLean__FP2JT {
 // UpdateJtLean: ported from Lilly's personal Sly 2 decomp (src/P2/jtlean.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF2D0 (D_002BF2D0), D_002BF2D4 (D_002BF2D4), D_002BF2D8 (D_002BF2D8), D_002BF2DC (D_002BF2DC), D_002BF2E0 (D_002BF2E0), D_002BF300 (D_002BF300), D_002BF310 (D_002BF310), D_002BF320 (D_002BF320), D_002BF330 (D_002BF330), g_clock (g_clock), g_lmZeroOne (g_lmZeroOne), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero)
+// Globals: D_002BF2D0 (D_002BF2D0), D_002BF2D4 (D_002BF2D4), D_002BF2D8 (D_002BF2D8), D_002BF2DC (D_002BF2DC), D_002BF2E0 (D_002BF2E0), D_002BF300 (D_002BF300), D_002BF310 (D_002BF310), D_002BF320 (D_002BF320), D_002BF330 (D_002BF330), g_clock, g_lmZeroOne, g_normalZ, D_002A2DD0 (g_qwZero)
 // 0x00189618 UpdateJtLean__FP2JT  (our name; was UpdateJtLean)
 // The last step of the hero's per-frame update (JT::Update). The three actuators at JT+0x19E4 / 0x19E8 / 0x19EC hold the lean offset of his body.
 //  - nothing happens before JT::PostLoad made them, or while they are not in their owner's chain; in the look mode they go back to zero;
@@ -1097,7 +1104,7 @@ lComputeLean:
 namespace M_RebuildJtXmg {
 // RebuildJtXmg: ported from Lilly's personal Sly 2 decomp (src/P2/jt.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF340 (D_002BF340), D_002BF344 (D_002BF344), g_normalZ (g_normalZ)
+// Globals: D_002BF340 (D_002BF340), D_002BF344 (D_002BF344), g_normalZ
 // 0x00189C40 RebuildJtXmg__FP2JTP3ALOfT1P4ACT5P3XMG  (T1460 MATCH; T0983 had it at 77 %)  Sly 1's RebuildJtXmg (JT.c): Sly's foot placement for one foot. When the clip his feet follow
 // changes (pxmg->paseg) the foot's XMG is rebuilt. The clip's label 0x16A (a time) is asked three times where the XFs stand then (PredictAsegEffect 0x1300B8, relative to his root XF):
 // paloExtrem = the foot's ball XF, paloHip = the leg's root XF (its slot +0xA8 holds the leg's IK record, IKREC: the limb's goal XF with the IK handle's point, the two bone lengths) and
@@ -1166,6 +1173,8 @@ extern void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt,
 void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg) __asm__("RebuildJtXmg");
 // Foot placement for one foot: when the foot clip changes, rebuilds the reach geometry (sphere the leg can reach,
 // vertical probe lines).
+// Also known as: RebuildSlyFootProbe (upstream readable / Sly 1 name;
+//   RebuildSlyFootProbe__FP3SLYP2XFfT1P12SLYFOOTPROBEP3XMG).
 void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg)
 {
     ASEGA *asega;
@@ -1235,6 +1244,8 @@ extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int TryMatchJtXmg(JT *pjt, XMG *pxmg, void *px) __asm__("TryMatchJtXmg");
 
 // Probes the ground along the foot geometry's lines (normal z > 0.7) and sets the foot target; nonzero on a match.
+// Also known as: MatchSlyFootProbe (upstream readable / Sly 1 name;
+//   MatchSlyFootProbe__FP3SLYP12SLYFOOTPROBEP10CTRLSOURCE).
 int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
 {
     if (pm->isValid) {
@@ -1285,6 +1296,7 @@ int TryMatchJtXmg(JT *pjt, XMG *pxmg, ACT5 *pact5) __asm__("TryMatchJtXmg");
 int FindSmStateOptional__FP2SM3OID(SM *psm, int n) __asm__("FindSmStateOptional__FP2SM3OID");
 void SnapSma(SMA *psma, int n) __asm__("SnapSma");
 // Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
+// Also known as: UpdateSlyStanding (upstream readable / Sly 1 name; UpdateSlyStanding__FP3SLY).
 extern "C" void UpdateJtStand(JT *jt)
 {
     SetSmaMask(jt->activeStateMachine, GetStepplayerLeanFlags(jt));
@@ -1308,6 +1320,7 @@ extern "C" void UpdateJtStand(JT *jt)
 } // namespace M_UpdateJtStand
 
 // JT render (slot 19): while hanging (state 3) applies the hand IK first, then the STEPPLAYER render.
+// Also known as: DrawSlys (upstream readable / Sly 1 name; DrawSlys__FP2SW).
 extern "C" void RenderJtSelf(JT *jt, void *camera)
 {
     if (jt->state == 3) {
@@ -1323,6 +1336,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void UpdateSoXfWorld(JT *p) __asm__("UpdateSoXfWorld");
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
 // (inferred)
+// Also known as: UpdateSlyPhys (upstream readable / Sly 1 name; UpdateSlyPhys__FP3ALO).
 extern "C" void UpdateJtWorldTransform(JT *jt)
 {
     jt->aposBounds[1] = GetLoWorldPos(jt->unknown19A4);
@@ -1344,6 +1358,7 @@ typedef int qword __attribute__((mode(TI)));
 void UpdateSoTreeBounds(JT *p) __asm__("UpdateSoTreeBounds");
 void ExtendSoTreeBounds(JT *p, qword q, float g) __asm__("ExtendSoTreeBounds");
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
+// Also known as: UpdateSlyBounds (upstream readable / Sly 1 name; UpdateSlyBounds__FP3ALO).
 extern "C" void UpdateJtExtraEntries(JT *jt)
 {
     int i;
@@ -1361,6 +1376,7 @@ typedef union { qword q; VEC v; } UV;
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void GetStepplayerCameraFocusPosition(JT *p, UV *pv) __asm__("GetStepplayerCameraFocusPosition");
 // JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
+// Also known as: PosSlyFocus (upstream readable / Sly 1 name; PosSlyFocus__FP3SLYP9ACTORPOSE).
 extern "C" void GetJtCameraTarget(JT *jt, UV *pv)
 {
     switch (jt->state) {
@@ -1387,6 +1403,7 @@ namespace M_func_0018A428 {
 void GetStepplayerCpdefi(JT *p, int *pf) __asm__("GetStepplayerCpdefi");
 void GetJtPipeVelocity(void *p, int *pf) __asm__("GetJtPipeVelocity");
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
+// Also known as: GetSlyCpdefi (upstream readable / Sly 1 name; GetSlyCpdefi__FP3SLYP9ACTORPOSE).
 extern "C" void GetJtCpdefi(JT *jt, int *pf)
 {
     if (jt->state != 0 && jt->state != 0x12 && jt->jtgrab.kind && jt->jtpipe.state != 1)
@@ -1450,6 +1467,7 @@ static __inline__ qword OffsetSub(const M *m, const QWROW *scalar, const QWROW *
     return value;
 }
 // VU helper of GetStepplayerCpdefi: the smoothed camera curve target. (inferred)
+// Also known as: GetInteractCpdefi (upstream readable / Sly 1 name; GetInteractCpdefi__FP5ACTORP9ACTORPOSE).
 extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
 {
     float g;
@@ -1641,7 +1659,7 @@ typedef char SMP_Alignment[__alignof__(SMP)==4?1:-1];
 namespace M_JtChooseGroundState {
 // ChooseJtGroundState: ported from Lilly's personal Sly 2 decomp (src/P2/jtground.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), g_clock (g_clock), g_normalZ (g_normalZ)
+// Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), g_clock, g_normalZ
 // 0x0018A8C8 ChooseJtGroundState (curated name)
 inline qword TransformPos(MATRIX4 *matrix, qword pos)
 {
@@ -1743,6 +1761,7 @@ static inline qword RotateVecAt(MATRIX3 *matrix, qword *pqwVec)
 }
 extern "C" void ChooseJtGroundState(JT *pjt) __asm__("ChooseJtGroundState");
 // Every frame picks the grounded state (stand, run, crouch, sidestep ...) from input and floor, via SetJtState.
+// Also known as: UpdateSlyTransitions (upstream readable / Sly 1 name; UpdateSlyTransitions__FP2JT).
 extern "C" void ChooseJtGroundState(JT *jt)
 {
     JTS jtsOld;
@@ -2036,6 +2055,7 @@ int ConsumeButtonsPressedWithin__5POCTLUif(void *p, int n, float g) __asm__("Con
 void EndJtMode(void *p) __asm__("EndJtMode");
 void UpdateJtMode(void *p) __asm__("UpdateJtMode");
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
+// Also known as: UpdateActorBinoc (upstream readable / Sly 1 name; UpdateActorBinoc__FP5ACTOR).
 extern "C" void UpdateJtModeInput(JT *p)
 {
     if (!IsStepplayerInJtMode(p))
@@ -2064,6 +2084,7 @@ extern "C" { static __inline__ qword Mul(MATRIX4 *pm, qword v)
     return o;
 } }
 // From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
+// Also known as: LoadPickpocket (upstream readable / Sly 1 name; LoadPickpocket__FP3SLY).
 extern "C" void CacheJtRestPose(JT *jt)
 {
     MATRIX4 m0, m1, m2, mi;
@@ -2147,6 +2168,7 @@ extern "C" { static inline float CorrectionDistance(struct P *p, qword correctio
     return result;
 } }
 // State 11 handler: corrects the attachment and decays inactive responses. (inferred)
+// Also known as: UpdatePickpocketPose (upstream readable / Sly 1 name; UpdatePickpocketPose__FP3SLY).
 extern "C" void UpdateJtAttachCorrection(struct P *jt)
 {
     struct WORK w;
@@ -2582,6 +2604,7 @@ extern "C" { static inline void PrepareAnimation(struct P *p, U *u, struct MODEL
 
 // Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
 // input.
+// Also known as: UpdateSlyInput (upstream readable / Sly 1 name; UpdateSlyInput__FP3SLY).
 extern "C" void UpdateJtPre(struct P *jt)
 {
     union PHASE phase;
@@ -2774,6 +2797,7 @@ extern void UpdateJtLean__FP2JT(void *p) __asm__("UpdateJtLean__FP2JT");
 
 
 // JT Update (slot 16): STEPPLAYER update, UpdateJtPre, actuators and animation, UpdateJtStand, feet, cane, lean.
+// Also known as: UpdateJt (upstream readable / Sly 1 name; UpdateJt__FP2JTf).
 extern "C" void UpdateJt(JT *p)
 {
     VU u;
@@ -2896,6 +2920,7 @@ SOPART *GetJtHurtAdjustRecord(JTHURT *p, int *pn) __asm__("GetJtHurtAdjustRecord
 SOPART *GetJtAirAdjustRecord(JTAIR *p, int *pn) __asm__("GetJtAirAdjustRecord");
 void SetStepPhys(JT *p, SOPART *pv, int n) __asm__("SetStepPhys");
 // JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
+// Also known as: UpdateActorStepMesh (upstream readable / Sly 1 name; UpdateActorStepMesh__FP5ACTOR).
 extern "C" void ApplyJtStateStepParams(JT *jt)
 {
     int n = 0;
@@ -2914,6 +2939,7 @@ extern "C" void ApplyJtStateStepParams(JT *jt)
 
 /* Shows (bit set) or hides each of the seven act5s by the bits of grf (bit 0x20 is +0x19FC, 0x40 +0x19F8). */
 // Enables or disables the five lean actuators (x19E4..x19F4).
+// Also known as: SetSlyHandles (upstream readable / Sly 1 name; SetSlyHandles__FP3SLYUi).
 extern "C" void EnableJtLeanActs(JT *jt, int grf)
 {
     if (jt->pact5Unk19e4 == 0)
@@ -2953,7 +2979,7 @@ extern "C" void EnableJtLeanActs(JT *jt, int grf)
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // SetJtState: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), g_clock (g_clock), g_game (g_game), D_002A2DD0 (g_qwZero), g_sw (g_sw)
+// Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), g_clock, g_game, D_002A2DD0 (g_qwZero), g_sw
 // 0x0018C250 SetJtState
 extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
@@ -3129,6 +3155,7 @@ void SetJtChannelMask(JT *pjt, uint grf) __asm__("EnableJtLeanActs");
 void SetJtState(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS");
 // Sets Sly's state (jts, x18C8) and sub-state (jtbs, x18D0): exit and enter logic for every state (clips, physics
 // flags, components). The central state switch of the player.
+// Also known as: SetJtJts (upstream readable / Sly 1 name).
 void SetJtState(JT *jt, JTS jts, JTBS jtbs)
 {
     ASEG *aseg = 0;
@@ -3775,6 +3802,7 @@ extern "C" int GetJtPlayerState(JT *jt)
 
 /* Moves a pocket's subscription from its current object (+8) to plo. */
 // Releases the gadget record's object, stores the new one and registers it.
+// Also known as: SetAbilityCarried (upstream readable / Sly 1 name; SetAbilityCarried__FP7BENTLEYP7ABILITYP2LO).
 extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
 {
     LO *ploOld;
@@ -3792,6 +3820,7 @@ extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PgadrecFromJtGadget {
 // Sly's gadget record for gadget ids 0x1A/0x25/0x26/0x29, or null.
+// Also known as: PpocketSly (upstream readable / Sly 1 name; PpocketSly__FP3SLYi).
 void *GetJtGadgetRecord(char *p, int n) __asm__("GetJtGadgetRecord"); void *GetJtGadgetRecord(char *p, int n)
 {
     switch (n) {
@@ -3806,7 +3835,7 @@ void *GetJtGadgetRecord(char *p, int n) __asm__("GetJtGadgetRecord"); void *GetJ
 
 // CanJtUseGadget__2JTi: ported from Lilly's personal Sly 2 decomp (src/P2/jtgadget.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF3EC (g_SheetMiscVariablesStatesThiefReflexesClock), D_002BF3F0 (g_SheetMiscVariablesStatesTimeRushClock), g_clock (g_clock), g_cm (g_cm), g_grfjoyt (g_grfjoyt)
+// Globals: D_002BF3EC (g_SheetMiscVariablesStatesThiefReflexesClock), D_002BF3F0 (g_SheetMiscVariablesStatesTimeRushClock), g_clock, g_cm, g_grfjoyt
 // 0x0018D760 CanJtUseGadget__2JTi  (T1329)  Virtual 98: may Sly use the gadget in the state he is in? Nothing while the look mode runs (FJtModeActive). Thief reflexes (0x1D) and time rush (0x2A)
 // work in every state but jts 4 (hurt), and only while the clock's power-up rate is 1 (nothing runs) or is this gadget's own rate (the press that ends it). Else the state decides: the
 // air / grab / pipe records say (FJtairCanUseGadget, FJtgrabCanUseGadget, FJtpipeCanUseGadget), hang (3) allows only the look mode, the ground states (0, 1, 5, 10, 0xC) allow the
@@ -4141,6 +4170,7 @@ extern "C" void GetJtStunHold(JT *jt, STUNHOLD *pf)
 namespace M_func_0018DEE0 {
 int GetStepplayerGroundProbeFlags(JT *p) __asm__("GetStepplayerGroundProbeFlags");
 // JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
+// Also known as: GrfSlyXp (upstream readable / Sly 1 name; GrfSlyXp__FP3ALO).
 extern "C" int GetJtGroundProbeFlags(JT *p)
 {
     if (p->unknown204) return 0;
@@ -4279,6 +4309,7 @@ static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, u
 }
 
 // Smooths Sly's matrix and position and updates the directional animation weight.
+// Also known as: UpdateSlyHangFollow (upstream readable / Sly 1 name; UpdateSlyHangFollow__FP3SLY).
 extern "C" void UpdateJtSmoothing(P *jt)
 {
     M4 m = *(M4 *)AsLo(jt->object)->GetWorldMatrix();
@@ -4412,6 +4443,7 @@ extern "C" { static __inline__ qword VLen(qword c)
     return l;
 } }
 // Turns Sly toward the interact target with smoothing.
+// Also known as: UpdateSlyJuggleVelocity (upstream readable / Sly 1 name; UpdateSlyJuggleVelocity__FP3SLY).
 extern "C" void UpdateJtFaceTarget(JT *jt)
 {
     QWROW n;

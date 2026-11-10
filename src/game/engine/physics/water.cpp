@@ -190,6 +190,7 @@ extern "C" void InitWater(SOW *water)
 
 // Slot 64: resets the SO physics defaults (InitSoPhysics), sets bit 48 on every part (SetSoPartsBit48) and gives
 // the water friction and spring factors of 1. (inferred: physics init override)
+// Also known as: PostLoadWater (upstream readable / Sly 1 name; PostLoadWater__FP3ALO).
 extern "C" void InitWaterPhysics(SOW *water)
 {
     InitSoPhysics(water);
@@ -241,6 +242,7 @@ extern "C" void CalculateWaterCurrent(SOW *water, qwordV pos, qwordV *velocityOu
 // Walks an XA node list and syncs each node with its object's in-water flags: nodes whose object entered get added
 // to the object's XA list, those that left are removed; nodes whose object is no longer inside are unlinked and
 // returned to the world's XA pool. The pending flags are cleared. Sly 1 name.
+// Also known as: SettleWaterNodes (upstream readable / Sly 1 name; SettleWaterNodes__FP3ALOPv).
 extern "C" void UpdateSwXaList(SOW *unused, N **link)
 {
     N *node = *link;
@@ -283,6 +285,7 @@ static inline void Impact(SOW *o,EVENT *e){VE *v=o->vt;v[51].f.event((char *)o+v
 static inline void Signal(SOW *o,int event,PAIR *pair){VE *v=o->vt;v[4].f.signal((char *)o+v[4].delta,event,pair);}
 // Slot 16 (Update): UpdateSo, then rebuilds the set of objects overlapping the water, sends contact messages for
 // newcomers and an impact (splash) event for objects that hit the surface fast, and syncs the XA nodes.
+// Also known as: UpdateWater (upstream readable / Sly 1 name; UpdateWater__FP5WATER).
 extern "C" void UpdateWater(SOW *water){
  WORK work;N *node;COLL **objects;LINK *link;
  UpdateSo(water);
@@ -344,6 +347,7 @@ extern "C" void UpdateWater(SOW *water){
 
 // Slot 71: called by the solver for each object in the water; forwards to the object's slot 72
 // (AddSoWaterAcceleration by default) with the water as argument. Sly 1 name.
+// Also known as: NotifyWaterObject (upstream readable / Sly 1 name; NotifyWaterObject__FP3ALOP5WNODE).
 extern "C" void AddWaterExternalAccelerations(SOW *water, PAIR *pair)
 {
     SOW *object = pair->object;
@@ -413,6 +417,7 @@ static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();retu
 // Returns the fraction (0..1) of an object's vertical extent that is under the water surface, found by casting a
 // vertical line through the object's position against the water; optionally returns the surface point and normal.
 // Objects derived from class 0x33 are probed at their own position. Sly 1 name: UGetWaterSubmerged.
+// Also known as: GWaterDepth (upstream readable / Sly 1 name; GWaterDepth__FP3ALOT0P6VECTORT2).
 extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surfacePoint, qwordV *surfaceNormal)
 {
     WORK468 work;
@@ -484,6 +489,7 @@ extern "C" void FreeSwXaList(SW *world, N *node)
 }
 
 // Pushes an XA node on the object's external-acceleration list and wakes the object.
+// Also known as: LinkObjNode (upstream readable / Sly 1 name; LinkObjNode__FP5WNODEi).
 extern "C" void AddSoXa(SOW *object, N *node)
 {
     node->nextXa = object->firstXa;
@@ -503,6 +509,7 @@ extern "C" void RemoveSoXa(SOW *object, N *node)
 
 // Asks each owner in the object's XA list for its accelerations (owner slot 71); called by the solver before
 // integration. (inferred)
+// Also known as: ApplyAloWater (upstream readable / Sly 1 name; ApplyAloWater__FP3ALO).
 extern "C" void ApplySoExternalAccelerations(SOW *object)
 {
     N *node;
@@ -545,6 +552,7 @@ static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitt
 // proportion to the submerged fraction; linear and angular velocities are pulled toward the water's current with
 // spring gains scaled by friction; a righting torque turns the object upright; a wake is spawned while it floats
 // on a near-horizontal surface, and class 0x32 objects lose their emitter sound otherwise. Sly 1 name.
+// Also known as: ApplyWaterToAlo (upstream readable / Sly 1 name; ApplyWaterToAlo__FP3ALOT0).
 extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
  WORK7F8 work;
  int i;

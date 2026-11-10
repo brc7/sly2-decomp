@@ -67,6 +67,7 @@ extern "C" void RenderMsGlobset(MS *mesh)
 
 // Builds an array of pointers to every glob of every static mesh in the world (class list 49) whose flag bit 48 is
 // clear, allocated from the frame slot heap. Returns the count and the array through the out parameters.
+// Also known as: ApsoeOccluders (upstream readable / Sly 1 name; ApsoeOccluders__FPiPPP3SOE).
 extern "C" void CollectVisibleMsGlobs(int *countOut, GLOBREF ***globsOut)
 {
       GLOBOWNER *mesh;

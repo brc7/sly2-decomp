@@ -96,7 +96,7 @@ struct X : B {
 void ClonePo(ROBOTTANK *) __asm__("ClonePo");
 void CopyRobottankWeapon(X *, X *) __asm__("CopyRobottankWeapon");
 // CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable 0x2C94A0, init 0x1D4D30,
-// copy 0x9C bytes). (inferred)
+// copy 0x9C bytes). (inferred) Also known as: CloneVehicle (upstream readable / Sly 1 name; CloneVehicle__FP2LO).
 extern "C" void CloneRobottank(ROBOTTANK *tank)
 {
     int i;
@@ -126,7 +126,7 @@ typedef char native_layout_11[(OFF(X,vt)==0xC)?1:-1];
 } // namespace M_CloneRobottank
 
 // health x560 = max x55C, refresh health meter (UpdateRobottankHealthMeter), reset body SMA, SetRcCarState(0). (inferred)
-/* Full health, the meter updated, the animation machine back to its first state, state 0. */
+/* Full health, the meter updated, the animation machine back to its first state, state 0. Also known as: ResetVehicleState (upstream readable / Sly 1 name; ResetVehicleState__FP2LO). */
 extern "C" void ResetRobottankHealth(ROBOTTANK *tank)
 {
     SMA *psma;
@@ -172,7 +172,7 @@ static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return 
 static inline qword CPU(qword value){qword result;asm("qmfc2.ni %0,%1":"=r"(result):"j"(value));return result;}
 // CID 77 vtable slot 15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized
 // layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop
-// unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth. (inferred)
+// unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth. (inferred) Also known as: PostLoadVehicle (upstream readable / Sly 1 name; PostLoadVehicle__FP2LO).
 extern "C" void PostRobottankLoad(P *tank){
  U scalar,maximum,minimum;
  register int i __asm__("$18")=0;CURRENT current;SCALE scale;
@@ -353,7 +353,7 @@ typedef char native_layout_57[(OFF(P,binding)==0x570)?1:-1];
 typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
 } // namespace M_PostRobottankLoad
 
-// CID 77 vtable slot 26: SO vtable slot 26 base (0x1CB518 proxy reset) then ResetRcCarHealth. (inferred)
+// CID 77 vtable slot 26: SO vtable slot 26 base (0x1CB518 proxy reset) then ResetRcCarHealth. (inferred) Also known as: ResetVehiclePlacement (upstream readable / Sly 1 name; ResetVehiclePlacement__FP2LO).
 extern "C" void ResetRobottank(ROBOTTANK *tank)
 {
     SO_ResetForProxy(tank);
@@ -444,7 +444,7 @@ static inline void ResetDrive(P *p){
 static inline M4*GetMatrixFrom(P*p,VTE*vt){VTE&e=vt[31];return ((M4*(*)(void*))e.pfn)((char*)p+e.d);}
 // CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else
 // idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound
-// volume/pitch. (inferred)
+// volume/pitch. (inferred) Also known as: UpdateVehicleControl (upstream readable / Sly 1 name; UpdateVehicleControl__FP7VEHICLE).
 extern "C" void UpdateRobottank(P *tank)
 {
     QWROW scalar,position,targetPosition,targetVelocity,shot;
@@ -697,7 +697,7 @@ int HasRobottankWeaponAmmo(ITEM *) __asm__("HasRobottankWeaponAmmo");
 void SetSmaGoal(void *, int) __asm__("SetSmaGoal");
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL_VIEW *, int, float) __asm__("ConsumeButtonsPressedWithin__5POCTLUif");
 // Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires
-// (SMA goal 0x68) or held-flag variant (0x67). (inferred)
+// (SMA goal 0x68) or held-flag variant (0x67). (inferred) Also known as: UpdateVehiclePlayer (upstream readable / Sly 1 name; UpdateVehiclePlayer__FP7VEHICLE).
 extern "C" void ReadRobottankInput(OBJ *tank)
 {
     int i;
@@ -727,7 +727,7 @@ extern "C" void ReadRobottankInput(OBJ *tank)
 namespace M_func_001D2240 {
 struct O { char pad[0x80]; int state; };   /* the weapon (JSG) */
 int HasRobottankWeaponAmmo(struct O *po) __asm__("HasRobottankWeaponAmmo");
-// First weapon with enough ammo whose state is not 4. (inferred)
+// First weapon with enough ammo whose state is not 4. (inferred) Also known as: FirstReadyAttachment (upstream readable / Sly 1 name; FirstReadyAttachment__FP7VEHICLE).
 extern "C" struct O *FindReadyRobottankWeapon(ROBOTTANK *tank) {
     int i;
     for (i = 0; i < tank->cjsgWeapon; i++) {
@@ -750,7 +750,7 @@ extern float D_002C20C0[3] __asm__("D_002C20C0");
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
 int FindSwObjectsByClass(void *, int, int, int, int, CID108 **) __asm__("FindSwObjectsByClass");
 // Nearest ammo pickup (class 0x6C, CID108) via FindSwObjectsByClass, biased by its ammo slot (and against the last
-// one chosen). (inferred)
+// one chosen). (inferred) Also known as: BestVehiclePickup (upstream readable / Sly 1 name; BestVehiclePickup__FP7VEHICLE).
 extern "C" CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
 {
     CID108 *best = 0;
@@ -783,7 +783,7 @@ extern "C" CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
 namespace M_func_001D2420 {
 typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
-// Restart at the path's start and put every control vertex of the path at the tank's height. (inferred)
+// Restart at the path's start and put every control vertex of the path at the tank's height. (inferred) Also known as: ResetVehiclePathHeight (upstream readable / Sly 1 name; ResetVehiclePathHeight__FP7VEHICLE).
 extern "C" void ResetRobottankWheelHeights(ROBOTTANK *tank) {
     qword q;
     int i;
@@ -858,7 +858,7 @@ extern "C" { static inline qword NormalizeOr(qword value,qword fallback)
     }
     return cpu;
 } }
-// Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal goalHeading/drive. (inferred)
+// Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal goalHeading/drive. (inferred) Also known as: FollowVehiclePath (upstream readable / Sly 1 name; FollowVehiclePath__FP7VEHICLE).
 extern "C" void SteerRobottankAlongPath(OBJ *tank)
 {
     VECTOR va, vb;
@@ -983,7 +983,7 @@ static inline VV Rotate(const M3 &m, VV v)
 // Helpers Max, Abs (small asm wrappers/accessors shaped for the match).
 
 // Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2
-// pursue, 3 back away), steering, fire weapons when aim error is small. (inferred)
+// pursue, 3 back away), steering, fire weapons when aim error is small. (inferred) Also known as: UpdateVehicleAi (upstream readable / Sly 1 name; UpdateVehicleAi__FP7VEHICLE).
 extern "C" void UpdateRobottankAi(P *tank)
 {
     VV position = GetLoWorldPos(tank);
@@ -1138,7 +1138,7 @@ extern "C" void UpdateRobottankAi(P *tank)
 // Return the contact in an XP list with the largest +0x90 value (deepest). (inferred)
 /* The contact of the list with the largest separation above D_002A7834, or 0. */
 namespace RO_ORDER { extern const float r_D_002A7834 __asm__("D_002A7834") = -3.40282347e+38f; }
-// The wheel's contact with the largest separation (above D_002A7834), or 0.
+// The wheel's contact with the largest separation (above D_002A7834), or 0. Also known as: BestContact (upstream readable / Sly 1 name; BestContact__FP12VEHICLEWHEELi).
 extern "C" XP *FindDeepestRobottankWheelXp(ROBOTTANK *tank, ROBOTTANKWHEEL *pwheel)
 {
     float g;
@@ -1271,7 +1271,7 @@ static inline float Evaluate(const POLY &p, float t) { return p.a + t * (p.b + t
 static inline float ClampTo(float v, const LIMITS &l) { return Clamp(v, l.low, l.high); }
 
 // CID 77 vtable slot 70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive
-// within traction budget. (inferred)
+// within traction budget. (inferred) Also known as: VehicleForces (upstream readable / Sly 1 name; VehicleForces__FP3ALO).
 extern "C" void PresetRobottankAccel(P *tank)
 {
     PresetSoAccel(tank);
@@ -1511,7 +1511,7 @@ static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b
 }
 
 // Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post
-// deepest tangency as kind-10 contact (AddXp AddXp). (inferred)
+// deepest tangency as kind-10 contact (AddXp AddXp). (inferred) Also known as: MarkWheel (upstream readable / Sly 1 name; MarkWheel__FP7VEHICLEP12VEHICLEWHEELP3SOEiiP3BSPPP7CONTACT).
 extern "C" void MarkWheel(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3, int unused4, BSP *pbspRoot, CONTACT **ppcontact)
 {
     int csupport = 0;
@@ -1705,7 +1705,7 @@ typedef struct {
 void AddSoCustomXps(void) __asm__("AddSoCustomXps");
 void MarkWheel(OBJ *, ENT *, SOPART *, int, int, int, void *) __asm__("MarkWheel");
 // CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel when the other part's physics root
-// IsFixed (slot 62). (inferred)
+// IsFixed (slot 62). (inferred) Also known as: VehicleOwnContacts (upstream readable / Sly 1 name; VehicleOwnContacts__FP3ALOP3SOEiii).
 extern "C" void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, int z)
 {
     int i;
@@ -1723,7 +1723,7 @@ extern "C" void AddRobottankCustomXps(OBJ *tank, SOPART *ppart, int x, int y, in
 namespace M_func_001D3F30 {
 void OnSoContactFreed(SO *pso, SO *psoOther) __asm__("OnSoContactFreed");
 void RemoveSoContactsWith(SO *pso, SO *psoOther, XP **ppxpFirst) __asm__("RemoveSoContactsWith");
-// CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
+// CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred) Also known as: VehicleRemoveContacts (upstream readable / Sly 1 name; VehicleRemoveContacts__FP3ALOT0).
 extern "C" void RemoveRobottankContactsWith(ROBOTTANK *tank, SO *psoOther) {
     int i;
     OnSoContactFreed(tank, psoOther);
@@ -1810,7 +1810,7 @@ typedef int qword __attribute__((mode(TI)));
 void UpdateSoTreeBounds(SO *pso) __asm__("UpdateSoTreeBounds");
 qword ConvertPosBetweenLos(LO *plo, int n, qword q) __asm__("ConvertPosBetweenLos");
 void ExtendSoTreeBounds(SO *pso, qword q, float g) __asm__("ExtendSoTreeBounds");
-// CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred)
+// CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred) Also known as: VehicleBounds (upstream readable / Sly 1 name; VehicleBounds__FP3ALO).
 extern "C" void UpdateRobottankBounds(ROBOTTANK *tank) {
     int i;
     UpdateSoTreeBounds(tank);
@@ -1857,7 +1857,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(x),"j"(y),"j"(z),"j"(b.r[2].q));
 }
 // CID 77 vtable slot 19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then
-// RenderSoSelf. (inferred)
+// RenderSoSelf. (inferred) Also known as: DrawVehiclePose (upstream readable / Sly 1 name; DrawVehiclePose__FP3ALO).
 extern "C" void RenderRobottankSelf(P*tank){
  V velocity,point;M3 basis;
  velocity.q=ConvertVecBetweenLos(0,tank,AsLo(tank)->GetVelocity());
@@ -1989,7 +1989,7 @@ static inline VV VecCombo(VU_FLOAT f1, VV v1, VU_FLOAT f2, VV v2)
 static inline float Random(const float *range) { return RandomFloatInRange__Fff(range[0], range[1]); }
 
 // CID 77 vtable slot 75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or
-// sender-relative knock-back impulse. (inferred)
+// sender-relative knock-back impulse. (inferred) Also known as: AcceptVehicleContact (upstream readable / Sly 1 name; AcceptVehicleContact__FP3ALOP5CTMSG).
 int TakeRobottankDamage(P *tank, EVENT *event)
 {
     if (!CanSoTakeDamage(tank, event))
@@ -2061,7 +2061,7 @@ void StopSnd(void *, float) __asm__("StopSnd");
 void SetRobottankTactic(OBJ *, int) __asm__("SetRobottankTactic");
 void SetSmaGoalIfReachable(void *, int) __asm__("SetSmaGoalIfReachable");
 // Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vtable slot 3 msg 5); drives body SMA
-// goal from D_002C2208[state]. (inferred)
+// goal from D_002C2208[state]. (inferred) Also known as: SetVehicleMode (upstream readable / Sly 1 name; SetVehicleMode__FP7VEHICLEi).
 void SetRobottankState(OBJ *tank, int n) __asm__("SetRobottankState"); void SetRobottankState(OBJ *tank, int n)
 {
     WIDGET *pw;
@@ -2116,7 +2116,7 @@ void SetRobottankState(OBJ *tank, int n) __asm__("SetRobottankState"); void SetR
 } // namespace M_SetRobottankState
 
 // Set AI tactic x188 with timestamp x18C. (inferred)
-/* Sets the second state (+0x188), stamping the time. */
+/* Sets the second state (+0x188), stamping the time. Also known as: SetVehicleAiState (upstream readable / Sly 1 name; SetVehicleAiState__FP7VEHICLEi). */
 extern "C" void SetRobottankTactic(ROBOTTANK *tank, int nState)
 {
     if (nState != tank->tactic) {
@@ -2221,7 +2221,7 @@ extern "C" void AddRobottankAttachment(ROBOTTANK *tank, OID oid, LM *plm) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankHealthMeter {
 void SetWidgetAnimPhase(WIDGET *pwidget, int n, float g) __asm__("SetWidgetAnimPhase");
-// Set meter value 0x34F = health/max (inverted if fHealthMeterInverted). (inferred)
+// Set meter value 0x34F = health/max (inverted if fHealthMeterInverted). (inferred) Also known as: UpdateVehicleHealth (upstream readable / Sly 1 name; UpdateVehicleHealth__FP7VEHICLE).
 extern "C" void UpdateRobottankHealthMeter(ROBOTTANK *tank) {
     if (tank->pwidgetHealth) {
         float g = (float)tank->cHealth / (float)tank->cHealthMax;
@@ -2362,7 +2362,7 @@ extern "C" void ResetRobottankPickup(CID108 *pickup)
 
 // CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 once its transform's role is 3. (inferred)
 extern "C" void UpdateSo(SO *pso);
-void CID108::Update()
+void CID108::Update()  // Also known as: UpdateVehiclePickup (upstream readable / Sly 1 name; UpdateVehiclePickup__FP2LO).
 {
     UpdateSo(this);
     if (state == 0 && positionXf->role == 3) SetRcPickupState(this, 1);
@@ -2371,7 +2371,7 @@ void CID108::Update()
 namespace M_SetRcPickupState {
 extern int D_002C2248[] __asm__("D_002C2248");
 void SetSmaGoalIfReachable(SMA *psma, int n) __asm__("SetSmaGoalIfReachable");
-// Pickup state with time; SMA goal from D_002C2248[state]. (inferred)
+// Pickup state with time; SMA goal from D_002C2248[state]. (inferred) Also known as: SetVehiclePickupState (upstream readable / Sly 1 name; SetVehiclePickupState__FP2LOi).
 extern "C" void SetRcPickupState(CID108 *pickup, int n) {
     if (n == pickup->state) return;
     pickup->state = n;

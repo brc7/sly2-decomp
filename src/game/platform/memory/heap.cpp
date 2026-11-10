@@ -36,6 +36,7 @@ CSwHeapG g_heapSw;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 // Allocates `size` bytes from `heap` at `alignment` and zero-fills them. (Sly 1-derived name: PvAllocClear.)
+// Also known as: PvAllocClear (upstream readable / Sly 1 name).
 void *AllocZeroedFromHeap(HEAP *heap, int size, int alignment)
 {
     void *block = heap->Alloc(size, alignment);
@@ -44,6 +45,7 @@ void *AllocZeroedFromHeap(HEAP *heap, int size, int alignment)
 }
 
 // Allocates `size` bytes from `heap` at `alignment` and copies `source` into them.
+// Also known as: PvAllocCopy (upstream readable / Sly 1 name).
 void *AllocCopyFromHeap(HEAP *heap, int size, void *source, int alignment)
 {
     void *block = heap->Alloc(size, alignment);
@@ -85,6 +87,7 @@ CLinearHeap::CLinearHeap(int maxSize, byte *buffer) : m_cbMax(maxSize), m_pbBase
 }
 
 // Bump-allocates size bytes (rounded up to 16) from the buffer; null when it is full. The alignment is ignored.
+// Also known as: PvAlloc (upstream readable / Sly 1 name).
 void *CLinearHeap::Alloc(int size, int alignment)
 {
     int offset = m_ib;
@@ -96,6 +99,7 @@ void *CLinearHeap::Alloc(int size, int alignment)
 }
 
 // Allocates a new block; the old one is neither copied nor freed.
+// Also known as: PvRealloc (upstream readable / Sly 1 name).
 void *CLinearHeap::Realloc(void *block, int size, int alignment)
 {
     return Alloc(size, alignment);

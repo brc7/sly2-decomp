@@ -1556,7 +1556,7 @@ typedef char assert_CID35_apair[SLY2_OFFSETOF(CID35, apair) == 0x160 ? 1 : -1];
 struct CID37 : CID35
 {
     char pad180[0x1A0 - 0x180];
-    virtual void PostLoad() __asm__("PostBootyContainerLoad");   /* slot 15 */
+    virtual void PostLoad() __asm__("PostBootyContainerLoad");   /* slot 15 Also known as: PostLoadBootyStand (upstream readable / Sly 1 name; PostLoadBootyStand__FP2SW). */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBootyContainer");   /* slot 7 */
     virtual void OnAdd() __asm__("OnBootyContainerAdd");   /* slot 23 */

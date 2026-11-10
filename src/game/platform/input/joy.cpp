@@ -74,7 +74,7 @@ void StartupJoy()
     StartupCodes(D_002DDEC0);
 }
 
-// Sets user-state bits in g_grfusr (g_grfusr) and re-derives the input-type flags.
+// Sets user-state bits in g_grfusr and re-derives the input-type flags.
 void AddGrfusr(int mask)
 {
     g_grfusr |= mask;
@@ -349,6 +349,7 @@ void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *ou
 // Reads the pad (scePadRead): updates held/pressed/released masks, the stick and pressure values and their
 // deflection, and broadcasts a game event on activity. Returns 0 when the pad's terminal id changed (a different controller),
 // else 1.
+// Also known as: FReadJoy (upstream readable / Sly 1 name; FReadJoy__FP3JOY).
 extern "C" int ReadJoy(JOY *joy)
 {
     unsigned char padData[0x40];
@@ -447,6 +448,7 @@ extern "C" int GetJoyButtonsPressed(JOY *joy, int mask)
 }
 
 // Marks the buttons in `mask` handled: clears them from the pressed mask and remembers them as held-and-handled.
+// Also known as: SetJoyPs2BtnHandled (upstream readable / Sly 1 name; SetJoyPs2BtnHandled__FP6JOYPS2Ui).
 extern "C" void SetJoyBtnHandled(JOY *joy, int mask)
 {
     joy->buttonsPressed &= ~mask;
@@ -454,6 +456,7 @@ extern "C" void SetJoyBtnHandled(JOY *joy, int mask)
 }
 
 // Forgets the buttons in `mask`: clears them from the held and handled masks.
+// Also known as: ClearJoyBtns (upstream readable / Sly 1 name; ClearJoyBtns__FP6JOYPS2Ui).
 extern "C" void ClearJoyButtons(JOY *joy, int mask)
 {
     int grfKeep = ~mask;

@@ -104,6 +104,7 @@ extern "C" void InitAseg(ASEG *segment)
 // Loads an animation segment from the level stream: its channels (per channel kind, the curves for position, rotation,
 // scale and float values), its labels, and its start, per-frame and end event lists.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadAsegFromBrx (upstream readable / Sly 1 name; LoadAsegFromBrx__FP4ASEGP18CBinaryInputStream).
 void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
  px->duration = F32Read__18CBinaryInputStream(stream);
  px->cchn = S16Read__18CBinaryInputStream(stream);
@@ -178,6 +179,7 @@ extern "C" void PostAsegLoadCallback(ASEG *segment, ASEGSTART *pasegstart)
 
 // After-load hook (slot 15): base PostLoLoad, then, if the segment has an auto-start record, posts PostAsegLoadCallback
 // to the world's callback queue.
+// Also known as: PostAsegLoad (upstream readable / Sly 1 name; PostAsegLoad__FP4ASEG).
 void ASEG::PostLoad()
 {
     ASEG *segment = (ASEG *)this;
@@ -187,6 +189,7 @@ void ASEG::PostLoad()
 }
 
 // Returns the segment's label entry with the given id, or 0. (inferred)
+// Also known as: PeventLaunch (upstream readable / Sly 1 name; PeventLaunch__FP5KINDEi).
 EA *FindAsegLabel(ASEG *segment, int n)
 {
     int i;
@@ -200,6 +203,7 @@ EA *FindAsegLabel(ASEG *segment, int n)
 }
 
 // Returns the time of the segment's label with the given id (used to line up blends and seeks).
+// Also known as: GEventAseg11 (upstream readable / Sly 1 name; GEventAseg11__Fv).
 extern "C" float GetAsegLabelTime(ASEG *segment, int n)
 {
     EA *label;
@@ -222,6 +226,7 @@ static inline float EvaluateQuadratic(CLQ *pclq, float t) { return pclq->g0 + t 
 // links it into the world's and the segment's player lists, binds every channel to its target transform as an
 // action, applies overrides, sets the speed, fast-forwards events up to the start time and returns the player.
 // Sly 1's ApplyAseg without the OVR argument.
+// Also known as: ApplyAseg (upstream readable / Sly 1 name; ApplyAseg__FP4ASEGiiffPP5ASEGA).
 void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
 {
     ASEGA *p = (ASEGA *)AllocZeroedFromSlotheap(&g_sw.slotheapAsega);
@@ -321,6 +326,8 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
 
 // Resolves the object a channel animates: finds the OID under the root (or in the world), then asks that object for the
 // channel's sub-target (transform or value) through its vtable. (inferred)
+// Also known as: GetAsegChannelTarget (upstream readable / Sly 1 name;
+//   GetAsegChannelTarget__FP4ASEGP3ALOP7ASEGCHNPP3ALOPP2XF).
 void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
@@ -335,6 +342,7 @@ void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 
 // Finds the segment's channel that animates the given object and transform component; optionally only channels with the
 // "check" bit; skips disabled channels. (inferred) Sly 1: PchnFindAseg (Sly 2 also checks the component kind).
+// Also known as: PchnFindAseg (upstream readable / Sly 1 name; PchnFindAseg__FP4ASEGP3ALOPvi).
 extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, int xfk, int fCheck)
 {
     int i;
@@ -375,6 +383,8 @@ static inline M4 AddM4(const M4 &a, const M4 &b) return m
 }
 // Predicts the world transform the segment would give an object at a given time (evaluating its channels along the
 // transform chain from pyFirst to pyLast) without playing it; used to line up moves before they start. (inferred)
+// Also known as: CalculateAsegMatrices (upstream readable / Sly 1 name;
+//   CalculateAsegMatrices__FP4ASEGP3ALOP2XFT2ffP7MATRIX4T6).
 extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XF *pyFirst, XF *pyLast, float f, float g, M4 *pm1, M4 *pm2)
 {
     M4 mA;
@@ -433,6 +443,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XF *pyFirst, XF *pyLast, 
 }
 
 // Starts a segment on an object (ApplyAsegCore) and returns the new player. Sly 1: PasegaApplyAseg.
+// Also known as: PasegaApplyAseg (upstream readable / Sly 1 name; PasegaApplyAseg__Fiiiff).
 extern "C" ASEGA *ApplyAsegToObject(ASEG *segment, ALO *palo, int grf, float t, float svt)
 {
     ASEGA *player;
@@ -442,6 +453,7 @@ extern "C" ASEGA *ApplyAsegToObject(ASEG *segment, ALO *palo, int grf, float t, 
 
 // Walks paseg->dlAsega (ASEG+0x50) through ASEGA::dleAseg (+0x2C) looking for the ASEGA bound to palo (ASEGA::rootObject, +0x18).
 // Returns the segment's player that is bound to the given root object, or 0. (Sly 1-derived name: PasegaFindAseg.)
+// Also known as: PasegaFindAseg (upstream readable / Sly 1 name).
 ASEGA *FindAsegPlayerForObject(ASEG *segment, ALO *palo)
 {
     DLI dli;            /* unused, but it keeps the 16-byte frame of the target (an inlined iterator's slot) */
@@ -464,11 +476,13 @@ void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int app
 }
 
 // EnsureAseg, returning the player. (Sly 1-derived name: PasegaEnsureAseg.)
+// Also known as: PasegaEnsureAseg (upstream readable / Sly 1 name).
 ASEGA *EnsureAsegPlayer(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags)
 { ASEGA *player; EnsureAseg(segment, root, seek, t, svt, applyFlags, &player); return player; }
 
 // Replaces a "current segment" slot: releases the player held in *ppasega and, if a segment is given, starts it and
 // takes a reference. (Sly 1-derived name: ApplyAsegCur.)
+// Also known as: ApplyAsegCur (upstream readable / Sly 1 name).
 void ReplaceCurrentAseg(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot)
 {
     ReleaseAsega(playerSlot);
@@ -481,6 +495,7 @@ void ReplaceCurrentAseg(ASEG *segment, ALO *root, float t, float svt, int applyF
 }
 
 // Stops the player held in a slot (RetractAsega), drops the slot's reference and clears it.
+// Also known as: RetractAsegaPp (upstream readable / Sly 1 name; RetractAsegaPp__FPP5ASEGA).
 void ReleaseAsega(ASEGA **pp) {
     if (*pp) {
         RetractAsega(*pp);

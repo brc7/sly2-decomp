@@ -44,6 +44,7 @@ extern "C" void ResetLetterbox(LETTERBOX *letterbox)
 
 // Shows the letterbox bars: initializes the speaker label D_004435F0 (inferred) and shows the widget with its
 // default animation (slot 49 with -1).
+// Also known as: ShowSubtitleBox (upstream readable / Sly 1 name; ShowSubtitleBox__FP9DIALOGSUB).
 extern "C" void ShowLetterbox(LETTERBOX *letterbox)
 {
       if (letterbox->widget) {
@@ -53,6 +54,7 @@ extern "C" void ShowLetterbox(LETTERBOX *letterbox)
 }
 
 // Hides the letterbox bars (the widget's Hide, slot 50).
+// Also known as: HideSubtitleBox (upstream readable / Sly 1 name; HideSubtitleBox__FP9DIALOGSUB).
 extern "C" void HideLetterbox(LETTERBOX *letterbox)
 {
       WIDGET *widget = letterbox->widget;

@@ -165,6 +165,7 @@ extern "C" int AddAshEntry(ASH *animList, OID oid, int ensureArg)
 
 // Resolves each entry's oid to its animation segment (searched from the button object) and removes the segment
 // from the world, so it only plays when the button runs it; unknown oids become null. (inferred)
+// Also known as: RunTriggerAsegList (upstream readable / Sly 1 name; RunTriggerAsegList__FP2LOPv).
 extern "C" void PostAshLoad(ASH *animList, LO *context)
 {
     int i;
@@ -207,6 +208,7 @@ extern "C" void PostBtnLoad(BTN *btn)
 
 // Trigger: Splice event 5 on the object, the click sound, the trigger segments/rsmgs/relay/task states; then the
 // button moves on to BTN_PRESSED (unless it stays triggered) and the object gets message 6.
+// Also known as: EnterPad (upstream readable / Sly 1 name; EnterPad__FP2LO).
 extern "C" void TriggerBtn(BTN *btn)
 {
     SendSpliceEvent(btn->plo, SPLICE_EVENT_TRIGGER);
@@ -222,6 +224,7 @@ extern "C" void TriggerBtn(BTN *btn)
 }
 
 // Untrigger: Splice event 6, the untrigger segments and rsmgs, then message 7 to the object.
+// Also known as: LeavePad (upstream readable / Sly 1 name; LeavePad__FP2LO).
 extern "C" void UntriggerBtn(BTN *btn)
 {
     SendSpliceEvent(btn->plo, SPLICE_EVENT_UNTRIGGER);
@@ -231,6 +234,7 @@ extern "C" void UntriggerBtn(BTN *btn)
 
 // Plays every segment of animation list listIndex (0 trigger, 1 untrigger) on the object its segment belongs to,
 // then triggers the rsmgs (on for list 0, off for list 1); list 0 also fires the relay and applies the task states.
+// Also known as: RunTriggerList (upstream readable / Sly 1 name; RunTriggerList__FP2LOi).
 extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
 {
     int j;
@@ -272,6 +276,7 @@ extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
 }
 
 // Changes the BTN state and stamps the time; up -> down triggers, any initialized state -> up untriggers.
+// Also known as: SetTriggerState (upstream readable / Sly 1 name; SetTriggerState__FP2LOi).
 extern "C" void SetBtnButtons(BTN *btn, int state)
 {
     int shouldTrigger, shouldUntrigger;
@@ -313,6 +318,7 @@ extern "C" void AddBtnEventListener(BTN *btn, int task, int taskState)
 }
 
 // BUTTON (cid 0x53) vtable slot 7 (Init): SO init, BTN defaults, LO flag 2.
+// Also known as: InitButton (upstream readable / Sly 1 name; InitButton__FP6BUTTON).
 extern "C" void InitButton(BUTTON *button)
 {
     InitSo(button);
@@ -321,6 +327,7 @@ extern "C" void InitButton(BUTTON *button)
 }
 
 // BUTTON vtable slot 14 (LoadFromBrx): SO load, then the BTN belongs to this button.
+// Also known as: LoadButtonFromBrx (upstream readable / Sly 1 name; LoadButtonFromBrx__FP6BUTTONP18CBinaryInputStream).
 extern "C" void LoadButtonFromBrx(BUTTON *button, void *stream)
 {
     LoadSoFromBrx(button, stream);
@@ -328,6 +335,7 @@ extern "C" void LoadButtonFromBrx(BUTTON *button, void *stream)
 }
 
 // BUTTON vtable slot 15 (PostLoad): resolves the segments and starts the button up (untriggered).
+// Also known as: PostButtonLoad (upstream readable / Sly 1 name; PostButtonLoad__FP6BUTTON).
 extern "C" void PostButtonLoad(BUTTON *button)
 {
     PostSoLoad(button);
@@ -336,6 +344,7 @@ extern "C" void PostButtonLoad(BUTTON *button)
 }
 
 // BUTTON vtable slot 41 (Clone): SO clone; the BTN belongs to the clone.
+// Also known as: CloneButton (upstream readable / Sly 1 name; CloneButton__FP6BUTTONT0).
 void BUTTON::Clone(LO *baseObject)
 {
     BUTTON *button = (BUTTON *)this;
@@ -362,6 +371,7 @@ extern const unsigned int r_D_002A4E80[2] __asm__("D_002A4E80") = {0xFFFF0000, (
 // for contact/toggle/Sly buttons that are still held); an up/down button samples what holds it: Sly's interaction
 // (PRESS_SLY_INTERACTION) or an allowed object touching it (PRESS_CONTACT), which is checked one frame later by
 // UpdateButtonPlayerPush through a world callback. (inferred)
+// Also known as: UpdateButton (upstream readable / Sly 1 name; UpdateButton__FP6BUTTONf).
 extern "C" void UpdateButton(BUTTON *button, float dt)
 {
     UpdateSo(button, dt);
@@ -451,6 +461,7 @@ extern "C" void UpdateButton(BUTTON *button, float dt)
 
 // BUTTON vtable slot 75 (absorb a worker hit): after the base absorb, an allowed hit presses a worker button that is
 // up, or toggles a toggle button (pressing it only once resetDelay has passed). Returns the base result.
+// Also known as: FAbsorbButtonWkr (upstream readable / Sly 1 name; FAbsorbButtonWkr__FP6BUTTONP3WKR).
 extern "C" void *TakeButtonDamage(BUTTON *button, WKR *hit)
 {
     void *result = CanSoTakeDamage(button, hit);
@@ -480,6 +491,7 @@ extern "C" void *TakeButtonDamage(BUTTON *button, WKR *hit)
 
 // World callback queued by UpdateButton: presses the button for the object touching it, unless that object is a
 // hero (CID 0x34) in state 0x11 or just entered body state 3 (less than 0.15 s ago), which drops the pusher. (inferred)
+// Also known as: PadTouched (upstream readable / Sly 1 name; PadTouched__FP2LO).
 extern "C" void UpdateButtonPlayerPush(BUTTON *button)
 {
     if (IsBasicDerivedFrom((BASIC *)button->pusher, (CID)0x34))
@@ -514,6 +526,7 @@ extern "C" void UntriggerButton(BUTTON *button)
 
 // May this object press the button? It must be in the push-object list and derive from a push class, each check
 // applying only when its list is non-empty.
+// Also known as: FPadAccepts (upstream readable / Sly 1 name; FPadAccepts__FP3PADi).
 extern "C" int CanObjectPushButton(BUTTON *button, LO *object)
 {
     int i, j;
@@ -583,6 +596,7 @@ extern "C" void RemoveButtonHierarchy(BUTTON *button)
 }
 
 // VOLBTN (cid 0x18) vtable slot 7 (Init): XFM init, BTN defaults, silent, not busy, LO flag 2.
+// Also known as: InitVolbtn (upstream readable / Sly 1 name; InitVolbtn__FP6VOLBTN).
 extern "C" void InitVolbtn(VOLBTN *volumeButton)
 {
     InitXfm(volumeButton);
@@ -594,6 +608,7 @@ extern "C" void InitVolbtn(VOLBTN *volumeButton)
 
 // VOLBTN vtable slot 14 (LoadFromBrx): loads the VOL part and the BTN; a volume button that tracks what is inside stays
 // triggered while occupied.
+// Also known as: LoadVolbtnFromBrx (upstream readable / Sly 1 name; LoadVolbtnFromBrx__FP6VOLBTNP18CBinaryInputStream).
 extern "C" void LoadVolbtnFromBrx(VOLBTN *volumeButton, void *stream)
 {
     LoadVolFromBrx(volumeButton, stream);
@@ -604,6 +619,7 @@ extern "C" void LoadVolbtnFromBrx(VOLBTN *volumeButton, void *stream)
 
 // VOLBTN vtable slot 15 (PostLoad): resolves the segments, starts up; a tracking button allocates its list of the
 // objects inside (func_001AE1D0: 0x100 bytes, heap kind 0x10; inferred).
+// Also known as: PostVolbtnLoad (upstream readable / Sly 1 name; PostVolbtnLoad__FP6VOLBTN).
 extern "C" void PostVolbtnLoad(VOLBTN *volumeButton)
 {
     PostLoLoad(volumeButton);
@@ -619,6 +635,7 @@ extern "C" void PostVolbtnLoad(VOLBTN *volumeButton)
 }
 
 // VOLBTN vtable slot 41 (Clone): XFM clone; the BTN belongs to the clone.
+// Also known as: CloneVolbtn (upstream readable / Sly 1 name; CloneVolbtn__FP6VOLBTNT0).
 void VOLBTN::Clone(LO *baseObject)
 {
     VOLBTN *volumeButton = (VOLBTN *)this;
@@ -638,6 +655,7 @@ extern "C" int CompareVolbtnObjects(LO **first, LO **second)
 // and is down while any of them stands inside the volume (FCheckVolPoint at its position); the first such object
 // is the relay argument. A tracking button also keeps the sorted set of objects inside and sends Splice event 9
 // when it changes.
+// Also known as: UpdateVolbtn (upstream readable / Sly 1 name; UpdateVolbtn__FP6VOLBTNf).
 extern "C" void UpdateVolbtn(VOLBTN *volumeButton, float dt)
 {
     int state;
@@ -795,6 +813,7 @@ extern "C" CRef GetVolbtnPushStateRef(VOLBTN *volumeButton)
 
 // VOLBTN vtable slot 12 (RemoveHierarchy): LO removal; a down or pressed button goes back up, and a tracking
 // button empties its inside list and sends Splice event 9.
+// Also known as: OnRemoveTrigger (upstream readable / Sly 1 name; OnRemoveTrigger__FP2LO).
 extern "C" void RemoveVolbtnHierarchy(VOLBTN *volumeButton)
 {
     RemoveLoHierarchy(volumeButton);

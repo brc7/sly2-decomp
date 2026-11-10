@@ -90,6 +90,7 @@ struct Lock {
 // 0x156548: Creates a noise of type `type` at `pos`: allocates and clears a record from the world's noise pool,
 // stamps the emit time and a serial id, appends it to the active list g_sw.dlStimulus, binds the type's frame and
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
+// Also known as: PnoiseNew (upstream readable / Sly 1 name; PnoiseNew__FP9NOISETMPLG9VU_VECTORiP6VECTOR).
 extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outNoise)
 {
     CID147 *noise = (CID147 *)AllocZeroedFromSlotheap(&g_sw.slotheapStimulus);
@@ -122,6 +123,7 @@ extern "C" CID147 *NewNoise(CID117 *type, qword pos, int loudness)
 }
 
 // 0x1566B8: Noise (CID147) vtable slot 1: adds a reference.
+// Also known as: AddRefNoise (upstream readable / Sly 1 name; AddRefNoise__FP5NOISE).
 void CID147::AddRef()   /* key function: CID147's vtable comes out here */
 {
     refCount++;
@@ -129,6 +131,7 @@ void CID147::AddRef()   /* key function: CID147's vtable comes out here */
 
 // 0x1566C8: Noise vtable slot 2: drops a reference; at zero, clears its frame and side-bag references, unsubscribes
 // it and frees it back to the world's noise pool.
+// Also known as: ReleaseNoise (upstream readable / Sly 1 name; ReleaseNoise__FP5NOISEi).
 extern "C" void ReleaseNoise(CID147 *noise)
 {
     int refCount = noise->refCount - 1;
@@ -143,6 +146,7 @@ extern "C" void ReleaseNoise(CID147 *noise)
 
 // 0x156728: Removes the noise once its type's lifetime has elapsed (a negative lifetime lasts until removed
 // explicitly).
+// Also known as: ExpireNoises (upstream readable / Sly 1 name; ExpireNoises__FPv).
 extern "C" void ExpireNoise(CID147 *noise)
 {
     float duration = noise->type->duration;
@@ -164,6 +168,7 @@ public:
 };
 // 0x156780: Ends a noise: notifies its subscribers (message 0xF), unlinks it from the active list, sends message 3
 // (removed) and drops the list's reference. Safe to call on an already removed noise.
+// Also known as: RemoveNoise (upstream readable / Sly 1 name; RemoveNoise__FP5NOISE).
 extern "C" void RemoveNoise(CID147 *noise)
 {
     if (IsNoiseRemoved(noise))
@@ -185,6 +190,7 @@ extern "C" int IsNoiseRemoved(CID147 *noise)
 
 // 0x156898: Current audible radius: the type's range scaled by a quadratic ramp over the first min(1 s, lifetime)
 // after emission (constant range for lasting noises).
+// Also known as: SRadiusNoise (upstream readable / Sly 1 name; SRadiusNoise__FP5NOISE).
 extern "C" float GetNoiseRadius(CID147 *noise)
 {
     CID117 *type = noise->type;
@@ -200,6 +206,7 @@ extern "C" float GetNoiseRadius(CID147 *noise)
 // VU0 helper: z component of a vector.
 // 0x156918: True if `pos` is inside the noise: within the type's height window above/below the emitter and within
 // the current radius in the horizontal plane.
+// Also known as: FNoiseReaches (upstream readable / Sly 1 name; FNoiseReaches__FP5NOISEG9VU_VECTOR).
 extern "C" int IsPositionInNoise(CID147 *noise, qword pos)
 {
     qword offset, lengthSquared;
@@ -286,6 +293,7 @@ extern "C" void EmitSwNoise(SW *world, int kind, qword pos, int loudness)
 // 0x156BE0: Replaces a held noise: removes and releases the one in `heldNoise` (if any), then creates a new one of
 // `type` (if non-null) and holds a reference to it. Used for noises that follow their emitter (pain, sleep,
 // yelling).
+// Also known as: SetHeldNoise (upstream readable / Sly 1 name; SetHeldNoise__FPP5NOISEG9VU_VECTORiP2LO).
 extern "C" void ReplaceHeldNoise(CID117 *type, qword pos, int loudness, CID147 **heldNoise)
 {
     if (*heldNoise) {
@@ -337,6 +345,7 @@ void CID47::AddHierarchy()
 
 // 0x156D58: Listener vtable slot 12 (RemoveHierarchy): LO base, drops every held noise and unlinks from
 // g_sw.dlCid47.
+// Also known as: OnRemoveNoiseListener (upstream readable / Sly 1 name; OnRemoveNoiseListener__FP2LO).
 extern "C" void RemoveListenerHierarchy(CID47 *listener)
 {
     RemoveLoHierarchy(listener);
@@ -372,6 +381,7 @@ extern "C" void DropListenerNoises(CID47 *listener, int dropAll)
 
 // 0x156EB8: Listener vtable slot 16 (Update): LO update, drops dead noises, then picks up at most one new noise
 // from the active list that it can hear, holding a reference and sending itself message 5 (heard a noise).
+// Also known as: UpdateNoiseListener (upstream readable / Sly 1 name; UpdateNoiseListener__FP2LO).
 extern "C" void UpdateListener(CID47 *listener)
 {
     CID147 *noise;
@@ -409,6 +419,7 @@ static __inline__ float DistXY(qword d)
 static __inline__ int IsWithinXY(qword d, float g) { return DistXY(d) < g; }
 // 0x156FE8: True if the listener is in the world and the noise is audible (its type not muted) with the listener
 // inside its height window and range.
+// Also known as: FListenerHearsNoise (upstream readable / Sly 1 name; FListenerHearsNoise__FP2LOP5NOISE).
 extern "C" int CanListenerHearNoise(CID47 *listener, CID147 *noise)
 {
     CID117 *type;

@@ -213,6 +213,7 @@ extern "C" SW *SW_ctor(SW *world)
 } // namespace M_SW_ctor
 
 // Posts a level transition: sets isTransitionPending and copies the request to SW::transition for ExecuteSwTransition.
+// Also known as: RestoreChkmgrFromCheckpoint (upstream readable / Sly 1 name; RestoreChkmgrFromCheckpoint__FP6CHKMGR).
 extern "C" void SetSwTransition(SW *world, TRANS *request)
 {
     world->isTransitionPending = 1;
@@ -243,6 +244,7 @@ void FreeSw__Fv(void) __asm__("FreeSw__Fv");
 
 // Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
 // manager, clears about 15 global object pointers and frees the world's memory.
+// Also known as: UnloadWorld (upstream readable / Sly 1 name; UnloadWorld__FPv).
 extern "C" void DeleteSw(SW *world)
 {
     void *pv = &g_game;
@@ -365,7 +367,7 @@ extern "C" void CreateSwScreenTint(S *world)
 // A Lilly port at file scope: its types complete basic.h forward declarations (used by the m2c bodies below too).
 // ResolveSwSaveVars: ported from Lilly's personal Sly 2 decomp (src/P2/sw.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: g_game (g_game), D_002E1E54 (g_nLang), D_003D4A60 (g_savedata), D_002A39E8 (g_apchzWorld)
+// Globals: g_game, D_002E1E54 (g_nLang), D_003D4A60 (g_savedata), D_002A39E8 (g_apchzWorld)
 // 0x0020E3C0 ResolveSwSaveVars__FP2SW  (T1037)
 // Once the level file has named its save variables (LoadSaveVarsFromBrx), looks up the paths the game itself reads and writes by name (SW 0x3B1C..:
 // the language and sound settings in "flags", the job and world of this level, each world's "dt" and "percent_complete") and stores the current
@@ -468,6 +470,7 @@ void SetupCm__FP2CM(void *p) __asm__("SetupCm__FP2CM");
 
 // After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
 // until the queue is empty, resets the camera and runs game callback 4.
+// Also known as: StartSw (upstream readable / Sly 1 name; StartSw__FP2SW).
 extern "C" void PostSwLoad(SW *world)
 {
     LO **ppo;
@@ -576,6 +579,7 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
 // Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
 // the BRX (LoadSwFromBrx, PostSwLoad), restores the checkpoint and the current actor, sets up the camera and runs game
 // callback 5. Called once per frame by the main loop.
+// Also known as: PswUpdateTransition (upstream readable / Sly 1 name; PswUpdateTransition__FP2SW).
 extern "C" void ExecuteSwTransition(SW *world)
 {
     if(!world->isTransitionPending)return;
@@ -665,6 +669,7 @@ void AcquireSwLetterbox(SW *p) __asm__("AcquireSwLetterbox");
 void IncrementSwInputLock(SW *p) __asm__("IncrementSwInputLock");
 // Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
 // flag 2 also locks input.
+// Also known as: PauseGame (upstream readable / Sly 1 name; PauseGame__FP9GAMEPAUSEi).
 extern "C" void IncrementSwHandsOff(SW *world, int fl)
 {
     if (++world->handsOffCount == 1) AddGrfusr__Fi(2);
@@ -679,6 +684,7 @@ void ClearJoyButtons(JOY *pjoy, int grfbtn) __asm__("ClearJoyButtons");
 void ReleaseSwLetterbox(SW *p) __asm__("ReleaseSwLetterbox");
 void DecrementSwInputLock(SW *p) __asm__("DecrementSwInputLock");
 // Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
+// Also known as: ResumeGame (upstream readable / Sly 1 name; ResumeGame__FP9GAMEPAUSEi).
 extern "C" void DecrementSwHandsOff(SW *world, int grf)
 {
     if (--world->handsOffCount == 0) {
@@ -691,6 +697,7 @@ extern "C" void DecrementSwHandsOff(SW *world, int grf)
 } // namespace M_DecrementSwHandsOff
 
 // True while the player has no control (hands-off count > 0).
+// Also known as: IsSwHandsOff (upstream readable / Sly 1 name; IsSwHandsOff__FP2SW).
 extern "C" int IsSwHandsOff(SW *world)
 {
     return world->handsOffCount > 0;
@@ -698,6 +705,7 @@ extern "C" int IsSwHandsOff(SW *world)
 
 // Disables pausing (counted; used by cutscene hands-off and the recon mode).
 // Lilly's jtmode.c port calls it IncrementSwNoPause too.
+// Also known as: PauseTalk (upstream readable / Sly 1 name; PauseTalk__FP2SW).
 extern "C" void IncrementSwNoPause(SW *world)
 {
     if (++world->noPauseCount == 1) {
@@ -706,6 +714,7 @@ extern "C" void IncrementSwNoPause(SW *world)
 }
 
 // Re-enables pausing (counted).
+// Also known as: ResumeTalk (upstream readable / Sly 1 name; ResumeTalk__FP2SW).
 extern "C" void DecrementSwNoPause(SW *world)
 {
     if (--world->noPauseCount == 0) {
@@ -890,6 +899,8 @@ extern FILEREC *D_003E1C50 __asm__("D_003E1C50");
 extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream) __asm__("LoadLevelTableFromBrx");
 // Reads the level table: per level its file record, world, episode, entry flag and level numbers (fills the level
 // list, the world and episode of each level and the world entry records).
+// Also known as: LoadWorldRecordsFromBrx (upstream readable / Sly 1 name;
+//   LoadWorldRecordsFromBrx__FP2SWP18CBinaryInputStream).
 extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream)
 {
     D_003E1C38 = stream->U32Read();
@@ -922,6 +933,7 @@ extern int D_003E1C58 __asm__("D_003E1C58");
 int S32Read__18CBinaryInputStream(void *stream) __asm__("S32Read__18CBinaryInputStream");
 // Reads the header (size, id) of the data block shared across levels and flags a reload when the id changed or when
 // forced. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadBulkHeaderFromBrx (upstream readable / Sly 1 name; LoadBulkHeaderFromBrx__FiPv).
 extern "C" void LoadSwSharedHeaderFromBrx(int a, void *stream)
 {
     int x = S32Read__18CBinaryInputStream(stream);
@@ -949,6 +961,7 @@ void Skip__18CBinaryInputStreami(void *q, int a) __asm__("Skip__18CBinaryInputSt
 void AllocGsbBitmaps(void *p) __asm__("AllocGsbBitmaps");
 // Reads the shared data block when it changed (and rebuilds from it), otherwise skips it and reuses the loaded copy.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadBulkFromBrx (upstream readable / Sly 1 name; LoadBulkFromBrx__FP4SHDSP18CBinaryInputStream).
 extern "C" void LoadSwSharedDataFromBrx(void *world, void *q)
 {
     Align__18CBinaryInputStreami(q, 0x10);
@@ -1011,6 +1024,7 @@ void SetSndSourceLo(void *p, void *source) __asm__("SetSndSourceLo");
 
 // Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
 // (0x30/0x31) once a second. (inferred)
+// Also known as: StackCounters (upstream readable / Sly 1 name; StackCounters__FP2SW).
 extern "C" void UpdateSwTimerHud(SW *world)
 {
     float z;
@@ -1050,6 +1064,7 @@ namespace M_FFilterSoPair {
 int MaxInt(int a, int b) __asm__("MaxInt");
 // Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
 // or 3.
+// Also known as: NOverlapKind (upstream readable / Sly 1 name; NOverlapKind__FP3ALOT0).
 extern "C" int ShouldKeepSoPair(SOTREE *object, SOPART *e)
 {
     SOTREE *ps = e->owner->physicsTree;
@@ -1220,6 +1235,7 @@ extern "C" { int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsm
     __asm__("AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25"); }
 // Adds or updates a rsmg record ((root, state machine) -> goal on trigger or untrigger) in a bounded array.
 // (Sly 1-derived name: FAddRsmg.)
+// Also known as: FAddRsmg (upstream readable / Sly 1 name; FAddRsmg__FP4RSMGiPii3OIDN24).
 extern "C" int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
 {
     int i;
@@ -1253,6 +1269,7 @@ namespace M_TriggerRsmg {
 typedef struct QW { int a[4]; } QW;
 void TriggerOneRsmg(void *p, QW *pq, int a, int b, int c, int d) __asm__("TriggerOneRsmg");
 // Applies every rsmg record of an array (TriggerOneRsmg on each).
+// Also known as: ApplyRsmg (upstream readable / Sly 1 name; ApplyRsmg__FP2LOiP4RSMGii).
 extern "C" void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 {
     int i;
@@ -1329,6 +1346,7 @@ struct O { char pad[0x40]; struct E *e; };
 struct E { unsigned int grf; struct O *o; };
 // Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
 // when it is full or more than 10% holes.
+// Also known as: AddLoToUpdateTable (upstream readable / Sly 1 name; AddLoToUpdateTable__FP2SWP2LO).
 extern "C" void AddLoToSwUpdateList(SW *g, struct O *o)
 {
     struct E *e;
@@ -1366,6 +1384,7 @@ extern "C" void AddLoToSwUpdateList(SW *g, struct O *o)
 
 // Takes an object off the update array: restores its +0x40 word, clears the entry and counts the hole.
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
+// Also known as: RemoveLoFromUpdateTable (upstream readable / Sly 1 name; RemoveLoFromUpdateTable__FP2SWP2LO).
 extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
     int n = plo->unknown40;
@@ -1417,6 +1436,7 @@ extern void FadeSoIn(X *p, float f) __asm__("FadeSoIn");
 extern void FadeSoOut(X *p, float f) __asm__("FadeSoOut");
 // Animation event 7/8: shows or hides an object, fading SOs in or out over dt when dt is non-zero, else adding or
 // removing it.
+// Also known as: AddRemoveByOid (upstream readable / Sly 1 name; AddRemoveByOid__FPv3OIDif).
 extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
 {
     X *p = FindSwObject__FP2SWi3OIDP2LO(pv, 4, id);
@@ -1530,6 +1550,7 @@ void SetSoEyesClosed(void *p, float f) __asm__("SetSoEyesClosed");
 void SetEyesClosed(void *p, float f) __asm__("SetEyesClosed");
 // Animation event 20: sets how closed the eyes are, on the target SO's EYES children (SetSoEyesClosed) or on an EYES
 // object (SetEyesClosed).
+// Also known as: SetEyesClosedOf (upstream readable / Sly 1 name; SetEyesClosedOf__FP2LOiif).
 extern "C" void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
 {
     void *p1 = 0;
@@ -1571,6 +1592,7 @@ void RcPtr_Assign(CID151 **, CID151 *) __asm__("RcPtr_Assign");
 extern "C" { static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;} }
 // Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
 // looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
+// Also known as: PlayAsegaSound (upstream readable / Sly 1 name; PlayAsegaSound__FfffPviiiiN33PPv).
 extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, CID151 **out)
 {
     struct O *o;
@@ -1603,6 +1625,7 @@ struct O { char pad[0x60]; int id; };
 void StopSnd(struct O *p, float f) __asm__("StopSnd");
 void RcPtr_Assign(struct O **pp, int a) __asm__("RcPtr_Assign");
 // Animation event 1: stops the stored looping sound (optionally only with a matching id) and releases it.
+// Also known as: StopAsegaSound (upstream readable / Sly 1 name; StopAsegaSound__FP5ASEGAiPvT2).
 extern "C" void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 {
     struct O *p = *pp;

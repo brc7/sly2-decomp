@@ -98,6 +98,7 @@ void InitJtgoal(JTGOAL *pv, STEPPLAYER *p) __asm__("InitJtgoal");
 void SetSoZapResponse(STEPPLAYER *p, int mask, int n) __asm__("SetSoZapResponse");
 // STEPPLAYER Init (vtable slot 7), shared by Sly, Bentley and Murray: STEP init, then the embedded components (air
 // +0x2C0, grab +0x4C0, places +0x9E0, hurt +0xDF0, mode +0xF00, pipe +0xF50, throw ...) and the player defaults.
+// Also known as: InitActorFields (upstream readable / Sly 1 name; InitActorFields__FP5ACTOR).
 extern "C" void InitStepplayer(STEPPLAYER *player)
 {
     InitStep(player);
@@ -159,6 +160,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void PostSwCallback(SW *, STEPPLAYER *, long, int) __asm__("PostSwCallback");
 
 // STEPPLAYER post-load (slot 15): STEP base, then each component's post-load, hp/mp binding and gadget slots.
+// Also known as: PostLoadActorParts (upstream readable / Sly 1 name; PostLoadActorParts__FP5ACTOR).
 extern "C" void PostLoadStepplayer(STEPPLAYER *player)
 {
     void *apv[16];
@@ -219,6 +221,7 @@ void RestartHudWidget2(void *p) __asm__("RestartHudWidget2");
 void *CreateSfxSound(int n) __asm__("CreateSfxSound");
 void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
 // On the hint button (mask 0x200) when allowed, dismisses/acknowledges the pending hint. (inferred)
+// Also known as: ShowWorldStats (upstream readable / Sly 1 name; ShowWorldStats__Fv).
 extern "C" void AcknowledgeStepplayerHint(void)
 {
     if (!GetCurrentWorld())
@@ -291,6 +294,7 @@ namespace M_UpdateStepplayerInteractCandidates {
 extern float D_002A4D18 __asm__("D_002A4D18");
 int GuardEvalInteractMode(STEPGUARD *pso, STEPPLAYER *p, float *pg) __asm__("GuardEvalInteractMode");
 // Unless interaction is locked (+0x10E0), scans the guard list for interact candidates (pickpocket/takedown).
+// Also known as: PickActorTargets (upstream readable / Sly 1 name; PickActorTargets__FP5ACTOR).
 extern "C" void UpdateStepplayerInteractCandidates(STEPPLAYER *player)
 {
     STEPGUARD *so, *pso0, *pso1;
@@ -325,6 +329,7 @@ extern "C" void UpdateStepplayerInteractCandidates(STEPPLAYER *player)
 namespace M_SetStepplayerPlayerInteractMode {
 void ReleaseInteractTargetMark(STEPPLAYER *p, int a, LO *b, int c, LO *d) __asm__("ReleaseInteractTargetMark");
 // Slot 95: stores the interact kind, target, mode and fight target.
+// Also known as: SetActorTargets (upstream readable / Sly 1 name; SetActorTargets__FP5ACTORiiii).
 extern "C" void SetStepplayerPlayerInteractMode(STEPPLAYER *player, int a, LO *b, int c, LO *d)
 {
     if (b != player->interactTarget) ReleaseInteractTargetMark(player, a, b, c, d);
@@ -340,6 +345,7 @@ void SetPoCtlState(void *p, int n) __asm__("SetPoCtlState");
 void SetSoTargetRecordParams(void *p, int a, int b) __asm__("SetSoTargetRecordParams");
 void ClearBhvstk__FP6BHVSTK(void *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // Slot 79: PO control state, then the camera hookup; on becoming the current player refreshes the HUD/camera.
+// Also known as: SetActorControl (upstream readable / Sly 1 name; SetActorControl__FP2LOi).
 extern "C" void SetStepplayerCtlState(char *player, int n)
 {
     SetPoCtlState(player, n);
@@ -361,6 +367,7 @@ void CreateNoise(void *a, qword pos, STEPPLAYER *p, int n) __asm__("CreateNoise"
 extern "C" { static inline float MaxF(float a, float b) { return b > a ? b : a; } }
 
 // If a hide noise source exists: smooths the hide blend toward 1 while hidden, 0 otherwise.
+// Also known as: UpdateActorNoise (upstream readable / Sly 1 name; UpdateActorNoise__FP5ACTOR).
 extern "C" void UpdateStepplayerHideBlend(STEPPLAYER *player)
 {
     int k;
@@ -414,6 +421,7 @@ int StepguardHasSgf(STEPGUARD *pstepguard, int n) __asm__("StepguardHasSgf");
 int CanListenerHearNoise(struct X *px, void *q) __asm__("CanListenerHearNoise");
 void RemoveNoise(void *q) __asm__("RemoveNoise");
 // 2 if in a look mode or no hide query is possible; else 1 if any guard can see the player, 0 otherwise. (inferred)
+// Also known as: NActorPerceived (upstream readable / Sly 1 name; NActorPerceived__FP5ACTOR).
 extern "C" int TestStepplayerHidden(STEPPLAYER *player)
 {
     int unused[4];
@@ -448,6 +456,7 @@ extern float D_002BCC7C __asm__("D_002BCC7C"), D_002BCC80 __asm__("D_002BCC80"),
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // True in interact mode 4 (kind != 3) when the target is within reach.
+// Also known as: FActorTargetInReach (upstream readable / Sly 1 name; FActorTargetInReach__FP5ACTORi).
 extern "C" int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 {
     float gDist, minValue, maxValue;
@@ -499,6 +508,7 @@ extern "C" void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v
 } // namespace M_func_00140C30
 
 // If this is the current player, swaps the camera TN override (+0x1024).
+// Also known as: SetActorZone (upstream readable / Sly 1 name; SetActorZone__FP5ACTORP2LO).
 extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
 {
     STEPPLAYER *pstepplayerHero = GetHeroPo(&g_sw);
@@ -519,6 +529,7 @@ void AddJtWallRunXps(void *p) __asm__("AddJtWallRunXps");
 void UpdateJtInternalXpsHide(void *p) __asm__("UpdateJtInternalXpsHide");
 void UpdateJtInternalXpsPipe(void *p) __asm__("UpdateJtInternalXpsPipe");
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
+// Also known as: RegisterActorContacts (upstream readable / Sly 1 name; RegisterActorContacts__FP3ALO).
 extern "C" void AddStepplayerComponentXps(char *player)
 {
     IgnoreSoSlot59(player);
@@ -529,6 +540,7 @@ extern "C" void AddStepplayerComponentXps(char *player)
 } // namespace M_func_00140D00
 
 // Slot 58: STEP base, then FreeJtWallRunXps when in the air. (inferred: frees component contacts)
+// Also known as: FindActorFloor (upstream readable / Sly 1 name; FindActorFloor__FP3ALO).
 void STEPPLAYER::AdjustXps()   /* key function: STEPPLAYER's vtable comes out here */
 {
     STEPPLAYER *player = this;
@@ -556,6 +568,7 @@ extern int D_002F7900 __asm__("D_002F7900");
 int IsStepplayerPushing(STEPPLAYER *p) __asm__("IsStepplayerPushing");
 void CalculateSoContactResponse(STEPPLAYER *p, void *a, struct S *s, void *b, int i) __asm__("CalculateSoContactResponse");
 // Slot 68 (contact impulse): special handling when the other body is one of the player characters.
+// Also known as: FillActorDzResponse (upstream readable / Sly 1 name; FillActorDzResponse__FP3ALOP2DZP5DZENTPvi).
 extern "C" void HandleStepplayerContactImpulse(STEPPLAYER *player, void *a, struct S *s, void *b, int i)
 {
     QWROW c;
@@ -591,6 +604,7 @@ extern void *D_003D4A54 __asm__("D_003D4A54");
 int IsPoCurrent(void *p) __asm__("IsPoCurrent");
 int ShouldStepplayerIgnoreZap(void *p, int a) __asm__("ShouldStepplayerIgnoreZap");
 // Slot 76 base: invulnerable while a look mode runs, in air state 0x15, or while the global invulnerability flag is set.
+// Also known as: FActorImmune (upstream readable / Sly 1 name; FActorImmune__FP5ACTORi).
 extern "C" int IsStepplayerInvulnerable(char *player, int a)
 {
     if (*(int *)(player + 0xF20) == 1) return 1;
@@ -601,12 +615,14 @@ extern "C" int IsStepplayerInvulnerable(char *player, int a)
 } // namespace M_STEPPLAYER_FInvulnerable
 
 // Slot 75: forwards the damage to the hurt component (TakeJtDamage).
+// Also known as: FActorAcceptContact (upstream readable / Sly 1 name; FActorAcceptContact__FP3ALO).
 extern "C" void TakeStepplayerDamage(STEPPLAYER *player, ZPR *damage)
 {
     TakeJtDamage(&player->jthurt, damage);
 }
 
 // Slot 77: the hurt component status (GetJtHurtStatus).
+// Also known as: NActorDamageStatus (upstream readable / Sly 1 name; NActorDamageStatus__FP2LO).
 int STEPPLAYER::GetHealthState()
 {
     return GetJtHurtStatus(&jthurt);
@@ -628,7 +644,7 @@ namespace M_HandleStepplayerMessage {
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
 typedef int qword __attribute__((mode(TI)));
-/* g_pdliFirst (g_pdliFirst): sly2/dli.h's declaration (one entity with the inline DLI helpers) */
+/* g_pdliFirst: sly2/dli.h's declaration (one entity with the inline DLI helpers) */
 #define F(T, p, off) (*(T *)((char *)(p) + (off)))
 struct SO { char pad[0x18]; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
@@ -669,6 +685,7 @@ extern "C" { static inline void *NextDliItem(DLI *pdli)
 } }
 
 // STEPPLAYER message handler (slot 5): message 3 (reset), animation events (message 9 kinds 0x15E/0x161 ...).
+// Also known as: HandleActorMessage (upstream readable / Sly 1 name; HandleActorMessage__FP5ACTOR5MSGIDPv).
 extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
 {
     switch (msg) {
@@ -842,6 +859,7 @@ namespace M_GetStepplayerCmFocusPos {
 void GetJtPipePosition(JTPIPE *pjtpipe, VECTOR4 *ppos) __asm__("GetJtPipePosition");
 qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
 // Slot 97: the camera focus point (the pipe hand position on a pipe, else the world position raised in z).
+// Also known as: PosActorFocus (upstream readable / Sly 1 name; PosActorFocus__FP5ACTORP9ACTORPOSE).
 extern "C" void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
 {
     float z;
@@ -889,6 +907,7 @@ void AddJtHurtCpdefiFlags(void *, struct XP *) __asm__("AddJtHurtCpdefiFlags");
 extern "C" { static __inline__ float EvaluatePoly(float x, float a, float b, float c) { return a + x * (b + x * c); } }
 
 // STEPPLAYER camera definition (slot 50): SO base, then the camera focus height and flags.
+// Also known as: GetActorCmTarget (upstream readable / Sly 1 name; GetActorCmTarget__FP5ACTORP9ACTORPOSE).
 extern "C" void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
 {
     GetSoCameraDefaults(jt, xp);
@@ -966,6 +985,7 @@ qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
 qword CalculateBallisticLaunchVelocity(qword a, qword b, float g, qword c) __asm__("CalculateBallisticLaunchVelocity");
 void SetJtAirJump(JTAIR *p, int a, int b, int c) __asm__("SetJtAirJump");
 // Splice: computes the ballistic velocity from the player's position toward a target and applies it.
+// Also known as: LaunchActorTo (upstream readable / Sly 1 name; LaunchActorTo__FP5ACTORG9VU_VECTORff).
 extern "C" void LaunchStepplayer(STEPPLAYER *player, qword v, float g, float h)
 {
     union { qword q; float f[4]; } pos;
@@ -1043,6 +1063,7 @@ int STEPPLAYER::CanUseGadget(int gadgetId)
 }
 
 // Changes a gadget slot's state: leaving 1 stops the gadget (slot 102); stamps the time.
+// Also known as: SetAbilityState (upstream readable / Sly 1 name; SetAbilityState__FP5ACTORP6ABSLOTi).
 extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int state)
 {
     if (pslot->state == state)
@@ -1189,6 +1210,7 @@ int sprintf(char *pch, const char *fmt, ...) __asm__("sprintf");
 
 CRef SetSaveVarByName(const CRef &ref, void *o, const char *fmt, ...) __asm__("SetSaveVarByName");
 // Assigns a gadget id to slot i: stops the old one, clears duplicates in other slots, writes the save variable.
+// Also known as: SetActorAbilitySlot (upstream readable / Sly 1 name; SetActorAbilitySlot__FP5ACTORii).
 extern "C" void SetStepplayerGadget(STEPPLAYER *player, unsigned int i, int id)
 {
     if (!(i < 3))
@@ -1213,6 +1235,7 @@ extern "C" void SetStepplayerGadget(STEPPLAYER *player, unsigned int i, int id)
 } // namespace M_SetStepplayerGadget
 
 // Splice: with an object enters grab state 5 on it; without, leaves state 5.
+// Also known as: SetActorInteractObject (upstream readable / Sly 1 name; SetActorInteractObject__FP5ACTORi).
 extern "C" void SetStepplayerGrabTarget(STEPPLAYER *player, LO *lo)
 {
     if (lo != 0) {
@@ -1317,6 +1340,7 @@ extern "C" { static __inline__ float DistanceBetween(qword a, qword b)
     return g;
 } }
 // Splice predicate: true unless in grab state 5 with a target farther than 5 units from its goal.
+// Also known as: FActorPoseDone (upstream readable / Sly 1 name; FActorPoseDone__FP5ACTOR).
 extern "C" int IsStepplayerGrabReady(STEPPLAYER *player)
 {
     struct BUF buf;
@@ -1345,6 +1369,7 @@ extern "C" int IsStepplayerNotInGrabState9(STEPPLAYER *player)
 }
 
 // Enters grab state 0xC with the given (or default) parameter.
+// Also known as: StartPrizeInteract (upstream readable / Sly 1 name; StartPrizeInteract__FP5ACTORP4ASEGP2LOi).
 extern "C" void StartStepplayerGrabStateC(STEPPLAYER *player, ASEG *aseg, LO *lo, int n)
 {
     if (aseg == 0) {
@@ -1366,6 +1391,7 @@ typedef int qword __attribute__((mode(TI)));
 BHV *PushStepBehavior(STEPPLAYER *p, int n) __asm__("PushStepBehavior");
 // Splice op 446: clears the behaviour stack and, with a leader, starts following it.
 // Runtime: the task t1_recon_brawl uses it to make Murray follow Sly.
+// Also known as: SetActorFollow (upstream readable / Sly 1 name; SetActorFollow__FP5ACTORiG9VU_VECTOR).
 extern "C" void StartStepplayerFollow(STEPPLAYER *player, PO *leader, qword q)
 {
     BHVFOLLOW *o;
@@ -1387,6 +1413,7 @@ void RefreshSoBoundsRecord(STEPPLAYER *p) __asm__("RefreshSoBoundsRecord");
 float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n) __asm__("SmoothValue__FfffP3SMPPf");
 void RenderSoGlobset(GLOBSET *p, int n, struct SOBOUNDS *m, float a, float b) __asm__("RenderSoGlobset");
 // Slot 19: renders when visible to the current camera; smooths the transparency.
+// Also known as: DrawActor (upstream readable / Sly 1 name; DrawActor__FP5ACTOR).
 extern "C" void RenderStepplayerSelf(STEPPLAYER *player)
 {
     float g0, g1;
@@ -1434,6 +1461,7 @@ extern "C" { static __inline__ MATRIX3Q MulM3(MATRIX3Q *pa, MATRIX3Q *pb)
     return m;
 } }
 // Finds the start-marker child and places the player relative to it.
+// Also known as: AttachActorLook (upstream readable / Sly 1 name; AttachActorLook__FP5ACTORi).
 extern "C" void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
 {
     XF *so = FindSoXf(player, x, 6);
@@ -1455,6 +1483,7 @@ extern "C" void AttachStepplayerToStartMarker(STEPPLAYER *player, int x)
 } // namespace M_func_001426E8
 
 // Sets the lean target object (+0x10F8) and lean kind (+0x10FC); restarts the idle timer on a new target.
+// Also known as: SetActorLookTarget (upstream readable / Sly 1 name; SetActorLookTarget__FP5ACTORiP2LO).
 extern "C" void SetStepplayerLeanTarget(STEPPLAYER *player, int nLeanKind, LO *ploLean)
 {
     if (!(ploLean != player->ploLean || nLeanKind != player->leanKind))
@@ -1490,6 +1519,7 @@ namespace RO_ORDER { extern const char r_D_002A4D58[] __asm__("D_002A4D58") = "a
 namespace RO_ORDER { extern const float r_D_002A4D60 __asm__("D_002A4D60") = 3.40282347e+38f; }
 namespace M_func_00142868 {
 // Sets an idle timer's kind and makes it never fire (FLT_MAX).
+// Also known as: ActorSetLookFlag (upstream readable / Sly 1 name; ActorSetLookFlag__FP5ACTORi).
 extern "C" void InitIdleTimer(STEPPLAYER *p, int a)
 {
     p->idleKind = a;
@@ -1518,7 +1548,7 @@ extern "C" void ScheduleIdleTimer(STEPPLAYER *p)
 namespace M_HeroInteractDistance {
 // GetHeroInteractDistance: ported from Lilly's personal Sly 2 decomp (src/P2/stepplayer_raw.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BD280 (D_002BD280), D_002BD290 (D_002BD290), D_002BD2A0 (D_002BD2A0), D_002BD2B0 (D_002BD2B0), g_lmZeroOne (g_lmZeroOne)
+// Globals: D_002BD280 (D_002BD280), D_002BD290 (D_002BD290), D_002BD2A0 (D_002BD2A0), D_002BD2B0 (D_002BD2B0), g_lmZeroOne
 // 0x001428D8 GetHeroInteractDistance  (T1414, our name)
 // How far an object is from the hero as the interact pickers rank it: *psDist = the xy distance |hero - plo| plus a bias, *pdz = the height difference (hero - plo)
 // plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->interactTarget, *pdz is tested against the guard's height window;
@@ -1589,6 +1619,7 @@ static inline float EvaluateClqClamped(CLQ *clq, LM *range, float x)
 extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 extern "C" void GetHeroInteractDistance(STEPPLAYER *pstepplayer, LO *plo, LO **pploCur, float *psDist, float *pdz) __asm__("GetHeroInteractDistance");
 // Distance score of an object for interact picking: xy distance plus biases (hysteresis for the current target).
+// Also known as: LookScore (upstream readable / Sly 1 name; LookScore__FP5ACTORP2LOPP2LOPfT3).
 extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur, float *psDist, float *pdz)
 {
     float sBias = 0.0f;
@@ -1694,6 +1725,7 @@ static inline float InverseLerp(float g, float a, float b)
 static inline float X(const MATRIX3Q &m, int i) { return ((float *)&m.r[0].q)[i]; }
 
 // Per-frame interact/lean target pick: ranks candidates with GetHeroInteractDistance.
+// Also known as: UpdateActorLook (upstream readable / Sly 1 name; UpdateActorLook__FP5ACTOR).
 void PickHeroInteractTarget(P *p)
 {
     int f;
@@ -1809,6 +1841,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertPosBetweenLos(void *pm, STEPPLAYER *p, qword v) __asm__("ConvertPosBetweenLos");
 float atan2f(float y, float x) __asm__("atan2f");
 // Lean flags from the lean target's direction (quadrant in local space) and the lean kind.
+// Also known as: GrfActorLookMask (upstream readable / Sly 1 name; GrfActorLookMask__FP5ACTOR).
 extern "C" int GetStepplayerLeanFlags(STEPPLAYER *player)
 {
     int n;
@@ -1836,6 +1869,7 @@ extern "C" int GetStepplayerLeanFlags(STEPPLAYER *player)
 
 /* Clears the interaction target's behaviour 0xB1 hold on this player. */
 // If the interact target's takedown behaviour (0xB1) points at the player, clears its mark.
+// Also known as: StopNearestLaunchTracking (upstream readable / Sly 1 name; StopNearestLaunchTracking__FP5ACTOR).
 extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 {
     BHV *pbhv;
@@ -1852,6 +1886,7 @@ typedef int qword __attribute__((mode(TI)));
 extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
+// Also known as: GetSlyLaunchTarget (upstream readable / Sly 1 name; GetSlyLaunchTarget__FP3SLYPvf).
 extern "C" void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
 {
     qword v, h, pos, s, r;
@@ -1882,6 +1917,7 @@ void *AcquireProxyObject(void *p, int n) __asm__("AcquireProxyObject");
 void SelectBootyEntry(void *p, int n) __asm__("SelectBootyEntry");
 void SetBootyState(void *p, int n) __asm__("SetBootyState");
 // If carrying booty not shown yet: releases the old marker and clones the template.
+// Also known as: GiveActorBooty (upstream readable / Sly 1 name; GiveActorBooty__FP5ACTORi).
 extern "C" void SpawnStepplayerBootyMarker(char *player, int n)
 {
     void *q = *(void **)(player + 0x11A8);
@@ -1899,6 +1935,7 @@ extern "C" void SpawnStepplayerBootyMarker(char *player, int n)
 } // namespace M_func_001432E0
 
 // If carrying booty: booty save case 2 (dropped), its state 5.
+// Also known as: DropActorBooty (upstream readable / Sly 1 name; DropActorBooty__FP5ACTORii).
 extern "C" void DropStepplayerBooty(STEPPLAYER *player)
 {
     if (PBOOTY(player) != 0) {
@@ -1908,6 +1945,7 @@ extern "C" void DropStepplayerBooty(STEPPLAYER *player)
 }
 
 // If carrying booty: booty save case 1 (clears the carried id, increments the loot count of its kind).
+// Also known as: ReturnActorBooty (upstream readable / Sly 1 name; ReturnActorBooty__FP5ACTORii).
 extern "C" void DeliverStepplayerBooty(STEPPLAYER *player)
 {
     if (PBOOTY(player) != 0) {
@@ -1941,6 +1979,7 @@ static inline void *Alloc(int cb)
     return AllocFromStack(req);
 }
 // Searches the save trie episode.level.booty.aoidAssembly[0..14] for the given booty id.
+// Also known as: AkeyStandHeldBy (upstream readable / Sly 1 name; AkeyStandHeldBy__Fi).
 extern "C" KEY *FindBootySaveVar(int id)
 {
     unsigned short as[8];
@@ -2044,6 +2083,7 @@ static inline void SetPv(void *pv, const CRefIsland &r, void *)
 }
 
 // Booty save-state transitions: 0 picked up, 1 delivered, 2 dropped ...
+// Also known as: SaveBootyMove (upstream readable / Sly 1 name; SaveBootyMove__FP5ACTORiP2LO).
 void UpdateStepplayerBootySave(LO *lo, int n, Q *q) __asm__("UpdateStepplayerBootySave"); void UpdateStepplayerBootySave(LO *lo, int n, Q *q)
 {
     STACKSCOPE m;
@@ -2131,6 +2171,7 @@ static inline void SetPv(void *pv, const CRef &r, void *)
     Decref__4CRef((CRef *)&arg);
 }
 // Marks the assembly save slot for the booty and clears the carried id.
+// Also known as: AkeyReturnBooty (upstream readable / Sly 1 name; AkeyReturnBooty__FP5ACTORi).
 extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
 {
     void *pv = FindBootySaveVar(lo->p18);
@@ -2151,6 +2192,7 @@ void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 void ClearStepplayerBootySave(struct O *p, int n) __asm__("ClearStepplayerBootySave");
 void SpawnStepplayerBootyMarker(struct O *p, int n) __asm__("SpawnStepplayerBootyMarker");
 // On load: restores or clears the carried booty depending on the transition flags.
+// Also known as: PostLoadActorBooty (upstream readable / Sly 1 name; PostLoadActorBooty__FP5ACTOR).
 extern "C" void RestoreStepplayerBooty(struct O *player)
 {
     CRefData r;
@@ -2173,6 +2215,7 @@ namespace RO_ORDER { extern const char r_D_002A4DC0[] __asm__("D_002A4DC0") = "l
 namespace RO_ORDER { extern const char r_D_002A4DC8[] __asm__("D_002A4DC8") = "mplootkc"; }
 namespace M_func_00143C78 {
 // Slot 85 base: the ground-probe flags (step.cpp PROBE_*) from the component states (0 if +0x204, 4 in grab 3/4, 1 in the air, 7 = default ...).
+// Also known as: GrfActorStance (upstream readable / Sly 1 name; GrfActorStance__FP5ACTOR).
 extern "C" int GetStepplayerGroundProbeFlags(char *player)
 {
     if (*(int *)(player + 0x204)) return 0;
@@ -2208,6 +2251,7 @@ namespace M_func_00143D20 {
 qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
 int SnapToGround(qword *ppos, int a, int b, float f, float g) __asm__("SnapToGround");
 // Predicts the height after dt under gravity; if at or below the ground, tests for ground at that point.
+// Also known as: FActorBelowFloorSoon (upstream readable / Sly 1 name; FActorBelowFloorSoon__FP5ACTORf).
 extern "C" int WillStepplayerLand(STEPPLAYER *so, float dt)
 {
     union { qword q; float f[4]; } pos;
@@ -2259,6 +2303,7 @@ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *o, STEPPLAYER *p, int a, 
 void ReleaseAsega(void *p) __asm__("ReleaseAsega");
 void ReplaceSma(void *o, STEPPLAYER *p, int n, int a, void *b) __asm__("ReplaceSma");
 // oid -1 stops; otherwise finds the object and plays the scripted animation on the player.
+// Also known as: PlayActorScriptAnim (upstream readable / Sly 1 name; PlayActorScriptAnim__FP2LOiii).
 extern "C" void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int b)
 {
     void *o;
@@ -2281,6 +2326,7 @@ extern "C" void PlayStepplayerScriptAnim(STEPPLAYER *player, int oid, int a, int
 } // namespace M_func_00143EE0
 
 // In the scripted generic states 5/6 returns to state 0.
+// Also known as: EndActorScriptAnim (upstream readable / Sly 1 name; EndActorScriptAnim__FP5ACTOR).
 extern "C" void StopStepplayerScriptAnim(STEPPLAYER *player)
 {
     if (IsStepplayerInScriptState(player) != 0) {
@@ -2289,6 +2335,7 @@ extern "C" void StopStepplayerScriptAnim(STEPPLAYER *player)
 }
 
 // Whether the generic player state (slot 89) is 5 or 6.
+// Also known as: FActorScriptAnim (upstream readable / Sly 1 name; FActorScriptAnim__FP2LO).
 extern "C" int IsStepplayerInScriptState(STEPPLAYER *player)
 {
     return (unsigned int)(player->GetPlayerState() - 5) < 2;
@@ -2305,6 +2352,7 @@ extern "C" int IsStepplayerPushing(STEPPLAYER *player)
 }
 
 // Slot 80: PO heal check, and not dead (hurt status != 2).
+// Also known as: FActorTakesCharm (upstream readable / Sly 1 name; FActorTakesCharm__FP5ACTOR).
 int STEPPLAYER::CanBeHealed()
 {
     if (CanPoBeHealed(this) == 0) {
@@ -2320,6 +2368,7 @@ int *GetSaveVarAddressV(void *p, char *name, int n) __asm__("GetSaveVarAddressV"
 void SetStepplayerHp(STEPPLAYER *p, int n) __asm__("SetStepplayerHp");
 void SetStepplayerMp(STEPPLAYER *p, int n) __asm__("SetStepplayerMp");
 // Binds hp/mp to the save variables hpCur/mpCur under the character's root, with defaults when unset.
+// Also known as: StartPlayerCounters (upstream readable / Sly 1 name; StartPlayerCounters__FP5ACTORi).
 extern "C" void BindStepplayerHpMp(STEPPLAYER *player, int f)
 {
     player->jthurt.hitPoints = GetSaveVarAddressV(player->GetSaveVarRoot(), D_002A4E18, 0);
@@ -2384,6 +2433,7 @@ void SetStepplayerHp(void *p, int a) __asm__("SetStepplayerHp");
 int GetStepplayerMp(void *p) __asm__("GetStepplayerMp");
 void SetStepplayerMp(void *p, int a) __asm__("SetStepplayerMp");
 // Slot 81: PO base, then adds hp and mp (clamped).
+// Also known as: HealActor (upstream readable / Sly 1 name; HealActor__FP5ACTORii).
 extern "C" void AddStepplayerHpMp(char *player, int a, int b)
 {
     AddPoHpMp(player, a, b);
@@ -2427,6 +2477,7 @@ int ShouldSoIgnoreIntersection(void *p, int a) __asm__("ShouldSoIgnoreIntersecti
 int AdjustJtThrowFindFlags(void *p, int a, int b) __asm__("AdjustJtThrowFindFlags");
 void GetJtHandsIgnoreFlags(void *p, int a, int b) __asm__("GetJtHandsIgnoreFlags");
 // Slot 61: SO base flags, then the throw controller (AdjustJtThrowFindFlags) and grab component add theirs.
+// Also known as: OverlapKindActor (upstream readable / Sly 1 name; OverlapKindActor__FP3ALOi).
 extern "C" void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
 {
     int x = ShouldSoIgnoreIntersection(p, a);
@@ -2463,6 +2514,7 @@ namespace M_func_00144418 {
 /* only diff: original assembler padded a backward branch (to a jr) with a nop at 0x14443C; asfix.py does not pad when a jump is in between. Code otherwise identical. */
 struct Q { char pad[0xC]; int c; int n; };
 // Slot 86 (IsZapLethal): 1 when the zap's damage (-n) reaches the word at +0xDFC (the hit points, inferred) and its kind is not 0, 1, 0x80000 or 0x100000; else 0. (inferred)
+// Also known as: FDamageFatal (upstream readable / Sly 1 name; FDamageFatal__FP5ACTORP5CTMSG).
 extern "C" int IsStepplayerZapLethal(char *player, struct Q *q)
 {
     if (-q->n < *(int *)(player + 0xDFC)) return 0;

@@ -218,6 +218,7 @@ extern "C" void AddSpawnerOffset(CID119 *spawner, qwordV offset)
 
 // 0x1733F8: Spawner vtable slot 15 (PostLoad): resolves the selector oids; for curves creates a guard script (cid
 // 0x71) with a goto; allocates the per-slot entries and registers for updates.
+// Also known as: StartSpawner (upstream readable / Sly 1 name; StartSpawner__FP2SW).
 extern "C" void PostSpawnerLoad(CID119 *spawner) {
     int i;
     AI al;
@@ -281,6 +282,7 @@ static __inline__ qwordV VuMulAddScalar(qwordV p, qwordV up, float s) {
 
 // 0x173610: Casts a line along the up axis (from pos + `top` to pos + `bottom`) against the world's objects; on a
 // hit with a walkable normal (z >= 0.7) moves the position to the hit and returns true.
+// Also known as: FDropOnGround (upstream readable / Sly 1 name; FDropOnGround__FP6VECTORffiPv).
 extern "C" int SnapToGround(qwordV *position, float top, float bottom, int acceptAnySlope, int (*filter)(void)) {
     SCOPE scope;
     int firstObject, numObjects;
@@ -394,6 +396,7 @@ extern "C" int GetSpawnPointConcealment(CID119 *spawner, qwordV pos, int count, 
 
 // 0x173928: Ends a spawned-guard slot: kind 0 removes the guard (vtable slot 9, RemoveLo), kind 1 arms a respawn
 // delay; decrements the live count.
+// Also known as: ReleaseSlot (upstream readable / Sly 1 name; ReleaseSlot__FP7SPAWNERP4SLOTii).
 extern "C" void ReleaseSpawnerEntry(CID119 *spawner, SPAWNENTRY *slot, int status, int keepSelectorReady) {
     slot->status = status;
     switch (status) {
@@ -418,6 +421,7 @@ extern "C" void ReleaseSpawnerEntry(CID119 *spawner, SPAWNENTRY *slot, int statu
 }
 
 // 0x173A18: Returns the focus position the spawner works from: the current player's position, or the camera's.
+// Also known as: PosCenter (upstream readable / Sly 1 name; PosCenter__Fv).
 extern "C" qwordV GetSpawnerFocusPosition(CID119 *spawner)
 {
     void *world = &g_sw;
@@ -426,7 +430,7 @@ extern "C" qwordV GetSpawnerFocusPosition(CID119 *spawner)
     return g_cm.matq.pos;   // the camera position
 }
 
-// g_clock (g_clock) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
+// g_clock must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a, qwordV b)
 {
     qwordV d;
@@ -439,6 +443,7 @@ static inline float DistanceXY(qwordV a, qwordV b)
 }
 // 0x173A68: Spawner vtable slot 16 (Update): periodically, when a slot is free (and gated by the player's last
 // alert event), spawns a guard at a concealed spawn point, aims it at the player and sends it message 0x19.
+// Also known as: UpdateSpawner (upstream readable / Sly 1 name; UpdateSpawner__FP2LO).
 extern "C" void UpdateSpawner(CID119 *spawner)
 {
     U point;
@@ -541,6 +546,7 @@ static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b
 // VU0 helper: horizontal (xy) distance.
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
 // 0x173D18: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough away.
+// Also known as: CheckSlots (upstream readable / Sly 1 name; CheckSlots__FP7SPAWNERG9VU_VECTOR).
 extern "C" void UpdateSpawnerEntries(CID119 *spawner, qwordV pos) {
     int i;
     for (i = 0; i < spawner->entryCapacity; i++) {
@@ -566,6 +572,7 @@ extern "C" void UpdateSpawnerEntries(CID119 *spawner, qwordV pos) {
 }
 
 // 0x173E78: Picks the slot to use: the oldest free one, or the oldest occupied one past the timeout.
+// Also known as: PslotChoose (upstream readable / Sly 1 name; PslotChoose__FP7SPAWNERi).
 extern "C" SPAWNENTRY *FindFreeSpawnerEntry(CID119 *spawner, LO *object) {
     float oldestActiveTime = g_clock.time - D_002BE5E0; // occupied slots must be older than this
     float oldestReadyTime = g_clock.time;
@@ -642,6 +649,7 @@ static inline float VectorLengthXY(qwordV qw)
 namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.40282347e+38f; }
 // 0x173F18: Picks the nearest usable spawn selector (LO spot or curve sample) where every test offset point is
 // concealed from the camera; returns its position.
+// Also known as: PsrcChoose (upstream readable / Sly 1 name; PsrcChoose__FP7SPAWNERG9VU_VECTORP6VECTORP7MATRIX3Pi).
 extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped)
 {
     SCOPE frame;
@@ -766,6 +774,7 @@ extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, q
 
 // 0x174490: Spawns a guard from a template at the chosen point (clone and activate) and optionally sets its root
 // behaviour mode.
+// Also known as: PloSpawn (upstream readable / Sly 1 name; PloSpawn__FP7SPAWNERP6SOURCEP6VECTORii).
 extern "C" STEPGUARD *SpawnGuardFromSpawner(CID119 *spawner, SPAWNSELECTOR *selector, qwordV *position, M3 *rotation, int isFlipped) {
     STEPGUARD *guard = 0;
     int kind;
@@ -815,6 +824,7 @@ extern "C" STEPGUARD *SpawnGuardFromSpawner(CID119 *spawner, SPAWNSELECTOR *sele
 }
 
 // 0x1746B8: Spawner vtable slot 12 (RemoveHierarchy): LO base, then releases every active slot.
+// Also known as: OnRemoveSpawner (upstream readable / Sly 1 name; OnRemoveSpawner__FP2LO).
 extern "C" void RemoveSpawnerHierarchy(CID119 *spawner) {
     int i;
     RemoveLoHierarchy(spawner);

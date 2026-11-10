@@ -77,6 +77,7 @@ extern "C" void PostCameraLoad(CAMERA *camera)
 }
 
 // Added to the world hierarchy (vtable slot 11): pushes the CPCAMERA policy with this camera.
+// Also known as: EnableCmObject (upstream readable / Sly 1 name; EnableCmObject__FP2LO).
 extern "C" void AddCameraHierarchy(CAMERA *camera)
 {
     AddLoHierarchy(camera);
@@ -120,6 +121,7 @@ extern "C" CPCAMERA *CPCAMERA_ctor(CPCAMERA *policy)
 
 // Activates the policy for a camera object: base activation, remembers the camera and applies its field of view if
 // it has one.
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__8CPLOOKATP2LOPv).
 void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vtable comes out here */
 {
     CPCAMERA *policy = this;
@@ -133,6 +135,7 @@ void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vt
 
 // Deactivates the policy for a camera object: if it is the active camera, cuts (no blend) when the camera asks for it
 // and forgets it; then base deactivation.
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__8CPLOOKATP2LOPv).
 extern "C" void DeactivateCpcamera(CPCAMERA *policy, int hero, CAMERA *camera)
 {
     if (policy->pcamera == (CID44 *)camera) {
@@ -154,6 +157,7 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 // Per-frame update: places the camera at the camera object, looking at its target when it has one, otherwise along
 // the object's own axes (the game's camera space swaps them: forward = -x row, up = row 1). When field-of-view
 // requests are active, sets the fov from the focal length: 2*atan(18/focalLength), clamped to 0.01..3 rad.
+// Also known as: Update (upstream readable / Sly 1 name; Update__8CPLOOKATP6CPDEFIP5CMJOY).
 extern "C" void UpdateCpcamera(CPCAMERA *policy)
 {
     CAMERA *camera = (CAMERA *)policy->pcamera;

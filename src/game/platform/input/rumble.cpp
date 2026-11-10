@@ -170,6 +170,7 @@ void StopRumbleActuators(RUMBLE *rumble)
 }
 
 // Makes the forced vibration mode follow the save option (mode 1) if no mode was set.
+// Also known as: RumbleUnknown1 (upstream readable / Sly 1 name; RumbleUnknown1__Fv).
 extern "C" void EnsureRumbleModeDefault(void)
 {
     if (D_002C2D8C == 0)
@@ -179,6 +180,7 @@ extern "C" void EnsureRumbleModeDefault(void)
 // (Claude agent) matched: the CRef copy ctor (__4CRefRC4CRef) must be declared returning this, not void.
 // Writes a forced vibration mode into the save option: mode 2 (forced on) clears g_sw.psvpNoVibration, mode 3
 // (forced off) sets it; mode 1 leaves it.
+// Also known as: ApplyVibrationSetting (upstream readable / Sly 1 name; ApplyVibrationSetting__Fv).
 extern "C" void ResetRumbleSaveVar(void)
 {
     CRefData ref;
@@ -191,6 +193,7 @@ extern "C" void ResetRumbleSaveVar(void)
 
 // Returns whether vibration is enabled: forced on (mode 2), forced off (modes 0 and 3), otherwise the inverse of
 // the save option g_sw.psvpNoVibration.
+// Also known as: FVibrationEnabled (upstream readable / Sly 1 name; FVibrationEnabled__Fv).
 extern "C" int IsRumbleEnabled(void)
 {
     switch (D_002C2D8C) {

@@ -175,6 +175,7 @@ extern "C" void EnsureStepguardManager(void)
 // 0x205EB8: STEPGUARD vtable slot 7 (Init): step Init, ensures the guard manager, creates the vision detector (cid
 // 0x10) and sets the default vision ranges and angles, hit points, flag masks and the behaviour stack.
 // (Claude agent, nonvu16, 2026-10-17) plain stores, no register pins; store order tuned (see notes/200000.md).
+// Also known as: InitStepguard (upstream readable / Sly 1 name; InitStepguard__FP9STEPGUARD).
 void STEPGUARD::Init()
 {
     STEPGUARD *guard = this;
@@ -248,6 +249,7 @@ void STEPGUARD::Init()
 // 0x206100: STEPGUARD vtable slot 41 (Clone): step clone keeping its own detector, re-owning the mover, copying the
 // detector state and deep-copying the animation bindings.
 /* Clones the guard but keeps its own vision detector, which clones the other guard's detector (LO slot 41). */
+// Also known as: CloneStepguard (upstream readable / Sly 1 name; CloneStepguard__FP9STEPGUARDT0).
 extern "C" void CloneStepguard(STEPGUARD *guard, STEPGUARD *pstepguardBase)
 {
     DETECTOR *detector;
@@ -292,6 +294,7 @@ ACT *NewPositionAct(STEPGUARD *guard, void *x, int a, int b, int c, qword q) __a
 
 // 0x2061D8: STEPGUARD vtable slot 15 (PostLoad): step post-load, binds its oid table, gravity ratio, attaches
 // children, resolves animation bindings and attack oids, and creates its stuck and hazard watches (+0x498/+0x49C).
+// Also known as: PostStepguardLoad (upstream readable / Sly 1 name; PostStepguardLoad__FP9STEPGUARD).
 void STEPGUARD::PostLoad()
 {
     STEPGUARD *guard = this;
@@ -337,6 +340,7 @@ int MaxInt(int ignore, int b);
 // 0x206380: STEPGUARD vtable slot 61 (should an intersection with `other` be ignored): the step test, plus, while dead
 // (flag 7), objects that are not fixed (slot 62), and, while juggled/carried (flag 0x17), objects of its holder's
 // physics tree in juggled states 0/4/5.
+// Also known as: OverlapKindGuard (upstream readable / Sly 1 name; OverlapKindGuard__FP3ALOT0).
 int STEPGUARD::ShouldIgnoreIntersection(SO *other)
 {
     STEPGUARD *guard = this;
@@ -396,6 +400,7 @@ extern "C" void SetStepguardHpLevel(STEPGUARD *guard, int nLevel)
 // 0x2064D8 RemoveStepguardHierarchy
 // 0x2064D8: STEPGUARD vtable slot 12 (RemoveHierarchy): base, clears the target and the behaviour stack and
 // retracts its held animation.
+// Also known as: OnStepguardRemove (upstream readable / Sly 1 name; OnStepguardRemove__FP9STEPGUARD).
 void STEPGUARD::RemoveHierarchy()
 {
     STEPGUARD *guard = (STEPGUARD *)this;
@@ -428,6 +433,7 @@ void SetLoParent(DETECTOR *detector, STEPGUARD *guard, int n) __asm__("SetLoPare
 // 0x206518: STEPGUARD vtable slot 26 (reset to home, used by proxies and spawners): restores maximum values (hit
 // points etc.), clears behaviours, mover and flags, re-caches the home position and heading, and derives walk/run
 // capability bits from the animation bindings.
+// Also known as: ResetGuard (upstream readable / Sly 1 name; ResetGuard__FP2LO).
 void STEPGUARD::OnProxyAcquire(LO *plo)
 {
     using namespace M_ResetStepguardToHome;
@@ -547,6 +553,7 @@ extern "C" void RestartStepguard(struct STEPGUARDIsland *guard)
 // 0x2068D8 CompareGuardCandidateDistance
 // 0x2068D8: qsort comparator for guard candidates on their leading distance (-1 if a < b, else 1).
 /* qsort comparison of guard candidates by distance (their first word). */
+// Also known as: FUN_00148910 (upstream readable / Sly 1 name; FUN_00148910__FPfT0).
 extern "C" int CompareGuardCandidateDistance(float *pg1, float *pg2)
 {
     int n;
@@ -605,6 +612,7 @@ extern "C" { static __inline__ int Near(qword difference){return LengthXY(differ
 // 0x206900: Per-frame target detection: unless blind, collects objects of the preferred classes within 1500
 // horizontally, sorts them by distance and re-adds them as detector targets (keeping their states), updates the
 // detector, then the shared target records.
+// Also known as: RefreshGuardTargets (upstream readable / Sly 1 name; RefreshGuardTargets__FP5GUARD).
 extern "C" void UpdateStepguardDetectTargets(STEPGUARD *guard)
 {
     struct CANDIDATE candidates[64];
@@ -772,6 +780,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *guard, int n) __asm__("IsBasicDe
 
 // 0x206EB0: True if special state `special` may be entered now (rules per state: never while dead or script-busy;
 // some states not for bosses or rage-immune guards).
+// Also known as: FGuardModeAllowed (upstream readable / Sly 1 name; FGuardModeAllowed__FP5GUARDi).
 extern "C" int CanSetStepguardSpecial(STEPGUARD *guard, int special)
 {
     BHV169 *bhv;
@@ -820,6 +829,7 @@ void ResumeBhvguard(BHV156 *bhv) __asm__("ResumeBhvguard");
 
 // 0x207030: Sets the gadget/status special state (+0xFBC, time +0xFC0): 8/0xD shrink, 0xE time-frozen, 0x22/0x25
 // rage (attack other guards), 0x15 and 0xB others; leaving a state undoes it.
+// Also known as: SetGuardMode (upstream readable / Sly 1 name; SetGuardMode__FP5GUARDi).
 extern "C" void SetStepguardSpecial(STEPGUARD *guard, int special)
 {
     int old;
@@ -905,6 +915,7 @@ namespace M_UpdateStepguardSpecial {
 extern float D_002C3D40[3] __asm__("D_002C3D40");    /* special-state durations: 10 s shrink, 30 s rage, 5 s roar */
 void SetStepguardSpecial(STEPGUARD *p, int n) __asm__("SetStepguardSpecial");
 // 0x207288: Ends the special state after its duration (10 s shrink, 30 s rage, 5 s state 0x15).
+// Also known as: UpdateGuardTimedMode (upstream readable / Sly 1 name; UpdateGuardTimedMode__FP5GUARD).
 extern "C" void UpdateStepguardSpecial(STEPGUARD *guard)
 {
     switch (guard->specialState) {
@@ -947,6 +958,7 @@ void DropAsegaRef(ASEGA **ppasega) __asm__("DropAsegaRef");
 // timeouts, target detection, attack animation, aim, pickpocket, components, the behaviour stack, the mover and
 // finished animations; guards that track a relocation point (named guards, inferred) record their last grounded
 // position there for the relocate behaviour.
+// Also known as: UpdateStepguard (upstream readable / Sly 1 name; UpdateStepguard__FP9STEPGUARDf).
 void STEPGUARD::Update()
 {
     using namespace M_UpdateStepguard;
@@ -982,6 +994,7 @@ void HandleBhvstkMessage(BHVSTK *stack, int message, ZPR *zap) __asm__("HandleBh
 }
 // 0x207468: STEPGUARD vtable slot 75 (take damage): unless the zap is lethal, ignores it when invulnerable, from
 // its own team's bomb (cid 0x4F) or rejected by the base; then forwards it to the behaviour stack (message 0xC).
+// Also known as: FAcceptContactGuard (upstream readable / Sly 1 name; FAcceptContactGuard__FP3ALOP5CTMSG).
 int STEPGUARD::TakeDamage(ZPR *zap)
 {
     using namespace M_FTakeStepguardDamage;
@@ -1001,6 +1014,7 @@ int STEPGUARD::TakeDamage(ZPR *zap)
 // 0x207530 IsStepguardZapLethal
 // 0x207530: STEPGUARD vtable slot 86: true if the zap's damage reaches the maximum hit points and its kind is not
 // one of the harmless kinds (0, 1, 0x80000, 0x100000).
+// Also known as: FGuardHitMatters (upstream readable / Sly 1 name; FGuardHitMatters__FP5GUARDP5CTMSG).
 int STEPGUARD::IsZapLethal(ZPR *zap)
 {
     STEPGUARD *guard = this;
@@ -1038,6 +1052,7 @@ void SetHazardWatchTarget(HAZARDWATCH *watch, struct OBJ *target) __asm__("SetHa
 void HandleBhvstkMessage(void *stack, int message, struct ATTACHMSG *arg) __asm__("HandleBhvstkMessage");
 // 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 (an object attached to / detached from the
 // guard) point the hazard watch (+0x49C) at an attached hazard or clear it; every message is then offered to the behaviour stack.
+// Also known as: HandleStepguardMessage (upstream readable / Sly 1 name; HandleStepguardMessage__FP9STEPGUARD5MSGIDPv).
 extern "C" void HandleStepguardMessage(STEPGUARD *guard, int message, struct ATTACHMSG *arg)
 {
     HandlePoMessage(guard, message, arg);
@@ -1097,6 +1112,7 @@ static inline float Length(qword a)
 }
 // 0x207690: STEPGUARD vtable slot 19 (render): draws the guard; while the camera policy is active, applies a 0.85 s
 // squash/stretch pulse and a distance-based scale.
+// Also known as: RenderStepguardSelf (upstream readable / Sly 1 name; RenderStepguardSelf__FP9STEPGUARDP2CMP2RO).
 extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
 {
     M4 local;
@@ -1165,6 +1181,7 @@ void OnSoRemove(STEPGUARD *p) __asm__("OnSoRemove");
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 // 0x2079A0: STEPGUARD vtable slot 22 (OnRemove): base, unlinks from the world's guard list and stamps the removal
 // time (+0xFF8).
+// Also known as: OnGuardUnregistered (upstream readable / Sly 1 name; OnGuardUnregistered__FP2LO).
 extern "C" void OnStepguardRemove(STEPGUARD *guard)
 {
     OnSoRemove(guard);
@@ -1181,6 +1198,7 @@ struct DL { void *head, *tail; int count; };
 void OnSoAdd(STEPGUARD *p) __asm__("OnSoAdd");
 void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 // 0x2079E0: STEPGUARD vtable slot 23 (OnAdd): base, links on the world's guard list, removal time FLT_MAX.
+// Also known as: OnGuardRegistered (upstream readable / Sly 1 name; OnGuardRegistered__FP2LO).
 extern "C" void OnStepguardAdd(STEPGUARD *guard)
 {
     OnSoAdd(guard);
@@ -1232,6 +1250,7 @@ void SetValuesFromSpliceList(CRefData *ref, void *list, int type, int capacity, 
 unsigned long GetSgfArrayMask(int count, int *sgfs) __asm__("GetSgfArrayMask");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
+// Also known as: MaskOfList (upstream readable / Sly 1 name; MaskOfList__FPv).
 unsigned long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSpliceList"); unsigned long GetSgfMaskFromSpliceList(void *list)
 {
     int sgfs[16];
@@ -1248,6 +1267,7 @@ unsigned long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSplice
 // 0x207B70 SetStepguardAnimBinding
 // 0x207B70: Splice option: sets the animation (oid, argument) bound to a guard-flag set, creating the binding if
 // needed.
+// Also known as: SetGuardKinde (upstream readable / Sly 1 name; SetGuardKinde__FP5GUARD3OIDii).
 extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags)
 {
     ANIMBINDING *binding;
@@ -1274,6 +1294,7 @@ long GetSgfMaskFromSpliceList(int list) __asm__("GetSgfMaskFromSpliceList");
 struct PAYLOAD3 *AllocDirAnim(int cb) __asm__("AllocDirAnim");
 void InvalidateDirAnims(struct PAYLOAD3 *payload) __asm__("InvalidateDirAnims");
 // 0x207C48: Splice option: binds a flag set to a DIRANIM payload (a new 0xD0-byte object with four animations, inferred).
+// Also known as: SetGuardKind3 (upstream readable / Sly 1 name; SetGuardKind3__FP5GUARDiiiii).
 extern "C" void SetStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
 {
     ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
@@ -1336,6 +1357,7 @@ extern "C" void SetAndResolveStepguardAnimBindingKind2(STEPGUARD *guard, int sgf
 // 0x207EB8 SetZapReactionBindings
 namespace M_func_00207EB8 {
 // 0x207EB8: Sets the binding (oid, flags) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
+// Also known as: SetArrayKindes (upstream readable / Sly 1 name; SetArrayKindes__FPvUi3OIDiT0).
 extern "C" void SetZapReactionBindings(STEPGUARD *guard, int zapMask, int oid, int flags, ANIMBINDING *table)
 {
     int i;
@@ -1532,6 +1554,7 @@ static inline float Weight(float distance,const float *k){return k[0]+distance*(
 // among the detector's targets, forced classes first, skipping ignored classes, preferring preferred classes, with
 // hysteresis for the current target.
 } // namespace M_PloChooseStepguardTarget
+// Also known as: PloGuardTarget (upstream readable / Sly 1 name; PloGuardTarget__FP5GUARD).
 LO *STEPGUARD::ChooseTarget()
 {
     using namespace M_PloChooseStepguardTarget;
@@ -1596,6 +1619,7 @@ extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, LO *n)
 // 0x208540: Changes the current target: leaves the old target's shared engagement record and joins (creating if
 // needed) the new one's.
 /* Sets the guard's target, moving the guard from the old target's record (EnsureTargetRecordById) to the new one's. */
+// Also known as: SetGuardPursued (upstream readable / Sly 1 name; SetGuardPursued__FP5GUARDP2LO).
 extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
 {
     LO *ploOld;
@@ -1719,6 +1743,7 @@ namespace M_func_00208728 {
 
 void *memmove(void *d, void *s, int n) __asm__("memmove");
 // 0x208728: Removes a class from the preferred-class list.
+// Also known as: RemoveTargetClass (upstream readable / Sly 1 name; RemoveTargetClass__FPvi).
 extern "C" void RemoveStepguardPreferClass(STEPGUARD *guard, int cid)
 {
     int i;
@@ -1748,6 +1773,7 @@ namespace M_func_002087E8 {
 
 int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x2087E8: True if the object derives from a preferred class.
+// Also known as: FTargetClass (upstream readable / Sly 1 name; FTargetClass__FPvP2LO).
 extern "C" int IsStepguardPreferClass(STEPGUARD *guard, void *object)
 {
     int i;
@@ -1899,6 +1925,7 @@ void ShouldKeepSoNotSelf() __asm__("ShouldKeepSoNotSelf");
 // 0x208BE0: STEPGUARD vtable slot 89 (sense a stimulus): senses enabled, the stimulus loud enough (>= +0xE68) and
 // not its own; kind 0 noises by range test, kind 1 inside the detector's near volume with a clear line, and so on
 // per kind.
+// Also known as: FGuardAcceptsNoise (upstream readable / Sly 1 name; FGuardAcceptsNoise__FP5GUARDP5NOISE).
 int STEPGUARD::CanSenseStimulus(STIMULUS *stimulus)
 {
     using namespace M_FStepguardSenseStimulus;
@@ -1948,6 +1975,7 @@ namespace M_FStepguardSensesEnabled {
 long GetSgfMask(int n) __asm__("GetSgfMask");
 // 0x208D70: True if the guard's senses are on (+0xE64) and none of the flags that blind it (alerted, hurt, dead,
 // stunned, thrown, ...) is set.
+// Also known as: FGuardFreeN (upstream readable / Sly 1 name; FGuardFreeN__FP5GUARD).
 extern "C" int AreStepguardSensesEnabled(STEPGUARD *guard)
 {
     long m = GetSgfMask(0xB) | GetSgfMask(SGF_COMBAT) | GetSgfMask(SGF_KO) | GetSgfMask(5) | GetSgfMask(6)
@@ -1974,6 +2002,7 @@ int IsWithinLimits__FP2LMf(LM *p, float f) __asm__("IsWithinLimits__FP2LMf");
 // 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
 // holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
 // interaction range, 0 none. Also returns the distance through `distanceOut`.
+// Also known as: NRankGuard (upstream readable / Sly 1 name; NRankGuard__FP5GUARDP5ACTORPf).
 extern "C" int GuardEvalInteractMode(STEPGUARD *guard, struct PLAYER *player, float *distanceOut)
 {
     float distance, angle;
@@ -2068,6 +2097,7 @@ void InitAsegArc(struct LEAPPAYLOAD *) __asm__("InitAsegArc");
 
 // 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; wrapped in a new leap payload if it has label
 // 0x22) or an SM (cid 0x6F); else empty. Leap and DIRANIM payloads resolve their own oids.
+// Also known as: ResolveKinde (upstream readable / Sly 1 name; ResolveKinde__FP5KINDEP5GUARD).
 extern "C" void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *context)
 {
     void *resource;
@@ -2124,6 +2154,7 @@ void StartDirAnim(void *diranim, STEPGUARD *guard, int flags, CID146 *instance) 
 }
 // 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the leap/DIRANIM payload
 // on the guard's own LEAP / DIRANIM; the instance is then referenced (slot 1).
+// Also known as: PlayKinde (upstream readable / Sly 1 name; PlayKinde__FP5KINDEP5GUARDif).
 extern "C" void StartAnimBinding(ANIMBINDING *binding, STEPGUARD *guard, int flags, float start)
 {
     using namespace M_StartAnimBinding;
@@ -2159,6 +2190,7 @@ void StopLeap(BASIC *instance) __asm__("StopLeap");
 void StopDirAnim(BASIC *instance) __asm__("StopDirAnim");
 }
 // 0x209360: Stops the running animation instance per kind (retract the ASEGA or SMA, ...) and drops it (slot 2).
+// Also known as: StopKinde (upstream readable / Sly 1 name; StopKinde__FP5KINDE).
 extern "C" void StopAnimBinding(ANIMBINDING *binding)
 {
     using namespace M_StopAnimBinding;
@@ -2204,6 +2236,7 @@ int IsLeapDone(LEAP *pleap) __asm__("IsLeapDone");
 int IsDirAnimStopped(CID146 *pdiranim) __asm__("IsDirAnimStopped");
 // 0x209430: True if the binding's animation instance finished or was retracted (or none is running).
 // (`done = 0; if (...) done = 1;` per case: the boolean-expression and early-return forms do not match.)
+// Also known as: FKindeDone (upstream readable / Sly 1 name; FKindeDone__FP5KINDE).
 extern "C" int IsAnimBindingDone(ANIMBINDING *binding)
 {
     int done;
@@ -2240,6 +2273,7 @@ extern "C" int IsAnimBindingDone(ANIMBINDING *binding)
 // 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 {
 // 0x209518: Returns the ASEGA that the binding's running instance plays (the instance itself for an ASEG).
+// Also known as: PasegaOfKinde (upstream readable / Sly 1 name; PasegaOfKinde__FP5KINDE).
 extern "C" ASEGA *GetAnimBindingInstance(ANIMBINDING *binding)
 {
     switch (binding->kind) {
@@ -2296,6 +2330,7 @@ void UpdateLeap(struct LEAP *) __asm__("UpdateLeap");
 // 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding'guard
 // root motion (scaled by the special-state scale act when there is one); a leap drives
 // it only outside its airborne states.
+// Also known as: SteerByKinde (upstream readable / Sly 1 name; SteerByKinde__FP5KINDEP5GUARD).
 extern "C" void DriveStepguardFromAnim(struct ANIMBINDINGIsland *binding, struct STEPGUARDIsland *guard)
 {
     U factor, value;
@@ -2431,6 +2466,7 @@ extern "C" void UpdateStepguardMover(GUARDMOVER *mover)
 
 // 0x209818 SetStepguardMoverRadTarget
 // 0x209818: Unless the heading is locked, sets the guard's target heading.
+// Also known as: SetMoveHeading (upstream readable / Sly 1 name; SetMoveHeading__FP7MOVEREF).
 extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *mover)
 {
     if (mover->isHeadingLocked == 0) {
@@ -2452,6 +2488,7 @@ extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *mover, MATRIX3 *matrix
 
 // 0x209870 SetStepguardSgfMask
 // 0x209870: Stores the guard flag word and re-evaluates the pickpocket state.
+// Also known as: SetGuardStateMask (upstream readable / Sly 1 name; SetGuardStateMask__FP5GUARDUl).
 extern "C" void SetStepguardSgfMask(STEPGUARD *guard, unsigned long grfsg)
 {
     guard->grfsg = grfsg;
@@ -2468,6 +2505,7 @@ void BroadcastGameEvent(void *p, int gameEvent, STEPGUARD *source) __asm__("Broa
 }
 // 0x209890: Raises guard flag `sgf`: sends itself splice event 7 (raised, -1) and broadcasts the game event tied to
 // some flags (attacking 0x14, flag 0xC 0x16).
+// Also known as: AddGuardState (upstream readable / Sly 1 name; AddGuardState__FP5GUARDi).
 extern "C" void AddStepguardSgf(STEPGUARD *guard, int sgf)
 {
     using namespace M_AddStepguardSgf;
@@ -2491,6 +2529,7 @@ namespace M_RemoveStepguardSgf {
 extern unsigned long GetSgfMask(int n) __asm__("GetSgfMask");
 }
 // 0x209970: Lowers guard flag `sgf` and sends itself splice event 7 (-1, lowered).
+// Also known as: RemoveGuardState (upstream readable / Sly 1 name; RemoveGuardState__FP5GUARDi).
 extern "C" void RemoveStepguardSgf(STEPGUARD *guard, int sgf)
 {
     using namespace M_RemoveStepguardSgf;
@@ -2552,6 +2591,7 @@ long GetSgfMask(int n) __asm__("GetSgfMask");
 int CountSgfMatch(long subset, long mask) __asm__("CountSgfMatch");
 // 0x209AD0: Finds the animation binding whose flag set is the largest subset of `mask` and contains its lowest
 // flag.
+// Also known as: PkindeBest (upstream readable / Sly 1 name; PkindeBest__FP5GUARDUl).
 extern "C" ANIMBINDINGREC *FindBestAnimBinding(STEPGUARD *guard, long mask)
 {
     int i;
@@ -2609,6 +2649,7 @@ extern "C" ANIMBINDINGREC *FindAnimBinding(STEPGUARD *guard, long sgfMask)
 namespace M_func_00209C18 {
 ANIMBINDINGREC *FindAnimBinding(STEPGUARD *guard, long sgfMask) __asm__("FindAnimBinding");
 // 0x209C18: Finds or appends (released) the animation binding for a flag set.
+// Also known as: PkindeOfMask (upstream readable / Sly 1 name; PkindeOfMask__FP5GUARDUl).
 extern "C" ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, unsigned long sgfMask)
 {
     ANIMBINDINGREC *rec = FindAnimBinding(guard, sgfMask);
@@ -2633,6 +2674,7 @@ qword *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
 // 0x209C88: STEPGUARD vtable slot 59: while attached (rail, pipe, ...), adds constraint contacts toward the attach
 // object.
 }
+// Also known as: AddGuardRailContacts (upstream readable / Sly 1 name; AddGuardRailContacts__FP3ALO).
 void STEPGUARD::AddExtraXps()
 {
     using namespace M_func_00209C88;
@@ -2667,6 +2709,7 @@ void *FindStepBehavior(void *p, int oid) __asm__("FindStepBehavior");
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x209E28: Sends mode record 6 (thrown) with `value` as its object to the guard's root behaviour (BHVGUARD).
+// Also known as: ReactGuardHeld (upstream readable / Sly 1 name; ReactGuardHeld__FP2LOi).
 extern "C" void SendStepguardRootBhvMode6(void *guard, void *value)
 {
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
@@ -2680,6 +2723,7 @@ extern "C" void SendStepguardRootBhvMode6(void *guard, void *value)
 
 // 0x209E88 StunStepguardThrownOp1
 // 0x209E88: Thrown-behaviour operation 1 (when thrown or flag 0x12) (inferred).
+// Also known as: CarryGuardHeld (upstream readable / Sly 1 name; CarryGuardHeld__FP2LO).
 extern "C" void StunStepguardThrownOp1(STEPGUARD *guard)
 {
     if ((StepguardHasSgf(guard, 0x16) != 0) || (StepguardHasSgf(guard, 0x12) != 0)) {
@@ -2695,6 +2739,7 @@ qword LimitVectorLength(qword v, float g) __asm__("LimitVectorLength");
 }
 // 0x209EE0: Thrown-behaviour operation 2 (flags 0x12/0x13), or juggled-behaviour operation 2 while stunned; then
 // clamps the velocity's length (inferred).
+// Also known as: ReleaseGuardHeld (upstream readable / Sly 1 name; ReleaseGuardHeld__FP2LO).
 extern "C" void StunStepguardThrownOp2(STEPGUARD *guard)
 {
     using namespace M_func_00209EE0;
@@ -2717,6 +2762,7 @@ extern "C" void StunStepguardThrownOp2(STEPGUARD *guard)
 
 // 0x209FB8 StunStepguardThrownOp3
 // 0x209FB8: Thrown-behaviour operation 3 (flags 0x16/0x13) (inferred).
+// Also known as: ThrowGuardHeld (upstream readable / Sly 1 name; ThrowGuardHeld__FP2LO).
 extern "C" void StunStepguardThrownOp3(STEPGUARD *guard)
 {
     if ((StepguardHasSgf(guard, 0x16) != 0) || (StepguardHasSgf(guard, 0x13) != 0)) {
@@ -2798,6 +2844,7 @@ extern "C" { static inline float DistSq(void *object, qword *point)
 
 // 0x20A168: Compares two stimuli for priority: template kind (lower first), level (higher first),
 // time (later first), then distance (nearer first); finally address order.
+// Also known as: NCompareNoises (upstream readable / Sly 1 name; NCompareNoises__FP5GUARDP5NOISET1).
 extern "C" int CompareStepguardStimuli(void *guard, struct STIMULUS *a, struct STIMULUS *b)
 {
     int diff;
@@ -2832,6 +2879,7 @@ long GetSgfMask(int n) __asm__("GetSgfMask");
 struct ENTRY *FindDetectorTarget(void *detector, void *object) __asm__("FindDetectorTarget");
 // 0x20A298: True if a target is still valid for this guard (Murray special case, detector entry age and mask)
 // (inferred).
+// Also known as: FGuardSurprised (upstream readable / Sly 1 name; FGuardSurprised__FP5GUARDP2LOUl).
 int IsStepguardTargetValid(STEPGUARD *guard, void *target, long mask) __asm__("IsStepguardTargetValid"); int IsStepguardTargetValid(STEPGUARD *guard, void *target, long mask)
 {
     struct ENTRY *entry;
@@ -2856,6 +2904,7 @@ ret0:
 
 // 0x20A378 IsStepguardTargetValidEx
 // 0x20A378: IsStepguardTargetValid with extra cases for Murray and cids 0x3A/0x3D.
+// Also known as: FGuardLaunchAllowed (upstream readable / Sly 1 name; FGuardLaunchAllowed__FP5GUARDP2LOi).
 extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 {
     if ((IsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (IsBasicDerivedFrom((BASIC *)object, (CID)0x3A) == 0) &&
@@ -2877,6 +2926,7 @@ void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int state
 // already tracked re-marks the detector entry lost.
 }
 int AreStepguardSensesEnabled(STEPGUARD *guard) __asm__("AreStepguardSensesEnabled");
+// Also known as: PloGuardInterest (upstream readable / Sly 1 name; PloGuardInterest__FP5GUARDP2LO).
 extern "C" STIMULUS *ChooseStepguardStimulus(STEPGUARD *guard, STIMULUS *fallback)
 {
     using namespace M_func_0020A408;
@@ -2920,6 +2970,7 @@ namespace M_func_0020A540 {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(BHV156 *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
+// Also known as: SetGuardPatrol (upstream readable / Sly 1 name; SetGuardPatrol__FP5GUARDi).
 extern "C" void SetStepguardPatrolScript(STEPGUARD *guard, CID113 *script)
 {
     if (guard->patrolScript == script)
@@ -2974,6 +3025,7 @@ struct CAMERA;
 struct CAMERA { char pad[0x60]; float x; float y; };   /* +0x60: the camera's forward direction (inferred) */
 float atan2f(float y, float x) __asm__("atan2f");
 // 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
+// Also known as: RadTargetrec (upstream readable / Sly 1 name; RadTargetrec__FP9TARGETREC).
 extern "C" float GetTargetRecordFacing(TARGETREC *record)
 {
     float heading = 0.0f;
@@ -2997,6 +3049,7 @@ extern "C" float GetTargetRecordFacing(TARGETREC *record)
 // 0x20A730 AddTargetRecordGuard
 // 0x20A730: Adds a guard to an engagement record (the first one stamps the time and resets the state).
 /* Adds a guard to a target record (stamping the time when it is the first). */
+// Also known as: AddTargetrecGuard (upstream readable / Sly 1 name; AddTargetrecGuard__FP9TARGETRECP5GUARD).
 extern "C" void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
     int count;
@@ -3012,6 +3065,7 @@ extern "C" void AddTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 // 0x20A790 RemoveTargetRecordGuard
 // 0x20A790: Removes a guard from an engagement record.
 /* Removes a guard from a target record (FindTargetRecordGuardIndex finds its index). */
+// Also known as: RemoveTargetrecGuard (upstream readable / Sly 1 name; RemoveTargetrecGuard__FP9TARGETREC).
 extern "C" void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
 {
     int index;
@@ -3062,6 +3116,7 @@ static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j
 // (The failures share one `return 0` inside case 0 through `goto fail`: separate returns do not match.)
 } // namespace M_func_0020A818
 extern "C" float GetTargetRecordFacing(TARGETREC *record);
+// Also known as: FTargetrecAllows (upstream readable / Sly 1 name; FTargetrecAllows__FP9TARGETRECP5GUARD).
 extern "C" int DoesTargetRecordAllowGuard(TARGETREC *record, STEPGUARD *guard)
 {
     using namespace M_func_0020A818;
@@ -3116,6 +3171,7 @@ fail:
 
 // 0x20A9A8 SetTargetRecordState
 // 0x20A9A8: Sets an engagement record's state and its time.
+// Also known as: SetTargetrecTimer (upstream readable / Sly 1 name; SetTargetrecTimer__FP9TARGETRECi).
 extern "C" void SetTargetRecordState(TARGETREC *record, int state)
 {
     record->stateTime = g_clock.time;
@@ -3145,6 +3201,7 @@ extern "C" CID120 *GetStepguardDefaultAttack(STEPGUARD *guard)
 // 0x20AA40 AddStepguardAttackOid
 // 0x20AA40: Splice option: adds an attack oid (at most 8).
 extern "C" void AddStepguardAttackOidV(STEPGUARD *guard, int oid) __asm__("AddStepguardAttackOid");
+// Also known as: AddGuardAction (upstream readable / Sly 1 name; AddGuardAction__FP2LOi).
 extern "C" void AddStepguardAttackOidV(STEPGUARD *guard, int oid)
 {
     if (oid != -1) {
@@ -3197,6 +3254,7 @@ void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarget, qword a
 }
 // 0x20AB68: Switches the current attack: stops the old animation, sets the cooldown (now + random in the attack's
 // range), starts the new animation and its aim.
+// Also known as: SetGuardResponse (upstream readable / Sly 1 name; SetGuardResponse__FP5GUARDP9ACTIONOBJiG9VU_VECTOR).
 extern "C" void SetStepguardAttack(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset)
 {
     using namespace M_func_0020AB68;
@@ -3223,6 +3281,8 @@ void ReleaseAct(ACT **pact) __asm__("ReleaseAct");
 }
 // 0x20AC28: Releases and re-creates the aim act (the act that turns the attack's aim object, e.g. a gun
 // arm, toward the target) of the current attack.
+// Also known as: SetGuardActionAim (upstream readable / Sly 1 name;
+//   SetGuardActionAim__FP5GUARDP9ACTIONOBJiG9VU_VECTOR).
 extern "C" void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset)
 {
     using namespace M_func_0020AC28;
@@ -3253,6 +3313,7 @@ void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *matrix, qword from,
 qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix) __asm__("DecomposeRotationMatrixToEuler");
 // 0x20ACC0: Aims the attack: the rotation that turns the attack's precomputed strike offset toward the
 // predicted target point, stored as the aim act's goal (Euler angles).
+// Also known as: UpdateGuardActionAim (upstream readable / Sly 1 name; UpdateGuardActionAim__FP5GUARD).
 extern "C" void UpdateStepguardAim(STEPGUARD *guard)
 {
     MATRIX3 rotation;
@@ -3306,6 +3367,7 @@ void PredictAsegTransform(ASEG *aseg, STEPGUARD *root, XF *so, XF *relativeTo, s
 // resolves its binding and, when it has an aim object, precomputes the strike offset: where the
 // effector is, relative to the aim object, at the strike label of the attack animation (inferred).
 }
+// Also known as: PostLoadGuardAction (upstream readable / Sly 1 name; PostLoadGuardAction__FP2LO).
 void CID120::PostLoad()
 {
     using namespace M_func_0020AE18;
@@ -3399,6 +3461,7 @@ long GetSgfMask(int n) __asm__("GetSgfMask");
 int GetStepGroundProbeFlags(STEP *p) __asm__("GetStepGroundProbeFlags");
 // 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),
 // else the mover driver's or the step's.
+// Also known as: GrfGuardXp (upstream readable / Sly 1 name; GrfGuardXp__FP3ALO).
 extern "C" int GetStepguardGroundProbeFlags(STEPGUARD *guard)
 {
     long thrownMask;
@@ -3421,6 +3484,7 @@ void CreateNoise(int noiseType, qword pos, STEPGUARD *source, STIMULUS **result)
 STIMULUS *NewNoise(STIMK *pstimk, qword pos, STEPGUARD *source) __asm__("NewNoise");
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).
+// Also known as: RaiseGuardAlarm (upstream readable / Sly 1 name; RaiseGuardAlarm__FP5GUARDP2LO).
 extern "C" void EmitStepguardStimulus(STEPGUARD *guard, void *target)
 {
     STIMULUS *stimulus;
@@ -3443,6 +3507,7 @@ namespace M_func_0020B210 {
 void LinkStepAttachment(STEPGUARD *guard, LO *object, int attach) __asm__("LinkStepAttachment");
 // 0x20B210: Detaches the guard from what it is attached to (no attach kind or object).
 // (One case per attach kind, each with its own call: merging the identical cases changes the jump table.)
+// Also known as: DetachGuardMove (upstream readable / Sly 1 name; DetachGuardMove__FP5GUARD).
 extern "C" void DetachStepguard(STEPGUARD *guard)
 {
     switch (guard->attachKind) {
@@ -3475,6 +3540,7 @@ void LinkStepAttachment(STEPGUARD *guard, LO *object, int attach) __asm__("LinkS
 
 // 0x20B2A8: Attaches the guard to an object, choosing the attach kind by class: pipe (cid 0xB), rail (cid 0xD), cid
 // 0x13, cid 0x27 (inferred nouns).
+// Also known as: AttachGuardMove (upstream readable / Sly 1 name; AttachGuardMove__FP5GUARDP2LOi).
 extern "C" void AttachStepguard(STEPGUARD *guard, LO *object, int arg)
 {
     guard->attachObject = object;
@@ -3504,6 +3570,7 @@ namespace M_JthsCurrentStepguard {
 
 unsigned long GetSgfMask(int n) __asm__("GetSgfMask");
 // 0x20B3D0: STEPGUARD vtable slot 77 (health state): 2 dead (flag 7), 1 hurt (flags 5/6), else 0.
+// Also known as: NGuardStatus (upstream readable / Sly 1 name; NGuardStatus__FP5GUARD).
 extern "C" int GetStepguardHealthState(STEPGUARD *guard)
 {
     if (guard->grfsg & GetSgfMask(SGF_KO))
@@ -3517,6 +3584,7 @@ extern "C" int GetStepguardHealthState(STEPGUARD *guard)
 // 0x20B438 IncrementStepguardBusy
 // 0x20B438: Increments the guard's busy count; the first one marks it busy (busy level 1).
 /* Busy count up; the first marks the guard busy. */
+// Also known as: LockGuardActivation (upstream readable / Sly 1 name; LockGuardActivation__FP5GUARDi).
 extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 {
     int count;
@@ -3530,6 +3598,7 @@ extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 
 // 0x20B478 DecrementStepguardBusy
 // 0x20B478: Decrements the busy count; at 0 it is no longer busy.
+// Also known as: UnlockGuardActivation (upstream readable / Sly 1 name; UnlockGuardActivation__FP5GUARDi).
 extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 {
     int count;
@@ -3562,6 +3631,7 @@ int FindSwObjectsByClass(void *sw, int a, int cid, int c, int maxCount, STEPGUAR
 void *AllocFromWorldHeap(ALLOCREQ *request) __asm__("AllocFromWorldHeap");
 }
 // 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
+// Also known as: PostLoadGuardManager (upstream readable / Sly 1 name; PostLoadGuardManager__FP2LO).
 void CID125::PostLoad()
 {
     using namespace M_func_0020B500;
@@ -3585,6 +3655,7 @@ void ResetDetectorTargets(DETECTOR *detector) __asm__("ResetDetectorTargets");
 }
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
 // removes them, mode 2 restarts their root behaviour and resets their detector.
+// Also known as: UpdateGuardManager (upstream readable / Sly 1 name; UpdateGuardManager__FP2LO).
 void CID125::Update()
 {
     using namespace M_func_0020B590;

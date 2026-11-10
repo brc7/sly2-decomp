@@ -27,6 +27,7 @@ float SmoothValueWithAccel(float gCur, float dgCur, float gTarget, float dt, SMP
 extern "C" int GetRandomInt();
 
 // Wraps an angle into [-pi, pi).
+// Also known as: RadNormalize (upstream readable / Sly 1 name).
 float NormalizeAngle(float rad)
 {
     if (rad < -3.14159265359f || 3.14159265359f < rad) {
@@ -37,6 +38,7 @@ float NormalizeAngle(float rad)
 }
 
 // Clamps value to [-limit, limit]. (Sly 1-derived name: GLimitAbs.)
+// Also known as: GLimitAbs (upstream readable / Sly 1 name).
 float ClampAbs(float value, float limit)
 {
     if (value > limit) {
@@ -52,6 +54,7 @@ float ClampAbs(float value, float limit)
 // Moves `current` toward `target` over dt: at params->fastSpeed while far away, then decelerating linearly to
 // params->slowSpeed over the final stretch (the distance covered while slowing for params->fastDuration seconds), never
 // overshooting. Returns the new value and optionally its rate of change. The engine's standard easing.
+// Also known as: GSmooth (upstream readable / Sly 1 name).
 float SmoothValue(float current, float target, float dt, SMP *params, float *outRate)
 {
     float distance;
@@ -109,6 +112,7 @@ LDone:
 
 // SmoothValue with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->maxSpeedChange
 // * dt, and the value follows the constant-acceleration path when the limit applies. (Sly 1-derived name: GSmoothA.)
+// Also known as: GSmoothA (upstream readable / Sly 1 name).
 float SmoothValueWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float nextRate;
@@ -135,6 +139,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
 // SmoothValue for angles: eases along the shorter way round and keeps the result normalised.
 // (Sly 1-derived name: RadSmooth.)
+// Also known as: RadSmooth (upstream readable / Sly 1 name).
 float SmoothAngle(float current, float target, float dt, SMP *params, float *outRate)
 {
     float rad;
@@ -145,6 +150,7 @@ float SmoothAngle(float current, float target, float dt, SMP *params, float *out
 }
 
 // SmoothValueWithAccel for angles (shorter way round, normalised result). (Sly 1-derived name: RadSmoothA.)
+// Also known as: RadSmoothA (upstream readable / Sly 1 name).
 float SmoothAngleWithAccel(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float rad;
@@ -161,6 +167,7 @@ int GetRandomInt()
 }
 
 // Returns a uniform random int in [low, high].
+// Also known as: NRandInRange (upstream readable / Sly 1 name).
 int RandomIntInRange(int low, int high)
 {
     int nRand = GetRandomInt();
@@ -169,6 +176,7 @@ int RandomIntInRange(int low, int high)
 }
 
 // Returns a uniform random float in [min, max].
+// Also known as: GRandInRange (upstream readable / Sly 1 name).
 float RandomFloatInRange(float min, float max)
 {
     if (min == max)
@@ -178,6 +186,7 @@ float RandomFloatInRange(float min, float max)
 
 // Returns whether a and b are equal within a relative tolerance: |a - b| / max(|a|, 1) < epsilon.
 // (Sly 1-derived name: FFloatsNear.)
+// Also known as: FFloatsNear (upstream readable / Sly 1 name).
 int AreFloatsNear(float a, float b, float epsilon)
 {
     b = a - b;
@@ -191,6 +200,7 @@ int AreFloatsNear(float a, float b, float epsilon)
 // Single-precision square root (sqrt.s).
 static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 // Solves a x^2 + b x + c = 0 for real roots; writes them to roots[] and returns how many (0, 1 or 2).
+// Also known as: CSolveQuadratic (upstream readable / Sly 1 name).
 int SolveQuadratic(float a, float b, float c, float *roots)
 {
     float alpha;
@@ -263,6 +273,7 @@ union DBL {
 };
 // Truncates a double toward zero by masking mantissa bits (with a carry fix when all masked bits are set).
 // (Sly 1-derived name: GTrunc.)
+// Also known as: GTrunc (upstream readable / Sly 1 name).
 double TruncateDouble(double g)
 {
     DBL *pconv = (DBL *)&g;
@@ -284,6 +295,7 @@ double TruncateDouble(double g)
 }
 
 // Truncates a float toward zero by masking mantissa bits. Sly 1 named this and TruncateDouble GTrunc (two overloads).
+// Also known as: GTrunc (upstream readable / Sly 1 name).
 float TruncateFloat(float g)
 {
     uint u = *(uint *)&g;
@@ -305,6 +317,7 @@ float TruncateFloat(float g)
 }
 
 // Returns dividend mod divisor in [0, divisor) (fmod made non-negative).
+// Also known as: GModPositive (upstream readable / Sly 1 name).
 float ModPositive(float dividend, float divisor)
 {
     float result = fmodf(dividend, divisor);
@@ -327,6 +340,7 @@ void FitClq(float g0, float g1, float u, float g3, CLQ *outClq)
 }
 
 // Returns whether value lies strictly inside the range (min < value < max). Sly 1 name: FCheckLm.
+// Also known as: FCheckLm (upstream readable / Sly 1 name).
 int IsWithinLimits(LM *range, float value)
 {
     int isInside;
@@ -341,6 +355,7 @@ int IsWithinLimits(LM *range, float value)
 SLY2_SCRAP("addiu $sp, $sp, 0x50");
 
 // Clamps value into the range [min, max]. (Sly 1-derived name: GLimitLm.)
+// Also known as: GLimitLm (upstream readable / Sly 1 name).
 float ClampToLimits(LM *range, float value)
 {
     if (value < range->minValue) {
@@ -353,6 +368,7 @@ float ClampToLimits(LM *range, float value)
 }
 
 // Clamps an angle into an angular range, measuring around the range's midpoint so wrap-around is handled.
+// Also known as: RadLimitLm (upstream readable / Sly 1 name; RadLimitLm__FP2LMf).
 extern "C" float ClampAngleToRange(LM *range, float rad)
 {
     float radMid = (range->maxValue + range->minValue) * 0.5f;
@@ -445,6 +461,7 @@ extern "C" void ConvertVectorToRgba(VECTOR *color, int a, RGBA *outRgba)
 
 // Despite its (Sly 1) name, converts HSV to RGB: hsv = (hue in degrees 0..360, negative for none, saturation 0..1,
 // value 0..1) in, rgb (0..1) out. Its "Q" wrapper below is the 0..255 user-facing variant.
+// Also known as: RgbFromHsv (upstream readable / Sly 1 name; RgbFromHsv__FP6VECTORT0).
 void ConvertUserRgbToUserHsv(VECTOR *hsv, VECTOR *outRgb)
 {
     float h, s, v, f, p, q, t;

@@ -219,6 +219,7 @@ extern "C" void SetupRenderTargetView(RT*p,VIFS*vifs){
 }
 
 // Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob. (inferred)
+// Also known as: RenderRenderTargets (upstream readable / Sly 1 name; RenderRenderTargets__FP5SCENEP10RENDEROPTSi).
 extern "C" void BeginRpRenderTarget0(VIFS *pvifs, int a1, int a2)
 {
     SetupRenderTargetView(&((RT *)g_sw.artgt)[0], pvifs);
@@ -269,6 +270,7 @@ extern "C" void AddRtcamObjectShown(RTCAM *rtcam, RTO *po)
 
 // Claims a free render target for the camera (returns it, or 0 if both are taken) and prepares the camera's objects
 // for it. The HUD calls this to show a 3D object (found with FindObjectForRenderTarget) as a texture. (inferred)
+// Also known as: TakeRtgt (upstream readable / Sly 1 name; TakeRtgt__FPv).
 extern "C" RT *AcquireRenderTarget(RTCAM *rtcam)
 {
     unsigned int i;
@@ -318,6 +320,7 @@ extern "C" void AcquireRenderTargetNoResult(RTCAM *pcam)
 
 // Gives the camera's render target back: restores its objects (vtable slots 9 / 21 by the recorded flags), then
 // notifies itself (slot 21 with 0, message 3). (inferred)
+// Also known as: GiveRtgt (upstream readable / Sly 1 name; GiveRtgt__FPv).
 extern "C" void ReleaseRenderTarget(RTCAM *rtcam)
 {
     int i;
@@ -354,6 +357,7 @@ extern "C" void RenderRtcam(RTCAM *rtcam)
 static __inline__ POV *Get(POV *po) { return (po && IsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->controlled : po; }
 // Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
 // player object, or what it controls), others in the whole world. (inferred)
+// Also known as: PvRtgtOwnerOfId (upstream readable / Sly 1 name; PvRtgtOwnerOfId__Fi).
 extern "C" void FindObjectForRenderTarget(int id)
 {
     switch (id) {

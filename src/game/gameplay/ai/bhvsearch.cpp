@@ -97,6 +97,7 @@ int IsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("IsBasicDerivedFrom__FP5BA
 
 // 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
 // timers off (FLT_MAX).
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvSearch(BHV171 *behavior)
 {
     InitBhv(behavior);
@@ -115,6 +116,7 @@ void BHV171::Start()
 
 // 0x171FD0: Search behaviour vtable slot 9 (Close): base, state -1, lowers flag 0x1F and drops the watched
 // stimulus.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvSearch(BHV171 *behavior)
 {
     CloseBhv(behavior);
@@ -125,6 +127,7 @@ extern "C" void CloseBhvSearch(BHV171 *behavior)
 
 // 0x172018: Search behaviour vtable slot 10 (Update): state machine 0 react, 1 go to the last known position, 2
 // face it and look, 3 visit the search points, 4 give up, 5 hold while the guard is hands-off.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvSearch(BHV171 *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -217,6 +220,7 @@ extern "C" void UpdateBhvSearch(BHV171 *behavior) {
 namespace RO_ORDER { extern const float r_D_002A5398 __asm__("D_002A5398") = 3.40282347e+38f; }
 // 0x172320: Enters a search state, pushing its child behaviour (an animation for react/look/give-up, a goto for
 // travel, a look-at) and arming its timers.
+// Also known as: SetInvestigateState (upstream readable / Sly 1 name; SetInvestigateState__14JOBINVESTIGATEi).
 extern "C" void SetBhvSearchState(BHV171 *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv(&behavior->pbhvNext);
@@ -294,6 +298,7 @@ extern "C" int IsBhvSearchIdle(BHV171 *behavior)
 
 // 0x172560: Arms the look timers: a random look duration from the guard's range (+0xE6C..+0xE70); the second
 // (give-up) timer only for guards with +0xE78 == 1.
+// Also known as: SetDeadlines (upstream readable / Sly 1 name).
 extern "C" void SetBhvSearchLookTimers(BHV171 *behavior) {
     float t = g_clock.time;
     behavior->lookEndTime = t + RandomFloatInRange(((STEPGUARD *)behavior->owner)->lookTimes.minValue, ((STEPGUARD *)behavior->owner)->lookTimes.maxValue);
@@ -303,6 +308,7 @@ extern "C" void SetBhvSearchLookTimers(BHV171 *behavior) {
 
 // 0x1725E0: Replaces the watched stimulus (a refcounted object at +0x44, via its add/drop reference slots) and
 // flags a re-plan.
+// Also known as: SetNoise (upstream readable / Sly 1 name; SetNoise__14JOBINVESTIGATEP5NOISE).
 extern "C" void SetBhvSearchWatched(BHV171 *behavior, STIMULUS *watched) {
     if (watched == behavior->watched) return;
     if (behavior->watched) ((BASIC *)behavior->watched)->Release();
@@ -323,6 +329,7 @@ static inline float Dist(qword a, qword b) {
 }
 // 0x172658: True if the guard cannot search any more or its last known position is nearer than the target object +
 // 50.
+// Also known as: FNear (upstream readable / Sly 1 name).
 extern "C" int HasBhvSearchReachedTarget(BHV171 *behavior) {
     STEPGUARD *guard = ((STEPGUARD *)behavior->owner);
     LO *t;
@@ -337,6 +344,7 @@ extern "C" int HasBhvSearchReachedTarget(BHV171 *behavior) {
 
 // 0x172760: Returns the last known target position from the shared target record (its first position when this
 // guard is in mode 4 for it, else its second).
+// Also known as: PosNoise (upstream readable / Sly 1 name).
 extern "C" qword GetBhvSearchLastKnownPosition(BHV171 *behavior)
 {
     STIMULUS *t = behavior->watched;
@@ -347,6 +355,7 @@ extern "C" qword GetBhvSearchLastKnownPosition(BHV171 *behavior)
 
 // 0x172798: Adds a candidate point to a 64-entry list if its pitch and distance from the guard are within limits,
 // recording its heading relative to the guard.
+// Also known as: AddSearchPlace (upstream readable / Sly 1 name; AddSearchPlace__FP8WAYQUERY).
 extern "C" int TryAddSearchCandidate(QUERY *query) {
     float a, b, c;
     qword d;
@@ -430,6 +439,7 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
 // 0x1728B0: Chooses up to four search points: gathers candidate hiding places (several global object lists, cids
 // 0x23/0x67/0x1B), sorts them by heading, keeps up to four well-spread points and fills the rest randomly behind
 // the guard.
+// Also known as: FindSearchPlaces (upstream readable / Sly 1 name).
 extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
 {
     WORK w;
@@ -569,6 +579,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
 
 namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.40282347e+38f; }
 // 0x172F10: About once a second after arriving, sends the goto child to the next of the four search points.
+// Also known as: NextSearchPlace (upstream readable / Sly 1 name).
 extern "C" void StepBhvSearchPoint(BHV171 *behavior) {
     void *pbhvCur;
     BHV171POINT *pe;

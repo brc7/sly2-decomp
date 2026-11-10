@@ -198,6 +198,7 @@ static inline void SetPlayTimeFloat(OPT *p, float value, void *context)
 }
 // Per-tick timers: adds dt to the total play time and the current episode's play time (save variables), to the current
 // job's elapsed time, and eases the difficulty when the job takes long.
+// Also known as: UpdateGameTimers (upstream readable / Sly 1 name; UpdateGameTimers__Fv).
 extern "C" void UpdateGameTimers()
 {
     if (!g_sw.psvpDt)
@@ -242,6 +243,7 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 static inline int MinIntLocal(int a, int b) { return a > b ? b : a; }
 // Episode completion percentage: completed tasks (state 3) over all tasks that have successors, clamped to 1..99
 // unless none or all are complete.
+// Also known as: NTasksPercentDone (upstream readable / Sly 1 name; NTasksPercentDone__Fv).
 extern "C" int GetEpisodePercentComplete()
 {
     int numCounted = 0;
@@ -308,6 +310,7 @@ extern "C" void SetCoinCount(void *pv, int n)
 
 // Restarts the HUD widget of ahudstack[1]: shows it (slot 49) and restarts its timer.
 /* Restarts the HUD widget of ahudstack[1]: Show(-1) (slot 49) and its timer. */
+// Also known as: ShowCoinCounter (upstream readable / Sly 1 name; ShowCoinCounter__FP2SW).
 extern "C" void RestartHudWidget1(SW *world)
 {
     WIDGET *widget = world->ahudstack[1].widget;
@@ -331,6 +334,7 @@ extern "C" void RestartHudWidget2(SW *world)
 namespace M_func_001618F8 {
 // Shows the HUD widget of ahudstack[3] and hides it again after dt seconds (g_sw+0x476C); UpdateSwTimerHud plays the
 // tick/tock sounds while that countdown runs, so this is the countdown display. (inferred)
+// Also known as: StartHudTimer (upstream readable / Sly 1 name; StartHudTimer__FPvf).
 extern "C" void ShowCountdownHud(SW *world, float dt)
 {
     WIDGET *widget = world->ahudstack[3].widget;
@@ -345,6 +349,7 @@ extern "C" void ShowCountdownHud(SW *world, float dt)
 namespace M_func_00161958 {
 
 // Hides the HUD widget of ahudstack[3] and clears its hide time.
+// Also known as: StopHudTimer (upstream readable / Sly 1 name; StopHudTimer__FPv).
 extern "C" void HideCountdownHud(SW *world)
 {
     WIDGET *widget = (WIDGET *)world->ahudstack[3].widget;
@@ -363,6 +368,7 @@ void HandleDifficultyMessage(void *pv, int n, void *p) __asm__("HandleDifficulty
 void SendTaskGameEvent(TASK *task, int n, void *p) __asm__("SendTaskGameEvent");
 void HandleJobGameEvent(void *pv, int n, void *p) __asm__("HandleJobGameEvent");
 // The game event bus: the game record, the difficulty, every available task of the current job, then the current job.
+// Also known as: BroadcastTaskEvent (upstream readable / Sly 1 name; BroadcastTaskEvent__FP2SWiP2LO).
 void BroadcastGameEvent(void *pv, int n, void *p) __asm__("BroadcastGameEvent"); void BroadcastGameEvent(void *pv, int n, void *p)
 {
     TASK *task;
@@ -424,6 +430,7 @@ typedef char CHECK_words_Offset[FIELD_OFFSET(CHECK,words)==0?1:-1];
 // The game record's event handler: world teardown (1) saves widget state, reset (3) applies the pending save data and
 // reloads the slots, load (4) restores the tasks, 5 re-resolves the current job, task and pending task from the saved
 // oids.
+// Also known as: OnGameRecordEvent (upstream readable / Sly 1 name; OnGameRecordEvent__FP8GAMESAVEi).
 extern "C" void HandleGameEvent(GAME *game, int action)
 {
     switch (action) {
@@ -533,6 +540,7 @@ struct E { int oid; int n; };
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void RequestTaskState(void *p, int n, void *owner) __asm__("RequestTaskState");
 // For each (task oid, state) pair, finds the task and requests that state (RequestTaskState).
+// Also known as: ApplyCheckpointTasks (upstream readable / Sly 1 name; ApplyCheckpointTasks__FP2SWiP2LOPv).
 extern "C" void ApplyTaskStates(void *pv, int c, struct E *ae, void *owner)
 {
     int i;
@@ -591,6 +599,7 @@ extern int GetCurrentLevelIndex__Fv() __asm__("GetCurrentLevelIndex__Fv");
 extern void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // On a job or task state change: for each visibility record whose mask covers the state group and whose level
 // matches, adds the object when the state's bit is set and removes it otherwise.
+// Also known as: ApplyTaskObjects (upstream readable / Sly 1 name; ApplyTaskObjects__FPviiT0).
 extern "C" void ApplyStateLoVisibility(void *object, int nState, int numRecords, STATEVIS *records)
 {
     int i;
@@ -663,6 +672,7 @@ extern "C" void TriggerStateRsmg(void *pvUnused, STATERSMG *record, int newState
 namespace M_TriggerStateRsmgs {
 void TriggerStateRsmg(void *p, STATERSMG *pe, void *q, int n) __asm__("TriggerStateRsmg");
 // Applies TriggerStateRsmg over an array of records.
+// Also known as: ApplyTaskSms (upstream readable / Sly 1 name; ApplyTaskSms__FPvT0iT0i).
 extern "C" void TriggerStateRsmgs(void *p, void *q, int c, STATERSMG *ae, int n)
 {
     int i;
@@ -709,6 +719,7 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 }
 // Loads a JOB from the BRX: preallocates its visibility, rsmg and two event-id lists, loads the LO part, then shrinks
 // them to the counts read. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadMissionFromBrx (upstream readable / Sly 1 name; LoadMissionFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadJobFromBrx(JOB *job, CBinaryInputStream *stream)
 {
     STACKSCOPE fr;
@@ -728,6 +739,7 @@ extern "C" void LoadJobFromBrx(JOB *job, CBinaryInputStream *stream)
 
 namespace M_AddJobCompleteEvent {
 // Splice: adds a game-event id that completes the job when it arrives (at most 32).
+// Also known as: FUN_001e53f8 (upstream readable / Sly 1 name).
 extern "C" void AddJobCompleteEvent(JOB *job, int eventId)
 {
     if (job->ceventComplete < 32) {
@@ -803,6 +815,7 @@ void *GetSaveVarAddress(void *p, void *q, void *r) __asm__("GetSaveVarAddress");
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // JOB post-load (slot 15): applies the inactive visuals when it is not current, restores its counters from the save
 // variables and finds its completion widgets.
+// Also known as: StartJob (upstream readable / Sly 1 name; StartJob__FP2SW).
 extern "C" void PostJobLoad(JOB *job)
 {
     CRefData ref;
@@ -842,6 +855,7 @@ extern "C" void JobOptionNoOp()
 }
 
 // Makes the job current, ending the previous current job first.
+// Also known as: JobSwitch (upstream readable / Sly 1 name; JobSwitch__FP3JOB).
 extern "C" void SetCurrentJob(JOB *job)
 {
     if (IsCurrentJob(job) == 0) {
@@ -864,6 +878,7 @@ namespace M_ResetJobTasks {
 void UpdateTaskSaveVars(TASK *p) __asm__("UpdateTaskSaveVars");
 void UpdateJobSaveVars(JOB *p) __asm__("UpdateJobSaveVars");
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
+// Also known as: ResetJob (upstream readable / Sly 1 name; ResetJob__FP3JOB).
 extern "C" void ResetJobTasks(JOB *job)
 {
     TASK *task;
@@ -914,6 +929,7 @@ static inline int IsSameFileRecord(W *a, W *b)
     return (a->sectorKey ^ a->sectorXor) == (b->sectorKey ^ b->sectorXor);
 }
 // Ends the job (and its pending task); when live: game event 0x22, inactive visuals and rsmgs, Splice event 0x14.
+// Also known as: DeactivateJob (upstream readable / Sly 1 name; DeactivateJob__FP3JOB).
 extern "C" void EndJob(JOB *job)
 {
     SetSwJobCur(&g_sw, 0);
@@ -941,6 +957,7 @@ extern void FailJob(JOB *p) __asm__("FailJob");
 extern void RestartJob(JOB *p) __asm__("RestartJob");
 // The job's game-event hook: when live, forwards the event (Splice event 0x11) and checks the complete and fail lists;
 // when not live, event 0x10 restarts it.
+// Also known as: JobOnEvent (upstream readable / Sly 1 name; JobOnEvent__FP3JOBii).
 extern "C" void HandleJobGameEvent(JOB *job, int eventId, int eventArg)
 {
     if (IsJobLive(job)) {
@@ -969,6 +986,7 @@ extern "C" void HandleJobGameEvent(JOB *job, int eventId, int eventArg)
 
 // Called when a task of the job is complete: the start task activates the job, the end task completes it, a task
 // with a pending warp becomes the pending task.
+// Also known as: JobTaskReached (upstream readable / Sly 1 name; JobTaskReached__FP3JOBP4TASK).
 extern "C" void OnJobTaskComplete(JOB *job, TASK *task)
 {
     if (IsJobLive(job) != 0) {
@@ -985,6 +1003,7 @@ extern "C" void OnJobTaskComplete(JOB *job, TASK *task)
 }
 
 // Activates the job unless current: event 0x1C, refreshes the current player, SetCurrentJob.
+// Also known as: JobBegin (upstream readable / Sly 1 name; JobBegin__FP3JOB).
 extern "C" void ActivateJob(JOB *job)
 {
     LO *ploHero;
@@ -1006,6 +1025,7 @@ extern "C" void SignalJobComplete(JOB *job)
 
 // Restarts the job: goes to the pending task, or else to the job's start task.
 /* Go to the pending task, else to the job's start task. */
+// Also known as: RestartJobAtCheckpoint (upstream readable / Sly 1 name; RestartJobAtCheckpoint__FP2SW).
 extern "C" void RestartJob(JOB *job)
 {
     if (g_sw.pendingTask != 0) {
@@ -1037,6 +1057,7 @@ void DeactivateTask(TASK *p) __asm__("DeactivateTask");
 void BroadcastGameEvent(void *p, int n, JOB *job) __asm__("BroadcastGameEvent");
 // Aborts the job: resets its tasks, makes the start task available again, ends the current task when it belongs to
 // the job, event 0x1F, ends the job.
+// Also known as: RestartJob (upstream readable / Sly 1 name; RestartJob__FP3JOB).
 extern "C" void AbortJob(JOB *job)
 {
     ResetJobTasks(job);
@@ -1065,6 +1086,7 @@ void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
 void BroadcastGameEvent(void *p, int n, JOB *job) __asm__("BroadcastGameEvent");
 void AutosaveGame(void *p, int n) __asm__("AutosaveGame");
 // Finishes the job: marks the end task complete, event 0x20, ends the job and autosaves.
+// Also known as: JobCompleteClose (upstream readable / Sly 1 name; JobCompleteClose__FP3JOB).
 void FinishJob(JOB *job) __asm__("FinishJob"); void FinishJob(JOB *job)
 {
     if (!job->fReplay)
@@ -1114,6 +1136,7 @@ int IsWidgetAnimPlaying(void *p, int n) __asm__("IsWidgetAnimPlaying");
 void FinishJob(JOB *p) __asm__("FinishJob");
 // JOB per-frame update (slot 16): steps the completion sequence (intro label, outro, shared widget, done) as each
 // widget label finishes.
+// Also known as: UpdateJob (upstream readable / Sly 1 name; UpdateJob__FP2LO).
 extern "C" void UpdateJob(JOB *job)
 {
     UpdateLo(job);
@@ -1168,6 +1191,7 @@ void DecrementSwHandsOff(void *pg, int n) __asm__("DecrementSwHandsOff");
 void PlayWidgetAnim(WIDGET *pwidget, int n) __asm__("PlayWidgetAnim");
 // Sets the completion phase (0 none, 1 intro, 2 outro, 3 shared widget): leaving 0 finds the next task and takes
 // control from the player; returning to 0 hides the widgets and gives control back.
+// Also known as: SetJobSeq (upstream readable / Sly 1 name; SetJobSeq__FP3JOBi).
 extern "C" void SetJobCompletionPhase(JOB *job, int phase)
 {
     int i;
@@ -1222,6 +1246,7 @@ extern "C" void SetJobCompletionPhase(JOB *job, int phase)
 } // namespace M_SetJobCompletionPhase
 
 // True when the job is the current job.
+// Also known as: FJobCur (upstream readable / Sly 1 name; FJobCur__FP3JOB).
 extern "C" int IsCurrentJob(JOB *job)
 {
     return g_sw.currentJob == job;
@@ -1242,6 +1267,7 @@ namespace M_func_00163430 {
 // Same idiom as sly2/util.h StdMaxInt; kept local because the shared helper changes GetJobState (1/11 instructions off).
 extern "C" { static inline int StdMaxIntLocal(int a, int b) { return a > b ? a : b; } }
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
+// Also known as: NJobOpen (upstream readable / Sly 1 name; NJobOpen__FP3JOB).
 extern "C" int GetJobState(JOB *job)
 {
     int state = job->firstTask->state;
@@ -1338,6 +1364,7 @@ static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
 }
 // Loads a TASK from the BRX: visibility and rsmg arrays, then its prerequisite and successor oid lists.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadTaskFromBrx (upstream readable / Sly 1 name; LoadTaskFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadTaskFromBrx(TASK *task, CBinaryInputStream *stream)
 {
     int i = 0;
@@ -1420,6 +1447,7 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetLoBusyKind(LO *p, int n) __asm__("SetLoBusyKind");
 // TASK post-load (slot 15): links it into its job, resolves the prerequisite and successor oids, applies the
 // inactive visuals when live, restores its save variables and makes it busy when timed or marked.
+// Also known as: StartTask (upstream readable / Sly 1 name; StartTask__FP2SW).
 extern "C" void PostTaskLoad(TASK *task)
 {
     CRefData ref;
@@ -1482,6 +1510,7 @@ void UpdateLo(LO *p) __asm__("UpdateLo");
 void SendTaskTimeout(TASK *p, int n) __asm__("SendTaskTimeout");
 // TASK per-frame update (slot 16): sends the timeout of a timed available task and shows its marker object only while
 // it is available and no job is current.
+// Also known as: UpdateTask (upstream readable / Sly 1 name; UpdateTask__FP2LO).
 extern "C" void UpdateTask(TASK *task)
 {
     LO *marker;
@@ -1549,6 +1578,7 @@ extern void PostNotice(void *pv, int n, float g) __asm__("PostNotice");
 extern void TakeExit(LO *plo) __asm__("TakeExit");
 // Makes the task current (and pending when it has a warp) and activates its job; when live: counts the start,
 // game event 0x23, active visuals, starts its music, Splice event 0x13.
+// Also known as: ActivateTaskNow (upstream readable / Sly 1 name; ActivateTaskNow__FP4TASK).
 extern "C" void BeginTask(TASK *task)
 {
     SW *world = &g_sw;
@@ -1578,6 +1608,7 @@ namespace M_func_00163E88 {
 extern int IsTaskLive(TASK *p) __asm__("IsTaskLive");
 extern void BroadcastGameEvent(void *pv, int n, TASK *p) __asm__("BroadcastGameEvent");
 // Rejects a state change: game event 0x27 and Splice event 0x12(state) to the task and its job.
+// Also known as: TaskRefused (upstream readable / Sly 1 name; TaskRefused__FP4TASKi).
 extern "C" void RejectTaskState(TASK *task, int state)
 {
     void *apv[1];
@@ -1601,6 +1632,7 @@ extern void ApplyStateLoVisibility(LO *p, int n, int c, STATEVIS *a) __asm__("Ap
 extern void TriggerStateRsmgs(LO *p, int n, int c, STATERSMG *a, int b) __asm__("TriggerStateRsmgs");
 extern void CancelNotice(void *pv, int n) __asm__("CancelNotice");
 // Ends the task; when live: game event 0x24, inactive visuals and rsmgs, stops its music, Splice event 0x14.
+// Also known as: DeactivateTask (upstream readable / Sly 1 name; DeactivateTask__FP4TASK).
 extern "C" void EndTask(TASK *task)
 {
     SetSwTaskCur(&g_sw, 0);
@@ -1616,6 +1648,7 @@ extern "C" void EndTask(TASK *task)
 } // namespace M_EndTask
 
 // True when the task is the current task.
+// Also known as: FTaskCur (upstream readable / Sly 1 name; FTaskCur__FP4TASK).
 extern "C" int IsCurrentTask(TASK *task)
 {
     return g_sw.currentTask == task;
@@ -1625,6 +1658,7 @@ namespace M_FTaskComplete {
 void GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVar");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // True when the task is complete (state >= 2; an unset task uses its saved flag).
+// Also known as: FTaskDone (upstream readable / Sly 1 name; FTaskDone__FP4TASK).
 extern "C" int IsTaskComplete(TASK *task)
 {
     if (task->state == TASK_STATE_UNSET && task->svkComplete.c) {
@@ -1656,6 +1690,7 @@ extern "C" int GetTaskStateGoalOid(TASK *task)
 namespace M_VisitTaskTopo {
 // Topological visit: records the depth and emits the task once all its prerequisites are visited, then visits the
 // successors.
+// Also known as: VisitTask (upstream readable / Sly 1 name; VisitTask__FP4TASKPiPvii).
 extern "C" void VisitTaskTopo(TASK *task, int *count, TASK **order, int depth, int jobDepth)
 {
     task->depth = StdMaxInt(depth, task->depth);
@@ -1680,6 +1715,7 @@ void GetGlobalSaveVar(CRefData *pref, void *a, void *b) __asm__("GetGlobalSaveVa
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTaskState(TASK *p, int n) __asm__("SetTaskState");
 // Restores the task's state from its save variables (SetTaskState), with the job start-task cases.
+// Also known as: RestoreTask (upstream readable / Sly 1 name; RestoreTask__FP4TASK).
 extern "C" void RestoreTaskState(TASK *task)
 {
     CRefData ref;
@@ -1774,6 +1810,7 @@ extern "C" void UpdateTaskSaveVars(TASK *task)
 
 namespace M_FTaskPrereqsMet {
 // True when every prerequisite is complete or optional and available.
+// Also known as: FTaskPrereqs (upstream readable / Sly 1 name; FTaskPrereqs__FP4TASK).
 extern "C" int AreTaskPrereqsMet(TASK *task)
 {
     int met = 1;
@@ -1795,6 +1832,7 @@ extern void ActivateTask(TASK *p) __asm__("ActivateTask");
 extern void RejectTaskState(TASK *p, int newState) __asm__("RejectTaskState");
 // Validated state request: 4 activates, 5 deactivates, 0..3 only one step up or when the prerequisites are met;
 // otherwise rejected.
+// Also known as: RequestTaskState (upstream readable / Sly 1 name; RequestTaskState__FP4TASKii).
 extern "C" void RequestTaskState(TASK *task, int newState, int requester)
 {
     StateSourceScope scope(task, task->stateSource, requester);
@@ -1857,6 +1895,7 @@ extern int AreTaskPrereqsMet(TASK *p) __asm__("AreTaskPrereqsMet");
 extern void SetTaskStateCascade(TASK *p, int newState) __asm__("SetTaskStateCascade");
 extern void ActivateTask(TASK *p) __asm__("ActivateTask");
 // Unvalidated state change (ForceTaskState): like RequestTaskState without the checks.
+// Also known as: ForceTaskState (upstream readable / Sly 1 name; ForceTaskState__FP4TASKii).
 extern "C" void ForceTaskState(TASK *task, int newState, int requester)
 {
     StateSourceScope scope(task, task->stateSource, requester);
@@ -1887,6 +1926,7 @@ extern "C" void ForceTaskState(TASK *task, int newState, int requester)
 namespace M_UpdateCurrentJob {
 int FindSwObjectsByClass(SW *pg, int kind, int n, int m, int c, void **apv) __asm__("FindSwObjectsByClass");
 // Switches the current job to the one whose start task is complete and whose end task is not.
+// Also known as: ChooseJob (upstream readable / Sly 1 name; ChooseJob__Fv).
 extern "C" void UpdateCurrentJob(void)
 {
     JOB *jobs[256];
@@ -1959,6 +1999,7 @@ namespace M_CollectTaskCascade {
 // Collects the prerequisites whose state must be raised along with the task (a task done in its job completes the
 // prerequisites outside it: state 2 becomes 3 across jobs). (The round-4 view named the prerequisite list +0x94/+0x98
 // "followers".)
+// Also known as: CollectTasks (upstream readable / Sly 1 name; CollectTasks__FP4TASKiPiPv).
 extern "C" void CollectTaskCascade(TASK *task, int newState, int *count, TASK **collected)
 {
     int i;
@@ -2006,6 +2047,7 @@ static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const C
 static inline void SetValue(void*object,int n){CRef r(n,0x15);SetPv(object,r,&g_gs);}
 // The main task state change: propagates to the collected prerequisites, sets the state, updates the episode percent,
 // handles job start and end tasks and autosaves.
+// Also known as: ChangeTaskState (upstream readable / Sly 1 name; ChangeTaskState__FP4TASKi).
 extern "C" void SetTaskStateCascade(TASK *task, int state)
 {
     int oldState = task->state;
@@ -2101,6 +2143,7 @@ void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm
 void GoToTask(void *p) __asm__("GoToTask");
 void WipeToWorldWarp(SW *pg, int n, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Goes to the task with the given oid, or, when it is not in this level, stores it as pending and warps to the level.
+// Also known as: RequestTaskStartByOid (upstream readable / Sly 1 name; RequestTaskStartByOid__FP2SWi3OID).
 extern "C" void StartTaskByOid(void *pv, int worldEntry, int oid)
 {
     SW *pg = &g_sw;
@@ -2128,6 +2171,7 @@ extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern void SetTaskState(TASK *p, int n) __asm__("SetTaskState");
 // After a load (event 4, world flag 8): recomputes the tasks in topological order, makes the pending task available,
 // picks the current character from it and sets the warp.
+// Also known as: StartQueuedTask (upstream readable / Sly 1 name; StartQueuedTask__FP2SS).
 extern "C" void RestoreTasksAfterLoad(GAME *game)
 {
     if (!(g_sw.transition.flags & 8))
@@ -2180,6 +2224,7 @@ extern void *GetLevelFileRecord(int n) __asm__("GetLevelFileRecord");
 extern void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Goes to a task: switches to its job, makes it available and current, picks its character and wipes to its level and
 // warp.
+// Also known as: RestartTask (upstream readable / Sly 1 name; RestartTask__FP4TASK).
 extern "C" void GoToTask(TASK *task)
 {
     StateSourceScope scope(task, STATE_SOURCE_GO_TO_TASK, 0);
@@ -2234,6 +2279,7 @@ extern void UpdateTaskSaveVars(TASK *p) __asm__("UpdateTaskSaveVars");
 extern void ActivateTask(TASK *p) __asm__("ActivateTask");
 // Low-level task state set: game events 0x26/0x25, the available-task list, counts, save variables, Splice events
 // 0x16/0x15 and the follow-up activate/deactivate.
+// Also known as: SetTaskState (upstream readable / Sly 1 name; SetTaskState__FP4TASKi).
 extern "C" void SetTaskState(TASK *task, int n)
 {
     if (task->state == n)
@@ -2398,6 +2444,7 @@ extern "C" void SortTasksTopologically(int *count, void **order)
 } // namespace M_SortTasksTopologically
 
 // Stores the current job in the world and its oid in g_game.
+// Also known as: SetJobCur (upstream readable / Sly 1 name; SetJobCur__FP7TASKMGRP3JOB).
 extern "C" void SetSwJobCur(SW *world, LO *plo)
 {
     world->currentJob = plo;
@@ -2443,6 +2490,7 @@ void *GetWorldEntry(int n) __asm__("GetWorldEntry");
 void WipeToWorldWarp(SW *pg, void *p, int a, int b, int c, int d) __asm__("WipeToWorldWarp");
 // Starts play from a save slot: a new game goes to the first task (0x62F) in world entry 0, otherwise the saved
 // episode (or the hub level when it is complete).
+// Also known as: StartGameFromSave (upstream readable / Sly 1 name; StartGameFromSave__FP2SW).
 extern "C" void StartGameFromSave(void *pv)
 {
     CRefData ref;
@@ -2518,6 +2566,7 @@ extern "C" void ResetGameSequence()
 namespace M_RefGetGlobalSaveVar {
  void GetSaveVar(void *, void *, int, int) __asm__("GetSaveVar");
 // Read a save variable from the world's global save store into a.
+// Also known as: NProgress (upstream readable / Sly 1 name).
 extern "C" { inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; } }
 } // namespace M_RefGetGlobalSaveVar
 

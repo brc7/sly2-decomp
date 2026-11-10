@@ -694,6 +694,7 @@ void DrawMpegSubtitles(CMPEG *player)
 }
 
 // Append a movie request (0x40-byte entry) to CMpeg queue (max 4) if valid. (inferred)
+// Also known as: QueueMovie (upstream readable / Sly 1 name; QueueMovie__FPUcPv).
 extern "C" void CMpeg_QueueMovie(CMPEG *player, K *pe)
 {
     if (pe && pe->lengthScrambled != pe->lengthKey && player->un < 4) {

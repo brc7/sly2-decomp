@@ -8,6 +8,7 @@ extern int D_002C676C;
 int func_00241F98(int);
 int func_00237288(void *cd, int fno, unsigned int mode, void *send, int ssize, void *recv, int rsize, void *end, void *earg);
 int func_00234A40(int);
+// Also known as: sceCdGetDiskType (upstream readable / Sly 1 name).
 int sceCdGetError(void)
 {
     int r;

@@ -52,6 +52,7 @@ typedef int (*PFNCMP)(const void *, const void *);
 
 // qsort comparator for RPL pointers: descending depth (farthest first, back-to-front for blended passes), ties broken
 // by entry address. Used for kinds 1, 2, 5, 6, 10 and 25.
+// Also known as: NCmpPrplReverseZ (upstream readable / Sly 1 name).
 int CompareRplFarToNear(RPL **entryA, RPL **entryB)
 {
     RPL *lhs = *entryA;

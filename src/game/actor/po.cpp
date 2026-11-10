@@ -86,6 +86,7 @@ MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanT
 
 // Slot 7 (Init): InitSo, enables collection in the PO's pickup info (pzi) with itself as collector, and sets
 // flag 2 in the LO flags.
+// Also known as: InitPo (upstream readable / Sly 1 name; InitPo__FP2PO).
 extern "C" void InitPo(PO *po)
 {
     int flags;
@@ -101,12 +102,14 @@ extern "C" void InitPo(PO *po)
 void PO::LoadFromBrx(CBinaryInputStream *b_m) { PO *a = this; void *b = (void *)b_m; LoadSoFromBrx(a, b); CBinaryInputStream_SkipStringSw(b); }
 
 // Slot 41 (Clone): base SO clone, then points the clone's pickup collector at the clone itself.
+// Also known as: ClonePo (upstream readable / Sly 1 name; ClonePo__FP2POT0).
 extern "C" void ClonePo(PO *po) {
     CloneSo(po);
     po->unknown168 = po;
 }
 
 // Slot 5 (HandleMessage): base LO handling; on message 5 stops and releases the wake ambient sound (+0x174).
+// Also known as: HandlePoMessage (upstream readable / Sly 1 name; HandlePoMessage__FP2PO5MSGIDPv).
 extern "C" void HandlePoMessage(PO *po, int message)
 {
     HandleBasicMessage(po, message);
@@ -129,6 +132,7 @@ extern "C" int GetPoHealthState(void) {
 
 // Slot 79: sets the controller state. On first use registers the PO in the world's PO list (max 16) and creates its
 // POCTL; state -1 means not controllable.
+// Also known as: EnablePo (upstream readable / Sly 1 name; EnablePo__FP2POi).
 extern "C" void SetPoCtlState(PO *po, int state)
 {
     if (state == GetPoCtlState(po)) return;
@@ -160,6 +164,7 @@ extern "C" void SetPoCtlState(PO *po, int state)
 
 // Slot 78: the PO became (fOn=1) or stopped being (0) the active player: (de)activates its own camera tunnel when it
 // has one, otherwise sets or revokes the camera policy.
+// Also known as: SetCmFocusObject (upstream readable / Sly 1 name; SetCmFocusObject__FP2LOi).
 extern "C" void OnPoActive(PO *po, int isActive)
 {
     if (isActive) {
@@ -172,6 +177,7 @@ extern "C" void OnPoActive(PO *po, int isActive)
 }
 
 // Returns the POCTL state (+0x80), or -1 when the PO has no controller.
+// Also known as: NPoEnabled (upstream readable / Sly 1 name; NPoEnabled__FP2LO).
 int GetPoCtlState(PO *po) {
     POCTL *ppoctl = po->controller;
     int n = -1;
@@ -252,6 +258,7 @@ POCTL *POCTL_ctor(POCTL *poctl, PO *po)
 }
 
 // Clears both sticks (dx/dy/angle/length), the held buttons and every pressed timestamp.
+// Also known as: ClearPadctl (upstream readable / Sly 1 name; ClearPadctl__FP6PADCTL).
 void ResetPoctl(POCTL *poctl)
 {
     poctl->buttonsHeld = 0;
@@ -261,6 +268,7 @@ void ResetPoctl(POCTL *poctl)
 
 // Converts a stick deflection (dx, dy) into length and camera-relative angle. Below a hold radius (which decays by
 // 0.2 per update) the previous angle is kept, so a stick returning to centre does not snap the heading.
+// Also known as: TurnPadctlStick (upstream readable / Sly 1 name; TurnPadctlStick__FPffN50).
 void ConvertPoctlStick(POCTL *poctl, float cameraAngle, float *dxInOut, float *dyInOut, float *angleInOut, float *lengthOut, float *holdRadiusInOut)
 {
     float sine, cosine;
@@ -283,6 +291,7 @@ extern JOY D_002E0D00;   /* the second JOY */
 }
 // Per-frame controller update: state 0 clears it; state 1 reads the pad (or the alternate pad), masks the buttons,
 // converts both sticks with ConvertPoctlStick and records press times (UpdatePoctlPressed).
+// Also known as: UpdatePadctl (upstream readable / Sly 1 name; UpdatePadctl__FP6PADCTL).
 extern "C" void UpdatePoctl(POCTL *poctl)
 {
     float a, b;
@@ -310,6 +319,7 @@ extern "C" void UpdatePoctl(POCTL *poctl)
 }
 
 // Stores the current time for every newly pressed button and for each stick direction that was just pushed.
+// Also known as: StampPadctlState (upstream readable / Sly 1 name; StampPadctlState__FP6PADCTL).
 void UpdatePoctlPressed(POCTL *poctl)
 {
     float t = g_clock.time;
@@ -326,6 +336,7 @@ void UpdatePoctlPressed(POCTL *poctl)
 
 // Sets the controller state; when it becomes active (1) all held buttons are marked as already pressed so they do
 // not count as new presses.
+// Also known as: SetPadctlControl (upstream readable / Sly 1 name; SetPadctlControl__FP6PADCTLi).
 void SetPoctlStateValue(POCTL *poctl, int state) {
     poctl->state = state;
     if (state == 1) {
@@ -334,6 +345,7 @@ void SetPoctlStateValue(POCTL *poctl, int state) {
 }
 
 // POCTL method: mask of the buttons in grf pressed within the last dt seconds. Sly 1 name: GrfPressedWithin.
+// Also known as: GrfPadctlPressedWithin (upstream readable / Sly 1 name; GrfPadctlPressedWithin__FP6PADCTLUif).
 int GetButtonsPressedWithin__5POCTLUif(POCTL *poctl, unsigned int buttons, float dt)
 {
     int grfRet = 0;
@@ -351,6 +363,7 @@ int GetButtonsPressedWithin__5POCTLUif(POCTL *poctl, unsigned int buttons, float
 }
 
 // POCTL method: GetButtonsPressedWithin, then clears the returned presses so each press is consumed once. Sly 1 name: GrfConsumePressed.
+// Also known as: GrfPadctlTakePressed (upstream readable / Sly 1 name; GrfPadctlTakePressed__FP6PADCTL).
 int ConsumeButtonsPressedWithin__5POCTLUif(POCTL *poctl, unsigned int buttons, float dt) {
     int grfRet = GetButtonsPressedWithin__5POCTLUif(poctl, buttons, dt);
     ClearPoctlJoyPressed(poctl, grfRet);
@@ -366,6 +379,7 @@ extern "C" int POCTL_IsButtonDown(POCTL *poctl, int buttons) {
 }
 
 // Forgets the presses of the buttons in grf (their press time becomes -FLT_MAX).
+// Also known as: ForgetPadctlPresses (upstream readable / Sly 1 name; ForgetPadctlPresses__FP6PADCTLUi).
 void ClearPoctlJoyPressed(POCTL *poctl, int buttons)
 {
     float *pg;
@@ -413,6 +427,7 @@ extern "C" qword GetPoctlLateralVector(POCTL *poctl, qword dir)
 
 // Returns the world's current PO (the hero being played).
 // Runtime-checked: SW+0x3EFC follows the character being played (Murray in his levels), while g_pjt is always Sly.
+// Also known as: PloPlayerPo (upstream readable / Sly 1 name; PloPlayerPo__FP2SW).
 PO *GetHeroPo(SW *world) {
     return ((PO *)world->currentPlayer);
 }
@@ -480,6 +495,7 @@ PO *GetCurrentPo(SW *world) {
 }
 
 // Sets (or clears, with 0) the override PO, deactivating the old effective PO and activating the new one. (inferred)
+// Also known as: SetPoForced (upstream readable / Sly 1 name; SetPoForced__FP2SWP2LO).
 extern "C" void SetSwPoOverride(SW *world, PO *po)
 {
     PO *cur = GetCurrentPo(world);
@@ -502,6 +518,7 @@ static inline float LenSq(qword a) {
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7708 __asm__("D_002A7708") = 3.40282347e+38f; }
 // Returns the PO from the world's PO list nearest to a position, among POs that are in the world.
+// Also known as: PloNearestPlayer (upstream readable / Sly 1 name; PloNearestPlayer__FP6VECTORG9VU_VECTOR).
 extern "C" PO *FindClosestSwPo(SW *world,qword pos) {
     PO *best=0; int i=0;
     float minimum=D_002A7708;

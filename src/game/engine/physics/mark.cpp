@@ -124,6 +124,7 @@ struct VECBLK { float x, y, z; } __attribute__((aligned(16)));
 // Allocates a contact (XP) between two objects at a world position and normal with separation g and kind k:
 // stores both sides' local-frame positions, computes the relative movement and links the XP into *ppxp. Returns it.
 // Sly 1 name: PxpAdd.
+// Also known as: PxpAddSw (upstream readable / Sly 1 name; PxpAddSw__FP3SOET0P6VECTORG9VU_VECTORT3iiiPvf).
 extern "C" void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword normal, int kind, void *pvFeature0,
                        void *pvFeature1, XP **ppxpFirst, float g)
 {
@@ -203,6 +204,7 @@ static inline qword QwAddScaledBits(qword a, qword *pb, int f)
 /* Sphere sides (kinds 4..6 side 0, 7 and 9 side 1) put the point on the sphere: centre + normal * -/+radius; the other
    sides convert the local point back to world space. Then the separation is (pos0 - pos1) . normal. */
 // For each XP in the array recomputes the world positions of its two sides from their local positions.
+// Also known as: RecalcSwXpPos (upstream readable / Sly 1 name; RecalcSwXpPos__FP2SWiPP2XP).
 extern "C" void RecalcSwXpPos(SW *world, int count, XP **contacts)
 {
     int i;
@@ -253,6 +255,7 @@ extern "C" void RecalcSwXpPos(SW *world, int count, XP **contacts)
 
 /* Each side's point velocity (GetXfVelocity), then SO slots 55 and 56 of both objects, then the relative velocity. */
 // For each XP recomputes the relative velocity at the contact from both sides' point velocities.
+// Also known as: RecalcSwXpMovement (upstream readable / Sly 1 name; RecalcSwXpMovement__FP2SWiPP2XP).
 extern "C" void RecalcSwXpMovement(SW *world, int count, XP **contacts)
 {
     int i;
@@ -290,6 +293,7 @@ int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int 
     __asm__("ClipSoAllEdges");
 // Definition of ClipSoAllEdges (the C-linkage label declared above): clip each edge of ppart's world geometry against
 // the BSP absp, tagging each span with its edge; returns the span count.
+// Also known as: ClsgClipSoAllEdges (upstream readable / Sly 1 name; ClsgClipSoAllEdges__FP2SOT0P3BSPiP3LSG).
 int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int clsgMax, LSG *alsg)
 {
     int ilsg = 0;
@@ -309,6 +313,7 @@ int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int 
 /* Marks the surfaces of the cbsp nodes absp (grf 1), then clips the edges of each marked surface (once per surface:
    grf 2) whose other surface is marked too against ppartBsp's BSP, and clears both marks again. */
 // Like ClipSoAllEdges but only for the edges of surfaces that survive BSP pruning against the other part.
+// Also known as: ClsgClipSoBspEdges (upstream readable / Sly 1 name; ClsgClipSoBspEdges__FP2SOT0iP3BSPiP3LSG).
 extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numNodes, BSP *nodes, int maxSegments, LSG *segments)
 {
     int ilsg = 0;
@@ -344,6 +349,7 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
 
 // Sorts clipped spans into categories (inside, touching, crossing) for the BSP/BSP marker. Sly 1 name:
 // CategorizeAlsg. (Sly 1-derived name: CategorizeAlsg.)
+// Also known as: CategorizeAlsg (upstream readable / Sly 1 name).
 void CategorizeClippedSegments(int count, LSG *segments, int *numPointsOut, int *pointIndices, LSG **categorized, LSG **bothOut)
 {
     LSG *plsgNone = 0;
@@ -415,6 +421,7 @@ void CategorizeClippedSegments(int count, LSG *segments, int *numPointsOut, int 
 struct EDGEPATHNODE { EDGEPATHNODE *pnodeParent; LSG *plsg; int isurf; };
 // Breadth-first search (64 nodes) for a chain of spans connecting two positions along shared edges; used to find
 // edge/edge contacts. Sly 1 name: CplsgFindEdgePath.
+// Also known as: CPathAlsg (upstream readable / Sly 1 name; CPathAlsg__FP4GEOMiiP3LSGPP3LSG).
 extern "C" int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *surfaces, int startSurface, int endSurface, LSG *first, LSG **pathOut)
 {
     EDGEPATHNODE anode[64];
@@ -536,6 +543,7 @@ static inline float PlaneDist(VU_VECTOR4 plane, qword pos)
 
 // Ranks the surfaces near embedded vertices (largest minimum depth above a threshold) and emits vertex/face
 // contacts for them through AddXp. (inferred)
+// Also known as: MarkEmbeddedVertices (upstream readable / Sly 1 name; MarkEmbeddedVertices__FP3SOET0PiiPP3LSGPP2XPT5).
 extern "C" void AddEmbeddedVertexXps(W *w, A *a, B *b, int count, int *indices, NODE **heads, XP **out)
 {
     float d;
@@ -676,6 +684,7 @@ static inline void Closest(VV a, VV b, VV c, VV d, float *au, QWROW *normal)
 
 // Contacts between two BSP parts: clips edges both ways, categorises the spans, then adds embedded-vertex
 // contacts, edge paths and closest-point contacts.
+// Also known as: MarkBspBsp (upstream readable / Sly 1 name; MarkBspBsp__FP3SOET0P5SHAPEiP6BSPSELPP2XPPP7CONTACT).
 extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeCount, NODE *nodes, NODE *last, CONTACT **out)
 {
     int aclsg[2];
@@ -783,6 +792,8 @@ static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j
 static inline qword Normal(qword v){register qword d __asm__("vf2"),one __asm__("vf3"),r __asm__("vf3");__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(d),"j"(v));return r;}
 // Finds a contact for a point embedded in a BSP: grows a probe radius from max(r, 100) until a face plane is found,
 // prunes the BSP to that sphere and clips its edges; writes a contact of kind 0xC.
+// Also known as: SphereInsideContacts (upstream readable / Sly 1 name;
+//   SphereInsideContacts__FP3SOEiPvG9VU_VECTORP3OUTf).
 extern "C" void FindContactInsideBsp(ENTRY*tree,int mask,void*geometry,qword pos,OUT*out,float radius0){
  WORK work;
  work.position.q=pos;
@@ -990,6 +1001,8 @@ static inline VU_VECTOR4 VecAddScaled(qword qwBase, VU_FLOAT gScale, qword qwVec
 int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, int cbsp, BSP *absp, int ccontactMax, CMCONTACT *acontact) __asm__("IntersectSphereBsp");
 // Intersects a sphere with the BSP hull of a part and writes up to ccontactMax contact planes (Sly 1
 // CsbiIntersectSphereBsp).
+// Also known as: SphereBspContacts (upstream readable / Sly 1 name;
+//   SphereBspContacts__FG9VU_VECTORfP6SOPARTP3BSPiT3iP9CMCONTACT).
 int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, int cbsp, BSP *absp, int ccontactMax, CMCONTACT *acontact)
 {
     int ccontact;
@@ -1244,6 +1257,7 @@ typedef char Size_6[sizeof(void*)==4?1:-1];
 typedef char Size_7[sizeof(int)==4?1:-1];
 typedef char Size_8[sizeof(float)==4?1:-1];
 // Sphere part against BSP part: IntersectSphereBsp, then one AddXp per hit.
+// Also known as: MarkSphereBsp (upstream readable / Sly 1 name; MarkSphereBsp__FP3SOET0PviPP2XPPP7CONTACT).
 extern "C" void MarkSoContactsSphereBsp(void *a, struct S*s,struct S*b,int d,struct NODE*e,struct CONTACT**g)
 {
     register S*bodyOwner __asm__("$19")=b;
@@ -1311,6 +1325,7 @@ typedef char layout_U_FloatSpan[(sizeof(((U*)0)->f)==16)?1:-1];
 /* Two sphere parts (centre: the transform's position, radius `radius`): one kind-7 contact on ppart0's surface along
    the centre line (g_normalZ when the centres coincide), separation |d| - (r0 + r1). */
 // Sphere part against sphere part: if they overlap adds one contact along the line between the centres.
+// Also known as: MarkSphereSphere (upstream readable / Sly 1 name; MarkSphereSphere__FP3SOET0PP2XPPP7CONTACT).
 extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *part1, XP **listOut)
 {
     qword pos1, d, l, one, normal, pos, pos0;
@@ -1385,6 +1400,7 @@ do {float d=Dot(VuSub(*points,p),n);if(d<best)best=d;points++;}while(--count);}
 // Sweep vertices and create contacts from the first accepted segment hit.
 // Sweeps the vertices of one part from the previous frame's pose to the current one with line tests against the
 // other part, adding a contact at each first hit; catches fast objects that would tunnel through.
+// Also known as: MarkSweptVertices (upstream readable / Sly 1 name; MarkSweptVertices__FP3SOET0PP2XPPv).
 extern "C" void MarkSoContactsSweptVertices(W*w,A*a,B*b,C**out){
  int i;
  for(i=a->first;i<a->count;i++){
@@ -1412,6 +1428,7 @@ extern "C" void MarkSoContactsSweptVertices(W*w,A*a,B*b,C**out){
 
 /* Prepends the list pxp..(pxpNext) to *ppxpFirst. */
 // Splices XP list b in front of *ppxp (walks b to its tail and links).
+// Also known as: PrependXpList (upstream readable / Sly 1 name; PrependXpList__FP2XPPP2XPPv).
 extern "C" void AppendXpList(SW *world, XP *list, XP **head)
 {
     if (list) {
@@ -1424,6 +1441,7 @@ extern "C" void AppendXpList(SW *world, XP *list, XP **head)
 
 /* Copies the list pxp..(pxpNext) into new XPs; returns the copy. */
 // Duplicates an XP list into newly allocated contact nodes.
+// Also known as: PxpCloneList (upstream readable / Sly 1 name; PxpCloneList__FP2XPPv).
 extern "C" XP *CloneXpList(SW *world, XP *list)
 {
     XP *pxpFirst;
@@ -1449,6 +1467,7 @@ static inline int IxpsOther(XP *pxp, SOPART *ppart) { int one = 1; int fNe = pxp
    then the list goes to *ppxpFirst. so.h declares slot 59's third argument int; it is the BSP here. */
 // Asks the zap responder of the other object (FindZapResponder, slot 0x3C) for its contacts and appends them.
 // (inferred)
+// Also known as: MarkOwnContacts (upstream readable / Sly 1 name; MarkOwnContacts__FP3OXAT0P3SOEPP2XPiPvN25).
 extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp,
                               XP **ppxpFirst)
 {
@@ -1499,6 +1518,7 @@ static inline float LengthSq(qword v)
    their contacts apart and hand them to the trees' zap lists (copies where both sides keep them). */
 // Builds all contacts between two objects: orders them by radius, then for each pair of parts dispatches to the
 // sphere/sphere, sphere/BSP, BSP/BSP or swept-vertex marker, and adds the zap responders' contacts.
+// Also known as: PxpMarkOxaContacts (upstream readable / Sly 1 name; PxpMarkOxaContacts__FP3OXAT0P2SO).
 extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
 {
     XP *pxpFirst = 0;

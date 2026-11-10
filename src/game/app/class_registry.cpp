@@ -285,6 +285,7 @@ SLY2_SPLICEWRAP_END
 extern "C" void *NewSoXfHandle(void *p, int a, int b);
 // Splice binding for option 194 on SO (g_aeopid[77], thunkFn): unpacks the script's 2 arguments (Oid, 0x104C) with
 // RefSetArgsFromSplice, calls NewSoXfHandle and returns a value of type 0x2095 to the script.
+// Also known as: RefXfHandle (upstream readable / Sly 1 name; RefXfHandle__FP2LOiPv).
 extern "C" CRef RefThunk_NewSoXfHandle(void *p, int c, void *aref)
 {
     int ak[2] = {6, 0x104c};
@@ -294,6 +295,7 @@ extern "C" CRef RefThunk_NewSoXfHandle(void *p, int c, void *aref)
     return ref;
 }
 
+// Also known as: RefSoeHandle (upstream readable / Sly 1 name; RefSoeHandle__FP2LOiP4CRef).
 SLY2_SPLICEWRAP_BEGIN(RefThunk_NewSoPartHandle)
 #include "../../generated/splicewrap/RefThunk_NewSoPartHandle.inc"
 SLY2_SPLICEWRAP_END
@@ -396,6 +398,7 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_00101D98)
 #include "../../generated/splicewrap/func_00101D98.inc"
 SLY2_SPLICEWRAP_END
+// Also known as: RefSoundMethod (upstream readable / Sly 1 name; RefSoundMethod__FP5BASICiP4CRef).
 SLY2_SPLICEWRAP_BEGIN(RefThunk_PauseSnd)
 #include "../../generated/splicewrap/RefThunk_PauseSnd.inc"
 SLY2_SPLICEWRAP_END
@@ -460,6 +463,7 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetSndmgrChannelVolume)
 #include "../../generated/splicewrap/RefThunk_SetSndmgrChannelVolume.inc"
 SLY2_SPLICEWRAP_END
+// Also known as: RefCmJolt (upstream readable / Sly 1 name; RefCmJolt__FP5BASICiP4CRef).
 SLY2_SPLICEWRAP_BEGIN(RefThunkCmJOLT)
 #include "../../generated/splicewrap/RefThunkCmJOLT.inc"
 SLY2_SPLICEWRAP_END
@@ -2046,6 +2050,7 @@ extern "C" CRef RefThunk_GetShapeClosestPoint(void *p, int c, void *aref)
 extern "C" void SetXfHandleActuator1World(void *p, int, int, qword);
 // Splice binding for option 1060 on CID149 (g_aeopid[1228], thunkFn): unpacks the script's 3 arguments (0x100D, Int,
 // Vector) with RefSetArgsFromSplice, calls SetXfHandleActuator1World and returns nothing to the script.
+// Also known as: RefXfhMovePos (upstream readable / Sly 1 name; RefXfhMovePos__FP5BASICiP4CRef).
 extern "C" CRef RefThunk_SetXfHandleActuator1World(void *p, int c, void *aref)
 {
     int ak[3] = {0x100d, 0x5, 0x2};
@@ -2063,6 +2068,7 @@ extern "C" void SetXfHandleActuator1Mat(void *p, int a, int b, void *ps);
 struct BIG { qword aq[4]; };
 // Splice binding for option 1061 on CID149 (g_aeopid[1229], thunkFn): unpacks the script's 3 arguments (0x100D, Int,
 // 0x4) with RefSetArgsFromSplice, calls SetXfHandleActuator1Mat and returns nothing to the script.
+// Also known as: RefXfhMoveRot (upstream readable / Sly 1 name; RefXfhMoveRot__FP5BASICiP4CRef).
 extern "C" CRef RefThunk_SetXfHandleActuator1Mat(void *p, int c, void *aref)
 {
     int ak[3] = {0x100D, 5, 4};
@@ -2075,6 +2081,7 @@ extern "C" CRef RefThunk_SetXfHandleActuator1Mat(void *p, int c, void *aref)
     return ref;
 }
 
+// Also known as: RefXfhLook (upstream readable / Sly 1 name; RefXfhLook__FP5BASICiP4CRef).
 SLY2_SPLICEWRAP_BEGIN(RefThunk_SetXfHandleActuator4)
 #include "../../generated/splicewrap/RefThunk_SetXfHandleActuator4.inc"
 SLY2_SPLICEWRAP_END

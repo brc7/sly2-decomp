@@ -54,6 +54,7 @@ void InitDl(DL *pdl, int ib);
 // Returns a rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
 // kind a new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then a RIPG (its GLOBSET included),
 // linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
+// Also known as: PripgNew (upstream readable / Sly 1 name; PripgNew__FP2SW5RIPGT).
 extern "C" RIPG *NewRipGroup(SW *sw, int kind)
 {
     RIPG *ripGroup;
@@ -143,6 +144,7 @@ extern "C" { static inline qword Mid(qword a, qword b, qword k) { qword r; __asm
 #define LEN2(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d) : : "memory")
 // RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set
 // center/radius. (inferred)
+// Also known as: ProjectRipgTransform (upstream readable / Sly 1 name; ProjectRipgTransform__FP4RIPGfi).
 extern "C" void ProjectRipgTransform(RIPG *p)
 {
     DLI dli;
@@ -192,6 +194,7 @@ extern "C" void ProjectRipgTransform(RIPG *p)
 // RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag
 // g_sw.fAaoxUnsorted, call SO bound update 0x1F4BA8.
 /* RIPG slot 49. */
+// Also known as: UpdateRipgBounds (upstream readable / Sly 1 name; UpdateRipgBounds__FP4RIPG).
 extern "C" void UpdateRipgBounds(RIPG *ripGroup)
 {
     ((qword *)ripGroup->physicsTree)[0] = ripGroup->boundsData[0];
@@ -208,6 +211,7 @@ int IsLoInWorld(RIPG *p) __asm__("IsLoInWorld");
 int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
 void BounceRipgRips__FP4RIPG(RIPG *p) __asm__("BounceRipgRips__FP4RIPG");
 // RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active.
+// Also known as: FUN_0019e420 (upstream readable / Sly 1 name).
 extern "C" void UpdateRipg(RIPG *ripGroup)
 {
     DLI dli;
@@ -423,6 +427,7 @@ void AppendDlEntry(DL *pdl, void *pv);
 void AddRipRef(RIP *prip);
 // Allocate a RIP from the SW's rip pool, construct it by kind (PvtripFromRipt), link it into the group's rip list
 // (the world's shared group when none is given) and take a reference.
+// Also known as: FLaunchHudRip (upstream readable / Sly 1 name; FLaunchHudRip__FP2LOP6VECTORP7MATRIX3).
 extern "C" RIP *NewRipInGroup(SW *p, int ript, RIPG *q)
 {
     void *pv;
@@ -676,6 +681,7 @@ static inline SHAPE *CaptureShape(SHAPE *incoming)
     return saved;
 }
 // RIP default HandleBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
+// Also known as: FBounceRip (upstream readable / Sly 1 name; FBounceRip__FP3RIPP2SOG9VU_VECTORT2).
 int HandleRipBounce(RIP *rip, SHAPE *incomingShape, qw point, qw normal)
 {
     SHAPE *shape = CaptureShape(incomingShape);
@@ -1235,6 +1241,7 @@ static inline void PublishBasisStart(S *p, qword first, qword second)
             : "r"(p), "j"(first), "j"(second));
 }
 // RIP default Project (vt entry 4): integrate velocity/position with damping and gravity. (inferred)
+// Also known as: MoveRip (upstream readable / Sly 1 name; MoveRip__FP4RIPN).
 void ProjectRipTransform(S *p)
 {
     WORK w;
@@ -1300,6 +1307,7 @@ typedef char layout_cf0a0_34[((unsigned)&((M4*)0)->d==0x30)?1:-1];
 // RIP default Update (vt entry 5): removes the rip when its life is over; otherwise (not in a kind-1 group) tests it
 // against its touch object (when that is in the world and physical, through the object's point test IsPosInside,
 // slot 73) and reports the result to Touch (slot 7).
+// Also known as: UpdateRipLife (upstream readable / Sly 1 name; UpdateRipLife__FP4RIPG).
 void RIP::Update()
 {
     SO *touch;
@@ -1363,6 +1371,7 @@ static inline qword BcG(float f)
 // Renders the rip's object at pos/mat, scaled and faded by the rip's age (alpha and size polynomials over its
 // lifetime). Returns 0 when the rip should be removed (no lifetime left, or outside the camera's render distance);
 // returns 1 otherwise, including when it is outside the view frustum or fully transparent (kept, not drawn).
+// Also known as: CollectRipDraws (upstream readable / Sly 1 name; CollectRipDraws__FP2CMG9VU_VECTORPv).
 int RenderRipAtPose(S *p, qword pos, const M3 &mat)
 {
     if (!p->lo)
@@ -1516,6 +1525,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
             : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
 }
 // Spawn a STUCK rip (NewRipInGroup) attached to the hit object at the contact point/orientation. (inferred)
+// Also known as: PripDecal (upstream readable / Sly 1 name; PripDecal__FP4RIPNP4RIPGP2LOG9VU_VECTORT3).
 STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direction)
 {
     STUCK *object = 0;
@@ -1687,6 +1697,7 @@ int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1) __asm__("HandleRi
 void RemoveRip__FP3RIP(void *p) __asm__("RemoveRip__FP3RIP");
 } // namespace M_HandleShrapnelBounce
 // SHRAPNEL HandleBounce: passes through CID 0x32 objects, disappears on CID 0x59, else bounces (HandleRipBounce).
+// Also known as: FBounceShrapnel (upstream readable / Sly 1 name; FBounceShrapnel__FP8SHRAPNELP2SOP6VECTORT2).
 int SHRAPNEL::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
     using namespace M_HandleShrapnelBounce;
@@ -2158,6 +2169,7 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *,
 qword ConvertCmScreenToWorld(void *, qword) __asm__("ConvertCmScreenToWorld");
 // SMACK Project: moves along a Bezier in screen space toward the definition's target, arriving at the end of its life,
 // and converts back to world space.
+// Also known as: MoveRipHud (upstream readable / Sly 1 name; MoveRipHud__FP4RIPN).
 extern "C" void ProjectSmackTransform(OBJ *object)
 {
     EvaluateBezierPos(StdMax(object->startTime + object->duration - g_clock.time, g_clock.deltaTime), g_clock.deltaTime, 1.0f, object->screenPos, object->velocity, object->def->a, object->def->b, &object->screenPos, &object->velocity, 0);
@@ -2380,6 +2392,7 @@ static inline qword NormalizeSafe(qword *pv, const qword *pfallback)
     return len;
 }
 // LEAF Project: flutter + base ProjectRipTransform. (inferred)
+// Also known as: MoveRipFlutter (upstream readable / Sly 1 name; MoveRipFlutter__FP4RIPN).
 extern "C" void ProjectLeafTransform(P *p)
 {
     qword row0 = p->matrix.r[0];
@@ -2467,6 +2480,7 @@ void TouchRip__FP3RIPi(OBJ *, int) __asm__("TouchRip__FP3RIPi");
 // RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
 // the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
 // render object; then the base TouchRip.
+// Also known as: TouchRipKind1 (upstream readable / Sly 1 name; TouchRipKind1__FP4RIPNi).
 extern "C" void UpdateRipt1(OBJ *object, int isTouching)
 {
     HIT hit;

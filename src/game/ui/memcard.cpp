@@ -179,6 +179,7 @@ void StartupMemcard()
 
 // Converts a card directory entry (sceMcGetDir) into the game's SAVEINFO record (attribute bits renumbered).
 /* Converts a card directory entry into the game's record (attribute bits renumbered). */
+// Also known as: FUN_0018b780 (upstream readable / Sly 1 name).
 extern "C" void FillMcDirInfo(MCTBLDIR *pdir, SAVEINFO *psi)
 {
     memset(psi, 0, 0x5C);
@@ -235,6 +236,7 @@ enum
 
 namespace M_FUN_0018b910__Fi {
 // Maps a sceMcSync state to the internal result: 0 -> 0x1D (done), positive -> 0x1E (busy), negative -> 0x1F (error).
+// Also known as: FUN_0018b910 (upstream readable / Sly 1 name; FUN_0018b910__Fi).
 extern "C" int McResultFromSyncState(int n)
 {
     if (n != 0) return n <= 0 ? MC_RESULT_ERROR : MC_RESULT_BUSY;
@@ -244,6 +246,7 @@ extern "C" int McResultFromSyncState(int n)
 
 namespace M_FUN_0018b930__Fi {
 // Maps a sceMcSync command result to the internal result: 0 -> 0x21, 1 -> 0x22, -1 -> 0x20, else 0x1F.
+// Also known as: FUN_0018b930 (upstream readable / Sly 1 name; FUN_0018b930__Fi).
 extern "C" int McResultFromSyncCommand(int n)
 {
     switch (n) {
@@ -267,6 +270,7 @@ namespace M_MsgFromMcError {
 extern "C" { static inline int Fallback(int err) { int msg = 11; if (err >= -9) msg = 31; return msg; } }
 
 // Returns the UI message id for a card error (operation kind 1..21 and the sceMc error code).
+// Also known as: FUN_0018b988 (upstream readable / Sly 1 name).
 extern "C" int GetMcErrorMessageId(int kind, int err)
 {
     int result;
@@ -404,6 +408,7 @@ int CreateThread(struct ThreadParam *tp) __asm__("CreateThread");
 void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 // Queues a job (a pointer to a SAVE member function) for the worker thread and starts the thread, after waiting for
 // the previous job.
+// Also known as: CreateMemcardThread (upstream readable / Sly 1 name; CreateMemcardThread__FP7MEMCARDii).
 extern "C" void CreateMemcardThread(MEMCARD *worker, MCJOBPMF pmf)
 {
     struct ThreadParam tp;
@@ -433,6 +438,7 @@ void SetMemcardThreadHighPrio(MEMCARD *worker)
 }
 
 // True when the worker thread exists (thread id != -1). (Sly 1-derived name: FMemcardThreadValid.)
+// Also known as: FMemcardThreadValid (upstream readable / Sly 1 name).
 int IsMemcardThreadValid(MEMCARD *worker)
 {
     return ~worker->tid != 0;
@@ -445,6 +451,7 @@ int McResultFromSyncCommand(int n) __asm__("McResultFromSyncCommand");
 int GetMcErrorMessageId(void *p, int n) __asm__("GetMcErrorMessageId");
 // Polls sceMcSync and maps the outcome to an internal result; errors are mapped to a UI message through
 // GetMcErrorMessageId.
+// Also known as: FUN_0018bc90 (upstream readable / Sly 1 name).
 int McSyncResult(void *worker, void *syncState, void *operationKind, int *errorOut) __asm__("McSyncResult"); int McSyncResult(void *worker, void *syncState, void *operationKind, int *errorOut)
 {
     int syncOut[2];     /* sceMcSync's command id and result */
@@ -692,6 +699,7 @@ struct K { int sector; int size; int mode; char pad[0x104];
   }
 };
 // Opens the save icon file on the disc (a FLOC built from the file entry); returns false when the entry is not set.
+// Also known as: FUN_0018c1e8 (upstream readable / Sly 1 name).
 extern "C" int GetDiscFileEntrySize(S *entry)
 {
     K key;
@@ -787,6 +795,7 @@ int McSyncResult(void *p, int a, int b, int *c) __asm__("McSyncResult");
 int McGetInfoSync(SAVE *s, int *out) __asm__("McGetInfoSync");
 int ReadSaveSlotHeaders(SAVE *s, SAVESLOT *b) __asm__("ReadSaveSlotHeaders");
 // Worker job: reads the card info and the save directory, then each slot's header.
+// Also known as: FUN_0018c420 (upstream readable / Sly 1 name).
 extern "C" int McJobGetDir(SAVE *saveManager)
 {
     void *worker = &saveManager->memcard;
@@ -947,6 +956,7 @@ int McSyncResult(void *, int, int, int *) __asm__("McSyncResult");
 void FillMcDirInfo(ENT *, OUT *) __asm__("FillMcDirInfo");
 
 // Reads a card directory listing (sceMcGetDir) into an array of records (FillMcDirInfo).
+// Also known as: FUN_0018c888 (upstream readable / Sly 1 name).
 extern "C" int ReadMcDir(SAVE *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
 {
     int continueListing;   /* sceMcGetDir mode: 0 new listing, 1 continue the previous one */
@@ -976,6 +986,7 @@ extern "C" int ReadMcDir(SAVE *saveManager, char *path, int maxEntries, OUT *rec
 namespace M_ReadMcDirWrapper {
 int ReadMcDir(int saveManager, int path, int maxEntries, int records, int *numRecords) __asm__("ReadMcDir");
 // Wrapper of ReadMcDir.
+// Also known as: FUN_0018c9c0 (upstream readable / Sly 1 name).
 extern "C" int ReadMcDirWrapper(int saveManager, int path, int record)
 {
     int numRecords;
@@ -1021,6 +1032,7 @@ void ConvertStringToSjis(char *, unsigned char *) __asm__("ConvertStringToSjis")
 int McWriteFile(void *saveManager, char *path, void *data, int size) __asm__("McWriteFile");
 
 // Builds the PS2 icon.sys for the save (title "Sly 2") and writes it into the save directory.
+// Also known as: FUN_0018ca10 (upstream readable / Sly 1 name).
 extern "C" int WriteIconSys(void *saveManager, char *dir, char *title)
 {
     ICONSYS icon;
@@ -1209,6 +1221,7 @@ struct B { int a[20]; };   /* the file path buffer (0x50 bytes) */
 void BuildSaveFilePath(void *saveManager, void *slot, struct B *path) __asm__("BuildSaveFilePath");
 void McWriteFile(void *saveManager, struct B *path, void *data, int size) __asm__("McWriteFile");
 // Writes one slot's file (BuildSaveFilePath + McWriteFile).
+// Also known as: FUN_0018d2e8 (upstream readable / Sly 1 name).
 void WriteSaveSlotFile(void *saveManager, void *slot) __asm__("WriteSaveSlotFile"); void WriteSaveSlotFile(void *saveManager, void *slot)
 {
     struct B path;
@@ -1223,6 +1236,7 @@ void ResetSaveGs(struct B *p, int n) __asm__("ResetSaveGs");
 void BuildSaveFilePath(void *saveManager, void *slot, char *path) __asm__("BuildSaveFilePath");
 int McWriteFile(void *saveManager, char *path, void *data, int size) __asm__("McWriteFile");
 // Resets the GS state, then writes one slot's file.
+// Also known as: FUN_0018d328 (upstream readable / Sly 1 name).
 extern "C" int WriteSaveSlotFileReset(void *saveManager, struct B *slot)
 {
     char path[0x50];
@@ -1375,6 +1389,7 @@ int McOpen(void *saveManager, void *path, int mode, int *fd) __asm__("McOpen");
 int McWrite(void *saveManager, int fd, void *data, int size, int *numWritten) __asm__("McWrite");
 void McClose(void *saveManager, int fd) __asm__("McClose");
 // Writes a whole file: open (create), write, close.
+// Also known as: FUN_0018d368 (upstream readable / Sly 1 name).
 extern "C" int McWriteFile(void *saveManager, void *path, void *data, int size)
 {
     int fd = -1;
@@ -1497,6 +1512,7 @@ void SetMcDialogPhase(struct S *dialog, int phase) __asm__("SetMcDialogPhase"); 
 namespace M_func_001ACC80 {
 struct S { char pad[0x40]; int state; };
 // Returns the button layout of the dialog state: 1 one button, 2 two choices, 0 none.
+// Also known as: NCardPrompt (upstream readable / Sly 1 name; NCardPrompt__FPv).
 extern "C" int GetMcDialogButtonKind(struct S *dialog)
 {
     switch (dialog->state) {
@@ -1664,6 +1680,7 @@ CRef SetGlobalSaveVar(O *, const CRef &, void *) __asm__("SetGlobalSaveVar");   
 // Store a script reference into a global save variable.
 static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(po, arg, &g_gs); }
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
+// Also known as: CardNo (upstream readable / Sly 1 name; CardNo__FP7CARDDLG).
 void OnMcDialogChoice(S *dialog)
 {
     switch (dialog->state) {
@@ -1713,6 +1730,7 @@ void SaveToCurrentSlot(void) __asm__("SaveToCurrentSlot");
 void CreateMemcardThread(void *t, long pmf) __asm__("CreateMemcardThread");
 void SetMcDialogState(struct S *s, int n) __asm__("SetMcDialogState");
 // Confirm path of the dialog: saves to the current slot or queues the pending job.
+// Also known as: CardYes (upstream readable / Sly 1 name; CardYes__FP7CARDDLG).
 extern "C" void ConfirmMcDialog(struct S *dialog)
 {
     switch (dialog->state) {
@@ -1800,6 +1818,7 @@ void Decref__4CRef(CRefData *) __asm__("Decref__4CRef");
 void SetMcDialogState(struct H *h, int n) __asm__("SetMcDialogState");
 void StartSaveSlotJob(SAVE *g) __asm__("StartSaveSlotJob");
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
+// Also known as: SaveToTarget (upstream readable / Sly 1 name; SaveToTarget__Fv).
 extern "C" void SaveToCurrentSlot(void)
 {
     SAVE *saveManager = &g_save;
@@ -1921,6 +1940,7 @@ void PopPauseMenuPage(struct G *g) __asm__("PopPauseMenuPage");
 int IsPauseMenuOnSavePage(struct G *g) __asm__("IsPauseMenuOnSavePage");
 void PlayWidgetAnim(void *a, char *b) __asm__("PlayWidgetAnim");
 // Menu hook: sets slot i's label text (0x5C8+i for a used slot, 0x5C5+i for an empty one).
+// Also known as: UpdateSlotEntry (upstream readable / Sly 1 name; UpdateSlotEntry__FP4PAGE).
 extern "C" void SetSaveSlotLabel(struct S *item)
 {
     struct E *page;

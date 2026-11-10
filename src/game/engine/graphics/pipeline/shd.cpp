@@ -59,6 +59,7 @@ int IgsAllocGsb(GSB *pgsb, int cgsb);
 // After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data
 // pointer and color-correct its entries. (inferred)
 /* Rebases the shared (kind 1) colour tables and bitmaps by ib, colour-correcting each table entry. */
+// Also known as: RelocateBulkRecords (upstream readable / Sly 1 name; RelocateBulkRecords__Fi).
 extern "C" void RelocateSharedColorTables(int ib)
 {
     int iclut;
@@ -97,6 +98,7 @@ extern "C" void RelocateSharedColorTables(int ib)
 }
 
 // Texture passes for a shader kind: shdk 1 -> 2, shdk 7 -> 3 (2 if flag 0x20), else 1. (inferred)
+// Also known as: CclutPass (upstream readable / Sly 1 name; CclutPass__FP3SHD).
 extern "C" int GetShaderPassCount(SHD *pshd)
 {
     switch (pshd->shdk) {
@@ -110,6 +112,7 @@ extern "C" int GetShaderPassCount(SHD *pshd)
 }
 
 // TEX0 register value for frame i / pass j of a texture: base bitmap TEX0 | clut TEX0. (inferred)
+// Also known as: TexselFromShd (upstream readable / Sly 1 name; TexselFromShd__FP3SHDii).
 extern "C" ulong Tex0FromTexIframeCtk(TEX *ptex, int iframe, int ipass)
 {
     ulong fl = ptex->apbmp[iframe]->tex0.word;
@@ -159,6 +162,7 @@ CLUT *FindClutInHash(int id) __asm__("FindClutInHash");
 void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Read one color table header (0x10) and colors; skip if its name fails the load filter; shared entries resolved via
 // PclutFindHash; color-correct entries.
+// Also known as: LoadClutFromBrx (upstream readable / Sly 1 name; LoadClutFromBrx__FP18CBinaryInputStreamP4CLUT).
 extern "C" void LoadClutFromBrx(void *pbis, CLUT *pclut)
 {
     union { short aw[0x80]; struct AR ar; } u;
@@ -316,6 +320,7 @@ int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputSt
 void *AllocClearedFromStack(struct AR *par) __asm__("AllocClearedFromStack");
 void LoadClutFromBrx(void *pbis, CLUT *pclut) __asm__("LoadClutFromBrx");
 // Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count.
+// Also known as: LoadClutsFromBrx (upstream readable / Sly 1 name).
 extern "C" void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
@@ -342,6 +347,7 @@ int IsCurrentLevelInList__FiPs(int cch, void *pw) __asm__("IsCurrentLevelInList_
 BMP *FindBitmapInHash(int id) __asm__("FindBitmapInHash");
 void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
+// Also known as: LoadBmpFromBrx (upstream readable / Sly 1 name; LoadBmpFromBrx__FP18CBinaryInputStreamP3BMP).
 extern "C" void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 {
     union { short aw[0x80]; struct AR ar; } u;
@@ -388,6 +394,7 @@ int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputSt
 void *AllocClearedFromStack(struct AR *par) __asm__("AllocClearedFromStack");
 void LoadBmpFromBrx(void *pbis, BMP *pbmp) __asm__("LoadBmpFromBrx");
 // Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each.
+// Also known as: LoadBmpsFromBrx (upstream readable / Sly 1 name).
 extern "C" void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *pbis)
 {
     struct AR ar;
@@ -412,6 +419,7 @@ void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv) __asm__("Read__
 int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
 void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none) (inferred)
+// Also known as: LoadTexFromBrx (upstream readable / Sly 1 name; LoadTexFromBrx__FP18CBinaryInputStreamP3TEX).
 extern "C" void LoadTexFromBrx(void *pbis, TEX *ptex)
 {
     struct AR ar;
@@ -452,6 +460,7 @@ extern "C" { static inline void InitEnt(SHDP *pe, int n, struct SWALLOC *pmsg)
     pe->aqw = (QW *)AllocClearedFromWorldHeap(pmsg);
 } }
 // Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame data.
+// Also known as: LoadShdFromBrx (upstream readable / Sly 1 name; LoadShdFromBrx__FP3SHDP18CBinaryInputStream).
 extern "C" void LoadShdFromBrx(void *pbis, SHD *p)
 {
     struct SWALLOC msg;
@@ -589,6 +598,8 @@ void BuildShaderTex0List(SHD *, SHDBLIP *) __asm__("BuildShaderTex0List");
 void AppendSlEntry(void *, void *) __asm__("AppendSlEntry");
 // Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload permanent textures
 // (0x1ECE58); build shader packets.
+// Also known as: LoadShadersFromBrx (upstream readable / Sly 1 name;
+//   LoadShadersFromBrx__FP4SHDSiP18CBinaryInputStream).
 extern "C" void LoadShadersFromBrx(void *p, int k, void *pbis)
 {
     struct SWALLOC msg;
@@ -661,6 +672,7 @@ static inline ulong TestBaseAndKind(const SHD *entry,uint flags,uint &depthKind,
  depthKind=retained;flags4=marked;return base;
 }
 // Build every shader's GIF packets (colors, TEX0/TEX1/CLAMP via PackTexGifs) for the shader kind. (inferred)
+// Also known as: BuildShdPasses (upstream readable / Sly 1 name; BuildShdPasses__Fv).
 void BuildShaderGifPackets(){
  int i;
  for(i=0;i<D_003DCFE8;i++){
@@ -835,6 +847,7 @@ extern "C" void RelocateShaderUploadRecords(int iFirst, int iLast, int cb, char 
 }
 
 // Zero shader/bitmap/clut counts and arrays (D_003DCFE8..D_003DD004) (inferred)
+// Also known as: EndShaderGroup (upstream readable / Sly 1 name; EndShaderGroup__Fv).
 extern "C" void ResetShaders()
 {
     D_003DCFE8 = 0;
@@ -856,6 +869,7 @@ extern "C" void ClearShaderGsState()
 }
 
 // Find shader by oid in D_003DCFEC[D_003DCFE8] (stride 0x2C); -1 -> NULL. (inferred)
+// Also known as: PshdFindShader (upstream readable / Sly 1 name; PshdFindShader__F3OID).
 extern "C" SHD *FindShader(int oid)
 {
     int i;
@@ -883,6 +897,7 @@ SHDBLIP *FindShaderById(int oid) __asm__("FindShaderById"); SHDBLIP *FindShaderB
 
 // 0x1EC880(oid) or the list head. (inferred)
 /* FindShaderById's shader, else the default one ((*(void * *)&g_sw.slShd)). */
+// Also known as: PshdOfId (upstream readable / Sly 1 name; PshdOfId__Fi).
 extern "C" void *FindShdOrDefault()
 {
     void *pshd;
@@ -894,6 +909,7 @@ extern "C" void *FindShdOrDefault()
 }
 
 // &D_003DCFEC[i] (stride 0x2C)
+// Also known as: PshdFromIndex (upstream readable / Sly 1 name; PshdFromIndex__Fi).
 extern "C" SHD *GetShdByIndex(int ishd)
 {
     return D_003DCFEC + ishd;
@@ -1119,6 +1135,7 @@ static inline U Pack(RGBA c) { U u; u.bf.r = c.r >> 3; u.bf.g = c.g >> 3; u.bf.b
 SLY2_SCRAP("addiu $sp, $sp, 0x60");
 
 // Color-correct one 5551 pixel (expand, ColorCorrectRgba, repack) when correction is on (g_sw.unknown3E38) (inferred)
+// Also known as: AdjustRgba16 (upstream readable / Sly 1 name; AdjustRgba16__FPUs).
 void ColorCorrectRgba16(U *pu)
 {
     if (!g_sw.unknown3E38) return;
@@ -1136,6 +1153,7 @@ void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv) __asm__("Convert
 void ColorCorrectVector(struct VECTOR *pv) __asm__("ColorCorrectVector");
 void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba) __asm__("ConvertVectorToRgba");
 // If color correction enabled (g_sw.unknown3E38): RGBA -> vector -> ColorCorrectVector -> RGBA. (inferred)
+// Also known as: AdjustRgba (upstream readable / Sly 1 name; AdjustRgba__FPUi).
 void ColorCorrectRgba(struct RGBA *prgba) __asm__("ColorCorrectRgba"); void ColorCorrectRgba(struct RGBA *prgba)
 {
     struct VECTOR v;

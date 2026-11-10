@@ -69,6 +69,8 @@ qword *VECTOR_opAssign(qword *p, qword v);
 // missing source falls back to the world origin transform D_002C44F0), and whether position and/or rotation follow. The
 // destination remembers its constraint (+0xA8) and its transform update mode is switched to "constrained" (0xF).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadAloLinksFromBrx (upstream readable / Sly 1 name;
+//   LoadAloLinksFromBrx__FP3ALOP18CBinaryInputStream).
 extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream)
 {
     int count = stream->S8Read();
@@ -105,6 +107,7 @@ static inline MATRIX3Q Mul(const MATRIX3Q &a,const MATRIX3Q &b) return r
 // Applies one transform constraint for the frame: the destination's local position and/or rotation are set so that its
 // world transform equals the source's (inverse of the destination parent's world matrix times the source world matrix;
 // the rotation is re-orthonormalized), then the global transform stamp is bumped so world matrices are recomputed.
+// Also known as: UpdateXfLink (upstream readable / Sly 1 name; UpdateXfLink__FP3ALOPv).
 extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *constraint)
 {
  MATRIX3Q rotation;

@@ -386,6 +386,7 @@ extern "C" void UpdateScreens(void *pdl)
 
 // Draws the UI (called from the main loop): runs the draw slot of the three main HUD screens, then sends the two HUD DMA
 // streams.
+// Also known as: UpdateRecyclable (upstream readable / Sly 1 name).
 extern "C" void DrawUi()
 {
     DrawScreen(&D_003D9E80);
@@ -463,6 +464,7 @@ void PlayWidgetAnim(WIDGET *, int) __asm__("PlayWidgetAnim");
 void SetWidgetAnimPhase(WIDGET *, int, float) __asm__("SetWidgetAnimPhase");
 // Post-load of the health / gadget-power meter: finds its widget, reads the hero's health and power fractions and picks
 // the per-character animations.
+// Also known as: InitGauge (upstream readable / Sly 1 name; InitGauge__FP5GAUGE).
 void PostHudMeterLoad(HUDMETER *p) __asm__("PostHudMeterLoad"); void PostHudMeterLoad(HUDMETER *p)
 {
     Q *hero;
@@ -528,6 +530,7 @@ void StopWidgetAnim(WIDGET *, int) __asm__("StopWidgetAnim");
 void SetWidgetAnimPhase(WIDGET *, int, float) __asm__("SetWidgetAnimPhase");
 // Switches the meter's state: hide / appear animations, steady (health gauge, plus the power gauge only if the character
 // owns a power-up that costs power), damage, and the alternate animations.
+// Also known as: SetGaugeState (upstream readable / Sly 1 name; SetGaugeState__FP5GAUGEi).
 extern "C" void SetHudMeterState(HUDMETER *p, int s)
 {
     int old = p->state;
@@ -617,6 +620,7 @@ void SetWidgetAnimPhase(WIDGET *, int, float) __asm__("SetWidgetAnimPhase");
 } // namespace M_UpdateHudMeter
 // Per-frame meter update (slot 7): follows the current hero, animates health drain / fill and power changes smoothly,
 // flashes on damage and plays special animations.
+// Also known as: UpdateGauge (upstream readable / Sly 1 name; UpdateGauge__FP5GAUGE).
 void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the namespace's views) */
 {
     using namespace M_UpdateHudMeter;
@@ -748,6 +752,7 @@ int IsWidgetVisible(W *) __asm__("IsWidgetVisible");
 int IsWidgetAnimPlaying(W *, int) __asm__("IsWidgetAnimPlaying");
 // Per-frame notice banner update: marks it shown once the widget is fully visible, times it out (only while hidden),
 // or swaps to the queued text; hides it at the end.
+// Also known as: UpdatePrompt (upstream readable / Sly 1 name; UpdatePrompt__FP6PROMPT).
 extern "C" void UpdateNotice(OBJ *p)
 {
     if (p->widget == 0)
@@ -869,6 +874,7 @@ void StartWidgetMainAnim(WIDGET *, int) __asm__("StartWidgetMainAnim");
 void ShowWidgetArgs(WIDGET *, int, int *) __asm__("ShowWidgetArgs");
 // Switches the notice banner's state: show the widget with the text, hide it, swap animation, or main animation after
 // a swap.
+// Also known as: SetPromptState (upstream readable / Sly 1 name; SetPromptState__FP6PROMPTi).
 void SetNoticeState(OBJ *p, int n) __asm__("SetNoticeState"); void SetNoticeState(OBJ *p, int n)
 {
     WIDGET *plo;
@@ -958,6 +964,7 @@ namespace M_UpdateScreenStickDir {
 float atan2f(float, float) __asm__("atan2f");
 // Turns the left stick into an 8-way direction for menus: calls the screen's slot 14 with the direction when the
 // stick is pushed past 0.8, and with -1 when it returns under 0.5.
+// Also known as: UpdateShopStick (upstream readable / Sly 1 name; UpdateShopStick__FP4SHOP).
 extern "C" void UpdateScreenStickDir(SCREEN *p)
 {
     JOY *joy = p->pjoy;
@@ -983,6 +990,7 @@ extern float D_002A7984 __asm__("D_002A7984"), D_002C3254 __asm__("D_002C3254");
 void *CreateSfxSound(int timerKind) __asm__("CreateSfxSound");
 void SetSndSourceLo(void *p, int timerKind) __asm__("SetSndSourceLo");
 // Sets a screen's mode and argument; mode 0 plays the menu sound and starts the timeout. (inferred)
+// Also known as: SetShopMsg (upstream readable / Sly 1 name; SetShopMsg__FP4SHOPii).
 extern "C" void SetScreenMode(SCREEN *p, int timerKind, int modeArg) {
     p->idsPopup = modeArg;
     p->nPopup = timerKind;
@@ -1050,6 +1058,7 @@ void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
 void SetStepplayerGadget(void *, int, int) __asm__("SetStepplayerGadget");
 // Per-frame gadget menu: circle closes, the info button shows a message, and the three slot buttons assign the selected
 // power-up (if owned) to that slot.
+// Also known as: UpdateGadgetMenu (upstream readable / Sly 1 name; UpdateGadgetMenu__FP2SW).
 extern "C" void UpdateGadgetMenu(GADGETMENU *p)
 {
     void *hero;
@@ -1115,6 +1124,7 @@ void DrawRichText2(FONT *, TXT *, int) __asm__("DrawRichText2");
 extern "C" { static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z));return z;} }
 // While the gadget menu is visible, draws the slot button glyph next to each power-up that is equipped in a slot.
 // (inferred)
+// Also known as: DrawGadgetIcons (upstream readable / Sly 1 name; DrawGadgetIcons__FP7FONTBRX).
 extern "C" void DrawGadgetMenuSlotLabels(GADGETMENU *p)
 {
     Q *hero;
@@ -1225,6 +1235,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
 } // namespace M_SetPowerupAcquired
 
 // Refreshes each gadget-menu item's unlocked and acquired flags.
+// Also known as: UpdateGadgetFlags (upstream readable / Sly 1 name; UpdateGadgetFlags__FPv).
 extern "C" void RefreshGadgetMenuItems(GADGETMENU *gadgetMenu)
 {
     int i = 0;
@@ -1294,6 +1305,7 @@ static inline qword Splat(const float &f, QWROW &home)
 static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 
 // Moves the gadget-menu selection to the selectable item lying closest along the stick direction (slot 14).
+// Also known as: StepGadget (upstream readable / Sly 1 name; StepGadget__FP8SELECTORi).
 void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
 {
     QWROW home;
@@ -1354,6 +1366,7 @@ namespace M_SelectGadgetMenuItem {
 void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
 void PlayWidgetAnim(void *, int) __asm__("PlayWidgetAnim");
 // Selects an item and sets every item's highlight animation (selected / acquired / unlocked).
+// Also known as: SelectGadget (upstream readable / Sly 1 name; SelectGadget__FPvi).
 extern "C" void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
 {
     int i;
@@ -1381,6 +1394,7 @@ extern "C" void SelectGadgetMenuItem(GADGETMENU *p, int gadgetId)
 } // namespace M_SelectGadgetMenuItem
 
 // Opens the gadget-menu page of the current hero (Sly, Bentley or Murray).
+// Also known as: OpenGadgetMenu (upstream readable / Sly 1 name; OpenGadgetMenu__FP2SW).
 extern "C" void OpenGadgetMenuForHero(GADGETMENU *gadgetMenu)
 {
     LO *ploHero = GetHeroPo(&g_sw);
@@ -1411,6 +1425,7 @@ WIDGET *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int) __asm__("FindSwObjec
 extern "C" { void SetGadgetMenuState(GADGETMENU *p, int s); }
 // Opens or closes the gadget menu: opening freezes the clock, takes player control and shows the hero's page; closing
 // restores them.
+// Also known as: SetGadgetMenu (upstream readable / Sly 1 name; SetGadgetMenu__FPvi).
 extern "C" void SetGadgetMenuState(GADGETMENU *p, int s)
 {
     if (s == p->nState)
@@ -1549,6 +1564,7 @@ void UpdateThiefnetWidgets(THIEFNET *) __asm__("UpdateThiefnetWidgets");
 
 // Per-frame ThiefNet: on the buy tab buys the selected power-up (coin check, confirmation, payment, notification); on the
 // sell tab sells one loot item.
+// Also known as: UpdateShop (upstream readable / Sly 1 name; UpdateShop__FP2SW).
 extern "C" void UpdateThiefnet(THIEFNET *p)
 {
     UpdateTimedScreen(p);
@@ -1618,6 +1634,7 @@ namespace M_func_001DBBA0 {
 extern int D_002C35B4 __asm__("D_002C35B4");
 extern int D_003DA570 __asm__("D_003DA570");
 // Index just past the last visible row of the scrolling list (window size adjusted for the scroll arrows). (inferred)
+// Also known as: IRowEnd (upstream readable / Sly 1 name; IRowEnd__FP4SHOP).
 extern "C" int GetThiefnetRowEnd(THIEFNET *p) {
     int n = p->iFirstVisible + D_002C35B4;
     if (D_003DA570) {
@@ -1634,6 +1651,7 @@ extern int D_002C35B4 __asm__("D_002C35B4");
 int GetThiefnetRowEnd(THIEFNET *) __asm__("GetThiefnetRowEnd");
 void CloseScreen(THIEFNET *) __asm__("CloseScreen");
 // Selects iconAnim row (clamped), scrolls the window to it and records the selected power-up / loot id.
+// Also known as: SelectShopRow (upstream readable / Sly 1 name; SelectShopRow__FP4SHOPi).
 extern "C" void SelectThiefnetItem(THIEFNET *p, int row)
 {
     if (p->citem == 0) {
@@ -1674,6 +1692,7 @@ extern int IsScreenItemUnlocked(int) __asm__("IsScreenItemUnlocked");
 extern int IsPowerupAcquired(int) __asm__("IsPowerupAcquired");
 extern void SelectThiefnetItem(THIEFNET *, int) __asm__("SelectThiefnetItem");
 // Rebuilds the ThiefNet list: buy tab = unlocked power-ups not yet bought; sell tab = loot kinds the player owns.
+// Also known as: BuildShopList (upstream readable / Sly 1 name; BuildShopList__FP4SHOP).
 extern "C" void RefreshThiefnetItems(THIEFNET *p)
 {
     {
@@ -1734,6 +1753,7 @@ void PlayWidgetAnimsWithArg(void *, int, int) __asm__("PlayWidgetAnimsWithArg");
 void PlayWidgetAnim(void *, int) __asm__("PlayWidgetAnim");
 void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
 // Drives the ThiefNet widget animations: scroll arrows, row icons by item kind, cursor and popup.
+// Also known as: UpdateShopLook (upstream readable / Sly 1 name; UpdateShopLook__FP4SHOP).
 extern "C" void UpdateThiefnetWidgets(THIEFNET *p)
 {
     M2 m;
@@ -1911,6 +1931,7 @@ void SelectThiefnetItem(THIEFNET *, int) __asm__("SelectThiefnetItem");
 void *CreateSfxSound(int) __asm__("CreateSfxSound");
 void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
 // ThiefNet stick handler (slot 14): left / right switch tabs, up / down move the selection (with sounds). (inferred)
+// Also known as: SetShopDir (upstream readable / Sly 1 name; SetShopDir__FP4SHOPi).
 extern "C" void SetThiefnetStickDir(THIEFNET *p, unsigned int n)
 {
     if (n == p->nMode)
@@ -2207,6 +2228,7 @@ void UpdateScreenStickDir(JOBLIST *) __asm__("UpdateScreenStickDir");
 void UpdateJobListWidgets(JOBLIST *) __asm__("UpdateJobListWidgets");
 // Per-frame job list: waits for the widget to load; START / circle closes; direction buttons switch between the jobs page
 // and the tasks page.
+// Also known as: UpdateJobHelp (upstream readable / Sly 1 name; UpdateJobHelp__FP2SW).
 extern "C" void UpdateJobList(JOBLIST *p)
 {
     UpdateTimedScreen(p);
@@ -2288,6 +2310,7 @@ void SelectJobListItem(JOBLIST *, int) __asm__("SelectJobListItem");
 
 // Rebuilds the job list: tasks sorted by dependency then order; page 0 lists started jobs, page 1 the tasks of the
 // selected job up to the first unfinished one.
+// Also known as: BuildJobHelp (upstream readable / Sly 1 name; BuildJobHelp__FPv).
 extern "C" void RefreshJobListEntries(JOBLIST *p)
 {
     for (int i = 0; i < p->centry; i++) {
@@ -2367,6 +2390,7 @@ void SwitchWidgetAnim(void *, int, int *) __asm__("SwitchWidgetAnim");
 int IsJobComplete(void *) __asm__("IsJobComplete");
 int IsTaskComplete(void *) __asm__("IsTaskComplete");
 // Drives the job-list row highlights and completion check marks.
+// Also known as: UpdateJobHelpLook (upstream readable / Sly 1 name; UpdateJobHelpLook__FPv).
 extern "C" void UpdateJobListWidgets(JOBLIST *p)
 {
     int i;
@@ -2405,6 +2429,7 @@ void SetWidgetState(void *, int) __asm__("SetWidgetState");
 void SetWidgetRequest(void *, int) __asm__("SetWidgetRequest");
 void RefreshJobListEntries(JOBLIST *) __asm__("RefreshJobListEntries");
 // Opens the job list on a page (jobs or tasks) or closes it (-1), holding player control while open.
+// Also known as: SetJobHelpPage (upstream readable / Sly 1 name; SetJobHelpPage__FPvi).
 extern "C" void SetJobListPage(JOBLIST *p, int s)
 {
     int old;
@@ -2601,6 +2626,7 @@ TITLE *ConstructTitleScreen(TITLE *p) __asm__("ConstructTitleScreen"); TITLE *Co
 namespace M_func_001DD820 {
 void EnsureRumbleModeDefault(void) __asm__("EnsureRumbleModeDefault");
 // Shows the title screen and its widget and resets rumble. (inferred)
+// Also known as: ShowTitle (upstream readable / Sly 1 name; ShowTitle__FPv).
 extern "C" void ShowTitleScreen(TITLE *p) {
     if (p->pchild) {
         p->Show();   /* slot 10 */
@@ -2721,6 +2747,7 @@ void StartGameFromSave(SAVEDATA *) __asm__("StartGameFromSave");
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(pv, arg, &g_gs); }
 // Starts a new game: clears the save flag, binds the three heroes' health and power, and starts play.
+// Also known as: StartNewGameFromTitle (upstream readable / Sly 1 name; StartNewGameFromTitle__Fv).
 extern "C" void StartNewGame(void)
 {
     {

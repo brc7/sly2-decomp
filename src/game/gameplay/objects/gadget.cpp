@@ -246,6 +246,7 @@ extern "C" void LoadTossableFromBrx(CID100V *gadget, void *stream) {
 }
 
 // CID100 vtable slot 11 (AddHierarchy): SO add; a gadget with a state machine (re)applies it.
+// Also known as: OnCarryAdd (upstream readable / Sly 1 name; OnCarryAdd__FP2LO).
 extern "C" void AddTossableHierarchy(CID100V *gadget)
 {
     AddSoHierarchy(gadget);
@@ -253,6 +254,7 @@ extern "C" void AddTossableHierarchy(CID100V *gadget)
 }
 
 // CID100 vtable slot 12 (RemoveHierarchy): SO removal, back to the pool, state machine released.
+// Also known as: OnCarryRemove (upstream readable / Sly 1 name; OnCarryRemove__FP2LO).
 void CID100::RemoveHierarchy()
 {
     CID100V *gadget = (CID100V *)this;
@@ -263,6 +265,7 @@ void CID100::RemoveHierarchy()
 
 // CID100 vtable slot 16 (Update): SO update; a flying gadget with a pending contact sticks (StickTossable); a gadget
 // farther than maxThrowerDistance from its thrower is fired (vtable slot 75, TriggerTossable). (inferred)
+// Also known as: UpdateCarry (upstream readable / Sly 1 name; UpdateCarry__FP2LO).
 void UpdateTossable(CID100V *gadget)
 {
     UpdateSo(gadget);
@@ -285,6 +288,7 @@ void UpdateTossable(CID100V *gadget)
 }
 
 // CID100 damage handler: a flying or stuck gadget detonates. Always absorbs the damage.
+// Also known as: FAcceptCarryContact (upstream readable / Sly 1 name; FAcceptCarryContact__FP3ALO).
 extern "C" int TakeTossableDamage(CID100V *gadget)
 {
     switch (gadget->state) {
@@ -298,6 +302,7 @@ extern "C" int TakeTossableDamage(CID100V *gadget)
 struct MSG100 { int unknown0; CID100V *target; };
 // CID100 vtable slot 5 (HandleMessage): the basic handler; message 4 aimed at a flying or stuck gadget detonates it.
 // (inferred)
+// Also known as: OnCarryMessage (upstream readable / Sly 1 name; OnCarryMessage__FP2LO5MSGIDPv).
 extern "C" void HandleTossableMessage(CID100V *gadget, int kind, MSG100 *message)
 {
     HandleBasicMessage(gadget, kind, message);
@@ -310,6 +315,7 @@ extern "C" void HandleTossableMessage(CID100V *gadget, int kind, MSG100 *message
 
 // A flying gadget meets a surface: gadgets 0x1A/0x29 detonate; others attach to the object (or to the world when
 // it is the world, oid 1) and become stuck.
+// Also known as: LandCarry (upstream readable / Sly 1 name; LandCarry__FP2LOT0).
 void StickTossable(CID100V *gadget, SOV *surface)
 {
     int kind = gadget->gadgetKind;
@@ -322,6 +328,7 @@ void StickTossable(CID100V *gadget, SOV *surface)
 
 // CID100 intersection filter: the SO answer, plus (func_00134310 bit 1) the hero (CID 0x34) while the gadget is held
 // or fading, so it does not collide with the one carrying it.
+// Also known as: OverlapKindCarry (upstream readable / Sly 1 name; OverlapKindCarry__FP3ALOT0).
 extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
 {
     int ignore = ShouldSoIgnoreIntersection(gadget, other);
@@ -360,6 +367,7 @@ static inline const float *CoefficientAt(const float *table,int index){const flo
 // contact this gadget owns is examined: a sticky gadget touching a free surface (not contact kind 8, no blocking class
 // up its parent chain) records it as the stick target with the contact normal (sign by end, D_002C3C60); a held
 // gadget notes that it touched something.
+// Also known as: UpdateCarryContacts (upstream readable / Sly 1 name; UpdateCarryContacts__FP3ALO).
 extern "C" void UpdateTossableContacts(CID100V *gadget)
 {
     SOV *other;
@@ -434,6 +442,7 @@ extern "C" int IsThrowableGadget(CID100V *gadget)
 }
 
 // Does this gadget stick to surfaces? Gadgets 5, 7, 9, 11, 13, 0x1A, 0x25, 0x29 do; gadget 4 only while flying.
+// Also known as: FCarryLands (upstream readable / Sly 1 name; FCarryLands__FP7CARRYRT).
 int IsTossableStateBlocking(CID100V *gadget)
 {
     switch (gadget->gadgetKind) {
@@ -473,6 +482,7 @@ static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
 // CID100 orientation update (not while held or fading): after the SO step, gadgets 0x1A/0x29 spring-rotate toward
 // their homing target in the horizontal plane (or, without one, upright).
+// Also known as: ApplyCarryGravity (upstream readable / Sly 1 name; ApplyCarryGravity__FP3ALO).
 extern "C" void OrientTossableToTarget(CID100V *gadget) {
     M3 m;
     if (gadget->state == TOSSABLE_HELD || gadget->state == TOSSABLE_FADING) return;
@@ -604,6 +614,7 @@ struct COLLA { XFV *xf; };   /* a found object, read through its first word (inf
 // The blast: finds the objects within radius, casts probes from pos over a sphere (11 latitude rings, D_002C4338 /
 // D_002C4368 probes each) and one toward each found object, collecting up to 32 hits (ProbeTossableHit), then
 // delivers them (func_001F7598) and makes a noise stimulus at pos.
+// Also known as: BlastCarry (upstream readable / Sly 1 name; BlastCarry__FP2LOiiG9VU_VECTORf).
 void SweepTossableProbes(CID100V *gadget, int zapKind, int damage, qwordV pos, float radius)
 {
     STACKSCOPEMK mark;
@@ -689,6 +700,7 @@ namespace RO_ORDER { extern const float r_D_002A97A8 __asm__("D_002A97A8") = 3.4
 // class-0x38 object (Sly, D_002E1E40, by default; height counts double). Fading: fades out over 0.25 s.
 // Leaving held or fading (and entering held) recomputes the world's object filter. The state machine's goal follows
 // the state (D_002C4398[state] = 0x6D..0x72).
+// Also known as: SetCarryStateBase (upstream readable / Sly 1 name; SetCarryStateBase__FP2LOi).
 void SetTossableState(CID100V *gadget, int state)
 {
     int oldState = gadget->state;
@@ -783,6 +795,7 @@ static inline qwordV Splat(float f) {
 }
 // CID102 vtable slot 16 (Update): the tossable update, then the extraction (see the block comment above), repeated
 // while it changes the state.
+// Also known as: UpdateExtractor (upstream readable / Sly 1 name; UpdateExtractor__FP2LO).
 extern "C" void UpdateGuardTrap(CID100V *gadget) {
     int oldState;
     UpdateTossable(gadget);
@@ -825,6 +838,7 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
 struct MSGO { int unknown0; SOV *o; };
 // Guard-trap hook on a held object (inferred): cancels the object's acceleration and springs it toward the trap's
 // source (or the trap).
+// Also known as: ApplyExtractorHook (upstream readable / Sly 1 name; ApplyExtractorHook__FP3ALOT0).
 extern "C" void PushGuardTrapAway(CID100V *gadget, MSGO *q)
 {
     SOV *o = q->o;
@@ -872,6 +886,7 @@ struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;
 // CID102 state change (vtable slot 76): leaving extraction lets the actor go (unhooks it, behavior 0xB0 to state 2,
 // colour goal reset); entering it picks the nearest class-0x38 actor within 400 that answers func_00206EB0(0xB),
 // hooks it (AddSoXa), sets its velocity to half its current one with z = 400 (a hop) and calls func_00209E28.
+// Also known as: SetExtractorState (upstream readable / Sly 1 name; SetExtractorState__FP2LOi).
 extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
 {
     if (state == gadget->state)

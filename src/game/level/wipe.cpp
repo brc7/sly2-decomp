@@ -69,6 +69,7 @@ extern "C" WIPE *InitWipe(WIPE *wipe)
 // Changes the wipe state (0 idle, 1 wiping out, 2 wiping in, 3 transition pending): idle clears the stored transition
 // and hides the widget, 1 and 2 play the widget's out/in labels (0x311/0x30F), 3 hands the stored transition to the
 // world (SetSwTransition).
+// Also known as: SetWipeState (upstream readable / Sly 1 name; SetWipeState__FPv5WIPES).
 extern "C" void SetWipeWipes(WIPE *wipe, int newState)
 {
     WIDGET *widget;
@@ -97,6 +98,7 @@ extern "C" void SetWipeWipes(WIPE *wipe, int newState)
 
 // Advances the wipe state machine each frame: wiping out becomes "transition pending" and wiping in becomes idle once
 // the wipe widget's animation has finished.
+// Also known as: UpdateWipe (upstream readable / Sly 1 name; UpdateWipe__FP4WIPE).
 extern "C" void UpdateWipe(WIPE *wipe)
 {
     int newState = wipe->state;
@@ -161,6 +163,7 @@ extern "C" void ResumeWipeAfterLoad(WIPE *wipe)
 // Requests a level transition: builds a TRANS for the target level (the current one when filerec is null) with the
 // warp arguments, marks "same level", then starts a wipe (when a wipe widget oid is given) or the transition directly.
 // The common entry point for warps, exits, cheats, job failure and the boot queue. Same as Sly 1's WipeToWorldWarp.
+// Also known as: RequestTransition (upstream readable / Sly 1 name; RequestTransition__FP2SWPUc3OIDT2iT2).
 extern "C" void WipeToWorldWarp(SW *world, FILEREC *fileRecord, int warpOid, int warpContextOid, int flags, int wipeWidgetOid)
 {
     TRANS trans;

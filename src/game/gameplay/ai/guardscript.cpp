@@ -120,6 +120,7 @@ int GetShapeMoveKind(LO *object) __asm__("GetShapeMoveKind");
 void EnsureShapeVolumeSegments(LO *shape) __asm__("EnsureShapeVolumeSegments");
 // 0x170A58: Walks the command list resolving targets: set-context commands (kind 0) change the lookup context;
 // move-along-shape commands (kind 6) prepare their target shape.
+// Also known as: PostLoadCmdlist (upstream readable / Sly 1 name; PostLoadCmdlist__FP7CMDLIST).
 void PrepareGuardScriptTargets(LO *context) __asm__("PrepareGuardScriptTargets"); void PrepareGuardScriptTargets(LO *context)
 {
     SSGE *command;
@@ -250,6 +251,7 @@ extern "C" void AddGuardScriptEnsureRelayAlarm(CID113 *script, int id, int n)
 // 0x170E00: Allocates a command node from the script pool, sets its kind and argument and appends it to the
 // script's list; returns it.
 /* Appends a command of the given kind (and target id, -1 for none) to the script; returns it. */
+// Also known as: PcmdAppend (upstream readable / Sly 1 name; PcmdAppend__FP7CMDLISTi3OID).
 extern "C" SSGE *AddGuardScriptCommand(CID113 *script, int kind, int id)
 {
     SSGE *command;
@@ -297,6 +299,8 @@ extern "C" { static inline float Length(qword v)
 // Choose the closest eligible point while walking the selector chain.
 // 0x170E90: Picks the command (kind 3/7 point or kind 6 shape) whose point is closest to a position, skipping
 // commands inside busy-on/off brackets; used to resume a script near the guard.
+// Also known as: RefindSavedScript (upstream readable / Sly 1 name;
+//   RefindSavedScript__FP7CMDLISTG9VU_VECTORP11SAVEDSCRIPT).
 extern "C" void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *out)
 {
     SSGRESUME choice;
@@ -384,6 +388,7 @@ float atan2f(float y, float x) __asm__("atan2f");
 qword GetLoWorldPos(LO *object) __asm__("GetLoWorldPos");
 // 0x1710F8: Position and heading of a target: the closest point and tangent on a SHAPE (cid 0xA), else the object's
 // position and yaw.
+// Also known as: GetCmdAim (upstream readable / Sly 1 name; GetCmdAim__FP5GUARDG9VU_VECTORP2LOP6VECTORPf).
 extern "C" void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qword *posOut, float *headingOut)
 {
     union { qword q; } u;
@@ -440,6 +445,7 @@ void AssignSidebagRef(CRefPtr<CSidebag> *pref, CSidebag *sidebag) __asm__("Assig
 }
 // 0x171258: Switches the script a script behaviour runs: stops the old one (splice event 3), starts the new one
 // (event 2) at its first command or at a saved resume point.
+// Also known as: SetTarget (upstream readable / Sly 1 name; SetTarget__9JOBSCRIPTP7CMDLISTiP11SAVEDSCRIPT).
 extern "C" void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPartialRoute, SSGRESUME *resume)
 {
     using namespace M_func_00171258;
@@ -477,6 +483,7 @@ extern "C" void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPa
 }
 
 // 0x171398: Script behaviour vtable slot 9 (Close): base, clears busy, drops the script and lowers flag 0x21.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvScript(BHV169 *behavior)
 {
     CloseBhv(behavior);
@@ -488,6 +495,7 @@ extern "C" void CloseBhvScript(BHV169 *behavior)
 // 0x1713E8: Script behaviour vtable slot 10 (Update): executes commands until one is still busy or the script ends.
 /* Runs the script: while a command is current and done (IsBhvScriptCommandBusy), steps to the next one and starts it
    (behaviour slot 15). Returns the current command (0 at the end). */
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" SSGE *UpdateBhvScript(BHV169 *behavior)
 {
     SSGE *next;
@@ -529,6 +537,7 @@ int IsBhvanimDone(void *bhv) __asm__("IsBhvanimDone");
 void SetStepguardMoverRadTarget(GUARDMOVER *mover, float heading) __asm__("SetStepguardMoverRadTarget");
 // 0x171468: True while the running command's child behaviour (goto, look, wait, kinds 13/14) is still active; pops
 // it when done.
+// Also known as: FRunning (upstream readable / Sly 1 name).
 extern "C" int IsBhvScriptCommandBusy(BHV169 *behavior) {
     if (!behavior->isCommandBusy) return 0;
     switch (behavior->currentCommand->kind) {
@@ -567,6 +576,7 @@ extern "C" int IsBhvScriptCommandBusy(BHV169 *behavior) {
 namespace M_func_001715B8 {
 void *FindSwObject__FP2SWi3OIDP2LO(SW *sw, int findKind, int oid, LO *context) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // 0x1715B8: Finds a world object by oid relative to the script's current context object.
+// Also known as: PloNear (upstream readable / Sly 1 name; PloNear__9JOBSCRIPT3OID).
 extern "C" void *FindBhvScriptTarget(BHV169 *behavior, int oid)
 {
     LO *context = behavior->context;
@@ -597,6 +607,7 @@ void ClearPointerPair(void *goal) __asm__("ClearPointerPair");
 
 // 0x1715F0: Script behaviour vtable slot 15: executes one script command (kinds 0-15): set context, set times,
 // teleport, message, spawn child behaviours, label/jump, busy on/off, relay alarm.
+// Also known as: Execute (upstream readable / Sly 1 name; Execute__9JOBSCRIPTP3CMD).
 void BHV169::ExecuteScriptCommand(SSGE *command)
 {
     using namespace M_func_001715F0;
@@ -769,6 +780,7 @@ void DetachStepguard(STEPGUARD *guard) __asm__("DetachStepguard");
 void SetStepTargetHeading(STEPGUARD *guard, float heading) __asm__("SetStepTargetHeading");
 }
 // 0x171B60: Places the guard at a position and heading and zeroes its velocities.
+// Also known as: PlaceGuard (upstream readable / Sly 1 name; PlaceGuard__FP5GUARDG9VU_VECTORf).
 extern "C" void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading)
 {
     using namespace M_func_00171B60;
@@ -786,6 +798,7 @@ namespace M_func_00171C18 {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 }
 // 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
+// Also known as: Save (upstream readable / Sly 1 name; Save__9JOBSCRIPTP11SAVEDSCRIPT).
 extern "C" void SaveBhvScriptResumeState(BHV169 *behavior, SSGRESUME *resume)
 {
     using namespace M_func_00171C18;
@@ -804,6 +817,7 @@ extern "C" void SaveBhvScriptResumeState(BHV169 *behavior, SSGRESUME *resume)
 
 // 0x171C98: Pops any running child behaviour and jumps the script to a label.
 /* Jumps to the label command id of the running script (popping a running sub-behaviour first). */
+// Also known as: SeekMarker (upstream readable / Sly 1 name; SeekMarker__9JOBSCRIPT3OID).
 extern "C" void JumpBhvScriptToLabel(BHV169 *behavior, int id)
 {
     if (behavior->script != 0) {
@@ -821,6 +835,7 @@ void *FindStepBehavior(void *guard, int cid) __asm__("FindStepBehavior");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
+// Also known as: TellGuardCommands (upstream readable / Sly 1 name; TellGuardCommands__FP2LOi).
 void StartGuardScript(void *guard, int script) __asm__("StartGuardScript"); void StartGuardScript(void *guard, int script)
 {
     BHVGUARDRECDATA mode;
@@ -854,6 +869,7 @@ extern "C" void SetGuardRoutineMode(void *guard)
 
 // 0x171DA8: True if the guard's root behaviour is in mode 5 running this script.
 /* Whether plo's guard behaviour (CID 0x9C) is in mode 5 on script command id. */
+// Also known as: FGuardRunsCommands (upstream readable / Sly 1 name; FGuardRunsCommands__FP2LOT0).
 extern "C" int IsGuardRunningScript(LO *object, int id)
 {
     BHV156 *bhv;

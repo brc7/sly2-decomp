@@ -48,7 +48,7 @@ struct TRIG
     int reactionMask;           /* 0x168: what the firing may do (camera 2, rumble 4, noise 8; 1 none) */
     void *instigator;           /* 0x16C: the object that fired it */
     int zapKind;                /* 0x170: the zap kind that fired it (0 for contacts, inferred) */
-    void Action() __asm__("ReactBreakable");
+    void Action() __asm__("ReactBreakable");  // Also known as: RunHit (upstream readable / Sly 1 name; RunHit__FP2LO).
 };
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char offset_0_marker[FIELD_OFFSET(TRIG,firingCount)==344?1:-1];
@@ -115,6 +115,7 @@ E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return func_001AE318M(pmsg); }
 
 // CID 98 vtable slot 7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
+// Also known as: InitBreakableBytes (upstream readable / Sly 1 name; InitBreakableBytes__FP3ALO).
 extern "C" void InitBreakable(TRIG *breakable) {
     InitSo(breakable);
     SetSoZapResponse(breakable, 0x03FFFFFF, 8);
@@ -170,6 +171,7 @@ extern "C" void OnBreakableAdd(TRIG *breakable) {
 /* A contact record: the other object and its flags word at +0x40. */
 struct XPC { TRIG *x0; int x4; int x8; int xC; char pad[0x30]; union { unsigned long l; struct { int lo; int hi; } w; } x40; };
 // Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8). (inferred)
+// Also known as: FAcceptBreakableContact (upstream readable / Sly 1 name; FAcceptBreakableContact__FP3ALOP5CTMSG).
 extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
 {
     int i;
@@ -186,6 +188,7 @@ extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
 }
 
 // Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React). (inferred)
+// Also known as: PostHit (upstream readable / Sly 1 name; PostHit__FP2LOii).
 void ScheduleBreakableReaction(TRIG *breakable, void *a, int b)
 {
     breakable->zapKind = b;
@@ -196,6 +199,7 @@ void ScheduleBreakableReaction(TRIG *breakable, void *a, int b)
 enum { EVENT_SHIFT = 4 };
 // Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage.
 // (inferred)
+// Also known as: GotoEvent (upstream readable / Sly 1 name; GotoEvent__FP2LOi).
 void SetBreakableStage(TRIG *breakable, int id)
 {
     int iTarget = breakable->stage;
@@ -304,6 +308,7 @@ struct L { int x0; struct L *next; int *px8; TRIG *po; };
 struct XPO { char pad[0x64]; L *pl; };
 // CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98
 // objects. (inferred)
+// Also known as: UpdateBreakableContacts (upstream readable / Sly 1 name; UpdateBreakableContacts__FP3ALO).
 void CID98::AdjustXps()
 {
     TRIG *breakable = (TRIG *)this;
@@ -385,6 +390,7 @@ void TRIG::Action()
 typedef struct MSGS { int a; SOX *ps; char pad[0x38]; } MSGS;
 // Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10,
 // spawn ApplyTaskStates. (inferred)
+// Also known as: RunItems (upstream readable / Sly 1 name; RunItems__FP2LOP3BRK).
 void RunBreakableStageActions(TRIG *breakable, E *pe)
 {
     int i;
@@ -596,6 +602,7 @@ extern "C" void AddBreakableTaskStates(TRIG *breakable, int a, int b)
 }
 
 // Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it. (inferred)
+// Also known as: PitemNew (upstream readable / Sly 1 name; PitemNew__FP2LOi).
 I *AddBreakableAction(TRIG *breakable, int x)
 {
     E *pe = func_001BBE68K(breakable, D_002A76C0);
@@ -631,6 +638,7 @@ E *GetCurrentBreakableStage(TRIG *breakable) {
 }
 
 // CID 98 vtable slot 26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
+// Also known as: ResetBreakable (upstream readable / Sly 1 name; ResetBreakable__FP2LO).
 extern "C" void ResetBreakable(TRIG *breakable)
 {
     SO_ResetForProxy(breakable);

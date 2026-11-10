@@ -100,6 +100,7 @@ static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cbA
 // CID 8/9 slot 14 (LoadFromBrx): the XFM, then the vertex count and positions and the triangles (with edge
 // neighbours) into world-heap memory, then the object's options.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadPntsFromBrx (upstream readable / Sly 1 name; LoadPntsFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadCid8FromBrx(MESH *mesh, CBinaryInputStream *stream)
 {
     SWALLOC msg;
@@ -135,6 +136,8 @@ static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __
 namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.40282347e+38f; }
 // Finds the point of the mesh closest to a world position: returns the point, the surface normal and the triangle
 // (vertex positions transformed by the object's world matrix, slot 31).
+// Also known as: FindClimbSurfClosestPoint (upstream readable / Sly 1 name;
+//   FindClimbSurfClosestPoint__FP2LOG9VU_VECTORP6VECTORP7SURFLOCN22).
 extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,SURFLOC*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  w.input.q=point;
@@ -278,6 +281,8 @@ static inline U *Addr(U *p) { return p; }
 static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->count++]; *p = q; }
 // Gathers the contact planes of mesh edges and triangles within radius of a set of points into a list, for the
 // inequality solve.
+// Also known as: AddClimbSurfEdgePlanes (upstream readable / Sly 1 name;
+//   AddClimbSurfEdgePlanes__FP2LOP4LISTiP6VECTORP6PARAMSf).
 extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMP *params, float radius)
 {
     M4 mat;
@@ -377,6 +382,8 @@ static inline float FloatFromBitsW(int b, float w)
 }
 namespace RO_ORDER { extern const float r_D_002A568C __asm__("D_002A568C") = 3.40282347e+38f; }
 // Projects a movement vector onto the region allowed by the collected contact planes (SolveInequalities).
+// Also known as: VecProjectClimbSurfPlanes (upstream readable / Sly 1 name;
+//   VecProjectClimbSurfPlanes__FPvP6VECTORG9VU_VECTOR).
 extern "C" qword SolveMeshConstraints(void *unused, LIST *list, qword vector)
 {
     int matrix[36];
@@ -485,6 +492,8 @@ static inline qword AddScaled2H(qword a, qword b, VUFQ sb, qword c, VUFQ sc, voi
 }
 // Projects a ballistic point (pos + v t + a t^2 / 2) onto the mesh: returns the landing point (offset along the
 // normal) and the velocity there. Used to predict where a jump meets the mesh. (inferred)
+// Also known as: ClimbSurfLanding (upstream readable / Sly 1 name;
+//   ClimbSurfLanding__FP2LOG9VU_VECTORN21P6TRIREFPG9VU_VECTORP7SURFLOCff).
 extern "C" int PredictMeshContact(MESH *mesh, qword pos, qword velocity, qword acceleration, SURFLOC *triangle, qword *posOut, qword *velocityOut, float offset, float time)
 {
     SURFLOC tr;
@@ -584,6 +593,7 @@ static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
 // the surface under the three probe points (smoothed), turns the stick into a camera-relative acceleration along
 // the surface and projects it against the mesh boundary planes (CollectMeshContacts / SolveMeshConstraints).
 // Called from jt.cpp while attached (inferred).
+// Also known as: UpdateSlyClimbSurf (upstream readable / Sly 1 name; UpdateSlyClimbSurf__FP3SLY).
 extern "C" void UpdateJtMeshAttachment(JT*jt){
  U closest,normal;
  qword position=GetLoWorldPos(jt);

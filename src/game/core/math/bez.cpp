@@ -62,6 +62,7 @@ static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
 
 // Evaluates a scalar Hermite segment from (value0, slope0) to (value1, slope1) over dt at time t: writes the
 // value and/or the slope (the slope multiplied by dtScale), each optional.
+// Also known as: EvalHermite (upstream readable / Sly 1 name; EvalHermite__FPfT0fffffff).
 extern "C" void EvaluateBezierFloat(float *outValue, float *outSlope, float dt, float t, float dtScale, float value0, float slope0, float value1, float slope1)
 {
     float delta;
@@ -87,6 +88,7 @@ extern "C" void EvaluateBezierFloat(float *outValue, float *outSlope, float dt, 
    div.s (formerly listed as junk). It loads its weights with VuFromFloat<qword> (no dead VU-float store). */
 // Evaluates a position Hermite segment from (pos0, vel0) to (pos1, vel1) over dt at time t; writes the position, velocity
 // and acceleration through the optional out-pointers.
+// Also known as: Hermite (upstream readable / Sly 1 name; Hermite__FG9VU_VECTORN30fffPG9VU_VECTORN27).
 extern "C" void EvaluateBezierPos(qword pos0, qword vel0, qword pos1, qword vel1, float dt, float t, float dtScale, qword *outPos, qword *outVel, qword *outAcc)
 {
     float v;
@@ -156,6 +158,8 @@ extern "C" void EvaluateBezierPos(qword pos0, qword vel0, qword pos1, qword vel1
  *  - ScaleT's asm is volatile to emulate the toolchain's scheduling of the trailing stores. */
 // Interpolates an orientation from (mat0, angular velocity w0) to (mat1, w1) over dt at time t (Hermite in the
 // relative rotation's angle about its axis); writes the blended matrix and/or the angular velocity.
+// Also known as: MatHermiteRotation (upstream readable / Sly 1 name;
+//   MatHermiteRotation__FfffPvG9VU_VECTORT3T4T3PG9VU_VECTOR).
 extern "C" void EvaluateBezierMat(float dt, float t, float scale, M3 *mat0, qword w0, M3 *mat1, qword w1, M3 *outMatrix, qword *outAngularVelocity)
 {
     float u = t / dt;

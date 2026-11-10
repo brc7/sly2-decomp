@@ -174,6 +174,7 @@ void OnMissileRemove(MISSILE *missile)
 
 // MISSILE::Fire (vtable slot 78): remembers the target (a point, local to targetObject when given), plays the flight
 // animation and, if enabled, starts the flight action on the rotation XF (func_0012DCA0 kind 5).
+// Also known as: SetMissileTarget (upstream readable / Sly 1 name; SetMissileTarget__FP3ALOP2LOP6VECTOR).
 extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
 {
     V v;
@@ -194,6 +195,7 @@ extern "C" void ApplyMissileThrow(MISSILE *missile)
 
 // MISSILE vtable slot 61 (ShouldIgnoreIntersection): the BOMB answer, plus bit 1 (func_00134310) for objects in the
 // ignore lists (by oid or class).
+// Also known as: OverlapKindMissile (upstream readable / Sly 1 name; OverlapKindMissile__FP3ALOT0).
 int ShouldMissileIgnoreIntersection(MISSILE *missile, SO *pso)
 {
     int i, j;
@@ -286,6 +288,7 @@ static inline qword QwMulX(qword qwRow, VU_FLOAT gScale)
 // change as a constrained acceleration (no-op while thrower is set).
 /* 0x1B20B8 PresetAccmissAccel (ACCMISS vtable slot 69): ported from Lilly's personal Sly 2 decomp (src/P2/accmiss.c).
    Steers the velocity towards cruiseSpeed along the current direction (SmoothValue), constrained by the physics. */
+// Also known as: UpdateAccmissAccel (upstream readable / Sly 1 name; UpdateAccmissAccel__Fv).
 void ACCMISS::PresetAccel()
 {
     if (thrower == 0)
@@ -313,6 +316,7 @@ inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a
 // CID82 Fire (vtable slot 78): FireMissile; with a flight time the arrival time follows from it; otherwise the target
 // predicted 0.5 s ahead and the launch velocity (clamped to 0.75 maxSpeed) give the arrival time by a sweep test
 // (func_0014C748, at least 0.25). Hand-scheduled asm (see the header). (inferred)
+// Also known as: SetHomingMissileTarget (upstream readable / Sly 1 name; SetHomingMissileTarget__FP3ALOP2LOP6VECTOR).
 extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
@@ -358,6 +362,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
 static inline qword MulPt(MATRIX4Q *m, qword v) { qword r; r = VuMulMatrix4(m->r[0].q, m->r[1].q, m->r[2].q, m->r[3].q, v); return r; }
 // The target point in world space: through targetObject's local matrix predicted dt ahead (LoadIdentityMatrix4),
 // or the stored point when there is no target object. (inferred)
+// Also known as: PredictProjectileAim (upstream readable / Sly 1 name; PredictProjectileAim__FP2LOf).
 extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 {
     V r;
@@ -389,6 +394,7 @@ static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*dest
 }
 // CID82 vtable slot 70 (PresetAccel): steers along a Bezier from where the missile is to the predicted target, to arrive
 // at arrivalTime with targetVelocity (a moving target: the velocity that closes the gap). Hand-scheduled asm. (inferred)
+// Also known as: UpdateHomingMissileAccel (upstream readable / Sly 1 name; UpdateHomingMissileAccel__FP3ALO).
 extern "C" void PresetSplmissAccel(CID82*missile){
  if(missile->thrower)return;
  WORKA w;

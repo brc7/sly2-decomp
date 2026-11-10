@@ -1,4 +1,4 @@
-/* include/sly2/clock.h -- CLOCK, the game clock (one instance: g_clock = g_clock; core/time/clock.cpp).
+/* include/sly2/clock.h -- CLOCK, the game clock (one instance: g_clock at 0x2DDED0; core/time/clock.cpp).
  *
  * Moved out of sly2/basic.h (which includes it) so that files that only read the clock can share the one layout
  * instead of private views (docs/guides/tu-merging.md, "Views unified"). Depends on common.h only. */
@@ -8,7 +8,7 @@
 #define SLY2_CLOCK_OFFSETOF(T, f) ((int)(char *)&(((T *)0)->f))
 
 /* CLOCK: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (15 copies in Lilly ports).
-   One global instance: g_clock = g_clock (CONFIRMED runtime: ram_inspector/slygame G_CLOCK).
+   One global instance: g_clock at 0x2DDED0 (CONFIRMED runtime: ram_inspector/slygame G_CLOCK).
    Tags: [R] runtime-confirmed meaning (save-state RAM, runtime* FINDINGS / devtools), [S] static (matched code / Sly 1
    name, not checked at runtime), [H] hypothesis. */
 struct CLOCK

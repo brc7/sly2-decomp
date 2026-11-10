@@ -159,6 +159,7 @@ extern "C" void MatchSwObject(void *world, LO *candidate, CH *candidateChain, un
 
 // Finds up to maxCount objects with an oid, relative to a context object; returns the count (the context's own proxy
 // chain is used).
+// Also known as: CploFindSwNearest (upstream readable / Sly 1 name; CploFindSwNearest__FP2LO3OIDiiii).
 extern "C" int FindSwObjects(void *world, int flags, int oid, LO *context, int maxCount, LO **results)
 {
     return FindSwObjectsInProxyScope(world, flags, oid, context, 0, maxCount, results);
@@ -168,6 +169,7 @@ extern "C" int FindSwObjects(void *world, int flags, int oid, LO *context, int m
 // The extra Sly 2 parameter is the proxy chain to match against (default: the context's, or the world's root):
 // objects inside proxy copies are found only from the same copy unless flag 0x400 is set. Returns the number found
 // (clamped to maxCount unless flag 0x200).
+// Also known as: CFindObjects (upstream readable / Sly 1 name; CFindObjects__FP2SWi3OIDP2LOPviPP2LO).
 extern "C" int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *context, void *contextChain, int maxCount, LO **results)
 {
     volatile int unused; /* unreferenced stack slot at 0x10 in the original */
@@ -231,6 +233,7 @@ extern "C" int FindSwObjectsInProxyScope(void *world, int flags, int oid, LO *co
 }
 
 // Returns the first object matching the flags and oid relative to a context object, or null.
+// Also known as: PloFindSwNearest (upstream readable / Sly 1 name; PloFindSwNearest__FP2LO3OIDii).
 LO *FindSwObject(SW *world, int flags, OID oid, LO *context)
 {
     return FindSwObjectInProxyScope(world, flags, oid, context, 0);
@@ -256,6 +259,7 @@ extern "C" int IsCidDerivedFrom(int cid, int cidBase)
 }
 
 // Collects up to maxCount objects of a class (or a derived class) relative to a context object; returns the count.
+// Also known as: CFindObjectsByClass (upstream readable / Sly 1 name; CFindObjectsByClass__FP5BASICiiPP5BASICiPP2LO).
 extern "C" int FindSwObjectsByClass(void *world, int flags, int cid, LO *context, int maxCount, LO **results)
 {
     volatile int unused;

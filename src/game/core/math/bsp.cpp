@@ -132,6 +132,7 @@ static inline qword BlendVectors(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("ClipSegmentBsp");
 // Clips the edge pos1-pos2 against a BSP volume and writes the pieces inside it to alsg (at most clsgMax);
 // returns their count. See the long comment above for the algorithm.
+// Also known as: ClipSegmentBsp (upstream readable / Sly 1 name; ClipSegmentBsp__FP6BSPREFP6VECTORG9VU_VECTORT2iP3LSG).
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg)
 {
     CEB ceb;
@@ -256,6 +257,7 @@ static inline BSP *NodeOrNullPastLimit(BSP *p, BSP *pnodeMax)
 // follows the side pos is on), and only the planes within eps are copied as new nodes into *outNodes (capacity
 // *capacity, both advanced). Returns 0 or 1 when the result is a plain leaf (the two leaf kinds), 2 when a subtree
 // was emitted (its root is the last node written). Used as a broad-phase simplification (inferred).
+// Also known as: ClipBspPlane (upstream readable / Sly 1 name; ClipBspPlane__FP6BSPREFP6VECTORG9VU_VECTORfPiPP4NODE).
 extern "C" int PruneBspBySphere(BSP *node, BSP *nodeLimit, qword pos, float eps, int *capacity, BSP **outNodes)
 {
     float g;
@@ -392,6 +394,7 @@ SLY2_SCRAP("nop");
 
 // FindBspLeafContainingPointFast (Claude agent, lane A8, 2026-10-23): BSP-style plane walk. From v6: one asm doing qmfc2.ni + mtc1 (scratch "=&r"), and the negative child clipped into a separate `child = 0; if (negChild < nodeLimit) child = negChild;` (gives the target v1->v0 copy), the positive one straight into node. oq pinned to vf2.
 // Returns the BSP leaf containing pos; points within 1e-4 of a plane go to the negative child (fast version).
+// Also known as: IbspFindPoint (upstream readable / Sly 1 name; IbspFindPoint__FP6BSPREFP6VECTORG9VU_VECTOR).
 extern "C" BSP *FindBspLeafContainingPointFast(BSP *node, BSP *nodeLimit, qword pos)
 {
     VUFU d;
@@ -434,6 +437,7 @@ extern "C" BSP *FindBspLeafContainingPointFast(BSP *node, BSP *nodeLimit, qword 
 // (Claude agent, lane A9, 2026-10-23) BSP point search. On the on-plane path ONE local p holds the checked right child, the
 // recursive result and then the checked left child, so it stays in v0 (no if-conversion straight into a0).
 // Returns the BSP leaf containing pos; a point within 1e-4 of a plane tries both children (positive first).
+// Also known as: IbspFindPointEps (upstream readable / Sly 1 name; IbspFindPointEps__FP6BSPREFP6VECTORG9VU_VECTOR).
 extern "C" BSP *FindBspLeafContainingPoint(BSP *node, BSP *nodeLimit, qword pos)
 {
     while (node) {
@@ -519,6 +523,7 @@ static inline qword Normalize(qword v)
     return r;
 }
 // Initialises a plane through three points: normal = normalize((b - a) x (c - a)), distance = normal . a.
+// Also known as: PlaneFromPoints (upstream readable / Sly 1 name; PlaneFromPoints__FP6VECTORG9VU_VECTORN21).
 extern "C" void InitPlaneFromPositions(PLANE *outPlane, qword a, qword b, qword c)
 {
     UV u;
@@ -531,6 +536,7 @@ extern "C" void InitPlaneFromPositions(PLANE *outPlane, qword a, qword b, qword 
 }
 
 // Initialises a plane from a unit normal and a point on it (distance = normal . point).
+// Also known as: PlaneFromNormalPos (upstream readable / Sly 1 name; PlaneFromNormalPos__FP6VECTORG9VU_VECTORT1).
 extern "C" void InitPlaneFromNormalPos(PLANE *outPlane, qword normal, qword point)
 {
     __asm__ __volatile__(

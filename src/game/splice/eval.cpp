@@ -42,6 +42,7 @@ static inline CPair *PpairArgs(CPair *expr) { return ((CPair *)expr->ref.u.pv)->
 
 // Evaluates a symbol expression: looks the symbol up in the frame and its parents (CFrame::FindBinding) and
 // returns the bound value (Nil when unbound).
+// Also known as: RefEvalSymbol (upstream readable / Sly 1 name).
 CRef EvalSymbol(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -51,6 +52,7 @@ CRef EvalSymbol(CPair *expr, CFrame *frame)
 
 // (set! sym expr): evaluates expr and stores it in the existing binding of sym found in the frame chain
 // (CFrame::AssignBinding); returns Void.
+// Also known as: RefEvalSet (upstream readable / Sly 1 name).
 CRef EvalSet(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -61,6 +63,7 @@ CRef EvalSet(CPair *expr, CFrame *frame)
 }
 
 // (define sym expr): evaluates expr and adds a new binding for sym to this frame (CFrame_AddBinding).
+// Also known as: RefEvalDefine (upstream readable / Sly 1 name).
 CRef EvalDefine(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -72,6 +75,7 @@ CRef EvalDefine(CPair *expr, CFrame *frame)
 
 // (assert expr ...): evaluates each operand and prints "Splice assert: " plus the failing expression when one is false;
 // returns Void. A debug aid for level scripts.
+// Also known as: RefEvalAssert (upstream readable / Sly 1 name).
 CRef EvalAssert(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -91,6 +95,7 @@ CRef EvalAssert(CPair *expr, CFrame *frame)
 
 // Special form 6 (keyword unknown, new in Sly 2): evaluates its first operand and returns that value, or Void when the
 // form has no operand. (inferred: the keyword name is not known; see docs/systems/splice-scripting.md section 4.)
+// Also known as: RefEvalDebug (upstream readable / Sly 1 name; RefEvalDebug__FP5CPairP6CFrame).
 extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -107,6 +112,7 @@ extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
 
 // (if test then [else]): takes the then branch only when the test value word is 1 (#t; the tag is not checked),
 // otherwise the optional else branch (Void when absent). Unlike Scheme, non-#f values other than 1 take else.
+// Also known as: RefEvalIf (upstream readable / Sly 1 name).
 CRef EvalIf(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -127,6 +133,7 @@ CRef EvalIf(CPair *expr, CFrame *frame)
 }
 
 // (or expr ...): returns the first operand value that is not #f, or #f when all are false.
+// Also known as: RefEvalOr (upstream readable / Sly 1 name).
 CRef EvalOr(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -142,6 +149,7 @@ CRef EvalOr(CPair *expr, CFrame *frame)
 }
 
 // (and expr ...): stops at the first #f operand and returns it; otherwise returns the last value.
+// Also known as: RefEvalAnd (upstream readable / Sly 1 name).
 CRef EvalAnd(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -157,6 +165,7 @@ CRef EvalAnd(CPair *expr, CFrame *frame)
 }
 
 // (cond (test body...) ... [else body...]): evaluates the body of the first clause whose test is true (else = tag 0xB).
+// Also known as: RefEvalCond (upstream readable / Sly 1 name).
 CRef EvalCond(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -198,6 +207,7 @@ CRef EvalCond(CPair *expr, CFrame *frame)
 
 // (case key ((datum...) body...) ... [else ...]): evaluates key and runs the first clause holding an eqv? datum
 // (BuiltinEqv), or the else clause.
+// Also known as: RefEvalCase (upstream readable / Sly 1 name).
 CRef EvalCase(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -254,6 +264,7 @@ CRef EvalCase(CPair *expr, CFrame *frame)
 
 // (let ((sym val) ...) body...): evaluates each value in the outer frame, binds them in a new child frame and evaluates
 // the body there.
+// Also known as: RefEvalLet (upstream readable / Sly 1 name).
 CRef EvalLet(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -286,6 +297,7 @@ CRef EvalLet(CPair *expr, CFrame *frame)
 
 // (while test body): re-evaluates the one body expression until test yields #f (bool tag 0x17, value 0; any other
 // value keeps looping); returns Void, not the last body value.
+// Also known as: RefEvalWhile (upstream readable / Sly 1 name).
 CRef EvalWhile(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -305,6 +317,7 @@ CRef EvalWhile(CPair *expr, CFrame *frame)
 
 // (lambda (params... [. rest]) body...): builds a CProc closure over the current frame, recording the required
 // parameter count, whether a rest parameter follows, the parameter list and the body.
+// Also known as: RefEvalLambda (upstream readable / Sly 1 name).
 CRef EvalLambda(CPair *expr, CFrame *frame)
 {
     CPair *args = PpairArgs(expr);
@@ -352,6 +365,7 @@ CRef EvalLambdaBody(CPair *expr, CFrame *frame)
 }
 
 // (begin expr ...): evaluates the operands in order and returns the last value (Void when empty).
+// Also known as: RefEvalBegin (upstream readable / Sly 1 name).
 CRef EvalBegin(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -380,6 +394,7 @@ typedef CRefOwnerPad<CFrame> SPFRAME;
 // Function application: evaluates the operator and the operands, then calls a built-in (tag 0x19, the
 // g_mpbifkbif table of {function, minimum arguments, rest flag}), a native object method (tag 0x22), or a lambda (new
 // frame binding the parameters, extra arguments collected into the rest list), checking the argument count.
+// Also known as: RefEvalApply (upstream readable / Sly 1 name).
 CRef EvalApply(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -476,6 +491,7 @@ CRef EvalApply(CPair *expr, CFrame *frame)
 // The Splice evaluator's entry point: atoms evaluate to themselves, symbols are looked up, and a list is dispatched on
 // its head tag to the special-form evaluators (1 set!, 2 define, 5 assert, 6 form 6, 7 if, 8 or, 9 and, 10 cond,
 // 12 case, 13 let, 14 while, 15 lambda, 16 begin, 17 import -> Nil, 18 quote -> datum); any other list is a call.
+// Also known as: RefEval (upstream readable / Sly 1 name).
 CRef EvalExpression(CPair *expr, CFrame *frame)
 {
     switch (expr->ref.m_tagk)

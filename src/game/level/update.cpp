@@ -50,6 +50,7 @@ enum { ENTRY_UPDATE = 0x2, ENTRY_PAUSED_CALL = 0x4, ENTRY_PAUSED_CALL_OFF = 0x20
 
 // The per-frame world update (SW vtable slot 7): runs callbacks, updates the objects (UpdateSwObjects), lights, sound
 // and the camera. Called once per game frame by the main loop.
+// Also known as: RegisterSwPass (upstream readable / Sly 1 name; RegisterSwPass__FPv).
 void SW::Update()
 {
     SW *world = (SW *)this;

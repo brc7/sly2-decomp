@@ -167,6 +167,7 @@ struct WORK { MATRIX3Q basis; qword tangent, first, direction; };
 // agrees with the start tangent, rotates the pipe's reference axis accordingly and builds an orthonormal basis
 // (side, up, along). With forward == 0 the side and up rows are flipped (climbing the other way). Used by the
 // player's pipe state to orient Sly and by the grab-spot interface.
+// Also known as: MatPipeFrame (upstream readable / Sly 1 name; MatPipeFrame__FP2LOfiPv).
 extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, MATRIX3Q *out)
 {
     WORK w;

@@ -114,6 +114,7 @@ extern "C" void InitDetector(DETECTOR *detector)
 }
 
 // 0x153DB0: DETECTOR vtable slot 15 (Update): LO update, then re-evaluates the targets.
+// Also known as: UpdateDetectorObject (upstream readable / Sly 1 name; UpdateDetectorObject__FP2LOf).
 void DETECTOR::Update()
 {
     DETECTOR *detector = this;
@@ -123,6 +124,7 @@ void DETECTOR::Update()
 
 // 0x153DE0: Re-evaluates every tracked target: its new state comes from CalculateDetectorTargetState(target, old
 // state) and is applied through SetDetectorTargetState (which notifies on change).
+// Also known as: UpdateDetector (upstream readable / Sly 1 name; UpdateDetector__FP8DETECTOR).
 extern "C" void UpdateDetectorTargets(DETECTOR *detector)
 {
     int i;
@@ -134,6 +136,7 @@ extern "C" void UpdateDetectorTargets(DETECTOR *detector)
 
 // 0x153E60: Returns the detector's eye position: its own position when it has no eye object, else the eye object's
 // position, raised 80 units when that object is a guard (STEPGUARD family, cid 0x38).
+// Also known as: PosDetectorEye (upstream readable / Sly 1 name; PosDetectorEye__FP8DETECTOR).
 extern "C" qword GetDetectorEyePosition(DETECTOR *detector)
 {
     if (!detector->owner) return GetLoWorldPos(detector);
@@ -161,6 +164,7 @@ extern "C" void UpdateDetectorTrackedObject(DETECTOR *detector, void *oldObject,
 }
 
 // 0x153F18: Adds an object to the target list (at most eight) in state 0, unless it is already tracked.
+// Also known as: AddDetectorTarget (upstream readable / Sly 1 name; AddDetectorTarget__FP8DETECTORP2LO).
 extern "C" void AddDetectorTarget(DETECTOR *detector, void *object)
 {
     if (FindDetectorTarget(detector, object) != 0)
@@ -177,6 +181,7 @@ extern "C" void AddDetectorTarget(DETECTOR *detector, void *object)
 
 // 0x153F80: Removes an object from the target list: its state is forced to 0 first (so listeners see the change),
 // then the array is compacted.
+// Also known as: RemoveDetectorTarget (upstream readable / Sly 1 name; RemoveDetectorTarget__FP8DETECTORi).
 extern "C" void RemoveDetectorTarget(DETECTOR *detector, void *object)
 {
     DETECTORTARGET *entry = FindDetectorTarget(detector, object);
@@ -210,6 +215,7 @@ extern "C" void SetDetectorTargetStateById(DETECTOR *detector, void *object, int
 // 0x154080: Changes a target's state: records when it left state 0 and when it changed, notifies the detector
 // through vtable slot 3 (HandleSpliceEvent, message 0x1C with {entry, &old, &new}) and, when the detector's parent
 // is a STEP (cid 0x33: a player or a guard) and the new state is TARGET_SEEN, broadcasts game event 0x13.
+// Also known as: SetDetentryState (upstream readable / Sly 1 name; SetDetentryState__FP8DETECTORP8DETENTRYi).
 extern "C" void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int newState)
 {
     ARGS args;
@@ -231,6 +237,7 @@ extern "C" void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry
 }
 
 // 0x154158: Returns the detection state of an object's target entry, or -1 if it is not tracked.
+// Also known as: X509v3_data_type_by_NID (upstream readable / Sly 1 name).
 extern "C" int GetDetectorTargetStateById(DETECTOR *detector, void *object)
 {
     DETECTORTARGET *entry = FindDetectorTarget(detector, object);
@@ -240,6 +247,7 @@ extern "C" int GetDetectorTargetStateById(DETECTOR *detector, void *object)
 }
 
 // 0x154180: Finds the target entry for an object (NULL for a null object or an untracked one).
+// Also known as: PdetentryFind (upstream readable / Sly 1 name; PdetentryFind__FP8DETECTORi).
 extern "C" DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, void *object)
 {
     int i;
@@ -260,6 +268,7 @@ extern "C" DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, void *object)
 // seen if inside the near volume (and far volume), not concealed and the line is clear; 1 -> lost when leaving the
 // near volume; 2 -> seen again when back in the near volume with a clear line. Flag 8 re-tests the line every
 // frame.
+// Also known as: NDetectState (upstream readable / Sly 1 name; NDetectState__FP8DETECTORP2LOi).
 extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int state)
 {
     BUF hitBuffer;
@@ -354,6 +363,7 @@ extern "C" int FilterDetectorLineOfSightHit(DETECTOR *detector, HITV *hit)
 
 // 0x1545F0: True if the line from the detector's eye to the target is blocked by a world object
 // (FindFirstObjectHitByLine over the objects in the line's bounding box, using one of the filters above).
+// Also known as: FSightBlocked (upstream readable / Sly 1 name; FSightBlocked__FP8DETECTORP2LO).
 extern "C" int IsDetectorLineBlocked(DETECTOR *detector, SOV *target)
 {
     STACKSCOPE stackScope;
@@ -391,6 +401,7 @@ static inline float Dot(qword a, const VECTORQ &b)
 // 0x154770: True if a player target (cid 0x34) is concealed by its current state: hiding in or behind cover objects
 // (cids 0xC and 0x22, facing away from the detector), and certain sneak/hang states (inferred: the state numbers
 // are JT states).
+// Also known as: FTargetHidden (upstream readable / Sly 1 name; FTargetHidden__FP8DETECTORP2LO).
 extern "C" int IsDetectorTargetConcealed(DETECTOR *detector, SOV *target)
 {
     if (!IsBasicDerivedFrom__FP5BASIC3CID(target, CID_STEPPLAYER)) return 0;

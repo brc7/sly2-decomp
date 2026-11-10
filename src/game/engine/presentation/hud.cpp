@@ -196,6 +196,7 @@ extern "C" void BuildBinocularReadoutText(char *text)
 // 0x211148 BuildReconSelectionText
 /* STRINGGEN getter (context 0 selected, 1 pending): the recon text of the hero's mode HUD, if the hero is a JT. */
 // HUD texts 0x2DD / 0x2DE: the recon selector's selected item, or its pending caption.
+// Also known as: StrPhotoScript (upstream readable / Sly 1 name; StrPhotoScript__FPci).
 extern "C" void BuildReconSelectionText(char *text, int which)
 {
     JT *hero = (JT *)GetHeroPo(&g_sw);
@@ -450,6 +451,7 @@ void PlayWidgetAnim(WIDGET *p, int a) __asm__("PlayWidgetAnim");
 } // namespace M_func_00211CA8
 // Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
 // open animation. (inferred)
+// Also known as: ShowFailureScreen (upstream readable / Sly 1 name; ShowFailureScreen__FP8SCREENRTi).
 void WIDGET127::Show(int idLabel)
 {
     using namespace M_func_00211CA8;
@@ -480,6 +482,7 @@ void RestartJob(void *) __asm__("RestartJob");
 } // namespace M_func_00211D38
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
+// Also known as: UpdateFailureScreen (upstream readable / Sly 1 name; UpdateFailureScreen__FP8SCREENRT).
 void WIDGET127::Update()
 {
     using namespace M_func_00211D38;
@@ -562,6 +565,7 @@ int sprintf(char *,char *,...) __asm__("sprintf");
 // Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
 // texts, shows while any is active and hides when all are done. (inferred)
 // Runtime-checked: it counts the complete tasks.
+// Also known as: UpdateTaskCounter (upstream readable / Sly 1 name; UpdateTaskCounter__FP8SCREENRT).
 void WIDGET129::Update()
 {
     using namespace M_func_00211F90;
@@ -624,6 +628,7 @@ extern "C" struct S *WIDGET_ctor(struct S *widget)
 // 0x2121C8 IsWidgetIdle
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
 // True when the widget is neither shown nor requested to show. (inferred)
+// Also known as: FScreenObjDone (upstream readable / Sly 1 name; FScreenObjDone__FP2LO).
 extern "C" int IsWidgetIdle(WIDGET *widget)
 {
     int isIdle = 0;
@@ -634,6 +639,7 @@ extern "C" int IsWidgetIdle(WIDGET *widget)
 
 // 0x2121E8 IsWidgetAnimPlaying
 // True while the widget animation with the given id (0x314 = main track) is still running.
+// Also known as: FSpriteAnimPlaying (upstream readable / Sly 1 name; FSpriteAnimPlaying__FP2LOi).
 extern "C" int IsWidgetAnimPlaying(WIDGET *widget, int animId)
 {
     int groupIndex, i;
@@ -668,6 +674,8 @@ void LoadSpriteGroups(WIDGET *p, void *pbis, WIDGET *p2) __asm__("LoadSpriteGrou
 } // namespace M_LoadWidgetFromBrx
 // Loads a widget: default animation ids, the LO part, whether its sprites are streamed, duration, size and font flag;
 // its sprites load now or later. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadScreenObjFromBrx (upstream readable / Sly 1 name;
+//   LoadScreenObjFromBrx__FP9SCREENOBJP18CBinaryInputStream).
 void WIDGET::LoadFromBrx(CBinaryInputStream *pbis)
 {
     using namespace M_LoadWidgetFromBrx;
@@ -941,6 +949,7 @@ void WIDGET::Hide()
 // 0x212A30 ResetWidgetVisibleTime
 /* Restarts the state timer of a visible widget. */
 // Restarts a visible widget's display timeout. (inferred)
+// Also known as: RefreshScreenObj (upstream readable / Sly 1 name; RefreshScreenObj__FP2LO).
 extern "C" void ResetWidgetVisibleTime(WIDGET *widget)
 {
     if (widget->state == WIDGET_STATE_VISIBLE)
@@ -950,6 +959,7 @@ extern "C" void ResetWidgetVisibleTime(WIDGET *widget)
 // 0x212A50 SetWidgetRequest
 /* Requests a state (1 hide, 2 show) and stamps the request time. */
 // Sets the widget's requested state (show / hide), acted on by UpdateWidget.
+// Also known as: SetTimerTimers (upstream readable / Sly 1 name; SetTimerTimers__FP5TIMER6TIMERS).
 extern "C" void SetWidgetRequest(WIDGET *widget, int request)
 {
     if (widget->request != request) {
@@ -982,6 +992,7 @@ void StartWidgetMainAnim(WIDGET *,int) __asm__("StartWidgetMainAnim");
 } // namespace M_SetWidgetState
 // The widget state machine: 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing; keeps the world's visible
 // widget count and pauses the clock for pausing widgets.
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__FP8SCREENRTi).
 extern "C" void SetWidgetState(WIDGET *widget, int state)
 {
     using namespace M_SetWidgetState;
@@ -1107,6 +1118,7 @@ void SetSpriteAnimTime(SPRITEGRP *pa, int animIndex, float g, int z) __asm__("Se
 extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0xb0"); }
 } // namespace M_func_00212F80
 // Seeks a widget animation to an absolute time. (inferred)
+// Also known as: SetScreenObjTime (upstream readable / Sly 1 name; SetScreenObjTime__FP2LOif).
 extern "C" void SetWidgetAnimTime(WIDGET *widget, int animId, float phase)
 {
     using namespace M_func_00212F80;
@@ -1171,6 +1183,7 @@ extern "C" void QueueWidgetRenderSetup(WIDGET *p){
 
 // 0x2132D0 IsWidgetVisible
 // True when the widget's main animation is active and no higher-priority exclusive widget hides it.
+// Also known as: FVisible (upstream readable / Sly 1 name; FVisible__FP8SCREENRT).
 extern "C" int IsWidgetVisible(WIDGET *widget)
 {
     if (widget->mainAnimId == -1) {
@@ -1279,6 +1292,7 @@ namespace M_StartWidgetMainAnim {
 void StartSpriteAnimById(SPRITEGRP *p) __asm__("StartSpriteAnimById");
 } // namespace M_StartWidgetMainAnim
 // Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
+// Also known as: StartPart (upstream readable / Sly 1 name; StartPart__FP8SCREENRTi).
 extern "C" void StartWidgetMainAnim(WIDGET *widget, int animId)
 {
     using namespace M_StartWidgetMainAnim;
@@ -1432,6 +1446,7 @@ extern "C" void SetWidgetAnimXf(WIDGET *widget, int animId, SPRITEXF *xform)
 
 // 0x213DB0 SwitchWidgetAnim
 // Stops the animation in *pk, plays the new one and stores its id.
+// Also known as: SelectScreenObjPartHandle (upstream readable / Sly 1 name; SelectScreenObjPartHandle__FP2LOiPi).
 extern "C" void SwitchWidgetAnim(WIDGET *widget, int animId, int *currentAnimId)
 {
     if (animId == *currentAnimId)
@@ -1524,6 +1539,7 @@ extern void ClearSle(SLE *p) __asm__("ClearSle");
 extern int FindFreeSpriteSlot(SPRITEGRP *pa) __asm__("FindFreeSpriteSlot");
 extern void StartSpriteAnimAt(SPRITEGRP *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1) __asm__("StartSpriteAnimAt");
 // RestartNestedSprite with an extra argument. (inferred)
+// Also known as: FRestartAt (upstream readable / Sly 1 name; FRestartAt__13CScreenPlayeriiiiPv).
 extern "C" int RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int animIndex, int arg, int numItems, SPRITEITEM *items)
 {
     int i;
@@ -1562,6 +1578,7 @@ extern "C" int RestartNestedSpriteWithArg(WIDGET *widget, int groupIndex, int an
 
 // 0x2142B0 HasSpriteAnim
 // True when the sprite's animation list contains the id.
+// Also known as: FRootHasPart (upstream readable / Sly 1 name; FRootHasPart__FP8SCREENRTPvi).
 extern "C" int HasSpriteAnim(void *pv, SPRITEGRP *group, int id)
 {
     int i;
@@ -1577,6 +1594,7 @@ extern "C" int HasSpriteAnim(void *pv, SPRITEGRP *group, int id)
 // 0x214300 SetWidgetExclusive
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 // Sets whether the widget is exclusive (an exclusive widget hides lower-priority widgets while shown). (inferred)
+// Also known as: SetScreenObjListed (upstream readable / Sly 1 name; SetScreenObjListed__FP2LOi).
 extern "C" void SetWidgetExclusive(WIDGET *widget, int isNonExclusive)
 {
     int wasNonExclusive = widget->isNonExclusive;
@@ -1598,6 +1616,7 @@ void LoadSpriteDescriptor(WIDGET *p, void *a, void *b, int n, int m) __asm__("Lo
 } // namespace M_LoadSpriteTable
 // Loads a sprite table: the count, then each sprite descriptor.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadElemsFromBrx (upstream readable / Sly 1 name; LoadElemsFromBrx__FPvP18CBinaryInputStreamT0PiT3).
 extern "C" void LoadSpriteTable(WIDGET *p, void *a, void *b, int *pn, int *pm)
 {
     using namespace M_LoadSpriteTable;
@@ -1651,6 +1670,8 @@ static inline void CopyXY(M23 *dst,const M3 &src){
 }
 // Loads sprite groups, their reusable frames and animation keys.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadGroupsFromBrx (upstream readable / Sly 1 name;
+//   LoadGroupsFromBrx__FP5OWNERP18CBinaryInputStreamP4ROOT).
 extern "C" void LoadSpriteGroups(WIDGET *owner,BIS *stream,ROOT *root){
  int i,j,k,m;
  root->groupCount=U16Read__18CBinaryInputStream(stream);
@@ -1785,6 +1806,8 @@ static inline void CopyXY(M23 &dst,const MATRIX3Q &src){
 }
 // Loads one sprite descriptor (geometry, polygon, shader, index, picture or nested sprite) and builds its packets.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadElemFromBrx (upstream readable / Sly 1 name;
+//   LoadElemFromBrx__FP5OWNERP18CBinaryInputStreamP4ROOTiP6SPRITE).
 extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,int,SPRITE *sprites){
  STACKSCOPE outer;MATRIX3Q raw;
  int id=U16Read__18CBinaryInputStream(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
@@ -2107,6 +2130,7 @@ namespace M_IglyffFromCh__8CFontBrxc {
 struct CFontBrx { char pad[0x20]; int numGlyphs; unsigned int *glyphChars; };   /* glyphChars sorted, for the binary search */
 // Glyph index of a character in a font (0 when the font has no glyph for it, inferred).
 // (Sly 1-derived name: CFontBrx::PglyffFromCh.)
+// Also known as: PglyffFromCh (upstream readable / Sly 1 name).
 extern "C" int GetGlyphIndex__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 {
     int lo = 0;
@@ -2318,6 +2342,7 @@ void ResetRichText2(struct S *p, int a) __asm__("ResetRichText2");
 int GetRichText2NextChar(struct S *p) __asm__("GetRichText2NextChar");
 float GetFontGlyphWidth2(void *p, int ch) __asm__("GetFontGlyphWidth2");
 // Width of the rich text (glyph widths times scale).
+// Also known as: DxTextUi (upstream readable / Sly 1 name; DxTextUi__FP7FONTBRX).
 extern "C" float CRichText_GetWidth(struct S *p)
 {
     float sum = 0.0f;
@@ -2342,6 +2367,7 @@ extern "C" { static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,
 // Store one byte.
 extern "C" { static inline void StoreByte(unsigned char *p,int c){*p=c;} }
 // Counts lines, inserting line breaks where a line would exceed the box width. (inferred)
+// Also known as: StrWrapped (upstream readable / Sly 1 name; StrWrapped__FP7FONTBRX).
 extern "C" int WrapRichText2Lines(struct S *p) {
     float width=0.0f;
     int lines=1;
@@ -2885,6 +2911,7 @@ extern "C" { static inline void CopyWords(int *d,const int *s,int n){int rem=n&3
 // Append a VIF code header and then n words from s.
 extern "C" { static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;} }
 // Renders a geometry sprite with its transform and optional fade.
+// Also known as: StateOfSlot (upstream readable / Sly 1 name; StateOfSlot__FPvP7VECTOR2T0i).
 extern "C" void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     struct M4 m;
     unsigned char *tag;
@@ -3189,6 +3216,7 @@ extern void ResetSpriteSlotItems(SPRITEGRP *p, int i) __asm__("ResetSpriteSlotIt
 // independent caller copies of the nontrivial by-value colors (A3/T0).
 extern void UpdateSpriteSlot(float g, SPRITEGRP *p, int i, SPRITEXF *pq, const RGBA *c0, const RGBA *c1) __asm__("UpdateSpriteSlot");
 // Seeks a reused sprite animation to a clamped time (refreshing it at time 0 first). (inferred)
+// Also known as: SeekEntry (upstream readable / Sly 1 name; SeekEntry__13CScreenPlayeriPvf).
 extern "C" void SetSpriteAnimTime(SPRITEGRP *group, int slot, SPRITEITEM *item, float time)
 {
     SPRITEXF q;
@@ -3279,6 +3307,7 @@ static inline SPRITEXF Mul(const SPRITEXF &q, const SPRITEXF &n)
 extern void InterpolateSpriteSlot(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA) __asm__("InterpolateSpriteSlot");
 extern void AdvanceSpriteAnim(float,SPRITEANIM *,int,SPRITEXF *,RGBA,RGBA) __asm__("AdvanceSpriteAnim");
 // Forwards a sprite slot's update to the reusable or the full animation path. (inferred)
+// Also known as: Advance (upstream readable / Sly 1 name; Advance__13CScreenPlayeriP3M23f4RGBAT4).
 extern "C" void UpdateSpriteSlot(SPRITEGRP *group,int slot,SPRITEXF *matrix,float dt,RGBA c0,RGBA c1) {
     SPRITESLOT *state=&group->slots[slot];
     int animIndex=state->animIndex;
@@ -3343,6 +3372,7 @@ extern "C" { static inline void Release(void **pp)
     }
 } }
 // Stops a sprite slot's sounds and resets its items. (inferred)
+// Also known as: StopEntrySound (upstream readable / Sly 1 name; StopEntrySound__FP8SENTRYRTi).
 extern "C" void StopSpriteSlot(SPRITEGRP *group, int slot)
 {
     SPRITESLOT *state = (SPRITESLOT*)(slot*sizeof(SPRITESLOT)+(int)group->slots);   /* &group->slots[slot] */
@@ -3402,6 +3432,7 @@ extern "C" void FinishSpriteSoundEvent(SPRITEGRP *p, int slot)
 // 0x218790 CombineSpriteColors
 namespace M_CombineSpriteColors {
 // Combines parent and child colours (additive and multiplicative).
+// Also known as: CombineColors (upstream readable / Sly 1 name; CombineColors__FPUcN50).
 extern "C" void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc, unsigned char *pd,
                    unsigned char *pout0, unsigned char *pout1)
 {
@@ -3535,6 +3566,7 @@ static inline CID151 **SlotAddress(E *entry){CID151 **value;asm("addiu %0,%0,%2"
 // Address of the entry at byte offset `offset` in the array.
 static inline E *StopEntry(E *array,int offset){register E *value asm("$2");asm("addu %0,%1,%2":"=r"(value):"r"(offset),"r"(array));return value;}
 // Runs a sprite key's actions: start / stop sounds, start / stop dialog.
+// Also known as: RunScreenKeyEvents (upstream readable / Sly 1 name; RunScreenKeyEvents__FP8SENTRYRTii).
 extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
     struct F *f=&p->af[fi];
     int j=0;

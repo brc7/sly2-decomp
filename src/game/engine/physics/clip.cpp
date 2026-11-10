@@ -46,6 +46,7 @@ void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);   /* CopyAb__FPvT0Ui */
 
 // Clips the segment a->b against one object using its own BSP (+0x74); returns the number of LSG spans written
 // (at most c) into alsg.
+// Also known as: ClipSegmentSoe (upstream readable / Sly 1 name; ClipSegmentSoe__FP3SOEG9VU_VECTORT1iP3LSG).
 extern "C" int ClipEdgeToObject(SOCLIP *object, qword start, qword end, int maxSegments, LSG *segments)
 {
     return ClipEdgeToObjectPruned(object, object->bsp, start, end, maxSegments, segments);
@@ -97,6 +98,7 @@ static inline qword Normalize(const qword &v)
 
 // Intersects the segment pos0->pos1 with a sphere: solves the quadratic in the segment parameter, clamps the roots
 // to [0,1] and writes up to two LSG entries (entry/exit points with outward normals). Returns the span count.
+// Also known as: ClipSegmentSphere (upstream readable / Sly 1 name; ClipSegmentSphere__FG9VU_VECTORfN20iP3LSG).
 extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword end, int maxSegments, LSG *segments)
 {
     float params[2];
@@ -144,6 +146,7 @@ extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword e
 // Merges two sorted span lists into alsgOut (at most cMax entries) using the set operation k (0 = union; the
 // others intersect/subtract, inferred from the cases). Returns the merged count. Used to combine several objects'
 // clip results along the same segment.
+// Also known as: CMergeAlsg (upstream readable / Sly 1 name; CMergeAlsg__FiP3LSGiT1iT1i).
 extern "C" int MergeSegmentLists(int count1, struct LSG *list1, int count2, struct LSG *list2Arg, int maxSegments, struct LSG *output, int operation)
 {
     /* hard-register local: fixes the s2/s3 assignment of list2 vs count2 */
@@ -233,6 +236,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
 // Returns the first object (the one entered at the smallest segment parameter) among apso[0..cso) that the line
 // a->b hits, filtering by grf, and copies the winning span into *plsg. Sly 1 name.
 // (Sly 1-derived name: PsoHitTestLineObjects.)
+// Also known as: PsoHitTestLineObjects (upstream readable / Sly 1 name;
+//   PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG).
 extern "C" void *FindFirstObjectHitByLine(int flags, qword start, qword end, int numObjects, void **objects, struct LSG *hitSegment)
 {
     void *bestObject = 0;
@@ -257,6 +262,7 @@ extern "C" void *FindFirstObjectHitByLine(int flags, qword start, qword end, int
 
 // Clips a->b against every object in apso and unions the results (MergeSegmentLists k=0) into alsg; returns the
 // number of spans. Scratch lists live in a stack scope.
+// Also known as: CClipSegmentEntries (upstream readable / Sly 1 name; CClipSegmentEntries__FG9VU_VECTORT0iP3LSGiT3).
 extern "C" int ClipEdgeToObjects(qword start, qword end, int numObjects, void **objects, int maxSegments, struct LSG *segments)
 {
     int count = 0;

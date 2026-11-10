@@ -97,6 +97,7 @@ extern "C" void EnsureSwDefaultLight(void)
 }
 
 // LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ...
+// Also known as: InitLight (upstream readable / Sly 1 name; InitLight__FP5LIGHT).
 void LIGHT::Init()
 {
     LIGHT *light = this;
@@ -121,6 +122,7 @@ extern "C" void PostLightLoad(LIGHT *light) {
 }
 
 // LIGHT vt11: AddLoHierarchy then RebuildLight. (inferred)
+// Also known as: OnLightAdd (upstream readable / Sly 1 name; OnLightAdd__FP5LIGHT).
 extern "C" void AddLightHierarchy(LIGHT *light) {
     AddLoHierarchy(light);
     RebuildLight(light);
@@ -144,6 +146,7 @@ extern "C" void ProjectLightTransform(LIGHT *light) {
 }
 
 // LIGHT vt12: RemoveLoHierarchy then InvalidateLight. (inferred)
+// Also known as: OnLightRemove (upstream readable / Sly 1 name; OnLightRemove__FP5LIGHT).
 extern "C" void RemoveLightHierarchy(LIGHT *light) {
     RemoveLoHierarchy(light);
     InvalidateLight(light);
@@ -272,6 +275,7 @@ void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu
 
 // Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position;
 // then InvalidateLight. (inferred)
+// Also known as: ComputeLight (upstream readable / Sly 1 name; ComputeLight__FP11LIGHTPARAMS).
 void RebuildLight(LIGHT *light)
 {
     VECTOR rgb;
@@ -496,6 +500,7 @@ static inline int BitIndex(uint isolated, int base)
     return result;
 }
 // Walk the light tree for a point and rank up to N lights affecting it. (inferred)
+// Also known as: SelectStrongest (upstream readable / Sly 1 name; SelectStrongest__FP8LIGHTSETG9VU_VECTORiP6VECTOR).
 void FindLightsAffectingPoint(SW *p, qword pos, int capacity, RESULT *results)
 {
     WORK w;
@@ -683,6 +688,7 @@ static inline void Align(uint align)
 }
 // Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000.
 // (inferred)
+// Also known as: ShadowOfLightContext (upstream readable / Sly 1 name; ShadowOfLightContext__FP8LIGHTSETP6VECTORT1).
 extern "C" void BuildSoLightPackets(SW *world, M4 *transform, SOBOUNDS *p)
 {
     RESULT results[4];

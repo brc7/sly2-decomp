@@ -215,6 +215,7 @@ namespace M_InitBhvanim {
 
 void InitBhv(BHVANIM *p) __asm__("InitBhv");
 // 0x174920: BHVANIM vtable slot 7 (OnPush): base, state -1, no guard flag (shared by BHV160).
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvanim(BHVANIM *behavior)
 {
     InitBhv(behavior);
@@ -231,6 +232,7 @@ void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 ANIMBINDING *FindCurrentAnimBinding(void *p) __asm__("FindCurrentAnimBinding");
 // 0x174950: BHVANIM vtable slot 8 (Start): raises the behaviour's guard flag, picks the animation binding for the
 // guard's current flags and enters state 0 (playing), or state 1 (done) when there is none.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvanim(BHVANIM *behavior) {
     StartBhv(behavior);
     AddStepguardSgf(behavior->owner, behavior->sgf);
@@ -252,6 +254,7 @@ void StopAnimBinding(ANIMBINDING *e) __asm__("StopAnimBinding");
 void ClearBhvBusy(BHVANIM *p) __asm__("ClearBhvBusy");
 // 0x1749C0: BHVANIM state switch: 0 becomes the mover's driver and starts the binding (continuing the walk cycle
 // phase for flag 9); 1 clears busy, saves the walk phase, stops the binding and releases the mover.
+// Also known as: SetMoveState (upstream readable / Sly 1 name; SetMoveState__7JOBMOVEi).
 extern "C" void SetBhvanimState(BHVANIM *behavior, int n) {
     if (behavior->state == n) return;
     behavior->state = n;
@@ -286,6 +289,7 @@ extern "C" void SetBhvanimState(BHVANIM *behavior, int n) {
 
 // 0x174B28 CloseBhvanim
 // 0x174B28: BHVANIM vtable slot 9 (Close): base, state 1 (stop the animation), lowers its guard flag.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVANIM::Close()
 {
     BHVANIM *behavior = this;
@@ -300,6 +304,7 @@ namespace M_UpdateBhvanim {
 void UpdateBhv(BHVANIM *p) __asm__("UpdateBhv");
 int IsAnimBindingDone(void *p) __asm__("IsAnimBindingDone");
 // 0x174B68: BHVANIM vtable slot 10 (Update): finishes (state 1) when the animation is done.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvanim(BHVANIM *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -327,6 +332,7 @@ void SetSoZapMode(SO *pso, int n) __asm__("SetSoZapMode");
 // 0x174BD0: BHVANIM vtable slot 13 (HandleMessage): message 9 carries an ASEG event of the playing animation: 0x15E
 // root-motion translation, 0x25/0x26 lock/unlock the mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, rumble
 // and camera events, and so on; other messages go to the base.
+// Also known as: Message (upstream readable / Sly 1 name; Message__7JOBMOVEiPv).
 extern "C" int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm) {
     using namespace M_BHVANIM_FHandleMessage;
     ASEGA *animation;
@@ -404,6 +410,7 @@ struct U { char pad[0x10]; int mode; };
 int GetBhvGroundProbeFlags(BHVANIM *p) __asm__("GetBhvGroundProbeFlags");
 // 0x174EA0: BHVANIM vtable slot 12 (ground-probe flags): when the binding drives a kind-2 payload, from its mode (7
 // for modes 0/3/4, else 1); else the base value.
+// Also known as: State (upstream readable / Sly 1 name).
 extern "C" int GetBhvanimGroundProbeFlags(BHVANIM *behavior) {
     if (behavior->binding->kind == 2) {
         switch (((struct U *)behavior->binding->asega)->mode) { case 0: case 3: case 4: return 7; default: return 1; }
@@ -420,6 +427,7 @@ void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float f) __asm__("SetStepgua
 } // namespace M_UpdateBhvanimMotion
 // 0x174F08: BHVANIM vtable slot 11 (UpdateMotion): while playing, drives the guard's velocity from the animation's
 // root motion (else zero) and faces the look-at object.
+// Also known as: Steer (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvanimMotion(BHVANIM *behavior)
 {
     using namespace M_UpdateBhvanimMotion;
@@ -446,6 +454,7 @@ extern "C" int IsBhvanimDone(BHVANIM *behavior)
 
 // 0x174FC8 InitBhvidle
 // 0x174FC8: BHVIDLE vtable slot 7 (OnPush): BHVANIM OnPush with the stand/idle flag (2).
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHVIDLE::OnPush()
 {
     InitBhvanim(this);
@@ -464,6 +473,7 @@ void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
 void SetXfRole(STEPGUARD *t, XF *a, int b) __asm__("SetXfRole");
 // 0x174FF8: BHVIDLE vtable slot 8 (Start): BHVANIM Start; with the hands-off flag (1) also cancels the attack and
 // resets the detector targets; sets the XF roles.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvidle(BHVIDLE *behavior) {
     StartBhvanim(behavior);
     if (StepguardHasSgf(((STEPGUARD *)behavior->owner), 1)) {
@@ -481,6 +491,7 @@ namespace M_CloseBhvidle {
 void SetXfRole(STEPGUARD *t, XF *a, int b) __asm__("SetXfRole");
 } // namespace M_CloseBhvidle
 // 0x175090: BHVIDLE vtable slot 9 (Close): BHVANIM Close and restores the XF roles.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvidle(BHVIDLE *behavior)
 {
     using namespace M_CloseBhvidle;
@@ -493,6 +504,7 @@ extern "C" void CloseBhvidle(BHVIDLE *behavior)
 // 0x1750E0 HandleBhvidleMessage
 // 0x1750E0: BHVIDLE vtable slot 13 (HandleMessage): ASEG events 0x29/0x2A toggle the ground flag and the XF role;
 // else the BHVANIM handler.
+// Also known as: Message (upstream readable / Sly 1 name; Message__8JOBSTANDiPv).
 extern "C" int HandleBhvidleMessage(BHVIDLE *behavior, int msg, ASEGEVENTMSG *pm)
 {
     if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->asega) {
@@ -517,6 +529,7 @@ namespace M_InitBhvstrike {
 void InitBhvanim(BHVSTRIKE *p) __asm__("InitBhvanim");
 // 0x1751C0: BHVSTRIKE vtable slot 7 (OnPush): BHVANIM OnPush with the attacking flag (3, which broadcasts game
 // event 0x14).
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvstrike(BHVSTRIKE *behavior)
 {
     InitBhvanim(behavior);
@@ -527,6 +540,7 @@ extern "C" void InitBhvstrike(BHVSTRIKE *behavior)
 // 0x1751F0 StartBhvstrike
 // 0x1751F0: BHVSTRIKE vtable slot 8 (Start): marks the guard engaged-busy (+0xF3C), BHVANIM Start, and enables the
 // leap payload when the binding is kind 2.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHVSTRIKE::Start()
 {
     BHVSTRIKE *behavior = this;
@@ -550,6 +564,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void SetLeapTarget(void *p, qword q) __asm__("SetLeapTarget");
 // 0x175258: BHVSTRIKE vtable slot 10 (Update): BHVANIM update; while the leap is enabled keeps its target on the
 // victim.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvstrike(BHVSTRIKE *behavior)
 {
     UpdateBhvanim(behavior);
@@ -567,6 +582,7 @@ namespace M_CloseBhvstrike {
 
 void CloseBhvanim(BHVSTRIKE *p) __asm__("CloseBhvanim");
 // 0x1752C0: BHVSTRIKE vtable slot 9 (Close): BHVANIM Close and clears engaged-busy.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvstrike(BHVSTRIKE *behavior)
 {
     CloseBhvanim(behavior);
@@ -580,6 +596,7 @@ void ReleaseLeapConstraint(void *pleap) __asm__("ReleaseLeapConstraint");
 } // namespace M_BHVSTRIKE_FHandleMessage
 // 0x1752F0: BHVSTRIKE vtable slot 13 (HandleMessage): ASEG events 0x2D/0x2E open/close the hit window, 0x30
 // releases the leap; else the BHVANIM handler.
+// Also known as: Message (upstream readable / Sly 1 name; Message__9JOBSTRIKEiPv).
 extern "C" int HandleBhvstrikeMessage(BHVSTRIKE *behavior, int msg, ASEGEVENTMSG *pm) {
     if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->asega) {
         switch (pm->event) {
@@ -597,6 +614,7 @@ namespace M_InitBhvattack {
 void InitBhv(BHVATTACK *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x1753D8: BHVATTACK vtable slot 7 (OnPush): raises flag 0x18 (attack in progress), state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvattack(BHVATTACK *behavior)
 {
     InitBhv(behavior);
@@ -607,6 +625,7 @@ extern "C" void InitBhvattack(BHVATTACK *behavior)
 
 // 0x175410 StartBhvattack
 // 0x175410: BHVATTACK vtable slot 8 (Start): state 0 (strike), busy.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHVATTACK::Start()
 {
     BHVATTACK *behavior = this;
@@ -617,6 +636,7 @@ void BHVATTACK::Start()
 
 // 0x175448 CloseBhvattack
 // 0x175448: BHVATTACK vtable slot 9 (Close): ends the strike, lowers flag 0x18.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvattack(BHVATTACK *behavior)
 {
     CloseBhv(behavior);
@@ -631,6 +651,7 @@ BHV *PushStepBehavior(void *pstep, int cid) __asm__("PushStepBehavior");
 } // namespace M_SetBhvattackState
 // 0x175488: BHVATTACK state switch: 0 subscribes to the victim and pushes a BHVSTRIKE with the chosen attack and
 // aim; 1 pushes the follow-through animation (flag 4) after a confirmed hit; -1 clears busy.
+// Also known as: SetActState (upstream readable / Sly 1 name; SetActState__6JOBACTi).
 extern "C" void SetBhvattackState(BHVATTACK *behavior, int n) {
     using namespace M_SetBhvattackState;
     if (n == behavior->state) return;
@@ -680,6 +701,7 @@ int IsBhvBusyAbove(BHVATTACK *p) __asm__("IsBhvBusyAbove");
 int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
 // 0x175600: BHVATTACK vtable slot 10 (Update): after the strike, goes to the follow-through if the victim confirmed
 // the hit, else finishes.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvattack(BHVATTACK *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -702,6 +724,7 @@ extern "C" void UpdateBhvattack(BHVATTACK *behavior) {
 // 0x1756C0 HandleBhvattackMessage
 // 0x1756C0: BHVATTACK vtable slot 13 (HandleMessage): message 0xB from the victim naming this guard means the hit
 // landed.
+// Also known as: Message (upstream readable / Sly 1 name; Message__6JOBACTiPv).
 extern "C" int HandleBhvattackMessage(BHVATTACK *behavior, int msgid, MSGLO *pmsg)
 {
     LO *object;
@@ -730,6 +753,7 @@ namespace M_InitBhvcombat {
 void InitBhv(BHVCOMBAT *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x175758: BHVCOMBAT vtable slot 7 (OnPush): raises flag 0x1D (engaged), state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvcombat(BHVCOMBAT *behavior)
 {
     InitBhv(behavior);
@@ -740,6 +764,7 @@ extern "C" void InitBhvcombat(BHVCOMBAT *behavior)
 
 // 0x175790 StartBhvcombat
 // 0x175790: BHVCOMBAT vtable slot 8 (Start): state 3 (pursue) and sets the guard's target.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvcombat(BHVCOMBAT *behavior)
 {
     StartBhv(behavior);
@@ -749,6 +774,7 @@ extern "C" void StartBhvcombat(BHVCOMBAT *behavior)
 
 // 0x1757D0 CloseBhvcombat
 // 0x1757D0: BHVCOMBAT vtable slot 9 (Close): state -1, lowers flag 0x1D.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVCOMBAT::Close()
 {
     BHVCOMBAT *behavior = this;
@@ -848,6 +874,7 @@ static inline int Blocked(LOS *line, float limit)
 
 // 0x1758A0: Picks the first enabled attack whose range, height, angle and line of sight accept the target, confirms
 // it with Splice event 0x18, starts it and marks the target record as attacked. Returns the attack, or NULL.
+// Also known as: PactionSelect (upstream readable / Sly 1 name; PactionSelect__FP5GUARDP2LOP9TARGETREC).
 extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gate)
 {
     qword from, to;
@@ -962,6 +989,7 @@ struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, int d, struct
 // 0x175D00: True if the guard should use its ranged attack now: it can shoot (capability bit 3), no attack is
 // running, the target is inside its range/pan/tilt limits and visible; immediately when the target is out of melee
 // reach (hanging, on a ledge, ...).
+// Also known as: FCanShoot (upstream readable / Sly 1 name).
 extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
     using namespace M_FBhvcombatCanShoot;
     struct X x;
@@ -1035,6 +1063,7 @@ extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
 // 0x175FF0 TryBhvcombatChooseAttack
 // 0x175FF0: Tries to choose an attack on the target; on failure pushes the attack cooldown forward. Returns whether
 // one was chosen.
+// Also known as: FTryAction (upstream readable / Sly 1 name).
 extern "C" int TryBhvcombatChooseAttack(BHVCOMBAT *behavior)
 {
     STEPGUARD *guard;
@@ -1057,6 +1086,7 @@ namespace M_FBhvcombatLostTarget {
 
 int IsTargetRecordStale(void *p) __asm__("IsTargetRecordStale");
 // 0x176060: True if the target is lost: no hit confirmed and the shared target record is stale.
+// Also known as: FLost (upstream readable / Sly 1 name).
 extern "C" int HasBhvcombatLostTarget(BHVCOMBAT *behavior)
 {
     int f;
@@ -1152,6 +1182,7 @@ typedef char WORK_point_Offset[FIELD_OFFSET(WORK,point)==32?1:-1];
 // 0x176098: BHVCOMBAT vtable slot 10 (Update): state machine 0 close in / 3 pursue -> 1 melee attack, 2 ranged
 // attack, 4 give up, 5 hands-off; re-goals the pursuit when the target moves far or changes path zone; emits a
 // stimulus to alert others.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvcombat(BHVCOMBAT *behavior)
 {
     WORK work;
@@ -1270,6 +1301,7 @@ struct CID17 *FindPathzoneAtPos(qword v, int n) __asm__("FindPathzoneAtPos");
 void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x176458: BHVCOMBAT state switch: 0 circle (BHVCIRCLE), 1 attack (BHVATTACK), 2 shoot (BHVSHOOT), 3 run toward
 // the target (BHVGOTO with flag 0x1C), 4 lost-him animation (flag 0xD) and drop the target, 5 hands-off idle.
+// Also known as: SetPursueState (upstream readable / Sly 1 name; SetPursueState__9JOBPURSUEi).
 extern "C" void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
@@ -1358,6 +1390,7 @@ void func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) __asm__("SetBhvguardMode");
 } // namespace M_StartBhvguard
 // 0x176708: BHVGUARD vtable slot 8 (Start): mode 0 (which immediately becomes patrol).
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvguard(BHV156 *p)
 {
     using namespace M_StartBhvguard;
@@ -1382,6 +1415,7 @@ void SetStepguardTarget(STEPGUARD *p, int n) __asm__("SetStepguardTarget");
 // 0x176750: BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the new
 // mode: 1 patrol, 2 search a stimulus, 3 alert animation, 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, and the
 // special modes.
+// Also known as: React (upstream readable / Sly 1 name; React__8JOBREACTP5AIMSG).
 extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
     using namespace M_SetBhvguardMode;
     int clearsTarget;
@@ -1546,6 +1580,7 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void DeliverZapToSo(ZPR *pzpr) __asm__("DeliverZapToSo");
 } // namespace M_InflictBhvguardZap
 // 0x176B80: Inflicts a zap of kind 0x40000 and `amount` on the guard from `source`.
+// Also known as: SendHit (upstream readable / Sly 1 name; SendHit__8JOBREACTii).
 extern "C" void InflictBhvguardZap(BHVGUARD *behavior, int amount, SO *source)
 {
     using namespace M_InflictBhvguardZap;
@@ -1628,6 +1663,7 @@ enum KINDENUM{KIND_NONE=-1,KIND_MAX=0x7fffffff};
 // 0x176BE8: BHVGUARD vtable slot 13 (HandleMessage): message 12 (zap) picks hurt, knockdown or KO from the zap
 // kind, the reaction tables and the hit points; special zaps put it to sleep (0x80000), grab it (0x200000, held),
 // throw it, and so on; other messages switch modes (alert, script, ...).
+// Also known as: Message (upstream readable / Sly 1 name; Message__8JOBREACTiPv).
 extern "C" int HandleBhvguardMessage(BHV156 *behavior, int event, ZPR *msg)
 {
     WORK w;
@@ -1911,6 +1947,7 @@ typedef char qword_Size[sizeof(qword)==16?1:-1];
 // 0x177618: BHVGUARD vtable slot 10 (Update): the top-level guard AI: patrol -> (stimulus) search -> (target seen)
 // alert animation -> combat; returns to patrol when the child finishes; also the script, escort and target-list
 // modes.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvguard(BHV156 *behavior)
 {
     UpdateBhv(behavior);
@@ -2119,6 +2156,7 @@ void SetBhvguardMode(BHVGUARD *p, BHVGUARDREC *f) __asm__("SetBhvguardMode");
 // 0x177BA0: Picks the mode to resume after an interrupting mode ends: flee (Dimitri), stalk the hero (special
 // 0x15), the target list, Neela's chase, combat or stalk on the current target, investigate its own position after
 // being hit, else patrol.
+// Also known as: NextReaction (upstream readable / Sly 1 name).
 extern "C" void ResumeBhvguard(BHVGUARD *behavior) {
     BHVGUARDREC f;   /* cleared by its constructor (memset) */
     if (IsBasicDerivedFrom__FP5BASIC3CID((STEPGUARD *)behavior->owner, CID_DIMITRI) && ((DIMITRI *)behavior->owner)->routeCount > 0) {
@@ -2204,6 +2242,7 @@ namespace RO_ORDER { extern const float r_D_002A54D0 __asm__("D_002A54D0") = 3.4
 // 0x177DC0 IsBhvguardModeSame
 // 0x177DC0: True if two mode records are the same (kind plus the kind's key field: the zap kind of the zap modes,
 // else the mode's object).
+// Also known as: FSameMsg (upstream readable / Sly 1 name; FSameMsg__FP5AIMSGT0).
 extern "C" int IsBhvguardModeSame(BHVGUARDRECDATA *a, BHVGUARDRECDATA *b) {
     if (a->kind != b->kind) return 0;
     switch (a->kind) {
@@ -2249,6 +2288,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // The larger of two values.
 // The smaller of two values.
 // 0x177EF0: BHVPATH vtable slot 8 (Start): remembers the start position, clamps the radii from the speed, state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvpath(BHVPATH *behavior) {
     float g;
     StartBhv(behavior);
@@ -2878,6 +2918,7 @@ extern "C" { static inline float Dist(qword a, qword b) {
     return f;
 } }
 // 0x178D00: True if the path end is defined and the guard is within the arrival radius of the end point.
+// Also known as: FArrived (upstream readable / Sly 1 name).
 extern "C" int IsBhvpathAtEnd(BHVPATH *behavior)
 {
     if (!behavior->hasEnd)
@@ -2905,6 +2946,7 @@ void EvaluateShapeAtDistance(SHAPE *shape, float g, qword *pv, int n) __asm__("E
 } // namespace M_SetBhvpathShape
 // 0x178D90: Sets the shape to follow and the direction: finds the start parameter (closest point) and, for open
 // shapes, the end point.
+// Also known as: Follow (upstream readable / Sly 1 name; Follow__9JOBFOLLOWP3CRVi).
 extern "C" void SetBhvpathShape(BHVPATH *behavior, SHAPE *shape, int n) {
     using namespace M_SetBhvpathShape;
     behavior->isReversed = n;
@@ -2931,6 +2973,7 @@ extern float D_002BE694 __asm__("D_002BE694");
 void InitBhvpath(BHVPATH *p) __asm__("InitBhvpath");
 } // namespace M_InitBhvwalkpath
 // 0x178E98: BHVWALKPATH vtable slot 7 (OnPush): BHVPATH OnPush, walk animation flag 9, rate 1.
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHVWALKPATH::OnPush()
 {
     using namespace M_InitBhvwalkpath;
@@ -3044,6 +3087,7 @@ static inline int HasMoved(qword qwPos, qword qwPosLast)
 
 // 0x178EE0: BHVWALKPATH vtable slot 10 (Update): BHVPATH update, then sets the walk animation speed and the mover
 // heading toward the target point; runs the stuck timer while not moving.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
 {
     UpdateBhvpath(behavior);
@@ -3139,6 +3183,7 @@ extern "C" void SetBhvwalkpathState(BHVWALKPATH *behavior, int n) {
 namespace M_FBhvwalkpathStuck {
 
 // 0x1792E8: True if the guard is walking and the stuck timer ran out.
+// Also known as: FStuck (upstream readable / Sly 1 name).
 extern "C" int IsBhvwalkpathStuck(BHVWALKPATH *behavior)
 {
     int f = 0;
@@ -3171,6 +3216,7 @@ void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f) __asm__("Trigge
 } // namespace M_StartBhvhit
 // 0x179328: BHVHIT vtable slot 8 (Start): BHVANIM Start, faces away from the hit, knock-back leap, cancels the
 // attack, holds a pain noise, arms the rumble and zap-mode timers.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvhit(BHVHIT *behavior) {
     using namespace M_StartBhvhit;
     int f;
@@ -3218,6 +3264,7 @@ extern "C" void StartBhvhit(BHVHIT *behavior) {
 
 // 0x179598 CloseBhvhit
 // 0x179598: BHVHIT vtable slot 9 (Close): BHVANIM Close, releases the held noise.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVHIT::Close()
 {
     CloseBhvanim(this);
@@ -3233,6 +3280,7 @@ void JoltCamera(void *p, int n) __asm__("JoltCamera");
 void SetSoZapMode(STEPGUARD *t, int n) __asm__("SetSoZapMode");
 // 0x1795E8: BHVHIT vtable slot 10 (Update): BHVANIM update, keeps the held noise at the guard, fires the delayed
 // camera jolt and zap-mode change.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvhit(BHVHIT *behavior) {
     float t;
     UpdateBhvanim(behavior);
@@ -3263,6 +3311,7 @@ void BroadcastGameEvent(void *g, int event, void *p) __asm__("BroadcastGameEvent
 void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x1796D0: Hurt behaviour vtable slot 8 (Start): picks the reaction from the hurt table by zap kind, BHVHIT Start,
 // broadcasts game event 0x15 and marks the attacker on the detector.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvHurt(BHV161 *behavior) {
     behavior->binding = &((STEPGUARD *)behavior->owner)->hurtReactions[GetZapKindIndex(behavior->zapKind)];
     if (behavior->binding->kind == -1) behavior->binding = 0;
@@ -3288,6 +3337,7 @@ void BroadcastGameEvent(void *g, int event, void *p) __asm__("BroadcastGameEvent
 void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x179780: Knockdown behaviour vtable slot 8 (Start): reaction from the knockdown table, BHVHIT Start, game event
 // 0x15, starts the helper component (+0xFEC).
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvKnockdown(BHV162 *behavior) {
     behavior->binding = &((STEPGUARD *)behavior->owner)->knockdownReactions[GetZapKindIndex(behavior->zapKind)];
     if (behavior->binding->kind == -1) behavior->binding = 0;
@@ -3316,6 +3366,7 @@ namespace M_InitBhvko {
 
 void InitBhvanim(BHVKO *p) __asm__("InitBhvanim");
 // 0x179868: BHVKO vtable slot 7 (OnPush): BHVHIT OnPush with the KO flag (7).
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvko(BHVKO *behavior)
 {
     InitBhvanim(behavior);
@@ -3398,6 +3449,7 @@ namespace M_InitBhvpatrol {
 void InitBhv(BHVPATROL *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x179A58: BHVPATROL vtable slot 7 (OnPush): raises flag 0x1E (patrolling), timers off.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvpatrol(BHVPATROL *behavior)
 {
     InitBhv(behavior);
@@ -3418,6 +3470,7 @@ void ChooseGuardScriptNearestCommand(CID113 *script, qword q, SSGRESUME *presume
 int IsStepguardHandsOff(STEPGUARD *t) __asm__("IsStepguardHandsOff");
 // 0x179AA0: BHVPATROL vtable slot 8 (Start): takes the patrol script (or the alternate one with capability 2),
 // resumes at the nearest script point, then walks (0), stands (2) or is hands-off (3).
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvpatrol(BHVPATROL *behavior) {
     STEPGUARD *t;
     StartBhv(behavior);
@@ -3432,6 +3485,7 @@ extern "C" void StartBhvpatrol(BHVPATROL *behavior) {
 
 // 0x179B60 CloseBhvpatrol
 // 0x179B60: BHVPATROL vtable slot 9 (Close): stops, lowers flag 0x1E.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVPATROL::Close()
 {
     BHV *behavior = (BHV *)this;
@@ -3449,6 +3503,7 @@ void SetBhvpatrolState(BHVPATROL *p, int n) __asm__("SetBhvpatrolState");
 int IsBhvScriptDone(void *p) __asm__("IsBhvScriptDone");
 // 0x179BA0: BHVPATROL vtable slot 10 (Update): alternates walking the script for a random time and standing idle
 // for a random time; stands forever when the script ends; pauses while hands-off.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvpatrol(BHVPATROL *behavior) {
     int f, s;
     UpdateBhv(behavior);
@@ -3490,6 +3545,7 @@ void ArmBhvpatrolPauseTimer(BHVPATROL *p) __asm__("ArmBhvpatrolPauseTimer");
 void ArmBhvpatrolWalkTimer(BHVPATROL *p) __asm__("ArmBhvpatrolWalkTimer");
 // 0x179D30: BHVPATROL state switch: 0 runs the patrol script (BHV169, saving the resume point), 1/2 idle, 3
 // hands-off idle.
+// Also known as: SetWaitState (upstream readable / Sly 1 name; SetWaitState__7JOBWAITi).
 void SetBhvpatrolState(BHVPATROL *behavior, int n) __asm__("SetBhvpatrolState"); void SetBhvpatrolState(BHVPATROL *behavior, int n) {
     if (n == behavior->state) return;
     if (behavior->state == 0) SaveBhvScriptResumeState(behavior->pbhvNext, &((STEPGUARD *)behavior->owner)->scriptResumePoint);
@@ -3564,6 +3620,7 @@ namespace M_InitBhvleap {
 
 void InitBhvanim(BHVLEAP *p) __asm__("InitBhvanim");
 // 0x179F70: BHVLEAP vtable slot 7 (OnPush): BHVANIM OnPush with the leaping flag (0xF).
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvleap(BHVLEAP *behavior)
 {
     InitBhvanim(behavior);
@@ -3657,6 +3714,7 @@ typedef char LIMIT_high_Offset[FIELD_OFFSET(LIMIT,high)==4?1:-1];
 // 0x179FA0: BHVLEAP vtable slot 8 (Start): aims at the target point/object; landing on a rail, pipe or attachable
 // object raises the matching attach flag (for the animation choice) and builds the attach basis; starts the leap
 // animation and sets the leap target.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvleap(BHVLEAP *behavior)
 {
     WORK work;
@@ -3750,6 +3808,7 @@ extern "C" void StartBhvleap(BHVLEAP *behavior)
 
 // 0x17A3D0 CloseBhvleap
 // 0x17A3D0: BHVLEAP vtable slot 9 (Close): BHVANIM Close, clears busy.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVLEAP::Close()
 {
     BHVLEAP *behavior = this;
@@ -3766,6 +3825,7 @@ void UpdateBhvanim(BHVLEAP *p) __asm__("UpdateBhvanim");
 void SetStepguardMoverTargetMatrix(void *p, void *q) __asm__("SetStepguardMoverTargetMatrix");
 // 0x17A400: BHVLEAP vtable slot 10 (Update): BHVANIM update; after the jump phase locks the heading to the attach
 // basis.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvleap(BHVLEAP *behavior)
 {
     UpdateBhvanim(behavior);
@@ -3780,6 +3840,7 @@ struct B; struct C;
 struct B { char pad[0x90]; qword v; };   /* the guard's attach point (STEPGUARD +0xF90, untyped) */
 struct C { char pad[0x30]; qword v; };   /* the root XF */
 // 0x17A468: Offsets the leap landing point by the guard's attach-point offset in the attach basis.
+// Also known as: OffsetUseByHands (upstream readable / Sly 1 name; OffsetUseByHands__FP6JOBUSE).
 extern "C" void AdjustBhvleapAttachPoint(BHVLEAP *behavior)
 {
     STEPGUARD *a = (STEPGUARD *)behavior->owner;
@@ -3796,6 +3857,7 @@ extern "C" void AdjustBhvleapAttachPoint(BHVLEAP *behavior)
 // 0x17A4B0 InitBhvSleep
 // 0x17A4B0: Sleep behaviour (BHV175) vtable slot 7 (OnPush): BHVANIM OnPush with the sleeping flag (0x10),
 // sub-state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHV175::OnPush()
 {
     BHV175 *behavior = this;
@@ -3813,6 +3875,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void ReplaceHeldSwNoise(SW *g, int a, qword q, void *b, void *pv) __asm__("ReplaceHeldSwNoise");
 // 0x17A4E8: Sleep behaviour vtable slot 8 (Start): BHVANIM Start, sub-state 0 (asleep, random duration), resets the
 // detector, holds a snoring noise.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvSleep(BHV175 *behavior)
 {
     StartBhvanim(behavior);
@@ -3831,6 +3894,7 @@ void CloseBhvanim(BHV175 *p) __asm__("CloseBhvanim");
 void SetBhvSleepState(BHV175 *p, int n) __asm__("SetBhvSleepState");
 void ReplaceHeldSwNoise(SW *g, int a, qword q, int b, void *pv) __asm__("ReplaceHeldSwNoise");
 // 0x17A558: Sleep behaviour vtable slot 9 (Close): BHVANIM Close, releases the held noise.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvSleep(BHV175 *behavior)
 {
     CloseBhvanim(behavior);
@@ -3845,6 +3909,7 @@ void SetSmaGoal(void *p, int n) __asm__("SetSmaGoal");
 float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 // 0x17A5B0: Sleep behaviour sub-state: 0 asleep (state machine goal 0x44, arms the wake timer), 1 waking up (goal
 // 0x43).
+// Also known as: SetSleepState (upstream readable / Sly 1 name; SetSleepState__8JOBSLEEPi).
 extern "C" void SetBhvSleepState(BHV175 *behavior, int n) {
     if (n == behavior->sleepState) return;
     behavior->sleepState = n;
@@ -3868,6 +3933,7 @@ void SetBhvSleepState(BHV175 *p, int n) __asm__("SetBhvSleepState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // 0x17A670: Sleep behaviour vtable slot 10 (Update): wakes up when the timer expires; keeps the held noise at the
 // guard.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvSleep(BHV175 *behavior) {
     int s;
     UpdateBhvanim(behavior);
@@ -3889,6 +3955,7 @@ namespace M_func_0017A6F8 {
 void InitBhv(BHV176 *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17A6F8: Thrown behaviour (BHV176) vtable slot 7 (OnPush): raises flag 0x16 (thrown), state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvThrown(BHV176 *behavior)
 {
     InitBhv(behavior);
@@ -3911,6 +3978,7 @@ void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
 void SetDetectorTargetStateById(void *p, int a, int b) __asm__("SetDetectorTargetStateById");
 // 0x17A730: Thrown behaviour vtable slot 8 (Start): state 0; detaches, cancels the attack, frees contacts, busy,
 // resets the detector and marks the thrower.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvThrown(BHV176 *behavior)
 {
     StartBhv(behavior);
@@ -3927,6 +3995,7 @@ extern "C" void StartBhvThrown(BHV176 *behavior)
 
 // 0x17A7B8 CloseBhvThrown
 // 0x17A7B8: Thrown behaviour vtable slot 9 (Close): state -1, lowers flag 0x16.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHV176::Close()
 {
     BHV176 *behavior = this;
@@ -3943,6 +4012,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 CID147 *NewNoise(void *p, qword q, STEPGUARD *t) __asm__("NewNoise");
 // 0x17A7F8: Thrown behaviour vtable slot 10 (Update): ends after landing (states 2/3); emits a yelling noise
 // periodically while airborne.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvThrown(BHV176 *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -3967,6 +4037,7 @@ void ClearBhvBusy(BHV176 *p) __asm__("ClearBhvBusy");
 BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17A8C8: Thrown behaviour state switch: pushes the animation for the state (flags 18/19/20/21/19 for states 0-4)
 // and sets the airborne flag for states 0-1; -1 clears busy.
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__5JOBB0i).
 extern "C" void SetBhvThrownState(BHV176 *behavior, int n) {
     if (behavior->state == n) return;
     PopBhv(&behavior->pbhvNext);
@@ -3999,6 +4070,7 @@ extern "C" int IsBhvThrownDone(BHV176 *behavior)
 
 // 0x17A9D0 InitBhvjuggled
 // 0x17A9D0: BHVJUGGLED (held/carried) vtable slot 7 (OnPush): BHVANIM OnPush with the held flag (0x17).
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvjuggled(BHVJUGGLED *behavior)
 {
     InitBhvanim(behavior);
@@ -4018,6 +4090,7 @@ void SetBhvBusy(BHVJUGGLED *p) __asm__("SetBhvBusy");
 void SetDetectorTargetStateById(void *p, LO *a, int b) __asm__("SetDetectorTargetStateById");
 // 0x17AA08: BHVJUGGLED vtable slot 8 (Start): BHVANIM Start, cancels the attack, detaches, state 0 (attached to the
 // holder's hold point), busy.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvjuggled(BHVJUGGLED *behavior)
 {
     StartBhvanim(behavior);
@@ -4090,6 +4163,7 @@ extern "C" { static inline void PublishPoint(U *home, qword scalar, qword *out, 
 } }
 // 0x17AA78: Computes the hold point and direction from the holder's request (its vtable slot 96) relative to the
 // guard.
+// Also known as: GetTarget (upstream readable / Sly 1 name; GetTarget__5JOBB1P12LAUNCHTARGETP6VECTORT2).
 extern "C" void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, STUNHOLD *request, qword *outPoint, qword *outDirection)
 {
     qword first = ToVU(GetLoWorldPos(behavior->owner));
@@ -4142,6 +4216,7 @@ qword TransformXfPos(int a, int b, qword q) __asm__("TransformXfPos");
 qword ConvertXfVec(int a, int b, qword q) __asm__("ConvertXfVec");
 void SetRestActPose(struct U *u, qword a, qword b) __asm__("SetRestActPose");
 // 0x17ABC8: Re-queries the holder and updates the attach act's target.
+// Also known as: UpdateTarget (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvjuggledHoldAct(BHVJUGGLED *behavior) {
     STUNHOLD r;
     qword holdPoint, holdDirection;
@@ -4176,6 +4251,7 @@ extern "C" { static inline void*Frame(struct X*x){register struct Y*y __asm__("$
 // VU0 helper: z component of a vector.
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
 // landed), prediction states 4-5.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
     qword v;
     int s;
@@ -4280,6 +4356,7 @@ void NewNoise(void *p, qword v, STEPGUARD *a) __asm__("NewNoise");
 // 0x17AF30: BHVJUGGLED vtable slot 13 (HandleMessage): BHVANIM events; ASEG event 0x3D resets the hit count; a
 // 0x200000 zap while held is an extra hit (animation seek, effect, hit value, noise). The payload is the event
 // (message 9) or the zap (message 0xC).
+// Also known as: Message (upstream readable / Sly 1 name; Message__5JOBB1iPv).
 extern "C" int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTMSG *pm) {
     if (HandleBhvanimMessage(behavior, msg, pm)) return 1;
     switch (msg) {
@@ -4335,6 +4412,7 @@ extern "C" int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTM
 
 // 0x17B178 CloseBhvjuggled
 // 0x17B178: BHVJUGGLED vtable slot 9 (Close): state -1 (restores the mass), BHVANIM Close.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVJUGGLED::Close()
 {
     BHVJUGGLED *behavior = this;
@@ -4427,6 +4505,7 @@ typedef char ENTRY_key_Offset[FIELD_OFFSET(ENTRY,key)==8?1:-1];
 static inline int Still(int m){int f=0;if(m==4||m==5||m==0)f=1;return f;}
 // 0x17B1A8: BHVJUGGLED state switch: attaches an act to the holder, releases acts and XF roles, changes the mass
 // and seeks animation labels (0x3C/0x173).
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__5JOBB1i).
 extern "C" void SetBhvjuggledState(BHVJUGGLED *behavior, int next)
 {
     STUNHOLD request;
@@ -4539,6 +4618,7 @@ namespace M_InitBhvshoot {
 
 void InitBhv(BHVSHOOT *p) __asm__("InitBhv");
 // 0x17B590: BHVSHOOT vtable slot 7 (OnPush): state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvshoot(BHVSHOOT *behavior)
 {
     InitBhv(behavior);
@@ -4548,6 +4628,7 @@ extern "C" void InitBhvshoot(BHVSHOOT *behavior)
 
 // 0x17B5C0 StartBhvshoot
 // 0x17B5C0: BHVSHOOT vtable slot 8 (Start): state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHVSHOOT::Start()
 {
     BHVSHOOT *behavior = this;
@@ -4557,6 +4638,7 @@ void BHVSHOOT::Start()
 
 // 0x17B5F0 CloseBhvshoot
 // 0x17B5F0: BHVSHOOT vtable slot 9 (Close): state -1.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvshoot(BHVSHOOT *behavior)
 {
     CloseBhv(behavior);
@@ -4565,6 +4647,7 @@ extern "C" void CloseBhvshoot(BHVSHOOT *behavior)
 
 // 0x17B620 UpdateBhvshoot
 // 0x17B620: BHVSHOOT vtable slot 10 (Update): finishes when the animation child is done.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvshoot(BHVSHOOT *behavior)
 {
     int nState;
@@ -4583,6 +4666,7 @@ extern "C" void UpdateBhvshoot(BHVSHOOT *behavior)
 // 0x17B690 HandleBhvshootMessage
 namespace M_BHVSHOOT_FHandleMessage {
 // 0x17B690: BHVSHOOT vtable slot 13 (HandleMessage): ASEG events 0x31/0x32 open/close the firing window (+0xF60).
+// Also known as: Message (upstream readable / Sly 1 name; Message__8JOBSHOOTiPv).
 extern "C" int HandleBhvshootMessage(BHVSHOOT *behavior, int msg, ASEGEVENTMSG *pm) {
     if (msg == 9 && !behavior->state && ((BHVANIM *)behavior->pbhvNext)->binding && GetAnimBindingInstance(((BHVANIM *)behavior->pbhvNext)->binding) == pm->asega) {
         switch (pm->event) {
@@ -4601,6 +4685,7 @@ void PopBhv(void *p) __asm__("PopBhv");
 BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17B750: BHVSHOOT state change: 0 pushes the shooting animation (flag 0x11) aimed at the target and opens the
 // firing state.
+// Also known as: SetShootState (upstream readable / Sly 1 name; SetShootState__8JOBSHOOTi).
 extern "C" void SetBhvshootState(BHVSHOOT *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
@@ -4630,6 +4715,7 @@ namespace M_func_0017B808 {
 void InitBhv(BHV178 *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17B808: Targets behaviour (BHV178) vtable slot 7 (OnPush): raises flag 0x20, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvTargets(BHV178 *behavior)
 {
     InitBhv(behavior);
@@ -4640,6 +4726,7 @@ extern "C" void InitBhvTargets(BHV178 *behavior)
 
 // 0x17B840 StartBhvTargets
 // 0x17B840: Targets behaviour vtable slot 8 (Start): state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV178::Start()
 {
     BHV178 *behavior = this;
@@ -4649,6 +4736,7 @@ void BHV178::Start()
 
 // 0x17B870 CloseBhvTargets
 // 0x17B870: Targets behaviour vtable slot 9 (Close): state -1, lowers flag 0x20.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvTargets(BHV178 *behavior)
 {
     CloseBhv(behavior);
@@ -4663,6 +4751,7 @@ BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 void SetStepguardTarget(void *p, int n) __asm__("SetStepguardTarget");
 // 0x17B8B0: Targets behaviour state change: 0 idle without a target, 1 combat (BHVCOMBAT) on the chosen target, 2
 // hands-off idle.
+// Also known as: SetB2State (upstream readable / Sly 1 name; SetB2State__5JOBB2i).
 extern "C" void SetBhvTargetsState(BHV178 *behavior, int n)
 {
     if (n == behavior->state)
@@ -4760,6 +4849,7 @@ typedef char RANGE_lo_Offset[FIELD_OFFSET(RANGE,lo)==0?1:-1];
 typedef char RANGE_hi_Offset[FIELD_OFFSET(RANGE,hi)==4?1:-1];
 // 0x17B9C0: Every random interval, picks the cheapest designated target (cost: distance, a bonus for preferred
 // ones, a penalty near avoid objects) or a nearer avoid object within 800.
+// Also known as: Choose (upstream readable / Sly 1 name).
 extern "C" void ChooseBhvTargetsTarget(BHV178 *behavior)
 {
     WORK work;
@@ -4864,6 +4954,7 @@ void ChooseBhvTargetsTarget(BHV178 *p) __asm__("ChooseBhvTargetsTarget");
 int IsBhvBusyAbove(BHV178 *p) __asm__("IsBhvBusyAbove");
 // 0x17BD78: Targets behaviour vtable slot 10 (Update): re-chooses and (re)engages the designated targets; pauses
 // while hands-off.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvTargets(BHV178 *behavior) {
     int f, s;
     UpdateBhv(behavior);
@@ -4898,6 +4989,7 @@ namespace M_func_0017BED0 {
 void InitBhv(BHV179 *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17BED0: Circle behaviour (BHV179) vtable slot 7 (OnPush): raises flag 0x19, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvCircle(BHV179 *behavior)
 {
     InitBhv(behavior);
@@ -4913,6 +5005,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void FindPathzonePathCurve(void *p, qword a, qword b, void *path) __asm__("FindPathzonePathCurve");
 // 0x17BF08: Circle behaviour vtable slot 8 (Start): with the path-zone capability (bit 2) walks to a spacing point,
 // else stands facing the target.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvCircle(BHV179 *behavior) {
     StartBhv(behavior);
     if (((STEPGUARD *)behavior->owner)->capabilityFlags & 4) {
@@ -4929,6 +5022,7 @@ extern "C" void StartBhvCircle(BHV179 *behavior) {
 
 // 0x17BFB8 CloseBhvCircle
 // 0x17BFB8: Circle behaviour vtable slot 9 (Close): state -1, lowers flag 0x19.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHV179::Close()
 {
     BHV179 *behavior = this;
@@ -4987,6 +5081,7 @@ static inline qword VuMulAdd(qword base, qword v, VU_FLOAT g)
 static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){FindClosestPointOnLineSegment(t,s->a,s->b,&pt.q,0,&d);}
 // 0x17BFF8: Chooses a free path-zone point near the target within the guard's close/far distance bands and angle
 // limits (narrow, then wide), sampling 10/10/15 directions.
+// Also known as: PosSurroundPlace (upstream readable / Sly 1 name; PosSurroundPlace__FP5GUARDP9NAVREGIONG9VU_VECTORf).
 extern "C" qword ChooseBhvCirclePosition(BHV179 *behavior, void *region, qword origin, float heading)
 {
     U closest;
@@ -5085,6 +5180,7 @@ qword ChooseBhvCirclePosition(BHV179 *p, void *pathzone, float f, qword v) __asm
 void FindPathzonePathCurve(void *pathzone, qword a, qword b, SHAPE *c) __asm__("FindPathzonePathCurve");
 // 0x17C3E8: Circle behaviour vtable slot 10 (Update): when out of the distance band or off-heading relative to the
 // target, re-paths to a new spacing point.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvCircle(BHV179 *behavior) {
     STEPGUARD *a;
     SOPHYS *c;
@@ -5133,6 +5229,7 @@ namespace M_func_0017C550 {
 void PopBhv(void *p) __asm__("PopBhv");
 BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's path shape (BHVWALKPATH).
+// Also known as: SetSurroundState (upstream readable / Sly 1 name; SetSurroundState__11JOBSURROUNDi).
 extern "C" void SetBhvCircleState(BHV179 *behavior, int n)
 {
     if (n == behavior->state)
@@ -5158,6 +5255,7 @@ extern "C" void SetBhvCircleState(BHV179 *behavior, int n)
 
 // 0x17C638 InitBhvEscort
 // 0x17C638: Escort behaviour (BHV183) vtable slot 7 (OnPush): raises flag 0x26, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvEscort(BHV183 *behavior)
 {
     InitBhv(behavior);
@@ -5167,6 +5265,7 @@ extern "C" void InitBhvEscort(BHV183 *behavior)
 
 // 0x17C670 CloseBhvEscort
 // 0x17C670: Escort behaviour vtable slot 9 (Close): lowers flag 0x26.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvEscort(BHV *behavior)
 {
     CloseBhv(behavior);
@@ -5175,6 +5274,7 @@ extern "C" void CloseBhvEscort(BHV *behavior)
 
 // 0x17C6A0 StartBhvEscort
 // 0x17C6A0: Escort behaviour vtable slot 8 (Start): state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV183::Start()
 {
     BHV183 *behavior = this;
@@ -5207,6 +5307,7 @@ extern "C" { static inline float LenXY(qword v)
 } }
 // 0x17C6D0: Escort behaviour vtable slot 10 (Update): follows the escorted object at a local offset: walks when
 // within 700, runs (state 1) beyond 1000, re-goals after the object moves 250.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvEscort(BHV183 *behavior)
 {
     qword pos;
@@ -5278,6 +5379,7 @@ void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
 void SetBhvgotoGoal(BHVGOTO *p, PATHLINKENDIsland *x) __asm__("SetBhvgotoGoal");
 // 0x17C928: Escort behaviour state change: 0 go to the offset point, 1 run to the object (flag 0x1C), 2 hands-off
 // idle.
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__10JOBSTATIONi).
 extern "C" void SetBhvEscortState(BHV183 *behavior, int n) {
     PATHLINKENDIsland x;
     if (n == behavior->state) return;
@@ -5332,6 +5434,7 @@ namespace M_InitBhvrail {
 void InitBhv(BHVRAIL *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17CAC8: BHVRAIL vtable slot 7 (OnPush): raises flag 0x1B (on a rail), state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvrail(BHVRAIL *behavior)
 {
     InitBhv(behavior);
@@ -5352,6 +5455,7 @@ void BHVRAIL::Start()
 
 // 0x17CB40 CloseBhvrail
 // 0x17CB40: BHVRAIL vtable slot 9 (Close): state -1, lowers flag 0x1B.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvrail(BHVRAIL *behavior)
 {
     CloseBhv(behavior);
@@ -5376,6 +5480,7 @@ void SetStepguardMoverRadTarget(void *p, float f) __asm__("SetStepguardMoverRadT
 void SetAsegaSpeed__FP5ASEGAf(void *p, float f) __asm__("SetAsegaSpeed__FP5ASEGAf");
 // 0x17CB80: BHVRAIL vtable slot 10 (Update): walks along the attached rail shape toward the goal parameter; stands
 // on arrival.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvrail(BHVRAIL *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -5414,6 +5519,7 @@ namespace M_SetBhvrailState {
 void PopBhv(void *p) __asm__("PopBhv");
 BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17CD00: BHVRAIL state change: 0 walk animation (flag 9), 1 stand (flag 2).
+// Also known as: SetRailState (upstream readable / Sly 1 name; SetRailState__7JOBRAILi).
 extern "C" void SetBhvrailState(BHVRAIL *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
@@ -5444,6 +5550,7 @@ namespace M_SetBhvrailGoal {
 float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
 float GetShapeMinDistance(void *p) __asm__("GetShapeMinDistance");
 // 0x17CDB8: Sets the rail goal to the rail's maximum or minimum parameter, the direction, and starts walking.
+// Also known as: SetDirection (upstream readable / Sly 1 name; SetDirection__7JOBRAILi).
 extern "C" void SetBhvrailGoal(BHVRAIL *behavior, int f)
 {
     void *pv = ((STEPGUARD *)behavior->owner)->attachObject;
@@ -5465,6 +5572,7 @@ extern "C" int HasBhvrailArrived(BHVRAIL *behavior) { return __builtin_fabsf(((S
 
 // 0x17CE68 InitBhvpipe
 // 0x17CE68: BHVPIPE vtable slot 7 (OnPush): raises flag 0x27 (on a pipe), state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvpipe(BHVPIPE *behavior)
 {
     InitBhv(behavior);
@@ -5474,6 +5582,7 @@ extern "C" void InitBhvpipe(BHVPIPE *behavior)
 
 // 0x17CEA0 StartBhvpipe
 // 0x17CEA0: BHVPIPE vtable slot 8 (Start): state 0.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHVPIPE::Start()
 {
     BHVPIPE *behavior = this;
@@ -5483,6 +5592,7 @@ void BHVPIPE::Start()
 
 // 0x17CED0 CloseBhvpipe
 // 0x17CED0: BHVPIPE vtable slot 9 (Close): state -1, lowers flag 0x27.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvpipe(BHVPIPE *behavior)
 {
     CloseBhv(behavior);
@@ -5503,6 +5613,7 @@ float WrapShapeDistance(int n, float g) __asm__("WrapShapeDistance");
 void GetPipeGoalMatrix(int a, float g, int b, void *pv) __asm__("GetPipeGoalMatrix");
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps
 // the pipe goal matrix.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvpipe(BHVPIPE *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -5542,6 +5653,7 @@ namespace M_SetBhvpipeState {
 void PopBhv(void *p) __asm__("PopBhv");
 BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 // 0x17D058: BHVPIPE state change: 0 move animation (flag 9), 1 stand (flag 2).
+// Also known as: SetLadderState (upstream readable / Sly 1 name; SetLadderState__9JOBLADDERi).
 extern "C" void SetBhvpipeState(BHVPIPE *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
@@ -5568,6 +5680,7 @@ namespace M_SetBhvpipeGoal {
 float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
 float GetShapeMinDistance(void *p) __asm__("GetShapeMinDistance");
 // 0x17D110: Sets the pipe goal to the pipe's maximum or minimum parameter.
+// Also known as: SetDirection (upstream readable / Sly 1 name; SetDirection__9JOBLADDERi).
 extern "C" void SetBhvpipeGoal(BHVPIPE *behavior, int f)
 {
     void *pv = ((STEPGUARD *)behavior->owner)->attachObject;
@@ -5589,6 +5702,7 @@ extern "C" int HasBhvpipeArrived(BHVPIPE *behavior) { return __builtin_fabsf(((S
 
 // 0x17D1C0 InitBhvAttachCid19
 // 0x17D1C0: Attach behaviour for cid 0x13 objects (BHV187) vtable slot 7 (OnPush): raises flag 0x28.
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHV187::OnPush()
 {
     BHV *behavior = (BHV *)this;
@@ -5607,6 +5721,7 @@ qword *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
 struct M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
 // 0x17D1F0: Attach behaviour (cid 0x13) vtable slot 8 (Start): pushes the stand animation and aligns to the attach
 // object's frame.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvAttachCid19(BHV187 *behavior)
 {
     BHVANIM *o;
@@ -5622,6 +5737,7 @@ extern "C" void StartBhvAttachCid19(BHV187 *behavior)
 
 // 0x17D280 CloseBhvAttachCid19
 // 0x17D280: Attach behaviour (cid 0x13) vtable slot 9 (Close): lowers flag 0x28.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvAttachCid19(BHV *behavior)
 {
     CloseBhv(behavior);
@@ -5668,6 +5784,7 @@ struct T;
 struct T { char pad[0x28]; int version; };
 void InitBhv(BHVGOTO *p) __asm__("InitBhv");
 // 0x17D360: BHVGOTO vtable slot 7 (OnPush): no flag, state -1, stamps the path-graph version.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvgoto(BHVGOTO *behavior)
 {
     InitBhv(behavior);
@@ -5681,6 +5798,7 @@ extern "C" void InitBhvgoto(BHVGOTO *behavior)
 // 0x17D3B0 StartBhvgoto
 // 0x17D3B0: BHVGOTO vtable slot 8 (Start): raises the caller-chosen flag (e.g. 0x1C run), stands and plans the
 // route.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvgoto(BHVGOTO *behavior)
 {
     int sgf;
@@ -5695,6 +5813,7 @@ extern "C" void StartBhvgoto(BHVGOTO *behavior)
 
 // 0x17D408 CloseBhvgoto
 // 0x17D408: BHVGOTO vtable slot 9 (Close): state -1, lowers its flag.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVGOTO::Close()
 {
     BHVGOTO *behavior = this;
@@ -5715,6 +5834,7 @@ void SetBhvpathShape(BHVPATH *o, void *shape, int b) __asm__("SetBhvpathShape");
 }
 // 0x17D450: BHVGOTO state change: 4 stand (BHVIDLE), 1/2 walk the path (BHVWALKPATH, the run animation when
 // allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHV191 on the relocate goal).
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__7JOBGOTOi).
 extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
     using namespace M_SetBhvgotoState;
     if (n == behavior->state) return;
@@ -5770,7 +5890,7 @@ namespace M_FSnapPosToSurfaceAbove {
 struct EDGE; struct SURF; struct LSG; struct VU_FLOAT;
 // SnapPositionToSurfaceAbove: ported from Lilly's personal Sly 2 decomp (src/P2/guardbhv_goto.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), g_normalZ (g_normalZ)
+// Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), g_normalZ
 // 0x0017D608 FSnapPosToSurfaceAbove__FPUx  (our name; was FUN_0017D608)
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
 // hit piece and 1 is returned. MoveBhvRelocateToPoint (0x17E9B0) tries it when SnapToGround finds no floor under the point.
@@ -5830,6 +5950,7 @@ static inline qword VuMulAdd(qword qwBase, qword qwVec, VU_FLOAT gScale)
 }
 int SnapPositionToSurfaceAbove(qword *ppos) __asm__("SnapPositionToSurfaceAbove");
 // 0x17D608: Casts a line 5000 units up from the position; on a hit moves the position there and returns true.
+// Also known as: FSnapPosToSurfaceAbove (upstream readable / Sly 1 name; FSnapPosToSurfaceAbove__FP6VECTOR).
 int SnapPositionToSurfaceAbove(qword *ppos)
 {
     STACKSCOPE scope;
@@ -5860,6 +5981,7 @@ int IsBhvRelocateDone(BHV *t) __asm__("IsBhvRelocateDone");
 }
 // 0x17D6C8: BHVGOTO vtable slot 10 (Update): re-plans when stale or the path graph changed; at a path link's start
 // traverses it; relocates when stuck.
+// Also known as: Update (upstream readable / Sly 1 name).
 void BHVGOTO::Update() {
     using namespace M_UpdateBhvgoto;
     BHVGOTO *behavior = this;
@@ -5976,6 +6098,7 @@ int FindPathzonePathCurve(void *q, qword a, qword b, SHAPE *c) __asm__("FindPath
 // VU0 helper: z component of a vector.
 // 0x17DA28: Plans the move: routes, builds the path curve to the next waypoint or path link (or a straight
 // two-point shape) and picks the state.
+// Also known as: Search (upstream readable / Sly 1 name).
 extern "C" void PlanBhvgoto(BHVGOTO *behavior) {
     PATHLINKENDIsland nextGoal;
     int nextState;
@@ -6042,6 +6165,7 @@ extern "C" void PlanBhvgoto(BHVGOTO *behavior) {
 
 // 0x17DCB8 HasBhvgotoArrived
 // 0x17DCB8: True if walking directly (state 1) and at the path end.
+// Also known as: NArrived (upstream readable / Sly 1 name).
 extern "C" int HasBhvgotoArrived(BHVGOTO *behavior)
 {
     int nState;
@@ -6059,6 +6183,7 @@ namespace M_FBhvgotoPathFinished {
 
 int IsBhvpathFinished(void *p) __asm__("IsBhvpathFinished");
 // 0x17DCF8: True if walking (states 1-2) and the walk path has finished.
+// Also known as: FStuck (upstream readable / Sly 1 name).
 extern "C" int IsBhvgotoPathFinished(BHVGOTO *behavior)
 {
     if (behavior->state >= 3)
@@ -6071,6 +6196,7 @@ extern "C" int IsBhvgotoPathFinished(BHVGOTO *behavior)
 
 // 0x17DD38 SetBhvgotoGoal
 // 0x17DD38: Sets the goal and re-plans.
+// Also known as: SetGoal (upstream readable / Sly 1 name; SetGoal__7JOBGOTOP4GOAL).
 extern "C" void SetBhvgotoGoal(BHVGOTO *behavior, PATHLINKEND *pq)
 {
     behavior->goal = *pq;
@@ -6084,6 +6210,7 @@ namespace M_func_0017DD70 {
 void InitBhv(BHV189 *p) __asm__("InitBhv");
 void AddStepguardSgf(void *p, int n) __asm__("AddStepguardSgf");
 // 0x17DD70: Stalk behaviour (BHV189) vtable slot 7 (OnPush): raises flag 0x2B, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvStalk(BHV189 *behavior)
 {
     InitBhv(behavior);
@@ -6094,6 +6221,7 @@ extern "C" void InitBhvStalk(BHV189 *behavior)
 
 // 0x17DDA8 StartBhvStalk
 // 0x17DDA8: Stalk behaviour vtable slot 8 (Start): state 0 (alert animation at the target) and sets the target.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV189::Start()
 {
     BHV189 *behavior = this;
@@ -6109,6 +6237,7 @@ void ResetDetectorTargets(void *p) __asm__("ResetDetectorTargets");
 void SetStepguardTarget(STEPGUARD *t, int n) __asm__("SetStepguardTarget");
 // 0x17DDE8: Stalk behaviour vtable slot 9 (Close): state -1, resets the detector, clears the target, lowers flag
 // 0x2B.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvStalk(BHV189 *behavior)
 {
     CloseBhv(behavior);
@@ -6150,6 +6279,7 @@ extern "C" { static __inline__ float Dist(qword a, qword b) {
 } }
 // 0x17DE50: Stalk behaviour vtable slot 10 (Update): after the alert animation, runs near the forced-class target
 // and keeps re-positioning; leaves when the delay expires and the target is no longer forced.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvStalk(BHV189 *behavior) {
     int s;
     UpdateBhv(behavior);
@@ -6218,6 +6348,7 @@ struct PATHLINKENDIsland { qword a; qword v; PATHLINKENDIsland() { ClearPointerP
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
 // 0x17E0E0: Picks the farthest free point among 16 directions around the target and sends the goto child there.
+// Also known as: ChooseAway (upstream readable / Sly 1 name).
 extern "C" void RegoalBhvStalk(BHV189 *behavior) {
     union { qword q; } hit;
     qword a, b, d, r;
@@ -6268,6 +6399,7 @@ BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 void RegoalBhvStalk(BHV189 *p) __asm__("RegoalBhvStalk");
 // 0x17E278: Stalk behaviour state change: 0 alert animation (flag 0xB) at the target, 1 run (BHVGOTO with flag
 // 0x1C), 2 hands-off idle.
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__5JOBBDi).
 extern "C" void SetBhvStalkState(BHV189 *behavior, int n)
 {
     if (n == behavior->state)
@@ -6300,6 +6432,7 @@ extern "C" void SetBhvStalkState(BHV189 *behavior, int n)
 
 // 0x17E3A0 InitBhvpathlink
 // 0x17E3A0: BHVPATHLINK vtable slot 7 (OnPush): raises flag 0x2C, state -1.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvpathlink(BHVPATHLINK *behavior)
 {
     InitBhv(behavior);
@@ -6309,6 +6442,7 @@ extern "C" void InitBhvpathlink(BHVPATHLINK *behavior)
 
 // 0x17E3D8 StartBhvpathlink
 // 0x17E3D8: BHVPATHLINK vtable slot 8 (Start): busy, begins the first link segment.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHVPATHLINK::Start()
 {
     BHVPATHLINK *behavior = this;
@@ -6319,6 +6453,7 @@ void BHVPATHLINK::Start()
 
 // 0x17E410 CloseBhvpathlink
 // 0x17E410: BHVPATHLINK vtable slot 9 (Close): stops, clears busy, lowers flag 0x2C.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvpathlink(BHVPATHLINK *behavior)
 {
     CloseBhv(behavior);
@@ -6337,6 +6472,7 @@ int IsBhvpathlinkAtSegmentEnd(BHVPATHLINK *p) __asm__("IsBhvpathlinkAtSegmentEnd
 int IsBhvpathAtEnd(void *p) __asm__("IsBhvpathAtEnd");
 // 0x17E458: BHVPATHLINK vtable slot 10 (Update): per segment, kind 0 walks (with a timeout) and kind 1 leaps;
 // advances at the segment end; a final relocation step.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvpathlink(BHVPATHLINK *behavior) {
     UpdateBhv(behavior);
     if (IsBhvpathlinkDone(behavior)) return;
@@ -6379,6 +6515,7 @@ extern "C" int IsBhvpathlinkDone(BHVPATHLINK *behavior)
 
 // 0x17E580 AdvanceBhvpathlink
 // 0x17E580: Advances to the next segment of the path link, or finishes and clears busy.
+// Also known as: NextRecord (upstream readable / Sly 1 name).
 extern "C" void AdvanceBhvpathlink(BHVPATHLINK *behavior)
 {
     int i;
@@ -6430,6 +6567,7 @@ qword GetPathlinkEndpointPos(PATHLINKEND *s, qword v) __asm__("GetPathlinkEndpoi
 void MeasureShape(SHAPE *b) __asm__("MeasureShape");
 void PushBhvpathlinkLeap(BHVPATHLINK *p) __asm__("PushBhvpathlinkLeap");
 // 0x17E6B0: BHVPATHLINK state change: 0 the segment (a two-point walk with a timeout, or a leap), 1 relocate.
+// Also known as: SetState (upstream readable / Sly 1 name; SetState__7JOBLINKi).
 extern "C" void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
     if (n == behavior->state) return;
     PopBhv((&behavior->pbhvNext));
@@ -6486,6 +6624,7 @@ extern "C" void SetBhvpathlinkState(BHVPATHLINK *behavior, int n) {
 
 // 0x17E888 InitBhvRelocate
 // 0x17E888: Relocate behaviour (BHV191) vtable slot 7 (OnPush): raises flag 0x2D.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvRelocate(BHV *behavior)
 {
     InitBhv(behavior);
@@ -6494,6 +6633,7 @@ extern "C" void InitBhvRelocate(BHV *behavior)
 
 // 0x17E8B8 StartBhvRelocate
 // 0x17E8B8: Relocate behaviour vtable slot 8 (Start): moves to the point.
+// Also known as: Enter (upstream readable / Sly 1 name).
 void BHV191::Start()
 {
     BHV *behavior = (BHV *)this;
@@ -6503,6 +6643,7 @@ void BHV191::Start()
 
 // 0x17E8E8 CloseBhvRelocate
 // 0x17E8E8: Relocate behaviour vtable slot 9 (Close): lowers flag 0x2D.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhvRelocate(BHV *behavior)
 {
     CloseBhv(behavior);
@@ -6516,6 +6657,7 @@ int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
 int IsNearPathlinkEndpoint(void *pe, void *p, float g) __asm__("IsNearPathlinkEndpoint");
 void MoveBhvRelocateToPoint(BHV191 *p) __asm__("MoveBhvRelocateToPoint");
 // 0x17E918: Relocate behaviour vtable slot 10 (Update): retries until within 25 of the point.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvRelocate(BHV191 *behavior) {
     UpdateBhv(behavior);
     if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
@@ -6536,6 +6678,7 @@ BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 void DetachStepguard(STEPGUARD *p) __asm__("DetachStepguard");
 // 0x17E9B0: Snaps the relocation point to the ground (or the surface above), then leaps there (capability bit 0) or
 // teleports (detach, set the position, zero the velocities).
+// Also known as: Start (upstream readable / Sly 1 name).
 void MoveBhvRelocateToPoint(BHV191 *behavior) __asm__("MoveBhvRelocateToPoint"); void MoveBhvRelocateToPoint(BHV191 *behavior) {
     union { qword q; float a[4]; } u;
     PopBhv(&behavior->pbhvNext);
@@ -6564,6 +6707,7 @@ namespace M_func_0017EAE8 {
 int IsBhvanimDone(void *p) __asm__("IsBhvanimDone");
 int IsNearPathlinkEndpoint(void *pe, void *p, float g) __asm__("IsNearPathlinkEndpoint");
 // 0x17EAE8: True if the relocation is complete: the leap (if any) finished and the guard is within 25 of the point.
+// Also known as: FDone (upstream readable / Sly 1 name).
 extern "C" int IsBhvRelocateDone(BHV191 *behavior)
 {
     if (((STEPGUARD *)behavior->owner)->capabilityFlags & 1) {
@@ -6576,6 +6720,7 @@ extern "C" int IsBhvRelocateDone(BHV191 *behavior)
 
 // 0x17EB48 InitBhvpatrolpath
 // 0x17EB48: BHVPATROLPATH vtable slot 7 (OnPush): raises flag 0x2E, no parameter.
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitBhvpatrolpath(BHVPATROLPATH *behavior)
 {
     InitBhv(behavior);
@@ -6595,6 +6740,7 @@ BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *p, int n) __asm__("AdvanceBhvpatrolpathGoal");
 // 0x17EB88: BHVPATROLPATH vtable slot 8 (Start): starts at the closest parameter on the path shape, pushes the goto
 // child and its first goal.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
     BHVGOTO *o;
     StartBhv(behavior);
@@ -6613,6 +6759,7 @@ extern "C" void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
 
 // 0x17EC80 CloseBhvpatrolpath
 // 0x17EC80: BHVPATROLPATH vtable slot 9 (Close): lowers flag 0x2E.
+// Also known as: Exit (upstream readable / Sly 1 name).
 void BHVPATROLPATH::Close()
 {
     BHV *behavior = (BHV *)this;
@@ -6622,6 +6769,7 @@ void BHVPATROLPATH::Close()
 
 // 0x17ECB0 UpdateBhvpatrolpath
 // 0x17ECB0: BHVPATROLPATH vtable slot 10 (Update): on arrival, advances the goal along the shape.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvpatrolpath(BHV *behavior)
 {
     UpdateBhv(behavior);
@@ -6648,6 +6796,7 @@ struct PATHLINKENDIsland { qword a; qword v; };
 void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
 // 0x17ECF0: Steps the shape parameter by a class-dependent distance in the travel direction (clamping or wrapping,
 // skipping invalid ranges) and sends it to the goto child.
+// Also known as: Step (upstream readable / Sly 1 name; Step__11JOBPATHSTEPi).
 void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) __asm__("AdvanceBhvpatrolpathGoal"); void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) {
     float d;
     float t;
@@ -6688,6 +6837,7 @@ namespace M_FBhvpatrolpathDone {
 int IsBhvpatrolpathAtEnd(BHVPATROLPATH *p) __asm__("IsBhvpatrolpathAtEnd");
 int HasBhvgotoArrived(void *p) __asm__("HasBhvgotoArrived");
 // 0x17EE78: True if the patrol path reached the end of an open shape and arrived.
+// Also known as: FDone (upstream readable / Sly 1 name).
 extern "C" int IsBhvpatrolpathDone(BHVPATROLPATH *behavior)
 {
     if (!IsBhvpatrolpathAtEnd(behavior)) return 0;
@@ -6701,6 +6851,7 @@ extern float D_002BE7B8 __asm__("D_002BE7B8");
 float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 float GetShapeMinDistance(SHAPE *p) __asm__("GetShapeMinDistance");
 // 0x17EEB8: True if the shape is open and the parameter is within tolerance of its end.
+// Also known as: FAtEnd (upstream readable / Sly 1 name).
 extern "C" int IsBhvpatrolpathAtEnd(BHVPATROLPATH *behavior) {
     float g;
     if (behavior->shape->isClosed) return 0;

@@ -33,6 +33,7 @@ static inline int CharacterOffset(unsigned char ch,int origin){register int r __
 static inline struct GM*Element(struct GM*base,int index){register int scaled __asm__("$2")=index;__asm__("sll %0,%0,2\n\taddu %0,%0,%1":"+r"(scaled):"r"(base));return (struct GM*)scaled;}
 // Maps one ASCII character to its full-width Shift-JIS code: digits and letters by offset from the start of their run
 // (D_002C3728), punctuation by table lookup (D_002C36A0). Returns 0 for characters outside 0x20..0x7E.
+// Also known as: FUN_001b5b58 (upstream readable / Sly 1 name).
 extern "C" unsigned short ConvertCharToSjis(unsigned char ch)
 {
     register int punctIndex __asm__("$3") = 0;  /* punctuation group (+31 = its table origin); 0 = alphanumeric */
@@ -52,6 +53,7 @@ typedef char GM_Size[sizeof(struct GM)==4?1:-1];typedef char GM_B[(unsigned)&((s
 
 extern "C" int func_0021ED28(char *s) __asm__("strlen");   /* strlen */
 // Convert C string (strlen) to array of u16 SJIS codes.
+// Also known as: FUN_001b5c40 (upstream readable / Sly 1 name).
 extern "C" void ConvertStringToSjis(char *s, unsigned short *pw)
 {
     int i;

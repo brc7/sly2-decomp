@@ -523,6 +523,7 @@ extern "C" void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *
 } // namespace M_func_00183818
 
 // Barrel (CID88, a liftable object) Init: SO init, its GRABSPOT part, state 0, radius 300, free flag, zap mask.
+// Also known as: InitHide (upstream readable / Sly 1 name; InitHide__FP2LO).
 extern "C" void InitBarrel(BARREL *barrel)
 {
     InitSo(barrel);
@@ -536,6 +537,7 @@ extern "C" void InitBarrel(BARREL *barrel)
 
 /* BARREL slot 26. */
 // SO slot 26 base, then carry state 0. (inferred)
+// Also known as: ResetHideInstance (upstream readable / Sly 1 name; ResetHideInstance__FP2LO).
 extern "C" void ResetBarrel(BARREL *barrel)
 {
     SO_ResetForProxy(barrel);
@@ -570,6 +572,7 @@ extern "C" void CloneBarrel(BARREL *barrel)
 
 /* BARREL slot 61: also ignore a stepplayer that is holding this barrel. */
 // Intersection filter (slot 61): SO base, and ignores a player that is holding this barrel (grab state 1 on it).
+// Also known as: OverlapKindHide (upstream readable / Sly 1 name; OverlapKindHide__FP3ALOT0).
 extern "C" int ShouldBarrelIgnoreIntersection(BARREL *barrel, LO *lo)
 {
     int grf = ShouldSoIgnoreIntersection(barrel, lo);
@@ -595,6 +598,7 @@ void *GetLoWorldMatrix(BARREL *p) __asm__("GetLoWorldMatrix");
 void TiltMatUpright(void *p, int n, struct M *pm) __asm__("TiltMatUpright");
 void AccelSoTowardMatSpring(BARREL *p, struct M *pm, void *a, qword q, void *b) __asm__("AccelSoTowardMatSpring");
 // Physics preset (slot 70): pending velocity, and while free (state 0) springs the barrel upright.
+// Also known as: ApplyHideGravity (upstream readable / Sly 1 name; ApplyHideGravity__FP3ALO).
 extern "C" void PresetBarrelAccel(BARREL *barrel)
 {
     PresetSoAccel(barrel);
@@ -630,6 +634,7 @@ void SetBarrelState(BARREL *p, int n) __asm__("SetBarrelState");
 
 
 // Carry state switch (0 free .. 3): reparents to/from the carrier, force/torque constraints, part flags.
+// Also known as: SetHideState (upstream readable / Sly 1 name; SetHideState__FP2LOi).
 void SetBarrelState(BARREL *barrel, int n)
 {
 
@@ -703,6 +708,7 @@ void EmitSwNoise(void *g, int n, qword pos, BARREL *p) __asm__("EmitSwNoise");
 void SetJtModeState__FP6JTMODEi(void *p, int n) __asm__("SetJtModeState__FP6JTMODEi");
 void SetBarrelState(BARREL *p, int n) __asm__("SetBarrelState");
 // Barrel zap handler (own slot 75): on a qualifying zap, makes a noise event and drops/changes state.
+// Also known as: FAcceptHideContact (upstream readable / Sly 1 name; FAcceptHideContact__FP3ALOP5CTMSG).
 extern "C" int HandleBarrelZap(BARREL *barrel, ZPR *q)
 {
     struct M m;
@@ -782,6 +788,7 @@ extern "C" void SetGrabspotPlayerClass(CID35 *grabspot, int n)
 namespace M_func_001840B8 {
 void AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x, int y, int z, int w) __asm__("AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25");
 // Registers a state-machine message link (AddOrUpdateRsmg) for the trigger spot.
+// Also known as: AddUseRsmg (upstream readable / Sly 1 name; AddUseRsmg__FP2LO3OIDN21).
 extern "C" void AddTriggerGrabspotRsmg(CID35 *trigger, int y, int z, int w)
 {
     AddOrUpdateRsmg__FP2SWP4RSMGiPii3OIDN25(&g_sw, trigger->arsmg, 4, &trigger->crsmg, 1, y, z, w);
@@ -791,6 +798,7 @@ extern "C" void AddTriggerGrabspotRsmg(CID35 *trigger, int y, int z, int w)
 namespace M_func_001840F8 {
 void AppendBoundedPair(void *g, void *pb, int n, void *pa, int x, int y) __asm__("AppendBoundedPair");
 // Registers a pair (FAddPair) for the trigger spot.
+// Also known as: AddUseTask (upstream readable / Sly 1 name; AddUseTask__FP2LO3OIDi).
 extern "C" void AddTriggerGrabspotPair(CID35 *trigger, int x, int y)
 {
     AppendBoundedPair(&g_game, trigger->apair, 4, &trigger->cpair, x, y);
@@ -803,6 +811,7 @@ void ApplyTaskStates(void *g, int a, int (*pb)[2], CID35 *p) __asm__("ApplyTaskS
 void FireRelay(void *p, int n) __asm__("FireRelay");
 // Fires the trigger: sets its state, sends message 6, triggers the linked state machines, applies task states and
 // fires its relay.
+// Also known as: UseObjectBase (upstream readable / Sly 1 name; UseObjectBase__FP2LOi).
 void FireTriggerGrabspot(CID35 *trigger, int n) __asm__("FireTriggerGrabspot"); void FireTriggerGrabspot(CID35 *trigger, int n)
 {
     trigger->nFired = n;
@@ -852,6 +861,7 @@ extern "C" void InitCarryGrabspot(CID36 *carry)
 
 // Post-load: CID35 post-load and resolves three oids.
 /* CID 36 PostLoad. */
+// Also known as: PostLoadCarryUse (upstream readable / Sly 1 name; PostLoadCarryUse__FP2LO).
 void CID36::PostLoad()
 {
     PostTriggerGrabspotLoad(this);
@@ -940,6 +950,7 @@ extern float D_002BE908 __asm__("D_002BE908");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertPosBetweenLos(CID27 *p, int n, qword q) __asm__("ConvertPosBetweenLos");
 // The hold position (the debug flag D_002DFB84 uses a child's position plus an offset).
+// Also known as: PosHookTarget (upstream readable / Sly 1 name; PosHookTarget__FP2LOiPv).
 extern "C" void GetTableGrabspotGrabPosition(CID27 *table, int unused, UV *pv)
 {
     if (!pv)
@@ -974,6 +985,7 @@ extern "C" void GetTableGrabspotSparklePosition(CID27 *table, qword *pv, qword *
 namespace M_PgrabspotFromLo {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // The GRABSPOT part of an object by class (barrel +0x150, table +0x130, pole +0xE0, wall +0x190, ...), or null.
+// Also known as: JtlDescFromLo (upstream readable / Sly 1 name; JtlDescFromLo__FP2LO).
 extern "C" void *GetGrabspotFromLo(char *p)
 {
     if (!p) return 0;

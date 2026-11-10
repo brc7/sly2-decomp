@@ -99,6 +99,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);        /* IsBasicDerivedFrom__FP
 float ModPositive(float a, float b);                   /* ModPositive__Fff */
 
 // Adds a reference to the player (slot 1).
+// Also known as: AddRefAsega (upstream readable / Sly 1 name; AddRefAsega__FP5ASEGA).
 void ASEGA::AddRef()   /* key function: ASEGA's vtable comes out here */
 {
     ASEGA *p = this;
@@ -106,6 +107,7 @@ void ASEGA::AddRef()   /* key function: ASEGA's vtable comes out here */
 }
 
 // Drops a reference; at zero the player is destroyed and returned to the ASEGA pool.
+// Also known as: ReleaseAsega (upstream readable / Sly 1 name; ReleaseAsega__FP5ASEGAi).
 extern "C" void DecrefAsega(ASEGA *player)
 {
     int cref;
@@ -125,6 +127,7 @@ static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { unsigned int x = pq-
 static __inline__ void End(G *pg) { ASEGA *po = pg->p; po->Release(); }
 // Per-frame update of a playing segment: advances local time by speed, wraps or clamps it at the end, dispatches the
 // events crossed this frame, and retracts the player when a non-looping segment finished.
+// Also known as: UpdateAsega (upstream readable / Sly 1 name; UpdateAsega__FP5ASEGA).
 extern "C" void UpdateAsega(ASEGA *player)
 {
     if (__builtin_fabsf(player->speed) < 1e-4f)
@@ -166,6 +169,7 @@ extern "C" void UpdateAsega(ASEGA *player)
 
 // Stops a player: unlinks it from the live lists, releases its hands-off hold, retracts its channel actions and
 // overrides, notifies its owner and drops the list's reference.
+// Also known as: RetractAsega (upstream readable / Sly 1 name; RetractAsega__FP5ASEGA).
 void RetractAsega(ASEGA *player)
 {
     if (IsAsegaRetracted(player))
@@ -211,6 +215,7 @@ void RetractAsega(ASEGA *player)
 
 struct R80 { char pad[0x80]; float gMin; float gMax; float *pg; };
 // Seeks a player (SEEK kind: absolute, relative or label) to time t with speed svt, then resynchronizes its event cursor.
+// Also known as: SetAsegaTime (upstream readable / Sly 1 name; SetAsegaTime__FP5ASEGAiff).
 void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
 {
     float t;
@@ -248,6 +253,7 @@ void SeekAsega(ASEGA *player, int seekKind, float time, float speed)
 // Types: include/sly2/aseg.h (ASEG::ceaFrame/aeaFrame at 0xA0/0xA4, ASEGA::time/svt/iea at 0x1C/0x40/0x50).
 // Resynchronizes the player's event cursor to the first event at or after its current local time.
 // (Sly 1-derived name: UpdateAsegaIeaCur.)
+// Also known as: UpdateAsegaIeaCur (upstream readable / Sly 1 name).
 void SyncAsegaEventCursor(ASEGA *player)
 {
     ASEG *segment = player->animation;
@@ -274,6 +280,7 @@ void SyncAsegaEventCursor(ASEGA *player)
 /* The begin/end bracket the event handlers hold while they run (real virtual calls of BASIC slots 1 and 2). */
 struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->AddRef(); } ~GV() { p->Release(); } };
 // Dispatches every event between the player's previous and current time this frame (HandleAsegaEvent).
+// Also known as: FireAsegaEvents (upstream readable / Sly 1 name; FireAsegaEvents__FP5ASEGA).
 void HandleAsegaEvents(ASEGA *player)
 {
     if (player->animation->ceaFrame) {
@@ -305,6 +312,7 @@ void HandleAsegaEvents(ASEGA *player)
 
 // Fast-forward dispatch used when a segment starts at t > 0: replays the events up to the start time that must take
 // effect (state-changing ones) without their transient effects.
+// Also known as: FireAsegaStartEvents (upstream readable / Sly 1 name; FireAsegaStartEvents__FP5ASEGA).
 void HandleAsegaEventsFastForward(ASEGA *player)
 {
     if (player->animation->ceaFrame) {
@@ -340,6 +348,7 @@ LO *GetAsegaEventTarget(ASEGA *player) { if (player->rootObject) return player->
 struct MSG { ASEGA *p; float g; int n; };
 // Executes one segment event: sounds, rumble, hands-off, applying / seeking / retracting other segments, splice script
 // calls, emitters, messages and the like.
+// Also known as: FireAsegaEvent (upstream readable / Sly 1 name; FireAsegaEvent__FP5ASEGAP6ASEGEV).
 void HandleAsegaEvent(ASEGA *player, EA *event)
 {
     GV g(player);
@@ -488,6 +497,7 @@ static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, flo
 }
 // Wraps (loop) or reflects (ping-pong) a player's time at the end of its segment; returns whether it wrapped and updates
 // the time delta.
+// Also known as: FWrapAsegaTime (upstream readable / Sly 1 name; FWrapAsegaTime__FP5ASEGAPfT1).
 int WrapAsegaTime(ASEGA *player, float *time, float *deltaTime)
 {
     float tMax = player->animation->duration;
@@ -530,6 +540,7 @@ int IsAsegaRetracted(ASEGA *player)
 }
 
 // Turns the player's hands-off hold on or off (while on, the world's hands-off count keeps player control disabled).
+// Also known as: SetAsegaEventSound (upstream readable / Sly 1 name; SetAsegaEventSound__FP5ASEGAi).
 void SetAsegaHandsOff(ASEGA *player, int isHandsOff)
 {
     if ((IsAsegaRetracted(player) == 0) && (isHandsOff != player->nWorldHold)) {
@@ -550,6 +561,7 @@ void SetAsegaSpeed(ASEGA *player, float speed)
 }
 
 // Sets the player's master speed (from its segment); recomputes the effective speed.
+// Also known as: SetAsegaAsegSpeed (upstream readable / Sly 1 name; SetAsegaAsegSpeed__FP5ASEGAf).
 extern "C" void SetAsegaMasterSpeed(ASEGA *player, float masterSpeed)
 {
     player->masterSpeed = masterSpeed;
@@ -573,6 +585,7 @@ void SetAsegaPriority(ASEGA *player, int priority)
 
 // For the player's live channels on role-7 transforms: switches the transform to blend mode 9 and sets its blend weight
 // (inferred).
+// Also known as: SetAsegaSeekTime (upstream readable / Sly 1 name; SetAsegaSeekTime__FP5ASEGAf).
 extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
     ACTSEG *pn;
     for (pn = player->pactsegFirst; pn; pn = pn->pactsegNext) {
@@ -584,6 +597,7 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
 }
 
 // Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform. (inferred)
+// Also known as: DemoteAsegaOnXf (upstream readable / Sly 1 name; DemoteAsegaOnXf__FiiP2XF).
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
     ACT *act = pxf->firstActuator;
     for (;;) {   /* top-tested on purpose: a while / for loop is rotated to a bottom test and no longer matches */
@@ -601,6 +615,7 @@ void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
 struct OIDXFK { int oid; int xfk; };
 // For each transform of an SO matching any (OID, component) filter pair (-1 = any), detaches the action with the given id.
 // (inferred)
+// Also known as: DemoteAsegaOnAlo (upstream readable / Sly 1 name; DemoteAsegaOnAlo__FP5ASEGAP3ALOiPv).
 extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
     int i, j;
     for (i = 0; i < p->numTransforms; i++) {
@@ -618,6 +633,7 @@ extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
 /* ACTSEG's slot 1, its key function (sly2/act.h). */
 // Attaches a segment channel action (slot 1): a rotation-curve channel binds its curve and the player's local time into
 // the transform's reference record; other channels use the base attach.
+// Also known as: Start (upstream readable / Sly 1 name).
 void ACTSEG::Attach() {
     ACG *pacg;
     pacg = this->pacg;
@@ -630,6 +646,7 @@ void ACTSEG::Attach() {
 }
 
 // Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach. (inferred)
+// Also known as: End (upstream readable / Sly 1 name).
 extern "C" void DetachActseg(ACTSEG *p) {
     if (p->pacg != 0) {
         p->transform->reference->rotationCurve = 0;
@@ -641,6 +658,7 @@ extern "C" void DetachActseg(ACTSEG *p) {
 
 // Per-frame channel update (slot 4): a curve channel points the transform at the player's time and speed and lets the
 // curve drive it; a channel without a curve resets the transform's phase and refreshes it. (inferred)
+// Also known as: Fetch (upstream readable / Sly 1 name).
 extern "C" void UpdateActseg(ACTSEG *p) {
     if (p->pac) {
         AC *pc;
@@ -657,6 +675,7 @@ extern "C" void UpdateActseg(ACTSEG *p) {
 
 // Returns the channel's goal position and velocity at the player's (wrapped) time (slot 5), for code that predicts where
 // the animation is heading.
+// Also known as: Query (upstream readable / Sly 1 name; Query__8CTRLASEGP7VECTOR4T1f).
 extern "C" void GetActsegGoal(ACTSEG *p, qword *pq1, qword *pq2, float g) {
     if (p->pac) {
         ASEGA *po = p->pasega;

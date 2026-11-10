@@ -57,6 +57,7 @@ static inline qwordV Difference(qwordV end,const qwordV *start){qwordV result;re
 // Returns the launch velocity that carries an object from start to end on a ballistic arc under acceleration acc.
 // g (0..1) blends the elevation angle between the direct line to the target (0) and straight up (pi/2, 1); returns
 // zero when the target cannot be reached at that angle.
+// Also known as: VecBallisticVelocity (upstream readable / Sly 1 name; VecBallisticVelocity__FfG9VU_VECTORN21).
 extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV start, qwordV end, qwordV acceleration)
 {
     union U delta, velocity, scalar;

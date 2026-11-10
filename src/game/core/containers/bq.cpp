@@ -78,6 +78,7 @@ void CByteQueue::Reset()
 // Fills the queue from `input`, reading into the free part of the ring (wrapping at the end). byteCount <= 0
 // means "one read of whatever fits"; otherwise reads until byteCount bytes arrived, the queue is full or the input
 // returns 0. Returns the number of bytes added. (Sly 1-derived name: CByteQueue::CbFill.)
+// Also known as: CbFill (upstream readable / Sly 1 name).
 int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
 {
     int filled = 0;
@@ -105,6 +106,7 @@ int CByteQueue::FillFromInput(int byteCount, CQueueInput *input)
 // Drains up to byteCount filled bytes into `output` (byteCount <= 0: a single write). Bytes handed to an output
 // whose IsAsyncDrain() is true stay reserved (drainedBytes) until FreeDrain releases them; otherwise they are free at once.
 // Returns the number of bytes written. (Sly 1-derived name: CByteQueue::CbDrain.)
+// Also known as: CbDrain (upstream readable / Sly 1 name).
 int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
 {
     int drained = 0;
@@ -133,6 +135,7 @@ int CByteQueue::DrainToOutput(int byteCount, CQueueOutput *output)
 
 // Fills the queue from a memory block (wraps it in a temporary CQueueInputMemory). Returns the bytes added.
 // (Sly 1-derived name: CByteQueue::CbFill.)
+// Also known as: CbFill (upstream readable / Sly 1 name).
 int CByteQueue::FillFromMemory(int byteCount, byte *data)
 {
     int result;

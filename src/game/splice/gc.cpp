@@ -375,11 +375,11 @@ void CGc::Collect()
     template void CGcObj<T>::Unlink(); \
     template T *CGcObj<T>::PtNew(); \
     template void CGcObj<T>::Shutdown();
-SLY2_GC_INSTANTIATE(CPair)       /* 0x254F00 PushFront, 0x2550A0 ctor, 0x2550F8 Unlink, 0x256B48 PtNew, 0x257E88 */
+SLY2_GC_INSTANTIATE(CPair)       /* 0x254F00 PushFront, 0x2550A0 ctor, 0x2550F8 Unlink, 0x256B48 PtNew, 0x257E88; PtNew also known as: PpairNew (upstream readable / Sly 1 name; PpairNew__Fv). */
 SLY2_GC_INSTANTIATE(CVarb)       /* 0x255248, 0x2553E0, 0x255438, 0x257340, 0x257F08 */
-SLY2_GC_INSTANTIATE(CFrame)      /* 0x255588, 0x255718, 0x255770, 0x256DD0, 0x257EC8 */
-SLY2_GC_INSTANTIATE(CProc)       /* 0x2558C0, 0x255A58, 0x255AB0, 0x256F48, 0x257F48 */
-SLY2_GC_INSTANTIATE(CSidebag)    /* 0x255C00, 0x255D90, 0x255DE8, 0x257D80, 0x257F88 */
+SLY2_GC_INSTANTIATE(CFrame)      /* 0x255588, 0x255718, 0x255770, 0x256DD0, 0x257EC8; PtNew also known as: PframeNew (upstream readable / Sly 1 name; PframeNew__Fv). */
+SLY2_GC_INSTANTIATE(CProc)       /* 0x2558C0, 0x255A58, 0x255AB0, 0x256F48, 0x257F48; PtNew also known as: PprocNew (upstream readable / Sly 1 name; PprocNew__Fv). */
+SLY2_GC_INSTANTIATE(CSidebag)    /* 0x255C00, 0x255D90, 0x255DE8, 0x257D80, 0x257F88; PtNew also known as: PsidebagNew (upstream readable / Sly 1 name; PsidebagNew__Fv). */
 SLY2_GC_INSTANTIATE(CMethod)     /* 0x255F38, 0x2560C8, 0x256120, 0x259C18, 0x257FC8 */
 #undef SLY2_GC_INSTANTIATE
 template void CGcObj<CSidebag>::MakeRoot();   /* 0x258178 */
@@ -389,4 +389,4 @@ template void CRefPtr<CProc>::Attach(CProc *);         /* 0x257038 */
 template void CRefPtr<CFrame>::Attach(CFrame *);       /* 0x257058 */
 template void CRefPtr<CVarb>::Attach(CVarb *);         /* 0x257430 */
 template void CRefPtr<CSidebag>::Attach(CSidebag *);   /* 0x257E68 */
-template void CGcObj<CFrame>::MakeRoot();     /* 0x259A88 */
+template void CGcObj<CFrame>::MakeRoot();     /* 0x259A88 Also known as: AddRootFrame (upstream readable / Sly 1 name; AddRootFrame__3CGc). */

@@ -66,6 +66,8 @@ static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; r
 // SO's vtable slot 51, gets a kind-3 chain action registered on that transform (AddXfAct), and finally the rest segments
 // from each link to the next (or the last one's continuation) are computed in link space and in world space.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadAloChainsFromBrx (upstream readable / Sly 1 name;
+//   LoadAloChainsFromBrx__FP3ALOP18CBinaryInputStream).
 extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
     int count=S8Read__18CBinaryInputStream(stream);
     int i,j;
@@ -112,7 +114,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
 
 // UpdateChainLink: ported from Lilly's personal Sly 2 decomp (src/P2/chain.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), g_clock (g_clock), g_sw (g_sw)
+// Globals: D_002A2DA0 (D_002A2DA0), g_clock, g_sw
 // 0x0021CB18 UpdateChainLink__FP2SOP9CHAINLINK (our name; role 0x10 of UpdateSoSlots 0x22DE88)
 // Runs for every link of a chain every frame. The first call of a frame (g_clock.time != lastUpdateTime) simulates the links from this one to the end:
 // the start point is the anchor (link 0: the XF's world position; its velocity is the finite difference over dt, or the XF's own velocity
@@ -222,6 +224,7 @@ void UpdateChainLink(SO *pso, CHAINLINK *chainLink) __asm__("UpdateChainLink");
 // chain from this link to the tip in cstep substeps (bend limit, damping, bend spring, gravity, rest-length constraint);
 // every call then rotates its own transform so the rest segment points at the simulated tip. See the block comment above
 // for the full algorithm and matching notes.
+// Also known as: UpdateXfChain (upstream readable / Sly 1 name; UpdateXfChain__FP3ALOPv).
 void UpdateChainLink(SO *so, CHAINLINK *chainLink)
 {
     CHAIN *chain = chainLink->chain;

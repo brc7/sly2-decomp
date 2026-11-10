@@ -90,6 +90,7 @@ extern "C" void ClearDifficulty(DIFFICULTY *difficulty)
 
 // The difficulty's game-event handler: event 3 binds the three saved sample slots, 34 shifts the samples (a rolling
 // window of the last three jobs), 37/16/29 apply the deltas from the D_002BDC00 table.
+// Also known as: SuckOnEvent (upstream readable / Sly 1 name; SuckOnEvent__FP2LOiPv).
 extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TASK *task)
 {
     switch (message) {
@@ -116,6 +117,7 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TAS
 }
 
 // Returns the current difficulty: the override when set, else the average of the last three samples.
+// Also known as: GSuck (upstream readable / Sly 1 name; GSuck__FPv).
 extern "C" float GetDifficulty(DIFFICULTY *difficulty)
 {
     float g;
@@ -140,6 +142,7 @@ extern "C" void ChangeDifficulty(DIFFICULTY *difficulty, float delta)
 }
 
 // Stores the difficulty, clamped to the object's range, into the current sample.
+// Also known as: SetSuck (upstream readable / Sly 1 name; SetSuck__FPvf).
 extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 {
     SW *world = &g_sw;
@@ -151,6 +154,7 @@ extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 // Sprays prizes from a destroyed or searched object with difficulty-scaled counts: two countdowns are refilled with
 // random values interpolated by the difficulty; when one runs out it adds bonus prizes (types 0x5B and 0x5D).
 // (inferred)
+// Also known as: DropPickups (upstream readable / Sly 1 name; DropPickups__FP6VECTORG9VU_VECTORiiP2LO).
 extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, int c, int dn, void *source)
 {
     if (difficulty->countdownA <= 0) {
@@ -181,6 +185,7 @@ extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, in
 }
 
 // Scales n by a factor interpolated between two range ends by the current difficulty.
+// Also known as: NScaleDamage (upstream readable / Sly 1 name; NScaleDamage__FPvi).
 extern "C" int ScaleByDifficulty(DIFFICULTY *difficulty, int n)
 {
     float g = GetDifficulty(difficulty);

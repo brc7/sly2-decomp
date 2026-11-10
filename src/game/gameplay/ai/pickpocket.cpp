@@ -99,6 +99,7 @@ void StageStepguardLoot(STEPGUARD *guard);
 
 // 0x1F1768: Splice option: appends a coin entry (oid 0x2B3) worth `count` coins, when the guard's loot is fixed by
 // the level (+0x490).
+// Also known as: AddPocketCoins (upstream readable / Sly 1 name; AddPocketCoins__FP2LOi).
 extern "C" void AddStepguardLootCoins(STEPGUARD *guard, int count)
 {
     if (guard->isLootFixed) {
@@ -112,6 +113,7 @@ extern "C" void AddStepguardLootCoins(STEPGUARD *guard, int count)
 
 // 0x1F17B0: Splice option: appends an item entry (object oid `itemOid`, count 1) when the list is empty or the loot
 // is fixed by the level.
+// Also known as: AddPocketPrize (upstream readable / Sly 1 name; AddPocketPrize__FP2LOi).
 extern "C" void AddStepguardLootItem(STEPGUARD *guard, int itemOid)
 {
     if (guard->numLoot <= 0 || guard->isLootFixed) {
@@ -125,6 +127,7 @@ extern "C" void AddStepguardLootItem(STEPGUARD *guard, int itemOid)
 
 // 0x1F17F8: Sets the pickpocket state (-1..2): records the time, hides (vtable slot 9) or shows (slot 8) the two
 // glint indicators, and moves the pouch's state machine to the matching state.
+// Also known as: SetPocketMode (upstream readable / Sly 1 name; SetPocketMode__FP2LOi).
 extern "C" void SetStepguardPickpocketState(STEPGUARD *guard, int state)
 {
     void *stateMachine;
@@ -150,6 +153,7 @@ extern "C" void SetStepguardPickpocketState(STEPGUARD *guard, int state)
 // 0x1F1900: Recomputes the pickpocket state: -1 with no pouch or pickpocketing disabled; 0 while the guard is
 // alerted, hurt, dead, stunned or thrown; 1 when only coins are left (or the hero is not the current player); 2
 // when an item is ready.
+// Also known as: UpdatePocketMode (upstream readable / Sly 1 name; UpdatePocketMode__FP2LO).
 extern "C" void UpdateStepguardPickpocket(STEPGUARD *guard)
 {
     ulong alertMask;
@@ -174,6 +178,7 @@ extern "C" void UpdateStepguardPickpocket(STEPGUARD *guard)
 // 0x3A guards), keeps a level-given first entry unless its task is complete, otherwise rolls a weighted item reward
 // with the table's chance; then splits a random coin total into 2-3 coin entries and appends the reward.
 // Choose a weighted reward and distribute the remaining pickup count.
+// Also known as: FillPocket (upstream readable / Sly 1 name; FillPocket__FP2LO).
 extern "C" void GenerateStepguardLoot(STEPGUARD *guard)
 {
     TABLE *table;
@@ -255,6 +260,7 @@ picked:;
 
 // 0x1F1CF8: Stages the next loot entry: from the current index on, finds the entry's object and loads it into the
 // pouch launcher (skipping finished task items); then refreshes the pickpocket state.
+// Also known as: NextPocketPrize (upstream readable / Sly 1 name; NextPocketPrize__FP2LO).
 extern "C" void StageStepguardLoot(STEPGUARD *guard)
 {
     guard->isLootStaged = 0;
@@ -283,6 +289,7 @@ extern "C" void StageStepguardLoot(STEPGUARD *guard)
 // 0x1F1E20: Sly pickpockets the guard: broadcasts game event 0x19, launches the staged entry's count from the
 // pouch, resets the state, advances to the next entry and stages it. Returns the launched object, or NULL when
 // nothing is left.
+// Also known as: PloTakePocket (upstream readable / Sly 1 name; PloTakePocket__FP2LO).
 extern "C" void *PickpocketStepguard(STEPGUARD *guard)
 {
     void *launched;

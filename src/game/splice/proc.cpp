@@ -15,6 +15,7 @@ SPO CProc_CloneTo(CProc *source, CFrame *frame);
 }
 // Clones a closure: a new proc with the given frame (or the source's frame when none is given) and the source's
 // parameter count, rest flag, parameter list and body. Returns an owning pointer.
+// Also known as: CloneTo (upstream readable / Sly 1 name; CloneTo__5CProcP5CProc).
 SPO CProc_CloneTo(CProc *source, CFrame *frame)
 {
     SPO sp;

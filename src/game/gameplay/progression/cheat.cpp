@@ -101,6 +101,7 @@ extern "C" int AddCode(CODES *codes, CODE *pcode)
 SLY2_SCRAP("sw $2, 0x14($5)");
 
 // Resets every code's match position to the start.
+// Also known as: UnmarkAll (upstream readable / Sly 1 name).
 extern "C" void ResetCheatCodeProgress(CODES *codes)
 {
     for (CODE *pcode = (CODE *)codes->sl.head; pcode; pcode = pcode->next)
@@ -193,6 +194,7 @@ extern "C" void CheatUnlockCompletionReward(void)
 }
 
 // Cheat action: takes powerup 0x1F away again (removes it from the item list D_002E1E40 and clears it). (inferred)
+// Also known as: RemoveMegaJump (upstream readable / Sly 1 name; RemoveMegaJump__Fv).
 extern "C" void ClearCheatItems(void)
 {
     if (D_002E1E40) {

@@ -6,6 +6,7 @@ extern char D_0044BE80[];
 extern int D_0044BF00[];
 extern int D_0044BEC0[];
 int func_00237288(void *cd, int fno, unsigned int mode, void *send, int ssize, void *recv, int rsize, void *end, void *earg);
+// Also known as: sceSifFreeIopHeap (upstream readable / Sly 1 name).
 int func_00238CC8(void *addr)
 {
     if (D_002C4A94 < 0)

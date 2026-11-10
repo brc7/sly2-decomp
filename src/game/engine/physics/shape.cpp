@@ -73,7 +73,7 @@ void LoadOptionsFromBrx__FPvP18CBinaryInputStream(SHAPE *, void *) __asm__("Load
 void MeasureShape(SHAPE *) __asm__("MeasureShape");
 // Slot 14 (LoadFromBrx): the XFM, the mode (0 linear, 1 curve), closed flag, point count, then the per-point
 // parameters, distances and positions (and curve tangents).
-// Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Layout parse-verified: a parser following it reads every byte of 4 levels. Also known as: LoadPathFromBrx (upstream readable / Sly 1 name; LoadPathFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadShapeFromBrx(SHAPE *shape, void *stream)
 {
     struct SWALLOC msg;
@@ -160,7 +160,7 @@ extern "C" { static inline float Len(qword a)
 } }
 
 // Caches 11 Hermite samples of curve segment i (in world space) and their cumulative lengths, for arc-length
-// lookups inside a curve segment.
+// lookups inside a curve segment. Also known as: CacheSegCrv (upstream readable / Sly 1 name; CacheSegCrv__FP3CRVi).
 extern "C" void CacheShapeSegment(struct PATH *shape, int segment)
 {
     union U prev, cur;
@@ -222,7 +222,7 @@ extern "C" { static inline qword LenVec(qword a) {
  return d;
 } }
 // Recomputes the cumulative-distance array from the world-space points (linear) or the cached per-segment lengths
-// (curve).
+// (curve). Also known as: RecalcCrv (upstream readable / Sly 1 name; RecalcCrv__FP3CRV).
 extern "C" void MeasureShape(struct S *shape)
 {
  int i;
@@ -254,7 +254,7 @@ extern "C" void MeasureShape(struct S *shape)
 }
 } // namespace M_MeasureShape
 
-// Invalidates the segment cache (search hint 0, cached segment -1).
+// Invalidates the segment cache (search hint 0, cached segment -1). Also known as: RefreshCrv (upstream readable / Sly 1 name; RefreshCrv__FP3CRV).
 extern "C" void InvalidateShapeCache(SHAPE *shape)
 {
     shape->segmentHint = 0;
@@ -266,7 +266,7 @@ void StepChainRk4(SHAPECHAIN *q) __asm__("StepChainRk4");
 void StepChain(SHAPECHAIN *q) __asm__("StepChain");
 void InheritLoFlag4(SHAPE *p) __asm__("InheritLoFlag4");
 // Slot 17: when a chain is attached, steps its simulation (StepChainRk4 for modes 0/3, StepChain for 1/2);
-// otherwise the base LO transform update.
+// otherwise the base LO transform update. Also known as: UpdatePath17 (upstream readable / Sly 1 name; UpdatePath17__FP2LO).
 extern "C" void UpdateShapeXfWorld(SHAPE *shape)
 {
     if (shape->chain) {
@@ -291,7 +291,7 @@ int FindShapeSegmentAtParam(SHAPE *p, float *pa, float *pb) __asm__("FindShapeSe
 void CacheShapeSegment(SHAPE *p, int i) __asm__("CacheShapeSegment");
 // Linear interpolation (1-t)*a + t*b.
 extern "C" { static __inline__ float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; } }
-// Arc length at parameter u, interpolated from the distance table (sub-sampled inside curve segments).
+// Arc length at parameter u, interpolated from the distance table (sub-sampled inside curve segments). Also known as: SFromCrvG (upstream readable / Sly 1 name; SFromCrvG__FP3CRV).
 extern "C" float GetShapeDistanceAtParam(SHAPE *shape)
 {
     float a, b;
@@ -322,7 +322,7 @@ extern "C" { static inline float ReturnValue(float value)
     return result;
 } }
 
-// Parameter u at arc length s (the inverse of GetShapeDistanceAtParam).
+// Parameter u at arc length s (the inverse of GetShapeDistanceAtParam). Also known as: GFromCrvS (upstream readable / Sly 1 name; GFromCrvS__FP3CRVf).
 extern "C" float GetShapeParamAtDistance(SHAPE *shape, float distance)
 {
     float a, b;
@@ -353,25 +353,25 @@ extern "C" float GetShapeParamAtDistance(SHAPE *shape, float distance)
 }
 } // namespace M_UFromShapeS
 
-// First point's parameter.
+// First point's parameter. Also known as: GMinCrv (upstream readable / Sly 1 name; GMinCrv__FP3CRV).
 extern "C" float GetShapeMinParam(SHAPE *shape)
 {
     return shape->vertexParams[0];
 }
 
-// First point's distance.
+// First point's distance. Also known as: SMinCrv (upstream readable / Sly 1 name; SMinCrv__FP3CRV).
 extern "C" float GetShapeMinDistance(SHAPE *shape)
 {
     return shape->vertexArcLengths[0];
 }
 
-// Last point's parameter.
+// Last point's parameter. Also known as: GMaxCrv (upstream readable / Sly 1 name; GMaxCrv__FP3CRV).
 extern "C" float GetShapeMaxParam(SHAPE *shape)
 {
     return shape->vertexParams[shape->numControlVertices - 1];
 }
 
-// Last point's distance: the shape's total length.
+// Last point's distance: the shape's total length. Also known as: SMaxCrv (upstream readable / Sly 1 name; SMaxCrv__FP3CRV).
 extern "C" float GetShapeMaxDistance(SHAPE *shape)
 {
     return shape->vertexArcLengths[shape->numControlVertices - 1];
@@ -379,7 +379,7 @@ extern "C" float GetShapeMaxDistance(SHAPE *shape)
 
 namespace M_UWrapShape {
 float ModPositive__Fff(float g, float gMax) __asm__("ModPositive__Fff");
-// On a closed shape wraps u into the parameter range; open shapes return u unchanged.
+// On a closed shape wraps u into the parameter range; open shapes return u unchanged. Also known as: GWrapCrv (upstream readable / Sly 1 name; GWrapCrv__FP3CRVf).
 extern "C" float WrapShapeParam(SHAPE *shape, float param)
 {
     float gMin, gMax;
@@ -393,7 +393,7 @@ extern "C" float WrapShapeParam(SHAPE *shape, float param)
 
 namespace M_SWrapShape {
 float ModPositive__Fff(float g, float gMax) __asm__("ModPositive__Fff");
-// On a closed shape wraps s into [0, length]; open shapes return s unchanged.
+// On a closed shape wraps s into [0, length]; open shapes return s unchanged. Also known as: SWrapCrv (upstream readable / Sly 1 name; SWrapCrv__FP3CRVf).
 extern "C" float WrapShapeDistance(SHAPE *shape, float distance)
 {
     float gMax;
@@ -409,7 +409,7 @@ float WrapShapeDistance(SHAPE *p, float g) __asm__("WrapShapeDistance");
 // 0x1E6720: dead-code scrap (sly2/scrap.h)
 extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0x30"); }
 
-// Closed shapes wrap s, open shapes clamp it to [GetShapeMinDistance, GetShapeMaxDistance].
+// Closed shapes wrap s, open shapes clamp it to [GetShapeMinDistance, GetShapeMaxDistance]. Also known as: SClampCrv (upstream readable / Sly 1 name; SClampCrv__FP3CRVf).
 extern "C" float ClampShapeDistance(SHAPE *shape, float distance)
 {
     if (shape->isClosed) return WrapShapeDistance(shape, distance);
@@ -448,7 +448,7 @@ extern "C" { static inline unsigned PointOffset(int i){register unsigned bytes _
 extern "C" { static inline qword TangentFirst(const qword*p){register qword point __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(point):"m"(*p));return point;} }
 // Copy the segment index into callee-saved $18.
 extern "C" { static inline int SegmentIndex(int value){register int index __asm__("$18");__asm__("daddu %0,%1,$zero":"=r"(index):"r"(value));return index;} }
-// Position and tangent at parameter u (linear interpolation or Hermite evaluation), in world space.
+// Position and tangent at parameter u (linear interpolation or Hermite evaluation), in world space. Also known as: EvalCrv (upstream readable / Sly 1 name; EvalCrv__FP3CRVfP6VECTORT2).
 void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOut) __asm__("EvaluateShapeAtParam"); void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOut)
 {
     struct M m;
@@ -748,7 +748,7 @@ void FindShapeClosestPointCurveFromParam(SHAPE *shape, qword pos, struct SPACE *
 }
 } // namespace M_func_001E6DB8
 
-// Dispatches on the shape's mode to the linear or curve closest-point search from a starting parameter.
+// Dispatches on the shape's mode to the linear or curve closest-point search from a starting parameter. Also known as: NearestCrv (upstream readable / Sly 1 name; NearestCrv__FP3CRV).
 extern "C" void FindShapeClosestPointFromParam(SHAPE *shape, qword pos, SPACE *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startParam)
 {
     if (shape->curveKind == 0) {
@@ -843,7 +843,7 @@ static inline VV Normalize(VV a)
     return length;
 }
 // Global closest point on the shape to a position (segment scan, or nearest vertex then refinement); outputs the
-// point, tangent, parameter and distance.
+// point, tangent, parameter and distance. Also known as: NearestCrvAll (upstream readable / Sly 1 name; NearestCrvAll__FP3CRVG9VU_VECTORP6VECTORT2PfT4T2).
 extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue)
 {
@@ -904,7 +904,7 @@ namespace M_FindShapeClosestPointFromS {
 typedef int qword __attribute__((mode(TI)));
 float GetShapeParamAtDistance(void *p, float seed) __asm__("GetShapeParamAtDistance");
 void FindShapeClosestPointFromParam(void *p, qword q, void *a, qword *b, qword *c, float *d, float *e, float g) __asm__("FindShapeClosestPointFromParam");
-// Closest-point search started from arc length s. Sly 1: FindCrvlClosestPointFromS / FindCrvcClosestPointFromS.
+// Closest-point search started from arc length s. Sly 1: FindCrvlClosestPointFromS / FindCrvcClosestPointFromS. Also known as: NearestCrvS (upstream readable / Sly 1 name; NearestCrvS__FP3CRVG9VU_VECTORPvP6VECTORT3PfT5f).
 extern "C" void FindShapeClosestPointFromDistance(void *shape, qword pos, void *space, qword *posOut, qword *dirOut, float *paramOut, float *distanceOut, float startDistance)
 {
     FindShapeClosestPointFromParam(shape, pos, space, posOut, dirOut, paramOut, distanceOut, GetShapeParamAtDistance(shape, startDistance));
@@ -938,7 +938,7 @@ extern "C" void FindShapeBestVertex(SHAPE *shape, float (*score)(float, void *),
 
 namespace M_IsegFindShapeU {
 float WrapShapeParam(SHAPE *p, float g) __asm__("WrapShapeParam");
-// Index of the segment containing u (searching from the cached hint), with the offset into it and its span.
+// Index of the segment containing u (searching from the cached hint), with the offset into it and its span. Also known as: ISegCrvG (upstream readable / Sly 1 name; ISegCrvG__FP3CRVPfT1f).
 extern "C" int FindShapeSegmentAtParam(SHAPE *shape, float *offsetOut, float *spanOut, float param)
 {
     int i;
@@ -977,7 +977,7 @@ extern "C" { static inline int Count(SHAPE *p)
     return value;
 } }
 
-// Index of the segment containing arc length s.
+// Index of the segment containing arc length s. Also known as: ISegCrvS (upstream readable / Sly 1 name; ISegCrvS__FP3CRVPfT1f).
 extern "C" int FindShapeSegmentAtDistance(SHAPE *shape, float *offsetOut, float *spanOut, float distance)
 {
     int i;
@@ -1025,7 +1025,7 @@ namespace M_DuGetShapeSearchIncrement {
 // 0x1E77E0: dead-code scrap (sly2/scrap.h)
 extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0xa0"); }
 
-// Parameter step for searches: (uMax - uMin) / (count * 10).
+// Parameter step for searches: (uMax - uMin) / (count * 10). Also known as: DgStepCrv (upstream readable / Sly 1 name; DgStepCrv__FP3CRV).
 extern "C" float GetShapeParamSearchStep(SHAPE *shape)
 {
     float a = GetShapeMaxParam(shape);
@@ -1039,7 +1039,7 @@ SHAPECHAIN *InitChain(void *pv, SHAPE *p) __asm__("InitChain");
 void MeasureShape(SHAPE *p) __asm__("MeasureShape");
 void SetLoBusyKind(SHAPE *p, int n) __asm__("SetLoBusyKind");
 // Creates the shape's chain (rope simulation) if missing, measures it and marks the LO busy; f = 1 re-arms an
-// existing chain.
+// existing chain. Also known as: PropeEnsure (upstream readable / Sly 1 name; PropeEnsure__FP2LOi).
 extern "C" SHAPECHAIN *EnsureShapeChain(SHAPE *shape, int rearm)
 {
     if (!shape->chain) {
@@ -1401,7 +1401,7 @@ extern "C" { static inline float StoreEndpointAndUpperBits(float *endpoint,float
 extern int D_002C3650 __asm__("D_002C3650");
 float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 float WrapShapeDistance(SHAPE *, float) __asm__("WrapShapeDistance");
-// Random arc length within +-range of center, wrapped or clamped to the shape; the distribution is chosen by a table.
+// Random arc length within +-range of center, wrapped or clamped to the shape; the distribution is chosen by a table. Also known as: SRandCrvNear (upstream readable / Sly 1 name; SRandCrvNear__FP3CRVff).
 extern "C" float GetRandomShapeDistanceInRange(SHAPE *shape, float center, float range)
 {
     float r[2];
@@ -1460,7 +1460,7 @@ void *AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldH
 void SyncChainDistances(struct S*) __asm__("SyncChainDistances");
 // Transform point a by the 4x4 matrix m.
 extern "C" { static inline qword Point(struct M4 *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->unknown0),"j"(m->unknown4),"j"(m->c),"j"(m->d),"j"(a));return r;} }
-// Initialises a chain for a shape: a private copy of the points and distances and the rest lengths.
+// Initialises a chain for a shape: a private copy of the points and distances and the rest lengths. Also known as: InitRope (upstream readable / Sly 1 name; InitRope__FP4ROPEP2LO).
 extern "C" struct S *InitChain(struct S *chain,struct PATH *path) {
  struct SWALLOC size;struct M4 *m;int i;
  chain->path=path;chain->mode=-1;
@@ -1669,7 +1669,7 @@ static inline void Blend(U *pd, const U *pa, const qword &b, float t) { pd->q = 
 // Store the interpolation (1-t)*pa + t*pb into pd.
 static inline void LerpP(U *pd, const U *pa, const U *pb, float t) { pd->q = VecCombo(VU_FLOAT(1.0f - t), VU_VECTOR(pa->q), VU_FLOAT(t), VU_VECTOR(pb->q)); }
 
-// One fourth-order (RK4-style) step of the spring rope chain.
+// One fourth-order (RK4-style) step of the spring rope chain. Also known as: StepRopeSpring (upstream readable / Sly 1 name; StepRopeSpring__FP4ROPE).
 void StepChainRk4(CHAIN *chain)
 {
     U newP[64], newV[64], accP[64], accV[64], force[64];
@@ -1906,7 +1906,7 @@ static inline VV VecCombo3(VV base, VU_FLOAT g1, VV v1, VU_FLOAT g2, VV v2)
     return r;
 }
 
-// One Verlet-style step of the rope chain with distance constraints and pinned ends.
+// One Verlet-style step of the rope chain with distance constraints and pinned ends. Also known as: StepRopeTrail (upstream readable / Sly 1 name; StepRopeTrail__FP4ROPE).
 void StepChain(CHAIN *chain)
 {
     float dt = g_clock.deltaTime;
@@ -1960,7 +1960,7 @@ extern char D_002C44F0[] __asm__("D_002C44F0");
 float GetShapeMinParam(int) __asm__("GetShapeMinParam");
 float GetShapeMaxParam(int) __asm__("GetShapeMaxParam");
 void EvaluateShapeAtParam(int, qword *, int, float) __asm__("EvaluateShapeAtParam");
-// Attaches chain end i to an object's transform (slot 32), or to the shape's start/end point.
+// Attaches chain end i to an object's transform (slot 32), or to the shape's start/end point. Also known as: SetRopeEnd (upstream readable / Sly 1 name; SetRopeEnd__FP4ROPEiP2LO).
 extern "C" void SetChainEndObject(struct P *shape, int end, LO *object)
 {
     shape->apo[end] = object;
@@ -2040,7 +2040,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 /* pd = p0 * cf + p1 * f */
 static inline void Lerp(QWROW*pd,const QWROW*p0,const QWROW*p1,float f,float cf){pd->q=VecCombo(VU_FLOAT(cf),VU_VECTOR(p0->q),VU_FLOAT(f),VU_VECTOR(p1->q));}
 // Appends a time sample to a chain's sampled path (truncating when time goes back, interpolating inserted samples
-// every `step`); a full chain (capacity reached) drops to mode 0.
+// every `step`); a full chain (capacity reached) drops to mode 0. Also known as: SetRopeLength (upstream readable / Sly 1 name; SetRopeLength__FP4ROPEf).
 void AddChainSample(SHAPECHAIN*chain,float time){
  int count=chain->pshape->numControlVertices;
  int n;
@@ -2081,7 +2081,7 @@ refresh:
 }
 } // namespace M_func_001E95B0
 
-// Copies the shape's distance array into its chain.
+// Copies the shape's distance array into its chain. Also known as: CopyRopeDistances (upstream readable / Sly 1 name; CopyRopeDistances__FP4ROPE).
 extern "C" void SyncChainDistances(SHAPECHAIN *chain)
 {
     SHAPE *pshape = chain->pshape;
@@ -2168,7 +2168,7 @@ static inline void TransposeInto(M3 &r, const M3 &m)
 }
 
 // CID 106 slot 15 (PostLoad): PostSoLoad, then stores each mesh vertex as an offset in the path-local frame and a
-// distance along the shape.
+// distance along the shape. Also known as: PostLoadRopeMesh (upstream readable / Sly 1 name; PostLoadRopeMesh__FP2LO).
 void PostCid106Load(S *cid106)
 {
     U vertices[128];
@@ -2249,7 +2249,7 @@ static inline float GetY(qword q) {float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q)
 // Smaller of a and b.
 static inline float StdMinLocal(float a,float b) {return b<a?b:a;} // util.h StdMin's spelling; kept local: folding it moves func_001E9AC0's lines (1 instruction off)
 } // namespace M_func_001E9AC0
-// CID 106 slot 19 (RenderSelf): RenderSoSelf with the mesh deformed along the shape (EvaluateShapeAtParam per sample).
+// CID 106 slot 19 (RenderSelf): RenderSoSelf with the mesh deformed along the shape (EvaluateShapeAtParam per sample). Also known as: PlaceRopeMeshScene (upstream readable / Sly 1 name; PlaceRopeMeshScene__FP3ALO).
 void CID106::RenderSelf()
 {
  using namespace M_func_001E9AC0;
@@ -2393,7 +2393,7 @@ typedef int qword __attribute__((mode(TI)));
 void *FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");
 int FindPathzoneObstacles(void *p, int n, qword q, qword q2, int c, void **ap) __asm__("FindPathzoneObstacles");
 int IsPosInConvexObstacle(void *p, qword q) __asm__("IsPosInConvexObstacle");
-// Finds the path zone at pos that passes the obstacle test (IsPosInConvexObstacle), or 0. (inferred)
+// Finds the path zone at pos that passes the obstacle test (IsPosInConvexObstacle), or 0. (inferred) Also known as: PpolyAtPoint (upstream readable / Sly 1 name; PpolyAtPoint__FG9VU_VECTOR).
 extern "C" void *FindValidObjectAtPos(qword pos)
 {
     void *ap[0x40];
@@ -2442,7 +2442,7 @@ void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int) __asm__("MergeSegmentLists");
 
 // Samples the shape over [t0, t1], collects the parameter ranges that are valid (walkable, not blocked) and
-// intersects them with the existing ranges. (inferred)
+// intersects them with the existing ranges. (inferred) Also known as: UpdatePathrec (upstream readable / Sly 1 name; UpdatePathrec__FP7PATHREC).
 extern "C" void BuildShapeValidRanges(struct S *shape)
 {
     struct VEC pos;
@@ -2538,7 +2538,7 @@ extern "C" void BuildShapeValidRanges(struct S *shape)
 
 namespace M_func_001EA3B0 {
 struct S { char pad[0xC]; int c; struct LM alm[1]; };
-// Returns the {min, max} range containing g, or 0.
+// Returns the {min, max} range containing g, or 0. Also known as: FInPathSpan (upstream readable / Sly 1 name; FInPathSpan__FP7PATHRECf).
 extern "C" struct LM *FindRangeContaining(struct S *table, float value)
 {
     int i;

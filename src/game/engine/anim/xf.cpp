@@ -82,6 +82,7 @@ struct VU_FLOAT
 namespace M_func_0022C818 {
 // Points a transform slot's time/speed sources at its own segment fields (time 0, speed 1), detaching any animation
 // that was driving it. (inferred)
+// Also known as: ResetXfParams (upstream readable / Sly 1 name; ResetXfParams__FP2XFPv).
 extern "C" void ResetXfValueRef(ALO *q, XF *p)
 {
     p->segmentEndTime = 1.0f;
@@ -101,6 +102,7 @@ extern const float D_002A98D0 __asm__("D_002A98D0");   /* defined below where th
 extern char D_002C44E0[] __asm__("D_002C44E0");
 // If the transform slot's role is an active (moving) one, marks the owning SO awake so it gets per-frame updates.
 // (inferred)
+// Also known as: InvalidateXfParams (upstream readable / Sly 1 name; InvalidateXfParams__FP3ALOP2XF).
 extern "C" void WakeXfOwner(SO *p, XF *q)
 {
     switch (q->role) {
@@ -129,6 +131,7 @@ M3 *LoadRotateMatrixEuler(M3 *pm, qword v) __asm__("LoadRotateMatrixEuler");
 VU *VECTOR_opAssign(VU *pv, qword q) __asm__("VECTOR_opAssign");
 // Builds the local matrix a slot value produces for the slot's component kind: translation, Euler rotation, shear or
 // scale (an identity matrix with the value written in the right place). (inferred)
+// Also known as: MatXfWithValue (upstream readable / Sly 1 name; MatXfWithValue__FP2XFP7VECTOR4G9VU_VECTOR).
 extern "C" M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
 {
     switch (p->kind) {
@@ -179,6 +182,7 @@ typedef int qword __attribute__((mode(TI)));
 qword DecomposeRotationMatrixToEuler(float *m) __asm__("DecomposeRotationMatrixToEuler");
 // The inverse of BuildXfValueMatrix: extracts a slot's component value (translation, Euler angles, shear or scale)
 // from a matrix, by the slot's component kind. (inferred)
+// Also known as: VecXfValue (upstream readable / Sly 1 name; VecXfValue__FP2XFP7MATRIX4).
 extern "C" qword GetXfValueFromMatrix(XF *p, float *m)
 {
     qword v;
@@ -203,6 +207,7 @@ namespace M_func_0022CAD0 {
 typedef int qword __attribute__((mode(TI)));
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc) __asm__("CalculateSinCos__FfPfT1");
 // Converts Euler-angle rates (b) into an angular velocity vector at the Euler angles a (pitch in y, yaw in z) (inferred).
+// Also known as: VecRotateTiltPan (upstream readable / Sly 1 name; VecRotateTiltPan__FG9VU_VECTORT0).
 extern "C" qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
 {
     float s0, c0, s1, c1;
@@ -237,6 +242,7 @@ typedef int qword __attribute__((mode(TI)));
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
 // writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix). (inferred)
+// Also known as: DmatOfValue (upstream readable / Sly 1 name; DmatOfValue__FP2XFP7VECTOR4G9VU_VECTOR).
 extern "C" float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
 {
     func_002333B4(m, 0, 0x40);
@@ -289,6 +295,7 @@ static inline M4 *PublishSkew(M4 &m,qword value){
 // Keep the destination and basis pointers in callee-saved $17/$18 across the following calls.
 static inline void RetainMatrices(M4 *incomingDestination,const M3 *incomingBasis,M4 *&outDestination,const M3 *&outBasis){register M4 *destination asm("$17");register const M3 *basis asm("$18");asm("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=&r"(destination),"=&r"(basis):"r"(incomingDestination),"r"(incomingBasis));outDestination=destination;outBasis=basis;}
 // Builds the derivative of a rotation as skew(angular velocity) times the basis matrix (inferred).
+// Also known as: DmatSkew (upstream readable / Sly 1 name; DmatSkew__FP7MATRIX4P7VECTOR4PvG9VU_VECTOR).
 extern "C" M4 *BuildRotationDerivativeMatrix(M4 *destination, void *pv, const M3 *basis, qword v)
 {
     M4 *pm;const M3 *pmB;RetainMatrices(destination,basis,pm,pmB);func_002333B4(destination, 0, 0x40);
@@ -330,6 +337,7 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
 // Formerly EvaluateXfSlotMatrix: despite that name the body computes the matrix's time derivative, which is how
 // SetXfRole reads velocities off it. Callers: itself (mirrored slots), GetXfAngularVelocity, GetXfVelocity and
 // SetXfRole.
+// Also known as: DmatXf (upstream readable / Sly 1 name; DmatXf__FP2XFPv).
 extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po)
 {
     M4 m, m2;
@@ -453,6 +461,7 @@ extern "C" { static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
     }
 } }
 // Angular velocity of a transform (up to poStop) by finite differences of its slot matrices. (inferred)
+// Also known as: DmatXfChain (upstream readable / Sly 1 name; DmatXfChain__FP2XFT0Pv).
 extern "C" M4 *GetXfAngularVelocity(M4 *pm, XF *po, XF *poStop)
 {
     M4 mB, mA, mE, mC, mD;
@@ -539,6 +548,7 @@ static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
 static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->unknownE0,p->acceleration,0,v,0);}
 // Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 // Runtime-checked: XF+0xB0 holds the velocity.
+// Also known as: VelXfPoint (upstream readable / Sly 1 name; VelXfPoint__FP2XFT0G9VU_VECTOR).
 extern "C" qword GetXfVelocity(XF *p,XF *stop,qword in) {
     qword sum;
     qword delta;
@@ -612,6 +622,7 @@ extern int D_004437A0 __asm__("D_004437A0");
 extern int D_004437A8[] __asm__("D_004437A8");
 // Resolves a transform id to an address: the high bits choose the local table (c), the parent's table (b) or the top
 // of the context stack; the low bits index 0x100-byte transform records. (inferred)
+// Also known as: PxfFromRef (upstream readable / Sly 1 name; PxfFromRef__FiP3ALOT1).
 int ResolveXfId(int a, SO *b, SO *c) __asm__("ResolveXfId"); int ResolveXfId(int a, SO *b, SO *c)
 {
     int r = 0;
@@ -683,6 +694,7 @@ static inline void ClearFlag(SO *p){int f=p->unknown40;if((f^1)&1)*(int *)f&=~0x
 // Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
 // animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadAloXfsFromBrx (upstream readable / Sly 1 name; LoadAloXfsFromBrx__FP3ALOP18CBinaryInputStream).
 extern "C" void LoadSoXfsFromBrx(SO *p,void *stream){
  int i=0;
  p->numTransforms=S16Read__18CBinaryInputStream(stream);
@@ -733,6 +745,7 @@ void ResetXfValueRef(void *pa, XF *p) __asm__("ResetXfValueRef");
 void SetXfRole(void *pa, XF *p, int state) __asm__("SetXfRole");
 // Keeps an animated slot's time inside its [segmentStartTime, segmentEndTime] window: when it leaves the window (or the
 // phase is done) the slot's act is updated (slot 4) and the slot switches to a settling role. (inferred)
+// Also known as: RefreshXf (upstream readable / Sly 1 name; RefreshXf__FP3ALOP2XF).
 extern "C" void UpdateXfJobRange(void *pa, XF *p)
 {
     float g = *p->timeSource;
@@ -765,7 +778,7 @@ extern "C" void UpdateXfJobRange(void *pa, XF *p)
 
 // UpdateSoSlots: ported from Lilly's personal Sly 2 decomp (src/P2/xf.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), g_clock (g_clock), D_002A2DD0 (g_qwZero), g_sw (g_sw)
+// Globals: D_002A2DA0 (D_002A2DA0), g_clock, D_002A2DD0 (g_qwZero), g_sw
 // 0x0022DE88 UpdateSoSlots__FP2SO (our name, was FUN_0022DE88; SO::Update 0x1F3980 calls it right after the SO's own update). THE per-frame step of an SO's XF slots:
 // for every XF it runs SlotRefresh and then, by the XF's role (role, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (worldStamp = ++g_sw.transformStamp):
 //   roles 1 2   constant `acceleration` on the `velocity`: xfk 1 moves the position row (trapezoid: pos += (v_old + v_new) * dt / 2), xfk 6 turns the rotation by the
@@ -1062,6 +1075,7 @@ MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("BuildAxisAngleRota
 void UpdateSoSlots(SO *so) __asm__("UpdateSoSlots");
 // Per-frame update of all transform slots of an SO: actions by role (chase, spring, curves, IK, chains, constraints),
 // value integration and settling, then world-matrix invalidation. The heart of object animation.
+// Also known as: UpdateAloXfs (upstream readable / Sly 1 name; UpdateAloXfs__FP3ALO).
 void UpdateSoSlots(SO *so)
 {
     int fMoving;
@@ -1646,6 +1660,7 @@ void RemoveLoFromRenderTree(struct S *p) __asm__("RemoveLoFromRenderTree");
 void AddLoToRenderTree(struct S *p) __asm__("AddLoToRenderTree");
 void ResortSwBusyEntry(void *g, int b) __asm__("ResortSwBusyEntry");
 // After a slot update: for objects with the "needs refresh" flag (bit 60), runs the class-specific refresh. (inferred)
+// Also known as: PostUpdateAloXfs (upstream readable / Sly 1 name; PostUpdateAloXfs__FP3ALO).
 void RefreshSoAfterSlotUpdate(struct S *p) __asm__("RefreshSoAfterSlotUpdate"); void RefreshSoAfterSlotUpdate(struct S *p)
 {
     if (!!((p->f >> 60) & 1)) {
@@ -1663,6 +1678,7 @@ typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 extern M4 D_002A2D30 __asm__("D_002A2D30");
 // Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
+// Also known as: UpdateAloXfWorlds (upstream readable / Sly 1 name; UpdateAloXfWorlds__FP3ALO).
 extern "C" void UpdateSoXfWorldMatrices(SO *p) {
     if(p->numTransforms>0) {
         XF *x=p->transforms,*last=p->transforms+p->numTransforms-1;
@@ -1696,6 +1712,7 @@ extern "C" void UpdateSoXfWorldMatrices(SO *p) {
 } // namespace M_UpdateSoXfWorldMatrices
 
 // Default (empty) world-hierarchy update for plain LOs.
+// Also known as: UpdateLoXfWorldsNothing (upstream readable / Sly 1 name; UpdateLoXfWorldsNothing__FP2LO).
 extern "C" void UpdateLoXfWorldHierarchy()
 {
 }
@@ -1706,6 +1723,7 @@ struct O { int a[3]; void *vptr; char pad[0x14]; struct O *next; };
 struct S : LO { char pad[0x64 - 0x50]; struct O *first; int a[2]; struct O *end; };
 void UpdateSoXfWorldMatrices(struct S *p) __asm__("UpdateSoXfWorldMatrices");
 // Recomputes an SO's world matrices and then those of its children.
+// Also known as: UpdateAloXfWorldsHierarchy (upstream readable / Sly 1 name; UpdateAloXfWorldsHierarchy__FP3ALO).
 extern "C" void UpdateSoXfWorldHierarchy(struct S *p)
 {
     struct O *o;
@@ -1729,6 +1747,7 @@ extern "C" { static inline qword MulPos(const M4 *m, qword v)
     return r;
 } }
 // Converts a point from transform a's space to transform b's space (0 = world).
+// Also known as: PosConvertXfs (upstream readable / Sly 1 name; PosConvertXfs__FP2XFT0G9VU_VECTOR).
 extern "C" qword TransformXfPos(XF *a, XF *b, qword v)
 {
     if (a) v = MulPos((M4 *)&a->worldMatrix, v);
@@ -1755,6 +1774,7 @@ extern "C" { static inline qword Mul3(const M3 *m, qword v)
     return r;
 } }
 // Converts a direction (no translation) from transform a's space to transform b's space (0 = world).
+// Also known as: VecConvertXfs (upstream readable / Sly 1 name; VecConvertXfs__FP2XFT0G9VU_VECTOR).
 extern "C" qword ConvertXfVec(XF *a, XF *b, qword v)
 {
     if (a) v = Mul3((M3 *)&a->worldMatrix, v);
@@ -1786,6 +1806,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 }
 // Converts a 3x3 matrix from transform a's space to transform b's space: inverse(b) * a * m.
 // Sly 1: ConvertMatBetweenLos.
+// Also known as: MatConvertXfs (upstream readable / Sly 1 name; MatConvertXfs__FP2XFT0P7MATRIX3Pv).
 extern "C" M3 *ConvertXfMat(M3 *pr, XF *pa, XF *pb, const M3 *pm)
 {
     if (pa) {
@@ -1846,6 +1867,7 @@ void WakeXfOwner(void *, XF *) __asm__("WakeXfOwner");
 
 // Inserts an action into a transform slot's action list, sorted by priority; if it becomes the head (the action in
 // effect) the slot is woken and the old head detached / new head attached, else the head is told (slot 3).
+// Also known as: AddXfCtrl (upstream readable / Sly 1 name; AddXfCtrl__FP3ALOP2XFP4CTRL).
 extern "C" void AddXfAct(void *ctx, XF *s, ACT *n)
 {
     ACT **pp = &s->firstActuator;
@@ -1871,6 +1893,7 @@ namespace M_func_00230100 {
 void WakeXfOwner(void *, XF *) __asm__("WakeXfOwner");
 
 // Unlinks an action from a transform slot's list and wakes the slot. (inferred)
+// Also known as: RemoveXfCtrl (upstream readable / Sly 1 name; RemoveXfCtrl__FP3ALOP2XFP4CTRL).
 extern "C" void RemoveXfAct(void *ctx, XF *s, ACT *n)
 {
     ACT *head = s->firstActuator;
@@ -1901,6 +1924,7 @@ namespace M_func_002301D0 {
 void WakeXfOwner(void *, XF *) __asm__("WakeXfOwner");
 
 // Re-sorts a slot's actions (up to 16) by priority after priorities changed, re-attaching the new head. (inferred)
+// Also known as: SortXfCtrls (upstream readable / Sly 1 name; SortXfCtrls__FP3ALOP2XF).
 extern "C" void SortXfActs(void *ctx, XF *s)
 {
     ACT *a[16];
@@ -1944,6 +1968,7 @@ namespace M_func_00230310 {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 // True for slot roles that move the value (1-3, 7-12, 17-21). (inferred)
+// Also known as: FXfmMoving (upstream readable / Sly 1 name).
 extern "C" int IsXfRoleMoving(int n)
 {
     switch (n) {
@@ -2014,6 +2039,7 @@ void ResetXfValueRef(SO *, P *) __asm__("ResetXfValueRef");
 // Sets a slot's motion role: entering a moving role from a non-moving one captures the slot's current velocity
 // (+0xB0, read off its derivative matrix: translation, shear, scale or the rotation rate), velocity roles clear
 // +0xF0, and the SO is woken unless the new role is at rest. (inferred) Lilly's jtstate.c port calls it SlotSetRole.
+// Also known as: SetXfMode (upstream readable / Sly 1 name; SetXfMode__FP3ALOP2XFi).
 extern "C" void SetXfRole(SO *so, P *xf, int role)
 {
     if (role == xf->role)
@@ -2066,6 +2092,7 @@ namespace M_SlotUnsettle {
 typedef struct { char pad[0x98]; unsigned short role; } B;
 void SetXfRole(void *, B *, int) __asm__("SetXfRole");
 // Puts a settled slot back into motion (inferred: the counterpart of SettleXfSlot).
+// Also known as: HoldXfMode (upstream readable / Sly 1 name).
 extern "C" void UnsettleXfSlot(void *a, B *b)
 {
     switch ((short)b->role) {
@@ -2082,6 +2109,7 @@ namespace M_func_00230630 {
 void SetXfRole(void *, XF *, int) __asm__("SetXfRole");
 
 // Moves a slot whose motion has finished to the matching resting role (by kind and phase). (inferred)
+// Also known as: ReleaseXfMode (upstream readable / Sly 1 name; ReleaseXfMode__FP3ALOP2XF).
 extern "C" void SettleXfSlot(void *p, XF *s)
 {
     switch (s->role) {
@@ -2191,6 +2219,7 @@ static inline qword AddScale(qword a, qword v, const VUF &f)
 }
 // A slot's current matrix and its time derivative, from its driving action's goal (value and rate) or its own
 // velocity role. (inferred)
+// Also known as: PredictXf (upstream readable / Sly 1 name; PredictXf__FP2XFPvP7MATRIX4f).
 void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g)
 {
     if (po->firstActuator) {
@@ -2277,6 +2306,7 @@ extern "C" { static inline void AddM4(M4 *d, M4 *a, M4 *b)
 
 // Walks a chain of slots, accumulating the product matrix and its derivative by the product rule, i.e. the velocity of
 // the chain's end transform. (inferred)
+// Also known as: PredictXfChain (upstream readable / Sly 1 name; PredictXfChain__FP2XFT0PvP7MATRIX4f).
 extern "C" void AccumulateXfChainVelocity(XF *first, XF *end, M4 *pA, M4 *pB, float f)
 {
     M4 m1, m2, a, b, s, t1, t2;
@@ -2336,6 +2366,7 @@ M4 BuildXfValueMatrix(XF *, qword) __asm__("BuildXfValueMatrix");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int) __asm__("EvaluateBezierPos");
 
 // Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot. (inferred)
+// Also known as: SnapAsegaXfs (upstream readable / Sly 1 name; SnapAsegaXfs__FP5ASEGAi).
 extern "C" void EvaluateXfSlotValue(ASEGA *a, int flag)
 {
     LO *list[16];

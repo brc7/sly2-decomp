@@ -84,6 +84,7 @@ extern char D_004435F0[];
 
 // Initializes the player's look/recon mode context (STEPPLAYER+0xF00): owner, state -1, requested kind -1, then its
 // HUD. Kinds: 0 binocucom, 1 recon (runtime-verified), 2 another look mode.
+// Also known as: InitBinoc (upstream readable / Sly 1 name; InitBinoc__FP5BINOC5BLOTK).
 extern "C" void InitJtMode(JTMODE *jtMode, STEPPLAYER *player)
 {
     jtMode->player = player;
@@ -93,6 +94,7 @@ extern "C" void InitJtMode(JTMODE *jtMode, STEPPLAYER *player)
 }
 
 // Post-load: binds the mode HUD widgets.
+// Also known as: PostLoadBinoc (upstream readable / Sly 1 name; PostLoadBinoc__FP5ACTOR).
 extern "C" void PostLoadJtMode(JTMODE *jtMode)
 {
     PostLoadJtModeHud(&jtMode->hud);
@@ -100,6 +102,7 @@ extern "C" void PostLoadJtMode(JTMODE *jtMode)
 
 // Requests mode `kind`: if a mode is running and the request is recon (1), ends and resets the current one first;
 // stores the kind and enters state 0 (starting). Kind 0 is the binocucom (all three characters), 1 recon.
+// Also known as: OpenBinoc (upstream readable / Sly 1 name; OpenBinoc__FP5ACTORiP2LOT2).
 extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *widget)
 {
     if (jtMode->state != -1) {
@@ -117,6 +120,7 @@ extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *w
 
 
 // Leaves the mode (state 2, ending) unless the owner is in state 0, 8, 9 or 10.
+// Also known as: CloseBinoc (upstream readable / Sly 1 name; CloseBinoc__FP5ACTOR).
 extern "C" void EndJtMode(JTMODE *jtMode) {
     if (jtMode->hud.unknown14) {
         switch (*jtMode->hud.unknown14) {
@@ -128,7 +132,7 @@ extern "C" void EndJtMode(JTMODE *jtMode) {
 
 // SetJtModeState: ported from Lilly's personal Sly 2 decomp (src/P2/jtmode.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: g_clock (g_clock), g_cm (g_cm), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), g_sw (g_sw)
+// Globals: g_clock, g_cm, D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), g_sw
 // 0x0019CD38 SetJtModeState__FP6JTMODEi  (our name)
 // Leaving a state: from off (-1) the mode takes hold of the hero's own animation (held at speed 0; kind 1 also counts a no-pause request in the world); from running (1) the
 // camera policy is taken off the camera's list (kind 1 also lets the held object go), the camera cuts, the sound buses return to full volume and the hero
@@ -137,6 +141,7 @@ extern "C" void EndJtMode(JTMODE *jtMode) {
 // off (-1) gives the hero's animation back. The overlay (hud) follows the same states.
 // Mode state change: -1 off, 0 starting, 1 running (pushes the look camera policy at priority 7 for kinds 0/2 or the
 // recon camera at priority 8 for kind 1, stops the hero and ducks sound buses 0/1 to 0.6), 2 ending; the HUD follows.
+// Also known as: SetBinocState (upstream readable / Sly 1 name; SetBinocState__FP5ACTORi).
 void SetJtModeState(JTMODE *jtMode, int state)
 {
     ASEG *aseg;
@@ -277,6 +282,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
 
 // Per-frame mode state machine: state 0 waits for the start clip then runs, state 1 turns the player toward the look
 // direction, state 2 waits for the end clip then turns the mode off; updates the HUD.
+// Also known as: UpdateBinoc (upstream readable / Sly 1 name; UpdateBinoc__FP5ACTOR).
 extern "C" void UpdateJtMode(JTMODE *jtMode)
 {
     int n;
@@ -354,6 +360,7 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *hud)
 
 // HUD state change: on first use gathers the world's tag list; state 0 broadcasts game event 0xC for recon and starts
 // the timers and speaker labels.
+// Also known as: SetBinocWindowState (upstream readable / Sly 1 name; SetBinocWindowState__FP5ACTORi).
 extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
 {
     int old;
@@ -425,6 +432,7 @@ typedef char Size_8[sizeof(void*)==4?1:-1];
 typedef char Alignment_0[__alignof__(STACKSCOPE)==1?1:-1];
 typedef char Alignment_1[__alignof__(LOCAL_LAYOUT)==4?1:-1];
 // The HUD tags: the current job's name plate, then the objective of its first open task in sorted task order. (inferred)
+// Also known as: SetBinocWindowArgs (upstream readable / Sly 1 name; SetBinocWindowArgs__FP8BINOCWIN).
 extern "C" void GatherJtModeHudTags(JTMODEHUD *hud)
 {
     WIDGET *pt = hud->pwidgetHud;
@@ -457,6 +465,7 @@ static inline void Below(int&value,WIDGET*q){value=0;if(!q||q->state<2)value=1;}
 // value = 1 when the widget is missing or in state 2, else 0.
 static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->state==2)value=1;}
 // Per-frame HUD update for the current mode state (widget update, timers).
+// Also known as: UpdateBinocWindow (upstream readable / Sly 1 name; UpdateBinocWindow__FP5ACTOR).
 extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
 {
 

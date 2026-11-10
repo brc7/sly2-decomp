@@ -74,6 +74,7 @@ static inline int GetPlayerEndIndex(STEPPLAYER *player, XP *contact)
 // driven. In hands-off mode it first fades out guards touching the player (broadcasting event 0x17 for visible ones);
 // otherwise, if the distance to the goal shrank by less than D_002BD2D4 per second, it snaps the goal onto the ground
 // and warps the player there, then holds until the player's state clears. (inferred)
+// Also known as: UpdateActorWatch (upstream readable / Sly 1 name; UpdateActorWatch__FP5ACTOR).
 extern "C" void UpdateJtgoal(JTGOAL *goal)
 {
     if (goal->isHolding) {
@@ -153,6 +154,7 @@ static __inline__ int GetDistanceBits(qword from, qword to)
 
 // Sets a new goal position unless the goal is holding or the new point is within D_002BD2D8 of the current goal;
 // records the current distance and schedules the next progress check.
+// Also known as: SetActorWatchTarget (upstream readable / Sly 1 name; SetActorWatchTarget__FP5ACTORG9VU_VECTOR).
 extern "C" void SetJtgoal(JTGOAL *goal, qword newGoalPos)
 {
     if (goal->isHolding != 0)

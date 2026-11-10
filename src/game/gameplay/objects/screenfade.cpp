@@ -143,6 +143,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
 
 // Starts the fade unless it is already running: stamps the start time and adds the object to the world (vtable
 // slot 8, Add). Called by the Splice thunk func_0010C6A8 and by places.cpp on world entry.
+// Also known as: StartFadeLo (upstream readable / Sly 1 name; StartFadeLo__FP2LO).
 extern "C" void StartScreenFade(FADEV *fade)
 {
     if (((int)(fade->loFlags >> 60) & 1) == 0) {

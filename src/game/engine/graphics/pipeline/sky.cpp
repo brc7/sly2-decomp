@@ -26,6 +26,7 @@ qword GetLoWorldPos(SKY *pso);
 
 // Post-load hook (vtable slot 15): SO post-load, busy level 1, sets flag bit 1 in the +0x40 flags (through the pointer
 // when it holds one) and clears SO flag bit 35, which keeps the sky out of the collision sphere tree (inferred).
+// Also known as: PostLoadSky (upstream readable / Sly 1 name; PostLoadSky__FP3SKY).
 void SKY::PostLoad()
 {
     SKY *sky = this;
@@ -40,6 +41,7 @@ void SKY::PostLoad()
 
 // Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),
 // keeping its own height unless followCameraZ is set.
+// Also known as: UpdateSky (upstream readable / Sly 1 name; UpdateSky__FP3SKY).
 extern "C" void UpdateSky(SKY *sky)
 {
     union V target;

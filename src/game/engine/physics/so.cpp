@@ -152,6 +152,7 @@ void SetLoBusyKind(SO *, int) __asm__("SetLoBusyKind");
 void InitDl__FP2DLi(void *, int) __asm__("InitDl__FP2DLi");
 // Slot 7 (Init): InitLo, not busy, empty child list, hit damages 10/20, alpha 1, the default bounds scale, and the
 // bit-35 flag inherited from the parent.
+// Also known as: InitSo (upstream readable / Sly 1 name; InitSo__FP2SO).
 extern "C" void InitSo(SO *so)
 {
     InitLo(so);
@@ -177,6 +178,7 @@ void EnsureSoBoundsHierarchy(SO *) __asm__("EnsureSoBoundsHierarchy");
 
 // Slot 10 (SetParent): remembers the world matrix and velocities, re-parents the LO, re-points the XFs into the new
 // parent, then rebinds contacts and bounds so the object keeps its world pose and motion.
+// Also known as: SetAloParent (upstream readable / Sly 1 name; SetAloParent__FP3ALOT0P2XFi).
 extern "C" void SetSoParent(SO *plo, SO *pa, XF *pb, int flags)
 {
     MATRIX4 mat;
@@ -388,6 +390,7 @@ void SetSoIgnoreLocked(SO *pso, int f) { pso->model.ignoreLocked = f; }
 namespace M_PsoFindPhysRoot {
 // Walks up the parent chain to the first SO whose physics is not fixed (SOPHYS modes != 3) or that is marked as a
 // tree root (+0x148 bit 34); returns the last object visited. That object owns the contact tree.
+// Also known as: PaloPhysRoot (upstream readable / Sly 1 name; PaloPhysRoot__FP3ALO).
 extern "C" SO *FindSoPhysRoot(SO *so)
 {
     SO *r = 0;
@@ -407,6 +410,7 @@ extern "C" SO *FindSoPhysRoot(SO *so)
 /* Makes sure the object has a tree record: its physics root's (created by SO slot 53 when missing). */
 // Gives the object a contact-tree record (+0xEC): shares its physics root's, creating it (slot 53) and registering
 // it with the broad phase when needed.
+// Also known as: PoxaEnsure (upstream readable / Sly 1 name; PoxaEnsure__FP3ALO).
 extern "C" void EnsureSoTree(SO *so)
 {
     SO *psoRoot;
@@ -428,6 +432,7 @@ void UpdateSoPartGeom(SOPART *) __asm__("UpdateSoPartGeom");
 void WakeSo(SO *) __asm__("WakeSo");
 // Adds one part to the tree's part list: copies the XF matrix and stamp, marks the tree dirty, transforms the
 // part's geometry to world space and wakes the tree if the object is not fixed.
+// Also known as: AddSoeToOxa (upstream readable / Sly 1 name; AddSoeToOxa__FP3ALOP3SOE).
 extern "C" void AddSoPartToTree(SO *so, SOPART *pe)
 {
     XF *po;
@@ -454,6 +459,7 @@ void RemoveObjectFromBroadPhase(SW *, SOTREE *) __asm__("RemoveObjectFromBroadPh
 void WakeSo(SO *) __asm__("WakeSo");
 // Removes a part from the tree's part list and frees its contacts; drops the tree when it becomes empty, or detaches
 // the object when none of its own parts remain.
+// Also known as: RemoveSoeFromOxa (upstream readable / Sly 1 name; RemoveSoeFromOxa__FP3ALOP3SOE).
 extern "C" void RemoveSoPartFromTree(SO *so, SOPART *pe)
 {
     int i;
@@ -494,6 +500,7 @@ extern "C" void ShowSoPart(SO *pa, SOPART *pb)
 namespace M_HideSoPart {
 void RemoveSoPartFromTree(SO *, SOPART *) __asm__("RemoveSoPartFromTree");
 // Hides a part and, when the object is in the world, removes it from the tree.
+// Also known as: SetSoeOff (upstream readable / Sly 1 name; SetSoeOff__FP3ALOP3SOE).
 extern "C" void HideSoPart(SO *so, SOPART *pt)
 {
     if (!pt->isHidden) {
@@ -507,6 +514,7 @@ extern "C" void HideSoPart(SO *so, SOPART *pt)
 namespace M_AddSoParts {
 void AddSoPartToTree(SO *, SOPART *) __asm__("AddSoPartToTree");
 // Adds every visible part to the object's tree.
+// Also known as: AddAloSoes (upstream readable / Sly 1 name; AddAloSoes__FP3ALO).
 extern "C" void AddSoParts(SO *so)
 {
     int i;
@@ -521,6 +529,7 @@ extern "C" void AddSoParts(SO *so)
 namespace M_RemoveSoParts {
 void RemoveSoPartFromTree(SO *, SOPART *) __asm__("RemoveSoPartFromTree");
 // Removes every visible part from the object's tree.
+// Also known as: RemoveAloSoes (upstream readable / Sly 1 name; RemoveAloSoes__FP3ALO).
 extern "C" void RemoveSoParts(SO *so)
 {
     int i;
@@ -546,6 +555,7 @@ void SetSoPhysRegion(SO *, void *) __asm__("SetSoPhysRegion");
 void PostSwCallback(SW *, SO *, long, int) __asm__("PostSwCallback");
 // Slot 11 (AddHierarchy): AddLoHierarchy, adds the parts, sets flags 0x14, registers the physics region (if the
 // object has a region record) and recurses into the children.
+// Also known as: OnSoAdd (upstream readable / Sly 1 name; OnSoAdd__FP2SO).
 extern "C" void AddSoHierarchy(SO *so)
 {
     LO *q;
@@ -582,6 +592,7 @@ void ClearSwCallbacks(SW *, int, SO *, long, int) __asm__("ClearSwCallbacks");
 void SetSoPhysRegion(SO *, int) __asm__("SetSoPhysRegion");
 // Slot 12 (RemoveHierarchy): RemoveLoHierarchy, removes the parts, resets the fade, unregisters the region callback
 // and recurses into the children.
+// Also known as: OnSoRemove (upstream readable / Sly 1 name; OnSoRemove__FP2SO).
 extern "C" void RemoveSoHierarchy(SO *so)
 {
     DLI dli;
@@ -616,6 +627,7 @@ extern "C" { static inline LO *Find(LO *x)
     return x;
 } }
 // Slot 13: UpdateLoroot recursively; when the object has parts and its root changed, re-adds them to the new tree.
+// Also known as: MoveAloPhys (upstream readable / Sly 1 name; MoveAloPhys__FP3ALON20).
 extern "C" void UpdateSoLoroot(SO *so, LO *pNew, SO *pOld)
 {
     LO *po;
@@ -642,6 +654,7 @@ extern "C" void UpdateSoLoroot(SO *so, LO *pNew, SO *pOld)
 // 0x1F2FE0 SetSoGrf
 namespace M_SetSoGrf {
 // Slot 47: sets flags in the LO flag word (+0x40) on this object and all children.
+// Also known as: MarkAloXfs (upstream readable / Sly 1 name; MarkAloXfs__FP3ALOUi).
 extern "C" void SetSoGrf(SO *so, int f)
 {
     LO *q;
@@ -721,6 +734,7 @@ void SetLoVisMask(SO *,int) __asm__("SetLoVisMask");
 /* GetXfFromIndex (slot 51) called by hand: as a virtual call inside the part loop it keeps the vptr in a register */
 static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
 static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)*(uint *)f|=8;else p->unknown40=f|8;}
+// Also known as: LoadSoFromBrx (upstream readable / Sly 1 name; LoadSoFromBrx__FP2SOP18CBinaryInputStream).
 extern "C" void LoadSoFromBrx(SO *so,void *stream)
 {
     int i=0;SOPART *e;
@@ -775,6 +789,7 @@ extern "C" void LoadSoFromBrx(SO *so,void *stream)
 // 0x1F3590 InitSoPhysics
 /* Default physics: gravity -1750 down z, both constraints of kind 3. */
 // Slot 64: physics defaults: gravity (0, 0, -1750) and both position and rotation XFs fixed (mode 3).
+// Also known as: RestAloSost (upstream readable / Sly 1 name; RestAloSost__FP3ALO).
 extern "C" void InitSoPhysics(SO *so)
 {
     SOPHYS *psophys;
@@ -790,6 +805,7 @@ extern "C" void InitSoPhysics(SO *so)
 
 // 0x1F35C8 SetSoMass
 // Sets the mass, scaling the inertia by the same ratio (ScaleSoInertia).
+// Also known as: SetSoMass (upstream readable / Sly 1 name; SetSoMass__FP2SOf).
 extern "C" void SetSoMass(SO *so, float m)
 {
     SOPHYS *psophys;
@@ -810,6 +826,7 @@ void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
 int InvertMatrix3(MATRIX3 *pmat, MATRIX3 *pmatInverse) __asm__("InvertMatrix3");
 // Scales the inertia matrix by r and recomputes its inverse (zero when singular).
+// Also known as: AdjustSoMomint (upstream readable / Sly 1 name; AdjustSoMomint__FP2SOf).
 extern "C" void ScaleSoInertia(SO *so, float s)
 {
     SOPHYS *pt = so->physics;
@@ -853,6 +870,7 @@ void *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 void SetSoPhysRegion(SO *, void *) __asm__("SetSoPhysRegion");
 // Slot 16 (Update): UpdateLo, refreshes the physics region from the position and advances the fade (alpha +=
 // rate * dt), removing the object when it fades to 0.
+// Also known as: UpdateSo (upstream readable / Sly 1 name; UpdateSo__FP2SOf).
 extern "C" void UpdateSo(SO *so)
 {
     void *q;
@@ -885,6 +903,7 @@ void RemoveDlEntry__FP2DLPv(void *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 void AppendDlEntry__FP2DLPv(void *, void *) __asm__("AppendDlEntry__FP2DLPv");
 void InitObstacleQueryCursor(struct Q *, void *) __asm__("InitObstacleQueryCursor");
 // Moves the object's region link from its current region's list to region q.
+// Also known as: SetAloRegion (upstream readable / Sly 1 name; SetAloRegion__FP3ALOP9NAVREGION).
 extern "C" void SetSoPhysRegion(SO *so, struct Q *q)
 {
     REGENT *o = so->physics->pregent;
@@ -910,6 +929,7 @@ qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
 int FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 void SetSoPhysRegion(void *, int) __asm__("SetSoPhysRegion");
 // Deferred callback: SetSoPhysRegion with the region at the object's world position.
+// Also known as: UpdateAloRegion (upstream readable / Sly 1 name; UpdateAloRegion__FP3ALO).
 extern "C" void UpdateSoPhysRegionCallback(void *p) { SetSoPhysRegion(p, FindPathzoneAtPos(GetLoWorldPos(p), 1)); }
 } // namespace M_func_001F3868
 
@@ -917,6 +937,7 @@ extern "C" void UpdateSoPhysRegionCallback(void *p) { SetSoPhysRegion(p, FindPat
 /* Recomputes the part's world geometry when its transform changed since the last update. */
 // When a part's stamp differs from its XF's, transforms the part's local geometry to world space, copies the stamp
 // and marks the tree dirty.
+// Also known as: UpdateSoeWorld (upstream readable / Sly 1 name; UpdateSoeWorld__FP3SOE).
 extern "C" void UpdateSoPartGeom(SOPART *part)
 {
     XF *pxf;
@@ -931,6 +952,7 @@ extern "C" void UpdateSoPartGeom(SOPART *part)
 // 0x1F3900 UpdateSoPartMatrices
 namespace M_UpdateSoPartMatrices {
 // Copies each visible part's XF world matrix and stamp into the part.
+// Also known as: CopyAloSoeMatrices (upstream readable / Sly 1 name; CopyAloSoeMatrices__FP3ALO).
 extern "C" void UpdateSoPartMatrices(SO *so)
 {
     int i;
@@ -961,6 +983,7 @@ extern "C" { static inline void Clear(int *a)
 } }
 // Slot 17: per-step transform update: part matrices, soft-mesh parts, XF positions into the physics record, the
 // physics preset (slot 70) for dynamic XFs, slots and part geometry.
+// Also known as: ProjectSoTransform (upstream readable / Sly 1 name; ProjectSoTransform__FP2SOfi).
 extern "C" void UpdateSoXfWorld(SO *so)
 {
     int i;
@@ -1064,6 +1087,7 @@ extern "C" void RefreshSoBoundsRecord(SO *so)
 
 // 0x1F3C70 RenderSoSelf
 // Slot 19 (RenderSelf): draws the glob set with the object's alpha when it is visible in the current camera mask.
+// Also known as: RenderSoSelf (upstream readable / Sly 1 name; RenderSoSelf__FP2SOP2CMP2RO).
 extern "C" void RenderSoSelf(SO *so)
 {
     float uAlpha;
@@ -1164,6 +1188,7 @@ MATRIX4 __ml__FRC7MATRIX4T0(MATRIX4 *, XF *) __asm__("__ml__FRC7MATRIX4T0");
 void UpdateSoIkBoneLengths(SO *) __asm__("UpdateSoIkBoneLengths");
 // Slot 37: applies a proxy's matrix to the first XF's local matrix, bumps the world stamp and updates the transform
 // hierarchy.
+// Also known as: SetAloMatrix (upstream readable / Sly 1 name; SetAloMatrix__FP3ALOP7MATRIX4).
 extern "C" void ApplySoProxy(SO *so, MATRIX4 *pv)
 {
     XF *pt = so->transforms;
@@ -1191,6 +1216,7 @@ struct REGION *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 void SetSoPhysRegion(SO *, struct REGION *) __asm__("SetSoPhysRegion");
 // Slot 29: moves the object to a world position (the position XF expressed relative to its parents), frees its
 // contacts and refreshes XF modes, part matrices and region.
+// Also known as: SetAloPos (upstream readable / Sly 1 name; SetAloPos__FP3ALOG9VU_VECTOR).
 extern "C" void TranslateSoToPos(SO *so, qword v)
 {
     M4 m0, matWorld, m80, mC0, m100, m140, m180, m1C0;
@@ -1265,6 +1291,7 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
 // Slot 30: sets the rotation from a world matrix (normalised against the parents), frees contacts and refreshes.
+// Also known as: SetAloRotation (upstream readable / Sly 1 name; SetAloRotation__FP3ALOP7MATRIX3).
 extern "C" void RotateSoToMat(SO *so,const M3 *basis)
 {
     XF *object=so->rotationXf;
@@ -1302,6 +1329,7 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 qword GetXfVelocity(XF *, int, qword) __asm__("GetXfVelocity");
 // Slot 33: world-space velocity of the position XF (when it is dynamic), else zero.
+// Also known as: VelAloPos (upstream readable / Sly 1 name; VelAloPos__FP3ALO).
 extern "C" qword GetSoVelocity(SO *p) { XF *pt = p->positionXf; if (!pt || pt->kind != 1) return D_002A2DD0; return GetXfVelocity(pt, 0, *(qword *)pt->worldMatrix.mat[3]); }
 } // namespace M_GetSoVelocity
 
@@ -1312,6 +1340,7 @@ int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
 qword ConvertXfVec(int, XF *, qword) __asm__("ConvertXfVec");
 void WakeSo(SO *) __asm__("WakeSo");
 // Slot 35: sets the position XF's velocity so the world velocity becomes v, then refreshes and marks the physics.
+// Also known as: SetAloVelocityToLoad (upstream readable / Sly 1 name; SetAloVelocityToLoad__FP3ALOG9VU_VECTOR).
 extern "C" void SetSoVelocity(SO *so, qword q)
 {
     XF *po = so->positionXf;
@@ -1372,6 +1401,7 @@ extern qword D_002A2DD0;
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
 MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("GetXfAngularVelocity");
 // Slot 34: world-space angular velocity of the rotation XF (when it is dynamic), else zero (Lilly port).
+// Also known as: AngVelAlo (upstream readable / Sly 1 name; AngVelAlo__Fv).
 qword SO::GetAngularVelocity()
 {
     XF *pxf = rotationXf;
@@ -1429,6 +1459,7 @@ static inline qword Transform(const M3 &m,qword v) { qword r;
 // Zero the xyz words of v.
 static inline void Clear(QWROW *v) { v->i[2]=0;v->i[1]=0;v->i[0]=0; }
 // Slot 36: sets the rotation XF's angular velocity from a world-space w.
+// Also known as: SetAloAngVelocityToLoad (upstream readable / Sly 1 name; SetAloAngVelocityToLoad__FP3ALOG9VU_VECTOR).
 extern "C" void SetSoAngularVelocity(SO *so,qword position)
 {
     XF *object=so->rotationXf;
@@ -1478,6 +1509,7 @@ void InvalidateSoAaox(void *) __asm__("InvalidateSoAaox");
 void WakeSo(void *) __asm__("WakeSo");
 void SetSoBit35Hierarchy(void *, int) __asm__("SetSoBit35Hierarchy");
 // Sets the position XF's velocity from a vector in the root XF's space, refreshes and marks the physics.
+// Also known as: SetAloVelocity (upstream readable / Sly 1 name; SetAloVelocity__FP3ALOG9VU_VECTOR).
 extern "C" void SetSoPosXfVelocityLocal(SO *so, qword v)
 {
     XF *po;
@@ -1502,6 +1534,7 @@ void InvalidateSoAaox(void *) __asm__("InvalidateSoAaox");
 void WakeSo(void *) __asm__("WakeSo");
 void SetSoBit35Hierarchy(void *, int) __asm__("SetSoBit35Hierarchy");
 // Sets the rotation XF's angular velocity from a vector in the root XF's space.
+// Also known as: SetAloAngVelocity (upstream readable / Sly 1 name; SetAloAngVelocity__FP3ALOG9VU_VECTOR).
 extern "C" void SetSoRotXfVelocityLocal(SO *so, qword v)
 {
     XF *po;
@@ -1582,6 +1615,7 @@ extern "C" void SetSoXf(struct SOIsland *so, XF *pa)
 // 0x1F4B58 MarkSoTreeBoundsDirty
 /* Queues the object's tree on list 1 (g_sw.dlSoTreeQueue1) once. */
 // Marks the tree's bounds dirty (flag bit 0) and queues it on g_sw.dlSoTreeQueue1.
+// Also known as: MarkOxaDirty1 (upstream readable / Sly 1 name; MarkOxaDirty1__FP3ALO).
 extern "C" void MarkSoTreeBoundsDirty(SO *so)
 {
     SOTREE *ptree;
@@ -1599,6 +1633,7 @@ namespace M_func_001F4BA8 {
 struct DL;
 void RemoveDlEntry__FP2DLPv(struct DL *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 // Clears the tree's bounds-dirty flag and removes it from g_sw.dlSoTreeQueue1.
+// Also known as: UnmarkOxaDirty1 (upstream readable / Sly 1 name; UnmarkOxaDirty1__FP3ALO).
 extern "C" void ClearSoTreeBoundsDirty(SO *so)
 {
     SOTREE *pt = so->physicsTree;
@@ -1614,6 +1649,7 @@ extern "C" void ClearSoTreeBoundsDirty(SO *so)
    Per-object counterpart of Sly 1's InvalidateSwAaox. */
 // After an object moved or changed its bounds: marks the tree bounds dirty and flags its broad-phase box once,
 // queueing it for the next sweep.
+// Also known as: MarkAloDirty (upstream readable / Sly 1 name; MarkAloDirty__FP3ALO).
 extern "C" void InvalidateSoAaox(SO *so)
 {
     SOTREE *ptree;
@@ -1664,6 +1700,7 @@ extern "C" void CloneSoXfRef(SO *pnew, SO *pold, XF **pp)
 
 // 0x1F4D50 ClearSoTreeDirty
 // Clears both tree-dirty flags and removes the tree from both queues.
+// Also known as: UnmarkAloDirty (upstream readable / Sly 1 name; UnmarkAloDirty__FP3ALO).
 extern "C" void ClearSoTreeDirty(SO *so)
 {
     SOTREE *ptree;
@@ -1712,6 +1749,7 @@ loop:
 namespace M_func_001F4E28 {
 void FreeSwXpList__FP2SWP2XP(SW *, void *) __asm__("FreeSwXpList__FP2SWP2XP");
 // Frees every contact of the tree, notifying both sides (slot 54) first.
+// Also known as: DetachAloContacts (upstream readable / Sly 1 name; DetachAloContacts__FP3ALO).
 extern "C" void FreeSoContacts(SO *so)
 {
     XPLIST *pn;
@@ -1785,6 +1823,7 @@ extern "C" void AdjustSoXpVelocity(void)
 namespace M_FIgnoreSoIntersection {
 // Slot 61: returns 1 when contacts between pa and pb are not needed: pb is fixed and pa is fixed too or ignores
 // fixed objects (+0x148 bit 26). Sly 1 name: FIgnoreSoIntersection.
+// Also known as: OverlapKindAlo (upstream readable / Sly 1 name; OverlapKindAlo__FP3ALOT0).
 extern "C" int ShouldSoIgnoreIntersection(SO *pa, SO *pb)
 {
     if ((pa->fIgnoreFixed || pa->IsFixed()) && pb->IsFixed()) return 1;
@@ -1795,6 +1834,7 @@ extern "C" int ShouldSoIgnoreIntersection(SO *pa, SO *pb)
 // 0x1F5040 IsSoFixed
 /* Whether the object is fixed: no physics, or both constraints of kind 3. */
 // Slot 62: returns 1 when the object has no physics record or both its XFs are fixed (mode 3).
+// Also known as: FAloStill (upstream readable / Sly 1 name; FAloStill__FP3ALO).
 extern "C" int IsSoFixed(SO *so)
 {
     SOPHYS *psophys;
@@ -1812,6 +1852,7 @@ extern "C" int IsSoFixed(SO *so)
 /* Wakes the object (LO slot 47 with 4) and unsettles its two physics transforms. */
 // Wakes an object in the broad phase: sets the awake flag (4) and un-settles its position and rotation slots.
 // (inferred)
+// Also known as: WakeAlo (upstream readable / Sly 1 name; WakeAlo__FP3ALO).
 extern "C" void WakeSo(SO *so)
 {
     if (so->physicsTree != 0) {
@@ -1909,6 +1950,7 @@ static inline void ExtendBox(qword &qwMin, qword &qwMax, const qword &qwPos)
 
 // Slot 49: rebuilds the tree's axis-aligned box and bounding sphere from its visible parts, marks the broad phase
 // dirty and clears the tree's dirty flag.
+// Also known as: UpdateSoBounds (upstream readable / Sly 1 name; UpdateSoBounds__FP2SO).
 extern "C" void UpdateSoTreeBounds(SO *so)
 {
     qword qwMin = D_002A2DF0;
@@ -2050,6 +2092,7 @@ extern "C" { static inline qword NormalizeOr(qword value,qword fallback) {
 } }
 // Looks up constraint i in the constraint tables: its mode, and its axis transformed by a matrix and normalised.
 // (inferred)
+// Also known as: SetCnstrAxis (upstream readable / Sly 1 name; SetCnstrAxis__FP2XFP6CNSTRSiP3OUT).
 void GetSoConstraintAxis(void *unused,M3 *matrix,int index,struct OUT *out) __asm__("GetSoConstraintAxis"); void GetSoConstraintAxis(void *unused,M3 *matrix,int index,struct OUT *out) {
     out->mode=D_002C3C20[index];
     out->axis=NormalizeOr(Transform(matrix,D_002C3BA0[index]),D_002A2DD0);
@@ -2063,6 +2106,7 @@ void RemoveSoParts(SO *) __asm__("RemoveSoParts");
 void AddSoParts(SO *) __asm__("AddSoParts");
 // After a physics-root change, regroups the contact trees of the objects whose physics root changed and registers
 // them again. Sly 1 name.
+// Also known as: ReRootAlo (upstream readable / Sly 1 name; ReRootAlo__FP3ALO).
 extern "C" void RebuildSoPhysHook(SO *so)
 {
     SO *ap[64];
@@ -2104,6 +2148,7 @@ extern "C" void NewSoTree(SO *so)
 // 0x1F5720 SetSoCnstrForce
 // Sets the translation constraint from a CNSTR: makes the position XF dynamic if needed, stores axis and mode in the
 // physics record and rebuilds the physics hook.
+// Also known as: SetAloCnstrLin (upstream readable / Sly 1 name; SetAloCnstrLin__FP3ALOi).
 extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
@@ -2122,6 +2167,7 @@ extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
 
 // 0x1F57C0 SetSoCnstrTorque
 // Sets the rotation constraint from a CNSTR (the rotational twin of SetSoCnstrForce).
+// Also known as: SetAloCnstrAng (upstream readable / Sly 1 name; SetAloCnstrAng__FP3ALOi).
 extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 {
     XF *pxf;
@@ -2150,6 +2196,7 @@ extern "C" qword GetSoGravity(SO *p) { if (!p->physics) return D_002A2DD0; retur
 namespace M_SetSoDvGravity {
 typedef int qword __attribute__((mode(TI)));
 // Sets the object's gravity vector (making the position XF dynamic if needed) and invalidates its box.
+// Also known as: SetAloGravity (upstream readable / Sly 1 name; SetAloGravity__FP3ALOG9VU_VECTOR).
 extern "C" void SetSoGravity(SO *so, qword q)
 {
     if (so->physics) {
@@ -2171,6 +2218,7 @@ void TiltMatUpright(void *, int, struct V *) __asm__("TiltMatUpright");
 float atan2f(float, float) __asm__("atan2f");
 // Slot 50: the camera's default info for this object: base position and velocity, home heading from the upright
 // matrix, adjustment 100, no flags, last-move time now.
+// Also known as: GetSoCpdefi (upstream readable / Sly 1 name; GetSoCpdefi__FP2SOP6CPDEFI).
 extern "C" void GetSoCameraDefaults(SO *so, CPDEFI *po)
 {
     XF *o = so->rootTransform;
@@ -2187,6 +2235,7 @@ extern "C" void GetSoCameraDefaults(SO *so, CPDEFI *po)
 
 // 0x1F5988 OnSoContactFreed
 // Slot 54: a contact of the object is being freed; empty default (STEP overrides it).
+// Also known as: SetAloOverlapNothing (upstream readable / Sly 1 name; SetAloOverlapNothing__FP3ALOT0).
 extern "C" void OnSoContactFreed(void)
 {
 }
@@ -2245,6 +2294,7 @@ static inline float Length(qword a){qword d,one;float f;__asm__("vmul.xyz %0,%2,
 
 // Accelerates the rotation toward a target orientation with angular braking and a bounded correction (top speed
 // and acceleration from coef). Used for steering (STEP mode 0).
+// Also known as: BrakeAloRotation (upstream readable / Sly 1 name; BrakeAloRotation__FP3ALOP7MATRIX3Pf).
 extern "C" void AccelSoTowardMatBounded(SO *so,const M3 *orientation,const CLQ *c)
 {
     M3 frame,relative;
@@ -2312,6 +2362,8 @@ __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 static inline qword AddScaled(qword old,qword v,qword s){__asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(old):"j"(v),"j"(s));return old;}
 // Spring torque toward a target orientation (quadratic CLQ on the angle) and toward a target angular velocity
 // (clamped to 1/dt).
+// Also known as: AccelAloTowardRotation (upstream readable / Sly 1 name;
+//   AccelAloTowardRotation__FP3ALOP7MATRIX3P3CLQG9VU_VECTORT2).
 extern "C" void AccelSoTowardMatSpring(SO*so,const M3*orientation,const CLQ*c,qword velocity,const CLQ*d)
 {
     XF *owner=so->rotationXf;
@@ -2367,6 +2419,8 @@ extern "C" { static inline qword Scalar(float f){register qword r __asm__("$2");
 extern "C" { static inline qword AddScaled(qword old,qword direction,qword factor){register qword a __asm__("vf2")=old,b __asm__("vf4")=direction,scale __asm__("vf3")=factor,r __asm__("vf1");
 __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(a),"j"(b),"j"(scale));return r;} }
 // Spring force toward a target position (CLQ on the distance) and toward a target velocity (clamped to 1/dt).
+// Also known as: AccelAloTowardPosition (upstream readable / Sly 1 name;
+//   AccelAloTowardPosition__FP3ALOG9VU_VECTORP3CLQT1T2).
 extern "C" void AccelSoTowardPosSpring(SO*input,qword position,CLQ*positionCoefficients,qword velocity,CLQ*velocityCoefficients)
 {
  QWROW argument,point,old1,scale1,speed,old2,scale2;
@@ -2475,6 +2529,7 @@ inline void *PvAllocStack(int cb)
     return PvAllocStackImpl(pswalloc);
 }
 // Slot 41 (Clone): copies the object's state from another SO (Lilly port of CloneSo).
+// Also known as: CloneSo (upstream readable / Sly 1 name; CloneSo__FP2SOT0).
 void SO::Clone(LO *ploBase)
 {
     SO *psoBase = (SO *)ploBase;
@@ -2643,6 +2698,7 @@ struct B; struct N;
 struct B { char pad[0x18]; int oid; };
 struct N { char pad[0x1C]; struct N *next; int pad2; struct B *owner; int oid; };
 // The same search over the world's list of live state-machine instances (SMA). (inferred)
+// Also known as: PsmaFindAloSm (upstream readable / Sly 1 name; PsmaFindAloSm__Fi3OID).
 extern "C" struct N *FindLiveSma(int n, int m)
 {
     struct N *p;
@@ -2660,11 +2716,13 @@ extern "C" struct N *FindLiveSma(int n, int m)
 // 0x1F6838 GetSoTreeFlag2
 namespace M_func_001F6838 {
 // Bit 2 of the tree flags; 1 when the object has no tree. (inferred)
+// Also known as: FAloOutOfSweep (upstream readable / Sly 1 name; FAloOutOfSweep__FP3ALO).
 extern "C" int GetSoTreeFlag2(SO *p) { if (!p->physicsTree) return 1; return p->physicsTree->skipsUpdate; }
 } // namespace M_func_001F6838
 
 // 0x1F6860 SetSoTreeFlag2
 // Sets bit 2 of the tree flags and frees the tree's contacts. (inferred)
+// Also known as: SetAloContactsOff (upstream readable / Sly 1 name; SetAloContactsOff__FP3ALOi).
 extern "C" void SetSoTreeFlag2(SO *so, int f)
 {
     SOTREE *ptree;
@@ -2678,6 +2736,7 @@ extern "C" void SetSoTreeFlag2(SO *so, int f)
 // 0x1F68A8 SetSoPartsBit48
 namespace M_func_001F68A8 {
 // Sets (f = 1) bit 48 in the flag word of every part. (inferred)
+// Also known as: SetAloSensors (upstream readable / Sly 1 name; SetAloSensors__FP3ALOi).
 extern "C" void SetSoPartsBit48(SO *so, int f)
 {
     int i;
@@ -2700,6 +2759,7 @@ extern "C" int GetSoIgnoreFixed(SO *p) { return p->fIgnoreFixed; }
 // 0x1F6978 ShowSoGlobsById
 namespace M_ShowSoGlobsById {
 // Shows every glob with id k and the part linked to it.
+// Also known as: ShowAloGlobs (upstream readable / Sly 1 name; ShowAloGlobs__FP3ALOi).
 extern "C" void ShowSoGlobsById(SO *so, int k)
 {
     int i;
@@ -2751,6 +2811,7 @@ extern "C" void HideSoAllGlobs(SO *so)
 namespace M_ShowSoPartsById {
 void ShowSoPart(SO *, SOPART *) __asm__("ShowSoPart");
 // Shows the parts whose id is k.
+// Also known as: SetAloSoesByTag (upstream readable / Sly 1 name; SetAloSoesByTag__FP3ALOi).
 extern "C" void ShowSoPartsById(SO *so, int k)
 {
     int i;
@@ -2807,6 +2868,7 @@ static inline float Dot(qword a,qword b){qword r,one;float f;
 __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(r),"=&j"(one):"0"(a),"j"(b));
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 // Builds a part's soft-mesh record once: per-vertex velocities and accelerations and the oriented triangles.
+// Also known as: EnsureSoeMesh (upstream readable / Sly 1 name; EnsureSoeMesh__FP3SOE).
 extern "C" void EnsureSoPartMesh(SOPART *so)
 {
     if(so->plvo)return;
@@ -2876,6 +2938,7 @@ extern "C" { static inline qword *VelocityCursor(qword *p){register qword *initi
 extern "C" { static inline int PlaneLess(int a,int b){register int r __asm__("$2");__asm__("slt %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;} }
 // Integrates a soft-mesh part's vertices by dt (semi-implicit), tracks the largest radius and invalidates the part
 // after large moves.
+// Also known as: IntegrateSoeMesh (upstream readable / Sly 1 name; IntegrateSoeMesh__FP3SOEf).
 extern "C" void UpdateSoPartMesh(SOPART *so,float dt)
 {
  V scalar;
@@ -2951,6 +3014,7 @@ static inline float SquaredLength(qword a){qword one;float f;__asm__("vmul.xyz %
 /* volatile: the game's sqrt.s is a barrier for the scheduler (the radius store must precede the next constant). */
 static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r):"f"(f));return r;}
 // Copies a part's geometry into another space, inserting zeroed vertices, and rebuilds the world geometry and BSP.
+// Also known as: RebuildSoe (upstream readable / Sly 1 name; RebuildSoe__FP3SOEP2XFiT0).
 extern "C" void CloneSoPartGeomInserting(SOPART *source,XF *space,int inserted,SOPART *dest)
 {
     M4 transform;
@@ -2982,6 +3046,7 @@ namespace M_func_001F72F8 {
 typedef int qword __attribute__((mode(TI)));
 int FindBspLeafContainingPointFast(void *, int, qword) __asm__("FindBspLeafContainingPointFast");
 // Slot 73: returns 1 when pos is inside any visible sphere part or part BSP of the object.
+// Also known as: FAloContainsPoint (upstream readable / Sly 1 name; FAloContainsPoint__FP3ALOG9VU_VECTOR).
 extern "C" int IsPosInSo(SO *so, qword pos)
 {
     int i;
@@ -3019,6 +3084,7 @@ int DeliverZapToSo(struct M *) __asm__("DeliverZapToSo");
 void FreeSwXpList__FP2SWP2XP(SW *, void *) __asm__("FreeSwXpList__FP2SWP2XP");
 // Slot 74: for each contact whose other part has zap kinds, builds a zap record and delivers it; frees the list.
 // (inferred)
+// Also known as: DispatchAloSensorContacts (upstream readable / Sly 1 name; DispatchAloSensorContacts__FP3ALO).
 extern "C" void InflictSoContactZaps(SO *so)
 {
     struct N *pn;
@@ -3054,6 +3120,7 @@ extern "C" void InflictSoContactZaps(SO *so)
 namespace M_func_001F7530 {
 int GetSoZapResponseFlags(void *p, void *q) __asm__("GetSoZapResponseFlags");
 // Returns the first LO up the parent chain whose zap response to the given kinds is nonzero.
+// Also known as: PaloXpFilter (upstream readable / Sly 1 name; PaloXpFilter__FP3ALOUi).
 extern "C" LO *FindZapResponder(LO *lo, void *q)
 {
     for (; lo; lo = lo->parent) {
@@ -3067,6 +3134,7 @@ extern "C" LO *FindZapResponder(LO *lo, void *q)
 // 0x1F7588 CanSoTakeDamage
 // Slot 75 (so.h TakeDamage): returns 1 when the zap record's damage field (+0x44) is nonzero, i.e. the zap
 // hurts (inferred).
+// Also known as: FAbsorbSoWkr (upstream readable / Sly 1 name; FAbsorbSoWkr__FP2SOP3WKR).
 extern "C" int CanSoTakeDamage(SO *so, SOWATCH *pwatch)
 {
     return pwatch->unknown44 != 0;
@@ -3094,6 +3162,7 @@ void AppendDlEntry__FP2DLPv(void *, void *) __asm__("AppendDlEntry__FP2DLPv");
 // Delivers a zap (damage) record to the first object in the target chain that accepts it: skips zaps already in the
 // recent-zap list, computes the response and calls the object's zap handler.
 // Sly 1 zap.cpp vocabulary (InflictZpdZap, FInflictSoZap).
+// Also known as: PaloAcceptContact (upstream readable / Sly 1 name; PaloAcceptContact__FP5CTMSG).
 extern "C" SO *DeliverZapToSo(struct K *pk)
 {
     int unused[4];
@@ -3141,6 +3210,7 @@ namespace M_ExpireSwZapRecords {
 struct E;
 struct E { char pad[0x4C]; float t; };
 // Drops zap-history entries older than 0.25 s from the world's list.
+// Also known as: AgeSwContacts (upstream readable / Sly 1 name; AgeSwContacts__FPv).
 extern "C" void ExpireSwZapRecords(SW *so)
 {
     struct DLI dli;
@@ -3158,6 +3228,7 @@ extern "C" void ExpireSwZapRecords(SW *so)
 // 0x1F78A0 GetZapKindIndex
 namespace M_func_001F78A0 {
 // Index of the lowest set bit among the 26 zap kinds.
+// Also known as: IbitLow (upstream readable / Sly 1 name; IbitLow__FUi).
 extern "C" int GetZapKindIndex(int x)
 {
     int i; int m;
@@ -3169,6 +3240,7 @@ extern "C" int GetZapKindIndex(int x)
 // 0x1F78D8 GetSoZapResponseFlags
 namespace M_GrfzpdFromSoGrfzpk {
 // OR of the object's per-kind response bytes (+0x110[26]) for the kinds in grfzpk (Sly 1 GrfzpdFromSoGrfzpk).
+// Also known as: GrfAloXpBytes (upstream readable / Sly 1 name; GrfAloXpBytes__FP3ALOUi).
 extern "C" int GetSoZapResponseFlags(SO *so, int f)
 {
     int r = 0; int i; int m;
@@ -3180,6 +3252,7 @@ extern "C" int GetSoZapResponseFlags(SO *so, int f)
 // 0x1F7918 SetSoZapResponse
 namespace M_func_001F7918 {
 // Sets the object's response byte to b for each zap kind in grfzpk.
+// Also known as: SetAloXpBytes (upstream readable / Sly 1 name; SetAloXpBytes__FP3ALOUiUc).
 extern "C" void SetSoZapResponse(SO *so, int f, int b)
 {
     int i; int m;
@@ -3202,6 +3275,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__F
 void DeliverZapToSo(struct M *) __asm__("DeliverZapToSo");
 // Deferred touch callback: processes the contacts' zaps (slot 74), then emits the object's own zap according to
 // its zap mode. (inferred)
+// Also known as: EmitAloContact (upstream readable / Sly 1 name; EmitAloContact__FP3ALO).
 extern "C" void HandleSoTouchZaps(SO *so)
 {
     int k;
@@ -3229,6 +3303,7 @@ extern "C" void HandleSoTouchZaps(SO *so)
 namespace M_func_001F7A68 {
 // Sets the zap mode (+0x148 bits 24-25, 0..3); mode 2 makes the parts with zap kind 0 damaging (0x10000) with the
 // object's hit damage, the other modes make them harmless.
+// Also known as: SetAloEntryMode (upstream readable / Sly 1 name; SetAloEntryMode__FP3ALOi).
 extern "C" void SetSoZapMode(SO *so, int k)
 {
     int from, to, s;
@@ -3306,6 +3381,7 @@ namespace M_FadeSoOut {
 void SetSoFadeRate(void *, float) __asm__("SetSoFadeRate");
 void SetSoAlpha(void *, float) __asm__("SetSoAlpha");
 // Fades the object out over dur seconds (alpha rate -1/dur); dur <= 0 removes it at once.
+// Also known as: FadeAloOut (upstream readable / Sly 1 name; FadeAloOut__FP3ALOf).
 extern "C" void FadeSoOut(void *so, float f)
 {
     if (f <= 0.0f) {
@@ -3322,6 +3398,7 @@ namespace M_FadeSoIn {
 void SetSoFadeRate(SO *, float) __asm__("SetSoFadeRate");
 void SetSoAlpha(SO *, float) __asm__("SetSoAlpha");
 // Fades the object in over dur seconds, re-adding it if it was removed; dur <= 0 shows it at once.
+// Also known as: FadeAloIn (upstream readable / Sly 1 name; FadeAloIn__FP3ALOf).
 extern "C" void FadeSoIn(SO *so, float f)
 {
     if (f <= 0.0f) {
@@ -3355,6 +3432,7 @@ extern "C" void SetSoAlpha(SO *so, float uAlpha)
 // 0x1F7D90 SetSoFadeRate
 namespace M_SetSoFadeRate {
 // Sets the fade rate; a nonzero rate adds the object and marks it for updates.
+// Also known as: SetFade (upstream readable / Sly 1 name; SetFade__FP3ALOf).
 extern "C" void SetSoFadeRate(SO *so, float g)
 {
     if (g != 0.0f) {
@@ -3371,6 +3449,7 @@ extern "C" void SetSoFadeRate(SO *so, float g)
 // 0x1F7E08 CollectSoParts
 namespace M_func_001F7E08 {
 // Collects the parts that pass an optional predicate into an array; returns the count.
+// Also known as: CsoeCollect (upstream readable / Sly 1 name; CsoeCollect__FP3ALOPvN21).
 extern "C" int CollectSoParts(SO *so, int (*pfn)(void *, SOPART *), void *pv, SOPART **ape)
 {
     int n = 0;
@@ -3412,6 +3491,7 @@ extern "C" void SetSoNoJtPlace(SO *p, int n) { p->isNotLandable = n; }
 // 0x1F7F48 SetSoTreeRoot
 namespace M_func_001F7F48 {
 // Sets the tree-root flag (+0x148 bit 34, so.h isTreeRoot) and rebuilds the physics hook when it changed. (inferred)
+// Also known as: SetAloPhysRootFlag (upstream readable / Sly 1 name; SetAloPhysRootFlag__FP3ALOl).
 extern "C" void SetSoTreeRoot(SO *so, long f)
 {
     if (f != so->isTreeRoot) {
@@ -3456,6 +3536,7 @@ namespace M_func_001F80D0 {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void SetEyesClosed(void *, float) __asm__("SetEyesClosed");
 // Opens or closes the eyes (CID 0x8E) of the object and its SO children.
+// Also known as: SetAloEyesClosed (upstream readable / Sly 1 name; SetAloEyesClosed__FP3ALOf).
 extern "C" void SetSoEyesClosed(SO *so, float f)
 {
     int i;
@@ -3520,6 +3601,7 @@ struct T *FindTargetRecordById(int n) __asm__("FindTargetRecordById"); struct T 
 // 0x1F8278 EnsureTargetRecordById
 /* Makes a target record (0xAC bytes, InitTargetRecord) for plo unless it has one. */
 // Finds a target record by id, creating one when missing. (inferred)
+// Also known as: PtargetrecOf (upstream readable / Sly 1 name; PtargetrecOf__FP2LO).
 extern "C" void EnsureTargetRecordById(LO *plo)
 {
     if (FindTargetRecordById(plo) == 0) {
@@ -3548,6 +3630,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__F
 extern "C" { static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return AllocClearedFromWorldHeap(pcb); } }
 // Ensures the physics region record {object, three tuning floats with defaults 75 (150 for class 0x34) and 1}.
 // (inferred)
+// Also known as: PregentEnsure (upstream readable / Sly 1 name; PregentEnsure__FP3ALO).
 REGENT *EnsureSoPhysRegionRecord(SO *so) __asm__("EnsureSoPhysRegionRecord"); REGENT *EnsureSoPhysRegionRecord(SO *so)
 {
     if (!so->physics) return 0;
@@ -3686,6 +3769,7 @@ void AddLoToRenderTree(SO *) __asm__("AddLoToRenderTree");
 void RemoveLoFromRenderTree(SO *) __asm__("RemoveLoFromRenderTree");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Sets bit 35 of +0x148 on the object and its children, registering them when the world requires it. (inferred)
+// Also known as: SetAloIced (upstream readable / Sly 1 name; SetAloIced__FP3ALOl).
 void SetSoBit35Hierarchy(SO *so, long f) __asm__("SetSoBit35Hierarchy"); void SetSoBit35Hierarchy(SO *so, long f)
 {
     SO *q;
@@ -3776,6 +3860,7 @@ void RemoveXfAct(SO *, XF *, ACT *) __asm__("RemoveXfAct");
 void FreeAct(ACT *) __asm__("FreeAct");
 void SortXfActs(SO *, XF *) __asm__("SortXfActs");
 // Finds the XF's actuator of kind k; n = -1 removes it, otherwise it is updated and re-prioritised.
+// Also known as: PctrlFindXfh (upstream readable / Sly 1 name; PctrlFindXfh__FP7XFBASICiii).
 extern "C" ACT *FindXfHandleActuator(CID149 *handle, int k, int n, int m)
 {
     ACT *pe;
@@ -3807,6 +3892,7 @@ ACT *FindXfHandleActuator(CID149 *, int, int, int) __asm__("FindXfHandleActuator
 void SetActPositionGoal(ACT *, qword) __asm__("SetActPositionGoal");
 void NewPositionAct(SO *, XF *, int, int, int, qword) __asm__("NewPositionAct");
 // Updates or creates the XF's kind-1 actuator (a target vector) with its parameters.
+// Also known as: SetXfhPos (upstream readable / Sly 1 name; SetXfhPos__FP7XFBASICiiG9VU_VECTOR).
 extern "C" void SetXfHandleActuator1(CID149 *handle, int n, int m, qword q)
 {
     ACT *r = FindXfHandleActuator(handle, 1, n, m);

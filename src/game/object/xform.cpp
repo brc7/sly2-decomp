@@ -62,6 +62,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollec
 
 /* 0x231100 InitXfm */
 // XFM initialization (vtable slot 7): LO init, then identity local matrix and a stale world matrix.
+// Also known as: InitXfm (upstream readable / Sly 1 name; InitXfm__FP3XFM).
 extern "C" void InitXfm(XFM *xfm)
 {
     float *m; InitLo(xfm); if (xfm->parent) xfm->parentTransform = xfm->parent->rootTransform; m = &xfm->localMatrix.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
@@ -69,6 +70,7 @@ extern "C" void InitXfm(XFM *xfm)
 
 // Loads an XFM from the BRX (vtable slot 14): its parent XF reference and local matrix, then its options.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadXfmFromBrx (upstream readable / Sly 1 name; LoadXfmFromBrx__FP3XFMP18CBinaryInputStream).
 extern "C" void LoadXfmFromBrx(XFM *pxfm, CBinaryInputStream *stream)
 {
     LoadXfmXfFromBrx(pxfm, stream);
@@ -109,6 +111,7 @@ extern "C" void XFM_RemapClonedXf(XFM *pxfm, XFM *pxfmBase, XF **ppxf)
 /* 0x2312A0 TranslateXfmToPos */
 // XFM's TranslateToPos (vtable slot 29): converts the world position into the parent XF's space, stores it as the
 // local translation and invalidates the world matrix.
+// Also known as: SetLoxPos (upstream readable / Sly 1 name).
 extern "C" void TranslateXfmToPos(XFM *xfm, qword v)
 {
     float *m = &xfm->localMatrix.mat[0][0];
@@ -127,6 +130,7 @@ static inline void SetM(M3 *pm, M3 m)
     pm->r[2].w = 0;
 }
 // XFM's RotateToMat (vtable slot 30): stores the rotation rows (w = 0) and invalidates the world matrix.
+// Also known as: SetLoxRotation (upstream readable / Sly 1 name).
 extern "C" void RotateXfmToMat(XFM *xfm, MATRIX4 *matrix)
 {
     SetM((M3 *)&xfm->localMatrix, ConvertXfMat(0, xfm->parentTransform, matrix));
@@ -148,6 +152,7 @@ extern "C" void UpdateXfmMatWorld(XFM *xfm)
 }
 
 // Marks the world matrix stale and, for a top-level object in the world, re-sorts its busy-list entry.
+// Also known as: TouchLox (upstream readable / Sly 1 name; TouchLox__FP3LOX).
 extern "C" void InvalidateXfm(XFM *xfm)
 {
     xfm->worldStamp = -1;
@@ -219,6 +224,7 @@ extern "C" XF *XFM_GetLocalTransform(XFM *xfm, MATRIX4 *matrix)
 extern "C" void XFM_ApplyTransform(XFM *xfm, MATRIX4Q *matrix) { MATRIX4Q t; MulMatrix4Ret(&t, matrix, (MATRIX4Q *)&xfm->localMatrix); *(MATRIX4Q *)&xfm->localMatrix = t; InvalidateXfm(xfm); }
 
 // XFM's SetParent (vtable slot 10): reparents the object (LO_SetParent) keeping its world matrix when asked.
+// Also known as: SetLoxParent (upstream readable / Sly 1 name; SetLoxParent__FP3LOXP3ALOP2XFi).
 extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
 {
     MATRIX4Q m;
@@ -250,6 +256,7 @@ extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
 
 /* 0x231768 LoadXfmXfFromBrx */
 // Reads the XFM's parent XF reference and local matrix from the level stream.
+// Also known as: LoadLoxBaseFromBrx (upstream readable / Sly 1 name).
 extern "C" void LoadXfmXfFromBrx(XFM *xfm, CBinaryInputStream *q)
 {
     int v = q->S16Read();
@@ -262,6 +269,8 @@ extern "C" void LoadXfmXfFromBrx(XFM *xfm, CBinaryInputStream *q)
 // Loads the child objects listed under an XFM: pushes the XF context, reads the object list, pops it and applies the
 // XFM's matrix to each loaded object (slot 37).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadLoxChildrenFromBrx (upstream readable / Sly 1 name;
+//   LoadLoxChildrenFromBrx__FP3LOXP18CBinaryInputStreamPv).
 extern "C" void LoadXfmChildObjectsFromBrx(XFM *xfm, CBinaryInputStream *stream, CLoadCollectorArray *pl)
 {
     int i;

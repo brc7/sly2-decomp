@@ -97,6 +97,7 @@ void CroutSolve(int,float*,float*,float*);
 
 // Creates the 3-entry dynamic swing blend (forward, backward, idle) over the swing clips and returns it through the
 // out pointer (Sly 1: PostJtLoadSwing).
+// Also known as: BindSlySwingBlend (upstream readable / Sly 1 name; BindSlySwingBlend__FP3SLYPvPi).
 extern "C" void PostJtLoadSwing(void *jt, void *q, int *pn)
 {
     int n;
@@ -274,6 +275,7 @@ static inline CLOCK*Addr(CLOCK*p){return p;}
 static inline qword AddScaledVec2Q(qword base,qword a,qword b,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddax.xyzw $ACC,%2,%4x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(base),"j"(a),"j"(b),"j"(k),"j"(k));return r;} /* second "j"(k) is allocation-only: makes k VF-preferred so it is spilled across the call (target 0x1F0) */
 // Swing physics while hanging from a hook: pendulum motion around the hand-hold, smoothed swing angle, then
 // AnticipateJtForce for the resulting acceleration.
+// Also known as: CalculateSlyHangAccel (upstream readable / Sly 1 name; CalculateSlyHangAccel__FP3SLY).
 extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
 {
     U anchor, displacement, anchorVelocity, axis;
@@ -380,6 +382,7 @@ static inline M3P Mul(const M3P &a, const M3P &b) return r
 }
 // Physics preset while hanging: applies the hang force, then turns Sly toward the tilt (toward the hook) times the
 // target spin (radTarget).
+// Also known as: UpdateSlyHangMotion (upstream readable / Sly 1 name; UpdateSlyHangMotion__FP3SLY).
 extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
 {
     U v, d;
@@ -426,6 +429,7 @@ typedef char WORK_heading_Offset[FIELD_OFFSET(WORK,heading)==144?1:-1];
 typedef char WORK_target_Offset[FIELD_OFFSET(WORK,target)==160?1:-1];
 // Per-frame hang update (a close port of Sly 1's UpdateJtActiveHang): heading from the hook, stick forward/back
 // detection (60/120 degree cones), swing animation weights, jump-off/drop via SetJtState, then CalculateJtHangAccel.
+// Also known as: UpdateSlyHangInput (upstream readable / Sly 1 name; UpdateSlyHangInput__FP3SLY).
 extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
 {
     WORK w;
@@ -631,6 +635,7 @@ typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
 #undef FIELD_OFFSET
 
 // Writes the heading of the hook object (x18C4): atan2 of its world matrix's first row.
+// Also known as: RadHangFrame (upstream readable / Sly 1 name; RadHangFrame__FP3SLYPf).
 extern "C" void GetJtHangHeading__FP2JTPf(JT *jt, float *pg)
 {
     float *a, *b;
@@ -652,6 +657,7 @@ typedef char LengthBits_Size[sizeof(int)==4?1:-1];
 typedef char DataPointer_Size[sizeof(NODE*)==4?1:-1];
 // The point on the hook's surface nearest the hand: hook position plus the normalized hook-to-hand direction times
 // the hook radius.
+// Also known as: PosSlyHangPoint (upstream readable / Sly 1 name; PosSlyHangPoint__FP3SLY).
 extern "C" qword GetJtHangHandlePosition(JT *jt)
 {
     qword q, d, dir, r;
@@ -688,6 +694,7 @@ extern "C" qword GetJtHangHandlePosition(JT *jt)
 
 // Render-time fix-up while hanging: moves the hand child transform so the hand reaches GetJtHangHandlePosition (plus
 // the smoothed hand offset), refreshes its matrix, then renders.
+// Also known as: DrawSlyHangPlace (upstream readable / Sly 1 name; DrawSlyHangPlace__FP3SLY).
 extern "C" void RenderJtHangIk(JT *jt)
 {
     IKJ *t;
@@ -715,6 +722,7 @@ extern "C" void RenderJtHangIk(JT *jt)
 
 // Orients the hand toward the hook (fixed wrist angle D_002BF594), sets the wrist actuator from the Euler angles and
 // smooths the hand offset toward zero.
+// Also known as: UpdateSlyHangPlace (upstream readable / Sly 1 name; UpdateSlyHangPlace__FP3SLY).
 extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
 {
     M3P m;

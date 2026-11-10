@@ -122,6 +122,7 @@ static inline float SavedHeight(float value)
 // plane), scales the text with distance (clamped to D_002C1F28 = 0.4..1.5), centres a padded box just above the point
 // and draws the text with the given colour. The first colour argument is unused. Used for debug/world labels
 // (inferred).
+// Also known as: DrawMarkerLabel (upstream readable / Sly 1 name; DrawMarkerLabel__FG9VU_VECTORPcP4RGBAT2f).
 extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unusedColor, const RGBA *color, float inputHeight)
 {
     float height = SavedHeight(inputHeight);

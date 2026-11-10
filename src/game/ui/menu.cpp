@@ -44,7 +44,7 @@ struct PAUSEMENU : SCREENBASE
     PAGE ae[16];                /* 0x028 */
     int state;                  /* 0x1E8 */
     int pending;                /* 0x1EC: page to go to */
-    virtual void Show() __asm__("ShowPausemenu");   /* slot 10; key function */
+    virtual void Show() __asm__("ShowPausemenu");   /* slot 10; key function Also known as: ShowMenuWidget (upstream readable / Sly 1 name; ShowMenuWidget__Fv). */
     virtual void Update() __asm__("UpdatePauseMenu");   /* slot 7 */
     virtual void Draw() __asm__("PAUSEMENU_Slot8Default");   /* slot 8 */
     virtual void SetFocus(int fFocus, SCREENBASE *pscrOther) __asm__("PAUSEMENU_Slot9");   /* slot 9 */
@@ -188,6 +188,7 @@ extern "C" void HidePauseMenu(PAUSEMENU *menu)
 
 // The pause menu state machine (states 0..11): exit actions of the old state (moving the selection in 5/6, closing in
 // 0), then entry actions that play the current page's widget animations (texts 0x331..0x335, the volume slider 0x315).
+// Also known as: SetMenuState (upstream readable / Sly 1 name; SetMenuState__FP4MENUi).
 void SetPauseMenuState(PAUSEMENU *menu, int st)
 {
     PAGE *pe;
@@ -395,6 +396,7 @@ extern "C" void PAUSEMENU_Slot8Default(void) {
 }
 
 // Replaces the top page with count items (running their init callbacks) and enters state 3.
+// Also known as: ReplacePage (upstream readable / Sly 1 name; ReplacePage__FP4MENUiPv).
 void ReplacePauseMenuPage(PAUSEMENU *menu, int n, ITEM *af)
 {
     int meta, pool;
@@ -424,6 +426,7 @@ void ReplacePauseMenuPage(PAUSEMENU *menu, int n, ITEM *af)
 }
 
 // In the idle state (7): goes back to the previous page (state 3).
+// Also known as: BackReplaced (upstream readable / Sly 1 name; BackReplaced__FP4MENU).
 void GoBackPauseMenuPage(PAUSEMENU *menu)
 {
     if (menu->state == 7) {
@@ -433,6 +436,7 @@ void GoBackPauseMenuPage(PAUSEMENU *menu)
 }
 
 // Pushes a page (items, count, widget pool, title) on the menu stack, runs the items' init callbacks and enters state 1.
+// Also known as: PushPage (upstream readable / Sly 1 name; PushPage__FP4MENUiPviUi).
 void PushPauseMenuPage(PAUSEMENU *menu, int n, ITEM *af, WIDGET *pool, META *meta)
 {
     PAGE *e;
@@ -470,6 +474,7 @@ void PopPauseMenuPage(PAUSEMENU *menu)
 }
 
 // In the idle state (7): drops every page but the root (state 8).
+// Also known as: CloseMenu (upstream readable / Sly 1 name; CloseMenu__Fii).
 void PopPauseMenuToRoot(PAUSEMENU *menu) {
     if (menu->state == 7) {
         if (menu->depth >= 2) {
@@ -488,6 +493,7 @@ void EnterPauseMenuState11(PAUSEMENU *menu) {
 
 // Music/sound volume items (0x67/0x68): left/right changes the value, applies it to the sound channel and updates
 // the meter.
+// Also known as: UpdateSlider (upstream readable / Sly 1 name; UpdateSlider__FP4PAGEP7MENUENTPi).
 void AdjustPauseMenuVolumeItem(PAUSEMENU *menu, PAGE *p, ITEM *pk)
 {
     switch (pk->kind) {
@@ -534,6 +540,7 @@ void AdjustPauseMenuVolumeItem(PAUSEMENU *menu, PAGE *p, ITEM *pk)
 // Evaluate save variable id as an int.
 static inline int GetTag(int id) { return Eval(id, &g_gs).u.n; }
 // Item text callback for the video items (76..78): picks the string from the current option values.
+// Also known as: InitOptionText (upstream readable / Sly 1 name; InitOptionText__FP7MENUENT).
 extern "C" void GetPauseMenuVideoItemText(int *menu)
 {
     int t;
@@ -601,6 +608,7 @@ static inline void SetBool(OPT*key,bool x){CRef r(x);SetPv(key,r,&g_gs);}
 static inline void SetFloat(OPT*key,float x){CRef r(x);SetPv(key,r,&g_gs);}
 #define OPTI(d) (*(OPT **)&(d))
 // Applies an option item (kinds 103 and up): sets the option values and re-applies the GS settings.
+// Also known as: ApplyOption (upstream readable / Sly 1 name; ApplyOption__FP7MENUENTP3MSG).
 void ApplyPauseMenuVideoItem(PAUSEMENU*owner,ITEM*msg){
  switch(msg->kind){
  case 103:
@@ -643,6 +651,7 @@ void ResetPauseMenuVideoOptions(PAUSEMENU *menu, ITEM *item) {
 
 /* (Claude agent) Matched: plain search loop, array pointer cached, key re-read each iteration. */
 // Item callback: cycles the item's value through its list and applies it.
+// Also known as: CycleOption (upstream readable / Sly 1 name; CycleOption__FP7MENUENT).
 extern "C" void CyclePauseMenuOptionItem(ITEM *item)
 {
     int i;int *a=item->a;
@@ -654,6 +663,7 @@ extern "C" void CyclePauseMenuOptionItem(ITEM *item)
 }
 
 // Returns the id of the top page (0x1E/0x1F/0x19 for the three save/load pages) or -1.
+// Also known as: KindDataAccess (upstream readable / Sly 1 name; KindDataAccess__FP4MENU).
 int GetPauseMenuTopPageId(PAUSEMENU *menu)
 {
     int n;
@@ -713,6 +723,7 @@ extern "C" void OnPauseItemPopToRoot(void) {
 
 // Opens the pause menu when allowed (no transition, no dialog): builds the root page from the seven items that are
 // available and pushes it. Returns whether it opened.
+// Also known as: AentPause (upstream readable / Sly 1 name; AentPause__FPv).
 extern "C" int TryOpenPauseMenu(ITEM *item)
 {
     char *pl;
@@ -769,6 +780,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
 }
 
 // Builds the options page (up to 11 available items) and pushes it (or replaces the top page).
+// Also known as: AentOptions (upstream readable / Sly 1 name; AentOptions__FPv).
 extern "C" void OpenPauseOptionsPage(ITEM *item)
 {
     ITEM *src = D_002BFEC8;

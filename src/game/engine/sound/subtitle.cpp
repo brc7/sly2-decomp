@@ -57,6 +57,7 @@ char *FindSwLocalizedString(struct SW *psw, int id);
 
 // The subtitle box colour for a speaker, by the speaker's class id (0x35/0x36/0x37/0x3C/0x3F get their own colours,
 // inferred to be the main characters; everyone else is grey), always half transparent.
+// Also known as: RgbaDialogSpeaker (upstream readable / Sly 1 name; RgbaDialogSpeaker__Fi).
 extern "C" RGBA GetSpeakerSubtitleColor(int speakerCid)
 {
     RGBA color;
@@ -73,6 +74,7 @@ extern "C" RGBA GetSpeakerSubtitleColor(int speakerCid)
 
 // Sets the current subtitle: clears it, then stores the language-string id of the line and the colour of its speaker.
 // (inferred)
+// Also known as: SetDialogSubtitle (upstream readable / Sly 1 name; SetDialogSubtitle__FP9DIALOGSUBii).
 extern "C" void SetSubtitle(SPEAKERLABEL *subtitle, int textId, int speakerCid)
 {
     ClearSubtitle(subtitle);
@@ -90,6 +92,7 @@ extern "C" void ClearSubtitle(SPEAKERLABEL *subtitle)
 
 // Copies the subtitle's text from the world's language strings into buffer (empty when there is no subtitle).
 // (inferred)
+// Also known as: GetDialogSubtitleText (upstream readable / Sly 1 name; GetDialogSubtitleText__FP9DIALOGSUBPc).
 extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
 {
     int textId = subtitle->textId;
@@ -103,6 +106,7 @@ extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
 // Typewriter effect: cuts the subtitle text to the fraction of the voice line played so far (playback position over the
 // line's duration minus half a second) and appends a "|" cursor; once the whole text shows, the cursor blinks at 2 Hz.
 // (inferred)
+// Also known as: StrDialogSubtitleTyped (upstream readable / Sly 1 name; StrDialogSubtitleTyped__FP9DIALOGSUBPv).
 extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *text)
 {
     void *soundSystem;

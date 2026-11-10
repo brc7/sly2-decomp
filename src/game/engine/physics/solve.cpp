@@ -153,6 +153,7 @@ qword CalculateSoPointVelocity(SOV *pso, qword *pv, qword q);
 
 // Per-frame physics solve over the world: rebuilds contacts (RecalcSwXpAll), runs slot 17 (transform update) on
 // every awake object that needs it, then solves all contact groups (SolveSwContactGroups).
+// Also known as: UpdateSwPhys (upstream readable / Sly 1 name; UpdateSwPhys__FP2SW).
 extern "C" void SolveSw(SW *world)
 {
     int i;
@@ -170,6 +171,7 @@ extern "C" void SolveSw(SW *world)
 
 // Flood fill: marks an object as grouped (flag 0x8000000), appends it to the group array and recurses through the
 // objects it touches, so each group is one connected cluster of touching bodies.
+// Also known as: GatherGroup (upstream readable / Sly 1 name; GatherGroup__FP3ALOPvPiT1).
 void BuildContactGroup(SW *world, SOV *object, int *count, SOV **group)
 {
     TL *link;
@@ -192,6 +194,7 @@ void BuildContactGroup(SW *world, SOV *object, int *count, SOV **group)
 struct A { SOV *objects[0x301]; int n; };
 // For every dynamic root object in the world list not yet grouped: builds its contact group and solves it
 // (SplitSwGroup).
+// Also known as: SolvePassSw (upstream readable / Sly 1 name; SolvePassSw__FP2SWi).
 void SolveSwContactGroups(SW *world, int flags)
 {
     struct A group;
@@ -229,6 +232,7 @@ void SolveSwContactGroups(SW *world, int flags)
 
 // Collects the contacts (XPs) between the objects of one group into an array (at most cMax), marking the objects
 // (flag 0x10000000) so each contact is taken once. Returns the count. Sly 1 name: CpxpBuildXpArray.
+// Also known as: CollectGroupXps (upstream readable / Sly 1 name; CollectGroupXps__FiiiPviT3).
 int BuildGroupXpArray(SW *world, int flags, int numObjects, SOV **objects, int maxContacts, XP **contacts)
 {
     int i;
@@ -268,6 +272,7 @@ __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tv
 __asm__("qmfc2.ni %0,%1":"=r"(f):"j"(r));return f;}
 // Builds a group's contact array and runs SolveSwGroup once or twice depending on the group's flags (1: resting
 // contacts, 4: an extra position pass). Sly 1 name.
+// Also known as: SolveGroupPass (upstream readable / Sly 1 name; SolveGroupPass__FPviiPPv).
 void SplitSwGroup(SW*world,int flags,int count,SOV**objects)
 {
  int i;
@@ -333,6 +338,7 @@ static inline float Sqrt(float f){float r;__asm__ volatile("sqrt.s %0,%1":"=f"(r
 static inline float ClockDt(){return g_clock.deltaTime;}
 // Solves one contact group: one DZG row per contact, target velocities from restitution and penetration, the DZG
 // and friction solve, impulses applied to the objects, then the objects are notified (slots 65-67).
+// Also known as: SolveGroup (upstream readable / Sly 1 name; SolveGroup__FPP3ALOiiPP2XPiT3).
 void SolveSwGroup(SW *game,int flags,int objectCount,SOV **objects,int contactCount,XP **contacts)
 {
     STACKSCOPE frame;
@@ -446,6 +452,7 @@ static inline int FNear(qword a, qword b)
 }
 // Before solving, applies an object's pending velocity change (constrained by its force constraint) and asks its
 // XA owners (water etc.) for external accelerations. STEP's slot 70 calls it as the base. Sly 1 name.
+// Also known as: ApplyAloGravity (upstream readable / Sly 1 name; ApplyAloGravity__FP3ALO).
 extern "C" void PresetSoAccel(SOV *p)
 {
     int fUpd = 0;
@@ -476,6 +483,7 @@ static inline M3C MulC(const M3C &a,const M3C &b) return r
 // Integrates position and rotation of the objects in a solved group (renormalising the rotation, updating part
 // geometry) and stamps them with the world's frame counter. (inferred)
 // Runtime: the stamp counter SW+0x3D58 advances about 145 per frame; the frame counter itself is SW+0x3D60.
+// Also known as: StepAloBackHalfFrame (upstream readable / Sly 1 name; StepAloBackHalfFrame__FP3ALO).
 void IntegrateSoGroupTransforms(SOV *p)
 {
     U scalar;
@@ -542,6 +550,7 @@ static inline float HalfAndDelta(float dt,float half,const qword&source,qword*de
 // Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (SO::contactVelocityChange / contactAngularVelocityChange,
 // accumulated by ApplyDzg) to the position and rotation XFs' velocities and advances the position and rotation by
 // half a step with them, then clears the deltas.
+// Also known as: ApplyAloVelocityChangesMoving (upstream readable / Sly 1 name; ApplyAloVelocityChangesMoving__FP3ALO).
 extern "C" void ApplySoRestingContactVelocity(SOV *input)
 {
     register SOV *p __asm__("$18");
@@ -617,6 +626,7 @@ static __inline__ void AddTo(U *out,qword q)
 }
 // Slot 66, called by SolveSwGroup after an impact (bouncing) solve: adds the solver's velocity changes to the
 // position and rotation XFs' velocities (converted into their parent space) and clears them.
+// Also known as: ApplyAloVelocityChanges (upstream readable / Sly 1 name; ApplyAloVelocityChanges__FP3ALO).
 extern "C" void ApplySoImpactVelocity(SOV *object)
 {
     if(object->physics){
@@ -665,6 +675,7 @@ static inline qword Consume(SOV*p,XFV*object,U&pending){UnsettleXfSlot(p,object)
 // Slot 67, called by SolveSwGroup after the penetration (position) pass: applies the solver's deltas directly as
 // a translation and a rotation of the XFs (pushing interpenetrating objects apart), then updates the transform
 // hierarchy and the broad-phase box.
+// Also known as: ApplyAloDisplacement (upstream readable / Sly 1 name; ApplyAloDisplacement__FP3ALO).
 extern "C" void ApplySoContactShift(SOV*object)
 {
     M3 final;
@@ -728,6 +739,7 @@ static inline qword Rej(qword a, qword n)
 }
 // Returns v constrained by a CONSTRV: locked (3) gives zero, 2 keeps only the part along the (world-transformed)
 // axis, 1 removes the part along it (plane), 0 leaves v unchanged. Sly 1: ApplyConstr.
+// Also known as: ProjectCnstr (upstream readable / Sly 1 name; ProjectCnstr__FP6CNSTRSP2XFG9VU_VECTOR).
 qword ApplyConstr(CONSTRV *constraint, XFV *transform, qword vector)
 {
     switch (constraint->k) {
@@ -754,6 +766,7 @@ static inline qword RejF(qword a, qword n)
     return r;
 }
 // The same constraint switch as ApplyConstr without transforming the axis into world space.
+// Also known as: ProjectCnstrLocal (upstream readable / Sly 1 name; ProjectCnstrLocal__FP6CNSTRSG9VU_VECTOR).
 extern "C" qword ApplyConstrNoTransform(CONSTRV *constraint, qword vector)
 {
     switch (constraint->k) {
@@ -773,6 +786,7 @@ extern "C" qword ApplyConstrNoTransform(CONSTRV *constraint, qword vector)
 // Move a VU0 register to a 128-bit GPR value.
 static inline qword Get(qword r){qword a; __asm__("qmfc2.ni %0,%1" : "=r"(a) : "j"(r)); return a;}
 // Linear velocity change an impulse causes: impulse / mass, constrained by the object's force constraint.
+// Also known as: DvAloImpulse (upstream readable / Sly 1 name; DvAloImpulse__FP3ALOG9VU_VECTOR).
 qword GetSoImpulseLinearDelta(SOV *objectArg,qword impulse) {
     register SOV *object __asm__("$2")=objectArg;
     register CONSTRV *projection __asm__("$4");
@@ -823,6 +837,7 @@ static inline qword MulMVRow(M3 *pm, qword *pv)
 }
 // Applies the inverse inertia tensor to a torque: into body space, scale, back to world space, constrained by the
 // object's torque constraint.
+// Also known as: DwAloTorque (upstream readable / Sly 1 name; DwAloTorque__FP3ALOG9VU_VECTOR).
 qword ApplySoInverseInertia(SOV *object, qword torque)
 {
     XFV *rotation = object->pxfRot;
@@ -835,6 +850,7 @@ qword ApplySoInverseInertia(SOV *object, qword torque)
 }
 
 // Velocity of a point of the object for a linear/angular velocity pair (v, w): v + w x (pos - centre).
+// Also known as: VelAloPoint (upstream readable / Sly 1 name; VelAloPoint__FP3ALOP6VECTORG9VU_VECTOR).
 qword CalculateSoPointVelocity(SOV *object, qword *velocities, qword pos)
 {
     qword lever, rotational, result;
@@ -855,6 +871,7 @@ static inline void AddAccel(XFV *po, qword d)
     po->a.q = s;
 }
 // Applies an impulse at a point: adds the linear and angular velocity changes it causes. Sly 1 name.
+// Also known as: ForceAt (upstream readable / Sly 1 name; ForceAt__FP3ALOG9VU_VECTORT1).
 extern "C" void ApplySoImpulse(SOV *object, qword pos, qword impulse)
 {
     qword linearDelta = GetSoImpulseLinearDelta(object, impulse);
@@ -865,6 +882,7 @@ extern "C" void ApplySoImpulse(SOV *object, qword pos, qword impulse)
 
 // Adds a world-space acceleration to the object's position transform (when it is in a velocity role 1-3),
 // converted into the transform's parent space. Sly 1: AddSoAcceleration.
+// Also known as: AccelAloPos (upstream readable / Sly 1 name; AccelAloPos__FP3ALOG9VU_VECTOR).
 void AddSoAcceleration(SOV *object, qword acceleration)
 {
     if (IsXfRoleVelocity(object->pxfPos->role)) {
@@ -878,6 +896,7 @@ void AddSoAcceleration(SOV *object, qword acceleration)
 }
 
 // The rotational twin of AddSoAcceleration: adds an angular acceleration to the rotation transform.
+// Also known as: AccelRotation (upstream readable / Sly 1 name; AccelRotation__FP3ALOG9VU_VECTOR).
 extern "C" void AddSoAngularAcceleration(SOV *object, qword acceleration)
 {
     if (IsXfRoleVelocity(object->pxfRot->role)) {
@@ -896,6 +915,7 @@ struct S2 { struct Pr ap[2]; qword normal; struct Q2 *aq; };
 // Slot 67: fills side k of a constraint row's effect record (FX) with this object's response to a unit impulse
 // along the contact normal (negated for side 1): the linear and angular velocity changes, each skipped when that
 // motion is locked. Called by FillDzgDz for both sides of every contact.
+// Also known as: FillAloDzResponse (upstream readable / Sly 1 name; FillAloDzResponse__FP3ALOiP5DZENTii).
 extern "C" void CalculateSoContactResponse(SOV *object, int unused1, S2 *rowContact, int unused3, int side)
 {
     SOPHYSV *physics = object->physics;
@@ -918,6 +938,7 @@ extern "C" void CalculateSoContactResponse(SOV *object, int unused1, S2 *rowCont
 struct V4 { int x, y, z, w; };
 // Slot 68: writes the velocity change at pos caused by an effect record (dv, dw) to *pv (CalculateSoPointVelocity),
 // or zero when the object has no physics block (+0xE8). Used by FillDzgDz to couple constraint rows.
+// Also known as: VelAloDzResponse (upstream readable / Sly 1 name; VelAloDzResponse__FP3ALOP6VECTORG9VU_VECTORT1).
 extern "C" void GetSoVelocityAtPos(SOV *object, qword *effect, qword pos, V4 *velocityOut)
 {
     if (!object->physics) { velocityOut->z = 0; velocityOut->y = 0; velocityOut->x = 0; }

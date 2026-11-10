@@ -594,6 +594,7 @@ extern "C" void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char
 }
 
 // Skips a 16-bit-length-prefixed string. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: ReadDebugString (upstream readable / Sly 1 name; ReadDebugString__FP18CBinaryInputStream).
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream)
 {
     stream->Read(stream->U16Read(), 0);

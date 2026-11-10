@@ -441,6 +441,7 @@ void LoadLoFromBrx(RELAY *, void *) __asm__("LoadLoFromBrx");
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
 // calls append the commands; the result is copied into an exact-size world-heap array.
+// Also known as: BeginScptLoad (upstream readable / Sly 1 name; BeginScptLoad__FP2LOPv).
 extern "C" void LoadRelayFromBrx(RELAY *relay, void *x)
 {
     STACKSCOPE frame;
@@ -471,6 +472,7 @@ void *AllocCopyFromWorldHeap(struct SWALLOC *pmsg, void *pv) __asm__("AllocCopyF
 extern "C" { static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); } }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
+// Also known as: CloneScptData (upstream readable / Sly 1 name; CloneScptData__FP2LO).
 extern "C" void CloneRelay(RELAY *relay) {
     struct SWALLOC msg;
     CloneLo(relay);
@@ -495,6 +497,7 @@ extern "C" { static inline unsigned int GetLoFlags(RELAY *lo)
 } }
 // RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
 // update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
+// Also known as: UpdateScpt (upstream readable / Sly 1 name; UpdateScpt__FP2LO).
 extern "C" void UpdateRelay(RELAY *relay)
 {
     DLI dli;
@@ -544,6 +547,7 @@ extern "C" { static inline void SetLoFlagBits(RELAY *lo, int bits)
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
 // still running afterwards the relay marks itself busy.
+// Also known as: StartScptImpl (upstream readable / Sly 1 name; StartScptImpl__FP2LOi).
 extern "C" void FireRelay(RELAY *relay, LO *ploFirer)
 {
     if (relay->fFiring)
@@ -597,6 +601,7 @@ extern "C" { static inline void ClearLoFlagBits(RELAY *lo, int bits)
 } }
 // Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
 // the busy mark and tells itself (message 6). (inferred)
+// Also known as: StopScptImpl (upstream readable / Sly 1 name; StopScptImpl__FP2LO).
 extern "C" void StopRelay(RELAY *relay)
 {
     DLI dli;
@@ -670,6 +675,7 @@ extern "C" void RemoveAlarmFromRelay(RELAY *relay, ALARM *palarm)
 // 0x1E00E8 IsRelayAlarm
 namespace M_FWipingAseg__FP4ASEG {
 // Whether the alarm is in the relay's alarm list.
+// Also known as: FWipingAseg (upstream readable / Sly 1 name; FWipingAseg__FP4ASEG).
 extern "C" int IsRelayAlarm(RELAY *relay, ALARM *palarm)
 {
     int i;
@@ -716,6 +722,7 @@ extern "C" void SetRelaySignalContext(RELAY *relay, LO *plo)
 namespace M_func_001E0180 {
 // Finds a running script of this relay whose block (its first command, a BlockBegin) has the given label, ignoring
 // one script. (inferred)
+// Also known as: PrunFind (upstream readable / Sly 1 name; PrunFind__FP4SCPTiP3RUN).
 extern "C" RELAYJSG *FindRelayBlockScript(RELAY *relay, OID oidLabel, RELAYJSG *pjsgExcept)
 {
     int unused[4];
@@ -747,6 +754,7 @@ extern RELAYCMD D_003DA740 __asm__("D_003DA740");
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 // Appends a zeroed command of the given kind (async flag set as asked) to the relay and returns it for the builder to
 // fill; past the limit it returns a scratch command (D_003DA740) so builders never fail. (inferred)
+// Also known as: PcmdNew (upstream readable / Sly 1 name; PcmdNew__FP4SCPTii).
 extern "C" RELAYCMD *AddRelayCommand(RELAY *relay, int relayck, int fAsync)
 {
     RELAYCMD *prelaycmd;
@@ -1695,6 +1703,7 @@ typedef struct S { char pad[0x30]; T *currentCommand; char pad2[0x24]; int sma; 
 void HandleBasicMessage(S *p, int a, M *m) __asm__("HandleBasicMessage");
 // BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state -> fSmaReached(+0x5C)=1.
 // (inferred)
+// Also known as: OnSmaState (upstream readable / Sly 1 name; OnSmaState__3RUNiP8SMAMSG10).
 extern "C" void HandleJsgMessage(S *script, int a, M *m)
 {
     HandleBasicMessage(script, a, m);
@@ -1714,6 +1723,7 @@ void UpdateRelayScript(RELAYJSG *p) __asm__("UpdateRelayScript");
 
 // Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
 // is fAsync or complete (IsJsgCommandComplete); release JT if done; remove the JSG past the block end.
+// Also known as: RunRun (upstream readable / Sly 1 name; RunRun__FP4PRUN).
 void UpdateRelayScript(RELAYJSG *script)
 {
     JSGREF hold(script);
@@ -1741,6 +1751,7 @@ int IsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po) __asm__("I
 void SetRelayScriptActor(struct S *p, int a, int b) __asm__("SetRelayScriptActor");
 // If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release
 // it (SetJsgJt(p,0,0)). (inferred)
+// Also known as: FinishRunPending (upstream readable / Sly 1 name; FinishRunPending__FP3RUN).
 extern "C" void ReleaseJsgJtIfComplete(struct S *script)
 {
     if (script->po && IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->po)) {
@@ -1760,6 +1771,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k) __asm__("IsBasicDerivedFrom
 void *GetProxyCurrentObject(void *p) __asm__("GetProxyCurrentObject");
 // Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their current object.
 // (inferred)
+// Also known as: PloFind (upstream readable / Sly 1 name; PloFind__FP3RUNi).
 extern "C" void *FindJsgObject(S *script, int id)
 {
     void *q;
@@ -1777,7 +1789,7 @@ extern "C" void *FindJsgObject(S *script, int id)
 namespace M_NextJsgCommand__FP3JSG {
 // NextJsgCommand: ported from Lilly's personal Sly 2 decomp (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A7AD0 (D_002A7AD0), D_002DE570 (D_002DE570), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_game (g_game), D_003DA0C0 (g_hintbox), g_joy (g_joy), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), g_sw (g_sw)
+// Globals: D_002A7AD0 (D_002A7AD0), D_002DE570 (D_002DE570), D_003DA530 (D_003DA530), g_clock, g_cm, g_game, D_003DA0C0 (g_hintbox), g_joy, g_normalZ, D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), g_sw
 // 0x001E1E30 NextJsgCommand__FP3JSG  (T1200; was DispatchAsegEvent: it is Sly 1's NextJsgJsge)
 // Steps the script to the next command of its block and executes it. First the command's actor is chosen (the oid the command carries, else the
 // SetActor default, the block's object or the relay's firer), then the command runs by kind (the table in re/notes/relay-commands-t1289.md), and
@@ -1898,6 +1910,7 @@ void NextJsgCommand(RELAYJSG *script) __asm__("NextJsgCommand__FP3JSG");
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7AD0 __asm__("D_002A7AD0") = 3.40282347e+38f; }
 // Advance the script to the next command and execute it by kind.
+// Also known as: ExecuteRun (upstream readable / Sly 1 name; ExecuteRun__FP4PRUN).
 void NextJsgCommand(RELAYJSG *script)
 {
     script->prelaycmdCur++;
@@ -2993,7 +3006,7 @@ void NextJsgCommand(RELAYJSG *script)
 namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // IsJsgCommandComplete: ported from Lilly's FIsJsgCommandComplete (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: DT_CmJoltMax (DT_CmJoltMax), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_joy (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), g_sw (g_sw)
+// Globals: DT_CmJoltMax, D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), g_clock, g_cm, g_joy, D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), g_sw
 // 0x001E3890 IsJsgCommandComplete  (T1306, our name; MATCH)
 // Whether the command the script is on has finished, by kind; UpdateJsg asks it of the current command (a command that is fAsync is not asked) and
 // ReleaseJsgJtIfComplete of the one that took the character. A kind with nothing to wait for (and every kind past the table) is complete at once.
@@ -3101,6 +3114,7 @@ static inline float TJsgNow(RELAYJSG *script)
 }
 int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
 // Whether the given command has finished, by kind.
+// Also known as: FCmdDone (upstream readable / Sly 1 name; FCmdDone__FP3RUNP7SCPTCMD).
 int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
 {
     int fComplete;
@@ -3677,6 +3691,7 @@ float GetDialogStreamDuration(SNDMGR *psndmgr, int n) __asm__("GetDialogStreamDu
 // Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
+// Also known as: GCmdDuration (upstream readable / Sly 1 name; GCmdDuration__FP3RUNP7SCPTCMD).
 extern "C" float GetJsgCommandDuration(struct C *script, struct P *command)
 {
     float g = 0.0f;
@@ -3822,6 +3837,7 @@ static inline int NearZInputs(qword previous,qword current,float tolerance){
 }
 // Per-frame steering of a script-controlled player character: follow a path/curve or head to a target and write
 // stick/heading/speed into the step's control output. (inferred)
+// Also known as: DriveScptActor (upstream readable / Sly 1 name; DriveScptActor__FPvP6PADCTL).
 extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
  WORK work;PARAM *param=script->param;ACTOR *actor=script->actor;
  typedef char layout_local_work[(sizeof(work)==0x60)?1:-1];
@@ -4004,6 +4020,7 @@ void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, i
 float atan2f(float y, float x) __asm__("atan2f");
 // Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
 // else object pos and its matrix heading). (inferred)
+// Also known as: GetRunAim (upstream readable / Sly 1 name; GetRunAim__FP3RUNP2LOP6VECTORPf).
 extern "C" void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;
@@ -4045,6 +4062,7 @@ extern "C" void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv
 // Set prelaycmdJt (+0x40) and the controlled character pjt (+0x44), detaching the old one and attaching the new one
 // via 0x143DE8(pjt, pjsg). (inferred)
 /* Sets the script's mode command and the JT it drives, re-linking the JT to the script (SetStepplayerRide). */
+// Also known as: SetRunPending (upstream readable / Sly 1 name; SetRunPending__FP3RUNiP2LO).
 extern "C" void SetRelayScriptActor(RELAYJSG *script, RELAYCMD *prelaycmdJt, LO *pjt)
 {
     LO *pjtOld;
@@ -4148,6 +4166,7 @@ if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == scri
 namespace M_AddJsgStepHold {
 int IsBasicDerivedFrom__FP5BASIC3CID(BASIC *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
+// Also known as: HoldRunEffects (upstream readable / Sly 1 name; HoldRunEffects__FP3RUNP2LOii).
 void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b) __asm__("AddJsgStepHold"); void AddJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 {
     int i;
@@ -4170,6 +4189,7 @@ void *memmove(void *pdst, const void *psrc, unsigned int cb) __asm__("memmove");
 // index * 4 in $a0 (shapes the register choice).
 extern "C" { static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;} }
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
+// Also known as: ReleaseRunEffects (upstream readable / Sly 1 name; ReleaseRunEffects__FP3RUNP2LOii).
 void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b) __asm__("RemoveJsgStepHold"); void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b)
 {
     int i;
@@ -4229,6 +4249,7 @@ extern "C" void ClearJsgRelayWait(RELAYJSG *script)
 namespace M_ClearJsgSma {
 void UnsubscribeLoObject(BASIC *po, RELAYJSG *p) __asm__("UnsubscribeLoObject");
 // Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
+// Also known as: ReleaseSmaWatch (upstream readable / Sly 1 name).
 extern "C" void ClearJsgSma(RELAYJSG *script)
 {
     if (script->psmaCur) {
@@ -4322,6 +4343,7 @@ void RemoveJsg(RELAYJSG *p) __asm__("RemoveJsg");
 // Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA, widget, JT mode,
 // step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera blend), then drop the relay's
 // reference. (inferred)
+// Also known as: RetireRun (upstream readable / Sly 1 name; RetireRun__FP4PRUN).
 void RemoveJsg(RELAYJSG *script)
 {
     if (IsJsgRemoved(script)) return;
@@ -4377,6 +4399,7 @@ extern "C" { static inline int FNear(qword a, qword b)
 } }
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)
+// Also known as: StartRunCamera (upstream readable / Sly 1 name; StartRunCamera__FP3RUNP7SCPTCMDT1f).
 extern "C" void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, float t)
 {
     float tBase;
@@ -4433,6 +4456,7 @@ struct S;
 struct S : BASIC { char pad[0x84 - 0x10]; int a84[3]; int n90; int n94; int n98; int n9C; };
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f) __asm__("RevokeCmPolicy");
 // Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
+// Also known as: EndRunCamera (upstream readable / Sly 1 name; EndRunCamera__FP3RUNi).
 extern "C" void EndJsgCamBlend(struct S *script, int n)
 {
     script->n90 = n;
@@ -4473,6 +4497,7 @@ extern "C" { static inline void SetBlockEnd(struct S *script, RELAYCMD *first, R
 } }
 // Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block
 // (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
+// Also known as: PrunNew (upstream readable / Sly 1 name; PrunNew__FP2LOPvP3RUN).
 extern "C" struct S *NewRelayJsg(RELAY *relay, RELAYCMD *pe, struct C *pc)
 {
     struct S *p = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapJsg));

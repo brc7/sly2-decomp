@@ -133,6 +133,7 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                                 
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                                   /* FindSwObject__FP2SWi3OIDP2LO */
 
 // Initializes a gait record (walk/run locomotion): owner, footstep sound id, walk volume 0.6, run volume 1.0.
+// Also known as: InitGait (upstream readable / Sly 1 name; InitGait__FP4GAITii).
 extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
   p->player = pstepplayer;
   p->sfxidStep = sfxid;
@@ -152,6 +153,7 @@ static inline qword DivVec(qword qw, VU_FLOAT g)
 }
 void PostJtLoadGait(GAIT *pgait) __asm__("PostJtLoadGait");
 // Gait post-load: foot markers, root velocity per clip and the dynamic walk/run blend.
+// Also known as: BindGait (upstream readable / Sly 1 name; BindGait__FP4GAIT).
 void PostJtLoadGait(GAIT *gait)
 {
     if (gait->abl[0].animation == 0)
@@ -219,6 +221,7 @@ void PostJtLoadGait(GAIT *gait)
 }
 
 // The weighted root velocity of the two gait clips.
+// Also known as: VecGaitVelocity (upstream readable / Sly 1 name; VecGaitVelocity__FP4GAIT).
 qword GetGaitRootVelocity(GAIT *gait)
 {
     MRSGC *pb = gait->blendedAnimation->amrsgc;
@@ -259,6 +262,7 @@ static inline qword Negate(qword v,U *value) {
     return result;
 }
 // Sets the walk/run weights, reblends and writes the resulting root velocity.
+// Also known as: SetGaitMix (upstream readable / Sly 1 name; SetGaitMix__FP4GAITf).
 extern "C" void UpdateGaitBlend(GAIT *gait, float g)
 {
     STEPPLAYER *pt;
@@ -282,6 +286,7 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
 }
 
 // Plays the footstep sound when a foot goes down, volume interpolated between walk and run, audible range 500/2000.
+// Also known as: UpdateGaitFeet (upstream readable / Sly 1 name; UpdateGaitFeet__FP4GAIT).
 extern "C" void UpdateGaitFootsteps(GAIT *gait)
 {
     ASEGA *x = (ASEGA *)gait->blendedAnimation->dlAsega.head;
@@ -312,6 +317,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
 }
 
 // Clears both foot-down flags.
+// Also known as: ResetGaitFeet (upstream readable / Sly 1 name; ResetGaitFeet__FP4GAIT).
 extern "C" void ResetGaitFeet(GAIT *gait) { gait->afFootDown[1] = 0; gait->afFootDown[0] = 0; }
 
 // Initializes an animation arc record (first word = -1).
@@ -379,6 +385,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
 }
 
 // Constructs a leap object (CID 0x91) in place and enters state 0.
+// Also known as: StartK2 (upstream readable / Sly 1 name; StartK2__FP5KIND2P3ALOiP6K2PLAY).
 extern "C" void StartLeap(LEAPTUNE *ptune, LEAPSUBJECT *psubject, int index, LEAPV *p) {
     if (ptune->animation == 0)
         return;
@@ -405,6 +412,7 @@ extern "C" void FreeLeap(LEAPV *leap) {
 LEAPV *ConstructLeap(LEAPV *leap) { SLY2_SET_VPTR(leap, LEAP); leap->state = -1; leap->x0 = 0; leap->x4 = 0; return leap; }
 
 // If the leap is not finished: state 4 and clears its animation job.
+// Also known as: StopK2 (upstream readable / Sly 1 name; StopK2__FP6K2PLAY).
 extern "C" void StopLeap(LEAPV *leap) { if (!IsLeapDone(leap)) { SetLeapState(leap, 4); ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &leap->job); } }
 
 // Whether the leap is in state 4 (done).
@@ -413,6 +421,7 @@ int IsLeapDone(LEAPV *leap) {
 }
 
 // Leap state machine for states 1..3.
+// Also known as: UpdateK2 (upstream readable / Sly 1 name; UpdateK2__FP6K2PLAY).
 extern "C" void UpdateLeap(LEAPV *leap)
 {
     int k;
@@ -456,6 +465,7 @@ static inline qword Combine(qword a,qword x,qword b,qword y){qword r;__asm__("vm
 static inline void Store(U *home,qword value){__asm__("sqc2 %1,%0":"=m"(home->q):"j"(value));}
 // Leap states: 0 start animation; 1 launch (ballistic time or the given flight time) with a constraint; 2/3 seek the
 // target; 4 land.
+// Also known as: SetK2State (upstream readable / Sly 1 name; SetK2State__FP6K2PLAYi).
 void SetLeapState(LEAPV *leap, int state)
 {
     U scalar, delta, acceleration, velocity, finalVelocity;
@@ -569,6 +579,7 @@ void SetLeapState(LEAPV *leap, int state)
 
 struct ACTPOS { char pad[0x20]; qword v; };
 // Updates the leap's target and constraint target.
+// Also known as: SetK2Target (upstream readable / Sly 1 name; SetK2Target__FP6K2PLAYG9VU_VECTOR).
 extern "C" void SetLeapTarget(LEAPV *leap, qword v)
 {
     switch (leap->state) {
@@ -584,6 +595,7 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
 }
 
 // Drops the leap constraint and clears LO flag bit 26.
+// Also known as: ReleaseK2Ballistic (upstream readable / Sly 1 name; ReleaseK2Ballistic__FP6K2PLAY).
 void ReleaseLeapConstraint(LEAPV *leap)
 {
     if (!leap->ballistic)
@@ -603,6 +615,7 @@ extern "C" void InvalidateDirAnims(DIRBL *dirAnims) {
 }
 
 // Measures the root velocity and speed of the four directional animations.
+// Also known as: ResolveK3 (upstream readable / Sly 1 name; ResolveK3__FP5KIND3P3ALO).
 extern "C" void InitDirAnims(DIRBL *dirAnims, LEAPSUBJECT *arg)
 {
     DIRE *e;
@@ -649,6 +662,7 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, LEAPSUBJECT *arg)
 }
 
 // Initializes a directional-animation object (CID 0x92) and applies its animation.
+// Also known as: StartK3 (upstream readable / Sly 1 name; StartK3__FP5KIND3iiP6K3PLAY).
 extern "C" void StartDirAnim(DIROWNER *dirAnims, LEAPSUBJECT *a, int b, DIRACT *object)
 {
     memset(object, 0, sizeof(*object));
@@ -675,6 +689,7 @@ extern "C" void FreeDirAnim(DIRACT *dirAnims) {
 }
 
 // Clears the directional animation's job if active.
+// Also known as: StopK3 (upstream readable / Sly 1 name; StopK3__FP6K3PLAY).
 extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
 
 // Whether the directional animation's job is cleared.
@@ -683,6 +698,7 @@ int IsDirAnimStopped(DIRACT *dirAnims) {
 }
 
 // Directional-animation message handler (slot 5): labels 0x17D/0x17E set forward, 0x17F/0x180 backward.
+// Also known as: OnK3Event (upstream readable / Sly 1 name; OnK3Event__FP6K3PLAYiP8ASEGMSG9).
 void CID146::HandleMessage(MSGID msg_m, void *pm_m)
 {
     DIRSEL *p = (DIRSEL *)this;
@@ -743,6 +759,7 @@ static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.40282347e+38f; }
 // Chooses the best of the four directional animations for the desired direction.
+// Also known as: SelectK3 (upstream readable / Sly 1 name; SelectK3__FP6K3PLAYG9VU_VECTOR).
 extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
 {
     U scalar, direction;

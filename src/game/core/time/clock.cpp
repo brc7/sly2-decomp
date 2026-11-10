@@ -44,6 +44,7 @@ extern "C" void StartupClock(void)
 /* Clears clock->time but resets the rate slots of g_clock (slot 3 is left alone), as the original did. */
 // Resets `clock`'s game time to 0 and g_clock's rate slots to 1, except slot 3 (the real-time scale survives
 // resets), then recomputes the rates.
+// Also known as: ResetClock (upstream readable / Sly 1 name; ResetClock__FP5CLOCK).
 extern "C" void ResetClock(CLOCK *clock)
 {
     clock->time = 0;
@@ -63,6 +64,7 @@ extern "C" void ResetClock(CLOCK *clock)
 // Advances the clock by one frame: frame time from the ticks since the last call (294.912 MHz COUNT, clamped to
 // 1/60..1/30 s); camera time scaled by cameraRate; real time scaled by slot 3; unless paused, game time = real time x rt,
 // and the game timers (g_game) advance.
+// Also known as: UpdateClock (upstream readable / Sly 1 name; UpdateClock__FP5CLOCKi).
 extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 {
     TICK tick = TickNow(clock);
@@ -83,6 +85,7 @@ extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 }
 
 // Sets rate slot `slot` to `rate` and recomputes the combined rates.
+// Also known as: SetClockFactor (upstream readable / Sly 1 name; SetClockFactor__FP5CLOCKif).
 extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
 {
     clock->art[slot] = rate;
@@ -90,6 +93,7 @@ extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
 }
 
 // Recomputes the combined rates: rt = the product of all nine slots, cameraRate = slot 8.
+// Also known as: UpdateClockRate (upstream readable / Sly 1 name; UpdateClockRate__FP5CLOCK).
 extern "C" void RecalcClockRate(CLOCK *clock)
 {
     unsigned int i;

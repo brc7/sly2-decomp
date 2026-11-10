@@ -84,6 +84,7 @@ extern U D_002BF4E0;
 // Sets Sly's cane state (JT+0x18D8, jtcs): leaves the old one (removes the sweep effect unless continuing, stops the
 // reach tracker), resolves the generic sweep state 3 to a fore/back sweep (4/5 or 6/7), and enters the new one
 // (blend clip, contact deadline, sounds). -1 ends any cane action.
+// Also known as: SetSlyMode (upstream readable / Sly 1 name; SetSlyMode__FP3SLYi).
 extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 {
     if (jt->animState == state)
@@ -496,6 +497,7 @@ typedef char layout_WORK_half[((unsigned long)&((WORK*)0)->half==0x10)?1:-1];
 typedef char layout_WORK_first[((unsigned long)&((WORK*)0)->first==0x20)?1:-1];
 
 // In the reach cane state (0) runs the hand reach tracker (UpdateJtHands on JT+0x17D0).
+// Also known as: UpdateSlyReach (upstream readable / Sly 1 name; UpdateSlyReach__FP3SLY).
 extern "C" void UpdateJtCane__FP2JT(JT *jt)
 {
     if (jt->animState == 0)
@@ -504,6 +506,7 @@ extern "C" void UpdateJtCane__FP2JT(JT *jt)
 
 // True if the target lies behind Sly: the midpoint of the hook child and the right-hand transform has y > 0 in Sly's
 // local frame, so a back sweep is used.
+// Also known as: FSlyAnchorsAhead (upstream readable / Sly 1 name; FSlyAnchorsAhead__FP3SLY).
 extern "C" int ShouldJtSweepBack(JT *jt)
 {
     union {
@@ -528,6 +531,7 @@ extern "C" int ShouldJtSweepBack(JT *jt)
 
 // Picks the cane attack state: takedown (jts 0x10) if a nearby target (within D_002BF4AC) has its takedown behaviour
 // (0xB1) pointing at Sly; from a sidestep, 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE, or 0xC on the ground.
+// Also known as: NSlyNextSwing (upstream readable / Sly 1 name; NSlyNextSwing__FP3SLY).
 extern "C" int ChooseJtAttackCaneState(JT *jt)
 {
     int n;
@@ -588,6 +592,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
 }
 
 // The next sweep cane state: alternates 0x16 and 0x17, otherwise 0x17 for a back sweep (ShouldJtSweepBack) or 0x16.
+// Also known as: NSlyNextTriangle (upstream readable / Sly 1 name; NSlyNextTriangle__FP3SLY).
 extern "C" int ChooseJtSweepCaneState(JT *jt)
 {
     int r;
@@ -601,6 +606,7 @@ extern "C" int ChooseJtSweepCaneState(JT *jt)
 
 // Per-frame cane input: per-state allow lists (in hang states square (0x80) launches a jump through SetJtAirJump;
 // sidestep sub-cases), then a buffered attack button (0x10/0x80) within 0.35 s restarts the swing.
+// Also known as: UpdateSlyButtons (upstream readable / Sly 1 name; UpdateSlyButtons__FP3SLY).
 extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 {
     int f;
@@ -687,6 +693,8 @@ static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 static inline int IsBonus(ATTACKOBJ*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&g_sw,3,0x33,n);}
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
+// Also known as: ChooseAttackTarget (upstream readable / Sly 1 name;
+//   ChooseAttackTarget__FP5ACTORfUifP6VECTORPvPG9VU_VECTORf).
 extern "C" void ChooseJtAttackTarget(ATTACKOBJ *jt, float headingInput, int mask, float dtInput, U *offset, ATTACKOBJ **out,
                                      qword *outvector, float cone)
 {
@@ -761,6 +769,7 @@ extern "C" void ChooseJtSweepTarget(JT *jt, JTSWEEPBL *blend, ASEG *aseg)
 }
 
 // Finds a rush target (flags 8, dt 0.25, cone 1.0 rad) and turns Sly toward it.
+// Also known as: ChooseSlyRushTarget (upstream readable / Sly 1 name; ChooseSlyRushTarget__FP3SLY).
 extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
 {
     U v;
@@ -777,6 +786,7 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
 }
 
 // Finds a smash target (flags 4, dt 0.25, cone 3.15 rad) and faces it.
+// Also known as: ChooseSlyAirSwingTarget (upstream readable / Sly 1 name; ChooseSlyAirSwingTarget__FP3SLY).
 extern "C" void ChooseJtSmashTarget__FP2JT(JT *jt)
 {
     U v;

@@ -50,6 +50,7 @@ CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref) __asm__("SetOptio
 CRef SetValuesFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
 
 // Finds the option record for option id opid in the object's class option table (binary search); null when absent.
+// Also known as: PeopidFind (upstream readable / Sly 1 name; PeopidFind__FP5BASICi).
 extern "C" PVREC *FindOptionRecord(BASIC *object, int optionId)
 {
     CLASSINFO *pclassinfo = object->GetClassInfo();
@@ -73,6 +74,7 @@ extern "C" PVREC *FindOptionRecord(BASIC *object, int optionId)
    CRefPtr() clears, so a default construction and a separate Attach would add a store); the matrix pointer is read once. */
 // Returns an object option as a Splice value: calls the getter method, reads the member directly or calls the
 // getter, converting by type (bool, float, vector, matrix, int, clq, lm, smp, object).
+// Also known as: RefGetPeopid (upstream readable / Sly 1 name; RefGetPeopid__FP5BASICP5EOPID).
 CRef GetOptionRecordValue(void *pv, PVREC *record)
 {
     CRef ref;
@@ -216,6 +218,7 @@ CRef GetOptionRecordValue(void *pv, PVREC *record)
    value to the record's type); else the setter gets the value by type (int and float coerced, the other payloads
    passed as they are). */
 // Writes a Splice value into an object option (method, direct member or setter, converting by type).
+// Also known as: RefSetPeopid (upstream readable / Sly 1 name; RefSetPeopid__FP5BASICP5EOPIDP4CRef).
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
 {
     CRef ref;
@@ -307,6 +310,7 @@ CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref)
 }
 
 // Splice option get: built-in options (id <= 0x4D0) through their option record, others from the object's sidebag.
+// Also known as: RefGetOption (upstream readable / Sly 1 name).
 CRef GetBasicOption(BASIC *object, int optionId)
 {
     if (optionId <= 0x4D0) {
@@ -319,6 +323,7 @@ CRef GetBasicOption(BASIC *object, int optionId)
 
 // Splice option set: built-in options through their record, others into the sidebag binding.
 // (Sly 1-derived name: RefSetOption.)
+// Also known as: RefSetOption (upstream readable / Sly 1 name).
 CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     if (optionId < 0x4D1)
@@ -328,6 +333,7 @@ CRef SetBasicOption(BASIC *object, int optionId, CRef *pref)
 
 // Adds an option value: for built-in options a call of the record's add form, else a new sidebag binding.
 // (Sly 1-derived name: RefAddOption.)
+// Also known as: RefAddOption (upstream readable / Sly 1 name).
 CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
@@ -336,6 +342,7 @@ CRef AddBasicOption(BASIC *object, int optionId, CRef *pref)
 
 // Sets an option only when it has no value yet (built-in or sidebag); the EnsureLoSidebag* helpers use it.
 // (Sly 1-derived name: RefEnsureOption.)
+// Also known as: RefEnsureOption (upstream readable / Sly 1 name).
 CRef EnsureBasicOption(BASIC *object, int optionId, CRef *pref)
 {
     EnsureBasicSidebag(object);
@@ -360,6 +367,7 @@ struct SPPAIR : CRefOwner<CPair>
 // Builds a Splice list from count (type, pointer) pairs, converting each value by its type; Void when empty.
 CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 // Definition of BuildSpliceListFromValues (declared above): a Splice list of c values converted by their types.
+// Also known as: RefSetArgListFromPvs (upstream readable / Sly 1 name; RefSetArgListFromPvs__FiP4OTYPPPv).
 CRef BuildSpliceListFromValues(int c, OTYP *aotyp, void **apv)
 {
     if (c == 0) {
@@ -416,6 +424,7 @@ struct V2 { int a, b; };
 struct V3 { int a, b, c; };
 // Stores each of count Splice values into the pointed-to variables as their given types (ints and floats coerced,
 // vector/matrix/clq/lm/smp payloads copied, CRefs assigned); returns Void.
+// Also known as: RefSetPvsFromSplice (upstream readable / Sly 1 name; RefSetPvsFromSplice__FiP4CRefP4OTYPPPv).
 CRef SetValuesFromSplice(int c, CRef *aref, OTYP *aotyp, void **apv)
 {
     CRef ref;

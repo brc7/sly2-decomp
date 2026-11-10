@@ -267,6 +267,7 @@ void func_00221940I(TN *p, int id) __asm__("ClearTnCpd");
 namespace RO_ORDER { extern const float r_D_002A96E0 __asm__("D_002A96E0") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A96E4 __asm__("D_002A96E4") = 3.40282347e+38f; }
 // If both angles are the sentinel, set both to ClampToLimits(atan2(h, len)) (inferred)
+// Also known as: InitCmeTilt (upstream readable / Sly 1 name; InitCmeTilt__FP7ZONECME).
 void InitTnDefaultAngles(CPD *p)
 {
     if (p->lmTilt.minValue == D_002A96E0 && p->lmTilt.maxValue == D_002A96E4) {
@@ -282,6 +283,7 @@ union UM { qword q; float f[4]; };
 struct M3F { UM r[3]; };
 // Blends the focus definition's base and adjusted positions by the CPD weight into *ppos; with a tunnel, also builds
 // the rate matrix and moves the result along the tunnel path (ProjectPointOntoTnPath / EvaluateTnPathPos). (inferred)
+// Also known as: PosCmeFocus (upstream readable / Sly 1 name; PosCmeFocus__FP7ZONECMEP6CPDEFIP6ZONECMPv).
 void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
 {
     UM u;
@@ -339,6 +341,7 @@ extern "C" void RemoveTnHierarchy(TN *p)
 }
 
 // LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot.
+// Also known as: LoadZoneFromBrx (upstream readable / Sly 1 name; LoadZoneFromBrx__FP2LOP18CBinaryInputStream).
 extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
 {
     MARK mark;
@@ -396,6 +399,7 @@ extern "C" void CloneTn(TN *p)
 
 // Tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8)
 // + event 6; store tns and stateStartTime=g_clock.time.
+// Also known as: UpdateZoneCamera (upstream readable / Sly 1 name; UpdateZoneCamera__FP2LOi).
 void SetTnTns(TN *p, int k)
 {
     if (k == p->state) return;
@@ -414,6 +418,7 @@ void SetTnTns(TN *p, int k)
 }
 
 // If changed store and call UpdateTnCallback(ptn,0)
+// Also known as: SetZoneForced (upstream readable / Sly 1 name; SetZoneForced__FP2LOi).
 extern "C" void SetTnTnsOverride(TN *p, int x)
 {
     if (x != p->requestedState) { p->requestedState = (TNS)x; UpdateTnCallbackA(p, 0); }
@@ -423,6 +428,7 @@ extern "C" void SetTnTnsOverride(TN *p, int x)
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
 // Current player (0x1C4A48 GetCurrentPo); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless
 // jumping.
+// Also known as: EvaluateZone (upstream readable / Sly 1 name; EvaluateZone__FP2LO).
 void UpdateTnCallback(TN *p)
 {
     POX *po = GetCurrentPo(&g_sw);
@@ -443,6 +449,7 @@ void UpdateTnCallback(TN *p)
 }
 
 // UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback)
+// Also known as: UpdateZone (upstream readable / Sly 1 name; UpdateZone__FP2LO).
 extern "C" void UpdateTn(TN *p)
 {
     UpdateLo(p);
@@ -450,6 +457,7 @@ extern "C" void UpdateTn(TN *p)
 }
 
 // OnLoRemove then SetTnTns(Out)
+// Also known as: OnZoneUnregistered (upstream readable / Sly 1 name; OnZoneUnregistered__FP2LO).
 void TN::OnRemove()
 {
     TN *p = (TN *)this;
@@ -477,6 +485,7 @@ static inline qword InverseRotate(const MATRIX3Q &m, qword v) {
     return v;
 }
 // Projects a world point into the path basis and returns path direction. (inferred)
+// Also known as: ConvertZonePos (upstream readable / Sly 1 name; ConvertZonePos__FP6ZONECMG9VU_VECTORP6VECTORT2).
 void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
     U pos;
     MATRIX3Q m;
@@ -502,6 +511,8 @@ static inline qword Rotate(const MATRIX3Q &m,qword v) {
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q)); return v;
 }
 // Evaluates a clamped path offset (fmodf), rotates/translates to world. (inferred)
+// Also known as: PosZoneSample (upstream readable / Sly 1 name;
+//   PosZoneSample__FP6ZONECMP6VECTORP4COEFP5BOUNDiPG9VU_VECTORff).
 void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qword *out,float time,float delta) {
     U pos,normal,center;
     MATRIX3Q m;
@@ -610,6 +621,7 @@ extern const unsigned int r_D_002A96F0[2] __asm__("D_002A96F0") = {0xFFFF0000, (
 namespace RO_ORDER { extern const float r_D_002A96F8 __asm__("D_002A96F8") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A96FC __asm__("D_002A96FC") = 3.40282347e+38f; }
 // Base 0x14FCC0, sets globals D_002C41A8, clears fields. (inferred)
+// Also known as: Init (upstream readable / Sly 1 name).
 extern "C" void InitCptn(CMPART2 *p)
 {
     InitCplcy(p);
@@ -620,6 +632,7 @@ extern "C" void InitCptn(CMPART2 *p)
 }
 
 // Base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) (inferred)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__8CPFOLLOWP2LOPv).
 extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
 {
     struct { qword a[5]; } cpdefi;
@@ -669,6 +682,7 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
 }
 
 // Clears tn/ppo (0x10,0x14) then base 0x14FCE8. (inferred)
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__8CPFOLLOWP2LOPv).
 extern "C" void DeactivateCptn(CMPART2 *p) {
     p->cameraTunnel = 0;
     p->cameraDefinition = 0;
@@ -676,6 +690,7 @@ extern "C" void DeactivateCptn(CMPART2 *p) {
 }
 
 // Positions tn target via FillCrvcCache or atan2 heading. (inferred)
+// Also known as: UpdateZonePath (upstream readable / Sly 1 name; UpdateZonePath__FP8CPFOLLOWi).
 void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 {
     TN *ps = p->cameraTunnel;
@@ -697,7 +712,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 
 // UpdateCptn: ported from Lilly's personal Sly 2 decomp (src/P2/cplcy.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), D_002C4118 (D_002C4118), D_002C41B0 (D_002C41B0), D_002C41D8 (D_002C41D8), D_002C41DC (D_002C41DC), D_002C41E0 (D_002C41E0), D_002C41F0 (D_002C41F0), D_002C4200 (D_002C4200), D_002C4208 (D_002C4208), D_002C4220 (D_002C4220), D_002C4230 (D_002C4230), D_002C4240 (D_002C4240), D_002C4250 (D_002C4250), D_002C4260 (D_002C4260), D_002C426C (D_002C426C), D_002C4270 (D_002C4270), D_002C4274 (D_002C4274), D_002C4278 (D_002C4278), D_002C427C (D_002C427C), D_002C4280 (D_002C4280), D_002C41EC (g_SheetCameraEngineCameraDamping), D_002C41E4 (g_SheetCameraEngineCameraHorizontalSpeed), D_002C41E8 (g_SheetCameraEngineCameraVerticalSpeed), g_clock (g_clock), g_cm (g_cm), g_game (g_game), g_lmZeroOne (g_lmZeroOne), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero)
+// Globals: D_002A2DA0 (D_002A2DA0), D_002C4118 (D_002C4118), D_002C41B0 (D_002C41B0), D_002C41D8 (D_002C41D8), D_002C41DC (D_002C41DC), D_002C41E0 (D_002C41E0), D_002C41F0 (D_002C41F0), D_002C4200 (D_002C4200), D_002C4208 (D_002C4208), D_002C4220 (D_002C4220), D_002C4230 (D_002C4230), D_002C4240 (D_002C4240), D_002C4250 (D_002C4250), D_002C4260 (D_002C4260), D_002C426C (D_002C426C), D_002C4270 (D_002C4270), D_002C4274 (D_002C4274), D_002C4278 (D_002C4278), D_002C427C (D_002C427C), D_002C4280 (D_002C4280), D_002C41EC (g_SheetCameraEngineCameraDamping), D_002C41E4 (g_SheetCameraEngineCameraHorizontalSpeed), D_002C41E8 (g_SheetCameraEngineCameraVerticalSpeed), g_clock, g_cm, g_game, g_lmZeroOne, g_normalZ, D_002A2DD0 (g_qwZero)
 // 0x00221DD8 Update__7CMPART2P6CPDEFIP3JOY  (MATCHES Sly 2; T1253, 1604 instructions). The frame is the game's 0x230 (0x00 posFocus, 0x10 posHang,
 // 0x20 vecTangent, 0x30 dposCrv / vFocus, 0x40..0x60 the free camera's temporaries, 0x70 smp, 0x80 vecHeading / smpPull, 0x90..0xEF six untouched
 // locals, 0xF0.. the view floats, 0x124 / 0x128 the pull flags; T1203). How the last 16.5% -> MATCH went (re/notes/camera-updatecm.md "T1253"):
@@ -1335,6 +1350,7 @@ static inline qword CombineAxes(qword qwV, qword qwBack, qword qwSide, qword qwU
     return qw;
 }
 // Every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden. (inferred)
+// Also known as: CheckFocusVisible (upstream readable / Sly 1 name; CheckFocusVisible__FP8CPFOLLOW).
 extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
 {
     LO *plo = (LO *)pcmpart->pvHero;
@@ -1402,6 +1418,7 @@ extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
 }
 
 // Signed distance of pos to a plane. (inferred)
+// Also known as: GCmCutWeight (upstream readable / Sly 1 name; GCmCutWeight__FP2CMG9VU_VECTORT1P5CMHIT).
 float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n)
 {
     UF d, one;
@@ -1440,6 +1457,7 @@ static inline qword BlendToRight(qword a,qword b,qword left,qword right){__asm__
 static inline void StoreVF(qword *p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 namespace RO_ORDER { extern const float r_D_002A9700 __asm__("D_002A9700") = 3.40282347e+38f; }
 // Camera segment avoidance (objects in box, UpdateCmFade) (inferred)
+// Also known as: PosEyeCut (upstream readable / Sly 1 name; PosEyeCut__FP8CPFOLLOWG9VU_VECTORT1P6VECTOR).
 extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *out){
     void *object=p->object;
     WORK w;

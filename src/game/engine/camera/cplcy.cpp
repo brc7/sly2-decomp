@@ -54,6 +54,7 @@ void CPLCY::Init()   /* key function: CPLCY's vtable comes out here */
 }
 
 // Default slot 2 Activate(focus, pv): pvHero(+0)=focus; save g_cm targetFieldOfView (+4) and nearClip (+8)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__5CPLCYP2LOPv).
 extern "C" void ActivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 {
     pcplcy->pvHero = pvHero;
@@ -62,6 +63,7 @@ extern "C" void ActivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 }
 
 // Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); targetFieldOfView=saved.
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__5CPLCYP2LOPv).
 extern "C" void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 {
     pcplcy->pvHero = 0;
@@ -128,6 +130,7 @@ extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
 
 // Resets the look policy's zoom: zoom amount and its speed to 0, and the camera field of view back to the policy's
 // zoom field of view (zoomedFieldOfView).
+// Also known as: ResetZoom (upstream readable / Sly 1 name).
 extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 {
     pcplook->zoom = 0.0f;
@@ -142,6 +145,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER. (inferred)
+// Also known as: PosFocus (upstream readable / Sly 1 name).
 extern "C" qword PosCplookAnchor(CPLOOK *p)
 {
     U s;
@@ -169,6 +173,7 @@ extern qword D_002A5000 __asm__("D_002A5000");
 void LoadRotateMatrixPanTiltP(M3 *pm, float x, float y) __asm__("LoadRotateMatrixPanTilt");
 qword PosCplookAnchor(CPLOOK *p) __asm__("PosCplookAnchor");
 // Eye = anchor + RotMatrix(panAngle +0x10, tiltAngle +0x14) * D_002A5000 offset. (inferred)
+// Also known as: PosEye (upstream readable / Sly 1 name).
 extern "C" qword PosCplookEye(CPLOOK *p)
 {
     M3 m;
@@ -207,6 +212,7 @@ float ClampToLimits__FP2LMf(LM *, float) __asm__("ClampToLimits__FP2LMf");
 
 // Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits,
 // zoom=0, fov zoom range, near clip 49, numActivations++.
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__7CPRECONP2LOPv).
 extern "C" void ActivateCplook(CPLOOK *p)
 {
     CM *pcm;
@@ -289,6 +295,7 @@ extern "C" { static __inline__ float ClampLocal(float g, float gMin, float gMax)
 
 // Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks (invert option via
 // splice 0x3D4A60), limits, SetCmLookAt(eye, anchor)
+// Also known as: Update (upstream readable / Sly 1 name; Update__7CPRECONP6CPDEFIP5CMJOY).
 extern "C" void UpdateCplook(CPLOOK *p, void *pv, struct JOY *pjoy)
 {
     float x, u, gPan, gTilt, dt;
@@ -367,6 +374,7 @@ extern "C" { static inline void Release(CRefPtr<SND> *pp, float g)
     }
 } }
 // Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then CPLCY::Deactivate.
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__7CPRECONP2LOPv).
 extern "C" void DeactivateCplook(CPLOOK *a, int n, void *b)
 {
     Release(&a->psndZoom, 0.0f);
@@ -396,6 +404,7 @@ typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void *GetCurrentPo(void *p) __asm__("GetCurrentPo");
 // Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos. (inferred)
+// Also known as: PosFocus (upstream readable / Sly 1 name).
 extern "C" qword PosCpzoomCenter(CPZOOM *p)
 {
     QWROW v;
@@ -457,6 +466,7 @@ extern "C" { static inline qword MulM3(M3 *pm, qword v)
 } }
 // Eye: if ploFocus(+0x14), behind center looking at focus (updates panAngle +0xA4); else center +
 // Rot(panAngle,tiltAngle)*offset. (inferred)
+// Also known as: PosEye (upstream readable / Sly 1 name).
 extern "C" qword PosCpzoomEye(CPZOOM *p)
 {
     qword r;
@@ -485,6 +495,7 @@ void PauseSnd(SND *p) __asm__("PauseSnd");
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pmat, float *pa, float *pb) __asm__("DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1");
 // Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49, SnapCpzoom, shares
 // numActivations counter (g_cm+0x4A4)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__6CPFREEP2LOPv).
 extern "C" void ActivateCpzoom(CPZOOM *a, int n)
 {
     void *p;
@@ -548,6 +559,7 @@ extern "C" { static __inline__ float GFrac(float g, float a, float b)
 
 // Smooth zoom toward zoomTarget with sounds; if posed (hasPose +0x40) blend pos/eul/fov to target pose, else smooth
 // center/eye and SetCmLookAt.
+// Also known as: Update (upstream readable / Sly 1 name; Update__6CPFREEP6CPDEFIP5CMJOY).
 extern "C" void UpdateCpzoom(CPZOOM *p)
 {
     UpdateCplcy(p);
@@ -623,6 +635,7 @@ void CPZOOM::ResetPolicy()   /* key function */
 }
 
 // PloOwner(+0x10)=plo; if posed, SnapCpzoom; hasPose=0. (inferred)
+// Also known as: SetFocusObject (upstream readable / Sly 1 name; SetFocusObject__6CPFREEP2LO).
 extern "C" void SetCpzoomOwner(CPZOOM *pcpzoom, LO *plo)
 {
     pcpzoom->ploOwner = plo;
@@ -643,6 +656,7 @@ extern "C" void SetCpzoomFocus(CPZOOM *pcpzoom, LO *plo)
 }
 
 // PosTarget(+0x80), eulTarget(+0x90), targetFieldOfView(+0xA0); if not posed SnapCpzoom; hasPose=1. (inferred)
+// Also known as: SetTargets (upstream readable / Sly 1 name; SetTargets__6CPFREEG9VU_VECTORT1f).
 extern "C" void SetCpzoomPose(CPZOOM *pcpzoom, qword pos, qword eul, float radFov)
 {
     *(qword *)&pcpzoom->targetEyePosition = pos;
@@ -665,6 +679,7 @@ typedef int qword __attribute__((mode(TI)));
 qword PosCpzoomCenter(CPZOOM *p) __asm__("PosCpzoomCenter");
 qword PosCpzoomEye(CPZOOM *p) __asm__("PosCpzoomEye");
 // Reset smoothed center/eye to current targets, zoom=zoomTarget (if >=0), pose = target pose.
+// Also known as: Snap (upstream readable / Sly 1 name).
 extern "C" void SnapCpzoom(CPZOOM *p)
 {
     *(qword *)&p->smoothedFocusPosition = PosCpzoomCenter(p);
@@ -742,6 +757,7 @@ extern "C" { static inline void Release(CRefPtr<SND> *pp, float g)
     }
 } }
 // Release sounds, clear owner/focus/pose, zoomTarget=-1, CutCm, CPLCY::Deactivate.
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__6CPFREEP2LOPv).
 extern "C" void DeactivateCpzoom(CPZOOM *a, int n, void *b)
 {
     Release(&a->psndZoom, 0.0f);
@@ -769,6 +785,7 @@ extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void ActivateCplcy(CPHANG *a, int n, void *b) __asm__("ActivateCplcy");
 ACT1 *NewPositionAct(void *pvHero, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
 // Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), nextSwayTime=-1. (inferred)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__10CPACTUATEDP2LOPv).
 extern "C" void ActivateCphang(CPHANG *a, int n, void *b)
 {
     CM *pg;
@@ -783,6 +800,7 @@ extern "C" void ActivateCphang(CPHANG *a, int n, void *b)
 } // namespace M_ActivateCphang
 
 // 0x12E460(+0x14), CutCm, CPLCY::Deactivate. (inferred)
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__10CPACTUATEDP2LOPv).
 void CPHANG::Deactivate(void *pvHero, void *pv)   /* key function */
 {
     CPHANG *pcphang = this;
@@ -858,6 +876,7 @@ static inline qword AddScaled2(VU_VECTOR a, VU_VECTOR b, VU_VECTOR c, VU_FLOAT s
 
 // Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF (0x12D108) and
 // SetCmMat4 from the camera transform.
+// Also known as: Update (upstream readable / Sly 1 name; Update__10CPACTUATEDP6CPDEFIP5CMJOY).
 void UpdateCphang(CPHANG *p, void *pv, JOY *pjoy)
 {
     qword pos, v;
@@ -915,6 +934,7 @@ namespace M_ActivateCpcamblend {
 void ActivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b) __asm__("ActivateCplcy");
 } // namespace M_ActivateCpcamblend
 // CPLCY::Activate; pcammove(+0x10)=pv; pevent->AddRef() (begin event). (inferred)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__7CPTIMEDP2LOPv).
 void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpcamblend;
@@ -929,6 +949,7 @@ void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespa
 namespace M_DeactivateCpcamblend {
 void DeactivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b) __asm__("DeactivateCplcy");
 // CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent->Release() (end event); pcammove=0. (inferred)
+// Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__7CPTIMEDP2LOPv).
 extern "C" void DeactivateCpcamblend(CPCAMBLEND *a, int n, CAMMOVE *b)
 {
     DeactivateCplcy(a, n, b);
@@ -981,6 +1002,7 @@ extern "C" { static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2
 
 // T=(clock.time - modeStartTime)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two
 // CAMPOSEs; SetCmMat4 + SetCmFov.
+// Also known as: Update (upstream readable / Sly 1 name; Update__7CPTIMEDP6CPDEFIP5CMJOY).
 extern "C" void UpdateCpcamblend(CPCAMBLEND *p)
 {
     float u, t, t1, fov;
@@ -1033,6 +1055,7 @@ struct B { char pad[0x1BC]; float turretFov; };
 void ActivateCplcy(void *a, struct B *b) __asm__("ActivateCplcy");
 } // namespace M_ActivateCpturret
 // CPLCY::Activate; near clip 49; targetFieldOfView = turret +0x1BC. (inferred)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__8CPATTACHP2LOPv).
 void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
     using namespace M_ActivateCpturret;
@@ -1095,6 +1118,7 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
 
 // Camera follows turret object's world matrix (plo->vt31 GetWorldMatrix), smoothing rotation/position unless cut; fov from
 // turret +0x1BC. (inferred)
+// Also known as: Update (upstream readable / Sly 1 name; Update__8CPATTACHP6CPDEFIP5CMJOY).
 void UpdateCpturret(CPTURRET *p)
 {
     UpdateCplcy(p);
@@ -1137,6 +1161,7 @@ void UpdateCpturret(CPTURRET *p)
 } // namespace M_UpdateCpturret
 
 // CPLCY::Activate; +0x14=focus arg, +0x10=pv arg. (inferred)
+// Also known as: Activate (upstream readable / Sly 1 name; Activate__6CPPAIRP2LOPv).
 void CPTWOSHOT::Activate(void *pvHero, void *pv)   /* key function */
 {
     CPTWOSHOT *pcptwoshot = this;
@@ -1221,6 +1246,7 @@ static inline void Cm1(M4 *pm) { SetCmMat4(&g_cm, pm); }
 static inline void Cm2(float g) { SetCmFov(&g_cm, g); }
 // Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by distance curves,
 // look-at matrix, fov from distance curve. (inferred)
+// Also known as: Update (upstream readable / Sly 1 name; Update__6CPPAIRP6CPDEFIP5CMJOY).
 void UpdateCptwoshot(CPTWOSHOT *p)
 {
     U d;

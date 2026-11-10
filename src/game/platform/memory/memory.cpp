@@ -71,6 +71,7 @@ void CheckForOutOfMemory()
 }
 
 // Bump-allocates request->size bytes (rounded up to 16) from the SW (level) heap at request->alignment alignment.
+// Also known as: PvAllocSwImpl (upstream readable / Sly 1 name; PvAllocSwImpl__Fi).
 extern "C" void *AllocFromWorldHeap(AREQ *request)
 {
     unsigned int pv;
@@ -83,6 +84,7 @@ extern "C" void *AllocFromWorldHeap(AREQ *request)
 }
 
 // AllocFromWorldHeap, then copies request->size bytes from source into the new block.
+// Also known as: PvAllocSwCopyImpl (upstream readable / Sly 1 name; PvAllocSwCopyImpl__FiPv).
 extern "C" void *AllocCopyFromWorldHeap(AREQ *request, void *source)
 {
     AREQ m = *request;
@@ -92,6 +94,7 @@ extern "C" void *AllocCopyFromWorldHeap(AREQ *request, void *source)
 }
 
 // AllocFromWorldHeap, then zero-fills the block.
+// Also known as: PvAllocSwClearImpl (upstream readable / Sly 1 name; PvAllocSwClearImpl__Fi).
 extern "C" void *AllocClearedFromWorldHeap(AREQ *request)
 {
     AREQ m = *request;
@@ -108,6 +111,7 @@ void FreeSw()
 
 // Allocates request->size bytes (rounded up to 16) from the stack heap, which grows down, at request->alignment
 // alignment (PvAllocStackImpl in Sly 1 terms; this symbol was misnamed PvAllocSlot__FP8ALLOCREQ before).
+// Also known as: PvAllocStackImpl (upstream readable / Sly 1 name; PvAllocStackImpl__Fi).
 extern "C" void *AllocFromStack(AREQ *request)
 {
     int cb = request->size;
@@ -121,6 +125,7 @@ extern "C" void *AllocFromStack(AREQ *request)
 }
 
 // Stack-heap allocation (AllocFromStack), then zero-fills the block.
+// Also known as: PvAllocStackClearImpl (upstream readable / Sly 1 name; PvAllocStackClearImpl__Fi).
 extern "C" void *AllocClearedFromStack(AREQ *request)
 {
     AREQ m = *request;
@@ -152,6 +157,7 @@ STACKSCOPE::STACKSCOPE()
 }
 
 // STACKSCOPE destructor: closes the scope (FreeStackImpl); deletes the object when asked to (flag bit 0).
+// Also known as: STACKSCOPE constructor (upstream readable / Sly 1 name).
 STACKSCOPE::~STACKSCOPE()
 {
     FreeStackImpl();

@@ -47,6 +47,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(STEPPLAYER *pj, int k);
 
 // WAYPT (cid 107) vtable slot 7 (Init): SO init; triggered by class 50 within 300 (500 once active); no clip frame or
 // powerup yet; LO flags 0xA; clears SO flag bit 35.
+// Also known as: InitMarker (upstream readable / Sly 1 name; InitMarker__FP2LO).
 extern "C" void InitWaypt(WAYPT *waypoint)
 {
     int flags;
@@ -104,6 +105,7 @@ enum { SPLICE_EVENT_ACTIVATE = 5, SPLICE_EVENT_DEACTIVATE = 6 };
 // WAYPT vtable slot 16 (Update): the waypoint is active while a hero of triggerClass is within the activation radius
 // (and the mode allows it); a hero of CID 0x34 that is busy (in an air state, or GetHealthState answering 2) keeps the
 // current activity. Changes send Splice event 5 (activate) or 6 (deactivate).
+// Also known as: UpdateMarker (upstream readable / Sly 1 name; UpdateMarker__FP2LO).
 extern "C" void UpdateWaypt(WAYPT *waypoint)
 {
     STEPPLAYER *hero;
@@ -264,6 +266,7 @@ static inline float LenXYFN(qwordV v, int n)
 
 // How much taller the waypoint beam must be to be seen over the scenery from the camera (see the block comment above);
 // computed once per camera frame.
+// Also known as: PlaceMarker (upstream readable / Sly 1 name; PlaceMarker__FP2LO).
 extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
 {
     UQ corner[4];
@@ -490,6 +493,7 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 
 // WAYPT vtable slot 39 (RenderSelf): see the block comment above. The mode decides whether it shows at all; the beam
 // runs from the source up by height (plus a camera-distance-scaled top), with the marker on top and the base below.
+// Also known as: CollectMarkerDraws (upstream readable / Sly 1 name; CollectMarkerDraws__FP2LO).
 extern "C" void RenderWaypt(WAYPT *waypoint)
 {
     RenderSoSelf(waypoint);

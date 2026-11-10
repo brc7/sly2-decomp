@@ -1,4 +1,4 @@
-/* include/sly2/joy.h -- JOY (controller state). g_joy = g_joy (pad 0); a second JOY at D_002E0D00 (= g_joy + 0x1100)
+/* include/sly2/joy.h -- JOY (controller state). g_joy at 0x2DFC00 (pad 0); a second JOY at D_002E0D00 (= g_joy + 0x1100)
  * is used when g_grfjoyt bit 1 is clear (pine_input README). Layout from src/game/gameplay/cutscene/relay/IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp (Lilly port), with the
  * menu-repeat fields at +0x1024 named from src/game/platform/input/joy/GetJoySelectionStepX.c (matched; reads dirX, dirY, nextRepeatTimeX/Y, repeatIntervalX/Y there and
  * gX/gY/gMag = leftStickX/leftStickY/leftStickDeflection at +0x103C..). Tags: [R] runtime / [M] offset used by matched code / [S] static. */

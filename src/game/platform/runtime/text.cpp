@@ -84,6 +84,7 @@ void UpperizePchz(char *str);
 static inline int IsDecimalDigit(unsigned char ch) { return ch >= '0' && ch <= '9'; }
 // Parses an optionally negative decimal integer at str into *outValue; returns the characters consumed.
 // (Sly 1-derived name: CchParsePchzInt.)
+// Also known as: CchParsePchzInt (upstream readable / Sly 1 name).
 int ParseDecimalInt(char *str, int *outValue)
 {
     unsigned char *p = (unsigned char *)str;
@@ -110,6 +111,7 @@ enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSIO
 // Parses one conversion specification starting at '%' (flags, width or '*', '.precision' or '.*', length h/l/ll/
 // L/q, the m/M/v/V matrix-vector modifiers, conversion character) into *spec, taking '*' values from the argument
 // list. "%%" yields conversion '%'. Returns the length of the specification. (Sly 1-derived name: CchParsePchzTft.)
+// Also known as: CchParsePchzTft (upstream readable / Sly 1 name).
 int ParseFormatSpec(char *format, TFT *spec, char **args)
 {
     int state = TFT_START;
@@ -268,6 +270,7 @@ void WriteTftPchz(TFT *spec, OSTRM *out, char *str)
 
 // Narrows the integer argument to its length modifier (int, short or long) and, for %d/%i, makes it non-negative.
 // Returns whether it was negative. (Sly 1-derived name: FNegTftUl.)
+// Also known as: FNegTftUl (upstream readable / Sly 1 name).
 int NarrowIntegerArgument(TFT *spec, UL *value)
 {
     int isNegative = 0;
@@ -328,6 +331,7 @@ int UnRadixFromChConversion(unsigned char conversion)
 
 // Converts `value` to digits in `radix` (lower-case), right-aligned at the end of buffer[0..capacity) and then
 // moved to its start. Returns the number of digits. (Sly 1-derived name: CchAchFromUl.)
+// Also known as: CchAchFromUl (upstream readable / Sly 1 name).
 int FormatUnsignedDigits(char *buffer, int capacity, unsigned long value, unsigned int radix)
 {
     char *end = buffer + capacity;
@@ -431,6 +435,7 @@ int ExpFirstFromG(double g)
 /* Digit of g at decimal position a (precision b): 0 outside [b, b+15). */
 // Returns the decimal digit character of g at power-of-ten `position`, or '0' outside the ~15 significant
 // digits that start at `precision`.
+// Also known as: ChDigitFromG (upstream readable / Sly 1 name).
 unsigned char GetDecimalDigitChar(double g, int position, int precision)
 {
     int digit;
@@ -447,6 +452,7 @@ unsigned char GetDecimalDigitChar(double g, int position, int precision)
 extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)"; /* .rodata order (see WriteTftPchz) */
 // Formats `value` for %e/%f/%g into buffer (at most capacity characters) per the spec's precision and flags,
 // printing "(nan)" / "(inf)" for non-finite values. Returns the length. (Sly 1-derived name: CchAchFromDouble.)
+// Also known as: CchAchFromDouble (upstream readable / Sly 1 name).
 int FormatDouble(char *buffer, int capacity, TFT *spec, double value)
 {
     union {
@@ -671,6 +677,7 @@ void WriteTft(TFT *spec, OSTRM *out, char **args, char *text, int count)
 
 // The printf engine: copies literal text up to each '%', parses and writes each conversion, and stops early if
 // the stream refuses bytes. Returns the stream's total bytes written. (Sly 1-derived name: CchOstrmPrintf.)
+// Also known as: CchOstrmPrintf (upstream readable / Sly 1 name).
 int PrintfToStream(OSTRM *out, char *format, char *args)
 {
     TFT spec;
@@ -708,6 +715,7 @@ extern "C" int vprintf(char *fmt, char *args)
 }
 
 // printf to the debug console.
+// Also known as: kprintf (upstream readable / Sly 1 name).
 extern "C" int printf(char *fmt, ...)
 {
     va_list ap;
@@ -728,6 +736,7 @@ extern "C" int s1_vsprintf(char *dest, char *fmt, char *args)
 }
 
 // sprintf: formats into the buffer passed as the first argument; returns the length.
+// Also known as: fiprintf (upstream readable / Sly 1 name).
 extern "C" int sprintf(void *f, char *fmt, ...)
 {
     va_list ap;

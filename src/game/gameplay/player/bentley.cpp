@@ -79,6 +79,7 @@ void InitStepplayer(BENTLEY *p) __asm__("InitStepplayer");
 void InitGait(GAIT *pv, BENTLEY *p, int n) __asm__("InitGait");
 // BENTLEY Init (vtable slot 7): STEPPLAYER init, then Bentley's defaults: camera offsets 45/125, the two gait records
 // (+0x1320/+0x1600) and his gadget slot kinds (7/9/11 ...).
+// Also known as: InitBentley (upstream readable / Sly 1 name; InitBentley__FP7BENTLEY).
 extern "C" void InitBentley(BENTLEY *bentley)
 {
     InitStepplayer(bentley);
@@ -139,6 +140,7 @@ void AttachStepplayerToStartMarker(BENTLEY *, int) __asm__("AttachStepplayerToSt
 void SetBentleyState(BENTLEY *, int) __asm__("SetBentleyState");
 // BENTLEY post-load (slot 15): STEPPLAYER post-load, finds child SO 0xB, binds the animation blends, initializes the
 // crosshair (InitBentleyCrosshair) and attaches him to his start marker.
+// Also known as: PostLoadBentley (upstream readable / Sly 1 name; PostLoadBentley__FP7BENTLEY).
 extern "C" void PostBentleyLoad(BENTLEY *bentley) {
     PostLoadStepplayer(bentley);
     bentley->unknown10B8 = FindSoXf(bentley, 0xb, 1);
@@ -174,6 +176,7 @@ void UpdateBentleyAim(BENTLEY *p) __asm__("UpdateBentleyAim");
 
 // Per-frame Bentley state transitions driven by the component states, then the sub-machines (sub-state,
 // aim, hover).
+// Also known as: UpdateBentleyTransitions (upstream readable / Sly 1 name; UpdateBentleyTransitions__FP7BENTLEY).
 extern "C" void UpdateBentleyStateMachine(BENTLEY *p)
 {
     int s;
@@ -298,6 +301,7 @@ int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float) __asm__("ConsumeB
 void EndJtMode(void *) __asm__("EndJtMode");
 void UpdateJtMode(void *) __asm__("UpdateJtMode");
 // While in a look mode: in recon (mode 1, kind 0) the face buttons (mask 0x4F0) end it; then updates the mode.
+// Also known as: UpdateBentleyBinoc (upstream readable / Sly 1 name; UpdateBentleyBinoc__FP7BENTLEY).
 extern "C" void UpdateBentleyJtMode(BENTLEY *bentley) {
     if (!IsStepplayerInJtMode(bentley))
         return;
@@ -423,6 +427,7 @@ extern "C" { static __inline__ void Kick(GAIT *pv, float g)
 } }
 
 // BENTLEY Update (slot 16): UpdateStepplayer, then (if in the world) the state machine and per-state actions.
+// Also known as: UpdateBentley (upstream readable / Sly 1 name; UpdateBentley__FP7BENTLEY).
 extern "C" void UpdateBentley(BENTLEY *bentley)
 {
     UpdateStepplayer(bentley);
@@ -526,6 +531,7 @@ void ReplaceSmaEx(void *, BENTLEY *, int, int, int, SMA **) __asm__("ReplaceSmaE
 #define VCALL1(p, n, a) ((void (*)(void *, int))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d, a)
 
 // Bentley state change: exit/enter actions, animations and component state changes.
+// Also known as: SetBentleyState (upstream readable / Sly 1 name; SetBentleyState__FP7BENTLEYi).
 extern "C" void SetBentleyState(BENTLEY *p, int k)
 {
     int kOld;
@@ -709,6 +715,7 @@ void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), SOTREE *, int *, i
 int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *) __asm__("FindFirstObjectHitByLine");
 // Casts a ray through two screen points into the world (box query plus line test against objects) and stores the hit
 // (or the far point) as the aim point.
+// Also known as: FireBentleyDart (upstream readable / Sly 1 name; FireBentleyDart__FP7BENTLEY).
 extern "C" void UpdateBentleyAimPoint(BENTLEY *bentley) {
     struct C ctx;
     struct LSG lsg;
@@ -764,6 +771,7 @@ extern "C" void FireBentleyDart(BENTLEY *bentley, int a) {
 
 // BENTLEY camera definition (slot 50): GetStepplayerCpdefi plus per-state tweaks (pipe 13 uses the pipe velocity,
 // state 5 sets a flag).
+// Also known as: GetBentleyCpdefi (upstream readable / Sly 1 name; GetBentleyCpdefi__FP7BENTLEYP9ACTORPOSE).
 extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
 {
     int state;
@@ -797,6 +805,7 @@ void PresetJtAccelPipe(JTPIPE *p) __asm__("PresetJtAccelPipe");
 void AddSoAcceleration(BENTLEY *p, qword v) __asm__("AddSoAcceleration");
 // BENTLEY physics preset (slot 70): per state, the pipe / air / grab / hurt component's preset; state 6 sub-state 2
 // applies drag.
+// Also known as: UpdateBentleyMotion (upstream readable / Sly 1 name; UpdateBentleyMotion__FP3ALO).
 extern "C" void PresetBentleyAccel(BENTLEY *bentley)
 {
     if (bentley->state == BENTLEY_PIPE)
@@ -835,6 +844,7 @@ void AdjustJtHurtXp(void *, struct E *) __asm__("AdjustJtHurtXp");
 void ResetJtPipeAdjust(void *, struct E *) __asm__("ResetJtPipeAdjust");
 void AdjustStepNewXp(BENTLEY *, struct E *, int) __asm__("AdjustStepNewXp");
 // BENTLEY contact adjust (slot 55): hurt -> AdjustJtHurtXp, pipe -> ResetJtPipeAdjust, else the STEP base.
+// Also known as: OnBentleyXpNew (upstream readable / Sly 1 name; OnBentleyXpNew__FP3ALOP2XPi).
 extern "C" void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
     struct E *pe = &ae[i];
     if (pe->po->grf & (0x8000L << 33)) return;
@@ -859,6 +869,7 @@ void HandleBentleyCrosshairMessage(BTBLENDS *pv, int k, struct M *pm) __asm__("H
 void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, int n) __asm__("SetGadgetRecordObject");
 // BENTLEY message handler (slot 5): HandleStepplayerMessage, then Bentley-specific animation events (message 9 kinds:
 // 0x216 spawns an object from a template, ...).
+// Also known as: OnBentleyMessage (upstream readable / Sly 1 name; OnBentleyMessage__FP2LO5MSGIDPv).
 extern "C" void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
 {
     HandleStepplayerMessage(bentley, k, pm);
@@ -897,6 +908,7 @@ extern "C" void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
 namespace M_SetBentleyPlayerState {
 void SetBentleyState(void *, int) __asm__("SetBentleyState");
 // BENTLEY slot 88: maps a generic player state 0..8 to Bentley states (0, 2, 3, 4, 9, 10, 11, 12, 13).
+// Also known as: SetBentleyJumpState (upstream readable / Sly 1 name; SetBentleyJumpState__FP2LOi).
 extern "C" void SetBentleyPlayerState(void *bentley, unsigned int n)
 {
     switch (n) {
@@ -916,6 +928,7 @@ extern "C" void SetBentleyPlayerState(void *bentley, unsigned int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_PlayerStateCur {
 // BENTLEY slot 89: the inverse map, Bentley state -> generic player state 0..8 (else -1).
+// Also known as: BentleyJumpKind (upstream readable / Sly 1 name; BentleyJumpKind__FP7BENTLEY).
 extern "C" int GetBentleyPlayerState(BENTLEY *bentley) {
     switch (bentley->state) {
     case BENTLEY_IDLE: return 0;
@@ -990,6 +1003,7 @@ void AddJtPlaceAtPosition(void *, int, ti128) __asm__("AddJtPlaceAtPosition");
 void RecordJtGrabPlace(void *) __asm__("RecordJtGrabPlace");
 void RecordJtPipePlace(void *) __asm__("RecordJtPipePlace");
 // Per state: records standing places when on solid ground (AddJtPlaceAtPosition), or the grab/pipe updates.
+// Also known as: UpdateActorSupport (upstream readable / Sly 1 name; UpdateActorSupport__FP5ACTOR).
 extern "C" void UpdateBentleyPlaces(BENTLEY *bentley) {
     struct A *pa;
     switch (bentley->state) {
@@ -1035,6 +1049,7 @@ namespace M_func_00136040 {
 void ReleaseSma(void *) __asm__("ReleaseSma");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, float, float, int, ASEGA **) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Sets the +0x16B0 sub-state and plays its animation.
+// Also known as: SetBentleyHold (upstream readable / Sly 1 name; SetBentleyHold__FP7BENTLEYi).
 extern "C" void SetBentleySubState(BENTLEY *bentley, int n) {
     ASEG *aseg;
     int grfapl;
@@ -1080,6 +1095,7 @@ int POCTL_IsButtonDown(POCTL *pv, int n) __asm__("POCTL_IsButtonDown");
 void ReleaseBentleyHeldObject(BENTLEY *p) __asm__("ReleaseBentleyHeldObject");
 void SetJtAirJump(JTAIR *pv, int a, int b, int c) __asm__("SetJtAirJump");
 // The subState machine.
+// Also known as: UpdateBentleyHold (upstream readable / Sly 1 name; UpdateBentleyHold__FP7BENTLEY).
 extern "C" void UpdateBentleySubState(BENTLEY *bentley)
 {
     int s;
@@ -1119,6 +1135,7 @@ extern "C" void UpdateBentleySubState(BENTLEY *bentley)
 /* Hands the proxy held at +0x186C back: hooks it to Bentley if IsThrowableGadget allows, then unlocks it in the
    current pocket's proxy. */
 // Releases the object at +0x186C back to its manager.
+// Also known as: ReleaseBentleyCarried (upstream readable / Sly 1 name; ReleaseBentleyCarried__FP7BENTLEY).
 extern "C" void ReleaseBentleyHeldObject(BENTLEY *bentley)
 {
     if (IsThrowableGadget(bentley->ploHeld) != 0) {
@@ -1131,6 +1148,7 @@ extern "C" void ReleaseBentleyHeldObject(BENTLEY *bentley)
 }
 
 // Sets the dart aim state (+0x16BC) with a timestamp; state 0 also stops the crosshair.
+// Also known as: SetBentleyState2 (upstream readable / Sly 1 name; SetBentleyState2__FP7BENTLEYi).
 extern "C" void SetBentleyAimState(BENTLEY *bentley, int n)
 {
     if (n == bentley->aimState)
@@ -1153,6 +1171,7 @@ int FindSmStateOptional__FP2SM3OID(void *pv, int n) __asm__("FindSmStateOptional
 void SnapSma(void *pv, int n) __asm__("SnapSma");
 // Binocucom dart aim state machine (+0x16BC): -1 outside look mode, 0 ready, 1 fired/cool-down; the fire button within
 // 0.25 s while ready fires (FireBentleyDart). The cool-down is 2.0 s.
+// Also known as: UpdateBentleyState2 (upstream readable / Sly 1 name; UpdateBentleyState2__FP7BENTLEY).
 extern "C" void UpdateBentleyAim(BENTLEY *bentley)
 {
     int s;
@@ -1219,6 +1238,7 @@ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, BENTLEY *, int, ASEGA *
 
 // State machine on hoverState with reparenting and actuator teardown; also called from the throw code. (inferred: hover
 // pack)
+// Also known as: SetBentleyCarried (upstream readable / Sly 1 name; SetBentleyCarried__FP7BENTLEYi).
 extern "C" void SetBentleyHoverState(BENTLEY *bentley, int k)
 {
     ASEG *pv;
@@ -1319,6 +1339,7 @@ int IsTossableActive(void *pv) __asm__("IsTossableActive");
 int ChooseProxySpare(void *pv, int n) __asm__("ChooseProxySpare");
 int IsCameraPolicyActive__FP5CPLCY(void *pv) __asm__("IsCameraPolicyActive__FP5CPLCY");
 // BENTLEY slot 99: per-state checks and the per-gadget record's availability.
+// Also known as: FBentleyAbilityOk (upstream readable / Sly 1 name; FBentleyAbilityOk__FP7BENTLEYi).
 extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
 {
     register int f __asm__("$3");  /* register pin: target keeps x15C and the ChooseProxySpare result in v1 */
@@ -1394,6 +1415,7 @@ extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
 namespace M_PgadgetBentleyFromId {
 /* Sly 2 version takes a base pointer in $a0 and saak in $a1 and returns a pointer into it. */
 // The gadget record for a gadget id.
+// Also known as: CbFromSaak (upstream readable / Sly 1 name; CbFromSaak__F4SAAK).
 extern "C" int GetBentleyGadgetFromId(char *bentley, int saak)
 {
     switch (saak) {
@@ -1424,6 +1446,7 @@ void SetBentleyState(BENTLEY *p, int n) __asm__("SetBentleyState");
 void ChargeGadgetMp(BENTLEY *p, int k) __asm__("ChargeGadgetMp");
 void StartStepplayerGadget(BENTLEY *p, int k) __asm__("StartStepplayerGadget");
 // BENTLEY slot 100: broadcasts game event 0x3C, then per gadget id starts the throw/grab/air action using its record.
+// Also known as: StartBentleyAbility (upstream readable / Sly 1 name; StartBentleyAbility__FP5ACTORi).
 extern "C" void StartBentleyGadget(BENTLEY *bentley, int k)
 {
     g_game.idGadgetLast = k;
@@ -1498,6 +1521,7 @@ extern "C" char *GetBentleySaveVarRoot()
 namespace M_func_00136CC0 {
 int GetStepplayerGroundProbeFlags(BENTLEY *) __asm__("GetStepplayerGroundProbeFlags");
 // BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
+// Also known as: GrfBentleyXp (upstream readable / Sly 1 name; GrfBentleyXp__FP3ALO).
 extern "C" int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
     if (bentley->unknown204) return 0;
     switch (bentley->state) {
@@ -1514,6 +1538,7 @@ namespace M_func_00136D28 {
 typedef int ti128 __attribute__((mode(TI)));
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(BENTLEY *, int, int, JTAIRBL *, int, int, int, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 // Initializes the six blended animation slots of the crosshair/aim helper (+0x1710).
+// Also known as: InitBentleySub (upstream readable / Sly 1 name; InitBentleySub__FP10BENTLEYSUBP3ALOG9VU_VECTORff).
 extern "C" void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, float g0, float g1) {
     unsigned int i;
     bentley->pbentley = a;
@@ -1530,6 +1555,7 @@ int IsAsegaRetracted(void *p) __asm__("IsAsegaRetracted");
 int GetButtonsPressedWithin__5POCTLUif(POCTL *pa, int grf, float g) __asm__("GetButtonsPressedWithin__5POCTLUif");
 void ClearPoctlJoyPressed(POCTL *pa, int n) __asm__("ClearPoctlJoyPressed");
 // Crosshair update: on button 0x80 when gadget 2 is usable, restarts it.
+// Also known as: UpdateBentleySub (upstream readable / Sly 1 name; UpdateBentleySub__FP7BENTLEYi).
 extern "C" void UpdateBentleyCrosshair(BTBLENDS *bentley, int k)
 {
     if (bentley->pasega && IsAsegaRetracted(bentley->pasega))
@@ -1579,6 +1605,7 @@ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *, BENTLEY *, int, ASEGA *
 void DetachXfActById(ASEGA *, BENTLEY *, void *) __asm__("DetachXfActById");
 void SetAsegaChannelWeight(ASEGA *, float) __asm__("SetAsegaChannelWeight");
 // Crosshair state change.
+// Also known as: SetBentleySubMode (upstream readable / Sly 1 name; SetBentleySubMode__FP7BENTLEYi).
 extern "C" void SetBentleyCrosshairState(BTBLENDS *ps, int state)
 {
     void *pv;
@@ -1639,6 +1666,7 @@ extern "C" void SetBentleyCrosshairState(BTBLENDS *ps, int state)
 } // namespace M_func_00136F48
 
 // Initializes the blend/helper record (players.h BTBLENDS): owner and state -1. (inferred)
+// Also known as: InitSlyDodge (upstream readable / Sly 1 name; InitSlyDodge__FP3SLYi).
 extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 {
     blends->pbentley = bentley;
@@ -1649,6 +1677,7 @@ extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 namespace M_func_001371C8 {
 int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 // When the owner's current action has retracted, returns him to generic player state 0 (SetPlayerState).
+// Also known as: UpdateSlyDodgeTransitions (upstream readable / Sly 1 name; UpdateSlyDodgeTransitions__FP3SLY).
 extern "C" void EndBentleyHelperWhenRetracted(JTREC *prec) {
     if (IsAsegaRetracted(prec->player->activeAnimation)) {
         prec->player->SetPlayerState(0);
@@ -1657,6 +1686,7 @@ extern "C" void EndBentleyHelperWhenRetracted(JTREC *prec) {
 } // namespace M_func_001371C8
 
 // Turns Bentley toward his interact target, if any.
+// Also known as: UpdateSlyDodgeInput (upstream readable / Sly 1 name; UpdateSlyDodgeInput__FP3SLY).
 extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
 {
     BENTLEY *bentley;
@@ -1754,6 +1784,7 @@ void AddSoAcceleration(STEPPLAYER *p, qword v) __asm__("AddSoAcceleration");
 
 
 // Corrects Bentley's relative velocity and position against the object he rides. (inferred)
+// Also known as: UpdateSlyDodgeMotion (upstream readable / Sly 1 name; UpdateSlyDodgeMotion__FP3SLY).
 extern "C" void CorrectBentleyRideVelocity(JTREC *s)
 {
     STEPPLAYER *p = s->player;
@@ -1797,6 +1828,7 @@ qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // With a target and a positive range: 1 if the target lies behind Bentley's facing, 0 if in front; otherwise returns
 // the record's stored flag. (inferred)
+// Also known as: SelectSlyDodgeSide (upstream readable / Sly 1 name; SelectSlyDodgeSide__FP3SLY).
 extern "C" int IsBentleyHelperTargetBehind(BTBLENDS *bentley)
 {
     float zero = 0.0f;
@@ -1880,6 +1912,7 @@ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG *px, STEPPLAYER *p, int n,
 
 
 // Helper state change: plays the state's clip and, on leaving, scales the velocity. (inferred)
+// Also known as: SetSlyDodgeState (upstream readable / Sly 1 name; SetSlyDodgeState__FP3SLYi).
 extern "C" void SetBentleyHelperState(JTREC *s, int k)
 {
     ASEG *px;

@@ -41,6 +41,7 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz);
 
 // Sets up a solver for at most maxConstraints constraints: allocates the DZ array and the matrices from the
 // current allocator and initialises the four constraint lists. Same body as Sly 1's InitDzg.
+// Also known as: InitDzgRows (upstream readable / Sly 1 name; InitDzgRows__FP3DZGi).
 extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
 {
     SWALLOC msg;
@@ -242,6 +243,7 @@ static inline void *NextDliEntry(DLI *pdli)
 
 // Solves a filled DZG: moves equality constraints into the active list, enforces them, then repeatedly enforces
 // the most violated remaining constraint until none is violated. Sly 1's SolveDzg loop without its lazy FillDzgDz.
+// Also known as: EnforceDzgConstraints (upstream readable / Sly 1 name; EnforceDzgConstraints__FP3DZG).
 extern "C" void SolveDzgFilled(DZG *dzg)
 {
     DLI dli;
@@ -280,6 +282,7 @@ static inline void *AllocStackBlock(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb
 
 // Solves `count` inequality constraints with a temporary DZG on the stack: row i of the count x count matrix A
 // and rhs[i] define constraint i, each bounded above by maxValue; writes the solved values to outX.
+// Also known as: SolveDzgConstraints (upstream readable / Sly 1 name; SolveDzgConstraints__FiPfN21f).
 extern "C" void SolveInequalities(int count, float *matrix, float *rhs, float *outX, float maxValue)
 {
     FRAME frame;

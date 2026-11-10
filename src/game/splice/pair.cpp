@@ -19,6 +19,7 @@ extern "C" SPW CPair_CloneTo(CPair *source, void *a, void *b);
 
 // Deep-copies a list: a new pair per node, each element cloned with CRef_CloneTo and the tail cloned recursively.
 // Returns an owning pointer to the new head.
+// Also known as: CloneTo (upstream readable / Sly 1 name; CloneTo__5CPairP5CPairP6CFrame).
 SPW CPair_CloneTo(CPair *source, void *a, void *b)
 {
       SPW sp;

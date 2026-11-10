@@ -40,6 +40,7 @@ extern "C" void *FindBindingPtr__6CFrameUii(void *pframe, int a, int b);
 
 // BARRIER vtable slot 7 (Init): initializes the SO part, then sets SO flag bit 34 (fTreeRoot in sly2/so.h), so the
 // barrier is the root of its own physics tree.
+// Also known as: InitBarrier (upstream readable / Sly 1 name; InitBarrier__FP7BARRIER).
 void BARRIER::Init()
 {
     BARRIER *barrier = this;
@@ -49,6 +50,7 @@ void BARRIER::Init()
 
 // BARRIER vtable slot 15 (PostLoad): finishes the SO load, then, if the barrier has physics, recomputes the world's
 // collision-pair filter for it so the pass/stop rules of ShouldBarrierIgnoreIntersection take effect. (inferred)
+// Also known as: PostBarrierLoad (upstream readable / Sly 1 name; PostBarrierLoad__FP7BARRIER).
 extern "C" void PostBarrierLoad(BARRIER *barrier)
 {
     PostSoLoad(barrier);
@@ -60,6 +62,7 @@ extern "C" void PostBarrierLoad(BARRIER *barrier)
 // object "is named" when it matches one of the barrier's object names or derives from one of its classes. With
 // letsNamedThrough set, named objects get 3 (pass) and others the SO default; otherwise named objects get 2 and others 1.
 // Return codes follow SO::ShouldIgnoreIntersection (0/1 = collide, higher = ignore in some way). (inferred)
+// Also known as: OverlapKindBarrier (upstream readable / Sly 1 name; OverlapKindBarrier__FP3ALOT0).
 extern "C" int ShouldBarrierIgnoreIntersection(BARRIER *barrier, void *other)
 {
     int i, j;
@@ -83,6 +86,7 @@ extern "C" int ShouldBarrierIgnoreIntersection(BARRIER *barrier, void *other)
 // BARRIER vtable slot 55 (AdjustNewXp, called when a new contact point is created): runs the SO default, then, if the
 // level script binds the barrier's impact event (5), schedules SendBarrierImpactMessages as a once-per-frame world
 // callback (several contacts in one frame produce one report).
+// Also known as: OnBarrierXpNew (upstream readable / Sly 1 name; OnBarrierXpNew__FP3ALO).
 extern "C" void NotifyBarrierImpact(BARRIER *barrier)
 {
     AdjustSoNewXp(barrier);
@@ -96,6 +100,7 @@ static inline int GetContactEndIndex(CONTACT *contact, SO *object) { return cont
 // Deferred world callback scheduled by NotifyBarrierImpact: collects up to 16 distinct objects touching the barrier
 // and, for each, stores it in impactObject and fires the Splice impact event (5) through vtable slot 3
 // (HandleSpliceEvent), so the script can ask which object hit the barrier.
+// Also known as: TellBarrierContacts (upstream readable / Sly 1 name; TellBarrierContacts__FPv).
 extern "C" void SendBarrierImpactMessages(BARRIER *barrier)
 {
     SO *touching[16];

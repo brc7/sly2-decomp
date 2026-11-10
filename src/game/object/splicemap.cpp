@@ -46,6 +46,7 @@ void CGc_UpdateRecyclable(void *pgc);
 extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *ppair, CFrame *pframe);
 
 // Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
+// Also known as: StartupSwSplice (upstream readable / Sly 1 name; StartupSwSplice__FP2SW).
 extern "C" void InitSwSpliceFrame(SW *world)
 {
     world->unknown3A14 = 1;
@@ -54,6 +55,7 @@ extern "C" void InitSwSpliceFrame(SW *world)
 }
 
 // Clears the world's Splice table pointer before a level load. (inferred)
+// Also known as: ShutdownSwSplice (upstream readable / Sly 1 name; ShutdownSwSplice__FP2SW).
 extern "C" void ClearSwSpliceTable(SW *world)
 {
     world->unknown3A14 = 0;
@@ -68,6 +70,8 @@ extern "C" void DeleteSwSplice(SW *world)
 
 // Reads the level's Splice section: the entry count, then each entry's frame and value (LoadSpliceEntryFromBrx), into
 // a table on the world heap. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadSwSpliceFromBrx (upstream readable / Sly 1 name;
+//   LoadSwSpliceFromBrx__FP2SWiP18CBinaryInputStream).
 extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
 {
     int c = U32Read__18CBinaryInputStream(stream);

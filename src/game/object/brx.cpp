@@ -195,6 +195,7 @@ char *FindSwLocalizedString(SW *world, int id)
 // Creates an object of class cid: allocates it through the class descriptor, sets parent, oid and Splice frame, links
 // it into the world's oid and class lists, runs Init (slot 7) and the in-world callbacks, and records it in the
 // current load collector. The general object factory.
+// Also known as: PloNew (upstream readable / Sly 1 name; PloNew__F3CIDP2SW3OIDi).
 LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
 {
     SW *world;
@@ -217,6 +218,7 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
 
 // Clones an object under a new parent: a new object of the same class and oid, then CloneHierarchy (slot 40), which for
 // an SO also clones the children. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: PloCloneLo (upstream readable / Sly 1 name; PloCloneLo__FP2LOi).
 LO *CloneLoWithParent(LO *plo, SO *psoParent)
 {
     CLASSINFO *pclassinfo;
@@ -247,6 +249,7 @@ void PostLoadOidSetter(LO *plo, void *pv)
 // Reads one typed option argument from the level stream into a CRef by object type (bool, float, ints, vectors, 2D
 // vectors, object ids, ...; unknown types give the null tag). (Sly 1: RefFromBrx.)
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: RefReadOption (upstream readable / Sly 1 name; RefReadOption__FiP18CBinaryInputStream).
 extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *stream)
 {
     float ag[3];
@@ -312,7 +315,7 @@ extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *
 /* LoadOptionFromBrx (comment from its per-function file): */
 // LoadOptionFromBrx: ported from Lilly's personal Sly 2 decomp (src/P2/brx.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: g_sw (g_sw)
+// Globals: g_sw
 // 0x0013E818 LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream  (MATCHES Sly 2, T1071; 99.8% in T0906, 98.2% in T1003)
 // T1071: the MMI packs are written as in quirks section 41 (the mfc1 INSIDE the asm, "f" float operands): case 3 and case 2 are each ONE fused asm
 // (the game's registers and the order `lhu v0,2(sp)`, mfc1, mfc1, pextlw come out exactly). The seven spill slots at sp+0x268..0x280 are gcse's
@@ -743,6 +746,7 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
 }
 
 // True when no load filter is active (GetCurrentLevelIndex() = g_sw.loadFilter, D_003E1110, is -1) or it is in the list.
+// Also known as: FFilterMatches (upstream readable / Sly 1 name).
 int IsCurrentLevelInList(int c, short *aid)
 {
     int ilevel = GetCurrentLevelIndex();
@@ -765,6 +769,8 @@ int IsCurrentLevelInList(int c, short *aid)
 // Reads an object list from the level stream: per object a kind, an optional filter list, cid, oid, Splice index and
 // payload size; creates the object and calls its LoadFromBrx (slot 14). Proxies go through LoadProxyFromBrx and
 // filtered-out objects are skipped by size. Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: LoadSwObjsFromBrx (upstream readable / Sly 1 name;
+//   LoadSwObjsFromBrx__FP2SWP3ALOP18CBinaryInputStream).
 void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadCollector *plcParent)
 {
     register CBinaryInputStream *stream asm("$21") = pbisArg; /* register pin (Claude agent): target keeps pbis in s5 */

@@ -28,6 +28,7 @@ extern "C" SPN DeserializePair__FP18CBinaryInputStream(BIS *pbis);
 // node follows, low 7 bits = TAGK) and its payload (S32, F32, U32 or float arrays; tag 31 is a nested list read
 // recursively). Debug builds' extra line info (D_003E1C34) is skipped. Returns the list head.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
+// Also known as: PpairSerializeIn (upstream readable / Sly 1 name).
 SPN DeserializePair__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Read__18CBinaryInputStream(pbis);
  if (b == 0xFF) return SPN(0);
  SPN sp; CPair *pnNew = CGcObj<CPair>::PtNew(); sp.Set(pnNew);

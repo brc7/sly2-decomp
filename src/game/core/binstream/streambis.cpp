@@ -216,6 +216,7 @@ extern "C" int OpenStreamFromFileKey(CBinaryInputStream *stream, SECTORKEY *key)
 
 // Opens a CD-sector stream on `size` bytes from `firstSector`: resets the read state and divides the spool buffer
 // into max(2, spoolSize / 1 MB) sub-buffers. Returns 1. (Sly 1-derived name: CBinaryInputStream::FOpenSector.)
+// Also known as: FOpenSector (upstream readable / Sly 1 name).
 int CBinaryInputStream::OpenCdSectors(uint firstSector, uint size)
 {
     sector = firstSector;

@@ -109,6 +109,7 @@ extern "C" void PostBhvstkLoad(BHVSTK *stack)
 void ClearBhvstk(BHVSTK *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // Definition of ClearBhvstk__FP6BHVSTK (declared above): pop the bottom behaviour (which closes everything above it)
 // and reset the depth.
+// Also known as: ClearJobs (upstream readable / Sly 1 name; ClearJobs__FP5ACTOR).
 void ClearBhvstk(BHVSTK *stack)
 {
     struct { BHV *pbhv; int pad[3]; } bottom;
@@ -121,6 +122,7 @@ void ClearBhvstk(BHVSTK *stack)
 
 // 0x1EED10: Per-frame update: calls each stacked behaviour's Update (vtable slot 10), top (most recently pushed)
 // first.
+// Also known as: UpdateJobs (upstream readable / Sly 1 name; UpdateJobs__FP5ACTOR).
 extern "C" void UpdateBhvstk(BHVSTK *stack)
 {
     int i;
@@ -132,6 +134,7 @@ extern "C" void UpdateBhvstk(BHVSTK *stack)
 
 // 0x1EED78: Offers a step message (id, payload) to the stacked behaviours, top first, stopping at the first whose
 // HandleBehaviorMessage (vtable slot 13) returns nonzero (consumed).
+// Also known as: OfferJobMessage (upstream readable / Sly 1 name; OfferJobMessage__FP5GUARDii).
 extern "C" void HandleBhvstkMessage(BHVSTK *stack, int messageId, int payload)
 {
     int i = stack->depth;
@@ -152,6 +155,7 @@ static inline int Count(const int *p)
 // 0x1EEE00: Pushes a new behaviour of class `cid`: takes the next free slot, clears it, constructs the behaviour
 // there (ConstructBhv), links it to its owner and to the behaviour below, then calls its OnPush (vtable slot 7). Returns
 // the new behaviour.
+// Also known as: PjobPush (upstream readable / Sly 1 name; PjobPush__FP5GUARD3CID).
 extern "C" BHV *PushBhvstk(BHVSTK *stack, int cid)
 {
     BHV *below, *behavior;
@@ -185,6 +189,7 @@ extern "C" void DecrementBhvstk(BHVSTK *stack)
 }
 
 // 0x1EEEE0: Returns the first stacked behaviour (searching bottom up) whose class derives from `cid`, or NULL.
+// Also known as: PjobFind (upstream readable / Sly 1 name; PjobFind__FP5GUARDPv).
 extern "C" BHV *FindBhvInBhvstk(BHVSTK *stack, int cid)
 {
     int i;
@@ -196,23 +201,27 @@ extern "C" BHV *FindBhvInBhvstk(BHVSTK *stack, int cid)
 }
 
 // 0x1EEF68: BHV vtable slot 7 (OnPush), base version: does nothing. Called by PushBhvstk right after construction.
+// Also known as: Init (upstream readable / Sly 1 name).
 void BHV::OnPush()
 {
 }
 
 // 0x1EEF70: BHV vtable slot 8 (Start), base version: does nothing. Starts the behaviour with default parameters;
 // callers that push without a specific setter call it.
+// Also known as: Enter (upstream readable / Sly 1 name).
 extern "C" void StartBhv(BHV *behavior)
 {
 }
 
 // 0x1EEF78: BHV vtable slot 9 (Close), base version: pops whatever is stacked above this behaviour.
+// Also known as: Exit (upstream readable / Sly 1 name).
 extern "C" void CloseBhv(BHV *behavior)
 {
     PopBhv(&behavior->pbhvNext);
 }
 
 // 0x1EEF98: BHV vtable slot 10 (Update), base version: empty per-frame update.
+// Also known as: Update (upstream readable / Sly 1 name).
 extern "C" void UpdateBhv(BHV *behavior)
 {
 }
@@ -220,6 +229,7 @@ extern "C" void UpdateBhv(BHV *behavior)
 // 0x1EEFA0: BHV vtable slot 12, base version: returns the owner step's ground-probe flag mask, 0 when the step's
 // +0x204 override is set, else 7 (bit 0 snap to ground, bit 1 alternate probe point, bit 2 count in solver
 // contacts) (inferred).
+// Also known as: State (upstream readable / Sly 1 name).
 extern "C" int GetBhvGroundProbeFlags(BHV *behavior)
 {
     return (behavior->owner->unknown204 != 0) ? 0 : 7;   /* the step's ground-probe override */
@@ -227,12 +237,14 @@ extern "C" int GetBhvGroundProbeFlags(BHV *behavior)
 
 // 0x1EEFB8: BHV vtable slot 11 (UpdateMotion), base version: empty. Per-frame motion update for the behaviour that
 // owns the step's motion controller (STEPGUARD +0xFD0).
+// Also known as: Steer (upstream readable / Sly 1 name).
 extern "C" void UpdateBhvMotion(BHV *behavior)
 {
 }
 
 // 0x1EEFC0: Marks a behaviour busy (once): if the owner is a STEPGUARD (cid 0x38) its busy count is incremented,
 // and every behaviour below gets its busy-above count incremented. Runtime-confirmed busy protocol.
+// Also known as: LockJob (upstream readable / Sly 1 name; LockJob__FP5AIJOB).
 extern "C" void SetBhvBusy(BHV *behavior)
 {
     if (behavior->isBusy)
@@ -248,6 +260,7 @@ extern "C" void SetBhvBusy(BHV *behavior)
 
 // 0x1EF038: Inverse of SetBhvBusy: clears the busy flag, decrements the owning STEPGUARD's busy count and the
 // busy-above count of every behaviour below.
+// Also known as: UnlockJob (upstream readable / Sly 1 name; UnlockJob__FP5AIJOB).
 extern "C" void ClearBhvBusy(BHV *behavior)
 {
     if (!behavior->isBusy)
@@ -268,6 +281,7 @@ extern "C" int IsBhvBusyAbove(BHV *behavior)
 }
 
 // 0x1EF0B8: BHV vtable slot 13 (HandleMessage), base version: returns 0 (message not consumed).
+// Also known as: Message (upstream readable / Sly 1 name; Message__5AIJOBiPv).
 extern "C" int HandleBhvMessage(BHV *behavior, int messageId, int payload)
 {
     return 0;
@@ -275,6 +289,7 @@ extern "C" int HandleBhvMessage(BHV *behavior, int messageId, int payload)
 
 // 0x1EF0C0: BHV vtable slot 14, base version: resets a steering record (clears its +0x1C word and sets its +0x18
 // heading to the owner step's target heading, STEP::targetHeading at +0x1A8) (inferred).
+// Also known as: Drive (upstream readable / Sly 1 name; Drive__5AIJOBP6PADCTL).
 extern "C" void ResetBhvSteering(BHV *behavior, POCTL *steering)
 {
     *(int *)&steering->leftStickDeflection = 0;   /* (an integer zero store, as the target) */
@@ -283,6 +298,7 @@ extern "C" void ResetBhvSteering(BHV *behavior, POCTL *steering)
 
 // 0x1EF0D8: Pops the behaviour in a slot: if non-null, calls its Close (vtable slot 9, which pops everything above
 // it), decrements the owner's stack depth and clears the slot.
+// Also known as: EndChildJob (upstream readable / Sly 1 name; EndChildJob__FPP5AIJOB).
 extern "C" void PopBhv(BHV **slot)
 {
     BHV *behavior = *slot;
@@ -306,6 +322,7 @@ static inline BHVP *ClearBhv(void *memory, int size)
 }
 // 0x1EF138: Placement factory: constructs the behaviour of class `cid` (0x9C..0xC6) in `memory` by clearing the
 // class's size and installing its BASIC header and vtable; some classes also initialize embedded reference fields.
+// Also known as: PjobNew (upstream readable / Sly 1 name; PjobNew__F3CIDPv).
 extern "C" BHV *ConstructBhv(int cid, void *memory)
 {
     BHV *behavior;

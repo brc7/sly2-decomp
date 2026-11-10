@@ -65,6 +65,7 @@ int IsCameraPolicyActive__FP5CPLCY(void *);
 
 // Initializes the player's pipe-climbing context (STEPPLAYER+0xF50): owner, state -1 (not on a pipe) and the default
 // climb tuning (45 / 40 ...).
+// Also known as: InitClimb (upstream readable / Sly 1 name; InitClimb__FP5ACTORi).
 extern "C" void InitJtPipe(JTPIPE *pipe, STEPPLAYER *actor)
 {
     U *poffset = (U *)&pipe->handPosition;
@@ -81,6 +82,7 @@ extern "C" void InitJtPipe(JTPIPE *pipe, STEPPLAYER *actor)
 
 // Post-load: measures the per-cycle climb speed of the two climb clips (root displacement over a cycle) and builds
 // the dynamic blend between them.
+// Also known as: BindSlopeBlend (upstream readable / Sly 1 name; BindSlopeBlend__FP10SLOPEBLEND).
 extern "C" void PostJtLoadPipe(JTPIPE *pipe)
 {
     int i;
@@ -104,6 +106,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *pipe)
 static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;s = VuFromFloat<qword>(g);u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
 // Physics preset while on a pipe: in the mount and climb states (0, 4) accelerates Sly toward the pipe's climbing
 // frame (GetPipeGoalMatrix) at the current distance.
+// Also known as: UpdateClimbMotion (upstream readable / Sly 1 name; UpdateClimbMotion__FP5ACTOR).
 extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
 {
     M3 m, m2, m4;
@@ -140,6 +143,7 @@ extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
 
 // The distance range the player may climb on the current pipe: unbounded on a closed pipe, else from the bottom
 // (+35, or +100 depending on the pipe) to 100 below the top.
+// Also known as: LmClimb (upstream readable / Sly 1 name; LmClimb__FP5ACTORPf).
 extern "C" void GetJtPipeDistanceRange(JTPIPE *pipe, LMV *ag) {
     if (((PATH *)pipe->pipeCurve)->cyclic) {
         ag->low = -3.40282346638528859812e+38f;
@@ -195,6 +199,7 @@ static inline qword Normal(qword v, U *axis)
 // Per-frame pipe climbing: smooths the hand offset, X jumps off (SetJtAirJump kind 2), the mode button enters
 // binocucom/recon mode, and stick input climbs up/down or spins around the pipe within GetJtPipeDistanceRange,
 // with climb sounds.
+// Also known as: UpdateClimbTransitions (upstream readable / Sly 1 name; UpdateClimbTransitions__FP5ACTOR).
 extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
 {
     WORK w;
@@ -376,6 +381,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
 
 // Adds the pipe contact constraint for the physics step: the curve point and tangent at the current distance,
 // passed to the owner's constraint slot (vt82, kind 7).
+// Also known as: AddClimbContacts (upstream readable / Sly 1 name; AddClimbContacts__FP5ACTOR).
 extern "C" void UpdateJtInternalXpsPipe(JTPIPE *pipe) {
     U a, b, u;
     EvaluateShapeAtDistance(((PATH *)pipe->pipeCurve), pipe->s, &a, &b);
@@ -384,6 +390,7 @@ extern "C" void UpdateJtInternalXpsPipe(JTPIPE *pipe) {
 }
 
 // Clears the two adjust values (+0x94, +0x98) of the given contact adjust record while on a pipe. (inferred)
+// Also known as: AdjustClimbXp (upstream readable / Sly 1 name; AdjustClimbXp__FP2XPPv).
 extern "C" void ResetJtPipeAdjust(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 0; }
 
 // Writes the pipe curve's point at the player's current distance.
@@ -408,6 +415,7 @@ extern "C" void GetJtPipeVelocity(JTPIPE *pipe, Q *q)
 
 // If the pipe allows it, records the current pipe and distance in the player's safe-place table (AddJtPlaceOnCurve)
 // so a fall can return the player here.
+// Also known as: UpdateSafePipe (upstream readable / Sly 1 name; UpdateSafePipe__FP5ACTOR).
 extern "C" void RecordJtPipePlace(JTPIPE *pipe)
 {
     PATH *ppath = ((PATH *)pipe->pipeCurve);
@@ -478,6 +486,7 @@ static inline qword WorldInputs(JTPIPE *pipe, U *point, U *world, qword offset, 
 static inline void Clear(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
 // Pipe sub-state switch: from -1 mounts the pipe (subscribe, register, find the curve distance within +-50 of the
 // grab point); each state picks its clips and sounds; reaching uses the cane state (SetJtCaneState).
+// Also known as: SetClimbState (upstream readable / Sly 1 name; SetClimbState__FP5ACTORi).
 extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
 {
     int old = pipe->state;

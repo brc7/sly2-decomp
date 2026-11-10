@@ -343,6 +343,7 @@ static __inline__ float Max3(float a, float b, float c) { if (b < a && c < a) re
 // Sets a blip group up from an EMITB: render kind (and flying scale), colours, shader (PropagateBlipgShader),
 // frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
 // kind (EMITDV motion degenerates to straight lines when the EMITB adds no velocity, curl or damping).
+// Also known as: SetPsysFromEmitb (upstream readable / Sly 1 name; SetPsysFromEmitb__FP4PSYSP8EMITTERN).
 extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
 {
     CLR *pclr;

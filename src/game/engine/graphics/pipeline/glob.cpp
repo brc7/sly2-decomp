@@ -322,6 +322,8 @@ unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CB
 void*AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldHeap");
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
+// Also known as: LoadGlobSpheresFromBrx (upstream readable / Sly 1 name;
+//   LoadGlobSpheresFromBrx__FP7GLOBSETP18CBinaryInputStream).
 extern "C" void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
 {
     int count = S16Read__18CBinaryInputStream(stream);
@@ -390,6 +392,7 @@ extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern void AddWrWarpGroup(SO *plo, X *px) __asm__("AddWrWarpGroup");
 // Resolves globset bone references after load: finds each referenced SO by oid, its bone, and computes the relative
 // bind matrix. (inferred)
+// Also known as: BindAloBones (upstream readable / Sly 1 name; BindAloBones__FP3ALO).
 extern "C" void BindGlobset(S *p)
 {
     if (p->relightStamp != -1)
@@ -847,6 +850,7 @@ extern "C" { static __inline__ void Align(uint align)
 } }
 
 // Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet. (inferred)
+// Also known as: FGlobBoneMatrices (upstream readable / Sly 1 name; FGlobBoneMatrices__FP3ALOP4DESCP5ENTRY).
 extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
 {
     uint opcode;
@@ -1847,6 +1851,8 @@ namespace M_LoadSubglobInstancesFromBrx {
 void LoadSubglobInstanceFromBrx(GLOBSET *pglobset, SUBGLOB *psubglobBase, GLOB *pglobBase, SUBGLOBX *psubglobxBase, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBX *psubglobx, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis) __asm__("LoadSubglobInstanceFromBrx");
 // For each extra instance slot of a sub-glob, copies the base descriptor and reads the instance record (0x169AC8)
 // (inferred)
+// Also known as: LoadGlobSubmeshesFromBrx (upstream readable / Sly 1 name;
+//   LoadGlobSubmeshesFromBrx__FP7GLOBSETP18CBinaryInputStreamPvT2iiiii).
 extern "C" void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob, GLOB *aglob, SUBGLOBX *asubglobx, int cSubExtra, int cbatch, int *acbatch, BATCH **apbatch, CBinaryInputStream *pbis)
 {
     int i;
@@ -1992,6 +1998,8 @@ static inline void *Reallocate(int bytes, void *old)
 }
 // Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional binding table,
 // relocates packet data. (inferred)
+// Also known as: LoadGlobSubmeshFromBrx (upstream readable / Sly 1 name;
+//   LoadGlobSubmeshFromBrx__FP7GLOBSETP18CBinaryInputStreamPvP6SPHEREN22T3iPiPP4FACEP6STREAM).
 extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sourceE, const SPHERE *sourceSphere,
                                            D *desc, E *entry, SPHERE *sphere, int groups, const int *counts,
                                            FACE **faces, STREAM *stream)
@@ -2307,6 +2315,8 @@ struct UVLINK { short u, v; ushort link; } __attribute__((packed));
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A52A0 __asm__("D_002A52A0") = 3.40282347e+38f; }
 // Sub-glob type 0 loader: textured lit triangle strips (the visible mesh); builds VIF batches.
+// Also known as: LoadGlobMesh0FromBrx (upstream readable / Sly 1 name;
+//   LoadGlobMesh0FromBrx__FP7GLOBSETP18CBinaryInputStreamP4GLOBP11SUBGLOBLOADP8SUBGLOBXiT1).
 void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis)
 {
     psubglob->unknown02 = pbis->U8Read();
@@ -3162,6 +3172,7 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
     return AllocClearedFromStack(preq);
 }
 // Reads a sub-glob's CLUTSET (sly2/glob.h): u16-counted palettes of u16/u16/u8 colours, then the per-batch palette indices (0x1ED1A8)
+// Also known as: LoadIdxTabFromBrx (upstream readable / Sly 1 name; LoadIdxTabFromBrx__FP18CBinaryInputStreamT0).
 extern "C" CLUTSET *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
 {
     CLUTSET *pt = 0;
@@ -3293,6 +3304,8 @@ typedef char HEADER_bones_Offset[FIELD_OFFSET(HEADER,bones)==24?1:-1];
 typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 // Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline.
+// Also known as: LoadGlobMesh2FromBrx (upstream readable / Sly 1 name;
+//   LoadGlobMesh2FromBrx__FP7GLOBSETP18CBinaryInputStreamPvT2P6SPHEREiT1).
 void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType2FromBrx"); void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
@@ -3547,6 +3560,8 @@ static inline void WriteVertex(U *destination, U value)
     destination->f[2] = z;
 }
 // Sub-glob type 3 loader: U16 shader + indexed vectors + strip bits; HYPOTHESIS cel edge strips.
+// Also known as: LoadGlobMesh3FromBrx (upstream readable / Sly 1 name;
+//   LoadGlobMesh3FromBrx__FP7GLOBSETP18CBinaryInputStreamPvP5PARAMP6SPHEREiT1).
 extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
@@ -4126,6 +4141,8 @@ typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 typedef char DMAS_m_ab_Offset[FIELD_OFFSET(DMAS,m_ab)==4?1:-1];
 typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 // Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader.
+// Also known as: LoadGlobMesh1FromBrx (upstream readable / Sly 1 name;
+//   LoadGlobMesh1FromBrx__FP7GLOBSETP18CBinaryInputStreamPvP5PARAMP6SPHEREiT1).
 void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType1FromBrx"); void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
