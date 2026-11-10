@@ -75,16 +75,16 @@ struct BLIPGV
     int psoParent;          /* 0x10 */
     int pad14;
     int oid;                /* 0x18 */
-    char pad1C[0x38 - 0x1C];
+    void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
     float sBusy;            /* 0x38 */
     int pad3C;
     int flags40;            /* 0x40 tagged word (pointer, or odd flags) */
-    char pad44[0xE0 - 0x44];
+    char pad44[0x50 - 0x44]; void *parentTransform; char pad54[0x68 - 0x54]; void *unknown68; char pad6C[0x7C - 0x6C]; void *unknown7C; char pad80[0x90 - 0x80]; void *unknown90; char pad94[0xA0 - 0x94]; void *unknownA0; void *unknownA4; char padA8[0xB8 - 0xA8]; void *unknownB8; char padBC[0xCC - 0xBC]; void *unknownCC; char padD0[0xE0 - 0xD0];
     EMITTER *plo;            /* 0xE0 subscribed object (CID 0x1D) */
     char padE4[0xF0 - 0xE4];
     qwordV boundsCenter;              /* 0xF0 bounding sphere centre */
     float boundsRadius;     /* 0x100 */
-    char pad104[0x110 - 0x104];
+    char pad104[0x108 - 0x104]; void *unknown108; char pad10C[0x110 - 0x10C];
     POLY poly;              /* 0x110 size over the normalized life (the EMITB's scale CLQ / lifetime) */
     int pad11C;
     float maxSize;          /* 0x120 the largest |size| over a life (pads the bounds) */
@@ -96,10 +96,10 @@ struct BLIPGV
     S150 lifeParams;              /* 0x150 */
     int pad15C;
     int motionKind;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
-    int pad164[3];
+    int pad164[(0x16C - 0x164) / 4]; void *unknown16C;
     char emitdv[0x30];       /* 0x170 EMITDV */
     int numFrames;          /* 0x1A0 texture animation frames (a power of two, <= 16) */
-    int pad1A4[3];
+    int pad1A4[(0x1A8 - 0x1A4) / 4]; void *unknown1A8; int pad1AC[(0x1B0 - 0x1AC) / 4];
     GE age[0x20];           /* 0x1B0 */
     int numColors;               /* 0x3B0 colour count */
     unsigned char colors[0x20][4]; /* 0x3B4 */
