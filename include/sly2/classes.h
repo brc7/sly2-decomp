@@ -1936,12 +1936,16 @@ typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -
 /* 99 CID99 (0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
 struct CID99 : SO
 {
-    char pad150[0x170 - 0x150];
+    char pad150[0x158 - 0x150];
+    struct DPRIZE *pdprize;     /* +0x158 the prize a pickpocket takes (pickpocket.cpp: 0 = nothing to pick; a DPRIZE in every
+                                   snapshot) (inferred) */
+    char pad15C[0x16C - 0x15C];
+    SMA *psma;                  /* +0x16C its state machine (pickpocket.cpp sets its goal state; an SMA in every snapshot) */
     virtual void PostLoad() __asm__("PostLootPouchLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
     virtual void RenderSelf() __asm__("RenderLootPouchSelf");   /* slot 19 */
 };
-typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1];
+typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1]; typedef char assert_CID99_psma[SLY2_OFFSETOF(CID99, psma) == 0x16C ? 1 : -1];
 
 /* 11 PIPE (0x1E0): lamp posts; JTPIPE; vtable 0x2D56F8, 50 slots */
 struct PIPE : SHAPE, GRABSPOT
