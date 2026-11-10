@@ -58,9 +58,7 @@ typedef char assert_SOV_isHidden[(unsigned int)&((SOV *)0)->isHidden == 0x11AC ?
 struct WVOL : XFM { char pad[0xEC - 0xE0]; void *bsp; char pad1[0x130 - 0xF0]; WVOL *next; };
 struct BUF { char a[0x180]; };
 /* Line-test callback arguments (FilterDetectorLineOfSightHit/FilterDetectorHitClass31). */
-struct EC { char pad[0x70]; unsigned long flags; };
-struct OV { int pad[4]; OV *parent; int root; char pad2[0xEC - 0x18]; EC *collisionEntry; };
-struct HITV { int pad; OV *object; int pad2[2]; unsigned long flags; };
+/* The hits are SOPARTs; their owners SOs with a physics tree (SOTREE). */
 struct ARGS { DETECTORTARGET *entry; int *oldState; int *newState; };
 // Allocation request: byte count and alignment.
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
@@ -83,8 +81,8 @@ int IsSwInputLocked(void *object);
 qword ConvertPosBetweenLos(void *plo0, void *plo1, qword v);
 int ClipSegmentBsp(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
 int IsPointInVol(void *object, qword v);
-int ShouldKeepSoNotSelf(void *context, HITV *hit);
-int GetBasicCid(OV *po);
+int ShouldKeepSoNotSelf(void *context, SOPART *hit);
+int GetBasicCid(SO *po);
 void *AllocFromStack(AL *request);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int state);
@@ -95,8 +93,8 @@ void AddDetectorTarget(DETECTOR *object, void *target);
 void SetDetectorTargetState(DETECTOR *object, DETECTORTARGET *entry, int state);
 DETECTORTARGET *FindDetectorTarget(DETECTOR *object, void *target);
 int CalculateDetectorTargetState(DETECTOR *object, SOV *target, int state);
-int FilterDetectorHitClass31(void *context, HITV *hit);
-int FilterDetectorLineOfSightHit(DETECTOR *object, HITV *hit);
+int FilterDetectorHitClass31(void *context, SOPART *hit);
+int FilterDetectorLineOfSightHit(DETECTOR *object, SOPART *hit);
 int IsDetectorLineBlocked(DETECTOR *object, SOV *target);
 int IsDetectorTargetConcealed(DETECTOR *object, SOV *target);
 }
@@ -333,28 +331,28 @@ done:
 
 // 0x154528: Line-test object filter (detector flag 4): accepts only objects passing the default filter whose class
 // is cid 0x31.
-extern "C" int FilterDetectorHitClass31(void *context, HITV *hit)
+extern "C" int FilterDetectorHitClass31(void *context, SOPART *hit)
 {
     if (ShouldKeepSoNotSelf(context, hit) == 0) {
         return 0;
     }
-    return GetBasicCid(hit->object) == CID_MS;
+    return GetBasicCid(hit->owner) == CID_MS;
 }
 
 // 0x154568: Line-test object filter (default): ignores hits flagged as non-blocking, objects whose collision entry
 // has bit 2, objects in the detector's own hierarchy, and anything below a STEP (cid 0x33: player or guard) ancestor.
-extern "C" int FilterDetectorLineOfSightHit(DETECTOR *detector, HITV *hit)
+extern "C" int FilterDetectorLineOfSightHit(DETECTOR *detector, SOPART *hit)
 {
-    OV *object;
-    if (hit->flags & 0x1000000000000L)
+    SO *object;
+    if (hit->unknownFlag10A)
         return 0;
-    object = hit->object;
-    if (object->collisionEntry->flags & 4)
+    object = hit->owner;
+    if (object->physicsTree->skipsUpdate)
         return 0;
-    if (object->root == (int)detector->root)
+    if (object->root == detector->root)
         return 0;
     {
-        OV *ancestor = object;
+        SO *ancestor = object;
         while (ancestor && !IsBasicDerivedFrom__FP5BASIC3CID(ancestor, CID_STEP))
             ancestor = ancestor->parent;
         return ancestor == 0;
