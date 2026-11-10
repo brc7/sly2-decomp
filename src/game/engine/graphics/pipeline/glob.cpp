@@ -1691,10 +1691,10 @@ struct BATCH
       void *pvPos;
       void *pvUv;
       void *pvUvLink;
-      int obColorA;
-      int obColorB;
+      uchar *pbColorA;   /* the batch's colour unpack data in the aux chain (UnpackHelper) */
+      uchar *pbColorB;
       uchar *pbAlpha;
-      int obAlpha;
+      uchar *pbAlphaUnpack;   /* its alpha unpack data (0: none) */
       uchar *pbRgb;
       uchar *pbNorm;
       uchar *pbWeights;
@@ -2573,16 +2573,16 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 vifsAux.AddDmaRefs((vifs.m_pb - (uchar *)pqwChain) >> 4, pqwChain);
                 pqwChain = (QW *)vifs.m_pb;
                 vifsAux.AddDmaCnt();
-                vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 1, 0, (uint **)&pbatch->obColorA);
+                vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 1, 0, (uint **)&pbatch->pbColorA);
                 if ((pbatch->grf & 2) && pbatch->pshd->shdk != 3)
-                    vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->obColorB);
-                if (fAlpha != 0 || pbatch->obColorB != 0)
+                    vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->pbColorB);
+                if (fAlpha != 0 || pbatch->pbColorB != 0)
                 {
                     vifsAux.AddVifStmask(0x3f3f3f3f);
                     if (fAlpha != 0)
                         vifsAux.UnpackHelper(UPK_S8, pbatch->cvtx, ppart->iqwVtx + 1, 0, (uint **)&pbatch->pbAlpha);
-                    if (pbatch->obColorB != 0)
-                        vifsAux.UnpackHelper(UPK_S8, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->obAlpha);
+                    if (pbatch->pbColorB != 0)
+                        vifsAux.UnpackHelper(UPK_S8, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->pbAlphaUnpack);
                     vifsAux.AddVifStmask(0);
                 }
                 vifsAux.EndDmaCnt();
@@ -2620,7 +2620,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 int shdk = pbatch->pshd->shdk;
                 if (shdk != 1 && shdk != 7)
                 {
-                    RGBA5551 *pcol = (RGBA5551 *)pbatch->obColorA;
+                    RGBA5551 *pcol = (RGBA5551 *)pbatch->pbColorA;
                     uchar *pbAlpha = pbatch->pbAlpha;
                     for (int iv = 0; iv < pbatch->cvtx; iv++)
                     {
@@ -2655,13 +2655,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                             pun[2] = pun[1];
                             pun[3] = pun[2] + n;
                             pun[4] = pun[3] + n;
-                            pun[5] = pbatch->obColorA + iofs * 2;
-                            pun[6] = pbatch->obColorB + iofs * 2;
+                            pun[5] = (uint)(pbatch->pbColorA + iofs * 2);
+                            pun[6] = (uint)(pbatch->pbColorB + iofs * 2);
                             if (fAlpha != 0)
                                 pun[8] = (uint)pbatch->pbAlpha + iofs;
                             else
                                 pun[8] = 0;
-                            pun[9] = pbatch->obAlpha + iofs;
+                            pun[9] = (uint)(pbatch->pbAlphaUnpack + iofs);
                             *(float *)&pun[7] = (float)pbatch->pshd->oidAltSat * 0.000244140625f;
                             apvLit[nLit] = pun;
                             nLit++;
@@ -2731,9 +2731,9 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     pbatch->aivtx[iv] = ivtxFile;
                     CLUTPAL *ppal = &pclutset->apal[pclutset->aipal[ibatch]];
                     CLUTCOLOR *pcc = &ppal->acolor[ivtxFile];
-                    ((ushort *)pbatch->obColorA)[iv] = pcc->ucA;
-                    ((ushort *)pbatch->obColorB)[iv] = pcc->ucB;
-                    ((uchar *)pbatch->obAlpha)[iv] = pcc->bAlpha;
+                    ((ushort *)pbatch->pbColorA)[iv] = pcc->ucA;
+                    ((ushort *)pbatch->pbColorB)[iv] = pcc->ucB;
+                    ((uchar *)pbatch->pbAlphaUnpack)[iv] = pcc->bAlpha;
                     if (pbatch->pbAlpha != 0)
                     {
                         RGBA rgbaA = argbaFile[ivtxFile];
