@@ -1045,7 +1045,7 @@ extern "C" int IsStepguardInvulnerable(STEPGUARD *guard)
 // 0x2075D0 HandleStepguardMessage
 namespace M_HandleStepguardMessage {
 struct OBJ; struct ATTACHMSG;
-struct OBJ { char pad[0x184]; int isHazard; /* (inferred) */ };   /* the attached object (an SO; the hazard volume's zap amount) */
+struct OBJ : ALO { char pad[0x54 - 0x50]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts; void *physics; void *physicsTree; char padF0[0x134 - 0xF0]; void *psobounds; void *pxa; char pad13C[0x144 - 0x13C]; void *prender; char pad148[0x184 - 0x148]; int isHazard; /* (inferred) */ };   /* the attached object (an SO; the hazard volume's zap amount) */
 struct ATTACHMSG { struct OBJ *object; void *attachedTo; };
 void HandlePoMessage(STEPGUARD *p, int message, struct ATTACHMSG *arg) __asm__("HandlePoMessage");
 void SetHazardWatchTarget(HAZARDWATCH *watch, struct OBJ *target) __asm__("SetHazardWatchTarget");
@@ -1663,7 +1663,7 @@ struct DETECTORTARGETIsland {
     DETECTORTARGETIsland(STEPGUARD *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.time) {}
 };
 /* island: entry addresses spelled as byte offsets in pinned registers (asm-pinned, see the comment below) */
-struct DETECTORIsland { char pad[0xFC]; unsigned int count; struct DETECTORTARGETIsland targets[8]; };
+struct DETECTORIsland : XFM { void *owner; void *ownerPhysicsTree; void *pvolNear; void *pvolFar; char padF0[0xFC - 0xF0]; unsigned int count; struct DETECTORTARGETIsland targets[8]; };
 extern struct DETECTORTARGETIsland *FindDetectorTarget(struct DETECTORIsland *detector, STEPGUARD *object) __asm__("FindDetectorTarget");
 extern void *memmove(void *d, void *s, int n) __asm__("memmove");
 
