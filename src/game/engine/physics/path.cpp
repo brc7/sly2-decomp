@@ -800,7 +800,9 @@ struct E8 { struct V *pv; int cost; };
 struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
 struct F { struct V *apv[3]; };
 struct P { float x, y, z; unsigned short c, d; };
-struct S { char pad[0x18]; int oid; char p0[0xE0 - 0x1C]; int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
+/* The zone (classes.h PATHZONE: an XFM, then its CG graph, typed here with this function's vertex/triangle/node views). */
+struct S : XFM { int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes;
+    int numObstacles, obstacleCapacity, numEvents; void *xEvents, *zEvents; void **obstacles; int n110; int version; };
 void LoadXfmFromBrx(struct S *p, void *pbis) __asm__("LoadXfmFromBrx");
 int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
 int U8Read__18CBinaryInputStream(void *pbis) __asm__("U8Read__18CBinaryInputStream");
