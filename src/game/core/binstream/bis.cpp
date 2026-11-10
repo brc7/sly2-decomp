@@ -41,7 +41,7 @@ struct FACE
     qword plane;
     EDGE *firstEdge;            /* this face's own edges */
     EDGE *neighborEdges;        /* edges of other faces that border this one */
-    int pad;
+    int grf;                    /* flags (xfm.h SURF grf) */
     int posIndex;               /* a vertex on the face */
 };
 struct GEOM
@@ -91,10 +91,10 @@ public:
 struct CMemInputStreamV
 {
     /* 0x00 */ int flags;
-    /* 0x04 */ byte *apad04[3];
+    /* 0x04 */ byte *pb; int cb, cbConsumed;   /* bis.h m_pb, m_cb, m_cbConsumed */
     /* 0x10 */ byte *rawData;
     /* 0x14 */ int rawSize;
-    /* 0x18 */ int apad18[6];
+    /* 0x18 */ int grfDecomp, cbPending, m_unk20; byte *pbDecomp; int m_unk28, m_unk2C;   /* bis.h */
     /* 0x30 */ void *vtable;
     /* 0x34 */ int memSize;
     /* 0x38 */ byte *memData;

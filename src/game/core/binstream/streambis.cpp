@@ -24,10 +24,13 @@ public:
     int OpenCdSectors(uint sector, uint size);
 
     int flags;                /* 0x00 m_grfbis */
-    char pad04[0x0C];
+    char *pb;                 /* 0x04 bis.h m_pb */
+    int cb, cbConsumed;       /* 0x08 bis.h m_cb, m_cbConsumed */
     char *rawData;            /* 0x10 next raw block (m_pbRaw) */
     int rawSize;              /* 0x14 */
-    char pad18[0x18];
+    int grfDecomp, cbPending, m_unk20;   /* 0x18 bis.h */
+    char *pbDecomp;           /* 0x24 bis.h m_pbDecomp */
+    int m_unk28, m_unk2C;
     void *vtable;             /* 0x30 vptr */
     int spoolSize;            /* 0x34 size of the spool buffer (multiple of 64) */
     char *spoolBuffer;        /* 0x38 64-byte aligned spool buffer */
