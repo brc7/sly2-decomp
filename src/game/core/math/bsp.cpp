@@ -56,7 +56,7 @@ public:
 union VUFU { qword q; float f[4]; };   /* FindBspLeafContainingPointFast calls that constructor by hand */
 extern "C" inline void *InitVuTemp(void *p);   /* inline, defined after its callers (end of file) */
 
-// func_00118668: ported from Lilly's personal Sly 2 decomp (src/P2/bsp.c), reduced to the declarations it needs.
+// ClipSegmentBsp: ported from Lilly's personal Sly 2 decomp (src/P2/bsp.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // 0x00118668 ClsgClipEdgeToBsp__FP3BSPT0UxUxiP3LSG  (MATCHES Sly 2; Sly 1's ClsgClipEdgeToBsp with qword positions, no mpibspn and the node limit)
 // Clips the edge pos1 - pos2 to the BSP: the pieces of it on the negative side of every plane (= inside the volume) go to alsg (at most clsgMax),
@@ -129,7 +129,7 @@ static inline qword BlendVectors(VU_FLOAT g1, qword qw1, VU_FLOAT g2, qword qw2)
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %4x" : "=j"(qw) : "j"(qw1), "j"(qw2), "j"(g1.qw), "j"(g2.qw));
     return qw;
 }
-int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("func_00118668");
+int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("ClipSegmentBsp");
 // Clips the edge pos1-pos2 against a BSP volume and writes the pieces inside it to alsg (at most clsgMax);
 // returns their count. See the long comment above for the algorithm.
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg)

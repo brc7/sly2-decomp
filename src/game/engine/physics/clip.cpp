@@ -33,7 +33,7 @@ struct AREQ { int cb; int cbAlign; };
 extern "C" {
 extern qword D_002A2DA0;
 void InitPlaneFromNormalPos(qword *pnormal, qword normal, qword pos);
-int func_00118668(int n, int m, qword a, qword b, int c, LSG *alsg);
+int ClipSegmentBsp(int n, int m, qword a, qword b, int c, LSG *alsg);
 int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
 int ClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg);
 int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg);
@@ -55,7 +55,7 @@ extern "C" int ClipEdgeToObject(SOCLIP *object, qword start, qword end, int maxS
 // against its bounding sphere. Returns the span count. Lets callers pass a pre-pruned BSP.
 extern "C" int ClipEdgeToObjectPruned(SOCLIP *object, int bsp, qword start, qword end, int maxSegments, LSG *segments)
 {
-    if (bsp) return func_00118668(bsp, 0x7FFFFFFF, start, end, maxSegments, segments);
+    if (bsp) return ClipSegmentBsp(bsp, 0x7FFFFFFF, start, end, maxSegments, segments);
     if (object->flags & (1UL << 49)) return ClipEdgeToSphere(object->sphere->center, object->radius, start, end, maxSegments, segments);
     return 0;
 }

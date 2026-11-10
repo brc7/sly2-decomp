@@ -2581,7 +2581,7 @@ namespace M_func_001999D0 {
 // IsJtEdgeGrabbable: contact direction of a JT against a shape feature, then IsJtEdgeNormalValid(p, point, *out).
 //   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (CollectEdgesAtGeomPoint, max 64)
 //   kind 2 (face):   face must be flat enough (plane z >= 0.7); sum of the directions of both edge lists whose
-//                    segment passes func_00118668 against the actor's tree
+//                    segment passes ClipSegmentBsp against the actor's tree
 //   kind 3 (edge):   FCheckJtSingleEdge directly
 // A sum is normalized with D_002A2DA0 as the fallback; no accepted direction returns 0.
 // What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from GetPipeGoalMatrix (the asm
@@ -2594,7 +2594,7 @@ struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flag
 extern QWROW D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DA0 __asm__("D_002A2DA0");   // zero vector, fallback direction
 int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **) __asm__("CollectEdgesAtGeomPoint");
 int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JTAIR *, SOPART *, EDGE *, QWROW *) __asm__("IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR");   // FCheckJtSingleEdge
-int func_00118668(BSP *, int, qword, qword, int, SPAN *) __asm__("func_00118668");
+int ClipSegmentBsp(BSP *, int, qword, qword, int, SPAN *) __asm__("ClipSegmentBsp");
 int IsJtEdgeNormalValid(JTAIR *, qword, qword) __asm__("IsJtEdgeNormalValid");
 
 
@@ -2653,7 +2653,7 @@ extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind
         for (EDGE *edge = face->pedge; edge; edge = edge->pedgeNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 QWROW *points = (QWROW *)shape->meshWorld.positions;
-                if (func_00118668(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                if (ClipSegmentBsp(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
                                   points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
@@ -2663,7 +2663,7 @@ extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind
         for (EDGE *edge = face->pedgeOther; edge; edge = edge->pedgeOtherNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 QWROW *points = (QWROW *)shape->meshWorld.positions;
-                if (func_00118668(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                if (ClipSegmentBsp(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
                                   points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);

@@ -817,7 +817,7 @@ typedef int qword __attribute__((mode(TI)));
 struct T { int a, b, c; };
 struct O { char pad[0x70]; int c; struct T *at; };
 struct HIT { char pad[0x40]; float enterTime; float exitTime; char pad2[0x18]; };
-int func_00118668(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit) __asm__("func_00118668");
+int ClipSegmentBsp(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit) __asm__("ClipSegmentBsp");
 int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f) __asm__("MergeSegmentLists");
 // Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
 // > duMin in *puFrom/ *puTo.
@@ -830,7 +830,7 @@ extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword d
     float g0, g1;
     for (i = 0; i < n; i++) {
         struct O *po = apo[i];
-        int cNew = func_00118668(po->at, po->at + po->c, pos, dir, 0x40 - c, &ahit[c]);
+        int cNew = ClipSegmentBsp(po->at, po->at + po->c, pos, dir, 0x40 - c, &ahit[c]);
         if (cNew)
             c = MergeSegmentLists(c, ahit, cNew, &ahit[c], 0x40, ahit, 0);
     }

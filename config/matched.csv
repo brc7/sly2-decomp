@@ -888,7 +888,7 @@ CMemInputStream_Fill,0x1184E8,6,match,src/game/core/binstream/bis.cpp
 SetMemInputStreamBuffer,0x118500,4,match,src/game/core/binstream/bis.cpp
 StaticInit_bis,0x118510,77,match,src/game/core/binstream/bis.cpp
 func_00118648,0x118648,8,match,src/game/core/binstream/bis.cpp
-func_00118668,0x118668,263,match,src/game/core/math/bsp.cpp
+ClipSegmentBsp,0x118668,263,match,src/game/core/math/bsp.cpp
 PruneBspBySphere,0x118A88,159,match,src/game/core/math/bsp.cpp
 CollectBspSurfacesTouchingPolygon,0x118D08,168,match,src/game/core/math/bsp.cpp
 FindBspLeafContainingPointFast,0x118FB0,55,match,src/game/core/math/bsp.cpp

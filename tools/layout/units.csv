@@ -897,7 +897,7 @@ CMemInputStream_Fill,0x1184E8,bis
 SetMemInputStreamBuffer,0x118500,bis
 StaticInit_bis,0x118510,bis
 func_00118648,0x118648,bis
-func_00118668,0x118668,bsp
+ClipSegmentBsp,0x118668,bsp
 PruneBspBySphere,0x118A88,bsp
 CollectBspSurfacesTouchingPolygon,0x118D08,bsp
 FindBspLeafContainingPointFast,0x118FB0,bsp

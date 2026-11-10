@@ -101,7 +101,7 @@ typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
 /* core/math/bsp.cpp (C symbols): clip the segment pos1..pos2 to the tree (pieces inside), prune the tree to a sphere,
    find the leaf containing a point. A pbspLimit of 0x7FFFFFFF means no limit. */
 extern "C" {
-int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("func_00118668");
+int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("ClipSegmentBsp");
 PRUNE PruneBsp(BSP *pbsp, BSP *pbspLimit, float sRadius, qword pos, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");
 BSP *PbspPointInBsp(BSP *pbsp, BSP *pbspLimit, qword pos) __asm__("FindBspLeafContainingPoint");
 }
@@ -590,7 +590,7 @@ namespace M_MarkSoContactsBspBsp {
 // vertex contacts of both sides; then every free LSG of side 0 either follows the FindEdgePath edge path of side 1 (closest points of the
 // two edges via ClosestPointsOfLines, kind 3) or, when no side-1 LSG shares a surface with its edge, contacts the nearer endpoint against the
 // farther plane (kind 1). With no new contact and one side empty, a kind-13 contact at the shape position is added.
-// LSG / EDGE / SURF layouts and names as in Lilly's matched ClsgClipEdgeToBsp port (src/game/core/math/bsp/func_00118668.cpp).
+// LSG / EDGE / SURF layouts and names as in Lilly's matched ClsgClipEdgeToBsp port (src/game/core/math/bsp/ClipSegmentBsp.cpp).
 // How it matched (w4lane4 -> w5lane2):
 //  - Separate Sly-1-style local arrays (one frame base each, shared by gcse with the call arguments); the side-1 loop indexes &aalsg[1][i].
 //  - Lilly's QwMix(VuFloat(1 - t), a, VuFloat(t), b) lerps reproduce the dead VU_FLOAT stores at 0x6900.
@@ -775,7 +775,7 @@ extern FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");
 extern void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
 extern void*AllocFromStack(REQ*) __asm__("AllocFromStack");
 extern int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**) __asm__("PruneBspBySphere");
-extern int func_00118668(ENTRY*,int,qword,qword,int,HIT*) __asm__("func_00118668");
+extern int ClipSegmentBsp(ENTRY*,int,qword,qword,int,HIT*) __asm__("ClipSegmentBsp");
 extern void InitPlaneFromNormalPos(qword*,qword,qword) __asm__("InitPlaneFromNormalPos");
 // Return a - b.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -810,7 +810,7 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,int mask,void*geometry,qword pos
    __asm__("qmtc2.ni %1,%0":"=j"(factor):"r"(radius+1.0f));
    __asm__("lq %0,%5\n\tsqc2 %8,%4\n\tlw %1,%6\n\tqmtc2.ni %0,%2\n\tlqc2 %3,%7\n\taddiu %1,%1,-12\n\tvadda.xyzw ACC,%2,$vf0\n\tvmaddx.xyzw %3,%3,%8x":"=&r"(argument),"=&r"(last),"=j"(positionVector),"=&j"(to),"=m"(work.scratch.u.q):"m"(work.position.q),"m"(work.end),"m"(poly->plane),"j"(factor));
    work.endpoint.q=to;
-   int found=func_00118668(last,0x7FFFFFFF,to,argument,16,work.hits);
+   int found=ClipSegmentBsp(last,0x7FFFFFFF,to,argument,16,work.hits);
    register qword snapshot __asm__("vf1")=work.endpoint.q;
    if(found>0){
     if(work.hits[0].time>best){

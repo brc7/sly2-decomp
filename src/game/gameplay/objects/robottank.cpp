@@ -1415,7 +1415,7 @@ void InitPlaneFromNormalPos(VECTOR4 *, qword, qword) __asm__("InitPlaneFromNorma
 void *func_002333B4(void *, int, uint) __asm__("memset");
 void *AllocFromStack(SWALLOC *) __asm__("AllocFromStack");
 int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **) __asm__("PruneBspBySphere");
-int func_00118668(BSP *, BSP *, qword, qword, int, LSG *) __asm__("func_00118668");
+int ClipSegmentBsp(BSP *, BSP *, qword, qword, int, LSG *) __asm__("ClipSegmentBsp");
 qword TransformPlane(M4 *, qword) __asm__("TransformPlane");
 void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float) __asm__("AddXp");
 
@@ -1604,7 +1604,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
             dir = Blend(D_002C2150[4], radius, D_002A2DC0, height);
         VU_VECTOR pos;
         pos = Transform(frame, dir);
-        int clsg = func_00118668(pbsp, (BSP *)0x7FFFFFFF, posPrev.q, pos.q, 16, alsg);
+        int clsg = ClipSegmentBsp(pbsp, (BSP *)0x7FFFFFFF, posPrev.q, pos.q, 16, alsg);
         for (int k = 0; k < clsg; k++) {
             LSG *plsg = &alsg[k];
             if (plsg->apsurf[0]) {

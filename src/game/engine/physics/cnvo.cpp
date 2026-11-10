@@ -317,7 +317,7 @@ extern "C" void PostCid14Load(CID14V *polygon)
 
 // ClipEdgeToConvexObstacle: clips the segment pos1-pos2 to the convex volume pcnvo (its cplane - 1 planes, built by BuildCid14EdgePlanes)
 // and writes the parts of it OUTSIDE the volume to alsg (at most clsgMax LSGs); returns how many. Convex-volume twin of
-// ClsgClipEdgeToBsp (func_00118668), same LSG record (0x60 bytes: apos[2], anormal[2], au[2], apsurf[2]).
+// ClsgClipEdgeToBsp (ClipSegmentBsp), same LSG record (0x60 bytes: apos[2], anormal[2], au[2], apsurf[2]).
 // gIn / gOut = where the segment enters / leaves the volume (0 = pos1, 1 = pos2), normalIn / normalOut = those planes.
 // If the segment never enters (gOut <= gIn) it is emitted whole; else [0, gIn] and [gOut, 1] are emitted with the
 // negated plane normal at the cut.

@@ -665,6 +665,7 @@ CMemInputStream_dtor = 0x1184B8; // type:func
 CMemInputStream_Fill = 0x1184E8; // type:func
 SetMemInputStreamBuffer = 0x118500; // type:func
 StaticInit_bis = 0x118510; // type:func
+ClipSegmentBsp = 0x118668; // type:func
 PruneBspBySphere = 0x118A88; // type:func
 CollectBspSurfacesTouchingPolygon = 0x118D08; // type:func
 FindBspLeafContainingPointFast = 0x118FB0; // type:func
