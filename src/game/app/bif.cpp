@@ -3286,7 +3286,7 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 namespace M_BuiltinFindWorldObject__FiP4CRefP6CFrame {
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
-// Splice builtin "find-world-object": CRef(BASIC*) of &D_003DD490 (g_sw).
+// Splice builtin "find-world-object": CRef(BASIC*) of &g_sw (g_sw).
 extern "C" CRefData *BuiltinFindWorldObject__FiP4CRefP6CFrame(CRefData *ret)
 {
     CRefData ref;

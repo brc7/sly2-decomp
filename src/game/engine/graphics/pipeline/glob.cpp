@@ -3822,7 +3822,7 @@ namespace M_EndRpProjVolume {
 struct COMMAND {
     short kind, index;
 };
-extern SW D_003DD490 __asm__("D_003DD490");   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
+extern SW g_swSecondName __asm__("g_sw");   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
 extern int D_002DEB70[2] __asm__("D_002DEB70");
 
 
@@ -3916,7 +3916,7 @@ extern "C" void EndRpProjVolume(VIFS *input, int first, int mode)
         vifs->AddVifMscal(program);
     }
     vifs->AddVifFlusha();
-    SW *game = &D_003DD490;
+    SW *game = &g_swSecondName;
     if (game->unknown3E38) {
         if (D_002DEA4C == D_002DEA50)
             vifs->AddDmaCall(D_002DF940);

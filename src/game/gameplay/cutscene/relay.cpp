@@ -1777,7 +1777,7 @@ extern "C" void *FindJsgObject(S *script, int id)
 namespace M_NextJsgCommand__FP3JSG {
 // NextJsgCommand: ported from Lilly's personal Sly 2 decomp (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A7AD0 (D_002A7AD0), D_002DE570 (D_002DE570), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_game (g_game), D_003DA0C0 (g_hintbox), g_joy (g_joy), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
+// Globals: D_002A7AD0 (D_002A7AD0), D_002DE570 (D_002DE570), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_game (g_game), D_003DA0C0 (g_hintbox), g_joy (g_joy), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), g_sw (g_sw)
 // 0x001E1E30 NextJsgCommand__FP3JSG  (T1200; was DispatchAsegEvent: it is Sly 1's NextJsgJsge)
 // Steps the script to the next command of its block and executes it. First the command's actor is chosen (the oid the command carries, else the
 // SetActor default, the block's object or the relay's firer), then the command runs by kind (the table in re/notes/relay-commands-t1289.md), and
@@ -2993,7 +2993,7 @@ void NextJsgCommand(RELAYJSG *script)
 namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // IsJsgCommandComplete: ported from Lilly's FIsJsgCommandComplete (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: DT_CmJoltMax (DT_CmJoltMax), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_joy (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
+// Globals: DT_CmJoltMax (DT_CmJoltMax), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_joy (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), g_sw (g_sw)
 // 0x001E3890 IsJsgCommandComplete  (T1306, our name; MATCH)
 // Whether the command the script is on has finished, by kind; UpdateJsg asks it of the current command (a command that is fAsync is not asked) and
 // ReleaseJsgJtIfComplete of the one that took the character. A kind with nothing to wait for (and every kind past the table) is complete at once.

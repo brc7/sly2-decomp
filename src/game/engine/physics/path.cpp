@@ -1245,9 +1245,9 @@ void *AllocCopyFromWorldHeap(const struct SWALLOC *pal, const void *pv) __asm__(
 extern "C" { static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;} }
 // Fill the allocation request for count 4-byte links with the given alignment and set owner->numLinks = count.
 extern "C" { static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct SWALLOC*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;} }
-// High address page of the world D_003DD490.
+// High address page of the world g_sw.
 extern "C" { static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_sw));return page;} }
-// Address of the world D_003DD490 from its high page.
+// Address of the world g_sw from its high page.
 extern "C" { static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(&g_sw));return world;} }
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
 extern "C" void BindSwPathzones(struct S *world)

@@ -2953,7 +2953,7 @@ extern "C" void EnableJtLeanActs(JT *jt, int grf)
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // SetJtState: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), g_clock (g_clock), g_game (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
+// Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), g_clock (g_clock), g_game (g_game), D_002A2DD0 (g_qwZero), g_sw (g_sw)
 // 0x0018C250 SetJtState
 extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");

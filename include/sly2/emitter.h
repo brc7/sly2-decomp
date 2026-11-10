@@ -332,7 +332,7 @@ struct EMITGEN
 typedef char assert_EMITGEN_size[sizeof(EMITGEN) == 0x20 ? 1 : -1];
 /* FindSwObject (sw.cpp) under a label: files that include this header declare its mangled name as a C function */
 LO *PloFindSwObjectE(SW *psw, int grffso, OID oid, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
-extern SW g_sw __asm__("D_003DD490");
+extern SW g_sw __asm__("g_sw");
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descriptor table (0x14-byte rows) */
 
 /* ---- the class members shared by EMITTER and EXPLO (linkonce copies at 0x2584A8..0x258F30 and 0x258F40..0x2599C8).

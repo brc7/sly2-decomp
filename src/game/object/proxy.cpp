@@ -437,7 +437,7 @@ void LoadProxyFromBrx(SW *world, SO *psoParent, CID cid, OID oid, int isplice, C
 
 // SetLoIdProxy: ported from Lilly's personal Sly 2 decomp (src/P2/proxy.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_003DD490 (g_sw)
+// Globals: g_sw (g_sw)
 // 0x001CA118 SetIdProxy__2LOii  (MATCHES Sly 2, T0879)
 // Virtual 24: puts the object in the proxy copy tree under idProxy: the path is the ids from the root
 // down to the object's current node (at most 16, deepest last) with idProxy added at the end. The

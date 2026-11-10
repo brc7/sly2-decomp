@@ -356,7 +356,7 @@ extern "C" void HideCountdownHud(SW *world)
 } // namespace M_func_00161958
 
 namespace M_BroadcastGameEvent {
-extern SW D_003DD490 __asm__("D_003DD490");   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
+extern SW g_swSecondName __asm__("g_sw");   /* kept: g_sw under a second name keeps the two address loads apart (one name lets GCC share the base) */
 extern char D_002DE578[] __asm__("D_002DE578");
 void HandleGameEvent(void *pv, int n, void *p) __asm__("HandleGameEvent");
 void HandleDifficultyMessage(void *pv, int n, void *p) __asm__("HandleDifficultyMessage");
@@ -369,11 +369,11 @@ void BroadcastGameEvent(void *pv, int n, void *p) __asm__("BroadcastGameEvent");
     HandleGameEvent(pv, n, p);
     HandleDifficultyMessage(D_002DE578, n, p);
     for (task = (TASK *)g_sw.dlTaskActive.head; task; task = (TASK *)task->dleActive.next) {
-        if (task->pjob == D_003DD490.currentJob)
+        if (task->pjob == g_swSecondName.currentJob)
             SendTaskGameEvent(task, n, p);
     }
-    if (D_003DD490.currentJob)
-        HandleJobGameEvent(D_003DD490.currentJob, n, p);
+    if (g_swSecondName.currentJob)
+        HandleJobGameEvent(g_swSecondName.currentJob, n, p);
 }
 } // namespace M_BroadcastGameEvent
 

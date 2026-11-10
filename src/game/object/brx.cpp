@@ -312,7 +312,7 @@ extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *
 /* LoadOptionFromBrx (comment from its per-function file): */
 // LoadOptionFromBrx: ported from Lilly's personal Sly 2 decomp (src/P2/brx.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_003DD490 (g_sw)
+// Globals: g_sw (g_sw)
 // 0x0013E818 LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream  (MATCHES Sly 2, T1071; 99.8% in T0906, 98.2% in T1003)
 // T1071: the MMI packs are written as in quirks section 41 (the mfc1 INSIDE the asm, "f" float operands): case 3 and case 2 are each ONE fused asm
 // (the game's registers and the order `lhu v0,2(sp)`, mfc1, mfc1, pextlw come out exactly). The seven spill slots at sp+0x268..0x280 are gcse's

@@ -80,7 +80,7 @@ struct BLCURVE { OID oid; ASEG *paseg; float a; float b; float c; float ca; floa
 
 struct SLOTHEAP;
 extern "C" {
-extern SW D_003DD490SW __asm__("D_003DD490");
+extern SW D_003DD490SW __asm__("g_sw");
 extern qword D_002A2DD0;
 /* gait's .data (address order): the gait's blend animation oids and blend parameters, and two tunables. */
 OID D_002C3DC0[2] = {(OID)0x17D, (OID)0x17E};

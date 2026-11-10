@@ -2175,7 +2175,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
 namespace M_GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi {
 // GatherJtGrabCandidates: ported from Lilly's personal Sly 2 decomp (src/P2/jtgrab.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF660 (D_002BF660), D_002BF664 (D_002BF664), D_002BF70C (D_002BF70C), D_003DA0C0 (g_hintbox), D_003DD490 (g_sw)
+// Globals: D_002BF660 (D_002BF660), D_002BF664 (D_002BF664), D_002BF70C (D_002BF70C), D_003DA0C0 (g_hintbox), g_sw (g_sw)
 // 0x00194A40 GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi  (MATCHES Sly 2; our name for the record)
 // Every frame (UpdateJtPre 0x18B7E8 asks with 0xFFFF; the others with a mask the current state allows): collects the hero's grab
 // candidates. grf says which of the world's grab lists to walk: 1 the HNDs (found in the TARGET list), 2 PIPEs, 4 class 27, 8 HSHAPEs,

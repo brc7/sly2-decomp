@@ -1,4 +1,4 @@
-// sw.cpp -- the world (SW, the global g_sw at D_003DD490): construction, load and delete, the per-frame update,
+// sw.cpp -- the world (SW, the global g_sw at g_sw): construction, load and delete, the per-frame update,
 // hands-off / no-pause / letterbox counters, lighting, the object update list, level and world tables.
 // TU 0x20D9D0..0x210EB0 (68 functions, address order).
 //

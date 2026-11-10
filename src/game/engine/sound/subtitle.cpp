@@ -36,7 +36,7 @@ struct FLAGCHTABLE { FLAGCH a[16]; };
 
 extern struct CLOCK g_clock;
 extern char D_003DD040[];
-extern char D_003DD490[];   /* g_sw */
+extern char g_sw[];   /* g_sw */
 extern const char D_002A97F0[];         /* defined at the end (.rodata order: after GetSpeakerSubtitleColor's jump table) */
 extern const FLAGCHTABLE D_002A97F8;
 extern const char D_002A9878[];
@@ -97,7 +97,7 @@ extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
         *buffer = 0;
         return;
     }
-    strcpy(buffer, FindSwLocalizedString((struct SW *)D_003DD490, textId));
+    strcpy(buffer, FindSwLocalizedString((struct SW *)g_sw, textId));
 }
 
 // Typewriter effect: cuts the subtitle text to the fraction of the voice line played so far (playback position over the

@@ -765,7 +765,7 @@ extern "C" void UpdateXfJobRange(void *pa, XF *p)
 
 // UpdateSoSlots: ported from Lilly's personal Sly 2 decomp (src/P2/xf.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), g_clock (g_clock), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
+// Globals: D_002A2DA0 (D_002A2DA0), g_clock (g_clock), D_002A2DD0 (g_qwZero), g_sw (g_sw)
 // 0x0022DE88 UpdateSoSlots__FP2SO (our name, was FUN_0022DE88; SO::Update 0x1F3980 calls it right after the SO's own update). THE per-frame step of an SO's XF slots:
 // for every XF it runs SlotRefresh and then, by the XF's role (role, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (worldStamp = ++g_sw.transformStamp):
 //   roles 1 2   constant `acceleration` on the `velocity`: xfk 1 moves the position row (trapezoid: pos += (v_old + v_new) * dt / 2), xfk 6 turns the rotation by the

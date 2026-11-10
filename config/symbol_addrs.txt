@@ -6478,6 +6478,7 @@ s_pvStackMac = 0x2F638C; // type:data
 s_critsectStack = 0x2F6390; // type:data
 s_ipvStackCur = 0x2F639C; // type:data
 s_apvStackMin = 0x2F63A0; // type:data
+g_sw = 0x3DD490; // type:data
 gSyncBuffer = 0x443840; // type:data
 gStats = 0x448400; // type:data
 gLoadReturnValue = 0x448480; // type:data
