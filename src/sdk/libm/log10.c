@@ -21,7 +21,7 @@ double log10(double x)
     double z;
     struct exception exc;
     z = func_00246178(x);
-    if (__fdlib_version == -1 || isnan(x)) return z;
+    if (__fdlib_version == -1 || func_00249C80(x)) return z;
     if (x <= 0.0) {
         exc.name = "log10";
         exc.err = 0;

@@ -22,9 +22,9 @@ float acosf(float x)
     float z;
 
     z = __ieee754_acosf(x);
-    if (__fdlib_version == -1 || isnanf(x))
+    if (__fdlib_version == -1 || func_0024A0C0(x))
         return z;
-    if (fabsf(x) > (float)1.0) {
+    if (func_00244EF8(x) > (float)1.0) {
         exc.type = 1;
         exc.name = "acosf";
         exc.err = 0;

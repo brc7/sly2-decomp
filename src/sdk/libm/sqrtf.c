@@ -21,7 +21,7 @@ float sqrtf(float x)
     float z;
 
     z = __ieee754_sqrtf(x);
-    if (__fdlib_version == -1 || isnanf(x))
+    if (__fdlib_version == -1 || func_0024A0C0(x))
         return z;
     if (x < (float)0.0) {
         exc.type = 1;

@@ -21,7 +21,7 @@ float atan2f(float y, float x)
     float z;
 
     z = __ieee754_atan2f(y, x);
-    if (__fdlib_version == -1 || isnanf(x) || isnanf(y))
+    if (__fdlib_version == -1 || func_0024A0C0(x) || func_0024A0C0(y))
         return z;
     if (x == (float)0.0 && y == (float)0.0) {
         exc.arg1 = (double)y;

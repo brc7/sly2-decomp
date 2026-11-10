@@ -21,7 +21,7 @@ float fmodf(float x, float y)
     float z;
 
     z = __ieee754_fmodf(x, y);
-    if (__fdlib_version == -1 || isnanf(y) || isnanf(x))
+    if (__fdlib_version == -1 || func_0024A0C0(y) || func_0024A0C0(x))
         return z;
     if (y == (float)0.0) {
         exc.type = 1;
