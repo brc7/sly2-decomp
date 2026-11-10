@@ -493,57 +493,50 @@ extern "C" void AddProxyCopy(struct G *world, int i, SO *a, XF *b, void *x, MATR
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitSwProxySpares {
-typedef int qword __attribute__((mode(TI)));
-struct MAT3 { qword a[3]; };
-struct MAT4 { float m[4][4]; };
-struct X { qword q; struct MAT3 mat; };
-struct Z { qword q; struct MAT4 mat; };
 struct A { int cb; int align; };
-struct R { int n; LO **ap; int numCopies; int c; int unknown10; void *spareTag; void **ap18; char pad[0x64 - 0x1C]; struct X *restPoses; struct Z *spareMatrices; };   /* a proxy source: n objects per copy, c copies in use */
-struct G { char pad[0x3F04]; int numProxySources; struct R *ar; };
 int MakeProxyId__Fii(int i, int c) __asm__("MakeProxyId__Fii");
 void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
-struct MAT3 *GetLoWorldMatrix(LO *p) __asm__("GetLoWorldMatrix");
-void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm) __asm__("NormalizeRotateMatrix3__FP7MATRIX3");
+MATRIX3 *GetLoWorldMatrix(LO *p) __asm__("GetLoWorldMatrix");
+void NormalizeRotateMatrix3__FP7MATRIX3(MATRIX3 *pm) __asm__("NormalizeRotateMatrix3__FP7MATRIX3");
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 // Set pm to the identity matrix.
-extern "C" { static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; } }
+extern "C" { static inline void SetIdent(MATRIX4 *pm) { func_002333B4(pm, 0, 0x40); pm->mat[0][0] = pm->mat[1][1] = pm->mat[2][2] = pm->mat[3][3] = 1.0f; } }
 // After the level load, turns every unused copy of each proxy source into a spare (records the objects' rest poses
 // and builds the spare array).
-extern "C" void InitSwProxySpares(struct G *world)
+extern "C" void InitSwProxySpares(SW *world)
 {
     int i, j, k;
     LO *plo;
-    struct X *px;
+    PROXYREST *px;
     struct A a;
-    for (i = 0; i < world->numProxySources; i++) {
-        struct R *pr = &world->ar[i];
-        if (pr->c >= pr->numCopies) continue;
-        for (j = pr->c; j < pr->numCopies; j++) {
+    for (i = 0; i < world->cproxysrc; i++) {
+        PROXYSRC *pr = &world->aproxysrc[i];
+        if (pr->icopyNext >= pr->ccopy) continue;
+        for (j = pr->icopyNext; j < pr->ccopy; j++) {
             int v = MakeProxyId__Fii(i, j);
-            pr->ap18[j] = pr->spareTag;
-            for (k = 0; k < pr->n; k++) {
-                plo = pr->ap[j * pr->n + k];
+            pr->aoid[j] = (OID)pr->nUnk14;
+            for (k = 0; k < pr->cplo; k++) {
+                plo = pr->aplo[j * pr->cplo + k];
                 plo->SetIdProxy(v, 1);
                 plo->proxyRecord->isCopy = 1;   /* the spare copies */
             }
         }
-        a.cb = pr->n * 64;
+        a.cb = pr->cplo * 64;
         a.align = 0x10;
-        pr->restPoses = (struct X *)AllocClearedFromWorldHeap(&a);
-        for (k = 0; k < pr->n; k++) {
-            px = &pr->restPoses[k];
-            plo = pr->ap[pr->c * pr->n + k];
-            px->q = GetLoWorldPos(plo);
+        pr->aposRest = (PROXYREST *)AllocClearedFromWorldHeap(&a);
+        for (k = 0; k < pr->cplo; k++) {
+            px = &pr->aposRest[k];
+            plo = pr->aplo[pr->icopyNext * pr->cplo + k];
+            px->pos = GetLoWorldPos(plo);
             px->mat = *GetLoWorldMatrix(plo);
             NormalizeRotateMatrix3__FP7MATRIX3(&px->mat);
         }
-        a.cb = (pr->numCopies - pr->c) * 0x50;
+        a.cb = (pr->ccopy - pr->icopyNext) * 0x50;
         a.align = 0x10;
-        pr->spareMatrices = (struct Z *)AllocClearedFromWorldHeap(&a);
-        for (j = pr->c; j < pr->numCopies; j++)
-            SetIdent(&pr->spareMatrices[j - pr->c].mat);
+        pr->aspare = (PROXYSPARE *)AllocClearedFromWorldHeap(&a);
+        for (j = pr->icopyNext; j < pr->ccopy; j++)
+            SetIdent(&pr->aspare[j - pr->icopyNext].mat);
     }
 }
 } // namespace M_InitSwProxySpares
