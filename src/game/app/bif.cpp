@@ -3157,7 +3157,7 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1242B8 BuiltinFindObjectsFromOids
 namespace M_BuiltinFindObjectsFromOids {
-struct SPN; struct LOV; struct OW;
+struct SPN; struct OW;
 
 extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
 
@@ -3172,10 +3172,8 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-struct LO;
-struct LOV { char pad[0x3C]; int n3C; };   /* the search root's proxy context (+0x3C) */
-struct OW { char pad[0xC]; LOV *psw; };
-extern LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, int n2) __asm__("FindSwObjectInProxyScope");
+struct OW { char pad[0xC]; LO *plo; };   /* the optional context argument's object (+0xC) */
+extern LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, PXR *ppxr) __asm__("FindSwObjectInProxyScope");
 extern CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args) __asm__("BuiltinFindObjectsFromOids");
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
 CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
@@ -3184,11 +3182,11 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
     if (args[0].m_tagk == 0)
         return args[0];
     void *root = args[1].u.pv;
-    LOV *context;
+    LO *context;
     if (args[2].m_tagk != 0)
-        context = ((OW *)args[2].u.pv)->psw;
+        context = ((OW *)args[2].u.pv)->plo;
     else
-        context = (LOV *)root;
+        context = (LO *)root;
     SPN list;
     CPair *head = CGcObj<CPair>::PtNew();
     list.Set(head);
@@ -3200,7 +3198,7 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
         newPair.Set(pair);
         int oid = oidPair->ref.u.n;
         newPair->ref.SetBasic((BASIC *)FindSwObjectInProxyScope(&g_sw, root ? 1 : 5, oid, root,
-                                                              context ? context->n3C : (int)g_sw.ppxrRoot));
+                                                              context ? context->proxyRecord : g_sw.ppxrRoot));
         if (list->ref.m_tagk != TAGK_PAIR)
             list->ref = newPair.p;
         else
