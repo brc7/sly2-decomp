@@ -69,12 +69,9 @@ struct CREQ { int x0; SOV *po; };
 /* A bounding-sphere hit (CollectBombVictims). */
 struct XAV { int x0; SOV *po; int x8; int xC; char pad[0x74 - 0x10]; int planeCount; };   /* a SOPART */
 struct AREQV { int cb; int cbAlign; };
-/* The hit TakeBombDamage absorbs. */
-struct WKR { int x0; char pad[0x2C]; qword v30; char pad2[4]; int flags; };
 /* 8 bytes read with ldl/ldr (alignment 1). */
 /* DetonateBomb's impact message and the message to +0x168. */
 struct POV { int pad[3]; VTE *pvt; int x10; POV **pp14; };
-struct MSG { BOMBV *p; int x4; POV *po; int zapKind; int damage; int pad14[3]; qword v20; qword v30; char pad40[0x60 - 0x40]; };
 struct MSG2 { int k; BOMBV *p; float g8; float gC; };
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 
@@ -110,7 +107,7 @@ void SetSoPosXfVelocityLocal(BOMBV *, qword);
 void SetSoRotXfVelocityLocal(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
 void SetSoCnstrTorque(BOMBV *, int);
-int CanSoTakeDamage(BOMBV *p, WKR *pm);
+int CanSoTakeDamage(BOMBV *p, ZPR *pm);
 MATRIX3Q *GetLoWorldMatrix(BOMBV *);
 void BuildOrthonormalMatrixZ(MATRIX3Q *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3Q *, qword, qword);
@@ -120,7 +117,7 @@ void *AllocFromStack(AREQV *preq);
 int IntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-int DeliverZapToSo(MSG *pmsg);
+int DeliverZapToSo(ZPR *pmsg);
 int *NewNoise(STIMK *pstimk, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
@@ -454,18 +451,18 @@ static __inline__ qword VLen(qword c)
 }
 // BOMB vt75 TakeDamage: refuse while state 1; else on knock-back zaps push the bomb along the hit normal. (inferred)
 // Also known as: FAcceptContactProjectile (upstream readable / Sly 1 name; FAcceptContactProjectile__FP3ALOP5CTMSG).
-extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
+extern "C" int TakeBombDamage(BOMBV *bomb, ZPR *pm)
 {
     int r;
     if (bomb->k == 1)
         return 0;
     r = CanSoTakeDamage(bomb, pm);
-    if (r && (pm->flags & 8)) {
+    if (r && (pm->grfzpr & 8)) {
         U u;
         U *pu;
         register qword n __asm__("vf1");
         qword k;
-        qword c = pm->v30;
+        qword c = pm->velocity;
         qword l;
         float gl;
         __asm__("" : "=r"(k) : "0"(g_normalZ));
@@ -481,7 +478,7 @@ extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
         }
         pu->q = n;
         PrepareBombDetonation(bomb, GetLoWorldPos(bomb), u.q);
-        if (IsBasicDerivedFrom__FP5BASIC3CID((void *)pm->x0, 0x4F))
+        if (IsBasicDerivedFrom__FP5BASIC3CID(pm->ploSource, 0x4F))
             PrimeBomb(bomb, 0.25f);
         else
             PrimeBomb(bomb, 0.0f);
@@ -619,16 +616,16 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         CollectBombVictims(bomb, &c, &apo);
         for (i = 0; i < c; i++) {
             SOV *po = apo[i];
-            MSG msg;
+            ZPR msg;
             U g;
             qword d, n;
             float l;
             func_002333B4(&msg, 0, 0x60);
-            msg.zapKind = bomb->zapKind;
-            msg.damage = bomb->blastDamage;
-            msg.v20 = bomb->posDetonate;
-            msg.p = bomb;
-            msg.po = (POV *)po;
+            msg.zpk = bomb->zapKind;
+            msg.dhp = bomb->blastDamage;
+            msg.position = bomb->posDetonate;
+            msg.ploSource = bomb;
+            msg.unknown08 = (LO *)po;
             qword pos = GetLoWorldPos(po);
             qword def = g_normalZ;
             d = VuSub(pos, bomb->posDetonate);
@@ -648,7 +645,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
             {
                 qword v;
                 __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(n), "j"(g.q));
-                msg.v30 = v;
+                msg.velocity = v;
             }
             DeliverZapToSo(&msg);
         }
