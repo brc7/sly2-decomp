@@ -7,7 +7,7 @@ typedef struct { char p0[0x868]; void *mp; } D;
 #define R(a) (*(volatile unsigned int *)(a))
 #define RS(a) (*(volatile int *)(a))
 int _ch3dmaCSC(int ch, void *arg);
-int AddDmacHandler(int ch, int (*h)(int, void *), int next, void *arg);
+int AddDmacHandler2(int ch, int (*h)(int, void *), int next, void *arg);
 int RemoveDmacHandler(int ch, int id);
 int EnableDmac(int ch);
 int DisableDmac(int ch);
@@ -29,7 +29,7 @@ void _doCSC2(D *d, unsigned int out, int n)
     c.cnt = 0;
     while (RS(0x10002010) < 0)
         ;
-    id = AddDmacHandler(3, _ch3dmaCSC, 0, &c);
+    id = AddDmacHandler2(3, _ch3dmaCSC, 0, &c);
     R(0x1000E010) = 8;
     EnableDmac(3);
     e = DIntr();
