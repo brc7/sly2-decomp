@@ -392,7 +392,7 @@ extern "C" void PostLoLoad(LO *object)
         if ((int)object->busyKind == 2)
             SetLoBusyKind(object, 0);
         v = object->unknown40;
-        if ((v ^ 1) & 1) *(int *)v |= 2;
+        if ((v ^ 1) & 1) object->ploupd->grf |= 2;
         else object->unknown40 = v | 2;
     } else {
         object->nextSpliceTime = D_002A6A40;
@@ -454,14 +454,14 @@ namespace M_func_001A5E80 {
 extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
     unsigned int v = p->unknown40;
-    if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
+    if ((v ^ 1) & 1) p->ploupd->grf &= ~fl;
     else p->unknown40 = v & ~fl;
 } }
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
 // is not known; the parent's flag word is read through its pointer form). (inferred)
 extern "C" void InheritLoFlag4(LO *object)
 {
-    if (!object->parent || !(*(unsigned int *)object->parent->unknown40 & 4)) ClearFlag(object, 4);
+    if (!object->parent || !(object->parent->ploupd->grf & 4)) ClearFlag(object, 4);
 }
 } // namespace M_func_001A5E80
 
@@ -822,7 +822,7 @@ namespace M_func_001A66C8 {
 extern "C" void SetLoFlags(LO *object, unsigned int fl)
 {
     unsigned int v = object->unknown40;
-    if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
+    if ((v ^ 1) & 1) object->ploupd->grf |= fl;
     else object->unknown40 = v | fl;
 }
 } // namespace M_func_001A66C8
@@ -832,7 +832,7 @@ namespace M_func_001A66F8 {
 extern "C" void ClearLoFlags(LO *object, unsigned int fl)
 {
     unsigned int v = object->unknown40;
-    if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
+    if ((v ^ 1) & 1) object->ploupd->grf &= ~fl;
     else object->unknown40 = v & ~fl;
 }
 } // namespace M_func_001A66F8
@@ -1085,13 +1085,13 @@ namespace M_func_001A6E80 {
 extern "C" { static inline void SetFlag(LO *p, unsigned int fl)
 {
     unsigned int v = p->unknown40;
-    if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
+    if ((v ^ 1) & 1) p->ploupd->grf |= fl;
     else p->unknown40 = v | fl;
 } }
 extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
     unsigned int v = p->unknown40;
-    if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
+    if ((v ^ 1) & 1) p->ploupd->grf &= ~fl;
     else p->unknown40 = v & ~fl;
 } }
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)

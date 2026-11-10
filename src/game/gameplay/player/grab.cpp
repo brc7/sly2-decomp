@@ -113,14 +113,6 @@ struct REGTREE
       int fReady;
 };
 
-struct CELL
-{
-      qword plane;
-      CELL *pcellNeg;
-      CELL *pcellPos;
-      int ileafNeg;
-      int ileafPos;
-};
 
 
 /* SVN: sly2/sw.h */

@@ -53,6 +53,9 @@ public:
     void ReadGeom(GEOM *pgeom);    /* 0x117FD0 */
 };
 
+/* Reads a 0x40-byte file record (FILEREF-style); a C-named helper at 0x118458, not a member. */
+extern "C" void CBinaryInputStream_ReadCb64(CBinaryInputStream *pbis, void *pv);
+
 extern "C" void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");   /* memory.cpp's C++ CopyAb */
 extern "C" void *memcpy(void *dst, const void *src, uint cb);
 #endif

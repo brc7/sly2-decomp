@@ -55,50 +55,7 @@ void AddVifDirectFlushed(VIFS *pvifs, int cqw, QW *aqw);
 
 
 
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    void Read(int cb, void *pv);
-    void Skip(int cb);
-    uchar U8Read();
-    ushort U16Read();
-    uint U32Read();
-    char S8Read();
-    short S16Read();
-    int S32Read();
-    float F32Read();
-    void ReadVector(VECTOR *pvec);
-    void ReadMatrix4(MATRIX4 *pmat);
-};
+#include "bis.h"
 
 struct BND
 {
@@ -106,7 +63,7 @@ struct BND
       LO *plo;
       int ixf;
       XF *pxf;
-      MATRIX4 matInv;
+      union { MATRIX4 matInv; MATRIX4Q matqInv; };   /* the quadword rows for UnpackSubglobBones */
 };
 
 
@@ -272,47 +229,7 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
 namespace M_LoadPoseSetsFromBrx {
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct META {
-    float limit;
-    long kind : 4;
-    ulong count : 8;
-    ulong channel : 6;
-    ulong feature : 1;
-    ulong index : 13;
-};
-struct RECORD {
-    float position[3];
-    float radius;
-    struct META meta;
-    void *link;
-    int pad1C;
-};
-struct GROUP{struct RECORD records[4];};
-struct D {
-    signed char channel;
-    char pad1[7];
-    void *chain;
-    char padC[8];
-};
-struct E {
-    char pad[0xC];
-    uint flags;
-    void *matrix;
-    int word;
-    char pad18[0xC];
-    struct RECORD *sphere;
-};
-struct P {
-    char pad[0x3C];
-    struct D *descriptors;
-    struct E *entries;
-    void *localSpheres;
-    struct GROUP *groups;
-};
 struct STREAM;
-typedef char MetaSize[sizeof(struct META)==8?1:-1];
-typedef char RecordSize[sizeof(struct RECORD)==0x20?1:-1];
-typedef char EntrySize[sizeof(struct E)==0x28?1:-1];
 short S16Read__18CBinaryInputStream(struct STREAM*) __asm__("S16Read__18CBinaryInputStream");
 char S8Read__18CBinaryInputStream(struct STREAM*) __asm__("S8Read__18CBinaryInputStream");
 struct VECTOR;
@@ -323,109 +240,101 @@ void*AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldHe
 // Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor.
 // (inferred)
 // Also known as: LoadGlobSpheresFromBrx (upstream readable / Sly 1 name;
-//   LoadGlobSpheresFromBrx__FP7GLOBSETP18CBinaryInputStream).
-extern "C" void LoadPoseSetsFromBrx(struct P *p, struct STREAM *stream)
+extern "C" void LoadPoseSetsFromBrx(GLOBSET *p, struct STREAM *stream)
 {
     int count = S16Read__18CBinaryInputStream(stream);
     if (count) {
         struct SWALLOC request;
-        struct GROUP *groups;
+        POSESET *groups;
         int i;
-        request.cb = count * sizeof(struct GROUP);
+        request.cb = count * sizeof(POSESET);
         request.cbAlign = 0x10;
-        groups = (struct GROUP *)AllocClearedFromWorldHeap(&request);
+        groups = (POSESET *)AllocClearedFromWorldHeap(&request);
         for (i = 0; i < count; i++) {
-            struct GROUP *group = &groups[i];
+            POSESET *group = &groups[i];
             uint j;
             for (j = 0; j < 4; j++) {
-                struct RECORD *record = &group->records[j];
-                record->meta.kind = S8Read__18CBinaryInputStream(stream);
-                if ((int)record->meta.kind == -1) {
+                POSE *record = &group->apose[j];
+                record->nKind = S8Read__18CBinaryInputStream(stream);
+                if ((int)record->nKind == -1) {
                     for (; j < 4; j++)
-                        group->records[j].meta.kind = -1;
+                        group->apose[j].nKind = -1;
                     break;
                 }
-                ReadVector__18CBinaryInputStreamP6VECTOR(stream, (struct VECTOR *)record->position);
-                record->radius = F32Read__18CBinaryInputStream(stream);
-                record->meta.limit = F32Read__18CBinaryInputStream(stream);
-                record->meta.count = U8Read__18CBinaryInputStream(stream);
-                record->meta.limit = FpuMin(1.0e10f, record->meta.limit);
-                switch (record->meta.kind) {
+                ReadVector__18CBinaryInputStreamP6VECTOR(stream, (struct VECTOR *)&record->pos);
+                record->sRadius = F32Read__18CBinaryInputStream(stream);
+                record->sLimit = F32Read__18CBinaryInputStream(stream);
+                record->nCount = U8Read__18CBinaryInputStream(stream);
+                record->sLimit = FpuMin(1.0e10f, record->sLimit);
+                switch (record->nKind) {
                 case 0: {
                     int index = S16Read__18CBinaryInputStream(stream);
-                    struct D *descriptor = &p->descriptors[index];
-                    struct E *entry = &p->entries[index];
-                    if (entry->flags & 0x1000) {
-                        record->meta.kind = 3;
-                        record->link = entry->matrix;
+                    SUBGLOB *descriptor = &p->subMeshes[index];
+                    GLOB *entry = &p->pieces[index];
+                    if (entry->grf & 0x1000) {
+                        record->nKind = 3;
+                        record->pvLink = entry->pqwChain;
                     }
-                    record->meta.channel = descriptor->channel;
-                    record->meta.feature = (entry->flags >> 11) & 1;
-                    record->meta.index = index;
-                    entry->sphere = record;
+                    record->nChannel = descriptor->unknown00;
+                    record->isHidden = (entry->grf >> 11) & 1;
+                    record->iglob = index;
+                    entry->ppose = record;
                     break;
                 }
                 case 1:
-                    record->link = &groups[S16Read__18CBinaryInputStream(stream)];
+                    record->pvLink = &groups[S16Read__18CBinaryInputStream(stream)];
                     break;
                 }
             }
         }
-        p->groups = groups;
+        p->aposeset = groups;
     }
 }
 } // namespace M_LoadPoseSetsFromBrx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
-struct ITEM { int oid; SO *plo; int n8; XF *pbone; MATRIX4 mat; };
-struct GRP { int a; XF *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
-struct HDR { signed char c0; signed char citem; char pad[0x12]; };
-struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
-struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int relightStamp; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (numPieces, subMeshes, pieces, relightStamp, pwrbgFirst) */
-
-
 extern SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");   /* the found object is an SO here */
 extern void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
 extern void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
 extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern void AddWrWarpGroup(SO *plo, X *px) __asm__("AddWrWarpGroup");
+extern void AddWrWarpGroup(SO *plo, WRBG *pwrbg) __asm__("AddWrWarpGroup");
 // Resolves globset bone references after load: finds each referenced SO by oid, its bone, and computes the relative
 // bind matrix. (inferred)
 // Also known as: BindAloBones (upstream readable / Sly 1 name; BindAloBones__FP3ALO).
-extern "C" void BindGlobset(S *p)
+extern "C" void BindGlobset(GLOBSET *p)
 {
     if (p->relightStamp != -1)
         p->relightStamp = g_sw.relightStamp;
-    for (int i = 0; i < p->cgrp; i++) {
-        HDR *phdr = &p->ahdr[i];
-        GRP *pgrp = &p->agrp[i];
-        for (int j = 0; j < phdr->citem; j++) {
-            ITEM *pitem = &pgrp->aitem[j];
-            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, pitem->oid, p->pvOwner);
+    for (int i = 0; i < p->numPieces; i++) {
+        SUBGLOB *phdr = &p->subMeshes[i];
+        GLOB *pgrp = &p->pieces[i];
+        for (int j = 0; j < phdr->cbnd; j++) {
+            BND *pitem = &pgrp->abnd[j];
+            pitem->plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, pitem->oid, p->owner);
             if (pitem->plo)
-                pitem->pbone = pitem->plo->GetXfFromIndex(pitem->n8);
-            if (pitem->pbone) {
+                pitem->pxf = ((SO *)pitem->plo)->GetXfFromIndex(pitem->ixf);
+            if (pitem->pxf) {
                 MATRIX4 mat;
-                if (pgrp->pbone) {
+                if (pgrp->transform) {
                     MATRIX4 matT;
-                    InvertMatrix4Rigid(&matT, &pitem->pbone->worldMatrix);
-                    __ml__FRC7MATRIX4T0(&mat, &matT, &pgrp->pbone->worldMatrix);
+                    InvertMatrix4Rigid(&matT, &pitem->pxf->worldMatrix);
+                    __ml__FRC7MATRIX4T0(&mat, &matT, &pgrp->transform->worldMatrix);
                 } else {
-                    InvertMatrix4Rigid(&mat, &pitem->pbone->worldMatrix);
+                    InvertMatrix4Rigid(&mat, &pitem->pxf->worldMatrix);
                 }
-                pitem->mat = mat;
-            } else if (pgrp->pbone) {
-                pitem->mat = pgrp->pbone->worldMatrix;
+                pitem->matInv = mat;
+            } else if (pgrp->transform) {
+                pitem->matInv = pgrp->transform->worldMatrix;
             } else {
-                MATRIX4 *pmat = &pitem->mat;
+                MATRIX4 *pmat = &pitem->matInv;
                 func_002333B4(pmat, 0, sizeof(MATRIX4));
                 pmat->mat[0][0] = pmat->mat[1][1] = pmat->mat[2][2] = pmat->mat[3][3] = 1.0f;
             }
         }
     }
-    for (X *px = p->pxFirst; px; px = px->pxNext) {
-        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, px->oid, p->pvOwner);
+    for (WRBG *px = p->pwrbgFirst; px; px = px->pwrbgNextGlobset) {
+        SO *plo = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, px->oid, p->owner);
         if (plo)
             AddWrWarpGroup(plo, px);
     }
@@ -810,24 +719,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UnpackSubglobBones {
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
-typedef struct M4 { qword r[4]; } M4;
-typedef struct TRANSFORM { char pad0[0x40]; M4 world; } TRANSFORM;
-typedef struct BONE {
-    int value, unknown4, index;
-    TRANSFORM *transform;
-    M4 local;
-} BONE;
-typedef struct DESC {
-    unsigned char flags;
-    signed char count;
-    unsigned short channel;
-    float distance;
-    int unknown8;
-    uint base;
-} DESC;
-typedef struct ENTRY { char pad0[0x18]; BONE *bones; } ENTRY;
 
 // Load a 128-bit value with lq into a GPR (no VU0 round trip).
 extern "C" { static __inline__ qword ReadCPU(const qword *source)
@@ -851,11 +743,11 @@ extern "C" { static __inline__ void Align(uint align)
 
 // Appends VIF UNPACKs of a sub-glob's bone matrices to the instance packet. (inferred)
 // Also known as: FGlobBoneMatrices (upstream readable / Sly 1 name; FGlobBoneMatrices__FP3ALOP4DESCP5ENTRY).
-extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry)
+extern "C" void UnpackSubglobBones(void *context, SUBGLOB *descriptor, GLOB *entry)
 {
     uint opcode;
-    BONE *bone, *last;
-    TRANSFORM *parent;
+    BND *bone, *last;
+    XF *parent;
     qword *output;
     qword p0, p1, p2, p3, n0, n1, n2, n3;
     register qword v1 __asm__("vf1"), v2 __asm__("vf2");
@@ -864,34 +756,34 @@ extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry
     register qword v7 __asm__("vf7"), v8 __asm__("vf8");
 
     Align(12);
-    opcode = (uint)descriptor->count << 18;
+    opcode = (uint)descriptor->cbnd << 18;
     opcode |= 0x6000C000;
     opcode |= 0x0C000000;
-    opcode |= descriptor->base;
+    opcode |= descriptor->iqwBone;
     *(uint *)D_002DEA28.m_pb = opcode;
     D_002DEA28.m_pb += 4;
     output = (qword *)D_002DEA28.m_pb;
-    bone = entry->bones;
-    last = bone + descriptor->count - 1;
-    parent = bone->transform;
-    v5 = bone->local.r[0]; v6 = bone->local.r[1];
-    v7 = bone->local.r[2]; v8 = bone->local.r[3];
-    v1 = parent->world.r[0]; v2 = parent->world.r[1];
-    v3 = parent->world.r[2]; v4 = parent->world.r[3];
+    bone = entry->abnd;
+    last = bone + descriptor->cbnd - 1;
+    parent = bone->pxf;
+    v5 = bone->matqInv.r[0].q; v6 = bone->matqInv.r[1].q;
+    v7 = bone->matqInv.r[2].q; v8 = bone->matqInv.r[3].q;
+    v1 = parent->worldMatq.r[0].q; v2 = parent->worldMatq.r[1].q;
+    v3 = parent->worldMatq.r[2].q; v4 = parent->worldMatq.r[3].q;
     for (;;) {
         __asm__ __volatile__("vcallms 0x60" : :
                 "j"(v1), "j"(v2), "j"(v3), "j"(v4),
                 "j"(v5), "j"(v6), "j"(v7), "j"(v8));
         if (bone < last) {
-            TRANSFORM *next = bone[1].transform;
-            p0 = ReadCPU(&next->world.r[0]);
-            p1 = ReadCPU(&next->world.r[1]);
-            p2 = ReadCPU(&next->world.r[2]);
-            p3 = ReadCPU(&next->world.r[3]);
-            n0 = ReadCPU(&bone[1].local.r[0]);
-            n1 = ReadCPU(&bone[1].local.r[1]);
-            n2 = ReadCPU(&bone[1].local.r[2]);
-            n3 = ReadCPU(&bone[1].local.r[3]);
+            XF *next = bone[1].pxf;
+            p0 = ReadCPU(&next->worldMatq.r[0].q);
+            p1 = ReadCPU(&next->worldMatq.r[1].q);
+            p2 = ReadCPU(&next->worldMatq.r[2].q);
+            p3 = ReadCPU(&next->worldMatq.r[3].q);
+            n0 = ReadCPU(&bone[1].matqInv.r[0].q);
+            n1 = ReadCPU(&bone[1].matqInv.r[1].q);
+            n2 = ReadCPU(&bone[1].matqInv.r[2].q);
+            n3 = ReadCPU(&bone[1].matqInv.r[3].q);
         }
         {
             int sync;
@@ -919,19 +811,7 @@ extern "C" void UnpackSubglobBones(void *context, DESC *descriptor, ENTRY *entry
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
-typedef char layout_M4[(sizeof(M4)==0x40)?1:-1];
-typedef char layout_BONE[(sizeof(BONE)==0x50)?1:-1];
-typedef char layout_DESC[(sizeof(DESC)==0x10)?1:-1];
-typedef char layout_TRANSFORM_world[((unsigned long)&((TRANSFORM*)0)->world==0x40)?1:-1];
-typedef char layout_BONE_transform[((unsigned long)&((BONE*)0)->transform==0xc)?1:-1];
-typedef char layout_BONE_local[((unsigned long)&((BONE*)0)->local==0x10)?1:-1];
-typedef char layout_DESC_count[((unsigned long)&((DESC*)0)->count==0x1)?1:-1];
-typedef char layout_DESC_base[((unsigned long)&((DESC*)0)->base==0xc)?1:-1];
-typedef char layout_ENTRY_bones[((unsigned long)&((ENTRY*)0)->bones==0x18)?1:-1];
-typedef char layout_M4_row0[((unsigned long)&((M4*)0)->r[0]==0x0)?1:-1];
-typedef char layout_M4_row1[((unsigned long)&((M4*)0)->r[1]==0x10)?1:-1];
-typedef char layout_M4_row2[((unsigned long)&((M4*)0)->r[2]==0x20)?1:-1];
-typedef char layout_M4_row3[((unsigned long)&((M4*)0)->r[3]==0x30)?1:-1];
+
 } // namespace M_UnpackSubglobBones
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1814,10 +1694,10 @@ struct BATCH
       void *pvPos;
       void *pvUv;
       void *pvUvLink;
-      int obColorA;
-      int obColorB;
+      uchar *pbColorA;   /* the batch's colour unpack data in the aux chain (UnpackHelper) */
+      uchar *pbColorB;
       uchar *pbAlpha;
-      int obAlpha;
+      uchar *pbAlphaUnpack;   /* its alpha unpack data (0: none) */
       uchar *pbRgb;
       uchar *pbNorm;
       uchar *pbWeights;
@@ -1870,46 +1750,6 @@ namespace M_LoadSubglobInstanceFromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
-struct M4{qword rows[4];};
-struct D {
-    char channel, segments;
-    unsigned char flags;
-    char kind;
-    char pad4[4];
-    void *chain;
-    char padC[4];
-    int words;
-};
-struct TRANSFORM {
-    char pad[0x40];
-    M4 matrix;
-};
-union FLAGS {
-    uint word;
-    struct {
-        uint pad : 11, feature : 1, other : 20;
-    } bits;
-};
-struct E {
-    int value;
-    TRANSFORM *transform;
-    M4 *parent;
-    FLAGS flags;
-    char *data;
-    uint base;
-    char pad18[12];
-    void *sphere;
-};
-struct SPHERE {
-    float center[3], radius, limit;
-    uint metadata;
-};
-struct SO;
-struct SO {
-    char pad[0xC];
-    void *vptr;
-};
-struct P{SO*owner;};
 struct REQUEST {
     int bytes, alignment;
     // Allocation request: byte count and alignment.
@@ -1939,29 +1779,10 @@ struct FACE {
     int first, second, pad2C, kind;
     char pad34[12];
 };
-typedef char MatrixSize[sizeof(M4)==64?1:-1];
-typedef char DescriptorSize[sizeof(D)==20?1:-1];
-typedef char EntrySize[sizeof(E)==40?1:-1];
-typedef char SphereSize[sizeof(SPHERE)==24?1:-1];
 typedef char FaceSize[sizeof(FACE)==64?1:-1];
 typedef char LinkSize[sizeof(LINK)==6?1:-1];
 typedef char LinkSetSize[sizeof(LINKS)==8?1:-1];
 typedef char BindingSize[sizeof(BINDING)==12?1:-1];
-typedef char D_flags_Offset[FIELD_OFFSET(D,flags)==2?1:-1];
-typedef char D_kind_Offset[FIELD_OFFSET(D,kind)==3?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char E_transform_Offset[FIELD_OFFSET(E,transform)==4?1:-1];
-typedef char E_parent_Offset[FIELD_OFFSET(E,parent)==8?1:-1];
-typedef char E_flags_Offset[FIELD_OFFSET(E,flags)==12?1:-1];
-typedef char E_data_Offset[FIELD_OFFSET(E,data)==16?1:-1];
-typedef char E_base_Offset[FIELD_OFFSET(E,base)==20?1:-1];
-typedef char E_sphere_Offset[FIELD_OFFSET(E,sphere)==36?1:-1];
-typedef char SPHERE_radius_Offset[FIELD_OFFSET(SPHERE,radius)==12?1:-1];
-typedef char SPHERE_limit_Offset[FIELD_OFFSET(SPHERE,limit)==16?1:-1];
-typedef char SPHERE_metadata_Offset[FIELD_OFFSET(SPHERE,metadata)==20?1:-1];
-typedef char TRANSFORM_matrix_Offset[FIELD_OFFSET(TRANSFORM,matrix)==64?1:-1];
-typedef char SO_vptr_Offset[FIELD_OFFSET(SO,vptr)==12?1:-1];
 typedef char FACE_flags_Offset[FIELD_OFFSET(FACE,flags)==8?1:-1];
 typedef char FACE_indices_Offset[FIELD_OFFSET(FACE,indices)==20?1:-1];
 typedef char FACE_first_Offset[FIELD_OFFSET(FACE,first)==36?1:-1];
@@ -1977,13 +1798,13 @@ char S8Read__18CBinaryInputStream(STREAM*) __asm__("S8Read__18CBinaryInputStream
 uint U32Read__18CBinaryInputStream(STREAM*) __asm__("U32Read__18CBinaryInputStream");
 short S16Read__18CBinaryInputStream(STREAM*) __asm__("S16Read__18CBinaryInputStream");
 int S32Read__18CBinaryInputStream(STREAM*) __asm__("S32Read__18CBinaryInputStream");
-void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,MATRIX4*) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
 void*AllocFromWorldHeap(const REQUEST&) __asm__("AllocFromWorldHeap");
 void*AllocCopyFromWorldHeap(const REQUEST&,void*) __asm__("AllocCopyFromWorldHeap");
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-BINDING*LoadClutsetFromBrx(P*,STREAM*) __asm__("LoadClutsetFromBrx");
-M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
+BINDING*LoadClutsetFromBrx(GLOBSET*,STREAM*) __asm__("LoadClutsetFromBrx");
+MATRIX4*__ml__FRC7MATRIX4T0(MATRIX4*,const MATRIX4*,const MATRIX4*) __asm__("__ml__FRC7MATRIX4T0");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 
 // Allocate bytes, 16-byte aligned, from the world heap.
@@ -1999,43 +1820,42 @@ static inline void *Reallocate(int bytes, void *old)
 // Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional binding table,
 // relocates packet data. (inferred)
 // Also known as: LoadGlobSubmeshFromBrx (upstream readable / Sly 1 name;
-//   LoadGlobSubmeshFromBrx__FP7GLOBSETP18CBinaryInputStreamPvP6SPHEREN22T3iPiPP4FACEP6STREAM).
-extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sourceE, const SPHERE *sourceSphere,
-                                           D *desc, E *entry, SPHERE *sphere, int groups, const int *counts,
+extern "C" void LoadSubglobInstanceFromBrx(GLOBSET *p, const SUBGLOB *sourceD, const GLOB *sourceE, const SUBGLOBX *sourceSphere,
+                                           SUBGLOB *desc, GLOB *entry, SUBGLOBX *sphere, int groups, const int *counts,
                                            FACE **faces, STREAM *stream)
 {
-    M4 matrix;
+    MATRIX4 matrix;
     (void)S8Read__18CBinaryInputStream(stream);
     *desc = *sourceD;
     *entry = *sourceE;
     if (sphere) {
         *sphere = *sourceSphere;
-        sphere->metadata = U32Read__18CBinaryInputStream(stream);
+        sphere->flags = U32Read__18CBinaryInputStream(stream);
     }
     {
-        entry->transform = (TRANSFORM *)AsSo(p->owner)->GetXfFromIndex(S16Read__18CBinaryInputStream(stream));
+        entry->transform = AsSo(p->owner)->GetXfFromIndex(S16Read__18CBinaryInputStream(stream));
     }
-    if (entry->flags.word & 0x1000)
+    if (entry->grf & 0x1000)
         ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, &matrix);
     else {
-        entry->parent = (M4 *)Allocate(sizeof(M4));
-        ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, entry->parent);
+        entry->unknown08 = (MATRIX4 *)Allocate(sizeof(MATRIX4));
+        ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, entry->unknown08);
     }
-    entry->value = S32Read__18CBinaryInputStream(stream);
-    entry->flags.bits.feature = S8Read__18CBinaryInputStream(stream);
+    entry->oid = (OID)S32Read__18CBinaryInputStream(stream);
+    entry->isHidden = S8Read__18CBinaryInputStream(stream);
     STACKSCOPE scope;
     BINDING *binding = LoadClutsetFromBrx(p, stream);
-    if (!(desc->flags & 1) && desc->kind == 0) {
-        char *old = entry->data;
-        char *data = (char *)Reallocate(desc->words * 16, old);
-        uint delta = (uint)data - (uint)old;
-        entry->data = data;
-        entry->base += delta;
-        if (entry->flags.word & 0x1000) {
-            M4 product, temp;
-            __ml__FRC7MATRIX4T0(&temp, &entry->transform->matrix, &matrix);
+    if (!(desc->unknown02 & 1) && desc->type == 0) {
+        char *old = (char *)entry->pqwChain;
+        char *data = (char *)Reallocate(desc->cqw * 16, old);
+        int delta = data - old;
+        entry->pqwChain = (QW *)data;
+        entry->pbChain += delta;
+        if (entry->grf & 0x1000) {
+            MATRIX4 product, temp;
+            __ml__FRC7MATRIX4T0(&temp, &entry->transform->worldMatrix, &matrix);
             product = temp;
-            CopyAb__FPvT0Ui(entry->data + 0x14, &product, 0x40);
+            CopyAb__FPvT0Ui((char *)entry->pqwChain + 0x14, &product, 0x40);
         }
         if (binding) {
             for (int g = 0; g < groups; g++) {
@@ -2044,7 +1864,7 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
                 for (int i = 0; i < count; i++) {
                     FACE *face = &set[i];
                     if (face->flags & 0x20) {
-                        uint base = (uint)entry->base;
+                        uint base = (uint)entry->pbChain;   /* int arithmetic: a char * sum swaps the addu operands */
                         unsigned short *first = (unsigned short *)((uint)face->first + base);
                         unsigned short *second = (unsigned short *)((uint)face->second + base);
                         unsigned char *kind = (unsigned char *)((uint)face->kind + base);
@@ -2065,14 +1885,11 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CopyRelocateDmaChain {
-typedef union QW { unsigned int aun[4]; unsigned short aus[8]; } QW;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
-struct X { int pad[4]; int cqw; };
-struct Y { int pad[4]; QW *aqw; char *pb; };
 QW *AllocCopyFromWorldHeap(ALLOCREQ *preq, QW *aqw) __asm__("AllocCopyFromWorldHeap");
 // Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by a delta.
 // (inferred)
-extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
+extern "C" void CopyRelocateDmaChain(SUBGLOB *px, GLOB *py, int cqw, QW *aqwSrc, int fReloc, int nNew, int nOld)
 {
     ALLOCREQ req;
     QW *aqw;
@@ -2080,12 +1897,12 @@ extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aq
     req.nKind = 0x10;
     px->cqw = cqw;
     aqw = AllocCopyFromWorldHeap(&req, aqwSrc);
-    py->aqw = aqw;
-    py->pb += (char *)aqw - (char *)aqwSrc;
+    py->pqwChain = aqw;
+    py->pbChain += (char *)aqw - (char *)aqwSrc;
     if (fReloc) {
         int dn = nNew - nOld;
         QW *pqw = aqw;
-        while (pqw < py->aqw + px->cqw) {
+        while (pqw < py->pqwChain + px->cqw) {
             switch ((int)(pqw->aun[0] >> 28)) {
             case 4:
                 pqw->aun[1] += dn;
@@ -2095,7 +1912,7 @@ extern "C" void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aq
                 pqw += pqw->aus[0] + 1;
                 break;
             case 6:
-                pqw = py->aqw + px->cqw;
+                pqw = py->pqwChain + px->cqw;
                 break;
             }
         }
@@ -2764,16 +2581,16 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 vifsAux.AddDmaRefs((vifs.m_pb - (uchar *)pqwChain) >> 4, pqwChain);
                 pqwChain = (QW *)vifs.m_pb;
                 vifsAux.AddDmaCnt();
-                vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 1, 0, (uint **)&pbatch->obColorA);
+                vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 1, 0, (uint **)&pbatch->pbColorA);
                 if ((pbatch->grf & 2) && pbatch->pshd->shdk != 3)
-                    vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->obColorB);
-                if (fAlpha != 0 || pbatch->obColorB != 0)
+                    vifsAux.UnpackHelper(UPK_V4_5, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->pbColorB);
+                if (fAlpha != 0 || pbatch->pbColorB != 0)
                 {
                     vifsAux.AddVifStmask(0x3f3f3f3f);
                     if (fAlpha != 0)
                         vifsAux.UnpackHelper(UPK_S8, pbatch->cvtx, ppart->iqwVtx + 1, 0, (uint **)&pbatch->pbAlpha);
-                    if (pbatch->obColorB != 0)
-                        vifsAux.UnpackHelper(UPK_S8, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->obAlpha);
+                    if (pbatch->pbColorB != 0)
+                        vifsAux.UnpackHelper(UPK_S8, pbatch->cvtx, ppart->iqwVtx + 2, 0, (uint **)&pbatch->pbAlphaUnpack);
                     vifsAux.AddVifStmask(0);
                 }
                 vifsAux.EndDmaCnt();
@@ -2811,7 +2628,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 int shdk = pbatch->pshd->shdk;
                 if (shdk != 1 && shdk != 7)
                 {
-                    RGBA5551 *pcol = (RGBA5551 *)pbatch->obColorA;
+                    RGBA5551 *pcol = (RGBA5551 *)pbatch->pbColorA;
                     uchar *pbAlpha = pbatch->pbAlpha;
                     for (int iv = 0; iv < pbatch->cvtx; iv++)
                     {
@@ -2846,13 +2663,13 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                             pun[2] = pun[1];
                             pun[3] = pun[2] + n;
                             pun[4] = pun[3] + n;
-                            pun[5] = pbatch->obColorA + iofs * 2;
-                            pun[6] = pbatch->obColorB + iofs * 2;
+                            pun[5] = (uint)(pbatch->pbColorA + iofs * 2);
+                            pun[6] = (uint)(pbatch->pbColorB + iofs * 2);
                             if (fAlpha != 0)
                                 pun[8] = (uint)pbatch->pbAlpha + iofs;
                             else
                                 pun[8] = 0;
-                            pun[9] = pbatch->obAlpha + iofs;
+                            pun[9] = (uint)(pbatch->pbAlphaUnpack + iofs);
                             *(float *)&pun[7] = (float)pbatch->pshd->oidAltSat * 0.000244140625f;
                             apvLit[nLit] = pun;
                             nLit++;
@@ -2922,9 +2739,9 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     pbatch->aivtx[iv] = ivtxFile;
                     CLUTPAL *ppal = &pclutset->apal[pclutset->aipal[ibatch]];
                     CLUTCOLOR *pcc = &ppal->acolor[ivtxFile];
-                    ((ushort *)pbatch->obColorA)[iv] = pcc->ucA;
-                    ((ushort *)pbatch->obColorB)[iv] = pcc->ucB;
-                    ((uchar *)pbatch->obAlpha)[iv] = pcc->bAlpha;
+                    ((ushort *)pbatch->pbColorA)[iv] = pcc->ucA;
+                    ((ushort *)pbatch->pbColorB)[iv] = pcc->ucB;
+                    ((uchar *)pbatch->pbAlphaUnpack)[iv] = pcc->bAlpha;
                     if (pbatch->pbAlpha != 0)
                     {
                         RGBA rgbaA = argbaFile[ivtxFile];
@@ -3083,7 +2900,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         vifs.AddDmaRet();
         vifs.DetachCopySw(&cqwMain, (QW **)&pbOld, (QW **)&pbNew);
         psubglob->cqw = cqwMain;
-        pglob->unknown10 = pbNew;
+        pglob->pqwChain = (QW *)pbNew;
     }
     else
     {
@@ -3208,36 +3025,7 @@ extern "C" CLUTSET *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobType2FromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
-struct OWNER {
-    char pad[0x50];
-    ulong flags;
-};
-struct D {
-    char kind, count;
-    ushort flags;
-    void *pad4;
-    QW *chain;
-    int base, words;
-};
-struct BONE {
-    int value;
-    char pad4[4];
-    int index;
-    char padC[0x44];
-};
-struct E {
-    char pad[0x10];
-    QW *chain;
-    int pad14;
-    BONE *bones;
-};
 struct SPHERE;struct FACE;
-struct OBJECT {
-    char pad[0x1C];
-    int count;
-    void *segments;
-    char pad24[8];
-};
 struct HEADER {
     ushort flags, base, pad4, pad6, position, weights, color, end, extra, extra2;
     ushort segments[2], bones[4];
@@ -3251,9 +3039,9 @@ struct REQUEST {
 void*STACKSCOPE_ctor(void*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHeap");
-OBJECT*GetShdByIndex(int) __asm__("GetShdByIndex");
-int AddShaderVifUnpack(OBJECT*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
-void LoadSubglobInstancesFromBrx(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
+SHD*GetShdByIndex(int) __asm__("GetShdByIndex");
+int AddShaderVifUnpack(SHD*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
+void LoadSubglobInstancesFromBrx(GLOBSET*,SUBGLOB*,GLOB*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
 void*memset(void*,int,uint) __asm__("memset");
 extern QW D_002DEB60 __asm__("D_002DEB60");
 extern uint D_002BE540[] __asm__("D_002BE540");
@@ -3271,26 +3059,11 @@ static inline void *Allocate(int bytes)
 {
     return AllocClearedFromWorldHeap(REQUEST(bytes, 16));
 }
-typedef char D_Size[sizeof(D)==20?1:-1];
-typedef char BONE_Size[sizeof(BONE)==80?1:-1];
-typedef char E_Size[sizeof(E)==28?1:-1];
-typedef char OBJECT_Size[sizeof(OBJECT)==44?1:-1];
 typedef char HEADER_Size[sizeof(HEADER)==32?1:-1];
 typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
 typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
 typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char QW_Size[sizeof(QW)==16?1:-1];
-typedef char OWNER_flags_Offset[FIELD_OFFSET(OWNER,flags)==80?1:-1];
-typedef char D_count_Offset[FIELD_OFFSET(D,count)==1?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_base_Offset[FIELD_OFFSET(D,base)==12?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char BONE_value_Offset[FIELD_OFFSET(BONE,value)==0?1:-1];
-typedef char BONE_index_Offset[FIELD_OFFSET(BONE,index)==8?1:-1];
-typedef char E_chain_Offset[FIELD_OFFSET(E,chain)==16?1:-1];
-typedef char E_bones_Offset[FIELD_OFFSET(E,bones)==24?1:-1];
-typedef char OBJECT_count_Offset[FIELD_OFFSET(OBJECT,count)==28?1:-1];
-typedef char OBJECT_segments_Offset[FIELD_OFFSET(OBJECT,segments)==32?1:-1];
 typedef char HEADER_flags_Offset[FIELD_OFFSET(HEADER,flags)==0?1:-1];
 typedef char HEADER_base_Offset[FIELD_OFFSET(HEADER,base)==2?1:-1];
 typedef char HEADER_position_Offset[FIELD_OFFSET(HEADER,position)==8?1:-1];
@@ -3305,28 +3078,27 @@ typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
 // Sub-glob type 2 loader: U16 shader + vertices + colours; HYPOTHESIS cel/outline.
 // Also known as: LoadGlobMesh2FromBrx (upstream readable / Sly 1 name;
-//   LoadGlobMesh2FromBrx__FP7GLOBSETP18CBinaryInputStreamPvT2P6SPHEREiT1).
-void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType2FromBrx"); void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere, int groups,
+void LoadSubglobType2FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, void *, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType2FromBrx"); void LoadSubglobType2FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, void *, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
     int i = 0;
-    p->flags |= 1UL << 33;
+    p->grf50 |= 1UL << 33;
     VIFS vifs;
     STACKSCOPE outer;
     vifs.AllocSw(0x2000);
     vifs.AddDmaCnt();
     int count = stream->U8Read();
-    desc->count = count;
-    entry->bones = (BONE *)Allocate((char)count * sizeof(BONE));
-    for (; i < desc->count; i++) {
-        BONE *bone = &entry->bones[i];
-        bone->value = stream->S32Read();
-        bone->index = stream->S16Read();
+    desc->cbnd = count;
+    entry->abnd = (BND *)Allocate((char)count * sizeof(BND));
+    for (; i < desc->cbnd; i++) {
+        BND *bone = &entry->abnd[i];
+        bone->oid = (OID)stream->S32Read();
+        bone->ixf = stream->S16Read();
     }
     int base = 0x1B;
-    if (desc->count) {
-        desc->base = base;
-        base += desc->count * 4;
+    if (desc->cbnd) {
+        desc->iqwBone = base;
+        base += desc->cbnd * 4;
     }
     int subCount = stream->S16Read();
     QW *data;
@@ -3345,12 +3117,12 @@ void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere
             header[0] |= 2;
             break;
         }
-        if (desc->count)
+        if (desc->cbnd)
             header[0] |= 4;
         int current = base;
         header[1] = current;
-        OBJECT *object = GetShdByIndex(stream->U16Read());
-        for (int segment = 0; segment < object->count; segment++) {
+        SHD *object = GetShdByIndex(stream->U16Read());
+        for (int segment = 0; segment < object->cshdp; segment++) {
             HEADER *slot = (HEADER *)((uint)header + segment * 2);
             slot->segments[0] = current;
             current += AddShaderVifUnpack(object, segment, current, &vifs);
@@ -3361,13 +3133,13 @@ void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere
         header[4] = current;
         current += vertices * 2;
         header[5] = current;
-        if (desc->count) {
+        if (desc->cbnd) {
             int bones = stream->U8Read();
             int k = 0;
             for (; k < bones; k++) {
                 int bone = stream->U8Read();
                 HEADER *slot = (HEADER *)((uint)header + k * 2);
-                slot->bones[0] = (ushort)desc->base + bone * 4;
+                slot->bones[0] = (ushort)desc->iqwBone + bone * 4;
             }
             int small = bones < 4;
             for (; k < 4; k++) {
@@ -3397,7 +3169,7 @@ void LoadSubglobType2FromBrx(OWNER *p, D *desc, E *entry, void *, SPHERE *sphere
     }
     vifs.EndDmaCnt();
     vifs.AddDmaRet();
-    vifs.DetachCopySw(&desc->words, &data, &entry->chain);
+    vifs.DetachCopySw(&desc->cqw, &data, &entry->pqwChain);
     LoadSubglobInstancesFromBrx(p, desc, entry, sphere, groups, 0, 0, 0, stream);
 }
 } // namespace M_LoadSubglobType2FromBrx
@@ -3410,35 +3182,7 @@ union U {
     qword q;
     float f[4];
 };
-struct P;struct SPHERE;struct FACE;
-struct PARAM {
-    float value;
-    int pad, kind;
-};
-struct D {
-    char channel, count;
-    ushort flags;
-    float radius;
-    QW *chain;
-    int base, words;
-};
-struct BONE {
-    int value;
-    char pad4[4];
-    int index;
-    char padC[0x44];
-};
-struct E {
-    char pad[0x10];
-    QW *chain;
-    int base;
-    BONE *bones;
-};
-struct OBJECT {
-    char pad[0x1C];
-    int count;
-    void *segments;
-};
+struct SPHERE;struct FACE;
 struct HEADER {
     ushort flags, base, vertices, pad6, pad8, padA, padC, padE, weight, end, segments[2], bones[4];
 };
@@ -3456,9 +3200,9 @@ void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHea
 void*AllocFromStack(const REQUEST&) __asm__("AllocFromStack");
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-OBJECT*GetShdByIndex(int) __asm__("GetShdByIndex");
-int AddShaderVifUnpack(OBJECT*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
-void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
+SHD*GetShdByIndex(int) __asm__("GetShdByIndex");
+int AddShaderVifUnpack(SHD*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
+void LoadSubglobInstancesFromBrx(GLOBSET*,SUBGLOB*,GLOB*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
 /* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
 
@@ -3500,10 +3244,6 @@ static inline void *AllocateZero(int bytes)
     return REQUEST(bytes, 16).AllocateZero();
 }
 typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char PARAM_Size[sizeof(PARAM)==12?1:-1];
-typedef char D_Size[sizeof(D)==20?1:-1];
-typedef char BONE_Size[sizeof(BONE)==80?1:-1];
-typedef char E_Size[sizeof(E)==28?1:-1];
 typedef char HEADER_Size[sizeof(HEADER)==32?1:-1];
 typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
 typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
@@ -3511,18 +3251,6 @@ typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char QW_Size[sizeof(QW)==16?1:-1];
 typedef char MARK_Size[sizeof(MARK)==1?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
-typedef char PARAM_value_Offset[FIELD_OFFSET(PARAM,value)==0?1:-1];
-typedef char PARAM_kind_Offset[FIELD_OFFSET(PARAM,kind)==8?1:-1];
-typedef char D_count_Offset[FIELD_OFFSET(D,count)==1?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_base_Offset[FIELD_OFFSET(D,base)==12?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char BONE_value_Offset[FIELD_OFFSET(BONE,value)==0?1:-1];
-typedef char BONE_index_Offset[FIELD_OFFSET(BONE,index)==8?1:-1];
-typedef char E_chain_Offset[FIELD_OFFSET(E,chain)==16?1:-1];
-typedef char E_bones_Offset[FIELD_OFFSET(E,bones)==24?1:-1];
-typedef char OBJECT_count_Offset[FIELD_OFFSET(OBJECT,count)==28?1:-1];
-typedef char OBJECT_segments_Offset[FIELD_OFFSET(OBJECT,segments)==32?1:-1];
 typedef char HEADER_flags_Offset[FIELD_OFFSET(HEADER,flags)==0?1:-1];
 typedef char HEADER_base_Offset[FIELD_OFFSET(HEADER,base)==2?1:-1];
 typedef char HEADER_vertices_Offset[FIELD_OFFSET(HEADER,vertices)==4?1:-1];
@@ -3561,8 +3289,7 @@ static inline void WriteVertex(U *destination, U value)
 }
 // Sub-glob type 3 loader: U16 shader + indexed vectors + strip bits; HYPOTHESIS cel edge strips.
 // Also known as: LoadGlobMesh3FromBrx (upstream readable / Sly 1 name;
-//   LoadGlobMesh3FromBrx__FP7GLOBSETP18CBinaryInputStreamPvP5PARAMP6SPHEREiT1).
-extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
+extern "C" void LoadSubglobType3FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, SUBGLOBLOAD *param, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
     register CBinaryInputStream *input asm("$23") =
@@ -3575,17 +3302,17 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
     vifs.AllocSw(0x2000);
     vifs.AddDmaCnt();
     int count = input->U8Read();
-    desc->count = count;
-    entry->bones = (BONE *)AllocateZero((char)count * sizeof(BONE));
-    for (; i < desc->count; i++) {
-        BONE *bone = &entry->bones[i];
-        bone->value = input->S32Read();
-        bone->index = input->S16Read();
+    desc->cbnd = count;
+    entry->abnd = (BND *)AllocateZero((char)count * sizeof(BND));
+    for (; i < desc->cbnd; i++) {
+        BND *bone = &entry->abnd[i];
+        bone->oid = (OID)input->S32Read();
+        bone->ixf = input->S16Read();
     }
     int base = 0x1B;
-    if (desc->count) {
-        desc->base = base;
-        base += desc->count * 4;
+    if (desc->cbnd) {
+        desc->iqwBone = base;
+        base += desc->cbnd * 4;
     }
     int subCount = input->S16Read();
     QW *data;
@@ -3603,7 +3330,7 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
             header->flags = Flags(1);
             if (subCount == 1)
                 header->flags |= 8;
-            if (param->kind != 2)
+            if (param->batchMode != 2)
                 break;
             header->flags |= 0x400;
             break;
@@ -3613,7 +3340,7 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
         } break;
         }
         header->base = base;
-        OBJECT *object = GetShdByIndex(input->U16Read());
+        SHD *object = GetShdByIndex(input->U16Read());
         vertices = input->U8Read();
         int vectorCount = input->U8Read();
         vectors = (U *)AllocFromStack(REQUEST(vectorCount * sizeof(U), 16));
@@ -3627,12 +3354,12 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
             } while (index);
         }
         char *boneWeights;
-        int bones = desc->count < 4 ? desc->count : 4;
-        if (desc->count) {
+        int bones = desc->cbnd < 4 ? desc->cbnd : 4;
+        if (desc->cbnd) {
             for (int b = 0; b < 4; b++) {
                 int bone = input->U8Read();
                 HEADER *slot = (HEADER *)((uint)header + b * 2);
-                slot->bones[0] = (ushort)desc->base + bone * 4;
+                slot->bones[0] = (ushort)desc->iqwBone + bone * 4;
             }
             int bytes = bones * vectorCount;
             boneWeights = (char *)Allocate(bytes);
@@ -3647,7 +3374,7 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
         uint *flagCursor = flags;
         uint mask = 1;
         int current = base;
-        for (int segment = 0; segment < object->count; segment++) {
+        for (int segment = 0; segment < object->cshdp; segment++) {
             HEADER *slot = (HEADER *)((uint)header + segment * 2);
             slot->segments[0] = current;
             current += AddShaderVifUnpack(object, segment, current, &vifs);
@@ -3658,7 +3385,7 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
         header->end = current;
         header->vertices = vertices;
         vifs.AddVifStcycl(1, 2);
-        if (desc->count) {
+        if (desc->cbnd) {
             int small = bones < 4;
             if (small) {
                 vifs.AddVifStrow(&D_002DEB60);
@@ -3683,7 +3410,7 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
                 mask = 1;
             }
         }
-        if (desc->count) {
+        if (desc->cbnd) {
             for (vertex = 0; vertex < vertices; vertex++) {
                 index = indices[vertex];
                 CopyAb__FPvT0Ui(weights + vertex * bones, boneWeights + index * bones, bones);
@@ -3697,7 +3424,7 @@ extern "C" void LoadSubglobType3FromBrx(P *p, D *desc, E *entry, PARAM *param, S
     }
     vifs.EndDmaCnt();
     vifs.AddDmaRet();
-    vifs.DetachCopySw(&desc->words, &data, &entry->chain);
+    vifs.DetachCopySw(&desc->cqw, &data, &entry->pqwChain);
     LoadSubglobInstancesFromBrx(p, desc, entry, sphere, groups, 0, 0, 0, input);
 }
 } // namespace M_LoadSubglobType3FromBrx
@@ -4048,30 +3775,7 @@ extern "C" void EndRpCutout(VIFS *pvifs)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobType1FromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
-struct P;struct SPHERE;struct FACE;
-struct PARAM {
-    float value;
-    int pad, kind;
-};
-struct D {
-    char channel, count;
-    ushort flags;
-    float radius;
-    QW *chain;
-    int base, words;
-};
-struct BONE {
-    int value;
-    char pad4[4];
-    int index;
-    char padC[0x44];
-};
-struct E {
-    char pad[0x10];
-    QW *chain;
-    int base;
-    BONE *bones;
-};
+struct SPHERE;struct FACE;
 struct HEADER {
     ushort flags, base, weight, pad6, position, positionEnd, color, end, bones[4];
 };
@@ -4086,7 +3790,7 @@ void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHeap");
 void BuildCmFgfn(CM*,float*,float) __asm__("BuildCmFgfn");
 void*func_002333B4(void*,int,uint) __asm__("memset");
-void LoadSubglobInstancesFromBrx(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
+void LoadSubglobInstancesFromBrx(GLOBSET*,SUBGLOB*,GLOB*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
 extern uint D_002DEB50 __asm__("D_002DEB50");
 extern QW D_002DEB60 __asm__("D_002DEB60");
 extern uint D_002BE540[] __asm__("D_002BE540");
@@ -4106,10 +3810,6 @@ static inline void *Allocate(int bytes)
 {
     return AllocClearedFromWorldHeap(REQUEST(bytes, 16));
 }
-typedef char PARAM_Size[sizeof(PARAM)==12?1:-1];
-typedef char D_Size[sizeof(D)==20?1:-1];
-typedef char BONE_Size[sizeof(BONE)==80?1:-1];
-typedef char E_Size[sizeof(E)==28?1:-1];
 typedef char HEADER_Size[sizeof(HEADER)==24?1:-1];
 typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
 typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
@@ -4118,16 +3818,6 @@ typedef char GIFS_Size[sizeof(GIFS)==40?1:-1];
 typedef char QW_Size[sizeof(QW)==16?1:-1];
 typedef char MARK_Size[sizeof(STACKSCOPE)==1?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
-typedef char PARAM_value_Offset[FIELD_OFFSET(PARAM,value)==0?1:-1];
-typedef char PARAM_kind_Offset[FIELD_OFFSET(PARAM,kind)==8?1:-1];
-typedef char D_count_Offset[FIELD_OFFSET(D,count)==1?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_base_Offset[FIELD_OFFSET(D,base)==12?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char BONE_value_Offset[FIELD_OFFSET(BONE,value)==0?1:-1];
-typedef char BONE_index_Offset[FIELD_OFFSET(BONE,index)==8?1:-1];
-typedef char E_chain_Offset[FIELD_OFFSET(E,chain)==16?1:-1];
-typedef char E_bones_Offset[FIELD_OFFSET(E,bones)==24?1:-1];
 typedef char HEADER_flags_Offset[FIELD_OFFSET(HEADER,flags)==0?1:-1];
 typedef char HEADER_base_Offset[FIELD_OFFSET(HEADER,base)==2?1:-1];
 typedef char HEADER_weight_Offset[FIELD_OFFSET(HEADER,weight)==4?1:-1];
@@ -4142,8 +3832,7 @@ typedef char DMAS_m_ab_Offset[FIELD_OFFSET(DMAS,m_ab)==4?1:-1];
 typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 // Sub-glob type 1 loader: vertices + colours, no shader (GIF prims); HYPOTHESIS shadow/cel-no-shader.
 // Also known as: LoadGlobMesh1FromBrx (upstream readable / Sly 1 name;
-//   LoadGlobMesh1FromBrx__FP7GLOBSETP18CBinaryInputStreamPvP5PARAMP6SPHEREiT1).
-void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType1FromBrx"); void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphere, int groups,
+void LoadSubglobType1FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, SUBGLOBLOAD *param, SPHERE *sphere, int groups, CBinaryInputStream *stream) __asm__("LoadSubglobType1FromBrx"); void LoadSubglobType1FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, SUBGLOBLOAD *param, SPHERE *sphere, int groups,
                                         CBinaryInputStream *stream)
 {
     int i = 0;
@@ -4153,14 +3842,14 @@ void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphe
     vifs.AddDmaCnt();
     float *environment;
     vifs.UnpackHelper(UPK_V4_32, 1, 9, 0, (uint **)&environment);
-    BuildCmFgfn(&g_cm, environment, param->value);
+    BuildCmFgfn(&g_cm, environment, param->fogIntensity);
     int count = stream->U8Read();
-    desc->count = count;
-    entry->bones = (BONE *)Allocate((char)count * sizeof(BONE));
-    for (; i < desc->count; i++) {
-        BONE *bone = &entry->bones[i];
-        bone->value = stream->S32Read();
-        bone->index = stream->S16Read();
+    desc->cbnd = count;
+    entry->abnd = (BND *)Allocate((char)count * sizeof(BND));
+    for (; i < desc->cbnd; i++) {
+        BND *bone = &entry->abnd[i];
+        bone->oid = (OID)stream->S32Read();
+        bone->ixf = stream->S16Read();
     }
     int base = 0x22;
     GIFS gifs;
@@ -4186,9 +3875,9 @@ void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphe
     vifs.AddVifUnpack(UPK_V4_32, 2, gifs.m_ab + 0x40, 0x16);
     vifs.AddVifUnpack(UPK_V4_32, 2, gifs.m_ab, 0x1A);
     vifs.AddVifUnpack(UPK_V4_32, 2, gifs.m_ab + 0x40, 0x1E);
-    if (desc->count) {
-        desc->base = base;
-        base += desc->count * 4;
+    if (desc->cbnd) {
+        desc->iqwBone = base;
+        base += desc->cbnd * 4;
     }
     int subCount = stream->S16Read();
     QW *data;
@@ -4216,13 +3905,13 @@ void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphe
         header[4] = current;
         current += vertices;
         header[5] = current;
-        if (desc->count) {
+        if (desc->cbnd) {
             part = stream->U8Read();
             int k = 0;
             for (; k < part; k++) {
                 int bone = stream->U8Read();
                 HEADER *slot = (HEADER *)((uint)header + k * 2);
-                slot->bones[0] = (ushort)desc->base + bone * 4;
+                slot->bones[0] = (ushort)desc->iqwBone + bone * 4;
             }
             int next = current + vertices;
             int small = part < 4;
@@ -4256,7 +3945,7 @@ void LoadSubglobType1FromBrx(P *p, D *desc, E *entry, PARAM *param, SPHERE *sphe
     }
     vifs.EndDmaCnt();
     vifs.AddDmaRet();
-    vifs.DetachCopySw(&desc->words, &data, &entry->chain);
+    vifs.DetachCopySw(&desc->cqw, &data, &entry->pqwChain);
     LoadSubglobInstancesFromBrx(p, desc, entry, sphere, groups, 0, 0, 0, stream);
 }
 } // namespace M_LoadSubglobType1FromBrx
@@ -4281,94 +3970,15 @@ namespace M_CloneGlobset {
 typedef unsigned int uint;
 struct TRANSFORM;
 struct STREAM;
-struct SO;
-struct SO {
-    char pad[0xC];
-    void *vptr;
-    char pad10[0x10];
-    uint flags;
-    char position[0x10];
-    char list[0x10];
-    int vectorCount;
-    void *vectors;
-};
-struct D {
-    char channel, segments;
-    int flags : 8;
-    char kind;
-    char pad4[4];
-    void *chain;
-    char padC[4];
-    int words;
-};
-union FLAGS {
-    uint word;
-    struct {
-        uint pad : 11, feature : 1, matrix : 1, first : 9, last : 9, reserved : 1;
-    } bits;
-};
-struct E {
-    int value;
-    TRANSFORM *transform;
-    void *parent;
-    FLAGS flags;
-    char *data;
-    uint base;
-    char *segments;
-    int word1C;
-    SO *object;
-    void *sphere;
-};
-struct P {
-    SO *owner;
-    char pad4[0x20];
-    int objectCount;
-    SO **objects;
-    char pad2C[12];
-    int count;
-    D *descriptors;
-    E *entries;
-    char pad44[0x14];
-    int word58;
-};
 struct LINK {
     int pad0;
     void *bounds;
     int pad8;
-    SO *object;
+    SAA *object;
     int next;
 };
-typedef char D_Size[sizeof(D)==20?1:-1];
-typedef char E_Size[sizeof(E)==40?1:-1];
 typedef char LINK_Size[sizeof(LINK)==20?1:-1];
 typedef char REQUEST_Size[sizeof(SWALLOC)==8?1:-1];
-typedef char FLAGS_Size[sizeof(FLAGS)==4?1:-1];
-typedef char D_channel_Offset[FIELD_OFFSET(D,channel)==0?1:-1];
-typedef char D_segments_Offset[FIELD_OFFSET(D,segments)==1?1:-1];
-typedef char D_kind_Offset[FIELD_OFFSET(D,kind)==3?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char E_transform_Offset[FIELD_OFFSET(E,transform)==4?1:-1];
-typedef char E_parent_Offset[FIELD_OFFSET(E,parent)==8?1:-1];
-typedef char E_flags_Offset[FIELD_OFFSET(E,flags)==12?1:-1];
-typedef char E_data_Offset[FIELD_OFFSET(E,data)==16?1:-1];
-typedef char E_base_Offset[FIELD_OFFSET(E,base)==20?1:-1];
-typedef char E_segments_Offset[FIELD_OFFSET(E,segments)==24?1:-1];
-typedef char E_object_Offset[FIELD_OFFSET(E,object)==32?1:-1];
-typedef char E_sphere_Offset[FIELD_OFFSET(E,sphere)==36?1:-1];
-typedef char P_owner_Offset[FIELD_OFFSET(P,owner)==0?1:-1];
-typedef char P_objectCount_Offset[FIELD_OFFSET(P,objectCount)==36?1:-1];
-typedef char P_objects_Offset[FIELD_OFFSET(P,objects)==40?1:-1];
-typedef char P_count_Offset[FIELD_OFFSET(P,count)==56?1:-1];
-typedef char P_descriptors_Offset[FIELD_OFFSET(P,descriptors)==60?1:-1];
-typedef char P_entries_Offset[FIELD_OFFSET(P,entries)==64?1:-1];
-typedef char P_word58_Offset[FIELD_OFFSET(P,word58)==88?1:-1];
-typedef char SO_vptr_Offset[FIELD_OFFSET(SO,vptr)==12?1:-1];
-typedef char SO_flags_Offset[FIELD_OFFSET(SO,flags)==32?1:-1];
-typedef char SO_position_Offset[FIELD_OFFSET(SO,position)==36?1:-1];
-typedef char SO_list_Offset[FIELD_OFFSET(SO,list)==52?1:-1];
-typedef char SO_vectorCount_Offset[FIELD_OFFSET(SO,vectorCount)==68?1:-1];
-typedef char SO_vectors_Offset[FIELD_OFFSET(SO,vectors)==72?1:-1];
 typedef char LINK_bounds_Offset[FIELD_OFFSET(LINK,bounds)==4?1:-1];
 typedef char LINK_object_Offset[FIELD_OFFSET(LINK,object)==12?1:-1];
 typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
@@ -4376,12 +3986,12 @@ typedef char LINK_next_Offset[FIELD_OFFSET(LINK,next)==16?1:-1];
 extern int D_003DA790 __asm__("D_003DA790");
 extern LINK D_003DA798[] __asm__("D_003DA798");
 void*AllocCopyFromWorldHeap(SWALLOC*,void*) __asm__("AllocCopyFromWorldHeap");
-SO*CloneSaa(SO*) __asm__("CloneSaa");
-void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*) __asm__("CopyRelocateDmaChain");
+SAA*CloneSaa(SAA*) __asm__("CloneSaa");
+void CopyRelocateDmaChain(SUBGLOB*,GLOB*,int,void*,int,void*,void*) __asm__("CopyRelocateDmaChain");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 void ClearSle(int*) __asm__("ClearSle");
 void PrependSlEntry(void*,LINK*) __asm__("PrependSlEntry");
-void RelocateShaderUploadRecords(int,int,int,uint,uint) __asm__("RelocateShaderUploadRecords");
+void RelocateShaderUploadRecords(int,int,int,void*,void*) __asm__("RelocateShaderUploadRecords");
 
 // Allocate bytes, 16-byte aligned, from the world heap and copy source into them.
 static inline void *Copy(int bytes, void *source)
@@ -4392,88 +4002,88 @@ static inline void *Copy(int bytes, void *source)
     return AllocCopyFromWorldHeap(&request, source);
 }
 // The object's slot 52 (SO::CloneXfRef, named from CloneSoXfRef) with the stream as its first argument.
-static inline void ReadTransform(SO *object, STREAM *stream, TRANSFORM **output)
+static inline void ReadTransform(::SO *object, STREAM *stream, XF **output)
 {
-    AsSo(object)->CloneXfRef((LO *)stream, (XF **)output);
+    object->CloneXfRef((LO *)stream, output);
 }
 // If any of p's objects has flag 4, replace p's object array with a heap copy (so it can be edited without touching
 // the shared one) (inferred).
-static inline void CopyObjects(P *p)
+static inline void CopyObjects(GLOBSET *p)
 {
-    for (int i = 0; i < p->objectCount; i++) {
-        if (p->objects[i]->flags & 4) {
-            p->objects = (SO **)Copy(p->objectCount * 4, p->objects);
+    for (int i = 0; i < p->cpsaa; i++) {
+        if (p->apsaa[i]->grf & 4) {
+            p->apsaa = (SAA **)Copy(p->cpsaa * 4, p->apsaa);
             return;
         }
     }
 }
 // Clones a globset for a cloned SO: copies entries/segments, re-resolves transforms, swaps cloned objects, relocates
 // packet copies. (inferred)
-extern "C" void CloneGlobset(P *p, SO *owner, STREAM *stream)
+extern "C" void CloneGlobset(GLOBSET *p, ::SO *owner, STREAM *stream)
 {
     int bytes;
     p->owner = owner;
-    p->entries = (E *)Copy(p->count * sizeof(E), p->entries);
-    p->word58 = 0;
+    p->pieces = (GLOB *)Copy(p->numPieces * sizeof(GLOB), p->pieces);
+    p->pwrbgFirst = 0;
     CopyObjects(p);
-    for (int i = 0; i < p->count; i++) {
-        D *descriptor = &p->descriptors[i];
-        E *entry = &p->entries[i];
+    for (int i = 0; i < p->numPieces; i++) {
+        SUBGLOB *descriptor = &p->subMeshes[i];
+        GLOB *entry = &p->pieces[i];
         ReadTransform(owner, stream, &entry->transform);
-        entry->segments = (char *)Copy(descriptor->segments * 0x50, entry->segments);
-        for (int j = 0; j < descriptor->segments; j++) {
-            uint address = (uint)entry->segments;
-            address += j * 0x50;
-            ReadTransform(owner, stream, (TRANSFORM **)(address + 0xC));
+        entry->abnd = (BND *)Copy(descriptor->cbnd * sizeof(BND), entry->abnd);
+        for (int j = 0; j < descriptor->cbnd; j++) {
+            char *pb = (char *)entry->abnd;   /* byte arithmetic, as the original */
+            pb += j * sizeof(BND);
+            ReadTransform(owner, stream, &((BND *)pb)->pxf);
         }
-        int cloned = entry->object && (entry->object->flags & 4);
+        int cloned = entry->psaa && (entry->psaa->grf & 4);
         if (cloned) {
-            SO *object = CloneSaa(entry->object);
-            for (int j = 0; j < p->objectCount; j++)
-                if (p->objects[j] == entry->object) {
-                    p->objects[j] = object;
+            SAA *object = CloneSaa(entry->psaa);
+            for (int j = 0; j < p->cpsaa; j++)
+                if (p->apsaa[j] == entry->psaa) {
+                    p->apsaa[j] = object;
                     break;
                 }
-            entry->object = object;
+            entry->psaa = object;
         }
-        if (!descriptor->chain && !cloned)
+        if (!descriptor->pvLit && !cloned)
             continue;
         int count = 0;
         void *old = 0;
         void *data = 0;
-        if (descriptor->flags & 1) {
-            count = descriptor->words;
-            old = entry->data;
-            entry->data = (char *)Copy(count * 16, old);
-            data = entry->data;
+        if (descriptor->unknown02 & 1) {
+            count = descriptor->cqw;
+            old = entry->pqwChain;
+            entry->pqwChain = (QW *)Copy(count * 16, old);
+            data = entry->pqwChain;
         } else {
-            if (entry->object) {
-                count = entry->object->vectorCount;
-                old = data = entry->object->vectors;
+            if (entry->psaa) {
+                count = entry->psaa->cqwMain;
+                old = data = entry->psaa->pvMain;
                 if (cloned) {
-                    entry->object->vectors = Copy(count * 16, data);
-                    data = entry->object->vectors;
+                    entry->psaa->pvMain = Copy(count * 16, data);
+                    data = entry->psaa->pvMain;
                 }
             }
-            CopyRelocateDmaChain(descriptor, entry, descriptor->words, entry->data, count, data, old);
+            CopyRelocateDmaChain(descriptor, entry, descriptor->cqw, entry->pqwChain, count, data, old);
         }
-        if (entry->object) {
+        if (entry->psaa) {
             bytes = count * 16;
-            int span = entry->flags.bits.last - entry->flags.bits.first;
-            CopyAb__FPvT0Ui(&D_003DA798[D_003DA790], &D_003DA798[entry->flags.bits.first], span * sizeof(LINK));
-            entry->flags.bits.first = D_003DA790;
+            int span = entry->iUnkEnd - entry->iUnkFirst;
+            CopyAb__FPvT0Ui(&D_003DA798[D_003DA790], &D_003DA798[entry->iUnkFirst], span * sizeof(LINK));
+            entry->iUnkFirst = D_003DA790;
             D_003DA790 += span;
-            entry->flags.bits.last = D_003DA790;
-            for (uint j = entry->flags.bits.first; j < entry->flags.bits.last; j++) {
+            entry->iUnkEnd = D_003DA790;
+            for (uint j = entry->iUnkFirst; j < entry->iUnkEnd; j++) {
                 LINK *link = &D_003DA798[j];
                 if (cloned) {
-                    link->bounds = &entry->object->position;
-                    link->object = entry->object;
+                    link->bounds = &entry->psaa->uOffset;
+                    link->object = entry->psaa;
                 }
                 ClearSle(&link->next);
-                PrependSlEntry(link->object->list, link);
+                PrependSlEntry(&link->object->instances, link);
             }
-            RelocateShaderUploadRecords(entry->flags.bits.first, entry->flags.bits.last, bytes, (uint)old, (uint)data);
+            RelocateShaderUploadRecords(entry->iUnkFirst, entry->iUnkEnd, bytes, old, data);
         }
     }
 }

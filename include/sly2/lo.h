@@ -52,7 +52,12 @@ struct LO : public BASIC
       LORUN *firstRunCallback; /* first queued LORUN callback */
       float busyRadius; /* busy distance: activation radius around the camera/hero (Sly 1 sBusy) */
       PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
-      int unknown40;   /* possibly stateFlags (low-confidence guess: runtime flag word: 2 set by PO::Init, 4 = slots awake, 0x10 = snap (xf.cpp comment); ASEG reuses it as a tagged pointer) */
+      union
+      {
+          int unknown40;   /* tagged flag word (bit 0 set): 2 set by PO::Init, 4 = slots awake, 0x10 = snap (xf.cpp comment) */
+          struct LOUPD *ploupd;   /* bit 0 clear: the object is in SW::aloupd and its flags are that entry's grf
+                                     (AddLoToSwUpdateList) */
+      };
       undefined4 unknown44[3];
       virtual void Init() __asm__("InitLo");
     virtual CLASSINFO *GetClassInfo() __asm__("GetLoClassDesc");   /* slot 6 */

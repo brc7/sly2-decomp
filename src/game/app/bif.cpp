@@ -1234,7 +1234,7 @@ extern "C" CRefData *BuiltinNth__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, C
     CRefData ref;
     SetTag__4CRef4TAGK(&ref, 0);
     if (args[0].m_tagk == TAGK_PAIR) {
-        PAIR *p = (PAIR *)args[0].u.n;
+        PAIR *p = (PAIR *)args[0].u.pv;
         CRefData *pn = &args[1];
         int i;
         for (i = 0; p; p = p->pnext, i++) {
@@ -2071,7 +2071,7 @@ extern "C" { static __inline__ int DotProduct3(qword *pa, qword *pb)
 // Also known as: RefOpVectorDotProduct (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
-    int g = DotProduct3((qword *)args[0].u.n, (qword *)args[1].u.n);
+    int g = DotProduct3((qword *)args[0].u.pv, (qword *)args[1].u.pv);
     ret->m_tagk = TAGK_F32;
     *(volatile int *)&ret->u.n = g;
     return ret;
@@ -2088,8 +2088,8 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern "C" CRefData *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
-    register qword a __asm__("vf1") = *(qword *)args[0].u.n;
-    register qword b __asm__("vf2") = *(qword *)args[1].u.n;
+    register qword a __asm__("vf1") = *(qword *)args[0].u.pv;
+    register qword b __asm__("vf2") = *(qword *)args[1].u.pv;
     register qword v __asm__("vf3");
     __asm__ ("vopmula.xyz ACC, %1, %2\n"
         "vopmsub.xyz %0, %2, %1" : "=j"(v) : "j"(a), "j"(b));
@@ -2123,7 +2123,7 @@ extern "C" { static __inline__ int VectorLength3(qword *pa)
 // Also known as: RefOpVectorLth (upstream readable / Sly 1 name).
 extern "C" CRefData *BuiltinVectorLength__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
-    int g = VectorLength3((qword *)args[0].u.n);
+    int g = VectorLength3((qword *)args[0].u.pv);
     ret->m_tagk = TAGK_F32;
     *(volatile int *)&ret->u.n = g;
     return ret;
@@ -2284,8 +2284,8 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern "C" CRefData *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
-    register qword a __asm__("vf1") = *(qword *)args[0].u.n;
-    register qword b __asm__("vf2") = *(qword *)args[1].u.n;
+    register qword a __asm__("vf1") = *(qword *)args[0].u.pv;
+    register qword b __asm__("vf2") = *(qword *)args[1].u.pv;
     register qword t __asm__("vf3");
     __asm__ ("vmul.xyz %0, %0, %2\n"
         "vaddw.x %1, $vf0, $vf0w\n"
@@ -2309,8 +2309,8 @@ void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern "C" CRefData *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
-    register qword a __asm__("vf3") = *(qword *)args[0].u.n;
-    register qword b __asm__("vf2") = *(qword *)args[1].u.n;
+    register qword a __asm__("vf3") = *(qword *)args[0].u.pv;
+    register qword b __asm__("vf2") = *(qword *)args[1].u.pv;
     register qword t __asm__("vf1");
     register qword u __asm__("vf4");
     __asm__ ("vmul.xyz %0, %2, %3\n"
@@ -3203,9 +3203,9 @@ extern "C" CRefData *BuiltinFindObject__FiP4CRefP6CFrame(CRefData *ret, void *pb
     LO *plo;
     void *pv;
     ref.m_tagk = -1;
-    b = (LO *)args[1].u.n;
+    b = (LO *)args[1].u.pv;
     if (args[2].m_tagk) {
-        plo = ((ARGCTX *)args[2].u.n)->plo;
+        plo = ((ARGCTX *)args[2].u.pv)->plo;
     } else {
         plo = b;
     }
@@ -3258,7 +3258,7 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1242B8 BuiltinFindObjectsFromOids
 namespace M_BuiltinFindObjectsFromOids {
-struct SPN; struct LOV; struct OW;
+struct SPN; struct OW;
 
 extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
 
@@ -3273,10 +3273,8 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-struct LO;
-struct LOV { char pad[0x3C]; int n3C; };   /* the search root's proxy context (+0x3C) */
-struct OW { char pad[0xC]; LOV *psw; };
-extern LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, int n2) __asm__("FindSwObjectInProxyScope");
+struct OW { char pad[0xC]; LO *plo; };   /* the optional context argument's object (+0xC) */
+extern LO *FindSwObjectInProxyScope(SW *pg, int kind, int n, void *pv, PXR *ppxr) __asm__("FindSwObjectInProxyScope");
 extern CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args) __asm__("BuiltinFindObjectsFromOids");
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
 // Also known as: RefOpFindObjectsOfNames (upstream readable / Sly 1 name; RefOpFindObjectsOfNames__FiP4CRefP6CFrame).
@@ -3286,11 +3284,11 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
     if (args[0].m_tagk == 0)
         return args[0];
     void *root = args[1].u.pv;
-    LOV *context;
+    LO *context;
     if (args[2].m_tagk != 0)
-        context = ((OW *)args[2].u.pv)->psw;
+        context = ((OW *)args[2].u.pv)->plo;
     else
-        context = (LOV *)root;
+        context = (LO *)root;
     SPN list;
     CPair *head = CGcObj<CPair>::PtNew();
     list.Set(head);
@@ -3302,7 +3300,7 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
         newPair.Set(pair);
         int oid = oidPair->ref.u.n;
         newPair->ref.SetBasic((BASIC *)FindSwObjectInProxyScope(&g_sw, root ? 1 : 5, oid, root,
-                                                              context ? context->n3C : (int)g_sw.ppxrRoot));
+                                                              context ? context->proxyRecord : g_sw.ppxrRoot));
         if (list->ref.m_tagk != TAGK_PAIR)
             list->ref = newPair.p;
         else
@@ -3333,9 +3331,9 @@ extern "C" CRefData *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRefData *ret, v
     LO *plo;
     void *pv;
     ref.m_tagk = -1;
-    b = (LO *)args[1].u.n;
+    b = (LO *)args[1].u.pv;
     if (args[2].m_tagk) {
-        plo = ((ARGCTX *)args[2].u.n)->plo;
+        plo = ((ARGCTX *)args[2].u.pv)->plo;
     } else {
         plo = b;
     }
@@ -3637,12 +3635,12 @@ typedef int TI __attribute__((mode(TI)));
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void CRef_ctor(CRefData *pref, TI vec) __asm__("CRef_ctor");
-TI ConvertPosBetweenLos(int a, int b, TI v) __asm__("ConvertPosBetweenLos");
+TI ConvertPosBetweenLos(LO *ploFrom, LO *ploTo, TI v) __asm__("ConvertPosBetweenLos");
 // Splice builtin "convert-object-position": ConvertPosBetweenLos 0x1A6F00.
 extern "C" CRefData *BuiltinConvertObjectPosition__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
-    CRef_ctor(&ref, ConvertPosBetweenLos(args[0].u.n, args[1].u.n, *(TI *)args[2].u.n));
+    CRef_ctor(&ref, ConvertPosBetweenLos((LO *)args[0].u.pv, (LO *)args[1].u.pv, *(TI *)args[2].u.pv));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -3684,7 +3682,7 @@ extern "C" CRefData *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRefData *ret,
     MATRIX4 mat;
     MATRIX4 *pmat;
     SetTag__4CRef4TAGK(&ref, 0x1B);
-    pmat = (MATRIX4 *)ref.u.n;
+    pmat = (MATRIX4 *)ref.u.pv;
     ConvertMat4BetweenLos(&mat, args[0].u.n, args[1].u.n, args[2].u.n);
     *pmat = mat;
     __4CRefRC4CRef(ret, &ref);

@@ -25,6 +25,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
+#include "sly2/classes.h"
 #include "sly2/light.h"
 #include "sly2/vu0.h"
 #include "sly2/act.h"
@@ -566,7 +567,7 @@ extern "C" void AddSoHierarchy(SO *so)
     UpdateSoXfWorldMatrices(so);
     AddSoParts(so);
     v = so->unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= 0x14;
+    if ((v ^ 1) & 1) so->ploupd->grf |= 0x14;
     else so->unknown40 = v | 0x14;
     pv = so->physics ? so->physics->pregent : 0;
     if (pv) {
@@ -660,7 +661,7 @@ extern "C" void SetSoGrf(SO *so, int f)
     LO *q;
     int unused[4];
     int v = so->unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= f;
+    if ((v ^ 1) & 1) so->ploupd->grf |= f;
     else so->unknown40 = v | f;
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
         q->SetFlags(f);
@@ -675,7 +676,7 @@ extern "C" void ClearSoGrf(SO *so, int f)
     LO *q;
     int unused[4];
     int v = so->unknown40;
-    if ((v ^ 1) & 1) *(int *)v &= ~f;
+    if ((v ^ 1) & 1) so->ploupd->grf &= ~f;
     else so->unknown40 = v & ~f;
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
         q->ClearFlags(f);
@@ -733,8 +734,8 @@ void SetLoVisMask(SO *,int) __asm__("SetLoVisMask");
 /* LO::unknown40 is a tagged word: bit 0 clear means it points at the flag word */
 /* GetXfFromIndex (slot 51) called by hand: as a virtual call inside the part loop it keeps the vptr in a register */
 static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
-static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)*(uint *)f|=8;else p->unknown40=f|8;}
 // Also known as: LoadSoFromBrx (upstream readable / Sly 1 name; LoadSoFromBrx__FP2SOP18CBinaryInputStream).
+static inline void SetActive(SO *p){uint f=p->unknown40;if((f^1)&1)p->ploupd->grf|=8;else p->unknown40=f|8;}
 extern "C" void LoadSoFromBrx(SO *so,void *stream)
 {
     int i=0;SOPART *e;
@@ -896,25 +897,23 @@ extern "C" void UpdateSo(SO *so)
 
 // 0x1F37C8 SetSoPhysRegion
 namespace M_func_001F37C8 {
-struct Q;
-struct Q : XFM { char pad[0x118 - 0xE0]; char dl[1]; };   /* a PATHZONE: its list of region links (+0x118) */
 int IsEntryInDl__FP2DLPv(void *, void *) __asm__("IsEntryInDl__FP2DLPv");
 void RemoveDlEntry__FP2DLPv(void *, void *) __asm__("RemoveDlEntry__FP2DLPv");
 void AppendDlEntry__FP2DLPv(void *, void *) __asm__("AppendDlEntry__FP2DLPv");
-void InitObstacleQueryCursor(struct Q *, void *) __asm__("InitObstacleQueryCursor");
+void InitObstacleQueryCursor(PATHZONE *, void *) __asm__("InitObstacleQueryCursor");
 // Moves the object's region link from its current region's list to region q.
 // Also known as: SetAloRegion (upstream readable / Sly 1 name; SetAloRegion__FP3ALOP9NAVREGION).
-extern "C" void SetSoPhysRegion(SO *so, struct Q *q)
+extern "C" void SetSoPhysRegion(SO *so, PATHZONE *q)
 {
     REGENT *o = so->physics->pregent;
-    struct Q *old = (struct Q *)o->pathzone;
+    PATHZONE *old = (PATHZONE *)o->pathzone;
     if (old == q) return;
     if (old) {
-        if (IsEntryInDl__FP2DLPv(old->dl, o)) RemoveDlEntry__FP2DLPv(old->dl, o);
+        if (IsEntryInDl__FP2DLPv(&old->dlRegent, o)) RemoveDlEntry__FP2DLPv(&old->dlRegent, o);
     }
     if (q) {
-        if (!IsEntryInDl__FP2DLPv(q->dl, o)) {
-            AppendDlEntry__FP2DLPv(q->dl, o);
+        if (!IsEntryInDl__FP2DLPv(&q->dlRegent, o)) {
+            AppendDlEntry__FP2DLPv(&q->dlRegent, o);
             InitObstacleQueryCursor(q, o->unknown20);
         }
     }
@@ -1150,7 +1149,7 @@ extern "C" void OnSoAdd(SO *so)
     OnLoAdd(so);
     if (so->isRenderable) {
         int v = so->unknown40;
-        if ((v ^ 1) & 1) v = *(int *)v;
+        if ((v ^ 1) & 1) v = so->ploupd->grf;
         if (v & 8) AddLoToRenderTree(so);
     }
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next) q->OnAdd();
@@ -3439,7 +3438,7 @@ extern "C" void SetSoFadeRate(SO *so, float g)
         int v;
         so->Add();
         v = so->unknown40;
-        if ((v ^ 1) & 1) *(int *)v |= 2;
+        if ((v ^ 1) & 1) so->ploupd->grf |= 2;
         else so->unknown40 = v | 2;
     }
     so->opacitySpeed = g;

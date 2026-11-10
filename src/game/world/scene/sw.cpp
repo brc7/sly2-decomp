@@ -32,6 +32,8 @@
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
+#include "sly2/classes.h"
+#include "bis.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -346,21 +348,17 @@ extern "C" void SelectSwMainMs(SW *world)
 } // namespace M_func_0020E2B0
 
 namespace M_func_0020E338 {
-class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void V3(); virtual void V4(); virtual void V5();
- virtual void V6(); virtual void V7(); virtual void V8(); virtual void V9(); };
-class O : public OBase { public: char pad[0x54 - 0x10]; unsigned int flags; char p2[8]; float param60; float param64; int unknown68; int unknown6C; };
-struct S { char pad[0x3E60]; O *screenTint; };
-extern O *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
+extern CID116 *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
 // Creates the world's screen tint/fill object (class 0x74, CID116 in docs/engine.md section 7; parameters 0.1 and
-// 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
-extern "C" void CreateSwScreenTint(S *world)
+// 0.25, hold colour 0x80200000), stores it at SW+0x3E60 and takes it out of the world (Remove). (inferred)
+extern "C" void CreateSwScreenTint(SW *world)
 {
-    world->screenTint = CreateLo__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
-    world->screenTint->param60 = 0.1f;
-    world->screenTint->param64 = 0.25f;
-    world->screenTint->flags = 0x80200000;
-    world->screenTint->unknown6C = 1;
-    world->screenTint->V9();
+    world->pcid116Fade = CreateLo__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->pcid116Fade->dtHold = 0.1f;
+    world->pcid116Fade->dtFadeOut = 0.25f;
+    *(uint *)&world->pcid116Fade->rgbaHold = 0x80200000;   /* the packed colour */
+    world->pcid116Fade->renderKind = 1;
+    world->pcid116Fade->Remove();   /* slot 9: idle until a fade starts */
 }
 } // namespace M_func_0020E338
 
@@ -375,28 +373,6 @@ extern "C" void CreateSwScreenTint(S *world)
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
-struct GRABSPOTDATA
-{
-      TN *ptn;
-      undefined4 unk_0x04;
-      float sUnk08;
-      undefined4 unk_0x0c;
-      int nPriority;
-      int nUnk14;
-      int nGroup;
-      uint grfUnk1c;
-};
-struct GRABSPOT : public GRABSPOTDATA
-{
-};
-struct CELL
-{
-      qword plane;
-      CELL *pcellNeg;
-      CELL *pcellPos;
-      int ileafNeg;
-      int ileafPos;
-};
 /* SVN: sly2/sw.h */
 /* SAVEDATA: sly2/save.h */
 /* LOUPD: sly2/sw.h */
@@ -496,8 +472,8 @@ extern "C" void PostSwLoad(SW *world)
     }
     world->pploNew = 0;
     world->aploNew = 0;
-    world->unknown39D8 = 0;
-    world->unknown39D0 = 0;
+    world->pvPostLoadPool = 0;
+    world->pvLorunPool = 0;
     BuildPathzoneLinkLists(world->pregtree);
     SetupCm__FP2CM(&g_cm);
     BroadcastGameEvent(&g_game, 4, 0);
@@ -828,42 +804,6 @@ namespace M_LoadLevelTableFromBrx {
 // u32 clevel, u32 (unused); clevel x { file record (0x40 bytes); u8 world; u8 episode; u8 fEntry (the record is also the entry of its world:
 // copied to g_aWorldEntryRecord[world]); u8 n + n u16 level numbers }.
 #include "sly2/sw.h"
-class CBinaryStreamBase
-{
-public:
-    int m_grfbis;
-    byte *m_pb;
-    int m_cb;
-    int m_ibStream;
-    byte *m_pbRaw;
-    int m_cbRaw;
-    int m_grfDecomp;
-    int m_cbSpillOver;
-    int m_unk20;
-    byte *m_abWindow;
-    int m_unk28;
-    int m_unk2c;
-};
-class CBinaryInputStream : public CBinaryStreamBase
-{
-public:
-    int m_cbSpool;
-    byte *m_abSpool;
-    int m_fd;
-    int m_cbDone;
-    int m_cbRequest;
-    int m_cbRemaining;
-    int m_cbRetry;
-    int m_isector;
-    int m_cbuf;
-    int m_cbufFill;
-    int m_icbufRead;
-    int m_icbufWrite;
-    uchar U8Read() __asm__("U8Read__18CBinaryInputStream");
-    ushort U16Read() __asm__("U16Read__18CBinaryInputStream");
-    uint U32Read() __asm__("U32Read__18CBinaryInputStream");
-    void ReadFileRecord(void *pv) __asm__("CBinaryInputStream_ReadCb64");
-};
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 // Allocate cb bytes with alignment cbAlign from the world heap.
@@ -912,7 +852,7 @@ extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream)
     D_003E1C50 = (FILEREC *)PvAllocSwClearLoad(9 * sizeof(FILEREC), 0x10);
     for (int ilevel = 0; ilevel < D_003E1C38; ilevel++)
     {
-        stream->ReadFileRecord(&D_003E1C40[ilevel]);
+        CBinaryInputStream_ReadCb64(stream, &D_003E1C40[ilevel]);
         D_003E1C44[ilevel] = stream->U8Read();
         D_003E1C48[ilevel] = stream->U8Read();
         if (stream->U8Read())
@@ -1326,59 +1266,56 @@ extern "C" void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASI
 /* The next 12-byte record of the array at +0x39D0. */
 extern "C" void *AllocSwLoCallbackRecord(SW *world)
 {
-    int i = world->unknown39D4;
-    world->unknown39D4 = i + 1;
-    return (char *)world->unknown39D0 + i * 0xC;
+    int i = world->clorunPool;
+    world->clorunPool = i + 1;
+    return (char *)world->pvLorunPool + i * 0xC;
 }
 
 // Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
 /* The next 12-byte record of the array at +0x39D8. */
 extern "C" void *AllocSwPostLoadRecord(SW *world)
 {
-    int i = world->unknown39DC;
-    world->unknown39DC = i + 1;
-    return (char *)world->unknown39D8 + i * 0xC;
+    int i = world->cpostLoadPool;
+    world->cpostLoadPool = i + 1;
+    return (char *)world->pvPostLoadPool + i * 0xC;
 }
 
 namespace M_func_00210140 {
-struct E;
-struct O { char pad[0x40]; struct E *e; };
-struct E { unsigned int grf; struct O *o; };
 // Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
 // when it is full or more than 10% holes.
 // Also known as: AddLoToUpdateTable (upstream readable / Sly 1 name; AddLoToUpdateTable__FP2SWP2LO).
-extern "C" void AddLoToSwUpdateList(SW *g, struct O *o)
+extern "C" void AddLoToSwUpdateList(SW *g, LO *o)
 {
-    struct E *e;
-    if ((unsigned int)o->e & 0x40)
+    LOUPD *e;
+    if (o->unknown40 & 0x40)
         return;
     if (g->cloupd >= 0x1000 || (float)g->cloupdHole / (float)g->cloupd > 0.1f) {
-        struct E *end = ((struct E *)g->aloupd) + g->cloupd;
-        struct E *tracked;
-        struct E *write;
-        struct E *read;
+        LOUPD *end = g->aloupd + g->cloupd;
+        LOUPD *tracked;
+        LOUPD *write;
+        LOUPD *read;
         if (g->piloupdCur)
-            tracked = ((struct E *)g->aloupd) + *((int *)g->piloupdCur);
+            tracked = g->aloupd + *((int *)g->piloupdCur);
         else
             tracked = 0;
-        write = ((struct E *)g->aloupd);
-        for (read = ((struct E *)g->aloupd); read < end; read++) {
+        write = g->aloupd;
+        for (read = g->aloupd; read < end; read++) {
             if (read == tracked)
                 tracked = write;
-            if (read->o) {
-                read->o->e = write;
+            if (read->plo) {
+                read->plo->ploupd = write;
                 *write++ = *read;
             }
         }
         g->cloupdHole = 0;
-        g->cloupd = write - ((struct E *)g->aloupd);
+        g->cloupd = write - g->aloupd;
         if (g->piloupdCur)
-            *((int *)g->piloupdCur) = tracked - ((struct E *)g->aloupd);
+            *((int *)g->piloupdCur) = tracked - g->aloupd;
     }
-    e = &((struct E *)g->aloupd)[g->cloupd++];
-    e->o = o;
-    e->grf = (unsigned int)o->e;
-    o->e = e;
+    e = &g->aloupd[g->cloupd++];
+    e->plo = o;
+    e->grf = o->unknown40;
+    o->ploupd = e;
 }
 } // namespace M_func_00210140
 
@@ -1389,7 +1326,7 @@ extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
     int n = plo->unknown40;
     if (((n ^ 1) & 1) != 0) {
-        LOUPD *ploupd = (LOUPD *)n;
+        LOUPD *ploupd = plo->ploupd;
         plo->unknown40 = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;
