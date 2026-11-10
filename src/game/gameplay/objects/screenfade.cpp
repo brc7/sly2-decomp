@@ -1,5 +1,5 @@
 // screenfade.cpp -- CID116, the screen fade: an LO that fills the screen with a colour that fades in, holds, and fades
-// out (three timed phases), then removes itself. Started from a level script (Splice thunk func_0010C6A8) or by the
+// out (three timed phases), then removes itself. Started from a level script (Splice thunk RefThunk_StartScreenFade) or by the
 // world-entry code in places.cpp (StartScreenFade). Entry points: StartScreenFade and the CID116 vtable (Init,
 // UpdateScreenFade, RenderScreenFade).
 // TU 0x15DC80..0x15E380 (6 functions, address order).
@@ -142,7 +142,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
 }
 
 // Starts the fade unless it is already running: stamps the start time and adds the object to the world (vtable
-// slot 8, Add). Called by the Splice thunk func_0010C6A8 and by places.cpp on world entry.
+// slot 8, Add). Called by the Splice thunk RefThunk_StartScreenFade and by places.cpp on world entry.
 // Also known as: StartFadeLo (upstream readable / Sly 1 name; StartFadeLo__FP2LO).
 extern "C" void StartScreenFade(FADEV *fade)
 {

@@ -22,6 +22,14 @@ data symbol stays byte-identical (matchtool), and every file is re-checked after
 - Types keep their current names for now (`LISTENER`, `NOISETYPE`; renaming a type changes every mangled symbol that
   uses it: a later, separate pass). The Sucker Punch abbreviations they use are in the
   [engine glossary](../engine.md#10-glossary). Macros/constants: `UPPER_SNAKE`.
+- Splice binding glue (the option thunks in `src/game/app/class_registry.cpp` and `src/generated/splicewrap/*.inc`,
+  reached only through `g_aeopid`) is named mechanically from what it binds: `RefThunk<Class><SCRIPT_NAME>` when the
+  script-side option name is known (`RefThunkBombPRIME`), otherwise `RefThunk_<Native>` after the native function it
+  calls (`RefThunk_SendTriggerEvent`); for a thunk that makes a virtual call, `<Native>` is the symbol of the slot in
+  the option's root class (`RefThunk_MoveLoToObject`: LO slot 38). Two thunks binding the same native function get
+  `_Opt<id>` (their option id) appended. A generated wrapper's `.inc` file carries its thunk's name. Class factories
+  are `New<Class>`, descriptor getters `Get<Class>ClassDesc`; script builtins (`app/bif.cpp`'s table) are
+  `Builtin<Name>` after their script-side name.
 - Class placeholders are decimal (`CID39` for cid 0x27, `BHV171`): mixing hex and decimal caused real mix-ups.
 - Unknowns: give the best descriptive name the evidence supports and mark it `(inferred)` in the doc comment; never
   leave `func_XXXXXXXX` or `unk_XX` when a reasonable meaning can be read from the code. Offset-coded fields
