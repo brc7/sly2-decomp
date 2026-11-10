@@ -326,8 +326,8 @@ int FindSwObjectsByClass(SW *p, int a, int b, int c, int cMax, MS **apo) __asm__
 void SetLoVisMask(MS *o, int n) __asm__("SetLoVisMask");
 // Picks the main MS object (class 0x31): of up to 16, the one with the most model pieces (GLOBSET::numPieces,
 // +0xB8); stores its GLOBSET word +0x48 as SW::pblockRender and makes it visible to every camera mask. (inferred)
-// The header names that word GLOBSET::aposeset (POSESET *), but here it is the level's render-tree root block: one
-// of the two names is wrong (unresolved; the snapshots show a heap pointer either way).
+// The header names that word GLOBSET::aposeset (POSESET *): LoadPoseSetsFromBrx builds those records, and rendertree.cpp's
+// CullSceneRenderList walks the same array as RENDERBLOCKs (pblockRoot), so the two names cover one record type.
 extern "C" void SelectSwMainMs(SW *world)
 {
     MS *found[16];
