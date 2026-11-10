@@ -1076,11 +1076,10 @@ struct M4 {QWROW r[4];};
 struct EFFECT {char pad[0xC];void *vptr;};
 /* The hero's water volume (STEPPLAYER::pwater; classes.h WATER has no fields yet): splash effect, zap kind and tag. */
 struct L {char pad[0xC];void *vptr;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
-struct HIT {L*target;int pad4;STEPPLAYER*source;int tag,kind;char pad14[0xC];QWROW point,direction;char pad40[0x20];};
 struct MSG {int type;char pad4[0x1C];QWROW position;};
 extern qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
 extern void*func_002333B4(void*,int,int) __asm__("memset");
-extern void*DeliverZapToSo(HIT*) __asm__("DeliverZapToSo");
+extern void*DeliverZapToSo(ZPR*) __asm__("DeliverZapToSo");
 extern int ProbeStepplayerSurface(STEPPLAYER*,L*,qword*) __asm__("ProbeStepplayerSurface");
 extern void LoadIdentityMatrix4(void*,void*,M4*,M4*,float) __asm__("LoadIdentityMatrix4");
 extern M4 __ml__FRC7MATRIX4T0(const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
@@ -1107,14 +1106,14 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
         if (QwordZ(player->GetVelocity()) < 0.0f || (player->jtair.state == -1 && player->jthurt.state != 7))
             notify = 1;
         if (notify) {
-            HIT hit;
+            ZPR hit;
             func_002333B4(&hit, 0, sizeof(hit));
-            hit.target = ((L *)player->pwater);
-            hit.source = player;
-            hit.tag = ((L *)player->pwater)->tag;
-            hit.kind = ((L *)player->pwater)->kind;
-            hit.point.q = GetLoWorldPos(player);
-            hit.direction.q = player->GetVelocity();
+            hit.ploSource = (LO *)player->pwater;
+            hit.unknown08 = player;
+            hit.zpk = ((L *)player->pwater)->tag;
+            hit.dhp = ((L *)player->pwater)->kind;
+            hit.position = GetLoWorldPos(player);
+            hit.velocity = player->GetVelocity();
             (void)DeliverZapToSo(&hit);
         }
     }

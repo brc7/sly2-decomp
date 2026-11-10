@@ -1404,13 +1404,12 @@ extern qword g_normalZ __asm__("g_normalZ");
 union WORD{int bits;float value;};extern union WORD D_002C09A8 __asm__("D_002C09A8");
 struct SIDE { int x0; int x4; void *x8; void *xC; qword v10; char pad[0x30 - 0x20]; qword v30; };
 struct LINK { struct SIDE as[2]; char pad[0xAC - 0x80]; struct LINK *pnext; };
-struct MSG { void *x0; int x4; void *x8; int xC; int x10; char pad[0x20 - 0x14]; qword v20; qword v30; char pad2[0x60 - 0x40]; };
 /* Any BASIC as the register-pinned dive code reads it: the g++ vtable pointer at +0xC. */
 struct VOBJ { char pad[0xC]; VTE *vt; };
 void FreeSwXpList__FP2SWP2XP(void *pg, XP *pl) __asm__("FreeSwXpList__FP2SWP2XP");
 void *FindZapResponder(void *p, int n) __asm__("FindZapResponder");
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void *DeliverZapToSo(struct MSG *pmsg) __asm__("DeliverZapToSo");
+void *DeliverZapToSo(ZPR *pzpr) __asm__("DeliverZapToSo");
 EA *FindAsegLabel(void *p, int n) __asm__("FindAsegLabel");
 void SeekAsega(ASEGA *p, int n, float g, float h) __asm__("SeekAsega");
 void RetractAsega(ASEGA *p) __asm__("RetractAsega");
@@ -1421,7 +1420,6 @@ typedef char qword_Size[sizeof(qword)==16?1:-1];
 typedef char WORD_Size[sizeof(union WORD)==4?1:-1];
 typedef char SIDE_Size[sizeof(struct SIDE)==64?1:-1];
 typedef char LINK_Size[sizeof(struct LINK)==176?1:-1];
-typedef char MSG_Size[sizeof(struct MSG)==96?1:-1];
 typedef char SIDE_x0_Offset[FIELD_OFFSET(SIDE,x0)==0?1:-1];
 typedef char SIDE_x4_Offset[FIELD_OFFSET(SIDE,x4)==4?1:-1];
 typedef char SIDE_x8_Offset[FIELD_OFFSET(SIDE,x8)==8?1:-1];
@@ -1430,13 +1428,6 @@ typedef char SIDE_v10_Offset[FIELD_OFFSET(SIDE,v10)==16?1:-1];
 typedef char SIDE_v30_Offset[FIELD_OFFSET(SIDE,v30)==48?1:-1];
 typedef char LINK_as_Offset[FIELD_OFFSET(LINK,as)==0?1:-1];
 typedef char LINK_pnext_Offset[FIELD_OFFSET(LINK,pnext)==172?1:-1];
-typedef char MSG_x0_Offset[FIELD_OFFSET(MSG,x0)==0?1:-1];
-typedef char MSG_x4_Offset[FIELD_OFFSET(MSG,x4)==4?1:-1];
-typedef char MSG_x8_Offset[FIELD_OFFSET(MSG,x8)==8?1:-1];
-typedef char MSG_xC_Offset[FIELD_OFFSET(MSG,xC)==12?1:-1];
-typedef char MSG_x10_Offset[FIELD_OFFSET(MSG,x10)==16?1:-1];
-typedef char MSG_v20_Offset[FIELD_OFFSET(MSG,v20)==32?1:-1];
-typedef char MSG_v30_Offset[FIELD_OFFSET(MSG,v30)==48?1:-1];
 // Flop sub-states: 1 dive (sets downward velocity), 2 impact (zaps every contact and shakes the camera).
 // Also known as: SetMurrayFlopPhase (upstream readable / Sly 1 name; SetMurrayFlopPhase__FP6MURRAYi).
 extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
@@ -1481,15 +1472,15 @@ extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
             struct SIDE *stateMachine = &pl->as[i];
             void *object = FindZapResponder(so->xC, 4);
             if (object) {
-                struct MSG msg;
+                ZPR msg;
                 func_002333B4(&msg, 0, sizeof(msg));
-                msg.x0 = murray;
-                msg.x4 = stateMachine->x0;
-                msg.x8 = object;
-                msg.xC = 4;
-                msg.x10 = -20;
-                msg.v20 = so->v10;
-                msg.v30 = stateMachine->v30;
+                msg.ploSource = murray;
+                msg.part = (SOPART *)stateMachine->x0;
+                msg.unknown08 = (LO *)object;
+                msg.zpk = 4;
+                msg.dhp = -20;
+                msg.position = so->v10;
+                msg.velocity = stateMachine->v30;
                 (void)DeliverZapToSo(&msg);
             }
         }
