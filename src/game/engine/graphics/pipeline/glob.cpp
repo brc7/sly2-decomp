@@ -1774,46 +1774,6 @@ namespace M_LoadSubglobInstanceFromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
-struct M4{qword rows[4];};
-struct D {
-    char channel, segments;
-    unsigned char flags;
-    char kind;
-    char pad4[4];
-    void *chain;
-    char padC[4];
-    int words;
-};
-struct TRANSFORM {
-    char pad[0x40];
-    M4 matrix;
-};
-union FLAGS {
-    uint word;
-    struct {
-        uint pad : 11, feature : 1, other : 20;
-    } bits;
-};
-struct E {
-    int value;
-    TRANSFORM *transform;
-    M4 *parent;
-    FLAGS flags;
-    char *data;
-    uint base;
-    char pad18[12];
-    void *sphere;
-};
-struct SPHERE {
-    float center[3], radius, limit;
-    uint metadata;
-};
-struct SO;
-struct SO {
-    char pad[0xC];
-    void *vptr;
-};
-struct P{SO*owner;};
 struct REQUEST {
     int bytes, alignment;
     // Allocation request: byte count and alignment.
@@ -1843,29 +1803,10 @@ struct FACE {
     int first, second, pad2C, kind;
     char pad34[12];
 };
-typedef char MatrixSize[sizeof(M4)==64?1:-1];
-typedef char DescriptorSize[sizeof(D)==20?1:-1];
-typedef char EntrySize[sizeof(E)==40?1:-1];
-typedef char SphereSize[sizeof(SPHERE)==24?1:-1];
 typedef char FaceSize[sizeof(FACE)==64?1:-1];
 typedef char LinkSize[sizeof(LINK)==6?1:-1];
 typedef char LinkSetSize[sizeof(LINKS)==8?1:-1];
 typedef char BindingSize[sizeof(BINDING)==12?1:-1];
-typedef char D_flags_Offset[FIELD_OFFSET(D,flags)==2?1:-1];
-typedef char D_kind_Offset[FIELD_OFFSET(D,kind)==3?1:-1];
-typedef char D_chain_Offset[FIELD_OFFSET(D,chain)==8?1:-1];
-typedef char D_words_Offset[FIELD_OFFSET(D,words)==16?1:-1];
-typedef char E_transform_Offset[FIELD_OFFSET(E,transform)==4?1:-1];
-typedef char E_parent_Offset[FIELD_OFFSET(E,parent)==8?1:-1];
-typedef char E_flags_Offset[FIELD_OFFSET(E,flags)==12?1:-1];
-typedef char E_data_Offset[FIELD_OFFSET(E,data)==16?1:-1];
-typedef char E_base_Offset[FIELD_OFFSET(E,base)==20?1:-1];
-typedef char E_sphere_Offset[FIELD_OFFSET(E,sphere)==36?1:-1];
-typedef char SPHERE_radius_Offset[FIELD_OFFSET(SPHERE,radius)==12?1:-1];
-typedef char SPHERE_limit_Offset[FIELD_OFFSET(SPHERE,limit)==16?1:-1];
-typedef char SPHERE_metadata_Offset[FIELD_OFFSET(SPHERE,metadata)==20?1:-1];
-typedef char TRANSFORM_matrix_Offset[FIELD_OFFSET(TRANSFORM,matrix)==64?1:-1];
-typedef char SO_vptr_Offset[FIELD_OFFSET(SO,vptr)==12?1:-1];
 typedef char FACE_flags_Offset[FIELD_OFFSET(FACE,flags)==8?1:-1];
 typedef char FACE_indices_Offset[FIELD_OFFSET(FACE,indices)==20?1:-1];
 typedef char FACE_first_Offset[FIELD_OFFSET(FACE,first)==36?1:-1];
@@ -1881,13 +1822,13 @@ char S8Read__18CBinaryInputStream(STREAM*) __asm__("S8Read__18CBinaryInputStream
 uint U32Read__18CBinaryInputStream(STREAM*) __asm__("U32Read__18CBinaryInputStream");
 short S16Read__18CBinaryInputStream(STREAM*) __asm__("S16Read__18CBinaryInputStream");
 int S32Read__18CBinaryInputStream(STREAM*) __asm__("S32Read__18CBinaryInputStream");
-void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
+void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,MATRIX4*) __asm__("ReadMatrix4__18CBinaryInputStreamP7MATRIX4");
 void*AllocFromWorldHeap(const REQUEST&) __asm__("AllocFromWorldHeap");
 void*AllocCopyFromWorldHeap(const REQUEST&,void*) __asm__("AllocCopyFromWorldHeap");
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-BINDING*LoadClutsetFromBrx(P*,STREAM*) __asm__("LoadClutsetFromBrx");
-M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
+BINDING*LoadClutsetFromBrx(GLOBSET*,STREAM*) __asm__("LoadClutsetFromBrx");
+MATRIX4*__ml__FRC7MATRIX4T0(MATRIX4*,const MATRIX4*,const MATRIX4*) __asm__("__ml__FRC7MATRIX4T0");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 
 // Allocate bytes, 16-byte aligned, from the world heap.
@@ -1902,42 +1843,42 @@ static inline void *Reallocate(int bytes, void *old)
 }
 // Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional binding table,
 // relocates packet data. (inferred)
-extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sourceE, const SPHERE *sourceSphere,
-                                           D *desc, E *entry, SPHERE *sphere, int groups, const int *counts,
+extern "C" void LoadSubglobInstanceFromBrx(GLOBSET *p, const SUBGLOB *sourceD, const GLOB *sourceE, const SUBGLOBX *sourceSphere,
+                                           SUBGLOB *desc, GLOB *entry, SUBGLOBX *sphere, int groups, const int *counts,
                                            FACE **faces, STREAM *stream)
 {
-    M4 matrix;
+    MATRIX4 matrix;
     (void)S8Read__18CBinaryInputStream(stream);
     *desc = *sourceD;
     *entry = *sourceE;
     if (sphere) {
         *sphere = *sourceSphere;
-        sphere->metadata = U32Read__18CBinaryInputStream(stream);
+        sphere->flags = U32Read__18CBinaryInputStream(stream);
     }
     {
-        entry->transform = (TRANSFORM *)AsSo(p->owner)->GetXfFromIndex(S16Read__18CBinaryInputStream(stream));
+        entry->transform = AsSo(p->owner)->GetXfFromIndex(S16Read__18CBinaryInputStream(stream));
     }
-    if (entry->flags.word & 0x1000)
+    if (entry->grf & 0x1000)
         ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, &matrix);
     else {
-        entry->parent = (M4 *)Allocate(sizeof(M4));
-        ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, entry->parent);
+        entry->unknown08 = (MATRIX4 *)Allocate(sizeof(MATRIX4));
+        ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream, entry->unknown08);
     }
-    entry->value = S32Read__18CBinaryInputStream(stream);
-    entry->flags.bits.feature = S8Read__18CBinaryInputStream(stream);
+    entry->oid = (OID)S32Read__18CBinaryInputStream(stream);
+    entry->isHidden = S8Read__18CBinaryInputStream(stream);
     STACKSCOPE scope;
     BINDING *binding = LoadClutsetFromBrx(p, stream);
-    if (!(desc->flags & 1) && desc->kind == 0) {
-        char *old = entry->data;
-        char *data = (char *)Reallocate(desc->words * 16, old);
-        uint delta = (uint)data - (uint)old;
-        entry->data = data;
-        entry->base += delta;
-        if (entry->flags.word & 0x1000) {
-            M4 product, temp;
-            __ml__FRC7MATRIX4T0(&temp, &entry->transform->matrix, &matrix);
+    if (!(desc->unknown02 & 1) && desc->type == 0) {
+        char *old = (char *)entry->pqwChain;
+        char *data = (char *)Reallocate(desc->cqw * 16, old);
+        int delta = data - old;
+        entry->pqwChain = (QW *)data;
+        entry->pbChain += delta;
+        if (entry->grf & 0x1000) {
+            MATRIX4 product, temp;
+            __ml__FRC7MATRIX4T0(&temp, &entry->transform->worldMatrix, &matrix);
             product = temp;
-            CopyAb__FPvT0Ui(entry->data + 0x14, &product, 0x40);
+            CopyAb__FPvT0Ui((char *)entry->pqwChain + 0x14, &product, 0x40);
         }
         if (binding) {
             for (int g = 0; g < groups; g++) {
@@ -1946,7 +1887,7 @@ extern "C" void LoadSubglobInstanceFromBrx(P *p, const D *sourceD, const E *sour
                 for (int i = 0; i < count; i++) {
                     FACE *face = &set[i];
                     if (face->flags & 0x20) {
-                        uint base = (uint)entry->base;
+                        uint base = (uint)entry->pbChain;   /* int arithmetic: a char * sum swaps the addu operands */
                         unsigned short *first = (unsigned short *)((uint)face->first + base);
                         unsigned short *second = (unsigned short *)((uint)face->second + base);
                         unsigned char *kind = (unsigned char *)((uint)face->kind + base);
