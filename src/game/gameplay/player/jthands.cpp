@@ -45,17 +45,6 @@ struct CID20 : LO
     uint grfHand;           /* +0xE0 */
 };
 
-/* The acts an object's XF carries at +0x90, its parent at +0xA0, and (as the carry code writes it) the end time of
-   the current act at +0xA8, which so.h's XF names pxfRef: a separate view until that field is settled. */
-struct XFACT
-{
-    char pad0[0x90];
-    ACT *pactCur;           /* +0x90 */
-    char pad94[0xC];
-    XF *pxfParent;          /* +0xA0 */
-    int nA4;
-    float tEnd;             /* +0xA8 */
-};
 
 /* Context of the curve-distance callbacks (MinimizeRange's pv): the hands and the point to fit. */
 struct JTHANDSCTX { JTHANDS *phands; qword pos; };
@@ -472,7 +461,7 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
 /* StartJtHandsCarry (StartJtHandsCarry): create the position and orientation acts that carry the object along the
    predicted clip path to the hand, timed ballistically (ComputeMaxBallisticTime), parented to the world (SetLoParent). The body
    is a transcription of the target's schedule into register-pinned asm blocks (a matching island: this form exists
-   to reproduce the original codegen); its data is the header JTHANDS and SO, STEPPLAYER, the XFACT view and the work area
+   to reproduce the original codegen); its data is the header JTHANDS and SO, STEPPLAYER, and the work area
    below. */
 union VIEWS { struct { M4 intermediate, product, inverse; } matrices; struct { M3 angles, converted; } basis; U scalar; };
 struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocity, destination, delta, endVelocity; };
@@ -688,9 +677,9 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
             : "m"(object->rotationXf), "r"(object), "r"(angles));
     ACT *job = NewPositionAct(orientationOwner, orientationChannel, 5, 9, 2, anglesArgument);
     p->pactTurn = job;
-    XFACT *pxfact = (XFACT *)object->rotationXf;
-    if (pxfact->pactCur == job)
-        pxfact->tEnd = endTime;
+    XF *pxf = object->rotationXf;
+    if (pxf->firstActuator == job)
+        pxf->arrivalTime = endTime;   /* the end time of the current act (XF+0xA8 union) */
     SetSoTreeFlag2(object, 1);
 }
 
