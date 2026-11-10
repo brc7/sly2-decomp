@@ -49,32 +49,6 @@ int GetCopyIndexFromProxySpare(PROXY *proxy, PROXYSPARE *spare);
 
 
 
-struct GRABSPOTDATA
-{
-      TN *ptn;
-      undefined4 unk_0x04;
-      float sUnk08;
-      undefined4 unk_0x0c;
-      int nPriority;
-      int nUnk14;
-      int nGroup;
-      uint grfUnk1c;
-};
-
-struct GRABSPOT : public GRABSPOTDATA
-{
-};
-
-struct CELL
-{
-      qword plane;
-      CELL *pcellNeg;
-      CELL *pcellPos;
-      int ileafNeg;
-      int ileafPos;
-};
-
-
 /* SVN: sly2/sw.h */
 
 
