@@ -599,8 +599,9 @@ class Engine:
             if r.kind == 'func':
                 if not defsrc:
                     self._refuse(r, f'no config/matched.csv source for 0x{r.addr:06X}; cannot locate the definition'); continue
-                # a definition in an .inc fragment the source #includes counts (class_registry.cpp's splicewrap/*.inc)
-                frags = [q for q in r.files if q.endswith('.inc') and self._defines_any(R.files[q], r.aliases)]
+                # a definition in a file the source #includes counts: an .inc fragment (class_registry.cpp's
+                # splicewrap/*.inc) or a header's inline function emitted as a linkonce copy by that source
+                frags = [q for q in r.files if q.endswith(('.inc', '.h')) and self._defines_any(R.files[q], r.aliases)]
                 bad = [p for p in defsrc if p not in R.files or not (self._defines_any(R.files[p], r.aliases) or
                                                                        (r.cxx and self._defines_cxx(R.files[p], r)) or
                                                                        any(p in self.includers(q) for q in frags))]
