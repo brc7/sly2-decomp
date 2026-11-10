@@ -113,7 +113,8 @@ struct EMITO
     union                   /* +0x20 origin data, selected by originKind */
     {
         qword posPoint;     /* point: the position itself */
-        int pvEmito;        /* box: its BOX; curve: -1, then an OID; mesh: its EMITMESH (allocated per kind) */
+        void *pvEmito;      /* box: its BOX; mesh: its EMITMESH (allocated per kind) */
+        int oidCurve;       /* curve: -1, then the curve's OID */
     };
     qword direction;        /* +0x30 emission direction, centre or tangent partner (by normalKind) */
 };
@@ -433,7 +434,7 @@ template <class T> void func_002586D8(T *p)
         EMITB *pemitb0 = p->pemitb;
         oid1 = pemitb0->emito.originOid;
         if (pemitb0->emito.originKind == 2)
-            oid2 = pemitb0->emito.pvEmito;
+            oid2 = pemitb0->emito.oidCurve;
     }
     EmitbMemset(aplo, 0, 0x14);
     if (oid1 != -1)
@@ -539,9 +540,9 @@ template <class T> void func_00258A00(T *p, int k)
     pemitb->emito.originKind = k;
     switch (k)
     {
-    case 1: { SWALLOC req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
-    case 2: pemitb->emito.pvEmito = -1; break;
-    case 3: { SWALLOC req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = (int)PvAllocLevelHeap(&req); } break;
+    case 1: { SWALLOC req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = PvAllocLevelHeap(&req); } break;
+    case 2: pemitb->emito.oidCurve = -1; break;
+    case 3: { SWALLOC req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = PvAllocLevelHeap(&req); } break;
     }
 }
 
@@ -561,7 +562,7 @@ template <class T> int func_00258B00(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         func_00258A00(p, 1);
-    return p->pemitb->emito.pvEmito;
+    return p->pemitb->emito.oidCurve;
 }
 
 /* ensure: the EMITO kind (as kind 2 on a write) */
