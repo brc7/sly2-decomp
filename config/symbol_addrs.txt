@@ -4820,6 +4820,7 @@ StaticInit_spliceobj = 0x2014C8; // type:func
 LoadSprBuf__Fie = 0x201620; // type:func
 SaveSprBuf__FPve = 0x2017A0; // type:func
 SwapSprBuffers = 0x201998; // type:func
+StaticInit_sprbuf = 0x2019F0; // type:func
 InitReconSel = 0x201D78; // type:func
 PostReconSelLoad = 0x201DC8; // type:func
 ResetReconTargets = 0x201E88; // type:func

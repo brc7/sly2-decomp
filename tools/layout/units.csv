@@ -5036,7 +5036,7 @@ func_00201600,0x201600,spliceobj
 LoadSprBuf__Fie,0x201620,sprbuf
 SaveSprBuf__FPve,0x2017A0,sprbuf
 SwapSprBuffers,0x201998,sprbuf
-func_002019F0,0x2019F0,sprbuf
+StaticInit_sprbuf,0x2019F0,sprbuf
 func_00201D58,0x201D58,sprbuf
 InitReconSel,0x201D78,recon
 PostReconSelLoad,0x201DC8,recon

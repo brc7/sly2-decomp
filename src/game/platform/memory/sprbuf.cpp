@@ -3,7 +3,7 @@
 // next one is filled by toSPR DMA (LoadSprBuf) and a finished half is written back by fromSPR DMA (SaveSprBuf).
 // SwapSprBuffers waits for the fill and makes the next half current. Entry points: LoadSprBuf, SaveSprBuf,
 // SwapSprBuffers. TU 0x201620..0x201D78 (5 functions, address order).
-// SLY2_ALIAS: __static_initialization_and_destruction_0=func_002019F0
+// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sprbuf
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00201D58
 #include "sly2/slotheap.h"
 
@@ -49,7 +49,7 @@ static inline SPRBUF MakeFirst() { SPRBUF b; b.scratchpad = (char *)0x70000000; 
 // The second scratchpad double buffer (DMA tags D_003DD400 in uncached space).
 static inline SPRBUF MakeSecond() { SPRBUF b; b.dmaTags = (ulong *)((int)D_003DD400 | 0x20000000); b.scratchpad = (char *)0x70002000; return b; }
 
-// 0x2019F0 func_002019F0 (StaticInit_sprbuf, 218 instructions) and its _GLOBAL_$I$ stub func_00201D58: generated
+// 0x2019F0 StaticInit_sprbuf (218 instructions) and its _GLOBAL_$I$ stub func_00201D58: generated
 // by g++ for the SPRBUF pair below, then the six engine slot pools.
 SPRBUF D_003DD2C0[2] = { MakeFirst(), MakeSecond() };
 /* the two tag lists (0x80 bytes each, up to stepguard's .bss), read uncached: 64-aligned (a cache line), which is
