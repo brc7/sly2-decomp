@@ -161,7 +161,7 @@ struct SAA : BASIC
     unsigned short frame;   /* +0x28 [S] */
     short unknown2A;
     int isDirty;            /* +0x2C [S] */
-    void *isGlobsetOwned;   /* +0x30 [S] */
+    int isGlobsetOwned;     /* +0x30 [S] 1: loaded with a model GLOBSET (glob.cpp), 0: the shared shader table (shd.cpp; InitSaa puts those on g_sw.slSaa); name check: 1 in 3716/3863 nonzero */
     SL instances;           /* +0x34 [S] its copy records (shd.h COPYREC, linked through pcopyrecNext) */
     SAA *next;              /* +0x40 [S] next in g_sw.slSaa */
     int cqwMain;            /* +0x44 [S] (glob.cpp SAAFIELDS) */
@@ -1540,7 +1540,7 @@ typedef char assert_BARREL_carryState[SLY2_OFFSETOF(BARREL, carryState) == 0x17C
 struct CID35 : XFM, GRABSPOT
 {
     DLE dleGrab;            /* +0x104 link in g_sw.dlCid35 */
-    int activator;          /* +0x10C last FireTriggerGrabspot argument */
+    LO *activator;          /* +0x10C who fired it last (FireTriggerGrabspot: a HERO from booty.cpp, an LO from grabspot.cpp) */
     float sRadius;          /* +0x110 biases the grab score (AdjustTriggerGrabspotScore) */
     void *relay;            /* +0x114 fired with the trigger */
     int crsmg;              /* +0x118 */

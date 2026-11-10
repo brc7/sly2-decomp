@@ -62,14 +62,14 @@ void SetEyesEyess(EYES *peyes, EYESS eyess) __asm__("SetEyesEyess__FP4EYES5EYESS
 // Read an SAA class index, construct it via the class table factory (D_002BAAE8[cid].pfnNew), set owner (+0x30), read
 // 0x20-byte SAAF and call vt7 Init(psaa, psaaf)
 // Also known as: PsaaLoadFromBrx (upstream readable / Sly 1 name; PsaaLoadFromBrx__FPvP18CBinaryInputStream).
-extern "C" SAA *LoadSaaFromBrx(void *pv, void *pbis)
+extern "C" SAA *LoadSaaFromBrx(int isGlobsetOwned, void *pbis)
 {
     char buf[0x20];
     int i = U16Read__18CBinaryInputStream(pbis);
     SAA *p;
     if (i == -1) return 0;
     p = (D_002BAAE8 + i)->pfnNew();
-    p->isGlobsetOwned = pv;
+    p->isGlobsetOwned = isGlobsetOwned;
     Read__18CBinaryInputStreamiPv(pbis, 0x20, buf);
     p->Init((SAAF *)buf);
     return p;

@@ -808,18 +808,18 @@ extern "C" void AddTriggerGrabspotPair(CID35 *trigger, int x, int y)
 namespace M_func_00184130 {
 void TriggerRsmg(void *g, int a, OID (*pb)[4], CID35 *p, int n) __asm__("TriggerRsmg");
 void ApplyTaskStates(void *g, int a, int (*pb)[2], CID35 *p) __asm__("ApplyTaskStates");
-void FireRelay(void *p, int n) __asm__("FireRelay");
+void FireRelay(void *p, LO *ploFrom) __asm__("FireRelay");
 // Fires the trigger: sets its state, sends message 6, triggers the linked state machines, applies task states and
 // fires its relay.
 // Also known as: UseObjectBase (upstream readable / Sly 1 name; UseObjectBase__FP2LOi).
-void FireTriggerGrabspot(CID35 *trigger, int n) __asm__("FireTriggerGrabspot"); void FireTriggerGrabspot(CID35 *trigger, int n)
+void FireTriggerGrabspot(CID35 *trigger, LO *activator) __asm__("FireTriggerGrabspot"); void FireTriggerGrabspot(CID35 *trigger, LO *activator)
 {
-    trigger->activator = n;
+    trigger->activator = activator;
     trigger->SendMessage((MSGID)6, trigger);
     TriggerRsmg(&g_sw, trigger->crsmg, trigger->arsmg, trigger, 1);
     ApplyTaskStates(&g_game, trigger->cpair, trigger->apair, trigger);
     trigger->HandleSpliceEvent(5, 0, 0, 0, 0);
-    if (trigger->relay) FireRelay(trigger->relay, n);
+    if (trigger->relay) FireRelay(trigger->relay, activator);
 }
 } // namespace M_func_00184130
 

@@ -262,7 +262,7 @@ typedef char assert_HACKWALLSEG_size[sizeof(HACKWALLSEG) == 0x30 ? 1 : -1];
 /* 76 HACKWALL (0x2A0); vtable 0x2D0B30, 83 slots */
 struct HACKWALL : HACK
 {
-    int ploTarget;          /* +0x1C0 UpdateHackwall moves the pieces only when set (inferred) */
+    LO *ploTarget;          /* +0x1C0 option 386 (a BASIC *, as HACKENEMY::ploTarget); UpdateHackwall moves the pieces only while set */
     LO *ploPiece;           /* +0x1C4 model drawn for every piece */
     int cseg;               /* +0x1C8 */
     HACKWALLSEG aseg[4];    /* +0x1CC */

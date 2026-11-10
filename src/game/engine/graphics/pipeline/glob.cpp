@@ -103,7 +103,7 @@ void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("L
 int FIsLoadFilterMatch(int cfilter, short *afilter) __asm__("IsCurrentLevelInList__FiPs");
 
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
-extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis) __asm__("LoadSaaFromBrx");
+extern "C" SAA *PsaaLoadFromBrx(int isGlobsetOwned, CBinaryInputStream *pbis) __asm__("LoadSaaFromBrx");
 extern "C" void LoadSubglobType2FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
 extern "C" void LoadSubglobType1FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
 void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("LoadSubglobType3FromBrx");
@@ -130,7 +130,7 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
     pglobset->apsaa = (SAA **)PvAllocSwClear(pglobset->cpsaa * sizeof(SAA *));
     for (int i = 0; i < pglobset->cpsaa; i++)
     {
-        pglobset->apsaa[i] = PsaaLoadFromBrx((void *)1, pbis);
+        pglobset->apsaa[i] = PsaaLoadFromBrx(1, pbis);
     }
     pglobset->numShaderOids = pbis->U8Read();
     pglobset->shaderOids = (int *)PvAllocSwClear(pglobset->numShaderOids * sizeof(int));
