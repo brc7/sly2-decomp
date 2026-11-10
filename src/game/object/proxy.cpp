@@ -551,7 +551,7 @@ void PROXY::Init()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneProxy {
 struct RC { int cRef; };
-struct E { int unknown0; int unknown4; struct RC *frame; int pad[3]; };   /* a PROXYINIT record; frame: its Splice frame */
+struct E { int kind; int cid; struct RC *frame; int cb; void *pvOptions; LO *plo; };   /* a PROXYINIT record (xfm.h); frame: its Splice frame */
 struct SP { struct RC *p; };
 void CloneXfm(PROXY *p, PROXY *q) __asm__("CloneXfm");
 struct E *AllocCopyFromWorldHeap(struct SWALLOC *pal, struct E *pv) __asm__("AllocCopyFromWorldHeap");
@@ -796,11 +796,14 @@ namespace M_PspareAcquire {
 typedef int qword __attribute__((mode(TI)));
 struct P;
 struct M4 {qword rows[4];};
-struct NODE {P *owner;NODE *next;char pad8[8];M4 matrix;};
-struct TREE {int id;TREE *parent;char pad8[8];P *owner;};
+struct NODE {P *owner;NODE *next;int fLocked,spare0C;M4 matrix;};   /* a PROXYSPARE (xfm.h) */
+struct TREE {int id;TREE *parent;int proxyOid;void *oidHashNext;P *owner;};   /* a PXR (lo.h) */
 struct BIND {int kind,pad4;void *resource;void *begin,*end;P *object;};
 struct TABLE {int count;P **objects;int capacity,used;char pad10[0x54];void *states;NODE *nodes;};
-struct P {void *resource;char pad4[8];VTE *vt;void *context;char pad14[0x24];float scale;char pad3C[0x14];void *channel;char pad54[0xC];M4 matrix;char padA0[0x40];TABLE *table;int disabled;NODE *head;int bindCount;BIND *binds;};
+/* The proxy (xfm.h PROXY), and as work.found / child its copies' objects (LO): words named after lo.h / xfm.h. */
+struct P {void *scriptFrame;void *scriptVariables,*firstSubscriber;VTE *vt;void *context;void *root;int oid;void *oidNext,*classNext,*siblingNext,*siblingPrev;
+    char cpaloFindSwObjects;unsigned char visibilityMask;short bits2E;float nextSpliceTime;void *firstRunCallback;float scale;void *proxyRecord,*ploupd;int lo44[3];
+    void *channel;int worldStamp;int xfm58[2];M4 matrix;M4 matWorld;TABLE *table;int disabled;NODE *head;int bindCount;BIND *binds;};
 struct DESC {int kind,flags;char pad8[0x20];};
 struct STREAM {int flags;unsigned char *cursor;int remaining,consumed;unsigned char *raw;int rawCount,compression,pending,word20;unsigned char *decompressed;int word28,word2C;void *vptr;void *begin,*end;};
 struct WORK {int id;P *found,*child;void *cursor;P *owner;};
@@ -848,8 +851,8 @@ NODE *AcquireProxySpare(P *proxy,int minimum) __asm__("AcquireProxySpare"); NODE
   int index;
   while((index=S16Read__18CBinaryInputStream(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}
   if(bind->resource && !proxy->disabled){
-   if(work.found->resource)CFrame_AddParent(bind->resource,work.found->resource);
-   FramePtr_Assign(&work.found->resource,bind->resource);
+   if(work.found->scriptFrame)CFrame_AddParent(bind->resource,work.found->scriptFrame);
+   FramePtr_Assign(&work.found->scriptFrame,bind->resource);
   }
   CMemInputStream_dtor(&stream,2);
  }
@@ -906,7 +909,7 @@ extern "C" void EnsureProxyCopy(PROXY *proxy)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB360 {
-struct R { int a[4]; R(int c, int f, void **ap) __asm__("BuildSpliceListFromUniformValues"); };
+struct R : CRefData { int a8[2]; R(int c, int f, void **ap) __asm__("BuildSpliceListFromUniformValues"); };   /* the Splice list value (cref.h CRefData: tag, payload pointer); 16 bytes as the original returns it */
 
 R GetProxyCopyObjects(PROXY *p) __asm__("GetProxyCopyObjects");
 
