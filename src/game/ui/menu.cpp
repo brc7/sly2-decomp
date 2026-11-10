@@ -59,7 +59,7 @@ typedef char GROUP_Size[sizeof(PAGE)==28?1:-1];
 
 struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; unsigned int r1; } __attribute__((aligned(8)));
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
-struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
+struct MCDLG { char pad[0xC]; void *unknownC; void *unknown10; char pad14[0x24 - 0x14]; WIDGET *unknown24; char pad28[0x4C - 0x28]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
 struct OPT;
 
 extern "C" {

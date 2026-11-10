@@ -937,7 +937,7 @@ extern "C" struct O *FindShaderAnimById(int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateShaders {
-struct O { char pad[0xC]; VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
+struct O { void *scriptFrame; void *scriptVariables; void *firstSubscriber; VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
 int ShouldUpdateSaa__FP3SAA(struct O *p) __asm__("ShouldUpdateSaa__FP3SAA");
 // For each SAA in (*(struct O * *)&g_sw.slSaa): if ShouldUpdateSaa call its vt8 (Update) (inferred)
 extern "C" void UpdateShaders(void)

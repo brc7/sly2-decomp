@@ -381,7 +381,7 @@ struct ATTACH {char pad0[0x10];P *owner;int index,id;void *object;void *binding;
 struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];float tilt;char pad18[0x48];};
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
-struct P {char pad0[0xC];VTE *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
+struct P {void *scriptFrame; void *scriptVariables; void *firstSubscriber;VTE *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
 extern const qword g_normalZ __asm__("g_normalZ");
 extern POLY D_002C2040 __asm__("D_002C2040");
 extern POLY D_002C2060 __asm__("D_002C2060");

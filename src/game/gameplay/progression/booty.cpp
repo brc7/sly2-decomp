@@ -32,7 +32,7 @@ struct CID37V;
 struct HERO;
 
 /* A world object with a vtable. */
-struct RLO { char pad[0xC]; VT *pvt; };
+struct RLO { void *scriptFrame; void *scriptVariables; void *firstSubscriber; VT *pvt; };
 
 /* A booty entry (0x2C bytes; at most 0x20, LoadBootyFromBrx copies the used ones to the SW heap). */
 struct BOOTYE { int id; int unknown4; char pad8[4]; int hasTimer; int allowedDuringJob; int containerKind; int partsId; unsigned int c1C; OID aoid[3]; };
@@ -42,14 +42,14 @@ typedef char assert_BOOTYE_size[sizeof(BOOTYE) == 0x2C ? 1 : -1];
 
 struct BOOTYV
 {
-    char pad0[0xC];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     VT *pvt;                /* 0x0C */
-    char pad10[0x40 - 0x10];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord;
     int taggedFlags;        /* 0x40 tagged flags word */
-    char pad44[0xE0 - 0x44];
+    void *unknown44; char pad48[0x54 - 0x48]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; void *unknown74; char pad78[0x80 - 0x78]; void *unknown80; char pad84[0xA4 - 0x84]; void *unknownA4; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; void *unknownB4; char padB8[0xBC - 0xB8]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD0 - 0xCC]; void *unknownD0; char padD4[0xD8 - 0xD4]; void *unknownD8; void *unknownDC;
     int cpart;              /* 0xE0 */
     char *apart;            /* 0xE4 SOPARTs (0xB0 each) */
-    char padE8[0x150 - 0xE8];
+    void *physics; void *physicsTree; char padF0[0x100 - 0xF0]; void *unknown100; char pad104[0x134 - 0x104]; void *psobounds; void *pxa; char pad13C[0x144 - 0x13C]; void *prender; char pad148[0x150 - 0x148];
     int cbootye;            /* 0x150 */
     BOOTYE *abootye;        /* 0x154 */
     BOOTYE *pbootyeCur;     /* 0x158 */
@@ -69,10 +69,10 @@ struct ALARM : BOOTYV { };
 /* The container (CID 0x25): a pickup-like object holding at most one booty. */
 struct CID37V
 {
-    char pad0[0xC];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     VT *pvt;                /* 0x0C */
     void *parent;           /* 0x10 LO::parent */
-    char pad14[0x180 - 0x14];
+    void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x44 - 0x40]; ASEGBL *unknown44; char pad48[0x4C - 0x48]; void *unknown4C; void *parentTransform; char pad54[0x7C - 0x54]; void *unknown7C; char pad80[0xAC - 0x80]; void *unknownAC; char padB0[0xEC - 0xB0]; void *unknownEC; char padF0[0x100 - 0xF0]; void *unknown100; void *unknown104; void *unknown108; void *unknown10C; char pad110[0x114 - 0x110]; void *relay; char pad118[0x120 - 0x118]; void *unknown120; void *unknown124; void *unknown128; char pad12C[0x130 - 0x12C]; void *unknown130; void *unknown134; char pad138[0x13C - 0x138]; void *unknown13C; char pad140[0x150 - 0x140]; void *unknown150; void *unknown154; char pad158[0x16C - 0x158]; void *unknown16C; char pad170[0x180 - 0x170];
     union { int id; unsigned short idShort; };  /* 0x180 */
     int kind;               /* 0x184 */
     int acceptedKind;       /* 0x188 the booty kind it takes (inferred) */

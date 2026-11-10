@@ -2311,7 +2311,7 @@ namespace M_func_001E9C88 {
  * un-noted init in the loop preheader. The MSG request reuses pos2's stack slot. */
 typedef int qword __attribute__((mode(TI)));
 struct SEG { float a, b; };
-struct O { char padC[0xC]; void *vt; char pad10[0xE0-0x10]; int curved; int isClosed; int count; float *parameters; float *distances; qword *points; };
+struct O { void *scriptFrame; void *scriptVariables; void *firstSubscriber; void *vt; char pad10[0xE0-0x10]; int curved; int isClosed; int count; float *parameters; float *distances; qword *points; };
 struct S { struct O *po; int c4; struct SEG *aseg; int cC; struct SEG aseg10[16]; int c90; void **apv; int n98; };
 extern float D_002C367C __asm__("D_002C367C");
 float GetShapeMinDistance(struct O *) __asm__("GetShapeMinDistance");

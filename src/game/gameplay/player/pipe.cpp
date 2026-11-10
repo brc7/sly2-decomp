@@ -17,18 +17,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct K { int a, b; };
 /* View of the pipe (a SHAPE). */
-struct PIPEV
+struct PIPEV : BASIC 
 {
-    char pad0[0x38];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
     float length;           /* +0x038 1e10 at load: the shape's length (UpdateShapeBoundingSphere) plus D_002C0D00 */
-    char pad3C[0xA8];
+    void *proxyRecord; char pad40[0x50 - 0x40]; void *parentTransform; char pad54[0x6C - 0x54]; void *unknown6C; char pad70[0xBC - 0x70]; void *unknownBC; char padC0[0xE4 - 0xC0];
     int isCyclic;           /* +0x0E4 closed shape: distances wrap, no range clamp */
-    char pad0E8[0xA8];
+    char pad0E8[0xEC - 0xE8]; void *vertexParams; void *vertexArcLengths; void *vertexPositions; char padF8[0xFC - 0xF8]; void *unknownFC; char pad100[0x12C - 0x100]; void *unknown12C; char pad130[0x140 - 0x130]; void *incomingTangents; void *outgoingTangents; char pad148[0x17C - 0x148]; void *chain; void *pranges; char pad184[0x190 - 0x184];
     char grabspot[0x1C];    /* +0x190 GRABSPOTDATA (its +0x1C, +0x24 follow) */
     int isGrabDisabled;     /* +0x1AC 1 at init (SetPipeGrabEnabled sets it to !arg) */
-    char pad1B0[4];
+    void *unknown1B0;
     K k;                    /* +0x1B4 kept across CloneShape */
-    char pad1BC[4];
+    void *unknown1BC;
     qword axis;             /* +0x1C0 the reference axis (D_002A2DA0 at init) */
     int grabParamA;         /* +0x1D0 8 at init */
     int grabParamB;         /* +0x1D4 9 at init */

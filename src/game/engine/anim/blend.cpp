@@ -33,7 +33,7 @@ struct OBJ { int vtableWord; ASEG *px; BLMRSG *syncTables; OBJ **apobj; qword re
 /* The value a channel is evaluated into (0x100 bytes). */
 struct CHN
 {
-    char pad[0x80];
+    char pad[0x4]; void *pac; char pad8[0x80 - 0x8];
     float segmentStartTime;
     float segmentEndTime;
     float *currentTimePtr;
@@ -57,12 +57,12 @@ struct XB {
 };
 /* View of an animation segment (ASEG; the fields from +0xC0 on are those of a blend, ASEGBL). */
 struct ASEG : XB {
-    char pad10[0x40];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x50 - 0x40];
     LINK *links;       /* +0x50 */
-    char pad54[0x5C - 0x54];
+    void *unknown54; char pad58[0x5C - 0x58];
     int c;                  /* +0x5C */
     ENT *entries;              /* +0x60 */
-    char pad64[0x6C - 0x64];
+    char pad64[0x68 - 0x64]; void *aovr;
     int priority;
     int worldHold;
     float duration;         /* +0x74 duration */
@@ -71,7 +71,7 @@ struct ASEG : XB {
     int startEventCount, startEvents, frameEventCount;      /* +0x98..: start / per-frame / end event tables (EA), +0xA0 the frame event count */
     KEY *frameEvents;               /* +0xA4 frameEvents */
     int endEventCount, endEvents;
-    char padB0[0xC0 - 0xB0];
+    void *pasegstart; char padB4[0xC0 - 0xB4];
     int cb;                 /* +0xC0 element size */
     int elementCount;              /* +0xC4 */
     ELEM *elements;            /* +0xC8 */

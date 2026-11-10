@@ -1710,7 +1710,7 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
 
 namespace M_func_001B7700 {
 /* A transform (XF) as read here: position, parent and velocity. */
-struct XFV{char pad[0x30];qword pos;char pad40[0x60];struct XFV*parent;char padA4[0xC];qword velocity;};
+struct XFV{char pad[0x30];qword pos;char pad40[0x88 - 0x40]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0xA0 - 0x94];struct XFV*parent;char padA4[0xA8 - 0xA4]; void *unknownA8; char padAC[0xB0 - 0xAC];qword velocity;};
 extern qword g_normalZ __asm__("g_normalZ");
 extern float D_002C09C8 __asm__("D_002C09C8");
 qword ConvertXfVec(struct XFV*,struct XFV*,qword) __asm__("ConvertXfVec");

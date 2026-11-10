@@ -42,13 +42,13 @@ struct XFV
     U pos;                  /* 0x30 */
     M3 worldMatrix;         /* 0x40 */
     U posWorld;             /* 0x70 */
-    char pad80[0x98 - 0x80];
+    char pad80[0x88 - 0x80]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0x98 - 0x94];
     short role;             /* 0x98 */
     short phase;
     int oid;
     XFV *parent;             /* 0xA0 */
     int worldStamp;         /* 0xA4 */
-    char padA8[8];
+    void *unknownA8; char padAC[0xB0 - 0xAC];
     U v;                    /* 0xB0 velocity */
     qword restValue;
     qword rate;

@@ -1132,7 +1132,7 @@ struct X {
     short segmentKind;
     int oid;
     X *parent;
-    int padA4[3];
+    int padA4[(0xA8 - 0xA4) / 4]; void *unknownA8; int padAC[(0xB0 - 0xAC) / 4];
     qword velocity;
     M3 segment;
     qword segmentLast;

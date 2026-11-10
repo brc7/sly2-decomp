@@ -1250,7 +1250,7 @@ extern "C" void PostLoadSwPathzones(SW *world)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1138 {
-struct LO { char pad[0x124]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
+struct LO : ::LO { char pad[0x124 - 0x50]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
 struct S { char pad[0x10]; int c; int *zoneIds; struct LO **zones; int linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
 struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap) __asm__("FindSwObjectsByClass");
@@ -1689,7 +1689,7 @@ extern "C" qword GetPathlinkEndpointCenter(struct S *endpoint)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1FA0 {
 typedef int qword __attribute__((mode(TI)));
-struct LO { char pad[0x218]; qword *pq; };
+struct LO : ::LO { char pad[0x218 - 0x50]; qword *pq; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetPathlinkEndpointPos(void *p, qword q) __asm__("GetPathlinkEndpointPos");
 // Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects). (inferred)

@@ -37,7 +37,7 @@ struct STEPQ
 };
 
 struct MPEGV { char pad[0x108]; int unknown108; };   /* CMpeg: +0x108 set to 1 for a kind-1 movie */
-struct HV { char pad[0x44]; int unknown44; };   /* the memcard UI: +0x44 nonzero = already in a phase (inferred) */
+struct HV { char pad[0xC]; void *unknownC; void *unknown10; char pad14[0x24 - 0x14]; WIDGET *unknown24; char pad28[0x44 - 0x28]; int unknown44; };   /* the memcard UI: +0x44 nonzero = already in a phase (inferred) */
 
 extern MPEGV D_002F66B0;
 extern HV D_002E6550;

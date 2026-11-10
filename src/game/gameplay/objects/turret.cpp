@@ -27,13 +27,13 @@ struct O {char pad[0x60];void *component;char pad64[0x88];SHAPEV *shape;};
 /* View of the turret (a PO). */
 struct TURRETV
 {
-    char pad0[0xC];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     VTE *vt;            /* +0x00C */
-    char pad10[0x4C];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x54 - 0x40]; void *transforms; void *positionXf;
     int rotationXf;     /* +0x05C the rotation XF (an SO's pxf at +0x5C), handed to the rotation act */
-    char pad60[0xF0];
+    void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts; void *physics; void *physicsTree; char padF0[0x134 - 0xF0]; void *psobounds; void *pxa; char pad13C[0x150 - 0x13C];
     POCTL *control;   /* +0x150 */
-    char pad154[0x2C];
+    char pad154[0x168 - 0x154]; TURRET *unknown168; void *cameraTunnel; char pad170[0x174 - 0x170]; void *unknown174; char pad178[0x180 - 0x178];
     O *target;          /* +0x180 */
     int aim;            /* +0x184 aim at the target */
     int follow;         /* +0x188 zoom on the target */

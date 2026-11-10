@@ -484,7 +484,7 @@ extern "C" void PostSwLoad(SW *world)
 namespace M_ExecuteSwTransition {
 // Load the pending world and restore actor and view state.
 typedef unsigned int uint;
-struct KEY {int name,tag,kind;char data[0x104];};
+struct KEY {int name,tag,kind;void *vptr; void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; void *unknown2C; char pad30[0x34 - 0x30]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x4C - 0x40]; void *unknown4C; char pad50[0x54 - 0x50]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x7C - 0x74]; void *unknown7C; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; void *unknownAC; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts; void *physics; void *physicsTree; char padF0[0xFC - 0xF0]; void *unknownFC; char pad100[0x104 - 0x100]; void *unknown104; char pad108[0x10C - 0x108]; void *unknown10C;};
 struct ACTOR : PO {char pad180[0xF2C - 0x180];WIDGET *widget;};   /* a PO (hero/current actor); +0xF2C its widget */
 struct CONTEXT {char pad0[0x148];int count;struct {int tag,value;} objects[1];};
 struct FRAME;
