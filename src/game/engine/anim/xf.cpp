@@ -884,7 +884,7 @@ extern "C" void RefreshSoAfterSlotUpdate(SO *so);
 extern "C" void SolveIk(SO *so, void *pv);
 extern "C" void ApplyXfmConstraint(SO *so, struct XFLOCK *pxflock);
 void UpdateChainLink(SO *so, struct CHAINLINK *plink) __asm__("UpdateChainLink");
-extern "C" float *VECTOR_opAssign(float *pg, qword qw);
+float *VECTOR_opAssign(float *pg, qword qw) __asm__("VECTOR_opAssign");
 
 // ---- xf's .data, in address order (docs/guides/tu-merging.md "Data"; definition order is emission order, so the
 // block sits before the chase tuning below, which follows it in the ELF).
