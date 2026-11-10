@@ -354,7 +354,7 @@ struct JTAIR
       float unknown164;
       float rGravitySaved;   /* gravity scale saved while changed */
       struct TN *ptnLaunch;   /* camera tunnel of the launch */
-      undefined4 unknown170;
+      struct TN *unknown170;   /* +0x170 (inferred) a camera tunnel: a TN in 120/120 snapshots of Sly; no code reads it */
       int isGravityChanged;  /* gravity scale is changed */
       struct ASEG *unknown178;
       JTAIRBL abl[5];   /* air blends */
@@ -592,7 +592,7 @@ struct STEPPLAYER : public STEP
       int maxGadgetPower;   /* +0x1300 [R] max gadget power */
       float lastGadgetUseTime; /* +0x1304 [R] clock.time of the last gadget use */
       float gadgetPowerDrainRemainder; /* +0x1308 [R] fractional mp drain accumulator */
-      int pasegGadget;
+      struct ASEG *pasegGadget;   /* +0x130C the clip of the gadget being used: set from the character's gadget slots before grab state 0xB, played by stepplayer.cpp (ReplaceCurrentAseg) and cleared */
       struct ASEGA *pasegaGadgetOverlay;   /* +0x1310 [R] ASEGA of the gadget overlay animation; was pasegaUnk1310 */
       int idGadgetOverlay;  /* +0x1314 [R] gadget id of the overlay animation; was nUnk1314 */
       int unknown1318;
