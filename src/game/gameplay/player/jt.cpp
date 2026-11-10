@@ -384,8 +384,6 @@ union U{qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
 struct M4{U r[4];};
-struct ACTOR{char pad[0x80];qword response;};
-struct P{char pad0[0xC];void *vptr;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct WORK{U a,b;};
 
 extern qword g_normalZ __asm__("g_normalZ");
@@ -393,12 +391,12 @@ extern float D_002BF288 __asm__("D_002BF288");
 extern float D_002BF28C __asm__("D_002BF28C");
 extern float D_002BF290 __asm__("D_002BF290");
 extern float D_002BF294 __asm__("D_002BF294");
-void PresetSoAccel(P*) __asm__("PresetSoAccel");void PresetStepAccel(P*) __asm__("PresetStepAccel");
-void PresetJtAccelHang__FP2JT(P*) __asm__("PresetJtAccelHang__FP2JT");void PresetJtAccelPipe(void*) __asm__("PresetJtAccelPipe");void PresetJtAccelJump(void*) __asm__("PresetJtAccelJump");
+void PresetSoAccel(JT*) __asm__("PresetSoAccel");void PresetStepAccel(JT*) __asm__("PresetStepAccel");
+void PresetJtAccelHang__FP2JT(JT*) __asm__("PresetJtAccelHang__FP2JT");void PresetJtAccelPipe(void*) __asm__("PresetJtAccelPipe");void PresetJtAccelJump(void*) __asm__("PresetJtAccelJump");
 void PresetJtAccelZap(void*) __asm__("PresetJtAccelZap");void PresetJtAccelHide(void*) __asm__("PresetJtAccelHide");void CorrectBentleyRideVelocity(void*) __asm__("CorrectBentleyRideVelocity");
-qword GetStepAsegaTranslation(P*,ASEGA*,float) __asm__("GetStepAsegaTranslation");float GetAsegLabelTime(void*,int) __asm__("GetAsegLabelTime");
-void AddSoAcceleration(P*,qword) __asm__("AddSoAcceleration");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
-M4*GetLoWorldMatrix(P*) __asm__("GetLoWorldMatrix");float SplitVectorAlongAxis(qword,qword,qword*,qword*) __asm__("SplitVectorAlongAxis");
+qword GetStepAsegaTranslation(JT*,ASEGA*,float) __asm__("GetStepAsegaTranslation");float GetAsegLabelTime(void*,int) __asm__("GetAsegLabelTime");
+void AddSoAcceleration(JT*,qword) __asm__("AddSoAcceleration");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
+M4*GetLoWorldMatrix(JT*) __asm__("GetLoWorldMatrix");float SplitVectorAlongAxis(qword,qword,qword*,qword*) __asm__("SplitVectorAlongAxis");
 M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
 
 struct VU_FLOAT{qword qw;};
@@ -420,17 +418,17 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
 // JT physics preset (slot 70): the base preset (SO for states 3/8, else STEP), then the per-state handler (air, grab,
 // hang, pipe, hurt ...).
 // Also known as: UpdateSlyMotion (upstream readable / Sly 1 name; UpdateSlyMotion__FP3SLY).
-extern "C" void PresetJtAccel(P *jt)
+extern "C" void PresetJtAccel(JT *jt)
 {
     WORK w;
-    switch (jt->mode) {
+    switch (jt->state) {
     case 3:
     case 8: PresetSoAccel(jt); break;
     case 21:
     case 22: break;
     default: PresetStepAccel(jt); break;
     }
-    switch (jt->mode) {
+    switch (jt->state) {
     case 3: PresetJtAccelHang__FP2JT(jt); break;
     case 8: PresetJtAccelPipe(&AsStepplayer(jt)->jtpipe); break;
     case 2: PresetJtAccelJump(&AsStepplayer(jt)->jtair); break;
@@ -439,10 +437,10 @@ extern "C" void PresetJtAccel(P *jt)
     case 6: CorrectBentleyRideVelocity((char *)jt + 0x1FF0); break;
     case 14: {
         w.a.q = AsJt(jt)->GetVelocity();
-        w.b.q = GetStepAsegaTranslation(jt, jt->model, jt->model->time);
-        float cap = GetAsegLabelTime(jt->lookup, 0x16D);
-        if (jt->model->time < cap) {
-            qword resp = jt->actor->response;
+        w.b.q = GetStepAsegaTranslation(jt, jt->activeAnimation, jt->activeAnimation->time);
+        float cap = GetAsegLabelTime(jt->unknown1A84, 0x16D);
+        if (jt->activeAnimation->time < cap) {
+            qword resp = *(qword *)&jt->physics->gravity;
             AddSoAcceleration(jt, ScaleVecX(resp, VuFloat(-1.0f)));
         } else
             w.b.f[2] = w.a.f[2];
@@ -452,7 +450,7 @@ extern "C" void PresetJtAccel(P *jt)
         break;
     }
     case 24:
-        if (jt->submode == 13) {
+        if (jt->bodyState == 13) {
             qword position = AsJt(jt)->GetVelocity();
             qword direction = AsJt(jt)->GetAngularVelocity();
             M4 *m = GetLoWorldMatrix(jt);
@@ -485,13 +483,6 @@ typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
 //typedef char WORK_Size[(sizeof(WORK)==0x90)?1:-1];
-typedef char ACTOR_response_Offset[((unsigned)&((ACTOR*)0)->response==128)?1:-1];
-typedef char P_vptr_Offset[((unsigned)&((P*)0)->vptr==12)?1:-1];
-typedef char P_actor_Offset[((unsigned)&((P*)0)->actor==232)?1:-1];
-typedef char P_model_Offset[((unsigned)&((P*)0)->model==4144)?1:-1];
-typedef char P_mode_Offset[((unsigned)&((P*)0)->mode==6344)?1:-1];
-typedef char P_submode_Offset[((unsigned)&((P*)0)->submode==6352)?1:-1];
-typedef char P_lookup_Offset[((unsigned)&((P*)0)->lookup==6788)?1:-1];
 } // namespace M_func_00188960
 
 // Keeps its per-function views in a namespace of its own (see the file header).
