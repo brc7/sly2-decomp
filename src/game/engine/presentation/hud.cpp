@@ -2536,15 +2536,14 @@ namespace M_func_002166B0 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float a[6]; } __attribute__((aligned(16))) T;
 typedef struct { float a[16]; } __attribute__((aligned(16))) O;
-struct RT {char pad[8];void *font;char padC[0x14];qword color0,color1;char pad40[0x20];int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword color0,color1;};
 
-void BuildRichTextMatrix(struct RT *p, O *po, T *pt) __asm__("BuildRichTextMatrix");
-void DrawRichText2Glyphs(struct RT *p, O *po, struct DATA *q) __asm__("DrawRichText2Glyphs");
+void BuildRichTextMatrix(CRichText2 *p, O *po, T *pt) __asm__("BuildRichTextMatrix");
+void DrawRichText2Glyphs(CRichText2 *p, O *po, struct DATA *q) __asm__("DrawRichText2Glyphs");
 // Store the x scale (register-pinned to $f2).
-extern "C" { static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->scaleX):"f"(x));} }
+extern "C" { static inline void StoreX(CRichText2 *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->scaleX):"f"(x));} }
 // Draws rich text at a sprite transform (font scale, line height). (inferred)
-extern "C" void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
+extern "C" void DrawRichText2AtXf(CRichText2 *p, T *pt, struct DATA *q)
 {
     T t = *pt;
     O o;
@@ -2564,15 +2563,14 @@ namespace M_func_00216750 {
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
-struct RT {char pad[8];void *font;char padc[0x14];qword color0,color1;char pad40[0x20];int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 union M4 {qword r[4];float a[16];};
 struct DATA {uint color;int mode;float priority;uint limit;qword color0,color1;};
 struct GLYPH {int a;void *data;char pad8[0xA];unsigned short mode;char pad14[8];void *address;char pad20[0x20];};
 extern VIFS D_002DEA28 __asm__("D_002DEA28");
 extern float D_002C40A8 __asm__("D_002C40A8"),D_002C40AC __asm__("D_002C40AC"),D_002C40B0 __asm__("D_002C40B0"),D_002C40B4 __asm__("D_002C40B4");
 void *func_002333B4(void *,int,int) __asm__("memset");
-void ResetRichText2(struct RT *,char *) __asm__("ResetRichText2");
-int GetRichText2NextChar(struct RT *) __asm__("GetRichText2NextChar");
+void ResetRichText2(CRichText2 *,unsigned char *) __asm__("ResetRichText2");
+int GetRichText2NextChar(CRichText2 *) __asm__("GetRichText2NextChar");
 float GetFontGlyphWidth2(void *,int) __asm__("GetFontGlyphWidth2");
 struct GLYPH *GetGlyph__8CFontBrxc(void *,int) __asm__("GetGlyph__8CFontBrxc");
 void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int) __asm__("BuildGlyphPacket");
@@ -2584,7 +2582,7 @@ extern "C" { static inline void Align(VIFS *r,int word){while(((uint)r->m_pb&15)
 // True when the matrix translation (a[8], a[9]) lies inside the bounds [*left, D_002C40AC] x [D_002C40B0, D_002C40B4].
 extern "C" { static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;} }
 // Aligns, clips and queues the glyphs with their colours. (inferred)
-extern "C" void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
+extern "C" void DrawRichText2Glyphs(CRichText2 *p,union M4 *matrix,struct DATA *style){
     float widths[32];
     unsigned char *tag=D_002DEA28.m_pb;
     int line=0;
@@ -2628,7 +2626,7 @@ extern "C" void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *s
                 if(glyph){
                     int visible=Visible(matrix,&D_002C40A8);
                     if(glyph->data && visible){
-                        if(flags&2){style->color0=p->color0;style->color1=p->color1;}
+                        if(flags&2){style->color0=p->color0.q;style->color1=p->color1.q;}
                         BuildGlyphPacket(glyph,matrix,style,flags);
                         drawCount++;
                         if(drawCount>=until)flags=0;
