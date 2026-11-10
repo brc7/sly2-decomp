@@ -2948,7 +2948,7 @@ extern "C" void UseMurrayGadget(MURRAY *murray, int k)
         break;
     case 15:
         murray->jtgrab.gadgetId = k;
-        murray->unknown130C = murray->unknown1AC4;
+        murray->pasegGadget = murray->unknown1AC4;
         SetJtGrabState(&murray->jtgrab, 0xB, 0, 0);
         break;
     case 19:
