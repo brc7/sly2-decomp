@@ -34,6 +34,7 @@
 #include "sly2/vtables.h"
 #include "sly2/classes.h"
 #include "bis.h"
+#include "sly2/hw.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -582,7 +583,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
     CStreamBis_ctor(argument,0xD8000,D_002F7980,0);
     if(hasFile&&!OpenStreamFromFileKey(reader,&key)){DestroyCStreamBis(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
-    SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
+    SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)SLY2_HW_SCRATCHPAD);
     CStreamBis_Refill(reader);
     DeleteSw(world);
     ResetClock(&g_clock);

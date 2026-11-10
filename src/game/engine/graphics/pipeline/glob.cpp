@@ -30,6 +30,7 @@
 #include "sly2/util.h"
 #include "sly2/classes.h"
 #include "sly2/clock.h"
+#include "sly2/hw.h"
 
 // The real class behind the per-function SO views below, for its virtual calls.
 static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
@@ -450,7 +451,7 @@ extern "C" int VU1_Interrupt(void)
 {
     StoreRelightColors(0x1100C320);
     iFlushCache(0);
-    *(volatile int *)0x10003C10 = 8;
+    *(volatile int *)SLY2_HW_VIF1_FBRST = 8;
     asm volatile("sync\n\tei");
     return -1;
 }

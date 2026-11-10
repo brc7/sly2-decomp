@@ -13,6 +13,7 @@
 #include "sly2/joy.h"
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
+#include "sly2/hw.h"
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 /* A movie (0x40): its file key words (xor-scrambled offset / length / id). */
@@ -417,9 +418,9 @@ extern "C" int CQueueOutputIpu_WriteBytes(void *p, unsigned int cb, unsigned int
 {
     int n = cb & 0xFFFFFFF0;
     if (n > 0x1000) n = 0x1000;
-    *(volatile unsigned int *)0x1000B420 = (unsigned int)n >> 4;
-    *(volatile unsigned int *)0x1000B410 = pv & 0x0FFFFFFF;
-    *(volatile unsigned int *)0x1000B400 = 0x101;
+    *(volatile unsigned int *)SLY2_HW_IPU_TO_QWC = (unsigned int)n >> 4;
+    *(volatile unsigned int *)SLY2_HW_IPU_TO_MADR = pv & 0x0FFFFFFF;   /* physical address */
+    *(volatile unsigned int *)SLY2_HW_IPU_TO_CHCR = 0x101;
     __asm__ __volatile__("sync");
     return n;
 }
@@ -803,7 +804,7 @@ void CMpeg_Start(CMPEG *player, CBinaryAsyncStream *a)
 {
     player->pstrm = a;
     player->n10C = 0;
-    Init__10CByteQueueiPv(&player->qVideo, 0x40000, (void *)(((unsigned)player->pb + 0x245A80) | 0x20000000));
+    Init__10CByteQueueiPv(&player->qVideo, 0x40000, (void *)SLY2_UNCACHED((uptr)player->pb + 0x245A80));
     Init__10CMpegAudio(&player->audio);
     sceMpegInit();
     sceMpegCreate(&player->mpeg, player->pb + 0x98000, 0x1ADA60);

@@ -6,6 +6,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sprbuf
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00201D58
 #include "sly2/slotheap.h"
+#include "sly2/hw.h"
 
 typedef char *va_list;
 #define va_start(ap, last) (ap = ((char *)__builtin_next_arg(last) - (__builtin_args_info(2) >= 8 ? 0 : (8 - __builtin_args_info(2)) * 8)))
@@ -44,10 +45,10 @@ void sceDmaRecv(DMAC *pch);
 }
 extern ulong D_003DD380[16], D_003DD400[16];   /* the two tag lists, defined after D_003DD2C0 (address order) */
 
-// The first scratchpad double buffer (scratchpad 0x70000000, DMA tags D_003DD380 in uncached space).
-static inline SPRBUF MakeFirst() { SPRBUF b; b.scratchpad = (char *)0x70000000; b.dmaTags = (ulong *)((int)D_003DD380 | 0x20000000); return b; }
-// The second scratchpad double buffer (DMA tags D_003DD400 in uncached space).
-static inline SPRBUF MakeSecond() { SPRBUF b; b.dmaTags = (ulong *)((int)D_003DD400 | 0x20000000); b.scratchpad = (char *)0x70002000; return b; }
+// The first scratchpad double buffer (the scratchpad's first 8 KB, DMA tags D_003DD380 in uncached space).
+static inline SPRBUF MakeFirst() { SPRBUF b; b.scratchpad = (char *)SLY2_HW_SCRATCHPAD; b.dmaTags = (ulong *)SLY2_UNCACHED((sptr)D_003DD380); return b; }
+// The second scratchpad double buffer (the second 8 KB, DMA tags D_003DD400 in uncached space).
+static inline SPRBUF MakeSecond() { SPRBUF b; b.dmaTags = (ulong *)SLY2_UNCACHED((sptr)D_003DD400); b.scratchpad = (char *)(SLY2_HW_SCRATCHPAD + 0x2000); return b; }
 
 // 0x2019F0 StaticInit_sprbuf (218 instructions) and its _GLOBAL_$I$ stub func_00201D58: generated
 // by g++ for the SPRBUF pair below, then the six engine slot pools.

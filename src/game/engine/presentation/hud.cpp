@@ -35,6 +35,7 @@
 #include "sly2/save.h"
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
+#include "sly2/hw.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (subtitle), base of D_004435F4 */
 
@@ -817,7 +818,7 @@ extern "C" void LoadWidgetSprites(WIDGET *widget) {
     key->kind=2;
     InitFileKey(key);
     if(!SetKey(&work.key,widget->deferredLoad)||!OpenStreamFromFileKey(bs,key))goto fail;
-    SetDecompress__18CBinaryInputStreamiPUc(bs,0x4000,(void *)0x70000000);
+    SetDecompress__18CBinaryInputStreamiPUc(bs,0x4000,(void *)SLY2_HW_SCRATCHPAD);
     work.tmp.magic[0]=U8Read__18CBinaryInputStream(bs);
     work.tmp.magic[1]=U8Read__18CBinaryInputStream(bs);
     work.tmp.magic[2]=U8Read__18CBinaryInputStream(bs);
@@ -1233,7 +1234,7 @@ static inline void Scale(V4 &v,int a,int b,int d,int e,float upper){float x=Colo
 // Set the color scale from the widget's color1 bytes.
 static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q->color1[1],q->color1[2],q->color1[3],upper);}
 // Switch the packet pointers to the uncached mirror (0x30000000), then queue the widget's render setup.
-static inline Q *Begin(WIDGETIsland *p,VIFS *r){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c|=0x30000000;b|=0x30000000;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
+static inline Q *Begin(WIDGETIsland *p,VIFS *r){Align(r);uptr c=(uptr)r->m_pb,b=(uptr)r->m_pbMax;c=SLY2_UNCACHED_ACCEL(c);b=SLY2_UNCACHED_ACCEL(b);r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
 // Switch the packet pointers back to cached addresses and empty the widget's render queue.
 static inline void Finish(VIFS *r,WIDGETIsland *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 } // namespace M_RenderWidget
