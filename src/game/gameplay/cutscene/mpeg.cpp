@@ -217,7 +217,7 @@ SUBT *FindMpegSubtitles(K *pe) {
 // Sends the decoded frame (and the optional subtitle packet x) to the GS and swaps the display buffers.
 static __inline__ void Draw(QW *x, CMPEG *draw)
 {
-    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, (QW *)((unsigned)draw->pb + 0x41BC00));
+    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, (QW *)(draw->pb + 0x41BC00));
     if (x) SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, x);
     SwapGsBuffers__Fv();
 }
@@ -230,12 +230,12 @@ void MpegDisplayThread(void)
         D_002F66B0.stage = 0;
         func_00234A60(D_002F66B0.sema);
         D_002F66B0.stage = 1;
-        SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, (QW *)((unsigned)D_002F66B0.pb + 0x3F8E80));
+        SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, (QW *)(D_002F66B0.pb + 0x3F8E80));
         D_002F66B0.stage = 2;
         RestoreGsBuffers__Fv();
         x = 0;
         if (D_002F66B0.psubt && IsWithinLimits__FP2LMf(&D_002F66B0.psubt->window, g_clock.realTime - D_002F66B0.t10C))
-            x = (QW *)((unsigned)D_002F66B0.pb + 0x41DC00);
+            x = (QW *)(D_002F66B0.pb + 0x41DC00);
         Draw(x, &D_002F66B0);
         Draw(x, &D_002F66B0);
     }
