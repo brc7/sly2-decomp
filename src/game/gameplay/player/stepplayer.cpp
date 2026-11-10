@@ -646,7 +646,7 @@ namespace M_HandleStepplayerMessage {
 typedef int qword __attribute__((mode(TI)));
 /* g_pdliFirst: sly2/dli.h's declaration (one entity with the inline DLI helpers) */
 #define F(T, p, off) (*(T *)((char *)(p) + (off)))
-struct SO { char pad[0x18]; void *p18; };
+struct SO : BASIC { void *parent; void *root; void *p18; };
 struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
 struct ENT { void *po; int x4; };
