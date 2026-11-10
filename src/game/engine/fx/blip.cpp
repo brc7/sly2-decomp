@@ -131,7 +131,7 @@ extern DL D_002DEB00;
 extern qwordV D_002A2DD0;
 int D_002BC9C0 = 0;     /* blip's .data: force the CPU projection */
 extern int D_002C3C5C;
-extern void *D_002DE59C;
+extern void *g_pdcFromSpr;
 extern M3 D_002A2D00;
 extern char D_00000000[];
 extern char D_00000390[];
@@ -508,7 +508,7 @@ extern "C" int CblipeProjectBlipTransformAccelM(M4 *pm, VU_FLOATM dt, char *a, c
                                                 VECTORV *pvMin, VECTORV *pvMax) __asm__("ProjectBlipTransformAccel");
 // Float broadcast into a VU0 register (default constructor leaves it unset).
 struct VU_FLOATA { qwordV qw; VU_FLOATA(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(f)); } VU_FLOATA() {} };
-// Load the frame clock's dt word (D_002DDED0.dt) into a VU float.
+// Load the frame clock's dt word (g_clock.dt) into a VU float.
 static inline VU_FLOATM VuFloatDt()
 {
     VU_FLOATM v;
@@ -585,7 +585,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
         else pq->i = i;
         pq = pqNext;
     }
-    sceDmaSync(D_002DE59C, 0, 0);
+    sceDmaSync(g_pdcFromSpr, 0, 0);
     if (blipGroup->numLiveParticles <= 0) {
         AsLo(blipGroup)->Remove();
     } else {

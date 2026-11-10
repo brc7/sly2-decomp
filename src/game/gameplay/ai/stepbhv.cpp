@@ -46,7 +46,7 @@ enum {
 
 /* The behaviours are the classes.h ones (BHVWALKGOAL, BHV193, BHVFOLLOW, BHV195..198 on BHV/BHVPATH); their owners are
    partners (STEPPLAYER: MURRAY, BENTLEY, JT), read through those types. */
-extern qword D_002A2DC0;   /* the up axis (0, 0, 1) */
+extern qword g_normalZ;   /* the up axis (0, 0, 1) */
 extern qword D_002A2DA0;   /* the default direction for a zero vector */
 extern "C" {
 void InitBhv(BHV *behavior);
@@ -124,7 +124,7 @@ extern "C" void UpdateBhvwalkgoal(BHVWALKGOAL *behavior)
 // Keeps its .data and VU0 helpers in a namespace of its own (see the file header).
 namespace M_UpdateBhvwalkgoalPoctl {
 float D_002BD2E0[3] __asm__("D_002BD2E0") = {0.0f, 0.01f, 0.0f};
-extern float D_002BBB60[2] __asm__("D_002BBB60");
+extern float g_lmZeroOne[2] __asm__("g_lmZeroOne");
 float D_002BD2F0 __asm__("D_002BD2F0") __attribute__((aligned(16))) = 500.0f;
 
 // VU0 helper: horizontal (xy) length of a vector.
@@ -185,10 +185,10 @@ extern "C" void UpdateBhvwalkgoalPoctl(BHVWALKGOAL *behavior, POCTL *poctl)
         __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->startPosition));
         v = GetLoWorldPos(behavior->owner);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(toGoal) : "j"(pos), "j"(v));
-        up = D_002A2DC0;
+        up = g_normalZ;
         v = Perp(toGoal, up);   /* horizontal part of the offset to the goal */
         speed = EvaluatePolynomial(D_002BD2E0, LenXY(v));
-        clampedSpeed = Clamp(speed, D_002BBB60[0], D_002BBB60[1]);
+        clampedSpeed = Clamp(speed, g_lmZeroOne[0], g_lmZeroOne[1]);
         if (0.0f < clampedSpeed) {
             poctl->leftStickDeflection = clampedSpeed * behavior->speedScale;
             poctl->leftStickAngle = atan2f(QwordY(v), QwordX(v));
@@ -565,7 +565,7 @@ void UpdateBhvfollowPosition(BHVFOLLOW *behavior)
     behavior->followPoint = GetLoWorldPos(behavior->leader);
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
         STEP *leader = (STEP *)behavior->leader;
-        u.s.m = BuildAxisAngleRotationMatrix(D_002A2DC0, leader->targetHeading);
+        u.s.m = BuildAxisAngleRotationMatrix(g_normalZ, leader->targetHeading);
         u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->qwUnknown190));
     } else {
         PO *leader;

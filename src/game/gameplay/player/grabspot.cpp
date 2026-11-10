@@ -107,7 +107,7 @@ extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 extern qword SetVectorSphere(float a, float b, float c) __asm__("SetVectorSphere");
 extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 extern float D_002BE8B0 __asm__("D_002BE8B0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // GRABSPOT default sparkle position: a random point in a sphere around the owner, zero direction.
 extern "C" void GetGrabspotSparklePosition(GRABSPOT *grabspot, qword *pv, qword *pdv)
 {
@@ -117,7 +117,7 @@ extern "C" void GetGrabspotSparklePosition(GRABSPOT *grabspot, qword *pv, qword 
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE8B0);
     *pv = VuAdd(GetLoWorldPos(object), SetVectorSphere(gPan, gTilt, gR));
-    *pdv = D_002A2DC0;
+    *pdv = g_normalZ;
 }
 } // namespace M_func_00182D78
 
@@ -219,7 +219,7 @@ namespace M_func_001830D8 {
 typedef int qword __attribute__((mode(TI)));
 extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir) __asm__("EvaluateShapeAtDistance");
 extern float atan2f(float y, float x) __asm__("atan2f");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
 // Length of the xyz part of c, in the x lane.
 extern "C" { static __inline__ qword VLen(qword c)
@@ -262,7 +262,7 @@ extern "C" void GetWallGrabspotGrabPosition(void *p, float g, STEPPLAYER *pj, qw
     qword c, r;
     float gl;
     EvaluateShapeAtDistance(p, g, &pos, &dir);
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(dir.q), "j"(D_002A2DC0));
+    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(dir.q), "j"(g_normalZ));
     n = VNormalize(c, D_002A2DA0);
     if (pv) {
         qword s;
@@ -295,7 +295,7 @@ extern void EvaluateShapeAtDistance(void *p, float t, QWROW *ppos, QWROW *pdir) 
 extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 extern float D_002BE8B8 __asm__("D_002BE8B8");
 extern float D_002BE8BC __asm__("D_002BE8BC");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
 // Length of the xyz part of c, in the x lane.
 extern "C" { static __inline__ qword VLen(qword c)
@@ -314,7 +314,7 @@ extern "C" void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qwor
     qword k, c, l, one, r, s, a;
     float gl;
     EvaluateShapeAtDistance(p, GetRandomShapeDistanceInRange(p, g, D_002BE8B8), &pos, &dir);
-    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(dir.q), "j"(D_002A2DC0));
+    __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(dir.q), "j"(g_normalZ));
     k = D_002A2DA0;
     l = VLen(c);
     __asm__("qmfc2.ni %0, %1" : "=r"(gl) : "j"(l));
@@ -333,7 +333,7 @@ extern "C" void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qwor
         __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a), "j"(n), "j"(s));
         *pv = r;
     }
-    *pdv = D_002A2DC0;
+    *pdv = g_normalZ;
 }
 } // namespace M_func_00183218
 
@@ -433,14 +433,14 @@ extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 extern qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 extern float D_002BE8C4 __asm__("D_002BE8C4");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // A random point on a ring around the pole.
 extern "C" void GetPoleGrabspotSparklePosition(CID34 *pole, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->sRadius;
     *pv = VuAdd(GetLoWorldPos(pole), SetVectorCylind(gPan, gR, 0.0f));
-    *pdv = D_002A2DC0;
+    *pdv = g_normalZ;
 }
 } // namespace M_func_00183600
 
@@ -960,14 +960,14 @@ extern qword ConvertPosBetweenLos(void *p, void *q, qword v) __asm__("ConvertPos
 extern qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 extern float D_002BE90C __asm__("D_002BE90C");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // A random point on a disc around its point.
 extern "C" void GetTableGrabspotSparklePosition(CID27 *table, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE90C);
     *pv = VuAdd(ConvertPosBetweenLos(table, 0, table->boundsCenter), SetVectorCylind(gPan, gR, 0.0f));
-    *pdv = D_002A2DC0;
+    *pdv = g_normalZ;
 }
 } // namespace M_func_001845A0
 
@@ -1009,6 +1009,6 @@ float D_002BE908 = 50.0f;
 float D_002BE90C = 75.0f;
 
 /* grabspot's .bss (0x2DFB84, after hack's ship singleton D_002DFB80): the hold-position debug flag read above.
-   Extent unclear (60 bytes to joy's D_002DFBC0; no other name in between). Under an asm label so that the
+   Extent unclear (60 bytes to joy's g_grfjoyt; no other name in between). Under an asm label so that the
    declarations above need not agree. */
 namespace BSS_GRABSPOT { extern int b_D_002DFB84 __asm__("D_002DFB84"); int b_D_002DFB84; }

@@ -121,7 +121,7 @@ struct WORK468 { V a, b; MARK mark __attribute__((aligned(16))); REQ msg __attri
 
 extern qwordV D_002A2DA0;
 extern "C" {
-extern qwordV D_002A2DC0, D_002A2DD0;
+extern qwordV g_normalZ, D_002A2DD0;
 extern M3 D_002A2D00;
 void InitSo(SOW *p);
 void PostSoLoad(SOW *p);
@@ -322,7 +322,7 @@ extern "C" void UpdateWater(SOW *water){
     SetSndRange(effect,100.0f,1000.0f);
     SetSndVolume(effect,fall);
     func_002333B4(&work.event,0,sizeof(work.event));
-    normal=D_002A2DC0;
+    normal=g_normalZ;
     work.event.position.q=Add(work.intervals[0].first.q,work.origin.q);
     work.event.kind=14;work.event.strength=radius*fall;work.event.normal=normal;
     Impact(water->recipient,&work.event);
@@ -438,7 +438,7 @@ extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surf
     numParts = CollectSoParts(water, CanWaterInflictZap, 0, (COLL **)parts);
     if (!ClipEdgeToObjects(work.a.q, work.b.q, numParts, (COLL **)parts, 0x10, work.alsg)) {
         if (surfaceNormal)
-            *surfaceNormal = D_002A2DC0;
+            *surfaceNormal = g_normalZ;
         STACKSCOPE_ctor_1AE4A0(&work.mark, 2);
         return 0.0f;
     }
@@ -454,7 +454,7 @@ extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surf
         reference = *comparison;
         isDefault = NearX(reference,normal,epsilon) && NearY(reference,normal) && NearZ(reference,normal);
         if (isDefault)
-            *surfaceNormal = D_002A2DC0;
+            *surfaceNormal = g_normalZ;
     }
     fraction = work.alsg[0].paramEnd - work.alsg[0].paramStart;
     STACKSCOPE_ctor_1AE4A0(&work.mark, 2);

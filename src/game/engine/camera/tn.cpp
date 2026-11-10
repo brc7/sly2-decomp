@@ -38,7 +38,7 @@ static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
 }
-extern LM D_002BBB60;
+extern LM g_lmZeroOne;
 float NormalizeAngle(float rad);
 float ClampAbs(float g, float absLimit);
 float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
@@ -110,8 +110,8 @@ extern "C" float atan2f(float y, float x);
 extern "C" void GetVectorSphere(qword v, float *prad, float *pradTilt, float *psLen);
 extern "C" qword SetVectorSphere(float radPan, float radTilt, float s);
 extern float D_002C41DC;
-extern VECTOR D_002A2DC0;
-extern qword D_002A2DC0q __asm__("D_002A2DC0");
+extern VECTOR g_normalZ;
+extern qword D_002A2DC0q __asm__("g_normalZ");
 extern qword D_002A2DD0;
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 extern "C" void GetVectorCylind(qword v, float *prad, float *psXY, float *pz);
@@ -185,7 +185,7 @@ extern LM D_002C41A8;
 extern const SWCB D_002A96E8, D_002A96F0;
 extern CPD D_002C4120;              /* the default CPD */
 int D_002DE240;
-extern int D_002DFBC4;
+extern int g_grfusr;
 extern float D_002C4110;
 extern float D_002C4114;
 extern qword D_002C4290[5];
@@ -697,7 +697,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 
 // UpdateCptn: ported from Lilly's personal Sly 2 decomp (src/P2/cplcy.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), D_002C4118 (D_002C4118), D_002C41B0 (D_002C41B0), D_002C41D8 (D_002C41D8), D_002C41DC (D_002C41DC), D_002C41E0 (D_002C41E0), D_002C41F0 (D_002C41F0), D_002C4200 (D_002C4200), D_002C4208 (D_002C4208), D_002C4220 (D_002C4220), D_002C4230 (D_002C4230), D_002C4240 (D_002C4240), D_002C4250 (D_002C4250), D_002C4260 (D_002C4260), D_002C426C (D_002C426C), D_002C4270 (D_002C4270), D_002C4274 (D_002C4274), D_002C4278 (D_002C4278), D_002C427C (D_002C427C), D_002C4280 (D_002C4280), D_002C41EC (g_SheetCameraEngineCameraDamping), D_002C41E4 (g_SheetCameraEngineCameraHorizontalSpeed), D_002C41E8 (g_SheetCameraEngineCameraVerticalSpeed), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DEB30 (g_game), D_002BBB60 (g_lmZeroOne), D_002A2DC0 (g_normalZ), D_002A2DD0 (g_qwZero)
+// Globals: D_002A2DA0 (D_002A2DA0), D_002C4118 (D_002C4118), D_002C41B0 (D_002C41B0), D_002C41D8 (D_002C41D8), D_002C41DC (D_002C41DC), D_002C41E0 (D_002C41E0), D_002C41F0 (D_002C41F0), D_002C4200 (D_002C4200), D_002C4208 (D_002C4208), D_002C4220 (D_002C4220), D_002C4230 (D_002C4230), D_002C4240 (D_002C4240), D_002C4250 (D_002C4250), D_002C4260 (D_002C4260), D_002C426C (D_002C426C), D_002C4270 (D_002C4270), D_002C4274 (D_002C4274), D_002C4278 (D_002C4278), D_002C427C (D_002C427C), D_002C4280 (D_002C4280), D_002C41EC (g_SheetCameraEngineCameraDamping), D_002C41E4 (g_SheetCameraEngineCameraHorizontalSpeed), D_002C41E8 (g_SheetCameraEngineCameraVerticalSpeed), g_clock (g_clock), g_cm (g_cm), g_game (g_game), g_lmZeroOne (g_lmZeroOne), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero)
 // 0x00221DD8 Update__7CMPART2P6CPDEFIP3JOY  (MATCHES Sly 2; T1253, 1604 instructions). The frame is the game's 0x230 (0x00 posFocus, 0x10 posHang,
 // 0x20 vecTangent, 0x30 dposCrv / vFocus, 0x40..0x60 the free camera's temporaries, 0x70 smp, 0x80 vecHeading / smpPull, 0x90..0xEF six untouched
 // locals, 0xF0.. the view floats, 0x124 / 0x128 the pull flags; T1203). How the last 16.5% -> MATCH went (re/notes/camera-updatecm.md "T1253"):
@@ -985,7 +985,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         switch (nTurnAxis)
         {
         case 0:
-            *(qword *)&vecAxis = VuCross(*(qword *)&D_002A2DC0, *(qword *)&vecView);
+            *(qword *)&vecAxis = VuCross(*(qword *)&g_normalZ, *(qword *)&vecView);
             break;
         case 1:
             vecAxis = vecView;
@@ -1007,7 +1007,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         float gTurn = ClampAbs(VuToFloat(VuDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
         float dradPanFree = gTurn * tunnelProgress;
         dradPanFree *= GEvaluateClqLm(&D_002C41F0, &D_002C4200, vecStick.y);
-        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, g_clock.time - lastManualInputTime), D_002BBB60.minValue, D_002BBB60.maxValue);
+        dradPanFree *= Clamp(GEvaluateClq(&D_002C4220, g_clock.time - lastManualInputTime), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
         float radPanFree = NormalizeAngle(radPanNew + dradPanFree * g_clock.deltaTime);
         float uSpeed = Min(VuToFloat(VuLengthXY(*(qword *)&vFocus)) * 0.0016666667f, 1.0f);
         float radTiltFree;
@@ -1109,7 +1109,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 float dtIdle = g_clock.time - (lastMoveTime + D_002C41D8);
                 float dtQuiet = g_clock.time - (lastManualInputTime + D_002C41DC);
                 if (ptnCur->idlePullDuration > 0.0f)
-                    gRamp = ClampToLimits(&D_002BBB60, dtIdle / ptnCur->idlePullDuration) * ClampToLimits(&D_002BBB60, dtQuiet / ptnCur->idlePullDuration);
+                    gRamp = ClampToLimits(&g_lmZeroOne, dtIdle / ptnCur->idlePullDuration) * ClampToLimits(&g_lmZeroOne, dtQuiet / ptnCur->idlePullDuration);
                 else if (dtIdle > 0.0f && dtQuiet > 0.0f)
                     gRamp = 1.0f;
                 else
@@ -1125,7 +1125,7 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
             {
                 float gRamp;
                 if (ptnCur->enterPullDuration > 0.0f)
-                    gRamp = ClampToLimits(&D_002BBB60, (g_clock.time - ptnCur->stateStartTime) / ptnCur->enterPullDuration);
+                    gRamp = ClampToLimits(&g_lmZeroOne, (g_clock.time - ptnCur->stateStartTime) / ptnCur->enterPullDuration);
                 else
                     gRamp = 1.0f;
                 float gEnter = gRamp * ptnCur->enterPullStrength;
@@ -1338,7 +1338,7 @@ static inline qword CombineAxes(qword qwV, qword qwBack, qword qwSide, qword qwU
 extern "C" void UpdateCameraLineOfSight(CMPART2 *pcmpart)
 {
     LO *plo = (LO *)pcmpart->pvHero;
-    if (D_002DFBC4 & 2)
+    if (g_grfusr & 2)
     {
         pcmpart->lastSeenTime = g_clock.time;
         return;

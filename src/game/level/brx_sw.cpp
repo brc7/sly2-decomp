@@ -19,7 +19,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // 0x1AE1D0/0x1AE2A0/0x1AE318 PvAllocSw/PvAllocSwClear/PvAllocStack Impl(SWALLOC *), 0x1C9058/90/98 CLoadSpin Begin/SetName/End,
 // 0x16F960 BuildClearGifs(QW *, const RGBA &, int), 0x1703F8 InitGsb, 0x258248 InitFloc, 0x1848A8/0x184950 CBinaryInputStream
 // ctor/dtor, 0x1AE478/0x1AE4A0 STACKSCOPE ctor/dtor, 0x13F888 CLoadCollectorArray ctor, 0x13FB40 LoadSwObjectsFromBrx,
-// 0x13E510 CloneLoWithParent, 0x14B690 PchzFidName. D_003DD040 = g_sndmgr, D_003DD490 = g_sw, D_002DDF40 = g_cm.
+// 0x13E510 CloneLoWithParent, 0x14B690 PchzFidName. D_003DD040 = g_sndmgr, D_003DD490 = g_sw, g_cm = g_cm.
 // Matching notes: the alloc helpers take cbAlign as a parameter (its copy lets loop.c hoist the loop's 0x10, which reload then
 // rematerialises); the black clear colour is stored as `unsigned int`.
 // STAND-IN (same trick as LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp / ApplySpriteKeyPoses.cpp): the five spilled gcse reaching pseudos (&gsb1, &frame, &bis,

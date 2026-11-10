@@ -20,12 +20,12 @@ extern const char D_002A2E50[4], D_002A2E58[4];
 extern const int D_002A2E5C;
 extern const unsigned int D_002A2E60, D_002A2E68[256];
 extern char D_003DA4F0[];
-/* cd's .data (D_002BD4C0: by layout, between carmelita's data and D_002BD4C4; sound, mpeg and cdutil read it too). */
-int D_002BD4C0 = 0;                 /* disc-poll state (1 read, 2 wait, 3 idle) */
-int D_002BD4C4 = -1;                /* last disc type */
+/* cd's .data (g_cds: by layout, between carmelita's data and g_scecd; sound, mpeg and cdutil read it too). */
+int g_cds = 0;                 /* disc-poll state (1 read, 2 wait, 3 idle) */
+int g_scecd = -1;                /* last disc type */
 /* cd's .bss. */
 unsigned char D_002DD680[0x800] __attribute__((aligned(64)));    /* sector buffer (64-aligned by layout: 0x2DD680 after carmelita's word at 0x2DD648; sceCdRead DMAs into it) */
-int D_002DDE80, D_002DDE84;
+int s_retCdRead, s_retCdError;
 extern "C" {
 char *strupr(char *) __asm__("UpperizePchz__FPc");
 char *strcpy(char *, const char *);
@@ -112,21 +112,21 @@ int CpchzTokenizePath(char *path)
 // 0x14B9B8: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $2, $2, 0xb8");
 
-// Returns whether the drive holds a PS2 DVD (disk type 0x14), caching the last disk type seen in D_002BD4C4.
+// Returns whether the drive holds a PS2 DVD (disk type 0x14), caching the last disk type seen in g_scecd.
 // Identical to Sly 1's source.
 int IsPs2DvdInDrive()
 {
     int diskType = sceCdGetDiskType();
-    if (D_002BD4C4 != diskType) {
-        D_002BD4C4 = diskType;
+    if (g_scecd != diskType) {
+        g_scecd = diskType;
     }
-    return D_002BD4C4 == 0x14;
+    return g_scecd == 0x14;
 }
 
 // Puts the drive in DVD media mode (sceCdMmode(2)) if the last disc seen was a PS2 DVD.
 void SetCdMmode()
 {
-    if (D_002BD4C4 == 0x14) {
+    if (g_scecd == 0x14) {
         sceCdMmode(2);
     }
 }
@@ -137,7 +137,7 @@ void StartupCd()
 }
 
 // UpdateCd (Claude agent, 2026-10-17): matched. Keys: `int sector = D_002A2E5C; sector += 0xCA0;` (fixes s0/s1), CRC table via a local `unsigned int *table` with a byte offset `(char *)table + (idx << 2)` (gives addu v0,t1,v0).
-extern int D_002BD4C0;
+extern int g_cds;
 extern char D_003DA4F0[];
 // CRC-32 of size bytes at data.
 static inline unsigned int ComputeCrc32(unsigned char *data, int size)
@@ -149,19 +149,19 @@ static inline unsigned int ComputeCrc32(unsigned char *data, int size)
     return crc;
 }
 
-// Per-frame disc-identity poll (state D_002BD4C0: 3 idle, 1 read, 2 wait). Idle: if the sound manager exists
+// Per-frame disc-identity poll (state g_cds: 3 idle, 1 read, 2 wait). Idle: if the sound manager exists
 // and the disc is not a PS2 DVD, pause the disc users (func_001DD6C8 on D_003DA4F0, inferred) and go to read. Read: once
 // func_001DD780 allows it, start reading the identity sector (LSN 0x132AA3 + 0xCA0) into D_002DD680. Wait: when
 // the read completes, compare the sector's CRC-32 to the expected value; on a match resume them (func_001DD728) and go
 // idle, otherwise read again.
 void UpdateCd(void)
 {
-    int pollState = D_002BD4C0;
+    int pollState = g_cds;
     switch (pollState) {
     case 3:
         if (g_sndmgr.statusResult && !IsPs2DvdInDrive()) {
             ShowScreen52D(D_003DA4F0);
-            D_002BD4C0 = 1;
+            g_cds = 1;
         }
         break;
     case 1:
@@ -169,16 +169,16 @@ void UpdateCd(void)
             int sector = D_002A2E5C;
             sector += 0xCA0;
             if (IsPs2DvdInDrive() && sceCdRead(sector, 1, D_002DD680, (void *)D_002A2E50) == pollState)
-                D_002BD4C0 = 2;
+                g_cds = 2;
         }
         break;
     case 2:
         if (IsCdCommandComplete(0)) {
             if (ComputeCrc32(D_002DD680, 0x800) != D_002A2E60) {
-                D_002BD4C0 = 1;
+                g_cds = 1;
             } else {
                 HideScreen52D(D_003DA4F0);
-                D_002BD4C0 = 3;
+                g_cds = 3;
             }
         }
         break;
@@ -221,17 +221,17 @@ void CdPath(char *out, char *path, int useCdromPrefix)
 
 // Starts an asynchronous read of sectorCount sectors at `sector` into `buffer`, retrying until the drive
 // accepts the command (sceCdRead returns 1); readMode 1 selects spindle mode 0, anything else mode 1. Records the
-// last result and error in D_002DDE80 / D_002DDE84. Sly 1: ReadCdDirect, plus the read-mode argument.
+// last result and error in s_retCdRead / s_retCdError. Sly 1: ReadCdDirect, plus the read-mode argument.
 extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void *buffer, int readMode)
 {
     void *cdReadMode;
     if (readMode == 1) cdReadMode = (void *)D_002A2E50;
     else cdReadMode = (void *)D_002A2E58;
     do {
-        D_002DDE80 = sceCdRead(sector, sectorCount, buffer, cdReadMode);
-        if (D_002DDE80 == 1) break;
+        s_retCdRead = sceCdRead(sector, sectorCount, buffer, cdReadMode);
+        if (s_retCdRead == 1) break;
         sceCdSync(0);
-        D_002DDE84 = sceCdGetError();
+        s_retCdError = sceCdGetError();
     } while (1);
 }
 

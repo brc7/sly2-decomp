@@ -213,8 +213,8 @@ struct CONTEXT {
 struct VU_FLOAT { qword q; };
 
 
-extern uint D_002DFBC4 __asm__("D_002DFBC4");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");                                // (0, 0, 1)
+extern uint g_grfusr __asm__("g_grfusr");
+extern qword g_normalZ __asm__("g_normalZ");                                // (0, 0, 1)
 extern float D_002BF5B0 __asm__("D_002BF5B0");
 extern float D_002BF5B4 __asm__("D_002BF5B4");
 extern float D_002BF5B8 __asm__("D_002BF5B8");
@@ -281,7 +281,7 @@ static inline void ProbeGround(CONTEXT *p)
     int i;
     qword pos = GetLoWorldPos(p->pactor);
     qword posBase = VuAdd(pos, p->pactor->posOffset);
-    qword posEnd = VuAdd(posBase, ScaleVec(D_002A2DC0, VuFloat(&D_002BF5B0)));
+    qword posEnd = VuAdd(posBase, ScaleVec(g_normalZ, VuFloat(&D_002BF5B0)));
     int cso;
     SO **apso;
     IntersectSwBoundingBox(&g_sw, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
@@ -416,7 +416,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
                 AsStepplayer(grab->pactor)->SetPlayerState(0);
                 break;
             }
-            if (D_002DFBC4 & 1)
+            if (g_grfusr & 1)
                 break;
             if (joy->buttonsHeld & GetGadgetButtonMask(grab->pactor, 0x28))
                 break;
@@ -434,7 +434,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
             }
             if (grab->fInhibit)
                 break;
-            if (D_002DFBC4 & 1)
+            if (g_grfusr & 1)
                 break;
             if (joy->buttonsHeld & 0x20)
                 break;
@@ -1065,7 +1065,7 @@ union U { qword q; float f[4]; int i[4]; };
 
 extern ACTOR *D_002E1E40 __asm__("D_002E1E40");         // the player
 extern ACTOR *D_002F7900 __asm__("D_002F7900");
-extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0"), D_002BF650 __asm__("D_002BF650");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0"), D_002BF650 __asm__("D_002BF650");
 extern float D_002BF63C __asm__("D_002BF63C");
 extern float D_002BF640 __asm__("D_002BF640");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
@@ -1238,7 +1238,7 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
             if (source->other) {
                 qword pos = GetLoWorldPos(source->other);
                 AsStepplayer(grab->pactor)->TranslateToPos(VuSub(pos, grab->pactor->posOffset));
-                grab->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(grab->pactor->height));
+                grab->pactor->motion = AddScaled(pos, g_normalZ, VuFloat(grab->pactor->height));
                 SetStepTargetHeadingFromVector(grab->pactor, GetLoWorldMatrix(source->other)->row[0]);
                 AsStepplayer(grab->pactor)->RotateToMat((MATRIX3 *)grab->pactor->local);
                 AsStepplayer(grab->pactor)->SetVelocity(D_002A2DD0);
@@ -1561,7 +1561,7 @@ struct O : SO { struct T*controller;char pad154[0x240-0x154];qword pos;};
 struct P {struct O*o;char pad4[0x260-4];float x260;char pad264[0x2A0-0x264];float x2A0;};
 struct CURVE;
 extern float D_002BF668 __asm__("D_002BF668");
-extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");
+extern qword g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");
 void EvaluateShapeAtParam(struct CURVE*,float,qword*,qword*) __asm__("EvaluateShapeAtParam");
 qword SetVectorCylind(float,float,float) __asm__("SetVectorCylind");
 float GetShapeDistanceAtParam(struct CURVE*,float) __asm__("GetShapeDistanceAtParam");
@@ -1585,7 +1585,7 @@ extern "C" void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos
     float dot, current;
     struct T *shape = p->o->controller;
     EvaluateShapeAtParam(curve, t, &pos.q, &dir.q);
-    dir.q = Normal(Reject(dir.q, D_002A2DC0), D_002A2DD0);
+    dir.q = Normal(Reject(dir.q, g_normalZ), D_002A2DD0);
     {
         register float width __asm__("$f0") = shape->x1C;
         register float factor __asm__("$f13") = p->x2A0;
@@ -1971,7 +1971,7 @@ extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
 }
 
 extern "C" {
-extern int D_002DFBC0;
+extern int g_grfjoyt;
 int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 }
 // True when the grab may hand the camera to the player: the step player allows it, the free-camera option bit is set
@@ -1979,7 +1979,7 @@ int IsCameraPolicyActive__FP5CPLCY(void *pcplcy);
 static inline int IsGrabCameraFree(JTGRAB *grab)
 {
     int f = 0;
-    if (grab->player->unknown12F0 && (D_002DFBC0 & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+    if (grab->player->unknown12F0 && (g_grfjoyt & 2)) f = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
     return f;
 }
 /* Whether input n is allowed in the current grab state (n 3: only in states 0, 1, 3, 4 and 13 with the camera
@@ -2028,7 +2028,7 @@ extern "C" int IsJtGrabBusy(JTGRAB *grab)
 namespace M_AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND {
 // AddJtGrabCandidate: ported from Lilly's personal Sly 2 decomp (src/P2/jtgrab.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF664 (D_002BF664), D_002E1E4C (D_002E1E4C), D_002E1E40 (g_SheetGangSly), D_002DDED0 (g_clock)
+// Globals: D_002BF664 (D_002BF664), D_002E1E4C (D_002E1E4C), D_002E1E40 (g_SheetGangSly), g_clock (g_clock)
 // 0x00194688 AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND  (MATCHES Sly 2; our name)
 // Tests one grab spot against the hero (qwPosJt is the hero's position) and, when the hero may take hold of it, puts it into the
 // sorted array of ccandMax candidates: by priority (higher first), then by distance, one entry per group (the nearer spot of a

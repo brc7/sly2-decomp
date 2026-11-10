@@ -102,7 +102,7 @@ extern qword D_002A2DE0;
 union VQ { float af[4]; qword q; };   /* a 16-byte vector that can be initialized, read as a qword */
 extern const VQ D_002A4B60;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A4B30[3] = {0.0f, 0.0f, 1.5f};
-extern RANGE D_002BBB60;
+extern RANGE g_lmZeroOne;
 extern const LONGU D_002A4B58;
 extern const LONGU D_002A4BB0;
 extern char D_003DA0C0[];
@@ -247,7 +247,7 @@ extern "C" void RenderBootySelf(BOOTYV *booty)
             v = booty->vScale;
         } else {
             float u = dt / booty->tDrop;
-            float g = Clamp(D_002A4B30[0] + u * (D_002A4B30[1] + u * D_002A4B30[2]), D_002BBB60.a, D_002BBB60.b);
+            float g = Clamp(D_002A4B30[0] + u * (D_002A4B30[1] + u * D_002A4B30[2]), g_lmZeroOne.a, g_lmZeroOne.b);
             int i;
             for (i = 0; i < 3; i++)
                 v.f[i] = (1.0f - g) + g * booty->vScale.f[i];

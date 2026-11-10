@@ -34,7 +34,7 @@ struct CRichText { char *pch; };
 struct FLAGCH { int mask; unsigned char ch; };
 struct FLAGCHTABLE { FLAGCH a[16]; };
 
-extern struct CLOCK D_002DDED0;
+extern struct CLOCK g_clock;
 extern char D_003DD040[];
 extern char D_003DD490[];   /* g_sw */
 extern const char D_002A97F0[];         /* defined at the end (.rodata order: after GetSpeakerSubtitleColor's jump table) */
@@ -120,7 +120,7 @@ extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *t
         CRichText_Trim(text, visibleLength);
         showCursor = 1;
     } else {
-        showCursor = (int)(D_002DDED0.time * 4.0f) & 1;
+        showCursor = (int)(g_clock.time * 4.0f) & 1;
     }
     if (showCursor) strcpy1(text->pch, D_002A97F0);
 }

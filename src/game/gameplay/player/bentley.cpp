@@ -316,7 +316,7 @@ namespace M_UpdateBentley {
 /* v3 (Claude agent, laneB4, 2026-10-23): aligned 37 -> 17. LenXY as two asms: vmul.xy alone, then vaddy.x+vsqrt+vwaitq+vaddq.x fused (fixes the extra-instruction offset). */
 /* v2 (Claude agent, 2026-10-23): aligned 42 -> 37. MulT asm operand order: outputs (r, one, t0, t1, t2), inputs (v, r[2], r[1]) gives the target's temp VF numbers (t0 vf7, one vf8, t1 vf6, t2 vf5). Left: r = r[0] lands in vf1 (target vf3; "0"(r[0]) tie same), LenXY: target loads p150 before the vmul and p1030 after vaddq (fused LenXY asm worse, 46-54), the mtc1/add.s nop in case 6. */
 struct POLY { float a; float b; float c; };
-extern struct LM D_002BBB60 __asm__("D_002BBB60");
+extern struct LM g_lmZeroOne __asm__("g_lmZeroOne");
 extern float D_002BC934 __asm__("D_002BC934");
 extern struct POLY D_002BC940 __asm__("D_002BC940");
 extern struct POLY D_002BC950 __asm__("D_002BC950");
@@ -469,8 +469,8 @@ extern "C" void UpdateBentley(BENTLEY *bentley)
         break;
     case BENTLEY_GADGET:
         if (bentley->subState == 1) {
-            float g0 = ClampF(EvaluatePoly(&D_002BC940, bentley->controller->leftStickDeflection), &D_002BBB60);
-            float g1 = ClampF(EvaluatePoly(&D_002BC950, bentley->controller->leftStickDeflection), &D_002BBB60);
+            float g0 = ClampF(EvaluatePoly(&D_002BC940, bentley->controller->leftStickDeflection), &g_lmZeroOne);
+            float g1 = ClampF(EvaluatePoly(&D_002BC950, bentley->controller->leftStickDeflection), &g_lmZeroOne);
             float z = 0.0f;
             if (z < bentley->controller->leftStickDeflection) {
                 float d = NormalizeAngle__Ff(bentley->controller->leftStickAngle - bentley->targetHeading);
@@ -1309,7 +1309,7 @@ namespace M_BENTLEY_FCanUseGadget {
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
 /* The carried tossable (classes.h CID100 has no fields yet): its gadget id. */
 struct A { char pad[0x15C]; int x15C; };
-extern int D_002DFBC0 __asm__("D_002DFBC0");
+extern int g_grfjoyt __asm__("g_grfjoyt");
 int IsStepplayerInJtMode() __asm__("IsStepplayerInJtMode");
 int CanJtUseGadgetInAir(void *pv, int k) __asm__("CanJtUseGadgetInAir");
 int CanJtUseGadgetInGrab(void *pv, int k) __asm__("CanJtUseGadgetInGrab");
@@ -1377,7 +1377,7 @@ extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
         }
         case 3: {
             int r = 0;
-            if (bentley->unknown12F0 && (D_002DFBC0 & 2))
+            if (bentley->unknown12F0 && (g_grfjoyt & 2))
                 r = IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0) == 0;
             return r;
         }
@@ -1744,7 +1744,7 @@ extern float D_002BC998 __asm__("D_002BC998");
 extern float D_002BC99C __asm__("D_002BC99C");
 extern float D_002BC9A0 __asm__("D_002BC9A0");
 extern SMP D_002BC9A8 __asm__("D_002BC9A8");
-extern qword D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DA0 __asm__("D_002A2DA0");
+extern qword g_normalZ __asm__("g_normalZ"), D_002A2DA0 __asm__("D_002A2DA0");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");
 float ClampAbs__Fff(float g, float gMax) __asm__("ClampAbs__Fff");
@@ -1764,7 +1764,7 @@ extern "C" void CorrectBentleyRideVelocity(JTREC *s)
     qword dv = VuSub(p->GetVelocity(), py->GetVelocity());
     UQ n;
     qword d0 = VuSub(GetLoWorldPos(s->player), GetLoWorldPos(py));
-    n.q = VuSub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
+    n.q = VuSub(d0, Scale(g_normalZ, Dot(d0, g_normalZ)));
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
     qword c = VuCross(n.q, dv);
@@ -1777,7 +1777,7 @@ extern "C" void CorrectBentleyRideVelocity(JTREC *s)
     float g = ClampAbs__Fff(dgNext - dot, D_002BC9A0 * g_clock.deltaTime);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
     MATRIX3Q mc;
-    MATRIX3Q m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * g_clock.deltaTime);
+    MATRIX3Q m = BuildAxisAngleRotationMatrix(g_normalZ, w * g_clock.deltaTime);
     mc = m;
     qword r = DivF(VuSub(MulM3(mc, t), dv), VU_FLOATM(g_clock.deltaTime));
     AddSoAcceleration(s->player, LimitVectorLength(r, maxValue));

@@ -24,13 +24,13 @@ struct CRITSECT { int a[3]; };
 
 extern char D_0047220F;           /* the last byte of the program image */
 /* memory's .bss (0x2F6380..0x2F6468), defined in address order; ui/memcard also declares a few. */
-uint D_002F6380;                  /* SW heap base */
-uint D_002F6384;                  /* SW heap top (grows up) */
-uint D_002F6388;                  /* stack heap top (grows down) */
-uint D_002F638C;                  /* stack heap base (32 MB) */
-CRITSECT D_002F6390;               /* the heap lock */
-int D_002F639C;                   /* stack scope depth */
-uint D_002F63A0[50];              /* stack heap tops of the open scopes (to ui/menu's .bss at 0x2F6468) */
+uint s_pvWorldMin;                  /* SW heap base */
+uint s_pvWorldMac;                  /* SW heap top (grows up) */
+uint s_pvStackMin;                  /* stack heap top (grows down) */
+uint s_pvStackMac;                  /* stack heap base (32 MB) */
+CRITSECT s_critsectStack;               /* the heap lock */
+int s_ipvStackCur;                   /* stack scope depth */
+uint s_apvStackMin[50];              /* stack heap tops of the open scopes (to ui/menu's .bss at 0x2F6468) */
 extern "C" {
 void func_002333B4(void *p, int c, int n) __asm__("memset");
 void *AllocFromWorldHeap(AREQ *preq);
@@ -51,7 +51,7 @@ void CopyAb(void *pvDst, void *pvSrc, uint cb);
 // Returns the bytes still free between the top of the SW heap and the bottom of the stack heap.
 extern "C" int GetFreeMemorySize()
 {
-    return D_002F6388 - D_002F6384;
+    return s_pvStackMin - s_pvWorldMac;
 }
 
 // Boot step: the SW heap starts at the 16-aligned end of the program image, the stack heap at 32 MB (the top of
@@ -59,10 +59,10 @@ extern "C" int GetFreeMemorySize()
 void StartupMemMgr()
 {
     uint end = (int)&D_0047220F & ~0x0f;
-    D_002F6380 = D_002F6384 = end;
-    D_002F6388 = D_002F638C = 0x02000000;
-    D_002F639C = -1;
-    InitCritSect(&D_002F6390);
+    s_pvWorldMin = s_pvWorldMac = end;
+    s_pvStackMin = s_pvStackMac = 0x02000000;
+    s_ipvStackCur = -1;
+    InitCritSect(&s_critsectStack);
 }
 
 // Out-of-memory hook; empty in the retail build.
@@ -77,8 +77,8 @@ extern "C" void *AllocFromWorldHeap(AREQ *request)
     if (!request->size)
         return 0;
     CheckForOutOfMemoryCb(request->size);
-    pv = (D_002F6384 + (request->alignment - 1)) & -request->alignment;
-    D_002F6384 = pv + ((request->size + 15) & -16);
+    pv = (s_pvWorldMac + (request->alignment - 1)) & -request->alignment;
+    s_pvWorldMac = pv + ((request->size + 15) & -16);
     return (void*)pv;
 }
 
@@ -103,7 +103,7 @@ extern "C" void *AllocClearedFromWorldHeap(AREQ *request)
 // Releases the whole SW heap (level unload): its top returns to its base.
 void FreeSw()
 {
-    D_002F6384 = D_002F6380;
+    s_pvWorldMac = s_pvWorldMin;
 }
 
 // Allocates request->size bytes (rounded up to 16) from the stack heap, which grows down, at request->alignment
@@ -114,8 +114,8 @@ extern "C" void *AllocFromStack(AREQ *request)
     uint pv = 0;
     if (cb != 0) {
         CheckForOutOfMemoryCb(cb);
-        pv = (D_002F6388 - ((request->size + 0xF) & ~0xF)) & -request->alignment;
-        D_002F6388 = pv;
+        pv = (s_pvStackMin - ((request->size + 0xF) & ~0xF)) & -request->alignment;
+        s_pvStackMin = pv;
     }
     return (void *)pv;
 }
@@ -132,16 +132,16 @@ extern "C" void *AllocClearedFromStack(AREQ *request)
 // Opens a stack-heap scope: enters the memory critical section and pushes the current stack-heap position.
 void InitStackImpl()
 {
-    EnterCritSect(&D_002F6390);
-    D_002F63A0[++D_002F639C] = D_002F6388;
+    EnterCritSect(&s_critsectStack);
+    s_apvStackMin[++s_ipvStackCur] = s_pvStackMin;
 }
 
 // Closes a stack-heap scope: pops the saved position (freeing everything allocated since) and leaves the
 // critical section.
 void FreeStackImpl()
 {
-    D_002F6388 = D_002F63A0[D_002F639C--];
-    LeaveCritSect(&D_002F6390);
+    s_pvStackMin = s_apvStackMin[s_ipvStackCur--];
+    LeaveCritSect(&s_critsectStack);
 }
 
 /* STACKSCOPE's constructor and destructor (sly2/stackscope.h; g++ adds the destructor's in-charge test and delete). */

@@ -2,7 +2,7 @@
 // policies): constructors, activate / update / deactivate, the zoom policy's setters, and the counted sound
 // pointer's linkonce operator=. TU 0x14FCA8..0x1520C8 (51 functions, address order) plus RcPtr_Assign (0x258040).
 //
-// Types: sly2/cm.h's policy classes and CM (g_cm is D_002DDF40). The constructors store each class's vtable by
+// Types: sly2/cm.h's policy classes and CM (g_cm is g_cm). The constructors store each class's vtable by
 // hand (the virtuals still have C names). The m2c bodies are written on those types; the hand-written per-function
 // files keep their views in namespaces named after each function (as jt.cpp and mark.cpp do).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cplcy
@@ -138,7 +138,7 @@ extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 namespace M_PosCplookAnchor {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int k) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER. (inferred)
@@ -152,7 +152,7 @@ extern "C" qword PosCplookAnchor(CPLOOK *p)
         register qword rp __asm__("vf3");
         register qword rd __asm__("vf1");
         rp = pos.q;
-        rd = D_002A2DC0;
+        rd = g_normalZ;
         __asm__("qmtc2.ni %1, %0" : "=j"(rs) : "r"(150.0f));
         s.q = rs;
         __asm__("vadda.xyzw $ACC, %0, $vf0\n\tvmaddx.xyzw %0, %2, %1x" : "+j"(rp) : "j"(rs), "j"(rd));
@@ -261,7 +261,7 @@ extern struct POLY D_002BD980 __asm__("D_002BD980");
 extern float D_002BD990 __asm__("D_002BD990"), D_002BD994 __asm__("D_002BD994"), D_002BD998 __asm__("D_002BD998"), D_002BD99C __asm__("D_002BD99C");
 extern char D_002BD9A0[] __asm__("D_002BD9A0");
 extern struct LM D_002BD9B0 __asm__("D_002BD9B0");
-extern char D_002BBB60[] __asm__("D_002BBB60"), D_002BBB68[] __asm__("D_002BBB68");
+extern char g_lmZeroOne[] __asm__("g_lmZeroOne"), g_lmNegOneOne[] __asm__("g_lmNegOneOne");
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
 void UpdateCplcy(CPLOOK *p, void *pv, struct JOY *pjoy) __asm__("UpdateCplcy");
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");
@@ -301,9 +301,9 @@ extern "C" void UpdateCplook(CPLOOK *p, void *pv, struct JOY *pjoy)
     p->zoom = x = ClampLocal(x, 0.0f, 1.0f);
     if (p->svuZoom != 0.0f && 0.0f < x && x < 1.0f) {
         struct SND *ps = (struct SND *)p->psndZoom.m_p;
-        SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->svuZoom)));
+        SetSndPitch(ps, ClampToLimits__FP2LMf(g_lmNegOneOne, __builtin_fabsf(p->svuZoom)));
         ps = (struct SND *)p->psndZoom.m_p;
-        SetSndVolume(ps, ClampToLimits__FP2LMf(D_002BBB60, __builtin_fabsf(p->svuZoom) * 0.5f + 0.5f));
+        SetSndVolume(ps, ClampToLimits__FP2LMf(g_lmZeroOne, __builtin_fabsf(p->svuZoom) * 0.5f + 0.5f));
         if (((struct SND *)p->psndZoom.m_p)->pauseCount > 0)
             ResumeSnd((struct SND *)p->psndZoom.m_p);
     } else {
@@ -517,7 +517,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 extern char D_002BD9B8[] __asm__("D_002BD9B8"), D_002BD9C8[] __asm__("D_002BD9C8"), D_002BD9D8[] __asm__("D_002BD9D8"), D_002BD9E8[] __asm__("D_002BD9E8"), D_002BD9F8[] __asm__("D_002BD9F8");
-extern char D_002BBB60[] __asm__("D_002BBB60"), D_002BBB68[] __asm__("D_002BBB68");
+extern char g_lmZeroOne[] __asm__("g_lmZeroOne"), g_lmNegOneOne[] __asm__("g_lmNegOneOne");
 struct SND { char pad[0x4E]; short pauseCount; };   /* (inferred) > 0: paused */
 void UpdateCplcy(CPZOOM *p) __asm__("UpdateCplcy");
 float SmoothValue__FfffP3SMPPf(void *p, float *pdg, float g, float gTarget, float dt) __asm__("SmoothValue__FfffP3SMPPf");
@@ -560,9 +560,9 @@ extern "C" void UpdateCpzoom(CPZOOM *p)
     }
     if (p->svuZoom != 0.0f) {
         struct SND *ps = (struct SND *)p->psndZoom.m_p;
-        SetSndPitch(ps, ClampToLimits__FP2LMf(D_002BBB68, __builtin_fabsf(p->svuZoom)));
+        SetSndPitch(ps, ClampToLimits__FP2LMf(g_lmNegOneOne, __builtin_fabsf(p->svuZoom)));
         ps = (struct SND *)p->psndZoom.m_p;
-        SetSndVolume(ps, ClampToLimits__FP2LMf(D_002BBB60, __builtin_fabsf(p->svuZoom) * 0.5f + 0.5f));
+        SetSndVolume(ps, ClampToLimits__FP2LMf(g_lmZeroOne, __builtin_fabsf(p->svuZoom) * 0.5f + 0.5f));
         if (((struct SND *)p->psndZoom.m_p)->pauseCount > 0)
             ResumeSnd((struct SND *)p->psndZoom.m_p);
     } else {
@@ -595,7 +595,7 @@ extern "C" void UpdateCpzoom(CPZOOM *p)
         SetCmFov(&g_cm, p->fieldOfView);
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(pm4, &p->panAngle, &p->tiltAngle);
         }
-        p->zoom = ClampToLimits__FP2LMf(D_002BBB60, GFrac(p->fieldOfView, p->zoomedFieldOfView, p->wideFieldOfView));
+        p->zoom = ClampToLimits__FP2LMf(g_lmZeroOne, GFrac(p->fieldOfView, p->zoomedFieldOfView, p->wideFieldOfView));
     } else {
         float u = 1.0f - p->zoom;
         SetCmFov(&g_cm, (1.0f - u) * p->zoomedFieldOfView + u * p->wideFieldOfView);
@@ -1159,7 +1159,7 @@ struct LM { float minValue, maxValue; int pad[2]; };
 extern float D_002BDACC __asm__("D_002BDACC");
 extern CLQ D_002BDAD0 __asm__("D_002BDAD0"), D_002BDAF0 __asm__("D_002BDAF0"), D_002BDB10 __asm__("D_002BDB10"), D_002BDB30 __asm__("D_002BDB30");
 extern LM D_002BDAE0 __asm__("D_002BDAE0"), D_002BDB00 __asm__("D_002BDB00"), D_002BDB20 __asm__("D_002BDB20"), D_002BDB40 __asm__("D_002BDB40");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 
 void UpdateCplcy(CPTWOSHOT *p) __asm__("UpdateCplcy");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
@@ -1234,7 +1234,7 @@ void UpdateCptwoshot(CPTWOSHOT *p)
     U pos;
     pos.q = focus.q;
     pos.f[2] += Clamp(GFromClq(D_002BDAD0, dist), D_002BDAE0.minValue, D_002BDAE0.maxValue);
-    qword n = Normalize(Cross(d.q, D_002A2DC0));
+    qword n = Normalize(Cross(d.q, g_normalZ));
     float g = Clamp(GFromClq(D_002BDAF0, dist), D_002BDB00.minValue, D_002BDB00.maxValue);
     U pos2;
     pos2.q = VuAdd(focus.q, Scale(n, VU_FLOATJ(g)));

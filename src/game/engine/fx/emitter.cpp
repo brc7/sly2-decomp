@@ -31,7 +31,7 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the addres
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
    that InitEmitBlock (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
    guarded local statics). Their initializers hold the non-constant vectors D_002A2DD0 (0,0,0), D_002A2DA0 (1,0,0)
-   and D_002A2DC0 (0,0,1), so g++ builds each one in a memset stack temp and block-copies it.
+   and g_normalZ (0,0,1), so g++ builds each one in a memset stack temp and block-copies it.
    The three unions are what matched it: store_constructor emits a (clobber (mem:BLK)) for every union initializer.
    - EMITV+0x60 is a CLQ (Sly 1 util.h: union of {g0, g1, g2, gUnused} and ag[4]) = {1, 0, -1}. Its clobber is a
      scheduler barrier, so its two stores issue last and 1.0 / -1 die only there (the game's store order).
@@ -66,9 +66,9 @@ struct EMITVELIsland {
 };
 typedef char check_emitv[(sizeof(EMITVELIsland) == 0x70) ? 1 : -1];
 }
-extern "C" qword D_002A2DD0, D_002A2DA0, D_002A2DC0;
+extern "C" qword D_002A2DD0, D_002A2DA0, g_normalZ;
 EMITO D_002DE5B0 = { 0, 0, 0, 0, -1, {0, 0}, {0}, {D_002A2DD0}, D_002A2DA0 };
-EMITDEF::EMITVELIsland D_002DE5F0 = { {{750.0f, 750.0f, -1.0f, 1.0f}}, 0, 0, -1500.0f, 0, D_002A2DC0, 0, 200, 1.0f, 1.0f,
+EMITDEF::EMITVELIsland D_002DE5F0 = { {{750.0f, 750.0f, -1.0f, 1.0f}}, 0, 0, -1500.0f, 0, g_normalZ, 0, 200, 1.0f, 1.0f,
                               {0, 0, 0, 0, 0, 0, 0, 0}, {{1.0f, 0.0f, -1.0f}} };
 
 // 0x15CAD8 static initializer (after the defaults) and its _GLOBAL_$I$ stub func_0015CD48: the six slot pools.
@@ -180,7 +180,7 @@ float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis) __asm__("F32Read__
 void *AllocFromWorldHeap(AL *pal) __asm__("AllocFromWorldHeap");
 void *AllocClearedFromWorldHeap(AL *pal) __asm__("AllocClearedFromWorldHeap");
 
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // Allocate cb bytes with the given alignment from the world heap.
 static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
 // Allocate cb zeroed bytes with the given alignment from the world heap.
@@ -242,7 +242,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
     }
     ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->center);
     for (i = 0; i < pemitmesh->cpos; i++)
-        VNormalize(&pemitmesh->anormal[i], pemitmesh->anormal[i], D_002A2DC0);
+        VNormalize(&pemitmesh->anormal[i], pemitmesh->anormal[i], g_normalZ);
 }
 } // namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream
 
@@ -777,7 +777,7 @@ union V4 { qword q; float a[4]; };
 
 
 extern int D_002BDEB0[] __asm__("D_002BDEB0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 float RandomFloatInRange__Fff(float lo, float hi) __asm__("RandomFloatInRange__Fff");
 int RandomIntInRange__Fii(int lo, int hi) __asm__("RandomIntInRange__Fii");
 int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
@@ -853,7 +853,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                     soundObject->lastWakeTime = g_clock.time;
                 if (500.0f < distance && water->splashObject) {
                     EMITVIsland emitp = { 1, 0, water->splashObject->oid, water->rippleObject->oid, water->oid, 0, {{ 8.0f, 12.0f, 1.0f }} };
-                    EMITVELIsland emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, *(qword *)&so->physics->gravity, D_002A2DC0, 0, 0, 1.0f, 5.0f,
+                    EMITVELIsland emitv = { {{ distance * 0.5f, distance * 0.75f, 0.0f, 1.0f }}, *(qword *)&so->physics->gravity, g_normalZ, 0, 0, 1.0f, 5.0f,
                                     {{ 0.39269909f, 1.0471976f }}, { 0 }, {{ 1.0f, 0.0f, -1.0f }} };
                     E emitg;
                     V4 posSplash;
@@ -863,7 +863,7 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
                     emitg.renderObject = water->splashObject;
                     emitg.nextRenderObject = water->rippleObject;
                     emitg.touchObject = water;
-                    EmitParticlesAt(posSplash.q, D_002A2DC0, RandomIntInRange__Fii(4, 6), emitp, emitv, &emitg, 0, 0);
+                    EmitParticlesAt(posSplash.q, g_normalZ, RandomIntInRange__Fii(4, 6), emitp, emitv, &emitg, 0, 0);
                 }
             }
         }
@@ -1414,7 +1414,7 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *emitb, EMITGEN *gen)
 
 namespace M_OriginateSplineSinkParticles {
 // OriginateSplineSinkParticles: emitter particle transform (Claude agent, lane E20). The clock time is read into a local BEFORE
-// the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(D_002DDED0) and doesn't hoist it.
+// the pgenEmit->atDeath[i] load, so loop.c sees a 1-insn life for %hi(g_clock) and doesn't hoist it.
 
 extern float D_002A5150 __asm__("D_002A5150");
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen) __asm__("OriginateParticles__FiP5EMITBP7EMITGEN");
@@ -1569,7 +1569,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
 namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB {
 typedef int qword __attribute__((mode(TI)));
 struct O { qword addedVelocity; qword curlAxis; float curlRate; float damping; };   /* EMITDV: a particle's motion parameters */
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // Length of the xyz part of c, in the x lane.
 extern "C" { static __inline__ qword VLen(qword c)
 {
@@ -1601,7 +1601,7 @@ extern "C" { static __inline__ void VNormalize(qword *pr, qword c, qword k)
 extern "C" void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
 {
     emitdv->addedVelocity = emitb->vel.addedVelocity;
-    VNormalize(&emitdv->curlAxis, emitb->vel.curlAxis, D_002A2DC0);
+    VNormalize(&emitdv->curlAxis, emitb->vel.curlAxis, g_normalZ);
     emitdv->curlRate = emitb->vel.curlRate;
     emitdv->damping = emitb->vel.damping;
 }

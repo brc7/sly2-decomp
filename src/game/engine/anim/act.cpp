@@ -1115,7 +1115,7 @@ struct X {
 #define XFV(p) ((X *)(p)->transform)
 
 
-extern qword D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002BC380 __asm__("D_002BC380");
+extern qword D_002A2DD0 __asm__("D_002A2DD0"), g_normalZ __asm__("g_normalZ"), D_002BC380 __asm__("D_002BC380");
 void UpdateXfJobRange(void *pv, X *px) __asm__("UpdateXfJobRange");
 void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n) __asm__("EvaluateBezierPos");
 M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
@@ -1149,7 +1149,7 @@ void ACT4::Update()
     using namespace M_func_0012D508;
     using M_func_0012D508::AddScaledDiff;
     using M_func_0012D508::BuildOrthonormalMatrixZ;
-    using M_func_0012D508::D_002A2DC0;
+    using M_func_0012D508::g_normalZ;
     using M_func_0012D508::D_002A2DD0;
     using M_func_0012D508::D_002BC380;
     using M_func_0012D508::EvaluateBezierPos;
@@ -1213,7 +1213,7 @@ void ACT4::Update()
     if (py->parent)
         v = MulM3(py->parent->worldMatrix, v);
     if (GetX(VLen(v)) < 100.0f) {
-        Fin(p, mT, BuildOrthonormalMatrixZ(XFV(p)->worldMatrix.r[0], D_002A2DC0));
+        Fin(p, mT, BuildOrthonormalMatrixZ(XFV(p)->worldMatrix.r[0], g_normalZ));
     } else {
         qword u = D_002BC380;
         if (0.0f < p->lookAheadTime && 0.0f < p->lookAheadWeight && py->activeAct) {

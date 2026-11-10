@@ -324,8 +324,8 @@ void UpdateScreenFocus(struct S *list) __asm__("UpdateScreenFocus"); void Update
 } // namespace M_func_001D95B8
 
 namespace M_func_001D9648 {
-extern int D_002DFBC0 __asm__("D_002DFBC0");
-extern int D_002DFBC4 __asm__("D_002DFBC4");
+extern int g_grfjoyt __asm__("g_grfjoyt");
+extern int g_grfusr __asm__("g_grfusr");
 extern JOY D_002E0D00 __asm__("D_002E0D00");   /* the second JOY */
 extern char D_003D9ED0[] __asm__("D_003D9ED0"), D_003DA150[] __asm__("D_003DA150"), D_003DA0F0[] __asm__("D_003DA0F0"), D_002DDEC0[] __asm__("D_002DDEC0"), D_00443740[] __asm__("D_00443740"), D_003D9E80[] __asm__("D_003D9E80");
 extern char D_003DA0C0[] __asm__("D_003DA0C0"), D_003DA3C0[] __asm__("D_003DA3C0"), D_002E6550[] __asm__("D_002E6550"), D_002E65A0[] __asm__("D_002E65A0"), D_003DA4F0[] __asm__("D_003DA4F0"), D_003DA530[] __asm__("D_003DA530");
@@ -350,18 +350,18 @@ void UpdateTitleScreen(void *) __asm__("UpdateTitleScreen");
 extern "C" void UpdateScreens(void *pdl)
 {
     JOY *pad;
-    if (D_002DFBC4 & 8) {
+    if (g_grfusr & 8) {
         if (g_clock.rate == 0.0f || 0.1f < g_clock.time / g_clock.rate)
             RemoveGrfusr__Fi(8);
     }
-    if (D_002DFBC0 & 2)
+    if (g_grfjoyt & 2)
         pad = &g_joy;
     else
         pad = &D_002E0D00;
     if (HandleJoyButtons(pad, 0x800)) {
         if (!TryOpenPauseMenu(0))
             ClearJoyButtons(pad, 0x800);
-    } else if (D_002DFBC0 & 2) {
+    } else if (g_grfjoyt & 2) {
         int r = IsDlEmpty__FP2DL(pdl);
         int f = 0;
         if (pad->joys == 1 && 5.0f <= g_clock.time)

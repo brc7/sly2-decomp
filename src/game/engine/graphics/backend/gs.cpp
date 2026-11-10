@@ -76,7 +76,7 @@ int D_002DEDB0;                         /* frame counter (buffer = & 1) */
 int D_002DEDB4;                         /* half offset of the next frame */
 int D_002DEDB8;                         /* field of the current frame */
 int D_002DEDBC;                         /* display mode */
-extern sceDmaChan *D_002DE598;
+extern sceDmaChan *g_pdcGif;
 /* The packet buffers, sized by the layout (0x250 = 37 quadwords, ...). */
 QW D_002DEDC0[37], D_002DF010[37], D_002DF260[37], D_002DF4B0[37], D_002DF700[2], D_002DF720[2];
 QW D_002DF740[12], D_002DF800[8], D_002DF880[12], D_002DF940[8], D_002DF9C0[12], D_002DFA80[8];
@@ -526,9 +526,9 @@ void BlastAqwGifsBothFrames(QW *aqw)
     for (int i = 0; i < 2; i++)
     {
         sceGsPutDrawEnv(((i + D_002DEDB0) & 1) ? &D_002DEBD0[0] : &D_002DECC0);
-        sceDmaSend(D_002DE598, aqw);
+        sceDmaSend(g_pdcGif, aqw);
     }
-    sceDmaSync(D_002DE598, 0, 0);
+    sceDmaSync(g_pdcGif, 0, 0);
     LeaveCritSect(&D_002DFB40);
 }
 
@@ -675,7 +675,7 @@ void UploadBitmaps(GSB *gsb)
         gifs.AddPrimEnd();
         gifs.AddDmaEnd();
         gifs.Detach(0, &aqw);
-        SendDmaSyncGsFinish(D_002DE598, aqw);
+        SendDmaSyncGsFinish(g_pdcGif, aqw);
     }
     STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }

@@ -1,4 +1,4 @@
-/* include/sly2/game.h -- GAME, the game-progress record (g_game = D_002DEB30, 0x1C bytes): the idle / camera-turn
+/* include/sly2/game.h -- GAME, the game-progress record (g_game = g_game, 0x1C bytes): the idle / camera-turn
  * event timers, the last refused task state and gadget, and the oids of the current job, current task and pending
  * task (game.cpp keeps them in step with SW::currentJob / currentTask / pendingTask).
  *
@@ -24,6 +24,6 @@ typedef char assert_GAME_size[sizeof(GAME) == 0x1C ? 1 : -1];   /* InitGame clea
 typedef char assert_GAME_oidJobCur[SLY2_OFFSETOF(GAME, oidJobCur) == 0x10 ? 1 : -1];   /* address name D_002DEB40 */
 
 /* g_game: defined by game.cpp's .bss under its address name. */
-extern GAME g_game __asm__("D_002DEB30");
+extern GAME g_game __asm__("g_game");
 
 #endif /* SLY2_GAME_H */

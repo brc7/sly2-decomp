@@ -66,8 +66,8 @@ extern QW D_002DF740[];
 extern char D_0025E680[];   /* VU1 microcode start/end */
 extern char D_00262320[];
 extern int D_002DEDBC;
-extern sceDmaChan *D_002DE594;
-extern sceDmaChan *D_002DE598;
+extern sceDmaChan *g_pdcVif1;
+extern sceDmaChan *g_pdcGif;
 extern int D_002DEDB0;
 extern int D_002DEDB8;
 extern char D_002DEBE0[];
@@ -204,11 +204,11 @@ void FrameRenderLoop(void *pv)
         PropagateSais(frame);
         RestoreGsBuffers();
         RebuildFrameGifs__Fv();
-        SendDmaSyncGsFinish(D_002DE594, D_002DEB14->drawChain);
-        SendDmaSyncGsFinish(D_002DE598, D_002DEB14->gifsChain);
+        SendDmaSyncGsFinish(g_pdcVif1, D_002DEB14->drawChain);
+        SendDmaSyncGsFinish(g_pdcGif, D_002DEB14->gifsChain);
         if (D_002DEB14->blendFlags & 1)
             BlendPrevFrame();
-        sceDmaSync(D_002DE594, 0, 0);
+        sceDmaSync(g_pdcVif1, 0, 0);
         func_00234A40(D_002DEB1C);
         SwapGsBuffers();
         D_002DEDBC = 1;
@@ -221,9 +221,9 @@ void RenderFrame(FRM *frame, int renderGifs)
 {
     PropagateSaisF(frame, renderGifs);
     RebuildFrameGifs__Fv();
-    SendDmaSyncGsFinish(D_002DE594, frame->drawChain);
+    SendDmaSyncGsFinish(g_pdcVif1, frame->drawChain);
     if (renderGifs)
-        SendDmaSyncGsFinish(D_002DE598, frame->gifsChain);
+        SendDmaSyncGsFinish(g_pdcGif, frame->gifsChain);
 }
 
 // Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO
@@ -332,7 +332,7 @@ void BlendPrevFrame()
     gifs.AddPrimEnd();
     gifs.AddDmaEnd();
     gifs.EndDmaCnt();
-    SendDmaSyncGsFinish(D_002DE598, aqw);
+    SendDmaSyncGsFinish(g_pdcGif, aqw);
 }
 
 

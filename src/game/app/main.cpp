@@ -206,8 +206,8 @@ typedef char size_5[sizeof(char)==1?1:-1];
 typedef char alignment_0[__alignof__(struct E)==4?1:-1];
 typedef char alignment_1[__alignof__(struct DMA)==4?1:-1];
 
-extern int *D_002DE590;     /* VIF0 DMA channel */
-extern int *D_002DE594;     /* VIF1 DMA channel */
+extern int *g_pdcVif0;     /* VIF0 DMA channel */
+extern int *g_pdcVif1;     /* VIF1 DMA channel */
 extern char D_00259DF0[];   /* VU0 microcode upload chain */
 extern char D_0025E050[];   /* VU1 microcode upload chain */
 extern "C" {
@@ -219,21 +219,21 @@ void sceDmaSync(int *pch, int a, int b);
 // Boot stage: uploads the VU0 microcode by VIF0 DMA (chain D_00259DF0).
 void StartupVU0()
 {
-    *D_002DE590 |= 0x40;
+    *g_pdcVif0 |= 0x40;
     FlushCache(0);
-    sceDmaSend(D_002DE590, D_00259DF0);
-    sceDmaSync(D_002DE590, 0, 0);
-    *D_002DE590 &= ~0x40;
+    sceDmaSend(g_pdcVif0, D_00259DF0);
+    sceDmaSync(g_pdcVif0, 0, 0);
+    *g_pdcVif0 &= ~0x40;
 }
 
 // Boot stage: uploads the VU1 microcode by VIF1 DMA (chain D_0025E050).
 void StartupVU1()
 {
-    *D_002DE594 |= 0x40;
+    *g_pdcVif1 |= 0x40;
     FlushCache(0);
-    sceDmaSend(D_002DE594, D_0025E050);
-    sceDmaSync(D_002DE594, 0, 0);
-    *D_002DE594 &= ~0x40;
+    sceDmaSend(g_pdcVif1, D_0025E050);
+    sceDmaSync(g_pdcVif1, 0, 0);
+    *g_pdcVif1 &= ~0x40;
 }
 
 /* The startup progress bar (CProg, 0x70 bytes) and its colours. Its members are called under their linker names

@@ -153,7 +153,7 @@ extern "C" void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT
 namespace M_func_00195A00 {
 // SetJtAirJump: ported from Lilly's personal Sly 2 decomp (src/P2/jtair.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF750 (D_002BF750), D_002BF754 (D_002BF754), D_002BF758 (D_002BF758), D_002BF75C (D_002BF75C), D_002BF760 (D_002BF760), D_002BF764 (D_002BF764), D_002BF76C (D_002BF76C), D_002BF770 (D_002BF770), D_002BF730 (g_SheetMovementMiscJumpHorizontalSpeed), D_002BF768 (g_SheetMovementMiscTurnbuckleLaunchHorizontalSpeed), D_002DDED0 (g_clock), D_002A2DC0 (g_normalZ)
+// Globals: D_002BF750 (D_002BF750), D_002BF754 (D_002BF754), D_002BF758 (D_002BF758), D_002BF75C (D_002BF75C), D_002BF760 (D_002BF760), D_002BF764 (D_002BF764), D_002BF76C (D_002BF76C), D_002BF770 (D_002BF770), D_002BF730 (g_SheetMovementMiscJumpHorizontalSpeed), D_002BF768 (g_SheetMovementMiscTurnbuckleLaunchHorizontalSpeed), g_clock (g_clock), g_normalZ (g_normalZ)
 // 0x00195A00 SetJtAirJump (curated name): starts a flight of the given kind. n2 picks the directional clip; plo is the object the sub-state works on.
 // Every kind but the double jump (6) restarts the record (its timers, zStart, the JT's landing clue). The launch velocity comes from JtPlanLaunchVz; kinds
 // 3 / 0xE add a push along the facing when the stick is at rest, 0x11 (wall run) flattens it and adds 400 up. Then the sub-state (SetJtAirState) and the
@@ -176,7 +176,7 @@ qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 void DecomposeCylind(qword v, float *prad, float *psXY, float *pz) __asm__("GetVectorCylind");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002BF770 __asm__("D_002BF770");
 extern float D_002BF750 __asm__("D_002BF750");
 extern float D_002BF754 __asm__("D_002BF754");
@@ -361,7 +361,7 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
         case 0x11:
             if (air->state == -1)
             {
-                air->player->SetVelocity(VuAdd(ProjectOutVec(velWall, D_002A2DC0), D_002BF770));
+                air->player->SetVelocity(VuAdd(ProjectOutVec(velWall, g_normalZ), D_002BF770));
                 air->canDoubleJump = 1;
             }
             SetJtAirState(air, 0x16, 0);
@@ -394,7 +394,7 @@ struct LINK{SPACE*space;void*target;};union WORD{int bits;float amount;};struct 
 struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float stamp;int mode;float time;int flags24,flags28,flags2C;int actionFlag;float gain,turnGain,height;int combo;float time44,time48,time4C;char pad50[0x6C];int fieldBC;char padC0[8];LINK*link;char padCC[4];QWROW relative,direction,offset;char pad100[0x20];ASEG*base[5];ASEG*alternate[5];ASEG*special148,*special14C,*special150,*special154,*special158,*special15C;char pad160[8];float oldScale;void*focus;char pad170[4];int focused;ASEG*scripted;float scriptedGain;char pad180[4];TRACK tracks[4];char pad1B4[4];ASEG*multi;SOURCE*scriptFocus;char pad1C0[8];ASEG*special1C8;char pad1CC[4];QUERY query;EVENT*event;};
 struct RANGE{float low,high;};struct TWO_ROWS{QWROW row[2];};
 struct WORK{QWROW temp;M3 basis;QWROW scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
-extern ACTOR*D_002E1E40 __asm__("D_002E1E40");extern QWROW D_002A2DB0 __asm__("D_002A2DB0"),D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");extern float D_002BF780[] __asm__("D_002BF780"),D_002BF7A0 __asm__("D_002BF7A0");extern RANGE D_002BF798 __asm__("D_002BF798");
+extern ACTOR*D_002E1E40 __asm__("D_002E1E40");extern QWROW D_002A2DB0 __asm__("D_002A2DB0"),g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");extern float D_002BF780[] __asm__("D_002BF780"),D_002BF7A0 __asm__("D_002BF7A0");extern RANGE D_002BF798 __asm__("D_002BF798");
 void LinkStepAttachment(ACTOR*,void*,int) __asm__("LinkStepAttachment");void RefreshSwObjectCollisionFilter(SW*,void*) __asm__("RefreshSwObjectCollisionFilter");void SetBarrelState(SOURCE*,int) __asm__("SetBarrelState");void SetXfRole(ACTOR*,BODY*,int) __asm__("SetXfRole");void SetJtHandsTarget(SECONDARY*,int) __asm__("SetJtHandsTarget");void SetJtCaneState__FP2JTi(ACTOR*,int) __asm__("SetJtCaneState__FP2JTi");void SetSmaGoal(EFFECT*,int) __asm__("SetSmaGoal");void SetStepplayerTnOverride(ACTOR*,void*) __asm__("SetStepplayerTnOverride");void ReleaseAct(EVENT**) __asm__("ReleaseAct");void SetSoTreeFlag2(ACTOR*,int) __asm__("SetSoTreeFlag2");
 qword TransformXfPos(SPACE*,SPACE*,qword) __asm__("TransformXfPos");qword ConvertXfVec(SPACE*,SPACE*,qword) __asm__("ConvertXfVec");void GetNormalVectors(qword,qword,qword,TWO_ROWS*) __asm__("GetNormalVectors");qword GetLoWorldPos(ACTOR*) __asm__("GetLoWorldPos");void SetStepGravityRatio(ACTOR*,float) __asm__("SetStepGravityRatio");qword PlanJtLaunchVelocity(CONTEXT*,int) __asm__("PlanJtLaunchVelocity");void SetStepTargetHeading(ACTOR*,float) __asm__("SetStepTargetHeading");void RecalculateAsegBlend(ASEG*) __asm__("RecalculateAsegBlend");int IsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");qword GetJtPlacePosition(ACTOR*,QUERY*,float) __asm__("GetJtPlacePosition");float ComputeMaxBallisticTime(qword,qword,float,float,float,float) __asm__("ComputeMaxBallisticTime");EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword) __asm__("NewBezierAct");void SetStepTargetHeadingFromVector(ACTOR*,qword) __asm__("SetStepTargetHeadingFromVector");void ReleaseSma(COMPONENT*) __asm__("ReleaseSma");void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,ACTOR*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Zero the xyz words of v.
@@ -611,7 +611,7 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
         __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni "
                 "%2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
                 : "=&j"(direction), "=j"(negative), "=&r"(upArg), "=r"(axisAddress)
-                : "m"(air->direction.q), "f"(negativeScalar), "i"(&D_002A2DC0), "i"(&D_002A2DB0)
+                : "m"(air->direction.q), "f"(negativeScalar), "i"(&g_normalZ), "i"(&D_002A2DB0)
                 : "$3", "memory");
         register qword axisArg __asm__("$6"), directionArg __asm__("$4");
         register TWO_ROWS *basisOutput __asm__("$7");
@@ -944,7 +944,7 @@ struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];QWROW normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
 struct FRAME{};union SCRATCH{QWROW scalar;SWALLOC request;};struct WORK{QWROW normals[64];SCRATCH scratch;FRAME frame;QWROW residual,original;};
-extern QWROW D_002A2DC0 __asm__("D_002A2DC0");extern float D_002A63B0 __asm__("D_002A63B0");FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(SWALLOC*) __asm__("AllocFromStack");void SolveInequalities(int,float*,float*,float*,float) __asm__("SolveInequalities");void SetJtAirState(MOVE*,int,void*) __asm__("SetJtAirState");
+extern QWROW g_normalZ __asm__("g_normalZ");extern float D_002A63B0 __asm__("D_002A63B0");FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(SWALLOC*) __asm__("AllocFromStack");void SolveInequalities(int,float*,float*,float*,float) __asm__("SolveInequalities");void SetJtAirState(MOVE*,int,void*) __asm__("SetJtAirState");
 // Store a VU0 register to home (volatile).
 static inline void Publish(QWROW*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 // Return v scaled by k.x.
@@ -1029,7 +1029,7 @@ extern "C" void ProjectJtVelocityOnContacts(MOVE *p, QWROW *out)
                 if (Z(normal) > 0.7f)
                     continue;
                 write += 16;
-                *(qword *)write = Reject(normal, D_002A2DC0.q);
+                *(qword *)write = Reject(normal, g_normalZ.q);
                 count++;
             } while ((c = c->next) != 0);
         }
@@ -1115,7 +1115,7 @@ struct SMP{float maximum,minimum,duration;};struct RANGE{float low,high;};struct
 /* The basis writer and later vectors share their actual stack homes. */
 union BASE_PHASE{M3 returned;struct{QWROW local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{QWROW local,scalar;M3 basis,rotation,returned;QWROW original;}turn;struct{QWROW direction;M3 basis;BASE_PHASE phase;}move;QWROW scalar;};
-extern QWROW D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");extern SMP D_002BF7A8 __asm__("D_002BF7A8"),D_002BF7B8 __asm__("D_002BF7B8"),D_002BF7C8 __asm__("D_002BF7C8");extern float D_002BF7D4 __asm__("D_002BF7D4"),D_002BF7F0 __asm__("D_002BF7F0"),D_002BF7F4 __asm__("D_002BF7F4"),D_002BF7F8 __asm__("D_002BF7F8"),D_002BF810 __asm__("D_002BF810"),D_002BF814 __asm__("D_002BF814");extern PARAMS D_002BF7E0 __asm__("D_002BF7E0");extern POLY D_002BF800 __asm__("D_002BF800");extern RANGE D_002BBB60 __asm__("D_002BBB60");
+extern QWROW D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");extern SMP D_002BF7A8 __asm__("D_002BF7A8"),D_002BF7B8 __asm__("D_002BF7B8"),D_002BF7C8 __asm__("D_002BF7C8");extern float D_002BF7D4 __asm__("D_002BF7D4"),D_002BF7F0 __asm__("D_002BF7F0"),D_002BF7F4 __asm__("D_002BF7F4"),D_002BF7F8 __asm__("D_002BF7F8"),D_002BF810 __asm__("D_002BF810"),D_002BF814 __asm__("D_002BF814");extern PARAMS D_002BF7E0 __asm__("D_002BF7E0");extern POLY D_002BF800 __asm__("D_002BF800");extern RANGE g_lmZeroOne __asm__("g_lmZeroOne");
 qword ConvertVecBetweenLos(ACTOR*,ACTOR*,qword) __asm__("ConvertVecBetweenLos");M3*BuildRotationMatrixFromVector(M3*,qword) __asm__("BuildRotationMatrixFromVector");M3*LoadLookAtMatrix(M3*,qword) __asm__("LoadLookAtMatrix");M4*GetLoWorldMatrix(ACTOR*) __asm__("GetLoWorldMatrix");float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*) __asm__("SmoothValue__FfffP3SMPPf");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");void AddSoAcceleration(ACTOR*,qword) __asm__("AddSoAcceleration");void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*) __asm__("AccelSoTowardPosSpring");void ProjectJtVelocityOnContacts(CONTEXT*,QWROW*) __asm__("ProjectJtVelocityOnContacts");
 // Rotate vector by the 3x3 matrix rows r0..r2 (seed provides the output register).
 static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(seed):"j"(r0),"j"(r1),"j"(r2),"j"(vector));return seed;}
@@ -1379,15 +1379,15 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
             register unsigned rangeHigh __asm__("$3"), address __asm__("$2");
             __asm__("lwc1 %1,%%lo(%5)(%0)\n\tlui %3,%%hi(%6)\n\tlwc1 %2,%4\n\tlui %0,%%hi(%7)"
                     : "+r"(clockHigh), "=f"(elapsed), "=f"(stamp), "=r"(rangeHigh)
-                    : "m"(p->stamp), "i"(&g_clock), "i"(&D_002BBB60), "i"(&D_002BF800)
+                    : "m"(p->stamp), "i"(&g_clock), "i"(&g_lmZeroOne), "i"(&D_002BF800)
                     : "memory");
             __asm__("addiu %0,%3,%%lo(%6)\n\tlwc1 %1,%%lo(%7)(%4)\n\tsub.s %2,%2,%5"
                     : "=&r"(address), "=&f"(low), "+f"(elapsed)
-                    : "r"(clockHigh), "r"(rangeHigh), "f"(stamp), "i"(&D_002BF800), "i"(&D_002BBB60)
+                    : "r"(clockHigh), "r"(rangeHigh), "f"(stamp), "i"(&D_002BF800), "i"(&g_lmZeroOne)
                     : "memory");
             __asm__("lwc1 %1,8(%0)\n\tlwc1 %2,4(%0)\n\tlwc1 %3,%%lo(%6)(%4)\n\taddiu %0,%5,%%lo(%7)"
                     : "+r"(address), "=f"(c2), "=f"(c1), "=f"(gain)
-                    : "r"(clockHigh), "r"(rangeHigh), "i"(&D_002BF800), "i"(&D_002BBB60)
+                    : "r"(clockHigh), "r"(rangeHigh), "i"(&D_002BF800), "i"(&g_lmZeroOne)
                     : "memory");
             c2 = elapsed * c2;
             c1 = c1 + c2;
@@ -1419,7 +1419,7 @@ extern "C" void PresetJtAccelJump(CONTEXT *p)
                         "$vf3,0($3)\n\tmfc1 $3,%2\n\tqmtc2.ni $3,$vf1\n\tvadda.xyzw $ACC,$vf2,$vf0\n\tvmaddx.xyzw "
                         "$vf2,$vf3,$vf1x\n\tsqc2 $vf1,%1\n\tsqc2 $vf2,%0"
                         : "+m"(w.move.phase.vectors.corrected.q), "=m"(w.move.phase.vectors.scalar.q), "+f"(threshold)
-                        : "f"(z), "i"(&D_002A2DC0)
+                        : "f"(z), "i"(&g_normalZ)
                         : "$3", "vf1", "vf2", "vf3", "memory");
             }
         }
@@ -1484,7 +1484,7 @@ extern "C" XP *GetFirstNonNullEntry(SOTREE *o)
 namespace M_UpdateJtAirInput {
 // UpdateJtAirInput: ported from Lilly's personal Sly 2 decomp (src/P2/jtair_update.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF818 (D_002BF818), D_002BF81C (D_002BF81C), D_002BF820 (D_002BF820), D_002BF82C (D_002BF82C), D_002F7900 (g_SheetGangMurray), D_002E1E40 (g_SheetGangSly), D_002BF830 (g_SheetMovementMiscHoverPackDuration), D_002DDED0 (g_clock), D_002A2DD0 (g_qwZero)
+// Globals: D_002BF818 (D_002BF818), D_002BF81C (D_002BF81C), D_002BF820 (D_002BF820), D_002BF82C (D_002BF82C), D_002F7900 (g_SheetGangMurray), D_002E1E40 (g_SheetGangSly), D_002BF830 (g_SheetMovementMiscHoverPackDuration), g_clock (g_clock), D_002A2DD0 (g_qwZero)
 // 0x00197500 UpdateJtAirInput (our name; KB FUN_00197500)
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
@@ -1871,7 +1871,7 @@ struct VU_FLOAT { qword q; };
 
 
 extern ACTOR *D_002E1E40 __asm__("D_002E1E40");
-extern qword D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DA0 __asm__("D_002A2DA0"), D_002BF890 __asm__("D_002BF890");
+extern qword D_002A2DD0 __asm__("D_002A2DD0"), g_normalZ __asm__("g_normalZ"), D_002A2DA0 __asm__("D_002A2DA0"), D_002BF890 __asm__("D_002BF890");
 extern float D_002BF780[] __asm__("D_002BF780");
 extern float D_002BF730 __asm__("D_002BF730"), D_002BF734 __asm__("D_002BF734"), D_002BF834 __asm__("D_002BF834"), D_002BF838 __asm__("D_002BF838"), D_002BF83C __asm__("D_002BF83C"), D_002BF840 __asm__("D_002BF840"), D_002BF844 __asm__("D_002BF844"), D_002BF848 __asm__("D_002BF848");
 extern float D_002BF878 __asm__("D_002BF878"), D_002BF87C __asm__("D_002BF87C"), D_002BF880 __asm__("D_002BF880"), D_002BF8A0 __asm__("D_002BF8A0");
@@ -2253,15 +2253,15 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             p->actor->heading = atan2f(vel.f[1], vel.f[0]) + offset;
         VU_FLOAT half = VuFloatHomed(0.5f);
         VU_FLOAT halfNeg = VuFloatHomed(-0.5f);
-        qword up = D_002A2DC0;
+        qword up = g_normalZ;
         qword a = vel.q;
         qword b = p->actor->velocity.q;
         a = VuSub(a, VuScaleByX(up, VuDot(a, up)));
         b = VuSub(b, VuScaleByX(up, VuDot(b, up)));
-        basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, CombineVec(D_002BF890, a, half, b, halfNeg));
+        basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(g_normalZ, CombineVec(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
-        actor->local = MulM3(basis, BuildAxisAngleRotationMatrix(D_002A2DC0, actor->heading));
+        actor->local = MulM3(basis, BuildAxisAngleRotationMatrix(g_normalZ, actor->heading));
         break;
     }
     case 17: case 19:
@@ -2339,7 +2339,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
 extern qword D_002A2DB0 __asm__("D_002A2DB0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void GetNormalVectors(qword a, qword b, qword c, qword *pm) __asm__("GetNormalVectors");
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
@@ -2358,7 +2358,7 @@ extern "C" void AddJtWallRunXps(JTAIR *p)
     s.q = sq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->normalEdge), "j"(s.q));
     m.r[0] = neg;
-    GetNormalVectors(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
+    GetNormalVectors(neg, g_normalZ, D_002A2DB0, &m.r[1]);
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
             : "=j"(v) : "j"(p->dposEdge), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     qword rq;
@@ -2455,7 +2455,7 @@ typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of QWROW rows with copy constructor and assignment.
 struct M3 {QWROW r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
 struct M4 {QWROW r[4];};
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
 // Pack x, y, z into a 128-bit value.
 static inline qword Pack(float x,float y,float z){QWROW u;qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));u.q=q;return q;}
@@ -2480,7 +2480,7 @@ extern "C" void BuildJtEdgeProbeArc(JTAIR *p, const M4 *world, int count, QWROW 
     qword a = Pack(x, y, p->unknown110), b = Pack(x, y, p->unknown10C);
     int i;
     for (i = 8; i >= 0; i--) {
-        m = BuildAxisAngleRotationMatrix(D_002A2DC0, (i - 4) * 0.261799395084381103515625f);
+        m = BuildAxisAngleRotationMatrix(g_normalZ, (i - 4) * 0.261799395084381103515625f);
         QWROW *v0 = cursor++;
         QWROW *v1 = cursor++;
         v0->q = Rot(m, a);
@@ -2515,7 +2515,7 @@ struct M4 { M3 m; U pos; };
 struct PLANE { qword q; };
 // HIT is cleared 0x60 bytes at a time by the collision routines; the original frame reserves 0x70 for it.
 struct HIT { U point[2]; U plane[2]; float parameter[2]; int kind; PLANE *face[2]; int unk54[5]; };
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DB0 __asm__("D_002A2DB0");
 
 void GetNormalVectors(qword a, qword b, qword c, qword *pm) __asm__("GetNormalVectors");
@@ -2541,7 +2541,7 @@ extern "C" int IsJtEdgeNormalValid(JTAIR *p, qword q1, qword q2)
     XPLIST *l;
     int c = 0;
     m.r[0].q = q2;
-    GetNormalVectors(q2, D_002A2DC0, D_002A2DB0, &m.r[1].q);
+    GetNormalVectors(q2, g_normalZ, D_002A2DB0, &m.r[1].q);
     M4 *pm = &m4;
     (void)VECTOR_opAssign(&m4.pos.q, q1);
     pm->m = m;
@@ -2734,7 +2734,7 @@ typedef char CONTACT_next_Offset[FIELD_OFFSET(CONTACT,next)==172?1:-1];
 typedef char CONTACT_difference_Offset[FIELD_OFFSET(CONTACT,difference)==176?1:-1];
 extern float D_002C3C60[] __asm__("D_002C3C60"),D_002BF8A4 __asm__("D_002BF8A4");
 extern int D_002BF8A8 __asm__("D_002BF8A8");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern int IsStepplayerPushing(LO *) __asm__("IsStepplayerPushing");
 extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,QWROW *) __asm__("IsJtEdgeGrabbable");
 extern void RecalcSwXpMovement(void *,int,CONTACT **) __asm__("RecalcSwXpMovement");
@@ -2843,7 +2843,7 @@ extern "C" CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *o
                 /* "rV": the word is a memory operand that fails 'V' at reload, so reload loads it at the asm through the
                    dying %hi register (lui v1 / lw v1,%lo(v1)) instead of a separate pseudo; allocation only */
                 __asm__("qmtc2.ni %1,%0" : "=j"(lift) : "rV"(D_002BF8A8));
-                value = Project(selected->q, direction.q, back, D_002A2DC0, lift);
+                value = Project(selected->q, direction.q, back, g_normalZ, lift);
                 /* The C original stored the compound literals (U){back} and (U){lift} into a never-read union; both
                    literals shared one 16-byte stack temporary. Two block-local aggregates initialised in sibling blocks
                    share one slot the same way and keep both stores (an assignment to one union loses the first store as
@@ -2883,7 +2883,7 @@ struct P{char pad[0xEC];COLLISION*collision;char padF0[0x118];int mode;};
 union WORK{SWALLOC request;U scalar;};
 
 
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern float D_002A656C __asm__("D_002A656C");
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
@@ -2962,7 +2962,7 @@ extern "C" int IsJtStuck(P *p, float previous, float *stamp)
                 "$vf2,%3\n\tlui $2,%%hi(%6)\n\taddiu $2,$2,%%lo(%6)\n\tsll $3,$3,2\n\tlqc2 $vf1,0($2)\n\tvmulx.xyzw "
                 "%2,$vf1,$vf2x\n\tsw $3,%3"
                 : "=&r"(request), "=&r"(argument), "=j"(result), "=m"(work.scalar.q)
-                : "f"(negative), "p"(&work.request), "i"(&D_002A2DC0), "r"(count)
+                : "f"(negative), "p"(&work.request), "i"(&g_normalZ), "r"(count)
                 : "$2", "$3", "vf1", "vf2", "hi", "lo", "memory");
         down.q = result;
         request->cbAlign = 16;
@@ -4489,7 +4489,7 @@ extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 
 //////// 0x19C8D0 CanJtUseGadgetInAir
 namespace M_func_0019C8D0 {
-extern int D_002DFBC0 __asm__("D_002DFBC0");
+extern int g_grfjoyt __asm__("g_grfjoyt");
 int IsCameraPolicyActive__FP5CPLCY(void *) __asm__("IsCameraPolicyActive__FP5CPLCY");
 // Whether gadget/action k can be used in the current air sub-state.
 extern "C" int CanJtUseGadgetInAir(JTAIR *p, int k) {
@@ -4506,7 +4506,7 @@ extern "C" int CanJtUseGadgetInAir(JTAIR *p, int k) {
     case 3:
         {
             int r = 0;
-            if (p->state == 0x11 && p->player->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+            if (p->state == 0x11 && p->player->unknown12F0 && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
             return r;
         }
     case 2: case 5: case 27:

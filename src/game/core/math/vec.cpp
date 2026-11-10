@@ -22,7 +22,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef int qwordi __attribute__((mode(TI)));
 extern "C" {
 extern qwordi D_002A2DA0;
-extern qwordi D_002A2DC0;
+extern qwordi g_normalZ;
 extern qwordi D_002A2DD0;
 extern qwordi D_002A2DF0;
 extern qwordi D_002A2E00;
@@ -303,7 +303,7 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
         }
     }
     {
-        qword def = D_002A2DC0;
+        qword def = g_normalZ;
         qword t;
         qword dd;
         float l;
@@ -922,7 +922,7 @@ extern "C" qword VecMaxArray(int count, qword *vectors)
 namespace RO_VEC {
 extern const float r_D_002A2DA0[4] __asm__("D_002A2DA0") __attribute__((aligned(16))) = {1.0f, 0.0f, 0.0f, 0.0f};   /* x axis */
 extern const float r_D_002A2DB0[4] __asm__("D_002A2DB0") __attribute__((aligned(16))) = {0.0f, 1.0f, 0.0f, 0.0f};   /* y axis */
-extern const float r_D_002A2DC0[4] __asm__("D_002A2DC0") __attribute__((aligned(16))) = {0.0f, 0.0f, 1.0f, 0.0f};   /* z axis */
+extern const float r_D_002A2DC0[4] __asm__("g_normalZ") __attribute__((aligned(16))) = {0.0f, 0.0f, 1.0f, 0.0f};   /* z axis */
 extern const float r_D_002A2DD0[4] __asm__("D_002A2DD0") __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 0.0f};   /* zero */
 extern const float r_D_002A2DE0[4] __asm__("D_002A2DE0") __attribute__((aligned(16))) = {1.0f, 1.0f, 1.0f, 0.0f};   /* one */
 extern const float r_D_002A2DF0[4] __asm__("D_002A2DF0") __attribute__((aligned(16))) = {3.40282347e+38f, 3.40282347e+38f, 3.40282347e+38f, 0.0f};    /* FLT_MAX */

@@ -33,23 +33,23 @@
 #include "sly2/vtables.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
-extern qword D_002A2DC0;
+extern qword g_normalZ;
 /* 0x1F8C40 StaticInit_so (93 instructions) and its _GLOBAL_$I$ stub func_001F8DB8: g++'s initializer for the file-scope
    object below (built in a zeroed temporary and copied), then the six engine slot pools. D_003DD020 is the default
    query record that cnvo and guardbhv pass to FindShapeClosestPoint (role HYPOTHESIS; the name is a placeholder). */
 struct CPQ
 {
-    qword axis;             /* D_002A2DC0 (the up axis) */
+    qword axis;             /* g_normalZ (the up axis) */
     int unknown10;          /* 1 */
     int pad[3];
     // Zero the whole CPQ.
     CPQ() { func_002333B4(this, 0, sizeof(CPQ)); }
 };
-// A zeroed CPQ with axis D_002A2DC0 and its unknown10 flag set.
+// A zeroed CPQ with axis g_normalZ and its unknown10 flag set.
 static inline CPQ MakeCpq()
 {
     CPQ cpq;
-    cpq.axis = D_002A2DC0;
+    cpq.axis = g_normalZ;
     cpq.unknown10 = 1;
     return cpq;
 }

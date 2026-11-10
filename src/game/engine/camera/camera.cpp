@@ -28,7 +28,7 @@ struct CAMERA
     CAMERA *lookAtTarget;   /* +0x0E0 look-at target (0: use the object's matrix) */
     char padE4[0x1C];
     qwordV axis100;          /* +0x100 initialized to D_002A2DA0 (meaning unknown) */
-    qwordV axis110;          /* +0x110 initialized to D_002A2DC0 (meaning unknown) */
+    qwordV axis110;          /* +0x110 initialized to g_normalZ (meaning unknown) */
     int cutOnEnd;           /* +0x120 cut the camera when the policy ends */
     int hasPolicy;          /* +0x124 the policy is set while in the hierarchy */
     float focalLength;      /* +0x128 focal length (field of view = 2 atan(18 / focalLength)) */
@@ -36,7 +36,7 @@ struct CAMERA
     float fov;              /* +0x130 field of view set on activation (0: keep) */
 };
 typedef char assert_CAMERA_fov[(unsigned int)&((CAMERA *)0)->fov == 0x130 ? 1 : -1];
-extern U D_002A2DA0, D_002A2DC0;
+extern U D_002A2DA0, g_normalZ;
 extern "C" {
 void InitXfm(CAMERA *p);
 void PostLoLoad(CAMERA *p);
@@ -63,7 +63,7 @@ void CID44::Init()
     CAMERA *camera = (CAMERA *)this;
     InitXfm(camera);
     camera->axis100 = D_002A2DA0.q;
-    camera->axis110 = D_002A2DC0.q;
+    camera->axis110 = g_normalZ.q;
 }
 
 // Post-load (vtable slot 15): LO post-load, marks the camera as policy-bearing, and if its flags say so (bit 60) pushes

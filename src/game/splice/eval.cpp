@@ -30,7 +30,7 @@ struct BIF
     int hasRest;
 };
 
-extern BIF D_002BBB90[];
+extern BIF g_mpbifkbif[];
 
 CRef EvalExpression(CPair *expr, CFrame *frame);
 CRef EvalLambdaBody(CPair *expr, CFrame *frame);
@@ -378,7 +378,7 @@ typedef CRefOwnerPad<CPair> SPPAIR;
 typedef CRefOwnerPad<CFrame> SPFRAME;
 
 // Function application: evaluates the operator and the operands, then calls a built-in (tag 0x19, the
-// D_002BBB90 table of {function, minimum arguments, rest flag}), a native object method (tag 0x22), or a lambda (new
+// g_mpbifkbif table of {function, minimum arguments, rest flag}), a native object method (tag 0x22), or a lambda (new
 // frame binding the parameters, extra arguments collected into the rest list), checking the argument count.
 CRef EvalApply(CPair *expr, CFrame *frame)
 {
@@ -391,7 +391,7 @@ CRef EvalApply(CPair *expr, CFrame *frame)
     int cargMin, fRest;
     if (refOp.m_tagk == 0x19)
     {
-        pbif = &D_002BBB90[refOp.u.n];
+        pbif = &g_mpbifkbif[refOp.u.n];
         cargMin = pbif->minArgCount;
         fRest = pbif->hasRest;
     }

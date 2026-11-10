@@ -43,7 +43,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
 SOV *AcquireProxyObject(void *plo, int n);
 void SelectLootEntry(SOV *plo, int id);
 XF *FindSoXf(SPRAYER *p, void *pv, int n);
-extern qwordV D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
+extern qwordV g_normalZ, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
 LM D_002C0CE0 = {0.75f, 1.2f};                     // flight time
 float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime step
 LM D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
@@ -184,9 +184,9 @@ extern "C" SOV *LaunchLootPouchLootAtPlayer(SPRAYER *pouch, int count)
         float pan = Rand(D_002C0CF0);
         qwordV offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qwordV delta = VuSub(target, start);
-        qwordV side = VuSub(delta, Scale(VuDot(delta, D_002A2DC0), D_002A2DC0));
+        qwordV side = VuSub(delta, Scale(VuDot(delta, g_normalZ), g_normalZ));
         M3 mat;
-        mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), D_002A2DC0);
+        mat = BuildOrthonormalMatrixZ(Normalize(side, D_002A2DA0), g_normalZ);
         qwordV dest = VuAdd(target, Transform(mat, offset));
         qwordV velocity = CalculateVelocityToReachPos(start, dest, D_002C0D60, Rand(D_002C0CE0));
         if (IsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A)) {

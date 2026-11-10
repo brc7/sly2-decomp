@@ -203,7 +203,7 @@ struct VEC3 { float x, y, z; VEC3() {} };
 struct CLR { unsigned int n; CLR() {} };
 
 extern int D_002C3680[3] __asm__("D_002C3680");   /* shd's .data starts here (the zero word after it is alignment) */
-extern int D_002DE598 __asm__("D_002DE598");
+extern int g_pdcGif __asm__("g_pdcGif");
 void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *) __asm__("ConvertUserHsvToUserRgb__FP6VECTORT0");
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(int, QW *) __asm__("SendDmaSyncGsFinish__FP10sceDmaChanP2QW");
 void BuildWorldBackgroundImage(SW *psw, GSB *pgsb) __asm__("BuildWorldBackgroundImage");
@@ -293,7 +293,7 @@ void BuildWorldBackgroundImage(SW *psw, GSB *pgsb)
     gifs.AddPrimEnd();
     gifs.AddDmaEnd();
     gifs.Detach(0, &aqwSend);
-    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, aqwSend);
+    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, aqwSend);
     }
 }
 } // namespace M_BuildWorldBackgroundImage
@@ -1157,7 +1157,7 @@ struct G3 { float x, y, z; };
 extern float D_002C3690 __asm__("D_002C3690");
 extern float D_002C3694 __asm__("D_002C3694");
 extern float D_002C3698 __asm__("D_002C3698");
-extern char D_002BBB60[] __asm__("D_002BBB60");
+extern char g_lmZeroOne[] __asm__("g_lmZeroOne");
 float powf(float, float) __asm__("powf");
 float ClampToLimits__FP2LMf(void *, float) __asm__("ClampToLimits__FP2LMf");
 void ConvertUserRgbToUserHsv(struct G3 *, VEC *) __asm__("ConvertUserRgbToUserHsv");
@@ -1179,7 +1179,7 @@ extern "C" void ColorCorrectVector(VEC *p)
     c.y = D_002C3694;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(*(qword *)p), "j"(*(qword *)&w));
     __asm__("mtc1 %1, %0" : "=f"(dot) : "r"(d));
-    c.z = ClampToLimits__FP2LMf(D_002BBB60, powf(dot, D_002C3698));
+    c.z = ClampToLimits__FP2LMf(g_lmZeroOne, powf(dot, D_002C3698));
     ConvertUserRgbToUserHsv(&c, p);
 }
 } // namespace M_ColorCorrectVector

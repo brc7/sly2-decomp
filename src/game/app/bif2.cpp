@@ -1,5 +1,5 @@
 // bif2.cpp -- 29 stubbed Splice builtins: each returns a Nil CRef (the release build compiled their bodies out).
-// They fill slots 140..168 of the builtin table D_002BBB90 (bif.cpp), so scripts that still call them get nil;
+// They fill slots 140..168 of the builtin table g_mpbifkbif (bif.cpp), so scripts that still call them get nil;
 // their names are the slot numbers since the release build kept no hint of what they did (the table's minimum
 // argument counts are the only trace). Entry points: BuiltinStub140..BuiltinStub168, through the table.
 // TU 0x1258F0..0x126188 (31 functions, address order).

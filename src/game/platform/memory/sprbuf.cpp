@@ -36,8 +36,8 @@ typedef char assert_SPRBUF_size[sizeof(SPRBUF) == 0x50 ? 1 : -1];
 struct DMAC { int chcr; int pad[31]; int sadr; };
 extern "C" {
 int D_002C3C5C = 0;          /* index of the current buffer */
-extern DMAC *D_002DE59C;        /* fromSPR channel */
-extern DMAC *D_002DE5A0;        /* toSPR channel */
+extern DMAC *g_pdcFromSpr;        /* fromSPR channel */
+extern DMAC *g_pdcToSpr;        /* toSPR channel */
 void sceDmaSync(DMAC *pch, int a, int b);
 void sceDmaSend(DMAC *pch, int a);
 void sceDmaRecv(DMAC *pch);
@@ -71,7 +71,7 @@ void LoadSprBuf(int size, ...)
     va_start(args, size);
     dest = buffer->scratchpad;
     if (buffer->state == 3)
-        sceDmaSync(D_002DE59C, 0, 0);
+        sceDmaSync(g_pdcFromSpr, 0, 0);
     buffer->state = 1;
     source = va_arg(args, char *);
     while (size) {
@@ -92,9 +92,9 @@ void LoadSprBuf(int size, ...)
         count++;
     }
     buffer->pieceCount = count;
-    D_002DE5A0->chcr |= 0x40;
-    D_002DE5A0->sadr = ((int)buffer->scratchpad & 0x0FFFFFFF) | 0x80000000;
-    sceDmaSend(D_002DE5A0, (int)buffer->dmaTags & 0x0FFFFFFF);
+    g_pdcToSpr->chcr |= 0x40;
+    g_pdcToSpr->sadr = ((int)buffer->scratchpad & 0x0FFFFFFF) | 0x80000000;
+    sceDmaSend(g_pdcToSpr, (int)buffer->dmaTags & 0x0FFFFFFF);
     va_end(args);
 }
 
@@ -109,7 +109,7 @@ void SaveSprBuf(void *dest, ...)
     DMAC *channel;
     va_list args;
     buffer->state = 3;
-    sceDmaSync(D_002DE59C, 0, 0);
+    sceDmaSync(g_pdcFromSpr, 0, 0);
     va_start(args, dest);
     while (dest) {
         dests[count++] = dest;
@@ -118,7 +118,7 @@ void SaveSprBuf(void *dest, ...)
     destIndex = 0;
     for (count = buffer->pieceCount - count; count < buffer->pieceCount - 1; count++, destIndex++)
         buffer->pieces[count].scratchpad[-2] = (ulong)(buffer->pieces[count].size >> 4) | ((ulong)1 << 28) | ((ulong)(int)dests[destIndex] << 32);
-    channel = D_002DE59C;
+    channel = g_pdcFromSpr;
     buffer->pieces[count].scratchpad[-2] = (ulong)(buffer->pieces[count].size >> 4) | ((ulong)7 << 28) | ((ulong)(int)dests[destIndex] << 32);
     {
         channel->chcr &= ~0x40;
@@ -134,7 +134,7 @@ void SaveSprBuf(void *dest, ...)
 // Waits for the pending fill, then makes the other half current (state 2).
 extern "C" void SwapSprBuffers(void)
 {
-    sceDmaSync(D_002DE5A0, 0, 0);
+    sceDmaSync(g_pdcToSpr, 0, 0);
     D_002C3C5C = 1 - D_002C3C5C;
     D_003DD2C0[D_002C3C5C].state = 2;
 }

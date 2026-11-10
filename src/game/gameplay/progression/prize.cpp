@@ -159,7 +159,7 @@ struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char pa
 struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 
 extern float D_002C0D4C __asm__("D_002C0D4C");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 void UpdateSoXfWorld(DPRIZE *) __asm__("UpdateSoXfWorld");
 qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
 M3 BuildOrthonormalMatrixZ(qword, qword) __asm__("BuildOrthonormalMatrixZ");
@@ -265,7 +265,7 @@ extern "C" void ProjectDprizeTransform(DPRIZE *prize)
             M3 frame, rot;
             dir.q = VuSub<qword>(g_cm.matq.pos, ((CHANNEL *)prize->positionXf)->position);
             dir.words[2] = 0;
-            frame = BuildOrthonormalMatrixZ(dir.q, D_002A2DC0);
+            frame = BuildOrthonormalMatrixZ(dir.q, g_normalZ);
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
                 channel = (CHANNEL *)prize->positionXf;
@@ -322,7 +322,7 @@ struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned lon
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
 
 
-extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DE0 __asm__("D_002A2DE0");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DE0 __asm__("D_002A2DE0");
 extern float D_002C0D74 __asm__("D_002C0D74"), D_002C0D78 __asm__("D_002C0D78");
 void STACKSCOPE_ctor(STACKSCOPE *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
@@ -445,15 +445,15 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
         {
             U primary;
             if (normal.g[2] > 0.7f && prize->state == 4) {
-                float gNormal = SplitVectorAlongAxis(prize->velocity, D_002A2DC0, 0, &primary.qw);
+                float gNormal = SplitVectorAlongAxis(prize->velocity, g_normalZ, 0, &primary.qw);
                 float gSpeed = GFromVf(QwNormalizeInto(&primary.qw, D_002A2DD0));
                 float gTangent = StdMin(prize->tangentResponse * gSpeed, D_002C0D74);
                 gNormal = StdMin(-prize->normalResponse * gNormal, D_002C0D78);
-                response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(gNormal), D_002A2DC0);
+                response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(gNormal), g_normalZ);
                 if (!prize->hasBoosted) {
                     int fTrigger = GDot(response.qw, normal.qw) < prize->bounceBoostThreshold;
                     if (fTrigger) {
-                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(*(int *)&prize->bounceBoost), D_002A2DC0);
+                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(*(int *)&prize->bounceBoost), g_normalZ);
                         prize->hasBoosted = 1;
                     }
                 }
@@ -1146,7 +1146,7 @@ int IsDprizeCollisionCandidate(void *, CANDIDATE *) __asm__("IsDprizeCollisionCa
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***) __asm__("IntersectSwBoundingBox");
 CANDIDATE *PsoHitTestLineObjects(int, qword, qword, int, CANDIDATE **, LSG *)
     __asm__("FindFirstObjectHitByLine");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 
 // base + v * g
 static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
@@ -1162,8 +1162,8 @@ extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword
 {
     LSG lsg;
     STACKSCOPE frame;
-    qword posMax = AddScaled(point, VU_FLOAT(gMax), D_002A2DC0);
-    qword posMin = AddScaled(point, VU_FLOAT(gMin), D_002A2DC0);
+    qword posMax = AddScaled(point, VU_FLOAT(gMax), g_normalZ);
+    qword posMin = AddScaled(point, VU_FLOAT(gMin), g_normalZ);
     register qword posMaxArg __asm__("$6") = posMax;   // pin: the game loads this $a2 argument before the test (see top)
     if (!apcand)
         IntersectSwBoundingBox(&g_sw, point, posMaxArg, IsDprizeCollisionCandidate, 0, &ccand, &apcand);
@@ -1211,7 +1211,7 @@ union VECTOR4 { qword q; float f[4]; };
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
 struct CANDIDATE;
-extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DE0 __asm__("D_002A2DE0"), D_002C0D60 __asm__("D_002C0D60");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ"), D_002A2DE0 __asm__("D_002A2DE0"), D_002C0D60 __asm__("D_002C0D60");
 extern float D_002A775C __asm__("D_002A775C"), D_002A7760 __asm__("D_002A7760"), D_002C0D70 __asm__("D_002C0D70");
 extern float D_002C0E80 __asm__("D_002C0E80"), D_002C0E84 __asm__("D_002C0E84"), D_002C0E88 __asm__("D_002C0E88"), D_002C0E8C __asm__("D_002C0E8C"), D_002C0E90 __asm__("D_002C0E90"), D_002C0E94 __asm__("D_002C0E94");
 extern CLQ D_002C0EA0 __asm__("D_002C0EA0");
@@ -1353,12 +1353,12 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
         qword posBase = posSnap.q;
         qword posTrial = VuAdd(posBase, SetVectorCylind(gAngle, gRadius, 0.0f));
         qword dpos = VuSub(posTrial, posOrig.q);
-        qword dposPerp = VuSub(dpos, Scale(Dot(dpos, D_002A2DC0), D_002A2DC0));
+        qword dposPerp = VuSub(dpos, Scale(Dot(dpos, g_normalZ), g_normalZ));
         qword posAdjust = AddScaled(posTrial, VU_FLOAT(g), Normalize(dposPerp));
         int fBlocked = !IsEdgeBlockedByPathzone(pregion, posSnap.q, posTrial, 0) && !IsEdgeBlockedByPathzone(pregion, posTrial, posAdjust, 0);
         VECTOR4 posLand;
         if (fBlocked && FindDprizeLanding(-300.0f, 300.0f, 0.7f, posTrial, ccand, apcand, &posLand.q)) {
-            qword posTarget = AddScaled(posLand.q, VU_FLOAT(aplo[cLaunched]->bounceRadius - 1.0f), D_002A2DC0);
+            qword posTarget = AddScaled(posLand.q, VU_FLOAT(aplo[cLaunched]->bounceRadius - 1.0f), g_normalZ);
             float t = ComputeMaxBallisticTime(VuSub(posTarget, posOrig.q), D_002C0D60, D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC0);
             t += cLaunched * D_002C0EC4;
             qword v = Combine(VuSub(posTarget, posOrig.q), VU_FLOAT(1.0f / t), D_002C0D60, VU_FLOAT(-0.5f * t));

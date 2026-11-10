@@ -34,7 +34,7 @@ struct M3R { qword r[3]; };
 struct SPHERE { qword pos; float sRadius; int pad[3]; };
 
 extern "C" {
-extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
+extern qword D_002A2DA0, D_002A2DB0, g_normalZ;
 extern VIFS D_002DEA28;
 /* light's .data (address order): the default light block (three qwords), the point-light pull-back distance and limit scale. */
 BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 2 = 0.5f */
@@ -89,7 +89,7 @@ extern "C" void EnsureSwDefaultLight(void)
     if (light) return;
     light = CreateLo__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
     r.q = QwordFromFloats<qword>(-0.2f, 0.3f, -1.0f);
-    BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
+    BuildOrthonormalMatrixZ(&m, r.q, g_normalZ);
     c = m;
     light->RotateToMat((MATRIX3 *)&c);
     SetLightMidtoneStrength(light, 255.0f);
@@ -758,7 +758,7 @@ extern "C" void BuildSoLightPackets(SW *world, M4 *transform, SOBOUNDS *p)
             float extent;
             if (dist < limit) {
                 if (dist < 1.0f)
-                    dir = D_002A2DC0;
+                    dir = g_normalZ;
                 else
                     dir = DivQ(dir, VU_FLOAT(dist));
                 center = AddScaledQ(point, dir, VU_FLOAT(-limit));

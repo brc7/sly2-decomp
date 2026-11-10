@@ -85,7 +85,7 @@ void SetBhvDimitriEscapeState(BHV180 *p, int k);
 DIMITRIROUTE *FindDimitriFarthestRoute(BHV180 *p);
 void SetBhvDimitriAttackState(BHV181 *p, int k);
 LO *ChooseBhvDimitriAttackRouteEnd(BHV181 *p);
-extern qwordV g_normalZ __asm__("D_002A2DC0");
+extern qwordV g_normalZ __asm__("g_normalZ");
 extern VECTORV D_002BDC60;
 extern float D_002BDC70[2];
 extern VECTORV D_002BDC80;

@@ -41,7 +41,7 @@ struct SAFEHOUSEV : PO
 
 extern void *D_003D4A54;
 extern char D_003DA150[];
-extern int D_002DFBC0;
+extern int g_grfjoyt;
 extern JOY D_002E0D00;   /* g_joy and the second JOY */
 extern const char D_002A7878[] = "oidPoCurrent";
 
@@ -105,7 +105,7 @@ extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
         return;
     if (IsCameraPolicyActive((CPLCY *)(*(char (*)[])&g_cm.part3a0)))
         return;
-    if (D_002DFBC0 & 2)
+    if (g_grfjoyt & 2)
         joystick = &g_joy;
     else
         joystick = &D_002E0D00;
@@ -194,7 +194,7 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         }
         ReplaceSma(safehouse->stateMachine, safehouse, initialState, 0, &safehouse->stateMachineAnim);
         StepCharSelect(safehouse, 0);
-        StartJoySelection__FP3JOY((D_002DFBC0 & 2) ? &g_joy : &D_002E0D00);
+        StartJoySelection__FP3JOY((g_grfjoyt & 2) ? &g_joy : &D_002E0D00);
         safehouse->HandleSpliceEvent(5, 0, 0, 0, 0);
     }
 }

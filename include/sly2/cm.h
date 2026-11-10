@@ -377,6 +377,6 @@ extern "C" void SetCmMat(CM *pcm, MATRIX3 *pmat);
 inline void func_00256278(CM *pcm, MATRIX3 *pmat) { SetCmMat(pcm, pmat); }   /* set: forwards to SetCmMat */
 
 /* g_cm: the one camera (defined in cm.cpp; its static constructor and destructor are CM_ctor and _$_2CM). */
-extern CM g_cm __asm__("D_002DDF40");
+extern CM g_cm __asm__("g_cm");
 
 #endif /* SLY2_CM_H */

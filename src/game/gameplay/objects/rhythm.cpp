@@ -113,7 +113,7 @@ extern RHYTHMMGR *D_002DE570;
 extern char D_002DE578[];
 extern const LONGU D_002A5010;
 extern float D_002BDBE0[3];
-extern LM D_002BBB60;
+extern LM g_lmZeroOne;
 void RemoveSoHierarchy(DANCERV *p);
 void PostStepLoad(DANCERV *o);
 void UpdateStep(DANCERV *p);
@@ -769,7 +769,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *dancer)
 // Linear interpolation from a (t = 0) to b (t = 1).
 static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t * b; }
 // Timing score of a press for a cue: 1 - |now - due| / window (the early or late window by side), mapped linearly onto
-// the score range D_002BBB60 (exactly on time gives its maximum).
+// the score range g_lmZeroOne (exactly on time gives its maximum).
 float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
 {
     float musicTime = GetMusicTime(&g_sndmgr);
@@ -779,7 +779,7 @@ float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
     } else {
         lateness = (musicTime - cue->time) / manager->lateWindow;
     }
-    return GLerp(D_002BBB60.minValue, D_002BBB60.maxValue, 1.0f - lateness);
+    return GLerp(g_lmZeroOne.minValue, g_lmZeroOne.maxValue, 1.0f - lateness);
 }
 
 // Returns its float argument (a hook between timing and scoring; inferred).
@@ -794,7 +794,7 @@ void AddRhythmScore(RHYTHMMGR *manager, float score)
     float *slot;
     if (score < 0.0f) {
         float difficulty = GetDifficulty(D_002DE578);
-        score *= Clamp(D_002BDBE0[0] + difficulty * (D_002BDBE0[1] + difficulty * D_002BDBE0[2]), D_002BBB60.minValue, D_002BBB60.maxValue);
+        score *= Clamp(D_002BDBE0[0] + difficulty * (D_002BDBE0[1] + difficulty * D_002BDBE0[2]), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
     }
     if (manager->numScores == 16) {
         memmove(&manager->scores[0], &manager->scores[1], 15 * sizeof(float));

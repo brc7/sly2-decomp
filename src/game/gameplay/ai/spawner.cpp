@@ -44,7 +44,7 @@ struct HITY { qwordV v; char pad[0x18]; float normalZ; char pad2[0x14]; float un
 struct VU_FLOAT { qwordV qw; };
 
 extern qwordV D_002A2DD0;
-extern qwordV D_002A2DC0;
+extern qwordV g_normalZ;
 /* spawner's .data (address order). */
 /* Spawner tuning (data symbols, so they keep their address names):
    B8 test-radius scale;
@@ -65,7 +65,7 @@ float D_002BE5E8=200.0f;
 float D_002BE5F0[2]={-350.0f,100.0f};
 extern "C" {
 extern const float D_002A53E0;   /* defined below where the ELF has it (.rodata order) */
-extern LM D_002BBB60;
+extern LM g_lmZeroOne;
 void InitLo(CID119 *p);
 void LoadLoFromBrx(CID119 *p, void *pbis);
 void PostLoLoad(CID119 *p);
@@ -286,8 +286,8 @@ extern "C" int SnapToGround(qwordV *position, float top, float bottom, int accep
     int firstObject, numObjects;
     qwordV start, end;
     STACKSCOPE_ctor(&scope);
-    start = VuMulAddScalar(*position, D_002A2DC0, top);   // D_002A2DC0: the up axis
-    end = VuMulAddScalar(*position, D_002A2DC0, bottom);
+    start = VuMulAddScalar(*position, g_normalZ, top);   // g_normalZ: the up axis
+    end = VuMulAddScalar(*position, g_normalZ, bottom);
     if (!filter) filter = ShouldKeepSoNotSelfSlot62;
     {
         HITY hit;
@@ -426,7 +426,7 @@ extern "C" qwordV GetSpawnerFocusPosition(CID119 *spawner)
     return g_cm.matq.pos;   // the camera position
 }
 
-// g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
+// g_clock (g_clock) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a, qwordV b)
 {
     qwordV d;
@@ -722,7 +722,7 @@ extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, q
             int numSamples = (int)(GetShapeMaxDistance(object) / D_002BE5E8);
             for (int k = 0; k < numSamples; k++)
             {
-                float u = D_002BE5E8 * ((float)k + RandomFloatInRange(D_002BBB60.minValue, D_002BBB60.maxValue));
+                float u = D_002BE5E8 * ((float)k + RandomFloatInRange(g_lmZeroOne.minValue, g_lmZeroOne.maxValue));
                 if (FindRangeContaining(((SHAPE *)object)->pranges, u))
                     continue;
                 EvaluateShapeAtDistance(object, &curvePosition.q, &curveDirection.q, u);
@@ -736,7 +736,7 @@ extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, q
                     VU_FLOAT minusOne = VuFloatFromMemWord(0xBF800000);   // -1.0f
                     curveDirection.q = VuScaleByX(curveDirection.q, minusOne);
                 }
-                M3 rotation = BuildAxisAngleRotationMatrix(atan2f(curveDirection.v.y, curveDirection.v.x), D_002A2DC0);
+                M3 rotation = BuildAxisAngleRotationMatrix(atan2f(curveDirection.v.y, curveDirection.v.x), g_normalZ);
                 int j;
                 for (j = 0; j < spawner->offsetCount; j++)
                 {

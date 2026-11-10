@@ -517,6 +517,6 @@ SLY2_SCRAP("daddu $2, $7, $0");
 // that Sly 1 put them in; the three vectors 0x2BBB30..0x2BBB60 before them are left (owner not known). Under asm labels
 // so that no declaration has to agree with the definitions' types.
 namespace DATA_UTIL {
-extern float d_D_002BBB60[2] __asm__("D_002BBB60") = {0.0f, 1.0f};
-extern float d_D_002BBB68[2] __asm__("D_002BBB68") = {-1.0f, 1.0f};
+extern float d_D_002BBB60[2] __asm__("g_lmZeroOne") = {0.0f, 1.0f};
+extern float d_D_002BBB68[2] __asm__("g_lmNegOneOne") = {-1.0f, 1.0f};
 }

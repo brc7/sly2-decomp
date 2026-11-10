@@ -16,13 +16,13 @@ struct CDREQ
       int kind;                 /* +0x8 2 = disc file */
 };
 
-extern int D_002BD4C0;
+extern int g_cds;
 extern const char D_002A4EF0[] = "fid:#unknown";
 
-// Boot stage: puts the disc-identity poll (cd.cpp's UpdateCd, state D_002BD4C0) in its idle state.
+// Boot stage: puts the disc-identity poll (cd.cpp's UpdateCd, state g_cds) in its idle state.
 extern "C" void SetCdPollStateIdle()
 {
-      D_002BD4C0 = 3;
+      g_cds = 3;
 }
 
 // Returns the size in bytes of the file a key names if it is a disc file (kind 2), else 0.

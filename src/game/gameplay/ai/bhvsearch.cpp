@@ -49,7 +49,7 @@ extern const float D_002A5398;   /* defined below where the ELF has it (.rodata 
 float D_002BE5A0 = 2.0f;   /* bhvsearch's .data starts here (address order) */
 extern const float D_002A53D4;   /* defined below where the ELF has it (.rodata order) */
 extern const LMV D_002A53C0, D_002A53C8;   /* distance, +-pi/4; defined below where the ELF has them (.rodata order) */
-extern qword D_002A2DA0,D_002A2DC0;
+extern qword D_002A2DA0,g_normalZ;
 extern const float D_002A53D0;   /* defined below where the ELF has it (.rodata order) */
 LMV D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
 extern "C" {
@@ -521,7 +521,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
         for (i = 0; i < (int)w.query.count && accepted < 4; i++) {
             ROW *row = &w.query.row[i];
             qword original = row->point.q;
-            qword up = D_002A2DC0;
+            qword up = g_normalZ;
             qword delta = VuSub(original, w.query.point.q);
             qword qwFallback = D_002A2DA0;
             qword planar = VuSub(delta, VuScaleByX(up, VuDotProduct(delta, up)));

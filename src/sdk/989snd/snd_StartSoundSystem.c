@@ -4,15 +4,15 @@ typedef struct CB { void (*fn)(int, long); int pad; long arg; } CB;
 typedef struct RPC { int x[16]; } RPC;
 extern int *D_002C4660[2];
 extern int D_002C4668[2];
-extern CB *D_002C4670[2];
+extern CB *gSndCommandReturnDefPtr[2];
 extern int *D_002C4678[2];
-extern int D_002C4688, D_002C46B8;
-extern CB D_002C4690;
+extern int gLoadBusy, D_002C46B8;
+extern CB gLoadReturnDef;
 extern int D_00443B80[], D_00444B80[], D_00447B80[], D_00447FC0[];
 extern CB D_00445B80[], D_00446B80[];
 extern RPC D_00443800, D_00448440;
-extern int D_00448400[];
-extern unsigned int D_00448480;
+extern int gStats[];
+extern unsigned int gLoadReturnValue;
 extern char D_002AA100[], D_002AA128[];
 void printf(const char *, ...);
 void func_00236A60(int) __asm__("sceSifInitRpc");
@@ -28,8 +28,8 @@ void snd_StartSoundSystem(int flags)
     D_002C4660[1] = D_00444B80;
     D_002C4678[0] = D_00447B80;
     D_002C4678[1] = D_00447FC0;
-    D_002C4670[0] = D_00445B80;
-    D_002C4670[1] = D_00446B80;
+    gSndCommandReturnDefPtr[0] = D_00445B80;
+    gSndCommandReturnDefPtr[1] = D_00446B80;
     if (flags & 2)
         D_002C46B8 = 1;
     else
@@ -45,10 +45,10 @@ void snd_StartSoundSystem(int flags)
         while (i--)
             ;
     } while (!D_00443800.x[9]);
-    D_002C4688 = 0;
-    D_002C4690.fn = 0;
-    D_002C4690.arg = 0;
-    D_00448480 = 0;
+    gLoadBusy = 0;
+    gLoadReturnDef.fn = 0;
+    gLoadReturnDef.arg = 0;
+    gLoadReturnValue = 0;
     do {
         if (func_002370A8(&D_00448440, 0x123457, 0) < 0) {
             printf(D_002AA100, D_002AA128, 0xCA);
@@ -59,12 +59,12 @@ void snd_StartSoundSystem(int flags)
         while (i--)
             ;
     } while (!D_00448440.x[9]);
-    ((volatile int *)D_00448400)[0] = 0;
-    ((volatile int *)D_00448400)[4] = 0;
+    ((volatile int *)gStats)[0] = 0;
+    ((volatile int *)gStats)[4] = 0;
     *D_00443B80 = 0;
     *D_00444B80 = 0;
     D_002C4668[0] = 0xFFC;
-    buf[0] = (int)D_00448400;
+    buf[0] = (int)gStats;
     buf[1] = flags;
     D_002C4668[1] = 0xFFC;
     snd_SendIOPCommandAndWait__FiiPc(0, 8, buf);
@@ -82,6 +82,6 @@ qword c_00445B80[256] __asm__("D_00445B80");   /* .bss 0x1000 */
 qword c_00446B80[256] __asm__("D_00446B80");   /* .bss 0x1000 */
 qword c_00447B80[68] __asm__("D_00447B80");   /* .bss 0x440 */
 qword c_00447FC0[68] __asm__("D_00447FC0");   /* .bss 0x440 */
-char c_00448400[63] __asm__("D_00448400");   /* .bss 0x3F */
+char c_00448400[63] __asm__("gStats");   /* .bss 0x3F */
 qword c_00448440[4] __asm__("D_00448440");   /* .bss 0x40 */
-qword c_00448480[4] __asm__("D_00448480");   /* .bss 0x40 */
+qword c_00448480[4] __asm__("gLoadReturnValue");   /* .bss 0x40 */

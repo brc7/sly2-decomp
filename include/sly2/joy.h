@@ -1,4 +1,4 @@
-/* include/sly2/joy.h -- JOY (controller state). g_joy = D_002DFC00 (pad 0); a second JOY at D_002E0D00 (= g_joy + 0x1100)
+/* include/sly2/joy.h -- JOY (controller state). g_joy = g_joy (pad 0); a second JOY at D_002E0D00 (= g_joy + 0x1100)
  * is used when g_grfjoyt bit 1 is clear (pine_input README). Layout from src/game/gameplay/cutscene/relay/IsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp (Lilly port), with the
  * menu-repeat fields at +0x1024 named from src/game/platform/input/joy/GetJoySelectionStepX.c (matched; reads dirX, dirY, nextRepeatTimeX/Y, repeatIntervalX/Y there and
  * gX/gY/gMag = leftStickX/leftStickY/leftStickDeflection at +0x103C..). Tags: [R] runtime / [M] offset used by matched code / [S] static. */
@@ -14,7 +14,7 @@ struct RUMINS
       float duration;           /* +0x4 seconds */
 };
 
-/* RUMPAT: a rumble pattern: a looped list of instructions (rumble.cpp's D_002C2260 holds the predefined ones, by RUMK). */
+/* RUMPAT: a rumble pattern: a looped list of instructions (rumble.cpp's s_mprumkrumpat holds the predefined ones, by RUMK). */
 struct RUMPAT
 {
       int instructionCount;
@@ -97,6 +97,6 @@ typedef char assert_JOY_dtIdle[SLY2_OFFSETOF(JOY, dtIdle) == 0x1020 ? 1 : -1];  
 typedef char assert_JOY_rumble[SLY2_OFFSETOF(JOY, rumble) == 0x10CC ? 1 : -1];   /* match (sw.cpp passes +0x10CC) */
 
 /* g_joy: the first of the two JOYs (joy.cpp defines it under its address name). */
-extern JOY g_joy __asm__("D_002DFC00");
+extern JOY g_joy __asm__("g_joy");
 
 #endif /* SLY2_JOY_H */

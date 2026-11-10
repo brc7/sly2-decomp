@@ -19,7 +19,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* RUMS (Sly 2 order) and RUMK: sly2/basic.h; RUMINS, RUMPAT and RUMBLE: sly2/joy.h */
 
 /* The predefined rumble patterns, indexed by RUMK (rumble's .data, then the rumble mode). */
-RUMPAT D_002C2260[11] = {
+RUMPAT s_mprumkrumpat[11] = {
     {1, {{1, 0, 0.05f}}},
     {2, {{0, 150, 0.05f}, {0, 0, 0.05f}}},
     {2, {{0, 210, 0.05f}, {0, 0, 0.1f}}},
@@ -113,10 +113,10 @@ void UpdateRumble(RUMBLE *rumble)
     }
 }
 
-// Plays one of the predefined patterns (D_002C2260, indexed by RUMK) for `duration` seconds.
+// Plays one of the predefined patterns (s_mprumkrumpat, indexed by RUMK) for `duration` seconds.
 void TriggerRumbleRumk(RUMBLE *rumble, RUMK kind, float duration)
 {
-    TriggerRumbleRumpat(rumble, &D_002C2260[kind], duration);
+    TriggerRumbleRumpat(rumble, &s_mprumkrumpat[kind], duration);
 }
 
 // Plays `pattern` for `duration` seconds if the pad can rumble, the pattern is not empty and vibration is

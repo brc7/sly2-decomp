@@ -1071,7 +1071,7 @@ struct EFFECT;
 
 
 extern float D_002C3D4C __asm__("D_002C3D4C");
-extern float D_002C3D50[3] __asm__("D_002C3D50"),D_002C3D60[2] __asm__("D_002C3D60"),D_002BBB60[2] __asm__("D_002BBB60");
+extern float D_002C3D50[3] __asm__("D_002C3D50"),D_002C3D60[2] __asm__("D_002C3D60"),g_lmZeroOne[2] __asm__("g_lmZeroOne");
 
 void RefreshSoBoundsRecord(STEPGUARDIsland *) __asm__("RefreshSoBoundsRecord");
 int IsCameraPolicyActive__FP5CPLCY(void *) __asm__("IsCameraPolicyActive__FP5CPLCY");
@@ -1126,7 +1126,7 @@ extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
                 float mix=(wave+1.0f)*0.5f;
                 float magnitude=D_002C3D50[0]+u*(D_002C3D50[1]+u*D_002C3D50[2]);
                 float blend=(1.0f-mix)*D_002C3D60[0]+mix*D_002C3D60[1];
-                float min=D_002BBB60[0],max=D_002BBB60[1];
+                float min=g_lmZeroOne[0],max=g_lmZeroOne[1];
                 if(magnitude<min)magnitude=min;else if(max<magnitude)magnitude=max;
                 float strength=blend*magnitude;
                 across=1.0f-strength;

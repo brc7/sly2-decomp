@@ -158,7 +158,7 @@ struct S {
     char pad5[0x258 - 0x250]; struct Q *physPart;
 };
 extern const float D_002A85F0 __asm__("D_002A85F0");   /* defined below where the ELF has it (.rodata order) */
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void RemoveSoParts(struct S *p) __asm__("RemoveSoParts");
 void AddSoParts(struct S *p) __asm__("AddSoParts");
@@ -202,7 +202,7 @@ extern "C" void BuildStepPhysPart(struct S *step, struct M *m)
      __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeightBits),"m"(step->physPart));
      {register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(word));
      dst=(qword *)mesh->localPoints;
-     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->basePos),"j"(D_002A2DC0),"j"(value));
+     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->basePos),"j"(g_normalZ),"j"(value));
      {qword *slot=(qword *)(firstHelper*16+(int)dst);
      u.q=value;
      slot[1]=r;}}}
@@ -388,7 +388,7 @@ struct S {
     char pad3[0x208 - 0x1AC]; int floorContact; float lastFloorContactTime;
 };
 extern float D_002C3C80[3] __asm__("D_002C3C80");   /* turn-rate speed factor polynomial */
-extern float D_002BBB60[2] __asm__("D_002BBB60");
+extern float g_lmZeroOne[2] __asm__("g_lmZeroOne");
 void UpdateSo(struct S *p) __asm__("UpdateSo");
 void UpdateStepPhys(struct S *p) __asm__("UpdateStepPhys");
 float atan2f(float y, float x) __asm__("atan2f");
@@ -409,7 +409,7 @@ extern "C" void UpdateStep(struct S *step)
         d = __builtin_fabsf(d);
         f = D_002C3C80[0] + d * (D_002C3C80[1] + d * D_002C3C80[2]);
         {
-            float lo = D_002BBB60[0], hi = D_002BBB60[1];
+            float lo = g_lmZeroOne[0], hi = g_lmZeroOne[1];
             if (f < lo)
                 f = lo;
             else if (hi < f)
@@ -444,9 +444,9 @@ typedef struct { qword row[3]; } M3;
 struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
 struct S : LO { char pad[0x5C - 0x50]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
 void PresetSoAccel(struct S *p) __asm__("PresetSoAccel");
-// Read the frame clock's delta-time word (D_002DDED0) given its high address page.
+// Read the frame clock's delta-time word (g_clock) given its high address page.
 extern "C" { static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&g_clock.deltaTimeBits),"m"(*(const int*)(page-0x212C)));return word;} }
-// High address page (lui) of the frame clock D_002DDED0.
+// High address page (lui) of the frame clock g_clock.
 extern "C" { static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_clock.deltaTimeBits));return page;} }
 void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *) __asm__("AccelSoTowardMatBounded");
 // Broadcast int bits into vf4 and store them to *value.
@@ -767,11 +767,11 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 namespace M_func_00204660 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 struct S : PO { char pad[0x1A8 - 0x180]; float g; int pad2; MATRIX3 m; };
 // Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
-void SetStepTargetHeading(struct S *p, float g) __asm__("SetStepTargetHeading"); void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
+void SetStepTargetHeading(struct S *p, float g) __asm__("SetStepTargetHeading"); void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(g_normalZ, g); }
 } // namespace M_func_00204660
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -929,7 +929,7 @@ struct X4 : LO { char pad[0xEC - 0x50]; struct EC *tree; };
 struct X { int pad; struct X4 *so; };
 struct S { char pad[0xC]; void *vptr; char pad2[0x218 - 0x10]; qword *basePoint; qword *topPoint; char pad3[0x258 - 0x220]; void *bodyPart; };
 struct HIT { qword pos; qword unknown10; qword normal; qword unknown30; float t; int unknown44; int unknown48; int tag; char pad[0x10]; };
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 void AddSoCustomXps(void) __asm__("AddSoCustomXps");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -958,11 +958,11 @@ extern "C" void AddStepCustomXps(struct S *step, struct X *x, int a2, int a3, in
         if (fl & PROBE_KEEP_NORMAL)
             n = hit.normal;
         else if (0.7f < ((float *)&hit.normal)[2])   /* a floor-like slope (normal z above 0.7): straight up */
-            n = D_002A2DC0;
+            n = g_normalZ;
         else if (hit.unknown48)
             n = hit.normal;
         else if (HasStepFloorNearby(step, *step->basePoint, x, hit.tag))
-            n = D_002A2DC0;
+            n = g_normalZ;
         else
             n = hit.normal;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->basePoint), "j"(hit.pos));
@@ -1124,7 +1124,7 @@ struct LO;
 struct LINK { XP *pxpFirst; LINK *plinkNext; XP **ppxpOut; SO *pso; };
 struct ATT { char pad0[0x34]; SOPART *psopart; char pad38[0x60 - 0x38]; SO *pso; LINK *plinkFirst; XP *pxpFirst; };
 struct SO { char pad0[0x10]; SO *psoParent; char pad14[0xEC - 0x14]; ATT *patt; char padF0[0x258 - 0xF0]; SOPART *psopart; };
-extern qword D_002A2DC0 __asm__("D_002A2DC0");   // g_normalZ
+extern qword g_normalZ __asm__("g_normalZ");   // g_normalZ
 
 SO *GetSoFromLo(LO *) __asm__("GetSoFromLo");                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword) __asm__("BuildOrthonormalMatrixZ");          // BuildOrthonormalMatrixZ
@@ -1173,7 +1173,7 @@ extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, q
         psopartOther = 0;
         ppxpFirst = ppxpOut = &object->patt->pxpFirst;
     }
-    M3 mat = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
+    M3 mat = BuildOrthonormalMatrixZ(direction, g_normalZ);
     qword posLocal = Rotate(mat, Sub(pos, posOther));
     if ((flags & 1) || ((flags & 8) && QwordX(posLocal) < 0.0001f))
         AddXp(&g_sw, object->psopart, psopartOther, pos, mat.r[0], QwordX(posLocal), (flags & 1) ? 11 : 10, 0, 0, ppxpFirst);
@@ -1200,7 +1200,7 @@ typedef struct P {
     char pad3[0x1048 - 0x250]; FLOATWORD amount;
     char pad4[0x1060 - 0x104C]; qword adjusted;
 } P;
-extern qword D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DD0 __asm__("D_002A2DD0"), g_normalZ __asm__("g_normalZ");
 extern int IsBasicDerivedFrom__FP5BASIC3CID(B *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 extern void MatchSoXf(P *, B *) __asm__("MatchSoXf");
 // Transform v by the matrix rows with `last` as the translation, storing it to *published; returns the result through
@@ -1244,7 +1244,7 @@ extern "C" { extern void MatchStepXf(P *step, B *other)
             __asm__("qmtc2.ni %1,%0" : "=j"(scq) : "r"(step->amount.word));
             scale.q = scq;
             r = m.row[3];
-            __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(r) : "j"(D_002A2DC0), "j"(scale.q));
+            __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(r) : "j"(g_normalZ), "j"(scale.q));
             step->adjusted = r;
         }
         AsStep(step)->SetVelocity(D_002A2DD0);
@@ -1350,7 +1350,7 @@ extern "C" void RemoveStepDialogSmRefs(STEP *step, int mask)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00205670 {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 void BuildStepFootprint(STEP*,QWROW*) __asm__("BuildStepFootprint");
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*) __asm__("IntersectRayTriangle");
 // Return *a - *b (vf3).
@@ -1379,7 +1379,7 @@ extern "C" int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output
  if(!step->floorContact)return 0;
  BuildStepFootprint(step,tri);
  d.q=Sub(&to,&from);
- length=Normal(&d,&D_002A2DC0);
+ length=Normal(&d,&g_normalZ);
  distanceOut=&distance;third=&tri[2];t=tri;end=tri+6;
  do{
    int hit=IntersectRayTriangle(d.q,from,*(qword*)((int)third-32),*(qword*)((int)third-16),third->q,distanceOut,0);
@@ -1435,12 +1435,12 @@ namespace RO_ORDER { extern const float r_D_002A85F8 __asm__("D_002A85F8") = -3.
 namespace M_func_00205910 {
 /* FitStepToTerrain (Lilly / Claude agent, T1593): terrain-fit of the crawl probes (our name UpdateCrawlCollide, 0x205910; see
  * re/symbols: the 3-probe floor follower of the vent crawl, called from UpdateJtGrab case 8).  MATCH, no register pins.
- * What it does: the actor's orientation is turned about the up axis (D_002A2DC0) by its heading (p+0x1A8) into a position+rotation
+ * What it does: the actor's orientation is turned about the up axis (g_normalZ) by its heading (p+0x1A8) into a position+rotation
  * matrix matCur (copied to matOrig); the largest probe radius (length of the local probe points, start -FLT_MAX D_002A85F8) is the
  * sphere for the nearby-objects query (IntersectSwBoundingSphere, filter ShouldKeepSoNotSelfSlot62 with p+0xEC as context).  Then D_002C3CE4 passes: every
  * probe point is placed with matCur and snapped to the floor by the line test SnapToGround (height->max / height->min); a probe
  * that finds no floor is dropped by D_002C3CE0 along matCur's up row.  The plane through the three probes gives a normal (cross of
- * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, DecomposeRotateMatrixRad
+ * the two edges, g_normalZ if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, DecomposeRotateMatrixRad
  * measures its angle, which is limited to D_002C3CE8 (BuildAxisAngleRotationMatrix rebuilds the rotation about the same axis with the limit),
  * and matCur = adjustment * matOrig.  The final rotation is stored at p+0x1B0.
  * How it matches (everything came from the personal decomp's recipes, nothing from register pins):
@@ -1468,7 +1468,7 @@ struct VU_FLOAT {qword qw;};
 struct FRAME {FRAME(){}~FRAME(){}};
 struct P : LO { char pad0[0xEC - 0x50]; void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
 struct HEIGHT {float min,max;};
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern const float D_002A85F8 __asm__("D_002A85F8");   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C3CE0 __asm__("D_002C3CE0");   /* the probe drop along the up row */
 extern int D_002C3CE4 __asm__("D_002C3CE4");
@@ -1534,7 +1534,7 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
-    InitMat(&matCur,Rotation(D_002A2DC0,step->heading),GetLoWorldPos(step));
+    InitMat(&matCur,Rotation(g_normalZ,step->heading),GetLoWorldPos(step));
     matOrig=matCur;
     float radius=D_002A85F8;
     for(int i=0;i<pointCount;i++){float length=GLength(localPoints[i]);radius=(radius>length)?radius:length;}
@@ -1554,7 +1554,7 @@ extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qwo
         }
         MATRIX3 adjustment;
         float angle;
-        const qword *pFallback=&D_002A2DC0;
+        const qword *pFallback=&g_normalZ;
         qword origin=points[0].q;
         qword first=VuSub(points[1].q,origin);
         qword second=VuSub(points[2].q,origin);

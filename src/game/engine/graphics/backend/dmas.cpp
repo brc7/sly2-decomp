@@ -19,11 +19,11 @@ extern "C" {
 sceDmaChan *sceDmaGetChan(int id);
 int sceDmaReset(int mode);
 int sceGsResetPath();
-sceDmaChan *D_002DE590;   /* VIF0 (dmas' .bss, address order) */
-sceDmaChan *D_002DE594;   /* VIF1 */
-sceDmaChan *D_002DE598;   /* GIF */
-sceDmaChan *D_002DE59C;   /* fromSPR */
-sceDmaChan *D_002DE5A0;   /* toSPR */
+sceDmaChan *g_pdcVif0;   /* VIF0 (dmas' .bss, address order) */
+sceDmaChan *g_pdcVif1;   /* VIF1 */
+sceDmaChan *g_pdcGif;   /* GIF */
+sceDmaChan *g_pdcFromSpr;   /* fromSPR */
+sceDmaChan *g_pdcToSpr;   /* toSPR */
 }
 
 // Boot-time DMA setup: resets the DMA controller and the GS path, then caches the VIF0, VIF1, GIF, fromSPR and toSPR
@@ -32,11 +32,11 @@ void StartupDma()
 {
     sceDmaReset(1);
     sceGsResetPath();
-    D_002DE590 = sceDmaGetChan(0);
-    D_002DE594 = sceDmaGetChan(1);
-    D_002DE598 = sceDmaGetChan(2);
-    D_002DE59C = sceDmaGetChan(8);
-    D_002DE5A0 = sceDmaGetChan(9);
+    g_pdcVif0 = sceDmaGetChan(0);
+    g_pdcVif1 = sceDmaGetChan(1);
+    g_pdcGif = sceDmaGetChan(2);
+    g_pdcFromSpr = sceDmaGetChan(8);
+    g_pdcToSpr = sceDmaGetChan(9);
 }
 
 // Constructs an empty chain builder (no buffer, no padding, no open GIF primitive).

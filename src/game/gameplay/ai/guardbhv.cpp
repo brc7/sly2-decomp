@@ -803,7 +803,7 @@ struct BASIC {
 };
 
 extern POLY D_002BE600 __asm__("D_002BE600");
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 int DoesTargetRecordAllowGuard(void *, STEPGUARD *) __asm__("DoesTargetRecordAllowGuard");
 unsigned GetSourceIndexFromProxyId__Fi(unsigned) __asm__("GetSourceIndexFromProxyId__Fi");
 int IsWithinLimits__FP2LMf(LM *, float) __asm__("IsWithinLimits__FP2LMf");
@@ -900,7 +900,7 @@ extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gat
         }
         gain = D_002BE600.a + distance * (D_002BE600.b + distance * D_002BE600.c);
         {
-            float lo = D_002BBB60.minValue, hi = D_002BBB60.maxValue;
+            float lo = g_lmZeroOne.minValue, hi = g_lmZeroOne.maxValue;
             if (gain < lo)
                 gain = lo;
             else if (hi < gain)
@@ -2363,10 +2363,10 @@ struct LM
 };
 
 extern char D_003DD020[] __asm__("D_003DD020");
-extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0");
 extern float D_002BE630 __asm__("D_002BE630"), D_002BE634 __asm__("D_002BE634"), D_002BE658 __asm__("D_002BE658"), D_002BE65C __asm__("D_002BE65C"), D_002BE660 __asm__("D_002BE660"), D_002BE664 __asm__("D_002BE664"), D_002BE668 __asm__("D_002BE668"), D_002BE66C __asm__("D_002BE66C"), D_002BE670 __asm__("D_002BE670"), D_002BE674 __asm__("D_002BE674"), D_002BE690 __asm__("D_002BE690");
 extern CLQ D_002BE640 __asm__("D_002BE640"), D_002BE680 __asm__("D_002BE680");
-extern LM D_002BE650 __asm__("D_002BE650"), D_002BBB60 __asm__("D_002BBB60");
+extern LM D_002BE650 __asm__("D_002BE650"), g_lmZeroOne __asm__("g_lmZeroOne");
 qword GetLoWorldPos(void *pobj) __asm__("GetLoWorldPos");
 float WrapShapeDistance(CURVE *pcrv, float s) __asm__("WrapShapeDistance");
 float GetShapeMaxDistance(CURVE *pcrv) __asm__("GetShapeMaxDistance");
@@ -2594,7 +2594,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         float sCurve = WrapShapeDistance(behavior->pcrvExtra, s);
         FindShapeClosestPointFromDistance(behavior->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->sExtra);
     }
-    dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, D_002A2DC0), D_002A2DA0);
+    dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, g_normalZ), D_002A2DA0);
     behavior->sSeparation = QwordX(VuLengthXY(VuSub(point.qw, posActor)));
     float ds = EvaluateClampedQuadratic(&D_002BE640, &D_002BE650, behavior->sSeparation);
     if (fReverse)
@@ -2684,9 +2684,9 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 continue;
             qword vOther = GetObjectVelocity(pobj);
             qword posPredict = VAddScaled(posOther.qw, vOther, VU_FLOAT(&D_002BE664));
-            dpos = VProjectOut(dpos, D_002A2DC0);
+            dpos = VProjectOut(dpos, g_normalZ);
 
-            qword dposLater = VProjectOut(VSub(behavior->pos, posPredict), D_002A2DC0);
+            qword dposLater = VProjectOut(VSub(behavior->pos, posPredict), g_normalZ);
 
             VEC normal;
             FindClosestPointOnLineSegment(D_002A2DD0, dpos, dposLater, &normal, 0, 0);
@@ -2718,20 +2718,20 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
                 pqwZero = &D_002A2DA0;
                 qword dirNow = DivSafe(dpos, VLength2(dpos), *pqwZero);
 
-                g *= EvaluateClampedQuadratic(&D_002BE680, &D_002BBB60, QwordX(VDot(dirNow, behavior->guard->axis)));
+                g *= EvaluateClampedQuadratic(&D_002BE680, &g_lmZeroOne, QwordX(VDot(dirNow, behavior->guard->axis)));
                 if (g == 0.0f)
                     continue;
                 VEC side;
-                side.qw = VCross(D_002A2DC0, nextDir.qw);
+                side.qw = VCross(g_normalZ, nextDir.qw);
                 if (behavior->pcrv != behavior->guard->pcrvPrimary && QwordX(VDot(normal.qw, side.qw)) < 0.0f)
                     g = -g;
-                accel = VAddScaled(accel, VCross(normal.qw, D_002A2DC0), VU_FLOAT(gMass * g * D_002BE674));
+                accel = VAddScaled(accel, VCross(normal.qw, g_normalZ), VU_FLOAT(gMass * g * D_002BE674));
             }
         }
     }
     float half = 0.5f;
     float dt = g_clock.deltaTime;
-    accel = VuProjectOut(accel, D_002A2DC0);
+    accel = VuProjectOut(accel, g_normalZ);
     qword posNext = VuIntegrateStep(behavior->pos, behavior->v, VU_FLOAT(dt), accel, VU_FLOAT(dt * (dt * half)));
     qword vNew = VuMulAdd(behavior->v, accel, VU_FLOAT(dt));
     qword vNext = vNew;
@@ -2743,7 +2743,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
         {
             VEC normal;
             pqwZero = &D_002A2DA0;
-            normal.qw = VuProjectOut(VuSub(posHit.qw, posNext), D_002A2DC0);
+            normal.qw = VuProjectOut(VuSub(posHit.qw, posNext), g_normalZ);
             qword qwLen = VuLength(normal.qw);
             if (QwordX(qwLen) < 0.0001f)
                 normal.qw = *pqwZero;
@@ -2952,9 +2952,9 @@ struct CONTROL { char pad[0x24]; void *animation; };
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
 
 extern CLQ D_002BE6A0 __asm__("D_002BE6A0");
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 extern float D_002BE694 __asm__("D_002BE694"), D_002BE6B0 __asm__("D_002BE6B0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 void UpdateBhvpath(BHVPATH *) __asm__("UpdateBhvpath");
 MATRIX3 *GetLoWorldMatrix(LO *) __asm__("GetLoWorldMatrix");
 void SetAsegaSpeed__FP5ASEGAf(void *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
@@ -3050,8 +3050,8 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
     if ((unsigned int)behavior->state < 2)
     {
         qword pos = GetLoWorldPos(behavior->owner);
-        qword dpos = VuProjectOut(VuSub(behavior->startPosition, pos), D_002A2DC0);
-        float g = EvaluateClampedQuadratic(&D_002BE6A0, &D_002BBB60, QwordX(VuLengthXY(dpos)));
+        qword dpos = VuProjectOut(VuSub(behavior->startPosition, pos), g_normalZ);
+        float g = EvaluateClampedQuadratic(&D_002BE6A0, &g_lmZeroOne, QwordX(VuLengthXY(dpos)));
         ANIMBINDING *pchoice = ((BHVANIM *)behavior->pbhvNext)->binding;
         switch (pchoice->kind)
         {
@@ -3584,7 +3584,7 @@ struct LIMIT{float low,high;};
 
  extern unsigned long D_002DFB70 __asm__("D_002DFB70");
  extern int D_002DFB78 __asm__("D_002DFB78");
- extern qword D_002A2DC0 __asm__("D_002A2DC0");
+ extern qword g_normalZ __asm__("g_normalZ");
  extern LIMIT D_002BE6B8 __asm__("D_002BE6B8");
  unsigned long GetSgfMask(int) __asm__("GetSgfMask");
  int IsBasicDerivedFrom__FP5BASIC3CID(void*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
@@ -3689,7 +3689,7 @@ extern "C" void StartBhvleap(BHVLEAP *behavior)
             if (!behavior->isReversed)
                 heading = NormalizeAngle__Ff(heading + 3.1415927410125732421875f);
             behavior->hasAttachBasis = 1;
-            BuildAxisAngleRotationMatrix(&work.temp.first.rotation, heading, D_002A2DC0);
+            BuildAxisAngleRotationMatrix(&work.temp.first.rotation, heading, g_normalZ);
             *(MATRIX3Q *)&behavior->attachBasis = work.temp.first.rotation;
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS39)) {
             active |= GetSgfMask(SGF_ON_CLASS39);
@@ -3702,7 +3702,7 @@ extern "C" void StartBhvleap(BHVLEAP *behavior)
             active |= GetSgfMask(SGF_ON_CLASS19);
             behavior->hasAttachBasis = 1;
             MATRIX3Q *m = GetLoWorldMatrix(behavior->target);
-            (void)BuildOrthonormalMatrixZ(&work.temp.basis, m->r[0].q, D_002A2DC0);
+            (void)BuildOrthonormalMatrixZ(&work.temp.basis, m->r[0].q, g_normalZ);
             *(MATRIX3Q *)&behavior->attachBasis = work.temp.basis;
             AdjustBhvleapAttachPoint(behavior);
         } else {
@@ -4032,7 +4032,7 @@ extern "C" void StartBhvjuggled(BHVJUGGLED *behavior)
 // 0x17AA78 CalculateBhvjuggledHoldPoint
 namespace M_func_0017AA78 {
 typedef union {qword q;float g[4];} U;
-extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DA0 __asm__("D_002A2DA0");
+extern qword g_normalZ __asm__("g_normalZ"),D_002A2DA0 __asm__("D_002A2DA0");
 extern float D_002BE6C4 __asm__("D_002BE6C4");
 qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
 // VU0 helper: moves a CPU quadword into a VU register.
@@ -4093,10 +4093,10 @@ extern "C" { static inline void PublishPoint(U *home, qword scalar, qword *out, 
 extern "C" void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, STUNHOLD *request, qword *outPoint, qword *outDirection)
 {
     qword first = ToVU(GetLoWorldPos(behavior->owner));
-    qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->holder)), D_002A2DC0), D_002A2DA0);
+    qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->holder)), g_normalZ), D_002A2DA0);
     {
         U scalar;
-        register unsigned int addressWord __asm__("$2") = (unsigned int)&D_002A2DC0;
+        register unsigned int addressWord __asm__("$2") = (unsigned int)&g_normalZ;
         register qword along __asm__("vf4"), up __asm__("vf5"), point __asm__("vf2"), height __asm__("vf6");
         __asm__("lw $3,%5\n\tlqc2 %2,0(%0)\n\tqmtc2.ni $3,%1\n\tlw %0,%6\n\tlqc2 %3,%7\n\tqmtc2.ni %0,%4"
                 : "+&r"(addressWord), "=j"(along), "=j"(up), "=j"(point), "=j"(height)
@@ -4357,7 +4357,7 @@ struct DELTA;
 
  extern float D_002BE6FC __asm__("D_002BE6FC"),D_002BE700 __asm__("D_002BE700"),D_002BE704 __asm__("D_002BE704");
  extern F D_002BE708 __asm__("D_002BE708");
- extern U D_002A2DC0 __asm__("D_002A2DC0");
+ extern U g_normalZ __asm__("g_normalZ");
  void SetSoMass(STEP*,float) __asm__("SetSoMass");
  void SeekAsega(ASEGA*,int,float,float) __asm__("SeekAsega");
  void ReleaseAct(DELTA**) __asm__("ReleaseAct");
@@ -5600,7 +5600,7 @@ void BHV187::OnPush()
 namespace M_func_0017D1F0 {
 struct M3;
 struct M3 { qword a, b, c; };
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 void StartBhv(BHV187 *p) __asm__("StartBhv");
 BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 qword *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
@@ -5616,7 +5616,7 @@ extern "C" void StartBhvAttachCid19(BHV187 *behavior)
     o->sgf = 2;
     o->Start();
     t = (STEPGUARD *)behavior->owner;
-    *(M3 *)t->aqwTarget = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->attachObject), D_002A2DC0);
+    *(M3 *)t->aqwTarget = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->attachObject), g_normalZ);
 }
 } // namespace M_func_0017D1F0
 
@@ -5770,7 +5770,7 @@ namespace M_FSnapPosToSurfaceAbove {
 struct EDGE; struct SURF; struct LSG; struct VU_FLOAT;
 // SnapPositionToSurfaceAbove: ported from Lilly's personal Sly 2 decomp (src/P2/guardbhv_goto.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), D_002A2DC0 (g_normalZ)
+// Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), g_normalZ (g_normalZ)
 // 0x0017D608 FSnapPosToSurfaceAbove__FPUx  (our name; was FUN_0017D608)
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
 // hit piece and 1 is returned. MoveBhvRelocateToPoint (0x17E9B0) tries it when SnapToGround finds no floor under the point.
@@ -5814,7 +5814,7 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
 }
 extern float D_002BE750 __asm__("D_002BE750");
 extern float D_002BE754 __asm__("D_002BE754");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 
 void CollectVisibleMsGlobs(int *pcpso, SOPART ***papso) __asm__("CollectVisibleMsGlobs");
 
@@ -5836,8 +5836,8 @@ int SnapPositionToSurfaceAbove(qword *ppos)
     int cpso;
     SOPART **apso;
     CollectVisibleMsGlobs(&cpso, &apso);
-    qword posBottom = VuMulAdd(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE750));
-    qword posTop = VuMulAdd(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE754));
+    qword posBottom = VuMulAdd(*ppos, g_normalZ, VuFloatFromMemWord(*(int *)&D_002BE750));
+    qword posTop = VuMulAdd(*ppos, g_normalZ, VuFloatFromMemWord(*(int *)&D_002BE754));
     LSG lsg;
     if (HitTestLineObjects(0, posBottom, posTop, cpso, apso, &lsg))
     {

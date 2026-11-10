@@ -35,7 +35,7 @@ typedef char assert_WAYPT_jobCondition[(unsigned int)&((WAYPT *)0)->jobCondition
 /* World, camera and clock views (the fields used in this TU). The world fields' meanings are unknown: unknown3B0C
    switches waypoint modes 0/1/2; unknown4750/4754 are times the waypoints fade in after; mode-2 waypoints hide while
    unknown4764 < unknown4768. */
-extern qwordV D_002A2DC0;   // g_normalZ
+extern qwordV g_normalZ;   // g_normalZ
 extern "C" {
 qwordV GetLoWorldPos(void *plo);     /* PosLoWorld */
 void InitSo(WAYPT *p);
@@ -290,7 +290,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
     waypoint->height = 0.0f;
 
     corner[0].q = posSrc;
-    qwordV up = D_002A2DC0;
+    qwordV up = g_normalZ;
     qwordV k = QI(D_002C4490);
     // both corners first, then the stores: k and c2 die at their stores (sched1 issues them first, k before c2)
     qwordV v1 = AddUpU(posSrc, up, k);
@@ -324,7 +324,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
     faces = (FACE **)AllocFromStack(preq);
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
-    IntersectSwBoundingBox(&g_sw, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
+    IntersectSwBoundingBox(&g_sw, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), g_normalZ, k2),
                   HasCameraBsp, 0, &query.numObjects, &query.objects);
     qwordV toSource = VuSub(posSrc, posCam);
     int numFound = query.numObjects;
@@ -407,7 +407,7 @@ extern "C" void CalculateWayptCurtainExtraHeight(O *waypoint)
 // with a single result variable and by-value limits, `dz = p ? .. : 0.0f` (splits cse so g_normalZ's hi part is
 // copied into s4), the name plate drawn through a by-value RGBA inline (copy addresses in s0/s1), and the
 // float argument of DrawWorldLabel second (invisible in the callee, decides the f12 move's slot).
-extern LM D_002BBB60;      // g_lmZeroOne
+extern LM g_lmZeroOne;      // g_lmZeroOne
 float D_002C4494 = 10.0f, D_002C4498 = 10.0f, D_002C449C = 0.1f;   /* waypoint's .data, address order */
 CLQ D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
 LM D_002C44D0 = {1.0f, 5.0f};
@@ -494,9 +494,9 @@ extern "C" void RenderWaypt(WAYPT *waypoint)
 {
     RenderSoSelf(waypoint);
     float fadeStart = Max(g_sw.tLookLast + D_002C4494, g_sw.unknown4754 + D_002C4498);
-    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, g_clock.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
+    float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, g_clock.time - fadeStart), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
     fadeStart = g_sw.tLookLast + D_002C449C;
-    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, g_clock.time - fadeStart), D_002BBB60.minValue, D_002BBB60.maxValue);
+    float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, g_clock.time - fadeStart), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
     switch (waypoint->mode)
     {
     case 0:
@@ -520,11 +520,11 @@ extern "C" void RenderWaypt(WAYPT *waypoint)
     CalculateWayptCurtainExtraHeight((O *)waypoint);
     qwordV posCam = g_cm.matq.pos;
     qwordV pos = GetLoWorldPos(waypoint->source);
-    qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&waypoint->height));
+    qwordV posTop = QwAddScaled(pos, g_normalZ, VuFloatFromMemWord(*(int *)&waypoint->height));
     float distance;
     FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &distance);
     float scale = ClampLocal(GEvaluateClq(&D_002C44C0, distance), D_002C44D0.minValue, D_002C44D0.maxValue);
-    qwordV posEnd = QwAddScaled(posTop, D_002A2DC0, VuFloat(scale * D_002C44D8));
+    qwordV posEnd = QwAddScaled(posTop, g_normalZ, VuFloat(scale * D_002C44D8));
 
     MATRIX4V mat;
     if (waypoint->marker)
@@ -557,7 +557,7 @@ extern "C" void RenderWaypt(WAYPT *waypoint)
     if (0.0f < labelAlpha && waypoint->attachment && waypoint->attachment->pjob && waypoint->attachment->pjob->labelNameId != -1)
     {
         float labelOffset = waypoint->marker ? scale * waypoint->marker->model.boundsRadius : 0.0f;
-        qwordV posLabel = QwAddScaledG(posEnd, D_002A2DC0, VuFloat(labelOffset));
+        qwordV posLabel = QwAddScaledG(posEnd, g_normalZ, VuFloat(labelOffset));
         RGBAV backColor(0x80603030);
         RGBAV textColor(0xFFC0C0C0);
         backColor.a = (uchar)(int)(labelAlpha * backColor.a);

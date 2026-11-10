@@ -1,4 +1,4 @@
-// cm.cpp -- the camera (CM, the global g_cm at D_002DDF40): construction with its embedded policies, setup, the
+// cm.cpp -- the camera (CM, the global g_cm at g_cm): construction with its embedded policies, setup, the
 // view matrix / frustum / fog setters, the visibility zone, adjustment and cuts, the policy stack, the camera
 // filters. TU 0x14D3D8..0x14FAC8 (53 functions, address order), then ~CM (_$_2CM, the linkonce copy 0x258290,
 // defined over a view at the end of the file); the matrix setter 0x256278 is an inline function in sly2/cm.h.
@@ -76,7 +76,7 @@ void SetupCm(CM *pcm)
 namespace M_UpdateCmLast__FP2CM {
 /* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
 struct O { int pad[3]; VTE *vt; };
-extern int D_002DFBC0 __asm__("D_002DFBC0");
+extern int g_grfjoyt __asm__("g_grfjoyt");
 extern JOY D_002E0D00 __asm__("D_002E0D00");
 extern char D_002BD810[] __asm__("D_002BD810");
 void ResetCmAdjust(CM *p, CPDEFI *pcpdefi) __asm__("ResetCmAdjust");
@@ -114,7 +114,7 @@ extern "C" void UpdateCmLast__FP2CM(CM *cm)
                 cpdefi = 0;
                 lastFocus = 0;
             }
-            policy->Update(cpdefi, (D_002DFBC0 & 1) ? &g_joy : &D_002E0D00);
+            policy->Update(cpdefi, (g_grfjoyt & 1) ? &g_joy : &D_002E0D00);
             lastUpdated = policy;
             if (cm->numPolicies <= 0)
                 break;
@@ -151,8 +151,8 @@ typedef int qword __attribute__((mode(TI)));
 
 
 extern float D_002BD81C __asm__("D_002BD81C"), D_002BD820 __asm__("D_002BD820"), D_002BD824 __asm__("D_002BD824");
-extern qword D_002BD830 __asm__("D_002BD830");
-extern qword D_002BD840 __asm__("D_002BD840");
+extern qword g_posEyeDefault __asm__("g_posEyeDefault");
+extern qword g_posCenterDefault __asm__("g_posCenterDefault");
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void SetCameraLookAt(CM *p, qword pos, qword tgt, float da, float db) __asm__("SetCameraLookAt");
 void CutCm__FP2CM(CM *p) __asm__("CutCm__FP2CM");
@@ -188,7 +188,7 @@ extern "C" void InitCm__FP2CM(CM *cm)
     pm[5] = 1.0f;
     pm[0] = 1.0f;
     RecalcCmFrustrum(cm);
-    SetCameraLookAt(cm, D_002BD830, D_002BD840, 0.0f, 0.0f);
+    SetCameraLookAt(cm, g_posEyeDefault, g_posCenterDefault, 0.0f, 0.0f);
     CutCm__FP2CM(cm);
     cm->numPolicies = 0;
     InitCmpart1(&cm->part3a0);
@@ -345,7 +345,7 @@ extern "C" void RecalcCmFrustrum__FP2CM(CM *pcm)
 namespace M_UpdateCmMat4__FP2CM {
 // UpdateCmMat4: ported from Lilly's personal Sly 2 decomp (src/P2/cm.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DE0 (D_002A2DE0), D_002BD850 (D_002BD850), D_002BD854 (SW_CmJolt), D_002DDED0 (g_clock), D_002BBB60 (g_lmZeroOne), D_002BD860 (s_clqUToUJolt), D_002BD870 (s_dposJolt), D_002BD880 (s_rotJolt), D_002BD8A0 (s_vecOffset), D_002BD890 (s_vecRange)
+// Globals: D_002A2DE0 (D_002A2DE0), DT_CmJoltMax (DT_CmJoltMax), SW_CmJolt (SW_CmJolt), g_clock (g_clock), g_lmZeroOne (g_lmZeroOne), s_clqUToUJolt (s_clqUToUJolt), s_dposJolt (s_dposJolt), s_rotJolt (s_rotJolt), s_vecOffset (s_vecOffset), s_vecRange (s_vecRange)
 // 0x0014DC58 UpdateCmMat4__FP2CM  (T1386; Sly 1 never matched it)
 // The camera's placement CM::mat (3 rotation rows, row 3 = the position; SetCmMat4 / SetCmPanTilt / the policies set it) or its projection changed:
 //  1. the world -> clip matrix matViewProj = CombineEyeLookAtProj(eye, matProj), where eye is CM::mat itself, or, for 0.5 s after a camera jolt
@@ -367,7 +367,7 @@ MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR) __asm__("__ml__FRC7MATRIX4T0");
 bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("InvertMatrix4");
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sNear, float sFar, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 extern void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("CombineEyeLookAtProj");
 extern void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane) __asm__("BuildFrustrum");
 void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");
@@ -382,13 +382,13 @@ static inline qword QwAddScaled(qword qwBase, qword qwD, VU_FLOAT g)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwD), "j"(g.qw));
     return qw;
 }
-extern float D_002BD850 __asm__("D_002BD850");
-extern float D_002BD854 __asm__("D_002BD854");
-extern CLQ D_002BD860 __asm__("D_002BD860");
-extern qword D_002BD870 __asm__("D_002BD870");
-extern qword D_002BD880 __asm__("D_002BD880");
-extern qword D_002BD890 __asm__("D_002BD890");
-extern qword D_002BD8A0 __asm__("D_002BD8A0");
+extern float DT_CmJoltMax __asm__("DT_CmJoltMax");
+extern float SW_CmJolt __asm__("SW_CmJolt");
+extern CLQ s_clqUToUJolt __asm__("s_clqUToUJolt");
+extern qword s_dposJolt __asm__("s_dposJolt");
+extern qword s_rotJolt __asm__("s_rotJolt");
+extern qword s_vecRange __asm__("s_vecRange");
+extern qword s_vecOffset __asm__("s_vecOffset");
 extern qword D_002A2DE0 __asm__("D_002A2DE0");
 extern float *VECTOR_opAssign(float *pg, qword qw) __asm__("VECTOR_opAssign");
 // Return qwRow scaled by gScale.
@@ -424,17 +424,17 @@ extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
 {
     MATRIX4 matEye;
     float dtJolt = g_clock.time - pcm->joltTime;
-    if (dtJolt > D_002BD850)
+    if (dtJolt > DT_CmJoltMax)
     {
         CombineEyeLookAtProj(&pcm->mat, &pcm->matProj, &pcm->matViewProj);
     }
     else
     {
-        float gEnv = GEvaluateClqLm(&D_002BD860, &D_002BBB60, dtJolt / D_002BD850);
-        float gJolt = sinf(dtJolt * D_002BD854) * gEnv;
+        float gEnv = GEvaluateClqLm(&s_clqUToUJolt, &g_lmZeroOne, dtJolt / DT_CmJoltMax);
+        float gJolt = sinf(dtJolt * SW_CmJolt) * gEnv;
         {
-            MATRIX3 matRot = LoadRotateMatrix(QwMulX(D_002BD880, VuFloatOfFloat(gJolt)));
-            VECTOR_opAssign(matEye.mat[3], QwMulX(D_002BD870, VuFloatOfFloat(gJolt)));
+            MATRIX3 matRot = LoadRotateMatrix(QwMulX(s_rotJolt, VuFloatOfFloat(gJolt)));
+            VECTOR_opAssign(matEye.mat[3], QwMulX(s_dposJolt, VuFloatOfFloat(gJolt)));
             *(MATRIX3 *)&matEye = matRot;
         }
         matEye.mat[3][3] = 1.0f;
@@ -445,8 +445,8 @@ extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
         VECTOR4 vecRange;
         VECTOR4 vecOffset;
         MATRIX4 matProj;
-        *(qword *)&vecRange = QwAddScaled(D_002A2DE0, D_002BD890, VuFloatOfFloat(gJolt));
-        *(qword *)&vecOffset = QwMulX(D_002BD8A0, VuFloatOfFloat(gJolt));
+        *(qword *)&vecRange = QwAddScaled(D_002A2DE0, s_vecRange, VuFloatOfFloat(gJolt));
+        *(qword *)&vecOffset = QwMulX(s_vecOffset, VuFloatOfFloat(gJolt));
         BuildSimpleProjectionMatrix(vecRange.x * 512.0f / (pcm->tanHalfFovX * 4096.0f), vecRange.y * 224.0f / (pcm->tanHalfFovY * 4096.0f),
                                     vecOffset.x, vecOffset.y, pcm->nearClip, pcm->farClip, &matProj);
         CombineEyeLookAtProj(&matEye, &matProj, &pcm->matViewProj);
@@ -1031,7 +1031,7 @@ typedef union { qword q; float f; } U;
 struct PL { qword pos; qword plane; };
 struct P { char pad[0x48]; float nearCorner; };
 extern float D_002BD8D8 __asm__("D_002BD8D8");
-extern char D_002BD8E0[] __asm__("D_002BD8E0");
+extern char s_smpSquishEye[] __asm__("s_smpSquishEye");
 void *InitVuTemp(void *p) __asm__("InitVuTemp");
 void SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr) __asm__("SmoothValue__FfffP3SMPPf");
 // Signed distance from pos to plane (plane.xyz . pos - plane.w).
@@ -1067,7 +1067,7 @@ extern "C" float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, str
     float r;
     qword plane = pl->plane;
     qword pos = pl->pos;
-    SmoothValue__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, D_002BD8E0, &r);
+    SmoothValue__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, s_smpSquishEye, &r);
     return GDot(&vIn, pl->plane) - r;
 }
 } // namespace M_SvSquishCmEyeConstraint
@@ -1517,19 +1517,19 @@ SMP D_002BD810 = {20.0f, 10.0f, 0.5f};
 float D_002BD81C = 500.0f;
 float D_002BD820 = 20000.0f;
 float D_002BD824 = 0.5f;
-VECTOR4 D_002BD830 = {0.0f, -2000.0f, 500.0f, 0.0f};
-VECTOR4 D_002BD840 = {0.0f, 0.0f, 0.0f, 0.0f};
-float D_002BD850 = 0.5f;
-float D_002BD854 = 50.0f;
-CLQ D_002BD860 __attribute__((aligned(16))) = {{{1.0f, -2.0f, 1.0f, 0.0f}}};
-VECTOR4 D_002BD870 = {0.0f, 0.0f, 0.0f, 0.0f};
-VECTOR4 D_002BD880 = {0.05f, 0.0f, 0.0f, 0.0f};
-VECTOR4 D_002BD890 = {0.0f, 0.0f, 0.0f, 0.0f};
-VECTOR4 D_002BD8A0 = {0.0f, 0.0f, 0.0f, 0.0f};
+VECTOR4 g_posEyeDefault = {0.0f, -2000.0f, 500.0f, 0.0f};
+VECTOR4 g_posCenterDefault = {0.0f, 0.0f, 0.0f, 0.0f};
+float DT_CmJoltMax = 0.5f;
+float SW_CmJolt = 50.0f;
+CLQ s_clqUToUJolt __attribute__((aligned(16))) = {{{1.0f, -2.0f, 1.0f, 0.0f}}};
+VECTOR4 s_dposJolt = {0.0f, 0.0f, 0.0f, 0.0f};
+VECTOR4 s_rotJolt = {0.05f, 0.0f, 0.0f, 0.0f};
+VECTOR4 s_vecRange = {0.0f, 0.0f, 0.0f, 0.0f};
+VECTOR4 s_vecOffset = {0.0f, 0.0f, 0.0f, 0.0f};
 int D_002BD8B0[9] = {1, 5, 10, 12, 15, 12, 10, 5, 1};
 float D_002BD8D4 = 4.0f;
 float D_002BD8D8 = 125.0f;
 float D_002BD8DC = 1500.0f;
-SMPA D_002BD8E0 = {2500.0f, 0.0f, 0.25f, 0.0f};
+SMPA s_smpSquishEye = {2500.0f, 0.0f, 0.25f, 0.0f};
 VECTOR4 D_002BD8F0 = {-250.0f, -250.0f, -250.0f, 0.0f};
 VECTOR4 D_002BD900 = {250.0f, 250.0f, 250.0f, 0.0f};

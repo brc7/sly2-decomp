@@ -1,8 +1,8 @@
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0
-extern int D_002C4648, D_002C4688, D_002C46B8;
+extern int D_002C4648, gLoadBusy, D_002C46B8;
 extern char D_002AA250[], D_002AA280[], D_002AA1C8[], D_002AA2A0[];
-extern unsigned int D_00448480[];
+extern unsigned int gLoadReturnValue[];
 extern int D_004484C0[];
 extern char D_00448440[];
 int snd_StreamSafeCdSync(int);
@@ -16,7 +16,7 @@ int func_00237288(void *, int, int, void *, int, void *, int, void *, void *) __
 int snd_BankLoadByLoc(int a, int b)
 {
     D_002C4648 = 0;
-    if (D_002C4688) {
+    if (gLoadBusy) {
         if (!D_002C46B8)
             printf(D_002AA250);
         return 0;
@@ -26,8 +26,8 @@ int snd_BankLoadByLoc(int a, int b)
             printf(D_002AA280);
         return 0;
     }
-    D_00448480[0] = 0xFFFFFFFF;
-    func_00234F48(D_00448480, D_00448480 + 1);
+    gLoadReturnValue[0] = 0xFFFFFFFF;
+    func_00234F48(gLoadReturnValue, gLoadReturnValue + 1);
     D_004484C0[0] = a;
     D_004484C0[1] = b;
     while (func_00237488(D_00448440)) {
@@ -36,15 +36,15 @@ int snd_BankLoadByLoc(int a, int b)
         snd_FlushSoundCommands();
         func_00234CA0(0);
     }
-    if (func_00237288(D_00448440, 3, 1, D_004484C0, 8, D_00448480, 4, 0, 0) < 0) {
+    if (func_00237288(D_00448440, 3, 1, D_004484C0, 8, gLoadReturnValue, 4, 0, 0) < 0) {
         if (!D_002C46B8)
             printf(D_002AA2A0);
         D_002C4648 = 0x106;
         return 0;
     }
-    while (D_00448480[0] == 0xFFFFFFFF)
+    while (gLoadReturnValue[0] == 0xFFFFFFFF)
         func_00234CA0(0);
-    return D_00448480[0];
+    return gLoadReturnValue[0];
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

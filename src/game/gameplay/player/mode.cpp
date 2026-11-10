@@ -128,7 +128,7 @@ extern "C" void EndJtMode(JTMODE *jtMode) {
 
 // SetJtModeState: ported from Lilly's personal Sly 2 decomp (src/P2/jtmode.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_003DD490 (g_sw)
+// Globals: g_clock (g_clock), g_cm (g_cm), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_003DD490 (g_sw)
 // 0x0019CD38 SetJtModeState__FP6JTMODEi  (our name)
 // Leaving a state: from off (-1) the mode takes hold of the hero's own animation (held at speed 0; kind 1 also counts a no-pause request in the world); from running (1) the
 // camera policy is taken off the camera's list (kind 1 also lets the held object go), the camera cuts, the sound buses return to full volume and the hero

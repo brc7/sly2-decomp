@@ -113,7 +113,7 @@ extern TRI D_002C19C0[22];
 extern TRI D_002C1AC8[11];
 extern TRI D_002C1B50[11];
 extern TRI D_002C1BD8[62];
-extern float D_002BBB60[2];
+extern float g_lmZeroOne[2];
 extern QW D_002DF260[];
 extern "C" {
 void ClearFrameBuffers__Fv(void);
@@ -294,7 +294,7 @@ extern "C" void LoadingScreenThread(void *)
             matrix.a[3]=D_002C10A4*scale;
             matrix.a[4]=D_002C10A8;matrix.a[5]=D_002C10AC;
             float alpha=D_002C10C0[0]+t*(D_002C10C0[1]+t*D_002C10C0[2]);
-            Clamp(&alpha,D_002BBB60);
+            Clamp(&alpha,g_lmZeroOne);
             DrawLoadingScreenLogo(&D_002DEA00,&matrix,alpha);
             CloseFrame__Fv();D_002BE538++;
         }

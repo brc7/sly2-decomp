@@ -523,7 +523,7 @@ extern "C" void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
 namespace M_ClosestPointOnCgt {
 // GetClosestPointOnNavTriangle: closest point of a navigation triangle to p (wave-3 lane 4). T holds pointers to the three corners.
 // If p lies outside an edge in the XY plane (z of cross(p - v0, v1 - v0) > 0, tested a-b, b-c, c-a in turn), the result
-// is the closest point on that edge (FindClosestPointOnLineSegment); otherwise p is projected along D_002A2DC0 (world up) onto the
+// is the closest point on that edge (FindClosestPointOnLineSegment); otherwise p is projected along g_normalZ (world up) onto the
 // triangle's plane.
 // Keys:
 //  * The inside block works on VU_VECTOR copies of the first and third corners made right after the loads. The
@@ -539,7 +539,7 @@ struct T { qword *a, *b, *c; };
 // Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 
-extern qword D_002A2DC0 __asm__("D_002A2DC0"); // (0, 0, 1, 0)
+extern qword g_normalZ __asm__("g_normalZ"); // (0, 0, 1, 0)
 void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist) __asm__("FindClosestPointOnLineSegment");
 extern "C" { qword GetClosestPointOnNavTriangle(T *t, qword p); }
 
@@ -578,7 +578,7 @@ extern "C" qword GetClosestPointOnNavTriangle(T *triangle, qword pos)
         float nz = QwordZ(n);
         float dot = QwordX(dv);
         float g = dot / nz;
-        result.q = AddScaled(pos, D_002A2DC0, g);
+        result.q = AddScaled(pos, g_normalZ, g);
     }
     return result.q;
 }

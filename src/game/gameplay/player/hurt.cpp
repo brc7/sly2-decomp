@@ -94,7 +94,7 @@ struct LIMIT{float lo,hi;};
  extern U D_002BFA00 __asm__("D_002BFA00");
 extern U D_002BFA10 __asm__("D_002BFA10");
  extern POLY D_002BFA20 __asm__("D_002BFA20");
- extern LIMIT D_002BBB60 __asm__("D_002BBB60");
+ extern LIMIT g_lmZeroOne __asm__("g_lmZeroOne");
 extern const float D_002A6720 __asm__("D_002A6720");   /* defined below where the ELF has it (.rodata order) */
  int IsBasicDerivedFrom__FP5BASIC3CID(P*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
  float atan2f(float,float) __asm__("atan2f");
@@ -252,7 +252,7 @@ void SetJtHurtState(C *hurt, int next) __asm__("SetJtHurtState"); void SetJtHurt
                     "%1,%%lo(%6)(%2)\n\tsqc2 %4,%3\n\taddiu %2,%2,%%lo(%6)\n\tadd.s $f2,$f2,$f1\n\tmul.s "
                     "$f0,$f0,$f2\n\tadd.s %0,%0,$f0"
                     : "=&f"(fraction), "=&f"(lower), "=&r"(range), "=m"(velocity.q)
-                    : "j"(v), "i"(&D_002BFA20), "i"(&D_002BBB60)
+                    : "j"(v), "i"(&D_002BFA20), "i"(&g_lmZeroOne)
                     : "$3", "$4", "$f0", "$f1", "$f2", "vf1", "memory");
             float blend = ClampKnownLower(fraction, lower, range);
             float angle = atan2f(velocity.f[1], velocity.f[0]) + 3.1415927f;
@@ -412,7 +412,7 @@ struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float
 extern float D_002BFAA0[3] __asm__("D_002BFAA0");
 extern float D_002BFAB0[3] __asm__("D_002BFAB0");
 extern float D_002BFAC0[3] __asm__("D_002BFAC0");
-extern float D_002BBB60[2] __asm__("D_002BBB60");
+extern float g_lmZeroOne[2] __asm__("g_lmZeroOne");
 void InvalidateSoAaox(struct LO *po) __asm__("InvalidateSoAaox");
 float cosf(float g) __asm__("cosf");
 float atan2f(float y, float x) __asm__("atan2f");
@@ -441,8 +441,8 @@ extern "C" void UpdateJtActiveZap(struct S *s)
             u = 0.0f;
         }
         w = cosf((g_clock.time - s->x94) * 10.0f);
-        a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), D_002BBB60[0], D_002BBB60[1]);
-        s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), D_002BBB60[0], D_002BBB60[1]);
+        a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), g_lmZeroOne[0], g_lmZeroOne[1]);
+        s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), g_lmZeroOne[0], g_lmZeroOne[1]);
     }
 done:
     switch (s->x4) {
@@ -512,7 +512,7 @@ extern U D_002BFAE0 __asm__("D_002BFAE0");
 extern U D_002BFAF0 __asm__("D_002BFAF0");
 extern F D_002BFB00 __asm__("D_002BFB00");
 extern F D_002BFB04 __asm__("D_002BFB04");
-extern U D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0");
+extern U D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ");
 int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
 qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
@@ -615,7 +615,7 @@ extern "C" void StartJtKnockback(struct P*p){
                 // Read blend data and initialize the scalar temporary.
                 __asm__("lui %0,%%hi(%7)\n\tlui %1,%%hi(%8)\n\tlui %2,%%hi(%9)\n\tlw %0,%%lo(%7)(%0)\n\taddiu %2,%2,%%lo(%9)\n\tlw %1,%%lo(%8)(%1)\n\tlqc2 %5,0(%2)\n\tqmtc2.ni %0,%3\n\tqmtc2.ni %1,%4\n\tsqc2 %3,%6"
                     :"=&r"(first),"=&r"(second),"=&r"(up),"=j"(weight),"=j"(lift),"=j"(axis),"=m"(scalar.q)
-                    :"i"(&D_002BFB00.bits),"i"(&D_002BFB04.bits),"i"(&D_002A2DC0):"memory");
+                    :"i"(&D_002BFB00.bits),"i"(&D_002BFB04.bits),"i"(&g_normalZ):"memory");
                 a=weight;b=lift;z=axis;
             }
 

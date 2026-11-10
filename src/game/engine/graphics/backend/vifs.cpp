@@ -93,7 +93,7 @@ void VIFS::AddVifStmask(uint unMask)
     m_unMask = unMask;
 }
 
-extern int s_mpupkcb[] __asm__("D_002C4430");
+extern int s_mpupkcb[] __asm__("s_mpupkcb");
 
 // 0x226E08: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sw $5, 0x0($6)");

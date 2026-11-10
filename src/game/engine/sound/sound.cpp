@@ -114,7 +114,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define G_SNDMGR (*(SNDMGR *)&D_003DD040)   /* the field layout of g_sndmgr (sly2/sndmgr.h) */
 #define MUTE_WHEN_STOPPED_ALL 3   /* muteWhenStoppedFlags: both flags set (the default) */
 #define PLAY_TIME_TICKS_PER_SECOND 294912000.0f   /* a stream's play time (+0x68) counts these */
-#define CD_STATE_IDLE 3   /* cd.cpp's disc-poll state D_002BD4C0 (1 read, 2 wait, 3 idle) */
+#define CD_STATE_IDLE 3   /* cd.cpp's disc-poll state g_cds (1 read, 2 wait, 3 idle) */
 
 extern "C" {
 void SetSndFlags(CID151 *sound, int grfMask, int grf);
@@ -216,12 +216,12 @@ void CID151::Start()   /* key function: CID151's vtable comes out here (the name
 
 namespace M_func_001FB1F8 {
 struct S;
-extern struct S D_002BBB60 __asm__("D_002BBB60");
+extern struct S g_lmZeroOne __asm__("g_lmZeroOne");
 float ClampToLimits__FP2LMf(struct S *, float) __asm__("ClampToLimits__FP2LMf");
 // Sets a sound's volume (clamped to 0..1); marks it dirty only if it changed by at least 1/1024.
 extern "C" void SetSndVolume(CID151 *sound, float volume)
 {
-    float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
+    float clamped = ClampToLimits__FP2LMf(&g_lmZeroOne, volume);
     if ((int)(clamped * 1024.0f) != (int)(sound->volume * 1024.0f)) {
         sound->volume = clamped;
         SetSndFlags(sound, SND_DIRTY_VOLUME, SND_DIRTY_VOLUME);
@@ -364,7 +364,7 @@ extern "C" void RemoveSndFromDirtyList(CID151 *sound)
 namespace M_CalculateSndVolPan {
 typedef int qword __attribute__((mode(TI)));
 struct RANGE {float low,high;};
-extern char D_002BBB60[] __asm__("D_002BBB60");
+extern char g_lmZeroOne[] __asm__("g_lmZeroOne");
 void *GetCurrentPo(void*) __asm__("GetCurrentPo");
 qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
 qword ConvertMatVec(const struct MATRIX3Q*,const struct MATRIX3Q*,qword) __asm__("ConvertMatVec");
@@ -400,7 +400,7 @@ extern "C" void CalculateSndVolPan(void *unused,qword point,const struct RANGE*l
  high=limits->high;low=limits->low;
  {register qword input __asm__("vf2")=source.q;
   distance=Length(Sub(input,reference),&delta);}
- value=ClampToLimits__FP2LMf(D_002BBB60,(high-distance)/(high-low));
+ value=ClampToLimits__FP2LMf(g_lmZeroOne,(high-distance)/(high-low));
  difference=delta.q;
  if(outValue)*outValue=value;
  if(outAngle){
@@ -759,14 +759,14 @@ extern "C" void StartStreamsnd(STREAMSND *sound)
 
 namespace M_SetStreamsndGroupVolume {
 struct S;
-extern struct S D_002BBB60 __asm__("D_002BBB60");   /* the volume limits (0..1) */
+extern struct S g_lmZeroOne __asm__("g_lmZeroOne");   /* the volume limits (0..1) */
 float ClampToLimits__FP2LMf(struct S *, float) __asm__("ClampToLimits__FP2LMf");
 void SetSndFlags(STREAMSND *, int, int) __asm__("SetSndFlags");
 // Sets the volume of one of a stream's six sub-groups (channels of a multi-layer stream) and marks it dirty.
 extern "C" void SetStreamsndGroupVolume(STREAMSND *sound, unsigned int group, float volume)
 {
     if (group < 6) {
-        float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
+        float clamped = ClampToLimits__FP2LMf(&g_lmZeroOne, volume);
         /* compared at the IOP's 1/1024 resolution */
         if ((int)(clamped * 1024.0f) != (int)(sound->groupVolumes[group] * 1024.0f)) {
             sound->dirtyGroups |= 1 << group;
@@ -1516,7 +1516,7 @@ extern "C" void ResetSndmgr(SNDMGR *soundManager)
 
 namespace M_UpdateSndmgr {
 struct K { float fastSpeed, slowSpeed, fastTime; };   /* SMP */
-extern int D_002BD4C0 __asm__("D_002BD4C0");
+extern int g_cds __asm__("g_cds");
 extern struct K D_002A8288 __asm__("D_002A8288");
 long TickNow(CLOCK *) __asm__("TickNow");
 void UpdateHeadsetMicrophone(SNDMGR *) __asm__("UpdateHeadsetMicrophone");
@@ -1545,7 +1545,7 @@ extern "C" void UpdateSndmgr(SNDMGR *soundManager)
     PollSoundManagerStatus(soundManager);
     music = soundManager->musicStackCount > 0 ? (soundManager->musicStack + soundManager->musicStackCount - 1)->p : 0;
     /* the long-running sounds stay paused while the disc is busy (inferred: disc errors / reads) */
-    if (D_002BD4C0 == CD_STATE_IDLE) {
+    if (g_cds == CD_STATE_IDLE) {
         if (soundManager->isPaused) {
             if (music) ResumeSnd(music);
             if (soundManager->ambienceSound) ResumeSnd(soundManager->ambienceSound);
@@ -2015,14 +2015,14 @@ extern "C" void SetSndmgrPlaybackMode(SNDMGR *soundManager, int nMode)
 
 namespace M_SetSndmgrMasterVolume {
 struct S;
-extern struct S D_002BBB60 __asm__("D_002BBB60");   /* the volume limits (0..1) */
+extern struct S g_lmZeroOne __asm__("g_lmZeroOne");   /* the volume limits (0..1) */
 float ClampToLimits__FP2LMf(struct S *, float) __asm__("ClampToLimits__FP2LMf");
 void snd_SetMasterVolume(int, int) __asm__("snd_SetMasterVolume");
 #define SND_MASTER_VOLUME_ALL 0x10   /* 989snd: the overall master (0..3 are the per-channel masters) (inferred) */
 // Sets the master volume (clamped) on the 989snd library.
 extern "C" void SetSndmgrMasterVolume(SNDMGR *soundManager, float volume)
 {
-    float clamped = ClampToLimits__FP2LMf(&D_002BBB60, volume);
+    float clamped = ClampToLimits__FP2LMf(&g_lmZeroOne, volume);
     int level = (int)(clamped * 1024.0f);   /* 989snd volumes are 0..1024 */
     if ((int)(soundManager->masterVolume * 1024.0f) != level) {
         soundManager->masterVolume = clamped;
@@ -2034,7 +2034,7 @@ extern "C" void SetSndmgrMasterVolume(SNDMGR *soundManager, float volume)
 namespace M_SetSndmgrChannelVolume {
 typedef void (STREAMSND::*PMF)();
 struct LM {float low,high;};
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 extern PMF D_002A8298 __asm__("D_002A8298"),D_002A82A0 __asm__("D_002A82A0");
 extern float ClampToLimits__FP2LMf(LM *,float) __asm__("ClampToLimits__FP2LMf");
 extern void *func_002333B4(void *,int,unsigned int) __asm__("memset");
@@ -2053,7 +2053,7 @@ extern "C" void SetSndmgrChannelVolume(SNDMGR *soundManager,int channel,int cate
     if((unsigned int)category>=8)return;
     if(channel<0)return;
     if(channel>=4)return;
-    volume=ClampToLimits__FP2LMf(&D_002BBB60,volume);
+    volume=ClampToLimits__FP2LMf(&g_lmZeroOne,volume);
     float (*volumes)[4]=soundManager->volumes;
     if(soundManager->volumes[category][channel]==volume)return;
     if(category==VOLUME_CATEGORY_PAUSE_FADE){

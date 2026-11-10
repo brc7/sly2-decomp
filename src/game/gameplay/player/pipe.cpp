@@ -43,7 +43,7 @@ float D_002C0D08 = 1.8f;        /* random direction: radial scale */
 float D_002C0D0C = 25.0f;       /* random direction: magnitude range */
 float D_002C0D10 = 150.0f;      /* random point: range along the shape */
 extern "C" {
-extern qword D_002A2DA0, D_002A2DC0;   // fallback unit vectors
+extern qword D_002A2DA0, g_normalZ;   // fallback unit vectors
 void InitShape(PIPEV *p);
 void InitGrabspot(void *p);
 void OnLoAdd(PIPEV *p);
@@ -190,7 +190,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, MATR
             float r = 50.0f;
             EvaluateShapeAtDistance(pipe, ClampShapeDistance(pipe, sample + r), &fwd.q, 0);
             EvaluateShapeAtDistance(pipe, ClampShapeDistance(pipe, sample - r), &back.q, 0);
-            w.direction = Normalize(VuSub(fwd.q, back.q), D_002A2DC0);
+            w.direction = Normalize(VuSub(fwd.q, back.q), g_normalZ);
             if (i == 0)
                 w.first = w.direction;
             if (Dot(w.tangent, w.direction) > -0.9f)
@@ -199,7 +199,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, MATR
         rot = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(w.tangent, w.direction);
         qword ref = ConvertVecBetweenLos(pipe, 0, pipe->axis);
         fwd.q = Transform(rot, ref);
-        qword up = Normalize(w.first, D_002A2DC0);
+        qword up = Normalize(w.first, g_normalZ);
         w.basis.r[2].q = up;
         back.q = VuCross(up, fwd.q);
         w.basis.r[1].q = back.q;

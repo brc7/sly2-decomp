@@ -1533,7 +1533,7 @@ struct CHAIN
 extern float D_002C3658[4] __asm__("D_002C3658");
 extern float D_002C3668[4] __asm__("D_002C3668");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 
 qword GetXfVelocity(SPACE *, SPACE *, qword) __asm__("GetXfVelocity");
 void CopyAb__FPvT0Ui(void *, const void *, unsigned) __asm__("CopyAb__FPvT0Ui");
@@ -1724,7 +1724,7 @@ void StepChainRk4(CHAIN *chain)
                 LerpP(&mid, &newP[i - 1], &newP[i + 1], r);
                 LerpP(&midV, &newV[i - 1], &newV[i + 1], r);
                 dir.q = SubP(&mid, &newP[i]);
-                float len = Normalize(&dir, D_002A2DC0);
+                float len = Normalize(&dir, g_normalZ);
                 proj.q = VuScaleByX(dir.q, VuDot(SubP(&midV, &newV[i]), dir.q));
                 F = VecCombo3(F, VU_FLOAT(chain->bend * len), dir.q, VU_FLOAT(&chain->bendDamping), proj.q);
             }
@@ -1734,7 +1734,7 @@ void StepChainRk4(CHAIN *chain)
                 LerpP(&mid, &newP[0], &newP[count - 1], r);
                 LerpP(&midV, &newV[0], &newV[count - 1], r);
                 dir.q = SubP(&mid, &newP[i]);
-                float len = Normalize(&dir, D_002A2DC0);
+                float len = Normalize(&dir, g_normalZ);
                 proj.q = VuScaleByX(dir.q, VuDot(SubP(&midV, &newV[i]), dir.q));
                 float r4 = r * 4.0f;
                 F = VecCombo3(F, VU_FLOAT(chain->shape * (len - amplitude * r4 * (1.0f - r))), dir.q, VU_FLOAT(&chain->shapeDamping), proj.q);

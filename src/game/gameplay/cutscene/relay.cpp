@@ -1777,7 +1777,7 @@ extern "C" void *FindJsgObject(S *script, int id)
 namespace M_NextJsgCommand__FP3JSG {
 // NextJsgCommand: ported from Lilly's personal Sly 2 decomp (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A7AD0 (D_002A7AD0), D_002DE570 (D_002DE570), D_003DA530 (D_003DA530), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DEB30 (g_game), D_003DA0C0 (g_hintbox), D_002DFC00 (g_joy), D_002A2DC0 (g_normalZ), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
+// Globals: D_002A7AD0 (D_002A7AD0), D_002DE570 (D_002DE570), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_game (g_game), D_003DA0C0 (g_hintbox), g_joy (g_joy), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
 // 0x001E1E30 NextJsgCommand__FP3JSG  (T1200; was DispatchAsegEvent: it is Sly 1's NextJsgJsge)
 // Steps the script to the next command of its block and executes it. First the command's actor is chosen (the oid the command carries, else the
 // SetActor default, the block's object or the relay's firer), then the command runs by kind (the table in re/notes/relay-commands-t1289.md), and
@@ -1871,7 +1871,7 @@ extern char D_003DA530[] __asm__("D_003DA530");
 extern LO *D_002DE570 __asm__("D_002DE570");
 extern float D_002A7AD0 __asm__("D_002A7AD0");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // The script's default actor: the one set on the script, else its block's object, else the relay's firer.
 static inline LO *PloJsgActorDefault(RELAYJSG *script)
 {
@@ -2247,12 +2247,12 @@ void NextJsgCommand(RELAYJSG *script)
         {
             script->ploActor->TranslateToPos(*(qword *)&pos);
         }
-        mat = LoadRotateMatrixRad(rad, D_002A2DC0);
+        mat = LoadRotateMatrixRad(rad, g_normalZ);
         script->ploActor->RotateToMat(&mat);
         if (IsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
-            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pstepplayer->unknown1048));
+            pstepplayer->unknown1060 = QwAddScaledX(*(qword *)&pos, g_normalZ, VuFloatFromMemWord(*(int *)&pstepplayer->unknown1048));
             if (!prelaycmd->teleportTo.fAir && pstepplayer->unknown12F4 == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);
@@ -2993,7 +2993,7 @@ void NextJsgCommand(RELAYJSG *script)
 namespace M_IsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // IsJsgCommandComplete: ported from Lilly's FIsJsgCommandComplete (src/P2/jsg.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BD850 (D_002BD850), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DFC00 (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
+// Globals: DT_CmJoltMax (DT_CmJoltMax), D_002C3620 (D_002C3620), D_002C3624 (D_002C3624), D_002C3628 (D_002C3628), D_002C362C (D_002C362C), D_003DA530 (D_003DA530), g_clock (g_clock), g_cm (g_cm), g_joy (g_joy), D_003DD040 (g_sndmgr), D_004435F0 (g_subtitle), D_003DD490 (g_sw)
 // 0x001E3890 IsJsgCommandComplete  (T1306, our name; MATCH)
 // Whether the command the script is on has finished, by kind; UpdateJsg asks it of the current command (a command that is fAsync is not asked) and
 // ReleaseJsgJtIfComplete of the one that took the character. A kind with nothing to wait for (and every kind past the table) is complete at once.
@@ -3085,7 +3085,7 @@ extern int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("IsDialogPlayi
 extern float GetDialogTime(SNDMGR *psndmgr) __asm__("GetDialogTime");
 extern float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("GetMusicTime");
 extern void ClearBhvstk(BHVSTK *pbhvstk) __asm__("ClearBhvstk__FP6BHVSTK");
-extern float D_002BD850 __asm__("D_002BD850");
+extern float DT_CmJoltMax __asm__("DT_CmJoltMax");
 extern float D_002C3620 __asm__("D_002C3620");
 extern float D_002C3624 __asm__("D_002C3624");
 extern float D_002C3628 __asm__("D_002C3628");
@@ -3412,7 +3412,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
         fComplete = script->ploFade == 0;
         break;
     case RELAYCK_Unk32:
-        fComplete = D_002BD850 < TJsgNow(script) - script->tCommand;
+        fComplete = DT_CmJoltMax < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_Rumble:
         fComplete = prelaycmd->rumble.dtRumble < TJsgNow(script) - script->tCommand;
@@ -3662,7 +3662,7 @@ namespace M_func_001E4530 {
 struct G; union U; struct P; struct C; struct O;
 struct G { int a; };
 extern struct G D_002DE578 __asm__("D_002DE578");
-extern float D_002BD850 __asm__("D_002BD850");
+extern float DT_CmJoltMax __asm__("DT_CmJoltMax");
 union U { int n; float g; };
 struct P { int kind; int isAsync; int pad[2]; union U u10; union U u14; int targetState; };
 struct C { char pad[0x18]; int context; };
@@ -3701,7 +3701,7 @@ extern "C" float GetJsgCommandDuration(struct C *script, struct P *command)
         }
         break;
     case 0x32:
-        g = D_002BD850;
+        g = DT_CmJoltMax;
         break;
     case 0x23:
     case 0x33:
@@ -3735,7 +3735,7 @@ struct OUTPUT {char pad10[0x10];float x,y,heading,speed;char pad20[0x10];uint fl
 struct WORK {U from,to,normal;float heading;qword first,second;};
 
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
-extern float D_002C3630[3] __asm__("D_002C3630"),D_002BBB60[2] __asm__("D_002BBB60"),D_002C3640 __asm__("D_002C3640");
+extern float D_002C3630[3] __asm__("D_002C3630"),g_lmZeroOne[2] __asm__("g_lmZeroOne"),D_002C3640 __asm__("D_002C3640");
 float ClampShapeDistance(PATH*,float) __asm__("ClampShapeDistance");
 void EvaluateShapeAtDistance(PATH*,qword*,qword*,float) __asm__("EvaluateShapeAtDistance");
 qword GetPoctlLateralVector(OUTPUT*,qword) __asm__("GetPoctlLateralVector");
@@ -3881,7 +3881,7 @@ extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
    float distance=LengthXY(work.to.q);
    float gain=D_002C3630[0]+distance*(D_002C3630[1]+distance*D_002C3630[2]);
-   float low=D_002BBB60[0],high=D_002BBB60[1];
+   float low=g_lmZeroOne[0],high=g_lmZeroOne[1];
    if(gain<low)gain=low;else if(high<gain)gain=high;
    out->speed*=gain;
   }

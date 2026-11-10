@@ -67,7 +67,7 @@ struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 // Vector with a trivial copy constructor.
 struct VECTORQ { qword q; VECTORQ() {} VECTORQ(const VECTORQ &v) : q(v.q) {} };
 
-extern qword D_002A2DC0;
+extern qword g_normalZ;
 extern "C" {
 qword D_002BDBF0[1] = {0};   /* detector's .data: the zero position (16 bytes) */
 void InitXfm(DETECTOR *object);
@@ -145,7 +145,7 @@ extern "C" qword GetDetectorEyePosition(DETECTOR *detector)
         float raise = 80.0f;
         heightVector = VuFromFloat<qword>(raise);
         height.q = heightVector;
-        __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(result) : "j"(eyeObjectPos), "j"(D_002A2DC0), "j"(height.q));
+        __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(result) : "j"(eyeObjectPos), "j"(g_normalZ), "j"(height.q));
         return result;
     }
     return GetLoWorldPos(detector->owner);

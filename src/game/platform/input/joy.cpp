@@ -1,7 +1,7 @@
 // joy.cpp -- the controllers (JOY, sly2/joy.h): pad startup and the per-frame state machine (mode, actuators, pressure
 // mode), reading buttons and sticks with their deflection, the button pressed/handled masks, rumble, and the menu
 // selection repeat (GetJoySelectionStepX/GetJoySelectionStepY). FPU asm (sqrt.s).
-// One JOY (g_joy, D_002DFC00) for pad port 0. UpdateJoy runs each frame: it follows the pad's connection state,
+// One JOY (g_joy, g_joy) for pad port 0. UpdateJoy runs each frame: it follows the pad's connection state,
 // switches it to analog/DualShock mode and sets up its actuators and pressure mode, then reads it (ReadJoy). Game
 // code reads buttons as masks: held, pressed this frame, and "handled" (consumed so a press acts once).
 // Entry points: StartupJoy, UpdateJoy, GetJoyButtonsPressed / HandleJoyButtons / SetJoyBtnHandled / ClearJoyButtons,
@@ -9,8 +9,8 @@
 // TU 0x187030..0x188488 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_joy
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00188468
-extern int D_002DFBC0;     /* g_grfjoyt: declared before joy.h's g_joy, since .bss is emitted in first-declaration order */
-extern int D_002DFBC4;     /* the users' grf */
+extern int g_grfjoyt;     /* g_grfjoyt: declared before joy.h's g_joy, since .bss is emitted in first-declaration order */
+extern int g_grfusr;     /* the users' grf */
 #include "sly2/basic.h"
 #include "sly2/joy.h"
 #include "sly2/cm.h"
@@ -27,7 +27,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The four stick axes the deflection is measured against. */
 struct VEC2 { float x; float y; };
-/* The event timer at D_002DEB30 as ReadJoy reads it. */
+/* The event timer at g_game as ReadJoy reads it. */
 
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
@@ -74,17 +74,17 @@ void StartupJoy()
     StartupCodes(D_002DDEC0);
 }
 
-// Sets user-state bits in g_grfusr (D_002DFBC4) and re-derives the input-type flags.
+// Sets user-state bits in g_grfusr (g_grfusr) and re-derives the input-type flags.
 void AddGrfusr(int mask)
 {
-    D_002DFBC4 |= mask;
+    g_grfusr |= mask;
     UpdateGrfjoytFromGrfusr();
 }
 
 // Clears user-state bits in g_grfusr and re-derives the input-type flags.
 void RemoveGrfusr(int mask)
 {
-    D_002DFBC4 &= ~mask;
+    g_grfusr &= ~mask;
     UpdateGrfjoytFromGrfusr();
 }
 
@@ -92,13 +92,13 @@ void RemoveGrfusr(int mask)
 // the latched-button mask.
 void UpdateGrfjoytFromGrfusr()
 {
-    int v = D_002DFBC4;
-    if (v & 0x10) D_002DFBC0 = 5;
-    else if (v & 0xC) D_002DFBC0 = 0;
-    else if (v & 1) D_002DFBC0 = 5;
-    else if (v & 2) D_002DFBC0 = 4;
-    else D_002DFBC0 = 7;
-    if ((D_002DFBC0 & 2) == 0) (*(int *)&g_joy.grfbtnLatched) = 0xFFFF;
+    int v = g_grfusr;
+    if (v & 0x10) g_grfjoyt = 5;
+    else if (v & 0xC) g_grfjoyt = 0;
+    else if (v & 1) g_grfjoyt = 5;
+    else if (v & 2) g_grfjoyt = 4;
+    else g_grfjoyt = 7;
+    if ((g_grfjoyt & 2) == 0) (*(int *)&g_joy.grfbtnLatched) = 0xFFFF;
 }
 
 // Initialises a controller: searching state, port and slot, opens the pad port (the JOY is the library's DMA
@@ -567,7 +567,7 @@ SLY2_SCRAP("nop");
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-int D_002DFBC0;   /* g_grfjoyt */
-int D_002DFBC4;   /* the users' grf */
+int g_grfjoyt;   /* g_grfjoyt */
+int g_grfusr;   /* the users' grf */
 JOY g_joy __attribute__((aligned(64)));   /* g_joy (64-aligned by layout: 0x2DFC00 after the words at 0x2DFBC0) */
 JOY D_002E0D00;   /* the second JOY (joy.h), right after g_joy: read when g_grfjoyt bit 1 is clear */

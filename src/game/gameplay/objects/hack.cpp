@@ -105,7 +105,7 @@ extern "C" void AdjustHackNewXp(HACK *hack, XP *pxp)
 
 namespace M_func_0017F1D0 {
 /* Apply damage and a projected knockback impulse from the message. */
-extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DA0 __asm__("D_002A2DA0");
+extern qword g_normalZ __asm__("g_normalZ"),D_002A2DA0 __asm__("D_002A2DA0");
 qword GetLoWorldPos(HACK*) __asm__("GetLoWorldPos");
 qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
 qword ApplyConstr(CONSTR*,XF*,qword) __asm__("ApplyConstr");
@@ -123,7 +123,7 @@ extern "C" int TakeHackDamage(HACK*hack,ZPR*pzpr){
  hack->cHealth+=pzpr->dhp;
  if(hack->cHealth<=0){hack->Kill(0);return 1;}
  if(!hack->physics || hack->physics->constrForce.kind==3)return 1;
- dir=Normal(Reject(VuSub(GetLoWorldPos(hack),pzpr->position),D_002A2DC0),D_002A2DA0);
+ dir=Normal(Reject(VuSub(GetLoWorldPos(hack),pzpr->position),g_normalZ),D_002A2DA0);
  {float *a=&hack->clqKnockback.g0;t=-pzpr->dhp;g=Clamp(hack->clqKnockback.g0+t*(a[1]+t*a[2]),hack->lmKnockback.minValue,hack->lmKnockback.maxValue);}
  v=hack->GetVelocity();
  v=LimitVectorLength(AddScaled(v,dir,g),hack->lmKnockback.maxValue);
@@ -348,7 +348,7 @@ namespace M_func_0017FB50 {
 #include "mat.h"
 typedef int qword __attribute__((mode(TI)));
 
-extern qword D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0");
+extern qword g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0");
 extern char D_002BE800[] __asm__("D_002BE800"), D_002BE810[] __asm__("D_002BE810");
 MATRIX3 BuildAxisAngleRotationMatrix(qword q, float g) __asm__("BuildAxisAngleRotationMatrix");
 void AccelSoTowardMatBounded(SO *pso, MATRIX3 *pm, void *pv) __asm__("AccelSoTowardMatBounded");
@@ -358,7 +358,7 @@ void PresetHackshipAccel(HACKSHIP *ship) __asm__("PresetHackshipAccel");
 // vtable slot 70 override. (inferred)
 void PresetHackshipAccel(HACKSHIP *ship) {
     if (ship->state == 3) return;
-    MATRIX3 m; m = BuildAxisAngleRotationMatrix(D_002A2DC0, ship->heading);
+    MATRIX3 m; m = BuildAxisAngleRotationMatrix(g_normalZ, ship->heading);
     AccelSoTowardMatBounded(ship, &m, D_002BE800);
     AccelSoTowardPosSpring(ship, D_002A2DD0, 0, ship->desiredVelocity, D_002BE810);
 }
@@ -555,7 +555,7 @@ struct M3 {
  // Assign the three rows.
  M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}
 };
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern void UpdateSo(SO*) __asm__("UpdateSo");
 extern qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
 extern float atan2f(float,float) __asm__("atan2f");
@@ -585,7 +585,7 @@ extern "C" void UpdateHackbullet(HACKBULLET*bullet){
  qword direction=bullet->GetVelocity();
  float current=atan2f(QwordY(direction),QwordX(direction));
  float angle=ClampAbs__Fff(NormalizeAngle__Ff(desired-current),bullet->radTurnRate*g_clock.deltaTime);
- rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
+ rotation=BuildAxisAngleRotationMatrix(g_normalZ,angle);
  bullet->SetVelocity(Transform(rotation,direction));
  // The original reads this local matrix before initialization.
  matrix=Mul(rotation,matrix);
@@ -699,7 +699,7 @@ struct VU_FLOAT{qword qw;};
 extern qword D_002A2DD0 __asm__("D_002A2DD0"),D_002A2DA0 __asm__("D_002A2DA0");
 extern float D_002BE820 __asm__("D_002BE820"),D_002BE824 __asm__("D_002BE824"),D_002BE828 __asm__("D_002BE828");
 extern CLQ D_002BE830 __asm__("D_002BE830"),D_002BE840 __asm__("D_002BE840"),D_002BE860 __asm__("D_002BE860");
-extern LM D_002BE850 __asm__("D_002BE850"),D_002BBB60 __asm__("D_002BBB60");
+extern LM D_002BE850 __asm__("D_002BE850"),g_lmZeroOne __asm__("g_lmZeroOne");
 extern char D_002DE578[] __asm__("D_002DE578");
 void UpdateSo(SO*) __asm__("UpdateSo");
 int IsHackAnimDone(HACK*) __asm__("IsHackAnimDone");
@@ -840,7 +840,7 @@ dispatch:
   float remaining=GetShapeMaxDistance(enemy->pshapePath)-enemy->sPath;
   float turn=Heading(ConvertVecBetweenLos(0,enemy,unit.q));
   float response=GetDifficulty(D_002DE578);
-  float speed=Limit(Evaluate(&enemy->clqSpeedDistance,remaining),&D_002BBB60)*Limit(Evaluate(&enemy->clqSpeedTurn,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*enemy->uSpeed;
+  float speed=Limit(Evaluate(&enemy->clqSpeedDistance,remaining),&g_lmZeroOne)*Limit(Evaluate(&enemy->clqSpeedTurn,turn),&g_lmZeroOne)*Limit(Evaluate(&D_002BE830,response),&g_lmZeroOne)*enemy->uSpeed;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   SO*objects[64];
   int n=FindSwObjectsByClass(&g_sw,0x105,0x49,0,64,objects);
@@ -852,7 +852,7 @@ dispatch:
     scalar.f[2]=0.0f;
     qword len=NormalizeInPlace(&scalar,&D_002A2DA0,enemy);
     float weight=Limit(REvaluate(D_002BE840,RGXOfVf(len)),&D_002BE850);
-    weight*=Limit(REvaluate(D_002BE860,RGXOfQw(RDot(scalar.q,unit.q))),&D_002BBB60);
+    weight*=Limit(REvaluate(D_002BE860,RGXOfQw(RDot(scalar.q,unit.q))),&g_lmZeroOne);
     force=RAddScaled(force,scalar.q,RVuFloat(weight));
    }
   }
@@ -867,7 +867,7 @@ dispatch:
 namespace M_func_00180EE8 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } MATRIX3;
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 extern MATRIX3 ConvertXfMat(XF *pxf, int n, MATRIX3 *pm) __asm__("ConvertXfMat");
 extern void AccelSoTowardMatBounded(SO *pso, MATRIX3 *pm, void *pv) __asm__("AccelSoTowardMatBounded");
@@ -882,7 +882,7 @@ void PresetHackenemyAccel(HACKENEMY *enemy)
 {
     if (enemy->state != 4) {
         MATRIX3 mat;
-        mat = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->heading);
+        mat = BuildAxisAngleRotationMatrix(g_normalZ, enemy->heading);
         if (enemy->state != 3)
             mat = ConvertXfMat(enemy->rotationXf->parent, 0, &mat);
         AccelSoTowardMatBounded(enemy, &mat, enemy->aScale);
@@ -927,7 +927,7 @@ struct MSG { ASEGA *pasega; float time; int kind; };   /* message 9: an animatio
 extern void HandlePoMessage(PO *ppo, int msg, struct MSG *pm) __asm__("HandlePoMessage");
 extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 extern qword GetStepAsegaTranslation(SO *pso, ASEGA *pasega, float time) __asm__("GetStepAsegaTranslation");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm) __asm__("HandleHackenemyMessage");
 // vtable slot 5: HandlePoMessage; on events of its current animation: 0x15E applies a translation step, 0x25..0x28
 // set and clear the two hold flags. (inferred)
@@ -940,7 +940,7 @@ void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm)
             case 0x15E: {
                 MATRIX3 m;
                 qword v, r;
-                m = BuildAxisAngleRotationMatrix(D_002A2DC0, enemy->heading);
+                m = BuildAxisAngleRotationMatrix(g_normalZ, enemy->heading);
                 v = GetStepAsegaTranslation(enemy, pm->pasega, pm->time);
                 __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
                     : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v));
@@ -1493,7 +1493,7 @@ namespace M_func_001821C0 {
 
 typedef union {qword q;float f[4];int i[4];} U;
 struct M4 {U r[4];};
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern void RenderSoSelf(SO*) __asm__("RenderSoSelf");
 extern MATRIX3Q BuildOrthonormalMatrixZ(qword,qword) __asm__("BuildOrthonormalMatrixZ");
 extern MATRIX3Q BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
@@ -1504,7 +1504,7 @@ static inline qword Load(const qword*p){return *p;}
 // Cross product a x b.
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
 // Return a plus the node's lateral vector scaled by f.
-static inline qword AddLateral(qword a,HACKWALLPIECE*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
+static inline qword AddLateral(qword a,HACKWALLPIECE*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(g_normalZ,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
 // 3x3 matrix product.
 static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
 {
@@ -1530,9 +1530,9 @@ extern "C" void RenderHackwallSelf(HACKWALL*wall){
   HACKWALLPIECE*n=(HACKWALLPIECE*)wall->aseg[i].dlPiece.head;
   while(n){M4*pm=&mm;
    pos=Load(&n->pos);
-   m=BuildOrthonormalMatrixZ(n->dir,D_002A2DC0);
+   m=BuildOrthonormalMatrixZ(n->dir,g_normalZ);
    if(1.0f<__builtin_fabsf(n->lateral))pos=AddLateral(pos,n,n->lateral);
-   {float roll=n->roll;register float epsilon __asm__("$f1")=0.01f; /* the one pin */if(epsilon<__builtin_fabsf(roll))m=Mul(m,BuildAxisAngleRotationMatrix(D_002A2DC0,roll));}
+   {float roll=n->roll;register float epsilon __asm__("$f1")=0.01f; /* the one pin */if(epsilon<__builtin_fabsf(roll))m=Mul(m,BuildAxisAngleRotationMatrix(g_normalZ,roll));}
    VECTOR_opAssign(&mm.r[3].q,pos);
    pm->r[0].q=m.r[0].q;pm->r[1].q=m.r[1].q;pm->r[2].q=m.r[2].q;
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
@@ -1764,7 +1764,7 @@ extern HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos) __as
 extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 extern void ExplodeExplParams(EXPL *pexpl, int k, int n, qword a, qword b, float g, float h) __asm__("ExplodeExplParams");
 extern float D_002BE8A8 __asm__("D_002BE8A8");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // vtable slot 75: damage the piece nearest the hit; while it holds, kick its wobble (state 1); when it breaks, play
 // the explosion there and break it (state 2). (inferred)
@@ -1779,7 +1779,7 @@ extern "C" int TakeHackwallDamage(HACKWALL *wall, ZPR *pzpr)
         if (ppiece->cHealth > 0) {
             qword c, d, one;
             float g;
-            __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(D_002A2DC0), "j"(ppiece->dir));
+            __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(c) : "j"(g_normalZ), "j"(ppiece->dir));
             __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(pzpr->velocity), "j"(c));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
             ppiece->dLateral = g * D_002BE8A8;

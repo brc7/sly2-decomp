@@ -58,7 +58,7 @@ typedef char assert_TURRET_pact[(unsigned int)&((TURRETV *)0)->rotationAct == 0x
 LM D_002C4400 = {0.1f, 1.0f};
 float D_002C4408[3] = {5.0f, 0.0f, 0.5f};          /* damping */
 float D_002C4418[2] = {1.0f, 4.0f}, D_002C4420[3] = {2.0f, 0.0f, -1.0f};
-extern LM D_002BBB60;
+extern LM g_lmZeroOne;
 extern const SMPV D_002A97B0 = {0.2f, 0.0f, 0.5f, 1.0f};
 extern "C" {
 void InitPo(TURRETV *p);
@@ -264,7 +264,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         } else desired = turret->range.maxValue;
         desired = Max(desired, angle);
         /* spring the blend toward it, faster for bigger changes (D_002C4418) */
-        float target = ClampToLimits__FP2LMf(&D_002BBB60, 1.0f - Fraction(&turret->range, desired));
+        float target = ClampToLimits__FP2LMf(&g_lmZeroOne, 1.0f - Fraction(&turret->range, desired));
         float delta = Abs(target - turret->blend);
         spring = D_002A97B0;
         float rate = (1.0f - delta) * D_002C4418[0] + delta * D_002C4418[1];
@@ -276,7 +276,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         if (turret->control) {
             float blend = turret->blend, zoom = turret->control->zoom;
             turret->velocity = (D_002C4420[0] + blend * (D_002C4420[1] + blend * D_002C4420[2])) * zoom * Abs(zoom);
-            turret->blend = ClampToLimits__FP2LMf(&D_002BBB60, blend + turret->velocity * g_clock.deltaTime);
+            turret->blend = ClampToLimits__FP2LMf(&g_lmZeroOne, blend + turret->velocity * g_clock.deltaTime);
         }
     }
     turret->strength = Blend(&turret->range, 1.0f - turret->blend);

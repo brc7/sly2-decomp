@@ -83,7 +83,7 @@ struct M3 { float f[3][4]; } __attribute__((aligned(16)));
 
 extern VECTOR4 D_002A2DA0; // (1, 0, 0, 0)
 extern VECTOR4 D_002A2DB0; // (0, 1, 0, 0)
-extern VECTOR4 D_002A2DC0; // (0, 0, 1, 0)
+extern VECTOR4 g_normalZ; // (0, 0, 1, 0)
 extern VECTOR4 D_002A2DD0; // (0, 0, 0, 0)
 extern "C"
 {
@@ -283,7 +283,7 @@ void UpdateWrStateVectors(WR *warp)
                 posBend = VuScale(*(qwordV *)&D_002A2DB0, VuFloat((group->weki.sInner + group->weki.sOuter) * 0.5f));
                 break;
             case 6:
-                posBend = VuScale(*(qwordV *)&D_002A2DC0, VuFloat((group->weki.sInner + group->weki.sOuter) * 0.5f));
+                posBend = VuScale(*(qwordV *)&g_normalZ, VuFloat((group->weki.sInner + group->weki.sOuter) * 0.5f));
                 break;
             default:
                 posBend = *(qwordV *)&D_002A2DD0;
@@ -568,7 +568,7 @@ void AddWrBendWarp(WR *warp)
     warp->currentEntryIndex++;
     entry->kind = 1;
     entry->axis.q = *(qwordV *)&D_002A2DB0;
-    entry->vectorA.q = *(qwordV *)&D_002A2DC0;
+    entry->vectorA.q = *(qwordV *)&g_normalZ;
     entry->data.bend.bend.bias = 0.5f;
     entry->data.bend.swivel.bias = 0.5f;
     warp->matrixCount++;

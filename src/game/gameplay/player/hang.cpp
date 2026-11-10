@@ -62,8 +62,8 @@ void SetActPositionGoal(void*,qword);
 qword PosSmooth(qword,qword,float,float*,int);
 int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int d, int e, int *pn);
 extern U D_002A2D00[3];
-extern U D_002A2DC0,D_002A2DA0,D_002A2DB0,D_002A2DD0;
-extern LM D_002BBB60;
+extern U g_normalZ,D_002A2DA0,D_002A2DB0,D_002A2DD0;
+extern LM g_lmZeroOne;
 /* hang's .data (address order). */
 extern CLQV D_002BF4F0;
 extern LM D_002BF500;
@@ -282,7 +282,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
     anchorVelocity.q = GetXfVelocity(Space(((NODE *)jt->hangHandle)), 0, anchor.q);
     axis.q = VuSubRef(GetLoWorldPos(jt), anchor.q);
     displacement = axis;
-    qword length = NormalizeAt(&axis, &D_002A2DC0);
+    qword length = NormalizeAt(&axis, &g_normalZ);
     float distance = LaneXKeepVf(length);
     U relative, perpendicular, parallel;
     relative.q = VuSubRef(GetVelocityOf(jt), anchorVelocity.q);
@@ -318,7 +318,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         float t = (down * displacement.f[2] + speed * 0.5f * speed) / down;
         float g = D_002BF520.g0;
         g += t * (D_002BF520.g1 + t * D_002BF520.g2);
-        float lo = D_002BBB60.minValue, hi = D_002BBB60.maxValue;
+        float lo = g_lmZeroOne.minValue, hi = g_lmZeroOne.maxValue;
         if (g < lo)
             g = lo;
         else if (hi < g)
@@ -390,8 +390,8 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
     v.q = a;
     a = VuSub(a, GetLoWorldPos(jt));
     d.q = a;
-    m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0.q, a);
-    m2 = BuildAxisAngleRotationMatrix(D_002A2DC0.q, jt->targetHeading);
+    m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(g_normalZ.q, a);
+    m2 = BuildAxisAngleRotationMatrix(g_normalZ.q, jt->targetHeading);
     m = Mul(m1, m2);
     AccelSoTowardMatBounded(jt, &m, D_002BF548);
 }
@@ -461,7 +461,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     register uint high __asm__("$2"), savedPage __asm__("$3");
     __asm__("lui %0,%%hi(%4)\n\tvsub.xyzw %1,%3,%2"
             : "=r"(high), "=j"(difference)
-            : "j"(position), "j"(targetVector), "i"(&D_002A2DC0));
+            : "j"(position), "j"(targetVector), "i"(&g_normalZ));
     register qword normalized __asm__("vf1"), one __asm__("vf2");
     register qword fallbackBits __asm__("$2");
     register qword *fallbackPointer __asm__("$2");
@@ -472,7 +472,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
         : "r"(high), "j"(difference));
     __asm__("addiu %0,%2,%%lo(%3)\n\tvsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,$Q"
             : "=r"(fallbackPointer), "+j"(normalized)
-            : "r"(high), "i"(&D_002A2DC0));
+            : "r"(high), "i"(&g_normalZ));
     __asm__("lq %0,%2\n\tqmfc2.ni %1,%3" : "=r"(fallbackBits), "=r"(length) : "m"(*fallbackPointer), "j"(normalized));
     if (length < epsilon)
         normalized = fallbackBits;
@@ -484,7 +484,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT *jt)
     register qword *axisPointer __asm__("$2");
     register qword axis __asm__("$5");
     register float yaw __asm__("$f12");
-    __asm__("addiu %0,%1,%%lo(%2)" : "=r"(axisPointer) : "r"(savedPage), "i"(&D_002A2DC0));
+    __asm__("addiu %0,%1,%%lo(%2)" : "=r"(axisPointer) : "r"(savedPage), "i"(&g_normalZ));
     register M3 *rotationOutput __asm__("$4");
     __asm__("lwc1 %0,%3\n\tlq %1,%4\n\tla %2,%a5"
             : "=f"(yaw), "=r"(axis), "=r"(rotationOutput)
@@ -664,7 +664,7 @@ extern "C" qword GetJtHangHandlePosition(JT *jt)
     q = GetLoWorldPos(((NODE *)jt->hangHandle));
     d = VuSub(q, ((IKJ *)jt->handXf)->worldMatrix.r[3].q);
     {
-        register const qword *address __asm__("$2") = &D_002A2DC0.q;
+        register const qword *address __asm__("$2") = &g_normalZ.q;
         __asm__("lq %0,%1" : "=r"(fallback) : "m"(*address));
     }
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q"

@@ -44,7 +44,7 @@ struct HIT {V pos;char unk10[0x50];};
 extern BENTLEY *D_002DD5BC;
 /* throw's .data (address order; D_002C4108/D_002C410C are defined below, before their function). */
 float D_002C40E0 = 1.5f;                        // aim range scale with power-up 0x24
-extern V D_002A2DC0,D_002A2DA0,D_002A2DD0;
+extern V g_normalZ,D_002A2DA0,D_002A2DD0;
 float D_002C40E4 = 1.35f;                       // tPredict scale with power-up 0x24
 extern CLQV D_002C40F0;                          // the launch elevation over the aim distance: a 16-byte CLQV
 namespace THROW_DATA { float r_D_002C40F0[4] __asm__("D_002C40F0") __attribute__((aligned(16))) = {0.15f, 0.55f, 0.0f, 0.0f}; }
@@ -184,7 +184,7 @@ static inline void ProjectionInputs(qword current, const V &player, qword &curre
     register qword origin asm("vf1"), point asm("vf4");
     asm("lui %0,%%hi(%6)\n\tqmtc2.ni %4,%2\n\tlqc2 %3,%5\n\tdaddu %1,%0,$zero"
         : "=&r"(upper), "=r"(saved), "=j"(origin), "=j"(point)
-        : "r"(current), "m"(player), "i"(&D_002A2DC0));
+        : "r"(current), "m"(player), "i"(&g_normalZ));
     currentVF = origin;
     playerVF = point;
     high = upper;
@@ -194,7 +194,7 @@ static inline void ProjectionInputs(qword current, const V &player, qword &curre
 static inline V *InitialUpAddress(V *upper)
 {
     register V *address asm("$3");
-    asm("addiu %0,%1,%%lo(%2)" : "=r"(address) : "r"(upper), "i"(&D_002A2DC0));
+    asm("addiu %0,%1,%%lo(%2)" : "=r"(address) : "r"(upper), "i"(&g_normalZ));
     return address;
 }
 // player - current (register-pinned).
@@ -264,7 +264,7 @@ static inline qword LiftFromUpper(float height, const V &speed, V *upper, qword 
     register int bits asm("$5");
     asm("addiu %0,%5,%%lo(%9)\n\tlqc2 %1,0(%0)\n\tmfc1 %2,%6\n\tqmtc2.ni %2,%3\n\tlqc2 %4,%7"
         : "=&r"(address), "=j"(normal), "=&r"(bits), "=j"(scalar), "=j"(velocity)
-        : "r"(upper), "f"(height), "m"(speed), "m"(*(const V *)((const char *)upper + 0x2DC0)), "i"(&D_002A2DC0));
+        : "r"(upper), "f"(height), "m"(speed), "m"(*(const V *)((const char *)upper + 0x2DC0)), "i"(&g_normalZ));
     upValue = normal;
     speedValue = velocity;
     return scalar;
@@ -669,7 +669,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower, int fUpdateBlends)
                 V *pposCur = posOut++;
                 qword pos = pposCur->q;
                 qword dpos = SubVec(pos, posBefore);
-                BuildOrthonormalMatrixZ(&matRot, dpos, D_002A2DC0.q);
+                BuildOrthonormalMatrixZ(&matRot, dpos, g_normalZ.q);
                 M4 *matrix = &mat;
                 VECTOR_opAssign(&mat.position, pos);
                 matrix->basis = matRot;
@@ -865,14 +865,14 @@ tail:
 
 // Transition controller states and select the corresponding animation.
 struct WORKS {V scalar,saved,coefficient,velocity,point;};   /* (WORK in the per-function file) */
-// Load the up vector D_002A2DC0 into vf1.
-static inline qword LoadUp(){register qword q __asm__("vf1");__asm__("lqc2 %0,0(%1)":"=j"(q):"r"(&D_002A2DC0),"m"(D_002A2DC0));return q;}
+// Load the up vector g_normalZ into vf1.
+static inline qword LoadUp(){register qword q __asm__("vf1");__asm__("lqc2 %0,0(%1)":"=j"(q):"r"(&g_normalZ),"m"(g_normalZ));return q;}
 // Move a GPR point into vf3.
 static inline qword PointVF(qword q){register qword r __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(q));return r;}
 // Load a saved point into vf3.
 static inline qword RestorePoint(const V &v){register qword q __asm__("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(v));return q;}
-// Load the up vector D_002A2DC0 into vf2.
-static inline qword LaunchUp(){register qword q __asm__("vf2");__asm__("lqc2 %0,0(%1)":"=j"(q):"r"(&D_002A2DC0),"m"(D_002A2DC0));return q;}
+// Load the up vector g_normalZ into vf2.
+static inline qword LaunchUp(){register qword q __asm__("vf2");__asm__("lqc2 %0,0(%1)":"=j"(q):"r"(&g_normalZ),"m"(g_normalZ));return q;}
 // Load the launch speed into vf4.
 static inline qword LaunchSpeed(const V &v){register qword q __asm__("vf4");__asm__("lqc2 %0,%1":"=j"(q):"m"(v));return q;}
 // Move the current position into vf1.
@@ -929,12 +929,12 @@ static inline qword ProjectionStart(qword current, const V &saved, qword &point,
     register qword position asm("vf1"), target asm("vf3");
     asm("lui %0,%%hi(%6)\n\tqmtc2.ni %4,%2\n\tlqc2 %3,%5\n\tdaddu %1,%0,$zero"
         : "=&r"(upper), "=r"(retained), "=j"(position), "=j"(target)
-        : "r"(current), "m"(saved.q), "i"(&D_002A2DC0));
+        : "r"(current), "m"(saved.q), "i"(&g_normalZ));
     point = target;
     savedHigh = retained;
     register V *full asm("$3");
     target = VuSub(target, position);
-    asm("addiu %0,%1,%%lo(%2)" : "=r"(full) : "r"(upper), "i"(&D_002A2DC0));
+    asm("addiu %0,%1,%%lo(%2)" : "=r"(full) : "r"(upper), "i"(&g_normalZ));
     register qword normal asm("vf1");
     asm("lqc2 %0,%1" : "=j"(normal) : "m"(*full));
     point = target;
@@ -971,7 +971,7 @@ static inline qword LiftInputs(V *upper, float &height)
     register qword up asm("vf2");
     asm("li.s %0,600.0\n\taddiu %1,%3,%%lo(%5)\n\tlqc2 %2,0(%1)"
         : "=f"(scalar), "=&r"(address), "=j"(up)
-        : "r"(upper), "m"(*(const V *)((const char *)upper + 0x2DC0)), "i"(&D_002A2DC0)
+        : "r"(upper), "m"(*(const V *)((const char *)upper + 0x2DC0)), "i"(&g_normalZ)
         : "$1");
     height = scalar;
     return up;

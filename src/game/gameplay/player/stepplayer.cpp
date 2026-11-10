@@ -875,7 +875,7 @@ struct JT {
 extern float D_002BCC98 __asm__("D_002BCC98"), D_002BCC9C __asm__("D_002BCC9C"), D_002BCCA0 __asm__("D_002BCCA0"), D_002BCCA4 __asm__("D_002BCCA4"), D_002BCCA8 __asm__("D_002BCCA8"), D_002BCCAC __asm__("D_002BCCAC"), D_002BCCB0 __asm__("D_002BCCB0"), D_002BCCB4 __asm__("D_002BCCB4");
 extern char D_002BCCB8[] __asm__("D_002BCCB8"), D_002BCCC8[] __asm__("D_002BCCC8"), D_002BCCD8[] __asm__("D_002BCCD8");
 extern struct { float a, b, c; } D_002BCCF0 __asm__("D_002BCCF0");
-extern struct { float lo, hi; } D_002BBB60 __asm__("D_002BBB60");
+extern struct { float lo, hi; } g_lmZeroOne __asm__("g_lmZeroOne");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void GetSoCameraDefaults(struct JT *, struct XP *) __asm__("GetSoCameraDefaults");
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
@@ -946,7 +946,7 @@ extern "C" void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l1) : "j"(l1));
         { int t; __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(l1)); __asm__("mtc1 %1, %0" : "=f"(s) : "r"(t)); }
         k = EvaluatePoly(s, D_002BCCF0.a, D_002BCCF0.b, D_002BCCF0.c);
-        xp->g34 *= Clamp(k, D_002BBB60.lo, D_002BBB60.hi);
+        xp->g34 *= Clamp(k, g_lmZeroOne.lo, g_lmZeroOne.hi);
     }
 }
 } // namespace M_GetStepplayerCpdefi
@@ -1518,7 +1518,7 @@ extern "C" void ScheduleIdleTimer(STEPPLAYER *p)
 namespace M_HeroInteractDistance {
 // GetHeroInteractDistance: ported from Lilly's personal Sly 2 decomp (src/P2/stepplayer_raw.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BD280 (D_002BD280), D_002BD290 (D_002BD290), D_002BD2A0 (D_002BD2A0), D_002BD2B0 (D_002BD2B0), D_002BBB60 (g_lmZeroOne)
+// Globals: D_002BD280 (D_002BD280), D_002BD290 (D_002BD290), D_002BD2A0 (D_002BD2A0), D_002BD2B0 (D_002BD2B0), g_lmZeroOne (g_lmZeroOne)
 // 0x001428D8 GetHeroInteractDistance  (T1414, our name)
 // How far an object is from the hero as the interact pickers rank it: *psDist = the xy distance |hero - plo| plus a bias, *pdz = the height difference (hero - plo)
 // plus a bias (both optional). Callers: GuardEvalInteractMode 0x208E70 (plo = a guard, *pploCur = &hero->interactTarget, *pdz is tested against the guard's height window;
@@ -1551,7 +1551,7 @@ extern CLQ D_002BD280 __asm__("D_002BD280");
 extern CLQ D_002BD290 __asm__("D_002BD290");
 extern CLQ D_002BD2A0 __asm__("D_002BD2A0");
 extern CLQ D_002BD2B0 __asm__("D_002BD2B0");
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 // Return a - b.
 static inline VU_VECTOR4 SubPos(qword a, qword b)
 {
@@ -1608,7 +1608,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
     {
         qword qwStick = SetVectorCylind(pctl->leftStickAngle, pctl->leftStickDeflection, 0.0f);
         float rAway = LaneXKeepVf(VuDot(qwStick, vec)) / sXY;
-        sBias += EvaluateClqClamped(&D_002BD2A0, &D_002BBB60, rAway) * EvaluateClq(&D_002BD2B0, sXY);
+        sBias += EvaluateClqClamped(&D_002BD2A0, &g_lmZeroOne, rAway) * EvaluateClq(&D_002BD2B0, sXY);
     }
     sXY += sBias;
     dz += zBias;
@@ -1849,7 +1849,7 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 
 namespace M_GetStepplayerStunHold {
 typedef int qword __attribute__((mode(TI)));
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.
 extern "C" void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
@@ -1858,7 +1858,7 @@ extern "C" void GetStepplayerStunHold(STEPPLAYER *player, STUNHOLD *ps, float g)
     QWROW u;
     v = player->GetVelocity();
     {
-        qword d, one, up = D_002A2DC0;
+        qword d, one, up = g_normalZ;
         __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(d), "=&j"(one) : "j"(v), "j"(up));
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(up), "j"(d));
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(h) : "j"(v), "j"(d));

@@ -278,7 +278,7 @@ void ConvertPoctlStick(POCTL *poctl, float cameraAngle, float *dxInOut, float *d
 }
 
 extern "C" {
-extern int D_002DFBC0;
+extern int g_grfjoyt;
 extern JOY D_002E0D00;   /* the second JOY */
 }
 // Per-frame controller update: state 0 clears it; state 1 reads the pad (or the alternate pad), masks the buttons,
@@ -294,7 +294,7 @@ extern "C" void UpdatePoctl(POCTL *poctl)
         ResetPoctl(poctl);
         break;
     case 1:
-        pj = (D_002DFBC0 & 2) ? &g_joy : &D_002E0D00;
+        pj = (g_grfjoyt & 2) ? &g_joy : &D_002E0D00;
         poctl->dxLeft = pj->leftStickX;
         poctl->dyLeft = pj->leftStickY;
         poctl->dxRight = pj->dxRight;

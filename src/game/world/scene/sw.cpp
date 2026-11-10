@@ -228,7 +228,7 @@ extern "C" int IsSwTransitionBusy(void) { if (g_sw.isTransitionPending != 0) ret
 namespace M_DeleteSw {
 extern char D_003D9E70[] __asm__("D_003D9E70");
 
-extern int D_002E1E40 __asm__("D_002E1E40"), D_002F7900 __asm__("D_002F7900"), D_002DD5BC __asm__("D_002DD5BC"), D_002DD648 __asm__("D_002DD648"), D_003D4A54 __asm__("D_003D4A54"), D_002DE570 __asm__("D_002DE570"), D_002DFB80 __asm__("D_002DFB80"), D_002DFBC4 __asm__("D_002DFBC4");
+extern int D_002E1E40 __asm__("D_002E1E40"), D_002F7900 __asm__("D_002F7900"), D_002DD5BC __asm__("D_002DD5BC"), D_002DD648 __asm__("D_002DD648"), D_003D4A54 __asm__("D_003D4A54"), D_002DE570 __asm__("D_002DE570"), D_002DFB80 __asm__("D_002DFB80"), g_grfusr __asm__("g_grfusr");
 extern int D_003E1C40 __asm__("D_003E1C40"), D_003E1C44 __asm__("D_003E1C44"), D_003E1C48 __asm__("D_003E1C48"), D_003E1C4C __asm__("D_003E1C4C"), D_003E1C50 __asm__("D_003E1C50"), D_003DD48C __asm__("D_003DD48C");
 void BroadcastGameEvent(void *p, int a, int b) __asm__("BroadcastGameEvent");
 void AbortJob(LO *pjob) __asm__("AbortJob");
@@ -265,7 +265,7 @@ extern "C" void DeleteSw(SW *world)
     D_003D4A54 = 0;
     D_002DE570 = 0;
     D_002DFB80 = 0;
-    D_002DFBC4 = 0;
+    g_grfusr = 0;
     D_003E1C40 = 0;
     D_003E1C44 = 0;
     D_003E1C48 = 0;
@@ -365,7 +365,7 @@ extern "C" void CreateSwScreenTint(S *world)
 // A Lilly port at file scope: its types complete basic.h forward declarations (used by the m2c bodies below too).
 // ResolveSwSaveVars: ported from Lilly's personal Sly 2 decomp (src/P2/sw.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002DEB30 (g_game), D_002E1E54 (g_nLang), D_003D4A60 (g_savedata), D_002A39E8 (g_apchzWorld)
+// Globals: g_game (g_game), D_002E1E54 (g_nLang), D_003D4A60 (g_savedata), D_002A39E8 (g_apchzWorld)
 // 0x0020E3C0 ResolveSwSaveVars__FP2SW  (T1037)
 // Once the level file has named its save variables (LoadSaveVarsFromBrx), looks up the paths the game itself reads and writes by name (SW 0x3B1C..:
 // the language and sound settings in "flags", the job and world of this level, each world's "dt" and "percent_complete") and stores the current
@@ -757,7 +757,7 @@ namespace M_UpdateSwIllum {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef union { qword q; VECTOR v; } UV;
-extern char D_002BBB60[] __asm__("D_002BBB60");
+extern char g_lmZeroOne[] __asm__("g_lmZeroOne");
 void ConvertUserRgbToUserHsv(VECTOR *pin, UV *pout) __asm__("ConvertUserRgbToUserHsv");
 void ColorCorrectVector(UV *pv) __asm__("ColorCorrectVector");
 float ClampToLimits__FP2LMf(void *p, float g) __asm__("ClampToLimits__FP2LMf");
@@ -785,7 +785,7 @@ extern "C" void UpdateSwIllum(SW *world)
     world->vecLightRgb = out.v;
     world->shadowScale = world->shadow * k;
     if (world->unknown3E38)
-        world->shadowScale = ClampToLimits__FP2LMf(D_002BBB60, world->shadowScale + 0.3f);
+        world->shadowScale = ClampToLimits__FP2LMf(g_lmZeroOne, world->shadowScale + 0.3f);
     world->relightStamp++;
 }
 } // namespace M_UpdateSwIllum

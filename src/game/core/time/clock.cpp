@@ -1,4 +1,4 @@
-// clock.cpp -- the game clock (CLOCK, g_clock D_002DDED0): COUNT-register ticks with wraparound, game/camera/real
+// clock.cpp -- the game clock (CLOCK, g_clock g_clock): COUNT-register ticks with wraparound, game/camera/real
 // time and the nine multiplied rate slots.
 // Once per frame MarkClockTick turns the elapsed COUNT ticks into a frame time clamped to 1/60..1/30 s and derives
 // three clocks from it: camera time (scaled by cameraRate = slot 8), real time (scaled by slot 3; runs during pause) and
@@ -62,7 +62,7 @@ extern "C" void ResetClock(CLOCK *clock)
 /* Ticks are COUNT-register cycles (294.912 MHz: 3.3908420e-9 s each); the frame delta is clamped to 1/60..1/30 s. */
 // Advances the clock by one frame: frame time from the ticks since the last call (294.912 MHz COUNT, clamped to
 // 1/60..1/30 s); camera time scaled by cameraRate; real time scaled by slot 3; unless paused, game time = real time x rt,
-// and the game timers (D_002DEB30) advance.
+// and the game timers (g_game) advance.
 extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 {
     TICK tick = TickNow(clock);

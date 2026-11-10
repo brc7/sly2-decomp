@@ -1,4 +1,4 @@
-// game.cpp -- the game state (GAME at D_002DEB30) and the job / task objects (JOB, TASK : LO): startup, the
+// game.cpp -- the game state (GAME at g_game) and the job / task objects (JOB, TASK : LO): startup, the
 // difficulty and sequence resets, HUD widget restarts, jobs (init, current job, activate / complete / finish,
 // completion phases) and tasks (current / pending, go to task, announce), game events.
 // TU 0x1613A8..0x166270 (101 functions with the linkonce copies at 0x2581xx.., address order).

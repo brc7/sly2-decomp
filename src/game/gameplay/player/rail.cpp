@@ -163,7 +163,7 @@ struct START {
 struct M3 {
     qword a, b, c;
 };
-extern qword D_002A2DC0, D_002A2DA0;
+extern qword g_normalZ, D_002A2DA0;
 extern "C" {
 float GetRandomShapeDistanceInRange(RAILV*,float,float);
 float RandomFloatInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
@@ -246,7 +246,7 @@ void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)
     EvaluateShapeAtDistance(sampleReceiver, sampleTime, &pos.q, &basis.c);
     const qword *fallbackAddress;
     float epsilon;
-    qword cross = CrossAndFallbackAddress(basis.c, D_002A2DC0, &fallbackAddress, &epsilon);
+    qword cross = CrossAndFallbackAddress(basis.c, g_normalZ, &fallbackAddress, &epsilon);
     qword right = NormalizeOr(cross, fallbackAddress, epsilon);
     basis.a = CrossKeepSecond(right, &basis.c);
     basis.b = right;

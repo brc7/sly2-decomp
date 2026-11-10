@@ -306,7 +306,7 @@ extern "C" void SetBtnRsmg(BTN *btn, int onTrigger, OID root, OID stateMachine, 
     AddOrUpdateRsmg(&g_sw, btn->rsmgs, 8, &btn->numRsmgs, onTrigger, root, stateMachine, goal);
 }
 
-// Adds a task state applied on trigger (at most 4; func_00161F10 on the task table D_002DEB30). (inferred)
+// Adds a task state applied on trigger (at most 4; func_00161F10 on the task table g_game). (inferred)
 extern "C" void AddBtnEventListener(BTN *btn, int task, int taskState)
 {
     AppendBoundedPair(&g_game, btn->taskStates, 4, &btn->numTaskStates, task, taskState);

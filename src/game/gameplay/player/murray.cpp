@@ -1326,7 +1326,7 @@ extern "C" void UpdateMurrayFlop(MURRAY *murray)
 } // namespace M_func_001B6BA8
 
 namespace M_func_001B6CC0 {
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 enum { FACTOR_ADDRESS = 0x002C09A4 };
 extern void AddSoAcceleration(MURRAY *p, qword v) __asm__("AddSoAcceleration");
 // Return a scaled by g.
@@ -1365,7 +1365,7 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
         __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->qwUnknown190),"j"(kn));
         int bits = ReadFactor();
         qword d = VuSub(n, v);
-        qword up = D_002A2DC0;
+        qword up = g_normalZ;
         qword projected = Projection(d,up);
         /* Projection has retired vf4; both outputs feed the final scale. */
         register qword factor __asm__("vf4"); register qword difference __asm__("vf1");
@@ -1384,7 +1384,7 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
 
 namespace M_SetMurrayFlopSubstate {
 // Update attachment state and projected velocity.
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 union WORD{int bits;float value;};extern union WORD D_002C09A8 __asm__("D_002C09A8");
 struct SIDE { int x0; int x4; void *x8; void *xC; qword v10; char pad[0x30 - 0x20]; qword v30; };
 struct LINK { struct SIDE as[2]; char pad[0xAC - 0x80]; struct LINK *pnext; };
@@ -1446,7 +1446,7 @@ extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
         register void(*setter)(void*,qword) __asm__("$2");
         register qword argument __asm__("$5");
         v=murray->GetVelocity();
-        __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tlui %2,%5":"=&r"(vt),"=j"(up),"=r"(bits):"m"(((VOBJ*)murray)->vt),"m"(D_002A2DC0),"I"(0x2C));
+        __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tlui %2,%5":"=&r"(vt),"=j"(up),"=r"(bits):"m"(((VOBJ*)murray)->vt),"m"(g_normalZ),"I"(0x2C));
         __asm__("vmul.xyz %0,%3,%4\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlw %2,%5":"=&j"(d),"=&j"(k),"+r"(bits):"j"(v),"j"(up),"m"(((int*)bits)[0x9A8/4]));
         __asm__("vmulx.xyzw %0,%2,%0x\n\tlh %1,%3":"+j"(d),"=r"(delta):"j"(up),"m"(vt[35].d));
         __asm__("qmtc2.ni %5,%1\n\tvsub.xyzw %0,%0,%6\n\tlw %2,%8\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %3,%7,%1x\n\tqmfc2.ni %4,%3":"+&j"(v),"=&j"(k),"=r"(setter),"=j"(r),"=r"(argument):"r"(bits),"j"(d),"j"(up),"m"(vt[35].pfn));
@@ -1704,7 +1704,7 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
 namespace M_func_001B7700 {
 /* A transform (XF) as read here: position, parent and velocity. */
 struct XFV{char pad[0x30];qword pos;char pad40[0x60];struct XFV*parent;char padA4[0xC];qword velocity;};
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern float D_002C09C8 __asm__("D_002C09C8");
 qword ConvertXfVec(struct XFV*,struct XFV*,qword) __asm__("ConvertXfVec");
 int SolveQuadratic__FfffPf(float,float,float,float*) __asm__("SolveQuadratic__FfffPf");
@@ -1738,11 +1738,11 @@ extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation
  switch(owner->liftClip){
  case 0:{
   struct XFV*parent=((XFV*)((SO*)((CARRYSPOTV*)owner->ploCarried)->plo)->positionXf)->parent;
-  qword first=ConvertXfVec(0,parent,Scale(D_002A2DC0,2500.0f,&roots));
+  qword first=ConvertXfVec(0,parent,Scale(g_normalZ,2500.0f,&roots));
   {
    register struct XFV*space __asm__("$4");register int bits __asm__("$2");
    __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct XFV*)0));
-   end=ConvertXfVec(space,parent,FinalLaunchScale(&D_002A2DC0,bits,&roots));
+   end=ConvertXfVec(space,parent,FinalLaunchScale(&g_normalZ,bits,&roots));
   }
   break;
  }
@@ -2382,7 +2382,7 @@ namespace M_func_001B8B70 {
 struct LIMIT { float lo,hi; };
 struct POLY { float a,b,c; };
 extern struct POLY D_002C0A20 __asm__("D_002C0A20");
-extern struct LIMIT D_002BBB60 __asm__("D_002BBB60");
+extern struct LIMIT g_lmZeroOne __asm__("g_lmZeroOne");
 qword GetStepAsegaTranslation(MURRAY*,ASEGA*,float) __asm__("GetStepAsegaTranslation");
 struct EA *FindAsegLabel(void*,int) __asm__("FindAsegLabel");
 qword SetVectorCylind(float,float,float) __asm__("SetVectorCylind");
@@ -2450,7 +2450,7 @@ extern "C" void UpdateMurrayAttackVelocity(MURRAY*murray){
             struct EA *start=FindAsegLabel(murray->activeAnimation->animation,0x240);
             struct EA *end=FindAsegLabel(murray->activeAnimation->animation,0x242);
             float t=(murray->activeAnimation->time-start->time)/(end->time-start->time);
-            float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
+            float blend=Clamp(Polynomial(&D_002C0A20,t),g_lmZeroOne.lo,g_lmZeroOne.hi);
             qword desired=OrbitVector(murray);
             desired=ConvertVecBetweenLos(0,murray,desired);
             Blend(desired,blend,&murray->qwUnknown190,&scalar);
@@ -2841,7 +2841,7 @@ extern "C" void EnterMurrayThrowAim(MURRAY *murray, int n, void *pv)
 
 namespace M_FCanUseGadget__6MURRAYi {
 /* CanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in CanUseGadget), and the extra k use raised k's allocation priority. */
-extern int D_002DFBC0 __asm__("D_002DFBC0");
+extern int g_grfjoyt __asm__("g_grfjoyt");
 int IsStepplayerInJtMode(MURRAY *p) __asm__("IsStepplayerInJtMode");
 int CanJtUseGadgetInAir(void *p, int k) __asm__("CanJtUseGadgetInAir");
 int CanJtUseGadgetInGrab(void *p, int k) __asm__("CanJtUseGadgetInGrab");
@@ -2875,7 +2875,7 @@ extern "C" int CanMurrayUseGadget__6MURRAYi(MURRAY *p, int k)
     case 3:
     {
         int r = 0;
-        if (p->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
+        if (p->unknown12F0 && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
         return r;
     }
     case 22:

@@ -154,7 +154,7 @@ union CURRENT {E*entry;SIDE*side;ATTACH*attachment;};
 union SCALE {const qword*axis;int stride;};
 struct P : SO { char pad150[0x190 - 0x150];int count;char pad194[0xC];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];char pad51C[0x50];void *asset;void *binding;char pad574[0x38];void *path;};
 
-extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DD0 __asm__("D_002A2DD0");
+extern qword g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");
 void PostSoLoad(P *) __asm__("PostSoLoad");
 REF *FindSoXf(P *,int,int) __asm__("FindSoXf");
 void *memmove(void *,const void *,int) __asm__("memmove");
@@ -181,7 +181,7 @@ extern "C" void PostRobottankLoad(P *tank){
  PostSoLoad(tank);
  if(tank->count>0){
  int stride=0x60;
- scale.axis=&D_002A2DC0;
+ scale.axis=&g_normalZ;
  E *next=tank->entries+1,*cursor=tank->entries;
  do {
   current.entry=cursor;
@@ -386,7 +386,7 @@ struct ENTRY {int id;REF *reference;int unknown;float steering;char pad10[4];flo
 struct SIDE {int id;REF *reference;void *binding;LIMITS angleLimits;};
 struct SOUND {char pad0[0x4E];short references;};
 struct P {char pad0[0xC];VTE *vt;char pad10[0x50];FRAME *space;char pad64[0x11C];int mode;char pad184[0xC];int count;char pad194[0xC];ENTRY entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH *attachments[8];char pad51C[0x24];float heading,goalHeading,steering,wheelAngle,drive,turn,acceleration;char pad55C[0x3C];SOUND *sound;int unused59C;float soundRate;P *target;char pad5A8[0x18];float lastCorrection;};
-extern const qword D_002A2DC0 __asm__("D_002A2DC0");
+extern const qword g_normalZ __asm__("g_normalZ");
 extern POLY D_002C2040 __asm__("D_002C2040");
 extern POLY D_002C2060 __asm__("D_002C2060");
 extern POLY D_002C2080 __asm__("D_002C2080");
@@ -521,7 +521,7 @@ extern "C" void UpdateRobottank(P *tank)
     attachmentCount=loadedCount;}
     if(attachmentCount>0){
         register qword targetVector __asm__("vf2")=targetPosition.q;
-        const qword *up=&D_002A2DC0;
+        const qword *up=&g_normalZ;
         register qword originVector __asm__("vf3")=position.q;
         register qword difference __asm__("vf1");
         asm("vsub.xyzw %0,%1,%2":"=j"(difference):"j"(targetVector),"j"(originVector));
@@ -918,7 +918,7 @@ struct P : PO {
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];
     P *target; void *navigator; PATH *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
 };
-extern const qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0");
+extern const qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ");
 extern float D_002C20E8 __asm__("D_002C20E8");
 extern float D_002C20EC __asm__("D_002C20EC");
 extern float D_002C20F0 __asm__("D_002C20F0");
@@ -1037,12 +1037,12 @@ extern "C" void UpdateRobottankAi(P *tank)
             goal = target;
             break;
         case 2: {
-            M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
+            M3 m = BuildAxisAngleRotationMatrix(g_normalZ, angle);
             goal = VuAdd(target, Rotate(m, offset));
             break;
         }
         case 3: {
-            M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, -angle);
+            M3 m = BuildAxisAngleRotationMatrix(g_normalZ, -angle);
             goal = VuAdd(target, Rotate(m, offset));
             break;
         }
@@ -1196,7 +1196,7 @@ struct P : LO {
     char pad55C[0x64]; float lastCorrection;
 };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
-extern const qword D_002A2DC0 __asm__("D_002A2DC0"), D_002A2DD0 __asm__("D_002A2DD0");
+extern const qword g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0");
 extern POLY D_002C2100 __asm__("D_002C2100");
 extern POLY D_002C2120 __asm__("D_002C2120");
 extern POLY D_002C2130 __asm__("D_002C2130");
@@ -1326,7 +1326,7 @@ extern "C" void PresetRobottankAccel(P *tank)
     AddSoAngularAcceleration(tank, worldTorque.q);
     float dt = clock->deltaTime;
     float half = dt * 0.5f;
-    BuildAxisAngleRotationMatrix(&phase.rotation, D_002A2DC0, (localVelocity.f[2] + torque.f[2] * half) * dt);
+    BuildAxisAngleRotationMatrix(&phase.rotation, g_normalZ, (localVelocity.f[2] + torque.f[2] * half) * dt);
     desired.f[0] = tank->acceleration * tank->drive;
     desired.f[2] = desired.f[1] = 0.0f;
     basis = phase.rotation;
@@ -1397,7 +1397,7 @@ struct SHAPE;
 struct OWNER { char pad0[0xC]; VTE *vt; char pad10[0xE4 - 0x10]; SHAPE *shape; };
 struct WHEEL { char pad0[0x20]; float radius, bottom, top; char pad2C[0x24]; qword pos; };
 struct CONTACT;
-extern const qword D_002A2DC0 __asm__("D_002A2DC0");
+extern const qword g_normalZ __asm__("g_normalZ");
 extern const qword D_002C2150[5] __asm__("D_002C2150");
 /* VU_FLOAT's mfc1 is partially redundant in the ray pass, so gcse PRE hoists the radius/height conversions to the
    top of the function as two new pseudos; PRE numbers its pseudos in expression-hash-bucket order, and that number
@@ -1595,13 +1595,13 @@ extern "C" void MarkWheel(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3
     }
     /* ray pass. VU_VECTOR temporaries keep the loop above loop.c's ~95-insn threshold, so &D_002C2150 is not hoisted;
        posPrev = pos at the END of the body puts the a2 argument move after the row loads (sched2 tie) */
-    VU_VECTOR posPrev = Transform(frame, BlendStart(D_002C2150[0], radius, D_002A2DC0, height));
+    VU_VECTOR posPrev = Transform(frame, BlendStart(D_002C2150[0], radius, g_normalZ, height));
     for (uint j = 0; j < 6; j++) {
         VU_VECTOR dir;
         if (j < 5)
             dir = Scale(D_002C2150[j], radius);
         else
-            dir = Blend(D_002C2150[4], radius, D_002A2DC0, height);
+            dir = Blend(D_002C2150[4], radius, g_normalZ, height);
         VU_VECTOR pos;
         pos = Transform(frame, dir);
         int clsg = ClipSegmentBsp(pbsp, (BSP *)0x7FFFFFFF, posPrev.q, pos.q, 16, alsg);
@@ -1833,7 +1833,7 @@ struct CONTACT{char pad[0x90];float height;};
 struct ENTRY{int unknown;NODE*node;CONTACT*contacts;char padC[8];float tilt,speed,angle,radius;char pad24[12];float x,y;char pad38[0x20];float height;char pad5C[4];};
 struct P;
 struct P{char pad[0xC];void *vptr;char pad10[0x50];P*space;char pad64[0x12C];int count;char pad194[12];ENTRY entries[8];char pad4A0[0xB0];float drive;};
-extern qword D_002A2DC0 __asm__("D_002A2DC0"),D_002A2DB0 __asm__("D_002A2DB0");
+extern qword g_normalZ __asm__("g_normalZ"),D_002A2DB0 __asm__("D_002A2DB0");
 extern char D_002C21A0[] __asm__("D_002C21A0"),D_002C21B0[] __asm__("D_002C21B0"),D_002C21C0[] __asm__("D_002C21C0");
 extern float D_002C21CC __asm__("D_002C21CC");
 
@@ -1888,7 +1888,7 @@ extern "C" void RenderRobottankSelf(P*tank){
   }
   float dt=g_clock.deltaTime;
   e->angle=NormalizeAngle__Ff(e->angle+e->speed*dt);
-  basis=Mul(Rotation(D_002A2DC0,e->tilt),Rotation(D_002A2DB0,e->angle));
+  basis=Mul(Rotation(g_normalZ,e->tilt),Rotation(D_002A2DB0,e->angle));
   NODE*node=e->node;
   VECTOR_opAssign(&node->matrix.position.q,point.q);
   node->matrix.basis=basis;
@@ -1930,7 +1930,7 @@ struct VU_FLOAT { qword q; VU_FLOAT() {} VU_FLOAT(float f) { __asm__("mfc1 %0, %
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "r"(g)); return v; }
 struct P { char pad0[0xC]; void *vptr; char pad10[0x550]; int remaining; };
 struct EVENT { P *sender; char pad4[8]; int kind, change; };
-extern qword D_002A2DA0 __asm__("D_002A2DA0"), D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ");
 extern float D_002C21D0[2] __asm__("D_002C21D0");
 extern float D_002C21D8[2] __asm__("D_002C21D8");
 extern float D_002C21E0[2] __asm__("D_002C21E0");
@@ -2012,7 +2012,7 @@ int TakeRobottankDamage(P *tank, EVENT *event)
         float horizontal = Random(D_002C21D0);
         float vertical = Random(D_002C21D8);
         linear.q = SetVectorCylind(angle, horizontal, vertical);
-        angular.q = VuFloat(Random(D_002C21E0)) * NormalizeSafe(VuCross(D_002A2DC0, linear.q), D_002A2DA0);
+        angular.q = VuFloat(Random(D_002C21E0)) * NormalizeSafe(VuCross(g_normalZ, linear.q), D_002A2DA0);
         break;
     }
     case 0x1000:
@@ -2020,13 +2020,13 @@ int TakeRobottankDamage(P *tank, EVENT *event)
         VV position = GetLoWorldPos(tank);
         VV delta = VuSub(position, GetLoWorldPos(event->sender));
         VU_VECTOR4 direction;
-        direction.q = NormalizeSafe(VuSub(delta, ScaleV(VuDot(delta, D_002A2DC0), D_002A2DC0)), D_002A2DA0);
+        direction.q = NormalizeSafe(VuSub(delta, ScaleV(VuDot(delta, g_normalZ), g_normalZ)), D_002A2DA0);
         VU_FLOAT first(Random(D_002C21E8));
-        linear.q = VecCombo(first, direction.q, VuFloat(Random(D_002C21F0)), D_002A2DC0);
+        linear.q = VecCombo(first, direction.q, VuFloat(Random(D_002C21F0)), g_normalZ);
         VU_FLOAT second(Random(D_002C21F8));
         VU_VECTOR4 side;
-        side.q = VuCross(D_002A2DC0, direction.q);
-        angular.q = VecCombo(second, side.q, VuFloat(Random(D_002C2200)), D_002A2DC0);
+        side.q = VuCross(g_normalZ, direction.q);
+        angular.q = VecCombo(second, side.q, VuFloat(Random(D_002C2200)), g_normalZ);
         break;
     }
     }

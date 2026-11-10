@@ -24,7 +24,7 @@ float tanf(float);
 float cosf(float);
 void InitLo(struct S *p);
 }
-extern qwordV D_002A2DC0, D_002A2DD0;
+extern qwordV g_normalZ, D_002A2DD0;
 
 /* ---- 0x1D6848: ballistic launch velocity (pitch blend g, from start to end under acceleration acc) ---- */
 union U { qwordV q; float a[4]; };
@@ -72,7 +72,7 @@ extern "C" qwordV CalculateBallisticLaunchVelocity(float elevationBlend, qwordV 
     horizontalDistance = Len(delta.q);
     directAngle=atan2f(height,horizontalDistance);
     if (directAngle<0.0f) directAngle=0.0f;
-    speed=Dot(&acceleration,D_002A2DC0);
+    speed=Dot(&acceleration,g_normalZ);
     elevation = directAngle + (1.57079637051f-directAngle)*elevation;
     speed=speed/((height-horizontalDistance*tanf(elevation))*2.0f);
     if (speed<=0.0f) return D_002A2DD0;
@@ -109,7 +109,7 @@ extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV a
     delta = VuSub(end, start);
     height = QwordZ(delta) - (dt * halfDt) * verticalAcceleration;
     inverseDtValue = 1.0f / dt;
-    up = D_002A2DC0;
+    up = g_normalZ;
     upAmount = VuDot(delta, up);
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(vertical) : "j"(up), "j"(upAmount));
     horizontal = VuSub(delta, vertical);

@@ -90,7 +90,7 @@ float D_002C0AB0 = 1.0f, D_002C0AB4 = 1.0f, D_002C0AB8 = 0.2f, D_002C0ABC = 10.0
 int D_002C0AC8[24] = {1, 1, 2, 1, 4, 2, 8, 4, 2, 2, 2, 2, 4, 2, 8, 4, 4, 4, 4, 4, 4, 4, 8, 4};
 extern const float D_002A76D0;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A76D4;   /* defined below where the ELF has it (.rodata order) */
-extern qword D_002A2DC0, D_002A2DD0;
+extern qword g_normalZ, D_002A2DD0;
 extern char D_003DD020[];
 
 void InitShape(CID14V *p);
@@ -664,7 +664,7 @@ void BuildCid14EdgePlanes(CID14V *polygon)
             do {
                 qword v0 = v;
                 v = MulPt(&m, polygon->points[i]);
-                InitPlaneFromNormalPos(&polygon->edgePlanes[i - 1], Normalize(VuCross(VuSub(v, v0), D_002A2DC0)), v0);
+                InitPlaneFromNormalPos(&polygon->edgePlanes[i - 1], Normalize(VuCross(VuSub(v, v0), g_normalZ)), v0);
             } while (++i < polygon->numPoints);
         }
         polygon->planeStamp = k;

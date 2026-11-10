@@ -55,7 +55,7 @@ extern const float D_002A568C;   /* defined below where the ELF has it (.rodata 
 extern const float D_002A5690;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 extern const float D_002BE918;
-extern U D_002A2DC0;
+extern U g_normalZ;
 /* sticky's first .data word, -300 (the code reads it through the extern const declaration above, a codegen
    device: defined here under its asm label, as a plain float, so no function sees a definition). */
 namespace TU_185130_DATA { float r_D_002BE918 __asm__("D_002BE918") = -300.0f; }
@@ -594,12 +594,12 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
  qword fallback=QwScaleX(normal.q,VuFloat(-1.0f));register qword direction asm("vf2"); // the one register pin: direction vf2
  if(QwordX(len)<0.0001f)direction=fallback;else direction=VuDivByX(difference,len);
  qword target=QwAddScaled(closest.q,direction,VuFloat(-jt->avecMeshProbe[0].x));
- M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,D_002A2DC0.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
+ M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,g_normalZ.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
  for(i=0;i<3;i++)FindMeshClosestPoint(((MESH *)jt->unknown1F18),QwTransformPos(&frame,jt->aposMeshProbe[i]),&jt->surflocMesh,0,&contacts[i].q,0);
  qword surface=VuCross(VuSub(contacts[2].q,contacts[0].q),VuSub(contacts[1].q,contacts[0].q));
  qword unit=VuDivByX(surface,VuSqrtX(VuDot(surface,surface)));
- {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);jt->aqwTarget[0]=m.r[0].q;jt->aqwTarget[1]=m.r[1].q;jt->aqwTarget[2]=m.r[2].q;}
+ {M3 m=BuildOrthonormalMatrixZ(unit,g_normalZ.q);jt->aqwTarget[0]=m.r[0].q;jt->aqwTarget[1]=m.r[1].q;jt->aqwTarget[2]=m.r[2].q;}
  U angular,linear;
  SmoothMatrix(GetLoWorldMatrix(jt),(M3 *)jt->aqwTarget,&D_002BE920,0,&angular.q,g_clock.deltaTime*0.5f);
  jt->SetAngularVelocity(angular.q);
@@ -616,7 +616,7 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
   movement.q=QwRotateVec(&rotation,movement.q);movement.f[0]=0.0f;
   qword dir=VuSqrtX(VuDot(movement.q,movement.q));
   VU_FLOAT speed;LoadVuFloatFromMemWord(speed,*(int*)&jt->controller->leftStickDeflection);M3 copy=rotation;
-  qword fallback=D_002A2DC0.q;
+  qword fallback=g_normalZ.q;
   if(QwordX(dir)<0.0001f)dir=fallback;else dir=QwDivideR(movement.q,dir,fallback); // "r"(fallback): allocation-only
   movement.q=QwScaleX(dir,speed);
   jt->qwUnknown190=QwCombo(jt->abldirMesh[1].vRoot,jt->abldirMesh[2].vRoot,VuFloatFromMemWord(movement.i[1]),VuFloatFromMemWord(movement.i[2]));

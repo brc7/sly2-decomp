@@ -1,10 +1,10 @@
 // bif.cpp -- the Splice builtin functions (Builtin*: list, arithmetic, comparison, vector/matrix, world queries).
 // TU 0x11F440..0x1258F0 (155 functions, address order; then the three linkonce VU math copies 0x256CE8..0x256D28).
 // Splice is the game's Scheme-like scripting language (splice/). The evaluator (splice/eval.cpp) calls a builtin
-// through the 169-entry table D_002BBB90 at the end of this file ({function, minimum argument count, takes rest
+// through the 169-entry table g_mpbifkbif at the end of this file ({function, minimum argument count, takes rest
 // arguments}) with the evaluated arguments as a CRef array and returns its CRef result. Sly 1's builtin table gives
 // most script spellings; docs/systems/splice-scripting.md section 7 describes the library.
-// Entry points: the table D_002BBB90 and the Builtin* functions (Sly 1 named them RefOp*; the suffix is the script op).
+// Entry points: the table g_mpbifkbif and the Builtin* functions (Sly 1 named them RefOp*; the suffix is the script op).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bif
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001258D0
 // Every builtin is `CRef BuiltinX(int cref, CRef *args, CFrame *pframe)` (the mangled symbols say so); the per-function
@@ -2481,7 +2481,7 @@ struct MATRIX3; struct W;
 typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { VECTOR4 mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 
 MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinMatrixLookAt__FiP4CRefP6CFrame");
@@ -2494,12 +2494,12 @@ static inline qword SubtractVectors(qword *pb, qword *pa)
     __asm__ ("vsub.xyzw %0, %0, %1" : "+j"(b) : "j"(a));
     return b;
 }
-// Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default D_002A2DC0.
+// Splice builtin "matrix-look-at": BuildOrthonormal from (to-from), up default g_normalZ.
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     qword *pup;
     if (args[2].m_tagk == 0)
-        pup = &D_002A2DC0;
+        pup = &g_normalZ;
     else
         pup = ((W *)args[2].u.pv)->pv;
     union { qword q; } v;
@@ -2812,12 +2812,12 @@ extern "C" CRefData *BuiltinModulo__FiP4CRefP6CFrame(CRefData *ret, void *pbasic
 
 // 0x123A08 BuiltinCurrentTime__FiP4CRefP6CFrame
 namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame {
-extern float D_002DDED0 __asm__("D_002DDED0");   /* g_clock.time as a float: the CLOCK field access schedules the load differently */
-// Splice builtin "current-time": F32 = g_clock.time (D_002DDED0).
+extern float g_clock __asm__("g_clock");   /* g_clock.time as a float: the CLOCK field access schedules the load differently */
+// Splice builtin "current-time": F32 = g_clock.time (g_clock).
 extern "C" CRefData *BuiltinCurrentTime__FiP4CRefP6CFrame(CRefData *ret)
 {
     ret->m_tagk = TAGK_F32;
-    ret->u.g = D_002DDED0;
+    ret->u.g = g_clock;
     return ret;
 }
 } // namespace M_BuiltinCurrentTime__FiP4CRefP6CFrame
@@ -3605,7 +3605,7 @@ extern "C" { static __inline__ void SetVector(VECTOR4 *pv, float x, float y, flo
     __asm__ ("pcpyld %0, %1, %2" : "=r"(t) : "r"(iz), "r"(t));
     *(qword *)pv = t;
 } }
-// Splice builtin "near-clip-center": uses g_cm (D_002DDF40) near-clip distance * camera matrix.
+// Splice builtin "near-clip-center": uses g_cm (g_cm) near-clip distance * camera matrix.
 extern "C" CRefData *BuiltinNearClipCenter__FiP4CRefP6CFrame(CRefData *ret)
 {
     VECTOR4 vec;
@@ -3857,7 +3857,7 @@ namespace M_BuiltinSetPowerUpAcquired {
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void SetPowerupAcquired(int a, int b) __asm__("SetPowerupAcquired");
-// Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on D_002DEB30 when set).
+// Sets powerUps.mppukfAcquired[n]=f via 0x1DAF38 (also fires event 0x3B on g_game when set).
 extern "C" CRefData *BuiltinSetPowerUpAcquired(CRefData *ret, void *pbasic, CRefData *args)
 {
     CRefData ref;
@@ -4076,7 +4076,7 @@ void BuiltinStub165() __asm__("BuiltinStub165");
 void BuiltinStub166() __asm__("BuiltinStub166");
 void BuiltinStub167() __asm__("BuiltinStub167");
 void BuiltinStub168() __asm__("BuiltinStub168");
-// ---- (Defined before D_002BBB90: the ELF has D_002BBB70 first.) Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// ---- (Defined before g_mpbifkbif: the ELF has D_002BBB70 first.) Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_bif {
@@ -4093,7 +4093,7 @@ extern unsigned int D_002BBB70[8] __asm__("D_002BBB70") = {(unsigned int)p_sqrtf
 
 } // namespace ANPTR_bif
 struct BIF { void (*pfn)(); int cargMin; int fRest; };   /* pfn: CRef (*)(int, CRef *, CFrame *) */
-BIF D_002BBB90[169] __asm__("D_002BBB90") = {
+BIF g_mpbifkbif[169] __asm__("g_mpbifkbif") = {
     {BuiltinAdd, 1, 1}, {BuiltinSubtract, 1, 1}, {BuiltinMultiply, 1, 1}, {BuiltinDivide, 1, 1}, {BuiltinPrint, 1, 0},
     {BuiltinPrintFrame, 0, 1}, {BuiltinPrintSidebag, 1, 0}, {BuiltinIntEqual, 2, 0}, {BuiltinLess, 2, 0}, {BuiltinLessOrEqual, 2, 0},
     {BuiltinGreater, 2, 0}, {BuiltinGreaterOrEqual, 2, 0}, {BuiltinEqv, 2, 0}, {BuiltinEqual, 2, 0}, {BuiltinIsBoolean, 1, 0},

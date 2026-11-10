@@ -71,7 +71,7 @@ qword GetXfVelocity(XF *pxf, int n, qword pos);
 void RecalcSwXpMovement(SW *psw, int cxp, XP **apxp);
 void AppendXpList(SW *psw, XP *pxp, XP **ppxpFirst);
 int FindZapResponder(SO *pso, int grfzpk);   /* HYPOTHESIS: whether pso reacts to the zap kinds grfzpk */
-extern qword D_002A2DC0;  /* fallback contact normal */
+extern qword g_normalZ;  /* fallback contact normal */
 void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword normal, int kind, void *pvFeature0,
             void *pvFeature1, XP **ppxpFirst, float g);
 }
@@ -615,7 +615,7 @@ struct NODE { unsigned int left, right; SURF *psurf; };
 struct LSG { QWROW apos[2], anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };
 struct XP { char pad0[0x9C]; int kind; void *first, *second; int padA8; XP *next; };
 
-extern QWROW D_002A2DC0 __asm__("D_002A2DC0");
+extern QWROW g_normalZ __asm__("g_normalZ");
 int ClsgClipSoAllEdges(SCENE *, SHAPE *, SHAPE *, NODE *, int, LSG *) __asm__("ClipSoAllEdges");
 int ClipSoBspEdges(SCENE *, SHAPE *, SHAPE *, int, NODE *, int, LSG *) __asm__("ClipSoBspEdges");
 void CategorizeClippedSegments(int, LSG *, int *, int *, LSG **, LSG **) __asm__("CategorizeClippedSegments__FiP3LSGPiT2PP3LSGT4");
@@ -754,7 +754,7 @@ extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeC
     next:;
     }
     if (old == *out && (!aclsg[0] || !aclsg[1]))
-        AddXp(scene, a, b, a->space->position.q, 0.0f, D_002A2DC0.q, 13, 0, 0, out);
+        AddXp(scene, a, b, a->space->position.q, 0.0f, g_normalZ.q, 13, 0, 0, out);
 }
 } // namespace M_MarkSoContactsBspBsp
 
@@ -1309,7 +1309,7 @@ typedef char layout_U_FloatSpan[(sizeof(((U*)0)->f)==16)?1:-1];
 } // namespace M_MarkSoContactsSphereBsp
 
 /* Two sphere parts (centre: the transform's position, radius `radius`): one kind-7 contact on ppart0's surface along
-   the centre line (D_002A2DC0 when the centres coincide), separation |d| - (r0 + r1). */
+   the centre line (g_normalZ when the centres coincide), separation |d| - (r0 + r1). */
 // Sphere part against sphere part: if they overlap adds one contact along the line between the centres.
 extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *part1, XP **listOut)
 {
@@ -1329,7 +1329,7 @@ extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *par
         return;
     if (len2 < 1e-4f) {
         g = 0.0f;
-        normal = D_002A2DC0;
+        normal = g_normalZ;
     } else {
         qword s;
         float t;

@@ -113,9 +113,9 @@ enum GADGET_KIND
 
 struct POLY { float a, b, c; };
 extern "C" {
-extern qwordV D_002A2DC0, D_002A2DA0, D_002A2DD0, D_002A2DE0;
+extern qwordV g_normalZ, D_002A2DA0, D_002A2DD0, D_002A2DE0;
 extern float D_002C3C60[];
-extern LM D_002BBB60;
+extern LM g_lmZeroOne;
 extern SOV *D_002E1E40;
 extern const float D_002A97A8;   /* defined below where the ELF has it (.rodata order) */
 /* gadget's .data (address order). The two springs' parameters are float[4] (passed as void *). */
@@ -481,13 +481,13 @@ extern "C" void OrientTossableToTarget(CID100V *gadget) {
     if(gadget->nearest) {
         qwordV a=ToVF(GetLoWorldPos(gadget->nearest));
         qwordV b=GetLoWorldPos(gadget);
-        qwordV d=Flatten(Sub(a,b),Read(D_002A2DC0));
+        qwordV d=Flatten(Sub(a,b),Read(g_normalZ));
         register qwordV fallback __asm__("a1")=D_002A2DA0;
         qwordV len=Sqrt(DotSelf(d));
         register qwordV n __asm__("vf1");
         if(VuToFloat(len)<1.0e-4f)n=fallback;
         else n=ScaleQ(d,len);
-        m=BuildOrthonormalMatrixZ(n,D_002A2DC0);
+        m=BuildOrthonormalMatrixZ(n,g_normalZ);
     } else {
         TiltMatUpright(&GetLoWorldMatrix(gadget)->basis,0,&m);
     }
@@ -499,7 +499,7 @@ extern "C" void OrientTossableToTarget(CID100V *gadget) {
 // - A new HIT record (deduplicated by object, up to capacity) gets owner/object/filter/channel/point and
 //   impulse = normal * D_002C4334 (the target speed).
 // - If the body has physics: project its point velocity (GetXfVelocity) on the normal, evaluate the quadratic
-//   D_002C4320 at along / D_002C4334 clamped to D_002BBB60, scale by D_002C4330, get the linear (GetSoImpulseLinearDelta)
+//   D_002C4320 at along / D_002C4334 clamped to g_lmZeroOne, scale by D_002C4330, get the linear (GetSoImpulseLinearDelta)
 //   and angular (GetSoImpulseAngularDelta) responses and, when they speed the point up along the normal, add the fraction
 //   (target - along) / change (clamped to 0..1) of them to the body's velocity (virtuals 33/34 -> 35/36).
 // Matching notes (T1586 lilly28 -> T1591 MATCH):
@@ -572,7 +572,7 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
     if (!body->physics) return;
     float along = DotP(GetXfVelocity(body->rootXf, 0, hit.point), normal);
     float ratio = along / D_002C4334;
-    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), D_002BBB60.minValue, D_002BBB60.maxValue);
+    float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
     float fz = 0.0f;   /* 0, then the fraction of the response applied */
     if (fz < response) {
         bits = BitsOfFloat(response * D_002C4330);
@@ -719,7 +719,7 @@ void SetTossableState(CID100V *gadget, int state)
         ZeroVelocity(gadget->rotationXf);
         if (IsHealthExtractor(gadget) && gadget->rotationXf) {
             qwordV direction = Normalize(ToVFN(ConvertXfVec(0, gadget->rotationXf->parent, gadget->stickNormal)));
-            qwordV rawUp = ConvertXfVec(0, gadget->rotationXf->parent, D_002A2DC0);
+            qwordV rawUp = ConvertXfVec(0, gadget->rotationXf->parent, g_normalZ);
             M3 basis;
             basis = MakeBasis(direction, rawUp);
             gadget->rotationJob = NewPositionAct(gadget, gadget->rotationXf, 0, 7, 2, DecomposeRotationMatrixToEuler(&basis));
@@ -757,14 +757,14 @@ void CID102::Init()
 // State-5 update: fade the actor in, hand it control of the source's basis, then drop a prize and leave state 3.
 // No actor -> state 3; actor without a live 0xB0 behaviour -> state 2. Otherwise copy the source's (or own) world basis
 // into the actor's control record (+0xFD0), set the behaviour to state 4 once within 100 units, fade the actor's colour
-// with the quadratic D_002C43C0 {1.2, 0, -1} over D_002C43B0 (3 s) clamped to D_002BBB60 {0, 1}, and after the fade
+// with the quadratic D_002C43C0 {1.2, 0, -1} over D_002C43B0 (3 s) clamped to g_lmZeroOne {0, 1}, and after the fade
 // spawn prize 0x5D at the source, call actor slot 9, post game event 0x18 for the actor (BroadcastGameEvent) and set state 3.
 // Matching notes (notes/220000.md, 2026-10-24):
-//  - Clamp reads both bounds before testing: gMax is loaded in the bc1f delay slot, and &D_002BBB60 becomes a loop
+//  - Clamp reads both bounds before testing: gMax is loaded in the bc1f delay slot, and &g_lmZeroOne becomes a loop
 //    invariant (fp) while gMin goes through the shared %hi (s5).
-//  - The game event's &D_002DEB30 is built straight into $a0 (the one register pin). As a normal argument it goes through
-//    an argument pseudo; loop.c's single-use substitution then gives %hi(D_002DEB30) life 2 in loop pass 2, so it is
-//    hoisted, wins s7 (a later hoist has the shortest live length) and pushes &D_002BBB60 out of the registers.
+//  - The game event's &g_game is built straight into $a0 (the one register pin). As a normal argument it goes through
+//    an argument pseudo; loop.c's single-use substitution then gives %hi(g_game) life 2 in loop pass 2, so it is
+//    hoisted, wins s7 (a later hoist has the shortest live length) and pushes &g_lmZeroOne out of the registers.
 //  - The colour broadcast is one asm for both pextlw (t ties to the mfc1 register, the lw of the colour sits between).
 static inline float LengthL(qwordV d) {
     qwordV one; float f;
@@ -806,13 +806,13 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
                 if (gadget->actor->color) {
                     float t = (g_clock.time - gadget->time) / D_002C43B0;
                     float fade = D_002C43C0[0] + t * (D_002C43C0[1] + t * D_002C43C0[2]);
-                    ClampLm(&fade, &D_002BBB60);
+                    ClampLm(&fade, &g_lmZeroOne);
                     SetActPositionGoal(gadget->actor->color, Splat(fade));
                 }
                 if (D_002C43B0 < g_clock.time - gadget->time) {
                     SprayDprizes(&g_sw,0x5D,GetLoWorldPos(gadget->source),gadget,1);
                     AsSo(gadget->actor)->Remove();
-                    // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
+                    // PIN: &g_game straight into $a0 keeps %hi(g_game) inside the loop (see the header).
                     register GAME *pgame asm("$4") = &g_game;
                     BroadcastGameEvent(pgame, 0x18, gadget->actor);
                     SetStateVirtual(gadget, TOSSABLE_DETONATE);

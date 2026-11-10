@@ -98,7 +98,7 @@ enum CRITTER_STATE
 typedef char assert_CID96_size[sizeof(CID96V) == 0x250 ? 1 : -1];
 
 extern "C" {
-extern U D_002A2DD0, D_002A2DA0, D_002A2DC0;
+extern U D_002A2DD0, D_002A2DA0, g_normalZ;
 extern char D_002DE578[];
 int D_002C0230[6] = {8, 8, -1, 0, 8, -1};   /* critter's .data, address order */
 extern const float D_002A70E0;   /* defined below where the ELF has it (.rodata order) */
@@ -561,7 +561,7 @@ void SetStepSpinRatio(STEP *pstep, float ratio)
 void SetCritterHeading(CID96V *critter, float heading)
 {
     critter->heading = heading;
-    critter->headingBasis = BuildAxisAngleRotationMatrix(D_002A2DC0.q, heading);
+    critter->headingBasis = BuildAxisAngleRotationMatrix(g_normalZ.q, heading);
 }
 
 // True when the critter's x axis (world matrix, vtable slot 31, read twice) is within 1 degree of the heading.

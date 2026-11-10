@@ -88,7 +88,7 @@ extern const LONGU D_002A4B10;   /* an 8-byte callback record (a pointer to memb
 int D_002BC9D0[4] = {0x33, 0x64, 0x4F, 0x67};
 extern qword D_002A2DD0;
 extern "C" {
-extern qword D_002A2DC0;
+extern qword g_normalZ;
 int D_002BC9E0 = 0x43FA0000;   /* 500.0f, read as its bit pattern */
 void InitSo(BOMBV *);
 void CloneSo(BOMBV *, BOMBV *);
@@ -458,7 +458,7 @@ extern "C" int TakeBombDamage(BOMBV *bomb, WKR *pm)
         qword c = pm->v30;
         qword l;
         float gl;
-        __asm__("" : "=r"(k) : "0"(D_002A2DC0));
+        __asm__("" : "=r"(k) : "0"(g_normalZ));
         l = VLen(c);
         gl = VuToFloat(l);
         pu = &u;
@@ -512,7 +512,7 @@ extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
         MulStore(bomb, &m);
         break;
     case 1:
-        BuildOrthonormalMatrixZ(&m, bomb->velocityAtDetonation, D_002A2DC0);
+        BuildOrthonormalMatrixZ(&m, bomb->velocityAtDetonation, g_normalZ);
         bomb->matDetonate = m;
         break;
     case 2:
@@ -595,7 +595,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
 {
     if ((bomb->isInWorld & 1) == 0)
         return;
-    PrepareBombDetonation(bomb, GetLoWorldPos(bomb), D_002A2DC0);
+    PrepareBombDetonation(bomb, GetLoWorldPos(bomb), g_normalZ);
     FRAME frame;
     if (bomb->noBlast == 0) {
         FrameInit(&frame);
@@ -616,7 +616,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
             msg.p = bomb;
             msg.po = (POV *)po;
             qword pos = GetLoWorldPos(po);
-            qword def = D_002A2DC0;
+            qword def = g_normalZ;
             d = VuSub(pos, bomb->posDetonate);
             {
                 register qword t __asm__("vf2");

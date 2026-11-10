@@ -65,7 +65,7 @@ struct OPT;
 extern "C" {
 extern PAUSEMENU D_003D9ED0;
 extern GSV D_002DEB80;
-extern char D_002BBB60[];
+extern char g_lmZeroOne[];
 extern MCDLG D_002E6550;
 extern int D_002C2D8C;
 extern char D_002BFDA8[], D_002BFE08[], D_002BFE68[];
@@ -496,7 +496,7 @@ void AdjustPauseMenuVolumeItem(PAUSEMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = ClampToLimits__FP2LMf(D_002BBB60, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC] + f * g_clock.realDeltaTime * 1.5f);
+        g = ClampToLimits__FP2LMf(g_lmZeroOne, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_MUSIC] + f * g_clock.realDeltaTime * 1.5f);
         SetSndmgrChannelVolume(&g_sndmgr, 1, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);
         break;
@@ -506,7 +506,7 @@ void AdjustPauseMenuVolumeItem(PAUSEMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = ClampToLimits__FP2LMf(D_002BBB60, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE] + f * g_clock.realDeltaTime * 1.5f);
+        g = ClampToLimits__FP2LMf(g_lmZeroOne, g_sndmgr.volumes[VOLUME_CATEGORY_MENU][VOLUME_CHANNEL_AMBIENCE] + f * g_clock.realDeltaTime * 1.5f);
         SetSndmgrChannelVolume(&g_sndmgr, 0, g, 1);
         SetSndmgrChannelVolume(&g_sndmgr, 3, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);

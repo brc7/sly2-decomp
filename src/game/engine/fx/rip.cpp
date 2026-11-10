@@ -1213,14 +1213,14 @@ static inline qword AddScaled(qword a, qword b, qword s)
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(s));
     return r;
 }
-// Read the frame clock's delta-time word (D_002DDED0) given its high address page.
+// Read the frame clock's delta-time word (g_clock) given its high address page.
 static inline int ClockWord(char *page)
 {
     int word;
     __asm__("lw %0,%%lo(%2)(%1)" : "=r"(word) : "r"(page), "i"(&g_clock.deltaTime), "m"(*(const int *)(page - 0x212C)));
     return word;
 }
-// High address page (lui) of the frame clock D_002DDED0.
+// High address page (lui) of the frame clock g_clock.
 static inline char *ClockPage()
 {
     register char *page __asm__("$2");
@@ -1338,7 +1338,7 @@ struct S {
     int pad2;
     POLY alpha;
 };
-extern struct LIMIT { float lo,hi; } D_002BBB60 __asm__("D_002BBB60");
+extern struct LIMIT { float lo,hi; } g_lmZeroOne __asm__("g_lmZeroOne");
 
 int IsInCameraFrustum(CM*,qword,qword) __asm__("IsInCameraFrustum");
 int IsWithinCameraRenderDistance(CM*,qword,float,float*) __asm__("IsWithinCameraRenderDistance");
@@ -1373,7 +1373,7 @@ int RenderRipAtPose(S *p, qword pos, const M3 &mat)
     float proj;
     qword delta;
     float t = (g_clock.time - p->start) / p->duration;
-    float alpha = Clamp(Poly(&p->alpha, t), D_002BBB60.lo, D_002BBB60.hi);
+    float alpha = Clamp(Poly(&p->alpha, t), g_lmZeroOne.lo, g_lmZeroOne.hi);
     float size = Poly(&p->size, t);
     CM *pg = &g_cm;
     __asm__("vsub.xyzw %0,%1,%2" : "=j"(delta) : "j"(pos), "j"(pg->matq.pos));
@@ -1431,7 +1431,7 @@ void FLYING::PostEmit(EMITB *pemitb)
 }
 
 extern "C" {
-extern qword D_002A2DC0;
+extern qword g_normalZ;
 RIPM3 BuildOrthonormalMatrixZ(qword a, qword b);
 }
 // FLYING Render: oriented along its velocity, with "up" toward the camera (facesCamera) or world +z.
@@ -1445,7 +1445,7 @@ void FLYING::Render()
         s.q = k;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(g_cm.matq.rot[0]), "j"(k));
     } else {
-        v = D_002A2DC0;
+        v = g_normalZ;
     }
     m = BuildOrthonormalMatrixZ(velocity, v);
     RenderRipAtPose(this, currentPosition, m);
@@ -1458,7 +1458,7 @@ union U {
     float f[4];
 };
 typedef RIPM3 M3;
-extern qword D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DB0 __asm__("D_002A2DB0"),D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DB0 __asm__("D_002A2DB0"),g_normalZ __asm__("g_normalZ");
 
 STUCK *NewRipInGroup(void*,void*,void*) __asm__("NewRipInGroup");
 qword TransformXfPos(void*,LO*,qword) __asm__("TransformXfPos");
@@ -1545,7 +1545,7 @@ STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direc
                 M3 orient = Mul(frame, rotation);
                 object->orientation = orient;
             }
-            qword *up = &D_002A2DC0;
+            qword *up = &g_normalZ;
             if (__builtin_fabsf(Dot(direction, *up)) < 0.7f) {
                 U flat;
                 flat.q = direction;
@@ -1615,7 +1615,7 @@ struct V3 { float x, y, z; };
 
 extern LM D_002C1F78 __asm__("D_002C1F78");
 extern float D_002C1F80[3] __asm__("D_002C1F80");
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
 void PostRipEmit(SHRAPNEL *psh, EMITB *pemitb) __asm__("PostRipEmit");
 
@@ -1626,12 +1626,12 @@ static inline qword VLen(qword v)
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(t), "=&j"(one) : "j"(v));
     return t;
 }
-// Read the lower lifetime limit float relative to the D_002BBB60 page.
+// Read the lower lifetime limit float relative to the g_lmZeroOne page.
 static inline float LowerLimit(char *page)
 {
     return *(const float *)(page - 0x44A0);
 }
-// Store the rip's life into *duration and compute the D_002BBB60 limits address and the length as a float, in one asm
+// Store the rip's life into *duration and compute the g_lmZeroOne limits address and the length as a float, in one asm
 // block for matching.
 static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, float *duration, float life)
 {
@@ -1640,7 +1640,7 @@ static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, 
     register float scalar __asm__("$f3");
     __asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\tswc1 %6,%3\n\tmtc1 %1,%2\n\taddiu %1,%0,%%lo(%5)"
             : "=&r"(page), "=&r"(address), "=f"(scalar), "=m"(*duration)
-            : "j"(length), "i"(&D_002BBB60), "f"(life));
+            : "j"(length), "i"(&g_lmZeroOne), "f"(life));
     *out = page;
     *limits = address;
     return scalar;
@@ -1721,7 +1721,7 @@ struct SHRAPNEL {
     F depth;
 };
 struct CM;
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern int RenderRipAtPose(SHRAPNEL *,qword,const M3 &) __asm__("RenderRipAtPose");
 // Return p + a * k.x.
 static inline qword AddScaled(qword p, qword a, qword k)
@@ -1736,11 +1736,11 @@ static inline SHRAPNEL *Receiver(SHRAPNEL *input)
     __asm__("daddu %0,%1,$zero" : "=r"(p) : "r"(input));
     return p;
 }
-// Address of the constant axis vector D_002A2DC0.
+// Address of the constant axis vector g_normalZ.
 static inline const qword *AxisAddress(void)
 {
     register const qword *p __asm__("$2");
-    __asm__("lui %0,%%hi(%1)\n\taddiu %0,%0,%%lo(%1)" : "=r"(p) : "i"(&D_002A2DC0));
+    __asm__("lui %0,%%hi(%1)\n\taddiu %0,%0,%%lo(%1)" : "=r"(p) : "i"(&g_normalZ));
     return p;
 }
 // Load the axis vector from p into vf3.
@@ -1792,12 +1792,12 @@ typedef char layout_render_10[(__alignof__(qword)==16)?1:-1];
 typedef char layout_render_11[((unsigned)&((F*)0)->bits==0)?1:-1];
 } // namespace M_RenderShrapnel__FP8SHRAPNELP2CM
 
-extern "C" { extern qword D_002BBB50; }
+extern "C" { extern qword g_clqOne; }
 // MATCH (RIPT 6) Init: base init, then the scale curve g + (1 - g) t (grows to full size) and the default alpha.
 void MATCH::Init(qword pos, float scale, SO *psoTouch)
 {
     RIP::Init(pos, scale, psoTouch);
-    alpha = D_002BBB50;
+    alpha = g_clqOne;
     scaleStart = scale;
     scaleSlope = 1.0f - scale;
     scaleCurve = 0;
@@ -1993,8 +1993,8 @@ struct RIP {
     qword position;
 };
 extern POLY D_002C1FB0 __asm__("D_002C1FB0"),D_002C1FD0 __asm__("D_002C1FD0"),D_002C1FF0 __asm__("D_002C1FF0");
-extern float D_002C1FC0[2] __asm__("D_002C1FC0"),D_002C1FE0[2] __asm__("D_002C1FE0"),D_002BBB60[2] __asm__("D_002BBB60");
-extern const qword D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0");
+extern float D_002C1FC0[2] __asm__("D_002C1FC0"),D_002C1FE0[2] __asm__("D_002C1FE0"),g_lmZeroOne[2] __asm__("g_lmZeroOne");
+extern const qword D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ");
 
 void RemoveRip__FP3RIP(RIP *) __asm__("RemoveRip__FP3RIP");
 int IsInCameraFrustum(CM *,qword,qword) __asm__("IsInCameraFrustum");
@@ -2068,8 +2068,8 @@ extern "C" void RenderGlint(RIP *rip)
         return;
     }
     /* opacity clamp; the result shares lo's register, hi is loaded before the compare */
-    float opacity = D_002BBB60[0];
-    float hi = D_002BBB60[1];
+    float opacity = g_lmZeroOne[0];
+    float hi = g_lmZeroOne[1];
     float v = Evaluate(rip->opacity, time);
     if (v < opacity) {
     } else if (hi < v)
@@ -2077,7 +2077,7 @@ extern "C" void RenderGlint(RIP *rip)
     else
         opacity = v;
     opacity *= Clamp(Evaluate(D_002C1FD0, distance), D_002C1FE0[0], D_002C1FE0[1]);
-    basis = BuildOrthonormalMatrixZ(direction, D_002A2DC0);
+    basis = BuildOrthonormalMatrixZ(direction, g_normalZ);
     rotation = BuildAxisAngleRotationMatrix(D_002A2DA0, Evaluate(D_002C1FF0, time));
     product = Multiply(basis, rotation);
     transform = LoadMatrixFromPosRotScalar(rip->position, product, size);
@@ -2110,7 +2110,7 @@ typedef struct {
     qword screenPos;        /* position in screen space */
 } OBJ;   /* SMACK */
 extern float D_002C2000 __asm__("D_002C2000");
-extern qword D_002BBB50 __asm__("D_002BBB50");
+extern qword g_clqOne __asm__("g_clqOne");
 void InitRip(OBJ *, qword) __asm__("InitRip");
 qword ConvertCmWorldToScreen(void *, qword) __asm__("ConvertCmWorldToScreen");
 float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
@@ -2133,7 +2133,7 @@ extern "C" void InitSmack(OBJ *object, qword q)
         v->z = z;
     }
     object->duration = D_002C2000;
-    object->alpha = D_002BBB50;
+    object->alpha = g_clqOne;
     object->scale = d->scale;
 }
 } // namespace M_InitSmack
@@ -2518,17 +2518,17 @@ struct MIX_STATE {
     union U direction, scalar;
 };
 struct S { char pad[0x70]; qword pos; char pad80[0x10]; qword vel; };
-extern qword D_002A2DD0 __asm__("D_002A2DD0"),D_002A2DA0 __asm__("D_002A2DA0"),D_002A2DC0 __asm__("D_002A2DC0");
+extern qword D_002A2DD0 __asm__("D_002A2DD0"),D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ");
 void ProjectRipTransform(struct S*) __asm__("ProjectRipTransform");
 float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
 int AreFloatsNear__Ffff(float,float,float) __asm__("AreFloatsNear__Ffff");
 void GetNormalVectors(qword,qword,qword,struct B*) __asm__("GetNormalVectors");
 void CalculateSinCos__FfPfT1(float,float*,float*) __asm__("CalculateSinCos__FfPfT1");
-// High address page of the frame clock's dt word (D_002DDED0+4).
+// High address page of the frame clock's dt word (g_clock+4).
 extern "C" { static inline const void *ClockHigh(void)
 {
     register const void *page __asm__("$2");
-    __asm__("lui %0,%%hi(D_002DDED0+4)" : "=r"(page));
+    __asm__("lui %0,%%hi(g_clock+4)" : "=r"(page));
     return page;
 } }
 // Scale the two speed coefficients cs[0..1] by speed into *first/*second and broadcast the frame dt into vf5.
@@ -2539,7 +2539,7 @@ extern "C" { static inline qword Factors(const float *cs, float speed, float *fi
     const union FLOATWORD *wordView = (const union FLOATWORD *)((const char *)page - 0x212C);
     register int word __asm__("$2");
     register qword dt __asm__("vf5");
-    __asm__("lwc1 %1,%5\n\tmul.s %0,%0,%4\n\tlw %2,%%lo(D_002DDED0+4)(%6)\n\tqmtc2.ni %2,%3\n\tmul.s %1,%1,%4"
+    __asm__("lwc1 %1,%5\n\tmul.s %0,%0,%4\n\tlw %2,%%lo(g_clock+4)(%6)\n\tqmtc2.ni %2,%3\n\tmul.s %1,%1,%4"
             : "+&f"(a), "=&f"(b), "=r"(word), "=j"(dt)
             : "f"(speed), "m"(cs[1]), "r"(page), "m"(wordView->bits));
     *first = a;
@@ -2590,7 +2590,7 @@ extern "C" { static inline qword NormalizeAndAxes(const struct S *owner, qword *
             "vadday.x $ACC,%1,%1y\n\tvmaddz.x %1,$vf3,%1z\n\t"
             "lui %2,%%hi(%5)\n\taddiu %2,%2,%%lo(%5)\n\taddiu %3,%3,%%lo(%6)"
             : "=j"(velocity), "=j"(length), "=&r"(up), "+r"(x)
-            : "m"(owner->vel), "i"(&D_002A2DC0), "i"(&D_002A2DA0)
+            : "m"(owner->vel), "i"(&g_normalZ), "i"(&D_002A2DA0)
             : "vf3");
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q\n\tlq %1,%4\n\t"
             "vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%3,$Q\n\tlq %2,%5"

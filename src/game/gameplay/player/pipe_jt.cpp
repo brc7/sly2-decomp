@@ -34,8 +34,8 @@ struct WORKB{U ahead,behind;LMV limit;U point,world,target;};
 /* the clip channel FindAsegChannel returns: aseg.h CHN, its curve act.h AC */
 struct PIPE;
 extern "C"{
-extern U D_002A2DD0,D_002A2DC0;SMPV D_002BF928={1500.0f,0.0f,0.5f};extern STEPPLAYER*D_002E1E40;
-extern int D_002DFBC0;
+extern U D_002A2DD0,g_normalZ;SMPV D_002BF928={1500.0f,0.0f,0.5f};extern STEPPLAYER*D_002E1E40;
+extern int g_grfjoyt;
 CHN *FindAsegChannel(ASEG *o, STEPPLAYER *a, int b, int c);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int c, void *d, int e, int f, int g, void *h);
 void GetPipeGoalMatrix(PATH *a, float g, int b, M3 *pm);
@@ -164,7 +164,7 @@ static inline qword Direction(U *a, U *b, U *&axis)
     register U *address __asm__("$2");
     __asm__("lqc2 $vf2,%2\n\tlui %0,%%hi(%4)\n\tlqc2 $vf1,%3\n\taddiu %0,%0,%%lo(%4)\n\tvsub.xyzw %1,$vf2,$vf1"
             : "=&r"(address), "=j"(direction)
-            : "m"(a->q), "m"(b->q), "i"(&D_002A2DC0)
+            : "m"(a->q), "m"(b->q), "i"(&g_normalZ)
             : "vf1", "vf2");
     axis = address;
     return direction;
@@ -429,7 +429,7 @@ static inline qword DirectionB(U *a, U *b, U *&axis)
     register U *address __asm__("$2");
     __asm__("lqc2 %0,%4\n\tlui %2,%%hi(%6)\n\tlqc2 %1,%5\n\taddiu %2,%2,%%lo(%6)\n\tvsub.xyzw %3,%0,%1"
             : "=j"(first), "=j"(second), "=&r"(address), "=j"(direction)
-            : "m"(a->q), "m"(b->q), "i"(&D_002A2DC0));
+            : "m"(a->q), "m"(b->q), "i"(&g_normalZ));
     axis = address;
     return direction;
 }
@@ -579,7 +579,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
 extern "C" int CanJtUseGadgetOnPipe(JTPIPE *pipe, int k) {
     if (k == 3) {
         int r = 0;
-        if (pipe->player->unknown12F0 && (D_002DFBC0 & 2)) r = !IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0);
+        if (pipe->player->unknown12F0 && (g_grfjoyt & 2)) r = !IsCameraPolicyActive__FP5CPLCY(&g_cm.part3a0);
         return r;
     }
     return 0;

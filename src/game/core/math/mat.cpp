@@ -48,7 +48,7 @@ struct MSG { int cb; int nKind; };
 
 extern "C" {
 extern M3 D_002A2D00;           /* the identity */
-extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
+extern qword D_002A2DA0, D_002A2DB0, g_normalZ;
 extern VECTOR D_002A2DA0V __asm__("D_002A2DA0");
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 void *func_0023320C(void *pvDst, const void *pvSrc, int cb) __asm__("memcpy");   /* memcpy */
@@ -290,7 +290,7 @@ extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
     M3 c;
     M3 a;
     M3 b;
-    func_0011B500V(&a, pan, D_002A2DC0);
+    func_0011B500V(&a, pan, g_normalZ);
     func_0011B500V(&b, -tilt, D_002A2DB0);
     MulM3PT(&c, &a, &b);
     func_0023320C(outMatrix, &c, sizeof(M3));
@@ -300,7 +300,7 @@ extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
 // Builds a look-at rotation whose x axis points along `vec` (BuildOrthonormalMatrixZ with the default up).
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *outMatrix, qword vec)
 {
-    MATRIX3 mat = BuildOrthonormalMatrixZR(vec, D_002A2DC0);
+    MATRIX3 mat = BuildOrthonormalMatrixZR(vec, g_normalZ);
     func_0023320C(outMatrix, &mat, sizeof(MATRIX3));
     return outMatrix;
 }
@@ -383,7 +383,7 @@ extern "C" void TiltMatUpright(M3 *matrix, M3 *outDelta, M3 *outUpright)
     M3 local;
     M3 *p = outDelta ? outDelta : &local;
     qword a0, a1, a2;
-    M3 t = BuildRotateVectorsMatrixR(matrix->r[2], D_002A2DC0);
+    M3 t = BuildRotateVectorsMatrixR(matrix->r[2], g_normalZ);
     a0 = t.r[0]; p->r[0] = a0;
     a1 = t.r[1]; p->r[1] = a1;
     a2 = t.r[2]; p->r[2] = a2;

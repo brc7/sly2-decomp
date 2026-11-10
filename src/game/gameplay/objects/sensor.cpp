@@ -235,7 +235,7 @@ struct HIT { qword pos; char pad[0x50]; };
 
 extern qword D_002A2DF0, D_002A2E00;   /* initial bounding-box min / max (not const: see BuildLasenBeams) */
 float D_002C3610 = 100.0f; /* sensor's .data (0x2C3610; the next 12 bytes are 0): ramp length of the mode-16 profile */
-extern qword D_002A2DC0;   /* up vector for the beam basis (not const: see RenderLasenSelf) */
+extern qword g_normalZ;   /* up vector for the beam basis (not const: see RenderLasenSelf) */
 
 typedef void (LASENV::*PFNLASEN)(int);
 
@@ -837,7 +837,7 @@ extern "C" void MoveLasenEndpoints(LASENV *laser)
     - the radius temporary VU_FLOAT(const float *, int) is a volatile empty asm (word load into a 128-bit GPR value);
       it is the scheduler barrier that keeps the camera/tree loads before the call arguments, which puts the camera
       address straight into $a0 and the tree pointer in $v1. This form exists to reproduce the original codegen;
-    - D_002A2DC0 must NOT be const: a const global is an unchanging load that sched2 moves above the spill of `dir`;
+    - g_normalZ must NOT be const: a const global is an unchanging load that sched2 moves above the spill of `dir`;
     - `dir` is a plain qword that lives across BuildOrthonormalMatrixZ, so it is spilled. Length lists its input twice
       (as the other matched Length/Dot helpers), which decides the reload register;
     - BuildOrthonormalMatrixZ / LoadMatrixFromPosRotScale return M3 / M4 by value (hidden result pointer);
@@ -909,7 +909,7 @@ extern "C" void RenderLasenSelf(LASENV *laser)
         qword dir;
         if (laser->stretchObject || laser->caps[0].palo || laser->caps[1].palo) {
             dir = VuSub(points[1].q, points[0].q);
-            basis = BuildOrthonormalMatrixZ(dir, D_002A2DC0);
+            basis = BuildOrthonormalMatrixZ(dir, g_normalZ);
         }
         if (laser->stretchObject) {
             float length = Length(dir);

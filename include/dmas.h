@@ -37,7 +37,7 @@ public:
     virtual void EndPrim(int n);
 };
 
-extern HEAP g_heapSw __asm__("D_002DD590");
+extern HEAP g_heapSw __asm__("g_heapSw");
 void *AllocFromStack(SWALLOC *preq) __asm__("AllocFromStack"); /* 0x1AE318 */
 void *AllocCopyFromHeap(HEAP *pheap, int cb, void *pv, int n); /* 0x116970 */
 void CopyAqw(void *pvDst, void *pvSrc, int cqw);        /* 0x1AE528 */

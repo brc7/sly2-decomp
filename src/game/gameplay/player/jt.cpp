@@ -385,7 +385,7 @@ struct ACTOR{char pad[0x80];qword response;};
 struct P{char pad0[0xC];void *vptr;char pad10[0xD8];ACTOR*actor;char padEC[0xF44];ASEGA*model;char pad1034[0x894];int mode,unusedCC,submode;char pad18D4[0x1B0];void*lookup;};
 struct WORK{U a,b;};
 
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern float D_002BF288 __asm__("D_002BF288");
 extern float D_002BF28C __asm__("D_002BF28C");
 extern float D_002BF290 __asm__("D_002BF290");
@@ -464,11 +464,11 @@ extern "C" void PresetJtAccel(P *jt)
             w.a.q = ScaleVecX(basis.r[0].q, VuFloat(gAlong));
             w.b.q = ScaleVecX(w.b.q, VuFloat(gPerp));
             M3 rotation;
-            rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
+            rotation = BuildAxisAngleRotationMatrix(g_normalZ, angle);
             qword sum = VuAdd(w.a.q, w.b.q);
             qword moved = VuSub(RotateVecAt(&rotation, &sum), position);
             qword velocity = DivVec(moved, VuFloatFromMemWord(*(int *)&g_clock.deltaTime));
-            AddSoAcceleration(jt, LimitVectorLength(ProjectOutVec(velocity, D_002A2DC0), D_002BF28C));
+            AddSoAcceleration(jt, LimitVectorLength(ProjectOutVec(velocity, g_normalZ), D_002BF28C));
         }
         break;
     }
@@ -835,7 +835,7 @@ extern "C" void SetJtPlayable(JT *jt, int f)
 namespace M_UpdateJtLean__FP2JT {
 // UpdateJtLean: ported from Lilly's personal Sly 2 decomp (src/P2/jtlean.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF2D0 (D_002BF2D0), D_002BF2D4 (D_002BF2D4), D_002BF2D8 (D_002BF2D8), D_002BF2DC (D_002BF2DC), D_002BF2E0 (D_002BF2E0), D_002BF300 (D_002BF300), D_002BF310 (D_002BF310), D_002BF320 (D_002BF320), D_002BF330 (D_002BF330), D_002DDED0 (g_clock), D_002BBB60 (g_lmZeroOne), D_002A2DC0 (g_normalZ), D_002A2DD0 (g_qwZero)
+// Globals: D_002BF2D0 (D_002BF2D0), D_002BF2D4 (D_002BF2D4), D_002BF2D8 (D_002BF2D8), D_002BF2DC (D_002BF2DC), D_002BF2E0 (D_002BF2E0), D_002BF300 (D_002BF300), D_002BF310 (D_002BF310), D_002BF320 (D_002BF320), D_002BF330 (D_002BF330), g_clock (g_clock), g_lmZeroOne (g_lmZeroOne), g_normalZ (g_normalZ), D_002A2DD0 (g_qwZero)
 // 0x00189618 UpdateJtLean__FP2JT  (our name; was UpdateJtLean)
 // The last step of the hero's per-frame update (JT::Update). The three actuators at JT+0x19E4 / 0x19E8 / 0x19EC hold the lean offset of his body.
 //  - nothing happens before JT::PostLoad made them, or while they are not in their owner's chain; in the look mode they go back to zero;
@@ -853,7 +853,7 @@ static inline float EvaluateClq(CLQ *clq, float x)
 {
     return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
-extern LM D_002BBB60 __asm__("D_002BBB60");
+extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 float SmoothValueWithAccel(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext) __asm__("SmoothValueWithAccel__FffffP4SMPAPf");
 float ModPositive(float gDividend, float gDivisor) __asm__("ModPositive__Fff");
 
@@ -931,7 +931,7 @@ static inline qword NormalizeVec(qword v)
 }
 qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("GetXfVelocity");
 extern float SProjectVector(qword qwVec, qword qwOnto, qword *pqwAlong, qword *pqwAcross) __asm__("SplitVectorAlongAxis");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern float D_002BF2D0 __asm__("D_002BF2D0");
 extern float D_002BF2D4 __asm__("D_002BF2D4");
 extern float D_002BF2D8 __asm__("D_002BF2D8");
@@ -1027,7 +1027,7 @@ void UpdateJtLean(JT *jt)
                     *(qword *)&vecDv = VuSub(*(qword *)&vecLocal, *(qword *)&vecLean);
                     if (jt->jtgrab.pasegblC) {
                         VECTOR4 vecAcross;
-                        *(qword *)&vecAcross = NormalizeVecViaDot(VuCross(D_002A2DC0, *(qword *)&vecDir));
+                        *(qword *)&vecAcross = NormalizeVecViaDot(VuCross(g_normalZ, *(qword *)&vecDir));
                         float gAcross = SProjectVector(*(qword *)&vecDv, *(qword *)&vecAcross, 0, (qword *)&vecDv);
                         float g = Clamp(gAcross / D_002BF2D4, -1.0f, 1.0f);
                         if (jt->jtgrab.isFlipped)
@@ -1057,7 +1057,7 @@ lComputeLean:
     *(qword *)&vecLocal = MulMatrixRows(&jt->matTarget, *(qword *)&vecDir);
     float gLen = LengthXYOf(*(qword *)&vecLocal);
     if (gLen > 0.0001f) {
-        float k = Clamp(EvaluateClq(&D_002BF310, Min(gLen / D_002BF300, 1.0f)), D_002BBB60.minValue, D_002BBB60.maxValue);
+        float k = Clamp(EvaluateClq(&D_002BF310, Min(gLen / D_002BF300, 1.0f)), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
         float gX = vecLocal.x * D_002BF2D8 * k / gLen;
         float gY = vecLocal.y * D_002BF2D8 * k / gLen;
         float gR = ({
@@ -1097,7 +1097,7 @@ lComputeLean:
 namespace M_RebuildJtXmg {
 // RebuildJtXmg: ported from Lilly's personal Sly 2 decomp (src/P2/jt.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF340 (D_002BF340), D_002BF344 (D_002BF344), D_002A2DC0 (g_normalZ)
+// Globals: D_002BF340 (D_002BF340), D_002BF344 (D_002BF344), g_normalZ (g_normalZ)
 // 0x00189C40 RebuildJtXmg__FP2JTP3ALOfT1P4ACT5P3XMG  (T1460 MATCH; T0983 had it at 77 %)  Sly 1's RebuildJtXmg (JT.c): Sly's foot placement for one foot. When the clip his feet follow
 // changes (pxmg->paseg) the foot's XMG is rebuilt. The clip's label 0x16A (a time) is asked three times where the XFs stand then (PredictAsegEffect 0x1300B8, relative to his root XF):
 // paloExtrem = the foot's ball XF, paloHip = the leg's root XF (its slot +0xA8 holds the leg's IK record, IKREC: the limb's goal XF with the IK handle's point, the two bone lengths) and
@@ -1159,7 +1159,7 @@ static inline qword AddScaledVec(qword qwBase, qword vec, VU_FLOAT scale)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(vec), "j"(scale.qw));
     return qw;
 }
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern int D_002BF340 __asm__("D_002BF340");          // 50.0f, read as its bits
 extern int D_002BF344 __asm__("D_002BF344");     // -50.0f, read as its bits
 extern void PredictAsegEffect(ASEG *paseg, SO *psoRoot, float tLocal, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
@@ -1199,7 +1199,7 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     }
     MATRIX4 matExtrem;
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->rootTransform, &matExtrem, 0);
-    qword posExtrem = AddScaledVec(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
+    qword posExtrem = AddScaledVec(*(qword *)matExtrem.mat[3], g_normalZ, VuFloat(-sRadius));
     MATRIX4 matHip;
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
     MATRIX4 matIkh;
@@ -1211,13 +1211,13 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
     VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
     LSG lsgClip;
-    qword posLineUp = AddScaledVec(posExtrem, D_002A2DC0, vfUp);
-    qword posLineDown = AddScaledVec(posExtrem, D_002A2DC0, vfDown);
+    qword posLineUp = AddScaledVec(posExtrem, g_normalZ, vfUp);
+    qword posLineDown = AddScaledVec(posExtrem, g_normalZ, vfDown);
     pxmg->isValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sphereRadius, posLineUp, posLineDown, 1, &lsgClip) > 0;
     pxmg->extremePosition = posExtrem;
     pxmg->upPosition = lsgClip.apos[0];
     pxmg->downPosition = lsgClip.apos[1];
-    pxmg->sphereLowPosition = AddScaledVec(pxmg->spherePosition, D_002A2DC0, VuFloat(-pxmg->sphereRadius));
+    pxmg->sphereLowPosition = AddScaledVec(pxmg->spherePosition, g_normalZ, VuFloat(-pxmg->sphereRadius));
 }
 } // namespace M_RebuildJtXmg
 
@@ -1230,7 +1230,7 @@ void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE 
 int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit) __asm__("FindFirstObjectHitByLine");
 void SetActRotationGoal(void *p, qword v) __asm__("SetActRotationGoal");
 void ShouldKeepSoPair() __asm__("ShouldKeepSoPair");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int TryMatchJtXmg(JT *pjt, XMG *pxmg, void *px) __asm__("TryMatchJtXmg");
 
@@ -1254,7 +1254,7 @@ int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
              FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
-            hit.v0 = VuSub(hit.v0, D_002A2DC0);
+            hit.v0 = VuSub(hit.v0, g_normalZ);
             w = ConvertPosBetweenLos(0, jt, hit.v0);
             u.q = w;
             SetActRotationGoal(px, VuSub(w, pm->extremePosition));
@@ -1641,7 +1641,7 @@ typedef char SMP_Alignment[__alignof__(SMP)==4?1:-1];
 namespace M_JtChooseGroundState {
 // ChooseJtGroundState: ported from Lilly's personal Sly 2 decomp (src/P2/jtground.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), D_002DDED0 (g_clock), D_002A2DC0 (g_normalZ)
+// Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), g_clock (g_clock), g_normalZ (g_normalZ)
 // 0x0018A8C8 ChooseJtGroundState (curated name)
 inline qword TransformPos(MATRIX4 *matrix, qword pos)
 {
@@ -1714,7 +1714,7 @@ extern float D_002BF360 __asm__("D_002BF360");
 extern float D_002BF364 __asm__("D_002BF364");
 extern qword D_002BF370 __asm__("D_002BF370");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 // Remove v's component along the unit normal n: v - (v.n) n.
 static inline qword ProjectOutVec(qword v, qword n)
 {
@@ -2020,7 +2020,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->unknown1F98);
                         jt->SetVelocity(ScaleVecX(velocity, scale));
                         SetJtAirJump(&jt->jtair, 0xC, 0, 0);
-                        jt->jtair.unknownA0 = ProjectOutVec(velocity, D_002A2DC0);
+                        jt->jtair.unknownA0 = ProjectOutVec(velocity, g_normalZ);
                     }
                     break;
             }
@@ -2953,7 +2953,7 @@ extern "C" void EnableJtLeanActs(JT *jt, int grf)
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // SetJtState: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
+// Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), g_clock (g_clock), g_game (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtState
 extern qword SetVectorCylind(float rad, float sXY, float sZ) __asm__("SetVectorCylind");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
@@ -3806,7 +3806,7 @@ void *GetJtGadgetRecord(char *p, int n) __asm__("GetJtGadgetRecord"); void *GetJ
 
 // CanJtUseGadget__2JTi: ported from Lilly's personal Sly 2 decomp (src/P2/jtgadget.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
-// Globals: D_002BF3EC (g_SheetMiscVariablesStatesThiefReflexesClock), D_002BF3F0 (g_SheetMiscVariablesStatesTimeRushClock), D_002DDED0 (g_clock), D_002DDF40 (g_cm), D_002DFBC0 (g_grfjoyt)
+// Globals: D_002BF3EC (g_SheetMiscVariablesStatesThiefReflexesClock), D_002BF3F0 (g_SheetMiscVariablesStatesTimeRushClock), g_clock (g_clock), g_cm (g_cm), g_grfjoyt (g_grfjoyt)
 // 0x0018D760 CanJtUseGadget__2JTi  (T1329)  Virtual 98: may Sly use the gadget in the state he is in? Nothing while the look mode runs (FJtModeActive). Thief reflexes (0x1D) and time rush (0x2A)
 // work in every state but jts 4 (hurt), and only while the clock's power-up rate is 1 (nothing runs) or is this gadget's own rate (the press that ends it). Else the state decides: the
 // air / grab / pipe records say (FJtairCanUseGadget, FJtgrabCanUseGadget, FJtpipeCanUseGadget), hang (3) allows only the look mode, the ground states (0, 1, 5, 10, 0xC) allow the
@@ -3815,7 +3815,7 @@ void *GetJtGadgetRecord(char *p, int n) __asm__("GetJtGadgetRecord"); void *GetJ
 // with no animation state, no interaction (interactMode 4) and unknown1D30 clear; the pocket items (0x1A, 0x25, 0x26, 0x29): an item in use must be carried, else the row's proxy needs a spare.
 // (jump2: the failing call tests, the throw state and the pocket arm share the return-0 block because `return 1` is the LAST arm and the pocket arm falls into `default:`.)
 
-extern int D_002DFBC0;
+extern int g_grfjoyt;
 
 
 
@@ -3920,7 +3920,7 @@ int JT::CanUseGadget(int gadgetId)
         default:
             return 0;
         case 3:
-            return unknown12F0 != 0 && (D_002DFBC0 & 2) && !g_cm.part3a0.FIsTop();
+            return unknown12F0 != 0 && (g_grfjoyt & 2) && !g_cm.part3a0.FIsTop();
         case 0x28:
             if (unknown1D30 != 0)
                 return 0;
@@ -4180,7 +4180,7 @@ struct PARAM{char pad[0x10];float y,z;int pad18;float weight;};
 struct ANIM;
 struct P{char pad[0xC];void *vptr;char pad10[0x140];PARAM*params;char pad154[0x5C];M3 matrix;char pad1E0[0x16E4];O*object;char pad18C8[0x698];float base;char pad1F64[8];float left;char pad1F70[8];float middle;char pad1F7C[8];float right;char pad1F88[8];ANIM*anim;float amount,weight;char pad1F9C[4];qword offset;};
 struct SMP{float a,b,c;};
-extern qword D_002A2DC0 __asm__("D_002A2DC0");
+extern qword g_normalZ __asm__("g_normalZ");
 extern SMP D_002BF3F8 __asm__("D_002BF3F8");
 extern SMP D_002BF408 __asm__("D_002BF408");
 extern M4*GetLoWorldMatrix(P*) __asm__("GetLoWorldMatrix");
@@ -4206,7 +4206,7 @@ static inline qword Normalize(qword vin, const U *negative, U *u)
     register qword up __asm__("vf1");
     __asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\taddiu %0,%0,%%lo(%5)\n\tmtc1 %1,%2\n\tlqc2 %3,0(%0)"
             : "=&r"(page), "=&r"(lenBits), "=f"(len), "=j"(up)
-            : "j"(one), "i"(&D_002A2DC0)
+            : "j"(one), "i"(&g_normalZ)
             : "memory");
     qword r;
     __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(up), "j"(fallback));

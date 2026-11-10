@@ -107,7 +107,7 @@ struct ThreadParam { int status; void (*entry)(void *); void *stack; int stackSi
 struct JOY;
 
 extern "C" {
-extern DMA *D_002DE598;
+extern DMA *g_pdcGif;
 int D_002F68F8;            /* first declared before D_002F6900: g++ 2.95 lays plain .bss out in declaration order */
 char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2F7900) */
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
@@ -121,7 +121,7 @@ extern const unsigned int D_002A3968[16] = {0xD77E9E24, 0xEF8D7128, 0x90A6F254, 
 extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 0x30120C3B, 0x285ED44F, 0xF6109257, 0xAE965CAD,
     0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
 int D_002C0268 = 0;   /* mpeg's .data */
-extern int D_002BD4C0;
+extern int g_cds;
 
 int func_00234A60(int n) __asm__("WaitSema");
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(DMA *, QW *);
@@ -217,8 +217,8 @@ SUBT *FindMpegSubtitles(K *pe) {
 // Sends the decoded frame (and the optional subtitle packet x) to the GS and swaps the display buffers.
 static __inline__ void Draw(QW *x, CMPEG *draw)
 {
-    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, (QW *)((unsigned)draw->pb + 0x41BC00));
-    if (x) SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, x);
+    SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, (QW *)((unsigned)draw->pb + 0x41BC00));
+    if (x) SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, x);
     SwapGsBuffers__Fv();
 }
 // Movie display thread: wait sema, DMA the decoded frame to GS (SendDmaSyncGsFinish), RestoreGsBuffers, time window
@@ -230,7 +230,7 @@ void MpegDisplayThread(void)
         D_002F66B0.stage = 0;
         func_00234A60(D_002F66B0.sema);
         D_002F66B0.stage = 1;
-        SendDmaSyncGsFinish__FP10sceDmaChanP2QW(D_002DE598, (QW *)((unsigned)D_002F66B0.pb + 0x3F8E80));
+        SendDmaSyncGsFinish__FP10sceDmaChanP2QW(g_pdcGif, (QW *)((unsigned)D_002F66B0.pb + 0x3F8E80));
         D_002F66B0.stage = 2;
         RestoreGsBuffers__Fv();
         x = 0;
@@ -779,7 +779,7 @@ void Execute__5CMpegPv(CMPEG *player, K *k)
             }
             if (x.mode == 2) {
                 UpdateCd__Fv();
-                if (D_002BD4C0 != 3) break;
+                if (g_cds != 3) break;
             }
             Update__5CMpeg(player);
         }

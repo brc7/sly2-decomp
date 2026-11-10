@@ -25,7 +25,7 @@ void CBinaryInputStream_ReadStringSw(void *pbis, char **ppchz, void *palloc, int
 void CBinaryInputStream_ReadCb64(void *pbis, void *pv);
 }
 // CID122 vtable slot 14 (LoadFromBrx): reads the LO part, then a byte count and that many records into a world-heap
-// array: name (interned in the string table D_002DD590), s8, s32, s32, 64 raw bytes. Field meanings unknown.
+// array: name (interned in the string table g_heapSw), s8, s32, s32, 64 raw bytes. Field meanings unknown.
 void CID122::LoadFromBrx(CBinaryInputStream *pbis_m)
 {
     S *object = (S *)this;
