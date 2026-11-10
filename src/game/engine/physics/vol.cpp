@@ -18,9 +18,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef union { qword q; float f[4]; } VU;
 
 /* View of VOL : XFM (fields from 0xE0; names from sly2/xfm.h's BSPC and GEOM, points as qwords). */
-struct VOLV
+struct VOLV : XFM 
 {
-    char pad[0xE0];
+    
     struct { int numNodes; int numNodesFull; int unknown08; int nodes; } bspc;   /* +0xE0 */
     struct { int numPoints; qword *points; int numSurfaces; void *surfaces; int numEdges; void *edges; } geom;   /* +0xF0 */
     char pad108[8];
