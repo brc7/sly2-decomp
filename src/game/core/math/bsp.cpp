@@ -599,11 +599,11 @@ extern float d_D_002BBAF0[8] __asm__("D_002BBAF0");
 
 float d_D_002BBAD0[8] __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, -1.0e8f, 0.0f, 0.0f, 0.0f, 0.0f};
 float d_D_002BBAF0[8] __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 1.0e8f, 0.0f, 0.0f, 0.0f, 0.0f};
-struct LEAF { BSP bsp; } __attribute__((aligned(16)));   /* a leaf node padded to a quadword */
+struct BSPLEAF { BSP bsp; } __attribute__((aligned(16)));   /* a leaf node padded to a quadword */
 
-extern LEAF d_D_002BBB10 __asm__("D_002BBB10");
-extern LEAF d_D_002BBB20 __asm__("D_002BBB20");
+extern BSPLEAF d_D_002BBB10 __asm__("D_002BBB10");
+extern BSPLEAF d_D_002BBB20 __asm__("D_002BBB20");
 
-LEAF d_D_002BBB10 = {{0, 0, (SURF *)d_D_002BBAD0}};
-LEAF d_D_002BBB20 = {{0, 0, (SURF *)d_D_002BBAF0}};
+BSPLEAF d_D_002BBB10 = {{0, 0, (SURF *)d_D_002BBAD0}};
+BSPLEAF d_D_002BBB20 = {{0, 0, (SURF *)d_D_002BBAF0}};
 }
