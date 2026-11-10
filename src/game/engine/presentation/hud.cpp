@@ -1204,7 +1204,9 @@ struct PARAM {
     // Widget color parameters: zero offset and scale, with the given priority and mode 1.
     PARAM(float p){offset.x=0.0f;offset.y=0.0f;offset.z=0.0f;offset.w=0.0f;scale.x=0.0f;scale.y=0.0f;scale.z=0.0f;scale.w=0.0f;priority=p;mode=1;} PARAM(){}
 };
-struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;char pad38[0x29];uchar channel;char pad62[6];Q *next;};
+/* A sprite item (hud.h SPRITEITEM): the key poses at +0x38 hold two matrix pointers. */
+struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;float previousTime;uchar previousColor0[4],previousColor1[4];void *previousMatrix;
+    float nextTime;uchar nextColor0[4],nextColor1[4];void *nextMatrix;int spriteSlot;float cachedTime;uchar interpolate;uchar channel;char pad62[2];int arg;Q *next;};
 struct LIST {Q *first,*last;};
 /* WIDGET island: a WIDGET-typed p (even the same pointer) moves the Align loop's registers (291/316 off) */
 struct WIDGETIsland : LO {char pad[0x54 - 0x50]; void *sprites_2; char pad58[0x84 - 0x58];void *sprites;char pad88[0xB4 - 0x88]; void *unknownB4; void *unknownB8; char padBC[0xC0 - 0xBC]; void *deferredLoad; void *spriteHeap; void *ownerWidget; char padCC[0xF4 - 0xCC]; void *followObject; void *xform;LIST queue;};
@@ -1760,7 +1762,7 @@ namespace M_LoadSpriteDescriptor {
 //   number puts the gcse temp for j+1 between &packetCount and &packet, which gives their spill slots.
 typedef int qword __attribute__((mode(TI)));
 struct BIS;
-struct OWNER : LO { char pad[0xC4 - 0x50]; HEAP *heap;};
+typedef WIDGET OWNER;   /* the widget the descriptor belongs to (widget.h; +0xC4 its sprite heap) */
 struct ROOT;
 struct SPRITE;
 struct M23 {float a[6];} __attribute__((aligned(16)));
@@ -1820,12 +1822,12 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   D_002C40A4=1;
   LoadSpriteTable(owner,stream,root,&sprite->data.nested.count,&sprite->data.nested.children);
   sprite->data.nested.wordCount=U32Read__18CBinaryInputStream(stream);
-  sprite->data.nested.words=(uint *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.nested.wordCount*4,0x13);
+  sprite->data.nested.words=(uint *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->data.nested.wordCount*4,0x13);
   int i;
   for(i=0;i<sprite->data.nested.wordCount;i++)sprite->data.nested.words[i]=U32Read__18CBinaryInputStream(stream);
   sprite->data.nested.floatCount=U32Read__18CBinaryInputStream(stream);
   int j;
-  sprite->data.nested.floats=(float *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.nested.floatCount*4,0x13);
+  sprite->data.nested.floats=(float *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->data.nested.floatCount*4,0x13);
   for(j=0;j<sprite->data.nested.floatCount;j++)sprite->data.nested.floats[j]=F32Read__18CBinaryInputStream(stream);
   D_002C40A4=0;break;
  case SPRITE_KIND_TEXT:{
@@ -1840,7 +1842,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
  case SPRITE_KIND_POLYGON:{
   ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);MATRIX3Q matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
   sprite->data.polygon.count=U16Read__18CBinaryInputStream(stream);
-  sprite->data.polygon.vertices=(VERTEX *)AllocZeroedFromHeap__FP4HEAPii(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
+  sprite->data.polygon.vertices=(VERTEX *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
   Read__18CBinaryInputStreamiPv(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
  }
  case SPRITE_KIND_EFFECT:case SPRITE_KIND_PICTURE:{
@@ -1869,8 +1871,8 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   VIFS vif;vif.AllocSw(20);vif.AddDmaCnt();
   vif.AddVifUnpack(UPK_V4_32,((uint)gif.m_pb-(uint)gif.m_ab)>>4,gif.m_ab,7);
   vif.AddVifMscal(D_00000650);vif.EndDmaCnt();vif.AddDmaRet();
-  if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->heap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
-  else{vif.DetachCopySw(owner->heap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&g_sw,owner,D_002A8B08,sprite);}
+  if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->spriteHeap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
+  else{vif.DetachCopySw(owner->spriteHeap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&g_sw,owner,D_002A8B08,sprite);}
   break;
  }
  case SPRITE_KIND_GEOMETRY:{
@@ -1928,7 +1930,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
    }
    vif.AddVifStmask(0);vif.AddVifMscal(D_00000140);
   }
-  vif.EndDmaCnt();vif.AddDmaRet();vif.DetachCopySw(owner->heap,&sprite->data.geometry.packetCount,0,&sprite->data.geometry.packet);break;
+  vif.EndDmaCnt();vif.AddDmaRet();vif.DetachCopySw(owner->spriteHeap,&sprite->data.geometry.packetCount,0,&sprite->data.geometry.packet);break;
  }
  }
 }
