@@ -29,7 +29,7 @@ struct XF
     short role;             /* 0x98 */
     short phase;            /* 0x9A */
     int oid;                /* 0x9C */
-    char padA0[8];
+    void *parent; char padA4[0xA8 - 0xA4];
     union { XF *reference; float blendWeight; }; /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
     int rotationCurve;      /* 0xD0: the ACG * of a float-curve channel (ACTSEG::Attach) */
@@ -37,7 +37,7 @@ struct XF
     char padD8[0x100 - 0xD8];
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
-struct SO { char pad0[0x50]; int numTransforms; XF *transforms; };
+struct SO : ALO {  int numTransforms; XF *transforms; };
 
 struct G { ASEGA *p; };
 
