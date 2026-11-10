@@ -51,6 +51,7 @@ public:
     void ReadCb12(void *pv);
     void ReadCb8(void *pv);
     void ReadGeom(GEOM *pgeom);    /* 0x117FD0 */
+    int OpenCdSectors(uint sector, uint size);   /* 0x184D98, CStreamBis's sector state (core/binstream/streambis.cpp) */
 };
 
 /* Reads a 0x40-byte file record (FILEREF-style); a C-named helper at 0x118458, not a member. */

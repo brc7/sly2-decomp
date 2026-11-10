@@ -33,7 +33,7 @@
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
 #include "sly2/classes.h"
-#include "bis.h"
+#include "sly2/streambis.h"
 #include "sly2/hw.h"
 
 struct LEVELLIST8;
@@ -487,7 +487,7 @@ struct FILEKEY {int name,tag,kind;char filename[0x110 - 0xC];};   /* a file key 
 typedef STEPPLAYER ACTOR;   /* the hero (stepplayer.h); jtmode.hud.pwidgetHud (+0xF2C) its HUD widget */
 typedef WARP CONTEXT;   /* the destination warp (classes.h WARP) */
 struct FRAME;
-struct STREAM;
+typedef CStreamBis STREAM;   /* the level file's stream (sly2/streambis.h) */
 extern char D_002F7980[] __asm__("D_002F7980"), D_002F66B0[] __asm__("D_002F66B0"), D_00443740[] __asm__("D_00443740"), D_002E1E88[] __asm__("D_002E1E88");
 extern ACTOR *D_002E1E40 __asm__("D_002E1E40"),*D_002DD5BC __asm__("D_002DD5BC"),*D_002F7900 __asm__("D_002F7900");
 
@@ -496,11 +496,8 @@ FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void SetPhase__F5PHASE(int) __asm__("SetPhase__F5PHASE");
 void InitFileKey(FILEKEY *) __asm__("InitFileKey");
-STREAM *CStreamBis_ctor(STREAM *,int,void *,int) __asm__("CStreamBis_ctor");
 int OpenStreamFromFileKey(STREAM *,FILEKEY *) __asm__("OpenStreamFromFileKey");
-void DestroyCStreamBis(STREAM *,int) __asm__("_$_10CStreamBis");
 void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *) __asm__("SetDecompress__18CBinaryInputStreamiPUc");
-void CStreamBis_Refill(STREAM *) __asm__("CStreamBis_Refill");
 void DeleteSw(SW *) __asm__("DeleteSw");
 void ResetClock(void *) __asm__("ResetClock");
 void AddGrfusr__Fi(int) __asm__("AddGrfusr__Fi");
@@ -509,7 +506,6 @@ int CMpeg_ExecuteOids(void *) __asm__("CMpeg_ExecuteOids");
 void InitCm__FP2CM(void *) __asm__("InitCm__FP2CM");
 void InitSwLoadBuffers(SW *) __asm__("InitSwLoadBuffers");
 void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *) __asm__("LoadSwFromBrx__FP2SWP18CBinaryInputStream");
-void CStreamBis_Close(STREAM *) __asm__("CStreamBis_Close");
 void PostSwLoad(SW *) __asm__("PostSwLoad");
 void ShowCountdownHud(SW *,float) __asm__("ShowCountdownHud");
 void ClearCheatItems(void) __asm__("ClearCheatItems");
@@ -531,7 +527,6 @@ void RunNextStartupStep(void *) __asm__("RunNextStartupStep");
 
 // Empty scope object (its constructor and destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
-struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
 extern CRef GetSaveVarByName(const char *,...) __asm__("GetSaveVarByName");
 // The frame clock's current time.
 static inline float Time(){return g_clock.time;}
@@ -581,8 +576,8 @@ extern "C" void ExecuteSwTransition(SW *world)
     int hasFile=NonZero(request.destinationLevel.aw[1]^request.destinationLevel.aw[15]);
     if(hasFile&&!SetKey(&key,&request.destinationLevel)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     FILEREC *current=&world->currentLevel; const FILEREC *requested=&request.destinationLevel; int changed=!Same(requested,current);
-    STREAM stream;
-    register STREAM *argument __asm__("$4")=StreamHome(&stream);
+    CStreamBisStorage stream;   /* constructed and destroyed through the C entry points */
+    register STREAM *argument __asm__("$4")=StreamHome((STREAM *)&stream);
     register STREAM *reader __asm__("$21");
 #ifdef SLY2_EE_ASM
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));   /* a copy the compiler cannot fold */

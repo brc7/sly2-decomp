@@ -29,6 +29,7 @@
 #include "sly2/clock.h"
 #include "sly2/game.h"
 #include "sly2/vtables.h"
+#include "sly2/streambis.h"
 extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
@@ -1097,18 +1098,14 @@ struct X;
 extern void InitFileKey(X *px) __asm__("InitFileKey");
 // Disc file location (sector, size, mode 2), initialised by InitFileKey.
 struct X { uint sector; uint size; int mode; char pad[0x110 - 0xC]; X() { mode = 2; InitFileKey(this); } };   /* a disc file location (FILEKEY) */
-struct Y;extern void DestroyCStreamBis(Y*,int) __asm__("_$_10CStreamBis");
-// Binary input stream view: CStreamBis constructor, destructor closes it.
-struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("CStreamBis_ctor");~Y(){DestroyCStreamBis(this,2);}};
 struct K {uint sectorKey,sizeKey;char pad[0x34-8];uint sectorXor;int pad2;uint sizeXor;};   /* a disc file entry: obfuscated sector / size */
 
 int sprintf(char *buf, const char *fmt, ...) __asm__("sprintf");
 int McOpen(void *saveManager, char *path, int mode, int *fd) __asm__("McOpen");
 void *AllocFromStack(REQUEST *pmsg) __asm__("AllocFromStack");
-int OpenStreamFromFileKey(Y *py, X *px) __asm__("OpenStreamFromFileKey");
+int OpenStreamFromFileKey(CStreamBis *stream, X *px) __asm__("OpenStreamFromFileKey");
 int McWrite(void *saveManager, int fd, char *buf, int size, int *written) __asm__("McWrite");
-int CbRead__18CBinaryInputStreamiPv(Y *py, int cb, char *buf) __asm__("CbRead__18CBinaryInputStreamiPv");
-void CStreamBis_Close(Y *py) __asm__("CStreamBis_Close");
+int CbRead__18CBinaryInputStreamiPv(CStreamBis *stream, int cb, char *buf) __asm__("CbRead__18CBinaryInputStreamiPv");
 int McClose(void *saveManager, int fd) __asm__("McClose");
 int load_file_from_disc(void *saveManager, const char *dir, K *entry, const char *name) __asm__("load_file_from_disc");
 
@@ -1137,37 +1134,10 @@ typedef char K_sectorKey_Offset[FIELD_OFFSET(K,sectorKey)==0?1:-1];
 typedef char K_sizeKey_Offset[FIELD_OFFSET(K,sizeKey)==4?1:-1];
 typedef char K_sectorXor_Offset[FIELD_OFFSET(K,sectorXor)==52?1:-1];
 typedef char K_sizeXor_Offset[FIELD_OFFSET(K,sizeXor)==60?1:-1];
-typedef char Y_flags_Offset[FIELD_OFFSET(Y,flags)==0?1:-1];
-typedef char Y_cursor_Offset[FIELD_OFFSET(Y,cursor)==4?1:-1];
-typedef char Y_left_Offset[FIELD_OFFSET(Y,left)==8?1:-1];
-typedef char Y_consumed_Offset[FIELD_OFFSET(Y,consumed)==12?1:-1];
-typedef char Y_raw_Offset[FIELD_OFFSET(Y,raw)==16?1:-1];
-typedef char Y_rawBytes_Offset[FIELD_OFFSET(Y,rawBytes)==20?1:-1];
-typedef char Y_decompFlags_Offset[FIELD_OFFSET(Y,decompFlags)==24?1:-1];
-typedef char Y_pending_Offset[FIELD_OFFSET(Y,pending)==28?1:-1];
-typedef char Y_word20_Offset[FIELD_OFFSET(Y,word20)==32?1:-1];
-typedef char Y_window_Offset[FIELD_OFFSET(Y,window)==36?1:-1];
-typedef char Y_word28_Offset[FIELD_OFFSET(Y,word28)==40?1:-1];
-typedef char Y_word2C_Offset[FIELD_OFFSET(Y,word2C)==44?1:-1];
-typedef char Y_vt_Offset[FIELD_OFFSET(Y,vt)==48?1:-1];
-typedef char Y_capacity_Offset[FIELD_OFFSET(Y,capacity)==52?1:-1];
-typedef char Y_buffer_Offset[FIELD_OFFSET(Y,buffer)==56?1:-1];
-typedef char Y_handle3C_Offset[FIELD_OFFSET(Y,handle3C)==60?1:-1];
-typedef char Y_word40_Offset[FIELD_OFFSET(Y,word40)==64?1:-1];
-typedef char Y_word44_Offset[FIELD_OFFSET(Y,word44)==68?1:-1];
-typedef char Y_word48_Offset[FIELD_OFFSET(Y,word48)==72?1:-1];
-typedef char Y_word4C_Offset[FIELD_OFFSET(Y,word4C)==76?1:-1];
-typedef char Y_word50_Offset[FIELD_OFFSET(Y,word50)==80?1:-1];
-typedef char Y_word54_Offset[FIELD_OFFSET(Y,word54)==84?1:-1];
-typedef char Y_word58_Offset[FIELD_OFFSET(Y,word58)==88?1:-1];
-typedef char Y_word5C_Offset[FIELD_OFFSET(Y,word5C)==92?1:-1];
-typedef char Y_word60_Offset[FIELD_OFFSET(Y,word60)==96?1:-1];
-typedef char Y_tail64_Offset[FIELD_OFFSET(Y,tail64)==100?1:-1];
 typedef char Size_0[sizeof(STACKSCOPE)==1?1:-1];
 typedef char Size_1[sizeof(REQUEST)==8?1:-1];
 typedef char Size_2[sizeof(X)==272?1:-1];
 typedef char Size_3[sizeof(K)==64?1:-1];
-typedef char Size_4[sizeof(Y)==112?1:-1];
 typedef char Size_5[sizeof(uint)==4?1:-1];
 typedef char Size_6[sizeof(int)==4?1:-1];
 typedef char Size_7[sizeof(void*)==4?1:-1];
@@ -1187,7 +1157,7 @@ int load_file_from_disc(void *saveManager, const char *dir, K *entry, const char
         prequest->bytes = 0x403F;
         prequest->alignment = 0x10;
         void *streamBuffer = AllocFromStack(prequest);
-        Y stream(0x403F, streamBuffer, 0);
+        CStreamBis stream(0x403F, streamBuffer, 0);   /* sly2/streambis.h; its destructor closes it */
         if (!SetKey(&location, entry) || !OpenStreamFromFileKey(&stream, &location))
             ret = 0x27;
         else {

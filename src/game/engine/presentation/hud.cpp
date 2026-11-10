@@ -36,6 +36,7 @@
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
 #include "sly2/hw.h"
+#include "sly2/streambis.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (subtitle), base of D_004435F4 */
 
@@ -669,7 +670,7 @@ int S8Read__18CBinaryInputStream(void *pbis) __asm__("S8Read__18CBinaryInputStre
 float F32Read__18CBinaryInputStream(void *pbis) __asm__("F32Read__18CBinaryInputStream");
 int U32Read__18CBinaryInputStream(void *pbis) __asm__("U32Read__18CBinaryInputStream");
 WIDGETLOAD *AllocClearedFromWorldHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
-void CBinaryInputStream_ReadCb64(void *pbis, WIDGETLOAD *po) __asm__("CBinaryInputStream_ReadCb64");
+/* CBinaryInputStream_ReadCb64: bis.h (by sly2/streambis.h) */
 void AppendSlEntry(void *, WIDGETLOAD *po) __asm__("AppendSlEntry");
 void LoadSpriteTable(WIDGET *p, void *pbis, WIDGET *p2, int *pa, SPRITEDESC **pb) __asm__("LoadSpriteTable");
 void LoadSpriteGroups(WIDGET *p, void *pbis, WIDGET *p2) __asm__("LoadSpriteGroups");
@@ -750,14 +751,13 @@ namespace M_LoadWidgetSprites {
 // Load prioritized sprite files.
 struct FRAME {};
 typedef struct {int cb,alignment;} MSG;
-struct BIS {int grf;char unknown4[0x2C];void *vt;int cbSpool;char *abSpool;int unknown3C[10];};
+typedef CStreamBis BIS;   /* the sprite file's stream (sly2/streambis.h) */
 typedef struct {int keyLo,keyHi,kind;char filename[0x104];} KEY;   /* a file lookup key (inferred) */
 typedef union {MSG msg;char magic[4];} TMP;
 typedef struct {char pad[0xC];int priority;} POOL;
 extern FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 extern void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-extern BIS *CStreamBis_ctor(BIS *,int,void *,int) __asm__("CStreamBis_ctor");
-extern void DestroyCStreamBis(BIS *,int) __asm__("_$_10CStreamBis");
+/* CStreamBis_ctor, DestroyCStreamBis: sly2/streambis.h */
 extern void InitFileKey(KEY *) __asm__("InitFileKey");
 extern void *AllocFromStack(MSG *) __asm__("AllocFromStack");
 extern int OpenStreamFromFileKey(BIS *,KEY *) __asm__("OpenStreamFromFileKey");
@@ -785,13 +785,13 @@ static inline int SetKey(KEY *key,WIDGETLOAD *load) {
 struct WORK {
  FRAME frame;
  TMP tmp __attribute__((aligned(16)));
- BIS stream __attribute__((aligned(16)));
+ CStreamBisStorage stream __attribute__((aligned(16)));   /* constructed and destroyed through the C entry points */
  KEY key __attribute__((aligned(16)));
 };
 // Loads a streamed widget's sprite file when the widget first leaves the unloaded state.
 extern "C" void LoadWidgetSprites(WIDGET *widget) {
     WORK work;
-    register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"(&work.stream));
+    register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"((BIS *)&work.stream));
     int priority=0;
     WIDGETLOAD *load;
     WIDGET *owner;
