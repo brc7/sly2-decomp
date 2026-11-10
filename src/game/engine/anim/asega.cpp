@@ -37,7 +37,7 @@ struct XF
     char padD8[0x100 - 0xD8];
 };
 typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
-struct SO : ALO {  int numTransforms; XF *transforms; };
+struct SO : ALO { int numTransforms; XF *transforms; };
 
 struct G { ASEGA *p; };
 
