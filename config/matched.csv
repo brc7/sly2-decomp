@@ -36,7 +36,7 @@ RefThunk_FindSoSaa,0x101368,31,match,src/game/app/class_registry.cpp
 func_001013E8,0x1013E8,31,match,src/game/app/class_registry.cpp
 func_00101468,0x101468,31,match,src/game/app/class_registry.cpp
 RefThunk_NewSoXfHandle,0x1014E8,40,match,src/game/app/class_registry.cpp
-func_00101588,0x101588,31,match,src/game/app/class_registry.cpp
+RefThunk_NewSoPartHandle,0x101588,31,match,src/game/app/class_registry.cpp
 RefThunk_SetSoTargetRecordParams,0x101608,45,match,src/game/app/class_registry.cpp
 RefThunk_SetScrollerMasterSpeeds,0x1016C0,42,match,src/game/app/class_registry.cpp
 RefThunk_AddAmbSound,0x101768,55,match,src/game/app/class_registry.cpp
@@ -49,7 +49,7 @@ RefThunk_SetAsegaPriority,0x101BE0,33,match,src/game/app/class_registry.cpp
 RefThunkAsegaSEEK,0x101C68,46,match,src/game/app/class_registry.cpp
 RefThunkAsegaRETRACT,0x101D20,29,match,src/game/app/class_registry.cpp
 func_00101D98,0x101D98,32,match,src/game/app/class_registry.cpp
-func_00101E18,0x101E18,29,match,src/game/app/class_registry.cpp
+RefThunk_PauseSnd,0x101E18,29,match,src/game/app/class_registry.cpp
 RefThunk_ResumeSnd,0x101E90,29,match,src/game/app/class_registry.cpp
 RefThunk_StopSnd,0x101F08,33,match,src/game/app/class_registry.cpp
 RefThunk_SetSndRange,0x101F90,42,match,src/game/app/class_registry.cpp
@@ -383,7 +383,7 @@ func_0010E4A8,0x10E4A8,42,match,src/game/app/class_registry.cpp
 RefThunk_GetShapeClosestPoint,0x10E550,34,match,src/game/app/class_registry.cpp
 RefThunk_SetXfHandleActuator1World,0x10E5D8,46,match,src/game/app/class_registry.cpp
 RefThunk_SetXfHandleActuator1Mat,0x10E690,49,match,src/game/app/class_registry.cpp
-func_0010E758,0x10E758,50,match,src/game/app/class_registry.cpp
+RefThunk_SetXfHandleActuator4,0x10E758,50,match,src/game/app/class_registry.cpp
 RefThunk_SetXfHandleKind16Params,0x10E820,60,match,src/game/app/class_registry.cpp
 RefThunk_AddJobCompleteEvent,0x10E910,33,match,src/game/app/class_registry.cpp
 func_0010E998,0x10E998,33,match,src/game/app/class_registry.cpp

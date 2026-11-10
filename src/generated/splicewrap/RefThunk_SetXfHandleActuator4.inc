@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void SetXfHandleActuator4(s32, s32, s32, f32, f32);     /* extern */
-CRef *func_0010E758(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_SetXfHandleActuator4(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[4] = { 4109, 5, 1, 1 };
     CRef ref;

@@ -341,13 +341,13 @@ void func_001012C0() __asm__("func_001012C0");
 void func_001013E8() __asm__("func_001013E8");
 void func_00101468() __asm__("func_00101468");
 void RefThunk_NewSoXfHandle() __asm__("RefThunk_NewSoXfHandle");
-void func_00101588() __asm__("func_00101588");
+void RefThunk_NewSoPartHandle() __asm__("RefThunk_NewSoPartHandle");
 void RefThunk_SetSoTargetRecordParams() __asm__("RefThunk_SetSoTargetRecordParams");
 void RefThunk_AddAmbSound() __asm__("RefThunk_AddAmbSound");
 void func_00101848() __asm__("func_00101848");
 void func_001019D0() __asm__("func_001019D0");
 void func_00101D98() __asm__("func_00101D98");
-void func_00101E18() __asm__("func_00101E18");
+void RefThunk_PauseSnd() __asm__("RefThunk_PauseSnd");
 void func_00102150() __asm__("func_00102150");
 void func_001021D0() __asm__("func_001021D0");
 void func_00102250() __asm__("func_00102250");
@@ -517,7 +517,7 @@ void func_0010E4A8() __asm__("func_0010E4A8");
 void RefThunk_GetShapeClosestPoint() __asm__("RefThunk_GetShapeClosestPoint");
 void RefThunk_SetXfHandleActuator1World() __asm__("RefThunk_SetXfHandleActuator1World");
 void RefThunk_SetXfHandleActuator1Mat() __asm__("RefThunk_SetXfHandleActuator1Mat");
-void func_0010E758() __asm__("func_0010E758");
+void RefThunk_SetXfHandleActuator4() __asm__("RefThunk_SetXfHandleActuator4");
 void RefThunk_SetXfHandleKind16Params() __asm__("RefThunk_SetXfHandleKind16Params");
 void func_0010E998() __asm__("func_0010E998");
 void func_0010EA20() __asm__("func_0010EA20");
@@ -808,7 +808,7 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x124, EOPID_PMF(GetSoPosXfVelocityLocal), EOPID_PMF(SetSoPosXfVelocityLocal), EOPID_PMF(SetSoPosXfVelocityLocal), EOPID_NONE}, /* [75] opt 187, SO (+60) */
     {2, 0x124, EOPID_PMF(GetSoRotXfVelocityLocal), EOPID_PMF(SetSoRotXfVelocityLocal), EOPID_PMF(SetSoRotXfVelocityLocal), EOPID_NONE}, /* [76] opt 188, SO (+60) */
     {0x2095, 1, EOPID_NONE, EOPID_FN(RefThunk_NewSoXfHandle), EOPID_INT(2), EOPID_NONE}, /* [77] opt 194, SO (+60) */
-    {0x2096, 1, EOPID_NONE, EOPID_FN(func_00101588), EOPID_INT(1), EOPID_NONE}, /* [78] opt 195, SO (+60) */
+    {0x2096, 1, EOPID_NONE, EOPID_FN(RefThunk_NewSoPartHandle), EOPID_INT(1), EOPID_NONE}, /* [78] opt 195, SO (+60) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetSoTargetRecordParams), EOPID_FN(RefThunk_SetSoTargetRecordParams), EOPID_INT(2), EOPID_NONE}, /* [79] opt 196, SO (+60) */
     {1, 0x124, EOPID_PMF(GetSoPhysRecordParam8), EOPID_PMF(SetSoPhysRecordParam8), EOPID_PMF(SetSoPhysRecordParam8), EOPID_NONE}, /* [80] opt 197, SO (+60) */
     {1, 0x124, EOPID_PMF(GetSoPhysRecordParamC), EOPID_PMF(SetSoPhysRecordParamC), EOPID_PMF(SetSoPhysRecordParamC), EOPID_NONE}, /* [81] opt 198, SO (+60) */
@@ -857,7 +857,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkAsegaRETRACT), EOPID_NONE, EOPID_NONE}, /* [124] opt 237, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00101D98), EOPID_INT(1), EOPID_NONE}, /* [125] opt 248, ASEGA */
     {0, 4, EOPID_PMF(IsAsegaRetracted), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [126] opt 255, ASEGA */
-    {0x12, 1, EOPID_NONE, EOPID_FN(func_00101E18), EOPID_NONE, EOPID_NONE}, /* [127] opt 256, CID151 */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_PauseSnd), EOPID_NONE, EOPID_NONE}, /* [127] opt 256, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResumeSnd), EOPID_NONE, EOPID_NONE}, /* [128] opt 257, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopSnd), EOPID_INT(1), EOPID_NONE}, /* [129] opt 258, CID151 */
     {1, 0x22, EOPID_INT(0x10), EOPID_PMF(SetSndVolume), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
@@ -1960,7 +1960,7 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2012, EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_NONE, EOPID_PMF(GetXfFromHandle)}, /* [1227] opt 1059, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator1World), EOPID_INT(3), EOPID_NONE}, /* [1228] opt 1060, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator1Mat), EOPID_INT(3), EOPID_NONE}, /* [1229] opt 1061, CID149 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(func_0010E758), EOPID_INT(4), EOPID_NONE}, /* [1230] opt 1062, CID149 */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator4), EOPID_INT(4), EOPID_NONE}, /* [1230] opt 1062, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleKind16Params), EOPID_INT(6), EOPID_NONE}, /* [1231] opt 1063, CID149 */
     {0x1011, 0x24, EOPID_PMFI(func_00256350), EOPID_PMFI(func_00256328), EOPID_NONE, EOPID_NONE}, /* [1232] opt 122, CID150 */
     {5, 0x24, EOPID_PMFI(func_00256318), EOPID_PMFI(func_002562F0), EOPID_NONE, EOPID_NONE}, /* [1233] opt 123, CID150 */

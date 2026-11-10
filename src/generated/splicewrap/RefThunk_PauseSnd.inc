@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void PauseSnd(s32);                         /* extern */
-CRef *func_00101E18(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_PauseSnd(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);

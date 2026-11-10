@@ -294,8 +294,8 @@ extern "C" CRef RefThunk_NewSoXfHandle(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_00101588)
-#include "../../generated/splicewrap/func_00101588.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_NewSoPartHandle)
+#include "../../generated/splicewrap/RefThunk_NewSoPartHandle.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetSoTargetRecordParams(void *p, int, void *);
@@ -396,8 +396,8 @@ SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(func_00101D98)
 #include "../../generated/splicewrap/func_00101D98.inc"
 SLY2_SPLICEWRAP_END
-SLY2_SPLICEWRAP_BEGIN(func_00101E18)
-#include "../../generated/splicewrap/func_00101E18.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_PauseSnd)
+#include "../../generated/splicewrap/RefThunk_PauseSnd.inc"
 SLY2_SPLICEWRAP_END
 SLY2_SPLICEWRAP_BEGIN(RefThunk_ResumeSnd)
 #include "../../generated/splicewrap/RefThunk_ResumeSnd.inc"
@@ -2075,8 +2075,8 @@ extern "C" CRef RefThunk_SetXfHandleActuator1Mat(void *p, int c, void *aref)
     return ref;
 }
 
-SLY2_SPLICEWRAP_BEGIN(func_0010E758)
-#include "../../generated/splicewrap/func_0010E758.inc"
+SLY2_SPLICEWRAP_BEGIN(RefThunk_SetXfHandleActuator4)
+#include "../../generated/splicewrap/RefThunk_SetXfHandleActuator4.inc"
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetXfHandleKind16Params(void *p, int, float, float, float, float, qword);

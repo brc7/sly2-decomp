@@ -2,7 +2,7 @@
 void CRef_SetBasic(void *, s32);                 /* extern */
 s32 NewSoPartHandle(s32, s32);                        /* extern */
 
-CRef *func_00101588(CRef *ret, void *pbasic, s32 cref, CRef *aref)
+CRef *RefThunk_NewSoPartHandle(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     OTYP aotyp[1];

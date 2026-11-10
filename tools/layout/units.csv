@@ -36,7 +36,7 @@ RefThunk_FindSoSaa,0x101368,class_registry
 func_001013E8,0x1013E8,class_registry
 func_00101468,0x101468,class_registry
 RefThunk_NewSoXfHandle,0x1014E8,class_registry
-func_00101588,0x101588,class_registry
+RefThunk_NewSoPartHandle,0x101588,class_registry
 RefThunk_SetSoTargetRecordParams,0x101608,class_registry
 RefThunk_SetScrollerMasterSpeeds,0x1016C0,class_registry
 RefThunk_AddAmbSound,0x101768,class_registry
@@ -49,7 +49,7 @@ RefThunk_SetAsegaPriority,0x101BE0,class_registry
 RefThunkAsegaSEEK,0x101C68,class_registry
 RefThunkAsegaRETRACT,0x101D20,class_registry
 func_00101D98,0x101D98,class_registry
-func_00101E18,0x101E18,class_registry
+RefThunk_PauseSnd,0x101E18,class_registry
 RefThunk_ResumeSnd,0x101E90,class_registry
 RefThunk_StopSnd,0x101F08,class_registry
 RefThunk_SetSndRange,0x101F90,class_registry
@@ -383,7 +383,7 @@ func_0010E4A8,0x10E4A8,class_registry
 RefThunk_GetShapeClosestPoint,0x10E550,class_registry
 RefThunk_SetXfHandleActuator1World,0x10E5D8,class_registry
 RefThunk_SetXfHandleActuator1Mat,0x10E690,class_registry
-func_0010E758,0x10E758,class_registry
+RefThunk_SetXfHandleActuator4,0x10E758,class_registry
 RefThunk_SetXfHandleKind16Params,0x10E820,class_registry
 RefThunk_AddJobCompleteEvent,0x10E910,class_registry
 func_0010E998,0x10E998,class_registry
