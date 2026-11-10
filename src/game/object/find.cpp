@@ -52,8 +52,8 @@ typedef char assert_SOV_childEnd[SLY2_OFFSETOF(SOV, childEnd) == 0x70 ? 1 : -1];
 /* One bucket of the SW hash tables (an SL: head, tail, link offset). */
 /* A proxy-root entry in the pxr hash. */
 struct PXRENT { int unknown0; void *proxyChain; int oid; PXRENT *next; LO *object; };
-/* A proxy chain link. */
-struct CH { void *id; CH *next; };
+/* A proxy chain link: a PXR (sly2/lo.h) as the chain walk sees it, its proxyId and parent. */
+struct CH { int id; CH *next; };
 extern CLASSDESC D_002BAAE8[];   /* the class descriptor table (sly2/basic.h) */
 
 extern "C" {
@@ -73,19 +73,19 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid);
 // Returns the world's hash bucket for an oid (512 buckets, hash (oid * 0x95675) & 0x1FF).
 extern "C" SL *GetSwOidBucket(char *world, int oid)
 {
-    return &((SL *)(world + 0x38))[(oid * 0x95675) & 0x1FF];
+    return &((SW *)world)->objectsByOid[(oid * 0x95675) & 0x1FF];
 }
 
-// Returns the world's list of objects of a class. The class lists are 12 bytes apart from SW+0x3038.
+// Returns the world's list of objects of a class.
 extern "C" SL *GetSwClassList(char *world, int cid)
 {
-    return &((SL *)(world + 0x3038))[cid];
+    return &((SW *)world)->objectsByClass[cid];
 }
 
 // Returns the bucket for an oid in the world's second hash table (proxy references, same hash).
 extern "C" SL *GetSwProxyRefBucket(char *world, int oid)
 {
-    return &((SL *)(world + 0x1838))[(oid * 0x95675) & 0x1FF];
+    return &((SW *)world)->aslPxrOid[(oid * 0x95675) & 0x1FF];
 }
 
 // Tests one candidate object against the search flags, the context object and the context's proxy chain, and records
@@ -102,7 +102,7 @@ extern "C" void MatchSwObject(void *world, LO *candidate, CH *candidateChain, un
             while (1) {
                 if (!link)
                     return;
-                if (GetSourceIndexFromProxyId((int)link->id) == GetSourceIndexFromProxyId((int)candidateChain->id))
+                if (GetSourceIndexFromProxyId(link->id) == GetSourceIndexFromProxyId(candidateChain->id))
                     break;
                 if (flags & 0x800)
                     return;

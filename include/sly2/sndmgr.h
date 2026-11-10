@@ -57,14 +57,13 @@ struct SNDFILE
 #define VOLUME_CATEGORY_PAUSE_FADE 2
 
 /* SNDMGR: the sound manager (g_sndmgr, D_003DD040, defined by sound.cpp; 0x250 bytes). A BASIC (constructed by
-   SNDMGR_ctor; the first 0x10 bytes are BASIC's words and vtable), declared here without the C++ base: the field views
-   read it by offset and sound.cpp's definition has its own construct-and-destruct form.
+   SNDMGR_ctor, which stores BASIC's words and vtable itself); sound.cpp's definition has its own construct-and-destruct
+   form.
    Volume channels: 0 ambience, 1 music, 2 dialog, 3 bank sound effects (the menu's effects slider sets 0 and 3).
    Volume categories (rows of volumes): 1 the options menu, 2 the pause fade (0 pauses the channel's sounds), 3 a player
    mode's ducking (mode.cpp: 0.6); the rest are 1. */
-struct SNDMGR
+struct SNDMGR : public BASIC
 {
-    int abasic[4];               /* +0x000 BASIC (frame, side bag, subscribers, vtable) */
     int isHeadsetEnabled;        /* +0x010 the "use headset" option (save.cpp loads it; menu.cpp shows it) */
     int unknown14;               /* +0x014 cleared by ResetSndmgr only */
     int numSfx;                  /* +0x018 size of the sfx id -> sound index table (ResetSndmgr: -1) */

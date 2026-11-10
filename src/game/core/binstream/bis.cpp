@@ -79,33 +79,24 @@ struct TREE
 };
 
 /* CMemInputStream: a CBinaryInputStream over one memory buffer (vtable 0x2CA5A0, emitted here; CBinaryInputStream's is
-   0x2CA5C0). Its constructor, deleting destructor, Fill and SetBuffer still carry C names (CMemInputStream_ctor,
-   CMemInputStream_dtor, CMemInputStream_Fill, SetMemInputStreamBuffer): the class below declares Fill (the key function, defined as its
-   member) for the vtable, and the bodies read the object through the view CMemInputStreamV (the 0x30 bytes of base
-   fields it touches named), whose constructor stores the vtable by hand. */
+   0x2CA5C0). Its constructor, deleting destructor and SetBuffer still carry C names (CMemInputStream_ctor,
+   CMemInputStream_dtor, SetMemInputStreamBuffer): the constructor stores the vtable by hand. Fill is the key function,
+   defined as its member. */
 class CMemInputStream : public CBinaryInputStream
 {
 public:
     virtual void Fill() __asm__("CMemInputStream_Fill");   /* slot 1; key function */
-};
-struct CMemInputStreamV
-{
-    /* 0x00 */ int flags;
-    /* 0x04 */ byte *pb; int cb, cbConsumed;   /* bis.h m_pb, m_cb, m_cbConsumed */
-    /* 0x10 */ byte *rawData;
-    /* 0x14 */ int rawSize;
-    /* 0x18 */ int grfDecomp, cbPending, m_unk20; byte *pbDecomp; int m_unk28, m_unk2C;   /* bis.h */
-    /* 0x30 */ void *vtable;
-    /* 0x34 */ int memSize;
+
+    /* 0x34 */ int memSize;     /* bytes not yet handed to the reader */
     /* 0x38 */ byte *memData;
 };
-typedef char assert_CMemInputStream_size[sizeof(CMemInputStreamV) == 0x3C ? 1 : -1];
+typedef char assert_CMemInputStream_size[sizeof(CMemInputStream) == 0x3C ? 1 : -1];
 
 extern "C" {
 void *AllocFromWorldHeap(MSG *pmsg);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
 void InitPlaneFromPositions(FACE *pface, qword pos0, qword pos1, qword pos2);
-void __18CBinaryInputStream(CMemInputStreamV *pmis);   /* CBinaryInputStream::CBinaryInputStream() below */
+void __18CBinaryInputStream(CBinaryInputStream *pbis);   /* CBinaryInputStream::CBinaryInputStream() below */
 extern char D_002BBAF0[];
 }
 
@@ -610,7 +601,7 @@ extern "C" void CBinaryInputStream_ReadCb64(CBinaryInputStream *stream, void *de
 SLY2_SCRAP("sw $0, 0x28($4)");
 
 // CMemInputStream constructor: base constructor, then this class's vtable.
-extern "C" CMemInputStreamV *CMemInputStream_ctor(CMemInputStreamV *stream)
+extern "C" CMemInputStream *CMemInputStream_ctor(CMemInputStream *stream)
 {
     __18CBinaryInputStream(stream);
     SLY2_SET_VPTR_AT(stream, 0x30, CMemInputStream);
@@ -618,7 +609,7 @@ extern "C" CMemInputStreamV *CMemInputStream_ctor(CMemInputStreamV *stream)
 }
 
 // CMemInputStream deleting destructor: restores the vtable and frees the object when asked to (flag bit 0).
-extern "C" void CMemInputStream_dtor(CMemInputStreamV *stream, int flags)
+extern "C" void CMemInputStream_dtor(CMemInputStream *stream, int flags)
 {
     SLY2_SET_VPTR_AT(stream, 0x30, CMemInputStream);
     if (flags & 1)
@@ -628,16 +619,15 @@ extern "C" void CMemInputStream_dtor(CMemInputStreamV *stream, int flags)
 // CMemInputStream::Fill: hands the whole memory buffer over as one raw block, then has nothing more.
 void CMemInputStream::Fill()   /* key function: CMemInputStream's vtable comes out here */
 {
-    CMemInputStreamV *pmis = (CMemInputStreamV *)this;
-    pmis->rawSize = pmis->memSize;
-    pmis->rawData = pmis->memData;
-    pmis->memSize = 0;
+    m_cbRaw = memSize;
+    m_pbRaw = memData;
+    memSize = 0;
 }
 
 // Points a memory stream at `size` bytes at `data`, with stream flags `flags` (e.g. compressed).
-extern "C" void SetMemInputStreamBuffer(CMemInputStreamV *stream, int size, byte *data, int flags)
+extern "C" void SetMemInputStreamBuffer(CMemInputStream *stream, int size, byte *data, int flags)
 {
     stream->memSize = size;
     stream->memData = data;
-    stream->flags = flags;
+    stream->m_grfbis = flags;
 }

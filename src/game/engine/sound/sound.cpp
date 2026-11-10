@@ -1139,9 +1139,9 @@ SNDMGR *SNDMGR_ctor(SNDMGR *soundManager) __asm__("SNDMGR_ctor"); SNDMGR *SNDMGR
 {
     int n;
     int *entry;
-    soundManager->abasic[0] = 0;   /* BASIC: frame, side bag, vtable */
-    soundManager->abasic[1] = 0;
-    soundManager->abasic[3] = (int)SLY2_VTBL(CID152);
+    soundManager->scriptFrame.m_p = 0;   /* BASIC's construction as plain stores */
+    soundManager->scriptVariables.m_p = 0;
+    SLY2_SET_VPTR(soundManager, CID152);
     InitSlotheap(&soundManager->bankSoundPool, 0x70, 0x80, 0x10);      /* 128 bank sounds of 0x70 bytes */
     InitSlotheap(&soundManager->streamSoundPool, 0x3C0, 0x10, 0x10);   /* 16 stream sounds of 0x3C0 bytes */
     soundManager->dialogSound.p = 0;

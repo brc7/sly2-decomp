@@ -1506,22 +1506,20 @@ extern "C" int IsWithinCameraRenderDistance(CM *p, qword v, float g, float *pu)
 /* 0x256278 (the matrix option's setter, forwarding to SetCmMat): an inline function in sly2/cm.h. */
 
 namespace M_DestroyCm {
-typedef struct { int pad[3]; void *vptr; } O;   /* a reference-counted SND; released through BASIC::Release (slot 2) */
-/* CM: the CRefPtr<SND> members of its embedded look (+0x450) and zoom (+0x520) policies (sly2/cm.h's CPLOOK::psndZoom /
-   zoomStopSound and CPZOOM::psndZoom / zoomStopSound) */
-typedef struct { char pad[0x484]; O *lookZoomSound; O *lookSound2; char pad2[0x154]; O *zoomZoomSound; O *zoomSound2; } S;
-void BASIC_dtor(S *, int) __asm__("_$_5BASIC");   /* ~BASIC (screen.cpp), passed ~CM's in-charge flag */
+void BASIC_dtor(CM *, int) __asm__("_$_5BASIC");   /* ~BASIC (screen.cpp), passed ~CM's in-charge flag */
+/* Release a counted sound through BASIC::Release (slot 2); SND need not be complete here. */
+static inline void ReleaseSnd(CRefPtr<SND> *ref) { if (ref->m_p) ((BASIC *)ref->m_p)->Release(); }
 // ~CM (_$_2CM): releases the policies' four sound references in reverse member order, then runs the base destructor
-// (~BASIC, _$_5BASIC, shared with SW and the screens) with the in-charge flag. Defined over this view, labelled and weak
-// in .gnu.linkonce.t._$_2CM (as screen.cpp's ~BASIC): a CM::~CM() definition would need SND complete for the
+// (~BASIC, _$_5BASIC, shared with SW and the screens) with the in-charge flag. Labelled and weak in
+// .gnu.linkonce.t._$_2CM (as screen.cpp's ~BASIC): a CM::~CM() definition would need SND complete for the
 // CRefPtr<SND> members, and the implicit destructor would be inlined into the static destructor, which calls it.
-extern "C" { void DestroyCm(S *p, int x) __asm__("_$_2CM") __attribute__((weak, section(".gnu.linkonce.t._$_2CM"))); }
-extern "C" void DestroyCm(S *p, int x)
+extern "C" { void DestroyCm(CM *p, int x) __asm__("_$_2CM") __attribute__((weak, section(".gnu.linkonce.t._$_2CM"))); }
+extern "C" void DestroyCm(CM *p, int x)
 {
-    if (p->zoomSound2) ((BASIC *)p->zoomSound2)->Release();
-    if (p->zoomZoomSound) ((BASIC *)p->zoomZoomSound)->Release();
-    if (p->lookSound2) ((BASIC *)p->lookSound2)->Release();
-    if (p->lookZoomSound) ((BASIC *)p->lookZoomSound)->Release();
+    ReleaseSnd(&p->cpzoom.zoomStopSound);
+    ReleaseSnd(&p->cpzoom.psndZoom);
+    ReleaseSnd(&p->cplook.zoomStopSound);
+    ReleaseSnd(&p->cplook.psndZoom);
     BASIC_dtor(p, x);
 }
 } // namespace M_DestroyCm

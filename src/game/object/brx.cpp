@@ -156,7 +156,7 @@ LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice)
     plo->parent = psoParent;
     plo->oid = oid;
     world = &g_sw;
-    FramePtr_Assign(plo, GetSpliceFrame(world, isplice, plo));
+    FramePtr_Assign(&plo->scriptFrame, GetSpliceFrame(world, isplice, plo));
     AppendSlEntry(GetSwOidBucket(world, oid), plo);
     AppendSlEntry(GetSwClassList(world, cid), plo);
     plo->Init();

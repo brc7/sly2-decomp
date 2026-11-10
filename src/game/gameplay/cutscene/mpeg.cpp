@@ -180,7 +180,7 @@ int func_00234A40(int n) __asm__("SignalSema");
 int func_0024B590(MPEG *p) __asm__("sceMpegReset");
 int sceMpegDelete(MPEG *p);
 void Spool__18CBinaryAsyncStream(CBinaryAsyncStream *t);
-int sceMpegDemuxPss(MPEG *p, int pb, int n);
+int sceMpegDemuxPss(MPEG *p, void *pb, int n);
 void Skip__18CBinaryAsyncStreami(CBinaryAsyncStream *t, int r);
 
 void MpegDisplayThread(void);
@@ -727,7 +727,14 @@ struct X {
     void Init() __asm__("InitFileKey");
     bool FSet(K *k);
 };
-struct CBinaryAsyncStream { char pad[0x1C]; int bytesLoaded; int buffer; int readOffset; int moreToRead;   /* (inferred) */ char pad2C[0x30 - 0x2C];
+/* core/binstream/bas.cpp's class (its fields; the constructor is the C-named __18CBinaryAsyncStreamPv there). */
+struct CBinaryAsyncStream {
+    int kind; int fd; uint sector; int pendingSize; char *pendingBuffer; int spoolSize; char *spoolBuffer;
+    int currentSize;    /* bytes in the current spool half */
+    char *current;      /* the current spool half */
+    int currentPos;     /* read position in it */
+    int bytesNotRead;   /* bytes of the file still to come */
+    int fileSize;
     CBinaryAsyncStream(int cb, void *pv) __asm__("__18CBinaryAsyncStreamPv"); ~CBinaryAsyncStream(); };
 // Points the stream at a movie entry: the entry stores its disc offset and length XOR-masked with two key words
 // (offsetKey/lengthKey); the sector offset is biased by 0xCA0. Returns the length (0 for no entry).
@@ -846,15 +853,15 @@ void Finish__5CMpeg(CMPEG *player)
 int DemuxStream__5CMpegi(CMPEG *player, int wait)
 {
     int n, r;
-    n = player->pstrm->bytesLoaded - player->pstrm->readOffset;
+    n = player->pstrm->currentSize - player->pstrm->currentPos;
     while (n == 0) {
-        if (!player->pstrm->moreToRead) return 2;
+        if (!player->pstrm->bytesNotRead) return 2;
         Spool__18CBinaryAsyncStream(player->pstrm);
-        n = player->pstrm->bytesLoaded - player->pstrm->readOffset;
+        n = player->pstrm->currentSize - player->pstrm->currentPos;
         if (n == 0 && !wait) return 0;
     }
     func_00234CA0(0);
-    r = sceMpegDemuxPss(&player->mpeg, player->pstrm->buffer + player->pstrm->readOffset, n);
+    r = sceMpegDemuxPss(&player->mpeg, player->pstrm->current + player->pstrm->currentPos, n);
     Skip__18CBinaryAsyncStreami(player->pstrm, r);
     if (r) return 0;
     if (player->qVideo.cb >= n && player->audio.qData.cb >= n) return 2;
