@@ -2824,7 +2824,7 @@ extern "C" void UpdateJt(JT *p)
     case 5:
         if (p->bodyState == 5) {
             qword s, motion;
-            UpdateDirectionalBlend(p, p->unknown13D0, p->unknown14D0);
+            UpdateDirectionalBlend(p, p->abldirJts5, p->pasegblJts5);
             {
                 unsigned page;
                 __asm__("lui %0,%%hi(%3)\n\tlqc2 %1,%4\n\tlw %0,%%lo(%3)(%0)\n\tqmtc2.ni %0,%2"
@@ -2838,7 +2838,7 @@ extern "C" void UpdateJt(JT *p)
             p->unknown180 = 1.0f;
         }
         break;
-    case 0xA: UpdateDirectionalBlend(p, p->unknown1AC0, p->unknown1BC0); break;
+    case 0xA: UpdateDirectionalBlend(p, p->abldirJts10, p->pasegblJts10); break;
     case JTS_Stand: UpdateJtStand(p); break;
     case JTS_Hang: UpdateJtHangIkGoals__FP2JT(p); break;
     case JTS_Gait2: UpdateGaitFootsteps(&p->gaitB); break;
@@ -3498,7 +3498,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 aseg = jt->unknown1A84;
                 break;
             case JTS_Unk0A:
-                aseg = jt->unknown1BC0;
+                aseg = jt->pasegblJts10;
                 grfapl = 9;
                 tStart = jt->gaitBlend * aseg->duration;
                 jt->blendSide = -1;
@@ -3580,7 +3580,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     SetPlayerTn(jt, *(TN **)((char *)jt->unknown1F18 + 0x110));
                 break;
             case JTS_HangFollow:
-                aseg = jt->unknown1F90;
+                aseg = jt->pasegblHangFollow;
                 grfapl = 9;
                 SetJtAnimState(jt, -1);
                 SetSoCnstrForce(jt, 1);
@@ -3599,8 +3599,8 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 jt->ablLean[2].weight = gZero;
                 jt->ablLean[0].weight = gZero;
                 jt->ablLean[1].weight = 1.0f;
-                ReblendAsegbl(jt->unknown2038);
-                aseg = jt->unknown2038;
+                ReblendAsegbl(jt->pasegblLean);
+                aseg = jt->pasegblLean;
                 SetStepRadTarget(jt, jt->controller->leftStickAngle);
                 qword velocity = SetVectorCylind(jt->targetHeading, D_002BF3E8, gZero);
                 jt->SetVelocity(velocity);
@@ -3641,7 +3641,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTBS_5:
                 jt->blendSide = -1;
-                aseg = jt->unknown14D0;
+                aseg = jt->pasegblJts5;
                 ClearXyz(&jt->unknown190);
                 grfapl = 9;
                 break;

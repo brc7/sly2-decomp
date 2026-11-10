@@ -82,8 +82,8 @@ struct SURFLOC
 struct JT : public STEPPLAYER
 {
       GAIT gait;   /* +0x1320 Sly's walk/run gait (InitJt) */
-      undefined4 unknown13D0[0x100 / 4];
-      ASEGBL *unknown14D0;
+      undefined4 abldirJts5[0x100 / 4];
+      ASEGBL *pasegblJts5;
       ASEG *unknown14D4;
       ASEG *unknown14D8;
       undefined4 unk_0x14dc[(0x1514 - 0x14dc) / 4];
@@ -154,8 +154,8 @@ struct JT : public STEPPLAYER
       struct EXPL *pexplDustLand;   /* dust effect on landing */
       struct EXPL *pexplDustGrab;   /* dust effect on grabbing */
       undefined4 unk_0x1ab0[(0x1ac0 - 0x1ab0) / 4];
-      undefined4 unknown1AC0[0x100 / 4];
-      ASEGBL *unknown1BC0;
+      undefined4 abldirJts10[0x100 / 4];
+      ASEGBL *pasegblJts10;
       SM *unknown1BC4;
       ASEG *pasegPickpocket;   /* pickpocket animation */
       LO *ploPickpocket;   /* the object being pickpocketed */
@@ -194,8 +194,8 @@ struct JT : public STEPPLAYER
                                          distance kept from the surface */
             VECTOR4 avecMeshProbe[3];   /* the same, by component (air.cpp MeasureJumpAlongPath reads [0].x) */
       };
-      undefined4 unknown1F60[0x30 / 4];
-      ASEGBL *unknown1F90;
+      undefined4 ablHangFollow[0x30 / 4];
+      ASEGBL *pasegblHangFollow;
       float unknown1F94;   /* possibly curvePosition (low-confidence guess: -1..1 position mapped onto a shape and an angle) */
       float unknown1F98;
       undefined4 unk_0x1f9c[(0x1fb0 - 0x1f9c) / 4];
@@ -208,7 +208,7 @@ struct JT : public STEPPLAYER
       undefined4 unk_0x2008[(0x2010 - 0x2008) / 4];
       PROXY *unknown2010;
       JTAIRBL ablLean[3];   /* lean blends in the air (inferred) */
-      ASEGBL *unknown2038;
+      ASEGBL *pasegblLean;
       undefined4 unk_0x203c[(0x2044 - 0x203c) / 4];
       CRefPtr<SND> psndGadget;   /* +0x2044 [R] looping gadget sound (ram_inspector) */
 
