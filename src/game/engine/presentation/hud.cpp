@@ -1207,7 +1207,7 @@ struct PARAM {
 struct Q {uchar color0[4],color1[4];char pad8[8];char matrix[0x20];void *payload;int kind;char pad38[0x29];uchar channel;char pad62[6];Q *next;};
 struct LIST {Q *first,*last;};
 /* WIDGET island: a WIDGET-typed p (even the same pointer) moves the Align loop's registers (291/316 off) */
-struct WIDGETIsland {char pad[0x84];void *sprites;char pad88[0x74];LIST queue;};
+struct WIDGETIsland : LO {char pad[0x54 - 0x50]; void *sprites_2; char pad58[0x84 - 0x58];void *sprites;char pad88[0xB4 - 0x88]; void *unknownB4; void *unknownB8; char padBC[0xC0 - 0xBC]; void *deferredLoad; void *spriteHeap; void *ownerWidget; char padCC[0xF4 - 0xCC]; void *followObject; void *xform;LIST queue;};
 extern VIFS D_002DEA28 __asm__("D_002DEA28");
 
 void RenderLoSelf(WIDGETIsland *) __asm__("RenderLoSelf");
