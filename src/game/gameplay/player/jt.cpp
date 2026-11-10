@@ -4059,9 +4059,9 @@ extern "C" void UseJtGadget(JT *p, int n)
     case 0x23:
         p->jtgrab.gadgetId = n;
         if (n == 0x23)
-            p->pasegGadget = p->unknown1FE0;
+            p->pasegGadget = p->pasegGadget23;
         else
-            p->pasegGadget = p->unknown1FE4;
+            p->pasegGadget = p->pasegGadget22;
         SetJtGrabState(&p->jtgrab, 0xB, 0, 0);
         break;
     case 0x18:

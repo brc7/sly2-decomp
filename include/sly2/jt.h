@@ -200,8 +200,8 @@ struct JT : public STEPPLAYER
       float unknown1F98;
       undefined4 unk_0x1f9c[(0x1fb0 - 0x1f9c) / 4];
       JTPOCKET gadgetPockets[4]; /* the gadget slots */
-      int unknown1FE0;
-      int unknown1FE4;
+      int pasegGadget23;
+      int pasegGadget22;
       ASEG *unknown1FE8;
       undefined4 unknown1FEC;
       JTREC jtrec;   /* +0x1FF0 interaction helper record (JtInteractPre, SetJtRecState, NJtRecSide) */
