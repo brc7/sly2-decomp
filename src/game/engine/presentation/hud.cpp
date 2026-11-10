@@ -3498,11 +3498,11 @@ extern "C" void FinishSpriteSoundEvents(SPRITEANIM *anim, int key, int slot)
 namespace M_HandleSpriteKeyEvents {
 // Dispatch sprite actions and manage sound slots.
 struct O;
-struct E { char pad[0x14]; CID151 *pm; };
-struct R { char pad[8]; struct E *ae; };
+struct E { int numItems; void *items; short animIndex, keyIndex; float time; int isFinished; CID151 *pm; };   /* a SPRITESLOT (hud.h): pm = its sound */
+struct R { unsigned short numAnims, numSlots; void *anims; struct E *ae; };   /* a SPRITEGRP prefix (hud.h): ae = its slots */
 struct A { int kind; int id; };
-struct F { char pad[0x18]; unsigned char count; char pad1[3]; struct A *aa; };
-struct S { char pad[4]; struct F *af; char pad1[8]; struct R *r; };
+struct F { float time; unsigned char itemCount, colorCount, shortCount, byteCount; void *bytes, *items, *colors, *shorts; unsigned char count; char pad1[3]; struct A *aa; };   /* a SPRITEKEY (hud.h): count/aa = its tags */
+struct S { unsigned short numKeys, pad2; struct F *af; float duration; WIDGET *owner; struct R *r; };   /* a SPRITEANIM (hud.h): af = its keys, r = its group */
 extern CID151 *CreateSfxSound(int id) __asm__("CreateSfxSound");
 extern void SetSndSourceLo(CID151 *, struct O *) __asm__("SetSndSourceLo");
 extern void StopSnd(CID151 *, float) __asm__("StopSnd");
