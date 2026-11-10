@@ -149,75 +149,73 @@ extern "C" void RenderStepSelf(STEP *step, void *pcm, void *pro)
 namespace RO_ORDER { extern const float r_D_002A85F0 __asm__("D_002A85F0") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00203AF0 {
-/* (Claude agent) matched: mesh->localPoints loaded into a $2 pointer after qmtc2, vmadd fed the VF3 scalar directly, slot = firstHelper*16 + (int)dst computed before the u.q store. */
+/* (Claude agent) matched: mesh->meshLocal.positions loaded into a $2 pointer after qmtc2, vmadd fed the VF3 scalar directly, slot = firstHelper*16 + (int)dst computed before the u.q store. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct E { float x; float y; float z; float w; };
-struct Q0 { char pad[0x40]; char matWorld[1]; };
-struct Q { struct Q0 *transform; char pad[0x1C - 4]; int numPinnedPoints; char pad2[0x78 - 0x20]; char geomLocal[4]; void *localPoints; char pad3[0x90 - 0x80]; char geomWorld[4]; char *worldPoints; };
-struct M { char pad[0x1C]; int numPinnedPoints; char pad2[0x78 - 0x20]; int numLocalPoints; };
-struct S {
-    char pad0[0x28]; unsigned long flags; char pad1[0x60 - 0x30]; void *rootTransform; char pad2[0xE0 - 0x64]; int numParts; char *parts;
-    char pad3[0x210 - 0xE8]; float baseHeight; int stepDownHeightBits; char *basePoint; char *topPoint; char pad4[0x240 - 0x220]; qword basePos;
-    char pad5[0x258 - 0x250]; struct Q *physPart;
-};
 extern const float D_002A85F0 __asm__("D_002A85F0");   /* defined below where the ELF has it (.rodata order) */
 extern qword g_normalZ __asm__("g_normalZ");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
-void RemoveSoParts(struct S *p) __asm__("RemoveSoParts");
-void AddSoParts(struct S *p) __asm__("AddSoParts");
-int IsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-void CloneSoPartGeomInserting(struct M *m, void *p, int k, struct Q *q) __asm__("CloneSoPartGeomInserting");
-void EnsureSoPartMesh(struct Q *q) __asm__("EnsureSoPartMesh");
+void RemoveSoParts(STEP *p) __asm__("RemoveSoParts");
+void AddSoParts(STEP *p) __asm__("AddSoParts");
+int IsBasicDerivedFrom__FP5BASIC3CID(STEP *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void CloneSoPartGeomInserting(SOPART *m, void *p, int k, SOPART *q) __asm__("CloneSoPartGeomInserting");
+void EnsureSoPartMesh(SOPART *q) __asm__("EnsureSoPartMesh");
 void UpdateGeomWorld(void *a, void *b, void *firstHelper) __asm__("UpdateGeomWorld");
 
 // Builds the step's collision part from a mesh part: appends a new SOPART, copies the geometry, records the lowest
 // point as the base height (+0x210) and adds two helper points. (inferred)
 // Also known as: MakeStepCustomEntry (upstream readable / Sly 1 name; MakeStepCustomEntry__FP3ALOP3SOE).
-extern "C" void BuildStepPhysPart(struct S *step, struct M *m)
+extern "C" void BuildStepPhysPart(STEP *step, SOPART *m)
 {
     int n, allPinned, i, firstHelper;
     float lowestZ;
     U u;
     qword r;
-    if ((int)(step->flags >> 60) & 1)
-        RemoveSoParts(step);
+    {
+        bool fInWorld = step->isInWorld;   /* through a bool: g++ shifts the bit out (dsrl32; andi 1) */
+        if (fInWorld)
+            RemoveSoParts(step);
+    }
     n = step->numParts;
     step->numParts = n + 1;
     allPinned = 0;
-    step->physPart = (struct Q *)(step->parts + n * 0xB0);
+    step->psopartBody = &step->parts[n];
     if (!IsBasicDerivedFrom__FP5BASIC3CID(step, 0x34))
-        allPinned = m->numPinnedPoints == m->numLocalPoints;
-    CloneSoPartGeomInserting(m, step->rootTransform, !allPinned ? 2 : 3, step->physPart);
-    EnsureSoPartMesh(step->physPart);
+        allPinned = m->unknown1C == m->meshLocal.numPositions;
+    CloneSoPartGeomInserting(m, step->rootTransform, !allPinned ? 2 : 3, step->psopartBody);
+    EnsureSoPartMesh(step->psopartBody);
     lowestZ = D_002A85F0;
-    for (i = 0; i < step->physPart->numPinnedPoints; i++) {
-        float e = ((struct E *)step->physPart->localPoints)[i].z;
+    for (i = 0; i < step->psopartBody->unknown1C; i++) {
+        float e = ((struct E *)step->psopartBody->meshLocal.positions)[i].z;
         lowestZ = (e > lowestZ) ? lowestZ : e;
     }
-    step->baseHeight = lowestZ;
-    firstHelper = step->physPart->numPinnedPoints;
-    step->physPart->numPinnedPoints = firstHelper + 2;
-    {register struct Q *mesh __asm__("$4")=step->physPart;
-     register qword point __asm__("$3")=step->basePos;
-     ((qword *)mesh->localPoints)[firstHelper]=point;}
+    step->unknown210 = lowestZ;
+    firstHelper = step->psopartBody->unknown1C;
+    step->psopartBody->unknown1C = firstHelper + 2;
+    {register SOPART *mesh __asm__("$4")=step->psopartBody;
+     register qword point __asm__("$3")=step->pivotOffset;
+     ((qword *)mesh->meshLocal.positions)[firstHelper]=point;}
     {register int word __asm__("$2");
-     register struct Q *mesh __asm__("$3");
+     register SOPART *mesh __asm__("$3");
      register qword *dst __asm__("$2");
-     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeightBits),"m"(step->physPart));
+     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(word),"=r"(mesh):"m"(step->stepDownHeight),"m"(step->psopartBody));
      {register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(word));
-     dst=(qword *)mesh->localPoints;
-     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->basePos),"j"(g_normalZ),"j"(value));
+     dst=(qword *)mesh->meshLocal.positions;
+     __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->pivotOffset),"j"(g_normalZ),"j"(value));
      {qword *slot=(qword *)(firstHelper*16+(int)dst);
      u.q=value;
      slot[1]=r;}}}
     if (allPinned)
-        ((qword *)step->physPart->localPoints)[firstHelper + 2] = D_002A2DD0;
-    UpdateGeomWorld(step->physPart->transform->matWorld, step->physPart->geomLocal, step->physPart->geomWorld);
-    step->basePoint = step->physPart->worldPoints + firstHelper * 16;
-    step->topPoint = step->physPart->worldPoints + (firstHelper * 16 + 0x10);
-    if ((int)(step->flags >> 60) & 1)
-        AddSoParts(step);
+        ((qword *)step->psopartBody->meshLocal.positions)[firstHelper + 2] = D_002A2DD0;
+    UpdateGeomWorld(&step->psopartBody->transform->worldMatrix, &step->psopartBody->meshLocal, &step->psopartBody->meshWorld);
+    step->unknown218 = (::qword *)((char *)step->psopartBody->meshWorld.positions + firstHelper * 16);
+    step->unknown21C = (::qword *)((char *)step->psopartBody->meshWorld.positions + (firstHelper * 16 + 0x10));
+    {
+        bool fInWorld = step->isInWorld;
+        if (fInWorld)
+            AddSoParts(step);
+    }
 }
 } // namespace M_func_00203AF0
 
