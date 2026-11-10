@@ -28,17 +28,17 @@ enum { ANY_KEY = -1 };   /* PlayDancerMove: the move whose button the controller
 /* A dancer (a step object) as this TU reads it. */
 struct DANCERV
 {
-    int pad0[3];
+    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
     VTE *vt;                    /* 0x00C */
-    char pad10[0x58 - 0x10];
+    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; void *unknown2C; char pad30[0x34 - 0x30]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x54 - 0x40]; void *transforms;
     void *unknown58, *unknown5C;    /* 0x058 handed to func_002303A0 before a move plays (inferred: blend channels) */
-    char pad60[0x150 - 0x60];
+    void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; char padE0[0xE4 - 0xE0]; void *parts; void *physics; void *physicsTree; char padF0[0x134 - 0xF0]; void *psobounds; void *pxa; char pad13C[0x150 - 0x13C];
     void *controller;           /* 0x150 POCTL: the dancer's button input */
-    char pad154[0x190 - 0x154];
+    char pad154[0x168 - 0x154]; DANCER *unknown168; void *cameraTunnel; char pad170[0x174 - 0x170]; void *unknown174; char pad178[0x190 - 0x178];
     qwordV velocity;            /* 0x190 */
     char pad1A0[0x1B0 - 0x1A0];
     qwordV orientation[3];      /* 0x1B0 rotation matrix rows */
-    char pad1E0[0x2C0 - 0x1E0];
+    char pad1E0[0x208 - 0x1E0]; void *floorContact; char pad20C[0x218 - 0x20C]; void *unknown218; void *unknown21C; char pad220[0x258 - 0x220]; void *psopartBody; void *psopartPhys; char pad260[0x268 - 0x260]; void *ppartPhysMesh; void *unknown26C; char pad270[0x274 - 0x270]; void *unknown274; void *unknown278; void *unknown27C; void *unknown280; void *unknown284; void *unknown288; void *unknown28C; void *unknown290; SHAPE *unknown294; char pad298[0x2C0 - 0x298];
     void *idleSegment;          /* 0x2C0 */
     union { unsigned int numMovesU; int numMoves; };  /* 0x2C4 */
     DMOVE moves[8];             /* 0x2C8 */
