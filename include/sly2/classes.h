@@ -161,7 +161,7 @@ struct SAA : BASIC
     unsigned short frame;   /* +0x28 [S] */
     short unknown2A;
     int isDirty;            /* +0x2C [S] */
-    void *owner;            /* +0x30 [S] */
+    void *isGlobsetOwned;   /* +0x30 [S] */
     SL instances;           /* +0x34 [S] its copy records (shd.h COPYREC, linked through pcopyrecNext) */
     SAA *next;              /* +0x40 [S] next in g_sw.slSaa */
     int cqwMain;            /* +0x44 [S] (glob.cpp SAAFIELDS) */
@@ -1540,7 +1540,7 @@ typedef char assert_BARREL_carryState[SLY2_OFFSETOF(BARREL, carryState) == 0x17C
 struct CID35 : XFM, GRABSPOT
 {
     DLE dleGrab;            /* +0x104 link in g_sw.dlCid35 */
-    int nFired;             /* +0x10C last FireTriggerGrabspot argument */
+    int activator;          /* +0x10C last FireTriggerGrabspot argument */
     float sRadius;          /* +0x110 biases the grab score (AdjustTriggerGrabspotScore) */
     void *relay;            /* +0x114 fired with the trigger */
     int crsmg;              /* +0x118 */

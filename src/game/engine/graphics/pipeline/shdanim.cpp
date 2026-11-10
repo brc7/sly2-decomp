@@ -69,7 +69,7 @@ extern "C" SAA *LoadSaaFromBrx(void *pv, void *pbis)
     SAA *p;
     if (i == -1) return 0;
     p = (D_002BAAE8 + i)->pfnNew();
-    p->owner = pv;
+    p->isGlobsetOwned = pv;
     Read__18CBinaryInputStreamiPv(pbis, 0x20, buf);
     p->Init((SAAF *)buf);
     return p;
@@ -97,7 +97,7 @@ void SAA::Init(SAAF *q)   /* key function: SAA's vtable comes out here */
     p->grf = q->c;
     p->numFrames = q->d;
     InitSl(&p->instances, 0x10);
-    if (p->owner == 0) PrependSlEntry((SL *)&g_sw.slSaa, p);
+    if (p->isGlobsetOwned == 0) PrependSlEntry((SL *)&g_sw.slSaa, p);
     else AppendSlEntry((SL *)&g_sw.slSaa, p);
 }
 

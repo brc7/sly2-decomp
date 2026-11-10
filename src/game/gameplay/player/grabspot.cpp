@@ -814,7 +814,7 @@ void FireRelay(void *p, int n) __asm__("FireRelay");
 // Also known as: UseObjectBase (upstream readable / Sly 1 name; UseObjectBase__FP2LOi).
 void FireTriggerGrabspot(CID35 *trigger, int n) __asm__("FireTriggerGrabspot"); void FireTriggerGrabspot(CID35 *trigger, int n)
 {
-    trigger->nFired = n;
+    trigger->activator = n;
     trigger->SendMessage((MSGID)6, trigger);
     TriggerRsmg(&g_sw, trigger->crsmg, trigger->arsmg, trigger, 1);
     ApplyTaskStates(&g_game, trigger->cpair, trigger->apair, trigger);
