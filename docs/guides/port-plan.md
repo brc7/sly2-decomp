@@ -5,6 +5,13 @@
 > and the full pages are in git history (`git show 3493d772:docs/engine/rendering.md`); formats are under
 > [../formats/](../formats/world-file.md). The render port checklist is section 6.6.
 
+> **Superseded in part (2026-11-10).** The port now lives in a separate private repository that compiles this
+> decomp's own sources natively (64-bit, clang) with the decomp pinned as a submodule; it uses SDL3 for window, input,
+> audio and GPU (SDL's GPU API on Metal), and verifies behaviour by automated comparison against PCSX2. This
+> repository stays matching-only; match-preserving portability fixes still land here. That repository's
+> `docs/plan/` (inventory, 64-bit hazards, prior art, milestones) is the current plan; the sections below remain as
+> background and as a record of the alternatives considered. Section 15 sketches modding with Splice.
+
 Status: proposal v1, 2026-11-01; revised 2026-11-06 with the **[S]** notes (section 14). Author: port-planning agent. Audience: the TL, plus agent teams who will build it.
 Evidence tags: **[K]** = known, with a citation to our docs or a measurement made while writing this plan.
 **[A]** = assumption or opinion that needs checking (each one is tied to a spike or a task in section 11).
@@ -566,3 +573,34 @@ port code.
 **Licensing (decision for the maintainer):** neither repository has a license yet. SafeHouse's own code is therefore
 all rights reserved; ours is too until one is chosen, which is also a prerequisite for any collaboration (for example
 offering them our address→name map and docs).
+
+## 15. Modding and extensions with Splice
+
+Splice ([splice-scripting.md](../systems/splice-scripting.md)) is the engine's level-scripting language and the
+cleanest extension surface the game has. Level designers used it for mission logic, puzzles and ambushes, cutscene and
+relay triggers, job and task progression, and per-object setup when a level loads. Scripts read and write numbered
+options on objects (`geto`, `seto!`), call methods fetched as options, handle events bound in an object's frame
+(post-load, update, trigger and untrigger, game events, animation labels), schedule callbacks, and read and write
+save variables. They cannot reach physics, rendering, AI internals or player movement directly: those are native, and
+scripts see them only through the options and methods each class exposes.
+
+What that makes possible, roughly from cheapest to most involved:
+
+- **Reading and tweaking existing levels**: a dump tool that extracts each level's compiled scripts from the user's own
+  ISO into readable S-expressions (the scripts are game content, so only the tool belongs in a repository), then
+  adjusted timers, guard tuning or win conditions.
+- **New missions and puzzles in existing levels**: rewiring triggers, adding ambushes, chaining new objectives, using
+  objects already placed in the level.
+- **Challenge modes and randomizers**: time trials on the clock and scheduled callbacks, no-detection runs hooked to
+  guard alert events, shuffled loot, keys, clue bottles or job order by rewriting options at load time.
+- **A live console**: in the port, a REPL hooked to the builtin `eval` to inspect and poke objects while playing,
+  useful for exploration and for debugging the port itself.
+- **New features**: because the source is available, new builtins (C++ functions in the builtin table) and new
+  options on classes extend what scripts can do, which makes Splice the natural extension language for new gadgets,
+  objective types or events.
+
+Prerequisites, in order: a language reference for script authors (syntax, special forms, every builtin with its
+arguments, the options each class exposes, the engine events); the dump tool; a compiler back to the serialized form
+described in [formats/splice-scripts.md](../formats/splice-scripts.md) so modified scripts can be written into a level
+file; and the REPL hook in the port.
+
