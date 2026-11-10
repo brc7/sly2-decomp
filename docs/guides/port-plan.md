@@ -9,7 +9,7 @@
 > decomp's own sources natively (64-bit, clang) with the decomp pinned as a submodule; it uses SDL3 for window, input,
 > audio and GPU (SDL's GPU API on Metal), and verifies behaviour by automated comparison against PCSX2. This
 > repository stays matching-only; match-preserving portability fixes still land here. That repository's
-> `docs/plan/` (inventory, 64-bit hazards, prior art, milestones) is the current plan; the sections below remain as
+> plan folder (inventory, 64-bit hazards, prior art, milestones) is the current plan; the sections below remain as
 > background and as a record of the alternatives considered. Section 15 sketches modding with Splice.
 
 Status: proposal v1, 2026-11-01; revised 2026-11-06 with the **[S]** notes (section 14). Author: port-planning agent. Audience: the TL, plus agent teams who will build it.
@@ -593,7 +593,7 @@ What that makes possible, roughly from cheapest to most involved:
   objects already placed in the level.
 - **Challenge modes and randomizers**: time trials on the clock and scheduled callbacks, no-detection runs hooked to
   guard alert events, shuffled loot, keys, clue bottles or job order by rewriting options at load time.
-- **A live console**: in the port, a REPL hooked to the builtin `eval` to inspect and poke objects while playing,
+- **A live console**: in the port, an interactive console (read-eval-print loop) hooked to the builtin `eval` to inspect and poke objects while playing,
   useful for exploration and for debugging the port itself.
 - **New features**: because the source is available, new builtins (C++ functions in the builtin table) and new
   options on classes extend what scripts can do, which makes Splice the natural extension language for new gadgets,
@@ -602,5 +602,5 @@ What that makes possible, roughly from cheapest to most involved:
 Prerequisites, in order: a language reference for script authors (syntax, special forms, every builtin with its
 arguments, the options each class exposes, the engine events); the dump tool; a compiler back to the serialized form
 described in [formats/splice-scripts.md](../formats/splice-scripts.md) so modified scripts can be written into a level
-file; and the REPL hook in the port.
+file; and the console hook in the port.
 
