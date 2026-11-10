@@ -1464,37 +1464,35 @@ extern "C" void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
 
 namespace M_IsInCameraFrustum {
 typedef int qword __attribute__((mode(TI)));
-struct X { char pad[0xA0]; qword r[3]; };
 // True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
 // (inferred)
 // Also known as: FInsideCmPlanes (upstream readable / Sly 1 name; FInsideCmPlanes__FP2CMG9VU_VECTORT1).
-extern "C" int IsInCameraFrustum(struct X *p, qword v, qword w)
+extern "C" int IsInCameraFrustum(CM *p, qword v, qword w)
 {
     qword one;
     int f;
     __asm__("vmaxw.xyzw %0, $vf0, $vf0w" : "=j"(one));
     __asm__("vmulax.xyzw $ACC, %1, %4x\n\tvmadday.xyzw $ACC, %2, %4y\n\tvmaddaz.xyzw $ACC, %3, %4z\n\tvmsubax.xyzw $ACC, %5, %6x\n\tvnop\n\tvnop\n\tvnop\n\tvnop\n\tcfc2.ni %0, $vi17"
-            : "=r"(f) : "j"(p->r[0]), "j"(p->r[1]), "j"(p->r[2]), "j"(v), "j"(one), "j"(w));
+            : "=r"(f) : "j"(*(qword *)&p->agFrustumXyz[0]), "j"(*(qword *)&p->agFrustumXyz[4]), "j"(*(qword *)&p->agFrustumXyz[8]), "j"(v), "j"(one), "j"(w));
     return (f ^ 0xF0) == 0;
 }
 } // namespace M_IsInCameraFrustum
 
 namespace M_IsWithinCameraRenderDistance {
 typedef int qword __attribute__((mode(TI)));
-struct P { int pad[7]; float cullScale; };
 // True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
 // Also known as: FInsideCmMrd (upstream readable / Sly 1 name; FInsideCmMrd__FP2CMG9VU_VECTORfPf).
-extern "C" int IsWithinCameraRenderDistance(struct P *p, qword v, float g, float *pu)
+extern "C" int IsWithinCameraRenderDistance(CM *p, qword v, float g, float *pu)
 {
     qword l, one;
     float l2, r, r2, d2;
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(l), "=&j"(one) : "j"(v));
-    r = g * p->cullScale;
+    r = g * p->rCullScale;
     __asm__("qmfc2.ni %0, %1" : "=r"(l2) : "j"(l));
     r2 = r * r;
     if (r2 < l2)
         return 0;
-    d2 = r - p->cullScale * 400.0f;
+    d2 = r - p->rCullScale * 400.0f;
     d2 = d2 * d2;
     if (d2 < l2)
         *pu = (r2 - l2) / (r2 - d2);
