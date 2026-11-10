@@ -3017,12 +3017,6 @@ extern "C" CLUTSET *LoadClutsetFromBrx(void *pv, CBinaryInputStream *pbis)
 namespace M_LoadSubglobType2FromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 struct SPHERE;struct FACE;
-struct OBJECT {
-    char pad[0x1C];
-    int count;
-    void *segments;
-    char pad24[8];
-};
 struct HEADER {
     ushort flags, base, pad4, pad6, position, weights, color, end, extra, extra2;
     ushort segments[2], bones[4];
@@ -3036,8 +3030,8 @@ struct REQUEST {
 void*STACKSCOPE_ctor(void*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHeap");
-OBJECT*GetShdByIndex(int) __asm__("GetShdByIndex");
-int AddShaderVifUnpack(OBJECT*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
+SHD*GetShdByIndex(int) __asm__("GetShdByIndex");
+int AddShaderVifUnpack(SHD*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
 void LoadSubglobInstancesFromBrx(GLOBSET*,SUBGLOB*,GLOB*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
 void*memset(void*,int,uint) __asm__("memset");
 extern QW D_002DEB60 __asm__("D_002DEB60");
@@ -3056,14 +3050,11 @@ static inline void *Allocate(int bytes)
 {
     return AllocClearedFromWorldHeap(REQUEST(bytes, 16));
 }
-typedef char OBJECT_Size[sizeof(OBJECT)==44?1:-1];
 typedef char HEADER_Size[sizeof(HEADER)==32?1:-1];
 typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
 typedef char DMAS_Size[sizeof(DMAS)==28?1:-1];
 typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char QW_Size[sizeof(QW)==16?1:-1];
-typedef char OBJECT_count_Offset[FIELD_OFFSET(OBJECT,count)==28?1:-1];
-typedef char OBJECT_segments_Offset[FIELD_OFFSET(OBJECT,segments)==32?1:-1];
 typedef char HEADER_flags_Offset[FIELD_OFFSET(HEADER,flags)==0?1:-1];
 typedef char HEADER_base_Offset[FIELD_OFFSET(HEADER,base)==2?1:-1];
 typedef char HEADER_position_Offset[FIELD_OFFSET(HEADER,position)==8?1:-1];
@@ -3120,8 +3111,8 @@ void LoadSubglobType2FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, void *, SPH
             header[0] |= 4;
         int current = base;
         header[1] = current;
-        OBJECT *object = GetShdByIndex(stream->U16Read());
-        for (int segment = 0; segment < object->count; segment++) {
+        SHD *object = GetShdByIndex(stream->U16Read());
+        for (int segment = 0; segment < object->cshdp; segment++) {
             HEADER *slot = (HEADER *)((uint)header + segment * 2);
             slot->segments[0] = current;
             current += AddShaderVifUnpack(object, segment, current, &vifs);
@@ -3182,11 +3173,6 @@ union U {
     float f[4];
 };
 struct SPHERE;struct FACE;
-struct OBJECT {
-    char pad[0x1C];
-    int count;
-    void *segments;
-};
 struct HEADER {
     ushort flags, base, vertices, pad6, pad8, padA, padC, padE, weight, end, segments[2], bones[4];
 };
@@ -3204,8 +3190,8 @@ void*AllocClearedFromWorldHeap(const REQUEST&) __asm__("AllocClearedFromWorldHea
 void*AllocFromStack(const REQUEST&) __asm__("AllocFromStack");
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
-OBJECT*GetShdByIndex(int) __asm__("GetShdByIndex");
-int AddShaderVifUnpack(OBJECT*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
+SHD*GetShdByIndex(int) __asm__("GetShdByIndex");
+int AddShaderVifUnpack(SHD*,int,int,VIFS*) __asm__("AddShaderVifUnpack");
 void LoadSubglobInstancesFromBrx(GLOBSET*,SUBGLOB*,GLOB*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*) __asm__("LoadSubglobInstancesFromBrx");
 /* GetVectorComponentX/E0/E8: the file-scope inline readers */
 
@@ -3255,8 +3241,6 @@ typedef char VIFS_Size[sizeof(VIFS)==36?1:-1];
 typedef char QW_Size[sizeof(QW)==16?1:-1];
 typedef char MARK_Size[sizeof(MARK)==1?1:-1];
 typedef char LEASE_Size[sizeof(LEASE)==1?1:-1];
-typedef char OBJECT_count_Offset[FIELD_OFFSET(OBJECT,count)==28?1:-1];
-typedef char OBJECT_segments_Offset[FIELD_OFFSET(OBJECT,segments)==32?1:-1];
 typedef char HEADER_flags_Offset[FIELD_OFFSET(HEADER,flags)==0?1:-1];
 typedef char HEADER_base_Offset[FIELD_OFFSET(HEADER,base)==2?1:-1];
 typedef char HEADER_vertices_Offset[FIELD_OFFSET(HEADER,vertices)==4?1:-1];
@@ -3345,7 +3329,7 @@ extern "C" void LoadSubglobType3FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, 
         } break;
         }
         header->base = base;
-        OBJECT *object = GetShdByIndex(input->U16Read());
+        SHD *object = GetShdByIndex(input->U16Read());
         vertices = input->U8Read();
         int vectorCount = input->U8Read();
         vectors = (U *)AllocFromStack(REQUEST(vectorCount * sizeof(U), 16));
@@ -3379,7 +3363,7 @@ extern "C" void LoadSubglobType3FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, 
         uint *flagCursor = flags;
         uint mask = 1;
         int current = base;
-        for (int segment = 0; segment < object->count; segment++) {
+        for (int segment = 0; segment < object->cshdp; segment++) {
             HEADER *slot = (HEADER *)((uint)header + segment * 2);
             slot->segments[0] = current;
             current += AddShaderVifUnpack(object, segment, current, &vifs);
