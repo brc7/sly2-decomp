@@ -69,7 +69,8 @@ the frame chain (unbound symbols give nil), and lists dispatch on their head:
   `if`, `or`, `and`, `cond` (with `else`), `case`, `let`, `while`, `lambda`, `begin`, `import` (returns nil),
   `quote`;
 - anything else is a call: `EvalApply` evaluates the operator and operands and calls a **builtin** (by index into
-  the builtin table, checking the minimum argument count and whether extra arguments are allowed), a **method** (a
+  the builtin table; the table records each builtin's minimum argument count and whether it takes extra arguments,
+  but `EvalApply` does not check them, so a wrong argument count is not caught), a **method** (a
   native object method, section 5), or a **lambda** (a new frame binding the parameters, with a rest list when the
   lambda has a dotted parameter).
 
