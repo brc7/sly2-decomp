@@ -2680,7 +2680,6 @@ typedef struct {unsigned char r,g,b,a;} RGBA;
 typedef struct {float a[8];} __attribute__((aligned(16))) T;
 typedef union {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};} DATA;
 typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float scale,width,height;int hAlign,vAlign;} S;   /* kind: 0 language string, 1 text table */
-typedef struct {char *text,*cur;void *font,*baseFont,*altFont;RGBA color,baseColor,altColor;char pad20[0x20];qword baseColor0,baseColor1;int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;} RT;
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
 extern STRINGGEN D_003E1C88[] __asm__("D_003E1C88");
@@ -2691,23 +2690,23 @@ extern SCROLL D_003DA0C0 __asm__("D_003DA0C0");
 extern const float D_002C40B8 __asm__("D_002C40B8");
 extern char *strcpy(char *,const char *) __asm__("strcpy");
 extern char *strcpy1(char *,const char *) __asm__("strcpy1");
-extern RT *ConstructRichText2FromSprite(RT *,char *,S *,DATA *) __asm__("ConstructRichText2FromSprite");
-extern int WrapRichText2Lines(RT *) __asm__("WrapRichText2Lines");
-extern void TrimSubtitleToVoiceProgress(void *,RT *) __asm__("TrimSubtitleToVoiceProgress");
-extern void ResetRichText2(RT *,char *) __asm__("ResetRichText2");
-extern int GetRichText2NextChar(RT *) __asm__("GetRichText2NextChar");
-extern void SetRichText2BaseColor(RT *,RGBA *) __asm__("SetRichText2BaseColor");
-extern float CRichText_GetWidth(RT *) __asm__("CRichText_GetWidth");
+extern CRichText2 *ConstructRichText2FromSprite(CRichText2 *,char *,S *,DATA *) __asm__("ConstructRichText2FromSprite");
+extern int WrapRichText2Lines(CRichText2 *) __asm__("WrapRichText2Lines");
+extern void TrimSubtitleToVoiceProgress(void *,CRichText2 *) __asm__("TrimSubtitleToVoiceProgress");
+extern void ResetRichText2(CRichText2 *,char *) __asm__("ResetRichText2");
+extern int GetRichText2NextChar(CRichText2 *) __asm__("GetRichText2NextChar");
+extern void SetRichText2BaseColor(CRichText2 *,RGBA *) __asm__("SetRichText2BaseColor");
+extern float CRichText_GetWidth(CRichText2 *) __asm__("CRichText_GetWidth");
 extern float ModPositive__Fff(float,float) __asm__("ModPositive__Fff");
 extern void SetNoticeState(SCROLL *,int) __asm__("SetNoticeState");
-extern void DrawRichText2AtXf(RT *,T *,DATA *) __asm__("DrawRichText2AtXf");
+extern void DrawRichText2AtXf(CRichText2 *,T *,DATA *) __asm__("DrawRichText2AtXf");
 enum { TEXT_SOURCE_LANGSTR = 0, TEXT_SOURCE_TABLE = 1 };
 enum { TEXT_ID_SUBTITLE = 0x2EF, TEXT_ID_TICKER = 0x2F1 };   /* BuildSubtitleText, BuildTickerText */
 
 // Renders a text sprite: a text-table entry or a language string, with special cases for subtitles and the ticker.
 extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
     char text[0x400];
-    RT rt;
+    CRichText2 rt;
     DATA style;
     char marquee[2*sizeof(text)+3*5];
     if(!g_sw.ploHudFont)return;
