@@ -43,7 +43,8 @@ struct GEOM
     qword *points;        /* +0x04 */
     int numSurfaces;          /* +0x08 planes */
     PLANE *surfaces;       /* +0x0C */
-    int numEdges, edgeList;
+    int numEdges;
+    struct EDGE *edgeList;   /* +0x14 */
 };
 /* An edge (a, b: point indices) and a surface's edge list (+0x10), as CollectEdgesAtGeomPoint walks them. */
 struct EDGE { unsigned short a, b; int pad; EDGE *next; };
@@ -97,10 +98,10 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
  MATRIX4 matrix;
  int i,j;
  dest->numPoints=src->numPoints;
- request.cb=src->numPoints*16;request.kind=16;
+ request.cb=src->numPoints*sizeof(qword);request.kind=16;
  dest->points=(qword *)AllocCopyFromWorldHeap(&request,src->points);
  dest->numSurfaces=src->numSurfaces;
- request.cb=src->numSurfaces*32;request.kind=16;
+ request.cb=src->numSurfaces*sizeof(PLANE);request.kind=16;
  dest->surfaces=(PLANE *)AllocCopyFromWorldHeap(&request,src->surfaces);
  dest->numEdges=src->numEdges;dest->edgeList=src->edgeList;
  if(transform) {
