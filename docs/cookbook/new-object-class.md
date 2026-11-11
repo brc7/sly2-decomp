@@ -122,7 +122,7 @@ extern "C" void InitButton(BUTTON *button)
 - **Proxy scoping.** Objects inside a proxy copy find each other by oid only within the same copy unless the search
   says otherwise; a class that looks up "oid N" should use the object-relative lookups (`FindSwObject` with the object
   as context).
-- **Per-file views.** Many `.cpp` files declare their own partial view of a class (`PATHLINKV`, `CID100V` and the like)
+- **Per-file views.** Many `.cpp` files declare their own partial view of a class (`CID100V`, `BOOTYV` and the like)
   instead of including the full header. If you change a class layout, search for every view of it.
 
 ## How to test

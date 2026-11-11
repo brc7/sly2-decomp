@@ -22,8 +22,12 @@ offsets, and every EnsureAsegBlendDynamic entry stride from sizeof; (v1.17) the 
 CID37, CID43, CID99, SAFEHOUSE, TURRET declare their fields; CID125's guard table from sizeof), SW_ctor's event /
 callback / diract / blip slots from header records (sw.h SWEVENT, SWCALLBACK, DIRBL; sly2/blip.h BLIPBATCH), the
 shown-screen list on SCREENBASE::dleShown, water.cpp's hand vtable calls as virtual calls (SO slots 71 / 72 with their
-real signatures, slot 51 = EXPL::ExplodeExplso), WATER's and PIPE's fields, CloneGeom's sizes (section 3 lists what is
-left).
+real signatures, slot 51 = EXPL::ExplodeExplso), WATER's and PIPE's fields, CloneGeom's sizes; (v1.18) water.cpp on
+WATER / SO / STEP / PO (SO::soFlags is the +0x148 unit as one doubleword; SOPHYS buoyancy / waterDrag; XA's link
+fields; PO lastWakeTime / wakeSound), path.cpp's zone BSP (typed REGTREE: REGBSPNODE, REGLINKLIST, PATHZONE /
+PATHLINK pointers) and path-link endpoints on PATHLINK / PATHLINKEND (PATHLINK::linkIndex), geom.cpp's PLANE with
+SURF's pointer words, gait.cpp on ASEGARC, and the per-frame solver's views (solve.cpp SOV / SOTREEV / TL / XP with
+the real classes' layout on every target) (section 3 lists what is left).
 
 ## 1. Guards and hooks
 
@@ -165,30 +169,38 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   engine/Splice pools, the post-load pool, PATHZONE dlRegent, DIALOGEVENT, BOOTYE 0x2C, aseg.cpp's kind-1 box origin
   (0x20), save.cpp's SVENT (cent * 10), the heap-guard sites outside the named functions (sly2+0x523381 / 0x542fc1 /
   0x5b92c5 in the port's log). The SNIP tables (BindLoOidTable) are done (murray's row at 0x1854 is MURRAY::arcLeap.paseg, ASEGARC in
-  stepplayer.h since v1.16; gait.cpp still reads the arc through its BLCURVE / LEAPTUNE views).
-- **From the port's boot-3 list, still open after v1.17**: frm.cpp's group list offset 0x454 (BLIPG's fields are still
+  stepplayer.h since v1.16; gait.cpp reads the arc as ASEGARC since v1.18).
+- **From the port's boot-3 list, still open after v1.18**: frm.cpp's group list offset 0x454 (BLIPG's fields are still
   blip.cpp's BLIPGV: classes.h declares BLIPG's bytes as the 32 empty-constructor BLIP records that give its class
-  constructor's loop, so declaring the real fields needs that loop reproduced another way); water.cpp's SOW view (all
-  its hand vtable calls are virtual calls since v1.17, but the view mixes SO, WATER and STEP fields: STEP's
-  +0x208..+0x248 and the 64-bit unit at +0x148); path.cpp's FindPathzoneAtPos B view, the REGTREE pad views and the
-  path-link endpoint views; SURF (xfm.h) vs FACE (bis.cpp) and geom.cpp's PLANE (its words after the normal, two of
-  them edge pointers in the port's reading); rail / pipe / freegrabspot / hnd flat views; blend.cpp's ASEG / CHN views;
-  the duplicated private views of shared records (gait.cpp BLCURVE / LEAPTUNE over ASEGARC, shape.cpp CHAIN over
-  SHAPECHAIN, launcher.cpp's SOV); the TU views of the v1.17 classes (booty.cpp BOOTYV / CID37V, turret.cpp TURRETV,
-  lootpouch.cpp SPRAYER: their classes now have the fields, the views still have EE-offset pads; amb.cpp and
-  safehouse.cpp use the classes). Done in v1.17: the `new` overruns (BOOTY, CID37's held noise at +0x198, CID43,
-  CID99, SAFEHOUSE, TURRET), CID125::PostLoad's guard table, the Event / Callback / Diract slots (stepguard.cpp's
-  kind-3 binding writes through DIRBL), screen.cpp's list (its elements are SCREENBASEs linked at +0x14; SCREEN's old
-  unknown14 / idText were the notice banner's fields: the notice is not a SCREEN), frm.cpp's 0x1090, water.cpp's
-  slots 4 / 33 / 34 / 51 / 71 / 72 (all matched as virtual calls), InitWater's tagged word, WATER's and PIPE's
-  fields, CloneGeom's numSurfaces * 32.
+  constructor's loop, so declaring the real fields needs that loop reproduced another way); path.cpp's CG views
+  (FindNavTriangleQuick / Safe `struct T`, the obstacle-array `S : XFM` views, IsNearPathlinkEndpoint's +0x218 object);
+  bis.cpp's FACE (the same record as xfm.h SURF / geom.cpp PLANE, but bis.cpp cannot include sly2/xfm.h: bis.h's vec.h
+  VECTOR is 16-byte aligned, basic.h's 12 bytes; unifying needs bis.cpp off vec.h or SURF off VECTOR); rail / pipe /
+  freegrabspot / hnd flat views; blend.cpp's ASEG / CHN views; shape.cpp's chain steppers' CHAIN over SHAPECHAIN (native
+  layout already; the hand-tuned steppers use a signed local qword, so binding them to SHAPECHAIN's qword members would
+  add reference temporaries); launcher.cpp's SOV (its own vtable declarations with signed-qword slot signatures); the
+  TU views of the v1.17 classes (booty.cpp BOOTYV / CID37V with their HERO / MATCH companions and hand vtable calls,
+  turret.cpp TURRETV, lootpouch.cpp SPRAYER). PATHLINK names its zones `CID17 *` (basic.h's forward name) while the
+  class is PATHZONE; path.cpp bridges with PathzoneOf. Done in v1.18: water.cpp's flat SO view (the 64-bit unit at +0x148 is
+  SO's flag unit: SO::soFlags, bits 31 / 32 SO::wasInWater / isInWater), path.cpp's REGTREE / B / path-link endpoint
+  views, geom.cpp's PLANE words, gait.cpp's BLCURVE / LEAPTUNE.
+- **From the port's boot-4 list (per-frame path)**: done in v1.18: solve.cpp (SOV / SOTREEV / TL / XP laid out as SO /
+  SOTREE / XPLIST / XP on every target, asserted against the headers; ApplySoRestingContactVelocity's asm offsets from
+  operands; XFV and SOPHYSV already had native layout). bbmark.cpp uses SO / SOTREE since v1.15. Still open: the hand
+  vtable calls (about 25 sites: blend.cpp slots 2 / 3, cm.cpp slot 50, shd.cpp UpdateShaders slot 8, stepguard.cpp
+  slots 3 / 26, rhythm / guardbhv / murray / air / so.cpp slot 35, robottank slot 31, grab.cpp / bomb.cpp / emitter.cpp
+  slot 51, proxy.cpp slots 1 / 42, class_registry.cpp slot 78, missile / bentley slot 33, pipe_jt slot 36, watchdog
+  slot 73, murray slots 29 / 62); geom.cpp UpdateGeomWorld's C fallback; the `int`-typed pointers (ReplaceSma /
+  ReplaceSmaEx, HandleBasicSpliceEvent, the bif forwarders, class_registry thunks, SO::AddCustomXps' n3);
+  EnsureTargetRecordById / SetSoIdProxy register reliance; and the struct list of request 4 (blend, so target records,
+  proxy, trail / glob, shape chain, path CG, bis.cpp CBinaryInputStream_ReadBspc, cm CID5, relay NewRelayJsg, busy, hud sprites, ms, sw
+  intersect, stepguard, hurt, step, stepplayer, jt camera, NewLight, alorefSplash, EnsureSoPhysRegionRecord).
 - **SHD header read**: LoadShdFromBrx reads the first 0x18 bytes of the level's shader record straight into SHD
   (file-record pattern, not under SLY2_EE_LAYOUT yet).
 - **Dangerous views** (after v1.16). Done in v1.16: shape.cpp's ten SHAPE views (plus SetChainEndObject, NewSampledShape
   and the SHAPERANGES views), cnvo.cpp CID14V, breakable.cpp's TRIG and its contact, zap-record and explode-message views, xf.cpp's O / S / P / B and
   the ACT slot-5 call, ik.cpp A / B / FRAME / XF_REF, launcher.cpp S / LAUNCH, prize.cpp AddLootEntryObject's two views, jt.cpp
-  PostJtLoad's flat stores, grabspot.cpp's InitGrabspot(&x->ptn) and GRFPLAYER. Still open: water.cpp SOW (a flat
-  SO/WATER/STEP view; its hand vtable calls are gone since v1.17; the 64-bit word at +0x148 has no single member) and rip.cpp
+  PostJtLoad's flat stores, grabspot.cpp's InitGrabspot(&x->ptn) and GRFPLAYER (v1.18: water.cpp's flat SO view, solve.cpp). Still open: rip.cpp
   `M_ProjectRipTransform::S` (a RIP view: different pointer slots before +0x40, local M3/PHYS types over RIPM3 and
   the motion record, asm with literal offsets); shape.cpp's CID 106 rope-mesh views (RenderSelf and the sampler before it: S with +0xDC /
   +0x150, CONFIG / STATE / MESH; not SHAPE) and its two chain steppers' CHAIN views (native-correct layout, local
