@@ -139,7 +139,7 @@ void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 // BOMB vtable slot 7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
 // Also known as: InitBomb (upstream readable / Sly 1 name; InitBomb__FP4BOMB).
 extern "C" void InitBomb(BOMBV *bomb) {
-    int x;
+    sptr x;
     InitSo(bomb);
     bomb->tDetonate = 3.40282346638528859812e+38f;
     bomb->sRadius = D_002BC9C8;
@@ -147,9 +147,9 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->makesNoise = 1;
     bomb->zapKind = 0x100;
     bomb->blastDamage = -10;
-    x = bomb->unknown40;
+    x = (sptr)bomb->ploupd;
     bomb->k = 0;
-    if ((x ^ 1) & 1) *(int *)x |= 2;
+    if ((x ^ 1) & 1) ((LOUPD *)x)->grf |= 2;
     else bomb->unknown40 = x | 2;
     bomb->owner = bomb;
 }

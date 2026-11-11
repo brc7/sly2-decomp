@@ -100,7 +100,7 @@ extern "C" void EnsureSwDefaultLight(void)
 void LIGHT::Init()
 {
     LIGHT *light = this;
-    int flags;
+    sptr flags;
     InitXfm(light);
     light->kind = 0;
     light->parentStamp = -1; light->slot = -1;
@@ -109,8 +109,8 @@ void LIGHT::Init()
     light->midtoneAngle = 240.0f;
     light->enabled = 1;
     SetLoBusyKind(light, 1);
-    flags = light->unknown40;
-    if ((flags ^ 1) & 1) *(int *)flags &= ~0x20;
+    flags = (sptr)light->ploupd;
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf &= ~0x20;
     else light->unknown40 = flags & ~0x20;
 }
 

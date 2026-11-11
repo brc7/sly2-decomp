@@ -2330,12 +2330,12 @@ namespace M_InitRcPickup {
 void InitSo(SO *pso) __asm__("InitSo");
 // CID 108 vtable slot 7 Init: InitSo, ammo amount 30, state -1. (inferred)
 extern "C" void InitRcPickup(CID108 *pickup) {
-    int v;
+    sptr v;
     InitSo(pickup);
     pickup->cAmmo = 0x1E;
     pickup->state = -1;
-    v = pickup->unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= 2;
+    v = (sptr)pickup->ploupd;
+    if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 2;
     else pickup->unknown40 = v | 2;
 }
 } // namespace M_InitRcPickup

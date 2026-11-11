@@ -60,10 +60,10 @@ void SetSoZapResponse(DPRIZE *p, int a, int b) __asm__("SetSoZapResponse");
 // Also known as: InitPickup (upstream readable / Sly 1 name; InitPickup__FP2LO).
 extern "C" void InitDprize(DPRIZE *prize)
 {
-    int v;
+    sptr v;
     InitSo(prize);
     SetSoZapResponse(prize, 0x17E, 8);
-    v = prize->unknown40;
+    v = (sptr)prize->ploupd;
     prize->unknown21C = 30.0f;
     prize->isCollectable = 1;
     prize->expireTime = D_002A7710;
@@ -77,7 +77,7 @@ extern "C" void InitDprize(DPRIZE *prize)
     prize->collectListenerOid = OID_Nil;
     prize->vanishListenerOid = OID_Nil;
     prize->unknown224 = OID_Nil;
-    if (IsPointer(v)) *(int *)v |= 2; else prize->unknown40 = v | 2;
+    if (IsPointer(v)) ((LOUPD *)v)->grf |= 2; else prize->unknown40 = v | 2;
 }
 } // namespace M_InitDprize
 
@@ -1902,9 +1902,9 @@ void InitPo(VAULT *vault) __asm__("InitPo");
 // Also known as: InitVault (upstream readable / Sly 1 name; InitVault__FP5VAULT).
 extern "C" void InitVault(VAULT *vault)
 {
-    int v;
+    sptr v;
     InitPo(vault);
-    v = vault->unknown40;
+    v = (sptr)vault->ploupd;
     vault->combination = 0x7B;
     vault->openedDialog = -1;
     vault->notEnoughCluesDialog = -1;
@@ -1912,7 +1912,7 @@ extern "C" void InitVault(VAULT *vault)
     vault->rewardPowerup = -1;
     vault->state = -1;
     vault->selectedDigit = -1;
-    if (IsPointer(v)) *(int *)v |= 2; else vault->unknown40 = v | 2;
+    if (IsPointer(v)) ((LOUPD *)v)->grf |= 2; else vault->unknown40 = v | 2;
 }
 } // namespace M_InitVault
 

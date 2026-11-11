@@ -722,7 +722,7 @@ void SetLoBusyKind(LO *p, int) __asm__("SetLoBusyKind");
 void WIDGET::PostLoad()
 {
     using namespace M_PostWidgetLoad;
-    unsigned int flags;
+    uptr flags;
     float scaledHeight;
     int scaledWidth;
     LO::PostLoad();
@@ -742,8 +742,8 @@ void WIDGET::PostLoad()
         Show(-1);
     SetLoBusyKind(this, 1);
     /* LO unknown40: either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
-    flags = unknown40;
-    if ((flags ^ 1) & 1) *(int *)flags |= 0x102;
+    flags = (uptr)ploupd;
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 0x102;
     else unknown40 = flags | 0x102;
 }
 

@@ -179,15 +179,15 @@ extern "C" void EnsureStepguardManager(void)
 void STEPGUARD::Init()
 {
     STEPGUARD *guard = this;
-    int v;
+    sptr v;
     float a, b, limit, medium, high, extent;
     STEP::Init();
     EnsureStepguardManager();
     guard->pdetector = (DETECTOR *)CreateLo((CID)0x10, 0, (OID)0x288, -1);
     SetLoBusyKind(guard->pdetector, 2);
-    v = guard->pdetector->unknown40;
+    v = (sptr)guard->pdetector->ploupd;
     if (!(v & 1))
-        *(int *)v &= -3;
+        ((LOUPD *)v)->grf &= -3;
     else
         guard->pdetector->unknown40 = v & -3;
     a = 0.785398245f;
@@ -3614,11 +3614,11 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 void CID125::Init()
 {
     CID125 *manager = this;
-    int flags;
+    sptr flags;
     LO::Init();
-    flags = manager->unknown40;
+    flags = (sptr)manager->ploupd;
     if (!(flags & 1))
-        *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
+        ((LOUPD *)flags)->grf |= 2;   // (bit 0 clear: the word points at the real flags)
     else
         manager->unknown40 = flags | 2;
     SetLoBusyKind(manager, 1);

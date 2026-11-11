@@ -155,7 +155,7 @@ void SetLoBusyKind(void *p, int n) __asm__("SetLoBusyKind");
 // Also known as: InitEmitter (upstream readable / Sly 1 name; InitEmitter__FP7EMITTER).
 void EMITTER::Init()
 {
-    unsigned int flags;
+    uptr flags;
     M_InitEmitter::InitXfm(this);
     particleCount = -1;
     emitMode = -1;
@@ -165,9 +165,9 @@ void EMITTER::Init()
     tUnpause = -1.0f;
     M_InitEmitter::InitDl__FP2DLi(&groupList, SLY2_OFFSETOF(EMITTER, groupLink));
     M_InitEmitter::SetLoBusyKind(this, 0);
-    flags = unknown40;   /* LO flag word, or (bit 0 clear) a pointer to the shared one */
+    flags = (uptr)ploupd;   /* LO flag word, or (bit 0 clear) a pointer to the shared one */
     if ((flags ^ 1) & 1)
-        *(int *)flags |= 2;     /* bit 0 clear: the word points at the shared flags */
+        ((LOUPD *)flags)->grf |= 2;     /* bit 0 clear: the word points at the shared flags */
     else
         unknown40 = flags | 2;
 }

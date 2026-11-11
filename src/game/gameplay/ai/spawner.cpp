@@ -223,7 +223,7 @@ extern "C" void AddSpawnerOffset(CID119 *spawner, qwordV offset)
 extern "C" void PostSpawnerLoad(CID119 *spawner) {
     int i;
     AI al;
-    unsigned int f;
+    uptr f;
     PostLoLoad(spawner);
     for (i = 0; i < spawner->selectorCount; i++) {
         SPAWNSELECTOR *selector = &spawner->selectors[i];
@@ -249,8 +249,8 @@ extern "C" void PostSpawnerLoad(CID119 *spawner) {
     al.align = 0x10;
     spawner->entries = (SPAWNENTRY *)AllocClearedFromWorldHeap(&al);
     SetLoBusyKind(spawner, 1);
-    f = spawner->unknown40;
-    if (!(f & 1)) *(int *)f |= 2;   // (bit 0 clear: the word is a pointer to the real flags)
+    f = (uptr)spawner->ploupd;
+    if (!(f & 1)) ((LOUPD *)f)->grf |= 2;   // (bit 0 clear: the word is a pointer to the real flags)
     else spawner->unknown40 = f | 2;
 }
 

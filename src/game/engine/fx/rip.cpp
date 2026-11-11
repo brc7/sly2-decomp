@@ -76,12 +76,12 @@ extern "C" RIPG *NewRipGroup(SW *sw, int kind)
 // SO flag bit 35 cleared; a kind-1 group also gets its own tree record (EnsureSoTree, SetSoTreeFlag2(.., 1)).
 void RIPG::Init()
 {
-    int flags;
+    sptr flags;
     InitSo(this);
     InitDl(&ripList, SLY2_OFFSETOF(RIP, ripLink));
     SetLoBusyKind(this, 1);
-    flags = unknown40;
-    if (IsPointer(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else unknown40 = (flags & 1) | 0xE;
+    flags = (sptr)ploupd;
+    if (IsPointer(flags)) ((LOUPD *)flags)->grf = (((LOUPD *)flags)->grf & 1) | 0xE; else unknown40 = (flags & 1) | 0xE;
     isRenderable = 0;
     if (groupKind == 1) {
         EnsureSoTree(this);

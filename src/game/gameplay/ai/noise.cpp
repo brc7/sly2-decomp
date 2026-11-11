@@ -327,11 +327,11 @@ extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, int loudness,
 // 0x156CC8: Listener (CID47, cid 0x2F) Init: XFM Init, not busy, then sets object flag 2.
 extern "C" void InitListener(CID47 *listener)
 {
-    unsigned int flags;
+    uptr flags;
     InitXfm(listener);
     SetLoBusyKind(listener, 0);
-    flags = listener->unknown40;
-    if (!(flags & 1)) *(int *)flags |= 2;   // (bit 0 clear: the word points at the real flags)
+    flags = (uptr)listener->ploupd;
+    if (!(flags & 1)) ((LOUPD *)flags)->grf |= 2;   // (bit 0 clear: the word points at the real flags)
     else listener->unknown40 = flags | 2;
 }
 
