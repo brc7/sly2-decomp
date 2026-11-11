@@ -3480,7 +3480,7 @@ extern "C" int GetStepguardGroundProbeFlags(STEPGUARD *guard)
 namespace M_func_0020B140 {
 extern float D_002C3DB8 __asm__("D_002C3DB8");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void CreateNoise(int noiseType, qword pos, STEPGUARD *source, STIMULUS **result) __asm__("CreateNoise");
+void CreateNoise(struct CID117 *noiseType, qword pos, STEPGUARD *source, STIMULUS **result) __asm__("CreateNoise");
 STIMULUS *NewNoise(STIMK *pstimk, qword pos, STEPGUARD *source) __asm__("NewNoise");
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).

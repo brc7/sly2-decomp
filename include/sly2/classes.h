@@ -89,7 +89,7 @@ struct GRABSPOT
     int unknown0C;
     int nPriority;          /* +0x10 (CID35's Init sets 1, CID36's -1) */
     int nUnk14;             /* +0x14 InitGrabspot sets -1 */
-    int nGroup;             /* +0x18 */
+    struct LO *ploGroup;    /* +0x18 an object reference (option 781, otyp 0x2002, through the OwnFields accessors) */
     int grfPlayers;         /* +0x1C players that may grab it (1 Sly, 2 Bentley, 4 Murray; InitGrabspot sets 7) */
     virtual int GetGrabRange(float *pasRange) __asm__("GetGrabspotWrapRange");     /* slot 1; key function (grabspot.cpp) */
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetGrabspotClosestParam");         /* slot 2 */

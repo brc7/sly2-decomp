@@ -2094,7 +2094,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         return;
     if (lo == player->jtair.jumpObject)
         return;
-    if (spot->nGroup && player->jtgrab.grabSpot && spot->nGroup == player->jtgrab.grabSpot->nGroup)
+    if (spot->ploGroup && player->jtgrab.grabSpot && spot->ploGroup == player->jtgrab.grabSpot->ploGroup)
         return;
     if (lo == player->jtair.unknownBC)
         return;
@@ -2131,14 +2131,14 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     if (cand.distance > D_002BF664)
         return;
     int i;
-    if (spot->nGroup)
+    if (spot->ploGroup)
     {
         for (i = 0; i < ccandMax; i++)
         {
             JTGRABCAND *candidate = &candidates[i];
             if (!candidate->grabSpot)
                 break;
-            if (candidate->grabSpot->nGroup == spot->nGroup)
+            if (candidate->grabSpot->ploGroup == spot->ploGroup)
             {
                 if (cand.distance < candidates[i].distance)
                 {

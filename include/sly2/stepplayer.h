@@ -350,7 +350,7 @@ struct JTAIR
       struct ASEG *pasegEdge;   /* edge catch animation */
       struct ASEG *pasegKindE;
       struct ASEG *pasegKindEDouble;
-      undefined4 unknown160;
+      struct LO *unknown160; /* an object reference (option 710, otyp 0x2002: PostLoadOidField stores the LO) */
       float unknown164;
       float rGravitySaved;   /* gravity scale saved while changed */
       struct TN *ptnLaunch;   /* camera tunnel of the launch */

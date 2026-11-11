@@ -331,7 +331,7 @@ struct STEPGUARD : public STEP
       ANIMBINDING koReactions[26];        /* +0xC10 [S] KO */
       LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (ConstructLeap) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
-      int noiseType;        /* +0xE60 [S] */
+      struct CID117 *noiseType; /* +0xE60 [S] the noise type object (option 408, otyp 0x2075 = a CID 117 reference; CreateNoise takes it) */
       int sensesEnabled;    /* +0xE64 [S] */
       int minStimulusLevel; /* +0xE68 [S] weakest stimulus the guard reacts to */
       LM lookTimes;         /* +0xE6C [S] how long a search looks around (InitStepguard 5.5/6.5; SetBhvSearchLookTimers) */
