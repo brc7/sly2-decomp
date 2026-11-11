@@ -1971,7 +1971,10 @@ typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1]; typedef char as
 struct PIPE : SHAPE, GRABSPOT
 {
     DLE dleGrab;            /* +0x1B4 link in g_sw.dlCid11 (grab.cpp GatherJtGrabCandidates, grab mask 2) */
-    char pad1BC[0x1E0 - 0x1BC];
+    char pad1BC[0x1D0 - 0x1BC];
+    int attachEffectId;     /* +0x1D0 sound played when the player attaches (pipe_jt.cpp; option 0x1D0) */
+    int releaseEffectId;    /* +0x1D4 sound played when the player lets go (pipe_jt.cpp; option 0x1D4) */
+    char pad1D8[0x1E0 - 0x1D8];
     virtual void OnAdd() __asm__("OnPipeAdd");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPipeClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPipe");   /* slot 7 */

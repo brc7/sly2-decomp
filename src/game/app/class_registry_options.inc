@@ -1589,8 +1589,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(func_00259A28)}, /* [836] opt 781, BARREL */
     {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(func_00259A28)}, /* [837] opt 782, BARREL */
     {2, 0x92, EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_NONE}, /* [838] opt 788, PIPE */
-    {0xE, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [839] opt 789, PIPE */
-    {0xE, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [840] opt 790, PIPE */
+    {0xE, 0x92, EOPID_OFF(PIPE, attachEffectId), EOPID_OFF(PIPE, attachEffectId), EOPID_OFF(PIPE, attachEffectId), EOPID_NONE}, /* [839] opt 789, PIPE */
+    {0xE, 0x92, EOPID_OFF(PIPE, releaseEffectId), EOPID_OFF(PIPE, releaseEffectId), EOPID_OFF(PIPE, releaseEffectId), EOPID_NONE}, /* [840] opt 790, PIPE */
     {0, 0x120, EOPID_NONE, EOPID_PMF(SetPipeGrabEnabled), EOPID_PMF(SetPipeGrabEnabled), EOPID_NONE}, /* [841] opt 791, PIPE */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetPipeOwnFields)}, /* [842] opt 776, PIPE */
     {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetPipeOwnFields)}, /* [843] opt 777, PIPE */
