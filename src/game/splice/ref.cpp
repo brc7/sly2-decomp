@@ -54,7 +54,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *source)
 {
     pref->m_tagk = source->m_tagk;
-    pref->u.n = source->u.n;
+    pref->u.pv = source->u.pv;
     pref->Incref();
     return pref;
 }
@@ -219,7 +219,7 @@ CRef &CRef::operator=(const CRef &r)
     ((CRef &)r).Incref();
     Decref();
     m_tagk = r.m_tagk;
-    u.n = r.u.n;
+    u.pv = r.u.pv;
     return *this;
 }
 

@@ -36,6 +36,7 @@
 #include "sly2/streambis.h"
 #include "sly2/hw.h"
 #include "sly2/light.h"
+#include "heap.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -1720,21 +1721,18 @@ extern "C" FILEREC *GetWorldEntry(int nWorld)
 
 namespace M_func_00210BE0 {
 typedef struct { char *pch; char *pchOut; } ENT;
-typedef struct { int c; ENT *a; int heapSize; int heapBuffer; } TBL;
-typedef struct { int a[4]; } ALLOC;
-extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int) __asm__("__11CLinearHeapiPUc");
+typedef struct { int c; ENT *a; int heapSize; byte *heapBuffer; } TBL;
 extern char *FindSwLocalizedString__FP2SWi(SW *, char *) __asm__("FindSwLocalizedString__FP2SWi");
 extern int strlen_(char *) __asm__("strlen");
-extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int) __asm__("PchzAllocCopy__FP4HEAPPci");
+extern char *PchzAllocCopy__FP4HEAPPci(HEAP *, char *, int) __asm__("PchzAllocCopy__FP4HEAPPci");
 
 // Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
 extern "C" void LocalizeSwStringTable(TBL *table)
 {
-    ALLOC heap;
     int i;
     if (g_sw.clangstr == 0)
         return;
-    __11CLinearHeapiPUc(&heap, table->heapSize, table->heapBuffer);
+    CLinearHeap heap(table->heapSize, table->heapBuffer);
     for (i = 0; i < table->c; i++) {
         ENT *e = &table->a[i];
         e->pchOut = FindSwLocalizedString__FP2SWi(&g_sw, e->pch);
