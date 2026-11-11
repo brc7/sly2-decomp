@@ -630,7 +630,7 @@ void *AllocClearedFromWorldHeap(struct SWALLOC *) __asm__("AllocClearedFromWorld
 SAA *LoadSaaFromBrx(int, void *) __asm__("LoadSaaFromBrx");
 void LoadShdFromBrx(void *, SHD *) __asm__("LoadShdFromBrx");
 void LoadSwSharedDataFromBrx(void *, void *) __asm__("LoadSwSharedDataFromBrx");
-void *UploadPermShaders(int, int) __asm__("UploadPermShaders");
+void *UploadPermShaders(GSB *, int) __asm__("UploadPermShaders");
 void BuildShaderGifPackets(void) __asm__("BuildShaderGifPackets");
 void BuildShaderTex0List(SHD *, SHDBLIP *) __asm__("BuildShaderTex0List");
 void AppendSlEntry(void *, void *) __asm__("AppendSlEntry");
@@ -638,7 +638,7 @@ void AppendSlEntry(void *, void *) __asm__("AppendSlEntry");
 // (0x1ECE58); build shader packets.
 // Also known as: LoadShadersFromBrx (upstream readable / Sly 1 name;
 //   LoadShadersFromBrx__FP4SHDSiP18CBinaryInputStream).
-extern "C" void LoadShadersFromBrx(void *p, int k, void *pbis)
+extern "C" void LoadShadersFromBrx(void *p, GSB *pgsb, void *pbis)
 {
     struct SWALLOC msg;
     int i, j;
@@ -646,7 +646,7 @@ extern "C" void LoadShadersFromBrx(void *p, int k, void *pbis)
     LoadColorTablesFromBrx__FP18CBinaryInputStream(pbis);
     LoadBitmapsFromBrx__FP18CBinaryInputStream(pbis);
     D_003DD000 = U16Read__18CBinaryInputStream(pbis);
-    msg.cb = D_003DD000 * 4;
+    msg.cb = D_003DD000 * sizeof(SAA *);
     msg.cbAlign = 0x10;
     D_003DD004 = (SAA **)AllocClearedFromStack(&msg);
     for (i = 0; i < D_003DD000; i++)
@@ -658,7 +658,7 @@ extern "C" void LoadShadersFromBrx(void *p, int k, void *pbis)
     for (j = 0; j < D_003DCFE8; j++)
         LoadShdFromBrx(pbis, &D_003DCFEC[j]);
     LoadSwSharedDataFromBrx(p, pbis);
-    pv = UploadPermShaders(k, 3);
+    pv = UploadPermShaders(pgsb, 3);
     if (pv && (unsigned)D_003DCFA0 < 16)
         D_003DCFA8[D_003DCFA0++] = pv;
     BuildShaderGifPackets();

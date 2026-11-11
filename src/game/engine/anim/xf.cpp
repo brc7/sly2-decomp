@@ -32,7 +32,7 @@ typedef unsigned size_t;
 
 extern "C" {
 extern int D_004437A0;      /* transform stack depth */
-int ResolveXfId(int grf, void *pv1, void *pv2);
+XF *ResolveXfId(int grf, SO *parent, SO *self);
 }
 
 struct VU_VECTOR4
@@ -661,9 +661,9 @@ extern "C" qword GetXfVelocity(XF *p,XF *stop,qword in) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022D670 {
 extern int D_004437A0 __asm__("D_004437A0");
-extern int D_004437A8[] __asm__("D_004437A8");
+extern XF *D_004437A8[] __asm__("D_004437A8");
 // Pushes a transform table base onto the id-resolution context stack (used while loading nested objects). (inferred)
-extern "C" void PushXfContext(int v)
+extern "C" void PushXfContext(XF *v)
 {
     D_004437A8[D_004437A0++] = v;
 }
@@ -679,32 +679,32 @@ extern "C" void PopXfContext()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022D6B0 {
 extern int D_004437A0 __asm__("D_004437A0");
-extern int D_004437A8[] __asm__("D_004437A8");
-// Resolves a transform id to an address: the high bits choose the local table (c), the parent's table (b) or the top
-// of the context stack; the low bits index 0x100-byte transform records. (inferred)
+extern XF *D_004437A8[] __asm__("D_004437A8");
+// Resolves a transform id to an XF: the high bits choose the local table (c), the parent's table (b) or the top
+// of the context stack; the low bits index the table. (inferred)
 // Also known as: PxfFromRef (upstream readable / Sly 1 name; PxfFromRef__FiP3ALOT1).
-int ResolveXfId(int a, SO *b, SO *c) __asm__("ResolveXfId"); int ResolveXfId(int a, SO *b, SO *c)
+XF *ResolveXfId(int a, SO *b, SO *c) __asm__("ResolveXfId"); XF *ResolveXfId(int a, SO *b, SO *c)
 {
-    int r = 0;
+    XF *r = 0;
     switch (a & 0x3000) {
-    case 0: if (c) r = (int)c->transforms + (a << 8); break;
-    case 0x1000: a &= ~0xF000; r = (int)b->transforms + (a << 8); break;
+    case 0: if (c) r = c->transforms + a; break;
+    case 0x1000: a &= ~0xF000; r = b->transforms + a; break;
     case 0x2000: r = D_004437A8[D_004437A0 - 1]; break;
     }
     return r;
 }
 } // namespace M_func_0022D6B0
 
-// Resolves a transform id against the object's parent table (the result is not used in this build, inferred).
-extern "C" void ResolveXfIdInParent(LO *plo, int grf)
+// Resolves a transform id against the object's parent table (XFM::ResolveXfInParent). (inferred)
+extern "C" XF *ResolveXfIdInParent(LO *plo, int grf)
 {
-    ResolveXfId(grf, *(void **)((char *)plo + 0x10), 0);
+    return ResolveXfId(grf, plo->parent, 0);
 }
 
-// Resolves a transform id against the object's own and parent tables (the result is not used in this build, inferred).
-extern "C" void ResolveXfIdInSo(LO *plo, int grf)
+// Resolves a transform id against the object's own and parent tables (SO::GetXfFromIndex). (inferred)
+extern "C" XF *ResolveXfIdInSo(SO *pso, int grf)
 {
-    ResolveXfId(grf, *(void **)((char *)plo + 0x10), plo);
+    return ResolveXfId(grf, pso->parent, pso);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

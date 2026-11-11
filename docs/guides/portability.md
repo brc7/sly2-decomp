@@ -77,6 +77,10 @@ loads and stores) has plain C equivalents:
 - **xf.cpp**: BuildXfValueMatrix, BuildXfValueDerivativeMatrix and every VU0 statement except the `vcallms 0x60`
   sites. **shd.cpp**: ColorCorrectVector, AddBitmapToHash / AddClutToHash (whole C functions over D_003DD010 /
   D_003DD018). **booty.cpp**: every asm statement (SetBootyState and the distance helpers). **rip.cpp**: LaunchMatch.
+  **geom.cpp**: TransformPointsVu0, whose EE body runs the VU0 microprograms at 0x120 / 0xF0 (vcallms); its C body
+  transforms each point the way CloneGeom's `Transform` does (xyz = p M with p.w taken as 1, w kept). That reading of
+  the microprograms is an assumption (the same points go through `Transform` in CloneGeom), not checked against the
+  microcode.
 
 Conventions: the C follows the VU0 operation order (one rounding per VU operation: `(a.x b.x + a.y b.y) + a.z b.z`,
 `v * (1 / d)` rather than `v / d`), never fuses (build with `-ffp-contract=off`), and uses IEEE floats; the VU's
@@ -96,6 +100,12 @@ form). Tolerance: relative 1e-4 (absolute 1e-5 near zero); the measured maximum 
 form (same operation order, same IEEE rounding). The harness also flags the port's own sly2/vu0.h override: its
 VuAddScaled drops the 1.0 the VU adds to w (vadda with vf0), its VuSqrtX gives 0 for a negative input (the VU takes
 the root of |x|), and its VuDivByX gives 0 for a zero divisor (the VU gives the largest float).
+
+Also from the port's boot run (v1.14): xf.cpp's ResolveXfId / ResolveXfIdInSo / ResolveXfIdInParent return `XF *`
+(the In* functions returned nothing although SO::GetXfFromIndex and XFM::ResolveXfInParent use the result; the
+tail calls already left it in $v0, so returning it is free), index the table as `XF *` (the 0x100 stride is
+sizeof(XF)), and PushXfContext / the context stack D_004437A8 hold `XF *`; shd.cpp's LoadShadersFromBrx takes the
+GSB as `GSB *` and passes it to UploadPermShaders as such, and the SAA table is sized `count * sizeof(SAA *)`.
 
 ## 3. Known remaining hazards
 

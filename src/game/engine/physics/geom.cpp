@@ -116,6 +116,7 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
 
 // Transforms count points by a 4x4 matrix with the VU0 microprograms at 0x120/0xF0, double-buffered so one point
 // is loaded while the previous one is transformed. The workhorse of UpdateGeomWorld.
+#ifdef SLY2_EE_ASM
 extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
                    const qword *in0, qword *output)
 {
@@ -157,6 +158,15 @@ extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
         } while (output != (qword *)end);
     }
 }
+#else
+/* The C side transforms each point as CloneGeom's Transform does (xyz = p * M with p.w taken as 1; w keeps the
+   input's): the EE microprograms at 0x120 / 0xF0 are not modelled (docs/guides/portability.md, VU0 fallbacks). */
+extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count, const qword *in0, qword *output)
+{
+    for (unsigned int i = 0; i < count; i++)
+        output[i] = VuKeepW(in0[i], VuMulMatrix4(matrix->r[0], matrix->r[1], matrix->r[2], matrix->r[3], in0[i]));
+}
+#endif
 
 // Transform points and inverse-transpose plane normals.
 static __inline__ qword ReadCPU(const qword*source){qword value;__asm__("lq %0,%1":"=r"(value):"m"(*source));return value;}
