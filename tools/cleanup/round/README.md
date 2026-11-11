@@ -42,10 +42,11 @@ and section). Then matchtool's comparison runs on every function and data symbol
 | symcheck | no unresolved undefined symbol, duplicate strong definition or namespace-mangled definition that the baseline did not have (symcheck.py, from the cached objects) |
 | linkcheck | tools/linkcheck.py exits 0 |
 | docnames | tools/cleanup/docnames.py exits 0 |
-| progress | tools/progress.py from a deleted cache prints N/N and leaves config/matched.csv unchanged |
+| progress | tools/progress.py from a deleted cache prints N/N, leaves config/matched.csv unchanged, and no more sources fail to build than in the baseline (progress.py exits 1 whenever any source does not build, e.g. the SDK files that need Docker, so its exit status is not used). If more fail, one more run retries only the failed builds (a wibo timeout under load is transient; seen once in testing) |
 | link | tools/link.py: 0 ld.lld errors, 0 differing bytes, every symbol at its config address |
 
-The full run takes about as long as progress plus the link (about 13 minutes on two cores).
+The full run takes about as long as progress plus the link (14 minutes on two shared cores in testing; a retry of
+failed builds adds about 7 more, most of it the SDK files failing again).
 
 **try PATCHFILE | --stdin | -- COMMAND... [--keep] [--all] [--vs pre|base] [-p N]** checks one candidate edit:
 

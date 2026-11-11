@@ -601,6 +601,16 @@ def cmd_check(a):
 
 
 def run_progress(wt, sd, logname, delete=True, base_broken=None):
+    """progress from a deleted cache; if more sources failed to build than in the baseline, one more run (which
+    retries only the failed builds: a wibo timeout under load is transient) before calling it a failure."""
+    r = _progress(wt, sd, logname, delete, base_broken)
+    if not r[0] and base_broken is not None and r[2] > base_broken:
+        r2 = _progress(wt, sd, logname.replace('.log', '.retry.log'), False, base_broken)
+        return r2[0], r2[1] + f' (after retrying {r[2] - base_broken} failed builds)', r2[2]
+    return r
+
+
+def _progress(wt, sd, logname, delete=True, base_broken=None):
     """tools/progress.py (exit status 1 whenever a source does not build here, e.g. the SDK files that need Docker,
     so the pass rule is: N/N, matched.csv unchanged, no more unbuilt sources than the baseline).
     Returns (ok, summary line, number of sources that did not build)."""
@@ -616,7 +626,7 @@ def run_progress(wt, sd, logname, delete=True, base_broken=None):
     broken = int(nb[-1]) if nb else 0
     unchanged = not git('diff', '--name-only', '--', 'config/matched.csv', cwd=wt)
     ok = bool(m) and m[-1][0] == m[-1][1] and unchanged and (base_broken is None or broken <= base_broken) and \
-        (p.returncode == 0 or nb)
+        (p.returncode == 0 or bool(nb))
     summary = (' '.join(line[-1].split()[:3]) if line else f'no total (exit {p.returncode})') + \
         f', {broken} sources not built here' + (f' (base {base_broken})' if base_broken not in (None, broken) else '') + \
         ('' if unchanged else '; config/matched.csv CHANGED')
@@ -829,6 +839,8 @@ def cmd_status(a):
 def main():
     global CFG
     CFG = settings()
+    os.environ.setdefault('SLY2_PYTHONPATH', CFG['pythonpath'])    # for matchtool here and in progress/link runs
+    os.environ.setdefault('SLY2_M2C_INC', CFG['m2c_inc'])
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0], epilog=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
