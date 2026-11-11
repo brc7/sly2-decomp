@@ -266,6 +266,62 @@ template <class QW> inline QW VuMake(float x, float y, float z, float w)
     VuLanes v = { x, y, z, w };
     return VuPut<QW>(v);
 }
+/* register moves between a float / int and a quadword (qmtc2, qmfc2, mtc1, mfc1, sq): the low bytes, as the bits
+   are; VuWiden zero-fills the lanes a 32-bit source does not cover */
+template <class D, class S> inline void VuCopyBits(D &d, const S &s)
+{
+    __builtin_memcpy(&d, &s, sizeof d < sizeof s ? sizeof d : sizeof s);
+}
+// A quadword (or word) from the low bytes of s, the rest zero; VuWiden<qword>(g).
+template <class D, class S> inline D VuWiden(const S &s)
+{
+    D d;
+    __builtin_memset(&d, 0, sizeof d);
+    VuCopyBits(d, s);
+    return d;
+}
+/* x = v.x^2 + v.y^2 (vmul.xy + vaddy.x; y keeps v.y^2) */
+template <class QW> inline QW VuDotXY(QW v)
+{
+    VuLanes p = VuGet(v);
+    return VuMake<QW>(p.x * p.x + p.y * p.y, p.y * p.y, 0.0f, 0.0f);
+}
+/* a * s.x + b * t.x, all four lanes (vmulax + vmaddx) */
+template <class QW> inline QW VuScaleX2(QW a, QW s, QW b, QW t)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    float k = VuGet(s).x, m = VuGet(t).x;
+    return VuMake<QW>(p.x * k + q.x * m, p.y * k + q.y * m, p.z * k + q.z * m, p.w * k + q.w * m);
+}
+/* ((a + vf0) + b * s.x) + c * s.x, all four lanes (vadda with vf0, so w gains 1.0; vmaddax; vmaddx) */
+template <class QW> inline QW VuAddScaled2(QW a, QW b, QW c, QW s)
+{
+    VuLanes p = VuGet(a), q = VuGet(b), r = VuGet(c);
+    float k = VuGet(s).x;
+    return VuMake<QW>((p.x + q.x * k) + r.x * k, (p.y + q.y * k) + r.y * k, (p.z + q.z * k) + r.z * k,
+                      ((p.w + 1.0f) + q.w * k) + r.w * k);
+}
+/* r with old's w: an asm that writes only xyz of a "+j" operand leaves its w as it was */
+template <class QW> inline QW VuKeepW(QW old, QW r)
+{
+    VuLanes p = VuGet(r);
+    p.w = VuGet(old).w;
+    return VuPut<QW>(p);
+}
+/* the MMI lane moves the decomp uses to read y and z: prot3w (lanes y, z, x, w) and pextuw with $zero (z, 0, w, 0) */
+template <class QW> inline QW VuProt3w(QW v)
+{
+    VuLanes p = VuGet(v);
+    VuLanes r = { p.y, p.z, p.x, p.w };
+    return VuPut<QW>(r);
+}
+// pextuw rd, $zero, v: lanes (z, 0, w, 0).
+template <class QW> inline QW VuPextuw0(QW v)
+{
+    VuLanes p = VuGet(v);
+    VuLanes r = { p.z, 0.0f, p.w, 0.0f };
+    return VuPut<QW>(r);
+}
 /* the VU's square root (vsqrt, and the EE FPU's sqrt.s): the root of |g| */
 inline float VuSqrt(float g) { return __builtin_sqrtf(__builtin_fabsf(g)); }
 
