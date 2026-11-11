@@ -798,7 +798,7 @@ namespace M_LoadPathzoneFromBrx {
 typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int cost; };
-struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
+struct V { qword pos; int c; struct E8 *ae; };   /* 0x20 with the qword alignment (the CGV vertex of M_HookupCg) */
 struct F { struct V *apv[3]; };
 struct P { float x, y, z; unsigned short c, d; };
 /* The zone (classes.h PATHZONE: an XFM, then its CG graph, typed here with this function's vertex/triangle/node views). */
@@ -869,7 +869,7 @@ namespace M_InitDefaultPathzoneCg {
 typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int cost; };
-struct V { qword pos; int c; struct E8 *ae; int pad[2]; };
+struct V { qword pos; int c; struct E8 *ae; };   /* 0x20 with the qword alignment (the CGV vertex of M_HookupCg) */
 struct VS { union { float af[4]; qword q; } pos; int c; int ai[3]; };   /* floats first: initializable */
 struct F { struct V *apv[3]; };
 struct FS { int ai[3]; };
@@ -1308,7 +1308,7 @@ namespace M_func_001C1260 {
 struct H { int a[4]; };
 struct A { int cb; int align; };
 typedef PATHZONE R;
-struct Q { char pad[0x124]; R *zoneIndex; R *toZone; };   /* a path link (CID 124): its two zones */
+struct Q { char pad[SLY2_OFFSETOF(PATHLINK, startZone)]; R *zoneIndex; R *toZone; };   /* a path link (classes.h PATHLINK, CID 124): its two zones (startZone, endZone) */
 struct B { int c; int *p; };
 /* the zone BSP (world->pregtree; M_LoadZoneBspFromBrx's S) */
 struct S { int numNodes; void *nodes; int numPlanes; void *planes; int numZones; int *zoneIds; void *zones; struct B *linkLists; int numLinks; struct Q **links; };
