@@ -34,6 +34,7 @@ struct VU_FLOAT {
     qword q;
     // Uninitialised value.
     VU_FLOAT() {}
+#ifdef SLY2_EE_ASM
     // Move a float's bits into a GPR qword (mfc1).
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
     // The value as an FPU float.
@@ -42,6 +43,12 @@ struct VU_FLOAT {
     float H() const { float g; __asm__("mtc1 %1, %0" : "=f,f"(g) : "r,j"(q)); return g; }
     /* one register pin: $v0 copy, see BuildRotateVectorsMatrix */
     float G() const { register qword t __asm__("$2") = q; float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(t)); return g; }
+#else
+    VU_FLOAT(float f) { q = VuFromFloat<qword>(f); }
+    float F() const { return QwordX(q); }
+    float H() const { return QwordX(q); }
+    float G() const { return QwordX(q); }
+#endif
 };
 struct SMP;
 struct MSG { int cb; int nKind; };
@@ -95,6 +102,7 @@ extern "C" void InvertMatrix3(float *src, float *dst) {
 
 // Returns the inverse of a 3x3 matrix by cofactors (row cross products over the determinant).
 // Also known as: InverseMatrix3 (upstream readable / Sly 1 name; InverseMatrix3__FP7MATRIX3).
+#ifdef SLY2_EE_ASM
 extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
 {
     M3 m;
@@ -134,8 +142,25 @@ extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
     m.r[2] = v6;
     return m;
 }
+#else
+// Returns the inverse of a 3x3 matrix by cofactors (row cross products over the determinant).
+extern "C" M3 InvertMatrix3Cofactor(M3 *matrix)
+{
+    /* the cofactor rows c0 = r1 x r2, c1 = r2 x r0, c2 = r0 x r1; det = r0 . c0; the inverse is their transpose / det */
+    VuLanes c0 = VuGet(VuCross(matrix->r[1], matrix->r[2]));
+    VuLanes c1 = VuGet(VuCross(matrix->r[2], matrix->r[0]));
+    VuLanes c2 = VuGet(VuCross(matrix->r[0], matrix->r[1]));
+    float q = 1.0f / VuGet(VuDot(matrix->r[0], VuPut<qword>(c0))).x;
+    M3 m;
+    m.r[0] = VuMake<qword>(c0.x * q, c1.x * q, c2.x * q, 0.0f);
+    m.r[1] = VuMake<qword>(c0.y * q, c1.y * q, c2.y * q, 0.0f);
+    m.r[2] = VuMake<qword>(c0.z * q, c1.z * q, c2.z * q, 0.0f);
+    return m;
+}
+#endif
 
 // Unit vector along v.
+#ifdef SLY2_EE_ASM
 static inline qword NormalizeN(qword v)
 {
     qword d, one, l, r;
@@ -144,6 +169,9 @@ static inline qword NormalizeN(qword v)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v));
     return r;
 }
+#else
+static inline qword NormalizeN(qword v) { return VuDivByX(v, VuLength(v)); }
+#endif
 // Re-orthonormalises a rotation matrix in place (Gram-Schmidt through cross products, keeping row 0's
 // direction), removing drift from repeated multiplication.
 void NormalizeRotateMatrix3(MATRIX3 *matrix)
@@ -163,6 +191,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0xb0");
 
 // Returns the rotation about the unit `axis` whose angle has sine s and cosine c (Rodrigues' formula).
 // Also known as: BuildRotateMatrixSinCos (upstream readable / Sly 1 name; BuildRotateMatrixSinCos__FG9VU_VECTORN20).
+#ifdef SLY2_EE_ASM
 M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
 {
     M3 m;
@@ -197,6 +226,21 @@ M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
     m.r[2] = v3;
     return m;
 }
+#else
+M3 LoadRotateMatrixSinCos(qword sine, qword cosine, qword axis)
+{
+    /* R = c I + (1 - c) a a^T + s [a]x, row i = a_i * (1 - c) a, plus c on the diagonal and the sine terms */
+    VuLanes a = VuGet(axis);
+    float c = QwordX(cosine), s = QwordX(sine), t = 1.0f - c;
+    VuLanes k = { a.x * t, a.y * t, a.z * t, 0.0f };
+    VuLanes sa = { a.x * s, a.y * s, a.z * s, 0.0f };
+    M3 m;
+    m.r[0] = VuMake<qword>(k.x * a.x + c, k.y * a.x + sa.z, k.z * a.x - sa.y, 0.0f);
+    m.r[1] = VuMake<qword>(k.x * a.y - sa.z, k.y * a.y + c, k.z * a.y + sa.x, 0.0f);
+    m.r[2] = VuMake<qword>(k.x * a.z + sa.y, k.y * a.z - sa.x, k.z * a.z + c, 0.0f);
+    return m;
+}
+#endif
 
 // Placement new: construct at destination.
 inline void *operator new(unsigned, void *destination) { return destination; }
@@ -207,6 +251,7 @@ static inline qword IntToQword(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0
 #define QWFROMN2(dst, n, a) { UN u; qword q; __asm__("" : "=r"(q), "+r"(a) : "0"(n) : "$4"); dst = q; u.q = q; }
 // Builds the rotation of `rad` radians about the unit `axis` into *outMatrix and returns it.
 // Also known as: BuildRotateMatrixAxis (upstream readable / Sly 1 name; BuildRotateMatrixAxis__FP7MATRIX3fG9VU_VECTOR).
+#ifdef SLY2_EE_ASM
 M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
 {
     int s, c;
@@ -224,10 +269,21 @@ M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
     func_0023320C(outMatrix, &m, sizeof(M3));
     return outMatrix;
 }
+#else
+M3 *BuildAxisAngleRotationMatrix(M3 *outMatrix, float rad, qword axis)
+{
+    float s, c;
+    CalculateSinCos__FfPfT1(rad, &s, &c);
+    M3 m = LoadRotateMatrixSinCos(VuFromFloat<qword>(s), VuFromFloat<qword>(c), axis);
+    func_0023320C(outMatrix, &m, sizeof(M3));
+    return outMatrix;
+}
+#endif
 
 // Builds the rotation given by a rotation vector (angle = |v|, axis = v / |v|; identity for a tiny v).
 // Also known as: BuildRotateMatrixVector (upstream readable / Sly 1 name;
 //   BuildRotateMatrixVector__FP6VECTORG9VU_VECTOR).
+#ifdef SLY2_EE_ASM
 extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
 {
     qword d, one, l;
@@ -249,6 +305,20 @@ extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
     }
     return outMatrix;
 }
+#else
+extern "C" M3 *BuildRotationMatrixFromVector(M3 *outMatrix, qword v)
+{
+    float g = QwordX(VuLength(v));
+    if (g < 1.0e-4f) {
+        func_0023320C(outMatrix, &D_002A2D00, sizeof(M3));
+    } else {
+        M3 m;
+        BuildAxisAngleRotationMatrix(&m, g, VuDivByX(v, VuFromFloat<qword>(g)));
+        func_0023320C(outMatrix, &m, sizeof(M3));
+    }
+    return outMatrix;
+}
+#endif
 
 // Builds a rotation matrix from Euler angles (x, y, z components of v).
 // Also known as: BuildEulerMatrix (upstream readable / Sly 1 name; BuildEulerMatrix__FP6VECTORG9VU_VECTOR).
@@ -274,6 +344,7 @@ extern "C" MATRIX3 *LoadRotateMatrixEuler(MATRIX3 *outMatrix, qword v)
 }
 
 /* C++ would build the result in a temporary first: the product goes through the out pointer (one copy, as in C). */
+#ifdef SLY2_EE_ASM
 static inline void MulM3PT(M3 *pd, M3 *pa, M3 *pb)
 {
     M3 m;
@@ -291,6 +362,15 @@ static inline void MulM3PT(M3 *pd, M3 *pa, M3 *pb)
     pd->r[1] = m.r[1];
     pd->r[2] = m.r[2];
 }
+#else
+static inline void MulM3PT(M3 *pd, M3 *pa, M3 *pb)
+{
+    M3 m;
+    for (int i = 0; i < 3; i++)
+        m.r[i] = VuMulMatrix3(pa->r[0], pa->r[1], pa->r[2], pb->r[i]);
+    *pd = m;
+}
+#endif
 // Builds the rotation for a pan (about z) and a tilt (about the panned y, positive up): Rz(pan) * Ry(-tilt).
 // Also known as: BuildPanTiltMatrix (upstream readable / Sly 1 name; BuildPanTiltMatrix__FPvff).
 extern "C" M3 *LoadRotateMatrixPanTilt(M3 *outMatrix, float pan, float tilt)
@@ -315,6 +395,7 @@ extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *outMatrix, qword vec)
 
 /* BuildOrthonormalMatrixZ (Claude agent, 2026-10-23): matched from build/hand_wip/BuildOrthonormalMatrixZ.v4.c. Separate l/l2 for the two
    lengths, plus allocation-only operands on the first Div and second Len. */
+#ifdef SLY2_EE_ASM
 static inline qword Len(qword v)
 {
     qword d, one, l;
@@ -337,6 +418,11 @@ static inline qword Div1(qword v, qword l)
     __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v), "j"(l));
     return r;
 }
+#else
+static inline qword Len(qword v) { return VuLength(v); }
+static inline qword LenZ(qword v) { return VuLength(v); }
+static inline qword Div1(qword v, qword l) { return VuDivByX(v, l); }
+#endif
 // 0x11B828: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x70");
 
@@ -367,6 +453,7 @@ M3 *BuildOrthonormalMatrixZ(M3 *outMatrix, qword direction, qword up)
 }
 
 // (Claude agent) Matched: MulM3q writes rows through an out pointer, copying each row right after storing it (interleaved m/t stores).
+#ifdef SLY2_EE_ASM
 #define ROW(o, a0, a1, a2) __asm__ __volatile__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(o) : "j"(a0), "j"(a1), "j"(a2))
 // Store the 3x3 matrix product (rows a0..a2) * *pb into *pd (register-pinned).
 static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
@@ -385,6 +472,18 @@ static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
     m.r[1] = r1; pd->r[1] = m.r[1];
     m.r[2] = r2; pd->r[2] = m.r[2];
 }
+#else
+static inline void MulM3q(qword a0, qword a1, qword a2, M3 *pb, M3 *pd)
+{
+    for (int i = 0; i < 3; i++) {
+        /* xyz = (a0 b.x + a1 b.y) + a2 b.z; w keeps the row's own w */
+        float w = VuGet(pb->r[i]).w;
+        VuLanes r = VuGet(VuMulMatrix3(a0, a1, a2, pb->r[i]));
+        r.w = w;
+        pd->r[i] = VuPut<qword>(r);
+    }
+}
+#endif
 // Computes the rotation that takes the matrix's local z onto world z: optionally returns it (outDelta) and the
 // matrix with it applied (outUpright).
 // Also known as: LevelMatrix3 (upstream readable / Sly 1 name; LevelMatrix3__FP7MATRIX3T0Pv).
@@ -412,6 +511,7 @@ extern "C" void TiltMatUpright(M3 *matrix, M3 *outDelta, M3 *outUpright)
 //    always picks the first "r" alternative, so the instruction is the same mtc1).
 //  - d.G(): the one register pin (copy to $v0 before the mtc1), so the dot readback stays after la*lb.
 //  - The sqrt asm is volatile: emulates the original schedule (the B480 argument setup stays after it).
+#ifdef SLY2_EE_ASM
 static inline qword LenB(qword a)
 {
     qword l;
@@ -420,6 +520,9 @@ static inline qword LenB(qword a)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     return l;
 }
+#else
+static inline qword LenB(qword a) { return VuLength(a); }
+#endif
 struct MAT3 { float m[3][4]; };
 // 0x11BA00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xd0");
@@ -440,11 +543,19 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword
         p->m[0][0] = p->m[1][1] = p->m[2][2] = 1.0f;
     } else {
         qword axis;
+#ifdef SLY2_EE_ASM
         __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(axis) : "j"(a), "j"(b));
+#else
+        axis = VuCross(a, b);
+#endif
         VU_FLOAT l;
         l.q = LenB(axis);
         if (l.F() > 1e-8f) {
+#ifdef SLY2_EE_ASM
             __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(axis) : "j"(axis), "j"(l.q));
+#else
+            axis = VuDivByX(axis, l.q);
+#endif
         } else {
             axis = GetNormalVector(a);
         }
@@ -455,7 +566,11 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword
         float cc = c.F();
         float sn;
         /* volatile: emulates the original schedule, see header */
+#ifdef SLY2_EE_ASM
         __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(sn) : "f"(1.0f - cc * cc));
+#else
+        sn = SqrtFloat(1.0f - cc * cc);
+#endif
         M3 m = LoadRotateMatrixSinCosV(VU_FLOAT(sn), c, axis);
         func_0023320C(outMatrix, &m, sizeof(M3));
     }
@@ -463,6 +578,7 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword
 }
 
 // Claude agent, lane A19, 2026-10-23: matched from fresh7 (3). One pin ($5), one commented empty asm, allocation-only asm operands.
+#ifdef SLY2_EE_ASM
 static inline M3 MulM3MM(M3 *pa, M3 *pb, M3 *pd) return m
 {
     qword v4;
@@ -501,6 +617,21 @@ M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
     func_0023320C(outMatrix, pt, sizeof(M3));
     return outMatrix;
 }
+#else
+M3 *MulMatrix3Matrix3(M3 *outMatrix, M3 *a, M3 *b)
+{
+    /* row i of the result = a[0][i] b.r0 + a[1][i] b.r1 + a[2][i] b.r2 (all four lanes): a's transpose times b */
+    VuLanes a0 = VuGet(a->r[0]), a1 = VuGet(a->r[1]), a2 = VuGet(a->r[2]);
+    VuLanes b0 = VuGet(b->r[0]), b1 = VuGet(b->r[1]), b2 = VuGet(b->r[2]);
+    float k[3][3] = { { a0.x, a1.x, a2.x }, { a0.y, a1.y, a2.y }, { a0.z, a1.z, a2.z } };
+    M3 m;
+    for (int i = 0; i < 3; i++)
+        m.r[i] = VuMake<qword>((b0.x * k[i][0] + b1.x * k[i][1]) + b2.x * k[i][2], (b0.y * k[i][0] + b1.y * k[i][1]) + b2.y * k[i][2],
+                               (b0.z * k[i][0] + b1.z * k[i][1]) + b2.z * k[i][2], (b0.w * k[i][0] + b1.w * k[i][1]) + b2.w * k[i][2]);
+    func_0023320C(outMatrix, &m, sizeof(M3));
+    return outMatrix;
+}
+#endif
 
 // Extracts pan and tilt from a rotation matrix's row 0 (its x axis): pan = atan2(y, x), tilt = atan2(z, |xy|).
 void DecomposeRotateMatrixPanTilt(MATRIX3 *matrix, float *outPan, float *outTilt)
@@ -580,10 +711,15 @@ extern "C" qword DecomposeRotationMatrixToVector(void *matrix)
     int g;
     qword r;
     DecomposeRotateMatrixRad((MATRIX3 *)matrix, (float *)&g, (VECTOR *)&v);
+#ifdef SLY2_EE_ASM
     qword ts;
     __asm__("qmtc2.ni %1, %0" : "=j"(ts) : "r"(g));
     s.q = ts;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q));
+#else
+    r = VuScaleByX(v.q, VuFromFloat<qword>(g));
+    (void)s;
+#endif
     return r;
 }
 
@@ -612,6 +748,7 @@ extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *matrix)
 }
 
 // Return a scaled by f.x.
+#ifdef SLY2_EE_ASM
 static inline qword Mulx(qword a, qword f) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f), "j"(a)); return r; }
 // 0x0011C128 __ml__FRC7MATRIX4G8VU_FLOAT: matrix * scalar
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) return mat
@@ -621,9 +758,19 @@ MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) return mat
     mat.r[2] = Mulx(m.r[2], s.q);
     mat.r[3] = Mulx(m.r[3], s.q);
 }
+#else
+MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s)
+{
+    MATRIX4 mat;
+    for (int i = 0; i < 4; i++)
+        mat.r[i] = VuScaleByX(m.r[i], s.q);
+    return mat;
+}
+#endif
 
 // MATRIX4 operator*: 4x4 product a * b into *outMatrix. Sly 1 symbol __ml__FRC7MATRIX4T0.
 // Also known as: MulMatrix4 (upstream readable / Sly 1 name; MulMatrix4__FP7MATRIX4T0Pv).
+#ifdef SLY2_EE_ASM
 M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
 {
     register qword v1 __asm__("vf1") = a->r[0];
@@ -641,14 +788,37 @@ M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
     outMatrix->r[0] = v5; outMatrix->r[1] = v6; outMatrix->r[2] = v7; outMatrix->r[3] = v8;
     return outMatrix;
 }
+#else
+/* The EE runs a VU0 microprogram (vcallms 0x60) with a's rows in vf1-vf4 and b's in vf5-vf8, results back in vf5-vf8:
+   row i = a[i].x b.r0 + a[i].y b.r1 + a[i].z b.r2 + a[i].w b.r3 (see docs/guides/portability.md, VU0 fallbacks). */
+M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
+{
+    M4 m;
+    for (int i = 0; i < 4; i++) {
+        VuLanes k = VuGet(a->r[i]);
+        VuLanes b0 = VuGet(b->r[0]), b1 = VuGet(b->r[1]), b2 = VuGet(b->r[2]), b3 = VuGet(b->r[3]);
+        m.r[i] = VuMake<qword>(((b0.x * k.x + b1.x * k.y) + b2.x * k.z) + b3.x * k.w, ((b0.y * k.x + b1.y * k.y) + b2.y * k.z) + b3.y * k.w,
+                               ((b0.z * k.x + b1.z * k.y) + b2.z * k.z) + b3.z * k.w, ((b0.w * k.x + b1.w * k.y) + b2.w * k.z) + b3.w * k.w);
+    }
+    *outMatrix = m;
+    return outMatrix;
+}
+#endif
 
 qword ml(const M4 *m, qword v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
 // Transforms a 4-vector by a 4x4 matrix (v * M, all four components).
 qword ml(const M4 *m, qword v)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmadday.xyzw $ACC, %3, %1y\n\tvmaddaz.xyzw $ACC, %4, %1z\n\tvmaddw.xyzw %0, %5, %1w"
             : "=j"(r) : "j"(v), "j"(m->r[0]), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3]));
+#else
+    /* all four lanes: ((r0 v.x + r1 v.y) + r2 v.z) + r3 v.w */
+    VuLanes u = VuGet(v), a = VuGet(m->r[0]), b = VuGet(m->r[1]), c = VuGet(m->r[2]), d = VuGet(m->r[3]);
+    r = VuMake<qword>(((a.x * u.x + b.x * u.y) + c.x * u.z) + d.x * u.w, ((a.y * u.x + b.y * u.y) + c.y * u.z) + d.y * u.w,
+                      ((a.z * u.x + b.z * u.y) + c.z * u.z) + d.z * u.w, ((a.w * u.x + b.w * u.y) + c.w * u.z) + d.w * u.w);
+#endif
     return r;
 }
 
@@ -661,6 +831,7 @@ extern "C" float *TransposeMatrix4(float *dst, float *src) {
 /* LoadMatrixFromPosRotScale (Claude agent, lane A29, 2026-10-24): builds a 4x4 matrix from a 3x3 rotation scaled per row by pg[0..2] plus a
    position. From v6 (aligned 2): the one register pin is on the pg[2] temp in Q7 (the target puts pg[2] in pg's dying a3).
    The dead sqc2 stores of the scales and their extra operands are commented below. */
+#ifdef SLY2_EE_ASM
 static inline qword Q(int g)
 {
     qword s;
@@ -701,8 +872,21 @@ extern "C" M4F *LoadMatrixFromPosRotScale(M4F *outMatrix, qword pos, M3 *rotatio
     __asm__("sqc2 %1, %0" : "=m"(u.q) : "j"(s2), "m"(outMatrix->m[0][3])); /* "m": ordering-only operand */
     return outMatrix;
 }
+#else
+/* scale holds three floats (the int type is the matched spelling) */
+extern "C" M4F *LoadMatrixFromPosRotScale(M4F *outMatrix, qword pos, M3 *rotation, int *scale)
+{
+    for (int i = 0; i < 3; i++)
+        *(qword *)outMatrix->m[i] = VuScaleByX(rotation->r[i], VuFromFloat<qword>(scale[i]));
+    *(qword *)outMatrix->m[3] = pos;
+    outMatrix->m[0][3] = outMatrix->m[1][3] = outMatrix->m[2][3] = 0.0f;
+    outMatrix->m[3][3] = 1.0f;
+    return outMatrix;
+}
+#endif
 
 // Return a scaled by g.
+#ifdef SLY2_EE_ASM
 static inline qword MulxS(qword a, float g)
 {
     UG s;
@@ -712,6 +896,9 @@ static inline qword MulxS(qword a, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(a), "j"(s.q));
     return r;
 }
+#else
+static inline qword MulxS(qword a, float g) { return VuScaleByX(a, VuFromFloat<qword>(g)); }
+#endif
 // Builds a 4x4 transform from a position, a 3x3 rotation and a uniform scale.
 extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *outMatrix, qword pos, M3 *rotation, float scale)
 {
@@ -732,6 +919,7 @@ extern "C" void InvertMatrix4(float *src, float *dst) {
 
 // Returns the inverse of a rigid 4x4 transform (transposed rotation, translation -t * R^T).
 // Also known as: InverseAffineMatrix4 (upstream readable / Sly 1 name; InverseAffineMatrix4__FP7MATRIX4).
+#ifdef SLY2_EE_ASM
 M4 InvertMatrix4Rigid(M4 *matrix)
 {
     M4 m;
@@ -781,6 +969,26 @@ M4 InvertMatrix4Rigid(M4 *matrix)
     m.r[3] = v8;
     return m;
 }
+#else
+M4 InvertMatrix4Rigid(M4 *matrix)
+{
+    /* the 3x3 part is inverted by cofactors as in InvertMatrix3Cofactor (rows R0..R2, w = 0); the translation row is
+       (-t) R = (R0 (-t.x) + R1 (-t.y)) + R2 (-t.z), with w = 1 */
+    VuLanes c0 = VuGet(VuCross(matrix->r[1], matrix->r[2]));
+    VuLanes c1 = VuGet(VuCross(matrix->r[2], matrix->r[0]));
+    VuLanes c2 = VuGet(VuCross(matrix->r[0], matrix->r[1]));
+    float q = 1.0f / VuGet(VuDot(matrix->r[0], VuPut<qword>(c0))).x;
+    VuLanes t = VuGet(matrix->r[3]);
+    M4 m;
+    m.r[0] = VuMake<qword>(c0.x * q, c1.x * q, c2.x * q, 0.0f);
+    m.r[1] = VuMake<qword>(c0.y * q, c1.y * q, c2.y * q, 0.0f);
+    m.r[2] = VuMake<qword>(c0.z * q, c1.z * q, c2.z * q, 0.0f);
+    VuLanes p = VuGet(VuMulMatrix3(m.r[0], m.r[1], m.r[2], VuMake<qword>(0.0f - t.x, 0.0f - t.y, 0.0f - t.z, 0.0f)));
+    p.w = 1.0f;
+    m.r[3] = VuPut<qword>(p);
+    return m;
+}
+#endif
 
 // Computes the relative transform a matrix makes with a reference: outMatrix = matrix * inverse(reference)
 // (reference assumed rigid).
@@ -889,6 +1097,7 @@ void TransposeMatrix(int stride, int size, float *src, float *dst)
 
 // SmoothMatrix (Sly 1 name). Matched by Claude agent (2026-10-23): g++ named-return MulM3S with a dead M3 copy t
 // (stored before m, per row), the first mat in its own block so the MulM3S temp and the VU scalar u reuse its slot.
+#ifdef SLY2_EE_ASM
 static inline M3 MulM3S(const M3 &a, M3 *pb) return m
 {
     M3 t;
@@ -903,6 +1112,15 @@ static inline M3 MulM3S(const M3 &a, M3 *pb) return m
             : "=j"(r2) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(pb->r[2]));
     t.r[2] = r2; m.r[2] = r2;
 }
+#else
+static inline M3 MulM3S(const M3 &a, M3 *pb)
+{
+    M3 m;
+    for (int i = 0; i < 3; i++)
+        m.r[i] = VuMulMatrix3(a.r[0], a.r[1], a.r[2], pb->r[i]);
+    return m;
+}
+#endif
 // 0x11C948: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $2, $zero, 0x1");
 
@@ -913,7 +1131,12 @@ extern "C" void SmoothMatrix(M3 *prev, M3 *goal, SMP *params, float dt, M3 *outN
     UG normal;
     float rad, dv, radNew;
     {
+#ifdef SLY2_EE_ASM
         M3 mat = MulMatrix3Matrix3R(prev, goal);
+#else
+        M3 mat;
+        MulMatrix3Matrix3(&mat, prev, goal);
+#endif
         DecomposeRotateMatrixRad((MATRIX3 *)&mat, &rad, (VECTOR *)&normal.q);
     }
     radNew = SmoothValue__FfffP3SMPPf(0.0f, rad, dt, params, &dv);
@@ -921,20 +1144,31 @@ extern "C" void SmoothMatrix(M3 *prev, M3 *goal, SMP *params, float dt, M3 *outN
         if (radNew == rad) {
             *outNext = *goal;
         } else {
+#ifdef SLY2_EE_ASM
             *outNext = MulM3S(func_0011B500R(radNew, normal.q), prev);
+#else
+            M3 rot;
+            BuildAxisAngleRotationMatrix(&rot, radNew, normal.q);
+            *outNext = MulM3S(rot, prev);
+#endif
         }
     }
     if (outAngularVelocity) {
+#ifdef SLY2_EE_ASM
         UG u;
         qword s, r;
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&dv));
         u.q = s;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(normal.q), "j"(s));
         *outAngularVelocity = r;
+#else
+        *outAngularVelocity = VuScaleByX(normal.q, VuFromFloat<qword>(dv));
+#endif
     }
 }
 
 // Single-precision square root (sqrt.s).
+#ifdef SLY2_EE_ASM
 static inline float SqrtNv(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 // Squared length of the xyz part of v as a float.
 static inline float DotSq(qword v)
@@ -945,6 +1179,10 @@ static inline float DotSq(qword v)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
+#else
+static inline float SqrtNv(float x) { return SqrtFloat(x); }
+static inline float DotSq(qword v) { return QwordX(VuDot(v, v)); }
+#endif
 // Returns the length of the longest row of a 3x3 matrix (its largest axis scale), e.g. to scale bounding spheres.
 // Also known as: GMaxRowLengthMatrix3 (upstream readable / Sly 1 name; GMaxRowLengthMatrix3__FP7MATRIX3).
 extern "C" float GetMaxRowLengthMatrix3(M3 *matrix)
