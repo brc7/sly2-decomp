@@ -652,7 +652,11 @@ void SetBootyState(BOOTYV *booty, int st)
 #endif
             s.q = sq;
             v.q = vq;
+#if defined(SLY2_EE_LAYOUT)
             ((PFNQ)((void (*)())pvt->a[35].pfn))((char *)booty + pvt->a[35].d, v.q);
+#else
+            ((SO *)booty)->SetVelocity(v.q);   /* slot 35 */
+#endif
         }
         a = RandomFloatInRange__Fff(lo, hi);
         b = RandomFloatInRange__Fff(lo, hi);
