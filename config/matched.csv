@@ -978,7 +978,7 @@ TransposeMatrix,0x11C8E8,24,match,src/game/core/math/mat.cpp
 SmoothMatrix,0x11C950,87,match,src/game/core/math/mat.cpp
 GetMaxRowLengthMatrix3,0x11CAB0,39,match,src/game/core/math/mat.cpp
 StaticInit_mat,0x11CB50,77,match,src/game/core/math/mat.cpp
-func_0011CC88,0x11CC88,8,match,src/game/core/math/mat.cpp
+GlobalConstructors_mat,0x11CC88,8,match,src/game/core/math/mat.cpp
 InitSlotheap,0x11CCA8,6,match,src/game/platform/memory/slotheap.cpp
 AllocZeroedFromSlotheap,0x11CCC0,54,match,src/game/platform/memory/slotheap.cpp
 FreeSlotheapSlot,0x11CD98,7,match,src/game/platform/memory/slotheap.cpp
@@ -1035,7 +1035,7 @@ GetCosineBetweenVectors,0x11F198,56,match,src/game/core/math/vec.cpp
 VecMinArray,0x11F288,12,match,src/game/core/math/vec.cpp
 VecMaxArray,0x11F2B8,12,match,src/game/core/math/vec.cpp
 StaticInit_vec,0x11F2E8,77,match,src/game/core/math/vec.cpp
-func_0011F420,0x11F420,8,match,src/game/core/math/vec.cpp
+GlobalConstructors_vec,0x11F420,8,match,src/game/core/math/vec.cpp
 BuiltinAdd__FiP4CRefP6CFrame,0x11F440,163,match,src/game/app/bif.cpp
 BuiltinSubtract__FiP4CRefP6CFrame,0x11F6D0,163,match,src/game/app/bif.cpp
 BuiltinMultiply__FiP4CRefP6CFrame,0x11F960,345,match,src/game/app/bif.cpp
@@ -1661,7 +1661,7 @@ GetBootyContainerSaveKey,0x13D1A8,39,match,src/game/gameplay/progression/booty.c
 GetSavedBootyContainerKind,0x13D248,55,match,src/game/gameplay/progression/booty.cpp
 SetBootyContainerKind,0x13D328,53,match,src/game/gameplay/progression/booty.cpp
 StaticInit_booty,0x13D400,77,match,src/game/gameplay/progression/booty.cpp
-func_0013D538,0x13D538,8,match,src/game/gameplay/progression/booty.cpp
+GlobalConstructors_booty,0x13D538,8,match,src/game/gameplay/progression/booty.cpp
 Init__10CByteQueueiPv,0x13D558,9,match,src/game/core/containers/bq.cpp
 Reset__10CByteQueue,0x13D580,8,match,src/game/core/containers/bq.cpp
 FillFromInput__10CByteQueueiP11CQueueInput,0x13D5A0,66,match,src/game/core/containers/bq.cpp
@@ -1788,7 +1788,7 @@ IsStepplayerJtModeKind2,0x144408,4,match,src/game/gameplay/player/stepplayer.cpp
 IsStepplayerZapLethal,0x144418,25,match,src/game/gameplay/player/stepplayer.cpp
 OnStepplayerActive,0x144480,23,match,src/game/gameplay/player/stepplayer.cpp
 StaticInit_stepplayer,0x1444E0,77,match,src/game/gameplay/player/stepplayer.cpp
-func_00144618,0x144618,8,match,src/game/gameplay/player/stepplayer.cpp
+GlobalConstructors_stepplayer,0x144618,8,match,src/game/gameplay/player/stepplayer.cpp
 InitJtgoal,0x144638,2,match,src/game/gameplay/player/jtgoal.cpp
 UpdateJtgoal,0x144640,172,match,src/game/gameplay/player/jtgoal.cpp
 SetJtgoal,0x1448F0,53,match,src/game/gameplay/player/jtgoal.cpp
@@ -2949,7 +2949,7 @@ GetTableGrabspotGrabPosition,0x184510,36,match,src/game/gameplay/player/grabspot
 GetTableGrabspotSparklePosition,0x1845A0,51,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotFromLo,0x184670,55,match,src/game/gameplay/player/grabspot.cpp
 StaticInit_grabspot,0x184750,77,match,src/game/gameplay/player/grabspot.cpp
-func_00184888,0x184888,8,match,src/game/gameplay/player/grabspot.cpp
+GlobalConstructors_grabspot,0x184888,8,match,src/game/gameplay/player/grabspot.cpp
 CStreamBis_ctor,0x1848A8,42,match,src/game/core/binstream/streambis.cpp
 _$_10CStreamBis,0x184950,20,match,src/game/core/binstream/streambis.cpp
 RefillStreamFromCd,0x1849A0,176,match,src/game/core/binstream/streambis.cpp
@@ -2979,7 +2979,7 @@ PredictMeshContact,0x185D18,69,match,src/game/engine/physics/sticky.cpp
 SetJtMeshProbePoints,0x185E30,4,match,src/game/engine/physics/sticky.cpp
 UpdateJtMeshAttachment,0x185E40,413,match,src/game/engine/physics/sticky.cpp
 StaticInit_sticky,0x1864B8,77,match,src/game/engine/physics/sticky.cpp
-func_001865F0,0x1865F0,8,match,src/game/engine/physics/sticky.cpp
+GlobalConstructors_sticky,0x1865F0,8,match,src/game/engine/physics/sticky.cpp
 CloneIkAct,0x186610,12,match,src/game/engine/anim/ik.cpp
 AttachIkAct,0x186640,12,match,src/game/engine/anim/ik.cpp
 LoadSoIkFromBrx,0x186670,108,match,src/game/engine/anim/ik.cpp
@@ -2987,7 +2987,7 @@ UpdateSoIkBoneLengths,0x186820,68,match,src/game/engine/anim/ik.cpp
 InitIkRecord,0x186930,71,match,src/game/engine/anim/ik.cpp
 SolveIk,0x186A50,289,match,src/game/engine/anim/ik.cpp
 StaticInit_ik,0x186ED8,77,match,src/game/engine/anim/ik.cpp
-func_00187010,0x187010,8,match,src/game/engine/anim/ik.cpp
+GlobalConstructors_ik,0x187010,8,match,src/game/engine/anim/ik.cpp
 StartupJoy__Fv,0x187030,17,match,src/game/platform/input/joy.cpp
 AddGrfusr__Fi,0x187078,10,match,src/game/platform/input/joy.cpp
 RemoveGrfusr__Fi,0x1870A0,11,match,src/game/platform/input/joy.cpp
@@ -3069,7 +3069,7 @@ ChooseJtSweepTarget,0x18F560,74,match,src/game/gameplay/player/cane.cpp
 ChooseJtRushTarget__FP2JT,0x18F688,46,match,src/game/gameplay/player/cane.cpp
 ChooseJtSmashTarget__FP2JT,0x18F740,28,match,src/game/gameplay/player/cane.cpp
 StaticInit_cane,0x18F7B0,77,match,src/game/gameplay/player/cane.cpp
-func_0018F8E8,0x18F8E8,8,match,src/game/gameplay/player/cane.cpp
+GlobalConstructors_cane,0x18F8E8,8,match,src/game/gameplay/player/cane.cpp
 PostJtLoadSwing,0x18F908,19,match,src/game/gameplay/player/hang.cpp
 AnticipateJtForce,0x18F958,194,match,src/game/gameplay/player/hang.cpp
 CalculateJtHangAccel__FP2JT,0x18FC60,469,match,src/game/gameplay/player/hang.cpp
@@ -3679,7 +3679,7 @@ StartMurrayFlop,0x1B9D00,9,match,src/game/gameplay/player/murray.cpp
 SpawnMurrayHitEffect,0x1B9D28,35,match,src/game/gameplay/player/murray.cpp
 SpawnMurrayHitEffectUnchecked,0x1B9DB8,27,match,src/game/gameplay/player/murray.cpp
 StaticInit_murray,0x1B9E28,77,match,src/game/gameplay/player/murray.cpp
-func_001B9F60,0x1B9F60,8,match,src/game/gameplay/player/murray.cpp
+GlobalConstructors_murray,0x1B9F60,8,match,src/game/gameplay/player/murray.cpp
 InitNeela,0x1B9F80,37,match,src/game/gameplay/ai/neela.cpp
 PostNeelaLoad,0x1BA018,40,match,src/game/gameplay/ai/neela.cpp
 ResetNeelaToHome,0x1BA0B8,17,match,src/game/gameplay/ai/neela.cpp
@@ -3693,7 +3693,7 @@ UpdateBhvNeelaChase,0x1BA608,136,match,src/game/gameplay/ai/neela.cpp
 SetBhvNeelaChaseState,0x1BA828,85,match,src/game/gameplay/ai/neela.cpp
 SendRootBhvMode15,0x1BA980,29,match,src/game/gameplay/ai/neela.cpp
 StaticInit_neela,0x1BA9F8,77,match,src/game/gameplay/ai/neela.cpp
-func_001BAB30,0x1BAB30,8,match,src/game/gameplay/ai/neela.cpp
+GlobalConstructors_neela,0x1BAB30,8,match,src/game/gameplay/ai/neela.cpp
 InitBreakable,0x1BAB50,19,match,src/game/gameplay/objects/breakable.cpp
 LoadBreakableFromBrx,0x1BABA0,119,match,src/game/gameplay/objects/breakable.cpp
 OnBreakableRemove,0x1BAD80,13,match,src/game/gameplay/objects/breakable.cpp
@@ -4103,7 +4103,7 @@ TouchBublet,0x1D10E8,7,match,src/game/engine/fx/rip.cpp
 PostRemitEmit,0x1D1108,22,match,src/game/engine/fx/rip.cpp
 UpdateRemit,0x1D1160,46,match,src/game/engine/fx/rip.cpp
 StaticInit_rip,0x1D1218,77,match,src/game/engine/fx/rip.cpp
-func_001D1350,0x1D1350,8,match,src/game/engine/fx/rip.cpp
+GlobalConstructors_rip,0x1D1350,8,match,src/game/engine/fx/rip.cpp
 InitRobottank,0x1D1370,39,match,src/game/gameplay/objects/robottank.cpp
 CloneRobottank,0x1D1410,44,match,src/game/gameplay/objects/robottank.cpp
 ResetRobottankHealth,0x1D14C0,21,match,src/game/gameplay/objects/robottank.cpp
@@ -4570,7 +4570,7 @@ FindBitmapInHash,0x1ED4E0,31,match,src/game/engine/graphics/pipeline/shd.cpp
 AddClutToHash,0x1ED560,27,match,src/game/engine/graphics/pipeline/shd.cpp
 FindClutInHash,0x1ED5D0,31,match,src/game/engine/graphics/pipeline/shd.cpp
 StaticInit_shd,0x1ED650,77,match,src/game/engine/graphics/pipeline/shd.cpp
-func_001ED788,0x1ED788,8,match,src/game/engine/graphics/pipeline/shd.cpp
+GlobalConstructors_shd,0x1ED788,8,match,src/game/engine/graphics/pipeline/shd.cpp
 LoadSaaFromBrx,0x1ED7A8,41,match,src/game/engine/graphics/pipeline/shdanim.cpp
 CloneSaa,0x1ED850,35,match,src/game/engine/graphics/pipeline/shdanim.cpp
 InitSaa,0x1ED8E0,31,match,src/game/engine/graphics/pipeline/shdanim.cpp
@@ -4997,7 +4997,7 @@ OnGrabSpotXfmRemove,0x1FF470,13,match,src/game/gameplay/objects/freegrabspot.cpp
 CloneGrabSpotXfm,0x1FF4A8,18,match,src/game/gameplay/objects/freegrabspot.cpp
 GetOffsetToObjectPosition,0x1FF4F0,18,match,src/game/gameplay/objects/freegrabspot.cpp
 StaticInit_freegrabspot,0x1FF538,77,match,src/game/gameplay/objects/freegrabspot.cpp
-func_001FF670,0x1FF670,8,match,src/game/gameplay/objects/freegrabspot.cpp
+GlobalConstructors_freegrabspot,0x1FF670,8,match,src/game/gameplay/objects/freegrabspot.cpp
 StaticInit_empty_1FF690,0x1FF690,77,match,src/game/level/empty_1FF690.cpp
 GlobalConstructors_empty_1FF690,0x1FF7C8,8,match,src/game/level/empty_1FF690.cpp
 InitSwSpliceFrame,0x1FF7E8,16,match,src/game/object/splicemap.cpp
@@ -5255,7 +5255,7 @@ InitGuardManager,0x20B4A8,22,match,src/game/gameplay/ai/stepguard.cpp
 PostGuardManagerLoad,0x20B500,35,match,src/game/gameplay/ai/stepguard.cpp
 UpdateGuardManager,0x20B590,86,match,src/game/gameplay/ai/stepguard.cpp
 StaticInit_stepguard,0x20B6E8,77,match,src/game/gameplay/ai/stepguard.cpp
-func_0020B820,0x20B820,8,match,src/game/gameplay/ai/stepguard.cpp
+GlobalConstructors_stepguard,0x20B820,8,match,src/game/gameplay/ai/stepguard.cpp
 InitGait,0x20B840,10,match,src/game/gameplay/player/gait.cpp
 PostJtLoadGait,0x20B868,155,match,src/game/gameplay/player/gait.cpp
 GetGaitRootVelocity,0x20BAD8,27,match,src/game/gameplay/player/gait.cpp
@@ -5731,7 +5731,7 @@ AddSoWaterAcceleration,0x2297F8,346,match,src/game/engine/physics/water.cpp
 CanWaterInflictZap,0x229D60,5,match,src/game/engine/physics/water.cpp
 IsPosInWater,0x229D78,7,match,src/game/engine/physics/water.cpp
 StaticInit_water,0x229D98,77,match,src/game/engine/physics/water.cpp
-func_00229ED0,0x229ED0,8,match,src/game/engine/physics/water.cpp
+GlobalConstructors_water,0x229ED0,8,match,src/game/engine/physics/water.cpp
 InitWaypt,0x229EF0,37,match,src/game/gameplay/progression/waypoint.cpp
 PostWayptLoad,0x229F88,54,match,src/game/gameplay/progression/waypoint.cpp
 UpdateWaypt,0x22A060,112,match,src/game/gameplay/progression/waypoint.cpp
@@ -5809,7 +5809,7 @@ AccumulateXfChainVelocity,0x230A98,141,match,src/game/engine/anim/xf.cpp
 AccumulateXfChainVelocityStub,0x230CD0,8,match,src/game/engine/anim/xf.cpp
 EvaluateXfSlotValue,0x230CF0,174,match,src/game/engine/anim/xf.cpp
 StaticInit_xf,0x230FA8,77,match,src/game/engine/anim/xf.cpp
-func_002310E0,0x2310E0,8,match,src/game/engine/anim/xf.cpp
+GlobalConstructors_xf,0x2310E0,8,match,src/game/engine/anim/xf.cpp
 InitXfm,0x231100,28,match,src/game/object/xform.cpp
 LoadXfmFromBrx,0x231170,15,match,src/game/object/xform.cpp
 CloneXfm,0x2311B0,28,match,src/game/object/xform.cpp

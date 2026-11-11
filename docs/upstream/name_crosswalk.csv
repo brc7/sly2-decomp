@@ -978,7 +978,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x11C950,function,SmoothMatrix,SmoothMatrix,SmoothMatrix,same
 0x11CAB0,function,func_0011CAB0,GMaxRowLengthMatrix3__FP7MATRIX3,GetMaxRowLengthMatrix3,conflict
 0x11CB50,function,func_0011CB50,func_0011CB50,StaticInit_mat,ours-only
-0x11CC88,function,func_0011CC88,func_0011CC88,func_0011CC88,both-placeholder
+0x11CC88,function,func_0011CC88,func_0011CC88,GlobalConstructors_mat,ours-only
 0x11CCA8,function,func_0011CCA8,func_0011CCA8,InitSlotheap,ours-only
 0x11CCC0,function,func_0011CCC0,func_0011CCC0,AllocZeroedFromSlotheap,ours-only
 0x11CD98,function,func_0011CD98,func_0011CD98,FreeSlotheapSlot,ours-only
@@ -1035,7 +1035,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x11F288,function,func_0011F288,func_0011F288,VecMinArray,ours-only
 0x11F2B8,function,func_0011F2B8,func_0011F2B8,VecMaxArray,ours-only
 0x11F2E8,function,func_0011F2E8,func_0011F2E8,StaticInit_vec,ours-only
-0x11F420,function,func_0011F420,func_0011F420,func_0011F420,both-placeholder
+0x11F420,function,func_0011F420,func_0011F420,GlobalConstructors_vec,ours-only
 0x11F440,function,func_0011F440,RefOpAdd__FiP4CRefP6CFrame,BuiltinAdd__FiP4CRefP6CFrame,conflict
 0x11F6D0,function,func_0011F6D0,RefOpSub__FiP4CRefP6CFrame,BuiltinSubtract__FiP4CRefP6CFrame,conflict
 0x11F960,function,func_0011F960,RefOpMult__FiP4CRefP6CFrame,BuiltinMultiply__FiP4CRefP6CFrame,conflict
@@ -1661,7 +1661,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x13D248,function,func_0013D248,IdStandSaved__FP2LO,GetSavedBootyContainerKind,conflict
 0x13D328,function,func_0013D328,SetStandBooty__FP2LOi,SetBootyContainerKind,conflict
 0x13D400,function,func_0013D400,func_0013D400,StaticInit_booty,ours-only
-0x13D538,function,func_0013D538,func_0013D538,func_0013D538,both-placeholder
+0x13D538,function,func_0013D538,func_0013D538,GlobalConstructors_booty,ours-only
 0x13D558,function,func_0013D558,func_0013D558,Init__10CByteQueueiPv,ours-only
 0x13D580,function,Reset__10CByteQueue,Reset__10CByteQueue,Reset__10CByteQueue,same
 0x13D5A0,function,CbFill__10CByteQueueiP11CQueueInput,CbFill__10CByteQueueiP11CQueueInput,FillFromInput__10CByteQueueiP11CQueueInput,conflict
@@ -1788,7 +1788,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x144418,function,func_00144418,FDamageFatal__FP5ACTORP5CTMSG,IsStepplayerZapLethal,conflict
 0x144480,function,func_00144480,func_00144480,OnStepplayerActive,ours-only
 0x1444E0,function,func_001444E0,func_001444E0,StaticInit_stepplayer,ours-only
-0x144618,function,func_00144618,func_00144618,func_00144618,both-placeholder
+0x144618,function,func_00144618,func_00144618,GlobalConstructors_stepplayer,ours-only
 0x144638,function,func_00144638,func_00144638,InitJtgoal,ours-only
 0x144640,function,func_00144640,UpdateActorWatch__FP5ACTOR,UpdateJtgoal,conflict
 0x1448F0,function,func_001448F0,SetActorWatchTarget__FP5ACTORG9VU_VECTOR,SetJtgoal,conflict
@@ -2949,7 +2949,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x1845A0,function,func_001845A0,func_001845A0,GetTableGrabspotSparklePosition,ours-only
 0x184670,function,func_00184670,JtlDescFromLo__FP2LO,GetGrabspotFromLo,conflict
 0x184750,function,func_00184750,func_00184750,StaticInit_grabspot,ours-only
-0x184888,function,func_00184888,func_00184888,func_00184888,both-placeholder
+0x184888,function,func_00184888,func_00184888,GlobalConstructors_grabspot,ours-only
 0x1848A8,function,func_001848A8,func_001848A8,CStreamBis_ctor,ours-only
 0x184950,function,func_00184950,func_00184950,_$_10CStreamBis,ours-only
 0x1849A0,function,func_001849A0,func_001849A0,RefillStreamFromCd,ours-only
@@ -2979,7 +2979,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x185E30,function,func_00185E30,func_00185E30,SetJtMeshProbePoints,ours-only
 0x185E40,function,func_00185E40,UpdateSlyClimbSurf__FP3SLY,UpdateJtMeshAttachment,conflict
 0x1864B8,function,func_001864B8,func_001864B8,StaticInit_sticky,ours-only
-0x1865F0,function,func_001865F0,func_001865F0,func_001865F0,both-placeholder
+0x1865F0,function,func_001865F0,func_001865F0,GlobalConstructors_sticky,ours-only
 0x186610,function,func_00186610,func_00186610,CloneIkAct,ours-only
 0x186640,function,func_00186640,func_00186640,AttachIkAct,ours-only
 0x186670,function,func_00186670,LoadAloPairsFromBrx__FP3ALOP18CBinaryInputStream,LoadSoIkFromBrx,conflict
@@ -2987,7 +2987,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x186930,function,func_00186930,InitAloPairRest__FP7ALOPAIR,InitIkRecord,conflict
 0x186A50,function,func_00186A50,SolveAloPair__FP3ALOP7ALOPAIR,SolveIk,conflict
 0x186ED8,function,func_00186ED8,func_00186ED8,StaticInit_ik,ours-only
-0x187010,function,func_00187010,func_00187010,func_00187010,both-placeholder
+0x187010,function,func_00187010,func_00187010,GlobalConstructors_ik,ours-only
 0x187030,function,func_00187030,StartupJoy__Fv,StartupJoy__Fv,same
 0x187078,function,func_00187078,AddGrfusr__Fi,AddGrfusr__Fi,same
 0x1870A0,function,func_001870A0,RemoveGrfusr__Fi,RemoveGrfusr__Fi,same
@@ -3069,7 +3069,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x18F688,function,func_0018F688,ChooseSlyRushTarget__FP3SLY,ChooseJtRushTarget__FP2JT,conflict
 0x18F740,function,func_0018F740,ChooseSlyAirSwingTarget__FP3SLY,ChooseJtSmashTarget__FP2JT,conflict
 0x18F7B0,function,func_0018F7B0,func_0018F7B0,StaticInit_cane,ours-only
-0x18F8E8,function,func_0018F8E8,func_0018F8E8,func_0018F8E8,both-placeholder
+0x18F8E8,function,func_0018F8E8,func_0018F8E8,GlobalConstructors_cane,ours-only
 0x18F908,function,func_0018F908,BindSlySwingBlend__FP3SLYPvPi,PostJtLoadSwing,conflict
 0x18F958,function,func_0018F958,func_0018F958,AnticipateJtForce,ours-only
 0x18FC60,function,func_0018FC60,CalculateSlyHangAccel__FP3SLY,CalculateJtHangAccel__FP2JT,conflict
@@ -3679,7 +3679,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x1B9D28,function,func_001B9D28,func_001B9D28,SpawnMurrayHitEffect,ours-only
 0x1B9DB8,function,func_001B9DB8,func_001B9DB8,SpawnMurrayHitEffectUnchecked,ours-only
 0x1B9E28,function,func_001B9E28,func_001B9E28,StaticInit_murray,ours-only
-0x1B9F60,function,func_001B9F60,func_001B9F60,func_001B9F60,both-placeholder
+0x1B9F60,function,func_001B9F60,func_001B9F60,GlobalConstructors_murray,ours-only
 0x1B9F80,function,func_001B9F80,func_001B9F80,InitNeela,ours-only
 0x1BA018,function,func_001BA018,func_001BA018,PostNeelaLoad,ours-only
 0x1BA0B8,function,func_001BA0B8,func_001BA0B8,ResetNeelaToHome,ours-only
@@ -3693,7 +3693,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x1BA828,function,func_001BA828,SetProxState__7JOBPROXi,SetBhvNeelaChaseState,conflict
 0x1BA980,function,func_001BA980,func_001BA980,SendRootBhvMode15,ours-only
 0x1BA9F8,function,func_001BA9F8,func_001BA9F8,StaticInit_neela,ours-only
-0x1BAB30,function,func_001BAB30,func_001BAB30,func_001BAB30,both-placeholder
+0x1BAB30,function,func_001BAB30,func_001BAB30,GlobalConstructors_neela,ours-only
 0x1BAB50,function,func_001BAB50,InitBreakableBytes__FP3ALO,InitBreakable,conflict
 0x1BABA0,function,func_001BABA0,func_001BABA0,LoadBreakableFromBrx,ours-only
 0x1BAD80,function,func_001BAD80,func_001BAD80,OnBreakableRemove,ours-only
@@ -4103,7 +4103,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x1D1108,function,func_001D1108,func_001D1108,PostRemitEmit,ours-only
 0x1D1160,function,func_001D1160,func_001D1160,UpdateRemit,ours-only
 0x1D1218,function,func_001D1218,func_001D1218,StaticInit_rip,ours-only
-0x1D1350,function,func_001D1350,func_001D1350,func_001D1350,both-placeholder
+0x1D1350,function,func_001D1350,func_001D1350,GlobalConstructors_rip,ours-only
 0x1D1370,function,func_001D1370,func_001D1370,InitRobottank,ours-only
 0x1D1410,function,func_001D1410,CloneVehicle__FP2LO,CloneRobottank,conflict
 0x1D14C0,function,func_001D14C0,ResetVehicleState__FP2LO,ResetRobottankHealth,conflict
@@ -4570,7 +4570,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x1ED560,function,func_001ED560,func_001ED560,AddClutToHash,ours-only
 0x1ED5D0,function,func_001ED5D0,func_001ED5D0,FindClutInHash,ours-only
 0x1ED650,function,func_001ED650,func_001ED650,StaticInit_shd,ours-only
-0x1ED788,function,func_001ED788,func_001ED788,func_001ED788,both-placeholder
+0x1ED788,function,func_001ED788,func_001ED788,GlobalConstructors_shd,ours-only
 0x1ED7A8,function,func_001ED7A8,PsaaLoadFromBrx__FPvP18CBinaryInputStream,LoadSaaFromBrx,conflict
 0x1ED850,function,func_001ED850,func_001ED850,CloneSaa,ours-only
 0x1ED8E0,function,func_001ED8E0,InitSaa__FP3SAAP4SAAF,InitSaa,signature-only
@@ -4997,7 +4997,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x1FF4A8,function,func_001FF4A8,func_001FF4A8,CloneGrabSpotXfm,ours-only
 0x1FF4F0,function,func_001FF4F0,func_001FF4F0,GetOffsetToObjectPosition,ours-only
 0x1FF538,function,func_001FF538,func_001FF538,StaticInit_freegrabspot,ours-only
-0x1FF670,function,func_001FF670,func_001FF670,func_001FF670,both-placeholder
+0x1FF670,function,func_001FF670,func_001FF670,GlobalConstructors_freegrabspot,ours-only
 0x1FF690,function,func_001FF690,func_001FF690,StaticInit_empty_1FF690,ours-only
 0x1FF7C8,function,func_001FF7C8,func_001FF7C8,GlobalConstructors_empty_1FF690,ours-only
 0x1FF7E8,function,func_001FF7E8,StartupSwSplice__FP2SW,InitSwSpliceFrame,conflict
@@ -5255,7 +5255,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x20B500,function,func_0020B500,PostLoadGuardManager__FP2LO,PostGuardManagerLoad,conflict
 0x20B590,function,func_0020B590,UpdateGuardManager__FP2LO,UpdateGuardManager,signature-only
 0x20B6E8,function,func_0020B6E8,func_0020B6E8,StaticInit_stepguard,ours-only
-0x20B820,function,func_0020B820,func_0020B820,func_0020B820,both-placeholder
+0x20B820,function,func_0020B820,func_0020B820,GlobalConstructors_stepguard,ours-only
 0x20B840,function,func_0020B840,InitGait__FP4GAITii,InitGait,signature-only
 0x20B868,function,func_0020B868,BindGait__FP4GAIT,PostJtLoadGait,conflict
 0x20BAD8,function,func_0020BAD8,VecGaitVelocity__FP4GAIT,GetGaitRootVelocity,conflict
@@ -5731,7 +5731,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x229D60,function,func_00229D60,func_00229D60,CanWaterInflictZap,ours-only
 0x229D78,function,func_00229D78,func_00229D78,IsPosInWater,ours-only
 0x229D98,function,func_00229D98,func_00229D98,StaticInit_water,ours-only
-0x229ED0,function,func_00229ED0,func_00229ED0,func_00229ED0,both-placeholder
+0x229ED0,function,func_00229ED0,func_00229ED0,GlobalConstructors_water,ours-only
 0x229EF0,function,func_00229EF0,InitMarker__FP2LO,InitWaypt,conflict
 0x229F88,function,func_00229F88,func_00229F88,PostWayptLoad,ours-only
 0x22A060,function,func_0022A060,UpdateMarker__FP2LO,UpdateWaypt,conflict
@@ -5809,7 +5809,7 @@ address,kind,upstream_base,upstream_readable,ours,status
 0x230CD0,function,func_00230CD0,func_00230CD0,AccumulateXfChainVelocityStub,ours-only
 0x230CF0,function,func_00230CF0,SnapAsegaXfs__FP5ASEGAi,EvaluateXfSlotValue,conflict
 0x230FA8,function,func_00230FA8,func_00230FA8,StaticInit_xf,ours-only
-0x2310E0,function,func_002310E0,func_002310E0,func_002310E0,both-placeholder
+0x2310E0,function,func_002310E0,func_002310E0,GlobalConstructors_xf,ours-only
 0x231100,function,func_00231100,InitXfm__FP3XFM,InitXfm,signature-only
 0x231170,function,func_00231170,LoadXfmFromBrx__FP3XFMP18CBinaryInputStream,LoadXfmFromBrx,signature-only
 0x2311B0,function,func_002311B0,func_002311B0,CloneXfm,ours-only

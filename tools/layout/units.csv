@@ -987,7 +987,7 @@ TransposeMatrix,0x11C8E8,mat
 SmoothMatrix,0x11C950,mat
 GetMaxRowLengthMatrix3,0x11CAB0,mat
 StaticInit_mat,0x11CB50,mat
-func_0011CC88,0x11CC88,mat
+GlobalConstructors_mat,0x11CC88,mat
 InitSlotheap,0x11CCA8,slotheap
 AllocZeroedFromSlotheap,0x11CCC0,slotheap
 FreeSlotheapSlot,0x11CD98,slotheap
@@ -1044,7 +1044,7 @@ GetCosineBetweenVectors,0x11F198,vec
 VecMinArray,0x11F288,vec
 VecMaxArray,0x11F2B8,vec
 StaticInit_vec,0x11F2E8,vec
-func_0011F420,0x11F420,vec
+GlobalConstructors_vec,0x11F420,vec
 BuiltinAdd__FiP4CRefP6CFrame,0x11F440,bif
 BuiltinSubtract__FiP4CRefP6CFrame,0x11F6D0,bif
 BuiltinMultiply__FiP4CRefP6CFrame,0x11F960,bif
@@ -1670,7 +1670,7 @@ GetBootyContainerSaveKey,0x13D1A8,booty
 GetSavedBootyContainerKind,0x13D248,booty
 SetBootyContainerKind,0x13D328,booty
 StaticInit_booty,0x13D400,booty
-func_0013D538,0x13D538,booty
+GlobalConstructors_booty,0x13D538,booty
 Init__10CByteQueueiPv,0x13D558,bq
 Reset__10CByteQueue,0x13D580,bq
 FillFromInput__10CByteQueueiP11CQueueInput,0x13D5A0,bq
@@ -1797,7 +1797,7 @@ IsStepplayerJtModeKind2,0x144408,stepplayer
 IsStepplayerZapLethal,0x144418,stepplayer
 OnStepplayerActive,0x144480,stepplayer
 StaticInit_stepplayer,0x1444E0,stepplayer
-func_00144618,0x144618,stepplayer
+GlobalConstructors_stepplayer,0x144618,stepplayer
 InitJtgoal,0x144638,jtgoal
 UpdateJtgoal,0x144640,jtgoal
 SetJtgoal,0x1448F0,jtgoal
@@ -2960,7 +2960,7 @@ GetTableGrabspotGrabPosition,0x184510,grabspot
 GetTableGrabspotSparklePosition,0x1845A0,grabspot
 GetGrabspotFromLo,0x184670,grabspot
 StaticInit_grabspot,0x184750,grabspot
-func_00184888,0x184888,grabspot
+GlobalConstructors_grabspot,0x184888,grabspot
 CStreamBis_ctor,0x1848A8,streambis
 _$_10CStreamBis,0x184950,streambis
 RefillStreamFromCd,0x1849A0,streambis
@@ -2990,7 +2990,7 @@ PredictMeshContact,0x185D18,sticky
 SetJtMeshProbePoints,0x185E30,sticky
 UpdateJtMeshAttachment,0x185E40,sticky
 StaticInit_sticky,0x1864B8,sticky
-func_001865F0,0x1865F0,sticky
+GlobalConstructors_sticky,0x1865F0,sticky
 CloneIkAct,0x186610,ik
 AttachIkAct,0x186640,ik
 LoadSoIkFromBrx,0x186670,ik
@@ -2998,7 +2998,7 @@ UpdateSoIkBoneLengths,0x186820,ik
 InitIkRecord,0x186930,ik
 SolveIk,0x186A50,ik
 StaticInit_ik,0x186ED8,ik
-func_00187010,0x187010,ik
+GlobalConstructors_ik,0x187010,ik
 StartupJoy__Fv,0x187030,joy
 AddGrfusr__Fi,0x187078,joy
 RemoveGrfusr__Fi,0x1870A0,joy
@@ -3080,7 +3080,7 @@ ChooseJtSweepTarget,0x18F560,cane
 ChooseJtRushTarget__FP2JT,0x18F688,cane
 ChooseJtSmashTarget__FP2JT,0x18F740,cane
 StaticInit_cane,0x18F7B0,cane
-func_0018F8E8,0x18F8E8,cane
+GlobalConstructors_cane,0x18F8E8,cane
 PostJtLoadSwing,0x18F908,hang
 AnticipateJtForce,0x18F958,hang
 CalculateJtHangAccel__FP2JT,0x18FC60,hang
@@ -3690,7 +3690,7 @@ StartMurrayFlop,0x1B9D00,murray
 SpawnMurrayHitEffect,0x1B9D28,murray
 SpawnMurrayHitEffectUnchecked,0x1B9DB8,murray
 StaticInit_murray,0x1B9E28,murray
-func_001B9F60,0x1B9F60,murray
+GlobalConstructors_murray,0x1B9F60,murray
 InitNeela,0x1B9F80,neela
 PostNeelaLoad,0x1BA018,neela
 ResetNeelaToHome,0x1BA0B8,neela
@@ -3704,7 +3704,7 @@ UpdateBhvNeelaChase,0x1BA608,neela
 SetBhvNeelaChaseState,0x1BA828,neela
 SendRootBhvMode15,0x1BA980,neela
 StaticInit_neela,0x1BA9F8,neela
-func_001BAB30,0x1BAB30,neela
+GlobalConstructors_neela,0x1BAB30,neela
 InitBreakable,0x1BAB50,breakable
 LoadBreakableFromBrx,0x1BABA0,breakable
 OnBreakableRemove,0x1BAD80,breakable
@@ -4114,7 +4114,7 @@ func_001D10E8,0x1D10E8,rip
 PostRemitEmit,0x1D1108,rip
 UpdateRemit,0x1D1160,rip
 StaticInit_rip,0x1D1218,rip
-func_001D1350,0x1D1350,rip
+GlobalConstructors_rip,0x1D1350,rip
 InitRobottank,0x1D1370,robottank
 CloneRobottank,0x1D1410,robottank
 ResetRobottankHealth,0x1D14C0,robottank
@@ -4581,7 +4581,7 @@ func_001ED4E0,0x1ED4E0,shd
 func_001ED560,0x1ED560,shd
 func_001ED5D0,0x1ED5D0,shd
 StaticInit_shd,0x1ED650,shd
-func_001ED788,0x1ED788,shd
+GlobalConstructors_shd,0x1ED788,shd
 LoadSaaFromBrx,0x1ED7A8,shdanim
 CloneSaa,0x1ED850,shdanim
 InitSaa,0x1ED8E0,shdanim
@@ -5008,7 +5008,7 @@ OnGrabSpotXfmRemove,0x1FF470,freegrabspot
 CloneGrabSpotXfm,0x1FF4A8,freegrabspot
 GetOffsetToObjectPosition,0x1FF4F0,freegrabspot
 StaticInit_freegrabspot,0x1FF538,freegrabspot
-func_001FF670,0x1FF670,freegrabspot
+GlobalConstructors_freegrabspot,0x1FF670,freegrabspot
 StaticInit_empty_1FF690,0x1FF690,empty_1FF690
 GlobalConstructors_empty_1FF690,0x1FF7C8,empty_1FF690
 InitSwSpliceFrame,0x1FF7E8,splicemap
@@ -5266,7 +5266,7 @@ InitGuardManager,0x20B4A8,stepguard
 PostGuardManagerLoad,0x20B500,stepguard
 UpdateGuardManager,0x20B590,stepguard
 StaticInit_stepguard,0x20B6E8,stepguard
-func_0020B820,0x20B820,stepguard
+GlobalConstructors_stepguard,0x20B820,stepguard
 InitGait,0x20B840,gait
 PostJtLoadGait,0x20B868,gait
 GetGaitRootVelocity,0x20BAD8,gait
@@ -5743,7 +5743,7 @@ AddSoWaterAcceleration,0x2297F8,water
 CanWaterInflictZap,0x229D60,water
 IsPosInWater,0x229D78,water
 StaticInit_water,0x229D98,water
-func_00229ED0,0x229ED0,water
+GlobalConstructors_water,0x229ED0,water
 InitWaypt,0x229EF0,waypoint
 PostWayptLoad,0x229F88,waypoint
 UpdateWaypt,0x22A060,waypoint
@@ -5821,7 +5821,7 @@ AccumulateXfChainVelocity,0x230A98,xf
 AccumulateXfChainVelocityStub,0x230CD0,xf
 EvaluateXfSlotValue,0x230CF0,xf
 StaticInit_xf,0x230FA8,xf
-func_002310E0,0x2310E0,xf
+GlobalConstructors_xf,0x2310E0,xf
 InitXfm,0x231100,xform
 LoadXfmFromBrx,0x231170,xform
 CloneXfm,0x2311B0,xform

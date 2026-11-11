@@ -12,7 +12,7 @@
 // overrides of six per-function files were not needed. SetXfRole keeps mat.h's 16-byte aligned VECTOR as a
 // local type (mat.h itself clashes with sly2/basic.h).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_xf
-// SLY2_ALIAS: _GLOBAL_$I$*=func_002310E0
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_xf
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"
