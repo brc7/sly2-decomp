@@ -877,20 +877,18 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_FireMissile (was src/game/app/splice_thunks/RefThunk_FireMissile.cpp) ----
 namespace T_RefThunk_FireMissile {
-struct LO { char pad[0xC]; VTE *pvt; };
-extern "C" { CRef RefThunk_FireMissile(LO *p, int c, void *aref); }
+extern "C" { CRef RefThunk_FireMissile(MISSILE *p, int c, void *aref); }
 // Splice binding for option 508 on MISSILE (g_aeopid[405], thunkFn): unpacks the script's 2 arguments (0x2030,
 // Vector) with RefSetArgsFromSplice, calls virtual slot 78 (FireMissile) and returns nothing to the script.
-CRef RefThunk_FireMissile(LO *object, int argCount, void *args)
+CRef RefThunk_FireMissile(MISSILE *object, int argCount, void *args)
 {
     int argTypes[2] = {0x2030, 2};
-    union { qword q; } u;
-    int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
+    union { qword q; VECTOR4 pos; } u;
+    LO *target;
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &target, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    VTE *pvte = &object->pvt[78];
-    ((void (*)(void *, int, void *))pvte->pfn)((char *)object + pvte->d, n, &u);
+    object->Fire(target, &u.pos);
     return ref;
 }
 } // namespace T_RefThunk_FireMissile

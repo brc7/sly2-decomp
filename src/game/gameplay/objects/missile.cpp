@@ -72,7 +72,7 @@ struct MISSILE : public BOMB
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
     virtual void ApplyThrow() __asm__("ApplyMissileThrow");   /* slot 77 */
-    virtual void Fire() __asm__("FireMissile");   /* slot 78 */
+    virtual void Fire(LO *ploTarget, VECTOR4 *pposTarget) __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
 typedef char assert_MISSILE_paseg[SLY2_OFFSETOF(MISSILE, flightAnim) == 0x230 ? 1 : -1];
@@ -99,7 +99,7 @@ struct CID82 : public MISSILE
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
     virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
-    virtual void Fire() __asm__("FireSplmiss");   /* slot 78 */
+    virtual void Fire(LO *ploTarget, VECTOR4 *pposTarget) __asm__("FireSplmiss");   /* slot 78 */
 };
 typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
 
