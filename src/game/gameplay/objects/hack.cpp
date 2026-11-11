@@ -1268,7 +1268,7 @@ void HACKWALL::Init()
     v = unknown40;
     if ((v ^ 1) & 1) *(int *)v |= 8;
     else unknown40 = v | 8;
-    InitDl__FP2DLi(&dlBroken, 0x60);
+    InitDl__FP2DLi(&dlBroken, SLY2_OFFSETOF(HACKWALLPIECE, dle));
 }
 
 namespace M_func_00181840 {

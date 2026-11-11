@@ -94,7 +94,7 @@ void SAA::Init(SAAF *q)   /* key function: SAA's vtable comes out here */
     p->unknown18 = q->b;
     p->grf = q->c;
     p->numFrames = q->d;
-    InitSl(&p->instances, 0x10);
+    InitSl(&p->instances, SLY2_OFFSETOF(COPYREC, pcopyrecNext));
     if (p->isGlobsetOwned == 0) PrependSlEntry((SL *)&g_sw.slSaa, p);
     else AppendSlEntry((SL *)&g_sw.slSaa, p);
 }

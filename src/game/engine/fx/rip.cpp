@@ -78,7 +78,7 @@ void RIPG::Init()
 {
     int flags;
     InitSo(this);
-    InitDl(&ripList, 0xC);
+    InitDl(&ripList, SLY2_OFFSETOF(RIP, ripLink));
     SetLoBusyKind(this, 1);
     flags = unknown40;
     if (IsPointer(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else unknown40 = (flags & 1) | 0xE;

@@ -156,7 +156,7 @@ extern "C" void InitSo(SO *so)
 {
     InitLo(so);
     SetLoBusyKind(so, 0);
-    InitDl__FP2DLi(&so->children, 0x24);
+    InitDl__FP2DLi(&so->children, SLY2_OFFSETOF(LO, siblingLink));
     so->dhpHit = -10;
     so->dhpTouch = -20;
     so->opacity = 1.0f;

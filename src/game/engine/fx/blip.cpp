@@ -251,7 +251,7 @@ void InitBlipg(BLIPGV *blipGroup)
 {
     int x;
     InitXfm(blipGroup);
-    InitDl(&blipGroup->dl, 0x1090);
+    InitDl(&blipGroup->dl, SLY2_OFFSETOF(BLIPV, pblipNext));
     blipGroup->oid = -1;
     blipGroup->sBusy = 1e10f;
     SetLoBusyKind(blipGroup, 1);

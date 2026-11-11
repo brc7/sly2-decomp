@@ -90,7 +90,7 @@ extern "C" void InitAseg(ASEG *segment)
 {
     CLQ *pclq;
     InitLo(segment);
-    InitDl(&segment->dlAsega, 0x2C);
+    InitDl(&segment->dlAsega, SLY2_OFFSETOF(ASEGA, dleAseg));
     pclq = &segment->clqMasterSuck;     /* the per-file stores go through this pointer (target: addiu v0, s0, 0x80) */
     segment->masterSpeed = 1.0f;
     segment->clqMasterSuck.g0 = 1.0f;

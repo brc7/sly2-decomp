@@ -122,7 +122,7 @@ void WR::Init()
     p->freeMatrixIndex = -1;
     p->currentEntryIndex = -1;
     p->lastUpdateTime = -1.0f;
-    InitSl(&p->warpGroups, 0xA0);
+    InitSl(&p->warpGroups, SLY2_OFFSETOF(WRBG, pwrbgNextWr));
     SetLoBusyKind(p, 1);
     f = p->unknown40;
     if (IsPointer(f)) *(int *)f |= 2;

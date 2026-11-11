@@ -377,7 +377,7 @@ void InitDl__FP2DLi(struct DL *pdl, int ib) __asm__("InitDl__FP2DLi");
 void RELAY::Init() { using namespace M_InitRelay;
     InitLo(this);
     crelaycmdMax = -1;
-    InitDl__FP2DLi(&dlJsg, 0xE4);
+    InitDl__FP2DLi(&dlJsg, SLY2_OFFSETOF(RELAYJSG, dleRelay));
 }
 
 // 0x1DFB10 LoadRelayFromBrx
