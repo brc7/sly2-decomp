@@ -1009,11 +1009,11 @@ extern "C" void NotifySmaSpliceOnEnterState(SMA *p, int a, int b)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ReplaceSma {
 void RetractSma(SMA *) __asm__("RetractSma");
-SMA *ApplySmToObject(void *, int, int, int) __asm__("ApplySmToObject");
+SMA *ApplySmToObject(SM *, ALO *, int, int) __asm__("ApplySmToObject");
 // Replaces a "current activation" slot: retracts and releases the old one and, if a machine is given, starts it on the
 // object and keeps a reference.
 // Also known as: ReplaceSmaHandle (upstream readable / Sly 1 name; ReplaceSmaHandle__FP2SMi3OIDiPP3SMA).
-extern "C" void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
+extern "C" void ReplaceSma(SM *pv, ALO *a, int b, int c, SMA **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
@@ -1031,10 +1031,10 @@ extern "C" void ReplaceSma(void *pv, int a, int b, int c, SMA **ppx)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ReplaceSmaEx {
 void RetractSma(SMA *) __asm__("RetractSma");
-SMA *ApplySmWithKind(void *, int, int, int, int) __asm__("ApplySmWithKind");
+SMA *ApplySmWithKind(SM *, ALO *, int, int, int) __asm__("ApplySmWithKind");
 // ReplaceSma with an explicit kind.
 // Also known as: ReplaceSmaHandleMask (upstream readable / Sly 1 name; ReplaceSmaHandleMask__FP2SMi3OIDiUiPP3SMA).
-extern "C" void ReplaceSmaEx(void *pv, int a, int b, int c, int d, SMA **ppx)
+extern "C" void ReplaceSmaEx(SM *pv, ALO *a, int b, int c, int d, SMA **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);

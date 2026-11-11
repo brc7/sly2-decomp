@@ -343,13 +343,13 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegAPPLY (was src/game/app/splice_thunks/RefThunkAsegAPPLY.cpp) ----
 namespace T_RefThunkAsegAPPLY {
-extern "C" { void * ApplyAsegToObject(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
+extern "C" { void * ApplyAsegToObject(void *p, ALO *, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
 // Splice binding for option 214 on ASEG (g_aeopid[106], thunkFn): unpacks the script's 4 arguments (0x2030, Float,
 // Float, 0x100B) with RefSetArgsFromSplice, calls ApplyAsegToObject and returns a value of type 0x2086 to the script.
 CRef RefThunkAsegAPPLY(void *object, int argCount, void *args)
 {
     int argTypes[4] = {0x2030, 0x1, 0x1, 0x100b};
-    int v0;
+    ALO *v0;
     float v1;
     float v2;
     int v3;
@@ -365,14 +365,14 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegENSURE (was src/game/app/splice_thunks/RefThunkAsegENSURE.cpp) ----
 namespace T_RefThunkAsegENSURE {
-extern "C" { void * EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi(void *p, int, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
+extern "C" { void * EnsureAsegPlayer__FP4ASEGP3ALO4SEEKffi(void *p, ALO *, int, float, float, int); CRef RefThunkAsegENSURE(void *p, int c, void *aref); }
 // Splice binding for option 216 on ASEG (g_aeopid[108], thunkFn): unpacks the script's 5 arguments (0x2030, 0x100C,
 // Float, Float, 0x100B) with RefSetArgsFromSplice, calls EnsureAsegPlayer and returns a value
 // of type 0x2086 to the script.
 CRef RefThunkAsegENSURE(void *object, int argCount, void *args)
 {
     int argTypes[5] = {0x2030, 0x100c, 0x1, 0x1, 0x100b};
-    int v0;
+    ALO *v0;
     int v1;
     float v2;
     float v3;
@@ -714,14 +714,14 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_CalculateDetectorTargetState (was src/game/app/splice_thunks/RefThunk_CalculateDetectorTargetState.cpp) ----
 namespace T_RefThunk_CalculateDetectorTargetState {
-extern "C" { int CalculateDetectorTargetState(void *p, int, int); CRef RefThunk_CalculateDetectorTargetState(void *p, int c, void *aref); }
+extern "C" { int CalculateDetectorTargetState(void *p, LO *, int); CRef RefThunk_CalculateDetectorTargetState(void *p, int c, void *aref); }
 // Splice binding for option 466 on DETECTOR (g_aeopid[347], thunkFn): unpacks the script's 2 arguments (0x2002,
 // 0x106B) with RefSetArgsFromSplice, calls CalculateDetectorTargetState and returns a value of type 0x106B to the
 // script.
 CRef RefThunk_CalculateDetectorTargetState(void *object, int argCount, void *args)
 {
     int argTypes[2] = {0x2002, 0x106b};
-    int v0;
+    LO *v0;
     int v1;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &v0, &v1);
     ref = CalculateDetectorTargetState(object, v0, v1);
@@ -816,13 +816,14 @@ extern "C" CRef RefThunk_IsSphereInVol(void *p, int c, void *aref)
 
 // ---- splice thunk RefThunkSmAPPLY (was src/game/app/splice_thunks/RefThunkSmAPPLY.cpp) ----
 namespace T_RefThunkSmAPPLY {
-void *ApplySmToObject(void *p, int a, int b, int c) __asm__("ApplySmToObject"); CRef RefThunkSmAPPLY(void *p, int c, void *aref) __asm__("RefThunkSmAPPLY");
+void *ApplySmToObject(void *p, ALO *a, int b, int c) __asm__("ApplySmToObject"); CRef RefThunkSmAPPLY(void *p, int c, void *aref) __asm__("RefThunkSmAPPLY");
 // Splice binding for option 214 on SM (g_aeopid[368], thunkFn): unpacks the script's 3 arguments (0x2030, Oid,
 // 0x100B) with RefSetArgsFromSplice, calls ApplySmToObject and returns a value of type 0x2088 to the script.
 CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 {
     int argTypes[3] = {0x2030, 6, 0x100B};
-    int a, b, d;
+    ALO *a;
+    int b, d;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, args, argTypes, &a, &b, &d);
     ref.SetBasic((BASIC *)ApplySmToObject(object, a, b, d));
     return ref;
@@ -831,13 +832,13 @@ CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 
 // ---- splice thunk RefThunk_ApplySmWithKind (was src/game/app/splice_thunks/RefThunk_ApplySmWithKind.cpp) ----
 namespace T_RefThunk_PsmaApplySmEx {
-void * ApplySmWithKind(void *p, int, int, int, int) __asm__("ApplySmWithKind"); CRef RefThunk_ApplySmWithKind(void *p, int c, void *aref) __asm__("RefThunk_ApplySmWithKind");
+void * ApplySmWithKind(void *p, ALO *, int, int, int) __asm__("ApplySmWithKind"); CRef RefThunk_ApplySmWithKind(void *p, int c, void *aref) __asm__("RefThunk_ApplySmWithKind");
 // Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
 // 0x100B, 0x1054) with RefSetArgsFromSplice, calls ApplySmWithKind and returns a value of type 0x2088 to the script.
 CRef RefThunk_ApplySmWithKind(void *object, int argCount, void *args)
 {
     int argTypes[4] = {0x2030, 0x6, 0x100b, 0x1054};
-    int v0;
+    ALO *v0;
     int v1;
     int v2;
     int v3;
@@ -984,7 +985,7 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkExplEXPLODE_OVR (was src/game/app/splice_thunks/RefThunkExplEXPLODE_OVR.cpp) ----
 namespace T_RefThunkExplEXPLODE_OVR {
-extern "C" { void ExplodeExplParams(void *p, int, int, qword, qword, float, float); CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref); }
+extern "C" { void ExplodeExplParams(void *p, int, LO *, qword, qword, float, float); CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref); }
 // Splice binding for option 616 on EXPL (g_aeopid[535], thunkFn): unpacks the script's 6 arguments (0x1026, 0x2002,
 // Vector, Vector, Float, Float) with RefSetArgsFromSplice, calls ExplodeExplParams and returns nothing to the
 // script.
@@ -994,7 +995,7 @@ CRef RefThunkExplEXPLODE_OVR(void *object, int argCount, void *args)
     union { qword q; } v2;
     union { qword q; } v3;
     int v0;
-    int v1;
+    LO *v1;
     float v4;
     float v5;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(6, args, argTypes, &v0, &v1, &v2, &v3, &v4, &v5);
@@ -1572,14 +1573,14 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_StartStepplayerFollow (was src/game/app/splice_thunks/RefThunk_StartStepplayerFollow.cpp) ----
 namespace T_RefThunk_StartStepplayerFollow {
-extern "C" { void StartStepplayerFollow(void *p, int n, qword q); CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref); }
+extern "C" { void StartStepplayerFollow(void *p, LO *plo, qword q); CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref); }
 // Splice binding for option 446 on STEPPLAYER (g_aeopid[733], thunkFn): unpacks the script's 2 arguments (0x2002,
 // Vector) with RefSetArgsFromSplice, calls StartStepplayerFollow and returns nothing to the script.
 CRef RefThunk_StartStepplayerFollow(void *object, int argCount, void *args)
 {
     int argTypes[2] = {0x2002, 2};
     union { qword q; } u;
-    int n;
+    LO *n;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
@@ -1798,7 +1799,7 @@ CRef RefThunk_EmitSwNoise(void *object, int argCount, void *args)
 {
     int argTypes[3] = {0x1046, 2, 0x2002};
     union { qword q; } u;
-    int a, b;
+    int a, b;   /* b: script type 0x2002 (an object) where noise.cpp has an int "loudness" (CID147 +0x40); open */
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, args, argTypes, &a, &u, &b);
     ref.SetBasic((BASIC *)EmitSwNoise(object, a, u.q, b));
     return ref;
