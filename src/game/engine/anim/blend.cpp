@@ -53,7 +53,7 @@ struct KEY { float t; int kind; int arg8; int argC; };
 struct XB {
     int frame; int pad4[2];
     virtual void f1(); virtual void f2(); virtual void f3(); virtual void object(); virtual void f5();
-    virtual void f6(); virtual void f7(); virtual void f8(); virtual void Init();
+    virtual void f6(); virtual void f7(); virtual void f8(); virtual void Remove();   /* slot 9: LO::Remove (RemoveLo) */
 };
 /* View of an animation segment (ASEG; the fields from +0xC0 on are those of a blend, ASEGBL). */
 struct ASEG : XB {
@@ -82,12 +82,12 @@ struct ASEG : XB {
 };
 typedef char assert_ASEG_pxD8[(unsigned int)&((ASEG *)0)->linkedBlend == 0xD8 ? 1 : -1];
 
-/* g++ 2.95 vtable entry, and the channel objects evaluated through it (vtable at +0). */
-struct VTE { short d; short pad; void *pfn; };
-struct CHNO { VTE *vt; };
+/* The per-element channel objects are curves (sly2/act.h AC for vectors, ACG for floats; declared below). */
+struct AC;
+struct ACG;
 /* A blended channel: its blend, timing tables and per-element channel objects; then the default value. */
-struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; qword q; };
-struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("LoadCurveFromBrxDefault"); virtual void Prepare(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void Prepare(CHN *pq) __asm__("BlendChannelPose"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int GetKind() __asm__("GetBlendCurveKind"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("LoadFloatCurveFromBrxDefault"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("EvaluateBlendFloatCurve"); };
+struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; AC **apo; qword q; };
+struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; ACG **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("LoadCurveFromBrxDefault"); virtual void Prepare(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void Prepare(CHN *pq) __asm__("BlendChannelPose"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int GetKind() __asm__("GetBlendCurveKind"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("LoadFloatCurveFromBrxDefault"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("EvaluateBlendFloatCurve"); };
 
 extern const float D_002A4AF0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
@@ -146,7 +146,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
     {
         STACKSCOPE frame;
         ASEG *pxNew = CreateLo__F3CIDP2SO3OIDi(0x6E, p, -1, -1);
-        pxNew->Init();
+        pxNew->Remove();   /* out of the parent CreateLo put it in (the port traced slot 9 as LO::Remove) */
         pxNew->cb = cb;
         pxNew->elementCount = c;
         pxNew->elements = elements;
@@ -447,10 +447,9 @@ void AC5::Prepare(CHN *pq)
     ASEG *pa = p->paseg;
 
     if (pa->dominantElement >= 0) {
-        CHNO *po = p->apo[pa->dominantElement];
+        AC *po = p->apo[pa->dominantElement];
         if (po) {
-            VTE *e = &po->vt[2];
-            ((void (*)(void *, CHN *))e->pfn)((char *)po + e->d, pq);
+            po->Prepare(pq);
         } else {
             qword v = p->q;
             float *pv = pq->segmentStartTangent.f;
@@ -487,7 +486,7 @@ void AC5::Prepare(CHN *pq)
     b = a;
     for (; i < p->paseg->elementCount; i++) {
         ELEM *pe = (ELEM *)((char *)p->paseg->elements + i * p->paseg->cb);
-        CHNO *po;
+        AC *po;
         if (pe->w == 0.0f)
             continue;
         po = p->apo[i];
@@ -513,10 +512,7 @@ void AC5::Prepare(CHN *pq)
             }
             func_002333B4(&q, 0, 0x100);
             q.currentTimePtr = &t[1];
-            {
-                VTE *e = &po->vt[2];
-                ((void (*)(void *, CHN *))e->pfn)((char *)po + e->d, &q);
-            }
+            po->Prepare(&q);
             EvaluateBezierPos(q.segmentEndTime - q.segmentStartTime, t[1] - q.segmentStartTime, ratio, q.segmentStart.q, q.segmentStartTangent.q, q.segmentEnd.q, q.segmentEndTangent.q, &c, &d, 0);
         }
         {
@@ -585,7 +581,7 @@ top:
         int off = i * pa->cb;
         char *base = (char *)pa->elements;
         ELEM *pe;
-        CHNO *po;
+        AC *po;
         float zero = 0.0f;
         pe = (ELEM *)(base + off);
         if (pe->w == zero)
@@ -612,10 +608,7 @@ top:
                 if (gMax < g0)
                     g0 -= gMax;
             }
-            {
-                VTE *e = &po->vt[3];
-                ((void (*)(void *, float, float, VU *, VU *))e->pfn)((char *)po + e->d, g0, g1, &segmentValue, &segmentVelocity);
-            }
+            po->Evaluate(&segmentValue.q, &segmentVelocity.q, g0, g1);
         }
         {
             qword s1, s2;
@@ -664,7 +657,7 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
     sa = sb;
     for (i = 0; i < p->paseg->elementCount; i++) {
         ELEM *pw = (ELEM *)((char *)p->paseg->elements + i * p->paseg->cb);
-        CHNO *pv;
+        ACG *pv;
         if (pw->w == 0.0f)
             continue;
         pv = p->apo[i];
@@ -685,7 +678,7 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
                 if (lim < u)
                     u -= lim;
             }
-            ((void (*)(void *, float, float, float *, float *))pv->vt[2].pfn)((char *)pv + pv->vt[2].d, u, s, &g4, &g8);
+            pv->Evaluate(u, s, &g4, &g8);
         }
         sa += pw->w * g4;
         sb += pw->w * g8;
