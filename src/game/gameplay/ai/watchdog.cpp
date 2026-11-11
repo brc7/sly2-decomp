@@ -18,8 +18,9 @@ enum {
     CID_WATER = 0x59,
 };
 
-/* The volume object a volume watch looks at (vtable slot 73 point test; +0x184/+0x188 event parameters). */
-struct WVOL { char pad[0xC]; VTE *vt; char pad10[0x174]; int zapAmount; int zapKind; };
+/* The volume object a volume watch looks at (an SO: its slot 73 IsPosInside is the point test; +0x184/+0x188 event
+   parameters, at EE offsets). */
+struct WVOL { char pad[0x184]; int zapAmount; int zapKind; };
 /* The watches are guard.h STUCKWATCH and HAZARDWATCH (its volume read as WVOL). */
 /* The zap both watchers deliver is a ZPR (stepplayer.h): source, the guard as +0x8, kind, damage, position, velocity. */
 /* The filter's argument (an object and its flags; bit 48 tested). */
@@ -183,14 +184,10 @@ extern "C" void UpdateHazardWatch(HAZARDWATCH *watch)
         case 0: {
             WVOL *volume = (WVOL *)watch->volume;
             int isFalling;
-            VTE *entry;
-            void *self;
             if (!volume)
                 break;
             isFalling = 0;
-            entry = &volume->vt[73];
-            self = (char *)volume + entry->d;
-            if (((int (*)(void *, qword))entry->pfn)(self, GetLoWorldPos(watch->guard))) {
+            if (((SO *)volume)->IsPosInside(GetLoWorldPos(watch->guard))) {
                 qword velocity = watch->guard->GetVelocity();
                 float verticalSpeed;
                 __asm__("pextuw %0, $zero, %1" : "=r"(verticalSpeed) : "r"(velocity));

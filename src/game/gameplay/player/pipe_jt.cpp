@@ -134,10 +134,14 @@ extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
         /* SetAngularVelocity (slot 36) through the vtable by hand: the original loads the slot before computing the
            argument (a plain virtual call loads it after) */
         STEPPLAYER *o = pipe->player;
+#if defined(SLY2_EE_LAYOUT)
         VTE *vt = *(VTE **)((char *)o + 0xC);
         void (*call)(void *, qword) = (void (*)(void *, qword))vt[36].pfn;
         void *thisp = (char *)o + vt[36].d;
         call(thisp, Scale(vec.q, f / g_clock.deltaTime));
+#else
+        o->SetAngularVelocity(Scale(vec.q, f / g_clock.deltaTime));
+#endif
     }
 }
 
