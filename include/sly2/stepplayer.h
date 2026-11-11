@@ -28,7 +28,11 @@ struct ASEGARC
       float flightTime;   /* +0x14 tLabel24 - tLabel22 */
       float minimumTime;   /* +0x18 tLabel24 - tLabel23 */
       float sLeap;   /* +0x1C planar distance of the leap (UpdateMurrayPower backs off by it) */
-      qword acceleration;   /* +0x20 the arc's curvature (PostAsegArcLoad; StartLeap's acceleration) */
+      union
+      {
+            qword acceleration;   /* +0x20 the arc's curvature (PostAsegArcLoad; StartLeap's acceleration) */
+            VECTOR vecAcceleration;   /* the same, by component (PostAsegArcLoad writes x, y, z) */
+      };
       int fInit;   /* +0x30 PostAsegArcLoad done */
       int unknown34[3];
 };

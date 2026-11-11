@@ -44,8 +44,8 @@ struct LEAPSUBJECT : SO { char pad150[0x208 - 0x150];
 typedef char assert_ALO_size[sizeof(LEAPSUBJECT) == 0x4A0 ? 1 : -1];
 #define POSITION(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
 
-/* A leap's tuning and the leap itself (0x70 bytes, vtable 0x2DAA10 at +0xC). */
-struct LEAPTUNE { int unused0; ASEG *animation; int unused8; float afterStart, afterEnd, flightTime, minimumTime; int unused1C; U acceleration; };
+/* The leap (0x70 bytes, vtable 0x2DAA10 at +0xC); its tuning is the animation arc (sly2/stepplayer.h ASEGARC: the clip,
+   its label times and the arc's acceleration; was the LEAPTUNE view). */
 struct LEAPV
 {
     int x0, x4, x8;
@@ -54,7 +54,7 @@ struct LEAPV
     float stateTime;        /* 0x14 */
     char pad18[8];
     U previousVelocity;     /* 0x20 */
-    LEAPTUNE *tuning;       /* 0x30 */
+    ASEGARC *tuning;        /* 0x30 */
     LEAPSUBJECT *subject;           /* 0x34 */
     ASEGA *job;             /* 0x38 */
     int index;              /* 0x3C */
@@ -74,9 +74,6 @@ struct DIROWNER { char pad[0x30]; ASEG *paseg; };
 struct DIRACT { int n0; int n4; int pad8; void *pvt; char pad10[0x10]; LEAPSUBJECT *palo; ASEGA *pasega; DIROWNER *powner; ASEG **ppaseg; int grfapl; char pad34[0xC]; };
 typedef char assert_DIRACT_size[sizeof(DIRACT) == 0x40 ? 1 : -1];
 
-/* The three clip markers (0x22..0x24) of PostAsegArcLoad's curve. */
-struct V3 { float x, y, z; };
-struct BLCURVE { OID oid; ASEG *paseg; float a; float b; float c; float ca; float cb; FLOATWORD dist; V3 v; int pad; int fInit; };
 
 struct SLOTHEAP;
 extern "C" {
@@ -327,7 +324,7 @@ extern "C" void InitAsegArc(OID *p) {
 
 // Initialize curve timing, planar distance and curvature.
 // Arc timing from the animation labels 0x22/0x23/0x24: planar distance and curvature of the leap.
-extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
+extern "C" void PostAsegArcLoad(ASEGARC *p, LEAPSUBJECT *arg)
 {
     EA *pa, *pb, *pc;
     CHN *c;
@@ -354,28 +351,28 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
     pc = FindAsegLabel(p->paseg, 0x24);
     if (!pc)
         return;
-    p->a = pa->time;
-    p->b = pb->time;
-    p->c = pc->time;
-    p->cb = p->c - p->b;
-    p->ca = p->c - p->a;
+    p->tLabel22 = pa->time;
+    p->tLabel23 = pb->time;
+    p->tLabel24 = pc->time;
+    p->minimumTime = p->tLabel24 - p->tLabel23;
+    p->flightTime = p->tLabel24 - p->tLabel22;
     c = FindAsegChannel(p->paseg, arg, 1, 1);
     if (c) {
-        c->pac->Evaluate(p->a, 1.0f, &v0.q, 0);
-        c->pac->Evaluate(p->c, 1.0f, &v1.q, 0);
-        __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->a));
-        h = p->c;
+        c->pac->Evaluate(p->tLabel22, 1.0f, &v0.q, 0);
+        c->pac->Evaluate(p->tLabel24, 1.0f, &v1.q, 0);
+        __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->tLabel22));
+        h = p->tLabel24;
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu "
                 "%1,%z3,$zero\n\tsub.s %2,%2,%4"
                 : "+j"(d), "=r"(derivative), "+f"(h)
                 : "rJ"((qword *)0), "f"(start));
         h *= 0.5f;
         __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4"
-                : "=&r"(n), "=m"(p->dist.bits), "=r"(thirdCurve)
+                : "=&r"(n), "=m"(p->sLeap), "=r"(thirdCurve)
                 : "j"(d), "m"(c->pac));
         thirdCurve->Evaluate(start + h, 1.0f, &v2.q, derivative);
         {
-            V3 *pv = &p->v;
+            VECTOR *pv = &p->vecAcceleration;
             pv->x = 0;
             pv->y = 0;
             pv->z = (-v2.f[2] + v0.f[2]) / (h * h * 0.5f);
@@ -386,8 +383,8 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, LEAPSUBJECT *arg)
 
 // Constructs a leap object (CID 0x91) in place and enters state 0.
 // Also known as: StartK2 (upstream readable / Sly 1 name; StartK2__FP5KIND2P3ALOiP6K2PLAY).
-extern "C" void StartLeap(LEAPTUNE *ptune, LEAPSUBJECT *psubject, int index, LEAPV *p) {
-    if (ptune->animation == 0)
+extern "C" void StartLeap(ASEGARC *ptune, LEAPSUBJECT *psubject, int index, LEAPV *p) {
+    if (ptune->paseg == 0)
         return;
     memset(p, 0, 0x70);
     memset(p, 0, 0x70);
@@ -475,7 +472,7 @@ void SetLeapState(LEAPV *leap, int state)
     leap->stateTime = g_clock.time;
     switch (state) {
     case 0:
-        ReplaceCurrentAseg(leap->tuning->animation, (ALO *)leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
+        ReplaceCurrentAseg(leap->tuning->paseg, (ALO *)leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
         SubscribeLoObject(leap->job, leap);
         leap->previousVelocity.q = GetSoGravity(leap->subject);
         break;
@@ -488,7 +485,7 @@ void SetLeapState(LEAPV *leap, int state)
         float playbackRate = leap->job->speed;
         register LEAPSUBJECT *motionSubject __asm__("$3") = leap->subject;
         register XF *motionSpace __asm__("$4");
-        register LEAPTUNE *motionTuning __asm__("$3");
+        register ASEGARC *motionTuning __asm__("$3");
         register float square __asm__("$f0");
         __asm__("lw %0,%3\n\tmul.s %1,%4,%4\n\tlw %2,%5"
                 : "=&r"(motionSpace), "=f"(square), "=r"(motionTuning)
@@ -498,7 +495,7 @@ void SetLeapState(LEAPV *leap, int state)
         __asm__("lqc2 $vf4,%4\n\tlqc2 $vf1,%5\n\tmfc1 %0,%8\n\tqmtc2.ni %0,%1\n\tvmulx.xyzw $vf2,$vf1,%1x\n\tsqc2 "
                 "$vf2,%2\n\tlqc2 $vf2,%6\n\tvsub.xyzw $vf1,$vf2,$vf4\n\tsqc2 $vf1,%3\n\tlw %0,%7"
                 : "=&r"(ballistic), "=&j"(rateSquared), "=m"(acceleration.q), "=m"(delta.q)
-                : "m"(POSITION(motionSpace)), "m"(motionTuning->acceleration.q), "m"(leap->target.q),
+                : "m"(POSITION(motionSpace)), "m"(motionTuning->acceleration), "m"(leap->target.q),
                   "m"(leap->ballistic), "f"(square)
                 : "vf1", "vf2", "vf4");
         scalar.q = rateSquared;
@@ -569,9 +566,9 @@ void SetLeapState(LEAPV *leap, int state)
         SetSoGravity(leap->subject, acceleration.q);
         break;
     }
-    case 2: SeekAsega(leap->job, 0, leap->tuning->afterStart, 1.0f); break;
+    case 2: SeekAsega(leap->job, 0, leap->tuning->tLabel23, 1.0f); break;
     case 3:
-        SeekAsega(leap->job, 0, leap->tuning->afterEnd, 1.0f);
+        SeekAsega(leap->job, 0, leap->tuning->tLabel24, 1.0f);
         if (leap->related)
             AttachStepguard(leap->subject, leap->related, leap->kind);
         break;
