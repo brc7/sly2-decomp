@@ -2155,10 +2155,22 @@ typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 /* 112 CID112 (0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
 struct CID112 : LO
 {
-    char pad50[0xC0 - 0x50];
+    /* Own fields from launcher.cpp (its LAUNCH / S views until v1.16; options 503..550). */
+    qword posTarget;            /* +0x50 the launch target, in psoSource's frame (option 504) */
+    SO *psoSource;              /* +0x60 the frame the target is given in, 0: the world (option 503) */
+    undefined4 unknown64[3];
+    CLQ clqPredict;             /* +0x70 predicted flight time over the distance (option 545) */
+    LM lmPredict;               /* +0x80 its limits (option 546) */
+    undefined4 unknown88[2];
+    CLQ clqOffset;              /* +0x90 the offset along the direction to the target, over the distance (option 547) */
+    LM lmOffset;                /* +0xA0 its limits (option 548) */
+    LM lmSpin;                  /* +0xA8 random spin range (option 549) */
+    float pitch;                /* +0xB0 ballistic pitch blend (option 550; 0.5 at init) */
+    undefined4 unknownB4[3];
     virtual void Init() __asm__("InitCid112");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid112ClassDesc");   /* slot 6 */
 };
+typedef char assert_CID112_pitch[SLY2_OFFSETOF(CID112, pitch) == 0xB0 ? 1 : -1];
 typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
 
 /* 70 SAFEHOUSE (0x240): character-select PO; vtable 0x2D80D0, 81 slots */

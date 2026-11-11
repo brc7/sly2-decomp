@@ -16,13 +16,12 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qwordV __attribute__((mode(TI)));
-struct S;
 extern "C" {
 float sinf(float);
 float atan2f(float, float);
 float tanf(float);
 float cosf(float);
-void InitLo(struct S *p);
+void InitLo(CID112 *p);
 }
 extern qwordV g_normalZ, D_002A2DD0;
 
@@ -122,25 +121,23 @@ extern "C" qwordV CalculateVelocityToReachPos(qwordV start, qwordV end, qwordV a
 
 /* ---- 0x1D6A90: launcher init ---- */
 extern const float D_002A7874;   /* defined below where the ELF has it (.rodata order) */
-struct V { float x, y, z; };
-struct S { char p0[0x70]; struct V predictCurve; int pad; int predictMin; float predictMax; char p1[8]; struct V offsetCurve; int pad2; int offsetMin; float offsetMax; char p2[8]; float pitch; };
 // Set the three components of pv.
-static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
+static inline void SetClq(CLQ *pclq, float g0, float g1, float g2) { pclq->g0 = g0; pclq->g1 = g1; pclq->g2 = g2; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7874 __asm__("D_002A7874") = 3.40282347e+38f; }
 // Initialise a launcher: base LO init, zero prediction curve with range [0, FLT_MAX], offset curve (0, 1, 0) with
 // range [0, FLT_MAX], and pitch 0.5.
-void CID112::Init() { S *launcher = (S *)this;
+void CID112::Init() { CID112 *launcher = this;
     InitLo(launcher);
-    SetVector(&launcher->predictCurve, 0, 0, 0);
-    launcher->predictMin = 0;
-    launcher->predictMax = D_002A7874;
-    SetVector(&launcher->offsetCurve, 0, 1.0f, 0);
+    SetClq(&launcher->clqPredict, 0, 0, 0);
+    launcher->lmPredict.minValue = 0;
+    launcher->lmPredict.maxValue = D_002A7874;
+    SetClq(&launcher->clqOffset, 0, 1.0f, 0);
     launcher->pitch = 0.5f;
-    launcher->offsetMax = D_002A7874;
-    launcher->offsetMin = 0;
+    launcher->lmOffset.maxValue = D_002A7874;
+    launcher->lmOffset.minValue = 0;
 }
 
 /* ---- 0x1D6B00: LaunchSoFromLauncher ---- */
@@ -195,18 +192,7 @@ struct SOV : LOV {
     virtual void V73(); virtual void V74(); virtual void V75(); virtual void V76(); virtual void V77();
     virtual void SetTarget(SOV *psoSource, const VECTOR4V &posTarget); // 78
 };
-struct LAUNCH : LO {
-    qwordV posTarget;            // 0x50
-    SOV *psoSource;              // 0x60
-    char pad64[0xC];
-    CLQ clqPredict;             // 0x70
-    LM lmPredict;               // 0x80
-    char pad88[8];
-    CLQ clqOffset;              // 0x90
-    LM lmOffset;                // 0xA0
-    LM lmSpin;                  // 0xA8
-    float pitch;                // 0xB0
-};
+typedef CID112 LAUNCH;   /* classes.h */
 extern XFV D_002C44F0;           // identity frame
 extern qwordV D_002A2DA0;        // default direction
 extern "C" {
@@ -339,7 +325,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     MATRIX4V matParent;
     qwordV posStart = GetLoWorldPos(pso);
     VV posOrigin(posStart);
-    SOV *psoSource = plaunch->psoSource;
+    SOV *psoSource = (SOV *)plaunch->psoSource;
     XFV *pxf;
     if (psoSource)
         pxf = psoSource->GetLocalTransform(&matParent);
@@ -352,14 +338,14 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     {
         MATRIX4V mat;
         __ml__FRC7MATRIX4T0(&mat, &pxf->matWorld, &matParent);
-        dpos = VuSub(Point(mat, plaunch->posTarget), posStart);
+        dpos = VuSub(Point(mat, *(qwordV *)&plaunch->posTarget), posStart);
         dist = QwordX(Length(dpos));
         float t = Clamp(GFromClq(plaunch->clqPredict, dist), plaunch->lmPredict.minValue, plaunch->lmPredict.maxValue);
         if (t != 0.0f) {
             MATRIX4V matPredict;
             LoadIdentityMatrix4(pxf, 0, &mat, 0, t);
             __ml__FRC7MATRIX4T0(&matPredict, &mat, &matParent);
-            dpos = VuSub(Point(matPredict, plaunch->posTarget), posStart);
+            dpos = VuSub(Point(matPredict, *(qwordV *)&plaunch->posTarget), posStart);
         }
     }
     dist = QwordX(Length(dpos));
@@ -397,5 +383,5 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         pso->SetAngularVelocity(w);
     }
     if (IsBasicDerivedFrom__FP5BASIC3CID(pso, 0x50))
-        pso->SetTarget(plaunch->psoSource, VECTOR4V(plaunch->posTarget));
+        pso->SetTarget((SOV *)plaunch->psoSource, VECTOR4V(*(qwordV *)&plaunch->posTarget));
 }
