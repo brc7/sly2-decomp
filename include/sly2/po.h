@@ -54,11 +54,12 @@ struct PO : public SO
       undefined4 unknown160[2];
       PO *unknown168;
       TN *cameraTunnel; /* camera tunnel the object is in */
-      undefined4 unknown170;
-      void *unknown174;
+      float lastWakeTime;   /* +0x170 g_clock.time of its last wake in water (emitter.cpp WakeSoWater) */
+      void *wakeSound;   /* +0x174 the looping wake sound while it moves through water (counted, RcPtr_Assign: WakeSoWater starts
+                            it, AddSoWaterAcceleration stops it once out of the water, HandlePoMessage on message 5); was unknown174 */
       undefined4 unknown178;
       int unknown17C;
-    PO();   /* sets unknown174 = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
+    PO();   /* sets wakeSound = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPoFromBrx");   /* slot 14 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPoClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandlePoMessage");   /* slot 5 */

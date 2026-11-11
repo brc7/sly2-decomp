@@ -152,7 +152,11 @@ struct SOPHYS
       CONSTR constrTorque;   /* rotation constraint */
       CONSTR constrForce;   /* translation constraint */
       float m;   /* mass */
-      undefined4 unknownD4[2];
+      float buoyancy;   /* +0xD4 how strongly water lifts it (option 131): the object's and the water's are multiplied and push it
+                           against gravity in proportion to the submerged fraction (AddSoWaterAcceleration; InitWaterPhysics: 1 for
+                           the water; gadget.cpp: 2) (inferred) */
+      float waterDrag;   /* +0xD8 how strongly the water's current drags it (option 132): the product of the object's and the
+                            water's scales the spring gains toward the current (AddSoWaterAcceleration; InitWaterPhysics: 1) (inferred) */
       struct REGENT *pregent;   /* the object's REGENT record (see GetSoPathzone) */
 };
 
@@ -203,6 +207,12 @@ struct SO : public ALO   /* LO -> ALO -> SO (sly2/alo.h) */
       float unknown13C;
       int renderStamp;   /* +0x140 its root XF's worldStamp while in the render tree, -1 out (rendertree.cpp) (inferred) */
       struct RENDER *prender;   /* +0x144 its entry in the render tree (AddLoToRenderTree) */
+      union
+      {
+      ulong soFlags;   /* +0x148 the whole 64-bit unit below as one doubleword: views that test its bits by mask read it so
+                         (water.cpp: bits 31 / 32; so.cpp's LoadSoFlags; glob.cpp, solve.cpp, sensor.cpp, gait.cpp views) */
+      struct
+      {
       char dhpHit;   /* +0x148 the hit damage, stored negated (InitSo: -10; SetSoHitDamage; SetSoZapMode gives it to the parts
                         of zap mode 2) */
       char dhpTouch;   /* +0x149 the damage of the touch zap (InitSo: -20; HandleSoTouchZaps, zap kind 0x20000) (inferred) */
@@ -210,17 +220,23 @@ struct SO : public ALO   /* LO -> ALO -> SO (sly2/alo.h) */
                 int unknownBits148B : 4;   /* int-typed (so.cpp's getter sign-extends it as a 32-bit field) */
                 /* zapMode..isNotLandable are uint-typed (bits 24..29 of the 64-bit unit at +0x148): their so.cpp getters
                    read them as 32-bit fields (ld, dsll, dsra32, andi), which a ulong field does not give (it shifts
-                   logically). unknownBits148D crosses bit 32, so it and the fields after it stay ulong. */
+                   logically). the bits from 30 on (unknownBit148D, wasInWater, isInWater...) stay ulong: isInWater is bit 32. */
                 uint zapMode : 2;    /* how zaps (damage) are delivered */
                 uint fIgnoreFixed : 1;   /* ignore collisions with fixed objects (inferred) */
                 uint unknownBits148C : 2;
                 uint isNotLandable : 1; /* the hero may not land/place on this object */
-                ulong unknownBits148D : 3;
+                ulong unknownBit148D : 1;   /* bit 30 */
+                ulong wasInWater : 1;   /* bit 31: on a WATER's object list when its UpdateWater began (set for every listed
+                                           object first; UpdateSwXaList clears it) */
+                ulong isInWater : 1;    /* bit 32: found submerged in a WATER this update (UpdateWater; cleared with bit 31). A
+                                           change between the two sends message 4 (entered) or 5 (left) */
                 ulong hurtRespawnsHero : 1; /* being hurt by this object respawns the hero */
                 ulong isTreeRoot : 1;  /* the object is the root of its physics tree */
                 ulong isRenderable : 1;   /* bit 35: may be in the render tree (SetSoBit35Hierarchy and SetSoGrfBit8 add/remove
                                              it; InitSo inherits it from the parent, 1 at top level) (inferred) */
                 ulong hasIkLimbs : 1;    /* the object has IK limbs */
+      };
+      };
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetSoWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSoClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSo");   /* slot 7 */
@@ -339,7 +355,11 @@ struct SOPART
                ulong unknownBits10A : 12;
       uint zapKindFlags; /* zap kinds (damage types) the part delivers or accepts */
       int unknown1C;   /* possibly numSphereVertices (low-confidence guess: compared with meshLocal.cpos in mark.cpp) */
-      MATRIX4 matWorld;   /* world matrix of the part */
+      union
+      {
+            MATRIX4 matWorld;   /* world matrix of the part */
+            MATRIX4Q matqWorld;   /* its rows as quadwords (row 3: the part's world position; water.cpp) */
+      };
       DLE dle;   /* link in the physics tree's part list */
       BSPC bspc;   /* BSP of the part mesh */
       GEOM meshLocal;   /* part mesh (local) */
@@ -395,8 +415,8 @@ inline void SetPartRefZapKinds(CID150 *p, uint grfzpk) { p->psopart->zapKindFlag
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (3 copies in Lilly ports) */
 struct SOTREE
 {
-      qword boundsMin; /* bounding box minimum */
-      qword boundsMax; /* bounding box maximum */
+      union { qword boundsMin; VECTOR4 vecBoundsMin; }; /* bounding box minimum (VECTOR4: by component, water.cpp) */
+      union { qword boundsMax; VECTOR4 vecBoundsMax; }; /* bounding box maximum */
       qword boundsCenter; /* bounding sphere centre */
       float boundsRadius; /* bounding sphere radius */
       DL parts;    /* parts in the tree */
@@ -495,9 +515,10 @@ typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
 struct XA
 {
       SO *source;   /* the object whose accelerations it supplies (water.cpp: the WATER; slot 71 is called on it) */
-      SO *other; /* the other object */
-      XA *pxaNextSource;   /* next record in the source object's list */
-      XA *pxaNextTarget;   /* next record in the target object's list */
+      SO *other; /* the other object: the one the accelerations are applied to */
+      XA *nextInOther;   /* next record in the other object's list (SO::pxa; water.cpp AddSoXa / RemoveSoXa) */
+      XA *nextInSource;   /* next record in the source object's list (WATER::pxaFirst; UpdateWater / UpdateSwXaList). Were
+                             pxaNextSource / pxaNextTarget, the other way round from what the code links through them */
 };
 
 #endif /* SLY2_SO_H */

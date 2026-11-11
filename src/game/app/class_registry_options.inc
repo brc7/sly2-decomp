@@ -809,8 +809,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSoFADE_IN), EOPID_INT(1), EOPID_NONE}, /* [56] opt 128, SO (+60) */
     {1, 0x122, EOPID_OFF(SO, opacity), EOPID_PMF(SetSoAlpha), EOPID_PMF(SetSoAlpha), EOPID_NONE}, /* [57] opt 129, SO (+60) */
     {1, 0x122, EOPID_OFF(SO, opacitySpeed), EOPID_PMF(SetSoFadeRate), EOPID_PMF(SetSoFadeRate), EOPID_NONE}, /* [58] opt 130, SO (+60) */
-    {1, 0x2092, EOPID_OFF(SOPHYS, unknownD4), EOPID_OFF(SOPHYS, unknownD4), EOPID_OFF(SOPHYS, unknownD4), EOPID_PMF(GetSoPhys)}, /* [59] opt 131, SO (+60) */
-    {1, 0x2092, EOPID_INT(0xD8), EOPID_INT(0xD8), EOPID_INT(0xD8), EOPID_PMF(GetSoPhys)}, /* [60] opt 132, SO (+60) */
+    {1, 0x2092, EOPID_OFF(SOPHYS, buoyancy), EOPID_OFF(SOPHYS, buoyancy), EOPID_OFF(SOPHYS, buoyancy), EOPID_PMF(GetSoPhys)}, /* [59] opt 131, SO (+60) */
+    {1, 0x2092, EOPID_OFF(SOPHYS, waterDrag), EOPID_OFF(SOPHYS, waterDrag), EOPID_OFF(SOPHYS, waterDrag), EOPID_PMF(GetSoPhys)}, /* [60] opt 132, SO (+60) */
     {0x1032, 0x124, EOPID_PMF(GetSoUnknownBits16), EOPID_PMF(SetSoUnknownBits16), EOPID_PMF(SetSoUnknownBits16), EOPID_NONE}, /* [61] opt 139, SO (+60) */
     {0x103D, 0x104, EOPID_PMF(GetSoUnknownBits20), EOPID_NONE, EOPID_PMF(SetSoUnknownBits20), EOPID_NONE}, /* [62] opt 140, SO (+60) */
     {0, 0x124, EOPID_PMF(GetSoNoJtPlace), EOPID_PMF(SetSoNoJtPlace), EOPID_PMF(SetSoNoJtPlace), EOPID_NONE}, /* [63] opt 141, SO (+60) */

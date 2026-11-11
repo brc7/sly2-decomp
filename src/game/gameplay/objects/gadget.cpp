@@ -37,7 +37,7 @@ struct GAME;
 /* An XF (sly2/so.h: mat rows + position, world rows + position, parent, velocity). */
 struct XFV { M3 basis; qwordV orientation; M3 basisWorld; V position; char pad80[0x88 - 0x80]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0xA0 - 0x94]; XFV *parent; char padA4[0xA8 - 0xA4]; void *unknownA8; char padAC[0xB0 - 0xAC]; V velocity; };
 /* SO::physics and SO::physicsTree as read here. */
-struct SOPHYSV { char pad[0x80]; qwordV acceleration; char pad90[0xD4 - 0x90]; float unknownD4; float unknownD8; };   /* acceleration: inferred (PushGuardTrapAway cancels it) */
+struct SOPHYSV { char pad[0x80]; qwordV acceleration; char pad90[0xD4 - 0x90]; float buoyancy; float waterDrag; };   /* so.h SOPHYS::buoyancy / waterDrag */   /* acceleration: inferred (PushGuardTrapAway cancels it) */
 /* A contact (elasticity at +0x98). */
 struct XP { char pad[0x98]; float elasticity; };
 struct SOV;
@@ -234,14 +234,14 @@ void InitTossable(CID100V *gadget)
     else ((LO *)gadget)->unknown40 = flags | 6;
 }
 
-// CID100 vtable slot 14 (LoadFromBrx): SO load; two physics parameters (+0xD4, +0xD8) set to 2.
+// CID100 vtable slot 14 (LoadFromBrx): SO load; its buoyancy and water drag (SOPHYS +0xD4, +0xD8) set to 2.
 extern "C" void LoadTossableFromBrx(CID100V *gadget, void *stream) {
     SOPHYSV *physics;
     LoadSoFromBrx(gadget, stream);
     physics = gadget->physics;
     if (physics != 0) {
-        physics->unknownD4 = 2.0f;
-        gadget->physics->unknownD8 = 2.0f;
+        physics->buoyancy = 2.0f;
+        gadget->physics->waterDrag = 2.0f;
     }
 }
 

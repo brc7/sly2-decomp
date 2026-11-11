@@ -773,7 +773,7 @@ struct EMITVELIsland {
 typedef char check_emitp[(sizeof(EMITVIsland) == 0x40) ? 1 : -1];
 typedef char check_emitv[(sizeof(EMITVELIsland) == 0x70) ? 1 : -1];
 
-struct SND { char pad[0x170]; float lastWakeTime; void *wakeSound; };   /* the SO as a sound-carrying object (CID 0x32) */
+/* An object derived from PO (CID 0x32) carries its wake time and wake sound (PO::lastWakeTime, PO::wakeSound). */
 struct E { int pad0[2]; LO *renderObject; LO *nextRenderObject; WATER *touchObject; };   /* the resolved objects (EMITB+0x08's block) */
 union V4 { qword q; float a[4]; };
 
@@ -812,11 +812,11 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *so, WATER *water, qwo
     float volume = 0.0f;    /* 0 until the sound is set: also the clamp floor and StopSnd's argument */
     float distance = QwordX(Length(VuSub(pos, (qword)so->GetVelocity())));
     int shouldWake = RandomFloatInRange__Fff(volume, 3.0f) < dt;
-    SND *soundObject;
+    PO *soundObject;
     float strength, interval;
     soundObject = 0;
     if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x32))
-        soundObject = (SND *)so;
+        soundObject = (PO *)so;
     if (distance > 10.0f || shouldWake) {
         interval = (distance - 10.0f) * 0.0012658228f;  /* 1/790: full strength at 800 units */
         strength = Clamp(interval, volume, 1.0f);

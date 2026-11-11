@@ -262,11 +262,11 @@ extern "C" { static inline float Distance(qword a,qword b) {
  __asm__("mtc1 %1,%0":"=f"(result):"r"(d));
  return result;
 } }
-// Load the 64-bit bitfield unit at +0x148 (dhpHit, dhpTouch, unknownBits148A/B, ...) as one doubleword.
+// Load the 64-bit bitfield unit at +0x148 (SO::soFlags: dhpHit, dhpTouch, unknownBits148A/B, ...) as one doubleword.
 extern "C" { static inline ulong LoadState(SO *p)
 {
     register ulong value __asm__("$2");
-    __asm__("ld %0,%1":"=r"(value):"m"(*(ulong *)&p->dhpHit));
+    __asm__("ld %0,%1":"=r"(value):"m"(p->soFlags));
     return value;
 } }
 // Attaches the object to its root's bounds record (allocating one if needed) and grows the record's radii to cover

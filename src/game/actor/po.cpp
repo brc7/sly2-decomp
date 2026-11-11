@@ -114,7 +114,7 @@ extern "C" void HandlePoMessage(PO *po, int message)
 {
     HandleBasicMessage(po, message);
     if (message == 5) {
-        void **sound = &po->unknown174;
+        void **sound = &po->wakeSound;
         if (sound && *sound) {
             StopSnd(*sound, 0.0f);
             RcPtr_Assign(sound, 0);

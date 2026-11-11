@@ -827,8 +827,8 @@ parent LO; 84 options in all.
 | 128 | `RefThunkSoFADE_IN` | - | method(1) | 56 |
 | 129 | `opacity` / `SetSoAlpha` | float | get set file | 57 |
 | 130 | `opacitySpeed` / `SetSoFadeRate` | float | get set file | 58 |
-| 131 | `sub-object unknownD4` | float | get set file | 59 |
-| 132 | `sub-object +0xD8` | float | get set file | 60 |
+| 131 | `sub-object buoyancy` | float | get set file | 59 |
+| 132 | `sub-object waterDrag` | float | get set file | 60 |
 | 139 | `GetSoUnknownBits16` / `SetSoUnknownBits16` | int | get set file | 61 |
 | 140 | `GetSoUnknownBits20` / `SetSoUnknownBits20` | int | get file | 62 |
 | 141 | `GetSoNoJtPlace` / `SetSoNoJtPlace` | bool | get set file | 63 |

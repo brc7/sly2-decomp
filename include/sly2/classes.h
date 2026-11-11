@@ -68,7 +68,7 @@ template <> CRefPtr<SND>::~CRefPtr();
    enclosing object (s0-based) only this way. */
 inline BASIC::BASIC() : scriptFrame(refptrNull), scriptVariables(refptrNull) {}
 /* PO (sly2/po.h): the one PO field construction sets. */
-inline PO::PO() { unknown174 = 0; }
+inline PO::PO() { wakeSound = 0; }
 
 /* The grab-spot mix-in (second base of the grab-spot classes): GRABSPOTDATA (0x20 bytes, object/proxy.cpp) and
    its own vptr at +0x20 (vtable 0x2D28D8, 6 slots; hidden-types.md B2.12). Slot names from gameplay/player/grabspot.cpp;
@@ -2752,9 +2752,9 @@ typedef char assert_WARP_aliases[SLY2_OFFSETOF(WARP, aliases) == 0x170 ? 1 : -1]
 /* 89 WATER (0x190): zap kind 0x2000; vtable 0x2DCA30, 75 slots */
 struct WATER : SO
 {
-    /* water.cpp's SOW view names +0x150..+0x188 (declared here so the class has its size on every target). */
+    /* Its own fields (water.cpp uses the class itself since v1.18). */
     XA *pxaFirst;               /* +0x150 the objects in it: XA records (source the water, other the object), linked
-                                   through pxaNextTarget (UpdateWater / UpdateSwXaList) */
+                                   through XA::nextInSource (UpdateWater / UpdateSwXaList) */
     char pad154[0x160 - 0x154];
     VECTOR posCurrent;          /* +0x160 the current (CalculateWaterCurrent) */
     char pad16C[0x170 - 0x16C];

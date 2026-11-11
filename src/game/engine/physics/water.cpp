@@ -26,65 +26,21 @@ typedef int qwordV __attribute__((mode(TI)));
 typedef unsigned long ulong;
 union V { qwordV q; float f[4]; int n[4]; };
 typedef struct { qwordV r[3]; } M3;
-struct SOW;
 struct EVENT;
-struct PAIR { SOW *owner, *object; };
+/* The message payload of messages 4 / 5 (entered / left the water): the water and the object. */
+struct PAIR { WATER *owner; SO *object; };
 /* The splash event: emitter.h's EXPLSO (kind = its grf flags, strength = its scale, normal = its vector, position =
    its origin) as UpdateWater's asm-addressed stack frame holds it. */
 struct EVENT { int kind, pad4; float strength; int padC; qwordV normal; V position; char pad30[0x10]; };
 typedef char assert_EVENT_size[sizeof(EVENT) == sizeof(EXPLSO) ? 1 : -1];
-struct CONSTRAINT { qwordV direction; int kind; };
-/* Physics parameters (+0xE8). */
-struct PHYS { char pad[0x80]; V direction; char pad90[0x20]; CONSTRAINT constraint; float mass, spring, friction; };
-struct LINK { int pad0; LINK *next; int pad8; SOW *object; };
-/* Bounds and tree state (+0xEC). */
-struct STATE { V minimum, maximum; char pad20[0x44]; LINK *first; char pad68[8]; ulong flags; };
-struct SOURCE { char pad[0x70]; V position; };
-struct COLL { SOURCE *source; char pad4[0xC]; ulong flags; char pad18[0x38]; V position; char pad60[0x50]; };
-/* A water membership node (0x10, from the world's pool at +0x40E8): on the water's list (+0x150, next at +0xC) and
-   on the object's XA list (+0x138, next at +0x8). */
-struct N { SOW *owner; SOW *object; N *nextXa; N *next; };
-struct VEC3 { float x, y, z; };
-struct EMITTER;
-struct WATER;
-/* An SO as water and as the objects in it (view of the fields used). */
-struct SOW
-{
-    char pad0[0xC];
-    void *vt;
-    char pad10[0x30];
-    int loFlags;
-    char pad44[0x14];
-    XF *body;               /* +0x58 */
-    XF *rotation;
-    union { XF *motion; void *pxfMotion; };
-    char pad64[0xE0 - 0x64];
-    int count;                /* +0xE0 colliders */
-    COLL *colliders;
-    PHYS *physics;            /* +0xE8 */
-    STATE *state;             /* +0xEC */
-    char padF0[0x138 - 0xF0];
-    N *firstXa;               /* +0x138 */
-    char pad13C[0x148 - 0x13C];
-    long flags;               /* +0x148 bit 31 in water last frame, bit 32 in water now */
-    N *first;                 /* +0x150 objects in this water */
-    char pad154[0x160 - 0x154];
-    VEC3 posCurrent;          /* +0x160 the current */
-    char pad16C[4];
-    SOW *recipient;           /* +0x170 gets the splash event (WATER::recipient, an EXPL) */
-    EMITTER *emitter;         /* +0x174 */
-    char pad178[8];
-    int unknown180;
-    int unknown184;
-    int zapKind;
-    char pad18C[0x208 - 0x18C];
-    int hasHeightFloor;
-    char pad20C[0x238 - 0x20C];
-    float heightFloor;
-    char pad23C[0xC];
-    float height;             /* +0x248 */
-};
-typedef char assert_SOW_height[(unsigned int)&((SOW *)0)->height == 0x248 ? 1 : -1];
+/* The water's own records are so.h's: its objects are XA records (source the water, other the object) on
+   WATER::pxaFirst and on each object's SO::pxa list; the object's in-water marks are bits 31 / 32 of SO::soFlags
+   (wasInWater / isInWater, tested and set by mask on the whole unit); the overlap candidates come from the water's
+   physics tree (SOTREE::pxplistFirst, one XPLIST per other object); the colliders are its SOPARTs. A STEP is probed
+   from its pivot (STEP::vecPivotOffset.z) and, standing on something, no lower than STEP::vecUnknown230.z; a PO's
+   wake sound is PO::wakeSound. */
+#define SO_WAS_IN_WATER 0x80000000L    /* SO::wasInWater */
+#define SO_IS_IN_WATER 0x100000000L    /* SO::isInWater */
 struct LSG { V first; qwordV pos; qwordV pad20; qwordV normal; float paramStart; float paramEnd; char pad48[0x18]; };
 typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
 struct REQ { int size, alignment; };
@@ -107,70 +63,70 @@ struct WORK7F8 { V point, normal, velocity; PHASE phase; AXIS axis; V angularNor
 typedef char assert_WORK7F8_size[sizeof(WORK7F8) == 0xB0 ? 1 : -1];
 /* UpdateWater's and GetWaterSubmergedFraction's stack layouts (their asm addresses these slots). */
 union SCRATCH { REQ request; PAIR pair; V velocity; };
-struct WORK { MARK mark; SCRATCH scratch; V start, end; LSG intervals[16]; V origin; EVENT event; int count; N **head; REQ *request; };
+struct WORK { MARK mark; SCRATCH scratch; V start, end; LSG intervals[16]; V origin; EVENT event; int count; XA **head; REQ *request; };
 struct WORK468 { V a, b; MARK mark __attribute__((aligned(16))); REQ msg __attribute__((aligned(16))); LSG alsg[0x10]; };
 
 extern qwordV D_002A2DA0;
 extern "C" {
 extern qwordV g_normalZ, D_002A2DD0;
 extern M3 D_002A2D00;
-void InitSo(SOW *p);
-void PostSoLoad(SOW *p);
-void UpdateSo(SOW *);
-void RemoveSoHierarchy(SOW *p);
-void HandleBasicMessage(SOW *p, int k, SOW *q);
-void InitSoPhysics(SOW *p);
-void SetSoPartsBit48(SOW *p, int a);
-qwordV ConvertPosBetweenLos(int a, SOW *p, qwordV q);
+void InitSo(SO *p);
+void PostSoLoad(SO *p);
+void UpdateSo(SO *);
+void RemoveSoHierarchy(SO *p);
+void HandleBasicMessage(SO *p, int k, SO *q);
+void InitSoPhysics(SO *p);
+void SetSoPartsBit48(SO *p, int a);
+qwordV ConvertPosBetweenLos(int a, SO *p, qwordV q);
 V *VECTOR_opAssign(V *pv, qwordV q);
 void AccumulateXfChainVelocityStub(void *p, int a, M4 *pm1, M4 *pm2);
 qwordV DecomposeRotationMatrixToVector(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(const REQ *);
-int CanWaterInflictZap(void *, COLL *);
-int CollectSoParts(SOW *, int (*)(void *, COLL *), void *, COLL **);
-int GetSoTreeFlag2(SOW *);
+int CanWaterInflictZap(void *, SOPART *);
+int CollectSoParts(SO *, int (*)(void *, SOPART *), void *, SOPART **);
+int GetSoTreeFlag2(SO *);
 int IsXfRoleVelocity(int);
-float GetWaterSubmergedFraction(SOW *, SOW *, qwordV *, qwordV *);
-N *AllocSwXa(SW *);
-int IsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
-int ClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
+float GetWaterSubmergedFraction(WATER *, SO *, qwordV *, qwordV *);
+XA *AllocSwXa(SW *);
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *, int);
+int ClipEdgeToObjects(qwordV, qwordV, int, SOPART **, int, LSG *);
 void *CreateSfxSound(int);
-void SetSndSourceLo(void *, SOW *);
+void SetSndSourceLo(void *, SO *);
 void SetSndRange(void *, float, float);
 void SetSndVolume(void *, float);
-void UpdateSwXaList(SOW *, N **);
+void UpdateSwXaList(WATER *, XA **);
 qwordV GetLoWorldPos(void *p);
 int AreFloatsNear__Ffff(float a, float b, float eps);
-qwordV ApplyConstr(CONSTRAINT *, XF *, qwordV);
-void AddSoAcceleration(SOW *, qwordV);
-void CalculateWaterCurrent(SOW *, qwordV, qwordV *, qwordV *);
+qwordV ApplyConstr(CONSTR *, XF *, qwordV);
+void AddSoAcceleration(SO *, qwordV);
+void CalculateWaterCurrent(WATER *, qwordV, qwordV *, qwordV *);
 float SplitVectorAlongAxis(qwordV, qwordV, qwordV *, qwordV *);
-void AccelSoTowardPosSpring(SOW *, qwordV, const COEF *, qwordV, const COEF *);
-void AccelSoTowardMatSpring(SOW *, const M3 *, const COEF *, qwordV, const COEF *);
-M4B *GetLoWorldMatrix(SOW *);
+void AccelSoTowardPosSpring(SO *, qwordV, const COEF *, qwordV, const COEF *);
+void AccelSoTowardMatSpring(SO *, const M3 *, const COEF *, qwordV, const COEF *);
+M4B *GetLoWorldMatrix(SO *);
 void TiltMatUpright(const M3 *, M3 *, M3 *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *, float *, qwordV *);
-void AddSoAngularAcceleration(SOW *, qwordV);
-void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SOW *, WATER *, float, qwordV, qwordV, float, float);
-void StopSnd(EMITTER *, float);
-void RcPtr_Assign(EMITTER **, EMITTER *);
-void RemoveSoXa(SOW *p, N *pn);
-void AddSoXa(SOW *p, N *pn);
-void FreeSwXaList(SW *pg, N *pn);
-void UpdateSoTreeBounds(SOW *p);
-void WakeSo(SOW *p, N *pn);
-/* The same function called with the object only (AddSoXa: with pn passed on, a1 is copied first; 8 of 11 off). */
-void func_001F5078P(SOW *p) __asm__("WakeSo");
-int IsPosInSo(SOW *p, qword pos);
+void AddSoAngularAcceleration(SO *, qwordV);
+void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *, WATER *, float, qwordV, qwordV, float, float);
+void StopSnd(void *, float);
+void RcPtr_Assign(void **, void *);
+void RemoveSoXa(SO *p, XA *pxa);
+void AddSoXa(SO *p, XA *pxa);
+void FreeSwXaList(SW *pg, XA *pxa);
+void UpdateSoTreeBounds(SO *p);
+void WakeSo(SO *p, XA *pxa);
+/* The same function called with the object only (AddSoXa: with pxa passed on, a1 is copied first; 8 of 11 off). */
+void func_001F5078P(SO *p) __asm__("WakeSo");
+int IsPosInSo(SO *p, qword pos);
 }
 
 // Slot 7 (Init): InitSo, then the water's defaults (spring 1, gravity-like -10 and the other tuning values).
 extern "C" void InitWater(WATER *water)
 {
     sptr flags;
-    InitSo((SOW *)water);
+    InitSo(water);
     flags = (sptr)water->ploupd;   /* LO's tagged word (lo.h) */
     water->hasWakeSound = 1;
     water->unknown184 = -10;
@@ -182,25 +138,24 @@ extern "C" void InitWater(WATER *water)
 // Slot 64: resets the SO physics defaults (InitSoPhysics), sets bit 48 on every part (SetSoPartsBit48) and gives
 // the water friction and spring factors of 1. (inferred: physics init override)
 // Also known as: PostLoadWater (upstream readable / Sly 1 name; PostLoadWater__FP3ALO).
-extern "C" void InitWaterPhysics(SOW *water)
+extern "C" void InitWaterPhysics(WATER *water)
 {
     InitSoPhysics(water);
     SetSoPartsBit48(water, 1);
-    { PHYS *physics = water->physics;
-    physics->friction = 1.0f;
-    physics->spring = 1.0f; }
+    { SOPHYS *physics = water->physics;
+    physics->waterDrag = 1.0f;
+    physics->buoyancy = 1.0f; }
 }
 
 // Slot 15 (PostLoad): only the SO post-load.
 void WATER::PostLoad()
 {
-    SOW *p = (SOW *)this;
-    PostSoLoad(p);
+    PostSoLoad(this);
 }
 
 // Converts a world position into the water's local space and evaluates the current there, returning the linear
 // velocity in *ppos and the angular velocity in *prot (both world space).
-extern "C" void CalculateWaterCurrent(SOW *water, qwordV pos, qwordV *velocityOut, qwordV *angularVelocityOut)
+extern "C" void CalculateWaterCurrent(WATER *water, qwordV pos, qwordV *velocityOut, qwordV *angularVelocityOut)
 {
     V localPos;
     M4 localMatrix(Uninitialized);
@@ -224,7 +179,7 @@ extern "C" void CalculateWaterCurrent(SOW *water, qwordV pos, qwordV *velocityOu
         currentMatrix.r[3].f[0] = water->posCurrent.x;
         currentMatrix.r[3].f[1] = water->posCurrent.y;
         currentMatrix.r[3].f[2] = water->posCurrent.z;
-        AccumulateXfChainVelocityStub(water->motion, 0, localMatrixPtr, currentMatrixPtr);
+        AccumulateXfChainVelocityStub(water->rootTransform, 0, localMatrixPtr, currentMatrixPtr);
         if (velocityOut) *velocityOut = currentMatrix.r[3].q;
         if (angularVelocityOut) *angularVelocityOut = DecomposeRotationMatrixToVector(currentMatrixPtr);
     }
@@ -234,30 +189,30 @@ extern "C" void CalculateWaterCurrent(SOW *water, qwordV pos, qwordV *velocityOu
 // to the object's XA list, those that left are removed; nodes whose object is no longer inside are unlinked and
 // returned to the world's XA pool. The pending flags are cleared. Sly 1 name.
 // Also known as: SettleWaterNodes (upstream readable / Sly 1 name; SettleWaterNodes__FP3ALOPv).
-extern "C" void UpdateSwXaList(SOW *unused, N **link)
+extern "C" void UpdateSwXaList(WATER *unused, XA **link)
 {
-    N *node = *link;
-    N *freeList = 0;
+    XA *node = *link;
+    XA *freeList = 0;
     while (node) {
-        SOW *object = node->object;
-        N *nextNode = node->next;
-        long flags = object->flags;
-        if (((int)(flags >> 31) & 1) != ((flags >> 32) & 1)) {
-            if (flags & 0x80000000L)
+        SO *object = node->other;
+        XA *nextNode = node->nextInSource;
+        long flags = object->soFlags;
+        if (((int)(flags >> 31) & 1) != ((flags >> 32) & 1)) {   /* wasInWater != isInWater */
+            if (flags & SO_WAS_IN_WATER)
                 RemoveSoXa(object, node);
             else
                 AddSoXa(object, node);
         }
-        if (node->object->flags & 0x100000000L) {
-            link = &node->next;
+        if (node->other->soFlags & SO_IS_IN_WATER) {
+            link = &node->nextInSource;
         } else {
             *link = nextNode;
-            node->next = freeList;
+            node->nextInSource = freeList;
             freeList = node;
         }
         {
-            long cleared = node->object->flags & ~0x100000000L;
-            node->object->flags = cleared & ~0x80000000L;
+            long cleared = node->other->soFlags & ~SO_IS_IN_WATER;
+            node->other->soFlags = cleared & ~SO_WAS_IN_WATER;
         }
         node = nextNode;
     }
@@ -269,48 +224,48 @@ static inline qwordV Add(qwordV a,qwordV b){qwordV r;__asm__("vadd.xyzw %0,%1,%2
 // Copy the request pointer through $3.
 static inline REQ*Fields(REQ*p){register REQ*copy __asm__("$3");__asm__("daddu %0,%1,$zero":"=r"(copy):"r"(p));return copy;}
 // Call the object's velocity virtual (vtable slot 33).
-static inline qwordV Velocity(SOW *o){return ((SO *)o)->GetVelocity();}
+static inline qwordV Velocity(SO *o){return ((SO *)o)->GetVelocity();}
 // Explode the splash effect (EXPL slot 51, ExplodeExplso) with the event e.
-static inline void Impact(SOW *o,EVENT *e){((EXPL *)o)->ExplodeExplso((EXPLSO *)e);}
+static inline void Impact(EXPL *o,EVENT *e){o->ExplodeExplso((EXPLSO *)e);}
 // Call the object's signal virtual (vtable slot 4).
-static inline void Signal(SOW *o,int event,PAIR *pair){((SO *)o)->SendMessage((MSGID)event,pair);}
+static inline void Signal(SO *o,int event,PAIR *pair){o->SendMessage((MSGID)event,pair);}
 // Slot 16 (Update): UpdateSo, then rebuilds the set of objects overlapping the water, sends contact messages for
 // newcomers and an impact (splash) event for objects that hit the surface fast, and syncs the XA nodes.
 // Also known as: UpdateWater (upstream readable / Sly 1 name; UpdateWater__FP5WATER).
-extern "C" void UpdateWater(SOW *water){
- WORK work;N *node;COLL **objects;LINK *link;
+extern "C" void UpdateWater(WATER *water){
+ WORK work;XA *node;SOPART **objects;XPLIST *link;
  UpdateSo(water);
- if(!water->count)return;
- work.request=&work.scratch.request;work.head=&water->first;
- for(node=*work.head;node;node=node->next)node->object->flags|=0x80000000L;
+ if(!water->numParts)return;
+ work.request=&work.scratch.request;work.head=&water->pxaFirst;
+ for(node=*work.head;node;node=node->nextInSource)node->other->soFlags|=SO_WAS_IN_WATER;
  STACKSCOPE_ctor(&work.mark);
- {register int size __asm__("$3")=water->count;register int alignment __asm__("$2")=16;register REQ*req __asm__("$4")=work.request;size*=4;work.scratch.request.size=size;Fields(req)->alignment=alignment;
- objects=(COLL **)AllocFromStack(req);}
+ {register int size __asm__("$3")=water->numParts;register int alignment __asm__("$2")=16;register REQ*req __asm__("$4")=work.request;size*=4;work.scratch.request.size=size;Fields(req)->alignment=alignment;
+ objects=(SOPART **)AllocFromStack(req);}
  work.count=CollectSoParts(water,CanWaterInflictZap,0,objects);
- for(link=water->state->first;link;link=link->next){
-  SOW *object=link->object;
-  if(!object->physics||object->physics->spring<1e-4f||GetSoTreeFlag2(object)||!IsXfRoleVelocity(object->body->role))continue;
+ for(link=water->physicsTree->pxplistFirst;link;link=link->pxplistNext){
+  SO *object=link->psoOther;
+  if(!object->physics||object->physics->buoyancy<1e-4f||GetSoTreeFlag2(object)||!IsXfRoleVelocity(object->positionXf->role))continue;
   if(GetWaterSubmergedFraction(water,object,0,0)==0.0f)continue;
-  object->flags|=0x100000000L;
-  if(object->flags&0x80000000L)continue;
+  object->soFlags|=SO_IS_IN_WATER;
+  if(object->soFlags&SO_WAS_IN_WATER)continue;
   {register SW*world __asm__("$4")=&g_sw;node=AllocSwXa(world);}
-  node->owner=water;node->object=object;node->next=water->first;water->first=node;
+  node->source=water;node->other=object;node->nextInSource=water->pxaFirst;water->pxaFirst=node;
   if(!water->recipient)continue;
   work.scratch.velocity.q=Velocity(object);
   if(work.scratch.velocity.f[2]<-100.0f){
-  {int i;for(i=0;i<object->count;i++){
-   COLL *collider=&object->colliders[i];float dz;
-   if(collider->flags&0x5000000000000L)continue;
+  {int i;for(i=0;i<object->numParts;i++){
+   SOPART *collider=&object->parts[i];float dz;
+   if(collider->unknownFlag10A||collider->isHidden)continue;
    work.origin.q=D_002A2DD0;
-   work.start.q=VuSub(collider->position.q,work.origin.q);
-   work.end.q=VuSub(collider->source->position.q,work.origin.q);
-   if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x33))dz=object->height;
-   else dz=object->state->minimum.f[2]-collider->source->position.f[2];
+   work.start.q=VuSub((qwordV)collider->matqWorld.r[3].q,work.origin.q);
+   work.end.q=VuSub((qwordV)collider->transform->worldMatq.r[3].q,work.origin.q);
+   if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x33))dz=((STEP *)object)->vecPivotOffset.z;
+   else dz=object->physicsTree->vecBoundsMin.z-collider->transform->worldMatq.r[3].f[2];
    work.start.f[2]+=dz;work.end.f[2]+=dz;
    if(ClipEdgeToObjects(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
     qwordV normal;
     float fall=StdMin(-work.scratch.velocity.f[2],600.0f)*(1.0f/600.0f);
-    float radius=((object->state->maximum.f[0]-object->state->minimum.f[0])+(object->state->maximum.f[1]-object->state->minimum.f[1]))*0.5f;
+    float radius=((object->physicsTree->vecBoundsMax.x-object->physicsTree->vecBoundsMin.x)+(object->physicsTree->vecBoundsMax.y-object->physicsTree->vecBoundsMin.y))*0.5f;
     void *effect=CreateSfxSound(0x13);
     SetSndSourceLo(effect,object);
     SetSndRange(effect,100.0f,1000.0f);
@@ -325,12 +280,12 @@ extern "C" void UpdateWater(SOW *water){
   }
   }
  }
- for(node=water->first;node;node=node->next){
-  SOW *object=node->object;
-  long flags=object->flags;
+ for(node=water->pxaFirst;node;node=node->nextInSource){
+  SO *object=node->other;
+  long flags=object->soFlags;
   if(((int)(flags>>31)&1)!=((flags>>32)&1)){
    work.scratch.pair.owner=water;work.scratch.pair.object=object;
-   Signal(object,object->flags&0x80000000L?5:4,(PAIR *)work.request);
+   Signal(object,object->soFlags&SO_WAS_IN_WATER?5:4,(PAIR *)work.request);
   }
  }
  UpdateSwXaList(water,work.head);STACKSCOPE_ctor_1AE4A0(&work.mark,2);
@@ -339,54 +294,54 @@ extern "C" void UpdateWater(SOW *water){
 // Slot 71: called by the solver for each object in the water; forwards to the object's slot 72
 // (AddSoWaterAcceleration by default) with the water as argument. Sly 1 name.
 // Also known as: NotifyWaterObject (upstream readable / Sly 1 name; NotifyWaterObject__FP3ALOP5WNODE).
-extern "C" void AddWaterExternalAccelerations(SOW *water, PAIR *pair)
+extern "C" void AddWaterExternalAccelerations(WATER *water, XA *pxa)
 {
-    SOW *object = pair->object;
-    ((SO *)object)->AddWaterAcceleration((WATER *)water);
+    SO *object = pxa->other;
+    object->AddWaterAcceleration(water);
 }
 
 // Slot 12 (RemoveHierarchy): SO base, then detaches every XA node from its object and frees the whole list.
-extern "C" void RemoveWaterHierarchy(SOW *water)
+extern "C" void RemoveWaterHierarchy(WATER *water)
 {
-    N *node;
+    XA *node;
     RemoveSoHierarchy(water);
-    for (node = water->first; node; node = node->next) RemoveSoXa(node->object, node);
-    FreeSwXaList(&g_sw, water->first);
-    water->first = 0;
+    for (node = water->pxaFirst; node; node = node->nextInSource) RemoveSoXa(node->other, node);
+    FreeSwXaList(&g_sw, water->pxaFirst);
+    water->pxaFirst = 0;
 }
 
 // Slot 5 (HandleMessage): on message 1 from another object, drops that object's XA node and sends it message 5
 // (left the water); then the base message handler.
-extern "C" void HandleWaterMessage(SOW *water, int message, SOW *sender)
+extern "C" void HandleWaterMessage(WATER *water, int message, SO *sender)
 {
     if (message == 1 && sender != water) {
         PAIR pair;
-        N **link = &water->first;
-        N *node = *link;
+        XA **link = &water->pxaFirst;
+        XA *node = *link;
         if (node) {
-            if (node->object == sender) {
-                *link = node->next;
+            if (node->other == sender) {
+                *link = node->nextInSource;
             } else {
                 for (;;) {
-                    N *previous = *link;
-                    node = previous->next;
-                    link = &previous->next;
+                    XA *previous = *link;
+                    node = previous->nextInSource;
+                    link = &previous->nextInSource;
                     if (!node) break;
-                    if (node->object == sender) {
-                        previous->next = node->next;
+                    if (node->other == sender) {
+                        previous->nextInSource = node->nextInSource;
                         break;
                     }
                 }
             }
         }
         pair.owner = water;
-        pair.object = node->object;
+        pair.object = node->other;
         if (node) {
-            node->next = 0;
-            RemoveSoXa(node->object, node);
+            node->nextInSource = 0;
+            RemoveSoXa(node->other, node);
             FreeSwXaList(&g_sw, node);
         }
-        ((SO *)pair.object)->SendMessage((MSGID)5, &pair);
+        pair.object->SendMessage((MSGID)5, &pair);
     }
     HandleBasicMessage(water, message, sender);
 }
@@ -409,7 +364,7 @@ static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();retu
 // vertical line through the object's position against the water; optionally returns the surface point and normal.
 // Objects derived from class 0x33 are probed at their own position. Sly 1 name: UGetWaterSubmerged.
 // Also known as: GWaterDepth (upstream readable / Sly 1 name; GWaterDepth__FP3ALOT0P6VECTORT2).
-extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surfacePoint, qwordV *surfaceNormal)
+extern "C" float GetWaterSubmergedFraction(WATER *water, SO *object, qwordV *surfacePoint, qwordV *surfaceNormal)
 {
     WORK468 work;
     void **parts;
@@ -417,22 +372,23 @@ extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surf
     float fraction;
     work.a.q = work.b.q = GetLoWorldPos(object);
     if (IsBasicDerivedFrom__FP5BASIC3CID(object, 0x33)) {
-        work.a.f[2] = work.a.f[2] + object->height;
-        if (object->hasHeightFloor)
-            work.a.f[2] = work.a.f[2] > object->heightFloor ? work.a.f[2] : object->heightFloor;
+        STEP *step = (STEP *)object;
+        work.a.f[2] = work.a.f[2] + step->vecPivotOffset.z;
+        if (step->floorContact)
+            work.a.f[2] = work.a.f[2] > step->vecUnknown230.z ? work.a.f[2] : step->vecUnknown230.z;
     } else {
-        work.a.f[2] = object->state->minimum.f[2];
+        work.a.f[2] = object->physicsTree->vecBoundsMin.z;
     }
-    work.b.f[2] = object->state->maximum.f[2];
+    work.b.f[2] = object->physicsTree->vecBoundsMax.z;
     STACKSCOPE_ctor(&work.mark);
     {
         REQ *request = &work.msg;
-        request->size = water->count * 4;
+        request->size = water->numParts * 4;
         request->alignment = 0x10;
         parts = (void **)AllocFromStack(request);
     }
-    numParts = CollectSoParts(water, CanWaterInflictZap, 0, (COLL **)parts);
-    if (!ClipEdgeToObjects(work.a.q, work.b.q, numParts, (COLL **)parts, 0x10, work.alsg)) {
+    numParts = CollectSoParts(water, CanWaterInflictZap, 0, (SOPART **)parts);
+    if (!ClipEdgeToObjects(work.a.q, work.b.q, numParts, (SOPART **)parts, 0x10, work.alsg)) {
         if (surfaceNormal)
             *surfaceNormal = g_normalZ;
         STACKSCOPE_ctor_1AE4A0(&work.mark, 2);
@@ -458,22 +414,22 @@ extern "C" float GetWaterSubmergedFraction(SOW *water, SOW *object, qwordV *surf
 }
 
 // Slot 49: recomputes the water's tree bounds (UpdateSoTreeBounds). Sly 1 name.
-extern "C" void UpdateWaterBounds(SOW *water)
+extern "C" void UpdateWaterBounds(WATER *water)
 {
     UpdateSoTreeBounds(water);
 }
 
 // Allocates a cleared XA node from the world's pool (Sly 1 PxaAllocSw).
-extern "C" N *AllocSwXa(SW *world)
+extern "C" XA *AllocSwXa(SW *world)
 {
-    return (N *)AllocZeroedFromSlotheap(&world->slotheapXa);
+    return (XA *)AllocZeroedFromSlotheap(&world->slotheapXa);
 }
 
 // Returns every node of an XA list to the world's pool. Sly 1 name.
-extern "C" void FreeSwXaList(SW *world, N *node)
+extern "C" void FreeSwXaList(SW *world, XA *node)
 {
     while (node) {
-        N *next = node->next;
+        XA *next = node->nextInSource;
         FreeSlotheapSlot(&world->slotheapXa, node);
         node = next;
     }
@@ -481,19 +437,19 @@ extern "C" void FreeSwXaList(SW *world, N *node)
 
 // Pushes an XA node on the object's external-acceleration list and wakes the object.
 // Also known as: LinkObjNode (upstream readable / Sly 1 name; LinkObjNode__FP5WNODEi).
-extern "C" void AddSoXa(SOW *object, N *node)
+extern "C" void AddSoXa(SO *object, XA *node)
 {
-    node->nextXa = object->firstXa;
-    object->firstXa = node;
+    node->nextInOther = object->pxa;
+    object->pxa = node;
     func_001F5078P(object);
 }
 
 // Unlinks an XA node from the object's external-acceleration list and wakes the object.
-extern "C" void RemoveSoXa(SOW *object, N *node)
+extern "C" void RemoveSoXa(SO *object, XA *node)
 {
-    N **link;
-    for (link = &object->firstXa; *link; link = &(*link)->nextXa) {
-        if (*link == node) { *link = node->nextXa; node->nextXa = 0; break; }
+    XA **link;
+    for (link = &object->pxa; *link; link = &(*link)->nextInOther) {
+        if (*link == node) { *link = node->nextInOther; node->nextInOther = 0; break; }
     }
     WakeSo(object, node);
 }
@@ -501,12 +457,12 @@ extern "C" void RemoveSoXa(SOW *object, N *node)
 // Asks each owner in the object's XA list for its accelerations (owner slot 71); called by the solver before
 // integration. (inferred)
 // Also known as: ApplyAloWater (upstream readable / Sly 1 name; ApplyAloWater__FP3ALO).
-extern "C" void ApplySoExternalAccelerations(SOW *object)
+extern "C" void ApplySoExternalAccelerations(SO *object)
 {
-    N *node;
-    for (node = object->firstXa; node; node = node->nextXa) {
-        SOW *owner = node->owner;
-        ((SO *)owner)->AddExternalAccelerations((XA *)node);
+    XA *node;
+    for (node = object->pxa; node; node = node->nextInOther) {
+        SO *owner = node->source;
+        owner->AddExternalAccelerations(node);
     }
 }
 
@@ -536,40 +492,40 @@ static inline qwordV NegativeAngular(qwordV angular,float sign,qwordV &scalar){q
 // Set the xyz floats of v to zero.
 static inline void ZeroXyz(V &v,float zero){v.f[0]=v.f[1]=v.f[2]=zero;}
 // Stop and release the emitter's sound, if any.
-static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitter,0.0f);RcPtr_Assign(emitter,0);}}
+static inline void Clear(void **sound){if(sound&&*sound){StopSnd(*sound,0.0f);RcPtr_Assign(sound,0);}}
 // Default slot 72: the water's effect on one object (a). Buoyancy pushes along the object's direction in
 // proportion to the submerged fraction; linear and angular velocities are pulled toward the water's current with
 // spring gains scaled by friction; a righting torque turns the object upright; a wake is spawned while it floats
 // on a near-horizontal surface, and class 0x32 objects lose their emitter sound otherwise. Sly 1 name.
 // Also known as: ApplyWaterToAlo (upstream readable / Sly 1 name; ApplyWaterToAlo__FP3ALOT0).
-extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
+extern "C" void AddSoWaterAcceleration(SO *object,WATER *water){
  WORK7F8 work;
  int i;
  float span=GetWaterSubmergedFraction(water,object,&work.point.q,&work.normal.q);
  float epsilon=0.0001f;
  if(span<epsilon)return;
- float spring=Near(D_002A2DD0,object->physics->direction.q,epsilon)?0.0f:object->physics->spring*water->physics->spring;
- float friction=object->physics->friction*water->physics->friction;
+ float spring=Near(D_002A2DD0,*(qwordV *)&object->physics->gravity,epsilon)?0.0f:object->physics->buoyancy*water->physics->buoyancy;
+ float friction=object->physics->waterDrag*water->physics->waterDrag;
  float factor;
  if(spring!=0.0f){
   asm volatile("": : :"memory"); // the original re-reads a->physics here instead of reusing the pointer loaded above
   qwordV k=VuFromFloat<qwordV>(-spring*span);work.velocity.q=k;
-  AddSoAcceleration(object,ApplyConstr(&object->physics->constraint,object->motion,Scale(object->physics->direction.q,k)));
+  AddSoAcceleration(object,ApplyConstr(&object->physics->constrForce,object->rootTransform,Scale(*(qwordV *)&object->physics->gravity,k)));
  }
  if(friction!=0.0f){
   CalculateWaterCurrent(water,GetLoWorldPos(object),&work.velocity.q,&work.phase.vectors[0].q);
-  qwordV linear=((SO *)object)->GetVelocity();qwordV relative=VuSub(work.velocity.q,linear);
+  qwordV linear=object->GetVelocity();qwordV relative=VuSub(work.velocity.q,linear);
   float dot=SplitVectorAlongAxis(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
-  if(IsXfRoleVelocity(object->body->role)){
+  if(IsXfRoleVelocity(object->positionXf->role)){
    COEF *coefficients=&work.axis.coefficients;
    GAIN2(D_002C4470,factor,friction);
    AccelSoTowardPosSpring(object,D_002A2DD0,0,AddNormal(linear,work.phase.vectors[1]),coefficients);
    GAIN2(D_002C4470,span,friction);
    AccelSoTowardPosSpring(object,D_002A2DD0,0,AddTangent(linear,work.phase.vectors[2]),coefficients);
   }
-  if(IsXfRoleVelocity(object->rotation->role)){
-   qwordV angular=((SO *)object)->GetAngularVelocity();
+  if(IsXfRoleVelocity(object->rotationXf->role)){
+   qwordV angular=object->GetAngularVelocity();
    qwordV k;
    qwordV negative=NegativeAngular(angular,-1.0f,k);
    work.scalar.q=k;SplitVectorAlongAxis(negative,work.normal.q,&work.angularNormal.q,&work.angularTangent.q);
@@ -589,21 +545,21 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
   AddSoAngularAcceleration(object,rotation);
  }
  if(0.0f<span&&span<1.0f&&0.9f<work.normal.f[2]){
-  float radius=((object->state->maximum.f[0]-object->state->minimum.f[0])+(object->state->maximum.f[1]-object->state->minimum.f[1]))*0.25f;
-  WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(object,(WATER *)water,g_clock.deltaTime,work.velocity.q,work.point.q,0.1f,radius);
+  float radius=((object->physicsTree->vecBoundsMax.x-object->physicsTree->vecBoundsMin.x)+(object->physicsTree->vecBoundsMax.y-object->physicsTree->vecBoundsMin.y))*0.25f;
+  WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(object,water,g_clock.deltaTime,work.velocity.q,work.point.q,0.1f,radius);
  }
- else if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x32))Clear(&object->emitter);
+ else if(IsBasicDerivedFrom__FP5BASIC3CID(object,0x32))Clear(&((PO *)object)->wakeSound);
 }
 
 // Returns 1 unless the contact's flag bit 50 is set: whether the water may inflict its zap through this contact
 // (inferred from Sly 1 FInflictWaterZap).
-extern "C" int CanWaterInflictZap(void *water, COLL *collider)
+extern "C" int CanWaterInflictZap(void *water, SOPART *collider)
 {
-    return ((collider->flags >> 50) & 1) == 0;
+    return !collider->isHidden;
 }
 
 // Slot 73: point-in-object test, forwarded to IsPosInSo with the same position argument. (inferred)
-extern "C" int IsPosInWater(SOW *water, qword pos)
+extern "C" int IsPosInWater(WATER *water, qword pos)
 {
     return IsPosInSo(water, pos);
 }
