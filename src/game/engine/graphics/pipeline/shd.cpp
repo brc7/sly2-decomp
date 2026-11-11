@@ -493,7 +493,7 @@ void LoadTexFromBrx(void *, TEX *) __asm__("LoadTexFromBrx");
 extern "C" { static inline void InitEnt(SHDP *pe, int n, struct SWALLOC *pmsg)
 {
     pe->cqw = n;
-    pmsg->cb = n * 16;
+    pmsg->cb = n * (int)sizeof(QW);
     pmsg->cbAlign = 0x10;
     pe->aqw = (QW *)AllocClearedFromWorldHeap(pmsg);
 } }
@@ -511,7 +511,7 @@ extern "C" void LoadShdFromBrx(void *pbis, SHD *p)
     i = S16Read__18CBinaryInputStream(pbis);
     if (i >= 0)
         p->psaa = D_003DD004[i];
-    msg.cb = p->ctex * 0x14;
+    msg.cb = p->ctex * (int)sizeof(TEX);
     msg.cbAlign = 0x10;
     p->atex = (__typeof__(p->atex))AllocClearedFromWorldHeap(&msg);
     for (j = 0; j < p->ctex; j++) {
@@ -538,7 +538,7 @@ extern "C" void LoadShdFromBrx(void *pbis, SHD *p)
         p->cshdp = 4;
         break;
     }
-    msg.cb = p->cshdp * 8;
+    msg.cb = p->cshdp * (int)sizeof(SHDP);
     msg.cbAlign = 0x10;
     ae = (__typeof__(ae))AllocClearedFromWorldHeap(&msg);
     p->ashdp = ae;

@@ -410,7 +410,7 @@ extern "C" void InitSaveSymbolTable(SVNHASH *symbolTable, int csym)
 {
     MEMREQ memreq;
     symbolTable->csym = csym;
-    memreq.cb = csym << 4;
+    memreq.cb = csym * (int)sizeof(SVN);
     memreq.cbAlign = 0x10;
     symbolTable->asym = (SVN *)AllocFromWorldHeap(&memreq);
 }

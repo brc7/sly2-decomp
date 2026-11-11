@@ -20,6 +20,26 @@
 // 0x1C27C8 StaticInit_path and GlobalConstructors_path: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
+/* The world's zone BSP (SW::pregtree, 0x30 bytes on the EE): its nodes and planes (LoadZoneBspFromBrx), the zones by
+   index, and the path links bucketed by zone (BuildPathzoneLinkLists, BindSwPathzones); the per-function views in this
+   file name the same words. Defined here for its size (the allocations), the only TU that allocates one. */
+struct REGTREE
+{
+    int numNodes;
+    void *nodes;
+    int numPlanes;
+    void *planes;
+    int numZones;
+    int *zoneIds;
+    LO **zones;
+    void *linkLists;
+    int numLinks;
+    LO **links;
+    int linkVersion;
+    int isBound;
+};
+typedef char assert_REGTREE_size[sizeof(REGTREE) == 0x30 ? 1 : -1];   /* EE */
+
 
 extern "C" {
 void InitXfm(void *pxfm);
@@ -821,18 +841,18 @@ extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
     int i, j, k;
     LoadXfmFromBrx(zone, stream);
     zone->numVertices = U16Read__18CBinaryInputStream(stream);
-    a.cb = zone->numVertices * 32;
+    a.cb = zone->numVertices * (int)sizeof(struct V);
     a.align = 0x10;
     zone->vertices = (__typeof__(zone->vertices))AllocClearedFromWorldHeap(&a);
     zone->numTriangles = U16Read__18CBinaryInputStream(stream);
-    a.cb = zone->numTriangles * 12;
+    a.cb = zone->numTriangles * (int)sizeof(struct F);
     a.align = 0x10;
     zone->triangles = (__typeof__(zone->triangles))AllocClearedFromWorldHeap(&a);
     for (i = 0; i < zone->numVertices; i++) {
         struct V *pd = &zone->vertices[i];
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, pd);
         pd->c = U8Read__18CBinaryInputStream(stream);
-        a.cb = pd->c * 8 + 8;
+        a.cb = pd->c * (int)sizeof(struct E8) + (int)sizeof(struct E8);   /* one spare entry */
         a.align = 0x10;
         pd->ae = (__typeof__(pd->ae))AllocFromWorldHeap(&a);
         for (j = 0; j < pd->c; j++) {
@@ -846,7 +866,7 @@ extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
             *ppv++ = &zone->vertices[U16Read__18CBinaryInputStream(stream)];
     }
     zone->numBspNodes = U16Read__18CBinaryInputStream(stream);
-    a.cb = zone->numBspNodes * 16;
+    a.cb = zone->numBspNodes * (int)sizeof(struct P);
     a.align = 0x10;
     zone->bspNodes = (__typeof__(zone->bspNodes))AllocClearedFromWorldHeap(&a);
     for (i = 0; i < zone->numBspNodes; i++) {
@@ -895,7 +915,7 @@ extern "C" void InitDefaultPathzoneCg(struct S *zone)
     struct P *pp;
     float g;
     zone->numVertices = 4;
-    a.cb = 0x80;
+    a.cb = 4 * (int)sizeof(struct V);
     a.align = 0x10;
     zone->vertices = (__typeof__(zone->vertices))AllocClearedFromWorldHeap(&a);
     for (i = 0; i < zone->numVertices; i++) {
@@ -903,14 +923,14 @@ extern "C" void InitDefaultPathzoneCg(struct S *zone)
         struct V *pd = &zone->vertices[i];
         pd->pos = ps->pos.q;
         pd->c = ps->c;
-        a.cb = pd->c * 8 + 8;
+        a.cb = pd->c * (int)sizeof(struct E8) + (int)sizeof(struct E8);   /* one spare entry */
         a.align = 0x10;
         pd->ae = (__typeof__(pd->ae))AllocFromWorldHeap(&a);
         for (j = 0; j < pd->c; j++)
             { struct E8 *pe = &pd->ae[j]; pe->pv = &zone->vertices[ps->ai[j]]; }
     }
     zone->numTriangles = 2;
-    a.cb = 0x18;
+    a.cb = 2 * (int)sizeof(struct F);
     a.align = 0x10;
     zone->triangles = (__typeof__(zone->triangles))AllocClearedFromWorldHeap(&a);
     for (k = 0; k < zone->numTriangles; k++) {
@@ -920,7 +940,7 @@ extern "C" void InitDefaultPathzoneCg(struct S *zone)
             *ppv++ = &zone->vertices[*pi++];
     }
     zone->numBspNodes = 1;
-    a.cb = 0x10;
+    a.cb = (int)sizeof(struct P);
     a.align = 0x10;
     pp = (__typeof__(pp))AllocClearedFromWorldHeap(&a);
     zone->bspNodes = pp;
@@ -1175,7 +1195,7 @@ extern "C" void LoadSwZoneBspFromBrx(SW *world, void *stream)
     int n = U32Read__18CBinaryInputStream(stream);
     if (n) {
         struct SWALLOC msg;
-        msg.cb = 0x30;
+        msg.cb = sizeof(REGTREE);
         msg.cbAlign = 0x10;
         world->pregtree = (REGTREE *)AllocClearedFromWorldHeap(&msg);
         LoadZoneBspFromBrx(world->pregtree, n, stream);
@@ -1243,7 +1263,7 @@ extern "C" void PostLoadSwPathzones(SW *world)
         struct SWALLOC msg;
         world->pcid17Default = (CID17 *)CreateLo__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
         InitDefaultPathzoneCg(world->pcid17Default);
-        msg.cb = 0x30;
+        msg.cb = sizeof(REGTREE);
         msg.cbAlign = 0x10;
         world->pregtree = (REGTREE *)AllocClearedFromWorldHeap(&msg);
     }

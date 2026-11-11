@@ -108,7 +108,7 @@ extern "C" void InitAseg(ASEG *segment)
 void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
  px->duration = F32Read__18CBinaryInputStream(stream);
  px->cchn = S16Read__18CBinaryInputStream(stream);
- req.cbAlign = 0x10; req.cb = px->cchn * 8;
+ req.cbAlign = 0x10; req.cb = px->cchn * (int)sizeof(CHN);
  px->achn = (CHN *)AllocFromWorldHeap(&req);
  for (i = 0; i < px->cchn; i++) {
    CHN *pe = &px->achn[i];
@@ -121,7 +121,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
    pe->u.isStripped = U8Read__18CBinaryInputStream(stream) != 0;
  }
  px->covr = U8Read__18CBinaryInputStream(stream);
- req.cbAlign = 0x10; req.cb = px->covr * 12;
+ req.cbAlign = 0x10; req.cb = px->covr * (int)sizeof(OVR);
  px->aovr = (OVR *)AllocClearedFromWorldHeap(&req);
  for (i = 0; i < px->covr; i++) {
    OVR *pe = &px->aovr[i];
@@ -145,7 +145,7 @@ static __inline__ void *AllocWorldHeapBlock(int cb) { AREQV req; req.cb = cb; re
 void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pc, EA **pa) { int i; int c; EA *aent;
  c = U8Read__18CBinaryInputStream(stream);
  *pc = c;
- aent = (EA *)AllocWorldHeapBlock(c * 16);
+ aent = (EA *)AllocWorldHeapBlock(c * (int)sizeof(EA));
  *pa = aent;
  for (i = 0; i < c; i++) {
    EA *pe = &aent[i];
@@ -154,18 +154,18 @@ void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime,
    switch (pe->kind) {
    case 0: { AREQV req; L0 l; l.n = S16Read__18CBinaryInputStream(stream); l.a = S32Read__18CBinaryInputStream(stream); l.b = S32Read__18CBinaryInputStream(stream); l.c = S32Read__18CBinaryInputStream(stream);
        l.z = F32Read__18CBinaryInputStream(stream); l.x = F32Read__18CBinaryInputStream(stream); l.y = F32Read__18CBinaryInputStream(stream);
-       req.cb = 0x1C; req.cbAlign = 0x10; pe->pesnd = (EASND *)AllocCopyFromWorldHeap(&req, &l); break; }
+       req.cb = sizeof(l); req.cbAlign = 0x10; pe->pesnd = (EASND *)AllocCopyFromWorldHeap(&req, &l); break; }
    case 3: pe->floatArg2 = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->intArg = S16Read__18CBinaryInputStream(stream); break;
    case 5: pe->floatArg = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->floatArg2 = F32Read__18CBinaryInputStream(stream); break;
    case 7: case 8: pe->intArg = S32Read__18CBinaryInputStream(stream); pe->floatArg2 = F32Read__18CBinaryInputStream(stream); break;
    case 13: case 14: case 15: case 16: pe->intArg = S32Read__18CBinaryInputStream(stream); pe->intArg2 = S32Read__18CBinaryInputStream(stream); break;
-   case 17: { pe->pea17 = (EA17 *)AllocWorldHeapBlock(0x10);
+   case 17: { pe->pea17 = (EA17 *)AllocWorldHeapBlock(sizeof(EA17));
        ((int *)pe->pea17)[0] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[1] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[2] = S32Read__18CBinaryInputStream(stream); ((float *)pe->pea17)[3] = F32Read__18CBinaryInputStream(stream); break; }
    case 20: { L20 t; AREQV req; AREQV *preq; t.a = S32Read__18CBinaryInputStream(stream); t.b = S32Read__18CBinaryInputStream(stream); t.g = F32Read__18CBinaryInputStream(stream);
-       preq = &req; req.cb = 0xC; preq->cbAlign = 0x10; pe->pea20 = (EA20 *)AllocCopyFromWorldHeap(preq, &t); break; }
+       preq = &req; req.cb = sizeof(t); preq->cbAlign = 0x10; pe->pea20 = (EA20 *)AllocCopyFromWorldHeap(preq, &t); break; }
    case 1: case 2: case 21: pe->intArg = S16Read__18CBinaryInputStream(stream); break;
    case 4: case 11: case 12: case 22: pe->intArg = S32Read__18CBinaryInputStream(stream); break;
-   case 24: { AREQV req; char *p; req.cb = 0x18; req.cbAlign = 0x10; p = (char *)AllocFromWorldHeap(&req);
+   case 24: { AREQV req; char *p; req.cb = sizeof(EA24); req.cbAlign = 0x10; p = (char *)AllocFromWorldHeap(&req);
        ReadCb8__18CBinaryInputStreamPv(stream, p); ReadCb8__18CBinaryInputStreamPv(stream, p + 8); ReadCb8__18CBinaryInputStreamPv(stream, p + 0x10); pe->pea24 = (EA24 *)p; break; }
    }
  } }

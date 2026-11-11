@@ -76,7 +76,7 @@ extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream
     int count = stream->S8Read();
     for (int i = 0; i < count; i++) {
         ALLOCREQ req;
-        req.cb = 0x10;
+        req.cb = sizeof(XFMCONSTR);
         req.nKind = 0x10;
         XFMCONSTR *constraint = (XFMCONSTR *)AllocClearedFromWorldHeap(&req);
         constraint->source = lo->GetXfFromIndex(stream->S16Read());
