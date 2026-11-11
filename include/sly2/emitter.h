@@ -402,7 +402,7 @@ template <class T> void LoadEmitblipColorsFromBrx(T *p, CBinaryInputStream *pbis
 template <class T> void LoadEmitterFromBrx(T *p, CBinaryInputStream *pbis)
 {
     SWALLOC req;
-    req.cb = 0x100;
+    req.cb = sizeof(EMITB);
     req.cbAlign = 0x10;
     InitEmitBlock(p->pemitb = (EMITB *)PvAllocLevelHeapUncleared(&req));
     p->XFM::LoadFromBrx(pbis);
@@ -542,7 +542,7 @@ template <class T> void SetEmitterOriginKind(T *p, int k)
     {
     case 1: { SWALLOC req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->emito.pvEmito = PvAllocLevelHeap(&req); } break;
     case 2: pemitb->emito.oidCurve = -1; break;
-    case 3: { SWALLOC req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->emito.pvEmito = PvAllocLevelHeap(&req); } break;
+    case 3: { SWALLOC req; req.cb = sizeof(EMITMESH); req.cbAlign = 0x10; pemitb->emito.pvEmito = PvAllocLevelHeap(&req); } break;
     }
 }
 

@@ -1753,7 +1753,7 @@ extern "C" void CloneExplg(EXPLG *p, void *pv)
     SWALLOC msg;
     int i;
     CloneXfm(p, pv);
-    p->children = (LO **)PvReallocMsg(&msg, p->children, p->numChildren * 4, 0x10);
+    p->children = (LO **)PvReallocMsg(&msg, p->children, p->numChildren * (int)sizeof(LO *), 0x10);
     for (i = 0; i < p->numChildren; i++)
         p->children[i] = CloneLoWithParent__FP2LOP2SO(p->children[i], p->parent);
 }
