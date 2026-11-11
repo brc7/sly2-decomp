@@ -25,7 +25,11 @@ struct XPS
 struct XP
 {
     XPS axps[2];
-    qword normal;           /* +0x80 */
+    union
+    {
+        qword normal;       /* +0x80 */
+        VECTOR4 normalVec;  /* the same as floats (air.cpp, jt.cpp read .x / .y / .z) */
+    };
     float g;                /* +0x90 */
     float gFriction;        /* +0x94 */
     float gElasticity;      /* +0x98 */
