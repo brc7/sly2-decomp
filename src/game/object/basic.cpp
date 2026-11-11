@@ -41,6 +41,7 @@ struct CPAIR { int cref; int x4; CRefData ref; SPAIR sp; };
 /* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::lastEventId). */
 struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEvent as the callback list */
 struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
+typedef char assert_SWCB_size[sizeof(SWCB) == sizeof(SWEVENT) ? 1 : -1];   /* the record sly2/sw.h SWEVENT, with this file's pair and BASIC views */
 
 extern "C" {
 extern CLASSDESC D_002BAAE8[];   /* the class descriptor table (sly2/basic.h) */

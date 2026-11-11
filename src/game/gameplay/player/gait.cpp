@@ -68,8 +68,7 @@ struct LEAPV
 typedef char assert_LEAP_size[sizeof(LEAPV) == 0x70 ? 1 : -1];
 
 /* The direction blend (four clips with their root velocities) and its 0x40-byte act. */
-struct DIRE { ASEG *animation; int pad[3]; qword velocity; FLOATWORD speed; int pad20[3]; };
-struct DIRBL { DIRE ae[4]; int fInit; };
+/* DIRE / DIRBL (the directional animation set, 0xD0): sly2/sw.h. */
 struct DIRSEL { char pad[0x10]; qword direction; LEAPSUBJECT *root; ASEGA *active; DIRE *entries, *best; int flags, forward, backward; };
 struct DIROWNER { char pad[0x30]; ASEG *paseg; };
 struct DIRACT { int n0; int n4; int pad8; void *pvt; char pad10[0x10]; LEAPSUBJECT *palo; ASEGA *pasega; DIROWNER *powner; ASEG **ppaseg; int grfapl; char pad34[0xC]; };

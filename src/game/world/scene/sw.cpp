@@ -38,6 +38,7 @@
 #include "sly2/hw.h"
 #include "sly2/light.h"
 #include "sly2/act.h"
+#include "sly2/blip.h"   /* BLIPBATCH, BLIPBEZ */
 #include "heap.h"
 
 extern "C" {
@@ -107,8 +108,8 @@ extern "C" SW *SW_ctor(SW *world)
 {
     world->scriptFrame.m_p=0;world->scriptVariables.m_p=0;SLY2_SET_VPTR(world, SW);   /* BASIC's construction as plain stores */
     InitSlotheap(&world->slotheapLoroot,sizeof(LOROOT),0x100,0x10);
-    InitSlotheap(&world->slotheapEvent,0x14,0x100,0x10);
-    InitSlotheap(&world->slotheapCallback,0x14,0x100,0x10);
+    InitSlotheap(&world->slotheapEvent,sizeof(SWEVENT),0x100,0x10);
+    InitSlotheap(&world->slotheapCallback,sizeof(SWCALLBACK),0x100,0x10);
     InitSlotheap(&world->slotheapRefnode,0xc,0x200,0x10);
     InitSlotheap(&world->slotheapSotree,sizeof(SOTREE),0x300,0x10);
     InitSlotheap(&world->slotheapXplist,0x14,0x400,0x10);
@@ -125,15 +126,15 @@ extern "C" SW *SW_ctor(SW *world)
     chosen=chosen?chosen:0xF0;
     InitSlotheap(&world->slotheapRip,chosen,0x80,0x10);
     InitSlotheap(&world->slotheapBlipg,sizeof(BLIPG),0x28,0x10);
-    InitSlotheap(&world->slotheapBlip,0x10c0,0x80,0x40);
-    InitSlotheap(&world->slotheapBlipSpline,0x560,0x8,0x10);
+    InitSlotheap(&world->slotheapBlip,(sizeof(BLIPBATCH) + 0x3F) & ~0x3F,0x80,0x40);   /* 0x10A0 rounded to the slot alignment: 0x10C0 */
+    InitSlotheap(&world->slotheapBlipSpline,0x2B * sizeof(BLIPBEZ),0x8,0x10);   /* one per particle of a BLIPBUF */
     InitSlotheap(&world->slotheapSsge,SLY2_SSGE_SLOT_CB,0x200,0x10);
     InitSlotheap(&world->slotheapJsg,0xf0,0x20,0x10);
     InitSlotheap(&world->slotheapXa,sizeof(XA),0x10,0x10);
     InitSlotheap(&world->slotheapZprHit,sizeof(ZPR),0x20,0x10);
     InitSlotheap(&world->slotheapXfh,0x30,0x10,0x10);
     InitSlotheap(&world->slotheapLeap,0x40,0x10,0x10);
-    InitSlotheap(&world->slotheapDiract,0xd0,0x10,0x10);
+    InitSlotheap(&world->slotheapDiract,sizeof(DIRBL),0x10,0x10);
     InitDl__FP2DLi(&world->dlChild,SLY2_OFFSETOF(LO, siblingLink));
     InitDl__FP2DLi(&world->roots,SLY2_OFFSETOF(LOROOT, rootLink));
     InitDl__FP2DLi(&world->busyRoots,SLY2_OFFSETOF(LOROOT, busyLink));

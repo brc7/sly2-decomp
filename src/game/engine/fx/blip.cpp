@@ -16,6 +16,7 @@ static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }   /* the real class 
 #include "sly2/dli.h"
 #include "sly2/sw.h"
 #include "sly2/clock.h"
+#include "sly2/blip.h"
 
 // 0x13A890 StaticInit_blip and GlobalConstructors_blip: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -23,8 +24,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef int qwordV __attribute__((mode(TI)));
 #define FLT_MAX 3.40282347e+38f /* each function that uses it has its own copy in its literal pool */
 
-/* One particle entry of a BUF: position (a), velocity (b), extra (c: c.z angular rate, c.w angle); b.w is the death time. */
-typedef union { qwordV q; struct { float x, y, z, w; } v; } VEC;
+/* The particle records: sly2/blip.h. */
+typedef BLIPVEC VEC;
 /* VECTOR as a struct with an anonymous union: store_constructor then emits a sched1-only CLOBBER after clearing it,
    which ProjectBlipgTransformAccel's and ProjectBlipgTransform's prologues need (see their notes). */
 struct VECTORV { union { struct { float x, y, z; } v; qwordV q; }; };
@@ -40,26 +41,12 @@ extern DLI *g_pdliFirst;     /* g_pdliFirst */
 
 extern "C" VIFS D_002DEA28;   /* the frame's VIF1 packet stream */
 
-/* The particle buffer: three parallel arrays of 0x2B entries. */
-struct BUF { VEC a[0x2B]; VEC b[0x2B]; VEC c[0x2B]; char pad[0x840 - 0x810]; };
-typedef char assert_BUF_size[sizeof(BUF) == 0x840 ? 1 : -1];
-
-/* Bezier tangents of a particle on a path (BLIPG::motionKind == 2), allocated from the SW's third blip heap. */
-struct BEZ { qwordV v0; qwordV v10; };
+typedef BLIPBUF BUF;
+typedef BLIPBEZ BEZ;
 
 struct BLIPGV;
 
-/* A particle batch: two particle buffers (abuf[i] current), live count, its group, its DLE on BLIPG::dl. */
-struct BLIPV
-{
-    BUF abuf[2];
-    int i;                  /* 0x1080 current buffer */
-    int c;                  /* 0x1084 live particles */
-    BEZ *ae;                /* 0x1088 */
-    BLIPGV *pblipg;          /* 0x108C */
-    BLIPV *pblipNext;        /* 0x1090 DLE on BLIPG::dl */
-    BLIPV *pblipPrev;
-};
+typedef BLIPBATCH BLIPV;   /* a particle batch (sly2/blip.h) */
 
 /* The subscribed object is an EMITTER (emitter.h); RenderBlipgSelf draws the blips at the members of its group (the
    group list, linked through groupLink), each at its EMITB's reference object (aploRef[EMITREF_Reference]) or itself. */
@@ -211,7 +198,7 @@ extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
         pblip->ae = (BEZ *)AllocZeroedFromSlotheap(&psw->slotheapBlipSpline);
         if (!pblip->ae) { FreeSlotheapSlot(pslotheap, pblip); return 0; }
     }
-    pblip->pblipg = pblipg;
+    pblip->pblipg = (BLIPG *)pblipg;
     AppendDlEntry(&pblipg->dl, pblip);
     return pblip;
 }
@@ -219,7 +206,7 @@ extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
 // Move blip from its group list to the pending-free list.
 void RemoveBlip(BLIPV *pblip)
 {
-    RemoveDlEntry(&pblip->pblipg->dl, pblip);
+    RemoveDlEntry(&((BLIPGV *)pblip->pblipg)->dl, pblip);
     AppendDlEntry(&D_002DEB00, pblip);
 }
 
@@ -686,7 +673,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
             case 2: {
                 float rem = tEnd - t;
                 float dt = pclock->deltaTime;
-                EvaluateBezierPos(rem, dt < rem ? dt : rem, 1.0f, pb->a[i].q, pb->b[i].q, pq->ae[i].v0, pq->ae[i].v10, &pbn->a[j].q, &pbn->b[j].q, 0);
+                EvaluateBezierPos(rem, dt < rem ? dt : rem, 1.0f, pb->a[i].q, pb->b[i].q, pq->ae[i].v0, pq->ae[i].v10, (qwordV *)&pbn->a[j].q, (qwordV *)&pbn->b[j].q, 0);
                 if (j != i)
                     pq->ae[j] = pq->ae[i];
                 break;

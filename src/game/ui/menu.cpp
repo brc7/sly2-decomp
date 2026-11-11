@@ -38,7 +38,7 @@ struct PAGE { int count; ITEM *items; WIDGET *pool; int back; int unknown10; int
    SCREENBASE; its joypad is the menu's input), vtable 0x2D37D0, emitted here; the object is D_003D9ED0. */
 struct PAUSEMENU : SCREENBASE
 {
-    char pad14[0x20 - 0x14];
+    char pad1C[0x20 - 0x1C];
     WIDGET *pool;               /* 0x020: the menu's widget */
     int depth;                  /* 0x024: pages open */
     PAGE ae[16];                /* 0x028 */

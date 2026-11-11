@@ -1288,23 +1288,21 @@ extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, void *sgfLis
 
 // 0x207C48 SetStepguardAnimBindingKind3
 namespace M_func_00207C48 {
-struct PAYLOAD3;
-struct PAYLOAD3 { int anim0; char pad0[0x2C]; int anim1; char pad1[0x2C]; int anim2; char pad2[0x2C]; int anim3; };
 long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSpliceList");
-struct PAYLOAD3 *AllocDirAnim(int cb) __asm__("AllocDirAnim");
-void InvalidateDirAnims(struct PAYLOAD3 *payload) __asm__("InvalidateDirAnims");
-// 0x207C48: Splice option: binds a flag set to a DIRANIM payload (a new 0xD0-byte object with four animations, inferred).
+DIRBL *AllocDirAnim(int cb) __asm__("AllocDirAnim");
+void InvalidateDirAnims(DIRBL *payload) __asm__("InvalidateDirAnims");
+// 0x207C48: Splice option: binds a flag set to a directional animation set (a new sly2/sw.h DIRBL: four animations by oid, which InitDirAnims resolves).
 // Also known as: SetGuardKind3 (upstream readable / Sly 1 name; SetGuardKind3__FP5GUARDiiiii).
 extern "C" void SetStepguardAnimBindingKind3(STEPGUARD *guard, void *sgfList, int anim0, int anim1, int anim2, int anim3)
 {
     ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     binding->kind = BINDING_DIRANIM;
-    binding->payload4 = AllocDirAnim(0xD0);
-    InvalidateDirAnims((PAYLOAD3 *)binding->payload4);
-    ((PAYLOAD3 *)binding->payload4)->anim0 = anim0;
-    ((PAYLOAD3 *)binding->payload4)->anim1 = anim1;
-    ((PAYLOAD3 *)binding->payload4)->anim2 = anim2;
-    ((PAYLOAD3 *)binding->payload4)->anim3 = anim3;
+    binding->payload4 = AllocDirAnim(sizeof(DIRBL));
+    InvalidateDirAnims((DIRBL *)binding->payload4);
+    ((DIRBL *)binding->payload4)->ae[0].animation = (ASEG *)anim0;   /* an oid until InitDirAnims */
+    ((DIRBL *)binding->payload4)->ae[1].animation = (ASEG *)anim1;   /* an oid until InitDirAnims */
+    ((DIRBL *)binding->payload4)->ae[2].animation = (ASEG *)anim2;   /* an oid until InitDirAnims */
+    ((DIRBL *)binding->payload4)->ae[3].animation = (ASEG *)anim3;   /* an oid until InitDirAnims */
     binding->flags = 8;
 }
 } // namespace M_func_00207C48
@@ -2303,8 +2301,8 @@ extern "C" void CloneAnimBinding(ANIMBINDING *binding)
         binding->payload4 = copy;
         break;
     case BINDING_DIRANIM:
-        copy = AllocDirAnim(0xD0);
-        CopyAb__FPvT0Ui(copy, binding->payload4, 0xD0);
+        copy = AllocDirAnim(sizeof(DIRBL));
+        CopyAb__FPvT0Ui(copy, binding->payload4, sizeof(DIRBL));
         binding->payload4 = copy;
         break;
     }

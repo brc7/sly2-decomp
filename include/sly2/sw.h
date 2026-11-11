@@ -154,6 +154,47 @@ struct LOUPD
 };
 #endif
 
+/* Slot-heap records that SW_ctor sizes its heaps for (sizeof, so a native build gets its own sizes). */
+
+/* SWEVENT: a scheduled Splice event (SW::slEvent, SW::slotheapEvent; ids from SW::lastEventId): when g_clock.time
+   reaches `time`, UpdateSwCallbacks evaluates `pair` with the object's script frame (a new frame without one).
+   basic.cpp ScheduleSwSpliceCallback builds them through its SWCB view, callback.cpp reads them through EVCB; both
+   are asserted to have this size. */
+struct SWEVENT
+{
+      float time;
+      BASIC *pbasic;    /* the object whose frame evaluates the call, 0 none */
+      CPair *pair;      /* the call (a counted Splice pair) */
+      int id;           /* -1 once due */
+      SWEVENT *next;    /* the list link (slEvent's ibDle 0x10) */
+};
+typedef char assert_SWEVENT_size[sizeof(SWEVENT) == 0x14 ? 1 : -1];
+
+/* SWCALLBACK: a per-frame callback (SW::slCallback, SW::slotheapCallback; callback.cpp EnsureSwCallback /
+   ClearSwCallbacks / UpdateSwCallbacks). The method is a pointer to member function: g++ 2.95 represents it as
+   {short delta; short index; union {short delta2; pfn}} (8 bytes, passed in one register) and compares two of them by
+   index, then delta2 for a virtual (index != -1) or pfn (CONFIRMED by match). */
+struct CObj
+{
+    virtual void Dummy();
+};
+typedef void (CObj::*PMFCB)(int);
+struct SWCALLBACK
+{
+    CObj *object;
+    PMFCB method;
+    int argument;
+    SWCALLBACK *next;
+};
+typedef char assert_SWCALLBACK_size[sizeof(SWCALLBACK) == 0x14 ? 1 : -1];
+
+/* DIRE / DIRBL: a directional animation set (SW::slotheapDiract, AllocDirAnim; 0xD0 bytes on the EE): four
+   animations with their root velocity and speed, chosen by direction (gait.cpp InitDirAnims / the selector;
+   stepguard.cpp's kind-3 anim bindings fill the four oids, which InitDirAnims resolves). */
+struct DIRE { ASEG *animation; int pad[3]; qword velocity; FLOATWORD speed; int pad20[3]; };
+struct DIRBL { DIRE ae[4]; int fInit; };
+typedef char assert_DIRBL_size[sizeof(DIRBL) == 0xD0 ? 1 : -1];
+
 /* SW: the world: the one object (g_sw) that owns the loaded level and its runtime state.
    Layout from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */
 struct SW : public BASIC

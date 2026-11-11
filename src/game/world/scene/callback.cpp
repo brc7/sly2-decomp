@@ -14,25 +14,7 @@
 // 0x149EB0 StaticInit_callback and GlobalConstructors_callback: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The callback is a pointer to member function. g++ 2.95 represents it as {short delta; short index; union {short
-   delta2; pfn}} (8 bytes, passed in one register) and compares two of them by index, then delta2 for a virtual
-   (index != -1) or pfn: exactly the field-by-field test of the per-function EnsureSwCallback and ClearSwCallbacks
-   (CONFIRMED by match). As a pointer to member it is passed in a register like the C struct was; a by-value class
-   copy (pilot blocker B4) does not happen. */
-struct CObj
-{
-    virtual void Dummy();
-};
-typedef void (CObj::*PMFCB)(int);
-
-struct CALLBACK
-{
-    CObj *object;
-    PMFCB method;
-    int argument;
-    CALLBACK *next;
-};
-typedef char assert_CALLBACK_size[sizeof(CALLBACK) == 0x14 ? 1 : -1];
+/* The callback record and its pointer-to-member method: sly2/sw.h SWCALLBACK (CObj, PMFCB). */
 
 typedef CRefOwner<CFrame> SPF;   /* owning pointer to a frame (inline release; ~CFrame is the linkonce 0x257078) */
 struct SPFV { CFrame *p; };
@@ -45,11 +27,12 @@ struct EVCB
     CPair *call;
     int id;
 };
+typedef char assert_EVCB_prefix[sizeof(EVCB) + sizeof(SWEVENT *) == sizeof(SWEVENT) ? 1 : -1];   /* sly2/sw.h SWEVENT without its link */
 
 
 
 extern "C" {
-void AppendSlEntry(SL *list, CALLBACK *callback);
+void AppendSlEntry(SL *list, SWCALLBACK *callback);
 void ClearSl(SL *list);
 int IsSlEmpty(SL *list);
 void RemoveSlEntry(SL *list, void *pv);
@@ -63,7 +46,7 @@ void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg);
 //   PostDeferredPointerCall__FPvUi22PFNDEFERREDPOINTERCALLi).
 extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK *callback = (CALLBACK *)AllocZeroedFromSlotheap(&world->slotheapCallback);
+    SWCALLBACK *callback = (SWCALLBACK *)AllocZeroedFromSlotheap(&world->slotheapCallback);
     callback->object = object;
     callback->method = method;
     callback->argument = arg;
@@ -74,8 +57,8 @@ extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 // Also known as: PostDeferredCall (upstream readable / Sly 1 name; PostDeferredCall__FPvUi15PFNDEFERREDCALLi).
 extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK *callback;
-    for (callback = (CALLBACK *)world->slCallback.head; callback; callback = callback->next)
+    SWCALLBACK *callback;
+    for (callback = (SWCALLBACK *)world->slCallback.head; callback; callback = callback->next)
     {
         if (callback->object == object && callback->method == method && callback->argument == arg)
             return;
@@ -87,8 +70,8 @@ extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 // Also known as: CancelDeferredCalls (upstream readable / Sly 1 name; CancelDeferredCalls__FPvUiiii).
 extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK **link = (CALLBACK **)&world->slCallback.head;
-    CALLBACK *callback;
+    SWCALLBACK **link = (SWCALLBACK **)&world->slCallback.head;
+    SWCALLBACK *callback;
     while ((callback = *link) != 0)
     {
         if ((matchFlags & 1) && object != callback->object)
@@ -114,13 +97,13 @@ extern "C" void ProcessSwCallbacks(SW *world)
 {
     while (!IsSlEmpty(&world->slCallback))
     {
-        CALLBACK *callback = (CALLBACK *)world->slCallback.head;
+        SWCALLBACK *callback = (SWCALLBACK *)world->slCallback.head;
         ClearSl(&world->slCallback);
         while (callback)
         {
             PMFCB method = callback->method;
             (callback->object->*method)(callback->argument);
-            CALLBACK *next = callback->next;
+            SWCALLBACK *next = callback->next;
             FreeSlotheapSlot(&world->slotheapCallback, callback);
             callback = next;
         }

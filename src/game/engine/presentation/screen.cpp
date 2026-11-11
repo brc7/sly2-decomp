@@ -42,7 +42,7 @@ extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the addres
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
 extern "C" {
-void *InitScreenList(void *pv);      /* the shown-screen list: InitDl(pdl, 0x14) */
+void *InitScreenList(void *pv);      /* the shown-screen list: links at SCREENBASE::dleShown */
 void *GADGETMENU_ctor(void *pv);
 void *ConstructThiefnetScreen(void *pv);      /* THIEFNET constructor */
 void *ConstructJobListScreen(void *pv);      /* JOBLIST constructor */
@@ -95,8 +95,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A screen as the m2c bodies read it. */
 struct SCRCHILD { char pad0[0xB0]; int unknownB0; };
-/* The notice screen keeps an object at +0x28 instead of a mode. */
-#define PLONOTICE(screen) (*(LO **)&(screen)->nMode)
+/* The notice banner (D_003DA0C0, CID154, 0x30 bytes; not a SCREEN: BASIC, then its state, the text shown and the one
+   queued, and its widget). M_SetNoticeState's OBJ is the same record over a 0x10-byte pad. */
+struct NOTICE : BASIC
+{
+    int state;              /* +0x10 NoticeState */
+    float stateTime;        /* +0x14 */
+    int textId;             /* +0x18 the text shown, -1 none */
+    float duration;         /* +0x1C */
+    int queuedTextId;       /* +0x20 the text to show next, -1 none */
+    float queuedDuration;   /* +0x24 */
+    LO *widget;             /* +0x28 its widget (oid 0x371) */
+};
 /* A gadget menu item (0x20 bytes, the per-hero tables D_002C2DE8/D_002C3028/D_002C3148): gadget id, its highlight
    animations, its place on the page and flags. */
 struct GMITEM
@@ -197,14 +207,14 @@ void PostHudMeterLoad(void *screen);
 void InitPauseMenu(void *pmenu);
 void InitLetterbox(void *pletterbox);
 void PostLoadScreen(SCREEN *screen);
-void PostNoticeLoad(SCREEN *screen);
+void PostNoticeLoad(struct NOTICE *notice);
 void PostJobListLoad(SCREEN *screen);
 void CMemcardDialog_PostLoad(void *pdlg);
 void PostLoadScreen52D(SCREEN *screen);
 void DrawScreen(void *screen);
 void UpdateScreenFocus(DL *pdl);
 void SetHudMeterState(HUDMETER *hudmeter, int nState);
-void SetNoticeState(SCREEN *screen, int nState);
+void SetNoticeState(struct NOTICE *notice, int nState);
 void ResetScreenMode(SCREEN *screen);
 void SetScreenMode(SCREEN *screen, int n0, int n1);
 SCREEN *ConstructScreen(SCREEN *screen);
@@ -231,11 +241,10 @@ void PrependDlEntry(DL *pdl, void *pv);
 LO *FindSwObject(SW *psw, int grffso, OID oid, LO *plo);
 char *FindSwLocalizedString(SW *psw, int id);
 
-/* the shown-screen list's constructor (a DL of screens, link at +0x14) */
-// Initializes a list of screens (the link field is at +0x14) and returns it. (inferred)
+// Initializes the shown-screen list (SCREENBASE elements linked through dleShown) and returns it. (inferred)
 extern "C" void *InitScreenList(void *pv)
 {
-    InitDl((DL *)pv, 0x14);
+    InitDl((DL *)pv, SLY2_OFFSETOF(SCREENBASE, dleShown));
     return pv;
 }
 
@@ -293,7 +302,7 @@ extern "C" void PostLoadScreens()
     InitLetterbox(D_002E1E60);
     PostLoadScreen((SCREEN *)&D_003DA0F0);
     PostLoadScreen((SCREEN *)&D_003DA150);
-    PostNoticeLoad((SCREEN *)&D_003DA0C0);
+    PostNoticeLoad((NOTICE *)&D_003DA0C0);
     PostJobListLoad((SCREEN *)&D_003DA3C0);
     CMemcardDialog_PostLoad(D_002E6550);
     PostLoadScreen((SCREEN *)D_002E65A0);
@@ -704,18 +713,18 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
 }
 
 // Post-load of the notice banner: finds its widget.
-extern "C" void PostNoticeLoad(SCREEN *screen)
+extern "C" void PostNoticeLoad(NOTICE *notice)
 {
-    PLONOTICE(screen) = FindSwObject(&g_sw, 0x405, (OID)0x371, 0);
+    notice->widget = FindSwObject(&g_sw, 0x405, (OID)0x371, 0);
 }
 
 // Resets the notice banner: no current or queued text, no widget, state 0.
-extern "C" void ResetNotice(SCREEN *screen)
+extern "C" void ResetNotice(NOTICE *notice)
 {
-    screen->idText = -1;
-    screen->idTextQueued = -1;
-    PLONOTICE(screen) = 0;
-    SetNoticeState(screen, NOTICE_HIDDEN);
+    notice->textId = -1;
+    notice->queuedTextId = -1;
+    notice->widget = 0;
+    SetNoticeState(notice, NOTICE_HIDDEN);
 }
 
 namespace M_UpdateNotice {
@@ -833,11 +842,11 @@ extern "C" void CancelNotice(struct S *p, int n) {
 
 /* The text id queued, else the one shown. */
 // Text id of the notice being shown, or of the queued one. (inferred)
-extern "C" int GetCurrentNoticeTextId(SCREEN *screen)
+extern "C" int GetCurrentNoticeTextId(NOTICE *notice)
 {
-    int ids = screen->idTextQueued;
+    int ids = notice->queuedTextId;
     if (ids == -1) {
-        ids = screen->idText;
+        ids = notice->textId;
     }
     return ids;
 }

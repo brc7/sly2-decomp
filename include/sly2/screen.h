@@ -20,6 +20,7 @@ template <> CRefPtr<CSidebag>::~CRefPtr();
 struct SCREENBASE : BASIC
 {
     JOY *pjoy;              /* +0x10 the joypad it reads (only while focused: UpdateScreenFocus) */
+    DLE dleShown;           /* +0x14 link in the shown-screen list (screen.cpp D_003D9E70: InitScreenList, Show / Hide) */
     virtual void Update() __asm__("UpdateScreenDefault");   /* slot 7 (empty); key function (screen.cpp) */
     virtual void Draw() __asm__("DrawScreen");   /* slot 8 */
     virtual void SetFocus(int fFocus, SCREENBASE *pscrOther) __asm__("ScreenSlot9Default");   /* slot 9: focus gained / lost (UpdateScreenFocus) */
@@ -30,7 +31,7 @@ struct SCREENBASE : BASIC
 /* The HUD meter (DRAFT name; vtable 0x2D8668, screen.cpp). */
 struct HUDMETER : SCREENBASE
 {
-    int unknown14[3];       /* +0x14 */
+    int unknown1C;          /* +0x1C */
     float shownHealth;      /* +0x20 the fractions shown (they follow health / power) */
     float health;           /* +0x24 */
     float shownPower;       /* +0x28 */
@@ -46,12 +47,11 @@ struct HUDMETER : SCREENBASE
     virtual void Update() __asm__("UpdateHudMeter");   /* slot 7; key function (screen.cpp) */
 };
 typedef char assert_HUDMETER_size[sizeof(HUDMETER) == 0x50 ? 1 : -1];
+typedef char assert_SCREENBASE_dleShown[SLY2_OFFSETOF(SCREENBASE, dleShown) == 0x14 ? 1 : -1];
 
 /* SCREEN: a UI screen or dialog: the text it shows, the widget object and a mode with its entry time. */
 struct SCREEN : SCREENBASE
 {
-    int unknown14;          /* +0x14 */
-    int idText;             /* +0x18 id of the text shown */
     int unknown1C;          /* +0x1C */
     int idTextQueued;       /* +0x20 text to show next; for widget screens the widget oid */
     WIDGET *pchild;         /* +0x24 the widget object (sly2/widget.h) */
