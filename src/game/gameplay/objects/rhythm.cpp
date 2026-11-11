@@ -6,6 +6,7 @@
 // world callback BindRhythmManagerGrades.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rhythm
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_rhythm
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT */
 #include "sly2/slotheap.h"
 #include "sly2/util.h"
 #include "sly2/clock.h"
@@ -216,12 +217,18 @@ extern "C" void HandleDancerMessage(DANCER *dancer, int messageKind, MSGD *messa
                 break;
             case SEGMENT_EVENT_LAUNCH: {
                 qwordV localVelocity = GetStepAsegaTranslation(target, message->segment, message->time);
+#if defined(SLY2_EE_LAYOUT)
                 VTE *vt = *(VTE **)((char *)target + 0xC);   /* loaded before the transform, as the original schedules it (a SetVelocity call reloads it after: 14 of 64 off) */
+#endif
                 qwordV *rows = (qwordV *)target->aqwTarget;
                 qwordV worldVelocity;
                 target->qwUnknown190 = VecMul(localVelocity, -1.0f);
                 __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z" : "=j"(worldVelocity) : "j"(rows[0]), "j"(localVelocity), "j"(rows[1]), "j"(rows[2]));
+#if defined(SLY2_EE_LAYOUT)
                 ((void (*)(void *, qwordV))vt[35].pfn)((char *)target + vt[35].d, worldVelocity);   /* LO::SetVelocity */
+#else
+                target->SetVelocity(worldVelocity);
+#endif
                 break;
             }
             }
