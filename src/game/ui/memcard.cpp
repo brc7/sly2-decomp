@@ -499,7 +499,7 @@ extern int D_002DEB4C __asm__("D_002DEB4C");
 extern struct H D_002E6550 __asm__("D_002E6550");
 int IsSwTransitionBusy(void *g) __asm__("IsSwTransitionBusy");
 int IsMemcardThreadValid__FP7MEMCARD(void *p) __asm__("IsMemcardThreadValid__FP7MEMCARD");
-void CreateMemcardThread(void *t, long pmf) __asm__("CreateMemcardThread");
+void CreateMemcardThread(void *t, MCJOBARG pmf) __asm__("CreateMemcardThread");
 void ReloadSaveSlots(SAVE *saveManager) __asm__("ReloadSaveSlots");
 int IsMpegActive(void *p) __asm__("IsMpegActive");
 int IsPauseMenuOnLoadPageB(void *p) __asm__("IsPauseMenuOnLoadPageB");
@@ -579,7 +579,6 @@ extern "C" int CompareSaves__FP4SAVET0(SAVEINFO *psi0, SAVEINFO *psi1)
 
 namespace M_SetSaveState {
 extern void Decref__4CRef(CRef *) __asm__("Decref__4CRef");
-struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
 
 extern ST D_002E6550 __asm__("D_002E6550");
@@ -874,32 +873,32 @@ extern "C" int McJobSaveSlotResetGs(SAVE *saveManager)
 
 namespace M_func_001ABCE8 {
 struct K { int a, b; };
-extern const struct LONGU D_002A6C88 __asm__("D_002A6C88");
+extern const MCJOBCONST D_002A6C88 __asm__("D_002A6C88");
 void ResetRumbleSaveVar(SAVE *p) __asm__("ResetRumbleSaveVar");
 void BuildMemcardGsMask(SAVEVARS *psv, SAVESLOT *pslot) __asm__("BuildMemcardGsMask");
-void CreateMemcardThread(MEMCARD *p, long k) __asm__("CreateMemcardThread");
+void CreateMemcardThread(MEMCARD *p, MCJOBARG k) __asm__("CreateMemcardThread");
 // Starts the autosave: resets the rumble save variable, stores the save variables into the current slot and queues
 // McJobAutosave.
 extern "C" void StartAutosaveJob(SAVE *saveManager)
 {
     ResetRumbleSaveVar(saveManager);
     BuildMemcardGsMask(&g_sw.savevars, saveManager->currentSlot);
-    CreateMemcardThread(&saveManager->memcard, D_002A6C88.l);
+    CreateMemcardThread(&saveManager->memcard, D_002A6C88.arg);
 }
 } // namespace M_func_001ABCE8
 
 namespace M_func_001ABD40 {
 struct K { int a, b; };
-extern const struct LONGU D_002A6C90 __asm__("D_002A6C90");
+extern const MCJOBCONST D_002A6C90 __asm__("D_002A6C90");
 void ResetRumbleSaveVar(SAVE *p) __asm__("ResetRumbleSaveVar");
 void BuildMemcardGsMask(SAVEVARS *psv, SAVESLOT *pslot) __asm__("BuildMemcardGsMask");
-void CreateMemcardThread(MEMCARD *p, long k) __asm__("CreateMemcardThread");
+void CreateMemcardThread(MEMCARD *p, MCJOBARG k) __asm__("CreateMemcardThread");
 // Starts a save to the current slot: same preparation as the autosave, then queues McJobSaveSlot.
 extern "C" void StartSaveSlotJob(SAVE *saveManager)
 {
     ResetRumbleSaveVar(saveManager);
     BuildMemcardGsMask(&g_sw.savevars, saveManager->currentSlot);
-    CreateMemcardThread(&saveManager->memcard, D_002A6C90.l);
+    CreateMemcardThread(&saveManager->memcard, D_002A6C90.arg);
 }
 } // namespace M_func_001ABD40
 
@@ -1008,8 +1007,8 @@ namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_func_001ABBE0() __asm__("McJobAutosave");
 void p_McJobSaveSlot() __asm__("McJobSaveSlot");
 extern const char r_D_002A6C80[] __asm__("D_002A6C80") = "/%s/%s";
-extern const unsigned int r_D_002A6C88[2] __asm__("D_002A6C88") = {0xFFFF0000, (unsigned int)p_func_001ABBE0};
-extern const unsigned int r_D_002A6C90[2] __asm__("D_002A6C90") = {0xFFFF0000, (unsigned int)p_McJobSaveSlot};
+extern const MCJOBPMF r_D_002A6C88 __asm__("D_002A6C88") = {0, -1, (int (*)(void *))p_func_001ABBE0};   /* &SAVE::job: delta 0, index -1, pfn */
+extern const MCJOBPMF r_D_002A6C90 __asm__("D_002A6C90") = {0, -1, (int (*)(void *))p_McJobSaveSlot};   /* &SAVE::job: delta 0, index -1, pfn */
 }
 namespace M_WriteIconSys {
 typedef struct {
@@ -1497,20 +1496,19 @@ extern "C" int GetMcDialogButtonKind(struct S *dialog)
 
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_McJobCreateSave() __asm__("McJobCreateSave");
-extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (unsigned int)p_McJobCreateSave};
+extern const MCJOBPMF r_D_002A6D88 __asm__("D_002A6D88") = {0, -1, (int (*)(void *))p_McJobCreateSave};   /* &SAVE::job: delta 0, index -1, pfn */
 }
 namespace M_CMemcardDialog_Update {
-struct PMF { short delta; short index; void (*pfn)(void *); };
 struct S { char pad[0xC]; void *unknownC; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 extern char D_003D9ED0[] __asm__("D_003D9ED0");
-extern const struct LONGU D_002A6D88 __asm__("D_002A6D88");
+extern const MCJOBCONST D_002A6D88 __asm__("D_002A6D88");
 int IsSwTransitionBusy(void *g) __asm__("IsSwTransitionBusy");
 int GetMcDialogButtonKind(struct S *s) __asm__("GetMcDialogButtonKind");
 int HandleJoyButtons(void *p, int n) __asm__("HandleJoyButtons");
 void ConfirmMcDialog(struct S *s) __asm__("ConfirmMcDialog");
 void OnMcDialogChoice(struct S *s) __asm__("OnMcDialogChoice");
 int IsMemcardThreadValid__FP7MEMCARD(void *p) __asm__("IsMemcardThreadValid__FP7MEMCARD");
-void CreateMemcardThread(void *p, long pmf) __asm__("CreateMemcardThread");
+void CreateMemcardThread(void *p, MCJOBARG pmf) __asm__("CreateMemcardThread");
 void SetMcDialogState(struct S *s, int n) __asm__("SetMcDialogState");
 void ClearMcDialogState(struct S *s) __asm__("ClearMcDialogState");
 void ResetGameSequence(void) __asm__("ResetGameSequence");
@@ -1571,7 +1569,7 @@ extern "C" void CMemcardDialog_Update(struct S *dialog)
         if (IsMemcardThreadValid__FP7MEMCARD(&g_save.memcard))
             return;
         if (!g_save.memcard.jobResult) {
-            CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
+            CreateMemcardThread(&g_save.memcard, D_002A6D88.arg);
             SetMcDialogState(dialog, 0x16);
         } else
             SetMcDialogState(dialog, 0x14);
@@ -1693,11 +1691,10 @@ void OnMcDialogChoice(S *dialog)
 } // namespace M_func_001ACFE0
 
 namespace M_func_001AD168 {
-struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { char pad[0x40]; int state; };
-extern const struct LONGU D_002A6E88 __asm__("D_002A6E88"), D_002A6D88 __asm__("D_002A6D88"), D_002A6E90 __asm__("D_002A6E90");
+extern const MCJOBCONST D_002A6E88 __asm__("D_002A6E88"), D_002A6D88 __asm__("D_002A6D88"), D_002A6E90 __asm__("D_002A6E90");
 void SaveToCurrentSlot(void) __asm__("SaveToCurrentSlot");
-void CreateMemcardThread(void *t, long pmf) __asm__("CreateMemcardThread");
+void CreateMemcardThread(void *t, MCJOBARG pmf) __asm__("CreateMemcardThread");
 void SetMcDialogState(struct S *s, int n) __asm__("SetMcDialogState");
 // Confirm path of the dialog: saves to the current slot or queues the pending job.
 // Also known as: CardYes (upstream readable / Sly 1 name; CardYes__FP7CARDDLG).
@@ -1708,15 +1705,15 @@ extern "C" void ConfirmMcDialog(struct S *dialog)
         SaveToCurrentSlot();
         break;
     case 0x12:
-        CreateMemcardThread(&g_save.memcard, D_002A6E88.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6E88.arg);
         SetMcDialogState(dialog, 0x13);
         break;
     case 0x15:
-        CreateMemcardThread(&g_save.memcard, D_002A6D88.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6D88.arg);
         SetMcDialogState(dialog, 0x16);
         break;
     case 0x20:
-        CreateMemcardThread(&g_save.memcard, D_002A6E90.l);
+        CreateMemcardThread(&g_save.memcard, D_002A6E90.arg);
         SetMcDialogState(dialog, 0x21);
         break;
     }
@@ -1938,11 +1935,11 @@ extern "C" void FormatMcCardNameText(char *pch)
 
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_McJobFormat() __asm__("McJobFormat");
-extern const unsigned int r_D_002A6E88[2] __asm__("D_002A6E88") = {0xFFFF0000, (unsigned int)p_McJobFormat};
+extern const MCJOBPMF r_D_002A6E88 __asm__("D_002A6E88") = {0, -1, (int (*)(void *))p_McJobFormat};   /* &SAVE::job: delta 0, index -1, pfn */
 }
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_func_001ABC68() __asm__("McJobSaveSlotResetGs");
-extern const unsigned int r_D_002A6E90[2] __asm__("D_002A6E90") = {0xFFFF0000, (unsigned int)p_func_001ABC68};
+extern const MCJOBPMF r_D_002A6E90 __asm__("D_002A6E90") = {0, -1, (int (*)(void *))p_func_001ABC68};   /* &SAVE::job: delta 0, index -1, pfn */
 }
 namespace M_func_001AD820 {
 extern char D_002E6550[] __asm__("D_002E6550");

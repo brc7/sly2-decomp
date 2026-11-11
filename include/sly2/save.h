@@ -8,6 +8,7 @@
 #ifndef SLY2_SAVE_H
 #define SLY2_SAVE_H
 #include "sly2/basic.h"
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT (MCJOBARG) */
 
 /* per-character block, 0x18 bytes: sly at +0x50, bentley at +0x68, murray at +0x80 */
 /* GSCHAR: one character's saved state: health, gadget power and equipped gadgets. */
@@ -83,6 +84,21 @@ struct MCJOBPMF
     short pad;
     int (*pfn)(void *psave);
 };
+
+/* How the job callers pass an MCJOBPMF constant to CreateMemcardThread (which takes the MCJOBPMF by value): the EE
+   callers load the 8-byte record into one 64-bit register (a long, read through the packed MCJOBCONST, so g++ emits
+   ldl / ldr) and pass that; a native build passes the record itself. The constants are defined as MCJOBPMF (memcard.cpp,
+   in their .rodata places) and declared as MCJOBCONST by the callers. */
+#if defined(SLY2_EE_LAYOUT)
+typedef long MCJOBARG;
+#else
+typedef MCJOBPMF MCJOBARG;
+#endif
+union MCJOBCONST
+{
+    MCJOBPMF pmf;
+    MCJOBARG arg;
+} __attribute__((packed));
 
 /* MEMCARD: the memory card worker thread (SAVE::memcard): semaphore, thread id (-1: none), the queued job. */
 struct MEMCARD
