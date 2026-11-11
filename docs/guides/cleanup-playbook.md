@@ -310,5 +310,8 @@ The port compiles the decomp natively, so every TU-private view must put each fi
   bytes but `long` is 8, so plain `long` is not a hazard. Fields never accessed do not count.
 - **The cheap fix is deriving the view from the real base** (`struct V : REAL { ... }`), which carries the right
   pointer slots for free; next, type pointer slots that hide in pads (`void *` instead of a word of a byte array).
+- **Register every portability mechanism** (guards, hooks, file-record structs) and the decision behind it in
+  [portability.md](portability.md), with the hazards still open; keep guards in the one-macro `#if`/`#else` form so
+  a port can strip them with unifdef.
 - **Write the judgement down.** When a view's pads are declared pointer-free (a file record, hardware words), record
   why in tools/cleanup/ptr64/evidence.json; judge.py reads it, and the next round does not re-litigate it.
