@@ -140,8 +140,8 @@ void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void func_00234CA0(int n) __asm__("FlushCache");
 int sceSifSetDma(void *r, int n);
 int sceSifDmaStat(int h);
-void func_00232FE8(int b, int x);
-int func_00233018(void);
+void snd_UpdateMovieADPCM(int b, int x);
+int snd_GetMovieNAX(void);
 unsigned int snd_GetTransStatus(void);
 void snd_PauseAllSoundsInGroup(unsigned int m);
 void StopDialog(void *p);
@@ -380,7 +380,7 @@ int CQueueOutputIop_SendBytes(CQueueOutputIop *queue, int b, char *c)
         n = queue->totalSent / 1024;
         col = n % queue->channelCount;
         row = (n / queue->channelCount) % 4;
-        func_00232FE8(b, (row << 10) + (col << 12));
+        snd_UpdateMovieADPCM(b, (row << 10) + (col << 12));
     }
     return b;
 }
@@ -389,7 +389,7 @@ int CQueueOutputIop_SendBytes(CQueueOutputIop *queue, int b, char *c)
 void CQueueOutputIop_Update(CQueueOutputIop *queue)
 {
     if (queue->format == 0x10) {
-        int pos = func_00233018() * queue->channelCount;
+        int pos = snd_GetMovieNAX() * queue->channelCount;
         if (pos >= 0 && pos <= queue->bufferSize) {
             queue->readOffset = pos % queue->bufferSize;
             if (queue->readOffset == queue->writeOffset) queue->freeBytes = queue->bufferSize;

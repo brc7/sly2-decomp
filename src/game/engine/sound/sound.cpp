@@ -140,7 +140,7 @@ void snd_PauseSound(int voiceHandle);
 void snd_ContinueSound(int voiceHandle);
 void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
-void func_00233088(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
+void snd_DoExternCallNoWait(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
 SNDSTREAM *FindDialogStream(int id);
 void snd_SetPlaybackMode(int nMode);
 }
@@ -560,8 +560,8 @@ short GetSoundIndex(SNDMGR *, int *) __asm__("GetSoundIndex");
 void RemoveSndFromDirtyList(CID151 *) __asm__("RemoveSndFromDirtyList");
 void *func_002333B4(void *, int, int) __asm__("memset");
 void OnBankSoundStarted(void) __asm__("OnBankSoundStarted");
-void func_00232320(struct M *, void (*)(void), BANKSND *) __asm__("func_00232320");
-void func_002322F0(struct M *) __asm__("func_002322F0");
+void snd_PlaySoundEx_CB(struct M *, void (*)(void), BANKSND *) __asm__("snd_PlaySoundEx_CB");
+void snd_PlaySoundEx(struct M *) __asm__("snd_PlaySoundEx");
 int GetHeroPo(void *) __asm__("GetHeroPo");
 void StepRandomSfxVariation(SNDMGR *) __asm__("StepRandomSfxVariation");
 // Starts a bank sound on the 989snd library (slot 9) with its bank, sound index, volume, pan and pitch: loopers start
@@ -600,12 +600,12 @@ extern "C" void PlayBanksnd(BANKSND *sound)
     if (*entry == SOUND_KIND_LOOPING) {
         sound->playState = 1;
         sound->AddRef();
-        func_00232320(&params, OnBankSoundStarted, sound);
+        snd_PlaySoundEx_CB(&params, OnBankSoundStarted, sound);
         SetSndFlags(sound, SND_START | SND_PAUSE | SND_CONTINUE | SND_STOP | SND_DIRTY_SOUND_PARAMS, 0);
         return;
     }
     owner = 0;
-    func_002322F0(&params);
+    snd_PlaySoundEx(&params);
     SetSndFlags(sound, SND_ALL, 0);
     switch (sound->sfxId) {
     case SFX_SLY: owner = D_002E1E40; break;
@@ -646,7 +646,7 @@ extern "C" void ContinueBanksnd(CID151 *sound)
 }
 
 namespace M_ApplyBanksndParams {
-void func_00232500(int, int, int, int, int, int) __asm__("func_00232500");   /* 989snd: set voice volume / pan / pitch (inferred) */
+void snd_SetSoundParams(int, int, int, int, int, int) __asm__("snd_SetSoundParams");   /* 989snd: set voice volume / pan / pitch (inferred) */
 // Sends a bank sound's changed volume, pan and pitch to its voice (slot 13).
 // Also known as: SendChanges (upstream readable / Sly 1 name).
 extern "C" void ApplyBanksndParams(CID151 *sound)
@@ -658,7 +658,7 @@ extern "C" void ApplyBanksndParams(CID151 *sound)
         if (flags & SND_DIRTY_VOLUME) { changed = 1; volume = (int)(sound->effectiveVolume * 1024.0f); }
         if (flags & SND_DIRTY_PAN) changed |= 4;
         if (flags & SND_DIRTY_PITCH) { changed |= 8; pitch = (int)(sound->pitchRatio * 12.0f); }
-        func_00232500(sound->voiceHandle, changed, volume, sound->panAngle, pitch, 0);
+        snd_SetSoundParams(sound->voiceHandle, changed, volume, sound->panAngle, pitch, 0);
     }
 }
 } // namespace M_ApplyBanksndParams
@@ -871,7 +871,7 @@ void InitFileKey(struct K *) __asm__("InitFileKey");
 int GetStreamVolumeChannel(SNDMGR *, FILEREC *) __asm__("GetStreamVolumeChannel");
 void PauseSnd(CID151 *) __asm__("PauseSnd");
 void OnStreamSoundStarted(void) __asm__("OnStreamSoundStarted");
-void func_00233130(int, int, int, struct M *, void (*)(void), STREAMSND *) __asm__("func_00233130");
+void snd_DoExternCallWithData_CB(int, int, int, struct M *, void (*)(void), STREAMSND *) __asm__("snd_DoExternCallWithData_CB");
 // Build the stream file's decryption key from its record (kind 2, lo = (k0^k2)+0xCA0, hi = k1^k3); returns whether it
 // is usable (hi != 0).
 extern "C" { static inline int BuildStreamFileKey(struct K *key, FILEREC *record)
@@ -919,7 +919,7 @@ extern "C" void PlayStreamsnd(STREAMSND *sound)
         }
         sound->playState = 1;
         sound->AddRef();   /* for the callback */
-        func_00233130(SUKR_RPC, SUKR_START, 0x18, &message, OnStreamSoundStarted, sound);
+        snd_DoExternCallWithData_CB(SUKR_RPC, SUKR_START, 0x18, &message, OnStreamSoundStarted, sound);
         SetSndFlags(sound, SND_START | SND_PAUSE | SND_CONTINUE | SND_STOP | SND_DIRTY_VOLUME | SND_DIRTY_PAN, 0);
     } else {
         SetSndFlags(sound, SND_ALL, 0);
@@ -931,21 +931,21 @@ extern "C" void PlayStreamsnd(STREAMSND *sound)
 // Also known as: StopIop (upstream readable / Sly 1 name).
 extern "C" void StopStreamSound(CID151 *sound)
 {
-    func_00233088(SUKR_RPC, SUKR_STOP, sound->voiceHandle, 0, 0, 0, 0);
+    snd_DoExternCallNoWait(SUKR_RPC, SUKR_STOP, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 // Pauses a streamed sound on the IOP (slot 11). (inferred)
 // Also known as: PauseIop (upstream readable / Sly 1 name).
 extern "C" void PauseStreamSound(CID151 *sound)
 {
-    func_00233088(SUKR_RPC, SUKR_PAUSE, sound->voiceHandle, 0, 0, 0, 0);
+    snd_DoExternCallNoWait(SUKR_RPC, SUKR_PAUSE, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 // Resumes a streamed sound on the IOP (slot 12). (inferred)
 // Also known as: ResumeIop (upstream readable / Sly 1 name).
 extern "C" void ResumeStreamSound(CID151 *sound)
 {
-    func_00233088(SUKR_RPC, SUKR_CONTINUE, sound->voiceHandle, 0, 0, 0, 0);
+    snd_DoExternCallNoWait(SUKR_RPC, SUKR_CONTINUE, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 namespace M_ApplyStreamsndParams {
@@ -968,13 +968,13 @@ extern "C" void ApplyStreamsndParams(STREAMSND *sound)
             changed |= 8;
             pitch = (int)(sound->pitchRatio * 12.0f);
         }
-        func_00233088(SUKR_RPC, SUKR_SET_PARAMS, sound->voiceHandle, changed, volume, sound->panAngle, pitch);
+        snd_DoExternCallNoWait(SUKR_RPC, SUKR_SET_PARAMS, sound->voiceHandle, changed, volume, sound->panAngle, pitch);
     }
     if (sound->flags & SND_DIRTY_GROUP_PARAMS) {
         for (i = 0; i < 6; i++) {
             int mask = 1 << i;
             if (sound->dirtyGroups & mask)
-                func_00233088(SUKR_RPC, SUKR_SET_GROUP_PARAMS, sound->voiceHandle, i, (int)(sound->groupVolumes[i] * 1024.0f), sound->groupPans[i], 0);
+                snd_DoExternCallNoWait(SUKR_RPC, SUKR_SET_GROUP_PARAMS, sound->voiceHandle, i, (int)(sound->groupVolumes[i] * 1024.0f), sound->groupPans[i], 0);
         }
         sound->dirtyGroups = 0;
     }
@@ -985,7 +985,7 @@ namespace M_func_001FC878 {
 extern SNDMGR D_003DD040 __asm__("D_003DD040");
 void OnStreamsndStatus(void) __asm__("OnStreamsndStatus");
 void OnBankSoundStatus(void) __asm__("OnBankSoundStatus");
-void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long) __asm__("func_002330D0");
+void snd_DoExternCall_CB(int, int, int, int, int, int, int, void (*)(void), long) __asm__("snd_DoExternCall_CB");
 // Queries a stream's play position and whether it is still playing (slot 14), with callbacks; accumulates paused time.
 // (inferred)
 // Also known as: Requests (upstream readable / Sly 1 name).
@@ -993,14 +993,14 @@ extern "C" void QueryStreamSoundStatus(STREAMSND *sound)
 {
     if (sound->flags & SND_QUERY_STARTED) {
         sound->AddRef();   /* for the callback */
-        func_002330D0(SUKR_RPC, SUKR_QUERY_PLAYING, sound->voiceHandle, 0, 0, 0, 0, OnStreamsndStatus, (long)sound);
+        snd_DoExternCall_CB(SUKR_RPC, SUKR_QUERY_PLAYING, sound->voiceHandle, 0, 0, 0, 0, OnStreamsndStatus, (long)sound);
         SetSndFlags(sound, SND_QUERY_STARTED, 0);
     }
     if (sound->playState)
         return;
     if (sound->flags & SND_QUERY_PLAYING) {
         sound->AddRef();
-        func_002330D0(SUKR_RPC, SUKR_QUERY_POSITION, sound->voiceHandle, 0, 0, 0, 0, OnBankSoundStatus, (long)sound);
+        snd_DoExternCall_CB(SUKR_RPC, SUKR_QUERY_POSITION, sound->voiceHandle, 0, 0, 0, 0, OnBankSoundStatus, (long)sound);
         SetSndFlags(sound, SND_QUERY_PLAYING, 0);
     }
     if ((sound->flags & SND_TIMED) && sound->pauseCount <= 0)   /* playing: advance the play time */
@@ -1187,7 +1187,7 @@ namespace M_StartupSound {
    four channel volumes, this and the last update's tick */
 extern SNDMGR D_003DD040 __asm__("D_003DD040");
 void snd_StartSoundSystem(int) __asm__("snd_StartSoundSystem");
-int func_00233048(int, int, int, int, int, int, int) __asm__("func_00233048");
+int snd_DoExternCall(int, int, int, int, int, int, int) __asm__("snd_DoExternCall");
 long TickNow(struct CLOCK *) __asm__("TickNow");
 // Boot-time sound setup: starts the 989snd system and the IOP stream module, sets all volumes to 1 and records the start
 // time.
@@ -1197,7 +1197,7 @@ extern "C" void StartupSound(void)
     int channel, row;
     long now;
     snd_StartSoundSystem(2);
-    (void)func_00233048(SUKR_RPC, SUKR_INIT, 0, 0, 0, 0, 0);
+    (void)snd_DoExternCall(SUKR_RPC, SUKR_INIT, 0, 0, 0, 0, 0);
     D_003DD040.masterVolume = 1.0f;
     for (channel = 0; channel < 4; channel++) {
         D_003DD040.channelVolumes[channel] = 1.0f;
@@ -1488,7 +1488,7 @@ typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern char D_004435F0[] __asm__("D_004435F0");
 void snd_StopAllStreams(void) __asm__("snd_StopAllStreams");
-void func_00233048(int, int, int, int, int, int, int) __asm__("func_00233048");
+void snd_DoExternCall(int, int, int, int, int, int, int) __asm__("snd_DoExternCall");
 int snd_FlushSoundCommands(void) __asm__("snd_FlushSoundCommands");
 void ReplaceHeldNoise(int, qword, int, void *) __asm__("ReplaceHeldNoise");
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -1503,7 +1503,7 @@ void ResetSndmgrVolumes(SNDMGR *) __asm__("ResetSndmgrVolumes");
 extern "C" void ResetSndmgr(SNDMGR *soundManager)
 {
     snd_StopAllStreams();
-    func_00233048(SUKR_RPC, SUKR_STOP_ALL, 0, 0, 0, 0, 0);
+    snd_DoExternCall(SUKR_RPC, SUKR_STOP_ALL, 0, 0, 0, 0, 0);
     while (snd_FlushSoundCommands())
         ;
     soundManager->unknown14 = 0;
@@ -1604,7 +1604,7 @@ typedef int qword __attribute__((mode(TI)));
 /* NOISETYPE (noise.cpp): range +0x54, height range +0x58 (low, high) */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
 void OnMicLevelResult(void) __asm__("OnMicLevelResult");
-void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long) __asm__("func_002330D0");
+void snd_DoExternCall_CB(int, int, int, int, int, int, int, void (*)(void), long) __asm__("snd_DoExternCall_CB");
 void *GetHeroPo(SW *) __asm__("GetHeroPo");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
@@ -1628,7 +1628,7 @@ extern "C" void UpdateHeadsetMicrophone(SNDMGR *soundManager)
         soundManager->micLevel = 0.0f;
     } else if (!soundManager->isMicLevelQueryBusy) {
         soundManager->isMicLevelQueryBusy = 1;
-        func_002330D0(SUKR_RPC, SUKR_QUERY_MIC_LEVEL, 0, 0, 0, 0, 0, OnMicLevelResult, (long)soundManager);
+        snd_DoExternCall_CB(SUKR_RPC, SUKR_QUERY_MIC_LEVEL, 0, 0, 0, 0, 0, OnMicLevelResult, (long)soundManager);
     }
     noiseType = 0;
     hero = GetHeroPo(&g_sw);
@@ -1647,13 +1647,13 @@ extern "C" void UpdateHeadsetMicrophone(SNDMGR *soundManager)
 
 namespace M_func_001FDBA8 {
 void OnSoundManagerStatusResult(void) __asm__("OnSoundManagerStatusResult");
-void func_002330D0(int id, int n, int a, int b, int c, int d, int e, void (*pfn)(void), long p) __asm__("func_002330D0");
+void snd_DoExternCall_CB(int id, int n, int a, int b, int c, int d, int e, void (*pfn)(void), long p) __asm__("snd_DoExternCall_CB");
 // Issues the manager's periodic status query to the IOP, once at a time. (inferred)
 extern "C" void PollSoundManagerStatus(SNDMGR *soundManager)
 {
     if (!soundManager->isStatusQueryBusy) {
         soundManager->isStatusQueryBusy = 1;
-        func_002330D0(SUKR_RPC, SUKR_QUERY_STATUS, 0, 0, 0, 0, 0, OnSoundManagerStatusResult, (long)soundManager);
+        snd_DoExternCall_CB(SUKR_RPC, SUKR_QUERY_STATUS, 0, 0, 0, 0, 0, OnSoundManagerStatusResult, (long)soundManager);
     }
 }
 } // namespace M_func_001FDBA8
@@ -2185,7 +2185,7 @@ struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad1
 int RandomIntInRange__Fii(int, int) __asm__("RandomIntInRange__Fii");
 void *func_002333B4(void *, int, int) __asm__("memset");
 short GetSoundIndex(SNDMGR *, void *) __asm__("GetSoundIndex");
-void func_002322F0(struct M *) __asm__("func_002322F0");
+void snd_PlaySoundEx(struct M *) __asm__("snd_PlaySoundEx");
 // After one of the hero's own effects (PlayBanksnd), unless a music layer other than 0 is selected: a random step of the
 // variation value in -12..12 (mostly +1, sometimes -5; b picks a row of a by the value, and the higher the value the
 // more -5 entries the row has), then plays effect 0x28 with 127 x the value as its pitch modulation. (inferred)
@@ -2213,7 +2213,7 @@ extern "C" void StepRandomSfxVariation(SNDMGR *soundManager)
     params.bank = soundManager->bank;
     params.soundIndex = GetSoundIndex(soundManager, FindSoundForSfxId(soundManager, SFX_VARIATION));
     params.pitch = soundManager->sfxVariationStep * 127;
-    func_002322F0(&params);
+    snd_PlaySoundEx(&params);
     }
 }
 } // namespace M_func_001FEED0
