@@ -446,15 +446,13 @@ namespace M_PresetStepAccel {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { float x,y,z; } VECTOR3;
-typedef struct { qword row[3]; } M3;
-struct O { char pad[0xB0]; qword angularVelocity; char pad2[0x30]; qword angularForce; };
-struct S : LO { char pad[0x5C - 0x50]; struct O *po; char pad2[0x1A4 - 0x60]; int steeringMode; char pad3[8]; M3 desired; qword targetAngularVelocity; char pad4[0x1F4 - 0x1F0]; float spinFastSpeed, spinSlowSpeed, spinFastTime, unknownRatio200; };
-void PresetSoAccel(struct S *p) __asm__("PresetSoAccel");
+
+void PresetSoAccel(struct STEP *p) __asm__("PresetSoAccel");
 // Read the frame clock's delta-time word (g_clock) given its high address page.
 extern "C" { static inline int ClockWord(char*page){int word;__asm__ volatile("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&g_clock.deltaTimeBits),"m"(*(const int*)(page-0x212C)));return word;} }
 // High address page (lui) of the frame clock g_clock.
 extern "C" { static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_clock.deltaTimeBits));return page;} }
-void AccelSoTowardMatBounded(struct S *,M3 *,VECTOR3 *) __asm__("AccelSoTowardMatBounded");
+void AccelSoTowardMatBounded(struct STEP *,MATRIX3Q *,VECTOR3 *) __asm__("AccelSoTowardMatBounded");
 // Broadcast int bits into vf4 and store them to *value.
 extern "C" { static inline void InitScalar(U *value,int bits) {
     register qword scalar __asm__("vf4");
@@ -464,33 +462,33 @@ extern "C" { static inline void InitScalar(U *value,int bits) {
 // Slot 70: PresetSoAccel, then steering: mode 0 accelerates the rotation toward the target heading matrix with the
 // spin smoothing (AccelSoTowardMatBounded); mode 1 fixes the angular velocity directly (FixStepAngularVelocity).
 // Also known as: UpdateStepPhysMotion (upstream readable / Sly 1 name; UpdateStepPhysMotion__FP3ALO).
-extern "C" void PresetStepAccel(struct S *step)
+extern "C" void PresetStepAccel(struct STEP *step)
 {
     PresetSoAccel(step);
-    switch (step->steeringMode) {
+    switch (step->unknown1A4) {
     case STEERING_HEADING: {
         VECTOR3 v;
-        float s = step->unknownRatio200;
-        v.z = step->spinFastTime;
-        v.x = step->spinFastSpeed * s;
-        v.y = step->spinSlowSpeed * s;
-        AccelSoTowardMatBounded(step, &step->desired, &v);
+        float s = step->unknown200;
+        v.z = step->vSpin.z;
+        v.x = step->vSpin.x * s;
+        v.y = step->vSpin.y * s;
+        AccelSoTowardMatBounded(step, &step->matqTarget, &v);
         break;
     }
     case STEERING_ANGULAR_VELOCITY: {
-        register struct O *po __asm__("$3") = step->po;
+        register struct XF *po __asm__("$3") = step->rotationXf;
         U u;
         register qword d __asm__("vf3");         register qword vel __asm__("vf2");
         char*page=ClockPage();
         int word;
-        d=step->targetAngularVelocity;
+        d=step->unknown1E0;
         word=ClockWord(page);
-        vel = po->angularForce;
-        __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(po->angularVelocity));
+        vel = po->acceleration;
+        __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(po->velq.q));
         InitScalar(&u,word);
         __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %0, $Q" : "+j"(d) : "j"(u.q));
         __asm__("vadd.xyzw %0,%0,%1" : "+j"(vel) : "j"(d));
-        po->angularForce=vel;
+        po->acceleration=vel;
         break;
     }
     case STEERING_NONE:
@@ -777,7 +775,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204660 {
 typedef int qword __attribute__((mode(TI)));
-typedef struct MATRIX3 { qword a[3]; } MATRIX3;
+
 extern qword g_normalZ __asm__("g_normalZ");
 MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 struct S : PO { char pad[0x1A8 - 0x180]; float g; int pad2; MATRIX3 m; };
@@ -1213,7 +1211,7 @@ namespace M_MatchStepXf {
 // Set the parent matrix, position and inherited motion.
 typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f; } U;
-typedef union {float value;int word;} FLOATWORD;
+
 typedef struct M4 { qword row[4]; } M4;
 typedef struct B {int a,b,c; VTE *vt;} B;
 typedef struct P {
@@ -1265,7 +1263,7 @@ extern "C" { extern void MatchStepXf(P *step, B *other)
         if (IsBasicDerivedFrom__FP5BASIC3CID(&step->base,0x34)) {
             qword r;
             qword scq;
-            __asm__("qmtc2.ni %1,%0" : "=j"(scq) : "r"(step->amount.word));
+            __asm__("qmtc2.ni %1,%0" : "=j"(scq) : "r"(step->amount.bits));
             scale.q = scq;
             r = m.row[3];
             __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x" : "+j"(r) : "j"(g_normalZ), "j"(scale.q));
@@ -1281,9 +1279,7 @@ extern "C" { extern void MatchStepXf(P *step, B *other)
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
 typedef char layout_scalar[(sizeof(U)==16)?1:-1];
-typedef char layout_word[(sizeof(FLOATWORD)==4)?1:-1];
-typedef char layout_word_value[((unsigned)&((FLOATWORD*)0)->value==0)?1:-1];
-typedef char layout_word_bits[((unsigned)&((FLOATWORD*)0)->word==0)?1:-1];
+
 typedef char layout_matrix[(sizeof(M4)==0x40)?1:-1];
 typedef char layout_matrix_0[((unsigned)&((M4*)0)->row[0]==0)?1:-1];
 typedef char layout_matrix_1[((unsigned)&((M4*)0)->row[1]==0x10)?1:-1];
@@ -1491,7 +1487,7 @@ union U {qword q;float f[4];int i[4];};
 struct VU_FLOAT {qword qw;};
 // Empty scope object (its constructor and destructor only shape the generated code).
 struct FRAME {FRAME(){}~FRAME(){}};
-struct P : LO { char pad0[0xEC - 0x50]; void *attachment;char padF0[0xB8];float heading;char pad1AC[4];MATRIX3 basis;};
+
 struct HEIGHT {float min,max;};
 extern qword g_normalZ __asm__("g_normalZ");
 extern const float D_002A85F8 __asm__("D_002A85F8");   /* defined below where the ELF has it (.rodata order) */
@@ -1502,7 +1498,7 @@ extern float D_002C3CE8 __asm__("D_002C3CE8");    /* the angle limit */
 MATRIX3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
-qword GetLoWorldPos(P *) __asm__("GetLoWorldPos");
+qword GetLoWorldPos(STEP *) __asm__("GetLoWorldPos");
 qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
 FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -1557,10 +1553,10 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 // Fits the step's orientation to the floor under three probe points (bounding-sphere query and line tests), with
 // the tilt limited to a maximum angle. (inferred)
 // Also known as: FitStepToFloor (upstream readable / Sly 1 name; FitStepToFloor__FP3ALOP6VECTORiPG9VU_VECTOR).
-extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qword *localPoints)
+extern "C" void FitStepToTerrain(STEP *step,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
-    InitMat(&matCur,Rotation(g_normalZ,step->heading),GetLoWorldPos(step));
+    InitMat(&matCur,Rotation(g_normalZ,step->targetHeading),GetLoWorldPos(step));
     matOrig=matCur;
     float radius=D_002A85F8;
     for(int i=0;i<pointCount;i++){float length=GLength(localPoints[i]);radius=(radius>length)?radius:length;}
@@ -1568,7 +1564,7 @@ extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qwo
     FRAME *frame=&storage;
     STACKSCOPE_ctor(frame);
     int nearbyCount;void **nearby;
-    IntersectSwBoundingSphere(&g_sw,*(qword *)matCur.mat[3],radius,ShouldKeepSoNotSelfSlot62,step->attachment,&nearbyCount,&nearby);
+    IntersectSwBoundingSphere(&g_sw,*(qword *)matCur.mat[3],radius,ShouldKeepSoNotSelfSlot62,step->physicsTree,&nearbyCount,&nearby);
     U points[3];
     U point;
     for(int pass=0;pass<D_002C3CE4;pass++){
@@ -1597,7 +1593,7 @@ extern "C" void FitStepToTerrain(P *step,HEIGHT *height,int pointCount,const qwo
         *(MATRIX3 *)&matCur=adjustment**pmatOrig;
         matCur.mat[2][3]=0;matCur.mat[1][3]=0;matCur.mat[0][3]=0;
     }
-    step->basis=*(MATRIX3 *)&matCur;
+    step->matTarget=*(MATRIX3 *)&matCur;
     STACKSCOPE_ctor_1AE4A0(frame,2);
     GCSE_PAD10
     GCSE_PAD10
