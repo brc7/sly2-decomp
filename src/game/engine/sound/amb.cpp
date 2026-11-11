@@ -21,16 +21,8 @@ struct AMBSND { int soundId; float minDistance; float maxDistance; float volume;
 /* A second list of 8 records (0x10 bytes) bound at load to sounds found by id. */
 struct AMBREC { int soundId; float range[2]; float gain; };
 
-/* AMB : XFM (CID unknown here). */
-struct AMB : public XFM
-{
-    AMBSND *currentSound;     /* +0xE0 */
-    int soundCount;            /* +0xE4 */
-    AMBSND *sounds;        /* +0xE8 */
-    void **playingSounds;           /* +0xEC playing sounds, one per AMBSND */
-    int linkedCount;            /* +0xF0 */
-    AMBREC *linkedSounds;        /* +0xF4 */
-};
+/* The ambient sound emitter: classes.h CID43 (an XFM with the AMBSND list and the linked AMBREC list). */
+typedef CID43 AMB;
 
 extern "C" {
 void InitXfm(XFM *pxfm);

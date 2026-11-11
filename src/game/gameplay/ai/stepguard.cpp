@@ -3639,7 +3639,7 @@ void CID125::PostLoad()
     ALLOCREQ request;
     LO::PostLoad();
     manager->guardCount = FindSwObjectsByClass(&g_sw, 0x605, CID_STEPGUARD, 0, 0, 0);
-    request.cb = manager->guardCount * 4;
+    request.cb = manager->guardCount * sizeof(STEPGUARD *);
     request.nKind = 0x10;
     manager->guards = (STEPGUARD **)AllocFromWorldHeap(&request);
     FindSwObjectsByClass(&g_sw, 0x405, CID_STEPGUARD, 0, manager->guardCount, manager->guards);

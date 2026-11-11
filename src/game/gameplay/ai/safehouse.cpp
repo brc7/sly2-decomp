@@ -23,20 +23,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct CID100V { char pad0[0xC]; VTE *vt; };   /* a tossable (classes.h CID100): its slot 76 is not declared there */
 struct SMA;
 
-/* One joystick binding: in state psm-state pvState, button grfBtn fires relay oid (0x378: open the ThiefNet tab). */
-struct SHENTRY { void *state; int buttonMask; int oid; };
-
-/* The safehouse object: a PO (InitPo) with a state machine of selectable characters. */
-struct SAFEHOUSEV : PO
-{
-    int state;              /* +0x180 0 idle, 1 selecting */
-    SM *stateMachine;               /* +0x184 */
-    SMA *stateMachineAnim;              /* +0x188 */
-    unsigned int bindingCount;    /* +0x18C */
-    SHENTRY bindings[12];     /* +0x190 */
-    int choiceCount;            /* +0x220 allowed states */
-    void *choices[8];       /* +0x224 */
-};
+/* The safehouse object (classes.h SAFEHOUSE: a PO with a state machine of selectable characters and SHENTRY button
+   bindings). */
+typedef SAFEHOUSE SAFEHOUSEV;
 
 
 extern void *D_003D4A54;

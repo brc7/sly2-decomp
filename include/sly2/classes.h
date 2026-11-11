@@ -215,9 +215,18 @@ typedef char assert_CID44_size[sizeof(CID44) == 0x140 ? 1 : -1];
 typedef char assert_CID44_fov[SLY2_OFFSETOF(CID44, fov) == 0x130 ? 1 : -1];   /* camera.cpp */
 
 /* 43 CID43 (0x100): ambient-sound XFM (OnAdd/OnRemove start/stop); vtable 0x2CABD8, 50 slots */
+struct AMBSND;   /* amb.cpp: a sound the emitter plays (0x14 bytes) */
+struct AMBREC;   /* amb.cpp: a linked sound record (0x10 bytes) */
 struct CID43 : XFM
 {
-    char padE0[0x100 - 0xE0];
+    /* The emitter's fields (amb.cpp's AMB view; declared here so the class has its size on every target). */
+    AMBSND *currentSound;       /* +0xE0 */
+    int soundCount;             /* +0xE4 */
+    AMBSND *sounds;             /* +0xE8 at most 8 */
+    void **playingSounds;       /* +0xEC playing sounds, one per AMBSND */
+    int linkedCount;            /* +0xF0 */
+    AMBREC *linkedSounds;       /* +0xF4 at most 8 */
+    char padF8[0x100 - 0xF8];
     virtual void Init() __asm__("InitAmb");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid43ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAmbFromBrx");   /* slot 14 */
@@ -305,9 +314,25 @@ struct BOMB : SO
 typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
 
 /* 103 BOOTY (0x190): replaces cid_table ALARM; vtable 0x2CBBA0, 75 slots */
+struct BOOTYE;   /* booty.cpp: one booty entry (0x2C bytes) */
 struct BOOTY : SO
 {
-    char pad150[0x190 - 0x150];
+    /* The booty's own fields (booty.cpp's BOOTYV view reads them; declared here so the class has its size on every
+       target). Option rows: 1005 (+0x164, an object of class 0x1E), 1006 (+0x170), 1011 (+0x15C, a CID37), 1012
+       (+0x160, a CID 0x34 player), 342 (+0x184). */
+    int cbootye;                /* +0x150 entries in abootye (at most 0x20) */
+    BOOTYE *abootye;            /* +0x154 the entry table (SW heap) */
+    BOOTYE *pbootyeCur;         /* +0x158 the current entry, 0 none */
+    struct CID37 *pcont;        /* +0x15C the container holding it (state 1, and the one it returns to) */
+    struct STEPPLAYER *phero;   /* +0x160 the player carrying it */
+    SO *unknown164;             /* +0x164 notified (slot 51, message 1) when it leaves the dropped state */
+    char pad168[0x170 - 0x168];
+    VECTOR4 vScale;             /* +0x170 scale while carried (InitBooty: the default scale vector) */
+    float tDrop;                /* +0x180 length of the scale pop after a pick-up (0.3 s) */
+    int st;                     /* +0x184 state: -1 inactive, 0 idle, 1 in container, 2 / 3 transfer, 4 carried,
+                                   5 dropped and returning, 6 marker (SetBootyState) */
+    float tState;               /* +0x188 g_clock.time of the last state change */
+    struct RIP *pmatch;         /* +0x18C the rip that flies it between holders (NewRipInGroup) */
     virtual void PostLoad() __asm__("PostBootyLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBootyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBootyMessage");   /* slot 5 */
@@ -1616,7 +1641,8 @@ struct CID37 : CID35
     float timerSeconds;         /* +0x18C HUD timer started when booty goes in (inferred) */
     int isLocked;               /* +0x190 refuses booty while set (inferred) */
     struct BOOTY *pbooty;       /* +0x194 the booty it holds */
-    char pad198[0x1A0 - 0x198];
+    struct CID147 *heldNoise;   /* +0x198 the noise it makes while holding booty (ReplaceHeldSwNoise) */
+    char pad19C[0x1A0 - 0x19C];
     virtual void PostLoad() __asm__("PostBootyContainerLoad");   /* slot 15 Also known as: PostLoadBootyStand (upstream readable / Sly 1 name; PostLoadBootyStand__FP2SW). */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBootyContainer");   /* slot 7 */
@@ -2051,11 +2077,14 @@ typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -
 /* 99 CID99 (0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
 struct CID99 : SO
 {
-    char pad150[0x158 - 0x150];
-    struct DPRIZE *pdprize;     /* +0x158 the prize a pickpocket takes (pickpocket.cpp: 0 = nothing to pick; a DPRIZE in every
-                                   snapshot) (inferred) */
-    char pad15C[0x16C - 0x15C];
-    SMA *psma;                  /* +0x16C its state machine (pickpocket.cpp sets its goal state; an SMA in every snapshot) */
+    /* lootpouch.cpp's SPRAYER view names +0x150..+0x168 (declared here so the class has its size on every target). */
+    struct XF *launchFrame;     /* +0x150 the frame the item is drawn at and launched from (FindSoXf) */
+    SO *itemProxy;              /* +0x154 the proxy copies come from (AcquireProxyObject) */
+    struct DPRIZE *pdprize;     /* +0x158 the held item a pickpocket takes (pickpocket.cpp: 0 = nothing to pick; a DPRIZE in
+                                   every snapshot; lootpouch.cpp's heldItem) (inferred) */
+    LO *unknown15C[3];          /* +0x15C objects bound by oid (lootpouch.cpp's snip table D_002C0CB0) */
+    SM *psm;                    /* +0x168 its state machine (snip table; ReplaceSma's first argument) */
+    SMA *psma;                  /* +0x16C its state machine instance (pickpocket.cpp sets its goal state; an SMA in every snapshot) */
     virtual void PostLoad() __asm__("PostLootPouchLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
     virtual void RenderSelf() __asm__("RenderLootPouchSelf");   /* slot 19 */
@@ -2174,9 +2203,20 @@ typedef char assert_CID112_pitch[SLY2_OFFSETOF(CID112, pitch) == 0xB0 ? 1 : -1];
 typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
 
 /* 70 SAFEHOUSE (0x240): character-select PO; vtable 0x2D80D0, 81 slots */
+/* One safehouse joystick binding: in state machine state `state`, button `buttonMask` fires relay `oid` (0x378: open
+   the ThiefNet tab). */
+struct SHENTRY { void *state; int buttonMask; int oid; };
 struct SAFEHOUSE : PO
 {
-    char pad180[0x240 - 0x180];
+    /* safehouse.cpp's fields (declared here so the class has its size on every target). */
+    int state;                  /* +0x180 0 idle, 1 selecting */
+    SM *stateMachine;           /* +0x184 */
+    SMA *stateMachineAnim;      /* +0x188 */
+    unsigned int bindingCount;  /* +0x18C */
+    SHENTRY bindings[12];       /* +0x190 */
+    int choiceCount;            /* +0x220 allowed states */
+    void *choices[6];           /* +0x224 the allowed states' oids (SetPoChoices: at most 6) */
+    char pad23C[0x240 - 0x23C];
     virtual void Init() __asm__("InitSafehouse");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSafehouseClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostSafehouseLoad");   /* slot 15 */
@@ -2590,7 +2630,24 @@ typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
 /* 69 TURRET (0x1E0): grapple turret; vtable 0x2DBD80, 81 slots */
 struct TURRET : PO
 {
-    char pad180[0x1E0 - 0x180];
+    /* turret.cpp's TURRETV view names these (declared here so the class has its size on every target); options 910..922
+       and 325. */
+    SO *target;                 /* +0x180 the aim target */
+    int aim;                    /* +0x184 aim at the target */
+    int follow;                 /* +0x188 zoom on the target */
+    float pitch, yaw, vpitch, vyaw;   /* +0x18C */
+    LM yawRange;                /* +0x19C */
+    LM pitchRange;              /* +0x1A4 */
+    LM range;                   /* +0x1AC zoom range */
+    float blend, velocity, strength;  /* +0x1B4 */
+    LO *projectileProxy;        /* +0x1C0 what it fires (a PROXY, AcquireProxyObject) */
+    struct CID112 *launcher;    /* +0x1C4 its launcher (option 915: a CID 0x70) */
+    SO *lastLaunched;           /* +0x1C8 last object fired */
+    int isActRunning;           /* +0x1CC the rotation act is running */
+    LO *self;                   /* +0x1D0 */
+    int isActive;               /* +0x1D4 */
+    void *rotationAct;          /* +0x1D8 rotation act */
+    char pad1DC[0x1E0 - 0x1DC];
     virtual void PostLoad() __asm__("PostTurretLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetTurretClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTurret");   /* slot 7 */
