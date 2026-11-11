@@ -809,7 +809,7 @@ void PATHZONE::Init()
     PATHZONE *ppathzone = this;
     InitXfm(ppathzone);
     ppathzone->unknown110 = -1;
-    InitDl(&ppathzone->dlRegent, 0x60);
+    InitDl(&ppathzone->dlRegent, SLY2_OFFSETOF(REGENT, dlePathzone));
     ppathzone->zoneIndex = -1;
 }
 
@@ -1910,9 +1910,9 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
     DL dlOpen;
     DL dlClosed;
     ClearDl__FP2DL(&dlOpen);
-    InitDl(&dlOpen, 0x18);
+    InitDl(&dlOpen, SLY2_OFFSETOF(NODE, pnodeNext));
     ClearDl__FP2DL(&dlClosed);
-    InitDl(&dlClosed, 0x18);
+    InitDl(&dlClosed, SLY2_OFFSETOF(NODE, pnodeNext));
     EMPTY e;
     NODE *pnode = &anode[pnavStart->index];
     pnode->pnav = pnavStart;

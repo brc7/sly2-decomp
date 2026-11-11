@@ -1162,7 +1162,7 @@ SNDMGR *SNDMGR_ctor(SNDMGR *soundManager) __asm__("SNDMGR_ctor"); SNDMGR *SNDMGR
     entry = (int *)soundManager->musicStack;
     for (n = 7; n != -1; n--) *entry++ = 0;
     soundManager->ambienceSound.p = 0;
-    InitDl__FP2DLi(&soundManager->dirtySounds, 0x38);
+    InitDl__FP2DLi(&soundManager->dirtySounds, SLY2_OFFSETOF(CID151, dleDirty));
     soundManager->muteWhenStoppedFlags = MUTE_WHEN_STOPPED_ALL;
     soundManager->isHeadsetEnabled = 0;
     soundManager->playbackMode = 0;

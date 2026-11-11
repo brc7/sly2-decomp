@@ -1295,7 +1295,7 @@ extern "C" void PostHackwallLoad(HACKWALL *wall)
             wall->cseg--;
             continue;
         }
-        InitDl__FP2DLi(&pseg->dlPiece, 0x60);
+        InitDl__FP2DLi(&pseg->dlPiece, SLY2_OFFSETOF(HACKWALLPIECE, dle));
         for (j = 0; j < pseg->cpiece; j++) {
             struct SWALLOC msg;
             HACKWALLPIECE *ppiece;

@@ -167,8 +167,11 @@ struct REGENT
       float unknown0C;   /* +0x0C default 1 */
       struct CID17 *pathzone;   /* +0x10 the path zone (PATHZONE, CID 17) the object is in */
       undefined4 unknown14[3];
-      undefined4 unknown20[20];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
+      undefined4 unknown20[16];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
+      DLE dlePathzone;   /* +0x60 link in the zone's dlRegent (SetSoPhysRegion; InitPathzone's list offset) */
+      undefined4 unknown68[2];
 };
+typedef char assert_REGENT_dlePathzone[SLY2_OFFSETOF(REGENT, dlePathzone) == 0x60 ? 1 : -1];
 
 /* SOBOUNDS (SO::psobounds, the bounds/lighting record an SO hierarchy shares) is defined in sly2/light.h. */
 
