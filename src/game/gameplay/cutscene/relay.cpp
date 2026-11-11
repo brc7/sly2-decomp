@@ -4392,16 +4392,13 @@ extern "C" void EndJsgCamBlend(RELAYJSG *script, int n)
 
 // 0x1E5AE0 NewRelayJsg
 namespace M_PjsgNew {
-struct C; struct S;
-struct C { char pad[0x18]; int context; };
-struct S { int unknown0; int unknown4; int pad8; VTE *pvt; int pad10; RELAY *relay; int context; int block; int pad20[2]; RELAYCMD *firstCommand; RELAYCMD *lastCommand; char pad30[0xEC - 0x30]; int unknownEC; };
-struct S *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
+RELAYJSG *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
 void *func_002333B4(void *, int, int) __asm__("memset");
-int FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+LO *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, LO *) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void PrependDlEntry__FP2DLPv(void *, void *) __asm__("PrependDlEntry__FP2DLPv");
 // Sets the script's last command to the BlockEnd that closes the block opened at `first` (nesting counted), or to its
 // first command when the block is never closed.
-extern "C" { static inline void SetBlockEnd(struct S *script, RELAYCMD *first, RELAYCMD *last)
+extern "C" { static inline void SetBlockEnd(RELAYJSG *script, RELAYCMD *first, RELAYCMD *last)
 {
     int depth = 1;
     RELAYCMD *pe;
@@ -4412,34 +4409,34 @@ extern "C" { static inline void SetBlockEnd(struct S *script, RELAYCMD *first, R
             break;
         case RELAYCK_BlockEnd:
             if (--depth == 0) {
-                script->lastCommand = pe;
+                script->prelaycmdLast = pe;
                 return;
             }
             break;
         }
     }
-    script->lastCommand = script->firstCommand;
+    script->prelaycmdLast = script->prelaycmdFirst;
 } }
 // Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block
 // (find matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef. (inferred)
 // Also known as: PrunNew (upstream readable / Sly 1 name; PrunNew__FP2LOPvP3RUN).
-extern "C" struct S *NewRelayJsg(RELAY *relay, RELAYCMD *pe, struct C *pc)
+extern "C" RELAYJSG *NewRelayJsg(RELAY *relay, RELAYCMD *pe, RELAYJSG *pc)
 {
-    struct S *p = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapJsg));
+    RELAYJSG *p = AllocZeroedFromSlotheap((*(char (*)[])&g_sw.slotheapJsg));
     RELAYCMD *peLast;
-    func_002333B4(p, 0, 0xF0);
-    p->unknown0 = 0;
-    p->unknown4 = 0;
+    func_002333B4(p, 0, sizeof(RELAYJSG));
+    p->scriptFrame.m_p = 0;
+    p->scriptVariables.m_p = 0;
     SLY2_SET_VPTR(p, RELAYJSG);
-    p->unknownEC = 0;
+    p->psnd.m_p = 0;
     p->relay = relay;
     if (pc)
-        p->context = pc->context;
+        p->ploContext = pc->ploContext;
     else
-        p->context = (int)relay;
+        p->ploContext = (LO *)relay;
     if (pe->blockBegin.oidLabel != -1)
-        p->block = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, (int)pe->blockBegin.oidLabel, 0);
-    p->firstCommand = pe;
+        p->ploBlock = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, (int)pe->blockBegin.oidLabel, 0);
+    p->prelaycmdFirst = pe;
     peLast = &relay->arelaycmd[relay->crelaycmd - 1];
     SetBlockEnd(p, pe, peLast);
     PrependDlEntry__FP2DLPv(&relay->dlJsg, p);

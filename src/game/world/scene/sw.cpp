@@ -33,6 +33,7 @@
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
 #include "sly2/classes.h"
+#include "sly2/relay.h"   /* RELAYJSG (the Jsg slot size) */
 #include "sly2/eopid.h"   /* POSTLOADREC */
 #include "sly2/streambis.h"
 #include "sly2/hw.h"
@@ -129,7 +130,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSlotheap(&world->slotheapBlip,(sizeof(BLIPBATCH) + 0x3F) & ~0x3F,0x80,0x40);   /* 0x10A0 rounded to the slot alignment: 0x10C0 */
     InitSlotheap(&world->slotheapBlipSpline,0x2B * sizeof(BLIPBEZ),0x8,0x10);   /* one per particle of a BLIPBUF */
     InitSlotheap(&world->slotheapSsge,SLY2_SSGE_SLOT_CB,0x200,0x10);
-    InitSlotheap(&world->slotheapJsg,0xf0,0x20,0x10);
+    InitSlotheap(&world->slotheapJsg,sizeof(RELAYJSG),0x20,0x10);
     InitSlotheap(&world->slotheapXa,sizeof(XA),0x10,0x10);
     InitSlotheap(&world->slotheapZprHit,sizeof(ZPR),0x20,0x10);
     InitSlotheap(&world->slotheapXfh,sizeof(CID149),0x10,0x10);   /* CID149 and CID150 handles (both 0x30 on the EE) */
