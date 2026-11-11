@@ -23,7 +23,6 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/sw.h"
-
 // The real class behind the per-function object views below, for its virtual calls.
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 // 0x1D4FF8 StaticInit_robottank and GlobalConstructors_robottank: g++-generated for the six engine slot pools.
@@ -1373,7 +1372,7 @@ typedef unsigned short ushort;
 
 union U { qword q; float f[4]; int bits[4]; };
 struct M4 { U r[4]; };
-struct VECTOR4 { float x, y, z, w; };   /* BLKmode on purpose: all block locals share the sp+0x90 temp slot */
+   /* BLKmode on purpose: all block locals share the sp+0x90 temp slot */
 
 struct SCALAR;
 struct VECTOR;
@@ -1388,7 +1387,7 @@ struct VU_FLOATQ { qword q; VU_FLOATQ(float g) { __asm__("qmtc2.ni %1,%0" : "=j"
 
 // VU vector wrapper.
 struct VU_VECTOR { qword q; VU_VECTOR() {} VU_VECTOR(qword v) { q = v; } };
-struct EDGE { ushort aipos[2]; ushort aisurf[2]; EDGE *pedgeNext; EDGE *pedgeOtherNext; };
+
 struct SURF { qword plane; EDGE *pedge; EDGE *pedgeOther; int grf; int ipos; };
 struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };

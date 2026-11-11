@@ -15,12 +15,10 @@
 #include "sly2/sw.h"
 #include "sly2/clock.h"
 #include "sly2/step.h"
-
 // 0x1FAE18 StaticInit_solve and GlobalConstructors_solve: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef unsigned long ulong;
-union U { qword q; float f[4]; int i[4]; };
 
 /* The solver's own views of the transform, constraint, physics, tree and object records keep a V suffix next to the
    real types (sly2/so.h, included through sly2/step.h; decision 1.6): their fields differ from the headers' (qword
@@ -30,7 +28,7 @@ union U { qword q; float f[4]; int i[4]; };
 /* POD matrix rows, and the class form with user-written copies that IntegrateSoGroupTransforms / ApplySoRestingContactVelocity need. */
 struct M3 { qword r[3]; };
 // 3x3 matrix of U rows with copy constructor.
-struct M3C { U r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; }
+struct M3C { QWROW r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; }
     // Assign the three rows.
     M3C &operator=(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; return *this; } };
 #define MATC(pxf) (*(M3C *)&(pxf)->localMatrix)
@@ -39,9 +37,9 @@ struct M3C { U r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; 
 struct XFV
 {
     M3 localMatrix;         /* 0x00 */
-    U pos;                  /* 0x30 */
+    QWROW pos;                  /* 0x30 */
     M3 worldMatrix;         /* 0x40 */
-    U posWorld;             /* 0x70 */
+    QWROW posWorld;             /* 0x70 */
     char pad80[0x88 - 0x80]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0x98 - 0x94];
     short role;             /* 0x98 */
     short phase;
@@ -49,11 +47,11 @@ struct XFV
     XFV *parent;             /* 0xA0 */
     int worldStamp;         /* 0xA4 */
     void *unknownA8; char padAC[0xB0 - 0xAC];
-    U v;                    /* 0xB0 velocity */
+    QWROW v;                    /* 0xB0 velocity */
     qword restValue;
     qword rate;
     qword unknownE0;
-    U a;                    /* 0xF0 acceleration */
+    QWROW a;                    /* 0xF0 acceleration */
 };
 typedef char assert_XF_size[sizeof(XFV) == 0x100 ? 1 : -1];
 
@@ -65,8 +63,8 @@ struct SOPHYSV
 {
     char pad0[0x30];
     M3 m;                   /* 0x30 inverse inertia */
-    U linear;               /* 0x60 */
-    U angular;              /* 0x70 */
+    QWROW linear;               /* 0x60 */
+    QWROW angular;              /* 0x70 */
     qword constantAccel;              /* 0x80 constant acceleration */
     CONSTRV constrRot;       /* 0x90 (kind at 0xA0) */
     CONSTRV constrPos;       /* 0xB0 (kind at 0xC0) */
@@ -113,8 +111,8 @@ struct SOV : ALO
     SOPART *parts;
     SOPHYSV *physics;        /* +0xE8 */
     SOTREEV *physicsTree;    /* +0xEC */
-    U qwDv;                  /* +0xF0 SO::contactVelocityChange: the queued velocity change */
-    U qwDw;                  /* +0x100 SO::contactAngularVelocityChange */
+    QWROW qwDv;                  /* +0xF0 SO::contactVelocityChange: the queued velocity change */
+    QWROW qwDw;                  /* +0x100 SO::contactAngularVelocityChange */
     uchar zapKindFlags[26];
     undefined1 unknown12A[2];
     float opacity;
@@ -480,13 +478,13 @@ extern "C" void PresetSoAccel(SOV *p)
 // Rotation matrix built from the rotation vector `vector` (axis * angle).
 static inline M3C BuildRotation(qword vector) return matrix {BuildRotationMatrixFromVector(&matrix,vector);}
 // Broadcast f into a VU0 register and store it to *out.
-static inline qword Scalar(float f,U *out){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));out->q=q;return out->q;}
+static inline qword Scalar(float f,QWROW *out){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));out->q=q;return out->q;}
 // Return p + v * k.x.
 static inline qword AddScaledE(qword p,qword v,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(p),"j"(v),"j"(k));return r;}
 // Return v scaled by k.x.
 static inline qword ScaleE(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(k));return r;}
 // Zero the xyz words of v.
-static inline void Clear(U *v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
+static inline void Clear(QWROW *v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 // Return the 3x3 matrix product of a and b.
 static inline M3C MulC(const M3C &a,const M3C &b) return r
 {
@@ -501,10 +499,10 @@ static inline M3C MulC(const M3C &a,const M3C &b) return r
 // Also known as: StepAloBackHalfFrame (upstream readable / Sly 1 name; StepAloBackHalfFrame__FP3ALO).
 void IntegrateSoGroupTransforms(SOV *p)
 {
-    U scalar;
+    QWROW scalar;
     M3C frame;
     XFV *position=p->pxfPos,*rotation=p->pxfRot;
-    U *positionVelocity=&position->v,*rotationVelocity=&rotation->v;
+    QWROW *positionVelocity=&position->v,*rotationVelocity=&rotation->v;
     float coefficient=-0.5f;
     CLOCK *clock;
     SW *global;
@@ -549,7 +547,7 @@ static inline void NearP(int *out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX
 // Zero vector in vf3.
 static inline qword Zero(){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 // Unsettle the transform slot, convert pending from parent to world space into *out and clear pending's y/z words.
-static inline void ConsumeOut(SOV *p,XFV *object,U &pending,qword*out){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
+static inline void ConsumeOut(SOV *p,XFV *object,QWROW &pending,qword*out){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);__asm__("sw $zero,%0\n\tsq %3,%1\n\tsw $zero,%2":"=m"(pending.i[1]),"=m"(*out),"=m"(pending.i[2]):"r"(world));}
 // y lane of the qword at q as a float.
 static inline float YFromHome(const qword &q){register qword bits __asm__("$2");register float r __asm__("$f13");__asm__("lq %0,%2\n\tprot3w %0,%0\n\tmtc1 %0,%1":"=r"(bits),"=f"(r):"m"(q));return r;}
 // z lane of the qword at q as a float.
@@ -557,7 +555,7 @@ static inline float ZFromHome(const qword &q){register qword bits __asm__("$2");
 // Set *out when first and b are equal within 0.0001 on x, y and z (register-pinned loads).
 static inline void NearVector(int *out,const qword &first,const qword &b){register const qword *address __asm__("$2")=&first;register qword a __asm__("$16");__asm__("lq %0,0(%1)":"=r"(a):"r"(address),"m"(first));register qword bits __asm__("$2");register float ax __asm__("$f12"),bx __asm__("$f13");__asm__("lq %0,%4\n\tmtc1 %3,%1\n\tmtc1 %0,%2":"=&r"(bits),"=f"(ax),"=f"(bx):"r"(a),"m"(b));if(AreFloatsNear__Ffff(ax,bx,0.0001f))if(AreFloatsNear__Ffff(YP(a),YFromHome(b),0.0001f))*out=AreFloatsNear__Ffff(ZP(a),ZFromHome(b),0.0001f)!=0;}
 // Add q to the vector at out.
-static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
+static inline void AddVector(QWROW *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
 // Load the transform's position into *value and return its address (+0x30).
 static inline qword*PointAddress(XFV*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,%4\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->pos),"i"(SLY2_OFFSETOF(XFV,pos)));*value=point;return address;}
 // Load source into *delta and return dt * half.
@@ -570,7 +568,7 @@ extern "C" void ApplySoRestingContactVelocity(SOV *input)
 {
     register SOV *p __asm__("$18");
     __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
-    U scalar;
+    QWROW scalar;
     M3C frame;
     qword shift,turn;
     register void*enabled __asm__("$2");
@@ -632,7 +630,7 @@ static __inline__ int NearV(qword value,qword reference)
     return same;
 }
 // Add q to the vector at out.
-static __inline__ void AddTo(U *out,qword q)
+static __inline__ void AddTo(QWROW *out,qword q)
 {
     qword r;
     __asm__("lqc2 %0,%1":"=j"(r):"m"(*out));
@@ -649,7 +647,7 @@ extern "C" void ApplySoImpactVelocity(SOV *object)
         qword reference=D_002A2DD0;
         if(!NearV(value,reference)){
             XFV *transform=object->pxfPos;
-            U *force=&object->qwDv;
+            QWROW *force=&object->qwDv;
             qword increment;
             UnsettleXfSlot(object,transform);
             increment=ConvertXfVec(0,transform->parent,object->qwDv.q);
@@ -661,7 +659,7 @@ extern "C" void ApplySoImpactVelocity(SOV *object)
         reference=D_002A2DD0;
         if(!NearV(value,reference)){
             XFV *transform=object->pxfRot;
-            U *force=&object->qwDw;
+            QWROW *force=&object->qwDw;
             qword increment;
             UnsettleXfSlot(object,transform);
             increment=ConvertXfVec(0,transform->parent,object->qwDw.q);
@@ -686,7 +684,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
 // Unsettle the transform slot, return pending converted from parent to world space and clear pending's y/z words.
-static inline qword Consume(SOV*p,XFV*object,U&pending){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
+static inline qword Consume(SOV*p,XFV*object,QWROW&pending){UnsettleXfSlot(p,object);qword world=ConvertXfVec(0,object->parent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
 // Slot 67, called by SolveSwGroup after the penetration (position) pass: applies the solver's deltas directly as
 // a translation and a rotation of the XFs (pushing interpenetrating objects apart), then updates the transform
 // hierarchy and the broad-phase box.
@@ -805,7 +803,7 @@ static inline qword Get(qword r){qword a; __asm__("qmfc2.ni %0,%1" : "=r"(a) : "
 qword GetSoImpulseLinearDelta(SOV *objectArg,qword impulse) {
     register SOV *object __asm__("$2")=objectArg;
     register CONSTRV *projection __asm__("$4");
-    U scalar;
+    QWROW scalar;
     register qword impulseVf __asm__("vf3")=impulse; register qword mass __asm__("vf2"); register qword result __asm__("vf1");
     register int massWord __asm__("$3")=object->physics->mass.bits;
     __asm__ __volatile__("qmtc2.ni %1,%0" : "=j"(mass) : "r"(massWord));
@@ -939,7 +937,7 @@ extern "C" void CalculateSoContactResponse(SOV *object, int unused1, S2 *rowCont
     if (!physics) return;
     normal = rowContact->normal;
     if (side) {
-        U u;
+        QWROW u;
         qword u_q;
         __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(-1.0f));   /* asm output into a scalar, then the member (C++) */
         u.q = u_q;

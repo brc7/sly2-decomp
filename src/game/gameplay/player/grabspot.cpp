@@ -603,10 +603,9 @@ extern "C" void PresetBarrelAccel(BARREL *barrel)
 } // namespace M_func_00183B00
 
 namespace M_func_00183B80 {
-typedef struct { qword a[3]; } MATRIX3;
+
 struct XV { int x, y; float z; int w; };
 /* The carrier (a STEPPLAYER) as the barrel reads it: two candidate attach transforms. */
-struct T { char pad[0x60]; XF *p60; char pad1[0x10BC - 0x64]; XF *p10BC; };
 
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern qword D_002BE8F0 __asm__("D_002BE8F0");
@@ -654,9 +653,9 @@ void SetBarrelState(BARREL *barrel, int n)
             qword q;
             SetSoCnstrForce(barrel, 1);
             SetSoCnstrTorque(barrel, 1);
-            ps = ((struct T *)barrel->carrier)->p10BC;
+            ps = ((struct STEPPLAYER *)barrel->carrier)->unknown10BC[0];
             if (!ps)
-                ps = ((struct T *)barrel->carrier)->p60;
+                ps = ((struct STEPPLAYER *)barrel->carrier)->rootTransform;
             barrel->SetParent((SO *)barrel->carrier, ps, 3);
             TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
             m = ConvertXfMat(0, barrel->rotationXf->parent, &m);

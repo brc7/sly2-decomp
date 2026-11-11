@@ -33,6 +33,8 @@
 #include "sly2/joy.h"
 #include "sly2/emitter.h"   /* EXPL, EXPLSO */
 #include "sly2/act.h"   /* ACT8 */
+#include "sly2/xfm.h"
+#include "sly2/so.h"
 
 // 0x17EF38 StaticInit_guardbhv and GlobalConstructors_guardbhv: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -792,16 +794,16 @@ extern "C" int IsBhvcombatDone(BHVCOMBAT *behavior)
 
 // 0x175820 FilterAttackLineOfSightHit
 namespace M_func_00175820 {
-struct U; struct O; struct Y;
+ struct O; struct Y;
 struct U { char pad[0x70]; unsigned long unknownFlags70; };   /* the hit object's SOTREE (so.h names it to +0x6C) */
-struct O { char pad[0xEC]; struct U *unknownEC; };
+struct O { char pad[0xEC]; struct SOTREE *unknownEC; };
 struct Y { int pad; struct O *hitObject; int pad2[2]; unsigned long hitFlags; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
 extern "C" int FilterAttackLineOfSightHit(CID120 *x, struct Y *p) {
     if (p->hitFlags & (1UL << 48)) return 0;
-    if (p->hitObject->unknownEC->unknownFlags70 & 4) return 0;
+    if (p->hitObject->unknownEC->grf & 4) return 0;
     if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
     return !IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
 }
@@ -5860,29 +5862,14 @@ extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
 
 // 0x17D608 SnapPositionToSurfaceAbove
 namespace M_FSnapPosToSurfaceAbove {
-struct EDGE; struct SURF; struct LSG; struct VU_FLOAT;
+  struct LSG; struct VU_FLOAT;
 // SnapPositionToSurfaceAbove: ported from Lilly's personal Sly 2 decomp (src/P2/guardbhv_goto.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), g_normalZ
 // 0x0017D608 FSnapPosToSurfaceAbove__FPUx  (our name; was FUN_0017D608)
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
 // hit piece and 1 is returned. MoveBhvRelocateToPoint (0x17E9B0) tries it when SnapToGround finds no floor under the point.
-struct EDGE
-{
-    ushort aipos[2];
-    ushort aisurf[2];
-    EDGE *pedgeNext;
-    EDGE *pedgeOtherNext;
-};
-struct SURF
-{
-    VECTOR normal;
-    float gDot;
-    EDGE *pedge;
-    EDGE *pedgeOther;
-    uint grf;
-    int ipos;
-};
+
 struct LSG
 {
       qword apos[2];

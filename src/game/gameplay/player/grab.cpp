@@ -183,7 +183,7 @@ typedef unsigned long ulong;
 
 struct JOY { char pad0[0x1C]; float amount; char pad20[0x10]; uint buttonsHeld; };
 struct SURF;
-struct BSP { BSP *pbspNeg, *pbspPos; SURF *psurf; };
+
 struct XP;
 struct ASEGA;
 struct GEOM { int numPositions; qword *positions; };
@@ -440,7 +440,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
 
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
 typedef char LSG_Size[sizeof(LSG) == 0x60 ? 1 : -1];
-typedef char BSP_Size[sizeof(BSP) == 12 ? 1 : -1];
+
 typedef char SO_absp_Offset[FIELD_OFFSET(SO, absp) == 0x74 ? 1 : -1];
 typedef char SO_geomWorld_Offset[FIELD_OFFSET(SO, geomWorld) == 0x90 ? 1 : -1];
 typedef char ACTOR_pso_Offset[FIELD_OFFSET(ACTOR, pso) == 0x268 ? 1 : -1];
@@ -470,7 +470,6 @@ struct M3 { U r[3]; };
 struct JOY { char pad0[0x10]; float x, y, heading, amount; };
 /* the channel FindAsegChannel returns is aseg.h's CHN; its curve act.h's AC */
 
-struct SMP { float fastSpeed, slowSpeed, fastDuration; };
 struct HEIGHT { float min, max; };
 struct ENTRY { float weight; int active; char pad8[8]; U direction; };
 struct PROGRAM { void *owner; void *clip; char pad8[0x18]; float x20; char pad24[0x3C]; float x60; char pad64[0x40]; };
@@ -1802,7 +1801,7 @@ extern "C" void ResetJtGrabTnParams(JTGRAB *grab)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelHide {
 typedef union { qword q; float f; } U;
-struct SMP { float a,b,c; };
+
 extern struct SMP D_002BF700 __asm__("D_002BF700");
 void EvaluateShapeAtParam(RAIL *prail, U *position, U *direction, float g) __asm__("EvaluateShapeAtParam");
 float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg) __asm__("SmoothValue__FfffP3SMPPf");
@@ -2350,7 +2349,6 @@ namespace M_UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND {
 // whose object is found again takes the new distance and smooths its parameter towards the new one (wrapping
 // around the spot's range), one that is gone is dropped, and the remaining new ones are linked and appended.
 
-struct SMP { float g0, g4, g8; };
 
 
 int D_002E1E4C __asm__("D_002E1E4C");   /* .bss order: file-scope plain objects are emitted first, in first-declaration order */

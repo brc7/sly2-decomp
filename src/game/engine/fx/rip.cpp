@@ -1713,17 +1713,17 @@ union F {
     float value;
     int bits;
 };
-struct M3 {qword rows[3];};
+
 struct SHRAPNEL {
     void *unknown0; char pad4[0x8 - 0x4]; void *unknown8; void *unknownC; void *unknown10; char pad14[0x1C - 0x14]; void *unknown1C; char pad20[0x40 - 0x20];
-    M3 matrix;
+    RIPM3 matrix;
     qword position;
     char pad80[0xA0 - 0x80]; void *unknownA0; char padA4[0xEC - 0xA4]; void *unknownEC;
     F depth;
 };
 struct CM;
 extern qword g_normalZ __asm__("g_normalZ");
-extern int RenderRipAtPose(SHRAPNEL *,qword,const M3 &) __asm__("RenderRipAtPose");
+extern int RenderRipAtPose(SHRAPNEL *,qword,const RIPM3 &) __asm__("RenderRipAtPose");
 // Return p + a * k.x.
 static inline qword AddScaled(qword p, qword a, qword k)
 {
@@ -1752,10 +1752,10 @@ static inline qword Axis(const qword *p)
     return v;
 }
 // Address of the shrapnel's matrix (+64), pinned to $6.
-static inline const M3 *MatrixAddress(SHRAPNEL *shrapnel)
+static inline const RIPM3 *MatrixAddress(SHRAPNEL *shrapnel)
 {
     register SHRAPNEL *receiver __asm__("$4") = shrapnel;
-    register const M3 *matrix __asm__("$6");
+    register const RIPM3 *matrix __asm__("$6");
     __asm__("addiu %0,%1,64" : "=r"(matrix) : "r"(receiver));
     return matrix;
 }
@@ -1781,7 +1781,7 @@ extern "C" void RenderShrapnel__FP8SHRAPNELP2CM(SHRAPNEL *input, CM *)
 typedef char layout_render_0[(sizeof(qword)==16)?1:-1];
 typedef char layout_render_1[(sizeof(U)==16)?1:-1];
 typedef char layout_render_2[(sizeof(F)==4)?1:-1];
-typedef char layout_render_3[(sizeof(M3)==0x30)?1:-1];
+
 typedef char layout_render_4[(sizeof(void*)==4)?1:-1];
 typedef char layout_render_5[((unsigned)&((SHRAPNEL*)0)->matrix==0x40)?1:-1];
 typedef char layout_render_6[((unsigned)&((SHRAPNEL*)0)->position==0x70)?1:-1];

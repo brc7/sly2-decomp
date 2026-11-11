@@ -888,7 +888,7 @@ dispatch:
 } // namespace M_func_00180668
 
 namespace M_func_00180EE8 {
-typedef struct { qword a[3]; } MATRIX3;
+
 extern qword g_normalZ __asm__("g_normalZ");
 extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
 extern MATRIX3 ConvertXfMat(XF *pxf, int n, MATRIX3 *pm) __asm__("ConvertXfMat");

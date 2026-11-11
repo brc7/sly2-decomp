@@ -14,7 +14,6 @@
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
 #include "sly2/sw.h"
-
 // 0x153850 StaticInit_rhythm and GlobalConstructors_rhythm: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -43,7 +42,6 @@ struct CUE
 /* A crowd grade SMA driven by the score: object oid, grade oid, the bound SMA, current grade, score thresholds. */
 struct SMAE { int oid; int gradeOid; void *sma; int gradeIndex; float thresholds[3]; };
 /* SmoothValue parameters (SMP). */
-struct SMPV { float g; int n; float g8; };
 
 /* Rhythm manager states (inferred). */
 enum RHYTHM_STATE { RHYTHM_IDLE = 0, RHYTHM_DEMONSTRATE = 1, RHYTHM_PLAY = 2 };
@@ -76,7 +74,7 @@ struct RHYTHMMGR
     int averageWindow;          /* 0x280 scores averaged */
     float averageScore;         /* 0x284 */
     float smoothedScore;        /* 0x288 */
-    union { char smoothing[0x0C]; SMPV smoothingParams; };   /* 0x28C */
+    union { char smoothing[0x0C]; SMP smoothingParams; };   /* 0x28C */
     float earlyPressScore, wrongButtonScore, repeatPressScore, missScore;   /* 0x298 */
     union { unsigned int numGradesU; int numGrades; };    /* 0x2A8 */
     SMAE grades[8];             /* 0x2AC */
@@ -362,10 +360,10 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
     manager->lateWindow = 0.4f;
     manager->averageWindow = 8;
     {
-        SMPV *smoothing = &manager->smoothingParams;
-        smoothing->g = __builtin_fabsf(manager->scoreRange.maxValue - manager->scoreRange.minValue) * 0.33333334f;
-        smoothing->g8 = 5.0f;
-        smoothing->n = 0;
+        SMP *smoothing = &manager->smoothingParams;
+        smoothing->fastSpeed = __builtin_fabsf(manager->scoreRange.maxValue - manager->scoreRange.minValue) * 0.33333334f;
+        smoothing->fastDuration = 5.0f;
+        smoothing->slowSpeed = 0;
     }
     manager->wrongButtonScore = -0.8f;
     manager->repeatPressScore = -0.2f;

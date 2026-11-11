@@ -14,6 +14,7 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/act.h"
+#include "sly2/so.h"
 
 // 0x1DF980 StaticInit_sensor and GlobalConstructors_sensor: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -78,14 +79,6 @@ struct SOPARTV
 typedef char assert_SOPART_size[sizeof(SOPARTV) == 0xB0 ? 1 : -1];
 
 /* SOTREE (sly2/so.h): the collision tree node of an SO; its bounding sphere and a dirty flag word at +0x70. */
-struct SOTREEV
-{
-    qword qwMin, qwMax;
-    U qwCenter;             /* 0x20 */
-    float sRadius;          /* 0x30 */
-    char pad34[0x70 - 0x34];
-    ulong grf;              /* 0x70: 2 queued on the dirty list, 0x20 set by LASEN's PtreeNew */
-};
 
 /* SO (0x150) as far as this TU reads it, with sly2/so.h's names. */
 struct SOV
@@ -104,7 +97,7 @@ struct SOV
     int cpart;              /* 0xE0 */
     SOPARTV *apart;          /* 0xE4 */
     void *psophys;          /* 0xE8 */
-    SOTREEV *ptree;          /* 0xEC */
+    SOTREE *ptree;          /* 0xEC */
     char padF0[0x148 - 0xF0];
     ulong grfSo;            /* 0x148: bit 34 set by InitSensor, bit 35 (so.h fUnk35) cleared by LASEN's Init */
 };
@@ -214,7 +207,7 @@ void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void LoadSoFromBrx(SOV *pso, CBinaryInputStream *pbis);
 void CloneSo(SOV *pso);
 void PostSoLoad(SOV *pso);
-SOTREEV *NewSoTree(SOV *pso);   /* SO::PtreeNew */
+SOTREE *NewSoTree(SOV *pso);   /* SO::PtreeNew */
 void RemoveSoParts(SOV *pso);
 void AddSoParts(SOV *pso);
 LO *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, OID oid, LO *ploContext);
@@ -238,7 +231,7 @@ void AddXp(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, 
 void DeliverZapToSo(ZPR *pzpr);   /* InflictZap */
 void UpdateSo(SOV *pso, float dt);
 float fmodf(float, float);
-void AppendDlEntry__FP2DLPv(void *pdl, SOTREEV *ptree);
+void AppendDlEntry__FP2DLPv(void *pdl, SOTREE *ptree);
 void RenderSoSelf(SOV *pso);
 
 void BuildLasenBeams(LASENV *plasen);
@@ -341,9 +334,9 @@ void LASEN::PostLoad()
 
 // LASEN vtable slot 53 (PtreeNew): the SO tree node, flagged 0x20. (inferred: beams use their own contacts)
 // Also known as: AddLaserAttachment (upstream readable / Sly 1 name; AddLaserAttachment__FP3ALO).
-extern "C" SOTREEV *NewLasenTree(LASENV *laser)
+extern "C" SOTREE *NewLasenTree(LASENV *laser)
 {
-    SOTREEV *ptree = NewSoTree(laser);
+    SOTREE *ptree = NewSoTree(laser);
     ptree->grf |= 0x20;
     return ptree;
 }
@@ -862,11 +855,11 @@ static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &dista
 extern "C" void RenderLasenSelf(LASENV *laser)
 {
     RenderSoSelf(laser);
-    SOTREEV *bound = laser->ptree;
+    SOTREE *bound = laser->ptree;
     if (!bound) return;
     CM *cam = &g_cm;
-    qword boundPosition = bound->qwCenter.q;
-    VU_FLOAT radius(&bound->sRadius, 0);
+    qword boundPosition = bound->boundsCenter;
+    VU_FLOAT radius(&bound->boundsRadius, 0);
     qword relativePosition = VuSub(boundPosition, *(qword *)&cam->pos);
     if (!IsInCameraFrustum(cam, relativePosition, radius)) return;
     U points[2];

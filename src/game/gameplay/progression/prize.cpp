@@ -116,7 +116,7 @@ extern "C" void PostDprizeLoad(DPRIZE *prize)
 } // namespace M_PostDprizeLoad
 
 namespace M_HandleDprizeMessage {
-struct LISTENER { char pad[0xC]; void *vptr; };   /* the vanish listener: an EXPL */
+   /* the vanish listener: an EXPL */
 struct A { int c; void *pv; int pad[14]; };
 struct M { SMA *sender; int x4; int goalAnim; };
 void HandleBasicMessage(DPRIZE *p, int n, struct M *pm) __asm__("HandleBasicMessage");
@@ -127,7 +127,7 @@ extern "C" void HandleDprizeMessage(DPRIZE *prize, int n, struct M *pm)
     struct A a;
     HandleBasicMessage(prize, n, pm);
     if (n == 10 && pm->sender == prize->sma && pm->goalAnim == 0x186) {
-        struct LISTENER *plo = (struct LISTENER *)prize->vanishListener;
+        struct EXPL *plo = (struct EXPL *)prize->vanishListener;
         if (plo) {
             a.c = 1;
             a.pv = prize;
@@ -158,7 +158,7 @@ union M3 { qword rows[3]; float values[12]; };
 /* The prize's two XFs (SO unknown58 / unknown5C: the position and orientation channels) as this function moves them:
    the local rotation rows, the local position (row 3), the world stamp and the velocity as quadwords. */
 struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
-struct CLOCKIsland { float time; FLOATWORD deltaTime; };   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
+   /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 
 extern float D_002C0D4C __asm__("D_002C0D4C");
 extern qword g_normalZ __asm__("g_normalZ");
@@ -319,7 +319,7 @@ namespace M_CheckDprizeBounce {
 // gNormal copy (anti dependence on that $f0 write) sched2 priority 7 > 6 for the li.s 1e-4; the asm mtc1 costs 1, so the
 // two tie and the li.s goes first as in the target.
 union U { qword qw; float g[4]; };
-struct XF { char pad[0x70]; qword pos; };
+
 struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
 
@@ -421,11 +421,11 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
     for (int i = 0; i < cpart; i++) {
         SOPART *ppart = appart[i];
         if (ppart->grf & (1UL << 49)) {
-            qword center = ppart->transform->pos;
+            qword center = ppart->transform->worldMatq.r[3].q;
             qword posCur = GetLoWorldPos(prize);
             float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->bounceRadius;
             if (g < gDeepest) {
-                vec.qw = QwNormalize(VuSub<qword>(prize->position, ppart->transform->pos), D_002A2DA0);
+                vec.qw = QwNormalize(VuSub<qword>(prize->position, ppart->transform->worldMatq.r[3].q), D_002A2DA0);
                 if (GDot(prize->velocity, vec.qw) < 0.0f) {
                     gDeepest = g;
                     normal.qw = vec.qw;
@@ -673,7 +673,7 @@ void RenderDprizeSelf(DPRIZE *prize)
 namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.40282347e+38f; }
 namespace M_SetDprizeDprizes {
 /* The position XF as quadwords (local translation +0x30, velocity +0xB0). */
-struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
+
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern qword D_002C0D60 __asm__("D_002C0D60");
 extern float D_002A773C __asm__("D_002A773C");
@@ -694,9 +694,9 @@ extern "C" void SetDprizeDprizes(DPRIZE *prize, int n)
     if (n != DPRIZE_STATE_IDLE && n != DPRIZE_STATE_VANISHING)
         SetLoParent(prize, 0, 0);
     if (prize->state == DPRIZE_STATE_NONE || prize->state == DPRIZE_STATE_GONE) {
-        struct O *o = (struct O *)prize->positionXf;
-        prize->position = o->position;
-        prize->velocity = o->velocity;
+        struct XF *o = (struct XF *)prize->positionXf;
+        prize->position = o->localMatq.r[3].q;
+        prize->velocity = o->velq.q;
     }
     switch (n) {
     case DPRIZE_STATE_IDLE:
@@ -1730,7 +1730,7 @@ extern "C" void ClearClueState(CLUE *clue)
 } // namespace M_func_001C7EA8
 
 namespace M_SetClueDprizes {
-struct LISTENER { char pad[0xC]; void *vptr; };   /* an EXPL */
+   /* an EXPL */
 struct M { int n; DPRIZE *p; int pad[14]; };
 void *CreateSfxSound(int n) __asm__("CreateSfxSound");
 void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
@@ -1752,7 +1752,7 @@ extern "C" void SetClueDprizes(CLUE *clue, int n)
     qword qv;
     if (n == clue->state) return;
     if (n == 1) {
-        struct LISTENER *plo = (struct LISTENER *)clue->collectListener;
+        struct EXPL *plo = (struct EXPL *)clue->collectListener;
         if (plo) {
             struct M m;
             m.n = n;
@@ -1959,7 +1959,7 @@ namespace M_func_001C84D8 {
 /* (Claude agent) UpdateVaultInput: VU nearest-of-9 selection state machine. The copy of p->index into a register
    variable (a3) reproduces the target's daddu scheduling; register pins as in other VU files. */
 union U {qword q;float f[4];};
-struct TIMER {char pad[0xA8];float end;};   /* the dial timer XF: +0xA8 is its end time (so.h names it as an XF pointer) */
+   /* the dial timer XF: +0xA8 is its end time (so.h names it as an XF pointer) */
 struct SGG;struct ALARM;
 extern float D_002C0FE8 __asm__("D_002C0FE8"),D_002A7798 __asm__("D_002A7798");
 extern qword D_002C0FF0[9] __asm__("D_002C0FF0");
@@ -2010,7 +2010,7 @@ extern "C" void UpdateVaultInput(VAULT*vault){
    }
    break;
   case 1:
-   if(((struct TIMER*)vault->dialTimer)->end<=ClockTime())SetVaultDialState(vault,0);
+   if(((struct XF*)vault->dialTimer)->arrivalTime<=ClockTime())SetVaultDialState(vault,0);
    break;
   case 2:
    if(!vault->pasegaDial||IsAsegaRetracted(vault->pasegaDial)){
@@ -2102,8 +2102,7 @@ extern "C" void SetVaultState(VAULT *vault, int n)
 } // namespace M_func_001C8730
 
 namespace M_func_001C8918 {
-struct X {   /* the dial timer XF as the dial reads it (so.h names +0xA8 as an XF pointer) */
-    char pad[0xA0]; void *parentFrame; int pA4; float endTime; int pAC; qword startPoint; qword digitPoint; qword endPoint; };
+
 extern qword D_002C1080 __asm__("D_002C1080");
 extern qword D_002C1090 __asm__("D_002C1090");
 void DropAsegaRef(void *vault) __asm__("DropAsegaRef");
@@ -2115,8 +2114,8 @@ qword TransformXfPos(void *frame, void *vault, qword q) __asm__("TransformXfPos"
 void SetXfRole(VAULT *vault, XF *px, int n) __asm__("SetXfRole");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, VAULT *owner, float position, float speed, int flags, void *output) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Loads the vault dial's selected index and its timer object (register-pinned for the match).
-extern "C" { static inline void Selection(const VAULT*vault,int*index,struct X**timer){
- register int selected __asm__("$2");register struct X*receiver __asm__("s0");
+extern "C" { static inline void Selection(const VAULT*vault,int*index,struct XF**timer){
+ register int selected __asm__("$2");register struct XF*receiver __asm__("s0");
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(vault),"m"(vault->selectedDigit),"m"(vault->dialTimer));
  *index=selected;*timer=receiver;
 } }
@@ -2125,7 +2124,7 @@ extern "C" { static inline void Selection(const VAULT*vault,int*index,struct X**
 // Also known as: SetVaultSub (upstream readable / Sly 1 name; SetVaultSub__FP2LOi).
 extern "C" void SetVaultDialState(VAULT *vault, int n)
 {
-    struct X *px;
+    struct XF *px;
     qword q;
     if (n == vault->dialState) return;
     DropAsegaRef(&vault->pasegaDial);
@@ -2141,16 +2140,16 @@ extern "C" void SetVaultDialState(VAULT *vault, int n)
         break;
     case 1:
         SetStepplayerGrabTarget(vault->user, vault->dialCenter);
-        ((struct X *)vault->dialTimer)->endTime = g_clock.time + 0.25f;
-        px = (struct X *)vault->dialTimer;
-        q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1080));
-        px->startPoint = q;
+        ((struct XF *)vault->dialTimer)->arrivalTime = g_clock.time + 0.25f;
+        px = (struct XF *)vault->dialTimer;
+        q = ConvertXfVec(0, px->parent, ConvertVecBetweenLos(vault->user, 0, D_002C1080));
+        px->velq.q = q;
         {int selected;Selection(vault,&selected,&px);
-        q=TransformXfPos(0,px->parentFrame,GetLoWorldPos(vault->digitTargets[selected]));}
-        px->digitPoint = q;
-        px = (struct X *)vault->dialTimer;
-        q = ConvertXfVec(0, px->parentFrame, ConvertVecBetweenLos(vault->user, 0, D_002C1090));
-        px->endPoint = q;
+        q=TransformXfPos(0,px->parent,GetLoWorldPos(vault->digitTargets[selected]));}
+        px->restValue = q;
+        px = (struct XF *)vault->dialTimer;
+        q = ConvertXfVec(0, px->parent, ConvertVecBetweenLos(vault->user, 0, D_002C1090));
+        px->rate = q;
         SetXfRole(vault, vault->dialTimer, 0x11);
         break;
     case 2:
@@ -2161,7 +2160,7 @@ extern "C" void SetVaultDialState(VAULT *vault, int n)
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
-typedef char transition_layout[(sizeof(qword)==16 && OFF(struct CLOCK,time)==0 && OFF(struct CLOCK,deltaTime)==4 && OFF(struct X,parentFrame)==0xA0 && OFF(struct X,endTime)==0xA8 && OFF(struct X,startPoint)==0xB0 && OFF(struct X,digitPoint)==0xC0 && OFF(struct X,endPoint)==0xD0)?1:-1];
+
 } // namespace M_func_001C8918
 #undef OFF
 

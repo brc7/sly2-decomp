@@ -1338,7 +1338,7 @@ namespace M_BENTLEY_FCanUseGadget {
 /* v4 (Claude agent laneB12, 2026-10-23): aligned 10 -> 4. f pinned to v1 (one commented pin) and used for case 12's x15C and the ChooseProxySpare result; cases 2/3/13 test their call results directly; an empty volatile asm "+r"(f) after the 1CADE0 call keeps the target's `daddu v1,v0; bnez v1` (cse otherwise tests v0). Left: reorg fill choices: case 12 beq slot (target steals li v0,1 from `one`, ours takes li v0,0 from the fallthrough; `if (f != k) goto fail` flips the layout: 4), and the pv == 0 test (target beql, ours beqz). */
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
 /* The carried tossable (classes.h CID100 has no fields yet): its gadget id. */
-struct A { char pad[0x15C]; int x15C; };
+
 extern int g_grfjoyt __asm__("g_grfjoyt");
 int IsStepplayerInJtMode() __asm__("IsStepplayerInJtMode");
 int CanJtUseGadgetInAir(void *pv, int k) __asm__("CanJtUseGadgetInAir");
@@ -1379,7 +1379,7 @@ extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
             switch (k) {
             case 4: case 7: case 9: case 11: case 13:
                 pv = bentley->jtthrow.ploCarried;
-                f = ((struct A *)pv)->x15C;
+                f = ((struct CID100 *)pv)->gadgetKind;
                 if (f == k)
                     goto one;
                 __asm__ __volatile__("");  /* keeps case 12's return 0 from being merged with the shared one */
@@ -1443,14 +1443,14 @@ extern "C" int GetBentleyGadgetFromId(char *bentley, int saak)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_StartBentleyGadget {
 /* The spawned tossable (classes.h CID100 has no fields yet): its gadget id and owner. */
-struct O { char pad[0x15C]; int x15C; char pad1[0x16C - 0x160]; void *p16C; };
+
 void BroadcastGameEvent(GAME *pg, int n, BENTLEY *p) __asm__("BroadcastGameEvent");
 JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k) __asm__("GetBentleyGadgetFromId");
 void SetJtThrowState(JTTHROW *pv, int n) __asm__("SetJtThrowState");
 void SetJtGrabState(JTGRAB *pv, int n, void *pv2, int m) __asm__("SetJtGrabState");
-struct O *AcquireProxyObject(PROXY *pv, int n) __asm__("AcquireProxyObject");
-int IsThrowableGadget(struct O *po) __asm__("IsThrowableGadget");
-void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct O *po) __asm__("SetGadgetRecordObject");
+struct CID100 *AcquireProxyObject(PROXY *pv, int n) __asm__("AcquireProxyObject");
+int IsThrowableGadget(struct CID100 *po) __asm__("IsThrowableGadget");
+void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct CID100 *po) __asm__("SetGadgetRecordObject");
 void GetGadgetButtonMask(BENTLEY *p, int k) __asm__("GetGadgetButtonMask");
 void SetBentleyState(BENTLEY *p, int n) __asm__("SetBentleyState");
 void ChargeGadgetMp(BENTLEY *p, int k) __asm__("ChargeGadgetMp");
@@ -1474,12 +1474,12 @@ extern "C" void StartBentleyGadget(BENTLEY *bentley, int k)
         }
         bentley->ppocketCur = pe;
         if (k == 7 || k == 11) {
-            struct O *object = AcquireProxyObject(pe->proxy, 0);
+            struct CID100 *object = AcquireProxyObject(pe->proxy, 0);
             if (!object)
                 return;
-            object->x15C = pe->idGadget;
+            object->gadgetKind = pe->idGadget;
             if (IsThrowableGadget(object)) {
-                object->p16C = bentley;
+                object->thrower = bentley;
                 SetGadgetRecordObject(bentley, pe, object);
             }
             bentley->jtthrow.ploCarried = (LO *)object;

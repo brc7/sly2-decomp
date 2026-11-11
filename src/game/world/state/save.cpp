@@ -14,6 +14,8 @@
 #include "sly2/sw.h"
 #include "sly2/util.h"
 #include "dmas.h"
+#include "sly2/basic.h"
+#include "sly2/task.h"
 
 // 0x1D9280 StaticInit_save and GlobalConstructors_save: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -27,11 +29,6 @@ struct CBinaryInputStream;
 struct MEMREQ { int cb; int cbAlign; };
 
 /* A save key: symbol ids (or numbers), one per path element. */
-struct SVKEY
-{
-    int c;
-    short *ash;
-};
 
 /* The schema (g_svstore = SW::savevars) is sly2/sw.h's SAVEVARS: SVENT entries and the SVN symbol table (SVNHASH). */
 
@@ -213,8 +210,6 @@ extern "C" void *GetSaveVarAddress(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveS
     return (char *)saveSet + (find.pent->ib + find.i * D_002C2D90[find.pent->kind]);
 }
 
-struct LMV { int a[2]; };
-struct SMPV { int a[3]; };
 
 // Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
 // Also known as: RefGetProgress (upstream readable / Sly 1 name; RefGetProgress__FP4TRIEP3KEYPc).
@@ -259,10 +254,10 @@ CRef GetSaveVar(SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
             CRef_SetClq(&ref, &((qword *)pv)[find.i]);
             break;
         case 7:
-            CRef_SetLm(&ref, &((LMV *)pv)[find.i]);
+            CRef_SetLm(&ref, &((LM *)pv)[find.i]);
             break;
         case 8:
-            CRef_SetSmp(&ref, &((SMPV *)pv)[find.i]);
+            CRef_SetSmp(&ref, &((SMP *)pv)[find.i]);
             break;
         case 9:
             ref.SetS32(((int *)pv)[find.i]);
@@ -317,10 +312,10 @@ CRef SetSaveVar(SAVEVARS *schema, SVKEY *key, const CRef &refVal, SAVEDATA *save
             ((qword *)pv)[find.i] = *(qword *)refVal.u.pv;
             break;
         case 7:
-            ((LMV *)pv)[find.i] = *(LMV *)refVal.u.pv;
+            ((LM *)pv)[find.i] = *(LM *)refVal.u.pv;
             break;
         case 8:
-            ((SMPV *)pv)[find.i] = *(SMPV *)refVal.u.pv;
+            ((SMP *)pv)[find.i] = *(SMP *)refVal.u.pv;
             break;
         }
     }

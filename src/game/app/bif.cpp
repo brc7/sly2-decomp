@@ -25,7 +25,6 @@
 #include "sly2/joy.h"
 #include "sly2/save.h"
 #include "sly2/sndmgr.h"
-
 // 0x125798 StaticInit_bif and GlobalConstructors_bif: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -3636,8 +3635,7 @@ extern "C" CRefData *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRefData *ret,
 
 // 0x1250D8 BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
 namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame {
-struct MATRIX4;
-typedef struct MATRIX4 { qword a[4]; } MATRIX4;
+
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c) __asm__("ConvertMat4BetweenLos");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");

@@ -6,19 +6,16 @@
 #include "sly2/slotheap.h"
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
-
 // 0x160648 StaticInit_constraint and GlobalConstructors_constraint: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-union U { qword q; float f[4]; int i[4]; };
-struct M4 { U r[4]; };
 
 /* A transform object as the constraint code sees it (local matrix, world matrix, parent, stamp, constraint). */
 struct XFMCONSTR;
 struct XFV
 {
-    M4 local;                   /* +0x0 local */
-    M4 world;                 /* +0x40 world */
+    MATRIX4Q local;                   /* +0x0 local */
+    MATRIX4Q world;                 /* +0x40 world */
     char pad80[0x88 - 0x80]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0xA0 - 0x94];
     XFV *parent;            /* +0xA0 */
     int stamp;              /* +0xA4 */
@@ -59,7 +56,7 @@ extern XFV D_002C44F0;
 extern "C" {
 void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void SetXfRole(LOBase *p, XFV *plo, int n);
-M4 InvertMatrix4Rigid(const M4 *m);
+MATRIX4Q InvertMatrix4Rigid(const MATRIX4Q *m);
 MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *m);
 void NormalizeRotateMatrix3__FP7MATRIX3(MATRIX3Q *m);
 qword *VECTOR_opAssign(qword *p, qword v);
@@ -91,7 +88,7 @@ extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream
 }
 
 // Transform point by the 4x4 matrix.
-static inline qword Transform(const M4 &matrix,qword point) {
+static inline qword Transform(const MATRIX4Q &matrix,qword point) {
  qword result;
  result = VuMulMatrix4(matrix.r[0].q, matrix.r[1].q, matrix.r[2].q, matrix.r[3].q, point);return result;
 }
@@ -112,7 +109,7 @@ extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *constraint)
 {
  MATRIX3Q rotation;
  if(constraint->position) {
-  M4 inv=InvertMatrix4Rigid(&constraint->dest->parent->world);
+  MATRIX4Q inv=InvertMatrix4Rigid(&constraint->dest->parent->world);
   XFV *dest=constraint->dest;
   VECTOR_opAssign(&dest->local.r[3].q,Transform(inv,constraint->source->world.r[3].q));
   dest->local.r[3].f[3]=1.0f;

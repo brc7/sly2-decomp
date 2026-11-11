@@ -28,7 +28,6 @@
 #include "sly2/clock.h"
 #include "sly2/cm.h"
 #include "sly2/game.h"
-
 // 0x20B6E8 StaticInit_stepguard and GlobalConstructors_stepguard: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -2326,13 +2325,13 @@ extern "C" void CloneAnimBinding(ANIMBINDING *binding)
 
 // 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 {
-struct ASEGA; struct INSTANCE; struct LEAP; struct ANIMBINDINGIsland; struct STEPGUARDIsland;
+ struct INSTANCE; struct LEAP;  struct STEPGUARDIsland;
 typedef union { qword q; float f; } U;
-struct ASEGA { char pad[0x1C]; float localTime; };
+
 struct INSTANCE { char pad[0x10]; qword velocity; /* DIRANIM */ char pad2[0x30 - 0x20]; struct ASEGA *asega; /* SMA */ };
 struct LEAP { char pad[0x10]; int state; char pad2[0x38 - 0x14]; struct ASEGA *asega; };
 /* island: register-pinned asm body */
-struct ANIMBINDINGIsland { int kind; int resource; void *instance; };
+
 /* island: register-pinned asm body; STEP +0x190/+0x1E0 as qwords (step.h has VECTOR/qword padding names) */
 struct STEPGUARDIsland : PO { char pad[0x190 - 0x180]; qword desiredVelocity; char pad2[0x1E0 - 0x1A0]; qword desiredAngularVelocity; char pad3[0xFC4 - 0x1F0]; struct ACT *scaleAct; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
@@ -2343,7 +2342,7 @@ void UpdateLeap(struct LEAP *) __asm__("UpdateLeap");
 // root motion (scaled by the special-state scale act when there is one); a leap drives
 // it only outside its airborne states.
 // Also known as: SteerByKinde (upstream readable / Sly 1 name; SteerByKinde__FP5KINDEP5GUARD).
-extern "C" void DriveStepguardFromAnim(struct ANIMBINDINGIsland *binding, struct STEPGUARDIsland *guard)
+extern "C" void DriveStepguardFromAnim(struct ANIMBINDING *binding, struct STEPGUARDIsland *guard)
 {
     U factor, value;
     register qword scalar __asm__("vf1");
@@ -2361,25 +2360,25 @@ extern "C" void DriveStepguardFromAnim(struct ANIMBINDINGIsland *binding, struct
     case BINDING_SM:
         {
             struct ASEGA *asega;
-            if (kind == BINDING_ASEG) asega = (struct ASEGA *)binding->instance;
-            else asega = ((struct INSTANCE *)binding->instance)->asega;
+            if (kind == BINDING_ASEG) asega = (struct ASEGA *)binding->payload;
+            else asega = ((struct INSTANCE *)binding->payload)->asega;
             if (asega) {
-                value.q = GetStepAsegaTranslation(guard, asega, asega->localTime);
-                extra = GetStepAsegaRotation(guard, asega, asega->localTime);
+                value.q = GetStepAsegaTranslation(guard, asega, asega->time);
+                extra = GetStepAsegaRotation(guard, asega, asega->time);
             }
         }
         break;
     case BINDING_LEAP:
         {
             struct LEAP *leap;
-            UpdateLeap((struct LEAP *)binding->instance);
-            leap = (struct LEAP *)binding->instance;
+            UpdateLeap((struct LEAP *)binding->payload);
+            leap = (struct LEAP *)binding->payload;
             if (leap->state > 0 && (leap->state < 3 || leap->state == 4)) break;
-            value.q = GetStepAsegaTranslation(guard, leap->asega, leap->asega->localTime);
+            value.q = GetStepAsegaTranslation(guard, leap->asega, leap->asega->time);
         }
         break;
     case BINDING_DIRANIM: {
-        register struct INSTANCE *object __asm__("v0")=(struct INSTANCE *)binding->instance;
+        register struct INSTANCE *object __asm__("v0")=(struct INSTANCE *)binding->payload;
         register qword vector __asm__("v0");
         __asm__("lq %0,16(%1)":"=r"(vector):"r"(object),"m"(object->velocity));
         value.q=vector; }
@@ -2837,9 +2836,7 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, LO *object, qword qw)
 
 // 0x20A168 CompareStepguardStimuli
 namespace M_func_0020A168 {
-struct STIMTEMPLATE; struct STIMULUS;
-struct STIMTEMPLATE { char pad[0x50]; int kind; };
-struct STIMULUS { char pad[0x14]; struct STIMTEMPLATE *stimTemplate; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float time; char pad4[4]; int level; char pad5[0x60 - 0x58]; };
+
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 
 // VU0 helper: squared distance from an object's position to a point.
@@ -3312,8 +3309,8 @@ extern "C" void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarg
 
 // 0x20ACC0 UpdateStepguardAim
 namespace M_func_0020ACC0 {
-struct MATRIX3; struct AIMOBJECT; struct CID120Island;
-typedef struct MATRIX3 { qword a[3]; } MATRIX3;
+ struct AIMOBJECT; struct CID120Island;
+
 struct AIMOBJECT { char pad[0x30]; qword pos; char pad2[0x60]; int unknownA0; };
 /* island: the aim object read as an XF with a qword at +0x30 (its matrix row) in an asm operand */
 struct CID120Island { char pad[0x90]; qword strikeOffset; struct AIMOBJECT *aimObject; };

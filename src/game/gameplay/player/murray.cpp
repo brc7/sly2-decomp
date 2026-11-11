@@ -24,7 +24,6 @@
 #include "sly2/util.h"
 #include "sly2/game.h"
 #include "sly2/clock.h"
-
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -2480,7 +2479,7 @@ namespace M_func_001B8D30 {
 struct M3 { qword row[3]; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 /* A LEAP (leap.h, no fields yet) as written here: +0x40 its goal position. */
-struct LEAPV { char pad[0x40]; qword posGoal; };
+
 // Zero the xyz components of pv.
 extern "C" { static __inline__ void Zero(VECTOR *pv) { pv->z = 0; pv->y = 0; pv->x = 0; } }
 void StopLeap(LEAP *o) __asm__("StopLeap");
@@ -2535,7 +2534,7 @@ extern "C" void SetMurrayPowerSubstate(MURRAY *murray, int st)
             register qword origin __asm__("vf2") = uv.q;
             __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %0, %2x"
                     : "+j"(axis) : "j"(origin), "j"(u2.q));
-            ((LEAPV *)q)->posGoal = axis;
+            ((LEAP *)q)->posGoal = axis;
         }
         murray->qwUnknown190 = D_002A2DD0;
         break;

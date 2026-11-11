@@ -735,10 +735,6 @@ namespace M_WakeSoWater__FP2SOP5WATERfP6VECTORT3ff {
 // - E is 0x14 bytes (memset sizeof); the splash position (v raised 30 in z) is its own stack local.
 
 // Sly 1 util.h CLQ: quadratic g0 + x*(g1 + x*g2).
-union CLQ {
-    struct { float g0, g1, g2, unused; };
-    float coefficients[4];
-};
 
 // 16-byte float views; the field names are unknown (same type as in StaticInit_emitter).
 union G4V { struct { float g0, g4, g8, gC; }; float ag[4]; };

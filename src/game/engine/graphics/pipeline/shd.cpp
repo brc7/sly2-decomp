@@ -19,7 +19,6 @@
 #include "sly2/gs.h"
 #include "sly2/stackscope.h"
 #include "sly2/vu0.h"
-
 // 0x1ED650 StaticInit_shd and GlobalConstructors_shd: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -1192,7 +1191,7 @@ void ColorCorrectRgba16(U *pu)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ColorCorrectRgba {
-struct RGBA { unsigned char r, g, b, a; };
+
 struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
 void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv) __asm__("ConvertRgbaToFloats");
 void ColorCorrectVector(struct VECTOR *pv) __asm__("ColorCorrectVector");
@@ -1207,7 +1206,7 @@ void ColorCorrectRgba(struct RGBA *prgba) __asm__("ColorCorrectRgba"); void Colo
         rgba = *prgba;
         ConvertRgbaToFloats(&rgba, &v);
         ColorCorrectVector(&v);
-        ConvertVectorToRgba(&v, prgba->a, prgba);
+        ConvertVectorToRgba(&v, prgba->alpha, prgba);
     }
 }
 } // namespace M_ColorCorrectRgba

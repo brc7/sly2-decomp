@@ -15,12 +15,11 @@
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
 #include "sly2/sw.h"
-
 // 0x2037F0 StaticInit_recon and GlobalConstructors_recon: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 union V { qword q; float f[4]; };
-struct VECTORV { float x, y, z; };   /* sly2/basic.h's VECTOR has constructors (not in a union) */
+   /* sly2/basic.h's VECTOR has constructors (not in a union) */
 
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
 
@@ -65,7 +64,7 @@ struct RECONSEL
 {
     int state;              /* 0x00 */
     char pad4[0xC];
-    union { VECTORV vOrigin; qword origin; };    /* 0x10 screen point of the prompt */
+    union { VECTOR vOrigin; qword origin; };    /* 0x10 screen point of the prompt */
     V position;             /* 0x20 world position of the viewer (raised by 20) */
     int count;              /* 0x30 */
     RECONTGT *items[16];    /* 0x34 */
@@ -161,7 +160,7 @@ int IsCameraPolicyActive(CPLCY *pcplcy);                                    /* I
 // Initializes the recon (camera snapshot) selector: owner, aim origin at the screen centre (320, 246.4), state -1.
 extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 {
-    VECTORV *pv = &reconSel->vOrigin;
+    VECTOR *pv = &reconSel->vOrigin;
     float y;
     reconSel->model = pmodel;
     pv->x = 0;

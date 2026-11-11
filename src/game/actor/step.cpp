@@ -24,6 +24,7 @@
 #include "sly2/clock.h"
 #include "sly2/sndmgr.h"
 #include "sly2/sw.h"
+#include "sly2/xp.h"
 
 // The real classes behind the per-function views below, for their virtual calls.
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
@@ -653,20 +654,7 @@ struct M3
 };
 
 /* one side of a contact: 0x40 bytes, its velocity at +0x30 */
-struct XPD
-{
-    char pad0[0x30];
-    qword v;
-};
 
-struct XP
-{
-    struct XPD axpd[2];
-    qword normal;
-    float gDist;
-    int unk94[2];
-    int xpk;
-};
 
 struct STEP : PO
 {
@@ -732,14 +720,14 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
 extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd)
 {
     AdjustSoXpVelocity(step, pxp, ixpd);
-    if (pxp->xpk != 0xE)
+    if (pxp->kind != 0xE)
         return;
 
-    float gVn = QwordX(VuDot(VuSub(pxp->axpd[0].v, pxp->axpd[1].v), pxp->normal));
+    float gVn = QwordX(VuDot(VuSub(pxp->axps[0].v, pxp->axps[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
-    SmoothValue__FfffP3SMPPf(pxp->gDist, step->unknown210, g_clock.deltaTime, D_002C3C98, &gVnMin);
-    SmoothValue__FfffP3SMPPf(pxp->gDist, 0.0f, g_clock.deltaTime, D_002C3CA8, &gVnTarget);
+    SmoothValue__FfffP3SMPPf(pxp->g, step->unknown210, g_clock.deltaTime, D_002C3C98, &gVnMin);
+    SmoothValue__FfffP3SMPPf(pxp->g, 0.0f, g_clock.deltaTime, D_002C3CA8, &gVnTarget);
     gVn = gVn > gVnMin ? gVn : gVnMin;
     if (gVn < gVnTarget)
     {
@@ -754,7 +742,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
         gVn += dg > dgMin ? dg : dgMin;
     }
 
-    struct XPD *pxpd = &pxp->axpd[ixpd];
+    struct XPS *pxpd = &pxp->axps[ixpd];
     struct M3 *pmat = &step->matTarget;
     qword v = QwRotate(pmat, step->unknown190);
     qword normal = pxp->normal;
@@ -762,7 +750,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     struct VU_FLOAT vuVn = VuFloat(-gVn);
     struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->unknown180);
     pxpd->v = QwAddScaled2(pxpd->v, normal, vuVn.qw, vT, vuK.qw);
-    pxp->gDist += step->unknown210 - step->gUnk248;
+    pxp->g += step->unknown210 - step->gUnk248;
 }
 } // namespace M_AdjustStepXpVelocity
 

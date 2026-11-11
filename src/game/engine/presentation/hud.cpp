@@ -160,25 +160,25 @@ extern "C" void BuildTimerText(void *f)
 
 // 0x210FE0 BuildBinocularReadoutText
 namespace M_func_00210FE0 {
-struct X : STEP { char pad[0xF20 - 0x2C0]; int modeKind; char padf24[0x18]; float hudZoom; };   /* STEPPLAYER jtmode.kind (0 look, 1 zoom), jtmode.hud.zoom */
+   /* STEPPLAYER jtmode.kind (0 look, 1 zoom), jtmode.hud.zoom */
 extern char D_002A8AB8[] __asm__("D_002A8AB8"), D_002A8AC0[] __asm__("D_002A8AC0"), D_002A8AC8[] __asm__("D_002A8AC8"), D_002A8AD0[] __asm__("D_002A8AD0"), D_002A8AD8[] __asm__("D_002A8AD8");
-int IsBasicDerivedFrom__FP5BASIC3CID(struct X *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+int IsBasicDerivedFrom__FP5BASIC3CID(struct STEPPLAYER *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int sprintf(char *, char *, ...) __asm__("sprintf");
 int fptodp(float) __asm__("fptodp");
 // HUD text 0x2DC: the binocucom readout, per character (Sly: zoom "x%d", Bentley: "x%5.3f", Murray: distance words).
 // (inferred)
 extern "C" void BuildBinocularReadoutText(char *text)
 {
-    struct X *hero = (struct X *)GetHeroPo(&g_sw);
+    struct STEPPLAYER *hero = (struct STEPPLAYER *)GetHeroPo(&g_sw);
     float zoom;
     if (!hero || !IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER))
         return;
-    switch (hero->modeKind) {
+    switch (hero->jtmode.kind) {
     case 0:
-        zoom = g_cm.cplook.rZoomMax * hero->hudZoom;
+        zoom = g_cm.cplook.rZoomMax * hero->jtmode.hud.zoom;
         break;
     case 1:
-        zoom = g_cm.cpzoom.rZoomMax * hero->hudZoom;
+        zoom = g_cm.cpzoom.rZoomMax * hero->jtmode.hud.zoom;
         break;
     }
     if (IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_JT)) {

@@ -16,7 +16,6 @@
 #include "sly2/jt.h"
 #include "sly2/clock.h"
 #include "sly2/classes.h"   /* PIPE */
-
 // 0x19EF50 StaticInit_pipe_jt and GlobalConstructors_pipe_jt: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -28,9 +27,9 @@ union U{qword q;float f[4];int i[4];};
 struct COMPONENT;struct EFFECT;
 /* The pipe the climb follows: the real PIPE (sly2/classes.h). */
 typedef PIPE PATH;
-struct SMPV{float maximum,minimum,duration;};struct LMV{float low,high;};
-struct WORK{U ahead,behind;union{U input;SMPV smooth;}reuse;LMV limit;};
-struct WORKB{U ahead,behind;LMV limit;U point,world,target;};
+struct SMPV{float maximum,minimum,duration;};
+struct WORK{U ahead,behind;union{U input;SMPV smooth;}reuse;LM limit;};
+struct WORKB{U ahead,behind;LM limit;U point,world,target;};
 /* the clip channel FindAsegChannel returns: aseg.h CHN, its curve act.h AC */
 struct PIPE;
 extern "C"{
@@ -49,13 +48,13 @@ qword PosSmooth(qword,qword,float,SMPV*,U*);
 void SetJtAirJump(void*,int,void*,void*);int ConsumeButtonsPressedWithin__5POCTLUif(POCTL*,int,float);int GetButtonsPressedWithin__5POCTLUif(POCTL*,int,float);void ClearPoctlJoyPressed(POCTL*,int);
 void StartJtMode(void*,int,void*,void*);int IsAsegaRetracted(ASEGA*);void SetJtPipeState(JTPIPE*,int);
 float ClampShapeDistance(PATH*,float);void EvaluateShapeAtDistance(PATH*,float,U*,U*);qword GetPoctlLateralVector(POCTL*,qword);
-void GetJtPipeDistanceRange(JTPIPE*,LMV*);float SmoothValue__FfffP3SMPPf(float,float,float,SMPV*,float*);float ModPositive__Fff(float,float);void RecalculateAsegBlend(ASEG*);
+void GetJtPipeDistanceRange(JTPIPE*,LM*);float SmoothValue__FfffP3SMPPf(float,float,float,SMPV*,float*);float ModPositive__Fff(float,float);void RecalculateAsegBlend(ASEG*);
 float fabsf(float);
 qword ConvertPosBetweenLos(void*,void*,qword);qword GetLoWorldPos(void*);
 void AddJtPlaceOnCurve(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,STEPPLAYER *);void UnsubscribeLoObject(PATH*,STEPPLAYER *);
 void LinkStepAttachment(STEPPLAYER *,PATH*,int);
-float ClampToLimits__FP2LMf(LMV*,float);
+float ClampToLimits__FP2LMf(LM*,float);
 void SetStepplayerTnOverride(STEPPLAYER *,void*);
 EFFECT*CreateSfxSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 void SetJtCaneState__FP2JTi(STEPPLAYER *,int);void ReleaseSma(SMA**);
@@ -148,16 +147,16 @@ extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
 // The distance range the player may climb on the current pipe: unbounded on a closed pipe, else from the bottom
 // (+35, or +100 depending on the pipe) to 100 below the top.
 // Also known as: LmClimb (upstream readable / Sly 1 name; LmClimb__FP5ACTORPf).
-extern "C" void GetJtPipeDistanceRange(JTPIPE *pipe, LMV *ag) {
+extern "C" void GetJtPipeDistanceRange(JTPIPE *pipe, LM *ag) {
     if (((PATH *)pipe->pipeCurve)->isClosed) {
-        ag->low = -3.40282346638528859812e+38f;
-        ag->high = 3.40282346638528859812e+38f;
+        ag->minValue = -3.40282346638528859812e+38f;
+        ag->maxValue = 3.40282346638528859812e+38f;
     } else if (pipe->isReversed) {
-        ag->low = GetShapeMinDistance(((PATH *)pipe->pipeCurve)) + 35.0f;
-        ag->high = GetShapeMaxDistance(((PATH *)pipe->pipeCurve)) - 100.0f;
+        ag->minValue = GetShapeMinDistance(((PATH *)pipe->pipeCurve)) + 35.0f;
+        ag->maxValue = GetShapeMaxDistance(((PATH *)pipe->pipeCurve)) - 100.0f;
     } else {
-        ag->low = GetShapeMinDistance(((PATH *)pipe->pipeCurve)) + 100.0f;
-        ag->high = GetShapeMaxDistance(((PATH *)pipe->pipeCurve)) - 35.0f;
+        ag->minValue = GetShapeMinDistance(((PATH *)pipe->pipeCurve)) + 100.0f;
+        ag->maxValue = GetShapeMaxDistance(((PATH *)pipe->pipeCurve)) - 35.0f;
     }
 }
 
@@ -341,8 +340,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     pipe->velocityAlong = nextMemory;
     if (!path->isClosed) {
         GetJtPipeDistanceRange(pipe, &w.limit);
-        (void)SmoothValue__FfffP3SMPPf(pipe->s, w.limit.low, clock->deltaTime, &w.reuse.smooth, &lowSpeed);
-        (void)SmoothValue__FfffP3SMPPf(pipe->s, w.limit.high, clock->deltaTime, &w.reuse.smooth, &highSpeed);
+        (void)SmoothValue__FfffP3SMPPf(pipe->s, w.limit.minValue, clock->deltaTime, &w.reuse.smooth, &lowSpeed);
+        (void)SmoothValue__FfffP3SMPPf(pipe->s, w.limit.maxValue, clock->deltaTime, &w.reuse.smooth, &highSpeed);
         float low = -highSpeed, high = -lowSpeed;
         if (speed < low)
             speed = low;

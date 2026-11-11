@@ -13,6 +13,7 @@
 #include "sly2/scrap.h"
 #include "sly2/classes.h"
 #include "sly2/wr.h"
+#include "sly2/basic.h"
 
 // 0x22C6C0 StaticInit_wr and GlobalConstructors_wr: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -43,15 +44,7 @@ struct VU_VECTOR
     VU_VECTOR(const VECTOR4 &vec) { q = *(const qwordV *)&vec; }
 };
 
-struct CLQV
-{
-    float g0, g1, g2, g3;
-};
 
-struct LMV
-{
-    float minValue, maxValue;
-};
 
 struct SO;
 
@@ -62,12 +55,6 @@ struct GLOBV
     MATRIX4V *pmatUnk08;
 };
 
-struct SLV
-{
-    void *head;
-    void *tail;
-    int ibSle;
-};
 
 struct WARPVTX
 {
@@ -191,14 +178,14 @@ static inline qwordV VuLength(qwordV v)
 
 
 // Set the limit range from g0 and g1 in either order.
-static inline void SetLm(LMV *plm, const float &g0, const float &g1)
+static inline void SetLm(LM *plm, const float &g0, const float &g1)
 {
     plm->minValue = Min(g0, g1);
     plm->maxValue = Max(g0, g1);
 }
 
 // The line through (s0, u0) and (s1, u1)
-static inline void FitLinearClq(CLQV *pclq, const float &s0, const float &u0, const float &s1, const float &u1)
+static inline void FitLinearClq(CLQ *pclq, const float &s0, const float &u0, const float &s1, const float &u1)
 {
     pclq->g1 = (u0 - u1) / (s0 - s1);
     pclq->g0 = u0 - pclq->g1 * s0;
@@ -256,8 +243,8 @@ static inline float FloatFromVu(VU_FLOAT g)
 void UpdateWrStateVectors(WR *warp)
 {
     MATRIX4V dmat;
-    CLQV clq;
-    LMV lm;
+    CLQ clq;
+    LM lm;
     qwordV posBend;
     qwordV posWorldBend;
 

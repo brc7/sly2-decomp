@@ -806,7 +806,7 @@ namespace M_UpdateCphang {
 // VU_VECTOR(const qword &) wrappers, VecCombo(f1, v1, f2, v2)); Sub taking VU_VECTORs makes both p14->pos reads plain MEMs,
 // so cse2 keeps the target's two lqc2 0x20(v0); k is read through a VU_FLOAT(const float *) ctor whose word input has a
 // never-chosen "V" alternative (the ClipCameraEye trick: lw instead of lwc1+mfc1).
-struct CLQ { float g0, g1, g2, pad; };
+
 extern CLQ D_002BDA10 __asm__("D_002BDA10");
 extern LM D_002BDA20 __asm__("D_002BDA20");
 extern CLQ D_002BDA30 __asm__("D_002BDA30");
@@ -1167,8 +1167,7 @@ namespace M_UpdateCptwoshot {
 union U { qword q; float f[4]; };
 struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
-struct CLQ { float g0, g1, g2, pad; };
-struct LM { float minValue, maxValue; int pad[2]; };
+
 extern float D_002BDACC __asm__("D_002BDACC");
 extern CLQ D_002BDAD0 __asm__("D_002BDAD0"), D_002BDAF0 __asm__("D_002BDAF0"), D_002BDB10 __asm__("D_002BDB10"), D_002BDB30 __asm__("D_002BDB30");
 extern LM D_002BDAE0 __asm__("D_002BDAE0"), D_002BDB00 __asm__("D_002BDB00"), D_002BDB20 __asm__("D_002BDB20"), D_002BDB40 __asm__("D_002BDB40");

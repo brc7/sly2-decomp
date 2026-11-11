@@ -2062,7 +2062,7 @@ extern "C" void SetSndmgrMasterVolume(SNDMGR *soundManager, float volume)
 
 namespace M_SetSndmgrChannelVolume {
 typedef void (STREAMSND::*PMF)();
-struct LM {float low,high;};
+
 extern LM g_lmZeroOne __asm__("g_lmZeroOne");
 extern PMF D_002A8298 __asm__("D_002A8298"),D_002A82A0 __asm__("D_002A82A0");
 extern float ClampToLimits__FP2LMf(LM *,float) __asm__("ClampToLimits__FP2LMf");
@@ -2114,9 +2114,7 @@ typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
 typedef char layout_int[(sizeof(int)==4)?1:-1];
 typedef char layout_float[(sizeof(float)==4)?1:-1];
 typedef char layout_member_pointer[(sizeof(PMF)==8)?1:-1];
-typedef char layout_limit[(sizeof(LM)==8)?1:-1];
-typedef char layout_limit_low[((unsigned)&((LM*)0)->low==0)?1:-1];
-typedef char layout_limit_high[((unsigned)&((LM*)0)->high==4)?1:-1];
+
 } // namespace M_SetSndmgrChannelVolume
 
 namespace M_ResetSndmgrVolumes {

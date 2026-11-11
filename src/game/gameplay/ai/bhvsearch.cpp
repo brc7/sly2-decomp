@@ -10,7 +10,6 @@
 #include "sly2/clock.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
-
 // 0x173000 StaticInit_bhvsearch and GlobalConstructors_bhvsearch: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -42,16 +41,16 @@ typedef char assert_QUERY_candidate[(unsigned int)&((QUERY *)0)->candidate == 0x
 /* An object of one of the global lists ChooseBhvSearchPoints searches (next links at several offsets). */
 typedef struct NODE{char pad0[0xE0];struct NODE*nextE0;char padE4[4];unsigned flags;char padEC[0x18];struct NODE*next104;char pad108[4];float reach;char pad110[0x64];struct NODE*next174;char pad178[0x3C];struct NODE*next1B4;}NODE;
 typedef struct WORK{QUERY query;NODE*result256[256];NODE*result32[32];NODE*result128[128];}WORK;
-typedef struct LMV{float low,high;}LMV;
+
 struct GOAL { qword a; qword v; };
 
 extern const float D_002A5398;   /* defined below where the ELF has it (.rodata order) */
 float D_002BE5A0 = 2.0f;   /* bhvsearch's .data starts here (address order) */
 extern const float D_002A53D4;   /* defined below where the ELF has it (.rodata order) */
-extern const LMV D_002A53C0, D_002A53C8;   /* distance, +-pi/4; defined below where the ELF has them (.rodata order) */
+extern const LM D_002A53C0, D_002A53C8;   /* distance, +-pi/4; defined below where the ELF has them (.rodata order) */
 extern qword D_002A2DA0,g_normalZ;
 extern const float D_002A53D0;   /* defined below where the ELF has it (.rodata order) */
-LMV D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
+LM D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
 extern "C" {
 void InitBhv(BHV171 *behavior);
 void StartBhv(BHV171 *behavior);
@@ -88,7 +87,7 @@ void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 qword SetVectorCylind(float,float,float);
 }
 float RandomFloatInRange(float gMin, float gMax);
-int IsWithinLimits(LMV *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
+int IsWithinLimits(LM *plm, float g) __asm__("IsWithinLimits__FP2LMf");   /* LMV: this file's view of LM */
 float NormalizeAngle(float rad);
 int IsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 
@@ -363,8 +362,8 @@ extern "C" int TryAddSearchCandidate(QUERY *query) {
     float f;
     d = VuSub(query->candidate.q, query->point.q);
     GetVectorSphere(d, &a, &b, &c);
-    if (!IsWithinLimits((LMV *)&D_002A53C0, c)) return 0;
-    if (!IsWithinLimits((LMV *)&D_002A53C8, b)) return 0;
+    if (!IsWithinLimits((LM *)&D_002A53C0, c)) return 0;
+    if (!IsWithinLimits((LM *)&D_002A53C8, b)) return 0;
     if (query->count >= 0x40) return 0;
     row = &query->row[query->count++];
     row->point.q = query->candidate.q;
@@ -433,8 +432,8 @@ static inline qword VuFloatVolatile(float g)
 // vsub r = t - b. Allocation-only constraints: "=j"(t)/"1"(t) marks the copy t as consumed by the vsub, and "0"(b) puts r in b's register (as in the target)
 #define QW_SUB_T(r,t,b) __asm__("vsub.xyzw %0, %1, %2":"=j"(r),"=j"(t):"0"(b),"1"(t))
 
-namespace RO_ORDER { extern const LMV r_D_002A53C0 __asm__("D_002A53C0") = {200.0f, 1200.0f}; }
-namespace RO_ORDER { extern const LMV r_D_002A53C8 __asm__("D_002A53C8") = {-0.785398185f, 0.785398185f}; }
+namespace RO_ORDER { extern const LM r_D_002A53C0 __asm__("D_002A53C0") = {200.0f, 1200.0f}; }
+namespace RO_ORDER { extern const LM r_D_002A53C8 __asm__("D_002A53C8") = {-0.785398185f, 0.785398185f}; }
 namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.40282347e+38f; }
 // 0x1728B0: Chooses up to four search points: gathers candidate hiding places (several global object lists, cids
 // 0x23/0x67/0x1B), sorts them by heading, keeps up to four well-spread points and fills the rest randomly behind
@@ -562,9 +561,9 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
     while (accepted < 4) {
         float angle, length;
         qword point;
-        lastAngle += RandomFloatInRange(D_002BE5A8.low, D_002BE5A8.high);
+        lastAngle += RandomFloatInRange(D_002BE5A8.minValue, D_002BE5A8.maxValue);
         angle = lastAngle + w.query.heading;
-        length = RandomFloatInRange(D_002BE5B0.low, D_002BE5B0.high);
+        length = RandomFloatInRange(D_002BE5B0.minValue, D_002BE5B0.maxValue);
         point = VuAdd(anchor, SetVectorCylind(angle, length, 0.0f));
         {
             BHV171POINT *pair = &behavior->searchPoints[accepted];

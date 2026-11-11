@@ -13,7 +13,6 @@
 #include "sly2/cm.h"
 #include "sly2/classes.h"
 #include "sly2/save.h"
-
 // 0x2263F8 StaticInit_turret and GlobalConstructors_turret: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -21,9 +20,9 @@ union V {qword q;float f[4];};
 struct M3 {qword r[3];};
 struct M4 {qword r[4];};
 struct SMPV {float a,b,c,d;};
-struct SHAPEV {char pad[0x30];float radius;};
+
 /* The aim target. */
-struct O {char pad[0x60];void *component;char pad64[0x88];SHAPEV *shape;};
+struct O {char pad[0x60];void *component;char pad64[0x88];SHAPE *shape;};
 /* View of the turret (a PO). */
 struct TURRETV
 {
@@ -240,7 +239,7 @@ extern "C" void UpdateTurretZoom(TURRETV *turret)
         V scratch;
         /* the field of view that holds the target: from its radius at its distance, and from where it will be next
            frame (LoadIdentityMatrix4 predicts its matrix) as seen in the turret's frame */
-        float radius = turret->target->shape ? turret->target->shape->radius : 0.0f;
+        float radius = turret->target->shape ? turret->target->shape->nextSpliceTime : 0.0f;
         scratch.q = ToVF(GetLoWorldPos(turret));
         float angle = atanf(radius / (Length(VuSub(scratch.q, GetLoWorldPos(turret->target))) * 0.5f));
         angle = angle + angle;

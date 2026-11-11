@@ -15,7 +15,6 @@
 #include "sly2/sw.h"
 #include "sly2/so.h"
 #include "sly2/richtext.h"
-
 // 0x1CDB78 StaticInit_render and GlobalConstructors_render: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -63,7 +62,7 @@ extern "C" void FillScreenRect(RGBA *color, GIFS *gifs, float x0, float y0, floa
 }
 
 /* Views used by DrawWorldLabel: a limit and the text box it is drawn in (the rich text is sly2/richtext.h's CRichText2). */
-struct LMV { float low, high; };
+
 struct CONFIG;
 extern "C" void CTextBox_SetPos(CONFIG *, float, float);
 extern "C" void CTextBox_SetSize(CONFIG *, float, float);
@@ -91,10 +90,10 @@ struct CONFIG
 float D_002C1F00[4] = {33218888.0f, 33218888.0f, 4.25201766e+09f, 0.0f};
 float D_002C1F10[4] = {8.62348902e+09f, 8.62348902e+09f, 1.28849019e+10f, 0.0f};
 float D_002C1F20 = 640.0f;   /* render's .data (address order) */
-LMV D_002C1F28 = {0.4f, 1.5f};
+LM D_002C1F28 = {0.4f, 1.5f};
 int D_002C1F30 = 8, D_002C1F34 = 8;   /* screen margins x, y */
 extern "C" qword ConvertCmWorldToScreen(CM *, qword);
-extern "C" float ClampToLimits__FP2LMf(LMV *, float);
+extern "C" float ClampToLimits__FP2LMf(LM *, float);
 extern "C" CRichText2 *CRichText_ctor(CRichText2 *, const char *, float);
 extern "C" void CRichText_GetExtents(CRichText2 *, float *, float *);
 extern "C" void DrawRichText2(CRichText2 *, CONFIG *, int);

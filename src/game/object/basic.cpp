@@ -11,7 +11,6 @@
 #include "sly2/cref.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
-
 // 0x133598 StaticInit_basic and GlobalConstructors_basic: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -23,8 +22,8 @@ struct REFNODE;
 struct CFrame;
 /* A sidebag (pool 4): count, then the GC link word (index/page bit-fields, bit 15 a GC mark). */
 struct SIDEBAG { int cref; int grfGc; };
-struct BASICV : BASIC { };   /* sly2/basic.h's BASIC; the C-named member bodies below take it */
-struct LO : BASICV { };
+   /* sly2/basic.h's BASIC; the C-named member bodies below take it */
+struct LO : BASIC { };
 /* A subscription: the subscriber and its count. */
 struct REFNODE { LO *plo; int cref; REFNODE *pnext; };
 enum CIDV { CIDV_Nil = -1 };
@@ -40,7 +39,7 @@ struct CPAIR { int cref; int x4; CRefData ref; SPAIR sp; };
 
 /* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::lastEventId). */
 struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEvent as the callback list */
-struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
+struct SWCB { float t; BASIC *pbasic; CPAIR *pair; int id; SWCB *pnext; };
 typedef char assert_SWCB_size[sizeof(SWCB) == sizeof(SWEVENT) ? 1 : -1];   /* the record sly2/sw.h SWEVENT, with this file's pair and BASIC views */
 
 extern "C" {
@@ -55,7 +54,7 @@ void EnsureBasicOption__FP5BASICiP4CRef(CRefData *pref, LO *plo, int optid, CRef
 void Decref__4CRef(CRefData *pref);
 void CRef_ctor_CLQ(CRefData *pref, CLQ *pclq);
 void CRef_ctor_LM(CRefData *pref, LM *plm);
-void CRef_ctor_BASIC(CRefData *pref, BASICV *pbasic);
+void CRef_ctor_BASIC(CRefData *pref, BASIC *pbasic);
 void CRef_ctor(CRefData *pref, qword v);
 CPAIR *PtNew__t6CGcObj1Z5CPair(void);
 void Attach__t7CRefPtr1Z5CPairP5CPair(SPAIR *psp, CPAIR *pn);
@@ -63,7 +62,7 @@ void PairPtr_Assign(SPAIR *psp, CPAIR *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPa
 void PairPtr_Release(SPAIR *psp, int n) __asm__("_$_t7CRefPtr1Z5CPair");
 CRefData *CRef_SetPair(CRefData *pref, CPAIR *pn);
 void CRef_SetSymid(CRefData *pref, int n);
-void CRef_SetBasic(CRefData *pref, BASICV *pbasic);
+void CRef_SetBasic(CRefData *pref, BASIC *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 void EvalExpression__FP5CPairP6CFrame(CRefData *pref, CPAIR *pair, CFrame *frame);
 void CRefAssign(CRefData *pref, CRefData *prefFrom) __asm__("__as__4CRefRC4CRef");   /* CRef::operator= */
@@ -72,12 +71,12 @@ void RemoveSlEntry(DLV *, SWCB *);
 int FindBindingPtr__6CFrameUii(CFrame *p, int k, int n);
 CRefData *BuildSpliceListFromValues(CRefData *ret, int x, int *pn, void **y);
 
-void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CRefData *pref);
-SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *p, CPAIR *pair, float t);
-SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CRefData *pref);
+void EvalSpliceEventCallback(BASIC *p, CPAIR *pair, CFrame *frame, CRefData *pref);
+SWCB *ScheduleSwSpliceCallback(SW *world, BASIC *p, CPAIR *pair, float t);
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASIC *pbasic, int k, CRefData *pref);
 }
-int IsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
+int IsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void EnsureBasicSidebag(BASIC *p) __asm__("EnsureBasicSidebag__FP5BASIC");
 
 // BASIC's default for vtable slot 1 (empty); inherited by about 190 classes. Its role is not known.
 void BASIC::AddRef() {
@@ -90,7 +89,7 @@ extern "C" void BASIC_Slot2Default(void) {
 // True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
 // range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
 // Also known as: FIsBasicDerivedFrom (upstream readable / Sly 1 name).
-int IsBasicDerivedFrom(BASICV *object, CIDV n) {
+int IsBasicDerivedFrom(BASIC *object, CIDV n) {
     CLASSINFO *pr = ((::BASIC *)object)->GetClassInfo();
     int x = pr->cid;
     int f = 0;
@@ -99,7 +98,7 @@ int IsBasicDerivedFrom(BASICV *object, CIDV n) {
 }
 
 // Gives the object a sidebag (its Splice variable bindings) when it has none.
-void EnsureBasicSidebag(BASICV *object) {
+void EnsureBasicSidebag(BASIC *object) {
     SIDEBAG **pf = (SIDEBAG **)&object->scriptVariables.m_p;
     if (*pf == 0) { AssignSidebagRef(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(*pf); }
 }
@@ -197,7 +196,7 @@ extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
 }
 
 // Returns the object's class id (from its class info, vtable slot 6).
-extern "C" int GetBasicCid(BASICV *object)
+extern "C" int GetBasicCid(BASIC *object)
 {
     return object->GetClassInfo()->cid;
 }
@@ -211,7 +210,7 @@ extern "C" int GetBasicSelf(int n)
 
 // Builds the Splice call expression for an event: (handler-symbol self args...), where args is the event's
 // argument list. Returns an owning pointer to the list.
-SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CRefData *px)
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASIC *a1, int a2, CRefData *px)
 {
     SPAIR sp;
     CPAIR *p;
@@ -244,7 +243,7 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CRefData *px)
 }
 
 // Evaluates a Splice event call in the object's frame and copies the result to *pref when given.
-void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CRefData *pref)
+void EvalSpliceEventCallback(BASIC *p, CPAIR *pair, CFrame *frame, CRefData *pref)
 {
     CRefData ref;
     EvalExpression__FP5CPairP6CFrame(&ref, pair, frame);
@@ -256,7 +255,7 @@ void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CRefData *pr
 
 // Schedules a Splice callback: allocates a node from the world's pool with an id (a new one when anonymous) and the
 // time t, and inserts it into the world's time-sorted callback list. Returns the node.
-SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *a, CPAIR *pc, float t) {
+SWCB *ScheduleSwSpliceCallback(SW *world, BASIC *a, CPAIR *pc, float t) {
     SWCB *pn;
     SWCB *pnPrev;
     SWCB *pnCur;
@@ -301,7 +300,7 @@ extern "C" void CancelSwSpliceCallback(SW *world, int id) {
 // BASIC's Splice event handler (vtable slot 3): when the object's frame binds a handler for the event, builds the
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
 // Sly 1: HandleLoSpliceEvent.
-extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, void **y, CRefData *z)
+extern "C" void HandleBasicSpliceEvent(BASIC *object, int k, int f, int x, void **y, CRefData *z)
 {
     if (object->scriptFrame.m_p && FindBindingPtr__6CFrameUii(object->scriptFrame.m_p, k, 1)) {
         CRefData ref;
@@ -327,10 +326,10 @@ extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, void
 
 // Sends the Splice trigger event (5) to the object (vtable slot 3, not posted). BASIC option 12. Buttons, exits, warps
 // and camera volumes send event 5 when triggered and 6 when untriggered.
-extern "C" void SendTriggerEvent(BASICV *p) { ((::BASIC *)p)->HandleSpliceEvent(5, 0, 0, 0, 0); }
+extern "C" void SendTriggerEvent(BASIC *p) { ((::BASIC *)p)->HandleSpliceEvent(5, 0, 0, 0, 0); }
 
 // Sends the Splice untrigger event (6) to the object (vtable slot 3, not posted). BASIC option 13.
-extern "C" void SendUntriggerEvent(BASICV *p) { ((::BASIC *)p)->HandleSpliceEvent(6, 0, 0, 0, 0); }
+extern "C" void SendUntriggerEvent(BASIC *p) { ((::BASIC *)p)->HandleSpliceEvent(6, 0, 0, 0, 0); }
 
 // Subscribes target to the object's messages: adds it to the object's subscriber list (counted, so repeated
 // subscriptions need as many unsubscribes).
@@ -375,5 +374,5 @@ extern "C" void SendLoMessage(LO *object, int a, void *b) {
 }
 
 // BASIC's HandleMessage (vtable slot 5): ignores the message; derived classes override it and call it as the base.
-extern "C" void HandleBasicMessage(BASICV *object, int msg, void *pv) {
+extern "C" void HandleBasicMessage(BASIC *object, int msg, void *pv) {
 }

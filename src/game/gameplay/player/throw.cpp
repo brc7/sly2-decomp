@@ -15,7 +15,6 @@
 #include "sly2/clock.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"   /* CID100 (the carried tossable) */
-
 // 0x220BE8 StaticInit_throw and GlobalConstructors_throw: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -38,7 +37,7 @@ union SCRATCH {V vector;LM range;};
 struct WORK {SCRATCH scratch;V delta;float angle,radius;V ownerPosition,speed,vector,playerPosition;};
 /* The line-test filter's argument. */
 struct SOPAIR { int a; void *p; };
-struct CLQV {float g0,g1,g2;};   /* sly2/basic.h's CLQ has a constructor (no brace initializer) */
+   /* sly2/basic.h's CLQ has a constructor (no brace initializer) */
 struct HIT {V pos;char unk10[0x50];};
 
 extern BENTLEY *D_002DD5BC;
@@ -46,7 +45,7 @@ extern BENTLEY *D_002DD5BC;
 float D_002C40E0 = 1.5f;                        // aim range scale with power-up 0x24
 extern V g_normalZ,D_002A2DA0,D_002A2DD0;
 float D_002C40E4 = 1.35f;                       // tPredict scale with power-up 0x24
-extern CLQV D_002C40F0;                          // the launch elevation over the aim distance: a 16-byte CLQV
+extern CLQ D_002C40F0;                          // the launch elevation over the aim distance: a 16-byte CLQV
 namespace THROW_DATA { float r_D_002C40F0[4] __asm__("D_002C40F0") __attribute__((aligned(16))) = {0.15f, 0.55f, 0.0f, 0.0f}; }
 float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limits per second
 extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata order) */
@@ -582,7 +581,7 @@ static inline qword CombineVec(qword a, qword b, VU_FLOAT g0, VU_FLOAT g1)
     return r;
 }
 // Evaluate the quadratic g0 + g1*x + g2*x^2.
-static inline float EvaluateClq(const CLQV &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
+static inline float EvaluateClq(const CLQ &clq,float x){return clq.g0+x*(clq.g1+x*clq.g2);}
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF

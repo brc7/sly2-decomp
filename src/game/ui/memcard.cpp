@@ -1193,13 +1193,13 @@ void WriteSaveSlotFile(void *saveManager, void *slot) __asm__("WriteSaveSlotFile
 } // namespace M_WriteSaveSlotFile
 
 namespace M_WriteSaveSlotFileReset {
-struct B { char pad[0x5408]; char infoName[0x44]; int infoSize; int infoAttributes; };   /* a slot; its SAVEINFO at +0x5408 */
-void ResetSaveGs(struct B *p, int n) __asm__("ResetSaveGs");
+   /* a slot; its SAVEINFO at +0x5408 */
+void ResetSaveGs(struct SAVEINFO *p, int n) __asm__("ResetSaveGs");
 void BuildSaveFilePath(void *saveManager, void *slot, char *path) __asm__("BuildSaveFilePath");
 int McWriteFile(void *saveManager, char *path, void *data, int size) __asm__("McWriteFile");
 // Resets the GS state, then writes one slot's file.
 // Also known as: FUN_0018d328 (upstream readable / Sly 1 name).
-extern "C" int WriteSaveSlotFileReset(void *saveManager, struct B *slot)
+extern "C" int WriteSaveSlotFileReset(void *saveManager, struct SAVEINFO *slot)
 {
     char path[0x50];
     ResetSaveGs(slot, 0);

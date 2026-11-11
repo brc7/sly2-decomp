@@ -3520,13 +3520,13 @@ extern "C" void SetSoEyesClosed(SO *so, float f)
 
 // 0x1F8198 FindSoSaa
 namespace M_PsaaFindSoOid {
-struct T;
-struct T { char pad[0x18]; int oid; };   /* an SAA: its oid (+0x18) */
+
+   /* an SAA: its oid (+0x18) */
 // Finds an entry of the object's animation list by oid (Sly 1 PsaaFindSoOid).
-extern "C" struct T *FindSoSaa(SO *so, int n)
+extern "C" struct SAA *FindSoSaa(SO *so, int n)
 {
     int i;
-    for (i = 0; i < so->model.cpsaa; i++) { struct T *pt = (struct T *)so->model.apsaa[i]; if (pt->oid == n) return pt; }
+    for (i = 0; i < so->model.cpsaa; i++) { struct SAA *pt = (struct SAA *)so->model.apsaa[i]; if (pt->unknown18 == n) return pt; }
     return 0;
 }
 } // namespace M_PsaaFindSoOid

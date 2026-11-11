@@ -11,11 +11,9 @@
 #include "sly2/util.h"
 #include "sly2/sw.h"
 #include "sly2/classes.h"
-
 // 0x1C3C18 StaticInit_pipe and GlobalConstructors_pipe: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-struct K { int a, b; };
 /* View of the pipe (a SHAPE). */
 struct PIPEV : BASIC 
 {
@@ -27,7 +25,7 @@ struct PIPEV : BASIC
     char grabspot[0x1C];    /* +0x190 GRABSPOTDATA (its +0x1C, +0x24 follow) */
     int isGrabDisabled;     /* +0x1AC 1 at init (SetPipeGrabEnabled sets it to !arg) */
     void *unknown1B0;
-    K k;                    /* +0x1B4 kept across CloneShape */
+    DLE k;                    /* +0x1B4 kept across CloneShape */
     void *unknown1BC;
     qword axis;             /* +0x1C0 the reference axis (D_002A2DA0 at init) */
     int grabParamA;         /* +0x1D0 8 at init */
@@ -109,7 +107,7 @@ extern "C" void PostPipeLoad(PIPEV *pipe)
 // PIPE::Clone (slot 41): clones the shape but keeps this pipe's own 8-byte link at +0x1B4.
 extern "C" void ClonePipe(PIPEV *pipe, LO *ploBase)
 {
-    K k = pipe->k;
+    DLE k = pipe->k;
     CloneShape(pipe, ploBase);
     pipe->k = k;
 }
