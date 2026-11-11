@@ -9,13 +9,14 @@ History: `git log --grep='port request'` (v1.10 onwards): g_sndmgr's full defini
 SW_ctor slot sizes, Init list-link offsets, pointer-array and record sizes, sizeof(IKREC), uptr/sptr on the load
 path, heap bounds and SLY2_OFFSETOF as hooks, level-load records with their real layouts, then (v1.13) the option
 table offsets, class-descriptor sizes, LO's tagged update word, the ik/pipe_jt/gait views, SLY2_EE_LAYOUT with the
-colour-table and bitmap file records, and breakable's pointer-wide action records.
+colour-table and bitmap file records, and breakable's pointer-wide action records; (v1.14) C fallbacks for the VU0 asm
+on the load path (section 2) and pointer types for three object-reference option members.
 
 ## 1. Guards and hooks
 
 | hook | EE (matching build) | native build | where |
 |---|---|---|---|
-| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rn SLY2_EE_ASM src` (sw.cpp, path.cpp, gs.cpp) |
+| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp); section 2 |
 | `SLY2_EE_LAYOUT` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_LAYOUT`): EE data layout (4-byte pointers, file records read straight into in-memory structs) and g++ 2.95 vtables | undefined: `#else` reads file records field by field, uses plain virtual calls | shd.cpp LoadClutFromBrx / LoadBmpFromBrx, gait.cpp StartLeap's slot-35 call |
 | `uptr`, `sptr` (sly2/port.h) | `unsigned int`, `int` | `__UINTPTR_TYPE__`, `__INTPTR_TYPE__` (override: `SLY2_UPTR_TYPE`, `SLY2_SPTR_TYPE`) | `grep -rlwn 'uptr\|sptr' src include` |
 | `SLY2_OFFSETOF(T, m)` (sly2/basic.h) | `((int)(char *)&((T *)0)->m)` | define first, e.g. `((int)__builtin_offsetof(T, m))` | layout asserts, list-link offsets, g_aeopid's `EOPID_OFF` |
@@ -54,16 +55,61 @@ Why the matching form cannot be the portable one:
   `int unknown40` stays (making it unsigned would change sign extensions elsewhere). On a little-endian host the low
   word holds the tag.
 
-## 2. Known remaining hazards
+## 2. VU0 fallbacks
+
+Without `SLY2_EE_ASM` the VU0 macro-mode asm (and the EE-core asm next to it: MMI lane moves, FPU `sqrt.s`, word
+loads and stores) has plain C equivalents:
+
+- **sly2/vu0.h**: every shared helper (VuSub ... VuLengthXY, QwordX/Y/Z, QwordFromFloats, SqrtFloat, FpuMax/Min/Abs)
+  has a C body after `#else`, on the lane helpers `VuGet` / `VuPut` / `VuMake` (a `VuLanes {x, y, z, w}` view of a
+  quadword) and the statement helpers `VuCopyBits` / `VuWiden` (qmtc2, qmfc2, mtc1, mfc1, sq), `VuDotXY`,
+  `VuProt3w` / `VuPextuw0`, `VuKeepW` (a "+j" operand whose w the asm does not write), `VuScaleX2`, `VuAddScaled2`.
+  The header includes sly2/port.h itself, so the guard never depends on include order.
+- **mat.cpp**: InvertMatrix3Cofactor, NormalizeRotateMatrix3, LoadRotateMatrixSinCos, BuildAxisAngleRotationMatrix,
+  BuildRotationMatrixFromVector, LoadRotateMatrixPanTilt, BuildOrthonormalMatrixZ, TiltMatUpright,
+  BuildRotateVectorsMatrix, MulMatrix3Matrix3, DecomposeRotationMatrixToVector, operator*(MATRIX4, VU_FLOAT), `ml`,
+  `__ml__FRC7MATRIX4T0`, LoadMatrixFromPosRotScale / Scalar, InvertMatrix4Rigid, SmoothMatrix, GetMaxRowLengthMatrix3
+  (whole functions or their asm helpers; the named-return helpers are ordinary returns on the C side).
+  `__ml__FRC7MATRIX4T0` runs the VU0 microprogram at 0x60 on the EE (vcallms); its C body is the row-vector product
+  out[i] = sum_k a[i][k] b[k], which is what its callers (CalculateDmat4) need; the microprogram itself is not
+  modelled.
+- **vec.cpp**: every asm statement (all 45 functions are covered).
+- **xf.cpp**: BuildXfValueMatrix, BuildXfValueDerivativeMatrix and every VU0 statement except the `vcallms 0x60`
+  sites. **shd.cpp**: ColorCorrectVector, AddBitmapToHash / AddClutToHash (whole C functions over D_003DD010 /
+  D_003DD018). **booty.cpp**: every asm statement (SetBootyState and the distance helpers). **rip.cpp**: LaunchMatch.
+
+Conventions: the C follows the VU0 operation order (one rounding per VU operation: `(a.x b.x + a.y b.y) + a.z b.z`,
+`v * (1 / d)` rather than `v / d`), never fuses (build with `-ffp-contract=off`), and uses IEEE floats; the VU's
+clamping of Inf/NaN to +-FLT_MAX and its truncating rounding are not modelled (the port's float policy decides
+those). The VU's `vsqrt` and the FPU's `sqrt.s` take |x| (`VuSqrt`). Lanes the asm leaves as scratch are zero on the C
+side; a "+j" operand keeps the lanes the asm does not write (`VuKeepW`). Most rewrites are one guarded statement with
+the C on the same operands (tools: a pattern table from asm text to C template), so the code around them is shared
+by both branches; register pins (`register qword v __asm__("vf1")`) stay in the shared code.
+
+Testing (a host harness outside the repository): a reference model runs the decomp's asm text itself (operands
+bound as gcc binds them, pinned VF registers, dest masks, broadcast fields, ACC and Q) through the port's VU0
+library (sly2-port port/vu0/vu0.h, IEEE mode), and each C fallback is compared with it on random inputs (mixed
+magnitudes and signs, exact 0 and +-1, tiny lengths at the 1e-4 / 1e-8 thresholds, parallel and opposite vectors):
+the mat.cpp functions as compiled natively from this tree with the port's flags (100,000 cases each), sly2/vu0.h's
+helpers (200,000 each), and every asm-to-C statement rewrite used in vec, xf, shd, booty and rip (100,000 cases per
+form). Tolerance: relative 1e-4 (absolute 1e-5 near zero); the measured maximum error is 0 for every function and
+form (same operation order, same IEEE rounding). The harness also flags the port's own sly2/vu0.h override: its
+VuAddScaled drops the 1.0 the VU adds to w (vadda with vf0), its VuSqrtX gives 0 for a negative input (the VU takes
+the root of |x|), and its VuDivByX gives 0 for a zero divisor (the VU gives the largest float).
+
+## 3. Known remaining hazards
 
 From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
 
 - **g_aeopid**: 222 member offsets (unique class/offset) stay `EOPID_INT`: they fall inside class pads (the `char pad...[]`
   blocks in sly2/classes.h: JSG, BOMB, TURRET, CID96, CID46, CID121, CID112, CID105, MISSILE, LASEN, BOOTY, CID37...) or point
   into TU-private types (CPD in tn.cpp, BOOTYE in booty.cpp, AMBSND in amb.cpp, SFX/SFXHOLDER and EMITTERV in
-  emitter.cpp) or at the interior pointers emitter.h's accessors return. Object-reference options (otyp 0x2xxx) whose
-  header member is not a pointer: JOB::stateRequester, TASK::stateRequester, NEELA::giveUpBinding.oid,
-  STEPGUARD::noiseType, STEPPLAYER::jtair.unknown160, GRABSPOT::nGroup (PostLoadOidField stores a pointer there).
+  emitter.cpp) or at the interior pointers emitter.h's accessors return. Object-reference options (otyp 0x20NN: a pointer to a
+  CID NN object, which PostLoadOidField stores) whose header member is not a pointer: JOB::stateRequester and
+  TASK::stateRequester (the value travels as an `int requester` through RequestTaskState / ForceTaskState and
+  game.cpp's StateSourceScope, so the retype is a signature change across game.cpp) and NEELA::giveUpBinding.oid
+  (ANIMBINDING is shared: its `oid` needs a union with the ASEG pointer). v1.14 typed STEPGUARD::noiseType
+  (`CID117 *`), STEPPLAYER::jtair.unknown160 (`LO *`) and GRABSPOT::ploGroup (was nGroup, `LO *`).
   The OwnFields accessors (GetPipeOwnFields and the like) return `p + sizeof(Base)`; natively they should be `static_cast<GRABSPOT *>(p)`.
 - **Literal sizes**: SW_ctor heaps not yet sizeof (Event/Callback 0x14, Refnode 0xC, Xplist/Xp 0xC0, Act 0x80, Ssge, Jsg,
   Xfh, Leap, Diract, Blip 0x10C0, the blip splines) and about 15 SW_ctor list offsets, slotheap.h
@@ -77,13 +123,15 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   words, and the shader packet tags pack `(ulong)(int)pshd->pbPacket << 32`. A native build needs an address model
   for chains (offsets from a heap base, or an emulated 4 GB EE address space) before its DMA/VIF interpreter can
   follow them; not a decomp-side change.
-- **Inline asm without a C fallback**: VU0 math (mat.cpp, vec.cpp, xf.cpp's XF value builders), shd.cpp
-  ColorCorrectVector / BuildShaderGifPackets / AddBitmapToHash / AddClutToHash, booty SetBootyState, rip LaunchMatch,
-  gs.cpp sync/ei, the cane/murray/sticky/ik loaders; register pins (clang rejects about 400).
+- **Inline asm without a C fallback**: shd.cpp BuildShaderGifPackets (EE-core bit manipulation with pinned
+  registers), rip.cpp ProjectRipTransform and the other RIP integrators (hand-scheduled fused asm: dozens of
+  multi-instruction statements mixing VU0, FPU and loads), the `vcallms` sites (xf.cpp, geom.cpp, glob.cpp, blip.cpp,
+  rendertree.cpp: VU0 microprograms, ported per entry), gs.cpp sync/ei, the cane/murray/sticky/ik loaders and the
+  player/guard files (air, guardbhv, shape, jt...); register pins (clang rejects about 400).
 - **int to pointer**: about 23 (mpeg `pm->n8`, cane.cpp `(char *)0x002e0000`); breakable.cpp
   AddBreakableTriggerClass returns its record pointer as `int`.
 
-## 3. Future clean port
+## 4. Future clean port
 
 Guards stay in the simplest form: `#if defined(SLY2_EE_LAYOUT)` / `#ifdef SLY2_EE_ASM`, `#else`, `#endif`, one macro per condition,
 never nested inside another portability guard and never compound (`&&`, `||`). That keeps them mechanical: a port
