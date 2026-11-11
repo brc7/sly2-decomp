@@ -19,16 +19,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // Color bytes with a user constructor (part of RgbaLerp's codegen).
 struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor is part of RgbaLerp's codegen */
 
-/* The fade object, CID116 (an LO, vtable at +0xC; offsets confirmed by the match). */
-struct FADEV
+/* The fade object, CID116: an LO with its fade fields after LO's data (offsets confirmed by the match). */
+struct FADEV : LO
 {
-    int pad0[3];
-    void *vptr;               /* +0x0C (the calls go through the real LO) */
-    byte pad10[0x28 - 0x10];
-    unsigned long loFlags;    /* +0x28 bit 60: LO::isInWorld (the fade is running) */
-    byte pad30[0x40 - 0x30];
-    unsigned int updateFlags; /* +0x40 flags, or (bit 0 clear) a pointer to them */
-    byte pad44[0x50 - 0x44];
     RGBAV fadeInFrom, holdColor, fadeOutTo;   /* +0x50 */
     float fadeInTime, holdTime, fadeOutTime;  /* +0x5C phase durations, seconds */
     float startTime;          /* +0x68 clock time when the fade started */
@@ -56,7 +49,7 @@ void CID116::Init()
     SetLoBusyKind(fade, 1);
     flags = (uptr)((LO *)fade)->ploupd;   /* LO's tagged word (lo.h): an LOUPD pointer (its first word is the flags) */
     if ((flags ^ 1) & 1)
-        *(int *)flags |= 0xA;
+        ((LOUPD *)flags)->grf |= 0xA;
     else
         ((LO *)fade)->unknown40 = flags | 0xA;
 }
@@ -147,7 +140,7 @@ extern "C" void RenderScreenFade(FADEV *fade)
 // Also known as: StartFadeLo (upstream readable / Sly 1 name; StartFadeLo__FP2LO).
 extern "C" void StartScreenFade(FADEV *fade)
 {
-    if (((int)(fade->loFlags >> 60) & 1) == 0) {
+    if (((int)fade->isInWorld & 1) == 0) {   /* not running yet (the & 1 keeps the original's extract-and-test) */
         fade->startTime = g_clock.time;
         ((LO *)fade)->Add();
     }
