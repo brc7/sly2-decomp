@@ -2668,8 +2668,8 @@ extern "C" void AdjustMurrayNewXp(MURRAY *murray, X *px, int i)
     case MURRAY_POWER_MOVE:
         n = murray->subState;
         if (n == 1) {
-            Q *pq = *(Q **)((char *)px + ((n - i) << 6) + 0xC);
-            if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d) && *(float *)((char *)px + 0x88) < 0.7f) {
+            SO *pq = *(SO **)((char *)px + ((n - i) << 6) + 0xC);
+            if (pq->IsFixed() && *(float *)((char *)px + 0x88) < 0.7f) {
                 qword v = murray->GetVelocity();
                 qword r = GetCosineBetweenVectors(v, px->x80);
                 float g;
@@ -3073,16 +3073,13 @@ extern "C" void SpawnMurrayHitEffect(MURRAY *murray, qword q)
 } // namespace M_func_001B9D28
 
 namespace M_func_001B9DB8 {
-/* The effect object's vtable as called here: slot 29 (TranslateToPos) is passed an int, so the call stays by hand. */
-struct OV { int a, b, c; VTE *vt; };
 void ApplyAsegCore(ASEG *paseg, SO *pso, int c, int d, float f, float g) __asm__("ApplyAsegCore");
 // Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
-extern "C" void SpawnMurrayHitEffectUnchecked(MURRAY *murray, int x)
+extern "C" void SpawnMurrayHitEffectUnchecked(MURRAY *murray, qword pos)
 {
     if (!((((int)murray->psoHitEffectB->isInWorld & 1) == 0)))
         return;
-    VTE *e = &((OV *)murray->psoHitEffectB)->vt[29];
-    ((void (*)(void *, int))e->pfn)((char *)murray->psoHitEffectB + e->d, x);
+    murray->psoHitEffectB->TranslateToPos(pos);
     ApplyAsegCore(murray->pasegHitEffectB, murray->psoHitEffectB, 0, 0, 0.0f, 1.0f);
 }
 } // namespace M_func_001B9DB8
