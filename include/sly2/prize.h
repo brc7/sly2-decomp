@@ -140,7 +140,7 @@ struct LOOTE
     int unknown14;          /* +0x14 AddLootEntry sets -1 */
     int unknown18;          /* +0x18 AddLootEntry sets -1 */
     int globCount;          /* +0x1C */
-    void *globIds[3];       /* +0x20 (ShowSoGlobsById) */
+    OID globIds[3];         /* +0x20 the globs' ids (AddLootEntryObject; ShowSoGlobsById) */
 };
 typedef char assert_LOOTE_size[sizeof(LOOTE) == 0x2C ? 1 : -1];
 enum { MAX_LOOT_ENTRIES = 32 };   /* LoadLootFromBrx reserves 32 * sizeof(LOOTE) = 0x580 bytes */

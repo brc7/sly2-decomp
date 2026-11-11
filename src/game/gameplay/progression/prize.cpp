@@ -1525,15 +1525,12 @@ extern "C" void ClearCurrentLootEntry(LOOT *loot)
 }
 
 namespace M_AddAlarmSensor__FP5ALARM3OID {
-enum OID { OID_0 };
-struct SENSORS { char pad[0x1c]; unsigned int coidSensors; OID aoidSensors[3]; };
-struct ALARM { char pad[0x244]; SENSORS *psensors; };
-// Append OID to the list behind this+0x244 (count +0x1C, max 3).
+// Appends a glob id to the current loot entry (at most 3; SelectLootEntry shows them).
 // Also known as: AddAlarmSensor (upstream readable / Sly 1 name; AddAlarmSensor__FP5ALARM3OID).
-extern "C" void AddLootEntryObject(ALARM *palarm, OID oid)
+extern "C" void AddLootEntryObject(LOOT *ploot, OID oid)
 {
-    SENSORS *p = palarm->psensors;
-    if (p->coidSensors < 3) p->aoidSensors[p->coidSensors++] = oid;
+    LOOTE *p = ploot->currentEntry;
+    if ((unsigned)p->globCount < 3) p->globIds[p->globCount++] = oid;
 }
 } // namespace M_AddAlarmSensor__FP5ALARM3OID
 
@@ -1550,7 +1547,7 @@ extern "C" int GetCurrentLootEntryId(LOOT *loot)
 
 namespace M_func_001C7A58 {
 void HideSoAllGlobs(LOOT *p) __asm__("HideSoAllGlobs");
-void ShowSoGlobsById(LOOT *p, void *pv) __asm__("ShowSoGlobsById");
+void ShowSoGlobsById(LOOT *p, OID oid) __asm__("ShowSoGlobsById");
 // Makes the entry with this id current (the first entry when none matches), then hides the loot's globs
 // (HideSoAllGlobs, inferred) and shows the entry's ones. Used by StageLootPouchLoot.
 // Also known as: SetPickupLootKind (upstream readable / Sly 1 name; SetPickupLootKind__FP2LOi).
