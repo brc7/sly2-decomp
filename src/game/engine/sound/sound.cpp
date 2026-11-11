@@ -27,6 +27,7 @@
 #include "sly2/clock.h"
 #include "sly2/vtables.h"
 #include "bis.h"
+#include "sly2/snd.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct SNDOBJ { char pad0[0xC]; VTE *vtable; };
@@ -1155,8 +1156,8 @@ SNDMGR *SNDMGR_ctor(SNDMGR *soundManager) __asm__("SNDMGR_ctor"); SNDMGR *SNDMGR
     soundManager->scriptFrame.m_p = 0;   /* BASIC's construction as plain stores */
     soundManager->scriptVariables.m_p = 0;
     SLY2_SET_VPTR(soundManager, CID152);
-    InitSlotheap(&soundManager->bankSoundPool, 0x70, 0x80, 0x10);      /* 128 bank sounds of 0x70 bytes */
-    InitSlotheap(&soundManager->streamSoundPool, 0x3C0, 0x10, 0x10);   /* 16 stream sounds of 0x3C0 bytes */
+    InitSlotheap(&soundManager->bankSoundPool, sizeof(BANKSND), 0x80, 0x10);      /* 128 bank sounds (0x70 bytes on the EE) */
+    InitSlotheap(&soundManager->streamSoundPool, sizeof(STREAMSND), 0x10, 0x10);   /* 16 stream sounds (0x3C0 bytes on the EE) */
     soundManager->dialogSound.p = 0;
     entry = (int *)soundManager->musicStack;
     for (n = 7; n != -1; n--) *entry++ = 0;

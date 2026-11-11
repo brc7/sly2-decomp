@@ -695,7 +695,7 @@ void WIDGET::LoadFromBrx(CBinaryInputStream *pbis)
     if (isStreamed) {
         M_LoadWidgetFromBrx::AREQ req;
         state = WIDGET_STATE_UNLOADED;
-        req.cb = 0x50;
+        req.cb = sizeof(WIDGETLOAD);
         req.cbAlign = 0x10;
         spriteHeap = (HEAP *)D_003E1C70;   /* the streamed-sprite linear heap */
         deferredLoad = AllocClearedFromWorldHeap(&req);

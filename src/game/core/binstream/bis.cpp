@@ -493,9 +493,9 @@ void CBinaryInputStream::ReadGeom(GEOM *geom)
     for (i = 0; i < geom->posCount; i++)
         ReadVector((VECTOR *)&geom->positions[i]);
     geom->faceCount = U16Read();
-    geom->faces = (FACE *)AllocZeroedGeomBlock(geom->faceCount * 32);
+    geom->faces = (FACE *)AllocZeroedGeomBlock(geom->faceCount * (int)sizeof(FACE));
     geom->edgeCount = U16Read();
-    geom->edges = (EDGE *)AllocZeroedGeomBlock(geom->edgeCount * 16);
+    geom->edges = (EDGE *)AllocZeroedGeomBlock(geom->edgeCount * (int)sizeof(EDGE));
     EDGE *nextEdge = geom->edges;
     for (int faceIndex = 0; faceIndex < geom->faceCount; faceIndex++)
     {

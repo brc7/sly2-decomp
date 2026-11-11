@@ -2935,7 +2935,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         pglobset->pbatchrecsFirst = pbatchrecs;
         pbatchrecs->psubglob = psubglob;
         pbatchrecs->cbatch = cbatchAll;
-        pbatchrecs->abatchrec = (BATCHREC *)PvAllocSw(cbatchAll << 5);
+        pbatchrecs->abatchrec = (BATCHREC *)PvAllocSw(cbatchAll * (int)sizeof(BATCHREC));
         BATCHREC *pbr = pbatchrecs->abatchrec;
         for (int i = 0; i < cbatch; i++)
         {
