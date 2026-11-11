@@ -11,12 +11,15 @@ struct LSG
       qword apos[2];        /* +0x00 entry / exit point */
       qword anormal[2];     /* +0x20 the surface normals there */
       float au[2];          /* +0x40 parameters along the segment */
-      LSGK lsgk;            /* +0x44 kind (clip.cpp ClipEdgeToSphere: 1) */
-      SURF *apsurf[2];      /* +0x48 surface entered / left (MergeSegmentLists copies each with its end) */
-      EDGE *pedge;
-      int iiposSwap;
-      LSG *plsgNext;
+      LSGK lsgk;            /* +0x48 kind (clip.cpp ClipEdgeToSphere: 1) */
+      SURF *apsurf[2];      /* +0x4C surface entered / left (MergeSegmentLists copies each with its end) */
+      EDGE *pedge;          /* +0x54 */
+      int iiposSwap;        /* +0x58 */
+      LSG *plsgNext;        /* +0x5C */
 };
 typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
+typedef char assert_LSG_lsgk[SLY2_OFFSETOF(LSG, lsgk) == 0x48 ? 1 : -1];
+typedef char assert_LSG_apsurf[SLY2_OFFSETOF(LSG, apsurf) == 0x4C ? 1 : -1];
+typedef char assert_LSG_plsgNext[SLY2_OFFSETOF(LSG, plsgNext) == 0x5C ? 1 : -1];
 
 #endif /* SLY2_LSG_H */
