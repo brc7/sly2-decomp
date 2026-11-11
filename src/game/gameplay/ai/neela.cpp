@@ -95,7 +95,7 @@ struct SNIP {
     int oid;
     int ib;
 }; /* Sly 1's SnipLoObjects record */
-SNIP D_002C0A50[3] = {{0x200, 0x5D8, 0x1020}, {0x10, 0x5D9, 0x1030}, {0x10, 0x5DA, 0x1034}};
+SNIP D_002C0A50[3] = {{0x200, 0x5D8, SLY2_OFFSETOF(NEELA, propAnimation)}, {0x10, 0x5D9, SLY2_OFFSETOF(NEELA, unknown1030)}, {0x10, 0x5DA, SLY2_OFFSETOF(NEELA, propPart)}};
 U D_002C0A80 = {{400.0f, 0.0f, 70.0f, 0.0f}};
 U D_002C0A90 = {{-500.0f, -500.0f, -300.0f, 0.0f}};
 U D_002C0AA0 = {{500.0f, 500.0f, 300.0f, 0.0f}};

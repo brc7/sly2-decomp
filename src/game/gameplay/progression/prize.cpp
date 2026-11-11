@@ -2208,7 +2208,7 @@ extern "C" void TriggerVault(VAULT *vault, PO *n)
 struct OIDT { int grfsnip; int oid; int ib; };   /* SNIP record (Sly 1 SnipLoObjects) */
 
 // ---- prize's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-OIDT D_002C0D40[1] = {{0x200, 0x182, 0x164}};
+OIDT D_002C0D40[1] = {{0x200, 0x182, SLY2_OFFSETOF(DPRIZE, smaSource)}};
 float D_002C0D4C = -5.0f;
 float D_002C0D50 = 5.0f;
 VECTOR4 D_002C0D60 = {0.0f, 0.0f, -2250.0f, 0.0f};
@@ -2242,12 +2242,12 @@ float D_002C0EB8 = 850.0f;
 float D_002C0EBC = -850.0f;
 float D_002C0EC0 = 1.0f;
 float D_002C0EC4 = 0.075f;
-OIDT D_002C0EC8[0x18] = {{0x200, 0x63C, 0x1A8}, {0x200, 0x63D, 0x1AC}, {0x200, 0x63E, 0x1B0}, {0x200, 0x63F, 0x1B4},
-    {0x200, 0x640, 0x1B8}, {0x200, 0x641, 0x1BC}, {0x200, 0x642, 0x1C0}, {0x200, 0x643, 0x1C4},
-    {0x200, 0x644, 0x1C8}, {0x200, 0x646, 0x208}, {0x200, 0x647, 0x1CC}, {0x200, 0x648, 0x1D0},
-    {0x200, 0x649, 0x1D4}, {0x200, 0x64A, 0x1D8}, {0x200, 0x64B, 0x1DC}, {0x200, 0x64C, 0x1E0},
-    {0x200, 0x64D, 0x1E4}, {0x200, 0x64E, 0x1E8}, {0x200, 0x64F, 0x1EC}, {0x0, 0x650, 0x210}, {0x0, 0x651, 0x214},
-    {0x0, 0x652, 0x218}, {0x0, 0x653, 0x21C}, {0x0, 0x654, 0x220}};
+OIDT D_002C0EC8[0x18] = {{0x200, 0x63C, SLY2_OFFSETOF(VAULT, digitTargets[0])}, {0x200, 0x63D, SLY2_OFFSETOF(VAULT, digitTargets[1])}, {0x200, 0x63E, SLY2_OFFSETOF(VAULT, digitTargets[2])}, {0x200, 0x63F, SLY2_OFFSETOF(VAULT, digitTargets[3])},
+    {0x200, 0x640, SLY2_OFFSETOF(VAULT, digitTargets[4])}, {0x200, 0x641, SLY2_OFFSETOF(VAULT, digitTargets[5])}, {0x200, 0x642, SLY2_OFFSETOF(VAULT, digitTargets[6])}, {0x200, 0x643, SLY2_OFFSETOF(VAULT, digitTargets[7])},
+    {0x200, 0x644, SLY2_OFFSETOF(VAULT, digitTargets[8])}, {0x200, 0x646, SLY2_OFFSETOF(VAULT, dialCenter)}, {0x200, 0x647, SLY2_OFFSETOF(VAULT, digitAnims[0])}, {0x200, 0x648, SLY2_OFFSETOF(VAULT, digitAnims[1])},
+    {0x200, 0x649, SLY2_OFFSETOF(VAULT, digitAnims[2])}, {0x200, 0x64A, SLY2_OFFSETOF(VAULT, digitAnims[3])}, {0x200, 0x64B, SLY2_OFFSETOF(VAULT, digitAnims[4])}, {0x200, 0x64C, SLY2_OFFSETOF(VAULT, digitAnims[5])},
+    {0x200, 0x64D, SLY2_OFFSETOF(VAULT, digitAnims[6])}, {0x200, 0x64E, SLY2_OFFSETOF(VAULT, digitAnims[7])}, {0x200, 0x64F, SLY2_OFFSETOF(VAULT, digitAnims[8])}, {0x0, 0x650, SLY2_OFFSETOF(VAULT, relays[1])}, {0x0, 0x651, SLY2_OFFSETOF(VAULT, relays[2])},
+    {0x0, 0x652, SLY2_OFFSETOF(VAULT, relays[3])}, {0x0, 0x653, SLY2_OFFSETOF(VAULT, relays[4])}, {0x0, 0x654, SLY2_OFFSETOF(VAULT, relays[5])}};
 float D_002C0FE8 = 0.7f;
 VECTOR4 D_002C0FF0[9] = {{-0.7f, 0.7f, 0.0f, 0.0f}, {0.0f, 0.8f, 0.0f, 0.0f}, {0.7f, 0.7f, 0.0f, 0.0f},
     {-0.8f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, {0.8f, 0.0f, 0.0f, 0.0f}, {-0.7f, -0.7f, 0.0f, 0.0f},

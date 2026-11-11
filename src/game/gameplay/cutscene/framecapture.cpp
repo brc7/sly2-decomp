@@ -404,7 +404,7 @@ extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
 CAPTUREV *D_002DD644;
 
 // ---- framecapture's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
-SNIP D_002BD380[2] = {{0x10, 0x5F9, 0x158}, {0x10, 0x5FA, 0x15C}};
+SNIP D_002BD380[2] = {{0x10, 0x5F9, SLY2_OFFSETOF(CAPTUREV, placers[0])}, {0x10, 0x5FA, SLY2_OFFSETOF(CAPTUREV, placers[1])}};
 extern "C" {
 /* The UV offsets: one float[6], read through D_002BD398 and D_002BD39C (its second word, an address name). */
 float D_002BD398[6] = {0.0f, 0.0f, 0.25f, 0.0f, 0.0f, 0.0f};

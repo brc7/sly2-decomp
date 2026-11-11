@@ -116,7 +116,7 @@ extern qword D_002A2DD0;
 /* Sly 1's SNIP (SnipLoObjects record): which object (by OID) to bind at which byte offset of the LO. */
 struct SNIP { int grfsnip; int oid; int ib; };
 /* The missile's snip table (Sly 1 s_asnipMissile): bind OID 0x7B at +0x230. */
-SNIP s_asnipMissile[1] = {{0x100, 0x7B, 0x230}};
+SNIP s_asnipMissile[1] = {{0x100, 0x7B, SLY2_OFFSETOF(MISSILE, flightAnim)}};
 extern "C" {
 void InitBomb(BOMB *pbomb);
 void LoadSoFromBrx(SO *pso, CBinaryInputStream *pbis);

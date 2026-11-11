@@ -755,13 +755,13 @@ extern "C" void BindLoOidTable(SO *object, int numEntries, struct E *entries)
         if (flags & BIND_PART) {
             /* The count and byte offset share the native search registers. */
             register int j __asm__("$7") = object->numTransforms;
-            register int offset __asm__("$6") = j * 0x100;
+            register int offset __asm__("$6") = j * (int)sizeof(XF);
             XF *part;
             i++;
             /* search the parts from the last one down (this loop shape is what matches) */
         nextPart:
             j--;
-            offset -= 0x100;
+            offset -= (int)sizeof(XF);
             if (j < 0)
                 goto notFound;
             part = (XF *)(offset + (sptr)object->transforms);

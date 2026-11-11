@@ -3726,7 +3726,7 @@ LO *D_003DD48C;
 
 // ---- stepguard's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 int D_002C3CF0 = 0;
-int D_002C3CF8[3] = {256, 1515, 3724};
+int D_002C3CF8[3] = {256, 1515, SLY2_OFFSETOF(STEPGUARD, sleepDartAseg)};
 float D_002C3D04 = 1500.0f;
 float D_002C3D08 = 1000.0f;
 float D_002C3D0C = 250.0f;

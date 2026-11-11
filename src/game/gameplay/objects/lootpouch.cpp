@@ -32,7 +32,7 @@ typedef char assert_SPRAYER_ismaCur[(unsigned int)&((SPRAYER *)0)->smaIndex == 0
 
 /* lootpouch's .data (address order): the sprayer's snip table (Sly 1 SNIP {grfsnip, oid, ib}), then its random ranges. */
 struct SNIP { int grfsnip; int oid; int ib; };
-SNIP D_002C0CB0[4] = {{0x300, 0x2B2, 0x168}, {0x302, 0x2B3, 0x15C}, {0x302, 0x2B4, 0x160}, {0x300, 0x2B5, 0x164}};
+SNIP D_002C0CB0[4] = {{0x300, 0x2B2, SLY2_OFFSETOF(SPRAYER, sma)}, {0x302, 0x2B3, SLY2_OFFSETOF(SPRAYER, pad15C[0])}, {0x302, 0x2B4, SLY2_OFFSETOF(SPRAYER, pad15C[4])}, {0x300, 0x2B5, SLY2_OFFSETOF(SPRAYER, pad15C[8])}};
 extern "C" {
 void PostSoLoad(SPRAYER *p);
 void BindLoOidTable(SPRAYER *p, int n, void *q);
