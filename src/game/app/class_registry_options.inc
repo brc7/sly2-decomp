@@ -1868,7 +1868,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2016, 0x92, EOPID_OFF(NEELA, idleVolume), EOPID_OFF(NEELA, idleVolume), EOPID_OFF(NEELA, idleVolume), EOPID_NONE}, /* [1115] opt 968, NEELA */
     {0x2030, 0x92, EOPID_OFF(NEELA, prop), EOPID_OFF(NEELA, prop), EOPID_OFF(NEELA, prop), EOPID_NONE}, /* [1116] opt 969, NEELA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SendRootBhvMode15), EOPID_INT(1), EOPID_NONE}, /* [1117] opt 970, NEELA */
-    {0x206D, 0x92, EOPID_OFF(NEELA, giveUpBinding.oid), EOPID_OFF(NEELA, giveUpBinding.oid), EOPID_OFF(NEELA, giveUpBinding.oid), EOPID_NONE}, /* [1118] opt 971, NEELA */
+    {0x206D, 0x92, EOPID_OFF(NEELA, giveUpBinding.aseg), EOPID_OFF(NEELA, giveUpBinding.aseg), EOPID_OFF(NEELA, giveUpBinding.aseg), EOPID_NONE}, /* [1118] opt 971, NEELA */
     {9, 0x92, EOPID_OFF(NEELA, chaseTune), EOPID_OFF(NEELA, chaseTune), EOPID_OFF(NEELA, chaseTune), EOPID_NONE}, /* [1119] opt 972, NEELA */
     {0xA, 0x92, EOPID_OFF(NEELA, chaseTune.speedRange), EOPID_OFF(NEELA, chaseTune.speedRange), EOPID_OFF(NEELA, chaseTune.speedRange), EOPID_NONE}, /* [1120] opt 973, NEELA */
     {1, 0x92, EOPID_OFF(NEELA, chaseTune.giveUpTime), EOPID_OFF(NEELA, chaseTune.giveUpTime), EOPID_OFF(NEELA, chaseTune.giveUpTime), EOPID_NONE}, /* [1121] opt 974, NEELA */
