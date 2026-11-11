@@ -48,12 +48,12 @@ void SHAPE::Init()
 }
 
 namespace M_CloneShape {
-void CloneXfm(SHAPE *p) __asm__("CloneXfm");
+void CloneXfm(SHAPE *p, LO *ploBase) __asm__("CloneXfm");
 void EnsureShapeChain(SHAPE *p, int n) __asm__("EnsureShapeChain");
 // Slot 41 (Clone): CloneXfm; if the source had a chain attached, rebuilds one for the clone.
-extern "C" void CloneShape(SHAPE *shape)
+extern "C" void CloneShape(SHAPE *shape, LO *ploBase)
 {
-    CloneXfm(shape);
+    CloneXfm(shape, ploBase);
     if (shape->chain) {
         shape->chain = 0;
         EnsureShapeChain(shape, 0);
@@ -116,19 +116,6 @@ namespace M_CacheShapeSegment {
 // and the cumulative lengths between them.
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f; };
-struct M4 { qword a, b, c, d; };
-struct PATH : XFM {
-    char pad[0xEC - 0xE0];
-    float *times;       // 0xEC
-    float *dist;        // 0xF0
-    qword *points;      // 0xF4
-    char padF8[8];
-    struct M4 mat;      // 0x100
-    qword *in;          // 0x140, incoming tangents
-    qword *out;         // 0x144, outgoing tangents
-    int segment;        // 0x148, segment currently cached
-    float lengths[11];  // 0x14C
-};
 void EvaluateBezierPos(float duration, float t, float scale, qword start, qword startTangent, qword end, qword endTangent,
                    qword *pos, qword *vel, qword *acc) __asm__("EvaluateBezierPos");
 
@@ -161,7 +148,7 @@ extern "C" { static inline float Len(qword a)
 
 // Caches 11 Hermite samples of curve segment i (in world space) and their cumulative lengths, for arc-length
 // lookups inside a curve segment. Also known as: CacheSegCrv (upstream readable / Sly 1 name; CacheSegCrv__FP3CRVi).
-extern "C" void CacheShapeSegment(struct PATH *shape, int segment)
+extern "C" void CacheShapeSegment(SHAPE *shape, int segment)
 {
     union U prev, cur;
     // Plain qwords: they live across the call in the loop, so reload spills them to 0x20..0x50 and
@@ -169,47 +156,40 @@ extern "C" void CacheShapeSegment(struct PATH *shape, int segment)
     qword start, end, a, b;
     int j;
     float duration;
-    if (segment == shape->segment)
+    if (segment == shape->unknown148)
         return;
     {
-        struct M4 *m = &shape->mat;
-        qword v0 = shape->points[segment], v1 = shape->points[segment + 1], o0 = shape->out[segment], i1 = shape->in[segment + 1];
-        qword m1 = m->b, m2 = m->c, m3 = m->d, m0 = shape->mat.a;
-        shape->lengths[0] = 0;
+        MATRIX4Q *m = &shape->matqWorldCache;
+        qword v0 = shape->vertexPosq[segment].q, v1 = shape->vertexPosq[segment + 1].q, o0 = shape->outgoingTangentq[segment].q, i1 = shape->incomingTangentq[segment + 1].q;
+        qword m1 = m->r[1].q, m2 = m->r[2].q, m3 = m->r[3].q, m0 = shape->matqWorldCache.r[0].q;
+        shape->segmentLengths[0] = 0;
         // Computed in argument order; the scheduler then emits them as b, end, start, a.
         start = Point(m0, m1, m2, m3, v0);
         a = Dir(m0, m1, m2, o0);
         end = Point(m0, m1, m2, m3, v1);
         b = Dir(m0, m1, m2, i1);
     }
-    duration = shape->times[segment + 1] - shape->times[segment];
+    duration = shape->vertexParams[segment + 1] - shape->vertexParams[segment];
     for (j = 0; j < 11; j++) {
         float frac = (float)j * 0.1f;
         EvaluateBezierPos(duration, frac * duration, 1.0f, start, a, end, b, &cur.q, 0, 0);
         if (j > 0)
-            shape->lengths[j] = shape->lengths[j - 1] + Len(VuSub(prev.q, cur.q));
+            shape->segmentLengths[j] = shape->segmentLengths[j - 1] + Len(VuSub(prev.q, cur.q));
         prev.q = cur.q;
     }
-    shape->segment = segment;
+    shape->unknown148 = segment;
 }
 } // namespace M_CacheShapeSegment
 
 namespace M_MeasureShape {
 typedef int qword __attribute__((mode(TI)));
-struct M { qword a,b,c,d; };
-struct S {
- char pad[0xC]; void *vptr; char pad10[0xE0-0x10];
- int mode; char padE4[4]; int n; char padEC[4];
- float *dist; qword *v; char padF8[8]; struct M mat;
- char pad140[0x174-0x140]; float duration; int pad178; void *sub;
-};
-void InvalidateShapeCache(struct S*) __asm__("InvalidateShapeCache");
-void CacheShapeSegment(struct S*,int) __asm__("CacheShapeSegment");
+void InvalidateShapeCache(SHAPE*) __asm__("InvalidateShapeCache");
+void CacheShapeSegment(SHAPE*,int) __asm__("CacheShapeSegment");
 void SyncChainDistances(void*) __asm__("SyncChainDistances");
 // Transform point a by the 4x4 matrix m.
-extern "C" { static inline qword Point(struct M *m,qword a) {
+extern "C" { static inline qword Point(MATRIX4Q *m,qword a) {
  qword r;
- __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->a),"j"(m->b),"j"(m->c),"j"(m->d),"j"(a));
+ __asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(a));
  return r;
 } }
 // Copy a VU0 register (vmove).
@@ -223,34 +203,34 @@ extern "C" { static inline qword LenVec(qword a) {
 } }
 // Recomputes the cumulative-distance array from the world-space points (linear) or the cached per-segment lengths
 // (curve). Also known as: RecalcCrv (upstream readable / Sly 1 name; RecalcCrv__FP3CRV).
-extern "C" void MeasureShape(struct S *shape)
+extern "C" void MeasureShape(SHAPE *shape)
 {
  int i;
  InvalidateShapeCache(shape);
- shape->mat=*(struct M*)AsLo(shape)->GetWorldMatrix();
- if (shape->mode==0) {
-  float *d0=shape->dist; float total=0.0f;
+ shape->matqWorldCache=*(MATRIX4Q*)AsLo(shape)->GetWorldMatrix();
+ if (shape->curveKind==0) {
+  float *d0=shape->vertexArcLengths; float total=0.0f;
   qword prev;
-  prev=Point(&shape->mat,shape->v[0]);
+  prev=Point(&shape->matqWorldCache,shape->vertexPosq[0].q);
   d0[0]=total;
-  for(i=1;i<shape->n;i++) {
-   qword cur=Point(&shape->mat,shape->v[i]);
+  for(i=1;i<shape->numControlVertices;i++) {
+   qword cur=Point(&shape->matqWorldCache,shape->vertexPosq[i].q);
    qword lenv=LenVec(VuSub(prev,cur));
    float len;
    prev=Move(cur);
    __asm__("mtc1 %1,%0":"=f"(len):"r"(lenv));
    total+=len;
-   shape->dist[i]=total;
+   shape->vertexArcLengths[i]=total;
   }
  } else {
   int j;
-  shape->dist[0]=0;
-  for(j=0;j<shape->n-1;j++) {
+  shape->vertexArcLengths[0]=0;
+  for(j=0;j<shape->numControlVertices-1;j++) {
    CacheShapeSegment(shape,j);
-   shape->dist[j+1]=shape->dist[j]+shape->duration;
+   shape->vertexArcLengths[j+1]=shape->vertexArcLengths[j]+shape->segmentLengths[10];
   }
  }
- if(shape->sub)SyncChainDistances(shape->sub);
+ if(shape->chain)SyncChainDistances(shape->chain);
 }
 } // namespace M_MeasureShape
 
@@ -420,9 +400,8 @@ extern "C" float ClampShapeDistance(SHAPE *shape, float distance)
 namespace M_EvaluateShapeU {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a,b,c,d; };
-struct S { char pad[0xC]; void *vptr; char pad2[0xE0-0x10]; int mode; char pad3[0xF4-0xE4]; qword *points; char pad4[0x140-0xF8]; qword *incoming,*outgoing; };
 union U { qword q; float f; };
-int FindShapeSegmentAtParam(struct S*,float,float*,float*) __asm__("FindShapeSegmentAtParam");
+int FindShapeSegmentAtParam(SHAPE*,float,float*,float*) __asm__("FindShapeSegmentAtParam");
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword*,qword*,qword*) __asm__("EvaluateBezierPos");
 // Load the tangent vector at p into vf2.
 extern "C" { static inline qword ReadTangent(const qword*p){register qword a __asm__("vf2");__asm__("lqc2 %0,%1":"=j"(a):"m"(*p));return a;} }
@@ -449,7 +428,7 @@ extern "C" { static inline qword TangentFirst(const qword*p){register qword poin
 // Copy the segment index into callee-saved $18.
 extern "C" { static inline int SegmentIndex(int value){register int index __asm__("$18");__asm__("daddu %0,%1,$zero":"=r"(index):"r"(value));return index;} }
 // Position and tangent at parameter u (linear interpolation or Hermite evaluation), in world space. Also known as: EvalCrv (upstream readable / Sly 1 name; EvalCrv__FP3CRVfP6VECTORT2).
-void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOut) __asm__("EvaluateShapeAtParam"); void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOut)
+void EvaluateShapeAtParam(SHAPE *shape,float param,qword *posOut,qword *dirOut) __asm__("EvaluateShapeAtParam"); void EvaluateShapeAtParam(SHAPE *shape,float param,qword *posOut,qword *dirOut)
 {
     struct M m;
     float elapsed,duration;
@@ -457,22 +436,22 @@ void EvaluateShapeAtParam(struct S *shape,float param,qword *posOut,qword *dirOu
     register qword tangent __asm__("vf2");
     int i=SegmentIndex(FindShapeSegmentAtParam(shape,param,&elapsed,&duration));
     m=* (struct M *)AsLo(shape)->GetWorldMatrix();
-    if (shape->mode==0) {
+    if (shape->curveKind==0) {
         if (posOut) {
             union U scalar;float t=elapsed/duration;
-            qword *linearPoint=(qword*)(PointOffset(i)+(unsigned)shape->points);
+            qword *linearPoint=(qword*)(PointOffset(i)+(uptr)shape->vertexPosq);
             qword w1=HighWeight(t),w0=LowWeight(1.0f-t,&scalar);
             {qword first=FirstPointAndWeight(linearPoint,w1,&scalar),second=ReadLinearSecond(linearPoint+1);qword blend=Lerp(first,second,w0,w1);*posOut=PointKept(blend,&m,blend);}
         }
         if (!dirOut) return;
         {register unsigned offset __asm__("$2")=(unsigned)i<<4;
-        register qword *base __asm__("$3")=shape->points;
+        register qword *base __asm__("$3")=(qword *)shape->vertexPosq;
         register qword *first __asm__("$4"),*second __asm__("$2");
         __asm__("lqc2 %0,%2\n\taddu %1,%3,%4":"=j"(row0),"=r"(first):"m"(m.a),"r"(offset),"r"(base));
         __asm__("lqc2 %0,%2\n\tdaddu %1,%3,$zero":"=j"(row1),"=r"(second):"m"(m.b),"r"(first));
         tangent=Sub(ReadTangent(second+1),TangentFirst(first));}
     } else {
-        EvaluateBezierPos(duration,elapsed,1.0f,shape->points[i],shape->outgoing[i],shape->points[i+1],shape->incoming[i+1],posOut,dirOut,0);
+        EvaluateBezierPos(duration,elapsed,1.0f,shape->vertexPosq[i].q,shape->outgoingTangentq[i].q,shape->vertexPosq[i+1].q,shape->incomingTangentq[i+1].q,posOut,dirOut,0);
         if (posOut) *posOut=HermitePoint(&m,*posOut);
         if (!dirOut) return;
         row0=m.a;
@@ -491,18 +470,12 @@ typedef char float_Width[sizeof(float)==4?1:-1];
 typedef char pointer_Width[sizeof(void*)==4?1:-1];
 typedef char M_Size[sizeof(struct M)==0x40?1:-1];
 typedef char M_Alignment[__alignof__(struct M)==16?1:-1];
-typedef char S_Prefix_Size[sizeof(struct S)==0x148?1:-1];
 typedef char U_Size[sizeof(union U)==16?1:-1];
 typedef char U_Alignment[__alignof__(union U)==16?1:-1];
 typedef char M_a_Offset[FIELD_OFFSET(struct M,a)==0?1:-1];
 typedef char M_b_Offset[FIELD_OFFSET(struct M,b)==0x10?1:-1];
 typedef char M_c_Offset[FIELD_OFFSET(struct M,c)==0x20?1:-1];
 typedef char M_d_Offset[FIELD_OFFSET(struct M,d)==0x30?1:-1];
-typedef char S_vptr_Offset[FIELD_OFFSET(struct S,vptr)==0xC?1:-1];
-typedef char S_mode_Offset[FIELD_OFFSET(struct S,mode)==0xE0?1:-1];
-typedef char S_points_Offset[FIELD_OFFSET(struct S,points)==0xF4?1:-1];
-typedef char S_incoming_Offset[FIELD_OFFSET(struct S,incoming)==0x140?1:-1];
-typedef char S_outgoing_Offset[FIELD_OFFSET(struct S,outgoing)==0x144?1:-1];
 typedef char U_q_Offset[FIELD_OFFSET(union U,q)==0?1:-1];
 typedef char U_f_Offset[FIELD_OFFSET(union U,f)==0?1:-1];
 } // namespace M_EvaluateShapeU
@@ -577,14 +550,10 @@ typedef int qword __attribute__((mode(TI)));
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { QWROW rows[4]; };
 struct SPACE;
-struct PATH {
-    char padC[0xC]; void *vptr; char pad10[0xD4];
-    int cyclic, count; float *times; int padF0; qword *points;
-};
 
-int FindShapeSegmentAtParam(PATH *, float, float *, float *) __asm__("FindShapeSegmentAtParam");
+int FindShapeSegmentAtParam(SHAPE *, float, float *, float *) __asm__("FindShapeSegmentAtParam");
 qword ApplyConstrNoTransform(SPACE *, qword) __asm__("ApplyConstrNoTransform");
-float GetShapeDistanceAtParam(PATH *, float) __asm__("GetShapeDistanceAtParam");
+float GetShapeDistanceAtParam(SHAPE *, float) __asm__("GetShapeDistanceAtParam");
 
 struct VU_FLOAT {
     qword q;
@@ -659,7 +628,7 @@ static inline VV Normalize(VV a)
     return length;
 }
 // Closest point on a linear shape to a position, walking segments from a starting parameter.
-void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection, float *outTime, float *outValue, float initial) __asm__("FindShapeClosestPointLinearFromParam"); void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
+void FindShapeClosestPointLinearFromParam(SHAPE *p, qword point, SPACE *space, qword *outPosition, qword *outDirection, float *outTime, float *outValue, float initial) __asm__("FindShapeClosestPointLinearFromParam"); void FindShapeClosestPointLinearFromParam(SHAPE *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue, float initial)
 {
     QWROW segment;
@@ -671,7 +640,7 @@ void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qw
     float fraction;
     for (;;) {
         const M4 *basis = &matrix;
-        qword start = p->points[index], end = p->points[index + 1];
+        qword start = ((qword *)p->vertexPosq)[index], end = ((qword *)p->vertexPosq)[index + 1];
         segment.q = Rotate(matrix, basis, VuSub(end, start));
         qword delta = VuSub(point, TransformPoint(matrix, start));
         if (space) {
@@ -687,17 +656,17 @@ void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qw
             if (forward) { fraction = 1.0f; index = previous; break; }
             if (index > 0) --index;
             else {
-                if (!p->cyclic) { fraction = 0.0f; break; }
-                index = p->count - 2;
+                if (!p->isClosed) { fraction = 0.0f; break; }
+                index = p->numControlVertices - 2;
             }
             backward = 1;
             previous = index;
             continue;
         } else if (size < distance) {
             if (backward) { fraction = 0.0f; index = previous; break; }
-            if (index < p->count - 2) ++index;
+            if (index < p->numControlVertices - 2) ++index;
             else {
-                if (!p->cyclic) { fraction = 1.0f; break; }
+                if (!p->isClosed) { fraction = 1.0f; break; }
                 index = 0;
             }
             forward = 1;
@@ -709,15 +678,15 @@ void FindShapeClosestPointLinearFromParam(PATH *p, qword point, SPACE *space, qw
         }
     }
     if (outPosition) {
-        *outPosition = TransformPoint(matrix, VecCombo(VU_FLOAT(1.0f - fraction), p->points[index],
-                                                       VU_FLOAT(fraction), p->points[index + 1]));
+        *outPosition = TransformPoint(matrix, VecCombo(VU_FLOAT(1.0f - fraction), ((qword *)p->vertexPosq)[index],
+                                                       VU_FLOAT(fraction), ((qword *)p->vertexPosq)[index + 1]));
     }
     if (outDirection) {
         const M4 *basis = &matrix;
-        qword tangent = Rotate(matrix, basis, VuSub(p->points[index + 1], p->points[index]));
+        qword tangent = Rotate(matrix, basis, VuSub(((qword *)p->vertexPosq)[index + 1], ((qword *)p->vertexPosq)[index]));
         *outDirection = Normalize(tangent);
     }
-    fraction = (1.0f - fraction) * p->times[index] + fraction * p->times[index + 1];
+    fraction = (1.0f - fraction) * p->vertexParams[index] + fraction * p->vertexParams[index + 1];
     if (outTime) *outTime = fraction;
     if (outValue) *outValue = GetShapeDistanceAtParam(p, fraction);
 }
@@ -784,15 +753,11 @@ typedef int qword __attribute__((mode(TI)));
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { qword a, b, c, d; };
 struct SPACE;
-struct PATH {
-    char padC[0xC]; void *vptr; char pad10[0xD0];
-    int mode, cyclic, count; float *times, *values; qword *points;
-};
 
 extern float D_002A8138 __asm__("D_002A8138");
 qword ApplyConstrNoTransform(SPACE *, qword) __asm__("ApplyConstrNoTransform");
-float GetShapeDistanceAtParam(PATH *, float) __asm__("GetShapeDistanceAtParam");
-void FindShapeClosestPointFromParam(PATH *, qword, SPACE *, qword *, qword *, float *, float *, float) __asm__("FindShapeClosestPointFromParam");
+float GetShapeDistanceAtParam(SHAPE *, float) __asm__("GetShapeDistanceAtParam");
+void FindShapeClosestPointFromParam(SHAPE *, qword, SPACE *, qword *, qword *, float *, float *, float) __asm__("FindShapeClosestPointFromParam");
 
 struct VU_FLOAT {
     qword q;
@@ -844,22 +809,22 @@ static inline VV Normalize(VV a)
 }
 // Global closest point on the shape to a position (segment scan, or nearest vertex then refinement); outputs the
 // point, tangent, parameter and distance. Also known as: NearestCrvAll (upstream readable / Sly 1 name; NearestCrvAll__FP3CRVG9VU_VECTORP6VECTORT2PfT4T2).
-extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
+extern "C" void FindShapeClosestPoint(SHAPE *p, qword point, SPACE *space, qword *outPosition, qword *outDirection,
                               float *outTime, float *outValue)
 {
     M4 matrix;
     QWROW closest;
     qword start, end;
     matrix = *(M4 *)AsLo(p)->GetWorldMatrix();
-    switch (p->mode) {
+    switch (p->curveKind) {
     case 0: {
-        start = TransformPoint(matrix, p->points[0]);
+        start = TransformPoint(matrix, ((qword *)p->vertexPosq)[0]);
         float best = D_002A8138, time = -1.0f;
-        for (int index = 1; index < p->count; index++) {
+        for (int index = 1; index < p->numControlVertices; index++) {
             // allocation-only: an in-place use/set of `time` makes global-alloc rank it ahead of `best`
             // (time gets f22, best f23); it emits no instruction.
             __asm__("" : "+f"(time));
-            qword direction = VuSub(end = TransformPoint(matrix, p->points[index]), start);
+            qword direction = VuSub(end = TransformPoint(matrix, ((qword *)p->vertexPosq)[index]), start);
             qword offset = VuSub(point, start);
             if (space) {
                 direction = ApplyConstrNoTransform(space, direction);
@@ -874,7 +839,7 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
             float distance = Length(delta);
             if (distance < best) {
                 best = distance;
-                time = u * p->times[index - 1] + t * p->times[index];
+                time = u * p->vertexParams[index - 1] + t * p->vertexParams[index];
                 if (outPosition) *outPosition = closest.q;
                 if (outDirection) *outDirection = Normalize(VuSub(end, start));
             }
@@ -887,13 +852,13 @@ extern "C" void FindShapeClosestPoint(PATH *p, qword point, SPACE *space, qword 
     case 1: {
         float best = D_002A8138;
         int closestIndex = -1;
-        for (int index = 0; index < p->count; index++) {
-            qword displacement = VuSub(point, TransformPoint(matrix, p->points[index]));
+        for (int index = 0; index < p->numControlVertices; index++) {
+            qword displacement = VuSub(point, TransformPoint(matrix, ((qword *)p->vertexPosq)[index]));
             if (space) displacement = ApplyConstrNoTransform(space, displacement);
             float distance = Length(displacement);
             if (distance < best) { best = distance; closestIndex = index; }
         }
-        FindShapeClosestPointFromParam(p, point, space, outPosition, outDirection, outTime, outValue, p->times[closestIndex]);
+        FindShapeClosestPointFromParam(p, point, space, outPosition, outDirection, outTime, outValue, p->vertexParams[closestIndex]);
         break;
     }
     }
@@ -1043,7 +1008,7 @@ void SetLoBusyKind(SHAPE *p, int n) __asm__("SetLoBusyKind");
 extern "C" SHAPECHAIN *EnsureShapeChain(SHAPE *shape, int rearm)
 {
     if (!shape->chain) {
-        shape->chain = InitChain(func_001AE4F8(0x90), shape);
+        shape->chain = InitChain(func_001AE4F8(sizeof(SHAPECHAIN)), shape);
         MeasureShape(shape);
         SetLoBusyKind(shape, 0);
         { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf &= ~0x20; else shape->unknown40 = v & ~0x20; }
@@ -1136,24 +1101,23 @@ namespace M_func_001E7BB8 {
 // World bounds from transformed path points and segment controls.
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
-struct S : LO { char pad[0xA0 - 0x50]; struct MATRIX4Q mat;int mode;char padE4[4];int n;float *times,*dist;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
-extern void UpdateXfmMatWorld(struct S*) __asm__("UpdateXfmMatWorld");
+extern void UpdateXfmMatWorld(SHAPE *) __asm__("UpdateXfmMatWorld");
 // Transform point p by the matrix rows r0..r3 (old only influences register allocation).
 extern "C" { static inline qword Point(qword old,qword r0,qword r1,qword r2,qword r3,qword p){__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"+j"(old):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(p));return old;} }
 // World-space axis-aligned bounds of the transformed points and curve control points.
-extern "C" void GetShapeBounds(struct S*shape,qword*minOut,qword*maxOut){
+extern "C" void GetShapeBounds(SHAPE *shape,qword*minOut,qword*maxOut){
  register qword r0 __asm__("vf2"),r1 __asm__("vf3"),r2 __asm__("vf4"),r3 __asm__("vf11");
  register qword maximum __asm__("vf5"),minimum __asm__("vf6");
  register qword *first __asm__("$5");
  UpdateXfmMatWorld(shape);
  {register struct MATRIX4Q*m __asm__("$2");
- __asm__("lw %0,%2\n\taddiu %1,%3,%4":"=&r"(first),"=r"(m):"m"(shape->points),"r"(shape),"I"((unsigned)&((struct S*)0)->mat));
- __asm__("lqc2 %0,0x30(%8)\n\tlqc2 %1,0x10(%8)\n\tlqc2 %2,0x20(%8)\n\tlqc2 %3,%7":"=j"(r3),"=j"(r1),"=j"(r2),"=j"(r0):"m"(m->r[3].q),"m"(m->r[1].q),"m"(m->r[2].q),"m"(shape->mat.r[0].q),"r"(m));}
+ __asm__("lw %0,%2\n\taddiu %1,%3,%4":"=&r"(first),"=r"(m):"m"(shape->vertexPosq),"r"(shape),"I"(SLY2_OFFSETOF(SHAPE, matqWorld)));
+ __asm__("lqc2 %0,0x30(%8)\n\tlqc2 %1,0x10(%8)\n\tlqc2 %2,0x20(%8)\n\tlqc2 %3,%7":"=j"(r3),"=j"(r1),"=j"(r2),"=j"(r0):"m"(m->r[3].q),"m"(m->r[1].q),"m"(m->r[2].q),"m"(shape->matqWorld.r[0].q),"r"(m));}
  {register qword value __asm__("vf1")=*first;register int mode __asm__("$2");
- __asm__ volatile("vmulax.xyz ACC,%2,%6x\n\tvmadday.xyz ACC,%3,%6y\n\tvmaddaz.xyz ACC,%4,%6z\n\tvmaddw.xyz %0,%5,$vf0w\n\tlw %1,%7":"=&j"(maximum),"=r"(mode):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(value),"m"(shape->mode));
+ __asm__ volatile("vmulax.xyz ACC,%2,%6x\n\tvmadday.xyz ACC,%3,%6y\n\tvmaddaz.xyz ACC,%4,%6z\n\tvmaddw.xyz %0,%5,$vf0w\n\tlw %1,%7":"=&j"(maximum),"=r"(mode):"j"(r0),"j"(r1),"j"(r2),"j"(r3),"j"(value),"m"(shape->curveKind));
  minimum=maximum;
  if(mode==0){
-  register int n __asm__("$4")=shape->n;
+  register int n __asm__("$4")=shape->numControlVertices;
   register int greater __asm__("$2");
   __asm__("addiu %0,$zero,%2\n\tslt %0,%0,%1":"=&r"(greater):"r"(n),"I"(1));
   if(greater){
@@ -1171,7 +1135,7 @@ extern "C" void GetShapeBounds(struct S*shape,qword*minOut,qword*maxOut){
  }else{
   register int bound __asm__("$7");
   register qword previous __asm__("vf7");
-  __asm__("lw $2,%1\n\taddiu %0,$2,%2":"=r"(bound):"m"(shape->n),"I"(-1):"$2");
+  __asm__("lw $2,%1\n\taddiu %0,$2,%2":"=r"(bound):"m"(shape->numControlVertices),"I"(-1):"$2");
   previous=maximum;
   if(bound>0){
    register qword a __asm__("vf10"),b __asm__("vf9"),c __asm__("vf8");
@@ -1179,12 +1143,12 @@ extern "C" void GetShapeBounds(struct S*shape,qword*minOut,qword*maxOut){
    register float *time __asm__("$3");
    register float positive __asm__("$f3"),negative __asm__("$f2");
    register int remaining __asm__("$2");
-   __asm__("lw $2,%4\n\tvmove.xyzw %0,%6\n\tlw %1,%5\n\tvmove.xyzw %2,%7\n\taddiu %3,$2,%8":"=j"(a),"=r"(time),"=j"(b),"=r"(incoming):"m"(shape->incoming),"m"(shape->times),"j"(r0),"j"(r1),"I"(sizeof(qword)):"$2");
+   __asm__("lw $2,%4\n\tvmove.xyzw %0,%6\n\tlw %1,%5\n\tvmove.xyzw %2,%7\n\taddiu %3,$2,%8":"=j"(a),"=r"(time),"=j"(b),"=r"(incoming):"m"(shape->incomingTangentq),"m"(shape->vertexParams),"j"(r0),"j"(r1),"I"(sizeof(qword)):"$2");
    positive=0.333333343f;
    __asm__("vmove.xyzw %0,%2\n\tli.s %1,%3":"=j"(c),"=f"(negative):"j"(r2),"F"(-0.333333343f):"$1");
    {register float lower __asm__("$f0");
    point=first;
-   __asm__("lw %0,%4\n\taddiu %1,%1,%7\n\tdaddu %2,%5,$zero\n\tlwc1 %3,%6":"=&r"(outgoing),"+&r"(point),"=&r"(remaining),"=f"(lower):"m"(shape->outgoing),"r"(bound),"m"(time[0]),"I"(sizeof(qword)));
+   __asm__("lw %0,%4\n\taddiu %1,%1,%7\n\tdaddu %2,%5,$zero\n\tlwc1 %3,%6":"=&r"(outgoing),"+&r"(point),"=&r"(remaining),"=f"(lower):"m"(shape->outgoingTangentq),"r"(bound),"m"(time[0]),"I"(sizeof(qword)));
    goto curve_body;
    do {
     lower=time[0];
@@ -1226,21 +1190,9 @@ typedef char bound_layout_5[(__alignof__(struct MATRIX4Q)==16)?1:-1];
 typedef char bound_layout_6[(sizeof(((struct MATRIX4Q*)0)->r)==64)?1:-1];
 typedef char bound_layout_7[(sizeof(((struct MATRIX4Q*)0)->r[0].q)==16)?1:-1];
 typedef char bound_layout_8[(OFF(struct MATRIX4Q,r)==0)?1:-1];
-typedef char bound_layout_9[(OFF(struct S,mat)==0xA0)?1:-1];
-typedef char bound_layout_10[(OFF(struct S,mode)==0xE0)?1:-1];
-typedef char bound_layout_11[(OFF(struct S,n)==0xE8)?1:-1];
-typedef char bound_layout_12[(OFF(struct S,times)==0xEC)?1:-1];
-typedef char bound_layout_13[(OFF(struct S,dist)==0xF0)?1:-1];
-typedef char bound_layout_14[(OFF(struct S,points)==0xF4)?1:-1];
-typedef char bound_layout_15[(OFF(struct S,incoming)==0x140)?1:-1];
-typedef char bound_layout_16[(OFF(struct S,outgoing)==0x144)?1:-1];
 typedef char bound_layout_17[(sizeof(void*)==4)?1:-1];
 typedef char bound_layout_18[(sizeof(int)==4)?1:-1];
 typedef char bound_layout_19[(sizeof(float)==4)?1:-1];
-typedef char bound_layout_20[(sizeof(((struct S*)0)->mode)==4)?1:-1];
-typedef char bound_layout_21[(sizeof(((struct S*)0)->n)==4)?1:-1];
-typedef char bound_layout_22[(sizeof(*((struct S*)0)->points)==16)?1:-1];
-typedef char bound_layout_23[(sizeof(*((struct S*)0)->times)==4)?1:-1];
 } // namespace M_func_001E7BB8
 #undef OFF
 
@@ -1249,8 +1201,7 @@ namespace M_func_001E7D90 {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct BASIS3 {qword r[3];};
-struct P : LO { char padA0[0xA0 - 0x50]; struct MATRIX4Q matrix;int mode;char padE4[4];int count;float *times,*distances;qword *points;char padF8[0x48];qword *incoming,*outgoing;};
-extern void UpdateXfmMatWorld(struct P*) __asm__("UpdateXfmMatWorld");
+extern void UpdateXfmMatWorld(SHAPE *) __asm__("UpdateXfmMatWorld");
 // Load the point at source into vf1.
 extern "C" { static inline qword ReadPoint(const qword*source){register qword value __asm__("vf1");__asm__("lqc2 %0,%1":"=j"(value):"m"(*source));return value;} }
 // Rotate a in place by the 3x3 matrix rows m0..m2.
@@ -1264,32 +1215,32 @@ extern "C" { static inline qword Scalar(float f,union U*out){register int bits _
 // Square root of f.
 extern "C" { static inline float Sqrt(float f){return __builtin_sqrtf(f);} }
 // Bounding radius from the transformed vertices and Bezier controls (after the world matrix update).
-extern "C" float UpdateShapeBoundingSphere(struct P*shape)
+extern "C" float UpdateShapeBoundingSphere(SHAPE *shape)
 {
     register float squared __asm__("$f2");
     UpdateXfmMatWorld(shape);squared=0.0f;
-    if(shape->mode==0){
-        register int remaining __asm__("$3")=shape->count;
+    if(shape->curveKind==0){
+        register int remaining __asm__("$3")=shape->numControlVertices;
         if(remaining>0){
             register qword r0 __asm__("vf3"),r2 __asm__("vf5"),r1 __asm__("vf4");
             register qword *point __asm__("$4");
-            register struct MATRIX4Q *basis __asm__("$2")=&shape->matrix;
-            __asm__("lqc2 %0,%4\n\tlqc2 %1,0x20(%8)\n\tlqc2 %2,0x10(%8)\n\tlw %3,%7":"=j"(r0),"=j"(r2),"=j"(r1),"=r"(point):"m"(shape->matrix.r[0].q),"m"(basis->r[2].q),"m"(basis->r[1].q),"m"(shape->points),"r"(basis));
+            register struct MATRIX4Q *basis __asm__("$2")=&shape->matqWorld;
+            __asm__("lqc2 %0,%4\n\tlqc2 %1,0x20(%8)\n\tlqc2 %2,0x10(%8)\n\tlw %3,%7":"=j"(r0),"=j"(r2),"=j"(r1),"=r"(point):"m"(shape->matqWorld.r[0].q),"m"(basis->r[2].q),"m"(basis->r[1].q),"m"(shape->vertexPosq),"r"(basis));
             do {qword v=DirInPlace(r0,r1,r2,*point);squared=MaxR(squared,LenSq(v));point++;}while(--remaining);
         }
     }else{
         register struct MATRIX4Q *incomingBasis __asm__("$8");
         register qword r0 __asm__("vf3"),r1 __asm__("vf4"),r2 __asm__("vf5");
         register qword firstPoint __asm__("vf1"),previous __asm__("vf6");
-        register qword *first __asm__("$5")=shape->points;
+        register qword *first __asm__("$5")=(qword *)shape->vertexPosq;
         register int i __asm__("$4"),limit __asm__("$2");
         __asm__("addiu $2,%6,%9\n\tlqc2 %0,0x10($2)\n\tdaddu %1,$2,$zero\n\tlqc2 %2,0x20($2)\n\tdaddu %3,$zero,$zero\n\tlqc2 %4,%8\n\tlqc2 %5,%7"
           :"=j"(r1),"=&r"(incomingBasis),"=j"(r2),"=&r"(i),"=j"(firstPoint),"=j"(r0)
-          :"r"(shape),"m"(*(const struct BASIS3*)&shape->matrix),"m"(*first),"I"((unsigned)&((struct P*)0)->matrix):"$2");
+          :"r"(shape),"m"(*(const struct BASIS3*)&shape->matqWorld),"m"(*first),"I"(SLY2_OFFSETOF(SHAPE, matqWorld)):"$2");
         __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
           :"=j"(previous):"j"(r0),"j"(r1),"j"(r2),"j"(firstPoint));
         __asm__("lw %0,%3\n\tvmul.xyz $vf1,%2,%2\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf2,$vf1z\n\tqmfc2.ni $3,$vf1\n\taddiu %0,%0,%4\n\tmtc1 $3,%1"
-          :"=r"(limit),"=f"(squared):"j"(previous),"m"(shape->count),"I"(-1):"$3","vf1","vf2");
+          :"=r"(limit),"=f"(squared):"j"(previous),"m"(shape->numControlVertices),"I"(-1):"$3","vf1","vf2");
         if(limit>0){
             register float positive __asm__("$f4"),negative __asm__("$f3");
             register qword a __asm__("vf10"),b __asm__("vf9"),c __asm__("vf8");
@@ -1300,9 +1251,9 @@ extern "C" float UpdateShapeBoundingSphere(struct P*shape)
             __asm__("vmove.xyzw %0,%1":"=j"(a):"j"(r0));
             negative=-0.333333343f;
             __asm__("vmove.xyzw %0,%3\n\tlw %1,%4\n\tvmove.xyzw %2,%5"
-              :"=j"(b),"=r"(outgoing),"=j"(c):"j"(r1),"m"(shape->outgoing),"j"(r2));
+              :"=j"(b),"=r"(outgoing),"=j"(c):"j"(r1),"m"(shape->outgoingTangentq),"j"(r2));
             __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\taddiu %2,%5,%6"
-              :"=&r"(time),"=&r"(iterations),"=r"(point):"m"(shape->times),"r"(limit),"r"(first),"I"(sizeof(qword)));
+              :"=&r"(time),"=&r"(iterations),"=r"(point):"m"(shape->vertexParams),"r"(limit),"r"(first),"I"(sizeof(qword)));
             do{
                 union U scalar;
                 register qword old __asm__("vf5"),value __asm__("vf1"),next __asm__("vf7"),k __asm__("vf4");
@@ -1327,7 +1278,7 @@ extern "C" float UpdateShapeBoundingSphere(struct P*shape)
                 squared=MaxR(squared,measured);
                 __asm__("mul.s %0,%3,%4\n\tlw %1,%5\n\tlqc2 %2,%6\n\taddu %1,%7,%1"
                   :"=f"(measured),"=&r"(incoming),"=j"(row0)
-                  :"f"(interval),"f"(negative),"m"(shape->incoming),"m"(shape->matrix.r[0].q),"r"(offset));
+                  :"f"(interval),"f"(negative),"m"(shape->incomingTangentq),"m"(shape->matqWorld.r[0].q),"r"(offset));
                 k=Scalar(measured,&scalar);
                 __asm__("lqc2 %0,0x10(%6)\n\tlqc2 %1,0x10(%7)\n\tlqc2 %2,0x20(%6)"
                   :"=j"(row1),"=j"(value),"=j"(row2)
@@ -1354,14 +1305,6 @@ typedef char verified_radius_1[(__alignof__(qword)==16)?1:-1];
 typedef char verified_radius_2[(sizeof(union U)==16)?1:-1];
 typedef char verified_radius_3[(sizeof(struct MATRIX4Q)==0x40)?1:-1];
 typedef char verified_radius_4[(OFF(struct MATRIX4Q,r)==0)?1:-1];
-typedef char verified_radius_5[(OFF(struct P,matrix)==0xA0)?1:-1];
-typedef char verified_radius_6[(OFF(struct P,mode)==0xE0)?1:-1];
-typedef char verified_radius_7[(OFF(struct P,count)==0xE8)?1:-1];
-typedef char verified_radius_8[(OFF(struct P,times)==0xEC)?1:-1];
-typedef char verified_radius_9[(OFF(struct P,distances)==0xF0)?1:-1];
-typedef char verified_radius_10[(OFF(struct P,points)==0xF4)?1:-1];
-typedef char verified_radius_11[(OFF(struct P,incoming)==0x140)?1:-1];
-typedef char verified_radius_12[(OFF(struct P,outgoing)==0x144)?1:-1];
 typedef char verified_radius_13[(sizeof(void*)==4)?1:-1];
 typedef char verified_radius_14[(sizeof(int)==4)?1:-1];
 typedef char verified_radius_15[(sizeof(float)==4)?1:-1];
@@ -1369,7 +1312,6 @@ typedef char verified_radius_16[(__alignof__(struct MATRIX4Q)==16)?1:-1];
 typedef char verified_radius_17[(__alignof__(union U)==16)?1:-1];
 typedef char verified_radius_18[(sizeof(((struct MATRIX4Q*)0)->r)==64)?1:-1];
 typedef char verified_radius_19[(sizeof(((struct MATRIX4Q*)0)->r[0].q)==16)?1:-1];
-typedef char verified_radius_20[(sizeof(((struct P*)0)->count)==4)?1:-1];
 
 typedef char radius_basis_prefix_size[(sizeof(struct BASIS3)==48)?1:-1];
 typedef char radius_basis_prefix_align[(__alignof__(struct BASIS3)==16)?1:-1];
@@ -1452,29 +1394,26 @@ typedef char layout_P_closed[((unsigned)&((SHAPE*)0)->isClosed==0xE4)?1:-1];
 
 namespace M_InitChain {
 typedef int qword __attribute__((mode(TI)));
-struct M4 {qword unknown0,unknown4,c,d;};
-struct PATH {char pad[0xC];void *vptr;char pad10[0xE8-0x10];int numPoints;int padEC;float *dist;qword *points;};
-struct S {int unknown0,unknown4;float gravity;char padC[0x20-0xC];qword start,end;void *fn40,*fn44;struct PATH *path;int mode;int pad50;qword *positions,*previousPositions;float *dist;float unknown60;char pad64[8];float unknown6C,unknown70;char pad74[0x84-0x74];int capacity;float unknown88;};
-extern char D_002C44F0[] __asm__("D_002C44F0");
+extern char D_002C44F0[] __asm__("D_002C44F0");   /* g_xfWorld */
 void *AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldHeap");
-void SyncChainDistances(struct S*) __asm__("SyncChainDistances");
+void SyncChainDistances(SHAPECHAIN*) __asm__("SyncChainDistances");
 // Transform point a by the 4x4 matrix m.
-extern "C" { static inline qword Point(struct M4 *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->unknown0),"j"(m->unknown4),"j"(m->c),"j"(m->d),"j"(a));return r;} }
+extern "C" { static inline qword Point(MATRIX4Q *m,qword a) {qword r;__asm__("vmulax.xyz $ACC,%1,%5x\n\tvmadday.xyz $ACC,%2,%5y\n\tvmaddaz.xyz $ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(a));return r;} }
 // Initialises a chain for a shape: a private copy of the points and distances and the rest lengths. Also known as: InitRope (upstream readable / Sly 1 name; InitRope__FP4ROPEP2LO).
-extern "C" struct S *InitChain(struct S *chain,struct PATH *path) {
- struct SWALLOC size;struct M4 *m;int i;
- chain->path=path;chain->mode=-1;
- size.cb=path->numPoints*16;size.cbAlign=16;chain->positions=(__typeof__(chain->positions))AllocClearedFromWorldHeap(&size);
- size.cb=path->numPoints*16;size.cbAlign=16;chain->previousPositions=(__typeof__(chain->previousPositions))AllocClearedFromWorldHeap(&size);
- size.cb=path->numPoints*4;size.cbAlign=16;chain->dist=(__typeof__(chain->dist))AllocClearedFromWorldHeap(&size);
- chain->gravity=-1750.0f;chain->unknown60=3.0f;chain->unknown6C=500.0f;chain->unknown70=5.0f;
- chain->unknown0=0;chain->unknown4=0;
- chain->capacity=chain->path->numPoints;chain->unknown88=300.0f;
- m=(struct M4 *)AsLo(chain->path)->GetWorldMatrix();
- for(i=0;i<chain->path->numPoints;i++)chain->positions[i]=Point(m,chain->path->points[i]);
- chain->fn40=chain->fn44=D_002C44F0;
- if(chain->path->numPoints>0) {
-  chain->start=chain->positions[0];chain->end=chain->positions[chain->path->numPoints-1];
+extern "C" SHAPECHAIN *InitChain(SHAPECHAIN *chain,SHAPE *path) {
+ struct SWALLOC size;MATRIX4Q *m;int i;
+ chain->pshape=path;chain->mode=-1;
+ size.cb=path->numControlVertices*16;size.cbAlign=16;chain->positions=(__typeof__(chain->positions))AllocClearedFromWorldHeap(&size);
+ size.cb=path->numControlVertices*16;size.cbAlign=16;chain->velocities=(__typeof__(chain->velocities))AllocClearedFromWorldHeap(&size);
+ size.cb=path->numControlVertices*4;size.cbAlign=16;chain->distances=(__typeof__(chain->distances))AllocClearedFromWorldHeap(&size);
+ chain->forceq.f[2]=-1750.0f;chain->damping=3.0f;chain->bend=500.0f;chain->bendDamping=5.0f;
+ chain->forceq.i[0]=0;chain->forceq.i[1]=0;
+ chain->capacity=chain->pshape->numControlVertices;chain->step=300.0f;
+ m=(MATRIX4Q *)AsLo(chain->pshape)->GetWorldMatrix();
+ for(i=0;i<chain->pshape->numControlVertices;i++)chain->positions[i].q=Point(m,((qword *)chain->pshape->vertexPosq)[i]);
+ chain->pxfFirst=chain->pxfLast=(XF *)D_002C44F0;
+ if(chain->pshape->numControlVertices>0) {
+  chain->start=chain->positions[0].q;chain->end=chain->positions[chain->pshape->numControlVertices-1].q;
  }
  SyncChainDistances(chain);
  return chain;
@@ -1509,7 +1448,6 @@ struct VU_FLOAT {
 // Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 struct SPACE { char pad[0x40]; MATRIX4Q matrix; };
-struct PATH { char pad[0xC]; void *vptr; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *owner[2]; };
 struct CHAIN
 {
@@ -1519,7 +1457,7 @@ struct CHAIN
     qword end;
     SPACE *first;
     SPACE *last;
-    PATH *path;
+    SHAPE *path;
     int mode;
     int pad50;
     U *position;
@@ -1539,7 +1477,6 @@ qword GetXfVelocity(SPACE *, SPACE *, qword) __asm__("GetXfVelocity");
 void CopyAb__FPvT0Ui(void *, const void *, unsigned) __asm__("CopyAb__FPvT0Ui");
 int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg) __asm__("ClipEdgeToSphere");
 MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *) __asm__("InvertMatrix4Rigid");
-void InvalidateShapeCache(PATH *) __asm__("InvalidateShapeCache");
 void StepChainRk4(CHAIN *) __asm__("StepChainRk4");
 
 
@@ -1674,7 +1611,7 @@ void StepChainRk4(CHAIN *chain)
 {
     U newP[64], newV[64], accP[64], accV[64], force[64];
     int i;
-    int count = chain->path->count;
+    int count = chain->path->numControlVertices;
     VV start = TransformPoint(chain->first->matrix, chain->start);
     VV startVel = GetXfVelocity(chain->first, 0, start);
     VV end = TransformPoint(chain->last->matrix, chain->end);
@@ -1770,7 +1707,7 @@ void StepChainRk4(CHAIN *chain)
                     chain->position[i].q = lsg.apos[1];
                 } else
                     continue;
-                chain->path->dist[i] = step;
+                chain->path->vertexArcLengths[i] = step;
                 j0 = j;
                 LerpP(&chain->velocity[i], &accV[j - 1], &accV[j], t);
                 break;
@@ -1780,8 +1717,8 @@ void StepChainRk4(CHAIN *chain)
         chain->velocity[i].q = endVel;
         count = i + 1;
         chain->distance[i] = chain->distance[i - 1] + QwordX(Length(VuSub(chain->position[i].q, chain->position[i - 1].q)));
-        chain->path->dist[i] = chain->distance[i];
-        chain->path->count = count;
+        chain->path->vertexArcLengths[i] = chain->distance[i];
+        chain->path->numControlVertices = count;
     } else {
         chain->position[0].q = start;
         chain->velocity[0].q = startVel;
@@ -1792,18 +1729,18 @@ void StepChainRk4(CHAIN *chain)
     }
     MATRIX4Q inverse;
     {
-        PATH *path = chain->path;
+        SHAPE *path = chain->path;
         InvertMatrix4Rigid(&inverse, (MATRIX4Q *)AsLo(path)->GetWorldMatrix());
     }
     for (i = 0; i < count; i++)
     {
-        PATH *path = chain->path;
-        path->pos[i].q = TransformPoint(inverse, chain->position[i].q);
+        SHAPE *path = chain->path;
+        ((U *)path->vertexPosq)[i].q = TransformPoint(inverse, chain->position[i].q);
     }
     if (chain->mode != 3) {
-        chain->path->dist[0] = 0.0f;
+        chain->path->vertexArcLengths[0] = 0.0f;
         for (i = 1; i < count; i++)
-            chain->path->dist[i] = chain->path->dist[i - 1] + QwordX(Length(VuSub(chain->path->pos[i - 1].q, chain->path->pos[i].q)));
+            chain->path->vertexArcLengths[i] = chain->path->vertexArcLengths[i - 1] + QwordX(Length(VuSub(((U *)chain->path->vertexPosq)[i - 1].q, ((U *)chain->path->vertexPosq)[i].q)));
     }
     InvalidateShapeCache(chain->path);
 }
@@ -1835,7 +1772,6 @@ struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() cons
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct SPACE { char pad[0x40]; MATRIX4Q matrix; };
-struct PATH { char pad[0xC]; void *vptr; char pad10[0xE8 - 0x10]; int count; int padEC; float *dist; U *pos; };
 struct CHAIN
 {
     qword force;
@@ -1844,7 +1780,7 @@ struct CHAIN
     qword end;              // offset in the last space
     SPACE *first;
     SPACE *last;
-    PATH *path;
+    SHAPE *path;
     int mode;               // 2: the last point is pinned to the end offset
     int pad50;
     U *position;
@@ -1857,7 +1793,6 @@ extern qword D_002A2DA0 __asm__("D_002A2DA0");    // fallback direction
 qword GetXfVelocity(SPACE *, SPACE *, qword) __asm__("GetXfVelocity");
 MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *) __asm__("InvertMatrix4Rigid");   // invert
 void AddChainSample(CHAIN *, float) __asm__("AddChainSample");
-void InvalidateShapeCache(PATH *) __asm__("InvalidateShapeCache");
 void StepChain(CHAIN *) __asm__("StepChain");
 
 
@@ -1911,7 +1846,7 @@ void StepChain(CHAIN *chain)
 {
     float dt = g_clock.deltaTime;
     VV prev = TransformPoint(chain->first->matrix, chain->start);
-    int n = chain->path->count;
+    int n = chain->path->numControlVertices;
     chain->position[0].q = prev;
     U *velocity = chain->velocity;
     VV prevVel = GetXfVelocity(chain->first, 0, prev);
@@ -1936,17 +1871,17 @@ void StepChain(CHAIN *chain)
     {
         chain->position[n - 1].q = TransformPoint(chain->last->matrix, chain->end);
         AddChainSample(chain, chain->distance[n - 2] + VuToFloat(Length(VuSub(chain->position[n - 2].q, chain->position[n - 1].q))));
-        n = chain->path->count;
+        n = chain->path->numControlVertices;
     }
     MATRIX4Q inverse;
     {
-        PATH *path = chain->path;
+        SHAPE *path = chain->path;
         InvertMatrix4Rigid(&inverse, (MATRIX4Q *)AsLo(path)->GetWorldMatrix());
     }
     for (i = 0; i < n; i++)
     {
-        PATH *path = chain->path;
-        path->pos[i].q = TransformPoint(inverse, chain->position[i].q);
+        SHAPE *path = chain->path;
+        ((U *)path->vertexPosq)[i].q = TransformPoint(inverse, chain->position[i].q);
     }
     InvalidateShapeCache(chain->path);
 }
@@ -1955,60 +1890,55 @@ void StepChain(CHAIN *chain)
 namespace M_func_001E93F0 {
 typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[3]; qword pos; };
-struct P { int pad[4]; LO *apo[4]; qword apos[2]; void *ap40[2]; int a48; };
-extern char D_002C44F0[] __asm__("D_002C44F0");
-float GetShapeMinParam(int) __asm__("GetShapeMinParam");
-float GetShapeMaxParam(int) __asm__("GetShapeMaxParam");
-void EvaluateShapeAtParam(int, qword *, int, float) __asm__("EvaluateShapeAtParam");
+extern char D_002C44F0[] __asm__("D_002C44F0");   /* g_xfWorld */
+void EvaluateShapeAtParam(SHAPE *, ::qword *, int, float) __asm__("EvaluateShapeAtParam");
 // Attaches chain end i to an object's transform (slot 32), or to the shape's start/end point. Also known as: SetRopeEnd (upstream readable / Sly 1 name; SetRopeEnd__FP4ROPEiP2LO).
-extern "C" void SetChainEndObject(struct P *shape, int end, LO *object)
+extern "C" void SetChainEndObject(SHAPECHAIN *chain, int end, LO *object)
 {
-    shape->apo[end] = object;
+    chain->aploEnd[end] = object;
     if (object) {
         struct M4 m;
-        shape->ap40[end] = object->GetLocalTransform((MATRIX4 *)&m);
-        *(shape->apos + end) = m.pos;
+        chain->apxfEnd[end] = object->GetLocalTransform((MATRIX4 *)&m);
+        *(chain->aposEnd + end) = m.pos;
     } else {
         float f;
-        shape->ap40[end] = D_002C44F0;
+        chain->apxfEnd[end] = (XF *)D_002C44F0;
         if (end == 0)
-            f = GetShapeMinParam(shape->a48);
+            f = GetShapeMinParam(chain->pshape);
         else
-            f = GetShapeMaxParam(shape->a48);
-        EvaluateShapeAtParam(shape->a48, &shape->apos[end], 0, f);
+            f = GetShapeMaxParam(chain->pshape);
+        EvaluateShapeAtParam(chain->pshape, &chain->aposEnd[end], 0, f);
     }
 }
 } // namespace M_func_001E93F0
 
 namespace M_func_001E94B0 {
 struct AR { int cb; int cbAlign; };
-typedef struct { float m[4][4]; } MATRIX4;
-struct X : LO { char pad[0x60 - 0x50]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int mode; int isClosed; int numPoints; float *times; float *distances; void *points; };
-struct X *CreateLo__F3CIDP2SO3OIDi(int k, int n, void *pv, int m) __asm__("CreateLo__F3CIDP2SO3OIDi");
+SHAPE *CreateLo__F3CIDP2SO3OIDi(int k, int n, void *pv, int m) __asm__("CreateLo__F3CIDP2SO3OIDi");
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Creates a SHAPE (CID 10) with c samples (parameters 0..c-1) and empty distance/point arrays.
-extern "C" struct X *NewSampledShape(void *pv, int count)
+extern "C" SHAPE *NewSampledShape(void *pv, int count)
 {
     struct AR ar;
     int i;
-    struct X *p = CreateLo__F3CIDP2SO3OIDi(10, 0, pv, -1);
+    SHAPE *p = CreateLo__F3CIDP2SO3OIDi(10, 0, pv, -1);
     MATRIX4 *pm;
-    p->mode = 0;
+    p->curveKind = (CRVK)0;
     p->isClosed = 0;
-    pm = &p->mat;
+    pm = &p->localMatrix;
     func_002333B4(pm, 0, 0x40);
-    pm->m[3][3] = 1.0f; pm->m[2][2] = 1.0f; pm->m[1][1] = 1.0f; pm->m[0][0] = 1.0f;
+    pm->mat[3][3] = 1.0f; pm->mat[2][2] = 1.0f; pm->mat[1][1] = 1.0f; pm->mat[0][0] = 1.0f;
     ar.cb = count * 4;
     ar.cbAlign = 0x10;
-    p->times = (__typeof__(p->times))AllocFromWorldHeap(&ar);
-    for (i = 0; i < count; i++) p->times[i] = i;
+    p->vertexParams = (__typeof__(p->vertexParams))AllocFromWorldHeap(&ar);
+    for (i = 0; i < count; i++) p->vertexParams[i] = i;
     ar.cb = count * 4;
     ar.cbAlign = 0x10;
-    p->distances = (__typeof__(p->distances))AllocFromWorldHeap(&ar);
+    p->vertexArcLengths = (__typeof__(p->vertexArcLengths))AllocFromWorldHeap(&ar);
     ar.cb = count * 16;
     ar.cbAlign = 0x10;
-    p->points = AllocFromWorldHeap(&ar);
+    p->vertexPositions = (VECTOR4 *)AllocFromWorldHeap(&ar);
     return p;
 }
 } // namespace M_func_001E94B0
@@ -2285,18 +2215,17 @@ void CID106::RenderSelf()
 
 namespace M_func_001E9C30 {
 
-struct S : XFM { char pad[0x180 - 0xE0]; void *pv; };
 void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
-void BuildShapeVolumeSegments(void *pv, struct S *p) __asm__("BuildShapeVolumeSegments");
+void BuildShapeVolumeSegments(SHAPERANGES *pranges, SHAPE *p) __asm__("BuildShapeVolumeSegments");
 // Allocates and builds the shape's volume/segment table once. (inferred)
-extern "C" void EnsureShapeVolumeSegments(struct S *shape)
+extern "C" void EnsureShapeVolumeSegments(SHAPE *shape)
 {
     struct SWALLOC msg;
-    if (!shape->pv) {
-        msg.cb = 0x9C;
+    if (!shape->pranges) {
+        msg.cb = sizeof(SHAPERANGES);
         msg.cbAlign = 0x10;
-        shape->pv = AllocClearedFromWorldHeap(&msg);
-        BuildShapeVolumeSegments(shape->pv, shape);
+        shape->pranges = (SHAPERANGES *)AllocClearedFromWorldHeap(&msg);
+        BuildShapeVolumeSegments(shape->pranges, shape);
     }
 }
 } // namespace M_func_001E9C30
@@ -2310,13 +2239,8 @@ namespace M_func_001E9C88 {
  * then puts sp+0x200 straight into a1, so gcse has nothing to hoist and the apv[cpv++] cursor (s6) keeps an
  * un-noted init in the loop preheader. The MSG request reuses pos2's stack slot. */
 typedef int qword __attribute__((mode(TI)));
-struct SEG { float a, b; };
-struct O { void *scriptFrame; void *scriptVariables; void *firstSubscriber; void *vt; char pad10[0xE0-0x10]; int curved; int isClosed; int count; float *parameters; float *distances; qword *points; };
-struct S { struct O *po; int c4; struct SEG *aseg; int cC; struct SEG aseg10[16]; int c90; void **apv; int n98; };
 extern float D_002C367C __asm__("D_002C367C");
-float GetShapeMinDistance(struct O *) __asm__("GetShapeMinDistance");
-float GetShapeMaxDistance(struct O *) __asm__("GetShapeMaxDistance");
-void EvaluateShapeAtDistance(struct O *, float, qword *, qword *) __asm__("EvaluateShapeAtDistance");
+void EvaluateShapeAtDistance(SHAPE *, float, qword *, qword *) __asm__("EvaluateShapeAtDistance");
 void *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 int IsPosInPathzone(void *, qword, int) __asm__("IsPosInPathzone");
 void *AllocCopyFromWorldHeap(struct SWALLOC *, void *) __asm__("AllocCopyFromWorldHeap");
@@ -2325,29 +2249,29 @@ void CopyAb__FPvT0Ui(void *, const void *, unsigned) __asm__("CopyAb__FPvT0Ui");
 extern "C" { static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); } }
 // Samples the shape and records the distinct path zones (FindPathzoneAtPos) it passes through with their parameter
 // ranges. (inferred)
-extern "C" void BuildShapeVolumeSegments(struct S *shape, struct O *table)
+extern "C" void BuildShapeVolumeSegments(SHAPERANGES *shape, SHAPE *table)
 {
-    struct SEG aseg[64];
+    LM aseg[64];
     void *apv[64];
     qword pos;
     qword pos2;
-    struct SEG *pseg = 0;
+    LM *pseg = 0;
     int cpv = 0;
     int cseg = 0;
     float tStart, tPrev, t, tEnd;
     void *pPrev;
 
-    shape->po = table;
+    shape->pshape = table;
     tStart = GetShapeMinDistance(table);
     tPrev = tStart;
     t = tStart;
-    tEnd = GetShapeMaxDistance(shape->po);
-    EvaluateShapeAtDistance(shape->po, tStart, &pos, 0);
+    tEnd = GetShapeMaxDistance(shape->pshape);
+    EvaluateShapeAtDistance(shape->pshape, tStart, &pos, 0);
     pPrev = FindPathzoneAtPos(pos, 0);
     for (; t < tEnd; t += D_002C367C) {
         void *pCur;
         int outside;
-        EvaluateShapeAtDistance(shape->po, t, &pos2, 0);
+        EvaluateShapeAtDistance(shape->pshape, t, &pos2, 0);
         pCur = FindPathzoneAtPos(pos2, 0);
         if (pCur) {
             int i;
@@ -2363,28 +2287,28 @@ extern "C" void BuildShapeVolumeSegments(struct S *shape, struct O *table)
         if (outside) {
             if (!pseg && cseg < 64) {
                 pseg = &aseg[cseg++];
-                pseg->a = tPrev;
+                pseg->minValue = tPrev;
             }
         } else if (pseg) {
-            pseg->b = t;
+            pseg->maxValue = t;
             pseg = 0;
         }
         tPrev = t;
         pPrev = pCur;
     }
     if (pseg)
-        pseg->b = tEnd;
-    if (cseg >= 2 && shape->po->isClosed && aseg[0].a == tStart && aseg[cseg - 1].b == tEnd) {
-        aseg[0].a = aseg[cseg - 1].a - tEnd;
-        aseg[cseg - 1].b = aseg[0].b + tEnd;
+        pseg->maxValue = tEnd;
+    if (cseg >= 2 && shape->pshape->isClosed && aseg[0].minValue == tStart && aseg[cseg - 1].maxValue == tEnd) {
+        aseg[0].minValue = aseg[cseg - 1].minValue - tEnd;
+        aseg[cseg - 1].maxValue = aseg[0].maxValue + tEnd;
     }
-    shape->c4 = cseg;
-    shape->aseg = (__typeof__(shape->aseg))PvReallocMsg((struct SWALLOC *)&pos2, cseg * 8, 0x10, aseg);
-    shape->cC = cseg;
-    CopyAb__FPvT0Ui(shape->aseg10, aseg, cseg * 8);
-    shape->c90 = cpv;
-    shape->apv = (__typeof__(shape->apv))PvReallocMsg((struct SWALLOC *)&pos2, cpv * 4, 0x10, apv);
-    shape->n98 = -1;
+    shape->crangeOutside = cseg;
+    shape->arangeOutside = (__typeof__(shape->arangeOutside))PvReallocMsg((struct SWALLOC *)&pos2, cseg * sizeof(LM), 0x10, aseg);
+    shape->crangeFree = cseg;
+    CopyAb__FPvT0Ui(shape->arangeFree, aseg, cseg * 8);
+    shape->cpathzone = cpv;
+    shape->appathzone = (__typeof__(shape->appathzone))PvReallocMsg((struct SWALLOC *)&pos2, cpv * sizeof(void *), 0x10, apv);
+    shape->pathzoneVersion = -1;
 }
 } // namespace M_func_001E9C88
 
@@ -2421,18 +2345,6 @@ namespace M_func_001EA000 {
 //    slots (0xC1C/0xC20) for &ax[0] and the aseg10 copy. Without it the two slots are swapped.
 typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; } __attribute__((aligned(16)));
-struct SEG { float a, b; };
-struct PV : XFM { char pad[0x114 - 0xE0]; int version; };
-struct S {
-    SHAPE *po;
-    int c4;              // number of segments in aseg
-    struct SEG *aseg;    // input segments
-    int cC;              // number of segments in aseg10 (output)
-    struct SEG aseg10[16];
-    int c90;             // number of entries in apv
-    struct PV **apv;
-    int n98;             // stamp of the last update
-};
 struct X { char pad[0x40]; float a; float b; char pad2[0x18]; } __attribute__((aligned(16)));
 extern float D_002C367C __asm__("D_002C367C");
 void EvaluateShapeAtDistance(SHAPE *, float, qword *, qword *) __asm__("EvaluateShapeAtDistance");
@@ -2443,55 +2355,55 @@ int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int) __
 
 // Samples the shape over [t0, t1], collects the parameter ranges that are valid (walkable, not blocked) and
 // intersects them with the existing ranges. (inferred) Also known as: UpdatePathrec (upstream readable / Sly 1 name; UpdatePathrec__FP7PATHREC).
-extern "C" void BuildShapeValidRanges(struct S *shape)
+extern "C" void BuildShapeValidRanges(SHAPERANGES *shape)
 {
     struct VEC pos;
     struct X ax[16];
     struct X ay[16];
     float segStart, segEnd;
-    struct SEG *aseg;
-    struct SEG *asegSrc;
+    LM *aseg;
+    LM *asegSrc;
     int cseg, c, i, j, k, n, nIter = 0;
-    struct SEG *pseg;
+    LM *pseg;
     float tStart, t, tEnd;
     {
         int k;
-        for (k = 0; k < shape->c90; k++)
-            if (shape->n98 < shape->apv[k]->version)
+        for (k = 0; k < shape->cpathzone; k++)
+            if (shape->pathzoneVersion < shape->appathzone[k]->version)
                 break;
-        if (k >= shape->c90)
+        if (k >= shape->cpathzone)
             return;
     }
-    aseg = shape->aseg10;
+    aseg = shape->arangeFree;
     cseg = 0;
-    tStart = GetShapeMinDistance(shape->po);
+    tStart = GetShapeMinDistance(shape->pshape);
     t = tStart;
-    tEnd = GetShapeMaxDistance(shape->po);
-    asegSrc = shape->aseg;
-    c = shape->c4;
+    tEnd = GetShapeMaxDistance(shape->pshape);
+    asegSrc = shape->arangeOutside;
+    c = shape->crangeOutside;
     while (t < tEnd) {
         void *pv;
-        EvaluateShapeAtDistance(shape->po, t, (qword *)&pos, 0);
+        EvaluateShapeAtDistance(shape->pshape, t, (qword *)&pos, 0);
         pv = FindValidObjectAtPos(*(qword *)&pos);
         if (pv) {
-            int fSave = shape->po->isClosed;
-            struct SEG *pseg;
+            int fSave = shape->pshape->isClosed;
+            LM *pseg;
             int fNew;
             int idx;
-            shape->po->isClosed = 0;
-            if (FindShapeFreeRange(pv, shape->po, t, 0, 0, &segStart) == 3)
+            shape->pshape->isClosed = 0;
+            if (FindShapeFreeRange(pv, shape->pshape, t, 0, 0, &segStart) == 3)
                 segStart = tStart;
-            if (FindShapeFreeRange(pv, shape->po, t, 1, 0, &segEnd) == 3)
+            if (FindShapeFreeRange(pv, shape->pshape, t, 1, 0, &segEnd) == 3)
                 segEnd = tEnd;
-            shape->po->isClosed = fSave;
+            shape->pshape->isClosed = fSave;
             pseg = &aseg[cseg];
             fNew = 1;
             while (aseg < pseg) {
-                struct SEG *previous = pseg - 1;
-                if (previous->b < segStart)
+                LM *previous = pseg - 1;
+                if (previous->maxValue < segStart)
                     break;
                 pseg = previous;
-                if (pseg->a < segStart) {
+                if (pseg->minValue < segStart) {
                     fNew = 0;
                     break;
                 }
@@ -2501,8 +2413,8 @@ extern "C" void BuildShapeValidRanges(struct S *shape)
             if (!((unsigned)cseg < 17))
                 cseg = idx;
             if (fNew)
-                pseg->a = segStart;
-            pseg->b = segEnd;
+                pseg->minValue = segStart;
+            pseg->maxValue = segEnd;
             t = segEnd;
         }
         nIter++;
@@ -2510,40 +2422,39 @@ extern "C" void BuildShapeValidRanges(struct S *shape)
     }
     for (i = 0; i < c; i++) {
         func_002333B4(&ax[i], 0, 0x60);
-        ax[i].a = asegSrc[i].a;
-        ax[i].b = asegSrc[i].b;
+        ax[i].a = asegSrc[i].minValue;
+        ax[i].b = asegSrc[i].maxValue;
     }
     for (j = 0; j < cseg; j++) {
         func_002333B4(&ay[j], 0, 0x60);
-        ay[j].a = aseg[j].a;
-        ay[j].b = aseg[j].b;
+        ay[j].a = aseg[j].minValue;
+        ay[j].b = aseg[j].maxValue;
     }
-    pseg = shape->aseg10;
+    pseg = shape->arangeFree;
     n = MergeSegmentLists(cseg, ay, c, ax, 0x10, ay, 0);
     for (k = 0; k < n; k++) {
-        aseg[k].a = ay[k].a;
-        aseg[k].b = ay[k].b;
+        aseg[k].minValue = ay[k].a;
+        aseg[k].maxValue = ay[k].b;
     }
-    if (n >= 2 && shape->po->isClosed) {
+    if (n >= 2 && shape->pshape->isClosed) {
         // wrap-around: the first segment starts at tStart and the last ends at tEnd, so shift them across the seam
-        if (pseg[0].a == tStart && pseg[n - 1].b == tEnd) {
-            pseg[0].a = pseg[n - 1].a - tEnd;
-            pseg[n - 1].b = pseg[0].b + tEnd;
+        if (pseg[0].minValue == tStart && pseg[n - 1].maxValue == tEnd) {
+            pseg[0].minValue = pseg[n - 1].minValue - tEnd;
+            pseg[n - 1].maxValue = pseg[0].maxValue + tEnd;
         }
     }
-    shape->cC = n;
-    shape->n98 = ++g_sw.pathzoneVersion;
+    shape->crangeFree = n;
+    shape->pathzoneVersion = ++g_sw.pathzoneVersion;
 }
 } // namespace M_func_001EA000
 
 namespace M_func_001EA3B0 {
-struct S { char pad[0xC]; int c; struct LM alm[1]; };
 // Returns the {min, max} range containing g, or 0. Also known as: FInPathSpan (upstream readable / Sly 1 name; FInPathSpan__FP7PATHRECf).
-extern "C" struct LM *FindRangeContaining(struct S *table, float value)
+extern "C" struct LM *FindRangeContaining(SHAPERANGES *table, float value)
 {
     int i;
-    struct LM *alm = table->alm;
-    for (i = 0; i < table->c; i++) {
+    struct LM *alm = table->arangeFree;
+    for (i = 0; i < table->crangeFree; i++) {
         struct LM *plm = &alm[i];
         if (plm->minValue <= value && value <= plm->maxValue) return plm;
     }

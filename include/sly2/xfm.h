@@ -71,10 +71,14 @@ struct XFM : public LO
       int worldStamp;    /* frame stamp of the last world-matrix update (inferred: recompute when stale) */
       undefined4 unknown58[2];
       MATRIX4 localMatrix;  /* +0x60 [S] local matrix */
-      MATRIX4 matWorld;     /* +0xA0 [R] world matrix, row 3 (+0xD0) = translation: holds for every LIGHT (CID 4,
+      union
+      {
+            MATRIX4 matWorld;     /* +0xA0 [R] world matrix, row 3 (+0xD0) = translation: holds for every LIGHT (CID 4,
                                3504 instances / 73 states: w = 1; rows 0-2 unit length in 3492, 12 scaled). Plain XFM/PROXY/TARGET instances are
                                mostly all-zero here (HYPOTHESIS: not maintained unless used). Note SO positions are NOT here:
                                SO+0x60 pxfRoot is an XF whose world position is at XF+0x70. */
+            MATRIX4Q matqWorld;   /* the same, read as quadword rows (shape.cpp's bounds functions) */
+      };
     virtual MATRIX4 *GetWorldMatrix() __asm__("GetXfmWorldMatrix");   /* slot 31 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetXfmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitXfm");   /* slot 7 */
@@ -109,9 +113,21 @@ struct SHAPE : public XFM
             QWROW *vertexPosq;   /* the same, read as quadwords */
       };
       undefined4 unknownF8[2];
-      MATRIX4 matWorldCache;   /* world matrix the cached world positions were computed with (inferred) */
-      VECTOR4 *incomingTangents;   /* +0x140 per-vertex incoming tangents (shape.cpp's views name them incoming/outgoing) */
-      VECTOR4 *outgoingTangents;   /* +0x144 per-vertex outgoing tangents */
+      union
+      {
+            MATRIX4 matWorldCache;   /* world matrix the cached world positions were computed with (inferred) */
+            MATRIX4Q matqWorldCache;   /* the same, read as quadword rows (shape.cpp's VU0 code) */
+      };
+      union
+      {
+            VECTOR4 *incomingTangents;   /* +0x140 per-vertex incoming tangents (shape.cpp's views name them incoming/outgoing) */
+            QWROW *incomingTangentq;   /* the same, read as quadwords */
+      };
+      union
+      {
+            VECTOR4 *outgoingTangents;   /* +0x144 per-vertex outgoing tangents */
+            QWROW *outgoingTangentq;   /* the same, read as quadwords */
+      };
       int unknown148;
       float segmentLengths[11]; /* per-segment lengths (inferred from the name: g = float, s = distance) */
       int segmentHint;   /* +0x178 segment index the last parameter search ended in (shape.cpp) */
@@ -129,12 +145,34 @@ struct SHAPE : public XFM
    to objects (SetChainEndObject). Built from shape.cpp's views (InitChain, the chain steppers, SetShapeChainMode). */
 struct SHAPECHAIN
 {
-      qword force;   /* +0x00 external acceleration on every sample (InitChain stores the gravity in z) */
-      qword unknown10;
-      qword start;   /* +0x20 the first end's offset in its transform's space */
-      qword end;   /* +0x30 the last end's offset in its transform's space */
-      XF *pxfFirst;   /* +0x40 the transform the first end follows (g_xfWorld when free) */
-      XF *pxfLast;   /* +0x44 the transform the last end follows */
+      union
+      {
+            qword force;   /* +0x00 external acceleration on every sample (InitChain stores the gravity in z) */
+            QWROW forceq;   /* the same, by lane (InitChain's word stores) */
+      };
+      union
+      {
+            qword unknown10;
+            LO *aploEnd[2];   /* +0x10 the objects the two ends are attached to, 0: the shape's own end point (SetChainEndObject) */
+      };
+      union
+      {
+            struct
+            {
+                  qword start;   /* +0x20 the first end's offset in its transform's space */
+                  qword end;   /* +0x30 the last end's offset in its transform's space */
+            };
+            qword aposEnd[2];   /* the same, indexed by end (SetChainEndObject) */
+      };
+      union
+      {
+            struct
+            {
+                  XF *pxfFirst;   /* +0x40 the transform the first end follows (g_xfWorld when free) */
+                  XF *pxfLast;   /* +0x44 the transform the last end follows */
+            };
+            XF *apxfEnd[2];   /* the same, indexed by end (SetChainEndObject) */
+      };
       SHAPE *pshape;   /* +0x48 the shape */
       int mode;   /* +0x4C simulation mode: 0/3 stepped with RK4, 1/2 with StepChain; -1 off (SetShapeChainMode) */
       int unknown50;
@@ -153,10 +191,28 @@ struct SHAPECHAIN
       float step;   /* +0x88 sample spacing */
       undefined4 unknown8C;
 };
+typedef char assert_SHAPECHAIN_pxfFirst[SLY2_OFFSETOF(SHAPECHAIN, pxfFirst) == 0x40 ? 1 : -1];
 typedef char assert_SHAPECHAIN_mode[SLY2_OFFSETOF(SHAPECHAIN, mode) == 0x4C ? 1 : -1];
 typedef char assert_SHAPECHAIN_capacity[SLY2_OFFSETOF(SHAPECHAIN, capacity) == 0x84 ? 1 : -1];
 typedef char assert_SHAPECHAIN_size[sizeof(SHAPECHAIN) == 0x90 ? 1 : -1];
-typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];
+/* SHAPERANGES (0x9C, SHAPE::pranges, EnsureShapeVolumeSegments): the path zones a shape passes through and the
+   distance ranges along it where it is outside a single zone (BuildShapeVolumeSegments) or on free ground
+   (BuildShapeValidRanges, rebuilt when a zone's version passes pathzoneVersion; FindRangeContaining). (inferred) */
+struct SHAPERANGES
+{
+      SHAPE *pshape;   /* +0x00 the shape sampled */
+      int crangeOutside;   /* +0x04 number of entries in arangeOutside */
+      LM *arangeOutside;   /* +0x08 distance ranges where consecutive samples do not stay in one path zone (heap copy) */
+      int crangeFree;   /* +0x0C number of entries in arangeFree */
+      LM arangeFree[16];   /* +0x10 distance ranges with a valid position, merged with arangeOutside */
+      int cpathzone;   /* +0x90 number of entries in appathzone */
+      struct PATHZONE **appathzone;   /* +0x94 the distinct path zones found along the shape (heap copy) */
+      int pathzoneVersion;   /* +0x98 g_sw.pathzoneVersion when arangeFree was last built */
+};
+typedef char assert_SHAPERANGES_cpathzone[SLY2_OFFSETOF(SHAPERANGES, cpathzone) == 0x90 ? 1 : -1];
+typedef char assert_SHAPERANGES_size[sizeof(SHAPERANGES) == 0x9C ? 1 : -1];
+   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* TARGET: a point other objects aim at or detect (attack/grab/look targets), kept in the world's target list.
    Layout from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (5 copies in Lilly ports) */
