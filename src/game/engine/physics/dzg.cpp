@@ -17,31 +17,8 @@
 // 0x158FC0 StaticInit_dzg and GlobalConstructors_dzg: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* A contact (XP) as far as this TU reads it: two 0x40-byte sides (the object at +0x08 and the contact position at
-   +0x10 of each), the contact normal, friction, kind, the contact's index in its group (+0xA8) and the relative
-   velocity. */
-struct XPS
-{
-    void *unknown0;              /* +0x00 */
-    void *unknown4;              /* +0x04 */
-    SO *pso;                /* +0x08 */
-    void *unknownC;              /* +0x0C */
-    qword position;            /* +0x10 */
-    char pad20[0x20];
-};
-struct XP
-{
-    XPS sides[2];
-    qword qwNormal;         /* +0x80 */
-    int pad90;
-    float friction;        /* +0x94 friction coefficient (HYPOTHESIS: scales the friction rows' limits) */
-    int pad98;
-    int nKind;              /* +0x9C 14: the limit comes from the first side's gravity and mass */
-    int padA0[2];
-    int groupIndex;                /* +0xA8 index in the group (DZGXP::apxp) */
-    XP *next;            /* +0xAC */
-    qword relativeVelocity;           /* +0xB0 */
-};
+/* A contact: sly2/xp.h XP. */
+#include "sly2/xp.h"
 
 /* Allocation request (cb bytes, cbAlign alignment). 16 bytes: with an 8-byte request ApplyDzg's frame is 0x10 bigger
    (the temporary bound to AllocFromStack's reference parameter); the other two users match either way. */
@@ -102,7 +79,7 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
 extern "C" void AppendDzgDz(DZGXP *group, DZ *row, DZX *rowContact)
 {
     int i;
-    int contactIndex = rowContact->contact->groupIndex;
+    int contactIndex = rowContact->contact->ixp;
     for (i = 0; i < group->numRows; i++) {
         DZ *otherRow = &group->rows[i];
         int *coefficients = (int *)otherRow->ag;
@@ -132,7 +109,7 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
     int i;
     XP *contact = rowContact->contact;
     for (i = 0; i < 2; i++) {
-        SO *object = contact->sides[i].pso;
+        SO *object = contact->axps[i].psoRoot;
         if (object)
             object->CalculateContactResponse(row, rowContact, flags, i);
     }
@@ -146,15 +123,15 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
         union VECW { VECTOR4 vec; int an[4]; };
         union { qword q[2]; VECW v[2]; } u;
         VECW *response = u.v;
-        XPS *side = otherContact->sides;
+        XPS *side = otherContact->axps;
         for (i = 0; i < 2; response++, i++, side++) {
-            SO *object = side->pso;
+            SO *object = side->psoRoot;
             if (!object)
                 response->an[0] = response->an[1] = response->an[2] = 0;
-            else if (object == contact->sides[0].pso)
-                object->GetVelocityAtPos(&rowContact->afx[0], side->position, &response->vec);
-            else if (object == contact->sides[1].pso)
-                object->GetVelocityAtPos(&rowContact->afx[1], side->position, &response->vec);
+            else if (object == contact->axps[0].psoRoot)
+                object->GetVelocityAtPos(&rowContact->afx[0], side->pos, &response->vec);
+            else if (object == contact->axps[1].psoRoot)
+                object->GetVelocityAtPos(&rowContact->afx[1], side->pos, &response->vec);
             else
                 response->an[0] = response->an[1] = response->an[2] = 0;
         }
@@ -166,7 +143,7 @@ extern "C" void FillDzgDz(DZGXP *group, int flags, DZ *row, DZX *rowContact)
     row->ag = (float *)coefficients;
     for (int rowIndex = 0; rowIndex < group->numRows; rowIndex++) {
         DZX *otherRowContact = &group->adzx[rowIndex];
-        *coefficients++ = Dot(otherRowContact->normal, rowContact->aqwRel[otherRowContact->contact->groupIndex]);
+        *coefficients++ = Dot(otherRowContact->normal, rowContact->aqwRel[otherRowContact->contact->ixp]);
     }
 }
 
@@ -285,10 +262,10 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
             if (row->solution < 0.0001f)
                 continue;
             XP *contact = group->apxp[i];
-            if (contact->friction < 0.0001f)
+            if (contact->gFriction < 0.0001f)
                 continue;
             VEC4 push;
-            push.q = contact->relativeVelocity;
+            push.q = contact->vRel;
             for (int j = 0; j < group->numRows; j++) {
                 DZ *otherRow = &group->rows[j];
                 if (otherRow->solution != 0.0f) {
@@ -296,7 +273,7 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
                     push.q = QwAddScaled(push.q, group->adzx[j].aqwRel[i], scale, otherRow);
                 }
             }
-            push.q = QwProjectOut(push.q, contact->qwNormal);
+            push.q = QwProjectOut(push.q, contact->normal);
             float amount = VuToFloat(VuDot(push.q, push.q));
             if (bestPushSquared < amount) {
                 bestPush.q = push.q;
@@ -316,21 +293,21 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
         rowContact->contact = bestContact;
         rowContact->normal = QwDivX(bestPush.q, VuFloatFromMemWord((const int *)&row->residual));
         row->kind = 1;
-        if (bestContact->nKind == 14) {
-            SOPHYS *physics = bestContact->sides[0].pso->physics;
+        if (bestContact->kind == 14) {
+            SOPHYS *physics = bestContact->axps[0].psoRoot->physics;
             float limit;
             if (flags & 1) {
                 limit = -physics->gravity.z * physics->m * g_clock.deltaTime;
                 float amount = __builtin_fabsf(row->pdzOther->solution);
-                row->maxValue = bestContact->friction * (amount < limit ? limit : amount);
+                row->maxValue = bestContact->gFriction * (amount < limit ? limit : amount);
             } else {
                 float mass = physics->m;
                 limit = mass * D_002BDDE8;
-                float amount = bestContact->friction * __builtin_fabsf(row->pdzOther->solution);
+                float amount = bestContact->gFriction * __builtin_fabsf(row->pdzOther->solution);
                 row->maxValue = amount < limit ? amount : limit;
             }
         } else {
-            row->maxValue = __builtin_fabsf(row->pdzOther->solution) * bestContact->friction;
+            row->maxValue = __builtin_fabsf(row->pdzOther->solution) * bestContact->gFriction;
         }
         row->minValue = -row->maxValue;
         AppendDzgDz(group, row, rowContact);
@@ -364,8 +341,8 @@ extern "C" void ApplyDzg(DZGXP *group, float maxDv, float maxDw)
         if (row->solution == 0.0f) continue;
         DZX *rowContact = &group->adzx[i];
         for (int j = 0; j < 2; j++) {
-            XPS *side = &rowContact->contact->sides[j];
-            object = side->pso;
+            XPS *side = &rowContact->contact->axps[j];
+            object = side->psoRoot;
             if (!object) continue;
             qword *effect = &rowContact->afx[j].velocityPerImpulse; /* velocityPerImpulse, then angularVelocityPerImpulse at pv[1] */
             qword dv = AddScale(object->contactVelocityChange, effect[0], VUF(row->solution));
