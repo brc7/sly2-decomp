@@ -68,7 +68,7 @@ struct MURRAY : public STEPPLAYER
       float carrySubstateTime;   /* +0x145C clock.time carrySubstate was set */
       GAIT gaitB;   /* +0x1460 */
       struct SM *psmCarryStand;   /* +0x1510 the state machine carry sub-state 0 applies (SetMurrayCarrySubstate) */
-      undefined4 unk_0x1514[(0x151c - 0x1514) / 4];
+      LO *unknown1514[2];   /* +0x1514 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
       ASEG *pasegCarryRun;   /* +0x151C the clip of carry sub-state 2 */
       struct SM *psmStruggle;   /* +0x1520 the state machine MURRAY_STRUGGLE applies (SetMurrayState) */
       float struggleTimeLeft;   /* +0x1524 counts down during a struggle (UpdateMurrayStruggle) */
@@ -131,7 +131,8 @@ struct MURRAY : public STEPPLAYER
       ASEG *pasegTossGadget;   /* +0x1AE4 toss clip of the gadget toss (fTossGadget) */
       ASEG *pasegFlopGadget;   /* +0x1AE8 flop clip of the gadget flop (fFlopGadget) */
       ASEG *pasegTurnbuckle;   /* +0x1AEC clip of MURRAY_TURNBUCKLE */
-      undefined4 unk_0x1af0[(0x1b00 - 0x1af0) / 4];
+      LO *unknown1AF0;   /* +0x1AF0 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
+      undefined4 unk_0x1af4[3];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
     virtual int IsFreeMoving() __asm__("IsMurrayFreeMoving");   /* slot 94 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetMurrayClassDesc");   /* slot 6 */
@@ -214,10 +215,10 @@ struct BENTLEY : public STEPPLAYER
       GAIT gaitB;   /* +0x1600 */
       int subState;   /* +0x16B0 (SetBentleySubState: 0 stand, 1 the second directional blend, 2) */
       JTPOCKET *ppocketCur;   /* the current gadget slot */
-      undefined4 unknown16B8;
+      SOPART *unknown16B8;   /* +0x16B8 a part bound by oid (the players' SNIP tables, BindLoOidTable) */
       int aimState;   /* +0x16BC binocucom dart aim state: -1 outside look mode, 0 ready, 1 cooling down (UpdateBentleyAim) */
       float aimStateTime;   /* +0x16C0 clock.time aimState was set (SetBentleyAimState) */
-      undefined4 unk_0x16c4[(0x16cc - 0x16c4) / 4];
+      LO *unknown16C4[2];   /* +0x16C4 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
       struct ASEGA *pasegaAim;   /* +0x16CC the aim animation: its event 0x243 fires a dart (HandleBentleyMessage) */
       LO *aploLandEffect[2];   /* +0x16D0 effects played when Bentley leaves the air: [0] usual, [1] for grab states 3/4 (SetBentleyState) */
       int dartKind;   /* +0x16D8 which dart template FireBentleyDart clones: 0/1 (aproxyDart), other: none */

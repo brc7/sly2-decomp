@@ -93,7 +93,9 @@ struct JT : public STEPPLAYER
       undefined4 unknown151C;
       XMG unknown1520[2];
       SOPART *aprecJts[JTS_Max];   /* per-movement-state records (indexed by JTS) */
-      undefined4 unk_0x1784[(0x17d0 - 0x1784) / 4];
+      undefined4 unk_0x1784[14];
+      struct GLOB *unknown17BC[3];   /* +0x17BC globs bound by oid (the players' SNIP tables, BindLoOidTable) */
+      undefined4 unk_0x17c8[2];
       JTHANDS hands;   /* hand (grab) state */
       int cposBounds;   /* +0x1880 number of extra bounds points (UpdateJtWorldTransform: 3 when not attacking, else 0) */
       undefined4 unknown1884[3];
@@ -120,7 +122,8 @@ struct JT : public STEPPLAYER
       LO *unknown19A8;
       float rBounds;   /* +0x19AC radius of the extra bounds points */
       float unknown19B0;
-      undefined4 unk_0x19b4[(0x19c0 - 0x19b4) / 4];
+      undefined4 unknown19B4;
+      XF *unknown19B8[2];   /* +0x19B8 transforms bound by oid (the players' SNIP tables, BindLoOidTable) */
       XF *wristXf;   /* +0x19C0 wrist transform (hang IK; the pickpocket pose reads its position) */
       XF *handChildXf;   /* +0x19C4 transform under the hand (hang IK goal) */
       void *unknown19C8;
@@ -154,7 +157,8 @@ struct JT : public STEPPLAYER
       float lastMoveTime;   /* +0x1AA4 clock.time while Sly moves or grabs (GetJtCpdefi) */
       struct EXPL *pexplDustLand;   /* dust effect on landing */
       struct EXPL *pexplDustGrab;   /* dust effect on grabbing */
-      undefined4 unk_0x1ab0[(0x1ac0 - 0x1ab0) / 4];
+      LO *unknown1AB0;   /* +0x1AB0 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
+      undefined4 unk_0x1ab4[3];
       BLDIR abldirJts10[8];   /* +0x1AC0 the directional blends of state 10 (InitJt InitDirectionalBlend; UpdateJt) */
       ASEGBL *pasegblJts10;   /* +0x1BC0 their blended segment */
       SM *unknown1BC4;

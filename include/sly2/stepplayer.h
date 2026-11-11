@@ -223,33 +223,35 @@ struct JTGRAB
       float uFlattenClamp;
       SOPART *unknown54;
       SOPART *unknown58;
-      undefined4 unknown5C;
+      SOPART *unknown5C;   /* +0x5C a part bound by oid (the players' SNIP tables, BindLoOidTable) */
       SOPART *unknown60;
       SOPART *unknown64;
       struct TN *cameraTunnel; /* camera tunnel of the grab */
       undefined4 unknown6C;
       BLDIR abldirA[8];   /* first directional blends */
       struct ASEGBL *pasegblA;
-      undefined4 unk_0x174[(0x180 - 0x174) / 4];
+      LO *unknown174[3];   /* +0x174 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
       GAIT gaitA;   /* first gait */
-      undefined4 unk_0x230[(0x240 - 0x230) / 4];
+      LO *unknown230[3];   /* +0x230 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
+      undefined4 unk_0x23c;
       GAIT gaitB;   /* second gait */
       BLLEAN ablC[3];   /* lean blends */
       struct ASEGBL *pasegblC;
       float leanAmount; /* lean amount */
       float dgLean;   /* lean speed */
-      undefined4 unk_0x320[(0x330 - 0x320) / 4];
+      LO *unknown320[4];   /* +0x320 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
       BLDIR abldirB[8];   /* second directional blends */
       struct ASEGBL *pasegblB;
       undefined4 unk_0x434[(0x440 - 0x434) / 4];
       JTHANDS hands;   /* hand state */
-      undefined4 unk_0x4f0[(0x4fc - 0x4f0) / 4];
+      LO *unknown4F0[3];   /* +0x4F0 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
       int gadgetId;
       int unknown500;
       struct PROXY *pproxyMarker;   /* marker proxy */
       struct ASEG *unknown508;
       struct ASEG *pasegPhase0xC;
-      undefined4 unk_0x510[(0x520 - 0x510) / 4];
+      LO *unknown510[2];   /* +0x510 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
+      undefined4 unk_0x518[2];
 };
 
 /* JTPIPEBL: a pipe-climb blend entry.
@@ -406,7 +408,7 @@ struct JTHURT
       int postHitMode;      /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
       undefined4 unknown94[2];
       float unknown9C;
-      undefined4 unk_0x0a0[(0xd4 - 0xa0) / 4];
+      LO *unknownA0[(0xd4 - 0xa0) / 4];   /* +0xA0 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
       SOPART *aprecHurt[14];   /* +0xD4 STEP parameter records by hurt state (GetJtHurtAdjustRecord falls back through a parent table) */
       struct ASEGA *unknown10C;
 };
@@ -556,7 +558,7 @@ struct STEPPLAYER : public STEP
                                 [2] the height offset and [3] the current factor of ResolveStepplayerWaterContact */
       SMPA unknown10A8;
       void *unknown10B8;
-      undefined4 unk_0x10bc[(0x10c4 - 0x10bc) / 4];
+      XF *unknown10BC[2];   /* +0x10BC transforms bound by oid (the players' SNIP tables, BindLoOidTable) */
       void *hideNoise;   /* +0x10C4 the noise source TestStepplayerHidden spawns (NewNoise) to ask guards whether the hero is seen */
       int hideState;   /* +0x10C8 -1 not hiding (or hurt), 0 partly, 1 hidden (UpdateStepplayerHideBlend) */
       float hideBlend;   /* +0x10CC 0..1, toward 1 while no guard can see the hero (TestStepplayerHidden) */
@@ -583,7 +585,8 @@ struct STEPPLAYER : public STEP
       float tNextIdle; /* +0x114C clock.time of the next idle event (FLT_MAX: never; ScheduleIdleTimer, InitIdleTimer) */
       qword aqwStartMarker[3];   /* +0x1150 the hero's orientation relative to the start marker, as rows (AttachStepplayerToStartMarker) */
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
-      undefined4 unk_0x11a4[(0x11b0 - 0x11a4) / 4];
+      LO *unknown11A4;   /* +0x11A4 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
+      undefined4 unk_0x11a8[2];
       JTTHROW jtthrow;   /* carry/throw */
       int unknown12F0;
       int unknown12F4;
