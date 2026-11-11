@@ -1824,7 +1824,7 @@ void SetStepTargetHeadingFromVector(ACTOR *, qword) __asm__("SetStepTargetHeadin
 void SetStepTargetHeading(ACTOR *, float) __asm__("SetStepTargetHeading");
 void DrainStepplayerMp(ACTOR *, float) __asm__("DrainStepplayerMp");
 qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
-M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
 float atan2f(float, float) __asm__("atan2f");
 float cosf(float) __asm__("cosf");
@@ -4086,7 +4086,7 @@ struct SPACE;
 
     qword GetLoWorldPos(OBJECT *) __asm__("GetLoWorldPos");
     void LoadIdentityMatrix4(SPACE *,SPACE *,M4 *,M4 *,float) __asm__("LoadIdentityMatrix4");
-    M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+    M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
     extern qword D_002A2DD0 __asm__("D_002A2DD0");
     extern float D_002BF910 __asm__("D_002BF910");
 

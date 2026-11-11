@@ -52,7 +52,7 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
 /* The same operator called with the result pointer passed by hand, on quadword-row matrices (XFM_ApplyTransform: with the
    operator form the temporary is copied once more and the frame is 0x40 bytes bigger). */
-extern "C" void MulMatrix4Ret(MATRIX4Q *pmatResult, MATRIX4Q *pmatL, MATRIX4Q *pmatR) __asm__("__ml__FRC7MATRIX4T0");
+extern "C" void MulMatrix4Ret(MATRIX4Q *pmatResult, MATRIX4Q *pmatL, MATRIX4Q *pmatR) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollector *plc);
 
 /* 0x231100 InitXfm */

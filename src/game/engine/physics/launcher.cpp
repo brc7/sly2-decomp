@@ -199,7 +199,7 @@ extern "C" {
 // Slot 7 (Init) of the launcher: InitLo, then the defaults LaunchSoFromLauncher reads: no prediction (curve 0,
 // limits [0, FLT_MAX]), offset equal to the distance (curve (0, 1, 0), limits [0, FLT_MAX]) and pitch 0.5.
 qwordV GetLoWorldPos(SOV *);                                       // PosLoWorld
-MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *);
+MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
 void LoadIdentityMatrix4(XFV *, int, MATRIX4V *, MATRIX4V *, float);
 int IsBasicDerivedFrom__FP5BASIC3CID(SOV *, int);                                    // IsBasicDerivedFrom

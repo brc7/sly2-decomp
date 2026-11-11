@@ -18,6 +18,13 @@
  *                   calls kept for the match. Code that depends on it keeps that form under #if defined(SLY2_EE_LAYOUT)
  *                   and a portable equivalent in #else (one macro per condition, no compound #if, so unifdef can
  *                   strip either side). Defined on the R5900 compiler unless SLY2_NO_EE_LAYOUT is.
+ *   SLY2_SRET_LABEL(ee, native)
+ *                   the asm label of a declaration that passes a struct result's hidden pointer differently from
+ *                   the function's definition: written out as a first pointer parameter where the definition returns
+ *                   the struct, or the reverse. g++ 2.95 on the EE passes that pointer as the first argument either
+ *                   way, so both spellings call the same code and the label is `ee`; a native ABI does not (arm64
+ *                   passes a struct result's address in x8, not x0), so natively the declaration binds to `native`,
+ *                   an adapter with its own spelling (defined next to the function, outside SLY2_EE_LAYOUT).
  *
  * Hardware addresses are in sly2/hw.h. Static layout asserts throughout the headers still describe the EE. */
 #ifndef SLY2_PORT_H
@@ -46,6 +53,11 @@ typedef char assert_uptr_size[sizeof(uptr) == sizeof(void *) && sizeof(sptr) == 
 #endif
 #if defined(__R5900__) && !defined(SLY2_NO_EE_LAYOUT)
 #define SLY2_EE_LAYOUT 1
+#endif
+#if defined(SLY2_EE_LAYOUT)
+#define SLY2_SRET_LABEL(ee, native) __asm__(ee)
+#else
+#define SLY2_SRET_LABEL(ee, native) __asm__(native)
 #endif
 
 #endif /* SLY2_PORT_H */

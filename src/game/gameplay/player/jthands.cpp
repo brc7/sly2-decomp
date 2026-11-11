@@ -110,8 +110,8 @@ void SetJtHandsTarget(JTHANDS *phands, int nMode);
 /* Per-caller views of callees that other callers declare differently (see the mismatch table). */
 /* operator*(const MATRIX4 &, const MATRIX4 &) with its hidden result pointer passed by hand, on quadword rows (an
    extern "C" declaration of the literal mangled name next to the C++ operator* hits ICE 378). */
-extern "C" M4 *MulMatrix4Ret(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");
-extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");   /* as AttachJtHandsObject calls it */
+extern "C" M4 *MulMatrix4Ret(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
+extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");   /* as AttachJtHandsObject calls it */
 /* the same ABI as NewBezierAct (the float goes to $f12 either way); the order decides argument evaluation */
 extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("NewBezierAct");
 extern "C" M4 InvertMatrix4RigidP(const M4 *pmat) __asm__("InvertMatrix4Rigid");

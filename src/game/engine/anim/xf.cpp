@@ -460,7 +460,7 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po)
 namespace M_func_0022D148 {
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po) __asm__("EvaluateXfSlotMatrixDerivative");
@@ -1936,7 +1936,7 @@ extern "C" M3 *ConvertXfMat(M3 *pr, XF *pa, XF *pb, const M3 *pm)
 namespace M_func_0022FF40 {
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 // Converts a 4x4 matrix from transform a's space to transform b's space. (inferred)
 extern "C" M4 *GetRelativeXfMatrix(M4 *pr, XF *pa, XF *pb, M4 *pm)
@@ -2127,7 +2127,7 @@ M4 __ml__FRC7MATRIX4T0(M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0");
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void func_0022CDC0P(M4 *pm, XF *p) __asm__("EvaluateXfSlotMatrixDerivative");
-void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
+void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void ResetXfValueRef(SO *, XF *) __asm__("ResetXfValueRef");
 
 // Sets a slot's motion role: entering a moving role from a non-moving one captures the slot's current velocity
@@ -2408,7 +2408,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void GetXfSlotMatrixAndDerivative(XF *, M4 *, M4 *, float) __asm__("GetXfSlotMatrixAndDerivative");
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
-void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
+void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 
 // Element-wise sum of two 4x4 matrices into d.
 extern "C" { static inline void AddM4(M4 *d, M4 *a, M4 *b)

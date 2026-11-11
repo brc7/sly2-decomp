@@ -169,7 +169,7 @@ extern "C" void InitSo(SO *so)
 // 0x1F21B8 SetSoParent
 namespace M_SetSoParent {
 
-void __ml__FRC7MATRIX4T0(MATRIX4 *, XF *, MATRIX4 *) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(MATRIX4 *, XF *, MATRIX4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void LO_SetParent(SO *, SO *, XF *, int) __asm__("LO_SetParent");
 void ReleaseSoBoundsHierarchy(SO *) __asm__("ReleaseSoBoundsHierarchy");
 void EnsureSoBoundsHierarchy(SO *) __asm__("EnsureSoBoundsHierarchy");
@@ -1184,7 +1184,7 @@ typedef union { qword q; float f[4]; } V4;
 struct REGION;
 qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
 M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
-M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_002333B4(void *, int, int) __asm__("memset");
 void UpdateSoPartMatrices(SO *) __asm__("UpdateSoPartMatrices");
 qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
@@ -2990,7 +2990,7 @@ extern void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern void *AllocClearedFromStack(SWALLOC *) __asm__("AllocClearedFromStack");
 extern void CopyAb__FPvT0Ui(void *,const void *,unsigned int) __asm__("CopyAb__FPvT0Ui");
 extern M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
-extern M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+extern M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 
 // Squared length of the xyz part of a as a float.
 static inline float SquaredLength(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}

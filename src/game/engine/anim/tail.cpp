@@ -157,7 +157,7 @@ inline qword RotateVector(MATRIX3 *pmat, qword qwVec)
     qwResult = VuMulMatrix3(*(qword *)pmat->mat[0], *(qword *)pmat->mat[1], *(qword *)pmat->mat[2], qwVec);
     return qwResult;
 }
-MATRIX3 BuildRotateVectorsMatrix(qword vec1, qword vec2) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+MATRIX3 BuildRotateVectorsMatrix(qword vec1, qword vec2) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 struct VU_FLOAT
 {

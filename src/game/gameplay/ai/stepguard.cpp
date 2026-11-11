@@ -1109,7 +1109,7 @@ void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 qword GetLoWorldPos(STEPGUARDIsland *) __asm__("GetLoWorldPos");
 float sinf(float) __asm__("sinf");
 qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
-M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
 
 // VU0 helper: vector difference.

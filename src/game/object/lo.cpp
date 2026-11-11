@@ -480,7 +480,7 @@ extern "C" void RenderLoAll()
 namespace M_func_001A5EE8 {
 typedef struct { qword q[4]; } M4;
 void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
 // Also known as: AppendAloExtraDraws (upstream readable / Sly 1 name; AppendAloExtraDraws__FP5SCENEP3ALOff).
@@ -1194,7 +1194,7 @@ extern "C" MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
 namespace M_ConvertAloMat4 {
 typedef struct { qword q[4]; } M4;
 void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 // Converts a 4x4 matrix from one object's space to another's.
 extern "C" M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
 {

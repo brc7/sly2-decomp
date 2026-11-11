@@ -56,7 +56,7 @@ void EvaluateShapeAtParam(PIPEV *, float, qword *, qword *);
 float ModPositive__Fff(float, float);     // wrap into range
 float ClampShapeDistance(PIPEV *, float);
 void EvaluateShapeAtDistance(PIPEV *, float, qword *, qword *);
-MATRIX3Q BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
+MATRIX3Q BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 qword ConvertVecBetweenLos(PIPEV *, PIPEV *, qword);
 qword GetNormalVector(qword);
 qword GetLoWorldPos(void *q);

@@ -1066,7 +1066,7 @@ normalize:
 namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1 {
 struct R { char pad[0x40]; struct MATRIX4Q m; };
 struct BUF { qword a[4]; };
-void __ml__FRC7MATRIX4T0(struct MATRIX4Q *pm, struct MATRIX4Q *pa, struct BUF *pb) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(struct MATRIX4Q *pm, struct MATRIX4Q *pa, struct BUF *pb) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 qword ConvertMatPos(struct MATRIX4Q *pm, int z, qword v) __asm__("ConvertMatPos");
 qword ConvertMatVec(struct MATRIX4Q *pm, int z, qword v) __asm__("ConvertMatVec");
 qword GetXfVelocity(struct R *r, int z, qword v) __asm__("GetXfVelocity");
@@ -1417,7 +1417,7 @@ extern float D_002A5150 __asm__("D_002A5150");
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITB *pemitb, EMITGEN *pgen) __asm__("OriginateParticles__FiP5EMITBP7EMITGEN");
 int AreFloatsNear__Ffff(float g1, float g2, float gEps) __asm__("AreFloatsNear__Ffff");
 void LoadIdentityMatrix4(void *p, int n, MATRIX4Q *pm0, float t, MATRIX4Q *pm1) __asm__("LoadIdentityMatrix4");
-void __ml__FRC7MATRIX4T0(MATRIX4Q *pmOut, MATRIX4Q *pmA, MATRIX4Q *pmB) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(MATRIX4Q *pmOut, MATRIX4Q *pmA, MATRIX4Q *pmB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void OriginateSplineSinkParticles(int c, EMITB *pemit, EMITGEN *pgenEmit, EMITGEN *pgen) __asm__("OriginateSplineSinkParticles");
 
 // Float broadcast into a VU0 register on construction.

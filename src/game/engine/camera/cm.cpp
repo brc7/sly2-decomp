@@ -250,7 +250,7 @@ typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void InvertMatrix4Rigid(M4F *pmOut, M4F *pm) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 // MatViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x)
 // Also known as: CombineEyeLookAtProj (upstream readable / Sly 1 name; CombineEyeLookAtProj__FP7MATRIX4T0Pv).
 extern "C" void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)

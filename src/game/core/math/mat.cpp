@@ -77,7 +77,6 @@ M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis);
 M3 *BuildOrthonormalMatrixZ(M3 *pm, qword x, qword y);
 M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *pm, qword a, qword b);
 M3 *MulMatrix3Matrix3(M3 *pm, M3 *pa, M3 *pb);
-M4 *__ml__FRC7MATRIX4T0(M4 *pm, const M4 *a, const M4 *b);
 M4 InvertMatrix4Rigid(M4 *pm);
 }
 /* Callers' views (asm labels): these callers see a struct-returning function or other argument types. */
@@ -85,13 +84,16 @@ M3 LoadRotateMatrixSinCosV(VU_FLOAT s, VU_FLOAT c, qword axis) __asm__("LoadRota
 M3 func_0011B500R(float rad, qword axis) __asm__("BuildAxisAngleRotationMatrix");
 void func_0011B500V(M3 *pm, float g, qword axis) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 BuildOrthonormalMatrixZR(qword vecX, qword vecY) __asm__("BuildOrthonormalMatrixZ");
-M3 BuildRotateVectorsMatrixR(qword a, qword b) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+M3 BuildRotateVectorsMatrixR(qword a, qword b)
+    SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 M3 MulMatrix3Matrix3R(M3 *pa, M3 *pb) __asm__("MulMatrix3Matrix3");
 /* ... or pass the hidden result pointer by hand (C assigns the result straight into the variable; C++ would go through a
    temporary). */
 M3 *LoadRotateMatrixSinCosP(M3 *pmRet, qword s, qword c, qword axis) __asm__("LoadRotateMatrixSinCos");
 MATRIX4 *InvertMatrix4RigidP(MATRIX4 *pmatRet, void *pv) __asm__("InvertMatrix4Rigid");
-MATRIX4 *MulMatrix4Matrix4P(MATRIX4 *pmatRet, MATRIX4 *pmatA, MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
+MATRIX4 *MulMatrix4Matrix4P(MATRIX4 *pmatRet, const MATRIX4 *pmatA, const MATRIX4 *pmatB)
+    SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec);
 
 // Inverts a 3x3 matrix stored with a 4-float row stride (InvertMatrix, Gauss-Jordan).
@@ -576,6 +578,17 @@ M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *outMatrix, qword a, qword
     }
     return outMatrix;
 }
+#if defined(SLY2_EE_LAYOUT)
+/* (the EE callers that take the matrix as a struct result reach the function itself: sly2/port.h SLY2_SRET_LABEL) */
+#else
+/* SLY2_SRET_LABEL's adapter for the callers that declare the matrix as a struct result (sly2/port.h). */
+extern "C" M3 BuildRotateVectorsMatrixValue(qword a, qword b)
+{
+    M3 m;
+    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, a, b);
+    return m;
+}
+#endif
 
 // Claude agent, lane A19, 2026-10-23: matched from fresh7 (3). One pin ($5), one commented empty asm, allocation-only asm operands.
 #ifdef SLY2_EE_ASM
@@ -768,40 +781,50 @@ MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s)
 }
 #endif
 
-// MATRIX4 operator*: 4x4 product a * b into *outMatrix. Sly 1 symbol __ml__FRC7MATRIX4T0.
+// MATRIX4 operator*: the 4x4 product a * b (__ml__FRC7MATRIX4T0). The EE body names its result (g++'s `return outMatrix`
+// extension): the hidden result pointer the original fills. Callers that pass that pointer by hand bind through
+// SLY2_SRET_LABEL (natively to MulMatrix4Into below).
 // Also known as: MulMatrix4 (upstream readable / Sly 1 name; MulMatrix4__FP7MATRIX4T0Pv).
 #ifdef SLY2_EE_ASM
-M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
+MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) return outMatrix
 {
-    register qword v1 __asm__("vf1") = a->r[0];
-    register qword v2 __asm__("vf2") = a->r[1];
-    register qword v3 __asm__("vf3") = a->r[2];
-    register qword v4 __asm__("vf4") = a->r[3];
-    register qword v5 __asm__("vf5") = b->r[0];
-    register qword v6 __asm__("vf6") = b->r[1];
-    register qword v7 __asm__("vf7") = b->r[2];
-    register qword v8 __asm__("vf8") = b->r[3];
+    register qword v1 __asm__("vf1") = a.r[0];
+    register qword v2 __asm__("vf2") = a.r[1];
+    register qword v3 __asm__("vf3") = a.r[2];
+    register qword v4 __asm__("vf4") = a.r[3];
+    register qword v5 __asm__("vf5") = b.r[0];
+    register qword v6 __asm__("vf6") = b.r[1];
+    register qword v7 __asm__("vf7") = b.r[2];
+    register qword v8 __asm__("vf8") = b.r[3];
     int t;
     __asm__ __volatile__("vcallms 0x60" : "=j"(v5), "=j"(v6), "=j"(v7), "=j"(v8)
         : "j"(v1), "j"(v2), "0"(v5), "1"(v6), "2"(v7), "3"(v8));
     __asm__ __volatile__("cfc2.i %0, $vi0" : "=r"(t) : "j"(v3), "j"(v4), "j"(v5), "j"(v6), "j"(v7), "j"(v8));
-    outMatrix->r[0] = v5; outMatrix->r[1] = v6; outMatrix->r[2] = v7; outMatrix->r[3] = v8;
-    return outMatrix;
+    outMatrix.r[0] = v5; outMatrix.r[1] = v6; outMatrix.r[2] = v7; outMatrix.r[3] = v8;
 }
 #else
 /* The EE runs a VU0 microprogram (vcallms 0x60) with a's rows in vf1-vf4 and b's in vf5-vf8, results back in vf5-vf8:
    row i = a[i].x b.r0 + a[i].y b.r1 + a[i].z b.r2 + a[i].w b.r3 (see docs/guides/portability.md, VU0 fallbacks). */
-M4 *__ml__FRC7MATRIX4T0(M4 *outMatrix, const M4 *a, const M4 *b)
+MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b)
 {
-    M4 m;
+    MATRIX4 m;
     for (int i = 0; i < 4; i++) {
-        VuLanes k = VuGet(a->r[i]);
-        VuLanes b0 = VuGet(b->r[0]), b1 = VuGet(b->r[1]), b2 = VuGet(b->r[2]), b3 = VuGet(b->r[3]);
+        VuLanes k = VuGet(a.r[i]);
+        VuLanes b0 = VuGet(b.r[0]), b1 = VuGet(b.r[1]), b2 = VuGet(b.r[2]), b3 = VuGet(b.r[3]);
         m.r[i] = VuMake<qword>(((b0.x * k.x + b1.x * k.y) + b2.x * k.z) + b3.x * k.w, ((b0.y * k.x + b1.y * k.y) + b2.y * k.z) + b3.y * k.w,
                                ((b0.z * k.x + b1.z * k.y) + b2.z * k.z) + b3.z * k.w, ((b0.w * k.x + b1.w * k.y) + b2.w * k.z) + b3.w * k.w);
     }
-    *outMatrix = m;
-    return outMatrix;
+    return m;
+}
+#endif
+#if defined(SLY2_EE_LAYOUT)
+/* (the EE callers that pass the result pointer by hand reach operator* itself: sly2/port.h SLY2_SRET_LABEL) */
+#else
+/* SLY2_SRET_LABEL's adapter for the callers that pass operator*'s result pointer by hand (sly2/port.h). */
+extern "C" MATRIX4 *MulMatrix4Into(MATRIX4 *out, const MATRIX4 *a, const MATRIX4 *b)
+{
+    *out = *a * *b;
+    return out;
 }
 #endif
 

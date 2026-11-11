@@ -298,7 +298,7 @@ extern "C" void LoadPoseSetsFromBrx(GLOBSET *p, struct STREAM *stream)
 namespace M_BindGlobset {
 extern SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");   /* the found object is an SO here */
 extern void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
-extern void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+extern void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern void AddWrWarpGroup(SO *plo, WRBG *pwrbg) __asm__("AddWrWarpGroup");
 // Resolves globset bone references after load: finds each referenced SO by oid, its bone, and computes the relative
@@ -590,7 +590,7 @@ struct PACKET
 
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-MATRIX4Q *__ml__FRC7MATRIX4T0(MATRIX4Q *pmatDst, const MATRIX4Q *pmatA, const MATRIX4Q *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+MATRIX4Q *__ml__FRC7MATRIX4T0(MATRIX4Q *pmatDst, const MATRIX4Q *pmatA, const MATRIX4Q *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 float GetMaxRowLengthMatrix3(const M3 *pmat) __asm__("GetMaxRowLengthMatrix3");
 RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 
@@ -866,7 +866,7 @@ void SubmitGlobsetRelight(GLOBSET *pglobset) __asm__("SubmitGlobsetRelight");
 int ShouldUpdateSaa__FP3SAA(SAA *psaa) __asm__("ShouldUpdateSaa__FP3SAA");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat) __asm__("GetMaxRowLengthMatrix3");
 qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius) __asm__("ExpandSphereForProjection");
@@ -1286,7 +1286,7 @@ void BuildLightPackets(SW *pg, int c, void **apv, SOBOUNDS *pshd) __asm__("Build
 int ShouldUpdateSaa__FP3SAA(SAA *psaa) __asm__("ShouldUpdateSaa__FP3SAA");
 int GetRenderTargetTexture(ALOV *palo, int n) __asm__("GetRenderTargetTexture");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
-void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
 qword GetLoWorldPos(ALOV *palo) __asm__("GetLoWorldPos");
 RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
@@ -1616,7 +1616,7 @@ void*AllocCopyFromWorldHeap(const REQUEST&,void*) __asm__("AllocCopyFromWorldHea
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 BINDING*LoadClutsetFromBrx(GLOBSET*,STREAM*) __asm__("LoadClutsetFromBrx");
-MATRIX4*__ml__FRC7MATRIX4T0(MATRIX4*,const MATRIX4*,const MATRIX4*) __asm__("__ml__FRC7MATRIX4T0");
+MATRIX4*__ml__FRC7MATRIX4T0(MATRIX4*,const MATRIX4*,const MATRIX4*) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 
 // Allocate bytes, 16-byte aligned, from the world heap.

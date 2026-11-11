@@ -235,7 +235,7 @@ typedef struct { qword a[4]; } MATRIX4;   /* qword rows (TU-private; XF's matric
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
 void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
-void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb) __asm__("__ml__FRC7MATRIX4T0");
+void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // Sets the current phys part (psopartPhys). With fForceSnap the body part (psopartBody) takes its points at once (in the body
 // part's frame) and the per-point velocities are cleared.
@@ -282,7 +282,7 @@ struct S : PO { char pad258[0x258 - 0x180]; struct M *pm0,*pm1;};
 extern float D_002C3C60[2] __asm__("D_002C3C60");
 extern float D_002C3C68[3] __asm__("D_002C3C68");
 M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
-M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) __asm__("__ml__FRC7MATRIX4T0");
+M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *) __asm__("SmoothValue__FfffP3SMPPf");
 // Copy a 4x4 matrix through four GPR quadword loads/stores.
 extern "C" { static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
@@ -1465,7 +1465,7 @@ extern float D_002C3CE8 __asm__("D_002C3CE8");    /* the angle limit */
 
 MATRIX3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("BuildAxisAngleRotationMatrix");
-MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 qword GetLoWorldPos(STEP *) __asm__("GetLoWorldPos");
 qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
 FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");

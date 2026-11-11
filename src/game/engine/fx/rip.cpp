@@ -1468,7 +1468,7 @@ qword TransformXfPos(void*,LO*,qword) __asm__("TransformXfPos");
 float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
 void GetNormalVectors(qword,qword,qword,qword*) __asm__("GetNormalVectors");
 M3 LoadRotateMatrixEuler(qword) __asm__("LoadRotateMatrixEuler");
-M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
+M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword) __asm__("CreateStuck");
 
 // Evaluate the quadratic a + b*t + c*t^2 at t.
