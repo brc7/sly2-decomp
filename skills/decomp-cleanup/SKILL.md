@@ -40,12 +40,16 @@ docstring lists its options).
 | 6 sweeps | stable base | scripted mechanical edits (vtable-entry copies, wrong-typed externs, repeated helpers) with skip lists | re-run on the final base, not merged |
 | 7 integrate | family branches verified | one integration branch, merge in order, reconcile duplicates, checkpoint | full verify clean; bundle to the maintainer |
 | side: snapshots | RAM snapshots of the levels in question | object discovery (vptr at +0xC), field typing across instances, name checks (tools/cleanup/snapshots/) | field types / names confirmed against the code that uses them; code wins on disagreement |
-| side: 64-bit | views unified as far as they go | views to real classes with tools/cleanup/views (inventory with compiler layouts, propagation from annotated context records, rewrite kept only if byte-identical); exact danger test (tools/cleanup/ptr64/dt.py + judge.py, EE long = 8, accessed fields only); derive views from the real base; type pointer slots in pads; record pointer-free judgements in evidence.json | 0 dangerous in the milestone's files, unverifiable ones listed |
+| side: 64-bit | views unified as far as they go | views to real classes with tools/cleanup/views (inventory with compiler layouts, propagation from annotated context records, rewrite kept only if byte-identical); exact danger test (tools/cleanup/ptr64/dt.py + judge.py, EE long = 8, accessed fields only); derive views from the real base; type pointer slots in pads; record pointer-free judgements in evidence.json; signatures/sigcheck.py for declarations that lie about a mangled symbol's types | 0 dangerous in the milestone's files, unverifiable ones listed |
 
 ## Verification commands
 
 ```sh
-# once per base, in a separate worktree at the base commit, BEFORE edits
+# the round harness (tools/cleanup/round/README.md) does all of the below per round:
+tools/cleanup/round/round.py start NAME --base REF   # worktree, branch, inputs, baseline (before edits)
+tools/cleanup/round/round.py try fix.patch           # or: try -- <edit command>; IDENTICAL or first diff, then revert
+tools/cleanup/round/round.py check [--full]          # incremental object check; --full adds all whole-tree gates
+# by hand: once per base, in a separate worktree at the base commit, BEFORE edits
 tools/cleanup/objcmp.py record --root ../base-worktree base.json $(find src -name '*.cpp' -o -name '*.c')
 # after each file or batch: matchtool + objcmp on the touched files and every includer of touched headers
 tools/cleanup/check.sh base.json $(git diff --name-only BASE -- src include)
@@ -63,6 +67,8 @@ python3 -I tools/cleanup/snapshots/snapshot_objects.py && python3 -I tools/clean
 python3 -I tools/cleanup/snapshots/namecheck.py all
 # 64-bit danger test
 python3 -I tools/cleanup/ptr64/dt.py . facts.json && python3 -I tools/cleanup/ptr64/judge.py facts.json judged.json
+# declarations vs mangled names (asm labels, extern "C" mangled names): build/signatures/summary.md
+python3 tools/cleanup/signatures/sigcheck.py
 ```
 
 Snapshot caveats: they type fields and list live classes well, but bound a view's class only as "is-a" (prototypes,

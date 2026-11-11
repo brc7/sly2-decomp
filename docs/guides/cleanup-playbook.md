@@ -175,11 +175,30 @@ matches, and a linkonce copy that appears or vanishes is invisible. Every change
    0 differing bytes, tools/linkcheck.py, and tools/cleanup/docnames.py so docs never cite a name that no longer
    exists.
 
-tools/cleanup/check.sh runs steps 1 and 2 for a list of touched files. Rules that made this reliable:
+**The round harness runs all three** (tools/cleanup/round/, see its README); use it instead of per-round scratch
+scripts:
 
-- **Build baselines once, before editing, in a separate worktree** at the base commit
-  (`objcmp.py record --root <base worktree>`). A baseline built from the edited tree, or rebuilt after a merge,
-  silently absorbs the regression. One baseline per integration base, shared by every check against it.
+```sh
+round.py start NAME --base REF   # worktree + branch, inputs symlinked, every object built, baseline recorded
+round.py try fix.patch           # or: round.py try -- <command that edits files>; prints IDENTICAL or a first diff, reverts
+round.py check                   # incremental: changed sources + includers of changed headers, byte-compared with the baseline
+round.py check --full            # plus symcheck, linkcheck, docnames, progress from a deleted cache, the real link
+```
+
+Its object comparison is stricter than step 2 (every allocated section byte for byte, relocations by symbol, named
+symbols), it tells a rename (rename.py moved the config entry too) from a relocation that now names another existing
+symbol, and objects are cached by content (source plus every header it includes), so a `try` of a one-file edit takes
+about a second and a header edit recompiles only its includers (92 includers of a wide header: about 40 seconds on
+two cores). tools/cleanup/check.sh still runs steps 1 and 2 for a list of touched files against a recorded
+base.json (`round.py start` writes one). Rules that made this reliable:
+
+- **Build baselines once, before editing**, at the base commit (`round.py start` records it from the fresh worktree;
+  by hand, `objcmp.py record --root <base worktree>`). A baseline built from the edited tree, or rebuilt after a
+  merge, silently absorbs the regression. One baseline per integration base, shared by every check against it.
+- **Try candidate edits instead of applying them.** `round.py try` snapshots the worktree as a git tree (through a
+  temporary index, never the stash), applies the edit, checks it and restores the snapshot, so an agent can test
+  several representations of a view without ever leaving a half-applied edit behind; a killed `try` is restored by
+  the next round.py command.
 - **The full link catches `.bss` order.** Uninitialized objects are emitted in the order of their first declaration,
   including declarations in headers; moving or removing a declaration reorders `.bss` and every function still
   matches. Only the link shows it.
@@ -249,6 +268,8 @@ and fixes", "Traps") and the compiler facts in [MATCHING_NOTES.md](../MATCHING_N
 
 - **One worktree and one scratch directory per agent.** Agents share the repository's object store, so never use
   `git stash` (it is shared across worktrees, and `stash pop` restores files but not the index).
+  `round.py start NAME --base REF` sets both up (worktree, branch, untracked inputs, baseline) in one command; give
+  each agent its round name and have it run `round.py try` / `round.py check` from its worktree.
 - **Assume restarts.** Server restarts killed every running agent several times. Agents commit after every file (or
   every unified view in a big file), never hold more than about twenty minutes of uncommitted work, and append to a
   progress log in their scratch directory after each commit. A resumed agent reads the log and `git status`, lets
@@ -325,5 +346,13 @@ The port compiles the decomp natively, so every TU-private view must put each fi
   blocks the rest is usually a header detail, recorded per view: members still in a class pad, a per-function
   `typedef int qword` (signed) against the header's unsigned qword, a local re-declaration of a header class in
   the same block, or one member with a different element size.
+- **Check declarations against their mangled names** (tools/cleanup/signatures/sigcheck.py). A function declared
+  under its mangled linker name, through an asm label or as an extern "C" name, has whatever parameter types the
+  author wrote: the compiler cannot check them, and matching does not care. sigcheck.py demangles every g++ 2.95
+  function symbol of the config (the old GNU v2 ABI; binutils no longer reads it, so it has its own demangler), parses
+  every declaration that binds to one, and ranks the disagreements: wrong parameter count, an integer for a pointer
+  (truncated on 64-bit), an explicit struct-return slot (arm64 passes it in another register), a pointer to another
+  class, and the milder void-pointer, address-only, derived, alias and const classes. It also lists symbols that
+  different files declare with different signatures, the candidates for one shared declaration.
 - **Write the judgement down.** When a view's pads are declared pointer-free (a file record, hardware words), record
   why in tools/cleanup/ptr64/evidence.json; judge.py reads it, and the next round does not re-litigate it.
