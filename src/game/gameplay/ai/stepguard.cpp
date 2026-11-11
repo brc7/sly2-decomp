@@ -137,7 +137,7 @@ void SetTargetRecordState(TARGETREC *record, int n);
 TARGETREC *EnsureTargetRecordById(LO *object);
 void WakeSo(STEPGUARD *guard);
 extern "C++" { void SetStepTargetHeading(STEPGUARD *guard) __asm__("SetStepTargetHeading"); }
-unsigned long GetSgfMaskFromSpliceList(int list);
+unsigned long GetSgfMaskFromSpliceList(void *list);
 ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, unsigned long sgfMask);
 void ResolveAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
 void ReleaseAnimBinding(ANIMBINDING *binding, STEPGUARD *guard);
@@ -148,7 +148,7 @@ void FreeDirAnim(int h);
 void AddStepguardAttackOid(STEPGUARD *guard);   /* the oid passes through in a1 */
 void ResolveStepguardAttacks(STEPGUARD *guard);
 void SetGuardAttackBindingKind2(CID120 *attack);
-void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags);
+void SetStepguardAnimBinding(STEPGUARD *guard, void *sgfList, OID oid, int flags);
 void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void CloneStepguardAnimBindings(STEPGUARD *guard);
@@ -1268,7 +1268,7 @@ unsigned long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSplice
 // 0x207B70: Splice option: sets the animation (oid, argument) bound to a guard-flag set, creating the binding if
 // needed.
 // Also known as: SetGuardKinde (upstream readable / Sly 1 name; SetGuardKinde__FP5GUARD3OIDii).
-extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags)
+extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, void *sgfList, OID oid, int flags)
 {
     ANIMBINDING *binding;
     binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
@@ -1278,7 +1278,7 @@ extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, 
 
 // 0x207BC8 SetAndResolveStepguardAnimBinding
 // 0x207BC8: SetStepguardAnimBinding, then resolves the binding.
-extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList, OID oid, int flags)
+extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, void *sgfList, OID oid, int flags)
 {
     ANIMBINDING *binding;
     binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
@@ -1290,12 +1290,12 @@ extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int sgfList,
 namespace M_func_00207C48 {
 struct PAYLOAD3;
 struct PAYLOAD3 { int anim0; char pad0[0x2C]; int anim1; char pad1[0x2C]; int anim2; char pad2[0x2C]; int anim3; };
-long GetSgfMaskFromSpliceList(int list) __asm__("GetSgfMaskFromSpliceList");
+long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSpliceList");
 struct PAYLOAD3 *AllocDirAnim(int cb) __asm__("AllocDirAnim");
 void InvalidateDirAnims(struct PAYLOAD3 *payload) __asm__("InvalidateDirAnims");
 // 0x207C48: Splice option: binds a flag set to a DIRANIM payload (a new 0xD0-byte object with four animations, inferred).
 // Also known as: SetGuardKind3 (upstream readable / Sly 1 name; SetGuardKind3__FP5GUARDiiiii).
-extern "C" void SetStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
+extern "C" void SetStepguardAnimBindingKind3(STEPGUARD *guard, void *sgfList, int anim0, int anim1, int anim2, int anim3)
 {
     ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     binding->kind = BINDING_DIRANIM;
@@ -1311,10 +1311,10 @@ extern "C" void SetStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int 
 
 // 0x207CF8 SetAndResolveStepguardAnimBindingKind3
 namespace M_func_00207CF8 {
-long GetSgfMaskFromSpliceList(int list) __asm__("GetSgfMaskFromSpliceList");
-void SetStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3) __asm__("SetStepguardAnimBindingKind3");
+long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSpliceList");
+void SetStepguardAnimBindingKind3(STEPGUARD *guard, void *sgfList, int anim0, int anim1, int anim2, int anim3) __asm__("SetStepguardAnimBindingKind3");
 // 0x207CF8: SetStepguardAnimBindingKind3, then resolves the binding.
-extern "C" void SetAndResolveStepguardAnimBindingKind3(STEPGUARD *guard, int sgfList, int anim0, int anim1, int anim2, int anim3)
+extern "C" void SetAndResolveStepguardAnimBindingKind3(STEPGUARD *guard, void *sgfList, int anim0, int anim1, int anim2, int anim3)
 {
     ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     SetStepguardAnimBindingKind3(guard, sgfList, anim0, anim1, anim2, anim3);
@@ -1343,10 +1343,10 @@ extern "C" void SetStepguardAnimBindingKind2(STEPGUARD *guard, void *sgfList, in
 
 // 0x207E08 SetAndResolveStepguardAnimBindingKind2
 namespace M_func_00207E08 {
-long GetSgfMaskFromSpliceList(int list) __asm__("GetSgfMaskFromSpliceList");
-void SetStepguardAnimBindingKind2(STEPGUARD *guard, int sgfList, int b, float c, float d, float e, float f) __asm__("SetStepguardAnimBindingKind2");
+long GetSgfMaskFromSpliceList(void *list) __asm__("GetSgfMaskFromSpliceList");
+void SetStepguardAnimBindingKind2(STEPGUARD *guard, void *sgfList, int b, float c, float d, float e, float f) __asm__("SetStepguardAnimBindingKind2");
 // 0x207E08: SetStepguardAnimBindingKind2, then resolves the binding.
-extern "C" void SetAndResolveStepguardAnimBindingKind2(STEPGUARD *guard, int sgfList, int b, float c, float d, float e, float f)
+extern "C" void SetAndResolveStepguardAnimBindingKind2(STEPGUARD *guard, void *sgfList, int b, float c, float d, float e, float f)
 {
     ANIMBINDING *binding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(sgfList));
     SetStepguardAnimBindingKind2(guard, sgfList, b, c, d, e, f);
