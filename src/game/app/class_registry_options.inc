@@ -716,10 +716,30 @@ extern template EMITB *PemitbEnsure(EMITTER *, ENSK);
 extern template EMITB *PemitbEnsure(EXPLO *, ENSK);
 
 namespace M_eopid { extern "C" {
-/* One 8-byte word of an EOPID (see above). */
+/* One 8-byte word of an EOPID (see above).
+ *
+ * Offsets: a word that is a member offset (get when grfeopid & 2, set when & 0x10, file when & 0x90; relative to the
+ * object, or to what the obj word's accessor returns when & 0x2000) is written EOPID_OFF(class, member), so a build
+ * with another layout gets that layout's offset; the bytes on the EE are the same. EOPID_INT is left for counts
+ * (method argument counts, file word with grfeopid & 0x401) and for the offsets whose member no header declares yet
+ * (class pads, TU-private types such as CPD, BOOTYE, AMBSND, SFX, and the emitter.h accessors' interior pointers).
+ * The GetXxxOwnFields accessors (sly2/xfm.h, sly2/so.h func_00259A28) return the class's GRABSPOT base, so their
+ * records use GRABSPOT's members.
+ *
+ * Pointers to member functions (for a port; the EE bytes must not change): g++ 2.95's PMF is 8 bytes,
+ *   struct { short delta; short index; union { void *pfn; short delta2; }; }   (little-endian words below)
+ * delta = the this-adjustment (0 in every record), index = -1 for a non-virtual function (then pfn is its address:
+ * EOPID_PMF/PMFI/PMFT, first word 0xFFFF0000) or the 8-byte vtable slot index of a virtual one (then delta2 is the
+ * offset of the vptr in the object, 0xC for BASIC-derived classes: EOPID_VPMF(slot, 0xC)). Code reads them as native
+ * PMFs (EOPID::pmfGet... in sly2/eopid.h; LoadOptionFromBrx, Get/SetOptionRecordValue), so a compiler with another
+ * PMF ABI needs these four macros and EOPIDW redefined in its own format: Itanium C++ (gcc, clang) uses two
+ * pointer-sized words {ptr, adj}, ptr = the function address for a non-virtual function or 1 + slot * sizeof(void *)
+ * for a virtual one (its own vtable slot numbering, not the EE's), adj = 0; EOPID_FN's thunk pointer and EOPID_INT's
+ * number stay in the first word. */
 struct EOPIDW { const void *pv0; const void *pv1; };
 #define EOPID_NONE { 0, 0 }
-#define EOPID_INT(n) { (const void *)(n), 0 }                                     /* offset or count */
+#define EOPID_INT(n) { (const void *)(n), 0 }                                     /* a count, or an offset whose member no header declares */
+#define EOPID_OFF(T, m) { (const void *)SLY2_OFFSETOF(T, m), 0 }                  /* byte offset of member m of T (ib, ibSet, ibFile) */
 #define EOPID_PMF(fn) { (const void *)0xFFFF0000, (const void *)&EOPIDFN::fn }   /* delta 0, index -1, pfn */
 #define EOPID_PMFI(fn) { (const void *)0xFFFF0000, (const void *)&::fn }        /* the same, an inline accessor of the headers */
 #define EOPID_PMFT(fn, T) { (const void *)0xFFFF0000, (const void *)(EOPIDT<T>::fn)&::fn }  /* the same, a function template instance */
@@ -743,13 +763,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(RefThunk_EnsureLoSidebagBasic), EOPID_FN(RefThunk_EnsureLoSidebagBasic), EOPID_INT(1), EOPID_NONE}, /* [10] opt 11, BASIC (+198) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SendTriggerEvent), EOPID_NONE, EOPID_NONE}, /* [11] opt 12, BASIC (+198) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SendUntriggerEvent), EOPID_NONE, EOPID_NONE}, /* [12] opt 13, BASIC (+198) */
-    {1, 0x122, EOPID_INT(0x38), EOPID_VPMF(0x2B, 0xC), EOPID_VPMF(0x2B, 0xC), EOPID_NONE}, /* [13] opt 14, LO (+131) */
+    {1, 0x122, EOPID_OFF(LO, busyRadius), EOPID_VPMF(0x2B, 0xC), EOPID_VPMF(0x2B, 0xC), EOPID_NONE}, /* [13] opt 14, LO (+131) */
     {0x1008, 0x124, EOPID_PMF(GetLoBusyKind), EOPID_PMF(SetLoBusyKind), EOPID_PMF(SetLoBusyKind), EOPID_NONE}, /* [14] opt 15, LO (+131) */
-    {6, 2, EOPID_INT(0x18), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [15] opt 28, LO (+131) */
+    {6, 2, EOPID_OFF(LO, oid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [15] opt 28, LO (+131) */
     {6, 4, EOPID_PMF(GetLoProxyOid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [16] opt 29, LO (+131) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunkLoMATCHES_NAMEQ), EOPID_INT(1), EOPID_NONE}, /* [17] opt 30, LO (+131) */
     {0x2006, 4, EOPID_PMF(GetProxyCopyValue), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [18] opt 31, LO (+131) */
-    {0x2030, 2, EOPID_INT(0x10), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [19] opt 32, LO (+131) */
+    {0x2030, 2, EOPID_OFF(LO, parent), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [19] opt 32, LO (+131) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetLoParent), EOPID_INT(2), EOPID_NONE}, /* [20] opt 33, LO (+131) */
     {2, 0x24, EOPID_PMF(GetLoWorldPos), EOPID_VPMF(0x1E, 0xC), EOPID_NONE, EOPID_NONE}, /* [21] opt 34, LO (+131) */
     {4, 0x24, EOPID_PMF(GetLoWorldMatrix), EOPID_VPMF(0x1F, 0xC), EOPID_NONE, EOPID_NONE}, /* [22] opt 35, LO (+131) */
@@ -766,7 +786,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x1001, 0x120, EOPID_NONE, EOPID_PMF(SetSoCnstrForce), EOPID_PMF(SetSoCnstrForce), EOPID_NONE}, /* [33] opt 69, SO (+60) */
     {0x1001, 0x120, EOPID_NONE, EOPID_PMF(SetSoCnstrTorque), EOPID_PMF(SetSoCnstrTorque), EOPID_NONE}, /* [34] opt 70, SO (+60) */
     {2, 0x124, EOPID_PMF(GetSoGravity), EOPID_PMF(SetSoGravity), EOPID_PMF(SetSoGravity), EOPID_NONE}, /* [35] opt 71, SO (+60) */
-    {1, 0xA2, EOPID_INT(0x13C), EOPID_PMF(SetSoBoundsScale), EOPID_INT(0x13C), EOPID_NONE}, /* [36] opt 87, SO (+60) */
+    {1, 0xA2, EOPID_OFF(SO, unknown13C), EOPID_PMF(SetSoBoundsScale), EOPID_OFF(SO, unknown13C), EOPID_NONE}, /* [36] opt 87, SO (+60) */
     {0, 0x124, EOPID_PMF(GetSoIgnoreFixed), EOPID_PMF(SetSoIgnoreFixed), EOPID_PMF(SetSoIgnoreFixed), EOPID_NONE}, /* [37] opt 88, SO (+60) */
     {0, 0x24, EOPID_PMF(GetSoTreeFlag2), EOPID_PMF(SetSoTreeFlag2), EOPID_NONE, EOPID_NONE}, /* [38] opt 90, SO (+60) */
     {0, 0x120, EOPID_NONE, EOPID_PMF(SetSoTreeRoot), EOPID_PMF(SetSoTreeRoot), EOPID_NONE}, /* [39] opt 91, SO (+60) */
@@ -787,9 +807,9 @@ EOPIDROW D_002AC880[1449] = {
     {5, 1, EOPID_NONE, EOPID_FN(RefThunk_GetSoZapResponseFlags), EOPID_INT(1), EOPID_NONE}, /* [54] opt 126, SO (+60) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSoFADE_OUT), EOPID_INT(1), EOPID_NONE}, /* [55] opt 127, SO (+60) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSoFADE_IN), EOPID_INT(1), EOPID_NONE}, /* [56] opt 128, SO (+60) */
-    {1, 0x122, EOPID_INT(0x12C), EOPID_PMF(SetSoAlpha), EOPID_PMF(SetSoAlpha), EOPID_NONE}, /* [57] opt 129, SO (+60) */
-    {1, 0x122, EOPID_INT(0x130), EOPID_PMF(SetSoFadeRate), EOPID_PMF(SetSoFadeRate), EOPID_NONE}, /* [58] opt 130, SO (+60) */
-    {1, 0x2092, EOPID_INT(0xD4), EOPID_INT(0xD4), EOPID_INT(0xD4), EOPID_PMF(GetSoPhys)}, /* [59] opt 131, SO (+60) */
+    {1, 0x122, EOPID_OFF(SO, opacity), EOPID_PMF(SetSoAlpha), EOPID_PMF(SetSoAlpha), EOPID_NONE}, /* [57] opt 129, SO (+60) */
+    {1, 0x122, EOPID_OFF(SO, opacitySpeed), EOPID_PMF(SetSoFadeRate), EOPID_PMF(SetSoFadeRate), EOPID_NONE}, /* [58] opt 130, SO (+60) */
+    {1, 0x2092, EOPID_OFF(SOPHYS, unknownD4), EOPID_OFF(SOPHYS, unknownD4), EOPID_OFF(SOPHYS, unknownD4), EOPID_PMF(GetSoPhys)}, /* [59] opt 131, SO (+60) */
     {1, 0x2092, EOPID_INT(0xD8), EOPID_INT(0xD8), EOPID_INT(0xD8), EOPID_PMF(GetSoPhys)}, /* [60] opt 132, SO (+60) */
     {0x1032, 0x124, EOPID_PMF(GetSoUnknownBits16), EOPID_PMF(SetSoUnknownBits16), EOPID_PMF(SetSoUnknownBits16), EOPID_NONE}, /* [61] opt 139, SO (+60) */
     {0x103D, 0x104, EOPID_PMF(GetSoUnknownBits20), EOPID_NONE, EOPID_PMF(SetSoUnknownBits20), EOPID_NONE}, /* [62] opt 140, SO (+60) */
@@ -797,8 +817,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSoScrollerSpeeds), EOPID_INT(2), EOPID_NONE}, /* [64] opt 166, SO (+60) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSoSaaParams), EOPID_INT(2), EOPID_NONE}, /* [65] opt 167, SO (+60) */
     {0x208A, 1, EOPID_NONE, EOPID_FN(RefThunk_FindSoSaa), EOPID_INT(1), EOPID_NONE}, /* [66] opt 174, SO (+60) */
-    {1, 0x92, EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_NONE}, /* [67] opt 176, SO (+60) */
-    {2, 0x92, EOPID_INT(0x90), EOPID_INT(0x90), EOPID_INT(0x90), EOPID_NONE}, /* [68] opt 177, SO (+60) */
+    {1, 0x92, EOPID_OFF(SO, model.boundsRadius), EOPID_OFF(SO, model.boundsRadius), EOPID_OFF(SO, model.boundsRadius), EOPID_NONE}, /* [67] opt 176, SO (+60) */
+    {2, 0x92, EOPID_OFF(SO, model.boundsCenter), EOPID_OFF(SO, model.boundsCenter), EOPID_OFF(SO, model.boundsCenter), EOPID_NONE}, /* [68] opt 177, SO (+60) */
     {0, 0x124, EOPID_PMF(GetSoIgnoreLocked), EOPID_PMF(SetSoIgnoreLocked__FP2SOi), EOPID_PMF(SetSoIgnoreLocked__FP2SOi), EOPID_NONE}, /* [69] opt 178, SO (+60) */
     {0x1040, 0x124, EOPID_PMF(GetSoZapMode), EOPID_PMF(SetSoZapMode), EOPID_PMF(SetSoZapMode), EOPID_NONE}, /* [70] opt 179, SO (+60) */
     {5, 0x124, EOPID_PMF(GetSoHitDamage), EOPID_PMF(SetSoHitDamage), EOPID_PMF(SetSoHitDamage), EOPID_NONE}, /* [71] opt 180, SO (+60) */
@@ -815,20 +835,20 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x124, EOPID_PMF(GetSoPhysRecordParam4), EOPID_PMF(SetSoPhysRecordParam4), EOPID_PMF(SetSoPhysRecordParam4), EOPID_NONE}, /* [82] opt 199, SO (+60) */
     {0x2011, 4, EOPID_PMFI(func_00259B20), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [83] opt 200, SO (+60) */
     {1, 4, EOPID_VPMF(0xA, 0xC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [84] opt 202, SAA (+6) */
-    {0xA, 0x12, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE, EOPID_NONE}, /* [85] opt 143, LOOP */
-    {0xA, 0x12, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE, EOPID_NONE}, /* [86] opt 144, LOOP */
-    {0xA, 0x12, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE, EOPID_NONE}, /* [87] opt 147, PINGPONG */
-    {0xA, 0x12, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE, EOPID_NONE}, /* [88] opt 148, PINGPONG */
-    {0xA, 0x12, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE, EOPID_NONE}, /* [89] opt 151, SHUFFLE */
-    {1, 0x12, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE, EOPID_NONE}, /* [90] opt 158, EYES */
-    {0xA, 0x12, EOPID_INT(0x54), EOPID_INT(0x54), EOPID_NONE, EOPID_NONE}, /* [91] opt 159, EYES */
-    {1, 0x12, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE, EOPID_NONE}, /* [92] opt 203, EYES */
-    {1, 0x22, EOPID_INT(0x78), EOPID_PMF(SetEyesClosed), EOPID_NONE, EOPID_NONE}, /* [93] opt 204, EYES */
+    {0xA, 0x12, EOPID_OFF(LOOP, loopTimeRange), EOPID_OFF(LOOP, loopTimeRange), EOPID_NONE, EOPID_NONE}, /* [85] opt 143, LOOP */
+    {0xA, 0x12, EOPID_OFF(LOOP, pauseTimeRange), EOPID_OFF(LOOP, pauseTimeRange), EOPID_NONE, EOPID_NONE}, /* [86] opt 144, LOOP */
+    {0xA, 0x12, EOPID_OFF(PINGPONG, loopTimeRange), EOPID_OFF(PINGPONG, loopTimeRange), EOPID_NONE, EOPID_NONE}, /* [87] opt 147, PINGPONG */
+    {0xA, 0x12, EOPID_OFF(PINGPONG, pauseTimeRange), EOPID_OFF(PINGPONG, pauseTimeRange), EOPID_NONE, EOPID_NONE}, /* [88] opt 148, PINGPONG */
+    {0xA, 0x12, EOPID_OFF(SHUFFLE, pauseMin), EOPID_OFF(SHUFFLE, pauseMin), EOPID_NONE, EOPID_NONE}, /* [89] opt 151, SHUFFLE */
+    {1, 0x12, EOPID_OFF(EYES, blinkTime), EOPID_OFF(EYES, blinkTime), EOPID_NONE, EOPID_NONE}, /* [90] opt 158, EYES */
+    {0xA, 0x12, EOPID_OFF(EYES, openTimeMin), EOPID_OFF(EYES, openTimeMin), EOPID_NONE, EOPID_NONE}, /* [91] opt 159, EYES */
+    {1, 0x12, EOPID_OFF(EYES, doubleBlinkChance), EOPID_OFF(EYES, doubleBlinkChance), EOPID_NONE, EOPID_NONE}, /* [92] opt 203, EYES */
+    {1, 0x22, EOPID_OFF(EYES, openFraction), EOPID_PMF(SetEyesClosed), EOPID_NONE, EOPID_NONE}, /* [93] opt 204, EYES */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetScrollerMasterSpeeds), EOPID_INT(2), EOPID_NONE}, /* [94] opt 205, SCROLLER */
-    {1, 0x12, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE, EOPID_NONE}, /* [95] opt 206, CIRCLER */
-    {1, 0x12, EOPID_INT(0x54), EOPID_INT(0x54), EOPID_NONE, EOPID_NONE}, /* [96] opt 170, CIRCLER */
-    {1, 0x12, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE, EOPID_NONE}, /* [97] opt 171, CIRCLER */
-    {1, 0x12, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE, EOPID_NONE}, /* [98] opt 172, CIRCLER */
+    {1, 0x12, EOPID_OFF(CIRCLER, angularSpeed), EOPID_OFF(CIRCLER, angularSpeed), EOPID_NONE, EOPID_NONE}, /* [95] opt 206, CIRCLER */
+    {1, 0x12, EOPID_OFF(CIRCLER, radius), EOPID_OFF(CIRCLER, radius), EOPID_NONE, EOPID_NONE}, /* [96] opt 170, CIRCLER */
+    {1, 0x12, EOPID_OFF(CIRCLER, uCenter), EOPID_OFF(CIRCLER, uCenter), EOPID_NONE, EOPID_NONE}, /* [97] opt 171, CIRCLER */
+    {1, 0x12, EOPID_OFF(CIRCLER, vCenter), EOPID_OFF(CIRCLER, vCenter), EOPID_NONE, EOPID_NONE}, /* [98] opt 172, CIRCLER */
     {0x12, 0x400, EOPID_FN(RefThunk_AddAmbSound), EOPID_NONE, EOPID_INT(5), EOPID_NONE}, /* [99] opt 207, CID43 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddAmbLinkedSound), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [100] opt 208, CID43 */
     {0xE, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(EnsureCurrentAmbSound)}, /* [101] opt 209, CID43 */
@@ -839,20 +859,20 @@ EOPIDROW D_002AC880[1449] = {
     {0x2086, 1, EOPID_NONE, EOPID_FN(RefThunkAsegAPPLY), EOPID_INT(4), EOPID_NONE}, /* [106] opt 214, ASEG (+1) */
     {0x12, 0x400, EOPID_FN(RefThunk_SetAsegAutoStart), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [107] opt 215, ASEG (+1) */
     {0x2086, 1, EOPID_NONE, EOPID_FN(RefThunkAsegENSURE), EOPID_INT(5), EOPID_NONE}, /* [108] opt 216, ASEG (+1) */
-    {1, 0xA2, EOPID_INT(0x78), EOPID_PMF(SetAsegMasterSpeed), EOPID_INT(0x78), EOPID_NONE}, /* [109] opt 217, ASEG (+1) */
-    {9, 0x82, EOPID_INT(0x80), EOPID_NONE, EOPID_INT(0x80), EOPID_NONE}, /* [110] opt 218, ASEG (+1) */
-    {0xA, 0x82, EOPID_INT(0x90), EOPID_NONE, EOPID_INT(0x90), EOPID_NONE}, /* [111] opt 219, ASEG (+1) */
-    {5, 0x92, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_NONE}, /* [112] opt 220, ASEG (+1) */
-    {0, 0x92, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_NONE}, /* [113] opt 221, ASEG (+1) */
-    {1, 2, EOPID_INT(0x74), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [114] opt 222, ASEG (+1) */
+    {1, 0xA2, EOPID_OFF(ASEG, masterSpeed), EOPID_PMF(SetAsegMasterSpeed), EOPID_OFF(ASEG, masterSpeed), EOPID_NONE}, /* [109] opt 217, ASEG (+1) */
+    {9, 0x82, EOPID_OFF(ASEG, clqMasterSuck), EOPID_NONE, EOPID_OFF(ASEG, clqMasterSuck), EOPID_NONE}, /* [110] opt 218, ASEG (+1) */
+    {0xA, 0x82, EOPID_OFF(ASEG, lmMasterSuck), EOPID_NONE, EOPID_OFF(ASEG, lmMasterSuck), EOPID_NONE}, /* [111] opt 219, ASEG (+1) */
+    {5, 0x92, EOPID_OFF(ASEG, priority), EOPID_OFF(ASEG, priority), EOPID_OFF(ASEG, priority), EOPID_NONE}, /* [112] opt 220, ASEG (+1) */
+    {0, 0x92, EOPID_OFF(ASEG, nWorldHold), EOPID_OFF(ASEG, nWorldHold), EOPID_OFF(ASEG, nWorldHold), EOPID_NONE}, /* [113] opt 221, ASEG (+1) */
+    {1, 2, EOPID_OFF(ASEG, duration), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [114] opt 222, ASEG (+1) */
     {1, 1, EOPID_NONE, EOPID_FN(RefThunkAsegFIND_LABEL), EOPID_INT(1), EOPID_NONE}, /* [115] opt 223, ASEG (+1) */
-    {0x206D, 2, EOPID_INT(0x14), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [116] opt 250, ASEGA */
-    {0x2030, 2, EOPID_INT(0x18), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [117] opt 251, ASEGA */
-    {1, 2, EOPID_INT(0x1C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [118] opt 252, ASEGA */
-    {1, 0x22, EOPID_INT(0x44), EOPID_PMF(SetAsegaSpeed__FP5ASEGAf), EOPID_NONE, EOPID_NONE}, /* [119] opt 253, ASEGA */
-    {1, 0x22, EOPID_INT(0x48), EOPID_PMF(SetAsegaMasterSpeed), EOPID_NONE, EOPID_NONE}, /* [120] opt 217, ASEGA */
+    {0x206D, 2, EOPID_OFF(ASEGA, animation), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [116] opt 250, ASEGA */
+    {0x2030, 2, EOPID_OFF(ASEGA, rootObject), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [117] opt 251, ASEGA */
+    {1, 2, EOPID_OFF(ASEGA, time), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [118] opt 252, ASEGA */
+    {1, 0x22, EOPID_OFF(ASEGA, rate), EOPID_PMF(SetAsegaSpeed__FP5ASEGAf), EOPID_NONE, EOPID_NONE}, /* [119] opt 253, ASEGA */
+    {1, 0x22, EOPID_OFF(ASEGA, masterSpeed), EOPID_PMF(SetAsegaMasterSpeed), EOPID_NONE, EOPID_NONE}, /* [120] opt 217, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetAsegaPriority), EOPID_INT(1), EOPID_NONE}, /* [121] opt 254, ASEGA */
-    {0, 0x22, EOPID_INT(0x58), EOPID_PMF(SetAsegaHandsOff), EOPID_NONE, EOPID_NONE}, /* [122] opt 221, ASEGA */
+    {0, 0x22, EOPID_OFF(ASEGA, nWorldHold), EOPID_PMF(SetAsegaHandsOff), EOPID_NONE, EOPID_NONE}, /* [122] opt 221, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkAsegaSEEK), EOPID_INT(3), EOPID_NONE}, /* [123] opt 236, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkAsegaRETRACT), EOPID_NONE, EOPID_NONE}, /* [124] opt 237, ASEGA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_EvaluateXfSlotValue), EOPID_INT(1), EOPID_NONE}, /* [125] opt 248, ASEGA */
@@ -860,13 +880,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_PauseSnd), EOPID_NONE, EOPID_NONE}, /* [127] opt 256, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResumeSnd), EOPID_NONE, EOPID_NONE}, /* [128] opt 257, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopSnd), EOPID_INT(1), EOPID_NONE}, /* [129] opt 258, CID151 */
-    {1, 0x22, EOPID_INT(0x10), EOPID_PMF(SetSndVolume), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
-    {5, 0x22, EOPID_INT(0x14), EOPID_PMF(SetSndPan), EOPID_NONE, EOPID_NONE}, /* [131] opt 259, CID151 */
-    {1, 0x22, EOPID_INT(0x18), EOPID_PMF(SetSndPitch), EOPID_NONE, EOPID_NONE}, /* [132] opt 213, CID151 */
-    {0x2002, 0x22, EOPID_INT(0x1C), EOPID_PMF(SetSndSourceLo), EOPID_NONE, EOPID_NONE}, /* [133] opt 260, CID151 */
-    {2, 0x22, EOPID_INT(0x20), EOPID_PMF(SetSndSourcePos), EOPID_NONE, EOPID_NONE}, /* [134] opt 261, CID151 */
+    {1, 0x22, EOPID_OFF(CID151, volume), EOPID_PMF(SetSndVolume), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
+    {5, 0x22, EOPID_OFF(CID151, panAngle), EOPID_PMF(SetSndPan), EOPID_NONE, EOPID_NONE}, /* [131] opt 259, CID151 */
+    {1, 0x22, EOPID_OFF(CID151, pitchRatio), EOPID_PMF(SetSndPitch), EOPID_NONE, EOPID_NONE}, /* [132] opt 213, CID151 */
+    {0x2002, 0x22, EOPID_OFF(CID151, source), EOPID_PMF(SetSndSourceLo), EOPID_NONE, EOPID_NONE}, /* [133] opt 260, CID151 */
+    {2, 0x22, EOPID_OFF(CID151, position), EOPID_PMF(SetSndSourcePos), EOPID_NONE, EOPID_NONE}, /* [134] opt 261, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndRange), EOPID_INT(2), EOPID_NONE}, /* [135] opt 262, CID151 */
-    {0xA, 2, EOPID_INT(0x30), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [136] opt 263, CID151 */
+    {0xA, 2, EOPID_OFF(CID151, rangeNear), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [136] opt 263, CID151 */
     {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_StartDialog), EOPID_INT(2), EOPID_NONE}, /* [137] opt 264, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopDialog), EOPID_NONE, EOPID_NONE}, /* [138] opt 265, CID152 */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsDialogPlaying), EOPID_INT(1), EOPID_NONE}, /* [139] opt 266, CID152 */
@@ -881,26 +901,26 @@ EOPIDROW D_002AC880[1449] = {
     {1, 1, EOPID_NONE, EOPID_FN(RefThunk_GetMusicTime), EOPID_NONE, EOPID_NONE}, /* [148] opt 275, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrMasterVolume), EOPID_INT(1), EOPID_NONE}, /* [149] opt 276, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrChannelVolume), EOPID_INT(2), EOPID_NONE}, /* [150] opt 277, CID152 */
-    {0x1007, 0x122, EOPID_INT(0xE0), EOPID_PMF(SetLightKind), EOPID_PMF(SetLightKind), EOPID_NONE}, /* [151] opt 278, LIGHT */
-    {2, 0xA2, EOPID_INT(0xF0), EOPID_PMF(SetLightHighlightColor), EOPID_INT(0xF0), EOPID_NONE}, /* [152] opt 279, LIGHT */
-    {1, 0xA2, EOPID_INT(0x150), EOPID_PMF(SetLightMidtoneStrength), EOPID_INT(0x150), EOPID_NONE}, /* [153] opt 280, LIGHT */
-    {1, 0xA2, EOPID_INT(0x154), EOPID_PMF(SetLightMidtoneAngle), EOPID_INT(0x154), EOPID_NONE}, /* [154] opt 281, LIGHT */
-    {0xA, 0xA2, EOPID_INT(0x164), EOPID_PMF(SetLightFalloff), EOPID_INT(0x164), EOPID_NONE}, /* [155] opt 282, LIGHT */
-    {0, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [156] opt 283, LIGHT */
-    {0, 0xA2, EOPID_INT(0x15C), EOPID_PMF(SetLightStatic), EOPID_INT(0x15C), EOPID_NONE}, /* [157] opt 290, LIGHT */
-    {0, 0xA2, EOPID_INT(0x160), EOPID_PMF(SetLightDynamic), EOPID_INT(0x160), EOPID_NONE}, /* [158] opt 291, LIGHT */
+    {0x1007, 0x122, EOPID_OFF(LIGHT, kind), EOPID_PMF(SetLightKind), EOPID_PMF(SetLightKind), EOPID_NONE}, /* [151] opt 278, LIGHT */
+    {2, 0xA2, EOPID_OFF(LIGHT, highlightHsvComponents), EOPID_PMF(SetLightHighlightColor), EOPID_OFF(LIGHT, highlightHsvComponents), EOPID_NONE}, /* [152] opt 279, LIGHT */
+    {1, 0xA2, EOPID_OFF(LIGHT, midtoneStrength), EOPID_PMF(SetLightMidtoneStrength), EOPID_OFF(LIGHT, midtoneStrength), EOPID_NONE}, /* [153] opt 280, LIGHT */
+    {1, 0xA2, EOPID_OFF(LIGHT, midtoneAngle), EOPID_PMF(SetLightMidtoneAngle), EOPID_OFF(LIGHT, midtoneAngle), EOPID_NONE}, /* [154] opt 281, LIGHT */
+    {0xA, 0xA2, EOPID_OFF(LIGHT, lmFallOff), EOPID_PMF(SetLightFalloff), EOPID_OFF(LIGHT, lmFallOff), EOPID_NONE}, /* [155] opt 282, LIGHT */
+    {0, 0x92, EOPID_OFF(LIGHT, enabled), EOPID_OFF(LIGHT, enabled), EOPID_OFF(LIGHT, enabled), EOPID_NONE}, /* [156] opt 283, LIGHT */
+    {0, 0xA2, EOPID_OFF(LIGHT, isStatic), EOPID_PMF(SetLightStatic), EOPID_OFF(LIGHT, isStatic), EOPID_NONE}, /* [157] opt 290, LIGHT */
+    {0, 0xA2, EOPID_OFF(LIGHT, isDynamic), EOPID_PMF(SetLightDynamic), EOPID_OFF(LIGHT, isDynamic), EOPID_NONE}, /* [158] opt 291, LIGHT */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkCmJOLT), EOPID_INT(1), EOPID_NONE}, /* [159] opt 233, CM */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkCmCUT), EOPID_NONE, EOPID_NONE}, /* [160] opt 292, CM */
-    {1, 0x122, EOPID_INT(0x20), EOPID_PMF(SetCmFov__FP2CMf), EOPID_PMF(SetCmFov__FP2CMf), EOPID_NONE}, /* [161] opt 293, CM */
-    {1, 0x122, EOPID_INT(0x24), EOPID_PMF(SetCmBaseFovTarget), EOPID_PMF(SetCmBaseFovTarget), EOPID_NONE}, /* [162] opt 294, CM */
-    {0xC, 0x92, EOPID_INT(0x2C), EOPID_INT(0x2C), EOPID_INT(0x2C), EOPID_NONE}, /* [163] opt 295, CM */
-    {1, 0x122, EOPID_INT(0x4C), EOPID_PMF(SetCmBaseNearClip), EOPID_PMF(SetCmBaseNearClip), EOPID_NONE}, /* [164] opt 296, CM */
-    {1, 0x122, EOPID_INT(0x50), EOPID_PMF(SetCmFarClip__FP2CMf), EOPID_PMF(SetCmFarClip__FP2CMf), EOPID_NONE}, /* [165] opt 297, CM */
-    {1, 0x122, EOPID_INT(0x240), EOPID_PMF(SetCmNearFog__FP2CMf), EOPID_PMF(SetCmNearFog__FP2CMf), EOPID_NONE}, /* [166] opt 298, CM */
-    {1, 0x122, EOPID_INT(0x244), EOPID_PMF(SetCmFarFog__FP2CMf), EOPID_PMF(SetCmFarFog__FP2CMf), EOPID_NONE}, /* [167] opt 299, CM */
-    {0xD, 0xA2, EOPID_INT(0x24C), EOPID_PMF(SetCmRgbaFog__FP2CMP4RGBA), EOPID_INT(0x24C), EOPID_NONE}, /* [168] opt 300, CM */
-    {1, 0x122, EOPID_INT(0x248), EOPID_PMF(SetCmUFogMax__FP2CMf), EOPID_PMF(SetCmUFogMax__FP2CMf), EOPID_NONE}, /* [169] opt 301, CM */
-    {1, 0x122, EOPID_INT(0x18), EOPID_PMF(SetCmMrdRatio__FP2CMf), EOPID_PMF(SetCmMrdRatio__FP2CMf), EOPID_NONE}, /* [170] opt 302, CM */
+    {1, 0x122, EOPID_OFF(CM, fieldOfView), EOPID_PMF(SetCmFov__FP2CMf), EOPID_PMF(SetCmFov__FP2CMf), EOPID_NONE}, /* [161] opt 293, CM */
+    {1, 0x122, EOPID_OFF(CM, targetFieldOfView), EOPID_PMF(SetCmBaseFovTarget), EOPID_PMF(SetCmBaseFovTarget), EOPID_NONE}, /* [162] opt 294, CM */
+    {0xC, 0x92, EOPID_OFF(CM, fovSmoothing), EOPID_OFF(CM, fovSmoothing), EOPID_OFF(CM, fovSmoothing), EOPID_NONE}, /* [163] opt 295, CM */
+    {1, 0x122, EOPID_OFF(CM, nearClip), EOPID_PMF(SetCmBaseNearClip), EOPID_PMF(SetCmBaseNearClip), EOPID_NONE}, /* [164] opt 296, CM */
+    {1, 0x122, EOPID_OFF(CM, farClip), EOPID_PMF(SetCmFarClip__FP2CMf), EOPID_PMF(SetCmFarClip__FP2CMf), EOPID_NONE}, /* [165] opt 297, CM */
+    {1, 0x122, EOPID_OFF(CM, nearFogDistance), EOPID_PMF(SetCmNearFog__FP2CMf), EOPID_PMF(SetCmNearFog__FP2CMf), EOPID_NONE}, /* [166] opt 298, CM */
+    {1, 0x122, EOPID_OFF(CM, farFogDistance), EOPID_PMF(SetCmFarFog__FP2CMf), EOPID_PMF(SetCmFarFog__FP2CMf), EOPID_NONE}, /* [167] opt 299, CM */
+    {0xD, 0xA2, EOPID_OFF(CM, rgbaFog), EOPID_PMF(SetCmRgbaFog__FP2CMP4RGBA), EOPID_OFF(CM, rgbaFog), EOPID_NONE}, /* [168] opt 300, CM */
+    {1, 0x122, EOPID_OFF(CM, maxFog), EOPID_PMF(SetCmUFogMax__FP2CMf), EOPID_PMF(SetCmUFogMax__FP2CMf), EOPID_NONE}, /* [169] opt 301, CM */
+    {1, 0x122, EOPID_OFF(CM, rFovCullRef), EOPID_PMF(SetCmMrdRatio__FP2CMf), EOPID_PMF(SetCmMrdRatio__FP2CMf), EOPID_NONE}, /* [170] opt 302, CM */
     {2, 0x24, EOPID_PMFI(GetCmPos), EOPID_PMF(SetCmPos), EOPID_NONE, EOPID_NONE}, /* [171] opt 34, CM */
     {4, 0x24, EOPID_PMFI(GetCmMat), EOPID_PMFI(SetCmMatOption), EOPID_NONE, EOPID_NONE}, /* [172] opt 35, CM */
     {2, 0x24, EOPID_PMF(GetCmRotDeg), EOPID_PMF(SetCmRotDeg), EOPID_NONE, EOPID_NONE}, /* [173] opt 36, CM */
@@ -925,72 +945,72 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(GetTnCpd)}, /* [192] opt 323, TN */
     {1, 0x2092, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_PMF(GetTnCpd)}, /* [193] opt 324, TN */
     {0xA, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(GetTnCpd)}, /* [194] opt 325, TN */
-    {1, 0x92, EOPID_INT(0x130), EOPID_INT(0x130), EOPID_INT(0x130), EOPID_NONE}, /* [195] opt 326, TN */
-    {0, 0x92, EOPID_INT(0x120), EOPID_INT(0x120), EOPID_INT(0x120), EOPID_NONE}, /* [196] opt 327, TN */
-    {0x100E, 0x92, EOPID_INT(0x164), EOPID_INT(0x164), EOPID_INT(0x164), EOPID_NONE}, /* [197] opt 328, TN */
-    {0, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [198] opt 329, TN */
-    {0, 0x92, EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_NONE}, /* [199] opt 330, TN */
-    {5, 0x92, EOPID_INT(0x128), EOPID_INT(0x128), EOPID_INT(0x128), EOPID_NONE}, /* [200] opt 220, TN */
-    {0, 0x92, EOPID_INT(0x124), EOPID_INT(0x124), EOPID_INT(0x124), EOPID_NONE}, /* [201] opt 331, TN */
-    {0x100A, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [202] opt 332, TN */
-    {1, 0x92, EOPID_INT(0x170), EOPID_INT(0x170), EOPID_INT(0x170), EOPID_NONE}, /* [203] opt 333, TN */
-    {1, 0x92, EOPID_INT(0x174), EOPID_INT(0x174), EOPID_INT(0x174), EOPID_NONE}, /* [204] opt 334, TN */
-    {1, 0x92, EOPID_INT(0x178), EOPID_INT(0x178), EOPID_INT(0x178), EOPID_NONE}, /* [205] opt 335, TN */
-    {1, 0x92, EOPID_INT(0x17C), EOPID_INT(0x17C), EOPID_INT(0x17C), EOPID_NONE}, /* [206] opt 336, TN */
-    {0, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [207] opt 337, TN */
-    {1, 0x92, EOPID_INT(0x188), EOPID_INT(0x188), EOPID_INT(0x188), EOPID_NONE}, /* [208] opt 293, TN */
-    {0, 0x92, EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_NONE}, /* [209] opt 338, TN */
-    {0x2002, 0x92, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE}, /* [210] opt 339, TN */
-    {9, 0x92, EOPID_INT(0x1A0), EOPID_INT(0x1A0), EOPID_INT(0x1A0), EOPID_NONE}, /* [211] opt 340, TN */
-    {0xA, 0x92, EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_NONE}, /* [212] opt 341, TN */
-    {0x100F, 2, EOPID_INT(0x134), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [213] opt 342, TN */
-    {0x100F, 0xA2, EOPID_INT(0x13C), EOPID_PMF(SetTnTnsOverride), EOPID_INT(0x13C), EOPID_NONE}, /* [214] opt 343, TN */
-    {0x1011, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [215] opt 119, TARGET (+1) */
-    {1, 0x92, EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_NONE}, /* [216] opt 120, TARGET (+1) */
-    {0, 0x92, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_NONE}, /* [217] opt 121, TARGET (+1) */
-    {6, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [218] opt 344, TARGET (+1) */
-    {0xA, 0x92, EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_NONE}, /* [219] opt 345, CID21 */
-    {1, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [220] opt 346, CID21 */
-    {0x1053, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [221] opt 347, CID21 */
-    {2, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [222] opt 348, STEP (+17) */
-    {1, 0x92, EOPID_INT(0x220), EOPID_INT(0x220), EOPID_INT(0x220), EOPID_NONE}, /* [223] opt 349, STEP (+17) */
-    {1, 0x122, EOPID_INT(0x1F0), EOPID_PMF(ScaleStepSpinSpeed), EOPID_PMF(ScaleStepSpinSpeed), EOPID_NONE}, /* [224] opt 350, STEP (+17) */
-    {1, 0x122, EOPID_INT(0x260), EOPID_PMF(SetStepGravityRatio), EOPID_PMF(SetStepGravityRatio), EOPID_NONE}, /* [225] opt 351, STEP (+17) */
-    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0x264), EOPID_NONE}, /* [226] opt 352, STEP (+17) */
+    {1, 0x92, EOPID_OFF(TN, panLimitAngle), EOPID_OFF(TN, panLimitAngle), EOPID_OFF(TN, panLimitAngle), EOPID_NONE}, /* [195] opt 326, TN */
+    {0, 0x92, EOPID_OFF(TN, fCylind), EOPID_OFF(TN, fCylind), EOPID_OFF(TN, fCylind), EOPID_NONE}, /* [196] opt 327, TN */
+    {0x100E, 0x92, EOPID_OFF(TN, grftnm), EOPID_OFF(TN, grftnm), EOPID_OFF(TN, grftnm), EOPID_NONE}, /* [197] opt 328, TN */
+    {0, 0x92, EOPID_OFF(TN, pullsOnEnter), EOPID_OFF(TN, pullsOnEnter), EOPID_OFF(TN, pullsOnEnter), EOPID_NONE}, /* [198] opt 329, TN */
+    {0, 0x92, EOPID_OFF(TN, pullsWhileIdle), EOPID_OFF(TN, pullsWhileIdle), EOPID_OFF(TN, pullsWhileIdle), EOPID_NONE}, /* [199] opt 330, TN */
+    {5, 0x92, EOPID_OFF(TN, priority), EOPID_OFF(TN, priority), EOPID_OFF(TN, priority), EOPID_NONE}, /* [200] opt 220, TN */
+    {0, 0x92, EOPID_OFF(TN, unknown124), EOPID_OFF(TN, unknown124), EOPID_OFF(TN, unknown124), EOPID_NONE}, /* [201] opt 331, TN */
+    {0x100A, 0x92, EOPID_OFF(TN, turnAxis), EOPID_OFF(TN, turnAxis), EOPID_OFF(TN, turnAxis), EOPID_NONE}, /* [202] opt 332, TN */
+    {1, 0x92, EOPID_OFF(TN, enterPullDuration), EOPID_OFF(TN, enterPullDuration), EOPID_OFF(TN, enterPullDuration), EOPID_NONE}, /* [203] opt 333, TN */
+    {1, 0x92, EOPID_OFF(TN, enterPullStrength), EOPID_OFF(TN, enterPullStrength), EOPID_OFF(TN, enterPullStrength), EOPID_NONE}, /* [204] opt 334, TN */
+    {1, 0x92, EOPID_OFF(TN, idlePullDuration), EOPID_OFF(TN, idlePullDuration), EOPID_OFF(TN, idlePullDuration), EOPID_NONE}, /* [205] opt 335, TN */
+    {1, 0x92, EOPID_OFF(TN, idlePullStrength), EOPID_OFF(TN, idlePullStrength), EOPID_OFF(TN, idlePullStrength), EOPID_NONE}, /* [206] opt 336, TN */
+    {0, 0x92, EOPID_OFF(TN, unknown184), EOPID_OFF(TN, unknown184), EOPID_OFF(TN, unknown184), EOPID_NONE}, /* [207] opt 337, TN */
+    {1, 0x92, EOPID_OFF(TN, fieldOfView), EOPID_OFF(TN, fieldOfView), EOPID_OFF(TN, fieldOfView), EOPID_NONE}, /* [208] opt 293, TN */
+    {0, 0x92, EOPID_OFF(TN, disablesCameraCollision), EOPID_OFF(TN, disablesCameraCollision), EOPID_OFF(TN, disablesCameraCollision), EOPID_NONE}, /* [209] opt 338, TN */
+    {0x2002, 0x92, EOPID_OFF(TN, ploPull), EOPID_OFF(TN, ploPull), EOPID_OFF(TN, ploPull), EOPID_NONE}, /* [210] opt 339, TN */
+    {9, 0x92, EOPID_OFF(TN, clqPull), EOPID_OFF(TN, clqPull), EOPID_OFF(TN, clqPull), EOPID_NONE}, /* [211] opt 340, TN */
+    {0xA, 0x92, EOPID_OFF(TN, lmPull), EOPID_OFF(TN, lmPull), EOPID_OFF(TN, lmPull), EOPID_NONE}, /* [212] opt 341, TN */
+    {0x100F, 2, EOPID_OFF(TN, state), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [213] opt 342, TN */
+    {0x100F, 0xA2, EOPID_OFF(TN, requestedState), EOPID_PMF(SetTnTnsOverride), EOPID_OFF(TN, requestedState), EOPID_NONE}, /* [214] opt 343, TN */
+    {0x1011, 0x92, EOPID_OFF(TARGET, targetKindFlags), EOPID_OFF(TARGET, targetKindFlags), EOPID_OFF(TARGET, targetKindFlags), EOPID_NONE}, /* [215] opt 119, TARGET (+1) */
+    {1, 0x92, EOPID_OFF(TARGET, radius), EOPID_OFF(TARGET, radius), EOPID_OFF(TARGET, radius), EOPID_NONE}, /* [216] opt 120, TARGET (+1) */
+    {0, 0x92, EOPID_OFF(TARGET, needsHitTest), EOPID_OFF(TARGET, needsHitTest), EOPID_OFF(TARGET, needsHitTest), EOPID_NONE}, /* [217] opt 121, TARGET (+1) */
+    {6, 0x92, EOPID_OFF(TARGET, unknownF4), EOPID_OFF(TARGET, unknownF4), EOPID_OFF(TARGET, unknownF4), EOPID_NONE}, /* [218] opt 344, TARGET (+1) */
+    {0xA, 0x92, EOPID_OFF(CID21, rangeMin), EOPID_OFF(CID21, rangeMin), EOPID_OFF(CID21, rangeMin), EOPID_NONE}, /* [219] opt 345, CID21 */
+    {1, 0x92, EOPID_OFF(CID21, maxDistance), EOPID_OFF(CID21, maxDistance), EOPID_OFF(CID21, maxDistance), EOPID_NONE}, /* [220] opt 346, CID21 */
+    {0x1053, 0x92, EOPID_OFF(CID21, priority), EOPID_OFF(CID21, priority), EOPID_OFF(CID21, priority), EOPID_NONE}, /* [221] opt 347, CID21 */
+    {2, 0x92, EOPID_OFF(STEP, vecPivotOffset), EOPID_OFF(STEP, vecPivotOffset), EOPID_OFF(STEP, vecPivotOffset), EOPID_NONE}, /* [222] opt 348, STEP (+17) */
+    {1, 0x92, EOPID_OFF(STEP, baseRadius), EOPID_OFF(STEP, baseRadius), EOPID_OFF(STEP, baseRadius), EOPID_NONE}, /* [223] opt 349, STEP (+17) */
+    {1, 0x122, EOPID_OFF(STEP, rSpin), EOPID_PMF(ScaleStepSpinSpeed), EOPID_PMF(ScaleStepSpinSpeed), EOPID_NONE}, /* [224] opt 350, STEP (+17) */
+    {1, 0x122, EOPID_OFF(STEP, gravityRatio), EOPID_PMF(SetStepGravityRatio), EOPID_PMF(SetStepGravityRatio), EOPID_NONE}, /* [225] opt 351, STEP (+17) */
+    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(STEP, oidPhys), EOPID_NONE}, /* [226] opt 352, STEP (+17) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepPhysByOid), EOPID_INT(2), EOPID_NONE}, /* [227] opt 353, STEP (+17) */
-    {0, 0xA2, EOPID_INT(0x204), EOPID_PMF(SetStepNoBase), EOPID_INT(0x204), EOPID_NONE}, /* [228] opt 354, STEP (+17) */
-    {1, 0x22, EOPID_INT(0x1A8), EOPID_PMFI(SetStepTargetHeadingOption), EOPID_NONE, EOPID_NONE}, /* [229] opt 355, STEP (+17) */
-    {2, 0x12, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE, EOPID_NONE}, /* [230] opt 356, STEP (+17) */
-    {0, 0x92, EOPID_INT(0x298), EOPID_INT(0x298), EOPID_INT(0x298), EOPID_NONE}, /* [231] opt 357, STEP (+17) */
-    {0, 0x92, EOPID_INT(0x29C), EOPID_INT(0x29C), EOPID_INT(0x29C), EOPID_NONE}, /* [232] opt 358, STEP (+17) */
+    {0, 0xA2, EOPID_OFF(STEP, unknown204), EOPID_PMF(SetStepNoBase), EOPID_OFF(STEP, unknown204), EOPID_NONE}, /* [228] opt 354, STEP (+17) */
+    {1, 0x22, EOPID_OFF(STEP, targetHeading), EOPID_PMFI(SetStepTargetHeadingOption), EOPID_NONE, EOPID_NONE}, /* [229] opt 355, STEP (+17) */
+    {2, 0x12, EOPID_OFF(STEP, unknown190), EOPID_OFF(STEP, unknown190), EOPID_NONE, EOPID_NONE}, /* [230] opt 356, STEP (+17) */
+    {0, 0x92, EOPID_OFF(STEP, unknown298), EOPID_OFF(STEP, unknown298), EOPID_OFF(STEP, unknown298), EOPID_NONE}, /* [231] opt 357, STEP (+17) */
+    {0, 0x92, EOPID_OFF(STEP, unknown29C), EOPID_OFF(STEP, unknown29C), EOPID_OFF(STEP, unknown29C), EOPID_NONE}, /* [232] opt 358, STEP (+17) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardAttackOid), EOPID_FN(RefThunk_AddAndResolveStepguardAttackOid), EOPID_INT(1), EOPID_NONE}, /* [233] opt 359, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_ClearStepguardAttacks), EOPID_FN(RefThunk_ClearStepguardAttacks), EOPID_NONE, EOPID_NONE}, /* [234] opt 360, STEPGUARD (+11) */
-    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMF(GetStepguardDefaultAttack)}, /* [235] opt 361, STEPGUARD (+11) */
-    {0xA, 0x2092, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_PMF(GetStepguardDefaultAttack)}, /* [236] opt 362, STEPGUARD (+11) */
-    {0xA, 0x2092, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_PMF(GetStepguardDefaultAttack)}, /* [237] opt 363, STEPGUARD (+11) */
+    {0xA, 0x2092, EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_PMF(GetStepguardDefaultAttack)}, /* [235] opt 361, STEPGUARD (+11) */
+    {0xA, 0x2092, EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_PMF(GetStepguardDefaultAttack)}, /* [236] opt 362, STEPGUARD (+11) */
+    {0xA, 0x2092, EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_PMF(GetStepguardDefaultAttack)}, /* [237] opt 363, STEPGUARD (+11) */
     {1, 0x2120, EOPID_NONE, EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(GetStepguardDefaultAttack)}, /* [238] opt 364, STEPGUARD (+11) */
-    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(GetStepguardDefaultAttack)}, /* [239] opt 365, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0x78), EOPID_INT(0x78), EOPID_INT(0x78), EOPID_PMF(GetStepguardDefaultAttack)}, /* [240] opt 366, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_PMF(GetStepguardDefaultAttack)}, /* [241] opt 367, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_PMF(GetStepguardDefaultAttack)}, /* [242] opt 368, STEPGUARD (+11) */
+    {1, 0x2092, EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_PMF(GetStepguardDefaultAttack)}, /* [239] opt 365, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_PMF(GetStepguardDefaultAttack)}, /* [240] opt 366, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_PMF(GetStepguardDefaultAttack)}, /* [241] opt 367, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_PMF(GetStepguardDefaultAttack)}, /* [242] opt 368, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardAnimBinding), EOPID_FN(RefThunk_SetAndResolveStepguardAnimBinding), EOPID_INT(3), EOPID_NONE}, /* [243] opt 369, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardAnimBindingKind3), EOPID_FN(RefThunk_SetAndResolveStepguardAnimBindingKind3), EOPID_INT(5), EOPID_NONE}, /* [244] opt 370, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardAnimBindingKind2), EOPID_FN(RefThunk_SetAndResolveStepguardAnimBindingKind2), EOPID_INT(6), EOPID_NONE}, /* [245] opt 371, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardHurtReactions), EOPID_FN(RefThunk_SetAndResolveStepguardHurtReactions_Opt372), EOPID_INT(3), EOPID_NONE}, /* [246] opt 372, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardKnockdownReactions), EOPID_FN(RefThunk_SetAndResolveStepguardHurtReactions_Opt373), EOPID_INT(3), EOPID_NONE}, /* [247] opt 373, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardKoReactions), EOPID_FN(RefThunk_SetAndResolveStepguardKoReactions), EOPID_INT(3), EOPID_NONE}, /* [248] opt 374, STEPGUARD (+11) */
-    {0x1011, 0x92, EOPID_INT(0x350), EOPID_INT(0x350), EOPID_INT(0x350), EOPID_NONE}, /* [249] opt 375, STEPGUARD (+11) */
-    {0x1011, 0x92, EOPID_INT(0x354), EOPID_INT(0x354), EOPID_INT(0x354), EOPID_NONE}, /* [250] opt 376, STEPGUARD (+11) */
-    {0x1011, 0x92, EOPID_INT(0x358), EOPID_INT(0x358), EOPID_INT(0x358), EOPID_NONE}, /* [251] opt 377, STEPGUARD (+11) */
+    {0x1011, 0x92, EOPID_OFF(STEPGUARD, hurtZapMask), EOPID_OFF(STEPGUARD, hurtZapMask), EOPID_OFF(STEPGUARD, hurtZapMask), EOPID_NONE}, /* [249] opt 375, STEPGUARD (+11) */
+    {0x1011, 0x92, EOPID_OFF(STEPGUARD, knockdownZapMask), EOPID_OFF(STEPGUARD, knockdownZapMask), EOPID_OFF(STEPGUARD, knockdownZapMask), EOPID_NONE}, /* [250] opt 376, STEPGUARD (+11) */
+    {0x1011, 0x92, EOPID_OFF(STEPGUARD, koZapMask), EOPID_OFF(STEPGUARD, koZapMask), EOPID_OFF(STEPGUARD, koZapMask), EOPID_NONE}, /* [251] opt 377, STEPGUARD (+11) */
     {5, 0x124, EOPID_PMF(GetStepguardMaxHitPoints), EOPID_PMF(SetStepguardMaxHitPoints), EOPID_PMF(SetStepguardMaxHitPoints), EOPID_NONE}, /* [252] opt 378, STEPGUARD (+11) */
     {5, 0x124, EOPID_PMF(GetStepguardHpLevel), EOPID_PMF(SetStepguardHpLevel), EOPID_PMF(SetStepguardHpLevel), EOPID_NONE}, /* [253] opt 379, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x338), EOPID_INT(0x338), EOPID_INT(0x338), EOPID_NONE}, /* [254] opt 380, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x33C), EOPID_INT(0x33C), EOPID_INT(0x33C), EOPID_NONE}, /* [255] opt 381, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x340), EOPID_INT(0x340), EOPID_INT(0x340), EOPID_NONE}, /* [256] opt 382, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x340), EOPID_INT(0x340), EOPID_INT(0x340), EOPID_NONE}, /* [257] opt 383, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x344), EOPID_INT(0x344), EOPID_INT(0x344), EOPID_NONE}, /* [258] opt 384, STEPGUARD (+11) */
-    {0x206D, 0x92, EOPID_INT(0x348), EOPID_INT(0x348), EOPID_INT(0x348), EOPID_NONE}, /* [259] opt 385, STEPGUARD (+11) */
-    {0x2002, 0x22, EOPID_INT(0x38C), EOPID_PMF(SetStepguardForcedTarget), EOPID_NONE, EOPID_NONE}, /* [260] opt 386, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, maxHitPoints), EOPID_OFF(STEPGUARD, maxHitPoints), EOPID_OFF(STEPGUARD, maxHitPoints), EOPID_NONE}, /* [254] opt 380, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, hitPoints), EOPID_OFF(STEPGUARD, hitPoints), EOPID_OFF(STEPGUARD, hitPoints), EOPID_NONE}, /* [255] opt 381, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, staggerCapacity), EOPID_OFF(STEPGUARD, staggerCapacity), EOPID_OFF(STEPGUARD, staggerCapacity), EOPID_NONE}, /* [256] opt 382, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, staggerCapacity), EOPID_OFF(STEPGUARD, staggerCapacity), EOPID_OFF(STEPGUARD, staggerCapacity), EOPID_NONE}, /* [257] opt 383, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, staggerProgress), EOPID_OFF(STEPGUARD, staggerProgress), EOPID_OFF(STEPGUARD, staggerProgress), EOPID_NONE}, /* [258] opt 384, STEPGUARD (+11) */
+    {0x206D, 0x92, EOPID_OFF(STEPGUARD, staggerAseg), EOPID_OFF(STEPGUARD, staggerAseg), EOPID_OFF(STEPGUARD, staggerAseg), EOPID_NONE}, /* [259] opt 385, STEPGUARD (+11) */
+    {0x2002, 0x22, EOPID_OFF(STEPGUARD, target), EOPID_PMF(SetStepguardForcedTarget), EOPID_NONE, EOPID_NONE}, /* [260] opt 386, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_AddStepguardDetectTargetBack), EOPID_INT(1), EOPID_NONE}, /* [261] opt 387, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardPreferClass), EOPID_FN(RefThunk_AddStepguardPreferClass), EOPID_INT(1), EOPID_NONE}, /* [262] opt 388, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_RemoveStepguardPreferClass), EOPID_FN(RefThunk_RemoveStepguardPreferClass), EOPID_INT(1), EOPID_NONE}, /* [263] opt 389, STEPGUARD (+11) */
@@ -1003,97 +1023,97 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardForceClass), EOPID_FN(RefThunk_AddStepguardForceClass), EOPID_INT(1), EOPID_NONE}, /* [270] opt 396, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_RemoveStepguardForceClass), EOPID_FN(RefThunk_RemoveStepguardForceClass), EOPID_INT(1), EOPID_NONE}, /* [271] opt 397, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_ClearStepguardForceClasses), EOPID_FN(RefThunk_ClearStepguardForceClasses), EOPID_NONE, EOPID_NONE}, /* [272] opt 398, STEPGUARD (+11) */
-    {0x2071, 0xA2, EOPID_INT(0x2E8), EOPID_PMF(SetStepguardPatrolScript), EOPID_INT(0x2E8), EOPID_NONE}, /* [273] opt 399, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x2CC), EOPID_INT(0x2CC), EOPID_INT(0x2CC), EOPID_NONE}, /* [274] opt 400, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x2D4), EOPID_INT(0x2D4), EOPID_INT(0x2D4), EOPID_NONE}, /* [275] opt 401, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x3D8), EOPID_INT(0x3D8), EOPID_INT(0x3D8), EOPID_NONE}, /* [276] opt 402, STEPGUARD (+11) */
-    {2, 0x92, EOPID_INT(0x3E0), EOPID_INT(0x3E0), EOPID_INT(0x3E0), EOPID_NONE}, /* [277] opt 403, STEPGUARD (+11) */
+    {0x2071, 0xA2, EOPID_OFF(STEPGUARD, patrolScript), EOPID_PMF(SetStepguardPatrolScript), EOPID_OFF(STEPGUARD, patrolScript), EOPID_NONE}, /* [273] opt 399, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, walkTimes), EOPID_OFF(STEPGUARD, walkTimes), EOPID_OFF(STEPGUARD, walkTimes), EOPID_NONE}, /* [274] opt 400, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, pauseTimes), EOPID_OFF(STEPGUARD, pauseTimes), EOPID_OFF(STEPGUARD, pauseTimes), EOPID_NONE}, /* [275] opt 401, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, coinCountOverride), EOPID_OFF(STEPGUARD, coinCountOverride), EOPID_OFF(STEPGUARD, coinCountOverride), EOPID_NONE}, /* [276] opt 402, STEPGUARD (+11) */
+    {2, 0x92, EOPID_OFF(STEPGUARD, coinDropPos), EOPID_OFF(STEPGUARD, coinDropPos), EOPID_OFF(STEPGUARD, coinDropPos), EOPID_NONE}, /* [277] opt 403, STEPGUARD (+11) */
     {0x9010, 4, EOPID_PMF(GetStepguardSgfRefList), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [278] opt 404, STEPGUARD (+11) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_StepguardHasSgf), EOPID_INT(1), EOPID_NONE}, /* [279] opt 405, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0xF38), EOPID_INT(0xF38), EOPID_INT(0xF38), EOPID_NONE}, /* [280] opt 406, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0xE64), EOPID_INT(0xE64), EOPID_INT(0xE64), EOPID_NONE}, /* [281] opt 407, STEPGUARD (+11) */
-    {0x2075, 0x92, EOPID_INT(0xE60), EOPID_INT(0xE60), EOPID_INT(0xE60), EOPID_NONE}, /* [282] opt 408, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0xE7C), EOPID_INT(0xE7C), EOPID_INT(0xE7C), EOPID_NONE}, /* [283] opt 409, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x364), EOPID_INT(0x364), EOPID_INT(0x364), EOPID_NONE}, /* [284] opt 410, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x370), EOPID_INT(0x370), EOPID_INT(0x370), EOPID_NONE}, /* [285] opt 411, STEPGUARD (+11) */
-    {1, 0x92, EOPID_INT(0x378), EOPID_INT(0x378), EOPID_INT(0x378), EOPID_NONE}, /* [286] opt 412, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x37C), EOPID_INT(0x37C), EOPID_INT(0x37C), EOPID_NONE}, /* [287] opt 413, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x380), EOPID_INT(0x380), EOPID_INT(0x380), EOPID_NONE}, /* [288] opt 345, STEPGUARD (+11) */
-    {1, 0x92, EOPID_INT(0x388), EOPID_INT(0x388), EOPID_INT(0x388), EOPID_NONE}, /* [289] opt 346, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x368), EOPID_INT(0x368), EOPID_INT(0x368), EOPID_NONE}, /* [290] opt 414, STEPGUARD (+11) */
-    {0, 0x12, EOPID_INT(0x4A0), EOPID_INT(0x4A0), EOPID_NONE, EOPID_NONE}, /* [291] opt 415, STEPGUARD (+11) */
-    {1, 0x92, EOPID_INT(0x314), EOPID_INT(0x314), EOPID_INT(0x314), EOPID_NONE}, /* [292] opt 416, STEPGUARD (+11) */
-    {1, 0x92, EOPID_INT(0x318), EOPID_INT(0x318), EOPID_INT(0x318), EOPID_NONE}, /* [293] opt 417, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0xE84), EOPID_INT(0xE84), EOPID_INT(0xE84), EOPID_NONE}, /* [294] opt 418, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0xE88), EOPID_INT(0xE88), EOPID_INT(0xE88), EOPID_NONE}, /* [295] opt 419, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x31C), EOPID_INT(0x31C), EOPID_INT(0x31C), EOPID_NONE}, /* [296] opt 420, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0x324), EOPID_INT(0x324), EOPID_INT(0x324), EOPID_NONE}, /* [297] opt 421, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0xF48), EOPID_INT(0xF48), EOPID_INT(0xF48), EOPID_NONE}, /* [298] opt 422, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0xF50), EOPID_INT(0xF50), EOPID_INT(0xF50), EOPID_NONE}, /* [299] opt 423, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0xF58), EOPID_INT(0xF58), EOPID_INT(0xF58), EOPID_NONE}, /* [300] opt 424, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, unk_0xf38), EOPID_OFF(STEPGUARD, unk_0xf38), EOPID_OFF(STEPGUARD, unk_0xf38), EOPID_NONE}, /* [280] opt 406, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, sensesEnabled), EOPID_OFF(STEPGUARD, sensesEnabled), EOPID_OFF(STEPGUARD, sensesEnabled), EOPID_NONE}, /* [281] opt 407, STEPGUARD (+11) */
+    {0x2075, 0x92, EOPID_OFF(STEPGUARD, noiseType), EOPID_OFF(STEPGUARD, noiseType), EOPID_OFF(STEPGUARD, noiseType), EOPID_NONE}, /* [282] opt 408, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, sleepTimeMin), EOPID_OFF(STEPGUARD, sleepTimeMin), EOPID_OFF(STEPGUARD, sleepTimeMin), EOPID_NONE}, /* [283] opt 409, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, unknown364), EOPID_OFF(STEPGUARD, unknown364), EOPID_OFF(STEPGUARD, unknown364), EOPID_NONE}, /* [284] opt 410, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, closeAngleRange), EOPID_OFF(STEPGUARD, closeAngleRange), EOPID_OFF(STEPGUARD, closeAngleRange), EOPID_NONE}, /* [285] opt 411, STEPGUARD (+11) */
+    {1, 0x92, EOPID_OFF(STEPGUARD, closeRange), EOPID_OFF(STEPGUARD, closeRange), EOPID_OFF(STEPGUARD, closeRange), EOPID_NONE}, /* [286] opt 412, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, canInteract), EOPID_OFF(STEPGUARD, canInteract), EOPID_OFF(STEPGUARD, canInteract), EOPID_NONE}, /* [287] opt 413, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, interactAngleRange), EOPID_OFF(STEPGUARD, interactAngleRange), EOPID_OFF(STEPGUARD, interactAngleRange), EOPID_NONE}, /* [288] opt 345, STEPGUARD (+11) */
+    {1, 0x92, EOPID_OFF(STEPGUARD, interactRange), EOPID_OFF(STEPGUARD, interactRange), EOPID_OFF(STEPGUARD, interactRange), EOPID_NONE}, /* [289] opt 346, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, closeAngleRangeHeld), EOPID_OFF(STEPGUARD, closeAngleRangeHeld), EOPID_OFF(STEPGUARD, closeAngleRangeHeld), EOPID_NONE}, /* [290] opt 414, STEPGUARD (+11) */
+    {0, 0x12, EOPID_OFF(STEPGUARD, unknown4A0), EOPID_OFF(STEPGUARD, unknown4A0), EOPID_NONE, EOPID_NONE}, /* [291] opt 415, STEPGUARD (+11) */
+    {1, 0x92, EOPID_OFF(STEPGUARD, attackRange.minValue), EOPID_OFF(STEPGUARD, attackRange.minValue), EOPID_OFF(STEPGUARD, attackRange.minValue), EOPID_NONE}, /* [292] opt 416, STEPGUARD (+11) */
+    {1, 0x92, EOPID_OFF(STEPGUARD, attackRange.maxValue), EOPID_OFF(STEPGUARD, attackRange.maxValue), EOPID_OFF(STEPGUARD, attackRange.maxValue), EOPID_NONE}, /* [293] opt 417, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, sleepDartCapacity), EOPID_OFF(STEPGUARD, sleepDartCapacity), EOPID_OFF(STEPGUARD, sleepDartCapacity), EOPID_NONE}, /* [294] opt 418, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, sleepDartProgress), EOPID_OFF(STEPGUARD, sleepDartProgress), EOPID_OFF(STEPGUARD, sleepDartProgress), EOPID_NONE}, /* [295] opt 419, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, unknownRange31C), EOPID_OFF(STEPGUARD, unknownRange31C), EOPID_OFF(STEPGUARD, unknownRange31C), EOPID_NONE}, /* [296] opt 420, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, circleDistance), EOPID_OFF(STEPGUARD, circleDistance), EOPID_OFF(STEPGUARD, circleDistance), EOPID_NONE}, /* [297] opt 421, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, shootRange), EOPID_OFF(STEPGUARD, shootRange), EOPID_OFF(STEPGUARD, shootRange), EOPID_NONE}, /* [298] opt 422, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, shootPan), EOPID_OFF(STEPGUARD, shootPan), EOPID_OFF(STEPGUARD, shootPan), EOPID_NONE}, /* [299] opt 423, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, shootTilt), EOPID_OFF(STEPGUARD, shootTilt), EOPID_OFF(STEPGUARD, shootTilt), EOPID_NONE}, /* [300] opt 424, STEPGUARD (+11) */
     {0x2011, 0x120, EOPID_NONE, EOPID_PMF(AddStepguardAllowedPathZone), EOPID_PMF(AddStepguardAllowedPathZone), EOPID_NONE}, /* [301] opt 425, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepguardTargetLists), EOPID_INT(2), EOPID_NONE}, /* [302] opt 426, STEPGUARD (+11) */
     {0x2016, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [303] opt 427, STEPGUARD (+11) */
-    {0x2016, 0x92, EOPID_INT(0x3F4), EOPID_INT(0x3F4), EOPID_INT(0x3F4), EOPID_NONE}, /* [304] opt 428, STEPGUARD (+11) */
-    {0x2016, 0x92, EOPID_INT(0x3F8), EOPID_INT(0x3F8), EOPID_INT(0x3F8), EOPID_NONE}, /* [305] opt 429, STEPGUARD (+11) */
-    {0x2063, 0x92, EOPID_INT(0x494), EOPID_INT(0x494), EOPID_INT(0x494), EOPID_NONE}, /* [306] opt 430, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x490), EOPID_INT(0x490), EOPID_INT(0x490), EOPID_NONE}, /* [307] opt 431, STEPGUARD (+11) */
+    {0x2016, 0x92, EOPID_OFF(STEPGUARD, pickpocketIndicator0), EOPID_OFF(STEPGUARD, pickpocketIndicator0), EOPID_OFF(STEPGUARD, pickpocketIndicator0), EOPID_NONE}, /* [304] opt 428, STEPGUARD (+11) */
+    {0x2016, 0x92, EOPID_OFF(STEPGUARD, pickpocketIndicator1), EOPID_OFF(STEPGUARD, pickpocketIndicator1), EOPID_OFF(STEPGUARD, pickpocketIndicator1), EOPID_NONE}, /* [305] opt 429, STEPGUARD (+11) */
+    {0x2063, 0x92, EOPID_OFF(STEPGUARD, lootPouch), EOPID_OFF(STEPGUARD, lootPouch), EOPID_OFF(STEPGUARD, lootPouch), EOPID_NONE}, /* [306] opt 430, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, isLootFixed), EOPID_OFF(STEPGUARD, isLootFixed), EOPID_OFF(STEPGUARD, isLootFixed), EOPID_NONE}, /* [307] opt 431, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardLootCoins), EOPID_FN(RefThunk_AddStepguardLootCoins), EOPID_INT(1), EOPID_NONE}, /* [308] opt 432, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardLootItem_Opt433), EOPID_FN(RefThunk_AddStepguardLootItem_Opt433), EOPID_INT(1), EOPID_NONE}, /* [309] opt 433, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardLootItem_Opt434), EOPID_FN(RefThunk_AddStepguardLootItem_Opt434), EOPID_INT(1), EOPID_NONE}, /* [310] opt 434, STEPGUARD (+11) */
     {0x8006, 4, EOPID_PMF(GetStepguardLootRefList), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [311] opt 435, STEPGUARD (+11) */
-    {0x1016, 0x2092, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_PMF(GetStepguardDetector)}, /* [312] opt 436, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_PMF(GetStepguardDetector)}, /* [313] opt 437, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_PMF(GetStepguardDetector)}, /* [314] opt 438, STEPGUARD (+11) */
+    {0x1016, 0x2092, EOPID_OFF(DETECTOR, options), EOPID_OFF(DETECTOR, options), EOPID_OFF(DETECTOR, options), EOPID_PMF(GetStepguardDetector)}, /* [312] opt 436, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(DETECTOR, isForced), EOPID_OFF(DETECTOR, isForced), EOPID_OFF(DETECTOR, isForced), EOPID_PMF(GetStepguardDetector)}, /* [313] opt 437, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(DETECTOR, isDisabled), EOPID_OFF(DETECTOR, isDisabled), EOPID_OFF(DETECTOR, isDisabled), EOPID_PMF(GetStepguardDetector)}, /* [314] opt 438, STEPGUARD (+11) */
     {0x2016, 0x124, EOPID_PMFI(GetStepguardNearVol), EOPID_PMFI(SetStepguardNearVol), EOPID_PMFI(SetStepguardNearVol), EOPID_NONE}, /* [315] opt 439, STEPGUARD (+11) */
     {0x2016, 0x124, EOPID_PMFI(GetStepguardFarVol), EOPID_PMFI(SetStepguardFarVol), EOPID_PMFI(SetStepguardFarVol), EOPID_NONE}, /* [316] opt 440, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartGuardScript), EOPID_INT(1), EOPID_NONE}, /* [317] opt 441, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetGuardRoutineMode), EOPID_INT(1), EOPID_NONE}, /* [318] opt 442, STEPGUARD (+11) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsGuardRunningScript), EOPID_INT(1), EOPID_NONE}, /* [319] opt 443, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0xF30), EOPID_INT(0xF30), EOPID_INT(0xF30), EOPID_NONE}, /* [320] opt 444, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0xF34), EOPID_INT(0xF34), EOPID_INT(0xF34), EOPID_NONE}, /* [321] opt 445, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, ignoresBusyGuards), EOPID_OFF(STEPGUARD, ignoresBusyGuards), EOPID_OFF(STEPGUARD, ignoresBusyGuards), EOPID_NONE}, /* [320] opt 444, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, ready), EOPID_OFF(STEPGUARD, ready), EOPID_OFF(STEPGUARD, ready), EOPID_NONE}, /* [321] opt 445, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepguardEscortPoint), EOPID_INT(2), EOPID_NONE}, /* [322] opt 446, STEPGUARD (+11) */
-    {0x1047, 0x92, EOPID_INT(0xE68), EOPID_INT(0xE68), EOPID_INT(0xE68), EOPID_NONE}, /* [323] opt 447, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0xF40), EOPID_INT(0xF40), EOPID_INT(0xF40), EOPID_NONE}, /* [324] opt 448, STEPGUARD (+11) */
-    {0x2003, 0x92, EOPID_INT(0xF90), EOPID_INT(0xF90), EOPID_INT(0xF90), EOPID_NONE}, /* [325] opt 449, STEPGUARD (+11) */
+    {0x1047, 0x92, EOPID_OFF(STEPGUARD, minStimulusLevel), EOPID_OFF(STEPGUARD, minStimulusLevel), EOPID_OFF(STEPGUARD, minStimulusLevel), EOPID_NONE}, /* [323] opt 447, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, unknownF40), EOPID_OFF(STEPGUARD, unknownF40), EOPID_OFF(STEPGUARD, unknownF40), EOPID_NONE}, /* [324] opt 448, STEPGUARD (+11) */
+    {0x2003, 0x92, EOPID_OFF(STEPGUARD, attachPoint), EOPID_OFF(STEPGUARD, attachPoint), EOPID_OFF(STEPGUARD, attachPoint), EOPID_NONE}, /* [325] opt 449, STEPGUARD (+11) */
     {5, 4, EOPID_PMF(GetStepguardJuggledValue), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [326] opt 450, STEPGUARD (+11) */
-    {0x2003, 0x92, EOPID_INT(0xE74), EOPID_INT(0xE74), EOPID_INT(0xE74), EOPID_NONE}, /* [327] opt 451, STEPGUARD (+11) */
-    {0x1062, 0x92, EOPID_INT(0xE78), EOPID_INT(0xE78), EOPID_INT(0xE78), EOPID_NONE}, /* [328] opt 452, STEPGUARD (+11) */
-    {0xA, 0x92, EOPID_INT(0xE6C), EOPID_INT(0xE6C), EOPID_INT(0xE6C), EOPID_NONE}, /* [329] opt 453, STEPGUARD (+11) */
+    {0x2003, 0x92, EOPID_OFF(STEPGUARD, searchTarget), EOPID_OFF(STEPGUARD, searchTarget), EOPID_OFF(STEPGUARD, searchTarget), EOPID_NONE}, /* [327] opt 451, STEPGUARD (+11) */
+    {0x1062, 0x92, EOPID_OFF(STEPGUARD, searchMode), EOPID_OFF(STEPGUARD, searchMode), EOPID_OFF(STEPGUARD, searchMode), EOPID_NONE}, /* [328] opt 452, STEPGUARD (+11) */
+    {0xA, 0x92, EOPID_OFF(STEPGUARD, lookTimes), EOPID_OFF(STEPGUARD, lookTimes), EOPID_OFF(STEPGUARD, lookTimes), EOPID_NONE}, /* [329] opt 453, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RestartStepguard), EOPID_NONE, EOPID_NONE}, /* [330] opt 454, STEPGUARD (+11) */
-    {0x2024, 0x92, EOPID_INT(0xFEC), EOPID_INT(0xFEC), EOPID_INT(0xFEC), EOPID_NONE}, /* [331] opt 455, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x334), EOPID_INT(0x334), EOPID_INT(0x334), EOPID_NONE}, /* [332] opt 456, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x3D0), EOPID_INT(0x3D0), EOPID_INT(0x3D0), EOPID_NONE}, /* [333] opt 457, STEPGUARD (+11) */
+    {0x2024, 0x92, EOPID_OFF(STEPGUARD, knockdownHelper), EOPID_OFF(STEPGUARD, knockdownHelper), EOPID_OFF(STEPGUARD, knockdownHelper), EOPID_NONE}, /* [331] opt 455, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, unknown334), EOPID_OFF(STEPGUARD, unknown334), EOPID_OFF(STEPGUARD, unknown334), EOPID_NONE}, /* [332] opt 456, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, unknown3D0), EOPID_OFF(STEPGUARD, unknown3D0), EOPID_OFF(STEPGUARD, unknown3D0), EOPID_NONE}, /* [333] opt 457, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkStepguard_SetDetectorTargetStateById), EOPID_INT(2), EOPID_NONE}, /* [334] opt 458, STEPGUARD (+11) */
     {0x106B, 1, EOPID_NONE, EOPID_FN(RefThunkStepguard_GetDetectorTargetStateById), EOPID_INT(1), EOPID_NONE}, /* [335] opt 459, STEPGUARD (+11) */
-    {0, 0x12, EOPID_INT(0xFC8), EOPID_INT(0xFC8), EOPID_NONE, EOPID_NONE}, /* [336] opt 460, STEPGUARD (+11) */
-    {0x2002, 0x12, EOPID_INT(0xFCC), EOPID_INT(0xFCC), EOPID_NONE, EOPID_NONE}, /* [337] opt 461, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x4A4), EOPID_INT(0x4A4), EOPID_INT(0x4A4), EOPID_NONE}, /* [338] opt 462, STEPGUARD (+11) */
-    {5, 0x92, EOPID_INT(0x3F0), EOPID_INT(0x3F0), EOPID_INT(0x3F0), EOPID_NONE}, /* [339] opt 463, STEPGUARD (+11) */
-    {0, 0x92, EOPID_INT(0x3D4), EOPID_INT(0x3D4), EOPID_INT(0x3D4), EOPID_NONE}, /* [340] opt 464, STEPGUARD (+11) */
-    {0x106F, 0x92, EOPID_INT(0x1000), EOPID_INT(0x1000), EOPID_INT(0x1000), EOPID_NONE}, /* [341] opt 465, STEPGUARD (+11) */
-    {0x1016, 0x92, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_NONE}, /* [342] opt 436, DETECTOR */
-    {0, 0x92, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_NONE}, /* [343] opt 437, DETECTOR */
-    {0, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [344] opt 438, DETECTOR */
-    {0x2016, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [345] opt 439, DETECTOR */
-    {0x2016, 0x92, EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_NONE}, /* [346] opt 440, DETECTOR */
+    {0, 0x12, EOPID_OFF(STEPGUARD, isHandsOff), EOPID_OFF(STEPGUARD, isHandsOff), EOPID_NONE, EOPID_NONE}, /* [336] opt 460, STEPGUARD (+11) */
+    {0x2002, 0x12, EOPID_OFF(STEPGUARD, handsOffLookAt), EOPID_OFF(STEPGUARD, handsOffLookAt), EOPID_NONE, EOPID_NONE}, /* [337] opt 461, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, tracksRelocatePoint), EOPID_OFF(STEPGUARD, tracksRelocatePoint), EOPID_OFF(STEPGUARD, tracksRelocatePoint), EOPID_NONE}, /* [338] opt 462, STEPGUARD (+11) */
+    {5, 0x92, EOPID_OFF(STEPGUARD, unknown3F0), EOPID_OFF(STEPGUARD, unknown3F0), EOPID_OFF(STEPGUARD, unknown3F0), EOPID_NONE}, /* [339] opt 463, STEPGUARD (+11) */
+    {0, 0x92, EOPID_OFF(STEPGUARD, unknown3D4), EOPID_OFF(STEPGUARD, unknown3D4), EOPID_OFF(STEPGUARD, unknown3D4), EOPID_NONE}, /* [340] opt 464, STEPGUARD (+11) */
+    {0x106F, 0x92, EOPID_OFF(STEPGUARD, removalMode), EOPID_OFF(STEPGUARD, removalMode), EOPID_OFF(STEPGUARD, removalMode), EOPID_NONE}, /* [341] opt 465, STEPGUARD (+11) */
+    {0x1016, 0x92, EOPID_OFF(DETECTOR, options), EOPID_OFF(DETECTOR, options), EOPID_OFF(DETECTOR, options), EOPID_NONE}, /* [342] opt 436, DETECTOR */
+    {0, 0x92, EOPID_OFF(DETECTOR, isForced), EOPID_OFF(DETECTOR, isForced), EOPID_OFF(DETECTOR, isForced), EOPID_NONE}, /* [343] opt 437, DETECTOR */
+    {0, 0x92, EOPID_OFF(DETECTOR, isDisabled), EOPID_OFF(DETECTOR, isDisabled), EOPID_OFF(DETECTOR, isDisabled), EOPID_NONE}, /* [344] opt 438, DETECTOR */
+    {0x2016, 0x92, EOPID_OFF(DETECTOR, pvolNear), EOPID_OFF(DETECTOR, pvolNear), EOPID_OFF(DETECTOR, pvolNear), EOPID_NONE}, /* [345] opt 439, DETECTOR */
+    {0x2016, 0x92, EOPID_OFF(DETECTOR, pvolFar), EOPID_OFF(DETECTOR, pvolFar), EOPID_OFF(DETECTOR, pvolFar), EOPID_NONE}, /* [346] opt 440, DETECTOR */
     {0x106B, 1, EOPID_NONE, EOPID_FN(RefThunk_CalculateDetectorTargetState), EOPID_INT(2), EOPID_NONE}, /* [347] opt 466, DETECTOR */
-    {0x2002, 0x92, EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_NONE}, /* [348] opt 467, DETECTOR */
+    {0x2002, 0x92, EOPID_OFF(DETECTOR, owner), EOPID_OFF(DETECTOR, owner), EOPID_OFF(DETECTOR, owner), EOPID_NONE}, /* [348] opt 467, DETECTOR */
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(AddDetectorTarget), EOPID_PMF(AddDetectorTarget), EOPID_NONE}, /* [349] opt 468, DETECTOR */
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(RemoveDetectorTarget), EOPID_PMF(RemoveDetectorTarget), EOPID_NONE}, /* [350] opt 469, DETECTOR */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkDetector_SetDetectorTargetStateById), EOPID_INT(2), EOPID_NONE}, /* [351] opt 458, DETECTOR */
     {0x106B, 1, EOPID_NONE, EOPID_FN(RefThunkDetector_GetDetectorTargetStateById), EOPID_INT(1), EOPID_NONE}, /* [352] opt 459, DETECTOR */
-    {0xA, 0x92, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE}, /* [353] opt 361, CID120 */
-    {0xA, 0x92, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE}, /* [354] opt 362, CID120 */
-    {0xA, 0x92, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_NONE}, /* [355] opt 363, CID120 */
+    {0xA, 0x92, EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_NONE}, /* [353] opt 361, CID120 */
+    {0xA, 0x92, EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_NONE}, /* [354] opt 362, CID120 */
+    {0xA, 0x92, EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_NONE}, /* [355] opt 363, CID120 */
     {1, 0x120, EOPID_NONE, EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_NONE}, /* [356] opt 364, CID120 */
-    {1, 0x92, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_NONE}, /* [357] opt 365, CID120 */
-    {0, 0x92, EOPID_INT(0x78), EOPID_INT(0x78), EOPID_INT(0x78), EOPID_NONE}, /* [358] opt 366, CID120 */
-    {0, 0x92, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_NONE}, /* [359] opt 470, CID120 */
-    {1, 0x92, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_NONE}, /* [360] opt 471, CID120 */
-    {0, 0x92, EOPID_INT(0x74), EOPID_INT(0x74), EOPID_INT(0x74), EOPID_NONE}, /* [361] opt 472, CID120 */
+    {1, 0x92, EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_NONE}, /* [357] opt 365, CID120 */
+    {0, 0x92, EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_NONE}, /* [358] opt 366, CID120 */
+    {0, 0x92, EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_NONE}, /* [359] opt 470, CID120 */
+    {1, 0x92, EOPID_OFF(CID120, minLineOfSight), EOPID_OFF(CID120, minLineOfSight), EOPID_OFF(CID120, minLineOfSight), EOPID_NONE}, /* [360] opt 471, CID120 */
+    {0, 0x92, EOPID_OFF(CID120, ignoresClass98), EOPID_OFF(CID120, ignoresClass98), EOPID_OFF(CID120, ignoresClass98), EOPID_NONE}, /* [361] opt 472, CID120 */
     {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackOids), EOPID_FN(RefThunk_SetGuardAttackOids), EOPID_INT(3), EOPID_NONE}, /* [362] opt 473, CID120 */
-    {0, 0x92, EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_NONE}, /* [363] opt 368, CID120 */
+    {0, 0x92, EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_NONE}, /* [363] opt 368, CID120 */
     {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackBinding), EOPID_FN(RefThunk_SetAndResolveGuardAttackBinding), EOPID_INT(2), EOPID_NONE}, /* [364] opt 369, CID120 */
     {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackBindingKind2), EOPID_FN(RefThunk_SetAndResolveGuardAttackBindingKind2), EOPID_INT(5), EOPID_NONE}, /* [365] opt 371, CID120 */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunkVolCHECK_POINT), EOPID_INT(1), EOPID_NONE}, /* [366] opt 108, VOL (+5) */
@@ -1101,18 +1121,18 @@ EOPIDROW D_002AC880[1449] = {
     {0x2088, 1, EOPID_NONE, EOPID_FN(RefThunkSmAPPLY), EOPID_INT(3), EOPID_NONE}, /* [368] opt 214, SM */
     {0x2088, 1, EOPID_NONE, EOPID_FN(RefThunk_ApplySmWithKind), EOPID_INT(4), EOPID_NONE}, /* [369] opt 477, SM */
     {0x12, 0x400, EOPID_FN(RefThunk_SetSmPendingApply), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [370] opt 215, SM */
-    {0x2030, 2, EOPID_INT(0x28), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [371] opt 251, SMA */
+    {0x2030, 2, EOPID_OFF(SMA, paloRoot), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [371] opt 251, SMA */
     {6, 0x24, EOPID_PMF(GetSmaGoal), EOPID_PMF(SetSmaGoal), EOPID_NONE, EOPID_NONE}, /* [372] opt 478, SMA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSmaGoalIfReachable), EOPID_INT(1), EOPID_NONE}, /* [373] opt 479, SMA */
     {1, 1, EOPID_NONE, EOPID_FN(RefThunk_EstimateSmaTimeToState), EOPID_INT(1), EOPID_NONE}, /* [374] opt 480, SMA */
     {6, 4, EOPID_PMF(GetSmaCurrentState), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [375] opt 481, SMA */
     {6, 4, EOPID_PMF(GetSmaNext), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [376] opt 482, SMA */
-    {1, 0x22, EOPID_INT(0x44), EOPID_PMF(SetSmaSvt), EOPID_NONE, EOPID_NONE}, /* [377] opt 483, SMA */
-    {0x2086, 2, EOPID_INT(0x30), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [378] opt 182, SMA */
+    {1, 0x22, EOPID_OFF(SMA, svtLocal), EOPID_PMF(SetSmaSvt), EOPID_NONE, EOPID_NONE}, /* [377] opt 483, SMA */
+    {0x2086, 2, EOPID_OFF(SMA, pasegaCur), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [378] opt 182, SMA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSmaSEEK), EOPID_INT(1), EOPID_NONE}, /* [379] opt 236, SMA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSmaRETRACT), EOPID_NONE, EOPID_NONE}, /* [380] opt 237, SMA */
-    {0x206F, 2, EOPID_INT(0x24), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [381] opt 484, SMA */
-    {0x1054, 0x22, EOPID_INT(0x48), EOPID_PMF(SetSmaMask), EOPID_NONE, EOPID_NONE}, /* [382] opt 485, SMA */
+    {0x206F, 2, EOPID_OFF(SMA, stateMachine), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [381] opt 484, SMA */
+    {0x1054, 0x22, EOPID_OFF(SMA, routeFlags), EOPID_PMF(SetSmaMask), EOPID_NONE, EOPID_NONE}, /* [382] opt 485, SMA */
     {1, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [383] opt 486, BOMB (+3) */
     {1, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [384] opt 487, BOMB (+3) */
     {0x1018, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [385] opt 488, BOMB (+3) */
@@ -1127,7 +1147,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x201E, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [394] opt 497, BOMB (+3) */
     {5, 0x92, EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_NONE}, /* [395] opt 498, BOMB (+3) */
     {0, 0x92, EOPID_INT(0x1E0), EOPID_INT(0x1E0), EOPID_INT(0x1E0), EOPID_NONE}, /* [396] opt 499, BOMB (+3) */
-    {0x2002, 0x22, EOPID_INT(0x200), EOPID_PMF(SetBombOwner), EOPID_NONE, EOPID_NONE}, /* [397] opt 500, BOMB (+3) */
+    {0x2002, 0x22, EOPID_OFF(BOMB, thrower), EOPID_PMF(SetBombOwner), EOPID_NONE, EOPID_NONE}, /* [397] opt 500, BOMB (+3) */
     {0, 0x92, EOPID_INT(0x1E4), EOPID_INT(0x1E4), EOPID_INT(0x1E4), EOPID_NONE}, /* [398] opt 501, BOMB (+3) */
     {0x2030, 2, EOPID_INT(0x1E8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [399] opt 502, BOMB (+3) */
     {0x2002, 0x12, EOPID_INT(0x210), EOPID_INT(0x210), EOPID_NONE, EOPID_NONE}, /* [400] opt 503, MISSILE (+2) */
@@ -1143,41 +1163,41 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x92, EOPID_INT(0x270), EOPID_INT(0x270), EOPID_INT(0x270), EOPID_NONE}, /* [410] opt 512, CID82 */
     {1, 0x92, EOPID_INT(0x274), EOPID_INT(0x274), EOPID_INT(0x274), EOPID_NONE}, /* [411] opt 513, CID82 */
     {2, 0x92, EOPID_INT(0x280), EOPID_INT(0x280), EOPID_INT(0x280), EOPID_NONE}, /* [412] opt 514, CID82 */
-    {0x101A, 0x82, EOPID_INT(0x2A8), EOPID_NONE, EOPID_INT(0x2A8), EOPID_NONE}, /* [413] opt 515, BUTTON */
-    {0x2013, 0x92, EOPID_INT(0x2F4), EOPID_INT(0x2F4), EOPID_INT(0x2F4), EOPID_NONE}, /* [414] opt 516, BUTTON */
+    {0x101A, 0x82, EOPID_OFF(BUTTON, pressKind), EOPID_NONE, EOPID_OFF(BUTTON, pressKind), EOPID_NONE}, /* [413] opt 515, BUTTON */
+    {0x2013, 0x92, EOPID_OFF(BUTTON, phndPress), EOPID_OFF(BUTTON, phndPress), EOPID_OFF(BUTTON, phndPress), EOPID_NONE}, /* [414] opt 516, BUTTON */
     {0x12, 0x400, EOPID_FN(RefThunk_AddButtonAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [415] opt 517, BUTTON */
     {0x12, 0x400, EOPID_FN(RefThunk_AddButtonOffAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [416] opt 518, BUTTON */
     {0x2030, 0x120, EOPID_NONE, EOPID_PMF(AddButtonPushObject), EOPID_PMF(AddButtonPushObject), EOPID_NONE}, /* [417] opt 519, BUTTON */
     {7, 0x120, EOPID_NONE, EOPID_PMF(AddButtonPushClass), EOPID_PMF(AddButtonPushClass), EOPID_NONE}, /* [418] opt 520, BUTTON */
-    {1, 0x92, EOPID_INT(0x1E8), EOPID_INT(0x1E8), EOPID_INT(0x1E8), EOPID_NONE}, /* [419] opt 521, BUTTON */
-    {1, 0x92, EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_NONE}, /* [420] opt 522, BUTTON */
-    {0, 0x92, EOPID_INT(0x1EC), EOPID_INT(0x1EC), EOPID_INT(0x1EC), EOPID_NONE}, /* [421] opt 523, BUTTON */
-    {0, 0x92, EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_NONE}, /* [422] opt 524, BUTTON */
-    {0, 0x92, EOPID_INT(0x1F4), EOPID_INT(0x1F4), EOPID_INT(0x1F4), EOPID_NONE}, /* [423] opt 525, BUTTON */
+    {1, 0x92, EOPID_OFF(BUTTON, btn.resetDelay), EOPID_OFF(BUTTON, btn.resetDelay), EOPID_OFF(BUTTON, btn.resetDelay), EOPID_NONE}, /* [419] opt 521, BUTTON */
+    {1, 0x92, EOPID_OFF(BUTTON, btn.segmentSpeed), EOPID_OFF(BUTTON, btn.segmentSpeed), EOPID_OFF(BUTTON, btn.segmentSpeed), EOPID_NONE}, /* [420] opt 522, BUTTON */
+    {0, 0x92, EOPID_OFF(BUTTON, btn.isSilent), EOPID_OFF(BUTTON, btn.isSilent), EOPID_OFF(BUTTON, btn.isSilent), EOPID_NONE}, /* [421] opt 523, BUTTON */
+    {0, 0x92, EOPID_OFF(BUTTON, btn.seeksBySpeedSign), EOPID_OFF(BUTTON, btn.seeksBySpeedSign), EOPID_OFF(BUTTON, btn.seeksBySpeedSign), EOPID_NONE}, /* [422] opt 524, BUTTON */
+    {0, 0x92, EOPID_OFF(BUTTON, btn.staysTriggered), EOPID_OFF(BUTTON, btn.staysTriggered), EOPID_OFF(BUTTON, btn.staysTriggered), EOPID_NONE}, /* [423] opt 525, BUTTON */
     {0x12, 0x401, EOPID_FN(RefThunkButtonSET_SM_GOAL), EOPID_FN(RefThunkButtonSET_SM_GOAL), EOPID_INT(4), EOPID_NONE}, /* [424] opt 526, BUTTON */
     {0x12, 0x401, EOPID_FN(RefThunk_AddButtonEventListener), EOPID_FN(RefThunk_AddButtonEventListener), EOPID_INT(2), EOPID_NONE}, /* [425] opt 527, BUTTON */
-    {0x101B, 0x22, EOPID_INT(0x1E0), EOPID_PMF(SetButtonButtons), EOPID_NONE, EOPID_NONE}, /* [426] opt 528, BUTTON */
-    {0x2030, 2, EOPID_INT(0x2F8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [427] opt 529, BUTTON */
+    {0x101B, 0x22, EOPID_OFF(BUTTON, btn.state), EOPID_PMF(SetButtonButtons), EOPID_NONE, EOPID_NONE}, /* [426] opt 528, BUTTON */
+    {0x2030, 2, EOPID_OFF(BUTTON, pusher), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [427] opt 529, BUTTON */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkButtonTRIGGER), EOPID_NONE, EOPID_NONE}, /* [428] opt 235, BUTTON */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkButtonUNTRIGGER), EOPID_NONE, EOPID_NONE}, /* [429] opt 530, BUTTON */
     {0x12, 0x400, EOPID_FN(RefThunk_AddVolbtnAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [430] opt 517, VOLBTN (+1) */
     {0x12, 0x400, EOPID_FN(RefThunk_AddVolbtnOffAseg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [431] opt 518, VOLBTN (+1) */
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(AddVolbtnPushObject), EOPID_PMF(AddVolbtnPushObject), EOPID_NONE}, /* [432] opt 519, VOLBTN (+1) */
     {7, 0x120, EOPID_NONE, EOPID_PMF(AddVolbtnPushClass), EOPID_PMF(AddVolbtnPushClass), EOPID_NONE}, /* [433] opt 520, VOLBTN (+1) */
-    {1, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [434] opt 521, VOLBTN (+1) */
-    {1, 0x92, EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_NONE}, /* [435] opt 522, VOLBTN (+1) */
-    {0, 0x92, EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_NONE}, /* [436] opt 523, VOLBTN (+1) */
-    {0, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [437] opt 524, VOLBTN (+1) */
-    {0, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [438] opt 525, VOLBTN (+1) */
+    {1, 0x92, EOPID_OFF(VOLBTN, btn.resetDelay), EOPID_OFF(VOLBTN, btn.resetDelay), EOPID_OFF(VOLBTN, btn.resetDelay), EOPID_NONE}, /* [434] opt 521, VOLBTN (+1) */
+    {1, 0x92, EOPID_OFF(VOLBTN, btn.segmentSpeed), EOPID_OFF(VOLBTN, btn.segmentSpeed), EOPID_OFF(VOLBTN, btn.segmentSpeed), EOPID_NONE}, /* [435] opt 522, VOLBTN (+1) */
+    {0, 0x92, EOPID_OFF(VOLBTN, btn.isSilent), EOPID_OFF(VOLBTN, btn.isSilent), EOPID_OFF(VOLBTN, btn.isSilent), EOPID_NONE}, /* [436] opt 523, VOLBTN (+1) */
+    {0, 0x92, EOPID_OFF(VOLBTN, btn.seeksBySpeedSign), EOPID_OFF(VOLBTN, btn.seeksBySpeedSign), EOPID_OFF(VOLBTN, btn.seeksBySpeedSign), EOPID_NONE}, /* [437] opt 524, VOLBTN (+1) */
+    {0, 0x92, EOPID_OFF(VOLBTN, btn.staysTriggered), EOPID_OFF(VOLBTN, btn.staysTriggered), EOPID_OFF(VOLBTN, btn.staysTriggered), EOPID_NONE}, /* [438] opt 525, VOLBTN (+1) */
     {0x12, 0x401, EOPID_FN(RefThunkVolbtnSET_SM_GOAL), EOPID_FN(RefThunkVolbtnSET_SM_GOAL), EOPID_INT(4), EOPID_NONE}, /* [439] opt 526, VOLBTN (+1) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddVolbtnEventListener), EOPID_FN(RefThunk_AddVolbtnEventListener), EOPID_INT(2), EOPID_NONE}, /* [440] opt 527, VOLBTN (+1) */
-    {0x2072, 0x92, EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_INT(0x1DC), EOPID_NONE}, /* [441] opt 531, VOLBTN (+1) */
-    {0x101B, 0x22, EOPID_INT(0x1C0), EOPID_PMF(SetVolbtnButtons), EOPID_NONE, EOPID_NONE}, /* [442] opt 528, VOLBTN (+1) */
-    {0, 0x82, EOPID_INT(0x2C8), EOPID_NONE, EOPID_INT(0x2C8), EOPID_NONE}, /* [443] opt 532, VOLBTN (+1) */
+    {0x2072, 0x92, EOPID_OFF(VOLBTN, btn.relay), EOPID_OFF(VOLBTN, btn.relay), EOPID_OFF(VOLBTN, btn.relay), EOPID_NONE}, /* [441] opt 531, VOLBTN (+1) */
+    {0x101B, 0x22, EOPID_OFF(VOLBTN, btn.state), EOPID_PMF(SetVolbtnButtons), EOPID_NONE, EOPID_NONE}, /* [442] opt 528, VOLBTN (+1) */
+    {0, 0x82, EOPID_OFF(VOLBTN, tracksInside), EOPID_NONE, EOPID_OFF(VOLBTN, tracksInside), EOPID_NONE}, /* [443] opt 532, VOLBTN (+1) */
     {0xA002, 4, EOPID_PMF(GetVolbtnPushStateRef), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [444] opt 533, VOLBTN (+1) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkVolbtnTRIGGER), EOPID_NONE, EOPID_NONE}, /* [445] opt 235, VOLBTN (+1) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkVolbtnUNTRIGGER), EOPID_NONE, EOPID_NONE}, /* [446] opt 530, VOLBTN (+1) */
-    {0x2002, 2, EOPID_INT(0x1D8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [447] opt 534, VOLBTN (+1) */
+    {0x2002, 2, EOPID_OFF(VOLBTN, btn.relayArg), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [447] opt 534, VOLBTN (+1) */
     {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSensorNoTriggerObject), EOPID_NONE}, /* [448] opt 535, SENSOR (+1) */
     {7, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSensorNoTriggerClass), EOPID_NONE}, /* [449] opt 536, SENSOR (+1) */
     {0x2030, 0x92, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE}, /* [450] opt 537, LASEN */
@@ -1188,8 +1208,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddLasenBeam), EOPID_NONE, EOPID_INT(0xA), EOPID_NONE}, /* [455] opt 541, LASEN */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBarrierObject), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [456] opt 542, BARRIER */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBarrierClass), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [457] opt 543, BARRIER */
-    {0, 0x82, EOPID_INT(0x178), EOPID_NONE, EOPID_INT(0x178), EOPID_NONE}, /* [458] opt 544, BARRIER */
-    {0x2030, 2, EOPID_INT(0x17C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [459] opt 534, BARRIER */
+    {0, 0x82, EOPID_OFF(BARRIER, letsNamedThrough), EOPID_NONE, EOPID_OFF(BARRIER, letsNamedThrough), EOPID_NONE}, /* [458] opt 544, BARRIER */
+    {0x2030, 2, EOPID_OFF(BARRIER, impactObject), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [459] opt 534, BARRIER */
     {0x2002, 0x92, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_NONE}, /* [460] opt 503, CID112 */
     {2, 0x92, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE}, /* [461] opt 504, CID112 */
     {9, 0x92, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_NONE}, /* [462] opt 545, CID112 */
@@ -1199,15 +1219,15 @@ EOPIDROW D_002AC880[1449] = {
     {0xA, 0x92, EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_NONE}, /* [466] opt 549, CID112 */
     {1, 0x92, EOPID_INT(0xB0), EOPID_INT(0xB0), EOPID_INT(0xB0), EOPID_NONE}, /* [467] opt 550, CID112 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_LaunchSoFromLauncher), EOPID_INT(1), EOPID_NONE}, /* [468] opt 508, CID112 */
-    {5, 0x122, EOPID_INT(0xF4), EOPID_PMF(SetEmitterParticleCount__FP7EMITTERi), EOPID_PMF(SetEmitterParticleCount__FP7EMITTERi), EOPID_NONE}, /* [469] opt 551, EMITTER */
-    {0, 0x122, EOPID_INT(0x114), EOPID_PMF(SetEmitterAutoPause__FP7EMITTERi), EOPID_PMF(SetEmitterAutoPause__FP7EMITTERi), EOPID_NONE}, /* [470] opt 552, EMITTER */
+    {5, 0x122, EOPID_OFF(EMITTER, particleCount), EOPID_PMF(SetEmitterParticleCount__FP7EMITTERi), EOPID_PMF(SetEmitterParticleCount__FP7EMITTERi), EOPID_NONE}, /* [469] opt 551, EMITTER */
+    {0, 0x122, EOPID_OFF(EMITTER, autoPause), EOPID_PMF(SetEmitterAutoPause__FP7EMITTERi), EOPID_PMF(SetEmitterAutoPause__FP7EMITTERi), EOPID_NONE}, /* [470] opt 552, EMITTER */
     {0x1025, 0x2092, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [471] opt 553, EMITTER */
     {0xA, 0x2092, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [472] opt 554, EMITTER */
     {1, 0x2092, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [473] opt 555, EMITTER */
     {1, 0x2092, EOPID_INT(0x104), EOPID_INT(0x104), EOPID_INT(0x104), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [474] opt 556, EMITTER */
     {0xA, 0x2092, EOPID_INT(0x108), EOPID_INT(0x108), EOPID_INT(0x108), EOPID_PMF(EnsureEmitter__FP7EMITTER4ENSK)}, /* [475] opt 557, EMITTER */
-    {0, 0x82, EOPID_INT(0x100), EOPID_NONE, EOPID_INT(0x100), EOPID_NONE}, /* [476] opt 558, EMITTER */
-    {6, 0x82, EOPID_INT(0x118), EOPID_NONE, EOPID_INT(0x118), EOPID_NONE}, /* [477] opt 559, EMITTER */
+    {0, 0x82, EOPID_OFF(EMITTER, isCountDensity), EOPID_NONE, EOPID_OFF(EMITTER, isCountDensity), EOPID_NONE}, /* [476] opt 558, EMITTER */
+    {6, 0x82, EOPID_OFF(EMITTER, groupOid), EOPID_NONE, EOPID_OFF(EMITTER, groupOid), EOPID_NONE}, /* [477] opt 559, EMITTER */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkEmitterPAUSE), EOPID_INT(1), EOPID_NONE}, /* [478] opt 256, EMITTER */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkEmitterPAUSE_FOREVER), EOPID_NONE, EOPID_NONE}, /* [479] opt 560, EMITTER */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkEmitterUNPAUSE), EOPID_NONE, EOPID_NONE}, /* [480] opt 561, EMITTER */
@@ -1218,35 +1238,35 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258B00, EMITTER)}, /* [485] opt 566, EMITTER */
     {2, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(func_00258B00, EMITTER)}, /* [486] opt 567, EMITTER */
     {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(func_00258B38, EMITTER)}, /* [487] opt 569, EMITTER */
-    {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [488] opt 570, EMITTER */
+    {6, 0x2082, EOPID_OFF(EMITB, emito.originOid), EOPID_NONE, EOPID_OFF(EMITB, emito.originOid), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [488] opt 570, EMITTER */
     {0x12, 0x400, EOPID_FN(RefThunk_AddEmitterToHeroFollowers), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [489] opt 571, EMITTER */
-    {0x1023, 0x2082, EOPID_INT(0x14), EOPID_NONE, EOPID_INT(0x14), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [490] opt 572, EMITTER */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [491] opt 573, EMITTER */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [492] opt 574, EMITTER */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [493] opt 575, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0x24), EOPID_INT(0x24), EOPID_INT(0x24), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [494] opt 576, EMITTER */
-    {0x1024, 0x2092, EOPID_INT(0x18), EOPID_INT(0x18), EOPID_INT(0x18), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [495] opt 577, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [496] opt 578, EMITTER */
-    {1, 0x2092, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [497] opt 579, EMITTER */
-    {2, 0x2092, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [498] opt 580, EMITTER */
-    {1, 0x2092, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [499] opt 581, EMITTER */
-    {1, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [500] opt 582, EMITTER */
-    {2, 0x2092, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [501] opt 583, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0x90), EOPID_INT(0x90), EOPID_INT(0x90), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [502] opt 325, EMITTER */
-    {5, 0x2092, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [503] opt 584, EMITTER */
-    {1, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [504] opt 585, EMITTER */
-    {1, 0x2092, EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [505] opt 586, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0x98), EOPID_INT(0x98), EOPID_INT(0x98), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [506] opt 587, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [507] opt 588, EMITTER */
-    {9, 0x2092, EOPID_INT(0xB0), EOPID_INT(0xB0), EOPID_INT(0xB0), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [508] opt 589, EMITTER */
+    {0x1023, 0x2082, EOPID_OFF(EMITB, emito.normalKind), EOPID_NONE, EOPID_OFF(EMITB, emito.normalKind), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [490] opt 572, EMITTER */
+    {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [491] opt 573, EMITTER */
+    {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [492] opt 574, EMITTER */
+    {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [493] opt 575, EMITTER */
+    {0xA, 0x2092, EOPID_OFF(EMITB, emito.lmOffset), EOPID_OFF(EMITB, emito.lmOffset), EOPID_OFF(EMITB, emito.lmOffset), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [494] opt 576, EMITTER */
+    {0x1024, 0x2092, EOPID_OFF(EMITB, emito.velocityKind), EOPID_OFF(EMITB, emito.velocityKind), EOPID_OFF(EMITB, emito.velocityKind), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [495] opt 577, EMITTER */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel), EOPID_OFF(EMITB, vel), EOPID_OFF(EMITB, vel), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [496] opt 578, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.zSpeedRatio), EOPID_OFF(EMITB, vel.zSpeedRatio), EOPID_OFF(EMITB, vel.zSpeedRatio), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [497] opt 579, EMITTER */
+    {2, 0x2092, EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [498] opt 580, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [499] opt 581, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.curlRate), EOPID_OFF(EMITB, vel.curlRate), EOPID_OFF(EMITB, vel.curlRate), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [500] opt 582, EMITTER */
+    {2, 0x2092, EOPID_OFF(EMITB, vel.curlAxis), EOPID_OFF(EMITB, vel.curlAxis), EOPID_OFF(EMITB, vel.curlAxis), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [501] opt 583, EMITTER */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmTilt), EOPID_OFF(EMITB, vel.lmTilt), EOPID_OFF(EMITB, vel.lmTilt), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [502] opt 325, EMITTER */
+    {5, 0x2092, EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [503] opt 584, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [504] opt 585, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.lifetime), EOPID_OFF(EMITB, vel.lifetime), EOPID_OFF(EMITB, vel.lifetime), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [505] opt 586, EMITTER */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [506] opt 587, EMITTER */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmAge), EOPID_OFF(EMITB, vel.lmAge), EOPID_OFF(EMITB, vel.lmAge), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [507] opt 588, EMITTER */
+    {9, 0x2092, EOPID_OFF(EMITB, vel.alphaCurve), EOPID_OFF(EMITB, vel.alphaCurve), EOPID_OFF(EMITB, vel.alphaCurve), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [508] opt 589, EMITTER */
     {0x101C, 0x104, EOPID_PMFT(func_00258C40, EMITTER), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EMITTER), EOPID_NONE}, /* [509] opt 590, EMITTER */
-    {0x101D, 0x2082, EOPID_INT(4), EOPID_NONE, EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [510] opt 591, EMITTER */
-    {6, 0x2082, EOPID_INT(8), EOPID_NONE, EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [511] opt 592, EMITTER */
-    {6, 0x2082, EOPID_INT(0xC), EOPID_NONE, EOPID_INT(0xC), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [512] opt 593, EMITTER */
-    {6, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [513] opt 594, EMITTER */
-    {1, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [514] opt 595, EMITTER */
-    {0xA, 0x2092, EOPID_INT(0x18), EOPID_INT(0x18), EOPID_INT(0x18), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [515] opt 596, EMITTER */
-    {9, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [516] opt 597, EMITTER */
+    {0x101D, 0x2082, EOPID_OFF(EMITV, ripGroupKind), EOPID_NONE, EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [510] opt 591, EMITTER */
+    {6, 0x2082, EOPID_OFF(EMITV, oid08), EOPID_NONE, EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [511] opt 592, EMITTER */
+    {6, 0x2082, EOPID_OFF(EMITV, n0C), EOPID_NONE, EOPID_OFF(EMITV, n0C), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [512] opt 593, EMITTER */
+    {6, 0x2082, EOPID_OFF(EMITV, oid10), EOPID_NONE, EOPID_OFF(EMITV, oid10), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [513] opt 594, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [514] opt 595, EMITTER */
+    {0xA, 0x2092, EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [515] opt 596, EMITTER */
+    {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [516] opt 597, EMITTER */
     {6, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258C60, EMITTER)}, /* [517] opt 598, EMITTER */
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258C60, EMITTER)}, /* [518] opt 599, EMITTER */
     {0, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258CC8, EMITTER)}, /* [519] opt 600, EMITTER */
@@ -1254,12 +1274,12 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258D30, EMITTER)}, /* [521] opt 602, EMITTER */
     {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258D30, EMITTER)}, /* [522] opt 603, EMITTER */
     {0x101F, 0x124, EOPID_PMFT(func_00258E40, EMITTER), EOPID_PMFT(SetEmitterRecord0PayloadKind, EMITTER), EOPID_PMFT(SetEmitterRecord0PayloadKind, EMITTER), EOPID_NONE}, /* [523] opt 604, EMITTER */
-    {0x101E, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [524] opt 605, EMITTER */
-    {0, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [525] opt 606, EMITTER */
-    {6, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [526] opt 607, EMITTER */
-    {6, 0x2082, EOPID_INT(0x14), EOPID_NONE, EOPID_INT(0x14), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [527] opt 608, EMITTER */
-    {1, 0x2092, EOPID_INT(0x18), EOPID_INT(0x18), EOPID_INT(0x18), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [528] opt 609, EMITTER */
-    {9, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [529] opt 611, EMITTER */
+    {0x101E, 0x2092, EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [524] opt 605, EMITTER */
+    {0, 0x2092, EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [525] opt 606, EMITTER */
+    {6, 0x2092, EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [526] opt 607, EMITTER */
+    {6, 0x2082, EOPID_OFF(EMITV, oid14), EOPID_NONE, EOPID_OFF(EMITV, oid14), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [527] opt 608, EMITTER */
+    {1, 0x2092, EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [528] opt 609, EMITTER */
+    {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [529] opt 611, EMITTER */
     {0x1020, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258E60, EMITTER)}, /* [530] opt 612, EMITTER */
     {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258E60, EMITTER)}, /* [531] opt 613, EMITTER */
     {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258E60, EMITTER)}, /* [532] opt 614, EMITTER */
@@ -1271,37 +1291,37 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258B00, EXPLO)}, /* [538] opt 566, EXPLO (+1) */
     {2, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(func_00258B00, EXPLO)}, /* [539] opt 567, EXPLO (+1) */
     {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(func_00258B38, EXPLO)}, /* [540] opt 569, EXPLO (+1) */
-    {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [541] opt 570, EXPLO (+1) */
-    {0x1023, 0x2082, EOPID_INT(0x14), EOPID_NONE, EOPID_INT(0x14), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [542] opt 572, EXPLO (+1) */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [543] opt 573, EXPLO (+1) */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [544] opt 574, EXPLO (+1) */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [545] opt 575, EXPLO (+1) */
-    {0xA, 0x2092, EOPID_INT(0x24), EOPID_INT(0x24), EOPID_INT(0x24), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [546] opt 576, EXPLO (+1) */
-    {0x1024, 0x2092, EOPID_INT(0x18), EOPID_INT(0x18), EOPID_INT(0x18), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [547] opt 577, EXPLO (+1) */
-    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [548] opt 578, EXPLO (+1) */
-    {1, 0x2092, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [549] opt 579, EXPLO (+1) */
-    {0xA, 0x2092, EOPID_INT(0x90), EOPID_INT(0x90), EOPID_INT(0x90), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [550] opt 325, EXPLO (+1) */
-    {5, 0x2092, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [551] opt 584, EXPLO (+1) */
-    {1, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [552] opt 585, EXPLO (+1) */
-    {0xA, 0x2092, EOPID_INT(0x98), EOPID_INT(0x98), EOPID_INT(0x98), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [553] opt 587, EXPLO (+1) */
+    {6, 0x2082, EOPID_OFF(EMITB, emito.originOid), EOPID_NONE, EOPID_OFF(EMITB, emito.originOid), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [541] opt 570, EXPLO (+1) */
+    {0x1023, 0x2082, EOPID_OFF(EMITB, emito.normalKind), EOPID_NONE, EOPID_OFF(EMITB, emito.normalKind), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [542] opt 572, EXPLO (+1) */
+    {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [543] opt 573, EXPLO (+1) */
+    {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [544] opt 574, EXPLO (+1) */
+    {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [545] opt 575, EXPLO (+1) */
+    {0xA, 0x2092, EOPID_OFF(EMITB, emito.lmOffset), EOPID_OFF(EMITB, emito.lmOffset), EOPID_OFF(EMITB, emito.lmOffset), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [546] opt 576, EXPLO (+1) */
+    {0x1024, 0x2092, EOPID_OFF(EMITB, emito.velocityKind), EOPID_OFF(EMITB, emito.velocityKind), EOPID_OFF(EMITB, emito.velocityKind), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [547] opt 577, EXPLO (+1) */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel), EOPID_OFF(EMITB, vel), EOPID_OFF(EMITB, vel), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [548] opt 578, EXPLO (+1) */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.zSpeedRatio), EOPID_OFF(EMITB, vel.zSpeedRatio), EOPID_OFF(EMITB, vel.zSpeedRatio), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [549] opt 579, EXPLO (+1) */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmTilt), EOPID_OFF(EMITB, vel.lmTilt), EOPID_OFF(EMITB, vel.lmTilt), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [550] opt 325, EXPLO (+1) */
+    {5, 0x2092, EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [551] opt 584, EXPLO (+1) */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [552] opt 585, EXPLO (+1) */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [553] opt 587, EXPLO (+1) */
     {0x101C, 0x104, EOPID_PMFT(func_00258C40, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EXPLO), EOPID_NONE}, /* [554] opt 590, EXPLO (+1) */
     {0xA, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [555] opt 551, EXPLS */
     {0, 0x92, EOPID_INT(0xFC), EOPID_INT(0xFC), EOPID_INT(0xFC), EOPID_NONE}, /* [556] opt 617, EXPLS */
     {0x1021, 0x104, EOPID_PMFT(func_002589F0, EXPLO), EOPID_NONE, EOPID_PMFT(func_002589A8, EXPLO), EOPID_NONE}, /* [557] opt 563, EXPLS */
-    {2, 0x2092, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [558] opt 580, EXPLS */
-    {1, 0x2092, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [559] opt 581, EXPLS */
-    {1, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [560] opt 582, EXPLS */
-    {2, 0x2092, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [561] opt 583, EXPLS */
-    {1, 0x2092, EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [562] opt 586, EXPLS */
-    {0xA, 0x2092, EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [563] opt 588, EXPLS */
-    {9, 0x2092, EOPID_INT(0xB0), EOPID_INT(0xB0), EOPID_INT(0xB0), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [564] opt 589, EXPLS */
-    {0x101D, 0x2082, EOPID_INT(4), EOPID_NONE, EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [565] opt 591, EXPLS */
-    {6, 0x2082, EOPID_INT(8), EOPID_NONE, EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [566] opt 592, EXPLS */
-    {6, 0x2082, EOPID_INT(0xC), EOPID_NONE, EOPID_INT(0xC), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [567] opt 593, EXPLS */
-    {6, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [568] opt 594, EXPLS */
-    {1, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [569] opt 595, EXPLS */
-    {0xA, 0x2092, EOPID_INT(0x18), EOPID_INT(0x18), EOPID_INT(0x18), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [570] opt 596, EXPLS */
-    {9, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [571] opt 597, EXPLS */
+    {2, 0x2092, EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [558] opt 580, EXPLS */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [559] opt 581, EXPLS */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.curlRate), EOPID_OFF(EMITB, vel.curlRate), EOPID_OFF(EMITB, vel.curlRate), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [560] opt 582, EXPLS */
+    {2, 0x2092, EOPID_OFF(EMITB, vel.curlAxis), EOPID_OFF(EMITB, vel.curlAxis), EOPID_OFF(EMITB, vel.curlAxis), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [561] opt 583, EXPLS */
+    {1, 0x2092, EOPID_OFF(EMITB, vel.lifetime), EOPID_OFF(EMITB, vel.lifetime), EOPID_OFF(EMITB, vel.lifetime), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [562] opt 586, EXPLS */
+    {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmAge), EOPID_OFF(EMITB, vel.lmAge), EOPID_OFF(EMITB, vel.lmAge), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [563] opt 588, EXPLS */
+    {9, 0x2092, EOPID_OFF(EMITB, vel.alphaCurve), EOPID_OFF(EMITB, vel.alphaCurve), EOPID_OFF(EMITB, vel.alphaCurve), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [564] opt 589, EXPLS */
+    {0x101D, 0x2082, EOPID_OFF(EMITV, ripGroupKind), EOPID_NONE, EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [565] opt 591, EXPLS */
+    {6, 0x2082, EOPID_OFF(EMITV, oid08), EOPID_NONE, EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [566] opt 592, EXPLS */
+    {6, 0x2082, EOPID_OFF(EMITV, n0C), EOPID_NONE, EOPID_OFF(EMITV, n0C), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [567] opt 593, EXPLS */
+    {6, 0x2082, EOPID_OFF(EMITV, oid10), EOPID_NONE, EOPID_OFF(EMITV, oid10), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [568] opt 594, EXPLS */
+    {1, 0x2092, EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [569] opt 595, EXPLS */
+    {0xA, 0x2092, EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [570] opt 596, EXPLS */
+    {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [571] opt 597, EXPLS */
     {6, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258C60, EXPLO)}, /* [572] opt 598, EXPLS */
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258C60, EXPLO)}, /* [573] opt 599, EXPLS */
     {0, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258CC8, EXPLO)}, /* [574] opt 600, EXPLS */
@@ -1309,12 +1329,12 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258D30, EXPLO)}, /* [576] opt 602, EXPLS */
     {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258D30, EXPLO)}, /* [577] opt 603, EXPLS */
     {0x101F, 0x124, EOPID_PMFT(func_00258E40, EXPLO), EOPID_PMFT(SetEmitterRecord0PayloadKind, EXPLO), EOPID_PMFT(SetEmitterRecord0PayloadKind, EXPLO), EOPID_NONE}, /* [578] opt 604, EXPLS */
-    {0x101E, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [579] opt 605, EXPLS */
-    {0, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [580] opt 606, EXPLS */
-    {6, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [581] opt 607, EXPLS */
-    {6, 0x2082, EOPID_INT(0x14), EOPID_NONE, EOPID_INT(0x14), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [582] opt 608, EXPLS */
-    {1, 0x2092, EOPID_INT(0x18), EOPID_INT(0x18), EOPID_INT(0x18), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [583] opt 609, EXPLS */
-    {9, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [584] opt 611, EXPLS */
+    {0x101E, 0x2092, EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [579] opt 605, EXPLS */
+    {0, 0x2092, EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [580] opt 606, EXPLS */
+    {6, 0x2092, EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [581] opt 607, EXPLS */
+    {6, 0x2082, EOPID_OFF(EMITV, oid14), EOPID_NONE, EOPID_OFF(EMITV, oid14), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [582] opt 608, EXPLS */
+    {1, 0x2092, EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [583] opt 609, EXPLS */
+    {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [584] opt 611, EXPLS */
     {0x1020, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258E60, EXPLO)}, /* [585] opt 612, EXPLS */
     {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258E60, EXPLO)}, /* [586] opt 613, EXPLS */
     {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258E60, EXPLO)}, /* [587] opt 614, EXPLS */
@@ -1350,9 +1370,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_EnsureSggAlarm), EOPID_INT(1), EOPID_NONE}, /* [617] opt 640, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveAlarmFromRelay), EOPID_INT(1), EOPID_NONE}, /* [618] opt 641, RELAY */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsRelayAlarm), EOPID_INT(1), EOPID_NONE}, /* [619] opt 642, RELAY */
-    {0x2002, 2, EOPID_INT(0x6C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [620] opt 643, RELAY */
+    {0x2002, 2, EOPID_OFF(RELAY, ploFirer), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [620] opt 643, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ClearRelayAlarms), EOPID_NONE, EOPID_NONE}, /* [621] opt 644, RELAY */
-    {5, 0x102, EOPID_INT(0x58), EOPID_NONE, EOPID_PMF(SetRelayCommandLimit), EOPID_NONE}, /* [622] opt 645, RELAY */
+    {5, 0x102, EOPID_OFF(RELAY, crelaycmdMax), EOPID_NONE, EOPID_PMF(SetRelayCommandLimit), EOPID_NONE}, /* [622] opt 645, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResetRelay), EOPID_NONE, EOPID_NONE}, /* [623] opt 646, RELAY */
     {0x2002, 0x24, EOPID_PMF(GetRelaySignalContext), EOPID_PMF(SetRelaySignalContext), EOPID_NONE, EOPID_NONE}, /* [624] opt 647, RELAY */
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayBlockBegin), EOPID_FN(RefThunk_AddRelayBlockBegin), EOPID_INT(1), EOPID_NONE}, /* [625] opt 648, RELAY */
@@ -1447,18 +1467,18 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayBentleyJumpOnMurray), EOPID_FN(RefThunk_AddRelayBentleyJumpOnMurray), EOPID_INT(3), EOPID_NONE}, /* [714] opt 707, RELAY */
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayMurrayMoveTo), EOPID_FN(RefThunk_AddRelayMurrayMoveTo), EOPID_INT(3), EOPID_NONE}, /* [715] opt 708, RELAY */
     {0x12, 0x401, EOPID_FN(RefThunk_AddRelayMurrayMoveToAndControl), EOPID_FN(RefThunk_AddRelayMurrayMoveToAndControl), EOPID_INT(3), EOPID_NONE}, /* [716] opt 709, RELAY */
-    {0x2002, 0x92, EOPID_INT(0x420), EOPID_INT(0x420), EOPID_INT(0x420), EOPID_NONE}, /* [717] opt 710, STEPPLAYER (+3) */
-    {1, 0x92, EOPID_INT(0x424), EOPID_INT(0x424), EOPID_INT(0x424), EOPID_NONE}, /* [718] opt 711, STEPPLAYER (+3) */
-    {1, 0x92, EOPID_INT(0x103C), EOPID_INT(0x103C), EOPID_INT(0x103C), EOPID_NONE}, /* [719] opt 712, STEPPLAYER (+3) */
-    {2, 0x92, EOPID_INT(0x3B0), EOPID_INT(0x3B0), EOPID_INT(0x3B0), EOPID_NONE}, /* [720] opt 713, STEPPLAYER (+3) */
-    {1, 0x92, EOPID_INT(0x3C8), EOPID_INT(0x3C8), EOPID_INT(0x3C8), EOPID_NONE}, /* [721] opt 714, STEPPLAYER (+3) */
-    {0xA, 0x92, EOPID_INT(0x3CC), EOPID_INT(0x3CC), EOPID_INT(0x3CC), EOPID_NONE}, /* [722] opt 715, STEPPLAYER (+3) */
-    {1, 0x92, EOPID_INT(0x3D4), EOPID_INT(0x3D4), EOPID_INT(0x3D4), EOPID_NONE}, /* [723] opt 716, STEPPLAYER (+3) */
-    {0xA, 0x92, EOPID_INT(0x3D8), EOPID_INT(0x3D8), EOPID_INT(0x3D8), EOPID_NONE}, /* [724] opt 717, STEPPLAYER (+3) */
-    {0, 0x92, EOPID_INT(0x10F0), EOPID_INT(0x10F0), EOPID_INT(0x10F0), EOPID_NONE}, /* [725] opt 410, STEPPLAYER (+3) */
-    {5, 0x92, EOPID_INT(0xDFC), EOPID_INT(0xDFC), EOPID_INT(0xDFC), EOPID_NONE}, /* [726] opt 380, STEPPLAYER (+3) */
+    {0x2002, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown160), EOPID_OFF(STEPPLAYER, jtair.unknown160), EOPID_OFF(STEPPLAYER, jtair.unknown160), EOPID_NONE}, /* [717] opt 710, STEPPLAYER (+3) */
+    {1, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown164), EOPID_OFF(STEPPLAYER, jtair.unknown164), EOPID_OFF(STEPPLAYER, jtair.unknown164), EOPID_NONE}, /* [718] opt 711, STEPPLAYER (+3) */
+    {1, 0x92, EOPID_OFF(STEPPLAYER, grabRadius), EOPID_OFF(STEPPLAYER, grabRadius), EOPID_OFF(STEPPLAYER, grabRadius), EOPID_NONE}, /* [719] opt 712, STEPPLAYER (+3) */
+    {2, 0x92, EOPID_OFF(STEPPLAYER, jtair.dposEdge), EOPID_OFF(STEPPLAYER, jtair.dposEdge), EOPID_OFF(STEPPLAYER, jtair.dposEdge), EOPID_NONE}, /* [720] opt 713, STEPPLAYER (+3) */
+    {1, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown108), EOPID_OFF(STEPPLAYER, jtair.unknown108), EOPID_OFF(STEPPLAYER, jtair.unknown108), EOPID_NONE}, /* [721] opt 714, STEPPLAYER (+3) */
+    {0xA, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown10C), EOPID_OFF(STEPPLAYER, jtair.unknown10C), EOPID_OFF(STEPPLAYER, jtair.unknown10C), EOPID_NONE}, /* [722] opt 715, STEPPLAYER (+3) */
+    {1, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown114), EOPID_OFF(STEPPLAYER, jtair.unknown114), EOPID_OFF(STEPPLAYER, jtair.unknown114), EOPID_NONE}, /* [723] opt 716, STEPPLAYER (+3) */
+    {0xA, 0x92, EOPID_OFF(STEPPLAYER, jtair.unknown118), EOPID_OFF(STEPPLAYER, jtair.unknown118), EOPID_OFF(STEPPLAYER, jtair.unknown118), EOPID_NONE}, /* [724] opt 717, STEPPLAYER (+3) */
+    {0, 0x92, EOPID_OFF(STEPPLAYER, unknown10F0), EOPID_OFF(STEPPLAYER, unknown10F0), EOPID_OFF(STEPPLAYER, unknown10F0), EOPID_NONE}, /* [725] opt 410, STEPPLAYER (+3) */
+    {5, 0x92, EOPID_OFF(STEPPLAYER, jthurt.maxHitPoints), EOPID_OFF(STEPPLAYER, jthurt.maxHitPoints), EOPID_OFF(STEPPLAYER, jthurt.maxHitPoints), EOPID_NONE}, /* [726] opt 380, STEPPLAYER (+3) */
     {5, 0x24, EOPID_PMFI(GetStepplayerHp), EOPID_PMF(SetStepplayerHp), EOPID_NONE, EOPID_NONE}, /* [727] opt 381, STEPPLAYER (+3) */
-    {5, 0x92, EOPID_INT(0x1300), EOPID_INT(0x1300), EOPID_INT(0x1300), EOPID_NONE}, /* [728] opt 718, STEPPLAYER (+3) */
+    {5, 0x92, EOPID_OFF(STEPPLAYER, maxGadgetPower), EOPID_OFF(STEPPLAYER, maxGadgetPower), EOPID_OFF(STEPPLAYER, maxGadgetPower), EOPID_NONE}, /* [728] opt 718, STEPPLAYER (+3) */
     {5, 0x24, EOPID_PMF(GetStepplayerMp), EOPID_PMF(SetStepplayerMp), EOPID_NONE, EOPID_NONE}, /* [729] opt 719, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_LaunchStepplayer), EOPID_INT(3), EOPID_NONE}, /* [730] opt 720, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerGrabTarget), EOPID_INT(1), EOPID_NONE}, /* [731] opt 667, STEPPLAYER (+3) */
@@ -1470,13 +1490,13 @@ EOPIDROW D_002AC880[1449] = {
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsStepplayerNotInGrabState9), EOPID_NONE, EOPID_NONE}, /* [737] opt 725, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerGrabTargetEx), EOPID_INT(1), EOPID_NONE}, /* [738] opt 670, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerGrabTargetAlt), EOPID_INT(1), EOPID_NONE}, /* [739] opt 671, STEPPLAYER (+3) */
-    {0x2030, 2, EOPID_INT(0x9A0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [740] opt 726, STEPPLAYER (+3) */
+    {0x2030, 2, EOPID_OFF(STEPPLAYER, jtgrab.hands.psoHeld), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [740] opt 726, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartStepplayerGrabStateC), EOPID_INT(2), EOPID_NONE}, /* [741] opt 672, STEPPLAYER (+3) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsStepplayerNotInGrabStateC), EOPID_NONE, EOPID_NONE}, /* [742] opt 727, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerIdleParams), EOPID_INT(3), EOPID_NONE}, /* [743] opt 249, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ForceStepplayerLeanTarget), EOPID_INT(2), EOPID_NONE}, /* [744] opt 728, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_UnlockStepplayerLeanTarget), EOPID_NONE, EOPID_NONE}, /* [745] opt 729, STEPPLAYER (+3) */
-    {0xA, 0x92, EOPID_INT(0x1138), EOPID_INT(0x1138), EOPID_INT(0x1138), EOPID_NONE}, /* [746] opt 730, STEPPLAYER (+3) */
+    {0xA, 0x92, EOPID_OFF(STEPPLAYER, agdtIdle), EOPID_OFF(STEPPLAYER, agdtIdle), EOPID_OFF(STEPPLAYER, agdtIdle), EOPID_NONE}, /* [746] opt 730, STEPPLAYER (+3) */
     {0xA, 0x92, EOPID_INT(0x1140), EOPID_INT(0x1140), EOPID_INT(0x1140), EOPID_NONE}, /* [747] opt 731, STEPPLAYER (+3) */
     {0, 0x12, EOPID_INT(0x1104), EOPID_INT(0x1104), EOPID_NONE, EOPID_NONE}, /* [748] opt 732, STEPPLAYER (+3) */
     {2, 0x12, EOPID_INT(0x1110), EOPID_INT(0x1110), EOPID_NONE, EOPID_NONE}, /* [749] opt 733, STEPPLAYER (+3) */
@@ -1486,12 +1506,12 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SpawnStepplayerBootyMarker), EOPID_INT(1), EOPID_NONE}, /* [753] opt 736, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_DropStepplayerBooty), EOPID_NONE, EOPID_NONE}, /* [754] opt 737, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_DeliverStepplayerBooty), EOPID_NONE, EOPID_NONE}, /* [755] opt 738, STEPPLAYER (+3) */
-    {0x2038, 2, EOPID_INT(0x10DC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [756] opt 739, STEPPLAYER (+3) */
-    {0x1053, 2, EOPID_INT(0x10E4), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [757] opt 740, STEPPLAYER (+3) */
+    {0x2038, 2, EOPID_OFF(STEPPLAYER, interactTarget), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [756] opt 739, STEPPLAYER (+3) */
+    {0x1053, 2, EOPID_OFF(STEPPLAYER, nUnk10e4), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [757] opt 740, STEPPLAYER (+3) */
     {0, 0x92, EOPID_INT(0x11AC), EOPID_INT(0x11AC), EOPID_INT(0x11AC), EOPID_NONE}, /* [758] opt 741, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerPushing), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [759] opt 742, STEPPLAYER (+3) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepplayerThrowParams), EOPID_FN(RefThunk_SetStepplayerThrowParams), EOPID_INT(7), EOPID_NONE}, /* [760] opt 743, STEPPLAYER (+3) */
-    {0, 0x92, EOPID_INT(0x12F0), EOPID_INT(0x12F0), EOPID_INT(0x12F0), EOPID_NONE}, /* [761] opt 744, STEPPLAYER (+3) */
+    {0, 0x92, EOPID_OFF(STEPPLAYER, unknown12F0), EOPID_OFF(STEPPLAYER, unknown12F0), EOPID_OFF(STEPPLAYER, unknown12F0), EOPID_NONE}, /* [761] opt 744, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerInJtMode), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [762] opt 745, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerJtModeBinocucom), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [763] opt 746, STEPPLAYER (+3) */
     {0, 4, EOPID_PMF(IsStepplayerJtModeRecon), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [764] opt 747, STEPPLAYER (+3) */
@@ -1503,21 +1523,21 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetJtUnknown1D30), EOPID_INT(1), EOPID_NONE}, /* [770] opt 753, JT */
     {0x12, 0x401, EOPID_FN(RefThunk_SetJtMeshProbePoints), EOPID_FN(RefThunk_SetJtMeshProbePoints), EOPID_INT(3), EOPID_NONE}, /* [771] opt 754, JT */
     {0x12, 0x401, EOPID_FN(RefThunk_SetJtUnknown1FA0), EOPID_FN(RefThunk_SetJtUnknown1FA0), EOPID_INT(1), EOPID_NONE}, /* [772] opt 755, JT */
-    {0x2030, 2, EOPID_INT(0x1BCC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [773] opt 756, JT */
-    {0x105C, 0x92, EOPID_INT(0x16D8), EOPID_INT(0x16D8), EOPID_INT(0x16D8), EOPID_NONE}, /* [774] opt 757, BENTLEY */
-    {0, 0x92, EOPID_INT(0x1818), EOPID_INT(0x1818), EOPID_INT(0x1818), EOPID_NONE}, /* [775] opt 758, BENTLEY */
-    {0, 0x92, EOPID_INT(0x181C), EOPID_INT(0x181C), EOPID_INT(0x181C), EOPID_NONE}, /* [776] opt 759, BENTLEY */
-    {0x1049, 0x92, EOPID_INT(0x1870), EOPID_INT(0x1870), EOPID_INT(0x1870), EOPID_NONE}, /* [777] opt 760, BENTLEY */
+    {0x2030, 2, EOPID_OFF(JT, ploPickpocket), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [773] opt 756, JT */
+    {0x105C, 0x92, EOPID_OFF(BENTLEY, dartKind), EOPID_OFF(BENTLEY, dartKind), EOPID_OFF(BENTLEY, dartKind), EOPID_NONE}, /* [774] opt 757, BENTLEY */
+    {0, 0x92, EOPID_OFF(BENTLEY, unknown1818), EOPID_OFF(BENTLEY, unknown1818), EOPID_OFF(BENTLEY, unknown1818), EOPID_NONE}, /* [775] opt 758, BENTLEY */
+    {0, 0x92, EOPID_OFF(BENTLEY, unknown181C), EOPID_OFF(BENTLEY, unknown181C), EOPID_OFF(BENTLEY, unknown181C), EOPID_NONE}, /* [776] opt 759, BENTLEY */
+    {0x1049, 0x92, EOPID_OFF(BENTLEY, unknown1870), EOPID_OFF(BENTLEY, unknown1870), EOPID_OFF(BENTLEY, unknown1870), EOPID_NONE}, /* [777] opt 760, BENTLEY */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_PutHeroAtWarp), EOPID_NONE, EOPID_NONE}, /* [778] opt 235, CID41 */
-    {6, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [779] opt 761, EXIT */
-    {6, 0x92, EOPID_INT(0x154), EOPID_INT(0x154), EOPID_INT(0x154), EOPID_NONE}, /* [780] opt 764, EXIT */
-    {1, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [781] opt 765, EXIT */
-    {0, 0x92, EOPID_INT(0x130), EOPID_INT(0x130), EOPID_INT(0x130), EOPID_NONE}, /* [782] opt 766, EXIT */
-    {0, 0x92, EOPID_INT(0x134), EOPID_INT(0x134), EOPID_INT(0x134), EOPID_NONE}, /* [783] opt 767, EXIT */
-    {0, 0x92, EOPID_INT(0x138), EOPID_INT(0x138), EOPID_INT(0x138), EOPID_NONE}, /* [784] opt 768, EXIT */
-    {1, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [785] opt 769, EXIT */
+    {6, 0x92, EOPID_OFF(EXIT, targetWarpOid), EOPID_OFF(EXIT, targetWarpOid), EOPID_OFF(EXIT, targetWarpOid), EOPID_NONE}, /* [779] opt 761, EXIT */
+    {6, 0x92, EOPID_OFF(EXIT, wipeOid), EOPID_OFF(EXIT, wipeOid), EOPID_OFF(EXIT, wipeOid), EOPID_NONE}, /* [780] opt 764, EXIT */
+    {1, 0x92, EOPID_OFF(EXIT, rearmDelay), EOPID_OFF(EXIT, rearmDelay), EOPID_OFF(EXIT, rearmDelay), EOPID_NONE}, /* [781] opt 765, EXIT */
+    {0, 0x92, EOPID_OFF(EXIT, isDefault), EOPID_OFF(EXIT, isDefault), EOPID_OFF(EXIT, isDefault), EOPID_NONE}, /* [782] opt 766, EXIT */
+    {0, 0x92, EOPID_OFF(EXIT, redirectsToDefault), EOPID_OFF(EXIT, redirectsToDefault), EOPID_OFF(EXIT, redirectsToDefault), EOPID_NONE}, /* [783] opt 767, EXIT */
+    {0, 0x92, EOPID_OFF(EXIT, skipWipe), EOPID_OFF(EXIT, skipWipe), EOPID_OFF(EXIT, skipWipe), EOPID_NONE}, /* [784] opt 768, EXIT */
+    {1, 0x92, EOPID_OFF(EXIT, wipeDelay), EOPID_OFF(EXIT, wipeDelay), EOPID_OFF(EXIT, wipeDelay), EOPID_NONE}, /* [785] opt 769, EXIT */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkExitTRIGGER), EOPID_NONE, EOPID_NONE}, /* [786] opt 235, EXIT */
-    {0x1033, 0x22, EOPID_INT(0x13C), EOPID_PMF(SetExitExits), EOPID_NONE, EOPID_NONE}, /* [787] opt 770, EXIT */
+    {0x1033, 0x22, EOPID_OFF(EXIT, state), EOPID_PMF(SetExitExits), EOPID_NONE, EOPID_NONE}, /* [787] opt 770, EXIT */
     {0x12, 0x400, EOPID_FN(RefThunk_AddExitTaskState), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [788] opt 527, EXIT */
     {0xF, 4, EOPID_PMF(GetExitTargetLevelIndex), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [789] opt 771, EXIT */
     {0x12, 0x400, EOPID_FN(RefThunk_AddWarpAliasStart), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [790] opt 766, WARP */
@@ -1526,80 +1546,80 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunkWarpSET_SM_GOAL), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [793] opt 526, WARP */
     {0x12, 0x400, EOPID_FN(RefThunk_AddWarpTaskState), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [794] opt 527, WARP */
     {0x12, 0x400, EOPID_FN(RefThunk_AddWarpOidPair), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [795] opt 773, WARP */
-    {1, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [796] opt 774, CID34 */
+    {1, 0x92, EOPID_OFF(CID34, sRadius), EOPID_OFF(CID34, sRadius), EOPID_OFF(CID34, sRadius), EOPID_NONE}, /* [796] opt 774, CID34 */
     {0, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [797] opt 775, CID34 */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetCid34OwnFields)}, /* [798] opt 776, CID34 */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetCid34OwnFields)}, /* [799] opt 777, CID34 */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetCid34OwnFields)}, /* [800] opt 778, CID34 */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetCid34OwnFields)}, /* [801] opt 141, CID34 */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetCid34OwnFields)}, /* [802] opt 779, CID34 */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetCid34OwnFields)}, /* [803] opt 780, CID34 */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetCid34OwnFields)}, /* [804] opt 781, CID34 */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetCid34OwnFields)}, /* [805] opt 782, CID34 */
-    {0x1031, 0x92, EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_NONE}, /* [806] opt 783, CID12 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetCid34OwnFields)}, /* [799] opt 777, CID34 */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetCid34OwnFields)}, /* [800] opt 778, CID34 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetCid34OwnFields)}, /* [801] opt 141, CID34 */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetCid34OwnFields)}, /* [802] opt 779, CID34 */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetCid34OwnFields)}, /* [803] opt 780, CID34 */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetCid34OwnFields)}, /* [804] opt 781, CID34 */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetCid34OwnFields)}, /* [805] opt 782, CID34 */
+    {0x1031, 0x92, EOPID_OFF(CID12, unknown1BC), EOPID_OFF(CID12, unknown1BC), EOPID_OFF(CID12, unknown1BC), EOPID_NONE}, /* [806] opt 783, CID12 */
     {0, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [807] opt 775, CID12 */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetCid12OwnFields)}, /* [808] opt 776, CID12 */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetCid12OwnFields)}, /* [809] opt 777, CID12 */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetCid12OwnFields)}, /* [810] opt 778, CID12 */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetCid12OwnFields)}, /* [811] opt 141, CID12 */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetCid12OwnFields)}, /* [812] opt 779, CID12 */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetCid12OwnFields)}, /* [813] opt 780, CID12 */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetCid12OwnFields)}, /* [814] opt 781, CID12 */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetCid12OwnFields)}, /* [815] opt 782, CID12 */
-    {0x102C, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [816] opt 784, CID38 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetCid12OwnFields)}, /* [809] opt 777, CID12 */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetCid12OwnFields)}, /* [810] opt 778, CID12 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetCid12OwnFields)}, /* [811] opt 141, CID12 */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetCid12OwnFields)}, /* [812] opt 779, CID12 */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetCid12OwnFields)}, /* [813] opt 780, CID12 */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetCid12OwnFields)}, /* [814] opt 781, CID12 */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetCid12OwnFields)}, /* [815] opt 782, CID12 */
+    {0x102C, 0x92, EOPID_OFF(CID38, nGrabState), EOPID_OFF(CID38, nGrabState), EOPID_OFF(CID38, nGrabState), EOPID_NONE}, /* [816] opt 784, CID38 */
     {0, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [817] opt 775, CID38 */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetCid38OwnFields)}, /* [818] opt 776, CID38 */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetCid38OwnFields)}, /* [819] opt 777, CID38 */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetCid38OwnFields)}, /* [820] opt 778, CID38 */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetCid38OwnFields)}, /* [821] opt 141, CID38 */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetCid38OwnFields)}, /* [822] opt 779, CID38 */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetCid38OwnFields)}, /* [823] opt 780, CID38 */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetCid38OwnFields)}, /* [824] opt 781, CID38 */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetCid38OwnFields)}, /* [825] opt 782, CID38 */
-    {1, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [826] opt 774, BARREL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetCid38OwnFields)}, /* [819] opt 777, CID38 */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetCid38OwnFields)}, /* [820] opt 778, CID38 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetCid38OwnFields)}, /* [821] opt 141, CID38 */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetCid38OwnFields)}, /* [822] opt 779, CID38 */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetCid38OwnFields)}, /* [823] opt 780, CID38 */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetCid38OwnFields)}, /* [824] opt 781, CID38 */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetCid38OwnFields)}, /* [825] opt 782, CID38 */
+    {1, 0x92, EOPID_OFF(BARREL, unknown184), EOPID_OFF(BARREL, unknown184), EOPID_OFF(BARREL, unknown184), EOPID_NONE}, /* [826] opt 774, BARREL */
     {5, 0x92, EOPID_INT(0x188), EOPID_INT(0x188), EOPID_INT(0x188), EOPID_NONE}, /* [827] opt 785, BARREL */
-    {0, 0x92, EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_NONE}, /* [828] opt 786, BARREL */
-    {0x2034, 2, EOPID_INT(0x190), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [829] opt 787, BARREL */
+    {0, 0x92, EOPID_OFF(BARREL, isFree), EOPID_OFF(BARREL, isFree), EOPID_OFF(BARREL, isFree), EOPID_NONE}, /* [828] opt 786, BARREL */
+    {0x2034, 2, EOPID_OFF(BARREL, carrier), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [829] opt 787, BARREL */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(func_00259A28)}, /* [830] opt 776, BARREL */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(func_00259A28)}, /* [831] opt 777, BARREL */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(func_00259A28)}, /* [832] opt 778, BARREL */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(func_00259A28)}, /* [833] opt 141, BARREL */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(func_00259A28)}, /* [834] opt 779, BARREL */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(func_00259A28)}, /* [835] opt 780, BARREL */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(func_00259A28)}, /* [836] opt 781, BARREL */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(func_00259A28)}, /* [837] opt 782, BARREL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(func_00259A28)}, /* [831] opt 777, BARREL */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(func_00259A28)}, /* [832] opt 778, BARREL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(func_00259A28)}, /* [833] opt 141, BARREL */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(func_00259A28)}, /* [834] opt 779, BARREL */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(func_00259A28)}, /* [835] opt 780, BARREL */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(func_00259A28)}, /* [836] opt 781, BARREL */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(func_00259A28)}, /* [837] opt 782, BARREL */
     {2, 0x92, EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_NONE}, /* [838] opt 788, PIPE */
     {0xE, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [839] opt 789, PIPE */
     {0xE, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [840] opt 790, PIPE */
     {0, 0x120, EOPID_NONE, EOPID_PMF(SetPipeGrabEnabled), EOPID_PMF(SetPipeGrabEnabled), EOPID_NONE}, /* [841] opt 791, PIPE */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetPipeOwnFields)}, /* [842] opt 776, PIPE */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetPipeOwnFields)}, /* [843] opt 777, PIPE */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetPipeOwnFields)}, /* [844] opt 778, PIPE */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetPipeOwnFields)}, /* [845] opt 141, PIPE */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetPipeOwnFields)}, /* [846] opt 779, PIPE */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetPipeOwnFields)}, /* [847] opt 780, PIPE */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetPipeOwnFields)}, /* [848] opt 781, PIPE */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetPipeOwnFields)}, /* [849] opt 782, PIPE */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetPipeOwnFields)}, /* [843] opt 777, PIPE */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetPipeOwnFields)}, /* [844] opt 778, PIPE */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetPipeOwnFields)}, /* [845] opt 141, PIPE */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetPipeOwnFields)}, /* [846] opt 779, PIPE */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetPipeOwnFields)}, /* [847] opt 780, PIPE */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetPipeOwnFields)}, /* [848] opt 781, PIPE */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetPipeOwnFields)}, /* [849] opt 782, PIPE */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetCid39OwnFields)}, /* [850] opt 776, CID39 */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetCid39OwnFields)}, /* [851] opt 777, CID39 */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetCid39OwnFields)}, /* [852] opt 778, CID39 */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetCid39OwnFields)}, /* [853] opt 141, CID39 */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetCid39OwnFields)}, /* [854] opt 779, CID39 */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetCid39OwnFields)}, /* [855] opt 780, CID39 */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetCid39OwnFields)}, /* [856] opt 781, CID39 */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetCid39OwnFields)}, /* [857] opt 782, CID39 */
-    {0, 0x92, EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_INT(0x1BC), EOPID_NONE}, /* [858] opt 792, RAIL */
-    {1, 0x92, EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_NONE}, /* [859] opt 793, RAIL */
-    {1, 0x92, EOPID_INT(0x1C4), EOPID_INT(0x1C4), EOPID_INT(0x1C4), EOPID_NONE}, /* [860] opt 351, RAIL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetCid39OwnFields)}, /* [851] opt 777, CID39 */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetCid39OwnFields)}, /* [852] opt 778, CID39 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetCid39OwnFields)}, /* [853] opt 141, CID39 */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetCid39OwnFields)}, /* [854] opt 779, CID39 */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetCid39OwnFields)}, /* [855] opt 780, CID39 */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetCid39OwnFields)}, /* [856] opt 781, CID39 */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetCid39OwnFields)}, /* [857] opt 782, CID39 */
+    {0, 0x92, EOPID_OFF(RAIL, fSlide), EOPID_OFF(RAIL, fSlide), EOPID_OFF(RAIL, fSlide), EOPID_NONE}, /* [858] opt 792, RAIL */
+    {1, 0x92, EOPID_OFF(RAIL, svSlide), EOPID_OFF(RAIL, svSlide), EOPID_OFF(RAIL, svSlide), EOPID_NONE}, /* [859] opt 793, RAIL */
+    {1, 0x92, EOPID_OFF(RAIL, rSlide), EOPID_OFF(RAIL, rSlide), EOPID_OFF(RAIL, rSlide), EOPID_NONE}, /* [860] opt 351, RAIL */
     {6, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [861] opt 794, RAIL */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetRailOwnFields)}, /* [862] opt 776, RAIL */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetRailOwnFields)}, /* [863] opt 777, RAIL */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetRailOwnFields)}, /* [864] opt 778, RAIL */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetRailOwnFields)}, /* [865] opt 141, RAIL */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetRailOwnFields)}, /* [866] opt 779, RAIL */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetRailOwnFields)}, /* [867] opt 780, RAIL */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetRailOwnFields)}, /* [868] opt 781, RAIL */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetRailOwnFields)}, /* [869] opt 782, RAIL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetRailOwnFields)}, /* [863] opt 777, RAIL */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetRailOwnFields)}, /* [864] opt 778, RAIL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetRailOwnFields)}, /* [865] opt 141, RAIL */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetRailOwnFields)}, /* [866] opt 779, RAIL */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetRailOwnFields)}, /* [867] opt 780, RAIL */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetRailOwnFields)}, /* [868] opt 781, RAIL */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetRailOwnFields)}, /* [869] opt 782, RAIL */
     {1, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [870] opt 795, CID40 */
     {1, 0x92, EOPID_INT(0x108), EOPID_INT(0x108), EOPID_INT(0x108), EOPID_NONE}, /* [871] opt 778, CID9 */
     {0, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [872] opt 141, CID9 */
@@ -1609,92 +1629,92 @@ EOPIDROW D_002AC880[1449] = {
     {5, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [876] opt 666, WATER */
     {0x1011, 0x92, EOPID_INT(0x188), EOPID_INT(0x188), EOPID_INT(0x188), EOPID_NONE}, /* [877] opt 799, WATER */
     {2, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [878] opt 800, WATER */
-    {0, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [879] opt 801, WATER */
-    {0x2030, 0x92, EOPID_INT(0x178), EOPID_INT(0x178), EOPID_INT(0x178), EOPID_NONE}, /* [880] opt 802, WATER */
-    {0x2030, 0x92, EOPID_INT(0x17C), EOPID_INT(0x17C), EOPID_INT(0x17C), EOPID_NONE}, /* [881] opt 803, WATER */
+    {0, 0x92, EOPID_OFF(WATER, hasWakeSound), EOPID_OFF(WATER, hasWakeSound), EOPID_OFF(WATER, hasWakeSound), EOPID_NONE}, /* [879] opt 801, WATER */
+    {0x2030, 0x92, EOPID_OFF(WATER, splashObject), EOPID_OFF(WATER, splashObject), EOPID_OFF(WATER, splashObject), EOPID_NONE}, /* [880] opt 802, WATER */
+    {0x2030, 0x92, EOPID_OFF(WATER, rippleObject), EOPID_OFF(WATER, rippleObject), EOPID_OFF(WATER, rippleObject), EOPID_NONE}, /* [881] opt 803, WATER */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_FInvulnerablePo), EOPID_INT(1), EOPID_NONE}, /* [882] opt 804, PO (+28) */
     {0x102D, 4, EOPID_VPMF(0x4E, 0xC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [883] opt 805, PO (+28) */
     {0x1037, 0x24, EOPID_PMF(GetPoCtlState), EOPID_VPMF(0x50, 0xC), EOPID_NONE, EOPID_NONE}, /* [884] opt 806, PO (+28) */
     {0, 4, EOPID_PMF(IsPoPlayable), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [885] opt 807, PO (+28) */
     {0, 4, EOPID_PMF(IsPoCurrent), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [886] opt 808, PO (+28) */
     {0, 4, EOPID_PMF(IsPoActive), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [887] opt 809, PO (+28) */
-    {0x2089, 2, EOPID_INT(0x150), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [888] opt 810, PO (+28) */
-    {0x103C, 0x92, EOPID_INT(0x154), EOPID_INT(0x154), EOPID_INT(0x154), EOPID_NONE}, /* [889] opt 811, PO (+28) */
-    {0x200F, 0x122, EOPID_INT(0x16C), EOPID_PMF(SetPoTnCam), EOPID_PMF(SetPoTnCam), EOPID_NONE}, /* [890] opt 812, PO (+28) */
-    {6, 0x82, EOPID_INT(0x204), EOPID_NONE, EOPID_INT(0x204), EOPID_NONE}, /* [891] opt 813, DPRIZE (+5) */
-    {6, 0x82, EOPID_INT(0x20C), EOPID_NONE, EOPID_INT(0x20C), EOPID_NONE}, /* [892] opt 814, DPRIZE (+5) */
-    {6, 0x82, EOPID_INT(0x214), EOPID_NONE, EOPID_INT(0x214), EOPID_NONE}, /* [893] opt 815, DPRIZE (+5) */
+    {0x2089, 2, EOPID_OFF(PO, controller), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [888] opt 810, PO (+28) */
+    {0x103C, 0x92, EOPID_OFF(PO, grfbtnForce), EOPID_OFF(PO, grfbtnForce), EOPID_OFF(PO, grfbtnForce), EOPID_NONE}, /* [889] opt 811, PO (+28) */
+    {0x200F, 0x122, EOPID_OFF(PO, cameraTunnel), EOPID_PMF(SetPoTnCam), EOPID_PMF(SetPoTnCam), EOPID_NONE}, /* [890] opt 812, PO (+28) */
+    {6, 0x82, EOPID_OFF(DPRIZE, linkedOid), EOPID_NONE, EOPID_OFF(DPRIZE, linkedOid), EOPID_NONE}, /* [891] opt 813, DPRIZE (+5) */
+    {6, 0x82, EOPID_OFF(DPRIZE, collectListenerOid), EOPID_NONE, EOPID_OFF(DPRIZE, collectListenerOid), EOPID_NONE}, /* [892] opt 814, DPRIZE (+5) */
+    {6, 0x82, EOPID_OFF(DPRIZE, vanishListenerOid), EOPID_NONE, EOPID_OFF(DPRIZE, vanishListenerOid), EOPID_NONE}, /* [893] opt 815, DPRIZE (+5) */
     {0x12, 0x400, EOPID_FN(RefThunk_SetDprizeParams), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [894] opt 816, DPRIZE (+5) */
-    {6, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [895] opt 817, DPRIZE (+5) */
-    {1, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [896] opt 818, DPRIZE (+5) */
-    {0x1034, 0x22, EOPID_INT(0x150), EOPID_VPMF(0x4D, 0xC), EOPID_NONE, EOPID_NONE}, /* [897] opt 819, DPRIZE (+5) */
-    {0x1034, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [898] opt 820, DPRIZE (+5) */
-    {1, 0x92, EOPID_INT(0x21C), EOPID_INT(0x21C), EOPID_INT(0x21C), EOPID_NONE}, /* [899] opt 821, DPRIZE (+5) */
-    {0, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [900] opt 822, DPRIZE (+5) */
-    {0x10, 0x92, EOPID_INT(0x224), EOPID_INT(0x224), EOPID_INT(0x224), EOPID_NONE}, /* [901] opt 823, DPRIZE (+5) */
-    {0xA, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [902] opt 824, COIN */
-    {0xA, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [903] opt 824, MEDICINE */
-    {5, 0x92, EOPID_INT(0x23C), EOPID_INT(0x23C), EOPID_INT(0x23C), EOPID_NONE}, /* [904] opt 825, MEDICINE */
-    {5, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [905] opt 826, MEDICINE */
-    {0x2085, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [906] opt 827, KEY */
+    {6, 0x92, EOPID_OFF(DPRIZE, idleAnimOverride), EOPID_OFF(DPRIZE, idleAnimOverride), EOPID_OFF(DPRIZE, idleAnimOverride), EOPID_NONE}, /* [895] opt 817, DPRIZE (+5) */
+    {1, 0x92, EOPID_OFF(DPRIZE, animSkipTime), EOPID_OFF(DPRIZE, animSkipTime), EOPID_OFF(DPRIZE, animSkipTime), EOPID_NONE}, /* [896] opt 818, DPRIZE (+5) */
+    {0x1034, 0x22, EOPID_OFF(DPRIZE, state), EOPID_VPMF(0x4D, 0xC), EOPID_NONE, EOPID_NONE}, /* [897] opt 819, DPRIZE (+5) */
+    {0x1034, 0x92, EOPID_OFF(DPRIZE, initialState), EOPID_OFF(DPRIZE, initialState), EOPID_OFF(DPRIZE, initialState), EOPID_NONE}, /* [898] opt 820, DPRIZE (+5) */
+    {1, 0x92, EOPID_OFF(DPRIZE, unknown21C), EOPID_OFF(DPRIZE, unknown21C), EOPID_OFF(DPRIZE, unknown21C), EOPID_NONE}, /* [899] opt 821, DPRIZE (+5) */
+    {0, 0x92, EOPID_OFF(DPRIZE, isCollectable), EOPID_OFF(DPRIZE, isCollectable), EOPID_OFF(DPRIZE, isCollectable), EOPID_NONE}, /* [900] opt 822, DPRIZE (+5) */
+    {0x10, 0x92, EOPID_OFF(DPRIZE, unknown224), EOPID_OFF(DPRIZE, unknown224), EOPID_OFF(DPRIZE, unknown224), EOPID_NONE}, /* [901] opt 823, DPRIZE (+5) */
+    {0xA, 0x92, EOPID_OFF(COIN, lifetimeMin), EOPID_OFF(COIN, lifetimeMin), EOPID_OFF(COIN, lifetimeMin), EOPID_NONE}, /* [902] opt 824, COIN */
+    {0xA, 0x92, EOPID_OFF(MEDICINE, lifetimeMin), EOPID_OFF(MEDICINE, lifetimeMin), EOPID_OFF(MEDICINE, lifetimeMin), EOPID_NONE}, /* [903] opt 824, MEDICINE */
+    {5, 0x92, EOPID_OFF(MEDICINE, healArg0), EOPID_OFF(MEDICINE, healArg0), EOPID_OFF(MEDICINE, healArg0), EOPID_NONE}, /* [904] opt 825, MEDICINE */
+    {5, 0x92, EOPID_OFF(MEDICINE, healArg1), EOPID_OFF(MEDICINE, healArg1), EOPID_OFF(MEDICINE, healArg1), EOPID_NONE}, /* [905] opt 826, MEDICINE */
+    {0x2085, 0x92, EOPID_OFF(KEY, task), EOPID_OFF(KEY, task), EOPID_OFF(KEY, task), EOPID_NONE}, /* [906] opt 827, KEY */
     {0x12, 0x400, EOPID_FN(RefThunk_AddLootEntry), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [907] opt 828, LOOT */
     {0x12, 0x400, EOPID_FN(RefThunk_ClearCurrentLootEntry), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [908] opt 829, LOOT */
     {0x12, 0x400, EOPID_FN(RefThunk_AddLootEntryObject), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [909] opt 830, LOOT */
     {6, 0x24, EOPID_PMF(GetCurrentLootEntryId), EOPID_PMF(SelectLootEntry), EOPID_NONE, EOPID_NONE}, /* [910] opt 831, LOOT */
-    {6, 0x2002, EOPID_INT(4), EOPID_NONE, EOPID_NONE, EOPID_PMF(GetCurrentLootEntry)}, /* [911] opt 832, LOOT */
-    {0xA, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [912] opt 824, LOOT */
-    {0xF, 0x92, EOPID_INT(0x3C80), EOPID_INT(0x3C80), EOPID_INT(0x3C80), EOPID_NONE}, /* [913] opt 771, SW */
-    {2, 0xA2, EOPID_INT(0x3E10), EOPID_PMF(SetSwIllumHsv), EOPID_INT(0x3E10), EOPID_NONE}, /* [914] opt 833, SW */
-    {1, 0xA2, EOPID_INT(0x3E24), EOPID_PMF(SetSwIllumShadow), EOPID_INT(0x3E24), EOPID_NONE}, /* [915] opt 834, SW */
-    {1, 0xA2, EOPID_INT(0x3E20), EOPID_PMF(SetSwIllum), EOPID_INT(0x3E20), EOPID_NONE}, /* [916] opt 835, SW */
-    {2, 0x2092, EOPID_INT(0x3E70), EOPID_INT(0x3E70), EOPID_INT(0x3E70), EOPID_PMF(SetSwUnknown3EA8)}, /* [917] opt 836, SW */
-    {1, 0x2092, EOPID_INT(0x3E64), EOPID_INT(0x3E64), EOPID_INT(0x3E64), EOPID_PMF(SetSwUnknown3EA8)}, /* [918] opt 837, SW */
+    {6, 0x2002, EOPID_OFF(LOOTE, saveId), EOPID_NONE, EOPID_NONE, EOPID_PMF(GetCurrentLootEntry)}, /* [911] opt 832, LOOT */
+    {0xA, 0x92, EOPID_OFF(LOOT, lifetimeMin), EOPID_OFF(LOOT, lifetimeMin), EOPID_OFF(LOOT, lifetimeMin), EOPID_NONE}, /* [912] opt 824, LOOT */
+    {0xF, 0x92, EOPID_OFF(SW, loadFilter), EOPID_OFF(SW, loadFilter), EOPID_OFF(SW, loadFilter), EOPID_NONE}, /* [913] opt 771, SW */
+    {2, 0xA2, EOPID_OFF(SW, hsvLight), EOPID_PMF(SetSwIllumHsv), EOPID_OFF(SW, hsvLight), EOPID_NONE}, /* [914] opt 833, SW */
+    {1, 0xA2, EOPID_OFF(SW, shadow), EOPID_PMF(SetSwIllumShadow), EOPID_OFF(SW, shadow), EOPID_NONE}, /* [915] opt 834, SW */
+    {1, 0xA2, EOPID_OFF(SW, midtone), EOPID_PMF(SetSwIllum), EOPID_OFF(SW, midtone), EOPID_NONE}, /* [916] opt 835, SW */
+    {2, 0x2092, EOPID_OFF(SW, aclrShdLight), EOPID_OFF(SW, aclrShdLight), EOPID_OFF(SW, aclrShdLight), EOPID_PMF(SetSwUnknown3EA8)}, /* [917] opt 836, SW */
+    {1, 0x2092, EOPID_OFF(SW, agShdLight), EOPID_OFF(SW, agShdLight), EOPID_OFF(SW, agShdLight), EOPID_PMF(SetSwUnknown3EA8)}, /* [918] opt 837, SW */
     {2, 0x2092, EOPID_INT(0x3E80), EOPID_INT(0x3E80), EOPID_INT(0x3E80), EOPID_PMF(SetSwUnknown3EA8)}, /* [919] opt 838, SW */
     {1, 0x2092, EOPID_INT(0x3E68), EOPID_INT(0x3E68), EOPID_INT(0x3E68), EOPID_PMF(SetSwUnknown3EA8)}, /* [920] opt 839, SW */
     {2, 0x2092, EOPID_INT(0x3E90), EOPID_INT(0x3E90), EOPID_INT(0x3E90), EOPID_PMF(SetSwUnknown3EA8)}, /* [921] opt 840, SW */
     {1, 0x2092, EOPID_INT(0x3E6C), EOPID_INT(0x3E6C), EOPID_INT(0x3E6C), EOPID_PMF(SetSwUnknown3EA8)}, /* [922] opt 841, SW */
-    {0xD, 0x92, EOPID_INT(0x3E00), EOPID_INT(0x3E00), EOPID_INT(0x3E00), EOPID_NONE}, /* [923] opt 842, SW */
-    {0, 0x82, EOPID_INT(0x3E38), EOPID_NONE, EOPID_INT(0x3E38), EOPID_NONE}, /* [924] opt 768, SW */
-    {0, 0x92, EOPID_INT(0x3E3C), EOPID_INT(0x3E3C), EOPID_INT(0x3E3C), EOPID_NONE}, /* [925] opt 843, SW */
+    {0xD, 0x92, EOPID_OFF(SW, rgbaClear), EOPID_OFF(SW, rgbaClear), EOPID_OFF(SW, rgbaClear), EOPID_NONE}, /* [923] opt 842, SW */
+    {0, 0x82, EOPID_OFF(SW, unknown3E38), EOPID_NONE, EOPID_OFF(SW, unknown3E38), EOPID_NONE}, /* [924] opt 768, SW */
+    {0, 0x92, EOPID_OFF(SW, fForceClear), EOPID_OFF(SW, fForceClear), EOPID_OFF(SW, fForceClear), EOPID_NONE}, /* [925] opt 843, SW */
     {0x2032, 4, EOPID_PMF(GetHeroPo), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [926] opt 844, SW */
     {0x2032, 4, EOPID_PMF(GetCurrentPo), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [927] opt 845, SW */
-    {0x2032, 0x22, EOPID_INT(0x3F00), EOPID_PMF(SetSwPoOverride), EOPID_NONE, EOPID_NONE}, /* [928] opt 846, SW */
+    {0x2032, 0x22, EOPID_OFF(SW, overridePlayer), EOPID_PMF(SetSwPoOverride), EOPID_NONE, EOPID_NONE}, /* [928] opt 846, SW */
     {0x2032, 1, EOPID_NONE, EOPID_FN(RefThunk_FindClosestSwPo), EOPID_INT(1), EOPID_NONE}, /* [929] opt 847, SW */
     {1, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [930] opt 848, SW */
     {0xA, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [931] opt 849, SW */
     {0x2093, 1, EOPID_NONE, EOPID_FN(RefThunk_EmitSwNoise), EOPID_INT(3), EOPID_NONE}, /* [932] opt 850, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_CallSlot24OnSwObjects), EOPID_NONE, EOPID_NONE}, /* [933] opt 454, SW */
     {0x12, 0x400, EOPID_FN(RefThunk_SetAmbienceGroupMix), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [934] opt 852, SW */
-    {9, 0x92, EOPID_INT(0x45D0), EOPID_INT(0x45D0), EOPID_INT(0x45D0), EOPID_NONE}, /* [935] opt 853, SW */
-    {0xA, 0x92, EOPID_INT(0x45E0), EOPID_INT(0x45E0), EOPID_INT(0x45E0), EOPID_NONE}, /* [936] opt 854, SW */
-    {6, 0x12, EOPID_INT(0x3C88), EOPID_INT(0x3C88), EOPID_NONE, EOPID_NONE}, /* [937] opt 855, SW */
-    {6, 0x12, EOPID_INT(0x3C8C), EOPID_INT(0x3C8C), EOPID_NONE, EOPID_NONE}, /* [938] opt 856, SW */
+    {9, 0x92, EOPID_OFF(SW, clqGuardScale), EOPID_OFF(SW, clqGuardScale), EOPID_OFF(SW, clqGuardScale), EOPID_NONE}, /* [935] opt 853, SW */
+    {0xA, 0x92, EOPID_OFF(SW, lmGuardScale), EOPID_OFF(SW, lmGuardScale), EOPID_OFF(SW, lmGuardScale), EOPID_NONE}, /* [936] opt 854, SW */
+    {6, 0x12, EOPID_OFF(SW, returnWarpOid), EOPID_OFF(SW, returnWarpOid), EOPID_NONE, EOPID_NONE}, /* [937] opt 855, SW */
+    {6, 0x12, EOPID_OFF(SW, returnWarpContext), EOPID_OFF(SW, returnWarpContext), EOPID_NONE, EOPID_NONE}, /* [938] opt 856, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSwHANDS_OFF), EOPID_INT(1), EOPID_NONE}, /* [939] opt 857, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSwHANDS_ON), EOPID_INT(1), EOPID_NONE}, /* [940] opt 858, SW */
     {0, 4, EOPID_PMF(IsSwHandsOff), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [941] opt 859, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetGrabMarkerProxy), EOPID_INT(1), EOPID_NONE}, /* [942] opt 861, SW */
-    {5, 2, EOPID_INT(0x4768), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [943] opt 862, SW */
-    {5, 2, EOPID_INT(0x4764), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [944] opt 863, SW */
+    {5, 2, EOPID_OFF(SW, numClues), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [943] opt 862, SW */
+    {5, 2, EOPID_OFF(SW, numCluesCollected), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [944] opt 863, SW */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_CIRCLE_WARP), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [945] opt 864, WR */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_BEND_WARP), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [946] opt 865, WR */
-    {2, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [947] opt 573, WR */
+    {2, 0x2092, EOPID_OFF(WRE, axis), EOPID_OFF(WRE, axis), EOPID_OFF(WRE, axis), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [947] opt 573, WR */
     {1, 0x124, EOPID_PMF(GetWrWavelength), EOPID_PMF(SetWrWavelength__FP2WRf), EOPID_PMF(SetWrWavelength__FP2WRf), EOPID_NONE}, /* [948] opt 866, WR */
-    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [949] opt 867, WR */
-    {1, 0x2092, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [950] opt 868, WR */
-    {2, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [951] opt 869, WR */
-    {2, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [952] opt 870, WR */
-    {0xA, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [953] opt 871, WR */
-    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [954] opt 872, WR */
-    {2, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [955] opt 873, WR */
-    {0xA, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [956] opt 874, WR */
-    {1, 0x2092, EOPID_INT(0x38), EOPID_INT(0x38), EOPID_INT(0x38), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [957] opt 875, WR */
+    {1, 0x2092, EOPID_OFF(WRE, data.circle.frequency), EOPID_OFF(WRE, data.circle.frequency), EOPID_OFF(WRE, data.circle.frequency), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [949] opt 867, WR */
+    {1, 0x2092, EOPID_OFF(WRE, data.circle.phase), EOPID_OFF(WRE, data.circle.phase), EOPID_OFF(WRE, data.circle.phase), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [950] opt 868, WR */
+    {2, 0x2092, EOPID_OFF(WRE, vectorA), EOPID_OFF(WRE, vectorA), EOPID_OFF(WRE, vectorA), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [951] opt 869, WR */
+    {2, 0x2092, EOPID_OFF(WRE, data.circle.vectorB), EOPID_OFF(WRE, data.circle.vectorB), EOPID_OFF(WRE, data.circle.vectorB), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [952] opt 870, WR */
+    {0xA, 0x2092, EOPID_OFF(WRE, data), EOPID_OFF(WRE, data), EOPID_OFF(WRE, data), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [953] opt 871, WR */
+    {0xA, 0x2092, EOPID_OFF(WRE, data.circle.uvB), EOPID_OFF(WRE, data.circle.uvB), EOPID_OFF(WRE, data.circle.uvB), EOPID_PMF(GetCurrentCircleWarpEntry__FP2WR4ENSK)}, /* [954] opt 872, WR */
+    {2, 0x2092, EOPID_OFF(WRE, axis), EOPID_OFF(WRE, axis), EOPID_OFF(WRE, axis), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [955] opt 873, WR */
+    {0xA, 0x2092, EOPID_OFF(WRE, data), EOPID_OFF(WRE, data), EOPID_OFF(WRE, data), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [956] opt 874, WR */
+    {1, 0x2092, EOPID_OFF(WRE, data.bend.bend.bias), EOPID_OFF(WRE, data.bend.bend.bias), EOPID_OFF(WRE, data.bend.bend.bias), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [957] opt 875, WR */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_BEND_NOISE), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [958] opt 876, WR */
-    {2, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [959] opt 877, WR */
-    {0xA, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [960] opt 878, WR */
-    {1, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [961] opt 879, WR */
+    {2, 0x2092, EOPID_OFF(WRE, vectorA), EOPID_OFF(WRE, vectorA), EOPID_OFF(WRE, vectorA), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [959] opt 877, WR */
+    {0xA, 0x2092, EOPID_OFF(WRE, data.bend.swivel), EOPID_OFF(WRE, data.bend.swivel), EOPID_OFF(WRE, data.bend.swivel), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [960] opt 878, WR */
+    {1, 0x2092, EOPID_OFF(WRE, data.bend.swivel.bias), EOPID_OFF(WRE, data.bend.swivel.bias), EOPID_OFF(WRE, data.bend.swivel.bias), EOPID_PMF(GetCurrentBendWarpEntry__FP2WR4ENSK)}, /* [961] opt 879, WR */
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_SWIVEL_NOISE), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [962] opt 880, WR */
-    {5, 2, EOPID_INT(0x54), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [963] opt 881, WR */
-    {5, 0x12, EOPID_INT(0x6E0), EOPID_INT(0x6E0), EOPID_NONE, EOPID_NONE}, /* [964] opt 882, WR */
+    {5, 2, EOPID_OFF(WR, entryCount), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [963] opt 881, WR */
+    {5, 0x12, EOPID_OFF(WR, currentEntryIndex), EOPID_OFF(WR, currentEntryIndex), EOPID_NONE, EOPID_NONE}, /* [964] opt 882, WR */
     {0x12, 0x400, EOPID_FN(RefThunk_SetCritterLink), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [965] opt 369, CID96 */
     {0x200A, 0x92, EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_NONE}, /* [966] opt 883, CID96 */
     {0x200A, 0x92, EOPID_INT(0x170), EOPID_INT(0x170), EOPID_INT(0x170), EOPID_NONE}, /* [967] opt 884, CID96 */
@@ -1708,23 +1728,23 @@ EOPIDROW D_002AC880[1449] = {
     {0x1036, 0x22, EOPID_INT(0x220), EOPID_PMF(SetCritterState), EOPID_NONE, EOPID_NONE}, /* [975] opt 891, CID96 */
     {5, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [976] opt 402, CID96 */
     {2, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [977] opt 403, CID96 */
-    {0, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [978] opt 892, SKY */
+    {0, 0x92, EOPID_OFF(SKY, followCameraZ), EOPID_OFF(SKY, followCameraZ), EOPID_OFF(SKY, followCameraZ), EOPID_NONE}, /* [978] opt 892, SKY */
     {0x12, 0x4401, EOPID_FN(RefThunk_StartScreenFade), EOPID_FN(RefThunk_StartScreenFade), EOPID_NONE, EOPID_NONE}, /* [979] opt 235, CID116 */
-    {0xD, 0x92, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE}, /* [980] opt 893, CID116 */
-    {0xD, 0x92, EOPID_INT(0x54), EOPID_INT(0x54), EOPID_INT(0x54), EOPID_NONE}, /* [981] opt 894, CID116 */
-    {0xD, 0x92, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE}, /* [982] opt 895, CID116 */
-    {1, 0x92, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE}, /* [983] opt 896, CID116 */
-    {1, 0x92, EOPID_INT(0x64), EOPID_INT(0x64), EOPID_INT(0x64), EOPID_NONE}, /* [984] opt 897, CID116 */
-    {1, 0x92, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_NONE}, /* [985] opt 898, CID116 */
-    {0x103B, 0x92, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_NONE}, /* [986] opt 899, CID116 */
-    {1, 2, EOPID_INT(0x10), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [987] opt 900, POCTL */
-    {1, 2, EOPID_INT(0x14), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [988] opt 901, POCTL */
-    {1, 2, EOPID_INT(0x18), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [989] opt 902, POCTL */
-    {1, 2, EOPID_INT(0x1C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [990] opt 903, POCTL */
-    {1, 2, EOPID_INT(0x20), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [991] opt 904, POCTL */
-    {1, 2, EOPID_INT(0x24), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [992] opt 905, POCTL */
-    {1, 2, EOPID_INT(0x28), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [993] opt 906, POCTL */
-    {1, 2, EOPID_INT(0x2C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [994] opt 907, POCTL */
+    {0xD, 0x92, EOPID_OFF(CID116, rgbaFadeIn), EOPID_OFF(CID116, rgbaFadeIn), EOPID_OFF(CID116, rgbaFadeIn), EOPID_NONE}, /* [980] opt 893, CID116 */
+    {0xD, 0x92, EOPID_OFF(CID116, rgbaHold), EOPID_OFF(CID116, rgbaHold), EOPID_OFF(CID116, rgbaHold), EOPID_NONE}, /* [981] opt 894, CID116 */
+    {0xD, 0x92, EOPID_OFF(CID116, rgbaFadeOut), EOPID_OFF(CID116, rgbaFadeOut), EOPID_OFF(CID116, rgbaFadeOut), EOPID_NONE}, /* [982] opt 895, CID116 */
+    {1, 0x92, EOPID_OFF(CID116, dtFadeIn), EOPID_OFF(CID116, dtFadeIn), EOPID_OFF(CID116, dtFadeIn), EOPID_NONE}, /* [983] opt 896, CID116 */
+    {1, 0x92, EOPID_OFF(CID116, dtFadeOut), EOPID_OFF(CID116, dtFadeOut), EOPID_OFF(CID116, dtFadeOut), EOPID_NONE}, /* [984] opt 897, CID116 */
+    {1, 0x92, EOPID_OFF(CID116, dtHold), EOPID_OFF(CID116, dtHold), EOPID_OFF(CID116, dtHold), EOPID_NONE}, /* [985] opt 898, CID116 */
+    {0x103B, 0x92, EOPID_OFF(CID116, renderKind), EOPID_OFF(CID116, renderKind), EOPID_OFF(CID116, renderKind), EOPID_NONE}, /* [986] opt 899, CID116 */
+    {1, 2, EOPID_OFF(POCTL, dxLeft), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [987] opt 900, POCTL */
+    {1, 2, EOPID_OFF(POCTL, dyLeft), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [988] opt 901, POCTL */
+    {1, 2, EOPID_OFF(POCTL, leftStickAngle), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [989] opt 902, POCTL */
+    {1, 2, EOPID_OFF(POCTL, leftStickDeflection), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [990] opt 903, POCTL */
+    {1, 2, EOPID_OFF(POCTL, dxRight), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [991] opt 904, POCTL */
+    {1, 2, EOPID_OFF(POCTL, dyRight), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [992] opt 905, POCTL */
+    {1, 2, EOPID_OFF(POCTL, rightStickAngle), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [993] opt 906, POCTL */
+    {1, 2, EOPID_OFF(POCTL, rightStickDeflection), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [994] opt 907, POCTL */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_POCTL_ConsumeAnyPressed), EOPID_INT(1), EOPID_NONE}, /* [995] opt 908, POCTL */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_POCTL_IsButtonDown), EOPID_INT(1), EOPID_NONE}, /* [996] opt 909, POCTL */
     {0x2030, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [997] opt 910, TURRET */
@@ -1741,20 +1761,20 @@ EOPIDROW D_002AC880[1449] = {
     {0x2002, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [1008] opt 920, TURRET */
     {0, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [1009] opt 921, TURRET */
     {0xA, 0x92, EOPID_INT(0x1AC), EOPID_INT(0x1AC), EOPID_INT(0x1AC), EOPID_NONE}, /* [1010] opt 922, TURRET */
-    {0x1030, 0x82, EOPID_INT(0x124), EOPID_NONE, EOPID_INT(0x124), EOPID_NONE}, /* [1011] opt 923, HND */
-    {1, 0x92, EOPID_INT(0x128), EOPID_INT(0x128), EOPID_INT(0x128), EOPID_NONE}, /* [1012] opt 924, HND */
-    {0xE, 0x92, EOPID_INT(0x12C), EOPID_INT(0x12C), EOPID_INT(0x12C), EOPID_NONE}, /* [1013] opt 789, HND */
-    {0xE, 0x92, EOPID_INT(0x130), EOPID_INT(0x130), EOPID_INT(0x130), EOPID_NONE}, /* [1014] opt 790, HND */
-    {1, 0x92, EOPID_INT(0x134), EOPID_INT(0x134), EOPID_INT(0x134), EOPID_NONE}, /* [1015] opt 925, HND */
-    {0x2002, 0x92, EOPID_INT(0x138), EOPID_INT(0x138), EOPID_INT(0x138), EOPID_NONE}, /* [1016] opt 503, HND */
+    {0x1030, 0x82, EOPID_OFF(HND, nHangKind), EOPID_NONE, EOPID_OFF(HND, nHangKind), EOPID_NONE}, /* [1011] opt 923, HND */
+    {1, 0x92, EOPID_OFF(HND, unknown128), EOPID_OFF(HND, unknown128), EOPID_OFF(HND, unknown128), EOPID_NONE}, /* [1012] opt 924, HND */
+    {0xE, 0x92, EOPID_OFF(HND, sfxidHangStart), EOPID_OFF(HND, sfxidHangStart), EOPID_OFF(HND, sfxidHangStart), EOPID_NONE}, /* [1013] opt 789, HND */
+    {0xE, 0x92, EOPID_OFF(HND, sfxidHangEnd), EOPID_OFF(HND, sfxidHangEnd), EOPID_OFF(HND, sfxidHangEnd), EOPID_NONE}, /* [1014] opt 790, HND */
+    {1, 0x92, EOPID_OFF(HND, unknown134), EOPID_OFF(HND, unknown134), EOPID_OFF(HND, unknown134), EOPID_NONE}, /* [1015] opt 925, HND */
+    {0x2002, 0x92, EOPID_OFF(HND, ploTarget), EOPID_OFF(HND, ploTarget), EOPID_OFF(HND, ploTarget), EOPID_NONE}, /* [1016] opt 503, HND */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetHndOwnFields)}, /* [1017] opt 776, HND */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetHndOwnFields)}, /* [1018] opt 777, HND */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetHndOwnFields)}, /* [1019] opt 778, HND */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetHndOwnFields)}, /* [1020] opt 141, HND */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetHndOwnFields)}, /* [1021] opt 779, HND */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetHndOwnFields)}, /* [1022] opt 780, HND */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetHndOwnFields)}, /* [1023] opt 781, HND */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetHndOwnFields)}, /* [1024] opt 782, HND */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetHndOwnFields)}, /* [1018] opt 777, HND */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetHndOwnFields)}, /* [1019] opt 778, HND */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetHndOwnFields)}, /* [1020] opt 141, HND */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetHndOwnFields)}, /* [1021] opt 779, HND */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetHndOwnFields)}, /* [1022] opt 780, HND */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetHndOwnFields)}, /* [1023] opt 781, HND */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetHndOwnFields)}, /* [1024] opt 782, HND */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTriggerClass), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1025] opt 926, CID98 */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1026] opt 927, CID98 */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1027] opt 928, CID98 */
@@ -1784,12 +1804,12 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_EnterMurrayThrowAim), EOPID_NONE, EOPID_NONE}, /* [1051] opt 939, MURRAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ClearMurrayBehaviors), EOPID_INT(1), EOPID_NONE}, /* [1052] opt 940, MURRAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartMurrayFlop), EOPID_NONE, EOPID_NONE}, /* [1053] opt 941, MURRAY */
-    {1, 0x82, EOPID_INT(0x130), EOPID_NONE, EOPID_INT(0x130), EOPID_NONE}, /* [1054] opt 293, CID44 */
-    {0x2002, 0x92, EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_NONE}, /* [1055] opt 503, CID44 */
+    {1, 0x82, EOPID_OFF(CID44, fov), EOPID_NONE, EOPID_OFF(CID44, fov), EOPID_NONE}, /* [1054] opt 293, CID44 */
+    {0x2002, 0x92, EOPID_OFF(CID44, lookAtTarget), EOPID_OFF(CID44, lookAtTarget), EOPID_OFF(CID44, lookAtTarget), EOPID_NONE}, /* [1055] opt 503, CID44 */
     {2, 0x92, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_NONE}, /* [1056] opt 942, CID44 */
-    {2, 0x92, EOPID_INT(0x100), EOPID_INT(0x100), EOPID_INT(0x100), EOPID_NONE}, /* [1057] opt 943, CID44 */
-    {2, 0x92, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_NONE}, /* [1058] opt 944, CID44 */
-    {0, 0x92, EOPID_INT(0x120), EOPID_INT(0x120), EOPID_INT(0x120), EOPID_NONE}, /* [1059] opt 945, CID44 */
+    {2, 0x92, EOPID_OFF(CID44, axis100), EOPID_OFF(CID44, axis100), EOPID_OFF(CID44, axis100), EOPID_NONE}, /* [1057] opt 943, CID44 */
+    {2, 0x92, EOPID_OFF(CID44, axis110), EOPID_OFF(CID44, axis110), EOPID_OFF(CID44, axis110), EOPID_NONE}, /* [1058] opt 944, CID44 */
+    {0, 0x92, EOPID_OFF(CID44, cutOnEnd), EOPID_OFF(CID44, cutOnEnd), EOPID_OFF(CID44, cutOnEnd), EOPID_NONE}, /* [1059] opt 945, CID44 */
     {1, 0x82, EOPID_INT(0x11C), EOPID_NONE, EOPID_INT(0x11C), EOPID_NONE}, /* [1060] opt 293, CID45 */
     {1, 0x82, EOPID_INT(0x120), EOPID_NONE, EOPID_INT(0x120), EOPID_NONE}, /* [1061] opt 296, CID45 */
     {1, 0x82, EOPID_INT(0x124), EOPID_NONE, EOPID_INT(0x124), EOPID_NONE}, /* [1062] opt 297, CID45 */
@@ -1798,9 +1818,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x2004, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddRtcamObjectShown), EOPID_NONE}, /* [1065] opt 947, CID45 */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_AcquireRenderTargetNoResult), EOPID_NONE, EOPID_NONE}, /* [1066] opt 214, CID45 */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_ReleaseRenderTarget), EOPID_NONE, EOPID_NONE}, /* [1067] opt 237, CID45 */
-    {0x2002, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [1068] opt 534, CID35 (+2) */
-    {1, 0x92, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_NONE}, /* [1069] opt 948, CID35 (+2) */
-    {0x2072, 0x92, EOPID_INT(0x114), EOPID_INT(0x114), EOPID_INT(0x114), EOPID_NONE}, /* [1070] opt 531, CID35 (+2) */
+    {0x2002, 0x92, EOPID_OFF(CID35, activator), EOPID_OFF(CID35, activator), EOPID_OFF(CID35, activator), EOPID_NONE}, /* [1068] opt 534, CID35 (+2) */
+    {1, 0x92, EOPID_OFF(CID35, sRadius), EOPID_OFF(CID35, sRadius), EOPID_OFF(CID35, sRadius), EOPID_NONE}, /* [1069] opt 948, CID35 (+2) */
+    {0x2072, 0x92, EOPID_OFF(CID35, relay), EOPID_OFF(CID35, relay), EOPID_OFF(CID35, relay), EOPID_NONE}, /* [1070] opt 531, CID35 (+2) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_FireTriggerGrabspot), EOPID_INT(1), EOPID_NONE}, /* [1071] opt 235, CID35 (+2) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_CanGrabspotAcceptPlayer), EOPID_INT(1), EOPID_NONE}, /* [1072] opt 949, CID35 (+2) */
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(AddGrabspotPlayerMask), EOPID_PMF(AddGrabspotPlayerMask), EOPID_NONE}, /* [1073] opt 519, CID35 (+2) */
@@ -1808,54 +1828,54 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(RefThunk_AddTriggerGrabspotRsmg), EOPID_FN(RefThunk_AddTriggerGrabspotRsmg), EOPID_INT(3), EOPID_NONE}, /* [1075] opt 526, CID35 (+2) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddTriggerGrabspotPair), EOPID_FN(RefThunk_AddTriggerGrabspotPair), EOPID_INT(2), EOPID_NONE}, /* [1076] opt 527, CID35 (+2) */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetCid35OwnFields)}, /* [1077] opt 776, CID35 (+2) */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetCid35OwnFields)}, /* [1078] opt 777, CID35 (+2) */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetCid35OwnFields)}, /* [1079] opt 778, CID35 (+2) */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetCid35OwnFields)}, /* [1080] opt 141, CID35 (+2) */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetCid35OwnFields)}, /* [1081] opt 779, CID35 (+2) */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetCid35OwnFields)}, /* [1082] opt 780, CID35 (+2) */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetCid35OwnFields)}, /* [1083] opt 781, CID35 (+2) */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetCid35OwnFields)}, /* [1084] opt 782, CID35 (+2) */
-    {0x2030, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [1085] opt 950, CID36 */
-    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0x184), EOPID_NONE}, /* [1086] opt 951, CID36 */
-    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18C), EOPID_NONE}, /* [1087] opt 952, CID36 */
-    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0x194), EOPID_NONE}, /* [1088] opt 953, CID36 */
-    {6, 0x92, EOPID_INT(0x19C), EOPID_INT(0x19C), EOPID_INT(0x19C), EOPID_NONE}, /* [1089] opt 344, CID36 */
-    {0x1046, 0x92, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE}, /* [1090] opt 954, CID117 */
-    {1, 0x92, EOPID_INT(0x54), EOPID_INT(0x54), EOPID_INT(0x54), EOPID_NONE}, /* [1091] opt 795, CID117 */
-    {0xA, 0x92, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE}, /* [1092] opt 955, CID117 */
-    {1, 0x92, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_NONE}, /* [1093] opt 956, CID117 */
-    {0x1047, 0x92, EOPID_INT(0x64), EOPID_INT(0x64), EOPID_INT(0x64), EOPID_NONE}, /* [1094] opt 957, CID117 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetCid35OwnFields)}, /* [1078] opt 777, CID35 (+2) */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetCid35OwnFields)}, /* [1079] opt 778, CID35 (+2) */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetCid35OwnFields)}, /* [1080] opt 141, CID35 (+2) */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetCid35OwnFields)}, /* [1081] opt 779, CID35 (+2) */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetCid35OwnFields)}, /* [1082] opt 780, CID35 (+2) */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetCid35OwnFields)}, /* [1083] opt 781, CID35 (+2) */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetCid35OwnFields)}, /* [1084] opt 782, CID35 (+2) */
+    {0x2030, 0x92, EOPID_OFF(CID36, unknown180), EOPID_OFF(CID36, unknown180), EOPID_OFF(CID36, unknown180), EOPID_NONE}, /* [1085] opt 950, CID36 */
+    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(CID36, oid1), EOPID_NONE}, /* [1086] opt 951, CID36 */
+    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(CID36, oid2), EOPID_NONE}, /* [1087] opt 952, CID36 */
+    {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(CID36, oid3), EOPID_NONE}, /* [1088] opt 953, CID36 */
+    {6, 0x92, EOPID_OFF(CID36, oidTarget), EOPID_OFF(CID36, oidTarget), EOPID_OFF(CID36, oidTarget), EOPID_NONE}, /* [1089] opt 344, CID36 */
+    {0x1046, 0x92, EOPID_OFF(CID117, isMuted), EOPID_OFF(CID117, isMuted), EOPID_OFF(CID117, isMuted), EOPID_NONE}, /* [1090] opt 954, CID117 */
+    {1, 0x92, EOPID_OFF(CID117, range), EOPID_OFF(CID117, range), EOPID_OFF(CID117, range), EOPID_NONE}, /* [1091] opt 795, CID117 */
+    {0xA, 0x92, EOPID_OFF(CID117, heightRange), EOPID_OFF(CID117, heightRange), EOPID_OFF(CID117, heightRange), EOPID_NONE}, /* [1092] opt 955, CID117 */
+    {1, 0x92, EOPID_OFF(CID117, duration), EOPID_OFF(CID117, duration), EOPID_OFF(CID117, duration), EOPID_NONE}, /* [1093] opt 956, CID117 */
+    {0x1047, 0x92, EOPID_OFF(CID117, noiseKind), EOPID_OFF(CID117, noiseKind), EOPID_OFF(CID117, noiseKind), EOPID_NONE}, /* [1094] opt 957, CID117 */
     {0x2093, 1, EOPID_NONE, EOPID_FN(RefThunk_NewNoise), EOPID_INT(2), EOPID_NONE}, /* [1095] opt 214, CID117 */
-    {0x2075, 2, EOPID_INT(0x14), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1096] opt 958, CID147 */
-    {2, 0x12, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_NONE, EOPID_NONE}, /* [1097] opt 34, CID147 */
-    {2, 0x12, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_NONE, EOPID_NONE}, /* [1098] opt 959, CID147 */
-    {0x1047, 0x12, EOPID_INT(0x54), EOPID_INT(0x54), EOPID_NONE, EOPID_NONE}, /* [1099] opt 957, CID147 */
+    {0x2075, 2, EOPID_OFF(CID147, type), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1096] opt 958, CID147 */
+    {2, 0x12, EOPID_OFF(CID147, position), EOPID_OFF(CID147, position), EOPID_NONE, EOPID_NONE}, /* [1097] opt 34, CID147 */
+    {2, 0x12, EOPID_OFF(CID147, startPosition), EOPID_OFF(CID147, startPosition), EOPID_NONE, EOPID_NONE}, /* [1098] opt 959, CID147 */
+    {0x1047, 0x12, EOPID_OFF(CID147, noiseKind), EOPID_OFF(CID147, noiseKind), EOPID_NONE, EOPID_NONE}, /* [1099] opt 957, CID147 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveNoise), EOPID_NONE, EOPID_NONE}, /* [1100] opt 237, CID147 */
     {0, 4, EOPID_PMF(IsNoiseRemoved), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1101] opt 255, CID147 */
-    {0x206F, 0x92, EOPID_INT(0x164), EOPID_INT(0x164), EOPID_INT(0x164), EOPID_NONE}, /* [1102] opt 484, CID100 (+2) */
-    {0x2088, 2, EOPID_INT(0x168), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1103] opt 183, CID100 (+2) */
-    {0x1049, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [1104] opt 960, CID100 (+2) */
+    {0x206F, 0x92, EOPID_OFF(CID100, stateMachine), EOPID_OFF(CID100, stateMachine), EOPID_OFF(CID100, stateMachine), EOPID_NONE}, /* [1102] opt 484, CID100 (+2) */
+    {0x2088, 2, EOPID_OFF(CID100, smApplication), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1103] opt 183, CID100 (+2) */
+    {0x1049, 0x92, EOPID_OFF(CID100, gadgetKind), EOPID_OFF(CID100, gadgetKind), EOPID_OFF(CID100, gadgetKind), EOPID_NONE}, /* [1104] opt 960, CID100 (+2) */
     {0, 4, EOPID_PMF(IsThrowableGadget), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1105] opt 961, CID100 (+2) */
     {0, 4, EOPID_PMF(IsTossableStateBlocking), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1106] opt 501, CID100 (+2) */
-    {0x1011, 0x92, EOPID_INT(0x174), EOPID_INT(0x174), EOPID_INT(0x174), EOPID_NONE}, /* [1107] opt 962, CID100 (+2) */
-    {5, 0x92, EOPID_INT(0x178), EOPID_INT(0x178), EOPID_INT(0x178), EOPID_NONE}, /* [1108] opt 498, CID100 (+2) */
+    {0x1011, 0x92, EOPID_OFF(CID100, blastZapKind), EOPID_OFF(CID100, blastZapKind), EOPID_OFF(CID100, blastZapKind), EOPID_NONE}, /* [1107] opt 962, CID100 (+2) */
+    {5, 0x92, EOPID_OFF(CID100, blastDamage), EOPID_OFF(CID100, blastDamage), EOPID_OFF(CID100, blastDamage), EOPID_NONE}, /* [1108] opt 498, CID100 (+2) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StickTossable), EOPID_INT(1), EOPID_NONE}, /* [1109] opt 963, CID100 (+2) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_DropTossable), EOPID_INT(1), EOPID_NONE}, /* [1110] opt 964, CID100 (+2) */
-    {0x2002, 0x92, EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_NONE}, /* [1111] opt 965, CID100 (+2) */
-    {1, 0x92, EOPID_INT(0x170), EOPID_INT(0x170), EOPID_INT(0x170), EOPID_NONE}, /* [1112] opt 966, CID100 (+2) */
+    {0x2002, 0x92, EOPID_OFF(CID100, thrower), EOPID_OFF(CID100, thrower), EOPID_OFF(CID100, thrower), EOPID_NONE}, /* [1111] opt 965, CID100 (+2) */
+    {1, 0x92, EOPID_OFF(CID100, maxThrowerDistance), EOPID_OFF(CID100, maxThrowerDistance), EOPID_OFF(CID100, maxThrowerDistance), EOPID_NONE}, /* [1112] opt 966, CID100 (+2) */
     {0x2002, 0x92, EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_NONE}, /* [1113] opt 37, CID102 */
-    {0x2016, 0x92, EOPID_INT(0x1010), EOPID_INT(0x1010), EOPID_INT(0x1010), EOPID_NONE}, /* [1114] opt 967, NEELA */
-    {0x2016, 0x92, EOPID_INT(0x1014), EOPID_INT(0x1014), EOPID_INT(0x1014), EOPID_NONE}, /* [1115] opt 968, NEELA */
-    {0x2030, 0x92, EOPID_INT(0x1050), EOPID_INT(0x1050), EOPID_INT(0x1050), EOPID_NONE}, /* [1116] opt 969, NEELA */
+    {0x2016, 0x92, EOPID_OFF(NEELA, moveVolume), EOPID_OFF(NEELA, moveVolume), EOPID_OFF(NEELA, moveVolume), EOPID_NONE}, /* [1114] opt 967, NEELA */
+    {0x2016, 0x92, EOPID_OFF(NEELA, idleVolume), EOPID_OFF(NEELA, idleVolume), EOPID_OFF(NEELA, idleVolume), EOPID_NONE}, /* [1115] opt 968, NEELA */
+    {0x2030, 0x92, EOPID_OFF(NEELA, prop), EOPID_OFF(NEELA, prop), EOPID_OFF(NEELA, prop), EOPID_NONE}, /* [1116] opt 969, NEELA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SendRootBhvMode15), EOPID_INT(1), EOPID_NONE}, /* [1117] opt 970, NEELA */
-    {0x206D, 0x92, EOPID_INT(0x1064), EOPID_INT(0x1064), EOPID_INT(0x1064), EOPID_NONE}, /* [1118] opt 971, NEELA */
-    {9, 0x92, EOPID_INT(0x1070), EOPID_INT(0x1070), EOPID_INT(0x1070), EOPID_NONE}, /* [1119] opt 972, NEELA */
-    {0xA, 0x92, EOPID_INT(0x1080), EOPID_INT(0x1080), EOPID_INT(0x1080), EOPID_NONE}, /* [1120] opt 973, NEELA */
-    {1, 0x92, EOPID_INT(0x1088), EOPID_INT(0x1088), EOPID_INT(0x1088), EOPID_NONE}, /* [1121] opt 974, NEELA */
-    {0, 0x90, EOPID_NONE, EOPID_INT(0x6D), EOPID_INT(0x6D), EOPID_NONE}, /* [1122] opt 766, WIDGET (+5) */
-    {0x1068, 0x82, EOPID_INT(0xA4), EOPID_NONE, EOPID_INT(0xA4), EOPID_NONE}, /* [1123] opt 976, WIDGET (+5) */
-    {0, 0x82, EOPID_INT(0xAC), EOPID_NONE, EOPID_INT(0xAC), EOPID_NONE}, /* [1124] opt 977, WIDGET (+5) */
-    {1, 0x92, EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_NONE}, /* [1125] opt 978, WIDGET (+5) */
+    {0x206D, 0x92, EOPID_OFF(NEELA, giveUpBinding.oid), EOPID_OFF(NEELA, giveUpBinding.oid), EOPID_OFF(NEELA, giveUpBinding.oid), EOPID_NONE}, /* [1118] opt 971, NEELA */
+    {9, 0x92, EOPID_OFF(NEELA, chaseTune), EOPID_OFF(NEELA, chaseTune), EOPID_OFF(NEELA, chaseTune), EOPID_NONE}, /* [1119] opt 972, NEELA */
+    {0xA, 0x92, EOPID_OFF(NEELA, chaseTune.speedRange), EOPID_OFF(NEELA, chaseTune.speedRange), EOPID_OFF(NEELA, chaseTune.speedRange), EOPID_NONE}, /* [1120] opt 973, NEELA */
+    {1, 0x92, EOPID_OFF(NEELA, chaseTune.giveUpTime), EOPID_OFF(NEELA, chaseTune.giveUpTime), EOPID_OFF(NEELA, chaseTune.giveUpTime), EOPID_NONE}, /* [1121] opt 974, NEELA */
+    {0, 0x90, EOPID_NONE, EOPID_OFF(WIDGET, isShownOnLoad), EOPID_OFF(WIDGET, isShownOnLoad), EOPID_NONE}, /* [1122] opt 766, WIDGET (+5) */
+    {0x1068, 0x82, EOPID_OFF(WIDGET, priority), EOPID_NONE, EOPID_OFF(WIDGET, priority), EOPID_NONE}, /* [1123] opt 976, WIDGET (+5) */
+    {0, 0x82, EOPID_OFF(WIDGET, isExclusive), EOPID_NONE, EOPID_OFF(WIDGET, isExclusive), EOPID_NONE}, /* [1124] opt 977, WIDGET (+5) */
+    {1, 0x92, EOPID_OFF(WIDGET, visibleTimeout), EOPID_OFF(WIDGET, visibleTimeout), EOPID_OFF(WIDGET, visibleTimeout), EOPID_NONE}, /* [1125] opt 978, WIDGET (+5) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_ShowWidget), EOPID_NONE, EOPID_NONE}, /* [1126] opt 979, WIDGET (+5) */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_HideWidget), EOPID_NONE, EOPID_NONE}, /* [1127] opt 980, WIDGET (+5) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_PlayWidgetAnim), EOPID_INT(1), EOPID_NONE}, /* [1128] opt 981, WIDGET (+5) */
@@ -1863,7 +1883,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetWidgetAnimPhase), EOPID_INT(2), EOPID_NONE}, /* [1130] opt 982, WIDGET (+5) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetWidgetAnimTime), EOPID_INT(2), EOPID_NONE}, /* [1131] opt 983, WIDGET (+5) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ShowWidgetArgsFromSplice), EOPID_INT(1), EOPID_NONE}, /* [1132] opt 984, WIDGET (+5) */
-    {0x10, 0x92, EOPID_INT(0xCC), EOPID_INT(0xCC), EOPID_INT(0xCC), EOPID_NONE}, /* [1133] opt 985, WIDGET (+5) */
+    {0x10, 0x92, EOPID_OFF(WIDGET, argTextIds), EOPID_OFF(WIDGET, argTextIds), EOPID_OFF(WIDGET, argTextIds), EOPID_NONE}, /* [1133] opt 985, WIDGET (+5) */
     {0x10, 0x92, EOPID_INT(0xD0), EOPID_INT(0xD0), EOPID_INT(0xD0), EOPID_NONE}, /* [1134] opt 986, WIDGET (+5) */
     {0x10, 0x92, EOPID_INT(0xD4), EOPID_INT(0xD4), EOPID_INT(0xD4), EOPID_NONE}, /* [1135] opt 987, WIDGET (+5) */
     {0x10, 0x92, EOPID_INT(0xD8), EOPID_INT(0xD8), EOPID_INT(0xD8), EOPID_NONE}, /* [1136] opt 988, WIDGET (+5) */
@@ -1873,13 +1893,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x10, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [1140] opt 992, WIDGET (+5) */
     {0x10, 0x92, EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_NONE}, /* [1141] opt 993, WIDGET (+5) */
     {0x10, 0x92, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_NONE}, /* [1142] opt 994, WIDGET (+5) */
-    {0x10, 0x92, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_NONE}, /* [1143] opt 996, WIDGET130 */
-    {0x10, 0x92, EOPID_INT(0x114), EOPID_INT(0x114), EOPID_INT(0x114), EOPID_NONE}, /* [1144] opt 997, WIDGET130 */
-    {0x10, 0x92, EOPID_INT(0x118), EOPID_INT(0x118), EOPID_INT(0x118), EOPID_NONE}, /* [1145] opt 998, WIDGET130 */
-    {0x10, 0x92, EOPID_INT(0x11C), EOPID_INT(0x11C), EOPID_INT(0x11C), EOPID_NONE}, /* [1146] opt 999, WIDGET130 */
-    {0x10, 0x92, EOPID_INT(0x120), EOPID_INT(0x120), EOPID_INT(0x120), EOPID_NONE}, /* [1147] opt 1000, WIDGET130 */
-    {0, 2, EOPID_INT(0x110), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1148] opt 1001, WIDGET127 */
-    {0, 0x92, EOPID_INT(0x114), EOPID_INT(0x114), EOPID_INT(0x114), EOPID_NONE}, /* [1149] opt 1002, WIDGET127 */
+    {0x10, 0x92, EOPID_OFF(WIDGET130, actorChoice), EOPID_OFF(WIDGET130, actorChoice), EOPID_OFF(WIDGET130, actorChoice), EOPID_NONE}, /* [1143] opt 996, WIDGET130 */
+    {0x10, 0x92, EOPID_OFF(WIDGET130, risingChoice), EOPID_OFF(WIDGET130, risingChoice), EOPID_OFF(WIDGET130, risingChoice), EOPID_NONE}, /* [1144] opt 997, WIDGET130 */
+    {0x10, 0x92, EOPID_OFF(WIDGET130, fallingChoice), EOPID_OFF(WIDGET130, fallingChoice), EOPID_OFF(WIDGET130, fallingChoice), EOPID_NONE}, /* [1145] opt 998, WIDGET130 */
+    {0x10, 0x92, EOPID_OFF(WIDGET130, nearChoice), EOPID_OFF(WIDGET130, nearChoice), EOPID_OFF(WIDGET130, nearChoice), EOPID_NONE}, /* [1146] opt 999, WIDGET130 */
+    {0x10, 0x92, EOPID_OFF(WIDGET130, emptyChoice), EOPID_OFF(WIDGET130, emptyChoice), EOPID_OFF(WIDGET130, emptyChoice), EOPID_NONE}, /* [1147] opt 1000, WIDGET130 */
+    {0, 2, EOPID_OFF(WIDGET127, isOpen), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1148] opt 1001, WIDGET127 */
+    {0, 0x92, EOPID_OFF(WIDGET127, keepsGamePaused), EOPID_OFF(WIDGET127, keepsGamePaused), EOPID_OFF(WIDGET127, keepsGamePaused), EOPID_NONE}, /* [1149] opt 1002, WIDGET127 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddItemCounterOidA), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1150] opt 1003, WIDGET129 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddItemCounterOidB), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1151] opt 1004, WIDGET129 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBootyEntry), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1152] opt 828, BOOTY */
@@ -1908,19 +1928,19 @@ EOPIDROW D_002AC880[1449] = {
     {0x2002, 1, EOPID_NONE, EOPID_FN(RefThunk_AcquireProxyObject), EOPID_NONE, EOPID_NONE}, /* [1175] opt 1019, PROXY (+1) */
     {0x2002, 4, EOPID_PMF(GetProxyCurrentObject), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1176] opt 1020, PROXY (+1) */
     {0x2002, 1, EOPID_NONE, EOPID_FN(RefThunk_EnsureProxyCopy), EOPID_NONE, EOPID_NONE}, /* [1177] opt 1021, PROXY (+1) */
-    {0, 0x92, EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_NONE}, /* [1178] opt 1022, PROXY (+1) */
+    {0, 0x92, EOPID_OFF(PROXY, unknownE4), EOPID_OFF(PROXY, unknownE4), EOPID_OFF(PROXY, unknownE4), EOPID_NONE}, /* [1178] opt 1022, PROXY (+1) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_LockProxyObject), EOPID_INT(1), EOPID_NONE}, /* [1179] opt 1023, PROXY (+1) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_UnlockProxyObject), EOPID_INT(1), EOPID_NONE}, /* [1180] opt 1024, PROXY (+1) */
     {0xA002, 4, EOPID_PMF(GetProxyCopyObjects), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1181] opt 1025, PROXY (+1) */
-    {0x2003, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [1182] opt 1026, CID27 */
+    {0x2003, 0x92, EOPID_OFF(CID27, ploHold), EOPID_OFF(CID27, ploHold), EOPID_OFF(CID27, ploHold), EOPID_NONE}, /* [1182] opt 1026, CID27 */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetCid27OwnFields)}, /* [1183] opt 776, CID27 */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(GetCid27OwnFields)}, /* [1184] opt 777, CID27 */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(GetCid27OwnFields)}, /* [1185] opt 778, CID27 */
-    {0, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMFI(GetCid27OwnFields)}, /* [1186] opt 141, CID27 */
-    {0x106A, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMFI(GetCid27OwnFields)}, /* [1187] opt 779, CID27 */
-    {0x10, 0x2092, EOPID_INT(0x14), EOPID_INT(0x14), EOPID_INT(0x14), EOPID_PMFI(GetCid27OwnFields)}, /* [1188] opt 780, CID27 */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x18), EOPID_PMFI(GetCid27OwnFields)}, /* [1189] opt 781, CID27 */
-    {0x106C, 0x2092, EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_INT(0x1C), EOPID_PMFI(GetCid27OwnFields)}, /* [1190] opt 782, CID27 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetCid27OwnFields)}, /* [1184] opt 777, CID27 */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetCid27OwnFields)}, /* [1185] opt 778, CID27 */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetCid27OwnFields)}, /* [1186] opt 141, CID27 */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetCid27OwnFields)}, /* [1187] opt 779, CID27 */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetCid27OwnFields)}, /* [1188] opt 780, CID27 */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, nGroup), EOPID_PMFI(GetCid27OwnFields)}, /* [1189] opt 781, CID27 */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetCid27OwnFields)}, /* [1190] opt 782, CID27 */
     {1, 0x82, EOPID_INT(0x50), EOPID_NONE, EOPID_INT(0x50), EOPID_NONE}, /* [1191] opt 1027, CID118 */
     {1, 0x82, EOPID_INT(0x54), EOPID_NONE, EOPID_INT(0x54), EOPID_NONE}, /* [1192] opt 1028, CID118 */
     {1, 0x82, EOPID_INT(0x58), EOPID_NONE, EOPID_INT(0x58), EOPID_NONE}, /* [1193] opt 1029, CID118 */
@@ -1943,21 +1963,21 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x124, EOPID_PMF(GetShapeChainLength), EOPID_PMF(AddShapeChainSample), EOPID_PMF(AddShapeChainSample), EOPID_NONE}, /* [1210] opt 1044, SHAPE (+4) */
     {2, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(EnsureShapeChain)}, /* [1211] opt 1045, SHAPE (+4) */
     {0x104B, 0x124, EOPID_PMF(GetShapeChainMode), EOPID_PMF(SetShapeChainMode), EOPID_PMF(SetShapeChainMode), EOPID_NONE}, /* [1212] opt 1046, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x64), EOPID_INT(0x64), EOPID_INT(0x64), EOPID_PMF(EnsureShapeChain)}, /* [1213] opt 1047, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_PMF(EnsureShapeChain)}, /* [1214] opt 1048, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x74), EOPID_INT(0x74), EOPID_INT(0x74), EOPID_PMF(EnsureShapeChain)}, /* [1215] opt 1049, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x7C), EOPID_INT(0x7C), EOPID_INT(0x7C), EOPID_PMF(EnsureShapeChain)}, /* [1216] opt 1050, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_PMF(EnsureShapeChain)}, /* [1217] opt 1051, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(EnsureShapeChain)}, /* [1218] opt 1052, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_PMF(EnsureShapeChain)}, /* [1219] opt 1053, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x78), EOPID_INT(0x78), EOPID_INT(0x78), EOPID_PMF(EnsureShapeChain)}, /* [1220] opt 1054, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, stretch), EOPID_OFF(SHAPECHAIN, stretch), EOPID_OFF(SHAPECHAIN, stretch), EOPID_PMF(EnsureShapeChain)}, /* [1213] opt 1047, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, bend), EOPID_OFF(SHAPECHAIN, bend), EOPID_OFF(SHAPECHAIN, bend), EOPID_PMF(EnsureShapeChain)}, /* [1214] opt 1048, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, shapeStiffness), EOPID_OFF(SHAPECHAIN, shapeStiffness), EOPID_OFF(SHAPECHAIN, shapeStiffness), EOPID_PMF(EnsureShapeChain)}, /* [1215] opt 1049, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, unknown7C), EOPID_OFF(SHAPECHAIN, unknown7C), EOPID_OFF(SHAPECHAIN, unknown7C), EOPID_PMF(EnsureShapeChain)}, /* [1216] opt 1050, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, damping), EOPID_OFF(SHAPECHAIN, damping), EOPID_OFF(SHAPECHAIN, damping), EOPID_PMF(EnsureShapeChain)}, /* [1217] opt 1051, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, stretchDamping), EOPID_OFF(SHAPECHAIN, stretchDamping), EOPID_OFF(SHAPECHAIN, stretchDamping), EOPID_PMF(EnsureShapeChain)}, /* [1218] opt 1052, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, bendDamping), EOPID_OFF(SHAPECHAIN, bendDamping), EOPID_OFF(SHAPECHAIN, bendDamping), EOPID_PMF(EnsureShapeChain)}, /* [1219] opt 1053, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, shapeDamping), EOPID_OFF(SHAPECHAIN, shapeDamping), EOPID_OFF(SHAPECHAIN, shapeDamping), EOPID_PMF(EnsureShapeChain)}, /* [1220] opt 1054, SHAPE (+4) */
     {1, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(EnsureShapeChain)}, /* [1221] opt 1055, SHAPE (+4) */
-    {1, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(EnsureShapeChain)}, /* [1222] opt 1056, SHAPE (+4) */
+    {1, 0x2092, EOPID_OFF(SHAPECHAIN, step), EOPID_OFF(SHAPECHAIN, step), EOPID_OFF(SHAPECHAIN, step), EOPID_PMF(EnsureShapeChain)}, /* [1222] opt 1056, SHAPE (+4) */
     {2, 1, EOPID_NONE, EOPID_FN(RefThunk_GetShapeClosestPoint), EOPID_INT(1), EOPID_NONE}, /* [1223] opt 1057, SHAPE (+4) */
     {1, 0x24, EOPID_PMF(GetXfHandleParamAC), EOPID_PMF(SetXfHandleParamAC), EOPID_NONE, EOPID_NONE}, /* [1224] opt 323, CID149 */
     {1, 0x24, EOPID_PMF(GetXfHandleParamAE), EOPID_PMF(SetXfHandleParamAE), EOPID_NONE, EOPID_NONE}, /* [1225] opt 324, CID149 */
     {1, 0x24, EOPID_PMF(GetXfHandleParamAC2), EOPID_PMF(SetXfHandleParamAC2), EOPID_NONE, EOPID_NONE}, /* [1226] opt 1058, CID149 */
-    {1, 0x2012, EOPID_INT(0xA8), EOPID_INT(0xA8), EOPID_NONE, EOPID_PMF(GetXfFromHandle)}, /* [1227] opt 1059, CID149 */
+    {1, 0x2012, EOPID_OFF(XF, arrivalTime), EOPID_OFF(XF, arrivalTime), EOPID_NONE, EOPID_PMF(GetXfFromHandle)}, /* [1227] opt 1059, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator1World), EOPID_INT(3), EOPID_NONE}, /* [1228] opt 1060, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator1Mat), EOPID_INT(3), EOPID_NONE}, /* [1229] opt 1061, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator4), EOPID_INT(4), EOPID_NONE}, /* [1230] opt 1062, CID149 */
@@ -1971,52 +1991,52 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SignalJobComplete), EOPID_NONE, EOPID_NONE}, /* [1238] opt 1067, JOB */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RestartJob), EOPID_NONE, EOPID_NONE}, /* [1239] opt 1068, JOB */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_FailJob), EOPID_NONE, EOPID_NONE}, /* [1240] opt 1069, JOB */
-    {0, 0x92, EOPID_INT(0x74), EOPID_INT(0x74), EOPID_INT(0x74), EOPID_NONE}, /* [1241] opt 1070, JOB */
-    {0, 0x92, EOPID_INT(0x78), EOPID_INT(0x78), EOPID_INT(0x78), EOPID_NONE}, /* [1242] opt 1071, JOB */
-    {0x2085, 0x92, EOPID_INT(0x64), EOPID_INT(0x64), EOPID_INT(0x64), EOPID_NONE}, /* [1243] opt 1072, JOB */
-    {0x2085, 0x92, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_NONE}, /* [1244] opt 1073, JOB */
-    {0x10, 0x92, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_NONE}, /* [1245] opt 1074, JOB */
-    {0x10, 0x92, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_NONE}, /* [1246] opt 1075, JOB */
+    {0, 0x92, EOPID_OFF(JOB, survivesSafehouse), EOPID_OFF(JOB, survivesSafehouse), EOPID_OFF(JOB, survivesSafehouse), EOPID_NONE}, /* [1241] opt 1070, JOB */
+    {0, 0x92, EOPID_OFF(JOB, fReplay), EOPID_OFF(JOB, fReplay), EOPID_OFF(JOB, fReplay), EOPID_NONE}, /* [1242] opt 1071, JOB */
+    {0x2085, 0x92, EOPID_OFF(JOB, firstTask), EOPID_OFF(JOB, firstTask), EOPID_OFF(JOB, firstTask), EOPID_NONE}, /* [1243] opt 1072, JOB */
+    {0x2085, 0x92, EOPID_OFF(JOB, finalTask), EOPID_OFF(JOB, finalTask), EOPID_OFF(JOB, finalTask), EOPID_NONE}, /* [1244] opt 1073, JOB */
+    {0x10, 0x92, EOPID_OFF(JOB, labelNameId), EOPID_OFF(JOB, labelNameId), EOPID_OFF(JOB, labelNameId), EOPID_NONE}, /* [1245] opt 1074, JOB */
+    {0x10, 0x92, EOPID_OFF(JOB, descriptionTextId), EOPID_OFF(JOB, descriptionTextId), EOPID_OFF(JOB, descriptionTextId), EOPID_NONE}, /* [1246] opt 1075, JOB */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1247] opt 1076, JOB */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1248] opt 1077, JOB */
-    {5, 2, EOPID_INT(0x7C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1249] opt 1078, JOB */
+    {5, 2, EOPID_OFF(JOB, counter), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1249] opt 1078, JOB */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResetJobTasks), EOPID_NONE, EOPID_NONE}, /* [1250] opt 1079, JOB */
     {0, 4, EOPID_PMF(IsJobComplete), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1251] opt 1080, JOB */
     {0, 4, EOPID_PMF(IsCurrentJob), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1252] opt 1081, JOB */
-    {0x1051, 2, EOPID_INT(0xF0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1253] opt 1082, JOB */
-    {0x2002, 2, EOPID_INT(0xF4), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1254] opt 1083, JOB */
+    {0x1051, 2, EOPID_OFF(JOB, stateSource), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1253] opt 1082, JOB */
+    {0x2002, 2, EOPID_OFF(JOB, stateRequester), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1254] opt 1083, JOB */
     {0x12, 0x400, EOPID_FN(RefThunk_AddJobStateVisibility), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1255] opt 1084, JOB */
     {0x12, 0x400, EOPID_FN(RefThunkJobSET_SM_GOAL), EOPID_NONE, EOPID_INT(5), EOPID_NONE}, /* [1256] opt 526, JOB */
-    {0xA, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0x9C), EOPID_NONE}, /* [1257] opt 1085, JOB */
+    {0xA, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(JOB, easeStartTime), EOPID_NONE}, /* [1257] opt 1085, JOB */
     {0x12, 0x400, EOPID_FN(RefThunk_SetJobCompletionWidget), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1258] opt 1086, JOB */
-    {0x201A, 0x8092, EOPID_INT(0xCC), EOPID_INT(0xCC), EOPID_INT(0xCC), EOPID_NONE}, /* [1259] opt 1087, JOB */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xE0), EOPID_NONE}, /* [1260] opt 1088, JOB */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xE8), EOPID_NONE}, /* [1261] opt 1089, JOB */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xD0), EOPID_NONE}, /* [1262] opt 1090, JOB */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xD8), EOPID_NONE}, /* [1263] opt 1091, JOB */
-    {0x2084, 0x92, EOPID_INT(0x7C), EOPID_INT(0x7C), EOPID_INT(0x7C), EOPID_NONE}, /* [1264] opt 1093, TASK */
-    {0x10, 0x92, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE}, /* [1265] opt 1074, TASK */
-    {0, 0x92, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_NONE}, /* [1266] opt 1076, TASK */
-    {5, 2, EOPID_INT(0x64), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1267] opt 1078, TASK */
+    {0x201A, 0x8092, EOPID_OFF(JOB, ploExit), EOPID_OFF(JOB, ploExit), EOPID_OFF(JOB, ploExit), EOPID_NONE}, /* [1259] opt 1087, JOB */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(JOB, svkElapsed.c), EOPID_NONE}, /* [1260] opt 1088, JOB */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(JOB, svkDifficulty.c), EOPID_NONE}, /* [1261] opt 1089, JOB */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(JOB, svkStart.c), EOPID_NONE}, /* [1262] opt 1090, JOB */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(JOB, svkComplete.c), EOPID_NONE}, /* [1263] opt 1091, JOB */
+    {0x2084, 0x92, EOPID_OFF(TASK, pjob), EOPID_OFF(TASK, pjob), EOPID_OFF(TASK, pjob), EOPID_NONE}, /* [1264] opt 1093, TASK */
+    {0x10, 0x92, EOPID_OFF(TASK, objectiveTextId), EOPID_OFF(TASK, objectiveTextId), EOPID_OFF(TASK, objectiveTextId), EOPID_NONE}, /* [1265] opt 1074, TASK */
+    {0, 0x92, EOPID_OFF(TASK, fShowObjective), EOPID_OFF(TASK, fShowObjective), EOPID_OFF(TASK, fShowObjective), EOPID_NONE}, /* [1266] opt 1076, TASK */
+    {5, 2, EOPID_OFF(TASK, cStart), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1267] opt 1078, TASK */
     {0, 4, EOPID_PMF(IsTaskComplete), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1268] opt 1080, TASK */
     {0, 4, EOPID_PMF(IsCurrentTask), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1269] opt 1081, TASK */
     {6, 4, EOPID_PMF(GetTaskStateGoalOid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1270] opt 1094, TASK */
-    {0, 0x92, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_NONE}, /* [1271] opt 1095, TASK */
-    {0, 0x92, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_NONE}, /* [1272] opt 1096, TASK */
-    {0, 0x92, EOPID_INT(0x74), EOPID_INT(0x74), EOPID_INT(0x74), EOPID_NONE}, /* [1273] opt 1097, TASK */
-    {6, 0x92, EOPID_INT(0xB8), EOPID_INT(0xB8), EOPID_INT(0xB8), EOPID_NONE}, /* [1274] opt 1098, TASK */
-    {0xF, 0x92, EOPID_INT(0xBC), EOPID_INT(0xBC), EOPID_INT(0xBC), EOPID_NONE}, /* [1275] opt 1099, TASK */
-    {6, 0x92, EOPID_INT(0xC0), EOPID_INT(0xC0), EOPID_INT(0xC0), EOPID_NONE}, /* [1276] opt 1100, TASK */
+    {0, 0x92, EOPID_OFF(TASK, fOptional), EOPID_OFF(TASK, fOptional), EOPID_OFF(TASK, fOptional), EOPID_NONE}, /* [1271] opt 1095, TASK */
+    {0, 0x92, EOPID_OFF(TASK, fActivateWhenAvailable), EOPID_OFF(TASK, fActivateWhenAvailable), EOPID_OFF(TASK, fActivateWhenAvailable), EOPID_NONE}, /* [1272] opt 1096, TASK */
+    {0, 0x92, EOPID_OFF(TASK, fResumeHere), EOPID_OFF(TASK, fResumeHere), EOPID_OFF(TASK, fResumeHere), EOPID_NONE}, /* [1273] opt 1097, TASK */
+    {6, 0x92, EOPID_OFF(TASK, warpOid), EOPID_OFF(TASK, warpOid), EOPID_OFF(TASK, warpOid), EOPID_NONE}, /* [1274] opt 1098, TASK */
+    {0xF, 0x92, EOPID_OFF(TASK, level), EOPID_OFF(TASK, level), EOPID_OFF(TASK, level), EOPID_NONE}, /* [1275] opt 1099, TASK */
+    {6, 0x92, EOPID_OFF(TASK, character), EOPID_OFF(TASK, character), EOPID_OFF(TASK, character), EOPID_NONE}, /* [1276] opt 1100, TASK */
     {0, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1277] opt 1101, TASK */
-    {0x201A, 0x8092, EOPID_INT(0xC4), EOPID_INT(0xC4), EOPID_INT(0xC4), EOPID_NONE}, /* [1278] opt 1102, TASK */
-    {0x206B, 0x8092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_NONE}, /* [1279] opt 1103, TASK */
+    {0x201A, 0x8092, EOPID_OFF(TASK, ploExit), EOPID_OFF(TASK, ploExit), EOPID_OFF(TASK, ploExit), EOPID_NONE}, /* [1278] opt 1102, TASK */
+    {0x206B, 0x8092, EOPID_OFF(TASK, ploMarker), EOPID_OFF(TASK, ploMarker), EOPID_OFF(TASK, ploMarker), EOPID_NONE}, /* [1279] opt 1103, TASK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RequestTaskState), EOPID_INT(2), EOPID_NONE}, /* [1280] opt 1104, TASK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ForceTaskState), EOPID_INT(2), EOPID_NONE}, /* [1281] opt 1105, TASK */
-    {0x1051, 2, EOPID_INT(0xF4), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1282] opt 1082, TASK */
-    {0x2002, 2, EOPID_INT(0xF8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1283] opt 1083, TASK */
+    {0x1051, 2, EOPID_OFF(TASK, stateSource), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1282] opt 1082, TASK */
+    {0x2002, 2, EOPID_OFF(TASK, stateRequester), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1283] opt 1083, TASK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SendTaskTimeout), EOPID_INT(1), EOPID_NONE}, /* [1284] opt 1106, TASK */
-    {1, 0x92, EOPID_INT(0x78), EOPID_INT(0x78), EOPID_INT(0x78), EOPID_NONE}, /* [1285] opt 1107, TASK */
-    {0x104F, 2, EOPID_INT(0x54), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1286] opt 342, TASK */
+    {1, 0x92, EOPID_OFF(TASK, dtLimit), EOPID_OFF(TASK, dtLimit), EOPID_OFF(TASK, dtLimit), EOPID_NONE}, /* [1285] opt 1107, TASK */
+    {0x104F, 2, EOPID_OFF(TASK, state), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1286] opt 342, TASK */
     {0x12, 0x400, EOPID_FN(RefThunk_AddTaskStateVisibility), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1287] opt 1108, TASK */
     {0x12, 0x400, EOPID_FN(RefThunkTaskSET_SM_GOAL), EOPID_NONE, EOPID_INT(6), EOPID_NONE}, /* [1288] opt 526, TASK */
     {0, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1289] opt 1109, TASK */
@@ -2025,11 +2045,11 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_ForceTaskState2), EOPID_NONE, EOPID_NONE}, /* [1292] opt 1112, TASK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ForceTaskState3), EOPID_NONE, EOPID_NONE}, /* [1293] opt 1113, TASK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ActivateTask), EOPID_NONE, EOPID_NONE}, /* [1294] opt 1114, TASK */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC8), EOPID_NONE}, /* [1295] opt 1090, TASK */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xD0), EOPID_NONE}, /* [1296] opt 1115, TASK */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xD8), EOPID_NONE}, /* [1297] opt 1091, TASK */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xE0), EOPID_NONE}, /* [1298] opt 1116, TASK */
-    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0xE8), EOPID_NONE}, /* [1299] opt 1117, TASK */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(TASK, svkStart.c), EOPID_NONE}, /* [1295] opt 1090, TASK */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(TASK, svkCompletionCount.c), EOPID_NONE}, /* [1296] opt 1115, TASK */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(TASK, svkComplete.c), EOPID_NONE}, /* [1297] opt 1091, TASK */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(TASK, svkState.c), EOPID_NONE}, /* [1298] opt 1116, TASK */
+    {0x16, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(TASK, svkInterrupted.c), EOPID_NONE}, /* [1299] opt 1117, TASK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_PostNotice), EOPID_INT(2), EOPID_NONE}, /* [1300] opt 979, CID154 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_CancelNotice), EOPID_INT(1), EOPID_NONE}, /* [1301] opt 980, CID154 */
     {0x10, 2, EOPID_INT(0x18), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1302] opt 1118, CID154 */
@@ -2042,37 +2062,37 @@ EOPIDROW D_002AC880[1449] = {
     {0x2003, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [1309] opt 1125, CID105 */
     {1, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [1310] opt 1126, CID105 */
     {0x200A, 0x82, EOPID_INT(0x150), EOPID_NONE, EOPID_INT(0x150), EOPID_NONE}, /* [1311] opt 1127, CID106 */
-    {6, 0x82, EOPID_INT(0x110), EOPID_NONE, EOPID_INT(0x110), EOPID_NONE}, /* [1312] opt 1007, PATHZONE */
-    {7, 0x92, EOPID_INT(0x154), EOPID_INT(0x154), EOPID_INT(0x154), EOPID_NONE}, /* [1313] opt 1129, WAYPT */
-    {0xA, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [1314] opt 1130, WAYPT */
-    {0x2085, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [1315] opt 1131, WAYPT */
-    {0x1055, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [1316] opt 1132, WAYPT */
-    {0x2003, 0x82, EOPID_INT(0x168), EOPID_NONE, EOPID_INT(0x168), EOPID_NONE}, /* [1317] opt 1133, WAYPT */
-    {0x2030, 0x82, EOPID_INT(0x16C), EOPID_NONE, EOPID_INT(0x16C), EOPID_NONE}, /* [1318] opt 1134, WAYPT */
-    {0x2030, 0x82, EOPID_INT(0x170), EOPID_NONE, EOPID_INT(0x170), EOPID_NONE}, /* [1319] opt 537, WAYPT */
-    {0x2030, 0x82, EOPID_INT(0x174), EOPID_NONE, EOPID_INT(0x174), EOPID_NONE}, /* [1320] opt 1135, WAYPT */
+    {6, 0x82, EOPID_OFF(PATHZONE, unknown110), EOPID_NONE, EOPID_OFF(PATHZONE, unknown110), EOPID_NONE}, /* [1312] opt 1007, PATHZONE */
+    {7, 0x92, EOPID_OFF(WAYPT, triggerClass), EOPID_OFF(WAYPT, triggerClass), EOPID_OFF(WAYPT, triggerClass), EOPID_NONE}, /* [1313] opt 1129, WAYPT */
+    {0xA, 0x92, EOPID_OFF(WAYPT, inactiveRadius), EOPID_OFF(WAYPT, inactiveRadius), EOPID_OFF(WAYPT, inactiveRadius), EOPID_NONE}, /* [1314] opt 1130, WAYPT */
+    {0x2085, 0x92, EOPID_OFF(WAYPT, attachment), EOPID_OFF(WAYPT, attachment), EOPID_OFF(WAYPT, attachment), EOPID_NONE}, /* [1315] opt 1131, WAYPT */
+    {0x1055, 0x92, EOPID_OFF(WAYPT, mode), EOPID_OFF(WAYPT, mode), EOPID_OFF(WAYPT, mode), EOPID_NONE}, /* [1316] opt 1132, WAYPT */
+    {0x2003, 0x82, EOPID_OFF(WAYPT, source), EOPID_NONE, EOPID_OFF(WAYPT, source), EOPID_NONE}, /* [1317] opt 1133, WAYPT */
+    {0x2030, 0x82, EOPID_OFF(WAYPT, marker), EOPID_NONE, EOPID_OFF(WAYPT, marker), EOPID_NONE}, /* [1318] opt 1134, WAYPT */
+    {0x2030, 0x82, EOPID_OFF(WAYPT, beam), EOPID_NONE, EOPID_OFF(WAYPT, beam), EOPID_NONE}, /* [1319] opt 537, WAYPT */
+    {0x2030, 0x82, EOPID_OFF(WAYPT, base), EOPID_NONE, EOPID_OFF(WAYPT, base), EOPID_NONE}, /* [1320] opt 1135, WAYPT */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1321] opt 1136, WAYPT */
-    {0x2084, 0x82, EOPID_INT(0x188), EOPID_NONE, EOPID_INT(0x188), EOPID_NONE}, /* [1322] opt 1137, WAYPT */
-    {0x1049, 0x82, EOPID_INT(0x184), EOPID_NONE, EOPID_INT(0x184), EOPID_NONE}, /* [1323] opt 1138, WAYPT */
+    {0x2084, 0x82, EOPID_OFF(WAYPT, jobCondition), EOPID_NONE, EOPID_OFF(WAYPT, jobCondition), EOPID_NONE}, /* [1322] opt 1137, WAYPT */
+    {0x1049, 0x82, EOPID_OFF(WAYPT, requiredPowerup), EOPID_NONE, EOPID_OFF(WAYPT, requiredPowerup), EOPID_NONE}, /* [1323] opt 1138, WAYPT */
     {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerLoSpot), EOPID_NONE}, /* [1324] opt 1139, CID119 */
     {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerCurve), EOPID_NONE}, /* [1325] opt 1140, CID119 */
     {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerSmallLoSpot), EOPID_NONE}, /* [1326] opt 1141, CID119 */
-    {5, 0x92, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE}, /* [1327] opt 1142, CID119 */
+    {5, 0x92, EOPID_OFF(CID119, entryCapacity), EOPID_OFF(CID119, entryCapacity), EOPID_OFF(CID119, entryCapacity), EOPID_NONE}, /* [1327] opt 1142, CID119 */
     {0x2006, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerTemplate), EOPID_NONE}, /* [1328] opt 1143, CID119 */
-    {0, 0x92, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_NONE}, /* [1329] opt 1144, CID119 */
-    {0, 0x92, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_NONE}, /* [1330] opt 1145, CID119 */
-    {0, 0x92, EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_NONE}, /* [1331] opt 1146, CID119 */
-    {1, 0x92, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_NONE}, /* [1332] opt 1147, CID119 */
+    {0, 0x92, EOPID_OFF(CID119, useEdgeTest), EOPID_OFF(CID119, useEdgeTest), EOPID_OFF(CID119, useEdgeTest), EOPID_NONE}, /* [1329] opt 1144, CID119 */
+    {0, 0x92, EOPID_OFF(CID119, useRangeTest), EOPID_OFF(CID119, useRangeTest), EOPID_OFF(CID119, useRangeTest), EOPID_NONE}, /* [1330] opt 1145, CID119 */
+    {0, 0x92, EOPID_OFF(CID119, useOcclusionTest), EOPID_OFF(CID119, useOcclusionTest), EOPID_OFF(CID119, useOcclusionTest), EOPID_NONE}, /* [1331] opt 1146, CID119 */
+    {1, 0x92, EOPID_OFF(CID119, planarRange), EOPID_OFF(CID119, planarRange), EOPID_OFF(CID119, planarRange), EOPID_NONE}, /* [1332] opt 1147, CID119 */
     {2, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerOffset), EOPID_NONE}, /* [1333] opt 1148, CID119 */
-    {1, 0x92, EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_NONE}, /* [1334] opt 1149, CID119 */
-    {1, 0x92, EOPID_INT(0xA4), EOPID_INT(0xA4), EOPID_INT(0xA4), EOPID_NONE}, /* [1335] opt 1150, CID119 */
-    {0x1067, 0x92, EOPID_INT(0xAC), EOPID_INT(0xAC), EOPID_INT(0xAC), EOPID_NONE}, /* [1336] opt 1151, CID119 */
+    {1, 0x92, EOPID_OFF(CID119, respawnDelay), EOPID_OFF(CID119, respawnDelay), EOPID_OFF(CID119, respawnDelay), EOPID_NONE}, /* [1334] opt 1149, CID119 */
+    {1, 0x92, EOPID_OFF(CID119, respawnDelay2), EOPID_OFF(CID119, respawnDelay2), EOPID_OFF(CID119, respawnDelay2), EOPID_NONE}, /* [1335] opt 1150, CID119 */
+    {0x1067, 0x92, EOPID_OFF(CID119, mode), EOPID_OFF(CID119, mode), EOPID_OFF(CID119, mode), EOPID_NONE}, /* [1336] opt 1151, CID119 */
     {0x206F, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [1337] opt 1152, SAFEHOUSE */
     {0x12, 0x400, EOPID_FN(RefThunk_AddSafehouseEntry), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1338] opt 1153, SAFEHOUSE */
     {0x12, 0x401, EOPID_FN(RefThunk_SetPoChoices), EOPID_FN(RefThunk_SetPoChoices), EOPID_INT(1), EOPID_NONE}, /* [1339] opt 1154, SAFEHOUSE */
     {0x12, 0x400, EOPID_FN(RefThunk_AddDimitriRoute), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1340] opt 1155, DIMITRI */
     {2, 1, EOPID_NONE, EOPID_FN(RefThunk_ChooseEscapePosition), EOPID_INT(1), EOPID_NONE}, /* [1341] opt 1156, DIMITRI */
-    {0x206D, 0x92, EOPID_INT(0x2C0), EOPID_INT(0x2C0), EOPID_INT(0x2C0), EOPID_NONE}, /* [1342] opt 1157, DANCER */
+    {0x206D, 0x92, EOPID_OFF(DANCER, idleSegment), EOPID_OFF(DANCER, idleSegment), EOPID_OFF(DANCER, idleSegment), EOPID_NONE}, /* [1342] opt 1157, DANCER */
     {0x12, 0x400, EOPID_FN(RefThunk_AddDancerMove), EOPID_NONE, EOPID_INT(5), EOPID_NONE}, /* [1343] opt 1158, DANCER */
     {1, 0x92, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_NONE}, /* [1344] opt 1159, CID121 */
     {1, 0x92, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE}, /* [1345] opt 1160, CID121 */
@@ -2087,49 +2107,49 @@ EOPIDROW D_002AC880[1449] = {
     {0x1059, 0x122, EOPID_INT(0x50), EOPID_PMF(SetRhythmMgrState), EOPID_PMF(SetRhythmMgrState), EOPID_NONE}, /* [1354] opt 342, CID121 */
     {1, 2, EOPID_INT(0x284), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1355] opt 1169, CID121 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResetRhythmScore), EOPID_NONE, EOPID_NONE}, /* [1356] opt 1170, CID121 */
-    {0x2033, 2, EOPID_INT(0x10), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1357] opt 1171, BHV (+43) */
-    {0x2071, 2, EOPID_INT(0x30), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1358] opt 1172, BHV169 */
+    {0x2033, 2, EOPID_OFF(BHV, owner), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1357] opt 1171, BHV (+43) */
+    {0x2071, 2, EOPID_OFF(BHV169, script), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1358] opt 1172, BHV169 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_JumpBhvScriptToLabel), EOPID_INT(1), EOPID_NONE}, /* [1359] opt 236, BHV169 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SendCarmelitaRootBhvValue), EOPID_INT(1), EOPID_NONE}, /* [1360] opt 1173, CARMELITA */
-    {0x105A, 0x92, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_NONE}, /* [1361] opt 278, CID123 */
+    {0x105A, 0x92, EOPID_OFF(CID123, isReversed), EOPID_OFF(CID123, isReversed), EOPID_OFF(CID123, isReversed), EOPID_NONE}, /* [1361] opt 278, CID123 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddRoutePoint), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1362] opt 1174, CID123 */
-    {5, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [1363] opt 380, HACK (+5) */
-    {5, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [1364] opt 381, HACK (+5) */
-    {5, 0x92, EOPID_INT(0x188), EOPID_INT(0x188), EOPID_INT(0x188), EOPID_NONE}, /* [1365] opt 123, HACK (+5) */
-    {0x201E, 0x92, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE}, /* [1366] opt 497, HACK (+5) */
+    {5, 0x92, EOPID_OFF(HACK, cHealthMax), EOPID_OFF(HACK, cHealthMax), EOPID_OFF(HACK, cHealthMax), EOPID_NONE}, /* [1363] opt 380, HACK (+5) */
+    {5, 0x92, EOPID_OFF(HACK, cHealth), EOPID_OFF(HACK, cHealth), EOPID_OFF(HACK, cHealth), EOPID_NONE}, /* [1364] opt 381, HACK (+5) */
+    {5, 0x92, EOPID_OFF(HACK, cDamage), EOPID_OFF(HACK, cDamage), EOPID_OFF(HACK, cDamage), EOPID_NONE}, /* [1365] opt 123, HACK (+5) */
+    {0x201E, 0x92, EOPID_OFF(HACK, pexpl), EOPID_OFF(HACK, pexpl), EOPID_OFF(HACK, pexpl), EOPID_NONE}, /* [1366] opt 497, HACK (+5) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_KillHack), EOPID_INT(1), EOPID_NONE}, /* [1367] opt 493, HACK (+5) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResetHack), EOPID_NONE, EOPID_NONE}, /* [1368] opt 454, HACK (+5) */
-    {9, 0x92, EOPID_INT(0x1A0), EOPID_INT(0x1A0), EOPID_INT(0x1A0), EOPID_NONE}, /* [1369] opt 1176, HACK (+5) */
-    {0xA, 0x92, EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_NONE}, /* [1370] opt 1177, HACK (+5) */
+    {9, 0x92, EOPID_OFF(HACK, clqKnockback), EOPID_OFF(HACK, clqKnockback), EOPID_OFF(HACK, clqKnockback), EOPID_NONE}, /* [1369] opt 1176, HACK (+5) */
+    {0xA, 0x92, EOPID_OFF(HACK, lmKnockback), EOPID_OFF(HACK, lmKnockback), EOPID_OFF(HACK, lmKnockback), EOPID_NONE}, /* [1370] opt 1177, HACK (+5) */
     {0x12, 0x400, EOPID_FN(RefThunk_AddHackshipOidPair), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1371] opt 1178, HACKSHIP */
     {0x12, 0x400, EOPID_FN(RefThunk_SetHackshipEntry), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1372] opt 369, HACKSHIP */
-    {0x207E, 0x92, EOPID_INT(0x2A0), EOPID_INT(0x2A0), EOPID_INT(0x2A0), EOPID_NONE}, /* [1373] opt 1179, HACKSHIP */
-    {0xE, 0x92, EOPID_INT(0x2A8), EOPID_INT(0x2A8), EOPID_INT(0x2A8), EOPID_NONE}, /* [1374] opt 1180, HACKSHIP */
+    {0x207E, 0x92, EOPID_OFF(HACKSHIP, pwidgetHealth), EOPID_OFF(HACKSHIP, pwidgetHealth), EOPID_OFF(HACKSHIP, pwidgetHealth), EOPID_NONE}, /* [1373] opt 1179, HACKSHIP */
+    {0xE, 0x92, EOPID_OFF(HACKSHIP, sfxidEngine), EOPID_OFF(HACKSHIP, sfxidEngine), EOPID_OFF(HACKSHIP, sfxidEngine), EOPID_NONE}, /* [1374] opt 1180, HACKSHIP */
     {0x12, 0x400, EOPID_FN(RefThunk_SetHackenemyEntry), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1375] opt 369, HACKENEMY */
     {1, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(SetHackenemyScale), EOPID_NONE}, /* [1376] opt 350, HACKENEMY */
     {1, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(SetHackenemyRange), EOPID_NONE}, /* [1377] opt 1181, HACKENEMY */
-    {0x2011, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [1378] opt 425, HACKENEMY */
-    {0x2002, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [1379] opt 386, HACKENEMY */
+    {0x2011, 0x92, EOPID_OFF(HACKENEMY, pvPathzone), EOPID_OFF(HACKENEMY, pvPathzone), EOPID_OFF(HACKENEMY, pvPathzone), EOPID_NONE}, /* [1378] opt 425, HACKENEMY */
+    {0x2002, 0x92, EOPID_OFF(HACKENEMY, ploTarget), EOPID_OFF(HACKENEMY, ploTarget), EOPID_OFF(HACKENEMY, ploTarget), EOPID_NONE}, /* [1379] opt 386, HACKENEMY */
     {0x12, 0x401, EOPID_FN(RefThunk_SetHackenemyEntryVectors), EOPID_FN(RefThunk_SetHackenemyEntryVectors), EOPID_INT(3), EOPID_NONE}, /* [1380] opt 1182, HACKENEMY */
     {0x12, 0x401, EOPID_FN(RefThunk_SetHackenemyEntrySecondVectors), EOPID_FN(RefThunk_SetHackenemyEntrySecondVectors), EOPID_INT(3), EOPID_NONE}, /* [1381] opt 1183, HACKENEMY */
-    {1, 0x92, EOPID_INT(0x338), EOPID_INT(0x338), EOPID_INT(0x338), EOPID_NONE}, /* [1382] opt 1184, HACKENEMY */
-    {9, 0x92, EOPID_INT(0x340), EOPID_INT(0x340), EOPID_INT(0x340), EOPID_NONE}, /* [1383] opt 1185, HACKENEMY */
-    {9, 0x92, EOPID_INT(0x350), EOPID_INT(0x350), EOPID_INT(0x350), EOPID_NONE}, /* [1384] opt 1186, HACKENEMY */
-    {9, 0x92, EOPID_INT(0x360), EOPID_INT(0x360), EOPID_INT(0x360), EOPID_NONE}, /* [1385] opt 1187, HACKENEMY */
-    {0xA, 0x92, EOPID_INT(0x370), EOPID_INT(0x370), EOPID_INT(0x370), EOPID_NONE}, /* [1386] opt 1188, HACKENEMY */
+    {1, 0x92, EOPID_OFF(HACKENEMY, uSpeed), EOPID_OFF(HACKENEMY, uSpeed), EOPID_OFF(HACKENEMY, uSpeed), EOPID_NONE}, /* [1382] opt 1184, HACKENEMY */
+    {9, 0x92, EOPID_OFF(HACKENEMY, clqSpeedDistance), EOPID_OFF(HACKENEMY, clqSpeedDistance), EOPID_OFF(HACKENEMY, clqSpeedDistance), EOPID_NONE}, /* [1383] opt 1185, HACKENEMY */
+    {9, 0x92, EOPID_OFF(HACKENEMY, clqSpeedTurn), EOPID_OFF(HACKENEMY, clqSpeedTurn), EOPID_OFF(HACKENEMY, clqSpeedTurn), EOPID_NONE}, /* [1384] opt 1186, HACKENEMY */
+    {9, 0x92, EOPID_OFF(HACKENEMY, clqHeading), EOPID_OFF(HACKENEMY, clqHeading), EOPID_OFF(HACKENEMY, clqHeading), EOPID_NONE}, /* [1385] opt 1187, HACKENEMY */
+    {0xA, 0x92, EOPID_OFF(HACKENEMY, lmHeading), EOPID_OFF(HACKENEMY, lmHeading), EOPID_OFF(HACKENEMY, lmHeading), EOPID_NONE}, /* [1386] opt 1188, HACKENEMY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetHackbulletMode), EOPID_INT(1), EOPID_NONE}, /* [1387] opt 508, HACKBULLET */
-    {0, 0x92, EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_NONE}, /* [1388] opt 1189, HACKBULLET */
-    {1, 0x92, EOPID_INT(0x1C4), EOPID_INT(0x1C4), EOPID_INT(0x1C4), EOPID_NONE}, /* [1389] opt 1190, HACKBULLET */
-    {0x2030, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [1390] opt 1191, HACKBULLET */
-    {1, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [1391] opt 1192, HACKBULLET */
+    {0, 0x92, EOPID_OFF(HACKBULLET, fBounce), EOPID_OFF(HACKBULLET, fBounce), EOPID_OFF(HACKBULLET, fBounce), EOPID_NONE}, /* [1388] opt 1189, HACKBULLET */
+    {1, 0x92, EOPID_OFF(HACKBULLET, dtLifetime), EOPID_OFF(HACKBULLET, dtLifetime), EOPID_OFF(HACKBULLET, dtLifetime), EOPID_NONE}, /* [1389] opt 1190, HACKBULLET */
+    {0x2030, 0x92, EOPID_OFF(HACKBULLET, ploTarget), EOPID_OFF(HACKBULLET, ploTarget), EOPID_OFF(HACKBULLET, ploTarget), EOPID_NONE}, /* [1390] opt 1191, HACKBULLET */
+    {1, 0x92, EOPID_OFF(HACKBULLET, radTurnRate), EOPID_OFF(HACKBULLET, radTurnRate), EOPID_OFF(HACKBULLET, radTurnRate), EOPID_NONE}, /* [1391] opt 1192, HACKBULLET */
     {0x12, 0x400, EOPID_FN(RefThunk_SetHacklockEntry), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1392] opt 369, HACKLOCK */
     {0x12, 0x400, EOPID_FN(RefThunkHacklockSET_SM_GOAL), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1393] opt 526, HACKLOCK */
-    {0x2003, 0x92, EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_INT(0x1CC), EOPID_NONE}, /* [1394] opt 1193, HACKLOCK */
+    {0x2003, 0x92, EOPID_OFF(HACKLOCK, ploTrigger), EOPID_OFF(HACKLOCK, ploTrigger), EOPID_OFF(HACKLOCK, ploTrigger), EOPID_NONE}, /* [1394] opt 1193, HACKLOCK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ActivateHackshipFromHacklock), EOPID_NONE, EOPID_NONE}, /* [1395] opt 1194, HACKLOCK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkHacklockTRIGGER), EOPID_NONE, EOPID_NONE}, /* [1396] opt 235, HACKLOCK */
-    {0x2002, 0x92, EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_NONE}, /* [1397] opt 386, HACKWALL */
+    {0x2002, 0x92, EOPID_OFF(HACKWALL, ploTarget), EOPID_OFF(HACKWALL, ploTarget), EOPID_OFF(HACKWALL, ploTarget), EOPID_NONE}, /* [1397] opt 386, HACKWALL */
     {0x12, 0x400, EOPID_FN(RefThunk_AddHackwallSegment), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1398] opt 1195, HACKWALL */
-    {0x2030, 0x92, EOPID_INT(0x1C4), EOPID_INT(0x1C4), EOPID_INT(0x1C4), EOPID_NONE}, /* [1399] opt 1196, HACKWALL */
+    {0x2030, 0x92, EOPID_OFF(HACKWALL, ploPiece), EOPID_OFF(HACKWALL, ploPiece), EOPID_OFF(HACKWALL, ploPiece), EOPID_NONE}, /* [1399] opt 1196, HACKWALL */
     {0x103C, 0x12, EOPID_INT(0x24), EOPID_INT(0x24), EOPID_NONE, EOPID_NONE}, /* [1400] opt 1197, JSG */
     {0x103C, 0x12, EOPID_INT(0x28), EOPID_INT(0x28), EOPID_NONE, EOPID_NONE}, /* [1401] opt 1198, JSG */
     {0xA, 0x12, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_NONE, EOPID_NONE}, /* [1402] opt 1199, JSG */
@@ -2153,30 +2173,30 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddRobottankWeapon), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1420] opt 1216, ROBOTTANK */
     {0x12, 0x400, EOPID_FN(RefThunk_AddRobottankAttachment), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1421] opt 1178, ROBOTTANK */
     {0x2099, 1, EOPID_NONE, EOPID_FN(RefThunk_FindRobottankWeapon), EOPID_INT(1), EOPID_NONE}, /* [1422] opt 1217, ROBOTTANK */
-    {0x2002, 0x92, EOPID_INT(0x5A4), EOPID_INT(0x5A4), EOPID_INT(0x5A4), EOPID_NONE}, /* [1423] opt 386, ROBOTTANK */
-    {0x2011, 0x92, EOPID_INT(0x5A8), EOPID_INT(0x5A8), EOPID_INT(0x5A8), EOPID_NONE}, /* [1424] opt 425, ROBOTTANK */
-    {0x1063, 0x22, EOPID_INT(0x180), EOPID_PMF(SetRobottankState), EOPID_NONE, EOPID_NONE}, /* [1425] opt 342, ROBOTTANK */
-    {5, 0x82, EOPID_INT(0x55C), EOPID_NONE, EOPID_INT(0x55C), EOPID_NONE}, /* [1426] opt 380, ROBOTTANK */
-    {5, 2, EOPID_INT(0x560), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1427] opt 381, ROBOTTANK */
-    {0x207E, 0x92, EOPID_INT(0x568), EOPID_INT(0x568), EOPID_INT(0x568), EOPID_NONE}, /* [1428] opt 1179, ROBOTTANK */
-    {0, 0x92, EOPID_INT(0x564), EOPID_INT(0x564), EOPID_INT(0x564), EOPID_NONE}, /* [1429] opt 1218, ROBOTTANK */
-    {0x206F, 0x92, EOPID_INT(0x56C), EOPID_INT(0x56C), EOPID_INT(0x56C), EOPID_NONE}, /* [1430] opt 484, ROBOTTANK */
+    {0x2002, 0x92, EOPID_OFF(ROBOTTANK, psoTarget), EOPID_OFF(ROBOTTANK, psoTarget), EOPID_OFF(ROBOTTANK, psoTarget), EOPID_NONE}, /* [1423] opt 386, ROBOTTANK */
+    {0x2011, 0x92, EOPID_OFF(ROBOTTANK, pvPathzone), EOPID_OFF(ROBOTTANK, pvPathzone), EOPID_OFF(ROBOTTANK, pvPathzone), EOPID_NONE}, /* [1424] opt 425, ROBOTTANK */
+    {0x1063, 0x22, EOPID_OFF(ROBOTTANK, state), EOPID_PMF(SetRobottankState), EOPID_NONE, EOPID_NONE}, /* [1425] opt 342, ROBOTTANK */
+    {5, 0x82, EOPID_OFF(ROBOTTANK, cHealthMax), EOPID_NONE, EOPID_OFF(ROBOTTANK, cHealthMax), EOPID_NONE}, /* [1426] opt 380, ROBOTTANK */
+    {5, 2, EOPID_OFF(ROBOTTANK, cHealth), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1427] opt 381, ROBOTTANK */
+    {0x207E, 0x92, EOPID_OFF(ROBOTTANK, pwidgetHealth), EOPID_OFF(ROBOTTANK, pwidgetHealth), EOPID_OFF(ROBOTTANK, pwidgetHealth), EOPID_NONE}, /* [1428] opt 1179, ROBOTTANK */
+    {0, 0x92, EOPID_OFF(ROBOTTANK, fHealthMeterInverted), EOPID_OFF(ROBOTTANK, fHealthMeterInverted), EOPID_OFF(ROBOTTANK, fHealthMeterInverted), EOPID_NONE}, /* [1429] opt 1218, ROBOTTANK */
+    {0x206F, 0x92, EOPID_OFF(ROBOTTANK, pvAsset), EOPID_OFF(ROBOTTANK, pvAsset), EOPID_OFF(ROBOTTANK, pvAsset), EOPID_NONE}, /* [1430] opt 484, ROBOTTANK */
     {5, 1, EOPID_NONE, EOPID_FN(RefThunk_GetRobottankSlotValue), EOPID_INT(1), EOPID_NONE}, /* [1431] opt 1219, ROBOTTANK */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetRobottankSlotValue), EOPID_INT(2), EOPID_NONE}, /* [1432] opt 1220, ROBOTTANK */
     {0x12, 0x400, EOPID_FN(RefThunk_SetRobottankAmmo), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1433] opt 1221, ROBOTTANK */
-    {0xE, 0x92, EOPID_INT(0x59C), EOPID_INT(0x59C), EOPID_INT(0x59C), EOPID_NONE}, /* [1434] opt 1222, ROBOTTANK */
-    {0x1065, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [1435] opt 1212, CID108 */
-    {5, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [1436] opt 1223, CID108 */
-    {0x206F, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [1437] opt 484, CID108 */
+    {0xE, 0x92, EOPID_OFF(ROBOTTANK, sfxidEngine), EOPID_OFF(ROBOTTANK, sfxidEngine), EOPID_OFF(ROBOTTANK, sfxidEngine), EOPID_NONE}, /* [1434] opt 1222, ROBOTTANK */
+    {0x1065, 0x92, EOPID_OFF(CID108, iammo), EOPID_OFF(CID108, iammo), EOPID_OFF(CID108, iammo), EOPID_NONE}, /* [1435] opt 1212, CID108 */
+    {5, 0x92, EOPID_OFF(CID108, cAmmo), EOPID_OFF(CID108, cAmmo), EOPID_OFF(CID108, cAmmo), EOPID_NONE}, /* [1436] opt 1223, CID108 */
+    {0x206F, 0x92, EOPID_OFF(CID108, psm), EOPID_OFF(CID108, psm), EOPID_OFF(CID108, psm), EOPID_NONE}, /* [1437] opt 484, CID108 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetRajanCameraFocus), EOPID_INT(1), EOPID_NONE}, /* [1438] opt 1224, RAJAN */
-    {5, 0x92, EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_INT(0x1F0), EOPID_NONE}, /* [1439] opt 1225, VAULT */
-    {0x10, 0x92, EOPID_INT(0x1F4), EOPID_INT(0x1F4), EOPID_INT(0x1F4), EOPID_NONE}, /* [1440] opt 1226, VAULT */
-    {0x10, 0x92, EOPID_INT(0x1F8), EOPID_INT(0x1F8), EOPID_INT(0x1F8), EOPID_NONE}, /* [1441] opt 1227, VAULT */
-    {0x1049, 0x92, EOPID_INT(0x200), EOPID_INT(0x200), EOPID_INT(0x200), EOPID_NONE}, /* [1442] opt 1228, VAULT */
-    {0x10, 0x92, EOPID_INT(0x1FC), EOPID_INT(0x1FC), EOPID_INT(0x1FC), EOPID_NONE}, /* [1443] opt 1229, VAULT */
+    {5, 0x92, EOPID_OFF(VAULT, combination), EOPID_OFF(VAULT, combination), EOPID_OFF(VAULT, combination), EOPID_NONE}, /* [1439] opt 1225, VAULT */
+    {0x10, 0x92, EOPID_OFF(VAULT, introDialog), EOPID_OFF(VAULT, introDialog), EOPID_OFF(VAULT, introDialog), EOPID_NONE}, /* [1440] opt 1226, VAULT */
+    {0x10, 0x92, EOPID_OFF(VAULT, notEnoughCluesDialog), EOPID_OFF(VAULT, notEnoughCluesDialog), EOPID_OFF(VAULT, notEnoughCluesDialog), EOPID_NONE}, /* [1441] opt 1227, VAULT */
+    {0x1049, 0x92, EOPID_OFF(VAULT, rewardPowerup), EOPID_OFF(VAULT, rewardPowerup), EOPID_OFF(VAULT, rewardPowerup), EOPID_NONE}, /* [1442] opt 1228, VAULT */
+    {0x10, 0x92, EOPID_OFF(VAULT, openedDialog), EOPID_OFF(VAULT, openedDialog), EOPID_OFF(VAULT, openedDialog), EOPID_NONE}, /* [1443] opt 1229, VAULT */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkVaultTRIGGER), EOPID_INT(1), EOPID_NONE}, /* [1444] opt 235, VAULT */
     {0x106C, 0x92, EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_NONE}, /* [1445] opt 1230, CID20 */
-    {0x106E, 0x92, EOPID_INT(0x120), EOPID_INT(0x120), EOPID_INT(0x120), EOPID_NONE}, /* [1446] opt 1231, PATHLINK */
+    {0x106E, 0x92, EOPID_OFF(PATHLINK, kind), EOPID_OFF(PATHLINK, kind), EOPID_OFF(PATHLINK, kind), EOPID_NONE}, /* [1446] opt 1231, PATHLINK */
     {0x2002, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddPathlinkEndpointObject), EOPID_NONE}, /* [1447] opt 238, PATHLINK */
     {2, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddPathlinkEndpointPos), EOPID_NONE}, /* [1448] opt 1232, PATHLINK */
 };
