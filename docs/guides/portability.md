@@ -27,14 +27,22 @@ WATER / SO / STEP / PO (SO::soFlags is the +0x148 unit as one doubleword; SOPHYS
 fields; PO lastWakeTime / wakeSound), path.cpp's zone BSP (typed REGTREE: REGBSPNODE, REGLINKLIST, PATHZONE /
 PATHLINK pointers) and path-link endpoints on PATHLINK / PATHLINKEND (PATHLINK::linkIndex), geom.cpp's PLANE with
 SURF's pointer words, gait.cpp on ASEGARC, and the per-frame solver's views (solve.cpp SOV / SOTREEV / TL / XP with
-the real classes' layout on every target) (section 3 lists what is left).
+the real classes' layout on every target); (v1.19, the port's boot-4 per-frame list) the hand vtable calls as virtual
+calls where they match and under SLY2_EE_LAYOUT where not (blend.cpp's curves, OVRA's float curve, cm.cpp, shd.cpp
+UpdateShaders, stepguard, rhythm, so.cpp SetSoXf, emitter / sw / bomb / grab slot 51, robottank slot 31, proxy, the
+FireMissile thunk, missile / bentley slot 33, pipe_jt slot 36, watchdog slot 73, murray slots 29 / 62, safehouse slot
+76, booty slot 35), UpdateGeomWorld's C fallback, the `int`-typed pointers (ReplaceSma / ReplaceSmaEx, the splice
+thunks' object arguments, HandleSpliceEvent's argument vector and result, bif.cpp's BIFK forwarders and
+find-class-objects, SO::AddCustomXps' BSPs), EnsureTargetRecordById's result, SetSoIdProxy's and NewSoPartHandle's
+pass-through arguments, and from request 4's structs: so.cpp's target records and CID149 / CID150 handles, relay.cpp's
+RELAYJSG, REGENT's size (section 3 lists what is left).
 
 ## 1. Guards and hooks
 
 | hook | EE (matching build) | native build | where |
 |---|---|---|---|
-| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp); section 2 |
-| `SLY2_EE_LAYOUT` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_LAYOUT`): EE data layout (4-byte pointers, file records read straight into in-memory structs) and g++ 2.95 vtables | undefined: `#else` reads file records field by field, uses plain virtual calls | shd.cpp LoadClutFromBrx / LoadBmpFromBrx, gait.cpp StartLeap's slot-35 call, cnvo.cpp MergeCid14Obstacles' slots 31 / 29 / 9 (`SLY2_VTE`) |
+| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp, geom.cpp); section 2 |
+| `SLY2_EE_LAYOUT` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_LAYOUT`): EE data layout (4-byte pointers, file records read straight into in-memory structs) and g++ 2.95 vtables | undefined: `#else` reads file records field by field, uses plain virtual calls | shd.cpp LoadClutFromBrx / LoadBmpFromBrx; the hand vtable calls that do not match as virtual calls: gait.cpp StartLeap (slot 35), cnvo.cpp MergeCid14Obstacles (31 / 29 / 9, `SLY2_VTE`), cm.cpp UpdateCmLast / GetCmCpdefi (50; the #else includes sly2/so.h), stepguard.cpp RestartStepguard (27 / 3 / 26), rhythm.cpp (35), so.cpp SetSoXf (35, with its VU0 transform in C), robottank.cpp MarkWheel / UpdateRobottank (31), proxy.cpp AcquireProxySpare (42), missile.cpp PresetSplmissAccel (33), bentley.cpp's gadget drag (33), pipe_jt.cpp (36), booty.cpp SetBootyState (35) |
 | `uptr`, `sptr` (sly2/port.h) | `unsigned int`, `int` | `__UINTPTR_TYPE__`, `__INTPTR_TYPE__` (override: `SLY2_UPTR_TYPE`, `SLY2_SPTR_TYPE`) | `grep -rlwn 'uptr\|sptr' src include` |
 | `SLY2_OFFSETOF(T, m)` (sly2/basic.h) | `((int)(char *)&((T *)0)->m)` | define first, e.g. `((int)__builtin_offsetof(T, m))` | layout asserts, list-link offsets, g_aeopid's `EOPID_OFF` |
 | `SLY2_STORE_VPTR_AT`, `SLY2_SET_VPTR`, `SLY2_SET_VPTR_AT`, `SLY2_STORE_VPTR`, `SLY2_VTBL` (sly2/vtables.h) | word store of `_vt$<n><CLASS>` at +0xC (BASIC), +0x18 (ACT), +0x30 (CBinaryInputStream), +0xEC (RIP), 0 | override `SLY2_STORE_VPTR_AT` alone (vptr first in the Itanium ABI), or let the constructors become real ones | `grep -rln 'SLY2_SET_VPTR\|SLY2_STORE_VPTR' src` (24 files) |
@@ -65,7 +73,15 @@ Why the matching form cannot be the portable one:
   are plain C++ now, and so does xf.cpp's ACT slot 5 (GetGoal, v1.16: the hand-written call passed no dt, but the
   caller's g is still in $f12, so `GetGoal(..., g)` is the same code), and every water.cpp call (v1.17: slots 4, 33,
   34, 51 on an EXPL, 71, 72; booty.cpp's slot 51 is the same ExplodeExplso); gait.cpp's slot 35 (SO::SetVelocity) and
-  cnvo.cpp MergeCid14Obstacles' slots 31 / 29 / 9 did not and are guarded.
+  cnvo.cpp MergeCid14Obstacles' slots 31 / 29 / 9 did not and are guarded. v1.19 converted the per-frame ones: real
+  virtual calls (same code) in blend.cpp (AC::Prepare / Evaluate, ACG::Evaluate), asega.cpp / xf.cpp (OVRA's
+  ACG::Evaluate), shd.cpp UpdateShaders (SAA slot 8 through a BASIC-derived view: classes.h clashes with shd.cpp),
+  emitter.cpp (BLIPG::SubscribeObject), sw.cpp / bomb.cpp (EXPL::ExplodeExplso), grab.cpp (CID35::OnTriggered),
+  safehouse.cpp (CID100::SetState), proxy.cpp AddProxyCopy (CLoadCollector::Add), class_registry.cpp's FireMissile
+  thunk (MISSILE::Fire), missile.cpp's Velocity helper, watchdog.cpp (IsPosInside), murray.cpp (TranslateToPos,
+  IsFixed); the rest are guarded (section 1's table). The usual reason is the schedule: the hand form loads the
+  entry (or the vtable word) before the arguments are built, a virtual call after. Hand calls inside hand-scheduled
+  asm statements stay (section 3).
 - **Null-free base conversions** (`SLY2_GRABSPOT_BASE`): `static_cast<GRABSPOT *>(p)` and `&static_cast<GRABSPOT &>(*p)`
   both add g++ 2.95's null test (a `movz`), which the original accessors do not have; the offset of a cast of the
   constant 0x100 does not. The accessors moved to the end of classes.h (the classes must be complete; a template
@@ -120,7 +136,11 @@ loads and stores) has plain C equivalents:
   **geom.cpp**: TransformPointsVu0, whose EE body runs the VU0 microprograms at 0x120 / 0xF0 (vcallms); its C body
   transforms each point the way CloneGeom's `Transform` does (xyz = p M with p.w taken as 1, w kept). That reading of
   the microprograms is an assumption (the same points go through `Transform` in CloneGeom), not checked against the
-  microcode.
+  microcode. **geom.cpp UpdateGeomWorld** (v1.19): the plane loop (microprogram 0x150 over the transposed inverse,
+  pinned EE loads) is under SLY2_EE_ASM; the C body takes each normal through the inverse transpose of the 3x3 part
+  (InvertMatrix3Cofactor), renormalises it and rebuilds the plane through its anchor point (InitPlaneFromNormalPos),
+  as CloneGeom does; the same kind of assumption about 0x150 (the VU0 harness cannot check it: it models the macro
+  instructions, not the microprograms). InitPlaneFromNormalPos itself (bsp.cpp) is still asm only.
 
 Conventions: the C follows the VU0 operation order (one rounding per VU operation: `(a.x b.x + a.y b.y) + a.z b.z`,
 `v * (1 / d)` rather than `v / d`), never fuses (build with `-ffp-contract=off`), and uses IEEE floats; the VU's
@@ -186,15 +206,38 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   views, geom.cpp's PLANE words, gait.cpp's BLCURVE / LEAPTUNE.
 - **From the port's boot-4 list (per-frame path)**: done in v1.18: solve.cpp (SOV / SOTREEV / TL / XP laid out as SO /
   SOTREE / XPLIST / XP on every target, asserted against the headers; ApplySoRestingContactVelocity's asm offsets from
-  operands; XFV and SOPHYSV already had native layout). bbmark.cpp uses SO / SOTREE since v1.15. Still open: the hand
-  vtable calls (about 25 sites: blend.cpp slots 2 / 3, cm.cpp slot 50, shd.cpp UpdateShaders slot 8, stepguard.cpp
-  slots 3 / 26, rhythm / guardbhv / murray / air / so.cpp slot 35, robottank slot 31, grab.cpp / bomb.cpp / emitter.cpp
-  slot 51, proxy.cpp slots 1 / 42, class_registry.cpp slot 78, missile / bentley slot 33, pipe_jt slot 36, watchdog
-  slot 73, murray slots 29 / 62); geom.cpp UpdateGeomWorld's C fallback; the `int`-typed pointers (ReplaceSma /
-  ReplaceSmaEx, HandleBasicSpliceEvent, the bif forwarders, class_registry thunks, SO::AddCustomXps' n3);
-  EnsureTargetRecordById / SetSoIdProxy register reliance; and the struct list of request 4 (blend, so target records,
-  proxy, trail / glob, shape chain, path CG, bis.cpp CBinaryInputStream_ReadBspc, cm CID5, relay NewRelayJsg, busy, hud sprites, ms, sw
-  intersect, stepguard, hurt, step, stepplayer, jt camera, NewLight, alorefSplash, EnsureSoPhysRegionRecord).
+  operands; XFV and SOPHYSV already had native layout). bbmark.cpp uses SO / SOTREE since v1.15. Done in v1.19: the hand
+  vtable calls outside asm (section 1; blend.cpp's XB slot 9 is LO::Remove), geom.cpp UpdateGeomWorld's C fallback,
+  the `int`-typed pointers (sm.cpp ReplaceSma / ReplaceSmaEx and ApplySmToObject / ApplySmWithKind's object; the
+  class_registry thunks' object arguments of script types 0x2030 / 0x2002; BASIC / LO::HandleSpliceEvent's result as
+  `CRef *` and HandleBasicSpliceEvent's argument vector as `void **`; bif.cpp's six BIFK forwarders, BuiltinSetCadr and
+  BuiltinObjectOption as `(int cref, CRef *args, CFrame *frame)`; find-class-objects' context `LO *`; the find-object
+  family's optional root as the head of a CPair list; SO::AddCustomXps(SOPART *, int cbsp, BSP *absp, BSP *pbsp,
+  XP **) on every overrider; OVRA::animatedField, the `float *` LO::GetAnimatedField returned), EnsureTargetRecordById
+  returning `TARGETREC *`, SetSoIdProxy passing fChildren and NewSoPartHandle passing the oid explicitly, MISSILE::Fire
+  / BLIPG::SubscribeObject / CID35::OnTriggered with their arguments, and of request 4's structs: so.cpp's target
+  records (TARGETREC; FindTargetRecordById by target object; allocation offsetof(guards) + 32 pointers) and CID149 /
+  CID150 handles (so.h classes, sizeof; SW_ctor's slot sizeof(CID149)), relay.cpp NewRelayJsg on RELAYJSG (SW_ctor's
+  Jsg slot sizeof(RELAYJSG)), EnsureSoPhysRegionRecord's sizeof(REGENT).
+  Still open:
+  - hand vtable calls inside hand-scheduled asm statements (they need the statement's C fallback first): air.cpp
+    (slot 35), guardbhv.cpp BlendSet (35), murray.cpp SetMurrayFlopSubstate (35), jthands.cpp (35),
+    stepplayer.cpp's message 0x160 case (35), throw.cpp LaunchVectorCall (35), step.cpp's other-object follow (29),
+    missile.cpp FireSplmiss (33, twice); booty.cpp's LINKE / LINKE3 slot 1 on a class not identified (args pos, 0,
+    1.0f); murray.cpp's Q / E / X contact views, robottank.cpp P / OWNER, grab.cpp ACTOR, bomb.cpp POV still carry
+    a vtable word (unused by the converted calls).
+  - RefThunk_EmitSwNoise's third argument: script type 0x2002 (an object) where noise.cpp stores an int "loudness"
+    (CID147 +0x40, NewNoise / CreateNoise / ReplaceHeldNoise); likely the noise's source object, unconfirmed (left int).
+    The generated splicewrap RefThunk_NewSoPartHandle.inc passes the object through `s32`.
+  - request 4's structs not done: blend.cpp's ASEG / XB / LINK / CHNE / CHN / KEY views (want ASEGBL / ASEGA / ACTSEG /
+    XF / EA; the curve calls are done), its `n * 12` / `cTotal * 8` / `frameEventCount << 4` sizes; callback.cpp EVCB;
+    proxy.cpp AcquireProxySpare's flat views; trail.cpp / glob.cpp ResetGlobAttachment; shape.cpp SetChainEndObject and
+    the int-typed shape arguments; path.cpp FindNavTriangleQuick / Safe `struct T` (CG) and the obstacle `S : XFM`;
+    bis.cpp CBinaryInputStream_ReadBspc OWNER / ITEM; cm.cpp CID5 views and AdjustCmCpdefi's +0x4F4; busy.cpp,
+    hud.cpp ApplySpriteKeyPoses, ms.cpp GLOBOWNER / GLOBREF, sw.cpp intersect / filter views and dlStimulus,
+    stepguard.cpp PMOVER / ANIMBINDING / DIRANIM, hurt.cpp UpdateJtActiveZap, step.cpp UpdateStep / AdjustStepXps /
+    AddStepCustomXps views, stepplayer.cpp component offsets, jt.cpp SmoothJtCameraCurveTarget, LIGHT's fields
+    (NewLight's overrun), PostLoadStepplayer alorefSplash.
 - **SHD header read**: LoadShdFromBrx reads the first 0x18 bytes of the level's shader record straight into SHD
   (file-record pattern, not under SLY2_EE_LAYOUT yet).
 - **Dangerous views** (after v1.16). Done in v1.16: shape.cpp's ten SHAPE views (plus SetChainEndObject, NewSampledShape
@@ -212,7 +255,12 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   words, and the shader packet tags pack `(ulong)(int)pshd->pbPacket << 32`. A native build needs an address model
   for chains (offsets from a heap base, or an emulated 4 GB EE address space) before its DMA/VIF interpreter can
   follow them; not a decomp-side change.
-- **Inline asm without a C fallback**: shd.cpp BuildShaderGifPackets (EE-core bit manipulation with pinned
+- **Inline asm without a C fallback**: a rough count (a scratch scanner: asm statements outside `#ifdef SLY2_EE_ASM`,
+  register-pin declarations excluded) finds about 5,000 statements in 135 src/game files; the per-frame heavy ones are
+  hud.cpp (about 330), jt.cpp, air.cpp, guardbhv.cpp, robottank.cpp, rip.cpp, shape.cpp, throw.cpp, murray.cpp,
+  grab.cpp, so.cpp, step.cpp (100 to 240 each), then stepplayer, glob, prize, stepbhv, hack, hurt, bentley, cm, bif,
+  stepguard, cplcy, emitter, relay, solve, gadget, sticky, path (55 to 100); bsp.cpp InitPlaneFromNormalPos (used by
+  UpdateGeomWorld's fallback and CloneGeom) is one statement. Named before: shd.cpp BuildShaderGifPackets (EE-core bit manipulation with pinned
   registers), rip.cpp ProjectRipTransform and the other RIP integrators (hand-scheduled fused asm: dozens of
   multi-instruction statements mixing VU0, FPU and loads), the `vcallms` sites (xf.cpp, geom.cpp, glob.cpp, blip.cpp,
   rendertree.cpp: VU0 microprograms, ported per entry), gs.cpp sync/ei, the cane/murray/sticky/ik loaders and the
