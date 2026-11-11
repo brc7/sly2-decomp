@@ -34,8 +34,11 @@ struct M3
         source.r[2] = c; r[2] = source.r[2];
     }
 };
-/* A surface plane (0x20): normal, three unknown words, index of a point on it. */
-struct PLANE { qword normal; int unknown10, unknown14, unknown18, pointIndex; };
+/* A surface (0x20 on the EE): sly2/xfm.h's SURF with its normal and plane distance as one quadword. The words after
+   the normal are SURF's: its own edge list, the list of the other surfaces' edges bordering it (both pointers into
+   the GEOM's edge array, which CloneGeom shares), its flags and the index of a point on it. */
+struct EDGE;
+struct PLANE { qword normal; EDGE *edgeList; EDGE *otherEdgeList; int grf; int pointIndex; };
 typedef char assert_PLANE_size[sizeof(PLANE) == 0x20 ? 1 : -1];
 struct GEOM
 {
@@ -46,10 +49,10 @@ struct GEOM
     int numEdges;
     struct EDGE *edgeList;   /* +0x14 */
 };
-/* An edge (a, b: point indices) and a surface's edge list (+0x10), as CollectEdgesAtGeomPoint walks them. */
-struct EDGE { unsigned short a, b; int pad; EDGE *next; };
-struct SURFV { char pad[0x10]; EDGE *edgeList; };
-struct Entry { int a, b; SURFV *poly; };
+/* An edge (a, b: point indices; sly2/xfm.h EDGE) and a surface's edge list (PLANE::edgeList), as
+   CollectEdgesAtGeomPoint walks them. */
+struct EDGE { unsigned short a, b; unsigned short surfaceIndices[2]; EDGE *next; };
+struct Entry { int a, b; PLANE *poly; };
 /* The geometry's spatial tree view (+0x4 count, +0xC tree). */
 struct GEOMTREE { int pad, count; void *pad8; void *tree; };
 
