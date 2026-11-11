@@ -21,14 +21,14 @@ struct V3 { float x, y, z; };
 struct V4 { V3 v; float w; };
 
 /* Views of objects whose classes are not modelled yet; only the fields this TU reads. */
-struct FR { char pad[0x24]; uchar *chainStart; };   /* the frame: where its VIF1 chain starts */
+#include "sly2/frm.h"   /* FRM: the frame; drawChain is where its VIF1 chain starts */
 typedef void (*PFNRP)(VIFS *, int, int);
 #define NUM_RPL_KINDS 26
 #define DMA_TAG_CALL 0x50000000    /* DMAtag id CALL (5 << 28); the address goes in the upper word */
 
 extern VIFS D_002DEA28;
-extern FR *g_pfrmOpen;
-extern FR D_002DEA50;
+extern FRM *g_pfrmOpen;
+extern FRM D_002DEA50;
 extern char D_002DF800[], D_002DF940[], D_002DFA80[], D_002DEDC0[], D_002DF010[];
 extern DMAS D_002DEA00;
 extern V3 D_002C1F00, D_002C1F10;
@@ -177,7 +177,7 @@ extern "C" void DrawSw(SW *world)
     count = CprplPartitionArpl(D_003D4A50 - D_003B3980, D_003B3980, sorted, firstIndex, endIndex);
     {
         uchar *writePointer = D_002DEA28.m_pb;
-        g_pfrmOpen->chainStart = writePointer;
+        g_pfrmOpen->drawChain = (QW *)writePointer;
     }
     D_002DEA28.AddDmaCall((QW *)D_002DF800);
     D_002DEA28.m_fCheckCnt = 1;

@@ -18,26 +18,8 @@ GIFS D_002DEA00;            /* the frame's GIF packet builder */
 VIFS D_002DEA28;            /* the frame's VIF packet builder */
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* A render frame (two of them, D_002DEA50). */
-struct FRM {
-    int gifsQwordCount;     /* 0x00 finished GIF chain */
-    QW *gifsChain;     /* 0x04 */
-    QW *gifsBuffer;  /* 0x08 GIF buffer */
-    int gifsBufferQwords;  /* 0x0c */
-    int vifsQwordCount;     /* 0x10 finished VIF chain */
-    QW *vifsChain;     /* 0x14 */
-    QW *vifsBuffer;  /* 0x18 VIF buffer */
-    int vifsBufferQwords;  /* 0x1c */
-    int drawQwordCount;     /* 0x20 VIF qwords from drawChain to the end */
-    QW *drawChain;         /* 0x24 start of the frame VIF chain sent to VIF1 (DrawSw sets it) */
-    int unused28;          /* 0x28 zero in every snapshot; no code writes it */
-    int uploadedTextureBits; /* 0x2c per-frame bits of textures already uploaded (fonts) (inferred) */
-    int blendFlags;         /* 0x30 bit 0: blend the previous frame */
-    DL releaseList;         /* 0x34 objects to notify when the frame is done (vtable slot 2) */
-    DL freeList;         /* 0x40 records to free when the frame is done */
-    int cameraVisFlags;     /* 0x4c g_cm.grfvis when the frame was opened */
-};
-typedef char assert_FRM_size[sizeof(FRM) == 0x50 ? 1 : -1];
+/* A render frame (two of them, D_002DEA50): sly2/frm.h FRM. */
+#include "sly2/frm.h"
 struct sceDmaChan;
 /* The records on freeList. */
 struct Y { char abuf[2][0x840]; int i, c; void *storage; };   /* a removed BLIP (blip.cpp BLIPV: two particle buffers of float vectors, index, count): its spline block at +0x1088 */

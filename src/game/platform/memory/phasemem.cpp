@@ -12,13 +12,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 enum PHASE { PHASE_Nil = 0 };   /* values 2 and 3 select the two buffer layouts below (names unknown) */
 
-/* This TU's view of FRM (frm.cpp): only the two packet buffers it assigns are named. */
-/* The render frames D_002DEA50[2] (frm.cpp FRM, 0x50): the finished chain, buffer and size of the GIF and VIF packets,
-   the frame chain, flags, and the release/free lists (DL: head, tail, link offset). */
-struct BUF { int gifsQwordCount; void *gifsChain; char *gifBuffer; int gifBufferQwords; int vifsQwordCount; void *vifsChain; char *vifBuffer;
-    int vifBufferQwords; int drawQwordCount; void *drawChain; int unused28, uploadedTextureBits, blendFlags; void *releaseHead, *releaseTail;
-    int releaseLinkOffset; void *freeHead, *freeTail; int freeLinkOffset; int cameraVisFlags; };
-extern struct BUF D_002DEA50[2];
+/* The render frames D_002DEA50[2]: sly2/frm.h FRM. */
+#include "sly2/frm.h"
+extern FRM D_002DEA50[2];
 /* phasemem's .bss (address order): the phase buffers (phase 3: two 0x6000 + two 0x58000 halves; phase 2: two
  * 0x1800 + two 0x800 in one 0x4000 block), the RPL buffer between them (no code here names it: render, draw and
  * rendertree use it; it fills the gap exactly) and g_phase. */
@@ -32,7 +28,7 @@ extern "C" void FlushCacheAsm(int mode) __asm__("FlushCache");
 // re-points both render frames' packet buffers at the new phase's blocks (or clears them).
 void SetPhase(PHASE phase)
 {
-    struct BUF *buffer;
+    FRM *buffer;
     int i;
     if (phase == D_003D3980) return;
     FlushCacheAsm(0);
@@ -41,28 +37,28 @@ void SetPhase(PHASE phase)
     case 3:
         for (i = 0; i < 2; i++) {
             buffer = &D_002DEA50[i];
-            buffer->gifBuffer = D_002F7980 + i * 0x6000;
-            buffer->vifBuffer = D_00303980 + i * 0x58000;
-            buffer->gifBufferQwords = 0x600;
-            buffer->vifBufferQwords = 0x5800;
+            buffer->gifsBuffer = (QW *)(D_002F7980 + i * 0x6000);
+            buffer->vifsBuffer = (QW *)(D_00303980 + i * 0x58000);
+            buffer->gifsBufferQwords = 0x600;
+            buffer->vifsBufferQwords = 0x5800;
         }
         break;
     case 2:
         for (i = 0; i < 2; i++) {
             buffer = &D_002DEA50[i];
-            buffer->gifBuffer = D_003CF980 + i * 0x1800;
-            buffer->vifBuffer = D_003CF980 + 0x3000 + i * 0x800;
-            buffer->gifBufferQwords = 0x180;
-            buffer->vifBufferQwords = 0x80;
+            buffer->gifsBuffer = (QW *)(D_003CF980 + i * 0x1800);
+            buffer->vifsBuffer = (QW *)(D_003CF980 + 0x3000 + i * 0x800);
+            buffer->gifsBufferQwords = 0x180;
+            buffer->vifsBufferQwords = 0x80;
         }
         break;
     default:
         for (i = 0; i < 2; i++) {
             buffer = &D_002DEA50[i];
-            buffer->gifBufferQwords = 0;
-            buffer->gifBuffer = 0;
-            buffer->vifBufferQwords = 0;
-            buffer->vifBuffer = 0;
+            buffer->gifsBufferQwords = 0;
+            buffer->gifsBuffer = 0;
+            buffer->vifsBufferQwords = 0;
+            buffer->vifsBuffer = 0;
         }
         break;
     }
