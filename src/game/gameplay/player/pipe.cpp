@@ -50,7 +50,7 @@ void OnLoAdd(PIPEV *p);
 void OnLoRemove(PIPEV *p);
 void PostLoLoad(PIPEV *p);
 float UpdateShapeBoundingSphere(PIPEV *p);
-void CloneShape(PIPEV *p);
+void CloneShape(PIPEV *p, LO *ploBase);
 float GetShapeMinDistance(PIPEV *);           // low distance bound
 float GetShapeMaxDistance(PIPEV *);           // high distance bound
 float GetShapeMinParam(PIPEV *);           // start distance
@@ -107,10 +107,10 @@ extern "C" void PostPipeLoad(PIPEV *pipe)
 }
 
 // PIPE::Clone (slot 41): clones the shape but keeps this pipe's own 8-byte link at +0x1B4.
-extern "C" void ClonePipe(PIPEV *pipe)
+extern "C" void ClonePipe(PIPEV *pipe, LO *ploBase)
 {
     K k = pipe->k;
-    CloneShape(pipe);
+    CloneShape(pipe, ploBase);
     pipe->k = k;
 }
 

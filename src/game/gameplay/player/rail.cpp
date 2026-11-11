@@ -48,7 +48,7 @@ void PostLoLoad(RAILV *p);
 float UpdateShapeBoundingSphere(RAILV *p);
 void OnLoAdd(RAILV *p);
 void OnLoRemove(RAILV *p);
-void CloneShape(RAILV *p);
+void CloneShape(RAILV *p, LO *ploBase);
 float GetShapeMinDistance(RAILV *p);
 float GetShapeMaxDistance(RAILV *p);
 void FindShapeClosestPoint(RAILV *p, qword q, int a, void *pv, int b, int c, float *pf);
@@ -92,10 +92,10 @@ extern "C" void OnRailRemove(RAILV *rail)
 }
 
 // RAIL::Clone (slot 41): clones the shape but keeps this rail's own 8-byte link at +0x1B4.
-extern "C" void CloneRail(RAILV *rail)
+extern "C" void CloneRail(RAILV *rail, LO *ploBase)
 {
     K k = rail->k;
-    CloneShape(rail);
+    CloneShape(rail, ploBase);
     rail->k = k;
 }
 
