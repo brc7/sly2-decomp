@@ -264,7 +264,7 @@ struct BLIPG : XFM
     virtual void Update() __asm__("UpdateBlipg");   /* slot 16 */
     virtual void UpdateXfWorld() __asm__("ProjectBlipgTransform");   /* slot 17 */
     virtual void RenderSelf() __asm__("RenderBlipgSelf");   /* slot 19 */
-    virtual void SubscribeObject() __asm__("SubscribeBlipgObject");   /* slot 51 */
+    virtual void SubscribeObject(LO *plo) __asm__("SubscribeBlipgObject");   /* slot 51: LO::SubscribeObject plus the group's own bookkeeping (blip.cpp) */
 };
 typedef char assert_BLIPG_size[sizeof(BLIPG) == 0x460 ? 1 : -1];
 

@@ -1317,7 +1317,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, in
             *px->ppblipg = (BLIPG *)pprg;
         SetBlipgEmitb(pprg, emitter);
         if (px && px->ploSubscriber)
-            ((void (*)(PRG *, LO *))pprg->pvt[51].pfn)((PRG *)((char *)pprg + pprg->pvt[51].d), px->ploSubscriber);
+            ((::BLIPG *)pprg)->SubscribeObject(px->ploSubscriber);
         if (!pprg)
             return;
     }
