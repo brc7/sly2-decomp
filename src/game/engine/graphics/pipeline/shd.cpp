@@ -9,6 +9,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_shd
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001ED788
 #include "gifs.h"
+#include "sly2/port.h"
 #include "vifs.h"
 #include "sly2/slotheap.h"
 #include "sly2/cm.h"
@@ -72,7 +73,7 @@ extern "C" void RelocateSharedColorTables(int ib)
         do {
             pclut = &D_003DCFFC[iclut];
             if (pclut->kind == 1) {
-                pclut->argba = (SHDRGBA *)(ib + (unsigned int)pclut->argba);
+                pclut->argba = (SHDRGBA *)(ib + (uptr)pclut->argba);
                 prgba = pclut->argba;
                 if (prgba < prgba + pclut->ccolor) {
                     do {
@@ -90,7 +91,7 @@ extern "C" void RelocateSharedColorTables(int ib)
         do {
             cbmp -= 1;
             if (pbmp->kind == 1) {
-                pbmp->pv = (void *)(ib + (int)pbmp->pv);
+                pbmp->pv = (void *)(ib + (sptr)pbmp->pv);
             }
             pbmp++;
         } while (cbmp != 0);
@@ -575,7 +576,7 @@ extern "C" void BuildShaderTex0List(SHD *pshd, SHDBLIP *pshdblip)
     pshdblip->atex0 = (ulong *)AllocClearedFromWorldHeap(&msg);
     for (i = 0; i < pshdblip->cframe; i++)
     {
-        ulong *pe = (ulong *)((i << 3) + (int)pshdblip->atex0);
+        ulong *pe = (ulong *)((i << 3) + (sptr)pshdblip->atex0);
         *pe = Tex0FromTexIframeCtk(ptex, i, 0);
     }
 }
@@ -1258,16 +1259,16 @@ extern "C" void AddBitmapToHash(BMP *input){
     p=input;
     {register int key __asm__("$3")=p->n0;initial=key%0x3FFD;}
     firstPage=(BMP **volatile *)TABLE_PAGE;
-    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(BMP ***)((int)firstPage-0x2FF0)));
+    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(BMP ***)((sptr)firstPage-0x2FF0)));
     __asm__("daddu %0,%1,$zero":"=r"(i):"r"(initial));
-    slot=(BMP **)(((unsigned)i<<2)+(unsigned)firstTable);
+    slot=(BMP **)(((unsigned)i<<2)+(uptr)firstTable);
     goto probe;
 next:
     i=nextIndex%0x3FFD;
     {
         register BMP **table __asm__("$5");
         __asm__("lw %0,%1":"=r"(table):"m"(*(BMP ***)((char*)loopPage-0x2FF0)));
-        slot=(BMP **)(((unsigned)i<<2)+(unsigned)table);
+        slot=(BMP **)(((unsigned)i<<2)+(uptr)table);
     }
 probe:
     if(!*slot)goto insert;
@@ -1311,16 +1312,16 @@ extern "C" void AddClutToHash(CLUT *input){
     p=input;
     {register int key __asm__("$3")=p->n0;initial=key%0x3FFD;}
     firstPage=(CLUT **volatile *)TABLE_PAGE;
-    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(CLUT ***)((int)firstPage-0x2FE8)));
+    __asm__("lw %0,%3\n\tdaddu %1,%2,$zero":"=&r"(firstTable),"=r"(loopPage):"r"(firstPage),"m"(*(CLUT ***)((sptr)firstPage-0x2FE8)));
     __asm__("daddu %0,%1,$zero":"=r"(i):"r"(initial));
-    slot=(CLUT **)(((unsigned)i<<2)+(unsigned)firstTable);
+    slot=(CLUT **)(((unsigned)i<<2)+(uptr)firstTable);
     goto probe;
 next:
     i=nextIndex%0x3FFD;
     {
         register CLUT **table __asm__("$5");
         __asm__("lw %0,%1":"=r"(table):"m"(*(CLUT ***)((char*)loopPage-0x2FE8)));
-        slot=(CLUT **)(((unsigned)i<<2)+(unsigned)table);
+        slot=(CLUT **)(((unsigned)i<<2)+(uptr)table);
     }
 probe:
     if(!*slot)goto insert;

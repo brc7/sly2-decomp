@@ -8,6 +8,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_breakable
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BC030
 #include "sly2/slotheap.h"
+#include "sly2/port.h"
 #include "sly2/stackscope.h"
 #include "sly2/game.h"
 #include "sly2/joy.h"
@@ -147,7 +148,7 @@ extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
             for (j = 0; j < pe->c; j++) {
                 I *pi = &pe->a[j];
                 if (pi->a == 0xC) {
-                    pi->b = (int)Realloc((void *)pi->b, 8);
+                    pi->b = (sptr)Realloc((void *)pi->b, 8);
                 }
             }
         }

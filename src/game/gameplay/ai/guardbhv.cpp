@@ -14,6 +14,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_guardbhv
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0017F070
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/cref.h"
 #include "sly2/scrap.h"
 #include "sly2/lo.h"
@@ -1498,7 +1499,7 @@ extern "C" void SetBhvguardMode(BHV156 *behavior, BHVGUARDRECDATA *m) {
     case GUARD_MODE_THROWN:
         {
             BHV176 *o = (BHV176 *)PushStepBehavior(((STEPGUARD *)behavior->owner), CID_BHV176);
-            o->thrower = (int)behavior->modeRec.arg.object;
+            o->thrower = (sptr)behavior->modeRec.arg.object;
             o->Start();
         }
         break;
@@ -4167,7 +4168,7 @@ extern "C" void CalculateBhvjuggledHoldPoint(BHVJUGGLED *behavior, STUNHOLD *req
     qword direction = Normal(Reject(VuSub(first, GetLoWorldPos(behavior->holder)), g_normalZ), D_002A2DA0);
     {
         U scalar;
-        register unsigned int addressWord __asm__("$2") = (unsigned int)&g_normalZ;
+        register unsigned int addressWord __asm__("$2") = (uptr)&g_normalZ;
         register qword along __asm__("vf4"), up __asm__("vf5"), point __asm__("vf2"), height __asm__("vf6");
         __asm__("lw $3,%5\n\tlqc2 %2,0(%0)\n\tqmtc2.ni $3,%1\n\tlw %0,%6\n\tlqc2 %3,%7\n\tqmtc2.ni %0,%4"
                 : "+&r"(addressWord), "=j"(along), "=j"(up), "=j"(point), "=j"(height)

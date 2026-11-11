@@ -6,6 +6,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021D258
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/lo.h"
 #include "sly2/so.h"
 #include "sly2/sw.h"
@@ -105,7 +106,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
             if(j<chain->linkCount-1) link->restSegment=TransformXfPos(0,LXF(link),LXF(&chain->links[j+1])->pos);
             /* the previous entry through integer arithmetic: as C++, (char *)e - 0x70 and e[-1] give a split -0x8000 + 0x7FF4
                address (39/165 differ); n->entries[j-1] differs as much */
-            else if(j>0) link->restSegment=ConvertXfVec(LXF((CHAINLINK *)((int)link-0x70)),LXF(link),((CHAINLINK *)((int)link-0x70))->restSegment);
+            else if(j>0) link->restSegment=ConvertXfVec(LXF((CHAINLINK *)((sptr)link-0x70)),LXF(link),((CHAINLINK *)((sptr)link-0x70))->restSegment);
             else link->restSegment=chain->lastSegment;
             link->tipPosition=TransformXfPos(LXF(link),0,link->restSegment);
         }

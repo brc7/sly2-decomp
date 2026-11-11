@@ -6,6 +6,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_asega
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00131F50
 #include "sly2/slotheap.h"
+#include "sly2/port.h"
 #include "sly2/aseg.h"
 #include "sly2/sw.h"
 #include "sly2/act.h"
@@ -32,7 +33,7 @@ struct XF
     void *parent; char padA4[0xA8 - 0xA4];
     union { XF *reference; float blendWeight; }; /* 0xA8: the reference slot, or the blend weight in role 9 */
     char padAC[0xD0 - 0xAC];
-    int rotationCurve;      /* 0xD0: the ACG * of a float-curve channel (ACTSEG::Attach) */
+    sptr rotationCurve;     /* 0xD0: the ACG * of a float-curve channel (ACTSEG::Attach) */
     float *rotationTimePtr; /* 0xD4: the ASEGA local time */
     char padD8[0x100 - 0xD8];
 };
@@ -638,7 +639,7 @@ void ACTSEG::Attach() {
     ACG *pacg;
     pacg = this->pacg;
     if (pacg != 0) {
-        transform->reference->rotationCurve = (int)pacg;
+        transform->reference->rotationCurve = (sptr)pacg;
         transform->reference->rotationTimePtr = &pasega->time;
         return;
     }

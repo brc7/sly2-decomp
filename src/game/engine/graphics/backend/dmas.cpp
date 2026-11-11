@@ -7,6 +7,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dmas
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001578D8
 #include "dmas.h"
+#include "sly2/port.h"
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
 
@@ -236,7 +237,7 @@ void DMAS::EndDmaCnt()
     if (m_fPad)
     {
         uchar *pb = m_pb;
-        while ((uint)pb & 0xF)
+        while ((uptr)pb & 0xF)
         {
             *(int *)pb = 0;
             pb += 4;

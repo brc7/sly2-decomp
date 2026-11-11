@@ -13,6 +13,7 @@
 // func_0021BB68; the file defines no other static object, so g++ generates no initializer of its own. Spelling the
 // three objects as file-scope definitions is open.
 #include "sly2/lo.h"
+#include "sly2/port.h"
 #include "sly2/jt.h"
 #include "sly2/stepplayer.h"
 #include "sly2/stackscope.h"
@@ -1525,7 +1526,7 @@ extern "C" int RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex
         }
         {
             /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            SPRITESLOT *slot = (SPRITESLOT *)(oldSlot * sizeof(SPRITESLOT) + (int)widget->spriteGroups[descriptor->index].slots);
+            SPRITESLOT *slot = (SPRITESLOT *)(oldSlot * sizeof(SPRITESLOT) + (sptr)widget->spriteGroups[descriptor->index].slots);
             if (RestartNestedSprite(widget, groupIndex, animIndex, slot->numItems, slot->items))
                 return 1;
         }
@@ -1870,7 +1871,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   }
   gif.EndPrim(1);
   VIFS vif;vif.AllocSw(20);vif.AddDmaCnt();
-  vif.AddVifUnpack(UPK_V4_32,((uint)gif.m_pb-(uint)gif.m_ab)>>4,gif.m_ab,7);
+  vif.AddVifUnpack(UPK_V4_32,((uptr)gif.m_pb-(uptr)gif.m_ab)>>4,gif.m_ab,7);
   vif.AddVifMscal(D_00000650);vif.EndDmaCnt();vif.AddDmaRet();
   if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->spriteHeap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
   else{vif.DetachCopySw(owner->spriteHeap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&g_sw,owner,D_002A8B08,sprite);}
@@ -2789,7 +2790,7 @@ extern "C" { static inline void Word(VIFS *r,unsigned int word) {
 } }
 // Pad the packet with zero words to a quadword boundary.
 extern "C" { static inline void Align(VIFS *r) {
-    while((int)r->m_pb&15) { *(int *)r->m_pb=0; r->m_pb+=4; }
+    while((sptr)r->m_pb&15) { *(int *)r->m_pb=0; r->m_pb+=4; }
 } }
 // Append a VIF code header and then n words from s.
 extern "C" { static inline void Unpack(VIFS *r,const int *s,int n,unsigned int header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;} }
@@ -3340,7 +3341,7 @@ extern "C" { static inline void Release(void **pp)
 // Also known as: StopEntrySound (upstream readable / Sly 1 name; StopEntrySound__FP8SENTRYRTi).
 extern "C" void StopSpriteSlot(SPRITEGRP *group, int slot)
 {
-    SPRITESLOT *state = (SPRITESLOT*)(slot*sizeof(SPRITESLOT)+(int)group->slots);   /* &group->slots[slot] */
+    SPRITESLOT *state = (SPRITESLOT*)(slot*sizeof(SPRITESLOT)+(sptr)group->slots);   /* &group->slots[slot] */
     if (state->animIndex >= 0) {
         /* remember where it stopped, so a main-track restart this frame resumes it (StartSpriteAnimSlot) */
         float t=state->time;
@@ -3738,7 +3739,7 @@ extern "C" void ApplySpriteKeyPoses(float time, float duration, ANIM *animation,
     for (; j < key->itemCount; j++) {
         KEYPOSE *pose = &key->items[j];
         int entryIndex = pose->index, linkOffset = pose->offset, id = pose->id;
-        ITEM *item = (ITEM *)(entryIndex * sizeof(ITEM) + (int)items);
+        ITEM *item = (ITEM *)(entryIndex * sizeof(ITEM) + (sptr)items);
         // declared here (not folded into the stores): loop.c only hoists the two constants if they live across the colour test
         uint defaultAdditive = 0x7F7F7F7F, defaultMultiply = 0xFFFFFFFF;
         COLORS *colors = 0;
@@ -3769,7 +3770,7 @@ extern "C" void ApplySpriteKeyPoses(float time, float duration, ANIM *animation,
                     KEY *future = &animation->keys[nextKey];
                     int afterKey = nextKey + 1;
                     for (int n = 0; n < future->itemCount; n++) {
-                        KEYPOSE *futurePose = (KEYPOSE *)(n * sizeof(KEYPOSE) + (int)future->items);
+                        KEYPOSE *futurePose = (KEYPOSE *)(n * sizeof(KEYPOSE) + (sptr)future->items);
                         if (futurePose->index == entryIndex) {
                             item->nextMatrix = &futurePose->matrix;
                             item->nextTime = future->time;

@@ -12,6 +12,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0016F128
 
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
@@ -735,7 +736,7 @@ extern "C" { static __inline__ void Align(uint align)
 {
     VIFS *dma = &D_002DEA28;
     qword *output = (qword *)dma->m_pb;
-    while (((uint)output & 15) != align) {
+    while (((uptr)output & 15) != align) {
         *(uint *)output = 0;
         dma->m_pb += 4;
         output = (qword *)dma->m_pb;
@@ -1852,10 +1853,10 @@ extern "C" void LoadSubglobInstanceFromBrx(GLOBSET *p, const SUBGLOB *sourceD, c
                 for (int i = 0; i < count; i++) {
                     FACE *face = &set[i];
                     if (face->grf & 0x20) {
-                        uint base = (uint)entry->pbChain;   /* int arithmetic: a char * sum swaps the addu operands */
-                        unsigned short *first = (unsigned short *)((uint)face->pbColorA + base);
-                        unsigned short *second = (unsigned short *)((uint)face->pbColorB + base);
-                        unsigned char *kind = (unsigned char *)((uint)face->pbAlphaUnpack + base);
+                        uptr base = (uptr)entry->pbChain;   /* int arithmetic: a char * sum swaps the addu operands */
+                        unsigned short *first = (unsigned short *)((uptr)face->pbColorA + base);
+                        unsigned short *second = (unsigned short *)((uptr)face->pbColorB + base);
+                        unsigned char *kind = (unsigned char *)((uptr)face->pbAlphaUnpack + base);
                         for (int j = 0; j < face->cvtx; j++) {
                             int index = face->aivtx[j];
                             LINKS *links = &binding->sets[binding->indices[g]];

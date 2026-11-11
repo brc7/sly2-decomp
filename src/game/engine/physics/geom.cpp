@@ -7,6 +7,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_geom
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00166900
 #include "sly2/slotheap.h"
+#include "sly2/port.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 
@@ -104,7 +105,7 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
  dest->numEdges=src->numEdges;dest->edgeList=src->edgeList;
  if(transform) {
   matrix=*transform;
-  for(i=0;i<dest->numPoints;i++){ qword *point=(qword *)((int)dest->points+(i<<4)); *point=Transform(&matrix,*point); }
+  for(i=0;i<dest->numPoints;i++){ qword *point=(qword *)((sptr)dest->points+(i<<4)); *point=Transform(&matrix,*point); }
   for(j=0;j<dest->numSurfaces;j++) {
    PLANE *n=&dest->surfaces[j];
    register const MATRIX4 *pm __asm__("$17")=&matrix;

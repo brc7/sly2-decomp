@@ -9,6 +9,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_spawner
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00174878
 #include "sly2/slotheap.h"
+#include "sly2/port.h"
 #include "sly2/vu0.h"
 #include "sly2/clock.h"
 #include "sly2/classes.h"
@@ -212,7 +213,7 @@ extern "C" void AddSpawnerOffset(CID119 *spawner, qwordV offset)
         byteOffset = count * 16;
         newCount = count + 1;
         spawner->offsetCount = newCount;
-        *(qwordV *)(byteOffset + (int)offsets) = offset;
+        *(qwordV *)(byteOffset + (sptr)offsets) = offset;
     }
 }
 

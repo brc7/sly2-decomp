@@ -6,6 +6,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gifs
 // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$g_dro
 #include "gifs.h"
+#include "sly2/port.h"
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
 
@@ -44,7 +45,7 @@ void GIFS::EndPrim(int fEOP)
     if (m_pqwPrim)
     {
         uint c = m_cregAll / m_creg;
-        if ((uint)m_pb & 0xF)
+        if ((uptr)m_pb & 0xF)
         {
             ulong *pul = (ulong *)m_pb;
             m_pb = (uchar *)(pul + 1);

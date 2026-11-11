@@ -7,6 +7,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sticky
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001865F0
 #include "sly2/slotheap.h"
+#include "sly2/port.h"
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
 #include "sly2/cm.h"
@@ -136,7 +137,7 @@ namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.4
 extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,SURFLOC*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  w.input.q=point;
- word=(unsigned)mesh->GetWorldMatrix();
+ word=(uptr)mesh->GetWorldMatrix();
  w.matrix=*(M4*)word;
  bestDistance=D_002A5684;
  if(mesh->count>0){word=12;do{
@@ -156,7 +157,7 @@ extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,S
    :"=j"(row0),"=j"(row1),"=j"(row2),"=j"(row3),"+&r"(indices):"r"(word),"p"(&w.matrix):"memory");
   __asm__("lw $2,0(%3)\n\tlw %2,8(%3)\n\tlw %1,4(%3)\n\tsll $2,$2,4\n\taddu $2,$2,%4\n\tsll %2,%2,4\n\tlqc2 $vf1,0($2)\n\tsll %1,%1,4\n\tvmulax.xyz $ACC,%5,$vf1x\n\tvmadday.xyz $ACC,%6,$vf1y\n\tvmaddaz.xyz $ACC,%7,$vf1z\n\tvmaddw.xyz %0,%8,$vf0w"
    :"+j"(a),"=&r"(addressB),"=&r"(addressC):"r"(indices),"r"(vertices),"j"(row0),"j"(row1),"j"(row2),"j"(row3):"$2","vf1","memory");
-  addressB+=(unsigned)vertices;addressC+=(unsigned)vertices;
+  addressB+=(uptr)vertices;addressC+=(uptr)vertices;
   __asm__("lqc2 %1,0(%3)\n\tlqc2 %2,0(%4)\n\tvmulax.xyz $ACC,%5,%1x\n\tvmadday.xyz $ACC,%6,%1y\n\tvmaddaz.xyz $ACC,%7,%1z\n\tvmaddw.xyz %0,%8,$vf0w"
    :"+j"(b),"=&j"(rawB),"=&j"(rawC):"r"(addressB),"r"(addressC),"j"(row0),"j"(row1),"j"(row2),"j"(row3):"memory");
   c = VuMulMatrix4(row0, row1, row2, row3, rawC);

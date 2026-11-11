@@ -14,6 +14,7 @@
 // former m2c bodies are written at file scope on the Lilly RELAY/RELAYCMD/JSG: RELAYCMD's argument block is a union
 // selected by relayck, and each AddRelay* builder fills its kind's member.
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
@@ -4131,7 +4132,7 @@ void RemoveJsgStepHold(RELAYJSG *script, STEP *po, int a, int b) __asm__("Remove
     }
     if (i >= script->cstepHold) return;
     {
-        register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)script;
+        register unsigned int addr __asm__("$5") = ByteOffset(i)+(uptr)script;
         unsigned int dest;
         __asm__("daddu %0,%1,$zero":"=r"(dest):"r"(addr));
         memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->cstepHold-i)*4-4);

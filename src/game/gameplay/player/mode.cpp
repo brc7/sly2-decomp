@@ -7,6 +7,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_mode
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0019DDF0
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/lo.h"
 #include "sly2/xfm.h"
 #include "sly2/so.h"
@@ -30,7 +31,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct SELECTOR;
 extern qword D_002A2DD0;
 void CutCm(CM *pcm);
-extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, int nUnk, int nUnk2);
+extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, void *pvTarget, int nUnk2);
 extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, void *pvHero, void *pvOwner);
 void IncrementSwNoPause(SW *psw) __asm__("IncrementSwNoPause");
 void DecrementSwNoPause(SW *psw) __asm__("DecrementSwNoPause");
@@ -213,12 +214,12 @@ void SetJtModeState(JTMODE *jtMode, int state)
             switch (jtMode->kind)
             {
                 case 0:
-                    SetCmPolicy(&g_cm, 7, &g_cm.cplook, (int)jtMode->player, 0);
+                    SetCmPolicy(&g_cm, 7, &g_cm.cplook, jtMode->player, 0);
                     SetStepRadTarget(jtMode->player, g_cm.cplook.panAngle);
                     jtMode->hud.SetState(0);
                     break;
                 case 1:
-                    SetCmPolicy(&g_cm, 8, &g_cm.cpzoom, (int)jtMode->player, 0);
+                    SetCmPolicy(&g_cm, 8, &g_cm.cpzoom, jtMode->player, 0);
                     SetStepRadTarget(jtMode->player, g_cm.cpzoom.panAngle);
                     {
                         STEP *step = jtMode->pstepOther;
@@ -236,7 +237,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                     jtMode->player->AddDialogSmRefs(0x3F, 0);
                     break;
                 case 2:
-                    SetCmPolicy(&g_cm, 7, &g_cm.cplook, (int)jtMode->pstepOther, 0);
+                    SetCmPolicy(&g_cm, 7, &g_cm.cplook, jtMode->pstepOther, 0);
                     jtMode->hud.SetState(0);
                     break;
             }

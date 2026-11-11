@@ -8,6 +8,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_noise
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001571E0
 #include "sly2/slotheap.h"
+#include "sly2/port.h"
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/clock.h"
@@ -40,7 +41,7 @@ extern float D_002BDD18;
 extern "C" {
 void InitLo(CID117 *object);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void FramePtr_Assign(CID147 *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+void FramePtr_Assign(CID147 *, void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *pointer, int value);
 void UnsubscribeLoAll(CID147 *noise);
 int IsWithinLimits__FP2LMf(void *object, float z);
@@ -108,7 +109,7 @@ extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outN
     AppendDlEntry(&g_sw.dlStimulus, noise);
     noise->AddRef();
     Lock lock(noise);
-    FramePtr_Assign(noise, (int)type->scriptFrame.m_p);
+    FramePtr_Assign(noise, type->scriptFrame.m_p);
     if (outNoise) *outNoise = noise;
     noise->HandleSpliceEvent(2, 0, 0, 0, 0);
 }

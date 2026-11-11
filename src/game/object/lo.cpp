@@ -11,6 +11,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A74F8
 
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/cm.h"
@@ -763,7 +764,7 @@ extern "C" void BindLoOidTable(SO *object, int numEntries, struct E *entries)
             offset -= 0x100;
             if (j < 0)
                 goto notFound;
-            part = (XF *)(offset + (int)object->transforms);
+            part = (XF *)(offset + (sptr)object->transforms);
             if (part->oid != entry->id)
                 goto nextPart;
             *(void **)((char *)object + entry->fieldOffset) = part;

@@ -14,6 +14,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001F1748
 
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/aseg.h"
@@ -828,7 +829,7 @@ test:
         pa=ChooseSmTransitionTowardGoal(p->stateMachine,p->routeFlags,p->currentState,p->goalState,1);
         goto apply;
     }
-    nx=((SMS*)((unsigned)p->stateMachine->asms+EntryOffset(p->currentState)))->ismsNext;
+    nx=((SMS*)((uptr)p->stateMachine->asms+EntryOffset(p->currentState)))->ismsNext;
     if(nx!=finished)goto select;
 }
 }
