@@ -406,7 +406,16 @@ extern "C" void FreeLeap(LEAPV *leap) {
 }
 
 // Leap (CID 0x91) constructor: sets its vtable.
-LEAPV *ConstructLeap(LEAPV *leap) { SLY2_SET_VPTR(leap, LEAP); leap->state = -1; leap->x0 = 0; leap->x4 = 0; return leap; }
+LEAPV *ConstructLeap(LEAPV *leap)
+{
+    SLY2_SET_VPTR(leap, LEAP);
+    leap->state = -1;
+    /* BASIC's two counted pointers, through BASIC itself: natively the vptr is the first word, and LEAPV's x0 / x4
+       (the EE offsets of these members) would overwrite it after SLY2_SET_VPTR stored it */
+    ((BASIC *)leap)->scriptFrame.m_p = 0;
+    ((BASIC *)leap)->scriptVariables.m_p = 0;
+    return leap;
+}
 
 // If the leap is not finished: state 4 and clears its animation job.
 // Also known as: StopK2 (upstream readable / Sly 1 name; StopK2__FP6K2PLAY).
