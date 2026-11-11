@@ -12,6 +12,12 @@
  *   SLY2_EE_ASM     defined when inline EE assembly may be used. Functions whose asm only pins a register or an
  *                   instruction for the match keep it under #ifdef SLY2_EE_ASM, with a plain C equivalent in #else.
  *                   Defined on the R5900 compiler unless SLY2_NO_EE_ASM is.
+ *   SLY2_EE_LAYOUT  defined when the build has the EE's data layout and C++ ABI: 4-byte pointers, so the level
+ *                   file's 32-bit records can be read straight into the in-memory structs, and g++ 2.95's vtables
+ *                   (vptr at +0xC of BASIC, 8-byte {delta, index, pfn} entries) for the few hand-written vtable
+ *                   calls kept for the match. Code that depends on it keeps that form under #if defined(SLY2_EE_LAYOUT)
+ *                   and a portable equivalent in #else (one macro per condition, no compound #if, so unifdef can
+ *                   strip either side). Defined on the R5900 compiler unless SLY2_NO_EE_LAYOUT is.
  *
  * Hardware addresses are in sly2/hw.h. Static layout asserts throughout the headers still describe the EE. */
 #ifndef SLY2_PORT_H
@@ -37,6 +43,9 @@ typedef char assert_uptr_size[sizeof(uptr) == sizeof(void *) && sizeof(sptr) == 
 
 #if defined(__R5900__) && !defined(SLY2_NO_EE_ASM)
 #define SLY2_EE_ASM 1
+#endif
+#if defined(__R5900__) && !defined(SLY2_NO_EE_LAYOUT)
+#define SLY2_EE_LAYOUT 1
 #endif
 
 #endif /* SLY2_PORT_H */

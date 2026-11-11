@@ -6,6 +6,7 @@
 // InitDirAnims/SelectDirAnim/StartDirAnim.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gait
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0020CE08
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT */
 #include "sly2/slotheap.h"
 #include "sly2/basic.h"
 #include "sly2/lo.h"
@@ -38,7 +39,7 @@ struct VU_FLOAT
 };
 
 /* A hero-like object as the leap reads it (an SO: XF at +0x58, flags word at +0x148, its control at +0x498; was ALO). */
-struct LEAPSUBJECT { char pad0[0xC]; VTE *pvt; char pad10[0x48]; XF *space; char pad5C[0xEC]; unsigned long flags; char pad150[0x208 - 0x150];
+struct LEAPSUBJECT : SO { char pad150[0x208 - 0x150];
     int n208; char pad20C[0x498 - 0x20C]; void *control; };
 typedef char assert_ALO_size[sizeof(LEAPSUBJECT) == 0x4A0 ? 1 : -1];
 #define POSITION(pxf) (*(qword *)(pxf)->worldMatrix.mat[3])
@@ -492,7 +493,7 @@ void SetLeapState(LEAPV *leap, int state)
         register float square __asm__("$f0");
         __asm__("lw %0,%3\n\tmul.s %1,%4,%4\n\tlw %2,%5"
                 : "=&r"(motionSpace), "=f"(square), "=r"(motionTuning)
-                : "m"(motionSubject->space), "f"(playbackRate), "m"(leap->tuning));
+                : "m"(motionSubject->positionXf), "f"(playbackRate), "m"(leap->tuning));
         register qword rateSquared __asm__("vf3");
         register int ballistic __asm__("$2");
         __asm__("lqc2 $vf4,%4\n\tlqc2 $vf1,%5\n\tmfc1 %0,%8\n\tqmtc2.ni %0,%1\n\tvmulx.xyzw $vf2,$vf1,%1x\n\tsqc2 "
@@ -527,15 +528,23 @@ void SetLeapState(LEAPV *leap, int state)
             time = motionTuning->flightTime / playbackRate;
         time = StdMax(leap->tuning->minimumTime / playbackRate, time);
         LEAPSUBJECT *subject = leap->subject;
-        VTE &entry = subject->pvt[35];
+#if defined(SLY2_EE_LAYOUT)
+        /* SO::SetVelocity (vtable slot 35), the entry read by hand before the velocity is built: a plain virtual
+           call loads it after, which reorders the function. */
+        VTE &entry = (*(VTE **)((char *)subject + 0xC))[35];
         short adjustment = entry.d;
         void (*applyVelocity)(void *, qword) = (void (*)(void *, qword))entry.pfn;
+#endif
         scalar.q = Scalar(1.0f / time);
         qword inverseTime = scalar.q;
         scalar.q = Scalar(-0.5f * time);
         qword initialVelocity = Combine(delta.q, inverseTime, acceleration.q, scalar.q);
         Store(&velocity, initialVelocity);
+#if defined(SLY2_EE_LAYOUT)
         applyVelocity((char *)subject + adjustment, velocity.q);
+#else
+        subject->SetVelocity(velocity.q);
+#endif
         leap->arrival = g_clock.time + time;
         leap->end = leap->arrival - leap->tuning->minimumTime / playbackRate;
         if (leap->ballistic) {
@@ -551,11 +560,11 @@ void SetLeapState(LEAPV *leap, int state)
             register XF *parentSpace __asm__("$2");
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
                     : "=m"(finalVelocity.q), "=r"(parentSpace), "=m"(scalar.q)
-                    : "j"(timeScalar), "j"(motionVelocity), "m"(launchSubject->space));
+                    : "j"(timeScalar), "j"(motionVelocity), "m"(launchSubject->positionXf));
             qword position = TransformXfPos(0, parentSpace->parent, target);
-            qword speed = ConvertXfVec(0, leap->subject->space->parent, finalVelocity.q);
-            leap->constraint = NewBezierAct(leap->subject, leap->subject->space, 5, position, speed, leap->arrival);
-            leap->subject->flags |= 0x04000000ul;
+            qword speed = ConvertXfVec(0, leap->subject->positionXf->parent, finalVelocity.q);
+            leap->constraint = NewBezierAct(leap->subject, leap->subject->positionXf, 5, position, speed, leap->arrival);
+            leap->subject->fIgnoreFixed = 1;
             RefreshSwObjectCollisionFilter(&g_sw, leap->subject);
         }
         SetSoGravity(leap->subject, acceleration.q);
@@ -588,7 +597,7 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
     case 2:
         if (leap->ballistic) {
             ACTPOS *pd = (ACTPOS *)leap->constraint;
-            pd->v = TransformXfPos(0, leap->subject->space->parent, v);
+            pd->v = TransformXfPos(0, leap->subject->positionXf->parent, v);
         }
         break;
     }
@@ -604,8 +613,8 @@ void ReleaseLeapConstraint(LEAPV *leap)
     if (!leap->constraint)
         return;
     ReleaseAct(&leap->constraint);
-    SetXfRole(leap->subject, leap->subject->space, 2);
-    leap->subject->flags &= ~(1L << 26);
+    SetXfRole(leap->subject, leap->subject->positionXf, 2);
+    leap->subject->fIgnoreFixed = 0;
     RefreshSwObjectCollisionFilter(&g_sw, leap->subject);
 }
 
