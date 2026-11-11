@@ -578,7 +578,8 @@ struct STEPPLAYER : public STEP
       struct ACT *pactStartMarker;   /* +0x10F4 the position actuator that placed the hero at the start marker (AttachStepplayerToStartMarker) */
       LO *ploLean;   /* object leaned on */
       int leanKind;    /* lean kind */
-      undefined4 unk_0x1100[(0x1120 - 0x1100) / 4];
+      int isLeanTargetLocked;   /* +0x1100 set by ForceStepplayerLeanTarget, cleared by UnlockStepplayerLeanTarget */
+      undefined4 unk_0x1104[(0x1120 - 0x1104) / 4];
       LM almIdle[3];   /* +0x1120 three idle time ranges (SetStepplayerIdleParams) */
       float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0, then by idleKind == 0 (ScheduleIdleTimer) */
       int idleKind;    /* idle kind */
@@ -586,7 +587,8 @@ struct STEPPLAYER : public STEP
       qword aqwStartMarker[3];   /* +0x1150 the hero's orientation relative to the start marker, as rows (AttachStepplayerToStartMarker) */
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       LO *unknown11A4;   /* +0x11A4 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
-      undefined4 unk_0x11a8[2];
+      LO *pbooty;   /* +0x11A8 the booty object the player carries (SpawnStepplayerBootyMarker) */
+      undefined4 unk_0x11ac;
       JTTHROW jtthrow;   /* carry/throw */
       int unknown12F0;
       int unknown12F4;
