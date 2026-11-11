@@ -14,7 +14,7 @@
 // views in namespaces named after the function (docs/guides/tu-merging.md "Representation decisions"). The former
 // m2c bodies are written at file scope on sly2/so.h's SO/SOPHYS/SOTREE/SOPART/XF/CONSTR.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_so
-// SLY2_ALIAS: _GLOBAL_$I$*=func_001F8DB8
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_so
 #include "common.h"
 #include "sly2/basic.h"
 #include "sly2/lo.h"
@@ -35,7 +35,7 @@
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword g_normalZ;
-/* 0x1F8C40 StaticInit_so (93 instructions) and its _GLOBAL_$I$ stub func_001F8DB8: g++'s initializer for the file-scope
+/* 0x1F8C40 StaticInit_so (93 instructions) and its stub GlobalConstructors_so: g++'s initializer for the file-scope
    object below (built in a zeroed temporary and copied), then the six engine slot pools. D_003DD020 is the default
    query record that cnvo and guardbhv pass to FindShapeClosestPoint (role HYPOTHESIS; the name is a placeholder). */
 struct CPQ

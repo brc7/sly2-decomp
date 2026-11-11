@@ -2,7 +2,7 @@
 // scene render list when it is posed) and provides the list of all visible static-mesh globs. Entry points: MS::Init,
 // RenderMsGlobset, CollectVisibleMsGlobs. TU 0x1B4438..0x1B4728 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_ms
-// SLY2_ALIAS: _GLOBAL_$I$*=func_001B4708
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_ms
 #include "sly2/so.h"
 #include "sly2/slotheap.h"
 #include "dmas.h"          /* SWALLOC */

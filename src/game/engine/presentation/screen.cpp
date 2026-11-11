@@ -12,10 +12,10 @@
 // definitions as C-linkage definitions of their literal symbols there.
 // The nine global screen objects are defined here (the shown-screen list, then eight screens with inline
 // constructors and the linkonce destructor ~BASIC (_$_5BASIC), in-charge flag 2): g++ generates the 150-instruction
-// construct-and-destruct StaticInit_screen and the _GLOBAL_$D$ stub func_001DE280 (cm.cpp's g_cm pattern).
+// construct-and-destruct StaticInit_screen and the _GLOBAL_$D$ stub GlobalDestructors_screen (cm.cpp's g_cm pattern).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_screen
-// SLY2_ALIAS: _GLOBAL_$I$*=func_001DE260
-// SLY2_ALIAS: _GLOBAL_$D$*=func_001DE280
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_screen
+// SLY2_ALIAS: _GLOBAL_$D$*=GlobalDestructors_screen
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"

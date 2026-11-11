@@ -2,7 +2,7 @@
 // address order). Entry points: InitLetterbox / ResetLetterbox (level setup and teardown), ShowLetterbox and
 // HideLetterbox (called around cutscenes and dialogs).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_letterbox
-// SLY2_ALIAS: _GLOBAL_$I$*=func_001A3240
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_letterbox
 #include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"

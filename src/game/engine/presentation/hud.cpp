@@ -10,8 +10,8 @@
 // StaticInit_hud (0x21AA60, 1090 instructions: the 0x60000-byte CLinearHeap D_003E1C70, a level-heap object D_003E1C80
 // with a hand-stored vtable, and the 108-entry STRINGGEN table D_003E1C88, 107 records copied from .rodata
 // 0x2A8B90.. and one built at run time) keeps the hand-written per-function form, with its _GLOBAL_$I$ stub
-// func_0021BB68; the file defines no other static object, so g++ generates no initializer of its own. Spelling the
-// three objects as file-scope definitions is open.
+// GlobalConstructors_hud; the file defines no other static object, so g++ generates no initializer of its own.
+// Spelling the three objects as file-scope definitions is open.
 #include "sly2/lo.h"
 #include "sly2/port.h"
 #include "sly2/jt.h"
@@ -4320,10 +4320,10 @@ extern "C" void StaticInit_hud(int initialize,int priority){
 }
 } // namespace M_StaticInit_hud
 
-// 0x21BB68 func_0021BB68
+// 0x21BB68 GlobalConstructors_hud
 /* _GLOBAL_$I$ stub: runs the static initializer above. */
 // The _GLOBAL_$I$ stub g++ generates for this TU: runs StaticInit_hud.
-extern "C" void func_0021BB68(void)
+extern "C" void GlobalConstructors_hud(void)
 {
     StaticInit_hud(1, 0xFFFF);
 }

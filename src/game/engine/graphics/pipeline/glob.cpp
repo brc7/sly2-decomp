@@ -9,7 +9,7 @@
 // (VIFS members for the pass packets); the other functions keep the per-function views they were matched with,
 // each in a namespace named after it (as vec.cpp and mark.cpp do).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_glob
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0016F128
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_glob
 
 #include "sly2/basic.h"
 #include "sly2/port.h"
@@ -36,7 +36,7 @@
 // The real class behind the per-function SO views below, for its virtual calls.
 static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
 
-// 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
+// 0x16EFE0 StaticInit_glob and its stub GlobalConstructors_glob: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
 struct RGBAW { uint rgba; RGBAW(uint n) { rgba = n; } };
 RGBAW D_002DEB50(0x80101010);

@@ -8,10 +8,10 @@
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does);
 // their C++-named definitions are C-linkage definitions of their literal symbols there (the namespace would change
 // the mangling), as in wave 9.
-// The static initializer (StaticInit_emitter, stub func_0015CD48) is generated from the two emitter defaults and the six
-// slot pools below.
+// The static initializer (StaticInit_emitter, stub GlobalConstructors_emitter) is generated from the two emitter
+// defaults and the six slot pools below.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_emitter
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0015CD48
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_emitter
 
 #include "sly2/basic.h"
 #include "sly2/scrap.h"
@@ -71,7 +71,7 @@ EMITO D_002DE5B0 = { 0, 0, 0, 0, -1, {0, 0}, {0}, {D_002A2DD0}, D_002A2DA0 };
 EMITDEF::EMITVELIsland D_002DE5F0 = { {{750.0f, 750.0f, -1.0f, 1.0f}}, 0, 0, -1500.0f, 0, g_normalZ, 0, 200, 1.0f, 1.0f,
                               {0, 0, 0, 0, 0, 0, 0, 0}, {{1.0f, 0.0f, -1.0f}} };
 
-// 0x15CAD8 static initializer (after the defaults) and its _GLOBAL_$I$ stub func_0015CD48: the six slot pools.
+// 0x15CAD8 static initializer (after the defaults) and its stub GlobalConstructors_emitter: the six slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct RIPG;

@@ -8,10 +8,10 @@
 // definitions of their literal symbols there (the namespace would change the mangling), as in wave 9.
 // g_cm is defined here: its constructor (CM_ctor) and destructor (_$_2CM, ~CM with g++'s in-charge flag 2)
 // make the static initializer a constructor-and-destructor one (86 instructions) with a _GLOBAL_$D$ stub
-// (func_0014FAA8) next to the _GLOBAL_$I$ one.
+// (GlobalDestructors_cm) next to the _GLOBAL_$I$ one.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cm
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0014FA88
-// SLY2_ALIAS: _GLOBAL_$D$*=func_0014FAA8
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_cm
+// SLY2_ALIAS: _GLOBAL_$D$*=GlobalDestructors_cm
 
 #include "sly2/basic.h"
 #include "sly2/scrap.h"

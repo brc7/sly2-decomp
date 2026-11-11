@@ -11,7 +11,7 @@
 // same aseg.h types. SM::LoadFromBrx (its first virtual) is defined here, so this is SM's
 // key TU (with -fno-rtti g++ emits no typeinfo function __tf2SM for it any more).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sm
-// SLY2_ALIAS: _GLOBAL_$I$*=func_001F1748
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_sm
 
 #include "sly2/basic.h"
 #include "sly2/port.h"
