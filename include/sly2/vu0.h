@@ -1,17 +1,17 @@
 /* include/sly2/vu0.h -- VU0 macro-mode vector helpers shared by the game TUs (one definition per idiom).
- *
  * Each helper is one inline asm idiom that the per-function decompilation had pasted into every TU under a private
  * name (Sub/VSub/QwSub, Add/QwAdd/VAdd, AddScaled/QwAddScaledX...). See docs/guides/tu-merging.md "Shared inline
  * helpers" for which spellings were folded in, and which ones must stay private (pinned registers, allocation-only
- * operands, "+j" forms, scheduling nudges).
- *
+ * operands, "+j" forms, scheduling nudges). Without SLY2_EE_ASM (sly2/port.h) the same helpers are plain C, below.
  * The helpers are templates over the quadword type only because the TUs spell qword in two ways that are distinct
  * C++ types (`typedef int qword __attribute__((mode(TI)))` in most TUs, `unsigned long long` in sly2/basic.h); the
  * template keeps every TU's own qword. Names are descriptive placeholders (HYPOTHESIS: the originals were operators of
  * a VU_VECTOR class, as in Sly 1; no Sly 1 symbol names these idioms). */
+#include "sly2/port.h"
+
 #ifndef SLY2_VU0_H
 #define SLY2_VU0_H
-
+#ifdef SLY2_EE_ASM
 /* a - b, all four lanes */
 template <class QW> inline QW VuSub(QW a, QW b)
 {
@@ -238,4 +238,128 @@ inline float FpuAbs(float g)
     return r;
 }
 
+#else /* SLY2_EE_ASM */
+/* ---- The same helpers in plain C++, for builds without EE assembly (sly2/port.h). ----
+ * Each one computes what the asm computes, in the VU0's operation order (one rounding per VU operation, no fused
+ * multiply-add: build with -ffp-contract=off), on IEEE floats; the VU's clamping of Inf/NaN and its truncating rounding
+ * are not modelled. Lanes the asm leaves as scratch are zero here. Checked against a VU0 model of the asm text
+ * (docs/guides/portability.md, "VU0 fallbacks"). */
+
+/* the four float lanes of a quadword (x, y, z, w: the in-memory order) */
+struct VuLanes { float x, y, z, w; };
+template <class QW> inline VuLanes VuGet(QW q)
+{
+    VuLanes v;
+    __builtin_memcpy(&v, &q, sizeof v);
+    return v;
+}
+// A quadword from four float lanes; the type is the template argument: VuPut<qword>(v).
+template <class QW> inline QW VuPut(VuLanes v)
+{
+    QW q;
+    __builtin_memcpy(&q, &v, sizeof q);
+    return q;
+}
+// A quadword from four floats.
+template <class QW> inline QW VuMake(float x, float y, float z, float w)
+{
+    VuLanes v = { x, y, z, w };
+    return VuPut<QW>(v);
+}
+/* the VU's square root (vsqrt, and the EE FPU's sqrt.s): the root of |g| */
+inline float VuSqrt(float g) { return __builtin_sqrtf(__builtin_fabsf(g)); }
+
+template <class QW> inline QW VuSub(QW a, QW b)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    return VuMake<QW>(p.x - q.x, p.y - q.y, p.z - q.z, p.w - q.w);
+}
+template <class QW> inline QW VuSubRef(const QW &a, const QW &b) { return VuSub(a, b); }
+template <class QW> inline QW VuAdd(QW a, QW b)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    return VuMake<QW>(p.x + q.x, p.y + q.y, p.z + q.z, p.w + q.w);
+}
+/* ACC = a + vf0 (so w gains 1.0), r = ACC + v * s.x */
+template <class QW> inline QW VuAddScaled(QW a, QW v, QW s)
+{
+    VuLanes p = VuGet(a), q = VuGet(v);
+    float k = VuGet(s).x;
+    return VuMake<QW>(p.x + q.x * k, p.y + q.y * k, p.z + q.z * k, (p.w + 1.0f) + q.w * k);
+}
+/* x = (a.x b.x + a.y b.y) + a.z b.z; y, z keep the lane products */
+template <class QW> inline QW VuDot(QW a, QW b)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    float dx = p.x * q.x, dy = p.y * q.y, dz = p.z * q.z;
+    return VuMake<QW>((dx + dy) + dz, dy, dz, 0.0f);
+}
+template <class QW, class G> inline QW VuFromFloat(G g)
+{
+    typedef char assert_g_is_a_word[sizeof(G) == 4 ? 1 : -1];
+    float f;
+    __builtin_memcpy(&f, &g, sizeof f);
+    return VuMake<QW>(f, 0.0f, 0.0f, 0.0f);
+}
+template <class QW> inline float VuToFloat(QW v) { return VuGet(v).x; }
+/* xyz = (r0 v.x + r1 v.y) + r2 v.z, accumulated in that order */
+template <class QW> inline QW VuMulMatrix3(QW r0, QW r1, QW r2, QW v)
+{
+    VuLanes a = VuGet(r0), b = VuGet(r1), c = VuGet(r2), u = VuGet(v);
+    return VuMake<QW>((a.x * u.x + b.x * u.y) + c.x * u.z, (a.y * u.x + b.y * u.y) + c.y * u.z,
+                      (a.z * u.x + b.z * u.y) + c.z * u.z, 0.0f);
+}
+// VuMulMatrix3 plus the translation row r3 (v.w taken as 1).
+template <class QW> inline QW VuMulMatrix4(QW r0, QW r1, QW r2, QW r3, QW v)
+{
+    VuLanes a = VuGet(r0), b = VuGet(r1), c = VuGet(r2), d = VuGet(r3), u = VuGet(v);
+    return VuMake<QW>(((a.x * u.x + b.x * u.y) + c.x * u.z) + d.x, ((a.y * u.x + b.y * u.y) + c.y * u.z) + d.y,
+                      ((a.z * u.x + b.z * u.y) + c.z * u.z) + d.z, 0.0f);
+}
+/* vopmula / vopmsub: r = a.yzx * b.zxy - b.yzx * a.zxy */
+template <class QW> inline QW VuCross(QW a, QW b)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    return VuMake<QW>(p.y * q.z - q.y * p.z, p.z * q.x - q.z * p.x, p.x * q.y - q.x * p.y, 0.0f);
+}
+template <class QW> inline QW VuScaleByX(QW v, QW k)
+{
+    VuLanes p = VuGet(v);
+    float g = VuGet(k).x;
+    return VuMake<QW>(p.x * g, p.y * g, p.z * g, p.w * g);
+}
+/* Q = 1 / d.x, then v * Q (a multiplication by the reciprocal, as the VU does it) */
+template <class QW> inline QW VuDivByX(QW v, QW d)
+{
+    VuLanes p = VuGet(v);
+    float q = 1.0f / VuGet(d).x;
+    return VuMake<QW>(p.x * q, p.y * q, p.z * q, p.w * q);
+}
+template <class QW> inline QW VuMin(QW a, QW b)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    return VuMake<QW>(p.x < q.x ? p.x : q.x, p.y < q.y ? p.y : q.y, p.z < q.z ? p.z : q.z, 0.0f);
+}
+template <class QW> inline QW VuMax(QW a, QW b)
+{
+    VuLanes p = VuGet(a), q = VuGet(b);
+    return VuMake<QW>(p.x > q.x ? p.x : q.x, p.y > q.y ? p.y : q.y, p.z > q.z ? p.z : q.z, 0.0f);
+}
+template <class QW> inline QW VuZero() { return VuMake<QW>(0.0f, 0.0f, 0.0f, 0.0f); }
+template <class QW> inline QW VuSqrtX(QW v) { return VuMake<QW>(VuSqrt(VuGet(v).x), 0.0f, 0.0f, 0.0f); }
+template <class QW> inline QW VuLength(QW v) { return VuSqrtX(VuDot(v, v)); }
+template <class QW> inline QW VuLengthXY(QW v)
+{
+    VuLanes p = VuGet(v);
+    return VuMake<QW>(VuSqrt(p.x * p.x + p.y * p.y), 0.0f, 0.0f, 0.0f);
+}
+template <class QW> inline float QwordX(QW q) { return VuGet(q).x; }
+template <class QW> inline float QwordY(QW q) { return VuGet(q).y; }
+template <class QW> inline float QwordZ(QW q) { return VuGet(q).z; }
+template <class QW> inline QW QwordFromFloats(float x, float y, float z) { return VuMake<QW>(x, y, z, 0.0f); }
+inline float SqrtFloat(float g) { return VuSqrt(g); }
+inline float FpuMax(float a, float b) { return a > b ? a : b; }
+inline float FpuMin(float a, float b) { return a < b ? a : b; }
+inline float FpuAbs(float g) { return __builtin_fabsf(g); }
+#endif /* SLY2_EE_ASM */
 #endif /* SLY2_VU0_H */
