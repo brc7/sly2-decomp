@@ -35,7 +35,13 @@ FireMissile thunk, missile / bentley slot 33, pipe_jt slot 36, watchdog slot 73,
 thunks' object arguments, HandleSpliceEvent's argument vector and result, bif.cpp's BIFK forwarders and
 find-class-objects, SO::AddCustomXps' BSPs), EnsureTargetRecordById's result, SetSoIdProxy's and NewSoPartHandle's
 pass-through arguments, and from request 4's structs: so.cpp's target records and CID149 / CID150 handles, relay.cpp's
-RELAYJSG, REGENT's size (section 3 lists what is left).
+RELAYJSG, REGENT's size; (v1.20) tools/cleanup/views, which replaces TU views by their header classes and keeps only
+byte-identical rewrites, applied on the frame path: air.cpp (PresetJtAccelJump on JTAIR / STEPPLAYER / XF,
+ProjectJtVelocityOnContacts and FCheckJtStuck on XP / XPLIST / SOTREE, UpdateJtActiveJump's BODY / INPUT, the jump
+update's link records, the file-scope XP), step.cpp PresetStepAccel (STEP / XF / MATRIX3Q), path.cpp's obstacle
+`S : XFM` (PATHZONE), mark.cpp, jt.cpp, trail.cpp (SUBGLOB / SUBGLOBX), glob.cpp, hud.cpp, act.cpp; XP / XPS in
+sly2/xp.h; and from the port's request 6: EvaluateKeyedFloatCurve's key, ProjectJtVelocityOnContacts' uptr cursor,
+guardscript.cpp's pointer arguments (section 3 lists what is left).
 
 ## 1. Guards and hooks
 
@@ -194,7 +200,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   blip.cpp's BLIPGV: classes.h declares BLIPG's bytes as the 32 empty-constructor BLIP records that give its class
   constructor's loop, so declaring the real fields needs that loop reproduced another way); path.cpp's CG views
   (FindNavTriangleQuick / Safe `struct T`, the obstacle-array `S : XFM` views, IsNearPathlinkEndpoint's +0x218 object);
-  bis.cpp's FACE (the same record as xfm.h SURF / geom.cpp PLANE, but bis.cpp cannot include sly2/xfm.h: bis.h's vec.h
+  (v1.20: the obstacle `S : XFM` in FindPathzoneObstacles is PATHZONE); bis.cpp's FACE (the same record as xfm.h SURF / geom.cpp PLANE, but bis.cpp cannot include sly2/xfm.h: bis.h's vec.h
   VECTOR is 16-byte aligned, basic.h's 12 bytes; unifying needs bis.cpp off vec.h or SURF off VECTOR); rail / pipe /
   freegrabspot / hnd flat views; blend.cpp's ASEG / CHN views; shape.cpp's chain steppers' CHAIN over SHAPECHAIN (native
   layout already; the hand-tuned steppers use a signed local qword, so binding them to SHAPECHAIN's qword members would
@@ -219,7 +225,30 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   records (TARGETREC; FindTargetRecordById by target object; allocation offsetof(guards) + 32 pointers) and CID149 /
   CID150 handles (so.h classes, sizeof; SW_ctor's slot sizeof(CID149)), relay.cpp NewRelayJsg on RELAYJSG (SW_ctor's
   Jsg slot sizeof(RELAYJSG)), EnsureSoPhysRegionRecord's sizeof(REGENT).
-  Still open:
+  Done in v1.20 (tools/cleanup/views; every rewrite byte-identical): air.cpp PresetJtAccelJump's CONTEXT / ACTOR /
+  BODY / SMP (JTAIR, STEPPLAYER, XF, SMP), ProjectJtVelocityOnContacts' and FCheckJtStuck's CONTACT / GROUP / LINK /
+  COLLISION / P / MOVE (XP, XPLIST, SOTREE, STEPPLAYER, JTAIR), UpdateJtActiveJump's BODY / INPUT / SPACE / CLIP,
+  the jump update's LINK / PROVIDER / REFERENCE / EVENT / SPACE (SOPART, GRABSPOT, ACT8, XF), JtbsChooseJtLanding's
+  XF, the file-scope XP / XPD and GRABSPOTV; step.cpp PresetStepAccel's S / O / M3 (STEP, XF, MATRIX3Q) and three
+  smaller views; path.cpp FindPathzoneObstacles' `S : XFM` (PATHZONE's CG); mark.cpp's namespace EDGE / XP; trail.cpp's
+  Record / OUTV (SUBGLOB / SUBGLOBX: the record index arithmetic now uses their sizeof); glob.cpp's XF / U / M4; jt.cpp
+  SMP / LM; hud.cpp CLOCKIsland; act.cpp's local VECTORs. XP / XPS moved from mark.cpp to sly2/xp.h (with normal's
+  VECTOR4 alias normalVec); solve.cpp, dzg.cpp, sensor.cpp, jt.cpp and step.cpp still define their own XP (the first
+  three at file scope, so xp.h is not in so.h yet). Request 6: EvaluateKeyedFloatCurve's key is
+  `(ACKEYF *)(i * (int)sizeof(ACKEYF) + (sptr)t->akey)` (`&t->akey[i]` changes the code), ProjectJtVelocityOnContacts'
+  cursor and row address are `uptr`, guardscript.cpp's StartGuardScript (LO *, CID113 *) and GetBhvScriptTargetPose /
+  GetGuardScriptTargetPose (LO *target, qword *posOut, float *headingOut).
+  Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
+  - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
+    JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
+    the VuSub / VuDivByX calls), SOURCE / OBJECT (JTAIR::jumpObject / unknown160 are `LO *`; BARREL / CID40 per the
+    port, members not covered by those headers), FOCUS (TN::cameraDefinitions is a CPD, the view's DATA reads +4), the
+    PATH / SPLINE samplers (secondary-base vptr); PresetJtAccelJump's default case and modes 20 / 22 are asm without
+    a C fallback; hud.cpp FinishSpriteSoundEvent's `lw %0,8(%1)` without a C fallback.
+  - step.cpp AdjustStepXpVelocity / AdjustStepNewXp (signed qword typedef; their local XP shadows xp.h),
+    AddStepAxisXps (a local SO re-declaration in the block), UpdateStep / AddStepCustomXps (no identified class).
+  - stepplayer.cpp, cm.cpp, blend.cpp, hurt.cpp, busy.cpp, ms.cpp, sw.cpp, proxy.cpp, shape.cpp: no view with a
+    confident target yet (offset fit is ambiguous); they need hand annotations in tools/cleanup/views/targets.json.
   - hand vtable calls inside hand-scheduled asm statements (they need the statement's C fallback first): air.cpp
     (slot 35), guardbhv.cpp BlendSet (35), murray.cpp SetMurrayFlopSubstate (35), jthands.cpp (35),
     stepplayer.cpp's message 0x160 case (35), throw.cpp LaunchVectorCall (35), step.cpp's other-object follow (29),
