@@ -482,7 +482,7 @@ extern "C" void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
 
 namespace M_func_0012C440 {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VECTOR { float x, y, z, w; } VECTOR;
+
 int FindFloatCurveAKey(AC3 *t, float g) __asm__("FindFloatCurveAKey");
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates the per-component curve at time t, each component through its float Bezier (slot 3). (inferred)
@@ -641,7 +641,7 @@ extern "C" void PrepareFloatCurveBSegment(AC4 *t, OBJ *po)
 
 namespace M_func_0012CA68 {
 typedef int qword __attribute__((mode(TI)));
-typedef struct VECTOR { float x, y, z, w; } VECTOR;
+
 int FindFloatCurveBKey(AC4 *t, float g) __asm__("FindFloatCurveBKey");
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
 // Evaluates the second per-component curve kind at time t (slot 3). (inferred)

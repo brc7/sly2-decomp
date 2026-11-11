@@ -3319,7 +3319,7 @@ extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 
 // 0x218660 StopSpriteSlot
 namespace M_func_00218660 {
-struct CLOCKIsland { unsigned long ticks; };   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
+   /* CLOCK island: time/deltaTime read as one 64-bit word (ld) */
 void StopSnd(void *p, float f) __asm__("StopSnd");
 void RcPtr_Assign(void **pp, void *next) __asm__("RcPtr_Assign");
 void ResetSpriteSlotItems(SPRITEGRP *p, int i) __asm__("ResetSpriteSlotItems");
