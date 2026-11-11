@@ -21,7 +21,7 @@ typedef union { qword q; float f[4]; } VU;
 struct VOLV : XFM 
 {
     
-    struct { int numNodes; int numNodesFull; int unknown08; int nodes; } bspc;   /* +0xE0 */
+    struct { int numNodes; int numNodesFull; int unknown08; BSP *nodes; } bspc;   /* +0xE0 (xfm.h BSPC) */
     struct { int numPoints; qword *points; int numSurfaces; void *surfaces; int numEdges; void *edges; } geom;   /* +0xF0 */
     char pad108[8];
     qword center;       /* +0x110 centre of the bounding sphere */
@@ -39,7 +39,7 @@ void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 qword VecMinArray(int c, qword *points);
 qword VecMaxArray(int c, qword *points);
 qword ConvertPosBetweenLos(int a, VOLV *p, qword q);
-int FindBspLeafContainingPointFast(int a, int b, qword q);
+int FindBspLeafContainingPointFast(BSP *a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(SWALLOC *pmsg);
