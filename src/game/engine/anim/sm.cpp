@@ -156,7 +156,7 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
     int cstep;
     int fChanged;
     LO *plo;
-    InitDl(&dlSma, 0x14);
+    InitDl(&dlSma, SLY2_OFFSETOF(SMA, dleSm));
     STACKSCOPE stackscope;
     CLoadCollectorArray collector;
     LoadSwObjectsFromBrx(parent, pbis, &collector);
@@ -329,9 +329,9 @@ extern "C" void SetSmPendingApply(SM *p, OID a, OID b, GRFAPL c)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmaApplySmOut {
-void ApplySmCore(int, int, int, int, int, int) __asm__("ApplySmCore");
+void ApplySmCore(SM *, ALO *, int, int, int, SMA **) __asm__("ApplySmCore");
 // Starts the machine on an object (kind 4) and returns the activation through the last argument.
-extern "C" void ApplySmGetSma(int a, int b, int c, int d, int e) { ApplySmCore(a, b, c, d, 4, e); }
+extern "C" void ApplySmGetSma(SM *a, ALO *b, int c, int d, SMA **e) { ApplySmCore(a, b, c, d, 4, e); }
 } // namespace M_PsmaApplySmOut
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -385,16 +385,16 @@ extern "C" void ApplySmCore(SM *p, ALO *a, int b, int c, int d, SMA **pps)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001F0380 {
-void ApplySmCore(int, int, int, int, int, int *) __asm__("ApplySmCore");
+void ApplySmCore(SM *, ALO *, int, int, int, SMA **) __asm__("ApplySmCore");
 // Starts the machine on an object (kind 4) and returns the activation.
-int ApplySmToObject(int a, int b, int c, int d) __asm__("ApplySmToObject"); int ApplySmToObject(int a, int b, int c, int d) { int r; ApplySmCore(a, b, c, d, 4, &r); return r; }
+SMA *ApplySmToObject(SM *a, ALO *b, int c, int d) __asm__("ApplySmToObject"); SMA *ApplySmToObject(SM *a, ALO *b, int c, int d) { SMA *r; ApplySmCore(a, b, c, d, 4, &r); return r; }
 } // namespace M_func_001F0380
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmaApplySmEx {
-void ApplySmCore(int, int, int, int, int, int *) __asm__("ApplySmCore");
+void ApplySmCore(SM *, ALO *, int, int, int, SMA **) __asm__("ApplySmCore");
 // Starts the machine on an object with an explicit kind and returns the activation.
-extern "C" int ApplySmWithKind(int a, int b, int c, int d, int e) { int r; ApplySmCore(a, b, c, d, e, &r); return r; }
+extern "C" SMA *ApplySmWithKind(SM *a, ALO *b, int c, int d, int e) { SMA *r; ApplySmCore(a, b, c, d, e, &r); return r; }
 } // namespace M_PsmaApplySmEx
 
 /* The machine's activation on palo, or 0. The unused array is part of the original frame.
@@ -543,7 +543,7 @@ extern "C" void SetSmaGoal(SMA *p, int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaGoalIfReachable {
 int FindSmStateOptional__FP2SM3OID(void *, int) __asm__("FindSmStateOptional__FP2SM3OID");
-int ChooseSmTransitionTowardGoal(void *, int, int, int, int) __asm__("ChooseSmTransitionTowardGoal");
+SMT *ChooseSmTransitionTowardGoal(void *, int, int, int, int) __asm__("ChooseSmTransitionTowardGoal");
 void SetSmaGoal(SMA *, int) __asm__("SetSmaGoal");
 // Sets the goal only if a path to it exists under the current transition mask.
 // Also known as: SeekSma (upstream readable / Sly 1 name; SeekSma__FP3SMA3OID).
@@ -687,11 +687,11 @@ extern "C" SMT *ChooseWeightedSmTransition(void *p, int n, SMT **ape)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseTowardGoal {
 int CountSmTransitionHops(SM *, int, int, int) __asm__("CountSmTransitionHops");
-int ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
+SMT *ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
 // Picks a transition out of the current state (or a reversible one) that brings the machine one hop closer to the goal,
 // weighted at random among the candidates.
 // Also known as: PsmtPath (upstream readable / Sly 1 name; PsmtPath__FP2SMUiii).
-extern "C" int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
+extern "C" SMT *ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
 {
     SMT *ap[64];
     int c;
@@ -717,10 +717,10 @@ extern "C" int ChooseSmTransitionTowardGoal(SM *p, int mask, int a, int b)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PsmtChooseFrom {
-int ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
+SMT *ChooseWeightedSmTransition(SM *, int, SMT **) __asm__("ChooseWeightedSmTransition");
 // Picks any allowed transition out of a state, weighted at random (wandering when there is no goal).
 // Also known as: PsmtLeaving (upstream readable / Sly 1 name; PsmtLeaving__FP2SMUii).
-extern "C" int ChooseRandomSmTransition(SM *p, int mask, int k)
+extern "C" SMT *ChooseRandomSmTransition(SM *p, int mask, int k)
 {
     SMT *ape[64];
     int n = 0;
@@ -745,8 +745,10 @@ void SubscribeLoObject(ASEGA *, SMA *) __asm__("SubscribeLoObject");
 void RetractAsega(ASEGA *) __asm__("RetractAsega");
 // Copy p into $4 (register-pinned for matching).
 extern "C" { static inline SMA *Receiver(SMA *p){register SMA *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;} }
-// Byte offset of 8-byte entry `index`.
+#ifdef SLY2_EE_ASM
+// Byte offset of 8-byte entry `index` (sizeof(SMS)).
 extern "C" { static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;} }
+#endif
 // The machine's driver: with no goal (or at the goal) it wanders, otherwise it heads toward the goal; starts the chosen
 // transition's animation segment on the root object, records the next state and notifies.
 // Also known as: ChooseSmaTransition (upstream readable / Sly 1 name; ChooseSmaTransition__FP3SMAi).
@@ -830,7 +832,11 @@ test:
         pa=ChooseSmTransitionTowardGoal(p->stateMachine,p->routeFlags,p->currentState,p->goalState,1);
         goto apply;
     }
-    nx=((SMS*)((uptr)p->stateMachine->asms+EntryOffset(p->currentState)))->ismsNext;
+#ifdef SLY2_EE_ASM
+    nx=((SMS*)((uptr)p->stateMachine->asms+EntryOffset(p->currentState)))->ismsNext;   /* the sll is pinned to $3 */
+#else
+    nx=p->stateMachine->asms[p->currentState].ismsNext;
+#endif
     if(nx!=finished)goto select;
 }
 }
@@ -858,7 +864,7 @@ extern "C" void EndSmaTransition(SMA *psma)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001F0FD8 {
-extern void SendLoMessage(SMA *, int, int) __asm__("SendLoMessage");
+extern void SendLoMessage(SMA *, int, void *) __asm__("SendLoMessage");
 struct Lock {
     SMA *p;
     // Scope guard: hold a reference (AddRef on entry, Release on exit).
@@ -867,11 +873,11 @@ struct Lock {
 };
 // The activation's message handler: forwards the message to its listener object (slot 5) and to the LO base handler.
 // (inferred)
-extern "C" void SendSmaMessage(SMA *p, int a, int b)
+extern "C" void SendSmaMessage(SMA *p, int a, void *b)
 {
     Lock l(p);
     ALO *q = p->paloRoot;
-    if (q) q->HandleMessage((MSGID)a, (void *)b);
+    if (q) q->HandleMessage((MSGID)a, b);
     SendLoMessage(p, a, b);
 }
 } // namespace M_func_001F0FD8

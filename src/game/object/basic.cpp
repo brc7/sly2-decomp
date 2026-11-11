@@ -363,13 +363,13 @@ extern "C" void UnsubscribeLoAll(LO *object) {
 }
 
 // BASIC's SendMessage (vtable slot 4): the object handles the message itself (slot 5), then every subscriber does.
-extern "C" void SendLoMessage(LO *object, int a, int b) {
+extern "C" void SendLoMessage(LO *object, int a, void *b) {
     REFNODE *pn;
-    ((::BASIC *)object)->HandleMessage((MSGID)a, (void *)b);
+    ((::BASIC *)object)->HandleMessage((MSGID)a, b);
     for (pn = object->firstSubscriber; pn; ) {
         LO *po = pn->plo;
         pn = pn->pnext;
-        ((::BASIC *)po)->HandleMessage((MSGID)a, (void *)b);
+        ((::BASIC *)po)->HandleMessage((MSGID)a, b);
     }
 }
 
