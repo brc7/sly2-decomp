@@ -289,7 +289,9 @@ struct BOMB : SO
     qword angularVelocityAtDetonation;   /* +0x1D0 */
     int makesNoise;             /* +0x1E0 */
     int detonatesOnContact;     /* +0x1E4 */
-    LO *lastThrower;            /* +0x1E8 bomb.cpp's thrower (while set PresetSplmissAccel / PresetAccmissAccel do nothing) */
+    LO *ploStuckTo;             /* +0x1E8 the object a sticky bomb is attached to: ApplyBombThrow (slot 77) parents the bomb
+                                   to it; a contact bomb that is stuck does not detonate on contact (Sly 1:
+                                   AttachStickyProjectile). Was lastThrower. */
     int zapKind;                /* +0x1EC */
     int blastDamage;            /* +0x1F0 */
     int fCustomXps;             /* +0x1F4 */

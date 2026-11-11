@@ -47,15 +47,15 @@ struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
     qword angularVelocityAtDetonation; /* +0x1D0 */
     int makesNoise;            /* +0x1E0 detonation creates a noise stimulus (NewNoise), inferred */
     int detonatesOnContact;    /* +0x1E4 (inferred: kind-1 bombs detonate on contact only when set) */
-    LO *thrower;               /* +0x1E8 the thrower (a guard, by the snapshot pipeline's prototype match) */
+    LO *ploStuckTo;            /* +0x1E8 the object it is stuck to (classes.h BOMB::ploStuckTo; ApplyBombThrow) */
     int zapKind;               /* +0x1EC zap kind of the blast message (0x100) */
     int blastDamage;           /* +0x1F0 damage of the blast message (-10) */
     int fCustomXps;            /* +0x1F4 */
     int cxp;
     CXP *axp;                  /* +0x1FC */
-    BOMBV *owner;              /* +0x200 the bomb's owner (itself until thrown; contacts with its root are ignored) */
+    BOMBV *thrower;            /* +0x200 classes.h BOMB::thrower: itself until thrown; contacts with its root are ignored */
 };
-typedef char assert_BOMB_pbombOwner[(unsigned int)&((BOMBV *)0)->owner == 0x200 ? 1 : -1];
+typedef char assert_BOMB_thrower[(unsigned int)&((BOMBV *)0)->thrower == 0x200 ? 1 : -1];
 /* Objects of the SO list D_003E13B4 (UpdateBombCustomXps) and their marker LOs. */
 struct NV { char pad[0x60]; SO *plo; };
 struct SOV : BASIC { SOV *pparent; LOROOTV *ploroot; char pad1[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x54 - 0x40]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; SOV *pnext; int xE4; int grfE8; union { NV *pn; XEC *pxp; }; int xF0; };
@@ -136,7 +136,7 @@ void SetBombOwner(BOMBV *p, BOMBV *pbombOwner);
 }
 void PrimeBomb(BOMBV *pbomb, float dt) __asm__("PrimeBomb__FP4BOMBf");
 
-// BOMB vtable slot 7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, owner=self.
+// BOMB vtable slot 7: InitSo, tDetonate=FLT_MAX, radii, zap defaults, flag, thrower=self.
 // Also known as: InitBomb (upstream readable / Sly 1 name; InitBomb__FP4BOMB).
 extern "C" void InitBomb(BOMBV *bomb) {
     sptr x;
@@ -151,10 +151,10 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->k = 0;
     if ((x ^ 1) & 1) ((LOUPD *)x)->grf |= 2;
     else bomb->unknown40 = x | 2;
-    bomb->owner = bomb;
+    bomb->thrower = bomb;
 }
 
-// BOMB vtable slot 76: SO Clone then reset owner to self (SetBombOwner). (inferred)
+// BOMB vtable slot 76: SO Clone then reset the thrower to self (SetBombOwner). (inferred)
 extern "C" void CloneBomb(BOMBV *bomb, BOMBV *source)
 {
     CloneSo(bomb, source);
@@ -346,7 +346,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     case 1:
         if (!bomb->detonatesOnContact)
             return;
-        if (bomb->thrower)
+        if (bomb->ploStuckTo)
             return;
         break;
     }
@@ -427,11 +427,11 @@ extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
     return 1;
 }
 
-// BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event
+// BOMB vt77: remember the object it sticks to (+0x1E8), reparent to it, zero velocities, lock force/torque constraints, fire Splice event
 // 0x1B. (inferred)
 // Also known as: AttachStickyProjectile (upstream readable / Sly 1 name; AttachStickyProjectile__FPvT0).
 extern "C" void ApplyBombThrow(BOMBV *bomb, LO *q) {
-    bomb->thrower = q;
+    bomb->ploStuckTo = q;
     SetLoParent(bomb, q->oid != 1 ? q : 0, 3);
     SetSoPosXfVelocityLocal(bomb, D_002A2DD0);
     SetSoRotXfVelocityLocal(bomb, D_002A2DD0);
@@ -664,7 +664,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         ((void (*)(POV *, MSG2 *))po->pvt[51].pfn)((POV *)((char *)po + po->pvt[51].d), &msg2);
     }
     if (bomb->makesNoise) {
-        POV *po = (POV *)bomb->owner;
+        POV *po = (POV *)bomb->thrower;
         void *pv = bomb;
         if (po != (POV *)bomb && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             POV *pT = *po->pp14;
@@ -679,7 +679,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
 }
 
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
-// BOMB vtable slot 26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
+// BOMB vtable slot 26: base, clear detonation, tDetonate=const, thrower=self, unlock constraints, unparent. (inferred)
 // Also known as: ResetProjectileInstance (upstream readable / Sly 1 name; ResetProjectileInstance__FP2LO).
 extern "C" void ResetBomb(BOMBV *bomb) {
     SO_ResetForProxy(bomb);
@@ -689,27 +689,27 @@ extern "C" void ResetBomb(BOMBV *bomb) {
     SetSoCnstrForce(bomb, 0);
     SetSoCnstrTorque(bomb, 0);
     SetSoTreeFlag2(bomb, 0);
-    bomb->thrower = 0;
+    bomb->ploStuckTo = 0;
     SetLoParent(bomb, 0, 0xf);
 }
 
-// BOMB vtable slot 61: SO base; ignore (max with 1) objects sharing the owner's root. (inferred)
+// BOMB vtable slot 61: SO base; ignore (max with 1) objects sharing the thrower's root. (inferred)
 // Also known as: OverlapKindProjectile (upstream readable / Sly 1 name; OverlapKindProjectile__FP3ALOT0).
 extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = ShouldSoIgnoreIntersection(bomb, pso);
-    if (pso->ploroot->plo == bomb->owner->root->topObject) {
+    if (pso->ploroot->plo == bomb->thrower->root->topObject) {
         r = MaxInt(r, 1);
     }
     return r;
 }
 
-// Set owner (+0x200) and RefreshSwObjectCollisionFilter if changed. (inferred)
+// Set the thrower (+0x200) and RefreshSwObjectCollisionFilter if changed. (inferred)
 // Also known as: SetProjectileLauncher (upstream readable / Sly 1 name; SetProjectileLauncher__FP3ALOP2LO).
 extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
-    if (pbombOwner != bomb->owner) {
-        bomb->owner = pbombOwner;
+    if (pbombOwner != bomb->thrower) {
+        bomb->thrower = pbombOwner;
         RefreshSwObjectCollisionFilter(&g_sw, bomb);
     }
 }
