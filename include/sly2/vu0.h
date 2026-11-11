@@ -417,5 +417,38 @@ inline float SqrtFloat(float g) { return VuSqrt(g); }
 inline float FpuMax(float a, float b) { return a > b ? a : b; }
 inline float FpuMin(float a, float b) { return a < b ? a : b; }
 inline float FpuAbs(float g) { return __builtin_fabsf(g); }
+/* VU0 microprogram 0x1C0, the sphere-against-view cull (glob.cpp RenderSoGlobset / SubmitGlobsetRelight,
+   rendertree.cpp CullSceneRenderList), in C. Read from the microcode (the VU0 upload chain D_00259DF0 in .vutext,
+   84 instructions at VU0 address 0; 0x1C0 is instructions 56..83; transcribed by the port, boot-8). Inputs as the EE
+   loads them: vf10..vf12 the four side planes' normals transposed (aqwPlane[0] the four x, [1] the y, [2] the z),
+   vf13 the camera, vf14.x the cull scale (CM::rCullScale), vf15 the sphere centre, vf16.x its radius, vf17.x its
+   range. Outputs: vf18 = centre - camera (all four lanes, *pdpos) and vf19.x, the visibility (the result):
+     0 if dot(normal_i, dpos) - radius >= 0 for any of the four planes, or if (scale range)^2 < |dpos|^2;
+     else min(((scale range)^2 - |dpos|^2) / ((scale range)^2 - (scale range - scale 400)^2), 1).
+   400 is the microcode's I immediate (the fade band at the far end of the range); a zero divisor gives the VU's +MAX
+   (the numerator is >= 0 there). */
+template <class QW> inline float VuCullSphere(const QW *aqwPlane, QW cam, float scale, QW pos, float radius,
+                                              float range, QW *pdpos)
+{
+    VuLanes c = VuGet(cam), p = VuGet(pos);
+    VuLanes px = VuGet(aqwPlane[0]), py = VuGet(aqwPlane[1]), pz = VuGet(aqwPlane[2]);
+    VuLanes d = {p.x - c.x, p.y - c.y, p.z - c.z, p.w - c.w};
+    *pdpos = VuMake<QW>(d.x, d.y, d.z, d.w);
+    float ax[4] = {px.x, px.y, px.z, px.w}, ay[4] = {py.x, py.y, py.z, py.w}, az[4] = {pz.x, pz.y, pz.z, pz.w};
+    for (int i = 0; i < 4; i++) {
+        float dist = (ax[i] * d.x + ay[i] * d.y) + az[i] * d.z;
+        if (!(dist - radius < 0.0f))
+            return 0.0f;
+    }
+    float sFar = scale * range;
+    float sFade = sFar - scale * 400.0f;
+    float sqFar = sFar * sFar;
+    float num = sqFar - ((d.x * d.x + d.y * d.y) + d.z * d.z);
+    if (num < 0.0f)
+        return 0.0f;
+    float den = sqFar - sFade * sFade;
+    float q = den == 0.0f ? (num == 0.0f ? 0.0f : 3.402823466e38f) : num / den;
+    return q < 1.0f ? q : 1.0f;
+}
 #endif /* SLY2_EE_ASM */
 #endif /* SLY2_VU0_H */

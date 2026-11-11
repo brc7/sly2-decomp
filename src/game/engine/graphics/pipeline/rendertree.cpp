@@ -186,14 +186,22 @@ struct VU_FLOAT
 {
     qword q;
     // empty asm: only moves the word into the qword's GPR (no instruction)
+#ifdef SLY2_EE_ASM
     VU_FLOAT(int n) { __asm__("" : "=r"(q) : "0"(n)); }
+#else
+    VU_FLOAT(int n) { q = (unsigned int)n; }
+#endif
 };
 // the float loaded by an asm `lw` straight into the qword's register (as RenderSoGlobset's VU_FLOATM)
 struct VU_FLOATM
 {
     qword q;
     // Load a float into a GPR qword (lw).
+#ifdef SLY2_EE_ASM
     VU_FLOATM(const float &g) { __asm__("lw %0, %1" : "=r"(q) : "m"(g)); }
+#else
+    VU_FLOATM(const float &g) { q = *(const unsigned int *)&g; }
+#endif
 };
 struct VU_VECTOR
 {
@@ -225,6 +233,7 @@ static inline float SqLength(VU_VECTOR v)
 static inline void SetX(float *pg, qword q) { __asm__("sw %1,%0" : "=m"(*pg) : "r"(q), "j"(q)); }
 // Microprogram 0x1C0 (sphere against the view): inputs vf10..vf17, results (offset, visibility) in vf18/vf19.
 // Loads the sphere into vf15; the result is only a token standing for vf15.
+#ifdef SLY2_EE_ASM
 static inline qword LoadSphereToVf15(const qword &pos)
 {
     qword q;
@@ -263,6 +272,21 @@ static inline qword GetCullSphereOffset()
     register qword qwDpos __asm__("vf18"); // pin: the microprogram's output register
     return qwDpos;
 }
+#else
+/* C fallback (sly2/vu0.h VuCullSphere): the microprogram's two result registers as file state, set by StartCull and
+   read by WaitCullVisibility / GetCullSphereOffset (single-threaded, as VU0 itself). */
+static qword s_qwCullDpos;
+static float s_gCullVis;
+static inline float LowFloat(qword q) { unsigned int u = (unsigned int)q; return *(float *)&u; }
+static inline qword LoadSphereToVf15(const qword &pos) { return pos; }
+static inline void StartCull(qword *aqwPlane, VU_FLOATM gain, qword qwPos, VU_FLOAT radius, VU_FLOAT word)
+{
+    s_gCullVis = VuCullSphere<qword>(aqwPlane, aqwPlane[-1], LowFloat(gain.q), qwPos, LowFloat(radius.q),
+                                     LowFloat(word.q), &s_qwCullDpos);
+}
+static inline float WaitCullVisibility() { return s_gCullVis; }
+static inline qword GetCullSphereOffset() { return s_qwCullDpos; }
+#endif
 // Copy cw words (a multiple of 4) from pwSrc to pwDst one quadword at a time.
 static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
 {

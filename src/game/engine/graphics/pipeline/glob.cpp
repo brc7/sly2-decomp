@@ -944,9 +944,11 @@ struct VU_FLOATS
     VU_FLOATS(const ::SO *pso) { __asm__("lw %0, %1" : "=r"(qw) : "m"(pso->busyRadius)); }   // the owner's range (LO::busyRadius)
     VU_FLOATS(const SUBGLOBX *psph) { __asm__("lw %0, %1" : "=r"(qw) : "m"(psph->maxRenderDistance)); }
 };
-// Microprogram 0x1C0 (sphere against the view planes): its inputs and outputs live in fixed VU registers.
+// Microprogram 0x1C0 (sphere against the view planes): its inputs and outputs live in fixed VU registers (the C
+// fallback: sly2/vu0.h VuCullSphere).
 static inline float GetSphereVisibility(qword posCam, qword pos, const ::SO *pso, const float &sRadius, qword *pdpos)
 {
+#ifdef SLY2_EE_ASM
     qword *aqwPlane = (qword *)g_cm.agFrustumXyz;   /* the transposed plane normals as three VU0 registers */
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
     register qword qwPlane1 __asm__("vf11") = aqwPlane[1];
@@ -966,10 +968,14 @@ static inline float GetSphereVisibility(qword posCam, qword pos, const ::SO *pso
     float g;
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qwVis));
     return g;
+#else
+    return VuCullSphere((qword *)g_cm.agFrustumXyz, posCam, g_cm.rCullScale, pos, sRadius, pso->busyRadius, pdpos);
+#endif
 }
 // Same cull, with the VU0 sync as its own statement and the visibility moved out through a GPR.
 static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SUBGLOBX *psph, const float &sRadius, qword *pdpos)
 {
+#ifdef SLY2_EE_ASM
     qword *aqwPlane = (qword *)g_cm.agFrustumXyz;   /* the transposed plane normals as three VU0 registers */
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
     register qword qwPlane1 __asm__("vf11") = aqwPlane[1];
@@ -994,6 +1000,9 @@ static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SUBGL
     float g;
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(qwVis));
     return g;
+#else
+    return VuCullSphere((qword *)g_cm.agFrustumXyz, posCam, g_cm.rCullScale, pos, sRadius, psph->maxRenderDistance, pdpos);
+#endif
 }
 // Copy cw words (a multiple of 4) from pwSrc to pwDst one quadword at a time.
 static inline void CopyQws(uint *pwDst, const uint *pwSrc, int cw)
