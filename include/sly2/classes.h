@@ -2738,4 +2738,20 @@ typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
 /* 115 WR (0x900); vtable 0x2DCF00, 48 slots: defined in sly2/wr.h (the anim header) with its fields. */
 struct WR;
 
+/* The OwnFields accessors declared in sly2/xfm.h and sly2/so.h (func_00259A28): each returns the class's GRABSPOT
+   base, which the option records address. A plain static_cast<GRABSPOT *>(p) adds a null test (movz) that the
+   linkonce copies do not have, and so does a reference cast; the base offset is therefore taken from a static_cast
+   of a non-null constant (folded to sizeof(first base) on the EE, the ABI's offset elsewhere) and added to p. */
+#define SLY2_GRABSPOT_BASE(T, p) ((void *)((char *)(p) + ((char *)static_cast<GRABSPOT *>((T *)0x100) - (char *)0x100)))
+inline void *GetCid12OwnFields(CID12 *p) { return SLY2_GRABSPOT_BASE(CID12, p); }
+inline void *GetCid34OwnFields(CID34 *p) { return SLY2_GRABSPOT_BASE(CID34, p); }
+inline void *GetCid38OwnFields(CID38 *p) { return SLY2_GRABSPOT_BASE(CID38, p); }
+inline void *GetCid35OwnFields(CID35 *p) { return SLY2_GRABSPOT_BASE(CID35, p); }
+inline void *GetCid27OwnFields(CID27 *p) { return SLY2_GRABSPOT_BASE(CID27, p); }
+inline void *GetHndOwnFields(HND *phnd) { return SLY2_GRABSPOT_BASE(HND, phnd); }
+inline void *GetPipeOwnFields(PIPE *ppipe) { return SLY2_GRABSPOT_BASE(PIPE, ppipe); }
+inline void *GetRailOwnFields(RAIL *prail) { return SLY2_GRABSPOT_BASE(RAIL, prail); }
+inline void *GetCid39OwnFields(CID39 *p) { return SLY2_GRABSPOT_BASE(CID39, p); }
+inline void *func_00259A28(BARREL *pbarrel) { return SLY2_GRABSPOT_BASE(BARREL, pbarrel); }
+
 #endif /* SLY2_CLASSES_H */

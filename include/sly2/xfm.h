@@ -376,15 +376,15 @@ typedef char assert_TN_size[sizeof(TN) == 0x1C0 ? 1 : -1];   /* class descriptor
 /* The "ensure" accessors of these classes return the start of the class's own fields (the end of its base part); the
  * option records address fields relative to it. The classes have no header yet, so only their names are used. */
 struct CID12; struct CID27; struct CID34; struct CID35; struct CID38; struct CID39; struct HND; struct PIPE; struct RAIL;
-inline void *GetCid12OwnFields(CID12 *p) { return (char *)p + sizeof(SHAPE); }    /* CID12 : SHAPE */
-inline void *GetCid34OwnFields(CID34 *p) { return (char *)p + sizeof(XFM); }      /* CID34 : XFM */
-inline void *GetCid38OwnFields(CID38 *p) { return (char *)p + sizeof(XFM); }      /* CID38 : XFM */
-inline void *GetCid35OwnFields(CID35 *p) { return (char *)p + sizeof(XFM); }      /* CID35 : XFM */
-inline void *GetCid27OwnFields(CID27 *p) { return (char *)p + sizeof(VOL); }      /* CID27 : VOL */
-inline void *GetHndOwnFields(HND *phnd) { return (char *)phnd + sizeof(TARGET); }  /* HND : TARGET */
-inline void *GetPipeOwnFields(PIPE *ppipe) { return (char *)ppipe + sizeof(SHAPE); }  /* PIPE : SHAPE */
-inline void *GetRailOwnFields(RAIL *prail) { return (char *)prail + sizeof(SHAPE); }  /* RAIL : SHAPE */
-inline void *GetCid39OwnFields(CID39 *p) { return (char *)p + sizeof(XFM); }      /* CID39 : XFM */
+inline void *GetCid12OwnFields(CID12 *p);    /* CID12 : SHAPE */
+inline void *GetCid34OwnFields(CID34 *p);      /* CID34 : XFM */
+inline void *GetCid38OwnFields(CID38 *p);      /* CID38 : XFM */
+inline void *GetCid35OwnFields(CID35 *p);      /* CID35 : XFM */
+inline void *GetCid27OwnFields(CID27 *p);      /* CID27 : VOL */
+inline void *GetHndOwnFields(HND *phnd);  /* HND : TARGET */
+inline void *GetPipeOwnFields(PIPE *ppipe);  /* PIPE : SHAPE */
+inline void *GetRailOwnFields(RAIL *prail);  /* RAIL : SHAPE */
+inline void *GetCid39OwnFields(CID39 *p);      /* CID39 : XFM */
 
 /* The GRABSPOT owner getters: slot 6 of each class's GRABSPOT vtable (the entry's delta brings `this` back to the
  * object's start) returns the object itself; GRABSPOT's own slot 6 (GetGrabspotOwner) returns 0. In the linkonce area

@@ -298,7 +298,7 @@ inline CID17 *func_00259B20(SO *pso)   /* get */
 }
 /* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
 struct BARREL;
-inline void *func_00259A28(BARREL *pbarrel) { return (char *)pbarrel + sizeof(SO); }
+inline void *func_00259A28(BARREL *pbarrel);   /* defined in sly2/classes.h (needs BARREL complete) */
 inline void *func_00259A20(BARREL *pbarrel) { return pbarrel; }   /* its GRABSPOT owner getter (see sly2/xfm.h) */
 
 /* SURFX: the three vertex indices of a triangle surface of a soft part (so.cpp EnsureSoPartMesh orders them so that

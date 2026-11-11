@@ -28,7 +28,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The player mask of a stepplayer (+0x1000; jthands.cpp's JTV names it the hand-target mask). */
-#define GRFPLAYER(pstepplayer) (*(int *)((char *)(pstepplayer) + 0x1000))
+#define GRFPLAYER(pstepplayer) (*(int *)&(pstepplayer)->grfGrabTarget)
 
 extern "C" {
 extern float D_002BF660;
@@ -134,7 +134,7 @@ void InitGrabspot(GRABSPOT *p) __asm__("InitGrabspot");
 extern "C" void InitWallGrabspot(CID12 *wall)
 {
     InitShape(wall);
-    InitGrabspot((GRABSPOT *)&wall->ptn);   /* its GRABSPOT, addressed by its first field (a base conversion adds a null test) */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID12, wall));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
     wall->unknown1BC = 3;
 }
 } // namespace M_func_00182E80
@@ -341,7 +341,7 @@ extern "C" void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qwor
 extern "C" void InitPoleGrabspot(CID34 *pole)
 {
     InitXfm(pole);
-    InitGrabspot(&pole->ptn);   /* its GRABSPOT, addressed by its first field */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID34, pole));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
 }
 
 // OnAdd: unfreeze, then joins its grab list.
@@ -448,7 +448,7 @@ extern "C" void GetPoleGrabspotSparklePosition(CID34 *pole, qword *pv, qword *pd
 extern "C" void InitHoldGrabspot(CID38 *hold)
 {
     InitXfm(hold);
-    InitGrabspot(&hold->ptn);   /* its GRABSPOT, addressed by its first field */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID38, hold));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
 }
 
 // OnAdd for the CID38 hold point (OnHoldGrabspotAdd): unfreeze, then joins its grab list.
@@ -527,7 +527,7 @@ extern "C" void GetHoldGrabspotGrabPosition(CID38 *hold, STEPPLAYER *pj, qword *
 extern "C" void InitBarrel(BARREL *barrel)
 {
     InitSo(barrel);
-    InitGrabspot(&barrel->ptn);   /* its GRABSPOT, addressed by its first field */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(BARREL, barrel));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
     barrel->carryState = 0;
     barrel->sBusy = 300.0f;
     barrel->isFree = 1;
@@ -733,7 +733,7 @@ extern "C" int HandleBarrelZap(BARREL *barrel, ZPR *q)
 extern "C" void InitTriggerGrabspot(CID35 *trigger)
 {
     InitXfm(trigger);
-    InitGrabspot(&trigger->ptn);   /* its GRABSPOT, addressed by its first field */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID35, trigger));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
     trigger->nPriority = 1;
     trigger->sRadius = 200.0f;
     trigger->grfPlayers = 0;
@@ -895,7 +895,7 @@ extern "C" int ShouldTriggerGrabspotSkipTarget(CID36 *trigger, struct T *q)
 extern "C" void InitTableGrabspot(CID27 *table)
 {
     InitXfm(table);
-    InitGrabspot(&table->ptn);   /* its GRABSPOT, addressed by its first field */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID27, table));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
 }
 
 namespace M_func_001843F0 {
