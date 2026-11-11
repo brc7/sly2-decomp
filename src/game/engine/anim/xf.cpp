@@ -114,7 +114,6 @@ extern "C" void WakeXfOwner(SO *p, XF *q)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022C8C0 {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int n[4]; } VU;
 typedef struct { VU r[3]; } M3;
 typedef struct { VU r[4]; } M4;
@@ -182,7 +181,6 @@ extern "C" M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CA18 {
-typedef int qword __attribute__((mode(TI)));
 qword DecomposeRotationMatrixToEuler(float *m) __asm__("DecomposeRotationMatrixToEuler");
 // The inverse of BuildXfValueMatrix: extracts a slot's component value (translation, Euler angles, shear or scale)
 // from a matrix, by the slot's component kind. (inferred)
@@ -208,7 +206,6 @@ extern "C" qword GetXfValueFromMatrix(XF *p, float *m)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CAD0 {
-typedef int qword __attribute__((mode(TI)));
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc) __asm__("CalculateSinCos__FfPfT1");
 // Converts Euler-angle rates (b) into an angular velocity vector at the Euler angles a (pitch in y, yaw in z) (inferred).
 // Also known as: VecRotateTiltPan (upstream readable / Sly 1 name; VecRotateTiltPan__FG9VU_VECTORT0).
@@ -227,7 +224,6 @@ extern "C" qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CB90 {
-typedef int qword __attribute__((mode(TI)));
 struct V {qword q;};
 struct M4 { qword r[4];  };
 extern qword ConvertEulerRatesToAngularVelocity(qword,qword) __asm__("ConvertEulerRatesToAngularVelocity");
@@ -242,7 +238,6 @@ extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CC00 {
-typedef int qword __attribute__((mode(TI)));
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
 // writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix). (inferred)
@@ -287,7 +282,6 @@ extern "C" float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CCD0 {
 // Build the skew derivative matrix in the supplied basis.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int n[4]; } VU;
 typedef struct { qword r[3]; } M3;
 typedef struct { VU r[4]; } M4;
@@ -326,7 +320,6 @@ extern "C" M4 *BuildRotationDerivativeMatrix(M4 *destination, void *pv, const M3
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022CDC0 {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 {qword r[3];};
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
@@ -467,7 +460,6 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022D148 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) __asm__("__ml__FRC7MATRIX4T0");
@@ -538,7 +530,6 @@ extern "C" M4 *GetXfAngularVelocity(M4 *pm, XF *po, XF *poStop)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_GetXfVelocity {
-typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 union V {qword q;float f[4];};
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
@@ -710,7 +701,6 @@ extern "C" XF *ResolveXfIdInSo(SO *pso, int grf)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSoXfsFromBrx {
 // Read transform records and their optional animation jobs from a binary stream.
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 struct REQ {int size,kind;};
 
@@ -1784,7 +1774,6 @@ void RefreshSoAfterSlotUpdate(SO *p) __asm__("RefreshSoAfterSlotUpdate"); void R
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateSoXfWorldMatrices {
 // Update linked world matrices through the VU matrix microprogram.
-typedef int qword __attribute__((mode(TI)));
 struct M4 {qword r[4];};
 extern M4 D_002A2D30 __asm__("D_002A2D30");
 // Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
@@ -1843,7 +1832,6 @@ extern "C" void UpdateSoXfWorldHierarchy(SO *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022FC48 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pd, M4 *ps) __asm__("InvertMatrix4Rigid");
 // Transform point v by the 4x4 matrix m.
@@ -1874,7 +1862,6 @@ extern "C" qword TransformXfPos(XF *a, XF *b, qword v)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ConvertXfVec {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 void InvertMatrix3Cofactor(M3 *pd, M3 *ps) __asm__("InvertMatrix3Cofactor");
 // Rotate v by the 3x3 matrix m.
@@ -1905,7 +1892,6 @@ extern "C" qword ConvertXfVec(XF *a, XF *b, qword v)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ConvertXfMat {
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 extern M3 InvertMatrix3Cofactor(const M3 *pm) __asm__("InvertMatrix3Cofactor");
 extern void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
@@ -1951,7 +1937,6 @@ extern "C" M3 *ConvertXfMat(M3 *pr, XF *pa, XF *pb, const M3 *pm)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022FF40 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) __asm__("__ml__FRC7MATRIX4T0");
@@ -2257,7 +2242,6 @@ namespace M_func_00230710 {
 // gcc emits the mfc1 itself (with its latency, so a free insn lands between mfc1 and qmtc2 like the target) and g stays in f20.
 // (2) path 2 uses VUF2, the same ctor with a VOLATILE empty asm (keeps the velocity lqc2 after the mfc1), through
 // BuildRotationS(const VUF2 &f, qword v) { BuildRotationMatrixFromVector(&m, Scale(v, f)); }. Left: SetM4 row store order (r1,r2,r0) and path-3 *pm = t store order.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 { qword r[3]; };
 
@@ -2422,7 +2406,6 @@ extern "C" void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float 
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230A98 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 void *func_002333B4(void *, int, int) __asm__("memset");
 void GetXfSlotMatrixAndDerivative(XF *, M4 *, M4 *, float) __asm__("GetXfSlotMatrixAndDerivative");
@@ -2491,7 +2474,6 @@ extern "C" void AccumulateXfChainVelocityStub(void) { AccumulateXfChainVelocity(
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230CF0 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 
 /* The ASEGA's ACTSEG/OVRA lists (aseg.h, act.h); the acts' objects and transforms as LO/XF, the
@@ -2578,7 +2560,6 @@ extern "C" void EvaluateXfSlotValue(ASEGA *a, int flag)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_VECTOR_opAssign {
-typedef int qword __attribute__((mode(TI)));
 // Assign v to *p and return p (VECTOR's operator=, emitted as the linkonce copy).
 extern "C" { inline qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; } }   /* inline, after its callers: the linkonce copy */
 } // namespace M_VECTOR_opAssign

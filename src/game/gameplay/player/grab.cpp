@@ -178,7 +178,6 @@ namespace M_UpdateJtGrabInput {
 // - case 2 has its own SetControl for the `<= 0` test: the shared SetControl then has no label in front of it, so
 //   jump2's cross-jumping makes a new label there and does not merge the step-8 / case-11 anim tests afterwards.
 // - LengthOf takes a const reference (gcse hash table size, i.e. the order of the &cso / &apso copies: s4 / s6).
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
@@ -464,7 +463,6 @@ namespace M_UpdateJtActiveHide {
 // - LaneX: one mtc1 asm from a TI qword (gcc emits the qmfc2 itself and schedules it).
 // - SqrtF: the usual volatile "=&f" sqrt.s helper (local-alloc must not tie it to its input).
 // - case 2 falls through into case 4; slow-path step choice is a ternary (blocks thread_jumps).
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 
 union U { float f[4]; qword q; int i[4]; };   // floats first, so U globals can be initialized
@@ -945,7 +943,6 @@ extern "C" void SetJtGrabState(JTGRAB *grab, int n, LO *plo, GRABSPOT *pspot)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00192A28 {
-typedef int qword __attribute__((mode(TI)));
 
 void *FindDetectorTarget(void *a, void *b) __asm__("FindDetectorTarget");
 void SetDetectorTargetState(void *a, void *b, int c) __asm__("SetDetectorTargetState");
@@ -1008,7 +1005,6 @@ namespace M_SetJtGrabKind {
 // - step -1 reset: the zeros are a chained `param = value = 0.0f` (0.0f in f0) and sched1 puts the stores that kill
 //   -1 / 0.0f first, so their statement order is chosen to give the target's store order.
 
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 
 struct M3 { qword row[3]; };
@@ -1548,7 +1544,6 @@ extern "C" int TryGrabJtNearestCandidate(JTGRAB *grab)
 namespace M_GetJtRailLanding {
 /* GetJtRailLanding (Claude agent): SetVectorCylind's qword result assigned plainly so gcc emits the qmtc2 itself; Dot's float via an mtc1 asm fed by gcc's own qmfc2. */
 
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} U;
 struct T {char pad[0x18];float x18,x1C;};
 struct O : SO { struct T*controller;char pad154[0x240-0x154];qword pos;};
@@ -1614,7 +1609,6 @@ extern "C" void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00193C98 {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct Q { int x0; int x4; float x8; int xc; U x10; qword x20; };
 struct HIT { qword a; U b; qword c[4]; };
@@ -1659,7 +1653,6 @@ extern "C" void ClampJtGrabCurveParam(STEPPLAYER *grab, struct Q *q, void *r)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtInternalXpsHide {
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 typedef struct {qword row[4];} M4;
 struct PROJECTION {qword direction;int kind;};
@@ -1808,7 +1801,6 @@ extern "C" void ResetJtGrabTnParams(JTGRAB *grab)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelHide {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct SMP { float a,b,c; };
 extern struct SMP D_002BF700 __asm__("D_002BF700");
@@ -1866,7 +1858,6 @@ extern "C" void PresetJtAccelHide(JTGRAB *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001942F0 {
-typedef int qword __attribute__((mode(TI)));
 struct S4C { char pad[0x148]; long fl; };
 struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char pad3[0x60-0x50]; qword x60; char pad4[0x88-0x70]; float x88; };
 struct O : PO { char pad[0x208 - 0x180]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };

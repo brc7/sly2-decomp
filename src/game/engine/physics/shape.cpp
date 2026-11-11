@@ -62,7 +62,6 @@ extern "C" void CloneShape(SHAPE *shape, LO *ploBase)
 } // namespace M_CloneShape
 
 namespace M_LoadShapeFromBrx {
-typedef int qword __attribute__((mode(TI)));
 void LoadXfmXfFromBrx(SHAPE *, void *) __asm__("LoadXfmXfFromBrx");
 int S8Read__18CBinaryInputStream(void *) __asm__("S8Read__18CBinaryInputStream");
 int U16Read__18CBinaryInputStream(void *) __asm__("U16Read__18CBinaryInputStream");
@@ -114,7 +113,6 @@ extern "C" void LoadShapeFromBrx(SHAPE *shape, void *stream)
 namespace M_CacheShapeSegment {
 // Cache eleven Hermite samples of one path segment (control points transformed by the path matrix)
 // and the cumulative lengths between them.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f; };
 void EvaluateBezierPos(float duration, float t, float scale, qword start, qword startTangent, qword end, qword endTangent,
                    qword *pos, qword *vel, qword *acc) __asm__("EvaluateBezierPos");
@@ -182,7 +180,6 @@ extern "C" void CacheShapeSegment(SHAPE *shape, int segment)
 } // namespace M_CacheShapeSegment
 
 namespace M_MeasureShape {
-typedef int qword __attribute__((mode(TI)));
 void InvalidateShapeCache(SHAPE*) __asm__("InvalidateShapeCache");
 void CacheShapeSegment(SHAPE*,int) __asm__("CacheShapeSegment");
 void SyncChainDistances(void*) __asm__("SyncChainDistances");
@@ -398,7 +395,6 @@ extern "C" float ClampShapeDistance(SHAPE *shape, float distance)
 } // namespace M_SClampShape
 
 namespace M_EvaluateShapeU {
-typedef int qword __attribute__((mode(TI)));
 struct M { qword a,b,c,d; };
 union U { qword q; float f; };
 int FindShapeSegmentAtParam(SHAPE*,float,float*,float*) __asm__("FindShapeSegmentAtParam");
@@ -482,7 +478,6 @@ typedef char U_f_Offset[FIELD_OFFSET(union U,f)==0?1:-1];
 #undef FIELD_OFFSET
 
 namespace M_func_001E69A0 {
-typedef int qword __attribute__((mode(TI)));
 struct X; struct SPACE;
 struct S { struct X *a0; struct SPACE *a4; int pad[2]; qword v; };
 void EvaluateShapeAtParam(struct X *, float, qword *, qword *) __asm__("EvaluateShapeAtParam");
@@ -545,7 +540,6 @@ namespace M_func_001E6A30 {
 //  * The size and the projection are converted with the single-asm `mtc1 %1,%0 : "r"(vu)` form (ToFloatR): the qmfc2 is then a
 //    reload move scheduled before the in-place normalize, and the distance bits land in $a0 instead of $v0.
 //  * Normalize output is tied to the length operand ("+j"), DotInto ties the result to the second operand (the point delta).
-typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { QWROW rows[4]; };
@@ -748,7 +742,6 @@ namespace M_FindShapeClosestPoint {
 //    result in a GPR pair with a reload-chosen VU register; the two spellings are not interchangeable.
 //  * Normalize ties its output to the length operand ("+j"), Dot's `one` is not early-clobber (the second dot reuses vf3).
 //  * The empty asm on `time` is allocation-only (see the comment at its use).
-typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct M4 { qword a, b, c, d; };
@@ -866,7 +859,6 @@ extern "C" void FindShapeClosestPoint(SHAPE *p, qword point, SPACE *space, qword
 } // namespace M_FindShapeClosestPoint
 
 namespace M_FindShapeClosestPointFromS {
-typedef int qword __attribute__((mode(TI)));
 float GetShapeParamAtDistance(void *p, float seed) __asm__("GetShapeParamAtDistance");
 void FindShapeClosestPointFromParam(void *p, qword q, void *a, qword *b, qword *c, float *d, float *e, float g) __asm__("FindShapeClosestPointFromParam");
 // Closest-point search started from arc length s. Sly 1: FindCrvlClosestPointFromS / FindCrvcClosestPointFromS. Also known as: NearestCrvS (upstream readable / Sly 1 name; NearestCrvS__FP3CRVG9VU_VECTORPvP6VECTORT3PfT5f).
@@ -974,7 +966,6 @@ forwardDone:
 } // namespace M_IsegFindShapeS
 
 namespace M_func_001E77B0 {
-typedef int qword __attribute__((mode(TI)));
 void FindShapeClosestPoint(void *a, int b, int c, qword *pq, int d, int e, int f) __asm__("FindShapeClosestPoint");
 // Only the closest point of FindShapeClosestPoint.
 extern "C" qword GetShapeClosestPoint(void *a, int b)
@@ -1099,7 +1090,6 @@ extern "C" float GetShapeDistanceBetween(SHAPE *shape, float from, float to)
 
 namespace M_func_001E7BB8 {
 // World bounds from transformed path points and segment controls.
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 extern void UpdateXfmMatWorld(SHAPE *) __asm__("UpdateXfmMatWorld");
 // Transform point p by the matrix rows r0..r3 (old only influences register allocation).
@@ -1198,7 +1188,6 @@ typedef char bound_layout_19[(sizeof(float)==4)?1:-1];
 
 namespace M_func_001E7D90 {
 // Bounding radius from transformed path vertices and Bezier controls.
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct BASIS3 {qword r[3];};
 extern void UpdateXfmMatWorld(SHAPE *) __asm__("UpdateXfmMatWorld");
@@ -1393,7 +1382,6 @@ typedef char layout_P_closed[((unsigned)&((SHAPE*)0)->isClosed==0xE4)?1:-1];
 } // namespace M_SRandomShapeRange
 
 namespace M_InitChain {
-typedef int qword __attribute__((mode(TI)));
 extern char D_002C44F0[] __asm__("D_002C44F0");   /* g_xfWorld */
 void *AllocClearedFromWorldHeap(struct SWALLOC*) __asm__("AllocClearedFromWorldHeap");
 void SyncChainDistances(SHAPECHAIN*) __asm__("SyncChainDistances");
@@ -1430,7 +1418,6 @@ namespace M_func_001E8378 {
  *  - proj2 is computed into a local first and stored into the U after the shared `damping` VU_FLOAT, so its home store has the
  *    higher LUID (sched1 tie-break) and issues after the damping store.
  * Repeated "j" inputs are allocation-only (local-alloc priority). */
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
@@ -1765,7 +1752,6 @@ namespace M_func_001E9090 {
  *  - AddScaled lists its vector input twice (allocation only): the velocity read then outranks the tied
  *    force/acceleration quantity (8 vs 6 refs), so it gets vf1 as in the target.
  */
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
@@ -1888,7 +1874,6 @@ void StepChain(CHAIN *chain)
 } // namespace M_func_001E9090
 
 namespace M_func_001E93F0 {
-typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[3]; qword pos; };
 extern char D_002C44F0[] __asm__("D_002C44F0");   /* g_xfWorld */
 void EvaluateShapeAtParam(SHAPE *, ::qword *, int, float) __asm__("EvaluateShapeAtParam");
@@ -1953,7 +1938,6 @@ namespace M_func_001E95B0 {
  * puts the right-hand pointer of each Lerp in $a2 and n*4 in $a3) but loop.c did NOT optimize it (it hoists the
  * 1.0f and the %hi of the step constant otherwise). The first sample is tested before the loop and the loop is
  * entered with a goto to its first label, so loop.c sees a jump into the loop and leaves it alone. */
-typedef int qword __attribute__((mode(TI)));
 extern float D_002C3678 __asm__("D_002C3678");
 extern void AddChainSample(SHAPECHAIN*,float) __asm__("AddChainSample");
 // Float broadcast into a VU0 register on construction.
@@ -2037,7 +2021,6 @@ namespace M_func_001E9858 {
  *  - No register pins: with the plain loop variables the allocation priorities put the node pointer in s4,
  *    the `&work.phase` pointer in s7.
  */
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct M3 { U a, b, c; };
 struct M4 { qword a, b, c, d; };
@@ -2313,7 +2296,6 @@ extern "C" void BuildShapeVolumeSegments(SHAPERANGES *shape, SHAPE *table)
 } // namespace M_func_001E9C88
 
 namespace M_func_001E9F50 {
-typedef int qword __attribute__((mode(TI)));
 void *FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");
 int FindPathzoneObstacles(void *p, int n, qword q, qword q2, int c, void **ap) __asm__("FindPathzoneObstacles");
 int IsPosInConvexObstacle(void *p, qword q) __asm__("IsPosInConvexObstacle");

@@ -74,7 +74,6 @@ namespace RO_ORDER { extern const float r_D_002A6720 __asm__("D_002A6720") = 3.4
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtHurtState {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 // Zero the xyz words.
 union U{float f[4];qword q;int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};   // floats first: U globals are initialized
 struct ASEG;
@@ -351,7 +350,6 @@ extern "C" void PostLoadJtHurt(JTHURT *s)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelZap {
-typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x80]; qword v80; };
 struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(QWROW &u); };
 struct P { struct O *o; int state; };
@@ -409,7 +407,6 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtActiveZap {
-typedef int qword __attribute__((mode(TI)));
 struct LO;
 struct LO { int x0, x4, x8; void *vptr; char pad10[0xD0 - 0x10]; float xD0; char padD4[0x1A8 - 0xD4]; float x1A8; char pad1AC[0x208 - 0x1AC]; int x208; };
 struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
@@ -506,7 +503,6 @@ extern "C" void ReturnJtToSafePlaceCallback(JTHURT *hurt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A16C8 {
 // Select and blend the movement vector for the active mode.
-typedef int qword __attribute__((mode(TI)));
 typedef union U{float f[4];qword q;int bits[4];}U;   // floats first: U globals are initialized
 typedef union F{float value;int bits;}F;
 struct M3{U row[3];};
@@ -645,7 +641,6 @@ extern "C" void StartJtKnockback(struct P*p){
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FTakeJtDamage {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 struct P;
 struct C;
 typedef void(C::*ACTION)();
@@ -1160,7 +1155,6 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2788 {
-typedef int qword __attribute__((mode(TI)));
 struct HIT { qword pos; char pad[0x5F0]; };
 struct L { char pad[0xE0]; int xE0; };
 

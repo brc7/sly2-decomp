@@ -162,7 +162,6 @@ extern "C" void ResetCameraPolicies(CM *p)
 
 namespace M_InitCm__FP2CM {
 // InitCm: near/far and LM init via inline helpers (parameter pseudos give the original FP register choice).
-typedef int qword __attribute__((mode(TI)));
 
 
 extern float D_002BD81C __asm__("D_002BD81C"), D_002BD820 __asm__("D_002BD820"), D_002BD824 __asm__("D_002BD824");
@@ -247,7 +246,6 @@ extern "C" void SetCmCut(CM *p, float a, float b)
 } // namespace M_SetCmCut
 
 namespace M_CombineEyeLookAtProj {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
@@ -283,7 +281,6 @@ extern "C" void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)
 
 namespace M_BuildFrustrum {
 // BuildFrustrum(pmat, gx, gy, anormal): 4 side-plane normals. Hard-reg VF vars in Normalize1 pin the first block allocation.
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { qword r[3]; };
 extern void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal) __asm__("BuildFrustrum");
 // Float broadcast into a VU0 register on construction.
@@ -526,7 +523,6 @@ extern "C" int CompareCameraVisZones(struct T **ppa, struct T **ppb)
 } // namespace M_CompareCameraVisZones
 
 namespace M_UpdateCmVisZone__FP2CM {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x110]; int k; };
 int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap) __asm__("FindSwObjectsByClass");
 void UpdateVisInside(struct O *po, qword pos) __asm__("UpdateVisInside");
@@ -572,7 +568,6 @@ extern "C" void SetCmMat4(CM *pcm, qword *pmat)
 }
 
 namespace M_SetCameraLookAt {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } V4;
 struct M3 { V4 r[3]; } __attribute__((aligned(16)));
 typedef struct { M3 m; V4 pos; } M4;
@@ -717,7 +712,6 @@ void CalcCmAdjust(void *a, CPDEFI *b) __asm__("CalcCmAdjust"); void CalcCmAdjust
 
 namespace M_ApplyCameraSpring {
 // MATCH (Claude agent): hard-register VF locals; clock pointer pinned to v0 and the second dt read via a v0-pinned int.
-typedef int qword __attribute__((mode(TI)));
 // Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
 // nCut.
 // Also known as: SpringCm (upstream readable / Sly 1 name; SpringCm__FP2CMP7VECTOR4T1G9VU_VECTORff).
@@ -763,7 +757,6 @@ extern "C" void ApplyCameraSpring(CM *p, qword *ppos, float *pvel, qword target,
 } // namespace M_ApplyCameraSpring
 
 namespace M_AdjustCmCpdefi {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x4F4]; int stepMode; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 qword CalcCmAdjust(CM *p, CPDEFI *ps) __asm__("CalcCmAdjust");
@@ -818,7 +811,6 @@ extern "C" void ResetCmAdjust(CM *pcm)
 }
 
 namespace M_GetCmCpdefi {
-typedef int qword __attribute__((mode(TI)));
 
 #if defined(SLY2_EE_LAYOUT)
 struct O { int pad[3]; VTE *vt; };
@@ -851,7 +843,6 @@ extern "C" void GetCmCpdefi(CM *p, O *po, CPDEFI *ps)
 
 namespace M_FindCameraClearInterval {
 /* float g placed after the pointer params: its param copy comes after pgMax, lengthening pgMax so the hoisted 0x40 wins $fp in global alloc */
-typedef int qword __attribute__((mode(TI)));
 struct T { int a, b, c; };
 struct O { char pad[0x70]; int c; struct T *at; };
 struct HIT { char pad[0x40]; float enterTime; float exitTime; char pad2[0x18]; };
@@ -900,7 +891,6 @@ extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword d
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4FF8 __asm__("D_002A4FF8") = 3.40282347e+38f; }
 namespace M_FindCmClosestClearPos {
-typedef int qword __attribute__((mode(TI)));
 
 extern int D_002BD8B0[] __asm__("D_002BD8B0");
 qword SetVectorSphere(float pan, float tilt, float s) __asm__("SetVectorSphere");
@@ -963,7 +953,6 @@ qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
 
 namespace M_SquishCmEye {
 /* MATCH (Claude agent, lane D4): v2 inline Dot(qword *pa, qword *pb) (keeps &ax[i].normal hoisted in a reg), returning int from a qmfc2 into `register int d asm("$7")`, stored through `*(int *)pg++` (sw $a3 like the target). */
-typedef int qword __attribute__((mode(TI)));
 struct X { qword pos; qword normal; qword unknown20; };
 struct E { int a, b, c; };
 struct LO { char pad[0x70]; int rootNodeIndex; struct E *bspNodes; };
@@ -1070,7 +1059,6 @@ namespace M_SvSquishCmEyeConstraint {
 // MATCH (Claude agent, lane D24, 2026-10-23): v6 with the mtc1 asm's allocation-only "j" operands replaced by an
 // "r,j" constraint on td (never-chosen alternative, forced off by an unused "i,r"(0) operand). With fewer operands
 // the mtc1 has 4 dependents like the `one` sqc2, so the luid tie-break issues the sqc2 first, like the target.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct PL { qword pos; qword plane; };
 struct P { char pad[0x48]; float nearCorner; };
@@ -1123,7 +1111,6 @@ namespace M_ClipCameraEye {
 // reload: the clock dt load is then an input reload (lw v0 for the vdiv; for the final AddScaled reload reuses the dying
 // pclock register, lw s0,0x10(s0)), which also shortens the clock chain in sched1 so no extra operand is needed on the vdiv;
 // v is computed before posMin so the spill slots come out v 0x30 / posMin 0x40. No register pins.
-typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register, from a value or from memory.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j,j"(q) : "r,V"(*(const int *)pg)); } /* never-chosen "V" (non-offsettable mem) alternative: allocation-only (the word stays a MEM until reload) */ };
 
@@ -1179,7 +1166,6 @@ qword ClipCameraEye(void *p, qword pos, qword posTarget)
 } // namespace M_ClipCameraEye
 
 namespace M_ConvertCmScreenToWorld {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 // Transform point v by the 4x4 matrix pm.
 extern "C" { static __inline__ qword Mul(M4 *pm, qword v)
@@ -1212,7 +1198,6 @@ extern "C" qword ConvertCmScreenToWorld(CM *cm, qword v)
 
 namespace M_ConvertCmWorldToScreen {
 
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 void InvertMatrix4Rigid(M4 *pm, M4 *pn) __asm__("InvertMatrix4Rigid");
 // World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
@@ -1247,7 +1232,6 @@ extern "C" qword ConvertCmWorldToScreen(CM *cm, qword v)
 SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
 namespace M_SetCmPos {
-typedef int qword __attribute__((mode(TI)));
 typedef union { struct { qword r[4]; } q; float af[4][4]; } M4;
 qword *VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
 void SetCmMat4(CM *p, M4 *m) __asm__("SetCmMat4");
@@ -1278,7 +1262,6 @@ void SetCmMat(CM *cm, struct MATRIX3 *pmat) __asm__("SetCmMat"); void SetCmMat(C
 } // namespace M_SetCmMat
 
 namespace M_GetCmRotDeg {
-typedef int qword __attribute__((mode(TI)));
 // Pack x, y, z into a 128-bit GPR value.
 extern "C" { static __inline__ qword Make(float x, float y, float z)
 {
@@ -1304,7 +1287,6 @@ extern "C" qword GetCmRotDeg(CM *p)
 } // namespace M_GetCmRotDeg
 
 namespace M_SetCmRotDeg {
-typedef int qword __attribute__((mode(TI)));
 // Pack x, y, z into a 128-bit GPR value.
 extern "C" { static __inline__ qword Make(float x, float y, float z)
 {
@@ -1439,7 +1421,6 @@ extern "C" void JoltCamera(CM *p, int a)
 } // namespace M_JoltCamera
 
 namespace M_BuildStereoEyeViewProj {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef struct { qword r[4]; } M4;
 void VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
@@ -1483,7 +1464,6 @@ extern "C" void BuildStereoEyeViewProj(CM *cm, int k, void *pv, int n, M4 *pm)
 } // namespace M_BuildStereoEyeViewProj
 
 namespace M_IsInCameraFrustum {
-typedef int qword __attribute__((mode(TI)));
 // True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
 // (inferred)
 // Also known as: FInsideCmPlanes (upstream readable / Sly 1 name; FInsideCmPlanes__FP2CMG9VU_VECTORT1).
@@ -1499,7 +1479,6 @@ extern "C" int IsInCameraFrustum(CM *p, qword v, qword w)
 } // namespace M_IsInCameraFrustum
 
 namespace M_IsWithinCameraRenderDistance {
-typedef int qword __attribute__((mode(TI)));
 // True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
 // Also known as: FInsideCmMrd (upstream readable / Sly 1 name; FInsideCmMrd__FP2CMG9VU_VECTORfPf).
 extern "C" int IsWithinCameraRenderDistance(CM *p, qword v, float g, float *pu)

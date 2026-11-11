@@ -276,7 +276,6 @@ extern "C" void StartGuardScriptOnGuard(CID113 *script, LO *object)
 namespace RO_ORDER { extern const float r_D_002A52B0 __asm__("D_002A52B0") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00170E90 {
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 extern const float D_002A52B0 __asm__("D_002A52B0");   /* defined below where the ELF has it (.rodata order) */
 LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,LO*) __asm__("FindSwObject__FP2SWi3OIDP2LO");
@@ -380,7 +379,6 @@ extern "C" void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001710F8 {
-typedef int qword __attribute__((mode(TI)));
 struct VEC { float x, y, z, w; };
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void FindShapeClosestPoint(LO *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c) __asm__("FindShapeClosestPoint");

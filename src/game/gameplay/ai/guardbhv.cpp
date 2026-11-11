@@ -466,7 +466,6 @@ void BHVIDLE::OnPush()
 // 0x174FF8 StartBhvidle
 namespace M_StartBhvidle {
 
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void StartBhvanim(BHVIDLE *p) __asm__("StartBhvanim");
 int StepguardHasSgf(STEPGUARD *t, int n) __asm__("StepguardHasSgf");
@@ -560,7 +559,6 @@ void BHVSTRIKE::Start()
 // 0x175258 UpdateBhvstrike
 namespace M_UpdateBhvstrike {
 
-typedef int qword __attribute__((mode(TI)));
 void UpdateBhvanim(BHVSTRIKE *p) __asm__("UpdateBhvanim");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void SetLeapTarget(void *p, qword q) __asm__("SetLeapTarget");
@@ -1292,7 +1290,6 @@ typedef char Qword_Size[sizeof(qword)==16?1:-1];
 namespace RO_ORDER { extern const float r_D_002A5408 __asm__("D_002A5408") = 3.40282347e+38f; }
 // 0x176458 SetBhvcombatState
 namespace M_SetBhvcombatState {
-typedef int qword __attribute__((mode(TI)));
 extern float D_002A5408 __asm__("D_002A5408");
 void PopBhv(void *p) __asm__("PopBhv");
 float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
@@ -2144,7 +2141,6 @@ extern "C" void UpdateBhvguard(BHV156 *behavior)
 
 // 0x177BA0 ResumeBhvguard
 namespace M_ResumeBhvguard {
-typedef int qword __attribute__((mode(TI)));
 extern float D_002A54D0 __asm__("D_002A54D0");
 int IsBasicDerivedFrom__FP5BASIC3CID(STEPGUARD *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void *GetHeroPo(SW *g) __asm__("GetHeroPo");
@@ -2283,7 +2279,6 @@ void BHVPATH::OnPush()
 // 0x177EF0 StartBhvpath
 namespace M_StartBhvpath {
 
-typedef int qword __attribute__((mode(TI)));
 extern float D_002BE624 __asm__("D_002BE624"), D_002BE628 __asm__("D_002BE628"), D_002BE62C __asm__("D_002BE62C");
 void StartBhv(BHVPATH *p) __asm__("StartBhv");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -2329,7 +2324,6 @@ union VEC; struct CURVE; struct CONTEXT; struct BODY; struct GROUP; struct OBJEC
 //  - plain-C MaxFloat (`a < b ? b : a`) instead of a max.s asm; qmfc2 asm for the GPR copy of vGoal (fInit store).
 // One register pin: qwActor (s2) - the target copies the spilled posActor into s2 with a plain lq in a delay slot,
 // which an asm copy cannot give (reorg stops at asms) and a plain copy is propagated away (without it: 285 differ).
-typedef int qword __attribute__((mode(TI)));
 union VEC
 {
     qword qw;
@@ -2907,7 +2901,6 @@ SLY2_SCRAP("nop");
 // 0x178D00 IsBhvpathAtEnd
 namespace M_FBhvpathAtEnd {
 
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
 // VU0 helper: distance between two points.
 extern "C" { static inline float Dist(qword a, qword b) {
@@ -3143,7 +3136,6 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
 
 // 0x1791C8 SetBhvwalkpathState
 namespace M_SetBhvwalkpathState {
-typedef int qword __attribute__((mode(TI)));
 extern float D_002BE694 __asm__("D_002BE694");
 void SetBhvpathState(BHVWALKPATH *p, int n) __asm__("SetBhvpathState");
 void PopBhv(void *p) __asm__("PopBhv");
@@ -3464,7 +3456,6 @@ extern "C" void InitBhvpatrol(BHVPATROL *behavior)
 // 0x179AA0 StartBhvpatrol
 namespace M_StartBhvpatrol {
 
-typedef int qword __attribute__((mode(TI)));
 void StartBhv(BHVPATROL *p) __asm__("StartBhv");
 void SetBhvpatrolState(BHVPATROL *p, int n) __asm__("SetBhvpatrolState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -3886,7 +3877,6 @@ extern "C" void StartBhvSleep(BHV175 *behavior)
 
 // 0x17A558 CloseBhvSleep
 namespace M_func_0017A558 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void CloseBhvanim(BHV175 *p) __asm__("CloseBhvanim");
 void SetBhvSleepState(BHV175 *p, int n) __asm__("SetBhvSleepState");
@@ -3965,7 +3955,6 @@ extern "C" void InitBhvThrown(BHV176 *behavior)
 // 0x17A730 StartBhvThrown
 namespace M_func_0017A730 {
 
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void StartBhv(BHV176 *p) __asm__("StartBhv");
 void DetachStepguard(STEPGUARD *t) __asm__("DetachStepguard");
@@ -4079,7 +4068,6 @@ extern "C" void InitBhvjuggled(BHVJUGGLED *behavior)
 // 0x17AA08 StartBhvjuggled
 namespace M_StartBhvjuggled {
 
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void StartBhvanim(BHVJUGGLED *p) __asm__("StartBhvanim");
 void SetStepguardAttack(STEPGUARD *t, int a, int b, qword q) __asm__("SetStepguardAttack");
@@ -5451,7 +5439,6 @@ extern "C" void CloseBhvrail(BHVRAIL *behavior)
 
 // 0x17CB80 UpdateBhvrail
 namespace M_UpdateBhvrail {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 extern float D_002BE74C __asm__("D_002BE74C");
 union V;

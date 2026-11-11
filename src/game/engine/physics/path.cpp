@@ -70,7 +70,6 @@ void InitDl(DL *pdl, int ibDle);
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspQuick {
-typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of a and b as a float.
 extern "C" { static __inline__ float Dot(qword a, qword b)
 {
@@ -116,7 +115,6 @@ LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags) __asm__("FindN
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PcgtPointInCbspSafe {
-typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of a and b as a float.
 extern "C" { static __inline__ float Dot(qword a, qword b)
 {
@@ -209,7 +207,6 @@ namespace M_ClsgClipEdgeToCbsp {
 //  * The child -> state code is written out three times (pushed state, near child after a crossing, child without a
 //    crossing); jump2 cross-jumps the identical tails. Only the pushed state clears `leaf` for an interior child.
 //  * The pushed plane is stored field by field; cse reuses the stored 0.0f for the `dl <= 0.0f` test.
-typedef int qword __attribute__((mode(TI)));
 struct TRI { char d[12]; };
 union NODE { qword plane; struct { float x, y, z; unsigned short child[2]; } e; };
 struct GRAPH { char pad[12]; TRI *leaves; int count; NODE *nodes; };
@@ -389,7 +386,6 @@ int ClipEdgeToCbsp(GRAPH *g, qword from, qword to, int capacity, ROW *out, int f
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FClipEdgeToCbsp {
 
-typedef int qword __attribute__((mode(TI)));
 typedef struct GRAPH GRAPH;
 typedef struct TRI TRI;
 typedef struct ROW{QWROW begin,end,beginPlane,endPlane;float low,high;int flags;TRI*leaf;char tail[16];}ROW;
@@ -417,7 +413,6 @@ int GetCgVertexIndex(CG *graph, CGV *vertex)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindPathAStar {
-typedef int qword __attribute__((mode(TI)));
 // Allocation request: byte count and alignment.
 struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
 struct V;
@@ -518,7 +513,6 @@ extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int 
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SimplifyApcgvNeighbor {
-typedef int qword __attribute__((mode(TI)));
 struct CTX { int a[4]; };
 void STACKSCOPE_ctor(struct CTX *c) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n) __asm__("_$_10STACKSCOPE");
@@ -577,7 +571,6 @@ namespace M_ClosestPointOnCgt {
 //  * The plane normal's z is read with pextuw on an "r" input and the dot product with mtc1 on an "r" input, so gcc
 //    emits the qmfc2 moves itself as reloads. Then the inside block needs only the v0/v1 spill registers, which keeps
 //    reload's round-robin choice for the three edge tests at v1, v0, v1, and lets sched2 put the mtc1 before the lqc2.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct T { qword *a, *b, *c; };
 // Wrap a qword as a VU_VECTOR.
@@ -641,7 +634,6 @@ namespace M_CposFindPath {
 //    alternative: the inliner substitutes the global's unchanging MEM for the const parameter, so the word load is an
 //    input reload (lui v1 / lw v1) and the read has no anti-dependence on the out[1] store. That drops the qmtc2 asm's
 //    sched1 priority below %hi(D_002A2DA0), which gives the axis address v0 in local-alloc, as in the original.
-typedef int qword __attribute__((mode(TI)));
 struct V;
 // volatile cost: stops dbr from filling the loop branch delay slots with the cost store (as in the target)
 struct E { V *pv; volatile int cost; };
@@ -805,7 +797,6 @@ extern "C" int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindClosestPointInCg {
-typedef int qword __attribute__((mode(TI)));
 struct S { int a[5]; int bspNodes; };
 void *FindNavTriangleSafe(struct S *p, int n, qword q) __asm__("FindNavTriangleSafe");
 qword GetClosestPointOnNavTriangle(void *p, qword q) __asm__("GetClosestPointOnNavTriangle");
@@ -832,7 +823,6 @@ void PATHZONE::Init()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadPathzoneFromBrx {
-typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int cost; };
 struct V { qword pos; int c; struct E8 *ae; };   /* 0x20 with the qword alignment (the CGV vertex of M_HookupCg) */
@@ -903,7 +893,6 @@ extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitDefaultPathzoneCg {
-typedef int qword __attribute__((mode(TI)));
 struct A { int cb; int align; };
 struct E8 { struct V *pv; int cost; };
 struct V { qword pos; int c; struct E8 *ae; };   /* 0x20 with the qword alignment (the CGV vertex of M_HookupCg) */
@@ -974,7 +963,6 @@ extern "C" void InitDefaultPathzoneCg(struct S *zone)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HookupCg {
-typedef int qword __attribute__((mode(TI)));
 struct F { qword *pq; int d; };
 struct E { qword pos; int c; struct F *af; };
 struct A { int c; struct E *ae; };
@@ -1031,7 +1019,6 @@ extern "C" int IsEdgeBlockedByPathzone(PATHZONE *zone, qword from, qword to, int
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C09A0 {
-typedef int qword __attribute__((mode(TI)));
 int FindPathzoneObstacles(PATHZONE *p, int a, qword q0, qword q1, int c, void **ap) __asm__("FindPathzoneObstacles");
 int IsPosInConvexObstacle(void *pv, qword q) __asm__("IsPosInConvexObstacle");
 // Returns 1 when a point is walkable in the zone and not inside any registered obstacle.
@@ -1050,7 +1037,6 @@ extern "C" int IsPosFreeInPathzone(PATHZONE *zone, qword pos,int flags)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C0A40 {
-typedef int qword __attribute__((mode(TI)));
 struct S { int a[0x30]; };
 void *ClipEdgeToPathzone(void *p, qword a, qword b, int c, int d, int e) __asm__("ClipEdgeToPathzone");
 int FindPathzoneObstacles(void *p, int z, qword a, qword b, int c, void **ap) __asm__("FindPathzoneObstacles");
@@ -1084,7 +1070,6 @@ out:
 namespace RO_ORDER { extern const float r_D_002A76DC __asm__("D_002A76DC") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C0B50 {
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct HIT {qword pos[2];char pad[0x40];};
 struct S : XFM {char bsp[8];int count;int padEC;int padF0;qword*vertices;};
@@ -1147,7 +1132,6 @@ typedef char region_projection_layout[(sizeof(void*)==4 && sizeof(float)==4 && s
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PpathzoneFromPos {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 void InitVuTemp(void *p) __asm__("InitVuTemp");
 // 1 if pos is strictly in front of the plane (plane.xyz . pos - plane.w > 0), else 0.
@@ -1459,7 +1443,6 @@ extern "C" void SweepObstacleRange(struct E *events, int *minCursor, int *maxCur
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1700 {
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;unsigned int words[4];};
 struct C {qword x,z;int version;int xmin,xmax,zmin,zmax;};
 
@@ -1570,7 +1553,6 @@ extern "C" void InsertObstacleEvents(int count, struct E *events, int bit, float
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1BA0 {
-typedef int qword __attribute__((mode(TI)));
 struct E;
 struct O { char pad[0x1A0]; union { qword q; float g[4]; } a; union { qword q; float g[4]; } b; char p1[0x1DC - 0x1C0]; struct S *pathzone; };
 struct S : XFM { char pad[0xF8 - 0xE0]; int numObstacles; int obstacleCapacity; int numEvents; struct E *xEvents; struct E *zEvents; struct O **obstacles; int unknown110; int version; };
@@ -1677,7 +1659,6 @@ extern "C" void GrowPathzoneObstacleArrays(struct S *zone)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1EC0 {
-typedef int qword __attribute__((mode(TI)));
 extern char D_003DD020[] __asm__("D_003DD020");
 void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e) __asm__("FindShapeClosestPoint");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -1700,7 +1681,6 @@ extern "C" qword GetPathlinkEndpointPos(PATHLINKEND *endpoint, qword pos)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1F28 {
-typedef int qword __attribute__((mode(TI)));
 float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
 void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g) __asm__("EvaluateShapeAtDistance");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -1722,7 +1702,6 @@ extern "C" qword GetPathlinkEndpointCenter(PATHLINKEND *endpoint)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1FA0 {
-typedef int qword __attribute__((mode(TI)));
 struct LO : ::LO { char pad[0x218 - 0x50]; qword *pq; };
 int IsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetPathlinkEndpointPos(void *p, qword q) __asm__("GetPathlinkEndpointPos");
@@ -1805,7 +1784,6 @@ extern "C" void AddPathlinkEndpointPos(PATHLINK *pathlink, qword pos)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostPathlinkLoad {
-typedef int qword __attribute__((mode(TI)));
 void PostLoLoad(LO *p) __asm__("PostLoLoad");
 qword GetPathlinkEndpointCenter(PATHLINKEND *pe) __asm__("GetPathlinkEndpointCenter");
 CID17 *FindPathzoneAtPos(qword q, int n) __asm__("FindPathzoneAtPos");

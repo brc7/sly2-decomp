@@ -1493,7 +1493,6 @@ extern "C" int FindSpriteItemPose(WIDGET *widget, int groupIndex, SPRITEXF *matr
 
 // 0x213F70 RestartNestedSprite
 namespace M_func_00213F70 {
-typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern void ClearSle(SLE *p) __asm__("ClearSle");
@@ -1536,7 +1535,6 @@ extern "C" int RestartNestedSprite(WIDGET *widget, int groupIndex, int animIndex
 
 // 0x214100 RestartNestedSpriteWithArg
 namespace M_func_00214100 {
-typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern void ClearSle(SLE *p) __asm__("ClearSle");
@@ -1756,7 +1754,6 @@ namespace M_LoadSpriteDescriptor {
 //   bytes[n*3+k] indexing, packetCount / samples / groups update order;
 // - j is declared in case 8 after the float count is read and reused by case 1's packet loop: its pseudo
 //   number puts the gcse temp for j+1 between &packetCount and &packet, which gives their spill slots.
-typedef int qword __attribute__((mode(TI)));
 struct BIS;
 typedef WIDGET OWNER;   /* the widget the descriptor belongs to (widget.h; +0xC4 its sprite heap) */
 struct ROOT;
@@ -2462,7 +2459,6 @@ namespace M_func_002163B0 {
 // Configure rich-text rendering and queue the standard render payloads.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
 extern void *func_002333B4(void *,int,int) __asm__("memset");
@@ -2522,7 +2518,6 @@ extern "C" void DrawRichText2(CRichText2 *p,struct CONFIG *config,int priority){
 
 // 0x2166B0 DrawRichText2AtXf
 namespace M_func_002166B0 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float a[6]; } __attribute__((aligned(16))) T;
 typedef struct { float a[16]; } __attribute__((aligned(16))) O;
 struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword color0,color1;};
@@ -2551,7 +2546,6 @@ namespace M_func_00216750 {
 // Align, clip, and queue rich-text glyphs with their current colors.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-typedef int qword __attribute__((mode(TI)));
 union M4 {qword r[4];float a[16];};
 struct DATA {uint color;int mode;float priority;uint limit;qword color0,color1;};
 struct GLYPH {int a;void *data;char pad8[0xA];unsigned short mode;char pad14[8];void *address;char pad20[0x20];};
@@ -2664,7 +2658,6 @@ extern "C" float GetFontGlyphWidth2(struct S *p, unsigned char ch)
 namespace M_RenderSpriteText {
 // Render generated sprite text, wrapped speech, or the scrolling ticker.
 typedef unsigned int uint;
-typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
 typedef struct {float a[8];} __attribute__((aligned(16))) T;
 typedef union {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};} DATA;
@@ -3159,7 +3152,6 @@ extern "C" void SetSpriteDefaultTime(SPRITEGRP *group)
 // 0x218060 SetSpriteAnimTime
 namespace M_func_00218060 {
 // Refresh a reused sprite at zero time, then at its clamped requested time.
-typedef int qword __attribute__((mode(TI)));
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
     unsigned char r, g, b, a;
@@ -3208,7 +3200,6 @@ extern "C" void SetSpriteAnimTime(SPRITEGRP *group, int slot, SPRITEITEM *item, 
 
 // 0x218220 AdvanceWidgetSprite
 namespace M_func_00218220 {
-typedef int qword __attribute__((mode(TI)));
 // Packed color word, quadword aligned.
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
 extern SPRITEXF D_002A3A10 __asm__("D_002A3A10");

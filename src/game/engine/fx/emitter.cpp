@@ -416,7 +416,6 @@ EMITTERV *EnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 }
 
 namespace M_ModifyEmitterParticles__FP7EMITTER {
-typedef int qword __attribute__((mode(TI)));
 union V { qword q; struct { float x, y, z, w; } v; float a[4]; };
 struct BLK { qword apos[2][0x84]; int ibuf; int numBlips; int pad[2]; BLK *pblkNext; };   /* a block of blips, double-buffered positions */
 struct BLIPG { char pad[0x448]; BLK *pblkFirst; };
@@ -472,7 +471,6 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
 
 
 namespace M_UpdateEmitter__FP7EMITTERf {
-typedef int qword __attribute__((mode(TI)));
 struct ALO;
 struct BLIPG { char pad[0x444]; int numBlips; };   /* classes.h's BLIPG names no fields yet */
 
@@ -735,7 +733,6 @@ namespace M_WakeSoWater__FP2SOP5WATERfP6VECTORT3ff {
 // of the rip and blip records crashes cc1plus (silent exit) as an aggregate initializer, and EMITVEL has no union at
 // +0x00 for the FPU numbering.
 // - E is 0x14 bytes (memset sizeof); the splash position (v raised 30 in z) is its own stack local.
-typedef int qword __attribute__((mode(TI)));
 
 // Sly 1 util.h CLQ: quadratic g0 + x*(g1 + x*g2).
 union CLQ {
@@ -1071,7 +1068,6 @@ normalize:
 } // namespace M_ChooseEmitoPos__FP5EMITOiiP6VECTORT3
 
 namespace M_ConvertEmitoPosVec__FP5EMITOP6VECTORT1 {
-typedef int qword __attribute__((mode(TI)));
 struct R { char pad[0x40]; struct MATRIX4Q m; };
 struct BUF { qword a[4]; };
 void __ml__FRC7MATRIX4T0(struct MATRIX4Q *pm, struct MATRIX4Q *pa, struct BUF *pb) __asm__("__ml__FRC7MATRIX4T0");
@@ -1123,7 +1119,6 @@ extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITV
 } // namespace M_CalculateEmitvx__FiP2LMiP6EMITVX
 
 namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
 extern qword D_002A2DB0 __asm__("D_002A2DB0");
 float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
@@ -1161,7 +1156,6 @@ extern "C" void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(EMITVX *pemitvx, 
 } // namespace M_ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4
 
 namespace M_ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7 {
-typedef int qword __attribute__((mode(TI)));
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, EMITVEL *plm, qword *pv, int n, qword *pvOut) __asm__("ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4");   /* the record starts with the speed LM */
 float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 
@@ -1249,7 +1243,6 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITB *emitb, EMITG *em
 namespace M_EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3 {
 // MATCH (Claude agent, lane E21), from fresh3 (56). Fixes: (1) for-increment written `k++, i++` (loop.c prepends each biv to loop_iv_list, so the LAST-incremented biv's giv inits are emitted first in the preheader; the target computes i*16 before k*16/k*4, which clobbers v1 and stops reload inheriting k from the k<c test); (2) Dot's d output `=j` (not earlyclobber) so it shares a's vf2.
 // DRAFT (Claude agent, lane E5): fresh rewrite, aligned 49 (old 80). Outer while(k<c && (pblk || (pblk=alloc))) gives the target loop shape; GRand(&p->lm) inline gives the hoisted plm slot; unsigned n0 &= ~1u gives lui/ori. Left: giv bases (target base = &apd[i] for a-side, separate &afr[1].apos[i] giv for the copy).
-typedef int qword __attribute__((mode(TI)));
 /* per-blip draw data (the third array of a frame) */
 struct PD { unsigned int color; int frame; float rollSpeed; float rollAngle; };
 struct PAIR { qword a; qword b; };
@@ -1548,7 +1541,6 @@ extern "C" void EmitParticles__FiP5EMITBP5EMITG(void *count, EMITB *emitb, void 
 } // namespace M_EmitParticles__FiP5EMITBP5EMITG
 
 namespace M_EmitParticlesAt {
-typedef int qword __attribute__((mode(TI)));
 void EmitParticles__FiP5EMITBP5EMITG(void *p, EMITB *px, EMITG *pemitg) __asm__("EmitParticles__FiP5EMITBP5EMITG");
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
@@ -1577,7 +1569,6 @@ extern "C" void EmitParticlesAt(qword pos, qword direction, void *count, EMITV *
 SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
 
 namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB {
-typedef int qword __attribute__((mode(TI)));
 struct O { qword addedVelocity; qword curlAxis; float curlRate; float damping; };   /* EMITDV: a particle's motion parameters */
 extern qword g_normalZ __asm__("g_normalZ");
 // Length of the xyz part of c, in the x lane.
@@ -1618,7 +1609,6 @@ extern "C" void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, EMITB *emitb)
 } // namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB
 
 namespace M_CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4 {
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 // Float carried as raw bits in a GPR qword (no VU0 transfer).
@@ -1762,7 +1752,6 @@ extern "C" void CloneExplg(EXPLG *p, void *pv)
 namespace M_ExplodeExplgExplso {
 // ExplodeExplgExplso (Claude agent, lane D40): matched with Lilly's MATRIX3 operator* (src/game/engine/anim/tail/UpdateChainLink.cpp: rows of the LEFT
 // matrix into qword locals, VU_VECTOR4 row temps) and her QwRotateVec(MATRIX3 *, qword), with px->mat as the left operand.
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
@@ -1874,7 +1863,6 @@ extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
 
 namespace M_FireExplsExplso {
 // (Claude agent) MATCH: g8 if/else reload form, max via local h=0.5f, pfrm transform split into mul asm + vadd asm with t loaded late.
-typedef int qword __attribute__((mode(TI)));
 typedef struct EMITP { int reference; int shape; int render; int nextRender; int touch; } EMITP;   /* EMITB+0x08: the resolved objects */
 typedef struct XF4 { qword v; } XF4;
 typedef struct X4 { char pad[0xF4]; XF4 *p; } X4;   /* the curve shape object: its centre at ->p->v (inferred) */

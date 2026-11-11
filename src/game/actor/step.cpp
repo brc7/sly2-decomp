@@ -150,7 +150,6 @@ namespace RO_ORDER { extern const float r_D_002A85F0 __asm__("D_002A85F0") = 3.4
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00203AF0 {
 /* (Claude agent) matched: mesh->meshLocal.positions loaded into a $2 pointer after qmtc2, vmadd fed the VF3 scalar directly, slot = firstHelper*16 + (int)dst computed before the u.q store. */
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct E { float x; float y; float z; float w; };
 extern const float D_002A85F0 __asm__("D_002A85F0");   /* defined below where the ELF has it (.rodata order) */
@@ -231,7 +230,6 @@ extern "C" void SetStepPhysByOid(STEP *step, OID oid, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetStepPhys {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[4]; } MATRIX4;   /* qword rows (TU-private; XF's matrices are converted at the call) */
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
@@ -272,7 +270,6 @@ extern "C" void SetStepPhys(STEP *step, SOPART *pm, int f)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateStepPhys {
-typedef int qword __attribute__((mode(TI)));
 typedef struct {qword a[4];} M4;
 union V {qword q;float f[4];};
 struct X {char pad40[0x40];M4 m;};
@@ -443,7 +440,6 @@ extern "C" int GetStepGroundProbeFlags(STEP *step)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetStepAccel {
 /* (Claude agent) clock dt word loaded via ClockPage/ClockWord asm (same form as src/game/engine/fx/rip/ProjectRipTransform.cpp, lw into the lui register); volatile on the lw keeps it after the targetAngularVelocity lqc2. */
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { float x,y,z; } VECTOR3;
 
@@ -529,7 +525,6 @@ extern "C" int GetStepExtraPartCount()
 namespace M_AdjustStepNewXp {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
    side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
-typedef int qword __attribute__((mode(TI)));
 struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
 struct XP { struct ENDPOINT ae[2]; QWROW normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
 struct STATE { char pad[0xD0]; float mass; };
@@ -646,7 +641,6 @@ namespace M_AdjustStepXpVelocity {
 // normal) * unknown180. Finally the contact distance moves by unknown210 - gUnk248.
 // Matched with one asm statement per VU0 operation, no register pins: the local pmat gives the target's pointer/row registers,
 // the two smoothing outputs are separate address-taken floats (frame slots after the VU_FLOAT home at 0($sp)).
-typedef int qword __attribute__((mode(TI)));
 
 struct VU_FLOAT
 {
@@ -774,7 +768,6 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204660 {
-typedef int qword __attribute__((mode(TI)));
 
 extern qword g_normalZ __asm__("g_normalZ");
 MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
@@ -786,7 +779,6 @@ void SetStepTargetHeading(struct S *p, float g) __asm__("SetStepTargetHeading");
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetStepRadTargetVec {
-typedef int qword __attribute__((mode(TI)));
 float atan2f(float y, float x) __asm__("atan2f");
 void SetStepTargetHeading(void *p, float g) __asm__("SetStepTargetHeading");
 // Sets the target heading toward a direction vector (atan2 of its y and x).
@@ -795,7 +787,6 @@ extern "C" void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTarget
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FaceStepToward {
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void SetStepTargetHeadingFromVector(void *p, qword v) __asm__("SetStepTargetHeadingFromVector");
 // Turns the target heading toward another object's world position.
@@ -822,7 +813,6 @@ extern "C" float GetStepHeading(STEP *step)
 namespace RO_ORDER { extern const float r_D_002A85F4 __asm__("D_002A85F4") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204768 {
-typedef int qword __attribute__((mode(TI)));
 struct P;
 struct Endpoint { char pad[8]; struct P *owner,*other; char pad10[0x30]; };
 struct N { struct Endpoint e[2]; qword q80; float value; char pad94[8]; int kind; char padA0[0xC]; struct N *next; };
@@ -882,7 +872,6 @@ extern "C" void AdjustStepXps(struct P *step)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002048C8 {
 // HasStepFloorNearby (Claude agent, 2026-10-17): breadth-first polygon adjacency search. MATCH.
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
 union V {qword q;float f[4];};
 struct E {ushort vertices[2],faces[2];struct E *next0,*next1;};
@@ -937,7 +926,6 @@ extern "C" int HasStepFloorNearby(struct P *step,qword position,struct GEOM *g,s
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddStepCustomXps {
-typedef int qword __attribute__((mode(TI)));
 struct EC { char pad[0x60]; void *rootSo; };
 struct X4 : LO { char pad[0xEC - 0x50]; struct EC *tree; };
 struct X { int pad; struct X4 *so; };
@@ -1001,7 +989,6 @@ extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FixStepAngularVelocity {
-typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0xB0]; qword v; };
 struct S { char pad[0xC]; void *vptr; char pad2[0x5C - 0x10]; struct B *pb; char pad3[0x1A8 - 0x60]; float g; char pad4[0x1F4 - 0x1AC]; int x; };
 float atan2f(float y, float x) __asm__("atan2f");
@@ -1073,7 +1060,6 @@ extern "C" void SetStepGravityRatio(struct STEP *step, float rGravity)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204E38 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check) __asm__("FindAsegChannel");
@@ -1094,7 +1080,6 @@ extern "C" qword GetStepAsegaTranslation(void *step, ASEGA *q, float g)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204ED8 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 CHN *FindAsegChannel(ASEG *paseg, void *owner, int kind, int check) __asm__("FindAsegChannel");
@@ -1135,7 +1120,6 @@ namespace M_AddStepAxisXps {
 // against the three axes of the frame BuildOrthonormalMatrixZ(direction, g_normalZ) builds. The contacts go
 // to the link list entry that joins this object to the zap target of plo (or of its nearest attached
 // ancestor); with no target they go to this object's own list.
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct XP;
 struct SOPART;
@@ -1209,7 +1193,6 @@ extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, q
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_MatchStepXf {
 // Set the parent matrix, position and inherited motion.
-typedef int qword __attribute__((mode(TI)));
 typedef union U { qword q; float f; } U;
 
 typedef struct M4 { qword row[4]; } M4;
@@ -1369,7 +1352,6 @@ extern "C" void RemoveStepDialogSmRefs(STEP *step, int mask)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00205670 {
-typedef int qword __attribute__((mode(TI)));
 extern qword g_normalZ __asm__("g_normalZ");
 void BuildStepFootprint(STEP*,QWROW*) __asm__("BuildStepFootprint");
 int IntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*) __asm__("IntersectRayTriangle");
@@ -1415,7 +1397,6 @@ extern "C" int IntersectStepFootprint(STEP*step,qword from,qword to,qword*output
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002057E8 {
-typedef int qword __attribute__((mode(TI)));
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct M3 { qword r[3]; };
@@ -1480,7 +1461,6 @@ namespace M_func_00205910 {
  * without changing a single instruction.  The game's source has ~100 more insns at that point that are gone before the final
  * code; I could not find which (all-separate VU asms only add ~20).  Without the pad: 5/254 (only those slot numbers).
  */
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 {float mat[4][4];} __attribute__((aligned(16)));
 struct VU_VECTOR4 {qword qw;};
 union U {qword q;float f[4];int i[4];};

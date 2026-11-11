@@ -1243,7 +1243,6 @@ extern "C" void RefreshGadgetMenuItems(GADGETMENU *gadgetMenu)
 namespace M_SetGadgetMenuStickDir {
 // Change a selector's input mode and, when the joystick points somewhere, move the selection to the
 // enabled item that lies closest along that direction from the current one.
-typedef int qword __attribute__((mode(TI)));
 
 struct PROX { float along, distance; };
 struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };

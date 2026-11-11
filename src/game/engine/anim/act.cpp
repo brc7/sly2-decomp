@@ -190,7 +190,6 @@ extern "C" int FindVecCurveAKey(AC1 *t, float g)
 } // namespace M_func_0012B6D8
 
 namespace M_func_0012B738 {
-typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
@@ -234,7 +233,6 @@ extern "C" void PrepareVecCurveASegment(AC1 *t, OBJ *po)
 } // namespace M_func_0012B738
 
 namespace M_func_0012B9D0 {
-typedef int qword __attribute__((mode(TI)));
 typedef union V3Q { VECTOR v; qword q; } V3Q;
 int FindVecCurveAKey(AC1 *t, float g) __asm__("FindVecCurveAKey");
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, qword *pacc) __asm__("EvaluateBezierPos");
@@ -297,7 +295,6 @@ extern "C" int FindVecCurveBKey(AC2 *t, float g)
 } // namespace M_func_0012BB70
 
 namespace M_func_0012BBD0 {
-typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
@@ -339,7 +336,6 @@ extern "C" void PrepareVecCurveBSegment(AC2 *t, OBJ *po)
 } // namespace M_func_0012BBD0
 
 namespace M_func_0012BE68 {
-typedef int qword __attribute__((mode(TI)));
 typedef union V3Q { VECTOR v; qword q; } V3Q;
 int FindVecCurveBKey(AC2 *t, float g) __asm__("FindVecCurveBKey");
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, qword *pacc) __asm__("EvaluateBezierPos");
@@ -416,7 +412,6 @@ extern "C" int FindFloatCurveAKey(AC3 *t, float g)
 } // namespace M_func_0012C0E0
 
 namespace M_func_0012C140 {
-typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
@@ -481,7 +476,6 @@ extern "C" void PrepareFloatCurveASegment(AC3 *t, OBJ *po)
 } // namespace M_func_0012C140
 
 namespace M_func_0012C440 {
-typedef int qword __attribute__((mode(TI)));
 
 int FindFloatCurveAKey(AC3 *t, float g) __asm__("FindFloatCurveAKey");
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
@@ -576,7 +570,6 @@ extern "C" int FindFloatCurveBKey(AC4 *t, float g)
 } // namespace M_func_0012C708
 
 namespace M_func_0012C768 {
-typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // True when a and b are equal within 1e-4 on x, y and z.
@@ -640,7 +633,6 @@ extern "C" void PrepareFloatCurveBSegment(AC4 *t, OBJ *po)
 } // namespace M_func_0012C768
 
 namespace M_func_0012CA68 {
-typedef int qword __attribute__((mode(TI)));
 
 int FindFloatCurveBKey(AC4 *t, float g) __asm__("FindFloatCurveBKey");
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1) __asm__("EvaluateBezierFloat");
@@ -912,7 +904,6 @@ extern "C" void GetPhaseActGoal(ACT1 *act, qword *ppos, VECTOR *pdvec)
 }
 
 namespace M_SetActPositionGoal {
-typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 void UnsettleXfSlot(void *pv, void *px) __asm__("UnsettleXfSlot");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
@@ -957,7 +948,6 @@ namespace M_UpdateActLookAt {
 /* v3 (Claude agent laneB7, 2026-10-23): aligned 13 -> 12. FindClosestSwPo takes a 2nd qword arg (posT; it sq a1 to its stack); posT as a U memory local so the load goes straight into a1. */
 /* v2 (Claude agent, 2026-10-23): aligned 15 -> 13: qmtc2 asm before the vsub, vsub as "=j"(d) : s.pos, goalValue (+0xC0) (gets dt vf3). Left: target schedules vsub before qmtc2 with s.pos vf2/goalValue (+0xC0) vf1, output vf2. */
 // WIP (Claude agent): 15 diffs - VU reg numbering only: dv reload should be vf3 / one-vector vf2 (ours swapped), second block wants lw of g_clock.deltaTime after the lqc2s and vsub in vf2; posT lq via $a1.
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern float D_002A45A8 __asm__("D_002A45A8");
 void *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv) __asm__("FindSwObject__FP2SWi3OIDP2LO");
@@ -1300,7 +1290,6 @@ extern "C" void SwitchOffsetActTarget(ACT5 *t)
 } // namespace M_func_0012D8D8
 
 namespace M_func_0012D958 {
-typedef int qword __attribute__((mode(TI)));
 /* The transform's goal value (+0xC0) and its +0xE0 accumulator, as this function adds the offset to them. */
 typedef struct SW { char pad[0xC0]; qword a; char pad2[0x10]; qword b; } SW;
 void UpdateActDefault(ACT *p) __asm__("UpdateActDefault");
@@ -1329,7 +1318,6 @@ extern "C" void UpdateOffsetAct(ACT5 *p)
 } // namespace M_func_0012D958
 
 namespace M_func_0012D9D0 {
-typedef int qword __attribute__((mode(TI)));
 // Offset act goal (slot 5): the wrapped act's goal plus the offset. (inferred)
 // Also known as: Query (upstream readable / Sly 1 name; Query__10CTRLSOURCEP7VECTOR4T1f).
 extern "C" void GetOffsetActGoal(ACT5 *p, qword *pv, VECTOR *pdv, float dt)
@@ -1351,7 +1339,6 @@ namespace M_func_0012DA30 {
 // like the target. Kept here pending a policy decision / a natural source form giving dv one more "j" use.
 // wip (Claude agent): sibling of matched SetActPositionGoal. ~60 diff: target spills dv (vsub result) to the stack
 // (sqc2 vf3,0(sp); lq before prot3w/pextuw; lqc2 vf2 for the vadds) and uses only s0-s2; ours keeps dv in $s1.
-typedef int qword __attribute__((mode(TI)));
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 void UnsettleXfSlot(void *pv, void *px) __asm__("UnsettleXfSlot");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
@@ -1412,7 +1399,6 @@ extern "C" void *NewOffsetAct(void *a, void *b, void *c)
 } // namespace M_func_0012DBB0
 
 namespace M_func_0012DC18 {
-typedef int qword __attribute__((mode(TI)));
 ACT1 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
 void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates a position act (kind 1) with a role and a goal vector and attaches it. (inferred)
@@ -1471,7 +1457,6 @@ extern "C" ACT6 *NewMatrixAct(void *a, void *b, void *c, void *d, XF *pxfBase, M
 } // namespace M_func_0012DDB0
 
 namespace M_func_0012DE58 {
-typedef int qword __attribute__((mode(TI)));
 ACT8 *NewActOfKind(int k, void *a, void *b, void *c, int d) __asm__("NewActOfKind");
 void AddXfAct(void *a, void *b, void *p) __asm__("AddXfAct");
 // Creates a Bezier act (kind 8, role 0x11) with a duration and two vectors and attaches it. (inferred)
@@ -1488,7 +1473,6 @@ extern "C" ACT8 *NewBezierAct(void *a, void *b, void *c, float arrivalTime, qwor
 } // namespace M_func_0012DE58
 
 namespace M_func_0012DEF0 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat) __asm__("InvertMatrix4Rigid");
@@ -1535,7 +1519,6 @@ void ACT8::Update()
 }
 
 namespace M_func_0012E060 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, qword *pacc) __asm__("EvaluateBezierPos");
 // Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)

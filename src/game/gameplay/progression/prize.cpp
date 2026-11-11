@@ -153,7 +153,6 @@ namespace M_ProjectDprizeTransform {
 //  * operator* is the usual inline matrix product with a named return value plus a dead local copy `t`; each row is stored to
 //    `t` and `mat` right after its asm (the order of those stores decides the vf numbering of the loaded rows).
 //  * `spin` is a second variable for p->orientation so that `current` and the later reload get different registers.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int words[4]; };
 union M3 { qword rows[3]; float values[12]; };
 /* The prize's two XFs (SO unknown58 / unknown5C: the position and orientation channels) as this function moves them:
@@ -319,7 +318,6 @@ namespace M_CheckDprizeBounce {
 // Last fix (wave 5): the length test also reads its float with the mtc1 asm. A reload mtc1 has latency 2, which gave the
 // gNormal copy (anti dependence on that $f0 write) sched2 priority 7 > 6 for the li.s 1e-4; the asm mtc1 costs 1, so the
 // two tie and the li.s goes first as in the target.
-typedef int qword __attribute__((mode(TI)));
 union U { qword qw; float g[4]; };
 struct XF { char pad[0x70]; qword pos; };
 struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
@@ -475,7 +473,6 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
 } // namespace M_CheckDprizeBounce
 
 namespace M_FCheckDprizeCollect {
-typedef int qword __attribute__((mode(TI)));
 struct Q { int enabled,pad4; float radius; SO *so; };
 extern float D_002C0D7C __asm__("D_002C0D7C");
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
@@ -583,7 +580,6 @@ int DPRIZE::TakeDamage(ZPR *pzpr)   /* key function: DPRIZE's vtable comes out h
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7710 __asm__("D_002A7710") = 3.40282347e+38f; }
 namespace M_UpdateDprize {
-typedef int qword __attribute__((mode(TI)));
 
 extern float D_002C0D50 __asm__("D_002C0D50");
 
@@ -640,7 +636,6 @@ void UpdateDprize(DPRIZE *prize)
 } // namespace M_UpdateDprize
 
 namespace M_RenderDprizeSelf {
-typedef int qword __attribute__((mode(TI)));
 struct M4 { qword a, b, c, d; };
 struct V { float x, y, z, w; } __attribute__((aligned(16)));
 
@@ -677,7 +672,6 @@ void RenderDprizeSelf(DPRIZE *prize)
 
 namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.40282347e+38f; }
 namespace M_SetDprizeDprizes {
-typedef int qword __attribute__((mode(TI)));
 /* The position XF as quadwords (local translation +0x30, velocity +0xB0). */
 struct O { char pad[0x30]; qword position; char p1[0xB0 - 0x40]; qword velocity; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
@@ -761,7 +755,6 @@ extern "C" void SetDprizeDprizes(DPRIZE *prize, int n)
 } // namespace M_SetDprizeDprizes
 
 namespace M_func_001C6308 {
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct XFS { char pad[0xB0]; qword scale; };   /* the prize's second XF (SO unknown5C) as the glint reads it */
 struct Q { char pad[0x18]; float duration; void *owner; char pad20[0xEC-0x20]; void *vptr; void *emit; };
@@ -863,7 +856,6 @@ void COIN::Update() { using namespace M_func_001C6588;
 }
 
 namespace M_func_001C65F8 {
-typedef int qword __attribute__((mode(TI)));
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; void *vptr; };
 struct X {
@@ -962,7 +954,6 @@ void MEDICINE::Update() { using namespace M_func_001C6880;
 }
 
 namespace M_func_001C68F0 {
-typedef int qword __attribute__((mode(TI)));
 struct MAT { qword a[3]; };
 struct LISTENER { char pad[0xC]; void *vptr; };
 struct X {
@@ -1065,7 +1056,6 @@ extern "C" void SetKeyDprizes(KEY *key, int n)
 } // namespace M_func_001C6B28
 
 namespace M_LaunchSprayedDprize {
-typedef int qword __attribute__((mode(TI)));
 extern char D_002A2D00[] __asm__("D_002A2D00");
 extern const float D_002A7758 __asm__("D_002A7758");
 void SetLoParent(DPRIZE *p, int a, int b) __asm__("SetLoParent");
@@ -1138,7 +1128,6 @@ namespace M_func_001C6DE8 {
 //    of block 0, so reorg puts it in the bnez delay slot, and its write of $a2 gives the `sw a2,0x84` home store one more
 //    dependent, which is why that store precedes the $ra/$f20 saves in the prologue. cse merges any plain copy made before the
 //    test, so the argument is held in a variable pinned to $a2 (the one allowed pin).
-typedef int qword __attribute__((mode(TI)));
 struct LSG {
     QWROW posA;           // 0x00: hit point (lower cast)
     QWROW posB;           // 0x10: hit point (upper cast)
@@ -1222,7 +1211,6 @@ namespace M_SprayDprizes {
 //    vector), so the scalar is converted before the Normalize branch and the base is a separate pseudo (the vmove).
 //  * Scale lists the dot product first (local-alloc ties the projection to it); GClamp passes both bounds by value.
 //  * posBase is read before the SetVectorCylind call, so it is a spilled pseudo at sp+0x80 like the game.
-typedef int qword __attribute__((mode(TI)));
 union VECTOR4 { qword q; float f[4]; };
 // Allocation request: byte count and alignment.
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
@@ -1742,7 +1730,6 @@ extern "C" void ClearClueState(CLUE *clue)
 } // namespace M_func_001C7EA8
 
 namespace M_SetClueDprizes {
-typedef int qword __attribute__((mode(TI)));
 struct LISTENER { char pad[0xC]; void *vptr; };   /* an EXPL */
 struct M { int n; DPRIZE *p; int pad[14]; };
 void *CreateSfxSound(int n) __asm__("CreateSfxSound");
@@ -1971,7 +1958,6 @@ extern "C" void UpdateVault(VAULT *vault)
 namespace M_func_001C84D8 {
 /* (Claude agent) UpdateVaultInput: VU nearest-of-9 selection state machine. The copy of p->index into a register
    variable (a3) reproduces the target's daddu scheduling; register pins as in other VU files. */
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct TIMER {char pad[0xA8];float end;};   /* the dial timer XF: +0xA8 is its end time (so.h names it as an XF pointer) */
 struct SGG;struct ALARM;
@@ -2116,7 +2102,6 @@ extern "C" void SetVaultState(VAULT *vault, int n)
 } // namespace M_func_001C8730
 
 namespace M_func_001C8918 {
-typedef int qword __attribute__((mode(TI)));
 struct X {   /* the dial timer XF as the dial reads it (so.h names +0xA8 as an XF pointer) */
     char pad[0xA0]; void *parentFrame; int pA4; float endTime; int pAC; qword startPoint; qword digitPoint; qword endPoint; };
 extern qword D_002C1080 __asm__("D_002C1080");

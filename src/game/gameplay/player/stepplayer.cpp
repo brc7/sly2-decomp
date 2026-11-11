@@ -356,7 +356,6 @@ extern "C" void SetStepplayerCtlState(char *player, int n)
 
 namespace M_func_00140750 {
 /* UpdateStepplayerHideBlend (Claude agent): matched. MinF/MaxF as `b < a ? b : a`, block-local dt per case, and the x10C8 state as `if (xDF4 != -1 || (g = x10CC) == 0) -1; else if (g == 1 || (x10C8 == 1 && 0 < g)) 1; else 0`. */
-typedef int qword __attribute__((mode(TI)));
 extern float D_002BCC6C __asm__("D_002BCC6C"), D_002BCC70 __asm__("D_002BCC70"), D_002BCC74 __asm__("D_002BCC74"), D_002BCC78 __asm__("D_002BCC78");
 int TestStepplayerHidden(STEPPLAYER *p) __asm__("TestStepplayerHidden");
 qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
@@ -412,7 +411,6 @@ extern "C" int GetStepplayerMovementNoise()
 }
 
 namespace M_func_001409E8 {
-typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0x104]; struct X *pxNext; };
 int IsStepplayerInJtMode(STEPPLAYER *p) __asm__("IsStepplayerInJtMode");
 qword GetLoWorldPos(STEPPLAYER *p) __asm__("GetLoWorldPos");
@@ -451,7 +449,6 @@ extern "C" int TestStepplayerHidden(STEPPLAYER *player)
 } // namespace M_func_001409E8
 
 namespace M_FStepplayerNearInteractTarget {
-typedef int qword __attribute__((mode(TI)));
 extern float D_002BCC7C __asm__("D_002BCC7C"), D_002BCC80 __asm__("D_002BCC80"), D_002BCC84 __asm__("D_002BCC84"), D_002BCC88 __asm__("D_002BCC88"), D_002BCC8C __asm__("D_002BCC8C"), D_002BCC90 __asm__("D_002BCC90");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -491,7 +488,6 @@ extern "C" int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 } // namespace M_FStepplayerNearInteractTarget
 
 namespace M_func_00140C30 {
-typedef int qword __attribute__((mode(TI)));
 void SetJtAirJump(JTAIR *p, int a, int b, int c) __asm__("SetJtAirJump");
 void AddStepAxisXps(STEPPLAYER *p, void *a, LO *b, qword d) __asm__("AddStepAxisXps");
 // Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
@@ -559,7 +555,6 @@ namespace M_func_00140DB0 {
    becomes a VU-class pseudo that is spilled across the call (the game's lq/sq v1 + lqc2
    vf3 from 0x10(sp)); the byte offset in its own variable makes the address
    (ae + off), not (off * 64 + ae). */
-typedef int qword __attribute__((mode(TI)));
 struct E { int a, b, k; char pad[0x34]; };
 struct S { char pad[0x40]; qword v; struct E *ae; };
 extern int D_002E1E40 __asm__("D_002E1E40");
@@ -643,7 +638,6 @@ namespace M_HandleStepplayerMessage {
 // MATCH (Claude agent for Lilly, T1682, 2026-10-25), no pins: from v6 (aligned 2), case 0x15E written with NO volatile asm and no vf6 pin.
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
-typedef int qword __attribute__((mode(TI)));
 /* g_pdliFirst: sly2/dli.h's declaration (one entity with the inline DLI helpers) */
 #define F(T, p, off) (*(T *)((char *)(p) + (off)))
 struct SO : BASIC { void *parent; void *root; void *p18; };
@@ -881,7 +875,6 @@ extern "C" void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
 
 namespace M_GetStepplayerCpdefi {
 /* VU0 length via asm; qmfc2 into an int then explicit mtc1 (gives the original GPR/FPR allocation). */
-typedef int qword __attribute__((mode(TI)));
 struct XP { char pad[0x10]; QWROW pos; char pad2[0x34 - 0x20]; float g34; };
 struct JT {
     char pad[0xC]; void *vptr; char pad1[0x2C0 - 0x10]; char ax2C0[0x2DC - 0x2C0]; int x2DC;
@@ -1267,7 +1260,6 @@ extern "C" void SetStepplayerGrabTargetAlt(STEPPLAYER *player, LO *lo)
 }
 
 namespace M_func_00142278 {
-typedef int qword __attribute__((mode(TI)));
 void FadeSoIn(void *p, float f) __asm__("FadeSoIn");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void UpdateJtThrowArc(JTTHROW *p, int n) __asm__("UpdateJtThrowArc");
@@ -1386,7 +1378,6 @@ extern "C" int IsStepplayerNotInGrabStateC(STEPPLAYER *player)
 }
 
 namespace M_StartStepplayerFollow {
-typedef int qword __attribute__((mode(TI)));
 BHV *PushStepBehavior(STEPPLAYER *p, int n) __asm__("PushStepBehavior");
 // Splice op 446: clears the behaviour stack and, with a leader, starts following it.
 // Runtime: the task t1_recon_brawl uses it to make Murray follow Sly.
@@ -1658,7 +1649,6 @@ namespace M_func_00142AF8 {
 // MATRIX3 operator* (the NRV helper from src/game/engine/anim/tail/UpdateChainLink.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
 // result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
-typedef int qword __attribute__((mode(TI)));
 struct R { char pad[0x40]; MATRIX3Q m40; char pad1[0xA0 - 0x70]; void *pA0; };
 struct Q { char pad[8]; R *p8; };
 struct S {
@@ -1833,7 +1823,6 @@ extern "C" void SetStepplayerIdleParams(STEPPLAYER *player, LM *a, LM *b, LM *c)
 
 namespace RO_ORDER { extern const float r_D_002A4D68 __asm__("D_002A4D68") = 3.40282347e+38f; }
 namespace M_func_001430C8 {
-typedef int qword __attribute__((mode(TI)));
 extern float D_002BD2C0 __asm__("D_002BD2C0");
 extern float D_002BD2C4 __asm__("D_002BD2C4");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -1881,7 +1870,6 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 }
 
 namespace M_GetStepplayerStunHold {
-typedef int qword __attribute__((mode(TI)));
 extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 // Slot 96: velocity without its vertical part gives the direction; target = position + direction * dt; radii 150/75.

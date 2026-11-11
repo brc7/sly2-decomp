@@ -478,7 +478,6 @@ extern "C" void RenderLoAll()
 }
 
 namespace M_func_001A5EE8 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword q[4]; } M4;
 void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
@@ -500,7 +499,6 @@ extern "C" void RenderLoAtMatrix(LO *object, void *m, float a, float b)
 } // namespace M_func_001A5EE8
 
 namespace M_func_001A5FB8 {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 struct M4 { U r[4]; };
 qword *VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
@@ -679,7 +677,6 @@ extern "C" void GetLoWorldMatrix(LO *plo)
 }
 
 namespace M_func_001A6340 {
-typedef int qword __attribute__((mode(TI)));
 extern void *GetLoWorldMatrix(void) __asm__("GetLoWorldMatrix");
 extern qword DecomposeRotationMatrixToEuler(void *p) __asm__("DecomposeRotationMatrixToEuler");
 // Returns the object's world orientation as Euler angles in degrees.
@@ -693,7 +690,6 @@ extern "C" qword GetLoEulerDegrees(void)
 } // namespace M_func_001A6340
 
 namespace M_func_001A63B0 {
-typedef int qword __attribute__((mode(TI)));
 // Pack x, y, z into a 128-bit GPR value.
 extern "C" { static __inline__ qword Make(float x, float y, float z)
 {
@@ -1127,7 +1123,6 @@ extern "C" void LO_Slot45Default()
 }
 
 namespace M_ConvertAloPos {
-typedef int qword __attribute__((mode(TI)));
 void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn) __asm__("InvertMatrix4Rigid");
 // Converts a point from one object's space to another's (through world space; a null object means world space).
 // Also known as: ConvertPos (upstream readable / Sly 1 name; ConvertPos__FP2LOT0G9VU_VECTOR).
@@ -1149,7 +1144,6 @@ extern "C" qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 } // namespace M_ConvertAloPos
 
 namespace M_ConvertAloVec {
-typedef int qword __attribute__((mode(TI)));
 MATRIX3Q *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
 void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn) __asm__("InvertMatrix3Cofactor");
 // Converts a direction vector from one object's space to another's (rotation only).
@@ -1172,7 +1166,6 @@ extern "C" qword ConvertVecBetweenLos(void *a, void *b, qword v)
 } // namespace M_ConvertAloVec
 
 namespace M_ConvertAloMat {
-typedef int qword __attribute__((mode(TI)));
 extern MATRIX3Q *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
 extern MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *b) __asm__("InvertMatrix3Cofactor");
 static inline MATRIX3Q Mul(const MATRIX3Q &a, const MATRIX3Q &b) return r
@@ -1199,7 +1192,6 @@ extern "C" MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
 } // namespace M_ConvertAloMat
 
 namespace M_ConvertAloMat4 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword q[4]; } M4;
 void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) __asm__("__ml__FRC7MATRIX4T0");
@@ -1227,7 +1219,6 @@ extern "C" M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
 } // namespace M_ConvertAloMat4
 
 namespace M_func_001A72D0 {
-typedef int qword __attribute__((mode(TI)));
 void InvertMatrix4Rigid(MATRIX4Q *pm) __asm__("InvertMatrix4Rigid");
 // Converts a point through an explicit matrix, or through its inverse when inverse is set. (inferred)
 extern "C" qword ConvertMatPos(MATRIX4Q *pm, int f, qword v)
@@ -1247,7 +1238,6 @@ extern "C" qword ConvertMatPos(MATRIX4Q *pm, int f, qword v)
 } // namespace M_func_001A72D0
 
 namespace M_func_001A7348 {
-typedef int qword __attribute__((mode(TI)));
 void InvertMatrix3Cofactor(MATRIX3Q *pm) __asm__("InvertMatrix3Cofactor");
 // Converts a direction vector through an explicit 3x3 matrix or its inverse. (inferred)
 extern "C" qword ConvertMatVec(MATRIX3Q *pm, int f, qword v)

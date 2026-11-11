@@ -88,7 +88,6 @@ struct VECTOR; struct MATRIX4;
 // (Claude agent, lane A9, 2026-10-23) script `+` builtin (probably). The first node is read through an inline accessor in an
 // if/else: the inline blocks jump.c's "x = b; if (c) x = a" rewrite, so `pn = 0` is laid out after the branch and
 // reorg steals it into the beqz delay slot as in the original.
-typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
 extern CRef BuiltinAdd__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinAdd__FiP4CRefP6CFrame");
@@ -162,7 +161,6 @@ namespace M_BuiltinSubtract__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4;
 // (Claude agent, lane A9, 2026-10-23) script `-` builtin (probably), same shape as BuiltinAdd: the inline accessor in the
 // if/else keeps `pn = 0` after the branch (no jump.c rewrite), so reorg puts it in the beqz delay slot.
-typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float m[4][4]; };
 extern CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args) __asm__("BuiltinSubtract__FiP4CRefP6CFrame");
@@ -235,7 +233,6 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(void *pv, CRef *args)
 namespace M_BuiltinMultiply__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_M; struct VU_FLOAT_V; struct VU_FLOAT_I; struct VU_FLOAT_D; struct VU_FLOAT_F; struct VU_FLOAT_X; struct VU_VECTOR;
 // BuiltinMultiply MATCH (Claude agent, lane A12, 2026-10-23), from fresh4 (6): 0x1A/0x16 MulVectorR builds the VU float from the int bits with ONE commented pin ($17, pr's register, as the target), and MulMatrix (0x1B/0x16) has a commented volatile empty asm that keeps &mat after the mtc1. The other old pins were removed.
-typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float af[16]; } __attribute__((aligned(16)));
 struct V8 { float x, y; };
@@ -467,7 +464,6 @@ namespace M_BuiltinDivide__FiP4CRefP6CFrame {
 struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_X; struct VU_VECTOR; struct VU_FLOAT_V;
 // `/` script builtin (Claude agent). The int-matrix path builds its VU_FLOAT temp in the caller, before the inline scale
 // helper frame, so the temp reuses the freed CRef slot at sp+0x10 as in the original.
-typedef int qword __attribute__((mode(TI)));
 struct VECTOR { float x, y, z, w; };
 struct MATRIX4 { float af[16]; } __attribute__((aligned(16)));
 struct V8 { float x, y; };
@@ -1723,7 +1719,6 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref)
 // 0x121F00 BuiltinMatrix__FiP4CRefP6CFrame
 namespace M_BuiltinMatrix__FiP4CRefP6CFrame {
 struct MATRIX4;
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX4 { float m[4][4]; };
 
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
@@ -2052,7 +2047,6 @@ extern "C" CRefData *BuiltinAtan2__FiP4CRefP6CFrame(CRefData *ret, void *pbasic,
 
 // 0x122730 BuiltinVectorDotProduct__FiP4CRefP6CFrame
 namespace M_BuiltinVectorDotProduct__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of *pa and *pb, as raw float bits.
 extern "C" { static __inline__ int DotProduct3(qword *pa, qword *pb)
 {
@@ -2080,7 +2074,6 @@ extern "C" CRefData *BuiltinVectorDotProduct__FiP4CRefP6CFrame(CRefData *ret, vo
 
 // 0x122770 BuiltinVectorCrossProduct__FiP4CRefP6CFrame
 namespace M_BuiltinVectorCrossProduct__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-cross-product": VU outer product (cross).
@@ -2102,7 +2095,6 @@ extern "C" CRefData *BuiltinVectorCrossProduct__FiP4CRefP6CFrame(CRefData *ret, 
 
 // 0x1227D0 BuiltinVectorLength__FiP4CRefP6CFrame
 namespace M_BuiltinVectorLength__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 // Length of the xyz part of *pa, as raw float bits.
 extern "C" { static __inline__ int VectorLength3(qword *pa)
 {
@@ -2133,7 +2125,6 @@ extern "C" CRefData *BuiltinVectorLength__FiP4CRefP6CFrame(CRefData *ret, void *
 // 0x122810 BuiltinVectorDistance__FiP4CRefP6CFrame
 namespace M_BuiltinVectorDistance__FiP4CRefP6CFrame {
 struct W;
-typedef int qword __attribute__((mode(TI)));
 struct W { char pad[0xC]; qword *pv; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
@@ -2177,7 +2168,6 @@ CRef BuiltinVectorDistance__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x1228F0 BuiltinVectorDistanceSquared__FiP4CRefP6CFrame
 namespace M_BuiltinVectorDistanceSquared__FiP4CRefP6CFrame {
 struct W;
-typedef int qword __attribute__((mode(TI)));
 struct W { char pad[0xC]; qword *pv; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
@@ -2217,7 +2207,6 @@ CRef BuiltinVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x1229B8 BuiltinVectorNormalize__FiP4CRefP6CFrame
 namespace M_BuiltinVectorNormalize__FiP4CRefP6CFrame {
 struct W;
-typedef int qword __attribute__((mode(TI)));
 struct W { char pad[0xC]; qword *pv; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinVectorNormalize__FiP4CRefP6CFrame");
@@ -2276,7 +2265,6 @@ CRef BuiltinVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x122B08 BuiltinVectorProjectNormal__FiP4CRefP6CFrame
 namespace M_BuiltinVectorProjectNormal__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-project-normal": (a.b)b.
@@ -2301,7 +2289,6 @@ extern "C" CRefData *BuiltinVectorProjectNormal__FiP4CRefP6CFrame(CRefData *ret,
 
 // 0x122B70 BuiltinVectorProjectTangent__FiP4CRefP6CFrame
 namespace M_BuiltinVectorProjectTangent__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "vector-project-tangent": a-(a.b)b.
@@ -2329,7 +2316,6 @@ extern "C" CRefData *BuiltinVectorProjectTangent__FiP4CRefP6CFrame(CRefData *ret
 // 0x122BE0 BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame
 namespace M_BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame {
 union VQ; struct XFM; struct O; struct W;
-typedef int qword __attribute__((mode(TI)));
 union VQ { struct { float x, y, z, w; } v; qword q; };
 struct XFM { char pad[0x80]; qword pos; };
 struct O { char pad[0xE8]; XFM *pxfm; };
@@ -2363,7 +2349,6 @@ CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x122CE0 BuiltinVectorRadianNormal__FiP4CRefP6CFrame
 namespace M_BuiltinVectorRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
-typedef int qword __attribute__((mode(TI)));
 
 extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
 
@@ -2442,7 +2427,6 @@ extern "C" CRefData *BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame(CRefData *pref
 namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame {
 struct MATRIX4; // Script matrix-slerp builtin. Matched by Claude agent (2026-10-17): MulM3 uses the g++ named return value (`return m`),
 // stores each row right after its asm, and also writes a second (dead) M3 copy t, which is the target's 0xB0 slot.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float g; } UF;
 struct MATRIX4 { float m[4][4]; };
 
@@ -2563,7 +2547,6 @@ CRef BuiltinMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *
 // 0x123208 BuiltinMatrixLookAt__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixLookAt__FiP4CRefP6CFrame {
 struct MATRIX3; struct W;
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { VECTOR4 mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
 extern qword g_normalZ __asm__("g_normalZ");
@@ -2603,7 +2586,6 @@ CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 // 0x1232D0 BuiltinMatrixTiltUpright__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixTiltUpright__FiP4CRefP6CFrame {
 struct MATRIX3; struct MATRIX4; struct XF;
-typedef int qword __attribute__((mode(TI)));
 struct MATRIX3 { VECTOR4 mat[3]; };
 struct MATRIX4 { VECTOR4 mat[3]; VECTOR4 pos; };
 struct XF { char pad[0x30]; qword pos; };
@@ -3441,7 +3423,6 @@ CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1247D8 BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 
 void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap) __asm__("IntersectSwBoundingBox");
 void BuildUniqueSoList(int c, void *ap, int *pc, void **pap) __asm__("BuildUniqueSoList");
@@ -3466,7 +3447,6 @@ CRef BuiltinFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 
 // 0x1248B0 BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjectsInBoundingSphere__FiP4CRefP6CFrame {
-typedef int qword __attribute__((mode(TI)));
 
 void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap) __asm__("IntersectSwBoundingSphere");
 void BuildUniqueSoList(int c, void *ap, int *pc, void **pap) __asm__("BuildUniqueSoList");
@@ -3499,7 +3479,6 @@ namespace M_BuiltinHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame {
 struct SPN; struct HIT;
 /* Script builtin (METHOD pfn(pv,c,aref)): ray-cast aref[1]->aref[2] (ClipEdgeToObject) vs every SO of each LO in list aref[0].
    pv==0x7B returns a list of (lo pos normal) for all hits, else (lo normal) of the first hit (the original stores &hit.normal there). */
-typedef int qword __attribute__((mode(TI)));
 
 struct LO;
 extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
@@ -3658,7 +3637,6 @@ extern "C" CRefData *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRefData *ret,
 // 0x1250D8 BuiltinConvertObjectMatrix__FiP4CRefP6CFrame
 namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame {
 struct MATRIX4;
-typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX4 { qword a[4]; } MATRIX4;
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c) __asm__("ConvertMat4BetweenLos");
@@ -3682,7 +3660,6 @@ extern "C" CRefData *BuiltinConvertObjectMatrix__FiP4CRefP6CFrame(CRefData *ret,
 // 0x125168 BuiltinNearClipCenter__FiP4CRefP6CFrame
 namespace M_BuiltinNearClipCenter__FiP4CRefP6CFrame {
 
-typedef int qword __attribute__((mode(TI)));
 CRefData *CRef_ctor(CRefData *pref, qword v) __asm__("CRef_ctor");
 // Set *pv to (x, y, z) with a packed 128-bit store.
 extern "C" { static __inline__ void SetVector(VECTOR4 *pv, float x, float y, float z)

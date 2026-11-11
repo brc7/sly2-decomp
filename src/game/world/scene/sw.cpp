@@ -746,7 +746,6 @@ extern "C" int IsSwInputLocked(SW *world)
 }
 
 namespace M_UpdateSwIllum {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef union { qword q; VECTOR v; } UV;
 extern char g_lmZeroOne[] __asm__("g_lmZeroOne");
@@ -1044,7 +1043,6 @@ extern "C" int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepS
 } // namespace M_func_0020FA50
 
 namespace M_IntersectSwBoundingBox {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 void *AllocFromStack(struct SWALLOC *pmsg) __asm__("AllocFromStack");
@@ -1097,7 +1095,6 @@ extern "C" void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void 
 } // namespace M_IntersectSwBoundingBox
 
 namespace M_IntersectSwBoundingSphere {
-typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 void *AllocFromStack(struct SWALLOC *pmsg) __asm__("AllocFromStack");

@@ -150,7 +150,6 @@ extern "C" void LoadMurrayFromBrx(MURRAY *murray)
 } // namespace M_LoadMurrayFromBrx
 
 namespace M_PostMurrayLoad {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DE0 __asm__("D_002A2DE0");
 void PostLoadStepplayer(MURRAY *p) __asm__("PostLoadStepplayer");
 void PostJtLoadGait(void *p) __asm__("PostJtLoadGait");
@@ -796,7 +795,6 @@ extern "C" void UpdateMurrayStrafe(MURRAY *murray)
 #undef FIELD_OFFSET
 
 namespace M_func_001B5D30 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void SetXfRole(MURRAY *p, XF *pxf, int b) __asm__("SetXfRole");
 void ResetGaitFeet(void *p) __asm__("ResetGaitFeet");
@@ -916,7 +914,6 @@ namespace M_SetMurrayState {
 // tail that restarts the active animation (activeAnimation) and state machine (activeStateMachine).
 // Lane 4 (Claude agent): hacks of the earlier drafts (xori/mtc1/addiu asm, 6 pins) are gone; this has ONE pin
 // (the zero-vector temp in case 7) and one VU vsub.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
 
 extern U D_002A2DD0 __asm__("D_002A2DD0");
@@ -1307,7 +1304,6 @@ extern "C" void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
 } // namespace M_HandleMurrayMessage
 
 namespace M_func_001B6BA8 {
-typedef int qword __attribute__((mode(TI)));
 extern float D_002C09A0 __asm__("D_002C09A0"), D_002BF730 __asm__("D_002BF730");
 int IsAsegaRetracted(ASEGA *pasega) __asm__("IsAsegaRetracted");
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
@@ -1628,7 +1624,6 @@ namespace M_func_001B72B0 {
 //    the loop guard branches past it, and sched2 hoists the then-branch reload above the rotation store.
 //  - LoadRotateMatrixEuler returns void (its result is never used); M4 *pmat = &replace for the basis copy and position.w gives the
 //    mixed sp/s4 addressing (cse1 folds (mem (reg)) of a frame address but not (mem (plus reg c))).
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; int i[4]; } U;
 typedef struct { U row[3]; } M3;
 typedef struct { M3 basis; U position; } M4;
@@ -1863,7 +1858,6 @@ extern "C" void ThrowMurrayCarried(MURRAY *murray)
 } // namespace M_ThrowMurrayCarried
 
 namespace M_func_001B7A78 {
-typedef int qword __attribute__((mode(TI)));
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void SetStepTargetHeadingFromVector(MURRAY *p, qword q) __asm__("SetStepTargetHeadingFromVector");
@@ -2215,7 +2209,6 @@ extern "C" int CanMurrayAttack(MURRAY *murray)
 }
 
 namespace M_StartMurrayPunch {
-typedef int qword __attribute__((mode(TI)));
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertVecBetweenLos(void *a, void *b, qword q) __asm__("ConvertVecBetweenLos");
@@ -2240,7 +2233,6 @@ extern "C" void StartMurrayPunch(MURRAY *murray)
 } // namespace M_StartMurrayPunch
 
 namespace M_StartMurrayAltAttack {
-typedef int qword __attribute__((mode(TI)));
 void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertVecBetweenLos(void *a, void *b, qword q) __asm__("ConvertVecBetweenLos");
@@ -2615,7 +2607,6 @@ extern "C" void UpdateMurrayPower(MURRAY *murray)
 } // namespace M_func_001B8EC0
 
 namespace M_func_001B90B8 {
-typedef int qword __attribute__((mode(TI)));
 qword GetStepAsegaTranslation(MURRAY *p, ASEGA *pasega, float g) __asm__("GetStepAsegaTranslation");
 // State 12 sub-states 1/3: velocity from the animation root motion.
 // Also known as: UpdateMurrayBerserk (upstream readable / Sly 1 name; UpdateMurrayBerserk__FP6MURRAY).
@@ -2984,7 +2975,6 @@ extern "C" char *GetMurraySaveVarRoot()
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const char r_D_002A75E0[] __asm__("D_002A75E0") = "murray"; }
 namespace M_func_001B9B70 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void GetStepplayerStunHold(MURRAY *p, STUNHOLD *po) __asm__("GetStepplayerStunHold");
 // MURRAY slot 96: STEPPLAYER base; during an attack the target point is the predicted attack end.

@@ -257,7 +257,6 @@ void HACKSHIP::RemoveHierarchy()
 }
 
 namespace M_func_0017F770 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 XF *FindSoXf(SO *pso, OID oid, int n) __asm__("FindSoXf");
 ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int d, qword q) __asm__("NewPositionAct");
@@ -361,7 +360,6 @@ extern "C" void UpdateHackship(HACKSHIP *ship) {
 
 namespace M_func_0017FB50 {
 #include "mat.h"
-typedef int qword __attribute__((mode(TI)));
 
 extern qword g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0");
 extern char D_002BE800[] __asm__("D_002BE800"), D_002BE810[] __asm__("D_002BE810");
@@ -414,7 +412,6 @@ extern "C" void ResetHackship(HACKSHIP *ship)
 }
 
 namespace M_func_0017FD08 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 void PlayWidgetAnim(WIDGET *pwidget, int n) __asm__("PlayWidgetAnim");
@@ -567,7 +564,6 @@ void HACKBULLET::Init()
 }
 
 namespace M_func_001801B8 {
-typedef int qword __attribute__((mode(TI)));
 struct M3 {
  QWROW r[3];
  // Uninitialised 3x3 matrix.
@@ -892,7 +888,6 @@ dispatch:
 } // namespace M_func_00180668
 
 namespace M_func_00180EE8 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } MATRIX3;
 extern qword g_normalZ __asm__("g_normalZ");
 extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
@@ -950,7 +945,6 @@ extern "C" void AdjustHackenemyNewXp(HACKENEMY *enemy, struct E *ae, int i)
 } // namespace M_func_00180FF0
 
 namespace M_func_00181060 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } MATRIX3;
 struct MSG { ASEGA *pasega; float time; int kind; };   /* message 9: an animation event */
 extern void HandlePoMessage(PO *ppo, int msg, struct MSG *pm) __asm__("HandlePoMessage");
@@ -1120,7 +1114,6 @@ extern "C" void PostHacklockLoad(HACKLOCK *lock)
 }
 
 namespace M_func_00181478 {
-typedef int qword __attribute__((mode(TI)));
 extern void UpdateSo(SO *pso) __asm__("UpdateSo");
 extern qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
 extern int IsHackAnimDone(HACK *hack) __asm__("IsHackAnimDone");
@@ -1468,7 +1461,6 @@ extern "C" void SetHackwallSegmentState(HACKWALL *wall, HACKWALLPIECE *ppiece, i
 } // namespace M_func_00181EB0
 
 namespace M_func_00181F60 {
-typedef int qword __attribute__((mode(TI)));
 struct V { float a[4]; };
 extern char D_002BE888[] __asm__("D_002BE888");
 extern float D_002BE898 __asm__("D_002BE898"), D_002BE89C __asm__("D_002BE89C"), D_002BE8A0 __asm__("D_002BE8A0"), D_002BE8A4 __asm__("D_002BE8A4");
@@ -1614,7 +1606,6 @@ typedef char U_int_View[((unsigned)&((U*)0)->i[0]==0)?1:-1];
 namespace M_func_001823C8 {
 // AddHackwallXps: contact generator. From lane H3v1 (no pins); the plane distance's scalar leaves the VU via gcc's qmfc2 plus an mtc1 asm (GX), as in Lilly's GXOfQw.
 
-typedef int qword __attribute__((mode(TI)));
 typedef union U{qword q;float f[4];int i[4];}U;
 typedef struct M4{U r[4];}M4;
 typedef struct OWNER{char pad0[0x70];qword position;}OWNER;
@@ -1754,7 +1745,6 @@ extern "C" int GetHackwallExtraPartCount()
 }
 
 namespace M_func_00182780 {
-typedef int qword __attribute__((mode(TI)));
 void UpdateSoTreeBounds(SO *pso) __asm__("UpdateSoTreeBounds");
 void GetShapeBounds(SHAPE *pshape, qword *pa, qword *pb) __asm__("GetShapeBounds");
 void ExtendSoTreeBounds(SO *pso, qword q, float g) __asm__("ExtendSoTreeBounds");
@@ -1776,7 +1766,6 @@ extern "C" void UpdateHackwallTreeBounds(HACKWALL *wall)
 } // namespace M_func_00182780
 
 namespace M_func_00182810 {
-typedef int qword __attribute__((mode(TI)));
 // The piece nearest to a world position. (inferred)
 // Also known as: PqNearestSwarm (upstream readable / Sly 1 name; PqNearestSwarm__FP2LOG9VU_VECTOR).
 extern "C" HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos)
@@ -1809,7 +1798,6 @@ extern "C" HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos)
 } // namespace M_func_00182810
 
 namespace M_func_001828A8 {
-typedef int qword __attribute__((mode(TI)));
 extern HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword pos) __asm__("FindNearestHackwallSegment");
 extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 extern void ExplodeExplParams(EXPL *pexpl, int k, int n, qword a, qword b, float g, float h) __asm__("ExplodeExplParams");
@@ -1847,7 +1835,6 @@ extern "C" int TakeHackwallDamage(HACKWALL *wall, ZPR *pzpr)
 } // namespace M_func_001828A8
 
 namespace M_func_001829D8 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
 HACKWALLPIECE *FindNearestHackwallSegment(HACKWALL *wall, qword q) __asm__("FindNearestHackwallSegment");

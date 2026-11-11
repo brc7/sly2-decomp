@@ -3685,7 +3685,6 @@ extern "C" float GetJsgCommandDuration(RELAYJSG *script, struct P *command)
 // 0x1E46A0 UpdateJsgJtControl
 namespace M_func_001E46A0 {
 union U; union ARG; struct PATH; struct PARAM; struct ACTOR; struct OUTPUT; struct WORK;
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 union U {qword q;float f[4];};
 union ARG {int id;float gain;};
@@ -3949,7 +3948,6 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 
 // 0x1E4D40 GetJsgTargetPosHeading
 namespace M_GetJsgTargetPosHeading {
-typedef int qword __attribute__((mode(TI)));
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
 void FindShapeClosestPoint(LO *po, qword q, int a, qword *pv, float *pg, int b, int c) __asm__("FindShapeClosestPoint");
@@ -4043,7 +4041,6 @@ extern "C" void SetJsgTunnel(RELAYJSG *script, TN *po)
 
 // 0x1E5000 SetRelayScriptFocus
 namespace M_func_001E5000 {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(STEPPLAYER *) __asm__("GetLoWorldPos");
@@ -4309,7 +4306,6 @@ extern "C" int IsJsgRemoved(RELAYJSG *script)
 // 0x1E57A0 StartRelayScriptCamBlend
 namespace M_func_001E57A0 {
 struct A;
-typedef int qword __attribute__((mode(TI)));
 struct A { int n0; int n4; int pad8[2]; CAMPOSE t; float f40; int n44; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern float D_002A8124 __asm__("D_002A8124");

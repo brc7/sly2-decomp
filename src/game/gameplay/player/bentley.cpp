@@ -1603,7 +1603,6 @@ extern "C" void HandleBentleyCrosshairMessage(BTBLENDS *bentley, int msg, struct
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136F48 {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float a[4]; } QF;
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void ChooseJtAttackTarget(BENTLEY *, int, void *, int *, QF *, float, float, float) __asm__("ChooseJtAttackTarget");
@@ -1711,7 +1710,6 @@ extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00137248 {
 // CorrectBentleyRideVelocity (Claude agent laneB24, 2026-10-23): matched. len as an mtc1 asm from the qword (gcc emits the qmfc2), cz via a pextuw asm with a float "=r" output (gcc emits the mtc1).
-typedef int qword __attribute__((mode(TI)));
 union UQ { qword q; };
 struct VU_FLOAT {
     qword q;
@@ -1833,7 +1831,6 @@ extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001374F0 {
-typedef int qword __attribute__((mode(TI)));
 qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // With a target and a positive range: 1 if the target lies behind Bentley's facing, 0 if in front; otherwise returns

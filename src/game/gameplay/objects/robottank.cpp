@@ -142,7 +142,6 @@ extern "C" void ResetRobottankHealth(ROBOTTANK *tank)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostRobottankLoad {
 // Resolve object entries, compute spans and attach linked resources.
-typedef int qword __attribute__((mode(TI)));
 union F {float value;int bits;};
 union U {qword q;float a[4];};
 struct P;
@@ -373,7 +372,6 @@ void ROBOTTANK::OnActive(int fActive)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottank {
-typedef int qword __attribute__((mode(TI)));
 struct M3 {QWROW rows[3];};
 struct M4 {M3 basis;QWROW position;};
 struct FRAME {M4 matrix,world;};
@@ -755,7 +753,6 @@ extern "C" struct O *FindReadyRobottankWeapon(ROBOTTANK *tank) {
 namespace RO_ORDER { extern const float r_D_002A7810 __asm__("D_002A7810") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D22D0 {
-typedef int qword __attribute__((mode(TI)));
 extern const float D_002A7810 __asm__("D_002A7810");   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3] __asm__("D_002C20C0");
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
@@ -792,7 +789,6 @@ extern "C" CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D2420 {
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
 // Restart at the path's start and put every control vertex of the path at the tank's height. (inferred) Also known as: ResetVehiclePathHeight (upstream readable / Sly 1 name; ResetVehiclePathHeight__FP7VEHICLE).
 extern "C" void ResetRobottankWheelHeights(ROBOTTANK *tank) {
@@ -808,7 +804,6 @@ extern "C" void ResetRobottankWheelHeights(ROBOTTANK *tank) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D2490 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z; } __attribute__((aligned(16))) VECTOR;
 typedef union { qword q; float f; } U;
 typedef struct {
@@ -913,7 +908,6 @@ namespace M_UpdateRobottankAi {
 // - The radius scalar goes through Lilly's VuFloatFromMemWord ("rV": reload makes the lw at the qmtc2), its VU_FLOAT
 //   temporary takes slot 0x00, the case-2 matrix 0x10, the case-3 matrix the coalesced 0x00, and the HIT array
 //   (declared after the tactic switch) 0x40.
-typedef int qword __attribute__((mode(TI)));
 struct M3 { QWROW rows[3]; };
 struct LM { float min, maxValue; };
 struct BINDING { char pad0[0x28]; float pitch; };
@@ -1188,7 +1182,6 @@ namespace M_PresetRobottankAccel {
 //   for &phase.rotation is created before the one for &p->limits and gets the first spill slot (0xF0) like the target.
 // - Everything else as in v13: VV wrapper copies keep the contact loop above loop.c's size limit (the target's `mult`),
 //   const POLY & / LIMITS & references for the polynomial coefficients, Clamp as an if/else-if chain.
-typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 union U { qword q; float f[4]; unsigned int bits[4]; };
@@ -1375,7 +1368,6 @@ namespace M_func_001D3450 {
 /* #line: gcc 2.95 hashes the file name into the gcse order of asm expressions (see VU_FLOAT below). Pinning it
    to the repo path makes the output independent of the path/cwd the compiler is run with. Keep it accurate. */
 #line 13 "src/game/gameplay/objects/tu_1D1370/func_001D3450.cpp"
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
@@ -1777,7 +1769,6 @@ extern "C" void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AdjustRobottankNewXp {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct {
     struct { char pad[8]; void *so; char pad2[0x34]; } sides[2];
@@ -1822,7 +1813,6 @@ extern "C" void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateRobottankBounds {
-typedef int qword __attribute__((mode(TI)));
 void UpdateSoTreeBounds(SO *pso) __asm__("UpdateSoTreeBounds");
 qword ConvertPosBetweenLos(LO *plo, int n, qword q) __asm__("ConvertPosBetweenLos");
 void ExtendSoTreeBounds(SO *pso, qword q, float g) __asm__("ExtendSoTreeBounds");
@@ -1840,7 +1830,6 @@ extern "C" void UpdateRobottankBounds(ROBOTTANK *tank) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_RenderRobottankSelf {
 // Update contact heights and rolling transforms for the linked actor nodes.
-typedef int qword __attribute__((mode(TI)));
 union V{qword q;float f[4];};
 struct M3{V r[3];};
 struct M4{M3 basis;V position;};
@@ -1936,7 +1925,6 @@ namespace M_func_001D4568 {
  *    spilled pseudos, so it needs no reload. With "j" it was an extra reload that made vf5 a spill register and moved reload's
  *    round-robin, so the two final vadds got vf4/vf5 and vf1/vf2 instead of vf1/vf2 and vf3/vf4.
  */
-typedef int qword __attribute__((mode(TI)));
 struct VU_VECTOR4 { qword q; };
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
@@ -2271,7 +2259,6 @@ extern "C" void SetRobottankSlotValue(ROBOTTANK *tank, int i, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4D30 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { int a, b; } S8;
 typedef struct {
     char pad0[0x10];

@@ -345,7 +345,6 @@ extern "C" void BindGlobset(GLOBSET *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ExpandSphereForProjection {
-typedef int qword __attribute__((mode(TI)));
 struct M4 { qword r[4]; };
 extern const qword D_002BE570 __asm__("D_002BE570");
 // Transform point p by the 4x4 matrix m.
@@ -530,7 +529,6 @@ namespace M_SubmitGlobsetRelight {
 // deletes it; the final code is unchanged). It only supplies the extra basic block the game had between the UNPACK tag and
 // the copy loop at gcse time: gcse PRE then inserts the %hi(D_002DEA28) copy (t2) before that block and the outer `i + 1`
 // (s4) after it, below the do-while barrier. What the game really had there is unknown.
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
@@ -1577,7 +1575,6 @@ extern "C" void LoadSubglobInstancesFromBrx(GLOBSET *pglobset, SUBGLOB *asubglob
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobInstanceFromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 struct REQUEST {
     int bytes, alignment;
@@ -2992,7 +2989,6 @@ void LoadSubglobType2FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, void *, SPH
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadSubglobType3FromBrx {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 union U {
     qword q;
     float f[4];
@@ -3906,7 +3902,6 @@ extern "C" void CloneGlobset(GLOBSET *p, ::SO *owner, STREAM *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ResetGlobAttachment {
-typedef int qword __attribute__((mode(TI)));
 struct V4 { float x, y, z, w; } __attribute__((aligned(16)));   /* attribute on the struct (C++) */
 typedef struct { char pad[0x148]; unsigned long renderFlags; } A;   /* the attached ALO: its 64-bit flag word at +0x148 */
 typedef struct { float x, y, z, w; int a, b; } E;

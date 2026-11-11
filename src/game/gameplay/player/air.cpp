@@ -96,7 +96,6 @@ void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 
 //////// 0x195950 InitJtAir
 namespace M_InitJtAir {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002BF740 __asm__("D_002BF740");
 // Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
 // tuning.
@@ -360,7 +359,6 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
 
 //////// 0x195FB8 SetJtAirState
 namespace M_func_00195FB8 {
-typedef int qword __attribute__((mode(TI)));
 struct M3{QWROW row[3];};
 struct OBJECT;struct EFFECT;struct SECONDARY;
 struct DATA{char pad0[4];float amount;};struct SOURCE{char pad0[0x114];DATA*data;char pad118[0x64];int state;};
@@ -855,7 +853,6 @@ void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source) __asm__("SetJtAirS
 namespace M_func_00196928 {
 /* ComputeMaxBallisticTime: largest non-negative limit from two quadratic root sets and two sqrt cone terms
    (lane 6, 2026-10-24).  v and a are VECTORs passed by value in single GPRs. */
-typedef int qword __attribute__((mode(TI)));
 
 /* quadratic solver: returns the root count, roots written to the float buffer */
 int SolveQuadratic__FfffPf(float a, float b, float c, float *roots) __asm__("SolveQuadratic__FfffPf");
@@ -900,7 +897,7 @@ extern "C" float ComputeMaxBallisticTime(qword v, qword a, float low, float high
 
 //////// 0x196AA8 ProjectJtVelocityOnContacts
 namespace M_func_00196AA8 {
-typedef int qword __attribute__((mode(TI)));typedef unsigned int uint;
+typedef unsigned int uint;
 
 struct FRAME{};union SCRATCH{QWROW scalar;SWALLOC request;};struct WORK{QWROW normals[64];SCRATCH scratch;FRAME frame;QWROW residual,original;};
 extern QWROW g_normalZ __asm__("g_normalZ");extern float D_002A63B0 __asm__("D_002A63B0");FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(SWALLOC*) __asm__("AllocFromStack");void SolveInequalities(int,float*,float*,float*,float) __asm__("SolveInequalities");void SetJtAirState(JTAIR*,int,void*) __asm__("SetJtAirState");
@@ -1054,7 +1051,6 @@ collected:
 namespace RO_ORDER { extern const float r_D_002A63B0 __asm__("D_002A63B0") = 3.40282347e+38f; }
 //////// 0x196DF8 PresetJtAccelJump
 namespace M_PresetJtAccelJump {
-typedef int qword __attribute__((mode(TI)));
 struct M3{QWROW row[3];};struct M4{QWROW row[4];};
 struct MOTION{char pad0[0x80];QWROW acceleration;};
 
@@ -1769,7 +1765,6 @@ namespace M_UpdateJtActiveJump {
 //     gives it v0 and the physics pointer v1 like the target (physics = 2 refs over a shorter life would otherwise be allocated first).
 // Other allocation-shaping asm helpers: VuFloatMemBits (lw into a TI GPR pseudo), AddScaledVec2/ScaleVec2 (VU_FLOAT listed twice),
 // LaneXGpr users. See notes/190000-1F0000_lanes.md "UpdateJtActiveJump - T1862" and the T1870 note.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
 // Empty scope object (its destructor only shapes the generated code).
 struct EMPTY { ~EMPTY() {} };
@@ -2268,7 +2263,6 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 
 //////// 0x1991A0 AddJtWallRunXps
 namespace M_func_001991A0 {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 typedef struct { qword r[3]; } M3;
 extern qword D_002A2DB0 __asm__("D_002A2DB0");
@@ -2344,7 +2338,6 @@ extern "C" void FreeJtWallRunXps(JTAIR *p)
 //////// 0x199408 IsJtSingleEdgeGrabbable
 namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR {
 /* Find the horizontal contact normal along a steep/shallow face boundary. */
-typedef int qword __attribute__((mode(TI)));
 struct JT;
 union VECTOR {qword q;float f[4];int n[4];};
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
@@ -2387,7 +2380,6 @@ extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SOPART *so
 //////// 0x1995D8 BuildJtEdgeProbeArc
 namespace M_func_001995D8 {
 /* Build paired arc samples and transform them into world space. */
-typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of QWROW rows with copy constructor and assignment.
 struct M3 {QWROW r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
 struct M4 {QWROW r[4];};
@@ -2445,7 +2437,6 @@ namespace M_FCheckJtEdgeNormal {
 //  * the loop bound is `sizeof apt / sizeof *apt` (size_t compare -> sltiu) while `i < 4` stays an int compare;
 //  * m4 is touched both through a pointer (pm: row copy, pos.w) and by name (zeroing of the three w lanes); that
 //    mix is what keeps rows 1,2 s0-relative and the w stores $sp-relative like the original.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; int i[4]; };
 struct M3 { U r[3]; };
 struct M4 { M3 m; U pos; };
@@ -2525,7 +2516,6 @@ namespace M_func_001999D0 {
 // What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from GetPipeGoalMatrix (the asm
 // between the fallback load and the bc1f stops reorg's backward delay-slot search, so the divide's reload fills
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
 struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; SURF *firstFace, *lastFace; };
 
@@ -2626,7 +2616,6 @@ namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR {
    point offset along the contact direction and reject it if it lies inside the other body's BSP.
    Returns the contact whose other endpoint is highest in Z; *outSide / *outNormal describe it. */
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef struct CONTACT CONTACT;
@@ -2813,7 +2802,6 @@ extern "C" CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *o
 //////// 0x19A098 IsJtStuck
 namespace M_FCheckJtStuck {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
 
 union WORK{SWALLOC request;U scalar;};
@@ -2963,7 +2951,6 @@ extern "C" int IsJtStuck(STEPPLAYER *p, float previous, float *stamp)
 
 //////// 0x19A400 SolveJtJumpTimeToTarget
 namespace M_FTimeJtJumpToTarget {
-typedef int qword __attribute__((mode(TI)));
 int SolveQuadratic__FfffPf(float, float, float, float *) __asm__("SolveQuadratic__FfffPf");
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
 // Also known as: FJumpTimeToHeight (upstream readable / Sly 1 name; FJumpTimeToHeight__FP5ACTORG9VU_VECTORN31Pf).
@@ -2982,7 +2969,6 @@ extern "C" int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qwor
 
 //////// 0x19A4A0 MeasureJtJumpToTarget
 namespace M_MeasureJtJumpToTarget {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct WORK{U u0,v10,v20,s;float at;U uq;qword incoming;U sum;};
 struct C { char pad[0x88]; float g88; };
@@ -3271,7 +3257,6 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
 //////// 0x19AA58 MeasureJumpToRail
 namespace M_GMeasureJumpRail {
 
-typedef int qword __attribute__((mode(TI)));
 typedef struct CONTROL CONTROL;typedef struct MOVE MOVE;typedef struct OBJECT OBJECT;
 typedef struct S{CONTROL*a;MOVE*b;OBJECT*c;int padC;qword q;}S;
 void GetJtRailLanding(CONTROL*,OBJECT*,qword*,qword*,float) __asm__("GetJtRailLanding");
@@ -3297,7 +3282,6 @@ extern "C" float MeasureJumpToRail(S *s, float parameter)
 //////// 0x19AAB8 MeasureJumpToHidePoint
 namespace M_func_0019AAB8 {
 
-typedef int qword __attribute__((mode(TI)));
 struct ACTOR;struct MOVE{ACTOR*actor;};
 class A0{public:char pad[224];};
 class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,QWROW*,void*,float);};
@@ -3332,7 +3316,6 @@ extern "C" float MeasureJumpToHidePoint(S *s, float parameter)
 //////// 0x19AB38 MeasureJumpToHideShape
 namespace M_func_0019AB38 {
 
-typedef int qword __attribute__((mode(TI)));
 struct ACTOR;struct MOVE{ACTOR*actor;};
 class A0{public:char pad[400];};
 class O{public:int pad[8];virtual void f1();virtual void f2();virtual void f3(ACTOR*,QWROW*,void*,float);};
@@ -3365,7 +3348,6 @@ extern "C" float MeasureJumpToHideShape(S *s, float parameter)
 
 //////// 0x19ABB8 MeasureJumpTargetAtTime
 namespace M_GMeasureJumpTargetTime {
-typedef int qword __attribute__((mode(TI)));
 struct CONTEXT; struct OBJECT;
 struct S { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 void MeasureJtJumpToTargetAtTime(struct CONTEXT *, struct OBJECT *, qword, float *, qword *, qword *, float) __asm__("MeasureJtJumpToTargetAtTime");
@@ -3380,7 +3362,6 @@ extern "C" float MeasureJumpTargetAtTime(void *record, float duration) { struct 
 
 //////// 0x19ABF0 MeasureJumpToPipe
 namespace M_GMeasureJumpPipe {
-typedef int qword __attribute__((mode(TI)));
 struct CONTEXT; struct OBJECT;
 struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
@@ -3417,7 +3398,6 @@ namespace M_func_0019AC88 {
 // the velocity with EvaluateBezierPos at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
 // Trick: the halved time goes into a NEW local (h), not back into t. Overwriting t adds an anti-dependence to the
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct P { JTAIR *a; void *p4; int pad[2]; qword v10; };   /* the callback context */
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -3460,7 +3440,6 @@ extern "C" float MeasureJumpAlongPath(struct P *p, float t)
 
 //////// 0x19AE00 FindJtObstruction
 namespace M_FFindJtObstruction {
-typedef int qword __attribute__((mode(TI)));
 
 void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
@@ -3567,7 +3546,6 @@ namespace M_JtbsChooseJtLanding {
 //    the hi of D_002BF8E0 is hoisted (and later rematerialized by reload in round-robin registers).
 //  - The search bounds are the literals -FLT_MAX/FLT_MAX (this function's constant pool at 0x2A65B8).
 //  - MinOf(a, b) = a < b ? a : b comes out as min.s with the operands swapped, so the order varies per loop.
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 #define FLT_MAX 3.40282347e+38f
 
@@ -4096,7 +4074,6 @@ LPartnerDone:
 namespace M_MeasureJtJumpToTargetAtTime {
 // Compute motion correction in a predicted target frame.
 
-typedef int qword __attribute__((mode(TI)));
 struct M4 { qword row[4]; };
 union V { qword q; float a[4]; };
 struct MOTION { char before[0x80]; qword acceleration; };

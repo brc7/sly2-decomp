@@ -793,7 +793,6 @@ extern "C" void *ChooseProxySpare(PROXY *proxy, int minRating)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PspareAcquire {
 // Attach an object node, bind its resources, and update its children.
-typedef int qword __attribute__((mode(TI)));
 struct P;
 struct M4 {qword rows[4];};
 struct NODE {P *owner;NODE *next;int fLocked,spare0C;M4 matrix;};   /* a PROXYSPARE (xfm.h) */
@@ -972,7 +971,6 @@ extern "C" void LO_ResetForProxy(LO *object, LO *pa)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CB518 {
-typedef int qword __attribute__((mode(TI)));
 void LO_ResetForProxy(SO *p, LO *plo) __asm__("LO_ResetForProxy");
 void SetSoZapMode(SO *p, int n) __asm__("SetSoZapMode");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");

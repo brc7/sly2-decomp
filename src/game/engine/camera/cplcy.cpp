@@ -140,7 +140,6 @@ extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 }
 
 namespace M_PosCplookAnchor {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 extern qword g_normalZ __asm__("g_normalZ");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -168,7 +167,6 @@ extern "C" qword PosCplookAnchor(CPLOOK *p)
 } // namespace M_PosCplookAnchor
 
 namespace M_PosCplookEye {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 extern qword D_002A5000 __asm__("D_002A5000");
 void LoadRotateMatrixPanTiltP(M3 *pm, float x, float y) __asm__("LoadRotateMatrixPanTilt");
@@ -262,7 +260,6 @@ extern "C" void ActivateCplook(CPLOOK *p)
 } // namespace M_ActivateCplook
 
 namespace M_UpdateCplook {
-typedef int qword __attribute__((mode(TI)));
 struct POLY { float c0, c1, c2; };
 extern struct POLY D_002BD980 __asm__("D_002BD980");
 extern float D_002BD990 __asm__("D_002BD990"), D_002BD994 __asm__("D_002BD994"), D_002BD998 __asm__("D_002BD998"), D_002BD99C __asm__("D_002BD99C");
@@ -401,7 +398,6 @@ extern "C" CPZOOM *CPZOOM_ctor(CPZOOM *pcpzoom)
 }
 
 namespace M_PosCpzoomCenter {
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void *GetCurrentPo(void *p) __asm__("GetCurrentPo");
 // Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos. (inferred)
@@ -425,7 +421,6 @@ extern "C" qword PosCpzoomCenter(CPZOOM *p)
 } // namespace M_PosCpzoomCenter
 
 namespace M_PosCpzoomEye {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 extern qword D_002A5000 __asm__("D_002A5000");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -525,7 +520,6 @@ extern "C" void ActivateCpzoom(CPZOOM *a, int n)
 } // namespace M_ActivateCpzoom
 
 namespace M_UpdateCpzoom {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 extern char D_002BD9B8[] __asm__("D_002BD9B8"), D_002BD9C8[] __asm__("D_002BD9C8"), D_002BD9D8[] __asm__("D_002BD9D8"), D_002BD9E8[] __asm__("D_002BD9E8"), D_002BD9F8[] __asm__("D_002BD9F8");
@@ -676,7 +670,6 @@ extern "C" void SetCpzoomUZoomTarget(CPZOOM *pcpzoom, float uZoomTarget)
 }
 
 namespace M_SnapCpzoom {
-typedef int qword __attribute__((mode(TI)));
 qword PosCpzoomCenter(CPZOOM *p) __asm__("PosCpzoomCenter");
 qword PosCpzoomEye(CPZOOM *p) __asm__("PosCpzoomEye");
 // Reset smoothed center/eye to current targets, zoom=zoomTarget (if >=0), pose = target pose.
@@ -694,7 +687,6 @@ extern "C" void SnapCpzoom(CPZOOM *p)
 } // namespace M_SnapCpzoom
 
 namespace M_HasZoomCenterArrived {
-typedef int qword __attribute__((mode(TI)));
 qword PosCpzoomCenter(CPZOOM *p) __asm__("PosCpzoomCenter");
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 // True when a and b are within 0.0001.
@@ -714,7 +706,6 @@ extern "C" int HasZoomCenterArrived(CPZOOM *p)
 } // namespace M_HasZoomCenterArrived
 
 namespace M_HasZoomEyeArrived {
-typedef int qword __attribute__((mode(TI)));
 qword PosCpzoomEye(CPZOOM *p) __asm__("PosCpzoomEye");
 int AreFloatsNear__Ffff(float a, float b, float eps) __asm__("AreFloatsNear__Ffff");
 // True when a and b are within 0.0001.
@@ -781,7 +772,6 @@ extern "C" CPHANG *CPHANG_ctor(CPHANG *pcphang)
 }
 
 namespace M_ActivateCphang {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void ActivateCplcy(CPHANG *a, int n, void *b) __asm__("ActivateCplcy");
 ACT1 *NewPositionAct(void *pvHero, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
@@ -816,7 +806,6 @@ namespace M_UpdateCphang {
 // VU_VECTOR(const qword &) wrappers, VecCombo(f1, v1, f2, v2)); Sub taking VU_VECTORs makes both p14->pos reads plain MEMs,
 // so cse2 keeps the target's two lqc2 0x20(v0); k is read through a VU_FLOAT(const float *) ctor whose word input has a
 // never-chosen "V" alternative (the ClipCameraEye trick: lw instead of lwc1+mfc1).
-typedef int qword __attribute__((mode(TI)));
 struct CLQ { float g0, g1, g2, pad; };
 extern CLQ D_002BDA10 __asm__("D_002BDA10");
 extern LM D_002BDA20 __asm__("D_002BDA20");
@@ -965,7 +954,6 @@ namespace M_UpdateCpcamblend {
 // UpdateCpcamblend (Claude agent): camera path keyframe lerp. VU_FLOAT is a qmtc2 asm fed by a gcc mfc1, and Dot ends
 // with separate qmfc2/mtc1 asms, so the float t lives only in an FPR and sub.s schedules like the original.
 
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
 typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 extern qword D_002BDA70[] __asm__("D_002BDA70");
@@ -1071,7 +1059,6 @@ void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace
 }
 
 namespace M_UpdateCpturret {
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };
 extern char D_002BDAB0[] __asm__("D_002BDAB0"), D_002BDAC0[] __asm__("D_002BDAC0");
@@ -1177,7 +1164,6 @@ namespace M_UpdateCptwoshot {
 // UpdateCptwoshot (Claude agent, lane D12): matched from the v7 draft. Normalize's sqrt and divide are two asms (sqrt into a
 // separate length temp), which lengthens the VU chain so the scheduler orders the block like the target; Cross lists `a`
 // twice (allocation-only operand) so the VF numbering matches.
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct M3 { qword r[3]; };
 union M4 { struct { qword r[4]; } q; M3 m3; float af[4][4]; };

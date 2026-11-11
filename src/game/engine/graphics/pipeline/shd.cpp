@@ -219,7 +219,6 @@ extern "C" void LoadClutFromBrx(void *pbis, CLUT *pclut)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BuildWorldBackgroundImage {
 typedef unsigned long ulong;
-typedef int qword __attribute__((mode(TI)));
 // Three-float vector with a no-op constructor.
 struct VEC3 { float x, y, z; VEC3() {} };
 // Packed color word with a no-op constructor.
@@ -1215,7 +1214,6 @@ void ColorCorrectRgba(struct RGBA *prgba) __asm__("ColorCorrectRgba"); void Colo
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ColorCorrectVector {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) VEC;
 struct G3 { float x, y, z; };
 extern float D_002C3690 __asm__("D_002C3690");

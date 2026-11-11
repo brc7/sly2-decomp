@@ -204,7 +204,6 @@ extern "C" void StopSnd(CID151 *sound, float fadeTime)
 }
 
 namespace M_StartSnd {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int AreFloatsNear__Ffff(float, float, float) __asm__("AreFloatsNear__Ffff");
 // True when a and b are equal within 0.0001 on x, y and z.
@@ -272,7 +271,6 @@ extern "C" void SetSndPitch(CID151 *sound, int n1, int n2, float pitchRatio)
 }
 
 namespace M_SetSndSourceLo {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int AreFloatsNear__Ffff(float, float, float) __asm__("AreFloatsNear__Ffff");
 void SetSndFlags(CID151 *, unsigned short, unsigned short) __asm__("SetSndFlags");
@@ -292,7 +290,6 @@ extern "C" void SetSndSourceLo(CID151 *sound, LO *source)
 } // namespace M_SetSndSourceLo
 
 namespace M_SetSndSourcePos {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int AreFloatsNear__Ffff(float, float, float) __asm__("AreFloatsNear__Ffff");
 // True when a and b are equal within 0.0001 on x, y and z.
@@ -324,7 +321,6 @@ extern "C" void SetSndDoppler()
 }
 
 namespace M_UpdateSndPositional {
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 qword ConvertPosBetweenLos(LO *, int, qword) __asm__("ConvertPosBetweenLos");
 void CalculateSndVolPan(CID151 *, qword, float *, float *, int *) __asm__("CalculateSndVolPan");
@@ -390,7 +386,6 @@ extern "C" void RemoveSndFromDirtyList(CID151 *sound)
 } // namespace M_RemoveSndFromDirtyList
 
 namespace M_CalculateSndVolPan {
-typedef int qword __attribute__((mode(TI)));
 struct RANGE {float low,high;};
 extern char g_lmZeroOne[] __asm__("g_lmZeroOne");
 void *GetCurrentPo(void*) __asm__("GetCurrentPo");
@@ -1016,7 +1011,6 @@ extern "C" void SetStreamSoundCulled()
 }
 
 namespace M_UpdateStreamsndPositional {
-typedef int qword __attribute__((mode(TI)));
 
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int AreFloatsNear__Ffff(float,float,float) __asm__("AreFloatsNear__Ffff");
@@ -1484,7 +1478,6 @@ extern "C" void PostSoundLoad(SNDMGR *soundManager)
 } // namespace M_PostSoundLoad
 
 namespace M_ResetSndmgr {
-typedef int qword __attribute__((mode(TI)));
 /* SNDMGR (layout: sly2/sndmgr.h) */
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern char D_004435F0[] __asm__("D_004435F0");
@@ -1601,7 +1594,6 @@ extern "C" void UpdateSndmgr(SNDMGR *soundManager)
 } // namespace M_UpdateSndmgr
 
 namespace M_func_001FDA48 {
-typedef int qword __attribute__((mode(TI)));
 /* NOISETYPE (noise.cpp): range +0x54, height range +0x58 (low, high) */
 struct O { char pad[0x54]; float range; float heightLow; float heightHigh; };
 void OnMicLevelResult(void) __asm__("OnMicLevelResult");

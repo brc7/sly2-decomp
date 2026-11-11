@@ -585,7 +585,6 @@ extern "C" int CompareGuardCandidateDistance(float *pg1, float *pg2)
 namespace M_UpdateStepguardDetectTargets {
 struct CANDIDATE;
 
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 
 struct CANDIDATE {float distance;int *source;STEPGUARD *object;int mode;float stamp;int unused14;};
@@ -1090,7 +1089,6 @@ extern "C" void HandleStepguardMessage(STEPGUARD *guard, int message, struct ATT
 // 0x207690 RenderStepguardSelf
 namespace M_RenderStepguardSelf {
 union U; struct M4; struct SPACE; union FLAGS; struct STEPGUARDIsland; struct PROFILE; 
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {U rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
@@ -2329,7 +2327,6 @@ extern "C" void CloneAnimBinding(ANIMBINDING *binding)
 // 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 {
 struct ASEGA; struct INSTANCE; struct LEAP; struct ANIMBINDINGIsland; struct STEPGUARDIsland;
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct ASEGA { char pad[0x1C]; float localTime; };
 struct INSTANCE { char pad[0x10]; qword velocity; /* DIRANIM */ char pad2[0x30 - 0x20]; struct ASEGA *asega; /* SMA */ };
@@ -2841,7 +2838,6 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, LO *object, qword qw)
 // 0x20A168 CompareStepguardStimuli
 namespace M_func_0020A168 {
 struct STIMTEMPLATE; struct STIMULUS;
-typedef int qword __attribute__((mode(TI)));
 struct STIMTEMPLATE { char pad[0x50]; int kind; };
 struct STIMULUS { char pad[0x14]; struct STIMTEMPLATE *stimTemplate; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float time; char pad4[4]; int level; char pad5[0x60 - 0x58]; };
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -3317,7 +3313,6 @@ extern "C" void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarg
 // 0x20ACC0 UpdateStepguardAim
 namespace M_func_0020ACC0 {
 struct MATRIX3; struct AIMOBJECT; struct CID120Island;
-typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
 struct AIMOBJECT { char pad[0x30]; qword pos; char pad2[0x60]; int unknownA0; };
 /* island: the aim object read as an XF with a qword at +0x30 (its matrix row) in an asm operand */

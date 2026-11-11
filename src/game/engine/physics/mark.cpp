@@ -471,7 +471,6 @@ namespace M_func_001A87F0 {
 //  - PlaneDist takes the plane as a VU_VECTOR4 by value: the by-value class parameter adds a few TImode copies that survive cse1 (and vanish at
 //    register allocation), which makes gcse's expression table 77 buckets instead of 73. PRE numbers its reaching registers in hash-bucket order, so
 //    &normal (sp+0x50) now gets its pseudo before i+1, and reload gives them the spill slots 0xD0 / 0xD4 as in the original.
-typedef int qword __attribute__((mode(TI)));
 struct SCALAR;
 struct VECTOR;
 extern SCALAR *InitVuTemp(SCALAR *) __asm__("InitVuTemp");
@@ -575,7 +574,6 @@ namespace M_MarkSoContactsBspBsp {
 //    order, so the slot order depends on the expression table size ((insns / 2) | 1, needs 219). The by-value VV / VU_FLOAT helper
 //    parameters (struct copies that survive cse1 and vanish at register allocation) give exactly that count; GFromVf taking a VU_FLOAT
 //    in Length and PlaneDist was the last step (215 -> 219).
-typedef int qword __attribute__((mode(TI)));
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct SCALAR;
@@ -739,7 +737,6 @@ extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeC
 // matched with, in a namespace of its own (see the file header).
 namespace M_func_001A9108 {
 
-typedef int qword __attribute__((mode(TI)));
 struct FRAME{};
 struct REQ{unsigned int bytes,alignment;};
 struct POLY{qword plane;char opaque10[8];int flags;};
@@ -1190,7 +1187,6 @@ done:
 // Hand-tuned (gcse table size, register pins, struct copies): keeps the per-function views and helpers it was
 // matched with, in a namespace of its own (see the file header).
 namespace M_MarkSoContactsSphereBsp {
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; U(); };
 struct S0 { char pad[0x70]; qword position; };
 struct LO;struct CONTACT;struct NODE;
@@ -1334,7 +1330,6 @@ extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *par
 // Hand-tuned (gcse table size, register pins, struct copies): keeps the per-function views and helpers it was
 // matched with, in a namespace of its own (see the file header).
 namespace M_func_001A9D38 {
-typedef int qword __attribute__((mode(TI)));
 struct M4{qword r[4];};
 struct HIT{qword p;char pad10[0x30];float time;int unknown44,unknown48,tag;char pad50[0x10];};
 struct W;struct C;

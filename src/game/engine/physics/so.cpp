@@ -248,7 +248,6 @@ extern "C" void ReleaseSoBoundsHierarchy(SO *so)
 
 // 0x1F2500 EnsureSoBounds
 namespace M_EnsureSoBounds {
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 SOBOUNDS *AllocZeroedFromSlotheap(void *) __asm__("AllocZeroedFromSlotheap");
 qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
@@ -527,7 +526,6 @@ extern "C" void RemoveSoParts(SO *so)
 // 0x1F2C30 AddSoHierarchy
 namespace M_AddSoHierarchy {
 struct S8; struct H; 
-typedef int qword __attribute__((mode(TI)));
 struct S8 { long l; } __attribute__((packed));
 struct H { char pad[0x2C]; int numZones; };
 extern const struct S8 D_002A8270 __asm__("D_002A8270");
@@ -804,7 +802,6 @@ extern "C" void SetSoMass(SO *so, float m)
 
 // 0x1F35F8 ScaleSoInertia
 namespace M_AdjustSoMomint {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
@@ -847,7 +844,6 @@ extern "C" void PostSoLoad(SO *so)
 
 // 0x1F36E0 UpdateSo
 namespace M_UpdateSo {
-typedef int qword __attribute__((mode(TI)));
 void UpdateLo(SO *) __asm__("UpdateLo");
 qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
 void *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
@@ -906,7 +902,6 @@ extern "C" void SetSoPhysRegion(SO *so, PATHZONE *q)
 
 // 0x1F3868 UpdateSoPhysRegionCallback
 namespace M_func_001F3868 {
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
 int FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 void SetSoPhysRegion(void *, int) __asm__("SetSoPhysRegion");
@@ -951,7 +946,6 @@ extern "C" void UpdateSoPartMatrices(SO *so)
 
 // 0x1F3980 UpdateSoXfWorld
 namespace M_func_001F3980 {
-typedef int qword __attribute__((mode(TI)));
 void UpdateSoPartMatrices(SO *) __asm__("UpdateSoPartMatrices");
 void UpdateSoPartMesh(SOPART *, float) __asm__("UpdateSoPartMesh");
 int IsXfRoleVelocity(int) __asm__("IsXfRoleVelocity");
@@ -1257,7 +1251,6 @@ extern "C" void TranslateSoToPos(SO *so, qword v)
 // 0x1F42E0 RotateSoToMat
 namespace M_RotateSoToMat {
 struct M3;
-typedef int qword __attribute__((mode(TI)));
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 { QWROW r[3]; M3(){} M3(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3 &operator=(const M3 &m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;} };
 extern M3 InvertMatrix3Cofactor(const M3 *) __asm__("InvertMatrix3Cofactor");
@@ -1307,7 +1300,6 @@ extern "C" void RotateSoToMat(SO *so,const M3 *basis)
 
 // 0x1F4440 GetSoVelocity
 namespace M_GetSoVelocity {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 qword GetXfVelocity(XF *, int, qword) __asm__("GetXfVelocity");
 // Slot 33: world-space velocity of the position XF (when it is dynamic), else zero.
@@ -1317,7 +1309,6 @@ extern "C" qword GetSoVelocity(SO *p) { XF *pt = p->positionXf; if (!pt || pt->k
 
 // 0x1F4488 SetSoVelocity
 namespace M_SetSoVelocity {
-typedef int qword __attribute__((mode(TI)));
 int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
 qword ConvertXfVec(int, XF *, qword) __asm__("ConvertXfVec");
 void WakeSo(SO *) __asm__("WakeSo");
@@ -1545,7 +1536,6 @@ extern "C" void MatchSoXf(SO *so, LO *q)
 // 0x1F4A80 SetSoXf
 namespace M_func_001F4A80 {
 struct M4; struct SOIsland;
-typedef int qword __attribute__((mode(TI)));
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {QWROW r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
 #if defined(SLY2_EE_LAYOUT)
@@ -1891,7 +1881,6 @@ struct VU_FLOAT;
 // - the radius code takes the centre as `const qword &` (gives the game's vmove copies of the centre), the sphere
 //   position is read as `*(qword *)mat[3]` (aliases the VU_FLOAT home store, so it is read twice);
 // - the transformed local points use GDistanceFused (vsub inside the dot-product asm, the 1.0 output first).
-typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT {qword qw;};
 extern qword D_002A2DE0 __asm__("D_002A2DE0"),D_002A2DF0 __asm__("D_002A2DF0"),D_002A2E00 __asm__("D_002A2E00");
 
@@ -2048,7 +2037,6 @@ typedef char layout_tree_first[((unsigned)&((SOTREE*)0)->parts==0x34)?1:-1];
 
 // 0x1F5480 ExtendSoTreeBounds
 namespace M_ExtendSoTreeBounds {
-typedef int qword __attribute__((mode(TI)));
 // Grows the tree's box and radius to include a sphere (centre c, radius r).
 extern "C" void ExtendSoTreeBounds(SO *so, qword c, float r)
 {
@@ -2073,7 +2061,6 @@ extern "C" void ExtendSoTreeBounds(SO *so, qword c, float r)
 // 0x1F5510 GetSoConstraintAxis
 namespace M_func_001F5510 {
 struct OUT;
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword row[3]; } M3;
 struct OUT { qword axis; int mode; };
 extern int D_002C3C20[] __asm__("D_002C3C20");
@@ -2196,7 +2183,6 @@ extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
 
 // 0x1F5860 GetSoGravity
 namespace M_GetSoDvGravity {
-typedef int qword __attribute__((mode(TI)));
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 // The object's gravity vector, or zero without a physics record.
 extern "C" qword GetSoGravity(SO *p) { if (!p->physics) return D_002A2DD0; return *(qword *)&p->physics->gravity; }   /* gravity read as a quadword */
@@ -2204,7 +2190,6 @@ extern "C" qword GetSoGravity(SO *p) { if (!p->physics) return D_002A2DD0; retur
 
 // 0x1F5880 SetSoGravity
 namespace M_SetSoDvGravity {
-typedef int qword __attribute__((mode(TI)));
 // Sets the object's gravity vector (making the position XF dynamic if needed) and invalidates its box.
 // Also known as: SetAloGravity (upstream readable / Sly 1 name; SetAloGravity__FP3ALOG9VU_VECTOR).
 extern "C" void SetSoGravity(SO *so, qword q)
@@ -2220,7 +2205,6 @@ extern "C" void SetSoGravity(SO *so, qword q)
 
 // 0x1F58F0 GetSoCameraDefaults
 namespace M_GetSoCpdefi {
-typedef int qword __attribute__((mode(TI)));
 qword GetXfVelocity(XF *, int, qword) __asm__("GetXfVelocity");
 void TiltMatUpright(void *, int, MATRIX3 *) __asm__("TiltMatUpright");
 float atan2f(float, float) __asm__("atan2f");
@@ -2270,7 +2254,6 @@ union U; struct M3;
 // Caps an overspeed, turns the owner toward `orientation` (expressed in its parent space) with a desired
 // speed taken from the predicted remaining angle, and adds a force change bounded by acceleration*dt.
 // Matched from the codex/lilly drafts (T1623). Notes: notes/1F0000.md.
-typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
@@ -2409,7 +2392,6 @@ extern "C" void AccelSoTowardMatSpring(SO*so,const M3*orientation,const CLQ*c,qw
 
 // 0x1F5E10 AccelSoTowardPosSpring
 namespace M_AccelSoTowardPosSpring {
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(SO*) __asm__("GetLoWorldPos");
 qword ConvertXfVec(void*,void*,qword) __asm__("ConvertXfVec");
 // Return x - y (vf1/vf2/vf3).
@@ -2854,7 +2836,6 @@ struct FRAME;
 // dot(cross(v1-v0, v2-v0), plane normal) >= 0 (swaps vertex 1/2 otherwise).
 // MATCH (T1582): ONE function-scope triangle index (`itri`, used by the edge loop and as the second loop's
 // counter) and ONE function-scope `ptri` shared by both loops; per-loop locals gave register rotation only.
-typedef int qword __attribute__((mode(TI)));
 struct FRAME;
 extern FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 extern void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -2923,7 +2904,6 @@ extern "C" void EnsureSoPartMesh(SOPART *so)
 
 // 0x1F6EF8 UpdateSoPartMesh
 namespace M_func_001F6EF8 {
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f;} V;
 void InitPlaneFromPositions(void*,qword,qword,qword) __asm__("InitPlaneFromPositions");
 // Return a + b * s.x (vf5).
@@ -3002,7 +2982,6 @@ typedef char layout_V_alignment[(__alignof__(V)==16)?1:-1];
 namespace M_func_001F70C0 {
 struct M4; struct FRAME;
 // Insert zeroed vertices, rebuild transformed geometry, and rebase its tree.
-typedef int qword __attribute__((mode(TI)));
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {QWROW rows[4];M4(){}M4(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4&operator=(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct FRAME {int pad[4];};
@@ -3047,7 +3026,6 @@ extern "C" void CloneSoPartGeomInserting(SOPART *source,XF *space,int inserted,S
 
 // 0x1F72F8 IsPosInSo
 namespace M_func_001F72F8 {
-typedef int qword __attribute__((mode(TI)));
 int FindBspLeafContainingPointFast(void *, int, qword) __asm__("FindBspLeafContainingPointFast");
 // Slot 73: returns 1 when pos is inside any visible sphere part or part BSP of the object.
 // Also known as: FAloContainsPoint (upstream readable / Sly 1 name; FAloContainsPoint__FP3ALOG9VU_VECTOR).
@@ -3077,7 +3055,6 @@ extern "C" int IsPosInSo(SO *so, qword pos)
 // 0x1F7410 InflictSoContactZaps
 namespace M_func_001F7410 {
 struct H; struct N;
-typedef int qword __attribute__((mode(TI)));
 /* XP as seen from one side (two of them, 0x40 each) and the contact chain. */
 struct H { SOPART *part; int pad; void *so; void *object; qword pos; qword posLocal; qword velocity; };
 struct N { struct H h[2]; char pad[0xAC - 0x80]; struct N *next; };
@@ -3145,7 +3122,6 @@ extern "C" int CanSoTakeDamage(SO *so, ZPR *pzpr)
 // 0x1F7598 DeliverZapToSo
 namespace M_func_001F7598 {
 struct M; struct M2; struct M3;
-typedef int qword __attribute__((mode(TI)));
 /* The zap message (MSGID 0xB) payload. */
 struct M { SO *po; LO *ploSource; ZPR *zpr; };
 struct M2 { SO **pso; int *zapKinds; };
@@ -3258,7 +3234,6 @@ extern "C" void SetSoZapResponse(SO *so, int f, int b)
 // 0x1F7950 HandleSoTouchZaps
 namespace M_func_001F7950 {
 struct G2;
-typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct G2 { LO *p; };
 extern struct G2 D_002F7900 __asm__("D_002F7900");
@@ -3872,7 +3847,6 @@ extern "C" ACT *FindXfHandleActuator(CID149 *handle, int k, int n, int m)
 
 // 0x1F89E0 SetXfHandleActuator1
 namespace M_func_001F89E0 {
-typedef int qword __attribute__((mode(TI)));
 ACT *FindXfHandleActuator(CID149 *, int, int, int) __asm__("FindXfHandleActuator");
 void SetActPositionGoal(ACT *, qword) __asm__("SetActPositionGoal");
 void NewPositionAct(SO *, XF *, int, int, int, qword) __asm__("NewPositionAct");
@@ -3892,7 +3866,6 @@ extern "C" void SetXfHandleActuator1(CID149 *handle, int n, int m, qword q)
 
 // 0x1F8A78 SetXfHandleActuator1World
 namespace M_func_001F8A78 {
-typedef int qword __attribute__((mode(TI)));
 qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword q) __asm__("TransformXfPos");
 void SetXfHandleActuator1(CID149 *p, int a, int b, qword q) __asm__("SetXfHandleActuator1");
 // SetXfHandleActuator1 with a vector converted from the XF's parent space.
@@ -3905,7 +3878,6 @@ extern "C" void SetXfHandleActuator1World(CID149 *handle, int a, int b, qword q)
 // 0x1F8AD8 SetXfHandleActuator1Mat
 namespace M_func_001F8AD8 {
 struct M3;
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a[3]; };
 void ConvertXfMat(struct M3 *, XF *, XF *) __asm__("ConvertXfMat");
 qword DecomposeRotationMatrixToEuler(struct M3 *) __asm__("DecomposeRotationMatrixToEuler");
@@ -3941,7 +3913,6 @@ extern "C" void SetXfHandleActuator4(CID149 *handle, int n, int m, float f, floa
 // 0x1F8BF0 SetXfHandleKind16Params
 namespace M_func_001F8BF0 {
 struct U; struct V;
-typedef int qword __attribute__((mode(TI)));
 struct U { int a, b; int n; float x, y, z, r; int pad; qword q; };
 struct V { char pad[0x60]; struct U *pu; };
 // For a kind-16 XF: sets its count, vector, angle (degrees to radians) and rate.

@@ -300,7 +300,6 @@ extern "C" void LoadJtFromBrx(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostJtLoad {
-typedef int qword __attribute__((mode(TI)));
 
 extern void PostLoadStepplayer(void *p) __asm__("PostLoadStepplayer");
 extern void BindLoOidTable(void *p, int n, void *pv) __asm__("BindLoOidTable");
@@ -377,7 +376,6 @@ namespace M_func_00188960 {
 // PresetJtAccel (Claude agent, lane G9, 2026-10-24): MATCH, no register pins, VU helper asms only (Lilly style).
 // Keys: the 0x20 stack slot is the by-value VU_FLOAT temporary (not a WORK field); WORK = {a, b} at 0x0/0x10 shared by cases 14 and 24; Reject = ProjectOutVec.
 
-typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];}M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}};
@@ -485,7 +483,6 @@ typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00188CC8 {
-typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x80]; float x80, y84, g88; char pad1[0x94 - 0x8C]; float g94; int n98; int n9C; };
 struct B { char pad[0x1BC]; int x1BC; };
 struct O : STEP { char pad[0x4C8 - 0x2C0]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
@@ -549,7 +546,6 @@ extern "C" void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00188E78 {
-typedef int qword __attribute__((mode(TI)));
 struct E { char pad[0xC]; SO *po; qword v10; qword v20; qword v30; };   /* a contact (XP): first side's object, point, velocity */
 extern void AdjustStepXpVelocity(void *p, struct E *ae, int i) __asm__("AdjustStepXpVelocity");
 extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -574,7 +570,6 @@ extern "C" void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleJtMessage {
-typedef int qword __attribute__((mode(TI)));
 
 typedef struct MSG9 { void *x0; int x4; int x8; } MSG9;
 typedef struct LOB { char pad[0xC]; int xC; char pad1[0x44 - 0x10]; int x44; } LOB;
@@ -1272,7 +1267,6 @@ int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtStand {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 struct T { char pad[0x4C]; SO *po; };   /* the floor contact (XP): the other side's object */
@@ -1320,7 +1314,6 @@ extern "C" void RenderJtSelf(JT *jt, void *camera)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A278 {
-typedef int qword __attribute__((mode(TI)));
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void UpdateSoXfWorld(JT *p) __asm__("UpdateSoXfWorld");
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
@@ -1343,7 +1336,6 @@ extern "C" void UpdateJtWorldTransform(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A2E0 {
-typedef int qword __attribute__((mode(TI)));
 void UpdateSoTreeBounds(JT *p) __asm__("UpdateSoTreeBounds");
 void ExtendSoTreeBounds(JT *p, qword q, float g) __asm__("ExtendSoTreeBounds");
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
@@ -1359,7 +1351,6 @@ extern "C" void UpdateJtExtraEntries(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A350 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
@@ -1411,7 +1402,6 @@ extern "C" void GetJtCpdefi(JT *jt, int *pf)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A4E8 {
-typedef int qword __attribute__((mode(TI)));
 struct WORK{QWROW scalar;QWROW forward,reverse;QWROW kept;};
 typedef struct M { qword r[4]; } M;
 struct C;
@@ -2058,7 +2048,6 @@ extern "C" void UpdateJtModeInput(JT *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018B348 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } MATRIX4;
 extern float GetAsegLabelTime(void *p, int n) __asm__("GetAsegLabelTime");
 extern void PredictAsegTransform(void *a, float g, JT *p, float h, void *b, void *c, MATRIX4 *pm, int n) __asm__("PredictAsegTransform");
@@ -2098,7 +2087,6 @@ extern "C" void CacheJtRestPose(JT *jt)
 namespace M_func_0018B460 {
 // Update attachment correction and decay inactive responses.
 
-typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct SPACE;
 struct M3{U r[3];};struct M4{U r[4];};

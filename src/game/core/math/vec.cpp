@@ -37,7 +37,6 @@ void FindClosestPointBetweenLines(qwordi a, qwordi b, qwordi c, qwordi pos, floa
 float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 //////// 0x11E1A0 SetVectorCylind
 namespace V_SetVectorCylind {
-typedef int qword __attribute__((mode(TI)));
 // Builds a vector from cylindrical coordinates: angle `rad` around z, `radius` in the xy plane, height z.
 // Also known as: SetVectorCylind (upstream readable / Sly 1 name; SetVectorCylind__Ffff).
 extern "C" qword SetVectorCylind(float rad, float radius, float z)
@@ -48,7 +47,6 @@ extern "C" qword SetVectorCylind(float rad, float radius, float z)
 
 //////// 0x11E208 SetVectorSphere
 namespace V_SetVectorSphere {
-typedef int qword __attribute__((mode(TI)));
 // Builds a vector from spherical coordinates: pan around z, tilt above the xy plane, length r.
 // Also known as: SetVectorSphere (upstream readable / Sly 1 name; SetVectorSphere__Ffff).
 extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
@@ -64,7 +62,6 @@ extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 
 //////// 0x11E290 SplitVectorAlongAxis
 namespace V_SplitVectorAlongAxis {
-typedef int qword __attribute__((mode(TI)));
 // Splits a along the unit vector b: returns a . b, and optionally the parallel part (a . b) b and the
 // perpendicular part a - (a . b) b.
 // Also known as: GSplitVector (upstream readable / Sly 1 name; GSplitVector__FG9VU_VECTORT0P6VECTORT2).
@@ -102,7 +99,6 @@ extern "C" float SplitVectorAlongAxis(qword a, qword b, qword *outParallel, qwor
 //////// 0x11E2D8 GetNormalVectors
 namespace V_GetNormalVectors {
 /* GetNormalVectors(normal, a, b, M3 rows *pm): builds basis rows 0/1. VF registers pinned with hard-register locals (Claude agent). */
-typedef int qword __attribute__((mode(TI)));
 #ifdef SLY2_EE_ASM
 #define CROSS(r, a, b) __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(r) : "j"(a), "j"(b))
 #define DOT(d, one, v) __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=j"(one), "=j"(d) : "j"(v))
@@ -161,7 +157,6 @@ extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *outBasis)
 namespace V_GetNormalVector {
 // GetNormalVector MATCH (Claude agent, lane A10, 2026-10-23), from v3: y/z extracts are asm prot3w/pextuw into a plain int, then a
 // union int->float so gcc emits the mtc1 itself (its latency gives the target schedule). x stays an asm mtc1 from the qword. One pin (|y| in $f0).
-typedef int qword __attribute__((mode(TI)));
 // y lane of q as a float.
 #ifdef SLY2_EE_ASM
 static __inline__ float GetY(qword q) { qword t; float y; __asm__("prot3w %0,%1" : "=r"(t) : "r"(q)); __asm__("mtc1 %1,%0" : "=f"(y) : "r"(t)); return y; }
@@ -240,7 +235,6 @@ extern "C" qword GetNormalVector(qword v)
 //////// 0x11E4B0 AngleBetweenVectors
 namespace V_AngleBetweenVectors {
 /* AngleBetweenVectors (Claude agent): angle between vectors + optional normalized axis. Length's float comes from an mtc1 asm fed by gcc's own qmfc2 ("r"(qword)), and the axis length vector (pinned vf1) is passed as a GPR qword to the qmtc2, so the move is shared like the original. */
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Length of the xyz part of v as a float.
 static inline float Length(qword v)
@@ -327,7 +321,6 @@ extern "C" float AngleBetweenVectors(qword a, qword b, qword *outAxis)
 namespace V_FindClosestPointBetweenLines {
 /* FindClosestPointBetweenLines (Claude agent, lane A23, 2026-10-23), from v6. The u/v dots (DotG) end with one `mtc1` asm from the qword
    so gcc emits the qmfc2 moves itself; the commented barrier sits after ba (not ca). One pin (d). */
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
@@ -498,7 +491,6 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
 
 //////// 0x11E958 CalculateVectorPanTilt
 namespace V_CalculateVectorPanTilt {
-typedef int qword __attribute__((mode(TI)));
 // Returns v's pan (atan2(y, x)) and tilt (atan2(z, |xy|)), each normalised to (-pi, pi]; both optional.
 // Also known as: PanTiltFromVector (upstream readable / Sly 1 name; PanTiltFromVector__FG9VU_VECTORPfT1).
 extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
@@ -512,7 +504,6 @@ extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 
 //////// 0x11E9F8 LimitVectorLength
 namespace V_LimitVectorLength {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Returns v scaled down to maxLength if it is longer, else v.
 // Also known as: LimitVectorLength (upstream readable / Sly 1 name; LimitVectorLength__FG9VU_VECTORf).
@@ -552,7 +543,6 @@ extern "C" qword LimitVectorLength(qword v, float maxLength)
 //////// 0x11EA60 ClosestPointsOfLines
 namespace V_ClosestPointsOfLines {
 /* ClosestPointsOfLines (Claude agent, lane A28, 2026-10-24): from fresh9 (13). ba via a vsub without the "memory" clobber (qmtc2 b order), and every dot readback via F3, a mtc1 asm with an allocation-only "j"(q) input next to the "r"(q) one, so the dot result stays a VU pseudo and gcc emits the qmfc2 itself. No pins. */
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Return a - b.
 static inline qword Sub(qword a, qword b)
@@ -695,7 +685,6 @@ extern "C" int ClosestPointsOfLines(qword a, qword b, qword c, qword d, float *o
 
 //////// 0x11EBB0 IntersectRayTriangle
 namespace V_IntersectRayTriangle {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float af[4]; } V;
 // Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
@@ -768,7 +757,6 @@ extern "C" int IntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, q
 //////// 0x11ED40 FindClosestPointOnLine
 namespace V_FindClosestPointOnLine {
 // FindClosestPointOnLine (Claude agent, lane A22, 2026-10-23): matched from build/hand_wip/FindClosestPointOnLine.v4.c.
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
@@ -849,7 +837,6 @@ namespace V_FindClosestPointOnLineSegment {
 // FindClosestPointOnLineSegment: closest point on segment p0-p1 to pos (Claude agent). The dead stack copy of the t vector is a
 // volatile sqc2 asm (keeps it ahead of beqz); the ppos copy goes vf->gpr via a gcc reload (empty asm with "0") so
 // reorg can steal its qmfc2 into the delay slot.
-typedef int qword __attribute__((mode(TI)));
 // Dot product of the xyz parts of a and b as a float.
 static inline float Dot(qword a, qword b)
 {
@@ -921,7 +908,6 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
 
 //////// 0x11EF08 GetVectorCylind
 namespace V_GetVectorCylind {
-typedef int qword __attribute__((mode(TI)));
 // 0x11EF00: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
@@ -958,7 +944,6 @@ extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, floa
 //////// 0x11EFB0 GetVectorSphere
 namespace V_GetVectorSphere {
 /* RadPanTiltRFromVector-style: pan/tilt angles and length of v (Claude agent, 2026-10-17) */
-typedef int qword __attribute__((mode(TI)));
 // x lane of q as a float (no instruction).
 #ifdef SLY2_EE_ASM
 static __inline__ float GetX(qword q) { float x; __asm__("" : "=r"(x) : "0"(q)); return x; }
@@ -1120,7 +1105,6 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothP
 
 //////// 0x11F198 GetCosineBetweenVectors
 namespace V_GetCosineBetweenVectors {
-typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 // Length of the xyz part of v as a float.
 static inline float Len(qword v)
@@ -1180,7 +1164,6 @@ zero:
 
 //////// 0x11F288 VecMinArray
 namespace V_VecMinArray {
-typedef int qword __attribute__((mode(TI)));
 
 // 0x11F278..0x11F284: 2 dead-code scraps (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
@@ -1205,7 +1188,6 @@ extern "C" qword VecMinArray(int count, qword *vectors)
 
 //////// 0x11F2B8 VecMaxArray
 namespace V_VecMaxArray {
-typedef int qword __attribute__((mode(TI)));
 
 // Componentwise maximum of `count` vectors.
 extern "C" qword VecMaxArray(int count, qword *vectors)

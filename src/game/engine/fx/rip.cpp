@@ -245,7 +245,6 @@ namespace M_BounceRipgRips__FP4RIPG {
  *    `entries` store, which sched1 then issues right after the allocation call (the target's store order and $v0 for the tree pointer);
  *  - PruneBspBySphere uses the matched callee's argument order (pos, eps, count, entries).
  */
-typedef int qword __attribute__((mode(TI)));
 struct ENTRY { int a, b; void *poly; };
 struct SHAPE { char pad10[0x10]; unsigned long flags; char pad18[0x54]; int capacity; char pad70[4]; void *tree; };
 struct XP { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
@@ -1031,7 +1030,6 @@ typedef char layout_ceb08_70[(sizeof(((PROX*)0)->distance)==4)?1:-1];
 } // namespace M_HandleRipBounce
 
 namespace M_IsVectorShorterThan2 {
-typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 4. (inferred)
 extern "C" int IsVectorShorterThan2(qword v)
 {
@@ -1049,7 +1047,6 @@ extern "C" int IsVectorShorterThan2(qword v)
 } // namespace M_IsVectorShorterThan2
 
 namespace M_IsVectorNearlyZero {
-typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 0.0004. (inferred)
 extern "C" int IsVectorNearlyZero(qword v)
 {
@@ -1067,7 +1064,6 @@ extern "C" int IsVectorNearlyZero(qword v)
 } // namespace M_IsVectorNearlyZero
 
 namespace M_IsVectorShorterThan5 {
-typedef int qword __attribute__((mode(TI)));
 // Helper: |v|^2 < 25. (inferred)
 extern "C" int IsVectorShorterThan5(qword v)
 {
@@ -1085,7 +1081,6 @@ extern "C" int IsVectorShorterThan5(qword v)
 } // namespace M_IsVectorShorterThan5
 
 namespace M_ProjectRipTransform {
-typedef int qword __attribute__((mode(TI)));
 union U {
     qword q;
     float f;
@@ -1327,7 +1322,6 @@ void RIP::Update()
 }
 
 namespace M_RenderRipAtPose {
-typedef int qword __attribute__((mode(TI)));
 struct M3 {
     qword a, b, c;
 };
@@ -1573,7 +1567,6 @@ STUCK *CreateStuck(FLYING *p, LO *visual, LO *space, qword position, qword direc
 } // namespace M_CreateStuck
 
 namespace M_HandleFlyingBounce {
-typedef int qword __attribute__((mode(TI)));
 struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
 extern int D_002C1F70[1] __asm__("D_002C1F70");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
@@ -1620,7 +1613,6 @@ void RenderStuck(STUCK *pstuck)
 } // namespace M_RenderStuck
 
 namespace M_PostShrapnelEmit__FP8SHRAPNELP5EMITB {
-typedef int qword __attribute__((mode(TI)));
 struct V3 { float x, y, z; };
 
 extern LM D_002C1F78 __asm__("D_002C1F78");
@@ -1688,7 +1680,6 @@ typedef char post_layout[(sizeof(qword)==16 && sizeof(float)==4 && sizeof(void*)
 #undef OFF
 
 namespace M_HandleShrapnelBounce {
-typedef int qword __attribute__((mode(TI)));
 struct C { char pad[0x60]; void *unknown60; };
 struct B { char pad[0xEC]; struct C *unknownEC; };   /* the hit body */
 struct A { int x0; struct B *pb; };
@@ -1714,7 +1705,6 @@ int SHRAPNEL::HandleBounce(void *pa_m, qword q0, qword q1)   /* key function (th
 
 namespace M_RenderShrapnel__FP8SHRAPNELP2CM {
 // Render the particle with its scalar depth offset along the global axis.
-typedef int qword __attribute__((mode(TI)));
 union U {
     qword q;
     float f[4];
@@ -1815,7 +1805,6 @@ void MATCH::Init(qword pos, float scale, SO *psoTouch)
 }
 
 namespace M_LaunchMatch__FP5MATCH {
-typedef int qword __attribute__((mode(TI)));
 struct MAT3 { qword a[3]; };
 struct MAT4 { qword a[4]; };
 union U { qword q; float g; };
@@ -1882,7 +1871,6 @@ namespace M_ProjectMatchTransform {
 // Follow an animated target: sample the target's pose (LoadIdentityMatrix4), blend the end velocity of a Hermite step from
 // the position delta, the current velocity and the acceleration, run the step (EvaluateBezierPos), then spin the
 // orientation about its axis in proportion to the elapsed time.
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct M4 { qword r[4]; };
 union U { qword q; float f; };
@@ -1999,7 +1987,6 @@ namespace M_RenderGlint {
  *    global-alloc priorities of time/distance and the local-alloc order of the address registers);
  *  - `time` is computed before `distance`; the opacity clamp keeps lo/hi loaded before the compare and its result in the callee-saved register that also holds lo.
  */
-typedef int qword __attribute__((mode(TI)));
 struct M3 {qword r[3];};
 struct M4 {qword r[4];};
 struct POLY {
@@ -2109,7 +2096,6 @@ extern "C" void RenderGlint(RIP *rip)
 } // namespace M_RenderGlint
 
 namespace M_InitSmack {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z; } V3;
 typedef struct {
     char pad0[0x20];
@@ -2162,7 +2148,6 @@ extern "C" void InitSmack(OBJ *object, qword q)
 } // namespace M_InitSmack
 
 namespace M_ProjectSmackTransform {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a; qword b; } Q2;
 typedef struct {
     char pad0[0x14];
@@ -2191,7 +2176,6 @@ extern "C" void ProjectSmackTransform(OBJ *object)
 } // namespace M_ProjectSmackTransform
 
 namespace M_RenderSmack {
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 union U { qword q; float f; };
 struct SPIN { char pad[0x40]; qword axis; };
@@ -2324,7 +2308,6 @@ namespace M_ProjectLeafTransform {
  *    load latency in both schedulers (an asm qmtc2 is "free" to the scheduler and lands one slot early); the volatile read stops combine
  *    from folding the load and the copy back into an lqc2.
  */
-typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct P { char pad0[0x40]; M3 matrix; char pad70[0x20]; qword vel; char padA0[0x24]; float drag; };
 
@@ -2474,7 +2457,6 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
 }
 
 namespace M_UpdateRipt1 {
-typedef int qword __attribute__((mode(TI)));
 typedef struct { char pad[0xE0]; int numEdges; char *edges; } Q;   /* the touch object: its 0xB0-byte collision records (inferred) */
 typedef struct {
     char pad[0x70];
@@ -2535,7 +2517,6 @@ void RIPT0::Init(qword pos, float scale, SO *psoTouch)
 }
 
 namespace M_ProjectBubletTransform {
-typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct B {
     qword x, y;
