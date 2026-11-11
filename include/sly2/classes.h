@@ -2497,12 +2497,19 @@ typedef char assert_TURRET_size[sizeof(TURRET) == 0x1E0 ? 1 : -1];
 /* 5 CID5 (0x120): vis zone (all *_vz WEs); vtable 0x2DC070, 50 slots */
 struct CID5 : XFM
 {
-    char padE0[0x120 - 0xE0];
+    int valueE0;                /* +0xE0 read from the level file (LoadVisFromBrx; meaning not known) */
+    int wordE4;                 /* +0xE4 an int option (g_aeopid) */
+    BSPC bspc;                  /* +0xE8 the zone volume's BSP (CBinaryInputStream_ReadBspc; nodes: the root node) */
+    GEOM geom;                  /* +0xF8 the zone volume (ReadGeom) */
+    int isInside;               /* +0x110 the camera was inside at the last test (-1 after Init: unknown) */
+    float changeTime;           /* +0x114 g_clock.time when isInside last changed */
+    int unknown118[2];
     virtual void Init() __asm__("InitVis");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid5ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVisFromBrx");   /* slot 14 */
 };
 typedef char assert_CID5_size[sizeof(CID5) == 0x120 ? 1 : -1];
+typedef char assert_CID5_isInside[SLY2_OFFSETOF(CID5, isInside) == 0x110 ? 1 : -1];
 
 /* 23 CID23 (0x140): VOL child; vtable 0x2DC210, 50 slots */
 struct CID23 : VOL

@@ -925,7 +925,7 @@ EOPIDROW D_002AC880[1449] = {
     {4, 0x24, EOPID_PMFI(GetCmMat), EOPID_PMFI(SetCmMatOption), EOPID_NONE, EOPID_NONE}, /* [172] opt 35, CM */
     {2, 0x24, EOPID_PMF(GetCmRotDeg), EOPID_PMF(SetCmRotDeg), EOPID_NONE, EOPID_NONE}, /* [173] opt 36, CM */
     {1, 0x92, EOPID_INT(0x620), EOPID_INT(0x624), EOPID_INT(0x624), EOPID_NONE}, /* [174] opt 303, CM */
-    {5, 0x92, EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_NONE}, /* [175] opt 220, CID5 */
+    {5, 0x92, EOPID_OFF(CID5, wordE4), EOPID_OFF(CID5, wordE4), EOPID_OFF(CID5, wordE4), EOPID_NONE}, /* [175] opt 220, CID5 */
     {7, 0x124, EOPID_PMF(GetTnCpdCid), EOPID_PMF(SelectTnCpdForCid), EOPID_PMF(SelectTnCpdForCid), EOPID_NONE}, /* [176] opt 307, TN */
     {0x12, 0x400, EOPID_FN(RefThunk_ClearTnCpd), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [177] opt 308, TN */
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(GetTnCpd)}, /* [178] opt 309, TN */

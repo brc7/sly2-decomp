@@ -12,16 +12,8 @@
 // 0x227460 StaticInit_vis and GlobalConstructors_vis: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-struct VIS : public XFM
-{
-    int valueE0;              /* +0xE0 read from the BRX */
-    int wordE4;
-    BSPC bspc;                /* +0xE8 xfm.h BSPC (CBinaryInputStream_ReadBspc); +0xF4 nodes: the root BSP node */
-    GEOM geom;                /* +0xF8 xfm.h GEOM (ReadGeom) */
-    int isInside;             /* +0x110 -1 after init (unknown) */
-    float changeTime;            /* +0x114 g_clock.time when fInside last changed */
-};
-typedef char assert_VIS_fInside[SLY2_OFFSETOF(VIS, isInside) == 0x110 ? 1 : -1];
+/* The zone: classes.h CID5 (its fields are declared there; vis.cpp is the only TU that reads them). */
+typedef CID5 VIS;
 
 extern "C" {
 void InitXfm(XFM *pxfm);
