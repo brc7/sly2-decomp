@@ -131,7 +131,11 @@ extern "C" M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
         break;
     case 1: case 4: case 5: case 9: case 10:
         func_0023320C(pm, p, 0x40);
+#ifdef SLY2_EE_ASM
         __asm__("sw %1,%0" : "=m"(pm->r[3].f[0]) : "r"(v));
+#else
+        VuCopyBits(pm->r[3].f[0], v);
+#endif
         pm->r[3].f[1] = QwordY(v);
         pm->r[3].f[2] = QwordZ(v);
         break;
@@ -153,13 +157,21 @@ extern "C" M4 *BuildXfValueMatrix(M4 *pm, XF *p, qword v)
     }
     case 11:
         func_0023320C(pm, p, 0x40);
+#ifdef SLY2_EE_ASM
         __asm__("sw %1,%0" : "=m"(pm->r[1].f[0]) : "r"(v));
+#else
+        VuCopyBits(pm->r[1].f[0], v);
+#endif
         pm->r[2].f[0] = QwordY(v);
         pm->r[2].f[1] = QwordZ(v);
         break;
     case 12:
         func_0023320C(pm, p, 0x40);
+#ifdef SLY2_EE_ASM
         __asm__("sw %1,%0" : "=m"(pm->r[0].f[0]) : "r"(v));
+#else
+        VuCopyBits(pm->r[0].f[0], v);
+#endif
         pm->r[1].f[1] = QwordY(v);
         pm->r[2].f[2] = QwordZ(v);
         break;
@@ -241,17 +253,29 @@ extern "C" float *BuildXfValueDerivativeMatrix(float *m, XF *p, qword v)
     switch (p->kind) {
     case 0: case 15: break;
     case 1: case 4: case 5: case 9: case 10:
+#ifdef SLY2_EE_ASM
         __asm__("sw %1,%0" : "=m"(m[12]) : "r"(v));
+#else
+        VuCopyBits(m[12], v);
+#endif
         m[13] = QwordY(v);
         m[14] = QwordZ(v);
         break;
     case 11:
+#ifdef SLY2_EE_ASM
         __asm__("sw %1,%0" : "=m"(m[4]) : "r"(v));
+#else
+        VuCopyBits(m[4], v);
+#endif
         m[8] = QwordY(v);
         m[9] = QwordZ(v);
         break;
     case 12:
+#ifdef SLY2_EE_ASM
         __asm__("sw %1,%0" : "=m"(m[0]) : "r"(v));
+#else
+        VuCopyBits(m[0], v);
+#endif
         m[5] = QwordY(v);
         m[10] = QwordZ(v);
         break;
@@ -320,9 +344,17 @@ static __inline__ void Eval(XF *po, qword *pa, qword *pb, qword *pc)
     EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->timeSource - po->segmentStartTime, *po->speedSource, po->restValue, po->rate, po->unknownE0, po->acceleration, pa, pb, pc);
 }
 // Copy a 128-bit GPR value (por with zero).
+#ifdef SLY2_EE_ASM
 static inline qword SelectedValue(qword input){qword value;__asm__("por %0,$zero,%1":"=r"(value):"r"(input));return value;}
+#else
+static inline qword SelectedValue(qword input){qword value;value = input;return value;}
+#endif
 // Load the default point D_002A2DD0 into a GPR.
+#ifdef SLY2_EE_ASM
 static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value):"0"(&D_002A2DD0),"m"(D_002A2DD0));return value;}
+#else
+static inline qword DefaultPoint(){qword value;value = D_002A2DD0;return value;}
+#endif
 // Evaluates the time derivative of a transform slot's local matrix (its velocity as a matrix): zero for resting roles,
 // built from the slot velocity (+0xB0) for velocity roles and from the segment's tangent for segment roles; mirrored
 // slots (kinds 8 / 14) negate their source's translation rate. Writes and returns *pr. (inferred)
@@ -448,7 +480,11 @@ extern "C" { static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
     int i;
     for (i = 0; i < 4; i++) {
         qword r;
+#ifdef SLY2_EE_ASM
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(pmA->r[i]), "j"(pmB->r[i]));
+#else
+        r = VuAdd(pmA->r[i], pmB->r[i]);
+#endif
         pmDst->r[i] = r;
     }
 } }
@@ -514,28 +550,60 @@ void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *
 
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4 &m,qword v) {qword r=m.r[0];
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
+#else
+    r = VuKeepW(r, VuMulMatrix4(r, m.r[1], m.r[2], m.r[3], v));return r;}
+#endif
 // Transform point v by the 4x4 matrix m (register-pinned to vf4).
 static inline qword InverseTransform(const M4 &m,qword v) {register qword r __asm__("vf4")=m.r[0];
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz ACC,%0,%4x\n\tvmadday.xyz ACC,%1,%4y\n\tvmaddaz.xyz ACC,%2,%4z\n\tvmaddw.xyz %0,%3,$vf0w":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(m.r[3]),"j"(v));return r;}
+#else
+    r = VuKeepW(r, VuMulMatrix4(r, m.r[1], m.r[2], m.r[3], v));return r;}
+#endif
 // Load row 1 of m into vf1.
+#ifdef SLY2_EE_ASM
 static inline qword BasisRow1(const M4 *m){register qword r __asm__("vf1");__asm__("lqc2 %0,16(%1)":"=j"(r):"r"(m),"m"(m->r[1]));return r;}
+#else
+static inline qword BasisRow1(const M4 *m){register qword r __asm__("vf1");r = m->r[1];return r;}
+#endif
 // Load row 2 of m.
+#ifdef SLY2_EE_ASM
 static inline qword BasisRow2(const M4 *m){qword r;__asm__("lqc2 %0,32(%1)":"=j"(r):"r"(m),"m"(m->r[2]));return r;}
+#else
+static inline qword BasisRow2(const M4 *m){qword r;r = m->r[2];return r;}
+#endif
 // Rotate v by the 3x3 part of m, loading rows 1 and 2 explicitly.
 static inline qword RotatePointerRows(const M4 &m,qword v){
 qword r1=BasisRow1(&m);
 qword r2=BasisRow2(&m);
+#ifdef SLY2_EE_ASM
 __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(m.r[0]),"j"(r1),"j"(r2));return v;}
+#else
+v = VuKeepW(v, VuMulMatrix3(m.r[0], r1, r2, v));return v;}
+#endif
 // Rotate v by the 3x3 part of m.
 static inline qword Rotate(const M4 &m,qword v) {
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));return v;}
+#else
+    v = VuKeepW(v, VuMulMatrix3(m.r[0], m.r[1], m.r[2], v));return v;}
+#endif
 // Rotate v by the 3x3 part of the parent matrix m (row 0 pinned to vf6).
 static inline qword ParentRotate(const M4 &m,qword v) {register qword row0 __asm__("vf6")=m.r[0];
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(v):"j"(row0),"j"(m.r[1]),"j"(m.r[2]));return v;}
+#else
+    v = VuKeepW(v, VuMulMatrix3(row0, m.r[1], m.r[2], v));return v;}
+#endif
 // Rotate v by the 3x3 part of m into row 0's register.
 static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz ACC,%0,%3x\n\tvmadday.xyz ACC,%1,%3y\n\tvmaddz.xyz %0,%2,%3z":"+j"(r):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
+#else
+    r = VuKeepW(r, VuMulMatrix3(r, m.r[1], m.r[2], v));return r;}
+#endif
 // Evaluate the object's Bezier position at its current time into *v.
 static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->unknownE0,p->acceleration,0,v,0);}
 // Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
@@ -827,14 +895,26 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
     VU_VECTOR4 v0;
     VU_VECTOR4 v1;
     VU_VECTOR4 v2;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(v0.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)matR.mat[0])->qw));
+#else
+    v0.qw = VuMulMatrix3(qwL0, qwL1, qwL2, ((VU_VECTOR4 *)matR.mat[0])->qw);
+#endif
     *(VU_VECTOR4 *)mat.mat[0] = v0;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(v1.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)matR.mat[1])->qw));
+#else
+    v1.qw = VuMulMatrix3(qwL0, qwL1, qwL2, ((VU_VECTOR4 *)matR.mat[1])->qw);
+#endif
     *(VU_VECTOR4 *)mat.mat[1] = v1;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(v2.qw) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(((VU_VECTOR4 *)matR.mat[2])->qw));
+#else
+    v2.qw = VuMulMatrix3(qwL0, qwL1, qwL2, ((VU_VECTOR4 *)matR.mat[2])->qw);
+#endif
     *(VU_VECTOR4 *)mat.mat[2] = v2;
 }
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pnormal);
@@ -859,7 +939,11 @@ extern "C" void EvaluateBezierPos(float dt, float t, float sRate, qword p0, qwor
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
+#ifdef SLY2_EE_ASM
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
+#else
+    v.qw = VuWiden<__typeof__(v.qw)>(g);
+#endif
     return v;
 }
 // Length of v as a float.
@@ -913,49 +997,77 @@ static float s_gKdRot = 0.0025000001f;
 static inline qword VuMulAddX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
+#else
+    qw = VuAddScaled(qwA, qwB, qwS);
+#endif
     return qw;
 }
 // Return qwA + qwB * qwS.x (operands in the opposite order).
 static inline qword VuSMulAddX(qword qwS, qword qwB, qword qwA)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vadda.xyzw $ACC, %3, $vf0\n\tvmaddx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwS), "j"(qwB), "j"(qwA));
+#else
+    qw = VuAddScaled(qwA, qwB, qwS);
+#endif
     return qw;
 }
 // Return qwA*qwS.x + qwB*qwT.x.
 static inline qword VuMulXMulX(qword qwA, qword qwS, qword qwB, qword qwT)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(qwA), "j"(qwS), "j"(qwB), "j"(qwT));
+#else
+    qw = VuScaleX2(qwA, qwS, qwB, qwT);
+#endif
     return qw;
 }
 // Return qwA + (qwB + qwC) * qwS.x.
 static inline qword VuAddMulXMulX(qword qwA, qword qwB, qword qwC, qword qwS)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddax.xyzw $ACC, %2, %4x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwC), "j"(qwS));
+#else
+    qw = VuAddScaled2(qwA, qwB, qwC, qwS);
+#endif
     return qw;
 }
 // Return (qwA + qwB) * qwS.x.
 static inline qword VuMulXAddMulX(qword qwA, qword qwB, qword qwS)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwA), "j"(qwB), "j"(qwS));
+#else
+    qw = VuScaleX2(qwA, qwS, qwB, qwS);
+#endif
     return qw;
 }
 // Return qwA scaled by qwS.x.
 static inline qword VuXMul(qword qwS, qword qwA)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(qwS), "j"(qwA));
+#else
+    qw = VuScaleByX(qwA, qwS);
+#endif
     return qw;
 }
 // Return q2*q1.x + q3*q4.x.
 static inline qword VuMulXMulXSwapped(qword q1, qword q2, qword q3, qword q4)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(q2), "j"(q1), "j"(q3), "j"(q4));
+#else
+    qw = VuScaleX2(q1, q2, q3, q4);
+#endif
     return qw;
 }
 // Current value of a transform slot by phase: rest value (0), Bezier position (1), the rest vector (2-4), Euler
@@ -1044,7 +1156,11 @@ static inline qword EvaluateHermiteVel(XF *xf)
     }
 // An opaque copy (empty asm, "=r" tied to its input): cse cannot merge the two pseudos. The default arm of the position chase needs it so the arms of its rate
 // switch are plain $v0 loads into a short-lived local with ONE shared spill store (T1641; without it each arm spills its own and the Hermite arm picks $v1).
+#ifdef SLY2_EE_ASM
 static inline qword PassQ(qword x){qword r;__asm__("" : "=r"(r) : "0"(x));return r;}
+#else
+static inline qword PassQ(qword x){qword r;r = x;return r;}
+#endif
 // Zero the xyz components of pvec.
 static inline void ClearXyz(VECTOR4 *pvec)
 {
@@ -1336,7 +1452,9 @@ void UpdateSoSlots(SO *so)
                     qword qwR;
                     SLOT_RATE_SWITCH(xf, qw, qwR)
                     qwTargetVel = PassQ(qwR);
+#ifdef SLY2_EE_ASM
                     __asm__("" : : ); // schedule only: puts the spill store ahead of the call's argument moves (no instruction)
+#endif
                     qword qwCur = SlotRestValue(xf, &xf->localMatrix);
                     qword qwDir = VuSub(qwTarget, qwCur);
                     float gDist = QwordX(VuLength(qwDir));
@@ -1734,8 +1852,12 @@ void InvertMatrix4Rigid(M4 *pd, M4 *ps) __asm__("InvertMatrix4Rigid");
 extern "C" { static inline qword MulPos(const M4 *m, qword v)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
             : "=j"(r) : "j"(v), "j"(m->r[0]), "j"(m->r[1]), "j"(m->r[2]), "j"(m->r[3]));
+#else
+    r = VuMulMatrix4(m->r[0], m->r[1], m->r[2], m->r[3], v);
+#endif
     return r;
 } }
 // Converts a point from transform a's space to transform b's space (0 = world).
@@ -1761,8 +1883,12 @@ void InvertMatrix3Cofactor(M3 *pd, M3 *ps) __asm__("InvertMatrix3Cofactor");
 extern "C" { static inline qword Mul3(const M3 *m, qword v)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
             : "=j"(r) : "j"(v), "j"(m->r[0]), "j"(m->r[1]), "j"(m->r[2]));
+#else
+    r = VuMulMatrix3(m->r[0], m->r[1], m->r[2], v);
+#endif
     return r;
 } }
 // Converts a direction (no translation) from transform a's space to transform b's space (0 = world).
@@ -1789,12 +1915,18 @@ extern void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
         : "=j"(r.r[0]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[0]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
         : "=j"(r.r[1]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[1]));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z"
         : "=j"(r.r[2]) : "j"(a0), "j"(a1), "j"(a2), "j"(b.r[2]));
+#else
+    r.r[0] = VuMulMatrix3(a0, a1, a2, b.r[0]);
+    r.r[1] = VuMulMatrix3(a0, a1, a2, b.r[1]);
+    r.r[2] = VuMulMatrix3(a0, a1, a2, b.r[2]);
+#endif
 }
 // Converts a 3x3 matrix from transform a's space to transform b's space: inverse(b) * a * m.
 // Sly 1: ConvertMatBetweenLos.
@@ -2156,9 +2288,17 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g) __asm__("GetXfSlotMatrixAndDerivative");
 
 // Float broadcast into a VU0 register (passed through an FPU register first).
+#ifdef SLY2_EE_ASM
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
+#else
+struct VUF { qword q; VUF(float g) { float f = g;  q = VuWiden<__typeof__(q)>(f); } };
+#endif
 // Float broadcast into a VU0 register (with a volatile barrier for scheduling).
+#ifdef SLY2_EE_ASM
 struct VUF2 { qword q; VUF2(float g) { float f = g; __asm__ __volatile__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } operator const VUF &() const { return *(const VUF *)this; } };
+#else
+struct VUF2 { qword q; VUF2(float g) { float f = g;  q = VuWiden<__typeof__(q)>(f); } operator const VUF &() const { return *(const VUF *)this; } };
+#endif
 // Rotation matrix from the rotation vector v.
 static inline M3 BuildRotation(qword v) return m { BuildRotationMatrixFromVector(&m, v); }
 // Return the 3x3 matrix product of a and b.
@@ -2166,14 +2306,26 @@ static inline M3 MulM3(const M3 &a, const M3 &b) return m
 {
     M3 t;
     qword r0, r1, r2;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(r0) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[0]));
+#else
+    r0 = VuMulMatrix3(a.r[0], a.r[1], a.r[2], b.r[0]);
+#endif
     t.r[0] = r0; m.r[0] = r0;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(r1) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[1]));
+#else
+    r1 = VuMulMatrix3(a.r[0], a.r[1], a.r[2], b.r[1]);
+#endif
     t.r[1] = r1; m.r[1] = r1;
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
             : "=j"(r2) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
+#else
+    r2 = VuMulMatrix3(a.r[0], a.r[1], a.r[2], b.r[2]);
+#endif
     t.r[2] = r2; m.r[2] = r2;
 }
 // Build a 4x4 matrix from rotation mat and translation pos.
@@ -2197,7 +2349,11 @@ static inline M4 Ccd0(XF *po, const M4 *pm, qword v) return r { BuildRotationDer
 static inline qword Scale(qword v, const VUF &f)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__("vmulx.xyzw %0, %2, %1x" : "=&j"(r) : "j"(f.q), "j"(v));
+#else
+    r = VuScaleByX(v, f.q);
+#endif
     return r;
 }
 // Rotation matrix from the rotation vector v scaled by f.
@@ -2206,7 +2362,11 @@ static inline M3 BuildRotationS(const VUF2 &f, qword v) return m { BuildRotation
 static inline qword AddScale(qword a, qword v, const VUF &f)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=&j"(r) : "j"(a), "j"(v), "j"(f.q));
+#else
+    r = VuAddScaled(a, v, f.q);
+#endif
     return r;
 }
 // A slot's current matrix and its time derivative, from its driving action's goal (value and rate) or its own
@@ -2291,7 +2451,11 @@ extern "C" { static inline void AddM4(M4 *d, M4 *a, M4 *b)
     int i;
     for (i = 0; i < 4; i++) {
         qword r;
+#ifdef SLY2_EE_ASM
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a->r[i]), "j"(b->r[i]));
+#else
+        r = VuAdd(a->r[i], b->r[i]);
+#endif
         d->r[i] = r;
     }
 } }

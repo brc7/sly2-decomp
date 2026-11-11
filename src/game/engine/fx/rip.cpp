@@ -1837,7 +1837,11 @@ static inline qword Bc(float g)
 {
     U u;
     qword s;
+#ifdef SLY2_EE_ASM
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
+#else
+    s = VuWiden<__typeof__(s)>(g);
+#endif
     u.q = s;
     return s;
 }
@@ -1850,10 +1854,18 @@ void LaunchMatch__FP5MATCH(S *p)
     p->pos = GetLoWorldPos(p->plo);
     p->mat = *GetLoWorldMatrix(p->plo);
     LoadIdentityMatrix4(p->px->motion, 0, &m4, 0, p->dt);
+#ifdef SLY2_EE_ASM
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(m4.a[3]), "j"(p->pos));
+#else
+    d = VuSub(m4.a[3], p->pos);
+#endif
     s1 = Bc(1.0f / p->dt);
     s2 = Bc(p->dt * -0.5f);
+#ifdef SLY2_EE_ASM
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(d) : "j"(d), "j"(s1), "j"(p->a), "j"(s2));
+#else
+    d = VuScaleX2(d, s1, p->a, s2);
+#endif
     p->v = d;
     m = MulMatrix3Matrix3(&m4, &p->mat);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&m, &p->rad, &p->axis);
