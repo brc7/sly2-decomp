@@ -700,7 +700,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
         UnpackQws<0x6C06C301>(&packet, sizeof(PACKET) / sizeof(uint), fNever);
         {
             VIFS *pdma = &D_002DEA28;
-            for (uchar *pbPad = pdma->m_pb; (uint)pbPad & 0xF; pbPad = pdma->m_pb)
+            for (uchar *pbPad = pdma->m_pb; (uptr)pbPad & 0xF; pbPad = pdma->m_pb)
             {
                 *(uint *)pbPad = 0;
                 pdma->m_pb += 4;
@@ -1317,7 +1317,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         }
         {
             VIFS *pdma = &D_002DEA28;
-            for (uchar *pbPad = pdma->m_pb; (uint)pbPad & 0xF; pbPad = pdma->m_pb)
+            for (uchar *pbPad = pdma->m_pb; (uptr)pbPad & 0xF; pbPad = pdma->m_pb)
             {
                 *(uint *)pbPad = 0;
                 pdma->m_pb += 4;
@@ -1663,7 +1663,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
         }
         {
             VIFS *pdma = &D_002DEA28;
-            for (uchar *pbPad = pdma->m_pb; (uint)pbPad & 0xF; pbPad = pdma->m_pb)
+            for (uchar *pbPad = pdma->m_pb; (uptr)pbPad & 0xF; pbPad = pdma->m_pb)
             {
                 *(uint *)pbPad = 0;
                 pdma->m_pb += 4;
@@ -2700,7 +2700,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 }
                 else if (iv < pbatch->ivtxOwn)
                 {
-                    float *pg = (float *)(iv * 0x10 + (uint)pbatch->pvPos);
+                    float *pg = (float *)(iv * 0x10 + (uptr)pbatch->pvPos);
                     pg[0] = pg[1] = pg[2] = -1.0f;
                 }
                 if (*punBits & un)
@@ -2870,7 +2870,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 }
                 if (psubglob->cbnd != 0)
                 {
-                    VECTOR *pposDst = (VECTOR *)(ivtxFirst * 0x10 + (uint)pbatchFirst->pvPos);
+                    VECTOR *pposDst = (VECTOR *)(ivtxFirst * 0x10 + (uptr)pbatchFirst->pvPos);
                     *pposDst = aposFile[ivtxFile];
                     CopyAb(pbatchFirst->pbWeights + (ivtxFirst - pbatchFirst->ivtxOwn) * CwtFromSubglob(psubglob), (char *)pvWeights + ivtxFile * CwtFromSubglob(psubglob), CwtFromSubglob(psubglob));
                 }
@@ -3112,7 +3112,7 @@ void LoadSubglobType2FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, void *, SPH
         header[1] = current;
         SHD *object = GetShdByIndex(stream->U16Read());
         for (int segment = 0; segment < object->cshdp; segment++) {
-            HEADER *slot = (HEADER *)((uint)header + segment * 2);
+            HEADER *slot = (HEADER *)((uptr)header + segment * 2);
             slot->segments[0] = current;
             current += AddShaderVifUnpack(object, segment, current, &vifs);
         }
@@ -3127,12 +3127,12 @@ void LoadSubglobType2FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, void *, SPH
             int k = 0;
             for (; k < bones; k++) {
                 int bone = stream->U8Read();
-                HEADER *slot = (HEADER *)((uint)header + k * 2);
+                HEADER *slot = (HEADER *)((uptr)header + k * 2);
                 slot->bones[0] = (ushort)desc->iqwBone + bone * 4;
             }
             int small = bones < 4;
             for (; k < 4; k++) {
-                HEADER *slot = (HEADER *)((uint)header + k * 2);
+                HEADER *slot = (HEADER *)((uptr)header + k * 2);
                 slot->bones[0] = header[12];
             }
             if (small) {
@@ -3347,7 +3347,7 @@ extern "C" void LoadSubglobType3FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, 
         if (desc->cbnd) {
             for (int b = 0; b < 4; b++) {
                 int bone = input->U8Read();
-                HEADER *slot = (HEADER *)((uint)header + b * 2);
+                HEADER *slot = (HEADER *)((uptr)header + b * 2);
                 slot->bones[0] = (ushort)desc->iqwBone + bone * 4;
             }
             int bytes = bones * vectorCount;
@@ -3364,7 +3364,7 @@ extern "C" void LoadSubglobType3FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, 
         uint mask = 1;
         int current = base;
         for (int segment = 0; segment < object->cshdp; segment++) {
-            HEADER *slot = (HEADER *)((uint)header + segment * 2);
+            HEADER *slot = (HEADER *)((uptr)header + segment * 2);
             slot->segments[0] = current;
             current += AddShaderVifUnpack(object, segment, current, &vifs);
         }
@@ -3848,7 +3848,7 @@ void LoadSubglobType1FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, SUBGLOBLOAD
     gifs.PackAD(0x42L, 0x44L);
     gifs.PackRGBA(D_002DEB50);
     gifs.EndPrim(1);
-    vifs.AddVifUnpack(UPK_V4_32, ((uint)gifs.m_pb - (uint)gifs.m_ab) >> 4, gifs.m_ab, 0xD);
+    vifs.AddVifUnpack(UPK_V4_32, ((uptr)gifs.m_pb - (uptr)gifs.m_ab) >> 4, gifs.m_ab, 0xD);
     gifs.Reset();
     gifs.AddPrimPack(0xC1, 3, 0x44EUL);
     gifs.PackAD(0x47L, 0x73001L);
@@ -3899,13 +3899,13 @@ void LoadSubglobType1FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, SUBGLOBLOAD
             int k = 0;
             for (; k < part; k++) {
                 int bone = stream->U8Read();
-                HEADER *slot = (HEADER *)((uint)header + k * 2);
+                HEADER *slot = (HEADER *)((uptr)header + k * 2);
                 slot->bones[0] = (ushort)desc->iqwBone + bone * 4;
             }
             int next = current + vertices;
             int small = part < 4;
             for (; k < 4; k++) {
-                HEADER *slot = (HEADER *)((uint)header + k * 2);
+                HEADER *slot = (HEADER *)((uptr)header + k * 2);
                 slot->bones[0] = header[8];
             }
             if (small) {
