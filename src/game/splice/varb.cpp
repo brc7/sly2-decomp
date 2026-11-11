@@ -3,7 +3,7 @@
 // (sly2/basic.h, emitted by splice/gc.cpp).
 // Entry point: CVarb_CloneTo (frame and sidebag cloning).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_varb
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0012B390
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_varb
 #include "sly2/varb.h"
 #include "sly2/sp.h"
 

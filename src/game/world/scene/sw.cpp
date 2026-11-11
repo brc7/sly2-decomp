@@ -9,12 +9,12 @@
 // forward-declares (SVPATH, SAVEDATA, LOUPD...), which sw.h's SW refers to.
 // g_sw is defined here as a plain SW (constructor SW_ctor, implicit destructor calling ~BASIC with g++'s in-charge
 // flag 2), and D_003E1C20 with an inline constructor: g++ generates the 96-instruction construct-and-destruct
-// StaticInit_sw and the _GLOBAL_$D$ stub func_00210E90 next to the _GLOBAL_$I$ one (as cm.cpp does for g_cm).
+// StaticInit_sw and the _GLOBAL_$D$ stub GlobalDestructors_sw next to the _GLOBAL_$I$ one (as cm.cpp does for g_cm).
 // Entry points: SW_ctor (g_sw), ExecuteSwTransition (per frame: level loads), PostSwLoad, DeleteSw,
 // the hands-off / letterbox counters, the level and world table queries (GetCurrentWorld, GetWorldEntry...).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sw
-// SLY2_ALIAS: _GLOBAL_$I$*=func_00210E70
-// SLY2_ALIAS: _GLOBAL_$D$*=func_00210E90
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_sw
+// SLY2_ALIAS: _GLOBAL_$D$*=GlobalDestructors_sw
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"

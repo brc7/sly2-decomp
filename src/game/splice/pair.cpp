@@ -2,7 +2,7 @@
 // address order).
 // Entry point: CPair_CloneTo (from CRef_CloneTo).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_pair
-// SLY2_ALIAS: _GLOBAL_$I$*=func_00128F50
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_pair
 #include "sly2/pair.h"
 #include "sly2/sp.h"
 
