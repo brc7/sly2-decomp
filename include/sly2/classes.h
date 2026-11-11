@@ -133,7 +133,10 @@ struct BHVGUARDREC : BHVGUARDRECDATA
 /* 84 SENSOR (0x190); vtable 0x2D89A0, 75 slots */
 struct SENSOR : SO
 {
-    char pad150[0x190 - 0x150];
+    int numNoTriggerObjects;    /* +0x150 objects that do not trigger it (at most 7; sensor.cpp) */
+    OID noTriggerObjects[7];
+    int numNoTriggerClasses;    /* +0x170 classes that do not trigger it (at most 7) */
+    CID noTriggerClasses[7];
     virtual void Init() __asm__("InitSensor");   /* slot 7; key function (sensor.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetSensorClassDesc");   /* slot 6 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldSensorIgnoreIntersection");   /* slot 61 */
@@ -2232,9 +2235,24 @@ struct SAFEHOUSE : PO
 typedef char assert_SAFEHOUSE_size[sizeof(SAFEHOUSE) == 0x240 ? 1 : -1];
 
 /* 85 LASEN (0x1D0): LASEN laser beams (zap 0x1000); vtable 0x2D8738, 75 slots */
+/* LASENCAP: an end cap of a LASEN, drawn at one end of every beam: the object, the ASEG found on it, the ASEGA playing
+   it and the curve of its scale channel (CHN::pac; slot 3 AC::Evaluate gives the cap's scale). From sensor.cpp. */
+struct LASENCAP
+{
+    ALO *palo;
+    struct ASEG *paseg;
+    struct ASEGA *pasega;
+    struct AC *pscaler;   /* the scale channel's curve */
+};
 struct LASEN : SENSOR
 {
-    char pad190[0x1D0 - 0x190];
+    ALO *lineObject;            /* +0x190 drawn along each beam */
+    ALO *stretchObject;         /* +0x194 scaled to each beam's length */
+    int numBeams;               /* +0x198 */
+    struct BEAM *beams;         /* +0x19C the beams (sensor.cpp's BEAM, 0x150 each) */
+    LASENCAP caps[2];           /* +0x1A0 */
+    float endpointSpeed;        /* +0x1C0 time scale of the moving endpoints */
+    char pad1C4[0x1D0 - 0x1C4];
     virtual void PostLoad() __asm__("PostLasenLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetLasenClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLasen");   /* slot 7 */

@@ -436,12 +436,20 @@ struct SOTREE
       XPLIST *pxplistFirst;   /* first contact list */
       XP *pxpFirst;   /* first contact point */
       XP *firstZapContact; /* first contact that delivers a zap (damage) */
+      union
+      {
+      ulong grf;   /* +0x70 the flag bits below as one doubleword (sensor.cpp and guardbhv.cpp views test them by mask; LASEN's
+                      NewTree sets 0x20) */
+      struct
+      {
       ulong isInFirstQueue : 1; /* in the first queue */
                ulong isInSecondQueue : 1; /* in the second queue */
                uint skipsUpdate : 1; /* skip the physics update (uint-typed: GetSoTreeFlag2 reads it as a 32-bit field; the queue bits stay ulong: MarkSoTreeBoundsDirty tests them with ld) */
                ulong wasTouched : 1; /* touched this frame */
                ulong isDone : 1;  /* processed this frame */
                ulong unknownBits70A : 59;
+      };
+      };
 };
 
 /* XPLIST: the contacts between a physics tree and one other object (SOTREE::pxplistFirst chains them). Moved from the

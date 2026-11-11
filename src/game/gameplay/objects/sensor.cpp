@@ -167,14 +167,7 @@ typedef char assert_BEAM_size[sizeof(BEAM) == 0x150 ? 1 : -1];
 /* The animation played on an end cap: the ASEG found on the cap object, the ASEGA playing it (aseg.h), and the curve
    of its scale channel (CHN::pac), which computes the cap's scale from them (vtable at +0, slot 3: AC::Evaluate). */
 
-/* An end cap: an object drawn at one end of every beam. */
-struct LASENCAP
-{
-    ALO *palo;
-    ASEG *paseg;
-    ASEGA *pasega;
-    AC *pscaler;   /* the scale channel's curve */
-};
+/* An end cap: sly2/classes.h LASENCAP. */
 
 /* LASEN : SENSOR (0x1C4). */
 struct LASENV : SENSORV
