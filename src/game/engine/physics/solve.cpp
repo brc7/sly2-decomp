@@ -75,35 +75,66 @@ struct SOPHYSV
 
 struct SOV;
 struct XP;
-/* The touching-object links of a tree (SOTREEV::ptlFirst). */
-struct TL { XP *pxp; TL *ptlNext; int pad; SOV *pso; };
-/* SO::physicsTree (+0xEC); the SW also chains the trees (+0x40) with their root object (+0x60). */
-struct SOTREEV { char pad0[0x34]; SOPART *first; char pad38[8]; SOTREEV *ptreeNext; char pad44[0x1C]; SOV *pso; TL *ptlFirst; XP *pxpFirst; };
-
-struct SOV
+/* The touching-object links of a tree (SOTREEV::ptlFirst): sly2/so.h XPLIST (pxpFirst, pxplistNext, ppxpHead,
+   psoOther) with the solver's types. */
+struct TL { XP *pxp; TL *ptlNext; XP **ppxpHead; SOV *pso; };
+/* SO::physicsTree (+0xEC): sly2/so.h SOTREE member for member with the solver's types (same layout on every target);
+   the SW chains the awake trees through dleAwake (ptreeNext), each with its root object (+0x60). */
+struct SOTREEV
 {
-    int x0, x4, x8;
-    void *vptr;             /* 0x0C (calls go through the real SO: sly2/so.h) */
-    char pad10[0x48];
-    XFV *pxfPos;             /* 0x58 */
-    XFV *pxfRot;             /* 0x5C */
-    char pad60[0x88];
-    SOPHYSV *physics;        /* 0xE8 */
-    SOTREEV *physicsTree;    /* 0xEC */
-    U qwDv;                 /* 0xF0 queued velocity change */
-    U qwDw;                 /* 0x100 queued angular velocity change */
-    char pad110[0x138 - 0x110];
-    int externalAccelList;               /* 0x138 */
-    char pad13C[0x148 - 0x13C];
-    ulong grf;              /* 0x148 */
+    qword boundsMin, boundsMax, boundsCenter;
+    float boundsRadius;
+    SOPART *first;           /* +0x34 SOTREE::parts.head: the tree's parts, linked through SOPART::dle */
+    void *partsTail;
+    int partsLinkOffset;
+    SOTREEV *ptreeNext;      /* +0x40 SOTREE::dleAwake.next */
+    void *awakePrev;
+    DLE dleAll, dleQueue1, dleQueue2;
+    SOV *pso;                /* +0x60 SOTREE::root */
+    TL *ptlFirst;            /* +0x64 SOTREE::pxplistFirst */
+    XP *pxpFirst;            /* +0x68 */
 };
+typedef char assert_SOTREEV_layout[SLY2_OFFSETOF(SOTREEV, pso) == SLY2_OFFSETOF(SOTREE, root) && SLY2_OFFSETOF(SOTREEV, pxpFirst) == SLY2_OFFSETOF(SOTREE, pxpFirst) ? 1 : -1];
 
+/* An SO as the solver reads it: sly2/so.h SO member for member with the solver's types for the transforms, physics
+   and tree records and the velocity-change quadwords (same layout on every target; calls go through the real SO). */
+struct SOV : ALO
+{
+    int numTransforms;
+    XF *transforms;
+    XFV *pxfPos;             /* +0x58 SO::positionXf */
+    XFV *pxfRot;             /* +0x5C SO::rotationXf */
+    XF *rootTransform;
+    DL children;
+    LO *ploRemovedFirst;
+    undefined4 unknown74[3];
+    GLOBSET model;
+    int numParts;
+    SOPART *parts;
+    SOPHYSV *physics;        /* +0xE8 */
+    SOTREEV *physicsTree;    /* +0xEC */
+    U qwDv;                  /* +0xF0 SO::contactVelocityChange: the queued velocity change */
+    U qwDw;                  /* +0x100 SO::contactAngularVelocityChange */
+    uchar zapKindFlags[26];
+    undefined1 unknown12A[2];
+    float opacity;
+    float opacitySpeed;
+    struct SOBOUNDS *psobounds;
+    XA *externalAccelList;   /* +0x138 SO::pxa */
+    float unknown13C;
+    int renderStamp;
+    struct RENDER *prender;
+    ulong grf;               /* +0x148 SO::soFlags */
+};
+typedef char assert_SOV_layout[SLY2_OFFSETOF(SOV, pxfPos) == SLY2_OFFSETOF(SO, positionXf) && SLY2_OFFSETOF(SOV, physics) == SLY2_OFFSETOF(SO, physics) && SLY2_OFFSETOF(SOV, qwDv) == SLY2_OFFSETOF(SO, contactVelocityChange) && SLY2_OFFSETOF(SOV, externalAccelList) == SLY2_OFFSETOF(SO, pxa) && SLY2_OFFSETOF(SOV, grf) == SLY2_OFFSETOF(SO, soFlags) ? 1 : -1];
+
+/* A contact side (0x40 on the EE: step.cpp's ENDPOINT): the part, its owner, the object, the LO, the contact point
+   and its local form. */
+struct XPSIDE { void *shape; void *owner; SOV *pso; void *lo; qword pos; qword local; int pad[4]; };
 /* A contact. */
 struct XP
 {
-    char pad0[8];
-    SOV *pso8;               /* 0x08 */
-    char padC[0x80 - 0xC];
+    XPSIDE sides[2];
     U normal;               /* 0x80 */
     float value;            /* 0x90 distance */
     int unused94;
@@ -251,7 +282,7 @@ int BuildGroupXpArray(SW *world, int flags, int numObjects, SOV **objects, int m
             for (; contact; contact = contact->pxpNext) {
                 if (contact->kind == 0xD) continue;
                 if (contact->kind == 0xE) {
-                    SOV *other = contact->pso8;
+                    SOV *other = contact->sides[0].pso;
                     if (!(((STEP *)other)->GetGroundProbeFlags() & 4)) continue;
                 }
                 if (count >= maxContacts) return count;
@@ -543,7 +574,7 @@ static inline void NearVector(int *out,const qword &first,const qword &b){regist
 // Add q to the vector at out.
 static inline void AddVector(U *out,const qword &q){qword r,v;__asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(r),"=j"(v):"m"(*out),"m"(q));__asm__("vadd.xyzw %0,%0,%1":"+j"(r):"j"(v));out->q=r;}
 // Load the transform's position into *value and return its address (+0x30).
-static inline qword*PointAddress(XFV*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,0x30\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->pos));*value=point;return address;}
+static inline qword*PointAddress(XFV*p,qword*value){register qword*address __asm__("$4");register qword point __asm__("vf2");__asm__("addiu %0,%2,%4\n\tlqc2 %1,%3":"=&r"(address),"=j"(point):"r"(p),"m"(p->pos),"i"(SLY2_OFFSETOF(XFV,pos)));*value=point;return address;}
 // Load source into *delta and return dt * half.
 static inline float HalfAndDelta(float dt,float half,const qword&source,qword*delta){register float product __asm__("$f0");register qword d __asm__("vf3");__asm__("mul.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(product),"=j"(d):"f"(dt),"f"(half),"m"(source));*delta=d;return product;}
 // Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (SO::contactVelocityChange / contactAngularVelocityChange,
@@ -558,9 +589,9 @@ extern "C" void ApplySoRestingContactVelocity(SOV *input)
     M3C frame;
     qword shift,turn;
     register void*enabled __asm__("$2");
-    __asm__("lw %0,0xE8(%1)":"=r"(enabled):"r"(p),"m"(p->physics));
+    __asm__("lw %0,%2":"=r"(enabled):"r"(p),"m"(p->physics));   /* SOV::physics */
     if(enabled){
-        qword value;__asm__("lq %0,0xF0(%1)":"=r"(value):"r"(p),"m"(p->qwDv.q));
+        qword value;__asm__("lq %0,%2":"=r"(value):"r"(p),"m"(p->qwDv.q));
         qword reference=D_002A2DD0;
         int changed=0;
         XFV *position=p->pxfPos,*rotation=p->pxfRot;
@@ -909,8 +940,8 @@ extern "C" void AddSoAngularAcceleration(SOV *object, qword acceleration)
 }
 
 struct Pr { qword a; qword b; };
-struct Q2 { qword pad; qword v; char pad2[0x20]; };
-struct S2 { struct Pr ap[2]; qword normal; struct Q2 *aq; };
+/* A constraint row's contact data (sly2/dzg.h DZX): the two sides' responses (FX), the normal and the contact. */
+struct S2 { struct Pr ap[2]; qword normal; XPSIDE *contactSides; };   /* contactSides: DZX::contact, read as its sides array */
 // Slot 67: fills side k of a constraint row's effect record (FX) with this object's response to a unit impulse
 // along the contact normal (negated for side 1): the linear and angular velocity changes, each skipped when that
 // motion is locked. Called by FillDzgDz for both sides of every contact.
@@ -931,7 +962,7 @@ extern "C" void CalculateSoContactResponse(SOV *object, int unused1, S2 *rowCont
     }
     effect = &rowContact->ap[side];
     if (physics->constrPos.k != 3) effect->a = GetSoImpulseLinearDelta(object, normal);
-    if (physics->constrRot.k != 3) effect->b = GetSoImpulseAngularDelta(object, rowContact->aq[side].v, normal);
+    if (physics->constrRot.k != 3) effect->b = GetSoImpulseAngularDelta(object, rowContact->contactSides[side].pos, normal);
 }
 
 struct V4 { int x, y, z, w; };
