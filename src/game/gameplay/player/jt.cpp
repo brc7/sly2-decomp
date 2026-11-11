@@ -2101,7 +2101,7 @@ namespace M_func_0018B460 {
 typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];} U;
 struct SPACE;
-struct M3{U r[3];};struct M4{U r[4];};struct LM{float low,high;};
+struct M3{U r[3];};struct M4{U r[4];};
 struct AIM{char pad[0x150];struct SPACE*frame;};struct OWNER{char pad[0x494];struct AIM*aim;};
 struct GROUP{char pad[0xA0];struct SPACE*space;};struct FOCUS{char pad[0x58];struct GROUP*group;};
 struct DV{char pad[0x20];qword value;};
@@ -2344,7 +2344,7 @@ typedef char qword_Size[(sizeof(qword) == 16) ? 1 : -1];
 typedef char U_Size[(sizeof(U) == 16) ? 1 : -1];
 typedef char M3_Size[(sizeof(struct M3) == 48) ? 1 : -1];
 typedef char M4_Size[(sizeof(struct M4) == 64) ? 1 : -1];
-typedef char LM_Size[(sizeof(struct LM) == 8) ? 1 : -1];
+
 typedef char DV_Size[(sizeof(struct DV) == 48) ? 1 : -1];
 typedef char WORK_Size[(sizeof(struct WORK) == 240) ? 1 : -1];
 typedef char AIM_frame_Offset[((unsigned)&((struct AIM *)0)->frame == 336) ? 1 : -1];
@@ -2373,8 +2373,6 @@ typedef char WORK_rotation_Offset[((unsigned)&((struct WORK *)0)->rotation == 14
 typedef char WORK_relative_Offset[((unsigned)&((struct WORK *)0)->relative == 192) ? 1 : -1];
 typedef char WORK_residual_Offset[((unsigned)&((struct WORK *)0)->residual == 208) ? 1 : -1];
 typedef char WORK_gain_Offset[((unsigned)&((struct WORK *)0)->gain == 224) ? 1 : -1];
-typedef char LM_low_Offset[((unsigned)&((struct LM *)0)->low == 0) ? 1 : -1];
-typedef char LM_high_Offset[((unsigned)&((struct LM *)0)->high == 4) ? 1 : -1];
 
 typedef char Float_Size[(sizeof(float) == 4) ? 1 : -1];
 typedef char Int_Size[(sizeof(int) == 4) ? 1 : -1];
@@ -4143,7 +4141,7 @@ struct M3{qword r[3];};
 struct M4{qword r[4];};
 struct O{char pad[0xC];void *vptr;};
 /* the hero is the header JT, its controller the header POCTL */
-struct SMP{float a,b,c;};
+
 extern qword g_normalZ __asm__("g_normalZ");
 extern SMP D_002BF3F8 __asm__("D_002BF3F8");
 extern SMP D_002BF408 __asm__("D_002BF408");
@@ -4322,7 +4320,7 @@ typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==48)?1:-1];
 typedef char M4_Size[(sizeof(M4)==64)?1:-1];
 typedef char O_Size[(sizeof(O)==16)?1:-1];
-typedef char SMP_Size[(sizeof(SMP)==12)?1:-1];
+
 typedef char qword_Alignment[(__alignof__(qword)==16)?1:-1];
 typedef char U_Alignment[(__alignof__(U)==16)?1:-1];
 typedef char M3_Alignment[(__alignof__(M3)==16)?1:-1];
@@ -4335,9 +4333,7 @@ typedef char O_vptr_Offset[((unsigned)&((O*)0)->vptr==12)?1:-1];
 typedef char POCTL_dxLeft_Offset[((unsigned)&((POCTL*)0)->dxLeft==16)?1:-1];
 typedef char POCTL_dyLeft_Offset[((unsigned)&((POCTL*)0)->dyLeft==20)?1:-1];
 typedef char POCTL_leftStickDeflection_Offset[((unsigned)&((POCTL*)0)->leftStickDeflection==28)?1:-1];
-typedef char SMP_a_Offset[((unsigned)&((SMP*)0)->a==0)?1:-1];
-typedef char SMP_b_Offset[((unsigned)&((SMP*)0)->b==4)?1:-1];
-typedef char SMP_c_Offset[((unsigned)&((SMP*)0)->c==8)?1:-1];
+
 typedef char JT_controller_Offset[((unsigned)&((JT*)0)->controller==336)?1:-1];
 typedef char JT_matTarget_Offset[((unsigned)&((JT*)0)->matTarget==432)?1:-1];
 typedef char JT_hangHandle_Offset[((unsigned)&((JT*)0)->hangHandle==6340)?1:-1];
