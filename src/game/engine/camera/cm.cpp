@@ -556,7 +556,7 @@ extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
 {
     if (pzon != pcm->pzonVis) {
         pcm->pzonVis = pzon;
-        pcm->grfvis = *(uint *)((char *)pzon + 0xE0);   /* the zone's visibility mask (VISZONE is opaque here) */
+        pcm->grfvis = *(uint *)((char *)pzon + 0xE0);   /* CID5::grfvis, the zone's visibility mask (classes.h is not included here: it brings so.h, which renumbers s_rgba) */
     }
 }
 

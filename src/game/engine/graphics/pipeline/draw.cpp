@@ -42,7 +42,7 @@ int D_002BDD20[NUM_RPL_KINDS] = {4, 3, 0, 0, 11, 0, 11, 6, 7, 1, 0, 0, 2, 0, 0, 
 extern PFNRP D_002BDD88[][2];
 
 extern "C" {
-void qsort(void *, int, int, int (*)(const void *, const void *));
+void qsort(void *, unsigned int, unsigned int, int (*)(const void *, const void *));
 void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4 *pm0, MATRIX4 *pm1);
 void BeginRpGlob(VIFS *pvifs, void *a1, void *a2);
 void BuildWorldBackgroundImage(SW *pgame, int n);
@@ -98,13 +98,13 @@ int CprplPartitionArpl(int count, RPL *entries, RPL **sorted, int *firstIndex, i
     }
     for (int k = 0; k < count; k++, entries++)
         sorted[nextIndex[entries->kind]++] = entries;
-    qsort(sorted + firstIndex[5], endIndex[5] - firstIndex[5], 4, (PFNCMP)CompareRplFarToNear);
-    qsort(sorted + firstIndex[6], endIndex[6] - firstIndex[6], 4, (PFNCMP)CompareRplFarToNear);
-    qsort(sorted + firstIndex[10], endIndex[10] - firstIndex[10], 4, (PFNCMP)CompareRplFarToNear);
-    qsort(sorted + firstIndex[1], endIndex[1] - firstIndex[1], 4, (PFNCMP)CompareRplFarToNear);
-    qsort(sorted + firstIndex[2], endIndex[2] - firstIndex[2], 4, (PFNCMP)CompareRplFarToNear);
-    qsort(sorted + firstIndex[25], endIndex[25] - firstIndex[25], 4, (PFNCMP)CompareRplFarToNear);
-    qsort(sorted + firstIndex[21], endIndex[21] - firstIndex[21], 4, (PFNCMP)CompareRplNearToFar);
+    qsort(sorted + firstIndex[5], endIndex[5] - firstIndex[5], sizeof(RPL *), (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[6], endIndex[6] - firstIndex[6], sizeof(RPL *), (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[10], endIndex[10] - firstIndex[10], sizeof(RPL *), (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[1], endIndex[1] - firstIndex[1], sizeof(RPL *), (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[2], endIndex[2] - firstIndex[2], sizeof(RPL *), (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[25], endIndex[25] - firstIndex[25], sizeof(RPL *), (PFNCMP)CompareRplFarToNear);
+    qsort(sorted + firstIndex[21], endIndex[21] - firstIndex[21], sizeof(RPL *), (PFNCMP)CompareRplNearToFar);
     return endIndex[25];
 }
 

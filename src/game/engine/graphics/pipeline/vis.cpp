@@ -41,7 +41,7 @@ void CID5::Init()
 extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 {
     LoadXfmXfFromBrx(vis, stream);
-    vis->valueE0 = U32Read__18CBinaryInputStream(stream);
+    vis->grfvis = U32Read__18CBinaryInputStream(stream);
     ReadGeom__18CBinaryInputStreamP4GEOM(stream, &vis->geom);
     CBinaryInputStream_ReadBspc(stream, &vis->geom, &vis->bspc);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(vis, stream);

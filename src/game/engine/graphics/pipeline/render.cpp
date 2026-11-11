@@ -145,7 +145,7 @@ extern "C" void DrawWorldLabel(qword position, const char *text, const RGBA *unu
 // sorts the entries by kind and depth into the frame's VIF1 chain.
 extern "C" RPL *AllocRenderListEntry(void)
 {
-    func_002333B4(&D_003D4A50->pbCall, 0, 8);
+    func_002333B4(&D_003D4A50->pbCall, 0, sizeof(D_003D4A50->pbCall) + sizeof(D_003D4A50->pvCall));
     return D_003D4A50++;
 }
 
