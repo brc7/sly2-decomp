@@ -41,7 +41,9 @@ ends with how to extend the system.
 ## Reference
 - [splice-language.md](reference/splice-language.md) — the Splice language for script authors: values, special forms,
   every builtin with its arity, options and how to call them, events, scheduling, a worked example; the generated
-  per-class option table is [splice-options.md](reference/splice-options.md) (`tools/splice_options.py`).
+  per-class option table is [splice-options.md](reference/splice-options.md) (`tools/splice_options.py`); dumping
+  the game's scripts from your own disc and compiling them back: [splice-dump.md](reference/splice-dump.md)
+  (`tools/splice/`).
 
 ## Cookbook
 Practical, step-by-step recipes for changing the game, each naming the systems, types, functions and registration

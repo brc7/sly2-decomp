@@ -8,6 +8,7 @@ Where the code and a source comment disagree, this page follows the code and say
 Related pages: [systems/splice-scripting.md](../systems/splice-scripting.md) (how the VM works inside),
 [formats/splice-scripts.md](../formats/splice-scripts.md) (the serialized form in world files),
 [splice-options.md](splice-options.md) (generated per-class option table),
+[splice-dump.md](splice-dump.md) (dumping the scripts of your own disc and compiling them back),
 [guides/port-plan.md](../guides/port-plan.md#15-modding-and-extensions-with-splice) section 15 (modding plans).
 
 **Scripts have no names on disc.** The game ships compiled scripts: lists of tagged values in which symbols are
@@ -520,11 +521,10 @@ Points the example illustrates:
 
 ### 6.3 Toolchain status
 
-- **No dump tool or compiler in this repository yet.** The research decoder that walks, re-encodes and pretty-prints
-  the serialized scripts lives outside the repo (see [formats/splice-scripts.md](../formats/splice-scripts.md)); the
-  plan is a dump tool that reads scripts from the user's own disc image and a compiler back to the serialized form
-  ([port-plan.md section 15](../guides/port-plan.md#15-modding-and-extensions-with-splice)). Level scripts are game
-  content and are never committed.
+- **Dump and compile**: `tools/splice/dump.py` reads every level's scripts from your own disc image and prints them
+  in the notation of this page (plus a JSON AST); `tools/splice/encode.py` compiles a listing back to the serialized
+  form, byte-identical for an unedited listing. Usage, the output notation and the format:
+  [splice-dump.md](splice-dump.md). Level scripts are game content and are never committed.
 - **Writing scripts into a level** also needs the world file re-laid out (later sections shift, per-entry alignment,
   LZSS re-compression); not done yet.
 - **Matching build**: the builtin table, option tables and thunks are data of the original executable, so new

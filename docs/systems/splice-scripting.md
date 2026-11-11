@@ -6,7 +6,8 @@ numbered **options** (properties and methods) that scripts read, write and call.
 machine (values, frames, evaluator, garbage collector), how scripts are loaded and bound to objects, how events reach
 scripts, how game objects expose options, and the builtin library. The serialized form on disc is in
 [formats/splice-scripts.md](../formats/splice-scripts.md). Script authors: the language reference (special forms, every builtin,
-per-class options, events) is [reference/splice-language.md](../reference/splice-language.md).
+per-class options, events) is [reference/splice-language.md](../reference/splice-language.md); to read the game's
+own scripts, dump them from your disc with [reference/splice-dump.md](../reference/splice-dump.md).
 
 ## 1. The pieces
 
@@ -244,3 +245,5 @@ paths.
 - `include/sly2/cref.h`, `cframe.h`, `eopid.h`, `gc.h`; the GC node kinds in `pair.h`, `varb.h`, `proc.h` (CProc),
   `sidebag.h` (CSidebag), `method.h` (CMethod), and `sp.h` (CRefOwner, the owning pointer with inline release).
 - [formats/splice-scripts.md](../formats/splice-scripts.md): serialized form, symbol and event names, option usage.
+- [reference/splice-dump.md](../reference/splice-dump.md): `tools/splice/dump.py` / `encode.py`, the dump and compile
+  tools.

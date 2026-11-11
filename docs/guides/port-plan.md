@@ -602,5 +602,6 @@ What that makes possible, roughly from cheapest to most involved:
 Prerequisites, in order: a language reference for script authors (syntax, special forms, every builtin with its
 arguments, the options each class exposes, the engine events); the dump tool; a compiler back to the serialized form
 described in [formats/splice-scripts.md](../formats/splice-scripts.md) so modified scripts can be written into a level
-file; and the console hook in the port.
+file; and the console hook in the port. The reference, the dump tool and the compiler to the serialized tables exist
+([splice-dump.md](../reference/splice-dump.md)); writing the tables back into a world file does not yet.
 
