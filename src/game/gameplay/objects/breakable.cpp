@@ -22,8 +22,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef struct SOX { char pad[0xC]; void *vptr; } SOX;   /* any SO */
 // The real classes behind the views below, for their virtual calls.
 static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
-/* A trigger class (cid, armed) or an action (kind, value). */
-struct I { int a; int b; };
+/* A trigger class (cid, armed) or an action (kind, value). The value of action kind 0xC is a pointer (an 8-byte
+   record, copied to the world heap at load), so b is pointer-wide (sptr: int on the EE). */
+struct I { int a; sptr b; };
 /* An event: its id, how many firings it takes (n <= 0: once), its actions. */
 struct E { int id; int n; int c; I *a; };
 struct XPO;
@@ -135,16 +136,16 @@ extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
 {
     STACKSCOPE ctx;
     int i, j;
-    breakable->triggerClasses = (I *)Alloc(0x40);
-    breakable->stages = (E *)AllocB(0x200) + 1;
+    breakable->triggerClasses = (I *)Alloc(8 * sizeof(I));
+    breakable->stages = (E *)AllocB(32 * sizeof(E)) + 1;
     LoadSoFromBrx(breakable, a);
     breakable->stage = 0;
-    breakable->triggerClasses = (I *)Realloc(breakable->triggerClasses, breakable->triggerClassCount << 3);
+    breakable->triggerClasses = (I *)Realloc(breakable->triggerClasses, breakable->triggerClassCount * sizeof(I));
     if (breakable->stageCount) {
-        breakable->stages = (E *)Realloc(breakable->stages - 1, (breakable->stageCount << 4) + 0x10) + 1;
+        breakable->stages = (E *)Realloc(breakable->stages - 1, (breakable->stageCount + 1) * sizeof(E)) + 1;
         for (i = -1; i < breakable->stageCount; i++) {
             E *pe = &breakable->stages[i];
-            pe->a = (I *)Realloc(pe->a, pe->c << 3);
+            pe->a = (I *)Realloc(pe->a, pe->c * sizeof(I));
             for (j = 0; j < pe->c; j++) {
                 I *pi = &pe->a[j];
                 if (pi->a == 0xC) {
@@ -467,7 +468,7 @@ extern "C" int AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
     int c = breakable->triggerClassCount;
     int r = c < 8;
     if (r != 0) {
-        I *pi = (I *)((char *)breakable->triggerClasses + c * 8);
+        I *pi = (I *)((char *)breakable->triggerClasses + c * sizeof(I));
         r = (int)pi;
         breakable->triggerClassCount = c + 1;
         pi->b = b;
@@ -486,7 +487,7 @@ extern "C" void AddBreakableStage(TRIG *breakable, int id)
         pe = &breakable->stages[breakable->stage];
         pe->id = id;
         pe->n = 1;
-        pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
+        pe->a = (I *)PvAllocMsg(&msg, 64 * sizeof(I), 0x10);
     }
 }
 
@@ -499,7 +500,7 @@ extern "C" void InitBreakablePreStage(TRIG *breakable)
     pe = &breakable->stages[-1];
     pe->id = -1;
     pe->n = 1;
-    if (!pe->a) pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
+    if (!pe->a) pe->a = (I *)PvAllocMsg(&msg, 64 * sizeof(I), 0x10);
 }
 
 // Set a field of the current stage record (D_002A76B8 key). (inferred)

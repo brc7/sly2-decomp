@@ -37,6 +37,21 @@ struct CLUTHDR
     SHDRGBA *argba;         /* +0x0C the entries */
 };
 typedef char assert_CLUTHDR_size[sizeof(CLUTHDR) == 0x10 ? 1 : -1];
+/* CLUTFILE: CLUTHDR as the level file stores it (0x10 on every target). argba is a 32-bit offset: into the shared data
+   block for a shared table (RelocateSharedColorTables rebases it), meaningless otherwise (LoadClutFromBrx sets it).
+   With the EE layout (SLY2_EE_LAYOUT) the file record is read straight into CLUTHDR; elsewhere LoadClutFromBrx reads
+   a CLUTFILE and widens it. */
+struct CLUTFILE
+{
+    unsigned int n0;
+    unsigned char kind;
+    signed char clevel;
+    unsigned char pad6[2];
+    unsigned short ccolor;
+    unsigned short gsBlocks;
+    unsigned int ibArgba;   /* +0x0C */
+};
+typedef char assert_CLUTFILE_size[sizeof(CLUTFILE) == 0x10 ? 1 : -1];   /* every target */
 
 /* CLUT: a colour table (0x20): its header and what is derived from it */
 struct CLUT : CLUTHDR
@@ -67,6 +82,22 @@ struct BMPHDR
     void *pv;               /* +0x14 pixels */
 };
 typedef char assert_BMPHDR_size[sizeof(BMPHDR) == 0x18 ? 1 : -1];
+/* BMPFILE: BMPHDR as the level file stores it (0x18 on every target); pv is a 32-bit offset as CLUTFILE's argba. */
+struct BMPFILE
+{
+    unsigned int n0;
+    unsigned char kind;
+    signed char clevel;
+    unsigned char pad6[2];
+    unsigned short cx;
+    unsigned short cy;
+    unsigned char psm;
+    unsigned char cbw;
+    unsigned short gsBlocks;
+    unsigned int cb;
+    unsigned int ibPv;      /* +0x14 */
+};
+typedef char assert_BMPFILE_size[sizeof(BMPFILE) == 0x18 ? 1 : -1];   /* every target */
 
 /* BMP: a bitmap (0x28): its header and what is derived from it */
 struct BMP : BMPHDR

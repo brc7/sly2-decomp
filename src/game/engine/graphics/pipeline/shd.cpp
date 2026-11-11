@@ -59,10 +59,12 @@ int IgsAllocGsb(GSB *pgsb, int cgsb);
 
 // After shared-data load: for each color table/bitmap record flagged shared (b4==1) add the load offset to its data
 // pointer and color-correct its entries. (inferred)
-/* Rebases the shared (kind 1) colour tables and bitmaps by ib, colour-correcting each table entry. */
+/* Rebases the shared (kind 1) colour tables and bitmaps onto the shared data block pvBase (their pointers hold offsets
+   into it until then), colour-correcting each table entry. */
 // Also known as: RelocateBulkRecords (upstream readable / Sly 1 name; RelocateBulkRecords__Fi).
-extern "C" void RelocateSharedColorTables(int ib)
+extern "C" void RelocateSharedColorTables(void *pvBase)
 {
+    uptr ib = (uptr)pvBase;
     int iclut;
     CLUT *pclut;
     SHDRGBA *prgba;
@@ -168,7 +170,22 @@ extern "C" void LoadClutFromBrx(void *pbis, CLUT *pclut)
 {
     union { short aw[0x80]; struct AR ar; } u;
     unsigned int cb;
-    Read__18CBinaryInputStreamiPv(pbis, sizeof(CLUTHDR), pclut);
+#if defined(SLY2_EE_LAYOUT)
+    Read__18CBinaryInputStreamiPv(pbis, sizeof(CLUTHDR), pclut);   /* the file record is the header (shd.h CLUTFILE) */
+#else
+    {
+        CLUTFILE file;
+        Read__18CBinaryInputStreamiPv(pbis, sizeof(CLUTFILE), &file);
+        pclut->n0 = file.n0;
+        pclut->kind = file.kind;
+        pclut->clevel = file.clevel;
+        pclut->pad6[0] = file.pad6[0];
+        pclut->pad6[1] = file.pad6[1];
+        pclut->ccolor = file.ccolor;
+        pclut->gsBlocks = file.gsBlocks;
+        pclut->argba = (SHDRGBA *)(uptr)file.ibArgba;   /* an offset until RelocateSharedColorTables (shared) or below */
+    }
+#endif
     cb = pclut->ccolor * sizeof(SHDRGBA);
     if (pclut->clevel > 0) {
         Read__18CBinaryInputStreamiPv(pbis, pclut->clevel * 2, u.aw);
@@ -352,7 +369,26 @@ void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 extern "C" void LoadBmpFromBrx(void *pbis, BMP *pbmp)
 {
     union { short aw[0x80]; struct AR ar; } u;
-    Read__18CBinaryInputStreamiPv(pbis, sizeof(BMPHDR), pbmp);
+#if defined(SLY2_EE_LAYOUT)
+    Read__18CBinaryInputStreamiPv(pbis, sizeof(BMPHDR), pbmp);   /* the file record is the header (shd.h BMPFILE) */
+#else
+    {
+        BMPFILE file;
+        Read__18CBinaryInputStreamiPv(pbis, sizeof(BMPFILE), &file);
+        pbmp->n0 = file.n0;
+        pbmp->kind = file.kind;
+        pbmp->clevel = file.clevel;
+        pbmp->pad6[0] = file.pad6[0];
+        pbmp->pad6[1] = file.pad6[1];
+        pbmp->cx = file.cx;
+        pbmp->cy = file.cy;
+        pbmp->psm = file.psm;
+        pbmp->cbw = file.cbw;
+        pbmp->gsBlocks = file.gsBlocks;
+        pbmp->cb = file.cb;
+        pbmp->pv = (void *)(uptr)file.ibPv;   /* an offset until RelocateSharedColorTables (shared) or below */
+    }
+#endif
     if (pbmp->clevel > 0) {
         Read__18CBinaryInputStreamiPv(pbis, pbmp->clevel * 2, u.aw);
         if (!IsCurrentLevelInList__FiPs(pbmp->clevel, u.aw)) {
