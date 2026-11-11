@@ -454,24 +454,24 @@ void LO::SetIdProxy(int idProxy, int fChildren)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSoIdProxy {
-void SetLoIdProxy(SO *p, int idProxy) __asm__("SetLoIdProxy");
-// SO's SetIdProxy (vtable slot 25): LO's version, then the same on every child.
-extern "C" void SetSoIdProxy(SO *object, int a)
+void SetLoIdProxy(SO *p, int idProxy, int fChildren) __asm__("SetLoIdProxy");
+// SO's SetIdProxy (vtable slot 25): LO's version (which gets fChildren as passed), then the same on every direct
+// child, without their children.
+extern "C" void SetSoIdProxy(SO *object, int a, int fChildren)
 {
     LO *o;
     int unused[4];
-    SetLoIdProxy(object, a);
+    SetLoIdProxy(object, a, fChildren);
     for (o = (LO *)object->children.head; o; o = (LO *)o->siblingLink.next) o->SetIdProxy(a, 0);
 }
 } // namespace M_SetSoIdProxy
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001CA370 {
-struct Z { VTE *vt; };   /* the load collector (CLoadCollector) */
 int MakeProxyId__Fii(int i, int c) __asm__("MakeProxyId__Fii");
 // Takes the next unused copy of proxy source sourceIndex: sets its proxy id, adds and reparents its objects, applies
 // the placement (slot 37) to each, reports them to the load collector and advances the source's next-copy index.
-extern "C" void AddProxyCopy(SW *world, int i, SO *a, XF *b, OID oid, MATRIX4 *y, struct Z *pz)
+extern "C" void AddProxyCopy(SW *world, int i, SO *a, XF *b, OID oid, MATRIX4 *y, CLoadCollector *pz)
 {
     PROXYSRC *pr = &world->aproxysrc[i];
     int v = MakeProxyId__Fii(i, pr->icopyNext);
@@ -485,7 +485,7 @@ extern "C" void AddProxyCopy(SW *world, int i, SO *a, XF *b, OID oid, MATRIX4 *y
         plo->ApplyProxy(y);
     }
     if (pz)
-        ((void (*)(void *, int, LO **))pz->vt[1].pfn)((char *)pz + pz->vt[1].d, pr->cplo, &pr->aplo[pr->icopyNext * pr->cplo]);
+        pz->Add(pr->cplo, &pr->aplo[pr->icopyNext * pr->cplo]);
     pr->icopyNext++;
 }
 } // namespace M_func_001CA370
@@ -859,9 +859,14 @@ NODE *AcquireProxySpare(P *proxy,int minimum) __asm__("AcquireProxySpare"); NODE
  for(int i=0;i<proxy->table->count;i++){
  void **cursor=&work.cursor;
   P *child=proxy->table->objects[row*proxy->table->count+i];
+#if defined(SLY2_EE_LAYOUT)
   VTE &entry=child->vt[42];   /* slot 42 SetBusyDistance by hand: its entry is loaded before the work.child store */
   work.child=child;
   ((void(*)(P *,float))entry.pfn)((P *)((char *)child+entry.d),proxy->scale);
+#else
+  work.child=child;
+  AsLo(child)->SetBusyDistance(proxy->scale);
+#endif
   AsLo(work.child)->SetParent((SO *)proxy->context,(XF *)proxy->channel,0);
   AsLo(work.child)->ApplyProxy((MATRIX4 *)&proxy->matrix);
   AsLo(work.child)->Add();
