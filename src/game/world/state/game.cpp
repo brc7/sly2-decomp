@@ -95,12 +95,12 @@ public:
     JOB *job;
     TASK *task;
     int savedSource;
-    int savedRequester;
-    inline StateSourceScope(TASK *px, int source, int requester);
-    inline StateSourceScope(JOB *px, int source, int requester, int isJob);
+    LO *savedRequester;
+    inline StateSourceScope(TASK *px, int source, LO *requester);
+    inline StateSourceScope(JOB *px, int source, LO *requester, int isJob);
     inline ~StateSourceScope();
 };
-inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
+inline StateSourceScope::StateSourceScope(TASK *px, int source, LO *requester)
 {
     job = 0;
     task = px;
@@ -111,7 +111,7 @@ inline StateSourceScope::StateSourceScope(TASK *px, int source, int requester)
         task->stateRequester = requester;
     }
 }
-inline StateSourceScope::StateSourceScope(JOB *owner, int source, int requester, int isJob)
+inline StateSourceScope::StateSourceScope(JOB *owner, int source, LO *requester, int isJob)
 {
     job = owner;
     task = 0;
@@ -1833,7 +1833,7 @@ extern void RejectTaskState(TASK *p, int newState) __asm__("RejectTaskState");
 // Validated state request: 4 activates, 5 deactivates, 0..3 only one step up or when the prerequisites are met;
 // otherwise rejected.
 // Also known as: RequestTaskState (upstream readable / Sly 1 name; RequestTaskState__FP4TASKii).
-extern "C" void RequestTaskState(TASK *task, int newState, int requester)
+extern "C" void RequestTaskState(TASK *task, int newState, LO *requester)
 {
     StateSourceScope scope(task, task->stateSource, requester);
     StateSourceScope jobScope(task->pjob, task->stateSource, requester, 1);
@@ -1896,7 +1896,7 @@ extern void SetTaskStateCascade(TASK *p, int newState) __asm__("SetTaskStateCasc
 extern void ActivateTask(TASK *p) __asm__("ActivateTask");
 // Unvalidated state change (ForceTaskState): like RequestTaskState without the checks.
 // Also known as: ForceTaskState (upstream readable / Sly 1 name; ForceTaskState__FP4TASKii).
-extern "C" void ForceTaskState(TASK *task, int newState, int requester)
+extern "C" void ForceTaskState(TASK *task, int newState, LO *requester)
 {
     StateSourceScope scope(task, task->stateSource, requester);
     StateSourceScope jobScope(task->pjob, task->stateSource, requester, 1);
@@ -1948,7 +1948,7 @@ extern "C" void UpdateCurrentJob(void)
 } // namespace M_UpdateCurrentJob
 
 namespace M_func_00164AA8 {
-extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void ForceTaskState(TASK *px, int a, LO *b) __asm__("ForceTaskState");
 extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 0 and updates the current job.
 extern "C" void ForceTaskState0(TASK *task)
@@ -1960,7 +1960,7 @@ extern "C" void ForceTaskState0(TASK *task)
 } // namespace M_func_00164AA8
 
 namespace M_func_00164B38 {
-extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void ForceTaskState(TASK *px, int a, LO *b) __asm__("ForceTaskState");
 extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 1 and updates the current job.
 extern "C" void ForceTaskState1(TASK *task)
@@ -1972,7 +1972,7 @@ extern "C" void ForceTaskState1(TASK *task)
 } // namespace M_func_00164B38
 
 namespace M_func_00164BC8 {
-extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void ForceTaskState(TASK *px, int a, LO *b) __asm__("ForceTaskState");
 extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 2 and updates the current job.
 extern "C" void ForceTaskState2(TASK *task)
@@ -1984,7 +1984,7 @@ extern "C" void ForceTaskState2(TASK *task)
 } // namespace M_func_00164BC8
 
 namespace M_func_00164C58 {
-extern void ForceTaskState(TASK *px, int a, int b) __asm__("ForceTaskState");
+extern void ForceTaskState(TASK *px, int a, LO *b) __asm__("ForceTaskState");
 extern void UpdateCurrentJob() __asm__("UpdateCurrentJob");
 // Splice: forces the task to state 3 and updates the current job.
 extern "C" void ForceTaskState3(TASK *task)

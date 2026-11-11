@@ -83,7 +83,7 @@ struct JOB : public LO
       SVKEY svkElapsed;     /* +0xE0 [S] elapsedTime, */
       SVKEY svkDifficulty;  /* +0xE8 [S] the difficulty rating */
       int stateSource;      /* +0xF0 [S] what drives the current state change (game.cpp STATESOURCE) */
-      int stateRequester;   /* +0xF4 [S] */
+      LO *stateRequester;   /* +0xF4 [S] the object that requested the state (option 1083, otyp 0x2002) */
       undefined4 unk_0xf8[(0x100 - 0xf8) / 4];
     virtual void Init() __asm__("InitJob");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetJobClassDesc");   /* slot 6 */
@@ -146,7 +146,7 @@ struct TASK : public LO
       SVKEY svkInterrupted; /* +0xE8 [S] saved while its job was in progress */
       int nStatePending;    /* +0xF0 [S] the state a running cascade will set, -1 none (CollectTaskCascade) */
       int stateSource;      /* +0xF4 [R] what drives the current state change (game.cpp STATESOURCE; ram_inspector "nMode") */
-      int stateRequester;   /* +0xF8 [S] */
+      LO *stateRequester;   /* +0xF8 [S] the object that requested the state (option 1083, otyp 0x2002) */
       int cVisit;           /* +0xFC [S] topological sort: prerequisites visited (VisitTaskTopo) */
       int depth;            /* +0x100 [S] topological depth */
       int jobDepth;         /* +0x104 [S] number of job ends above it */
