@@ -154,7 +154,7 @@ void UpdateLo(BLIPGV *p, float dt);
 void SubscribeLoObject(BLIPGV *p, LO *plo);
 void *FindShdOrDefault(int oidShader);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
-void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, int);
+void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, qwordV *);
 void FlushCache(int);
 void SwapSprBuffers(void);
 int sceDmaSync(void *pch, int mode, int timeout);

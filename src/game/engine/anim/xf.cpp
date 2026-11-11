@@ -546,7 +546,7 @@ extern qword D_002A2DD0 __asm__("D_002A2DD0");
 M4 InvertMatrix4Rigid(const M4 *) __asm__("InvertMatrix4Rigid");
 M4 EvaluateXfSlotMatrixDerivative(XF *) __asm__("EvaluateXfSlotMatrixDerivative");
 void UpdateXfJobRange(void *,XF *) __asm__("UpdateXfJobRange");
-void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
 
 // Transform point v by the 4x4 matrix m.
 static inline qword Transform(const M4 &m,qword v) {qword r=m.r[0];
@@ -2504,7 +2504,7 @@ void UpdateXfJobRange(LO *, XF *) __asm__("UpdateXfJobRange");
 qword GetXfValueFromMatrix(XF *, MATRIX4 *) __asm__("GetXfValueFromMatrix");
 qword DecomposeRotationMatrixToEuler(MATRIX3 *) __asm__("DecomposeRotationMatrixToEuler");   /* phase 5: the rotation rows stored at +0xC0 */
 M4 BuildXfValueMatrix(XF *, qword) __asm__("BuildXfValueMatrix");
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
 
 // Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot. (inferred)
 // Also known as: SnapAsegaXfs (upstream readable / Sly 1 name; SnapAsegaXfs__FP5ASEGAi).

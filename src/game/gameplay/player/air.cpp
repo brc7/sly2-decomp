@@ -3496,7 +3496,7 @@ typedef union { qword q; float f[4]; } U;
 struct P { JTAIR *a; void *p4; int pad[2]; qword v10; };   /* the callback context */
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 int PredictMeshContact(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2) __asm__("PredictMeshContact");
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, qword *r) __asm__("EvaluateBezierPos");
 // Length of the xyz part of v as a float.
 extern "C" { static inline float Len(qword v)
 {
@@ -3541,7 +3541,7 @@ void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
 struct HIT;
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit) __asm__("FindFirstObjectHitByLine");
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, int m, int n) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, qword *pacc) __asm__("EvaluateBezierPos");
 
 struct HIT { qword pos; char pad[0x34]; float x44; char pad2[0x18]; };
 // Distance between a and b as a float.

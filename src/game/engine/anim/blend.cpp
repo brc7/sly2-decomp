@@ -111,7 +111,7 @@ int IsActCurrent(CHNE *);
 void SetBlendDominantSegment(ASEG *p, int n);
 void CalculateBlendSyncTable__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *syncTable, float *pf);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, VU *);
 }
 int FindSyncInterval(float t, float tMax, int syncCount, MRSG *syncTable, float *pdt);
 

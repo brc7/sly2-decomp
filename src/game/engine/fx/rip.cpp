@@ -2177,7 +2177,7 @@ typedef struct {
     char padf4[0x100 - 0xF4];
     qword screenPos;
 } OBJ;   /* SMACK */
-void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
 qword ConvertCmScreenToWorld(void *, qword) __asm__("ConvertCmScreenToWorld");
 // SMACK Project: moves along a Bezier in screen space toward the definition's target, arriving at the end of its life,
 // and converts back to world space.

@@ -237,7 +237,7 @@ namespace M_func_0012B9D0 {
 typedef int qword __attribute__((mode(TI)));
 typedef union V3Q { VECTOR v; qword q; } V3Q;
 int FindVecCurveAKey(AC1 *t, float g) __asm__("FindVecCurveAKey");
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, qword *pacc) __asm__("EvaluateBezierPos");
 // Evaluates the keyed vector curve at time t (slot 3): value and derivative from the Bezier of its key interval.
 // (inferred)
 // Also known as: Eval (upstream readable / Sly 1 name; Eval__5TRKPKP7VECTOR4T1ff).
@@ -342,7 +342,7 @@ namespace M_func_0012BE68 {
 typedef int qword __attribute__((mode(TI)));
 typedef union V3Q { VECTOR v; qword q; } V3Q;
 int FindVecCurveBKey(AC2 *t, float g) __asm__("FindVecCurveBKey");
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, qword *pacc) __asm__("EvaluateBezierPos");
 // Evaluates the second keyed vector curve kind at time t (slot 3). (inferred)
 extern "C" void EvaluateVecCurveB(AC2 *t, void *pv, void *pdv, float g, float dtScale)
 {
@@ -1142,7 +1142,7 @@ struct X {
 
 extern qword D_002A2DD0 __asm__("D_002A2DD0"), g_normalZ __asm__("g_normalZ"), D_002BC380 __asm__("D_002BC380");
 void UpdateXfJobRange(void *pv, X *px) __asm__("UpdateXfJobRange");
-void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, qword *pacc) __asm__("EvaluateBezierPos");
 M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
 void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc) __asm__("ConvertXfMat");
 
@@ -1537,7 +1537,7 @@ void ACT8::Update()
 namespace M_func_0012E060 {
 typedef int qword __attribute__((mode(TI)));
 typedef struct Q { char pad[0x30]; qword startPos; char pad2[0x68]; float endTime; char pad3[4]; qword startVelocity; } Q;
-void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, int n) __asm__("EvaluateBezierPos");
+void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, qword *pacc) __asm__("EvaluateBezierPos");
 // Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)
 extern "C" void GetBezierActGoal(ACT8 *p, qword *ppos, qword *pvel, float dt)
 {
