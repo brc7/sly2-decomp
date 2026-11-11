@@ -28,21 +28,28 @@ REG = os.path.join(REPO, 'src/game/app/class_registry.cpp')
 HDR = os.path.join(REPO, 'include/sly2')
 SIDEBAG_MIN = 0x4D1   # GetBasicOption / SetBasicOption: ids above 0x4D0 go to the object's sidebag
 
-WORD = r'EOPID_(?:NONE|INT\([^)]*\)|PMFT?I?\([^)]*\)|VPMF\([^)]*\)|FN\([^)]*\))'
+WORD = r'EOPID_(?:NONE|INT\([^)]*\)|OFF\([^)]*\)|PMFT?I?\([^)]*\)|VPMF\([^)]*\)|FN\([^)]*\))'
 REC = re.compile(r'^\s*\{(0x[0-9A-Fa-f]+|\d+), (0x[0-9A-Fa-f]+|\d+), (' + WORD + r'), (' + WORD + r'), (' + WORD +
                  r'), (' + WORD + r')\}, /\* \[(\d+)\]')
 ARR = re.compile(r'^extern const SPLOPTROW (D_[0-9A-F]+)\[\d+\] SPLOPT_RODATA = \{\s*/\* (\w+) \(cid (\d+)\) \*/')
 PAIR = re.compile(r'\{(\d+), &D_002AC880\[(\d+)\]\}')
 
 
+def _lines(path):
+    with open(path) as f:
+        return f.read().split('\n')
+
+
 def word(w):
-    """('none'|'int'|'pmf'|'vpmf'|'fn', value)"""
+    """('none'|'int'|'off'|'pmf'|'vpmf'|'fn', value); 'off' is EOPID_OFF(T, m), value = member name m"""
     m = re.match(r'EOPID_(\w+?)\((.*)\)$', w)
     if not m:
         return ('none', None)
     k, v = m.group(1), m.group(2)
     if k == 'INT':
         return ('int', int(v, 0))
+    if k == 'OFF':
+        return ('off', v.split(',')[1].strip())
     if k in ('PMF', 'PMFI', 'PMFT'):
         return ('pmf', v.split(',')[0].strip())
     if k == 'VPMF':
@@ -53,7 +60,7 @@ def word(w):
 def parse_tables():
     recs, arrays, cidname = {}, {}, {}
     cur = None
-    for line in open(INC):
+    for line in _lines(INC):
         m = REC.match(line)
         if m:
             recs[int(m.group(7))] = dict(otyp=int(m.group(1), 0), grf=int(m.group(2), 0), get=word(m.group(3)),
@@ -75,7 +82,7 @@ def parse_tables():
 
 def parse_parents():
     par = {}
-    for line in open(REG):
+    for line in _lines(REG):
         m = re.match(r'\s*\{(0|&D_002BAAE8\[(\d+)\]), (\d+), (\d+), ', line)
         if m:
             par[int(m.group(3))] = int(m.group(2)) if m.group(2) else None
@@ -88,7 +95,8 @@ def parse_structs():
     for fn in sorted(os.listdir(HDR)):
         if not fn.endswith('.h'):
             continue
-        lines = open(os.path.join(HDR, fn), errors='replace').read().split('\n')
+        with open(os.path.join(HDR, fn), errors='replace') as f:
+            lines = f.read().split('\n')
         i = 0
         while i < len(lines):
             m = re.match(r'\s*struct (\w+)\s*(?::\s*public\s+(\w+))?\s*(\{|/\*.*)?$', lines[i])
@@ -166,6 +174,8 @@ def describe(r, cls, structs, cidname):
             names.append(n)
 
     def offname(off):
+        if isinstance(off, str):      # EOPID_OFF(T, m): the member is named in the table itself
+            return ('sub-object ' + off) if grf & 0x2000 else off
         if grf & 0x2000:
             return 'sub-object +0x%X' % off
         return field_name(structs, cls, off) or '+0x%X' % off
@@ -180,7 +190,7 @@ def describe(r, cls, structs, cidname):
     else:
         for key, direct, pmf in (('get', 2, 4), ('set', 0x10, 0x20)):
             w = r[key]
-            if grf & direct and w[0] == 'int':
+            if grf & direct and w[0] in ('int', 'off'):
                 acc.append(key)
                 add(offname(w[1]))
             elif grf & pmf and w[0] in ('pmf', 'vpmf', 'fn'):
@@ -192,7 +202,7 @@ def describe(r, cls, structs, cidname):
     elif grf & 0x100 and r['file'][0] in ('pmf', 'vpmf'):
         acc.append('file')
         add(fnname(r['file']))
-    elif grf & 0x80 and r['file'][0] == 'int':
+    elif grf & 0x80 and r['file'][0] in ('int', 'off'):
         acc.append('file')
         add(offname(r['file'][1]))
     is_method = method or r['otyp'] == 0x12

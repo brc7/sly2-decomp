@@ -43,3 +43,5 @@ gotoSgf
 ../base-worktree base.json census.json PROGRESS.md facts.json judged.json
 # --- upstream readable names and upstream main paths cited in docs/upstream/ (names upstream uses, not in this tree)
 BASE.json Clq FDamageFatal__FP5ACTORP5CTMSG FUN_xxxxxxxx NGuardStatus__FP5GUARD NRandInRange__Fii OffKind0 OffKind1 PvAllocSwImpl__Fi PvRealloc__11CLinearHeapPvii RadTargetrec__FP9TARGETREC RefSoeHandle RefSoundMethod RefXfHandle__FP2LOiPv RefXfhLook ResolveEmits SetKind0Payload SetKind1Payload SetPositionKind g_clqZero s_pdliFirst src/auto src/hand src/hand/func_0012ABCD.c src/lib UpdateRecyclable__3CGc
+# splice-options.md: EOPID_OFF(T, member.c) names a nested member (SVKEY's c), not a .c file
+svkElapsed.c svkDifficulty.c svkStart.c svkComplete.c svkCompletionCount.c svkState.c svkInterrupted.c
