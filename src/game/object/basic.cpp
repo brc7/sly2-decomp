@@ -70,7 +70,7 @@ void CRefAssign(CRefData *pref, CRefData *prefFrom) __asm__("__as__4CRefRC4CRef"
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int FindBindingPtr__6CFrameUii(CFrame *p, int k, int n);
-CRefData *BuildSpliceListFromValues(CRefData *ret, int x, int *pn, int y);
+CRefData *BuildSpliceListFromValues(CRefData *ret, int x, int *pn, void **y);
 
 void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CRefData *pref);
 SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *p, CPAIR *pair, float t);
@@ -301,7 +301,7 @@ extern "C" void CancelSwSpliceCallback(SW *world, int id) {
 // BASIC's Splice event handler (vtable slot 3): when the object's frame binds a handler for the event, builds the
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
 // Sly 1: HandleLoSpliceEvent.
-extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CRefData *z)
+extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, void **y, CRefData *z)
 {
     if (object->scriptFrame.m_p && FindBindingPtr__6CFrameUii(object->scriptFrame.m_p, k, 1)) {
         CRefData ref;

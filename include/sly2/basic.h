@@ -347,7 +347,7 @@ struct BASIC
       ~BASIC();
       virtual void AddRef() __asm__("BASIC_Slot1Default");
       virtual void Release() __asm__("BASIC_Slot2Default");
-      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleBasicSpliceEvent");
+      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, CRef *pref) __asm__("HandleBasicSpliceEvent");   /* pref: where an immediate (not posted) handler leaves its result, or 0 */
       virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendLoMessage");
       virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBasicMessage");
       virtual CLASSINFO *GetClassInfo() __asm__("GetBasicClassDesc");

@@ -229,7 +229,7 @@ extern "C" int CanPoBeHealed(PO *po)
     int f = 1;
     ref.m_tagk = 0x17;
     ref.u.n = f;
-    po->HandleSpliceEvent(0xD, 0, 0, 0, (int)&ref);   /* the last argument is the reply */
+    po->HandleSpliceEvent(0xD, 0, 0, 0, (CRef *)&ref);   /* the last argument is the reply */
     if (ref.m_tagk == 0x17) f = ref.u.n;
     Decref__4CRef(&ref);
     return f;

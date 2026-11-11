@@ -74,7 +74,7 @@ struct LO : public BASIC
       undefined4 unknown44[3];
       virtual void Init() __asm__("InitLo");
     virtual CLASSINFO *GetClassInfo() __asm__("GetLoClassDesc");   /* slot 6 */
-      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleLoSpliceEvent");
+      virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, CRef *pref) __asm__("HandleLoSpliceEvent");
       virtual void Add() __asm__("AddLo");
       virtual void Remove() __asm__("RemoveLo");
       virtual void SetParent(SO *psoParent, XF *pxfParent, int grf) __asm__("LO_SetParent");
