@@ -4,7 +4,7 @@
 // why each file ends with the same static initializer. Entry points: InitSlotheap, AllocZeroedFromSlotheap,
 // FreeSlotheapSlot, ResetSlotheap, PrimeSlotheap.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_slotheap
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0011CF40
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_slotheap
 #include "sly2/slotheap.h"
 #include "dmas.h"          /* SWALLOC */
 #include "sly2/scrap.h"
