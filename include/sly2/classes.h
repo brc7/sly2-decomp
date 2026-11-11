@@ -1660,7 +1660,8 @@ typedef char assert_CID8_size[sizeof(CID8) == 0x100 ? 1 : -1];
 /* 9 CID9 (0x120): mesh surface (jump target list); vtable 0x2D2B18, 50 slots */
 struct CID9 : CID8
 {
-    char pad100[0x120 - 0x100];
+    DLE dleList;                /* +0x100 link in SW::dlCid9 */
+    char pad108[0x120 - 0x108];
     virtual void Init() __asm__("InitCid9");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCid9Hierarchy");   /* slot 11 */
@@ -1673,7 +1674,8 @@ typedef char assert_CID9_size[sizeof(CID9) == 0x120 ? 1 : -1];
 /* 40 CID40 (0xF0): JMT (jump target; none in the Paris hub); vtable 0x2D3200, 50 slots */
 struct CID40 : XFM
 {
-    char padE0[0xF0 - 0xE0];
+    DLE dleList;                /* +0xE0 link in SW::dlCid40 */
+    char padE8[0xF0 - 0xE8];
     virtual void AddHierarchy() __asm__("AddJmtHierarchy");   /* slot 11 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid40ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitJmt");   /* slot 7 */
@@ -2514,7 +2516,8 @@ typedef char assert_CID5_isInside[SLY2_OFFSETOF(CID5, isInside) == 0x110 ? 1 : -
 /* 23 CID23 (0x140): VOL child; vtable 0x2DC210, 50 slots */
 struct CID23 : VOL
 {
-    char pad130[0x140 - 0x130];
+    DLE dleList;                /* +0x130 link in SW::dlCid23 */
+    char pad138[0x140 - 0x138];
     virtual void OnAdd() __asm__("OnCid23Add");   /* slot 23 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid23ClassDesc");   /* slot 6 */
     virtual void OnRemove() __asm__("FreezeVol");   /* slot 22 */

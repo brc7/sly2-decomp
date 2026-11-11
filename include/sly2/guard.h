@@ -7,6 +7,7 @@
 #define SLY2_GUARD_H
 #include "sly2/leap.h"
 #include "sly2/basic.h"
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT (SLY2_SSGE_SLOT_CB) */
 #include "sly2/step.h"
 #include "sly2/xfm.h"
 #include "sly2/stepplayer.h"   /* ZPR (BHVGUARDRECDATA) */
@@ -75,6 +76,13 @@ struct SSGE
       SSGE *previous;       /* +0x1C */
 };
 typedef char assert_SSGE_size[sizeof(SSGE) == 0x20 ? 1 : -1];
+/* The SSGE slot size (SW::slotheapSsge): the original asks for 0x1C (the slot heap rounds it to 0x20, which holds
+   previous); natively the whole record. */
+#if defined(SLY2_EE_LAYOUT)
+#define SLY2_SSGE_SLOT_CB 0x1c
+#else
+#define SLY2_SSGE_SLOT_CB ((int)sizeof(SSGE))
+#endif
 /* Where a guard script resumes (STEPGUARD::scriptResumePoint, 12 bytes: SaveBhvScriptResumeState). [S] */
 struct SSGRESUME
 {
@@ -105,8 +113,8 @@ struct STIMULUS
       float time;           /* +0x4C [S] */
       undefined4 unknown50;
       int level;            /* +0x54 [S] loudness, compared with STEPGUARD::minStimulusLevel */
-      STIMULUS *next;       /* +0x58 [S] */
-      undefined4 unknown5C;
+      STIMULUS *next;       /* +0x58 [S] link in SW::dlStimulus (with previous: a DLE) */
+      STIMULUS *previous;   /* +0x5C */
 };
 typedef char assert_STIMULUS_level[SLY2_OFFSETOF(STIMULUS, level) == 0x54 ? 1 : -1];
 typedef char assert_STIMULUS_size[sizeof(STIMULUS) == 0x60 ? 1 : -1];

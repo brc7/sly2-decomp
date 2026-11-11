@@ -36,6 +36,7 @@
 #include "sly2/streambis.h"
 #include "sly2/hw.h"
 #include "sly2/light.h"
+#include "sly2/act.h"
 #include "heap.h"
 
 struct LEVELLIST8;
@@ -114,7 +115,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSlotheap(&world->slotheapXplist,0x14,0x400,0x10);
     InitSlotheap(&world->slotheapXp,0xc0,0x100,0x10);
     InitSlotheap(&world->slotheapAsega,sizeof(ASEGA),0x100,0x10);
-    InitSlotheap(&world->slotheapAct,0x80,0x400,0x10);
+    InitSlotheap(&world->slotheapAct,SLY2_ACT_SLOT_CB,0x400,0x10);
     InitSlotheap(&world->slotheapOvra,sizeof(OVRA),0x8,0x10);
     InitSlotheap(&world->slotheapSma,sizeof(SMA),0x80,0x10);
     *(int *)&world->rgbaClear=0x80000000;
@@ -127,7 +128,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSlotheap(&world->slotheapBlipg,sizeof(BLIPG),0x28,0x10);
     InitSlotheap(&world->slotheapBlip,0x10c0,0x80,0x40);
     InitSlotheap(&world->slotheapBlipSpline,0x560,0x8,0x10);
-    InitSlotheap(&world->slotheapSsge,0x1c,0x200,0x10);
+    InitSlotheap(&world->slotheapSsge,SLY2_SSGE_SLOT_CB,0x200,0x10);
     InitSlotheap(&world->slotheapJsg,0xf0,0x20,0x10);
     InitSlotheap(&world->slotheapXa,sizeof(XA),0x10,0x10);
     InitSlotheap(&world->slotheapZprHit,sizeof(ZPR),0x20,0x10);
@@ -153,11 +154,11 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid34,SLY2_OFFSETOF(CID34, dleGrab));
     InitDl__FP2DLi(&world->dlCid38,SLY2_OFFSETOF(CID38, dleGrab));
     InitDl__FP2DLi(&world->dlCid35,SLY2_OFFSETOF(CID35, dleGrab));
-    InitDl__FP2DLi(&world->dlCid40,0xE0);
+    InitDl__FP2DLi(&world->dlCid40,SLY2_OFFSETOF(CID40, dleList));
     InitDl__FP2DLi(&world->dlCid27,SLY2_OFFSETOF(CID27, dleGrab));
-    InitDl__FP2DLi(&world->dlCid9,0x100);
+    InitDl__FP2DLi(&world->dlCid9,SLY2_OFFSETOF(CID9, dleList));
     InitDl__FP2DLi(&world->dlSma,SLY2_OFFSETOF(SMA, dleSw));
-    InitDl__FP2DLi(&world->dlStimulus,0x58);
+    InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(STIMULUS, next));
     InitDl__FP2DLi(&world->dlStepguard,SLY2_OFFSETOF(STEPGUARD, dleGuard));
     InitDl__FP2DLi(&world->dlCid98,0x174);
     InitSl(&world->slPoctl,0x84);
@@ -170,7 +171,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid14Pending,0x1E0);
     InitDl__FP2DLi(&world->dlTaskActive,SLY2_OFFSETOF(TASK, dleActive));
     InitDl__FP2DLi(&world->dlCid21,SLY2_OFFSETOF(CID21, listLink));
-    InitDl__FP2DLi(&world->dlCid23,0x130);
+    InitDl__FP2DLi(&world->dlCid23,SLY2_OFFSETOF(CID23, dleList));
     InitDl__FP2DLi(&world->dlWidgetExclusive,SLY2_OFFSETOF(WIDGET, exclusiveLink));
     InitSl(&world->slWidgetDeferred,0x4C);
     unsigned int i=0;

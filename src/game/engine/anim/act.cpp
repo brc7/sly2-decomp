@@ -850,7 +850,7 @@ extern "C" void CloneAct(ACT *t, ACT *src, ALO *palo, XF *pxf)
     t->role = src->role;
     t->animatedObject = palo;
     t->transform = pxf;
-    CopyAb__FPvT0Ui((char *)t + sizeof(ACT), (char *)src + sizeof(ACT), g_sw.slotheapAct.cb - 0x1C);   /* the class body after the vptr */
+    CopyAb__FPvT0Ui((char *)t + sizeof(ACT), (char *)src + sizeof(ACT), g_sw.slotheapAct.cb - (int)sizeof(ACT));   /* the class body after the vptr */
 }
 } // namespace M_CloneAct
 

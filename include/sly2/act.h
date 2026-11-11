@@ -377,4 +377,11 @@ struct ACG2 : ACG
 };
 typedef char assert_ACG2_size[sizeof(ACG2) == 0x14 ? 1 : -1];
 
+/* The actuator slot size (SW::slotheapAct, InitActOfKind constructs every kind in one): the largest ACT kind, 0x80
+   (ACT2) on the EE. */
+#define SLY2_ACT_MAX2(a, b) ((a) > (b) ? (a) : (b))
+#define SLY2_ACT_SLOT_CB ((int)SLY2_ACT_MAX2(SLY2_ACT_MAX2(SLY2_ACT_MAX2(SLY2_ACT_MAX2(sizeof(ACT1), sizeof(ACT2)), \
+    SLY2_ACT_MAX2(sizeof(ACT3), sizeof(ACT4))), SLY2_ACT_MAX2(SLY2_ACT_MAX2(sizeof(ACT5), sizeof(ACT6)), \
+    SLY2_ACT_MAX2(sizeof(ACT7), sizeof(ACT8)))), SLY2_ACT_MAX2(sizeof(ACT9), sizeof(ACTSEG))))
+
 #endif
