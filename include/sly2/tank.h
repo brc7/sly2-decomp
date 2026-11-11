@@ -111,7 +111,7 @@ struct ROBOTTANK : PO
     virtual void UpdateBounds() __asm__("UpdateRobottankBounds");   /* slot 49 */
     virtual void OnContactFreed(SO *pso) __asm__("RemoveRobottankContactsWith");   /* slot 54 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustRobottankNewXp");   /* slot 55 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
+    virtual void AddCustomXps(SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
     virtual void PresetAccel() __asm__("PresetRobottankAccel");   /* slot 70 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeRobottankDamage");   /* slot 75 */
 };

@@ -282,7 +282,7 @@ struct SO : public ALO   /* LO -> ALO -> SO (sly2/alo.h) */
       virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustSoXpVelocity");
       virtual void AdjustXps() __asm__("AdjustSoXps");
       virtual void AddExtraXps() __asm__("IgnoreSoSlot59");   /* slot 59: adds class-specific contacts (STEPPLAYER components, STEPGUARD attachments); SO: nothing (inferred) */
-      virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddSoCustomXps");
+      virtual void AddCustomXps(SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst) __asm__("AddSoCustomXps");
       virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldSoIgnoreIntersection");
       virtual int IsFixed() __asm__("IsSoFixed");   /* slot 62 (inferred from IsSoFixed / CanRipgStayAsleep) */
       virtual int GetExtraPartCount() __asm__("GetSoExtraPartCount");

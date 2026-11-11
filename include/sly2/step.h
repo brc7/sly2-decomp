@@ -121,7 +121,7 @@ struct STEP : public PO
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustStepNewXp");   /* slot 55 */
     virtual void AdjustXpVelocity(XP *pxp, int ixpd) __asm__("AdjustStepXpVelocity");   /* slot 57 */
     virtual void AdjustXps() __asm__("AdjustStepXps");   /* slot 58 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
+    virtual void AddCustomXps(SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
     virtual int GetExtraPartCount() __asm__("GetStepExtraPartCount");   /* slot 63 */
     virtual void PresetAccel() __asm__("PresetStepAccel");   /* slot 70 */
       virtual void AddAxisXps(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");

@@ -45,7 +45,7 @@ struct BOMB : public SO
     virtual void Update() __asm__("UpdateBomb");   /* slot 16 */
     virtual void OnProxyAcquire(LO *plo) __asm__("ResetBomb");   /* slot 26 */
     virtual void AdjustXps() __asm__("HandleBombContact");   /* slot 58 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
+    virtual void AddCustomXps(SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst) __asm__("AddBombCustomXps");   /* slot 60 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
     virtual void CopyFromSource() __asm__("CloneBomb");   /* slot 76 */

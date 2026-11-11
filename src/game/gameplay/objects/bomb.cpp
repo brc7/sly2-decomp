@@ -95,8 +95,8 @@ void HandleBasicMessage(BOMBV *, int, void *);
 void UpdateSwPox(SW *pg, SOTREE *pa, SOTREE *pb, int n);
 qword GetLoWorldPos(void *p);
 int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
-void AddSoCustomXps(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
-void AddXp(SW *pg, SOPART *ppart, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
+void AddSoCustomXps(BOMBV *p, CREQ *ps, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst);
+void AddXp(SW *pg, SOPART *ppart, CREQ *ps, qword a, qword b, int k, int x, int y, float g, XP **ppxpFirst);
 void AdjustSoXps(BOMBV *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);
@@ -267,14 +267,14 @@ extern "C" void UpdateBombCustomXps(BOMBV *bomb)
 
 // BOMB vt60: base SO hook, then for a custom-xp entry matching the other object add an XP (AddXp type 9). (inferred)
 // Also known as: MarkProjectileSweep (upstream readable / Sly 1 name; MarkProjectileSweep__FP3ALOP3SOEiiii).
-extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int a2, int a3, int a4, int a5)
+extern "C" void AddBombCustomXps(BOMBV *bomb, CREQ *ps, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst)
 {
-    AddSoCustomXps(bomb, ps, a2, a3, a4, a5);
+    AddSoCustomXps(bomb, ps, cbsp, absp, pbsp, ppxpFirst);
     if (bomb->fCustomXps) {
         CXP *pe;
         for (pe = bomb->axp; pe < bomb->axp + bomb->cxp; pe++) {
             if ((void *)pe->plo == ps->po->pxp->pso60) {
-                AddXp(&g_sw, bomb->parts, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, a5);
+                AddXp(&g_sw, bomb->parts, ps, pe->pos, pe->normal, 9, 0, 0, *(float *)&pe->n20, ppxpFirst);
                 return;
             }
         }

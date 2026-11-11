@@ -275,7 +275,7 @@ struct HACKWALL : HACK
     virtual void RenderSelf() __asm__("RenderHackwallSelf");   /* slot 19 */
     virtual void UpdateBounds() __asm__("UpdateHackwallTreeBounds");   /* slot 49 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackwallNewXp");   /* slot 55 */
-    virtual void AddCustomXps(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddHackwallXps");   /* slot 60 */
+    virtual void AddCustomXps(SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst) __asm__("AddHackwallXps");   /* slot 60 */
     virtual int GetExtraPartCount() __asm__("GetHackwallExtraPartCount");   /* slot 63 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeHackwallDamage");   /* slot 75 */
     virtual void Kill(LO *ploKiller) __asm__("KillHackwall");   /* slot 82 */

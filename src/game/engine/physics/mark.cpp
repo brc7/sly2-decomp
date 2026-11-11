@@ -1459,9 +1459,9 @@ extern "C" XP *CloneXpList(SW *world, XP *list)
 
 /* 1 when side 0 of pxp is ppart (so the other side is 1), else 0. */
 static inline int IxpsOther(XP *pxp, SOPART *ppart) { int one = 1; int fNe = pxp->axps[0].ppart != ppart; return one - fNe; }
-/* Asks ptree's root object for its own contacts with ppart (SO slot 59). Parts with zap kinds (zapKindFlags) collect them
+/* Asks ptree's root object for its own contacts with ppart (SO slot 60, AddCustomXps). Parts with zap kinds (zapKindFlags) collect them
    apart: each one whose other side's object passes FindZapResponder for those kinds is copied onto ptreeOther's zap list,
-   then the list goes to *ppxpFirst. so.h declares slot 59's third argument int; it is the BSP here. */
+   then the list goes to *ppxpFirst. */
 // Asks the zap responder of the other object (FindZapResponder, slot 0x3C) for its contacts and appends them.
 // (inferred)
 // Also known as: MarkOwnContacts (upstream readable / Sly 1 name; MarkOwnContacts__FP3OXAT0P3SOEPP2XPiPvN25).
@@ -1470,7 +1470,7 @@ extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, S
 {
     XP *pxpFirst = 0;
     XP *pxp;
-    ptree->root->AddCustomXps(ppart, cbsp, (int)absp, pbsp, ppart->zapKindFlags ? &pxpFirst : ppxpFirst);
+    ptree->root->AddCustomXps(ppart, cbsp, absp, pbsp, ppart->zapKindFlags ? &pxpFirst : ppxpFirst);
     if (pxpFirst) { pxp = pxpFirst; do {
         if (FindZapResponder(pxp->axps[IxpsOther(pxp, ppart)].pso, ppart->zapKindFlags)) {
             XP *pxpNew = (XP *)AllocZeroedFromSlotheap(&psw->slotheapXp);
