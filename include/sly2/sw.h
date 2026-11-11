@@ -15,6 +15,14 @@
 /* JTGRABCAND: a candidate grab spot gathered for the hero this frame (GatherJtGrabCandidates), scored by distance and
    priority.
    Layout from src/game/gameplay/player/grab/AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND.cpp (8 copies in Lilly ports) */
+/* LEVELLIST: a level's list of save-symbol indices (LoadLevelTableFromBrx; g_alevellist, GetLevelListEntry;
+   prize.cpp CountCollectedClues copies its first words). */
+struct LEVELLIST
+{
+      int c;
+      short *a;
+};
+
 struct JTGRABCAND
 {
       LO *object; /* object that owns the spot */

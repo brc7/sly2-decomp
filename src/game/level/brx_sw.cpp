@@ -10,6 +10,7 @@
 #include "sly2/xfm.h"
 #include "sly2/sw.h"
 #include "sly2/streambis.h"
+#include "sly2/eopid.h"   /* POSTLOADREC */
 
 // 0x13E210 StaticInit_brx_sw and GlobalConstructors_brx_sw: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -156,7 +157,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     world->pploNew = world->aploNew = (LO **)AllocS(&u.req, 0x4000 * sizeof(LO *), 0x10);
     world->pvLorunPool = AllocS(&u.req, 0x800 * sizeof(LORUN), 0x10);
     world->clorunPool = 0;
-    world->pvPostLoadPool = AllocS(&u.req, 0x3000, 0x10);
+    world->pvPostLoadPool = AllocS(&u.req, 0x400 * sizeof(POSTLOADREC), 0x10);
     world->cpostLoadPool = 0;
     STACKSCOPE frame;
     ZPR zpr0;

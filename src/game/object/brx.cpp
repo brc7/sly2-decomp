@@ -30,16 +30,6 @@ extern "C" LORUN *AddLoDeferredCallback(LO *plo);
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
 CRef BuildSpliceListFromValues(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
-struct OIDFIELD
-{
-    OID oid;
-    int ib;
-};
-struct OIDSETTER
-{
-    OID oid;
-    SETTER setter;
-};
 void PostLoadOidField(LO *plo, void *pv);
 void PostLoadOidSetter(LO *plo, void *pv);
 CRef RefFromBrx(OTYP otyp, CBinaryInputStream *stream) __asm__("ReadOptionArgFromBrx");   /* defined below (C symbol) */

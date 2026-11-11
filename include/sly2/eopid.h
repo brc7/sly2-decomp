@@ -71,4 +71,23 @@ struct PVREC : public EOPID
 {
 };
 
+/* The world's post-load queue records (AllocSwPostLoadRecord, drained by PostSwLoad): an object reference to resolve
+   once every object is loaded, stored at a byte offset (OIDFIELD, PostLoadOidField) or through a setter (OIDSETTER,
+   PostLoadOidSetter). Both from brx.cpp; a queue slot holds either (POSTLOADREC, 12 bytes on the EE). */
+struct OIDFIELD
+{
+    OID oid;
+    int ib;
+};
+struct OIDSETTER
+{
+    OID oid;
+    SETTER setter;
+};
+union POSTLOADREC
+{
+    OIDFIELD field;
+    OIDSETTER setter;
+};
+
 #endif

@@ -33,20 +33,20 @@
 #include "sly2/sndmgr.h"
 #include "sly2/vtables.h"
 #include "sly2/classes.h"
+#include "sly2/eopid.h"   /* POSTLOADREC */
 #include "sly2/streambis.h"
 #include "sly2/hw.h"
 #include "sly2/light.h"
 #include "sly2/act.h"
 #include "heap.h"
 
-struct LEVELLIST8;
 extern "C" {
 /* sw's plain .bss words, first declared in address order: g++ 2.95 lays the .bss objects without a constructor out
    in the order of their first declaration (after g_sw and D_003E1C20, which it emits at their definitions). */
 extern int D_003E1C30, D_003E1C34, D_003E1C38, D_003E1C3C;
 extern FILEREC *D_003E1C40;
 extern int *D_003E1C44, *D_003E1C48;
-extern LEVELLIST8 *D_003E1C4C;
+extern LEVELLIST *D_003E1C4C;
 extern FILEREC *D_003E1C50;
 extern int D_003E1C54, D_003E1C58;
 SW *SW_ctor(SW *world);
@@ -71,13 +71,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* An SW word sw.h leaves unnamed (+0x3EA8, in the padding before slPoctl): set by SetSwUnknown3EA8. */
 #define F3EA8(world) (*(int *)((char *)(world) + 0x3EA8))
-/* A level-list entry (8 bytes) and a {key, value} table. */
-struct LEVELLIST8 { int n0; int n4; };
+/* A {key, value} table. */
 struct KVE { int key; void *pv; };
 struct KVT { int c; KVE *a; };
 extern "C" {
 extern char D_002E1E60[];   /* the letterbox object */
-extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
+extern LEVELLIST *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
@@ -830,11 +829,6 @@ inline void *PvAllocSwClearLoad(int cb, int cbAlign)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwClearImpl(pswalloc);
 }
-struct LEVELLIST
-{
-      int c;
-      short *a;
-};
 extern int D_003E1C38 __asm__("D_003E1C38");
 extern int D_003E1C3C __asm__("D_003E1C3C");
 extern FILEREC *D_003E1C40 __asm__("D_003E1C40");
@@ -1277,13 +1271,12 @@ extern "C" void *AllocSwLoCallbackRecord(SW *world)
     return (char *)world->pvLorunPool + i * sizeof(LORUN);
 }
 
-// Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
-/* The next 12-byte record of the array at +0x39D8. */
+// Returns the next free record of the world's post-load queue (POSTLOADREC, sly2/eopid.h; drained by PostSwLoad).
 extern "C" void *AllocSwPostLoadRecord(SW *world)
 {
     int i = world->cpostLoadPool;
     world->cpostLoadPool = i + 1;
-    return (char *)world->pvPostLoadPool + i * 0xC;
+    return (char *)world->pvPostLoadPool + i * sizeof(POSTLOADREC);
 }
 
 namespace M_func_00210140 {
@@ -1614,7 +1607,7 @@ extern "C" struct E *GetLevelFileRecord(int i)
 } // namespace M_func_00210990
 
 // Returns the level-list entry of level index levelIndex.
-extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
+extern "C" LEVELLIST *GetLevelListEntry(int ilevel)
 {
     return &D_003E1C4C[ilevel];
 }
@@ -1780,7 +1773,7 @@ int D_003E1C3C;
 FILEREC *D_003E1C40;   /* g_arecLevel */
 int *D_003E1C44;
 int *D_003E1C48;
-LEVELLIST8 *D_003E1C4C;   /* g_alevellist */
+LEVELLIST *D_003E1C4C;   /* g_alevellist */
 FILEREC *D_003E1C50;   /* g_aWorldEntryRecord */
 int D_003E1C54;
 int D_003E1C58;
