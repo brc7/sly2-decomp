@@ -16,31 +16,35 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct X;
-/* View of a solid object (an SO; V suffix next to sly2/so.h, decision 1.6): +0x14 its parent, +0xEC its AAOBR (the
-   SO's physics tree record, seen here as X). Virtual calls go through the real SO. */
-struct LOV { void *scriptFrame; void *scriptVariables; void *firstSubscriber; void *vptr; void *unknown10; void *parent; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0xEC - 0x40]; X *aaobr; };
-typedef char assert_LOV_px[(unsigned int)&((LOV *)0)->aaobr == 0xEC ? 1 : -1];
+/* The solid objects are SOs (bbmark.cpp was written against a view, LOV; it reads LO::root and SO::physicsTree). */
+typedef SO LOV;
 /* A POX link: one overlapping pair, seen from one side (the other side's link is pother). */
-struct L { void *contacts; L *next; L *other; LOV *object; int isForced; };
-/* An object's AAOBR (world bounds and its list links). */
+struct L { void *contacts; L *next; L *other; SO *object; int isForced; };
+/* An object's AAOBR: its physics tree record, so.h SOTREE (allocated from slotheapSotree), under the broad phase's
+   names: the members are SOTREE's in order, with its bit-field unit read whole (flags: 1 in dlBounds, 2 in dlXp,
+   4/8/0x10 RecalcSwXpAll marks). */
 struct X
 {
-    float min[4];           /* +0x00 */
-    float max[4];           /* +0x10 */
-    char pad20[0x14];
-    DL unknown34List;                /* +0x34 */
-    char pad40[8];
-    X *nextAaobr;          /* +0x48 link in SW::dlAaobr */
-    char pad4C[0xC];
-    X *nextXp;             /* +0x58 link in SW::dlXp */
-    int unknown5C;
-    LOV *object;                /* +0x60 the object */
-    L *pairs;                  /* +0x64 its POX links */
-    void *contactList68;             /* +0x68 XP list */
-    void *contactList6C;             /* +0x6C XP list */
-    unsigned long flags;      /* +0x70 1: in dlBounds, 2: in dlXp, 4/8/0x10: RecalcSwXpAll marks */
+    float min[4];           /* +0x00 boundsMin */
+    float max[4];           /* +0x10 boundsMax */
+    float center[4];        /* +0x20 boundsCenter */
+    float radius;           /* +0x30 boundsRadius */
+    DL unknown34List;       /* +0x34 parts (SOPART::dle) */
+    DLE dleAwake;           /* +0x40 */
+    X *nextAaobr;           /* +0x48 dleAll: link in SW::dlSoTreeAll */
+    X *prevAaobr;
+    DLE dleQueue1;          /* +0x50 */
+    X *nextXp;              /* +0x58 dleQueue2: link in SW::dlSoTree... queue 2 */
+    X *prevXp;
+    SO *object;             /* +0x60 root: the object */
+    L *pairs;               /* +0x64 pxplistFirst: its POX links */
+    void *contactList68;    /* +0x68 pxpFirst */
+    void *contactList6C;    /* +0x6C firstZapContact */
+    unsigned long flags;    /* +0x70 the bit-field unit */
 };
-typedef char assert_X_grf[(unsigned int)&((X *)0)->flags == 0x70 ? 1 : -1];
+typedef char assert_X_grf[SLY2_OFFSETOF(X, flags) == 0x70 ? 1 : -1];   /* EE */
+typedef char assert_X_SOTREE[SLY2_OFFSETOF(X, object) == SLY2_OFFSETOF(SOTREE, root) && SLY2_OFFSETOF(X, nextXp) == SLY2_OFFSETOF(SOTREE, dleQueue2)
+                             && SLY2_OFFSETOF(X, contactList6C) == SLY2_OFFSETOF(SOTREE, firstZapContact) ? 1 : -1];   /* every target */
 /* AAOX (sly2/sw.h SW::aaaox[axis] arrays, caaox entries each): one endpoint of an AAOBR on one axis: 0 = min,
    1 = max; the AAOBR; the coordinate. */
 struct AAOX { int isMax; X *aaobr; float *coordinate; };
@@ -73,10 +77,10 @@ void *AddSoXps(SW *, X *, X *);
 extern "C" X *AddObjectToBroadPhase(SW *world, LOV *object) {
     int axis;
     X *aaobr = (X *)AllocZeroedFromSlotheap(&world->slotheapSotree);
-    InitDl__FP2DLi(&aaobr->unknown34List, 0x60);
+    InitDl__FP2DLi(&aaobr->unknown34List, SLY2_OFFSETOF(SOPART, dle));
     aaobr->object = object;
     AppendDlEntry__FP2DLPv(&world->dlSoTreeAll, aaobr);
-    if (IsEntryInDl__FP2DLPv(&world->busyRoots, object->parent)) AppendDlEntry__FP2DLPv(&world->dlSoTree, aaobr);
+    if (IsEntryInDl__FP2DLPv(&world->busyRoots, object->root)) AppendDlEntry__FP2DLPv(&world->dlSoTree, aaobr);
     for (axis = 0; axis < 3; axis++) {
         AAOX *endpoint = &world->aaaox[axis][world->caaox];
         endpoint->isMax = 0;
@@ -109,7 +113,7 @@ extern "C" void RemoveObjectFromBroadPhase(SW *world, X *aaobr)
         L *otherPair;
         ((SO *)aaobr->object)->OnContactFreed((SO *)pair->object);
         ((SO *)pair->object)->OnContactFreed((SO *)aaobr->object);
-        otherPair = RemoveSwObjectPair(world, pair->object->aaobr, aaobr);
+        otherPair = RemoveSwObjectPair(world, ((X *)pair->object->physicsTree), aaobr);
         if (pair->contacts) {
             if (!((SO *)pair->object)->IsFixed())
                 WakeSo(pair->object);
@@ -337,7 +341,7 @@ extern "C" void RecalcSwXpAll(SW *world)
             touched[numTouched++] = aaobr;
         }
         for (pair = aaobr->pairs; pair; pair = pair->next) {
-            X *otherAaobr = pair->object->aaobr;
+            X *otherAaobr = ((X *)pair->object->physicsTree);
             unsigned long otherFlags = otherAaobr->flags;
             void *oldContacts;
             if (otherFlags & 0x10)
@@ -389,9 +393,9 @@ extern "C" int MaxInt(int a, int b)
 // Also known as: RecalcSwOxfFilterForObject (upstream readable / Sly 1 name; RecalcSwOxfFilterForObject__FP2SWP2SO).
 extern "C" void RefreshSwObjectCollisionFilter(SW *world, LOV *object) {
     X *other;
-    if (object->aaobr) {
+    if (((X *)object->physicsTree)) {
         InvalidateSoAaox((SO *)object);
         for (other = (X *)world->dlSoTreeAll.head; other; other = other->nextAaobr)
-            if (other != object->aaobr) UpdateSwPox(world, object->aaobr, other, 0);
+            if (other != ((X *)object->physicsTree)) UpdateSwPox(world, ((X *)object->physicsTree), other, 0);
     }
 }
