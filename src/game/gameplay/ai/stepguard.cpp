@@ -11,6 +11,7 @@
 // DETECTOR, ANIMBINDING and BHV156 and the TU-private views below.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepguard
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_stepguard
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT */
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/step.h"
@@ -530,6 +531,7 @@ void STEPGUARD::OnProxyRelease(LO *plo)
 
 // 0x206820 RestartStepguard
 namespace M_func_00206820 {
+#if defined(SLY2_EE_LAYOUT)
 struct STEPGUARDIsland; struct REQUEST;
 /* island: the vtable pointer pinned to $3 across the first call (real virtual calls: 2/45 off, request store scheduled after the slot load) */
 struct STEPGUARDIsland { char pad[0xC]; VTE *vt; };
@@ -548,6 +550,21 @@ extern "C" void RestartStepguard(struct STEPGUARDIsland *guard)
     VT(guard, 26, void (*)(void *, int))((char *)guard + guard->vt[26].d, 0);
     VT(guard, 3, void (*)(void *, int, int, int, int **, int))((char *)guard + guard->vt[3].d, 0xE, 0, 1, &request.pointer, 0);
 }
+#else
+struct REQUEST { int value; int *pointer; };
+// Restarts the guard: clear state (slot 27, OnProxyRelease), splice event 0xF, reset to home (slot 26,
+// OnProxyAcquire), splice event 0xE (slot 3, HandleSpliceEvent, one argument: a pointer to a 0 word).
+extern "C" void RestartStepguard(STEPGUARD *guard)
+{
+    struct REQUEST request;
+    request.pointer = &request.value;
+    request.value = 0;
+    guard->OnProxyRelease(0);
+    guard->HandleSpliceEvent(0xF, 0, 1, (void **)&request.pointer, 0);
+    guard->OnProxyAcquire(0);
+    guard->HandleSpliceEvent(0xE, 0, 1, (void **)&request.pointer, 0);
+}
+#endif
 } // namespace M_func_00206820
 
 // 0x2068D8 CompareGuardCandidateDistance
