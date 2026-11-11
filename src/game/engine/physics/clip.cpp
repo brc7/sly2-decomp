@@ -19,10 +19,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 
-/* A clipped segment (0x60): end points, the planes there, the parameters along the edge, its kind and two per-end
-   words (MergeSegmentLists copies params[0]/points[0]/planes[0]/entryData for an entry and the [1] fields/exitData for an exit). */
-struct LSG { qword points[2]; qword planes[2]; float params[2]; int kind; int entryData; int exitData; int pad[3]; };
-typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
+/* A clipped segment (0x60): sly2/lsg.h LSG (MergeSegmentLists copies au / apos / anormal / apsurf [0] for an entry, [1] for an exit). */
+#include "sly2/lsg.h"
+
+
 /* The objects segments are clipped against are SOPARTs (so.h): bounding sphere (transform's world position, radius),
    unknownFlag10B (bit 49 of the unit at +0x10: clip against the sphere) and the part's BSP. */
 
@@ -131,13 +131,13 @@ extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword e
     }
     for (int i = 0; i < 2; i++) {
         float param = params[i];
-        segments->params[i] = param;
+        segments->au[i] = param;
         qword point = Combo(VU_FLOAT(param), end, VU_FLOAT(1.0f - param), start);
         qword normal = VuSubRef(point, center);
-        segments->points[i] = point;
-        InitPlaneFromNormalPos(&segments->planes[i], Normalize(normal), point);
+        segments->apos[i] = point;
+        InitPlaneFromNormalPos(&segments->anormal[i], Normalize(normal), point);
     }
-    segments->kind = 1;
+    segments->lsgk = (LSGK)1;
     return 1;
 }
 
@@ -186,8 +186,8 @@ extern "C" int MergeSegmentLists(int count1, struct LSG *list1, int count2, stru
         struct LSG **cursor;
         struct LSG *current;
         int isInside;
-        param1 = cursors[0] < end1 ? cursors[0]->params[inside1] : 3.40282346638528859812e+38f;
-        param2 = cursors[1] < end2 ? cursors[1]->params[inside2] : 3.40282346638528859812e+38f;
+        param1 = cursors[0] < end1 ? cursors[0]->au[inside1] : 3.40282346638528859812e+38f;
+        param2 = cursors[1] < end2 ? cursors[1]->au[inside2] : 3.40282346638528859812e+38f;
         if (param1 <= param2) {
             wasInsideSpan = inside1;
             inside1 = 1 - wasInsideSpan;
@@ -201,15 +201,15 @@ extern "C" int MergeSegmentLists(int count1, struct LSG *list1, int count2, stru
         current = *cursor;
         if (isInside != wasInside) {
             if (isInside) {
-                out->params[0] = current->params[0];
-                out->points[0] = current->points[0];
-                out->planes[0] = current->planes[0];
-                out->entryData = current->entryData;
+                out->au[0] = current->au[0];
+                out->apos[0] = current->apos[0];
+                out->anormal[0] = current->anormal[0];
+                out->apsurf[0] = current->apsurf[0];
             } else {
-                out->params[1] = current->params[1];
-                out->points[1] = current->points[1];
-                out->planes[1] = current->planes[1];
-                out->exitData = current->exitData;
+                out->au[1] = current->au[1];
+                out->apos[1] = current->apos[1];
+                out->anormal[1] = current->anormal[1];
+                out->apsurf[1] = current->apsurf[1];
                 out++;
                 if (maxSegments < out - scratch) {
                     out--;
@@ -246,10 +246,10 @@ extern "C" void *FindFirstObjectHitByLine(int flags, qword start, qword end, int
         void *object = objects[i];
         int count = ClipEdgeToObject((SOPART *)object, start, end, 2, segments);
         int first = 0;
-        if (count > 0 && segments[0].params[0] == 0.0f && (flags & 1))
+        if (count > 0 && segments[0].au[0] == 0.0f && (flags & 1))
             first = 1;
-        if (first < count && segments[first].params[0] < bestParam) {
-            bestParam = segments[first].params[0];
+        if (first < count && segments[first].au[0] < bestParam) {
+            bestParam = segments[first].au[0];
             bestObject = object;
             if (hitSegment)
                 *hitSegment = segments[first];

@@ -67,17 +67,17 @@ struct VU_QWORD
     qword qw;
     VU_QWORD() __asm__("InitVuTemp");
 };
-struct LSG
-{
-      qword apos[2];
-      qword anormal[2];
-      float au[2];
-      LSGK lsgk;
-      SURF *apsurf[2];
-      EDGE *pedge;
-      int iiposSwap;
-      LSG *plsgNext;
-};
+#include "sly2/lsg.h"   /* LSG */
+
+
+
+
+
+
+
+
+
+
 struct CEB
 {
       BSP *pbsp;
