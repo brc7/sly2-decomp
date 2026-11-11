@@ -79,7 +79,7 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
     for (i = 0; i < count; i++) {
         SWALLOC msg;
         IKREC *ikRecord;
-        msg.cb = 0xE0;
+        msg.cb = sizeof(IKREC);
         msg.cbAlign = 0x10;
         ikRecord = (IKREC *)AllocClearedFromWorldHeap(&msg);
         ikRecord->pxfUpper = (XF *)ReadObjectReference(so, stream);
