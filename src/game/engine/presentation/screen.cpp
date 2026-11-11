@@ -459,7 +459,7 @@ enum NoticeState { NOTICE_HIDDEN, NOTICE_APPEARING, NOTICE_SHOWN, NOTICE_HIDING,
 namespace M_PostHudMeterLoad {
 typedef STEPPLAYER Q;   /* the hero (stepplayer.h) */
 #define HERO(p) ((p)->hero)
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 int IsBasicDerivedFrom__FP5BASIC3CID(Q *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int GetStepplayerMp(Q *) __asm__("GetStepplayerMp");
 void PlayWidgetAnim(WIDGET *, int) __asm__("PlayWidgetAnim");
@@ -1412,7 +1412,7 @@ void IncrementSwHandsOff(void *, int) __asm__("IncrementSwHandsOff");
 void DecrementSwHandsOff(void *, int) __asm__("DecrementSwHandsOff");
 void SelectGadgetMenuItem(GADGETMENU *, int) __asm__("SelectGadgetMenuItem");
 void SetScreenMode(GADGETMENU *, int, int) __asm__("SetScreenMode");
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(void *, int, int, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 extern "C" { void SetGadgetMenuState(GADGETMENU *p, int s); }
 // Opens or closes the gadget menu: opening freezes the clock, takes player control and shows the hero's page; closing
 // restores them.
@@ -2662,7 +2662,7 @@ void SetMcDialogPhase(void *, int) __asm__("SetMcDialogPhase");
 void StartGameFromSave(void *) __asm__("StartGameFromSave");
 void StartNewGame(TITLE *) __asm__("StartNewGame");
 int CountRegionLanguages(void) __asm__("CountRegionLanguages");
-void *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, int) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSwObject__FP2SWi3OIDP2LO(SW *, int, int, LO *ploContext) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void GetRegionLanguages(int *, int **) __asm__("GetRegionLanguages");
 void *func_002333B4(void *, int, int) __asm__("memset");
 void PushPauseMenuPage(void *, int, ITEM *, void *, void *) __asm__("PushPauseMenuPage");

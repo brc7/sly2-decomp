@@ -91,7 +91,7 @@ float D_002F6468, D_002F646C;
 ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *world, int a, int b, int c);
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *world, int a, int b, LO *c);
 void ScreenSlot9Default(PAUSEMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void ShowScreen(void);

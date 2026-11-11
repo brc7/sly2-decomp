@@ -4325,7 +4325,7 @@ void StopAnimBinding(ANIMBINDING *c) __asm__("StopAnimBinding");
 void StartAnimBinding(ANIMBINDING *c, STEPGUARD *a, int fl, float g) __asm__("StartAnimBinding");
 float *FindAsegLabel(void *p, void *q) __asm__("FindAsegLabel");
 void SeekAsega(void *p, float a, float b, int n) __asm__("SeekAsega");
-struct O *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, int c) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+struct O *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, LO *c) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(STEPGUARD *a) __asm__("GetLoWorldPos");
 void NewNoise(void *p, qword v, STEPGUARD *a) __asm__("NewNoise");

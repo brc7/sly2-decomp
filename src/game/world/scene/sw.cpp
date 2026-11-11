@@ -929,7 +929,7 @@ extern "C" void LoadSwSharedDataFromBrx(void *world, void *q)
 namespace M_func_0020F710 {
 extern int D_002C3E70[4] __asm__("D_002C3E70");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, int context) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+WIDGET *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int grffso, int oid, LO *context) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void SetWidgetXf(WIDGET *widget, SPRITEXF *pxf) __asm__("SetWidgetXf");
 int CountCollectedClues(void) __asm__("CountCollectedClues");
 int GetMaxClueCount(void) __asm__("GetMaxClueCount");

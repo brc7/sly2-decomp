@@ -1084,7 +1084,7 @@ extern "C" void LaunchSprayedDprize(DPRIZE *prize, qword q1, qword q2, float f1,
 } // namespace M_LaunchSprayedDprize
 
 namespace M_PdprizeNewSpray {
-void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, LO *b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 DPRIZE *AcquireProxyObject(void *pg, int n) __asm__("AcquireProxyObject");
 void LockProxyObject(void *pg, DPRIZE *plo) __asm__("LockProxyObject");
 // make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject). (inferred)

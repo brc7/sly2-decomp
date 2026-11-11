@@ -65,7 +65,7 @@ extern "C++" { void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g) __asm
 void UpdateJtModeHud(JTMODEHUD *phud);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
 void InitReconSel(int *psel, JTMODE *pjtmode);
-void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int oid, int z);
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int oid, LO *z);
 void PostReconSelLoad(void *p);
 void SetJtModeHudOverride(JTMODEHUD *phud, WIDGET *pwidget);
 void GatherJtModeHudTags(JTMODEHUD *phud);

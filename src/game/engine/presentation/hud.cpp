@@ -537,7 +537,7 @@ extern "C" void AddItemCounterOidB(WIDGET129 *widget, int oid)
 
 // 0x211EC0 PostLoadItemCounterWidget
 namespace M_func_00211EC0 {
-void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, int z) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int id, LO *z) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 } // namespace M_func_00211EC0
 // Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
 void WIDGET129::PostLoad()

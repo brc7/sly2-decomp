@@ -1902,7 +1902,7 @@ void StopDialog(SNDMGR *, int) __asm__("StopDialog");
 SNDSTREAM *FindDialogStream(SNDMGR *, int) __asm__("FindDialogStream");
 STREAMSND *PstreamsndNew(FILEREC *, int) __asm__("PstreamsndNew");
 void SetSubtitle(void *, int, int) __asm__("SetSubtitle");
-BASIC *FindSwObjectByClass__FP2SWi3CIDP2LO(SW *, int, int, int) __asm__("FindSwObjectByClass__FP2SWi3CIDP2LO");
+BASIC *FindSwObjectByClass__FP2SWi3CIDP2LO(SW *, int, int, LO *ploContext) __asm__("FindSwObjectByClass__FP2SWi3CIDP2LO");
 int GetDialogRoleSmOid(SNDMGR *, int) __asm__("GetDialogRoleSmOid");
 BASIC *FindLiveSma(BASIC *, int) __asm__("FindLiveSma");
 

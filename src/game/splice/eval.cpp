@@ -3,6 +3,7 @@
 // TU 0x126438..0x127B18 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_eval
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_eval
+#include "sly2/port.h"
 #include "sly2/pair.h"
 #include "sly2/sw.h"
 #include "sly2/cframe.h"
@@ -525,6 +526,19 @@ CRef EvalExpression(CPair *expr, CFrame *frame)
     }
     }
 }
+#if defined(SLY2_EE_LAYOUT)
+/* (EE callers that pass the result pointer by hand reach EvalExpression itself: sly2/port.h SLY2_SRET_LABEL) */
+#else
+/* SLY2_SRET_LABEL's adapter for basic.cpp, which passes the result's hidden pointer by hand into uninitialised
+   CRefData storage: the reference moves into *out. */
+extern "C" CRefData *EvalExpressionInto(CRefData *out, CPair *expr, CFrame *frame)
+{
+    CRef ref = EvalExpression(expr, frame);
+    *out = ref;
+    ref.m_tagk = -1;   /* nil: ~CRef releases nothing */
+    return out;
+}
+#endif
 
 /* The frame and proc pools' GC members are CGcObj<CFrame>'s and CGcObj<CProc>'s (sly2/gc.h), the frame destructor
    (0x257078) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by splice/gc.cpp. */

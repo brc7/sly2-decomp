@@ -670,7 +670,7 @@ extern "C" float D_002BF4B8;
 extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
-extern "C" int FindSwObjectByClass__FP2SWi3CIDP2LO(SW*,int,int,ATTACKOBJ*);
+extern "C" LO *FindSwObjectByClass__FP2SWi3CIDP2LO(SW*,int,int,ATTACKOBJ*);
 extern "C" float NormalizeAngle__Ff(float);
 struct VU_FLOAT{qword qw;};
 // Move a float's bits into a GPR qword (mfc1).
@@ -690,7 +690,7 @@ static inline void*GetFrame(ATTACKOBJ*p,M4*out){return ((LO*)p)->GetLocalTransfo
 // Absolute value of f.
 static inline float AbsF(const float &f){return __builtin_fabsf(f);}
 // Find the world's object of class 0x33 (search mode 3) after n.
-static inline int IsBonus(ATTACKOBJ*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&g_sw,3,0x33,n);}
+static inline LO *IsBonus(ATTACKOBJ*const &n){return FindSwObjectByClass__FP2SWi3CIDP2LO(&g_sw,3,0x33,n);}
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
 // Also known as: ChooseAttackTarget (upstream readable / Sly 1 name;

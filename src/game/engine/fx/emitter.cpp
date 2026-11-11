@@ -264,7 +264,7 @@ void PostSwCallback(void *pg, EMITTER *p, long k, int n) __asm__("PostSwCallback
 float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
 void PauseEmitterIndefinite__FP7EMITTER(EMITTER *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void PauseEmitter__FP7EMITTERf(EMITTER *p, float g) __asm__("PauseEmitter__FP7EMITTERf");
-EMITTER *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+EMITTER *FindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, LO *n) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 EMITTER *CreateLo__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n) __asm__("CreateLo__F3CIDP2SO3OIDi");
 void *AllocCopyFromWorldHeap(struct ALLOCREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");
 void SetLoBusyKind(EMITTER *p, int n) __asm__("SetLoBusyKind");

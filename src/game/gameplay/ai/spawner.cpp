@@ -79,7 +79,7 @@ void *AllocClearedFromStack(AI *pa);
 void *AllocFromStack(AI *pa);
 void *AllocCopyFromWorldHeap(AI *pa, void *pv);
 void *AllocClearedFromWorldHeap(AI *pa);
-void *FindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
+void *FindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, LO *c);
 void AddGuardScriptFollowPath(CID113 *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pcObject, SOPART ***papObject);

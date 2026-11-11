@@ -7,6 +7,7 @@
 // SendLoMessage / SubscribeLoObject, ScheduleSwSpliceCallback, the EnsureLoSidebag* option setters.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_basic
+#include "sly2/port.h"
 #include "sly2/slotheap.h"
 #include "sly2/cref.h"
 #include "sly2/clock.h"
@@ -64,7 +65,8 @@ CRefData *CRef_SetPair(CRefData *pref, CPAIR *pn);
 void CRef_SetSymid(CRefData *pref, int n);
 void CRef_SetBasic(CRefData *pref, BASIC *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
-void EvalExpression__FP5CPairP6CFrame(CRefData *pref, CPAIR *pair, CFrame *frame);
+void EvalExpression__FP5CPairP6CFrame(CRefData *pref, CPAIR *pair, CFrame *frame)
+    SLY2_SRET_LABEL("EvalExpression__FP5CPairP6CFrame", "EvalExpressionInto");
 void CRefAssign(CRefData *pref, CRefData *prefFrom) __asm__("__as__4CRefRC4CRef");   /* CRef::operator= */
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
