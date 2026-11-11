@@ -24,6 +24,11 @@
 #include "sly2/clock.h"
 #include "sly2/joy.h"
 #include "sly2/vtables.h"
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT */
+#if defined(SLY2_EE_LAYOUT)
+#else
+#include "sly2/so.h"   /* SO::GetCpdefi; the EE build calls it by hand (including so.h here renumbers s_rgba below) */
+#endif
 
 /* g_cm: the camera, constructed by CM_ctor and destroyed by ~CM (_$_2CM, defined at the end of the file). */
 CM g_cm;
@@ -76,8 +81,10 @@ void SetupCm(CM *pcm)
 }
 
 namespace M_UpdateCmLast__FP2CM {
+#if defined(SLY2_EE_LAYOUT)
 /* The focus SO's vtable, called by hand (slot 50, GetCpdefi; so.h is not included here). */
 struct O { int pad[3]; VTE *vt; };
+#endif
 extern int g_grfjoyt __asm__("g_grfjoyt");
 extern JOY D_002E0D00 __asm__("D_002E0D00");
 extern char D_002BD810[] __asm__("D_002BD810");
@@ -104,8 +111,12 @@ extern "C" void UpdateCmLast__FP2CM(CM *cm)
             if (focus) {
                 cpdefi = &cm->cpdefi;
                 if (focus != lastFocus) {
+#if defined(SLY2_EE_LAYOUT)
                     VTE *e = &((struct O *)focus)->vt[50];   /* SO::GetCpdefi; so.h is not included this early (it renumbers s_rgba below) */
                     ((void (*)(void *, ...))e->pfn)((char *)focus + e->d, cpdefi);
+#else
+                    focus->GetCpdefi(cpdefi);
+#endif
                     if (lastUpdated || focus != cm->focus)
                         ResetCmAdjust(cm, cpdefi);
                     AdjustCmCpdefi(cm, focus, cpdefi);
@@ -809,19 +820,28 @@ extern "C" void ResetCmAdjust(CM *pcm)
 namespace M_GetCmCpdefi {
 typedef int qword __attribute__((mode(TI)));
 
+#if defined(SLY2_EE_LAYOUT)
 struct O { int pad[3]; VTE *vt; };
+#else
+typedef SO O;
+#endif
 qword CalcCmAdjust(CM *p, CPDEFI *ps) __asm__("CalcCmAdjust");
 // If pso == focus(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and adjustedPosition = basePosition +
 // CalcCmAdjust.
 // Also known as: GetCmCpdefi (upstream readable / Sly 1 name; GetCmCpdefi__FP2CMP2SOP6CPDEFI).
-extern "C" void GetCmCpdefi(CM *p, struct O *po, CPDEFI *ps)
+extern "C" void GetCmCpdefi(CM *p, O *po, CPDEFI *ps)
 {
     if ((SO *)po == p->focus) {
         *ps = p->cpdefi;
     } else {
+#if defined(SLY2_EE_LAYOUT)
         VTE *e = &po->vt[50];   /* SO::GetCpdefi by hand: so.h cannot be included here (header clash) */
         qword q, r;
         ((void (*)(void *, CPDEFI *))e->pfn)((char *)po + e->d, ps);
+#else
+        qword q, r;
+        po->GetCpdefi(ps);
+#endif
         q = CalcCmAdjust(p, ps);
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(*(qword *)&ps->basePosition), "j"(q));
         *(qword *)&ps->adjustedPosition = r;
