@@ -238,6 +238,29 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   `(ACKEYF *)(i * (int)sizeof(ACKEYF) + (sptr)t->akey)` (`&t->akey[i]` changes the code), ProjectJtVelocityOnContacts'
   cursor and row address are `uptr`, guardscript.cpp's StartGuardScript (LO *, CID113 *) and GetBhvScriptTargetPose /
   GetGuardScriptTargetPose (LO *target, qword *posOut, float *headingOut).
+  Done in v1.21 (every change byte-identical): glob.cpp RenderSoGlobset and BuildModelDrawPackets on so.h's GLOBSET,
+  GLOB, SUBGLOB, glob.h's SUBGLOBX, BND, wr.h's WRBG and the owner SO (the model cull's range at the owner's +0x38
+  is LO::busyRadius; GLOBSET::boundsCenterq is the centre as one quadword; the skin's warp matrices are its WR's
+  warpMatrices / uvMatrices, the first still by byte offset, now SLY2_OFFSETOF(WR, warpMatrices)); 432 of the 452
+  per-namespace signed `typedef int qword` removed (basic.h's unsigned qword applies; the 20 left change the code:
+  memory, geom, path, blend, mat, vec, so (4), shape (4), rip (2), act (2), bez, bis); SENSOR / LASEN members (with
+  LASENCAP), LEAP's fields and SOTREE::grf declared; dzg.cpp, sensor.cpp and solve.cpp read contacts as xp.h's XP
+  (XPS::psoRoot is the side's object at +0x08; xp.h aliases sBeam and gLimitMin / gLimitMax over the feature
+  pointers); sly2/frm.h FRM for frm.cpp, draw.cpp (FRM::drawChain) and phasemem.cpp (the buffers and the DL
+  members); hw.h SLY2_CACHED(a) (hud.cpp's six render-list call folds and its packet bounds) and SLY2_VU_ADDR(pv)
+  (hud.cpp Mscal, VIFS::AddVifMscal); spawner.cpp / detector.cpp take IntersectSwBoundingBox's result as
+  `int objectCount, SOPART **objects`; sly2/lsg.h's LSG for bsp.cpp and clip.cpp (clip.cpp's copy had ints where
+  the surface / edge / link pointers are, so natively MergeSegmentLists read ClipSegmentBsp's spans at the wrong
+  offsets: the port's SnapToGround miss); the view tool's probe now inventories files with #line pins (hud,
+  robottank, grab, rip, stepguard, stepplayer, critter, so, solve) and a second tool run rewrote 94 more views in
+  39 files. air.cpp's CONTEXT `tracks[i]`: the header is right (JTAIRBL is {weight, animation, word}; abl[0].weight
+  is the scripted clip's gain); the view's 12-byte window starts 8 bytes into abl[0], so each track's weight is
+  abl[i + 1].weight, which the tool cannot map (an index shift); a hand edit.
+  Still open after v1.21: xp.h is not included from so.h yet (gadget, robottank, bentley, hurt, jt, jtgoal and
+  places.cpp define their own file-scope contact views); step.cpp AddStepAxisXps' local SO; cm.cpp SetCmVisZone's
+  `+0xE0` (CID5::grfvis; classes.h still renumbers s_rgba: CID5 needs a narrower header, CID5 : XFM); POSE / RENDER;
+  prog.cpp's own FRM view; the header pads in GRABSPOT users (HND, PIPE, RAIL), CID96 (critter.cpp), JSG
+  (robottank.cpp) and JOY (grab.cpp) that the fuller inventory now reports.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks

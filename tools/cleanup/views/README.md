@@ -34,7 +34,8 @@ objcmp). Its objects are compiled once per file and cached (`--cache`, default `
 
 - **Layouts come from the compiler.** For the views, a probe copy of the TU (`.viewprobe_<name>`, written next to
   it and removed afterwards) appends `SLY2_OFFSETOF` / `sizeof` initialisers for every member of every
-  namespace-scope struct and is compiled with ee-gcc. For the headers, census/dump_offsets.py does the same. No
+  namespace-scope struct and is compiled with ee-gcc. Only errors on the appended probe lines count as failed probes (the TU's own warnings
+  and lines of TUs with `#line` pins name the probe copy or the TU, not the probe lines). For the headers, census/dump_offsets.py does the same. No
   size table is involved. Structs defined inside function bodies cannot be probed, so they are counted but not
   inventoried.
 - **Candidates:** structs with a pad member, a header-class base, a vptr word at +0xC, a header class's name (or
