@@ -79,7 +79,10 @@ def probe_layouts(rel, recs, root):
             if ok:
                 break
             bad = set()
-            for m in re.finditer(r'^[^:\n]*viewprobe_[^:\n]*:(\d+):', err, re.M):
+            # only the probe lines' own errors: the TU's warnings are reported under the probe copy's file name
+            # (.viewprobe_<name>), and a TU with #line pins names itself, so matching any 'viewprobe_' line used to
+            # drop every probe of such a file (hud, robottank, grab, rip, stepguard, stepplayer, critter, so, solve)
+            for m in re.finditer(r'^(?:[^:\n]*/)?viewprobe_lines:(\d+):(?! warning)', err, re.M):
                 ln = int(m.group(1)) - base_line
                 if 0 <= ln < len(alive):
                     bad.add(alive[ln])

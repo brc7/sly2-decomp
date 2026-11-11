@@ -11,7 +11,7 @@ from common import strip_comments, match_brace
 HEAD_STRUCT = re.compile(r'(?:^|[\s;{}])(typedef\s+)?(struct|class|union)\s*(\w*)\s*(:\s*[^{;()]*)?$', re.S)
 HEAD_NS = re.compile(r'(?:^|[\s;{}])namespace\s*(\w*)\s*$')
 HEAD_EXTERN = re.compile(r'(?:^|[\s;{}])extern\s*"\s*"\s*$')
-PAD_NAME = re.compile(r'^(_?pad|unk(?!nown)|_+\d|p[0-9A-Fa-f]+$|filler|gap|data$|raw$|reserved)', re.I)
+PAD_NAME = re.compile(r'^(_?pad|unk(?!nown)|_+\d|p\d[0-9A-Fa-f]*$|filler|gap|data$|raw$|reserved)', re.I)
 
 
 def _stmt_start(t, i):
@@ -165,7 +165,8 @@ def members(body, prefix=()):
 
 
 def is_pad(m):
-    return bool(PAD_NAME.match(m['name'])) and (m['type'] in ('char', 'unsigned char', 'uchar', 'u8', 'byte', 'int',
+    # pointers are never pads (`char *pb` is a GLOB's chain pointer, not a pad named in hex)
+    return bool(PAD_NAME.match(m['name'])) and not m.get('ptr') and (m['type'] in ('char', 'unsigned char', 'uchar', 'u8', 'byte', 'int',
                                                             'uint', 'undefined1', 'undefined4', 'u32', 'u_char')
                                                  or m['name'].lower().startswith('pad'))
 
