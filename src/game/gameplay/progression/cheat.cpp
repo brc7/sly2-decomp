@@ -83,15 +83,14 @@ int GetGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
 void RefreshPlayersAfterPowerupChange(void *psw);
 void ResetCheatCodeProgress(CODES *codes);
-int AddCode(CODES *codes, CODE *pcode);
+void AddCode(CODES *codes, CODE *pcode);
 }
 
 // Adds a code to the list unless it is already there, and starts its match position at 1 if the button currently
 // held is already its first button (else 0).
-extern "C" int AddCode(CODES *codes, CODE *pcode)
+extern "C" void AddCode(CODES *codes, CODE *pcode)
 {
-    int r = IsEntryInSl(codes, pcode);
-    if (r) return r;
+    if (IsEntryInSl(codes, pcode)) return;
     AppendSlEntry(codes, pcode);
     if (*pcode->buttons == (*(int *)&g_joy.buttonsHeld)) pcode->numMatched = 1;
     else pcode->numMatched = 0;
