@@ -10,7 +10,10 @@ SW_ctor slot sizes, Init list-link offsets, pointer-array and record sizes, size
 path, heap bounds and SLY2_OFFSETOF as hooks, level-load records with their real layouts, then (v1.13) the option
 table offsets, class-descriptor sizes, LO's tagged update word, the ik/pipe_jt/gait views, SLY2_EE_LAYOUT with the
 colour-table and bitmap file records, and breakable's pointer-wide action records; (v1.14) C fallbacks for the VU0 asm
-on the load path (section 2) and pointer types for three object-reference option members.
+on the load path (section 2) and pointer types for three object-reference option members; (v1.15, driven by the port's
+Paris boot and its heap-guard run) the SNIP tables and their target members, load-path allocation sizes, real types for
+the CloneLo / screenfade / vis / hud / bbmark / memcard-dialog views, LO's tagged word read pointer-wide everywhere on
+the load path (section 3 lists what is left).
 
 ## 1. Guards and hooks
 
@@ -22,6 +25,10 @@ on the load path (section 2) and pointer types for three object-reference option
 | `SLY2_OFFSETOF(T, m)` (sly2/basic.h) | `((int)(char *)&((T *)0)->m)` | define first, e.g. `((int)__builtin_offsetof(T, m))` | layout asserts, list-link offsets, g_aeopid's `EOPID_OFF` |
 | `SLY2_STORE_VPTR_AT`, `SLY2_SET_VPTR`, `SLY2_SET_VPTR_AT`, `SLY2_STORE_VPTR`, `SLY2_VTBL` (sly2/vtables.h) | word store of `_vt$<n><CLASS>` at +0xC (BASIC), +0x18 (ACT), +0x30 (CBinaryInputStream), +0xEC (RIP), 0 | override `SLY2_STORE_VPTR_AT` alone (vptr first in the Itanium ABI), or let the constructors become real ones | `grep -rln 'SLY2_SET_VPTR\|SLY2_STORE_VPTR' src` (24 files) |
 | `SLY2_HW_*`, `SLY2_UNCACHED`, `SLY2_UNCACHED_ACCEL`, `SLY2_HW_OVERRIDE` (sly2/hw.h) | the PS2 addresses as integer constants (scratchpad 0x70000000, GS/DMA/VIF registers, uncached mirrors) | define the ones it emulates first, in the header named by `-DSLY2_HW_OVERRIDE='"port_hw.h"'` | gs.cpp, sprbuf.cpp, sw.cpp, hud.cpp, glob.cpp, mpeg.cpp |
+| `MCJOBARG`, `MCJOBCONST` (sly2/save.h) | `long`: the callers load an MCJOBPMF constant into one 64-bit register through the packed union (ldl / ldr) | `MCJOBPMF`: the record itself, by value | memcard.cpp's CreateMemcardThread callers; the constants are defined as MCJOBPMF |
+| `SLY2_SSGE_SLOT_CB` (sly2/guard.h) | `0x1c`, the original's request (the 0x10-rounded slot holds SSGE's last word) | `sizeof(SSGE)` | sw.cpp SW_ctor |
+| `SLY2_ACT_SLOT_CB` (sly2/act.h) | the largest ACT kind's sizeof (0x80, ACT2) | the same expression | sw.cpp SW_ctor (not a guard: free) |
+| lo.cpp `LOFLAGS` (under `SLY2_EE_LAYOUT`) | CloneLo copies LO's four flag bit-fields through an int / uint bit-field view of the unit at +0x28 | copies lo.h's fields | lo.cpp CloneLo |
 | `SLY2_HEAP_BEGIN`, `SLY2_HEAP_END` (platform/memory/memory.cpp) | the end of the program image (`D_0047220F`) and the top of the 32 MB RAM (0x02000000) | a static buffer's bounds | memory.cpp StartupMemMgr |
 | `CStreamBisStorage` (sly2/streambis.h) | room for a CStreamBis without g++'s implicit constructor; the callers call `CStreamBis_ctor` / `_$_10CStreamBis` themselves | provide those two C entry points (or override the two declarations); sizes follow `sizeof(CStreamBis)` | sw.cpp, hud.cpp (the class itself: brx_sw.cpp, memcard.cpp) |
 | EE layout asserts (the `typedef char assert_...[cond ? 1 : -1]` lines) | compile-time checks of the EE offsets and sizes | not true on a 64-bit host: the port rewrites them into a non-failing sink (its own generator) | every sly2/ header, many TUs |
@@ -51,9 +58,18 @@ Why the matching form cannot be the portable one:
 - **vptr stores**: constructors written as C functions (for asm labels, views or call order) store the vtable
   themselves; g++ 2.95 puts the vptr after the first base's data, the Itanium ABI first.
 - **LO's tagged update word** (LO+0x40, `unknown40` / `ploupd`): either an LOUPD pointer or the flags with bit 0 set.
-  Readers take it as `uptr` through `LO::ploupd` and write the flags through `LOUPD::grf` or `LO::unknown40`; LO's own
-  `int unknown40` stays (making it unsigned would change sign extensions elsewhere). On a little-endian host the low
-  word holds the tag.
+  Readers take it as `uptr` (or `sptr` where the matched local was `int`) through `LO::ploupd` and write the flags
+  through `LOUPD::grf` or `LO::unknown40`; LO's own `int unknown40` stays (making it unsigned would change sign
+  extensions elsewhere). On a little-endian host the low word holds the tag. lo.h includes sly2/port.h and defines
+  LOUPD (sw.h has the same definition under the same guard). v1.15 rewrote every remaining `int v = x->unknown40;
+  ... *(int *)v` copy (tools: a scratch rewriter, line-local); left: so.cpp SetSoGrfBit8 (register-pinned asm).
+- **Bit-field copies** (CloneLo): lo.h declares LO's flag bit-fields `long` / `ulong`; g++ 2.95 folds a copy between
+  same-position fields of that type into and/or masks, where the original (int / uint fields) extracts and reinserts.
+  Casts do not change it, so the EE copies go through a local int-typed view under `SLY2_EE_LAYOUT`. Single-bit reads
+  that the original extracts (`isInWorld`) match with `(int)x & 1`.
+- **Wider native records in EE-sized storage**: static storage and allocations sized from sizeof (the memcard dialog
+  storage from SCREEN, the slot heaps, the heap-guard sites); where the EE asks for less than sizeof (SSGE) the literal
+  stays behind a guard.
 
 ## 2. VU0 fallbacks
 
@@ -111,25 +127,35 @@ GSB as `GSB *` and passes it to UploadPermShaders as such, and the SAA table is 
 
 From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
 
-- **g_aeopid**: 222 member offsets (unique class/offset) stay `EOPID_INT`: they fall inside class pads (the `char pad...[]`
-  blocks in sly2/classes.h: JSG, BOMB, TURRET, CID96, CID46, CID121, CID112, CID105, MISSILE, LASEN, BOOTY, CID37...) or point
+- **g_aeopid**: about 220 member offsets (unique class/offset) stay `EOPID_INT`: they fall inside class pads (the `char pad...[]`
+  blocks in sly2/classes.h: JSG, BOMB, TURRET, CID96, CID46, CID121, CID112, CID105, LASEN, BOOTY...; v1.15 declared BOMB / MISSILE / ACCMISS / CID82 / CID37 / CID45 / CID5 and
+  the DLE links of CID9 / CID40 / CID23) or point
   into TU-private types (CPD in tn.cpp, BOOTYE in booty.cpp, AMBSND in amb.cpp, SFX/SFXHOLDER and EMITTERV in
   emitter.cpp) or at the interior pointers emitter.h's accessors return. Object-reference options (otyp 0x20NN: a pointer to a
-  CID NN object, which PostLoadOidField stores) whose header member is not a pointer: JOB::stateRequester and
-  TASK::stateRequester (the value travels as an `int requester` through RequestTaskState / ForceTaskState and
-  game.cpp's StateSourceScope, so the retype is a signature change across game.cpp) and NEELA::giveUpBinding.oid
-  (ANIMBINDING is shared: its `oid` needs a union with the ASEG pointer). v1.14 typed STEPGUARD::noiseType
-  (`CID117 *`), STEPPLAYER::jtair.unknown160 (`LO *`) and GRABSPOT::ploGroup (was nGroup, `LO *`).
+  CID NN object, which PostLoadOidField stores): v1.14 typed STEPGUARD::noiseType, STEPPLAYER::jtair.unknown160 and
+  GRABSPOT::ploGroup; v1.15 JOB / TASK::stateRequester (`LO *`, through RequestTaskState / ForceTaskState and
+  StateSourceScope) and NEELA's option 971 (giveUpBinding.aseg, the pointer half of ANIMBINDING's union).
   The OwnFields accessors (GetPipeOwnFields and the like) return `p + sizeof(Base)`; natively they should be `static_cast<GRABSPOT *>(p)`.
-- **Literal sizes**: SW_ctor heaps not yet sizeof (Event/Callback 0x14, Refnode 0xC, Xplist/Xp 0xC0, Act 0x80, Ssge, Jsg,
-  Xfh, Leap, Diract, Blip 0x10C0, the blip splines) and about 15 SW_ctor list offsets, slotheap.h
-  engine/Splice pools, the post-load pool, hud sprite records, PATHZONE dlRegent, DIALOGEVENT, BOOTYE 0x2C.
-- **Dangerous views**: water.cpp SOW (a flat SO/WATER view with hand vtable calls through `VE`; the 64-bit word at
+- **Literal sizes**: SW_ctor heaps without a type yet (Event/Callback 0x14, Refnode 0xC, Xplist 0x14 (so.h's XPLIST is
+  0x10), Xp 0xC0, Jsg 0xF0, Xfh 0x30, Leap 0x40, Diract 0xD0, Blip 0x10C0, the blip splines) and the list offsets of
+  classes without a header or a link member (dlCid11 / dlCid13 0x1B4, dlCid88 0x174, dlCid47 0x104 (CID47's key sits
+  there), dlTargetrec 0x20, dlCid98 0x174, dlCid14Free / Pending 0x1D0 / 0x1E0, the SL offsets), slotheap.h
+  engine/Splice pools, the post-load pool, PATHZONE dlRegent, DIALOGEVENT, BOOTYE 0x2C, aseg.cpp's kind-1 box origin
+  (0x20), save.cpp's SVENT (cent * 10), the heap-guard sites outside the named functions (sly2+0x523381 / 0x542fc1 /
+  0x5b92c5 in the port's log). The SNIP tables (BindLoOidTable) are done except murray's row at 0x1854, slot 1 of
+  the untyped ASEG arc record MURRAY::unknown1850.
+- **SHD header read**: LoadShdFromBrx reads the first 0x18 bytes of the level's shader record straight into SHD
+  (file-record pattern, not under SLY2_EE_LAYOUT yet).
+- **Dangerous views** (still open after v1.15; the boot-2 list adds shape.cpp's ten SHAPE views, cnvo.cpp CID14V,
+  breakable.cpp's TRIG / XPC / L / XPO, xf.cpp's UpdateSoXfWorldHierarchy O / S and UnsettleXfSlot B, ik.cpp A /
+  FRAME / XF_REF, launcher.cpp CID112, prize.cpp AddLootEntryObject ALARM / SENSORS, jt.cpp PostJtLoad's flat F(T, o)
+  stores; the OwnFields accessors and grabspot.cpp's InitGrabspot(&x->ptn) need `static_cast<GRABSPOT *>`, whose null
+  test changes the linkonce copies): water.cpp SOW (a flat SO/WATER view with hand vtable calls through `VE`; the 64-bit word at
   +0x148 has no single member) and rip.cpp `M_ProjectRipTransform::S` (a RIP view: different pointer slots before
   +0x40, local M3/PHYS types over RIPM3 and the motion record, asm with literal offsets). Other flat views with
-  void * pads (BLIPGV, BOOTYV, FADEV, TRAIL, SOV, LASENV) only read LO's tagged word through LO now; their other
-  fields are still at EE offsets.
-- **glob.cpp**: DMA chains keep 32-bit EE addresses: CopyRelocateDmaChain adds an `int` delta to REF tags' address
+  void * pads (BLIPGV, BOOTYV, TRAIL, SOV, LASENV) only read LO's tagged word through LO now; their other fields are
+  still at EE offsets. FADEV derives from LO since v1.15.
+- **glob.cpp**: address arithmetic is `uptr` since v1.15; DMA chains keep 32-bit EE addresses: CopyRelocateDmaChain adds an `int` delta to REF tags' address
   words, and the shader packet tags pack `(ulong)(int)pshd->pbPacket << 32`. A native build needs an address model
   for chains (offsets from a heap base, or an emulated 4 GB EE address space) before its DMA/VIF interpreter can
   follow them; not a decomp-side change.
