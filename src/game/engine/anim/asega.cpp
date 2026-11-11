@@ -44,7 +44,7 @@ struct G { ASEGA *p; };
 
 extern "C" {
 
-void FramePtr_Assign(ASEGA *p, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+void FramePtr_Assign(CRefPtr<CFrame> *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void UnsubscribeLoAll(ASEGA *p);
 void RcPtr_Assign(CRefPtr<SND> *pref, int n);
 void SendLoMessage(ASEGA *p, int msg, ASEGA *player);
@@ -115,7 +115,7 @@ extern "C" void DecrefAsega(ASEGA *player)
     cref = player->cref - 1;
     player->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(player, 0);
+        FramePtr_Assign(&player->scriptFrame, 0);
         AssignSidebagRef((struct R4 **)&player->scriptVariables, 0);
         UnsubscribeLoAll(player);
         FreeSlotheapSlot(&g_sw.slotheapAsega, player);

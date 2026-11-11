@@ -41,7 +41,7 @@ extern float D_002BDD18;
 extern "C" {
 void InitLo(CID117 *object);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void FramePtr_Assign(CID147 *, void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+void FramePtr_Assign(CRefPtr<CFrame> *, void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *pointer, int value);
 void UnsubscribeLoAll(CID147 *noise);
 int IsWithinLimits__FP2LMf(void *object, float z);
@@ -109,7 +109,7 @@ extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outN
     AppendDlEntry(&g_sw.dlStimulus, noise);
     noise->AddRef();
     Lock lock(noise);
-    FramePtr_Assign(noise, type->scriptFrame.m_p);
+    FramePtr_Assign(&noise->scriptFrame, type->scriptFrame.m_p);
     if (outNoise) *outNoise = noise;
     noise->HandleSpliceEvent(2, 0, 0, 0, 0);
 }
@@ -138,7 +138,7 @@ extern "C" void ReleaseNoise(CID147 *noise)
     int refCount = noise->refCount - 1;
     noise->refCount = refCount;
     if (refCount <= 0) {
-        FramePtr_Assign(noise, 0);
+        FramePtr_Assign(&noise->scriptFrame, 0);
         AssignSidebagRef(&noise->scriptVariables, 0);
         UnsubscribeLoAll(noise);
         FreeSlotheapSlot(&g_sw.slotheapStimulus, noise);

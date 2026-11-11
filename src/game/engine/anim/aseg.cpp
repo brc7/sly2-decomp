@@ -50,7 +50,7 @@ void PostSwCallback(SW *psw, ASEG *segment, long pmf, ASEGSTART *pasegstart);
 void *func_002333B4(void *, int, int) __asm__("memset");
 float GetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
-void FramePtr_Assign(ASEGA *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+void FramePtr_Assign(CRefPtr<CFrame> *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void SetSoBit35Hierarchy(LO *plo, long);
 void *AllocAct(unsigned int);
 void AddXfAct(LO *plo, void *pv, ACTSEG *pactseg);
@@ -249,7 +249,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     AppendDlEntry(&pt->dlAsega, p);
     p->AddRef();
     G g(p);
-    FramePtr_Assign(p, pt->scriptFrame.m_p);
+    FramePtr_Assign(&p->scriptFrame, pt->scriptFrame.m_p);
     if (pp)
         *pp = p;
     for (i = 0; i < pt->cchn; i++) {
