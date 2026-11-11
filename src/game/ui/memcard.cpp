@@ -34,25 +34,27 @@ extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the addres
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
 struct MCDLGG;
-struct MCDLG;
+struct CMemcardDialog;
 extern "C" {
-MCDLG *CMemcardDialog_ctor(MCDLG *dialog);
+CMemcardDialog *CMemcardDialog_ctor(CMemcardDialog *dialog);
 void *CMcStatus_ctor(void *pv);        /* CMcStatus constructor */
 }
+/* The storage of the two static screens (sized from SCREEN: CMemcardDialog adds four words, CMcStatus none; the void *
+   gives them pointer alignment natively, the int fields already make them word-aligned on the EE). */
 struct MCDLGG
 {
-    char ab[0x40];
+    union { char ab[sizeof(SCREEN)]; void *pvAlign; };
     int state;              /* +0x40 the dialog state (SetMcDialogState), also the langstr id of its message (FormatMcDialogText prints it); was D_002E6590 */
     int phase;              /* +0x44 the dialog's phase (SetMcDialogPhase; 1, 3 tested); was D_002E6594 */
     char ab48[8];
     // Construct the memory-card dialog through its class constructor.
-    MCDLGG() { CMemcardDialog_ctor((MCDLG *)this); }
+    MCDLGG() { CMemcardDialog_ctor((CMemcardDialog *)this); }
     // Destroy the object (~BASIC, in-charge flag 2).
     ~MCDLGG() { ((BASIC *)this)->BASIC::~BASIC(); }
 };
 struct MCSTATUSG
 {
-    char ab[0x40];
+    union { char ab[sizeof(SCREEN)]; void *pvAlign; };
     // Construct the memory-card status object through its class constructor.
     MCSTATUSG() { CMcStatus_ctor(this); }
     // Destroy the object (~BASIC, in-charge flag 2).
@@ -92,19 +94,6 @@ struct MCTBLDIR
     uint resv18[2];
     char achName[32];       /* +0x20 */
 };
-/* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
-struct MCDLG
-{
-    void *scriptFrame; void *scriptVariables; void *firstSubscriber;
-    void *vtable;              /* +0x0C */
-    char pad10[0x20 - 0x10];
-    int id;                 /* +0x20 */
-    WIDGET *pchild;         /* +0x24 the dialog's widget */
-    int nMode;              /* +0x28 */
-    float tMode;            /* +0x2C */
-    char pad30[0x40 - 0x30];
-    int nState;             /* +0x40 */
-};
 /* A file key (linkonce InitFileKey). */
 struct FILEKEY { int an[2]; int n8; char bC; };
 
@@ -119,15 +108,19 @@ extern "C" {
 extern int D_004425D8;
 extern char D_003D9ED0[];       /* the pause menu */
 /* CMemcardDialog (DRAFT name, from its functions' annotations): the memory-card dialog screen, vtable 0x2D3750, emitted
-   here. Defined before CMcStatus (below), whose vtable comes out before it. MCDLG is the view the bodies read. */
+   here. Defined before CMcStatus (below), whose vtable comes out before it. */
 struct CMemcardDialog : SCREEN
 {
     virtual void PostLoad() __asm__("CMemcardDialog_PostLoad");   /* slot 12; key function */
     virtual void Update() __asm__("CMemcardDialog_Update");   /* slot 7 */
     virtual void Reset() __asm__("CMemcardDialog_Slot13");   /* slot 13 */
-    int nState;             /* +0x40 the dialog state (-1 none) */
+    int nState;             /* +0x40 the dialog state (-1 none), also the langstr id of its message */
+    int phase;              /* +0x44 the dialog's phase (SetMcDialogPhase; 1, 3 tested) */
+    float tPhase;           /* +0x48 real time the phase was entered */
+    int followUpAction;     /* +0x4C what to do once the job finishes (CMemcardDialog_Update: 1 reset, 2 pause menu root, 3 retry) */
     virtual void SetMode(int nMode) __asm__("CMemcardDialog_SetMode");   /* slot 14 */
 };
+typedef char assert_CMemcardDialog_size[sizeof(CMemcardDialog) == 0x50 ? 1 : -1];
 extern char D_002A38E8[];   /* the icon file */
 void InitGame(void *pgame);
 void *memset(void *pv, int b, unsigned int cb);
@@ -150,11 +143,11 @@ void SetMcDialogState(void *dialog, int nState);
 void HideMcDialogWidget(void *dialog);
 void load_file_from_disc(int n0, int n1, char *pchzFile, char *pchzCard);
 void ResetGsIfSchemaChanged(SAVEVARS *psv);
-MCDLG *ConstructScreen(MCDLG *dialog);   /* the widget base constructor (returns the widget) */
-int ResetScreenMode(MCDLG *dialog);
-void PostLoadScreen(MCDLG *dialog);
-void ResetScreen(MCDLG *dialog);
-void UpdateTimedScreen(MCDLG *dialog);
+SCREEN *ConstructScreen(SCREEN *dialog);   /* the widget base constructor (returns the widget) */
+int ResetScreenMode(SCREEN *dialog);
+void PostLoadScreen(SCREEN *dialog);
+void ResetScreen(SCREEN *dialog);
+void UpdateTimedScreen(SCREEN *dialog);
 int GetPauseMenuTopPageId(void *pmenu);
 }
 void InitSave(SAVE *saveManager, int n0, int n1);
@@ -493,17 +486,17 @@ struct MCJOB { int GetInfo() __asm__("McJobGetInfo"); int GetDir() __asm__("McJo
 void CreateMemcardThreadJob(void *, int (MCJOB::*)()) __asm__("CreateMemcardThread");
 
 namespace M_UpdateSave__FP4SAVE {
-struct H { char pad[0x44]; int phase; };   /* the memcard dialog */
+typedef CMemcardDialog H;   /* the memcard dialog */
 extern char D_002F66B0[] __asm__("D_002F66B0"), D_003D9ED0[] __asm__("D_003D9ED0");
 extern int D_002DEB4C __asm__("D_002DEB4C");
-extern struct H D_002E6550 __asm__("D_002E6550");
+extern H D_002E6550 __asm__("D_002E6550");
 int IsSwTransitionBusy(void *g) __asm__("IsSwTransitionBusy");
 int IsMemcardThreadValid__FP7MEMCARD(void *p) __asm__("IsMemcardThreadValid__FP7MEMCARD");
 void CreateMemcardThread(void *t, MCJOBARG pmf) __asm__("CreateMemcardThread");
 void ReloadSaveSlots(SAVE *saveManager) __asm__("ReloadSaveSlots");
 int IsMpegActive(void *p) __asm__("IsMpegActive");
 int IsPauseMenuOnLoadPageB(void *p) __asm__("IsPauseMenuOnLoadPageB");
-void SetMcDialogState(struct H *h, int n) __asm__("SetMcDialogState");
+void SetMcDialogState(H *h, int n) __asm__("SetMcDialogState");
 // Per-frame save state machine: skipped during transitions or while the worker is busy; polls the card (McJobGetInfo)
 // or advances the state, and triggers the autosave with a 0.3 s debounce.
 extern "C" void UpdateSave__FP4SAVE(SAVE *saveManager)
@@ -579,7 +572,7 @@ extern "C" int CompareSaves__FP4SAVET0(SAVEINFO *psi0, SAVEINFO *psi1)
 
 namespace M_SetSaveState {
 extern void Decref__4CRef(CRef *) __asm__("Decref__4CRef");
-struct ST { char pad[0x44]; int phase; };   /* the memcard dialog */
+typedef CMemcardDialog ST;   /* the memcard dialog */
 
 extern ST D_002E6550 __asm__("D_002E6550");
 extern char D_002E65A0[] __asm__("D_002E65A0");
@@ -903,15 +896,15 @@ extern "C" void StartSaveSlotJob(SAVE *saveManager)
 } // namespace M_func_001ABD40
 
 namespace M_func_001ABD98 {
-struct H { char pad[0xC]; void *unknownC; void *unknown10; char pad14[0x24 - 0x14]; WIDGET *unknown24; char pad28[0x4C - 0x28]; int followUpAction; };   /* the memcard dialog */
-extern struct H D_002E6550 __asm__("D_002E6550");
+typedef CMemcardDialog H;   /* the memcard dialog */
+extern H D_002E6550 __asm__("D_002E6550");
 extern int D_002DEB4C __asm__("D_002DEB4C");
 extern char D_002E65A0[] __asm__("D_002E65A0");
 int IsSwTransitionBusy(SW *g) __asm__("IsSwTransitionBusy");
 int GetCurrentWorld(void) __asm__("GetCurrentWorld");
 void GetGlobalSaveVar(CRefData *ret, SVPATH *a, void *b) __asm__("GetGlobalSaveVar");
 void Decref__4CRef(CRefData *) __asm__("Decref__4CRef");
-void SetMcDialogState(struct H *h, int n) __asm__("SetMcDialogState");
+void SetMcDialogState(H *h, int n) __asm__("SetMcDialogState");
 void StartAutosaveJob(SAVE *s) __asm__("StartAutosaveJob");
 void ShowMcDialogWidget(void *p) __asm__("ShowMcDialogWidget");
 // Autosaves when a slot is current and no transition is running (Splice save flag unless forced): shows the "no card"
@@ -1402,11 +1395,11 @@ extern "C" int McDelete(SAVE *saveManager, const char *pchz)
 }
 
 // CMemcardDialog constructor: UI base, vtable, text id 0x52C, no state.
-extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
+extern "C" CMemcardDialog *CMemcardDialog_ctor(CMemcardDialog *dialog)
 {
     ConstructScreen(dialog);
     SLY2_SET_VPTR(dialog, CMemcardDialog);
-    dialog->id = 0x52C;
+    dialog->idTextQueued = 0x52C;
     dialog->nState = -1;
     ResetScreenMode(dialog);
     return dialog;
@@ -1416,7 +1409,7 @@ extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *dialog)
 /* CMemcardDialog slot 12. */
 void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes out here */
 {
-    MCDLG *dialog = (MCDLG *)this;
+    CMemcardDialog *dialog = this;
     WIDGET *pchild;
     PostLoadScreen(dialog);
     pchild = dialog->pchild;
@@ -1430,7 +1423,7 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
 
 // CMemcardDialog slot 13: forwards to the UI base (0x1DA7B0).
 /* CMemcardDialog slot 13. */
-extern "C" void CMemcardDialog_Slot13(MCDLG *dialog)
+extern "C" void CMemcardDialog_Slot13(CMemcardDialog *dialog)
 {
     ResetScreen(dialog);
 }
@@ -1458,18 +1451,18 @@ extern "C" void ClearMcDialogState(CMemcardDialog *dialog)
 
 // CMemcardDialog slot 14: sets the mode, stamping the real time when it changes.
 /* slot 14: set the mode (stamping the real time). */
-extern "C" void CMemcardDialog_SetMode(MCDLG *dialog, int nMode)
+extern "C" void CMemcardDialog_SetMode(CMemcardDialog *dialog, int nMode)
 {
     if (nMode != dialog->nMode) {
         dialog->nMode = nMode;
-        dialog->tMode = g_clock.realTime;
+        dialog->modeStartTime = g_clock.realTime;
     }
 }
 
 namespace M_func_001ACC38 {
-struct S { char pad[0x44]; int phase; float tPhase; };
+typedef CMemcardDialog S;
 // Sets the dialog phase and its start time; phases 2 and 3 forget the current slot.
-void SetMcDialogPhase(struct S *dialog, int phase) __asm__("SetMcDialogPhase"); void SetMcDialogPhase(struct S *dialog, int phase)
+void SetMcDialogPhase(S *dialog, int phase) __asm__("SetMcDialogPhase"); void SetMcDialogPhase(S *dialog, int phase)
 {
     if (phase == dialog->phase) return;
     switch (phase) { case 2: case 3: g_save.currentSlot = 0; }
@@ -1479,12 +1472,12 @@ void SetMcDialogPhase(struct S *dialog, int phase) __asm__("SetMcDialogPhase"); 
 } // namespace M_func_001ACC38
 
 namespace M_func_001ACC80 {
-struct S { char pad[0x40]; int state; };
+typedef CMemcardDialog S;
 // Returns the button layout of the dialog state: 1 one button, 2 two choices, 0 none.
 // Also known as: NCardPrompt (upstream readable / Sly 1 name; NCardPrompt__FPv).
-extern "C" int GetMcDialogButtonKind(struct S *dialog)
+extern "C" int GetMcDialogButtonKind(S *dialog)
 {
-    switch (dialog->state) {
+    switch (dialog->nState) {
     case 0x11: case 0x14: case 0x17: case 0x18: case 0x1B: case 0x1D: case 0x22: case 0x23: case 0x24: case 0x2E:
         return 1;
     case 0x12: case 0x15: case 0x1C: case 0x20:
@@ -1499,25 +1492,23 @@ void p_McJobCreateSave() __asm__("McJobCreateSave");
 extern const MCJOBPMF r_D_002A6D88 __asm__("D_002A6D88") = {0, -1, (int (*)(void *))p_McJobCreateSave};   /* &SAVE::job: delta 0, index -1, pfn */
 }
 namespace M_CMemcardDialog_Update {
-struct S { char pad[0xC]; void *unknownC; void *joypad; char pad2[0x24 - 0x14]; WIDGET *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
+typedef CMemcardDialog S;
 extern char D_003D9ED0[] __asm__("D_003D9ED0");
 extern const MCJOBCONST D_002A6D88 __asm__("D_002A6D88");
 int IsSwTransitionBusy(void *g) __asm__("IsSwTransitionBusy");
-int GetMcDialogButtonKind(struct S *s) __asm__("GetMcDialogButtonKind");
+int GetMcDialogButtonKind(S *s) __asm__("GetMcDialogButtonKind");
 int HandleJoyButtons(void *p, int n) __asm__("HandleJoyButtons");
-void ConfirmMcDialog(struct S *s) __asm__("ConfirmMcDialog");
-void OnMcDialogChoice(struct S *s) __asm__("OnMcDialogChoice");
+void ConfirmMcDialog(S *s) __asm__("ConfirmMcDialog");
+void OnMcDialogChoice(S *s) __asm__("OnMcDialogChoice");
 int IsMemcardThreadValid__FP7MEMCARD(void *p) __asm__("IsMemcardThreadValid__FP7MEMCARD");
 void CreateMemcardThread(void *p, MCJOBARG pmf) __asm__("CreateMemcardThread");
-void SetMcDialogState(struct S *s, int n) __asm__("SetMcDialogState");
-void ClearMcDialogState(struct S *s) __asm__("ClearMcDialogState");
 void ResetGameSequence(void) __asm__("ResetGameSequence");
 void PopPauseMenuToRoot(void *p) __asm__("PopPauseMenuToRoot");
 // CMemcardDialog's per-frame update (slot 7): once the dialog has been shown for 0.1 s, handles the pad per the button
 // layout, starts the card jobs and moves to the follow-up state.
-extern "C" void CMemcardDialog_Update(struct S *dialog)
+extern "C" void CMemcardDialog_Update(S *dialog)
 {
-    WIDGET *child = dialog->child;
+    WIDGET *child = dialog->pchild;
     int c;
     int buttonKind;
     if (!child)
@@ -1529,27 +1520,27 @@ extern "C" void CMemcardDialog_Update(struct S *dialog)
         return;
     if (IsSwTransitionBusy(&g_sw))
         return;
-    if (g_clock.realTime - dialog->child->stateTime <= 0.1f)
+    if (g_clock.realTime - dialog->pchild->stateTime <= 0.1f)
         return;
     buttonKind = GetMcDialogButtonKind(dialog);
     if (buttonKind != 1) {
         if (buttonKind == c) {
-            if (dialog->joypad && HandleJoyButtons(dialog->joypad, 0x80)) {
+            if (dialog->pjoy && HandleJoyButtons(dialog->pjoy, 0x80)) {
                 ConfirmMcDialog(dialog);
                 return;
             }
-            if (dialog->joypad && HandleJoyButtons(dialog->joypad, 0x10)) {
+            if (dialog->pjoy && HandleJoyButtons(dialog->pjoy, 0x10)) {
                 OnMcDialogChoice(dialog);
                 return;
             }
         }
     } else {
-        if (dialog->joypad && HandleJoyButtons(dialog->joypad, 0x80)) {
+        if (dialog->pjoy && HandleJoyButtons(dialog->pjoy, 0x80)) {
             OnMcDialogChoice(dialog);
             return;
         }
     }
-    switch (dialog->state) {
+    switch (dialog->nState) {
     case 0x20:
     case 0x22:
         if (dialog->phase == 1)
@@ -2136,11 +2127,11 @@ extern "C" void HideMcDialogWidget(void *dialog)   /* a SCREEN (the status scree
 }
 
 namespace M_func_001ADEA8 {
-struct S { char pad[0x24]; WIDGET *child; };
+typedef SCREEN S;
 // True when the status widget's child is shown or showing.
 extern "C" int IsMcStatusVisible(S *dialog)
 {
-    WIDGET *child = dialog->child;
+    WIDGET *child = dialog->pchild;
     if (!child) return 0;
     if (child->state < 2 && child->request < 2) return 0;
     return 1;
@@ -2150,7 +2141,7 @@ extern "C" int IsMcStatusVisible(S *dialog)
 // CMcStatus's per-frame update (slot 7): hides the status once it has been shown for over a second and the worker
 // is idle.
 /* CMcStatus slot 7: hide once shown for over a second and the worker is idle. */
-extern "C" void CMcStatus_Update(MCDLG *dialog)
+extern "C" void CMcStatus_Update(CMcStatus *dialog)
 {
     WIDGET *pchild;
     UpdateTimedScreen(dialog);
@@ -2167,10 +2158,10 @@ extern "C" void CMcStatus_Update(MCDLG *dialog)
 /* slot 14: set the mode (stamping the real time). */
 void CMcStatus::SetMode(int nMode)
 {
-    MCDLG *dialog = (MCDLG *)this;
+    CMcStatus *dialog = this;
     if (nMode != dialog->nMode) {
         dialog->nMode = nMode;
-        dialog->tMode = g_clock.realTime;
+        dialog->modeStartTime = g_clock.realTime;
     }
 }
 
