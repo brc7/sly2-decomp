@@ -37,7 +37,7 @@ find-class-objects, SO::AddCustomXps' BSPs), EnsureTargetRecordById's result, Se
 pass-through arguments, and from request 4's structs: so.cpp's target records and CID149 / CID150 handles, relay.cpp's
 RELAYJSG, REGENT's size; (v1.20) tools/cleanup/views, which replaces TU views by their header classes and keeps only
 byte-identical rewrites, applied on the frame path: air.cpp (PresetJtAccelJump on JTAIR / STEPPLAYER / XF,
-ProjectJtVelocityOnContacts and FCheckJtStuck on XP / XPLIST / SOTREE, UpdateJtActiveJump's BODY / INPUT, the jump
+ProjectJtVelocityOnContacts and FCheckJtStuck on XP / XPLIST / SOTREE, UpdateJtActiveJump's transform and stick views, the jump
 update's link records, the file-scope XP), step.cpp PresetStepAccel (STEP / XF / MATRIX3Q), path.cpp's obstacle
 `S : XFM` (PATHZONE), mark.cpp, jt.cpp, trail.cpp (SUBGLOB / SUBGLOBX), glob.cpp, hud.cpp, act.cpp; XP / XPS in
 sly2/xp.h; and from the port's request 6: EvaluateKeyedFloatCurve's key, ProjectJtVelocityOnContacts' uptr cursor,
@@ -226,12 +226,12 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   CID150 handles (so.h classes, sizeof; SW_ctor's slot sizeof(CID149)), relay.cpp NewRelayJsg on RELAYJSG (SW_ctor's
   Jsg slot sizeof(RELAYJSG)), EnsureSoPhysRegionRecord's sizeof(REGENT).
   Done in v1.20 (tools/cleanup/views; every rewrite byte-identical): air.cpp PresetJtAccelJump's CONTEXT / ACTOR /
-  BODY / SMP (JTAIR, STEPPLAYER, XF, SMP), ProjectJtVelocityOnContacts' and FCheckJtStuck's CONTACT / GROUP / LINK /
-  COLLISION / P / MOVE (XP, XPLIST, SOTREE, STEPPLAYER, JTAIR), UpdateJtActiveJump's BODY / INPUT / SPACE / CLIP,
-  the jump update's LINK / PROVIDER / REFERENCE / EVENT / SPACE (SOPART, GRABSPOT, ACT8, XF), JtbsChooseJtLanding's
-  XF, the file-scope XP / XPD and GRABSPOTV; step.cpp PresetStepAccel's S / O / M3 (STEP, XF, MATRIX3Q) and three
+  BODY / SMP (JTAIR, STEPPLAYER, XF, SMP), ProjectJtVelocityOnContacts' and FCheckJtStuck's contact, contact-list,
+  tree, player and jump views (XP, XPLIST, SOTREE, STEPPLAYER, JTAIR), UpdateJtActiveJump's transform, stick and
+  opaque frame / clip views (XF, POCTL, ASEG), the jump update's link records (SOPART, GRABSPOT, ACT8, XF), the landing
+  chooser's XF, the file-scope XP / XPD and GRABSPOTV; step.cpp PresetStepAccel's S / O / M3 (STEP, XF, MATRIX3Q) and three
   smaller views; path.cpp FindPathzoneObstacles' `S : XFM` (PATHZONE's CG); mark.cpp's namespace EDGE / XP; trail.cpp's
-  Record / OUTV (SUBGLOB / SUBGLOBX: the record index arithmetic now uses their sizeof); glob.cpp's XF / U / M4; jt.cpp
+  record and output views (SUBGLOB / SUBGLOBX: the record index arithmetic now uses their sizeof); glob.cpp's XF / U / M4; jt.cpp
   SMP / LM; hud.cpp CLOCKIsland; act.cpp's local VECTORs. XP / XPS moved from mark.cpp to sly2/xp.h (with normal's
   VECTOR4 alias normalVec); solve.cpp, dzg.cpp, sensor.cpp, jt.cpp and step.cpp still define their own XP (the first
   three at file scope, so xp.h is not in so.h yet). Request 6: EvaluateKeyedFloatCurve's key is
