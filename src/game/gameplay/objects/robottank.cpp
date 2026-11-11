@@ -441,7 +441,9 @@ static inline void ResetDrive(P *p){
  p->goalHeading=heading;
 }
 // Helpers GetMatrixFrom, GetVelocity (small asm wrappers/accessors shaped for the match).
+#if defined(SLY2_EE_LAYOUT)
 static inline M4*GetMatrixFrom(P*p,VTE*vt){VTE&e=vt[31];return ((M4*(*)(void*))e.pfn)((char*)p+e.d);}
+#endif
 // CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else
 // idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound
 // volume/pitch. (inferred) Also known as: UpdateVehicleControl (upstream readable / Sly 1 name; UpdateVehicleControl__FP7VEHICLE).
@@ -485,11 +487,20 @@ extern "C" void UpdateRobottank(P *tank)
     if(high<response)turnFactor=high;
     else turnFactor=response;
  response_done:;
-    float limited=D_002C2030;VTE*table;
+    float limited=D_002C2030;
+#if defined(SLY2_EE_LAYOUT)
+    /* the vtable word is loaded inside the asm, for the GetWorldMatrix (slot 31) call after it */
+    VTE*table;
     asm("lwc1 $f3,%4\n\tmin.s %0,%0,%2\n\tlwc1 $f2,%5\n\tmul.s %0,%3,%0\n\tlw %1,%6\n\tmul.s %0,%0,$f3\n\tdiv.s %0,%0,$f2"
         :"+f"(limited),"=r"(table):"f"(tank->drive),"f"(turnFactor),"m"(tank->steering),"m"(tank->width),"m"(tank->vt):"$f2","$f3");
     tank->turn=limited;
     if(GetMatrixFrom(tank,table)->basis.rows[2].f[2]>0.5f)tank->lastCorrection=g_clock.time;
+#else
+    if(tank->drive<limited)limited=tank->drive;
+    limited=turnFactor*limited*tank->steering/tank->width;
+    tank->turn=limited;
+    if(((M4 *)((SO *)tank)->GetWorldMatrix())->basis.rows[2].f[2]>0.5f)tank->lastCorrection=g_clock.time;
+#endif
     i=0;
     if(tank->sideCount>0){
         LIMITS*limits=&tank->sides[0].angleLimits;SIDE*side=tank->sides;
@@ -1421,7 +1432,12 @@ void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, flo
 
 
 // Helpers GetMatrix, PvAllocStack, ClearAb, Sqrt (small asm wrappers/accessors shaped for the match).
+#if defined(SLY2_EE_LAYOUT)
+/* SO::GetWorldMatrix (slot 31) by hand: the virtual call loads the entry in another order (MarkWheel 10 of 637 off) */
 static inline M4 *GetMatrix(OWNER *p) { return ((M4 *(*)(void *))p->vt[31].pfn)((char *)p + p->vt[31].d); }
+#else
+static inline M4 *GetMatrix(OWNER *p) { return (M4 *)((SO *)p)->GetWorldMatrix(); }
+#endif
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 // Zero cb bytes.
