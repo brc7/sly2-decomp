@@ -21,24 +21,41 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The world's zone BSP (SW::pregtree, 0x30 bytes on the EE): its nodes and planes (LoadZoneBspFromBrx), the zones by
-   index, and the path links bucketed by zone (BuildPathzoneLinkLists, BindSwPathzones); the per-function views in this
-   file name the same words. Defined here for its size (the allocations), the only TU that allocates one. */
+   index, and the path links bucketed by zone (BuildPathzoneLinkLists, BindSwPathzones). Defined here, the only TU that
+   allocates or reads one. */
+/* A node of the zone BSP (8 bytes on the EE): its plane and two children (the side in front of the plane first); a
+   child with bit 15 set is a leaf, its low 15 bits index REGTREE::zones (FindPathzoneAtPos). */
+struct REGBSPNODE
+{
+    VECTOR4 *plane;
+    unsigned short children[2];
+};
+/* The path links whose near end lies in one zone: indices into REGTREE::links (BuildPathzoneLinkLists; read by
+   FindPathlinkRoute). */
+struct REGLINKLIST
+{
+    int count;
+    int *linkIndices;
+};
 struct REGTREE
 {
     int numNodes;
-    void *nodes;
+    REGBSPNODE *nodes;
     int numPlanes;
-    void *planes;
+    VECTOR4 *planes;
     int numZones;
-    int *zoneIds;
-    LO **zones;
-    void *linkLists;
+    int *zoneIds;                /* the leaf zones' oids, resolved into zones by BindSwPathzones */
+    PATHZONE **zones;
+    REGLINKLIST *linkLists;      /* per zone */
     int numLinks;
-    LO **links;
-    int linkVersion;
+    PATHLINK **links;            /* every path link (CID 124), numbered through PATHLINK::linkIndex */
+    int linkVersion;             /* the world's navigation version (SW::unknown3D74), bumped when a link is added or removed */
     int isBound;
 };
 typedef char assert_REGTREE_size[sizeof(REGTREE) == 0x30 ? 1 : -1];   /* EE */
+typedef char assert_REGTREE_linkVersion[SLY2_OFFSETOF(REGTREE, linkVersion) == 0x28 ? 1 : -1];   /* EE */
+/* PATHLINK names its zones by basic.h's forward name CID17; the class is PATHZONE. */
+static inline PATHZONE *PathzoneOf(CID17 *zone) { return (PATHZONE *)zone; }
 
 
 extern "C" {
@@ -1132,8 +1149,6 @@ typedef char region_projection_layout[(sizeof(void*)==4 && sizeof(float)==4 && s
 namespace M_PpathzoneFromPos {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
-struct N { qword *pplane; unsigned short ach[2]; };
-struct B { int c; struct N *an; int numPlanes, planes; int numZones; int zoneIds; void **zones; };
 void InitVuTemp(void *p) __asm__("InitVuTemp");
 // 1 if pos is strictly in front of the plane (plane.xyz . pos - plane.w > 0), else 0.
 extern "C" { static __inline__ int ISide(qword plane, qword pos)
@@ -1158,18 +1173,18 @@ extern "C" { static __inline__ int ISide(qword plane, qword pos)
 // Also known as: PregionAt (upstream readable / Sly 1 name; PregionAt__FG9VU_VECTORi).
 extern "C" void *FindPathzoneAtPos(qword pos, int flags)
 {
-    struct B *pb = ((struct B *)g_sw.pregtree);
-    struct N *pn, *pnEnd, *an;
-    void **zones;
+    REGTREE *pb = g_sw.pregtree;
+    REGBSPNODE *pn, *pnEnd, *an;
+    PATHZONE **zones;
     unsigned int c;
     if (!pb)
         return 0;
-    pn = pb->an;
-    pnEnd = pn + pb->c;
+    pn = pb->nodes;
+    pnEnd = pn + pb->numNodes;
     zones = pb->zones;
     an = pn;
     while (pn != pnEnd) {
-        c = pn->ach[ISide(*pn->pplane, pos)];
+        c = pn->children[ISide(*(qword *)pn->plane, pos)];
         if (c & 0x8000)
             goto leaf;   /* bit 15: a leaf, the rest is the zone index (the leaf return stays last: block order) */
         pn = &an[c];
@@ -1205,8 +1220,6 @@ extern "C" void LoadSwZoneBspFromBrx(SW *world, void *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadZoneBspFromBrx {
-struct E { VECTOR4 *pv; short a; short b; };
-struct S { int numNodes; struct E *nodes; int numPlanes; VECTOR4 *planes; int numZones; int *zoneIds; void *zones; };
 struct A { int cb; int align; };
 int U32Read__18CBinaryInputStream(void *pbis) __asm__("U32Read__18CBinaryInputStream");
 int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
@@ -1216,30 +1229,30 @@ void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
 void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
 // Reads a zone BSP: nodes (plane index and two children), planes and leaf zone ids.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
+extern "C" void LoadZoneBspFromBrx(REGTREE *bsp, int count, void *stream)
 {
     struct A a;
     int i, j;
     bsp->numNodes = count;
     bsp->numPlanes = U32Read__18CBinaryInputStream(stream);
     bsp->numZones = U32Read__18CBinaryInputStream(stream);
-    a.cb = bsp->numNodes * (int)sizeof(struct E);
+    a.cb = bsp->numNodes * (int)sizeof(REGBSPNODE);
     a.align = 0x10;
     bsp->nodes = (__typeof__(bsp->nodes))AllocFromWorldHeap(&a);
     a.cb = bsp->numPlanes * (int)sizeof(VECTOR4);
     a.align = 0x10;
     bsp->planes = (__typeof__(bsp->planes))AllocFromWorldHeap(&a);
-    a.cb = bsp->numZones * (int)sizeof(LO *);
+    a.cb = bsp->numZones * (int)sizeof(PATHZONE *);
     a.align = 0x10;
-    bsp->zones = AllocClearedFromWorldHeap(&a);
+    bsp->zones = (PATHZONE **)AllocClearedFromWorldHeap(&a);
     a.cb = bsp->numZones * (int)sizeof(int);
     a.align = 0x10;
     bsp->zoneIds = (__typeof__(bsp->zoneIds))AllocFromWorldHeap(&a);
     for (i = 0; i < bsp->numNodes; i++) {
-        struct E *pe = &bsp->nodes[i];
-        pe->pv = &bsp->planes[U16Read__18CBinaryInputStream(stream)];
-        pe->a = U16Read__18CBinaryInputStream(stream);
-        pe->b = U16Read__18CBinaryInputStream(stream);
+        REGBSPNODE *pe = &bsp->nodes[i];
+        pe->plane = &bsp->planes[U16Read__18CBinaryInputStream(stream)];
+        pe->children[0] = U16Read__18CBinaryInputStream(stream);
+        pe->children[1] = U16Read__18CBinaryInputStream(stream);
     }
     for (j = 0; j < bsp->numPlanes; j++)
         ReadVector4__18CBinaryInputStreamP7VECTOR4(stream, &bsp->planes[j]);
@@ -1273,37 +1286,34 @@ extern "C" void PostLoadSwPathzones(SW *world)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1138 {
-struct LO : ::LO { char pad[SLY2_OFFSETOF(PATHZONE, zoneIndex) - sizeof(::LO)]; int zoneIndex; char p1[0x150 - 0x128]; int linkIndex; };
-/* the zone BSP (world->pregtree; M_LoadZoneBspFromBrx's S) from its zone table on */
-struct S { int numNodes; void *nodes; int numPlanes; void *planes; int c; int *zoneIds; struct LO **zones; void *linkLists; int numLinks; struct LO **links; int linkVersion; int isBound; };
-struct LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope) __asm__("FindSwObject__FP2SWi3OIDP2LO");
-int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap) __asm__("FindSwObjectsByClass");
+LO *FindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+int FindSwObjectsByClass(void *p, int a, int b, void *scope, int d, LO **ap) __asm__("FindSwObjectsByClass");
 void *AllocCopyFromWorldHeap(const struct SWALLOC *pal, const void *pv) __asm__("AllocCopyFromWorldHeap");
 /* The four helpers below pin registers and instructions for the match; off the EE they are plain C. */
 #ifdef SLY2_EE_ASM
 // Zero in $7 (the null scope argument of the following call).
 extern "C" { static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;} }
 // Fill the allocation request for count 4-byte links with the given alignment and set owner->numLinks = count.
-extern "C" { static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct SWALLOC*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;} }
+extern "C" { static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,REGTREE*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct SWALLOC*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->numLinks=count;return result;} }
 // High address page of the world g_sw.
 extern "C" { static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&g_sw));return page;} }
 // Address of the world g_sw from its high page.
 extern "C" { static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%%lo(%2)":"=r"(world):"r"(page),"i"(&g_sw));return world;} }
 #else
 extern "C" { static __inline__ void*QueryScope(void){return 0;} }
-extern "C" { static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,struct S*owner,int count,int alignment){request->cb=count*(int)sizeof(struct LO *);request->cbAlign=alignment;owner->numLinks=count;return request;} }
+extern "C" { static __inline__ const struct SWALLOC*PrepareRequest(struct SWALLOC*request,REGTREE*owner,int count,int alignment){request->cb=count*(int)sizeof(PATHLINK *);request->cbAlign=alignment;owner->numLinks=count;return request;} }
 extern "C" { static __inline__ char*WorldPage(void){return (char *)&g_sw;} }
 extern "C" { static __inline__ void*WorldAddress(char*page){return page;} }
 #endif
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
-extern "C" void BindSwPathzones(struct S *world)
+extern "C" void BindSwPathzones(REGTREE *world)
 {
     int i,n;register int c __asm__("$6");
-    struct LO *ap[0x400];
+    LO *ap[0x400];
     struct SWALLOC al;
     char*worldPage=WorldPage();
-    for (i = 0; i < world->c; i++) {
-        struct LO *plo = FindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, world->zoneIds[i], 0);
+    for (i = 0; i < world->numZones; i++) {
+        PATHZONE *plo = (PATHZONE *)FindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, world->zoneIds[i], 0);
         plo->zoneIndex = i;
         world->zones[i] = plo;
     }
@@ -1311,7 +1321,7 @@ extern "C" void BindSwPathzones(struct S *world)
     {register int alignment __asm__("$7")=0x10;
     c = 0x400;
     if (n < 0x400) c = n;
-    world->links=(struct LO**)AllocCopyFromWorldHeap(PrepareRequest(&al,world,c,alignment),ap);}
+    world->links=(PATHLINK**)AllocCopyFromWorldHeap(PrepareRequest(&al,world,c,alignment),ap);}
     {
         int j;
         for (j = 0; j < world->numLinks; j++) world->links[j]->linkIndex = j;
@@ -1319,19 +1329,12 @@ extern "C" void BindSwPathzones(struct S *world)
     world->isBound = 1;
 }
 
-#define OFF(t,m) ((int)&((t*)0)->m)
-typedef char actor_layout[(sizeof(void*)==4 && sizeof(int)==4 && sizeof(struct SWALLOC)==8 && OFF(struct SWALLOC,cb)==0 && OFF(struct SWALLOC,cbAlign)==4 && OFF(struct LO,zoneIndex)==0x124 && OFF(struct LO,linkIndex)==0x150 && OFF(struct S,c)==0x10 && OFF(struct S,zoneIds)==0x14 && OFF(struct S,zones)==0x18 && OFF(struct S,numLinks)==0x20 && OFF(struct S,links)==0x24 && OFF(struct S,isBound)==0x2C)?1:-1];
 } // namespace M_func_001C1138
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1260 {
 struct H { int a[4]; };
 struct A { int cb; int align; };
-typedef PATHZONE R;
-struct Q { char pad[SLY2_OFFSETOF(PATHLINK, startZone)]; R *zoneIndex; R *toZone; };   /* a path link (classes.h PATHLINK, CID 124): its two zones (startZone, endZone) */
-struct B { int c; int *p; };
-/* the zone BSP (world->pregtree; M_LoadZoneBspFromBrx's S) */
-struct S { int numNodes; void *nodes; int numPlanes; void *planes; int numZones; int *zoneIds; void *zones; struct B *linkLists; int numLinks; struct Q **links; };
 int STACKSCOPE_ctor(struct H *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct H *p, int n) __asm__("_$_10STACKSCOPE");
 int *AllocClearedFromStack(struct A *pa) __asm__("AllocClearedFromStack");
@@ -1341,7 +1344,7 @@ extern "C" { static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return 
 // Allocate the request 16-byte aligned from the world heap.
 extern "C" { static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return AllocFromWorldHeap(pa); } }
 // Buckets the path links by the zone of their first endpoint, for FindPathlinkRoute.
-extern "C" void BuildPathzoneLinkLists(struct S *world)
+extern "C" void BuildPathzoneLinkLists(REGTREE *world)
 {
     struct H h;
     struct A a;
@@ -1351,23 +1354,23 @@ extern "C" void BuildPathzoneLinkLists(struct S *world)
     a.cb = world->numZones * (int)sizeof(int);
     ac = Alloc1(&a);
     for (i = 0; i < world->numLinks; i++) {
-        struct Q *q = world->links[i];
-        if (q->zoneIndex && q->toZone)
-            ac[q->zoneIndex->zoneIndex]++;
+        PATHLINK *q = world->links[i];
+        if (q->startZone && q->endZone)
+            ac[PathzoneOf(q->startZone)->zoneIndex]++;
     }
-    a.cb = world->numZones * (int)sizeof(struct B);
+    a.cb = world->numZones * (int)sizeof(REGLINKLIST);
     world->linkLists = (__typeof__(world->linkLists))Alloc2(&a);
     for (j = 0; j < world->numZones; j++) {
-        struct B *pb = &world->linkLists[j];
-        pb->c = 0;
+        REGLINKLIST *pb = &world->linkLists[j];
+        pb->count = 0;
         a.cb = ac[j] * (int)sizeof(int);
-        pb->p = (__typeof__(pb->p))Alloc2(&a);
+        pb->linkIndices = (__typeof__(pb->linkIndices))Alloc2(&a);
     }
     for (k = 0; k < world->numLinks; k++) {
-        struct Q *q = world->links[k];
-        if (q->zoneIndex && q->toZone) {
-            struct B *pb = &world->linkLists[q->zoneIndex->zoneIndex];
-            pb->p[pb->c++] = k;
+        PATHLINK *q = world->links[k];
+        if (q->startZone && q->endZone) {
+            REGLINKLIST *pb = &world->linkLists[PathzoneOf(q->startZone)->zoneIndex];
+            pb->linkIndices[pb->count++] = k;
         }
     }
     STACKSCOPE_ctor_1AE4A0(&h, 2);
@@ -1675,22 +1678,21 @@ extern "C" void GrowPathzoneObstacleArrays(struct S *zone)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1EC0 {
 typedef int qword __attribute__((mode(TI)));
-struct S { void *p0; void *p4; int pad[2]; qword q10; };
 extern char D_003DD020[] __asm__("D_003DD020");
 void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e) __asm__("FindShapeClosestPoint");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint: the closest point on its shape, else its object's position, else the stored
 // vector.
 // Also known as: PosGoal (upstream readable / Sly 1 name; PosGoal__FP4GOALG9VU_VECTOR).
-extern "C" qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
+extern "C" qword GetPathlinkEndpointPos(PATHLINKEND *endpoint, qword pos)
 {
     qword q;
-    if (endpoint->p0) {
-        FindShapeClosestPoint(endpoint->p0, pos, D_003DD020, &q, 0, 0, 0);
-    } else if (endpoint->p4) {
-        q = GetLoWorldPos(endpoint->p4);
+    if (endpoint->shape) {
+        FindShapeClosestPoint(endpoint->shape, pos, D_003DD020, &q, 0, 0, 0);
+    } else if (endpoint->object) {
+        q = GetLoWorldPos(endpoint->object);
     } else {
-        q = endpoint->q10;
+        q = endpoint->pos;
     }
     return q;
 }
@@ -1699,21 +1701,20 @@ extern "C" qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1F28 {
 typedef int qword __attribute__((mode(TI)));
-struct S { void *p0; void *p4; int pad[2]; qword q10; };
 float GetShapeMaxDistance(void *p) __asm__("GetShapeMaxDistance");
 void EvaluateShapeAtDistance(void *p, qword *pq, int n, float g) __asm__("EvaluateShapeAtDistance");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint using the shape's midpoint.
 // Also known as: PosRecord (upstream readable / Sly 1 name; PosRecord__FP4GOAL).
-extern "C" qword GetPathlinkEndpointCenter(struct S *endpoint)
+extern "C" qword GetPathlinkEndpointCenter(PATHLINKEND *endpoint)
 {
     qword q;
-    if (endpoint->p0) {
-        EvaluateShapeAtDistance(endpoint->p0, &q, 0, GetShapeMaxDistance(endpoint->p0) * 0.5f);
-    } else if (endpoint->p4) {
-        q = GetLoWorldPos(endpoint->p4);
+    if (endpoint->shape) {
+        EvaluateShapeAtDistance(endpoint->shape, &q, 0, GetShapeMaxDistance(endpoint->shape) * 0.5f);
+    } else if (endpoint->object) {
+        q = GetLoWorldPos(endpoint->object);
     } else {
-        q = endpoint->q10;
+        q = endpoint->pos;
     }
     return q;
 }
@@ -1742,15 +1743,13 @@ extern "C" int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float r
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitPathlink {
-struct S : LO { char pad[0x120 - 0x50]; int kind; char pad2[0x2c]; int linkIndex; };
-void InitLo(struct S *p) __asm__("InitLo");
+void InitLo(LO *p) __asm__("InitLo");
 } // namespace M_InitPathlink
-// CID 124 slot 7 (Init): InitLo.
-void PATHLINK::Init() { using namespace M_InitPathlink; M_InitPathlink::S *p = (M_InitPathlink::S *)this; InitLo(p); p->kind = -1; p->linkIndex = -1; }
+// CID 124 slot 7 (Init): InitLo, then no kind and no index yet.
+void PATHLINK::Init() { M_InitPathlink::InitLo(this); kind = -1; linkIndex = -1; }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddPathlinkHierarchy {
-struct O { char pad[0x28]; int n; };
 void AddLoHierarchy(void *p) __asm__("AddLoHierarchy");
 // CID 124 slot 11: AddLoHierarchy, then bumps the world's navigation version.
 extern "C" void AddPathlinkHierarchy(void *pathlink)
@@ -1761,13 +1760,12 @@ extern "C" void AddPathlinkHierarchy(void *pathlink)
     pg = &g_sw;
     c = pg->unknown3D74 + 1;
     pg->unknown3D74 = c;
-    ((struct O *)pg->pregtree)->n = c;
+    pg->pregtree->linkVersion = c;
 }
 } // namespace M_AddPathlinkHierarchy
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_RemovePathlinkHierarchy {
-struct O { char pad[0x28]; int n; };
 void RemoveLoHierarchy(void *p) __asm__("RemoveLoHierarchy");
 // CID 124 slot 12: RemoveLoHierarchy, then bumps the world's navigation version.
 extern "C" void RemovePathlinkHierarchy(void *pathlink)
@@ -1778,35 +1776,30 @@ extern "C" void RemovePathlinkHierarchy(void *pathlink)
     pg = &g_sw;
     c = pg->unknown3D74 + 1;
     pg->unknown3D74 = c;
-    ((struct O *)pg->pregtree)->n = c;
+    pg->pregtree->linkVersion = c;
 }
 } // namespace M_RemovePathlinkHierarchy
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C20E8 {
-struct E { void *p0; void *p4; int pad[6]; };
-struct S : LO { int c; char pad2[0xC]; struct E a[6]; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *q, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // Appends an endpoint to a path link (a shape for class 10, otherwise an object); max 6.
 // Also known as: AddNavLinkRecord (upstream readable / Sly 1 name; AddNavLinkRecord__FP7NAVLINKP2LO).
-extern "C" void AddPathlinkEndpointObject(struct S *pathlink, void *object)
+extern "C" void AddPathlinkEndpointObject(PATHLINK *pathlink, LO *object)
 {
-    if ((unsigned)pathlink->c < 6) {
-        struct E *pe = &pathlink->a[pathlink->c++];
-        if (IsBasicDerivedFrom__FP5BASIC3CID(object, 10)) pe->p0 = object; else pe->p4 = object;
+    if ((unsigned)pathlink->numEnds < 6) {
+        PATHLINKEND *pe = &pathlink->aend[pathlink->numEnds++];
+        if (IsBasicDerivedFrom__FP5BASIC3CID(object, 10)) pe->shape = (SHAPE *)object; else pe->object = object;
     }
 }
 } // namespace M_func_001C20E8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C2148 {
-typedef int qword __attribute__((mode(TI)));
-struct E { qword q; int pad[4]; };
-struct S : LO { int c; char pad2[0x1c]; struct E a[6]; };
 // Appends a fixed-position endpoint to a path link; max 6.
-extern "C" void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
+extern "C" void AddPathlinkEndpointPos(PATHLINK *pathlink, qword pos)
 {
-    if ((unsigned)pathlink->c < 6) { struct E *pe = &pathlink->a[pathlink->c++]; pe->q = pos; }
+    if ((unsigned)pathlink->numEnds < 6) { PATHLINKEND *pe = &pathlink->aend[pathlink->numEnds++]; pe->pos = pos; }
 }
 } // namespace M_func_001C2148
 
@@ -1838,10 +1831,11 @@ namespace M_FindPathlinkRoute {
 // an unused local whose address goes to an inline helper that ignores it is purged (18/321). So the real object is a
 // never-touched RAII-style object (inline empty dtor) or a volatile. Rest of the code is lilly4 (StoreX estimate).
 typedef int qword __attribute__((mode(TI)));
-struct NAV : XFM { char pad[0x124 - 0xE0]; int index; };
-struct EDGE : LO { char pad[0x128 - 0x50]; NAV *pnavDest; int pad12C; qword posBegin; qword posEnd; };
-struct ADJ { int cedge; int *aiedge; };
-struct GRAPH { char pad[0x10]; int cnav; char pad14[8]; ADJ *aadj; int cedge; EDGE **apedge; };
+/* The search runs over the world's zone BSP (REGTREE): zones are the nodes (PATHZONE::zoneIndex numbers them), path
+   links the edges (REGTREE::linkLists buckets them by their near zone; a link leads from startPos to endPos, into
+   endZone). */
+typedef PATHZONE NAV;
+typedef PATHLINK EDGE;
 struct NODE { NAV *pnav; EDGE *pedge; NODE *pnodeParent; float gCost; float gEstimate; int state; NODE *pnodeNext; NODE *pnodePrev; };
 
 
@@ -1857,7 +1851,7 @@ void AppendDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv")
 void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 void InsertDlEntryBefore__FP2DLPvT1(DL *pdl, void *pvNext, void *pv) __asm__("InsertDlEntryBefore__FP2DLPvT1");
 int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
-int CanUsePathlink(GRAPH *pgraph, EDGE *pedge, void *pvActor) __asm__("CanUsePathlink");
+int CanUsePathlink(REGTREE *pgraph, EDGE *pedge, void *pvActor) __asm__("CanUsePathlink");
 int IsPosInPathzone(NAV *pnav, qword pos, int f) __asm__("IsPosInPathzone");
 
 
@@ -1892,14 +1886,14 @@ static inline float GDistX(const qword &a, const qword &b) { return QwordX(QwLen
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
 // A* over path zones connected by path links, from an actor's zone to a goal; returns the chain of links.
 // Also known as: CNavLinkPath (upstream readable / Sly 1 name; CNavLinkPath__FP5GUARDP6VECTORG9VU_VECTORiiPP4EDGE).
-extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isExact, int maxEdges, EDGE **edges)
+extern "C" int FindPathlinkRoute(REGTREE *graph, void *actor, qword goal, int isExact, int maxEdges, EDGE **edges)
 {
     STACKSCOPE scope;
     NODE *anode;
     int *afAllowed;
-    anode = (NODE *)AllocZeroedFromHeap(graph->cnav * sizeof(NODE));
-    afAllowed = (int *)PvAlloc(graph->cedge * sizeof(int));
-    func_002333B4(afAllowed, 0xFF, graph->cedge * sizeof(int));
+    anode = (NODE *)AllocZeroedFromHeap(graph->numZones * sizeof(NODE));
+    afAllowed = (int *)PvAlloc(graph->numLinks * sizeof(int));
+    func_002333B4(afAllowed, 0xFF, graph->numLinks * sizeof(int));
     qword posStart = GetLoWorldPos(actor);
     NAV *pnavStart = PnavFind(posStart);
     NAV *pnavGoal = PnavFind(goal);
@@ -1914,7 +1908,7 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
     ClearDl__FP2DL(&dlClosed);
     InitDl(&dlClosed, SLY2_OFFSETOF(NODE, pnodeNext));
     EMPTY e;
-    NODE *pnode = &anode[pnavStart->index];
+    NODE *pnode = &anode[pnavStart->zoneIndex];
     pnode->pnav = pnavStart;
     StoreX(&pnode->gEstimate, QwLength(VuSub(posStart, goal)));
 
@@ -1934,23 +1928,23 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
         AppendNode(&dlClosed, pnode);
         qword posFrom;
         if (pnode->pedge)
-            posFrom = pnode->pedge->posEnd;
+            posFrom = pnode->pedge->endPos;
         else
             posFrom = posStart;
-        ADJ *padj = &graph->aadj[pnode->pnav->index];
-        for (int i = 0; i < padj->cedge; i++) {
-            int iedge = padj->aiedge[i];
-            EDGE *pedge = graph->apedge[iedge];
+        REGLINKLIST *padj = &graph->linkLists[pnode->pnav->zoneIndex];
+        for (int i = 0; i < padj->count; i++) {
+            int iedge = padj->linkIndices[i];
+            EDGE *pedge = graph->links[iedge];
             if (afAllowed[iedge] == -1)
                 afAllowed[iedge] = CanUsePathlink(graph, pedge, actor);
             if (!afAllowed[iedge])
                 continue;
 
-            float gDist = GDistX(posFrom, pedge->posBegin) + GDistX(pedge->posBegin, pedge->posEnd);
-            NAV *pnavDest = pedge->pnavDest;
+            float gDist = GDistX(posFrom, pedge->startPos) + GDistX(pedge->startPos, pedge->endPos);
+            NAV *pnavDest = PathzoneOf(pedge->endZone);
             float gCost = pnode->gCost + gDist;
-            NODE *pnodeDest = &anode[pnavDest->index];
-            float gEstimate = gCost + GDistX(pedge->posEnd, goal);
+            NODE *pnodeDest = &anode[pnavDest->zoneIndex];
+            float gEstimate = gCost + GDistX(pedge->endPos, goal);
             if (pnodeDest->state && pnodeDest->gEstimate <= gEstimate)
                 continue;
             switch (pnodeDest->state) {
@@ -2004,13 +1998,12 @@ extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isEx
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C26E0 {
-struct PATHLINKV : LO { char pad50[0x120 - 0x50]; int kind; int fromZone; int toZone; };   /* classes.h PATHLINK : LO */
 /* The actor asking (inferred: a guard-like object): the zones it may enter and the link kinds it may use. */
 struct G : STEP { char pad[0xE94 - 0x2C0]; int numAllowedZones; int allowedZones[84]; int allowedLinkKinds; };
 // Returns 1 when the actor may traverse the path link: the link is in the world, the actor allows its kind (kind 1
 // needs bit 0 as well as bit 1), and, when the actor has a zone list, both end zones are on it. (inferred)
 // Also known as: FNavLinkAllowed (upstream readable / Sly 1 name; FNavLinkAllowed__FP7NAVLINKP5GUARDPv).
-extern "C" int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct G *actor)
+extern "C" int CanUsePathlink(void *zoneBsp, PATHLINK *pathlink, struct G *actor)
 {
     int requiredKinds, i, hasFrom, hasTo, numZones;
     if ((pathlink->isInWorld & 1) == 0) return 0;
@@ -2022,8 +2015,8 @@ extern "C" int CanUsePathlink(void *zoneBsp, struct PATHLINKV *pathlink, struct 
         hasFrom = 0; hasTo = 0;
         for (i = 0; i < numZones; i++) {
             int zone = zones[i];
-            if (pathlink->fromZone == zone) hasFrom = 1;
-            if (pathlink->toZone == zone) hasTo = 1;
+            if ((sptr)pathlink->startZone == zone) hasFrom = 1;   /* the actor's list holds zone pointers as ints */
+            if ((sptr)pathlink->endZone == zone) hasTo = 1;
             if (hasFrom && hasTo) break;
         }
         if (!hasFrom || !hasTo) return 0;

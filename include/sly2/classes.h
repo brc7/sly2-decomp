@@ -2067,7 +2067,8 @@ struct PATHLINK : LO
     struct CID17 *startZone; /* +0x124 the path zone at its near end (PostPathlinkLoad; a PATHZONE in every snapshot) */
     struct CID17 *endZone;  /* +0x128 the path zone at its far end (FindBhvgotoRoute) */
     char pad12C[0x130 - 0x12C]; qword startPos; qword endPos; /* +0x130/+0x140 aend[0]'s / aend[numEnds-1]'s centre (PostPathlinkLoad) */
-    char pad150[0x160 - 0x150];
+    int linkIndex;          /* +0x150 its index in the world's zone BSP link table (REGTREE::links; BindSwPathzones; Init: -1) */
+    char pad154[0x160 - 0x154];
     virtual void Init() __asm__("InitPathlink");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddPathlinkHierarchy");   /* slot 11 */
