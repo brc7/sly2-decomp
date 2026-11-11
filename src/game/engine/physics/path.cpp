@@ -1462,31 +1462,31 @@ namespace M_func_001C1700 {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;unsigned int words[4];};
 struct C {qword x,z;int version;int xmin,xmax,zmin,zmax;};
-struct S : XFM { char pad[0xFC - 0xE0]; int obstacleCapacity,numEvents;void*xEvents,*zEvents;void**obstacles;int unknown110,version;};
-void InitObstacleQueryCursor(struct S*,struct C*) __asm__("InitObstacleQueryCursor");
+
+void InitObstacleQueryCursor(struct PATHZONE*,struct C*) __asm__("InitObstacleQueryCursor");
 void SweepObstacleRange(void*,int*,int*,qword*,float,float) __asm__("SweepObstacleRange");
 // Bitwise AND of two 128-bit values (pand).
 extern "C" { static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r):"r"(a),"r"(b));return r;} }
 // Sweep-and-prune query: collects the obstacles whose x and y intervals overlap the segment's box; returns the obstacleCapacity.
 // Also known as: CpolyNear (upstream readable / Sly 1 name; CpolyNear__FP9NAVREGIONP6VECTORG9VU_VECTORT2iPP7NAVPOLY).
-extern "C" int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
+extern "C" int FindPathzoneObstacles(struct PATHZONE*zone,struct C*cursor,qword from,qword to,int max,void**out){
  struct C local;
  union U mask,copy;
  qword hi,lo;
  int i,n;
  float hx,lx;
- if(!zone->numEvents)return 0;
+ if(!zone->cg.numEvents)return 0;
  if(!cursor){cursor=&local;cursor->version=-1;}
  if(cursor->version!=zone->version)InitObstacleQueryCursor(zone,cursor);
  lo=VuMin(from,to);hi=VuMax(from,to);
- SweepObstacleRange(zone->xEvents,&cursor->xmin,&cursor->xmax,&cursor->x,QwordX(lo),QwordX(hi));
- SweepObstacleRange(zone->zEvents,&cursor->zmin,&cursor->zmax,&cursor->z,QwordY(lo),QwordY(hi));
+ SweepObstacleRange(zone->cg.xEvents,&cursor->xmin,&cursor->xmax,&cursor->x,QwordX(lo),QwordX(hi));
+ SweepObstacleRange(zone->cg.zEvents,&cursor->zmin,&cursor->zmax,&cursor->z,QwordY(lo),QwordY(hi));
  copy.q=And(cursor->x,cursor->z);mask=copy;
  {void**cursor=out;
- for(i=0,n=0;i<zone->obstacleCapacity;i++){
+ for(i=0,n=0;i<zone->cg.obstacleCapacity;i++){
   if(mask.words[i/32]&(1<<(i%32))){
    if(max<n)break;
-   *cursor++=zone->obstacles[i];n++;
+   *cursor++=zone->cg.obstacles[i];n++;
   }
  }
  }
