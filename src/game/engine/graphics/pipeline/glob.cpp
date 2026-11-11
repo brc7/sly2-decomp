@@ -860,93 +860,12 @@ namespace M_RenderSoGlobset {
 // laneI4v5 (Claude agent): aligned 120 (raw 179), frame 0x290. v4 + posCam, pos, sRadius declaration order.
 // Culls a model against the view (microprogram 0x1C0), then builds the VIF packet for every visible submodel
 // (optional reference, model matrix, params, bone matrices (0x1684D0), skin matrices) and queues it for rendering.
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef unsigned char uchar;
-typedef int qword __attribute__((mode(TI)));
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-
-struct SPH
-{
-    float pos[3];
-    float rad;
-    float sRange;
-    int pad;
-};
-struct OBJ
-{
-    char pad[0xC];
-    void *vptr;
-    char pad10[0x18];
-    SPH sph;
-    char pad40[0x20];
-    XF *pxf;
-};
-struct BONE;
-struct SKIN
-{
-    char pad[0xC];
-    char *pbOwner;
-    int cmat;
-    int fFirst;
-    int fSecond;
-    int pad1C;
-    uint ib;
-};
-struct SUBDESC
-{
-    signed char kind;
-    signed char cbone;
-    short channel;
-    float dist;
-    void *pv;
-    uint ib;
-    uint cw;
-};
-struct SUB
-{
-    int n;
-    XF *pxf;
-    MATRIX4 *pmatParent;
-    uint grf;
-    char *pb;
-    uint w;
-    BONE *abone;
-    SKIN *pskin;
-    int pad20;
-    qword *ppos;
-};
-struct MODEL   /* so.h GLOBSET (SO +0x80) */
-{
-    OBJ *powner;
-    float t;
-    int zero08, zero0C;     /* GLOBSET unknown08: zero in every snapshot */
-    VECTOR4 posCenter;
-    float rad;
-    int cobj;
-    OBJ **apobj;
-    int numShaderOids;
-    int *shaderOids;
-    uint grfMode;
-    int csub;
-    SUBDESC *asubdesc;
-    SUB *asub;
-    SPH *asph;
-    void *aposeset;         /* GLOBSET aposeset (POSESET *) */
-    int nStamp;
-    union
-    {
-        ulong grf;
-        float scale;
-    };
-};
+// The model is so.h's GLOBSET (SO::model): its GLOBs (SUB in the matched view), SUBGLOBs, SUBGLOBX spheres and the
+// owner SO; a GLOB's warp group is a WRBG (wr.h), whose WR holds the warp / uv matrices the skin unpacks copy.
 extern MATRIX4 D_002A2D30 __asm__("D_002A2D30");
 
-void SubmitGlobsetRelight(MODEL *pmodel) __asm__("SubmitGlobsetRelight");
-int ShouldUpdateSaa__FP3SAA(OBJ *pobj) __asm__("ShouldUpdateSaa__FP3SAA");
+void SubmitGlobsetRelight(GLOBSET *pglobset) __asm__("SubmitGlobsetRelight");
+int ShouldUpdateSaa__FP3SAA(SAA *psaa) __asm__("ShouldUpdateSaa__FP3SAA");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
@@ -954,7 +873,7 @@ void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("Inver
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat) __asm__("GetMaxRowLengthMatrix3");
 qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius) __asm__("ExpandSphereForProjection");
 int IsWithinCameraRenderDistance(CM *pcm, qword qwDpos, float sRange, float *pgVis) __asm__("IsWithinCameraRenderDistance");
-void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub) __asm__("UnpackSubglobBones");
+void UnpackSubglobBones(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob) __asm__("UnpackSubglobBones");
 RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 
 // Return the 4x4 matrix product matA * matB.
@@ -1024,11 +943,11 @@ struct VU_FLOATM
 struct VU_FLOATS
 {
     qword qw;
-    // Load the sphere's range float into a GPR qword.
-    VU_FLOATS(const SPH *psph) { __asm__("lw %0, %1" : "=r"(qw) : "m"(psph->sRange)); }
+    VU_FLOATS(const ::SO *pso) { __asm__("lw %0, %1" : "=r"(qw) : "m"(pso->busyRadius)); }   // the owner's range (LO::busyRadius)
+    VU_FLOATS(const SUBGLOBX *psph) { __asm__("lw %0, %1" : "=r"(qw) : "m"(psph->maxRenderDistance)); }
 };
 // Microprogram 0x1C0 (sphere against the view planes): its inputs and outputs live in fixed VU registers.
-static inline float GetSphereVisibility(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
+static inline float GetSphereVisibility(qword posCam, qword pos, const ::SO *pso, const float &sRadius, qword *pdpos)
 {
     qword *aqwPlane = (qword *)g_cm.agFrustumXyz;   /* the transposed plane normals as three VU0 registers */
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
@@ -1038,7 +957,7 @@ static inline float GetSphereVisibility(qword posCam, qword pos, const SPH *psph
     register qword qwGain __asm__("vf14") = VU_FLOATM(g_cm.rCullScale).qw;
     register qword qwPos __asm__("vf15") = pos;
     register qword qwRadius __asm__("vf16") = VU_FLOATM(sRadius).qw;
-    register qword qwRange __asm__("vf17") = VU_FLOATS(psph).qw;
+    register qword qwRange __asm__("vf17") = VU_FLOATS(pso).qw;
     register qword qwDpos __asm__("vf18");
     register qword qwVis __asm__("vf19");
     __asm__ __volatile__("vcallms 0x1C0\n\tcfc2.i $zero, $vi0"
@@ -1051,7 +970,7 @@ static inline float GetSphereVisibility(qword posCam, qword pos, const SPH *psph
     return g;
 }
 // Same cull, with the VU0 sync as its own statement and the visibility moved out through a GPR.
-static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SPH *psph, const float &sRadius, qword *pdpos)
+static inline float GetSphereVisibilitySync(qword posCam, qword pos, const SUBGLOBX *psph, const float &sRadius, qword *pdpos)
 {
     qword *aqwPlane = (qword *)g_cm.agFrustumXyz;   /* the transposed plane normals as three VU0 registers */
     register qword qwPlane0 __asm__("vf10") = aqwPlane[0];
@@ -1130,64 +1049,64 @@ static inline void UnpackWords(uint tag, const void *pv, int cw)
     pdma->m_pb += cw * 4;
 }
 // Sub-glob kind: bits 3..7 of its flags.
-static inline int KindOf(SUB *psub)
+static inline int KindOf(GLOB *psub)
 {
     return (ulong)(psub->grf & 0xF8) >> 3;
 }
 // Per-model draw: sphere-culls each sub-model against the camera via VU0 microprogram 0x1C0, updates shader
 // animations, builds/queues VIF packets (0x1681F8/0x1684D0) (inferred)
-extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *pshd)
+extern "C" void RenderSoGlobset(GLOBSET *pmodel, MATRIX4 *pmatWorld, float gFirst, float gSecond, SOBOUNDS *pshd)
 {
-    SUBDESC *pdesc;
+    SUBGLOB *pdesc;
     qword posCam = g_cm.matq.pos;
-    qword pos = TransformPointRef(pmodel->powner->pxf->worldMatrix, *(qword *)&pmodel->posCenter);
-    float sRadius = pmodel->rad;
+    qword pos = TransformPointRef(pmodel->owner->rootTransform->worldMatrix, pmodel->boundsCenterq);
+    float sRadius = pmodel->boundsRadius;
     if (pmatWorld)
     {
         pos = TransformPoint(*pmatWorld, pos);
         sRadius *= GetMaxRowLengthMatrix3(pmatWorld);
     }
-    if ((pmodel->grf & 0x200000000UL) && pshd->pmatClip)
+    if ((pmodel->grf50 & 0x200000000UL) && pshd->pmatClip)
         pos = ExpandSphereForProjection(pshd->pmatClip, pos, &sRadius);
     qword dpos;
-    float gVis = GetSphereVisibility(posCam, pos, &pmodel->powner->sph, sRadius, &dpos);
+    float gVis = GetSphereVisibility(posCam, pos, pmodel->owner, sRadius, &dpos);
     if (gVis == 0.0f)
         return;
-    pmodel->t = g_clock.time;
-    if (pmodel->nStamp != g_sw.relightStamp)
+    pmodel->unknown04 = g_clock.time;
+    if (pmodel->relightStamp != g_sw.relightStamp)
         SubmitGlobsetRelight(pmodel);
     int i;
-    for (i = 0; i < pmodel->cobj; i++)
+    for (i = 0; i < pmodel->cpsaa; i++)
     {
-        OBJ *pobj = pmodel->apobj[i];
-        if (ShouldUpdateSaa__FP3SAA(pobj))
+        SAA *psaa = pmodel->apsaa[i];
+        if (ShouldUpdateSaa__FP3SAA(psaa))
         {
-            AsSo(pobj)->Add();
+            AsSo(psaa)->Add();
         }
     }
     int fAlt = 0;
-    if (pmodel->grf & 0x400000000UL)
+    if (pmodel->grf50 & 0x400000000UL)
         fAlt = g_sw.numShownWidgets == 0;
-    for (i = 0; i < pmodel->csub; i++)
+    for (i = 0; i < pmodel->numPieces; i++)
     {
-        pdesc = &pmodel->asubdesc[i];
-        SUB *psub = &pmodel->asub[i];
-        SPH *psph = &pmodel->asph[i];
+        pdesc = &pmodel->subMeshes[i];
+        GLOB *psub = &pmodel->pieces[i];
+        SUBGLOBX *psph = &pmodel->asubglobx[i];
         VECTOR4 posSph;
         MATRIX4 matModel;
         if (psub->grf & 0x800)
             continue;
         if (psub->grf & 0x1000)
         {
-            CopyAb__FPvT0Ui(&matModel, psub->pb + 0x14, sizeof(MATRIX4));
+            CopyAb__FPvT0Ui(&matModel, (char *)psub->pqwChain + 0x14, sizeof(MATRIX4));
             if (pmatWorld)
                 matModel = MulMat(*pmatWorld, matModel);
         }
         else
         {
-            MATRIX4 *pmatParent = psub->pmatParent;
+            MATRIX4 *pmatParent = psub->unknown08;
             MATRIX4 mat;
-            CopyMat(mat, psub->pxf->worldMatrix);
+            CopyMat(mat, psub->transform->worldMatrix);
             if (pmatParent)
                 CopyMat(mat, MulMat(mat, *pmatParent));
             if (pmatWorld)
@@ -1196,12 +1115,12 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         }
         CopyAb__FPvT0Ui(&posSph, psph, 12);
         qword posSub = TransformPoint(matModel, *(qword *)&posSph);
-        float sRadiusSub = GetMaxRowLengthMatrix3(&matModel) * psph->rad;
+        float sRadiusSub = GetMaxRowLengthMatrix3(&matModel) * psph->sRadius;
         if ((psub->grf & 7) == 2 && pshd->pmatClip)
             posSub = ExpandSphereForProjection(pshd->pmatClip, posSub, &sRadiusSub);
         float gVisSub;
         qword dposSub;
-        if (!psub->abone)
+        if (!psub->abnd)
         {
             qword dposCull;
             gVisSub = GetSphereVisibilitySync(posCam, posSub, psph, sRadiusSub, &dposCull);
@@ -1212,7 +1131,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         else
         {
             dposSub = VuSub(posSub, posCam);
-            if (!IsWithinCameraRenderDistance(&g_cm, dposSub, psph->sRange, &gVisSub))
+            if (!IsWithinCameraRenderDistance(&g_cm, dposSub, psph->maxRenderDistance, &gVisSub))
                 continue;
         }
         uchar *pbStart = D_002DEA28.m_pb;
@@ -1250,7 +1169,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             D_002DEA28.m_pb += 0x10;
             break;
         }
-        if (psub->abone)
+        if (psub->abnd)
         {
             MATRIX4 *pmat = pmatWorld;
             if (!pmat)
@@ -1272,30 +1191,30 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             vecParams.x = gFirst * gVisSub;
             vecParams.y = gSecond * gVisSub;
         }
-        vecParams.z = pmodel->scale;
-        *(uint *)&vecParams.w = (psub->grf & 0x200) ? pmodel->grfMode : 0;
+        vecParams.z = pmodel->unknown50;
+        *(uint *)&vecParams.w = (psub->grf & 0x200) ? pmodel->selectedShader : 0;
         UnpackQws<0x6C01C008>(&vecParams, 4);
-        if (psub->abone)
+        if (psub->abnd)
             UnpackSubglobBones(pmodel, pdesc, psub);
-        SKIN *pskin = psub->pskin;
+        WRBG *pskin = psub->pwrbg;
         if (pskin)
         {
             MATRIX4 matInv;
             InvertMatrix4Rigid(&matInv, &matModel);
-            uint ib = pskin->ib;
+            uint ib = pskin->iqw;
             for (int imat = 0; imat < pskin->cmat; imat++)
             {
-                if (pskin->fFirst)
+                if (pskin->fDpos)
                 {
                     MATRIX4 mat;
-                    int ibMat = imat * 0x40 + 0x6F0;
-                    mat = MulMat(matInv, *(MATRIX4 *)(pskin->pbOwner + ibMat));
+                    int ibMat = imat * (int)sizeof(MATRIX4Q) + SLY2_OFFSETOF(WR, warpMatrices);   // &pwr->warpMatrices[imat] changes the code
+                    mat = MulMat(matInv, *(MATRIX4 *)((char *)pskin->pwr + ibMat));
                     UnpackQws(ib | 0x6C04C000, &mat, 16);
                     ib += 4;
                 }
-                if (pskin->fSecond)
+                if (pskin->fDuv)
                 {
-                    UnpackQws(ib | 0x6C04C000, pskin->pbOwner + 0x7F0 + imat * 0x40, 16);
+                    UnpackQws(ib | 0x6C04C000, &pskin->pwr->uvMatrices[imat], 16);
                     ib += 4;
                 }
             }
@@ -1338,11 +1257,11 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
             break;
         }
         if (psub->grf & 0x400)
-            prpl->depth = pdesc->dist;
+            prpl->depth = pdesc->unknown04;
         else
             StoreSquaredLengthBits(*(int *)&prpl->depth, dposSub);
         prpl->pbCall = pbStart;
-        prpl->pvCall = psub->pb;
+        prpl->pvCall = psub->pqwChain;
     }
 }
 } // namespace M_RenderSoGlobset
@@ -1354,93 +1273,19 @@ namespace M_BuildModelDrawPackets {
 // empty do-while(0), whose loop notes act as the scheduling barrier the target shows after `pb += 4`.
 // Builds the VIF packet for every submodel of a model: model matrix, optional bone matrices, optional skin matrices,
 // then queues the packet with its sort distance.
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef unsigned char uchar;
-typedef int qword __attribute__((mode(TI)));
-struct VECTOR4
-{
-    float x, y, z, w;
-} __attribute__((aligned(16)));
-
-struct OBJ
-{
-    char pad[0xC];
-    void *vptr;
-};
+// The model is so.h's GLOBSET (as in RenderSoGlobset); ALOV is rtcam.cpp's render-target camera (RTCAM, TU-private there).
 struct ALOV
 {
     char pad[0x104];
     int cpshd;
     void *apshd[1];
 };
-struct BONE
-{
-    int oid;
-    float g;
-    short n, pad;
-    XF *pxf;
-    MATRIX4 mat;
-};
-struct SKIN
-{
-    char pad[0xC];
-    char *pbOwner;
-    int cmat;
-    int fFirst;
-    int fSecond;
-    int pad1C;
-    uint ib;
-};
-struct SUBDESC
-{
-    signed char kind;
-    signed char cbone;
-    short channel;
-    float dist;
-    void *pv;
-    uint ib;
-    uint cw;
-};
-struct SUB
-{
-    int n;
-    XF *pxf;
-    MATRIX4 *pmatParent;
-    uint grf;
-    char *pb;
-    uint w;
-    BONE *abone;
-    SKIN *pskin;
-    int pad20;
-    qword *ppos;
-};
-struct SPH
-{
-    float pos[3];
-    float rad;
-    char pad[8];
-};
-struct MODEL
-{
-    char pad[0x24];
-    int cobj;
-    OBJ **apobj;
-    char pad2C[8];
-    uint grfMode;
-    int csub;
-    SUBDESC *asubdesc;
-    SUB *asub;
-    SPH *asph;
-    char pad48[8];
-    float scale;
-};
 extern MATRIX4 D_002A2D30 __asm__("D_002A2D30");
 
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void BuildLightPackets(SW *pg, int c, void **apv, SOBOUNDS *pshd) __asm__("BuildLightPackets");
-int ShouldUpdateSaa__FP3SAA(OBJ *pobj) __asm__("ShouldUpdateSaa__FP3SAA");
+int ShouldUpdateSaa__FP3SAA(SAA *psaa) __asm__("ShouldUpdateSaa__FP3SAA");
 int GetRenderTargetTexture(ALOV *palo, int n) __asm__("GetRenderTargetTexture");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
@@ -1525,7 +1370,7 @@ static inline void UnpackQws(uint tag, const void *pv, int cw)
 }
 // Builds the VIF packet for every submodel of a model (model matrix, optional bone and skin matrices) and queues it
 // with its sort distance. (inferred)
-extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
+extern "C" void BuildModelDrawPackets(GLOBSET *pmodel, ALOV *palo)
 {
     SOBOUNDS shd;
     MATRIX4 matModel;
@@ -1541,18 +1386,18 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
         pshd = 0;
     }
     int i;
-    for (i = 0; i < pmodel->cobj; i++)
+    for (i = 0; i < pmodel->cpsaa; i++)
     {
-        OBJ *pobj = pmodel->apobj[i];
-        if (ShouldUpdateSaa__FP3SAA(pobj))
+        SAA *psaa = pmodel->apsaa[i];
+        if (ShouldUpdateSaa__FP3SAA(psaa))
         {
-            AsSo(pobj)->Add();
+            AsSo(psaa)->Add();
         }
     }
-    for (i = 0; i < pmodel->csub; i++)
+    for (i = 0; i < pmodel->numPieces; i++)
     {
-        SUBDESC *pdesc = &pmodel->asubdesc[i];
-        SUB *psub = &pmodel->asub[i];
+        SUBGLOB *pdesc = &pmodel->subMeshes[i];
+        GLOB *psub = &pmodel->pieces[i];
         uint grf = psub->grf;
         if (grf & 0x800)
             continue;
@@ -1563,27 +1408,27 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
             continue;
         if (psub->grf & 0x1000)
         {
-            CopyAb__FPvT0Ui(&matModel, psub->pb + 0x14, sizeof(MATRIX4));
+            CopyAb__FPvT0Ui(&matModel, (char *)psub->pqwChain + 0x14, sizeof(MATRIX4));
         }
         else
         {
-            MATRIX4 *pmatParent = psub->pmatParent;
+            MATRIX4 *pmatParent = psub->unknown08;
             MATRIX4 mat;
-            CopyMat(mat, psub->pxf->worldMatrix);
+            CopyMat(mat, psub->transform->worldMatrix);
             if (pmatParent)
                 CopyMat(mat, MulMat(mat, *pmatParent));
             matModel = mat;
         }
         qword dpos;
-        if (psub->ppos)
+        if (psub->ppose)
         {
-            qword pos = *psub->ppos;
+            qword pos = *(qword *)&psub->ppose->pos;
             dpos = VuSub(pos, GetLoWorldPos(palo));
         }
         else
         {
             VECTOR4 pos;
-            CopyAb__FPvT0Ui(&pos, &pmodel->asph[i], 12);
+            CopyAb__FPvT0Ui(&pos, &pmodel->asubglobx[i], 12);
             dpos = TransformPoint(matModel, *(qword *)&pos);
         }
         uchar *pbStart = D_002DEA28.m_pb;
@@ -1595,49 +1440,49 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
         ulong *ptag = (ulong *)D_002DEA28.m_pb;
         *ptag = 0x10000000;
         D_002DEA28.m_pb += 0x10;
-        if (psub->abone)
+        if (psub->abnd)
             UnpackQws<0x6C04C000>((uint *)&D_002A2D30, 16);
         else
             UnpackQws<0x6C04C000>((uint *)&matModel, 16);
         VECTOR4 vecParams;
         vecParams.x = 1.0f;
         vecParams.y = 1.0f;
-        vecParams.z = pmodel->scale;
-        *(uint *)&vecParams.w = (psub->grf & 0x200) ? pmodel->grfMode : 0;
+        vecParams.z = pmodel->unknown50;
+        *(uint *)&vecParams.w = (psub->grf & 0x200) ? pmodel->selectedShader : 0;
         UnpackQws<0x6C01C008>((uint *)&vecParams, 4);
-        if (psub->abone)
+        if (psub->abnd)
         {
-            for (int ibone = 0; ibone < pdesc->cbone; ibone++)
+            for (int ibone = 0; ibone < pdesc->cbnd; ibone++)
             {
-                BONE *pbone = &psub->abone[ibone];
+                BND *pbone = &psub->abnd[ibone];
                 MATRIX4 mat;
                 if (pbone->pxf)
-                    mat = MulMat(pbone->pxf->worldMatrix, pbone->mat);
+                    mat = MulMat(pbone->pxf->worldMatrix, pbone->matInv);
                 else
-                    mat = pbone->mat;
-                UnpackQws((ibone * 4 + pdesc->ib) | 0x6C04C000, (uint *)&mat, 16);
+                    mat = pbone->matInv;
+                UnpackQws((ibone * 4 + pdesc->iqwBone) | 0x6C04C000, (uint *)&mat, 16);
             }
         }
-        SKIN *pskin = psub->pskin;
+        WRBG *pskin = psub->pwrbg;
         if (pskin)
         {
             MATRIX4 matInv;
             InvertMatrix4Rigid(&matInv, &matModel);
-            uint ib = pskin->ib;
+            uint ib = pskin->iqw;
             for (int imat = 0; imat < pskin->cmat; imat++)
             {
-                if (pskin->fFirst)
+                if (pskin->fDpos)
                 {
                     MATRIX4 mat;
                     MATRIX4 *pmatInv = &matInv;
-                    int ibMat = imat * 0x40 + 0x6F0;
-                    mat = MulMat(*pmatInv, *(MATRIX4 *)(pskin->pbOwner + ibMat));
+                    int ibMat = imat * (int)sizeof(MATRIX4Q) + SLY2_OFFSETOF(WR, warpMatrices);   // WR::warpMatrices[imat]
+                    mat = MulMat(*pmatInv, *(MATRIX4 *)((char *)pskin->pwr + ibMat));
                     UnpackQws(ib | 0x6C04C000, (uint *)&mat, 16);
                     ib += 4;
                 }
-                if (pskin->fSecond)
+                if (pskin->fDuv)
                 {
-                    UnpackQws(ib | 0x6C04C000, (uint *)(pskin->pbOwner + 0x7F0 + imat * 0x40), 16);
+                    UnpackQws(ib | 0x6C04C000, (uint *)&pskin->pwr->uvMatrices[imat], 16);
                     ib += 4;
                 }
             }
@@ -1656,11 +1501,11 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
         RPL *prpl = AllocRenderListEntry();
         prpl->kind = kind;
         if (psub->grf & 0x400)
-            prpl->depth = pdesc->dist;
+            prpl->depth = pdesc->unknown04;
         else
             StoreSquaredLengthBits(*(int *)&prpl->depth, dpos);
         prpl->pbCall = pbStart;
-        prpl->pvCall = psub->pb;
+        prpl->pvCall = psub->pqwChain;
     }
 }
 } // namespace M_BuildModelDrawPackets

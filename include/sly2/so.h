@@ -91,8 +91,15 @@ struct GLOBSET
       SO *owner; /* the owning solid object */
       float unknown04;
       undefined4 unknown08[2];
-      VECTOR boundsCenter; /* centre of the model's bounding sphere (local) */
-      undefined4 unknown1C;
+      union
+      {
+            struct
+            {
+                  VECTOR boundsCenter; /* centre of the model's bounding sphere (local) */
+                  undefined4 unknown1C;
+            };
+            qword boundsCenterq;   /* +0x10 the centre as one quadword (RenderSoGlobset transforms it on VU0) */
+      };
       float boundsRadius; /* radius of the bounding sphere */
       int cpsaa;   /* number of shader animations */
       SAA **apsaa;   /* the shader animations */
