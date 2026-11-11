@@ -102,7 +102,7 @@ static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; pre
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream)
 {
-    union { AREQ req; RGBAPOD rgba; struct { int pad[2]; int c; LO **apo; } lol; } u;
+    union { AREQ req; RGBAPOD rgba; LOL lol; } u;   /* lol: the CLoadCollectorArray (LOL above) */
     int i;
     int fNever = 0;
     StartupSplice();
@@ -139,7 +139,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
         Read__18CBinaryInputStreamiPv(stream, 0x40, world);
     }
     LoadSoundSectionFromBrx(D_003DD040, stream);
-    LoadSaveSchemaFromBrx((char *)world + 0x3A18, stream);
+    LoadSaveSchemaFromBrx(&world->savevars, stream);
     LoadLevelTableFromBrx(world, stream);
     LoadSwLocalizedStringsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
     LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
@@ -153,8 +153,8 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
         *(unsigned int *)&world->rgbaClear = 0x80000000;
     u.rgba = *(RGBAPOD *)&world->rgbaClear;
     BuildClearGifs__FP2QWG4RGBAi(D_002DEDC0, &u.rgba, 3);
-    world->pploNew = world->aploNew = (LO **)AllocS(&u.req, 0x10000, 0x10);
-    world->pvLorunPool = AllocS(&u.req, 0x6000, 0x10);
+    world->pploNew = world->aploNew = (LO **)AllocS(&u.req, 0x4000 * sizeof(LO *), 0x10);
+    world->pvLorunPool = AllocS(&u.req, 0x800 * sizeof(LORUN), 0x10);
     world->clorunPool = 0;
     world->pvPostLoadPool = AllocS(&u.req, 0x3000, 0x10);
     world->cpostLoadPool = 0;

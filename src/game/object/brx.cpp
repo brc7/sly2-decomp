@@ -108,7 +108,7 @@ void SetLoParent(LO *plo, SO *psoParent, int grf);
 void SetLoTagHierarchy(LO *plo, int n);
 int IsCidDerivedFrom(CID cid, CID cidBase);
 LO *FindSwObjectInProxyScope(SW *world, int grf, OID oid, LO *ploCtx, void *pchList);
-int FindProxyRefPath(PXR *ppxr, int n, int *pid);
+PXR *FindProxyRefPath(PXR *ppxr, int n, int *pid);
 }
 LO *CreateLo(CID cid, SO *psoParent, OID oid, int isplice);
 LO *FindSwObject(SW *world, int grf, OID oid, LO *ploCtx);
@@ -764,12 +764,12 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
         }
         {
             SW *world = &g_sw;
-            int r;
+            PXR *r;
             t = MakeProxyId(world->isrcLoading, -1);
             r = FindProxyRefPath(world->ppxrRoot, 1, &t);
             if (k == -2)
             {
-                if (FindSwObjectExtraArg(world, 0x405, (OID)oid, 0, (void *)r))
+                if (FindSwObjectExtraArg(world, 0x405, (OID)oid, 0, r))
                 {
                     goto skip;
                 }
@@ -777,7 +777,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             }
             else
             {
-                if (FindSwObjectInProxyScope(world, 0x805, (OID)oid, 0, (void *)r))
+                if (FindSwObjectInProxyScope(world, 0x805, (OID)oid, 0, r))
                 {
                     goto skip;
                 }

@@ -1699,7 +1699,7 @@ void *AllocClearedFromWorldHeap(SWALLOC *pmsg) __asm__("AllocClearedFromWorldHea
 // Fill the heap message and allocate cb zeroed bytes of kind nKind from the world heap.
 extern "C" { static inline void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); } }
 struct C { int a[4]; };
-struct DA { int n0; int cMax; int c; LO **a; };
+struct DA { void *pvt; int cMax; int c; LO **a; };   /* brx.cpp's CLoadCollectorArray */
 void STACKSCOPE_ctor(struct C *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void LoadXfmFromBrx(EXPLG *p, void *q) __asm__("LoadXfmFromBrx");

@@ -4198,7 +4198,7 @@ extern const STRINGGEN D_002A9230 __asm__("D_002A9230");
 extern "C" void StaticInit_hud(int initialize,int priority){
  if(priority==0xFFFF&&initialize){
   __11CLinearHeapiPUc(&D_003E1C70,0x60000,D_003E21A0);
-  D_003E1C80.vtable=SLY2_VTBL(CSwHeap);D_003E1C80.field4=-1;
+  SLY2_STORE_VPTR_AT(&D_003E1C80,0,SLY2_VTBL(CSwHeap));D_003E1C80.field4=-1;
   STRINGGEN *destination=D_003E1C88;
   *destination++=D_002A8B90;
   *destination++=D_002A8BA0;

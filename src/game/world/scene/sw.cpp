@@ -1272,7 +1272,7 @@ extern "C" void *AllocSwLoCallbackRecord(SW *world)
 {
     int i = world->clorunPool;
     world->clorunPool = i + 1;
-    return (char *)world->pvLorunPool + i * 0xC;
+    return (char *)world->pvLorunPool + i * sizeof(LORUN);
 }
 
 // Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).

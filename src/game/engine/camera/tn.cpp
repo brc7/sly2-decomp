@@ -168,7 +168,10 @@ static inline float SmoothStep(float u)
 /* ---- the rest of the TU: TN (sly2/xfm.h), its CPDs, the tunnel camera policy CPTN (= CMPART2, sly2/cm.h) ---- */
 struct SWCB { long l; } __attribute__((packed));   /* the 8-byte callback PMF, passed in one register */
 struct MARK { int a[4]; };          /* STACKSCOPE's storage, constructed by hand */
-struct MSGA { int cb; int nKind; int k; int **pp; };   /* allocation request / load collector */
+struct MSGA   /* allocation request, then brx.cpp's CLoadCollectorArray (vptr, cMax, c, aplo) */
+{
+    union { struct { int cb; int nKind; } req; struct { void *pvt; int cMax; int k; int **pp; } lca; };
+};
 union U { qword q; float f[4]; int i[4]; };
 union UF { qword q; float f; };
 struct POX { char pad[0x2DC]; int unknown2DC; };   /* the current player as UpdateTnCallback reads it */
@@ -353,8 +356,8 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
     STACKSCOPE_ctor(&mark);
     {
         MSGA *pm = &msg;
-        pm->cb = 0x240;
-        pm->nKind = 0x10;
+        pm->req.cb = 0x240;
+        pm->req.nKind = 0x10;
         p->cameraDefinitions = (CPD *)AllocFromStack(pm);
     }
     SelectTnCpdForCid(p, 0x30);
@@ -362,8 +365,8 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
     ClearTnCpd(p);
     {
         MSGA *pm = &msg;
-        pm->cb = p->numCameraDefinitions * 0x90;
-        pm->nKind = 0x10;
+        pm->req.cb = p->numCameraDefinitions * 0x90;
+        pm->req.nKind = 0x10;
         pv = AllocCopyFromWorldHeap(pm, p->cameraDefinitions);
     }
     p->areCameraDefinitionsLoaded = 1;
@@ -371,12 +374,12 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
     p->activeCameraDefinition = (CPD *)pv;
     CLoadCollectorArray_ctor(&msg);
     LoadXfmChildObjectsFromBrx(p, pbis, &msg);
-    switch (msg.k) {
+    switch (msg.lca.k) {
     case 0:
         break;
     case 1:
-        p->path = (SHAPE *)*msg.pp;
-        *(long *)((char *)p->path + 0x28) |= 1L << 57;
+        p->path = (SHAPE *)*msg.lca.pp;
+        p->path->unknownFlag28A = 1;   /* bit 57 of LO's flag unit at +0x28 */
         break;
     }
     if (!p->path) p->grftnm &= ~2;

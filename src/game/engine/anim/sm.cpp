@@ -65,6 +65,7 @@ void ApplySmToObject(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApply
 class CLoadCollector
 {
 public:
+    virtual void Add(int cplo, LO **aplo);   /* brx.cpp's collector: the vptr comes first */
 };
 
 class CLoadCollectorArray : public CLoadCollector
