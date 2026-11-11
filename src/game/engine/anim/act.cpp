@@ -767,7 +767,7 @@ extern "C" void EvaluateKeyedFloatCurve(ACG1 *t, float *pg, float *pdg, float g,
         if (g < t->akey[i].t)
             break;
     }
-    k1 = (ACKEYF *)(i * 16 + (int)t->akey);
+    k1 = (ACKEYF *)(i * (int)sizeof(ACKEYF) + (sptr)t->akey);
     k0 = k1 - 1;
     EvaluateBezierFloat(pg, pdg, k1->t - k0->t, g - k0->t, dtScale, k0->g, k0->dgOut, k1->g, k1->dgIn);
 }

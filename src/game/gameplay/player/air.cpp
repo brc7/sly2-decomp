@@ -956,14 +956,14 @@ typedef char Normal_Stride[(FIELD_OFFSET(WORK,normals[1])-FIELD_OFFSET(WORK,norm
 extern "C" void ProjectJtVelocityOnContacts(JTAIR *p, QWROW *out)
 {
     WORK w;
-    unsigned base = (unsigned)w.normals - 16;
+    uptr base = (uptr)w.normals - 16;
     int count = 0;
     XP *c;
     XPLIST *group = p->player->physicsTree->pxplistFirst;
     for (;;) {
         c = group ? group->pxpFirst : p->player->physicsTree->pxpFirst;
         if (c) {
-            unsigned write = base + count * 16;
+            uptr write = base + count * 16;
             do {
                 if ((uint)count >= 64)
                     goto collected;
@@ -994,7 +994,7 @@ collected:
     float *cursor = matrix;
     for (int i = 0; i < count; i++) {
         for (int j = 0; j < count; j++) {
-            MatrixDot(cursor, ((QWROW *)((unsigned)(i * 16) + (unsigned)w.normals))->q, w.normals[j].q);
+            MatrixDot(cursor, ((QWROW *)((uptr)(i * 16) + (uptr)w.normals))->q, w.normals[j].q);
             cursor++;
         }
     }
