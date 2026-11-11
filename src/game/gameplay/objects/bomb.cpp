@@ -71,7 +71,7 @@ struct AREQV { int cb; int cbAlign; };
 /* 8 bytes read with ldl/ldr (alignment 1). */
 /* DetonateBomb's impact message and the message to +0x168. */
 struct POV { void *scriptFrame; void *scriptVariables; void *firstSubscriber; VTE *pvt; int x10; POV **pp14; };
-struct MSG2 { int k; BOMBV *p; float g8; float gC; };
+struct MSG2 { int k; BOMBV *p; float g8; float gC; };   /* the first four words of an EXPLSO (emitter.h: grf, ploReference, scale, radius) */
 struct FRAME { int a[2]; }; // FrameInit = ctor, FrameFree = dtor(this, 2)
 
 /* bomb's .data (address order): the default radius, the four classes that defuse a chain, the gravity scalar. */
@@ -661,7 +661,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         msg2.g8 = bomb->blastListenerArg;
         msg2.gC = bomb->sRadius;
         msg2.p = bomb;
-        ((void (*)(POV *, MSG2 *))po->pvt[51].pfn)((POV *)((char *)po + po->pvt[51].d), &msg2);
+        ((EXPL *)po)->ExplodeExplso((EXPLSO *)&msg2);   /* slot 51: the listener explodes (an EXPL; inferred from the record matching EXPLSO: flags 9 = reference + scale) */
     }
     if (bomb->makesNoise) {
         POV *po = (POV *)bomb->thrower;

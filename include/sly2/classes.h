@@ -1627,7 +1627,7 @@ struct CID35 : XFM, GRABSPOT
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetTriggerGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void AdjustScore(float *pgScore) __asm__("AdjustTriggerGrabspotScore");   /* GRABSPOT slot 4 (delta -224) */
     virtual LO *GetOwner() __asm__("GetCid35GrabspotOwner__FP5CID35");   /* GRABSPOT slot 6 (delta -224) */
-    virtual void OnTriggered() __asm__("FireTriggerGrabspot");   /* slot 51 */
+    virtual void OnTriggered(LO *ploActivator) __asm__("FireTriggerGrabspot");   /* slot 51: the object that set it off */
 };
 typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
 typedef char assert_CID35_sRadius[SLY2_OFFSETOF(CID35, sRadius) == 0x110 ? 1 : -1];
@@ -1650,7 +1650,7 @@ struct CID37 : CID35
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBootyContainer");   /* slot 7 */
     virtual void OnAdd() __asm__("OnBootyContainerAdd");   /* slot 23 */
-    virtual void OnTriggered() __asm__("OnBootyContainerTouched");   /* slot 51 */
+    virtual void OnTriggered(LO *ploActivator) __asm__("OnBootyContainerTouched");   /* slot 51: the object that set it off */
 };
 typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 
@@ -1668,7 +1668,7 @@ struct CID36 : CID35
     virtual void PostLoad() __asm__("PostCarryGrabspotLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid36ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitCarryGrabspot");   /* slot 7 */
-    virtual void OnTriggered() __asm__("OnTriggerGrabspotGrabbed");   /* slot 51 */
+    virtual void OnTriggered(LO *ploActivator) __asm__("OnTriggerGrabspotGrabbed");   /* slot 51: the object that set it off */
 };
 typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
 typedef char assert_CID36_oid1[SLY2_OFFSETOF(CID36, oid1) == 0x184 ? 1 : -1];

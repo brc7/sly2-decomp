@@ -1439,7 +1439,7 @@ extern "C" void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, vo
 } // namespace M_func_002104A0
 
 namespace M_func_00210538 {
-struct X { char pad[0xC]; VTE *vtable; };
+struct X : EXPL {};   /* the object an animation event explodes (slot 51, ExplodeExplso) */
 typedef EXPLSO MSG;   /* what an explosion explodes with (emitter.h EXPLSO; EXPL slot 51) */
 struct X *FindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 // Animation event 17: finds the object and up to two others and sends them a message.
@@ -1475,7 +1475,7 @@ extern "C" void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, floa
         msg.scale = g;
         msg.grf |= 0x18;
     }
-    ((void (*)(void *, void *))x->vtable[51].pfn)((char *)x + x->vtable[51].d, &msg);
+    ((EXPL *)x)->ExplodeExplso(&msg);
 }
 } // namespace M_func_00210538
 

@@ -18,9 +18,6 @@
 // 0x1D78D8 StaticInit_safehouse and GlobalConstructors_safehouse: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-#define VCALL1(o, n, a1) ((void (*)(void *, int))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, a1)
-
-struct CID100V { char pad0[0xC]; VTE *vt; };   /* a tossable (classes.h CID100): its slot 76 is not declared there */
 struct SMA;
 
 /* The safehouse object (classes.h SAFEHOUSE: a PO with a state machine of selectable characters and SHENTRY button
@@ -170,7 +167,7 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         }
         count = FindSwObjectsByClass(&g_sw, 0x105, 0x64, 0, 0x20, objects64);
         for (int i1 = 0; i1 < count; i1++)
-            VCALL1((CID100V *)objects64[i1], 76, 4);
+            ((CID100 *)objects64[i1])->SetState(4);   /* slot 76, SetTossableState */
         count = FindSwObjectsByClass(&g_sw, 0x105, 0x4F, 0, 0x20, objects4F);
         for (int i2 = 0; i2 < count; i2++)
             objects4F[i2]->Remove();

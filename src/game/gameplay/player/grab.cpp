@@ -238,8 +238,8 @@ uint GetGadgetButtonMask(ACTOR *, int) __asm__("GetGadgetButtonMask");
 
 void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 
-// Notify the actor of q (virtual slot 51).
-static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(void *, ACTOR *))v.pfn)((char *)p + v.d, q); }
+// Tells the focus (a trigger grabspot) that q set it off (its slot 51, OnTriggered).
+static inline void Notify(ACTOR *p, ACTOR *q) { ((CID35 *)p)->OnTriggered((LO *)q); }   /* the focus is a trigger grabspot (CID35 and kin; inferred from slot 51) */
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *AllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 
