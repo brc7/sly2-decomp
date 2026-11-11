@@ -488,7 +488,7 @@ struct XP;
 struct POINTS { int count; qword *data; };
 struct A { char pad[0x90]; POINTS points; };
 struct SURFACE { qword plane; char pad10[8]; int flags; };
-struct EDGE { unsigned short ends[2]; };
+
 struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
 
 extern const float D_002A6AD0 __asm__("D_002A6AD0");   /* defined below where the ELF has it (.rodata order) */
@@ -536,7 +536,7 @@ extern "C" void AddEmbeddedVertexXps(W *w, A *a, B *b, int count, int *indices, 
                 float orig = PlaneDist(plane, position);
                 float min = orig;
                 for (m = head; m; m = m->next) {
-                    d = PlaneDist(plane, data[m->edge->ends[1 - m->reverse]]);
+                    d = PlaneDist(plane, data[m->edge->aipos[1 - m->reverse]]);
                     if (d < min) min = d;
                 }
                 if (bestMin < min) { bestNormal = plane; best = s; bestMin = min; bestOrig = orig; }
@@ -585,12 +585,11 @@ struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct SCENE;
 struct CONTACT;
 struct SPACE { char pad0[0x70]; QWROW position; };
-struct EDGE { unsigned short aipos[2], aisurf[2]; EDGE *pedgeNext; EDGE *pedgeOtherNext; };
+
 struct SURF { QWROW plane; EDGE *pedge; EDGE *pedgeOther; unsigned int grf; int ipos; };
 struct SHAPE { SPACE *space; void *owner; char pad8[0x8C]; QWROW *apos; int pad98; SURF *asurf; int cedge; EDGE *aedge; };
 struct NODE { unsigned int left, right; SURF *psurf; };
 struct LSG { QWROW apos[2], anormal[2]; float au[2]; int lsgk; SURF *apsurf[2]; EDGE *pedge; int iiposSwap; LSG *plsgNext; };
-struct XP { char pad0[0x9C]; int kind; void *first, *second; int padA8; XP *next; };
 
 extern QWROW g_normalZ __asm__("g_normalZ");
 int ClsgClipSoAllEdges(SCENE *, SHAPE *, SHAPE *, NODE *, int, LSG *) __asm__("ClipSoAllEdges");
@@ -719,9 +718,9 @@ extern "C" void MarkSoContactsBspBsp(SCENE *scene, SHAPE *a, SHAPE *b, int nodeC
             QWROW *ppos = a->apos + plsg->pedge->aipos[ipos];
             XP *pxp = (XP *)*out;
             while (pxp) {
-                if (pxp->kind == 1 && pxp->first == ppos && pxp->second == psurf)
+                if (pxp->kind == 1 && pxp->pvFeature0 == ppos && pxp->pvFeature1 == psurf)
                     break;
-                pxp = pxp->next;
+                pxp = pxp->pxpNext;
             }
             if (pxp)
                 continue;
