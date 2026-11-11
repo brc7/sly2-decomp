@@ -1119,7 +1119,7 @@ extern "C" QW *UploadPermShaders(GSB *pgsb, int k)
         v = IgsAllocGsb(pgsb, pclut->gsBlocks);
         BuildClutTex2(pclut, v);
         BuildClutGifs(pclut, v, &gifs);
-        *(ulong *)((int)gifs.m_pb - 0x10) |= 0x8000;   /* int arithmetic: C++ folds a negative pointer offset differently */
+        *(ulong *)((sptr)gifs.m_pb - 0x10) |= 0x8000;   /* integer arithmetic: C++ folds a negative pointer offset differently */
         gifs.Detach(&cqw, &aqw);
         vifs.AddVifDirect(cqw, aqw, 0);
         vifs.AddVifDirectRefs(pclut->cqwPal, (QW *)pclut->argba, 0);
@@ -1134,7 +1134,7 @@ extern "C" QW *UploadPermShaders(GSB *pgsb, int k)
         v = IgsAllocGsb(pgsb, pbmp->gsBlocks);
         BuildBmpTex0(pbmp, v);
         BuildBmpGifs(pbmp, v, &gifs);
-        *(ulong *)((int)gifs.m_pb - 0x10) |= 0x8000;   /* int arithmetic: C++ folds a negative pointer offset differently */
+        *(ulong *)((sptr)gifs.m_pb - 0x10) |= 0x8000;   /* integer arithmetic: C++ folds a negative pointer offset differently */
         gifs.Detach(&cqw, &aqw);
         vifs.AddVifDirect(cqw, aqw, 0);
         vifs.AddVifDirectRefs(pbmp->cqw, (QW *)pbmp->pv, 0);

@@ -460,7 +460,7 @@ extern "C" void RemoveSoPartFromTree(SO *so, SOPART *pe)
     } else if (so->physicsTree->root != so) {
         i = so->numParts;
         while (--i >= 0) {
-            if (IsEntryInDl__FP2DLPv(&so->physicsTree->parts, (SOPART *)(i * 0xB0 + (int)so->parts))) break;
+            if (IsEntryInDl__FP2DLPv(&so->physicsTree->parts, (SOPART *)(i * (int)sizeof(SOPART) + (sptr)so->parts))) break;
         }
         if (i < 0) so->physicsTree = 0;
     }

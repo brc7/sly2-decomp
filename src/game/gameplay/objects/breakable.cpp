@@ -451,7 +451,7 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
             }
             break;
         case 11: {
-            int *apv[1];
+            void *apv[1];   /* the event reads the int b points at */
             apv[0] = &pi->b;
             AsSo(breakable)->HandleSpliceEvent(4, 0, 1, (void **)apv, 0);
             break;
