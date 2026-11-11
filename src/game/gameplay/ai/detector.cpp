@@ -84,8 +84,8 @@ int IsPointInVol(void *object, qword v);
 int ShouldKeepSoNotSelf(void *context, SOPART *hit);
 int GetBasicCid(SO *po);
 void *AllocFromStack(AL *request);
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int state);
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pcObject, SOPART ***papObject);
+int FindFirstObjectHitByLine(int flags, qword a, qword b, int cObject, SOPART **apObject, void *phit);
 VECTORQ *GetLoWorldMatrix(SOV *object);
 void UpdateDetectorTargets(DETECTOR *object);
 qword GetDetectorEyePosition(DETECTOR *object);
@@ -370,7 +370,8 @@ extern "C" int IsDetectorLineBlocked(DETECTOR *detector, SOV *target)
     qword eyePos = GetDetectorEyePosition(detector);
     AL request(0x10, 0x10);
     qword *points = (qword *)AllocFromStack(&request);
-    int firstObject, objectCount;
+    int objectCount;
+    SOPART **objects;   /* the parts in the box */
     qword boxMax = eyePos;
     qword boxMin = eyePos;
     for (i = 0; i < 1; i++) {
@@ -381,10 +382,10 @@ extern "C" int IsDetectorLineBlocked(DETECTOR *detector, SOV *target)
     }
     void *filter = (void *)FilterDetectorLineOfSightHit;
     if (detector->options & DETECTOR_FILTER_MS) filter = (void *)FilterDetectorHitClass31;
-    IntersectSwBoundingBox(&g_sw, boxMin, boxMax, filter, detector, &firstObject, &objectCount);
+    IntersectSwBoundingBox(&g_sw, boxMin, boxMax, filter, detector, &objectCount, &objects);
     bool isClear;
     for (i = 0; (isClear = i < 1); i++)
-        if (!FindFirstObjectHitByLine(0, eyePos, points[i], firstObject, objectCount, 0)) break;
+        if (!FindFirstObjectHitByLine(0, eyePos, points[i], objectCount, objects, 0)) break;
     return !isClear;
 }
 

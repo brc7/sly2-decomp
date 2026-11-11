@@ -82,7 +82,7 @@ void *AllocClearedFromWorldHeap(AI *pa);
 void *FindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void AddGuardScriptFollowPath(CID113 *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
-void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
+void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pcObject, SOPART ***papObject);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CM*,qwordV);
 LO *GetHeroPo(void *g);
@@ -286,7 +286,8 @@ static __inline__ qwordV VuMulAddScalar(qwordV p, qwordV up, float s) {
 // Also known as: FDropOnGround (upstream readable / Sly 1 name; FDropOnGround__FP6VECTORffiPv).
 extern "C" int SnapToGround(qwordV *position, float top, float bottom, int acceptAnySlope, int (*filter)(void)) {
     SCOPE scope;
-    int firstObject, numObjects;
+    int objectCount;
+    SOPART **objects;   /* the parts in the box (IntersectSwBoundingBox) */
     qwordV start, end;
     STACKSCOPE_ctor(&scope);
     start = VuMulAddScalar(*position, g_normalZ, top);   // g_normalZ: the up axis
@@ -294,8 +295,8 @@ extern "C" int SnapToGround(qwordV *position, float top, float bottom, int accep
     if (!filter) filter = ShouldKeepSoNotSelfSlot62;
     {
         HITY hit;
-        IntersectSwBoundingBox(&g_sw, start, end, filter, 0, &firstObject, &numObjects);
-        if (!FindFirstObjectHitByLine(1, start, end, firstObject, (void *)numObjects, &hit)
+        IntersectSwBoundingBox(&g_sw, start, end, filter, 0, &objectCount, &objects);
+        if (!FindFirstObjectHitByLine(1, start, end, objectCount, objects, &hit)
             || hit.unknown40 == 0.0f || (!acceptAnySlope && hit.normalZ < 0.7f)) {
             STACKSCOPE_ctor_1AE4A0(&scope, 2);
             return 0;
