@@ -151,7 +151,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
         pxNew->elementCount = c;
         pxNew->elements = elements;
         pxNew->n = n;
-        pxNew->syncTables = (BLMRSG *)AllocFromWorldHeap(AREQ(n * 12));
+        pxNew->syncTables = (BLMRSG *)AllocFromWorldHeap(AREQ(n * sizeof(BLMRSG)));
         for (int ie = 0; ie < n; ie++) {
             BLMRSG *pe3 = &pxNew->syncTables[ie];
             pe3->ib = pa[ie];
@@ -174,7 +174,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             for (i = 0; i < c; i++) {
                 if (PELEM(i)->paseg) cTotal += PELEM(i)->paseg->c;
             }
-            pxNew->entries = (ENT *)AllocClearedFromStack(AREQ(cTotal * 8));
+            pxNew->entries = (ENT *)AllocClearedFromStack(AREQ(cTotal * sizeof(ENT)));
             pxNew->c = 0;
         }
         for (i = 0; i < c; i++) {
