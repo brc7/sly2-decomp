@@ -17,17 +17,17 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/sw.h"
 #include "sly2/classes.h"
 #include "sly2/so.h"
+#include "sly2/lo.h"
 typedef union { qword q; float f[4]; } U;
 /* g++ 2.95 vtable entry (the blast listener's slot 51 is called by hand: its class is not known). */
 /* The bomb's XA (+0xE4: its position at +0x50) and XP (+0xEC: radius at +0x30, owner at +0x60, contact list at +0x64). */
 struct XPQ;
 typedef struct XPL { XPQ *pq; struct XPL *next; } XPL;
-
 /* A custom contact (0x30): position, normal, the normal's dot as float bits, the object. */
 struct CXP { qword pos; qword normal; int n20; SO *plo; int pad[2]; };
 typedef char assert_CXP_size[sizeof(CXP) == 0x30 ? 1 : -1];
 struct POV;
-struct LOROOTV { void *plo; };
+
 struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
 {
     int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, TakeBombDamage) */
@@ -58,7 +58,7 @@ struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
 typedef char assert_BOMB_thrower[(unsigned int)&((BOMBV *)0)->thrower == 0x200 ? 1 : -1];
 /* Objects of the SO list D_003E13B4 (UpdateBombCustomXps) and their marker LOs. */
 struct NV { char pad[0x60]; SO *plo; };
-struct SOV : BASIC { SOV *pparent; LOROOTV *ploroot; char pad1[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x54 - 0x40]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; SOV *pnext; int xE4; int grfE8; union { NV *pn; SOTREE *pxp; }; int xF0; };
+struct SOV : BASIC { SOV *pparent; LOROOT *ploroot; char pad1[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x54 - 0x40]; void *transforms; void *positionXf; void *rotationXf; void *rootTransform; void *unknown64; void *unknown68; char pad6C[0x70 - 0x6C]; void *ploRemovedFirst; char pad74[0x80 - 0x74]; void *unknown80; char pad84[0xA8 - 0x84]; void *unknownA8; char padAC[0xB0 - 0xAC]; void *unknownB0; char padB4[0xBC - 0xB4]; void *unknownBC; void *unknownC0; void *unknownC4; void *unknownC8; char padCC[0xD8 - 0xCC]; void *unknownD8; void *unknownDC; SOV *pnext; int xE4; int grfE8; union { NV *pn; SOTREE *pxp; }; int xF0; };
 /* The SO list head D_003E13B4. */
 struct SOLIST { SOV *p; };
 struct HITB { qword pos; qword a; qword normal; qword b; qword c; qword d; };
@@ -698,7 +698,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
 extern "C" int ShouldBombIgnoreIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = ShouldSoIgnoreIntersection(bomb, pso);
-    if (pso->ploroot->plo == bomb->thrower->root->topObject) {
+    if (pso->ploroot->topObject == bomb->thrower->root->topObject) {
         r = MaxInt(r, 1);
     }
     return r;

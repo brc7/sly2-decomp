@@ -21,7 +21,7 @@
 #include "sly2/util.h"
 #include "sly2/sw.h"
 #include "sly2/clock.h"
-
+#include "sly2/lsg.h"
 // The real class behind the per-function object views below, for its virtual calls.
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 
@@ -1435,7 +1435,7 @@ struct VU_FLOAT {
 // Wrap a qword as a VU_VECTOR.
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 struct SPACE { char pad[0x40]; MATRIX4Q matrix; };
-struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *owner[2]; };
+
 struct CHAIN
 {
     qword force;

@@ -34,7 +34,7 @@
 #include "sly2/clock.h"
 #include "sly2/game.h"
 #include "sly2/classes.h"
-
+#include "sly2/lsg.h"
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -192,7 +192,7 @@ struct SO {
     char pad78[0x90 - 0x78]; GEOM geomWorld;
 };
 // Line segment hit (0x60 bytes, as in IntersectSphereBsp)
-struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; void *apsurf[2]; void *pedge; int iiposSwap; LSG *plsgNext; };
+
 struct ACTOR {
     void *scriptFrame; void *scriptVariables; void *firstSubscriber; VTE *vt; char pad10[0xEC - 0x10]; void *pvFilter; char padF0[0x150 - 0xF0]; JOY *pjoy;
     char pad154[0x240 - 0x154]; qword posOffset; char pad250[0x268 - 0x250]; SO *pso; char pad26C[0xF5C - 0x26C];
@@ -439,7 +439,6 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
 }
 
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
-typedef char LSG_Size[sizeof(LSG) == 0x60 ? 1 : -1];
 
 typedef char SO_absp_Offset[FIELD_OFFSET(SO, absp) == 0x74 ? 1 : -1];
 typedef char SO_geomWorld_Offset[FIELD_OFFSET(SO, geomWorld) == 0x90 ? 1 : -1];

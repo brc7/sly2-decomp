@@ -10,18 +10,18 @@
 #include "sly2/sw.h"
 #include "sly2/clock.h"
 #include "sly2/stepplayer.h"
-
+#include "sly2/classes.h"
 // 0x19F290 StaticInit_guardoverride and GlobalConstructors_guardoverride: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-struct GUARDV { byte pad[0xFBC]; int specialState; };   /* +0xFBC current special state (STEPGUARD padding) */
+   /* +0xFBC current special state (STEPGUARD padding) */
 
 /* The SW fields used here (offsets only; sw.h does not name them yet). */
 
 float D_002BF938 = 6.0f;         /* override duration (s) */
 extern "C" {
 int FindSwObjectsByClass(SW *world, int findFlags, int cid, int unused, int maxCount, void *results);
-void SetStepguardSpecial(GUARDV *guard, int state);
+void SetStepguardSpecial(GUARD *guard, int state);
 void SetGuardOverride(SW *world, int isActive);
 }
 
@@ -54,7 +54,7 @@ extern "C" void UpdateSwGuardOverride(SW *world)
 // enters special state 0xE, or, when ending, guards still in state 0xE return to -1 (none).
 extern "C" void SetGuardOverride(SW *world, int isActive)
 {
-      GUARDV *guards[32];
+      GUARD *guards[32];
       int count, i;
 
       world->areGuardsFrozen = isActive;
@@ -71,7 +71,7 @@ extern "C" void SetGuardOverride(SW *world, int isActive)
 // Puts every STEPGUARD in the world (at most 32) into the given special state (used by a gadget with state 0x15).
 extern "C" void SetAllGuardsSpecialState(SW *world, int state)
 {
-      GUARDV *guards[32];
+      GUARD *guards[32];
       int count, i;
 
       count = FindSwObjectsByClass(world, 0x105, 0x38, 0, 32, guards);

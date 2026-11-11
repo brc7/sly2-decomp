@@ -33,6 +33,7 @@
 #include "sly2/clock.h"
 #include "sly2/game.h"
 #include "sly2/classes.h"
+#include "sly2/lsg.h"
 
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
@@ -153,17 +154,6 @@ struct VU_FLOAT
 
 
 
-struct LSG
-{
-      qword apos[2];
-      qword anormal[2];
-      float au[2];
-      LSGK lsgk;
-      SURF *apsurf[2];
-      EDGE *pedge;
-      int iiposSwap;
-      LSG *plsgNext;
-};
 
 EA *PeaFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("FindAsegLabel");
 

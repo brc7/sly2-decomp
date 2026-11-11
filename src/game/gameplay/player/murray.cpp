@@ -24,10 +24,10 @@
 #include "sly2/util.h"
 #include "sly2/game.h"
 #include "sly2/clock.h"
+#include "sly2/so.h"
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
-
 // Murray's state (MURRAY +0x13D0), switched by SetMurrayState and run by UpdateMurrayStateMachine. Meanings from
 // runtime observation (docs/systems/player.md section 4) except where marked.
 enum MurrayState {
@@ -1704,10 +1704,10 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
 
 namespace M_func_001B7700 {
 /* A transform (XF) as read here: position, parent and velocity. */
-struct XFV{char pad[0x30];qword pos;char pad40[0x88 - 0x40]; void *timeSource; void *speedSource; void *firstActuator; char pad94[0xA0 - 0x94];struct XFV*parent;char padA4[0xA8 - 0xA4]; void *unknownA8; char padAC[0xB0 - 0xAC];qword velocity;};
+
 extern qword g_normalZ __asm__("g_normalZ");
 extern float D_002C09C8 __asm__("D_002C09C8");
-qword ConvertXfVec(struct XFV*,struct XFV*,qword) __asm__("ConvertXfVec");
+qword ConvertXfVec(struct XF*,struct XF*,qword) __asm__("ConvertXfVec");
 int SolveQuadratic__FfffPf(float,float,float,float*) __asm__("SolveQuadratic__FfffPf");
 void SeekAsega(struct ASEGA*,int,float,float) __asm__("SeekAsega");
 // Clamp inputValue to [inputLower, *upper] (register-pinned).
@@ -1740,11 +1740,11 @@ extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation
  qword end;
  switch(owner->liftClip){
  case 0:{
-  struct XFV*parent=((XFV*)((SO*)((CID36*)owner->ploCarried)->unknown180)->positionXf)->parent;
+  struct XF*parent=((XF*)((SO*)((CID36*)owner->ploCarried)->unknown180)->positionXf)->parent;
   qword first=ConvertXfVec(0,parent,Scale(g_normalZ,2500.0f,&roots));
   {
-   register struct XFV*space __asm__("$4");register int bits __asm__("$2");
-   __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct XFV*)0));
+   register struct XF*space __asm__("$4");register int bits __asm__("$2");
+   __asm__("sq %3,%0\n\tdaddu %1,%z5,$zero\n\tmfc1 %2,%4":"=m"(start.q),"=r"(space),"=r"(bits):"r"(first),"f"(-2000.0f),"rJ"((struct XF*)0));
    end=ConvertXfVec(space,parent,FinalLaunchScale(&g_normalZ,bits,&roots));
   }
   break;
@@ -1760,10 +1760,10 @@ extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation
    register SO*object __asm__("$3");
    __asm__("lw %0,%1":"=r"(object):"m"(x->unknown180));
    {
-    register struct XFV*lo __asm__("$2");register SOPHYS*source __asm__("$5");
+    register struct XF*lo __asm__("$2");register SOPHYS*source __asm__("$5");
     register qword velocity __asm__("$3"),argument __asm__("$6");
     __asm__("lw %0,%2\n\tlw %1,%3":"=&r"(lo),"=r"(source):"m"(object->positionXf),"m"(object->physics));
-    __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velocity),"m"(*(qword*)&source->gravity),"m"(lo->pos));
+    __asm__("lq %0,%3\n\tlq %1,%4\n\tlq %2,%5":"=&r"(velocity),"=&r"(argument),"=r"(pos):"m"(lo->velq.q),"m"(*(qword*)&source->gravity),"m"(lo->localMatq.r[3].q));
     v.q=velocity;
     acceleration=ConvertXfVec(0,lo->parent,argument);
    }

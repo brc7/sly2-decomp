@@ -23,11 +23,11 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/sw.h"
+#include "sly2/xfm.h"
 // The real class behind the per-function object views below, for its virtual calls.
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 // 0x1D4FF8 StaticInit_robottank and GlobalConstructors_robottank: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
-
 /* A contact (XP, 0xB0) as FindDeepestRobottankWheelXp reads it: its separation and the next contact of its list
    (engine/physics/mark.cpp's names). */
 struct XP { char pad0[0x90]; float g; char pad94[0xAC - 0x94]; XP *pxpNext; };
@@ -144,13 +144,13 @@ namespace M_PostRobottankLoad {
 union F {float value;int bits;};
 union U {qword q;float a[4];};
 struct P;
-struct E {int id;XF *reference;void *pxpFirst;float x,y;float tilt,speed,angle,sRadius;F lower,upper;int n2C;U position; qword top,bottom;};   /* a ROBOTTANKWHEEL (tank.h) */
-struct SIDE {int id;XF *reference;void *binding;float lmAngle[2];};   /* a ROBOTTANKSIDE (tank.h) */
+struct E {int id;XF *reference;void *pxpFirst;float x,y;float tilt,speed,angle,sRadius;F lower,upper;int n2C;U position; qword top,bottom;};   /* a ROBOTT
+g;float lmAngle[2];};   /* a ROBOTTANKSIDE (tank.h) */
 struct ATTACH {void *scriptFrame,*scriptVariables,*firstSubscriber;VTE *vt;void *p10;int n14;int id;void *object;void *binding;int n24,n28;int meshId;XF *mesh;void *meshBinding;int extraId;void *extra;};   /* a weapon JSG (BASIC; snapshot: +0x10 an object, +0x14/+0x24/+0x28 ints) */
-union CURRENT {E*entry;SIDE*side;ATTACH*attachment;};
+union CURRENT {E*entry;ROBOTTANKSIDE*side;ATTACH*attachment;};
 union SCALE {const qword*axis;int stride;};
 /* The tank (tank.h ROBOTTANK; names in comments are tank.h's). */
-struct P : PO { int state; float stateTime; int tactic; float tacticTime; int count/*cwheel*/;int unknown194[3];E entries[8];float width;int sideCount;SIDE sides[4];int attachCount;ATTACH*attachments[8];
+struct P : PO { int state; float stateTime; int tactic; float tacticTime; int count/*cwheel*/;int unknown194[3];E entries[8];float width;int sideCount;ROBOTTANKSIDE sides[4];int attachCount;ATTACH*attachments[8];
     float driveMax; float clqTraction[4]; float lmSpeed[2]; float sReverseMax, gContactScale, heading, goalHeading, steering, wheelAngle, drive, turn, acceleration;
     int cHealthMax, cHealth, fHealthMeterInverted; void *pwidgetHealth; void *asset; void *binding/*psma*/; int aammo[9]; void *psndEngine; int sfxidEngine; float uRateEngine;
     void *psoTarget; void *pvPathzone; void *path/*pshapePath*/;};
@@ -241,17 +241,17 @@ extern "C" void PostRobottankLoad(P *tank){
  i=0;
  if(tank->sideCount>0){
  scale.stride=0x14;
- SIDE*next=tank->sides+1;current.side=tank->sides;
+ ROBOTTANKSIDE*next=tank->sides+1;current.side=tank->sides;
  do {
-  XF *reference=FindSoXf(tank,current.side->id,6);
-  current.side->reference=reference;
+  XF *reference=FindSoXf(tank,current.side->oid,6);
+  current.side->pxf=reference;
   if(!reference){
-   unsigned bytes=(tank->sideCount-i)*scale.stride-sizeof(SIDE);
-   SIDE*destination=current.side;SIDE*source=next;
+   unsigned bytes=(tank->sideCount-i)*scale.stride-sizeof(ROBOTTANKSIDE);
+   ROBOTTANKSIDE*destination=current.side;ROBOTTANKSIDE*source=next;
    --current.side;--next;--i;
    memmove(destination,source,bytes);
    --tank->sideCount;
-  }else current.side->binding=NewPositionAct(tank,reference,1,7,3,D_002A2DD0);
+  }else current.side->pvBinding=NewPositionAct(tank,reference,1,7,3,D_002A2DD0);
   count=tank->sideCount;
   ++i;++next;++current.side;
   count=i<count;
@@ -313,11 +313,7 @@ typedef char native_layout_19[(OFF(E,upper)==0x28)?1:-1];
 typedef char native_layout_20[(OFF(E,position)==0x30)?1:-1];
 typedef char native_layout_21[(OFF(E,top)==0x40)?1:-1];
 typedef char native_layout_22[(OFF(E,bottom)==0x50)?1:-1];
-typedef char native_layout_23[(sizeof(SIDE)==0x14)?1:-1];
-typedef char native_layout_24[(__alignof__(SIDE)==4)?1:-1];
-typedef char native_layout_25[(OFF(SIDE,id)==0)?1:-1];
-typedef char native_layout_26[(OFF(SIDE,reference)==4)?1:-1];
-typedef char native_layout_27[(OFF(SIDE,binding)==8)?1:-1];
+
 typedef char native_layout_28[(sizeof(ATTACH)==0x40)?1:-1];
 typedef char native_layout_29[(__alignof__(ATTACH)==4)?1:-1];
 typedef char native_layout_30[(OFF(ATTACH,id)==0x18)?1:-1];
@@ -908,19 +904,19 @@ namespace M_UpdateRobottankAi {
 //   temporary takes slot 0x00, the case-2 matrix 0x10, the case-3 matrix the coalesced 0x00, and the HIT array
 //   (declared after the tactic switch) 0x40.
 struct M3 { QWROW rows[3]; };
-struct LM { float min, maxValue; };
+
 struct BINDING { char pad0[0x28]; float pitch; };
 struct P;
 struct ATTACH {
     char pad0[0x20]; void *binding; char pad24[0xC]; void *mesh; BINDING *meshBinding; int pad38; P *anchor;
     char pad40[0x3C]; float radius; int tactic; void *constraint; LM enterRange, exitRange, fireInterval;
 };
-struct PATH : XFM { char pad0[0xE8 - 0xE0]; int count; int padEC, padF0; QWROW *points; };
+
 struct HIT { QWROW start, end, normal0, normal1; float startFraction, endFraction; char pad48[0x18]; };
 struct P : PO {
     char pad0[0x188 - 0x180]; int state; char pad18C[0x36C]; int attachCount; ATTACH *attachments[8]; float slip;
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];
-    P *target; void *navigator; PATH *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
+    P *target; void *navigator; SHAPE *path; float cursor, nextAttack; P *selectedObject; ATTACH *selectedAttach;
 };
 extern const qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ");
 extern float D_002C20E8 __asm__("D_002C20E8");
@@ -937,9 +933,9 @@ void SetRobottankTactic(P *, int) __asm__("SetRobottankTactic");
 float acosf(float) __asm__("acosf");
 M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
 int ClipEdgeToPathzone(void *, qword, qword, int, HIT *, int) __asm__("ClipEdgeToPathzone");
-void MeasureShape(PATH *) __asm__("MeasureShape");
+void MeasureShape(SHAPE *) __asm__("MeasureShape");
 void ResetRobottankWheelHeights(P *) __asm__("ResetRobottankWheelHeights");
-void FindPathzonePathCurve(void *, qword, qword, PATH *) __asm__("FindPathzonePathCurve");
+void FindPathzonePathCurve(void *, qword, qword, SHAPE *) __asm__("FindPathzonePathCurve");
 float atan2f(float, float) __asm__("atan2f");
 M3 *GetLoWorldMatrix(P *) __asm__("GetLoWorldMatrix");
 qword GetXfValueFromMatrix(void *, void *) __asm__("GetXfValueFromMatrix");
@@ -1057,12 +1053,12 @@ extern "C" void UpdateRobottankAi(P *tank)
         if (ClipEdgeToPathzone(tank->navigator, position, goal, 4, hits, 2) == 1 &&
             hits[0].startFraction == 0.0f && hits[0].endFraction == 1.0f) {
             // straight line to the goal
-            tank->path->points[0].q = position;
-            tank->path->points[1].q = goal;
-            tank->path->count = 2;
+            tank->path->vertexPosq[0].q = position;
+            tank->path->vertexPosq[1].q = goal;
+            tank->path->numControlVertices = 2;
             MeasureShape(tank->path);
             ResetRobottankWheelHeights(tank);
-        } else if (tank->path->count < 2 || 50.0f < Dist2D(tank->path->points[tank->path->count - 1].q, target)) {
+        } else if (tank->path->numControlVertices < 2 || 50.0f < Dist2D(tank->path->vertexPosq[tank->path->numControlVertices - 1].q, target)) {
             FindPathzonePathCurve(tank->navigator, position, target, tank->path);
             ResetRobottankWheelHeights(tank);
         }
@@ -1098,7 +1094,7 @@ extern "C" void UpdateRobottankAi(P *tank)
     }
     case 2: {
         VV object = GetLoWorldPos(tank->selectedObject);
-        if (tank->path->count < 2 || 50.0f < Dist2D(tank->path->points[tank->path->count - 1].q, object)) {
+        if (tank->path->numControlVertices < 2 || 50.0f < Dist2D(tank->path->vertexPosq[tank->path->numControlVertices - 1].q, object)) {
             FindPathzonePathCurve(tank->navigator, position, object, tank->path);
             ResetRobottankWheelHeights(tank);
         }
@@ -1133,7 +1129,7 @@ extern "C" void UpdateRobottankAi(P *tank)
             }
             SetSmaGoal(attach->binding, 0x68);
             float t = g_clock.time;
-            tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.min, attach->fireInterval.maxValue);
+            tank->nextAttack = t + RandomFloatInRange__Fff(attach->fireInterval.minValue, attach->fireInterval.maxValue);
         }
     }
 }

@@ -17,11 +17,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/stepplayer.h"
 #include "sly2/relay.h"
-
+#include "sly2/xp.h"
 /* Views of the objects UpdateJtgoal walks (field names from the per-function file). XP (a contact point: its two end
    objects and the next contact of the list) has no shared definition yet. */
-struct XPEND { int pad[2]; void *object; void *otherObject; char pad2[0x30]; };
-struct XP { XPEND ends[2]; char pad[0xAC - 0x80]; XP *next; };
+
 /* SetJtgoal stores the raw bits of its integer-typed distance helper into JTGOAL::lastDistance (as the original did);
    the store goes through this union so it may alias the float loads around it. */
 union FLOATBITS { float f; int bits; };
@@ -67,7 +66,7 @@ static __inline__ float GetDistance(qword from, qword to)
 // Which end of the contact belongs to the player (0 or 1).
 static inline int GetPlayerEndIndex(STEPPLAYER *player, XP *contact)
 {
-    return player == contact->ends[0].object ? 0 : 1;
+    return player == contact->axps[0].psoRoot ? 0 : 1;
 }
 
 // Per-frame anti-stuck check for a scripted walk to the goal, run every D_002BD2D0 seconds while the player is being
@@ -92,9 +91,9 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
         XPLIST *link;
         for (link = goal->player->physicsTree->pxplistFirst; link; link = link->pxplistNext) {
             XP *contact;
-            for (contact = link->pxpFirst; contact; contact = contact->next) {
+            for (contact = link->pxpFirst; contact; contact = contact->pxpNext) {
                 int i = GetPlayerEndIndex(goal->player, contact);
-                SO *object = (SO *)contact->ends[1 - i].object;
+                SO *object = (SO *)contact->axps[1 - i].psoRoot;
                 if (IsBasicDerivedFrom(object, (CID)0x38)) {
                     R *behavior = FindStepBehavior(object, 0xA9);
                     if (!behavior || !behavior->value) {

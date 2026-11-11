@@ -23,6 +23,7 @@
 #include "sly2/stackscope.h"
 #include "sly2/util.h"        /* NMin */
 #include "sly2/vu0.h"
+#include "sly2/lsg.h"
 
 // 0x1AA820 StaticInit_mark and GlobalConstructors_mark: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -54,18 +55,6 @@ typedef char assert_SW_slotheapXp[FIELD_OFFSET(SW, slotheapXp) == 0x3D40 ? 1 : -
 /* A clipped piece of an edge (ClsgClipEdgeToBsp): its two ends with the normals and the edge parameters there, the
    surfaces it enters/leaves through (null where an end lies inside), the source edge, whether the ends were swapped,
    and a list link. */
-struct LSG
-{
-      qword apos[2];
-      qword anormal[2];
-      float au[2];
-      LSGK lsgk;
-      SURF *apsurf[2];
-      EDGE *pedge;
-      int iiposSwap;
-      LSG *plsgNext;
-};
-typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
 
 /* core/math/bsp.cpp (C symbols): clip the segment pos1..pos2 to the tree (pieces inside), prune the tree to a sphere,
    find the leaf containing a point. A pbspLimit of SLY2_BSP_NO_LIMIT (sly2/port.h; 0x7FFFFFFF on the EE) means no limit. */

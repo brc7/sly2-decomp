@@ -526,8 +526,8 @@ extern "C" int GetStepExtraPartCount()
 namespace M_AdjustStepNewXp {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
    side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
-struct ENDPOINT { void *shape, *owner, *object, *lo; qword pos; qword local; int pad[4]; };
-struct XP { struct ENDPOINT ae[2]; QWROW normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
+
+struct XP { struct XPS ae[2]; QWROW normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
 struct STATE { char pad[0xD0]; float mass; };
 struct P : LO { char padE8[0xE8 - 0x50]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
@@ -628,7 +628,7 @@ extern "C" void AdjustStepNewXp(struct P *step, struct XP *x, int side)
         diff.q = Sub(&x->ae[side].pos, &x->ae[1 - side].pos);
         d = Dot(diff.q, dir.q);
         point.q = AddScaled(&x->ae[1 - side].pos, dir.q, d);
-        AddXp(&g_sw, step->mesh, x->ae[1 - side].shape, point.q, dir.q, 10, 0, 0, &x->next, d);
+        AddXp(&g_sw, step->mesh, x->ae[1 - side].ppart, point.q, dir.q, 10, 0, 0, &x->next, d);
     }
 }
 } // namespace M_AdjustStepNewXp

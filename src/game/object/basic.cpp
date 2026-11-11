@@ -12,9 +12,9 @@
 #include "sly2/cref.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
+#include "sly2/lo.h"
 // 0x133598 StaticInit_basic and GlobalConstructors_basic: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
-
 /* BASIC's member bodies are C functions over BASICV (an empty subclass of sly2/basic.h's BASIC): defining BASIC's
    members here would make this BASIC's key TU. CIDV is a signed class id (basic.h's CID has no enumerators, so it is
    unsigned and the derivation test would compare unsigned); the C++ definitions that name them carry their mangled
@@ -24,7 +24,7 @@ struct CFrame;
 /* A sidebag (pool 4): count, then the GC link word (index/page bit-fields, bit 15 a GC mark). */
 struct SIDEBAG { int cref; int grfGc; };
    /* sly2/basic.h's BASIC; the C-named member bodies below take it */
-struct LO : BASIC { };
+
 /* A subscription: the subscriber and its count. */
 struct REFNODE { LO *plo; int cref; REFNODE *pnext; };
 enum CIDV { CIDV_Nil = -1 };

@@ -18,7 +18,7 @@
 #include "sly2/classes.h"
 #include "sly2/sw.h"
 #include "sly2/emitter.h"   /* EXPL, EXPLSO */
-
+#include "sly2/lsg.h"
 // 0x229D98 StaticInit_water and GlobalConstructors_water: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -41,8 +41,7 @@ typedef char assert_EVENT_size[sizeof(EVENT) == sizeof(EXPLSO) ? 1 : -1];
    wake sound is PO::wakeSound. */
 #define SO_WAS_IN_WATER 0x80000000L    /* SO::wasInWater */
 #define SO_IS_IN_WATER 0x100000000L    /* SO::isInWater */
-struct LSG { V first; qwordV pos; qwordV pad20; qwordV normal; float paramStart; float paramEnd; char pad48[0x18]; };
-typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
+
 struct REQ { int size, alignment; };
 struct MARK {};
 /* CalculateWaterCurrent's matrix (constructed zeroed or not). */
@@ -272,7 +271,7 @@ extern "C" void UpdateWater(WATER *water){
     SetSndVolume(effect,fall);
     func_002333B4(&work.event,0,sizeof(work.event));
     normal=g_normalZ;
-    work.event.position.q=Add(work.intervals[0].first.q,work.origin.q);
+    work.event.position.q=Add(work.intervals[0].apos[0],work.origin.q);
     work.event.kind=14;work.event.strength=radius*fall;work.event.normal=normal;
     Impact(water->recipient,&work.event);
    }
@@ -395,8 +394,8 @@ extern "C" float GetWaterSubmergedFraction(WATER *water, SO *object, qwordV *sur
         return 0.0f;
     }
     if (surfacePoint)
-        *surfacePoint = work.alsg[0].pos;
-    qwordV normal = work.alsg[0].normal;
+        *surfacePoint = work.alsg[0].apos[1];
+    qwordV normal = work.alsg[0].anormal[1];
     if (surfaceNormal) {
         qwordV reference;
         qwordV *comparison=&D_002A2DD0;
@@ -408,7 +407,7 @@ extern "C" float GetWaterSubmergedFraction(WATER *water, SO *object, qwordV *sur
         if (isDefault)
             *surfaceNormal = g_normalZ;
     }
-    fraction = work.alsg[0].paramEnd - work.alsg[0].paramStart;
+    fraction = work.alsg[0].au[1] - work.alsg[0].au[0];
     STACKSCOPE_ctor_1AE4A0(&work.mark, 2);
     return fraction;
 }

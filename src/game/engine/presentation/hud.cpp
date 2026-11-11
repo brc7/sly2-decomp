@@ -38,9 +38,9 @@
 #include "sly2/vtables.h"
 #include "sly2/hw.h"
 #include "sly2/streambis.h"
+#include "sly2/so.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (subtitle), base of D_004435F4 */
-
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
 #undef D_003DA0D8
 #define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
@@ -3898,14 +3898,14 @@ struct KEYPOSE {
     int selected;
     char pad38[8];
 };
-struct COLORS { RGBA_RAW multiply, additive; };
+
 struct TAG { int kind, value; };
 struct KEY {
     float time;
     uchar itemCount, colorCount, shortCount, byteCount;
     uchar *bytes;
     KEYPOSE *items;
-    COLORS *colors;
+    SO *colors;
     ushort *shorts;
     uchar tagCount;
     char pad19[3];

@@ -25,7 +25,7 @@
 #include "sly2/vu0.h"
 #include "sly2/util.h"
 #include "sly2/game.h"
-
+#include "sly2/xp.h"
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -36,7 +36,6 @@ static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The two contact fields the hurt state sets (engine/physics/mark.cpp's XP: friction +0x94, elasticity +0x98). */
-struct XP { char pad[0x94]; float gFriction; float gElasticity; };
 
 extern "C" {
 extern float D_002BFB20;    /* hurt contact friction (defined below, in address order) */

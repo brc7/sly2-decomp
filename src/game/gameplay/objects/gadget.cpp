@@ -13,10 +13,10 @@
 #include "sly2/vu0.h"
 #include "sly2/sw.h"
 #include "sly2/game.h"
-
+#include "sly2/lsg.h"
+#include "sly2/xp.h"
 // 0x225880 StaticInit_gadget and GlobalConstructors_gadget: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
-
 typedef int qwordV __attribute__((mode(TI)));
 union V { qwordV q; float f[4]; };
 typedef union { qwordV q; float f[4]; } VU;
@@ -39,7 +39,7 @@ struct XFV { M3 basis; qwordV orientation; M3 basisWorld; V position; char pad80
 /* SO::physics and SO::physicsTree as read here. */
 struct SOPHYSV { char pad[0x80]; qwordV acceleration; char pad90[0xD4 - 0x90]; float buoyancy; float waterDrag; };   /* so.h SOPHYS::buoyancy / waterDrag */   /* acceleration: inferred (PushGuardTrapAway cancels it) */
 /* A contact (elasticity at +0x98). */
-struct XP { char pad[0x98]; float elasticity; };
+
 struct SOV;
 struct SOTREEV { char pad[0x60]; SOV *owner; struct LN *contactLists; };
 /* A generic SO (the bodies the blast pushes, the objects the gadget meets). */
@@ -157,7 +157,7 @@ M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
 void TiltMatUpright(M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(CID100V *, M3 *, void *, qwordV, void *);
 struct COLL { void *source; SOV *object; };
-struct LSG { qwordV point; char remainder[0x50]; };
+
 COLL *FindFirstObjectHitByLine(int, qwordV, qwordV, int, COLL **, LSG *);
 SOV *FindZapResponder(SOV *, int);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
@@ -342,7 +342,7 @@ extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
 // CID100 new-contact hook: the SO setup, then the contact's elasticity is 0.25 (a soft bounce).
 extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *contact, int end) {
     AdjustSoNewXp(gadget, contact, end);
-    contact->elasticity = 0.25f;
+    contact->gElasticity = 0.25f;
     return 0.25f;
 }
 
@@ -576,11 +576,11 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
         record->object = object;
         record->zapKind = zapKind;
         record->damage = damage;
-        record->point = hit.point;
+        record->point = hit.apos[0];
         record->owner = owner;
     }
     if (!body->physics) return;
-    float along = DotP(GetXfVelocity(body->rootXf, 0, hit.point), normal);
+    float along = DotP(GetXfVelocity(body->rootXf, 0, hit.apos[0]), normal);
     float ratio = along / D_002C4334;
     float response = Clamp(D_002C4320.a + ratio * (D_002C4320.b + ratio * D_002C4320.c), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
     float fz = 0.0f;   /* 0, then the fraction of the response applied */
@@ -588,8 +588,8 @@ void ProbeTossableHit(SOV *ownerIn, int zapKind, int damage, qwordV start, qword
         bits = BitsOfFloat(response * D_002C4330);
         qwordV impulse = ScaleK(normal, MkVukBits(bits));
         qwordV linear = GetSoImpulseLinearDelta(body, impulse);
-        qwordV angular = GetSoImpulseAngularDelta(body, hit.point, impulse);
-        qwordV delta = SubP(hit.point, body->rotationXf->position.q);
+        qwordV angular = GetSoImpulseAngularDelta(body, hit.apos[0], impulse);
+        qwordV delta = SubP(hit.apos[0], body->rotationXf->position.q);
         float change = DotP(AddP(linear, CrossXYZ(angular, delta)), normal);
         if (fz < change) {
             qwordV velocity, spin;

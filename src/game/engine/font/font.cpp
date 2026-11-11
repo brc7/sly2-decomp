@@ -9,11 +9,10 @@
 #include "sly2/scrap.h"
 #include "sly2/shd.h"
 #include "sly2/gs.h"
-
+#include "sly2/basic.h"
 // 0x160260 StaticInit_font and GlobalConstructors_font: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-struct RGBA { unsigned char r, g, b, a; };
 struct SCL { float rx; float ry; };
 /* A glyph of the font's table, sorted by ch (the character mapped through D_002BE338). */
 struct GLYPH { unsigned short ch; unsigned short u; unsigned short v; unsigned short dx; };
@@ -464,9 +463,9 @@ unsigned char CRichText::ReadNextChar()
                     n = n * 16 + d;
                 }
                 if (pchT - cursor >= 7) {
-                    setColor.r = (((n >> 16) & 0xFF) + 1) >> 1;
-                    setColor.g = (((n & 0xFF00) >> 8) + 1) >> 1;
-                    setColor.b = ((n & 0xFF) + 1) >> 1;
+                    setColor.red = (((n >> 16) & 0xFF) + 1) >> 1;
+                    setColor.green = (((n & 0xFF00) >> 8) + 1) >> 1;
+                    setColor.blue = ((n & 0xFF) + 1) >> 1;
                     currentColor = setColor;
                     cursor += 7;
                 } else {
@@ -496,7 +495,7 @@ unsigned char CRichText::ReadNextChar()
                     escapeFont.xScale *= r;
                     escapeFont.yScale *= r;
                     RGBA rgba = fontColor;
-                    rgba.a = currentColor.a;
+                    rgba.alpha = currentColor.alpha;
                     currentColor = rgba;
                     fontChanged = one;
                 } else {

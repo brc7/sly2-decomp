@@ -23,7 +23,7 @@
 #include "sly2/game.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
-
+#include "sly2/lsg.h"
 // Bentley's state (BENTLEY +0x13D0), switched by SetBentleyState and run by UpdateBentleyStateMachine. Meanings from
 // docs/systems/player.md section 4 except where marked.
 enum BentleyState {
@@ -703,7 +703,7 @@ extern "C" void SetBentleyState(BENTLEY *p, int k)
 namespace M_func_001356E8 {
 typedef int ti128 __attribute__((mode(TI)));
 struct C { int a[4]; };
-struct LSG { ti128 pos; int pad[0x14]; };
+
 union VQ { float af[4]; ti128 q; };
 extern VQ D_002BC970 __asm__("D_002BC970");    /* screen points for ConvertCmScreenToWorld */
 extern VQ D_002BC980 __asm__("D_002BC980");
@@ -725,7 +725,7 @@ extern "C" void UpdateBentleyAimPoint(BENTLEY *bentley) {
     ti128 v2 = ConvertCmScreenToWorld(&g_cm, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
     IntersectSwBoundingBox(&g_sw, v1, v2, ShouldKeepSoNotSelf, bentley->physicsTree, &cso, &aso);
-    if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->aimPoint = lsg.pos;
+    if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) bentley->aimPoint = lsg.apos[0];
     else bentley->aimPoint = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }

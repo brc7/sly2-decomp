@@ -26,6 +26,7 @@
 #include "sly2/joy.h"
 #include "sly2/save.h"
 #include "sly2/sndmgr.h"
+#include "sly2/basic.h"
 /* SLY2_BUILTIN_C(sym), before each C-style builtin (result through a hand-passed hidden pointer, sly2/cref.h's
    CRefData): on the EE nothing, the table (g_mpbifkbif) calls the C-style body itself (g++ 2.95 passes a CRef result's
    address first, as these bodies take it). Natively the body is renamed sym_c and sym becomes the CRef-returning entry
@@ -41,7 +42,6 @@
 #endif
 // 0x125798 StaticInit_bif and GlobalConstructors_bif: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
-
 /* Splice value tags (CRef::m_tagk; docs/systems/splice-scripting.md section 2), named for this file. The shared TAGK
    enum (sly2/basic.h, sly2/cref.h) defines only TAGK_Nil = -1 so far; these are plain constants so that the views below
    can keep taking `int` tags. 0x12 is the quote special form's head tag, used when the builtins build (quote x). */
@@ -2705,8 +2705,7 @@ extern "C" CRefData *BuiltinClqEvaluate__FiP4CRefP6CFrame(CRefData *ret, int cre
 
 // 0x1233F0 BuiltinClqEvaluateLm__FiP4CRefP6CFrame
 namespace M_BuiltinClqEvaluateLm__FiP4CRefP6CFrame {
-struct LM;
-typedef struct LM { float minValue; float maxValue; } LM;
+
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 void CRef_CoerceF32(CRefData *pref, CRefData *prefSrc) __asm__("CRef_CoerceF32");
 // Splice builtin "clq-evaluate-lm": clq eval clamped to lm.

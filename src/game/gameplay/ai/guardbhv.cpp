@@ -35,6 +35,7 @@
 #include "sly2/act.h"   /* ACT8 */
 #include "sly2/xfm.h"
 #include "sly2/so.h"
+#include "sly2/lsg.h"
 
 // 0x17EF38 StaticInit_guardbhv and GlobalConstructors_guardbhv: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -5862,7 +5863,7 @@ extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
 
 // 0x17D608 SnapPositionToSurfaceAbove
 namespace M_FSnapPosToSurfaceAbove {
-  struct LSG; struct VU_FLOAT;
+   struct VU_FLOAT;
 // SnapPositionToSurfaceAbove: ported from Lilly's personal Sly 2 decomp (src/P2/guardbhv_goto.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BE750 (D_002BE750), D_002BE754 (D_002BE754), g_normalZ
@@ -5870,17 +5871,6 @@ namespace M_FSnapPosToSurfaceAbove {
 // A line from the position straight up (5000 long) against the world's objects: when it hits one, the position is moved to the end of the
 // hit piece and 1 is returned. MoveBhvRelocateToPoint (0x17E9B0) tries it when SnapToGround finds no floor under the point.
 
-struct LSG
-{
-      qword apos[2];
-      qword anormal[2];
-      float au[2];
-      LSGK lsgk;
-      SURF *apsurf[2];
-      EDGE *pedge;
-      int iiposSwap;
-      LSG *plsgNext;
-};
 struct VU_FLOAT
 {
     qword qw;

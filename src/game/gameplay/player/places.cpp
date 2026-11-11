@@ -20,12 +20,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/jt.h"
 #include "sly2/classes.h"
-
+#include "sly2/xp.h"
 /* vec.h's quadword-aligned VECTOR (basic.h's has no alignment). */
 struct VECTORV { float x, y, z; } __attribute__((aligned(16)));
 typedef union { qword q; float f[4]; } U;
 /* The surface the player stands on (STEP::floorContact): no shared XP definition yet. */
-struct XP { char pad[0x40]; SOPART *part; char pad44[0x8]; SO *surface; char pad50[0x10]; qword pos; char pad70[0x18]; float normalZ; };
+
 /* The hang object (JT::hangHandle, CID19): +0x100 its grab spot, +0x10C nonzero: no place is recorded on it. */
 struct B { char pad[0x10C]; int unknown10C; };
 struct HIT { qword pos; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };
@@ -256,8 +256,8 @@ extern "C" void UpdateJtPlaces(JT *jt)
     case 15: case 16: case 17: case 20: case 23: case 24:
     {
         XP *pa = jt->floorContact;
-        if (pa && pa->normalZ > 0.7f && !pa->surface->isNotLandable && !jt->pwater)
-            AddJtPlaceAtPosition(&jt->jtplaces, pa->part, pa->pos);
+        if (pa && pa->normalVec.z > 0.7f && !pa->axps[1].pso->isNotLandable && !jt->pwater)
+            AddJtPlaceAtPosition(&jt->jtplaces, pa->axps[1].ppart, pa->axps[1].posLocal);
         break;
     }
     case 3: case 22:

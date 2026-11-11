@@ -1087,10 +1087,10 @@ extern "C" void HandleStepguardMessage(STEPGUARD *guard, int message, struct ATT
 
 // 0x207690 RenderStepguardSelf
 namespace M_RenderStepguardSelf {
-union U; struct M4; struct SPACE; union FLAGS; struct STEPGUARDIsland; struct PROFILE; 
-union U {qword q;float f[4];};
+ struct M4; struct SPACE; union FLAGS; struct STEPGUARDIsland; struct PROFILE; 
+
 // 4x4 matrix of U rows with copy constructor and assignment.
-struct M4 {U rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
+struct M4 {QWROW rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct SPACE {char pad0[0x40];M4 matrix;};
 union FLAGS {unsigned long value;unsigned char bytes[8];};
 /* island: reads SO +0x28 flags bytes, +0x60 root XF matrix as qword rows, +0x134 material and STEP +0x240 as floats (lo.h/so.h/step.h layouts); not attempted */
@@ -1130,7 +1130,7 @@ static inline float Length(qword a)
 extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
 {
     M4 local;
-    U offset;
+    QWROW offset;
     M4 basis,matrix,product,inverse;
     CM *camera=&g_cm;
     if(guard->flags.bytes[5]&camera->grfvis){
@@ -1189,8 +1189,7 @@ extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
 
 // 0x2079A0 OnStepguardRemove
 namespace M_OnStepguardRemove {
-struct DL; 
-struct DL { void *head, *tail; int count; };
+
 void OnSoRemove(STEPGUARD *p) __asm__("OnSoRemove");
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 // 0x2079A0: STEPGUARD vtable slot 22 (OnRemove): base, unlinks from the world's guard list and stamps the removal
@@ -1675,8 +1674,8 @@ struct DETECTORTARGETIsland {
     DETECTORTARGETIsland(STEPGUARD *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.time) {}
 };
 /* island: entry addresses spelled as byte offsets in pinned registers (asm-pinned, see the comment below) */
-struct DETECTORIsland : XFM { void *owner; void *ownerPhysicsTree; void *pvolNear; void *pvolFar; char padF0[0xFC - 0xF0]; unsigned int count; struct DETECTORTARGETIsland targets[8]; };
-extern struct DETECTORTARGETIsland *FindDetectorTarget(struct DETECTORIsland *detector, STEPGUARD *object) __asm__("FindDetectorTarget");
+
+extern struct DETECTORTARGETIsland *FindDetectorTarget(struct DETECTOR *detector, STEPGUARD *object) __asm__("FindDetectorTarget");
 extern void *memmove(void *d, void *s, int n) __asm__("memmove");
 
 // 0x2085D0: Inserts an object into the detector's target list (at most eight): `atFront` appends it as a designated
@@ -1686,17 +1685,17 @@ extern void *memmove(void *d, void *s, int n) __asm__("memmove");
 int TryAddStepguardDetectTarget(STEPGUARD *guard, STEPGUARD *object, int atFront) __asm__("TryAddStepguardDetectTarget"); int TryAddStepguardDetectTarget(STEPGUARD *guard, STEPGUARD *object, int atFront)
 {
     struct DETECTORTARGETIsland *entry;
-    struct DETECTORIsland *detector;
+    struct DETECTOR *detector;
     register unsigned int n __asm__("$16");
     if (!object || object == guard)
         return 0;
     entry = 0;
     if (!atFront)
-        entry = FindDetectorTarget(((struct DETECTORIsland *)guard->pdetector), object);
+        entry = FindDetectorTarget(((struct DETECTOR *)guard->pdetector), object);
     if (entry)
         return 0;   // already tracked
-    detector = ((struct DETECTORIsland *)guard->pdetector);
-    n = detector->count;
+    detector = ((struct DETECTOR *)guard->pdetector);
+    n = detector->ctarget;
     if (n >= 8) {
         int numGenerated;
         if (!atFront) {
@@ -1711,7 +1710,7 @@ int TryAddStepguardDetectTarget(STEPGUARD *guard, STEPGUARD *object, int atFront
                 entry = (struct DETECTORTARGETIsland *)((char *)detector + n);
                 memmove(entry + 1, entry, (numGenerated - 1) * 16);
                 new(entry) DETECTORTARGETIsland(object, g_clock);
-                ((struct DETECTORIsland *)guard->pdetector)->count++;
+                ((struct DETECTOR *)guard->pdetector)->ctarget++;
                 return 1;
             }
         }
@@ -1728,7 +1727,7 @@ int TryAddStepguardDetectTarget(STEPGUARD *guard, STEPGUARD *object, int atFront
             memmove(entry + 1, entry, numGenerated * 16);
         }
         new(entry) DETECTORTARGETIsland(object, g_clock);
-        ((struct DETECTORIsland *)guard->pdetector)->count++;
+        ((struct DETECTOR *)guard->pdetector)->ctarget++;
         return 1;
     }
     return 0;
