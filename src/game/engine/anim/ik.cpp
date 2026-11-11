@@ -87,7 +87,7 @@ extern "C" void LoadSoIkFromBrx(SO *so, void *stream)
 }
 
 // Paired-distance update; volatile on the first two VU asm groups keeps the p4 load between them (Claude agent).
-static inline ACT*Entry(SO*owner,int i){register XF*entries asm("$2")=owner->transforms;register int offset asm("$3")=i*256;entries=(XF*)((int)entries+offset);return entries->firstActuator;}
+static inline ACT*Entry(SO*owner,int i){register XF*entries asm("$2")=owner->transforms;register sptr offset asm("$3")=i*sizeof(XF);entries=(XF*)((sptr)entries+offset);return entries->firstActuator;}
 
 // For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
 // (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps

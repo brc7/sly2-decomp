@@ -203,7 +203,7 @@ extern "C" void BuildStepPhysPart(STEP *step, SOPART *m)
      {register qword value __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(value):"r"(word));
      dst=(qword *)mesh->meshLocal.positions;
      __asm__ __volatile__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(step->pivotOffset),"j"(g_normalZ),"j"(value));
-     {qword *slot=(qword *)(firstHelper*16+(int)dst);
+     {qword *slot=(qword *)(firstHelper*16+(sptr)dst);
      u.q=value;
      slot[1]=r;}}}
     if (allPinned)
