@@ -280,7 +280,7 @@ def drop_top_const(t):
 
 class Decl:
     __slots__ = ('file', 'line', 'name', 'qual', 'scope', 'member', 'static', 'ret', 'params', 'const', 'label',
-                 'is_def', 'unparsed', 'variadic', 'templ', 'cname')
+                 'is_def', 'unparsed', 'variadic', 'templ', 'cname', 'adapted')
 
     def flat(self, cls_this=True):
         p = list(self.params)
@@ -399,10 +399,14 @@ def handle_decl(seg, stack, T, rel, record, is_def):
     toks, lines = toks[i:], lines[i:]
     if not toks or 'typedef' in toks[:1] or '(' not in toks: return
     label = None
+    adapted = False
     out, ol = [], []
     j = 0
     while j < len(toks):
         t = toks[j]
+        # SLY2_SRET_LABEL("ee", "native") (sly2/port.h): the EE asm label; natively an adapter with this spelling
+        if t == 'SLY2_SRET_LABEL' and toks[j + 1:j + 2] == ['('] and j + 2 < len(toks) and toks[j + 2].startswith('"'):
+            label = toks[j + 2][1:-1]; adapted = True; j = match_close(toks, j + 1) + 1; continue
         if t in ('__asm__', 'asm', '__asm') and toks[j + 1:j + 2] == ['('] and j + 3 < len(toks) and \
                 toks[j + 2].startswith('"') and toks[j + 3] == ')':
             label = toks[j + 2][1:-1]; j += 4; continue
@@ -486,14 +490,16 @@ def handle_decl(seg, stack, T, rel, record, is_def):
     dl.params, dl.const, dl.label, dl.is_def = params, const, label, is_def
     dl.unparsed, dl.variadic, dl.templ = unparsed, variadic, templ
     dl.cname = name if re.match(r'[A-Za-z_$][\w$]*$', name) else None
+    dl.adapted = adapted or (dl.cname is not None and dl.cname in BUILTIN_C.get(rel, ()))
     record('decl', rel, dl, None)
 
 
 # ------------------------------------------------------------------ comparison
 
 RANK = ['wrong-count', 'int-vs-pointer', 'struct-return', 'wrong-type', 'return', 'other', 'void-pointer',
-        'address-only', 'derived', 'alias', 'const']
+        'address-only', 'sret-adapted', 'derived', 'alias', 'const']
 BENIGN = {'alias', 'const', 'derived', 'void-pointer'}
+BUILTIN_C = {}   # file -> symbols named by SLY2_BUILTIN_C(sym) there (bif.cpp's C-style builtins)
 BASES = {}   # class -> base classes (struct X : Y)
 
 
@@ -564,8 +570,15 @@ def compare_decl(dl, sym, enums, ref_ret):
             f.append(('address-only', f'declared with no parameters vs {len(v)}: only its address can be used'))
         elif len(decl_flat) != len(v) and not ('...' in v or '...' in decl_flat):
             cs = [classify(x, y, enums) for x, y in zip(decl_flat[1:], v)]
-            if len(decl_flat) == len(v) + 1 and decl_flat and is_ptr(decl_flat[0]) and \
-                    all(c is None or c[0] in BENIGN for c in cs):
+            adapted = getattr(dl, 'adapted', False)
+            if adapted and len(v) == len(decl_flat) + 1 and v and is_ptr(v[0]) and dl.ret and dl.ret != 'void':
+                # the reverse form: the symbol's explicit out-pointer taken as a struct result (SLY2_SRET_LABEL)
+                cs = [classify(x, y, enums) for x, y in zip(decl_flat, v[1:])]
+                f.append(('struct-return', f'struct result {dl.ret} for the explicit out-pointer {v[0]}'))
+                f += [(c[0], f'param {i + 1}: {c[1]}') for i, c in enumerate(cs) if c]
+                sret_v = True
+            elif len(decl_flat) == len(v) + 1 and decl_flat and is_ptr(decl_flat[0]) and \
+                    (adapted or all(c is None or c[0] in BENIGN for c in cs)):
                 f.append(('struct-return', f'explicit leading return-slot pointer {decl_flat[0]} (the hidden '
                                            f'struct-return argument; arm64 passes it in x8, not x0)'))
                 f += [(c[0], f'param {i + 1}: {c[1]}') for i, c in enumerate(cs) if c]
@@ -585,6 +598,10 @@ def compare_decl(dl, sym, enums, ref_ret):
         if best is None or score < best[0]:
             best = (score, f); sret = any(x[0] == 'struct-return' for x in f)
     f = best[1]
+    if getattr(dl, 'adapted', False):
+        # bound through SLY2_SRET_LABEL / SLY2_BUILTIN_C: the hand-passed result pointer is the EE spelling only;
+        # natively the declaration reaches an adapter with its own ABI (sly2/port.h)
+        f = [('sret-adapted', x) if c == 'struct-return' else (c, x) for c, x in f]
     if ref_ret and dl.ret and dl.ret != ref_ret and not (sret and dl.ret in ('void', ref_ret + '*')):
         c = classify(dl.ret, ref_ret, enums)
         if c:
@@ -707,6 +724,8 @@ def main():
                                                   if x not in ('public', 'private', 'protected', 'virtual'))
         for m in re.finditer(r'(?:__asm__|\basm)\s*\(\s*"([^"]+)"\s*\)', txt):
             if demangle(m.group(1)): labels_seen.append((f, txt.count('\n', 0, m.start()) + 1, m.group(1)))
+        for m in re.finditer(r'^\s*SLY2_BUILTIN_C\(\s*(\w+)\s*\)', txt, re.M):
+            BUILTIN_C.setdefault(f, set()).add(m.group(1))
 
     glob_raw = {}
     for f in files:
