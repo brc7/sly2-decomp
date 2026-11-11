@@ -99,7 +99,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *pipe)
             }
         }
     }
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(pipe->player, 0x10, 2, pipe->abl, 0, 0, 0, &pipe->pasegbl);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(pipe->player, sizeof(pipe->abl[0]), 2, pipe->abl, 0, 0, 0, &pipe->pasegbl);
 }
 
 // Return v scaled by g (broadcast pinned to vf2).

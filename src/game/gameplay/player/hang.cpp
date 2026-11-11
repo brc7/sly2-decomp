@@ -60,7 +60,7 @@ void SolveIk(JT*,int);
 qword GetJtHangHandlePosition(JT*);
 void SetActPositionGoal(void*,qword);
 qword PosSmooth(qword,qword,float,float*,int);
-int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int d, int e, int *pn);
+int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int d, int e, ASEGBL **pn);
 extern U D_002A2D00[3];
 extern U g_normalZ,D_002A2DA0,D_002A2DB0,D_002A2DD0;
 extern LM g_lmZeroOne;
@@ -98,10 +98,10 @@ void CroutSolve(int,float*,float*,float*);
 // Creates the 3-entry dynamic swing blend (forward, backward, idle) over the swing clips and returns it through the
 // out pointer (Sly 1: PostJtLoadSwing).
 // Also known as: BindSlySwingBlend (upstream readable / Sly 1 name; BindSlySwingBlend__FP3SLYPvPi).
-extern "C" void PostJtLoadSwing(void *jt, void *q, int *pn)
+extern "C" void PostJtLoadSwing(void *jt, JTAIRBL *q, ASEGBL **pn)
 {
-    int n;
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(jt, 0xC, 3, q, 0, 0, 0, &n);
+    ASEGBL *n;
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(jt, sizeof(*q), 3, q, 0, 0, 0, &n);
     if (pn) *pn = n;
 }
 

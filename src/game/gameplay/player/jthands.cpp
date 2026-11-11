@@ -377,7 +377,7 @@ void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
     if (cHands == 2)
     {
         hands->abl[0].weight = 1.0f;
-        EnsureAsegBlendDynamic(hands->owner, 0x14, 2, hands->abl, 0, 0, 0, &hands->blendedAnimation);
+        EnsureAsegBlendDynamic(hands->owner, sizeof(hands->abl[0]), 2, hands->abl, 0, 0, 0, &hands->blendedAnimation);
     }
 }
 

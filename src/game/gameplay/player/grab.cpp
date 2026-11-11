@@ -158,7 +158,7 @@ extern "C" void PostLoadJtGrab(JTGRAB *grab)
     InitDirectionalBlend(grab->player, grab->abldirB, &grab->pasegblB);
     PostJtLoadGait(&grab->gaitA);
     PostJtLoadGait(&grab->gaitB);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(grab->player, 0xC, 3, grab->ablC, 0, 0, 0, &grab->pasegblC);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(grab->player, sizeof(grab->ablC[0]), 3, grab->ablC, 0, 0, 0, &grab->pasegblC);
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(&grab->hands, grab->player, &grab->player->activeAnimation);
 }
 

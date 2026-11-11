@@ -87,7 +87,7 @@ extern qword D_002A2DD0;
 OID D_002C3DC0[2] = {(OID)0x17D, (OID)0x17E};
 OID D_002C3DC8[2] = {(OID)0x17F, (OID)0x180};
 int D_002C3DD0[2] = {2, 2};
-int D_002C3DD8[2] = {0x20, 0x30};
+int D_002C3DD8[2] = {SLY2_OFFSETOF(BLGAIT, amrsgFoot0), SLY2_OFFSETOF(BLGAIT, amrsgFoot1)};   /* the gait entries' contact-window arrays (EnsureAsegBlendDynamic mpimrsgcib) */
 float D_002C3DE0 = 5.0f;
 float D_002C3DE4 = 1.1f;
 extern const float D_002A8904;   /* defined below where the ELF has it (.rodata order) */
@@ -177,7 +177,7 @@ void PostJtLoadGait(GAIT *gait)
             pblgait->vRoot = DivVec(qwDiff, vuT);
         }
     }
-    EnsureAsegBlendDynamic(gait->player, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->blendedAnimation);
+    EnsureAsegBlendDynamic(gait->player, sizeof(gait->abl[0]), 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->blendedAnimation);
     for (int ichn = 0; ichn < gait->blendedAnimation->cchn; ichn++)
     {
         CHN *pchn = &gait->blendedAnimation->achn[ichn];

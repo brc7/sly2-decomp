@@ -117,9 +117,9 @@ extern "C" void InitThrow(JTTHROW *thrower, STEPPLAYER *a)
 // Also known as: PostLoadJtThrow (upstream readable / Sly 1 name; PostLoadJtThrow__FP7JTTHROW).
 extern "C" void PostJtThrowLoad(JTTHROW *thrower)
 {
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, 0xC, 2, thrower->abl, 0, 0, 0, &thrower->pasegbl);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, 0xC, 4, thrower->ablB, 0, 0, 0, &thrower->pasegblB);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, 0xC, 2, thrower->ablC, 0, 0, 0, &thrower->pasegblC);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, sizeof(thrower->abl[0]), 2, thrower->abl, 0, 0, 0, &thrower->pasegbl);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, sizeof(thrower->ablB[0]), 4, thrower->ablB, 0, 0, 0, &thrower->pasegblB);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(thrower->player, sizeof(thrower->ablC[0]), 2, thrower->ablC, 0, 0, 0, &thrower->pasegblC);
 }
 
 // Update the controller target and consume state/animation transitions.

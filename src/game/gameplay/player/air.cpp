@@ -148,7 +148,7 @@ namespace M_PostLoadJtAir {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *, int, int, void *, int, int, int, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 // Post-load: creates the 5-entry dynamic jump animation blend.
 // Also known as: PostLoadJump (upstream readable / Sly 1 name; PostLoadJump__FP4JUMP).
-extern "C" void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, 0xC, 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
+extern "C" void PostLoadJtAir(JTAIR *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->player, sizeof(s->abl[0]), 5, s->abl, 0, 0, 0, &s->blendedAnimation); }
 } // namespace M_PostLoadJtAir
 
 //////// 0x195A00 SetJtAirJump

@@ -1545,7 +1545,7 @@ extern "C" void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, flo
     bentley->restPosition = v;
     bentley->unknown30 = g1;
     bentley->state = -1;
-    for (i = 0; i < 6; i++) EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(bentley->pbentley, 0xc, 2, bentley->abtblend[i].abl, 0, 0, 0, &bentley->abtblend[i].blendedAnimation);
+    for (i = 0; i < 6; i++) EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(bentley->pbentley, sizeof(bentley->abtblend[i].abl[0]), 2, bentley->abtblend[i].abl, 0, 0, 0, &bentley->abtblend[i].blendedAnimation);
 }
 } // namespace M_func_00136D28
 

@@ -69,7 +69,7 @@ extern "C" void InitDirectionalBlend(struct ACTOR *actor, BLDIR *axes, MULTI **b
             }
         }
     }
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(actor, 0x20, 8, axes, 0, 0, 0, &blend);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(actor, sizeof(axes[0]), 8, axes, 0, 0, 0, &blend);
     *blendOut = blend;
 }
 
