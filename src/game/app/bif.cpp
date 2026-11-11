@@ -1160,7 +1160,7 @@ void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRe
 void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 // Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void.
 // Also known as: RefOpSetCadr (upstream readable / Sly 1 name).
-extern "C" CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, CRefData *args, int cref, int k)
+extern "C" CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k)
 {
     char *p = (__typeof__(p))args[0].u.pv;
     if (k == 0x23)
@@ -1176,24 +1176,24 @@ extern "C" CRefData *BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *
 
 // 0x120CC8 BuiltinSetCar__FiP4CRefP6CFrame
 namespace M_BuiltinSetCar__FiP4CRefP6CFrame {
-void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
+void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "set-car!": BuiltinSetCadr(...,0x23).
 // Also known as: RefOpSetCar (upstream readable / Sly 1 name).
-extern "C" CRefData *BuiltinSetCar__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinSetCar__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
 {
-    BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x23);
+    BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, cref, args, frame, 0x23);
     return ret;
 }
 } // namespace M_BuiltinSetCar__FiP4CRefP6CFrame
 
 // 0x120CF8 BuiltinSetCdr__FiP4CRefP6CFrame
 namespace M_BuiltinSetCdr__FiP4CRefP6CFrame {
-void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
+void BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinSetCadr__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "set-cdr!": BuiltinSetCadr(...,0x24).
 // Also known as: RefOpSetCdr (upstream readable / Sly 1 name).
-extern "C" CRefData *BuiltinSetCdr__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinSetCdr__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
 {
-    BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x24);
+    BuiltinSetCadr__FiP4CRefP6CFrame4BIFK(ret, cref, args, frame, 0x24);
     return ret;
 }
 } // namespace M_BuiltinSetCdr__FiP4CRefP6CFrame
@@ -3090,11 +3090,11 @@ CRef AddBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref) __asm__("AddB
 CRef EnsureBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref) __asm__("EnsureBasicOption__FP5BASICiP4CRef");
 CRef SetBasicOption__FP5BASICiP4CRef(void *a, void *b, CRef *pref) __asm__("SetBasicOption__FP5BASICiP4CRef");
 CRef GetBasicOption__FP5BASICi(void *a, void *b) __asm__("GetBasicOption__FP5BASICi");
-CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(int cref, CRef *args, CFrame *frame, int op) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 
 // Shared body of addo/ensureo/seto!/geto: switch on BIFK 0x6C..0x6F ->
 // AddBasicOption/EnsureBasicOption/SetBasicOption/GetBasicOption.
-CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *pv, int op)
+CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(int cref, CRef *args, CFrame *frame, int op)
 {
     CRef ref;
     void *a = args[0].u.pv;
@@ -3119,44 +3119,44 @@ CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(void *pbasic, CRef *args, void *
 
 // 0x123FB8 BuiltinAddOption__FiP4CRefP6CFrame
 namespace M_BuiltinAddOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> AddBasicOption.
-extern "C" CRefData *BuiltinAddOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinAddOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
 {
-    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6C);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, cref, args, frame, 0x6C);
     return ret;
 }
 } // namespace M_BuiltinAddOption__FiP4CRefP6CFrame
 
 // 0x123FE8 BuiltinEnsureOption__FiP4CRefP6CFrame
 namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "ensureo": op 0x6D EnsureBasicOption.
-extern "C" CRefData *BuiltinEnsureOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinEnsureOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
 {
-    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6D);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, cref, args, frame, 0x6D);
     return ret;
 }
 } // namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame
 
 // 0x124018 BuiltinSetOption__FiP4CRefP6CFrame
 namespace M_BuiltinSetOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "seto!": op 0x6E SetBasicOption.
-extern "C" CRefData *BuiltinSetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinSetOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
 {
-    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6E);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, cref, args, frame, 0x6E);
     return ret;
 }
 } // namespace M_BuiltinSetOption__FiP4CRefP6CFrame
 
 // 0x124048 BuiltinGetOption__FiP4CRefP6CFrame
 namespace M_BuiltinGetOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, void *pbasic, int cref, CRefData *args, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
 // Splice builtin "geto": op 0x6F GetBasicOption.
-extern "C" CRefData *BuiltinGetOption__FiP4CRefP6CFrame(CRefData *ret, void *pbasic, int cref, CRefData *args)
+extern "C" CRefData *BuiltinGetOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
 {
-    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, pbasic, cref, args, 0x6F);
+    BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(ret, cref, args, frame, 0x6F);
     return ret;
 }
 } // namespace M_BuiltinGetOption__FiP4CRefP6CFrame
@@ -3189,9 +3189,6 @@ CRef BuildListFromObjects__FiPP2LO(int c, LO **apo)
 
 // 0x124150 BuiltinFindObject__FiP4CRefP6CFrame
 namespace M_BuiltinFindObject__FiP4CRefP6CFrame {
-struct ARGCTX;
-/* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
-struct ARGCTX { char pad[0xC]; LO *plo; };
 void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c) __asm__("FindSwObjectInProxyScope");
 void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
@@ -3205,7 +3202,7 @@ extern "C" CRefData *BuiltinFindObject__FiP4CRefP6CFrame(CRefData *ret, void *pb
     ref.m_tagk = -1;
     b = (LO *)args[1].u.pv;
     if (args[2].m_tagk) {
-        plo = ((ARGCTX *)args[2].u.pv)->plo;
+        plo = (LO *)((CPair *)args[2].u.pv)->ref.u.pv;
     } else {
         plo = b;
     }
@@ -3223,9 +3220,6 @@ extern "C" CRefData *BuiltinFindObject__FiP4CRefP6CFrame(CRefData *ret, void *pb
 
 // 0x1241E8 BuiltinFindObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindObjects__FiP4CRefP6CFrame {
-struct ARGCTX;
-/* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
-struct ARGCTX { char pad[0xC]; LO *plo; };
 
 int FindSwObjectsInProxyScope(SW *psw, int k, void *a, LO *b, void *c, int n, void **ap) __asm__("FindSwObjectsInProxyScope");
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjects__FiPP2LO");
@@ -3239,7 +3233,7 @@ CRef BuiltinFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     LO *pq = (LO *)args[1].u.pv;
     LO *pqT;
     if (args[2].m_tagk)
-        pqT = ((ARGCTX *)args[2].u.pv)->plo;
+        pqT = (LO *)((CPair *)args[2].u.pv)->ref.u.pv;
     else
         pqT = pq;
     SW *pg = &g_sw;
@@ -3317,9 +3311,6 @@ CRef BuiltinFindObjectsFromOids(void *pbasic, CRef *args)
 
 // 0x1244E8 BuiltinFindNearestObject__FiP4CRefP6CFrame
 namespace M_BuiltinFindNearestObject__FiP4CRefP6CFrame {
-struct ARGCTX;
-/* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
-struct ARGCTX { char pad[0xC]; LO *plo; };
 void *FindSwObjectInProxyScope(SW *pg, int k, int a, LO *b, void *c) __asm__("FindSwObjectInProxyScope");
 void CRef_SetBasic(CRefData *pref, void *p) __asm__("CRef_SetBasic");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
@@ -3333,7 +3324,7 @@ extern "C" CRefData *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRefData *ret, v
     ref.m_tagk = -1;
     b = (LO *)args[1].u.pv;
     if (args[2].m_tagk) {
-        plo = ((ARGCTX *)args[2].u.pv)->plo;
+        plo = (LO *)((CPair *)args[2].u.pv)->ref.u.pv;
     } else {
         plo = b;
     }
@@ -3350,9 +3341,6 @@ extern "C" CRefData *BuiltinFindNearestObject__FiP4CRefP6CFrame(CRefData *ret, v
 
 // 0x124578 BuiltinFindNearestObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindNearestObjects__FiP4CRefP6CFrame {
-struct ARGCTX;
-/* the optional third argument: its +0xC is the object whose proxy scope is searched (its class is not known) */
-struct ARGCTX { char pad[0xC]; LO *plo; };
 
 int FindSwObjectsInProxyScope(SW *psw, int k, void *a, LO *b, void *c, int n, void **ap) __asm__("FindSwObjectsInProxyScope");
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjects__FiPP2LO");
@@ -3366,7 +3354,7 @@ CRef BuiltinFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
     LO *pq = (LO *)args[1].u.pv;
     LO *pqT;
     if (args[2].m_tagk)
-        pqT = ((ARGCTX *)args[2].u.pv)->plo;
+        pqT = (LO *)((CPair *)args[2].u.pv)->ref.u.pv;
     else
         pqT = pq;
     void *p0 = args[0].u.pv;
@@ -3434,7 +3422,7 @@ extern "C" CRefData *BuiltinFindCameraObject__FiP4CRefP6CFrame(CRefData *ret)
 // 0x124730 BuiltinFindClassObjects__FiP4CRefP6CFrame
 namespace M_BuiltinFindClassObjects__FiP4CRefP6CFrame {
 
-int FindSwObjectsByClass(void *pg, int k, void *a, int b, int c, void **ap) __asm__("FindSwObjectsByClass");
+int FindSwObjectsByClass(void *pg, int k, int cid, LO *context, int c, void **ap) __asm__("FindSwObjectsByClass");
 CRef BuildListFromObjects__FiPP2LO(int c, void **ap) __asm__("BuildListFromObjects__FiPP2LO");
 CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args) __asm__("BuiltinFindClassObjects__FiP4CRefP6CFrame");
 
@@ -3444,8 +3432,8 @@ CRef BuiltinFindClassObjects__FiP4CRefP6CFrame(void *pbasic, CRef *args)
 {
     CRef ref;
     void *ap[0x180];
-    int b = args[1].u.n;
-    int c = FindSwObjectsByClass(&g_sw, b ? 0x401 : 0x405, args[0].u.pv, b, 0x180, ap);
+    LO *context = (LO *)args[1].u.pv;   /* the object whose scope is searched, or 0: the world (inferred) */
+    int c = FindSwObjectsByClass(&g_sw, context ? 0x401 : 0x405, args[0].u.n, context, 0x180, ap);
     ref = BuildListFromObjects__FiPP2LO(c, ap);
     return ref;
 }
