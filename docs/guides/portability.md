@@ -16,7 +16,9 @@ the CloneLo / screenfade / vis / hud / bbmark / memcard-dialog views, LO's tagge
 the load path; (v1.16) the remaining load-path views (shape.cpp's SHAPE views, CID14 / CID98 / CID112's own fields in
 classes.h for cnvo / breakable / launcher, xf.cpp and ik.cpp's XF views, prize's AddLootEntryObject, PostJtLoad's
 member stores), the rail / pipe / shape / CID14 Clone forwarding, SW_ctor's last list offsets, MURRAY's ASEGARC and
-the GRABSPOT base without a null test (section 3 lists what is left).
+the GRABSPOT base without a null test, and from the port's boot-3 list: pointer-typed message / SM / chooser /
+EvaluateBezierPos arguments, FramePtr_Assign on &scriptFrame, LEVELLIST and POSTLOADREC in headers, more list
+offsets, and every EnsureAsegBlendDynamic entry stride from sizeof (section 3 lists what is left).
 
 ## 1. Guards and hooks
 
@@ -157,6 +159,14 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   (0x20), save.cpp's SVENT (cent * 10), the heap-guard sites outside the named functions (sly2+0x523381 / 0x542fc1 /
   0x5b92c5 in the port's log). The SNIP tables (BindLoOidTable) are done (murray's row at 0x1854 is MURRAY::arcLeap.paseg, ASEGARC in
   stepplayer.h since v1.16; gait.cpp still reads the arc through its BLCURVE / LEAPTUNE views).
+- **From the port's boot-3 list, still open after v1.16**: SW_ctor's Event / Callback (0x14) and Diract (0xD0) slot
+  sizes (the records are TU-private: basic.cpp SWCB, callback.cpp CALLBACK, gait.cpp's blend; a header type each
+  is needed first); screen.cpp InitScreenList's 0x14 (a DLE there would overlap SCREEN::idText at +0x18: the list's
+  element type needs checking); frm.cpp's 0x454 / 0x1090 (blip.cpp's private BLIPG / BLIP records); the heap-guard
+  `new` overruns (BOOTY, CID37, CID43, CID99, SAFEHOUSE, TURRET pads; CID125::PostLoad's 0x24); water.cpp's views
+  and slots 51 / 71 / 72 with WATER's fields in classes.h; PIPE's +0x1C0 axis; path.cpp's FindPathzoneAtPos B view,
+  the REGTREE pad views and the path-link endpoint views; SURF (xfm.h) vs FACE (bis.cpp); geom.cpp PLANE / GEOM and
+  CloneGeom's numSurfaces * 32; rail / pipe / freegrabspot / hnd flat views; blend.cpp's ASEG / CHN views.
 - **SHD header read**: LoadShdFromBrx reads the first 0x18 bytes of the level's shader record straight into SHD
   (file-record pattern, not under SLY2_EE_LAYOUT yet).
 - **Dangerous views** (after v1.16). Done in v1.16: shape.cpp's ten SHAPE views (plus SetChainEndObject, NewSampledShape
