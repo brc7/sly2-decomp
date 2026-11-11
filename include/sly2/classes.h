@@ -325,7 +325,8 @@ struct BOOTY : SO
     BOOTYE *pbootyeCur;         /* +0x158 the current entry, 0 none */
     struct CID37 *pcont;        /* +0x15C the container holding it (state 1, and the one it returns to) */
     struct STEPPLAYER *phero;   /* +0x160 the player carrying it */
-    SO *unknown164;             /* +0x164 notified (slot 51, message 1) when it leaves the dropped state */
+    struct EXPL *unknown164;    /* +0x164 an effect exploded (ExplodeExplso, grf 1 and the booty as reference) when it
+                                   leaves the dropped state (option 1005: a CID 0x1E, EXPL) */
     char pad168[0x170 - 0x168];
     VECTOR4 vScale;             /* +0x170 scale while carried (InitBooty: the default scale vector) */
     float tDrop;                /* +0x180 length of the scale pop after a pick-up (0.3 s) */
@@ -2095,7 +2096,9 @@ typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1]; typedef char as
 struct PIPE : SHAPE, GRABSPOT
 {
     DLE dleGrab;            /* +0x1B4 link in g_sw.dlCid11 (grab.cpp GatherJtGrabCandidates, grab mask 2) */
-    char pad1BC[0x1D0 - 0x1BC];
+    int unknown1BC;         /* +0x1BC */
+    qword axis;             /* +0x1C0 the reference axis the goal matrix is built around (pipe.cpp: D_002A2DA0 at InitPipe,
+                               GetPipeGoalMatrix) */
     int attachEffectId;     /* +0x1D0 sound played when the player attaches (pipe_jt.cpp; option 0x1D0) */
     int releaseEffectId;    /* +0x1D4 sound played when the player lets go (pipe_jt.cpp; option 0x1D4) */
     char pad1D8[0x1E0 - 0x1D8];
@@ -2112,7 +2115,7 @@ struct PIPE : SHAPE, GRABSPOT
     virtual LO *GetOwner() __asm__("GetPipeGrabspotOwner__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
-typedef char assert_PIPE_dleGrab[SLY2_OFFSETOF(PIPE, dleGrab) == 0x1B4 ? 1 : -1];
+typedef char assert_PIPE_dleGrab[SLY2_OFFSETOF(PIPE, dleGrab) == 0x1B4 ? 1 : -1]; typedef char assert_PIPE_axis[SLY2_OFFSETOF(PIPE, axis) == 0x1C0 ? 1 : -1];
 
 
 /* 13 RAIL (0x1D0): wires; vtable 0x2D6FE8, 50 slots */
@@ -2622,7 +2625,7 @@ struct CID102 : CID100
     virtual void Init() __asm__("InitGuardTrap");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid102ClassDesc");   /* slot 6 */
     virtual void Update() __asm__("UpdateGuardTrap");   /* slot 16 */
-    virtual void AddExternalAccelerations() __asm__("PushGuardTrapAway");   /* slot 71 */
+    virtual void AddExternalAccelerations(XA *pxa) __asm__("PushGuardTrapAway");   /* slot 71 */
     virtual void SetState(int state) __asm__("SelectGuardTrapTarget");   /* slot 76 */
 };
 typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
@@ -2747,11 +2750,21 @@ typedef char assert_WARP_aliases[SLY2_OFFSETOF(WARP, aliases) == 0x170 ? 1 : -1]
 /* 89 WATER (0x190): zap kind 0x2000; vtable 0x2DCA30, 75 slots */
 struct WATER : SO
 {
-    char pad150[0x178 - 0x150];
+    /* water.cpp's SOW view names +0x150..+0x188 (declared here so the class has its size on every target). */
+    XA *pxaFirst;               /* +0x150 the objects in it: XA records (source the water, other the object), linked
+                                   through pxaNextTarget (UpdateWater / UpdateSwXaList) */
+    char pad154[0x160 - 0x154];
+    VECTOR posCurrent;          /* +0x160 the current (CalculateWaterCurrent) */
+    char pad16C[0x170 - 0x16C];
+    struct EXPL *recipient;     /* +0x170 the splash effect: exploded (ExplodeExplso) when an object hits the surface fast
+                                   (option 797: a CID 0x1E, EXPL) */
+    struct EXPL *emitter;       /* +0x174 (option 798: an EXPL) */
     SO *splashObject;           /* +0x178 emitted at fast entries (WakeSoWater; an SO in the snapshots) */
     SO *rippleObject;           /* +0x17C emitted at wakes (WakeSoWater; an SO in the snapshots) */
     int hasWakeSound;           /* +0x180 objects moving through it play their wake sound (WakeSoWater) */
-    char pad184[0x190 - 0x184];
+    int unknown184;             /* +0x184 */
+    int zapKind;                /* +0x188 the zap it inflicts on submerged parts (CanWaterInflictZap) (inferred) */
+    char pad18C[0x190 - 0x18C];
     virtual void PostLoad() __asm__("PostWaterLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetWaterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleWaterMessage");   /* slot 5 */
@@ -2760,7 +2773,7 @@ struct WATER : SO
     virtual void Update() __asm__("UpdateWater");   /* slot 16 */
     virtual void UpdateBounds() __asm__("UpdateWaterBounds");   /* slot 49 */
     virtual void InitPhys() __asm__("InitWaterPhysics");   /* slot 64 */
-    virtual void AddExternalAccelerations() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
+    virtual void AddExternalAccelerations(XA *pxa) __asm__("AddWaterExternalAccelerations");   /* slot 71 */
     virtual int IsPosInside(qword pos) __asm__("IsPosInWater");   /* slot 73 */
 };
 typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1]; typedef char assert_WATER_hasWakeSound[SLY2_OFFSETOF(WATER, hasWakeSound) == 0x180 ? 1 : -1];

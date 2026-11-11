@@ -635,7 +635,7 @@ struct STEPPLAYER : public STEP
     virtual void AddExtraXps() __asm__("AddStepplayerComponentXps");   /* slot 59 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
     virtual void CalculateContactResponse(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("HandleStepplayerContactImpulse");   /* slot 68 */
-    virtual void AddWaterAcceleration() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
+    virtual void AddWaterAcceleration(struct WATER *pwater) __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
     virtual void SetPlayerState(int n) __asm__("__pure_virtual");
     virtual int GetPlayerState() __asm__("__pure_virtual");
     virtual void ApplyStateStepParams() __asm__("__pure_virtual");

@@ -277,8 +277,8 @@ struct SO : public ALO   /* LO -> ALO -> SO (sly2/alo.h) */
       virtual void CalculateContactResponse(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("CalculateSoContactResponse");
       virtual void GetVelocityAtPos(FX *pfx, qword qwPos, VECTOR4 *pvecDv) __asm__("GetSoVelocityAtPos");
       virtual void PresetAccel() __asm__("PresetSoAccel");
-      virtual void AddExternalAccelerations() __asm__("AddSoExternalAccelerations");
-      virtual void AddWaterAcceleration() __asm__("AddSoWaterAcceleration");
+      virtual void AddExternalAccelerations(XA *pxa) __asm__("AddSoExternalAccelerations");   /* slot 71: the owner of an XA record in an object's list adds its accelerations to that object (water.cpp ApplySoExternalAccelerations; WATER: forwards to the object's slot 72) */
+      virtual void AddWaterAcceleration(struct WATER *pwater) __asm__("AddSoWaterAcceleration");   /* slot 72: buoyancy, current drag and wake of the water it floats in */
       virtual int IsPosInside(qword pos) __asm__("IsPosInSo");   /* slot 73: whether a world position is inside a visible part (rip.cpp RIP::Update, the POINT_IN_BSP_QUICK thunk) */
       virtual void InflictContactZaps() __asm__("InflictSoContactZaps");
       virtual int TakeDamage(ZPR *pzpr) __asm__("CanSoTakeDamage");
@@ -492,7 +492,7 @@ typedef char assert_XF_size[sizeof(XF) == 0x100 ? 1 : -1];
    Layout from src/game/gameplay/player/jt/SetJtState__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
 struct XA
 {
-      uint32_t   _pad_409    [ 1 ] ;
+      SO *source;   /* the object whose accelerations it supplies (water.cpp: the WATER; slot 71 is called on it) */
       SO *other; /* the other object */
       XA *pxaNextSource;   /* next record in the source object's list */
       XA *pxaNextTarget;   /* next record in the target object's list */
