@@ -143,11 +143,16 @@ def apply(text, group, allrecs=()):
             j = m.end(3)
             mq = re.match(r'\s*\.\s*q\b', t[j:j + 8]) if strip_q else None
             edits.append((m.start(3), j + (mq.end() if mq else 0), path))
-    edits.sort(key=lambda x: x[0])
+    # zero-width insertions before a removal at the same offset (sorting by start alone could drop the #include);
+    # an edit that starts inside an earlier one is dropped only if it lies wholly inside it: a partial overlap
+    # would splice the text (v1.21's `ttypedef` in bif.cpp), so it fails the view instead
+    edits.sort(key=lambda x: (x[0], x[1]))
     out, pos = [], 0
     for s_, e, rep in edits:
         if s_ < pos:
-            continue
+            if e <= pos:
+                continue
+            raise ValueError('overlapping edits at %d..%d (previous edit ends at %d)' % (s_, e, pos))
         out.append(text[pos:s_]); out.append(rep); pos = e
     out.append(text[pos:])
     new = ''.join(out)

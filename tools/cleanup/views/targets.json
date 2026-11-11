@@ -10,5 +10,7 @@
  "air.cpp:M_func_00196AA8::MOVE": "JTAIR",
  "air.cpp:M_FCheckJtStuck::P": "STEPPLAYER",
  "_glob.cpp": "RenderSoGlobset (port request 7, the native world-frame blocker): MODEL is so.h's GLOBSET (its comment; SO +0x80); SUB / SKIN / OBJ follow by propagation.",
- "glob.cpp:M_RenderSoGlobset::MODEL": "GLOBSET"
+ "glob.cpp:M_RenderSoGlobset::MODEL": "GLOBSET",
+ "_prize.cpp": "ProjectDprizeTransform's CHANNEL (port request 8, boot-8): DPRIZE::positionXf / rotationXf and SO::GetXfFromIndex return it, so it is the XF (matrix +0x00, position = localMatq row 3 at +0x30, velocity = velq at +0xB0).",
+ "prize.cpp:CHANNEL": "XF"
 }
