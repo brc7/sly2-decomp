@@ -326,7 +326,7 @@ void StickTossable(CID100V *gadget, SOV *surface)
     }
 }
 
-// CID100 intersection filter: the SO answer, plus (func_00134310 bit 1) the hero (CID 0x34) while the gadget is held
+// CID100 intersection filter: the SO answer, plus (MaxInt bit 1) the hero (CID 0x34) while the gadget is held
 // or fading, so it does not collide with the one carrying it.
 // Also known as: OverlapKindCarry (upstream readable / Sly 1 name; OverlapKindCarry__FP3ALOT0).
 extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
@@ -613,7 +613,7 @@ static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw
 struct COLLA { XFV *xf; };   /* a found object, read through its first word (inferred: its XF) */
 // The blast: finds the objects within radius, casts probes from pos over a sphere (11 latitude rings, D_002C4338 /
 // D_002C4368 probes each) and one toward each found object, collecting up to 32 hits (ProbeTossableHit), then
-// delivers them (func_001F7598) and makes a noise stimulus at pos.
+// delivers them (DeliverZapToSo) and makes a noise stimulus at pos.
 // Also known as: BlastCarry (upstream readable / Sly 1 name; BlastCarry__FP2LOiiG9VU_VECTORf).
 void SweepTossableProbes(CID100V *gadget, int zapKind, int damage, qwordV pos, float radius)
 {
@@ -884,8 +884,8 @@ static inline qwordV LoadCoefficient(){
 // Qword wrapper convertible back to qwordV.
 struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;}};
 // CID102 state change (vtable slot 76): leaving extraction lets the actor go (unhooks it, behavior 0xB0 to state 2,
-// colour goal reset); entering it picks the nearest class-0x38 actor within 400 that answers func_00206EB0(0xB),
-// hooks it (AddSoXa), sets its velocity to half its current one with z = 400 (a hop) and calls func_00209E28.
+// colour goal reset); entering it picks the nearest class-0x38 actor within 400 passing CanSetStepguardSpecial(0xB),
+// hooks it (AddSoXa), sets its velocity to half its current one with z = 400 (a hop), then SendStepguardRootBhvMode6.
 // Also known as: SetExtractorState (upstream readable / Sly 1 name; SetExtractorState__FP2LOi).
 extern "C" void SelectGuardTrapTarget(CID100V *gadget, int state)
 {

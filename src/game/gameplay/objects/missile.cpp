@@ -173,7 +173,7 @@ void OnMissileRemove(MISSILE *missile)
 }
 
 // MISSILE::Fire (vtable slot 78): remembers the target (a point, local to targetObject when given), plays the flight
-// animation and, if enabled, starts the flight action on the rotation XF (func_0012DCA0 kind 5).
+// animation and, if enabled, starts the flight action on the rotation XF (NewPathAct kind 5).
 // Also known as: SetMissileTarget (upstream readable / Sly 1 name; SetMissileTarget__FP3ALOP2LOP6VECTOR).
 extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
 {
@@ -193,7 +193,7 @@ extern "C" void ApplyMissileThrow(MISSILE *missile)
     ReleaseAct(&missile->flightAction);
 }
 
-// MISSILE vtable slot 61 (ShouldIgnoreIntersection): the BOMB answer, plus bit 1 (func_00134310) for objects in the
+// MISSILE vtable slot 61 (ShouldIgnoreIntersection): the BOMB answer, plus bit 1 (MaxInt) for objects in the
 // ignore lists (by oid or class).
 // Also known as: OverlapKindMissile (upstream readable / Sly 1 name; OverlapKindMissile__FP3ALOT0).
 int ShouldMissileIgnoreIntersection(MISSILE *missile, SO *pso)
@@ -315,7 +315,7 @@ void CID82::Init()
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
 // CID82 Fire (vtable slot 78): FireMissile; with a flight time the arrival time follows from it; otherwise the target
 // predicted 0.5 s ahead and the launch velocity (clamped to 0.75 maxSpeed) give the arrival time by a sweep test
-// (func_0014C748, at least 0.25). Hand-scheduled asm (see the header). (inferred)
+// (ClipEdgeToSphere, at least 0.25). Hand-scheduled asm (see the header). (inferred)
 // Also known as: SetHomingMissileTarget (upstream readable / Sly 1 name; SetHomingMissileTarget__FP3ALOP2LOP6VECTOR).
 extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  WORKF w;

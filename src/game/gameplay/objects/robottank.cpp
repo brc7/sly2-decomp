@@ -87,7 +87,7 @@ struct X : B {
          : "=&r"(receiver), "=m"(x0) : "r"(this) : "memory");
  x4=0;vt=SLY2_VTBL(JSG);InitRobottankWeapon(receiver,p);
 }
-    // Allocate through func_001AE4F8.
+    // Allocate through __builtin_new.
     void *operator new(unsigned int cb) { return func_001AE4F8(cb); }
 
     char pad[0xB0 - 0x10];

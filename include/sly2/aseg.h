@@ -102,14 +102,14 @@ struct EASND
     float doppler;
     float volume;
 };
-struct EA17   /* func_00210538's arguments (sw.cpp) */
+struct EA17   /* SendSwAsegMessage's arguments (sw.cpp) */
 {
     OID oid;
     OID oid1;
     OID oid2;
     float value;
 };
-struct EA20   /* func_00210678's arguments (sw.cpp) */
+struct EA20   /* SetSwAsegEyesClosed's arguments (sw.cpp) */
 {
     int id0;
     int id1;

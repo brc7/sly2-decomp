@@ -309,7 +309,7 @@ extern "C" void SetBtnRsmg(BTN *btn, int onTrigger, OID root, OID stateMachine, 
     AddOrUpdateRsmg(&g_sw, btn->rsmgs, 8, &btn->numRsmgs, onTrigger, root, stateMachine, goal);
 }
 
-// Adds a task state applied on trigger (at most 4; func_00161F10 on the task table g_game). (inferred)
+// Adds a task state applied on trigger (at most 4; AppendBoundedPair on the task table g_game). (inferred)
 extern "C" void AddBtnEventListener(BTN *btn, int task, int taskState)
 {
     AppendBoundedPair(&g_game, btn->taskStates, 4, &btn->numTaskStates, task, taskState);
@@ -616,7 +616,7 @@ extern "C" void LoadVolbtnFromBrx(VOLBTN *volumeButton, void *stream)
 }
 
 // VOLBTN vtable slot 15 (PostLoad): resolves the segments, starts up; a tracking button allocates its list of the
-// objects inside (func_001AE1D0: 0x100 bytes, heap kind 0x10; inferred).
+// objects inside (AllocFromWorldHeap: 0x100 bytes, heap kind 0x10; inferred).
 // Also known as: PostVolbtnLoad (upstream readable / Sly 1 name; PostVolbtnLoad__FP6VOLBTN).
 extern "C" void PostVolbtnLoad(VOLBTN *volumeButton)
 {

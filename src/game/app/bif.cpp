@@ -2988,7 +2988,7 @@ extern "C" CRefData *BuiltinGetDifficulty(CRefData *pref)
 }
 
 // 0x123BA0 BuiltinGetDevFlag
-// Splice builtin slot 104: returns func_00210B68() as an integer, which is 0 in the retail build. Scripts gate extra
+// Splice builtin slot 104: returns SwStubFalse() as an integer, which is 0 in the retail build. Scripts gate extra
 // HUD hint tickers on it, so it reads as a development/build flag (name inferred).
 extern "C" CRefData *BuiltinGetDevFlag(CRefData *pref)
 {

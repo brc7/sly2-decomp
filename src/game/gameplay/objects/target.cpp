@@ -1,6 +1,6 @@
 // target.cpp -- TARGET, a point other objects aim at (an XFM kept in the world's target list g_sw.dlTarget, with a
 // target radius and a "busy" radius), and CID21, a look-at point the player's head/lean logic picks from
-// (g_sw.dlCid21; see func_00142AF8 in stepplayer.cpp, which chooses the highest-priority one within range).
+// (g_sw.dlCid21; see PickHeroInteractTarget in stepplayer.cpp, which chooses the highest-priority one within range).
 // Entry points: the TARGET and CID21 vtables (Init, PostLoad, OnAdd/OnRemove, Clone).
 // TU 0x21D278..0x21D638 (11 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_target

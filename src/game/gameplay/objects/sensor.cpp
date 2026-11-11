@@ -590,7 +590,7 @@ extern "C" void BuildLasenBeams(LASENV *laser)
 }
 
 // Binds each end cap's animation: the first ASEG (class 0x6D) on the cap object, the ASEGA playing it (started if
-// none), and the channel that scales the cap (func_0012FF10 kind 0xC). (inferred)
+// none), and the channel that scales the cap (FindAsegChannel kind 0xC). (inferred)
 extern "C" void BindLasenAnimations(LASENV *laser)
 {
     uint i;

@@ -1502,7 +1502,7 @@ extern "C" void AddRelayWaitTimer(RELAY *relay, float dtWait)
 }
 
 // 0x1E1870 AddRelayMurrayApplySma
-// Splice builder, relay command 0x4F: Murray applies an SMA found on the named object (func_001B9C00). (inferred from
+// Splice builder, relay command 0x4F: Murray applies the named object's SMA (StartMurrayStruggle). (inferred from
 // NextJsgCommand)
 extern "C" void AddRelayMurrayApplySma(RELAY *relay, int nUnk5, int nUnk7, int nUnk6, int nUnk8, OID oidActor, int fAsync)
 {

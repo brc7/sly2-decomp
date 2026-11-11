@@ -42,7 +42,7 @@ void *CMcStatus_ctor(void *pv);        /* CMcStatus constructor */
 struct MCDLGG
 {
     char ab[0x40];
-    int state;              /* +0x40 the dialog state (SetMcDialogState), also the langstr id of its message (func_001AD8F8 prints it); was D_002E6590 */
+    int state;              /* +0x40 the dialog state (SetMcDialogState), also the langstr id of its message (FormatMcDialogText prints it); was D_002E6590 */
     int phase;              /* +0x44 the dialog's phase (SetMcDialogPhase; 1, 3 tested); was D_002E6594 */
     char ab48[8];
     // Construct the memory-card dialog through its class constructor.

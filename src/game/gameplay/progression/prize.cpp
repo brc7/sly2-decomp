@@ -1552,7 +1552,7 @@ namespace M_func_001C7A58 {
 void HideSoAllGlobs(LOOT *p) __asm__("HideSoAllGlobs");
 void ShowSoGlobsById(LOOT *p, void *pv) __asm__("ShowSoGlobsById");
 // Makes the entry with this id current (the first entry when none matches), then hides the loot's globs
-// (func_001F6A68, inferred) and shows the entry's ones. Used by StageLootPouchLoot.
+// (HideSoAllGlobs, inferred) and shows the entry's ones. Used by StageLootPouchLoot.
 // Also known as: SetPickupLootKind (upstream readable / Sly 1 name; SetPickupLootKind__FP2LOi).
 extern "C" void SelectLootEntry(LOOT *loot, int id)
 {

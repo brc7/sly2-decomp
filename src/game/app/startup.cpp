@@ -25,7 +25,7 @@ struct STEPE
     FILEREF *warpDest;      /* +0x8 kind 2: destination level */
     int warpOid;            /* +0xC kind 2: destination object */
     int warpFlags;          /* +0x10 kind 2 */
-    int taskArg0;           /* +0x14 kind 3: first argument of func_001651D8 */
+    int taskArg0;           /* +0x14 kind 3: first argument of StartTaskByOid */
     int taskArg1;           /* +0x18 kind 3: second argument */
 };
 typedef char assert_STEPE_size[sizeof(STEPE) == 0x1C ? 1 : -1];
@@ -97,7 +97,7 @@ extern "C" int HasPendingStartupSteps(STEPQ *queue)
 }
 
 // Runs the next step: a movie is queued on the movie player (kind 1 also sets its +0x108 flag) and the world warps
-// to the empty level that plays it; a warp wipes to its level; kind 3 calls func_001651D8 with the step's two
+// to the empty level that plays it; a warp wipes to its level; kind 3 calls StartTaskByOid with the step's two
 // arguments; kind 5 puts the memory-card UI in phase 1 (unless it is busy) and runs the following step at once.
 extern "C" void RunNextStartupStep(STEPQ *queue)
 {

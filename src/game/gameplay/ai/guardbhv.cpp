@@ -7,7 +7,7 @@
 // escort, stalk, relocate and patrol-path behaviours. Each behaviour has the BHV slots OnPush (7), Start (8), Close
 // (9), Update (10), UpdateMotion (11), ground-probe flags (12), HandleMessage (13) and usually a SetState switch
 // that pushes its child for the new state.
-// TU 0x174898..0x17F090 (189 functions, address order), then the inline func_002562A8 (linkonce copy 0x2562A8).
+// TU 0x174898..0x17F090 (189 functions, address order), then the inline ClearPointerPair (linkonce copy 0x2562A8).
 // The per-function files keep their views in namespaces named after the function (docs/guides/tu-merging.md
 // "Representation decisions"); the former m2c bodies (mostly the Init/Start/Close/Done members of each behaviour)
 // are written at file scope on step.h's BHV, guard.h's STEPGUARD and the TU-private derived behaviour views below.

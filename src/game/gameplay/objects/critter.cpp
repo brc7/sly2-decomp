@@ -80,7 +80,7 @@ struct CID96V
     float stateTime;        /* 0x224 */
     float nextStateTime;    /* 0x228 idle/walk end time */
     float fleeEndTime;      /* 0x22C when the fleeing critter fades out */
-    int amount;             /* 0x230 passed to func_00154E10 when hit (-1 by default) */
+    int amount;             /* 0x230 passed to SprayDifficultyPrizes when hit (-1 by default) */
     char pad234[12];
     U damageOffset;         /* 0x240 local offset of the hit effect */
 };
@@ -328,7 +328,7 @@ extern "C" void UpdateCritterXfWorld(CID96V *critter)
     UpdateSoXfWorld(critter);
 }
 
-// CID96 vtable slot 70: spring acceleration toward the heading basis with the spin parameters (func_001F59A0). (inferred)
+// CID96 vtable slot 70: spring acceleration toward the heading basis with the spin parameters (AccelSoTowardMatBounded). (inferred)
 // Also known as: TurnBird (upstream readable / Sly 1 name; TurnBird__FP3ALOii).
 extern "C" void PresetCritterAccel(CID96V *critter)
 {

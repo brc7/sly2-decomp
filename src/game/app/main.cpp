@@ -52,7 +52,7 @@ void StartupGs();
 // The program's main (crt0 calls it; naming it main would make g++ insert a second __main call, so it keeps
 // another name). Saves argc/argv, runs the boot stages and the game start-up, then loops forever, one iteration per
 // frame: pending world transition, pad, disc poll, camera setup, clock tick, world update, UI update (D_003D9E70),
-// then render and draw (skipped when the object at D_002DD644 exists and func_001477B0 says no; it is notified after
+// then render and draw (skipped when D_002DD644's object exists and IsFrameCaptureInactive is false; notified after
 // each frame) and the frame counter.
 extern "C" void GameMain(int argc, int argv)
 {

@@ -568,7 +568,7 @@ uint CeilLog2(uint value)
 }
 
 // Misnamed: this is the GS memory allocator's init (Sly 1's InitGsb), not a ZPR function. font.cpp calls it as
-// func_001703F8(&gsb, 0x1000, 0x1800): it zeroes the GSB and sets the first free and current GS address (both "zpk"
+// InitZpr(&gsb, 0x1000, 0x1800): it zeroes the GSB and sets the first free and current GS address (both "zpk"
 // fields here) to the second argument and the limit ("ploSource") to the third. The Sly 1 symbol
 // InitZpr__FP3ZPR3ZPKP2LO was attached by address; renaming it means changing its C++ signature (left for the type
 // pass).

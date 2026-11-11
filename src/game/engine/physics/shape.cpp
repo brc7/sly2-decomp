@@ -2247,7 +2247,7 @@ static inline float GetZ(qword q) {float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
 // y lane of q as a float.
 static inline float GetY(qword q) {float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 // Smaller of a and b.
-static inline float StdMinLocal(float a,float b) {return b<a?b:a;} // util.h StdMin's spelling; kept local: folding it moves func_001E9AC0's lines (1 instruction off)
+static inline float StdMinLocal(float a,float b) {return b<a?b:a;} // util.h StdMin's spelling; kept local: folding it moves RenderCid106Self's lines (1 instruction off)
 } // namespace M_func_001E9AC0
 // CID 106 slot 19 (RenderSelf): RenderSoSelf with the mesh deformed along the shape (EvaluateShapeAtParam per sample). Also known as: PlaceRopeMeshScene (upstream readable / Sly 1 name; PlaceRopeMeshScene__FP3ALO).
 void CID106::RenderSelf()

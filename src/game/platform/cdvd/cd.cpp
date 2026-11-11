@@ -151,9 +151,9 @@ static inline unsigned int ComputeCrc32(unsigned char *data, int size)
 }
 
 // Per-frame disc-identity poll (state g_cds: 3 idle, 1 read, 2 wait). Idle: if the sound manager exists
-// and the disc is not a PS2 DVD, pause the disc users (func_001DD6C8 on D_003DA4F0, inferred) and go to read. Read: once
-// func_001DD780 allows it, start reading the identity sector (LSN 0x132AA3 + 0xCA0) into D_002DD680. Wait: when
-// the read completes, compare the sector's CRC-32 to the expected value; on a match resume them (func_001DD728) and go
+// and the disc is not a PS2 DVD, pause the disc users (ShowScreen52D, D_003DA4F0; inferred) and go to read. Read: once
+// IsScreen52DShown allows it, start reading the identity sector (LSN 0x132AA3 + 0xCA0) into D_002DD680. Wait: when
+// the read completes, compare the sector's CRC-32 to the expected value; on a match resume them (HideScreen52D) and go
 // idle, otherwise read again.
 void UpdateCd(void)
 {

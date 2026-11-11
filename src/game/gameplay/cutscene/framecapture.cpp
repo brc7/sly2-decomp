@@ -127,7 +127,7 @@ void CID104::PostLoad()
 }
 
 // CID104 vtable slot 16 (Update): a started capture asks for the grab; a holding one resumes once the sound cue is
-// ready (func_001FE848 answers 0); a showing one goes idle when its animation has finished. (inferred)
+// ready (IsDialogPlaying answers 0); a showing one goes idle when its animation has finished. (inferred)
 // Also known as: UpdateOverlay (upstream readable / Sly 1 name; UpdateOverlay__FP2LO).
 extern "C" void UpdateFrameCapture(CAPTUREV *capture)
 {

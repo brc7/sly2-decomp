@@ -1,6 +1,6 @@
 // contessa.cpp -- CONTESSA (cid 0x40), a boss guard (STEPGUARD subclass): Init and Update overrides. While she is
 // not attached to anything and stands on ground, her update fits her body to the terrain with three crawl probes
-// (func_00205910).
+// (FitStepToTerrain).
 // TU 0x14FAC8..0x14FCA8 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_contessa
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_contessa

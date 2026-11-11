@@ -45,7 +45,7 @@ struct BOMBV : SO   /* classes.h BOMB : SO; its own fields */
     MATRIX3Q matDetonate;            /* +0x190 */
     qword velocityAtDetonation;        /* +0x1C0 */
     qword angularVelocityAtDetonation; /* +0x1D0 */
-    int makesNoise;            /* +0x1E0 detonation creates a noise stimulus (func_00156698), inferred */
+    int makesNoise;            /* +0x1E0 detonation creates a noise stimulus (NewNoise), inferred */
     int detonatesOnContact;    /* +0x1E4 (inferred: kind-1 bombs detonate on contact only when set) */
     LO *thrower;               /* +0x1E8 the thrower (a guard, by the snapshot pipeline's prototype match) */
     int zapKind;               /* +0x1EC zap kind of the blast message (0x100) */
