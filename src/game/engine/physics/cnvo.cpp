@@ -15,47 +15,16 @@
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }   /* the real class behind the views below, for its virtual calls */
 #include "sly2/vu0.h"
 #include "sly2/dli.h"
+#include "sly2/port.h"   /* SLY2_EE_LAYOUT */
+#if defined(SLY2_EE_LAYOUT)
+/* Entry i of a BASIC-derived object's g++ 2.95 vtable (vptr at +0xC), for the hand-written virtual calls below. */
+#define SLY2_VTE(p, i) ((*(VTE **)((char *)(p) + 0xC))[i])
+#endif
 
 // 0x1BE240 StaticInit_cnvo and GlobalConstructors_cnvo: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 union U { qword q; float f[4]; };
-struct T8 { int a, b; };
-/* The frame a polygon's outline is given in (+0x50; inferred): its transform stamp changes whenever it moves. */
-struct CID14O { char pad[0xA4]; int transformStamp; };
-
-/* CID14 (0x1F0 bytes) as this TU reads it. The outline is points[numPoints] (the last point repeats the first),
-   times the shape parameter at each point (shape.cpp: SHAPE times); edgePlanes the numPoints - 1 side planes, valid
-   while planeStamp equals the frame's transformStamp (BuildCid14EdgePlanes). */
-struct CID14V
-{
-    int unknown0, unknown4, unknown8;
-    VTE *vt;                    /* 0x0C */
-    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback; char pad38[0x3C - 0x38]; void *proxyRecord; char pad40[0x4C - 0x40]; void *unknown4C;
-    CID14O *frame;              /* 0x50 */
-    char pad54[0x5C - 0x54]; void *unknown5C;
-    float mat[16];              /* 0x60: local matrix (identity for merged polygons) */
-    int matWorld[(0xAC - 0xA0) / 4]; void *unknownAC; int padB0[(0xE0 - 0xB0) / 4];         /* 0xA0 */
-    int curveMode;              /* 0xE0: SHAPE mode (0: linear) */
-    int isClosed;               /* 0xE4 */
-    int numPoints;              /* 0xE8 */
-    float *times;               /* 0xEC */
-    void *distances;            /* 0xF0 */
-    qword *points;              /* 0xF4 */
-    char padF8[0x10C - 0xF8]; void *unknown10C; char pad110[0x11C - 0x110]; void *unknown11C; char pad120[0x12C - 0x120]; void *unknown12C; char pad130[0x140 - 0x130]; void *incomingTangents; void *outgoingTangents; char pad148[0x14C - 0x148]; void *unknown14C; char pad150[0x15C - 0x150]; void *unknown15C; char pad160[0x170 - 0x160]; void *unknown170; char pad174[0x17C - 0x174]; void *chain; void *pranges; char pad184[0x18C - 0x184]; void *unknown18C;
-    int winding;                /* 0x190: ClassifyCid14Polygon's result (WINDING_*) */
-    char pad194[0x198 - 0x194]; void *unknown198; void *unknown19C;
-    U boundsMin, boundsMax;     /* 0x1A0 */
-    int isMerged;               /* 0x1C0: a pooled merged polygon (NewMergedCid14Obstacle) */
-    DL members;                /* 0x1C4: the polygons merged into this one */
-    T8 dleMerged;               /* 0x1D0: link in the owner's members list */
-    CID14V *owner;              /* 0x1D8: the merged polygon this one belongs to */
-    void *pathzone;             /* 0x1DC: the zone it is registered in (AddPathzoneObstacle) */
-    T8 dlePending;              /* 0x1E0: link in g_sw.dlCid14Pending (inferred) */
-    int planeStamp;             /* 0x1E8 */
-    qword *edgePlanes;          /* 0x1EC */
-};
-typedef char assert_CID14_size[sizeof(CID14V) == 0x1F0 ? 1 : -1];
 /* ClassifyCid14Polygon results used here: a convex outline in the expected winding, or convex but wound the other
    way (PostCid14Load reverses those). Other values: not convex (inferred). */
 enum { WINDING_CONVEX = 3, WINDING_CONVEX_REVERSED = 4 };
@@ -93,108 +62,108 @@ extern const float D_002A76D4;   /* defined below where the ELF has it (.rodata 
 extern qword g_normalZ, D_002A2DD0;
 extern char D_003DD020[];
 
-void InitShape(CID14V *p);
+void InitShape(CID14 *p);
 void InitDl__FP2DLi(DL *pdl, int ib);
-void LoadShapeFromBrx(CID14V *p);
+void LoadShapeFromBrx(CID14 *p);
 void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 void *AllocFromWorldHeap(SWALLOC *preq);
 void *AllocFromStack(const AREQV &r);
-void CloneShape(CID14V *p, int a);
-void AddLoHierarchy(CID14V *p);
-void RemoveLoHierarchy(CID14V *p);
+void CloneShape(CID14 *p, LO *ploBase);
+void AddLoHierarchy(CID14 *p);
+void RemoveLoHierarchy(CID14 *p);
 void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
 void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 int IsEntryInDl__FP2DLPv(DL *pdl, void *pv);
 int IsDlEmpty__FP2DL(DL *pdl);
-void PostLoLoad(CID14V *p);
-float GetShapeMaxParam(CID14V *p);
-void MeasureShape(CID14V *p);
+void PostLoLoad(CID14 *p);
+float GetShapeMaxParam(CID14 *p);
+void MeasureShape(CID14 *p);
 void *memset(void *, int, unsigned);
-int FindShapeSegmentAtDistance(CID14V *p, float g, int a, int b);
-void EvaluateShapeAtDistance(CID14V *p, qword *pv, float g, int n);
+int FindShapeSegmentAtDistance(CID14 *p, float g, int a, int b);
+void EvaluateShapeAtDistance(CID14 *p, qword *pv, float g, int n);
 int IsEdgeBlockedByPathzone(void *pv, qword a, qword b, int k);
-float GetShapeMaxDistance(CID14V *p);
-float GetShapeMinDistance(CID14V *p);
-float WrapShapeDistance(CID14V *p, float g);
+float GetShapeMaxDistance(CID14 *p);
+float GetShapeMinDistance(CID14 *p);
+float WrapShapeDistance(CID14 *p, float g);
 int IsPosInPathzone(void *b, qword v, int c);
-qword GetLoWorldPos(CID14V *p);
+qword GetLoWorldPos(CID14 *p);
 void *FindPathzoneAtPos(qword pos, int n);
-void AddPathzoneObstacle(void *r, CID14V *p);
-void RemovePathzoneObstacle(void *ppathzone, CID14V *p);
-int FindPathzoneObstacles(void *a, void *b, qword q2, qword q3, int c, CID14V **buf);
+void AddPathzoneObstacle(void *r, CID14 *p);
+void RemovePathzoneObstacle(void *ppathzone, CID14 *p);
+int FindPathzoneObstacles(void *a, void *b, qword q2, qword q3, int c, CID14 **buf);
 void InitPlaneFromNormalPos(qword *pplane, qword n, qword pos);
-void FindShapeClosestPoint(CID14V *x, qword q, void *g, int a, int b, int c, float *pf);
-CID14V *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+void FindShapeClosestPoint(CID14 *x, qword q, void *g, int a, int b, int c, float *pf);
+CID14 *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_002333B4(void *p, int c, int n) __asm__("memset");
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 void CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
 
 int ComparePosXY(qword a, qword b);
 int GetTurnSignXY(qword a, qword b, qword c);
-int ClassifyCid14Polygon(CID14V *p);
-int WrapCid14PointIndex(CID14V *p, int n);
-int ClipEdgeToConvexObstacle(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg);
-int IsPosInConvexObstacle(CID14V *p, qword pos);
-int FindCid14PathzoneSpan(CID14V *p, void *pv, int fRev, float g0, float g1);
-int ClipShapeToPathzone(CID14V *s, void *x, float *pt, int mode, float t);
-int FindShapePointInPathzone(CID14V *a, void *b, float g, float range, float *pf, int c);
-void RegisterCid14Obstacle(CID14V *p);
-void UnregisterCid14Obstacle(CID14V *p);
-void DetachCid14FromOwner(CID14V *p);
-CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword q2, qword q3);
-void BuildCid14EdgePlanes(CID14V *p);
-int FindShapeFreeRange(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, float t);
-CID14V *NewMergedCid14Obstacle(void);
+int ClassifyCid14Polygon(CID14 *p);
+int WrapCid14PointIndex(CID14 *p, int n);
+int ClipEdgeToConvexObstacle(CID14 *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg);
+int IsPosInConvexObstacle(CID14 *p, qword pos);
+int FindCid14PathzoneSpan(CID14 *p, void *pv, int fRev, float g0, float g1);
+int ClipShapeToPathzone(CID14 *s, void *x, float *pt, int mode, float t);
+int FindShapePointInPathzone(CID14 *a, void *b, float g, float range, float *pf, int c);
+void RegisterCid14Obstacle(CID14 *p);
+void UnregisterCid14Obstacle(CID14 *p);
+void DetachCid14FromOwner(CID14 *p);
+CID14 *FindFirstObstacleHitBySegment(void *a, void *b, qword q2, qword q3);
+void BuildCid14EdgePlanes(CID14 *p);
+int FindShapeFreeRange(CID14 *p, CID14 *s, int fForward, qword *pq, float *pt, float t);
+CID14 *NewMergedCid14Obstacle(void);
 int ComparePosX(const void *a, const void *b);
-void BuildConvexHull(CID14V *p, int n, qword *pts);
-void AddCid14ToMerged(CID14V *p, CID14V *po);
+void BuildConvexHull(CID14 *p, int n, qword *pts);
+void AddCid14ToMerged(CID14 *p, CID14 *po);
 }
 /* The callers' own argument order (floats first): the order in which g++ loads the argument registers follows it. */
-int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("FindCid14PathzoneSpan");
-int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("FindShapeFreeRange");
+int func_001BCAC0F(CID14 *p, void *pv, float g0, float g1, int fRev) __asm__("FindCid14PathzoneSpan");
+int func_001BD560F(CID14 *p, CID14 *s, float t, int fForward, qword *pq, float *pt) __asm__("FindShapeFreeRange");
 
 // Fill the heap message and allocate cb zeroed bytes (kind nKind) from the world heap.
 static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocClearedFromWorldHeap(pmsg); }
 // Allocate cb bytes, 16-byte aligned, from the frame stack.
 static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
 /* The world matrix: virtual slot 31. */
-static inline MATRIX4Q *GetMat(CID14V *p) { return (MATRIX4Q *)AsLo(p)->GetWorldMatrix(); }
+static inline MATRIX4Q *GetMat(CID14 *p) { return (MATRIX4Q *)AsLo(p)->GetWorldMatrix(); }
 // Transform point v by the 4x4 matrix m.
 static inline qword MulPt(MATRIX4Q *m, qword v) { qword r; __asm__("vmulax.xyz $ACC, %1, %2x\n\tvmadday.xyz $ACC, %3, %2y\n\tvmaddaz.xyz $ACC, %4, %2z\n\tvmaddw.xyz %0, %5, $vf0w" : "=j"(r) : "j"(m->r[0].q), "j"(v), "j"(m->r[1].q), "j"(m->r[2].q), "j"(m->r[3].q)); return r; }
 
 // Slot 7 (Init): the SHAPE init plus the polygon's defaults.
 void CID14::Init()
 {
-    CID14V *p = (CID14V *)this;
+    CID14 *p = (CID14 *)this;
     InitShape(p);
     p->planeStamp = -1;
-    InitDl__FP2DLi(&p->members, 0x1D0);
+    InitDl__FP2DLi(&p->members, SLY2_OFFSETOF(CID14, dleMerged));
 }
 
 // Slot 14 (LoadFromBrx): LoadShapeFromBrx, then allocates one side plane per outline edge (count - 1).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadCid14FromBrx(CID14V *polygon)
+extern "C" void LoadCid14FromBrx(CID14 *polygon)
 {
     SWALLOC msg;
     LoadShapeFromBrx(polygon);
-    polygon->edgePlanes = (qword *)PvAllocMsg(&msg, (polygon->numPoints << 4) - 0x10, 0x10);
+    polygon->edgePlanes = (qword *)PvAllocMsg(&msg, (polygon->numControlVertices << 4) - 0x10, 0x10);
 }
 
 // Slot 41 (Clone): CloneShape and a copy of the side-plane array.
-extern "C" void CloneCid14(CID14V *polygon, int x)
+extern "C" void CloneCid14(CID14 *polygon, LO *ploBase)
 {
-    T8 a = polygon->dleMerged;
-    T8 b = polygon->dlePending;
+    DLE a = polygon->dleMerged;
+    DLE b = polygon->dlePending;
     SWALLOC req;
-    CloneShape(polygon, x);
+    CloneShape(polygon, ploBase);
     polygon->dleMerged = a;
     polygon->dlePending = b;
-    polygon->edgePlanes = (qword *)PvAllocMsg(&req, polygon->numPoints * 16 - 16, 0x10);
+    polygon->edgePlanes = (qword *)PvAllocMsg(&req, polygon->numControlVertices * 16 - 16, 0x10);
 }
 
 // Slot 11: AddLoHierarchy, then queues the polygon on the pending-obstacle list g_sw.dlCid14Pending (registered
 // later by UpdatePendingCid14Obstacles).
-extern "C" void AddCid14Hierarchy(CID14V *polygon)
+extern "C" void AddCid14Hierarchy(CID14 *polygon)
 {
     AddLoHierarchy(polygon);
     AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Pending, polygon);
@@ -203,7 +172,7 @@ extern "C" void AddCid14Hierarchy(CID14V *polygon)
 // Slot 12: RemoveLoHierarchy, detaches the polygon from its merged owner, unregisters the obstacle and leaves the
 // pending list.
 // Also known as: RemoveNavPoly (upstream readable / Sly 1 name; RemoveNavPoly__FP2LO).
-extern "C" void RemoveCid14Hierarchy(CID14V *polygon)
+extern "C" void RemoveCid14Hierarchy(CID14 *polygon)
 {
     DL *pdl;
     RemoveLoHierarchy(polygon);
@@ -234,24 +203,24 @@ int GetTurnSignXY(qword a, qword b, qword c)
 
 // Classifies the outline from its turn signs: too few points, convex clockwise, convex counter-clockwise, or not
 // convex.
-int ClassifyCid14Polygon(CID14V *polygon)
+int ClassifyCid14Polygon(CID14 *polygon)
 {
     int cFlip, i, sPrev, sgn;
     MATRIX4Q m;
-    if (polygon->numPoints < 2)
+    if (polygon->numControlVertices < 2)
         return 2;
     cFlip = 0;
     i = 0;
     sPrev = 0;
     m = *GetMat(polygon);
-    sgn = ComparePosXY(MulPt(&m, polygon->points[0]), MulPt(&m, polygon->points[1]));
-    for (; i < polygon->numPoints - 1; i++) {
+    sgn = ComparePosXY(MulPt(&m, polygon->vertexPosq[0].q), MulPt(&m, polygon->vertexPosq[1].q));
+    for (; i < polygon->numControlVertices - 1; i++) {
         int i0 = WrapCid14PointIndex(polygon, i);
         int i1 = WrapCid14PointIndex(polygon, i0 + 1);
         int i2 = WrapCid14PointIndex(polygon, i1 + 1);
-        qword c = MulPt(&m, polygon->points[i2]);
-        qword b = MulPt(&m, polygon->points[i1]);
-        qword a = MulPt(&m, polygon->points[i0]);
+        qword c = MulPt(&m, polygon->vertexPosq[i2].q);
+        qword b = MulPt(&m, polygon->vertexPosq[i1].q);
+        qword a = MulPt(&m, polygon->vertexPosq[i0].q);
         int s = ComparePosXY(b, c);
         int t;
         if (s) {
@@ -279,9 +248,9 @@ int ClassifyCid14Polygon(CID14V *polygon)
 
 // Wraps a point index into [0, count - 1) for the closed outline (the last point repeats the first).
 // Also known as: IpolyWrap (upstream readable / Sly 1 name; IpolyWrap__FP7NAVPOLYi).
-int WrapCid14PointIndex(CID14V *polygon, int index)
+int WrapCid14PointIndex(CID14 *polygon, int index)
 {
-    int c = polygon->numPoints;
+    int c = polygon->numControlVertices;
     int r = index % c;
     if (r < 0) r = r + (c - 1);
     else if (r == c - 1) r = 0;
@@ -296,7 +265,7 @@ static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t
 // Slot 15 (PostLoad): PostLoLoad, classifies the outline and reverses or re-measures it when needed so it is convex
 // with a known winding.
 // Also known as: ReverseLoxPath (upstream readable / Sly 1 name; ReverseLoxPath__FP2LO).
-extern "C" void PostCid14Load(CID14V *polygon)
+extern "C" void PostCid14Load(CID14 *polygon)
 {
     int r, half, i, j;
     float tMax;
@@ -305,14 +274,14 @@ extern "C" void PostCid14Load(CID14V *polygon)
     polygon->winding = r;
     if (r == WINDING_CONVEX) return;   /* redundant with the next test, but part of the codegen */
     if (r != WINDING_CONVEX_REVERSED) return;
-    half = polygon->numPoints / 2;
+    half = polygon->numControlVertices / 2;
     tMax = GetShapeMaxParam(polygon);
     for (i = 0; i < half; i++) {
-        j = polygon->numPoints - i - 1;
-        SwapV(&((V4 *)polygon->points)[i], &((V4 *)polygon->points)[j]);
-        SwapG(&polygon->times[i], &polygon->times[j]);
-        polygon->times[i] = tMax - polygon->times[i];
-        polygon->times[j] = tMax - polygon->times[j];
+        j = polygon->numControlVertices - i - 1;
+        SwapV(&((V4 *)polygon->vertexPosq)[i], &((V4 *)polygon->vertexPosq)[j]);
+        SwapG(&polygon->vertexParams[i], &polygon->vertexParams[j]);
+        polygon->vertexParams[i] = tMax - polygon->vertexParams[i];
+        polygon->vertexParams[j] = tMax - polygon->vertexParams[j];
     }
     MeasureShape(polygon);
     polygon->winding = WINDING_CONVEX;
@@ -357,7 +326,7 @@ static inline qword QwMix(VU_FLOAT g1, const qword &qw1, VU_FLOAT g2, const qwor
 static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0\n\tvsub.xyzw %0, %0, %1" : "=&j"(qw) : "j"(v)); return qw; }
 // Clips a segment against the polygon's side planes, writing the inside span(s) as LSG entries; returns the count.
 // Also known as: ChitPoly (upstream readable / Sly 1 name; ChitPoly__FP7NAVPOLYG9VU_VECTORT1iP7POLYHIT).
-int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSegments, LSG *segments)
+int ClipEdgeToConvexObstacle(CID14 *polygon, qword start, qword end, int maxSegments, LSG *segments)
 {
     BuildCid14EdgePlanes(polygon);
     float gIn = 0.0f;
@@ -365,7 +334,7 @@ int ClipEdgeToConvexObstacle(CID14V *polygon, qword start, qword end, int maxSeg
     float gOut = 1.0f;
     qword normalOut = normalIn;
     int i;
-    for (i = 0; i < polygon->numPoints - 1; i++) {
+    for (i = 0; i < polygon->numControlVertices - 1; i++) {
         qword plane = polygon->edgePlanes[i];
         VU_VECTOR normal(plane);
         VU_QWORD dot1;
@@ -447,11 +416,11 @@ static __inline__ float GDistPlane(qword plane, qword pos)
 }
 // Returns 1 when a point is inside the polygon (in front of no side plane).
 // Also known as: FPolyContains (upstream readable / Sly 1 name; FPolyContains__FP7NAVPOLYG9VU_VECTOR).
-int IsPosInConvexObstacle(CID14V *polygon, qword pos)
+int IsPosInConvexObstacle(CID14 *polygon, qword pos)
 {
     int i;
     BuildCid14EdgePlanes(polygon);
-    for (i = 0; i < polygon->numPoints - 1; i++) {
+    for (i = 0; i < polygon->numControlVertices - 1; i++) {
         if (0.0f < GDistPlane(polygon->edgePlanes[i], pos))
             return 0;
     }
@@ -469,7 +438,7 @@ static inline qword MulPos(MATRIX4Q *pm, qword v)
 // Walks the polygon's edges against the path zone (IsEdgeBlockedByPathzone) to find the span of the outline that
 // lies inside walkable space. (inferred)
 // Also known as: NPolyClearSide (upstream readable / Sly 1 name; NPolyClearSide__FP7NAVPOLYP9NAVREGIONiff).
-int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float start, float end)
+int FindCid14PathzoneSpan(CID14 *polygon, void *zone, int isReversed, float start, float end)
 {
     int i0, r, pass, k, i1;
     i0 = FindShapeSegmentAtDistance(polygon, start, 0, 0);
@@ -494,7 +463,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
         EvaluateShapeAtDistance(polygon, &v0, start, 0);
         q = v0;
         while (i != iEnd) {
-            v = MulPos(&m, polygon->points[i]);
+            v = MulPos(&m, polygon->vertexPosq[i].q);
             if (IsEdgeBlockedByPathzone(zone, q, v, k))
                 goto next;
             if (isReversed)
@@ -513,7 +482,7 @@ int FindCid14PathzoneSpan(CID14V *polygon, void *zone, int isReversed, float sta
 
 // Finds the parameter range of a shape that lies inside its path zone; returns a status code. (inferred)
 // Also known as: NPolyWay (upstream readable / Sly 1 name; NPolyWay__FP7NAVPOLYP9NAVREGIONPfif).
-int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, float param)
+int ClipShapeToPathzone(CID14 *shape, void *zone, float *paramOut, int mode, float param)
 {
     float at[2];
     float tB, d, f;
@@ -543,7 +512,7 @@ int ClipShapeToPathzone(CID14V *shape, void *zone, float *paramOut, int mode, fl
 
 // Searches along a shape for a point inside the path zone; returns 1 and the point when found. (inferred)
 // Also known as: FPolyPointOnRegion (upstream readable / Sly 1 name; FPolyPointOnRegion__FP7NAVPOLYP9NAVREGIONffPfPv).
-int FindShapePointInPathzone(CID14V *shape, void *zone, float param, float range, float *paramOut, int c)
+int FindShapePointInPathzone(CID14 *shape, void *zone, float param, float range, float *paramOut, int c)
 {
     float d, t;
     U v0, v1;
@@ -571,22 +540,22 @@ namespace RO_ORDER { extern const float r_D_002A76D0 __asm__("D_002A76D0") = -3.
 namespace RO_ORDER { extern const float r_D_002A76D4 __asm__("D_002A76D4") = 3.40282347e+38f; }
 // Registers the polygon as an obstacle: transforms the outline to world space, finds its path zone
 // (FindPathzoneAtPos), computes its bounds and calls AddPathzoneObstacle.
-void RegisterCid14Obstacle(CID14V *polygon)
+void RegisterCid14Obstacle(CID14 *polygon)
 {
     STACKSCOPE ctx;
     int i;
-    qword *a = (qword *)Alloc((polygon->numPoints << 4) - 1);
+    qword *a = (qword *)Alloc((polygon->numControlVertices << 4) - 1);
     MATRIX4Q m = *GetMat(polygon);
     void *r;
     {
-        qword v0 = MulPt(&m, polygon->points[0]);
+        qword v0 = MulPt(&m, polygon->vertexPosq[0].q);
         polygon->boundsMin.q = v0;
         polygon->boundsMax.q = v0;
         a[0] = v0;
     }
-    a[polygon->numPoints - 1] = polygon->boundsMin.q;
-    for (i = 1; i < polygon->numPoints - 1; i++) {
-        qword v = MulPt(&m, polygon->points[i]);
+    a[polygon->numControlVertices - 1] = polygon->boundsMin.q;
+    for (i = 1; i < polygon->numControlVertices - 1; i++) {
+        qword v = MulPt(&m, polygon->vertexPosq[i].q);
         polygon->boundsMin.q = VuMin(polygon->boundsMin.q, v);
         polygon->boundsMax.q = VuMax(polygon->boundsMax.q, v);
         a[i] = v;
@@ -601,7 +570,7 @@ void RegisterCid14Obstacle(CID14V *polygon)
 
 // Removes the polygon's obstacle registration if it has one.
 // Also known as: RemovePolyFromRegion (upstream readable / Sly 1 name; RemovePolyFromRegion__FP7NAVPOLY).
-void UnregisterCid14Obstacle(CID14V *polygon)
+void UnregisterCid14Obstacle(CID14 *polygon)
 {
     void *ppathzone = polygon->pathzone;
     if (ppathzone != 0) {
@@ -612,12 +581,12 @@ void UnregisterCid14Obstacle(CID14V *polygon)
 
 // Removes the polygon from its merged owner's member list (with a safe list iterator) and queues it again.
 // Also known as: DissolveMerged (upstream readable / Sly 1 name; DissolveMerged__FP2LO).
-void DetachCid14FromOwner(CID14V *polygon)
+void DetachCid14FromOwner(CID14 *polygon)
 {
     DLI dli;
-    CID14V *pv;
+    CID14 *pv;
     InitDli(&dli, &polygon->members);
-    while ((pv = (CID14V *)PvNextDli(&dli)) != 0) {
+    while ((pv = (CID14 *)PvNextDli(&dli)) != 0) {
         RemoveDlEntry__FP2DLPv(&polygon->members, pv);
         pv->owner = 0;
         if (!IsEntryInDl__FP2DLPv((DL *)&g_sw.dlCid14Pending, pv)) AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Pending, pv);
@@ -629,17 +598,17 @@ void DetachCid14FromOwner(CID14V *polygon)
 
 // Among the obstacles overlapping a segment, returns the one the segment enters first.
 // Also known as: PpolyOnSegment (upstream readable / Sly 1 name; PpolyOnSegment__FP9NAVREGIONP6VECTORG9VU_VECTORT2).
-CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword start, qword end)
+CID14 *FindFirstObstacleHitBySegment(void *a, void *b, qword start, qword end)
 {
-    CID14V *buf[0x80];
+    CID14 *buf[0x80];
     LSG r[2];
-    CID14V *best = 0;
+    CID14 *best = 0;
     float min;
     int i, n;
     n = FindPathzoneObstacles(a, b, start, end, 0x80, buf);
     min = 1.0f;
     for (i = 0; i < n; i++) {
-        CID14V *e = buf[i];
+        CID14 *e = buf[i];
         if (!ClipEdgeToConvexObstacle(e, start, end, 2, r) || r[0].au[0] != 0.0f) {
             best = e;
             break;
@@ -661,22 +630,22 @@ static inline qword Normalize(qword n)
     return r;
 }
 // Rebuilds the polygon's side planes in world space when its transform changed since the last build.
-void BuildCid14EdgePlanes(CID14V *polygon)
+void BuildCid14EdgePlanes(CID14 *polygon)
 {
     int i;
-    int k = polygon->frame ? polygon->frame->transformStamp : 0;
+    int k = polygon->parentTransform ? polygon->parentTransform->worldStamp : 0;
     if (polygon->planeStamp != k) {
         MATRIX4Q m;
         qword v;
         i = 1;
         m = *GetMat(polygon);
-        v = MulPt(&m, polygon->points[0]);
-        if (i < polygon->numPoints) {
+        v = MulPt(&m, polygon->vertexPosq[0].q);
+        if (i < polygon->numControlVertices) {
             do {
                 qword v0 = v;
-                v = MulPt(&m, polygon->points[i]);
+                v = MulPt(&m, polygon->vertexPosq[i].q);
                 InitPlaneFromNormalPos(&polygon->edgePlanes[i - 1], Normalize(VuCross(VuSub(v, v0), g_normalZ)), v0);
-            } while (++i < polygon->numPoints);
+            } while (++i < polygon->numControlVertices);
         }
         polygon->planeStamp = k;
     }
@@ -684,7 +653,7 @@ void BuildCid14EdgePlanes(CID14V *polygon)
 
 // Steps along a shape from a parameter until it leaves the obstacles; returns the free range found. (inferred)
 // Also known as: NPathLeavesPoly (upstream readable / Sly 1 name; NPathLeavesPoly__FP7NAVPOLYP3CRViP6VECTORPff).
-int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *posOut, float *paramOut, float param)
+int FindShapeFreeRange(CID14 *obstacle, CID14 *shape, int isForward, qword *posOut, float *paramOut, float param)
 {
     qword av[2];
     LSG ahit[2];
@@ -722,12 +691,12 @@ int FindShapeFreeRange(CID14V *obstacle, CID14V *shape, int isForward, qword *po
 
 // Finds a free point on a shape around parameter g that avoids every obstacle (searching both directions). (inferred)
 // Also known as: NNavWay (upstream readable / Sly 1 name; NNavWay__FG9VU_VECTORP6VECTORP9NAVREGIONP3CRViPP7NAVPOLYPff).
-extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, int direction, CID14V **blockerOut, float *paramOut, float param)
+extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14 *shape, int direction, CID14 **blockerOut, float *paramOut, float param)
 {
     float t;
     U v, v2;
     float f0, f1;
-    CID14V *x;
+    CID14 *x;
     int r;
     if (direction) t = WrapShapeDistance(shape, param + D_002C0AC4);
     else t = WrapShapeDistance(shape, param - D_002C0AC4);
@@ -746,42 +715,42 @@ extern "C" int FindShapeFreePoint(qword pos, void *a1, void *a2, CID14V *shape, 
 
 // Returns 1 when two convex polygons overlap (separating-axis test on their side planes).
 // Also known as: FPolysOverlap (upstream readable / Sly 1 name; FPolysOverlap__FP7NAVPOLYT0).
-extern "C" int DoConvexObstaclesOverlap(CID14V *polygonA, CID14V *polygonB)
+extern "C" int DoConvexObstaclesOverlap(CID14 *polygonA, CID14 *polygonB)
 {
     int i;
     MATRIX4Q m = *GetMat(polygonA);
-    qword v = MulPt(&m, polygonA->points[0]);
+    qword v = MulPt(&m, polygonA->vertexPosq[0].q);
     LSG hit;
     i = 1;
-    if (i < polygonA->numPoints) {
+    if (i < polygonA->numControlVertices) {
         do {
-            qword w = MulPt(&m, polygonA->points[i]);
+            qword w = MulPt(&m, polygonA->vertexPosq[i].q);
             if (ClipEdgeToConvexObstacle(polygonB, v, w, 1, &hit))
                 break;
             v = w;
-        } while (++i < polygonA->numPoints);
+        } while (++i < polygonA->numControlVertices);
     }
-    if (i < polygonA->numPoints)
+    if (i < polygonA->numControlVertices)
         return 1;
-    return IsPosInConvexObstacle(polygonA, MulPt(GetMat(polygonB), polygonB->points[0])) != 0;
+    return IsPosInConvexObstacle(polygonA, MulPt(GetMat(polygonB), polygonB->vertexPosq[0].q)) != 0;
 }
 
 // Creates a merged obstacle object (a new CID14) that will own several member polygons. (inferred)
 // Also known as: PpathNewMerged (upstream readable / Sly 1 name; PpathNewMerged__Fv).
-CID14V *NewMergedCid14Obstacle(void)
+CID14 *NewMergedCid14Obstacle(void)
 {
-    CID14V *p;
+    CID14 *p;
     int i, j;
     SWALLOC req;
     float *pm;
-    p = (CID14V *)((DL *)&g_sw.dlCid14Free)->head;
+    p = (CID14 *)((DL *)&g_sw.dlCid14Free)->head;
     if (!p) {
         for (i = 0; i < 16; i++) {
-            CID14V *q = CreateLo__F3CIDP2SO3OIDi(0xE, 0, 0x2CD, -1);
-            q->curveMode = 0;
+            CID14 *q = CreateLo__F3CIDP2SO3OIDi(0xE, 0, 0x2CD, -1);
+            q->curveKind = (CRVK)0;
             q->isClosed = 1;
             q->isMerged = 1;
-            pm = q->mat;
+            pm = q->localMatrix.mat[0];
             func_002333B4(pm, 0, 0x40);
             pm[15] = 1.0f;
             pm[10] = 1.0f;
@@ -789,21 +758,21 @@ CID14V *NewMergedCid14Obstacle(void)
             pm[0] = 1.0f;
             req.cb = 0x80;
             req.cbAlign = 0x10;
-            q->times = (float *)AllocFromWorldHeap(&req);
-            for (j = 0; j < 32; j++) q->times[j] = (float)j;
+            q->vertexParams = (float *)AllocFromWorldHeap(&req);
+            for (j = 0; j < 32; j++) q->vertexParams[j] = (float)j;
             req.cb = 0x80;
             req.cbAlign = 0x10;
-            q->distances = AllocFromWorldHeap(&req);
+            q->vertexArcLengths = (float *)AllocFromWorldHeap(&req);
             req.cb = 0x200;
             req.cbAlign = 0x10;
-            q->points = (qword *)AllocFromWorldHeap(&req);
+            q->vertexPosq = (QWROW *)AllocFromWorldHeap(&req);
             req.cb = 0x1F0;
             req.cbAlign = 0x10;
             q->edgePlanes = (qword *)AllocFromWorldHeap(&req);
             AsLo(q)->Remove();
             AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, q);
         }
-        p = (CID14V *)((DL *)&g_sw.dlCid14Free)->head;
+        p = (CID14 *)((DL *)&g_sw.dlCid14Free)->head;
     }
     RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, p);
     p->planeStamp = -1;
@@ -834,7 +803,7 @@ static inline float CrossZ(qword a, qword b, qword c)
 }
 // Computes the 2D convex hull of a point set (sort by x, then the lower and upper chains of the monotone-chain
 // algorithm) and stores it as the polygon's outline (at most 32 points).
-void BuildConvexHull(CID14V *polygon, int count, qword *points)
+void BuildConvexHull(CID14 *polygon, int count, qword *points)
 {
     int i, k, t;   /* k: hull size; t: size of the lower chain */
     qword *hull, *pv;
@@ -870,14 +839,14 @@ void BuildConvexHull(CID14V *polygon, int count, qword *points)
             }
             upperConvex:;
         }
-        { int cMax = 32; polygon->numPoints = (k > cMax - 1) ? cMax : k; }
-        CopyAb__FPvT0Ui(polygon->points, hull, polygon->numPoints << 4);
+        { int cMax = 32; polygon->numControlVertices = (k > cMax - 1) ? cMax : k; }
+        CopyAb__FPvT0Ui(polygon->vertexPosq, hull, polygon->numControlVertices << 4);
     }
 }
 
 // Attaches a polygon to a merged owner and unregisters its individual obstacle.
 // Also known as: AddPolyMember (upstream readable / Sly 1 name; AddPolyMember__FP2LOT0).
-void AddCid14ToMerged(CID14V *polygon, CID14V *owner)
+void AddCid14ToMerged(CID14 *polygon, CID14 *owner)
 {
     DL *pdl;
     polygon->owner = owner;
@@ -903,26 +872,31 @@ static inline qword MulPtP(MATRIX4Q*m,qword*point){
 // Merges overlapping convex polygons: collects their points, builds the convex hull and registers it as one new
 // polygon owned by a merged object.
 // Also known as: MergePolys (upstream readable / Sly 1 name; MergePolys__FiPP7NAVPOLY).
-extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
+extern "C" void MergeCid14Obstacles(int count, CID14 **polygons)
 {
     int c = 0;
     int i, j, k;
     qword *apos;
-    CID14V *pNew;
-    for (int i0 = 0; i0 < count; i0++) c += polygons[i0]->numPoints - 1;
+    CID14 *pNew;
+    for (int i0 = 0; i0 < count; i0++) c += polygons[i0]->numControlVertices - 1;
     STACKSCOPE ctx;
     apos = (qword *)Alloc(c << 4);
-    register CID14V *px __asm__("$17");   /* the one allowed pin: original keeps px in $s1 (polygon index in $s0) */
+    register CID14 *px __asm__("$17");   /* the one allowed pin: original keeps px in $s1 (polygon index in $s0) */
     int polygon = 0;
     if (count > 0) {
     k = -16;
     do {
         px = polygons[polygon];
-        MATRIX4Q m=*((MATRIX4Q *(*)(CID14V *))px->vt[31].pfn)((CID14V *)((char *)px + px->vt[31].d));   /* GetWorldMatrix by hand: a real call changes MergeCid14Obstacles (36 off) */
+#if defined(SLY2_EE_LAYOUT)
+        /* GetWorldMatrix (slot 31) by hand: a real call changes MergeCid14Obstacles (36 off) */
+        MATRIX4Q m=*((MATRIX4Q *(*)(CID14 *))SLY2_VTE(px, 31).pfn)((CID14 *)((char *)px + SLY2_VTE(px, 31).d));
+#else
+        MATRIX4Q m=*(MATRIX4Q *)px->GetWorldMatrix();
+#endif
         j = 0;
-        if (j < px->numPoints - 1) {
-            qword *pw = (qword*)((unsigned)k + (unsigned)apos);
-            do { k += 16; *++pw = MulPtP(&m,&px->points[j]); j++; } while (j < px->numPoints - 1);
+        if (j < px->numControlVertices - 1) {
+            qword *pw = (qword*)((uptr)k + (uptr)apos);
+            do { k += 16; *++pw = MulPtP(&m,&px->vertexPosq[j].q); j++; } while (j < px->numControlVertices - 1);
         }
     } while (++polygon < count);
     }
@@ -932,32 +906,41 @@ extern "C" void MergeCid14Obstacles(int count, CID14V **polygons)
         qword sum = D_002A2DD0;
         qword k2;
         union { qword q; float f[4]; } u;   /* the scalar's stack home (dead store in the original) */
-        for(int sumIndex=pNew->numPoints-2;sumIndex>=0;--sumIndex)
-            __asm__("vadd.xyzw %0,%0,%1":"+j"(sum):"j"(pNew->points[sumIndex]));
-        __asm__("qmtc2.ni %1, %0" : "=j"(k2) : "r"((float)(pNew->numPoints - 1)));
+        for(int sumIndex=pNew->numControlVertices-2;sumIndex>=0;--sumIndex)
+            __asm__("vadd.xyzw %0,%0,%1":"+j"(sum):"j"(pNew->vertexPosq[sumIndex].q));
+        __asm__("qmtc2.ni %1, %0" : "=j"(k2) : "r"((float)(pNew->numControlVertices - 1)));
         /* sum /= (c-1) via vdiv/vmulq; the extra "+j"(k2) is allocation/ordering only: it keeps the dead store of k2 after the vmulq */
         __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %0, $Q" : "+j"(sum), "+j"(k2) : "j"(k2));
-        void (*pfn)(CID14V *, qword) = (void (*)(CID14V *, qword))pNew->vt[29].pfn;   /* virtual SetCenter(sum); pfn load must precede the u store */
-        pfn((CID14V *)((char *)pNew + pNew->vt[29].d), (u.q = k2, sum));
-        int pointIndex = pNew->numPoints;
+#if defined(SLY2_EE_LAYOUT)
+        /* TranslateToPos (slot 29) by hand: the pfn load must precede the u store */
+        void (*pfn)(CID14 *, qword) = (void (*)(CID14 *, qword))SLY2_VTE(pNew, 29).pfn;
+        pfn((CID14 *)((char *)pNew + SLY2_VTE(pNew, 29).d), (u.q = k2, sum));
+#else
+        pNew->TranslateToPos((u.q = k2, sum));
+#endif
+        int pointIndex = pNew->numControlVertices;
         while (--pointIndex >= 0) {
-            qword point=pNew->points[pointIndex];
+            qword point=pNew->vertexPosq[pointIndex].q;
             __asm__("vsub.xyzw %0,%0,%1":"+j"(point):"j"(sum));
-            pNew->points[pointIndex]=point;
+            pNew->vertexPosq[pointIndex].q=point;
         }
     }
     for (i = 0; i < count; i++) {
         px = polygons[i];
         if (px->isMerged) {
             DLI dli;
-            CID14V *pv;
+            CID14 *pv;
             InitDli(&dli, &px->members);
-            while ((pv = (CID14V *)PvNextDli(&dli)) != 0) {
+            while ((pv = (CID14 *)PvNextDli(&dli)) != 0) {
                 RemoveDlEntry__FP2DLPv(&px->members, pv);
                 pv->owner = 0;
                 AddCid14ToMerged(pv, pNew);
             }
-            ((void (*)(CID14V *))px->vt[9].pfn)((CID14V *)((char *)px + px->vt[9].d));   /* Remove by hand, as above */
+#if defined(SLY2_EE_LAYOUT)
+            ((void (*)(CID14 *))SLY2_VTE(px, 9).pfn)((CID14 *)((char *)px + SLY2_VTE(px, 9).d));   /* Remove (slot 9) by hand, as above */
+#else
+            px->Remove();
+#endif
             AppendDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Free, px);
             g_pdliFirst = dli.m_pdliNext;
         } else {
@@ -976,6 +959,6 @@ extern "C" void UpdatePendingCid14Obstacles(void)
     while (!IsDlEmpty__FP2DL((DL *)&g_sw.dlCid14Pending)) {
         void *pv = ((DL *)&g_sw.dlCid14Pending)->head;
         RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlCid14Pending, pv);
-        RegisterCid14Obstacle((CID14V *)pv);
+        RegisterCid14Obstacle((CID14 *)pv);
     }
 }

@@ -1926,7 +1926,23 @@ typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
 /* 14 CID14 (0x1F0): convex polygon SHAPE / pathzone obstacle; vtable 0x2D4DE0, 50 slots */
 struct CID14 : SHAPE
 {
-    char pad190[0x1F0 - 0x190];
+    /* Own fields from cnvo.cpp (its CID14V view until v1.16). The outline is the shape's points (the last repeats
+       the first); edgePlanes holds the numControlVertices - 1 side planes, valid while planeStamp equals the
+       parent transform's worldStamp (BuildCid14EdgePlanes). */
+    int winding;                /* +0x190 ClassifyCid14Polygon's result (cnvo.cpp WINDING_*) */
+    int unknown194;
+    void *unknown198;
+    void *unknown19C;
+    QWROW boundsMin;            /* +0x1A0 XY bounds of the outline */
+    QWROW boundsMax;            /* +0x1B0 */
+    int isMerged;               /* +0x1C0 a pooled merged polygon (NewMergedCid14Obstacle) */
+    DL members;                 /* +0x1C4 the polygons merged into this one (linked through dleMerged) */
+    DLE dleMerged;              /* +0x1D0 link in the owner's members list; also g_sw.dlCid14Free's link */
+    CID14 *owner;               /* +0x1D8 the merged polygon this one belongs to */
+    struct PATHZONE *pathzone;  /* +0x1DC the zone it is registered in (AddPathzoneObstacle) */
+    DLE dlePending;             /* +0x1E0 link in g_sw.dlCid14Pending (inferred) */
+    int planeStamp;             /* +0x1E8 */
+    qword *edgePlanes;          /* +0x1EC the side planes */
     virtual void Init() __asm__("InitCid14");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid14ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCid14Hierarchy");   /* slot 11 */
@@ -1935,6 +1951,8 @@ struct CID14 : SHAPE
     virtual void PostLoad() __asm__("PostCid14Load");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneCid14");   /* slot 41 */
 };
+typedef char assert_CID14_dleMerged[SLY2_OFFSETOF(CID14, dleMerged) == 0x1D0 ? 1 : -1];
+typedef char assert_CID14_dlePending[SLY2_OFFSETOF(CID14, dlePending) == 0x1E0 ? 1 : -1];
 typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
 
 /* 45 CID45 (0x130): render-to-texture owner (item preview?); vtable 0x2D4F80, 50 slots */

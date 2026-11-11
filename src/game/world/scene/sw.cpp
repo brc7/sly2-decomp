@@ -167,8 +167,8 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlZprHit,SLY2_OFFSETOF(ZPR, dle));
     InitDl__FP2DLi(&world->dlTargetrec,0x20);
     InitDl__FP2DLi(&world->dlCid47,0x104);
-    InitDl__FP2DLi(&world->dlCid14Free,0x1D0);
-    InitDl__FP2DLi(&world->dlCid14Pending,0x1E0);
+    InitDl__FP2DLi(&world->dlCid14Free,SLY2_OFFSETOF(CID14, dleMerged));
+    InitDl__FP2DLi(&world->dlCid14Pending,SLY2_OFFSETOF(CID14, dlePending));
     InitDl__FP2DLi(&world->dlTaskActive,SLY2_OFFSETOF(TASK, dleActive));
     InitDl__FP2DLi(&world->dlCid21,SLY2_OFFSETOF(CID21, listLink));
     InitDl__FP2DLi(&world->dlCid23,SLY2_OFFSETOF(CID23, dleList));
