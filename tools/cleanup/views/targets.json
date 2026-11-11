@@ -1,0 +1,12 @@
+{
+ "_doc": "Hand annotations for inventory.py: \"file.cpp:NS::VIEW\" (or \"file.cpp:VIEW\" for every block) -> header class. Evidence in the comment keys.",
+ "_air.cpp": "UpdateJtActiveJump / PresetJtAccelJump / the jump update (port request 6, boot-6): CONTEXT is the JTAIR (its first word is the player), ACTOR the STEPPLAYER; the rest follow by pointer propagation.",
+ "air.cpp:M_UpdateJtActiveJump::CONTEXT": "JTAIR",
+ "air.cpp:M_UpdateJtActiveJump::ACTOR": "STEPPLAYER",
+ "air.cpp:M_PresetJtAccelJump::CONTEXT": "JTAIR",
+ "air.cpp:M_PresetJtAccelJump::ACTOR": "STEPPLAYER",
+ "air.cpp:M_func_00195FB8::CONTEXT": "JTAIR",
+ "air.cpp:M_func_00196AA8::P": "STEPPLAYER",
+ "air.cpp:M_func_00196AA8::MOVE": "JTAIR",
+ "air.cpp:M_FCheckJtStuck::P": "STEPPLAYER"
+}

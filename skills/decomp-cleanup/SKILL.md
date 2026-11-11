@@ -40,7 +40,7 @@ docstring lists its options).
 | 6 sweeps | stable base | scripted mechanical edits (vtable-entry copies, wrong-typed externs, repeated helpers) with skip lists | re-run on the final base, not merged |
 | 7 integrate | family branches verified | one integration branch, merge in order, reconcile duplicates, checkpoint | full verify clean; bundle to the maintainer |
 | side: snapshots | RAM snapshots of the levels in question | object discovery (vptr at +0xC), field typing across instances, name checks (tools/cleanup/snapshots/) | field types / names confirmed against the code that uses them; code wins on disagreement |
-| side: 64-bit | views unified as far as they go | exact danger test (tools/cleanup/ptr64/dt.py + judge.py, EE long = 8, accessed fields only); derive views from the real base; type pointer slots in pads; record pointer-free judgements in evidence.json | 0 dangerous in the milestone's files, unverifiable ones listed |
+| side: 64-bit | views unified as far as they go | views to real classes with tools/cleanup/views (inventory with compiler layouts, propagation from annotated context records, rewrite kept only if byte-identical); exact danger test (tools/cleanup/ptr64/dt.py + judge.py, EE long = 8, accessed fields only); derive views from the real base; type pointer slots in pads; record pointer-free judgements in evidence.json | 0 dangerous in the milestone's files, unverifiable ones listed |
 
 ## Verification commands
 

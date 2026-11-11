@@ -313,5 +313,17 @@ The port compiles the decomp natively, so every TU-private view must put each fi
 - **Register every portability mechanism** (guards, hooks, file-record structs) and the decision behind it in
   [portability.md](portability.md), with the hazards still open; keep guards in the one-macro `#if`/`#else` form so
   a port can strip them with unifdef.
+- **Automate the view-to-class rewrite, gated by byte identity** (tools/cleanup/views/, its README). The
+  inventory lays every namespace-scope struct out with the real compiler (a probe copy of the TU), finds the class
+  each view stands for (hand table, name, comment, then *propagation*: a view member pointing into another view
+  and mapped onto a typed header member identifies that view too, which is what reaches most of a function's
+  views from one annotated context record), and maps each used member onto the class's flattened layout. The
+  rewriter removes the definition with its newlines kept (asm ordering hashes lines), renames type and accesses,
+  compiles, and keeps the result only if the object is byte-identical to the baseline's; a tidy pass then drops
+  the empty lines if that still holds. Offset fit alone is not identification (unrelated classes share offsets
+  and would compile to the same bytes under wrong names), so only high-confidence targets are rewritten. What
+  blocks the rest is usually a header detail, recorded per view: members still in a class pad, a per-function
+  `typedef int qword` (signed) against the header's unsigned qword, a local re-declaration of a header class in
+  the same block, or one member with a different element size.
 - **Write the judgement down.** When a view's pads are declared pointer-free (a file record, hardware words), record
   why in tools/cleanup/ptr64/evidence.json; judge.py reads it, and the next round does not re-litigate it.
