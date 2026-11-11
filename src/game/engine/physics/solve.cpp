@@ -128,23 +128,8 @@ struct SOV : ALO
 };
 typedef char assert_SOV_layout[SLY2_OFFSETOF(SOV, pxfPos) == SLY2_OFFSETOF(SO, positionXf) && SLY2_OFFSETOF(SOV, physics) == SLY2_OFFSETOF(SO, physics) && SLY2_OFFSETOF(SOV, qwDv) == SLY2_OFFSETOF(SO, contactVelocityChange) && SLY2_OFFSETOF(SOV, externalAccelList) == SLY2_OFFSETOF(SO, pxa) && SLY2_OFFSETOF(SOV, grf) == SLY2_OFFSETOF(SO, soFlags) ? 1 : -1];
 
-/* A contact side (0x40 on the EE: step.cpp's ENDPOINT): the part, its owner, the object, the LO, the contact point
-   and its local form. */
-struct XPSIDE { void *shape; void *owner; SOV *pso; void *lo; qword pos; qword local; int pad[4]; };
-/* A contact. */
-struct XP
-{
-    XPSIDE sides[2];
-    U normal;               /* 0x80 */
-    float value;            /* 0x90 distance */
-    int unused94;
-    float elasticity;       /* 0x98 */
-    int kind;               /* 0x9C */
-    float start, end;       /* 0xA0 */
-    int index;              /* 0xA8 */
-    XP *pxpNext;            /* 0xAC */
-    U velocity;             /* 0xB0 */
-};
+/* A contact: sly2/xp.h XP (its side's object at +0x08, XPS::psoRoot, is the solver's SOV). */
+#include "sly2/xp.h"
 
 struct SWE { int fl; SOV *pso; };
 extern "C" qword D_002A2DD0;
@@ -282,11 +267,11 @@ int BuildGroupXpArray(SW *world, int flags, int numObjects, SOV **objects, int m
             for (; contact; contact = contact->pxpNext) {
                 if (contact->kind == 0xD) continue;
                 if (contact->kind == 0xE) {
-                    SOV *other = contact->sides[0].pso;
+                    SOV *other = (SOV *)contact->axps[0].psoRoot;
                     if (!(((STEP *)other)->GetGroundProbeFlags() & 4)) continue;
                 }
                 if (count >= maxContacts) return count;
-                contact->index = count;
+                contact->ixp = count;
                 contacts[count++] = contact;
             }
             if (!link) break;
@@ -314,8 +299,8 @@ void SplitSwGroup(SW*world,int flags,int count,SOV**objects)
      i=0;
      for(;i<n;i++){
        XP*candidate=contacts[i];
-       if(candidate->kind==11){if(0.1f<Abs(candidate->value))break;}
-       else {if(candidate->value<-2.0f)break;}
+       if(candidate->kind==11){if(0.1f<Abs(candidate->g))break;}
+       else {if(candidate->g<-2.0f)break;}
      }
      if(i>=n)flags&=~4;
    }
@@ -324,9 +309,9 @@ void SplitSwGroup(SW*world,int flags,int count,SOV**objects)
      if(n<=0)goto clearVelocityFlag;
      do{
        XP*candidate=contacts[i];
-       qword normal=candidate->normal.q;
-       if(candidate->kind==11){if(5.0f<Abs(DotF(candidate->velocity.q,normal)))break;}
-       else {if(DotF(candidate->velocity.q,normal)<-5.0f)break;}
+       qword normal=candidate->normal;
+       if(candidate->kind==11){if(5.0f<Abs(DotF(candidate->vRel,normal)))break;}
+       else {if(DotF(candidate->vRel,normal)<-5.0f)break;}
      }while(++i<n);
      if(i<n)goto applyFlags;
    clearVelocityFlag:
@@ -380,7 +365,7 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SOV **objects,int contactCo
         row=&group.rows[i];
         DZX *state=&group.adzx[i];
         state->contact=contact;
-        state->normal=contact->normal.q;
+        state->normal=contact->normal;
         switch(contact->kind){
         case 11:
             row->kind=1;
@@ -389,9 +374,9 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SOV **objects,int contactCo
             goto unbounded;
         case 14:
             if(flags&1){
-                row->minValue=contact->start*ClockDt();
-                row->maxValue=contact->end*ClockDt();
-                row->kind=contact->start<0.0f;
+                row->minValue=contact->gLimitMin*ClockDt();
+                row->maxValue=contact->gLimitMax*ClockDt();
+                row->kind=contact->gLimitMin<0.0f;
             }else{
                 row->minValue=0.0f;
                 row->maxValue=FLT_MAX;
@@ -413,8 +398,8 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SOV **objects,int contactCo
         for(i=0;i<contactCount;i++){
             contact=contacts[i];
             row=&group.rows[i];
-            if(row->kind==1)row->residual=contact->value;else row->residual=contact->value+1.0f;
-            float magnitude=__builtin_fabsf(contact->value);
+            if(row->kind==1)row->residual=contact->g;else row->residual=contact->g+1.0f;
+            float magnitude=__builtin_fabsf(contact->g);
             if(maximum<magnitude)maximum=magnitude;
         }
         SolveDzg(&group,4);
@@ -436,17 +421,17 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SOV **objects,int contactCo
             row=&group.rows[n];
             // The game stores the dot product's bits from the GPR (sw): written through an int view of the float
             // target (a float result goes through the FPU, mtc1/swc1). This form exists to reproduce the original codegen.
-            *(int *)&row->residual=DotQ(contact->velocity.q,contact->normal.q);
-            float magnitude=LengthSquared(contact->velocity.q);
+            *(int *)&row->residual=DotQ(contact->vRel,contact->normal);
+            float magnitude=LengthSquared(contact->vRel);
             if(maximum<magnitude)maximum=magnitude;
         }
     }else{
         for(;j<contactCount;j++){
             contact=contacts[j];
             row=&group.rows[j];
-            float factor=1.0f+contact->elasticity*RandomFloatInRange__Fff(0.9f,1.1f);
-            row->residual=Dot(contact->velocity.q,contact->normal.q)*factor;
-            float magnitude=LengthSquared(contact->velocity.q);
+            float factor=1.0f+contact->gElasticity*RandomFloatInRange__Fff(0.9f,1.1f);
+            row->residual=Dot(contact->vRel,contact->normal)*factor;
+            float magnitude=LengthSquared(contact->vRel);
             if(maximum<magnitude)maximum=magnitude;
         }
     }
@@ -941,7 +926,7 @@ extern "C" void AddSoAngularAcceleration(SOV *object, qword acceleration)
 
 struct Pr { qword a; qword b; };
 /* A constraint row's contact data (sly2/dzg.h DZX): the two sides' responses (FX), the normal and the contact. */
-struct S2 { struct Pr ap[2]; qword normal; XPSIDE *contactSides; };   /* contactSides: DZX::contact, read as its sides array */
+struct S2 { struct Pr ap[2]; qword normal; XPS *contactSides; };   /* contactSides: DZX::contact, read as its sides array */
 // Slot 67: fills side k of a constraint row's effect record (FX) with this object's response to a unit impulse
 // along the contact normal (negated for side 1): the linear and angular velocity changes, each skipped when that
 // motion is locked. Called by FillDzgDz for both sides of every contact.

@@ -184,26 +184,8 @@ struct LASENV : SENSORV
 typedef char assert_LASEN_cbeam[(int)(char *)&(((LASENV *)0)->numBeams) == 0x198 ? 1 : -1];
 typedef char assert_LASEN_endpointSpeed[(int)(char *)&(((LASENV *)0)->endpointSpeed) == 0x1C0 ? 1 : -1];
 
-/* A contact (XP) between a beam and an object, as far as this TU reads it (the same shape as dzg.cpp's view): two
-   0x40-byte sides, each with its object at +0x08 and its contact position at +0x10. */
-struct XPS
-{
-    void *pv0;              /* +0x00 */
-    void *pv4;              /* +0x04 */
-    SOV *pso;                /* +0x08 */
-    void *pvC;              /* +0x0C */
-    qword qwPos;            /* +0x10 */
-    char pad20[0x20];
-};
-struct XP
-{
-    XPS axps[2];
-    char pad80[0xA0 - 0x80];
-    float s;                /* 0xA0 distance from the beam's first endpoint */
-    char padA4[0xAC - 0xA4];
-    XP *nextContact;            /* 0xAC */
-};
-
+/* A contact between a beam and an object: sly2/xp.h XP (sBeam: the distance along the beam). */
+#include "sly2/xp.h"
 
 /* Temporary-heap allocation request. */
 struct ALLOCREQ { int cb; int cbAlign; };
@@ -622,13 +604,13 @@ extern "C" void RemoveLasenContactsWith(LASENV *laser, SOV *pso)
         XP **ppxp = &laser->beams[i].firstContact;
         XP *pxp;
         while ((pxp = *ppxp) != 0) {
-            int side = pxp->axps[0].pso == laser;
-            if (pso == pxp->axps[side].pso) {   /* the other side's object */
-                *ppxp = pxp->nextContact;
-                pxp->nextContact = list;
+            int side = (SOV *)pxp->axps[0].psoRoot == laser;
+            if (pso == (SOV *)pxp->axps[side].psoRoot) {   /* the other side's object */
+                *ppxp = pxp->pxpNext;
+                pxp->pxpNext = list;
                 list = pxp;
             } else {
-                ppxp = &pxp->nextContact;
+                ppxp = &pxp->pxpNext;
             }
         }
     }
@@ -754,19 +736,19 @@ void LASENV::ZapBeams(int)
             float sMin = s;
             XP *pxpMin = 0;
             XP *pxp;
-            for (pxp = beam->firstContact; pxp; pxp = pxp->nextContact) {
-                if (pxp->s < sMin) {
-                    sMin = pxp->s;
+            for (pxp = beam->firstContact; pxp; pxp = pxp->pxpNext) {
+                if (pxp->sBeam < sMin) {
+                    sMin = pxp->sBeam;
                     pxpMin = pxp;
                 }
             }
             func_002333B4(&zap, 0, sizeof(zap));
             zap.ploSource = (LO *)laser;   /* LASENV is still a private SO view here */
-            zap.part = (SOPART *)pxpMin->axps[0].pv0;
-            zap.unknown08 = (LO *)pxpMin->axps[1].pvC;
+            zap.part = pxpMin->axps[0].ppart;
+            zap.unknown08 = pxpMin->axps[1].pso;
             zap.zpk = 0x1000;
             zap.dhp = -10;
-            zap.position = pxpMin->axps[0].qwPos;
+            zap.position = pxpMin->axps[0].pos;
             DeliverZapToSo(&zap);
             beam->visibleLength = sMin;
         }

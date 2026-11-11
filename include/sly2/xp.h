@@ -34,8 +34,20 @@ struct XP
     float gFriction;        /* +0x94 */
     float gElasticity;      /* +0x98 */
     int kind;               /* +0x9C */
-    void *pvFeature0;       /* +0xA0 */
-    void *pvFeature1;       /* +0xA4 */
+    union
+    {
+        struct
+        {
+            void *pvFeature0;   /* +0xA0 */
+            void *pvFeature1;   /* +0xA4 */
+        };
+        float sBeam;            /* a LASEN beam's contact: its distance from the beam's first endpoint (sensor.cpp) */
+        struct
+        {
+            float gLimitMin;    /* kind 14: the solver row's limits per second (solve.cpp SolveSwGroup scales them by */
+            float gLimitMax;    /* the frame time; a negative minimum makes the row two-sided) */
+        };
+    };
     int ixp;                /* +0xA8 */
     XP *pxpNext;            /* +0xAC */
     qword vRel;             /* +0xB0 */
