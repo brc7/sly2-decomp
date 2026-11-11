@@ -35,7 +35,7 @@ the GRABSPOT base without a null test (section 3 lists what is left).
 | `SLY2_HEAP_BEGIN`, `SLY2_HEAP_END` (platform/memory/memory.cpp) | the end of the program image (`D_0047220F`) and the top of the 32 MB RAM (0x02000000) | a static buffer's bounds | memory.cpp StartupMemMgr |
 | `CStreamBisStorage` (sly2/streambis.h) | room for a CStreamBis without g++'s implicit constructor; the callers call `CStreamBis_ctor` / `_$_10CStreamBis` themselves | provide those two C entry points (or override the two declarations); sizes follow `sizeof(CStreamBis)` | sw.cpp, hud.cpp (the class itself: brx_sw.cpp, memcard.cpp) |
 | EE layout asserts (the `typedef char assert_...[cond ? 1 : -1]` lines) | compile-time checks of the EE offsets and sizes | not true on a 64-bit host: the port rewrites them into a non-failing sink (its own generator) | every sly2/ header, many TUs |
-| `SLY2_GRABSPOT_BASE(T, p)` (sly2/classes.h) | `p` plus the GRABSPOT base offset of T, taken from `static_cast<GRABSPOT *>((T *)0x100)` (folds to sizeof(first base), no null test) | the same expression gives the ABI's offset | the GetXxxOwnFields accessors and func_00259A28 (defined at the end of classes.h), grabspot.cpp's InitGrabspot calls |
+| `SLY2_GRABSPOT_BASE(T, p)` (sly2/classes.h) | `p` plus the GRABSPOT base offset of T, taken from `static_cast<GRABSPOT *>((T *)0x100)` (folds to sizeof(first base), no null test) | the same expression gives the ABI's offset | the OwnFields accessors (GetPipeOwnFields and the like) and func_00259A28 (defined at the end of classes.h), grabspot.cpp's InitGrabspot calls |
 | `EOPID_PMF`, `EOPID_PMFI`, `EOPID_PMFT`, `EOPID_VPMF`, `EOPIDW` (app/class_registry_options.inc) | g++ 2.95 pointers to member functions: `{short delta; short index; pfn or delta2}` | redefine the four macros and `EOPIDW` in the native PMF ABI (Itanium: `{ptr, adj}`, ptr = address or 1 + vtable offset) | class_registry_options.inc (documented next to the macros) |
 
 Why the matching form cannot be the portable one:
@@ -160,12 +160,12 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
 - **SHD header read**: LoadShdFromBrx reads the first 0x18 bytes of the level's shader record straight into SHD
   (file-record pattern, not under SLY2_EE_LAYOUT yet).
 - **Dangerous views** (after v1.16). Done in v1.16: shape.cpp's ten SHAPE views (plus SetChainEndObject, NewSampledShape
-  and the SHAPERANGES views), cnvo.cpp CID14V, breakable.cpp's TRIG / XPC / L / XPO / MSGS, xf.cpp's O / S / P / B and
-  the ACT slot-5 call, ik.cpp A / B / FRAME / XF_REF, launcher.cpp S / LAUNCH, prize.cpp ALARM / SENSORS, jt.cpp
+  and the SHAPERANGES views), cnvo.cpp CID14V, breakable.cpp's TRIG and its contact, zap-record and explode-message views, xf.cpp's O / S / P / B and
+  the ACT slot-5 call, ik.cpp A / B / FRAME / XF_REF, launcher.cpp S / LAUNCH, prize.cpp AddLootEntryObject's two views, jt.cpp
   PostJtLoad's flat stores, grabspot.cpp's InitGrabspot(&x->ptn) and GRFPLAYER. Still open: water.cpp SOW (a flat
   SO/WATER view with hand vtable calls through `VE`; the 64-bit word at +0x148 has no single member) and rip.cpp
   `M_ProjectRipTransform::S` (a RIP view: different pointer slots before +0x40, local M3/PHYS types over RIPM3 and
-  the motion record, asm with literal offsets); shape.cpp's render views around RenderShapeSelf (S with +0xDC /
+  the motion record, asm with literal offsets); shape.cpp's CID 106 rope-mesh views (RenderSelf and the sampler before it: S with +0xDC /
   +0x150, CONFIG / STATE / MESH; not SHAPE) and its two chain steppers' CHAIN views (native-correct layout, local
   names); rail.cpp RAILV / pipe.cpp PIPEV (flat views of RAIL / PIPE); launcher.cpp's SOV (an SO view with its own
   vtable declarations); carmelita.cpp / bhvsearch.cpp's list walkers (NODE views with next174 / next1B4); so.cpp
