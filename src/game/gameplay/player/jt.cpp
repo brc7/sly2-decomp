@@ -301,76 +301,74 @@ extern "C" void LoadJtFromBrx(JT *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostJtLoad {
 typedef int qword __attribute__((mode(TI)));
-#define F(T, o) (*(T *)((char *)p + (o)))
-#define A(o) ((char *)p + (o))
 
 extern void PostLoadStepplayer(void *p) __asm__("PostLoadStepplayer");
 extern void BindLoOidTable(void *p, int n, void *pv) __asm__("BindLoOidTable");
-extern int FindSoXf(void *p, int a, int b) __asm__("FindSoXf");
+extern XF *FindSoXf(void *p, int a, int b) __asm__("FindSoXf");
 extern void PostJtLoadGait(void *p) __asm__("PostJtLoadGait");
 extern void InitDirectionalBlend(void *p, void *a, void *b) __asm__("InitDirectionalBlend");
 extern void PostJtLoadSwing(void *p, void *a, void *b) __asm__("PostJtLoadSwing");
-extern int NewOffsetAct(void *p, int a, int b) __asm__("NewOffsetAct");
-extern int NewPositionAct(void *p, int a, int b, int c, int d, qword q) __asm__("NewPositionAct");
-extern void RemoveXfAct(void *p, int a, int b) __asm__("RemoveXfAct");
+extern ACT5 *NewOffsetAct(void *p, XF *pxf, int b) __asm__("NewOffsetAct");
+extern ACT *NewPositionAct(void *p, XF *pxf, int b, int c, int d, qword q) __asm__("NewPositionAct");
+extern void RemoveXfAct(void *p, XF *pxf, ACT *pact) __asm__("RemoveXfAct");
 extern void AttachStepplayerToStartMarker(void *p, int a) __asm__("AttachStepplayerToStartMarker");
 extern void CacheJtRestPose(void *p) __asm__("CacheJtRestPose");
 extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b) __asm__("InitJtHands__FP7JTHANDSP2SOPP5ASEGA");
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
 extern void SetLoBusyKind(void *p, int a) __asm__("SetLoBusyKind");
-extern int ApplySmToObject(int a, int b, int c, int d) __asm__("ApplySmToObject");
+extern SMA *ApplySmToObject(SM *psm, SO *pso, int c, int d) __asm__("ApplySmToObject");
 extern char D_002BF1B0[] __asm__("D_002BF1B0");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 // JT post-load (slot 15): STEPPLAYER post-load, then looks up about ten named child objects/actuators (hands, hook,
 // lean actuators) and builds his animation blends.
 // Also known as: PostJtLoad (upstream readable / Sly 1 name; PostJtLoad__FP2JT).
-extern "C" void PostJtLoad(char *p)
+extern "C" void PostJtLoad(JT *p)
 {
-    int n;
+    ACT *n;
     PostLoadStepplayer(p);
     BindLoOidTable(p, 0x12, D_002BF1B0);
-    F(int, 0x10B8) = FindSoXf(p, 0x138, 1);
-    F(int, 0x19E0) = FindSoXf(p, 0x18, 6);
-    F(int, 0x19DC) = FindSoXf(p, 0x19, 6);
-    F(int, 0x19D8) = FindSoXf(p, 0x13, 1);
-    F(int, 0x19D4) = FindSoXf(p, 0x12, 1);
-    F(int, 0x19D0) = FindSoXf(p, 0x1C, 6);
-    F(int, 0x19CC) = FindSoXf(p, 0x1D, 6);
-    F(int, 0x19C8) = FindSoXf(p, 0xD, 1);
-    F(int, 0x19C4) = FindSoXf(p, 0xC, 1);
-    F(int, 0x19C0) = FindSoXf(p, 0xC, 6);
-    PostJtLoadGait(A(0x1320));
-    PostJtLoadGait(A(0x1C30));
-    InitDirectionalBlend(p, A(0x1AC0), A(0x1BC0));
-    PostJtLoadSwing(p, A(0x1970), A(0x1994));
-    InitDirectionalBlend(p, A(0x1E10), A(0x1F10));
-    F(int, 0x19E4) = NewOffsetAct(p, F(int, 0x10B8), 5);
-    F(int, 0x19E8) = NewOffsetAct(p, F(int, 0x19C8), 5);
-    F(int, 0x19EC) = NewOffsetAct(p, F(int, 0x19C4), 5);
-    F(int, 0x19F0) = NewOffsetAct(p, F(int, 0x19D8), 7);
-    F(int, 0x19F4) = NewOffsetAct(p, F(int, 0x19D4), 7);
-    F(int, 0x19FC) = NewOffsetAct(F(char *, 0x19A0), *(int *)(F(char *, 0x19A0) + 0x58), 5);
-    F(int, 0x19F8) = NewOffsetAct(p, F(int, 0x19C0), 5);
-    n = NewPositionAct(p, F(int, 0x19C0), 5, 5, 2, D_002A2DD0);
-    F(int, 0x1A00) = n;
-    RemoveXfAct(p, F(int, 0x19C0), n);
+    p->unknown10B8 = FindSoXf(p, 0x138, 1);
+    p->unknown19E0 = FindSoXf(p, 0x18, 6);
+    p->unknown19DC = FindSoXf(p, 0x19, 6);
+    p->unknown19D8 = FindSoXf(p, 0x13, 1);
+    p->unknown19D4 = FindSoXf(p, 0x12, 1);
+    p->unknown19D0 = FindSoXf(p, 0x1C, 6);
+    p->handXf = FindSoXf(p, 0x1D, 6);
+    p->unknown19C8 = FindSoXf(p, 0xD, 1);
+    p->handChildXf = FindSoXf(p, 0xC, 1);
+    p->wristXf = FindSoXf(p, 0xC, 6);
+    PostJtLoadGait(&p->gait);
+    PostJtLoadGait(&p->gaitB);
+    InitDirectionalBlend(p, p->abldirJts10, &p->pasegblJts10);
+    PostJtLoadSwing(p, p->ablSwing, &p->pasegHang);
+    InitDirectionalBlend(p, p->abldirMesh, &p->pasegblMesh);
+    p->pact5Unk19e4 = NewOffsetAct(p, (XF *)p->unknown10B8, 5);
+    p->pact5Unk19e8 = NewOffsetAct(p, (XF *)p->unknown19C8, 5);
+    p->pact5Unk19ec = NewOffsetAct(p, p->handChildXf, 5);
+    p->pact5Unk19f0 = NewOffsetAct(p, (XF *)p->unknown19D8, 7);
+    p->pact5Unk19f4 = NewOffsetAct(p, (XF *)p->unknown19D4, 7);
+    p->pact5Unk19fc = NewOffsetAct(p->unknown19A0, p->unknown19A0->positionXf, 5);
+    p->pact5Unk19f8 = NewOffsetAct(p, p->wristXf, 5);
+    n = NewPositionAct(p, p->wristXf, 5, 5, 2, D_002A2DD0);
+    p->pactHand = n;
+    RemoveXfAct(p, p->wristXf, n);
     AttachStepplayerToStartMarker(p, 0x17);
     CacheJtRestPose(p);
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A04), 0, 0, 0, A(0x1A1C));
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A20), 0, 0, 0, A(0x1A38));
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A3C), 0, 0, 0, A(0x1A54));
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A58), 0, 0, 0, A(0x1A70));
-    InitDirectionalBlend(p, A(0x13D0), A(0x14D0));
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 4, A(0x1F60), 0, 0, 0, A(0x1F90));
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, A(0x2014), 0, 0, 0, A(0x2038));
-    F(int, 0x1804) = F(int, 0x19A4);
-    InitJtHands__FP7JTHANDSP2SOPP5ASEGA(A(0x17D0), p, A(0x18E0));
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, &p->ablSweep[0], 0, 0, 0, &p->ablSweep[0].pasegbl);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, &p->ablSweep[1], 0, 0, 0, &p->ablSweep[1].pasegbl);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, &p->ablSweep[2], 0, 0, 0, &p->ablSweep[2].pasegbl);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, &p->ablSweep[3], 0, 0, 0, &p->ablSweep[3].pasegbl);
+    InitDirectionalBlend(p, p->abldirJts5, &p->pasegblJts5);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 4, p->ablHangFollow, 0, 0, 0, &p->pasegblHangFollow);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, p->ablLean, 0, 0, 0, &p->pasegblLean);
+    p->hands.ploHand = p->unknown19A4;
+    InitJtHands__FP7JTHANDSP2SOPP5ASEGA(&p->hands, p, &p->janim);
     SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
     SetLoBusyKind(p, 1);
-    if (F(int, 0x1D24))
-        F(int, 0x1D28) = ApplySmToObject(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
+    if (p->unknown1D24)
+        p->unknown1D28 = ApplySmToObject(p->unknown1D24, p->unknown1D20, -1, 1);
 }
 } // namespace M_PostJtLoad
 
