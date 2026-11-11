@@ -35,6 +35,7 @@
 #include "sly2/classes.h"
 #include "sly2/streambis.h"
 #include "sly2/hw.h"
+#include "sly2/light.h"
 
 struct LEVELLIST8;
 extern "C" {
@@ -104,31 +105,31 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
 extern "C" SW *SW_ctor(SW *world)
 {
     world->scriptFrame.m_p=0;world->scriptVariables.m_p=0;SLY2_SET_VPTR(world, SW);   /* BASIC's construction as plain stores */
-    InitSlotheap(&world->slotheapLoroot,0x14,0x100,0x10);
+    InitSlotheap(&world->slotheapLoroot,sizeof(LOROOT),0x100,0x10);
     InitSlotheap(&world->slotheapEvent,0x14,0x100,0x10);
     InitSlotheap(&world->slotheapCallback,0x14,0x100,0x10);
     InitSlotheap(&world->slotheapRefnode,0xc,0x200,0x10);
-    InitSlotheap(&world->slotheapSotree,0x80,0x300,0x10);
+    InitSlotheap(&world->slotheapSotree,sizeof(SOTREE),0x300,0x10);
     InitSlotheap(&world->slotheapXplist,0x14,0x400,0x10);
     InitSlotheap(&world->slotheapXp,0xc0,0x100,0x10);
-    InitSlotheap(&world->slotheapAsega,0x60,0x100,0x10);
+    InitSlotheap(&world->slotheapAsega,sizeof(ASEGA),0x100,0x10);
     InitSlotheap(&world->slotheapAct,0x80,0x400,0x10);
-    InitSlotheap(&world->slotheapOvra,0x14,0x8,0x10);
-    InitSlotheap(&world->slotheapSma,0x50,0x80,0x10);
+    InitSlotheap(&world->slotheapOvra,sizeof(OVRA),0x8,0x10);
+    InitSlotheap(&world->slotheapSma,sizeof(SMA),0x80,0x10);
     *(int *)&world->rgbaClear=0x80000000;
-    InitSlotheap(&world->slotheapSobounds,0x30,0x40,0x10);
-    InitSlotheap(&world->slotheapStimulus,0x60,0x40,0x10);
-    InitSlotheap(&world->slotheapRipg,0x1b0,0x10,0x10);
+    InitSlotheap(&world->slotheapSobounds,sizeof(SOBOUNDS),0x40,0x10);
+    InitSlotheap(&world->slotheapStimulus,sizeof(STIMULUS),0x40,0x10);
+    InitSlotheap(&world->slotheapRipg,sizeof(RIPG),0x10,0x10);
     int chosen=GetMaxRipSize();
     chosen=chosen?chosen:0xF0;
     InitSlotheap(&world->slotheapRip,chosen,0x80,0x10);
-    InitSlotheap(&world->slotheapBlipg,0x460,0x28,0x10);
+    InitSlotheap(&world->slotheapBlipg,sizeof(BLIPG),0x28,0x10);
     InitSlotheap(&world->slotheapBlip,0x10c0,0x80,0x40);
     InitSlotheap(&world->slotheapBlipSpline,0x560,0x8,0x10);
     InitSlotheap(&world->slotheapSsge,0x1c,0x200,0x10);
     InitSlotheap(&world->slotheapJsg,0xf0,0x20,0x10);
-    InitSlotheap(&world->slotheapXa,0x10,0x10,0x10);
-    InitSlotheap(&world->slotheapZprHit,0x60,0x20,0x10);
+    InitSlotheap(&world->slotheapXa,sizeof(XA),0x10,0x10);
+    InitSlotheap(&world->slotheapZprHit,sizeof(ZPR),0x20,0x10);
     InitSlotheap(&world->slotheapXfh,0x30,0x10,0x10);
     InitSlotheap(&world->slotheapLeap,0x40,0x10,0x10);
     InitSlotheap(&world->slotheapDiract,0xd0,0x10,0x10);
