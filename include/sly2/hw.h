@@ -35,6 +35,20 @@
 #define SLY2_UNCACHED_ACCEL(a) ((a) | 0x30000000)
 #endif
 
+/* The cached form of a main-RAM address: the 0x0FFFFFFF fold that takes an uncached mirror (SLY2_UNCACHED,
+   SLY2_UNCACHED_ACCEL) back to the plain address (hud.cpp's render-list calls and packet bounds). A port with a flat
+   address space defines it as (a). */
+#ifndef SLY2_CACHED
+#define SLY2_CACHED(a) ((a) & 0x0FFFFFFF)
+#endif
+
+/* SLY2_VU_ADDR(pv): the VU1 micro-memory byte address of a microprogram entry, as a pointer (the VIF MSCAL code
+   takes it in 8-byte units). The game's entries are labels inside the uploaded microcode at their VU addresses, so
+   on the EE it is pv itself; a port maps its host copy of the microcode back to VU addresses here. */
+#ifndef SLY2_VU_ADDR
+#define SLY2_VU_ADDR(pv) (pv)
+#endif
+
 /* GS privileged register CSR (system status: FINISH, VSINT, FIELD...). */
 #ifndef SLY2_HW_GS_CSR
 #define SLY2_HW_GS_CSR 0x12001000

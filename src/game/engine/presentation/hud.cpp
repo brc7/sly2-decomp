@@ -1180,7 +1180,7 @@ extern "C" void QueueWidgetRenderSetup(WIDGET *p){
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=p->priority<<18;
-    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
+    e->pbCall=(unsigned char *)SLY2_CACHED((uint)tag);e->pvCall=0;
 }
 
 // 0x2132D0 IsWidgetVisible
@@ -1236,7 +1236,7 @@ static inline void SetScale(V4 &v,const Q *q,float upper){Scale(v,q->color1[0],q
 // Switch the packet pointers to the uncached mirror (0x30000000), then queue the widget's render setup.
 static inline Q *Begin(WIDGETIsland *p,VIFS *r){Align(r);uptr c=(uptr)r->m_pb,b=(uptr)r->m_pbMax;c=SLY2_UNCACHED_ACCEL(c);b=SLY2_UNCACHED_ACCEL(b);r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *pending=0;QueueWidgetRenderSetup(p);return pending;}
 // Switch the packet pointers back to cached addresses and empty the widget's render queue.
-static inline void Finish(VIFS *r,WIDGETIsland *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c&=0x0FFFFFFF;b&=0x0FFFFFFF;r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
+static inline void Finish(VIFS *r,WIDGETIsland *p){Align(r);uint c=(uint)r->m_pb,b=(uint)r->m_pbMax;c=SLY2_CACHED(c);b=SLY2_CACHED(b);r->m_pb=(unsigned char *)c;r->m_pbMax=(unsigned char *)b;Q *q=p->queue.first;while(q){Q *old=q;q=q->next;old->next=0;}ClearSl(&p->queue);}
 } // namespace M_RenderWidget
 // Renders a widget: flushes its sprite render queue with the VU microprogram packets.
 void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here */
@@ -2512,7 +2512,7 @@ extern "C" void DrawRichText2(CRichText2 *p,struct CONFIG *config,int priority){
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=p->priority<<18;
-    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
+    e->pbCall=(unsigned char *)SLY2_CACHED((uint)tag);e->pvCall=0;
 }
 } // namespace M_func_002163B0
 
@@ -2623,7 +2623,7 @@ extern "C" void DrawRichText2Glyphs(CRichText2 *p,union M4 *matrix,struct DATA *
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     {
         RPL *e=AllocRenderListEntry();
-        e->kind=0x15;e->depth=style->priority+(p->priority<<18);e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
+        e->kind=0x15;e->depth=style->priority+(p->priority<<18);e->pbCall=(unsigned char *)SLY2_CACHED((uint)tag);e->pvCall=0;
     }
 }
 } // namespace M_func_00216750
@@ -2815,7 +2815,7 @@ RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 // Append one word to the packet.
 extern "C" { static inline void Word(VIFS *r,uint word){*(uint *)r->m_pb=word;r->m_pb+=4;} }
 // Append a VIF MSCAL code starting the VU1 microprogram at entry.
-extern "C" { static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)entry>>3));} }
+extern "C" { static inline void Mscal(VIFS *r,void *entry){Word(r,0x14000000|((uint)SLY2_VU_ADDR(entry)>>3));} }
 // Pad the packet with zero words to a quadword boundary.
 extern "C" { static inline void Align(VIFS *r){while((uint)r->m_pb&15){*(uint *)r->m_pb=0;r->m_pb+=4;}} }
 // Queues the VU microprogram pair for a sprite render mode. (inferred)
@@ -2839,7 +2839,7 @@ extern "C" void QueueSpriteVuProgram(WIDGET *p,int mode,float priority){
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;
     D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
-    e->kind=0x15;e->depth=priority+(p->priority<<18);e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);e->pvCall=0;
+    e->kind=0x15;e->depth=priority+(p->priority<<18);e->pbCall=(unsigned char *)SLY2_CACHED((uint)tag);e->pvCall=0;
 }
 } // namespace M_func_00217298
 
@@ -2895,7 +2895,7 @@ extern "C" void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int 
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=data->priority+(p->owner->priority<<18);
-    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);
+    e->pbCall=(unsigned char *)SLY2_CACHED((uint)tag);
     e->pvCall=(void *)p->tag;
 }
 } // namespace M_RenderSpriteGeometry
@@ -2955,7 +2955,7 @@ extern "C" void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int u
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=data->priority+(p->owner->priority<<18);
-    e->pbCall=(unsigned char *)((uint)tag&0x0FFFFFFF);
+    e->pbCall=(unsigned char *)SLY2_CACHED((uint)tag);
     if(p->type==SPRITE_KIND_EFFECT)e->pvCall=(void *)p->tag;else e->pvCall=(void *)p->rawtag;
 }
 } // namespace M_func_002177E0

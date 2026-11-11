@@ -7,6 +7,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_vifs
 #include "vifs.h"
 #include "sly2/port.h"
+#include "sly2/hw.h"   /* SLY2_VU_ADDR */
 #include "bis.h"
 #include "sly2/slotheap.h"
 #include "sly2/scrap.h"
@@ -48,7 +49,7 @@ void VIFS::AddVifBaseOffset(int iqwBase, int diqwOffset)
 // Adds a VIF MSCAL code: starts the VU1 microprogram at byte address pv (the code stores the address in 8-byte units).
 void VIFS::AddVifMscal(void *pv)
 {
-    int i = (sptr)pv < 0 ? (sptr)pv + 7 : (sptr)pv;
+    int i = (sptr)SLY2_VU_ADDR(pv) < 0 ? (sptr)SLY2_VU_ADDR(pv) + 7 : (sptr)SLY2_VU_ADDR(pv);
     uchar *p = m_pb;
     m_pb = p + 4;
     *(int *)p = (i >> 3) | 0x14000000;
