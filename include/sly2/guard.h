@@ -142,7 +142,7 @@ struct TARGETREC
       float unknown14;      /* +0x14 */
       float facingTolerance; /* +0x18 radians */
       int isDisabled;       /* +0x1C */
-      char pad20[0x8];
+      DLE dleTargetrec;     /* +0x20 link in g_sw.dlTargetrec (InitTargetRecord; so.cpp FindTargetRecordById walks it) */
       int guardCount;       /* +0x28 */
       STEPGUARD *guards[1]; /* +0x2C */
 };

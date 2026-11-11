@@ -15,6 +15,26 @@
 /* ZPR: a zap record: one delivery of damage from a source to a target part (kind, amount, position and velocity of
    the hit).
    Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* ASEGARC (0x40): a leap's animation arc (InitAsegArc, PostAsegArcLoad, StartLeap; gait.cpp reads it through its
+   BLCURVE / LEAPTUNE views, stepguard.cpp's leap bindings allocate one): the animation, the times of its labels
+   0x22..0x24 and the flight they give. MURRAY::arcLeap is one. */
+struct ASEGARC
+{
+      OID oid;   /* +0x00 the animation's oid, -1 none (InitAsegArc) */
+      struct ASEG *paseg;   /* +0x04 resolved from oid by the first PostAsegArcLoad (murray.cpp's SNIP table binds it) */
+      float tLabel22;   /* +0x08 time of label 0x22 (takeoff) */
+      float tLabel23;   /* +0x0C time of label 0x23 (StartLeap: the start of the flight phase) */
+      float tLabel24;   /* +0x10 time of label 0x24 (landing) */
+      float flightTime;   /* +0x14 tLabel24 - tLabel22 */
+      float minimumTime;   /* +0x18 tLabel24 - tLabel23 */
+      float sLeap;   /* +0x1C planar distance of the leap (UpdateMurrayPower backs off by it) */
+      qword acceleration;   /* +0x20 the arc's curvature (PostAsegArcLoad; StartLeap's acceleration) */
+      int fInit;   /* +0x30 PostAsegArcLoad done */
+      int unknown34[3];
+};
+typedef char assert_ASEGARC_fInit[SLY2_OFFSETOF(ASEGARC, fInit) == 0x30 ? 1 : -1];
+typedef char assert_ASEGARC_size[sizeof(ASEGARC) == 0x40 ? 1 : -1];
+
 struct ZPR
 {
       LO *ploSource;   /* object that delivered the zap */

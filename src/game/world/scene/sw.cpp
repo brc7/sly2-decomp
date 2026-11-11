@@ -146,10 +146,10 @@ extern "C" SW *SW_ctor(SW *world)
     InitSl(&world->slEvent,0x10);
     InitSl(&world->slCallback,0x10);
     InitDl__FP2DLi(&world->dlTarget,SLY2_OFFSETOF(TARGET, targetListLink));
-    InitDl__FP2DLi(&world->dlCid11,0x1B4);
-    InitDl__FP2DLi(&world->dlCid13,0x1B4);
+    InitDl__FP2DLi(&world->dlCid11,SLY2_OFFSETOF(PIPE, dleGrab));
+    InitDl__FP2DLi(&world->dlCid13,SLY2_OFFSETOF(RAIL, dleGrab));
     InitDl__FP2DLi(&world->dlCid39,SLY2_OFFSETOF(CID39, dleGrab));
-    InitDl__FP2DLi(&world->dlCid88,0x174);
+    InitDl__FP2DLi(&world->dlCid88,SLY2_OFFSETOF(BARREL, dleGrab));
     InitDl__FP2DLi(&world->dlCid12,SLY2_OFFSETOF(CID12, dleGrab));
     InitDl__FP2DLi(&world->dlCid34,SLY2_OFFSETOF(CID34, dleGrab));
     InitDl__FP2DLi(&world->dlCid38,SLY2_OFFSETOF(CID38, dleGrab));
@@ -165,8 +165,8 @@ extern "C" SW *SW_ctor(SW *world)
     InitSl(&world->slShd,0x18);
     InitSl(&world->slSaa,0x40);
     InitDl__FP2DLi(&world->dlZprHit,SLY2_OFFSETOF(ZPR, dle));
-    InitDl__FP2DLi(&world->dlTargetrec,0x20);
-    InitDl__FP2DLi(&world->dlCid47,0x104);
+    InitDl__FP2DLi(&world->dlTargetrec,SLY2_OFFSETOF(TARGETREC, dleTargetrec));
+    InitDl__FP2DLi(&world->dlCid47,SLY2_OFFSETOF(CID47, dleListener));
     InitDl__FP2DLi(&world->dlCid14Free,SLY2_OFFSETOF(CID14, dleMerged));
     InitDl__FP2DLi(&world->dlCid14Pending,SLY2_OFFSETOF(CID14, dlePending));
     InitDl__FP2DLi(&world->dlTaskActive,SLY2_OFFSETOF(TASK, dleActive));

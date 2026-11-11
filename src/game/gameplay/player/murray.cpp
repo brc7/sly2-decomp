@@ -99,7 +99,7 @@ extern "C" void InitMurray(MURRAY *murray)
     InitGait(&murray->gaitB, murray, 0x15);
     InitGait(&murray->gaitD, murray, 0x15);
     InitGait(&murray->gaitC, murray, 0x15);
-    InitAsegArc(murray->unknown1850);
+    InitAsegArc(&murray->arcLeap);
     {
     register float a __asm__("$f6") = -60.0f;
     register float b __asm__("$f4") = -100.0f;
@@ -173,7 +173,7 @@ extern "C" void PostMurrayLoad(MURRAY *murray)
     PostJtLoadGait(&murray->gaitD);
     PostJtLoadGait(&murray->gaitC);
     InitDirectionalBlend(murray, murray->unknown16F0, &murray->unknown17F0);
-    PostAsegArcLoad(murray->unknown1850, murray);
+    PostAsegArcLoad(&murray->arcLeap, murray);
     PostJtThrowLoad(&murray->jtthrowAim);
     AttachStepplayerToStartMarker(murray, 0x16);
     v = FindSoXf(murray, murray->oid, 0xC);
@@ -2485,8 +2485,6 @@ extern "C" void UpdateMurrayAttackVelocity(MURRAY*murray){
 } // namespace M_func_001B8B70
 
 namespace M_func_001B8D30 {
-/* MURRAY::unknown1850 (an ASEG arc record) as read here: +0x1C the leap distance behind Murray. */
-struct ARCV { char pad[0x1C]; float sLeap; };
 struct M3 { qword row[3]; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 /* A LEAP (leap.h, no fields yet) as written here: +0x40 its goal position. */
@@ -2533,10 +2531,10 @@ extern "C" void SetMurrayPowerSubstate(MURRAY *murray, int st)
         union { qword q; float f[4]; } u, uv, u2;
         murray->powerContactTrigger = 0;
         murray->pleapPower = &murray->leap;
-        StartLeap(murray->unknown1850, murray, 1, &murray->leap);
+        StartLeap(&murray->arcLeap, murray, 1, &murray->leap);
         q = murray->pleapPower;
         uv.q = GetLoWorldPos(murray);
-        __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-((ARCV *)murray->unknown1850)->sLeap));
+        __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-murray->arcLeap.sLeap));
         u.q = b;
         u2.q = u.q;
         px = GetLoWorldMatrix(murray);
@@ -3127,7 +3125,7 @@ LO *D_002F7900;   /* g_pmurray */
 SNIP D_002C0270[0x89] = {{0x300, 0x1A0, SLY2_OFFSETOF(MURRAY, gaitA.abl[0].animation)}, {0x300, 0x19E, SLY2_OFFSETOF(MURRAY, gaitA.abl[1].animation)}, {0x300, 0x1A2, SLY2_OFFSETOF(MURRAY, unknown1028)},
     {0x300, 0x24E, SLY2_OFFSETOF(MURRAY, jtair.apasegJump[0])}, {0x300, 0x1A1, SLY2_OFFSETOF(MURRAY, pasegFlop)}, {0x300, 0x1A8, SLY2_OFFSETOF(MURRAY, apasegAttack[0])}, {0x300, 0x1A9, SLY2_OFFSETOF(MURRAY, apasegAttack[1])},
     {0x300, 0x1B3, SLY2_OFFSETOF(MURRAY, apasegAttack[2])}, {0x300, 0x1B2, SLY2_OFFSETOF(MURRAY, apasegAttack[3])}, {0x300, 0xC4, SLY2_OFFSETOF(MURRAY, apasegAttack[4])}, {0x300, 0x1B8, SLY2_OFFSETOF(MURRAY, pasegPowerA)},
-    {0x300, 0x1B9, SLY2_OFFSETOF(MURRAY, pasegPowerB)}, {0x300, 0x1BA, SLY2_OFFSETOF(MURRAY, unknown1850[1])}, {0x300, 0x1BB, SLY2_OFFSETOF(MURRAY, pasegPowerEnd)}, {0x300, 0x1AF, SLY2_OFFSETOF(MURRAY, gaitD.abl[0].animation)},
+    {0x300, 0x1B9, SLY2_OFFSETOF(MURRAY, pasegPowerB)}, {0x300, 0x1BA, SLY2_OFFSETOF(MURRAY, arcLeap.paseg)}, {0x300, 0x1BB, SLY2_OFFSETOF(MURRAY, pasegPowerEnd)}, {0x300, 0x1AF, SLY2_OFFSETOF(MURRAY, gaitD.abl[0].animation)},
     {0x300, 0x1AE, SLY2_OFFSETOF(MURRAY, gaitD.abl[1].animation)}, {0x300, 0x206, SLY2_OFFSETOF(MURRAY, psmStrafeIdle)}, {0x300, 0x1C4, SLY2_OFFSETOF(MURRAY, apasegLift[0])}, {0x300, 0x1C5, SLY2_OFFSETOF(MURRAY, apasegLift[1])},
     {0x300, 0x1E2, SLY2_OFFSETOF(MURRAY, gaitB.abl[0].animation)}, {0x300, 0x1E3, SLY2_OFFSETOF(MURRAY, gaitB.abl[1].animation)}, {0x300, 0x1E4, SLY2_OFFSETOF(MURRAY, psmCarryStand)}, {0x300, 0x1E5, SLY2_OFFSETOF(MURRAY, unknown1514[0])},
     {0x300, 0x1E6, SLY2_OFFSETOF(MURRAY, unknown1514[1])}, {0x300, 0x1E7, SLY2_OFFSETOF(MURRAY, pasegCarryRun)}, {0x300, 0x1EA, SLY2_OFFSETOF(MURRAY, pasegThrow)}, {0x300, 0x1EC, SLY2_OFFSETOF(MURRAY, pasegToss)},

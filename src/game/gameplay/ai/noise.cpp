@@ -354,12 +354,12 @@ extern "C" void RemoveListenerHierarchy(CID47 *listener)
     RemoveDlEntry((char *)&g_sw.dlCid47, listener);
 }
 
-// 0x156D98: Listener vtable slot 41 (Clone): XFM clone that keeps the listener's own trailing key field.
+// 0x156D98: Listener vtable slot 41 (Clone): XFM clone that keeps the listener's own list link.
 extern "C" void CloneListener(CID47 *listener, CID47 *source)
 {
-    LISTENERKEY key = listener->key;
+    DLE dle = listener->dleListener;
     CloneXfm(listener, source);
-    listener->key = key;
+    listener->dleListener = dle;
 }
 
 // 0x156DE0: Releases the listener's noises that have been removed from the world (or all of them when `dropAll`),

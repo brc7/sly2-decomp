@@ -667,13 +667,12 @@ typedef char assert_CID147_position[SLY2_OFFSETOF(CID147, position) == 0x20 ? 1 
 typedef char assert_CID147_noiseKind[SLY2_OFFSETOF(CID147, noiseKind) == 0x54 ? 1 : -1];
 
 /* 47 CID47 (0x110): stimulus listener (LISTENER, noise.cpp); vtable 0x2CE118, 50 slots */
-/* The trailing key a listener keeps across a clone (CloneListener). */
-struct LISTENERKEY { short x; short y; int i; };
 struct CID47 : XFM
 {
     unsigned int noiseCount; /* +0xE0 the noises it heard and holds (at most 8) */
     CID147 *noises[8];      /* +0xE4 */
-    LISTENERKEY key;        /* +0x104 */
+    DLE dleListener;        /* +0x104 link in g_sw.dlCid47 (AddListenerHierarchy; kept across CloneListener, as the grab
+                               lists' links are; was LISTENERKEY key) */
     int unknown10C;
     virtual void AddHierarchy() __asm__("AddListenerHierarchy");   /* slot 11 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid47ClassDesc");   /* slot 6 */
@@ -682,6 +681,7 @@ struct CID47 : XFM
     virtual void Update() __asm__("UpdateListener");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneListener");   /* slot 41 */
 };
+typedef char assert_CID47_dleListener[SLY2_OFFSETOF(CID47, dleListener) == 0x104 ? 1 : -1];
 typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
 
 /* 31 EXPLG (0xF0); vtable 0x2CE828, 51 slots */

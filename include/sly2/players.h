@@ -107,7 +107,7 @@ struct MURRAY : public STEPPLAYER
       float subStateTime;   /* +0x1844 clock.time subState was set (UpdateMurrayPower timeouts) */
       ASEG *pasegPowerA;   /* +0x1848 power-move clip of sub-state 0 (SetMurrayPowerSubstate) */
       ASEG *pasegPowerB;   /* +0x184C power-move clip of sub-state 1 */
-      undefined4 unknown1850[0x40 / 4];   /* an ASEG arc record (PostAsegArcLoad) */
+      ASEGARC arcLeap;   /* +0x1850 the power attack's leap arc (PostAsegArcLoad, StartLeap) */
       LEAP leap;   /* +0x1890 constructed by MURRAY_ctor (ConstructLeap) */
       struct LEAP *pleapPower;   /* +0x1900 the leap of the power attack (UpdateMurrayPower runs it) */
       ASEG *pasegPowerEnd;   /* +0x1904 power-move clip of sub-state 3 */
