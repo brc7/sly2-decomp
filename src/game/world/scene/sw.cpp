@@ -160,7 +160,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlSma,SLY2_OFFSETOF(SMA, dleSw));
     InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(STIMULUS, next));
     InitDl__FP2DLi(&world->dlStepguard,SLY2_OFFSETOF(STEPGUARD, dleGuard));
-    InitDl__FP2DLi(&world->dlCid98,0x174);
+    InitDl__FP2DLi(&world->dlCid98,SLY2_OFFSETOF(CID98, dleBreakable));
     InitSl(&world->slPoctl,0x84);
     InitSl(&world->slShd,0x18);
     InitSl(&world->slSaa,0x40);

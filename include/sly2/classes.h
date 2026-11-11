@@ -1909,9 +1909,21 @@ typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
 typedef char assert_NEELA_chaseScript[SLY2_OFFSETOF(NEELA, chaseScript) == 0x108C ? 1 : -1];
 
 /* 98 CID98 (0x180): breakable props (chairs, barrels, crates, containers); vtable 0x2D4B78, 75 slots */
+struct BRKACTION; struct BRKSTAGE;   /* breakable.cpp: a trigger class or action record (kind, value), a stage */
 struct CID98 : SO
 {
-    char pad150[0x180 - 0x150];
+    /* Own fields from breakable.cpp (its TRIG view until v1.16). */
+    int triggerClassCount;      /* +0x150 */
+    BRKACTION *triggerClasses;  /* +0x154 the classes whose contact fires it (cid, armed) */
+    int firingCount;            /* +0x158 firings of the current stage */
+    int stage;                  /* +0x15C the current stage */
+    int stageCount;             /* +0x160 */
+    BRKSTAGE *stages;           /* +0x164 the stages (stages[-1]: the always-run stage) */
+    int reactionMask;           /* +0x168 what a firing may do (camera 2, rumble 4, noise 8; 1 none); option 935 */
+    LO *instigator;             /* +0x16C the object that fired it */
+    int zapKind;                /* +0x170 the zap kind that fired it (0 for contacts, inferred) */
+    DLE dleBreakable;           /* +0x174 link in g_sw.dlCid98 (OnBreakableAdd; carmelita.cpp / bhvsearch.cpp walk it) */
+    int unknown17C;
     virtual void AdjustXps() __asm__("HandleBreakableContacts");   /* slot 58 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid98ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBreakable");   /* slot 7 */
@@ -1921,6 +1933,7 @@ struct CID98 : SO
     virtual void OnProxyAcquire(LO *plo) __asm__("ResetBreakable");   /* slot 26 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("AcceptBreakableZap");   /* slot 75 */
 };
+typedef char assert_CID98_dleBreakable[SLY2_OFFSETOF(CID98, dleBreakable) == 0x174 ? 1 : -1];
 typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
 
 /* 14 CID14 (0x1F0): convex polygon SHAPE / pathzone obstacle; vtable 0x2D4DE0, 50 slots */

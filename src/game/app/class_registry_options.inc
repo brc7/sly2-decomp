@@ -1778,8 +1778,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTriggerClass), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1025] opt 926, CID98 */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1026] opt 927, CID98 */
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1027] opt 928, CID98 */
-    {0x2002, 2, EOPID_INT(0x16C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1028] opt 929, CID98 */
-    {0x1011, 2, EOPID_INT(0x170), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1029] opt 930, CID98 */
+    {0x2002, 2, EOPID_OFF(CID98, instigator), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1028] opt 929, CID98 */
+    {0x1011, 2, EOPID_OFF(CID98, zapKind), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1029] opt 930, CID98 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableStage), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1030] opt 342, CID98 */
     {0x12, 0x400, EOPID_FN(RefThunk_InitBreakablePreStage), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1031] opt 931, CID98 */
     {0x12, 0x400, EOPID_FN(RefThunk_SetBreakableStageParam), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1032] opt 932, CID98 */
@@ -1796,7 +1796,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableHideGlobs), EOPID_FN(RefThunk_HideSoGlobsById), EOPID_INT(1), EOPID_NONE}, /* [1043] opt 111, CID98 */
     {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableHideParts), EOPID_FN(RefThunk_HideSoPartsById), EOPID_INT(1), EOPID_NONE}, /* [1044] opt 113, CID98 */
     {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTaskStates), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1045] opt 527, CID98 */
-    {0x104A, 0x12, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE, EOPID_NONE}, /* [1046] opt 935, CID98 */
+    {0x104A, 0x12, EOPID_OFF(CID98, reactionMask), EOPID_OFF(CID98, reactionMask), EOPID_NONE, EOPID_NONE}, /* [1046] opt 935, CID98 */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_ScheduleBreakableReaction), EOPID_NONE, EOPID_NONE}, /* [1047] opt 936, CID98 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetBreakableStage), EOPID_INT(1), EOPID_NONE}, /* [1048] opt 236, CID98 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartMurrayLiftGrabspot), EOPID_INT(1), EOPID_NONE}, /* [1049] opt 937, MURRAY */

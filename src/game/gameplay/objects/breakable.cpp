@@ -24,40 +24,17 @@ typedef struct SOX { char pad[0xC]; void *vptr; } SOX;   /* any SO */
 static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
 /* A trigger class (cid, armed) or an action (kind, value). The value of action kind 0xC is a pointer (an 8-byte
    record, copied to the world heap at load), so b is pointer-wide (sptr: int on the EE). */
-struct I { int a; sptr b; };
-/* An event: its id, how many firings it takes (n <= 0: once), its actions. */
-struct E { int id; int n; int c; I *a; };
-struct XPO;
+struct BRKACTION { int a; sptr b; };
+typedef BRKACTION I;
+/* An event (stage): its id, how many firings it takes (n <= 0: once), its actions. */
+struct BRKSTAGE { int id; int n; int c; I *a; };
+typedef BRKSTAGE E;
 
-/* The trigger object (0x174) as this TU reads it. */
-struct TRIG
+/* The trigger object: CID98 (classes.h), plus the reaction callback EnsureSwCallback takes as a member pointer. */
+struct TRIG : CID98
 {
-    int x0, x4, x8;
-    void *vptr;                    /* 0x0C */
-    int x10, x14;
-    int oid;                    /* 0x18 */
-    char pad1C[0xE8 - 0x1C];
-    int fCnstr;                 /* 0xE8 */
-    XPO *pxEC;                  /* 0xEC: its contacts */
-    char padF0[0x148 - 0xF0];
-    unsigned long breakFlags;   /* 0x148 */
-    int triggerClassCount;      /* 0x150 */
-    I *triggerClasses;          /* 0x154: trigger classes */
-    int firingCount;            /* 0x158: firings of the current event */
-    int stage;                  /* 0x15C: current event */
-    int stageCount;             /* 0x160 */
-    E *stages;                  /* 0x164 */
-    int reactionMask;           /* 0x168: what the firing may do (camera 2, rumble 4, noise 8; 1 none) */
-    void *instigator;           /* 0x16C: the object that fired it */
-    int zapKind;                /* 0x170: the zap kind that fired it (0 for contacts, inferred) */
     void Action() __asm__("ReactBreakable");  // Also known as: RunHit (upstream readable / Sly 1 name; RunHit__FP2LO).
 };
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef char offset_0_marker[FIELD_OFFSET(TRIG,firingCount)==344?1:-1];
-typedef char offset_0_current[FIELD_OFFSET(TRIG,stage)==348?1:-1];
-typedef char offset_0_eventCount[FIELD_OFFSET(TRIG,stageCount)==352?1:-1];
-typedef char offset_0_events[FIELD_OFFSET(TRIG,stages)==356?1:-1];
-typedef char offset_0_x170[FIELD_OFFSET(TRIG,zapKind)==0x170?1:-1];
 typedef char size_1[sizeof(E)==16?1:-1];
 typedef char size_2[sizeof(I)==8?1:-1];
 
@@ -87,7 +64,7 @@ void HideSoGlobsById(TRIG *p, int v);
 void ShowSoPartsById(TRIG *p, int v);
 void HideSoPartsById(TRIG *p, int v);
 void AdjustSoXps(TRIG *p);
-void FreeSwXpList__FP2SWP2XP(SW *psw, int k);
+void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 void *GetHeroPo(SW *psw);
 qword GetLoWorldPos(void *p);
 void EmitSwNoise(SW *psw, int z, qword q, void *x);
@@ -110,8 +87,7 @@ E *GetCurrentBreakableStage(TRIG *p);
 }
 /* Callers' views (asm labels): the allocator with a plain request, and calls that pass an extra (unused) argument. */
 void *func_001AE318M(SWALLOC *pmsg) __asm__("AllocFromStack");
-struct XPC;
-int func_001BBE48X(TRIG *p, XPC *e) __asm__("IsBreakableDone");
+int func_001BBE48X(TRIG *p, ZPR *e) __asm__("IsBreakableDone");
 E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 // Allocates from the world heap (request size and kind).
 static __inline__ void *PvAllocMsg(SWALLOC *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->cbAlign = nKind; return func_001AE318M(pmsg); }
@@ -170,22 +146,20 @@ extern "C" void OnBreakableAdd(TRIG *breakable) {
     AppendDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), breakable);
 }
 
-/* A contact record: the other object and its flags word at +0x40. */
-struct XPC { TRIG *x0; int x4; int x8; int xC; char pad[0x30]; union { unsigned long l; struct { int lo; int hi; } w; } x40; };
 // Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8). (inferred)
 // Also known as: FAcceptBreakableContact (upstream readable / Sly 1 name; FAcceptBreakableContact__FP3ALOP5CTMSG).
-extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
+extern "C" int AcceptBreakableZap(TRIG *breakable, ZPR *e)
 {
     int i;
     if (func_001BBE48X(breakable, e)) return 0;
-    if (!e->x40.w.hi) return 0;
-    if ((e->x40.l & 0xC00000000UL) != 0x800000000UL) return 1;
-    if (breakable->triggerClassCount != 0 && e->x0 != breakable) {
+    if (!e->grfzpr) return 0;
+    if ((*(unsigned long *)&e->unknown40 & 0xC00000000UL) != 0x800000000UL) return 1;   /* grfzpr bits 2-3, read with the word before it */
+    if (breakable->triggerClassCount != 0 && e->ploSource != breakable) {
         for (i = 0; i < breakable->triggerClassCount; i++)
-            if (IsBasicDerivedFrom__FP5BASIC3CID(e->x0, breakable->triggerClasses[i].a)) break;
+            if (IsBasicDerivedFrom__FP5BASIC3CID(e->ploSource, breakable->triggerClasses[i].a)) break;
         if (i >= breakable->triggerClassCount) return 0;
     }
-    ScheduleBreakableReaction(breakable, e->x0, e->xC);
+    ScheduleBreakableReaction(breakable, e->ploSource, e->zpk);
     return 1;
 }
 
@@ -194,7 +168,7 @@ extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
 void ScheduleBreakableReaction(TRIG *breakable, void *a, int b)
 {
     breakable->zapKind = b;
-    breakable->instigator = a;
+    breakable->instigator = (LO *)a;
     EnsureSwCallback(&g_sw, breakable, &TRIG::Action, 0);
 }
 
@@ -305,28 +279,25 @@ void SetBreakableStage(TRIG *breakable, int id)
 }
 typedef char event_shift[sizeof(E)==(1<<EVENT_SHIFT)?1:-1];
 
-/* The object's contact list (XP records: +0x4 next, +0x8 the armed flag, +0xC the other object). */
-struct L { int x0; struct L *next; int *px8; TRIG *po; };
-struct XPO { char pad[0x64]; L *pl; };
 // CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98
 // objects. (inferred)
 // Also known as: UpdateBreakableContacts (upstream readable / Sly 1 name; UpdateBreakableContacts__FP3ALO).
 void CID98::AdjustXps()
 {
     TRIG *breakable = (TRIG *)this;
-    L *pl;
+    XPLIST *pl;
     int i, j;
     AdjustSoXps(breakable);
     if (IsBreakableDone(breakable)) return;
-    for (pl = breakable->pxEC->pl; pl; pl = pl->next) {
-        if (*pl->px8 == 0) continue;
+    for (pl = breakable->physicsTree->pxplistFirst; pl; pl = pl->pxplistNext) {
+        if (*pl->ppxpHead == 0) continue;
         for (i = 0; i < breakable->triggerClassCount; i++) {
             I *pe = &breakable->triggerClasses[i];
             if (!pe->b) continue;
-            if (!IsBasicDerivedFrom__FP5BASIC3CID(pl->po, pe->a)) continue;
-            if (!(breakable->breakFlags & 0x3000000)) ScheduleBreakableReaction(breakable, pl->po, 0);
-            if (IsBasicDerivedFrom__FP5BASIC3CID(pl->po, 0x62)) {
-                TRIG *q = pl->po;
+            if (!IsBasicDerivedFrom__FP5BASIC3CID(pl->psoOther, pe->a)) continue;
+            if (!breakable->zapMode) ScheduleBreakableReaction(breakable, pl->psoOther, 0);
+            if (IsBasicDerivedFrom__FP5BASIC3CID(pl->psoOther, 0x62)) {
+                TRIG *q = (TRIG *)pl->psoOther;
                 for (j = 0; j < q->triggerClassCount; j++) {
                     I *pe2 = &q->triggerClasses[j];
                     if (!pe2->b) continue;
@@ -335,11 +306,11 @@ void CID98::AdjustXps()
                     break;
                 }
             }
-            AsSo(breakable)->OnContactFreed(AsSo(pl->po));
-            AsSo(pl->po)->OnContactFreed(AsSo(breakable));
-            FreeSwXpList__FP2SWP2XP(&g_sw, pl->x0);
-            *pl->px8 = 0;
-            pl->x0 = 0;
+            AsSo(breakable)->OnContactFreed(AsSo(pl->psoOther));
+            AsSo(pl->psoOther)->OnContactFreed(AsSo(breakable));
+            FreeSwXpList__FP2SWP2XP(&g_sw, pl->pxpFirst);
+            *pl->ppxpHead = 0;
+            pl->pxpFirst = 0;
             break;
         }
     }
@@ -389,7 +360,6 @@ void TRIG::Action()
     }
 }
 
-typedef struct MSGS { int a; SOX *ps; char pad[0x38]; } MSGS;
 // Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10,
 // spawn ApplyTaskStates. (inferred)
 // Also known as: RunItems (upstream readable / Sly 1 name; RunItems__FP2LOP3BRK).
@@ -430,10 +400,10 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
             break;
         case 7:
             if (IsBasicDerivedFrom__FP5BASIC3CID(ps, 0x1E)) {
-                MSGS msg;
-                msg.a = 1;
-                msg.ps = psPrev ? psPrev : ps;
-                ((EXPL *)ps)->ExplodeExplso((EXPLSO *)&msg);   /* MSGS: EXPLSO grf 1 and ploReference */
+                EXPLSO msg;
+                msg.grf = 1;
+                msg.ploReference = (LO *)(psPrev ? psPrev : ps);
+                ((EXPL *)ps)->ExplodeExplso(&msg);
             }
             break;
         case 8:
@@ -464,12 +434,12 @@ void RunBreakableStageActions(TRIG *breakable, E *pe)
 }
 
 // Append (class, flag) to trigger list (max 8). (inferred)
-extern "C" int AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
+extern "C" sptr AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
     int c = breakable->triggerClassCount;
-    int r = c < 8;
+    sptr r = c < 8;
     if (r != 0) {
         I *pi = (I *)((char *)breakable->triggerClasses + c * sizeof(I));
-        r = (int)pi;
+        r = (sptr)pi;
         breakable->triggerClassCount = c + 1;
         pi->b = b;
         pi->a = a;
@@ -598,7 +568,7 @@ extern "C" void AddBreakableTaskStates(TRIG *breakable, int a, int b)
 {
     SWALLOC msg;
     I *pi = AddBreakableAction(breakable, 0xC);
-    pi->b = (int)PvAllocMsg(&msg, 8, 0x10);
+    pi->b = (sptr)PvAllocMsg(&msg, 8, 0x10);
     ((int *)pi->b)[0] = a;
     ((int *)pi->b)[1] = b;
 }
@@ -636,7 +606,7 @@ E *GetCurrentBreakableStage(TRIG *breakable) {
     if (IsBreakableStageValid(breakable) == 0) {
         return 0;
     }
-    return (E *)((char *)breakable->stages + breakable->stage * 0x10);
+    return (E *)((char *)breakable->stages + breakable->stage * sizeof(E));
 }
 
 // CID 98 vtable slot 26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
@@ -645,7 +615,7 @@ extern "C" void ResetBreakable(TRIG *breakable)
 {
     SO_ResetForProxy(breakable);
     SetBreakableStage(breakable, 0x609);
-    if (breakable->fCnstr) {
+    if (breakable->physics) {
         SetSoCnstrForce(breakable, 1);
         SetSoCnstrTorque(breakable, 1);
     }
