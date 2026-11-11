@@ -1548,8 +1548,12 @@ struct M4; struct SOIsland;
 typedef int qword __attribute__((mode(TI)));
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {QWROW r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];} M4&operator=(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]=m.r[3];return *this;}};
+#if defined(SLY2_EE_LAYOUT)
 /* SO with its vptr named: the slot 35 entry is loaded by hand (scheduled asm) */
 struct SOIsland { char pad[0xC]; VTE *pvt; char pad2[0xE8 - 0x10]; SOPHYS *physics; };
+#else
+struct SOIsland : SO {};
+#endif
 extern void SetLoTransformFromXf(struct SOIsland *p, XF *pa) __asm__("SetLoTransformFromXf");
 extern M4 *GetXfAngularVelocity(M4 *,XF *,XF *) __asm__("GetXfAngularVelocity");
 // The object's angular-velocity matrix (GetXfAngularVelocity).
@@ -1569,6 +1573,7 @@ static inline SETVECTOR ReadSetter(const VTE &entry){
  asm("lw %0,%1":"=r"(function):"m"(((void (*)())entry.pfn)));
  return function;
 }
+#if defined(SLY2_EE_LAYOUT)
 // Slot 39: sets the transform (SetXf) and derives linear and angular velocity from the XF rate matrix.
 extern "C" void SetSoXf(struct SOIsland *so, XF *pa)
 {
@@ -1592,6 +1597,29 @@ extern "C" void SetSoXf(struct SOIsland *so, XF *pa)
         ((SO *)so)->SetAngularVelocity(q);
     }
 }
+#else
+// Slot 39: sets the transform (SetXf) and derives linear and angular velocity from the XF rate matrix: the linear
+// velocity is the rate matrix applied to the world position (slot 35, SetVelocity), the angular one its skew
+// part (m[1][2], m[2][0], m[0][1]).
+extern "C" void SetSoXf(struct SOIsland *so, XF *pa)
+{
+    M4 m;
+    QWROW linear, angular;
+    SetLoTransformFromXf(so, pa);
+    if (!so->physics) return;
+    { M4 t = BuildVelocity(pa); m = t; }
+    const float *pos = pa->worldMatq.r[3].f;
+    for (int i = 0; i < 3; i++)
+        linear.f[i] = ((m.r[0].f[i] * pos[0] + m.r[1].f[i] * pos[1]) + m.r[2].f[i] * pos[2]) + m.r[3].f[i];
+    linear.f[3] = 0;
+    angular.f[0] = m.r[1].f[2];
+    angular.f[1] = m.r[2].f[0];
+    angular.f[2] = m.r[0].f[1];
+    angular.f[3] = 0;
+    so->SetVelocity(linear.q);
+    so->SetAngularVelocity(angular.q);
+}
+#endif
 } // namespace M_func_001F4A80
 
 // 0x1F4B58 MarkSoTreeBoundsDirty
