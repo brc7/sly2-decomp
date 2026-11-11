@@ -588,7 +588,7 @@ extern "C" void *FindBhvScriptTarget(BHV169 *behavior, int oid)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001715F0 {
 void *FindBhvScriptTarget(BHV169 *behavior, int oid) __asm__("FindBhvScriptTarget");
-void GetBhvScriptTargetPose(BHV169 *behavior, void *target, qword *posOut, float *headingOut) __asm__("GetBhvScriptTargetPose");
+void GetBhvScriptTargetPose(BHV169 *behavior, LO *target, qword *posOut, float *headingOut) __asm__("GetBhvScriptTargetPose");
 void TeleportBhvScriptGuard(BHV169 *behavior, qword pos, float heading) __asm__("TeleportBhvScriptGuard");
 BHV *PushStepBehavior(STEPGUARD *guard, int cid) __asm__("PushStepBehavior");
 void EnsureShapeVolumeSegments(void *shape) __asm__("EnsureShapeVolumeSegments");
@@ -628,7 +628,7 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
         ((STEPGUARD *)behavior->owner)->pauseTimes = command->range;
         break;
     case SSGK_TELEPORT: {
-        GetBhvScriptTargetPose(behavior, FindBhvScriptTarget(behavior, command->id), &pose.q, &heading);
+        GetBhvScriptTargetPose(behavior, (LO *)FindBhvScriptTarget(behavior, command->id), &pose.q, &heading);
         TeleportBhvScriptGuard(behavior, pose.q, heading);
         break;
     }
@@ -697,7 +697,7 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
         } else {
             void *target = FindBhvScriptTarget(behavior, point->id);
             if (target) {
-                GetBhvScriptTargetPose(behavior, target, 0, &behavior->heading);
+                GetBhvScriptTargetPose(behavior, (LO *)target, 0, &behavior->heading);
                 if (IsBasicDerivedFrom__FP5BASIC3CID(target, CID_SHAPE)) goal.shape = (SHAPE *)target;
                 else goal.object = (LO *)target;
             }
@@ -764,10 +764,10 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171AF8 {
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
-void GetGuardScriptTargetPose(CID113 *script, qword pos, int target, int posOut, int headingOut) __asm__("GetGuardScriptTargetPose");
+void GetGuardScriptTargetPose(CID113 *script, qword pos, LO *target, qword *posOut, float *headingOut) __asm__("GetGuardScriptTargetPose");
 }
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
-extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, int target, int posOut, int headingOut)
+extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, LO *target, qword *posOut, float *headingOut)
 {
     using namespace M_func_00171AF8;
     GetGuardScriptTargetPose(behavior->script, GetLoWorldPos(behavior->owner), target, posOut, headingOut);
@@ -836,13 +836,13 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
 // Also known as: TellGuardCommands (upstream readable / Sly 1 name; TellGuardCommands__FP2LOi).
-void StartGuardScript(void *guard, int script) __asm__("StartGuardScript"); void StartGuardScript(void *guard, int script)
+void StartGuardScript(LO *guard, CID113 *script) __asm__("StartGuardScript"); void StartGuardScript(LO *guard, CID113 *script)
 {
     BHVGUARDRECDATA mode;
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
     if (bhv) {
         func_002333B4(&mode, 0, sizeof(mode));
-        mode.arg.object = (void *)script;
+        mode.arg.object = script;
         mode.kind = 5;
         SetBhvguardMode(bhv, &mode);
     }
