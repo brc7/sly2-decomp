@@ -172,6 +172,7 @@ extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count, co
 }
 #endif
 
+#ifdef SLY2_EE_ASM
 // Transform points and inverse-transpose plane normals.
 static __inline__ qword ReadCPU(const qword*source){qword value;__asm__("lq %0,%1":"=r"(value):"m"(*source));return value;}
 // Transpose the 3x3 matrix input (EE parallel word shuffles) and read the geometry's plane count in the same asm
@@ -239,6 +240,29 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  }
 }
 
+#else
+/* The C side: the points through TransformPointsVu0, then each plane's normal through the transposed inverse of the
+   3x3 part (n' = n inverse^T: component j is the dot of the inverse's row j with n), renormalised, and the plane
+   rebuilt through its anchor point (InitPlaneFromNormalPos), as CloneGeom does for a copy. That microprogram 0x150
+   renormalises and recomputes the distance like CloneGeom's Normalize / InitPlaneFromNormalPos is an assumption
+   (docs/guides/portability.md, VU0 fallbacks), not checked against the microcode. */
+extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
+ if(source->points==dest->points)return;
+ TransformPointsVu0(matrix,source->numPoints,source->points,dest->points);
+ M3 inverse;inverse=InvertMatrix3Cofactor((const M3*)matrix);
+ VuLanes r0=VuGet(inverse.r[0]),r1=VuGet(inverse.r[1]),r2=VuGet(inverse.r[2]);
+ for(int i=0;i<source->numSurfaces;i++){
+  const PLANE*input=&source->surfaces[i];
+  PLANE*output=&dest->surfaces[i];
+  VuLanes n=VuGet(input->normal);
+  float x=(r0.x*n.x+r0.y*n.y)+r0.z*n.z;
+  float y=(r1.x*n.x+r1.y*n.y)+r1.z*n.z;
+  float z=(r2.x*n.x+r2.y*n.y)+r2.z*n.z;
+  float scale=1.0f/VuSqrt((x*x+y*y)+z*z);
+  InitPlaneFromNormalPos(output,VuMake<qword>(x*scale,y*scale,z*scale,0.0f),dest->points[input->pointIndex]);
+ }
+}
+#endif
 
 // Collect unique edges incident to a geometry point.
 // Fills out[] with up to max distinct edges that touch point index of the geometry, found by querying the
