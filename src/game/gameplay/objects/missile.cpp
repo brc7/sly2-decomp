@@ -382,7 +382,7 @@ static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r
 // Lane z as a float; the missile's velocity (vtable slot 33).
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
 // The missile's velocity (virtual slot 33).
-static inline qword Velocity(CID82*missile){VTE*vt=PVT(missile);return ((qword(*)(void*))vt[33].pfn)((char*)missile+vt[33].d);}
+static inline qword Velocity(CID82*missile){return missile->GetVelocity();}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of
 // PresetSplmissAccel).
 static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*destination){
@@ -427,9 +427,14 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  __asm__("lq %2,%5\n\tpor %1,$zero,%6\n\tlq %3,%7\n\tpor %0,$zero,%8\n\tli.s %4,%9":"=r"(startPosition),"=&r"(startVelocity),"=&r"(endPosition),"=&r"(endVelocity),"=f"(tension):"m"(w.destination),"r"(velocity),"m"(w.output),"r"(position),"F"(1.0f));
  EvaluateBezierPos(remaining,frameDt,tension,startPosition,startVelocity,endPosition,endVelocity,0,&w.integrated.q,0);
  w.copy=w.integrated;
+#if defined(SLY2_EE_LAYOUT)
+ /* GetVelocity (slot 33) by hand: the virtual call loads the adjustment first (2 of 151 off) */
  VTE*table=PVT(missile);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
  qword current=method((char*)missile+displacement);
+#else
+ qword current=missile->GetVelocity();
+#endif
  register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
  __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(missile),"r"(current),"m"(clock->deltaTime));
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");

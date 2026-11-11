@@ -819,6 +819,8 @@ extern "C" void PresetBentleyAccel(BENTLEY *bentley)
     case BENTLEY_PIPE: PresetJtAccelPipe(&bentley->jtpipe); break;
     case BENTLEY_GADGET:
         if (bentley->subState == 2) {
+#if defined(SLY2_EE_LAYOUT)
+            /* GetVelocity (slot 33) by hand, its entry read before the scale is built */
             register VTE *vt __asm__("$3") = ((VOBJ *)bentley)->pvt;
             U a, u;
             qword v, r, q;
@@ -830,6 +832,14 @@ extern "C" void PresetBentleyAccel(BENTLEY *bentley)
             v = function((char *)bentley + d);
             __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "0"(u.q), "j"(v));
             AddSoAcceleration(bentley, r);
+#else
+            /* drag: the acceleration is -D_002BC990 times the velocity */
+            QWROW drag;
+            drag.q = bentley->GetVelocity();
+            for (int i = 0; i < 4; i++)
+                drag.f[i] *= -D_002BC990;
+            AddSoAcceleration(bentley, drag.q);
+#endif
         }
         break;
     }
