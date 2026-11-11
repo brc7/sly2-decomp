@@ -43,7 +43,7 @@ void *AllocClearedFromWorldHeap(AREQV *preq);
 void *AllocCopyFromWorldHeap(AREQV *preq, void *pv);
 void *AllocFromStack(const AREQV &req);
 AC *PacNewKind(int id);
-AC *PacNewKind2(int id);
+ACG *PacNewKind2(int id);
 void InitLo(ASEG *segment);
 void PostLoLoad(ASEG *segment);
 void PostSwCallback(SW *psw, ASEG *segment, long pmf, ASEGSTART *pasegstart);
@@ -72,7 +72,7 @@ void LoadAsegFromBrx(ASEG *segment, CBinaryInputStream *stream);
 EA *FindAsegLabel(ASEG *segment, int n);
 void ApplyAsegCore(ASEG *segment, ALO *palo, int applyFlags, float t, float svt, ASEGA **playerSlot);   /* ApplyAseg */
 void ResolveAsegChannelTarget(ASEG *segment, ALO *palo, CHN *pchn, LO **pplo, void **ppv);
-void ResolveAsegOverrideTarget(ASEG *segment, ALO *palo, OVR *povr, LO **pplo, int *pn);
+void ResolveAsegOverrideTarget(ASEG *segment, ALO *palo, OVR *povr, LO **pplo, float **ppgField);
 }
 void InitDl(DL *pdl, int ibDle);                                                /* InitDl__FP2DLi */
 void AppendDlEntry(DL *pdl, void *pv);                                          /* AppendDlEntry__FP2DLPv */
@@ -117,7 +117,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
    int id = S8Read__18CBinaryInputStream(stream);
    if (id != -1) { pe->pac = PacNewKind(id); pe->pac->LoadFromBrx(stream); pe->u.isScalar = 0; }
    id = S8Read__18CBinaryInputStream(stream);
-   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->LoadFromBrx(stream); pe->u.isScalar = 1; }
+   if (id != -1) { pe->pac = (AC *)PacNewKind2(id); pe->pac->LoadFromBrx(stream); pe->u.isScalar = 1; }
    pe->u.isStripped = U8Read__18CBinaryInputStream(stream) != 0;
  }
  px->covr = U8Read__18CBinaryInputStream(stream);
@@ -281,12 +281,12 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     for (j = 0; j < pt->covr; j++) {
         OVR *pe = &pt->aovr[j];
         LO *a;
-        int b;
+        float *b;
         ResolveAsegOverrideTarget(pt, x, pe, &a, &b);
         if (b) {
             OVRA *pn = (OVRA *)AllocOvra(0x14);
             pn->pac = pe->pac;
-            pn->targetIndex = b;
+            pn->animatedField = b;
             pn->plo = a;
             pn->slot = pe->slot;
             pn->povraNext = p->povraFirst;
@@ -361,12 +361,13 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, int xfk, int fCheck)
 }
 
 // Resolves the object an override (OVR) refers to, relative to the root or in the world. (inferred)
-// Also stores a second result through its last argument (0 when not found).
-void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
+// Also stores the object's animated field for the override's slot (its slot 43) through the last argument (0 when
+// not found).
+void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, float **pn) {
     if (q) *ppo = FindSwObject(&g_sw, 1, (OID)pa->oid, q);
     else *ppo = FindSwObject(&g_sw, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
-    else { LO *po = *ppo; *pn = (int)po->GetAnimatedField(pa->slot); }
+    else { LO *po = *ppo; *pn = (float *)po->GetAnimatedField(pa->slot); }
 }
 
 // (Claude agent, laneB10) memsets through an inline ClearM4 helper keep &m2/&mB out of gcse; pe at function scope.

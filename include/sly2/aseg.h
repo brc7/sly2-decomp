@@ -49,8 +49,9 @@ struct ASEGSTART
 
 /* The records an ASEG owns and an ASEGA builds (engine/anim/aseg.cpp's LoadAsegFromBrx / ApplyAsegCore and asega.cpp
    read them; until types/views the per-file copies lived in aseg.cpp, asega.cpp and the Lilly ports). AC is the
-   animation-curve class of sly2/act.h. */
+   animation-curve class of sly2/act.h, ACG its float curve. */
 struct AC;
+struct ACG;
 
 /* CHN: ASEG::achn entry: the target object (OID, 20 bits), the sub-object index of the animated XF (10 bits), two
    flags (bit 30 isStripped: skipped by the stand-alone evaluation, PredictAsegTransform; bit 31 isScalar: the curve
@@ -73,15 +74,15 @@ struct OVR
 {
     int slot;
     OID oid;
-    AC *pac;   /* the float curve (PacNewKind2) */
+    ACG *pac;   /* the float curve (PacNewKind2) */
 };
 typedef char assert_OVR_size[sizeof(OVR) == 0xC ? 1 : -1];   /* LoadAsegFromBrx allocates covr * 12 */
 
 /* OVRA: an override being applied (ASEGA::povraFirst list; AllocOvra(0x14), ApplyAsegCore). */
 struct OVRA
 {
-    AC *pac;   /* the OVR's curve */
-    int targetIndex;   /* what the target's slot 43 resolved the override to */
+    ACG *pac;   /* the OVR's float curve */
+    float *animatedField;   /* the field the target's slot 43 (LO::GetAnimatedField) returned for the OVR's slot */
     LO *plo;   /* the target object */
     int slot;   /* the OVR's slot */
     OVRA *povraNext;   /* next override of the same ASEGA */

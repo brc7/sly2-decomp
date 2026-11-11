@@ -2495,8 +2495,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 
 /* The ASEGA's ACTSEG/OVRA lists (aseg.h, act.h); the acts' objects and transforms as LO/XF, the
-   override curves through their vtable (slot 2). */
-#define CURVE_VT(pac) (*(VTE **)(pac))
+   override curves as ACG (Evaluate, slot 2). */
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 int IsAsegaRetracted(ASEGA *) __asm__("IsAsegaRetracted");
 int IsActCurrent(ACT *) __asm__("IsActCurrent");
@@ -2572,7 +2571,7 @@ extern "C" void EvaluateXfSlotValue(ASEGA *a, int flag)
     {
         OVRA *e;
         for (e = a->povraFirst; e; e = e->povraNext)
-            ((void (*)(void *, int, int, float, float))CURVE_VT(e->pac)[2].pfn)((char *)e->pac + CURVE_VT(e->pac)[2].d, e->targetIndex, 0, a->time, a->speed);
+            e->pac->Evaluate(e->animatedField, 0, a->time, a->speed);
     }
 }
 } // namespace M_func_00230CF0

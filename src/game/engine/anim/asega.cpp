@@ -163,7 +163,7 @@ extern "C" void UpdateAsega(ASEGA *player)
         if (f && !(player->grfapl & 0x38))
             RetractAsega(player);
         for (pl = player->povraFirst; pl; pl = pl->povraNext)
-            ((void (*)(void *, int, int, float, float))(*(VTE **)pl->pac)[2].pfn)((char *)pl->pac + (*(VTE **)pl->pac)[2].d, pl->targetIndex, 0, player->time, player->speed);
+            pl->pac->Evaluate(pl->animatedField, 0, player->time, player->speed);
         End(&g);
     }
 }
