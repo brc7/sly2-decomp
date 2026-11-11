@@ -5583,7 +5583,7 @@ struct O : PO { char pad[0x198 - 0x180]; float moveSpeed; char pad2[0x14]; char 
 struct L { float a, b, c; };
 void UpdateBhv(BHVPIPE *p) __asm__("UpdateBhv");
 int HasBhvpipeArrived(BHVPIPE *p) __asm__("HasBhvpipeArrived");
-float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, int n) __asm__("SmoothValue__FfffP3SMPPf");
+float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, float *n) __asm__("SmoothValue__FfffP3SMPPf");
 float WrapShapeDistance(int n, float g) __asm__("WrapShapeDistance");
 void GetPipeGoalMatrix(int a, float g, int b, void *pv) __asm__("GetPipeGoalMatrix");
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps

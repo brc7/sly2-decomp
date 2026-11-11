@@ -1546,7 +1546,7 @@ extern "C" int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136D28 {
 typedef int ti128 __attribute__((mode(TI)));
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(BENTLEY *, int, int, JTAIRBL *, int, int, int, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(BENTLEY *, int, int, JTAIRBL *, int, int *, int *, ASEGBL **) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 // Initializes the six blended animation slots of the crosshair/aim helper (+0x1710).
 // Also known as: InitBentleySub (upstream readable / Sly 1 name; InitBentleySub__FP10BENTLEYSUBP3ALOG9VU_VECTORff).
 extern "C" void InitBentleyCrosshair(BTBLENDS *bentley, BENTLEY *a, ti128 v, float g0, float g1) {

@@ -312,7 +312,7 @@ extern ACT *NewPositionAct(void *p, XF *pxf, int b, int c, int d, qword q) __asm
 extern void RemoveXfAct(void *p, XF *pxf, ACT *pact) __asm__("RemoveXfAct");
 extern void AttachStepplayerToStartMarker(void *p, int a) __asm__("AttachStepplayerToStartMarker");
 extern void CacheJtRestPose(void *p) __asm__("CacheJtRestPose");
-extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
+extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int *e, int *f, void *g) __asm__("EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL");
 extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b) __asm__("InitJtHands__FP7JTHANDSP2SOPP5ASEGA");
 extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b) __asm__("SetJtState__FP2JT3JTS4JTBS");
 extern void SetLoBusyKind(void *p, int a) __asm__("SetLoBusyKind");

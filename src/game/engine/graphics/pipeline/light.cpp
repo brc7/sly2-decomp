@@ -39,7 +39,7 @@ extern VIFS D_002DEA28;
 BLOCK D_002BFC60 = {{{0, 0, 0x3F000000, 0, 0, 0, 0, 0, 0, 0, 0, 0}}};   /* word 2 = 0.5f */
 float D_002BFC90 = 1000.0f, D_002BFC94 = 2.5f;
 
-LIGHT *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+LIGHT *CreateLo__F3CIDP2SO3OIDi(int a, SO *b, int c, int d);
 void BuildOrthonormalMatrixZ(M3R *pm, qword v, qword w);     /* the hidden result pointer passed by hand */
 void InitXfm(LIGHT *p);
 void SetLoBusyKind(LIGHT *p, int n);

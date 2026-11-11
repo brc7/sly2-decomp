@@ -60,7 +60,7 @@ void SolveIk(JT*,int);
 qword GetJtHangHandlePosition(JT*);
 void SetActPositionGoal(void*,qword);
 qword PosSmooth(qword,qword,float,float*,int);
-int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int d, int e, ASEGBL **pn);
+int EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *q, int c, int *d, int *e, ASEGBL **pn);
 extern U D_002A2D00[3];
 extern U g_normalZ,D_002A2DA0,D_002A2DB0,D_002A2DD0;
 extern LM g_lmZeroOne;

@@ -45,7 +45,7 @@ void FramePtr_Assign(CRefPtr<CFrame> *, void *) __asm__("__as__t7CRefPtr1Z6CFram
 void AssignSidebagRef(void *pointer, int value);
 void UnsubscribeLoAll(CID147 *noise);
 int IsWithinLimits__FP2LMf(void *object, float z);
-CID117 *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d);
+CID117 *CreateLo__F3CIDP2SO3OIDi(int a, SO *b, int c, int d);
 void InitXfm(CID47 *object);
 void SetLoBusyKind(CID47 *object, int value);
 void AddLoHierarchy(CID47 *object);

@@ -1541,7 +1541,7 @@ void UpdateMusicMix(SNDMGR *) __asm__("UpdateMusicMix");
 void UpdateSoundManagerStub(SNDMGR *) __asm__("UpdateSoundManagerStub");
 void UpdateDialog(SNDMGR *) __asm__("UpdateDialog");
 int ShouldFadeWhenTimeStops(SNDMGR *) __asm__("ShouldFadeWhenTimeStops");
-float SmoothValue__FfffP3SMPPf(float, float, float, struct K *, int) __asm__("SmoothValue__FfffP3SMPPf");
+float SmoothValue__FfffP3SMPPf(float, float, float, struct K *, float *) __asm__("SmoothValue__FfffP3SMPPf");
 void SetSndmgrChannelVolume(SNDMGR *, int, float, int) __asm__("SetSndmgrChannelVolume");   /* (manager, channel, volume, category): the float travels in $f12 */
 void UpdateSnd(CID151 *) __asm__("UpdateSnd");
 int snd_FlushSoundCommands(void) __asm__("snd_FlushSoundCommands");

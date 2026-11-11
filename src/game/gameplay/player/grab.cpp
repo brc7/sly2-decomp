@@ -65,7 +65,7 @@ void SetTnTnsOverride(TN *ptn, int n);
 void ResetJtGrabTnParams(JTGRAB *pjtgrab);
 void InitDirectionalBlend(STEPPLAYER *pstepplayer, BLDIR *abldir, ASEGBL **ppasegbl);
 void PostJtLoadGait(GAIT *pgait);
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *pstepplayer, int n1, int n2, void *abl, int n4, int n5, int n6, ASEGBL **ppasegbl);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *pstepplayer, int n1, int n2, void *abl, int n4, int *n5, int *n6, ASEGBL **ppasegbl);
 void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(JTHANDS *phands, STEPPLAYER *pstepplayer, ASEGA **ppasega);
 }
 

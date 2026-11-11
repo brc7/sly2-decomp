@@ -1247,7 +1247,7 @@ extern "C" void LoadZoneBspFromBrx(REGTREE *bsp, int count, void *stream)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PostLoadSwPathzones {
-void *CreateLo__F3CIDP2SO3OIDi(int a, int b, int c, int d) __asm__("CreateLo__F3CIDP2SO3OIDi");
+void *CreateLo__F3CIDP2SO3OIDi(int a, SO *b, int c, int d) __asm__("CreateLo__F3CIDP2SO3OIDi");
 void InitDefaultPathzoneCg(void *p) __asm__("InitDefaultPathzoneCg");
 void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
 void BindSwPathzones(void *p) __asm__("BindSwPathzones");

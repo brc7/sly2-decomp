@@ -889,7 +889,7 @@ extern struct S_lmZeroOne { float lo, hi; } g_lmZeroOne __asm__("g_lmZeroOne");
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void GetSoCameraDefaults(struct JT *, struct XP *) __asm__("GetSoCameraDefaults");
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
-float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n) __asm__("SmoothValue__FfffP3SMPPf");
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *n) __asm__("SmoothValue__FfffP3SMPPf");
 qword PosSmooth(qword a, qword b, float dt, void *pv, int n) __asm__("PosSmooth");
 void AddJtAirCpdefiFlags(void *, struct XP *) __asm__("AddJtAirCpdefiFlags");
 void SmoothJtCameraCurveTarget(void *, struct XP *) __asm__("SmoothJtCameraCurveTarget");
@@ -1400,7 +1400,7 @@ extern JT *D_002E1E40 __asm__("D_002E1E40");
 extern float D_002BD268 __asm__("D_002BD268"), D_002BD26C __asm__("D_002BD26C");
 extern char D_002BD270[] __asm__("D_002BD270");
 void RefreshSoBoundsRecord(STEPPLAYER *p) __asm__("RefreshSoBoundsRecord");
-float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n) __asm__("SmoothValue__FfffP3SMPPf");
+float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *n) __asm__("SmoothValue__FfffP3SMPPf");
 void RenderSoGlobset(GLOBSET *p, int n, struct SOBOUNDS *m, float a, float b) __asm__("RenderSoGlobset");
 // Slot 19: renders when visible to the current camera; smooths the transparency.
 // Also known as: DrawActor (upstream readable / Sly 1 name; DrawActor__FP5ACTOR).

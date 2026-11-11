@@ -36,7 +36,7 @@ extern "C"{
 extern U D_002A2DD0,g_normalZ;SMPV D_002BF928={1500.0f,0.0f,0.5f};extern STEPPLAYER*D_002E1E40;
 extern int g_grfjoyt;
 CHN *FindAsegChannel(ASEG *o, STEPPLAYER *a, int b, int c);
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int c, void *d, int e, int f, int g, void *h);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int c, void *d, int e, int *f, int *g, void *h);
 void GetPipeGoalMatrix(PATH *a, float g, int b, M3 *pm);
 M3 *GetLoWorldMatrix(STEPPLAYER *o);
 void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);

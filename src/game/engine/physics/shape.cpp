@@ -1899,7 +1899,7 @@ extern "C" void SetChainEndObject(SHAPECHAIN *chain, int end, LO *object)
 
 namespace M_func_001E94B0 {
 struct AR { int cb; int cbAlign; };
-SHAPE *CreateLo__F3CIDP2SO3OIDi(int k, int n, void *pv, int m) __asm__("CreateLo__F3CIDP2SO3OIDi");
+SHAPE *CreateLo__F3CIDP2SO3OIDi(int k, SO *n, void *pv, int m) __asm__("CreateLo__F3CIDP2SO3OIDi");
 void func_002333B4(void *p, int b, int cb) __asm__("memset");
 void *AllocFromWorldHeap(struct AR *par) __asm__("AllocFromWorldHeap");
 // Creates a SHAPE (CID 10) with c samples (parameters 0..c-1) and empty distance/point arrays.

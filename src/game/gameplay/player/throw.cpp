@@ -50,7 +50,7 @@ namespace THROW_DATA { float r_D_002C40F0[4] __asm__("D_002C40F0") __attribute__
 float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limits per second
 extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int c, void *d, int e, int f, int g, void *h);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int c, void *d, int e, int *f, int *g, void *h);
 qword GetLoWorldPos(void *);
 int IsPowerupAcquired(int);
 qword SetVectorCylind(float,float,float);
