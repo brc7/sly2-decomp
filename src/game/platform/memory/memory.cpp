@@ -55,13 +55,24 @@ extern "C" int GetFreeMemorySize()
     return s_pvStackMin - s_pvWorldMac;
 }
 
+/* The arena the two heaps share. On the EE: from the end of the program image (the SW heap grows up from it) to the
+   top of the 32 MB of RAM (the stack heap grows down from it). A port defines both first, e.g. as the bounds of a
+   static buffer: SLY2_HEAP_BEGIN the lowest address (any alignment; StartupMemMgr rounds it down to 16 bytes, so
+   leave 15 bytes of slack), SLY2_HEAP_END one past the highest. */
+#ifndef SLY2_HEAP_BEGIN
+#define SLY2_HEAP_BEGIN ((sptr)&D_0047220F)
+#endif
+#ifndef SLY2_HEAP_END
+#define SLY2_HEAP_END 0x02000000
+#endif
+
 // Boot step: the SW heap starts at the 16-aligned end of the program image, the stack heap at 32 MB (the top of
 // EE RAM) with no marks pushed; initialises the critical section the stack scopes use.
 void StartupMemMgr()
 {
-    uptr end = (sptr)&D_0047220F & ~0x0f;
+    uptr end = SLY2_HEAP_BEGIN & ~0x0f;
     s_pvWorldMin = s_pvWorldMac = end;
-    s_pvStackMin = s_pvStackMac = 0x02000000;
+    s_pvStackMin = s_pvStackMac = SLY2_HEAP_END;
     s_ipvStackCur = -1;
     InitCritSect(&s_critsectStack);
 }

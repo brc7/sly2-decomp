@@ -10,7 +10,11 @@
 #define SLY2_BASIC_H
 #include "common.h"
 #include "sly2/clock.h"
+/* SLY2_OFFSETOF(T, f): a member's byte offset as an int constant (the EE spelling; a port whose compiler rejects the
+   pointer-to-int cast defines it first, e.g. as ((int)__builtin_offsetof(T, f))). */
+#ifndef SLY2_OFFSETOF
 #define SLY2_OFFSETOF(T, f) ((int)(char *)&(((T *)0)->f))
+#endif
 typedef unsigned char    uint8_t;
 typedef unsigned short   uint16_t;
 typedef unsigned int     uint32_t;
