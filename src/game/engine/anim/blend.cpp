@@ -206,7 +206,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pobj->restValue = GetXfValueFromMatrix(pv, pv);
             pobj->px = pxNew;
             pobj->syncTables = pxNew->syncTables;
-            pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
+            pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * (int)sizeof(OBJ *)));
             pentNew->pobj = pobj;
             } else pobj = pentNew->pobj;
                 } else {
@@ -214,7 +214,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pobj = PacNewKind2(2);
             pobj->px = pxNew;
             pobj->syncTables = pxNew->syncTables;
-            pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
+            pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * (int)sizeof(OBJ *)));
             pentNew->pobj = pobj;
             *(unsigned *)pentNew |= rotationCurveBit;
             } else pobj = pentNew->pobj;

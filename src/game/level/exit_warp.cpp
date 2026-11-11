@@ -185,7 +185,7 @@ extern "C" void LoadExitFromBrx(EXIT *exitVolume, CBinaryInputStream *stream)
     LoadWarpBlobFromBrx(stream, &exitVolume->targetWorld);
     c = stream->U8Read();
     memreq.cbAlign = 0x10;
-    memreq.cb = c * 4;
+    memreq.cb = c * (int)sizeof(void *);
     exitVolume->movieCount = c;
     exitVolume->movies = (void **)AllocFromWorldHeap(&memreq);
     for (; i < exitVolume->movieCount; i++)

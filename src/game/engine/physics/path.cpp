@@ -501,7 +501,7 @@ extern "C" void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
     STACKSCOPE_ctor(&c);
     n = *count;
     end = points + n;
-    tmp = (__typeof__(tmp))PvAllocReq(&req, n * 4, 0x10);
+    tmp = (__typeof__(tmp))PvAllocReq(&req, n * (int)sizeof(qword *), 0x10);
     tmp[0] = points[0];
     k = 1;
     prev = points;
@@ -520,7 +520,7 @@ extern "C" void SimplifyPathByLineOfSight(void *ctx, int *count, qword **points)
     tmp[k] = points[n - 1];
     k++;
     if (k < n && k >= 3) SimplifyPathByLineOfSight(ctx, &k, tmp);
-    CopyAb__FPvT0Ui(points, tmp, k * 4);
+    CopyAb__FPvT0Ui(points, tmp, k * (int)sizeof(qword *));
     *count = k;
     STACKSCOPE_ctor_1AE4A0(&c, 2);
 }

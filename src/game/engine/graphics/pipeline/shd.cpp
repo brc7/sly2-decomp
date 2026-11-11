@@ -426,14 +426,14 @@ extern "C" void LoadTexFromBrx(void *pbis, TEX *ptex)
     int i;
     Read__18CBinaryInputStreamiPv(pbis, 8, ptex);
     if (ptex->cbmp) {
-        ar.cb = ptex->cbmp * 4;
+        ar.cb = ptex->cbmp * (int)sizeof(BMP *);
         ar.cbAlign = 0x10;
         ptex->apbmp = (BMP **)AllocFromWorldHeap(&ar);
         for (i = 0; i < ptex->cbmp; i++)
             ptex->apbmp[i] = &D_003DCFF4[U16Read__18CBinaryInputStream(pbis)];
     }
     if (ptex->cclut) {
-        ar.cb = ptex->cclut * 4;
+        ar.cb = ptex->cclut * (int)sizeof(CLUT *);
         ar.cbAlign = 0x10;
         ptex->apclut = (CLUT **)AllocFromWorldHeap(&ar);
         for (i = 0; i < ptex->cclut; i++) {

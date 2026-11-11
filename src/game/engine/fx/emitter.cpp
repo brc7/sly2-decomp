@@ -163,7 +163,7 @@ void EMITTER::Init()
     rate.maxValue = 10.0f;
     rate.minValue = 10.0f;
     tUnpause = -1.0f;
-    M_InitEmitter::InitDl__FP2DLi(&groupList, 0x128);
+    M_InitEmitter::InitDl__FP2DLi(&groupList, SLY2_OFFSETOF(EMITTER, groupLink));
     M_InitEmitter::SetLoBusyKind(this, 0);
     flags = unknown40;   /* LO flag word, or (bit 0 clear) a pointer to the shared one */
     if ((flags ^ 1) & 1)
@@ -349,10 +349,10 @@ extern "C" void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
         EMITTER *group = FindSwObject__FP2SWi3OIDP2LO(&g_sw /* g_sw */, 5, pemitter->groupOid, 0);
         if (!group) {
             group = CreateLo__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
-            group->pemitb = (__typeof__(group->pemitb))AllocCopyFromHeap(0x100, pemitter->pemitb);
+            group->pemitb = (__typeof__(group->pemitb))AllocCopyFromHeap(sizeof(EMITB), pemitter->pemitb);
             group->pemitb->cref = 1;
             if (pemitter->pemitb->aploRef[EMITREF_Reference]) {
-                group->pemitb->aploRef = (LO **)AllocCopyFromHeap(0x14, pemitter->pemitb->aploRef);
+                group->pemitb->aploRef = (LO **)AllocCopyFromHeap(5 * sizeof(LO *), pemitter->pemitb->aploRef);
                 group->pemitb->emito.originOid = -1;
                 group->pemitb->aploRef[EMITREF_Reference] = 0;
             }
@@ -1719,7 +1719,7 @@ extern "C" void LoadExplgFromBrx(EXPLG *p, void *q)
     STACKSCOPE_ctor(&ctx);
     CLoadCollectorArray_ctor(&da);
     LoadXfmChildObjectsFromBrx(p, q, &da);
-    p->children = (__typeof__(p->children))PvAllocMsg(&msg, da.c * 4, 0x10);
+    p->children = (__typeof__(p->children))PvAllocMsg(&msg, da.c * (int)sizeof(LO *), 0x10);
     for (i = 0; i < da.c; i++) {
         LO *o = da.a[i];
         o->unknownFlag28A = 1;

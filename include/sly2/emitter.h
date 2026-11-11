@@ -343,9 +343,9 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descript
    instances (LoadFromBrx, Clone, PostLoad, and the second vtable's GetClassInfo). ---- */
 
 /* the class descriptor of each (rows 29 and 32), for GetEmitterClassDesc_linkonce */
-inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x244); }
+inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 29 * sizeof(CLASSDESC)); }
 // EXPLO's descriptor (row 32).
-inline CLASSINFO *PclassinfoEmitb(EXPLO *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x280); }
+inline CLASSINFO *PclassinfoEmitb(EXPLO *) { return (CLASSINFO *)(base_D_002BAAE8 + 32 * sizeof(CLASSDESC)); }
 /* the empty reference block of each, for ResolveEmitterRefs */
 inline void *PvEmitbRefsNull(EMITTER *) { return EMITBREFS<EMITTER>::s_apvNull; }
 // EXPLO's empty reference block.
@@ -361,7 +361,7 @@ template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)
         {
             SWALLOC req;
             p->pemitb->cref--;
-            req.cb = 0x100;
+            req.cb = sizeof(EMITB);
             req.cbAlign = 0x10;
             p->pemitb = (EMITB *)PvAllocLevelHeapCopy(&req, p->pemitb);
             p->pemitb->cref = ensk;
@@ -436,7 +436,7 @@ template <class T> void ResolveEmitterRefs(T *p)
         if (pemitb0->emito.originKind == 2)
             oid2 = pemitb0->emito.oidCurve;
     }
-    EmitbMemset(aplo, 0, 0x14);
+    EmitbMemset(aplo, 0, sizeof(aplo));
     if (oid1 != -1)
         aplo[0] = PloFindSwObjectE(&g_sw, 4, (OID)oid1, p);
     if (oid2 != -1)
@@ -468,11 +468,11 @@ template <class T> void ResolveEmitterRefs(T *p)
     }
     if (p->pemitb->aploRef == 0)
         p->pemitb->aploRef = (LO **)PvEmitbRefsNull(p);
-    if (EmitbMemcmp(p->pemitb->aploRef, aplo, 0x14))
+    if (EmitbMemcmp(p->pemitb->aploRef, aplo, sizeof(aplo)))
     {
         PemitbEnsure(p, ENSK_Set);
         preq = &req;
-        req.cb = 0x14;
+        req.cb = sizeof(aplo);
         preq->cbAlign = 0x10;
         p->pemitb->aploRef = (LO **)PvAllocLevelHeapCopy(preq, aplo);
     }

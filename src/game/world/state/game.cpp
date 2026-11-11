@@ -251,7 +251,7 @@ extern "C" int GetEpisodePercentComplete()
     STACKSCOPE fr;
     ALLOCREQ req;
     SW *pg = &g_sw;
-    TASK **tasks = (TASK **)PvAllocReq(&req, pg->ctask * 4, 0x10);
+    TASK **tasks = (TASK **)PvAllocReq(&req, pg->ctask * (int)sizeof(TASK *), 0x10);
     int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->ctask, (void **)tasks);
     for (int i = 0; i < numFound; i++) {
         TASK *task = tasks[i];
@@ -1376,12 +1376,12 @@ extern "C" void LoadTaskFromBrx(TASK *task, CBinaryInputStream *stream)
     task->avis = (STATEVIS *)PvShrinkReq(&req, task->cvis * 16, 0x10, task->avis);
     task->arsmg = (STATERSMG *)PvShrinkReq(&req, task->crsmg * 0x18, 0x10, task->arsmg);
     task->numPrerequisites = stream->U8Read();
-    task->prerequisites = (TASK **)PvAllocA(&req, task->numPrerequisites * 4, 0x10);
+    task->prerequisites = (TASK **)PvAllocA(&req, task->numPrerequisites * (int)sizeof(TASK *), 0x10);
     task->aoidPrereq = (int *)PvAllocB(&req, task->numPrerequisites * 4, 0x10);
     for (; i < task->numPrerequisites; i++)
         task->aoidPrereq[i] = stream->S32Read();
     task->numSuccessors = stream->U8Read();
-    task->successors = (TASK **)PvAllocA(&req, task->numSuccessors * 4, 0x10);
+    task->successors = (TASK **)PvAllocA(&req, task->numSuccessors * (int)sizeof(TASK *), 0x10);
     task->aoidSucc = (int *)PvAllocB(&req, task->numSuccessors * 4, 0x10);
     for (int j = 0; j < task->numSuccessors; j++)
         task->aoidSucc[j] = stream->S32Read();
@@ -2067,7 +2067,7 @@ extern "C" void SetTaskStateCascade(TASK *task, int state)
         STACKSCOPE scope;
         TASK **collected;
         int count = 0;
-        collected = (TASK **)Allocate(g_sw.ctask * 4);
+        collected = (TASK **)Allocate(g_sw.ctask * (int)sizeof(TASK *));
         task->nStatePending = state;
         CollectTaskCascade(task, cascadeState, &count, collected);
         for (; i < count; i++) {
@@ -2425,11 +2425,11 @@ extern "C" void SortTasksTopologically(int *count, void **order)
     ALLOCREQ req;
     SW *pg = &g_sw;
     *count = 0;
-    req.cb = pg->ctask * 4;
+    req.cb = pg->ctask * (int)sizeof(TASK *);
     req.nKind = 0x10;
     *order = AllocClearedFromStack(&req);
     STACKSCOPE fr;
-    req.cb = pg->ctask * 4;
+    req.cb = pg->ctask * (int)sizeof(TASK *);
     req.nKind = 0x10;
     TASK **tasks = (TASK **)AllocClearedFromStack(&req);
     int numFound = FindSwObjectsByClass(pg, 5, 0x85, 0, pg->ctask, (void **)tasks);
