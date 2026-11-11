@@ -15,14 +15,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef int qwordV __attribute__((mode(TI)));
 typedef struct { qwordV r[4]; } MATRIX4V;
 
-/* A bone frame (XF view: local matrix, world position at +0x70, parent at +0xA0) and the parent's world matrix. */
-struct A { MATRIX4V m; char pad[0x30]; qwordV worldPos; char pad2[0x20]; void *parent; };
-struct B { char pad[0x40]; MATRIX4V m; };
-/* The IK record is sly2/act.h's IKREC; this TU reads its bones through the A/B frame views and its matrices as qword
-   rows (the hand-scheduled VU asm moves them that way). */
-#define IKBONE(pxf) ((A *)(pxf))
+/* The IK record is sly2/act.h's IKREC; this TU reads its bones as XF (local matrix rows, the world position in
+   worldMatq row 3, the parent) and its matrices as qword rows (the hand-scheduled VU asm moves them that way). */
 #define IKROWS(mat) (*(MATRIX4V *)&(mat))
-#define XF_REF(pxf) (*(IKREC **)((char *)(pxf) + 0xA8))   /* XF +0xA8 holds the record in an IK bone */
+#define XF_REF(pxf) ((pxf)->pikrec)   /* XF +0xA8 holds the record in an IK bone */
 
 extern "C" {
 void CloneAct(ACT *pact, ACT *pactSrc, ALO *palo, XF *pxf);
@@ -101,13 +97,13 @@ extern "C" void UpdateSoIkBoneLengths(SO*so){
  if(!so->hasIkLimbs)return;
  for(int i=0;i<so->numTransforms;i++)for(ACT*node=Entry(so,i);node;node=node->pactNext)if(node->ack==7){
   register IKREC*ikRecord asm("$4")=((ACT7*)node)->pikrec;
-  register B*parent asm("$3")=(B*)ikRecord->pxfEnd;register A*rightOwner asm("$6")=IKBONE(ikRecord->pxfLower);register const MATRIX4V*rows asm("$2")=&parent->m;
+  register XF *parent asm("$3")=ikRecord->pxfEnd;register XF *rightOwner asm("$6")=ikRecord->pxfLower;register const MATRIX4V*rows asm("$2")=(const MATRIX4V *)&parent->worldMatq;
   register qwordV transformed asm("vf2"),right asm("vf1");
-  asm volatile("lqc2 %0,%2\n\tlqc2 $vf4,0x20(%3)\n\tlqc2 $vf6,0x30(%3)\n\tlqc2 $vf5,0x10(%3)\n\tlqc2 $vf3,%5\n\tlqc2 %1,%6\n\tvmulax.xyz ACC,%0,$vf3x\n\tvmadday.xyz ACC,$vf5,$vf3y\n\tvmaddaz.xyz ACC,$vf4,$vf3z\n\tvmaddw.xyz %0,$vf6,$vf0w":"=j"(transformed),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(ikRecord->posWrist),"m"(rightOwner->worldPos):"vf3","vf4","vf5","vf6");
-  register A*leftOwner asm("$5")=IKBONE(ikRecord->pxfUpper);
+  asm volatile("lqc2 %0,%2\n\tlqc2 $vf4,0x20(%3)\n\tlqc2 $vf6,0x30(%3)\n\tlqc2 $vf5,0x10(%3)\n\tlqc2 $vf3,%5\n\tlqc2 %1,%6\n\tvmulax.xyz ACC,%0,$vf3x\n\tvmadday.xyz ACC,$vf5,$vf3y\n\tvmaddaz.xyz ACC,$vf4,$vf3z\n\tvmaddw.xyz %0,$vf6,$vf0w":"=j"(transformed),"=j"(right):"m"(parent->worldMatq.r[0].q),"r"(rows),"m"(*rows),"m"(ikRecord->posWrist),"m"(rightOwner->worldMatq.r[3].q):"vf3","vf4","vf5","vf6");
+  register XF *leftOwner asm("$5")=ikRecord->pxfUpper;
   register qwordV one asm("vf4"),left asm("vf3");register int bits asm("$2");
   asm volatile("vsub.xyzw %0,%0,%2\n\tvmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(transformed),"=&j"(one):"j"(right));
-  asm("lqc2 %1,%2\n\tvsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(transformed),"=j"(left):"m"(leftOwner->worldPos));
+  asm("lqc2 %1,%2\n\tvsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(transformed),"=j"(left):"m"(leftOwner->worldMatq.r[3].q));
   asm("vsub.xyzw %1,%1,%2\n\tqmfc2.ni %0,%3\n\tvmul.xyz %1,%1,%1\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z":"=r"(bits),"+j"(right),"+j"(left):"j"(transformed));
   *(int*)&ikRecord->lowerLength=bits;
   asm("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,Q\n\tqmfc2.ni %0,%1":"=r"(bits),"+j"(right));
@@ -124,13 +120,13 @@ extern "C" void UpdateSoIkBoneLengths(SO*so){
 extern "C" void InitIkRecord(IKREC*ikRecord){
  register int bits asm("$2");
  qwordV*axis=(qwordV*)&ikRecord->elbowAxis;
- register A*leftOwner asm("$5")=IKBONE(ikRecord->pxfUpper);register A*rightOwner asm("$4")=IKBONE(ikRecord->pxfLower);register B*parent asm("$8")=(B*)ikRecord->pxfEnd;
- {register qwordV first asm("$2")=leftOwner->m.r[0];IKROWS(ikRecord->matUpperBind).r[0]=first;}register const MATRIX4V*rows asm("$7");asm volatile("addiu %0,%1,0x40":"=r"(rows):"r"(parent));register qwordV point asm("vf6");asm volatile("lqc2 %0,%1":"=j"(point):"m"(ikRecord->posWrist));IKROWS(ikRecord->matUpperBind).r[1]=leftOwner->m.r[1];IKROWS(ikRecord->matUpperBind).r[2]=leftOwner->m.r[2];IKROWS(ikRecord->matUpperBind).r[3]=leftOwner->m.r[3];IKROWS(ikRecord->matLowerBind)=rightOwner->m;
+ register XF *leftOwner asm("$5")=ikRecord->pxfUpper;register XF *rightOwner asm("$4")=ikRecord->pxfLower;register XF *parent asm("$8")=ikRecord->pxfEnd;
+ {register qwordV first asm("$2")=leftOwner->localMatq.r[0].q;IKROWS(ikRecord->matUpperBind).r[0]=first;}register const MATRIX4V*rows asm("$7");asm volatile("addiu %0,%1,0x40":"=r"(rows):"r"(parent));register qwordV point asm("vf6");asm volatile("lqc2 %0,%1":"=j"(point):"m"(ikRecord->posWrist));IKROWS(ikRecord->matUpperBind).r[1]=leftOwner->localMatq.r[1].q;IKROWS(ikRecord->matUpperBind).r[2]=leftOwner->localMatq.r[2].q;IKROWS(ikRecord->matUpperBind).r[3]=leftOwner->localMatq.r[3].q;IKROWS(ikRecord->matLowerBind)=*(MATRIX4V *)&rightOwner->localMatq;
  
  register qwordV a asm("vf2"),right asm("vf1");
- asm volatile("lqc2 $vf5,0x30(%3)\n\tlqc2 $vf4,0x10(%3)\n\tlqc2 $vf3,0x20(%3)\n\tlqc2 %0,%2\n\tlqc2 %1,%5\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,$vf4,%6y\n\tvmaddaz.xyz ACC,$vf3,%6z\n\tvmaddw.xyz %0,$vf5,$vf0w\n\tvsub.xyzw %0,%0,%1":"=j"(a),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(rightOwner->worldPos),"j"(point):"vf3","vf4","vf5");
+ asm volatile("lqc2 $vf5,0x30(%3)\n\tlqc2 $vf4,0x10(%3)\n\tlqc2 $vf3,0x20(%3)\n\tlqc2 %0,%2\n\tlqc2 %1,%5\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,$vf4,%6y\n\tvmaddaz.xyz ACC,$vf3,%6z\n\tvmaddw.xyz %0,$vf5,$vf0w\n\tvsub.xyzw %0,%0,%1":"=j"(a),"=j"(right):"m"(parent->worldMatq.r[0].q),"r"(rows),"m"(*rows),"m"(rightOwner->worldMatq.r[3].q),"j"(point):"vf3","vf4","vf5");
  register qwordV left asm("vf4"),first asm("vf3"),one asm("vf5");
- asm("lqc2 %0,%4\n\tvmul.xyz %1,%5,%5\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tvsub.xyzw %3,%3,%0":"=j"(left),"=j"(first),"=&j"(one),"+j"(right):"m"(leftOwner->worldPos),"j"(a));
+ asm("lqc2 %0,%4\n\tvmul.xyz %1,%5,%5\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tvsub.xyzw %3,%3,%0":"=j"(left),"=j"(first),"=&j"(one),"+j"(right):"m"(leftOwner->worldMatq.r[3].q),"j"(a));
  asm("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(first));
  register qwordV one2 asm("vf6");
  asm("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(left),"=&j"(one2):"j"(right));
@@ -139,11 +135,11 @@ extern "C" void InitIkRecord(IKREC*ikRecord){
  register qwordV arg0 asm("$4"),arg1 asm("$5");
  asm("qmfc2.ni %0,%3\n\tqmfc2.ni %1,%4\n\tqmfc2.ni %2,%5":"=r"(arg0),"=r"(bits),"=r"(arg1):"j"(right),"j"(left),"j"(a));
  *(volatile int*)&ikRecord->upperLength=bits;ikRecord->restAngle=AngleBetweenVectors(arg0,arg1,axis);
- ikRecord->elbowAxis=ConvertXfVec(0,IKBONE(ikRecord->pxfLower)->parent,ikRecord->elbowAxis);
+ ikRecord->elbowAxis=ConvertXfVec(0,ikRecord->pxfLower->parent,ikRecord->elbowAxis);
 }
 
 
-/* SolveIk's frames (FRAME) and matrix views; the record is act.h's IKREC (its asm addresses fields by offset). */
+/* SolveIk's matrix views (its frames are XF); the record is act.h's IKREC (its asm addresses fields by offset). */
 union U{qwordV q;float f[4];int i[4];};
 struct M3{
  // 3x3 matrix of U rows with copy constructor.
@@ -152,10 +148,9 @@ struct M3{
  M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return*this;}
 };
 struct M4{U r[4];};
-struct FRAME{M4 local,world;char pad80[0x20];FRAME*parent;int stamp;};
 struct CONTROL{VTE*vt;};
 #define IKSNAP(q) (*(M4 *)&(q)->matUpperBind)
-#define IKCUR(q) ((FRAME *)(q)->pxfUpper)
+#define IKCUR(q) ((q)->pxfUpper)
 /* Every home is written by the native return, matrix-copy or vector phase. */
 struct WORK{U row[23];};
 // Placement new: construct at p.
@@ -164,7 +159,7 @@ extern "C" float acosf(float);
 extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float);
 extern "C" qwordV*VECTOR_opAssign(qwordV*,qwordV);
 // Copy the request's snapshot matrix into the current frame's local matrix (register-pinned); returns 1.0.
-static inline float CopySnapshot(IKREC*q){float high;register FRAME*d __asm__("$4")=IKCUR(q);register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->pxfUpper),"m"(IKSNAP(q).r[0].q):"at");d->local.r[0].q=odd;even=IKSNAP(q).r[1].q;d->local.r[1].q=even;odd=IKSNAP(q).r[2].q;d->local.r[2].q=odd;even=IKSNAP(q).r[3].q;d->local.r[3].q=even;return high;}
+static inline float CopySnapshot(IKREC*q){float high;register XF *d __asm__("$4")=IKCUR(q);register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->pxfUpper),"m"(IKSNAP(q).r[0].q):"at");d->localMatq.r[0].q=odd;even=IKSNAP(q).r[1].q;d->localMatq.r[1].q=even;odd=IKSNAP(q).r[2].q;d->localMatq.r[2].q=odd;even=IKSNAP(q).r[3].q;d->localMatq.r[3].q=even;return high;}
 
 // Two-bone IK solve (the IK action's update): restores the first bone's snapshot, finds the elbow angle from the bone
 // lengths and the distance to the target by the law of cosines (clamped acos), bends the joint about the bend axis,
@@ -185,7 +180,7 @@ extern "C" void SolveIk(void*context,IKREC*request){
  originalBasis=(M3*)&q->matUpperBind;
  float initialAngle=acosf(cosine);
  (void)new(&w.row[0])M3(BuildAxisAngleRotationMatrix(q->elbowAxis,initialAngle-q->restAngle));
- register FRAME*output __asm__("$16");register M3*rest __asm__("$2");
+ register XF *output __asm__("$16");register M3*rest __asm__("$2");
  register qwordV r0 __asm__("vf3"),r1 __asm__("vf5"),r2 __asm__("vf4"),first __asm__("vf2");
  __asm__("lqc2 %0,0x50(%6)\n\taddiu %1,%6,0x50\n\tlqc2 %3,0x10(%7)\n\tlqc2 %2,0(%7)\n\tlqc2 %4,0x20(%7)\n\tlw %5,8(%6)\n\tvmulax.xyz $ACC,%2,%0x\n\tvmadday.xyz $ACC,%3,%0y\n\tvmaddz.xyz %0,%4,%0z\n\tsqc2 %0,0x30(%7)"
   :"=j"(first),"=&r"(rest),"=j"(r0),"=j"(r1),"=j"(r2),"=&r"(output):"r"(q),"p"(&w):"memory");
@@ -201,14 +196,14 @@ extern "C" void SolveIk(void*context,IKREC*request){
  __asm__("lq %0,0x30(%4)\n\taddiu %1,%4,0x30\n\tli.s %2,1.0\n\taddiu %3,%4,0x90"
   :"=&r"(firstRow),"=&r"(axis),"=f"(one),"=r"(alignedReturn):"p"(&w):"at","memory");
  __asm__("sq %3,%2\n\taddiu %0,%4,0xC0\n\tlq %1,0x40(%4)"
-  :"=&r"(twistedReturn),"=r"(secondRow),"=m"(output->local.r[0].q):"r"(firstRow),"p"(&w):"memory");
- output->local.r[1].q=secondRow;register qwordV thirdRow __asm__("$3")=w.row[5].q;output->local.r[3].f[3]=one;output->local.r[2].q=thirdRow;
- __asm__("sw $zero,%0\n\tsw $zero,%1\n\tsw $zero,%2":"=m"(output->local.r[2].i[3]),"=m"(output->local.r[1].i[3]),"=m"(output->local.r[0].i[3]));
- register FRAME*end __asm__("$2"),*cursor __asm__("$3");
+  :"=&r"(twistedReturn),"=r"(secondRow),"=m"(output->localMatq.r[0].q):"r"(firstRow),"p"(&w):"memory");
+ output->localMatq.r[1].q=secondRow;register qwordV thirdRow __asm__("$3")=w.row[5].q;output->localMatq.r[3].f[3]=one;output->localMatq.r[2].q=thirdRow;
+ __asm__("sw $zero,%0\n\tsw $zero,%1\n\tsw $zero,%2":"=m"(output->localMatq.r[2].i[3]),"=m"(output->localMatq.r[1].i[3]),"=m"(output->localMatq.r[0].i[3]));
+ register XF *end __asm__("$2"),*cursor __asm__("$3");
  __asm__("lw %0,4(%2)\n\tlw %1,0xC(%2)\n\tlw %0,0xA0(%0)":"=&r"(end),"=r"(cursor):"r"(q):"memory");
  register qwordV transported __asm__("vf5")=q->posWrist;
  while(cursor!=end){
-  register qwordV row0 __asm__("vf4")=cursor->local.r[0].q;
+  register qwordV row0 __asm__("vf4")=cursor->localMatq.r[0].q;
   __asm__("lqc2 $vf3,0x10(%0)\n\tlqc2 $vf2,0x20(%0)\n\tlqc2 $vf1,0x30(%0)\n\tlw %0,0xA0(%0)\n\tvmulax.xyz $ACC,%2,%1x\n\tvmadday.xyz $ACC,$vf3,%1y\n\tvmaddaz.xyz $ACC,$vf2,%1z\n\tvmaddw.xyz %1,$vf1,$vf0w"
    :"+r"(cursor),"+j"(transported):"j"(row0):"vf1","vf2","vf3","memory");
  }
@@ -238,24 +233,19 @@ extern "C" void SolveIk(void*context,IKREC*request){
  __asm__("qmtc2.ni %3,$vf2\n\tlwc1 %2,%5\n\tvmul.xyz $vf1,$vf2,$vf2\n\tvaddw.x $vf3,$vf0,$vf0w\n\tvadday.x $ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf3,$vf1z\n\tdaddu %0,%4,$zero\n\tvsqrt Q,$vf1x\n\tvwaitq\n\tvaddq.x $vf1,$vf0,Q\n\tvdiv Q,$vf0w,$vf1x\n\tvwaitq\n\tvmulq.xyzw %1,$vf2,Q"
   :"=r"(turnDestination),"=j"(normalizedTurn),"=f"(twist):"r"(convertedTurn),"r"(twistedReturn),"m"(q->twistAngle):"vf1","vf2","vf3");
  (void)new(turnDestination)M3(BuildAxisAngleRotationMatrix(normalizedTurn,twist));
- register FRAME*current __asm__("$4");register SW*game __asm__("$5");
+ register XF *current __asm__("$4");register SW*game __asm__("$5");
  __asm__("lqc2 $vf9,0xC0(%2)\n\tlui %1,%%hi(%5)\n\tlqc2 $vf6,0xD0(%2)\n\taddiu %1,%1,%%lo(%5)\n\tlqc2 $vf7,0xE0(%2)\n\tlqc2 $vf2,0x40(%2)\n\tlqc2 $vf3,0x50(%2)\n\tvmulax.xyz $ACC,$vf9,$vf2x\n\tvmadday.xyz $ACC,$vf6,$vf2y\n\tvmaddz.xyz $vf2,$vf7,$vf2z\n\tlqc2 $vf1,0x60(%2)\n\tvmulax.xyz $ACC,$vf9,$vf3x\n\tvmadday.xyz $ACC,$vf6,$vf3y\n\tvmaddz.xyz $vf3,$vf7,$vf3z\n\tlqc2 $vf8,0x20(%4)\n\tvmulax.xyz $ACC,$vf9,$vf1x\n\tvmadday.xyz $ACC,$vf6,$vf1y\n\tvmaddz.xyz $vf1,$vf7,$vf1z\n\tlqc2 $vf5,0x10(%3)\n\tvmulax.xyz $ACC,$vf2,$vf8x\n\tvmadday.xyz $ACC,$vf3,$vf8y\n\tvmaddz.xyz $vf8,$vf1,$vf8z\n\tlqc2 $vf4,0x10(%4)\n\tvmulax.xyz $ACC,$vf2,$vf5x\n\tvmadday.xyz $ACC,$vf3,$vf5y\n\tvmaddz.xyz $vf5,$vf1,$vf5z\n\tsqc2 $vf2,0x120(%2)\n\tvmulax.xyz $ACC,$vf2,$vf4x\n\tvmadday.xyz $ACC,$vf3,$vf4y\n\tvmaddz.xyz $vf4,$vf1,$vf4z\n\tsqc2 $vf3,0x130(%2)\n\tsqc2 $vf1,0x140(%2)\n\tlw %0,4(%3)\n\tsqc2 $vf4,0xB0(%2)\n\tsqc2 $vf8,0xC0(%2)\n\tsqc2 $vf9,0x70(%2)\n\tsqc2 $vf6,0x80(%2)\n\tsqc2 $vf7,0x90(%2)\n\tsqc2 $vf2,0xF0(%2)\n\tsqc2 $vf3,0x100(%2)\n\tsqc2 $vf1,0x110(%2)\n\tsqc2 $vf5,0x120(%2)\n\tsqc2 $vf5,0xA0(%2)\n\tsqc2 $vf4,0x130(%2)\n\tsqc2 $vf8,0x140(%2)\n\tsqc2 $vf5,0(%0)"
   :"=&r"(current),"=&r"(game):"p"(&w),"r"(q),"r"(originalBasis),"i"(&g_sw):"vf1","vf2","vf3","vf4","vf5","vf6","vf7","vf8","vf9","memory");
  /* Publish the actual affine rows and shared generation stamp. */
  register int stamp __asm__("$2");
  __asm__ __volatile__("lq %1,0xB0(%4)\n\tsq %1,0x10(%0)\n\tlq $3,0xC0(%4)\n\tsw $zero,0xC(%0)\n\tsq $3,0x20(%0)\n\tsw $zero,0x2C(%0)\n\tsw $zero,0x1C(%0)\n\tlw %1,0x3D58(%2)\n\taddiu %1,%1,1\n\tsw %1,0x3D58(%2)\n\tlw $3,4(%3)\n\tlw %0,8(%3)\n\tsw %1,0xA4($3)"
   :"+r"(current),"=&r"(stamp):"r"(game),"r"(q),"p"(&w):"$3","memory");
- current->stamp=stamp;
+ current->worldStamp=stamp;
 }
 typedef char qword_Size[(sizeof(qwordV)==16)?1:-1];
 typedef char U_Size[(sizeof(U)==16)?1:-1];
 typedef char M3_Size[(sizeof(M3)==0x30)?1:-1];
 typedef char M4_Size[(sizeof(M4)==0x40)?1:-1];
-typedef char FRAME_Size[(sizeof(FRAME)==0xB0)?1:-1];
-typedef char FRAME_local_Offset[((unsigned)&((FRAME*)0)->local==0)?1:-1];
-typedef char FRAME_world_Offset[((unsigned)&((FRAME*)0)->world==64)?1:-1];
-typedef char FRAME_parent_Offset[((unsigned)&((FRAME*)0)->parent==160)?1:-1];
-typedef char FRAME_stamp_Offset[((unsigned)&((FRAME*)0)->stamp==164)?1:-1];
 typedef char CONTROL_vt_Offset[((unsigned)&((CONTROL*)0)->vt==0)?1:-1];
 
 typedef char WORK_Size[(sizeof(WORK)==0x170)?1:-1];
