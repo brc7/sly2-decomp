@@ -9,6 +9,8 @@
 #include "sly2/vu0.h"
 #include "sly2/clock.h"
 #include "sly2/classes.h"
+#include "sly2/glob.h"
+#include "sly2/so.h"
 
 // 0x21C6C8 StaticInit_trail and GlobalConstructors_trail: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -47,30 +49,25 @@ struct Batch {
     QuadBytes *color, *extra;
     Sample *samples;
 };
-struct Record {
-    char pad[0x14];
-};
+
 struct Meta {
     int x0;
     void *style;
     char pad8[0x20];
 };
 /* An output vertex (0x18 bytes). */
-struct OUTV {
-    float x, y, z;
-    char pad[0xC];
-};
+
 struct N {
-    Record *record;
+    SUBGLOB *record;
     int count;
     Batch *batches;
     N *next;
 };
 struct MODEL {
     char unknown0[0x3C];
-    Record *records;
+    SUBGLOB *records;
     Meta *metadata;
-    OUTV *output;
+    SUBGLOBX *output;
     char unknown48[0x14];
     N *nodes;
 };
@@ -197,7 +194,7 @@ static inline float DotCopy(qwordV a, qwordV b)
 // asm block for matching.
 static inline void RecordOperands(TRAIL *owner, N *node, int &bytes, unsigned &divisor, int &stride, Meta *&metadata)
 {
-    register Record *rb asm("$4") = owner->model.records;
+    register SUBGLOB *rb asm("$4") = owner->model.records;
     register int span asm("$5");
     register unsigned d asm("$2");
     register int st asm("$3");
@@ -503,14 +500,14 @@ extern "C" void SetTrailMeshPositions(TRAIL *trail, qwordV q)
 {
     N *n;
     for (n = trail->model.nodes; n; n = n->next) {
-        OUTV *pv = (OUTV *)((n->record - trail->model.records) * sizeof(OUTV) + (int)trail->model.output);
+        SUBGLOBX *pv = (SUBGLOBX *)((n->record - trail->model.records) * sizeof(SUBGLOBX) + (int)trail->model.output);
         qwordV t = q;
         float x = GetQwordX(&t);
         float y = GetQwordY(&t);
         float z = GetQwordZ(&t);
-        pv->x = x;
-        pv->y = y;
-        pv->z = z;
+        pv->posCenter.x = x;
+        pv->posCenter.y = y;
+        pv->posCenter.z = z;
     }
 }
 
