@@ -98,11 +98,11 @@ void Force__FPv(void *pv);
 }
 
 // Sets bits of an LO flag word that is stored inline or (low bit clear) behind a pointer.
-static inline void SetTaggedFlags(int *taggedFlags, int bits)
+static inline void SetTaggedFlags(LO *plo, int bits)
 {
-    unsigned int flags = *taggedFlags;
-    if ((flags ^ 1) & 1) *(int *)flags |= bits;
-    else *taggedFlags = flags | bits;
+    uptr flags = (uptr)plo->ploupd;
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= bits;
+    else plo->unknown40 = flags | bits;
 }
 
 // CID104 vtable slot 7 (Init): SO defaults, idle state, busy, LO flags 0x102.
@@ -111,7 +111,7 @@ extern "C" void InitFrameCapture(CAPTUREV *capture)
     InitSo(capture);
     capture->state = CAPTURE_IDLE;
     SetLoBusyKind(capture, 1);
-    SetTaggedFlags(&capture->unknown40, 0x102);
+    SetTaggedFlags(capture, 0x102);
 }
 
 // CID104 vtable slot 15 (PostLoad): finishes the SO load, binds its snip table (the two placing objects), goes idle
@@ -393,7 +393,7 @@ extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
     capture->drawQuad0 = 1;
     segment = (CAPTUREV *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 1, oid, capture);
     if (segment) {
-        SetTaggedFlags(&segment->unknown40, 0x100);
+        SetTaggedFlags(segment, 0x100);
         ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
         SetFrameCaptureState(capture, CAPTURE_STARTED);
     }

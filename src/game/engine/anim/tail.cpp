@@ -241,7 +241,7 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
         if (chainLink == chain->links)
         {
             qword anchor = *(qword *)xf->worldMatrix.mat[3];
-            uint soFlags = *(uint *)so->unknown40;
+            uint soFlags = so->ploupd->grf;
             position = anchor;
             if (soFlags & 0x10)
             {

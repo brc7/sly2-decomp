@@ -50,15 +50,15 @@ int IsBasicDerivedFrom__FP5BASIC3CID(STEPPLAYER *pj, int k);
 // Also known as: InitMarker (upstream readable / Sly 1 name; InitMarker__FP2LO).
 extern "C" void InitWaypt(WAYPT *waypoint)
 {
-    int flags;
+    sptr flags;
     InitSo(waypoint);
-    flags = waypoint->unknown40;
+    flags = (sptr)waypoint->ploupd;
     waypoint->triggerClass = 50;
     waypoint->inactiveRadius = 300.0f;
     waypoint->activeRadius = 500.0f;
     waypoint->clipFrame = -1;
     waypoint->requiredPowerup = -1;
-    if (IsPointer(flags)) *(int *)flags |= 0xA;
+    if (IsPointer(flags)) ((LOUPD *)flags)->grf |= 0xA;
     else waypoint->unknown40 = flags | 0xA;
     waypoint->isRenderable = 0;
 }
@@ -66,9 +66,9 @@ extern "C" void InitWaypt(WAYPT *waypoint)
 // Clears LO flag 8 (in the tagged flag word) on a child part, so it is not drawn by itself.
 static __inline__ void ClearBit(SO *part)
 {
-    int flags = part->unknown40;
+    sptr flags = (sptr)part->ploupd;
     if ((flags ^ 1) & 1) {
-        *(int *)flags &= ~8;
+        ((LOUPD *)flags)->grf &= ~8;
     } else {
         part->unknown40 = flags & ~8;
     }

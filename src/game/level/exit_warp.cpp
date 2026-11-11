@@ -138,14 +138,14 @@ extern "C" void PutHeroAtWarp(WARP *warp)
 void EXIT::Init()
 {
     EXIT *exitVolume = this;
-    unsigned int grf;
+    uptr grf;
     InitXfm(exitVolume);
     exitVolume->targetWarpOid = 0x189;
     exitVolume->wipeOid = -1;
     SetLoBusyKind(exitVolume, 0);
-    grf = exitVolume->unknown40;
+    grf = (uptr)exitVolume->ploupd;
     if (!(grf & 1))
-        *(int *)grf |= 2;
+        ((LOUPD *)grf)->grf |= 2;
     else
         exitVolume->unknown40 = grf | 2;
 }

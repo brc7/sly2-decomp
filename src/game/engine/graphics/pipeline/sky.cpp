@@ -30,11 +30,11 @@ qword GetLoWorldPos(SKY *pso);
 void SKY::PostLoad()
 {
     SKY *sky = this;
-    int flagsWord;
+    sptr flagsWord;
     PostSoLoad(sky);
     SetLoBusyKind(sky, 1);
-    flagsWord = sky->unknown40;   /* a flags word, or (low bit clear) a pointer to one */
-    if ((flagsWord ^ 1) & 1) *(int *)flagsWord |= 2;
+    flagsWord = (sptr)sky->ploupd;   /* a flags word, or (low bit clear) a pointer to one */
+    if ((flagsWord ^ 1) & 1) ((LOUPD *)flagsWord)->grf |= 2;
     else sky->unknown40 = flagsWord | 2;
     sky->isRenderable = 0;
 }

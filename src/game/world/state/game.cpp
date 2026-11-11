@@ -1102,7 +1102,7 @@ namespace M_func_00162FD0 {
 /* SetLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->unknown40;
+    sptr v = (sptr)plo->ploupd;
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
@@ -1170,7 +1170,7 @@ enum { PHASE_NONE = 0, PHASE_INTRO = 1, PHASE_OUTRO = 2, PHASE_SHARED_WIDGET = 3
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->unknown40;
+    sptr v = (sptr)plo->ploupd;
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
@@ -1179,7 +1179,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 // Clear flag bits: on plo->flags when bit 0 is set, otherwise on the word plo->flags points to.
 extern "C" { static inline void ClearLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->unknown40;
+    sptr v = (sptr)plo->ploupd;
     if ((v ^ 1) & 1)
         plo->ploupd->grf &= ~bits;
     else
@@ -1430,7 +1430,7 @@ namespace M_PostTaskLoad {
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->unknown40;
+    sptr v = (sptr)plo->ploupd;
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
@@ -1560,7 +1560,7 @@ namespace M_BeginTask {
 /* SetLoFlags / ClearLoFlags (lo.cpp) inlined: the flag word is tagged, a clear low bit means it points at a shared word. */
 static inline void SetLoFlagsInline(LO *plo, int bits)
 {
-    int v = plo->unknown40;
+    sptr v = (sptr)plo->ploupd;
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else

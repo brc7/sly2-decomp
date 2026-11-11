@@ -134,12 +134,17 @@ union LIGHTMASK
       uint aw[8];
 };
 
-/* LOUPD: an entry of the per-frame update list (SW::aloupd): flags and the object (sw.cpp, render.cpp). */
+/* LOUPD: an entry of the per-frame update list (SW::aloupd): flags and the object (sw.cpp, render.cpp). sly2/lo.h
+   defines the same struct under the same guard (LO's tagged update word points at one), so either header may come
+   first. */
+#ifndef SLY2_STRUCT_LOUPD
+#define SLY2_STRUCT_LOUPD
 struct LOUPD
 {
       int grf;
       LO *plo;
 };
+#endif
 
 /* SW: the world: the one object (g_sw) that owns the loaded level and its runtime state.
    Layout from src/game/gameplay/player/grab/GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi.cpp (7 copies in Lilly ports) */

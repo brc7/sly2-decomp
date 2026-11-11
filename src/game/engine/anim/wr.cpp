@@ -117,15 +117,15 @@ void AddNoiseOctave(ONZ *noise, float amplitude, float frequency, float phase, f
 void WR::Init()
 {
     WR *p = this;
-    int f;
+    sptr f;
     InitLo(p);
     p->freeMatrixIndex = -1;
     p->currentEntryIndex = -1;
     p->lastUpdateTime = -1.0f;
     InitSl(&p->warpGroups, SLY2_OFFSETOF(WRBG, pwrbgNextWr));
     SetLoBusyKind(p, 1);
-    f = p->unknown40;
-    if (IsPointer(f)) *(int *)f |= 2;
+    f = (sptr)p->ploupd;
+    if (IsPointer(f)) ((LOUPD *)f)->grf |= 2;
     else p->unknown40 = f | 2;
 }
 

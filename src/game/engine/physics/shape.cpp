@@ -1046,11 +1046,11 @@ extern "C" SHAPECHAIN *EnsureShapeChain(SHAPE *shape, int rearm)
         shape->chain = InitChain(func_001AE4F8(0x90), shape);
         MeasureShape(shape);
         SetLoBusyKind(shape, 0);
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->unknown40 = v & ~0x20; }
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->unknown40 = v | 0xC; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf &= ~0x20; else shape->unknown40 = v & ~0x20; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 0xC; else shape->unknown40 = v | 0xC; }
     } else if (rearm == 1) {
         SetLoBusyKind(shape, 0);
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0x4; else shape->unknown40 = v | 0x4; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 0x4; else shape->unknown40 = v | 0x4; }
     }
     return shape->chain;
 }
@@ -1107,12 +1107,12 @@ extern "C" void SetShapeChainMode(SHAPE *shape, int mode)
     if (mode != -1) {
         EnsureShapeChain(shape, 1);
         SetLoBusyKind(shape, 0);
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0x20; else shape->unknown40 = v & ~0x20; }
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0xC; else shape->unknown40 = v | 0xC; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf &= ~0x20; else shape->unknown40 = v & ~0x20; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 0xC; else shape->unknown40 = v | 0xC; }
     } else {
         SetLoBusyKind(shape, 0);
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v |= 0x20; else shape->unknown40 = v | 0x20; }
-        { int v = shape->unknown40; if ((v ^ 1) & 1) *(int *)v &= ~0xC; else shape->unknown40 = v & ~0xC; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 0x20; else shape->unknown40 = v | 0x20; }
+        { sptr v = (sptr)shape->ploupd; if ((v ^ 1) & 1) ((LOUPD *)v)->grf &= ~0xC; else shape->unknown40 = v & ~0xC; }
     }
     if (shape->chain) shape->chain->mode = mode;
 }

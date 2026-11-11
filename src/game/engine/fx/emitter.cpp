@@ -370,7 +370,7 @@ extern "C" void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
         pemitter->fDirty = 0;
         AppendDlEntry__FP2DLPv(&group->groupList, pemitter);
         if (IsPointer(pemitter->unknown40))   /* LO flags, or (bit 0 clear) a pointer to them */
-            *(int *)pemitter->unknown40 &= ~2;
+            pemitter->ploupd->grf &= ~2;
         else
             pemitter->unknown40 &= ~2;
     }

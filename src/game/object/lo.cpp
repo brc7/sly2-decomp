@@ -388,10 +388,10 @@ extern "C" void PostLoLoad(LO *object)
     RunLoDeferredCallbacks(object);
     object->HandleSpliceEvent(0, 1, 0, 0, 0);
     if (object->scriptFrame.m_p && FindBindingPtr__6CFrameUii(object->scriptFrame.m_p, 1, 1)) {
-        int v;
+        sptr v;
         if ((int)object->busyKind == 2)
             SetLoBusyKind(object, 0);
-        v = object->unknown40;
+        v = (sptr)object->ploupd;
         if ((v ^ 1) & 1) object->ploupd->grf |= 2;
         else object->unknown40 = v | 2;
     } else {
@@ -453,7 +453,7 @@ namespace M_func_001A5E80 {
 // Clear flags fl: on p->flags when bit 0 is set, otherwise on the word p->flags points to.
 extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
-    unsigned int v = p->unknown40;
+    uptr v = (uptr)p->ploupd;
     if ((v ^ 1) & 1) p->ploupd->grf &= ~fl;
     else p->unknown40 = v & ~fl;
 } }
@@ -821,7 +821,7 @@ namespace M_func_001A66C8 {
 // vtable slot 47: sets bits in the object's flag word.
 extern "C" void SetLoFlags(LO *object, unsigned int fl)
 {
-    unsigned int v = object->unknown40;
+    uptr v = (uptr)object->ploupd;
     if ((v ^ 1) & 1) object->ploupd->grf |= fl;
     else object->unknown40 = v | fl;
 }
@@ -831,7 +831,7 @@ namespace M_func_001A66F8 {
 // vtable slot 48: clears bits in the object's flag word.
 extern "C" void ClearLoFlags(LO *object, unsigned int fl)
 {
-    unsigned int v = object->unknown40;
+    uptr v = (uptr)object->ploupd;
     if ((v ^ 1) & 1) object->ploupd->grf &= ~fl;
     else object->unknown40 = v & ~fl;
 }
@@ -1090,13 +1090,13 @@ extern "C" int HasLoOwnVisMask(LO *object) { return (int)object->keepsOwnVisMask
 namespace M_func_001A6E80 {
 extern "C" { static inline void SetFlag(LO *p, unsigned int fl)
 {
-    unsigned int v = p->unknown40;
+    uptr v = (uptr)p->ploupd;
     if ((v ^ 1) & 1) p->ploupd->grf |= fl;
     else p->unknown40 = v | fl;
 } }
 extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
-    unsigned int v = p->unknown40;
+    uptr v = (uptr)p->ploupd;
     if ((v ^ 1) & 1) p->ploupd->grf &= ~fl;
     else p->unknown40 = v & ~fl;
 } }

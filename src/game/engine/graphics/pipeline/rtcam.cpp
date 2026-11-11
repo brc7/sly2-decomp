@@ -288,7 +288,7 @@ extern "C" RT *AcquireRenderTarget(RTCAM *rtcam)
         rtcam->prt->camera = rtcam;
         for (j = 0; j < rtcam->c; j++) {
             LO *o = rtcam->ap[j];
-            int x;
+            sptr x;
             rtcam->af[j] = 0;
             if (((int)o->isInWorld & 1) == 0) {   /* `== 0`, not `!`: see the merge guide (C++ bool) */
                 rtcam->af[j] = 1;
@@ -300,8 +300,8 @@ extern "C" RT *AcquireRenderTarget(RTCAM *rtcam)
                     q->OnAdd();
                 }
             }
-            x = o->unknown40;
-            if ((x ^ 1) & 1) x = *(int *)x;
+            x = (sptr)o->ploupd;
+            if ((x ^ 1) & 1) x = ((LOUPD *)x)->grf;
             if (x & 8) {
                 rtcam->af[j] |= 2;
                 o->SetFlag8(0);

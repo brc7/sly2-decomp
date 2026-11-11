@@ -318,7 +318,7 @@ void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
 // grf|=2.
 extern "C" void InitTn(TN *p)
 {
-    int f;
+    sptr f;
     InitXfm(p);
     p->idlePullDuration = 2.0f; /*P*/
     p->idlePullStrength = 1.0f; /*P*/
@@ -330,8 +330,8 @@ extern "C" void InitTn(TN *p)
     *(int *)&p->requestedState = -1; /*P*/
     p->grftnm = 7; /*P*/
     SetLoBusyKind(p, 1);
-    f = p->unknown40;
-    if (IsPointer(f)) *(int *)f |= 2;
+    f = (sptr)p->ploupd;
+    if (IsPointer(f)) ((LOUPD *)f)->grf |= 2;
     else p->unknown40 = f | 2;
 }
 

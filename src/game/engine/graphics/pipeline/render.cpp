@@ -152,8 +152,8 @@ extern "C" RPL *AllocRenderListEntry(void)
 // Returns an object's flags word, following the +0x40 field when it holds a pointer.
 static inline int Flags(SO *object)
 {
-    int flags = object->unknown40;
-    if (IsPointer(flags)) flags = *(int *)flags;
+    sptr flags = (sptr)object->ploupd;
+    if (IsPointer(flags)) flags = ((LOUPD *)flags)->grf;
     return flags;
 }
 

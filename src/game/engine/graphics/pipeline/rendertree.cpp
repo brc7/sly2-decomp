@@ -540,12 +540,12 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
 extern "C" void RemoveLoFromRenderTree(SO *pobj)
 {
     if (pobj->prender) {
-        int n;
+        sptr n;
         *(ulong *)&pobj->prender->sFar |= 0xF00000000UL;  /* kind = -1 (64-bit access, as the per-file code) */
         pobj->renderStamp = -1;
         pobj->prender = 0;
-        n = pobj->unknown40;
-        if ((n ^ 1) & 1) *(int *)n &= ~0x80;
+        n = (sptr)pobj->ploupd;
+        if ((n ^ 1) & 1) ((LOUPD *)n)->grf &= ~0x80;
         else pobj->unknown40 = n & ~0x80;
     }
 }
@@ -568,7 +568,7 @@ extern "C" void AddLoToRenderTree(SO *pobj)
         prender->kind = KIND_DEFERRED;
         pobj->prender->pv = pobj;
         if ((pobj->unknown40 ^ 1) & 1)
-            *(int *)pobj->unknown40 |= 0x80;
+            pobj->ploupd->grf |= 0x80;
         else
             pobj->unknown40 |= 0x80;
         pobj->renderStamp = pobj->rootTransform->worldStamp;

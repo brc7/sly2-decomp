@@ -1329,7 +1329,7 @@ extern "C" void AddLoToSwUpdateList(SW *g, LO *o)
 // Also known as: RemoveLoFromUpdateTable (upstream readable / Sly 1 name; RemoveLoFromUpdateTable__FP2SWP2LO).
 extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
-    int n = plo->unknown40;
+    sptr n = (sptr)plo->ploupd;
     if (((n ^ 1) & 1) != 0) {
         LOUPD *ploupd = plo->ploupd;
         plo->unknown40 = ploupd->grf;

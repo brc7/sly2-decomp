@@ -8,6 +8,7 @@
 #ifndef SLY2_LO_H
 #define SLY2_LO_H
 #include "sly2/basic.h"
+#include "sly2/port.h"   /* uptr / sptr: readers take the tagged update word (unknown40 / ploupd) pointer-wide */
 
 /* LORUN: a deferred callback queued on an LO (a function, its argument and the next record of the LO's list)
    (inferred from the fields).
@@ -28,6 +29,18 @@ struct LOROOT
       DLE rootLink; /* link in the world's list of hierarchy roots */
       DLE busyLink;  /* link in the world's list of busy (active) hierarchies */
 };
+
+/* LOUPD: an entry of the per-frame update list (SW::aloupd): flags and the object (sw.cpp, render.cpp). sly2/sw.h
+   defines the same struct under the same guard (LO's tagged update word points at one), so either header may come
+   first. */
+#ifndef SLY2_STRUCT_LOUPD
+#define SLY2_STRUCT_LOUPD
+struct LOUPD
+{
+      int grf;
+      LO *plo;
+};
+#endif
 
 /* LO: the level object, base of everything placed in a level (lights, solids, characters, scripts, cameras...).
    Layout from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (27 copies in Lilly ports) */

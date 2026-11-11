@@ -89,12 +89,12 @@ MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanT
 // Also known as: InitPo (upstream readable / Sly 1 name; InitPo__FP2PO).
 extern "C" void InitPo(PO *po)
 {
-    int flags;
+    sptr flags;
     InitSo(po);
     po->unknown15C = 1;
     po->unknown168 = po;
-    flags = po->unknown40;
-    if ((flags ^ 1) & 1) *(int *)flags |= 2; else po->unknown40 = flags | 2;
+    flags = (sptr)po->ploupd;
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 2; else po->unknown40 = flags | 2;
 }
 
 // Slot 14 (LoadFromBrx): LoadSoFromBrx, then one more stream record.

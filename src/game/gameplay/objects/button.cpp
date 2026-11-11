@@ -129,13 +129,11 @@ static inline void SendObjectMessage(LO *object, int message, void *arg)
 }
 
 // Sets bits of an LO flag word that is stored inline or (low bit clear) behind a pointer.
-static inline void SetTaggedFlags(int *taggedFlags, int bits)
+static inline void SetTaggedFlags(LO *plo, int bits)
 {
-    unsigned int flags = *taggedFlags;
-    if ((flags ^ 1) & 1)
-        *(int *)flags |= bits;
-    else
-        *taggedFlags = flags | bits;
+    uptr flags = (uptr)plo->ploupd;
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= bits;
+    else plo->unknown40 = flags | bits;
 }
 
 enum
@@ -321,7 +319,7 @@ extern "C" void InitButton(BUTTON *button)
 {
     InitSo(button);
     InitBtn(&button->btn);
-    SetTaggedFlags(&button->unknown40, 2);
+    SetTaggedFlags(button, 2);
 }
 
 // BUTTON vtable slot 14 (LoadFromBrx): SO load, then the BTN belongs to this button.
@@ -601,7 +599,7 @@ extern "C" void InitVolbtn(VOLBTN *volumeButton)
     InitBtn(&volumeButton->btn);
     volumeButton->btn.isSilent = 1;
     SetLoBusyKind(volumeButton, 0);
-    SetTaggedFlags(&volumeButton->unknown40, 2);
+    SetTaggedFlags(volumeButton, 2);
 }
 
 // VOLBTN vtable slot 14 (LoadFromBrx): loads the VOL part and the BTN; a volume button that tracks what is inside stays

@@ -750,7 +750,7 @@ static inline int ToInt(float f){return (int)f;}
 static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
 static inline void Identity(MATRIX4 *m){func_002333B4(m,0,sizeof(*m));m->mat[3][3]=1.0f;m->mat[2][2]=1.0f;m->mat[1][1]=1.0f;m->mat[0][0]=1.0f;}
 // Clear flag 0x20: on LO::unknown40 when bit 0 is set, otherwise on the word it points to.
-static inline void ClearFlag(SO *p){int f=p->unknown40;if((f^1)&1)*(int *)f&=~0x20;else p->unknown40=f&~0x20;}
+static inline void ClearFlag(SO *p){sptr f=(sptr)p->ploupd;if((f^1)&1)((LOUPD *)f)->grf&=~0x20;else p->unknown40=f&~0x20;}
 // Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
 // animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -1188,8 +1188,8 @@ void UpdateSoSlots(SO *so)
 {
     int fMoving;
     int ixf;
-    int fIdle = (so->parent == 0 || !(*(uint *)so->parent->unknown40 & 4));
-    int fSnap = *(uint *)so->unknown40 & 0x10;
+    int fIdle = (so->parent == 0 || !(so->parent->ploupd->grf & 4));
+    int fSnap = so->ploupd->grf & 0x10;
     for (ixf = 0; ixf < so->numTransforms; ixf++)
     {
         XF *xf = &so->transforms[ixf];
@@ -1740,7 +1740,7 @@ void UpdateSoSlots(SO *so)
     {
         if (!(so->unknown40 & 1))
         {
-            *(int *)so->unknown40 &= ~4;
+            so->ploupd->grf &= ~4;
         }
         else
         {
@@ -1751,7 +1751,7 @@ void UpdateSoSlots(SO *so)
     {
         if (!(so->unknown40 & 1))
         {
-            *(int *)so->unknown40 &= ~0x10;
+            so->ploupd->grf &= ~0x10;
         }
         else
         {

@@ -441,9 +441,9 @@ enum { LO_FLAG_UNPAUSED = 0x100 };   /* runs on real time while the game clock i
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
 extern "C" { static inline unsigned int GetLoFlags(RELAY *lo)
 {
-    unsigned int fl = lo->unknown40;
+    uptr fl = (uptr)lo->ploupd;
     if ((fl ^ 1) & 1)
-        fl = *(unsigned int *)fl;
+        fl = ((LOUPD *)fl)->grf;
     return fl;
 } }
 // RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
@@ -482,16 +482,16 @@ enum { LO_FLAG_02 = 2 };   /* set while a relay holds its busy mark (also set by
 // The LO flag word: stored inline, or (bit 0 clear) a pointer to a shared one.
 extern "C" { static inline int GetLoFlags(RELAY *lo)
 {
-    int fl = lo->unknown40;
+    sptr fl = (sptr)lo->ploupd;
     if ((fl ^ 1) & 1)
-        fl = *(int *)fl;
+        fl = ((LOUPD *)fl)->grf;
     return fl;
 } }
 // Sets bits of the LO flag word wherever it lives.
 extern "C" { static inline void SetLoFlagBits(RELAY *lo, int bits)
 {
     if ((lo->unknown40 ^ 1) & 1)
-        *(int *)lo->unknown40 |= bits;
+        lo->ploupd->grf |= bits;
     else
         lo->unknown40 |= bits;
 } }
@@ -546,7 +546,7 @@ enum { LO_FLAG_02 = 2 };
 extern "C" { static inline void ClearLoFlagBits(RELAY *lo, int bits)
 {
     if ((lo->unknown40 ^ 1) & 1)
-        *(int *)lo->unknown40 &= ~bits;
+        lo->ploupd->grf &= ~bits;
     else
         lo->unknown40 &= ~bits;
 } }
@@ -1751,10 +1751,10 @@ int IsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5B
 // The LO update flags (tagged word, maybe behind a pointer).
 inline int GrfUpdateLo(LO *plo)
 {
-    int grf = plo->unknown40;
+    sptr grf = (sptr)plo->ploupd;
     if (!(grf & 1))
     {
-        return *(int *)grf;
+        return ((LOUPD *)grf)->grf;
     }
     return grf;
 }
@@ -2106,10 +2106,10 @@ void NextJsgCommand(RELAYJSG *script)
         if (prelaycmd->setClockRate.rate == 0.0f)
         {
             RELAY *relay = script->relay;
-            int grf = relay->unknown40;
+            sptr grf = (sptr)relay->ploupd;
             if ((grf ^ 1) & 1)
             {
-                *(int *)grf |= 0x100;
+                ((LOUPD *)grf)->grf |= 0x100;
             }
             else
             {
@@ -2119,10 +2119,10 @@ void NextJsgCommand(RELAYJSG *script)
         else
         {
             RELAY *relay = script->relay;
-            int grf = relay->unknown40;
+            sptr grf = (sptr)relay->ploupd;
             if ((grf ^ 1) & 1)
             {
-                *(int *)grf &= ~0x100;
+                ((LOUPD *)grf)->grf &= ~0x100;
             }
             else
             {
@@ -2972,10 +2972,10 @@ inline int FIsLoInWorld(LO *plo)
 // The object's update flags (inline when tagged with bit 0, else read through the pointer).
 inline int GrfUpdateLo(LO *plo)
 {
-    int grf = plo->unknown40;
+    sptr grf = (sptr)plo->ploupd;
     if (!(grf & 1))
     {
-        return *(int *)grf;
+        return ((LOUPD *)grf)->grf;
     }
     return grf;
 }
