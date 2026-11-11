@@ -1829,17 +1829,15 @@ extern "C" void UpdateLoXfWorldHierarchy()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateSoXfWorldHierarchy {
-struct O { int a[3]; void *vptr; char pad[0x14]; struct O *next; };
-struct S : LO { char pad[0x64 - 0x50]; struct O *first; int a[2]; struct O *end; };
-void UpdateSoXfWorldMatrices(struct S *p) __asm__("UpdateSoXfWorldMatrices");
-// Recomputes an SO's world matrices and then those of its children.
+void UpdateSoXfWorldMatrices(SO *p) __asm__("UpdateSoXfWorldMatrices");
+// Recomputes an SO's world matrices and then those of its children (up to the removed ones).
 // Also known as: UpdateAloXfWorldsHierarchy (upstream readable / Sly 1 name; UpdateAloXfWorldsHierarchy__FP3ALO).
-extern "C" void UpdateSoXfWorldHierarchy(struct S *p)
+extern "C" void UpdateSoXfWorldHierarchy(SO *p)
 {
-    struct O *o;
+    LO *o;
     UpdateSoXfWorldMatrices(p);
-    for (o = p->first; o != p->end; o = o->next)
-        ((LO *)o)->UpdateXfWorldHierarchy();
+    for (o = (LO *)p->children.head; o != p->ploRemovedFirst; o = (LO *)o->siblingLink.next)
+        o->UpdateXfWorldHierarchy();
 }
 } // namespace M_UpdateSoXfWorldHierarchy
 
@@ -2136,35 +2134,25 @@ extern "C" int IsXfRoleVelocity(int n)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002303A0 {
 typedef struct MATRIX4 M4;
-struct V { float x, y, z; } __attribute__((aligned(16)));   /* mat.h/vec.h VECTOR (16-byte aligned), not basic.h's */
-typedef struct P {
-    char pad0[0x94];
-    int valueKind;
-    short role;
-    char pad9A[0xB0 - 0x9A];
-    V velocity;
-    char padC0[0xF0 - 0xC0];
-    V unknownF0;
-} P;
 // Set the three components of pv.
-extern "C" { static inline void SetV(V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; } }
+extern "C" { static inline void SetV(VECTOR4 *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; } }
 int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
 int IsXfRoleAtRest(int) __asm__("IsXfRoleAtRest");
 int IsXfRoleVelocity(int) __asm__("IsXfRoleVelocity");
-M4 EvaluateXfSlotMatrixDerivative(P *) __asm__("EvaluateXfSlotMatrixDerivative");
-M4 InvertMatrix4Rigid(P *) __asm__("InvertMatrix4Rigid");
+M4 EvaluateXfSlotMatrixDerivative(XF *) __asm__("EvaluateXfSlotMatrixDerivative");
+M4 InvertMatrix4Rigid(XF *) __asm__("InvertMatrix4Rigid");
 M4 __ml__FRC7MATRIX4T0(M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0");
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
-void func_0022CDC0P(M4 *pm, P *p) __asm__("EvaluateXfSlotMatrixDerivative");
+void func_0022CDC0P(M4 *pm, XF *p) __asm__("EvaluateXfSlotMatrixDerivative");
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
-void ResetXfValueRef(SO *, P *) __asm__("ResetXfValueRef");
+void ResetXfValueRef(SO *, XF *) __asm__("ResetXfValueRef");
 
 // Sets a slot's motion role: entering a moving role from a non-moving one captures the slot's current velocity
 // (+0xB0, read off its derivative matrix: translation, shear, scale or the rotation rate), velocity roles clear
 // +0xF0, and the SO is woken unless the new role is at rest. (inferred) Lilly's jtstate.c port calls it SlotSetRole.
 // Also known as: SetXfMode (upstream readable / Sly 1 name; SetXfMode__FP3ALOP2XFi).
-extern "C" void SetXfRole(SO *so, P *xf, int role)
+extern "C" void SetXfRole(SO *so, XF *xf, int role)
 {
     if (role == xf->role)
         return;
@@ -2173,9 +2161,9 @@ extern "C" void SetXfRole(SO *so, P *xf, int role)
         M4 t;
         func_0022CDC0P(&t, xf);
         m = t;
-        switch (xf->valueKind) {
+        switch (xf->kind) {
         case 1: case 4: case 5: case 9: case 10:
-            xf->velocity = *(V *)m.mat[3];
+            xf->velocity = *(VECTOR4 *)m.mat[3];
             break;
         case 11:
             SetV(&xf->velocity, m.mat[1][0], m.mat[2][0], m.mat[2][1]);
@@ -2195,7 +2183,7 @@ extern "C" void SetXfRole(SO *so, P *xf, int role)
     switch (role) {
     case 1: case 2: case 3:
         if (!IsXfRoleVelocity(xf->role)) {
-            { V *pv = &xf->unknownF0; pv->z = 0; pv->y = 0; pv->x = 0; }
+            { VECTOR4 *pv = (VECTOR4 *)&xf->acceleration; pv->z = 0; pv->y = 0; pv->x = 0; }
         }
         ResetXfValueRef(so, xf);
         break;
@@ -2213,13 +2201,12 @@ extern "C" void SetXfRole(SO *so, P *xf, int role)
 namespace M_SlotUnsettle {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-typedef struct { char pad[0x98]; unsigned short role; } B;
-void SetXfRole(void *, B *, int) __asm__("SetXfRole");
+void SetXfRole(void *, XF *, int) __asm__("SetXfRole");
 // Puts a settled slot back into motion (inferred: the counterpart of SettleXfSlot).
 // Also known as: HoldXfMode (upstream readable / Sly 1 name).
-extern "C" void UnsettleXfSlot(void *a, B *b)
+extern "C" void UnsettleXfSlot(void *a, XF *b)
 {
-    switch ((short)b->role) {
+    switch (b->role) {
     case 6: case 10: SetXfRole(a, b, 7); break;
     case 12: SetXfRole(a, b, 0xB); break;
     case 19: SetXfRole(a, b, 0x12); break;
@@ -2274,7 +2261,6 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 { qword r[3]; };
 
-struct OB { char pad[0x18]; VTE *vt; };   /* the XF's act (act.h ACT) as the slot-5 call reads it: GetGoal called without its dt */
 
 int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
 M4 *BuildXfValueMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueMatrix");
@@ -2377,8 +2363,7 @@ void GetXfSlotMatrixAndDerivative(XF *po, M4 *pm, M4 *pm2, float g)
     if (po->firstActuator) {
         qword q[2];
         M4 t;
-        OB *pob = (OB *)po->firstActuator;
-        ((void (*)(void *, qword *, qword *))pob->vt[5].pfn)((char *)pob + pob->vt[5].d, &q[0], &q[1]);
+        po->firstActuator->GetGoal((::qword *)&q[0], (VECTOR *)&q[1], g);   /* dt: g, still in $f12 (the hand-written call read before v1.16 passed no dt) */
         BuildXfValueMatrix(&t, po, q[0]);
         *pm = t;
         switch (po->kind) {
