@@ -133,9 +133,9 @@ void GetSoConstraintAxis(SO *pso, XF *pxf, CONSTR *pconstr, CONSTR *pconstrSo);
 void RebuildSoPhysHook(SO *pso);
 void SetSoBit35Hierarchy(SO *pso, int n);
 void FreeSoContacts(SO *pso);
-int FindTargetRecordById(LO *plo);
+TARGETREC *FindTargetRecordById(LO *plo);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
-void InitTargetRecord(void *ptargetrec, LO *plo);
+TARGETREC *InitTargetRecord(TARGETREC *ptargetrec, LO *plo);
 REGENT *EnsureSoPhysRegionRecord(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
@@ -3585,32 +3585,30 @@ extern "C" void ClearSoAnimIndex(SO *so)
 
 // 0x1F8240 FindTargetRecordById
 namespace M_func_001F8240 {
-struct T;
-struct T { int a[3]; int id; char pad[0x10]; struct T *next; };
-// Finds a target record in the world's list by id. (inferred)
-struct T *FindTargetRecordById(int n) __asm__("FindTargetRecordById"); struct T *FindTargetRecordById(int n) { struct T *pt; for (pt = (*(struct T * *)&g_sw.dlTargetrec); pt; pt = pt->next) if (pt->id == n) return pt; return 0; }
+// Finds the target record of an object in the world's list (g_sw.dlTargetrec), or 0.
+TARGETREC *FindTargetRecordById(LO *plo) __asm__("FindTargetRecordById"); TARGETREC *FindTargetRecordById(LO *plo) { TARGETREC *pt; for (pt = (TARGETREC *)g_sw.dlTargetrec.head; pt; pt = (TARGETREC *)pt->dleTargetrec.next) if (pt->target == plo) return pt; return 0; }
 } // namespace M_func_001F8240
 
 // 0x1F8278 EnsureTargetRecordById
-/* Makes a target record (0xAC bytes, InitTargetRecord) for plo unless it has one. */
-// Finds a target record by id, creating one when missing. (inferred)
+/* Makes a target record (room for 32 guards, InitTargetRecord) for plo unless it has one. */
+// Returns the object's target record, creating one when missing.
 // Also known as: PtargetrecOf (upstream readable / Sly 1 name; PtargetrecOf__FP2LO).
-extern "C" void EnsureTargetRecordById(LO *plo)
+extern "C" TARGETREC *EnsureTargetRecordById(LO *plo)
 {
-    if (FindTargetRecordById(plo) == 0) {
-        InitTargetRecord(func_001AE4F8(0xAC), plo);
+    TARGETREC *ptargetrec = FindTargetRecordById(plo);
+    if (ptargetrec == 0) {
+        ptargetrec = InitTargetRecord((TARGETREC *)func_001AE4F8(SLY2_OFFSETOF(TARGETREC, guards) + 32 * sizeof(STEPGUARD *)), plo);
     }
+    return ptargetrec;
 }
 
 // 0x1F82B8 SetSoTargetRecordParams
 namespace M_func_001F82B8 {
-struct K; struct T;
-struct K { int a, b; };
-struct T { char pad[0x10]; int value; struct K key; };
-struct T *EnsureTargetRecordById(void *) __asm__("EnsureTargetRecordById");
-// Ensures the target record and sets its value and optional 8-byte key. (inferred)
-// The record lives in list D_003E145C and is keyed by the object pointer.
-extern "C" void SetSoTargetRecordParams(void *p, int x, struct K *pk) { struct T *pt = EnsureTargetRecordById(p); pt->value = x; if (pk) pt->key = *pk; }
+/* The two words after TARGETREC::facingKind: unknown14 and facingTolerance (copied as one 8-byte record). */
+struct K { float unknown14; float facingTolerance; };
+// Ensures the object's target record and sets its facing kind and, when given, its two facing parameters.
+// (inferred)
+extern "C" void SetSoTargetRecordParams(LO *p, int x, struct K *pk) { TARGETREC *pt = EnsureTargetRecordById(p); pt->facingKind = x; if (pk) *(struct K *)&pt->unknown14 = *pk; }
 } // namespace M_func_001F82B8
 
 // 0x1F8300 EnsureSoPhysRegionRecord
@@ -3629,7 +3627,7 @@ REGENT *EnsureSoPhysRegionRecord(SO *so) __asm__("EnsureSoPhysRegionRecord"); RE
     if (!so->physics) return 0;
     if (!so->physics->pregent) {
         struct CB cb;
-        REGENT *q = (__typeof__(q))PvAllocMsg(&cb, 0x70, 0x10);
+        REGENT *q = (__typeof__(q))PvAllocMsg(&cb, sizeof(REGENT), 0x10);
         q->pso = so;
         if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown08 = 150.0f;
         else q->unknown08 = 75.0f;
@@ -3704,25 +3702,23 @@ extern "C" int GetSoIceable(SO *p) { return (int)p->hurtRespawnsHero & 1; }   /*
 
 // 0x1F8510 NewSoXfHandle
 namespace M_func_001F8510 {
-struct CID149Island;
-struct CID149Island { int a, b, numTransforms; void *pvt; int pad[4]; void *so; void *transform; int pad2[2]; };   /* the CID149 handle, built by hand */
 struct Pool;
-struct CID149Island *AllocZeroedFromSlotheap(struct Pool *) __asm__("AllocZeroedFromSlotheap");
-void func_002333B4(void *, int, int) __asm__("memset");
-// Creates an XF handle object (CID 149) for the object's XF matching (oid, kind), for scripts.
-extern "C" struct CID149Island *NewSoXfHandle(SO *so, int k, int m)
+CID149 *AllocZeroedFromSlotheap(struct Pool *) __asm__("AllocZeroedFromSlotheap");
+// Creates an XF handle object (CID 149) for the object's XF matching (oid, kind), for scripts. Built by hand (cleared,
+// vptr stored, the counted pointers' words zeroed): a constructor call would count references.
+extern "C" CID149 *NewSoXfHandle(SO *so, int k, int m)
 {
     int i;
     for (i = 0; i < so->numTransforms; i++) {
         XF *pe = &so->transforms[i];
         if (pe->kind == m && (k == -1 || pe->oid == k)) {
-            struct CID149Island *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
-            func_002333B4(q, 0, 0x30);
+            CID149 *q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
+            func_002333B4(q, 0, sizeof(CID149));
             SLY2_SET_VPTR(q, CID149);
-            q->so = so;
-            q->transform = pe;
-            q->a = 0;
-            q->b = 0;
+            q->pso = so;
+            q->pxf = pe;
+            q->scriptFrame.m_p = 0;
+            q->scriptVariables.m_p = 0;
             return q;
         }
     }
@@ -3732,26 +3728,22 @@ extern "C" struct CID149Island *NewSoXfHandle(SO *so, int k, int m)
 
 // 0x1F85E0 NewSoPartHandle
 namespace M_func_001F85E0 {
-struct CID150Island;
-/* CID150 constructed by hand: the raw CRefPtr clears and the vptr store (a CID150 constructor would refcount) */
-struct CID150Island { int a, b, c; void *pvt; int pad[4]; void *object; void *part; int pad2[2]; };
 struct Pool;
-void *FindSoPart(void *) __asm__("FindSoPart");
-struct CID150Island *AllocZeroedFromSlotheap(struct Pool *) __asm__("AllocZeroedFromSlotheap");
-void *func_002333B4(void *, int, int) __asm__("memset");
-// Creates a part handle object (CID 150) for the part with the given oid.
-extern "C" struct CID150Island *NewSoPartHandle(void *pa)
+SOPART *FindSoPart(SO *pso, int oid) __asm__("FindSoPart");
+CID150 *AllocZeroedFromSlotheap(struct Pool *) __asm__("AllocZeroedFromSlotheap");
+// Creates a part handle object (CID 150) for the part with the given oid; built by hand like NewSoXfHandle's.
+extern "C" CID150 *NewSoPartHandle(SO *pa, int oid)
 {
-    void *r = FindSoPart(pa);
-    struct CID150Island *q;
+    SOPART *r = FindSoPart(pa, oid);
+    CID150 *q;
     if (!r) return 0;
     q = AllocZeroedFromSlotheap(&(*(struct Pool *)&g_sw.slotheapXfh));
-    func_002333B4(q, 0, 0x30);
-    q->object = pa;
-    q->part = r;
+    func_002333B4(q, 0, sizeof(CID150));
+    q->pso = pa;
+    q->psopart = r;
     SLY2_SET_VPTR(q, CID150);
-    q->a = 0;
-    q->b = 0;
+    q->scriptFrame.m_p = 0;
+    q->scriptVariables.m_p = 0;
     return q;
 }
 } // namespace M_func_001F85E0

@@ -176,6 +176,7 @@ struct REGENT
       undefined4 unknown68[2];
 };
 typedef char assert_REGENT_dlePathzone[SLY2_OFFSETOF(REGENT, dlePathzone) == 0x60 ? 1 : -1];
+typedef char assert_REGENT_size[sizeof(REGENT) == 0x70 ? 1 : -1];   /* EnsureSoPhysRegionRecord allocates sizeof */
 
 /* SOBOUNDS (SO::psobounds, the bounds/lighting record an SO hierarchy shares) is defined in sly2/light.h. */
 

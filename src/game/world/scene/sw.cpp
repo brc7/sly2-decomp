@@ -132,7 +132,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSlotheap(&world->slotheapJsg,0xf0,0x20,0x10);
     InitSlotheap(&world->slotheapXa,sizeof(XA),0x10,0x10);
     InitSlotheap(&world->slotheapZprHit,sizeof(ZPR),0x20,0x10);
-    InitSlotheap(&world->slotheapXfh,0x30,0x10,0x10);
+    InitSlotheap(&world->slotheapXfh,sizeof(CID149),0x10,0x10);   /* CID149 and CID150 handles (both 0x30 on the EE) */
     InitSlotheap(&world->slotheapLeap,0x40,0x10,0x10);
     InitSlotheap(&world->slotheapDiract,sizeof(DIRBL),0x10,0x10);
     InitDl__FP2DLi(&world->dlChild,SLY2_OFFSETOF(LO, siblingLink));
