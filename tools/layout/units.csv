@@ -1482,7 +1482,7 @@ SendBarrierImpactMessages,0x132298,barrier
 AddBarrierObject__FP7BARRIER3OID,0x1323C8,barrier
 AddBarrierClass__FP7BARRIER3CID,0x1323F0,barrier
 StaticInit_barrier,0x132418,barrier
-func_00132550,0x132550,barrier
+GlobalConstructors_barrier,0x132550,barrier
 __18CBinaryAsyncStreamPv,0x132570,bas
 _$_18CBinaryAsyncStream,0x1325B8,bas
 OpenBasFromFileKey,0x132600,bas
@@ -1538,7 +1538,7 @@ RefreshSwObjectCollisionFilter,0x134320,bbmark
 StaticInit_bbmark,0x134398,bbmark
 GlobalConstructors_bbmark,0x1344D0,bbmark
 StaticInit_empty_1344F0,0x1344F0,empty_1344F0
-func_00134628,0x134628,empty_1344F0
+GlobalConstructors_empty_1344F0,0x134628,empty_1344F0
 InitBentley,0x134648,bentley
 LoadBentleyFromBrx,0x134770,bentley
 PostBentleyLoad,0x1347A8,bentley
@@ -1586,9 +1586,9 @@ SetBentleyXpFriction,0x1374E0,bentley
 IsBentleyHelperTargetBehind,0x1374F0,bentley
 SetBentleyHelperState,0x1375D0,bentley
 StaticInit_bentley,0x137780,bentley
-func_001378B8,0x1378B8,bentley
+GlobalConstructors_bentley,0x1378B8,bentley
 StaticInit_empty_1378D8,0x1378D8,empty_1378D8
-func_00137A10,0x137A10,empty_1378D8
+GlobalConstructors_empty_1378D8,0x137A10,empty_1378D8
 EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL,0x137A30,blend
 FillBlendSyncTables__FiiPviiP3OID,0x137FB8,blend
 CalculateBlendSyncTable__FiiPviiP4MRSGPf,0x1380F0,blend
@@ -1642,7 +1642,7 @@ ResetBomb,0x13BB80,bomb
 ShouldBombIgnoreIntersection,0x13BBF8,bomb
 SetBombOwner,0x13BC60,bomb
 StaticInit_bomb,0x13BC98,bomb
-func_0013BDD0,0x13BDD0,bomb
+GlobalConstructors_bomb,0x13BDD0,bomb
 InitBooty,0x13BDF0,booty
 LoadBootyFromBrx,0x13BE58,booty
 PostBootyLoad,0x13BF00,booty
@@ -1803,7 +1803,7 @@ UpdateJtgoal,0x144640,jtgoal
 SetJtgoal,0x1448F0,jtgoal
 IsJtgoalHolding,0x1449C8,jtgoal
 StaticInit_jtgoal,0x1449D0,jtgoal
-func_00144B08,0x144B08,jtgoal
+GlobalConstructors_jtgoal,0x144B08,jtgoal
 InitBhvwalkgoal,0x144B28,stepbhv
 StartBhvwalkgoal,0x144B58,stepbhv
 UpdateBhvwalkgoal,0x144B90,stepbhv
@@ -1846,7 +1846,7 @@ StartBhvMurray,0x146E98,stepbhv
 CloseBhvMurray,0x146EE0,stepbhv
 UpdateBhvMurray,0x146F18,stepbhv
 StaticInit_stepbhv,0x147068,stepbhv
-func_001471A0,0x1471A0,stepbhv
+GlobalConstructors_stepbhv,0x1471A0,stepbhv
 InitFrameCapture,0x1471C0,framecapture
 PostFrameCaptureLoad,0x147220,framecapture
 UpdateFrameCapture,0x147278,framecapture
@@ -1857,7 +1857,7 @@ IsFrameCaptureInactive,0x1477B0,framecapture
 DrawFrameCaptureScreen,0x1477D8,framecapture
 StartFrameCapture,0x147C20,framecapture
 StaticInit_framecapture,0x147CC8,framecapture
-func_00147E00,0x147E00,framecapture
+GlobalConstructors_framecapture,0x147E00,framecapture
 RemoveFromSwBusyList,0x147E20,busy
 ResortSwBusyEntry,0x147E88,busy
 UnlinkSwBusyEntry,0x147EC8,busy
@@ -1915,7 +1915,7 @@ AddVolbtnEventListener,0x149828,button
 GetVolbtnPushStateRef,0x149848,button
 RemoveVolbtnHierarchy,0x149880,button
 StaticInit_button,0x1498F8,button
-func_00149A30,0x149A30,button
+GlobalConstructors_button,0x149A30,button
 PostSwCallback,0x149A50,callback
 EnsureSwCallback,0x149AB8,callback
 ClearSwCallbacks,0x149B58,callback
@@ -1942,7 +1942,7 @@ ChooseCarmelitaTarget,0x14B290,carmelita
 IsCarmelitaZapLethal,0x14B460,carmelita
 SendCarmelitaRootBhvValue,0x14B468,carmelita
 StaticInit_carmelita,0x14B508,carmelita
-func_0014B640,0x14B640,carmelita
+GlobalConstructors_carmelita,0x14B640,carmelita
 SetCdPollStateIdle,0x14B660,cdutil
 GetFileKeySize,0x14B670,cdutil
 GetFileIdName,0x14B690,cdutil
@@ -1970,9 +1970,9 @@ ClearCheatItems,0x14C258,cheat
 CheatGiveGadget,0x14C2B0,cheat
 StartupCodes,0x14C2D8,cheat
 StaticInit_cheat,0x14C3F0,cheat
-func_0014C528,0x14C528,cheat
+GlobalConstructors_cheat,0x14C528,cheat
 StaticInit_empty_14C548,0x14C548,empty_14C548
-func_0014C680,0x14C680,empty_14C548
+GlobalConstructors_empty_14C548,0x14C680,empty_14C548
 ClipEdgeToObject,0x14C6A0,clip
 ClipEdgeToObjectPruned,0x14C6D8,clip
 ClipEdgeToSphere,0x14C748,clip
@@ -2045,7 +2045,7 @@ GlobalDestructors_cm,0x14FAA8,cm
 InitContessa,0x14FAC8,contessa
 UpdateContessa,0x14FAF8,contessa
 StaticInit_contessa,0x14FB50,contessa
-func_0014FC88,0x14FC88,contessa
+GlobalConstructors_contessa,0x14FC88,contessa
 CPLCY_ctor,0x14FCA8,cplcy
 InitCplcy,0x14FCC0,cplcy
 ActivateCplcy,0x14FCC8,cplcy
@@ -2125,12 +2125,12 @@ GetAverageRhythmScore,0x153760,rhythm
 ResetRhythmScore,0x153800,rhythm
 AddRhythmManagerGrade,0x153810,rhythm
 StaticInit_rhythm,0x153850,rhythm
-func_00153988,0x153988,rhythm
+GlobalConstructors_rhythm,0x153988,rhythm
 StaticInit_empty_1539A8,0x1539B0,empty_1539A8
-func_00153AE8,0x153AE8,empty_1539A8
+GlobalConstructors_empty_1539A8,0x153AE8,empty_1539A8
 LoadCid122FromBrx,0x153B08,filerec
 StaticInit_filerec,0x153C00,filerec
-func_00153D38,0x153D38,filerec
+GlobalConstructors_filerec,0x153D38,filerec
 InitDetector,0x153D58,detector
 UpdateDetector,0x153DB0,detector
 UpdateDetectorTargets,0x153DE0,detector
@@ -2149,7 +2149,7 @@ FilterDetectorLineOfSightHit,0x154568,detector
 IsDetectorLineBlocked,0x1545F0,detector
 IsDetectorTargetConcealed,0x154770,detector
 StaticInit_detector,0x154908,detector
-func_00154A40,0x154A40,detector
+GlobalConstructors_detector,0x154A40,detector
 InitDifficulty,0x154A60,difficulty
 ClearDifficulty,0x154A80,difficulty
 HandleDifficultyMessage,0x154A90,difficulty
@@ -2177,7 +2177,7 @@ SetBhvDimitriAttackState,0x155AE0,dimitri
 UpdateBhvDimitriAttack,0x155D90,dimitri
 ChooseEscapePosition,0x155FB0,dimitri
 StaticInit_dimitri,0x156390,dimitri
-func_001564C8,0x1564C8,dimitri
+GlobalConstructors_dimitri,0x1564C8,dimitri
 InitNoiseType,0x1564E8,noise
 CreateNoise,0x156548,noise
 NewNoise,0x156698,noise
@@ -2200,7 +2200,7 @@ DropListenerNoises,0x156DE0,noise
 UpdateListener,0x156EB8,noise
 CanListenerHearNoise,0x156FE8,noise
 StaticInit_noise,0x1570A8,noise
-func_001571E0,0x1571E0,noise
+GlobalConstructors_noise,0x1571E0,noise
 StartupDma__Fv,0x157200,dmas
 __4DMAS,0x157278,dmas
 Clear__4DMAS,0x1572B8,dmas
@@ -2301,7 +2301,7 @@ UpdateScreenFade,0x15DCD8,screenfade
 RenderScreenFade,0x15DD48,screenfade
 StartScreenFade,0x15E1D8,screenfade
 StaticInit_screenfade,0x15E228,screenfade
-func_0015E360,0x15E360,screenfade
+GlobalConstructors_screenfade,0x15E360,screenfade
 GetSwOidBucket,0x15E380,find
 GetSwClassList,0x15E3A8,find
 GetSwProxyRefBucket,0x15E3C0,find
@@ -2524,7 +2524,7 @@ StaticInit_glob,0x16EFE0,glob
 GlobalConstructors_glob,0x16F128,glob
 RenderGomerSelf__FP5GOMERP2CMP2RO,0x16F148,gomer
 StaticInit_gomer,0x16F178,gomer
-func_0016F2B0,0x16F2B0,gomer
+GlobalConstructors_gomer,0x16F2B0,gomer
 BlendDisplayOnBufferMismatch__Fv,0x16F2D0,gs
 VBlankS_Interrupt__Fi,0x16F468,gs
 SyncVBlank__Fv,0x16F560,gs
@@ -2592,7 +2592,7 @@ StartGuardScript,0x171CF8,guardscript
 SetGuardRoutineMode,0x171D58,guardscript
 IsGuardRunningScript,0x171DA8,guardscript
 StaticInit_guardscript,0x171E00,guardscript
-func_00171F38,0x171F38,guardscript
+GlobalConstructors_guardscript,0x171F38,guardscript
 InitBhvSearch,0x171F58,bhvsearch
 StartBhvSearch,0x171FA0,bhvsearch
 CloseBhvSearch,0x171FD0,bhvsearch
@@ -2608,7 +2608,7 @@ CompareSearchCandidates,0x172888,bhvsearch
 ChooseBhvSearchPoints,0x1728B0,bhvsearch
 StepBhvSearchPoint,0x172F10,bhvsearch
 StaticInit_bhvsearch,0x173000,bhvsearch
-func_00173138,0x173138,bhvsearch
+GlobalConstructors_bhvsearch,0x173138,bhvsearch
 InitSpawner,0x173158,spawner
 LoadSpawnerFromBrx,0x1731B8,spawner
 AddSpawnerLoSpot,0x1732E0,spawner
@@ -2629,7 +2629,7 @@ ChooseSpawnerSpawnPoint,0x173F18,spawner
 SpawnGuardFromSpawner,0x174490,spawner
 RemoveSpawnerHierarchy,0x1746B8,spawner
 StaticInit_spawner,0x174740,spawner
-func_00174878,0x174878,spawner
+GlobalConstructors_spawner,0x174878,spawner
 GetStepguardFromLo,0x174898,guardbhv
 InitBhvanim,0x174920,guardbhv
 StartBhvanim,0x174950,guardbhv
@@ -2818,7 +2818,7 @@ AdvanceBhvpatrolpathGoal,0x17ECF0,guardbhv
 IsBhvpatrolpathDone,0x17EE78,guardbhv
 IsBhvpatrolpathAtEnd,0x17EEB8,guardbhv
 StaticInit_guardbhv,0x17EF38,guardbhv
-func_0017F070,0x17F070,guardbhv
+GlobalConstructors_guardbhv,0x17F070,guardbhv
 InitHack,0x17F090,hack
 RemoveHackHierarchy,0x17F110,hack
 PostHackLoad,0x17F138,hack
@@ -2894,7 +2894,7 @@ TakeHackwallDamage,0x1828A8,hack
 KillHackwall,0x1829D8,hack
 AddHackwallSegment,0x182AB8,hack
 StaticInit_hack,0x182B18,hack
-func_00182C50,0x182C50,hack
+GlobalConstructors_hack,0x182C50,hack
 InitGrabspot,0x182C70,grabspot
 GetGrabspotWrapRange,0x182CC0,grabspot
 GetGrabspotClosestParam,0x182CC8,grabspot
@@ -2974,7 +2974,7 @@ GlobalConstructors_streambis,0x184F30,streambis
 InitHnd,0x184F50,hnd
 GetHndGrabPosition,0x184F98,hnd
 StaticInit_hnd,0x184FD8,hnd
-func_00185110,0x185110,hnd
+GlobalConstructors_hnd,0x185110,hnd
 InitCid8,0x185130,sticky
 LoadCid8FromBrx,0x185150,sticky
 FindMeshClosestPoint,0x185310,sticky
@@ -3068,7 +3068,7 @@ UpdateJtFaceTarget,0x18E1E0,jt
 UpdateAllGuardsPickpocket,0x18E330,jt
 OnJtActive,0x18E3A0,jt
 StaticInit_jt,0x18E3E8,jt
-func_0018E520,0x18E520,jt
+GlobalConstructors_jt,0x18E520,jt
 SetJtCaneState__FP2JTi,0x18E540,cane
 UpdateJtCane__FP2JT,0x18ED70,cane
 ShouldJtSweepBack,0x18ED98,cane
@@ -3092,7 +3092,7 @@ GetJtHangHandlePosition,0x190C58,hang
 RenderJtHangIk,0x190D10,hang
 UpdateJtHangIkGoals__FP2JT,0x190E18,hang
 StaticInit_hang,0x190F38,hang
-func_00191070,0x191070,hang
+GlobalConstructors_hang,0x191070,hang
 InitJtGrab,0x191090,grab
 PostLoadJtGrab,0x1910F8,grab
 UpdateJtGrabInput,0x1911A8,grab
@@ -3120,7 +3120,7 @@ SetGrabMarkerProxy,0x195608,grab
 AcquireJtGrabMarker,0x1956D0,grab
 PostLoadGrabMarker,0x1957C0,grab
 StaticInit_grab,0x1957F8,grab
-func_00195930,0x195930,grab
+GlobalConstructors_grab,0x195930,grab
 InitJtAir,0x195950,air
 PostLoadJtAir,0x1959C0,air
 SetJtAirJump,0x195A00,air
@@ -3164,7 +3164,7 @@ AddJmtHierarchy,0x19C9E8,air
 RemoveJmtHierarchy,0x19CA20,air
 CloneJmt,0x19CA58,air
 StaticInit_air,0x19CAA0,air
-func_0019CBD8,0x19CBD8,air
+GlobalConstructors_air,0x19CBD8,air
 InitJtMode,0x19CBF8,mode
 PostLoadJtMode,0x19CC30,mode
 StartJtMode,0x19CC50,mode
@@ -3178,7 +3178,7 @@ GatherJtModeHudTags,0x19D948,mode
 UpdateJtModeHud,0x19DA78,mode
 SetJtModeHudOverride,0x19DCA0,mode
 StaticInit_mode,0x19DCB8,mode
-func_0019DDF0,0x19DDF0,mode
+GlobalConstructors_mode,0x19DDF0,mode
 InitJtPipe,0x19DE10,pipe_jt
 PostJtLoadPipe,0x19DE58,pipe_jt
 PresetJtAccelPipe,0x19DF70,pipe_jt
@@ -3193,13 +3193,13 @@ SetJtPipeVectors,0x19EAA0,pipe_jt
 SetJtPipeState,0x19EAB0,pipe_jt
 CanJtUseGadgetOnPipe,0x19EEF0,pipe_jt
 StaticInit_pipe_jt,0x19EF50,pipe_jt
-func_0019F088,0x19F088,pipe_jt
+GlobalConstructors_pipe_jt,0x19F088,pipe_jt
 RefreshPlayersAfterPowerupChange,0x19F0A8,guardoverride
 UpdateSwGuardOverride,0x19F120,guardoverride
 SetGuardOverride,0x19F170,guardoverride
 SetAllGuardsSpecialState,0x19F220,guardoverride
 StaticInit_guardoverride,0x19F290,guardoverride
-func_0019F3C8,0x19F3C8,guardoverride
+GlobalConstructors_guardoverride,0x19F3C8,guardoverride
 InitJtPlaces,0x19F3E8,places
 PostLoadJtPlaces,0x19F3F0,places
 GetJtPlacePosition,0x19F3F8,places
@@ -3213,12 +3213,12 @@ AddJtPlaceAtPosition,0x19FEB0,places
 RemoveJtPlacesOf,0x1A0048,places
 RemoveSwPlacesOf,0x1A00D0,places
 StaticInit_places,0x1A01A8,places
-func_001A02E0,0x1A02E0,places
+GlobalConstructors_places,0x1A02E0,places
 InitDirectionalBlend,0x1A0300,dirblend
 UpdateDirectionalBlend,0x1A0450,dirblend
 UpdateDirectionalAcceleration,0x1A0720,dirblend
 StaticInit_dirblend,0x1A09C0,dirblend
-func_001A0AF8,0x1A0AF8,dirblend
+GlobalConstructors_dirblend,0x1A0AF8,dirblend
 InitJtHurt,0x1A0B18,hurt
 SetJtHurtState,0x1A0B40,hurt
 PostLoadJtHurt,0x1A1098,hurt
@@ -3246,7 +3246,7 @@ UpdateStepplayerWater,0x1A2460,hurt
 ProbeStepplayerSurface,0x1A2788,hurt
 ResolveStepplayerWaterContact,0x1A28B0,hurt
 StaticInit_hurt,0x1A2A78,hurt
-func_001A2BB0,0x1A2BB0,hurt
+GlobalConstructors_hurt,0x1A2BB0,hurt
 SetLanguage,0x1A2BD0,language
 SetRegion,0x1A2C20,language
 GetRegionLanguages,0x1A2C48,language
@@ -3569,7 +3569,7 @@ SetCritterLink,0x1B1B18,critter
 FindCritterLinkObject,0x1B1B98,critter
 ResolveCritterLinks,0x1B1BF0,critter
 StaticInit_critter,0x1B1C60,critter
-func_001B1D98,0x1B1D98,critter
+GlobalConstructors_critter,0x1B1D98,critter
 InitMissile__FP7MISSILE,0x1B1DB8,missile
 LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream,0x1B1E00,missile
 OnMissileRemove__FP7MISSILE,0x1B1E38,missile
@@ -3585,7 +3585,7 @@ FireSplmiss,0x1B2228,missile
 GetMissileTargetPosition,0x1B2398,missile
 PresetSplmissAccel,0x1B2468,missile
 StaticInit_missile,0x1B26C8,missile
-func_001B2800,0x1B2800,missile
+GlobalConstructors_missile,0x1B2800,missile
 FindMpegSubtitles,0x1B2820,mpeg
 MpegDisplayThread,0x1B2828,mpeg
 StartupMpeg__Fv,0x1B2940,mpeg
@@ -3619,7 +3619,7 @@ Finish__5CMpeg,0x1B4140,mpeg
 DemuxStream__5CMpegi,0x1B41D0,mpeg
 IsMpegActive,0x1B42C0,mpeg
 StaticInit_mpeg,0x1B42D0,mpeg
-func_001B4418,0x1B4418,mpeg
+GlobalConstructors_mpeg,0x1B4418,mpeg
 InitMs,0x1B4438,ms
 RenderMsGlobset,0x1B4478,ms
 CollectVisibleMsGlobs,0x1B44D8,ms
@@ -3738,7 +3738,7 @@ IsBreakableDone,0x1BBE48,breakable
 GetCurrentBreakableStage,0x1BBE68,breakable
 ResetBreakable,0x1BBEA8,breakable
 StaticInit_breakable,0x1BBEF8,breakable
-func_001BC030,0x1BC030,breakable
+GlobalConstructors_breakable,0x1BC030,breakable
 InitCid14,0x1BC050,cnvo
 LoadCid14FromBrx,0x1BC088,cnvo
 CloneCid14,0x1BC0D0,cnvo
@@ -3849,7 +3849,7 @@ ClearLootPouchLoot,0x1C2DB8,lootpouch
 StageLootPouchLoot,0x1C2DC8,lootpouch
 LaunchLootPouchLootAtPlayer,0x1C2EF0,lootpouch
 StaticInit_lootpouch,0x1C3238,lootpouch
-func_001C3370,0x1C3370,lootpouch
+GlobalConstructors_lootpouch,0x1C3370,lootpouch
 InitPipe,0x1C3390,pipe
 OnPipeAdd,0x1C33E8,pipe
 OnPipeRemove,0x1C3420,pipe
@@ -3862,7 +3862,7 @@ GetPipeSparklePosition,0x1C3A88,pipe
 GetPipeWrapRange,0x1C3BB0,pipe
 SetPipeGrabEnabled,0x1C3C08,pipe
 StaticInit_pipe,0x1C3C18,pipe
-func_001C3D50,0x1C3D50,pipe
+GlobalConstructors_pipe,0x1C3D50,pipe
 InitPo,0x1C3D70,po
 LoadPoFromBrx,0x1C3DC8,po
 ClonePo,0x1C3DF8,po
@@ -3960,7 +3960,7 @@ SetVaultState,0x1C8730,prize
 SetVaultDialState,0x1C8918,prize
 TriggerVault,0x1C8AF0,prize
 StaticInit_prize,0x1C8B68,prize
-func_001C8CA0,0x1C8CA0,prize
+GlobalConstructors_prize,0x1C8CA0,prize
 __5CProgP4RGBAN31,0x1C8CC0,prog
 Begin__5CProg,0x1C8D20,prog
 SetRemain__5CProgi,0x1C8D40,prog
@@ -4021,12 +4021,12 @@ GetRailClosestParam,0x1CBAC0,rail
 GetRailGrabPosition,0x1CBB58,rail
 GetRailSparklePosition,0x1CBBA8,rail
 StaticInit_rail,0x1CBD58,rail
-func_001CBE90,0x1CBE90,rail
+GlobalConstructors_rail,0x1CBE90,rail
 InitRajan,0x1CBEB0,rajan
 CanRajanSenseStimulus,0x1CBEE0,rajan
 SetRajanCameraFocus,0x1CBF90,rajan
 StaticInit_rajan,0x1CC000,rajan
-func_001CC138,0x1CC138,rajan
+GlobalConstructors_rajan,0x1CC138,rajan
 ResetJtHands,0x1CC158,jthands
 GetClosestPointOnJtHandsCurveA,0x1CC168,jthands
 GetClosestPointOnJtHandsCurveB,0x1CC1F8,jthands
@@ -4043,7 +4043,7 @@ AttachJtHandsObject,0x1CD098,jthands
 ReleaseJtHandsActs,0x1CD2C0,jthands
 SetJtHandsTargetAttached,0x1CD308,jthands
 StaticInit_jthands,0x1CD498,jthands
-func_001CD5D0,0x1CD5D0,jthands
+GlobalConstructors_jthands,0x1CD5D0,jthands
 FillScreenRect,0x1CD5F0,render
 DrawWorldLabel,0x1CD780,render
 AllocRenderListEntry,0x1CD998,render
@@ -4158,7 +4158,7 @@ ResetRobottankPickup,0x1D4F10,robottank
 UpdateRcPickup,0x1D4F50,robottank
 SetRcPickupState,0x1D4FA0,robottank
 StaticInit_robottank,0x1D4FF8,robottank
-func_001D5130,0x1D5130,robottank
+GlobalConstructors_robottank,0x1D5130,robottank
 InitRumble__FP6RUMBLEii,0x1D5150,rumble
 UpdateRumble__FP6RUMBLE,0x1D51B8,rumble
 TriggerRumbleRumk__FP6RUMBLE4RUMKf,0x1D5310,rumble
@@ -4195,9 +4195,9 @@ AddSafehouseEntry,0x1D7748,safehouse
 SetPoChoices,0x1D7780,safehouse
 StepCharSelect,0x1D77D0,safehouse
 StaticInit_safehouse,0x1D78D8,safehouse
-func_001D7A10,0x1D7A10,safehouse
+GlobalConstructors_safehouse,0x1D7A10,safehouse
 StaticInit_empty_1D7A30,0x1D7A30,empty_1D7A30
-func_001D7B68,0x1D7B68,empty_1D7A30
+GlobalConstructors_empty_1D7A30,0x1D7B68,empty_1D7A30
 LoadSaveSchemaFromBrx,0x1D7B88,save
 ResetGsIfSchemaChanged,0x1D7C80,save
 DoesGsMatchSchema,0x1D7D30,save
@@ -4339,7 +4339,7 @@ MoveLasenEndpoints,0x1DF3D0,sensor
 RenderLasenSelf,0x1DF5B0,sensor
 AddLasenBeam,0x1DF908,sensor
 StaticInit_sensor,0x1DF980,sensor
-func_001DFAB8,0x1DFAB8,sensor
+GlobalConstructors_sensor,0x1DFAB8,sensor
 InitRelay,0x1DFAD8,relay
 LoadRelayFromBrx,0x1DFB10,relay
 CloneRelay,0x1DFBF8,relay
@@ -4480,7 +4480,7 @@ StartRelayScriptCamBlend,0x1E57A0,relay
 EndJsgCamBlend,0x1E5A98,relay
 NewRelayJsg,0x1E5AE0,relay
 StaticInit_relay,0x1E5C28,relay
-func_001E5D60,0x1E5D60,relay
+GlobalConstructors_relay,0x1E5D60,relay
 InitShape,0x1E5D80,shape
 CloneShape,0x1E5DB8,shape
 LoadShapeFromBrx,0x1E5DF8,shape
@@ -4643,7 +4643,7 @@ PopBhv,0x1EF0D8,bhvstk
 ConstructBhv,0x1EF138,bhvstk
 GetBhvSlotSize,0x1EF6F0,bhvstk
 StaticInit_bhvstk,0x1EF6F8,bhvstk
-func_001EF830,0x1EF830,bhvstk
+GlobalConstructors_bhvstk,0x1EF830,bhvstk
 PostSkyLoad,0x1EF850,sky
 UpdateSky,0x1EF8C8,sky
 StaticInit_sky,0x1EF938,sky
@@ -4701,7 +4701,7 @@ PickpocketStepguard,0x1F1E20,pickpocket
 GetStepguardLootRefList,0x1F1EB8,pickpocket
 SetStepguardPlayable,0x1F1F38,pickpocket
 StaticInit_pickpocket,0x1F1FB0,pickpocket
-func_001F20E8,0x1F20E8,pickpocket
+GlobalConstructors_pickpocket,0x1F20E8,pickpocket
 InitSo,0x1F2108,so
 SetSoParent,0x1F21B8,so
 ReleaseSoBoundsHierarchy,0x1F2468,so
@@ -5063,7 +5063,7 @@ SetReconTargetDone,0x2036E8,recon
 IsReconTargetDone,0x203758,recon
 IsReconTargetSelectable,0x203790,recon
 StaticInit_recon,0x2037F0,recon
-func_00203928,0x203928,recon
+GlobalConstructors_recon,0x203928,recon
 InitStep,0x203948,step
 LoadStepFromBrx,0x2039C0,step
 CloneStep,0x203A08,step
@@ -5297,7 +5297,7 @@ IsDirAnimStopped,0x20CA98,gait
 HandleCid146Message,0x20CAA8,gait
 SelectDirAnim,0x20CB28,gait
 StaticInit_gait,0x20CCD0,gait
-func_0020CE08,0x20CE08,gait
+GlobalConstructors_gait,0x20CE08,gait
 InitStuckWatch,0x20CE28,watchdog
 ResetStuckWatch,0x20CE40,watchdog
 UpdateStuckWatch,0x20CE70,watchdog
@@ -5312,7 +5312,7 @@ UpdateHazardWatch,0x20D1F8,watchdog
 SetHazardWatchState,0x20D3C0,watchdog
 SetHazardWatchTarget,0x20D460,watchdog
 StaticInit_watchdog,0x20D478,watchdog
-func_0020D5B0,0x20D5B0,watchdog
+GlobalConstructors_watchdog,0x20D5B0,watchdog
 __5OSTRMi,0x20D5D0,stream
 __5OSTRMPvi,0x20D5F0,stream
 _$_5OSTRM,0x20D618,stream
@@ -5538,7 +5538,7 @@ OnLookTargetRemove,0x21D428,target
 OnLookTargetAdd,0x21D460,target
 CloneLookTarget,0x21D498,target
 StaticInit_target,0x21D4E0,target
-func_0021D618,0x21D618,target
+GlobalConstructors_target,0x21D618,target
 ParseDecimalInt__FPcPi,0x21D638,text
 ParseFormatSpec__FPcP3TFTPPc,0x21D6B0,text
 WriteTftPchz__FP3TFTP5OSTRMPc,0x21D9F0,text
@@ -5581,7 +5581,7 @@ StartJtThrowFlight,0x220508,throw
 ReleaseJtThrowObject,0x2205A8,throw
 SetJtThrowState,0x2206C8,throw
 StaticInit_throw,0x220BE8,throw
-func_00220D20,0x220D20,throw
+GlobalConstructors_throw,0x220D20,throw
 InitTnDefaultAngles,0x220D40,tn
 BlendTnFocusPos,0x220DD8,tn
 InitTn,0x220ED0,tn
@@ -5640,7 +5640,7 @@ UpdateGuardTrap,0x225300,gadget
 PushGuardTrapAway,0x2255C8,gadget
 SelectGuardTrapTarget,0x225660,gadget
 StaticInit_gadget,0x225880,gadget
-func_002259B8,0x2259B8,gadget
+GlobalConstructors_gadget,0x2259B8,gadget
 InitTurret,0x2259D8,turret
 CloneTurret,0x225A68,turret
 PostTurretLoad,0x225AA8,turret
@@ -5652,7 +5652,7 @@ UpdateTurretFire,0x226250,turret
 FilterTurretProxySource,0x226310,turret
 SetTurretActive,0x226370,turret
 StaticInit_turret,0x2263F8,turret
-func_00226530,0x226530,turret
+GlobalConstructors_turret,0x226530,turret
 UpdateSw,0x226550,update
 UpdateSwObjects,0x2267C0,update
 StaticInit_update,0x226960,update
@@ -5750,7 +5750,7 @@ UpdateWaypt,0x22A060,waypoint
 CalculateWayptCurtainExtraHeight,0x22A220,waypoint
 RenderWaypt,0x22A908,waypoint
 StaticInit_waypoint,0x22AEE8,waypoint
-func_0022B020,0x22B020,waypoint
+GlobalConstructors_waypoint,0x22B020,waypoint
 InitWipe,0x22B050,wipe
 SetWipeWipes,0x22B090,wipe
 UpdateWipe,0x22B198,wipe

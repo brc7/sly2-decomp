@@ -1,7 +1,7 @@
 // gomer.cpp -- GOMER, a named guard (STEPGUARD subclass) whose only override is Init.
 // TU 0x16F148..0x16F2D0 (3 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gomer
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0016F2B0
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_gomer
 #include "sly2/guard.h"
 #include "sly2/slotheap.h"
 #include "sly2/classes.h"

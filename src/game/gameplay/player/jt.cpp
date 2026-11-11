@@ -10,7 +10,7 @@
 // namespaces named after each function (as vec.cpp and mark.cpp do). The m2c bodies are written on the headers.
 // A JT key function is defined here (no __tf2JT typeinfo extra since -fno-rtti).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_jt
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0018E520
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_jt
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"

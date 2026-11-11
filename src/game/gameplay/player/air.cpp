@@ -5,7 +5,7 @@
 // Entry points: SetJtAirJump (every launch into the air), SetJtAirState, UpdateJtAirInput/UpdateJtActiveJump and
 // PresetJtAccelJump (per frame), ChooseJtLanding (jump target choice), FindJtBestEdge (ledge grabs), IsJtStuck.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_air
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0019CBD8
+// SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_air
 
 #include "sly2/basic.h"
 #include "sly2/lo.h"

@@ -1473,7 +1473,7 @@ SendBarrierImpactMessages,0x132298,75,match,src/game/gameplay/objects/barrier.cp
 AddBarrierObject__FP7BARRIER3OID,0x1323C8,10,match,src/game/gameplay/objects/barrier.cpp
 AddBarrierClass__FP7BARRIER3CID,0x1323F0,10,match,src/game/gameplay/objects/barrier.cpp
 StaticInit_barrier,0x132418,77,match,src/game/gameplay/objects/barrier.cpp
-func_00132550,0x132550,8,match,src/game/gameplay/objects/barrier.cpp
+GlobalConstructors_barrier,0x132550,8,match,src/game/gameplay/objects/barrier.cpp
 __18CBinaryAsyncStreamPv,0x132570,17,match,src/game/core/binstream/bas.cpp
 _$_18CBinaryAsyncStream,0x1325B8,17,match,src/game/core/binstream/bas.cpp
 OpenBasFromFileKey,0x132600,14,match,src/game/core/binstream/bas.cpp
@@ -1529,7 +1529,7 @@ RefreshSwObjectCollisionFilter,0x134320,30,match,src/game/engine/physics/bbmark.
 StaticInit_bbmark,0x134398,77,match,src/game/engine/physics/bbmark.cpp
 GlobalConstructors_bbmark,0x1344D0,8,match,src/game/engine/physics/bbmark.cpp
 StaticInit_empty_1344F0,0x1344F0,77,match,src/game/gameplay/player/empty_1344F0.cpp
-func_00134628,0x134628,8,match,src/game/gameplay/player/empty_1344F0.cpp
+GlobalConstructors_empty_1344F0,0x134628,8,match,src/game/gameplay/player/empty_1344F0.cpp
 InitBentley,0x134648,73,match,src/game/gameplay/player/bentley.cpp
 LoadBentleyFromBrx,0x134770,14,match,src/game/gameplay/player/bentley.cpp
 PostBentleyLoad,0x1347A8,42,match,src/game/gameplay/player/bentley.cpp
@@ -1577,9 +1577,9 @@ SetBentleyXpFriction,0x1374E0,4,match,src/game/gameplay/player/bentley.cpp
 IsBentleyHelperTargetBehind,0x1374F0,56,match,src/game/gameplay/player/bentley.cpp
 SetBentleyHelperState,0x1375D0,108,match,src/game/gameplay/player/bentley.cpp
 StaticInit_bentley,0x137780,77,match,src/game/gameplay/player/bentley.cpp
-func_001378B8,0x1378B8,8,match,src/game/gameplay/player/bentley.cpp
+GlobalConstructors_bentley,0x1378B8,8,match,src/game/gameplay/player/bentley.cpp
 StaticInit_empty_1378D8,0x1378D8,77,match,src/game/gameplay/player/empty_1378D8.cpp
-func_00137A10,0x137A10,8,match,src/game/gameplay/player/empty_1378D8.cpp
+GlobalConstructors_empty_1378D8,0x137A10,8,match,src/game/gameplay/player/empty_1378D8.cpp
 EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL,0x137A30,354,match,src/game/engine/anim/blend.cpp
 FillBlendSyncTables__FiiPviiP3OID,0x137FB8,78,match,src/game/engine/anim/blend.cpp
 CalculateBlendSyncTable__FiiPviiP4MRSGPf,0x1380F0,160,match,src/game/engine/anim/blend.cpp
@@ -1633,7 +1633,7 @@ ResetBomb,0x13BB80,30,match,src/game/gameplay/objects/bomb.cpp
 ShouldBombIgnoreIntersection,0x13BBF8,25,match,src/game/gameplay/objects/bomb.cpp
 SetBombOwner,0x13BC60,13,match,src/game/gameplay/objects/bomb.cpp
 StaticInit_bomb,0x13BC98,77,match,src/game/gameplay/objects/bomb.cpp
-func_0013BDD0,0x13BDD0,8,match,src/game/gameplay/objects/bomb.cpp
+GlobalConstructors_bomb,0x13BDD0,8,match,src/game/gameplay/objects/bomb.cpp
 InitBooty,0x13BDF0,25,match,src/game/gameplay/progression/booty.cpp
 LoadBootyFromBrx,0x13BE58,42,match,src/game/gameplay/progression/booty.cpp
 PostBootyLoad,0x13BF00,12,match,src/game/gameplay/progression/booty.cpp
@@ -1794,7 +1794,7 @@ UpdateJtgoal,0x144640,172,match,src/game/gameplay/player/jtgoal.cpp
 SetJtgoal,0x1448F0,53,match,src/game/gameplay/player/jtgoal.cpp
 IsJtgoalHolding,0x1449C8,2,match,src/game/gameplay/player/jtgoal.cpp
 StaticInit_jtgoal,0x1449D0,77,match,src/game/gameplay/player/jtgoal.cpp
-func_00144B08,0x144B08,8,match,src/game/gameplay/player/jtgoal.cpp
+GlobalConstructors_jtgoal,0x144B08,8,match,src/game/gameplay/player/jtgoal.cpp
 InitBhvwalkgoal,0x144B28,12,match,src/game/gameplay/ai/stepbhv.cpp
 StartBhvwalkgoal,0x144B58,13,match,src/game/gameplay/ai/stepbhv.cpp
 UpdateBhvwalkgoal,0x144B90,13,match,src/game/gameplay/ai/stepbhv.cpp
@@ -1837,7 +1837,7 @@ StartBhvMurray,0x146E98,18,match,src/game/gameplay/ai/stepbhv.cpp
 CloseBhvMurray,0x146EE0,14,match,src/game/gameplay/ai/stepbhv.cpp
 UpdateBhvMurray,0x146F18,83,match,src/game/gameplay/ai/stepbhv.cpp
 StaticInit_stepbhv,0x147068,77,match,src/game/gameplay/ai/stepbhv.cpp
-func_001471A0,0x1471A0,8,match,src/game/gameplay/ai/stepbhv.cpp
+GlobalConstructors_stepbhv,0x1471A0,8,match,src/game/gameplay/ai/stepbhv.cpp
 InitFrameCapture,0x1471C0,24,match,src/game/gameplay/cutscene/framecapture.cpp
 PostFrameCaptureLoad,0x147220,21,match,src/game/gameplay/cutscene/framecapture.cpp
 UpdateFrameCapture,0x147278,48,match,src/game/gameplay/cutscene/framecapture.cpp
@@ -1848,7 +1848,7 @@ IsFrameCaptureInactive,0x1477B0,9,match,src/game/gameplay/cutscene/framecapture.
 DrawFrameCaptureScreen,0x1477D8,274,match,src/game/gameplay/cutscene/framecapture.cpp
 StartFrameCapture,0x147C20,42,match,src/game/gameplay/cutscene/framecapture.cpp
 StaticInit_framecapture,0x147CC8,77,match,src/game/gameplay/cutscene/framecapture.cpp
-func_00147E00,0x147E00,8,match,src/game/gameplay/cutscene/framecapture.cpp
+GlobalConstructors_framecapture,0x147E00,8,match,src/game/gameplay/cutscene/framecapture.cpp
 RemoveFromSwBusyList,0x147E20,25,match,src/game/object/busy.cpp
 ResortSwBusyEntry,0x147E88,16,match,src/game/object/busy.cpp
 UnlinkSwBusyEntry,0x147EC8,7,match,src/game/object/busy.cpp
@@ -1906,7 +1906,7 @@ AddVolbtnEventListener,0x149828,7,match,src/game/gameplay/objects/button.cpp
 GetVolbtnPushStateRef,0x149848,13,match,src/game/gameplay/objects/button.cpp
 RemoveVolbtnHierarchy,0x149880,30,match,src/game/gameplay/objects/button.cpp
 StaticInit_button,0x1498F8,77,match,src/game/gameplay/objects/button.cpp
-func_00149A30,0x149A30,8,match,src/game/gameplay/objects/button.cpp
+GlobalConstructors_button,0x149A30,8,match,src/game/gameplay/objects/button.cpp
 PostSwCallback,0x149A50,26,match,src/game/world/scene/callback.cpp
 EnsureSwCallback,0x149AB8,39,match,src/game/world/scene/callback.cpp
 ClearSwCallbacks,0x149B58,73,match,src/game/world/scene/callback.cpp
@@ -1933,7 +1933,7 @@ ChooseCarmelitaTarget,0x14B290,115,match,src/game/gameplay/ai/carmelita.cpp
 IsCarmelitaZapLethal,0x14B460,2,match,src/game/gameplay/ai/carmelita.cpp
 SendCarmelitaRootBhvValue,0x14B468,39,match,src/game/gameplay/ai/carmelita.cpp
 StaticInit_carmelita,0x14B508,77,match,src/game/gameplay/ai/carmelita.cpp
-func_0014B640,0x14B640,8,match,src/game/gameplay/ai/carmelita.cpp
+GlobalConstructors_carmelita,0x14B640,8,match,src/game/gameplay/ai/carmelita.cpp
 SetCdPollStateIdle,0x14B660,4,match,src/game/platform/cdvd/cdutil.cpp
 GetFileKeySize,0x14B670,7,match,src/game/platform/cdvd/cdutil.cpp
 GetFileIdName,0x14B690,3,match,src/game/platform/cdvd/cdutil.cpp
@@ -1961,9 +1961,9 @@ ClearCheatItems,0x14C258,22,match,src/game/gameplay/progression/cheat.cpp
 CheatGiveGadget,0x14C2B0,10,match,src/game/gameplay/progression/cheat.cpp
 StartupCodes,0x14C2D8,70,match,src/game/gameplay/progression/cheat.cpp
 StaticInit_cheat,0x14C3F0,77,match,src/game/gameplay/progression/cheat.cpp
-func_0014C528,0x14C528,8,match,src/game/gameplay/progression/cheat.cpp
+GlobalConstructors_cheat,0x14C528,8,match,src/game/gameplay/progression/cheat.cpp
 StaticInit_empty_14C548,0x14C548,77,match,src/game/gameplay/objects/empty_14C548.cpp
-func_0014C680,0x14C680,8,match,src/game/gameplay/objects/empty_14C548.cpp
+GlobalConstructors_empty_14C548,0x14C680,8,match,src/game/gameplay/objects/empty_14C548.cpp
 ClipEdgeToObject,0x14C6A0,14,match,src/game/engine/physics/clip.cpp
 ClipEdgeToObjectPruned,0x14C6D8,28,match,src/game/engine/physics/clip.cpp
 ClipEdgeToSphere,0x14C748,172,match,src/game/engine/physics/clip.cpp
@@ -2036,7 +2036,7 @@ GlobalDestructors_cm,0x14FAA8,8,match,src/game/engine/camera/cm.cpp
 InitContessa,0x14FAC8,11,match,src/game/gameplay/ai/contessa.cpp
 UpdateContessa,0x14FAF8,22,match,src/game/gameplay/ai/contessa.cpp
 StaticInit_contessa,0x14FB50,77,match,src/game/gameplay/ai/contessa.cpp
-func_0014FC88,0x14FC88,8,match,src/game/gameplay/ai/contessa.cpp
+GlobalConstructors_contessa,0x14FC88,8,match,src/game/gameplay/ai/contessa.cpp
 CPLCY_ctor,0x14FCA8,5,match,src/game/engine/camera/cplcy.cpp
 InitCplcy,0x14FCC0,2,match,src/game/engine/camera/cplcy.cpp
 ActivateCplcy,0x14FCC8,8,match,src/game/engine/camera/cplcy.cpp
@@ -2116,12 +2116,12 @@ GetAverageRhythmScore,0x153760,39,match,src/game/gameplay/objects/rhythm.cpp
 ResetRhythmScore,0x153800,4,match,src/game/gameplay/objects/rhythm.cpp
 AddRhythmManagerGrade,0x153810,16,match,src/game/gameplay/objects/rhythm.cpp
 StaticInit_rhythm,0x153850,77,match,src/game/gameplay/objects/rhythm.cpp
-func_00153988,0x153988,8,match,src/game/gameplay/objects/rhythm.cpp
+GlobalConstructors_rhythm,0x153988,8,match,src/game/gameplay/objects/rhythm.cpp
 StaticInit_empty_1539A8,0x1539B0,77,match,src/game/gameplay/objects/empty_1539A8.cpp
-func_00153AE8,0x153AE8,8,match,src/game/gameplay/objects/empty_1539A8.cpp
+GlobalConstructors_empty_1539A8,0x153AE8,8,match,src/game/gameplay/objects/empty_1539A8.cpp
 LoadCid122FromBrx,0x153B08,61,match,src/game/gameplay/objects/filerec.cpp
 StaticInit_filerec,0x153C00,77,match,src/game/gameplay/objects/filerec.cpp
-func_00153D38,0x153D38,8,match,src/game/gameplay/objects/filerec.cpp
+GlobalConstructors_filerec,0x153D38,8,match,src/game/gameplay/objects/filerec.cpp
 InitDetector,0x153D58,22,match,src/game/gameplay/ai/detector.cpp
 UpdateDetector,0x153DB0,11,match,src/game/gameplay/ai/detector.cpp
 UpdateDetectorTargets,0x153DE0,31,match,src/game/gameplay/ai/detector.cpp
@@ -2140,7 +2140,7 @@ FilterDetectorLineOfSightHit,0x154568,33,match,src/game/gameplay/ai/detector.cpp
 IsDetectorLineBlocked,0x1545F0,96,match,src/game/gameplay/ai/detector.cpp
 IsDetectorTargetConcealed,0x154770,101,match,src/game/gameplay/ai/detector.cpp
 StaticInit_detector,0x154908,77,match,src/game/gameplay/ai/detector.cpp
-func_00154A40,0x154A40,8,match,src/game/gameplay/ai/detector.cpp
+GlobalConstructors_detector,0x154A40,8,match,src/game/gameplay/ai/detector.cpp
 InitDifficulty,0x154A60,8,match,src/game/world/state/difficulty.cpp
 ClearDifficulty,0x154A80,4,match,src/game/world/state/difficulty.cpp
 HandleDifficultyMessage,0x154A90,127,match,src/game/world/state/difficulty.cpp
@@ -2168,7 +2168,7 @@ SetBhvDimitriAttackState,0x155AE0,172,match,src/game/gameplay/ai/dimitri.cpp
 UpdateBhvDimitriAttack,0x155D90,135,match,src/game/gameplay/ai/dimitri.cpp
 ChooseEscapePosition,0x155FB0,248,match,src/game/gameplay/ai/dimitri.cpp
 StaticInit_dimitri,0x156390,77,match,src/game/gameplay/ai/dimitri.cpp
-func_001564C8,0x1564C8,8,match,src/game/gameplay/ai/dimitri.cpp
+GlobalConstructors_dimitri,0x1564C8,8,match,src/game/gameplay/ai/dimitri.cpp
 InitNoiseType,0x1564E8,24,match,src/game/gameplay/ai/noise.cpp
 CreateNoise,0x156548,84,match,src/game/gameplay/ai/noise.cpp
 NewNoise,0x156698,8,match,src/game/gameplay/ai/noise.cpp
@@ -2191,7 +2191,7 @@ DropListenerNoises,0x156DE0,53,match,src/game/gameplay/ai/noise.cpp
 UpdateListener,0x156EB8,75,match,src/game/gameplay/ai/noise.cpp
 CanListenerHearNoise,0x156FE8,48,match,src/game/gameplay/ai/noise.cpp
 StaticInit_noise,0x1570A8,77,match,src/game/gameplay/ai/noise.cpp
-func_001571E0,0x1571E0,8,match,src/game/gameplay/ai/noise.cpp
+GlobalConstructors_noise,0x1571E0,8,match,src/game/gameplay/ai/noise.cpp
 StartupDma__Fv,0x157200,29,match,src/game/engine/graphics/backend/dmas.cpp
 __4DMAS,0x157278,15,match,src/game/engine/graphics/backend/dmas.cpp
 Clear__4DMAS,0x1572B8,5,match,src/game/engine/graphics/backend/dmas.cpp
@@ -2291,7 +2291,7 @@ UpdateScreenFade,0x15DCD8,27,match,src/game/gameplay/objects/screenfade.cpp
 RenderScreenFade,0x15DD48,292,match,src/game/gameplay/objects/screenfade.cpp
 StartScreenFade,0x15E1D8,19,match,src/game/gameplay/objects/screenfade.cpp
 StaticInit_screenfade,0x15E228,77,match,src/game/gameplay/objects/screenfade.cpp
-func_0015E360,0x15E360,8,match,src/game/gameplay/objects/screenfade.cpp
+GlobalConstructors_screenfade,0x15E360,8,match,src/game/gameplay/objects/screenfade.cpp
 GetSwOidBucket,0x15E380,9,match,src/game/object/find.cpp
 GetSwClassList,0x15E3A8,5,match,src/game/object/find.cpp
 GetSwProxyRefBucket,0x15E3C0,9,match,src/game/object/find.cpp
@@ -2513,7 +2513,7 @@ StaticInit_glob,0x16EFE0,81,match,src/game/engine/graphics/pipeline/glob.cpp
 GlobalConstructors_glob,0x16F128,8,match,src/game/engine/graphics/pipeline/glob.cpp
 RenderGomerSelf__FP5GOMERP2CMP2RO,0x16F148,11,match,src/game/gameplay/ai/gomer.cpp
 StaticInit_gomer,0x16F178,77,match,src/game/gameplay/ai/gomer.cpp
-func_0016F2B0,0x16F2B0,8,match,src/game/gameplay/ai/gomer.cpp
+GlobalConstructors_gomer,0x16F2B0,8,match,src/game/gameplay/ai/gomer.cpp
 BlendDisplayOnBufferMismatch__Fv,0x16F2D0,101,match,src/game/engine/graphics/backend/gs.cpp
 VBlankS_Interrupt__Fi,0x16F468,61,match,src/game/engine/graphics/backend/gs.cpp
 SyncVBlank__Fv,0x16F560,11,match,src/game/engine/graphics/backend/gs.cpp
@@ -2581,7 +2581,7 @@ StartGuardScript,0x171CF8,24,match,src/game/gameplay/ai/guardscript.cpp
 SetGuardRoutineMode,0x171D58,20,match,src/game/gameplay/ai/guardscript.cpp
 IsGuardRunningScript,0x171DA8,21,match,src/game/gameplay/ai/guardscript.cpp
 StaticInit_guardscript,0x171E00,77,match,src/game/gameplay/ai/guardscript.cpp
-func_00171F38,0x171F38,8,match,src/game/gameplay/ai/guardscript.cpp
+GlobalConstructors_guardscript,0x171F38,8,match,src/game/gameplay/ai/guardscript.cpp
 InitBhvSearch,0x171F58,18,match,src/game/gameplay/ai/bhvsearch.cpp
 StartBhvSearch,0x171FA0,12,match,src/game/gameplay/ai/bhvsearch.cpp
 CloseBhvSearch,0x171FD0,18,match,src/game/gameplay/ai/bhvsearch.cpp
@@ -2597,7 +2597,7 @@ CompareSearchCandidates,0x172888,9,match,src/game/gameplay/ai/bhvsearch.cpp
 ChooseBhvSearchPoints,0x1728B0,407,match,src/game/gameplay/ai/bhvsearch.cpp
 StepBhvSearchPoint,0x172F10,59,match,src/game/gameplay/ai/bhvsearch.cpp
 StaticInit_bhvsearch,0x173000,77,match,src/game/gameplay/ai/bhvsearch.cpp
-func_00173138,0x173138,8,match,src/game/gameplay/ai/bhvsearch.cpp
+GlobalConstructors_bhvsearch,0x173138,8,match,src/game/gameplay/ai/bhvsearch.cpp
 InitSpawner,0x173158,23,match,src/game/gameplay/ai/spawner.cpp
 LoadSpawnerFromBrx,0x1731B8,73,match,src/game/gameplay/ai/spawner.cpp
 AddSpawnerLoSpot,0x1732E0,14,match,src/game/gameplay/ai/spawner.cpp
@@ -2618,7 +2618,7 @@ ChooseSpawnerSpawnPoint,0x173F18,350,match,src/game/gameplay/ai/spawner.cpp
 SpawnGuardFromSpawner,0x174490,138,match,src/game/gameplay/ai/spawner.cpp
 RemoveSpawnerHierarchy,0x1746B8,33,match,src/game/gameplay/ai/spawner.cpp
 StaticInit_spawner,0x174740,77,match,src/game/gameplay/ai/spawner.cpp
-func_00174878,0x174878,8,match,src/game/gameplay/ai/spawner.cpp
+GlobalConstructors_spawner,0x174878,8,match,src/game/gameplay/ai/spawner.cpp
 GetStepguardFromLo,0x174898,34,match,src/game/gameplay/ai/guardbhv.cpp
 InitBhvanim,0x174920,12,match,src/game/gameplay/ai/guardbhv.cpp
 StartBhvanim,0x174950,27,match,src/game/gameplay/ai/guardbhv.cpp
@@ -2807,7 +2807,7 @@ AdvanceBhvpatrolpathGoal,0x17ECF0,97,match,src/game/gameplay/ai/guardbhv.cpp
 IsBhvpatrolpathDone,0x17EE78,15,match,src/game/gameplay/ai/guardbhv.cpp
 IsBhvpatrolpathAtEnd,0x17EEB8,32,match,src/game/gameplay/ai/guardbhv.cpp
 StaticInit_guardbhv,0x17EF38,77,match,src/game/gameplay/ai/guardbhv.cpp
-func_0017F070,0x17F070,8,match,src/game/gameplay/ai/guardbhv.cpp
+GlobalConstructors_guardbhv,0x17F070,8,match,src/game/gameplay/ai/guardbhv.cpp
 InitHack,0x17F090,31,match,src/game/gameplay/objects/hack.cpp
 RemoveHackHierarchy,0x17F110,10,match,src/game/gameplay/objects/hack.cpp
 PostHackLoad,0x17F138,14,match,src/game/gameplay/objects/hack.cpp
@@ -2883,7 +2883,7 @@ TakeHackwallDamage,0x1828A8,75,match,src/game/gameplay/objects/hack.cpp
 KillHackwall,0x1829D8,56,match,src/game/gameplay/objects/hack.cpp
 AddHackwallSegment,0x182AB8,23,match,src/game/gameplay/objects/hack.cpp
 StaticInit_hack,0x182B18,77,match,src/game/gameplay/objects/hack.cpp
-func_00182C50,0x182C50,8,match,src/game/gameplay/objects/hack.cpp
+GlobalConstructors_hack,0x182C50,8,match,src/game/gameplay/objects/hack.cpp
 InitGrabspot,0x182C70,20,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotWrapRange,0x182CC0,2,match,src/game/gameplay/player/grabspot.cpp
 GetGrabspotClosestParam,0x182CC8,2,match,src/game/gameplay/player/grabspot.cpp
@@ -2963,7 +2963,7 @@ GlobalConstructors_streambis,0x184F30,8,match,src/game/core/binstream/streambis.
 InitHnd,0x184F50,17,match,src/game/gameplay/player/hnd.cpp
 GetHndGrabPosition,0x184F98,15,match,src/game/gameplay/player/hnd.cpp
 StaticInit_hnd,0x184FD8,77,match,src/game/gameplay/player/hnd.cpp
-func_00185110,0x185110,8,match,src/game/gameplay/player/hnd.cpp
+GlobalConstructors_hnd,0x185110,8,match,src/game/gameplay/player/hnd.cpp
 InitCid8,0x185130,7,match,src/game/engine/physics/sticky.cpp
 LoadCid8FromBrx,0x185150,111,match,src/game/engine/physics/sticky.cpp
 FindMeshClosestPoint,0x185310,234,match,src/game/engine/physics/sticky.cpp
@@ -3057,7 +3057,7 @@ UpdateJtFaceTarget,0x18E1E0,84,match,src/game/gameplay/player/jt.cpp
 UpdateAllGuardsPickpocket,0x18E330,27,match,src/game/gameplay/player/jt.cpp
 OnJtActive,0x18E3A0,17,match,src/game/gameplay/player/jt.cpp
 StaticInit_jt,0x18E3E8,77,match,src/game/gameplay/player/jt.cpp
-func_0018E520,0x18E520,8,match,src/game/gameplay/player/jt.cpp
+GlobalConstructors_jt,0x18E520,8,match,src/game/gameplay/player/jt.cpp
 SetJtCaneState__FP2JTi,0x18E540,523,match,src/game/gameplay/player/cane.cpp
 UpdateJtCane__FP2JT,0x18ED70,10,match,src/game/gameplay/player/cane.cpp
 ShouldJtSweepBack,0x18ED98,40,match,src/game/gameplay/player/cane.cpp
@@ -3081,7 +3081,7 @@ GetJtHangHandlePosition,0x190C58,46,match,src/game/gameplay/player/hang.cpp
 RenderJtHangIk,0x190D10,65,match,src/game/gameplay/player/hang.cpp
 UpdateJtHangIkGoals__FP2JT,0x190E18,72,match,src/game/gameplay/player/hang.cpp
 StaticInit_hang,0x190F38,77,match,src/game/gameplay/player/hang.cpp
-func_00191070,0x191070,8,match,src/game/gameplay/player/hang.cpp
+GlobalConstructors_hang,0x191070,8,match,src/game/gameplay/player/hang.cpp
 InitJtGrab,0x191090,25,match,src/game/gameplay/player/grab.cpp
 PostLoadJtGrab,0x1910F8,44,match,src/game/gameplay/player/grab.cpp
 UpdateJtGrabInput,0x1911A8,538,match,src/game/gameplay/player/grab.cpp
@@ -3109,7 +3109,7 @@ SetGrabMarkerProxy,0x195608,49,match,src/game/gameplay/player/grab.cpp
 AcquireJtGrabMarker,0x1956D0,59,match,src/game/gameplay/player/grab.cpp
 PostLoadGrabMarker,0x1957C0,13,match,src/game/gameplay/player/grab.cpp
 StaticInit_grab,0x1957F8,77,match,src/game/gameplay/player/grab.cpp
-func_00195930,0x195930,8,match,src/game/gameplay/player/grab.cpp
+GlobalConstructors_grab,0x195930,8,match,src/game/gameplay/player/grab.cpp
 InitJtAir,0x195950,28,match,src/game/gameplay/player/air.cpp
 PostLoadJtAir,0x1959C0,15,match,src/game/gameplay/player/air.cpp
 SetJtAirJump,0x195A00,365,match,src/game/gameplay/player/air.cpp
@@ -3153,7 +3153,7 @@ AddJmtHierarchy,0x19C9E8,13,match,src/game/gameplay/player/air.cpp
 RemoveJmtHierarchy,0x19CA20,13,match,src/game/gameplay/player/air.cpp
 CloneJmt,0x19CA58,18,match,src/game/gameplay/player/air.cpp
 StaticInit_air,0x19CAA0,77,match,src/game/gameplay/player/air.cpp
-func_0019CBD8,0x19CBD8,8,match,src/game/gameplay/player/air.cpp
+GlobalConstructors_air,0x19CBD8,8,match,src/game/gameplay/player/air.cpp
 InitJtMode,0x19CBF8,13,match,src/game/gameplay/player/mode.cpp
 PostLoadJtMode,0x19CC30,7,match,src/game/gameplay/player/mode.cpp
 StartJtMode,0x19CC50,37,match,src/game/gameplay/player/mode.cpp
@@ -3167,7 +3167,7 @@ GatherJtModeHudTags,0x19D948,76,match,src/game/gameplay/player/mode.cpp
 UpdateJtModeHud,0x19DA78,137,match,src/game/gameplay/player/mode.cpp
 SetJtModeHudOverride,0x19DCA0,6,match,src/game/gameplay/player/mode.cpp
 StaticInit_mode,0x19DCB8,77,match,src/game/gameplay/player/mode.cpp
-func_0019DDF0,0x19DDF0,8,match,src/game/gameplay/player/mode.cpp
+GlobalConstructors_mode,0x19DDF0,8,match,src/game/gameplay/player/mode.cpp
 InitJtPipe,0x19DE10,18,match,src/game/gameplay/player/pipe_jt.cpp
 PostJtLoadPipe,0x19DE58,70,match,src/game/gameplay/player/pipe_jt.cpp
 PresetJtAccelPipe,0x19DF70,104,match,src/game/gameplay/player/pipe_jt.cpp
@@ -3182,13 +3182,13 @@ SetJtPipeVectors,0x19EAA0,3,match,src/game/gameplay/player/pipe_jt.cpp
 SetJtPipeState,0x19EAB0,271,match,src/game/gameplay/player/pipe_jt.cpp
 CanJtUseGadgetOnPipe,0x19EEF0,23,match,src/game/gameplay/player/pipe_jt.cpp
 StaticInit_pipe_jt,0x19EF50,77,match,src/game/gameplay/player/pipe_jt.cpp
-func_0019F088,0x19F088,8,match,src/game/gameplay/player/pipe_jt.cpp
+GlobalConstructors_pipe_jt,0x19F088,8,match,src/game/gameplay/player/pipe_jt.cpp
 RefreshPlayersAfterPowerupChange,0x19F0A8,30,match,src/game/gameplay/player/guardoverride.cpp
 UpdateSwGuardOverride,0x19F120,19,match,src/game/gameplay/player/guardoverride.cpp
 SetGuardOverride,0x19F170,44,match,src/game/gameplay/player/guardoverride.cpp
 SetAllGuardsSpecialState,0x19F220,28,match,src/game/gameplay/player/guardoverride.cpp
 StaticInit_guardoverride,0x19F290,77,match,src/game/gameplay/player/guardoverride.cpp
-func_0019F3C8,0x19F3C8,8,match,src/game/gameplay/player/guardoverride.cpp
+GlobalConstructors_guardoverride,0x19F3C8,8,match,src/game/gameplay/player/guardoverride.cpp
 InitJtPlaces,0x19F3E8,2,match,src/game/gameplay/player/places.cpp
 PostLoadJtPlaces,0x19F3F0,2,match,src/game/gameplay/player/places.cpp
 GetJtPlacePosition,0x19F3F8,81,match,src/game/gameplay/player/places.cpp
@@ -3202,12 +3202,12 @@ AddJtPlaceAtPosition,0x19FEB0,101,match,src/game/gameplay/player/places.cpp
 RemoveJtPlacesOf,0x1A0048,34,match,src/game/gameplay/player/places.cpp
 RemoveSwPlacesOf,0x1A00D0,53,match,src/game/gameplay/player/places.cpp
 StaticInit_places,0x1A01A8,77,match,src/game/gameplay/player/places.cpp
-func_001A02E0,0x1A02E0,8,match,src/game/gameplay/player/places.cpp
+GlobalConstructors_places,0x1A02E0,8,match,src/game/gameplay/player/places.cpp
 InitDirectionalBlend,0x1A0300,83,match,src/game/gameplay/player/dirblend.cpp
 UpdateDirectionalBlend,0x1A0450,179,match,src/game/gameplay/player/dirblend.cpp
 UpdateDirectionalAcceleration,0x1A0720,167,match,src/game/gameplay/player/dirblend.cpp
 StaticInit_dirblend,0x1A09C0,77,match,src/game/gameplay/player/dirblend.cpp
-func_001A0AF8,0x1A0AF8,8,match,src/game/gameplay/player/dirblend.cpp
+GlobalConstructors_dirblend,0x1A0AF8,8,match,src/game/gameplay/player/dirblend.cpp
 InitJtHurt,0x1A0B18,10,match,src/game/gameplay/player/hurt.cpp
 SetJtHurtState,0x1A0B40,342,match,src/game/gameplay/player/hurt.cpp
 PostLoadJtHurt,0x1A1098,43,match,src/game/gameplay/player/hurt.cpp
@@ -3235,7 +3235,7 @@ UpdateStepplayerWater,0x1A2460,202,match,src/game/gameplay/player/hurt.cpp
 ProbeStepplayerSurface,0x1A2788,73,match,src/game/gameplay/player/hurt.cpp
 ResolveStepplayerWaterContact,0x1A28B0,114,match,src/game/gameplay/player/hurt.cpp
 StaticInit_hurt,0x1A2A78,77,match,src/game/gameplay/player/hurt.cpp
-func_001A2BB0,0x1A2BB0,8,match,src/game/gameplay/player/hurt.cpp
+GlobalConstructors_hurt,0x1A2BB0,8,match,src/game/gameplay/player/hurt.cpp
 SetLanguage,0x1A2BD0,17,match,src/game/core/locale/language.cpp
 SetRegion,0x1A2C20,7,match,src/game/core/locale/language.cpp
 GetRegionLanguages,0x1A2C48,19,match,src/game/core/locale/language.cpp
@@ -3558,7 +3558,7 @@ SetCritterLink,0x1B1B18,32,match,src/game/gameplay/objects/critter.cpp
 FindCritterLinkObject,0x1B1B98,22,match,src/game/gameplay/objects/critter.cpp
 ResolveCritterLinks,0x1B1BF0,27,match,src/game/gameplay/objects/critter.cpp
 StaticInit_critter,0x1B1C60,77,match,src/game/gameplay/objects/critter.cpp
-func_001B1D98,0x1B1D98,8,match,src/game/gameplay/objects/critter.cpp
+GlobalConstructors_critter,0x1B1D98,8,match,src/game/gameplay/objects/critter.cpp
 InitMissile__FP7MISSILE,0x1B1DB8,17,match,src/game/gameplay/objects/missile.cpp
 LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream,0x1B1E00,14,match,src/game/gameplay/objects/missile.cpp
 OnMissileRemove__FP7MISSILE,0x1B1E38,19,match,src/game/gameplay/objects/missile.cpp
@@ -3574,7 +3574,7 @@ FireSplmiss,0x1B2228,92,match,src/game/gameplay/objects/missile.cpp
 GetMissileTargetPosition,0x1B2398,52,match,src/game/gameplay/objects/missile.cpp
 PresetSplmissAccel,0x1B2468,151,match,src/game/gameplay/objects/missile.cpp
 StaticInit_missile,0x1B26C8,77,match,src/game/gameplay/objects/missile.cpp
-func_001B2800,0x1B2800,8,match,src/game/gameplay/objects/missile.cpp
+GlobalConstructors_missile,0x1B2800,8,match,src/game/gameplay/objects/missile.cpp
 FindMpegSubtitles,0x1B2820,2,match,src/game/gameplay/cutscene/mpeg.cpp
 MpegDisplayThread,0x1B2828,70,match,src/game/gameplay/cutscene/mpeg.cpp
 StartupMpeg__Fv,0x1B2940,36,match,src/game/gameplay/cutscene/mpeg.cpp
@@ -3608,7 +3608,7 @@ Finish__5CMpeg,0x1B4140,36,match,src/game/gameplay/cutscene/mpeg.cpp
 DemuxStream__5CMpegi,0x1B41D0,59,match,src/game/gameplay/cutscene/mpeg.cpp
 IsMpegActive,0x1B42C0,3,match,src/game/gameplay/cutscene/mpeg.cpp
 StaticInit_mpeg,0x1B42D0,81,match,src/game/gameplay/cutscene/mpeg.cpp
-func_001B4418,0x1B4418,8,match,src/game/gameplay/cutscene/mpeg.cpp
+GlobalConstructors_mpeg,0x1B4418,8,match,src/game/gameplay/cutscene/mpeg.cpp
 InitMs,0x1B4438,16,match,src/game/engine/graphics/pipeline/ms.cpp
 RenderMsGlobset,0x1B4478,24,match,src/game/engine/graphics/pipeline/ms.cpp
 CollectVisibleMsGlobs,0x1B44D8,62,match,src/game/engine/graphics/pipeline/ms.cpp
@@ -3727,7 +3727,7 @@ IsBreakableDone,0x1BBE48,8,match,src/game/gameplay/objects/breakable.cpp
 GetCurrentBreakableStage,0x1BBE68,15,match,src/game/gameplay/objects/breakable.cpp
 ResetBreakable,0x1BBEA8,20,match,src/game/gameplay/objects/breakable.cpp
 StaticInit_breakable,0x1BBEF8,77,match,src/game/gameplay/objects/breakable.cpp
-func_001BC030,0x1BC030,8,match,src/game/gameplay/objects/breakable.cpp
+GlobalConstructors_breakable,0x1BC030,8,match,src/game/gameplay/objects/breakable.cpp
 InitCid14,0x1BC050,14,match,src/game/engine/physics/cnvo.cpp
 LoadCid14FromBrx,0x1BC088,18,match,src/game/engine/physics/cnvo.cpp
 CloneCid14,0x1BC0D0,36,match,src/game/engine/physics/cnvo.cpp
@@ -3838,7 +3838,7 @@ ClearLootPouchLoot,0x1C2DB8,4,match,src/game/gameplay/objects/lootpouch.cpp
 StageLootPouchLoot,0x1C2DC8,73,match,src/game/gameplay/objects/lootpouch.cpp
 LaunchLootPouchLootAtPlayer,0x1C2EF0,210,match,src/game/gameplay/objects/lootpouch.cpp
 StaticInit_lootpouch,0x1C3238,77,match,src/game/gameplay/objects/lootpouch.cpp
-func_001C3370,0x1C3370,8,match,src/game/gameplay/objects/lootpouch.cpp
+GlobalConstructors_lootpouch,0x1C3370,8,match,src/game/gameplay/objects/lootpouch.cpp
 InitPipe,0x1C3390,21,match,src/game/gameplay/player/pipe.cpp
 OnPipeAdd,0x1C33E8,13,match,src/game/gameplay/player/pipe.cpp
 OnPipeRemove,0x1C3420,13,match,src/game/gameplay/player/pipe.cpp
@@ -3851,7 +3851,7 @@ GetPipeSparklePosition,0x1C3A88,74,match,src/game/gameplay/player/pipe.cpp
 GetPipeWrapRange,0x1C3BB0,22,match,src/game/gameplay/player/pipe.cpp
 SetPipeGrabEnabled,0x1C3C08,3,match,src/game/gameplay/player/pipe.cpp
 StaticInit_pipe,0x1C3C18,77,match,src/game/gameplay/player/pipe.cpp
-func_001C3D50,0x1C3D50,8,match,src/game/gameplay/player/pipe.cpp
+GlobalConstructors_pipe,0x1C3D50,8,match,src/game/gameplay/player/pipe.cpp
 InitPo,0x1C3D70,22,match,src/game/actor/po.cpp
 LoadPoFromBrx,0x1C3DC8,11,match,src/game/actor/po.cpp
 ClonePo,0x1C3DF8,10,match,src/game/actor/po.cpp
@@ -3949,7 +3949,7 @@ SetVaultState,0x1C8730,122,match,src/game/gameplay/progression/prize.cpp
 SetVaultDialState,0x1C8918,118,match,src/game/gameplay/progression/prize.cpp
 TriggerVault,0x1C8AF0,30,match,src/game/gameplay/progression/prize.cpp
 StaticInit_prize,0x1C8B68,77,match,src/game/gameplay/progression/prize.cpp
-func_001C8CA0,0x1C8CA0,8,match,src/game/gameplay/progression/prize.cpp
+GlobalConstructors_prize,0x1C8CA0,8,match,src/game/gameplay/progression/prize.cpp
 __5CProgP4RGBAN31,0x1C8CC0,24,match,src/game/engine/presentation/prog.cpp
 Begin__5CProg,0x1C8D20,7,match,src/game/engine/presentation/prog.cpp
 SetRemain__5CProgi,0x1C8D40,30,match,src/game/engine/presentation/prog.cpp
@@ -4010,12 +4010,12 @@ GetRailClosestParam,0x1CBAC0,38,match,src/game/gameplay/player/rail.cpp
 GetRailGrabPosition,0x1CBB58,19,match,src/game/gameplay/player/rail.cpp
 GetRailSparklePosition,0x1CBBA8,108,match,src/game/gameplay/player/rail.cpp
 StaticInit_rail,0x1CBD58,77,match,src/game/gameplay/player/rail.cpp
-func_001CBE90,0x1CBE90,8,match,src/game/gameplay/player/rail.cpp
+GlobalConstructors_rail,0x1CBE90,8,match,src/game/gameplay/player/rail.cpp
 InitRajan,0x1CBEB0,11,match,src/game/gameplay/ai/rajan.cpp
 CanRajanSenseStimulus,0x1CBEE0,44,match,src/game/gameplay/ai/rajan.cpp
 SetRajanCameraFocus,0x1CBF90,28,match,src/game/gameplay/ai/rajan.cpp
 StaticInit_rajan,0x1CC000,77,match,src/game/gameplay/ai/rajan.cpp
-func_001CC138,0x1CC138,8,match,src/game/gameplay/ai/rajan.cpp
+GlobalConstructors_rajan,0x1CC138,8,match,src/game/gameplay/ai/rajan.cpp
 ResetJtHands,0x1CC158,4,match,src/game/gameplay/player/jthands.cpp
 GetClosestPointOnJtHandsCurveA,0x1CC168,36,match,src/game/gameplay/player/jthands.cpp
 GetClosestPointOnJtHandsCurveB,0x1CC1F8,36,match,src/game/gameplay/player/jthands.cpp
@@ -4032,7 +4032,7 @@ AttachJtHandsObject,0x1CD098,137,match,src/game/gameplay/player/jthands.cpp
 ReleaseJtHandsActs,0x1CD2C0,18,match,src/game/gameplay/player/jthands.cpp
 SetJtHandsTargetAttached,0x1CD308,100,match,src/game/gameplay/player/jthands.cpp
 StaticInit_jthands,0x1CD498,77,match,src/game/gameplay/player/jthands.cpp
-func_001CD5D0,0x1CD5D0,8,match,src/game/gameplay/player/jthands.cpp
+GlobalConstructors_jthands,0x1CD5D0,8,match,src/game/gameplay/player/jthands.cpp
 FillScreenRect,0x1CD5F0,100,match,src/game/engine/graphics/pipeline/render.cpp
 DrawWorldLabel,0x1CD780,134,match,src/game/engine/graphics/pipeline/render.cpp
 AllocRenderListEntry,0x1CD998,17,match,src/game/engine/graphics/pipeline/render.cpp
@@ -4147,7 +4147,7 @@ ResetRobottankPickup,0x1D4F10,15,match,src/game/gameplay/objects/robottank.cpp
 UpdateRcPickup,0x1D4F50,20,match,src/game/gameplay/objects/robottank.cpp
 SetRcPickupState,0x1D4FA0,22,match,src/game/gameplay/objects/robottank.cpp
 StaticInit_robottank,0x1D4FF8,77,match,src/game/gameplay/objects/robottank.cpp
-func_001D5130,0x1D5130,8,match,src/game/gameplay/objects/robottank.cpp
+GlobalConstructors_robottank,0x1D5130,8,match,src/game/gameplay/objects/robottank.cpp
 InitRumble__FP6RUMBLEii,0x1D5150,25,match,src/game/platform/input/rumble.cpp
 UpdateRumble__FP6RUMBLE,0x1D51B8,86,match,src/game/platform/input/rumble.cpp
 TriggerRumbleRumk__FP6RUMBLE4RUMKf,0x1D5310,11,match,src/game/platform/input/rumble.cpp
@@ -4184,9 +4184,9 @@ AddSafehouseEntry,0x1D7748,14,match,src/game/gameplay/ai/safehouse.cpp
 SetPoChoices,0x1D7780,19,match,src/game/gameplay/ai/safehouse.cpp
 StepCharSelect,0x1D77D0,66,match,src/game/gameplay/ai/safehouse.cpp
 StaticInit_safehouse,0x1D78D8,77,match,src/game/gameplay/ai/safehouse.cpp
-func_001D7A10,0x1D7A10,8,match,src/game/gameplay/ai/safehouse.cpp
+GlobalConstructors_safehouse,0x1D7A10,8,match,src/game/gameplay/ai/safehouse.cpp
 StaticInit_empty_1D7A30,0x1D7A30,77,match,src/game/gameplay/objects/empty_1D7A30.cpp
-func_001D7B68,0x1D7B68,8,match,src/game/gameplay/objects/empty_1D7A30.cpp
+GlobalConstructors_empty_1D7A30,0x1D7B68,8,match,src/game/gameplay/objects/empty_1D7A30.cpp
 LoadSaveSchemaFromBrx,0x1D7B88,61,match,src/game/world/state/save.cpp
 ResetGsIfSchemaChanged,0x1D7C80,43,match,src/game/world/state/save.cpp
 DoesGsMatchSchema,0x1D7D30,28,match,src/game/world/state/save.cpp
@@ -4328,7 +4328,7 @@ MoveLasenEndpoints,0x1DF3D0,120,match,src/game/gameplay/objects/sensor.cpp
 RenderLasenSelf,0x1DF5B0,213,match,src/game/gameplay/objects/sensor.cpp
 AddLasenBeam,0x1DF908,29,match,src/game/gameplay/objects/sensor.cpp
 StaticInit_sensor,0x1DF980,77,match,src/game/gameplay/objects/sensor.cpp
-func_001DFAB8,0x1DFAB8,8,match,src/game/gameplay/objects/sensor.cpp
+GlobalConstructors_sensor,0x1DFAB8,8,match,src/game/gameplay/objects/sensor.cpp
 InitRelay,0x1DFAD8,14,match,src/game/gameplay/cutscene/relay.cpp
 LoadRelayFromBrx,0x1DFB10,58,match,src/game/gameplay/cutscene/relay.cpp
 CloneRelay,0x1DFBF8,21,match,src/game/gameplay/cutscene/relay.cpp
@@ -4469,7 +4469,7 @@ StartRelayScriptCamBlend,0x1E57A0,189,match,src/game/gameplay/cutscene/relay.cpp
 EndJsgCamBlend,0x1E5A98,17,match,src/game/gameplay/cutscene/relay.cpp
 NewRelayJsg,0x1E5AE0,82,match,src/game/gameplay/cutscene/relay.cpp
 StaticInit_relay,0x1E5C28,77,match,src/game/gameplay/cutscene/relay.cpp
-func_001E5D60,0x1E5D60,8,match,src/game/gameplay/cutscene/relay.cpp
+GlobalConstructors_relay,0x1E5D60,8,match,src/game/gameplay/cutscene/relay.cpp
 InitShape,0x1E5D80,13,match,src/game/engine/physics/shape.cpp
 CloneShape,0x1E5DB8,15,match,src/game/engine/physics/shape.cpp
 LoadShapeFromBrx,0x1E5DF8,115,match,src/game/engine/physics/shape.cpp
@@ -4632,7 +4632,7 @@ PopBhv,0x1EF0D8,23,match,src/game/gameplay/ai/bhvstk.cpp
 ConstructBhv,0x1EF138,365,match,src/game/gameplay/ai/bhvstk.cpp
 GetBhvSlotSize,0x1EF6F0,2,match,src/game/gameplay/ai/bhvstk.cpp
 StaticInit_bhvstk,0x1EF6F8,77,match,src/game/gameplay/ai/bhvstk.cpp
-func_001EF830,0x1EF830,8,match,src/game/gameplay/ai/bhvstk.cpp
+GlobalConstructors_bhvstk,0x1EF830,8,match,src/game/gameplay/ai/bhvstk.cpp
 PostSkyLoad,0x1EF850,29,match,src/game/engine/graphics/pipeline/sky.cpp
 UpdateSky,0x1EF8C8,27,match,src/game/engine/graphics/pipeline/sky.cpp
 StaticInit_sky,0x1EF938,77,match,src/game/engine/graphics/pipeline/sky.cpp
@@ -4690,7 +4690,7 @@ PickpocketStepguard,0x1F1E20,37,match,src/game/gameplay/ai/pickpocket.cpp
 GetStepguardLootRefList,0x1F1EB8,31,match,src/game/gameplay/ai/pickpocket.cpp
 SetStepguardPlayable,0x1F1F38,30,match,src/game/gameplay/ai/pickpocket.cpp
 StaticInit_pickpocket,0x1F1FB0,77,match,src/game/gameplay/ai/pickpocket.cpp
-func_001F20E8,0x1F20E8,8,match,src/game/gameplay/ai/pickpocket.cpp
+GlobalConstructors_pickpocket,0x1F20E8,8,match,src/game/gameplay/ai/pickpocket.cpp
 InitSo,0x1F2108,43,match,src/game/engine/physics/so.cpp
 SetSoParent,0x1F21B8,171,match,src/game/engine/physics/so.cpp
 ReleaseSoBoundsHierarchy,0x1F2468,37,match,src/game/engine/physics/so.cpp
@@ -5052,7 +5052,7 @@ SetReconTargetDone,0x2036E8,27,match,src/game/gameplay/player/recon.cpp
 IsReconTargetDone,0x203758,13,match,src/game/gameplay/player/recon.cpp
 IsReconTargetSelectable,0x203790,23,match,src/game/gameplay/player/recon.cpp
 StaticInit_recon,0x2037F0,77,match,src/game/gameplay/player/recon.cpp
-func_00203928,0x203928,8,match,src/game/gameplay/player/recon.cpp
+GlobalConstructors_recon,0x203928,8,match,src/game/gameplay/player/recon.cpp
 InitStep,0x203948,30,match,src/game/actor/step.cpp
 LoadStepFromBrx,0x2039C0,18,match,src/game/actor/step.cpp
 CloneStep,0x203A08,12,match,src/game/actor/step.cpp
@@ -5286,7 +5286,7 @@ IsDirAnimStopped,0x20CA98,3,match,src/game/gameplay/player/gait.cpp
 HandleCid146Message,0x20CAA8,32,match,src/game/gameplay/player/gait.cpp
 SelectDirAnim,0x20CB28,105,match,src/game/gameplay/player/gait.cpp
 StaticInit_gait,0x20CCD0,77,match,src/game/gameplay/player/gait.cpp
-func_0020CE08,0x20CE08,8,match,src/game/gameplay/player/gait.cpp
+GlobalConstructors_gait,0x20CE08,8,match,src/game/gameplay/player/gait.cpp
 InitStuckWatch,0x20CE28,6,match,src/game/gameplay/ai/watchdog.cpp
 ResetStuckWatch,0x20CE40,11,match,src/game/gameplay/ai/watchdog.cpp
 UpdateStuckWatch,0x20CE70,84,match,src/game/gameplay/ai/watchdog.cpp
@@ -5301,7 +5301,7 @@ UpdateHazardWatch,0x20D1F8,114,match,src/game/gameplay/ai/watchdog.cpp
 SetHazardWatchState,0x20D3C0,39,match,src/game/gameplay/ai/watchdog.cpp
 SetHazardWatchTarget,0x20D460,2,match,src/game/gameplay/ai/watchdog.cpp
 StaticInit_watchdog,0x20D478,77,match,src/game/gameplay/ai/watchdog.cpp
-func_0020D5B0,0x20D5B0,8,match,src/game/gameplay/ai/watchdog.cpp
+GlobalConstructors_watchdog,0x20D5B0,8,match,src/game/gameplay/ai/watchdog.cpp
 __5OSTRMi,0x20D5D0,8,match,src/game/platform/runtime/stream.cpp
 __5OSTRMPvi,0x20D5F0,9,match,src/game/platform/runtime/stream.cpp
 _$_5OSTRM,0x20D618,17,match,src/game/platform/runtime/stream.cpp
@@ -5527,7 +5527,7 @@ OnLookTargetRemove,0x21D428,13,match,src/game/gameplay/objects/target.cpp
 OnLookTargetAdd,0x21D460,13,match,src/game/gameplay/objects/target.cpp
 CloneLookTarget,0x21D498,18,match,src/game/gameplay/objects/target.cpp
 StaticInit_target,0x21D4E0,77,match,src/game/gameplay/objects/target.cpp
-func_0021D618,0x21D618,8,match,src/game/gameplay/objects/target.cpp
+GlobalConstructors_target,0x21D618,8,match,src/game/gameplay/objects/target.cpp
 ParseDecimalInt__FPcPi,0x21D638,30,match,src/game/platform/runtime/text.cpp
 ParseFormatSpec__FPcP3TFTPPc,0x21D6B0,208,match,src/game/platform/runtime/text.cpp
 WriteTftPchz__FP3TFTP5OSTRMPc,0x21D9F0,81,match,src/game/platform/runtime/text.cpp
@@ -5570,7 +5570,7 @@ StartJtThrowFlight,0x220508,40,match,src/game/gameplay/player/throw.cpp
 ReleaseJtThrowObject,0x2205A8,72,match,src/game/gameplay/player/throw.cpp
 SetJtThrowState,0x2206C8,327,match,src/game/gameplay/player/throw.cpp
 StaticInit_throw,0x220BE8,77,match,src/game/gameplay/player/throw.cpp
-func_00220D20,0x220D20,8,match,src/game/gameplay/player/throw.cpp
+GlobalConstructors_throw,0x220D20,8,match,src/game/gameplay/player/throw.cpp
 InitTnDefaultAngles,0x220D40,37,match,src/game/engine/camera/tn.cpp
 BlendTnFocusPos,0x220DD8,62,match,src/game/engine/camera/tn.cpp
 InitTn,0x220ED0,45,match,src/game/engine/camera/tn.cpp
@@ -5629,7 +5629,7 @@ UpdateGuardTrap,0x225300,177,match,src/game/gameplay/objects/gadget.cpp
 PushGuardTrapAway,0x2255C8,37,match,src/game/gameplay/objects/gadget.cpp
 SelectGuardTrapTarget,0x225660,136,match,src/game/gameplay/objects/gadget.cpp
 StaticInit_gadget,0x225880,77,match,src/game/gameplay/objects/gadget.cpp
-func_002259B8,0x2259B8,8,match,src/game/gameplay/objects/gadget.cpp
+GlobalConstructors_gadget,0x2259B8,8,match,src/game/gameplay/objects/gadget.cpp
 InitTurret,0x2259D8,35,match,src/game/gameplay/objects/turret.cpp
 CloneTurret,0x225A68,15,match,src/game/gameplay/objects/turret.cpp
 PostTurretLoad,0x225AA8,15,match,src/game/gameplay/objects/turret.cpp
@@ -5641,7 +5641,7 @@ UpdateTurretFire,0x226250,48,match,src/game/gameplay/objects/turret.cpp
 FilterTurretProxySource,0x226310,23,match,src/game/gameplay/objects/turret.cpp
 SetTurretActive,0x226370,33,match,src/game/gameplay/objects/turret.cpp
 StaticInit_turret,0x2263F8,77,match,src/game/gameplay/objects/turret.cpp
-func_00226530,0x226530,8,match,src/game/gameplay/objects/turret.cpp
+GlobalConstructors_turret,0x226530,8,match,src/game/gameplay/objects/turret.cpp
 UpdateSw,0x226550,156,match,src/game/level/update.cpp
 UpdateSwObjects,0x2267C0,104,match,src/game/level/update.cpp
 StaticInit_update,0x226960,77,match,src/game/level/update.cpp
@@ -5738,7 +5738,7 @@ UpdateWaypt,0x22A060,112,match,src/game/gameplay/progression/waypoint.cpp
 CalculateWayptCurtainExtraHeight,0x22A220,441,match,src/game/gameplay/progression/waypoint.cpp
 RenderWaypt,0x22A908,376,match,src/game/gameplay/progression/waypoint.cpp
 StaticInit_waypoint,0x22AEE8,77,match,src/game/gameplay/progression/waypoint.cpp
-func_0022B020,0x22B020,8,match,src/game/gameplay/progression/waypoint.cpp
+GlobalConstructors_waypoint,0x22B020,8,match,src/game/gameplay/progression/waypoint.cpp
 InitWipe,0x22B050,15,match,src/game/level/wipe.cpp
 SetWipeWipes,0x22B090,65,match,src/game/level/wipe.cpp
 UpdateWipe,0x22B198,33,match,src/game/level/wipe.cpp
