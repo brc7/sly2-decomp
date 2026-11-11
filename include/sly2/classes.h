@@ -262,9 +262,33 @@ typedef char assert_BLIPG_size[sizeof(BLIPG) == 0x460 ? 1 : -1];
 /* 79 BOMB (0x210): also guard rock ammo; vtable 0x2CB780, 77 slots */
 struct BOMB : SO
 {
-    char pad150[0x200 - 0x150];
-    LO *thrower;            /* +0x200 [S] the object that threw the bomb (a guard ignores its own team's: TakeStepguardDamage) */
-    char pad204[0x210 - 0x204];
+    /* bomb.cpp's BOMBV names these (declared here so the class has its size on every target). */
+    int k;                      /* +0x150 0 armed, 1 absorbing... (TakeBombDamage) */
+    float tDetonate;            /* +0x154 */
+    float detonateSpeed;        /* +0x158 detonates on impact above this speed (UpdateBomb) */
+    float sRadius;              /* +0x15C blast radius */
+    float sRadiusHero;          /* +0x160 blast radius against the hero */
+    int noBlast;                /* +0x164 detonation without blast damage */
+    LO *blastListener;          /* +0x168 told about the blast (vtable slot 51) */
+    float blastListenerArg;     /* +0x16C */
+    int detonationPoseMode;     /* +0x170 */
+    int isDetonationPrepared;   /* +0x174 */
+    int pad178[2];
+    qword posDetonate;          /* +0x180 */
+    MATRIX3Q matDetonate;       /* +0x190 */
+    qword velocityAtDetonation; /* +0x1C0 */
+    qword angularVelocityAtDetonation;   /* +0x1D0 */
+    int makesNoise;             /* +0x1E0 */
+    int detonatesOnContact;     /* +0x1E4 */
+    LO *lastThrower;            /* +0x1E8 bomb.cpp's thrower (while set PresetSplmissAccel / PresetAccmissAccel do nothing) */
+    int zapKind;                /* +0x1EC */
+    int blastDamage;            /* +0x1F0 */
+    int fCustomXps;             /* +0x1F4 */
+    int cxp;                    /* +0x1F8 */
+    void *axp;                  /* +0x1FC bomb.cpp's CXP records */
+    LO *thrower;            /* +0x200 [S] the object that threw the bomb (a guard ignores its own team's: TakeStepguardDamage);
+                               bomb.cpp's owner (itself until thrown) */
+    int unknown204[3];
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBomb");   /* slot 7 */
@@ -1584,7 +1608,15 @@ typedef char assert_CID35_apair[SLY2_OFFSETOF(CID35, apair) == 0x160 ? 1 : -1];
 /* 37 CID37 (0x1A0): booty container; vtable 0x2CB9F8, 51 slots */
 struct CID37 : CID35
 {
-    char pad180[0x1A0 - 0x180];
+    /* The booty container's fields (booty.cpp's CID37V view names them; declared here so the class has its size on every
+       target). */
+    union { int id; unsigned short idShort; };   /* +0x180 */
+    int kind;                   /* +0x184 */
+    int acceptedKind;           /* +0x188 the booty kind it takes (inferred) */
+    float timerSeconds;         /* +0x18C HUD timer started when booty goes in (inferred) */
+    int isLocked;               /* +0x190 refuses booty while set (inferred) */
+    struct BOOTY *pbooty;       /* +0x194 the booty it holds */
+    char pad198[0x1A0 - 0x198];
     virtual void PostLoad() __asm__("PostBootyContainerLoad");   /* slot 15 Also known as: PostLoadBootyStand (upstream readable / Sly 1 name; PostLoadBootyStand__FP2SW). */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBootyContainer");   /* slot 7 */
@@ -1762,7 +1794,20 @@ typedef char assert_CID96_size[sizeof(CID96) == 0x250 ? 1 : -1];
 /* 80 MISSILE (0x270); vtable 0x2D3FA0, 78 slots */
 struct MISSILE : BOMB
 {
-    char pad210[0x270 - 0x210];
+    /* missile.cpp's MISSILE names these (declared here so the class has its size on every target). */
+    LO *targetObject;           /* +0x210 */
+    int unknown214[3];
+    qword targetPos;            /* +0x220 */
+    ASEG *flightAnim;           /* +0x230 */
+    ASEGA *flightAnimState;     /* +0x234 */
+    int numIgnoredObjects;      /* +0x238 */
+    OID ignoredObjects[4];
+    int numIgnoredClasses;
+    CID ignoredClasses[4];
+    float launchSpeed;          /* +0x260 */
+    int hasFlightAction;        /* +0x264 */
+    ACT *flightAction;          /* +0x268 */
+    float flightActionParam;    /* +0x26C */
     virtual CLASSINFO *GetClassInfo() __asm__("GetMissileClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitMissile__FP7MISSILE");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
@@ -1776,7 +1821,9 @@ typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
 /* 81 ACCMISS (0x280): ACCMISS = Bentley crossbow dart; vtable 0x2D3D20, 78 slots */
 struct ACCMISS : MISSILE
 {
-    char pad270[0x280 - 0x270];
+    float cruiseSpeed;          /* +0x270 */
+    float speedChangeRate;      /* +0x274 */
+    int unknown278[2];
     virtual CLASSINFO *GetClassInfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
     virtual void PresetAccel() __asm__("PresetAccmissAccel");   /* slot 70 */
@@ -1786,7 +1833,11 @@ typedef char assert_ACCMISS_size[sizeof(ACCMISS) == 0x280 ? 1 : -1];
 /* 82 CID82 (0x290); vtable 0x2D3AA0, 78 slots */
 struct CID82 : MISSILE
 {
-    char pad270[0x290 - 0x270];
+    float flightTime;           /* +0x270 */
+    float maxSpeed;             /* +0x274 */
+    float arrivalTime;          /* +0x278 */
+    int unknown27C;
+    qword targetVelocity;       /* +0x280 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid82ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSplmiss");   /* slot 7 */
     virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
@@ -1889,13 +1940,24 @@ typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
 /* 45 CID45 (0x130): render-to-texture owner (item preview?); vtable 0x2D4F80, 50 slots */
 struct CID45 : XFM
 {
-    char padE0[0x130 - 0xE0];
+    /* The render-target camera's fields (rtcam.cpp's RTCAM view names them; declared here so the class has its size on
+       every target). */
+    int numHidden;              /* +0xE0 objects hidden while rendering, with their flags (1 shown again, 2 re-enabled) */
+    LO *aploHidden[4];
+    int agrfHidden[4];
+    int numShown;               /* +0x104 objects shown only in the target */
+    SO *apsoShown[4];
+    CID45 *parent;              /* +0x118 */
+    float fov, clipNear, clipFar;
+    struct RENDERTGT *prt;      /* +0x128 the claimed target */
+    int unknown12C;
     virtual void Init() __asm__("InitRtcam");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid45ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRtcamFromBrx");   /* slot 14 */
     virtual void RenderSelf() __asm__("RenderRtcam");   /* slot 19 */
 };
 typedef char assert_CID45_size[sizeof(CID45) == 0x130 ? 1 : -1];
+typedef char assert_CID45_prt[SLY2_OFFSETOF(CID45, prt) == 0x128 ? 1 : -1];
 
 /* A navigation graph (CG): vertices (CGV, 0x20 bytes each), triangles (three vertex pointers each), the 2D BSP
    nodes, and the zone's dynamic obstacles with their sorted x and z begin/end events (sweep and prune; the event
