@@ -258,7 +258,7 @@ struct FRAME { int a[4]; };
 FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(const SWALLOC *) __asm__("AllocFromStack");
-int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **) __asm__("PruneBspBySphere");
+int PruneBspBySphere(void *, uptr, qword, float, int *, ENTRY **) __asm__("PruneBspBySphere");
 int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *) __asm__("ClipEdgeToObjectPruned");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int IsDlEmpty__FP2DL(DL *) __asm__("IsDlEmpty__FP2DL");
@@ -298,7 +298,7 @@ void BounceRipgRips__FP4RIPG(RIPG *p)
                         phase.request.cb = remaining * 12;
                         SetAlign(&phase.request, 16);
                         entries = (ENTRY *)AllocFromStack(&phase.request);
-                        if (PruneBspBySphere(shape->tree, 0x7FFFFFFF, Origin((STATE *)p->physicsTree), ((STATE *)p->physicsTree)->radius, &remaining, &entries) != 2) {
+                        if (PruneBspBySphere(shape->tree, SLY2_BSP_NO_LIMIT, Origin((STATE *)p->physicsTree), ((STATE *)p->physicsTree)->radius, &remaining, &entries) != 2) {
                             STACKSCOPE_ctor_1AE4A0(&frame, 2);
                             continue;
                         }

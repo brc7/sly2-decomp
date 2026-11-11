@@ -432,7 +432,7 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
                 }
             }
         } else if (ppart->cplane) {
-            int ccontact = IntersectSphereBsp(GetLoWorldPos(prize), prize->bounceRadius, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
+            int ccontact = IntersectSphereBsp(GetLoWorldPos(prize), prize->bounceRadius, ppart, (void *)SLY2_BSP_NO_LIMIT, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
                 float g = GDot(pcontact->pos, pcontact->plane.qw) - pcontact->plane.g[3];
@@ -476,7 +476,7 @@ namespace M_FCheckDprizeCollect {
 struct Q { int enabled,pad4; float radius; SO *so; };
 extern float D_002C0D7C __asm__("D_002C0D7C");
 qword GetLoWorldPos(void *) __asm__("GetLoWorldPos");
-int IntersectSphereBsp(qword,SOPART *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius) __asm__("IntersectSphereBsp");
+int IntersectSphereBsp(qword,SOPART *,uptr mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius) __asm__("IntersectSphereBsp");
 // Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
 extern "C" { static inline void Trigger(DPRIZE *p)
 {
@@ -528,7 +528,7 @@ extern "C" int TryCollectDprize(DPRIZE *prize,struct Q *q)
             }
         } else {
             qword here=GetLoWorldPos(prize);
-            if(IntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,prize->collectRadius)) {
+            if(IntersectSphereBsp(here,s,SLY2_BSP_NO_LIMIT,0,0,1,scratch,prize->collectRadius)) {
                 Trigger(prize);
                 return 1;
             }

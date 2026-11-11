@@ -68,7 +68,7 @@ struct LSG
 typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
 
 /* core/math/bsp.cpp (C symbols): clip the segment pos1..pos2 to the tree (pieces inside), prune the tree to a sphere,
-   find the leaf containing a point. A pbspLimit of 0x7FFFFFFF means no limit. */
+   find the leaf containing a point. A pbspLimit of SLY2_BSP_NO_LIMIT (sly2/port.h; 0x7FFFFFFF on the EE) means no limit. */
 extern "C" {
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("ClipSegmentBsp");
 PRUNE PruneBsp(BSP *pbsp, BSP *pbspLimit, float sRadius, qword pos, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");
@@ -272,7 +272,7 @@ int ClsgClipSoAllEdges(SW *psw, SOPART *ppartBsp, SOPART *ppart, BSP *absp, int 
     qword *apos = (qword *)ppart->meshWorld.positions;
     for (iedge--; iedge >= 0; iedge--) {
         EDGE *pedge = &aedge[iedge];
-        clsg += ClsgClipEdgeToBsp(absp, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], clsgMax - clsg, &alsg[clsg]);
+        clsg += ClsgClipEdgeToBsp(absp, (BSP *)SLY2_BSP_NO_LIMIT, apos[pedge->aipos[0]], apos[pedge->aipos[1]], clsgMax - clsg, &alsg[clsg]);
         for (; ilsg < clsg; ilsg++)
             alsg[ilsg].pedge = pedge;
     }
@@ -306,7 +306,7 @@ extern "C" int ClipSoBspEdges(SW *world, SOPART *bspPart, SOPART *part, int numN
                 if ((psurfOther->grf ^ 1) & 1)
                     continue;
             }
-            clsg += ClsgClipEdgeToBsp(bspPart->bspc.nodes, (BSP *)0x7FFFFFFF, apos[pedge->aipos[0]], apos[pedge->aipos[1]], maxSegments - clsg, &segments[clsg]);
+            clsg += ClsgClipEdgeToBsp(bspPart->bspc.nodes, (BSP *)SLY2_BSP_NO_LIMIT, apos[pedge->aipos[0]], apos[pedge->aipos[1]], maxSegments - clsg, &segments[clsg]);
             for (; ilsg < clsg; ilsg++)
                 segments[ilsg].pedge = pedge;
         }
@@ -748,8 +748,8 @@ struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;QWROW posit
 extern FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");
 extern void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
 extern void*AllocFromStack(REQ*) __asm__("AllocFromStack");
-extern int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**) __asm__("PruneBspBySphere");
-extern int ClipSegmentBsp(ENTRY*,int,qword,qword,int,HIT*) __asm__("ClipSegmentBsp");
+extern int PruneBspBySphere(ENTRY*,uptr,qword,float,int*,ENTRY**) __asm__("PruneBspBySphere");
+extern int ClipSegmentBsp(ENTRY*,uptr,qword,qword,int,HIT*) __asm__("ClipSegmentBsp");
 extern void InitPlaneFromNormalPos(qword*,qword,qword) __asm__("InitPlaneFromNormalPos");
 // Return a - b.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -759,7 +759,7 @@ static inline qword Normal(qword v){register qword d __asm__("vf2"),one __asm__(
 // prunes the BSP to that sphere and clips its edges; writes a contact of kind 0xC.
 // Also known as: SphereInsideContacts (upstream readable / Sly 1 name;
 //   SphereInsideContacts__FP3SOEiPvG9VU_VECTORP3OUTf).
-extern "C" void FindContactInsideBsp(ENTRY*tree,int mask,void*geometry,qword pos,OUT*out,float radius0){
+extern "C" void FindContactInsideBsp(ENTRY*tree,uptr pbspLimit,void*geometry,qword pos,OUT*out,float radius0){
  WORK work;
  work.position.q=pos;
  float radius=FpuMax(radius0,100.0f);
@@ -769,7 +769,7 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,int mask,void*geometry,qword pos
  int limit=0x1555;
  if(radius<52000.0f)do {
   work.end=first;work.count=limit;
-  int status=PruneBspBySphere(tree,mask,work.position.q,radius,&work.count,&work.end);
+  int status=PruneBspBySphere(tree,pbspLimit,work.position.q,radius,&work.count,&work.end);
   if(status<0)goto more;
   if(status<2)goto more;
   if(status!=2)goto more;
@@ -786,7 +786,7 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,int mask,void*geometry,qword pos
    __asm__("qmtc2.ni %1,%0":"=j"(factor):"r"(radius+1.0f));
    __asm__("lq %0,%5\n\tsqc2 %8,%4\n\tlw %1,%6\n\tqmtc2.ni %0,%2\n\tlqc2 %3,%7\n\taddiu %1,%1,-12\n\tvadda.xyzw ACC,%2,$vf0\n\tvmaddx.xyzw %3,%3,%8x":"=&r"(argument),"=&r"(last),"=j"(positionVector),"=&j"(to),"=m"(work.scratch.u.q):"m"(work.position.q),"m"(work.end),"m"(poly->plane),"j"(factor));
    work.endpoint.q=to;
-   int found=ClipSegmentBsp(last,0x7FFFFFFF,to,argument,16,work.hits);
+   int found=ClipSegmentBsp(last,SLY2_BSP_NO_LIMIT,to,argument,16,work.hits);
    register qword snapshot __asm__("vf1")=work.endpoint.q;
    if(found>0){
     if(work.hits[0].time>best){
@@ -1018,7 +1018,7 @@ int CplaneFromSphere(qword pos, float sRadius, SOPART *ppart, BSP *pbspLimit, in
                     LSG alsg[16];
                     *(qword *)&vecA = QwAddScaled(pos, VuFloat(sRadius), *(qword *)pbspNode->psurf);
                     *(qword *)&vecB = QwAddScaled(pos, VuFloat(-sRadius), *(qword *)pbspNode->psurf);
-                    int clsg = ClsgClipEdgeToBsp(pbsp, (BSP *)0x7fffffff, *(qword *)&vecA, *(qword *)&vecB, 16, alsg);
+                    int clsg = ClsgClipEdgeToBsp(pbsp, (BSP *)SLY2_BSP_NO_LIMIT, *(qword *)&vecA, *(qword *)&vecB, 16, alsg);
                     int ilsg;
                     for (ilsg = 0; ilsg < clsg; ilsg++)
                     {
@@ -1193,7 +1193,7 @@ struct LO;struct CONTACT;struct NODE;
 struct S { struct S0 *transform; struct LO *so; float radius; };
 union DETAIL {void*pointer;int word;};
 struct E {qword point,plane;int kind;DETAIL detail;};
-extern int IntersectSphereBsp(qword pos, struct S*b,int c,int d,struct NODE*e,int n, struct E *buf, float f) __asm__("IntersectSphereBsp");
+extern int IntersectSphereBsp(qword pos, struct S*b,uptr c,int d,struct NODE*e,int n, struct E *buf, float f) __asm__("IntersectSphereBsp");
 extern U*InitVuTemp(U*p) __asm__("InitVuTemp");
 extern void AddXp(void *a, struct S*s,struct S*b,qword p, qword q, int kind, void*z, void*feature,struct CONTACT**g,float f) __asm__("AddXp");
 // Construct a VU temporary via InitVuTemp.
@@ -1230,7 +1230,7 @@ extern "C" void MarkSoContactsSphereBsp(void *a, struct S*s,struct S*b,int d,str
 
     int i;
     struct E *pe;
-    i = IntersectSphereBsp(s->transform->position, bodyOwner, 0x7FFFFFFF, d, e, 0x40, buf, s->radius) - 1;
+    i = IntersectSphereBsp(s->transform->position, bodyOwner, SLY2_BSP_NO_LIMIT, d, e, 0x40, buf, s->radius) - 1;
     if (i >= 0) {
         pe = &buf[i];
         do {
@@ -1513,7 +1513,7 @@ extern "C" XP *AddSoXps(SW *world, SOTREE *smallTree, SOTREE *largeTree)
             query.c = cnodeMax;
             pbspLast = absp;
             pbspFirst = absp;
-            status = PruneBspP(ppart->bspc.nodes, (BSP *)0x7FFFFFFF, smallTree->boundsCenter, smallTree->boundsRadius, &query.c, &pbspLast);
+            status = PruneBspP(ppart->bspc.nodes, (BSP *)SLY2_BSP_NO_LIMIT, smallTree->boundsCenter, smallTree->boundsRadius, &query.c, &pbspLast);
             if (status == 1)
                 continue;
             if (status == 0) {

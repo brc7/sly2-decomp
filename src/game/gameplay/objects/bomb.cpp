@@ -113,7 +113,7 @@ void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3Q *, qword, qword);
 void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qword q, void (*pfn)(), SOTREE *px, float g, int *pc, XAV ***paps);
 void *AllocFromStack(AREQV *preq);
-int IntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
+int IntersectSphereBsp(qword q, XAV *ps, uptr n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int DeliverZapToSo(ZPR *pmsg);
@@ -567,7 +567,7 @@ extern "C" void CollectBombVictims(BOMBV *bomb, int *pc, SOV ***papo)
             continue;
         if (pso60 == bomb->physicsTree->root)
             continue;
-        if (ps->planeCount && !IntersectSphereBsp(bomb->posDetonate, ps, 0x7FFFFFFF, 0, 0, 1, IsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
+        if (ps->planeCount && !IntersectSphereBsp(bomb->posDetonate, ps, SLY2_BSP_NO_LIMIT, 0, 0, 1, IsBasicDerivedFrom__FP5BASIC3CID(pso60, 0x34) ? bomb->sRadiusHero : bomb->sRadius, &hit))
             continue;
         apo[n] = ps->po;
         n++;

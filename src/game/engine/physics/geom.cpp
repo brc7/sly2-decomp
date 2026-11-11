@@ -67,7 +67,7 @@ M3 InvertMatrix3Cofactor(const M3 *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(REQ *);
-int PruneBspBySphere(void *, int, qword, int *, Entry **, float);
+int PruneBspBySphere(void *, uptr, qword, int *, Entry **, float);
 }
 
 // Transform point p by the 4x4 matrix m.
@@ -273,7 +273,7 @@ extern "C" int CollectEdgesAtGeomPoint(GEOM*geom,GEOMTREE*tree,int index,int max
  STACKSCOPE_ctor(&scope);
  capacity=MinInt(tree->count,0x1555);numFound=capacity;REQ req(capacity*12,16);
  hitsEnd=hits=(Entry*)AllocFromStack(&req);
- if(PruneBspBySphere(tree->tree,0x7FFFFFFF,geom->points[index],&numFound,&hitsEnd,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&scope,2);return 0;}
+ if(PruneBspBySphere(tree->tree,SLY2_BSP_NO_LIMIT,geom->points[index],&numFound,&hitsEnd,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&scope,2);return 0;}
  int numHits=hitsEnd-hits;
  count=0;
  for(i=0;i<numHits;i++){

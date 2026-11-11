@@ -2522,7 +2522,7 @@ struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flag
 extern QWROW D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DA0 __asm__("D_002A2DA0");   // zero vector, fallback direction
 int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **) __asm__("CollectEdgesAtGeomPoint");
 int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JTAIR *, SOPART *, EDGE *, QWROW *) __asm__("IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR");   // FCheckJtSingleEdge
-int ClipSegmentBsp(BSP *, int, qword, qword, int, SPAN *) __asm__("ClipSegmentBsp");
+int ClipSegmentBsp(BSP *, uptr, qword, qword, int, SPAN *) __asm__("ClipSegmentBsp");
 int IsJtEdgeNormalValid(JTAIR *, qword, qword) __asm__("IsJtEdgeNormalValid");
 
 
@@ -2582,7 +2582,7 @@ extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind
         for (EDGE *edge = face->pedge; edge; edge = edge->pedgeNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 QWROW *points = (QWROW *)shape->meshWorld.positions;
-                if (ClipSegmentBsp(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                if (ClipSegmentBsp(jt->player->psopartBody->bspc.nodes, SLY2_BSP_NO_LIMIT, points[edge->aipos[0]].q,
                                   points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
@@ -2592,7 +2592,7 @@ extern "C" int IsJtEdgeGrabbable(JTAIR *jt, SOPART *shape, qword point, int kind
         for (EDGE *edge = face->pedgeOther; edge; edge = edge->pedgeOtherNext) {
             if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 QWROW *points = (QWROW *)shape->meshWorld.positions;
-                if (ClipSegmentBsp(jt->player->psopartBody->bspc.nodes, 0x7FFFFFFF, points[edge->aipos[0]].q,
+                if (ClipSegmentBsp(jt->player->psopartBody->bspc.nodes, SLY2_BSP_NO_LIMIT, points[edge->aipos[0]].q,
                                   points[edge->aipos[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
@@ -2784,7 +2784,7 @@ extern "C" CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p, int *outSide, qword *o
                 {
                     QWROW s = {lift};
                 }
-                if (FindBspLeafContainingPointFast(shape->bsp, (BSPNODE *)0x7FFFFFFF, value))
+                if (FindBspLeafContainingPointFast(shape->bsp, (BSPNODE *)SLY2_BSP_NO_LIMIT, value))
                     continue;
                 if (best && Opposite(contact, side)->position.f[2] < bestHeight)
                     continue;

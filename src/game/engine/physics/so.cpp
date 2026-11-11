@@ -3026,7 +3026,7 @@ extern "C" void CloneSoPartGeomInserting(SOPART *source,XF *space,int inserted,S
 
 // 0x1F72F8 IsPosInSo
 namespace M_func_001F72F8 {
-int FindBspLeafContainingPointFast(void *, int, qword) __asm__("FindBspLeafContainingPointFast");
+int FindBspLeafContainingPointFast(void *, uptr, qword) __asm__("FindBspLeafContainingPointFast");
 // Slot 73: returns 1 when pos is inside any visible sphere part or part BSP of the object.
 // Also known as: FAloContainsPoint (upstream readable / Sly 1 name; FAloContainsPoint__FP3ALOG9VU_VECTOR).
 extern "C" int IsPosInSo(SO *so, qword pos)
@@ -3046,7 +3046,7 @@ extern "C" int IsPosInSo(SO *so, qword pos)
             __asm__("mtc1 %1, %0" : "=f"(d2) : "r"(t));
             { int f = d2 < r2; if (f) return 1; }
         }
-        if (pe->bspc.nodes && FindBspLeafContainingPointFast(pe->bspc.nodes, 0x7FFFFFFF, pos)) return 1;
+        if (pe->bspc.nodes && FindBspLeafContainingPointFast(pe->bspc.nodes, SLY2_BSP_NO_LIMIT, pos)) return 1;
     }
     return 0;
 }

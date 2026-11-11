@@ -39,11 +39,11 @@ void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 qword VecMinArray(int c, qword *points);
 qword VecMaxArray(int c, qword *points);
 qword ConvertPosBetweenLos(int a, VOLV *p, qword q);
-int FindBspLeafContainingPointFast(BSP *a, int b, qword q);
+int FindBspLeafContainingPointFast(BSP *a, uptr b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(SWALLOC *pmsg);
-int PruneBspBySphere(void *p, int n, qword v, int *pc, void **ppv, float g);
+int PruneBspBySphere(void *p, uptr n, qword v, int *pc, void **ppv, float g);
 void OnLoAdd(VOLV *p);
 void OnLoRemove(VOLV *p);
 int IsPointInVol(VOLV *p, qword q);
@@ -101,7 +101,7 @@ extern "C" int IsPointInVol(VOLV *vol, qword point)
     distanceSquaredValue = VuToFloat(distanceSquared);
     isOutsideSphere = vol->radiusSquared < distanceSquaredValue;
     if (isOutsideSphere) return 0;
-    return FindBspLeafContainingPointFast(vol->bspc.nodes, 0x7FFFFFFF, localPoint) != 0;
+    return FindBspLeafContainingPointFast(vol->bspc.nodes, SLY2_BSP_NO_LIMIT, localPoint) != 0;
 }
 
 
@@ -129,7 +129,7 @@ extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
             leaves = AllocFromStack(requestPtr);
         }
         {
-            int result = PruneBspBySphere((void *)vol->bspc.nodes, 0x7FFFFFFF, ConvertPosBetweenLos(0, vol, center), &numLeaves, &leaves, radius);
+            int result = PruneBspBySphere((void *)vol->bspc.nodes, SLY2_BSP_NO_LIMIT, ConvertPosBetweenLos(0, vol, center), &numLeaves, &leaves, radius);
             if (result == 0 || result == 2) isInside = 1;
         }
         STACKSCOPE_ctor_1AE4A0(&scope, 2);

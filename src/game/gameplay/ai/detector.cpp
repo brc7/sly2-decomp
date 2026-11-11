@@ -79,7 +79,7 @@ SOV *GetHeroPo(void *object);
 int IsLoInWorld(SOV *object);
 int IsSwInputLocked(void *object);
 qword ConvertPosBetweenLos(void *plo0, void *plo1, qword v);
-int ClipSegmentBsp(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
+int ClipSegmentBsp(void *object, uptr mask, qword a, qword b, int n, BUF *pbuf);
 int IsPointInVol(void *object, qword v);
 int ShouldKeepSoNotSelf(void *context, SOPART *hit);
 int GetBasicCid(SO *po);
@@ -290,7 +290,7 @@ extern "C" int CalculateDetectorTargetState(DETECTOR *detector, SOV *target, int
     for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {
         qword eyeLocal = ConvertPosBetweenLos(0, occluder, GetDetectorEyePosition(detector));
         qword targetLocal = ConvertPosBetweenLos(0, occluder, targetPos);
-        if (ClipSegmentBsp(occluder->bsp, 0x7FFFFFFF, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
+        if (ClipSegmentBsp(occluder->bsp, SLY2_BSP_NO_LIMIT, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = TARGET_UNSEEN; goto done; }
     }
     switch (state) {
     case TARGET_UNSEEN:

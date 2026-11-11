@@ -307,7 +307,7 @@ static inline void ProbeGround(CONTEXT *p)
         } else {
             int cbspLeft = cbspMax;
             BSP *pbsp = absp;
-            if (PruneBspBySphere(so->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
+            if (PruneBspBySphere(so->absp, (BSP *)SLY2_BSP_NO_LIMIT, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
                 int cbsp = pbsp - absp;
                 pbsp--;
                 MarkSoContactsBspBsp(&g_sw, psoSelf, so, cbsp, so->absp, pbsp, &xp);

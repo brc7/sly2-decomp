@@ -216,7 +216,7 @@ void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
 POX *GetCurrentPo(SW *psw);
 qword GetLoWorldPos(void *plo);
 qword ConvertPosBetweenLos(void *source, void *p, qword q);
-BSP *FindBspLeafContainingPointFast(BSP *p, unsigned int limit, qword v);
+BSP *FindBspLeafContainingPointFast(BSP *p, uptr limit, qword v);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
 void OnLoRemove(TN *p);
@@ -443,7 +443,7 @@ void UpdateTnCallback(TN *p)
     }
     int initial=p->requestedState;
     int sentinel=AutomaticSentinel();
-    if(initial==sentinel) f=FindBspLeafContainingPointFast(p->bspc.nodes, 0x7FFFFFFF, ConvertPosBetweenLos(0, p, GetLoWorldPos(po))) != 0;
+    if(initial==sentinel) f=FindBspLeafContainingPointFast(p->bspc.nodes, SLY2_BSP_NO_LIMIT, ConvertPosBetweenLos(0, p, GetLoWorldPos(po))) != 0;
     else f=initial;
     if (!p->unknown124 && IsBasicDerivedFrom__FP5BASIC3CID(po, 0x34) && po->unknown2DC != -1 && !D_002DE240
         && p->requestedState == -1)

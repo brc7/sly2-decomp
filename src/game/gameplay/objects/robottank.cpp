@@ -1545,7 +1545,7 @@ extern "C" void MarkWheel(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3
     BSP *absp;
     absp = pbsp = (BSP *)PvAllocStack(0x1555 * sizeof(BSP));
     cbspLeft = 0x1555;
-    if (PruneBspBySphere(pbspRoot, (BSP *)0x7FFFFFFF, frame.r[3].q, SqrtFloat(radius * radius + height * height), &cbspLeft, &pbsp) != 2)
+    if (PruneBspBySphere(pbspRoot, (BSP *)SLY2_BSP_NO_LIMIT, frame.r[3].q, SqrtFloat(radius * radius + height * height), &cbspLeft, &pbsp) != 2)
         return;
     int cbsp = pbsp - absp;
     SURF *asurf = ppart->meshWorld.surfaces;
@@ -1611,7 +1611,7 @@ extern "C" void MarkWheel(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3
             dir = Blend(D_002C2150[4], radius, g_normalZ, height);
         VU_VECTOR pos;
         pos = Transform(frame, dir);
-        int clsg = ClipSegmentBsp(pbsp, (BSP *)0x7FFFFFFF, posPrev.q, pos.q, 16, alsg);
+        int clsg = ClipSegmentBsp(pbsp, (BSP *)SLY2_BSP_NO_LIMIT, posPrev.q, pos.q, 16, alsg);
         for (int k = 0; k < clsg; k++) {
             LSG *plsg = &alsg[k];
             if (plsg->apsurf[0]) {

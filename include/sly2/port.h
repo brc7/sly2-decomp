@@ -25,6 +25,12 @@
  *                   way, so both spellings call the same code and the label is `ee`; a native ABI does not (arm64
  *                   passes a struct result's address in x8, not x0), so natively the declaration binds to `native`,
  *                   an adapter with its own spelling (defined next to the function, outside SLY2_EE_LAYOUT).
+ *   SLY2_BSP_NO_LIMIT
+ *                   the node-address limit a BSP walk is given when it has none (ClipSegmentBsp, PruneBspBySphere,
+ *                   FindBspLeafContainingPoint[Fast], IntersectSphereBsp...: a child at or past the limit counts as
+ *                   empty). The largest positive pointer-sized value: 0x7FFFFFFF on the EE, as the callers wrote it;
+ *                   on a 64-bit host above every heap address. An unsigned (uptr) constant: callers pass it as is to a
+ *                   uptr limit parameter or cast it to the node pointer type.
  *
  * Hardware addresses are in sly2/hw.h. Static layout asserts throughout the headers still describe the EE. */
 #ifndef SLY2_PORT_H
@@ -46,6 +52,7 @@
 #endif
 typedef SLY2_UPTR_TYPE uptr;
 typedef SLY2_SPTR_TYPE sptr;
+#define SLY2_BSP_NO_LIMIT (~(uptr)0 >> 1)
 typedef char assert_uptr_size[sizeof(uptr) == sizeof(void *) && sizeof(sptr) == sizeof(void *) ? 1 : -1];   /* every target */
 
 #if defined(__R5900__) && !defined(SLY2_NO_EE_ASM)
