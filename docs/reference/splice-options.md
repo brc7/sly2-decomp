@@ -93,7 +93,7 @@ parent BASIC; 33 options in all.
 | 37 | `RefThunk_MoveLoToObject` | - | method(1) | 24 |
 | 39 | `RefThunkLoADD` | - | method(0) file | 25 |
 | 40 | `RefThunkLoREMOVEFn` / `RefThunkLoREMOVEFnUser` | - | method(0) file | 26 |
-| 41 | `func_00259AE8` | bool | get | 27 |
+| 41 | `GetLoIsInWorld` | bool | get | 27 |
 | 60 | `?` | int | none | 28 |
 | 63 | `virtual slot 0x22, 0xC` / `virtual slot 0x24, 0xC` | vector | get set file | 29 |
 | 64 | `virtual slot 0x23, 0xC` / `virtual slot 0x25, 0xC` | vector | get set file | 30 |
@@ -464,8 +464,8 @@ parent XFM; 98 options in all.
 | 560 | `RefThunkEmitterPAUSE_FOREVER` | - | method(0) | 479 |
 | 561 | `RefThunkEmitterUNPAUSE` | - | method(0) | 480 |
 | 562 | `IsEmitterPaused__FP7EMITTER` | bool | get | 481 |
-| 563 | `func_002589F0` / `func_002589A8` | int | get file | 482 |
-| 564 | `func_00258AB8` / `SetEmitterOriginKind` | int | get file | 483 |
+| 563 | `GetEmitterParticleKind` / `SetEmitterParticleKind` | int | get file | 482 |
+| 564 | `GetEmitterOriginKind` / `SetEmitterOriginKind` | int | get file | 483 |
 | 565 | `sub-object +0x20` | vector | get file | 484 |
 | 566 | `?` | vector | none | 485 |
 | 567 | `sub-object +0x10` | vector | get file | 486 |
@@ -490,7 +490,7 @@ parent XFM; 98 options in all.
 | 587 | `sub-object vel.lmPush` | lm | get set file | 506 |
 | 588 | `sub-object vel.lmAge` | lm | get set file | 507 |
 | 589 | `sub-object vel.alphaCurve` | clq | get set file | 508 |
-| 590 | `func_00258C40` / `SetEmitterRecord1PayloadKind` | int | get file | 509 |
+| 590 | `GetEmitterRecord1PayloadKind` / `SetEmitterRecord1PayloadKind` | int | get file | 509 |
 | 591 | `sub-object ripGroupKind` | int | get file | 510 |
 | 592 | `sub-object oid08` | int | get file | 511 |
 | 593 | `sub-object n0C` | int | get file | 512 |
@@ -504,7 +504,7 @@ parent XFM; 98 options in all.
 | 601 | `?` | float | none | 520 |
 | 602 | `sub-object +0x4` | float | get set file | 521 |
 | 603 | `sub-object +0x8` | float | get set file | 522 |
-| 604 | `func_00258E40` / `SetEmitterRecord0PayloadKind` | int | get set file | 523 |
+| 604 | `GetEmitterRecord0PayloadKind` / `SetEmitterRecord0PayloadKind` | int | get set file | 523 |
 | 605 | `sub-object ripGroupKind` | int | get set file | 524 |
 | 606 | `sub-object oid08` | bool | get set file | 525 |
 | 607 | `sub-object oid10` | int | get set file | 526 |
@@ -536,7 +536,7 @@ parent EXPL; 54 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 325 | `sub-object vel.lmTilt` | lm | get set file | 550 |
-| 564 | `func_00258AB8` / `SetEmitterOriginKind` | int | get file | 536 |
+| 564 | `GetEmitterOriginKind` / `SetEmitterOriginKind` | int | get file | 536 |
 | 565 | `sub-object +0x20` | vector | get file | 537 |
 | 566 | `?` | vector | none | 538 |
 | 567 | `sub-object +0x10` | vector | get file | 539 |
@@ -553,7 +553,7 @@ parent EXPL; 54 options in all.
 | 584 | `sub-object vel.particlesPerRing` | int | get set file | 551 |
 | 585 | `sub-object vel.randomRadius` | float | get set file | 552 |
 | 587 | `sub-object vel.lmPush` | lm | get set file | 553 |
-| 590 | `func_00258C40` / `SetEmitterRecord1PayloadKind` | int | get file | 554 |
+| 590 | `GetEmitterRecord1PayloadKind` / `SetEmitterRecord1PayloadKind` | int | get file | 554 |
 
 ## EXPLS (cid 33)
 
@@ -563,7 +563,7 @@ parent EXPLO; 93 options in all.
 |---|---|---|---|---|
 | 209 | `?` | int | none | 589 |
 | 551 | `+0xF4` | lm | get set file | 555 |
-| 563 | `func_002589F0` / `func_002589A8` | int | get file | 557 |
+| 563 | `GetEmitterParticleKind` / `SetEmitterParticleKind` | int | get file | 557 |
 | 580 | `sub-object vel.addedVelocity` | vector | get set file | 558 |
 | 581 | `sub-object vel.damping` | float | get set file | 559 |
 | 582 | `sub-object vel.curlRate` | float | get set file | 560 |
@@ -584,7 +584,7 @@ parent EXPLO; 93 options in all.
 | 601 | `?` | float | none | 575 |
 | 602 | `sub-object +0x4` | float | get set file | 576 |
 | 603 | `sub-object +0x8` | float | get set file | 577 |
-| 604 | `func_00258E40` / `SetEmitterRecord0PayloadKind` | int | get set file | 578 |
+| 604 | `GetEmitterRecord0PayloadKind` / `SetEmitterRecord0PayloadKind` | int | get set file | 578 |
 | 605 | `sub-object ripGroupKind` | int | get set file | 579 |
 | 606 | `sub-object oid08` | bool | get set file | 580 |
 | 607 | `sub-object oid10` | int | get set file | 581 |
@@ -851,7 +851,7 @@ parent LO; 84 options in all.
 | 197 | `GetSoPhysRecordParam8` / `SetSoPhysRecordParam8` | float | get set file | 80 |
 | 198 | `GetSoPhysRecordParamC` / `SetSoPhysRecordParamC` | float | get set file | 81 |
 | 199 | `GetSoPhysRecordParam4` / `SetSoPhysRecordParam4` | float | get set file | 82 |
-| 200 | `func_00259B20` | object&lt;PATHZONE&gt; | get | 83 |
+| 200 | `GetSoPathzone` | object&lt;PATHZONE&gt; | get | 83 |
 
 ## MS (cid 49)
 
@@ -2384,9 +2384,9 @@ parent CID148; 16 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 122 | `func_00256350` / `func_00256328` | int | get set | 1232 |
-| 123 | `func_00256318` / `func_002562F0` | int | get set | 1233 |
-| 795 | `func_002562E0` / `func_002562B8` | float | get set | 1234 |
+| 122 | `GetPartRefZapKinds` / `SetPartRefZapKinds` | int | get set | 1232 |
+| 123 | `GetPartRefDamage` / `SetPartRefDamage` | int | get set | 1233 |
+| 795 | `GetPartRefRadius` / `SetPartRefRadius` | float | get set | 1234 |
 
 ## CID151 (cid 151)
 

@@ -1601,7 +1601,7 @@ struct BARREL : SO, GRABSPOT
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrelIgnoreIntersection");   /* slot 61 */
     virtual void PresetAccel() __asm__("PresetBarrelAccel");   /* slot 70 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("HandleBarrelZap");   /* slot 75 */
-    virtual LO *GetOwner() __asm__("func_00259A20__FP6BARREL");   /* GRABSPOT slot 6 (delta -336) */
+    virtual LO *GetOwner() __asm__("GetBarrelGrabspotOwner__FP6BARREL");   /* GRABSPOT slot 6 (delta -336) */
 };
 typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
 typedef char assert_BARREL_carryState[SLY2_OFFSETOF(BARREL, carryState) == 0x17C ? 1 : -1];
@@ -2808,7 +2808,7 @@ typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
 /* 115 WR (0x900); vtable 0x2DCF00, 48 slots: defined in sly2/wr.h (the anim header) with its fields. */
 struct WR;
 
-/* The OwnFields accessors declared in sly2/xfm.h and sly2/so.h (func_00259A28): each returns the class's GRABSPOT
+/* The OwnFields accessors declared in sly2/xfm.h and sly2/so.h (GetBarrelOwnFields): each returns the class's GRABSPOT
    base, which the option records address. A plain static_cast<GRABSPOT *>(p) adds a null test (movz) that the
    linkonce copies do not have, and so does a reference cast; the base offset is therefore taken from a static_cast
    of a non-null constant (folded to sizeof(first base) on the EE, the ABI's offset elsewhere) and added to p. */
@@ -2822,6 +2822,6 @@ inline void *GetHndOwnFields(HND *phnd) { return SLY2_GRABSPOT_BASE(HND, phnd); 
 inline void *GetPipeOwnFields(PIPE *ppipe) { return SLY2_GRABSPOT_BASE(PIPE, ppipe); }
 inline void *GetRailOwnFields(RAIL *prail) { return SLY2_GRABSPOT_BASE(RAIL, prail); }
 inline void *GetCid39OwnFields(CID39 *p) { return SLY2_GRABSPOT_BASE(CID39, p); }
-inline void *func_00259A28(BARREL *pbarrel) { return SLY2_GRABSPOT_BASE(BARREL, pbarrel); }
+inline void *GetBarrelOwnFields(BARREL *pbarrel) { return SLY2_GRABSPOT_BASE(BARREL, pbarrel); }
 
 #endif /* SLY2_CLASSES_H */

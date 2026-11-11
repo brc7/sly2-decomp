@@ -692,22 +692,22 @@ template <class T> struct EOPIDT
     typedef EMITB *(*PemitbEnsure)(T *, ENSK);
     typedef EMITV *(*EnsureEmitterRecord0)(T *, ENSK);
     typedef EMITV *(*EnsureEmitterRecord1)(T *, ENSK);
-    typedef void (*func_002589A8)(T *, int);
-    typedef int (*func_002589F0)(T *);
+    typedef void (*SetEmitterParticleKind)(T *, int);
+    typedef int (*GetEmitterParticleKind)(T *);
     typedef void (*SetEmitterOriginKind)(T *, int);
-    typedef int (*func_00258AB8)(T *);
-    typedef int *(*func_00258AC8)(T *, ENSK);
-    typedef int (*func_00258B00)(T *, ENSK);
-    typedef int *(*func_00258B38)(T *, ENSK);
+    typedef int (*GetEmitterOriginKind)(T *);
+    typedef int *(*EnsureEmitterOriginKind0)(T *, ENSK);
+    typedef int (*EnsureEmitterOriginCurve)(T *, ENSK);
+    typedef int *(*EnsureEmitterOriginKind2)(T *, ENSK);
     typedef void (*SetEmitterRecord1PayloadKind)(T *, int);
-    typedef int (*func_00258C40)(T *);
-    typedef void *(*func_00258C60)(T *, ENSK);
-    typedef void *(*func_00258CC8)(T *, ENSK);
-    typedef void *(*func_00258D30)(T *, ENSK);
+    typedef int (*GetEmitterRecord1PayloadKind)(T *);
+    typedef void *(*EnsureEmitterRecord1Payload2)(T *, ENSK);
+    typedef void *(*EnsureEmitterRecord1Payload3)(T *, ENSK);
+    typedef void *(*EnsureEmitterRecord1Payload8)(T *, ENSK);
     typedef void (*SetEmitterRecord0PayloadKind)(T *, int);
-    typedef int (*func_00258E40)(T *);
-    typedef void *(*func_00258E60)(T *, ENSK);
-    typedef void *(*func_00258EC8)(T *, ENSK);
+    typedef int (*GetEmitterRecord0PayloadKind)(T *);
+    typedef void *(*EnsureEmitterRecord0Payload2)(T *, ENSK);
+    typedef void *(*EnsureEmitterRecord0Payload1)(T *, ENSK);
 };
 
 /* PemitbEnsure's two instances are emitter.cpp's explicit instantiations (0x258658, 0x2590F0): referred to here, not
@@ -723,7 +723,7 @@ namespace M_eopid { extern "C" {
  * with another layout gets that layout's offset; the bytes on the EE are the same. EOPID_INT is left for counts
  * (method argument counts, file word with grfeopid & 0x401) and for the offsets whose member no header declares yet
  * (class pads, TU-private types such as CPD, BOOTYE, AMBSND, SFX, and the emitter.h accessors' interior pointers).
- * The GetXxxOwnFields accessors (sly2/xfm.h, sly2/so.h func_00259A28) return the class's GRABSPOT base, so their
+ * The GetXxxOwnFields accessors (sly2/xfm.h, sly2/so.h GetBarrelOwnFields) return the class's GRABSPOT base, so their
  * records use GRABSPOT's members.
  *
  * Pointers to member functions (for a port; the EE bytes must not change): g++ 2.95's PMF is 8 bytes,
@@ -777,7 +777,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_MoveLoToObject), EOPID_INT(1), EOPID_NONE}, /* [24] opt 37, LO (+131) */
     {0x12, 0x4401, EOPID_FN(RefThunkLoADD), EOPID_FN(RefThunkLoADD), EOPID_NONE, EOPID_NONE}, /* [25] opt 39, LO (+131) */
     {0x12, 0x4401, EOPID_FN(RefThunkLoREMOVEFnUser), EOPID_FN(RefThunkLoREMOVEFn), EOPID_NONE, EOPID_NONE}, /* [26] opt 40, LO (+131) */
-    {0, 4, EOPID_PMFI(func_00259AE8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [27] opt 41, LO (+131) */
+    {0, 4, EOPID_PMFI(GetLoIsInWorld), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [27] opt 41, LO (+131) */
     {6, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [28] opt 60, LO (+131) */
     {2, 0x124, EOPID_VPMF(0x22, 0xC), EOPID_VPMF(0x24, 0xC), EOPID_VPMF(0x24, 0xC), EOPID_NONE}, /* [29] opt 63, LO (+131) */
     {2, 0x124, EOPID_VPMF(0x23, 0xC), EOPID_VPMF(0x25, 0xC), EOPID_VPMF(0x25, 0xC), EOPID_NONE}, /* [30] opt 64, LO (+131) */
@@ -833,7 +833,7 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x124, EOPID_PMF(GetSoPhysRecordParam8), EOPID_PMF(SetSoPhysRecordParam8), EOPID_PMF(SetSoPhysRecordParam8), EOPID_NONE}, /* [80] opt 197, SO (+60) */
     {1, 0x124, EOPID_PMF(GetSoPhysRecordParamC), EOPID_PMF(SetSoPhysRecordParamC), EOPID_PMF(SetSoPhysRecordParamC), EOPID_NONE}, /* [81] opt 198, SO (+60) */
     {1, 0x124, EOPID_PMF(GetSoPhysRecordParam4), EOPID_PMF(SetSoPhysRecordParam4), EOPID_PMF(SetSoPhysRecordParam4), EOPID_NONE}, /* [82] opt 199, SO (+60) */
-    {0x2011, 4, EOPID_PMFI(func_00259B20), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [83] opt 200, SO (+60) */
+    {0x2011, 4, EOPID_PMFI(GetSoPathzone), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [83] opt 200, SO (+60) */
     {1, 4, EOPID_VPMF(0xA, 0xC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [84] opt 202, SAA (+6) */
     {0xA, 0x12, EOPID_OFF(LOOP, loopTimeRange), EOPID_OFF(LOOP, loopTimeRange), EOPID_NONE, EOPID_NONE}, /* [85] opt 143, LOOP */
     {0xA, 0x12, EOPID_OFF(LOOP, pauseTimeRange), EOPID_OFF(LOOP, pauseTimeRange), EOPID_NONE, EOPID_NONE}, /* [86] opt 144, LOOP */
@@ -1232,12 +1232,12 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkEmitterPAUSE_FOREVER), EOPID_NONE, EOPID_NONE}, /* [479] opt 560, EMITTER */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkEmitterUNPAUSE), EOPID_NONE, EOPID_NONE}, /* [480] opt 561, EMITTER */
     {0, 4, EOPID_PMF(IsEmitterPaused__FP7EMITTER), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [481] opt 562, EMITTER */
-    {0x1021, 0x104, EOPID_PMFT(func_002589F0, EMITTER), EOPID_NONE, EOPID_PMFT(func_002589A8, EMITTER), EOPID_NONE}, /* [482] opt 563, EMITTER */
-    {0x1022, 0x104, EOPID_PMFT(func_00258AB8, EMITTER), EOPID_NONE, EOPID_PMFT(SetEmitterOriginKind, EMITTER), EOPID_NONE}, /* [483] opt 564, EMITTER */
-    {2, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(func_00258AC8, EMITTER)}, /* [484] opt 565, EMITTER */
-    {2, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258B00, EMITTER)}, /* [485] opt 566, EMITTER */
-    {2, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(func_00258B00, EMITTER)}, /* [486] opt 567, EMITTER */
-    {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(func_00258B38, EMITTER)}, /* [487] opt 569, EMITTER */
+    {0x1021, 0x104, EOPID_PMFT(GetEmitterParticleKind, EMITTER), EOPID_NONE, EOPID_PMFT(SetEmitterParticleKind, EMITTER), EOPID_NONE}, /* [482] opt 563, EMITTER */
+    {0x1022, 0x104, EOPID_PMFT(GetEmitterOriginKind, EMITTER), EOPID_NONE, EOPID_PMFT(SetEmitterOriginKind, EMITTER), EOPID_NONE}, /* [483] opt 564, EMITTER */
+    {2, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterOriginKind0, EMITTER)}, /* [484] opt 565, EMITTER */
+    {2, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterOriginCurve, EMITTER)}, /* [485] opt 566, EMITTER */
+    {2, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(EnsureEmitterOriginCurve, EMITTER)}, /* [486] opt 567, EMITTER */
+    {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterOriginKind2, EMITTER)}, /* [487] opt 569, EMITTER */
     {6, 0x2082, EOPID_OFF(EMITB, emito.originOid), EOPID_NONE, EOPID_OFF(EMITB, emito.originOid), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [488] opt 570, EMITTER */
     {0x12, 0x400, EOPID_FN(RefThunk_AddEmitterToHeroFollowers), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [489] opt 571, EMITTER */
     {0x1023, 0x2082, EOPID_OFF(EMITB, emito.normalKind), EOPID_NONE, EOPID_OFF(EMITB, emito.normalKind), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [490] opt 572, EMITTER */
@@ -1259,7 +1259,7 @@ EOPIDROW D_002AC880[1449] = {
     {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [506] opt 587, EMITTER */
     {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmAge), EOPID_OFF(EMITB, vel.lmAge), EOPID_OFF(EMITB, vel.lmAge), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [507] opt 588, EMITTER */
     {9, 0x2092, EOPID_OFF(EMITB, vel.alphaCurve), EOPID_OFF(EMITB, vel.alphaCurve), EOPID_OFF(EMITB, vel.alphaCurve), EOPID_PMFT(PemitbEnsure, EMITTER)}, /* [508] opt 589, EMITTER */
-    {0x101C, 0x104, EOPID_PMFT(func_00258C40, EMITTER), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EMITTER), EOPID_NONE}, /* [509] opt 590, EMITTER */
+    {0x101C, 0x104, EOPID_PMFT(GetEmitterRecord1PayloadKind, EMITTER), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EMITTER), EOPID_NONE}, /* [509] opt 590, EMITTER */
     {0x101D, 0x2082, EOPID_OFF(EMITV, ripGroupKind), EOPID_NONE, EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [510] opt 591, EMITTER */
     {6, 0x2082, EOPID_OFF(EMITV, oid08), EOPID_NONE, EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [511] opt 592, EMITTER */
     {6, 0x2082, EOPID_OFF(EMITV, n0C), EOPID_NONE, EOPID_OFF(EMITV, n0C), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [512] opt 593, EMITTER */
@@ -1267,30 +1267,30 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [514] opt 595, EMITTER */
     {0xA, 0x2092, EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [515] opt 596, EMITTER */
     {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord1, EMITTER)}, /* [516] opt 597, EMITTER */
-    {6, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258C60, EMITTER)}, /* [517] opt 598, EMITTER */
-    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258C60, EMITTER)}, /* [518] opt 599, EMITTER */
-    {0, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258CC8, EMITTER)}, /* [519] opt 600, EMITTER */
-    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258D30, EMITTER)}, /* [520] opt 601, EMITTER */
-    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258D30, EMITTER)}, /* [521] opt 602, EMITTER */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258D30, EMITTER)}, /* [522] opt 603, EMITTER */
-    {0x101F, 0x124, EOPID_PMFT(func_00258E40, EMITTER), EOPID_PMFT(SetEmitterRecord0PayloadKind, EMITTER), EOPID_PMFT(SetEmitterRecord0PayloadKind, EMITTER), EOPID_NONE}, /* [523] opt 604, EMITTER */
+    {6, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord1Payload2, EMITTER)}, /* [517] opt 598, EMITTER */
+    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord1Payload2, EMITTER)}, /* [518] opt 599, EMITTER */
+    {0, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord1Payload3, EMITTER)}, /* [519] opt 600, EMITTER */
+    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord1Payload8, EMITTER)}, /* [520] opt 601, EMITTER */
+    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord1Payload8, EMITTER)}, /* [521] opt 602, EMITTER */
+    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord1Payload8, EMITTER)}, /* [522] opt 603, EMITTER */
+    {0x101F, 0x124, EOPID_PMFT(GetEmitterRecord0PayloadKind, EMITTER), EOPID_PMFT(SetEmitterRecord0PayloadKind, EMITTER), EOPID_PMFT(SetEmitterRecord0PayloadKind, EMITTER), EOPID_NONE}, /* [523] opt 604, EMITTER */
     {0x101E, 0x2092, EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [524] opt 605, EMITTER */
     {0, 0x2092, EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [525] opt 606, EMITTER */
     {6, 0x2092, EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [526] opt 607, EMITTER */
     {6, 0x2082, EOPID_OFF(EMITV, oid14), EOPID_NONE, EOPID_OFF(EMITV, oid14), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [527] opt 608, EMITTER */
     {1, 0x2092, EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [528] opt 609, EMITTER */
     {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord0, EMITTER)}, /* [529] opt 611, EMITTER */
-    {0x1020, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258E60, EMITTER)}, /* [530] opt 612, EMITTER */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258E60, EMITTER)}, /* [531] opt 613, EMITTER */
-    {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258E60, EMITTER)}, /* [532] opt 614, EMITTER */
-    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258EC8, EMITTER)}, /* [533] opt 615, EMITTER */
+    {0x1020, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord0Payload2, EMITTER)}, /* [530] opt 612, EMITTER */
+    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord0Payload2, EMITTER)}, /* [531] opt 613, EMITTER */
+    {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord0Payload2, EMITTER)}, /* [532] opt 614, EMITTER */
+    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord0Payload1, EMITTER)}, /* [533] opt 615, EMITTER */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkExplEXPLODE), EOPID_NONE, EOPID_NONE}, /* [534] opt 244, EXPL (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkExplEXPLODE_OVR), EOPID_INT(6), EOPID_NONE}, /* [535] opt 616, EXPL (+3) */
-    {0x1022, 0x104, EOPID_PMFT(func_00258AB8, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterOriginKind, EXPLO), EOPID_NONE}, /* [536] opt 564, EXPLO (+1) */
-    {2, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(func_00258AC8, EXPLO)}, /* [537] opt 565, EXPLO (+1) */
-    {2, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258B00, EXPLO)}, /* [538] opt 566, EXPLO (+1) */
-    {2, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(func_00258B00, EXPLO)}, /* [539] opt 567, EXPLO (+1) */
-    {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(func_00258B38, EXPLO)}, /* [540] opt 569, EXPLO (+1) */
+    {0x1022, 0x104, EOPID_PMFT(GetEmitterOriginKind, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterOriginKind, EXPLO), EOPID_NONE}, /* [536] opt 564, EXPLO (+1) */
+    {2, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterOriginKind0, EXPLO)}, /* [537] opt 565, EXPLO (+1) */
+    {2, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterOriginCurve, EXPLO)}, /* [538] opt 566, EXPLO (+1) */
+    {2, 0x2082, EOPID_INT(0x10), EOPID_NONE, EOPID_INT(0x10), EOPID_PMFT(EnsureEmitterOriginCurve, EXPLO)}, /* [539] opt 567, EXPLO (+1) */
+    {6, 0x2082, EOPID_INT(0x20), EOPID_NONE, EOPID_INT(0x20), EOPID_PMFT(EnsureEmitterOriginKind2, EXPLO)}, /* [540] opt 569, EXPLO (+1) */
     {6, 0x2082, EOPID_OFF(EMITB, emito.originOid), EOPID_NONE, EOPID_OFF(EMITB, emito.originOid), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [541] opt 570, EXPLO (+1) */
     {0x1023, 0x2082, EOPID_OFF(EMITB, emito.normalKind), EOPID_NONE, EOPID_OFF(EMITB, emito.normalKind), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [542] opt 572, EXPLO (+1) */
     {2, 0x2092, EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_OFF(EMITB, emito.direction), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [543] opt 573, EXPLO (+1) */
@@ -1304,10 +1304,10 @@ EOPIDROW D_002AC880[1449] = {
     {5, 0x2092, EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_OFF(EMITB, vel.particlesPerRing), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [551] opt 584, EXPLO (+1) */
     {1, 0x2092, EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [552] opt 585, EXPLO (+1) */
     {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [553] opt 587, EXPLO (+1) */
-    {0x101C, 0x104, EOPID_PMFT(func_00258C40, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EXPLO), EOPID_NONE}, /* [554] opt 590, EXPLO (+1) */
+    {0x101C, 0x104, EOPID_PMFT(GetEmitterRecord1PayloadKind, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EXPLO), EOPID_NONE}, /* [554] opt 590, EXPLO (+1) */
     {0xA, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [555] opt 551, EXPLS */
     {0, 0x92, EOPID_INT(0xFC), EOPID_INT(0xFC), EOPID_INT(0xFC), EOPID_NONE}, /* [556] opt 617, EXPLS */
-    {0x1021, 0x104, EOPID_PMFT(func_002589F0, EXPLO), EOPID_NONE, EOPID_PMFT(func_002589A8, EXPLO), EOPID_NONE}, /* [557] opt 563, EXPLS */
+    {0x1021, 0x104, EOPID_PMFT(GetEmitterParticleKind, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterParticleKind, EXPLO), EOPID_NONE}, /* [557] opt 563, EXPLS */
     {2, 0x2092, EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [558] opt 580, EXPLS */
     {1, 0x2092, EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [559] opt 581, EXPLS */
     {1, 0x2092, EOPID_OFF(EMITB, vel.curlRate), EOPID_OFF(EMITB, vel.curlRate), EOPID_OFF(EMITB, vel.curlRate), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [560] opt 582, EXPLS */
@@ -1322,23 +1322,23 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_OFF(EMITV, ripScale), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [569] opt 595, EXPLS */
     {0xA, 0x2092, EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_OFF(EMITV, lmScale), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [570] opt 596, EXPLS */
     {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord1, EXPLO)}, /* [571] opt 597, EXPLS */
-    {6, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258C60, EXPLO)}, /* [572] opt 598, EXPLS */
-    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258C60, EXPLO)}, /* [573] opt 599, EXPLS */
-    {0, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258CC8, EXPLO)}, /* [574] opt 600, EXPLS */
-    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258D30, EXPLO)}, /* [575] opt 601, EXPLS */
-    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258D30, EXPLO)}, /* [576] opt 602, EXPLS */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258D30, EXPLO)}, /* [577] opt 603, EXPLS */
-    {0x101F, 0x124, EOPID_PMFT(func_00258E40, EXPLO), EOPID_PMFT(SetEmitterRecord0PayloadKind, EXPLO), EOPID_PMFT(SetEmitterRecord0PayloadKind, EXPLO), EOPID_NONE}, /* [578] opt 604, EXPLS */
+    {6, 0x2082, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord1Payload2, EXPLO)}, /* [572] opt 598, EXPLS */
+    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord1Payload2, EXPLO)}, /* [573] opt 599, EXPLS */
+    {0, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord1Payload3, EXPLO)}, /* [574] opt 600, EXPLS */
+    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord1Payload8, EXPLO)}, /* [575] opt 601, EXPLS */
+    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord1Payload8, EXPLO)}, /* [576] opt 602, EXPLS */
+    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord1Payload8, EXPLO)}, /* [577] opt 603, EXPLS */
+    {0x101F, 0x124, EOPID_PMFT(GetEmitterRecord0PayloadKind, EXPLO), EOPID_PMFT(SetEmitterRecord0PayloadKind, EXPLO), EOPID_PMFT(SetEmitterRecord0PayloadKind, EXPLO), EOPID_NONE}, /* [578] opt 604, EXPLS */
     {0x101E, 0x2092, EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_OFF(EMITV, ripGroupKind), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [579] opt 605, EXPLS */
     {0, 0x2092, EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_OFF(EMITV, oid08), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [580] opt 606, EXPLS */
     {6, 0x2092, EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_OFF(EMITV, oid10), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [581] opt 607, EXPLS */
     {6, 0x2082, EOPID_OFF(EMITV, oid14), EOPID_NONE, EOPID_OFF(EMITV, oid14), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [582] opt 608, EXPLS */
     {1, 0x2092, EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_OFF(EMITV, shaderLoopTime), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [583] opt 609, EXPLS */
     {9, 0x2092, EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_OFF(EMITV, scale), EOPID_PMFT(EnsureEmitterRecord0, EXPLO)}, /* [584] opt 611, EXPLS */
-    {0x1020, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258E60, EXPLO)}, /* [585] opt 612, EXPLS */
-    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258E60, EXPLO)}, /* [586] opt 613, EXPLS */
-    {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258E60, EXPLO)}, /* [587] opt 614, EXPLS */
-    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258EC8, EXPLO)}, /* [588] opt 615, EXPLS */
+    {0x1020, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord0Payload2, EXPLO)}, /* [585] opt 612, EXPLS */
+    {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(EnsureEmitterRecord0Payload2, EXPLO)}, /* [586] opt 613, EXPLS */
+    {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(EnsureEmitterRecord0Payload2, EXPLO)}, /* [587] opt 614, EXPLS */
+    {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(EnsureEmitterRecord0Payload1, EXPLO)}, /* [588] opt 615, EXPLS */
     {0xE, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(EnsureExplsSfx)}, /* [589] opt 209, EXPLS */
     {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMF(EnsureExplsSfx)}, /* [590] opt 618, EXPLS */
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(EnsureExplsSfx)}, /* [591] opt 619, EXPLS */
@@ -1580,14 +1580,14 @@ EOPIDROW D_002AC880[1449] = {
     {5, 0x92, EOPID_INT(0x188), EOPID_INT(0x188), EOPID_INT(0x188), EOPID_NONE}, /* [827] opt 785, BARREL */
     {0, 0x92, EOPID_OFF(BARREL, isFree), EOPID_OFF(BARREL, isFree), EOPID_OFF(BARREL, isFree), EOPID_NONE}, /* [828] opt 786, BARREL */
     {0x2034, 2, EOPID_OFF(BARREL, carrier), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [829] opt 787, BARREL */
-    {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(func_00259A28)}, /* [830] opt 776, BARREL */
-    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(func_00259A28)}, /* [831] opt 777, BARREL */
-    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(func_00259A28)}, /* [832] opt 778, BARREL */
-    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(func_00259A28)}, /* [833] opt 141, BARREL */
-    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(func_00259A28)}, /* [834] opt 779, BARREL */
-    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(func_00259A28)}, /* [835] opt 780, BARREL */
-    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, ploGroup), EOPID_PMFI(func_00259A28)}, /* [836] opt 781, BARREL */
-    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(func_00259A28)}, /* [837] opt 782, BARREL */
+    {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(GetBarrelOwnFields)}, /* [830] opt 776, BARREL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_OFF(GRABSPOT, unknown04), EOPID_PMFI(GetBarrelOwnFields)}, /* [831] opt 777, BARREL */
+    {1, 0x2092, EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_OFF(GRABSPOT, sBusy), EOPID_PMFI(GetBarrelOwnFields)}, /* [832] opt 778, BARREL */
+    {0, 0x2092, EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_OFF(GRABSPOT, unknown0C), EOPID_PMFI(GetBarrelOwnFields)}, /* [833] opt 141, BARREL */
+    {0x106A, 0x2092, EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_OFF(GRABSPOT, nPriority), EOPID_PMFI(GetBarrelOwnFields)}, /* [834] opt 779, BARREL */
+    {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetBarrelOwnFields)}, /* [835] opt 780, BARREL */
+    {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, ploGroup), EOPID_PMFI(GetBarrelOwnFields)}, /* [836] opt 781, BARREL */
+    {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetBarrelOwnFields)}, /* [837] opt 782, BARREL */
     {2, 0x92, EOPID_OFF(PIPE, axis), EOPID_OFF(PIPE, axis), EOPID_OFF(PIPE, axis), EOPID_NONE}, /* [838] opt 788, PIPE */
     {0xE, 0x92, EOPID_OFF(PIPE, attachEffectId), EOPID_OFF(PIPE, attachEffectId), EOPID_OFF(PIPE, attachEffectId), EOPID_NONE}, /* [839] opt 789, PIPE */
     {0xE, 0x92, EOPID_OFF(PIPE, releaseEffectId), EOPID_OFF(PIPE, releaseEffectId), EOPID_OFF(PIPE, releaseEffectId), EOPID_NONE}, /* [840] opt 790, PIPE */
@@ -1982,9 +1982,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator1Mat), EOPID_INT(3), EOPID_NONE}, /* [1229] opt 1061, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleActuator4), EOPID_INT(4), EOPID_NONE}, /* [1230] opt 1062, CID149 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetXfHandleKind16Params), EOPID_INT(6), EOPID_NONE}, /* [1231] opt 1063, CID149 */
-    {0x1011, 0x24, EOPID_PMFI(func_00256350), EOPID_PMFI(func_00256328), EOPID_NONE, EOPID_NONE}, /* [1232] opt 122, CID150 */
-    {5, 0x24, EOPID_PMFI(func_00256318), EOPID_PMFI(func_002562F0), EOPID_NONE, EOPID_NONE}, /* [1233] opt 123, CID150 */
-    {1, 0x24, EOPID_PMFI(func_002562E0), EOPID_PMFI(func_002562B8), EOPID_NONE, EOPID_NONE}, /* [1234] opt 795, CID150 */
+    {0x1011, 0x24, EOPID_PMFI(GetPartRefZapKinds), EOPID_PMFI(SetPartRefZapKinds), EOPID_NONE, EOPID_NONE}, /* [1232] opt 122, CID150 */
+    {5, 0x24, EOPID_PMFI(GetPartRefDamage), EOPID_PMFI(SetPartRefDamage), EOPID_NONE, EOPID_NONE}, /* [1233] opt 123, CID150 */
+    {1, 0x24, EOPID_PMFI(GetPartRefRadius), EOPID_PMFI(SetPartRefRadius), EOPID_NONE, EOPID_NONE}, /* [1234] opt 795, CID150 */
     {0, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(JobOptionNoOp), EOPID_NONE}, /* [1235] opt 1064, JOB */
     {0x12, 0x400, EOPID_FN(RefThunk_AddJobCompleteEvent), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1236] opt 1065, JOB */
     {0x12, 0x400, EOPID_FN(RefThunk_AddJobFailEvent), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1237] opt 1066, JOB */

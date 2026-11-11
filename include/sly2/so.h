@@ -153,7 +153,7 @@ struct SOPHYS
       CONSTR constrForce;   /* translation constraint */
       float m;   /* mass */
       undefined4 unknownD4[2];
-      struct REGENT *pregent;   /* the object's REGENT record (see func_00259B20) */
+      struct REGENT *pregent;   /* the object's REGENT record (see GetSoPathzone) */
 };
 
 /* REGENT: the region link of a physical SO: the path zone it is in (CID17 = classes.h PATHZONE), kept in that zone's
@@ -293,16 +293,17 @@ typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
- * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline CID17 *func_00259B20(SO *pso)   /* get */
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. Named from their bodies in v1.17 (were func_<address>
+ * placeholders: GetSoPathzone 0x259B20, GetBarrelOwnFields 0x259A28, GetBarrelGrabspotOwner 0x259A20). */
+inline CID17 *GetSoPathzone(SO *pso)   /* get */
 {
     REGENT *pregent = pso->physics ? pso->physics->pregent : 0;
     return pregent ? pregent->pathzone : 0;
 }
 /* ensure: the start of BARREL's own fields (BARREL : SO, CID 0x58, cb 0x1A0); BARREL has no header yet */
 struct BARREL;
-inline void *func_00259A28(BARREL *pbarrel);   /* defined in sly2/classes.h (needs BARREL complete) */
-inline void *func_00259A20(BARREL *pbarrel) { return pbarrel; }   /* its GRABSPOT owner getter (see sly2/xfm.h) */
+inline void *GetBarrelOwnFields(BARREL *pbarrel);   /* defined in sly2/classes.h (needs BARREL complete) */
+inline void *GetBarrelGrabspotOwner(BARREL *pbarrel) { return pbarrel; }   /* its GRABSPOT owner getter (see sly2/xfm.h) */
 
 /* SURFX: the three vertex indices of a triangle surface of a soft part (so.cpp EnsureSoPartMesh orders them so that
    their winding agrees with the surface normal; UpdateSoPartMesh rebuilds the planes from them). */
@@ -379,15 +380,16 @@ struct CID150 : public CID148
 };
 typedef char assert_CID150_size[sizeof(CID150) == 0x30 ? 1 : -1];   /* class descriptor cb */
 
-/* CID150's option accessors (g_aeopid records 1234, 1233, 1232: get, set), inline as the ones above. Each setter
+/* CID150's option accessors (g_aeopid records 1234, 1233, 1232: get, set), inline as the ones above; named in v1.17 from
+ * the SOPART field each reads (CID150 is a Splice reference to one part of an SO; were func_002562B8..func_00256350). Each setter
  * then calls InvalidateSoAaox on the part's object (HYPOTHESIS: marks its tree dirty). */
 extern "C" void InvalidateSoAaox(SO *pso);
-inline float func_002562E0(CID150 *p) { return p->psopart->radius; }
-inline void func_002562B8(CID150 *p, float g) { p->psopart->radius = g; InvalidateSoAaox(p->pso); }
-inline short func_00256318(CID150 *p) { return p->psopart->damage; }
-inline void func_002562F0(CID150 *p, short dhp) { p->psopart->damage = dhp; InvalidateSoAaox(p->pso); }
-inline uint func_00256350(CID150 *p) { return p->psopart->zapKindFlags; }
-inline void func_00256328(CID150 *p, uint grfzpk) { p->psopart->zapKindFlags = grfzpk; InvalidateSoAaox(p->pso); }
+inline float GetPartRefRadius(CID150 *p) { return p->psopart->radius; }
+inline void SetPartRefRadius(CID150 *p, float g) { p->psopart->radius = g; InvalidateSoAaox(p->pso); }
+inline short GetPartRefDamage(CID150 *p) { return p->psopart->damage; }
+inline void SetPartRefDamage(CID150 *p, short dhp) { p->psopart->damage = dhp; InvalidateSoAaox(p->pso); }
+inline uint GetPartRefZapKinds(CID150 *p) { return p->psopart->zapKindFlags; }
+inline void SetPartRefZapKinds(CID150 *p, uint grfzpk) { p->psopart->zapKindFlags = grfzpk; InvalidateSoAaox(p->pso); }
 
 /* SOTREE: a physics tree: SOs connected for collision/physics, solved together; bounds, part list and contact lists.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (3 copies in Lilly ports) */

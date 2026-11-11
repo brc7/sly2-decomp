@@ -12,8 +12,9 @@
  * The accessors exist twice in the binary, once per class (EMITTER 0x258898..0x258EC8, EXPLO 0x259330..0x259960),
  * with the same code; they are written once as function templates over the emitter-bearing class, and the option
  * table g_aeopid (src/game/app/class_registry_options.inc, EOPID_PMFT) instantiates both sets by taking their addresses.
- * See docs/guides/tu-merging.md "Inline functions and linkonce copies". Names are placeholders: each template is
- * named after its EMITTER copy's name (the EXPLO copy is the other instantiation of the same template). */
+ * See docs/guides/tu-merging.md "Inline functions and linkonce copies". Names (v1.17, from the bodies: Get / Set /
+ * Ensure + the field; "Ensure...KindN" / "...PayloadN" switch the field to kind N on a write) were func_<EMITTER
+ * copy's address> placeholders; one template covers both copies. */
 #ifndef SLY2_EMITTER_H
 #define SLY2_EMITTER_H
 #include "sly2/xfm.h"
@@ -512,7 +513,7 @@ template <class T> EMITV *EnsureEmitterRecord1(T *p, ENSK ensk)
 }
 
 /* setUser: make the slot hold record kv */
-template <class T> void func_002589A8(T *p, int kv)
+template <class T> void SetEmitterParticleKind(T *p, int kv)
 {
     switch (kv)
     {
@@ -526,7 +527,7 @@ template <class T> void func_002589A8(T *p, int kv)
 }
 
 /* get: which record the slot holds */
-template <class T> int func_002589F0(T *p) { return p->pemitb->particleKind; }
+template <class T> int GetEmitterParticleKind(T *p) { return p->pemitb->particleKind; }
 
 /* setUser: set the EMITO kind and allocate its data (only from unset) Also known as: SetPositionKind (upstream readable / Sly 1 name). */
 template <class T> void SetEmitterOriginKind(T *p, int k)
@@ -547,10 +548,10 @@ template <class T> void SetEmitterOriginKind(T *p, int k)
 }
 
 /* get: the EMITO kind */
-template <class T> int func_00258AB8(T *p) { return p->pemitb->emito.originKind; }
+template <class T> int GetEmitterOriginKind(T *p) { return p->pemitb->emito.originKind; }
 
 /* ensure: the EMITO kind (as kind 0 on a write) */
-template <class T> int *func_00258AC8(T *p, ENSK ensk)
+template <class T> int *EnsureEmitterOriginKind0(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         SetEmitterOriginKind(p, 0);
@@ -558,7 +559,7 @@ template <class T> int *func_00258AC8(T *p, ENSK ensk)
 }
 
 /* ensure: the EMITO data (as kind 1 on a write) */
-template <class T> int func_00258B00(T *p, ENSK ensk)
+template <class T> int EnsureEmitterOriginCurve(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         SetEmitterOriginKind(p, 1);
@@ -566,7 +567,7 @@ template <class T> int func_00258B00(T *p, ENSK ensk)
 }
 
 /* ensure: the EMITO kind (as kind 2 on a write) */
-template <class T> int *func_00258B38(T *p, ENSK ensk)
+template <class T> int *EnsureEmitterOriginKind2(T *p, ENSK ensk)
 {
     if (ensk == ENSK_Set)
         SetEmitterOriginKind(p, 2);
@@ -591,10 +592,10 @@ template <class T> void SetEmitterRecord1PayloadKind(T *p, int k)
 }
 
 /* get: record 1's payload kind */
-template <class T> int func_00258C40(T *p) { return EnsureEmitterRecord1(p, ENSK_Get)->k; }
+template <class T> int GetEmitterRecord1PayloadKind(T *p) { return EnsureEmitterRecord1(p, ENSK_Get)->k; }
 
 /* ensure: record 1's payload as kind 2, 3, 8 (D_002DE750 if it holds another kind) */
-template <class T> void *func_00258C60(T *p, ENSK ensk)
+template <class T> void *EnsureEmitterRecord1Payload2(T *p, ENSK ensk)
 {
     EMITV *pv;
     if (ensk == ENSK_Set)
@@ -611,7 +612,7 @@ template <class T> void *func_00258C60(T *p, ENSK ensk)
 
 // ensure: record 1's payload as kind 3 (D_002DE750 if it holds another kind); with ENSK_Set first switches it to kind
 // 3.
-template <class T> void *func_00258CC8(T *p, ENSK ensk)
+template <class T> void *EnsureEmitterRecord1Payload3(T *p, ENSK ensk)
 {
     EMITV *pv;
     if (ensk == ENSK_Set)
@@ -628,7 +629,7 @@ template <class T> void *func_00258CC8(T *p, ENSK ensk)
 
 // ensure: record 1's payload as kind 8 (D_002DE750 if it holds another kind); with ENSK_Set first switches it to kind
 // 8.
-template <class T> void *func_00258D30(T *p, ENSK ensk)
+template <class T> void *EnsureEmitterRecord1Payload8(T *p, ENSK ensk)
 {
     EMITV *pv;
     if (ensk == ENSK_Set)
@@ -660,10 +661,10 @@ template <class T> void SetEmitterRecord0PayloadKind(T *p, int k)
 }
 
 /* get: record 0's payload kind */
-template <class T> int func_00258E40(T *p) { return EnsureEmitterRecord0(p, ENSK_Get)->k; }
+template <class T> int GetEmitterRecord0PayloadKind(T *p) { return EnsureEmitterRecord0(p, ENSK_Get)->k; }
 
 /* ensure: record 0's payload as kind 2, 1 */
-template <class T> void *func_00258E60(T *p, ENSK ensk)
+template <class T> void *EnsureEmitterRecord0Payload2(T *p, ENSK ensk)
 {
     EMITV *pv;
     if (ensk == ENSK_Set)
@@ -680,7 +681,7 @@ template <class T> void *func_00258E60(T *p, ENSK ensk)
 
 // ensure: record 0's payload as kind 1 (D_002DE750 if it holds another kind); with ENSK_Set first switches it to kind
 // 1.
-template <class T> void *func_00258EC8(T *p, ENSK ensk)
+template <class T> void *EnsureEmitterRecord0Payload1(T *p, ENSK ensk)
 {
     EMITV *pv;
     if (ensk == ENSK_Set)

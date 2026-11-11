@@ -127,8 +127,8 @@ typedef char assert_LO_siblingLink[SLY2_OFFSETOF(LO, siblingLink) == 0x24 ? 1 : 
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry, EOPID_PMFI) emits them. See docs/guides/tu-merging.md
- * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
-inline ulong func_00259AE8(LO *plo) { return plo->isInWorld; }  /* get */
+ * "Inline functions and linkonce copies". Free functions (not members): see there why. GetLoIsInWorld was func_00259AE8 (named from its body, v1.17). */
+inline ulong GetLoIsInWorld(LO *plo) { return plo->isInWorld; }  /* get */
 
 /* PXR: a proxy record: links an object made from a proxy (PROXY) to its proxy id, its parent record and its siblings.
    Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (26 copies in Lilly ports) */
