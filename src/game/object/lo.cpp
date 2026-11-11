@@ -841,28 +841,18 @@ namespace M_CloneLo {
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct P;
 struct BINDING{int refs,pad4,pad8;int cref[2];int next;};
 struct FIELD{int refs,pad4;BINDING*binding;};
 struct ROOT{int refs,pad4,count;void*items[4];BINDING*binding;};
 struct RF;
 struct RR;
 struct REQUEST{int bytes,alignment;};
-struct NODE{int pad0;NODE*next;int key,chain;P*owner;int link;char list[12];int pad24;};
 struct META{char pad[0xC];uint bytes;};
-struct TAG{int word;int Get()const{register int v __asm__("$4")=word;if(!(v&1))v=*(int*)v;return v;}void Set(int v){v&=~1;int d=word;if(!(d&1))*(int*)d=v|(*(int*)d&1);else word=v|(d&1);}};
-/* The object (an LO; names in comments are lo.h's). aligned(8) as lo.h's LO (its 64-bit bit-field units): the flag bits
-   (lo.h busyKind etc.) are then read through the doubleword at +0x28, as the original does. */
-struct P{ROOT*root;FIELD*field;void*firstSubscriber;VTE*vt;void*parent,*loroot;int oid;void*oidNext,*classNext,*siblingNext,*siblingPrev;
-    char cpaloFindSwObjects;unsigned char visibilityMask;int kind:4,mode:4;uint reserved:1,autoA:1,autoB:1,end:5;
-    float nextSpliceTime;void*firstRunCallback;float scale/*busyRadius*/;NODE*nodes/*proxyRecord*/;TAG tag;char pad44[12];} __attribute__((aligned(8)));
 typedef char BINDING_Size[sizeof(BINDING)==24?1:-1];
 typedef char FIELD_Size[sizeof(FIELD)==12?1:-1];
 typedef char ROOT_Size[sizeof(ROOT)==32?1:-1];
 typedef char REQUEST_Size[sizeof(REQUEST)==8?1:-1];
-typedef char NODE_Size[sizeof(NODE)==40?1:-1];
 typedef char META_Size[sizeof(META)==16?1:-1];
-typedef char P_Size[sizeof(P)==80?1:-1];
 typedef char BINDING_refs_Offset[FIELD_OFFSET(BINDING,refs)==0?1:-1];
 typedef char BINDING_cref_Offset[FIELD_OFFSET(BINDING,cref)==12?1:-1];
 typedef char BINDING_next_Offset[FIELD_OFFSET(BINDING,next)==20?1:-1];
@@ -871,20 +861,6 @@ typedef char FIELD_binding_Offset[FIELD_OFFSET(FIELD,binding)==8?1:-1];
 typedef char ROOT_refs_Offset[FIELD_OFFSET(ROOT,refs)==0?1:-1];
 typedef char ROOT_items_Offset[FIELD_OFFSET(ROOT,items)==12?1:-1];
 typedef char ROOT_binding_Offset[FIELD_OFFSET(ROOT,binding)==28?1:-1];
-typedef char NODE_next_Offset[FIELD_OFFSET(NODE,next)==4?1:-1];
-typedef char NODE_key_Offset[FIELD_OFFSET(NODE,key)==8?1:-1];
-typedef char NODE_chain_Offset[FIELD_OFFSET(NODE,chain)==12?1:-1];
-typedef char NODE_owner_Offset[FIELD_OFFSET(NODE,owner)==16?1:-1];
-typedef char NODE_link_Offset[FIELD_OFFSET(NODE,link)==20?1:-1];
-typedef char NODE_list_Offset[FIELD_OFFSET(NODE,list)==24?1:-1];
-typedef char P_root_Offset[FIELD_OFFSET(P,root)==0?1:-1];
-typedef char P_field_Offset[FIELD_OFFSET(P,field)==4?1:-1];
-typedef char P_vt_Offset[FIELD_OFFSET(P,vt)==12?1:-1];
-typedef char P_siblingPrev_Offset[FIELD_OFFSET(P,siblingPrev)==40?1:-1];
-typedef char P_firstRunCallback_Offset[FIELD_OFFSET(P,firstRunCallback)==52?1:-1];
-typedef char P_scale_Offset[FIELD_OFFSET(P,scale)==56?1:-1];
-typedef char P_nodes_Offset[FIELD_OFFSET(P,nodes)==60?1:-1];
-typedef char P_tag_Offset[FIELD_OFFSET(P,tag)==64?1:-1];
 typedef char META_bytes_Offset[FIELD_OFFSET(META,bytes)==12?1:-1];
 
 extern char g_gc[] __asm__("g_gc"),D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"),D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
@@ -899,61 +875,89 @@ void AssignSidebagRef(FIELD**,FIELD*) __asm__("AssignSidebagRef");
 void FramePtr_Assign(ROOT**,ROOT*) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 int MakeRoot__t6CGcObj1Z8CSidebag(FIELD*) __asm__("MakeRoot__t6CGcObj1Z8CSidebag");
 int MakeRoot__t6CGcObj1Z6CFrame(ROOT*) __asm__("MakeRoot__t6CGcObj1Z6CFrame");
-RF CSidebag_CloneTo(FIELD*,P*) __asm__("CSidebag_CloneTo");
-RR CFrame_CloneTo(ROOT*,P*) __asm__("CFrame_CloneTo");
+RF CSidebag_CloneTo(FIELD*,LO*) __asm__("CSidebag_CloneTo");
+RR CFrame_CloneTo(ROOT*,LO*) __asm__("CFrame_CloneTo");
 void*AllocCopyFromWorldHeap(REQUEST*,void*) __asm__("AllocCopyFromWorldHeap");
-void ClearSle(int*) __asm__("ClearSle");
-void ClearSl(void*) __asm__("ClearSl");
-void AppendSlEntry(void*,NODE*) __asm__("AppendSlEntry");
-void*GetSwProxyRefBucket(SW*,int) __asm__("GetSwProxyRefBucket");
+void ClearSle(SLE*) __asm__("ClearSle");
+void ClearSl(SL*) __asm__("ClearSl");
+void AppendSlEntry(SL*,PXR*) __asm__("AppendSlEntry");
+SL*GetSwProxyRefBucket(SW*,int) __asm__("GetSwProxyRefBucket");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 
 struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);Decref__4CRef(b->cref);Unlink__t6CGcObj1Z5CVarb(b);FreeSlotheapSlot(D_004520D0,b);}Unlink__t6CGcObj1Z8CSidebag(f);FreeSlotheapSlot(D_00452148,f);}}};
 struct RR{ROOT*p;RR(){}RR(const RR&r):p(r.p){if(p)++p->refs;}~RR(){ROOT*r=p;if(r&&!--r->refs)func_00257078(r,3);}};
 typedef char FieldRefSize[sizeof(RF)==4?1:-1];
 typedef char RootRefSize[sizeof(RR)==4?1:-1];
-static inline NODE*CopyNode(int bytes,REQUEST*r,NODE*n){r->bytes=bytes;r->alignment=16;return(NODE*)AllocCopyFromWorldHeap(r,n);}
-static inline META*Type(P*p){VTE*v=&p->vt[6];return ((META*(*)(P*))v->pfn)((P*)((char*)p+v->d));}
+#if defined(SLY2_EE_LAYOUT)
+/* LO's flag bits as the original copies them: int / uint bit-fields in the 64-bit unit at +0x28 (lo.h declares them
+   long / ulong, and g++ folds a copy between same-position long fields into and/or masks where the original extracts
+   and reinserts each field; two rounds of casts did not change that). EE layout only: the #else copies lo.h's fields. */
+struct LOFLAGS{int siblingPrev;char cpaloFindSwObjects;unsigned char visibilityMask;int unknownBits28A:4,busyKind:4;uint isRemoved:1,unknownFlag28A:1,keepsOwnVisMask:1;} __attribute__((aligned(8)));
+#define LOFLAGS_OF(p) ((LOFLAGS*)((char*)(p)+0x28))
+#endif
+static inline PXR*CopyPxr(int bytes,REQUEST*r,PXR*n){r->bytes=bytes;r->alignment=16;return(PXR*)AllocCopyFromWorldHeap(r,n);}
+/* LO's tagged update word (lo.h unknown40 / ploupd): the flags inline when bit 0 is set, else LOUPD::grf. Get reads
+   the flags; Set stores v (bit 0 cleared) and keeps the target's bit 0. The word is read pointer-wide (uptr). */
+static inline int GetTaggedFlags(const LO*p){
+#ifdef SLY2_EE_ASM
+    register uptr v __asm__("$4")=(uptr)p->ploupd;
+#else
+    uptr v=(uptr)p->ploupd;
+#endif
+    if(!(v&1))v=((LOUPD*)v)->grf;return v;}
+static inline void SetTaggedFlags(LO*p,int v){v&=~1;uptr d=(uptr)p->ploupd;if(!(d&1))((LOUPD*)d)->grf=v|(((LOUPD*)d)->grf&1);else p->unknown40=v|(d&1);}
+/* Where LO's own data ends (0x50 on the EE, sizeof(LO)): the class body copied past it starts there. On the Itanium ABI a
+   derived class may start in LO's tail padding, so this is the end of the last member, not sizeof. */
+#define LO_DATA_END (SLY2_OFFSETOF(LO,unknown44)+(int)sizeof(((LO*)0)->unknown44))
 // LO's Clone (vtable slot 41): copies the Splice frame and sidebag references, scale, flag bits and tag word from the
 // source, clones the proxy nodes during proxy instantiation and copies the class body past the LO header (size from
 // the class info).
 // Also known as: CloneLo (upstream readable / Sly 1 name; CloneLo__FP2LOT0).
-extern "C" void CloneLo(P*object,const P*source){
+extern "C" void CloneLo(LO*object,const LO*source){
     CGc_UpdateRecyclable(g_gc);
-    if(source->field){
-        {RF r=CSidebag_CloneTo(source->field,object);AssignSidebagRef(&object->field,r.p);}
-        (void)MakeRoot__t6CGcObj1Z8CSidebag(object->field);
+    if(source->scriptVariables.m_p){
+        {RF r=CSidebag_CloneTo((FIELD*)source->scriptVariables.m_p,object);AssignSidebagRef((FIELD**)&object->scriptVariables.m_p,r.p);}
+        (void)MakeRoot__t6CGcObj1Z8CSidebag((FIELD*)object->scriptVariables.m_p);
     }
-    if(source->root){
-        {RR r=CFrame_CloneTo(source->root,object);FramePtr_Assign(&object->root,r.p);}
-        (void)MakeRoot__t6CGcObj1Z6CFrame(object->root);
+    if(source->scriptFrame.m_p){
+        {RR r=CFrame_CloneTo((ROOT*)source->scriptFrame.m_p,object);FramePtr_Assign((ROOT**)&object->scriptFrame.m_p,r.p);}
+        (void)MakeRoot__t6CGcObj1Z6CFrame((ROOT*)object->scriptFrame.m_p);
     }
-    object->scale=source->scale;
-    object->mode=source->mode;
-    object->autoA=source->autoA;
-    object->kind=source->kind;
-    object->autoB=source->autoB;
-    object->tag.Set(source->tag.Get());
+    object->busyRadius=source->busyRadius;
+#if defined(SLY2_EE_LAYOUT)
+    LOFLAGS_OF(object)->busyKind=LOFLAGS_OF(source)->busyKind;
+    LOFLAGS_OF(object)->unknownFlag28A=LOFLAGS_OF(source)->unknownFlag28A;
+    LOFLAGS_OF(object)->unknownBits28A=LOFLAGS_OF(source)->unknownBits28A;
+    LOFLAGS_OF(object)->keepsOwnVisMask=LOFLAGS_OF(source)->keepsOwnVisMask;
+#else
+    object->busyKind=source->busyKind;
+    object->unknownFlag28A=source->unknownFlag28A;
+    object->unknownBits28A=source->unknownBits28A;
+    object->keepsOwnVisMask=source->keepsOwnVisMask;
+#endif
+    SetTaggedFlags(object,GetTaggedFlags(source));
     object->firstRunCallback=source->firstRunCallback;
     char*dst;const char*src;
-    if(g_sw.isrcLoading!=-2){src=(const char*)source+0x50;dst=(char*)object+0x50;object->nodes=source->nodes;}
+    if(g_sw.isrcLoading!=-2){src=(const char*)source+LO_DATA_END;dst=(char*)object+LO_DATA_END;object->proxyRecord=source->proxyRecord;}
     else{
-        src=(const char*)source+0x50;dst=(char*)object+0x50;REQUEST request;
-        for(NODE*n=source->nodes;n&&n->owner==source;n=n->next){
-            NODE*copy=CopyNode(sizeof(NODE),&request,n);
-            copy->owner=object;
-            ClearSle(&copy->chain);
-            ClearSle(&copy->link);
-            ClearSl(copy->list);
-            AppendSlEntry(copy->next->list,copy);
-            void*list=GetSwProxyRefBucket(&g_sw,copy->key);
+        src=(const char*)source+LO_DATA_END;dst=(char*)object+LO_DATA_END;REQUEST request;
+        for(PXR*n=source->proxyRecord;n&&n->object==source;n=n->parent){
+            PXR*copy=CopyPxr(sizeof(PXR),&request,n);
+            copy->object=object;
+            ClearSle(&copy->oidHashLink);
+            ClearSle(&copy->siblingLink);
+            ClearSl(&copy->children);
+            AppendSlEntry(&copy->parent->children,copy);
+            SL*list=GetSwProxyRefBucket(&g_sw,copy->proxyOid);
             AppendSlEntry(list,copy);
         }
     }
-    CopyAb__FPvT0Ui(dst,src,Type(object)->bytes-0x50);
+    CopyAb__FPvT0Ui(dst,src,object->GetClassInfo()->instanceSize-LO_DATA_END);
 }
 } // namespace M_CloneLo
 #undef FIELD_OFFSET
+#undef LO_DATA_END
+#undef LOFLAGS_OF
 
 namespace M_CloneLoHierarchy {
 // vtable slot 40: clones the hierarchy by forwarding to Clone (slot 41).
