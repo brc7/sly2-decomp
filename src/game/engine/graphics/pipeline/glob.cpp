@@ -534,19 +534,12 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef unsigned char uchar;
-union U
-{
-    qword q;
-    float f[4];
-};
+
 struct M3
 {
-    U r[3];
+    QWROW r[3];
 };
-struct M4
-{
-    U r[4];
-};
+
 struct V3
 {
     float f[3];
@@ -562,16 +555,12 @@ struct DESC
     void *chain;
     char padC[8];
 };
-struct XF
-{
-    char pad[0x40];
-    M4 matrix;
-};
+
 struct ENTRY
 {
     int unknown;
     XF *transform;
-    M4 *parent;
+    MATRIX4Q *parent;
     uint flags;
     char *matrixData;
     int word;
@@ -597,18 +586,18 @@ struct PACKET
 {
     int word;
     int reserved[3];
-    U sphere;
-    M4 matrix;
+    QWROW sphere;
+    MATRIX4Q matrix;
 };
 
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
-M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB) __asm__("__ml__FRC7MATRIX4T0");
+MATRIX4Q *__ml__FRC7MATRIX4T0(MATRIX4Q *pmatDst, const MATRIX4Q *pmatA, const MATRIX4Q *pmatB) __asm__("__ml__FRC7MATRIX4T0");
 float GetMaxRowLengthMatrix3(const M3 *pmat) __asm__("GetMaxRowLengthMatrix3");
 RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 
 // Transform point qwPos by the 4x4 matrix pmat.
-static inline qword QwTransformPos(M4 *pmat, qword qwPos)
+static inline qword QwTransformPos(MATRIX4Q *pmat, qword qwPos)
 {
     qword qwResult;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -650,15 +639,15 @@ template <uint TAG> static inline void UnpackQws(const void *pv, int cw, int fNe
     pdma->m_pb += cw * 4;
 }
 // Return the entry's world matrix: its transform, times its parent's matrix when it has one.
-static inline M4 ModelMatrix(const ENTRY *entry) return model
+static inline MATRIX4Q ModelMatrix(const ENTRY *entry) return model
 {
-    const M4 *parent = entry->parent;
-    func_0023320C(&model, &entry->transform->matrix, sizeof(M4));
+    const MATRIX4Q *parent = entry->parent;
+    func_0023320C(&model, &entry->transform->worldMatq, sizeof(MATRIX4Q));
     if (parent)
     {
-        M4 product;
+        MATRIX4Q product;
         __ml__FRC7MATRIX4T0(&product, &model, parent);
-        func_0023320C(&model, &product, sizeof(M4));
+        func_0023320C(&model, &product, sizeof(MATRIX4Q));
     }
 }
 // Queues a kind-0 RPL per model packet: CNT + UNPACK 6 qw (EE dest word, sphere, matrix) to VU TOPS+0x301 + RET;
@@ -676,7 +665,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
             continue;
         packet.word = entry->word;
         if (entry->flags & 0x1000)
-            CopyAb__FPvT0Ui(&packet.matrix, entry->matrixData + 0x14, sizeof(M4));
+            CopyAb__FPvT0Ui(&packet.matrix, entry->matrixData + 0x14, sizeof(MATRIX4Q));
         else
             packet.matrix = ModelMatrix(entry);
         if (entry->sphere)
@@ -689,7 +678,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
             // a stride variable (not the constant in the index) is what loop.c hoists into s7
             int sphereStride = sizeof(LOCAL_SPHERE);
             LOCAL_SPHERE *sphere = (LOCAL_SPHERE *)((char *)p->spheres + i * sphereStride);
-            U center;
+            QWROW center;
             CopyAb__FPvT0Ui(&center, &sphere->sphere.center, sizeof(V3));
             packet.sphere.q = QwTransformPos(&packet.matrix, center.q);
             packet.sphere.f[3] = GetMaxRowLengthMatrix3((const M3 *)&packet.matrix) * sphere->sphere.radius;
@@ -879,11 +868,7 @@ struct VECTOR4
 {
     float x, y, z, w;
 } __attribute__((aligned(16)));
-struct XF
-{
-    char pad[0x40];
-    MATRIX4 localMatrix;
-};
+
 struct SPH
 {
     float pos[3];
@@ -1155,7 +1140,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
 {
     SUBDESC *pdesc;
     qword posCam = g_cm.matq.pos;
-    qword pos = TransformPointRef(pmodel->powner->pxf->localMatrix, *(qword *)&pmodel->posCenter);
+    qword pos = TransformPointRef(pmodel->powner->pxf->worldMatrix, *(qword *)&pmodel->posCenter);
     float sRadius = pmodel->rad;
     if (pmatWorld)
     {
@@ -1202,7 +1187,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         {
             MATRIX4 *pmatParent = psub->pmatParent;
             MATRIX4 mat;
-            CopyMat(mat, psub->pxf->localMatrix);
+            CopyMat(mat, psub->pxf->worldMatrix);
             if (pmatParent)
                 CopyMat(mat, MulMat(mat, *pmatParent));
             if (pmatWorld)
@@ -1377,11 +1362,7 @@ struct VECTOR4
 {
     float x, y, z, w;
 } __attribute__((aligned(16)));
-struct XF
-{
-    char pad[0x40];
-    MATRIX4 localMatrix;
-};
+
 struct OBJ
 {
     char pad[0xC];
@@ -1588,7 +1569,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
         {
             MATRIX4 *pmatParent = psub->pmatParent;
             MATRIX4 mat;
-            CopyMat(mat, psub->pxf->localMatrix);
+            CopyMat(mat, psub->pxf->worldMatrix);
             if (pmatParent)
                 CopyMat(mat, MulMat(mat, *pmatParent));
             matModel = mat;
@@ -1631,7 +1612,7 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALOV *palo)
                 BONE *pbone = &psub->abone[ibone];
                 MATRIX4 mat;
                 if (pbone->pxf)
-                    mat = MulMat(pbone->pxf->localMatrix, pbone->mat);
+                    mat = MulMat(pbone->pxf->worldMatrix, pbone->mat);
                 else
                     mat = pbone->mat;
                 UnpackQws((ibone * 4 + pdesc->ib) | 0x6C04C000, (uint *)&mat, 16);
