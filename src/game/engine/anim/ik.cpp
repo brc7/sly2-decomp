@@ -23,9 +23,6 @@ struct B { char pad[0x40]; MATRIX4V m; };
 #define IKBONE(pxf) ((A *)(pxf))
 #define IKROWS(mat) (*(MATRIX4V *)&(mat))
 #define XF_REF(pxf) (*(IKREC **)((char *)(pxf) + 0xA8))   /* XF +0xA8 holds the record in an IK bone */
-/* The SO view (vtable, its XFs, IK flag bit 36). */
-struct SOIK { char pad[0xC]; VTE *vt; char pad10[0x40]; int entryCount; XF *entries; char pad58[0x148 - 0x58]; unsigned long flags; };
-typedef char assert_SOIK_grf[(unsigned int)&((SOIK *)0)->flags == 0x148 ? 1 : -1];
 
 extern "C" {
 void CloneAct(ACT *pact, ACT *pactSrc, ALO *palo, XF *pxf);
@@ -35,7 +32,7 @@ int S16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
 void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 void InitIkRecord(IKREC *q);
-void NewIkAct(SOIK *p, void *pv, int n, IKREC *q);
+void NewIkAct(SO *p, void *pv, int n, IKREC *q);
 float AngleBetweenVectors(qwordV a, qwordV b, qwordV *pv);
 qwordV ConvertXfVec(void *space, void *p, qwordV v);
 }
@@ -57,11 +54,10 @@ void ACT7::Attach()
     XF_REF(transform) = pikrec;
 }
 
-// Read an object id (S16) from the stream and resolve it through the object's lookup virtual (vtable slot 51).
-static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
+// Read a transform id (S16) from the stream and resolve it through the object's SO::GetXfFromIndex (vtable slot 51).
+static __inline__ XF *ReadObjectReference(SO *so, void *pbis)
 {
-    VTE *e = &so->vt[51];
-    return ((void *(*)(void *, int))e->pfn)((char *)so + e->d, S16Read__18CBinaryInputStream(pbis));
+    return so->GetXfFromIndex(S16Read__18CBinaryInputStream(pbis));
 }
 
 // Loads an SO's two-bone IK records from the level stream: per record the first bone, second bone and parent transforms
@@ -70,23 +66,23 @@ static __inline__ void *ReadObjectReference(SOIK *so, void *pbis)
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 // Also known as: LoadAloPairsFromBrx (upstream readable / Sly 1 name;
 //   LoadAloPairsFromBrx__FP3ALOP18CBinaryInputStream).
-extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
+extern "C" void LoadSoIkFromBrx(SO *so, void *stream)
 {
     int count = U8Read__18CBinaryInputStream(stream);
     int i;
     if (!count) return;
-    so->flags |= 1UL << 36;
+    so->hasIkLimbs = 1;
     for (i = 0; i < count; i++) {
         SWALLOC msg;
         IKREC *ikRecord;
         msg.cb = sizeof(IKREC);
         msg.cbAlign = 0x10;
         ikRecord = (IKREC *)AllocClearedFromWorldHeap(&msg);
-        ikRecord->pxfUpper = (XF *)ReadObjectReference(so, stream);
-        ikRecord->pxfLower = (XF *)ReadObjectReference(so, stream);
-        ikRecord->pxfEnd = (XF *)ReadObjectReference(so, stream);
+        ikRecord->pxfUpper = ReadObjectReference(so, stream);
+        ikRecord->pxfLower = ReadObjectReference(so, stream);
+        ikRecord->pxfEnd = ReadObjectReference(so, stream);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->posWrist);
-        ikRecord->pxfGoal = (XF *)ReadObjectReference(so, stream);
+        ikRecord->pxfGoal = ReadObjectReference(so, stream);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->posIkHandle);
         InitIkRecord(ikRecord);
         NewIkAct(so, ikRecord->pxfUpper, -1, ikRecord);
@@ -95,15 +91,15 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
 }
 
 // Paired-distance update; volatile on the first two VU asm groups keeps the p4 load between them (Claude agent).
-static inline ACT*Entry(SOIK*owner,int i){register XF*entries asm("$2")=owner->entries;register int offset asm("$3")=i*256;entries=(XF*)((int)entries+offset);return entries->firstActuator;}
+static inline ACT*Entry(SO*owner,int i){register XF*entries asm("$2")=owner->transforms;register int offset asm("$3")=i*256;entries=(XF*)((int)entries+offset);return entries->firstActuator;}
 
 // For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
 // (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps
 // the solver consistent. Hand-scheduled VU0 asm. (inferred)
 // Also known as: RemeasureAloPairs (upstream readable / Sly 1 name; RemeasureAloPairs__FP3ALO).
-extern "C" void UpdateSoIkBoneLengths(SOIK*so){
- if(!(so->flags&(1UL<<36)))return;
- for(int i=0;i<so->entryCount;i++)for(ACT*node=Entry(so,i);node;node=node->pactNext)if(node->ack==7){
+extern "C" void UpdateSoIkBoneLengths(SO*so){
+ if(!so->hasIkLimbs)return;
+ for(int i=0;i<so->numTransforms;i++)for(ACT*node=Entry(so,i);node;node=node->pactNext)if(node->ack==7){
   register IKREC*ikRecord asm("$4")=((ACT7*)node)->pikrec;
   register B*parent asm("$3")=(B*)ikRecord->pxfEnd;register A*rightOwner asm("$6")=IKBONE(ikRecord->pxfLower);register const MATRIX4V*rows asm("$2")=&parent->m;
   register qwordV transformed asm("vf2"),right asm("vf1");
