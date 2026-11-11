@@ -5,6 +5,7 @@
 // address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gadget
 // SLY2_ALIAS: _GLOBAL_$I$*=func_002259B8
+#include "sly2/port.h"   /* uptr */
 #include "sly2/slotheap.h"
 #include "sly2/util.h"
 #include "sly2/clock.h"
@@ -222,15 +223,15 @@ static inline void SetStateVirtual(CID100V *gadget, int state)
 // contact, pooled; LO flags 6.
 void InitTossable(CID100V *gadget)
 {
-    int flags;
+    uptr flags;
     InitSo(gadget);
-    flags = gadget->taggedFlags;
+    flags = (uptr)((LO *)gadget)->ploupd;   /* LO's tagged word (lo.h) */
     gadget->blastDamage = -10;
     gadget->maxThrowerDistance = 3000.0f;
     gadget->pendingContact = -1;
     gadget->state = TOSSABLE_POOLED;
-    if (IsPointer(flags)) *(int *)flags |= 6;
-    else gadget->taggedFlags = flags | 6;
+    if (IsPointer(flags)) ((LOUPD *)flags)->grf |= 6;
+    else ((LO *)gadget)->unknown40 = flags | 6;
 }
 
 // CID100 vtable slot 14 (LoadFromBrx): SO load; two physics parameters (+0xD4, +0xD8) set to 2.

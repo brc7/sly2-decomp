@@ -11,6 +11,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hack
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00182C50
 
+#include "sly2/port.h"   /* uptr */
 #include "sly2/basic.h"
 #include "sly2/so.h"
 #include "sly2/slotheap.h"
@@ -60,13 +61,13 @@ void InitSo(SO *pso) __asm__("InitSo");
 // HACK (cid 0x47) vtable slot 7: InitSo, max health 10, the default knockback gains and range. (inferred)
 // Also known as: InitHackSo (upstream readable / Sly 1 name; InitHackSo__FP2LO).
 extern "C" void InitHack(HACK *hack) {
-    int v;
+    uptr v;
     InitSo(hack);
     hack->cHealthMax = 10;
     hack->qwKnockback = D_002BE7D0;
     hack->lmKnockback = D_002BE7E0;
-    v = hack->unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= 2; else hack->unknown40 = v | 2;
+    v = (uptr)hack->ploupd;   /* LO's tagged word (lo.h) */
+    if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 2; else hack->unknown40 = v | 2;
 }
 } // namespace M_func_0017F090
 
@@ -1263,10 +1264,10 @@ void InitDl__FP2DLi(DL *pdl, int ib) __asm__("InitDl__FP2DLi");
 void HACKWALL::Init()
 {
     using namespace M_InitHackwall;
-    int v;
+    uptr v;
     InitHack(this);
-    v = unknown40;
-    if ((v ^ 1) & 1) *(int *)v |= 8;
+    v = (uptr)ploupd;   /* LO's tagged word (lo.h) */
+    if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 8;
     else unknown40 = v | 8;
     InitDl__FP2DLi(&dlBroken, SLY2_OFFSETOF(HACKWALLPIECE, dle));
 }

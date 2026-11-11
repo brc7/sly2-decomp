@@ -5,6 +5,7 @@
 // SpawnBootyInContainer. TU 0x13BDF0..0x13D558 (28 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_booty
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013D538
+#include "sly2/port.h"   /* uptr */
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
@@ -179,11 +180,11 @@ int GetCurrentLevelIndex();                                    /* GetCurrentLeve
 
 // BOOTY (cid 0x67) vtable slot 7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
 extern "C" void InitBooty(BOOTYV *booty) {
-    int x;
+    uptr x;
     InitSo(booty);
-    booty->vScale.q = D_002A2DE0; booty->st = -1; x = booty->taggedFlags;
-    if ((x ^ 1) & 1) *(int *)x |= 2;
-    else booty->taggedFlags = x | 2;
+    booty->vScale.q = D_002A2DE0; booty->st = -1; x = (uptr)((LO *)booty)->ploupd;   /* LO's tagged word (lo.h) */
+    if ((x ^ 1) & 1) ((LOUPD *)x)->grf |= 2;
+    else ((LO *)booty)->unknown40 = x | 2;
 }
 
 // Fills an allocation request.

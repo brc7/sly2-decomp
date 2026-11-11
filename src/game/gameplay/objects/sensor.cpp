@@ -5,6 +5,7 @@
 // address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sensor
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001DFAB8
+#include "sly2/port.h"   /* uptr */
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/clock.h"
@@ -316,13 +317,13 @@ extern "C" void AddSensorNoTriggerObject(SENSORV *sensor, OID oid)
 // LASEN::Init (vtable slot 7): the SENSOR init; endpoint speed 1; clears SO flag bit 35; LO flag 8.
 extern "C" void InitLasen(LASENV *laser)
 {
-    int flags;
+    uptr flags;
     ((SENSOR *)laser)->SENSOR::Init();
     laser->endpointSpeed = 1.0f;
     laser->grfSo &= ~0x800000000UL;
-    flags = laser->grfDirty;
-    if ((flags ^ 1) & 1) *(int *)flags |= 8;
-    else laser->grfDirty = flags | 8;
+    flags = (uptr)((LO *)laser)->ploupd;   /* LO's tagged word (lo.h) */
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 8;
+    else ((LO *)laser)->unknown40 = flags | 8;
 }
 
 // Allocates cb bytes (alignment cbAlign) from the world heap.
@@ -400,7 +401,7 @@ static inline qword Transform(const M4 *m, qword point)
 // The path's world matrix.
 static inline M4 *GetWorldMatrix(SHAPEV *path) { return (M4 *)((SHAPE *)path)->GetWorldMatrix(); }
 // Marks the SO's collision data dirty (flag 2 in the tagged flag word).
-static inline void SetDirty(SOV *pso) { uint f = pso->grfDirty; if ((f ^ 1) & 1) *(uint *)f |= 2; else pso->grfDirty = f | 2; }
+static inline void SetDirty(SOV *pso) { uptr f = (uptr)((LO *)pso)->ploupd; if ((f ^ 1) & 1) ((LOUPD *)f)->grf |= 2; else ((LO *)pso)->unknown40 = f | 2; }
 
 // (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion
 // profile) and the beams' bounding box as the SO's single part. (inferred)

@@ -3,6 +3,7 @@
 // order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_blip
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013A9C8
+#include "sly2/port.h"   /* uptr */
 #include "sly2/slotheap.h"
 #include "gifs.h"
 #include "vifs.h"
@@ -249,15 +250,15 @@ void InitBlipg(BLIPGV *p) __asm__("InitBlipg__FP5BLIPG");
 // 1e10), busy level 1, LO flag bits 1-3 set.
 void InitBlipg(BLIPGV *blipGroup)
 {
-    int x;
+    uptr x;
     InitXfm(blipGroup);
     InitDl(&blipGroup->dl, SLY2_OFFSETOF(BLIPV, pblipNext));
     blipGroup->oid = -1;
     blipGroup->sBusy = 1e10f;
     SetLoBusyKind(blipGroup, 1);
-    x = blipGroup->flags40;
-    if ((x ^ 1) & 1) *(int *)x = (*(int *)x & 1) | 0xe;
-    else blipGroup->flags40 = (x & 1) | 0xe;
+    x = (uptr)AsLo(blipGroup)->ploupd;   /* LO's tagged word: an LOUPD pointer, or the flags with bit 0 set */
+    if ((x ^ 1) & 1) ((LOUPD *)x)->grf = (((LOUPD *)x)->grf & 1) | 0xe;
+    else AsLo(blipGroup)->unknown40 = (x & 1) | 0xe;
 }
 
 void OnBlipgRemove(BLIPGV *p) __asm__("OnBlipgRemove__FP5BLIPG");

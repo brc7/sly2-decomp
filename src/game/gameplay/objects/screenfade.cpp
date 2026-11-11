@@ -5,6 +5,7 @@
 // TU 0x15DC80..0x15E380 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_screenfade
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015E360
+#include "sly2/port.h"   /* uptr */
 #include "sly2/slotheap.h"
 #include "sly2/util.h"
 #include "sly2/clock.h"
@@ -49,15 +50,15 @@ RPL *AllocRenderListEntry(void);
 void CID116::Init()
 {
     FADEV *fade = (FADEV *)this;
-    unsigned int flags;
+    uptr flags;
 
     InitLo(fade);
     SetLoBusyKind(fade, 1);
-    flags = fade->updateFlags;
+    flags = (uptr)((LO *)fade)->ploupd;   /* LO's tagged word (lo.h): an LOUPD pointer (its first word is the flags) */
     if ((flags ^ 1) & 1)
         *(int *)flags |= 0xA;
     else
-        fade->updateFlags = flags | 0xA;
+        ((LO *)fade)->unknown40 = flags | 0xA;
 }
 
 // CID116 vtable slot 16 (Update): once all three phases have elapsed, removes the fade from the world (vtable

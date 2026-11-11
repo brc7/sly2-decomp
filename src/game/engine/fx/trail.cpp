@@ -4,6 +4,7 @@
 // readers 0x259D98..0x259DD4 are inline functions defined at the end (their linkonce copies).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_trail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021C800
+#include "sly2/port.h"   /* uptr */
 #include "sly2/slotheap.h"
 #include "sly2/vu0.h"
 #include "sly2/clock.h"
@@ -342,11 +343,11 @@ extern "C" void PostTrailLoad(TRAIL *trail)
     }
     ResetTrailHistory(trail);
     if (!trail->state) {
-        unsigned int flags = trail->flags;
+        uptr flags = (uptr)((LO *)trail)->ploupd;   /* LO's tagged word (lo.h): an LOUPD pointer (its first word is the flags) */
         if ((flags ^ 1) & 1) {
             *(unsigned int *)flags |= 2;
         } else
-            trail->flags = flags | 2;
+            ((LO *)trail)->unknown40 = flags | 2;
     }
 }
 
