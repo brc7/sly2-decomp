@@ -1421,7 +1421,7 @@ extern "C" void RenderStepplayerSelf(STEPPLAYER *player)
     player->renderAlpha2 = SmoothValue__FfffP3SMPPf(player->renderAlpha2, g1, g_clock.deltaTime, D_002BD270, 0);
     if (player == D_002E1E40) {
         ((JT *)player)->unknown19A0->opacity = player->renderAlpha;
-        ((JT *)player)->unknown19A4->opacity = player->renderAlpha;
+        ((JT *)player)->handObject->opacity = player->renderAlpha;
     }
     RenderSoGlobset(&player->model, 0, player->psobounds, player->opacity * player->renderAlpha, player->opacity * player->renderAlpha2);
 }

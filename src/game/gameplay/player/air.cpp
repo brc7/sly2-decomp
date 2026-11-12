@@ -650,7 +650,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
         switch (air->jumpKind) {
         case 13: clip = air->pasegLaunch; break;
         case 14: clip = air->pasegKindE; break;
-        case 16: clip = (ASEG *)((ACTOR *)air->player)->unknown1514; break;   /* JT+0x1514 is an int flag elsewhere (jt.cpp) */
+        case 16: clip = (ASEG *)((ACTOR *)air->player)->isStandSmSnapped; break; /* JT+0x1514 is an int flag elsewhere (jt.cpp) */
         case 15: clip = ((ACTOR *)air->player)->unknown1518; break;
         }
         if (!clip)

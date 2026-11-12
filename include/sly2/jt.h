@@ -88,7 +88,7 @@ struct JT : public STEPPLAYER
       ASEG *unknown14D4;
       ASEG *unknown14D8;
       undefined4 unk_0x14dc[(0x1514 - 0x14dc) / 4];
-      int unknown1514;   /* +0x1514 flag: jt.cpp sets 1 after snapping the stand state machine, 0 on entering JTS_Stand (snapshot:
+      int isStandSmSnapped; /* +0x1514 flag: jt.cpp sets 1 after snapping the stand state machine, 0 on entering JTS_Stand (snapshot:
                             int, values 0/1); SetJtAirState reads the word as the air clip of air state 16 */
       ASEG *unknown1518;   /* +0x1518 the air clip of air state 15 (SetJtAirState) */
       undefined4 unknown151C;
@@ -119,7 +119,7 @@ struct JT : public STEPPLAYER
       float swingSpeedBlend;   /* +0x1998 smoothed swing speed weight (hang.cpp) */
       float swingActiveBlend;   /* +0x199C smoothed active-swing weight (hang.cpp) */
       SO *unknown19A0;
-      SO *unknown19A4;   /* possibly handObject (low-confidence guess: position used as posHand; its rootTransform for PredictAsegEffect) */
+      SO *handObject;   /* +0x19A4 the hand object: hands.ploHand; its position is posHand, its rootTransform drives PredictAsegEffect (jt.cpp) */
       LO *unknown19A8;
       float rBounds;   /* +0x19AC radius of the extra bounds points */
       float unknown19B0;
@@ -190,7 +190,7 @@ struct JT : public STEPPLAYER
       BLDIR abldirMesh[8];   /* +0x1E10 directional blends while attached to a sticky mesh (InitJt; sticky.cpp UpdateJtMeshAttachment) */
       ASEGBL *pasegblMesh;   /* +0x1F10 their blended segment (masterSpeed scales the mesh movement) */
       SM *unknown1F14;
-      LO *unknown1F18;   /* the sticky mesh (CID 8/9; possibly climbSurface) attached to: jt.cpp casts it to CLIMBSURF, sticky.cpp to MESH; sent splice event 6 on detach; compared in grab candidates */
+      LO *stickySurface; /* the sticky mesh (CID 8/9; possibly climbSurface) attached to: jt.cpp casts it to CLIMBSURF, sticky.cpp to MESH; sent splice event 6 on detach; compared in grab candidates */
       SURFLOC surflocMesh;   /* +0x1F1C the location on that mesh (FindMeshClosestPoint hint and result) */
       undefined4 unk_0x1f28[(0x1f30 - 0x1f28) / 4];
       union
@@ -267,7 +267,7 @@ typedef char assert_JT_attachedTo[SLY2_OFFSETOF(JT, attachedTo) == 0x18C0 ? 1 : 
 typedef char assert_JT_hangForce[SLY2_OFFSETOF(JT, janim.hangForce) == 0x1910 ? 1 : -1];
 typedef char assert_JT_aposMeshProbe[SLY2_OFFSETOF(JT, aposMeshProbe) == 0x1F30 ? 1 : -1];
 typedef char assert_JT_ablSweep[SLY2_OFFSETOF(JT, ablSweep[3].pasegbl) == 0x1A70 ? 1 : -1];
-typedef char assert_JT_unknown1514[SLY2_OFFSETOF(JT, unknown1514) == 0x1514 ? 1 : -1];   /* jt.cpp, air.cpp SetJtAirState */
+typedef char assert_JT_isStandSmSnapped[SLY2_OFFSETOF(JT, isStandSmSnapped) == 0x1514 ? 1 : -1]; /* jt.cpp, air.cpp SetJtAirState */
 typedef char assert_JT_unknown1D28[SLY2_OFFSETOF(JT, unknown1D28) == 0x1D28 ? 1 : -1];   /* air.cpp SetJtAirState (SetSmaGoal) */
 typedef char assert_JT_pactHand[SLY2_OFFSETOF(JT, pactHand) == 0x1A00 ? 1 : -1];
 typedef char assert_JT_psndGadget[SLY2_OFFSETOF(JT, psndGadget) == 0x2044 ? 1 : -1];   /* CONFIRMED runtime */ typedef char assert_JT_abldirJts5[SLY2_OFFSETOF(JT, abldirJts5) == 0x13D0 ? 1 : -1]; typedef char assert_JT_abldirJts10[SLY2_OFFSETOF(JT, abldirJts10) == 0x1AC0 ? 1 : -1]; typedef char assert_JT_ablHangFollow[SLY2_OFFSETOF(JT, ablHangFollow) == 0x1F60 ? 1 : -1]; typedef char assert_JT_pasegblLean[SLY2_OFFSETOF(JT, pasegblLean) == 0x2038 ? 1 : -1];

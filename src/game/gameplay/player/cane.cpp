@@ -144,7 +144,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
 
     case 3: {
         WORK work;
-        register qword first __asm__("$2") = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->unknown19A4));
+        register qword first __asm__("$2") = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->handObject));
         register POINT *point __asm__("$3");
         register void *world __asm__("$4");
         register JT *receiver __asm__("$5");
@@ -516,7 +516,7 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     qword a, b, s, d;
     float t;
     int f;
-    a = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->unknown19A4));
+    a = ConvertPosBetweenLos(0, jt, GetLoWorldPos(jt->handObject));
     b = ConvertPosBetweenLos(0, jt, ((POINT *)jt->wristXf)->position.q);
     t = 0.5f;
     s = VuFromFloat<qword>(t);

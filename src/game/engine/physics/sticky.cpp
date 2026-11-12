@@ -657,7 +657,7 @@ static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
 extern "C" void UpdateJtMeshAttachment(JT*jt){
  U closest,normal;
  qword position=GetLoWorldPos(jt);
- FindMeshClosestPoint(((MESH *)jt->unknown1F18),position,&jt->surflocMesh,&jt->surflocMesh,&closest.q,&normal.q);
+ FindMeshClosestPoint(((MESH *)jt->stickySurface),position,&jt->surflocMesh,&jt->surflocMesh,&closest.q,&normal.q);
  M4 frame;U contacts[3];
  qword difference=VuSub(closest.q,position);
  qword len=VuSqrtX(VuDot(difference,difference));
@@ -666,7 +666,7 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
  qword target=QwAddScaled(closest.q,direction,VuFloat(-jt->avecMeshProbe[0].x));
  M4*pd;BuildM4L(BuildOrthonormalMatrixZ(direction,g_normalZ.q),target,pd=&frame);frame.r[0].i[3]=frame.r[1].i[3]=frame.r[2].i[3]=0;pd->r[3].f[3]=1.0f;
  int i;
- for(i=0;i<3;i++)FindMeshClosestPoint(((MESH *)jt->unknown1F18),QwTransformPos(&frame,jt->aposMeshProbe[i]),&jt->surflocMesh,0,&contacts[i].q,0);
+ for(i=0;i<3;i++)FindMeshClosestPoint(((MESH *)jt->stickySurface),QwTransformPos(&frame,jt->aposMeshProbe[i]),&jt->surflocMesh,0,&contacts[i].q,0);
  qword surface=VuCross(VuSub(contacts[2].q,contacts[0].q),VuSub(contacts[1].q,contacts[0].q));
  qword unit=VuDivByX(surface,VuSqrtX(VuDot(surface,surface)));
  {M3 m=BuildOrthonormalMatrixZ(unit,g_normalZ.q);jt->aqwTarget[0]=m.r[0].q;jt->aqwTarget[1]=m.r[1].q;jt->aqwTarget[2]=m.r[2].q;}
@@ -676,8 +676,8 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
  PosSmooth(position,target,&D_002BE930,&linear.q,g_clock.deltaTime*0.5f);
  LIST planes;U samples[3];
  for(i=0;i<3;i++)StoreAddRot(&samples[i],target,(M3 *)jt->aqwTarget,&jt->aposMeshProbe[i]);
- ClearMeshContactList(((MESH *)jt->unknown1F18),&planes);
- CollectMeshContacts(((MESH *)jt->unknown1F18),&planes,3,(qword*)samples,&D_002BE940,10.0f);
+ ClearMeshContactList(((MESH *)jt->stickySurface),&planes);
+ CollectMeshContacts(((MESH *)jt->stickySurface),&planes,3,(qword*)samples,&D_002BE940,10.0f);
  if(0.0f<jt->controller->leftStickDeflection){
   U movement;
   {float y=jt->controller->dxLeft,z=jt->controller->dyLeft;movement.f[0]=0.0f;movement.f[1]=-y;movement.f[2]=z;}
@@ -693,7 +693,7 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
   jt->localVelocity=QwScaleX(jt->localVelocity,VuFloatFromMemF(jt->pasegblMesh->masterSpeed));
  }else ClearXyz(&jt->vecLocalVelocity);
  if(planes.count>0){
-  qword projected=SolveMeshConstraints(((MESH *)jt->unknown1F18),&planes,QwRotateVec((M3 *)jt->aqwTarget,QwScaleX(jt->localVelocity,VU_FLOAT(-1.0f))));
+  qword projected=SolveMeshConstraints(((MESH *)jt->stickySurface),&planes,QwRotateVec((M3 *)jt->aqwTarget,QwScaleX(jt->localVelocity,VU_FLOAT(-1.0f))));
   M3 inverse=InvertMatrix3Cofactor((M3 *)jt->aqwTarget);
   jt->localVelocity=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
  }

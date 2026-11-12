@@ -2088,7 +2088,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
     {
         if (lo == ((JT *)player)->hangHandle)
             return;
-        if (lo == ((JT *)player)->unknown1F18)
+        if (lo == ((JT *)player)->stickySurface)
             return;
     }
     if (!(player->grfGrabTarget & spot->grfPlayers))
@@ -2103,7 +2103,7 @@ void AddJtGrabCandidate(SW *world, STEPPLAYER *player, qword qwPosJt, LO *lo, GR
         {
             if (((JT *)player)->hangHandle)
                 return;
-            if (((JT *)player)->unknown1F18)
+            if (((JT *)player)->stickySurface)
                 return;
         }
     }

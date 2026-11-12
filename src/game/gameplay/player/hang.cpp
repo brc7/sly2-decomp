@@ -703,7 +703,7 @@ extern "C" void RenderJtHangIk(JT *jt)
     int n;
 
     a = VuAdd(GetJtHangHandlePosition(jt), jt->janim.dposHang);
-    b = GetLoWorldPos(jt->unknown19A4);
+    b = GetLoWorldPos(jt->handObject);
     d = VuSub(a, b);
     a = ConvertXfVec(0, ((IKJ *)jt->handChildXf)->parent, d);
     t = ((IKJ *)jt->handChildXf);

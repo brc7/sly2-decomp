@@ -329,7 +329,7 @@ extern "C" void PostJtLoad(JT *p)
     InitDirectionalBlend(p, p->abldirJts5, &p->pasegblJts5);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, sizeof(p->ablHangFollow[0]), 4, p->ablHangFollow, 0, 0, 0, &p->pasegblHangFollow);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, sizeof(p->ablLean[0]), 3, p->ablLean, 0, 0, 0, &p->pasegblLean);
-    p->hands.ploHand = p->unknown19A4;
+    p->hands.ploHand = p->handObject;
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(&p->hands, p, &p->janim);
     SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
     SetLoBusyKind(p, 1);
@@ -779,11 +779,11 @@ extern "C" void SetJtPlayable(JT *jt, int f)
     IgnoreStepSlot87(jt, f);
     if (f) {
         jt->unknown19A0->SetFlag8(0);
-        jt->unknown19A4->SetFlag8(0);
+        jt->handObject->SetFlag8(0);
         jt->unknown19A8->SetFlag8(0);
     } else {
         jt->unknown19A0->SetFlag8(1);
-        jt->unknown19A4->SetFlag8(1);
+        jt->handObject->SetFlag8(1);
         jt->unknown19A8->SetFlag8(1);
     }
 }
@@ -1262,9 +1262,9 @@ extern "C" void UpdateJtStand(JT *jt)
     RebuildJtXmg(jt, jt->unknown19D8, jt->unknown19E0, jt->pact5Unk19f0, 5.0f, &jt->unknown1520[0]);
     RebuildJtXmg(jt, jt->unknown19D4, jt->unknown19DC, jt->pact5Unk19f4, 5.0f, &jt->unknown1520[1]);
     if ((!TryMatchJtXmg(jt, &jt->unknown1520[0], jt->pact5Unk19f0) || !TryMatchJtXmg(jt, &jt->unknown1520[1], jt->pact5Unk19f4)) &&
-        !jt->unknown1514 && jt->standStateMachine) {
+        !jt->isStandSmSnapped && jt->standStateMachine) {
         if (FindSmStateOptional__FP2SM3OID(jt->standStateMachine, 0x17C) >= 0) SnapSma(jt->activeStateMachine, 0x17C);
-        jt->unknown1514 = 1;
+        jt->isStandSmSnapped = 1;
     }
 }
 } // namespace M_UpdateJtStand
@@ -1288,12 +1288,12 @@ void UpdateSoXfWorld(JT *p) __asm__("UpdateSoXfWorld");
 // Also known as: UpdateSlyPhys (upstream readable / Sly 1 name; UpdateSlyPhys__FP3ALO).
 extern "C" void UpdateJtWorldTransform(JT *jt)
 {
-    jt->aposBounds[1] = GetLoWorldPos(jt->unknown19A4);
+    jt->aposBounds[1] = GetLoWorldPos(jt->handObject);
     jt->cposBounds = 0;
     UpdateSoXfWorld(jt);
     if (!jt->animState) {
         jt->aposBounds[0] = GetLoWorldPos(jt);
-        jt->aposBounds[2] = GetLoWorldPos(jt->unknown19A4);
+        jt->aposBounds[2] = GetLoWorldPos(jt->handObject);
         jt->cposBounds = 3;
     } else {
         jt->cposBounds = 0;
@@ -2038,7 +2038,7 @@ extern "C" void CacheJtRestPose(JT *jt)
         return;
     z = 0.0f;
     jt->tPickpocketLabel = GetAsegLabelTime(jt->pasegPickpocket, 0x167);
-    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->unknown19A4->rootTransform, jt->rootTransform, &m0, 0);
+    PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->handObject->rootTransform, jt->rootTransform, &m0, 0);
     jt->posPickpocketHand = m0.r[3];
     PredictAsegTransform(jt->pasegPickpocket, jt->tPickpocketLabel, jt, z, jt->handXf, jt->rootTransform, &m1, 0);
     jt->posPickpocket19CC = m1.r[3];
@@ -3081,7 +3081,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     jt->jtair.unknownBC = (LO *)jt->jtpipe.pipeCurve;
                     break;
                 case JTS_SurfaceClimb:
-                    jt->jtair.unknownBC = jt->unknown1F18;
+                    jt->jtair.unknownBC = jt->stickySurface;
                     break;
                 default:
                     jt->jtair.unknownBC = 0;
@@ -3236,10 +3236,10 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_SurfaceClimb:
                 SetSoCnstrForce(jt, 0);
-                jt->unknown1F18->HandleSpliceEvent(6, 0, 0, 0, 0);
-                if (jt->overrideTunnel == *(TN **)((char *)jt->unknown1F18 + 0x110))
+                jt->stickySurface->HandleSpliceEvent(6, 0, 0, 0, 0);
+                if (jt->overrideTunnel == *(TN **)((char *)jt->stickySurface + 0x110))
                     SetPlayerTn(jt, 0);
-                jt->unknown1F18 = 0;
+                jt->stickySurface = 0;
                 break;
             case JTS_HangFollow:
                 SetSoCnstrForce(jt, 0);
@@ -3267,7 +3267,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 stateMachine = jt->standStateMachine;
                 SlotSetRole(jt, jt->positionXf, 1);
                 SlotSetRole(jt, jt->rotationXf, 1);
-                jt->unknown1514 = 0;
+                jt->isStandSmSnapped = 0;
                 switch (jt->state)
                 {
                     case JTS_Unk0A:
@@ -3330,7 +3330,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 ClearXyz((VECTOR *)&pact1->goalValue);
                 tStart = 0.5f;
                 AddXfAct(jt, jt->wristXf, jt->pactHand);
-                qword posHand = PosLoWorld(jt->unknown19A4);
+                qword posHand = PosLoWorld(jt->handObject);
                 jt->janim.dposHang = VuSub(posHand, GetJtHangHandlePosition(jt));
                 UpdateJtHangPlace(jt);
                 jt->hangHandle->HandleSpliceEvent(5, 0, 0, 0, 0);
@@ -3443,7 +3443,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     FixStepAngularVelocity(jt);
                     float tLabel = TFindAsegLabel(aseg, (OID)0x173);
                     MATRIX4 matHand;
-                    PredictAsegEffect(tLabel, gZero, aseg, jt, jt->unknown19A4->rootTransform, jt->rootTransform, &matHand, 0);
+                    PredictAsegEffect(tLabel, gZero, aseg, jt, jt->handObject->rootTransform, jt->rootTransform, &matHand, 0);
                     tLabel /= aseg->masterSpeed;
                     qword posHold = PosLoWorld(jt->interactTarget);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->interactTarget->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
@@ -3476,14 +3476,14 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 OnGameEvent(&g_game, 0x37, jt);
                 break;
             case JTS_SurfaceClimb:
-                ((CLIMBSURF *)jt->unknown1F18)->FindClosestPoint(PosLoWorld(jt), 0, &jt->surflocMesh, 0, 0);
+                ((CLIMBSURF *)jt->stickySurface)->FindClosestPoint(PosLoWorld(jt), 0, &jt->surflocMesh, 0, 0);
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
                 ClearXyz(&jt->vecLocalVelocity);
-                jt->unknown1F18->HandleSpliceEvent(5, 0, 0, 0, 0);
-                if (*(TN **)((char *)jt->unknown1F18 + 0x110) != 0)
-                    SetPlayerTn(jt, *(TN **)((char *)jt->unknown1F18 + 0x110));
+                jt->stickySurface->HandleSpliceEvent(5, 0, 0, 0, 0);
+                if (*(TN **)((char *)jt->stickySurface + 0x110) != 0)
+                    SetPlayerTn(jt, *(TN **)((char *)jt->stickySurface + 0x110));
                 break;
             case JTS_HangFollow:
                 aseg = jt->pasegblHangFollow;
@@ -4460,7 +4460,7 @@ SNIP D_002BE990[0xAD] = {{0x200, 0x7C, SLY2_OFFSETOF(JT, standStateMachine)}, {0
     {0x300, 0x158, SLY2_OFFSETOF(JT, pasegGadget22)}, {0x300, 0x15C, SLY2_OFFSETOF(JT, unknown1FE8)}, {0x300, 0x103, SLY2_OFFSETOF(JT, ablLean[0].animation)}, {0x300, 0x104, SLY2_OFFSETOF(JT, ablLean[1].animation)},
     {0x300, 0x105, SLY2_OFFSETOF(JT, ablLean[2].animation)}, {0x300, 0x15C, SLY2_OFFSETOF(JT, unknown1FE8)}, {0x300, 0xFE, SLY2_OFFSETOF(JT, unknown204C)}, {0x300, 0xC6, SLY2_OFFSETOF(JT, pasegPouncePowerUp)},
     {0x300, 0xAA, SLY2_OFFSETOF(JT, jtpipe.pasegMount)}, {0x300, 0xAB, SLY2_OFFSETOF(JT, jtpipe.pasegHold)}, {0x300, 0xAC, SLY2_OFFSETOF(JT, jtpipe.pasegTurn)}, {0x300, 0xAD, SLY2_OFFSETOF(JT, jtpipe.abl[0].animation)}, {0x300, 0xAE, SLY2_OFFSETOF(JT, jtpipe.abl[1].animation)}};
-SNIP D_002BF1B0[0x12] = {{0x0, 0x13C, SLY2_OFFSETOF(JT, unknown19A0)}, {0x0, 0x13D, SLY2_OFFSETOF(JT, unknown19A4)}, {0x200, 0x13E, SLY2_OFFSETOF(JT, unknown19A8)}, {0x40, 0x140, SLY2_OFFSETOF(JT, unknown17BC[0])},
+SNIP D_002BF1B0[0x12] = {{0x0, 0x13C, SLY2_OFFSETOF(JT, unknown19A0)}, {0x0, 0x13D, SLY2_OFFSETOF(JT, handObject)}, {0x200, 0x13E, SLY2_OFFSETOF(JT, unknown19A8)}, {0x40, 0x140, SLY2_OFFSETOF(JT, unknown17BC[0])},
     {0x40, 0x142, SLY2_OFFSETOF(JT, unknown17BC[1])}, {0x40, 0x143, SLY2_OFFSETOF(JT, unknown17BC[2])}, {0x0, 0x149, SLY2_OFFSETOF(JT, unknown1AA0)}, {0x0, 0x14A, SLY2_OFFSETOF(JT, unknown1BD0)}, {0x300, 0x114, SLY2_OFFSETOF(JT, gaitB.abl[0].animation)},
     {0x300, 0x115, SLY2_OFFSETOF(JT, gaitB.abl[1].animation)}, {0x100, 0x5F5, SLY2_OFFSETOF(JT, unknown1D20)}, {0x100, 0x5F6, SLY2_OFFSETOF(JT, unknown1D24)}, {0x220, 0x14C, SLY2_OFFSETOF(JT, unknown1A88)},
     {0x220, 0x14D, SLY2_OFFSETOF(JT, unknown1A8C)}, {0x220, 0x14E, SLY2_OFFSETOF(JT, unknown1A90)}, {0x220, 0x14F, SLY2_OFFSETOF(JT, unknown1A94)}, {0x220, 0x151, SLY2_OFFSETOF(JT, unknown1A98)},

@@ -4170,13 +4170,13 @@ struct Y; struct X;
 // Update the movement-state controller.
 extern float D_002BE6C8 __asm__("D_002BE6C8"), D_002BE6CC __asm__("D_002BE6CC");
 struct Y { char pad[0x60]; void *frame; };
-struct X { char pad[0x19A4]; struct Y *unknown19A4; };
+struct X { char pad[0x19A4]; struct Y *handObject; };
 void UpdateBhvanim(BHVJUGGLED *p) __asm__("UpdateBhvanim");
 void UpdateBhvjuggledHoldAct(BHVJUGGLED *p) __asm__("UpdateBhvjuggledHoldAct");
 qword GetLoWorldPos(void *a) __asm__("GetLoWorldPos");
 void LoadIdentityMatrix4(void *a, void *b, MATRIX4Q *pm, MATRIX4Q *other, float g) __asm__("LoadIdentityMatrix4");
 // Returns the frame object of the actor's +0x19A4 record.
-extern "C" { static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;} }
+extern "C" { static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->handObject;return y->frame;} }
 // VU0 helper: z component of a vector.
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
 // landed), prediction states 4-5.
@@ -4260,7 +4260,7 @@ typedef char layout_X[(sizeof(struct X)==0x19A8)?1:-1];
 typedef char layout_Y[(sizeof(struct Y)==0x64)?1:-1];
 typedef char layout_U_q[((unsigned)&((QWROW*)0)->q==0)?1:-1];
 typedef char layout_U_f[((unsigned)&((QWROW*)0)->f==0)?1:-1];
-typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
+typedef char layout_X_y[((unsigned)&((struct X*)0)->handObject==0x19A4)?1:-1];
 typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
 } // namespace M_UpdateBhvjuggled
 
