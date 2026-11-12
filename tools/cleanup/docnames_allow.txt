@@ -47,3 +47,5 @@ BASE.json Clq FDamageFatal__FP5ACTORP5CTMSG FUN_xxxxxxxx NGuardStatus__FP5GUARD 
 svkElapsed.c svkDifficulty.c svkStart.c svkComplete.c svkCompletionCount.c svkState.c svkInterrupted.c
 # splice-dump.md: placeholders in the listing-syntax table and the usage text
 XXXXXXXX FILE.json
+# removed in v1.23 (portability.md history names the old views)
+BLIPGV CHANNEL
