@@ -795,16 +795,16 @@ extern "C" int IsBhvcombatDone(BHVCOMBAT *behavior)
 
 // 0x175820 FilterAttackLineOfSightHit
 namespace M_func_00175820 {
- struct O; struct Y;
-struct U { char pad[0x70]; unsigned long unknownFlags70; };   /* the hit object's SOTREE (so.h names it to +0x6C) */
-struct O { char pad[0xEC]; struct SOTREE *unknownEC; };
-struct Y { int pad; struct O *hitObject; int pad2[2]; unsigned long hitFlags; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+ struct Y;
+
+
+struct Y { int pad; SO *hitObject; int pad2[2]; unsigned long hitFlags; };
+int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
 extern "C" int FilterAttackLineOfSightHit(CID120 *x, struct Y *p) {
     if (p->hitFlags & (1UL << 48)) return 0;
-    if (p->hitObject->unknownEC->grf & 4) return 0;
+    if (p->hitObject->physicsTree->grf & 4) return 0;
     if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
     return !IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
 }
