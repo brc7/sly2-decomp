@@ -13,9 +13,9 @@ colour-table and bitmap file records, and breakable's pointer-wide action record
 on the load path (section 2) and pointer types for three object-reference option members; (v1.15, driven by the port's
 Paris boot and its heap-guard run) the SNIP tables and their target members, load-path allocation sizes, real types for
 the CloneLo / screenfade / vis / hud / bbmark / memcard-dialog views, LO's tagged word read pointer-wide everywhere on
-the load path; (v1.16) the remaining load-path views (shape.cpp's SHAPE views, CID14 / CID98 / CID112's own fields in
+the load path; (v1.16) the remaining load-path views (shape.cpp's SHAPE views, OBSTACLE / CID98 / CID112's own fields in
 classes.h for cnvo / breakable / launcher, xf.cpp and ik.cpp's XF views, prize's AddLootEntryObject, PostJtLoad's
-member stores), the rail / pipe / shape / CID14 Clone forwarding, SW_ctor's last list offsets, MURRAY's ASEGARC and
+member stores), the rail / pipe / shape / OBSTACLE Clone forwarding, SW_ctor's last list offsets, MURRAY's ASEGARC and
 the GRABSPOT base without a null test, and from the port's boot-3 list: pointer-typed message / SM / chooser /
 EvaluateBezierPos arguments, FramePtr_Assign on &scriptFrame, LEVELLIST and POSTLOADREC in headers, more list
 offsets, and every EnsureAsegBlendDynamic entry stride from sizeof; (v1.17) the heap guard's `new` overruns (BOOTY,
@@ -268,7 +268,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   Jsg 0xF0, Xfh 0x30, Leap 0x40; v1.17 typed Event / Callback / Diract / Blip / the blip splines: the blip slot is
   sizeof(BLIPBATCH) rounded to its 0x40 alignment, an inference) and the list offsets of
   the SL offsets (v1.16 made every SW_ctor DL offset SLY2_OFFSETOF: PIPE / RAIL / BARREL::dleGrab, TARGETREC::dleTargetrec,
-  CID47::dleListener (was LISTENERKEY key), CID98::dleBreakable, CID14::dleMerged / dlePending), slotheap.h
+  CID47::dleListener (was LISTENERKEY key), CID98::dleBreakable, OBSTACLE::dleMerged / dlePending), slotheap.h
   engine/Splice pools, the post-load pool, PATHZONE dlRegent, DIALOGEVENT, BOOTYE 0x2C, aseg.cpp's kind-1 box origin
   (0x20), save.cpp's SVENT (cent * 10), the heap-guard sites outside the named functions (sly2+0x523381 / 0x542fc1 /
   0x5b92c5 in the port's log). The SNIP tables (BindLoOidTable) are done (murray's row at 0x1854 is MURRAY::arcLeap.paseg, ASEGARC in
@@ -403,7 +403,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   VU interpreter). Port request 10 / the boot-10 run: StepBhvpathAlongShape on BHVPATH / STEP / SOPHYS / REGENT /
   PATHZONE / SHAPE (the other bodies through PATHZONE::dlRegent and REGENT::dlePathzone; REGENT's floats are
   heightOffset / radius / mass, their option accessors Get/SetSoRegionHeightOffset / Radius / Mass); BHVPATH::blocker is
-  the CID14 obstacle (UpdateBhvpath's T view gone; the flag word is LO::isInWorld, +0x1D8 CID14::owner); STEP::routeShape
+  the OBSTACLE obstacle (UpdateBhvpath's T view gone; the flag word is LO::isInWorld, +0x1D8 OBSTACLE::owner); STEP::routeShape
   (SHAPE *, was void *unknown294); SLY2_FDIV (section 1) in FindClosestPointOnLineSegment; emitter.cpp EmitBlips on
   BLIPG / BLIPBATCH / BLIPBUF / BLIPBEZ and the EMITV default records by member natively (the EE word images put 25.0f in
   pblipclrs: the port's SetBlipgEmitb symptom); safehouse StepCharSelect compares the slots' oid words;
@@ -414,7 +414,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   every walker on CG (FindNavTriangleQuick / Safe, ClipEdgeToCbsp, IsEdgeBlockedByCbsp, FindPathAStar,
   GetClosestPointOnNavTriangle, FindPathPoints, LoadPathzoneFromBrx, InitDefaultPathzoneCg, ComputeCgEdgeCosts);
   FindPathzonePathCurve (PATHZONE *, qword, qword, SHAPE *); FindClosestPointInCg / FindPathzoneClosestPoint take the
-  flags their callers pass and hand them to FindNavTriangleSafe; FindPathzoneClosestFreePoint on PATHZONE / CID14 / LSG
+  flags their callers pass and hand them to FindNavTriangleSafe; FindPathzoneClosestFreePoint on PATHZONE / OBSTACLE / LSG
   (its S : XFM view served both, and its EE layout assert is gone); air.cpp SetJtAirState on JTAIR / JT / BARREL / XF /
   JTPLACE (the CONTEXT view's rGravitySaved read gave Sly a mass of ~4e-26 natively; tracks[i] is abl[i + 1].weight)
   with C fallbacks for its mode-17 and mode-21 asm; STIMULUS / STIMTEMPLATE merged into CID147 / CID117 (source,

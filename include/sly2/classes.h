@@ -77,7 +77,7 @@ inline PO::PO() { wakeSound = 0; }
    A class with a secondary base must override at least one of its virtuals exactly when its secondary vtable in the
    ELF differs from the base's own: with -fno-rtti g++ reuses the base's vtable (_vt$8GRABSPOT) for a secondary base
    whose virtuals the class does not override, which changes the constructor's vptr stores. Every grab-spot class
-   overrides slot 6 (an 8-byte function at 0x2599E8..); CID36/CID37 override nothing of GRABSPOT and reuse CID35's
+   overrides slot 6 (an 8-byte function at 0x2599E8..); CARRYSPOT/CID37 override nothing of GRABSPOT and reuse CID35's
    (0x2D1EA8 in the ELF for all three). Those slot-6 functions are free inline functions of xfm.h/so.h (the owner
    getters, link/linkonce-misc); the GetOwner labels below name them exactly, so the key TU that emits a class's vtable
    emits its getter too (.gnu.linkonce.t.<symbol>), the only object that does. */
@@ -87,7 +87,7 @@ struct GRABSPOT
     int unknown04;
     float sBusy;            /* +0x08 busy radius; InitGrabspot sets FLT_MAX, the barrel 300 */
     int noSafePlace;        /* +0x0C nonzero: holding the spot records no safe place (grab.cpp RecordJtGrabPlace) (inferred); was unknown0C */
-    int nPriority;          /* +0x10 (CID35's Init sets 1, CID36's -1) */
+    int nPriority;          /* +0x10 (CID35's Init sets 1, CARRYSPOT's -1) */
     int nUnk14;             /* +0x14 InitGrabspot sets -1 */
     struct LO *ploGroup;    /* +0x18 an object reference (option 781, otyp 0x2002, through the OwnFields accessors) */
     int grfPlayers;         /* +0x1C players that may grab it (1 Sly, 2 Bentley, 4 Murray; InitGrabspot sets 7) */
@@ -1126,7 +1126,7 @@ struct BHVPATH : BHV
     float startParamHint;   /* +0x48 */
     int state;              /* +0x4C (3 finished) */
     float stateTime;        /* +0x50 */
-    struct CID14 *blocker;  /* +0x54 the convex obstacle blocking the path (FindShapeFreePoint's result) */
+    struct OBSTACLE *blocker;  /* +0x54 the convex obstacle blocking the path (FindShapeFreePoint's result) */
     int isBlocked;          /* +0x58 */
     float blockerParam;     /* +0x5C */
     float blockerRange;     /* +0x60 */
@@ -1636,8 +1636,8 @@ typedef char assert_BHV191_size[sizeof(BHV191) == 0x50 ? 1 : -1];
 /* 71..76 HACK, HACKSHIP, HACKBULLET, HACKENEMY, HACKLOCK, HACKWALL (key TU hack): sly2/hack.h */
 #include "sly2/hack.h"
 
-/* 12 CID12 (0x1C0): wall grabspot (wall press); vtable 0x2D2738, 50 slots */
-struct CID12 : SHAPE, GRABSPOT
+/* 12 WALLSPOT (was CID12; 0x1C0): wall grabspot (wall press: the *WallGrabspot* functions); vtable 0x2D2738, 50 slots */
+struct WALLSPOT : SHAPE, GRABSPOT
 {
     DLE dleGrab;            /* +0x1B4 link in the world's grab list g_sw.dlCid12 (sw.cpp InitDl offset; kept across Clone) */
     int unknown1BC;
@@ -1651,13 +1651,13 @@ struct CID12 : SHAPE, GRABSPOT
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetWallGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -400) */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetWallGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
     virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetWallGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
-    virtual LO *GetOwner() __asm__("GetCid12GrabspotOwner__FP5CID12");   /* GRABSPOT slot 6 (delta -400) */
+    virtual LO *GetOwner() __asm__("GetCid12GrabspotOwner__FP8WALLSPOT");   /* GRABSPOT slot 6 (delta -400) */
 };
-typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
-typedef char assert_CID12_dleGrab[SLY2_OFFSETOF(CID12, dleGrab) == 0x1B4 ? 1 : -1];
+typedef char assert_CID12_size[sizeof(WALLSPOT) == 0x1C0 ? 1 : -1];
+typedef char assert_CID12_dleGrab[SLY2_OFFSETOF(WALLSPOT, dleGrab) == 0x1B4 ? 1 : -1];
 
-/* 34 CID34 (0x110): pole (GRABSPOT); vtable 0x2D2558, 50 slots */
-struct CID34 : XFM, GRABSPOT
+/* 34 POLESPOT (was CID34; 0x110): pole grabspot (the *PoleGrabspot* functions); vtable 0x2D2558, 50 slots */
+struct POLESPOT : XFM, GRABSPOT
 {
     DLE dleGrab;            /* +0x104 link in g_sw.dlCid34 (kept across Clone) */
     float sRadius;          /* +0x10C pole radius */
@@ -1671,10 +1671,10 @@ struct CID34 : XFM, GRABSPOT
     virtual void GetClosestParam(STEPPLAYER *pstepplayer, float *psParam) __asm__("GetPoleGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -224) */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetPoleGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetPoleGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -224) */
-    virtual LO *GetOwner() __asm__("GetCid34GrabspotOwner__FP5CID34");   /* GRABSPOT slot 6 (delta -224) */
+    virtual LO *GetOwner() __asm__("GetCid34GrabspotOwner__FP8POLESPOT");   /* GRABSPOT slot 6 (delta -224) */
 };
-typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
-typedef char assert_CID34_sRadius[SLY2_OFFSETOF(CID34, sRadius) == 0x10C ? 1 : -1];
+typedef char assert_CID34_size[sizeof(POLESPOT) == 0x110 ? 1 : -1];
+typedef char assert_CID34_sRadius[SLY2_OFFSETOF(POLESPOT, sRadius) == 0x10C ? 1 : -1];
 
 /* 38 CID38 (0x110); vtable 0x2D2378, 50 slots */
 struct CID38 : XFM, GRABSPOT
@@ -1765,8 +1765,8 @@ struct CID37 : CID35
 };
 typedef char assert_CID37_size[sizeof(CID37) == 0x1A0 ? 1 : -1];
 
-/* 36 CID36 (0x1A0): carry grabspot (child of CID35); vtable 0x2D1D00, 51 slots */
-struct CID36 : CID35
+/* 36 CARRYSPOT (was CID36; 0x1A0): carry grabspot, the object Murray lifts (child of CID35; *CarryGrabspot*); vtable 0x2D1D00, 51 slots */
+struct CARRYSPOT : CID35
 {
     LO *unknown180;         /* +0x180 a trigger target that is it or its descendant is skipped */
     OID oid1;               /* +0x184 three linked objects resolved at post-load */
@@ -1781,8 +1781,8 @@ struct CID36 : CID35
     virtual void Init() __asm__("InitCarryGrabspot");   /* slot 7 */
     virtual void OnTriggered(LO *ploActivator) __asm__("OnTriggerGrabspotGrabbed");   /* slot 51: the object that set it off */
 };
-typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
-typedef char assert_CID36_oid1[SLY2_OFFSETOF(CID36, oid1) == 0x184 ? 1 : -1];
+typedef char assert_CID36_size[sizeof(CARRYSPOT) == 0x1A0 ? 1 : -1];
+typedef char assert_CID36_oid1[SLY2_OFFSETOF(CARRYSPOT, oid1) == 0x184 ? 1 : -1];
 
 /* 27 CID27 (0x160): table grabspot (VOL + GRABSPOT; hide under); vtable 0x2D1B60, 50 slots */
 struct CID27 : VOL, GRABSPOT
@@ -2078,8 +2078,9 @@ struct CID98 : SO
 typedef char assert_CID98_dleBreakable[SLY2_OFFSETOF(CID98, dleBreakable) == 0x174 ? 1 : -1];
 typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
 
-/* 14 CID14 (0x1F0): convex polygon SHAPE / pathzone obstacle; vtable 0x2D4DE0, 50 slots */
-struct CID14 : SHAPE
+/* 14 OBSTACLE (was CID14; 0x1F0): convex polygon SHAPE / pathzone obstacle (cnvo.cpp: the TU sits where Sly 1 has
+   cnvo.c, but Sly 1's CNVO is a conveyor; this class clips, merges and registers convex obstacles); vtable 0x2D4DE0, 50 slots */
+struct OBSTACLE : SHAPE
 {
     /* Own fields from cnvo.cpp (its CID14V view until v1.16). The outline is the shape's points (the last repeats
        the first); edgePlanes holds the numControlVertices - 1 side planes, valid while planeStamp equals the
@@ -2093,7 +2094,7 @@ struct CID14 : SHAPE
     int isMerged;               /* +0x1C0 a pooled merged polygon (NewMergedCid14Obstacle) */
     DL members;                 /* +0x1C4 the polygons merged into this one (linked through dleMerged) */
     DLE dleMerged;              /* +0x1D0 link in the owner's members list; also g_sw.dlCid14Free's link */
-    CID14 *owner;               /* +0x1D8 the merged polygon this one belongs to */
+    OBSTACLE *owner;               /* +0x1D8 the merged polygon this one belongs to */
     struct PATHZONE *pathzone;  /* +0x1DC the zone it is registered in (AddPathzoneObstacle) */
     DLE dlePending;             /* +0x1E0 link in g_sw.dlCid14Pending (inferred) */
     int planeStamp;             /* +0x1E8 */
@@ -2106,9 +2107,9 @@ struct CID14 : SHAPE
     virtual void PostLoad() __asm__("PostCid14Load");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneCid14");   /* slot 41 */
 };
-typedef char assert_CID14_dleMerged[SLY2_OFFSETOF(CID14, dleMerged) == 0x1D0 ? 1 : -1];
-typedef char assert_CID14_dlePending[SLY2_OFFSETOF(CID14, dlePending) == 0x1E0 ? 1 : -1];
-typedef char assert_CID14_size[sizeof(CID14) == 0x1F0 ? 1 : -1];
+typedef char assert_CID14_dleMerged[SLY2_OFFSETOF(OBSTACLE, dleMerged) == 0x1D0 ? 1 : -1];
+typedef char assert_CID14_dlePending[SLY2_OFFSETOF(OBSTACLE, dlePending) == 0x1E0 ? 1 : -1];
+typedef char assert_CID14_size[sizeof(OBSTACLE) == 0x1F0 ? 1 : -1];
 
 /* 45 CID45 (0x130): render-to-texture owner (item preview?); vtable 0x2D4F80, 50 slots */
 struct CID45 : XFM
@@ -2975,8 +2976,8 @@ struct WR;
    linkonce copies do not have, and so does a reference cast; the base offset is therefore taken from a static_cast
    of a non-null constant (folded to sizeof(first base) on the EE, the ABI's offset elsewhere) and added to p. */
 #define SLY2_GRABSPOT_BASE(T, p) ((void *)((char *)(p) + ((char *)static_cast<GRABSPOT *>((T *)0x100) - (char *)0x100)))
-inline void *GetCid12OwnFields(CID12 *p) { return SLY2_GRABSPOT_BASE(CID12, p); }
-inline void *GetCid34OwnFields(CID34 *p) { return SLY2_GRABSPOT_BASE(CID34, p); }
+inline void *GetCid12OwnFields(WALLSPOT *p) { return SLY2_GRABSPOT_BASE(WALLSPOT, p); }
+inline void *GetCid34OwnFields(POLESPOT *p) { return SLY2_GRABSPOT_BASE(POLESPOT, p); }
 inline void *GetCid38OwnFields(CID38 *p) { return SLY2_GRABSPOT_BASE(CID38, p); }
 inline void *GetCid35OwnFields(CID35 *p) { return SLY2_GRABSPOT_BASE(CID35, p); }
 inline void *GetCid27OwnFields(CID27 *p) { return SLY2_GRABSPOT_BASE(CID27, p); }

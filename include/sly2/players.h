@@ -44,7 +44,7 @@ struct MURRAY : public STEPPLAYER
       int fFlopGadget;   /* +0x13E8 the flop was started by the gadget (UseMurrayGadget 22: 1; the button and StartMurrayFlop: 0) */
       SO *psoCarryRoot;   /* +0x13EC the object a lifted one is parented to (SetMurrayLiftSubstate); no lift without it
                              (StartMurrayLiftGrabspot/StartMurrayLiftGuard) */
-      LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CID36, classes.h; GRABSPOT36 in grabspot.cpp), set by
+      LO *ploCarried;   /* +0x13F0 the carry target: a carry grabspot (CARRYSPOT, classes.h; GRABSPOT36 in grabspot.cpp), set by
                            StartMurrayLiftGrabspot/StartMurrayLiftGuard; +0x180 of it is the object lifted (CARRYSPOTV in
                            murray.cpp) */
       struct ACT *apactCarryA[4];   /* +0x13F4 grip actuators on the carried object (DetachMurrayCarried releases them) */

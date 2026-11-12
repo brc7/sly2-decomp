@@ -1087,7 +1087,7 @@ void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*) __asm
 // Spill vertex to home and store point's z into home->f[2]; returns that z as a float.
 extern "C" { static inline float InitialEndpoint(union U*home,qword vertex,qword point){register qword word __asm__("$3");register float coordinate __asm__("$f0");__asm__("pextuw %0,$zero,%2\n\tsq %3,%1":"=&r"(word),"=m"(home->q):"r"(point),"r"(vertex));__asm__("mtc1 %2,%0\n\tswc1 %0,%1":"=f"(coordinate),"=m"(home->f[2]):"r"(word));return coordinate;} }
 // Load p->numControlVertices.
-extern "C" { static inline int InitialCount(const CID14*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->numControlVertices));return value;} }
+extern "C" { static inline int InitialCount(const OBSTACLE*p){int value;__asm__("lw %0,%1":"=r"(value):"m"(p->numControlVertices));return value;} }
 // Closest point to pos that is walkable in the zone and outside every obstacle.
 // Also known as: FKeepOnNav (upstream readable / Sly 1 name; FKeepOnNav__FP9NAVREGIONG9VU_VECTORP6VECTOR).
 extern "C" int FindPathzoneClosestFreePoint(PATHZONE*zone,qword point,qword*out){
@@ -1097,7 +1097,7 @@ extern "C" int FindPathzoneClosestFreePoint(PATHZONE*zone,qword point,qword*out)
  LSG hits[1];
  union U nearest;
  float distance;
- CGT*leaf;CID14*poly;
+ CGT*leaf;OBSTACLE*poly;
  qword projected,first;
  int n,i;
  float z,bestDistance;

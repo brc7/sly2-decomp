@@ -453,13 +453,13 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
     w.query.point.q = GetLoWorldPos(((STEPGUARD *)behavior->owner));
     w.query.heading = GetStepHeading(((STEPGUARD *)behavior->owner));
     w.query.count = 0;
-    for (object = (*(NODE **)&g_sw.dlCid34); object; object = NEXT_ON(CID34, dleGrab, object)) {
+    for (object = (*(NODE **)&g_sw.dlCid34); object; object = NEXT_ON(POLESPOT, dleGrab, object)) {
         qword posObj = GetLoWorldPos(object);
         qword qwFallback = D_002A2DA0;
         w.query.delta.q = VuSub(w.query.point.q, posObj);
         w.query.delta.i[2] = 0;
         qword len = VuLengthReuseOne(w.query.delta.q);
-        qword g = VuFloatFromMemWord(*(int *)&((CID34 *)object)->sRadius);
+        qword g = VuFloatFromMemWord(*(int *)&((POLESPOT *)object)->sRadius);
         qword n;
         if (QwordX(len) < 0.0001f) {
             w.query.scalar.q = g;
@@ -471,7 +471,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
         w.query.candidate.q = VuMulAdd(posObj, n, g);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid12); object; object = NEXT_ON(CID12, dleGrab, object)) {
+    for (object = (*(NODE **)&g_sw.dlCid12); object; object = NEXT_ON(WALLSPOT, dleGrab, object)) {
         FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
         TryAddSearchCandidate(&w.query);
     }

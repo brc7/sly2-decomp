@@ -3628,8 +3628,8 @@ struct TRI { int itri; float u, v; };
 // partner D_002F7900 is Murray: Bentley can jump to the object Murray's aimed throw holds (MURRAY::state 15, the aimed
 // throw holding: jtthrowAim.state 0, its ploHoldParent).
 // The candidates are the grab spots (classes.h: GRABSPOT's sBusy is how far below the player a spot may be, grfPlayers
-// the players that may use it, GetGrabPos its point): the XFM + GRABSPOT classes CID39 / CID34 / CID38 and the
-// SHAPE + GRABSPOT classes RAIL / PIPE / CID12, each on its world list (dleGrab); the hang targets (HND) on the
+// the players that may use it, GetGrabPos its point): the XFM + GRABSPOT classes CID39 / POLESPOT / CID38 and the
+// SHAPE + GRABSPOT classes RAIL / PIPE / WALLSPOT, each on its world list (dleGrab); the hang targets (HND) on the
 // TARGET list; the jump-target meshes CID9 (dleList, maxDropHeight).
 typedef ::SHAPE CURVE;
 // The spot's point at u (GRABSPOT::GetGrabPos).
@@ -3972,7 +3972,7 @@ LPartnerDone:
         sBest = s;
     }
 
-    for (CID34 *shape = (*(CID34 **)&g_sw.dlCid34); shape; shape = (CID34 *)shape->dleGrab.next) {   /* poles */
+    for (POLESPOT *shape = (*(POLESPOT **)&g_sw.dlCid34); shape; shape = (POLESPOT *)shape->dleGrab.next) {   /* poles */
         if (!(shape->grfPlayers & grf))
             continue;
         qword posShape = GetLoWorldPos(shape);
@@ -4012,7 +4012,7 @@ LPartnerDone:
         sBest = u;
     }
 
-    for (CID12 *curve = (*(CID12 **)&g_sw.dlCid12); curve; curve = (CID12 *)curve->dleGrab.next) {
+    for (WALLSPOT *curve = (*(WALLSPOT **)&g_sw.dlCid12); curve; curve = (WALLSPOT *)curve->dleGrab.next) {
         if (!(curve->grfPlayers & grf))
             continue;
         float sCur;

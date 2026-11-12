@@ -1499,7 +1499,7 @@ extern JT *D_002E1E40 __asm__("D_002E1E40");
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void SetJtGrabState(JTGRAB *pjtgrab, int n, LO *plo, GRABSPOT *pspot) __asm__("SetJtGrabState");
 // Walks the sorted grab candidates (distance < D_002BF660) and maps the nearest usable one's class to a grab state;
-// returns nonzero if a grab started. Runtime: CID27 gives state 8, CID12/34 state 0, rails state 3.
+// returns nonzero if a grab started. Runtime: CID27 gives state 8, WALLSPOT/34 state 0, rails state 3.
 // Also known as: FInteractCircle (upstream readable / Sly 1 name; FInteractCircle__FP5ACTOR).
 extern "C" int TryGrabJtNearestCandidate(JTGRAB *grab)
 {
@@ -1867,7 +1867,7 @@ extern "C" void RecordJtGrabPlace(JTGRAB *grab)
     float g, s;
     switch (grab->state) {
     case 3:
-        if (NoSafePlace<CID12>(grab->grabbedObject))
+        if (NoSafePlace<WALLSPOT>(grab->grabbedObject))
             return;
         g = grab->spotDistance;
         AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
@@ -1881,7 +1881,7 @@ extern "C" void RecordJtGrabPlace(JTGRAB *grab)
     case 0:
     case 13:
         if (IsBasicDerivedFrom__FP5BASIC3CID(grab->grabbedObject, 0xC)) {
-            if (NoSafePlace<CID12>(grab->grabbedObject))
+            if (NoSafePlace<WALLSPOT>(grab->grabbedObject))
                 return;
             g = grab->spotDistance;
             AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
@@ -1895,9 +1895,9 @@ extern "C" void RecordJtGrabPlace(JTGRAB *grab)
             break;
         }
         if (IsBasicDerivedFrom__FP5BASIC3CID(grab->grabbedObject, 0x22)) {
-            if (NoSafePlace<CID34>(grab->grabbedObject))
+            if (NoSafePlace<POLESPOT>(grab->grabbedObject))
                 return;
-            s = ((CID34 *)grab->grabbedObject)->sRadius;
+            s = ((POLESPOT *)grab->grabbedObject)->sRadius;
         } else
             s = ((BARREL *)grab->grabbedObject)->grabRadius;
         {
@@ -2247,13 +2247,13 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     if (grf & 8)
     {
         DL *pdlpcid12 = &g_sw.dlCid12;
-        for (CID12 *pcid12 = (CID12 *)pdlpcid12->head; pcid12; pcid12 = (CID12 *)pcid12->dleGrab.next)
+        for (WALLSPOT *pcid12 = (WALLSPOT *)pdlpcid12->head; pcid12; pcid12 = (WALLSPOT *)pcid12->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid12, pcid12, 4, candidates);
     }
     if (grf & 0x10)
     {
         DL *pdlpcid34 = &g_sw.dlCid34;
-        for (CID34 *pcid34 = (CID34 *)pdlpcid34->head; pcid34; pcid34 = (CID34 *)pcid34->dleGrab.next)
+        for (POLESPOT *pcid34 = (POLESPOT *)pdlpcid34->head; pcid34; pcid34 = (POLESPOT *)pcid34->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid34, pcid34, 4, candidates);
     }
     if (grf & 0x80)

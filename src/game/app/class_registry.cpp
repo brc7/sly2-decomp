@@ -2435,11 +2435,11 @@ extern "C" SHAPE *NewShape() { return new SHAPE; }
 
 extern "C" PIPE *NewPipe() { return new PIPE; }
 
-extern "C" CID12 *NewCid12() { return new CID12; }
+extern "C" WALLSPOT *NewCid12() { return new WALLSPOT; }
 
 extern "C" RAIL *NewRail() { return new RAIL; }
 
-extern "C" CID14 *NewCid14() { return new CID14; }
+extern "C" OBSTACLE *NewCid14() { return new OBSTACLE; }
 
 extern "C" TN *NewTn() { return new TN; }
 
@@ -2477,11 +2477,11 @@ extern "C" EXPLO *NewExplo() { return new EXPLO; }
 
 extern "C" EXPLS *NewExpls() { return new EXPLS; }
 
-extern "C" CID34 *NewCid34() { return new CID34; }
+extern "C" POLESPOT *NewCid34() { return new POLESPOT; }
 
 extern "C" CID35 *NewCid35() { return new CID35; }
 
-extern "C" CID36 *NewCid36() { return new CID36; }
+extern "C" CARRYSPOT *NewCid36() { return new CARRYSPOT; }
 
 extern "C" CID37 *NewCid37() { return new CID37; }
 
@@ -3235,9 +3235,9 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[8], 9, 10, sizeof(CID9), (PFNNEW)NewCid9}, /* Cid9 */
     {&D_002BAAE8[3], 10, 15, sizeof(SHAPE), (PFNNEW)NewShape}, /* Shape */
     {&D_002BAAE8[10], 11, 12, sizeof(PIPE), (PFNNEW)NewPipe}, /* Pipe */
-    {&D_002BAAE8[10], 12, 13, sizeof(CID12), (PFNNEW)NewCid12}, /* Cid12 */
+    {&D_002BAAE8[10], 12, 13, sizeof(WALLSPOT), (PFNNEW)NewCid12}, /* Cid12 */
     {&D_002BAAE8[10], 13, 14, sizeof(RAIL), (PFNNEW)NewRail}, /* Rail */
-    {&D_002BAAE8[10], 14, 15, sizeof(CID14), (PFNNEW)NewCid14}, /* Cid14 */
+    {&D_002BAAE8[10], 14, 15, sizeof(OBSTACLE), (PFNNEW)NewCid14}, /* Cid14 */
     {&D_002BAAE8[3], 15, 16, sizeof(TN), (PFNNEW)NewTn}, /* Tn */
     {&D_002BAAE8[3], 16, 17, sizeof(DETECTOR), (PFNNEW)NewDetector}, /* Detector */
     {&D_002BAAE8[3], 17, 18, sizeof(PATHZONE), (PFNNEW)NewPathzone}, /* Pathzone */
@@ -3257,9 +3257,9 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[30], 31, 32, sizeof(EXPLG), (PFNNEW)NewExplg}, /* Explg */
     {&D_002BAAE8[30], 32, 34, sizeof(EXPLO), (PFNNEW)NewExplo}, /* Explo */
     {&D_002BAAE8[32], 33, 34, sizeof(EXPLS), (PFNNEW)NewExpls}, /* Expls */
-    {&D_002BAAE8[3], 34, 35, sizeof(CID34), (PFNNEW)NewCid34}, /* Cid34 */
+    {&D_002BAAE8[3], 34, 35, sizeof(POLESPOT), (PFNNEW)NewCid34}, /* Cid34 */
     {&D_002BAAE8[3], 35, 38, sizeof(CID35), (PFNNEW)NewCid35}, /* Cid35 */
-    {&D_002BAAE8[35], 36, 37, sizeof(CID36), (PFNNEW)NewCid36}, /* Cid36 */
+    {&D_002BAAE8[35], 36, 37, sizeof(CARRYSPOT), (PFNNEW)NewCid36}, /* Cid36 */
     {&D_002BAAE8[35], 37, 38, sizeof(CID37), (PFNNEW)NewCid37}, /* Cid37 */
     {&D_002BAAE8[3], 38, 39, sizeof(CID38), (PFNNEW)NewCid38}, /* Cid38 */
     {&D_002BAAE8[3], 39, 40, sizeof(CID39), (PFNNEW)NewCid39}, /* Cid39 */

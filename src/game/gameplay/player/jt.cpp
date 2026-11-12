@@ -964,7 +964,7 @@ void UpdateJtLean(JT *jt)
                 SHAPE *shape = (SHAPE *)jt->jtgrab.grabbedObject;
                 EvaluateShapeAtParam(shape, jt->jtgrab.spotParam, (qword *)&vecPos, (qword *)&vecDir);
                 lo = shape;
-                if (((CID12 *)lo)->unknown1BC) {
+                if (((WALLSPOT *)lo)->unknown1BC) {
                     *(qword *)&vecDir = NormalizeVecViaDot(*(qword *)&vecDir);
                     qword velocity = jt->GetVelocity();
                     float gSpeed = VuToFloat(VuDot(velocity, *(qword *)&vecDir));

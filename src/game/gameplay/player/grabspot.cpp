@@ -2,11 +2,11 @@
 // spots...): init, add / remove on the per-class grab lists, grab ranges and scores, player masks. TU
 // 0x182C70..0x1848A8 (66 functions, address order; the classes' GRABSPOT owner getters from the linkonce area are
 // inline functions in sly2/xfm.h and so.h now).
-// Entry points: InitGrabspot and the GRABSPOT default virtuals, then per grabbable class (wall CID12, pole CID34,
-// hold point CID38, barrel CID88, mission trigger CID35, carry spot CID36, table CID27): Init, OnAdd/OnRemove
+// Entry points: InitGrabspot and the GRABSPOT default virtuals, then per grabbable class (wall WALLSPOT, pole POLESPOT,
+// hold point CID38, barrel CID88, mission trigger CID35, carry spot CARRYSPOT, table CID27): Init, OnAdd/OnRemove
 // (world grab lists), PostLoad, Clone and its grab-position/sparkle virtuals; GetGrabspotFromLo.
 //
-// Types: sly2/classes.h's GRABSPOT and grabbable classes (CID12, CID34, CID38, BARREL, CID35, CID36, CID27, their
+// Types: sly2/classes.h's GRABSPOT and grabbable classes (WALLSPOT, POLESPOT, CID38, BARREL, CID35, CARRYSPOT, CID27, their
 // GRABSPOT at +0x190, +0xE0, +0x150 or +0x130 and their grab-list links), so.h's XF, stepplayer.h's STEPPLAYER (jtgrab,
 // jtair) and ZPR. The per-function namespaces keep their helpers and the views of other families' records (the
 // carrying player's attach transforms and JTMODE, a skip target's +0xF4 id); C++-named definitions are C-linkage
@@ -45,7 +45,7 @@ int ShouldSoIgnoreIntersection(SO *pso, LO *plo);
 int MaxInt(int grf, int f);
 void PostTriggerGrabspotLoad(CID35 *p);
 void FireTriggerGrabspot(CID35 *p, LO *plo);
-void StartMurrayLiftGrabspot(LO *plo, CID36 *p);
+void StartMurrayLiftGrabspot(LO *plo, CARRYSPOT *p);
 }
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -129,17 +129,17 @@ extern "C" int GetGrabspotOwner()
 namespace M_func_00182E80 {
 void InitShape(SHAPE *p) __asm__("InitShape");
 void InitGrabspot(GRABSPOT *p) __asm__("InitGrabspot");
-// Wall grab spot (CID12, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
-extern "C" void InitWallGrabspot(CID12 *wall)
+// Wall grab spot (WALLSPOT, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
+extern "C" void InitWallGrabspot(WALLSPOT *wall)
 {
     InitShape(wall);
-    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID12, wall));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(WALLSPOT, wall));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
     wall->unknown1BC = 3;
 }
 } // namespace M_func_00182E80
 
 // OnAdd: LO base, then joins the world's wall-grab list (g_sw.dlCid12).
-void CID12::OnAdd()
+void WALLSPOT::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -159,7 +159,7 @@ void PostLoLoad(LO *p) __asm__("PostLoLoad");
 void SetTnTnsOverride(void *p, int n) __asm__("SetTnTnsOverride");
 float UpdateShapeBoundingSphere(SHAPE *p) __asm__("UpdateShapeBoundingSphere");
 // Post-load: LO base, private TN override off, default busy radius = bounding radius + D_002BE8B4.
-extern "C" void PostWallGrabspotLoad(CID12 *wall)
+extern "C" void PostWallGrabspotLoad(WALLSPOT *wall)
 {
     PostLoLoad(wall);
     if (wall->ptn) SetTnTnsOverride(wall->ptn, 0);
@@ -170,7 +170,7 @@ extern "C" void PostWallGrabspotLoad(CID12 *wall)
 namespace M_func_00182FA0 {
 void CloneShape(SHAPE *p) __asm__("CloneShape");
 // Clone: clones the shape but keeps its own 8-byte field.
-extern "C" void CloneWallGrabspot(CID12 *wall)
+extern "C" void CloneWallGrabspot(WALLSPOT *wall)
 {
     DLE dle = wall->dleGrab;
     CloneShape(wall);
@@ -182,7 +182,7 @@ namespace M_func_00182FE8 {
 float GetShapeMinDistance(SHAPE *p) __asm__("GetShapeMinDistance");
 float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 // For an open shape outputs [GetShapeMinDistance, GetShapeMaxDistance] and returns 1.
-extern "C" int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
+extern "C" int GetWallGrabspotWrapRange(WALLSPOT *wall, float *pg)
 {
     if (wall->isClosed) {
         pg[0] = GetShapeMinDistance(wall);
@@ -199,7 +199,7 @@ struct V { float a[4]; };
 void FindShapeClosestPoint(SHAPE *p, qword q, void *a, struct V *pv, qword *b, float *c, float *pg) __asm__("FindShapeClosestPoint");
 float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
-extern "C" void GetWallGrabspotClosestParam(CID12 *wall, STEPPLAYER *t, float *pg)
+extern "C" void GetWallGrabspotClosestParam(WALLSPOT *wall, STEPPLAYER *t, float *pg)
 {
     struct V v;
     FindShapeClosestPoint(wall, *t->probeBottomPos, 0, &v, 0, 0, pg);
@@ -333,15 +333,15 @@ extern "C" void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qwor
 }
 } // namespace M_func_00183218
 
-// Pole (CID34) Init: transform init and its GRABSPOT part.
-extern "C" void InitPoleGrabspot(CID34 *pole)
+// Pole (POLESPOT) Init: transform init and its GRABSPOT part.
+extern "C" void InitPoleGrabspot(POLESPOT *pole)
 {
     InitXfm(pole);
-    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID34, pole));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(POLESPOT, pole));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
 }
 
 // OnAdd: unfreeze, then joins its grab list.
-void CID34::OnAdd()
+void POLESPOT::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -360,7 +360,7 @@ extern float D_002BE8C0 __asm__("D_002BE8C0");
 void PostLoLoad(LO *p) __asm__("PostLoLoad");
 void SetTnTnsOverride(void *p, int n) __asm__("SetTnTnsOverride");
 // Post-load: LO base, TN override off, default busy radius = pole radius + D_002BE8C0.
-extern "C" void PostPoleGrabspotLoad(CID34 *pole)
+extern "C" void PostPoleGrabspotLoad(POLESPOT *pole)
 {
     PostLoLoad(pole);
     if (pole->ptn) SetTnTnsOverride(pole->ptn, 0);
@@ -371,7 +371,7 @@ extern "C" void PostPoleGrabspotLoad(CID34 *pole)
 namespace M_func_00183450 {
 void CloneXfm(XFM *p) __asm__("CloneXfm");
 // Clone: clones the transform but keeps its own field.
-extern "C" void ClonePoleGrabspot(CID34 *pole)
+extern "C" void ClonePoleGrabspot(POLESPOT *pole)
 {
     DLE dle = pole->dleGrab;
     CloneXfm(pole);
@@ -381,7 +381,7 @@ extern "C" void ClonePoleGrabspot(CID34 *pole)
 
 /* CID 34 grab range: [-pi r, pi r] around the pole. */
 // Wrap range [-pi r, pi r]: the circumference of the pole (radius at +0x10C), so the player can circle it.
-extern "C" int GetPoleGrabspotWrapRange(CID34 *ppole, float *ag)
+extern "C" int GetPoleGrabspotWrapRange(POLESPOT *ppole, float *ag)
 {
     ag[0] = ppole->sRadius * -3.1415927f;
     ag[1] = ppole->sRadius * 3.1415927f;
@@ -393,7 +393,7 @@ namespace M_func_001834D0 {
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 float atan2f(float y, float x) __asm__("atan2f");
 // The arc-length parameter of the player's angle around the pole axis.
-extern "C" void GetPoleGrabspotClosestParam(CID34 *pole, STEPPLAYER *q, float *pg)
+extern "C" void GetPoleGrabspotClosestParam(POLESPOT *pole, STEPPLAYER *q, float *pg)
 {
     qword a = *q->probeBottomPos;
     qword b = GetLoWorldPos(pole);
@@ -407,7 +407,7 @@ namespace M_func_00183540 {
 extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 extern qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 // The point at angle param / r on the circle of radius r + the player's radius.
-extern "C" void GetPoleGrabspotGrabPosition(CID34 *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
+extern "C" void GetPoleGrabspotGrabPosition(POLESPOT *pole, float g, STEPPLAYER *pj, qword *pv, float *pg)
 {
     float gPan = g / pole->sRadius;
     float gR = pole->sRadius + pj->grabRadius;
@@ -429,7 +429,7 @@ extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRan
 extern float D_002BE8C4 __asm__("D_002BE8C4");
 extern qword g_normalZ __asm__("g_normalZ");
 // A random point on a ring around the pole.
-extern "C" void GetPoleGrabspotSparklePosition(CID34 *pole, qword *pv, qword *pdv)
+extern "C" void GetPoleGrabspotSparklePosition(POLESPOT *pole, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE8C4) + pole->sRadius;
@@ -740,7 +740,7 @@ extern "C" void PostTriggerGrabspotLoad(CID35 *trigger)
 }
 } // namespace M_func_00183F50
 
-// OnAdd (shared with CID36): unfreeze, then joins its grab list.
+// OnAdd (shared with CARRYSPOT): unfreeze, then joins its grab list.
 void CID35::OnAdd()
 {
     LO *lo = (LO *)this;
@@ -748,7 +748,7 @@ void CID35::OnAdd()
     AppendDlEntry(&g_sw.dlCid35, lo);
 }
 
-// OnRemove (shared with CID36/37): freeze, then leaves its grab list.
+// OnRemove (shared with CARRYSPOT/37): freeze, then leaves its grab list.
 extern "C" void OnTriggerGrabspotRemove(LO *lo)
 {
     OnLoRemove(lo);
@@ -834,8 +834,8 @@ extern "C" void AdjustTriggerGrabspotScore(CID35 *trigger, float *pgScore)
 }
 
 namespace M_func_00184268 {
-// Carry grab spot (CID36, child of CID35) Init: CID35 init and four oids -1.
-extern "C" void InitCarryGrabspot(CID36 *carry)
+// Carry grab spot (CARRYSPOT, child of CID35) Init: CID35 init and four oids -1.
+extern "C" void InitCarryGrabspot(CARRYSPOT *carry)
 {
     InitTriggerGrabspot(carry);
     carry->oid1 = OID_Nil;
@@ -850,7 +850,7 @@ extern "C" void InitCarryGrabspot(CID36 *carry)
 // Post-load: CID35 post-load and resolves three oids.
 /* CID 36 PostLoad. */
 // Also known as: PostLoadCarryUse (upstream readable / Sly 1 name; PostLoadCarryUse__FP2LO).
-void CID36::PostLoad()
+void CARRYSPOT::PostLoad()
 {
     PostTriggerGrabspotLoad(this);
     plo1 = FindSwObject(&g_sw, 4, oid1, this);
@@ -860,7 +860,7 @@ void CID36::PostLoad()
 
 /* CID 36 slot 51: on grab, start Murray's lift. */
 // Fires the trigger, then if the grabber is Murray starts his lift (StartMurrayLiftGrabspot).
-extern "C" void OnTriggerGrabspotGrabbed(CID36 *trigger, LO *lo)
+extern "C" void OnTriggerGrabspotGrabbed(CARRYSPOT *trigger, LO *lo)
 {
     FireTriggerGrabspot(trigger, lo);
     if (IsBasicDerivedFrom(lo, (CID)0x36) != 0) {
@@ -872,7 +872,7 @@ namespace M_func_00184380 {
 struct T { char pad[0xF4]; int n; };
 int IsLoSelfOrDescendantOf(struct T *q, LO *x) __asm__("IsLoSelfOrDescendantOf");
 // 1 if the ids differ, else whether the object is a parent of the spot (IsLoSelfOrDescendantOf). (inferred)
-extern "C" int ShouldTriggerGrabspotSkipTarget(CID36 *trigger, struct T *q)
+extern "C" int ShouldTriggerGrabspotSkipTarget(CARRYSPOT *trigger, struct T *q)
 {
     if (q->n != trigger->oidTarget) return 1;
     return IsLoSelfOrDescendantOf(q, trigger->unknown180);
@@ -977,8 +977,8 @@ extern "C" void *GetGrabspotFromLo(char *p)
     if (!p) return 0;
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return SLY2_GRABSPOT_BASE(BARREL, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return SLY2_GRABSPOT_BASE(CID27, p);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return SLY2_GRABSPOT_BASE(CID34, p);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return SLY2_GRABSPOT_BASE(CID12, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return SLY2_GRABSPOT_BASE(POLESPOT, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return SLY2_GRABSPOT_BASE(WALLSPOT, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x23)) return SLY2_GRABSPOT_BASE(CID35, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x13)) return SLY2_GRABSPOT_BASE(HND, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return SLY2_GRABSPOT_BASE(PIPE, p);

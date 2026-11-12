@@ -2756,9 +2756,9 @@ extern struct G D_003DD020 __asm__("D_003DD020");
 
 
 void StepBhvpathAlongShape(BHVPATH *p) __asm__("StepBhvpathAlongShape");
-int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, CID14 **pp, float *pf, float g) __asm__("FindShapeFreePoint");
-void FindShapeClosestPoint(CID14 *po, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPoint");
-float GetShapeDistanceBetween(CID14 *p, float a, float b) __asm__("GetShapeDistanceBetween");
+int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, OBSTACLE **pp, float *pf, float g) __asm__("FindShapeFreePoint");
+void FindShapeClosestPoint(OBSTACLE *po, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPoint");
+float GetShapeDistanceBetween(OBSTACLE *p, float a, float b) __asm__("GetShapeDistanceBetween");
 // VU0 helper: distance between two points.
 extern "C" { static inline float Dist(qword a, qword b) {
     qword d;

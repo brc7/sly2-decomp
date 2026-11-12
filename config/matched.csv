@@ -6627,10 +6627,10 @@ GetEmitterClassDesc_linkonce__H1Z5EXPLO_PX01_P9CLASSINFO,0x2599C8,3,match,src/ga
 GetVectorComponentX__FP6VECTOR,0x2599D8,2,match,src/game/engine/graphics/pipeline/glob.cpp
 GetVectorComponentY__FP6VECTOR,0x2599E0,2,match,src/game/engine/graphics/pipeline/glob.cpp
 GetVectorComponentZ__FP6VECTOR,0x2599E8,2,match,src/game/engine/graphics/pipeline/glob.cpp
-GetCid12GrabspotOwner__FP5CID12,0x2599F0,2,match,src/game/gameplay/player/grabspot.cpp
-GetCid12OwnFields__FP5CID12,0x2599F8,2,match,src/game/app/class_registry.cpp
-GetCid34GrabspotOwner__FP5CID34,0x259A00,2,match,src/game/gameplay/player/grabspot.cpp
-GetCid34OwnFields__FP5CID34,0x259A08,2,match,src/game/app/class_registry.cpp
+GetCid12GrabspotOwner__FP8WALLSPOT,0x2599F0,2,match,src/game/gameplay/player/grabspot.cpp
+GetCid12OwnFields__FP8WALLSPOT,0x2599F8,2,match,src/game/app/class_registry.cpp
+GetCid34GrabspotOwner__FP8POLESPOT,0x259A00,2,match,src/game/gameplay/player/grabspot.cpp
+GetCid34OwnFields__FP8POLESPOT,0x259A08,2,match,src/game/app/class_registry.cpp
 GetCid38GrabspotOwner__FP5CID38,0x259A10,2,match,src/game/gameplay/player/grabspot.cpp
 GetCid38OwnFields__FP5CID38,0x259A18,2,match,src/game/app/class_registry.cpp
 GetBarrelGrabspotOwner__FP6BARREL,0x259A20,2,match,src/game/gameplay/player/grabspot.cpp

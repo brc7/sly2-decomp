@@ -390,15 +390,15 @@ extern "C" int IsDetectorTargetConcealed(DETECTOR *detector, SOV *target)
     case 0:
     case 13:
         if (IsBasicDerivedFrom__FP5BASIC3CID(target->jtgrab.grabbedObject, CID_COVER_C)) {
-            if (((GRABSPOT *)SLY2_GRABSPOT_BASE(CID12, target->jtgrab.grabbedObject))->unknown04) return 0;
+            if (((GRABSPOT *)SLY2_GRABSPOT_BASE(WALLSPOT, target->jtgrab.grabbedObject))->unknown04) return 0;
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(target->jtgrab.grabbedObject, CID_COVER_22)) {
-            if (((GRABSPOT *)SLY2_GRABSPOT_BASE(CID34, target->jtgrab.grabbedObject))->unknown04) return 0;
+            if (((GRABSPOT *)SLY2_GRABSPOT_BASE(POLESPOT, target->jtgrab.grabbedObject))->unknown04) return 0;
         } else {
 #if !defined(__R5900__)
             /* Nothing grabbed: the EE reads a word of low memory here (kernel bytes, nonzero), so not concealed. */
             if (!target->jtgrab.grabbedObject) return 0;
 #endif
-            return !((GRABSPOT *)SLY2_GRABSPOT_BASE(CID34, target->jtgrab.grabbedObject))->unknown04;
+            return !((GRABSPOT *)SLY2_GRABSPOT_BASE(POLESPOT, target->jtgrab.grabbedObject))->unknown04;
         }
         {
             bool isFacingAway = Dot(offset.q, *GetLoWorldMatrix(target)) <= 0.0f;

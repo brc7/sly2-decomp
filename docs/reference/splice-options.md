@@ -202,7 +202,7 @@ parent SHAPE; 61 options in all.
 | 790 | `releaseEffectId` | int | get set file | 840 |
 | 791 | `SetPipeGrabEnabled` | bool | set file | 841 |
 
-## CID12 (cid 12)
+## WALLSPOT (cid 12)
 
 parent SHAPE; 59 options in all.
 
@@ -238,7 +238,7 @@ parent SHAPE; 61 options in all.
 | 793 | `svSlide` | float | get set file | 859 |
 | 794 | `+0x1C8` | int | get set file | 861 |
 
-## CID14 (cid 14)
+## OBSTACLE (cid 14)
 
 parent SHAPE; 49 options in all; nothing new.
 
@@ -601,7 +601,7 @@ parent EXPLO; 93 options in all.
 | 620 | `sub-object +0xC` | float | get set file | 592 |
 | 621 | `sub-object +0x10` | float | get set file | 593 |
 
-## CID34 (cid 34)
+## POLESPOT (cid 34)
 
 parent XFM; 43 options in all.
 
@@ -642,7 +642,7 @@ parent XFM; 50 options in all.
 | 948 | `sRadius` | float | get set file | 1069 |
 | 949 | `RefThunk_CanGrabspotAcceptPlayer` | - | method(1) | 1072 |
 
-## CID36 (cid 36)
+## CARRYSPOT (cid 36)
 
 parent CID35; 55 options in all.
 
@@ -1089,7 +1089,7 @@ parent STEP; 213 options in all.
 | 452 | `searchMode` | int | get set file | 328 |
 | 453 | `lookTimes` | lm | get set file | 329 |
 | 454 | `RefThunk_RestartStepguard` | - | method(0) | 330 |
-| 455 | `knockdownHelper` | object&lt;CID36&gt; | get set file | 331 |
+| 455 | `knockdownHelper` | object&lt;CARRYSPOT&gt; | get set file | 331 |
 | 456 | `unknown334` | bool | get set file | 332 |
 | 457 | `unknown3D0` | bool | get set file | 333 |
 | 458 | `RefThunkStepguard_SetDetectorTargetStateById` | - | method(2) | 334 |
