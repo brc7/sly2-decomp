@@ -163,6 +163,7 @@ struct WORK { U position; M3 basis; STAGE stage; float t, result, projection; U 
 inline void *operator new(unsigned size, void *destination) { return destination; }
 struct COPYPREFIX { U position; M3 basis; M4 product; };
 // Publish the product and basis words of the work record (register-pinned) and return the hands context.
+#ifdef SLY2_EE_ASM
 static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)
 {
     register qword first __asm__("$6"), last __asm__("$4"), second __asm__("$2"), third __asm__("$3");
@@ -172,6 +173,23 @@ static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)
             : "r"(w), "m"(w->stage.early.temporary));
     return context;
 }
+#else
+static inline JTHANDSCTX *PublishProductAndBasis(WORK *w)
+{
+    /* product = the matrix just computed (stage.early.temporary); position = its row 3; basis = its rows 0..2 */
+    M4 *matrix = &w->stage.early.temporary;
+    qword row0 = matrix->r[0], row1 = matrix->r[1], row2 = matrix->r[2], row3 = matrix->r[3];
+    w->stage.early.product.r[1] = row1;
+    w->stage.early.product.r[2] = row2;
+    w->position.q = row3;
+    w->basis.r[0] = row0;
+    w->stage.early.product.r[0] = row0;
+    w->stage.early.product.r[3] = row3;
+    w->basis.r[1] = w->stage.early.product.r[1];
+    w->basis.r[2] = w->stage.early.product.r[2];
+    return &w->stage.late.context;   /* the start of the stage union */
+}
+#endif
 // XY length of v (x lane, vf2).
 static inline qword LengthXY(qword v)
 {
