@@ -135,12 +135,12 @@ extern "C" void UpdateBhvstk(BHVSTK *stack)
 // 0x1EED78: Offers a step message (id, payload) to the stacked behaviours, top first, stopping at the first whose
 // HandleBehaviorMessage (vtable slot 13) returns nonzero (consumed).
 // Also known as: OfferJobMessage (upstream readable / Sly 1 name; OfferJobMessage__FP5GUARDii).
-extern "C" void HandleBhvstkMessage(BHVSTK *stack, int messageId, int payload)
+extern "C" void HandleBhvstkMessage(BHVSTK *stack, int messageId, void *payload)
 {
     int i = stack->depth;
     while (--i >= 0) {
         BHV *behavior = stack->behaviors[i];
-        if (behavior->HandleBehaviorMessage(messageId, (void *)payload))
+        if (behavior->HandleBehaviorMessage(messageId, payload))
             break;
     }
 }
@@ -282,7 +282,7 @@ extern "C" int IsBhvBusyAbove(BHV *behavior)
 
 // 0x1EF0B8: BHV vtable slot 13 (HandleMessage), base version: returns 0 (message not consumed).
 // Also known as: Message (upstream readable / Sly 1 name; Message__5AIJOBiPv).
-extern "C" int HandleBhvMessage(BHV *behavior, int messageId, int payload)
+extern "C" int HandleBhvMessage(BHV *behavior, int messageId, void *payload)
 {
     return 0;
 }
