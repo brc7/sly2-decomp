@@ -491,6 +491,7 @@ struct __attribute__((packed)) BASIS_TAIL { float firstW; qword row1, row2; };
 // Creates position and orientation jobs that carry the selected animated object along the predicted clip path to the
 // hand (ballistic time, reparenting).
 // Also known as: StartReachGrab (upstream readable / Sly 1 name; StartReachGrab__FP5REACHP2LO).
+#ifdef SLY2_EE_ASM
 extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
 {
     register JTHANDS *p __asm__("$22");
@@ -682,6 +683,87 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
         pxf->arrivalTime = endTime;   /* the end time of the current act (XF+0xA8 union) */
     SetSoTreeFlag2(object, 1);
 }
+#else
+/* StartJtHandsCarry in C (the EE body above is the register-pinned transcription of the target's schedule, with a hand
+   slot-35 SetVelocity call): the same calls in the same order on the same values. */
+extern "C" void StartJtHandsCarry(JTHANDS *p, SO *object)
+{
+    CARRYWORK work;
+    ReleaseAct(&p->pactPos);
+    float zero = 0.0f;
+    ReleaseAct(&p->pactHold);
+    ReleaseAct(&p->pactTurn);
+    ASEGA *anim = ((STEPPLAYER *)p->owner)->activeAnimation;
+    ASEG *motion = anim->animation;
+    float time = GetAsegLabelTime(motion, 0x1C7), phase = (time - anim->time) / anim->speed;
+    /* the hand's transform at the clip's grab label (0x1C7), in the player's frame */
+    XF *space = SourceMatrix(p->ploHand, &work.original);
+    PredictAsegTransform(motion, time, zero, p->owner, space, p->owner->rootTransform, &work.sample, 0);
+    STEPPLAYER *owner = (STEPPLAYER *)p->owner;
+    M4 *start = &work.start;
+    VECTOR_opAssign(&start->r[3], GetLoWorldPos(owner));
+    /* start = the player's heading basis (w 0) at its position (w 1); intermediate = start * sample * original */
+    M4 *product = &work.views.matrices.product;
+    M4 *intermediate = &work.views.matrices.intermediate;
+    start->r[0] = owner->aqwTarget[0];
+    start->r[1] = owner->aqwTarget[1];
+    start->r[2] = owner->aqwTarget[2];
+    ((U *)&start->r[0])->f[3] = zero;
+    ((U *)&start->r[2])->f[3] = zero;
+    ((U *)&start->r[1])->f[3] = zero;
+    ((U *)&start->r[3])->f[3] = 1.0f;
+    MulMatrix4Ret(product, start, &work.sample);
+    MulMatrix4Ret(intermediate, product, &work.original);
+    work.final = *intermediate;
+    HANDATTACH *counterpart = FindJtHandsTarget((STEPPLAYER *)p->owner, object);
+    M4 *finalMatrix = &work.final;
+    if (counterpart) {
+        /* relative to the counterpart: final = final * inverse(counterpart's matrix in the object's frame) */
+        M4 *counterMatrix = WorldMatrix(counterpart);
+        new (product) M4(ConvertMat4BetweenLos(0, object, counterMatrix));
+        M4 *inverse = &work.views.matrices.inverse;
+        *intermediate = *product;
+        new (inverse) M4(InvertMatrix4RigidP(intermediate));
+        MulMatrix4Ret(product, finalMatrix, inverse);
+        work.final = *product;
+    }
+    SetLoParent(object, 0, 15);
+    const qword *velocityAddress = object->physics ? (const qword *)&object->physics->gravity : &D_002C1EE0.q;
+    work.velocity = *velocityAddress;
+    work.destination = work.final.r[3];
+    work.delta = VuSub(work.destination, GetLoWorldPos(object));
+    float limit = D_002C1EF0;
+    qword gravity = work.velocity;
+    float duration = FpuMax(phase, ComputeMaxBallisticTime(work.delta, gravity, limit, -limit, 1.0f, -1.0f));
+    float speed = phase / duration;
+    phase = duration;
+    SetAsegaSpeed__FP5ASEGAf(anim, speed);
+    {
+        /* launch velocity delta / T - g T / 2, end velocity delta / T + g T / 2 */
+        qword inverseTime = VuFromFloat<qword>(1.0f / phase);
+        qword negativeHalf = VuFromFloat<qword>(phase * -0.5f);
+        qword positiveHalf = VuFromFloat<qword>(phase * 0.5f);
+        qword launch = VuScaleX2(work.delta, inverseTime, work.velocity, negativeHalf);
+        qword arrival = VuScaleX2(work.delta, inverseTime, work.velocity, positiveHalf);
+        work.endVelocity = arrival;
+        work.views.scalar.q = positiveHalf;
+        object->SetVelocity(launch);
+    }
+    float endTime = g_clock.time + phase;
+    qword position = TransformXfPos(0, object->positionXf->parent, work.final.r[3]);
+    qword endVelocity = ConvertXfVec(0, object->positionXf->parent, work.endVelocity);
+    p->pactPos = NewBezierAct(object, object->positionXf, 5, endTime, position, endVelocity);
+    ConvertXfMat(&work.views.basis.converted, 0, object->rotationXf->parent, (M3 *)finalMatrix);
+    work.views.basis.angles = work.views.basis.converted;
+    qword angles = DecomposeRotationMatrixToEuler((M3 *)intermediate);
+    ACT *job = NewPositionAct(object, object->rotationXf, 5, 9, 2, angles);
+    p->pactTurn = job;
+    XF *pxf = object->rotationXf;
+    if (pxf->firstActuator == job)
+        pxf->arrivalTime = endTime;   /* the end time of the current act (XF+0xA8 union) */
+    SetSoTreeFlag2(object, 1);
+}
+#endif
 
 /* Attach the held object to the hand: parent it to the hand's XF, place it at the hand (relative to a CID 0x14
    counterpart when there is one), constrain it, and give it position/orientation acts. */
