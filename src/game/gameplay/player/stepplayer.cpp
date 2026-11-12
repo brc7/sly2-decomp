@@ -346,11 +346,11 @@ void SetSoTargetRecordParams(void *p, int a, int b) __asm__("SetSoTargetRecordPa
 void ClearBhvstk__FP6BHVSTK(void *p) __asm__("ClearBhvstk__FP6BHVSTK");
 // Slot 79: PO control state, then the camera hookup; on becoming the current player refreshes the HUD/camera.
 // Also known as: SetActorControl (upstream readable / Sly 1 name; SetActorControl__FP2LOi).
-extern "C" void SetStepplayerCtlState(char *player, int n)
+extern "C" void SetStepplayerCtlState(STEPPLAYER *player, int n)
 {
     SetPoCtlState(player, n);
     SetSoTargetRecordParams(player, n == 1 ? 0 : -1, 0);
-    if (n == 1) ClearBhvstk__FP6BHVSTK(player + 0x26C);
+    if (n == 1) ClearBhvstk__FP6BHVSTK(&player->behaviors);
 }
 } // namespace M_SetStepplayerCtlState
 
@@ -526,12 +526,12 @@ void UpdateJtInternalXpsHide(void *p) __asm__("UpdateJtInternalXpsHide");
 void UpdateJtInternalXpsPipe(void *p) __asm__("UpdateJtInternalXpsPipe");
 // Slot 59: SO base, then the active component's hook (air, grab, pipe). (inferred: adds component contacts)
 // Also known as: RegisterActorContacts (upstream readable / Sly 1 name; RegisterActorContacts__FP3ALO).
-extern "C" void AddStepplayerComponentXps(char *player)
+extern "C" void AddStepplayerComponentXps(STEPPLAYER *player)
 {
     IgnoreSoSlot59(player);
-    if (*(int *)(player + 0x2DC) != -1) AddJtWallRunXps(player + 0x2C0);
-    if (*(int *)(player + 0x4CC) != -1) UpdateJtInternalXpsHide(player + 0x4C0);
-    if (*(int *)(player + 0xF54) != -1) UpdateJtInternalXpsPipe(player + 0xF50);
+    if (player->jtair.state != -1) AddJtWallRunXps(&player->jtair);
+    if (player->jtgrab.kind != -1) UpdateJtInternalXpsHide(&player->jtgrab);
+    if (player->jtpipe.state != -1) UpdateJtInternalXpsPipe(&player->jtpipe);
 }
 } // namespace M_func_00140D00
 
@@ -600,12 +600,12 @@ int IsPoCurrent(void *p) __asm__("IsPoCurrent");
 int ShouldStepplayerIgnoreZap(void *p, int a) __asm__("ShouldStepplayerIgnoreZap");
 // Slot 76 base: invulnerable while a look mode runs, in air state 0x15, or while the global invulnerability flag is set.
 // Also known as: FActorImmune (upstream readable / Sly 1 name; FActorImmune__FP5ACTORi).
-extern "C" int IsStepplayerInvulnerable(char *player, int a)
+extern "C" int IsStepplayerInvulnerable(STEPPLAYER *player, int a)
 {
-    if (*(int *)(player + 0xF20) == 1) return 1;
-    if (*(int *)(player + 0x2DC) == 0x15) return 1;
+    if (player->jtmode.kind == 1) return 1;
+    if (player->jtair.state == 0x15) return 1;
     if (D_003D4A54 && IsPoCurrent(D_003D4A54)) return 1;
-    return ShouldStepplayerIgnoreZap(player + 0xDF0, a);
+    return ShouldStepplayerIgnoreZap(&player->jthurt, a);
 }
 } // namespace M_STEPPLAYER_FInvulnerable
 
@@ -2202,16 +2202,16 @@ namespace RO_ORDER { extern const char r_D_002A4DC8[] __asm__("D_002A4DC8") = "m
 namespace M_func_00143C78 {
 // Slot 85 base: the ground-probe flags (step.cpp PROBE_*) from the component states (0 if +0x204, 4 in grab 3/4, 1 in the air, 7 = default ...).
 // Also known as: GrfActorStance (upstream readable / Sly 1 name; GrfActorStance__FP5ACTOR).
-extern "C" int GetStepplayerGroundProbeFlags(char *player)
+extern "C" int GetStepplayerGroundProbeFlags(STEPPLAYER *player)
 {
-    if (*(int *)(player + 0x204)) return 0;
-    switch (*(int *)(player + 0x4C8)) {
+    if (player->unknown204) return 0;
+    switch (player->jtgrab.state) {
     case 3:
     case 4:
         return 4;
     }
-    if (*(int *)(player + 0x2DC) != -1) return 1;
-    switch (*(int *)(player + 0xDF4)) {
+    if (player->jtair.state != -1) return 1;
+    switch (player->jthurt.state) {
     case -1:
     case 0:
     case 6:
@@ -2376,10 +2376,10 @@ extern "C" void SetStepplayerHp(STEPPLAYER *player, int hp)
 
 namespace M_MpStepplayerCur {
 // Current MP (the bound value, or the maximum when unbound).
-extern "C" int GetStepplayerMp(char *player)
+extern "C" int GetStepplayerMp(STEPPLAYER *player)
 {
-    int *q = *(int **)(player + 0x12FC);
-    if (!q) return *(int *)(player + 0x1300);
+    int *q = player->gadgetPower;
+    if (!q) return player->maxGadgetPower;
     return *q;
 }
 } // namespace M_MpStepplayerCur
@@ -2420,10 +2420,10 @@ int GetStepplayerMp(void *p) __asm__("GetStepplayerMp");
 void SetStepplayerMp(void *p, int a) __asm__("SetStepplayerMp");
 // Slot 81: PO base, then adds hp and mp (clamped).
 // Also known as: HealActor (upstream readable / Sly 1 name; HealActor__FP5ACTORii).
-extern "C" void AddStepplayerHpMp(char *player, int a, int b)
+extern "C" void AddStepplayerHpMp(STEPPLAYER *player, int a, int b)
 {
     AddPoHpMp(player, a, b);
-    SetStepplayerHp(player, **(int **)(player + 0xE00) + a);
+    SetStepplayerHp(player, *player->jthurt.hitPoints + a);
     SetStepplayerMp(player, GetStepplayerMp(player) + b);
 }
 } // namespace M_AddStepplayerHpMp
@@ -2433,14 +2433,14 @@ void AddStepDialogSmRefs(void *p, int a, int b) __asm__("AddStepDialogSmRefs");
 void PlayStepplayerScriptAnim(void *p, int a, int b, int c) __asm__("PlayStepplayerScriptAnim");
 void SetJtModeState__FP6JTMODEi(void *p, int a) __asm__("SetJtModeState__FP6JTMODEi");
 // Slot 83 (STEP behaviour push hook): base; when the count goes 0 -> 1 plays the scripted animation. (inferred)
-extern "C" void AddStepplayerDialogSmRefs(char *player, int a, int b)
+extern "C" void AddStepplayerDialogSmRefs(STEPPLAYER *player, int a, int b)
 {
     AddStepDialogSmRefs(player, a, b);
     if (!b)
         return;
-    if (++*(int *)(player + 0x12F4) == 1) {
+    if (++player->unknown12F4 == 1) {
         PlayStepplayerScriptAnim(player, 0x60B, 9, 5);
-        SetJtModeState__FP6JTMODEi(player + 0xF00, -1);
+        SetJtModeState__FP6JTMODEi(&player->jtmode, -1);
     }
 }
 } // namespace M_func_001442D0
@@ -2449,11 +2449,11 @@ namespace M_func_00144338 {
 void RemoveStepDialogSmRefs(void *p, int a, int b) __asm__("RemoveStepDialogSmRefs");
 void StopStepplayerScriptAnim(void *p) __asm__("StopStepplayerScriptAnim");
 // Slot 84 (STEP behaviour pop hook): base; when the count drops to 0 stops the scripted animation. (inferred)
-extern "C" void RemoveStepplayerDialogSmRefs(char *player, int a, int b)
+extern "C" void RemoveStepplayerDialogSmRefs(STEPPLAYER *player, int a, int b)
 {
     RemoveStepDialogSmRefs(player, a, b);
     if (b) {
-        if (--*(int *)(player + 0x12F4) == 0) StopStepplayerScriptAnim(player);
+        if (--player->unknown12F4 == 0) StopStepplayerScriptAnim(player);
     }
 }
 } // namespace M_func_00144338
@@ -2499,11 +2499,11 @@ extern "C" int IsStepplayerJtModeKind2(STEPPLAYER *player)
 namespace M_func_00144418 {
 /* only diff: original assembler padded a backward branch (to a jr) with a nop at 0x14443C; asfix.py does not pad when a jump is in between. Code otherwise identical. */
 struct Q { char pad[0xC]; int c; int n; };
-// Slot 86 (IsZapLethal): 1 when the zap's damage (-n) reaches the word at +0xDFC (the hit points, inferred) and its kind is not 0, 1, 0x80000 or 0x100000; else 0. (inferred)
+// Slot 86 (IsZapLethal): 1 when the zap's damage (-n) reaches JTHURT::maxHitPoints and its kind is not 0, 1, 0x80000 or 0x100000; else 0. (inferred)
 // Also known as: FDamageFatal (upstream readable / Sly 1 name; FDamageFatal__FP5ACTORP5CTMSG).
-extern "C" int IsStepplayerZapLethal(char *player, struct Q *q)
+extern "C" int IsStepplayerZapLethal(STEPPLAYER *player, struct Q *q)
 {
-    if (-q->n < *(int *)(player + 0xDFC)) return 0;
+    if (-q->n < player->jthurt.maxHitPoints) return 0;
     switch (q->c) {
     case 0:
     case 1:
