@@ -143,7 +143,7 @@ struct RELAYCMD
     struct
     {
         OID oidActor;
-    } unk1B;
+    } waitAndReleaseGrab;
     struct
     {
         int nUnk4;
@@ -270,7 +270,7 @@ struct RELAYCMD
     struct
     {
         int nUnk4;
-    } unk32;
+    } joltCamera;
     struct
     {
         float dtRumble;
@@ -330,7 +330,7 @@ struct RELAYCMD
     struct
     {
         int nUnk4;
-    } unk3A;
+    } popCamBlend;
     struct
     {
         OID oidActor;
@@ -365,9 +365,9 @@ struct RELAYCMD
     } buttonPrompt;
     struct
     {
-        int nUnk4;
+        int state;
         OID oidActor;
-    } unk43;
+    } waitPlayerState;
     struct
     {
         int idLine;
@@ -378,24 +378,24 @@ struct RELAYCMD
         OID oidActor;
         int nUnk5;
         int nUnk6;
-    } unk47;
+    } stepHold;
     struct
     {
         OID oidActor;
         int nUnk5;
         int nUnk6;
-    } unk48;
+    } stepRelease;
     struct
     {
         int nUnk4;
-    } unk49;
+    } rhythmSequence;
     struct
     {
         float gUnk4;
         int nUnk5;
         int nUnk6;
         OID oidActor;
-    } unk4A;
+    } rhythmCue;
     struct
     {
         OID oidOther;
@@ -420,19 +420,19 @@ struct RELAYCMD
         int nUnk6;
         int nUnk7;
         int nUnk8;
-    } unk4F;
+    } murrayApplySma;
     struct
     {
         OID oidActor;
-    } unk50;
+    } waitBentleyGadget;
     struct
     {
         OID oidActor;
-    } unk51;
+    } waitBentleyGadgetDone;
     struct
     {
         float dtWait;
-    } unk52;
+    } waitLine;
     struct
     {
         int idHint;
@@ -455,23 +455,23 @@ struct RELAYCMD
     struct
     {
         OID oidActor;
-    } unk57;
+    } murrayThrowAim;
     struct
     {
         OID oidShip;
         OID oidActor;
-    } unk58;
+    } bentleyJumpOnMurray;
     struct
     {
         OID oidShip;
         OID oidActor;
-    } unk59;
+    } murrayMoveTo;
     struct
     {
         OID oidShip;
         OID oidActor;
         int nUnk6;
-    } unk5A;
+    } murrayMoveToAndControl;
     };
 };
 typedef char assert_RELAYCMD_size[sizeof(RELAYCMD) == 0x50 ? 1 : -1];

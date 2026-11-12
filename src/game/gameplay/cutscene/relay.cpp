@@ -991,7 +991,7 @@ extern "C" void AddRelayPipeTo(RELAY *relay, OID oidTarget, int fAsync, OID oidA
 // in grab state 0 or 0xD (vtable slot 87); a non-player actor waits for the prompt button instead. (inferred)
 extern "C" void AddRelayWaitAndReleaseGrab(RELAY *relay, OID oidActor)
 {
-    AddRelayCommand(relay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_WaitAndReleaseGrab, 0)->waitAndReleaseGrab.oidActor = oidActor;
 }
 
 // 0x1E0940 AddRelayHeroState
@@ -1236,7 +1236,7 @@ extern "C" void AddRelayHidePart(RELAY *relay, OID oidAseg, OID oidPart)
 // and waits its time.
 extern "C" void AddRelayJoltCamera(RELAY *relay, int n, int fAsync)
 {
-    AddRelayCommand(relay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_JoltCamera, fAsync)->joltCamera.nUnk4 = n;
 }
 
 // 0x1E1088 AddRelayRumble
@@ -1320,7 +1320,7 @@ extern "C" void AddRelayCamBlendTo(RELAY *relay, qword qwPos, qword angles, int 
 // (inferred)
 extern "C" void AddRelayPopCamBlend(RELAY *relay, int n)
 {
-    AddRelayCommand(relay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_PopCamBlend, 1)->popCamBlend.nUnk4 = n;
 }
 
 // 0x1E13B8 AddRelayStartJtMode
@@ -1399,9 +1399,9 @@ extern "C" void AddRelayButtonPrompt(RELAY *relay, int grfbtn, OID oidWho)
 extern "C" void AddRelayWaitPlayerState(RELAY *relay, int n, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk43, 0);
-    prelaycmd->unk43.nUnk4 = n;
-    prelaycmd->unk43.oidActor = oidActor;
+    prelaycmd = AddRelayCommand(relay, RELAYCK_WaitPlayerState, 0);
+    prelaycmd->waitPlayerState.state = n;
+    prelaycmd->waitPlayerState.oidActor = oidActor;
 }
 
 // 0x1E15F0 AddRelayStopLine
@@ -1436,8 +1436,8 @@ extern "C" void AddRelayClearSubtitle(RELAY *relay)
 // runs. (inferred from NextJsgCommand)
 extern "C" void AddRelayStepHold(RELAY *relay, OID oidActor, int nUnk5, int nUnk6)
 {
-    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk47, 1);
-    prelaycmd->unk47.oidActor = oidActor; prelaycmd->unk47.nUnk5 = nUnk5; prelaycmd->unk47.nUnk6 = nUnk6;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepHold, 1);
+    prelaycmd->stepHold.oidActor = oidActor; prelaycmd->stepHold.nUnk5 = nUnk5; prelaycmd->stepHold.nUnk6 = nUnk6;
 }
 
 // 0x1E16C0 AddRelayStepRelease
@@ -1445,8 +1445,8 @@ extern "C" void AddRelayStepHold(RELAY *relay, OID oidActor, int nUnk5, int nUnk
 // NextJsgCommand)
 extern "C" void AddRelayStepRelease(RELAY *relay, OID oidActor, int nUnk5, int nUnk6)
 {
-    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk48, 1);
-    prelaycmd->unk48.oidActor = oidActor; prelaycmd->unk48.nUnk5 = nUnk5; prelaycmd->unk48.nUnk6 = nUnk6;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_StepRelease, 1);
+    prelaycmd->stepRelease.oidActor = oidActor; prelaycmd->stepRelease.nUnk5 = nUnk5; prelaycmd->stepRelease.nUnk6 = nUnk6;
 }
 
 // 0x1E1710 AddRelayRhythmSequence
@@ -1454,7 +1454,7 @@ extern "C" void AddRelayStepRelease(RELAY *relay, OID oidActor, int nUnk5, int n
 // cue commands that follow it in the block. (inferred from NextJsgCommand)
 extern "C" void AddRelayRhythmSequence(RELAY *relay, int n)
 {
-    AddRelayCommand(relay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_RhythmSequence, 1)->rhythmSequence.nUnk4 = n;
 }
 
 // 0x1E1740 AddRelayRhythmCue
@@ -1462,8 +1462,8 @@ extern "C" void AddRelayRhythmSequence(RELAY *relay, int n)
 // (inferred from NextJsgCommand)
 extern "C" void AddRelayRhythmCue(RELAY *relay, int nUnk5, int nUnk6, OID oidActor, float gUnk4)
 {
-    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk4A, 0);
-    prelaycmd->unk4A.gUnk4 = gUnk4; prelaycmd->unk4A.nUnk5 = nUnk5; prelaycmd->unk4A.nUnk6 = nUnk6; prelaycmd->unk4A.oidActor = oidActor;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_RhythmCue, 0);
+    prelaycmd->rhythmCue.gUnk4 = gUnk4; prelaycmd->rhythmCue.nUnk5 = nUnk5; prelaycmd->rhythmCue.nUnk6 = nUnk6; prelaycmd->rhythmCue.oidActor = oidActor;
 }
 
 // 0x1E17A0 AddRelayPlayAsegDefault
@@ -1506,12 +1506,12 @@ extern "C" void AddRelayWaitTimer(RELAY *relay, float dtWait)
 // NextJsgCommand)
 extern "C" void AddRelayMurrayApplySma(RELAY *relay, int nUnk5, int nUnk7, int nUnk6, int nUnk8, OID oidActor, int fAsync)
 {
-    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_Unk4F, fAsync);
-    prelaycmd->unk4F.nUnk5 = nUnk5;
-    prelaycmd->unk4F.nUnk7 = nUnk7;
-    prelaycmd->unk4F.nUnk6 = nUnk6;
-    prelaycmd->unk4F.nUnk8 = nUnk8;
-    prelaycmd->unk4F.oidActor = oidActor;
+    RELAYCMD *prelaycmd = AddRelayCommand(relay, RELAYCK_MurrayApplySma, fAsync);
+    prelaycmd->murrayApplySma.nUnk5 = nUnk5;
+    prelaycmd->murrayApplySma.nUnk7 = nUnk7;
+    prelaycmd->murrayApplySma.nUnk6 = nUnk6;
+    prelaycmd->murrayApplySma.nUnk8 = nUnk8;
+    prelaycmd->murrayApplySma.oidActor = oidActor;
 }
 
 // 0x1E18E0 AddRelayWaitBentleyGadget
@@ -1519,7 +1519,7 @@ extern "C" void AddRelayMurrayApplySma(RELAY *relay, int nUnk5, int nUnk7, int n
 // (BENTLEY_GADGET, 6). (inferred)
 extern "C" void AddRelayWaitBentleyGadget(RELAY *relay, OID oidActor)
 {
-    AddRelayCommand(relay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_WaitBentleyGadget, 0)->waitBentleyGadget.oidActor = oidActor;
 }
 
 // 0x1E1910 AddRelayWaitBentleyGadgetDone
@@ -1527,7 +1527,7 @@ extern "C" void AddRelayWaitBentleyGadget(RELAY *relay, OID oidActor)
 // (BENTLEY_GADGET, 6). (inferred)
 extern "C" void AddRelayWaitBentleyGadgetDone(RELAY *relay, OID oidActor)
 {
-    AddRelayCommand(relay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_WaitBentleyGadgetDone, 0)->waitBentleyGadgetDone.oidActor = oidActor;
 }
 
 // 0x1E1940 AddRelayWaitLine
@@ -1535,7 +1535,7 @@ extern "C" void AddRelayWaitBentleyGadgetDone(RELAY *relay, OID oidActor)
 // until the dialogue time reaches dtWait. (inferred)
 extern "C" void AddRelayWaitLine(RELAY *relay, float dtWait)
 {
-    AddRelayCommand(relay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
+    AddRelayCommand(relay, RELAYCK_WaitLine, 0)->waitLine.dtWait = dtWait;
 }
 
 // 0x1E1970 AddRelayHintBox
@@ -1584,7 +1584,7 @@ extern "C" void AddRelayResetStepGoal(RELAY *relay, OID oidStep, OID oidUnk5)
 // (inferred)
 extern "C" void AddRelayMurrayThrowAim(RELAY *relay, OID oidActor)
 {
-    AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_MurrayThrowAim, 1)->murrayThrowAim.oidActor = oidActor;
 }
 
 // 0x1E1A90 AddRelayBentleyJumpOnMurray
@@ -1593,9 +1593,9 @@ extern "C" void AddRelayMurrayThrowAim(RELAY *relay, OID oidActor)
 extern "C" void AddRelayBentleyJumpOnMurray(RELAY *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk58, fAsync);
-    prelaycmd->unk58.oidShip = oidShip;
-    prelaycmd->unk58.oidActor = oidActor;
+    prelaycmd = AddRelayCommand(relay, RELAYCK_BentleyJumpOnMurray, fAsync);
+    prelaycmd->bentleyJumpOnMurray.oidShip = oidShip;
+    prelaycmd->bentleyJumpOnMurray.oidActor = oidActor;
 }
 
 // 0x1E1AD0 AddRelayMurrayMoveTo
@@ -1604,9 +1604,9 @@ extern "C" void AddRelayBentleyJumpOnMurray(RELAY *relay, OID oidShip, OID oidAc
 extern "C" void AddRelayMurrayMoveTo(RELAY *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk59, fAsync);
-    prelaycmd->unk59.oidShip = oidShip;
-    prelaycmd->unk59.oidActor = oidActor;
+    prelaycmd = AddRelayCommand(relay, RELAYCK_MurrayMoveTo, fAsync);
+    prelaycmd->murrayMoveTo.oidShip = oidShip;
+    prelaycmd->murrayMoveTo.oidActor = oidActor;
 }
 
 // 0x1E1B10 AddRelayMurrayMoveToAndControl
@@ -1615,10 +1615,10 @@ extern "C" void AddRelayMurrayMoveTo(RELAY *relay, OID oidShip, OID oidActor, in
 extern "C" void AddRelayMurrayMoveToAndControl(RELAY *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk5A, fAsync);
-    prelaycmd->unk5A.oidShip = oidShip;
-    prelaycmd->unk5A.oidActor = oidActor;
-    prelaycmd->unk5A.nUnk6 = 0;
+    prelaycmd = AddRelayCommand(relay, RELAYCK_MurrayMoveToAndControl, fAsync);
+    prelaycmd->murrayMoveToAndControl.oidShip = oidShip;
+    prelaycmd->murrayMoveToAndControl.oidActor = oidActor;
+    prelaycmd->murrayMoveToAndControl.nUnk6 = 0;
 }
 
 // 0x1E1B58 AddJsgRef
@@ -1885,16 +1885,16 @@ void NextJsgCommand(RELAYJSG *script)
     case RELAYCK_StepCmd29:
     case RELAYCK_Respawn:
     case RELAYCK_LaunchTo:
-    case RELAYCK_Unk4A:
+    case RELAYCK_RhythmCue:
         oidActor = (OID)prelaycmd->an[3];
         break;
-    case RELAYCK_Unk1B:
-    case RELAYCK_Unk47:
-    case RELAYCK_Unk48:
-    case RELAYCK_Unk4F:
-    case RELAYCK_Unk50:
-    case RELAYCK_Unk51:
-    case RELAYCK_Unk57:
+    case RELAYCK_WaitAndReleaseGrab:
+    case RELAYCK_StepHold:
+    case RELAYCK_StepRelease:
+    case RELAYCK_MurrayApplySma:
+    case RELAYCK_WaitBentleyGadget:
+    case RELAYCK_WaitBentleyGadgetDone:
+    case RELAYCK_MurrayThrowAim:
         oidActor = (OID)prelaycmd->an[0];
         break;
     case RELAYCK_FireRelay:
@@ -1904,11 +1904,11 @@ void NextJsgCommand(RELAYJSG *script)
     case RELAYCK_StepCmd1F:
     case RELAYCK_StepCmd20:
     case RELAYCK_StepCmd21:
-    case RELAYCK_Unk43:
+    case RELAYCK_WaitPlayerState:
     case RELAYCK_PlayAsegDefault:
-    case RELAYCK_Unk58:
-    case RELAYCK_Unk59:
-    case RELAYCK_Unk5A:
+    case RELAYCK_BentleyJumpOnMurray:
+    case RELAYCK_MurrayMoveTo:
+    case RELAYCK_MurrayMoveToAndControl:
         oidActor = (OID)prelaycmd->an[1];
         break;
     default:
@@ -2581,8 +2581,8 @@ void NextJsgCommand(RELAYJSG *script)
         ShowAsegPartEvent(&g_sw, prelaycmd->relayck == RELAYCK_ShowPart, prelaycmd->showPart.oidAseg, prelaycmd->showPart.oidPart, 0, script->ploContext,
                           (ASEG *)script->relay);
         break;
-    case RELAYCK_Unk32:
-        JoltCm(&g_cm, prelaycmd->unk32.nUnk4);
+    case RELAYCK_JoltCamera:
+        JoltCm(&g_cm, prelaycmd->joltCamera.nUnk4);
         break;
     case RELAYCK_Rumble:
         TriggerJoyRumbleRumk(&g_joy, (RUMK)prelaycmd->rumble.rumk, prelaycmd->rumble.dtRumble);
@@ -2661,8 +2661,8 @@ void NextJsgCommand(RELAYJSG *script)
             script->cammove.nUnk18 = 0;
         }
         break;
-    case RELAYCK_Unk3A:
-        PopJsgCamBlend(script, prelaycmd->unk3A.nUnk4);
+    case RELAYCK_PopCamBlend:
+        PopJsgCamBlend(script, prelaycmd->popCamBlend.nUnk4);
         break;
     case RELAYCK_StartJtMode:
     {
@@ -2717,19 +2717,19 @@ void NextJsgCommand(RELAYJSG *script)
     case RELAYCK_ClearSubtitle:
         ClearSubtitle(&D_004435F0);
         break;
-    case RELAYCK_Unk47:
+    case RELAYCK_StepHold:
         if (ploActor)
         {
-            AddJsgStepHold(script, ploActor, prelaycmd->unk47.nUnk5, prelaycmd->unk47.nUnk6);
+            AddJsgStepHold(script, ploActor, prelaycmd->stepHold.nUnk5, prelaycmd->stepHold.nUnk6);
         }
         break;
-    case RELAYCK_Unk48:
+    case RELAYCK_StepRelease:
         if (ploActor)
         {
-            RemoveJsgStepHold(script, ploActor, prelaycmd->unk48.nUnk5, prelaycmd->unk48.nUnk6);
+            RemoveJsgStepHold(script, ploActor, prelaycmd->stepRelease.nUnk5, prelaycmd->stepRelease.nUnk6);
         }
         break;
-    case RELAYCK_Unk49:
+    case RELAYCK_RhythmSequence:
         if (D_002DE570)
         {
             JSGENT aent[6];
@@ -2745,15 +2745,15 @@ void NextJsgCommand(RELAYJSG *script)
                 case RELAYCK_BlockEnd:
                     cBlock--;
                     break;
-                case RELAYCK_Unk4A:
+                case RELAYCK_RhythmCue:
                     if (cBlock == 0 && cent < 6)
                     {
                         JSGENT *pent = &aent[cent++];
-                        pent->g = prelaycmdT->unk4A.gUnk4;
-                        pent->n = prelaycmdT->unk4A.nUnk5;
+                        pent->g = prelaycmdT->rhythmCue.gUnk4;
+                        pent->n = prelaycmdT->rhythmCue.nUnk5;
                     }
                     break;
-                case RELAYCK_Unk49:
+                case RELAYCK_RhythmSequence:
                     if (cBlock == 0)
                     {
                         prelaycmdT = script->prelaycmdLast;
@@ -2761,10 +2761,10 @@ void NextJsgCommand(RELAYJSG *script)
                     break;
                 }
             }
-            SetRhythmManagerPrompts(D_002DE570, prelaycmd->unk49.nUnk4, cent, aent);
+            SetRhythmManagerPrompts(D_002DE570, prelaycmd->rhythmSequence.nUnk4, cent, aent);
         }
         break;
-    case RELAYCK_Unk4A:
+    case RELAYCK_RhythmCue:
         if (!script->ploActor)
         {
             break;
@@ -2773,7 +2773,7 @@ void NextJsgCommand(RELAYJSG *script)
         {
             if (D_002DE570)
             {
-                PushRhythmManagerCue(D_002DE570, script->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
+                PushRhythmManagerCue(D_002DE570, script->ploActor, prelaycmd->rhythmCue.nUnk5, prelaycmd->rhythmCue.nUnk6, prelaycmd->rhythmCue.gUnk4);
             }
         }
         break;
@@ -2803,7 +2803,7 @@ void NextJsgCommand(RELAYJSG *script)
     case RELAYCK_StopMusic:
         StopMusic(&g_sndmgr, prelaycmd->stopMusic.idMusic);
         break;
-    case RELAYCK_Unk4F:
+    case RELAYCK_MurrayApplySma:
         if (!script->ploActor)
         {
             break;
@@ -2811,19 +2811,19 @@ void NextJsgCommand(RELAYJSG *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             MURRAY *pmurray = (MURRAY *)script->ploActor;
-            LO *plo = PloFindJsgObject(script, (OID)prelaycmd->unk4F.nUnk5);
+            LO *plo = PloFindJsgObject(script, (OID)prelaycmd->murrayApplySma.nUnk5);
             if (plo)
             {
                 SMA *psma = PsmaFindOnAlo((ALO *)plo, OID_Nil);
                 if (psma)
                 {
-                    StartMurrayStruggle(pmurray, psma, prelaycmd->unk4F.nUnk7, prelaycmd->unk4F.nUnk6, prelaycmd->unk4F.nUnk8);
+                    StartMurrayStruggle(pmurray, psma, prelaycmd->murrayApplySma.nUnk7, prelaycmd->murrayApplySma.nUnk6, prelaycmd->murrayApplySma.nUnk8);
                 }
             }
         }
         break;
-    case RELAYCK_Unk50:
-    case RELAYCK_Unk51:
+    case RELAYCK_WaitBentleyGadget:
+    case RELAYCK_WaitBentleyGadgetDone:
         if (!script->ploActor)
         {
             break;
@@ -2858,7 +2858,7 @@ void NextJsgCommand(RELAYJSG *script)
         ResetStepGoal(pstep, (SSG *)plo);
         break;
     }
-    case RELAYCK_Unk57:
+    case RELAYCK_MurrayThrowAim:
         if (!script->ploActor)
         {
             break;
@@ -2868,7 +2868,7 @@ void NextJsgCommand(RELAYJSG *script)
             EnterMurrayThrowAim((MURRAY *)script->ploActor);
         }
         break;
-    case RELAYCK_Unk58:
+    case RELAYCK_BentleyJumpOnMurray:
         if (!script->ploActor)
         {
             break;
@@ -2876,7 +2876,7 @@ void NextJsgCommand(RELAYJSG *script)
         if (IsBasicDerivedFrom(script->ploActor, (CID)55))
         {
             BENTLEY *pbentley = (BENTLEY *)script->ploActor;
-            LO *plo = PloFindJsgObject(script, prelaycmd->unk58.oidShip);
+            LO *plo = PloFindJsgObject(script, prelaycmd->bentleyJumpOnMurray.oidShip);
             if (plo && IsBasicDerivedFrom(plo, (CID)54))
             {
                 SetJtAirJump(&pbentley->jtair, (pbentley->jtair.state == 0x11) ? 3 : 1, 0, 0);
@@ -2884,7 +2884,7 @@ void NextJsgCommand(RELAYJSG *script)
             }
         }
         break;
-    case RELAYCK_Unk59:
+    case RELAYCK_MurrayMoveTo:
         if (!script->ploActor)
         {
             break;
@@ -2901,7 +2901,7 @@ void NextJsgCommand(RELAYJSG *script)
                 {
                     break;
                 }
-                LO *plo = PloFindJsgObject(script, prelaycmd->unk59.oidShip);
+                LO *plo = PloFindJsgObject(script, prelaycmd->murrayMoveTo.oidShip);
                 if (plo)
                 {
                     StartJtThrowFlight(&pmurray->jtthrowAim, plo);
@@ -2909,7 +2909,7 @@ void NextJsgCommand(RELAYJSG *script)
             }
         }
         break;
-    case RELAYCK_Unk5A:
+    case RELAYCK_MurrayMoveToAndControl:
         if (!script->ploActor)
         {
             break;
@@ -2926,8 +2926,8 @@ void NextJsgCommand(RELAYJSG *script)
                 {
                     break;
                 }
-                prelaycmd->unk5A.nUnk6 = (int)pmurray->jtthrowAim.player;
-                LO *plo = PloFindJsgObject(script, prelaycmd->unk5A.oidShip);
+                prelaycmd->murrayMoveToAndControl.nUnk6 = (int)pmurray->jtthrowAim.player;
+                LO *plo = PloFindJsgObject(script, prelaycmd->murrayMoveToAndControl.oidShip);
                 if (plo)
                 {
                     StartJtThrowFlight(&pmurray->jtthrowAim, plo);
@@ -3142,7 +3142,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             fComplete = 1;
         }
         break;
-    case RELAYCK_Unk1B:
+    case RELAYCK_WaitAndReleaseGrab:
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
@@ -3371,7 +3371,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
         }
         fComplete = script->ploFade == 0;
         break;
-    case RELAYCK_Unk32:
+    case RELAYCK_JoltCamera:
         fComplete = DT_CmJoltMax < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_Rumble:
@@ -3450,11 +3450,11 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             D_004435F0.grfbtnPrompt = 0;
         }
         break;
-    case RELAYCK_Unk43:
+    case RELAYCK_WaitPlayerState:
         if (script->ploActor && IsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = 0;
-            if (((STEPPLAYER *)script->ploActor)->GetPlayerState() == prelaycmd->unk43.nUnk4)
+            if (((STEPPLAYER *)script->ploActor)->GetPlayerState() == prelaycmd->waitPlayerState.state)
             {
                 fComplete = 1;
             }
@@ -3470,7 +3470,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
     case RELAYCK_Line:
         fComplete = FCurrentIdMatches(&g_sndmgr, prelaycmd->line.idLine) == 0;
         break;
-    case RELAYCK_Unk52:
+    case RELAYCK_WaitLine:
     {
         int idLine = -1;
         if (script->prelaycmdLine)
@@ -3481,23 +3481,23 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
         {
             fComplete = 1;
         }
-        else if (prelaycmd->unk52.dtWait < 0.0f)
+        else if (prelaycmd->waitLine.dtWait < 0.0f)
         {
             fComplete = 0;
         }
         else
         {
-            fComplete = 0.0f <= GetDialogTime(&g_sndmgr) - prelaycmd->unk52.dtWait;
+            fComplete = 0.0f <= GetDialogTime(&g_sndmgr) - prelaycmd->waitLine.dtWait;
         }
         break;
     }
-    case RELAYCK_Unk4A:
-        fComplete = prelaycmd->unk4A.gUnk4 <= GetFirstTimerSeconds(&g_sndmgr);
+    case RELAYCK_RhythmCue:
+        fComplete = prelaycmd->rhythmCue.gUnk4 <= GetFirstTimerSeconds(&g_sndmgr);
         break;
     case RELAYCK_WaitTimer:
         fComplete = prelaycmd->waitTimer.dtWait <= GetFirstTimerSeconds(&g_sndmgr);
         break;
-    case RELAYCK_Unk4F:
+    case RELAYCK_MurrayApplySma:
         fComplete = 0;
         if (IsBasicDerivedFrom(script->ploActor, (CID)0x36))
         {
@@ -3506,20 +3506,20 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             {
                 fComplete = 1;
             }
-            else if (prelaycmd->unk4F.nUnk7 != -1)
+            else if (prelaycmd->murrayApplySma.nUnk7 != -1)
             {
-                fComplete = GetSmaCur(pmurrayActor->activeStateMachine) == prelaycmd->unk4F.nUnk7;
+                fComplete = GetSmaCur(pmurrayActor->activeStateMachine) == prelaycmd->murrayApplySma.nUnk7;
             }
         }
         break;
-    case RELAYCK_Unk50:
+    case RELAYCK_WaitBentleyGadget:
         fComplete = 0;
         if (!script->pjt || ((BENTLEY *)script->pjt)->state == 6)
         {
             fComplete = 1;
         }
         break;
-    case RELAYCK_Unk51:
+    case RELAYCK_WaitBentleyGadgetDone:
         fComplete = 0;
         if (!script->pjt || ((BENTLEY *)script->pjt)->state != 6)
         {
@@ -3537,10 +3537,10 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
         }
         fComplete = script->pssgGoal == 0;
         break;
-    case RELAYCK_Unk58:
+    case RELAYCK_BentleyJumpOnMurray:
         if (script->pjt)
         {
-            MURRAY *pmurrayShip = (MURRAY *)PloFindJsgObject(script, prelaycmd->unk58.oidShip);
+            MURRAY *pmurrayShip = (MURRAY *)PloFindJsgObject(script, prelaycmd->bentleyJumpOnMurray.oidShip);
             if (TJsgNow(script) - script->tCommand > D_002C3620)
             {
                 fComplete = 1;
@@ -3559,7 +3559,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             fComplete = 1;
         }
         break;
-    case RELAYCK_Unk59:
+    case RELAYCK_MurrayMoveTo:
         pmurray = (MURRAY *)script->pjt;
         if (pmurray)
         {
@@ -3581,7 +3581,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
             fComplete = 1;
         }
         break;
-    case RELAYCK_Unk5A:
+    case RELAYCK_MurrayMoveToAndControl:
     {
         pmurray = (MURRAY *)script->pjt;
         if (pmurray)
@@ -3596,7 +3596,7 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
                 {
                     pmurray->SetPlayerState(0);
                 }
-                fComplete = ((STEPPLAYER *)prelaycmd->unk5A.nUnk6)->jtair.state == -1;
+                fComplete = ((STEPPLAYER *)prelaycmd->murrayMoveToAndControl.nUnk6)->jtair.state == -1;
             }
             else
             {
