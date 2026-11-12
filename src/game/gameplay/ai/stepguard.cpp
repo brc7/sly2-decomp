@@ -1940,8 +1940,8 @@ DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object) __asm__("Find
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 int IsPositionInNoise(CID147 *stimulus, qword pos) __asm__("IsPositionInNoise");
 int IsPointInVol(VOL *volume, qword pos) __asm__("IsPointInVol");
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, SO ***papso) __asm__("IntersectSwBoundingBox");
-int FindFirstObjectHitByLine(int z, qword a, qword b, int i, SO **apso, void *phit) __asm__("FindFirstObjectHitByLine");
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, SOPART ***papso) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, SOPART **apso, void *phit) __asm__("FindFirstObjectHitByLine");
 void ShouldKeepSoNotSelf() __asm__("ShouldKeepSoNotSelf");
 
 }
@@ -1982,7 +1982,7 @@ int STEPGUARD::CanSenseStimulus(CID147 *stimulus)
             return 0;
         {
             STACKSCOPE frame;
-            int numObjects; SO **objectList;
+            int numObjects; SOPART **objectList;
             IntersectSwBoundingBox(&g_sw, guardPos, stimulusPos, (void *)ShouldKeepSoNotSelf, guard->physicsTree, &numObjects, &objectList);
             if (!FindFirstObjectHitByLine(0, guardPos, stimulusPos, numObjects, objectList, 0))
                 return 1;

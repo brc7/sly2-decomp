@@ -711,8 +711,8 @@ ti128 ConvertCmScreenToWorld(void *, ti128) __asm__("ConvertCmScreenToWorld");
 struct C *STACKSCOPE_ctor(struct C *) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void ShouldKeepSoNotSelf() __asm__("ShouldKeepSoNotSelf");
-void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), SOTREE *, int *, SO ***) __asm__("IntersectSwBoundingBox");
-int FindFirstObjectHitByLine(int, ti128, ti128, int, SO **, struct LSG *) __asm__("FindFirstObjectHitByLine");
+void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), SOTREE *, int *, SOPART ***) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int, ti128, ti128, int, SOPART **, struct LSG *) __asm__("FindFirstObjectHitByLine");
 // Casts a ray through two screen points into the world (box query plus line test against objects) and stores the hit
 // (or the far point) as the aim point.
 // Also known as: FireBentleyDart (upstream readable / Sly 1 name; FireBentleyDart__FP7BENTLEY).
@@ -720,7 +720,7 @@ extern "C" void UpdateBentleyAimPoint(BENTLEY *bentley) {
     struct C ctx;
     struct LSG lsg;
     int cso;
-    SO **aso;
+    SOPART **aso;
     ti128 v1 = ConvertCmScreenToWorld(&g_cm, D_002BC970.q);
     ti128 v2 = ConvertCmScreenToWorld(&g_cm, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);

@@ -1043,20 +1043,18 @@ extern "C" int ShouldKeepSoNotSelfSlot62(void *pv, SOPART *p) { if (!ShouldKeepS
 } // namespace M_func_0020FA50
 
 namespace M_IntersectSwBoundingBox {
-struct O { char pad[0x60]; struct O *next; };
-struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 void *AllocFromStack(struct SWALLOC *pmsg) __asm__("AllocFromStack");
 void FlushSwBoundsUpdates(SW *p) __asm__("FlushSwBoundsUpdates");
 void UpdateSwAaox(SW *p) __asm__("UpdateSwAaox");
 
-// Collects up to 256 SOs whose bounding groups overlap the box spanned by two points, with an optional filter; the
+// Collects up to 256 collision parts (SOPART) of the physics trees whose bounds overlap the box spanned by two points, with an optional filter; the
 // result is a slot-allocated array.
-extern "C" void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+extern "C" void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void *, SOPART *), void *ctx, int *pc, SOPART ***pap)
 {
     QWROW mn, mx;
     struct SWALLOC msg;
-    struct O **ap;
-    struct G *g;
+    SOPART **ap;
+    SOTREE *g;
     int c;
     {
         qword qwmnqOut;
@@ -1076,13 +1074,13 @@ extern "C" void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void 
     ap = (__typeof__(ap))AllocFromStack(&msg);
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    for (g = (struct G *)p->dlSoTree.head; g; g = g->next) {
-        struct O *o;
-        if (g->mn[0] > mx.f[0] || g->mx[0] < mn.f[0] ||
-            g->mn[1] > mx.f[1] || g->mx[1] < mn.f[1] ||
-            g->mn[2] > mx.f[2] || g->mx[2] < mn.f[2])
+    for (g = (SOTREE *)p->dlSoTree.head; g; g = (SOTREE *)g->dleAwake.next) {
+        SOPART *o;
+        if (g->vecBoundsMin.x > mx.f[0] || g->vecBoundsMax.x < mn.f[0] ||
+            g->vecBoundsMin.y > mx.f[1] || g->vecBoundsMax.y < mn.f[1] ||
+            g->vecBoundsMin.z > mx.f[2] || g->vecBoundsMax.z < mn.f[2])
             continue;
-        for (o = g->first; o; o = o->next) {
+        for (o = (SOPART *)g->parts.head; o; o = (SOPART *)o->dle.next) {
             if (pfn && !pfn(ctx, o))
                 continue;
             if (c < 0x100)
@@ -1095,18 +1093,16 @@ extern "C" void IntersectSwBoundingBox(SW *p, qword a, qword b, int (*pfn)(void 
 } // namespace M_IntersectSwBoundingBox
 
 namespace M_IntersectSwBoundingSphere {
-struct O { char pad[0x60]; struct O *next; };
-struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 void *AllocFromStack(struct SWALLOC *pmsg) __asm__("AllocFromStack");
 void FlushSwBoundsUpdates(SW *p) __asm__("FlushSwBoundsUpdates");
 void UpdateSwAaox(SW *p) __asm__("UpdateSwAaox");
 
-// Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
-extern "C" void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
+// Collects up to 256 collision parts (SOPART) of the physics trees whose bounds overlap a sphere, with an optional filter.
+extern "C" void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(void *, SOPART *), void *ctx, int *pc, SOPART ***pap)
 {
     struct SWALLOC msg;
-    struct O **ap;
-    struct G *g;
+    SOPART **ap;
+    SOTREE *g;
     int c;
     msg.cb = 0x400;
     msg.cbAlign = 0x10;
@@ -1114,19 +1110,19 @@ extern "C" void IntersectSwBoundingSphere(SW *p, qword pos, float r, int (*pfn)(
     c = 0;
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
-    for (g = (struct G *)p->dlSoTree.head; g; g = g->next) {
+    for (g = (SOTREE *)p->dlSoTree.head; g; g = (SOTREE *)g->dleAwake.next) {
         float rr;
         qword d, e, tmp;
         float f;
-        struct O *o;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(g->pos));
+        SOPART *o;
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(g->boundsCenter));
         __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(e), "=&j"(tmp) : "0"(d));
-        rr = r + g->r;
+        rr = r + g->boundsRadius;
         rr *= rr;
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(e));
         if (rr < f)
             continue;
-        for (o = g->first; o; o = o->next) {
+        for (o = (SOPART *)g->parts.head; o; o = (SOPART *)o->dle.next) {
             if (pfn && !pfn(ctx, o))
                 continue;
             if (c < 0x100)

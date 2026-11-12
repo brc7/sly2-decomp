@@ -1186,8 +1186,8 @@ namespace M_FMatchJtXmg {
 struct HIT { qword v0; char pad[0x28 - 0x10]; float g28; char pad1[0x40 - 0x2C]; float g40; char pad2[0x60 - 0x44]; };
 
 qword ConvertPosBetweenLos(void *p, void *q, qword v) __asm__("ConvertPosBetweenLos");
-void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE *ptree, int *pn0, SO ***pn1) __asm__("IntersectSwBoundingBox");
-int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, SO **n1, HIT *phit) __asm__("FindFirstObjectHitByLine");
+void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE *ptree, int *pn0, SOPART ***pn1) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, SOPART **n1, HIT *phit) __asm__("FindFirstObjectHitByLine");
 void SetActRotationGoal(void *p, qword v) __asm__("SetActRotationGoal");
 void ShouldKeepSoPair() __asm__("ShouldKeepSoPair");
 extern qword g_normalZ __asm__("g_normalZ");
@@ -1205,7 +1205,7 @@ int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
         union {
             qword q;
         } u;
-        int n0; SO **n1;
+        int n0; SOPART **n1;
         qword a, b, c;
         a = ConvertPosBetweenLos(jt, 0, pm->upPosition);
         b = ConvertPosBetweenLos(jt, 0, pm->downPosition);

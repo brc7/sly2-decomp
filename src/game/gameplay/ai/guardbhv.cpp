@@ -795,18 +795,14 @@ extern "C" int IsBhvcombatDone(BHVCOMBAT *behavior)
 
 // 0x175820 FilterAttackLineOfSightHit
 namespace M_func_00175820 {
- struct Y;
-
-
-struct Y { int pad; SO *hitObject; int pad2[2]; unsigned long hitFlags; };
 int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
-extern "C" int FilterAttackLineOfSightHit(CID120 *x, struct Y *p) {
-    if (p->hitFlags & (1UL << 48)) return 0;
-    if (p->hitObject->physicsTree->grf & 4) return 0;
-    if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_CLASS98)) return 0;
-    return !IsBasicDerivedFrom__FP5BASIC3CID(p->hitObject, CID_STEP);
+extern "C" int FilterAttackLineOfSightHit(CID120 *x, SOPART *p) {
+    if (p->unknownFlag10A) return 0;
+    if (p->owner->physicsTree->grf & 4) return 0;
+    if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->owner, CID_CLASS98)) return 0;
+    return !IsBasicDerivedFrom__FP5BASIC3CID(p->owner, CID_STEP);
 }
 } // namespace M_func_00175820
 
@@ -973,10 +969,8 @@ extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gat
 
 // 0x175D00 CanBhvcombatShoot
 namespace M_FBhvcombatCanShoot {
-struct X; struct Y; struct R;
+struct X;
 struct X { int a[4]; };          /* the STACKSCOPE (constructed and destroyed by hand: the out-of-line pair) */
-struct Y { char pad[0x60]; };    /* the line test's hit record */
-struct R { int pad; LO *hitObject; };
 float GetStepHeading(STEP *pstep) __asm__("GetStepHeading");
 void GetVectorSphere(qword v, float *a, float *b, float *c) __asm__("GetVectorSphere");
 int IsWithinLimits__FP2LMf(LM *plm, float f) __asm__("IsWithinLimits__FP2LMf");
@@ -986,8 +980,8 @@ void CalculateVectorPanTilt(qword v, int n, float *pf) __asm__("CalculateVectorP
 void STACKSCOPE_ctor(struct X *x) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
 int ShouldKeepSoNotSelf(void) __asm__("ShouldKeepSoNotSelf");
-void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, SO ***pb) __asm__("IntersectSwBoundingBox");
-struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, SO **d, struct Y *y) __asm__("FindFirstObjectHitByLine");
+void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, SOPART ***pb) __asm__("IntersectSwBoundingBox");
+SOPART *FindFirstObjectHitByLine(int n, qword a, qword b, int c, SOPART **d, LSG *y) __asm__("FindFirstObjectHitByLine");
 } // namespace M_FBhvcombatCanShoot
 // 0x175D00: True if the guard should use its ranged attack now: it can shoot (capability bit 3), no attack is
 // running, the target is inside its range/pan/tilt limits and visible; immediately when the target is out of melee
@@ -996,9 +990,9 @@ struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, SO **d, struc
 extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
     using namespace M_FBhvcombatCanShoot;
     struct X x;
-    struct Y y;
+    LSG y;   /* the line test's hit record */
     float f[4];
-    int na; SO **nb;
+    int na; SOPART **nb;
     qword pa, pb;
     qword d;
     float g;
@@ -1050,11 +1044,11 @@ extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
         }
     }
     {
-        struct R *r;
+        SOPART *r;
         STACKSCOPE_ctor(&x);
         IntersectSwBoundingBox(&g_sw, pa, pb, ShouldKeepSoNotSelf, ((STEPGUARD *)behavior->owner)->physicsTree, &na, &nb);
         r = FindFirstObjectHitByLine(0, pa, pb, na, nb, &y);
-        if (r && r->hitObject->root->topObject != behavior->target) {
+        if (r && r->owner->root->topObject != behavior->target) {
             STACKSCOPE_ctor_1AE4A0(&x, 2);
             return 0;
         }
