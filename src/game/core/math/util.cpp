@@ -8,6 +8,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_util
 #include "sly2/slotheap.h"
 #include "sly2/basic.h"
+#include "sly2/port.h"
 #include "sly2/util.h"
 #include "sly2/scrap.h"
 
@@ -198,7 +199,11 @@ int AreFloatsNear(float a, float b, float epsilon)
 }
 
 // Single-precision square root (sqrt.s).
+#ifdef SLY2_EE_ASM
 static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
+#else
+static inline float SqrtS(float x) { return __builtin_sqrtf(__builtin_fabsf(x)); }   /* the EE's sqrt.s of a negative input is sqrt(|x|) */
+#endif
 // Solves a x^2 + b x + c = 0 for real roots; writes them to roots[] and returns how many (0, 1 or 2).
 // Also known as: CSolveQuadratic (upstream readable / Sly 1 name).
 int SolveQuadratic(float a, float b, float c, float *roots)
@@ -210,8 +215,8 @@ int SolveQuadratic(float a, float b, float c, float *roots)
     if (alpha < 0.0f)
         return 0;
     a = a + a;
-    alpha = SqrtS(alpha) / a;
-    beta = b / a;
+    alpha = SLY2_FDIV(SqrtS(alpha), a);   /* a = 0 (SmoothValue with fastSpeed == slowSpeed): the EE's +-FLT_MAX, not inf / NaN */
+    beta = SLY2_FDIV(b, a);
     if (Abs(alpha) < 0.0001f) {
         *roots = -beta;
         return 1;

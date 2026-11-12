@@ -3138,7 +3138,7 @@ extern "C" void RemoveTargetRecordGuard(TARGETREC *record, STEPGUARD *guard)
     count = record->guardCount - 1;
     slot = &record->guards[index];
     record->guardCount = count;
-    CopyAb(slot, slot + 1, (count - index) * 4);
+    CopyAb(slot, slot + 1, (count - index) * sizeof(STEPGUARD *));
 }
 
 // 0x20A7E0 IsTargetRecordStale
