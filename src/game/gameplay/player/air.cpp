@@ -1123,7 +1123,11 @@ union WORK{struct{QWROW local,scalar;M3 basis,rotation,returned;QWROW original;}
 extern QWROW D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ"),D_002A2DD0 __asm__("D_002A2DD0");extern SMP D_002BF7A8 __asm__("D_002BF7A8"),D_002BF7B8 __asm__("D_002BF7B8"),D_002BF7C8 __asm__("D_002BF7C8");extern float D_002BF7D4 __asm__("D_002BF7D4"),D_002BF7F0 __asm__("D_002BF7F0"),D_002BF7F4 __asm__("D_002BF7F4"),D_002BF7F8 __asm__("D_002BF7F8"),D_002BF810 __asm__("D_002BF810"),D_002BF814 __asm__("D_002BF814");extern PARAMS D_002BF7E0 __asm__("D_002BF7E0");extern POLY D_002BF800 __asm__("D_002BF800");extern RANGE g_lmZeroOne __asm__("g_lmZeroOne");
 qword ConvertVecBetweenLos(STEPPLAYER*,STEPPLAYER*,qword) __asm__("ConvertVecBetweenLos");M3*BuildRotationMatrixFromVector(M3*,qword) __asm__("BuildRotationMatrixFromVector");M3*LoadLookAtMatrix(M3*,qword) __asm__("LoadLookAtMatrix");M4*GetLoWorldMatrix(STEPPLAYER*) __asm__("GetLoWorldMatrix");float SmoothValue__FfffP3SMPPf(float,float,float,SMP*,float*) __asm__("SmoothValue__FfffP3SMPPf");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");void AddSoAcceleration(STEPPLAYER*,qword) __asm__("AddSoAcceleration");void AccelSoTowardPosSpring(STEPPLAYER*,qword,PARAMS*,qword,PARAMS*) __asm__("AccelSoTowardPosSpring");void ProjectJtVelocityOnContacts(JTAIR*,QWROW*) __asm__("ProjectJtVelocityOnContacts");
 // Rotate vector by the 3x3 matrix rows r0..r2 (seed provides the output register).
+#ifdef SLY2_EE_ASM
 static inline qword Rotate(qword r0,qword r1,qword r2,qword vector,qword seed){__asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"+j"(seed):"j"(r0),"j"(r1),"j"(r2),"j"(vector));return seed;}
+#else
+static inline qword Rotate(qword r0, qword r1, qword r2, qword vector, qword seed) { return VuKeepW(seed, VuMulMatrix3(r0, r1, r2, vector)); }
+#endif
 // Rotate vector by the 3x3 matrix m (seed provides the output register).
 static inline qword Rotate(M3*m,qword vector,qword seed){return Rotate(m->row[0].q,m->row[1].q,m->row[2].q,vector,seed);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -1167,6 +1171,7 @@ typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
 // Air physics preset: spins toward the target orientation, steers with the stick (spring toward the desired position),
 // limits horizontal speed and slides along contacts.
 // Also known as: UpdateJumpMotion (upstream readable / Sly 1 name; UpdateJumpMotion__FP4JUMP).
+#ifdef SLY2_EE_ASM
 extern "C" void PresetJtAccelJump(JTAIR *p)
 {
     WORK w;
@@ -1417,6 +1422,161 @@ extern "C" void PresetJtAccelJump(JTAIR *p)
     }
     }
 }
+#else
+/* PresetJtAccelJump in C (the EE body above is hand-scheduled asm on raw offsets and pinned registers): the same calls
+   in the same order on the same values; the VU0 arithmetic through sly2/vu0.h in the asm's operation order. The offsets
+   the asm used are, by member: SO::rotationXf (+0x5C), XF::velq (+0xB0) / acceleration (+0xF0), STEP::localVelocity
+   (+0x190), SO::physics (+0xE8) -> SOPHYS::gravityq (+0x80), JTAIR::unknownA0 (+0xA0), CLOCK::time / deltaTime. */
+extern "C" void PresetJtAccelJump(JTAIR *p)
+{
+    WORK w;
+    STEPPLAYER *player = AsStepplayer(p->player);
+    switch (p->state) {
+    case 20: {
+        /* spin by the rotation transform's mean angular velocity over the frame, smooth the local velocity toward
+           (unknown1C0, 0, unknown1C4) in the spun frame and accelerate toward it (at most D_002BF7D4; never down) */
+        float zero = 0.0f;
+        w.turn.original.q = player->GetVelocity();
+        w.turn.local.q = ConvertVecBetweenLos(0, player, w.turn.original.q);
+        XF *spin = player->rotationXf;
+        qword dt = VuFromFloat<qword>(g_clock.deltaTime);
+        w.turn.scalar.q = dt;
+        qword halfDt = VuFromFloat<qword>(g_clock.deltaTime * 0.5f);
+        w.turn.scalar.q = halfDt;
+        qword next = VuAddScaled(spin->velq.q, spin->acceleration, dt);   /* velq + acceleration dt (w + 1: vadda vf0) */
+        (void)BuildRotationMatrixFromVector(&w.turn.rotation, VuScaleByX(VuAdd(spin->velq.q, next), halfDt));
+        M4 *matrix = GetLoWorldMatrix(player);
+        M3 *rotation = &w.turn.rotation;
+        qword first = Rotate(rotation, matrix->row[0].q, matrix->row[0].q);
+        w.turn.basis.row[0].q = first;
+        float current = w.turn.local.f[0];
+        qword second = Rotate(rotation, matrix->row[1].q, matrix->row[1].q);
+        w.turn.basis.row[1].q = second;
+        w.turn.returned.row[0].q = first;
+        qword third = Rotate(rotation, matrix->row[2].q, rotation->row[0].q);   /* w kept from the rotation's row 0 */
+        w.turn.returned.row[1].q = second;
+        w.turn.basis.row[2].q = third;
+        w.turn.returned.row[2].q = third;
+        float updatedX = SmoothValue__FfffP3SMPPf(current, p->unknown1C0, g_clock.deltaTime, &D_002BF7A8, 0);
+        w.turn.local.f[0] = updatedX;
+        float updatedY = SmoothValue__FfffP3SMPPf(w.turn.local.f[1], zero, g_clock.deltaTime, &D_002BF7B8, 0);
+        float currentZ = w.turn.local.f[2];
+        w.turn.local.f[1] = updatedY;
+        w.turn.local.f[2] = SmoothValue__FfffP3SMPPf(currentZ, p->unknown1C4, g_clock.deltaTime, &D_002BF7C8, 0);
+        /* (basis * local - velocity) / dt; w from local's (the asm writes xyz of the product) */
+        qword frameDt = VuFromFloat<qword>(g_clock.deltaTime);
+        qword target = VuKeepW(w.turn.local.q, VuMulMatrix3(w.turn.basis.row[0].q, w.turn.basis.row[1].q,
+                                                             w.turn.basis.row[2].q, w.turn.local.q));
+        qword desired = VuDivByX(VuSub(target, w.turn.original.q), frameDt);
+        w.turn.scalar.q = frameDt;
+        qword acceleration = LimitVectorLength(desired, D_002BF7D4);
+        if (QwordZ(acceleration) < zero) {
+            acceleration = VuMake<qword>(QwordX(acceleration), QwordY(acceleration), zero, 0.0f);
+            w.turn.scalar.q = acceleration;
+        }
+        AddSoAcceleration(player, acceleration);
+        break;
+    }
+    case 22: {
+        /* a spring toward the origin: force = -localVelocity (+ the vadda's 1 in w) + gravity * (-1 / spring[1]) */
+        PARAMS *parameters = &D_002BF7E0;
+        float scale = -1.0f / parameters->values[1];
+        w.scalar.q = VuFromFloat<qword>(-1.0f);
+        qword back = VuScaleByX(player->localVelocity, w.scalar.q);
+        w.scalar.q = VuFromFloat<qword>(scale);
+        qword force = VuAddScaled(back, player->physics->gravityq, w.scalar.q);
+        AccelSoTowardPosSpring(player, D_002A2DD0.q, 0, force, parameters);
+        break;
+    }
+    case 6:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+    case 21: break;
+    default: {
+        /* steering in the frame of the horizontal travel direction (fallback D_002A2DA0 below 1e-4) */
+        w.move.direction.q = player->GetVelocity();
+        w.move.direction.f[2] = 0.0f;
+        qword direction = w.move.direction.q;
+        qword root = VuLength(direction);
+        if (VuToFloat(root) < 0.0001f)
+            w.move.direction.q = D_002A2DA0.q;
+        else
+            w.move.direction.q = VuDivByX(direction, root);
+        float speed = VuToFloat(root);
+        (void)LoadLookAtMatrix(&w.move.phase.returned, w.move.direction.q);
+        qword row0 = w.move.phase.returned.row[0].q, row1 = w.move.phase.returned.row[1].q,
+              row2 = w.move.phase.returned.row[2].q;
+        float step = g_clock.deltaTime;
+        /* unknownA0 against each row: x = (t0.x + t0.y) + t0.z, y = (t1.y + t1.x) + t1.z, z = (t2.z + t2.x) + t2.y
+           (the asm's ACC order), w kept */
+        VuLanes a = VuGet(p->unknownA0), r0 = VuGet(row0), r1 = VuGet(row1), r2 = VuGet(row2);
+        qword local = VuMake<qword>((r0.x * a.x + r0.y * a.y) + r0.z * a.z, (r1.y * a.y + r1.x * a.x) + r1.z * a.z,
+                                    (r2.z * a.z + r2.x * a.x) + r2.y * a.y, a.w);
+        int mode = p->state;
+        w.move.phase.vectors.local.q = local;
+        float inverseTime = 1.0f / step;
+        w.move.basis.row[0].q = row0;
+        w.move.basis.row[1].q = row1;
+        w.move.basis.row[2].q = row2;
+        float side, longitudinal;
+        float localX = w.move.phase.vectors.local.f[0];
+        if (mode == 0 || mode == 2) {
+            side = inverseTime;
+            longitudinal = side;
+        } else {
+            longitudinal = localX < speed ? D_002BF7F4 : D_002BF7F0;
+            side = D_002BF7F8;
+        }
+        float accelerationX = localX - speed;
+        int state = p->jumpKind;
+        float localY = w.move.phase.vectors.local.f[1];
+        w.move.phase.vectors.acceleration.i[2] = 0;
+        localY = side * localY;
+        accelerationX = longitudinal * accelerationX;
+        w.move.phase.vectors.acceleration.f[1] = localY;
+        w.move.phase.vectors.acceleration.f[0] = accelerationX;
+        float gain;
+        if (state == 12) {
+            float elapsed = g_clock.time - p->startTime;
+            gain = D_002BF800.c0 + elapsed * (D_002BF800.c1 + elapsed * D_002BF800.c2);
+            if (gain < g_lmZeroOne.low)
+                gain = g_lmZeroOne.low;
+            else if (g_lmZeroOne.high < gain)
+                gain = g_lmZeroOne.high;
+        } else
+            gain = p->unknown34;
+        w.move.phase.vectors.scalar.q = VuFromFloat<qword>(gain);
+        w.move.phase.vectors.acceleration.q = VuScaleByX(w.move.phase.vectors.acceleration.q, w.move.phase.vectors.scalar.q);
+        w.move.phase.vectors.corrected.q =
+            Rotate(&w.move.basis, w.move.phase.vectors.acceleration.q, w.move.basis.row[0].q);
+        ProjectJtVelocityOnContacts(p, &w.move.phase.vectors.corrected);
+        if (p->state != 5) {
+            w.move.direction.q = player->GetVelocity();
+            float z = w.move.direction.f[2];
+            if (z < D_002BF810) {
+                /* falling faster than D_002BF810: push up along g_normalZ */
+                float push = (z - D_002BF810) * D_002BF814;
+                w.move.phase.vectors.scalar.q = VuFromFloat<qword>(push);
+                w.move.phase.vectors.corrected.q =
+                    VuAddScaled(w.move.phase.vectors.corrected.q, g_normalZ.q, w.move.phase.vectors.scalar.q);
+            }
+        }
+        AddSoAcceleration(player, w.move.phase.vectors.corrected.q);
+        break;
+    }
+    }
+}
+#endif
 } // namespace M_PresetJtAccelJump
 
 //////// 0x197370 StartJtAirTurn
