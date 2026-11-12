@@ -487,6 +487,8 @@ struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocit
 static inline XF *SourceMatrix(LO *lo, M4 *out) { return lo->GetLocalTransform((MATRIX4 *)out); }
 // The object's world matrix (virtual slot 31).
 static inline M4 *WorldMatrix(LO *lo) { return (M4 *)lo->GetWorldMatrix(); }
+/* the EE body's pinned helpers (StartJtHandsCarry's C body does not use them) */
+#ifdef SLY2_EE_ASM
 // Address of the work record's translation slot (+0xB0), in $4.
 static inline qword *TranslationSlot(CARRYWORK &w) { register qword *slot __asm__("$4"); __asm__("addiu %0,%1,0xB0" : "=r"(slot) : "r"(&w)); return slot; }
 // Copy the matrix pointer into $8.
@@ -505,6 +507,7 @@ static inline void DeltaForDuration(CARRYWORK &w, qword raw, float &bound, qword
     speed = velocity;
 }
 struct __attribute__((packed)) BASIS_TAIL { float firstW; qword row1, row2; };
+#endif
 
 // Creates position and orientation jobs that carry the selected animated object along the predicted clip path to the
 // hand (ballistic time, reparenting).
