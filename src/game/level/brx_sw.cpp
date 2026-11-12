@@ -76,9 +76,9 @@ void LoadSwZoneBspFromBrx(void *world, BIS *stream);
 struct LO;
 struct LOL { void *vtable; int unknown4; int c; LO **apo; };
 LOL *CLoadCollectorArray_ctor(LOL *p);
-void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(int n, BIS *stream, LOL *p);
+void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(SO *parent, BIS *stream, LOL *p);
 void ResetShaders(void);
-LO *CloneLoWithParent__FP2LOP2SO(LO *po, int n);
+LO *CloneLoWithParent__FP2LOP2SO(LO *po, SO *parent);
 extern const char D_002A4BD0[] = "spaprops.dbp";
 extern char D_003DD040[];
 /* g_sw: declared by sly2/sw.h */
