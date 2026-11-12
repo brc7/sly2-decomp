@@ -26,6 +26,8 @@
 #include "sly2/util.h"
 #include "sly2/game.h"
 #include "sly2/xp.h"
+#include "sly2/classes.h"     /* WATER */
+#include "sly2/lsg.h"
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -1067,14 +1069,15 @@ extern "C" SOPART *GetJtHurtAdjustRecord(JTHURT *hurt, int *pout)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2460 {
 struct M4 {QWROW r[4];};
-struct EFFECT {char pad[0xC];void *vptr;};
-/* The hero's water volume (STEPPLAYER::pwater; classes.h WATER has no fields yet): splash effect, zap kind and tag. */
-struct L {char pad[0xC];void *vptr;char pad10[0x164];EFFECT*effect;char pad178[0xC];int kind,tag;};
+#if defined(SLY2_EE_LAYOUT)
+/* The splash message: EXPLSO's grf and origin only. The EE passes this 0x30-byte record, so ExplodeExplso reads the
+   rest of the EXPLSO (ploTouch, pxf, count) from whatever follows it in the frame. */
 struct MSG {int type;char pad4[0x1C];QWROW position;};
+#endif
 extern qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
 extern void*func_002333B4(void*,int,int) __asm__("memset");
 extern void*DeliverZapToSo(ZPR*) __asm__("DeliverZapToSo");
-extern int ProbeStepplayerSurface(STEPPLAYER*,L*,qword*) __asm__("ProbeStepplayerSurface");
+extern int ProbeStepplayerSurface(STEPPLAYER*,SO*,qword*) __asm__("ProbeStepplayerSurface");
 extern void LoadIdentityMatrix4(void*,void*,M4*,M4*,float) __asm__("LoadIdentityMatrix4");
 extern M4 __ml__FRC7MATRIX4T0(const M4*,const M4*) __asm__("__ml__FRC7MATRIX4T0");
 // From UpdateStepplayer: if the player's height-adjusted point is inside the linked volume, inflicts the zap/drown
@@ -1084,18 +1087,18 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 {
     QWROW point;
     int valid;
-    if (((L *)player->pwater)) {
+    if (player->pwater) {
         point.q = GetLoWorldPos(player);
         point.f[2] += player->waterProbe[2];
         if (player->jthurt.state == 3 || player->jthurt.state == 10)
             point.f[2] -= 10.0f;
-        L *link = ((L *)player->pwater);
-        valid = ((SO *)link)->IsPosInside(point.q);
+        WATER *link = player->pwater;
+        valid = link->IsPosInside(point.q);
     } else
         valid = 0;
     if (!valid)
         return;
-    if (((L *)player->pwater)->kind) {
+    if (player->pwater->unknown184) {
         int notify = 0;
         if (QwordZ(player->GetVelocity()) < 0.0f || (player->jtair.state == -1 && player->jthurt.state != 7))
             notify = 1;
@@ -1104,16 +1107,16 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
             func_002333B4(&hit, 0, sizeof(hit));
             hit.ploSource = (LO *)player->pwater;
             hit.unknown08 = player;
-            hit.zpk = ((L *)player->pwater)->tag;
-            hit.dhp = ((L *)player->pwater)->kind;
+            hit.zpk = player->pwater->zapKind;
+            hit.dhp = player->pwater->unknown184;
             hit.position = GetLoWorldPos(player);
             hit.velocity = player->GetVelocity();
             (void)DeliverZapToSo(&hit);
         }
     }
-    if (!((L *)player->pwater)->effect)
+    if (!player->pwater->emitter)
         return;
-    if (!ProbeStepplayerSurface(player, ((L *)player->pwater), &point.q))
+    if (!ProbeStepplayerSurface(player, player->pwater, &point.q))
         return;
     int i = 0;
     if (!(player->clorefSplash > 0))
@@ -1140,12 +1143,22 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
         } else if (point.f[2] <= predpos->f[2])
             crossed = 1;
         if (crossed) {
+#if defined(SLY2_EE_LAYOUT)
             MSG msg;
             msg.position = position;
             msg.position.f[2] = point.f[2];
             msg.type = 4;
-            EFFECT *effect = ((L *)player->pwater)->effect;
-            ((EXPL *)effect)->ExplodeExplso((EXPLSO *)&msg);   /* MSG: EXPLSO's grf and origin */
+            EXPL *effect = player->pwater->emitter;
+            effect->ExplodeExplso((EXPLSO *)&msg);
+#else
+            EXPLSO msg;
+            func_002333B4(&msg, 0, sizeof(msg));
+            QWROW origin = position;
+            origin.f[2] = point.f[2];
+            msg.origin = origin.q;
+            msg.grf = 4;
+            player->pwater->emitter->ExplodeExplso(&msg);
+#endif
             entry->tLast = g_clock.time;
         }
     }
@@ -1154,23 +1167,21 @@ extern "C" void UpdateStepplayerWater(STEPPLAYER *player)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2788 {
-struct HIT { qword pos; char pad[0x5F0]; };
-struct L { char pad[0xE0]; int xE0; };
 
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void *AllocFromStack(SWALLOC *pmsg) __asm__("AllocFromStack");
-int CollectSoParts(L *pl, void *pfn, int n, void *pv) __asm__("CollectSoParts");
-int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit) __asm__("ClipEdgeToObjects");
+int CollectSoParts(SO *pl, void *pfn, int n, void *pv) __asm__("CollectSoParts");
+int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, LSG *phit) __asm__("ClipEdgeToObjects");
 void CanWaterInflictZap(void) __asm__("CanWaterInflictZap");
-int ProbeStepplayerSurface(STEPPLAYER *po, L *pl, qword *pv) __asm__("ProbeStepplayerSurface");
+int ProbeStepplayerSurface(STEPPLAYER *po, SO *pl, qword *pv) __asm__("ProbeStepplayerSurface");
 
 // Line test from the player down to the linked volume's surface; writes the hit position.
 // Also known as: FWaterSurfaceUnder (upstream readable / Sly 1 name; FWaterSurfaceUnder__FP5ACTORP3ALOP6VECTOR).
-int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
+int ProbeStepplayerSurface(STEPPLAYER *object, SO *pl, qword *pv)
 {
     QWROW off, b, a;
-    HIT hit;
+    LSG hit[16];
     off.q = D_002A2DD0;
     {
         qword p = GetLoWorldPos(object);
@@ -1184,14 +1195,14 @@ int ProbeStepplayerSurface(STEPPLAYER *object, L *pl, qword *pv)
     STACKSCOPE frame;
     SWALLOC msg;
     SWALLOC *message = &msg;
-    message->cb = pl->xE0 * 4;
+    message->cb = pl->numParts * sizeof(SOPART *);
     message->cbAlign = 0x10;
     void *pbuf = AllocFromStack(message);
     int n = CollectSoParts(pl, (void *)CanWaterInflictZap, 0, pbuf);
-    if (!ClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
+    if (!ClipEdgeToObjects(a.q, b.q, n, pbuf, 16, hit))
         return 0;
     qword r;
-    __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(hit.pos), "j"(off.q));
+    __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(hit[0].apos[0]), "j"(off.q));
     *pv = r;
     return 1;
 }
