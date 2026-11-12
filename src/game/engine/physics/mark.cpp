@@ -585,8 +585,14 @@ void CategorizeClippedSegments(int, LSG *, int *, int *, LSG **, LSG **) __asm__
 void AddEmbeddedVertexXps(SCENE *, SHAPE *, SHAPE *, int, int *, LSG **, CONTACT **) __asm__("AddEmbeddedVertexXps");
 int FindEdgePath__FP4SURFiiP3LSGPP3LSG(SURF *, int, int, LSG *, LSG **) __asm__("FindEdgePath__FP4SURFiiP3LSGPP3LSG");
 int ClosestPointsOfLines(qword, qword, qword, qword, float *, QWROW *) __asm__("ClosestPointsOfLines");
-void AddXp(SCENE *, SHAPE *, SHAPE *, VV, float, VV, int, void *, void *, CONTACT **) __asm__("AddXp");
-
+/* AddXp's two vectors: VV (a by-value class) in the EE declaration, which MarkSoContactsBspBsp's stack layout needs;
+   natively the definition's qword (a native ABI passes a 16-byte struct and an __int128 differently). */
+#if defined(SLY2_EE_LAYOUT)
+typedef VV XPVECARG;
+#else
+typedef qword XPVECARG;
+#endif
+void AddXp(SCENE *, SHAPE *, SHAPE *, XPVECARG, float, XPVECARG, int, void *, void *, CONTACT **) __asm__("AddXp");
 
 // Same idiom as sly2/vu0.h VuSub; kept local because the shared template changes MarkSoContactsBspBsp (10/365 instructions off).
 static inline VV VuSub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
