@@ -79,6 +79,23 @@ static inline float Sly2EeFdiv(float a, float b)
 }
 #define SLY2_FDIV(a, b) Sly2EeFdiv((a), (b))
 #endif
+/* SLY2_FMUL(a, b): a float product with the R5900 FPU's overflow result: mul.s saturates to +-FLT_MAX where IEEE gives
+   +-Inf. Pairs with SLY2_FDIV where a quotient that may be +-FLT_MAX is scaled back (blend.cpp RecalculateAsegBlend's
+   0 / 0 rescale). Plain a * b on the EE. */
+#if defined(__R5900__)
+#define SLY2_FMUL(a, b) ((a) * (b))
+#else
+static inline float Sly2EeFmul(float a, float b)
+{
+    float r = a * b;
+    if (r > 3.4028234663852886e38f)
+        return 3.4028234663852886e38f;
+    if (r < -3.4028234663852886e38f)
+        return -3.4028234663852886e38f;
+    return r;
+}
+#define SLY2_FMUL(a, b) Sly2EeFmul((a), (b))
+#endif
 #if defined(SLY2_EE_LAYOUT)
 #define SLY2_SRET_LABEL(ee, native) __asm__(ee)
 #else

@@ -395,7 +395,7 @@ extern "C" void RecalculateAsegBlend(ASEG *blend)
         SetBlendDominantSegment(blend, j);
     }
     for (link = blend->links; link; link = link->next)
-        link->relativeTime = link->relativeTime / blend->duration;
+        link->relativeTime = SLY2_FDIV(link->relativeTime, blend->duration);   /* 0 / 0 for a blend whose weights were all 0 */
     for (i = 0; i < blend->n; i++) {
         BLMRSG *syncInfo = &blend->syncTables[i];
         CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, syncInfo->ib, syncInfo->syncCount, syncInfo->syncTable, &blend->duration);
@@ -403,7 +403,7 @@ extern "C" void RecalculateAsegBlend(ASEG *blend)
     if (blend->n == 0)
         CalculateBlendSyncTable__FiiPviiP4MRSGPf(blend, 0, 0, 0, &blend->duration);
     for (link = blend->links; link; link = link->next)
-        link->relativeTime = link->relativeTime * blend->duration;
+        link->relativeTime = SLY2_FMUL(link->relativeTime, blend->duration);   /* saturates on the EE */
     if (blend->linkedBlend) {
         float ratio = blend->duration / blend->linkedBlend->duration;
         int k;
