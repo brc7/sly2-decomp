@@ -14,25 +14,25 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 
-/* View of the rail (a SHAPE). */
+/* The rail is classes.h RAIL (SHAPE + GRABSPOT). */
 
-struct RAILV : BASIC 
-{
-    void *parent; void *root; char pad18[0x1C - 0x18]; void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
-    float length;           /* +0x038 1e10 at load: the shape's length (UpdateShapeBoundingSphere) plus D_002C1EC0 */
-    void *proxyRecord; char pad40[0x50 - 0x40]; void *parentTransform; char pad54[0xE4 - 0x54];
-    int isClosed;           /* +0x0E4 non-zero: a closed shape, no range clamp */
-    char pad0E8[0xEC - 0xE8]; void *vertexParams; void *vertexArcLengths; void *vertexPositions; char padF8[0x140 - 0xF8]; void *incomingTangents; void *outgoingTangents; char pad148[0x17C - 0x148]; void *chain; void *pranges; char pad184[0x18C - 0x184]; void *unknown18C;
-    char grabspot[0x24];    /* +0x190 GRABSPOTDATA */
-    DLE k;                    /* +0x1B4 kept across CloneShape */
-    char pad1BC[4];
-    float unknown1C0;       /* +0x1C0 1000 at init */
-    float unknown1C4;       /* +0x1C4 1 at init */
-};
-typedef char assert_RAIL_unknown1C4[(unsigned int)&((RAILV *)0)->unknown1C4 == 0x1C4 ? 1 : -1];
-/* The object a closest point is measured from (+0x218) and a position is measured from (+0x240). */
-struct T { char pad[0x218]; qword *pq; };
-struct P : PO { char pad[0x240 - 0x180]; VECTOR4 v; };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* The player a closest point is measured from (STEP::unknown218) and whose pivot a grab offset is taken from. */
+
+
 
 struct DL;
 /* rail's .data (address order). */
@@ -41,66 +41,66 @@ float D_002C1EC4 = 150.0f;      /* random point: range along the shape */
 float D_002C1EC8 = 1.8f;        /* random direction: radial scale */
 float D_002C1ECC = 25.0f;
 extern "C" {
-void InitShape(RAILV *p);
+void InitShape(RAIL *p);
 void InitGrabspot(void *pgrabspot);
-void PostLoLoad(RAILV *p);
-float UpdateShapeBoundingSphere(RAILV *p);
-void OnLoAdd(RAILV *p);
-void OnLoRemove(RAILV *p);
-void CloneShape(RAILV *p, LO *ploBase);
-float GetShapeMinDistance(RAILV *p);
-float GetShapeMaxDistance(RAILV *p);
-void FindShapeClosestPoint(RAILV *p, qword q, void *a, void *pv, qword *b, float *c, float *pf);
-void EvaluateShapeAtDistance(RAILV *p, float s, qword *ppos, qword *pdir);
+void PostLoLoad(RAIL *p);
+float UpdateShapeBoundingSphere(RAIL *p);
+void OnLoAdd(RAIL *p);
+void OnLoRemove(RAIL *p);
+void CloneShape(RAIL *p, LO *ploBase);
+float GetShapeMinDistance(RAIL *p);
+float GetShapeMaxDistance(RAIL *p);
+void FindShapeClosestPoint(RAIL *p, qword q, void *a, void *pv, qword *b, float *c, float *pf);
+void EvaluateShapeAtDistance(RAIL *p, float s, qword *ppos, qword *pdir);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
 
 // RAIL::Init (vtable slot 7): shape init, then its GRABSPOT part; sets the two rail tuning values (+0x1C4 = 1,
 // +0x1C0 = 1000; meaning not identified).
-extern "C" void InitRail(RAILV *rail)
+extern "C" void InitRail(RAIL *rail)
 {
     InitShape(rail);
-    InitGrabspot(rail->grabspot);
-    rail->unknown1C4 = 1.0f;
-    rail->unknown1C0 = 1000.0f;
+    InitGrabspot(SLY2_GRABSPOT_BASE(RAIL, rail));   /* its GRABSPOT base, without a null test */
+    rail->rSlide = 1.0f;
+    rail->svSlide = 1000.0f;
 }
 
 // RAIL post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
 // D_002C1EC0 (1250).
-extern "C" void PostRailLoad(RAILV *rail)
+extern "C" void PostRailLoad(RAIL *rail)
 {
     PostLoLoad(rail);
-    if (rail->length == 1e10f) rail->length = UpdateShapeBoundingSphere(rail) + D_002C1EC0;
+    if (rail->busyRadius == 1e10f) rail->busyRadius = UpdateShapeBoundingSphere(rail) + D_002C1EC0;
 }
 
 // RAIL slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's rail list
 // (g_sw.dlCid13) so the player's grab search sees it.
 void RAIL::OnAdd()
 {
-    RAILV *rail = (RAILV *)this;
+    RAIL *rail = (RAIL *)this;
     OnLoAdd(rail);
     AppendDlEntry(&g_sw.dlCid13, rail);
 }
 
 // RAIL slot 22 (OnRemove): LO base, then leaves the world's rail list.
-extern "C" void OnRailRemove(RAILV *rail)
+extern "C" void OnRailRemove(RAIL *rail)
 {
     OnLoRemove(rail);
     RemoveDlEntry(&g_sw.dlCid13, rail);
 }
 
 // RAIL::Clone (slot 41): clones the shape but keeps this rail's own 8-byte link at +0x1B4.
-extern "C" void CloneRail(RAILV *rail, LO *ploBase)
+extern "C" void CloneRail(RAIL *rail, LO *ploBase)
 {
-    DLE k = rail->k;
+    DLE k = rail->dleGrab;
     CloneShape(rail, ploBase);
-    rail->k = k;
+    rail->dleGrab = k;
 }
 
 // GRABSPOT interface: for a closed (looping) rail returns 1 and the [min, max] shape distance range a grab position
 // wraps around; open rails return 0.
-extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
+extern "C" int GetRailWrapRange(RAIL *rail, float *pg)
 {
     if (rail->isClosed) {
         pg[0] = GetShapeMinDistance(rail);
@@ -112,11 +112,11 @@ extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
 
 // GRABSPOT interface: the shape distance of the rail point closest to the player; on open rails clamped to
 // [50, length - 50] so the player never grabs the very end.
-extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
+extern "C" void GetRailClosestParam(RAIL *rail, STEPPLAYER *q, float *pf)
 {
     qword buf;
     float g, v;
-    FindShapeClosestPoint(rail, *q->pq, 0, &buf, 0, 0, pf);
+    FindShapeClosestPoint(rail, *q->unknown218, 0, &buf, 0, 0, pf);
     if (rail->isClosed != 0)
         return;
     g = GetShapeMaxDistance(rail) - 50.0f;
@@ -127,13 +127,13 @@ extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
 }
 
 // GRABSPOT interface: the rail point at distance `distance`; optionally the offset from the player's position to it.
-extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTOR4 *pv)
+extern "C" void GetRailGrabPosition(RAIL *a, float g, STEPPLAYER *p, VECTOR4 *pv)
 {
     VECTOR4 v;
     qword diff;
     EvaluateShapeAtDistance(a, g, (qword *)&v, 0);
     if (pv) {
-        diff = VuSub(*(qword *)&v, *(qword *)&p->v);
+        diff = VuSub(*(qword *)&v, p->pivotOffset);
         *(qword *)pv = diff;
     }
 }
@@ -164,9 +164,9 @@ struct M3 {
 };
 extern qword g_normalZ, D_002A2DA0;
 extern "C" {
-float GetRandomShapeDistanceInRange(RAILV*,float,float);
+float GetRandomShapeDistanceInRange(RAIL*,float,float);
 float RandomFloatInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
-void GetRailSparklePosition(RAILV*,qword*,qword*,float);
+void GetRailSparklePosition(RAIL*,qword*,qword*,float);
 }
 // Cross product of a and *pb.
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
@@ -195,9 +195,9 @@ static inline qword NormalizeOr(qword value, const qword *fallbackAddress, float
 // Move a 128-bit GPR value into vf4.
 static inline qword LocalDirection(qword v){register qword q __asm__("vf4");__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(v));return q;}
 // Copy the rail and time into the argument registers for the sampler call.
-static inline void SamplerArguments(RAILV *rail, float time, RAILV **receiverOut, float *timeOut)
+static inline void SamplerArguments(RAIL *rail, float time, RAIL **receiverOut, float *timeOut)
 {
-    register RAILV *receiver __asm__("$4");
+    register RAIL *receiver __asm__("$4");
     register float parameter __asm__("$f12");
     __asm__("mov.s %1,%3\n\tdaddu %0,%2,$zero" : "=r"(receiver), "=f"(parameter) : "r"(rail), "f"(time));
     *receiverOut = receiver;
@@ -233,13 +233,13 @@ static inline qword DisplacementValue(const qword &start, const qword &direction
 }
 // GRABSPOT interface: a random point near the rail around `distance` and a random outward direction, used to place the
 // grab-hint sparkle effect. (inferred from the grabspot sparkle pattern)
-void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)
+void GetRailSparklePosition(RAIL *rail, qword *posOut, qword *dirOut, float g)
 {
     U pos;
     M3 basis;
     U scalar, moved, out;
     float x = GetRandomShapeDistanceInRange(rail, g, D_002C1EC4);
-    RAILV *sampleReceiver;
+    RAIL *sampleReceiver;
     float sampleTime;
     SamplerArguments(rail, x, &sampleReceiver, &sampleTime);
     EvaluateShapeAtDistance(sampleReceiver, sampleTime, &pos.q, &basis.c);
