@@ -18,21 +18,21 @@
 // 0x11F2E8 StaticInit_vec and GlobalConstructors_vec: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The quadword these files use (int TImode; sly2/basic.h, needed by PosSmooth, has an unsigned one). */
-typedef int qwordi __attribute__((mode(TI)));
+
+
 extern "C" {
-extern qwordi D_002A2DA0;
-extern qwordi g_normalZ;
-extern qwordi D_002A2DD0;
-extern qwordi D_002A2DF0;
-extern qwordi D_002A2E00;
+extern qword D_002A2DA0;
+extern qword g_normalZ;
+extern qword D_002A2DD0;
+extern qword D_002A2DF0;
+extern qword D_002A2E00;
 float NormalizeAngle__Ff(float g);
 float acosf(float g);
 float atan2f(float y, float x);
 float fabsf(float);
-qwordi GetNormalVector(qwordi v);
+qword GetNormalVector(qword v);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
-void FindClosestPointBetweenLines(qwordi a, qwordi b, qwordi c, qwordi pos, float *puv, float *pdist, qwordi *pnormal);
+void FindClosestPointBetweenLines(qword a, qword b, qword c, qword pos, float *puv, float *pdist, qword *pnormal);
 }
 float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 //////// 0x11E1A0 SetVectorCylind
@@ -447,7 +447,7 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
     float v;
     qword w0, w1, w2, w3, n, l;
     qword *pdef;
-    FindClosestPointBetweenLines(a, b, c, pos, outParams, outDistance, outNormal);
+    FindClosestPointBetweenLines(a, b, c, pos, outParams, outDistance, (::qword *)outNormal);
     outParams[0] = Clamp(outParams[0], 0.0f, 1.0f);
     v = Clamp(outParams[1], 0.0f, 1.0f);
     outParams[1] = v;
@@ -468,7 +468,7 @@ extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, q
     }
 #endif
     *outNormal = n;
-    pdef = &D_002A2DA0;
+    pdef = (qword *)&D_002A2DA0;
     l = Len(n);
     if (QwordX(l) < 1e-4f) {
         *outNormal = *pdef;
