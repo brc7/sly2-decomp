@@ -986,8 +986,8 @@ void CalculateVectorPanTilt(qword v, int n, float *pf) __asm__("CalculateVectorP
 void STACKSCOPE_ctor(struct X *x) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
 int ShouldKeepSoNotSelf(void) __asm__("ShouldKeepSoNotSelf");
-void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, int *pb) __asm__("IntersectSwBoundingBox");
-struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, int d, struct Y *y) __asm__("FindFirstObjectHitByLine");
+void IntersectSwBoundingBox(SW *psw, qword a, qword b, int (*fn)(void), SOTREE *ptree, int *pa, SO ***pb) __asm__("IntersectSwBoundingBox");
+struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, SO **d, struct Y *y) __asm__("FindFirstObjectHitByLine");
 } // namespace M_FBhvcombatCanShoot
 // 0x175D00: True if the guard should use its ranged attack now: it can shoot (capability bit 3), no attack is
 // running, the target is inside its range/pan/tilt limits and visible; immediately when the target is out of melee
@@ -998,7 +998,7 @@ extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
     struct X x;
     struct Y y;
     float f[4];
-    int na, nb;
+    int na; SO **nb;
     qword pa, pb;
     qword d;
     float g;

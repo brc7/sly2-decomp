@@ -3504,9 +3504,9 @@ namespace M_FFindJtObstruction {
 
 void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, SO ***pj) __asm__("IntersectSwBoundingBox");
 struct HIT;
-int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit) __asm__("FindFirstObjectHitByLine");
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, SO **j, HIT *phit) __asm__("FindFirstObjectHitByLine");
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *ppos, qword *pv, qword *pacc) __asm__("EvaluateBezierPos");
 
 struct HIT { qword pos; char pad[0x34]; float x44; char pad2[0x18]; };
@@ -3532,7 +3532,7 @@ int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qwo
     } __attribute__((aligned(16))) pos;
     HIT hit;
     STACKSCOPE frame;
-    int i, j;
+    int i; SO **j;
     qword mn, mx, prev;
     float t;
     if (pc) {

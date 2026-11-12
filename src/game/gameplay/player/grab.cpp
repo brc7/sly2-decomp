@@ -945,8 +945,8 @@ namespace M_func_00192A28 {
 void *FindDetectorTarget(void *a, void *b) __asm__("FindDetectorTarget");
 void SetDetectorTargetState(void *a, void *b, int c) __asm__("SetDetectorTargetState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
-int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int k) __asm__("FindFirstObjectHitByLine");
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, SO ***pj) __asm__("IntersectSwBoundingBox");
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, SO **j, void *k) __asm__("FindFirstObjectHitByLine");
 void FilterDetectorLineOfSightHit(void) __asm__("FilterDetectorLineOfSightHit");
 extern float D_002BF638 __asm__("D_002BF638");
 
@@ -957,7 +957,7 @@ struct P { void *x0; };
 // The frame's scope and the two sector indices IntersectSwBoundingBox returns, laid out as ClearJtDetectionOutOfSight's frame
 // has them. At namespace scope, not local to the function: g++ 2.95 emits a local class's implicit constructor and
 // destructor out of line even when every use is inlined, and the ELF has no such functions.
-struct SCOPEDIJ { char c; STACKSCOPE frame; int i, j; };
+struct SCOPEDIJ { char c; STACKSCOPE frame; int i; SO **j; };
 extern void ClearJtDetectionOutOfSight(P *p) __asm__("ClearJtDetectionOutOfSight");
 // For each guard that currently tracks the player, clears the detection when the player is out of its sight.
 // (inferred)
