@@ -123,7 +123,7 @@ extern "C" void OnAmbRemove(AMB *amb)
     int i;
     OnLoRemove(amb);
     for (i = 0; i < amb->soundCount; i++) {
-        void **slot = (void **)((i << 2) + (int)amb->playingSounds);
+        void **slot = (void **)(i * (int)sizeof(void *) + (sptr)amb->playingSounds);
         if (slot && *slot) {
             StopSnd(*slot, 0.0f);
             RcPtr_Assign(slot, 0);

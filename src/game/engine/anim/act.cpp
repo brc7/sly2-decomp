@@ -1290,8 +1290,6 @@ extern "C" void SwitchOffsetActTarget(ACT5 *t)
 } // namespace M_func_0012D8D8
 
 namespace M_func_0012D958 {
-/* The transform's goal value (+0xC0) and its +0xE0 accumulator, as this function adds the offset to them. */
-typedef struct SW { char pad[0xC0]; qword a; char pad2[0x10]; qword b; } SW;
 void UpdateActDefault(ACT *p) __asm__("UpdateActDefault");
 // Add *ps to *pd (register-pinned to vf1/vf2).
 extern "C" { static __inline__ void AddV(qword *pd, qword *ps)
@@ -1301,7 +1299,7 @@ extern "C" { static __inline__ void AddV(qword *pd, qword *ps)
     __asm__ ("vadd.xyzw %0, %0, %1" : "+j"(a) : "j"(b));
     *pd = a;
 } }
-// Offset act update (slot 4): updates the wrapped act and adds the offset to the world's accumulators (falls back to
+// Offset act update (slot 4): updates the wrapped act and adds the offset to the transform's goal and segment end values (falls back to
 // the default update when nothing is wrapped). (inferred)
 // Also known as: Fetch (upstream readable / Sly 1 name).
 extern "C" void UpdateOffsetAct(ACT5 *p)
@@ -1309,8 +1307,8 @@ extern "C" void UpdateOffsetAct(ACT5 *p)
     ACT *po = p->pactCur;
     if (po) {
         po->Update();
-        AddV(&((SW *)p->transform)->a, (qword *)&p->offset);
-        AddV(&((SW *)p->transform)->b, (qword *)&p->offset);
+        AddV(&p->transform->restValue, (qword *)&p->offset);         /* the goal value (+0xC0) */
+        AddV(&p->transform->segmentEndValue, (qword *)&p->offset);   /* the segment's end value (+0xE0) */
     } else {
         UpdateActDefault(p);
     }

@@ -1284,7 +1284,7 @@ extern "C" void AddLoToSwUpdateList(SW *g, LO *o)
     LOUPD *e;
     if (o->inlineFlags & 0x40)
         return;
-    if (g->cloupd >= 0x1000 || (float)g->cloupdHole / (float)g->cloupd > 0.1f) {
+    if (g->cloupd >= 0x1000 || SLY2_FDIV((float)g->cloupdHole, (float)g->cloupd) > 0.1f) {
         LOUPD *end = g->aloupd + g->cloupd;
         LOUPD *tracked;
         LOUPD *write;

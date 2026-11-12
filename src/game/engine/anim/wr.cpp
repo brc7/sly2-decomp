@@ -189,7 +189,7 @@ static inline void SetLm(LM *plm, const float &g0, const float &g1)
 static inline void FitLinearClq(CLQ *pclq, const float &s0, const float &u0, const float &s1, const float &u1)
 {
     pclq->g1 = SLY2_FDIV(u0 - u1, s0 - s1);   /* s0 == s1 for a degenerate segment: the EE div.s result */
-    pclq->g0 = u0 - pclq->g1 * s0;
+    pclq->g0 = u0 - SLY2_FMUL(pclq->g1, s0);   /* with the +-FLT_MAX slope the EE product saturates */
     pclq->g2 = 0.0f;
 }
 
@@ -333,7 +333,7 @@ void UpdateWrStateVectors(WR *warp)
                     *pu = 1.0f;
                     continue;
                 }
-                *pu = Clamp(clq.g0 + s * (clq.g1 + s * clq.g2), lm.minValue, lm.maxValue);
+                *pu = Clamp(clq.g0 + SLY2_FMUL(s, clq.g1 + s * clq.g2), lm.minValue, lm.maxValue);   /* saturating, as FitLinearClq */
             }
 
             MATRIX4V matWorld = *(MATRIX4V *)&((GLOBV *)group->pglob)->pxf->worldMatrix;
