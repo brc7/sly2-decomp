@@ -50,7 +50,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* STEPPLAYER members some bodies reach through char * parameters: the jthurt record's animation, the lean lock and the
    booty object. */
-#define PASEGAHURT(p) (((STEPPLAYER *)(p))->jthurt.unknown10C)
+#define PASEGAHURT(p) (((STEPPLAYER *)(p))->jthurt.flinchAsega)
 #define FLEAN1100(p) (((STEPPLAYER *)(p))->isLeanTargetLocked)
 #define PBOOTY(p) (((STEPPLAYER *)(p))->pbooty)
 
@@ -276,8 +276,8 @@ extern "C" void UpdateStepplayer(STEPPLAYER *player)
     UpdateStepplayerWater(player);
     UpdateStepplayerHideBlend(player);
     PickHeroInteractTarget(player);
-    if (player->jthurt.unknown10C && IsAsegaRetracted(player->jthurt.unknown10C))
-        DropAsegaRef(&player->jthurt.unknown10C);
+    if (player->jthurt.flinchAsega && IsAsegaRetracted(player->jthurt.flinchAsega))
+        DropAsegaRef(&player->jthurt.flinchAsega);
     if (!IsCameraPolicyActive__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->state == 1 && player->controller->GetButtonsPressedWithin(BUTTON_GADGET_MENU, 0.0f)) {
 
         JOY *pg = &g_joy;
@@ -2531,7 +2531,7 @@ SNIP D_002BC9F0[0x35] = {{0x110, 0x26E, SLY2_OFFSETOF(STEPPLAYER, unknown10BC[0]
     {0x300, 0x5E1, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[0].animation)}, {0x300, 0x5E2, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[1].animation)}, {0x300, 0x5E3, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[2].animation)}, {0x300, 0x5E4, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[3].animation)},
     {0x300, 0x5E5, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[4].animation)}, {0x300, 0x5E6, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[5].animation)}, {0x300, 0x5E7, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[6].animation)}, {0x300, 0x5E8, SLY2_OFFSETOF(STEPPLAYER, jtgrab.abldirB[7].animation)},
     {0x320, 0x5DD, SLY2_OFFSETOF(STEPPLAYER, jtgrab.unknown64)}, {0x300, 0x27A, SLY2_OFFSETOF(STEPPLAYER, jtgrab.unknown4F0[2])}, {0x300, 0x26A, SLY2_OFFSETOF(STEPPLAYER, jtgrab.unknown510[1])}, {0x300, 0x2AC, SLY2_OFFSETOF(STEPPLAYER, hideNoise)},
-    {0x100, 0x5EC, SLY2_OFFSETOF(STEPPLAYER, jtair.ptnLaunch)}, {0x100, 0x5ED, SLY2_OFFSETOF(STEPPLAYER, jtair.unknown170)}, {0x300, 0x296, SLY2_OFFSETOF(STEPPLAYER, jthurt.aprecHurt[13])}, {0x300, 0x5EE, SLY2_OFFSETOF(STEPPLAYER, jtair.unknown178)},
+    {0x100, 0x5EC, SLY2_OFFSETOF(STEPPLAYER, jtair.ptnLaunch)}, {0x100, 0x5ED, SLY2_OFFSETOF(STEPPLAYER, jtair.unknown170)}, {0x300, 0x296, SLY2_OFFSETOF(STEPPLAYER, jthurt.flinchClip)}, {0x300, 0x5EE, SLY2_OFFSETOF(STEPPLAYER, jtair.unknown178)},
     {0x300, 0x5EF, SLY2_OFFSETOF(STEPPLAYER, jtair.abl[0].animation)}, {0x300, 0x5F0, SLY2_OFFSETOF(STEPPLAYER, jtair.abl[1].animation)}, {0x300, 0x5F1, SLY2_OFFSETOF(STEPPLAYER, jtair.abl[2].animation)}, {0x300, 0x5F3, SLY2_OFFSETOF(STEPPLAYER, jtair.abl[3].animation)},
     {0x300, 0x5F2, SLY2_OFFSETOF(STEPPLAYER, jtair.abl[4].animation)}, {0x300, 0x5F4, SLY2_OFFSETOF(STEPPLAYER, jtair.unknown1BC)}, {0x300, 0x24B, SLY2_OFFSETOF(STEPPLAYER, jtair.unknown1C8)}, {0x300, 0x283, SLY2_OFFSETOF(STEPPLAYER, jtgrab.hands.ploHand)},
     {0x300, 0x26F, SLY2_OFFSETOF(STEPPLAYER, jtgrab.hands.abl[0].animation)}, {0x300, 0x270, SLY2_OFFSETOF(STEPPLAYER, jtgrab.hands.abl[1].animation)}, {0x300, 0x281, SLY2_OFFSETOF(STEPPLAYER, jtgrab.unknown508)}, {0x300, 0x271, SLY2_OFFSETOF(STEPPLAYER, jtthrow.ablC[0].animation)},

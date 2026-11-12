@@ -28,6 +28,8 @@
 #include "sly2/xp.h"
 #include "sly2/classes.h"     /* WATER */
 #include "sly2/lsg.h"
+#include "sly2/act.h"         /* CHAINLINK / CHAIN (the tail) */
+#include "sly2/aseg.h"
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -64,7 +66,7 @@ extern "C" void InitJtHurt(JTHURT *hurt, STEPPLAYER *player)
     hurt->player = player;
     hurt->state = -1;
     hurt->postHitMode = -1;
-    hurt->unknown9C = 2.0f;
+    hurt->postHitDuration = 2.0f;
     hurt->maxHitPoints = 0x28;
 }
 
@@ -74,43 +76,56 @@ extern "C" void InitJtHurt(JTHURT *hurt, STEPPLAYER *player)
 namespace RO_ORDER { extern const float r_D_002A6720 __asm__("D_002A6720") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtHurtState {
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 // Zero the xyz words.
 union U{float f[4];qword q;int bits[4];void Clear(){bits[0]=bits[1]=bits[2]=0;}};   // floats first: U globals are initialized
-struct ASEG;
-struct COMPONENT;
-struct CONTROL{char pad[0x18];float yaw;};
-struct VALUE{char pad[0x20];U value;};
-struct INNER{char pad[0x60];VALUE*value;};
-struct RIG{char pad[0xA8];INNER*inner;};
-struct P{char pad0[12];void *vptr;char pad10[0x150-0x10];CONTROL*control;char pad154[8];int frozen;char pad160[0x190-0x160];U zero;char pad1A0[8];float yaw;int pad1AC;U forward;char pad1C0[0x1030-0x1C0];ASEGA*asega;COMPONENT*component;char pad1038[0x19B8-0x1038];RIG*first;RIG*second;};
-// The default clip for state `next`: clips[0] below state 8, clips[8] from state 8 on.
-struct C{P*actor;int mode;float time;char padC[0x98-12];float changed;int pad9C;ASEG*clips[13];ASEG*Default(int next){ASEG**base=clips;int offset=next<8?0:0x20;return *(ASEG**)((char*)base+offset);}};
 struct POLY{float a,b,c;};
 struct LIMIT{float lo,hi;};
 
  extern U D_002A2DD0 __asm__("D_002A2DD0");
  // hurt's .data starts here (address order across the namespaces below). This namespace has no extern "C" block, so
  // the definitions carry it themselves (C symbols).
- extern U D_002BFA00 __asm__("D_002BFA00");
-extern U D_002BFA10 __asm__("D_002BFA10");
- extern POLY D_002BFA20 __asm__("D_002BFA20");
+ extern U D_002BFA00 __asm__("D_002BFA00");   /* the tail's gravity while hurt */
+extern U D_002BFA10 __asm__("D_002BFA10");    /* the tail's gravity in states 3 and 10 */
+ extern POLY D_002BFA20 __asm__("D_002BFA20");   /* heading blend of state 8 by speed (quadratic) */
  extern LIMIT g_lmZeroOne __asm__("g_lmZeroOne");
 extern const float D_002A6720 __asm__("D_002A6720");   /* defined below where the ELF has it (.rodata order) */
- int IsBasicDerivedFrom__FP5BASIC3CID(P*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+ int IsBasicDerivedFrom__FP5BASIC3CID(STEPPLAYER*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
  float atan2f(float,float) __asm__("atan2f");
  float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
- void SetStepTargetHeading(P*,float) __asm__("SetStepTargetHeading");
- void FixStepAngularVelocity(P*) __asm__("FixStepAngularVelocity");
- void SetStepTargetHeadingFromVector(P*,qword) __asm__("SetStepTargetHeadingFromVector");
- qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
- float GetStepHeading(P*) __asm__("GetStepHeading");
- void InvalidateSoAaox(P*) __asm__("InvalidateSoAaox");
+ void SetStepTargetHeading(STEPPLAYER*,float) __asm__("SetStepTargetHeading");
+ void FixStepAngularVelocity(STEPPLAYER*) __asm__("FixStepAngularVelocity");
+ void SetStepTargetHeadingFromVector(STEPPLAYER*,qword) __asm__("SetStepTargetHeadingFromVector");
+ qword GetLoWorldPos(STEPPLAYER*) __asm__("GetLoWorldPos");
+ float GetStepHeading(STEPPLAYER*) __asm__("GetStepHeading");
+ void InvalidateSoAaox(STEPPLAYER*) __asm__("InvalidateSoAaox");
  void ReleaseAsega(ASEGA**) __asm__("ReleaseAsega");
- void ReleaseSma(COMPONENT**) __asm__("ReleaseSma");
- void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,P*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
- void ReplaceSma(void*,P*,int,void*,COMPONENT**) __asm__("ReplaceSma");
+ void ReleaseSma(SMA**) __asm__("ReleaseSma");
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,STEPPLAYER*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+ void ReplaceSma(void*,STEPPLAYER*,int,void*,SMA**) __asm__("ReplaceSma");
 
+// The tail chains of Sly (CID 0x35): JT::tailXfs[i] -> XF::plink -> CHAINLINK::chain -> CHAIN::gravity. Sly's model has
+// no tail transforms, so tailXfs are null and the EE stores through null (whatever low memory holds at +0xA8); the
+// native build skips a missing tail.
+#if defined(SLY2_EE_LAYOUT)
+static inline CHAIN *TailChain(STEPPLAYER *player, int i) { return ((JT *)player)->tailXfs[i]->plink->chain; }
+#define SLY2_HAS_TAIL(player, i) 1
+#else
+static inline CHAIN *TailChain(STEPPLAYER *player, int i) { return ((JT *)player)->tailXfs[i]->plink->chain; }
+#define SLY2_HAS_TAIL(player, i) (((JT *)(player))->tailXfs[i] && ((JT *)(player))->tailXfs[i]->plink)
+#endif
+static inline void SetTailGravity(STEPPLAYER *player, int i, const U &g) { if (SLY2_HAS_TAIL(player, i)) TailChain(player, i)->gravity = g.q; }
+static inline void ClearTailGravity(STEPPLAYER *player, int i)
+{
+    if (SLY2_HAS_TAIL(player, i)) {
+        VECTOR &g = TailChain(player, i)->vecGravity;
+        g.x = g.y = g.z = 0;
+    }
+}
+// The clip of a hurt state that has none of its own: stateClips[0] below state 8, stateClips[8] from state 8 on (the
+// byte offset is the original's form).
+static inline ASEG *DefaultClip(JTHURT *hurt, int next) { ASEG **base = hurt->stateClips; int offset = next < 8 ? 0 : 8 * (int)sizeof(ASEG *); return *(ASEG **)((char *)base + offset); }
+
+#ifdef SLY2_EE_ASM
 // Load the main camera's position into a GPR.
 static inline qword Position()
 {
@@ -123,207 +138,192 @@ static inline qword Position()
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 // x lane of a as a float.
 static inline float X(qword a){int word;float f;__asm__("qmfc2.ni %0,%1":"=r"(word):"j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
-// *a - b, fetching the hurt context's actor (register-pinned).
-static inline qword Difference(U *a, qword b, C *c, P *&actor)
+// *a - b, fetching the hurt context's player (register-pinned).
+static inline qword Difference(U *a, qword b, JTHURT *c, STEPPLAYER *&player)
 {
     register qword x __asm__("vf1"), y __asm__("vf2");
-    register P *owner __asm__("$4");
+    register STEPPLAYER *owner __asm__("$4");
     __asm__("lqc2 %0,%3\n\tqmtc2.ni %4,%1\n\tlw %2,%5\n\tvsub.xyzw %0,%0,%1"
             : "=&j"(x), "=&j"(y), "=r"(owner)
-            : "m"(a->q), "r"(b), "m"(c->actor));
-    actor = owner;
+            : "m"(a->q), "r"(b), "m"(c->player));
+    player = owner;
     return x;
 }
-// *a - b, fetching the hurt context's actor (second register variant).
-static inline qword Difference1(U *a, qword b, C *c, P *&actor)
+// *a - b, fetching the hurt context's player (second register variant).
+static inline qword Difference1(U *a, qword b, JTHURT *c, STEPPLAYER *&player)
 {
     register qword x __asm__("vf4"), y __asm__("vf1");
-    register P *owner __asm__("$4");
+    register STEPPLAYER *owner __asm__("$4");
     __asm__("qmtc2.ni %4,%1\n\tlw %2,%5\n\tlqc2 %0,%3\n\tvsub.xyzw %0,%0,%1"
             : "=&j"(x), "=&j"(y), "=r"(owner)
-            : "m"(a->q), "r"(b), "m"(c->actor));
-    actor = owner;
+            : "m"(a->q), "r"(b), "m"(c->player));
+    player = owner;
     return x;
 }
+#else
+static inline qword Position() { return g_cm.pos; }
+static inline qword Difference(U *a, qword b, JTHURT *c, STEPPLAYER *&player) { player = c->player; return VuSub(a->q, b); }
+static inline qword Difference1(U *a, qword b, JTHURT *c, STEPPLAYER *&player) { player = c->player; return VuSub(a->q, b); }
+#endif
 // Clamp value to [lo, range->hi].
 static inline float ClampKnownLower(float value, float lo, LIMIT *range)
 {
+#ifdef SLY2_EE_ASM
     register float hi __asm__("$f1") = range->hi;
+#else
+    float hi = range->hi;
+#endif
     if (value < lo)
         return lo;
     if (hi < value)
         return hi;
     return value;
 }
-typedef char U_Size[sizeof(U)==16?1:-1];
-typedef char POLY_Size[sizeof(POLY)==12?1:-1];
-typedef char LIMIT_Size[sizeof(LIMIT)==8?1:-1];
-typedef char C_actor_Offset[FIELD_OFFSET(C,actor)==0?1:-1];
-typedef char C_mode_Offset[FIELD_OFFSET(C,mode)==4?1:-1];
-typedef char C_time_Offset[FIELD_OFFSET(C,time)==8?1:-1];
-typedef char C_changed_Offset[FIELD_OFFSET(C,changed)==152?1:-1];
-typedef char C_clips_Offset[FIELD_OFFSET(C,clips)==160?1:-1];
-typedef char P_vptr_Offset[FIELD_OFFSET(P,vptr)==12?1:-1];
-typedef char P_control_Offset[FIELD_OFFSET(P,control)==336?1:-1];
-typedef char P_frozen_Offset[FIELD_OFFSET(P,frozen)==348?1:-1];
-typedef char P_zero_Offset[FIELD_OFFSET(P,zero)==400?1:-1];
-typedef char P_yaw_Offset[FIELD_OFFSET(P,yaw)==424?1:-1];
-typedef char P_forward_Offset[FIELD_OFFSET(P,forward)==432?1:-1];
-typedef char P_asega_Offset[FIELD_OFFSET(P,asega)==4144?1:-1];
-typedef char P_component_Offset[FIELD_OFFSET(P,component)==4148?1:-1];
-typedef char P_first_Offset[FIELD_OFFSET(P,first)==6584?1:-1];
-typedef char P_second_Offset[FIELD_OFFSET(P,second)==6588?1:-1];
-typedef char CONTROL_yaw_Offset[FIELD_OFFSET(CONTROL,yaw)==24?1:-1];
-typedef char RIG_inner_Offset[FIELD_OFFSET(RIG,inner)==168?1:-1];
-typedef char INNER_value_Offset[FIELD_OFFSET(INNER,value)==96?1:-1];
-typedef char VALUE_value_Offset[FIELD_OFFSET(VALUE,value)==32?1:-1];
-typedef char POLY_a_Offset[FIELD_OFFSET(POLY,a)==0?1:-1];
-typedef char POLY_b_Offset[FIELD_OFFSET(POLY,b)==4?1:-1];
-typedef char POLY_c_Offset[FIELD_OFFSET(POLY,c)==8?1:-1];
-typedef char LIMIT_lo_Offset[FIELD_OFFSET(LIMIT,lo)==0?1:-1];
-typedef char LIMIT_hi_Offset[FIELD_OFFSET(LIMIT,hi)==4?1:-1];
-typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char qword_Alignment[__alignof__(qword)==16?1:-1];
-typedef char U_Alignment[__alignof__(U)==16?1:-1];
-typedef char int_Size[sizeof(int)==4?1:-1];
-typedef char float_Size[sizeof(float)==4?1:-1];
-typedef char pointer_Size[sizeof(void*)==4?1:-1];
-typedef char short_Size[sizeof(short)==2?1:-1];
-typedef char CONTROL_Prefix_Size[sizeof(CONTROL)==0x1C?1:-1];
-typedef char VALUE_Prefix_Size[sizeof(VALUE)==0x30?1:-1];
-typedef char INNER_Prefix_Size[sizeof(INNER)==0x64?1:-1];
-typedef char RIG_Prefix_Size[sizeof(RIG)==0xAC?1:-1];
-typedef char P_Prefix_Size[sizeof(P)==0x19C0?1:-1];
-typedef char C_Prefix_Size[sizeof(C)==0xD4?1:-1];
 // Hurt sub-state switch (leave/enter): Sly-specific settings for CID 0x35, facing and launch from the hit direction,
 // retracting/applying hit clips, and the death states 8..12.
 // Also known as: SetDamageState (upstream readable / Sly 1 name; SetDamageState__FP5ACTORi).
-void SetJtHurtState(C *hurt, int next) __asm__("SetJtHurtState"); void SetJtHurtState(C *hurt, int next)
+extern "C" void SetJtHurtState(JTHURT *hurt, int next)
 {
     U velocity, camera0, camera1;
-    if (next == hurt->mode)
+    if (next == hurt->state)
         return;
-    switch (hurt->mode) {
+    switch (hurt->state) {
     case -1:
-        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
-            P *actor = hurt->actor;
-            actor->first->inner->value->value = D_002BFA00;
-            actor->second->inner->value->value = D_002BFA00;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->player, 0x35)) {
+            STEPPLAYER *player = hurt->player;
+            SetTailGravity(player, 0, D_002BFA00);
+            SetTailGravity(player, 1, D_002BFA00);
         }
-        AsStepplayer(hurt->actor)->EndMeleeAttack();
-        hurt->actor->zero.Clear();
-        hurt->actor->frozen = 0;
-        hurt->changed = D_002A6720;
+        hurt->player->EndMeleeAttack();
+        ((U *)&hurt->player->localVelocity)->Clear();   /* x, y, z (the form the match needs) */
+        hurt->player->canCollect = 0;
+        hurt->recoveredTime = D_002A6720;
         break;
     case 3:
     case 10:
-        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
-            hurt->actor->first->inner->value->value.Clear();
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->player, 0x35))
+            ClearTailGravity(hurt->player, 0);
         break;
     }
     ASEG *clip = 0;
     int flags = 1;
     switch (next) {
     case -1:
-        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
-            P *actor = hurt->actor;
-            actor->first->inner->value->value.Clear();
-            actor->second->inner->value->value.Clear();
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->player, 0x35)) {
+            STEPPLAYER *player = hurt->player;
+            ClearTailGravity(player, 0);
+            ClearTailGravity(player, 1);
         }
-        hurt->actor->frozen = 1;
-        hurt->changed = g_clock.time;
+        hurt->player->canCollect = 1;
+        hurt->recoveredTime = g_clock.time;
         break;
     case 8: {
-        qword moving = AsStepplayer(hurt->actor)->GetVelocity();
-        P *actor = hurt->actor;
+        qword moving = hurt->player->GetVelocity();
+        STEPPLAYER *player = hurt->player;
+#ifdef SLY2_EE_ASM
         register qword mv __asm__("vf4") = From(moving), axis __asm__("vf1"), dot __asm__("vf2"), one __asm__("vf3");
         float threshold;
-        __asm__("li.s %0,%F2\n\tlqc2 %1,%3" : "=&f"(threshold), "=j"(axis) : "F"(-250.0f), "m"(actor->forward.q));
+        __asm__("li.s %0,%F2\n\tlqc2 %1,%3" : "=&f"(threshold), "=j"(axis) : "F"(-250.0f), "m"(player->aqwTarget[0]));
         __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
                 : "=&j"(dot), "=&j"(one)
                 : "j"(mv), "j"(axis));
         if (X(dot) > threshold)
+#else
+        /* the velocity along the facing row: moving forward faster than -250 falls forward (state 9) */
+        if (VuToFloat(VuDot(moving, player->aqwTarget[0])) > -250.0f)
+#endif
             next = 9;
         else {
-            register qword v __asm__("vf2") = From(AsStepplayer(actor)->GetVelocity());
             float fraction, lower;
-            register LIMIT *range __asm__("$2");
+            LIMIT *range;
+#ifdef SLY2_EE_ASM
+            register qword v __asm__("vf2") = From(player->GetVelocity());
+            register LIMIT *rangeReg __asm__("$2");
             __asm__("lui $3,%%hi(%5)\n\tvmul.xy $vf1,%4,%4\n\tvaddy.x $vf1,$vf1,$vf1y\n\taddiu %2,$3,%%lo(%5)\n\tvsqrt "
                     "$Q,$vf1x\n\tvwaitq\n\tvaddq.x $vf1,$vf0,$Q\n\tlwc1 $f1,8(%2)\n\tqmfc2.ni $4,$vf1\n\tlwc1 "
                     "$f2,4(%2)\n\tmtc1 $4,$f0\n\tlwc1 %0,%%lo(%5)($3)\n\tmul.s $f1,$f0,$f1\n\tlui %2,%%hi(%6)\n\tlwc1 "
                     "%1,%%lo(%6)(%2)\n\tsqc2 %4,%3\n\taddiu %2,%2,%%lo(%6)\n\tadd.s $f2,$f2,$f1\n\tmul.s "
                     "$f0,$f0,$f2\n\tadd.s %0,%0,$f0"
-                    : "=&f"(fraction), "=&f"(lower), "=&r"(range), "=m"(velocity.q)
+                    : "=&f"(fraction), "=&f"(lower), "=&r"(rangeReg), "=m"(velocity.q)
                     : "j"(v), "i"(&D_002BFA20), "i"(&g_lmZeroOne)
                     : "$3", "$4", "$f0", "$f1", "$f2", "vf1", "memory");
+            range = rangeReg;
+#else
+            /* the planar speed s: fraction = a + s * (b + s * c), clamped to [0, 1] */
+            velocity.q = player->GetVelocity();
+            float speed = VuSqrt(velocity.f[0] * velocity.f[0] + velocity.f[1] * velocity.f[1]);
+            fraction = D_002BFA20.a + speed * (D_002BFA20.b + speed * D_002BFA20.c);
+            lower = g_lmZeroOne.lo;
+            range = &g_lmZeroOne;
+#endif
             float blend = ClampKnownLower(fraction, lower, range);
             float angle = atan2f(velocity.f[1], velocity.f[0]) + 3.1415927f;
-            angle = NormalizeAngle__Ff(angle - hurt->actor->yaw);
-            SetStepTargetHeading(hurt->actor, hurt->actor->yaw + angle * blend);
-            FixStepAngularVelocity(hurt->actor);
+            angle = NormalizeAngle__Ff(angle - hurt->player->targetHeading);
+            SetStepTargetHeading(hurt->player, hurt->player->targetHeading + angle * blend);
+            FixStepAngularVelocity(hurt->player);
         }
     }
     case 9:
-        clip = hurt->clips[next];
+        clip = hurt->stateClips[next];
         flags = 0x21;
         break;
     case 10:
         camera0.q = Position();
         {
-            P *owner;
-            qword direction = Difference(&camera0, GetLoWorldPos(hurt->actor), hurt, owner);
+            STEPPLAYER *owner;
+            qword direction = Difference(&camera0, GetLoWorldPos(hurt->player), hurt, owner);
             SetStepTargetHeadingFromVector(owner, direction);
         }
         flags = 0x21;
     case 3:
-        clip = hurt->clips[next];
-        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
-            hurt->actor->first->inner->value->value = D_002BFA10;
+        clip = hurt->stateClips[next];
+        if (IsBasicDerivedFrom__FP5BASIC3CID(hurt->player, 0x35))
+            SetTailGravity(hurt->player, 0, D_002BFA10);
         break;
     case 5:
     case 11:
         camera1.q = Position();
         {
-            P *owner;
-            qword direction = Difference1(&camera1, GetLoWorldPos(hurt->actor), hurt, owner);
+            STEPPLAYER *owner;
+            qword direction = Difference1(&camera1, GetLoWorldPos(hurt->player), hurt, owner);
             SetStepTargetHeadingFromVector(owner, direction);
         }
         if (next == 11)
             flags = 0x21;
-        clip = hurt->clips[next];
+        clip = hurt->stateClips[next];
         break;
     case 0:
     case 6:
-    case 7: clip = hurt->clips[next]; break;
+    case 7: clip = hurt->stateClips[next]; break;
     case 4:
     case 12:
-        AsStepplayer(hurt->actor)->SetAngularVelocity(D_002A2DD0.q);
-        SetStepTargetHeading(hurt->actor, GetStepHeading(hurt->actor));
-        hurt->actor->control->yaw = hurt->actor->yaw;
+        hurt->player->SetAngularVelocity(D_002A2DD0.q);
+        SetStepTargetHeading(hurt->player, GetStepHeading(hurt->player));
+        hurt->player->controller->leftStickAngle = hurt->player->targetHeading;
         if (next == 12)
             flags = 0x21;
-        clip = hurt->clips[next];
+        clip = hurt->stateClips[next];
         break;
     case 1:
     case 2:
         flags = 0;
-        SetStepTargetHeading(hurt->actor, GetStepHeading(hurt->actor));
-        hurt->actor->control->yaw = hurt->actor->yaw;
-        clip = hurt->clips[next];
+        SetStepTargetHeading(hurt->player, GetStepHeading(hurt->player));
+        hurt->player->controller->leftStickAngle = hurt->player->targetHeading;
+        clip = hurt->stateClips[next];
         break;
     }
-    InvalidateSoAaox(hurt->actor);
-    hurt->mode = next;
-    hurt->time = g_clock.time;
+    InvalidateSoAaox(hurt->player);
+    hurt->state = next;
+    hurt->stateTime = g_clock.time;
     if (next == -1)
         return;
     if (!clip)
-        clip = hurt->Default(next);
-    ReleaseAsega(&hurt->actor->asega);
-    ReleaseSma(&hurt->actor->component);
-    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
-    ReplaceSma(0, hurt->actor, -1, 0, &hurt->actor->component);
-    AsStepplayer(hurt->actor)->ApplyStateStepParams();
+        clip = DefaultClip(hurt, next);
+    ReleaseAsega(&hurt->player->activeAnimation);
+    ReleaseSma(&hurt->player->activeStateMachine);
+    ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->player, 0.0f, 1.0f, flags, &hurt->player->activeAnimation);
+    ReplaceSma(0, hurt->player, -1, 0, &hurt->player->activeStateMachine);
+    hurt->player->ApplyStateStepParams();
 }
 } // namespace M_SetJtHurtState
 

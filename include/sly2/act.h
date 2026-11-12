@@ -307,7 +307,11 @@ struct CHAIN
     float relativeDamping;
     float maxBendAngle;
     float lastUpdateTime;   /* g_clock time of the last simulation (the first link's call of a frame simulates) */
-    qword gravity;          /* +0x20 */
+    union
+    {
+        qword gravity;      /* +0x20 */
+        VECTOR vecGravity;  /* the same by component (hurt.cpp SetJtHurtState clears x, y, z) */
+    };
     qword lastSegment;      /* +0x30 the last link's continuation */
     qword previousAnchor;   /* +0x40 */
 };

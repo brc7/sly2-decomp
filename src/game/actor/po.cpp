@@ -91,7 +91,7 @@ extern "C" void InitPo(PO *po)
 {
     sptr flags;
     InitSo(po);
-    po->unknown15C = 1;
+    po->canCollect = 1;
     po->unknown168 = po;
     flags = (sptr)po->ploupd;
     if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 2; else po->inlineFlags = flags | 2;
@@ -544,12 +544,12 @@ extern "C" int CollectActivePickupInfos(SW *world, int maxCount, void **pzis)
     c = 1;
     plo = GetHeroPo(world);
     if (plo) {
-    *pzis = &plo->unknown15C;
+    *pzis = &plo->canCollect;
     if (IsBasicDerivedFrom__FP5BASIC3CID(plo, 0x34)) {
         for (j = 0; j < sizeof(D_002C0D28) / sizeof(D_002C0D28[0]) && c < maxCount; j++) {
             plo2 = *D_002C0D28[j];
             if (!plo2 || plo2 == plo || !FindBhvInBhvstk(&plo2->behaviors, 0xC2)) continue;
-            if ((int)plo2->isInWorld & 1) pzis[c++] = &plo2->unknown15C;
+            if ((int)plo2->isInWorld & 1) pzis[c++] = &plo2->canCollect;
         }
     }
     } else {

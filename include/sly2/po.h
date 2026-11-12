@@ -50,7 +50,7 @@ struct PO : public SO
       POCTL *controller; /* the controller */
       uint grfbtnForce;   /* buttons forced on by scripts (inferred) */
       undefined4 unknown158;
-      int unknown15C;
+      int canCollect;   /* +0x15C the PO collects pickups (the first word of its pickup info, CollectActivePickupInfos; InitPo sets it, the hurt state clears it) (inferred); was unknown15C */
       undefined4 unknown160[2];
       PO *unknown168;
       TN *cameraTunnel; /* camera tunnel the object is in */

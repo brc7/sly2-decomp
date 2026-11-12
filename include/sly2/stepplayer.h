@@ -421,7 +421,7 @@ struct JTHURT
 {
       struct STEPPLAYER *player;        /* owner */
       int state;            /* +0x04 [R] hurt state machine */
-      undefined4 unknown08;
+      float stateTime;      /* +0x08 g_clock.time the state was entered (SetJtHurtState) */
       int maxHitPoints; /* maximum hit points */
       int *hitPoints; /* current hit points (points at the save variable) */
       int churtz;   /* +0x14 number of transform records (7) */
@@ -429,12 +429,15 @@ struct JTHURT
       HURTEND hurtend;   /* +0x1C pending callback for the end of the hurt animation */
       undefined4 unk_0x024[(0x30 - 0x24) / 4];
       ZPR zpr;   /* the last zap received */
-      int postHitMode;      /* +0x90 [R] post-hit mode: 1 = damage forced to 0 (ram_inspector) */
-      undefined4 unknown94[2];
-      float unknown9C;
-      LO *unknownA0[(0xd4 - 0xa0) / 4];   /* +0xA0 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
-      SOPART *aprecHurt[14];   /* +0xD4 STEP parameter records by hurt state (GetJtHurtAdjustRecord falls back through a parent table) */
-      struct ASEGA *unknown10C;
+      int postHitMode;      /* +0x90 [R] post-hit mode: 1 = recovering (flashing, damage forced to 0; ram_inspector), -1 none */
+      float hitTime;        /* +0x94 g_clock.time of the last hit (TakeJtDamage): the phase of the post-hit flashing */
+      float recoveredTime;  /* +0x98 g_clock.time the hurt state ended (SetJtHurtState to -1; FLT_MAX while hurt) */
+      float postHitDuration; /* +0x9C how long the post-hit mode lasts after recoveredTime (InitJtHurt: 2 s) */
+      struct ASEG *stateClips[13];   /* +0xA0 the animation of each hurt state (the players' SNIP tables bind them by oid);
+                                        a state without one plays stateClips[0] (below state 8) or stateClips[8] */
+      SOPART *aprecHurt[13];   /* +0xD4 STEP parameter records by hurt state (GetJtHurtAdjustRecord falls back through a parent table) */
+      struct ASEG *flinchClip; /* +0x108 the clip a non-fatal 0x100000 zap plays without a hurt state (TakeJtDamage) */
+      struct ASEGA *flinchAsega; /* +0x10C its application (stepplayer.cpp drops it once retracted); was unknown10C */
 };
 
 /* GADGETSLOT: an equipped gadget: id and its state.
@@ -688,7 +691,7 @@ typedef char assert_STEPPLAYER_jtair_fCanDoubleJump[SLY2_OFFSETOF(STEPPLAYER, jt
 typedef char assert_STEPPLAYER_jtgrab_nState[SLY2_OFFSETOF(STEPPLAYER, jtgrab.state) == 0x4C8 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtgrab_plo[SLY2_OFFSETOF(STEPPLAYER, jtgrab.grabbedObject) == 0x4D4 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtplaces_cplace[SLY2_OFFSETOF(STEPPLAYER, jtplaces.cplace) == 0x9E4 ? 1 : -1];   /* CONFIRMED runtime */
-typedef char assert_JTHURT_unknown10C[SLY2_OFFSETOF(JTHURT, unknown10C) == 0x10C ? 1 : -1];
+typedef char assert_JTHURT_flinchAsega[SLY2_OFFSETOF(JTHURT, flinchAsega) == 0x10C ? 1 : -1];
 typedef char assert_STEPPLAYER_jthurt_nState[SLY2_OFFSETOF(STEPPLAYER, jthurt.state) == 0xDF4 ? 1 : -1];    /* CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jthurt_zpr_zpk[SLY2_OFFSETOF(STEPPLAYER, jthurt.zpr.zpk) == 0xE2C ? 1 : -1];   /* last zap kind, CONFIRMED runtime */
 typedef char assert_STEPPLAYER_jtmode_nKind[SLY2_OFFSETOF(STEPPLAYER, jtmode.kind) == 0xF20 ? 1 : -1];    /* CONFIRMED runtime */

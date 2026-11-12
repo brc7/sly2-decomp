@@ -124,7 +124,9 @@ struct JT : public STEPPLAYER
       float rBounds;   /* +0x19AC radius of the extra bounds points */
       float unknown19B0;
       undefined4 unknown19B4;
-      XF *unknown19B8[2];   /* +0x19B8 transforms bound by oid (the players' SNIP tables, BindLoOidTable) */
+      XF *tailXfs[2];   /* +0x19B8 the chain transforms of Sly's tail (oids 0xF1 / 0xFA, bound by jt.cpp's SNIP table): SetJtHurtState
+                           sets their chains' gravity. Sly's model has neither, so both stay null and the EE writes through
+                           null (low memory); the native build skips them. Was unknown19B8 */
       XF *wristXf;   /* +0x19C0 wrist transform (hang IK; the pickpocket pose reads its position) */
       XF *handChildXf;   /* +0x19C4 transform under the hand (hang IK goal) */
       void *unknown19C8;
