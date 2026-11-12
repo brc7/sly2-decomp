@@ -52,7 +52,7 @@ struct sceDmaChan;
 struct STACKSCOPEMK { int a; };
 enum ZPK { ZPK_Nil = -1 };
 struct LO;
-struct ZPR { ZPK zpk; ZPK zpk2; LO *ploSource; char pad[0x630 - 12]; };
+struct ZPR : GSB {};   /* InitZpr__FP3ZPR3ZPKP2LO's first parameter: the symbol (Sly 1's, attached by address) names a ZPR; it is a GSB */
 
 extern "C" {
 DISPENV D_002DEB80[2];      /* gs' .bss starts here (medium: by layout; menu, save and others read it) */
@@ -572,7 +572,7 @@ uint CeilLog2(uint value)
 // fields here) to the second argument and the limit ("ploSource") to the third. The Sly 1 symbol
 // InitZpr__FP3ZPR3ZPKP2LO was attached by address; renaming it means changing its C++ signature (left for the type
 // pass).
-void InitZpr(ZPR *pzpr, ZPK zpk, LO *ploSource) { func_002333B4(pzpr, 0, sizeof(ZPR)); pzpr->zpk = pzpr->zpk2 = zpk; pzpr->ploSource = ploSource; }
+void InitZpr(ZPR *pzpr, ZPK zpk, LO *ploSource) { func_002333B4(pzpr, 0, sizeof(GSB)); pzpr->first = pzpr->top = zpk; pzpr->limit = (int)(sptr)ploSource; }   /* (gsb, first, limit) */
 
 // Size-class index (0..7, -1 for 0) of a free GS-memory run of n units: 1,2,3-4,5-8,9-16,17-32,33-64,>64. (inferred)
 int IgsbBucketFromCgs(int n)

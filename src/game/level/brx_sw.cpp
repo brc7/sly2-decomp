@@ -3,6 +3,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx_sw
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_brx_sw
 #include "sly2/slotheap.h"
+#include "sly2/gs.h"
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
 #include "sly2/lo.h"
@@ -63,7 +64,7 @@ void InitSwSpliceFrame(void *world);
 void ResolveSwSaveVars__FP2SW(void *world);
 void UpdateSwIllum(void *world);
 void BuildClearGifs__FP2QWG4RGBAi(void *p, void *pv, int c);
-void func_001703F8(void *pzpr, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
+void func_001703F8(GSB *pgsb, int first, int limit) __asm__("InitZpr__FP3ZPR3ZPKP2LO");   /* InitGsb */
 void AllocateTextureHashTables(void);
 void ClearTextureHashTables(void);
 void BuildWorldBackgroundImage(void *world, void *pzpr);
@@ -86,7 +87,6 @@ extern char D_002DEDC0[];
 extern int D_003E1C34;
 }
 struct RGBAPOD { unsigned char r, g, b, a; };   /* basic.h RGBA has a ctor, which a union member cannot have */
-struct ZPR { char ab[0x630]; };
 // Disc file location record (mode 2) with the rest left for the loader.
 struct ODD { ODD() { ab[2] = 2; } int ab[0x110 / 4]; };
 
@@ -160,12 +160,12 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
     world->pvPostLoadPool = AllocS(&u.req, 0x400 * sizeof(POSTLOADREC), 0x10);
     world->cpostLoadPool = 0;
     STACKSCOPE frame;
-    ZPR zpr0;
-    ZPR zpr1;
-    func_001703F8(&zpr0, 0x1800, 0x4000);
+    GSB gsb0;   /* the GS memory allocators (gs.h; 0x630 bytes on the EE) */
+    GSB gsb1;
+    func_001703F8(&gsb0, 0x1800, 0x4000);
     AllocateTextureHashTables();
-    func_001703F8(&zpr1, 0x1000, 0x1800);
-    BuildWorldBackgroundImage(world, &zpr0);
+    func_001703F8(&gsb1, 0x1000, 0x1800);
+    BuildWorldBackgroundImage(world, &gsb0);
     for (i = 0; i < world->cproxysrc; ) {
         PROXYSRC *pwe = &world->aproxysrc[i];
         int iNext = i + 1;
@@ -178,7 +178,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream
         LoadSwSharedHeaderFromBrx(1, stream);
         D_003E1C34 = S32Read__18CBinaryInputStream(stream);
         LoadSwSpliceFromBrx(world, pwe->id, stream);
-        LoadShadersFromBrx(&zpr0, &zpr1, stream);
+        LoadShadersFromBrx(&gsb0, &gsb1, stream);
         LoadSwZoneBspFromBrx(world, stream);
         {
             STACKSCOPE frameT;

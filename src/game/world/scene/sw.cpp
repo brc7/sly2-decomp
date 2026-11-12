@@ -24,6 +24,7 @@
 #include "sly2/cm.h"
 #include "sly2/save.h"
 #include "sly2/slotheap.h"
+#include "sly2/gs.h"
 #include "sly2/joy.h"
 #include "sly2/scrap.h"
 #include "sly2/cref.h"
@@ -285,12 +286,11 @@ extern "C" void DeleteSw(SW *world)
 } // namespace M_DeleteSw
 
 namespace M_func_0020E180 {
-struct ZPR { char ab[0x630]; };
 void *AllocFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocFromWorldHeap");
 void *AllocClearedFromWorldHeap(struct SWALLOC *pmsg) __asm__("AllocClearedFromWorldHeap");
 void InitSl(void *p, int n) __asm__("InitSl");
-void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
-void InitRenderTargets(void *p, struct ZPR *pz) __asm__("InitRenderTargets");
+void func_001703F8(GSB *pgsb, int first, int limit) __asm__("InitZpr__FP3ZPR3ZPKP2LO");   /* InitGsb */
+void InitRenderTargets(void *p, GSB *pgsb) __asm__("InitRenderTargets");
 void BroadcastGameEvent(void *p, int a, int b) __asm__("BroadcastGameEvent");
 
 // Sets up a fresh world for loading: the three AAOX buffers (0x4800 bytes each), the update list (0x8000 bytes), the root
@@ -299,7 +299,7 @@ void BroadcastGameEvent(void *p, int a, int b) __asm__("BroadcastGameEvent");
 extern "C" void InitSwLoadBuffers(SW *world)
 {
     struct SWALLOC msg;
-    struct ZPR zpr;
+    GSB gsb;   /* a GS memory allocator (gs.h) */
     int i;
     unsigned int j;
     for (i = 0; i < 3; i++) {
@@ -316,9 +316,9 @@ extern "C" void InitSwLoadBuffers(SW *world)
     world->ppxrRoot->proxyId = -1;
     world->ppxrRoot->proxyOid = -1;
     InitSl(&world->ppxrRoot->children, SLY2_OFFSETOF(PXR, siblingLink));
-    func_001703F8(&zpr, 0x1400, 0x1800);
+    func_001703F8(&gsb, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        InitRenderTargets(&world->artgt[j], &zpr);
+        InitRenderTargets(&world->artgt[j], &gsb);
     if (world->transition.flags & 0x20)
         world->unknown3E38 = 1;
     BroadcastGameEvent(&g_game, 2, 0);
