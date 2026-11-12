@@ -5,6 +5,8 @@
   round.py check [--full] [--round NAME]
   round.py try PATCHFILE | --stdin | -- COMMAND...   [--keep] [--all] [--vs base|pre] [-p N] [--round NAME]
   round.py status [--round NAME]
+  round.py check --native / try ... --native          also run the native golden check (../native/golden.py)
+  round.py golden record|check|build|status [...]     the native golden tool itself (see ../native/golden.py)
 
 start   creates the worktree and branch at REF (default HEAD), symlinks the untracked inputs (disc, compilers, wibo),
         compiles every source into the shared object cache, and records the baseline in the round's scratch
@@ -596,8 +598,22 @@ def cmd_check(a):
     if a.full:
         failed |= full_checks(st, tree, keys, lines)
     lines.append(f'  logs: {os.path.join(sd, "logs")}')
-    print('\n'.join(lines))
+    print('\n'.join(lines), flush=True)
+    if a.native:
+        failed |= native_check(wt) == 1
     return 1 if failed else 0
+
+
+def native_check(wt):
+    """the native golden check of the worktree as it is on disk (tools/cleanup/native/golden.py); its exit status"""
+    spec = importlib.util.spec_from_file_location('golden', os.path.join(os.path.dirname(HERE), 'native', 'golden.py'))
+    golden = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(golden)
+    cwd = os.getcwd()
+    try:
+        return golden.main(['check', '--tree', wt])
+    finally:
+        os.chdir(cwd)
 
 
 def run_progress(wt, sd, logname, delete=True, base_broken=None):
@@ -794,12 +810,16 @@ def cmd_try(a):
                     for n, ok, head, lines in tree.match_object(r['rel'], r['obj']):
                         if n == fn.group(1):
                             out.append(f'  vs ELF: {head}'); break
-        print('\n'.join(out))
+        print('\n'.join(out), flush=True)
+        if a.native and not any(r['status'] == 'COMPILE-FAIL' for r in res):
+            if native_check(wt) == 1 and not bad:
+                bad = [dict(status='NATIVE')]
         if a.keep and not bad:
             os.unlink(pending); restored = True
             print('  kept (edit left applied)')
         elif a.keep:
-            print('  not kept (restored): --keep keeps identical / renamed edits only')
+            print('  not kept (restored): --keep keeps identical / renamed edits only'
+                  + (' (and, with --native, a native PASS)' if a.native else ''))
         return 0 if not bad else 1
     except (KeyboardInterrupt, Interrupted):
         print('interrupted: restoring')
@@ -850,12 +870,18 @@ def main():
     p.add_argument('--base', default='HEAD'); p.add_argument('--branch'); p.add_argument('--worktree')
     p.add_argument('--reuse', action='store_true'); p.add_argument('--no-progress', action='store_true')
     p = sub.add_parser('check'); p.add_argument('--full', action='store_true'); p.add_argument('--round')
+    p.add_argument('--native', action='store_true', help='also run the native golden check (golden.py)')
     p = sub.add_parser('try'); p.add_argument('patch', nargs='?'); p.add_argument('--stdin', action='store_true')
     p.add_argument('--keep', action='store_true'); p.add_argument('--all', action='store_true')
     p.add_argument('--vs', choices=('pre', 'base'), default='pre'); p.add_argument('-p', type=int, default=1)
-    p.add_argument('--round')
+    p.add_argument('--round'); p.add_argument('--native', action='store_true', help='also run the native golden check')
     p = sub.add_parser('status'); p.add_argument('--round')
     argv = sys.argv[1:]
+    if argv[:1] == ['golden']:      # pass-through to the native golden tool; no round needed
+        spec = importlib.util.spec_from_file_location('golden', os.path.join(os.path.dirname(HERE), 'native', 'golden.py'))
+        golden = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(golden)
+        return golden.main(argv[1:])
     cmd = None
     if '--' in argv:     # try -- COMMAND...
         i = argv.index('--'); cmd = argv[i + 1:]; argv = argv[:i]
