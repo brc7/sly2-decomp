@@ -2320,7 +2320,7 @@ extern "C" void StartBhvpath(BHVPATH *behavior) {
 
 // 0x177F78 StepBhvpathAlongShape
 namespace M_StepBhvpathAlongShape {
-union VEC; struct CURVE; struct CONTEXT; struct BODY; struct GROUP; struct OBJECT; struct S; struct CLQ; struct LM; struct VU_FLOAT; struct VUF; struct VV; struct VU_VECTOR;
+union VEC; struct CLQ; struct LM; struct VU_FLOAT; struct VUF; struct VV; struct VU_VECTOR;
 // StepBhvpathAlongShape (Claude agent, T1690, 2026-10-25): MATCH. Curve follower step: closest point on the curve(s), steering
 // velocity toward the next point, avoidance of other bodies (loop), integration and collision clamp.
 // Built on lilly15 (aligned 11, T1686). What finished it (each measured, see notes/170000.md):
@@ -2349,66 +2349,6 @@ union VEC
     qword qw;
     float f[4];
 };
-struct CURVE
-{
-    char pad[0xE4];
-    int fWrap;
-};
-struct BODY;
-struct CONTEXT
-{
-    char pad[0x118];
-    BODY *pbodyFirst;
-};
-struct BODY
-{
-    void *pobj;
-    float dz;
-    float sRadius;
-    float gMass;
-    CONTEXT *pctx;
-    char pad14[0x4C];
-    BODY *pbodyNext;
-};
-struct GROUP
-{
-    char pad[0xDC];
-    BODY *pbody;
-};
-struct OBJECT
-{
-    char pad[0xC];
-    VTE *pvt;
-    char pad10[0xD8];
-    GROUP *pgroup;
-    char padEC[0xC4];
-    qword axis;
-    char pad1C0[0xD4];
-    CURVE *pcrvPrimary;
-};
-struct S
-{
-    char pad[0x10];
-    OBJECT *guard;
-    char pad14[0x1C];
-    CURVE *pcrv;
-    float s;
-    int fReverse;
-    int fHold;
-    int fNoCollide;
-    char pad44[8];
-    int mode;
-    char pad50[4];
-    CURVE *pcrvExtra;
-    int modeExtra;
-    float sExtra;
-    char pad60[0x10];
-    float sSeparation;
-    char pad74[0xC];
-    qword pos;
-    qword v;
-    int fInit;
-};
 struct CLQ
 {
     float g0, g1, g2;
@@ -2424,13 +2364,13 @@ extern float D_002BE630 __asm__("D_002BE630"), D_002BE634 __asm__("D_002BE634"),
 extern CLQ D_002BE640 __asm__("D_002BE640"), D_002BE680 __asm__("D_002BE680");
 extern LM D_002BE650 __asm__("D_002BE650"), g_lmZeroOne __asm__("g_lmZeroOne");
 qword GetLoWorldPos(void *pobj) __asm__("GetLoWorldPos");
-float WrapShapeDistance(CURVE *pcrv, float s) __asm__("WrapShapeDistance");
-float GetShapeMaxDistance(CURVE *pcrv) __asm__("GetShapeMaxDistance");
-void FindShapeClosestPointFromDistance(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps) __asm__("FindShapeClosestPointFromDistance");
-void EvaluateShapeAtDistance(CURVE *pcrv, float s, VEC *ppos, VEC *pdir) __asm__("EvaluateShapeAtDistance");
-int IsBhvpathAtEnd(S *p) __asm__("IsBhvpathAtEnd");
+float WrapShapeDistance(SHAPE *pcrv, float s) __asm__("WrapShapeDistance");
+float GetShapeMaxDistance(SHAPE *pcrv) __asm__("GetShapeMaxDistance");
+void FindShapeClosestPointFromDistance(SHAPE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps) __asm__("FindShapeClosestPointFromDistance");
+void EvaluateShapeAtDistance(SHAPE *pcrv, float s, VEC *ppos, VEC *pdir) __asm__("EvaluateShapeAtDistance");
+
 void FindClosestPointOnLineSegment(qword a, qword b, qword c, VEC *pv, float *pg0, float *pg1) __asm__("FindClosestPointOnLineSegment");
-int FindPathzoneClosestFreePoint(CONTEXT *pctx, qword pos, VEC *pv) __asm__("FindPathzoneClosestFreePoint");
+int FindPathzoneClosestFreePoint(PATHZONE *pctx, qword pos, VEC *pv) __asm__("FindPathzoneClosestFreePoint");
 
 struct VU_FLOAT
 {
@@ -2579,8 +2519,8 @@ static inline float EvaluateClampedQuadratic(CLQ *pclq, LM *plm, float x)
 // Returns an object's velocity through its vtable.
 static inline qword GetObjectVelocity(void *pv)
 {
-    OBJECT *pobj = (OBJECT *)pv;
-    return ((LO *)pobj)->GetVelocity();
+    LO *pobj = (LO *)pv;
+    return pobj->GetVelocity();
 }
 
 // VU0 helper: vector difference.
@@ -2623,40 +2563,40 @@ static inline qword VecCombo(VUF f1, VU_VECTOR v1, VUF f2, VU_VECTOR v2)
 }
 // 0x177F78: Path follower step: finds the closest point on the path shape, steers toward the next point, avoids
 // other bodies, integrates and clamps against collision.
-extern "C" void StepBhvpathAlongShape(S *behavior)
+extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
 {
     VEC point, dir, next, nextDir;
     const qword *pqwZero;
-    qword posActor = GetLoWorldPos(behavior->guard);
+    qword posActor = GetLoWorldPos(behavior->owner);
     register qword qwActor asm("$18") = posActor; /* the one register pin: the target reloads the spilled posActor into s2 (lq in a delay slot) */
 
-    BODY *pbody = 0;
-    if (behavior->guard->pgroup)
-        pbody = behavior->guard->pgroup->pbody;
-    CONTEXT *pctx = 0;
+    REGENT *pbody = 0;
+    if (behavior->owner->physics)
+        pbody = behavior->owner->physics->pregent;
+    PATHZONE *pctx = 0;
     if (pbody)
-        pctx = pbody->pctx;
-    int fReverse = behavior->fReverse;
+        pctx = (PATHZONE *)pbody->pathzone;
+    int fReverse = behavior->isReversed;
     float s;
     if (fReverse)
-        s = behavior->s - D_002BE634;
+        s = behavior->pathParam - D_002BE634;
     else
-        s = behavior->s + D_002BE634;
-    float sCurve = WrapShapeDistance(behavior->pcrv, s);
-    FindShapeClosestPointFromDistance(behavior->pcrv, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->s);
-    if (behavior->mode == 1 || behavior->mode == 4)
+        s = behavior->pathParam + D_002BE634;
+    float sCurve = WrapShapeDistance(behavior->shape, s);
+    FindShapeClosestPointFromDistance(behavior->shape, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->pathParam);
+    if (behavior->state == 1 || behavior->state == 4)
     {
-        fReverse = behavior->modeExtra != 2;
+        fReverse = behavior->isBlocked != 2;
         if (fReverse)
-            s = behavior->sExtra - D_002BE634;
+            s = behavior->blockerParam - D_002BE634;
         else
-            s = behavior->sExtra + D_002BE634;
-        float sCurve = WrapShapeDistance(behavior->pcrvExtra, s);
-        FindShapeClosestPointFromDistance(behavior->pcrvExtra, qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->sExtra);
+            s = behavior->blockerParam + D_002BE634;
+        float sCurve = WrapShapeDistance(((SHAPE *)behavior->blocker), s);
+        FindShapeClosestPointFromDistance(((SHAPE *)behavior->blocker), qwActor, sCurve, D_003DD020, &point, &dir, 0, &behavior->blockerParam);
     }
     dir.qw = NormalizeSafeN(VuProjectOut(dir.qw, g_normalZ), D_002A2DA0);
-    behavior->sSeparation = QwordX(VuLengthXY(VuSub(point.qw, posActor)));
-    float ds = EvaluateClampedQuadratic(&D_002BE640, &D_002BE650, behavior->sSeparation);
+    behavior->separation = QwordX(VuLengthXY(VuSub(point.qw, posActor)));
+    float ds = EvaluateClampedQuadratic(&D_002BE640, &D_002BE650, behavior->separation);
     if (fReverse)
         ds = -ds;
     float gSpeed;
@@ -2669,15 +2609,15 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
     else
     {
         gSpeed = D_002BE630;
-        switch (behavior->mode)
+        switch (behavior->state)
         {
         case 0:
         case 2:
         case 3:
-            if (behavior->pcrv == behavior->guard->pcrvPrimary)
+            if (behavior->shape == behavior->owner->unknown294)
             {
-                float sMin = -behavior->s;
-                float sMax = GetShapeMaxDistance(behavior->pcrv) - behavior->s;
+                float sMin = -behavior->pathParam;
+                float sMax = GetShapeMaxDistance(behavior->shape) - behavior->pathParam;
                 float dsClamp = Clamp(ds, sMin, sMax);
                 if (ds != dsClamp)
                     gSpeed = 0.0f;
@@ -2687,20 +2627,20 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             else
             {
                 float sNext;
-                if (behavior->pcrv->fWrap)
+                if (behavior->shape->isClosed)
                 {
-                    sNext = WrapShapeDistance(behavior->pcrv, behavior->s + ds);
+                    sNext = WrapShapeDistance(behavior->shape, behavior->pathParam + ds);
                 }
                 else
                 {
-                    float sMin = -behavior->s;
-                    float sMax = GetShapeMaxDistance(behavior->pcrv) - behavior->s;
+                    float sMin = -behavior->pathParam;
+                    float sMax = GetShapeMaxDistance(behavior->shape) - behavior->pathParam;
                     float dsClamp = Clamp(ds, sMin, sMax);
                     if (ds != dsClamp)
                         gSpeed = 0.0f;
-                    sNext = behavior->s + dsClamp;
+                    sNext = behavior->pathParam + dsClamp;
                 }
-                EvaluateShapeAtDistance(behavior->pcrv, sNext, &next, &nextDir);
+                EvaluateShapeAtDistance(behavior->shape, sNext, &next, &nextDir);
             }
             break;
         case 1:
@@ -2716,29 +2656,29 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
     qword vGoalCopy;
     __asm__("qmfc2.ni %0, %1" : "=r"(vGoalCopy) : "j"(vGoal)); /* GPR copy of vGoal */
 
-    if (behavior->fInit)
+    if (behavior->isInitialized)
     {
-        behavior->v = vGoalCopy;
-        behavior->pos = next.qw;
-        behavior->fInit = 0;
+        behavior->velocity = vGoalCopy;
+        behavior->startPosition = next.qw;
+        behavior->isInitialized = 0;
     }
-    qword accel = VecCombo(VUF(&D_002BE658), VuSub(vGoal, behavior->v), VUF(&D_002BE65C), VuSub(next.qw, behavior->pos));
-    if (!behavior->fNoCollide)
+    qword accel = VecCombo(VUF(&D_002BE658), VuSub(vGoal, behavior->velocity), VUF(&D_002BE65C), VuSub(next.qw, behavior->startPosition));
+    if (!behavior->ignoresBlockers)
     {
-        BODY *pbodySelf = behavior->guard->pgroup->pbody;
-        for (BODY *pbodyOther = pctx->pbodyFirst; pbodyOther; pbodyOther = pbodyOther->pbodyNext)
+        REGENT *pbodySelf = behavior->owner->physics->pregent;
+        for (REGENT *pbodyOther = (REGENT *)pctx->dlRegent.head; pbodyOther; pbodyOther = (REGENT *)pbodyOther->dlePathzone.next)
         {
-            if (pbodyOther->sRadius == 0.0f)
+            if (pbodyOther->unknown08 == 0.0f)
                 continue;
-            if (pbodyOther->gMass == 0.0f)
+            if (pbodyOther->unknown0C == 0.0f)
                 continue;
-            void *pobj = pbodyOther->pobj;
-            if (pobj == behavior->guard)
+            void *pobj = pbodyOther->pso;
+            if (pobj == (void *)behavior->owner)
                 continue;
             VEC posOther;
             VEC vecUnused;
             posOther.qw = GetLoWorldPos(pobj);
-            posOther.f[2] += pbodyOther->dz;
+            posOther.f[2] += pbodyOther->unknown04;
             qword dpos = VuSub(posActor, posOther.qw);
             if (__builtin_fabsf(QwordZ(dpos)) > D_002BE660)
                 continue;
@@ -2746,7 +2686,7 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             qword posPredict = VAddScaled(posOther.qw, vOther, VU_FLOAT(&D_002BE664));
             dpos = VProjectOut(dpos, g_normalZ);
 
-            qword dposLater = VProjectOut(VSub(behavior->pos, posPredict), g_normalZ);
+            qword dposLater = VProjectOut(VSub(behavior->startPosition, posPredict), g_normalZ);
 
             VEC normal;
             FindClosestPointOnLineSegment(D_002A2DD0, dpos, dposLater, &normal, 0, 0);
@@ -2759,8 +2699,8 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             else
                 normal.qw = VuDivByX(normalCopy, qwLen);
             float sGap = VuGetXKeepInVf(qwLen);
-            sGap = StdMax(0.0f, sGap - pbodyOther->sRadius - pbodySelf->sRadius);
-            float gMass = pbodyOther->gMass / (pbodyOther->gMass + pbodySelf->gMass);
+            sGap = StdMax(0.0f, sGap - pbodyOther->unknown08 - pbodySelf->unknown08);
+            float gMass = pbodyOther->unknown0C / (pbodyOther->unknown0C + pbodySelf->unknown0C);
             float g;
             if (sGap < D_002BE668)
             {
@@ -2774,16 +2714,15 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             {
                 g = 1.0f - sGap / D_002BE670;
 
-
                 pqwZero = &D_002A2DA0;
                 qword dirNow = DivSafe(dpos, VLength2(dpos), *pqwZero);
 
-                g *= EvaluateClampedQuadratic(&D_002BE680, &g_lmZeroOne, QwordX(VDot(dirNow, behavior->guard->axis)));
+                g *= EvaluateClampedQuadratic(&D_002BE680, &g_lmZeroOne, QwordX(VDot(dirNow, behavior->owner->aqwTarget[0])));
                 if (g == 0.0f)
                     continue;
                 VEC side;
                 side.qw = VCross(g_normalZ, nextDir.qw);
-                if (behavior->pcrv != behavior->guard->pcrvPrimary && QwordX(VDot(normal.qw, side.qw)) < 0.0f)
+                if (behavior->shape != behavior->owner->unknown294 && QwordX(VDot(normal.qw, side.qw)) < 0.0f)
                     g = -g;
                 accel = VAddScaled(accel, VCross(normal.qw, g_normalZ), VU_FLOAT(gMass * g * D_002BE674));
             }
@@ -2792,10 +2731,10 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
     float half = 0.5f;
     float dt = g_clock.deltaTime;
     accel = VuProjectOut(accel, g_normalZ);
-    qword posNext = VuIntegrateStep(behavior->pos, behavior->v, VU_FLOAT(dt), accel, VU_FLOAT(dt * (dt * half)));
-    qword vNew = VuMulAdd(behavior->v, accel, VU_FLOAT(dt));
+    qword posNext = VuIntegrateStep(behavior->startPosition, behavior->velocity, VU_FLOAT(dt), accel, VU_FLOAT(dt * (dt * half)));
+    qword vNew = VuMulAdd(behavior->velocity, accel, VU_FLOAT(dt));
     qword vNext = vNew;
-    if (!behavior->fNoCollide)
+    if (!behavior->ignoresBlockers)
     {
         VEC posHit;
         VEC vecUnused2;
@@ -2818,8 +2757,8 @@ extern "C" void StepBhvpathAlongShape(S *behavior)
             }
         }
     }
-    behavior->pos = posNext;
-    behavior->v = vNext;
+    behavior->startPosition = posNext;
+    behavior->velocity = vNext;
 }
 } // namespace M_StepBhvpathAlongShape
 
