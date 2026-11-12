@@ -215,7 +215,7 @@ template <class T> T *CGcObj<T>::PtNew()
 {
       if (Pslotheap()->pslotFree == 0)
       {
-            if (!g_sw.unknown3A14 || s_cpage >= 4)
+            if (!g_sw.isSpliceStarted || s_cpage >= 4)
                   g_gc.Collect();
             if (Pslotheap()->pslotFree == 0)
             {

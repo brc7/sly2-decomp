@@ -497,7 +497,7 @@ inline MATRIX3V operator*(const MATRIX3V &mat, VU_FLOAT g) return matRes
 extern "C" void RenderWaypt(WAYPT *waypoint)
 {
     RenderSoSelf(waypoint);
-    float fadeStart = Max(g_sw.tLookLast + D_002C4494, g_sw.unknown4754 + D_002C4498);
+    float fadeStart = Max(g_sw.tLookLast + D_002C4494, g_sw.worldStatsShownTime + D_002C4498);
     float showAlpha = ClampLocal(GEvaluateClq(&D_002C44A0, g_clock.time - fadeStart), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);
     fadeStart = g_sw.tLookLast + D_002C449C;
     float labelAlpha = ClampLocal(GEvaluateClq(&D_002C44B0, g_clock.time - fadeStart), g_lmZeroOne.minValue, g_lmZeroOne.maxValue);

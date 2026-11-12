@@ -50,7 +50,7 @@ struct REGTREE
     REGLINKLIST *linkLists;      /* per zone */
     int numLinks;
     PATHLINK **links;            /* every path link (CID 124), numbered through PATHLINK::linkIndex */
-    int linkVersion;             /* the world's navigation version (SW::unknown3D74), bumped when a link is added or removed */
+    int linkVersion;             /* the world's navigation version (SW::pathlinkVersion), bumped when a link is added or removed */
     int isBound;
 };
 typedef char assert_REGTREE_size[sizeof(REGTREE) == 0x30 ? 1 : -1];   /* EE */
@@ -1740,8 +1740,8 @@ extern "C" void AddPathlinkHierarchy(void *pathlink)
     int c;
     AddLoHierarchy(pathlink);
     pg = &g_sw;
-    c = pg->unknown3D74 + 1;
-    pg->unknown3D74 = c;
+    c = pg->pathlinkVersion + 1;
+    pg->pathlinkVersion = c;
     pg->pregtree->linkVersion = c;
 }
 } // namespace M_AddPathlinkHierarchy
@@ -1756,8 +1756,8 @@ extern "C" void RemovePathlinkHierarchy(void *pathlink)
     int c;
     RemoveLoHierarchy(pathlink);
     pg = &g_sw;
-    c = pg->unknown3D74 + 1;
-    pg->unknown3D74 = c;
+    c = pg->pathlinkVersion + 1;
+    pg->pathlinkVersion = c;
     pg->pregtree->linkVersion = c;
 }
 } // namespace M_RemovePathlinkHierarchy

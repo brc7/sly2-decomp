@@ -210,7 +210,7 @@ extern "C" SW *SW_ctor(SW *world)
     coefficients->g2=0.0f;
     world->idHintGrab=-1;
     world->tLookLast=-60.0f;
-    world->unknown4754=-60.0f;
+    world->worldStatsShownTime=-60.0f;
     world->fLightTreeDirty=1;
     func_002333B4(unknownBytes,-1,0x20);
     return world;
@@ -711,7 +711,7 @@ SLY2_SCRAP("slt $2, $zero, $2");
 // Shows the letterbox bars (counted; the first call hides the subtitles and shows the letterbox object).
 extern "C" void AcquireSwLetterbox(SW *world)
 {
-    if (++world->unknownCount3D80 == 1) {
+    if (++world->letterboxCount == 1) {
         ShowLetterbox(D_002E1E60);
     }
 }
@@ -719,7 +719,7 @@ extern "C" void AcquireSwLetterbox(SW *world)
 // Hides the letterbox bars when the last user releases them.
 extern "C" void ReleaseSwLetterbox(SW *world)
 {
-    if (--world->unknownCount3D80 == 0) {
+    if (--world->letterboxCount == 0) {
         HideLetterbox(D_002E1E60);
     }
 }
@@ -730,19 +730,19 @@ SLY2_SCRAP("slt $2, $zero, $2");
 // Locks player input (counted). (inferred)
 extern "C" void IncrementSwInputLock(SW *world)
 {
-    world->unknown3D84++;
+    world->inputLockCount++;
 }
 
 // Unlocks player input (counted). (inferred)
 extern "C" void DecrementSwInputLock(SW *world)
 {
-    world->unknown3D84--;
+    world->inputLockCount--;
 }
 
 // True while player input is locked. (inferred)
 extern "C" int IsSwInputLocked(SW *world)
 {
-    return world->unknown3D84 > 0;
+    return world->inputLockCount > 0;
 }
 
 namespace M_UpdateSwIllum {
@@ -1543,7 +1543,7 @@ extern "C" void StartSwAsegSound(float offset, float fade, float scale, SW *p, i
         Clamp(&f, D_002C3EB0);
         offset += f;
     }
-    offset += p->unknown475C;
+    offset += p->animSoundPitchOffset;
     m = CreateSfxSound(id);
     SetSndSourceLo(m, o);
     SetSndRange(m, (float)x, (float)y);

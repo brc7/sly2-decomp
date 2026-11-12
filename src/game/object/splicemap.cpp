@@ -49,7 +49,7 @@ extern "C" CRef EvalExpression__FP5CPairP6CFrame(CPair *ppair, CFrame *pframe);
 // Also known as: StartupSwSplice (upstream readable / Sly 1 name; StartupSwSplice__FP2SW).
 extern "C" void InitSwSpliceFrame(SW *world)
 {
-    world->unknown3A14 = 1;
+    world->isSpliceStarted = 1;
     world->scriptFrame = CGcObj<CFrame>::PtNew();
     world->scriptFrame.m_p->MakeRoot();
 }
@@ -58,7 +58,7 @@ extern "C" void InitSwSpliceFrame(SW *world)
 // Also known as: ShutdownSwSplice (upstream readable / Sly 1 name; ShutdownSwSplice__FP2SW).
 extern "C" void ClearSwSpliceTable(SW *world)
 {
-    world->unknown3A14 = 0;
+    world->isSpliceStarted = 0;
 }
 
 // Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.

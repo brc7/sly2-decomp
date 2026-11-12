@@ -223,7 +223,7 @@ struct SW : public BASIC
       SPLCS *psplcsHead;
       SL slEvent;           /* +0x39F0 [S] the deferred Splice callbacks, sorted by time (basic.cpp ScheduleSwSpliceCallback: its dlCallback) */
       SLOTHEAP slotheapEvent; /* +0x39FC [S] their records (basic.cpp: slotheapCallback) */
-      int unknown3A14;
+      int isSpliceStarted;   /* +0x3A14 set while the world's Splice frame exists (InitSwSpliceFrame / ClearSwSpliceTable); CGcObj::PtNew then grows the pool before collecting */
       SAVEVARS savevars;    /* +0x3A18 g_svstore, the save-variable schema (save.cpp) */
       int ctask;   /* number of tasks */
       DL dlTaskActive;      /* +0x3B00 [S] draft name: the TASKs SetTaskState appends / removes and BroadcastGameEvent walks
@@ -286,11 +286,11 @@ struct SW : public BASIC
       int stimulusSerial;    /* serial number of the last stimulus (inferred) */
       int lastEventId;      /* +0x3D6C [S] last callback id handed out (basic.cpp pre-increments it: its cCallbackId) */
       int pathzoneVersion;
-      int unknown3D74;
+      int pathlinkVersion;   /* +0x3D74 navigation version: bumped when a path link is added or removed, copied to pregtree->linkVersion (path.cpp) */
       int handsOffCount;    /* +0x3D78 [R] hands-off counter (1 during the safehouse char-select; runtime6 FINDINGS) */
       int noPauseCount; /* pause-disable counter (pausing is blocked while non-zero) */
-      int unknownCount3D80;
-      int unknown3D84;   /* possibly handsOffNesting (low-confidence guess: ++/-- in the hands-off pair (DecrementSwHandsOff)) */
+      int letterboxCount;   /* +0x3D80 letterbox users (AcquireSwLetterbox / ReleaseSwLetterbox): the first shows the bars, the last hides them */
+      int inputLockCount;   /* +0x3D84 input-lock nesting count (Increment/DecrementSwInputLock, IsSwInputLocked) (inferred) */
       DL dlAsega;   /* running animation segment applications (ASEGA) */
       SLOTHEAP slotheapAsega;   /* ASEGA records */
       SLOTHEAP slotheapAct;   /* actuator (ACT) records */
@@ -401,16 +401,17 @@ struct SW : public BASIC
       undefined4 unknown467C;
       JTGRABCAND ajtgrabcand[4];   /* the grab candidates */
       int idHintGrab;   /* hint id of the grab prompt (inferred) */
-      LO *unknown4744;   /* possibly grabMarkerSource (low-confidence guess: passed to PloAcquireJtGrabMarker) */
+      LO *grabMarkerTemplate;   /* +0x4744 the grab-marker object (oid 0x624) EmitJtGrabSparkles finds once and AcquireJtGrabMarker copies (inferred) */
       int areGuardsFrozen; /* guards are frozen */
       float guardsFrozenTime; /* time the guards were frozen */
       float tLookLast;   /* time of the last look-around (inferred) */
-      float unknown4754;    /* +0x4754 [S] a game time like tLookLast: both start at -60 (SW_ctor) and RenderWaypt fades the
-                               waypoints in from the later of the two (waypoint.cpp); was _pad_352 */
+      float worldStatsShownTime; /* +0x4754 [S] a game time like tLookLast: both start at -60 (SW_ctor) and RenderWaypt fades the
+                               waypoints in from the later of the two (waypoint.cpp); AcknowledgeStepplayerHint (Sly 1 ShowWorldStats) sets it
+                               to now (inferred); was _pad_352 */
       float guardAlertResumeTime; /* +0x4758 [S] game time before which guards in combat emit no alert stimulus (guardbhv.cpp
                                UpdateBhvcombat); gadget 0x17 sets it to now + D_002BCC94 after removing the player's noises
                                (stepplayer.cpp); was unknown4758 */
-      float unknown475C;
+      float animSoundPitchOffset;   /* +0x475C added to the pitch of animation-event sounds (StartSwAsegSound); slow-motion gadgets 0x1D / 0x2A set -1 / 0.7 (inferred) */
       int iclueNext;        /* +0x4760 [S] index the next loading clue bottle takes (prize.cpp CLUEPROXY::PostLoad); was _pad_354 */
       int numCluesCollected; /* +0x4764 [R] clue bottles collected in this level (HUD; 0 -> 1 between S04 and S05) */
       int numClues;         /* +0x4768 [R] clue bottles in this level (30 in the Paris hub) */

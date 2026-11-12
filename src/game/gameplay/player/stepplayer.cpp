@@ -229,7 +229,7 @@ extern "C" void AcknowledgeStepplayerHint(void)
     RestartHudWidget1(&g_sw);
     if (FindSwObjectsByClass(&g_sw, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(&g_sw);
     SetSndSourceLo(CreateSfxSound(0x32), 0);
-    g_sw.unknown4754 = g_clock.time;
+    g_sw.worldStatsShownTime = g_clock.time;
     g_cm.cplook.numActivations++;   /* the look policy's activation count (ActivateCplook/ActivateCpzoom also bump it) */
 }
 } // namespace M_func_00140338

@@ -2585,7 +2585,7 @@ LEmit:
 }
 } // namespace M_EmitJtGrabSparkles__FP2SWP10STEPPLAYERiP10JTGRABCAND
 
-/* Moves the world's grab marker (SW::unknown4744) onto the candidate for plo: acquires a new marker there and
+/* Moves the world's grab marker (SW::grabMarkerTemplate) onto the candidate for plo: acquires a new marker there and
    removes the candidate's old one (LO slot 9). */
 // Splice entry: for the candidate with the id, acquires a new marker proxy and replaces the old one.
 // Also known as: ShowJtAura (upstream readable / Sly 1 name; ShowJtAura__FP2SWi).
@@ -2594,7 +2594,7 @@ extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
     JTGRABCAND *candidate;
     LO *ploMarker;
     int i;
-    if (!lo || !world->unknown4744)
+    if (!lo || !world->grabMarkerTemplate)
         return;
     for (i = 0; i < world->cjtgrabcand; i++) {
         JTGRABCAND *pcandI = &world->ajtgrabcand[i];
@@ -2605,7 +2605,7 @@ extern "C" void SetGrabMarkerProxy(SW *world, LO *lo)
     }
     if (!candidate)
         return;
-    ploMarker = AcquireJtGrabMarker(world, world->unknown4744, candidate);
+    ploMarker = AcquireJtGrabMarker(world, world->grabMarkerTemplate, candidate);
     if (!ploMarker)
         return;
     if (candidate->unknown10) {
@@ -2641,7 +2641,7 @@ extern "C" LO *AcquireJtGrabMarker(SW *world, LO *lo, JTGRABCAND *candidate)
 // World post-load: finds the grab marker template (oid 0x624) into g_sw+0x4744.
 extern "C" void PostLoadGrabMarker(SW *world)
 {
-    world->unknown4744 = FindSwObject(world, 0x405, (OID)0x624, 0);
+    world->grabMarkerTemplate = FindSwObject(world, 0x405, (OID)0x624, 0);
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
