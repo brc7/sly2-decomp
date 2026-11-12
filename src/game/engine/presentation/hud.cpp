@@ -3327,12 +3327,18 @@ extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 // 0x218748 FinishSpriteSoundEvent
 namespace M_func_00218748 {
 void PauseSnd(void *p) __asm__("PauseSnd");
-// The record's entry array (word at +8).
+#ifdef SLY2_EE_ASM
+// The group's slot array (SPRITEGRP::slots, the word at +8), loaded in asm for the match.
 extern "C" { static inline SPRITESLOT *Entries(const SPRITEGRP *p){SPRITESLOT *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;} }
 // Load a sound pointer from its slot into $3.
 extern "C" { static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;} }
 // Address of entry `index` (register-pinned arithmetic).
 extern "C" { static inline SPRITESLOT *EntryAt(SPRITESLOT *entries,int index){register SPRITESLOT *value asm("$2");register int bytes asm("$5")=index*sizeof(SPRITESLOT);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;} }
+#else
+static inline SPRITESLOT *Entries(const SPRITEGRP *p) { return p->slots; }
+static inline void *SoundRead(void *const *slot) { return *slot; }
+static inline SPRITESLOT *EntryAt(SPRITESLOT *entries, int index) { return &entries[index]; }
+#endif
 } // namespace M_func_00218748
 // Marks a sprite sound event done and stops or pauses its sound. (inferred)
 extern "C" void FinishSpriteSoundEvent(SPRITEGRP *p, int slot)
