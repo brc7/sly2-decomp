@@ -646,12 +646,12 @@ void GetSoNoJtPlace() __asm__("GetSoNoJtPlace");
 void SetSoNoJtPlace() __asm__("SetSoNoJtPlace");
 void SetSoTreeRoot() __asm__("SetSoTreeRoot");
 void SetSoAnimIndex() __asm__("SetSoAnimIndex");
-void SetSoPhysRecordParam8() __asm__("SetSoPhysRecordParam8");
-void GetSoPhysRecordParam8() __asm__("GetSoPhysRecordParam8");
-void SetSoPhysRecordParamC() __asm__("SetSoPhysRecordParamC");
-void GetSoPhysRecordParamC() __asm__("GetSoPhysRecordParamC");
-void SetSoPhysRecordParam4() __asm__("SetSoPhysRecordParam4");
-void GetSoPhysRecordParam4() __asm__("GetSoPhysRecordParam4");
+void SetSoRegionRadius() __asm__("SetSoRegionRadius");
+void GetSoRegionRadius() __asm__("GetSoRegionRadius");
+void SetSoRegionMass() __asm__("SetSoRegionMass");
+void GetSoRegionMass() __asm__("GetSoRegionMass");
+void SetSoRegionHeightOffset() __asm__("SetSoRegionHeightOffset");
+void GetSoRegionHeightOffset() __asm__("GetSoRegionHeightOffset");
 void SetSoBit35Hierarchy() __asm__("SetSoBit35Hierarchy");
 void GetXfHandleParamAC() __asm__("GetXfHandleParamAC");
 void SetXfHandleParamAC() __asm__("SetXfHandleParamAC");
@@ -830,9 +830,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x2095, 1, EOPID_NONE, EOPID_FN(RefThunk_NewSoXfHandle), EOPID_INT(2), EOPID_NONE}, /* [77] opt 194, SO (+60) */
     {0x2096, 1, EOPID_NONE, EOPID_FN(RefThunk_NewSoPartHandle), EOPID_INT(1), EOPID_NONE}, /* [78] opt 195, SO (+60) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetSoTargetRecordParams), EOPID_FN(RefThunk_SetSoTargetRecordParams), EOPID_INT(2), EOPID_NONE}, /* [79] opt 196, SO (+60) */
-    {1, 0x124, EOPID_PMF(GetSoPhysRecordParam8), EOPID_PMF(SetSoPhysRecordParam8), EOPID_PMF(SetSoPhysRecordParam8), EOPID_NONE}, /* [80] opt 197, SO (+60) */
-    {1, 0x124, EOPID_PMF(GetSoPhysRecordParamC), EOPID_PMF(SetSoPhysRecordParamC), EOPID_PMF(SetSoPhysRecordParamC), EOPID_NONE}, /* [81] opt 198, SO (+60) */
-    {1, 0x124, EOPID_PMF(GetSoPhysRecordParam4), EOPID_PMF(SetSoPhysRecordParam4), EOPID_PMF(SetSoPhysRecordParam4), EOPID_NONE}, /* [82] opt 199, SO (+60) */
+    {1, 0x124, EOPID_PMF(GetSoRegionRadius), EOPID_PMF(SetSoRegionRadius), EOPID_PMF(SetSoRegionRadius), EOPID_NONE}, /* [80] opt 197, SO (+60) */
+    {1, 0x124, EOPID_PMF(GetSoRegionMass), EOPID_PMF(SetSoRegionMass), EOPID_PMF(SetSoRegionMass), EOPID_NONE}, /* [81] opt 198, SO (+60) */
+    {1, 0x124, EOPID_PMF(GetSoRegionHeightOffset), EOPID_PMF(SetSoRegionHeightOffset), EOPID_PMF(SetSoRegionHeightOffset), EOPID_NONE}, /* [82] opt 199, SO (+60) */
     {0x2011, 4, EOPID_PMFI(GetSoPathzone), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [83] opt 200, SO (+60) */
     {1, 4, EOPID_VPMF(0xA, 0xC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [84] opt 202, SAA (+6) */
     {0xA, 0x12, EOPID_OFF(LOOP, loopTimeRange), EOPID_OFF(LOOP, loopTimeRange), EOPID_NONE, EOPID_NONE}, /* [85] opt 143, LOOP */

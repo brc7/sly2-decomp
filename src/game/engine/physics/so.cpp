@@ -3638,9 +3638,9 @@ REGENT *EnsureSoPhysRegionRecord(SO *so) __asm__("EnsureSoPhysRegionRecord"); RE
 }
 } // namespace M_func_001F8300
 
-// 0x1F83B0 SetSoPhysRecordParam8
-// Sets the region record's second float. (inferred)
-extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
+// 0x1F83B0 SetSoRegionRadius
+// Sets the object's REGENT radius (the path follower's avoidance radius): level option 197.
+extern "C" void SetSoRegionRadius(STEP *step, float g)
 {
     REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
@@ -3649,15 +3649,21 @@ extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
     }
 }
 
-// 0x1F83E0 GetSoPhysRecordParam8
-namespace M_func_001F83E0 {
-// Returns the region record's second float (0 without a record). (inferred)
-extern "C" float GetSoPhysRecordParam8(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->radius; return 0.0f; }
-} // namespace M_func_001F83E0
+// 0x1F83E0 GetSoRegionRadius
 
-// 0x1F8410 SetSoPhysRecordParamC
-// Sets the region record's third float. (inferred)
-extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
+// Returns the object's REGENT radius (0 without a record): level option 197.
+extern "C" float GetSoRegionRadius(SO *p)
+{
+    REGENT *pu = 0;
+    if (p->physics) pu = p->physics->pregent;
+    if (pu) return pu->radius;
+    return 0.0f;
+}
+
+
+// 0x1F8410 SetSoRegionMass
+// Sets the object's REGENT mass (the path follower's avoidance weight): level option 198.
+extern "C" void SetSoRegionMass(STEP *step, float g)
 {
     REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
@@ -3666,15 +3672,21 @@ extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
     }
 }
 
-// 0x1F8440 GetSoPhysRecordParamC
-namespace M_func_001F8440 {
-// Returns the region record's third float (0 without a record). (inferred)
-extern "C" float GetSoPhysRecordParamC(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->mass; return 0.0f; }
-} // namespace M_func_001F8440
+// 0x1F8440 GetSoRegionMass
 
-// 0x1F8470 SetSoPhysRecordParam4
-// Sets the region record's first float. (inferred)
-extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
+// Returns the object's REGENT mass (0 without a record): level option 198.
+extern "C" float GetSoRegionMass(SO *p)
+{
+    REGENT *pu = 0;
+    if (p->physics) pu = p->physics->pregent;
+    if (pu) return pu->mass;
+    return 0.0f;
+}
+
+
+// 0x1F8470 SetSoRegionHeightOffset
+// Sets the object's REGENT height offset (its centre above its position): level option 199.
+extern "C" void SetSoRegionHeightOffset(STEP *step, float g)
 {
     REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
@@ -3683,11 +3695,17 @@ extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
     }
 }
 
-// 0x1F84A0 GetSoPhysRecordParam4
-namespace M_func_001F84A0 {
-// Returns the region record's first float (0 without a record). (inferred)
-extern "C" float GetSoPhysRecordParam4(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->heightOffset; return 0.0f; }
-} // namespace M_func_001F84A0
+// 0x1F84A0 GetSoRegionHeightOffset
+
+// Returns the object's REGENT height offset (0 without a record): level option 199.
+extern "C" float GetSoRegionHeightOffset(SO *p)
+{
+    REGENT *pu = 0;
+    if (p->physics) pu = p->physics->pregent;
+    if (pu) return pu->heightOffset;
+    return 0.0f;
+}
+
 
 // 0x1F84D0 SetSoIceable__FP2SOi
 // SO+0x148 bit 33 (64-bit unit at 0x148). Lilly's port calls this bit hurtRespawnsHero; the function name says "iceable".
