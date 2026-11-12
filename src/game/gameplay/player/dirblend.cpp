@@ -16,6 +16,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/stepplayer.h"
+#include "sly2/guard.h"   /* STEPGUARD::lootPouch */
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
 struct ACTOR; struct MULTI;
@@ -25,7 +26,6 @@ struct ACTOR; struct MULTI;
    clip, root velocity); the weight is also read as its bits. */
 
 /* The object the player faces (STEPPLAYER::interactTarget); +0x494: its anchor. */
-struct TARGETV { char pad[0x494]; LO *anchor; };
 
 extern "C" {
 CHN *FindAsegChannel(ASEG *clip, ACTOR *actor, void *keyFlag, int keyMode);
@@ -296,7 +296,7 @@ extern "C" void UpdateDirectionalAcceleration(STEPPLAYER *player, BLDIR *axes, i
     target = player->interactTarget;
     if (target) {
         if (player->nUnk10e4 == 3)
-            target = ((TARGETV *)target)->anchor;
+            target = ((STEPGUARD *)target)->lootPouch;   /* pickpocketing: face the guard's pouch */
         FaceStepToward(player, target);
     }
     zero = 0.0f;
@@ -328,7 +328,8 @@ extern "C" void UpdateDirectionalAcceleration(STEPPLAYER *player, BLDIR *axes, i
     }
     *(int *)&player->vecLocalVelocity.z = 0;
     {
-        unsigned int animWord = (unsigned int)player->activeAnimation;
+#ifdef SLY2_EE_ASM
+        unsigned int animWord = (unsigned int)player->activeAnimation;   /* the pointer, then (same register) its speed's bits */
         register qword rate __asm__("vf2"), acceleration __asm__("vf1"), scaled __asm__("vf1");
         __asm__("lqc2 %0,%2\n\tlw %1,%3"
                 : "=j"(acceleration), "+r"(animWord)
@@ -336,5 +337,12 @@ extern "C" void UpdateDirectionalAcceleration(STEPPLAYER *player, BLDIR *axes, i
         rate = VuFromFloat<qword>(animWord);
         scaled = ScaleAndSetSide(player, acceleration, rate, side);
         __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->localVelocity), "=m"(scaleOut.q) : "j"(scaled), "j"(rate));
+#else
+        /* the local velocity scaled by the current animation's speed */
+        qword rate = VuFromFloat<qword>(player->activeAnimation->speed);
+        qword scaled = ScaleAndSetSide(player, player->localVelocity, rate, side);
+        player->localVelocity = scaled;
+        scaleOut.q = rate;
+#endif
     }
 }
