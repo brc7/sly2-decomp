@@ -288,11 +288,11 @@ int GetGradeOidForIndex(int gradeIndex)
 // Claude agent (lane D37): writing the range through a pointer to the 0x234 pair keeps cse from folding
 // gMax - gMin, like the target (no asm, no volatile).
 // The LO flag word: stored inline, or (low bit clear) a pointer to a shared one; sets bits wherever it lives.
-static inline void SetTaggedFlags(unsigned int *taggedFlags, int bits)
+static inline void SetTaggedFlags(LO *plo, int bits)
 {
-    unsigned int flags = *taggedFlags;
-    if ((flags ^ 1) & 1) *(int *)flags |= bits;
-    else *taggedFlags = flags | bits;
+    uptr flags = (uptr)plo->ploupd;   /* LO's tagged word, pointer-wide (lo.h) */
+    if ((flags ^ 1) & 1) plo->ploupd->grf |= bits;
+    else plo->inlineFlags = flags | bits;
 }
 // Rhythm manager (cid 0x79) vtable slot 7 (Init): LO init; becomes the singleton D_002DE570; score range [-1.5, 1],
 // 0.4 s press windows, 8-score average, smoothing, the per-outcome scores; busy, LO flags 0xA.
@@ -320,7 +320,7 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
     manager->earlyPressScore = -1.5f;
     manager->missScore = -1.5f;
     SetLoBusyKind(manager, 1);
-    SetTaggedFlags((unsigned int *)&manager->inlineFlags, 0xA);
+    SetTaggedFlags(manager, 0xA);
 }
 
 // Rhythm manager vtable slot 15 (PostLoad): LO post-load, then queues BindRhythmManagerGrades (D_002A5010) as a world

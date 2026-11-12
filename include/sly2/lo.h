@@ -69,7 +69,7 @@ struct LO : public BASIC
       PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
       union
       {
-          int inlineFlags;   /* the flag word itself when bit 0 is set (tag): 2 set by Init, 4 = slots awake, 0x10 = snap (xf.cpp) */
+          sptr inlineFlags;   /* (pointer-sized: a store of the flags covers a LOUPD pointer that was there) the flag word itself when bit 0 is set (tag): 2 set by Init, 4 = slots awake, 0x10 = snap (xf.cpp) */
           struct LOUPD *ploupd;   /* bit 0 clear: the object is in SW::aloupd and its flags are that entry's grf
                                      (AddLoToSwUpdateList) */
       };

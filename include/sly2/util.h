@@ -11,6 +11,7 @@
  * on every value except ties of signed zeros and NaN; pick the one the site was written with, or the code changes. */
 #ifndef SLY2_UTIL_H
 #define SLY2_UTIL_H
+#include "sly2/port.h"   /* sptr (IsPointer) */
 
 // Smaller of a and b.
 inline float Min(float a, float b) { return a < b ? a : b; }
@@ -50,7 +51,7 @@ inline int ClampInt(int value, int low, int high)
 inline float Abs(float value) { return __builtin_fabsf(value); }
 
 /* a word that holds either a pointer (low bit clear) or a tagged value (low bit set): is it the pointer? */
-inline int IsPointer(int word) { return !(word & 1); }
+inline int IsPointer(sptr word) { return !(word & 1); }
 
 /* t in [0, 1] mapped onto the integers from first to last inclusive (each value gets an equal share of t) */
 inline int LerpInt(float t, int first, int last)
