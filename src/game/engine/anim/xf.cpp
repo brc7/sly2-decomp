@@ -841,7 +841,7 @@ extern "C" void UpdateXfJobRange(void *pa, XF *p)
 //   role 0x11   position row: Hermite from the current value + velocity to restValue at the time `reference` (as float), then restValue
 //   role 0x12   spring-damper to the rest value (xfk 1: kp = stiffness * 0.015, kd = damping * 0.0025; xfk 6 the same on the angle); settled (phase 2, small speed + distance) -> role 0x13
 //   role 0x15   only keeps the SO awake
-// After the switch the XF's world matrix is parent->worldMatrix * mat (VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
+// After the switch the XF's world matrix is mat * parent->worldMatrix (row vectors; VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
 // The SO's flag 4 (unknown40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
 // HOW IT IS WRITTEN (T1113, each point verified on the diff; scratch decomp/build/scratch/t1113/, cmp.py = aligned diff + sp-offset score):
 //  - every 128-bit read through a cast (`*(qword *)&pxf->velocity`, `*(qword *)&pxf->acceleration`, the position row) is an alias-everything load that cannot move
