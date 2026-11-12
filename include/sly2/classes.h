@@ -808,7 +808,7 @@ struct BHV181 : BHV
     LO *target;             /* +0x4C */
     int attackCount;        /* +0x50 */
     GUARDATTACK *attack;         /* +0x54 the chosen attack */
-    int unknown58[2];
+    int pad58[2];
     virtual void Start() __asm__("StartBhvDimitriAttack");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvDimitriAttack");   /* slot 7 */
@@ -1008,7 +1008,7 @@ struct BHV171 : BHV
     int unknown4C;
     BHV171POINT searchPoints[4]; /* +0x50 (ChooseBhvSearchPoints) */
     unsigned int searchPointIndex; /* +0xD0 */
-    int unknownD4[3];
+    int padD4[3];
     virtual void Start() __asm__("StartBhvSearch");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv171ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvSearch");   /* slot 7 */
@@ -1213,7 +1213,7 @@ struct BHVWALKGOAL : BHVPATH
     float mirrorDelay;      /* +0xC8 */
     int forcesButton8;      /* +0xCC */
     float speedScale;       /* +0xD0 */
-    int unknownD4[3];
+    int padD4[3];
     virtual void OnPush() __asm__("InitBhvwalkgoal");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvwalkgoalClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvwalkgoal");   /* slot 8 */
@@ -1533,7 +1533,7 @@ struct BHV183 : BHV
     qword localOffset;      /* +0x40 the escort position in the escorted object's frame */
     int state;              /* +0x50 */
     float stateTime;        /* +0x54 */
-    int unknown58[2];
+    int pad58[2];
     qword lastGoalPosition; /* +0x60 */
     virtual void Start() __asm__("StartBhvEscort");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv183ClassDesc");   /* slot 6 */
@@ -1606,7 +1606,8 @@ struct BHVGOTO : BHV
     float planTime;         /* +0xA0 time of the last route plan */
     int pathGraphVersion;   /* +0xA4 path graph version the route was planned on */
     LO *lookAtTarget;       /* +0xA8 */
-    int unknownAC;
+    int walkFacingPath;     /* +0xAC walk with the forward clip (sgf 9) even with a look-at target (SetBhvgotoState; set by
+                               SetBhvcombatState, SetBhvEscortState, BHVPATROLPATH::walkFacingPath) */
     float gotoParam;        /* +0xB0 [S] set from the script's goto command (SSGE::gotoParam; meaning unknown) */
     int numRouteLinks;      /* +0xB4 */
     union {
@@ -1633,7 +1634,7 @@ struct BHVPATROLPATH : BHV
     int unknown3C;
     qword goal;             /* +0x40 */
     LO *lookAtTarget;       /* +0x50 */
-    int unknown54;
+    int walkFacingPath;     /* +0x54 handed to the BHVGOTO it pushes (StartBhvpatrolpath) */
     int isDirect;           /* +0x58 */
     int unknown5C;
     virtual void Close() __asm__("CloseBhvpatrolpath");   /* slot 9 */

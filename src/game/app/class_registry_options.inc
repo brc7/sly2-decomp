@@ -1525,9 +1525,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(RefThunk_SetJtUnknown1FA0), EOPID_FN(RefThunk_SetJtUnknown1FA0), EOPID_INT(1), EOPID_NONE}, /* [772] opt 755, JT */
     {0x2030, 2, EOPID_OFF(JT, ploPickpocket), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [773] opt 756, JT */
     {0x105C, 0x92, EOPID_OFF(BENTLEY, dartKind), EOPID_OFF(BENTLEY, dartKind), EOPID_OFF(BENTLEY, dartKind), EOPID_NONE}, /* [774] opt 757, BENTLEY */
-    {0, 0x92, EOPID_OFF(BENTLEY, unknown1818), EOPID_OFF(BENTLEY, unknown1818), EOPID_OFF(BENTLEY, unknown1818), EOPID_NONE}, /* [775] opt 758, BENTLEY */
-    {0, 0x92, EOPID_OFF(BENTLEY, unknown181C), EOPID_OFF(BENTLEY, unknown181C), EOPID_OFF(BENTLEY, unknown181C), EOPID_NONE}, /* [776] opt 759, BENTLEY */
-    {0x1049, 0x92, EOPID_OFF(BENTLEY, unknown1870), EOPID_OFF(BENTLEY, unknown1870), EOPID_OFF(BENTLEY, unknown1870), EOPID_NONE}, /* [777] opt 760, BENTLEY */
+    {0, 0x92, EOPID_OFF(BENTLEY, gadgetsLocked), EOPID_OFF(BENTLEY, gadgetsLocked), EOPID_OFF(BENTLEY, gadgetsLocked), EOPID_NONE}, /* [775] opt 758, BENTLEY */
+    {0, 0x92, EOPID_OFF(BENTLEY, isPosedIdle), EOPID_OFF(BENTLEY, isPosedIdle), EOPID_OFF(BENTLEY, isPosedIdle), EOPID_NONE}, /* [776] opt 759, BENTLEY */
+    {0x1049, 0x92, EOPID_OFF(BENTLEY, altAttackGadgetId), EOPID_OFF(BENTLEY, altAttackGadgetId), EOPID_OFF(BENTLEY, altAttackGadgetId), EOPID_NONE}, /* [777] opt 760, BENTLEY */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_PutHeroAtWarp), EOPID_NONE, EOPID_NONE}, /* [778] opt 235, WARPDEST */
     {6, 0x92, EOPID_OFF(EXIT, targetWarpOid), EOPID_OFF(EXIT, targetWarpOid), EOPID_OFF(EXIT, targetWarpOid), EOPID_NONE}, /* [779] opt 761, EXIT */
     {6, 0x92, EOPID_OFF(EXIT, wipeOid), EOPID_OFF(EXIT, wipeOid), EOPID_OFF(EXIT, wipeOid), EOPID_NONE}, /* [780] opt 764, EXIT */

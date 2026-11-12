@@ -1352,7 +1352,7 @@ extern "C" void SetBhvcombatState(BHVCOMBAT *behavior, int n) {
             x.pos = v2;
             SetBhvgotoGoal(o, &x);
             o->lookAtTarget = behavior->target;
-            o->unknownAC = 1;
+            o->walkFacingPath = 1;
             o->Start();
             behavior->cachedPosition = v1;
             behavior->pathzone = FindPathzoneAtPos(v1, 1);
@@ -5357,7 +5357,7 @@ extern "C" void SetBhvEscortState(BHV183 *behavior, int n) {
             behavior->lastGoalPosition = v;
             o->allowPartialRoute = 1;
             o->lookAtTarget = behavior->escorted;
-            o->unknownAC = 1;
+            o->walkFacingPath = 1;
             ClearPointerPair(&x);
             x.pos = v;
             SetBhvgotoGoal(o, &x);
@@ -5827,7 +5827,7 @@ extern "C" void SetBhvgotoState(BHVGOTO *behavior, int n) {
                 o = (BHVWALKPATH *)PushStepBehavior((STEPGUARD *)behavior->owner, CID_BHVWALKPATH);
                 o->lookAtTarget = behavior->lookAtTarget;
                 o->ignoresBlockers = behavior->isDirect;
-                if (!behavior->lookAtTarget || behavior->unknownAC || !(((STEPGUARD *)behavior->owner)->capabilityFlags & 4)) o->animSgf = 9; else o->animSgf = 8;
+                if (!behavior->lookAtTarget || behavior->walkFacingPath || !(((STEPGUARD *)behavior->owner)->capabilityFlags & 4)) o->animSgf = 9; else o->animSgf = 8;
                 SetBhvpathShape(o, behavior->owner->routeShape, 0);
                 o->Start();
             } else {
@@ -6687,7 +6687,7 @@ extern "C" void StartBhvpatrolpath(BHVPATROLPATH *behavior) {
         FindShapeClosestPoint(behavior->shape, GetLoWorldPos(behavior->owner), &D_003DD020, &behavior->goal, 0, 0, &behavior->pathParam);
     o = (BHVGOTO *)PushStepBehavior(behavior->owner, CID_BHVGOTO);
     o->lookAtTarget = behavior->lookAtTarget;
-    o->unknownAC = behavior->unknown54;
+    o->walkFacingPath = behavior->walkFacingPath;
     o->isDirect = behavior->isDirect;
     AdvanceBhvpatrolpathGoal(behavior, 1);
     o->Start();

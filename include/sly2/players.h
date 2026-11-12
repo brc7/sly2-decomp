@@ -37,7 +37,7 @@ struct MURRAY : public STEPPLAYER
       int state;    /* Murray's state (MURRAY_IDLE.., SetMurrayState) */
       float stateTime;   /* +0x13D4 clock.time state was entered (SetMurrayState) */
       int flopSubstate;   /* +0x13D8 sub-state of MURRAY_FLOP (UpdateMurrayFlop): 1 waits for landing (no ground probe), 2 impact */
-      float unknown13DC;   /* +0x13DC passed to IsJtStuck while flopping */
+      float flopSubstateTime;   /* +0x13DC clock.time flopSubstate was set (SetMurrayFlopSubstate); the stuck test's start (IsJtStuck) */
       ASEG *pasegFlop;   /* +0x13E0 the flop clip (SetMurrayState MURRAY_FLOP; pasegFlopGadget instead when fFlopGadget) */
       struct XP *pxpFlop;   /* +0x13E4 contacts collected during the flop dive (AdjustMurrayNewXp appends); nonzero: landed
                              (UpdateMurrayFlop); zapped and freed at impact (SetMurrayFlopSubstate) */
@@ -68,7 +68,8 @@ struct MURRAY : public STEPPLAYER
       float carrySubstateTime;   /* +0x145C clock.time carrySubstate was set */
       GAIT gaitB;   /* +0x1460 */
       struct SM *psmCarryStand;   /* +0x1510 the state machine carry sub-state 0 applies (SetMurrayCarrySubstate) */
-      LO *unknown1514[2];   /* +0x1514 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
+      ASEG *unknown1514[2];   /* +0x1514 clips bound by oid 0x1E5 / 0x1E6 (the players' SNIP tables; ASEG in every snapshot); not
+                                 read by the code found */
       ASEG *pasegCarryRun;   /* +0x151C the clip of carry sub-state 2 */
       struct SM *psmStruggle;   /* +0x1520 the state machine MURRAY_STRUGGLE applies (SetMurrayState) */
       float struggleTimeLeft;   /* +0x1524 counts down during a struggle (UpdateMurrayStruggle) */
@@ -79,9 +80,10 @@ struct MURRAY : public STEPPLAYER
       undefined4 unk_0x1538[(0x1540 - 0x1538) / 4];
       GAIT gaitC;   /* +0x1540 */
       void *ikEndA;   /* +0x15F0 ikChainA's end transform */
-      void *unknown15F4;   /* +0x15F4 transform 0x202 (FindSoXf kind 6) */
+      void *ikEndMatrixXfA;   /* +0x15F4 transform 0x202 (FindSoXf kind 6), ikChainA's end: the carry's matrix act turns it to the
+                                 grip's orientation (SetMurrayLiftSubstate) */
       void *ikEndB;   /* +0x15F8 ikChainB's end transform */
-      void *unknown15FC;   /* +0x15FC transform 0x205 (FindSoXf kind 6) */
+      void *ikEndMatrixXfB;   /* +0x15FC transform 0x205 (FindSoXf kind 6), the same for ikChainB */
       struct ACT *apactCarryB[4];   /* +0x1600 more grip actuators (DetachMurrayCarried) */
       PARTLINK *ikChainA;   /* +0x1610 IK chain of transforms 0x200..0x202 (LoadMurrayFromBrx; a hand, inferred) */
       PARTLINK *ikChainB;   /* +0x1614 IK chain of transforms 0x203..0x205 */
@@ -90,19 +92,23 @@ struct MURRAY : public STEPPLAYER
       GAIT gaitD;   /* +0x1630 */
       struct SM *psmStrafeIdle;   /* +0x16E0 the state machine strafe sub-state 0 applies (SetMurrayStrafeSubstate) */
       undefined4 unk_0x16e4[(0x16f0 - 0x16e4) / 4];
-      BLDIR unknown16F0[8];     /* directional animation blends */
-      ASEGBL *unknown17F0;
+      BLDIR abldirStrafe[8];     /* +0x16F0 the strafe's directional blends (UpdateDirectionalBlend while strafing; [1]'s root speed
+                                    scales strafe sub-state 2) */
+      ASEGBL *pasegblStrafe;     /* +0x17F0 their blended segment */
       int strafeSubstate;   /* +0x17F4 sub-state while strafing (MURRAY_STRAFE; nonzero: noisy movement) */
       float strafeStartTime;   /* +0x17F8 clock.time strafeSubstate was set */
       ASEG *apasegAttack[5];   /* +0x17FC attack clips by attack kind (SetMurrayAttack): 0/1 square (the two hands), 2/3 triangle
                                   (StartMurrayPunch/AltAttack), 4 (OID 0xC4) */
       int attackSubstate;   /* +0x1810 current attack kind, -1 none (SetMurrayAttack) */
       float attackStartTime;   /* +0x1814 clock.time attackSubstate was set */
-      int unknown1818;   /* +0x1818 cleared when an attack starts */
-      int unknown181C;   /* +0x181C cleared when an attack starts */
+      int isAttackSteerable;   /* +0x1818 from the attack clip's label 0x240: the stick steers the attack's velocity until label
+                                  0x242 (UpdateMurrayAttackVelocity); cleared when an attack starts */
+      int isAttackCancelable;   /* +0x181C from label 0x241: stick input cancels the attack (CancelMurrayAttack); cleared when an
+                                   attack starts */
       int comboWindow;   /* +0x1820 a new attack may start while one runs (CanMurrayAttack); cleared when an attack starts */
       undefined4 unk_0x1824[(0x1830 - 0x1824) / 4];
-      qword unknown1830;
+      qword attackEndPosition;   /* +0x1830 where the attack clip's root motion ends (SetMurrayAttack); the stun-hold position while
+                                    attacking (GetMurrayStunHold) */
       int subState;   /* +0x1840 sub-state of Murray's behaviour (BHV198's Update, ai/stepbhv.cpp: 0 face the player, 1 keep turning) */
       float subStateTime;   /* +0x1844 clock.time subState was set (UpdateMurrayPower timeouts) */
       ASEG *pasegPowerA;   /* +0x1848 power-move clip of sub-state 0 (SetMurrayPowerSubstate) */
@@ -112,7 +118,8 @@ struct MURRAY : public STEPPLAYER
       struct LEAP *pleapPower;   /* +0x1900 the leap of the power attack (UpdateMurrayPower runs it) */
       ASEG *pasegPowerEnd;   /* +0x1904 power-move clip of sub-state 3 */
       int powerContactTrigger;   /* +0x1908 set on contact during the power attack (AdjustMurrayNewXp; UpdateMurrayPower) */
-      struct ASEGA *unknown190C;     /* running animation segment application; possibly animationPlayback (low-confidence guess: header comment: running animation segment application) */
+      struct ASEGA *pasegaAttackOverlay;   /* +0x190C the previous attack's clip, kept running while the next one starts (SetMurrayAttack;
+                                              CanMurrayAttack, StartMurrayPunch alternate hands on it; released when retracted) */
       JTTHROW jtthrowAim;   /* +0x1910 Murray's aimed-throw component (MURRAY_AIMED_THROW; PostJtThrowLoad, SetJtThrowState,
                                UpdateJtThrowHoldPosition take it); was MOVEREC, a partial view of the same JTTHROW */
       struct EXPL *pexplDustLand;   /* +0x1A50 dust effect on landing out of a jump (SetMurrayState: Add, ExplodeWithDefaults, Remove) */
@@ -121,8 +128,9 @@ struct MURRAY : public STEPPLAYER
       SOPART *aprecCarry[4];   /* per-carry-slot records */
       int isBehaviorActive;   /* +0x1AC0 1 while Murray's behaviour (BHV198) runs: set by its Start, cleared by its Close (inferred) */
       struct ASEG *pasegGadgetUse;   /* +0x1AC4 the gadget-use clip (ASEG table entry 0x156; pasegGadget for gadget 15) */
-      float unknown1AC8;
-      struct ACT1 *pact1Unk1acc;
+      float growStartTime;   /* +0x1AC8 for D_002C08E4 (5 s) after it pactScale holds 1.25x (UpdateMurray); -60 at init and no
+                                writer found, so never active (inferred) */
+      struct ACT1 *pactScale;   /* +0x1ACC the scale act on transform kind 0xC (PostMurrayLoad; ACT1 in every snapshot) */
       SO *psoHitEffect;   /* +0x1AD0 hit effect object placed at a hit with power-up 0x11 (SpawnMurrayHitEffect) */
       struct ASEG *pasegHitEffect;   /* +0x1AD4 its animation */
       SO *psoHitEffectB;   /* +0x1AD8 the effect of event 0x40000 (SpawnMurrayHitEffectUnchecked) */
@@ -131,7 +139,8 @@ struct MURRAY : public STEPPLAYER
       ASEG *pasegTossGadget;   /* +0x1AE4 toss clip of the gadget toss (fTossGadget) */
       ASEG *pasegFlopGadget;   /* +0x1AE8 flop clip of the gadget flop (fFlopGadget) */
       ASEG *pasegTurnbuckle;   /* +0x1AEC clip of MURRAY_TURNBUCKLE */
-      LO *unknown1AF0;   /* +0x1AF0 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
+      ASEG *unknown1AF0;   /* +0x1AF0 a clip bound by oid 0x1FE (the players' SNIP tables; ASEG in every snapshot); not read by
+                              the code found */
       undefined4 unk_0x1af4[3];
     MURRAY() __asm__("MURRAY_ctor");   /* inline in the game (linkonce copy at 0x256440), called by NewMurray: defined in app/class_registry.cpp */
     virtual int IsFreeMoving() __asm__("IsMurrayFreeMoving");   /* slot 94 */
@@ -218,7 +227,7 @@ struct BENTLEY : public STEPPLAYER
       SOPART *unknown16B8;   /* +0x16B8 a part bound by oid (the players' SNIP tables, BindLoOidTable) */
       int aimState;   /* +0x16BC binocucom dart aim state: -1 outside look mode, 0 ready, 1 cooling down (UpdateBentleyAim) */
       float aimStateTime;   /* +0x16C0 clock.time aimState was set (SetBentleyAimState) */
-      LO *unknown16C4[2];   /* +0x16C4 objects bound by oid (the players' SNIP tables, BindLoOidTable) */
+      ASEG *unknown16C4[2];   /* +0x16C4 clips bound by oid (the players' SNIP tables; ASEG in every snapshot) */
       struct ASEGA *pasegaAim;   /* +0x16CC the aim animation: its event 0x243 fires a dart (HandleBentleyMessage) */
       LO *aploLandEffect[2];   /* +0x16D0 effects played when Bentley leaves the air: [0] usual, [1] for grab states 3/4 (SetBentleyState) */
       int dartKind;   /* +0x16D8 which dart template FireBentleyDart clones: 0/1 (aproxyDart), other: none */
@@ -235,17 +244,18 @@ struct BENTLEY : public STEPPLAYER
       struct ACT *apactHover[2];   /* +0x1810 position/rotation actuators holding Bentley on Murray in hover state 0 */
     union
     {
-          long unknown1818Wide;
+          long gadgetLockWord;   /* both script locks as one word: nonzero blocks gadgets (CanBentleyUseGadget) */
         struct
         {
-              int unknown1818;
-              int unknown181C;
+              int gadgetsLocked;   /* +0x1818 Splice option 758 (inferred: its only use found is the gadget block) */
+              int isPosedIdle;     /* +0x181C Splice option 759: idle holds heading D_002BC934 and plays pasegPosedIdle; blocks
+                                      gadgets (inferred) */
         };
     };
-      struct ASEG *unknown1820;   /* +0x1820 the idle clip used while unknown181C is set (SetBentleyState) */
+      struct ASEG *pasegPosedIdle;   /* +0x1820 the idle clip used while isPosedIdle is set (SetBentleyState) */
       JTPOCKET apocket[6];   /* the gadget slots */
       LO *ploHeld;   /* +0x186C the proxy object Bentley holds (bentley.cpp) */
-      int unknown1870;
+      int altAttackGadgetId;   /* +0x1870 the gadget the alt-attack button uses (5 at init; Splice option 760) */
       struct ASEG *pasegGadgetUse;   /* +0x1874 the gadget-use clip (ASEG table entry 0x155; pasegGadget for gadget 8) */
       struct ASEG *pasegAdrenaline;   /* +0x1878 the adrenaline clip (else gaitA's run clip at 1.5x; SetBentleyState) */
       undefined4 unknown187C;

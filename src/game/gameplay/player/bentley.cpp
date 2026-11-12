@@ -113,7 +113,7 @@ extern "C" void InitBentley(BENTLEY *bentley)
     bentley->apocket[4].idGadget = 13;
     bentley->apocket[5].idGadget = 4;
     bentley->apocket[0].idGadget = 5;
-    bentley->unknown1870 = 5;
+    bentley->altAttackGadgetId = 5;
     D_002DD5BC = bentley;
 }
 } // namespace M_InitBentley
@@ -218,9 +218,9 @@ extern "C" void UpdateBentleyStateMachine(BENTLEY *p)
             } else if (p->controller->GetButtonsPressedWithin(BUTTON_LOOK, 0.15f) && p->CanUseGadget(3)) {
                 p->controller->ClearJoyPressed(BUTTON_LOOK);
                 StartJtMode(&p->jtmode, 0, 0, 0);
-            } else if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->unknown1870)) {
+            } else if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->altAttackGadgetId)) {
                 p->controller->ClearJoyPressed(BUTTON_ALT_ATTACK);
-                p->ppocketCur = GetBentleyGadgetFromId(p, p->unknown1870);
+                p->ppocketCur = GetBentleyGadgetFromId(p, p->altAttackGadgetId);
                 SetBentleyState(p, BENTLEY_GADGET);
             } else if (p->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
                 TryGrabJtNearestCandidate(&p->jtgrab, 0xF8FE, 0);
@@ -238,9 +238,9 @@ extern "C" void UpdateBentleyStateMachine(BENTLEY *p)
             break;
         case BENTLEY_AIR:
             UpdateJtAirInput(&p->jtair);
-            if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->unknown1870)) {
+            if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->altAttackGadgetId)) {
                 p->controller->ClearJoyPressed(BUTTON_ALT_ATTACK);
-                p->ppocketCur = GetBentleyGadgetFromId(p, p->unknown1870);
+                p->ppocketCur = GetBentleyGadgetFromId(p, p->altAttackGadgetId);
                 SetBentleyState(p, BENTLEY_GADGET);
             }
             break;
@@ -260,9 +260,9 @@ extern "C" void UpdateBentleyStateMachine(BENTLEY *p)
                 StartJtMode(&p->jtmode, 0, 0, 0);
             } else if (p->controller->ConsumeButtonsPressedWithin(BUTTON_ACTION, 0.2f)) {
                 TryGrabJtNearestCandidate(&p->jtgrab, 0xF8FE, 0);
-            } else if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->unknown1870)) {
+            } else if (p->controller->GetButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.15f) && p->CanUseGadget(p->altAttackGadgetId)) {
                 p->controller->ClearJoyPressed(BUTTON_ALT_ATTACK);
-                p->ppocketCur = GetBentleyGadgetFromId(p, p->unknown1870);
+                p->ppocketCur = GetBentleyGadgetFromId(p, p->altAttackGadgetId);
                 SetBentleyState(p, BENTLEY_GADGET);
             }
             break;
@@ -438,7 +438,7 @@ extern "C" void UpdateBentley(BENTLEY *bentley)
     UpdateBentleyStateMachine(bentley);
     switch (bentley->state) {
     case BENTLEY_IDLE:
-        if (bentley->unknown181C) {
+        if (bentley->isPosedIdle) {
             SetStepTargetHeading(bentley, D_002BC934);
             break;
         }
@@ -628,8 +628,8 @@ extern "C" void SetBentleyState(BENTLEY *p, int k)
     case BENTLEY_IDLE:
         SetXfRole(p, p->positionXf, 1);
         SetXfRole(p, p->rotationXf, 1);
-        if (p->unknown181C) {
-            asega = p->unknown1820;
+        if (p->isPosedIdle) {
+            asega = p->pasegPosedIdle;
             n = 9;
         } else {
             jt = p->standStateMachine;
@@ -1209,7 +1209,7 @@ extern "C" void UpdateBentleyAim(BENTLEY *bentley)
             switch (bentley->state) {
             case BENTLEY_IDLE:
                 UpdateBentleyCrosshair(&bentley->btblends, 0);
-                if (bentley->unknown181C && bentley->btblends.state != -1 && bentley->activeStateMachine && FindSmStateOptional__FP2SM3OID(bentley->standStateMachine, 0x17B) >= 0)
+                if (bentley->isPosedIdle && bentley->btblends.state != -1 && bentley->activeStateMachine && FindSmStateOptional__FP2SM3OID(bentley->standStateMachine, 0x17B) >= 0)
                     SnapSma(bentley->activeStateMachine, 0x17B);
                 break;
             case BENTLEY_RUN: case BENTLEY_AIR: case BENTLEY_GRAB: case BENTLEY_WALK:
@@ -1354,7 +1354,7 @@ extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
 {
     register int f __asm__("$3");  /* register pin: target keeps x15C and the ChooseProxySpare result in v1 */
     void *pv;
-    if (bentley->unknown1818Wide != 0)
+    if (bentley->gadgetLockWord != 0)
         goto fail;
     if (IsStepplayerInJtMode())
         return 0;
@@ -1992,7 +1992,7 @@ SNIP D_002BC390[0x76] = {
     {0x300, 0x294, SLY2_OFFSETOF(BENTLEY, jthurt.stateClips[11])}, {0x300, 0x295, SLY2_OFFSETOF(BENTLEY, jthurt.stateClips[12])}, {0x300, 0xFC, SLY2_OFFSETOF(BENTLEY, aploLandEffect[0])}, {0x300, 0xFD, SLY2_OFFSETOF(BENTLEY, aploLandEffect[1])},
     {0x100, 0x247, SLY2_OFFSETOF(BENTLEY, aproxyDart[0])}, {0x100, 0x248, SLY2_OFFSETOF(BENTLEY, aproxyDart[1])}, {0x100, 0x249, SLY2_OFFSETOF(BENTLEY, launcher)}, {0x300, 0x5E9, SLY2_OFFSETOF(BENTLEY, jtmode.pasegStart)},
     {0x300, 0x5EA, SLY2_OFFSETOF(BENTLEY, jtmode.pasegEnd)}, {0x300, 0x217, SLY2_OFFSETOF(BENTLEY, apocket[0].proxy)}, {0x300, 0x217, SLY2_OFFSETOF(BENTLEY, apocket[1].proxy)}, {0x300, 0x217, SLY2_OFFSETOF(BENTLEY, apocket[2].proxy)},
-    {0x300, 0x21A, SLY2_OFFSETOF(BENTLEY, apocket[3].proxy)}, {0x300, 0x217, SLY2_OFFSETOF(BENTLEY, apocket[4].proxy)}, {0x300, 0x21F, SLY2_OFFSETOF(BENTLEY, apocket[5].proxy)}, {0x300, 0x137, SLY2_OFFSETOF(BENTLEY, unknown1820)},
+    {0x300, 0x21A, SLY2_OFFSETOF(BENTLEY, apocket[3].proxy)}, {0x300, 0x217, SLY2_OFFSETOF(BENTLEY, apocket[4].proxy)}, {0x300, 0x21F, SLY2_OFFSETOF(BENTLEY, apocket[5].proxy)}, {0x300, 0x137, SLY2_OFFSETOF(BENTLEY, pasegPosedIdle)},
     {0x300, 0x155, SLY2_OFFSETOF(BENTLEY, pasegGadgetUse)}, {0x300, 0x24C, SLY2_OFFSETOF(BENTLEY, pasegAdrenaline)},
 };
 } // extern "C"

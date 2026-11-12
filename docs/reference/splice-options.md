@@ -981,9 +981,9 @@ parent STEPPLAYER; 160 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 757 | `dartKind` | int | get set file | 774 |
-| 758 | `unknown1818` | bool | get set file | 775 |
-| 759 | `unknown181C` | bool | get set file | 776 |
-| 760 | `unknown1870` | int | get set file | 777 |
+| 758 | `gadgetsLocked` | bool | get set file | 775 |
+| 759 | `isPosedIdle` | bool | get set file | 776 |
+| 760 | `altAttackGadgetId` | int | get set file | 777 |
 
 ## STEPGUARD (cid 56)
 

@@ -107,7 +107,7 @@ extern "C" void InitMurray(MURRAY *murray)
     register float e __asm__("$f2") = 250.0f;
     register float f __asm__("$f5") = 1.0f;
     register float g __asm__("$f3") = 4500.0f;
-    murray->unknown1AC8=a; murray->releaseTime=a; murray->waterProbe[0]=b; murray->waterProbe[1]=c; murray->waterProbe[2]=50.0f; murray->waterProbe[3]=d; murray->waterHeightSmoothing.fastSpeed=e;
+    murray->growStartTime=a; murray->releaseTime=a; murray->waterProbe[0]=b; murray->waterProbe[1]=c; murray->waterProbe[2]=50.0f; murray->waterProbe[3]=d; murray->waterHeightSmoothing.fastSpeed=e;
     Init(&murray->waterHeightSmoothing, f, g);
     }
     InitThrow(&murray->jtthrowAim, murray);
@@ -142,9 +142,9 @@ extern "C" void LoadMurrayFromBrx(MURRAY *murray)
     murray->ikChainB->precC = FindSoXf(murray, 0x205, 1);
     InitIkRecord(murray->ikChainB);
     murray->ikEndA = murray->ikChainA->precC;
-    murray->unknown15F4 = FindSoXf(murray, 0x202, 6);
+    murray->ikEndMatrixXfA = FindSoXf(murray, 0x202, 6);
     murray->ikEndB = murray->ikChainB->precC;
-    murray->unknown15FC = FindSoXf(murray, 0x205, 6);
+    murray->ikEndMatrixXfB = FindSoXf(murray, 0x205, 6);
 }
 } // namespace M_LoadMurrayFromBrx
 
@@ -170,13 +170,13 @@ extern "C" void PostMurrayLoad(MURRAY *murray)
     PostJtLoadGait(&murray->gaitB);
     PostJtLoadGait(&murray->gaitD);
     PostJtLoadGait(&murray->gaitC);
-    InitDirectionalBlend(murray, murray->unknown16F0, &murray->unknown17F0);
+    InitDirectionalBlend(murray, murray->abldirStrafe, &murray->pasegblStrafe);
     PostAsegArcLoad(&murray->arcLeap, murray);
     PostJtThrowLoad(&murray->jtthrowAim);
     AttachStepplayerToStartMarker(murray, 0x16);
     v = FindSoXf(murray, murray->oid, 0xC);
     if (v) {
-        murray->pact1Unk1acc = NewPositionAct(murray, v, 0, 7, 2, D_002A2DE0);
+        murray->pactScale = NewPositionAct(murray, v, 0, 7, 2, D_002A2DE0);
     }
     SetMurrayState(murray, MURRAY_IDLE);
 }
@@ -434,8 +434,8 @@ extern "C" void UpdateMurray(MURRAY *murray)
     UpdateStepplayer(murray);
     if ((((int)murray->isInWorld & 1) == 0))
         return;
-    if (murray->unknown190C && IsAsegaRetracted(murray->unknown190C))
-        DropAsegaRef(&murray->unknown190C);
+    if (murray->pasegaAttackOverlay && IsAsegaRetracted(murray->pasegaAttackOverlay))
+        DropAsegaRef(&murray->pasegaAttackOverlay);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&g_sw, murray, 0xF8FA);
     UpdateMurrayJtModeInput(murray);
     UpdateMurrayStateMachine(murray);
@@ -481,12 +481,12 @@ extern "C" void UpdateMurray(MURRAY *murray)
         if (!murray->ploReleased)
             RefreshSwObjectCollisionFilter(&g_sw, murray);
     }
-    if (!murray->pact1Unk1acc)
+    if (!murray->pactScale)
         return;
-    if (g_clock.time - murray->unknown1AC8 < D_002C08E4)
-        SetActPositionGoal(murray->pact1Unk1acc, D_002C08F0);
+    if (g_clock.time - murray->growStartTime < D_002C08E4)
+        SetActPositionGoal(murray->pactScale, D_002C08F0);
     else
-        SetActPositionGoal(murray->pact1Unk1acc, D_002A2DE0);
+        SetActPositionGoal(murray->pactScale, D_002A2DE0);
 }
 } // namespace M_UpdateMurray
 #undef FIELD_OFFSET
@@ -780,7 +780,7 @@ extern "C" void UpdateMurrayStrafe(MURRAY *murray)
     case 0: FaceStepToward(murray, murray->interactTarget); break;
     case 2: {
         FaceStepToward(murray, murray->interactTarget);
-        float length = LengthXY(murray->unknown16F0[1].vRoot);
+        float length = LengthXY(murray->abldirStrafe[1].vRoot);
         POCTL *input = murray->controller;
         qword direction = Vector(
             SetVectorCylind(input->leftStickAngle + 3.1415927f, (input->leftStickDeflection * length) * murray->activeAnimation->speed, 0.0f));
@@ -788,7 +788,7 @@ extern "C" void UpdateMurrayStrafe(MURRAY *murray)
         qword world = Rotate(&murray->matqTarget, direction);
         murray->blendSide = -1;
         murray->localVelocity = world;
-        UpdateDirectionalBlend(murray, murray->unknown16F0, murray->unknown17F0);
+        UpdateDirectionalBlend(murray, murray->abldirStrafe, murray->pasegblStrafe);
         break;
     }
     case 1:
@@ -834,7 +834,7 @@ extern "C" void SetMurrayStrafeSubstate(MURRAY *murray, int st)
         murray->localVelocity = D_002A2DD0;
         break;
     case 2:
-        o = murray->unknown17F0;
+        o = murray->pasegblStrafe;
         n = 9;
         break;
     case 1:
@@ -1241,7 +1241,7 @@ extern "C" void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
     HandleStepplayerMessage(murray, msg, pm);
     switch (msg) {
     case 9:
-        if (pm->x0 != murray->activeAnimation && pm->x0 != murray->unknown190C) return;
+        if (pm->x0 != murray->activeAnimation && pm->x0 != murray->pasegaAttackOverlay) return;
         switch (pm->x8) {
         case 0x1A4:
             SetMurrayFlopSubstate(murray, 1);
@@ -1275,10 +1275,10 @@ extern "C" void HandleMurrayMessage(MURRAY *murray, int msg, MSG *pm)
             if (murray->liftSubstate == 1) SetMurrayLiftSubstate(murray, 2);
             break;
         case 0x240:
-            murray->unknown1818 = 1;
+            murray->isAttackSteerable = 1;
             break;
         case 0x241:
-            murray->unknown181C = 1;
+            murray->isAttackCancelable = 1;
             break;
         case 0x242:
             murray->comboWindow = 1;
@@ -1329,7 +1329,7 @@ extern "C" void UpdateMurrayFlop(MURRAY *murray)
         if (!murray->activeAnimation || IsAsegaRetracted(murray->activeAnimation)) SetMurrayState(murray, MURRAY_IDLE);
         else if (murray->flopSubstate == 1) {
             if (murray->pxpFlop) SetMurrayFlopSubstate(murray, 2);
-            else if (IsJtStuck(murray, &murray->stuckCheckTime, murray->unknown13DC)) ReturnJtToSafePlace(murray, 0);
+            else if (IsJtStuck(murray, &murray->stuckCheckTime, murray->flopSubstateTime)) ReturnJtToSafePlace(murray, 0);
         }
         if (murray->flopSubstate == s || murray->flopSubstate == -1) break;
     }
@@ -1439,7 +1439,7 @@ extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
     if (murray->flopSubstate == -1)
         Zero(&murray->vecLocalVelocity);
     murray->flopSubstate = s;
-    murray->unknown13DC = g_clock.time;
+    murray->flopSubstateTime = g_clock.time;
     switch (s) {
     case 0:
         break;
@@ -2220,7 +2220,7 @@ extern "C" int ShouldMurrayIgnoreIntersection(MURRAY *murray, void *pv)
 // True if no attack overlay is running and no attack sub-state, else the combo-window flag.
 extern "C" int CanMurrayAttack(MURRAY *murray)
 {
-    if (murray->unknown190C != 0 || murray->attackSubstate != -1) {
+    if (murray->pasegaAttackOverlay != 0 || murray->attackSubstate != -1) {
         return murray->comboWindow;
     }
     return 1;
@@ -2237,8 +2237,8 @@ extern "C" void StartMurrayPunch(MURRAY *murray)
 {
     int k;
     SetMurrayState(murray, MURRAY_ATTACK);
-    if (murray->unknown190C) {
-        ASEG *v = murray->unknown190C->animation;
+    if (murray->pasegaAttackOverlay) {
+        ASEG *v = murray->pasegaAttackOverlay->animation;
         if (v == murray->apasegAttack[0] || v == murray->apasegAttack[2]) k = 1;
         else k = 0;
     } else if (murray->interactTarget) {
@@ -2261,8 +2261,8 @@ extern "C" void StartMurrayAltAttack(MURRAY *murray)
     int k;
     if (!murray->apasegAttack[2] || !murray->apasegAttack[3]) return;
     SetMurrayState(murray, MURRAY_ATTACK);
-    if (murray->unknown190C) {
-        ASEG *v = murray->unknown190C->animation;
+    if (murray->pasegaAttackOverlay) {
+        ASEG *v = murray->pasegaAttackOverlay->animation;
         if (v == murray->apasegAttack[0] || v == murray->apasegAttack[2]) k = 3;
         else k = 2;
     } else if (murray->interactTarget) {
@@ -2309,10 +2309,10 @@ extern "C" void SetMurrayAttack(MURRAY *murray, int k)
     if (k == -1)
         return;
     murray->comboWindow = 0;
-    murray->unknown1818 = 0;
-    murray->unknown181C = 0;
-    if (murray->unknown190C)
-        ReleaseAsega(&murray->unknown190C);
+    murray->isAttackSteerable = 0;
+    murray->isAttackCancelable = 0;
+    if (murray->pasegaAttackOverlay)
+        ReleaseAsega(&murray->pasegaAttackOverlay);
     q = murray->apasegAttack[k];
     murray->localVelocity = D_002A2DD0;
     if (murray->interactTarget && murray->nUnk10e4 >= 2 && !(murray->controller->buttonsHeld & 8)) {
@@ -2344,9 +2344,9 @@ extern "C" void SetMurrayAttack(MURRAY *murray, int k)
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(t) : "j"(b), "j"(a));
             t = MulM3(murray->aqwTarget, t);
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(t));
-            murray->unknown1830 = v;
+            murray->attackEndPosition = v;
         } else {
-            murray->unknown1830 = GetLoWorldPos(murray);
+            murray->attackEndPosition = GetLoWorldPos(murray);
         }
     }
     ReleaseInteractTargetMark(murray);
@@ -2362,7 +2362,7 @@ void SetMurrayState(MURRAY *p, int n) __asm__("SetMurrayState");
 extern "C" void CancelMurrayAttack(MURRAY *murray)
 {
     DetachSoActsMatching(murray->activeAnimation, murray, 5, D_002C09F8);
-    murray->unknown190C = murray->activeAnimation;
+    murray->pasegaAttackOverlay = murray->activeAnimation;
     murray->activeAnimation = 0;
     SetMurrayState(murray, MURRAY_IDLE);
 }
@@ -2392,7 +2392,7 @@ extern "C" void UpdateMurrayAttack(MURRAY *murray)
                 if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, murray->attackSubstate == 0);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
-                    if (murray->unknown181C && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
+                    if (murray->isAttackCancelable && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
                 }
                 break;
             case 2:
@@ -2400,7 +2400,7 @@ extern "C" void UpdateMurrayAttack(MURRAY *murray)
                 if (CanMurrayAttack(murray) && murray->controller->ConsumeButtonsPressedWithin(BUTTON_ALT_ATTACK, 0.25f)) {
                     SetMurrayAttack(murray, (murray->attackSubstate == 2) ? 3 : 2);
                 } else if (!CanMurrayAttack(murray) || !TryMurrayTakedown(murray)) {
-                    if (murray->unknown181C && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
+                    if (murray->isAttackCancelable && 0.0f < murray->controller->leftStickDeflection) CancelMurrayAttack(murray);
                 }
                 break;
             }
@@ -2460,7 +2460,7 @@ extern "C" { static inline qword OrbitVector(MURRAY*p){
     register qword d __asm__("vf1");
     register qword bits __asm__("$2");
     register float magnitude __asm__("$f0"),angle __asm__("$f12"),radius __asm__("$f13"),zero __asm__("$f14");
-    __asm__("lw %0,%2\n\tlqc2 %1,%3":"=r"(orbit),"=j"(d):"m"(p->controller),"m"(p->unknown16F0[0].vRoot));
+    __asm__("lw %0,%2\n\tlqc2 %1,%3":"=r"(orbit),"=j"(d):"m"(p->controller),"m"(p->abldirStrafe[0].vRoot));
     __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));
     magnitude=orbit->leftStickDeflection;
     __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));
@@ -2478,7 +2478,7 @@ extern "C" void UpdateMurrayAttackVelocity(MURRAY*murray){
         qword value=GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
         NegateSource(value,&murray->localVelocity,&scalar);
         {
-            register int active __asm__("$3")=murray->unknown1818;
+            register int active __asm__("$3")=murray->isAttackSteerable;
             if(active){
             struct EA *start=FindAsegLabel(murray->activeAnimation->animation,0x240);
             struct EA *end=FindAsegLabel(murray->activeAnimation->animation,0x242);
@@ -2837,7 +2837,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             murray->apactCarryC[0] = NewIkAct(murray, stretch->precA, (void *)5, stretch);
             murray->apactCarryC[1] = NewIkAct(murray, stretch->precB, (void *)5, stretch);
             murray->apactCarryB[1] =
-                NewMatrixAct(murray, murray->unknown15F4, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
+                NewMatrixAct(murray, murray->ikEndMatrixXfA, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
         if ((SO *)((CARRYSPOT *)murray->ploCarried)->plo3) {
             SO *goal = (SO *)((CARRYSPOT *)murray->ploCarried)->plo3;
@@ -2848,7 +2848,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
             murray->apactCarryC[2] = NewIkAct(murray, stretch->precA, (void *)5, stretch);
             murray->apactCarryC[3] = NewIkAct(murray, stretch->precB, (void *)5, stretch);
             murray->apactCarryB[3] =
-                NewMatrixAct(murray, murray->unknown15FC, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
+                NewMatrixAct(murray, murray->ikEndMatrixXfB, (void *)5, (void *)5, (int)stretch->pxfGoal, &frame);
         }
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             StunStepguardThrownOp1(owner);
@@ -3002,7 +3002,7 @@ extern "C" void GetMurrayStunHold(MURRAY *murray, STUNHOLD *object)
     switch (murray->state) {
     case MURRAY_ATTACK:
         object->fValid = 1;
-        object->qwPos = murray->unknown1830;
+        object->qwPos = murray->attackEndPosition;
         object->qwVel = D_002A2DD0;
         break;
     case MURRAY_IDLE:
@@ -3134,9 +3134,9 @@ SNIP D_002C0270[0x89] = {{0x300, 0x1A0, SLY2_OFFSETOF(MURRAY, gaitA.abl[0].anima
     {0x300, 0x1AE, SLY2_OFFSETOF(MURRAY, gaitD.abl[1].animation)}, {0x300, 0x206, SLY2_OFFSETOF(MURRAY, psmStrafeIdle)}, {0x300, 0x1C4, SLY2_OFFSETOF(MURRAY, apasegLift[0])}, {0x300, 0x1C5, SLY2_OFFSETOF(MURRAY, apasegLift[1])},
     {0x300, 0x1E2, SLY2_OFFSETOF(MURRAY, gaitB.abl[0].animation)}, {0x300, 0x1E3, SLY2_OFFSETOF(MURRAY, gaitB.abl[1].animation)}, {0x300, 0x1E4, SLY2_OFFSETOF(MURRAY, psmCarryStand)}, {0x300, 0x1E5, SLY2_OFFSETOF(MURRAY, unknown1514[0])},
     {0x300, 0x1E6, SLY2_OFFSETOF(MURRAY, unknown1514[1])}, {0x300, 0x1E7, SLY2_OFFSETOF(MURRAY, pasegCarryRun)}, {0x300, 0x1EA, SLY2_OFFSETOF(MURRAY, pasegThrow)}, {0x300, 0x1EC, SLY2_OFFSETOF(MURRAY, pasegToss)},
-    {0x300, 0x1A6, SLY2_OFFSETOF(MURRAY, jthurt.stateClips[0])}, {0x300, 0x1A7, SLY2_OFFSETOF(MURRAY, jthurt.stateClips[8])}, {0x300, 0x1BC, SLY2_OFFSETOF(MURRAY, unknown16F0[0].animation)}, {0x300, 0x1BD, SLY2_OFFSETOF(MURRAY, unknown16F0[1].animation)},
-    {0x300, 0x1BE, SLY2_OFFSETOF(MURRAY, unknown16F0[2].animation)}, {0x300, 0x1BF, SLY2_OFFSETOF(MURRAY, unknown16F0[3].animation)}, {0x300, 0x1C0, SLY2_OFFSETOF(MURRAY, unknown16F0[4].animation)}, {0x300, 0x1C1, SLY2_OFFSETOF(MURRAY, unknown16F0[5].animation)},
-    {0x300, 0x1C2, SLY2_OFFSETOF(MURRAY, unknown16F0[6].animation)}, {0x300, 0x1C3, SLY2_OFFSETOF(MURRAY, unknown16F0[7].animation)}, {0x300, 0x1E9, SLY2_OFFSETOF(MURRAY, gaitC.abl[0].animation)}, {0x300, 0x1E8, SLY2_OFFSETOF(MURRAY, gaitC.abl[1].animation)},
+    {0x300, 0x1A6, SLY2_OFFSETOF(MURRAY, jthurt.stateClips[0])}, {0x300, 0x1A7, SLY2_OFFSETOF(MURRAY, jthurt.stateClips[8])}, {0x300, 0x1BC, SLY2_OFFSETOF(MURRAY, abldirStrafe[0].animation)}, {0x300, 0x1BD, SLY2_OFFSETOF(MURRAY, abldirStrafe[1].animation)},
+    {0x300, 0x1BE, SLY2_OFFSETOF(MURRAY, abldirStrafe[2].animation)}, {0x300, 0x1BF, SLY2_OFFSETOF(MURRAY, abldirStrafe[3].animation)}, {0x300, 0x1C0, SLY2_OFFSETOF(MURRAY, abldirStrafe[4].animation)}, {0x300, 0x1C1, SLY2_OFFSETOF(MURRAY, abldirStrafe[5].animation)},
+    {0x300, 0x1C2, SLY2_OFFSETOF(MURRAY, abldirStrafe[6].animation)}, {0x300, 0x1C3, SLY2_OFFSETOF(MURRAY, abldirStrafe[7].animation)}, {0x300, 0x1E9, SLY2_OFFSETOF(MURRAY, gaitC.abl[0].animation)}, {0x300, 0x1E8, SLY2_OFFSETOF(MURRAY, gaitC.abl[1].animation)},
     {0x300, 0x1C9, SLY2_OFFSETOF(MURRAY, psmStruggle)}, {0x300, 0x1D1, SLY2_OFFSETOF(MURRAY, jtthrowAim.abl[0].animation)}, {0x300, 0x1D2, SLY2_OFFSETOF(MURRAY, jtthrowAim.abl[1].animation)}, {0x300, 0x1D3, SLY2_OFFSETOF(MURRAY, jtthrowAim.pasegHoldTurnA)},
     {0x300, 0x1D4, SLY2_OFFSETOF(MURRAY, jtthrowAim.pasegHoldTurnB)}, {0x300, 0x1D5, SLY2_OFFSETOF(MURRAY, jtthrowAim.unknown64)}, {0x300, 0x1D6, SLY2_OFFSETOF(MURRAY, jtthrowAim.ablB[0].animation)}, {0x300, 0x1D7, SLY2_OFFSETOF(MURRAY, jtthrowAim.ablB[1].animation)},
     {0x300, 0x1D8, SLY2_OFFSETOF(MURRAY, jtthrowAim.ablB[2].animation)}, {0x300, 0x1D9, SLY2_OFFSETOF(MURRAY, jtthrowAim.ablB[3].animation)}, {0x300, 0x1DA, SLY2_OFFSETOF(MURRAY, jtthrowAim.pasegAimTurnA)}, {0x300, 0x1DB, SLY2_OFFSETOF(MURRAY, jtthrowAim.pasegAimTurnB)},
