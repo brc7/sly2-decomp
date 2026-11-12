@@ -1364,8 +1364,8 @@ extern "C" void SetActRotationGoal(ACT1 *p, qword v)
         }
         {
             qword shiftedEnd;
-            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(p->transform->unknownE0), "j"(dv));
-            p->transform->unknownE0 = shiftedEnd;
+            __asm__("vadd.xyzw %0, %1, %2" : "=j"(shiftedEnd) : "j"(p->transform->segmentEndValue), "j"(dv));
+            p->transform->segmentEndValue = shiftedEnd;
         }
         UnsettleXfSlot(p->animatedObject, p->transform);
     }

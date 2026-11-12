@@ -216,7 +216,7 @@ struct SO : public ALO   /* LO -> ALO -> SO (sly2/alo.h) */
       float opacitySpeed; /* opacity change per second (fades) */
       struct SOBOUNDS *psobounds;   /* bounds record */
       XA *pxa;   /* first XA (attachment/interaction) record */
-      float unknown13C;
+      float boundsScale;   /* +0x13C the bounds scale: 400 by default (InitSo), set by SetSoBoundsScale and copied to SOBOUNDS::scale */
       int renderStamp;   /* +0x140 its root XF's worldStamp while in the render tree, -1 out (rendertree.cpp) (inferred) */
       struct RENDER *prender;   /* +0x144 its entry in the render tree (AddLoToRenderTree) */
       union
@@ -317,7 +317,7 @@ typedef char assert_SO_size[sizeof(SO) == 0x150 ? 1 : -1];   /* class descriptor
 typedef char assert_SO_rootTransform[SLY2_OFFSETOF(SO, rootTransform) == 0x60 ? 1 : -1]; /* position = rootTransform->worldMatrix row 3 (CONFIRMED runtime) */
 typedef char assert_SO_children[SLY2_OFFSETOF(SO, children) == 0x64 ? 1 : -1]; /* child DL at SO+0x64 (CONFIRMED runtime) */
 typedef char assert_SO_dhpHit[SLY2_OFFSETOF(SO, dhpTouch) == 0x149 ? 1 : -1];
-typedef char assert_SO_unknown13C[SLY2_OFFSETOF(SO, unknown13C) == 0x13C ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */ typedef char assert_SO_prender[SLY2_OFFSETOF(SO, prender) == 0x144 ? 1 : -1];
+typedef char assert_SO_boundsScale[SLY2_OFFSETOF(SO, boundsScale) == 0x13C ? 1 : -1]; /* holds 400.0f (CONFIRMED runtime) */ typedef char assert_SO_prender[SLY2_OFFSETOF(SO, prender) == 0x144 ? 1 : -1];
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
  * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
@@ -484,7 +484,7 @@ struct XF
             {
                   qword restValue;   /* rest / goal value (act.cpp goalValue) */
                   qword rate;   /* +0xD0 its rate (act.cpp goalVelocity; asega.cpp: a rotation channel's curve word) */
-                  qword unknownE0;
+                  qword segmentEndValue;   /* +0xE0 the end value of the current Hermite segment (EvaluateBezierPos: restValue / rate at the start, this / acceleration at the end); xfk 6 keeps its angle here (inferred) */
                   qword acceleration;
             };
             struct   /* phase 1: the cubic (Bezier/Hermite) segment's four control values (act.cpp) */

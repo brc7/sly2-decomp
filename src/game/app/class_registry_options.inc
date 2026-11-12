@@ -786,7 +786,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x1001, 0x120, EOPID_NONE, EOPID_PMF(SetSoCnstrForce), EOPID_PMF(SetSoCnstrForce), EOPID_NONE}, /* [33] opt 69, SO (+60) */
     {0x1001, 0x120, EOPID_NONE, EOPID_PMF(SetSoCnstrTorque), EOPID_PMF(SetSoCnstrTorque), EOPID_NONE}, /* [34] opt 70, SO (+60) */
     {2, 0x124, EOPID_PMF(GetSoGravity), EOPID_PMF(SetSoGravity), EOPID_PMF(SetSoGravity), EOPID_NONE}, /* [35] opt 71, SO (+60) */
-    {1, 0xA2, EOPID_OFF(SO, unknown13C), EOPID_PMF(SetSoBoundsScale), EOPID_OFF(SO, unknown13C), EOPID_NONE}, /* [36] opt 87, SO (+60) */
+    {1, 0xA2, EOPID_OFF(SO, boundsScale), EOPID_PMF(SetSoBoundsScale), EOPID_OFF(SO, boundsScale), EOPID_NONE}, /* [36] opt 87, SO (+60) */
     {0, 0x124, EOPID_PMF(GetSoIgnoreFixed), EOPID_PMF(SetSoIgnoreFixed), EOPID_PMF(SetSoIgnoreFixed), EOPID_NONE}, /* [37] opt 88, SO (+60) */
     {0, 0x24, EOPID_PMF(GetSoTreeFlag2), EOPID_PMF(SetSoTreeFlag2), EOPID_NONE, EOPID_NONE}, /* [38] opt 90, SO (+60) */
     {0, 0x120, EOPID_NONE, EOPID_PMF(SetSoTreeRoot), EOPID_PMF(SetSoTreeRoot), EOPID_NONE}, /* [39] opt 91, SO (+60) */

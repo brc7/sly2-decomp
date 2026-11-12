@@ -22,7 +22,7 @@ struct SOBOUNDS
     int cqwPacket;          /* +0x14 the light payload chain (four 48-byte VIF packets) */
     uchar *pbPacket;        /* +0x18 */
     float sRadius;          /* +0x1C 0: no projected volume; else its radius (EnsureSoBounds: the outer radius) */
-    float scale;            /* +0x20 added to the volume's extent: the owner's SO::unknown13C (SetSoBoundsScale) */
+    float scale;            /* +0x20 added to the volume's extent: the owner's SO::boundsScale (SetSoBoundsScale) */
     MATRIX4 *pmatClip;      /* +0x24 the clip matrix inside the projected-volume packet (0: none) */
     int cqwVolume;          /* +0x28 the projected-volume chain (a DMA REF of it ends the model's packet) */
     uchar *pbVolume;        /* +0x2C */

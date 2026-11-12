@@ -160,7 +160,7 @@ extern "C" void InitSo(SO *so)
     so->dhpHit = -10;
     so->dhpTouch = -20;
     so->opacity = 1.0f;
-    so->unknown13C = D_002C3B90;
+    so->boundsScale = D_002C3B90;
     so->isRenderable = (uchar)(so->parent ? so->parent->isRenderable : 1);
     so->renderStamp = -1;
 }
@@ -289,7 +289,7 @@ extern "C" void EnsureSoBounds(SO *so) {
      so->psobounds=s;
      s->pposCenter=&top->rootTransform->worldMatq.r[3].q;
      ++so->psobounds->refCount;
-     so->psobounds->scale=so->unknown13C;
+     so->psobounds->scale=so->boundsScale;
      so->psobounds->pso=so;
      if(top==so)goto position;
      attached=so->psobounds;
@@ -319,14 +319,14 @@ position:
 } // namespace M_EnsureSoBounds
 
 // 0x1F2688 SetSoBoundsScale
-/* Sets unknown13C, and the bounds record's copy when the record is this object's. */
+/* Sets boundsScale, and the bounds record's copy when the record is this object's. */
 // Stores the bounds scale (+0x13C, 400 by default) and mirrors it into the shared bounds record when this object
 // owns it (inferred meaning).
 extern "C" void SetSoBoundsScale(SO *so, float g)
 {
     SOBOUNDS *psobounds;
     psobounds = so->psobounds;
-    so->unknown13C = g;
+    so->boundsScale = g;
     if ((psobounds != 0) && (psobounds->pso == so)) {
         psobounds->scale = g;
     }

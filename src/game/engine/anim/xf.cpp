@@ -332,7 +332,7 @@ extern void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, 
 // Evaluate the object's Bezier segment position at the current time into the three outputs.
 static __inline__ void Eval(XF *po, qword *pa, qword *pb, qword *pc)
 {
-    EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->timeSource - po->segmentStartTime, *po->speedSource, po->restValue, po->rate, po->unknownE0, po->acceleration, pa, pb, pc);
+    EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->timeSource - po->segmentStartTime, *po->speedSource, po->restValue, po->rate, po->segmentEndValue, po->acceleration, pa, pb, pc);
 }
 // Copy a 128-bit GPR value (por with zero).
 #ifdef SLY2_EE_ASM
@@ -593,7 +593,7 @@ static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
     r = VuKeepW(r, VuMulMatrix3(r, m.r[1], m.r[2], v));return r;}
 #endif
 // Evaluate the object's Bezier position at its current time into *v.
-static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->unknownE0,p->acceleration,0,v,0);}
+static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->segmentEndValue,p->acceleration,0,v,0);}
 // Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 // Runtime-checked: XF+0xB0 holds the velocity.
 // Also known as: VelXfPoint (upstream readable / Sly 1 name; VelXfPoint__FP2XFT0G9VU_VECTOR).
@@ -769,7 +769,7 @@ extern "C" void LoadSoXfsFromBrx(SO *p,void *stream){
   case 0:case 13:case 15:ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->localMatrix);break;
   case 8:case 14:{Identity(&e->localMatrix);e->reference=Lookup(p,S16Read__18CBinaryInputStream(stream));e->localMatrix.mat[3][0]=-e->reference->localMatrix.mat[3][0];e->localMatrix.mat[3][1]=-e->reference->localMatrix.mat[3][1];e->localMatrix.mat[3][2]=-e->reference->localMatrix.mat[3][2];break;}
   case 1:case 2:case 3:case 4:case 5:case 6:case 7:case 9:case 10:case 11:case 12:default:
-   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->localMatrix);e->restValue=e->unknownE0=GetXfValueFromMatrix(e,&e->localMatrix);break;
+   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->localMatrix);e->restValue=e->segmentEndValue=GetXfValueFromMatrix(e,&e->localMatrix);break;
   }
   ResetXfValueRef(p,e);
   if(has1){j1->animatedObject=p;j1->transform=e;j1->priority=-1;j1->goalValue=GetXfValueFromMatrix(e,&e->localMatrix);AddXfAct(p,e,j1);}
@@ -830,7 +830,7 @@ extern "C" void UpdateXfJobRange(void *pa, XF *p)
 // for every XF it runs SlotRefresh and then, by the XF's role (role, see SlotRefresh / SlotSetRole), moves the XF's local matrix `mat` and stamps it (worldStamp = ++g_sw.transformStamp):
 //   roles 1 2   constant `acceleration` on the `velocity`: xfk 1 moves the position row (trapezoid: pos += (v_old + v_new) * dt / 2), xfk 6 turns the rotation by the
 //               same angular step (LoadRotateMatrix, renormalized); when the new and the old velocity are both ~0 the velocity is cleared and role 1 -> 3 (role 2 stays awake)
-//   role 0x14   xfk 6: continuous rotation, angle in unknownE0.x += rate (rate.x) * dt about the axis restValue
+//   role 0x14   xfk 6: continuous rotation, angle in segmentEndValue.x += rate (rate.x) * dt about the axis restValue
 //   role 4      the position row = minus the position row of the reference XF (reference), same stamp
 //   roles 5 6   the actuator's value (GetSlotValue: phase 0 rest value, 1 Hermite segment, 2 3 4 restValue, 5 the 3 rows of a rotation in restValue/D0/E0) is stored (SlotStoreValue); role 6 + phase 2 -> role 10
 //   roles 7 8 9 0xB  CHASE the actuator's value: delta = value - current, the distance is eased with SmoothValue under an SMP built from the XF's speed limit (the `stiffness` field) (+ the target
@@ -1070,7 +1070,7 @@ static inline qword GetSlotValue(XF *xf)
         case 1:
         {
             VECTOR4 vec;
-            EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, &vec, 0, 0);
+            EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->acceleration, &vec, 0, 0);
             qw = *(qword *)&vec;
             break;
         }
@@ -1092,14 +1092,14 @@ static inline qword GetSlotValue(XF *xf)
 static inline qword EvaluateHermitePos(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, &vec, 0, 0);
+    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->acceleration, &vec, 0, 0);
     return *(qword *)&vec;
 }
 // Velocity on the transform slot's Hermite/Bezier segment at the current time.
 static inline qword EvaluateHermiteVel(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->unknownE0, xf->acceleration, 0, &vec, 0);
+    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->acceleration, 0, &vec, 0);
     return *(qword *)&vec;
 }
 // The value / rate switches of an XF's actuator, open-coded (the game does not use a helper; see SlotCurrentMatrix in the personal xf.c).
@@ -1258,8 +1258,8 @@ void UpdateSoSlots(SO *so)
                 if (xf->kind == 6)
                 {
                     fIdle = 0;
-                    float gAngle = NormalizeAngle(*(float *)&xf->unknownE0 + g_clock.deltaTime * *(float *)&xf->rate);
-                    *(float *)&xf->unknownE0 = gAngle;
+                    float gAngle = NormalizeAngle(*(float *)&xf->segmentEndValue + g_clock.deltaTime * *(float *)&xf->rate);
+                    *(float *)&xf->segmentEndValue = gAngle;
                     MATRIX3 matRot = LoadRotateMatrixRad(gAngle, xf->restValue);
                     *(MATRIX3 *)&xf->localMatrix = matRot;
                     xf->localMatrix.mat[1][3] = 0.0f;
@@ -2524,7 +2524,7 @@ extern "C" void EvaluateXfSlotValue(ASEGA *a, int flag)
             v = GetXfValueFromMatrix(p, &p->localMatrix);
             break;
         case 1: {
-            EvaluateBezierPos(p->segmentEndTime - p->segmentStartTime, *p->timeSource - p->segmentStartTime, *p->speedSource, p->restValue, p->rate, p->unknownE0, p->acceleration, (qword *)&out, 0, 0);
+            EvaluateBezierPos(p->segmentEndTime - p->segmentStartTime, *p->timeSource - p->segmentStartTime, *p->speedSource, p->restValue, p->rate, p->segmentEndValue, p->acceleration, (qword *)&out, 0, 0);
             v = *(qword *)&out;
             break;
         }
