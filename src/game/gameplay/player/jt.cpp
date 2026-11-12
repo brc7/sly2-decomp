@@ -248,15 +248,15 @@ extern "C" void InitJt(JT *jt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadJtFromBrx {
 extern char D_002BE990[] __asm__("D_002BE990");
-void LoadStepFromBrx(JT *p) __asm__("LoadStepFromBrx");
+void LoadStepFromBrx(JT *p, CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");
 void BindLoOidTable(JT *p, int n, void *pv) __asm__("BindLoOidTable");
 // JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) pivot offset and binds his object table (0xAD entries).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 // Also known as: LoadJtFromBrx (upstream readable / Sly 1 name; LoadJtFromBrx__FP2JTP18CBinaryInputStream).
-extern "C" void LoadJtFromBrx(JT *jt)
+extern "C" void LoadJtFromBrx(JT *jt, CBinaryInputStream *pbis)
 {
     VECTOR *pv;
-    LoadStepFromBrx(jt);
+    LoadStepFromBrx(jt, pbis);
     pv = &jt->vecPivotOffset;
     pv->x = 0.0f;
     pv->y = 0.0f;
@@ -4094,11 +4094,11 @@ extern "C" void SetJtGrabObject(JT *jt, LO *lo)
 namespace RO_ORDER { extern const char r_D_002A5EF0[] __asm__("D_002A5EF0") = "sly"; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DE80 {
-void GetStepplayerStunHold(JT *p, STUNHOLD *pf) __asm__("GetStepplayerStunHold");
+void GetStepplayerStunHold(JT *p, STUNHOLD *pf, float dt) __asm__("GetStepplayerStunHold");
 // JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
-extern "C" void GetJtStunHold(JT *jt, STUNHOLD *pf)
+extern "C" void GetJtStunHold(JT *jt, STUNHOLD *pf, float dt)
 {
-    GetStepplayerStunHold(jt, pf);
+    GetStepplayerStunHold(jt, pf, dt);
     switch (jt->state) {
     case 0: case 1: case 5: case 10: case 12:
         pf->fValid = 1;
@@ -4426,12 +4426,12 @@ extern "C" void UpdateAllGuardsPickpocket(void)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018E3A0 {
 extern const LONGU D_002A5F98 __asm__("D_002A5F98");
-void OnStepplayerActive(void *p) __asm__("OnStepplayerActive");
+void OnStepplayerActive(void *p, int fActive) __asm__("OnStepplayerActive");
 void EnsureSwCallback(void *, void *, long, sptr) __asm__("EnsureSwCallback");
 // JT slot 78 (becomes active): STEPPLAYER base, then registers the guard pickpocket callback.
-extern "C" void OnJtActive(void *p)
+extern "C" void OnJtActive(void *p, int fActive)
 {
-    OnStepplayerActive(p);
+    OnStepplayerActive(p, fActive);
     EnsureSwCallback(&g_sw, p, D_002A5F98.l, 0);
 }
 } // namespace M_func_0018E3A0

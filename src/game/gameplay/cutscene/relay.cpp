@@ -417,16 +417,16 @@ extern "C" void LoadRelayFromBrx(RELAY *relay, void *x)
 
 // 0x1DFBF8 CloneRelay
 namespace M_CloneRelay {
-void CloneLo(RELAY *p) __asm__("CloneLo");
+void CloneLo(RELAY *p, LO *ploBase) __asm__("CloneLo");
 void *AllocCopyFromWorldHeap(struct SWALLOC *pmsg, void *pv) __asm__("AllocCopyFromWorldHeap");
 // Resizes a world-heap block (request size and kind, then reallocate).
 extern "C" { static inline void *PvReallocMsg(struct SWALLOC *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->cbAlign = nKind; return AllocCopyFromWorldHeap(pmsg, pv); } }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
 // Also known as: CloneScptData (upstream readable / Sly 1 name; CloneScptData__FP2LO).
-extern "C" void CloneRelay(RELAY *relay) {
+extern "C" void CloneRelay(RELAY *relay, LO *ploBase) {
     struct SWALLOC msg;
-    CloneLo(relay);
+    CloneLo(relay, ploBase);
     if (relay->fOwnCommands)
         relay->arelaycmd = (RELAYCMD *)PvReallocMsg(&msg, relay->crelaycmdMax * sizeof(RELAYCMD), 0x10, relay->arelaycmd);
 }

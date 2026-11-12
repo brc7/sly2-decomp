@@ -37,7 +37,7 @@ void InitGrabspot(void *pgrabspot);
 void PostLoLoad(GRABXFM *p);
 void OnLoAdd(GRABXFM *p);
 void OnLoRemove(GRABXFM *p);
-void CloneXfm(GRABXFM *p);
+void CloneXfm(GRABXFM *p, LO *ploBase);
 qword GetLoWorldPos(void *p);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
@@ -74,10 +74,10 @@ extern "C" void OnGrabSpotXfmRemove(GRABXFM *grabSpot)
 }
 
 // CID39 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
-extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot)
+extern "C" void CloneGrabSpotXfm(GRABXFM *grabSpot, LO *ploBase)
 {
     DLE listLink = grabSpot->listLink;
-    CloneXfm(grabSpot);
+    CloneXfm(grabSpot, ploBase);
     grabSpot->listLink = listLink;
 }
 

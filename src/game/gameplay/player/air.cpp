@@ -4723,9 +4723,9 @@ extern "C" void RemoveJmtHierarchy(XFM *pjmt)
 namespace M_CloneJmt {
 struct K { int a, b; };
 struct S : XFM { struct K k; };
-void CloneXfm(struct S *) __asm__("CloneXfm");
+void CloneXfm(struct S *, LO *ploBase) __asm__("CloneXfm");
 // JMT Clone (slot 41): clones the transform but keeps its own list entry.
-extern "C" void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
+extern "C" void CloneJmt(struct S *p, LO *ploBase) { struct K k = p->k; CloneXfm(p, ploBase); p->k = k; }
 } // namespace M_CloneJmt
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). At the end of the file so no

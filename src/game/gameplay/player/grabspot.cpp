@@ -168,12 +168,12 @@ extern "C" void PostWallGrabspotLoad(WALLSPOT *wall)
 } // namespace M_func_00182F28
 
 namespace M_func_00182FA0 {
-void CloneShape(SHAPE *p) __asm__("CloneShape");
+void CloneShape(SHAPE *p, LO *ploBase) __asm__("CloneShape");
 // Clone: clones the shape but keeps its own 8-byte field.
-extern "C" void CloneWallGrabspot(WALLSPOT *wall)
+extern "C" void CloneWallGrabspot(WALLSPOT *wall, LO *ploBase)
 {
     DLE dle = wall->dleGrab;
-    CloneShape(wall);
+    CloneShape(wall, ploBase);
     wall->dleGrab = dle;
 }
 } // namespace M_func_00182FA0
@@ -369,12 +369,12 @@ extern "C" void PostPoleGrabspotLoad(POLESPOT *pole)
 } // namespace M_func_001833E0
 
 namespace M_func_00183450 {
-void CloneXfm(XFM *p) __asm__("CloneXfm");
+void CloneXfm(XFM *p, LO *ploBase) __asm__("CloneXfm");
 // Clone: clones the transform but keeps its own field.
-extern "C" void ClonePoleGrabspot(POLESPOT *pole)
+extern "C" void ClonePoleGrabspot(POLESPOT *pole, LO *ploBase)
 {
     DLE dle = pole->dleGrab;
-    CloneXfm(pole);
+    CloneXfm(pole, ploBase);
     pole->dleGrab = dle;
 }
 } // namespace M_func_00183450
@@ -474,12 +474,12 @@ extern "C" void PostHoldGrabspotLoad(CID38 *hold)
 } // namespace M_func_00183768
 
 namespace M_func_001837D0 {
-void CloneXfm(XFM *p) __asm__("CloneXfm");
+void CloneXfm(XFM *p, LO *ploBase) __asm__("CloneXfm");
 // Clone: clones the transform but keeps its own field.
-extern "C" void CloneHoldGrabspot(CID38 *hold)
+extern "C" void CloneHoldGrabspot(CID38 *hold, LO *ploBase)
 {
     DLE dle = hold->dleGrab;
-    CloneXfm(hold);
+    CloneXfm(hold, ploBase);
     hold->dleGrab = dle;
 }
 } // namespace M_func_001837D0
@@ -553,12 +553,12 @@ extern "C" void OnBarrelRemove(SO *so)
 }
 
 namespace M_CloneBarrel {
-void CloneSo(SO *p) __asm__("CloneSo");
+void CloneSo(SO *p, LO *ploBase) __asm__("CloneSo");
 // Clone: SO clone keeping its own field.
-extern "C" void CloneBarrel(BARREL *barrel)
+extern "C" void CloneBarrel(BARREL *barrel, LO *ploBase)
 {
     DLE dle = barrel->dleGrab;
-    CloneSo(barrel);
+    CloneSo(barrel, ploBase);
     barrel->dleGrab = dle;
 }
 } // namespace M_CloneBarrel

@@ -205,7 +205,7 @@ void *AllocClearedFromStack(ALLOCREQ *preq);
 void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void LoadSoFromBrx(SOV *pso, CBinaryInputStream *pbis);
-void CloneSo(SOV *pso);
+void CloneSo(SOV *pso, LO *ploBase);
 void PostSoLoad(SOV *pso);
 SOTREE *NewSoTree(SOV *pso);   /* SO::PtreeNew */
 void RemoveSoParts(SOV *pso);
@@ -313,10 +313,10 @@ extern "C" void LoadLasenFromBrx(LASENV *laser, CBinaryInputStream *stream)
 
 // LASEN::Clone (vtable slot 41): SO clone, then its own copy of the beam array.
 // Also known as: CloneLaser (upstream readable / Sly 1 name; CloneLaser__FP3ALO).
-extern "C" void CloneLasen(LASENV *laser)
+extern "C" void CloneLasen(LASENV *laser, LO *ploBase)
 {
     ALLOCREQ req;
-    CloneSo(laser);
+    CloneSo(laser, ploBase);
     laser->beams = (BEAM *)PvReallocMsg(&req, laser->numBeams * sizeof(BEAM), 0x10, laser->beams);
 }
 

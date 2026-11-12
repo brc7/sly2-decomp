@@ -92,14 +92,14 @@ struct X : B {
     char pad[0xB0 - 0x10];
 };
 
-void ClonePo(ROBOTTANK *) __asm__("ClonePo");
+void ClonePo(ROBOTTANK *, LO *ploBase) __asm__("ClonePo");
 void CopyRobottankWeapon(X *, X *) __asm__("CopyRobottankWeapon");
 // CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable 0x2C94A0, init 0x1D4D30,
 // copy 0x9C bytes). (inferred) Also known as: CloneVehicle (upstream readable / Sly 1 name; CloneVehicle__FP2LO).
-extern "C" void CloneRobottank(ROBOTTANK *tank)
+extern "C" void CloneRobottank(ROBOTTANK *tank, LO *ploBase)
 {
     int i;
-    ClonePo(tank);
+    ClonePo(tank, ploBase);
     for (i = 0; i < tank->cjsgWeapon; i++) {
         X *old = (X *)tank->apjsgWeapon[i];
         X *n = new X(tank);

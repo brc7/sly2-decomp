@@ -41,7 +41,7 @@ STEP **D_002C0D28[3] = {&D_002E1E40, &D_002DD5BC, &D_002F7900};
 void InitSo(PO *p);
 void LoadSoFromBrx(PO *a, void *b);
 void CBinaryInputStream_SkipStringSw(void *b);
-void CloneSo(PO *p);
+void CloneSo(PO *p, LO *ploBase);
 void HandleBasicMessage(PO *p, int n);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
@@ -103,8 +103,8 @@ void PO::LoadFromBrx(CBinaryInputStream *b_m) { PO *a = this; void *b = (void *)
 
 // Slot 41 (Clone): base SO clone, then points the clone's pickup collector at the clone itself.
 // Also known as: ClonePo (upstream readable / Sly 1 name; ClonePo__FP2POT0).
-extern "C" void ClonePo(PO *po) {
-    CloneSo(po);
+extern "C" void ClonePo(PO *po, LO *ploBase) {
+    CloneSo(po, ploBase);
     po->unknown168 = po;
 }
 

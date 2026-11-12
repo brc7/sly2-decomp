@@ -53,7 +53,7 @@ void BindLoOidTable(NEELA *p, int n, void *pv);
 float *FindAsegLabel(void *p, int n);
 void PredictAsegTransform(void *p, NEELA *ps, void *p1, XF *pspace, L *pl, int m, float a, float b);
 void SetSoMass(NEELA *p, float g);
-void ResetStepguardToHome(NEELA *p);
+void ResetStepguardToHome(NEELA *p, LO *plo);
 int GetBasicCid(void *pv);
 void UpdateStepguard(NEELA*);
 int StepguardHasSgf(STEPGUARD*,int);
@@ -143,10 +143,10 @@ extern "C" void PostNeelaLoad(NEELA *neela)
 
 // 0x1BA0B8: NEELA vtable slot 26 (reset to home): ResetStepguardToHome, then hides her attached prop (its vtable
 // slot 9).
-extern "C" void ResetNeelaToHome(NEELA *neela)
+extern "C" void ResetNeelaToHome(NEELA *neela, LO *plo)
 {
     LO *po;
-    ResetStepguardToHome(neela);
+    ResetStepguardToHome(neela, plo);
     po = neela->prop;
     if (po)
         po->Remove();

@@ -108,7 +108,7 @@ void InitSo(CID96V *p);
 void RemoveSoHierarchy(CID96V *p);
 void LoadSoFromBrx(CID96V *p, CBinaryInputStream *pbis);
 void PostSoLoad(CID96V *p);
-void SO_ResetForProxy(CID96V *p);
+void SO_ResetForProxy(CID96V *p, LO *plo);
 void UpdateSo(CID96V *p);
 void FadeSoOut(CID96V *p, float f);
 void HandleBasicMessage(CID96V *p, int msg, ASEGA *pm);
@@ -224,9 +224,9 @@ extern "C" void PostCritterLoad(CID96V *critter)
 }
 
 // CRITTER vtable slot 26 (proxy reset): the base, then ResetCritter.
-extern "C" void ResetCritterFromProxy(CID96V *critter)
+extern "C" void ResetCritterFromProxy(CID96V *critter, LO *plo)
 {
-    SO_ResetForProxy(critter);
+    SO_ResetForProxy(critter, plo);
     ResetCritter(critter);
 }
 

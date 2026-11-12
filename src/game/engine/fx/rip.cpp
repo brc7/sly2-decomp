@@ -2173,16 +2173,16 @@ typedef struct {
 } OBJ;   /* SMACK */
 extern float D_002C2000 __asm__("D_002C2000");
 extern qword g_clqOne __asm__("g_clqOne");
-void InitRip(OBJ *, qword) __asm__("InitRip");
+void InitRip(OBJ *, qword, float scale, SO *psoTouch) __asm__("InitRip");
 qword ConvertCmWorldToScreen(void *, qword) __asm__("ConvertCmWorldToScreen");
 float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 // SMACK (RIPT 9) Init: base init, its position converted to screen space, a random velocity between the
 // definition's bounds, fixed duration, default alpha and the definition's scale curve.
-extern "C" void InitSmack(OBJ *object, qword q)
+extern "C" void InitSmack(OBJ *object, qword q, float scale, SO *psoTouch)
 {
     DEF *d;
     float x, y;
-    InitRip(object, q);
+    InitRip(object, q, scale, psoTouch);
     d = object->def;
     object->screenPos = ConvertCmWorldToScreen(&g_cm, q);
     x = RandomFloatInRange__Fff(d->spinMin[0], d->spinMax[0]);
@@ -2317,7 +2317,7 @@ typedef struct {
     char pad0[0x40];
     MATRIX3 orientation;
 } OBJ;
-extern void PostRipEmit(OBJ *) __asm__("PostRipEmit");
+extern void PostRipEmit(OBJ *, EMITB *pemitb) __asm__("PostRipEmit");
 extern float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 extern MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword) __asm__("LoadLookAtMatrix");
 // Build a look-at basis matrix whose forward axis is vector.
@@ -2334,7 +2334,7 @@ void LEAF::PostEmit(EMITB *pemitb) /* key function (the namespace's views) */
     M_PostLeafEmit::VECTOR v;
     float x, y, z;
     register float lo __asm__("$f20") = -1.0f;
-    PostRipEmit(p);
+    PostRipEmit(p, pemitb);
     register float hi __asm__("$f21") = 1.0f;
     x = RandomFloatInRange__Fff(lo, hi);
     y = RandomFloatInRange__Fff(lo, hi);

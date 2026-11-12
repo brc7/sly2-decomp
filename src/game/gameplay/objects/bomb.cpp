@@ -119,7 +119,7 @@ int DeliverZapToSo(ZPR *pmsg);
 int *NewNoise(NOISETYPE *pstimk, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void SO_ResetForProxy(BOMBV *);
+void SO_ResetForProxy(BOMBV *, LO *plo);
 void SetSoTreeFlag2(BOMBV *, int);
 int ShouldSoIgnoreIntersection(BOMBV *pbomb, SOV *pso);
 int MaxInt(int r, int n);
@@ -678,8 +678,8 @@ extern "C" void DetonateBomb(BOMBV *bomb)
 namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.40282347e+38f; }
 // BOMB vtable slot 26: base, clear detonation, tDetonate=const, thrower=self, unlock constraints, unparent. (inferred)
 // Also known as: ResetProjectileInstance (upstream readable / Sly 1 name; ResetProjectileInstance__FP2LO).
-extern "C" void ResetBomb(BOMBV *bomb) {
-    SO_ResetForProxy(bomb);
+extern "C" void ResetBomb(BOMBV *bomb, LO *plo) {
+    SO_ResetForProxy(bomb, plo);
     bomb->isDetonationPrepared = 0;
     bomb->tDetonate = D_002A4B20;
     SetBombOwner(bomb, bomb);

@@ -210,7 +210,7 @@ void LoadOptionsFromBrx__FPvP18CBinaryInputStream(TN *p, CBinaryInputStream *pbi
 void CLoadCollectorArray_ctor(MSGA *pmsg);
 void LoadXfmChildObjectsFromBrx(TN *p, CBinaryInputStream *pbis, MSGA *pmsg);
 SHAPE *CloneLoWithParent__FP2LOP2SO(SHAPE *plo, SO *pso);
-void CloneXfm(TN *p);
+void CloneXfm(TN *p, LO *ploBase);
 void SetCmPolicy(CM *pcm, int nPriority, CMPART2 *pcplcy, LO *plo, TN *ptn);
 void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
 POX *GetCurrentPo(SW *psw);
@@ -394,9 +394,9 @@ extern "C" int TryGetTnShape(TN *p, SHAPE ***pp)
 }
 
 // CloneXfm then re-resolves ref field 0x10C via 0x13E510. (inferred)
-extern "C" void CloneTn(TN *p)
+extern "C" void CloneTn(TN *p, LO *ploBase)
 {
-    CloneXfm(p);
+    CloneXfm(p, ploBase);
     p->path = CloneLoWithParent__FP2LOP2SO(p->path, p->parent);
 }
 

@@ -415,7 +415,7 @@ struct BOMB : SO
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
     virtual void CopyFromSource() __asm__("CloneBomb");   /* slot 76 */
-    virtual void ApplyThrow() __asm__("ApplyBombThrow");   /* slot 77 */
+    virtual void ApplyThrow(LO *plo) __asm__("ApplyBombThrow");   /* slot 77 */
 };
 typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
 
@@ -2013,7 +2013,7 @@ struct MISSILE : BOMB
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
-    virtual void ApplyThrow() __asm__("ApplyMissileThrow");   /* slot 77 */
+    virtual void ApplyThrow(LO *plo) __asm__("ApplyMissileThrow");   /* slot 77 */
     virtual void Fire(LO *ploTarget, VECTOR4 *pposTarget) __asm__("FireMissile");   /* slot 78: launch at a target object and a position in its space (0: in the world) */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];

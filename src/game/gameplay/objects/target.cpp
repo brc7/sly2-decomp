@@ -24,7 +24,7 @@ void SetLoBusyKind(LO *plo, int busyk);
 void PostLoLoad(LO *plo);
 void OnLoAdd(LO *plo);
 void OnLoRemove(LO *plo);
-void CloneXfm(XFM *pxfm);
+void CloneXfm(XFM *pxfm, LO *ploBase);
 }
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -65,10 +65,10 @@ void TARGET::OnAdd()
 }
 
 // TARGET vtable slot 41 (Clone): copies the source XFM but keeps this object's own target-list link.
-extern "C" void CloneTarget(TARGET *target)
+extern "C" void CloneTarget(TARGET *target, LO *ploBase)
 {
     DLE listLink = target->targetListLink;
-    CloneXfm(target);
+    CloneXfm(target, ploBase);
     target->targetListLink = listLink;
 }
 
@@ -98,9 +98,9 @@ void CID21::OnAdd()
 }
 
 // CID21 vtable slot 41 (Clone): copies the source XFM but keeps this object's own list link. (inferred)
-extern "C" void CloneLookTarget(CID21 *lookTarget)
+extern "C" void CloneLookTarget(CID21 *lookTarget, LO *ploBase)
 {
     DLE listLink = lookTarget->listLink;
-    CloneXfm(lookTarget);
+    CloneXfm(lookTarget, ploBase);
     lookTarget->listLink = listLink;
 }

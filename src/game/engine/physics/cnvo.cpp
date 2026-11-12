@@ -64,7 +64,7 @@ extern char D_003DD020[];
 
 void InitShape(OBSTACLE *p);
 void InitDl__FP2DLi(DL *pdl, int ib);
-void LoadShapeFromBrx(OBSTACLE *p);
+void LoadShapeFromBrx(OBSTACLE *p, CBinaryInputStream *pbis);
 void *AllocClearedFromWorldHeap(SWALLOC *pmsg);
 void *AllocFromWorldHeap(SWALLOC *preq);
 void *AllocFromStack(const AREQV &r);
@@ -142,10 +142,10 @@ void OBSTACLE::Init()
 
 // Slot 14 (LoadFromBrx): LoadShapeFromBrx, then allocates one side plane per outline edge (count - 1).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadCid14FromBrx(OBSTACLE *polygon)
+extern "C" void LoadCid14FromBrx(OBSTACLE *polygon, CBinaryInputStream *pbis)
 {
     SWALLOC msg;
-    LoadShapeFromBrx(polygon);
+    LoadShapeFromBrx(polygon, pbis);
     polygon->edgePlanes = (qword *)PvAllocMsg(&msg, (polygon->numControlVertices << 4) - 0x10, 0x10);
 }
 

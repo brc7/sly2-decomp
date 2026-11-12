@@ -62,7 +62,7 @@ void LoadXfmXfFromBrx(MESH *pmesh, CBinaryInputStream *pbis);
 void *AllocFromWorldHeap(SWALLOC *pmsg);
 void AddLoHierarchy(MESH *pmesh);
 void RemoveLoHierarchy(MESH *pmesh);
-void CloneXfm(MESH *pmesh);
+void CloneXfm(MESH *pmesh, LO *ploBase);
 void PostLoLoad(MESH *pmesh);
 void SetTnTns(void *ptn, int tns);
 void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
@@ -503,10 +503,10 @@ extern "C" void RemoveCid9Hierarchy(MESH *mesh)
 }
 
 // CID 9 slot 41 (Clone): CloneXfm, keeping the clone's own mesh pointer.
-extern "C" void CloneCid9(MESH *mesh)
+extern "C" void CloneCid9(MESH *mesh, LO *ploBase)
 {
     K k = mesh->k;
-    CloneXfm(mesh);
+    CloneXfm(mesh, ploBase);
     mesh->k = k;
 }
 

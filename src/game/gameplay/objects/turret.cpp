@@ -84,7 +84,7 @@ float atanf(float);
 int POCTL_ConsumeAnyPressed(POCTL *x, int a);
 void *AcquireProxyObject(LO *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
-void *ShouldSoIgnoreIntersection(TURRETV *p);
+void *ShouldSoIgnoreIntersection(TURRETV *p, LO *psoOther);
 void *MaxInt(void *v, int a);
 int NewPositionAct(TURRETV *p, int c, int a, int b, int d, qword q);
 void ReleaseAct(void **ph);
@@ -306,7 +306,7 @@ extern "C" void UpdateTurretFire(TURRETV *turret)
 // Also known as: OverlapKindTurret (upstream readable / Sly 1 name; OverlapKindTurret__FP3ALOT0).
 extern "C" void *FilterTurretProxySource(TURRETV *turret, LO *other)
 {
-    void *v = ShouldSoIgnoreIntersection(turret);
+    void *v = ShouldSoIgnoreIntersection(turret, other);
     if (turret->projectileProxy && other->proxyRecord == turret->projectileProxy->proxyRecord) v = MaxInt(v, 1);
     return v;
 }

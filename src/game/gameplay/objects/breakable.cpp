@@ -73,7 +73,7 @@ void JoltCamera(void *g, int v);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *g, int v, float f);
 void SprayDifficultyPrizes(void *g, qword q, int v, int a, TRIG *p);
 void ApplyTaskStates(void *g, int k, int v, TRIG *p);
-void SO_ResetForProxy(TRIG *p);
+void SO_ResetForProxy(TRIG *p, LO *plo);
 void SetSoCnstrForce(TRIG *p, int n);
 void SetSoCnstrTorque(TRIG *p, int n);
 
@@ -611,9 +611,9 @@ E *GetCurrentBreakableStage(TRIG *breakable) {
 
 // CID 98 vtable slot 26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
 // Also known as: ResetBreakable (upstream readable / Sly 1 name; ResetBreakable__FP2LO).
-extern "C" void ResetBreakable(TRIG *breakable)
+extern "C" void ResetBreakable(TRIG *breakable, LO *plo)
 {
-    SO_ResetForProxy(breakable);
+    SO_ResetForProxy(breakable, plo);
     SetBreakableStage(breakable, 0x609);
     if (breakable->physics) {
         SetSoCnstrForce(breakable, 1);

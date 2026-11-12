@@ -1707,23 +1707,23 @@ void CLUE::Init()
 }
 
 namespace M_func_001C7E68 {
-void SO_ResetForProxy(CLUE *p) __asm__("SO_ResetForProxy");
+void SO_ResetForProxy(CLUE *p, LO *plo) __asm__("SO_ResetForProxy");
 // CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
 // Also known as: ResetCluePlacement (upstream readable / Sly 1 name; ResetCluePlacement__FP2LO).
-extern "C" void ResetClue(CLUE *clue)
+extern "C" void ResetClue(CLUE *clue, LO *plo)
 {
-    SO_ResetForProxy(clue);
+    SO_ResetForProxy(clue, plo);
     clue->SetState(0);
 }
 } // namespace M_func_001C7E68
 
 namespace M_func_001C7EA8 {
-void SO_Slot27(CLUE *p) __asm__("SO_Slot27");
+void SO_Slot27(CLUE *p, LO *plo) __asm__("SO_Slot27");
 // CID 95 vtable slot 27. (inferred)
 // Also known as: DetachCluePlacement (upstream readable / Sly 1 name; DetachCluePlacement__FP2LO).
-extern "C" void ClearClueState(CLUE *clue)
+extern "C" void ClearClueState(CLUE *clue, LO *plo)
 {
-    SO_Slot27(clue);
+    SO_Slot27(clue, plo);
     clue->SetState(-1);
 }
 } // namespace M_func_001C7EA8

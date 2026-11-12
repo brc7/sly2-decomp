@@ -49,7 +49,7 @@ struct BOMB : public SO
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldBombIgnoreIntersection");   /* slot 61 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeBombDamage");   /* slot 75 */
     virtual void CopyFromSource() __asm__("CloneBomb");   /* slot 76 */
-    virtual void ApplyThrow() __asm__("ApplyBombThrow");   /* slot 77 */
+    virtual void ApplyThrow(LO *plo) __asm__("ApplyBombThrow");   /* slot 77 */
 };
 struct MISSILE : public BOMB
 {
@@ -71,7 +71,7 @@ struct MISSILE : public BOMB
     virtual void RemoveHierarchy() __asm__("OnMissileRemove__FP7MISSILE");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadMissileFromBrx__FP7MISSILEP18CBinaryInputStream");   /* slot 14 */
     virtual int ShouldIgnoreIntersection(SO *psoOther) __asm__("ShouldMissileIgnoreIntersection__FP7MISSILEP2SO");   /* slot 61 */
-    virtual void ApplyThrow() __asm__("ApplyMissileThrow");   /* slot 77 */
+    virtual void ApplyThrow(LO *plo) __asm__("ApplyMissileThrow");   /* slot 77 */
     virtual void Fire(LO *ploTarget, VECTOR4 *pposTarget) __asm__("FireMissile");   /* slot 78 */
 };
 typedef char assert_MISSILE_size[sizeof(MISSILE) == 0x270 ? 1 : -1];
@@ -124,7 +124,7 @@ void BindLoOidTable(LO *plo, int c, void *aoid);
 void RemoveSoHierarchy(SO *pso);
 void ReleaseAct(ACT **ppact);
 ACT *NewPathAct(MISSILE *pmissile, XF *pxf, int a, int b, float g0, float g1);
-void ApplyBombThrow(BOMB *pbomb);
+void ApplyBombThrow(BOMB *pbomb, LO *plo);
 int ShouldBombIgnoreIntersection(BOMB *pbomb, SO *pso);
 int MaxInt(int r, int n);
 void FireMissile(MISSILE *pmissile, LO *targetObject, V *ppos);
@@ -187,9 +187,9 @@ extern "C" void FireMissile(MISSILE *missile, LO *targetObject, V *targetPos)
 }
 
 // MISSILE vtable slot 77 (thrown/launched): the BOMB behaviour, then stops the flight action. (inferred)
-extern "C" void ApplyMissileThrow(MISSILE *missile)
+extern "C" void ApplyMissileThrow(MISSILE *missile, LO *plo)
 {
-    ApplyBombThrow(missile);
+    ApplyBombThrow(missile, plo);
     ReleaseAct(&missile->flightAction);
 }
 

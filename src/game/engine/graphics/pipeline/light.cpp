@@ -48,8 +48,8 @@ void AddLoHierarchy(LIGHT *p);
 void RemoveLoHierarchy(LIGHT *p);
 void OnLoRemove(LIGHT *p);
 void OnLoAdd(LIGHT *p);
-void TranslateXfmToPos(LIGHT *p);
-void RotateXfmToMat(LIGHT *p);
+void TranslateXfmToPos(LIGHT *p, qword qwPos);
+void RotateXfmToMat(LIGHT *p, MATRIX3 *pmatWorld);
 void InheritLoFlag4(LIGHT *p);
 void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, VECTOR *pv);
 void ColorCorrectVector(VECTOR *pv);
@@ -164,14 +164,14 @@ extern "C" void OnLightAdd(LIGHT *light) {
 }
 
 // LIGHT vt29: XFM TranslateToPos then RebuildLight. (inferred)
-extern "C" void TranslateLightToPos(LIGHT *light) {
-    TranslateXfmToPos(light);
+extern "C" void TranslateLightToPos(LIGHT *light, qword qwPos) {
+    TranslateXfmToPos(light, qwPos);
     RebuildLight(light);
 }
 
 // LIGHT vt30: XFM RotateToMat then RebuildLight. (inferred)
-extern "C" void RotateLightToMat(LIGHT *light) {
-    RotateXfmToMat(light);
+extern "C" void RotateLightToMat(LIGHT *light, MATRIX3 *pmatWorld) {
+    RotateXfmToMat(light, pmatWorld);
     RebuildLight(light);
 }
 

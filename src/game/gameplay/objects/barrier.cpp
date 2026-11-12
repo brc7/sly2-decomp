@@ -32,7 +32,7 @@ void PostSoLoad(BARRIER *pso);
 void RefreshSwObjectCollisionFilter(void *psw, BARRIER *pso);
 int HasLoOid(void *plo, int oid);
 int ShouldSoIgnoreIntersection(BARRIER *pso, void *psoOther);
-void AdjustSoNewXp(BARRIER *pso);
+void AdjustSoNewXp(BARRIER *pso, XP *pxp, int ixpd);
 void EnsureSwCallback(void *psw, void *pv, long k, sptr n);
 }
 int IsBasicDerivedFrom(struct BASIC *pbasic, CID cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
@@ -87,9 +87,9 @@ extern "C" int ShouldBarrierIgnoreIntersection(BARRIER *barrier, void *other)
 // level script binds the barrier's impact event (5), schedules SendBarrierImpactMessages as a once-per-frame world
 // callback (several contacts in one frame produce one report).
 // Also known as: OnBarrierXpNew (upstream readable / Sly 1 name; OnBarrierXpNew__FP3ALO).
-extern "C" void NotifyBarrierImpact(BARRIER *barrier)
+extern "C" void NotifyBarrierImpact(BARRIER *barrier, XP *pxp, int ixpd)
 {
-    AdjustSoNewXp(barrier);
+    AdjustSoNewXp(barrier, pxp, ixpd);
     if (barrier->scriptFrame.m_p && FindBindingPtr__6CFrameUii(barrier->scriptFrame.m_p, 5, 1))
         EnsureSwCallback(&g_sw, barrier, ((LONGU *)&D_002A4790)->l, 0);
 }

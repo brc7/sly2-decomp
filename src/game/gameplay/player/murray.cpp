@@ -118,7 +118,7 @@ extern "C" void InitMurray(MURRAY *murray)
 
 namespace M_LoadMurrayFromBrx {
 extern char D_002C0270[] __asm__("D_002C0270");
-void LoadStepFromBrx(MURRAY *p) __asm__("LoadStepFromBrx");
+void LoadStepFromBrx(MURRAY *p, CBinaryInputStream *pbis) __asm__("LoadStepFromBrx");
 void BindLoOidTable(MURRAY *p, int n, void *q) __asm__("BindLoOidTable");
 PARTLINK *AllocClearedFromWorldHeap(struct SWALLOC *r) __asm__("AllocClearedFromWorldHeap");
 void *FindSoXf(MURRAY *p, int a, int b) __asm__("FindSoXf");
@@ -127,9 +127,9 @@ void InitIkRecord(PARTLINK *t) __asm__("InitIkRecord");
 extern "C" { static __inline__ PARTLINK *NewT(void) { struct SWALLOC req; req.cb = 0xE0; req.cbAlign = 0x10; return AllocClearedFromWorldHeap(&req); } }
 // MURRAY LoadFromBrx (slot 14): STEP base, binds his object table (0x89 entries) and allocates the two hand/grip
 // records. Layout parse-verified: a parser following it reads every byte of 4 levels.
-extern "C" void LoadMurrayFromBrx(MURRAY *murray)
+extern "C" void LoadMurrayFromBrx(MURRAY *murray, CBinaryInputStream *pbis)
 {
-    LoadStepFromBrx(murray);
+    LoadStepFromBrx(murray, pbis);
     BindLoOidTable(murray, 0x89, D_002C0270);
     murray->ikChainA = NewT();
     murray->ikChainA->precA = FindSoXf(murray, 0x200, 6);
@@ -2994,11 +2994,11 @@ extern "C" char *GetMurraySaveVarRoot()
 namespace RO_ORDER { extern const char r_D_002A75E0[] __asm__("D_002A75E0") = "murray"; }
 namespace M_func_001B9B70 {
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
-void GetStepplayerStunHold(MURRAY *p, STUNHOLD *po) __asm__("GetStepplayerStunHold");
+void GetStepplayerStunHold(MURRAY *p, STUNHOLD *po, float dt) __asm__("GetStepplayerStunHold");
 // MURRAY slot 96: STEPPLAYER base; during an attack the target point is the predicted attack end.
-extern "C" void GetMurrayStunHold(MURRAY *murray, STUNHOLD *object)
+extern "C" void GetMurrayStunHold(MURRAY *murray, STUNHOLD *object, float dt)
 {
-    GetStepplayerStunHold(murray, object);
+    GetStepplayerStunHold(murray, object, dt);
     switch (murray->state) {
     case MURRAY_ATTACK:
         object->fValid = 1;
