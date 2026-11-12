@@ -48,7 +48,11 @@ struct ZPR
       int dhp;   /* hit points removed */
       undefined4 unknown14[3];
       qword position; /* hit position */
-      qword velocity; /* velocity at the hit */
+      union
+      {
+            qword velocity; /* velocity at the hit */
+            VECTOR vecVelocity;   /* the same by component (TakeJtDamage clears x, y, z) */
+      };
       undefined4 unknown40;
       uint grfzpr;   /* zap flag bits */
       SO *psoHit;   /* solid object that was hit */
@@ -406,6 +410,29 @@ struct HURTEND
       void (*pfn)(void *);    /* the callback */
 };
 
+/* HURTFN: a hurt callback as SetJtHurtCallback's callers pass it. On the EE g++ 2.95's pointer to member function is
+   HURTEND's 8 bytes ({delta 0, index -1, pfn}), so the callers pass &JTHURT::member (the members below carry the
+   callbacks' symbols) and the PMF constant is the record. A compiler with another PMF format (Itanium: {ptr, adj})
+   passes the record built from the C function instead: SLY2_HURTFN(member, function) names both, like
+   class_registry_options.inc's EOPID_PMF. */
+#if defined(SLY2_EE_LAYOUT)
+typedef void (JTHURT::*HURTFN)();
+#define SLY2_HURTFN(member, fn) (&JTHURT::member)
+#define SLY2_HURTFN_NONE 0
+#else
+typedef HURTEND HURTFN;
+#define SLY2_HURTFN(member, fn) HurtendFromFn(fn)
+#define SLY2_HURTFN_NONE HURTEND()
+inline HURTEND HurtendFromFn(void (*fn)(struct JTHURT *))
+{
+      HURTEND k;
+      k.delta = 0;
+      k.index = 0xFFFF;
+      k.pfn = (void (*)(void *))fn;
+      return k;
+}
+#endif
+
 /* HURTZ: one of the hurt component's seven transform records (PostLoadJtHurt copies the table D_002BFA30 and looks
    up each transform on the hero). Placeholder name; the first word is the transform id given to FindSoXf. */
 struct HURTZ
@@ -438,6 +465,13 @@ struct JTHURT
       SOPART *aprecHurt[13];   /* +0xD4 STEP parameter records by hurt state (GetJtHurtAdjustRecord falls back through a parent table) */
       struct ASEG *flinchClip; /* +0x108 the clip a non-fatal 0x100000 zap plays without a hurt state (TakeJtDamage) */
       struct ASEGA *flinchAsega; /* +0x10C its application (stepplayer.cpp drops it once retracted); was unknown10C */
+
+      /* The hurt callbacks (hurt.cpp), for SLY2_HURTFN: the EE passes them as pointers to members. */
+      void EndCallback() __asm__("JtHurtEndCallback");
+      void ShockCallback() __asm__("JtHurtShockCallback");
+      void FallCallback() __asm__("JtHurtFallCallback");
+      void FallCallback2() __asm__("JtHurtFallCallback2");
+      void SafePlaceCallback() __asm__("ReturnJtToSafePlaceCallback");
 };
 
 /* GADGETSLOT: an equipped gadget: id and its state.

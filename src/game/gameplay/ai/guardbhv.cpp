@@ -1698,7 +1698,7 @@ extern "C" int HandleBhvguardMessage(BHV156 *behavior, int event, ZPR *msg)
             msg->dhp <<= 2;
             break;
         }
-        if (((STEPGUARD *)behavior->owner)->unknown29C)
+        if (((STEPGUARD *)behavior->owner)->takesNoDamage)
             msg->dhp = 0;
         if (((STEPGUARD *)behavior->owner)->tracksRelocatePoint && behavior->modeRec.kind != GUARD_MODE_KO && behavior->modeRec.kind != GUARD_MODE_SCRIPT
             && (msg->zpk == ZAP_STUCK_WATCH || msg->zpk == ZAP_WATER)) {

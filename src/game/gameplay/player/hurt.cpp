@@ -5,13 +5,10 @@
 // Entry points: TakeJtDamage (damage in), SetJtHurtState (state machine), UpdateJtActiveZap/PresetJtAccelZap (per
 // frame), IsJtInvulnerable / ShouldStepplayerIgnoreZap (zap filters), UpdateStepplayerWater (water hazard).
 //
-// Types: the functions on named fields use stepplayer.h's JTHURT/ZPR/STEPPLAYER, jt.h's JT and so.h's SO. The others
-// keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp
-// do): the hand-tuned ones (SetJtHurtState, PresetJtAccelZap, UpdateJtActiveZap, StartJtKnockback, TakeJtDamage:
-// register pins, by-value helper shapes, unions whose stores the match needs), and a record not identified yet
-// (AddJtHurtCpdefiFlags). PostLoadJtHurt, SetJtHurtCallback, RunJtHurtCallback, GetJtHurtAdjustRecord,
-// ProbeStepplayerSurface, UpdateStepplayerWater and ResolveStepplayerWaterContact are on the header types
-// (UpdateStepplayerWater keeps a view of the WATER volume, whose classes.h type has no fields yet).
+// Types: stepplayer.h's JTHURT / ZPR / STEPPLAYER, jt.h's JT, so.h's SO and the classes they point at. Each function
+// keeps its local helpers (register pins, by-value helper shapes the match needs) in a namespace named after it (as
+// vec.cpp and mark.cpp do), with a C fallback for each asm statement (#ifdef SLY2_EE_ASM). The hurt callbacks are
+// passed as SLY2_HURTFN (stepplayer.h): a g++ 2.95 pointer to member is the HURTEND record on the EE.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hurt
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_hurt
 #include "sly2/jt.h"          /* JT; stepplayer.h JTHURT, ZPR, STEPPLAYER */
@@ -30,6 +27,7 @@
 #include "sly2/lsg.h"
 #include "sly2/act.h"         /* CHAINLINK / CHAIN (the tail) */
 #include "sly2/aseg.h"
+#include "sly2/guard.h"       /* STEPGUARD (TakeJtDamage's attacker) */
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -47,6 +45,11 @@ extern float D_002BFB24;    /* hurt contact elasticity */
 int IsAsegaRetracted(ASEGA *pasega);
 void RunJtHurtCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlaceCallback(JTHURT *pjthurt);
+void JtHurtEndCallback(JTHURT *hurt);
+void SetJtHurtCallback(JTHURT *hurt, HURTEND k);
+void JtHurtShockCallback(JTHURT *hurt);
+void JtHurtFallCallback(JTHURT *hurt);
+void JtHurtFallCallback2(JTHURT *hurt);
 void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, int n);
 void SetJtHurtState(JTHURT *pjthurt, int nState);
 void SetJtAirJump(JTAIR *pjtair, int nState, int n2, int n3);   /* HYPOTHESIS: sets the air state */
@@ -106,11 +109,10 @@ extern const float D_002A6720 __asm__("D_002A6720");   /* defined below where th
 // The tail chains of Sly (CID 0x35): JT::tailXfs[i] -> XF::plink -> CHAINLINK::chain -> CHAIN::gravity. Sly's model has
 // no tail transforms, so tailXfs are null and the EE stores through null (whatever low memory holds at +0xA8); the
 // native build skips a missing tail.
-#if defined(SLY2_EE_LAYOUT)
 static inline CHAIN *TailChain(STEPPLAYER *player, int i) { return ((JT *)player)->tailXfs[i]->plink->chain; }
+#if defined(SLY2_EE_LAYOUT)
 #define SLY2_HAS_TAIL(player, i) 1
 #else
-static inline CHAIN *TailChain(STEPPLAYER *player, int i) { return ((JT *)player)->tailXfs[i]->plink->chain; }
 #define SLY2_HAS_TAIL(player, i) (((JT *)(player))->tailXfs[i] && ((JT *)(player))->tailXfs[i]->plink)
 #endif
 static inline void SetTailGravity(STEPPLAYER *player, int i, const U &g) { if (SLY2_HAS_TAIL(player, i)) TailChain(player, i)->gravity = g.q; }
@@ -641,205 +643,170 @@ extern "C" void StartJtKnockback(struct P*p){
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FTakeJtDamage {
-#define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-struct P;
-struct C;
-typedef void(C::*ACTION)();
-struct COUNT{int a,b,c;};
-struct W{char pad[0x158];COUNT*count;};
-struct P{char pad0[12];void *vptr;char pad10[0x29C-0x10];int guard;char pad2A0[0x4C8-0x2A0];int mode;char pad4CC[8];P*delegate;char pad4D8[0xFBC-0x4D8];int state;char padFC0[0x11A8-0xFC0];W*widget;};
-struct RECORD{P*object;int pad4,pad8;int flags;int delta;char pad14[0x30-0x14];int a,b,c;char pad3C[0x60-0x3C];}__attribute__((aligned(16)));
-struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;char pad24[0x30-0x24];RECORD record;int mode;float time,changed;char pad9C[0x108-0x9C];void*effect;void*output;
- void Reaction() __asm__("JtHurtEndCallback");
- void Special() __asm__("JtHurtShockCallback");
- void Stop() __asm__("JtHurtFallCallback");
- void Finish() __asm__("ReturnJtToSafePlaceCallback");
-};
-
  extern char D_002DE578[] __asm__("D_002DE578");
  extern qword D_002A2DD0 __asm__("D_002A2DD0");
  union VQ{float f[4];qword q;};
  extern VQ D_002BFB10 __asm__("D_002BFB10");   // C symbol: this namespace has no extern "C" block
- int ShouldJtVetoDamage(C*,RECORD*) __asm__("ShouldJtVetoDamage");
+ int ShouldJtVetoDamage(JTHURT*,ZPR*) __asm__("ShouldJtVetoDamage");
  int ScaleByDifficulty(void*,int) __asm__("ScaleByDifficulty");
- void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
- int IsBasicDerivedFrom__FP5BASIC3CID(P*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
- void DropStepplayerBooty(P*) __asm__("DropStepplayerBooty");
- void BroadcastGameEvent(void*,int,P*) __asm__("BroadcastGameEvent");
- void SetJtHurtCallback(C*,ACTION) __asm__("SetJtHurtCallback");
- void StartJtKnockback(C*) __asm__("StartJtKnockback");
- void SetJtHurtState(C*,int) __asm__("SetJtHurtState");
- int GetBasicCid(P*) __asm__("GetBasicCid");
+ void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,STEPPLAYER*,float,float,int,ASEGA**) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
+ int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+ void DropStepplayerBooty(STEPPLAYER*) __asm__("DropStepplayerBooty");
+ void BroadcastGameEvent(void*,int,LO*) __asm__("BroadcastGameEvent");
+ void SetJtHurtCallback(JTHURT*,HURTFN) __asm__("SetJtHurtCallback");
+ void StartJtKnockback(JTHURT*) __asm__("StartJtKnockback");
+ int GetBasicCid(STEPPLAYER*) __asm__("GetBasicCid");
  void*CreateSfxSound(int) __asm__("CreateSfxSound");
- void SetSndSourceLo(void*,P*) __asm__("SetSndSourceLo");
- qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
- void*NewNoise(NOISETYPE*,qword,P*) __asm__("NewNoise");
+ void SetSndSourceLo(void*,STEPPLAYER*) __asm__("SetSndSourceLo");
+ qword GetLoWorldPos(STEPPLAYER*) __asm__("GetLoWorldPos");
+ void*NewNoise(NOISETYPE*,qword,STEPPLAYER*) __asm__("NewNoise");
 
 // a + b with unsigned wrap.
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
 // z lane of value as a float.
+#ifdef SLY2_EE_ASM
 static inline float Z(qword value){register int word __asm__("$9");float result;__asm__("pextuw %0,$zero,%1":"=r"(word):"r"(value));__asm__("mtc1 %1,%0":"=f"(result):"r"(word));return result;}
-typedef char RECORD_Size[sizeof(RECORD)==96?1:-1];
-typedef char ACTION_Size[sizeof(ACTION)==8?1:-1];
-typedef char qword_Size[sizeof(qword)==16?1:-1];
-typedef char C_actor_Offset[FIELD_OFFSET(C,actor)==0?1:-1];
-typedef char C_kind_Offset[FIELD_OFFSET(C,kind)==4?1:-1];
-typedef char C_counter_Offset[FIELD_OFFSET(C,counter)==16?1:-1];
-typedef char C_action_Offset[FIELD_OFFSET(C,action)==28?1:-1];
-typedef char C_record_Offset[FIELD_OFFSET(C,record)==48?1:-1];
-typedef char C_mode_Offset[FIELD_OFFSET(C,mode)==144?1:-1];
-typedef char C_time_Offset[FIELD_OFFSET(C,time)==148?1:-1];
-typedef char C_changed_Offset[FIELD_OFFSET(C,changed)==152?1:-1];
-typedef char C_effect_Offset[FIELD_OFFSET(C,effect)==264?1:-1];
-typedef char C_output_Offset[FIELD_OFFSET(C,output)==268?1:-1];
-typedef char P_vptr_Offset[FIELD_OFFSET(P,vptr)==12?1:-1];
-typedef char P_guard_Offset[FIELD_OFFSET(P,guard)==668?1:-1];
-typedef char P_mode_Offset[FIELD_OFFSET(P,mode)==1224?1:-1];
-typedef char P_delegate_Offset[FIELD_OFFSET(P,delegate)==1236?1:-1];
-typedef char P_state_Offset[FIELD_OFFSET(P,state)==4028?1:-1];
-typedef char P_widget_Offset[FIELD_OFFSET(P,widget)==4520?1:-1];
-typedef char W_count_Offset[FIELD_OFFSET(W,count)==344?1:-1];
-typedef char COUNT_c_Offset[FIELD_OFFSET(COUNT,c)==8?1:-1];
-typedef char RECORD_object_Offset[FIELD_OFFSET(RECORD,object)==0?1:-1];
-typedef char RECORD_flags_Offset[FIELD_OFFSET(RECORD,flags)==12?1:-1];
-typedef char RECORD_delta_Offset[FIELD_OFFSET(RECORD,delta)==16?1:-1];
-typedef char RECORD_a_Offset[FIELD_OFFSET(RECORD,a)==48?1:-1];
-typedef char RECORD_b_Offset[FIELD_OFFSET(RECORD,b)==52?1:-1];
-typedef char RECORD_c_Offset[FIELD_OFFSET(RECORD,c)==56?1:-1];
-typedef char int_Size[sizeof(int)==4?1:-1];
-typedef char unsigned_Size[sizeof(unsigned)==4?1:-1];
-typedef char float_Size[sizeof(float)==4?1:-1];
-typedef char pointer_Size[sizeof(void*)==4?1:-1];
-typedef char short_Size[sizeof(short)==2?1:-1];
-typedef char RECORD_Alignment[__alignof__(RECORD)==16?1:-1];
-typedef char C_Prefix_Size[sizeof(C)==0x110?1:-1];
-typedef char P_Prefix_Size[sizeof(P)==0x11AC?1:-1];
-typedef char W_Prefix_Size[sizeof(W)==0x15C?1:-1];
-typedef char COUNT_Size[sizeof(COUNT)==12?1:-1];
+#else
+static inline float Z(qword value){return QwordZ(value);}
+#endif
 // Applies a damage record to the player: the owner may veto it (vt86), flag filters, damage scaled by difficulty,
 // health counter, game event broadcast, hit clip, sound, knockback and callback. Returns nonzero if taken.
 // Also known as: FAcceptDamage (upstream readable / Sly 1 name; FAcceptDamage__FP5ACTORP5CTMSG).
-extern "C" int TakeJtDamage(C *p, RECORD *input)
+extern "C" int TakeJtDamage(JTHURT *p, ZPR *input)
 {
-    RECORD accepted;
+    ZPR accepted;
     int delta;
     if (ShouldJtVetoDamage(p, input)) {
-        if (p->kind >= 8 && p->kind <= 12)
+        if (p->state >= 8 && p->state <= 12)
 
             return 0;
         delta = -32768;
         goto notify;
     }
-    if (AsStepplayer(p->actor)->IsInvulnerable((ZPK)input->flags))
+    if (p->player->IsInvulnerable((ZPK)input->zpk))
         return 0;
-    if (p->actor->mode == 1)
-        return AsStepplayer(p->actor->delegate)->TakeDamage((ZPR *)input);
-    if (p->actor->guard)
+    if (p->player->jtgrab.state == 1)   /* grabbing: the grabbed object takes it */
+        return ((STEPPLAYER *)p->player->jtgrab.grabbedObject)->TakeDamage(input);
+    if (p->player->takesNoDamage)
         delta = 0;
-    else if (p->mode == 1)
+    else if (p->postHitMode == 1)
         delta = 0;
     else
-        delta = ScaleByDifficulty(D_002DE578, input->delta);
-    if (input->flags == 0x100000) {
-        if (Add32(*p->counter, delta) > 0) {
-            if (p->mode != 1) {
-                p->mode = 0;
-                p->time = p->changed = g_clock.time;
+        delta = ScaleByDifficulty(D_002DE578, input->dhp);
+    if (input->zpk == 0x100000) {
+        if (Add32(*p->hitPoints, delta) > 0) {   /* a non-fatal 0x100000 zap: the flinch clip, no hurt state */
+            if (p->postHitMode != 1) {
+                p->postHitMode = 0;
+                p->hitTime = p->recoveredTime = g_clock.time;
             }
-            *p->counter = Add32(*p->counter, delta);
-            if (p->effect)
-                ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(p->effect, p->actor, 0.0f, 1.0f, 1, &p->output);
+            *p->hitPoints = Add32(*p->hitPoints, delta);
+            if (p->flinchClip)
+                ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(p->flinchClip, p->player, 0.0f, 1.0f, 1, &p->flinchAsega);
             goto sound;
         }
-        register RECORD *destination __asm__("$2");
+        /* a fatal one becomes a 0x200 knockback without velocity */
+#ifdef SLY2_EE_ASM
+        register ZPR *destination __asm__("$2");
         __asm__("daddu %0,%1,$zero" : "=r"(destination) : "r"(&accepted));
         *destination = *input;
+#else
+        accepted = *input;
+#endif
         input = &accepted;
-        accepted.flags = 0x200;
+        accepted.zpk = 0x200;
+#ifdef SLY2_EE_ASM
         __asm__("sw $zero,4(%3)\n\tsw $zero,8(%3)\n\tsw $zero,%2"
-                : "=m"(accepted.b), "=m"(accepted.c), "=m"(accepted.a)
-                : "r"(&accepted.a));
+                : "=m"(accepted.vecVelocity.y), "=m"(accepted.vecVelocity.z), "=m"(accepted.vecVelocity.x)
+                : "r"(&accepted.vecVelocity.x));
+#else
+        accepted.vecVelocity.x = accepted.vecVelocity.y = accepted.vecVelocity.z = 0;
+#endif
     }
-    if (input->object && IsBasicDerivedFrom__FP5BASIC3CID(input->object, 0x38)) {
-        if (input->object->state == 8 || input->object->state == 13)
+    if (input->ploSource && IsBasicDerivedFrom__FP5BASIC3CID(input->ploSource, 0x38)) {
+        STEPGUARD *guard = (STEPGUARD *)input->ploSource;
+        if (guard->specialState == 8 || guard->specialState == 13)
             delta /= 2;
     }
 notify: {
-    AsStepplayer(p->actor)->SetPlayerState(3);
-    W *widget = p->actor->widget;
-    if (widget && (widget->count->c || Add32(*p->counter, delta) <= 0))
-        DropStepplayerBooty(p->actor);
-    BroadcastGameEvent(&g_game, 0xF, input->object);
-    p->record = *input;
-    p->record.delta = delta;
-    SetJtHurtCallback(p, 0);
-    int n = Add32(*p->counter, p->record.delta);
-    *p->counter = n >= 0 ? n : 0;
-    if (*p->counter > 0) {
-        p->mode = 1;
-        p->time = g_clock.time;
+    p->player->SetPlayerState(3);
+    BOOTY *booty = (BOOTY *)p->player->pbooty;
+    if (booty && (booty->pbootyeCur->dropsOnHit || Add32(*p->hitPoints, delta) <= 0))
+        DropStepplayerBooty(p->player);
+    BroadcastGameEvent(&g_game, 0xF, input->ploSource);
+    p->zpr = *input;
+    p->zpr.dhp = delta;
+    SetJtHurtCallback(p, SLY2_HURTFN_NONE);
+    int n = Add32(*p->hitPoints, p->zpr.dhp);
+    *p->hitPoints = n >= 0 ? n : 0;
+    if (*p->hitPoints > 0) {
+        p->postHitMode = 1;
+        p->hitTime = g_clock.time;
     }
-    switch (input->flags) {
+    switch (input->zpk) {
     case 0x100:
     case 0x200: {
         StartJtKnockback(p);
-        if (Z(AsStepplayer(p->actor)->GetVelocity()) > 400.0f) {
+        if (Z(p->player->GetVelocity()) > 400.0f) {
             int effect = -1;
-            switch (GetBasicCid(p->actor)) {
+            switch (GetBasicCid(p->player)) {
             case 0x35: effect = 0x69; break;
             case 0x36: effect = 0x84; break;
             case 0x37: effect = 0x83; break;
             }
-            P *actor = p->actor;
+            STEPPLAYER *player = p->player;
             void *created = CreateSfxSound(effect);
-            SetSndSourceLo(created, actor);
+            SetSndSourceLo(created, player);
         }
-        SetJtHurtCallback(p, &C::Reaction);
+        SetJtHurtCallback(p, SLY2_HURTFN(EndCallback, JtHurtEndCallback));
         break;
     }
     case 0x8000:
         SetJtHurtState(p, 7);
-        SetJtHurtCallback(p, &C::Special);
+        SetJtHurtCallback(p, SLY2_HURTFN(ShockCallback, JtHurtShockCallback));
         break;
     case 0x800:
     case 0x1000:
-        AsStepplayer(p->actor)->SetVelocity(D_002A2DD0);
-        AsStepplayer(p->actor)->SetAngularVelocity(D_002A2DD0);
-        SetJtHurtState(p, input->flags == 0x800 ? 1 : 2);
-        SetJtHurtCallback(p, &C::Stop);
+        p->player->SetVelocity(D_002A2DD0);
+        p->player->SetAngularVelocity(D_002A2DD0);
+        SetJtHurtState(p, input->zpk == 0x800 ? 1 : 2);
+        SetJtHurtCallback(p, SLY2_HURTFN(FallCallback, JtHurtFallCallback));
         break;
     case 0x2000:
-        if (*p->counter > 0) {
+        if (*p->hitPoints > 0) {
             SetJtHurtState(p, 3);
-            SetJtHurtCallback(p, &C::Finish);
+            SetJtHurtCallback(p, SLY2_HURTFN(SafePlaceCallback, ReturnJtToSafePlaceCallback));
         } else
             SetJtHurtState(p, 10);
         break;
     case 0x400:
-        AsStepplayer(p->actor)->SetVelocity(D_002BFB10.q);
-        if (*p->counter > 0)
+        p->player->SetVelocity(D_002BFB10.q);
+        if (*p->hitPoints > 0)
             SetJtHurtState(p, 4);
         else
             SetJtHurtState(p, 12);
         break;
     case 0x4000:
-        if (*p->counter > 0) {
+        if (*p->hitPoints > 0) {
             SetJtHurtState(p, 5);
-            SetJtHurtCallback(p, &C::Finish);
+            SetJtHurtCallback(p, SLY2_HURTFN(SafePlaceCallback, ReturnJtToSafePlaceCallback));
         } else
             SetJtHurtState(p, 11);
         break;
     case 0x40:
         StartJtKnockback(p);
-        SetJtHurtCallback(p, &C::Reaction);
+        SetJtHurtCallback(p, SLY2_HURTFN(EndCallback, JtHurtEndCallback));
         break;
     }
 }
 sound:
+#ifdef SLY2_EE_ASM
     register SW *game __asm__("$16") = &g_sw;
-    qword point = GetLoWorldPos(p->actor);
+#else
+    SW *game = &g_sw;
+#endif
+    qword point = GetLoWorldPos(p->player);
     NOISETYPE *channel = game->apstimk[6];
-    (void)NewNoise(channel, point, p->actor);
+    (void)NewNoise(channel, point, p->player);
     return 1;
 }
 } // namespace M_FTakeJtDamage
@@ -871,13 +838,13 @@ extern "C" void JtHurtFallCallback(JTHURT *hurt)
     }
 }
 
-/* The 8-byte hurt callback passed by value (B4): read through a packed view so it goes straight into a1 (ldl/ldr). */
 extern "C" {
-extern const LONGU D_002A6790;
-// Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
+extern const HURTEND D_002A6790;   /* JtHurtFallCallback2 as a HURTEND record (defined below, in .rodata order) */
 void *CreateSfxSound(int n);
 void SetSndSourceLo(void *psnd, int n);
-void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("SetJtHurtCallback");   /* sets the hurt callback (+0x1C) */
+#if defined(SLY2_EE_LAYOUT)
+void func_001A15B0L(JTHURT *pjthurt, long cb) __asm__("SetJtHurtCallback");   /* SetJtHurtCallback taking the record as a long */
+#endif
 }
 // Callback: plays sound 0x6A, enters hurt state 6 and chains the next callback (D_002A6790).
 // Also known as: NextSpecial (upstream readable / Sly 1 name; NextSpecial__FP5ACTOR).
@@ -885,7 +852,11 @@ extern "C" void JtHurtShockCallback(JTHURT *hurt)
 {
     SetSndSourceLo(CreateSfxSound(0x6A), 0);
     SetJtHurtState(hurt, 6);
-    func_001A15B0L(hurt, D_002A6790.l);
+#if defined(SLY2_EE_LAYOUT)
+    func_001A15B0L(hurt, ((const LONGU *)&D_002A6790)->l);   /* the 8-byte record in one register (ldl / ldr), as the EE passes it */
+#else
+    SetJtHurtCallback(hurt, D_002A6790);
+#endif
 }
 
 /* With hit points left: back to a safe place when the source respawns the hurt player (SO::hurtRespawnsHero), else air
@@ -908,8 +879,7 @@ extern "C" void JtHurtFallCallback2(JTHURT *hurt)
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 // Contact adjust hook in the hurt state: states 4/12 set the contact friction/elasticity to D_002BFB20 and 0,
 // other states other values.
-void p_func_001A2080() __asm__("JtHurtFallCallback2");
-extern const unsigned int r_D_002A6790[2] __asm__("D_002A6790") = {0xFFFF0000, (unsigned int)p_func_001A2080};
+extern const HURTEND r_D_002A6790 __asm__("D_002A6790") = {0, 0xFFFF, (void (*)(void *))JtHurtFallCallback2};   /* delta 0, index -1 */
 }
 // Contact adjust hook in the hurt state: states 4/12 set the adjust values to D_002BFB20 and 0, other states other
 // values. (inferred)

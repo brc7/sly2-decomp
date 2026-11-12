@@ -104,7 +104,7 @@ struct STEP : public PO
       BHVSTK behaviors; /* the behaviour stack */
       SHAPE *routeShape;   /* +0x294 the route the character follows: a 16-point sampled shape (PostStepLoad: NewSampledShape) that FindPathzonePathCurve fills; guards follow it with SetBhvpathShape */
       int isInvulnerable;   /* +0x298 nonzero: every zap is ignored (ShouldStepplayerIgnoreZap, STEPGUARD::IsZapLethal) (inferred) */
-      undefined4 unknown29C;
+      int takesNoDamage;   /* +0x29C nonzero: a zap still hits but removes no hit points (TakeJtDamage, the guards' zap handler) (inferred); was unknown29C */
       int acrefDialogSm[6];   /* +0x2A0 reference counts of the six dialog roles' state machines (AddStepDialogSmRefs /
                                  RemoveStepDialogSmRefs: the first reference applies the role's SM, the last retracts it) */
     virtual void Init() __asm__("InitStep");   /* slot 7 */

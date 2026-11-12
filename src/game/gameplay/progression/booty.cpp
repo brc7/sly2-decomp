@@ -37,10 +37,7 @@ struct HERO;
 struct RLO { void *scriptFrame; void *scriptVariables; void *firstSubscriber; VT *pvt; };
 
 /* A booty entry (0x2C bytes; at most 0x20, LoadBootyFromBrx copies the used ones to the SW heap). */
-struct BOOTYE { int id; int unknown4; char pad8[4]; int hasTimer; int allowedDuringJob; int containerKind; int partsId; unsigned int c1C; OID aoid[3]; };
-/* hasTimer: carrying it runs the HUD timer; allowedDuringJob: may be put in a container during a job; containerKind: the
-   container kind (CID37V::acceptedKind) it fits; partsId: SO parts shown while it is current, -1 none. (inferred) */
-typedef char assert_BOOTYE_size[sizeof(BOOTYE) == 0x2C ? 1 : -1];
+/* BOOTYE: classes.h. */
 
 struct BOOTYV
 {

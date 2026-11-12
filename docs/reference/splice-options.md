@@ -889,7 +889,7 @@ parent PO; 104 options in all.
 | 355 | `targetHeading` / `SetStepTargetHeadingOption` | float | get set | 229 |
 | 356 | `vecLocalVelocity` | vector | get set | 230 |
 | 357 | `isInvulnerable` | bool | get set file | 231 |
-| 358 | `unknown29C` | bool | get set file | 232 |
+| 358 | `takesNoDamage` | bool | get set file | 232 |
 
 ## STEPPLAYER (cid 52)
 

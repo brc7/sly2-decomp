@@ -363,7 +363,22 @@ struct BOMB : SO
 typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
 
 /* 103 BOOTY (0x190): replaces cid_table ALARM; vtable 0x2CBBA0, 75 slots */
-struct BOOTYE;   /* booty.cpp: one booty entry (0x2C bytes) */
+/* BOOTYE: one booty entry (booty.cpp AddBootyEntry). hasTimer: carrying it runs the HUD timer; allowedDuringJob: may be put
+   in a container during a job; containerKind: the container kind (CID37V::acceptedKind) it fits; partsId: SO parts shown
+   while it is current, -1 none. (inferred) */
+struct BOOTYE
+{
+    int id;
+    int unknown4;
+    int dropsOnHit;             /* +0x08 any hit makes the carrier drop it (hurt.cpp TakeJtDamage; else only a fatal one) */
+    int hasTimer;
+    int allowedDuringJob;
+    int containerKind;
+    int partsId;
+    unsigned int c1C;           /* objects in aoid */
+    OID aoid[3];
+};
+typedef char assert_BOOTYE_size[sizeof(BOOTYE) == 0x2C ? 1 : -1];
 struct BOOTY : SO
 {
     /* The booty's own fields (booty.cpp's BOOTYV view reads them; declared here so the class has its size on every
