@@ -57,7 +57,12 @@ in xfm.h, BSPC::numCameraNodes), recon.cpp on LO / CID46 / JTMODE / STEPPLAYER w
 776, IntersectSwBoundingBox's SOPART results, the line-clip span views as LSG, rendertree.cpp on GLOBSET, the libm note
 (section 1); (v1.30, the port's arm64 request 010) struct results that agree between declarations on every ABI
 (section 1, "Struct results and arm64"; tools/cleanup/signatures/sretcheck.py), SLY2_EE_CHECK for EE-offset asserts,
-a pointer-sized SWCALLBACK argument, mark.cpp MarkSoContactsSphereBsp in C.
+a pointer-sized SWCALLBACK argument, mark.cpp MarkSoContactsSphereBsp in C; (v1.31, the port's requests 16 / 17)
+STEPPLAYER slot 82 with its three qwords, virtual-slot argument counts (section 1, "Virtual slots";
+tools/cleanup/signatures/vslotcheck.py) and the 31 overrides that called their base with fewer arguments, the camera
+policies' hero pointer, LO::inlineFlags pointer-sized, the boot-15 EE-offset views (LinkStepAttachment, RTCAM in
+sly2/rtcam.h, AddFramePatch, BuildWidgetArgText, GetDialogStreamDuration, the pause menu's page stack, SCRLIST,
+JTGRAB::hands, MeasureJtJumpToTarget), and guardbhv's self-recursive VuScaleByX fallback (section 2).
 
 ## 1. Guards and hooks
 
@@ -128,8 +133,12 @@ Why the matching form cannot be the portable one:
 - **LO's tagged update word** (LO+0x40, `inlineFlags` / `ploupd`; `inlineFlags` was `unknown40` before v1.26): either
   an LOUPD pointer or the flags with bit 0 set.
   Readers take it as `uptr` (or `sptr` where the matched local was `int`) through `LO::ploupd` and write the flags
-  through `LOUPD::grf` or `LO::inlineFlags`; LO's own `int inlineFlags` stays (making it unsigned would change sign
-  extensions elsewhere). On a little-endian host the low word holds the tag. lo.h includes sly2/port.h and defines
+  through `LOUPD::grf` or `LO::inlineFlags`. Since v1.31 `inlineFlags` is `sptr` (int on the EE, the same code;
+  signed, because unsigned would change sign extensions elsewhere): natively every store of the flags covers the
+  whole word, so the high half of a LOUPD pointer that was there before cannot survive (the port's task 63: a word
+  with low half 0x4d6 and a pointer's high half; RemoveLoFromSwUpdateList's `inlineFlags = ploupd->grf` was one such
+  store). grab.cpp AddFlags and rhythm.cpp SetTaggedFlags read the word as a 32-bit uint and dereferenced it (v1.31:
+  pointer-wide through LO::ploupd); util.h IsPointer takes an sptr. On a little-endian host the low word holds the tag. lo.h includes sly2/port.h and defines
   LOUPD (sw.h has the same definition under the same guard). v1.15 rewrote every remaining `int v = x->unknown40;
   ... *(int *)v` copy (tools: a scratch rewriter, line-local); left: so.cpp SetSoGrfBit8 (register-pinned asm).
 - **Bit-field copies** (CloneLo): lo.h declares LO's flag bit-fields `long` / `ulong`; g++ 2.95 folds a copy between
@@ -221,6 +230,22 @@ Already consistent before v1.30 (no change): bif.cpp's C-style builtins includin
 operator*(MATRIX4, MATRIX4) (MulMatrix4Into), BuiltinSetCadr (the out form everywhere, never called through a by-value
 type). New code: write the by-value C++ form where it matches; where a caller needs the other spelling for the match,
 give it SLY2_SRET_LABEL and an adapter in the same commit, and run sretcheck.py.
+
+### Virtual slots (v1.31)
+
+A virtual call passes the slot's whole argument list, so every override of a slot has the same ABI signature. The
+decomp's C-named overrides often declare fewer parameters than the slot: harmless when they do not use the rest, but
+on the EE an override that forwards to its base (a tail call, or a call before anything clobbers the argument
+registers) still passes the arguments it does not name, because they are still in a1..t1 / $f12; natively they are
+garbage. STEPPLAYER's slot 82 (AddStepplayerAxisXps, one qword of three) flung Sly off the port's intro pipe.
+tools/cleanup/signatures/vslotcheck.py (README there) builds the slot families from the ELF's vtables and lists the
+declarations that disagree. At the v1.30 base it found slot 82 and 42 caller-side declarations that call a base with
+fewer arguments than its definition takes; v1.31 fixed all but slot 6's UpdateCplcy (an empty definition) by giving
+the forwarding override the slot's parameters (slot 41 Clone(LO *ploBase): 14 overrides, slot 14 LoadFromBrx, slots
+26 / 27 OnProxyAcquire / OnProxyRelease, 29 / 30 TranslateToPos / RotateToMat, 55, 61, 78, 96, RIP slots 1 / 2, BOMB
+slot 77 ApplyThrow(LO *), CPLCY slots 2 / 3). The bytes do not change: the arguments stay in the registers they arrive
+in. vslot.md still lists 33 families (4 with an integer where another override has a pointer): leads, not verdicts;
+see section 3's "Still open after v1.31".
 
 ## 2. VU0 fallbacks
 
@@ -322,6 +347,19 @@ Also from the port's boot run (v1.14): xf.cpp's ResolveXfId / ResolveXfIdInSo / 
 tail calls already left it in $v0, so returning it is free), index the table as `XF *` (the 0x100 stride is
 sizeof(XF)), and PushXfContext / the context stack D_004437A8 hold `XF *`; shd.cpp's LoadShadersFromBrx takes the
 GSB as `GSB *` and passes it to UploadPermShaders as such, and the SAA table is sized `count * sizeof(SAA *)`.
+
+**Fallback self-recursion audit (v1.31)**: guardbhv.cpp's M_UpdateBhvwalkpath::VuScaleByX(qword, VU_FLOAT) #else
+called `VuScaleByX(qwVec, g.qw)` meaning sly2/vu0.h's template, but inside the namespace unqualified lookup finds
+the function itself first and converts the qword through VU_FLOAT(float): infinite recursion natively (the port's
+soaks overflowed the stack at frame ~8000); it calls `::VuScaleByX<qword>` now. The audit compiled every src/game TU
+natively (clang -O0 -emit-llvm with the port prelude, g++ 2.95 named returns rewritten as the port's generator does;
+all but dynarraystr.cpp) and listed every function that calls itself: 28 at the v1.30 base, of which VuScaleByX was
+the only one not recursive in the original too (the others walk trees and hierarchies: BSP, lights, path, hud sprites,
+SO bounds, pairs, tasks...). No two-function cycle among file-local or inline functions. A source scan of every
+#else branch for a call of a name that a TU-local function shadows (mark.cpp VuSub, guardbhv's VuLength /
+VuDivByX / VuScaleByX) found four calls; in the IR each resolves to the intended helper. The scripts are in the
+round's scratch directory (outside the repository): rerun them after adding fallbacks that call vu0.h helpers from a
+namespace that defines a helper of the same name.
 
 ## 3. Known remaining hazards
 
@@ -678,6 +716,34 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   overruns); rip.cpp HandleRipBounce (asm without a C fallback); grab.cpp SetJtGrabKind / UpdateJtGrabInput /
   ClearJtDetectionOutOfSight views, relay.cpp UpdateJsgJtControl views, screen.cpp SCRLIST's focused screen and the
   EE-sized inline screens, MeasureJtJumpToTarget's B / C views; sigcheck's remaining int-vs-pointer declarations (62).
+  Done in v1.31 (the port's upstream requests 16 / 17; every change byte-identical): guardbhv.cpp VuScaleByX's
+  self-recursive fallback and grab.cpp AddFlags' 32-bit read of LO's tagged word (the two v1.29 regressions); STEPPLAYER
+  slot 82 AddStepplayerAxisXps with all three qwords (and a VuSub fallback for its vsub); virtual-slot argument counts
+  ("Virtual slots" above); the camera policies' Activate / Deactivate take (void *pvHero, void *pv) throughout (CPZOOM,
+  CPHANG, CPCAMBLEND had the hero as int, CPLOOK neither, CPTURRET dropped pv; DeactivateCplook / Cpzoom / Cpcamblend
+  / Cpcamera / Cptn likewise); LO::inlineFlags `sptr` and rhythm.cpp's tagged-word helper (the port's task 63; section 1);
+  step.cpp LinkStepAttachment on SO::parent / physicsTree; RTCAM / RT / RTO in the new sly2/rtcam.h, RenderRtcam passes
+  &SO::model and glob.cpp BuildModelDrawPackets takes the RTCAM; glob.cpp AddFramePatch on GIFS::m_pb / m_ab (the
+  port's top-of-screen strip); hud.cpp BuildWidgetArgText's string as a pointer; sound.cpp GetDialogStreamDuration
+  (SNDMGR *, int); menu.cpp's page stack as PAUSEMENU::ae[k - 1]; screen.cpp SCRLIST { DL dl; SCREENBASE *focused; }
+  and inline-screen storage of CB * sizeof(void *) / 4 bytes (room for PAUSEMENU natively; at most twice the EE size
+  for any class); grab.cpp UpdateJtActiveHide passes JTGRAB::hands; air.cpp MeasureJtJumpToTarget reads
+  SO::physics->gravity.z; lo.cpp UpdateLoLoroot takes slot 13's `SO *psoOld` (was an int flag).
+  The port's task 64 (an invalid operation in VuSub from FindClosestPointOnLineSegment under ChooseBhvCirclePosition): not a
+  division. ChooseBhvCirclePosition passes an uninitialised quadword (`target`) as the point to measure from; in the
+  ELF it is $s7 (`por a0, s7, zero` before each call), which neither it nor UpdateBhvCircle writes, so the original
+  measures from whatever its callers left in s7, and natively from garbage (Inf / NaN bit patterns trap under the
+  port's floating-point trap mode). The choice only ranks the blocking segments' closest points. No faithful value exists; left
+  unchanged for a decision (a native-only initialisation, e.g. to the circle's origin, would avoid the trap).
+  Still open after v1.31: grab.cpp's SetJtGrabKind / UpdateJtGrabInput / ClearJtDetectionOutOfSight views (the port's
+  boot-14 hunks have the mapping; only AddFlags and the hands pointer are fixed), relay.cpp UpdateJsgJtControl's
+  ACTOR / PATH / OUTPUT views (its asm statement reads ACTOR +0x19F0 / +0x1A20, which need STEPPLAYER member names),
+  air.cpp GrabJtAirTarget's P / O / C views, hud.cpp BuildMenuCarouselText's page views (PAUSEMENU is menu.cpp-private;
+  its EE form needs the `D_003D9ED0+0xC` labels, so the portable form needs PAUSEMENU in a header and a guard);
+  the callback API's 20 PMF-as-long declarations; stepplayer.cpp's 8-byte CRefIsland; rip.cpp HandleRipBounce; the
+  vslotcheck leads with an integer for a pointer (slot 60 AddHackwallXps / AddLasenBeamXps take the BSP pointers as int and AddRobottankCustomXps drops
+  the XP list; slot 68 CalculateSoContactResponse's int pointers); the generated splicewrap thunks' s32 object
+  arguments (RefThunk_GetDialogStreamDuration passes the manager as `(s32)pbasic`).
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks

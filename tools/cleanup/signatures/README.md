@@ -107,3 +107,27 @@ returns a class / struct / qword by value with N parameters and another has N + 
 
 Fix pattern: keep the EE spelling and bind the minority form natively to an adapter beside the definition
 (docs/guides/portability.md, "Struct results and arm64").
+
+# Virtual-slot argument check (vslotcheck.py)
+
+```sh
+python3 tools/cleanup/signatures/vslotcheck.py [--root REPO] [--elf ELF] [--out DIR]
+```
+
+A virtual call passes the slot's whole argument list. An override that the decomp declares with fewer parameters still
+works on the EE when it only forwards: the arguments it does not name stay in a1..t1 / $f12.. for its tail call to the
+base. Natively they are dropped (v1.31: STEPPLAYER's slot 82 dropped two of three qwords; 31 Clone / LoadFromBrx /
+OnProxyAcquire / ... overrides called their base without its argument). The tool reads every `_vt$<n><CLASS>` from the
+ELF (default disc/SCUS_973.16; 8-byte g++ 2.95 entries, entry 0 the typeinfo slot), names each entry through the
+config's function symbols, and assigns entry i of a class to the topmost ancestor (include/'s `struct X : Y`) whose
+vtable reaches i: one family per virtual. For each family it compares the native-visible declarations of its functions
+(sretcheck.py's `native_groups`: asm label, C name, canonical mangled name; address-only `void f()` declarations and
+functions found in several families, such as `__pure_virtual`, left out) and lists the families whose declarations
+disagree on the argument count (object pointer included) or put an integer where another override has a pointer.
+
+Outputs in DIR (default build/signatures/): vslot.md (per family: the classes, every declaration with its count and
+site) and vslot.csv. About ten seconds; a report (exit 0). A listed family is a lead: an override that takes fewer
+arguments and never reads or forwards the rest (an empty default, a stub) is harmless. The finding that matters is a
+declaration with fewer parameters than the definition of the same symbol (a caller dropping arguments the callee
+reads); the fix is to give the forwarding override the slot's parameters and pass them on (the EE keeps them in the
+same registers, so the bytes do not change).
