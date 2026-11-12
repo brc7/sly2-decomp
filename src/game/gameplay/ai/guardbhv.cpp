@@ -286,7 +286,7 @@ extern "C" void SetBhvanimState(BHVANIM *behavior, int n) {
             behavior->binding = 0;
             ResetStepguardMover((&((STEPGUARD *)behavior->owner)->mover), behavior);
         }
-        ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
+        ((STEPGUARD *)behavior->owner)->steeringMode = 0;
         break;
     }
 }
@@ -371,10 +371,10 @@ extern "C" int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm
         UnlockStepguardMover(&((STEPGUARD *)behavior->owner)->mover, behavior);
         return 1;
     case 0x29:
-        ((STEPGUARD *)behavior->owner)->unknown1A4 = 1;
+        ((STEPGUARD *)behavior->owner)->steeringMode = 1;
         return 1;
     case 0x2A:
-        ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
+        ((STEPGUARD *)behavior->owner)->steeringMode = 0;
         return 1;
     case 0x27:
         SetBhvBusy(behavior);
@@ -514,11 +514,11 @@ extern "C" int HandleBhvidleMessage(BHVIDLE *behavior, int msg, ASEGEVENTMSG *pm
     if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->asega) {
         switch (pm->event) {
         case 0x29:
-            ((STEPGUARD *)behavior->owner)->unknown1A4 = 1;
+            ((STEPGUARD *)behavior->owner)->steeringMode = 1;
             M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 2);
             return 1;
         case 0x2A:
-            ((STEPGUARD *)behavior->owner)->unknown1A4 = 0;
+            ((STEPGUARD *)behavior->owner)->steeringMode = 0;
             if (!behavior->lookAt)
                 M_CloseBhvidle::SetXfRole(((STEPGUARD *)behavior->owner), ((STEPGUARD *)behavior->owner)->rotationXf, 1);
             return 1;

@@ -55,7 +55,7 @@ struct STEP : public PO
             qword qwUnknown190;  /* the same vector as a VU quadword (the root-motion code stores whole quadwords; mode.cpp, murray.cpp) */
       };
       float gaitBlend; /* gait blend, 0..1 (walk to run, inferred) */
-      int unknown1A4;
+      int steeringMode;
       float targetHeading; /* target heading (radians) */
       undefined4 unknown1AC;
       union

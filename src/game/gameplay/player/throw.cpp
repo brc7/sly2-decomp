@@ -486,7 +486,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
             break;
     }
     STEPPLAYER *owner = s->player;
-    if (owner->unknown1A4 != 1)
+    if (owner->steeringMode != 1)
         return;
     ASEGA *animation = owner->activeAnimation;
     CHN *reference = animation ? FindAsegChannel(animation->animation, owner, (void *)6, 1) : 0;
@@ -1032,7 +1032,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     switch (s->state) {
     case -1:
         SetStepTargetHeading(s->player, GetStepHeading(s->player));
-        s->player->unknown1A4 = 0;
+        s->player->steeringMode = 0;
         break;
     case 7: {
         STEPPLAYER *getterOwner;
@@ -1043,11 +1043,11 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
         qword target = RestoreTarget(&receiver, s, w.saved);
         SetStepTargetHeadingFromVector(receiver, SubS(target, current));
     }
-        s->player->unknown1A4 = 0;
+        s->player->steeringMode = 0;
         break;
     default:
         s->player->unknown1E0 = D_002A2DD0.q;
-        s->player->unknown1A4 = 1;
+        s->player->steeringMode = 1;
         break;
     }
     ASEG *animation = 0;

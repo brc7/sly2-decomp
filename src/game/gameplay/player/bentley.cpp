@@ -1267,7 +1267,7 @@ extern "C" void SetBentleyHoverState(BENTLEY *bentley, int k)
     }
     case 1:
         SetStepTargetHeading(bentley, GetStepHeading(bentley));
-        bentley->unknown1A4 = 0;
+        bentley->steeringMode = 0;
         FixStepAngularVelocity(bentley);
         break;
     }
@@ -1302,7 +1302,7 @@ extern "C" void SetBentleyHoverState(BENTLEY *bentley, int k)
         break;
     }
     case 1:
-        bentley->unknown1A4 = -1;
+        bentley->steeringMode = -1;
         break;
     }
     ReleaseSma(&bentley->activeStateMachine);

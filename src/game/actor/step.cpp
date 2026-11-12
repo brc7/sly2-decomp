@@ -462,7 +462,7 @@ extern "C" { static inline void InitScalar(U *value,int bits) {
 extern "C" void PresetStepAccel(struct STEP *step)
 {
     PresetSoAccel(step);
-    switch (step->unknown1A4) {
+    switch (step->steeringMode) {
     case STEERING_HEADING: {
         VECTOR3 v;
         float s = step->unknown200;
