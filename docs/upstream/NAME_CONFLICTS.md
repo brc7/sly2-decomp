@@ -34,17 +34,18 @@ signatures stay as the matching code needs them. Script bindings follow the `Ref
 
 ## How much overlaps
 
-Functions (6,662, keyed by address; "ours" is this branch after the work described below):
+Functions (6,662, keyed by address; "ours" is this branch after the work described below; counts recomputed from
+the crosswalk at decomp v1.26):
 
 | status | count | meaning |
 |---|---|---|
-| conflict | 2,063 | both sides named it, with different base names |
+| conflict | 2,062 | both sides named it, with different base names |
 | signature-only | 167 | same base name, different symbol (upstream changed the parameter types or the linkage) |
-| same | 694 | identical symbol |
-| ours-only | 3,123 | named here, still `func_XXXXXXXX` upstream |
+| same | 695 | identical symbol |
+| ours-only | 3,666 | named here, still `func_XXXXXXXX` upstream |
 | ported, ported-converted | 21, 9 | named only upstream; this branch took the name, or converted it to our style (below) |
 | not-ported | 1 | 0x238CC8: upstream calls it `sceSifFreeIopHeap`, a name this branch already uses at 0x238D40 |
-| both-placeholder | 584 | neither side has a name (249 are generated splice bindings in class_registry.cpp) |
+| both-placeholder | 41 | neither side has a name (584 when this page was first written; the 249 generated splice bindings in class_registry.cpp are named since) |
 
 Upstream's 90 globals: 62 now carry upstream's name on this branch too (here they were only `D_XXXXXXXX` linker
 symbols), 3 were already the same, and 1 kept our name (`g_pdliFirst`; upstream has `s_pdliFirst`). In 23 conflicts
@@ -55,31 +56,31 @@ Conflicts per subsystem (directory under src/game, or src/sdk library; columns a
 
 | subsystem | conflict | signature-only | same | ours-only | upstream-only | both-placeholder | total |
 |---|---|---|---|---|---|---|---|
-| gameplay/ai | 355 | 12 | 1 | 253 | 0 | 18 | 639 |
-| gameplay/player | 306 | 22 | 0 | 276 | 0 | 34 | 638 |
-| engine/physics | 228 | 14 | 3 | 187 | 0 | 15 | 447 |
-| gameplay/objects | 181 | 23 | 6 | 182 | 1 | 21 | 414 |
-| engine/anim | 144 | 11 | 14 | 82 | 0 | 12 | 263 |
-| app | 108 | 0 | 5 | 722 | 8 | 249 | 1092 |
-| engine/sound | 69 | 1 | 0 | 47 | 0 | 4 | 121 |
-| engine/camera | 66 | 12 | 9 | 57 | 0 | 5 | 149 |
-| world/state | 57 | 8 | 0 | 67 | 0 | 3 | 135 |
-| engine/presentation | 57 | 1 | 5 | 173 | 0 | 5 | 241 |
-| core/math | 56 | 4 | 18 | 27 | 1 | 7 | 113 |
-| splice | 52 | 0 | 9 | 83 | 0 | 12 | 156 |
-| object | 50 | 9 | 4 | 145 | 0 | 9 | 217 |
-| gameplay/progression | 49 | 6 | 0 | 50 | 0 | 4 | 109 |
-| engine/graphics | 48 | 17 | 86 | 141 | 0 | 16 | 308 |
-| actor | 39 | 7 | 0 | 34 | 0 | 2 | 82 |
-| ui | 38 | 1 | 6 | 83 | 0 | 5 | 133 |
-| gameplay/cutscene | 33 | 0 | 2 | 148 | 0 | 3 | 186 |
-| engine/fx | 31 | 13 | 28 | 77 | 1 | 4 | 154 |
-| world/scene | 25 | 1 | 0 | 45 | 0 | 3 | 74 |
-| level | 13 | 2 | 1 | 21 | 0 | 6 | 43 |
-| platform (memory, runtime, input, cdvd) | 27 | 1 | 54 | 33 | 0 | 14 | 129 |
-| core (binstream, containers, time, locale) | 17 | 1 | 39 | 68 | 0 | 13 | 138 |
-| engine/font | 8 | 1 | 8 | 9 | 0 | 2 | 28 |
-| src/sdk (all libraries) | 6 | 0 | 390 | 112 | 20 | 117 | 645 |
+| gameplay/ai | 355 | 12 | 1 | 271 | 0 | 0 | 639 |
+| gameplay/player | 306 | 22 | 0 | 310 | 0 | 0 | 638 |
+| engine/physics | 228 | 14 | 3 | 202 | 0 | 0 | 447 |
+| gameplay/objects | 181 | 23 | 6 | 203 | 1 | 0 | 414 |
+| engine/anim | 144 | 11 | 14 | 94 | 0 | 0 | 263 |
+| app | 108 | 0 | 5 | 971 | 8 | 0 | 1092 |
+| engine/sound | 69 | 1 | 0 | 51 | 0 | 0 | 121 |
+| engine/camera | 66 | 12 | 9 | 62 | 0 | 0 | 149 |
+| engine/presentation | 57 | 1 | 5 | 178 | 0 | 0 | 241 |
+| world/state | 57 | 8 | 0 | 70 | 0 | 0 | 135 |
+| core/math | 56 | 4 | 18 | 34 | 1 | 0 | 113 |
+| splice | 52 | 0 | 9 | 95 | 0 | 0 | 156 |
+| object | 50 | 9 | 4 | 154 | 0 | 0 | 217 |
+| gameplay/progression | 49 | 6 | 0 | 54 | 0 | 0 | 109 |
+| engine/graphics | 48 | 17 | 86 | 157 | 0 | 0 | 308 |
+| actor | 39 | 7 | 0 | 36 | 0 | 0 | 82 |
+| ui | 38 | 1 | 6 | 88 | 0 | 0 | 133 |
+| gameplay/cutscene | 33 | 0 | 2 | 151 | 0 | 0 | 186 |
+| engine/fx | 31 | 13 | 28 | 81 | 1 | 0 | 154 |
+| platform (memory, runtime, input, cdvd) | 27 | 1 | 60 | 49 | 0 | 0 | 137 |
+| world/scene | 25 | 1 | 0 | 48 | 0 | 0 | 74 |
+| core (binstream, containers, time, locale) | 17 | 1 | 39 | 81 | 0 | 0 | 138 |
+| level | 13 | 2 | 1 | 27 | 0 | 0 | 43 |
+| engine/font | 8 | 1 | 8 | 11 | 0 | 0 | 28 |
+| src/sdk (all libraries) | 5 | 0 | 391 | 188 | 20 | 41 | 645 |
 
 The "upstream-only" column counts ported, ported-converted and not-ported together. Almost 60% of the conflicts
 are in gameplay (AI, player, objects), physics and animation. In those subsystems upstream adopted SafeHouse names in
@@ -94,7 +95,8 @@ columns `address,kind,upstream_base,upstream_readable,ours,status`:
 - `upstream_readable` and `ours` are the linker symbols on the two branches.
 - `status` is one of the values in the tables above.
 
-The rows come from joining the three `config/matched.csv` files on `addr`. For globals they come from upstream
+The rows come from joining the three `config/matched.csv` files on `addr`; `status` is recomputed from the two
+symbols (a `FUN_xxxxxxxx` label upstream counts as a name, a `func_XXXXXXXX` / `D_XXXXXXXX` symbol as none). For globals they come from upstream
 readable's `config/symbol_addrs.txt` and this branch's linked ELF. To refresh the file after more renames on either
 side, redo that join.
 
@@ -114,7 +116,8 @@ side, redo that join.
   - six emitter accessor templates became `ResolveEmitterRefs`, `EnsureEmitterRecord0`/`EnsureEmitterRecord1`,
     `SetEmitterOriginKind` and `SetEmitterRecord0PayloadKind`/`SetEmitterRecord1PayloadKind` (upstream: `ResolveEmits`, `OffKind0`/`OffKind1`,
     `SetPositionKind`, `SetKind0Payload`/`SetKind1Payload`).
-- **Aliases.** All 2,240 functions whose upstream name differs from ours now have this line in their doc comment:
+- **Aliases.** The functions whose upstream name differed from ours when the pass ran (2,240; 2,224 alias lines are
+  in the tree now) have this line in their doc comment:
   "Also known as: <upstream base name> (upstream readable / Sly 1 name[; <upstream symbol>])". A search for either
   name finds the definition. The symbol is included when its signature part differs from ours. 20 of the upstream
   names are Ghidra `FUN_xxxxxxxx` labels, kept because they point at the SafeHouse/Sly 1 function.
