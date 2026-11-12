@@ -624,8 +624,8 @@ static inline qwordV Mid(qwordV a, qwordV b, VU_FLOATT h)
     __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(c) : "j"(a), "j"(b), "j"(h.q));
     return c;
 }
-#define CA(p) ((VEC *)((int)(p) - 0x560))
-#define CB(p) ((VEC *)((int)(p) - 0x2B0))
+#define CA(p) ((VEC *)((sptr)(p) - 0x560))   /* the a / b rows of a BLIPBUF row c (16-byte rows on every target) */
+#define CB(p) ((VEC *)((sptr)(p) - 0x2B0))
 // Transform point v by the 4x4 matrix pm.
 static __inline__ qwordV MulPoint(M4 *pm, qwordV v)
 {

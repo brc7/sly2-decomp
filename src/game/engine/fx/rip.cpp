@@ -1628,15 +1628,24 @@ static inline qword VLen(qword v)
     __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(t), "=&j"(one) : "j"(v));
     return t;
 }
-// Read the lower lifetime limit float relative to the g_lmZeroOne page.
+// The lower limit of g_lmZeroOne. On the EE through the page ReadLengthAndPublish's lui left (%hi(g_lmZeroOne);
+// -0x44A0 is its %lo): the address is split over the two inlines.
+#ifdef SLY2_EE_ASM
 static inline float LowerLimit(char *page)
 {
     return *(const float *)(page - 0x44A0);
 }
+#else
+static inline float LowerLimit(char *)
+{
+    return g_lmZeroOne.minValue;
+}
+#endif
 // Store the rip's life into *duration and compute the g_lmZeroOne limits address and the length as a float, in one asm
 // block for matching.
 static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, float *duration, float life)
 {
+#ifdef SLY2_EE_ASM
     register char *page __asm__("$2");
     register LM *address __asm__("$3");
     register float scalar __asm__("$f3");
@@ -1646,6 +1655,14 @@ static inline float ReadLengthAndPublish(qword length, char **out, LM **limits, 
     *out = page;
     *limits = address;
     return scalar;
+#else
+    float scalar;
+    *duration = life;
+    *out = 0;   /* LowerLimit reads g_lmZeroOne directly */
+    *limits = &g_lmZeroOne;
+    VuCopyBits(scalar, length);
+    return scalar;
+#endif
 }
 // Copy the emitter's direction vector into the shrapnel record.
 static inline void CopyDirection(SHRAPNEL *dest, const EMITB *source)   /* the record's payload: the direction */
