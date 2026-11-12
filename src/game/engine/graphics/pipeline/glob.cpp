@@ -734,6 +734,7 @@ extern "C" { static __inline__ void Align(uint align)
 // Also known as: FGlobBoneMatrices (upstream readable / Sly 1 name; FGlobBoneMatrices__FP3ALOP4DESCP5ENTRY).
 extern "C" void UnpackSubglobBones(void *context, SUBGLOB *descriptor, GLOB *entry)
 {
+#ifdef SLY2_EE_ASM
     uint opcode;
     BND *bone, *last;
     XF *parent;
@@ -796,6 +797,37 @@ extern "C" void UnpackSubglobBones(void *context, SUBGLOB *descriptor, GLOB *ent
         bone++;
     }
     D_002DEA28.m_pb = (uchar *)output;
+#else
+    /* C version: the same UNPACK tag, then per bone the product the VU0 microprogram 0x60 forms (as mat.cpp's
+       operator*(MATRIX4, MATRIX4): row i = sum over k of world[i][k] * inverse row k) of the bone's XF world matrix
+       (vf1-vf4) and its inverse bind matrix (vf5-vf8). */
+    uint opcode;
+    Align(12);
+    opcode = (uint)descriptor->cbnd << 18;
+    opcode |= 0x6000C000;
+    opcode |= 0x0C000000;
+    opcode |= descriptor->iqwBone;
+    *(uint *)D_002DEA28.m_pb = opcode;
+    D_002DEA28.m_pb += 4;
+    qword *output = (qword *)D_002DEA28.m_pb;
+    BND *bone = entry->abnd;
+    BND *last = bone + descriptor->cbnd - 1;
+    for (;;) {
+        const QWROW *world = bone->pxf->worldMatq.r, *inverse = bone->matqInv.r;
+        VuLanes b0 = VuGet(inverse[0].q), b1 = VuGet(inverse[1].q), b2 = VuGet(inverse[2].q), b3 = VuGet(inverse[3].q);
+        for (int i = 0; i < 4; i++) {
+            VuLanes k = VuGet(world[i].q);
+            *output++ = VuMake<qword>(((b0.x * k.x + b1.x * k.y) + b2.x * k.z) + b3.x * k.w,
+                                      ((b0.y * k.x + b1.y * k.y) + b2.y * k.z) + b3.y * k.w,
+                                      ((b0.z * k.x + b1.z * k.y) + b2.z * k.z) + b3.z * k.w,
+                                      ((b0.w * k.x + b1.w * k.y) + b2.w * k.z) + b3.w * k.w);
+        }
+        if (bone == last)
+            break;
+        bone++;
+    }
+    D_002DEA28.m_pb = (uchar *)output;
+#endif
 }
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
