@@ -603,12 +603,21 @@ struct STEPPLAYER : public STEP
       LO *ploLean;   /* object leaned on */
       int leanKind;    /* lean kind */
       int isLeanTargetLocked;   /* +0x1100 set by ForceStepplayerLeanTarget, cleared by UnlockStepplayerLeanTarget */
-      undefined4 unk_0x1104[(0x1120 - 0x1104) / 4];
-      LM almIdle[3];   /* +0x1120 three idle time ranges (SetStepplayerIdleParams) */
-      float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0, then by idleKind == 0 (ScheduleIdleTimer) */
+      int isLookOverridden;   /* +0x1104 option 732: the head looks along lookOverride instead of at the lean target (PickHeroInteractTarget) */
+      undefined4 unk_0x1108[2];
+      VECTOR lookOverride;   /* +0x1110 option 733: the head's pan, tilt and roll while isLookOverridden */
+      undefined4 unk_0x111C;
+      LM almLook[3];   /* +0x1120 the head-look limits (SetStepplayerIdleParams, option 249): [0] pan, [1] tilt, [2] the roll at
+                          the pan limits (PickHeroInteractTarget interpolates it by the clamped pan); was almIdle */
+      float agdtIdle[4];   /* idle time ranges for the next idle event: {min, max} by idleKind != 0 (option 730), then by idleKind == 0
+                              (option 731) (ScheduleIdleTimer) */
       int idleKind;    /* idle kind */
       float tNextIdle; /* +0x114C clock.time of the next idle event (FLT_MAX: never; ScheduleIdleTimer, InitIdleTimer) */
-      qword aqwStartMarker[3];   /* +0x1150 the hero's orientation relative to the start marker, as rows (AttachStepplayerToStartMarker) */
+      union
+      {
+            qword aqwStartMarker[3];   /* +0x1150 the hero's orientation relative to the start marker, as rows (AttachStepplayerToStartMarker) */
+            MATRIX3Q matStartMarker;   /* the same rows (PickHeroInteractTarget) */
+      };
       GADGETSLOT gadgetSlots[3];   /* +0x1180 [R] the 3 equipped gadgets {idGadget, state, stateStartTime} (L1/R1/R2 slots) */
       LO *unknown11A4;   /* +0x11A4 an object bound by oid (the players' SNIP tables, BindLoOidTable) */
       LO *pbooty;   /* +0x11A8 the booty object the player carries (SpawnStepplayerBootyMarker) */

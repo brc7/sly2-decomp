@@ -43,6 +43,7 @@ static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 #include "sly2/dli.h"
 #include "sly2/joy.h"
 #include "sly2/relay.h"
+#include "sly2/act.h"   /* ACT (PickHeroInteractTarget) */
 
 // 0x1444E0 StaticInit_stepplayer and GlobalConstructors_stepplayer: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -1652,30 +1653,17 @@ namespace M_func_00142AF8 {
 // MATRIX3 operator* (the NRV helper from src/game/engine/anim/tail/UpdateChainLink.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
 // result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
-struct R { char pad[0x40]; MATRIX3Q m40; char pad1[0xA0 - 0x70]; void *pA0; };
-struct Q { char pad[8]; R *p8; };
-struct S {
-    char pad[0xE0]; S *pNext; int pad1; float gE8; char rng[8]; int nF4;
-};
-struct P : LO {
-    char pad[0x60 - 0x50]; void *p60; char pad1[0xF04 - 0x64]; int jtModeState; char pad2[0x10DC - 0xF08];
-    S *ps10DC; int pad3; int interactKind; char pad4[0x10F4 - 0x10E8]; Q *pq; void *leanTarget; int pad5;
-    int n1100; int n1104; int pad6[2]; float g1110; float g1114; float g1118; int pad7;
-    LM lmPan; LM lmTilt; float g1130; float g1134; char pad8[0x1148 - 0x1138]; int n1148; float g114C;
-    MATRIX3Q m1150;
-};
 
 extern int D_002DD640 __asm__("D_002DD640");
 extern float D_002A4D68 __asm__("D_002A4D68");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
-void ScheduleIdleTimer(P *p) __asm__("ScheduleIdleTimer");
-void SetStepplayerLeanTarget(P *p, int n, S *ps) __asm__("SetStepplayerLeanTarget");
-void GetHeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2) __asm__("GetHeroInteractDistance");
+void ScheduleIdleTimer(STEPPLAYER *p) __asm__("ScheduleIdleTimer");
+void GetHeroInteractDistance(STEPPLAYER *p, CID21 *ps, LO **ppv, float *pg, float *pg2) __asm__("GetHeroInteractDistance");
 int IsWithinLimits__FP2LMf(void *p, float g) __asm__("IsWithinLimits__FP2LMf");
-void AttachAct(Q *pq) __asm__("AttachAct");
-void DetachAct(Q *pq) __asm__("DetachAct");
+void AttachAct(ACT *pq) __asm__("AttachAct");
+void DetachAct(ACT *pq) __asm__("DetachAct");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-qword ConvertPosBetweenLos(int n, P *p, qword q) __asm__("ConvertPosBetweenLos");
+qword ConvertPosBetweenLos(int n, STEPPLAYER *p, qword q) __asm__("ConvertPosBetweenLos");
 void CalculateVectorPanTilt(qword v, float *pa, float *pb) __asm__("CalculateVectorPanTilt");
 float ClampAngleToRange(LM *plm, float g) __asm__("ClampAngleToRange");
 MATRIX3Q LoadRotateMatrixPanTilt(float a, float b) __asm__("LoadRotateMatrixPanTilt");
@@ -1683,8 +1671,8 @@ MATRIX3Q BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleR
 MATRIX3Q ConvertXfMat(void *pvFrom, void *pvTo, MATRIX3Q *pm) __asm__("ConvertXfMat");
 MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(MATRIX3Q *pm) __asm__("DecomposeRotationMatrixToEuler");
-void SetActPositionGoal(Q *pq, qword q) __asm__("SetActPositionGoal");
-void PickHeroInteractTarget(P *p) __asm__("PickHeroInteractTarget");
+void SetActPositionGoal(ACT *pq, qword q) __asm__("SetActPositionGoal");
+void PickHeroInteractTarget(STEPPLAYER *p) __asm__("PickHeroInteractTarget");
 
 struct VU_VECTOR4 { qword qw; };
 // 3x3 matrix product matL * matR.
@@ -1718,54 +1706,54 @@ static inline float X(const MATRIX3Q &m, int i) { return ((float *)&m.r[0].q)[i]
 
 // Per-frame interact/lean target pick: ranks candidates with GetHeroInteractDistance.
 // Also known as: UpdateActorLook (upstream readable / Sly 1 name; UpdateActorLook__FP5ACTOR).
-void PickHeroInteractTarget(P *p)
+void PickHeroInteractTarget(STEPPLAYER *p)
 {
     int f;
     float pan, tilt;
     float g;
-    if (p->pq == 0)
+    if (p->pactStartMarker == 0)
         return;
     f = 0;
-    if (p->lmPan.minValue < p->lmPan.maxValue || p->lmTilt.minValue < p->lmTilt.maxValue)
+    if (p->almLook[0].minValue < p->almLook[0].maxValue || p->almLook[1].minValue < p->almLook[1].maxValue)
         f = 1;
-    if (p->jtModeState != -1)
+    if (p->jtmode.state != -1)
         f = 0;
-    if (p->g114C < g_clock.time && (p->n1148 != 0 || f)) {
-        p->n1148 = !p->n1148;
+    if (p->tNextIdle < g_clock.time && (p->idleKind != 0 || f)) {
+        p->idleKind = !p->idleKind;
         ScheduleIdleTimer(p);
     }
-    if (p->n1100 == 0) {
+    if (p->isLeanTargetLocked == 0) {
         if (D_002DD640 != 0) {
             SetStepplayerLeanTarget(p, -1, 0);
         } else {
-            S *psBest = p->ps10DC;
-            int nBest = p->interactKind;
+            CID21 *psBest = (CID21 *)p->interactTarget;
+            int nBest = p->nUnk10e4;
             float bestScore, g1, g2;
-            S *ps;
+            CID21 *ps;
             if (psBest)
-                GetHeroInteractDistance(p, psBest, &p->leanTarget, &bestScore, 0);
+                GetHeroInteractDistance(p, psBest, &p->ploLean, &bestScore, 0);
             else
                 bestScore = D_002A4D68;
-            for (ps = (*(S * *)&g_sw.dlCid21); ps; ps = ps->pNext) {
-                if (ps->nF4 < nBest)
+            for (ps = *(CID21 **)&g_sw.dlCid21.head; ps; ps = (CID21 *)ps->listLink.next) {
+                if (ps->priority < nBest)
                     continue;
-                GetHeroInteractDistance(p, ps, &p->leanTarget, &g1, &g2);
-                if (g1 > ps->gE8)
+                GetHeroInteractDistance(p, ps, &p->ploLean, &g1, &g2);
+                if (g1 > ps->maxDistance)
                     continue;
-                if (!IsWithinLimits__FP2LMf(ps->rng, g2))
+                if (!IsWithinLimits__FP2LMf(&ps->rangeMin, g2))
                     continue;
-                if (nBest < ps->nF4 || (ps->nF4 == nBest && g1 < bestScore)) {
+                if (nBest < ps->priority || (ps->priority == nBest && g1 < bestScore)) {
                     psBest = ps;
                     bestScore = g1;
-                    nBest = psBest->nF4;
+                    nBest = psBest->priority;
                 }
             }
             if (g_sw.cjtgrabcand > 0 && nBest < 3) {
                 __asm__("" : : : "$4"); /* clobber of dead a0 (Claude agent): target keeps &g_sw in a1 */
-                ps = (S *)g_sw.ajtgrabcand[0].unknown10;
+                ps = (CID21 *)g_sw.ajtgrabcand[0].unknown10;
                 if (ps) {
                     float g3, g4;
-                    GetHeroInteractDistance(p, ps, &p->leanTarget, &g3, &g4);
+                    GetHeroInteractDistance(p, ps, &p->ploLean, &g3, &g4);
                     if (nBest < 2 || (nBest == 2 && g3 < bestScore)) {
                         psBest = ps;
                         nBest = 2;
@@ -1776,41 +1764,41 @@ void PickHeroInteractTarget(P *p)
             SetStepplayerLeanTarget(p, nBest, psBest);
         }
     }
-    if (p->n1104 != 0) {
-        AttachAct(p->pq);
-        pan = p->g1110;
-        tilt = p->g1114;
-        g = p->g1118;
+    if (p->isLookOverridden != 0) {
+        AttachAct(p->pactStartMarker);
+        pan = p->lookOverride.x;
+        tilt = p->lookOverride.y;
+        g = p->lookOverride.z;
     } else {
-        if (p->leanTarget == 0 || p->n1148 == 0 || !f) {
-            DetachAct(p->pq);
+        if (p->ploLean == 0 || p->idleKind == 0 || !f) {
+            DetachAct(p->pactStartMarker);
             return;
         }
-        AttachAct(p->pq);
-        CalculateVectorPanTilt(ConvertPosBetweenLos(0, p, GetLoWorldPos(p->leanTarget)), &pan, &tilt);
-        pan = ClampAngleToRange(&p->lmPan, pan);
-        tilt = ClampAngleToRange(&p->lmTilt, tilt);
+        AttachAct(p->pactStartMarker);
+        CalculateVectorPanTilt(ConvertPosBetweenLos(0, p, GetLoWorldPos(p->ploLean)), &pan, &tilt);
+        pan = ClampAngleToRange(&p->almLook[0], pan);
+        tilt = ClampAngleToRange(&p->almLook[1], tilt);
         {
             float t;
-            if (p->lmPan.maxValue == p->lmPan.minValue)
+            if (p->almLook[0].maxValue == p->almLook[0].minValue)
                 t = 0.5f;
             else
-                t = (pan - p->lmPan.minValue) / (p->lmPan.maxValue - p->lmPan.minValue);
+                t = (pan - p->almLook[0].minValue) / (p->almLook[0].maxValue - p->almLook[0].minValue);
             float u = t * __builtin_fabsf(t);
-            g = (1.0f - u) * p->g1130 + u * p->g1134;
+            g = (1.0f - u) * p->almLook[2].minValue + u * p->almLook[2].maxValue;
         }
     }
     MATRIX3Q m0, m1;
     m0 = LoadRotateMatrixPanTilt(pan, tilt) * BuildAxisAngleRotationMatrix(D_002A2DA0, g);
-    m1 = ConvertXfMat(0, p->p60, &p->pq->p8->m40);
-    m1 = m1 * InvertMatrix3Cofactor(&p->m1150);
+    m1 = ConvertXfMat(0, p->rootTransform, (MATRIX3Q *)&p->pactStartMarker->transform->worldMatq);
+    m1 = m1 * InvertMatrix3Cofactor(&p->matStartMarker);
     MATRIX3Q m2;
     if (X(m0, 0) + X(m1, 0) < 0.0f && X(m0, 1) * X(m1, 1) < 0.0f)
-        m2 = p->m1150;
+        m2 = p->matStartMarker;
     else
-        m2 = m0 * p->m1150;
-    m2 = ConvertXfMat(p->p60, p->pq->p8->pA0, &m2);
-    SetActPositionGoal(p->pq, DecomposeRotationMatrixToEuler(&m2));
+        m2 = m0 * p->matStartMarker;
+    m2 = ConvertXfMat(p->rootTransform, p->pactStartMarker->transform->parent, &m2);
+    SetActPositionGoal(p->pactStartMarker, DecomposeRotationMatrixToEuler(&m2));
 }
 } // namespace M_func_00142AF8
 
@@ -1818,9 +1806,9 @@ namespace M_func_00143090 {
 // Copies three pairs of idle-timer ranges into the record.
 extern "C" void SetStepplayerIdleParams(STEPPLAYER *player, LM *a, LM *b, LM *c)
 {
-    player->almIdle[0] = *a;
-    player->almIdle[1] = *b;
-    player->almIdle[2] = *c;
+    player->almLook[0] = *a;
+    player->almLook[1] = *b;
+    player->almLook[2] = *c;
 }
 } // namespace M_func_00143090
 
