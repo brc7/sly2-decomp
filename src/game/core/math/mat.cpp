@@ -781,7 +781,7 @@ MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s)
 }
 #endif
 
-// MATRIX4 operator*: the 4x4 product a * b (__ml__FRC7MATRIX4T0). The EE body names its result (g++'s `return outMatrix`
+// MATRIX4 operator*: the 4x4 product b * a in row-vector terms (VU0 microprogram 0x60; __ml__FRC7MATRIX4T0). The EE body names its result (g++'s `return outMatrix`
 // extension): the hidden result pointer the original fills. Callers that pass that pointer by hand bind through
 // SLY2_SRET_LABEL (natively to MulMatrix4Into below).
 // Also known as: MulMatrix4 (upstream readable / Sly 1 name; MulMatrix4__FP7MATRIX4T0Pv).
@@ -803,16 +803,19 @@ MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) return outMatrix
     outMatrix.r[0] = v5; outMatrix.r[1] = v6; outMatrix.r[2] = v7; outMatrix.r[3] = v8;
 }
 #else
-/* The EE runs a VU0 microprogram (vcallms 0x60) with a's rows in vf1-vf4 and b's in vf5-vf8, results back in vf5-vf8:
-   row i = a[i].x b.r0 + a[i].y b.r1 + a[i].z b.r2 + a[i].w b.r3 (see docs/guides/portability.md, VU0 fallbacks). */
+/* The EE runs VU0 microprogram 0x60 with a's rows in vf1-vf4 and b's in vf5-vf8, results back in vf5-vf8. The
+   microcode (.vutext upload chain D_00259DF0, instructions 12..27) is, for each of vf5..vf8,
+       MULAx.xyzw ACC, vf1, vfNx / MADDAy.xyzw ACC, vf2, vfNy / MADDAz.xyzw ACC, vf3, vfNz / MADDw.xyzw vfN, vf4, vfNw
+   so result row i = b[i].x a.r0 + b[i].y a.r1 + b[i].z a.r2 + b[i].w a.r3: the row-vector product b * a, not a * b
+   (until v1.24 this body computed a * b: natively CM::matViewProj came out wrong and VU1 clipped everything). */
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b)
 {
     MATRIX4 m;
+    VuLanes a0 = VuGet(a.r[0]), a1 = VuGet(a.r[1]), a2 = VuGet(a.r[2]), a3 = VuGet(a.r[3]);
     for (int i = 0; i < 4; i++) {
-        VuLanes k = VuGet(a.r[i]);
-        VuLanes b0 = VuGet(b.r[0]), b1 = VuGet(b.r[1]), b2 = VuGet(b.r[2]), b3 = VuGet(b.r[3]);
-        m.r[i] = VuMake<qword>(((b0.x * k.x + b1.x * k.y) + b2.x * k.z) + b3.x * k.w, ((b0.y * k.x + b1.y * k.y) + b2.y * k.z) + b3.y * k.w,
-                               ((b0.z * k.x + b1.z * k.y) + b2.z * k.z) + b3.z * k.w, ((b0.w * k.x + b1.w * k.y) + b2.w * k.z) + b3.w * k.w);
+        VuLanes k = VuGet(b.r[i]);
+        m.r[i] = VuMake<qword>(((a0.x * k.x + a1.x * k.y) + a2.x * k.z) + a3.x * k.w, ((a0.y * k.x + a1.y * k.y) + a2.y * k.z) + a3.y * k.w,
+                               ((a0.z * k.x + a1.z * k.y) + a2.z * k.z) + a3.z * k.w, ((a0.w * k.x + a1.w * k.y) + a2.w * k.z) + a3.w * k.w);
     }
     return m;
 }

@@ -1694,7 +1694,7 @@ void UpdateSoSlots(SO *so)
         XF *parentXf = xf->parent;
         if (parentXf != 0)
         {
-            // worldMatrix = parent->worldMatrix * mat through VU0 microprogram 0x60 (VU0 mem: parent rows in vf1-vf4, ours in vf5-vf8, result back in vf5-vf8).
+            // worldMatrix = mat * parent->worldMatrix (row vectors: row i = sum_k mat[i][k] * parent row k) via VU0 microprogram 0x60 (parent rows vf1-vf4, ours vf5-vf8, result vf5-vf8).
             // The loads and vcallms are one asm WITHOUT outputs: a volatile asm with no outputs makes cse forget everything, so the stamp
             // compare below reads pxf->parent again and gcse keeps the game's copy of the parent pointer ($a0).
             MATRIX4 *pmatParent = &parentXf->worldMatrix;

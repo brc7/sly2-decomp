@@ -798,9 +798,9 @@ extern "C" void UnpackSubglobBones(void *context, SUBGLOB *descriptor, GLOB *ent
     }
     D_002DEA28.m_pb = (uchar *)output;
 #else
-    /* C version: the same UNPACK tag, then per bone the product the VU0 microprogram 0x60 forms (as mat.cpp's
-       operator*(MATRIX4, MATRIX4): row i = sum over k of world[i][k] * inverse row k) of the bone's XF world matrix
-       (vf1-vf4) and its inverse bind matrix (vf5-vf8). */
+    /* C version: the same UNPACK tag, then per bone microprogram 0x60's product (microcode in mat.cpp operator*): XF world
+       matrix in vf1-vf4, inverse bind matrix in vf5-vf8, row i = sum over k of inverse[i][k] * world row k (inverse bind *
+       world, row vectors; until v1.24 this body formed world * inverse). */
     uint opcode;
     Align(12);
     opcode = (uint)descriptor->cbnd << 18;
@@ -814,9 +814,9 @@ extern "C" void UnpackSubglobBones(void *context, SUBGLOB *descriptor, GLOB *ent
     BND *last = bone + descriptor->cbnd - 1;
     for (;;) {
         const QWROW *world = bone->pxf->worldMatq.r, *inverse = bone->matqInv.r;
-        VuLanes b0 = VuGet(inverse[0].q), b1 = VuGet(inverse[1].q), b2 = VuGet(inverse[2].q), b3 = VuGet(inverse[3].q);
+        VuLanes b0 = VuGet(world[0].q), b1 = VuGet(world[1].q), b2 = VuGet(world[2].q), b3 = VuGet(world[3].q);
         for (int i = 0; i < 4; i++) {
-            VuLanes k = VuGet(world[i].q);
+            VuLanes k = VuGet(inverse[i].q);
             *output++ = VuMake<qword>(((b0.x * k.x + b1.x * k.y) + b2.x * k.z) + b3.x * k.w,
                                       ((b0.y * k.x + b1.y * k.y) + b2.y * k.z) + b3.y * k.w,
                                       ((b0.z * k.x + b1.z * k.y) + b2.z * k.z) + b3.z * k.w,

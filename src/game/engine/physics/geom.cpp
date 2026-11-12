@@ -163,12 +163,17 @@ extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
     }
 }
 #else
-/* The C side transforms each point as CloneGeom's Transform does (xyz = p * M with p.w taken as 1; w keeps the
-   input's): the EE microprograms at 0x120 / 0xF0 are not modelled (docs/guides/portability.md, VU0 fallbacks). */
+/* The C side of microprograms 0x120 (input vf6) and 0xF0 (vf5): MULAx / MADDAy / MADDAz .xyzw with the rows in
+   vf1-vf3, then MADDw.xyzw with vf4 * vf0w: all four lanes are p.x r0 + p.y r1 + p.z r2 + r3 (p.w taken as 1; the
+   result's w is the matrix's w column applied, 1 for an affine matrix; until v1.24 this kept the input's w). */
 extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count, const qword *in0, qword *output)
 {
-    for (unsigned int i = 0; i < count; i++)
-        output[i] = VuKeepW(in0[i], VuMulMatrix4(matrix->r[0], matrix->r[1], matrix->r[2], matrix->r[3], in0[i]));
+    VuLanes a = VuGet(matrix->r[0]), b = VuGet(matrix->r[1]), c = VuGet(matrix->r[2]), d = VuGet(matrix->r[3]);
+    for (unsigned int i = 0; i < count; i++) {
+        VuLanes u = VuGet(in0[i]);
+        output[i] = VuMake<qword>(((a.x * u.x + b.x * u.y) + c.x * u.z) + d.x, ((a.y * u.x + b.y * u.y) + c.y * u.z) + d.y,
+                                  ((a.z * u.x + b.z * u.y) + c.z * u.z) + d.z, ((a.w * u.x + b.w * u.y) + c.w * u.z) + d.w);
+    }
 }
 #endif
 
@@ -243,9 +248,8 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
 #else
 /* The C side: the points through TransformPointsVu0, then each plane's normal through the transposed inverse of the
    3x3 part (n' = n inverse^T: component j is the dot of the inverse's row j with n), renormalised, and the plane
-   rebuilt through its anchor point (InitPlaneFromNormalPos), as CloneGeom does for a copy. That microprogram 0x150
-   renormalises and recomputes the distance like CloneGeom's Normalize / InitPlaneFromNormalPos is an assumption
-   (docs/guides/portability.md, VU0 fallbacks), not checked against the microcode. */
+   rebuilt through its anchor point (InitPlaneFromNormalPos). Microprogram 0x150 (.vutext D_00259DF0, instructions
+   42..53) does exactly that: v = T0 n.x + T1 n.y + T2 n.z (xyz), w = v . anchor, then RSQRT and v * Q (xyzw). */
 extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  if(source->points==dest->points)return;
  TransformPointsVu0(matrix,source->numPoints,source->points,dest->points);
