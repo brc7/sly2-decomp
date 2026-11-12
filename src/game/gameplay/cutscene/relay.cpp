@@ -1694,19 +1694,17 @@ void UpdateRelayScript(RELAYJSG *script)
 
 // 0x1E1D48 ReleaseJsgJtIfComplete
 namespace M_ReleaseJsgJtIfComplete {
-struct O; struct S;
-struct O { int n0; char pad[0xC]; int n10; };
-struct S { char pad[0x40]; struct O *po; };
-int IsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
-void SetRelayScriptActor(struct S *p, int a, int b) __asm__("SetRelayScriptActor");
+int IsJsgCommandComplete__FP3JSGP8RELAYCMD(RELAYJSG *p, RELAYCMD *po) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
+void SetRelayScriptActor(RELAYJSG *p, int a, int b) __asm__("SetRelayScriptActor");
 // If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release
 // it (SetJsgJt(p,0,0)). (inferred)
 // Also known as: FinishRunPending (upstream readable / Sly 1 name; FinishRunPending__FP3RUN).
-extern "C" void ReleaseJsgJtIfComplete(struct S *script)
+extern "C" void ReleaseJsgJtIfComplete(RELAYJSG *script)
 {
-    if (script->po && IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->po)) {
+    if (script->prelaycmdJt && IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->prelaycmdJt)) {
         int f = 1;
-        if (script->po->n0 == 0x1D) f = (script->po->n10 == -1);
+        /* StepCmd1D: its first argument word is the goal (-1: none) */
+        if (script->prelaycmdJt->relayck == RELAYCK_StepCmd1D) f = (script->prelaycmdJt->an[0] == -1);
         if (f) SetRelayScriptActor(script, 0, 0);
     }
 }
@@ -3621,14 +3619,13 @@ int IsJsgCommandComplete(RELAYJSG *script, RELAYCMD *prelaycmd)
 
 // 0x1E4530 GetJsgCommandDuration
 namespace M_func_001E4530 {
-struct G; union U; struct P; struct O;
+struct G; union U; struct P;
 struct G { int a; };
 extern struct G D_002DE578 __asm__("D_002DE578");
 extern float DT_CmJoltMax __asm__("DT_CmJoltMax");
 union U { int n; float g; };
 struct P { int kind; int isAsync; int pad[2]; union U u10; union U u14; int targetState; };
-struct O : LO { char pad[0x74 - 0x50]; float duration; float speed; char pad2[0x80 - 0x7C]; float speedByDifficulty[3]; int pad3; float speedMin; float speedMax; };
-struct O *FindJsgObject(RELAYJSG *script, int n) __asm__("FindJsgObject");
+ASEG *FindJsgObject(RELAYJSG *script, int n) __asm__("FindJsgObject");   /* PlayAseg: the segment */
 float GetDifficulty(struct G *pg) __asm__("GetDifficulty");
 void *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int k, int oid, LO *b) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void *FindLiveSma(void *p, int n) __asm__("FindLiveSma");
@@ -3645,11 +3642,11 @@ extern "C" float GetJsgCommandDuration(RELAYJSG *script, struct P *command)
     if (command->isAsync) return g;
     switch (command->kind) {
     case 0xA: {
-        struct O *po = FindJsgObject(script, command->u10.n);
+        ASEG *po = FindJsgObject(script, command->u10.n);
         if (po) {
             float t = GetDifficulty(&D_002DE578);
-            float *pa = po->speedByDifficulty; float s = pa[0] + t * (pa[1] + t * pa[2]); s = Clamp(s, po->speedMin, po->speedMax);
-            g = po->duration / (po->speed * s);
+            float *pa = &po->clqMasterSuck.g0; float s = pa[0] + t * (pa[1] + t * pa[2]); s = Clamp(s, po->lmMasterSuck.minValue, po->lmMasterSuck.maxValue);
+            g = po->duration / (po->masterSpeed * s);
         }
         break;
     }
@@ -4078,17 +4075,15 @@ extern "C" void SetRelayScriptFocus(RELAYJSG *script, void *pv)
 
 // 0x1E50E0 SetRelayScriptHandsOff
 namespace M_func_001E50E0 {
-struct P;
-struct P { char pad[0x38]; int fOn; int id; };
 void DecrementSwHandsOff(SW *pg, int id) __asm__("DecrementSwHandsOff");
 void DecrementSwNoPause(SW *pg) __asm__("DecrementSwNoPause");
 void IncrementSwHandsOff(SW *pg, int id) __asm__("IncrementSwHandsOff");
 void IncrementSwNoPause(SW *pg) __asm__("IncrementSwNoPause");
-// Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
+// Track fHandsOff/grfHandsOff and apply it to g_sw via Increment/DecrementSwHandsOff
 // (IncrementSwHandsOff/DecrementSwHandsOff) + 0x20F0C0/0x20F0F0. (inferred)
-extern "C" void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
+extern "C" void SetRelayScriptHandsOff(RELAYJSG *script, int fOn, int id)
 {
-if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == script->id) return; DecrementSwHandsOff(&g_sw, script->id); DecrementSwNoPause(&g_sw); } IncrementSwHandsOff(&g_sw, id); IncrementSwNoPause(&g_sw); script->fOn = fOn; script->id = id; return; } DecrementSwHandsOff(&g_sw, script->id); DecrementSwNoPause(&g_sw); script->fOn = fOn; script->id = id;
+if (!fOn) { if (!script->fHandsOff) return; } else { if (script->fHandsOff) { if (id == script->grfHandsOff) return; DecrementSwHandsOff(&g_sw, script->grfHandsOff); DecrementSwNoPause(&g_sw); } IncrementSwHandsOff(&g_sw, id); IncrementSwNoPause(&g_sw); script->fHandsOff = fOn; script->grfHandsOff = id; return; } DecrementSwHandsOff(&g_sw, script->grfHandsOff); DecrementSwNoPause(&g_sw); script->fHandsOff = fOn; script->grfHandsOff = id;
 }
 } // namespace M_func_001E50E0
 
