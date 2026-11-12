@@ -44,63 +44,18 @@ extern "C" VIFS D_002DEA28;   /* the frame's VIF1 packet stream */
 typedef BLIPBUF BUF;
 typedef BLIPBEZ BEZ;
 
-struct BLIPGV;
+
 
 typedef BLIPBATCH BLIPV;   /* a particle batch (sly2/blip.h) */
 
 /* The subscribed object is an EMITTER (emitter.h); RenderBlipgSelf draws the blips at the members of its group (the
    group list, linked through groupLink), each at its EMITB's reference object (aploRef[EMITREF_Reference]) or itself. */
 
-struct POLY { float a, b, c; };
-struct S150 { int unknown0; float inverseLifetime; int unknown8; };
-typedef union { qwordV q; struct { long l; int n; int pad; } s; } GE;
+typedef BLIPGPOLY POLY;
+typedef BLIPGLIFE S150;
+typedef BLIPGAGE GE;
 
-/* The blip group (CID 0x1C, an XFM; 0x460 bytes, NewBlipGroup clears it). */
-struct BLIPGV
-{
-    int basic0, basic4, basic8;
-    VTE *pvt;               /* 0x0C */
-    void *psoParent;          /* 0x10 */
-    void *pad14;
-    int oid;                /* 0x18 */
-    void *unknown1C; void *unknown20; void *unknown24; void *unknown28; char pad2C[0x34 - 0x2C]; void *firstRunCallback;
-    float sBusy;            /* 0x38 */
-    void *pad3C;
-    int flags40;            /* 0x40 tagged word (pointer, or odd flags) */
-    char pad44[0x50 - 0x44]; void *parentTransform; char pad54[0x68 - 0x54]; void *unknown68; char pad6C[0x7C - 0x6C]; void *unknown7C; char pad80[0x90 - 0x80]; void *unknown90; char pad94[0xA0 - 0x94]; void *unknownA0; void *unknownA4; char padA8[0xB8 - 0xA8]; void *unknownB8; char padBC[0xCC - 0xBC]; void *unknownCC; char padD0[0xE0 - 0xD0];
-    EMITTER *plo;            /* 0xE0 subscribed object (CID 0x1D) */
-    char padE4[0xF0 - 0xE4];
-    qwordV boundsCenter;              /* 0xF0 bounding sphere centre */
-    float boundsRadius;     /* 0x100 */
-    char pad104[0x108 - 0x104]; void *unknown108; char pad10C[0x110 - 0x10C];
-    POLY poly;              /* 0x110 size over the normalized life (the EMITB's scale CLQ / lifetime) */
-    void *pad11C;
-    float maxSize;          /* 0x120 the largest |size| over a life (pads the bounds) */
-    char pad124[0x130 - 0x124];
-    char alphaCurve[0x10];       /* 0x130 alpha CLQ over the normalized life */
-    char unknown140[4];          /* 0x140 (zeroed, uploaded to the VU) */
-    float frameRate;        /* 0x144 texture frames per second */
-    char pad148[8];
-    S150 lifeParams;              /* 0x150 */
-    int pad15C;
-    int motionKind;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
-    int pad164[(0x16C - 0x164) / 4]; void *unknown16C;
-    char emitdv[0x30];       /* 0x170 EMITDV */
-    int numFrames;          /* 0x1A0 texture animation frames (a power of two, <= 16) */
-    int pad1A4[(0x1A8 - 0x1A4) / 4]; void *unknown1A8; int pad1AC[(0x1B0 - 0x1AC) / 4];
-    GE age[0x20];           /* 0x1B0 */
-    int numColors;               /* 0x3B0 colour count */
-    unsigned char colors[0x20][4]; /* 0x3B4 */
-    int hasColorRanges;     /* 0x434 colours come in (start, end) pairs */
-    void *gifPacket;             /* 0x438 GIF packet (D_002DD5C0/D_002DD600) */
-    int renderKind;               /* 0x43C render kind */
-    float flyingScale;      /* 0x440 (renderKind 1) */
-    int numLiveParticles;               /* 0x444 live particles */
-    DL dl;                  /* 0x448 BLIPs */
-    DLE dle;                /* 0x454 on D_002DEAF0 */
-};
-typedef char assert_BLIPG_size[sizeof(BLIPGV) == 0x460 ? 1 : -1];
-
+/* The blip group is classes.h BLIPG (CID 0x1C, an XFM; 0x460 bytes, NewBlipGroup clears it). */
 /* The world, as far as the blip heaps go. */
 
 /* The emitter block a group is set from (SetBlipgEmitb). */
@@ -132,13 +87,13 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");              /* 
 DL *GetSwClassList(SW *psw, CIDV cid);
 void AppendSlEntry(DL *pdl, void *pv);
 void RemoveSlEntry(DL *pdl, void *pv);
-void InitXfm(BLIPGV *p);
-void SetLoBusyKind(BLIPGV *p, int busyk);
-void RemoveLoHierarchy(BLIPGV *p);
-void SnipLo(BLIPGV *p);
-void FreeLoroot(BLIPGV *p);
-void UpdateLo(BLIPGV *p, float dt);
-void SubscribeLoObject(BLIPGV *p, LO *plo);
+void InitXfm(BLIPG *p);
+void SetLoBusyKind(BLIPG *p, int busyk);
+void RemoveLoHierarchy(BLIPG *p);
+void SnipLo(BLIPG *p);
+void FreeLoroot(BLIPG *p);
+void UpdateLo(BLIPG *p, float dt);
+void SubscribeLoObject(BLIPG *p, LO *plo);
 void *FindShdOrDefault(int oidShader);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, qwordV *);
@@ -166,8 +121,8 @@ void SaveSprBuf(void *pv, ...);                                 /* SaveSprBuf__F
 void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd);    /* EnsureVu1Code__FP4VIFSPvT1 */
 
 void RemoveBlip(BLIPV *pblip) __asm__("RemoveBlip__FP4BLIP");
-extern "C" void ProjectBlipgTransformAccel(BLIPGV *p);
-extern "C" void AddBlipgVuParams(BLIPGV *p);
+extern "C" void ProjectBlipgTransformAccel(BLIPG *p);
+extern "C" void AddBlipgVuParams(BLIPG *p);
 
 // Build static blip GIF packet for blend mode n.
 extern "C" void BuildBlipAqwGifs__FiPP2QW(int n, QW *aqw)
@@ -189,7 +144,7 @@ void StartupBlips()
 }
 
 // Allocate a BLIP (+spline block) and append to the blipg list.
-extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
+extern "C" BLIPV *NewBlip(SW *psw, BLIPG *pblipg)
 {
     SLOTHEAP *pslotheap = &psw->slotheapBlip;
     BLIPV *pblip = (BLIPV *)AllocZeroedFromSlotheap(pslotheap);
@@ -206,21 +161,21 @@ extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
 // Move blip from its group list to the pending-free list.
 void RemoveBlip(BLIPV *pblip)
 {
-    RemoveDlEntry(&((BLIPGV *)pblip->pblipg)->dl, pblip);
+    RemoveDlEntry(&((BLIPG *)pblip->pblipg)->dl, pblip);
     AppendDlEntry(&D_002DEB00, pblip);
 }
 
 // Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11
 // AddHierarchy, vt15 PostLoad.
-extern "C" BLIPGV *NewBlipGroup(SW *psw)
+extern "C" BLIPG *NewBlipGroup(SW *psw)
 {
-    BLIPGV *p;
+    BLIPG *p;
     int i;
     if (!psw->slotheapBlipg.pslotFree && psw->slotheapBlipg.ab) return 0;
-    p = (BLIPGV *)AllocZeroedFromSlotheap(&psw->slotheapBlipg);
+    p = (BLIPG *)AllocZeroedFromSlotheap(&psw->slotheapBlipg);
     func_002333B4(p, 0, 0x460);
-    p->basic0 = 0;
-    p->basic4 = 0;
+    p->scriptFrame.m_p = 0;
+    p->scriptVariables.m_p = 0;
     SLY2_SET_VPTR(p, BLIPG);
     i = 31;
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
@@ -232,25 +187,25 @@ extern "C" BLIPGV *NewBlipGroup(SW *psw)
     return p;
 }
 
-void InitBlipg(BLIPGV *p) __asm__("InitBlipg__FP5BLIPG");
+void InitBlipg(BLIPG *p) __asm__("InitBlipg__FP5BLIPG");
 // BLIPG vt7 Init: XFM init, an empty blip list (linked at BLIP+0x1090), no OID, never culled by distance (sBusy
 // 1e10), busy level 1, LO flag bits 1-3 set.
-void InitBlipg(BLIPGV *blipGroup)
+void InitBlipg(BLIPG *blipGroup)
 {
     uptr x;
     InitXfm(blipGroup);
     InitDl(&blipGroup->dl, SLY2_OFFSETOF(BLIPV, pblipNext));
-    blipGroup->oid = -1;
-    blipGroup->sBusy = 1e10f;
+    blipGroup->oid = OID_Nil;
+    blipGroup->busyRadius = 1e10f;
     SetLoBusyKind(blipGroup, 1);
     x = (uptr)AsLo(blipGroup)->ploupd;   /* LO's tagged word: an LOUPD pointer, or the flags with bit 0 set */
     if ((x ^ 1) & 1) ((LOUPD *)x)->grf = (((LOUPD *)x)->grf & 1) | 0xe;
     else AsLo(blipGroup)->unknown40 = (x & 1) | 0xe;
 }
 
-void OnBlipgRemove(BLIPGV *p) __asm__("OnBlipgRemove__FP5BLIPG");
+void OnBlipgRemove(BLIPG *p) __asm__("OnBlipgRemove__FP5BLIPG");
 // BLIPG vt12: remove all blips, base remove, queue group for freeing.
-void OnBlipgRemove(BLIPGV *blipGroup)
+void OnBlipgRemove(BLIPG *blipGroup)
 {
     DLI dli;
     void *pv;
@@ -258,7 +213,7 @@ void OnBlipgRemove(BLIPGV *blipGroup)
     while ((pv = PvNextDli(&dli)) != 0) RemoveBlip((BLIPV *)pv);
     RemoveLoHierarchy(blipGroup);
     SnipLo(blipGroup);
-    if (!blipGroup->psoParent) FreeLoroot(blipGroup);
+    if (!blipGroup->parent) FreeLoroot(blipGroup);
     AppendDlEntry(&D_002DEAF0, blipGroup);
     g_pdliFirst = dli.m_pdliNext;
 }
@@ -266,7 +221,7 @@ void OnBlipgRemove(BLIPGV *blipGroup)
 // BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070. (inferred)
 void BLIPG::Release()
 {
-    BLIPGV *p = (BLIPGV *)this;
+    BLIPG *p = this;
     RemoveSlEntry(GetSwClassList(&g_sw, CID_1C), p);
     FreeSlotheapSlot(&g_sw.slotheapBlipg, p);
 }
@@ -277,7 +232,7 @@ void BLIPG::Release()
 /* v4 (Claude agent, laneC9 2026-10-23): aligned 6 -> 5 with ONE register pin (c in $8) plus v = px->cframe; c = v; v >>= 1 (gives the target's lw v0 + daddu t0,v0). Left: cExtra = 0 (t2) is emitted after the loops; target sets it right after the load (then the loop-head alignment nops line up). cExtra = 0 right after c = v: 13 (px/cExtra swap t1/t2); declaration order: 13. */
 // Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF
 // regs. (inferred)
-extern "C" void PropagateBlipgShader(BLIPGV *blipGroup, int oidShader)
+extern "C" void PropagateBlipgShader(BLIPG *blipGroup, int oidShader)
 {
     register SHDBLIP *px asm("$9") = (SHDBLIP *)FindShdOrDefault(oidShader); /* register pin (Claude agent): px in t1 */
     int n, v, i, j;
@@ -332,7 +287,7 @@ static __inline__ float Max3(float a, float b, float c) { if (b < a && c < a) re
 // frame rate, the alpha and size curves rescaled to a 0..1 life and the largest size, 1 / lifetime, and the motion
 // kind (EMITDV motion degenerates to straight lines when the EMITB adds no velocity, curl or damping).
 // Also known as: SetPsysFromEmitb (upstream readable / Sly 1 name; SetPsysFromEmitb__FP4PSYSP8EMITTERN).
-extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
+extern "C" void SetBlipgEmitb(BLIPG *blipGroup, EMITB *emitb)
 {
     CLR *pclr;
     float g;
@@ -401,19 +356,19 @@ extern "C" void SetBlipgEmitb(BLIPGV *blipGroup, EMITB *emitb)
 }
 
 // BLIPG vt16 Update: just UpdateLo. (inferred)
-extern "C" void UpdateBlipg(BLIPGV *blipGroup, float dt)
+extern "C" void UpdateBlipg(BLIPG *blipGroup, float dt)
 {
     UpdateLo(blipGroup, dt);
 }
 
 // BLIPG vt51: subscribes to the object, and when it is an EMITTER (CID 0x1D) also remembers it as the group's
 // emitter (drawn at its group members' places) and takes over its busy radius.
-extern "C" void SubscribeBlipgObject(BLIPGV *blipGroup, LO *plo)
+extern "C" void SubscribeBlipgObject(BLIPG *blipGroup, LO *plo)
 {
     SubscribeLoObject(blipGroup, plo);
     if (IsBasicDerivedFrom((BASIC *)plo, CID_1D) != 0) {
         blipGroup->plo = (EMITTER *)plo;
-        blipGroup->sBusy = plo->busyRadius;
+        blipGroup->busyRadius = plo->busyRadius;
     }
 }
 
@@ -540,7 +495,7 @@ static inline float GFromQw(const qwordV &qw)
     return g;
 }
 // VU-accelerated particle advance with bounds.
-extern "C" void ProjectBlipgTransformAccel(BLIPGV *blipGroup)
+extern "C" void ProjectBlipgTransformAccel(BLIPG *blipGroup)
 {
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
     VECTORV vMax = {{{-FLT_MAX, -FLT_MAX, -FLT_MAX}}};
@@ -625,7 +580,7 @@ static __inline__ qwordV MulPoint(M4 *pm, qwordV v)
     return r;
 }
 // BLIPG vt17: per-blip transform/projection (non-accelerated path) (inferred)
-extern "C" void ProjectBlipgTransform(BLIPGV *blipGroup)
+extern "C" void ProjectBlipgTransform(BLIPG *blipGroup)
 {
     M4 m;
     if (blipGroup->motionKind == 0) {
@@ -766,7 +721,7 @@ static inline qwordV RotKZ(const M3 &m, qwordV v, qwordV k, int z)
     return r;
 }
 // BLIPG vt19 RenderSelf: build VU1 DMA for the blip group. (inferred)
-extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
+extern "C" void RenderBlipgSelf(BLIPG *blipGroup)
 {
     FRAME frame;
     STACKSCOPE_ctor(&frame);
@@ -883,7 +838,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *blipGroup)
 
 // Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to the DMA list.
 // (inferred)
-extern "C" void AddBlipgVuParams(BLIPGV *blipGroup)
+extern "C" void AddBlipgVuParams(BLIPG *blipGroup)
 {
     float *pg;
     int *pn;

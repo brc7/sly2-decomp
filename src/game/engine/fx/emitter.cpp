@@ -418,7 +418,7 @@ EMITTERV *EnsureEmitter(EMITTERV *pemitter, ENSK ensk)
 namespace M_ModifyEmitterParticles__FP7EMITTER {
 union V { qword q; struct { float x, y, z, w; } v; float a[4]; };
 struct BLK { qword apos[2][0x84]; int ibuf; int numBlips; int pad[2]; BLK *pblkNext; };   /* a block of blips, double-buffered positions */
-struct BLIPG { char pad[0x448]; BLK *pblkFirst; };
+
 
 qword GetLoWorldPos(LO *referenceObject) __asm__("GetLoWorldPos");
 float ModPositive__Fff(float g, float gMod) __asm__("ModPositive__Fff");
@@ -455,7 +455,7 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
         float boxSize = pemitter->boxRadius + pemitter->boxRadius;
         vecBox.v.z = boxSize; vecBox.v.y = boxSize; vecBox.v.x = boxSize;
         if (pemitter->pemitb->particleKind == 0 && pemitter->pblipg) {
-            for (BLK *pblk = ((BLIPG *)pemitter->pblipg)->pblkFirst; pblk; pblk = pblk->pblkNext) {
+            for (BLK *pblk = (BLK *)pemitter->pblipg->dl.head; pblk; pblk = pblk->pblkNext) {
                 qword *apos = pblk->apos[pblk->ibuf];
                 for (int i = 0; i < pblk->numBlips; i++) {
                     V *ppos = (V *)&apos[i];
@@ -472,7 +472,7 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTER *pemitter)
 
 namespace M_UpdateEmitter__FP7EMITTERf {
 struct ALO;
-struct BLIPG { char pad[0x444]; int numBlips; };   /* classes.h's BLIPG names no fields yet */
+
 
 void UpdateLo(EMITTERV *p) __asm__("UpdateLo");
 int IsDlEmpty__FP2DL(DL *pdl) __asm__("IsDlEmpty__FP2DL");
@@ -594,7 +594,7 @@ LActive:   /* near the camera (or not tied to a parent) */
         int numWanted = (int)(emitter->constantCount * emitter->density);
         int numAlive;
         if (!emitter->pemitb->particleKind)
-            numAlive = emitter->pblipg ? ((BLIPG *)emitter->pblipg)->numBlips : 0;
+            numAlive = emitter->pblipg ? emitter->pblipg->numLiveParticles : 0;
         else
             numAlive = emitter->pripg ? CountDlEntries__FP2DL(&emitter->pripg->ripList) : 0;
         int shortfall = numWanted - numAlive;

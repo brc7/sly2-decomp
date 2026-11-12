@@ -1,8 +1,7 @@
 /* include/sly2/blip.h -- the blip particle batch (engine/fx/blip.cpp): the record SW::slotheapBlip hands out, kept
  * on its group's list and, once removed, on frm.cpp's pending list until the frame that drew it is sent. Here (not in
- * blip.cpp) so frm.cpp can take the list link's offset from it. The group (classes.h BLIPG) still keeps its fields
- * in blip.cpp's BLIPGV view: classes.h declares BLIPG's bytes as the 32 BLIP records whose empty constructor
- * reproduces the class constructor's loop. */
+ * blip.cpp) so frm.cpp can take the list link's offset from it. The group is classes.h BLIPG (its age table's
+ * element constructor reproduces the class constructor's loop). */
 #ifndef SLY2_BLIP_H
 #define SLY2_BLIP_H
 #include "sly2/basic.h"

@@ -99,12 +99,20 @@ struct GRABSPOT
     virtual LO *GetOwner() __asm__("GetGrabspotOwner");                     /* slot 6 */
 };
 
-/* BLIPG's 32 records (0x1C bytes each) with an empty inline constructor: g++ still emits the 32-step loop. */
-struct BLIP
+/* A blip group's size polynomial over the normalised life (the EMITB's scale CLQ prescaled by 1 / lifetime). */
+struct BLIPGPOLY { float a, b, c; };
+/* A blip group's life parameters as uploaded to the VU (blip.cpp InitS: the second word is 1 / lifetime). */
+struct BLIPGLIFE { int unknown0; float inverseLifetime; int unknown8; };
+/* One entry of a blip group's age table (the VU's per-frame records; uploaded with AddVifUnpackRefs).
+   The empty constructor is load-bearing: BLIPG's implicit constructor (class_registry.cpp NewBlipg) keeps the
+   original's 32-step empty loop, which g++ 2.95 emits for an array member whose element class declares a constructor
+   (the class used to declare its bytes as 32 such 0x1C-byte records). */
+union BLIPGAGE
 {
-    char ab[0x1C];
-    // Uninitialised blip.
-    BLIP() {}
+    qword q;
+    struct { long l; int n; int pad; } s;
+    // Uninitialised entry.
+    BLIPGAGE() {}
 };
 
 struct PATHLINK;
@@ -259,7 +267,41 @@ typedef char assert_BARRIER_size[sizeof(BARRIER) == 0x180 ? 1 : -1];
 /* 28 BLIPG (0x460); vtable 0x2CB5D8, 51 slots */
 struct BLIPG : XFM
 {
-    BLIP ablip[32];
+    struct EMITTER *plo;    /* +0xE0 the subscribed object (an EMITTER, CID 0x1D) */
+    char padE4[0xF0 - 0xE4];
+    qword boundsCenter;     /* +0xF0 bounding sphere centre */
+    float boundsRadius;     /* +0x100 */
+    char pad104[0x108 - 0x104];
+    void *unknown108;
+    char pad10C[0x110 - 0x10C];
+    BLIPGPOLY poly;         /* +0x110 size over the normalised life */
+    void *pad11C;
+    float maxSize;          /* +0x120 the largest |size| over a life (pads the bounds) */
+    char pad124[0x130 - 0x124];
+    char alphaCurve[0x10];  /* +0x130 alpha CLQ over the normalised life */
+    char unknown140[4];     /* +0x140 (zeroed, uploaded to the VU) */
+    float frameRate;        /* +0x144 texture frames per second */
+    char pad148[8];
+    BLIPGLIFE lifeParams;   /* +0x150 */
+    int pad15C;
+    int motionKind;         /* +0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
+    int pad164[(0x16C - 0x164) / 4];
+    void *unknown16C;
+    char emitdv[0x30];      /* +0x170 EMITDV */
+    int numFrames;          /* +0x1A0 texture animation frames (a power of two, <= 16) */
+    int pad1A4[(0x1A8 - 0x1A4) / 4];
+    void *unknown1A8;
+    int pad1AC[(0x1B0 - 0x1AC) / 4];
+    BLIPGAGE age[0x20];     /* +0x1B0 */
+    int numColors;          /* +0x3B0 colour count */
+    unsigned char colors[0x20][4];   /* +0x3B4 */
+    int hasColorRanges;     /* +0x434 colours come in (start, end) pairs */
+    void *gifPacket;        /* +0x438 GIF packet (blip.cpp D_002DD5C0 / D_002DD600) */
+    int renderKind;         /* +0x43C render kind */
+    float flyingScale;      /* +0x440 (renderKind 1) */
+    int numLiveParticles;   /* +0x444 live particles */
+    DL dl;                  /* +0x448 the group's BLIPBATCHes (sly2/blip.h) */
+    DLE dle;                /* +0x454 on the frame's blip group list (blip.cpp D_002DEAF0) */
     virtual void Release() __asm__("ReleaseBlipg");   /* slot 2 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBlipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBlipg__FP5BLIPG");   /* slot 7 */
@@ -270,6 +312,8 @@ struct BLIPG : XFM
     virtual void SubscribeObject(LO *plo) __asm__("SubscribeBlipgObject");   /* slot 51: LO::SubscribeObject plus the group's own bookkeeping (blip.cpp) */
 };
 typedef char assert_BLIPG_size[sizeof(BLIPG) == 0x460 ? 1 : -1];
+typedef char assert_BLIPG_age[SLY2_OFFSETOF(BLIPG, age) == 0x1B0 ? 1 : -1];
+typedef char assert_BLIPG_dle[SLY2_OFFSETOF(BLIPG, dle) == 0x454 ? 1 : -1];
 
 /* 79 BOMB (0x210): also guard rock ammo; vtable 0x2CB780, 77 slots */
 struct BOMB : SO
