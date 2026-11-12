@@ -3375,13 +3375,15 @@ struct RGBA_RAW {uchar r,g,b,a;};
 struct RGBA {uchar r,g,b,a;RGBA(){}RGBA(const RGBA &c){*(RGBA_RAW *)this=*(const RGBA_RAW *)&c;}RGBA(const RGBA_RAW &c){*(RGBA_RAW *)this=c;}RGBA &operator=(const RGBA &c){*(RGBA_RAW *)this=*(const RGBA_RAW *)&c;return *this;}} __attribute__((aligned(16)));
 struct M23 {float a[6];} __attribute__((aligned(16)));
 struct SPRITE;
-struct ITEM {RGBA_RAW additive,multiply;char pad8[8];M23 matrix;SPRITE *sprite;int kind;float previousTime;RGBA_RAW previousAdditive,previousMultiply;M23 *previousMatrix;float nextTime;RGBA_RAW nextAdditive,nextMultiply;M23 *nextMatrix;int index;float cachedTime;uchar interpolate;char pad61[7];int flags,pad6C;};
-struct REUSE {int count;ITEM *items;ushort index,phase;float time;int field10,field14;};
+struct ITEM {RGBA_RAW additive,multiply;char pad8[8];M23 matrix;SPRITE *sprite;int kind;float previousTime;RGBA_RAW previousAdditive,previousMultiply;M23 *previousMatrix;float nextTime;RGBA_RAW nextAdditive,nextMultiply;M23 *nextMatrix;int index;float cachedTime;uchar interpolate;char pad61[7];SLE link;int unknown6C;};   /* sly2/hud.h SPRITEITEM */
+struct REUSE {int count;ITEM *items;ushort index,phase;float time;int isFinished;void *sound;};   /* sly2/hud.h SPRITESLOT (ushort keys) */
 struct ANIM;
-struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[0x14];int index;void *owner;int first,pad2C;};
+struct GROUP {ushort animCount,reuseCount;ANIM *animations;REUSE *reuse;char padC[4];ulong lastStartFrame;float lastStartTime;int lastStartAnim;int index;void *owner;int first;void *xform;};   /* sly2/hud.h SPRITEGRP */
+typedef char assert_REUSE_GROUP[sizeof(REUSE) == sizeof(SPRITESLOT) && sizeof(GROUP) == sizeof(SPRITEGRP) && SLY2_OFFSETOF(GROUP, index) == SLY2_OFFSETOF(SPRITEGRP, pendingAnim) ? 1 : -1];
+
 struct ANIM {ushort count,pad2;void *keys;float duration;void *owner;GROUP *group;int id;};
 
-void ClearSle(int *) __asm__("ClearSle");
+void ClearSle(SLE *) __asm__("ClearSle");
 void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *) __asm__("CombineSpriteColors");
 void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA) __asm__("UpdateSpriteItem");
 
@@ -3405,12 +3407,12 @@ static inline M23 Mul(const M23 &q,const M23 &n){
 // Updates reusable sprite entries at the cached time. (inferred)
 extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M23 *parent,RGBA additive,RGBA multiply){
  int i=0;
- REUSE *reuse=(REUSE *)(index*sizeof(REUSE)+(int)animation->group->reuse);
+ REUSE *reuse=(REUSE *)(index*sizeof(REUSE)+(sptr)animation->group->reuse);
  int count=reuse->count;ITEM *items=reuse->items;float time=reuse->time;
  M23 matrix;RGBA outputAdditive,outputMultiply,currentMultiply,currentAdditive;
  for(;i<count;i++){
   ITEM *item=&items[i];
-  if(!item->sprite){item->cachedTime=time;ClearSle(&item->flags);continue;}
+  if(!item->sprite){item->cachedTime=time;ClearSle(&item->link);continue;}
   if(item->interpolate&&item->nextMatrix){
    float fraction=(time-item->previousTime)/(item->nextTime-item->previousTime);
    matrix=BlendMatrix(fraction,*item->previousMatrix,*item->nextMatrix);
@@ -3426,7 +3428,7 @@ extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M
   if(item->sprite)UpdateSpriteItem(item->sprite,item,duration,&matrix,outputAdditive,outputMultiply);
   item->cachedTime=time;item->matrix=matrix;
   item->additive=*(RGBA_RAW *)&outputAdditive;item->multiply=*(RGBA_RAW *)&outputMultiply;
-  ClearSle(&item->flags);
+  ClearSle(&item->link);
  }
 }
 } // namespace M_func_002188B0
@@ -3494,13 +3496,13 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
     int stride=sizeof(E);
     int createOffset=EntryOffset(i,stride);
     do {
-        struct A *a=(struct A *)(j*sizeof(A)+(int)f->tags);
+        struct A *a=(struct A *)(j*sizeof(A)+(sptr)f->tags);
         switch(ActionKind(*a)) {
         case 0: {
             CID151 *m=CreateSfxSound(a->id);
             SetSndSourceLo(m,0);
             if(m->GetKind()==2)
-                RcPtr_Assign(&((E *)(createOffset+(int)p->r->ae))->pm,m);
+                RcPtr_Assign(&((E *)(createOffset+(sptr)p->r->ae))->pm,m);
             break;
         }
         case 1: {
@@ -3585,19 +3587,26 @@ struct ITEM {
     uchar interpolate, mode;
     char pad62[2];
     int field64;
-    int flags, pad6C;
+    SLE link;   /* WIDGET::renderQueue */
+    int unknown6C;
 };
-struct REUSE { int count; ITEM *items; ushort index, phase; float time; int field10, field14; };
+struct REUSE { int count; ITEM *items; ushort index, phase; float time; int isFinished; void *sound; };   /* sly2/hud.h SPRITESLOT (ushort keys) */
 struct ANIM;
-struct GROUP {
+struct GROUP {   /* sly2/hud.h SPRITEGRP */
     ushort animCount, reuseCount;
     ANIM *animations;
     REUSE *reuse;
-    char padC[0x14];
-    int index;
+    char padC[4];
+    ulong lastStartFrame;
+    float lastStartTime;
+    int lastStartAnim;
+    int index;   /* pendingAnim */
     void *owner;
-    int first, pad2C;
+    int first;   /* isEnabled */
+    void *xform;
 };
+typedef char assert_REUSE_GROUP[sizeof(REUSE) == sizeof(SPRITESLOT) && sizeof(GROUP) == sizeof(SPRITEGRP) && SLY2_OFFSETOF(GROUP, index) == SLY2_OFFSETOF(SPRITEGRP, pendingAnim) ? 1 : -1];
+
 struct KEYPOSE {
     ushort id, index, offset;
     short color;
@@ -3624,7 +3633,7 @@ struct KEY {
 typedef WIDGET ROOT;   /* the animation's widget: its sprite descriptor table */
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
 
-void ClearSle(int *) __asm__("ClearSle");
+void ClearSle(SLE *) __asm__("ClearSle");
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void SetSpriteItemSource(SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("SetSpriteItemSource");
 extern "C" { void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *); }
@@ -3791,7 +3800,7 @@ extern "C" void ApplySpriteKeyPoses(float time, float duration, ANIM *animation,
         item->interpolate = pose->interpolate;
         item->mode = pose->mode;
         item->field64 = pose->selected;
-        ClearSle(&item->flags);
+        ClearSle(&item->link);
         if (linkOffset) {
             item->kind = 1;
             items[entryIndex + linkOffset].kind = 4;
@@ -3844,19 +3853,26 @@ struct ITEM {
     uchar interpolate, mode;
     char pad62[2];
     int field64;
-    int flags, pad6C;
+    SLE link;   /* WIDGET::renderQueue */
+    int unknown6C;
 };
-struct REUSE { int count; ITEM *items; ushort index, phase; float time; int field10, field14; };
+struct REUSE { int count; ITEM *items; ushort index, phase; float time; int isFinished; void *sound; };   /* sly2/hud.h SPRITESLOT (ushort keys) */
 struct ANIM;
-struct GROUP {
+struct GROUP {   /* sly2/hud.h SPRITEGRP */
     ushort animCount, reuseCount;
     ANIM *animations;
     REUSE *reuse;
-    char padC[0x14];
-    int index;
+    char padC[4];
+    ulong lastStartFrame;
+    float lastStartTime;
+    int lastStartAnim;
+    int index;   /* pendingAnim */
     void *owner;
-    int first, pad2C;
+    int first;   /* isEnabled */
+    void *xform;
 };
+typedef char assert_REUSE_GROUP[sizeof(REUSE) == sizeof(SPRITESLOT) && sizeof(GROUP) == sizeof(SPRITEGRP) && SLY2_OFFSETOF(GROUP, index) == SLY2_OFFSETOF(SPRITEGRP, pendingAnim) ? 1 : -1];
+
 struct KEYPOSE {
     ushort id, index, offset;
     short color;
@@ -3883,7 +3899,7 @@ struct KEY {
 struct ANIM { ushort count, pad2; KEY *keys; float duration; void *owner; GROUP *group; int id; };
 
 
-void ClearSle(int *) __asm__("ClearSle");
+void ClearSle(SLE *) __asm__("ClearSle");
 void HandleSpriteKeyEvents(ANIM *, int, int) __asm__("HandleSpriteKeyEvents");
 void FinishSpriteSoundEvents(ANIM *, int, int) __asm__("FinishSpriteSoundEvents");
 void ResetSpriteKeyItems(ANIM *, int, int) __asm__("ResetSpriteKeyItems");
@@ -3983,7 +3999,7 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
                     item->matrix = matrix;
                     item->additive = outputAdditive.Raw();
                     item->multiply = outputMultiply.Raw();
-                    ClearSle(&item->flags);
+                    ClearSle(&item->link);
                 }
             }
         }
