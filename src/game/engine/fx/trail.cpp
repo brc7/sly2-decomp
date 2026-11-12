@@ -344,7 +344,7 @@ extern "C" void PostTrailLoad(TRAIL *trail)
         if ((flags ^ 1) & 1) {
             *(unsigned int *)flags |= 2;
         } else
-            ((LO *)trail)->unknown40 = flags | 2;
+            ((LO *)trail)->inlineFlags = flags | 2;
     }
 }
 

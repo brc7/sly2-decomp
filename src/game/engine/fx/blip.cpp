@@ -200,7 +200,7 @@ void InitBlipg(BLIPG *blipGroup)
     SetLoBusyKind(blipGroup, 1);
     x = (uptr)AsLo(blipGroup)->ploupd;   /* LO's tagged word: an LOUPD pointer, or the flags with bit 0 set */
     if ((x ^ 1) & 1) ((LOUPD *)x)->grf = (((LOUPD *)x)->grf & 1) | 0xe;
-    else AsLo(blipGroup)->unknown40 = (x & 1) | 0xe;
+    else AsLo(blipGroup)->inlineFlags = (x & 1) | 0xe;
 }
 
 void OnBlipgRemove(BLIPG *p) __asm__("OnBlipgRemove__FP5BLIPG");

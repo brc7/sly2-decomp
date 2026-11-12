@@ -1281,7 +1281,7 @@ namespace M_func_00210140 {
 extern "C" void AddLoToSwUpdateList(SW *g, LO *o)
 {
     LOUPD *e;
-    if (o->unknown40 & 0x40)
+    if (o->inlineFlags & 0x40)
         return;
     if (g->cloupd >= 0x1000 || (float)g->cloupdHole / (float)g->cloupd > 0.1f) {
         LOUPD *end = g->aloupd + g->cloupd;
@@ -1308,7 +1308,7 @@ extern "C" void AddLoToSwUpdateList(SW *g, LO *o)
     }
     e = &g->aloupd[g->cloupd++];
     e->plo = o;
-    e->grf = o->unknown40;
+    e->grf = o->inlineFlags;
     o->ploupd = e;
 }
 } // namespace M_func_00210140
@@ -1321,7 +1321,7 @@ extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
     sptr n = (sptr)plo->ploupd;
     if (((n ^ 1) & 1) != 0) {
         LOUPD *ploupd = plo->ploupd;
-        plo->unknown40 = ploupd->grf;
+        plo->inlineFlags = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;
         world->cloupdHole++;

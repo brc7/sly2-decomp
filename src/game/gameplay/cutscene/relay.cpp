@@ -490,10 +490,10 @@ extern "C" { static inline int GetLoFlags(RELAY *lo)
 // Sets bits of the LO flag word wherever it lives.
 extern "C" { static inline void SetLoFlagBits(RELAY *lo, int bits)
 {
-    if ((lo->unknown40 ^ 1) & 1)
+    if ((lo->inlineFlags ^ 1) & 1)
         lo->ploupd->grf |= bits;
     else
-        lo->unknown40 |= bits;
+        lo->inlineFlags |= bits;
 } }
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
@@ -545,10 +545,10 @@ enum { LO_FLAG_02 = 2 };
 // Clears bits of the LO flag word, stored inline or (bit 0 clear) behind a pointer.
 extern "C" { static inline void ClearLoFlagBits(RELAY *lo, int bits)
 {
-    if ((lo->unknown40 ^ 1) & 1)
+    if ((lo->inlineFlags ^ 1) & 1)
         lo->ploupd->grf &= ~bits;
     else
-        lo->unknown40 &= ~bits;
+        lo->inlineFlags &= ~bits;
 } }
 // Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
 // the busy mark and tells itself (message 6). (inferred)
@@ -2111,7 +2111,7 @@ void NextJsgCommand(RELAYJSG *script)
             }
             else
             {
-                relay->unknown40 = grf | 0x100;
+                relay->inlineFlags = grf | 0x100;
             }
         }
         else
@@ -2124,7 +2124,7 @@ void NextJsgCommand(RELAYJSG *script)
             }
             else
             {
-                relay->unknown40 = grf & ~0x100;
+                relay->inlineFlags = grf & ~0x100;
             }
         }
         break;

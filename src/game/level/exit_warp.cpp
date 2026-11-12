@@ -147,7 +147,7 @@ void EXIT::Init()
     if (!(grf & 1))
         ((LOUPD *)grf)->grf |= 2;
     else
-        exitVolume->unknown40 = grf | 2;
+        exitVolume->inlineFlags = grf | 2;
 }
 
 // Reads a 0x40-byte warp blob header from the BRX and allocates a copy when it is not empty (the exit's target world).

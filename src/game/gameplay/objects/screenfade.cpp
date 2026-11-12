@@ -51,7 +51,7 @@ void CID116::Init()
     if ((flags ^ 1) & 1)
         ((LOUPD *)flags)->grf |= 0xA;
     else
-        ((LO *)fade)->unknown40 = flags | 0xA;
+        ((LO *)fade)->inlineFlags = flags | 0xA;
 }
 
 // CID116 vtable slot 16 (Update): once all three phases have elapsed, removes the fade from the world (vtable

@@ -549,7 +549,7 @@ extern "C" void AddSoHierarchy(SO *so)
     AddSoParts(so);
     v = (sptr)so->ploupd;
     if ((v ^ 1) & 1) so->ploupd->grf |= 0x14;
-    else so->unknown40 = v | 0x14;
+    else so->inlineFlags = v | 0x14;
     pv = so->physics ? so->physics->pregent : 0;
     if (pv) {
         if (((struct H *)g_sw.pregtree) && ((struct H *)g_sw.pregtree)->numZones)
@@ -643,7 +643,7 @@ extern "C" void SetSoGrf(SO *so, int f)
     int unused[4];
     sptr v = (sptr)so->ploupd;
     if ((v ^ 1) & 1) so->ploupd->grf |= f;
-    else so->unknown40 = v | f;
+    else so->inlineFlags = v | f;
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
         q->SetFlags(f);
 }
@@ -658,7 +658,7 @@ extern "C" void ClearSoGrf(SO *so, int f)
     int unused[4];
     sptr v = (sptr)so->ploupd;
     if ((v ^ 1) & 1) so->ploupd->grf &= ~f;
-    else so->unknown40 = v & ~f;
+    else so->inlineFlags = v & ~f;
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
         q->ClearFlags(f);
 }
@@ -712,11 +712,11 @@ void LoadOptionsFromBrx__FPvP18CBinaryInputStream(SO *,void *) __asm__("LoadOpti
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(SO *,void *,void *) __asm__("LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector");
 void SetLoVisMask(SO *,int) __asm__("SetLoVisMask");
 
-/* LO::unknown40 is a tagged word: bit 0 clear means it points at the flag word */
+/* LO::inlineFlags is a tagged word: bit 0 clear means it points at the flag word */
 /* GetXfFromIndex (slot 51) called by hand: as a virtual call inside the part loop it keeps the vptr in a register */
 static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
 // Also known as: LoadSoFromBrx (upstream readable / Sly 1 name; LoadSoFromBrx__FP2SOP18CBinaryInputStream).
-static inline void SetActive(SO *p){uptr f=(uptr)p->ploupd;if((f^1)&1)p->ploupd->grf|=8;else p->unknown40=f|8;}
+static inline void SetActive(SO *p){uptr f=(uptr)p->ploupd;if((f^1)&1)p->ploupd->grf|=8;else p->inlineFlags=f|8;}
 extern "C" void LoadSoFromBrx(SO *so,void *stream)
 {
     int i=0;SOPART *e;
@@ -1000,7 +1000,7 @@ void RemoveLoFromRenderTree(SO *) __asm__("RemoveLoFromRenderTree");
 extern "C" void SetSoGrfBit8(SO *so, int enabled)
 {
 #ifdef SLY2_EE_ASM
-    register int word __asm__("a2") = so->unknown40;
+    register int word __asm__("a2") = so->inlineFlags;
     register int flags __asm__("v1") = word;
     register int firstTest __asm__("v0");
 
@@ -1022,7 +1022,7 @@ extern "C" void SetSoGrfBit8(SO *so, int enabled)
                     *(int *)tagged |= 8;
                 else {
                     register int value __asm__("v0") = word | 8;
-                    __asm__("sw %1,%0" : "=m"(so->unknown40) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->inlineFlags) : "r"(value));
                 }
             }
             if (so->isRenderable && IsLoInWorld(so))
@@ -1040,7 +1040,7 @@ extern "C" void SetSoGrfBit8(SO *so, int enabled)
                     *destination = value & mask;
                 } else {
                     register int value __asm__("v0") = word & ~8;
-                    __asm__("sw %1,%0" : "=m"(so->unknown40) : "r"(value));
+                    __asm__("sw %1,%0" : "=m"(so->inlineFlags) : "r"(value));
                 }
             }
             RemoveLoFromRenderTree(so);
@@ -1049,13 +1049,13 @@ extern "C" void SetSoGrfBit8(SO *so, int enabled)
 #else
     /* the flags live in the tagged word itself (bit 0 set) or in the LOUPD entry it points to */
     /* (no int * to the tagged word: a native LO may keep it pointer-wide) */
-    int isTagged = so->unknown40 & 1;
-    int flags = isTagged ? so->unknown40 : so->ploupd->grf;
+    int isTagged = so->inlineFlags & 1;
+    int flags = isTagged ? so->inlineFlags : so->ploupd->grf;
     if (enabled) {
         if (flags & 8)
             return;
         if (isTagged)
-            so->unknown40 |= 8;
+            so->inlineFlags |= 8;
         else
             so->ploupd->grf |= 8;
         if (so->isRenderable && IsLoInWorld(so))
@@ -1064,7 +1064,7 @@ extern "C" void SetSoGrfBit8(SO *so, int enabled)
         if (!(flags & 8))
             return;
         if (isTagged)
-            so->unknown40 &= ~8;
+            so->inlineFlags &= ~8;
         else
             so->ploupd->grf &= ~8;
         RemoveLoFromRenderTree(so);
@@ -2683,7 +2683,7 @@ extern "C" void CloneSoHierarchy(SO *pa, SO *so)
     LO *q;
     pa->Clone(so);
     for (q = (LO *)so->children.head; q != so->ploRemovedFirst; q = (LO *)q->siblingLink.next)
-        if (!q->unknownFlag28A) CloneLoWithParent__FP2LOP2SO(q, pa);
+        if (!q->isSkippedByClone) CloneLoWithParent__FP2LOP2SO(q, pa);
 }
 } // namespace M_CloneSoHierarchy
 
@@ -3433,7 +3433,7 @@ extern "C" void SetSoFadeRate(SO *so, float g)
         so->Add();
         v = (sptr)so->ploupd;
         if ((v ^ 1) & 1) so->ploupd->grf |= 2;
-        else so->unknown40 = v | 2;
+        else so->inlineFlags = v | 2;
     }
     so->opacitySpeed = g;
 }

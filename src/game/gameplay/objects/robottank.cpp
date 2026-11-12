@@ -2334,7 +2334,7 @@ extern "C" void InitRcPickup(CID108 *pickup) {
     pickup->state = -1;
     v = (sptr)pickup->ploupd;
     if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 2;
-    else pickup->unknown40 = v | 2;
+    else pickup->inlineFlags = v | 2;
 }
 } // namespace M_InitRcPickup
 

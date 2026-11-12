@@ -98,7 +98,7 @@ extern "C" void InitAseg(ASEG *segment)
     *(int *)&pclq->g2 = 0;
     segment->lmMasterSuck.maxValue = 1.0f;
     *(int *)&segment->lmMasterSuck.minValue = 0;
-    segment->unknown40 |= 0x40;
+    segment->inlineFlags |= 0x40;
 }
 
 // Loads an animation segment from the level stream: its channels (per channel kind, the curves for position, rotation,

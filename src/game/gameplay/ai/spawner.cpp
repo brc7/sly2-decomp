@@ -252,7 +252,7 @@ extern "C" void PostSpawnerLoad(CID119 *spawner) {
     SetLoBusyKind(spawner, 1);
     f = (uptr)spawner->ploupd;
     if (!(f & 1)) ((LOUPD *)f)->grf |= 2;   // (bit 0 clear: the word is a pointer to the real flags)
-    else spawner->unknown40 = f | 2;
+    else spawner->inlineFlags = f | 2;
 }
 
 // VU0 helper: x component of a vector.

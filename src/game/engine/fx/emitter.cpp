@@ -169,7 +169,7 @@ void EMITTER::Init()
     if ((flags ^ 1) & 1)
         ((LOUPD *)flags)->grf |= 2;     /* bit 0 clear: the word points at the shared flags */
     else
-        unknown40 = flags | 2;
+        inlineFlags = flags | 2;
 }
 
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
@@ -369,10 +369,10 @@ extern "C" void PostEmitterLoad__FP7EMITTER(EMITTER *pemitter)
         }
         pemitter->fDirty = 0;
         AppendDlEntry__FP2DLPv(&group->groupList, pemitter);
-        if (IsPointer(pemitter->unknown40))   /* LO flags, or (bit 0 clear) a pointer to them */
+        if (IsPointer(pemitter->inlineFlags)) /* LO flags, or (bit 0 clear) a pointer to them */
             pemitter->ploupd->grf &= ~2;
         else
-            pemitter->unknown40 &= ~2;
+            pemitter->inlineFlags &= ~2;
     }
 }
 } // namespace M_PostEmitterLoad__FP7EMITTER
@@ -1708,7 +1708,7 @@ extern "C" void LoadExplgFromBrx(EXPLG *p, void *q)
     p->children = (__typeof__(p->children))PvAllocMsg(&msg, da.c * (int)sizeof(LO *), 0x10);
     for (i = 0; i < da.c; i++) {
         LO *o = da.a[i];
-        o->unknownFlag28A = 1;
+        o->isSkippedByClone = 1;
         if (!IsBasicDerivedFrom__FP5BASIC3CID(o, 0x1E)) {
             o->Remove();
         } else {

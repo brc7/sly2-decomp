@@ -73,7 +73,7 @@ typedef char assert_CLoadCollectorArray_size[sizeof(CLoadCollectorArray) == 0x10
 struct CLoadCollectorProxy : CLoadCollector
 {
     virtual void Add(int cAdd, LO **aploAdd) __asm__("CLoadCollectorProxy_Add");   /* key function */
-    int nUnk48;    /* stored into each object's LO::unknownBits28A (and its children's) */
+    int nUnk48;    /* stored into each object's LO::proxyLoadKind (and its children's) */
     int idProxy;   /* -1, or set on each object with LO::SetIdProxy(proxyId, 1) */
 };
 
@@ -664,7 +664,7 @@ void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
 extern "C" void SetLoTagHierarchy(LO *plo, int n)
 {
     LO *ploChild;
-    plo->unknownBits28A = n;
+    plo->proxyLoadKind = n;
     if (IsBasicDerivedFrom(plo, (CID)0x30))
     {
         for (ploChild = (LO *)((SO *)plo)->children.head; ploChild; ploChild = (LO *)ploChild->siblingLink.next)

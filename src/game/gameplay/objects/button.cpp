@@ -133,7 +133,7 @@ static inline void SetTaggedFlags(LO *plo, int bits)
 {
     uptr flags = (uptr)plo->ploupd;
     if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= bits;
-    else plo->unknown40 = flags | bits;
+    else plo->inlineFlags = flags | bits;
 }
 
 enum

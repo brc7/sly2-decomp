@@ -231,7 +231,7 @@ void InitTossable(CID100V *gadget)
     gadget->pendingContact = -1;
     gadget->state = TOSSABLE_POOLED;
     if (IsPointer(flags)) ((LOUPD *)flags)->grf |= 6;
-    else ((LO *)gadget)->unknown40 = flags | 6;
+    else ((LO *)gadget)->inlineFlags = flags | 6;
 }
 
 // CID100 vtable slot 14 (LoadFromBrx): SO load; its buoyancy and water drag (SOPHYS +0xD4, +0xD8) set to 2.

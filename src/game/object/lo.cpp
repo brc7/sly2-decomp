@@ -86,7 +86,7 @@ void LO::Init()
     using namespace M_InitLo;
     void *a;
     void **b;
-    unknownBits28A = 0xF;
+    proxyLoadKind = 0xF;
     busyRadius = 1e10f;
     busyKind = 2;
     visibilityMask = 0xFF;
@@ -97,7 +97,7 @@ void LO::Init()
         M_InitLo::EnsureLoroot(this);
         isInWorld = 1;
     }
-    unknown40 = 0x21;
+    inlineFlags = 0x21;
     proxyRecord = parent ? parent->proxyRecord : g_sw.ppxrRoot;
     M_InitLo::GetLoChildDl(parent, &a, &b);
     InsertDlEntryBefore__FP2DLPvT1(a, *b, this);
@@ -393,7 +393,7 @@ extern "C" void PostLoLoad(LO *object)
             SetLoBusyKind(object, 0);
         v = (sptr)object->ploupd;
         if ((v ^ 1) & 1) object->ploupd->grf |= 2;
-        else object->unknown40 = v | 2;
+        else object->inlineFlags = v | 2;
     } else {
         object->nextSpliceTime = D_002A6A40;
     }
@@ -455,7 +455,7 @@ extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
     uptr v = (uptr)p->ploupd;
     if ((v ^ 1) & 1) p->ploupd->grf &= ~fl;
-    else p->unknown40 = v & ~fl;
+    else p->inlineFlags = v & ~fl;
 } }
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
 // is not known; the parent's flag word is read through its pointer form). (inferred)
@@ -819,7 +819,7 @@ extern "C" void SetLoFlags(LO *object, unsigned int fl)
 {
     uptr v = (uptr)object->ploupd;
     if ((v ^ 1) & 1) object->ploupd->grf |= fl;
-    else object->unknown40 = v | fl;
+    else object->inlineFlags = v | fl;
 }
 } // namespace M_func_001A66C8
 
@@ -829,7 +829,7 @@ extern "C" void ClearLoFlags(LO *object, unsigned int fl)
 {
     uptr v = (uptr)object->ploupd;
     if ((v ^ 1) & 1) object->ploupd->grf &= ~fl;
-    else object->unknown40 = v & ~fl;
+    else object->inlineFlags = v & ~fl;
 }
 } // namespace M_func_001A66F8
 
@@ -888,11 +888,11 @@ typedef char RootRefSize[sizeof(RR)==4?1:-1];
 /* LO's flag bits as the original copies them: int / uint bit-fields in the 64-bit unit at +0x28 (lo.h declares them
    long / ulong, and g++ folds a copy between same-position long fields into and/or masks where the original extracts
    and reinserts each field; two rounds of casts did not change that). EE layout only: the #else copies lo.h's fields. */
-struct LOFLAGS{int siblingPrev;char cpaloFindSwObjects;unsigned char visibilityMask;int unknownBits28A:4,busyKind:4;uint isRemoved:1,unknownFlag28A:1,keepsOwnVisMask:1;} __attribute__((aligned(8)));
+struct LOFLAGS{int siblingPrev;char cpaloFindSwObjects;unsigned char visibilityMask;int proxyLoadKind:4,busyKind:4;uint isRemoved:1,isSkippedByClone:1,keepsOwnVisMask:1;} __attribute__((aligned(8)));
 #define LOFLAGS_OF(p) ((LOFLAGS*)((char*)(p)+0x28))
 #endif
 static inline PXR*CopyPxr(int bytes,REQUEST*r,PXR*n){r->bytes=bytes;r->alignment=16;return(PXR*)AllocCopyFromWorldHeap(r,n);}
-/* LO's tagged update word (lo.h unknown40 / ploupd): the flags inline when bit 0 is set, else LOUPD::grf. Get reads
+/* LO's tagged update word (lo.h inlineFlags / ploupd): the flags inline when bit 0 is set, else LOUPD::grf. Get reads
    the flags; Set stores v (bit 0 cleared) and keeps the target's bit 0. The word is read pointer-wide (uptr). */
 static inline int GetTaggedFlags(const LO*p){
 #ifdef SLY2_EE_ASM
@@ -901,7 +901,7 @@ static inline int GetTaggedFlags(const LO*p){
     uptr v=(uptr)p->ploupd;
 #endif
     if(!(v&1))v=((LOUPD*)v)->grf;return v;}
-static inline void SetTaggedFlags(LO*p,int v){v&=~1;uptr d=(uptr)p->ploupd;if(!(d&1))((LOUPD*)d)->grf=v|(((LOUPD*)d)->grf&1);else p->unknown40=v|(d&1);}
+static inline void SetTaggedFlags(LO*p,int v){v&=~1;uptr d=(uptr)p->ploupd;if(!(d&1))((LOUPD*)d)->grf=v|(((LOUPD*)d)->grf&1);else p->inlineFlags=v|(d&1);}
 /* Where LO's own data ends (0x50 on the EE, sizeof(LO)): the class body copied past it starts there. On the Itanium ABI a
    derived class may start in LO's tail padding, so this is the end of the last member, not sizeof. */
 #define LO_DATA_END (SLY2_OFFSETOF(LO,unknown44)+(int)sizeof(((LO*)0)->unknown44))
@@ -922,13 +922,13 @@ extern "C" void CloneLo(LO*object,const LO*source){
     object->busyRadius=source->busyRadius;
 #if defined(SLY2_EE_LAYOUT)
     LOFLAGS_OF(object)->busyKind=LOFLAGS_OF(source)->busyKind;
-    LOFLAGS_OF(object)->unknownFlag28A=LOFLAGS_OF(source)->unknownFlag28A;
-    LOFLAGS_OF(object)->unknownBits28A=LOFLAGS_OF(source)->unknownBits28A;
+    LOFLAGS_OF(object)->isSkippedByClone=LOFLAGS_OF(source)->isSkippedByClone;
+    LOFLAGS_OF(object)->proxyLoadKind=LOFLAGS_OF(source)->proxyLoadKind;
     LOFLAGS_OF(object)->keepsOwnVisMask=LOFLAGS_OF(source)->keepsOwnVisMask;
 #else
     object->busyKind=source->busyKind;
-    object->unknownFlag28A=source->unknownFlag28A;
-    object->unknownBits28A=source->unknownBits28A;
+    object->isSkippedByClone=source->isSkippedByClone;
+    object->proxyLoadKind=source->proxyLoadKind;
     object->keepsOwnVisMask=source->keepsOwnVisMask;
 #endif
     SetTaggedFlags(object,GetTaggedFlags(source));
@@ -1088,13 +1088,13 @@ extern "C" { static inline void SetFlag(LO *p, unsigned int fl)
 {
     uptr v = (uptr)p->ploupd;
     if ((v ^ 1) & 1) p->ploupd->grf |= fl;
-    else p->unknown40 = v | fl;
+    else p->inlineFlags = v | fl;
 } }
 extern "C" { static inline void ClearFlag(LO *p, unsigned int fl)
 {
     uptr v = (uptr)p->ploupd;
     if ((v ^ 1) & 1) p->ploupd->grf &= ~fl;
-    else p->unknown40 = v & ~fl;
+    else p->inlineFlags = v & ~fl;
 } }
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)
 extern "C" void SetLoFlag8(LO *object, int f)

@@ -54,10 +54,10 @@ struct LO : public BASIC
       DLE siblingLink; /* link in the parent's list of children */
       char cpaloFindSwObjects;   /* count kept by FindSwObject searches (Sly 1 name; meaning not confirmed) */
       uchar visibilityMask; /* visibility flag bits (SetVisMask) */
-      long unknownBits28A : 4;
+      long proxyLoadKind : 4;   /* the proxy collector's load kind (SetLoTagHierarchy): -1 none, 1 / 0 for proxy load records -2 / -1 (brx.cpp) (inferred) */
                long busyKind : 4; /* busy kind: how the object takes part in the busy list */
                ulong isRemoved : 1;  /* set once the object has been removed from the world */
-               ulong unknownFlag28A : 1;
+               ulong isSkippedByClone : 1;   /* loaded as part of its parent (XFM child objects, a TN path): CloneSoHierarchy does not clone it (inferred) */
                ulong keepsOwnVisMask : 1;   /* a parent's SetVisMask skips it (SetLoOwnVisMask) */
                ulong clearsPlacesOnRemove : 1;   /* RemoveLoHierarchy then calls RemoveSwPlacesOf on it (inferred) */
                ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
@@ -69,7 +69,7 @@ struct LO : public BASIC
       PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
       union
       {
-          int unknown40;   /* tagged flag word (bit 0 set): 2 set by PO::Init, 4 = slots awake, 0x10 = snap (xf.cpp comment) */
+          int inlineFlags;   /* the flag word itself when bit 0 is set (tag): 2 set by Init, 4 = slots awake, 0x10 = snap (xf.cpp) */
           struct LOUPD *ploupd;   /* bit 0 clear: the object is in SW::aloupd and its flags are that entry's grf
                                      (AddLoToSwUpdateList) */
       };

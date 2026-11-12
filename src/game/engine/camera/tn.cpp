@@ -332,7 +332,7 @@ extern "C" void InitTn(TN *p)
     SetLoBusyKind(p, 1);
     f = (sptr)p->ploupd;
     if (IsPointer(f)) ((LOUPD *)f)->grf |= 2;
-    else p->unknown40 = f | 2;
+    else p->inlineFlags = f | 2;
 }
 
 namespace RO_ORDER { extern const unsigned int r_D_002A96E8[2] __asm__("D_002A96E8") = {0, 0}; }   /* a null callback record */
@@ -379,7 +379,7 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         break;
     case 1:
         p->path = (SHAPE *)*msg.lca.pp;
-        p->path->unknownFlag28A = 1;   /* bit 57 of LO's flag unit at +0x28 */
+        p->path->isSkippedByClone = 1; /* bit 57 of LO's flag unit at +0x28 */
         break;
     }
     if (!p->path) p->grftnm &= ~2;

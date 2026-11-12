@@ -418,7 +418,7 @@ static inline int IndirectWord(int word)
     return result;
 }
 // Restore the object's flags to mask, keeping bit 0 (writes through the pointer when bit 0 is clear).
-static inline void Restore(LO *x,uint mask){uint f=x->unknown40;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->unknown40=mask|(f&1);}
+static inline void Restore(LO *x,uint mask){uint f=x->inlineFlags;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->inlineFlags=mask|(f&1);}
 // Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
 // (dialog, game event 10, target marked done).
 // Also known as: SetPhotoPromptState (upstream readable / Sly 1 name; SetPhotoPromptState__FPvi).
@@ -525,27 +525,27 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
         register int flags __asm__("a0");
         __asm__("lw %0,%1" : "=r"(model) : "m"(reconSel->model));
         __asm__("lw %0,0(%1)" : "=r"(widget) : "r"(model), "m"(model->player));
-        __asm__("lw %0,64(%1)" : "=r"(flags) : "r"(widget), "m"(widget->unknown40));
+        __asm__("lw %0,64(%1)" : "=r"(flags) : "r"(widget), "m"(widget->inlineFlags));
         if (IndirectWord(flags))
             flags = *(uint *)flags;
         reconSel->savedFlags = Untag(flags);
         register LO *updated __asm__("a0");
         register uint raw __asm__("v1");
         __asm__("lw %0,0(%1)" : "=r"(updated) : "r"(model), "m"(model->player));
-        __asm__("lw %0,64(%1)" : "=r"(raw) : "r"(updated), "m"(updated->unknown40));
+        __asm__("lw %0,64(%1)" : "=r"(raw) : "r"(updated), "m"(updated->inlineFlags));
         if ((raw ^ 1) & 1)
             *(uint *)raw |= 0x102;
         else {
             register uint inlineWord __asm__("v0") = raw | 0x102;
-            __asm__("sw %1,%0" : "=m"(updated->unknown40) : "r"(inlineWord));
+            __asm__("sw %1,%0" : "=m"(updated->inlineFlags) : "r"(inlineWord));
         }
 #else
-        {   /* the player's tagged flag word (LO::unknown40): save it untagged, then set 0x102 */
+        {   /* the player's tagged flag word (LO::inlineFlags): save it untagged, then set 0x102 */
             LO *player = reconSel->model->player;
-            sptr word = player->unknown40;
+            sptr word = player->inlineFlags;
             if (word & 1) {
                 reconSel->savedFlags = (uint)word & ~1u;
-                player->unknown40 = (int)word | 0x102;
+                player->inlineFlags = (int)word | 0x102;
             } else {
                 reconSel->savedFlags = *(uint *)word & ~1u;
                 *(uint *)word |= 0x102;

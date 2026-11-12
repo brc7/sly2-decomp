@@ -736,8 +736,8 @@ static inline int ToInt(float f){return (int)f;}
 // registers and grows the frame (349 words off). This form exists to reproduce the original codegen.
 static inline XF *Lookup(SO *p,int id){return p->GetXfFromIndex(id);}
 static inline void Identity(MATRIX4 *m){func_002333B4(m,0,sizeof(*m));m->mat[3][3]=1.0f;m->mat[2][2]=1.0f;m->mat[1][1]=1.0f;m->mat[0][0]=1.0f;}
-// Clear flag 0x20: on LO::unknown40 when bit 0 is set, otherwise on the word it points to.
-static inline void ClearFlag(SO *p){sptr f=(sptr)p->ploupd;if((f^1)&1)((LOUPD *)f)->grf&=~0x20;else p->unknown40=f&~0x20;}
+// Clear flag 0x20: on LO::inlineFlags when bit 0 is set, otherwise on the word it points to.
+static inline void ClearFlag(SO *p){sptr f=(sptr)p->ploupd;if((f^1)&1)((LOUPD *)f)->grf&=~0x20;else p->inlineFlags=f&~0x20;}
 // Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
 // animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
@@ -842,7 +842,7 @@ extern "C" void UpdateXfJobRange(void *pa, XF *p)
 //   role 0x12   spring-damper to the rest value (xfk 1: kp = stiffness * 0.015, kd = damping * 0.0025; xfk 6 the same on the angle); settled (phase 2, small speed + distance) -> role 0x13
 //   role 0x15   only keeps the SO awake
 // After the switch the XF's world matrix is mat * parent->worldMatrix (row vectors; VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
-// The SO's flag 4 (unknown40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
+// The SO's flag 4 (inlineFlags) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
 // HOW IT IS WRITTEN (T1113, each point verified on the diff; scratch decomp/build/scratch/t1113/, cmp.py = aligned diff + sp-offset score):
 //  - every 128-bit read through a cast (`*(qword *)&pxf->velocity`, `*(qword *)&pxf->acceleration`, the position row) is an alias-everything load that cannot move
 //    across the VU_FLOAT home stores: the game reads velocity / the position row BEFORE the VuFloat and acceleration after it (hence the qwV0 / qwPos0 locals);
@@ -1725,24 +1725,24 @@ void UpdateSoSlots(SO *so)
     }
     if (fIdle)
     {
-        if (!(so->unknown40 & 1))
+        if (!(so->inlineFlags & 1))
         {
             so->ploupd->grf &= ~4;
         }
         else
         {
-            so->unknown40 &= ~4;
+            so->inlineFlags &= ~4;
         }
     }
     if (fSnap)
     {
-        if (!(so->unknown40 & 1))
+        if (!(so->inlineFlags & 1))
         {
             so->ploupd->grf &= ~0x10;
         }
         else
         {
-            so->unknown40 &= ~0x10;
+            so->inlineFlags &= ~0x10;
         }
     }
     RefreshSoAfterSlotUpdate(so);

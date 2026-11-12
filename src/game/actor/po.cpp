@@ -94,7 +94,7 @@ extern "C" void InitPo(PO *po)
     po->unknown15C = 1;
     po->unknown168 = po;
     flags = (sptr)po->ploupd;
-    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 2; else po->unknown40 = flags | 2;
+    if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 2; else po->inlineFlags = flags | 2;
 }
 
 // Slot 14 (LoadFromBrx): LoadSoFromBrx, then one more stream record.

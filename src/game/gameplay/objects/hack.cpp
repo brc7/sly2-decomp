@@ -68,7 +68,7 @@ extern "C" void InitHack(HACK *hack) {
     hack->qwKnockback = D_002BE7D0;
     hack->lmKnockback = D_002BE7E0;
     v = (uptr)hack->ploupd;   /* LO's tagged word (lo.h) */
-    if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 2; else hack->unknown40 = v | 2;
+    if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 2; else hack->inlineFlags = v | 2;
 }
 } // namespace M_func_0017F090
 
@@ -1262,7 +1262,7 @@ void HACKWALL::Init()
     InitHack(this);
     v = (uptr)ploupd;   /* LO's tagged word (lo.h) */
     if ((v ^ 1) & 1) ((LOUPD *)v)->grf |= 8;
-    else unknown40 = v | 8;
+    else inlineFlags = v | 8;
     InitDl__FP2DLi(&dlBroken, SLY2_OFFSETOF(HACKWALLPIECE, dle));
 }
 

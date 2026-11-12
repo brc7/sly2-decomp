@@ -1106,7 +1106,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
-        plo->unknown40 = v | bits;
+        plo->inlineFlags = v | bits;
 } }
 extern char D_002E1E88[] __asm__("D_002E1E88");
 int HasPendingStartupSteps(void *p) __asm__("HasPendingStartupSteps");
@@ -1174,7 +1174,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
-        plo->unknown40 = v | bits;
+        plo->inlineFlags = v | bits;
 } }
 // Clear flag bits: on plo->flags when bit 0 is set, otherwise on the word plo->flags points to.
 extern "C" { static inline void ClearLoFlagsInline(LO *plo, int bits)
@@ -1183,7 +1183,7 @@ extern "C" { static inline void ClearLoFlagsInline(LO *plo, int bits)
     if ((v ^ 1) & 1)
         plo->ploupd->grf &= ~bits;
     else
-        plo->unknown40 = v & ~bits;
+        plo->inlineFlags = v & ~bits;
 } }
 void SetLoBusyKind(LO *p, int n) __asm__("SetLoBusyKind");
 void IncrementSwHandsOff(void *pg, int n) __asm__("IncrementSwHandsOff");
@@ -1434,7 +1434,7 @@ extern "C" { static inline void SetLoFlagsInline(LO *plo, int bits)
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
-        plo->unknown40 = v | bits;
+        plo->inlineFlags = v | bits;
 } }
 void PostLoLoad(LO *p) __asm__("PostLoLoad");
 void AppendSlEntry(SL *psl, TASK *p) __asm__("AppendSlEntry");
@@ -1564,7 +1564,7 @@ static inline void SetLoFlagsInline(LO *plo, int bits)
     if ((v ^ 1) & 1)
         plo->ploupd->grf |= bits;
     else
-        plo->unknown40 = v | bits;
+        plo->inlineFlags = v | bits;
 }
 extern char D_003DA0C0[] __asm__("D_003DA0C0");
 extern void SetSwTaskCur(SW *world, TASK *p) __asm__("SetSwTaskCur");

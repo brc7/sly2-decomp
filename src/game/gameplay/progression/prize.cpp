@@ -78,7 +78,7 @@ extern "C" void InitDprize(DPRIZE *prize)
     prize->collectListenerOid = OID_Nil;
     prize->vanishListenerOid = OID_Nil;
     prize->unknown224 = OID_Nil;
-    if (IsPointer(v)) ((LOUPD *)v)->grf |= 2; else prize->unknown40 = v | 2;
+    if (IsPointer(v)) ((LOUPD *)v)->grf |= 2; else prize->inlineFlags = v | 2;
 }
 } // namespace M_InitDprize
 
@@ -1895,7 +1895,7 @@ extern "C" void InitVault(VAULT *vault)
     vault->rewardPowerup = -1;
     vault->state = -1;
     vault->selectedDigit = -1;
-    if (IsPointer(v)) ((LOUPD *)v)->grf |= 2; else vault->unknown40 = v | 2;
+    if (IsPointer(v)) ((LOUPD *)v)->grf |= 2; else vault->inlineFlags = v | 2;
 }
 } // namespace M_InitVault
 

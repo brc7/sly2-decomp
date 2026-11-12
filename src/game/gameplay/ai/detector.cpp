@@ -88,7 +88,7 @@ extern "C" void InitDetector(DETECTOR *detector)
     SetLoBusyKind(detector, 1);
     flags = (uptr)detector->ploupd;
     if (!(flags & 1)) ((LOUPD *)flags)->grf |= 2;   // (bit 0 clear: the word points at the real flags)
-    else detector->unknown40 = flags | 2;
+    else detector->inlineFlags = flags | 2;
 }
 
 // 0x153DB0: DETECTOR vtable slot 15 (Update): LO update, then re-evaluates the targets.

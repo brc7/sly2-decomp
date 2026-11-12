@@ -189,7 +189,7 @@ void STEPGUARD::Init()
     if (!(v & 1))
         ((LOUPD *)v)->grf &= -3;
     else
-        guard->pdetector->unknown40 = v & -3;
+        guard->pdetector->inlineFlags = v & -3;
     a = 0.785398245f;
     b = 1.30899704f;
     limit = D_002A8600;
@@ -3682,7 +3682,7 @@ void CID125::Init()
     if (!(flags & 1))
         ((LOUPD *)flags)->grf |= 2;   // (bit 0 clear: the word points at the real flags)
     else
-        manager->unknown40 = flags | 2;
+        manager->inlineFlags = flags | 2;
     SetLoBusyKind(manager, 1);
 }
 

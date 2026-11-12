@@ -81,7 +81,7 @@ void RIPG::Init()
     InitDl(&ripList, SLY2_OFFSETOF(RIP, ripLink));
     SetLoBusyKind(this, 1);
     flags = (sptr)ploupd;
-    if (IsPointer(flags)) ((LOUPD *)flags)->grf = (((LOUPD *)flags)->grf & 1) | 0xE; else unknown40 = (flags & 1) | 0xE;
+    if (IsPointer(flags)) ((LOUPD *)flags)->grf = (((LOUPD *)flags)->grf & 1) | 0xE; else inlineFlags = (flags & 1) | 0xE;
     isRenderable = 0;
     if (groupKind == 1) {
         EnsureSoTree(this);

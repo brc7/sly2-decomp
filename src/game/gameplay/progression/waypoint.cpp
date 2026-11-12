@@ -59,7 +59,7 @@ extern "C" void InitWaypt(WAYPT *waypoint)
     waypoint->clipFrame = -1;
     waypoint->requiredPowerup = -1;
     if (IsPointer(flags)) ((LOUPD *)flags)->grf |= 0xA;
-    else waypoint->unknown40 = flags | 0xA;
+    else waypoint->inlineFlags = flags | 0xA;
     waypoint->isRenderable = 0;
 }
 
@@ -70,7 +70,7 @@ static __inline__ void ClearBit(SO *part)
     if ((flags ^ 1) & 1) {
         ((LOUPD *)flags)->grf &= ~8;
     } else {
-        part->unknown40 = flags & ~8;
+        part->inlineFlags = flags & ~8;
     }
 }
 // WAYPT vtable slot 15 (PostLoad): SO post-load; the marker, beam and base are drawn by RenderWaypt, not by themselves.

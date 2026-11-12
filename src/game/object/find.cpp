@@ -32,7 +32,7 @@ struct LO : public BASIC
     void *firstRunCallback;     /* +0x34 lo.h (LORUN) */
     float busyRadius;           /* +0x38 lo.h */
     void *proxyChain;              /* +0x3C proxy chain */
-    void *ploupd;               /* +0x40 lo.h unknown40/ploupd (a tagged pointer) */
+    void *ploupd;               /* +0x40 lo.h inlineFlags/ploupd (a tagged pointer) */
     int unknown44[3];           /* +0x44 lo.h */
 };
 typedef char assert_LO_proxyChain[SLY2_OFFSETOF(LO, proxyChain) == 0x3C ? 1 : -1];

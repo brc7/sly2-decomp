@@ -185,7 +185,7 @@ extern "C" void InitBooty(BOOTYV *booty) {
     InitSo(booty);
     booty->vScale.q = D_002A2DE0; booty->st = -1; x = (uptr)((LO *)booty)->ploupd;   /* LO's tagged word (lo.h) */
     if ((x ^ 1) & 1) ((LOUPD *)x)->grf |= 2;
-    else ((LO *)booty)->unknown40 = x | 2;
+    else ((LO *)booty)->inlineFlags = x | 2;
 }
 
 // Fills an allocation request.

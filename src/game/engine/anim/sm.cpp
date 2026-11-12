@@ -81,7 +81,7 @@ public:
 extern "C" int InitSm(SM *psm)
 {
     InitLo(psm);
-    return psm->unknown40 |= 0x40;
+    return psm->inlineFlags |= 0x40;
 }
 
 // LoadSmFromBrx__FP2SMP18CBinaryInputStream: ported from Lilly's personal Sly 2 decomp (src/P2/sm.c), reduced to the declarations it needs.

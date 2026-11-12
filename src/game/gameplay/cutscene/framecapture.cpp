@@ -23,7 +23,7 @@ typedef unsigned long ulong;
 
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct ASEGA;
-/* CID104's own fields after its SO base (LO::unknown40 is the tagged flag word: a pointer to flags when bit 0 is
+/* CID104's own fields after its SO base (LO::inlineFlags is the tagged flag word: a pointer to flags when bit 0 is
    clear, else the flags themselves; SO::rootTransform is passed with each placer's matrix to GetRelativeXfMatrix). */
 struct CAPTUREV : SO
 {
@@ -102,7 +102,7 @@ static inline void SetTaggedFlags(LO *plo, int bits)
 {
     uptr flags = (uptr)plo->ploupd;
     if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= bits;
-    else plo->unknown40 = flags | bits;
+    else plo->inlineFlags = flags | bits;
 }
 
 // CID104 vtable slot 7 (Init): SO defaults, idle state, busy, LO flags 0x102.

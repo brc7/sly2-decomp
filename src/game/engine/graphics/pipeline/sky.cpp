@@ -35,7 +35,7 @@ void SKY::PostLoad()
     SetLoBusyKind(sky, 1);
     flagsWord = (sptr)sky->ploupd;   /* a flags word, or (low bit clear) a pointer to one */
     if ((flagsWord ^ 1) & 1) ((LOUPD *)flagsWord)->grf |= 2;
-    else sky->unknown40 = flagsWord | 2;
+    else sky->inlineFlags = flagsWord | 2;
     sky->isRenderable = 0;
 }
 

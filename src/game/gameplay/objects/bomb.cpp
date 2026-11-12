@@ -150,7 +150,7 @@ extern "C" void InitBomb(BOMBV *bomb) {
     x = (sptr)bomb->ploupd;
     bomb->k = 0;
     if ((x ^ 1) & 1) ((LOUPD *)x)->grf |= 2;
-    else bomb->unknown40 = x | 2;
+    else bomb->inlineFlags = x | 2;
     bomb->thrower = bomb;
 }
 

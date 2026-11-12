@@ -111,7 +111,7 @@ void LIGHT::Init()
     SetLoBusyKind(light, 1);
     flags = (sptr)light->ploupd;
     if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf &= ~0x20;
-    else light->unknown40 = flags & ~0x20;
+    else light->inlineFlags = flags & ~0x20;
 }
 
 // LIGHT vt15: PostLoLoad then RebuildLight.

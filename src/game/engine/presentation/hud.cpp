@@ -723,10 +723,10 @@ void WIDGET::PostLoad()
     if (isShownOnLoad)
         Show(-1);
     SetLoBusyKind(this, 1);
-    /* LO unknown40: either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
+    /* LO inlineFlags: either the flag word itself (bit 0 set) or a pointer to it (bit 0 clear) (inferred) */
     flags = (uptr)ploupd;
     if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 0x102;
-    else unknown40 = flags | 0x102;
+    else inlineFlags = flags | 0x102;
 }
 
 // 0x2124F0 LoadWidgetSprites

@@ -114,7 +114,7 @@ void WR::Init()
     SetLoBusyKind(p, 1);
     f = (sptr)p->ploupd;
     if (IsPointer(f)) ((LOUPD *)f)->grf |= 2;
-    else p->unknown40 = f | 2;
+    else p->inlineFlags = f | 2;
 }
 
 // Attaches a warp group (WRBG: a set of mesh vertices) to a space warp: appends it to the warp's group list and points

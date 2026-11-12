@@ -77,7 +77,7 @@ void CID117::Init()
     type->range = D_002BDCD0;
     type->heightRange = D_002BDCD8;
     type->duration = 0.25f;
-    type->unknown40 |= 0x40;
+    type->inlineFlags |= 0x40;
 }
 
 /* Holds a reference while the noise is set up (vtable slots 1/2). */
@@ -332,7 +332,7 @@ extern "C" void InitListener(CID47 *listener)
     SetLoBusyKind(listener, 0);
     flags = (uptr)listener->ploupd;
     if (!(flags & 1)) ((LOUPD *)flags)->grf |= 2;   // (bit 0 clear: the word points at the real flags)
-    else listener->unknown40 = flags | 2;
+    else listener->inlineFlags = flags | 2;
 }
 
 // 0x156D20: Listener vtable slot 11 (AddHierarchy): LO base, then links the listener on the world list

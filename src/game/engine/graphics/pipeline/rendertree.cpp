@@ -522,7 +522,7 @@ extern "C" void RemoveLoFromRenderTree(SO *pobj)
         pobj->prender = 0;
         n = (sptr)pobj->ploupd;
         if ((n ^ 1) & 1) ((LOUPD *)n)->grf &= ~0x80;
-        else pobj->unknown40 = n & ~0x80;
+        else pobj->inlineFlags = n & ~0x80;
     }
 }
 
@@ -543,10 +543,10 @@ extern "C" void AddLoToRenderTree(SO *pobj)
     if (prender) {
         prender->kind = KIND_DEFERRED;
         pobj->prender->pv = pobj;
-        if ((pobj->unknown40 ^ 1) & 1)
+        if ((pobj->inlineFlags ^ 1) & 1)
             pobj->ploupd->grf |= 0x80;
         else
-            pobj->unknown40 |= 0x80;
+            pobj->inlineFlags |= 0x80;
         pobj->renderStamp = pobj->rootTransform->worldStamp;
     }
 }

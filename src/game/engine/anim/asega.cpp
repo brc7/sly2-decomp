@@ -122,7 +122,7 @@ extern "C" void DecrefAsega(ASEGA *player)
     }
 }
 
-// The segment's flag word: unknown40 itself when bit 0 is set, otherwise the word it points to.
+// The segment's flag word: inlineFlags itself when bit 0 is set, otherwise the word it points to.
 static __inline__ unsigned int ResolveAsegFlags(ASEG *pq) { uptr x = (uptr)pq->ploupd; return ((x ^ 1) & 1) ? ((LOUPD *)x)->grf : x; }
 // Close the guard: release its reference on the player.
 static __inline__ void End(G *pg) { ASEGA *po = pg->p; po->Release(); }

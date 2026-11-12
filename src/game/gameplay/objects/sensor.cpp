@@ -291,7 +291,7 @@ extern "C" void InitLasen(LASENV *laser)
     laser->grfSo &= ~0x800000000UL;
     flags = (uptr)((LO *)laser)->ploupd;   /* LO's tagged word (lo.h) */
     if ((flags ^ 1) & 1) ((LOUPD *)flags)->grf |= 8;
-    else ((LO *)laser)->unknown40 = flags | 8;
+    else ((LO *)laser)->inlineFlags = flags | 8;
 }
 
 // Allocates cb bytes (alignment cbAlign) from the world heap.
@@ -369,7 +369,7 @@ static inline qword Transform(const M4 *m, qword point)
 // The path's world matrix.
 static inline M4 *GetWorldMatrix(SHAPEV *path) { return (M4 *)((SHAPE *)path)->GetWorldMatrix(); }
 // Marks the SO's collision data dirty (flag 2 in the tagged flag word).
-static inline void SetDirty(SOV *pso) { uptr f = (uptr)((LO *)pso)->ploupd; if ((f ^ 1) & 1) ((LOUPD *)f)->grf |= 2; else ((LO *)pso)->unknown40 = f | 2; }
+static inline void SetDirty(SOV *pso) { uptr f = (uptr)((LO *)pso)->ploupd; if ((f ^ 1) & 1) ((LOUPD *)f)->grf |= 2; else ((LO *)pso)->inlineFlags = f | 2; }
 
 // (Re)build each beam's two endpoints (fixed point, or a point moving along a path with a 1/2/6-segment motion
 // profile) and the beams' bounding box as the SO's single part. (inferred)

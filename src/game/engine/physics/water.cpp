@@ -131,7 +131,7 @@ extern "C" void InitWater(WATER *water)
     water->unknown184 = -10;
     water->zapKind = 0x2000;
     if (!(flags & 1)) ((LOUPD *)flags)->grf |= 2;
-    else water->unknown40 = flags | 2;
+    else water->inlineFlags = flags | 2;
 }
 
 // Slot 64: resets the SO physics defaults (InitSoPhysics), sets bit 48 on every part (SetSoPartsBit48) and gives
