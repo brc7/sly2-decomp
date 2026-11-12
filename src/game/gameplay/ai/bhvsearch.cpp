@@ -42,7 +42,7 @@ typedef char assert_QUERY_candidate[(unsigned int)&((QUERY *)0)->candidate == 0x
 typedef struct NODE{char pad0[0xE0];struct NODE*nextE0;char padE4[4];unsigned flags;char padEC[0x18];struct NODE*next104;char pad108[4];float reach;char pad110[0x64];struct NODE*next174;char pad178[0x3C];struct NODE*next1B4;}NODE;
 typedef struct WORK{QUERY query;NODE*result256[256];NODE*result32[32];NODE*result128[128];}WORK;
 
-struct GOAL { qword a; qword v; };
+struct GOAL { SHAPE *shape; LO *object; int unknown8[2]; qword pos; };   /* classes.h PATHLINKEND without its constructor */ typedef char assert_GOAL_pos[SLY2_OFFSETOF(GOAL, pos) == SLY2_OFFSETOF(PATHLINKEND, pos) && sizeof(GOAL) == sizeof(PATHLINKEND) ? 1 : -1];
 
 extern const float D_002A5398;   /* defined below where the ELF has it (.rodata order) */
 float D_002BE5A0 = 2.0f;   /* bhvsearch's .data starts here (address order) */
@@ -146,7 +146,7 @@ extern "C" void UpdateBhvSearch(BHV171 *behavior) {
                     qword v = GetBhvSearchLastKnownPosition(behavior);
                     GOAL goal;
                     ClearPointerPair(&goal);
-                    goal.v = v;
+                    goal.pos = v;
                     SetBhvgotoGoal(behavior->pbhvNext, &goal);
                 }
                 behavior->needsReplan = 0;
@@ -241,7 +241,7 @@ extern "C" void SetBhvSearchState(BHV171 *behavior, int n) {
             child->allowPartialRoute = 1;
             v = GetBhvSearchLastKnownPosition(behavior);
             ClearPointerPair(&goal);
-            goal.v = v;
+            goal.pos = v;
             SetBhvgotoGoal(child, &goal);
             child->Start();
             behavior->lookEndTime = D_002A5398;
@@ -592,7 +592,7 @@ extern "C" void StepBhvSearchPoint(BHV171 *behavior) {
     pe = &behavior->searchPoints[behavior->searchPointIndex++];
     if (behavior->searchPointIndex >= 4) behavior->searchPointIndex = 0;
     ClearPointerPair(&goal);
-    goal.v = pe->candidate;
+    goal.pos = pe->candidate;
     SetBhvgotoGoal(pbhvCur, &goal);
     behavior->nextTime = D_002A53D4;
 }

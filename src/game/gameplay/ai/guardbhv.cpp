@@ -5321,7 +5321,7 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertPosBetweenLos(void *p, int n, qword v) __asm__("ConvertPosBetweenLos");
 /* PATHLINKEND cleared by an explicit ClearPointerPair call at function scope: its constructor (a scoped PATHLINKEND)
    swaps two instructions in case 0 (scheduling). */
-struct PATHLINKENDIsland { qword a; qword v; };
+struct PATHLINKENDIsland { SHAPE *shape; LO *object; int unknown8[2]; qword pos; };   /* classes.h PATHLINKEND without its constructor */ typedef char assert_PATHLINKENDIsland_pos[SLY2_OFFSETOF(PATHLINKENDIsland, pos) == SLY2_OFFSETOF(PATHLINKEND, pos) && sizeof(PATHLINKENDIsland) == sizeof(PATHLINKEND) ? 1 : -1];
 void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
 void SetBhvgotoGoal(BHVGOTO *p, PATHLINKENDIsland *x) __asm__("SetBhvgotoGoal");
 // 0x17C928: Escort behaviour state change: 0 go to the offset point, 1 run to the object (flag 0x1C), 2 hands-off
@@ -5343,7 +5343,7 @@ extern "C" void SetBhvEscortState(BHV183 *behavior, int n) {
             o->lookAtTarget = behavior->escorted;
             o->unknownAC = 1;
             ClearPointerPair(&x);
-            x.v = v;
+            x.pos = v;
             SetBhvgotoGoal(o, &x);
             o->sgf = 0x1C;
             o->Start();
@@ -5365,7 +5365,7 @@ extern "C" void SetBhvEscortState(BHV183 *behavior, int n) {
             v = ConvertPosBetweenLos(behavior->escorted, 0, behavior->localOffset);
             o->allowPartialRoute = 1;
             ClearPointerPair(&x);
-            x.v = v;
+            x.pos = v;
             SetBhvgotoGoal(o, &x);
             o->lookAtTarget = behavior->escorted;
             o->Start();
@@ -6264,7 +6264,7 @@ void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
 
 /* PATHLINKEND with an inline constructor around ClearPointerPair: PATHLINKEND's own (out-of-line) constructor keeps &x
    in a saved register instead of rematerializing it (1 instruction). */
-struct PATHLINKENDIsland { qword a; qword v; PATHLINKENDIsland() { ClearPointerPair(this); } };
+struct PATHLINKENDIsland { SHAPE *shape; LO *object; int unknown8[2]; qword pos; PATHLINKENDIsland() { ClearPointerPair(this); } };   /* classes.h PATHLINKEND */ typedef char assert_PATHLINKENDIsland_pos[SLY2_OFFSETOF(PATHLINKENDIsland, pos) == SLY2_OFFSETOF(PATHLINKEND, pos) && sizeof(PATHLINKENDIsland) == sizeof(PATHLINKEND) ? 1 : -1];
 // VU0 helper: x component of a vector.
 // VU0 helper: y component of a vector.
 // 0x17E0E0: Picks the farthest free point among 16 directions around the target and sends the goto child there.
@@ -6307,7 +6307,7 @@ extern "C" void RegoalBhvStalk(BHV189 *behavior) {
         }
     }
     PATHLINKENDIsland x;
-    x.v = r;
+    x.pos = r;
     SetBhvgotoGoal(t, (PATHLINKEND *)&x);
 }
 } // namespace M_func_0017E0E0
@@ -6712,7 +6712,7 @@ struct R *FindRangeContaining(void *p, float f) __asm__("FindRangeContaining");
 void EvaluateShapeAtDistance(SHAPE *b, float f, qword *pv, int n) __asm__("EvaluateShapeAtDistance");
 /* PATHLINKEND cleared by an explicit ClearPointerPair call (block scope): its constructor at that point changes the
    schedule (2 instructions). */
-struct PATHLINKENDIsland { qword a; qword v; };
+struct PATHLINKENDIsland { SHAPE *shape; LO *object; int unknown8[2]; qword pos; };   /* classes.h PATHLINKEND without its constructor */ typedef char assert_PATHLINKENDIsland_pos[SLY2_OFFSETOF(PATHLINKENDIsland, pos) == SLY2_OFFSETOF(PATHLINKEND, pos) && sizeof(PATHLINKENDIsland) == sizeof(PATHLINKEND) ? 1 : -1];
 void ClearPointerPair(PATHLINKENDIsland *x) __asm__("ClearPointerPair");
 // 0x17ECF0: Steps the shape parameter by a class-dependent distance in the travel direction (clamping or wrapping,
 // skipping invalid ranges) and sends it to the goto child.
@@ -6745,7 +6745,7 @@ void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *behavior, int force) __asm__("Advan
         EvaluateShapeAtDistance(behavior->shape, t, &behavior->goal, 0);
         q = (BHVGOTO *)behavior->pbhvNext;
         ClearPointerPair(&x);
-        x.v = behavior->goal;
+        x.pos = behavior->goal;
         SetBhvgotoGoal(q, (PATHLINKEND *)&x);
     }
 }
