@@ -1851,73 +1851,76 @@ extern "C" void PresetJtAccelHide(JTGRAB *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001942F0 {
-struct S4C { char pad[0x148]; long fl; };
-struct A { char pad[0x40]; int x40; char pad2[0x4C-0x44]; struct S4C *x4c; char pad3[0x60-0x50]; qword x60; char pad4[0x88-0x70]; float x88; };
-struct O : PO { char pad[0x208 - 0x180]; struct A *x208; char pad2[0x9E0-0x20C]; char places[0x108C-0x9E0]; int x108c; };
-struct T { char pad[0xEC]; int xec; char pad2[0x10C-0xF0]; float x10c; char pad3[0x184-0x110]; float x184; char pad4[0x19C-0x188]; int x19c; };
-struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; int x1c; float x20; };
-int IsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-void AddJtPlaceOnCurve(void *p, void *s, float g) __asm__("AddJtPlaceOnCurve");
-void AddJtPlaceAtPosition(void *p, int a, qword q) __asm__("AddJtPlaceAtPosition");
-qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *t, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+void AddJtPlaceOnCurve(JTPLACES *p, GRABSPOT *s, float g) __asm__("AddJtPlaceOnCurve");
+void AddJtPlaceAtPosition(JTPLACES *p, SOPART *a, qword q) __asm__("AddJtPlaceAtPosition");
+qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 float atan2f(float y, float x) __asm__("atan2f");
-// Per grab state, records the held spot/parameter in the player's safe-place table.
+// The grab spot's no-safe-place flag of the grabbed object (its GRABSPOT base).
+template <class T> static inline int NoSafePlace(LO *object) { return ((T *)object)->noSafePlace; }
+// Per grab state, records the held spot / parameter in the player's safe places (JTPLACES): rails and walls at the
+// held distance, hold spots at 0, poles and barrels at the arc length of the player's angle round them; off a spot,
+// the floor contact's part and position (a steep enough floor that allows landing, not in water).
 // Also known as: UpdateSafeInteract (upstream readable / Sly 1 name; UpdateSafeInteract__FP5ACTOR).
-extern "C" void RecordJtGrabPlace(struct P *grab)
+extern "C" void RecordJtGrabPlace(JTGRAB *grab)
 {
     float g, s;
-    switch (grab->x8) {
+    switch (grab->state) {
     case 3:
-        if (grab->x14->x19c)
+        if (NoSafePlace<CID12>(grab->grabbedObject))
             return;
-        g = grab->x20;
-        AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
+        g = grab->spotDistance;
+        AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
         break;
     case 4:
-        if (grab->x14->xec)
+        if (NoSafePlace<CID38>(grab->grabbedObject))
             return;
         g = 0.0f;
-        AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
+        AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
         break;
     case 0:
     case 13:
-        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0xC)) {
-            if (grab->x14->x19c)
+        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->grabbedObject, 0xC)) {
+            if (NoSafePlace<CID12>(grab->grabbedObject))
                 return;
-            g = grab->x20;
-            AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
+            g = grab->spotDistance;
+            AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
             break;
         }
-        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x26)) {
-            if (grab->x14->xec)
+        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->grabbedObject, 0x26)) {
+            if (NoSafePlace<CID38>(grab->grabbedObject))
                 return;
             g = 0.0f;
-            AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
+            AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
             break;
         }
-        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->x14, 0x22)) {
-            if (grab->x14->xec)
+        if (IsBasicDerivedFrom__FP5BASIC3CID(grab->grabbedObject, 0x22)) {
+            if (NoSafePlace<CID34>(grab->grabbedObject))
                 return;
-            s = grab->x14->x10c;
+            s = ((CID34 *)grab->grabbedObject)->sRadius;
         } else
-            s = grab->x14->x184;
+            s = ((BARREL *)grab->grabbedObject)->grabRadius;
         {
             qword a;
             QWROW d;
-            a = GetLoWorldPos(grab->x0);
+            a = GetLoWorldPos(grab->player);
             qword dq;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(GetLoWorldPos(grab->x14)));
+#ifdef SLY2_EE_ASM
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(GetLoWorldPos(grab->grabbedObject)));
+#else
+            dq = VuSub(a, GetLoWorldPos(grab->grabbedObject));
+#endif
             d.q = dq;
             g = atan2f(d.f[1], d.f[0]) * s;
         }
-        AddJtPlaceOnCurve(grab->x0->places, grab->x18, g);
+        AddJtPlaceOnCurve(&grab->player->jtplaces, grab->grabSpot, g);
         break;
     default:
     {
-        struct O *o = grab->x0;
-        struct A *pa = o->x208;
-        if (pa && pa->x88 > 0.7f && (pa->x4c->fl & 0x20000000) == 0 && !o->x108c)
-            AddJtPlaceAtPosition(o->places, pa->x40, pa->x60);
+        STEPPLAYER *o = grab->player;
+        XP *pa = o->floorContact;
+        if (pa && pa->normalVec.z > 0.7f && (pa->axps[1].pso->soFlags & 0x20000000) == 0 && !o->pwater)   /* SO::isNotLandable */
+            AddJtPlaceAtPosition(&o->jtplaces, pa->axps[1].ppart, pa->axps[1].posLocal);
         return;
     }
     }

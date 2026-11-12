@@ -189,7 +189,7 @@ parent SHAPE; 61 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 845 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 845 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 842 |
 | 777 | `sub-object unknown04` | bool | get set file | 843 |
 | 778 | `sub-object sBusy` | float | get set file | 844 |
@@ -208,7 +208,7 @@ parent SHAPE; 59 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 811 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 811 |
 | 775 | `?` | bool | none | 807 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 808 |
 | 777 | `sub-object unknown04` | bool | get set file | 809 |
@@ -225,7 +225,7 @@ parent SHAPE; 61 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 865 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 865 |
 | 351 | `rSlide` | float | get set file | 860 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 862 |
 | 777 | `sub-object unknown04` | bool | get set file | 863 |
@@ -331,7 +331,7 @@ parent TARGET; 51 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 1020 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 1020 |
 | 503 | `ploTarget` | object&lt;LO&gt; | get set file | 1016 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 1017 |
 | 777 | `sub-object unknown04` | bool | get set file | 1018 |
@@ -430,7 +430,7 @@ parent VOL; 44 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 1186 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 1186 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 1183 |
 | 777 | `sub-object unknown04` | bool | get set file | 1184 |
 | 778 | `sub-object sBusy` | float | get set file | 1185 |
@@ -607,7 +607,7 @@ parent XFM; 43 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 801 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 801 |
 | 774 | `sRadius` | float | get set file | 796 |
 | 775 | `?` | bool | none | 797 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 798 |
@@ -624,7 +624,7 @@ parent XFM; 50 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 1080 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 1080 |
 | 235 | `RefThunk_FireTriggerGrabspot` | - | method(1) | 1071 |
 | 519 | `AddGrabspotPlayerMask` | object&lt;LO&gt; | set file | 1073 |
 | 520 | `SetGrabspotPlayerClass` | int | set file | 1074 |
@@ -674,7 +674,7 @@ parent XFM; 43 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 821 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 821 |
 | 775 | `?` | bool | none | 817 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 818 |
 | 777 | `sub-object unknown04` | bool | get set file | 819 |
@@ -691,7 +691,7 @@ parent XFM; 41 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 853 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 853 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 850 |
 | 777 | `sub-object unknown04` | bool | get set file | 851 |
 | 778 | `sub-object sBusy` | float | get set file | 852 |
@@ -1449,8 +1449,8 @@ parent SO; 96 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 141 | `sub-object unknown0C` | bool | get set file | 833 |
-| 774 | `unknown184` | float | get set file | 826 |
+| 141 | `sub-object noSafePlace` | bool | get set file | 833 |
+| 774 | `grabRadius` | float | get set file | 826 |
 | 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 830 |
 | 777 | `sub-object unknown04` | bool | get set file | 831 |
 | 778 | `sub-object sBusy` | float | get set file | 832 |

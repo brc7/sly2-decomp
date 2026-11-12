@@ -86,7 +86,7 @@ struct GRABSPOT
     TN *ptn;                /* +0x00 camera tunnel of the spot (PostLoad turns its TNS override off) */
     int unknown04;
     float sBusy;            /* +0x08 busy radius; InitGrabspot sets FLT_MAX, the barrel 300 */
-    int unknown0C;
+    int noSafePlace;        /* +0x0C nonzero: holding the spot records no safe place (grab.cpp RecordJtGrabPlace) (inferred); was unknown0C */
     int nPriority;          /* +0x10 (CID35's Init sets 1, CID36's -1) */
     int nUnk14;             /* +0x14 InitGrabspot sets -1 */
     struct LO *ploGroup;    /* +0x18 an object reference (option 781, otyp 0x2002, through the OwnFields accessors) */
@@ -1655,7 +1655,9 @@ struct BARREL : SO, GRABSPOT
     DLE dleGrab;            /* +0x174 link in g_sw.dlCid88 (kept across Clone) */
     int carryState;         /* +0x17C 0 free .. 3 (SetBarrelState) */
     float carryStateTime;   /* +0x180 */
-    int unknown184[2];
+    float grabRadius;       /* +0x184 the radius a held barrel's safe place goes round at (grab.cpp RecordJtGrabPlace, the
+                               other grabbed objects of grab states 0 / 13) (inferred) */
+    int unknown188;
     int isFree;             /* +0x18C physical when not carried */
     STEPPLAYER *carrier;    /* +0x190 the player carrying it */
     int unknown194[3];

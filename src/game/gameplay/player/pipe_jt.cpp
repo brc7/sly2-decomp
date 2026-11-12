@@ -422,7 +422,7 @@ extern "C" void GetJtPipeVelocity(JTPIPE *pipe, Q *q)
 extern "C" void RecordJtPipePlace(JTPIPE *pipe)
 {
     PATH *ppath = ((PATH *)pipe->pipeCurve);
-    if (ppath->unknown0C == 0)
+    if (ppath->noSafePlace == 0)
         AddJtPlaceOnCurve(&pipe->player->jtplaces, (GRABSPOT *)ppath, pipe->s);   /* its GRABSPOT base (null stays null) */
 }
 
