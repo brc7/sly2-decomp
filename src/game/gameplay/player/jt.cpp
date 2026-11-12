@@ -2072,6 +2072,7 @@ float atan2f(float,float) __asm__("atan2f");float ClampToLimits__FP2LMf(struct L
 struct M3 *LoadRotateMatrixEuler(struct M3 *, qword) __asm__("LoadRotateMatrixEuler");
 qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
 void SetActRotationGoal(ACT5 *, qword) __asm__("SetActRotationGoal");
+#ifdef SLY2_EE_ASM
 // Transform the point *a by the 4x4 matrix m (register-pinned) and fetch the source space.
 extern "C" { static inline qword Point(const struct M4 *m, const qword *a, struct XF **source)
 {
@@ -2183,18 +2184,10 @@ extern "C" void UpdateJtAttachCorrection(JT *jt)
                     register XF *group __asm__("$2");
                     __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(row2), "=r"(focus) : "m"(w.rotation.r[2].q), "m"(jt->unknown19A0));
                     __asm__("sq %1,0x20(%2)" : "=m"(w.transform.r[2].q) : "r"(row2), "r"(frame));
-#ifdef SLY2_EE_ASM
                     __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
                             : "=m"(w.transform.r[2].f[3]), "=m"(w.transform.r[1].f[3]), "=m"(w.transform.r[0].f[3]),
                               "=m"(w.transform.r[3].f[3]), "=r"(group)
                             : "f"(zero), "f"(one), "r"(frame), "r"(focus), "m"(focus->positionXf));
-#else
-                    w.transform.r[2].f[3] = zero;
-                    w.transform.r[1].f[3] = zero;
-                    w.transform.r[0].f[3] = zero;
-                    frame->r[3].f[3] = one;   /* frame is &w.transform */
-                    group = focus->positionXf;
-#endif
                     {
                         register qword point __asm__("vf4"), axis2 __asm__("vf2"), axis0 __asm__("vf5"),
                             axis1 __asm__("vf3"), origin __asm__("vf1");
@@ -2301,6 +2294,76 @@ extern "C" void UpdateJtAttachCorrection(JT *jt)
         jt->isPickpocketReach = 0;
     }
 }
+#else
+/* The same function in C (the EE body above is hand-scheduled asm on pinned registers): the same calls in the same
+   order on the same values, the VU0 arithmetic through sly2/vu0.h in the asm's operation order. */
+extern "C" void UpdateJtAttachCorrection(JT *jt)
+{
+    struct WORK w;
+    /* the time left until the pickpocket clip's reach label, in clip-speed units */
+    float ratio = (jt->tPickpocketLabel - jt->activeAnimation->time) / jt->activeAnimation->speed;
+    if (jt->interactTarget && Victim(jt)->lootPouch) {
+        float zero = 0.0f;
+        if (zero < ratio) {
+            FaceStepToward(jt, Victim(jt)->lootPouch);
+            /* the pouch's launch frame predicted min(ratio, D_002BF380) ahead; D_002BF390 (25 forward) in it, in Sly's
+               root space */
+            LoadIdentityMatrix4(((CID99 *)Victim(jt)->lootPouch)->launchFrame, 0, &w.phase.predicted, 0, FpuMin(ratio, D_002BF380));
+            const struct M4 *predicted = &w.phase.predicted;
+            qword predictedPoint = VuMulMatrix4(predicted->r[0].q, predicted->r[1].q, predicted->r[2].q,
+                                                predicted->r[3].q, D_002BF390);
+            qword mapped = TransformXfPos(0, jt->rootTransform, predictedPoint);
+            /* the wrist's yaw toward it (clamped), then the wrist frame with that yaw */
+            float heading = atan2f(-QwordZ(mapped), D_002BF3A0 * QwordX(mapped));
+            heading = ClampToLimits__FP2LMf(&D_002BF3A8, heading);
+            qword tilt = QwordFromFloats<qword>(zero, heading, zero);
+            w.axis.q = tilt;
+            LoadRotateMatrixEuler(&w.rotation, VuAdd(jt->eulerPickpocket19C0, w.axis.q));
+            struct M4 *frame = &w.transform;
+            VECTOR_opAssign(&frame->r[3].q, jt->posPickpocket19C0);
+            frame->r[0].q = w.rotation.r[0].q;
+            frame->r[1].q = w.rotation.r[1].q;
+            frame->r[2].q = w.rotation.r[2].q;
+            frame->r[2].f[3] = zero;
+            frame->r[1].f[3] = zero;
+            frame->r[0].f[3] = zero;
+            frame->r[3].f[3] = 1.0f;
+            XF *group = jt->unknown19A0->positionXf;
+            struct XF *space = group->parent;
+            /* the hand's local position through that frame (w kept from row 3, the asm's "+j"), and the target relative
+               to it */
+            qword origin = VuKeepW(frame->r[3].q, VuMulMatrix4(frame->r[0].q, frame->r[1].q, frame->r[2].q,
+                                                               frame->r[3].q, jt->posPickpocketHandLocal));
+            w.relative.q = VuSub(mapped, origin);
+            heading = QwordX(ConvertXfVec(jt->rootTransform, space, w.relative.q));
+            heading = ClampToLimits__FP2LMf(&D_002BF3B0, heading);
+            qword axis = QwordFromFloats<qword>(heading, zero, zero);
+            w.axis.q = axis;
+            qword residual = VuSub(w.relative.q, ConvertXfVec(space, jt->rootTransform, w.axis.q));
+            w.residual.q = residual;
+            float limit = D_002BF3B8;
+            float distance = VuToFloat(VuLength(VuSub(VuAdd(jt->posPickpocket19C0, residual), jt->posPickpocket19CC)));
+            if (distance < limit) {
+                SetActRotationGoal(jt->pact5Unk19f8, tilt);
+                SetActRotationGoal(jt->pact5Unk19ec, w.residual.q);
+                SetActRotationGoal(jt->pact5Unk19fc, axis);
+                jt->isPickpocketReach = 1;
+                jt->pickpocketReachTime = g_clock.time;
+                return;
+            }
+        }
+    }
+    /* out of reach: the three goals decay to zero over D_002BF3BC after the last reach */
+    float remaining = (jt->pickpocketReachTime + D_002BF3BC) - g_clock.time;
+    float after = remaining - g_clock.deltaTime;
+    float gain = 0.0f < after ? after / remaining : 0.0f;
+    w.gain.q = VuFromFloat<qword>(gain);
+    SetActRotationGoal(jt->pact5Unk19f8, VuScaleByX(jt->pact5Unk19f8->offset, w.gain.q));
+    SetActRotationGoal(jt->pact5Unk19ec, VuScaleByX(jt->pact5Unk19ec->offset, w.gain.q));
+    SetActRotationGoal(jt->pact5Unk19fc, VuScaleByX(jt->pact5Unk19fc->offset, w.gain.q));
+    jt->isPickpocketReach = 0;
+}
+#endif
 
 typedef char qword_Size[(sizeof(qword) == 16) ? 1 : -1];
 typedef char U_Size[(sizeof(U) == 16) ? 1 : -1];
