@@ -24,6 +24,7 @@
 #include "sly2/util.h"        /* NMin */
 #include "sly2/vu0.h"
 #include "sly2/lsg.h"
+#include "sly2/port.h"   /* SLY2_EE_ASM, SLY2_FDIV */
 
 // 0x1AA820 StaticInit_mark and GlobalConstructors_mark: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -761,7 +762,7 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,uptr pbspLimit,void*geometry,qwo
  STACKSCOPE_ctor(&work.frame);
  ENTRY*first;
  {REQ*r=&work.scratch.req;r->bytes=0xFFFC;r->alignment=16;first=(ENTRY*)AllocFromStack(r);}
- int limit=0x1555;
+ int limit=0xFFFC/(int)sizeof(ENTRY);   /* the nodes the 0xFFFC-byte buffer holds */
  if(radius<52000.0f)do {
   work.end=first;work.count=limit;
   int status=PruneBspBySphere(tree,pbspLimit,work.position.q,radius,&work.count,&work.end);
@@ -771,6 +772,7 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,uptr pbspLimit,void*geometry,qwo
   {work.count=work.end-first;
   float best=0.0f;
   int i;
+#ifdef SLY2_EE_ASM
   for(i=0;i<work.count;i++){
    register POLY*poly __asm__("$6")=first[i].poly;
    if(poly->flags&0x1000)continue;
@@ -793,6 +795,30 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,uptr pbspLimit,void*geometry,qwo
     }
    }
   }
+#else
+  /* The asm above: clip the segment from the point pushed out along the face's plane by radius + 1 back to the
+     point, from the pruned tree's root (the last node PruneBspBySphere wrote: end - 1, the asm's -12 on the EE) */
+  for(i=0;i<work.count;i++){
+   POLY*poly=first[i].poly;
+   if(poly->flags&0x1000)continue;
+   poly->flags|=0x1000;
+   ENTRY*last=work.end-1;
+   qword to=VuAddScaled(work.position.q,poly->plane,VuMake<qword>(radius+1.0f,0.0f,0.0f,0.0f));
+   work.endpoint.q=to;
+   int found=ClipSegmentBsp(last,SLY2_BSP_NO_LIMIT,to,work.position.q,16,work.hits);
+   if(found>0){
+    if(work.hits[0].time>best){
+     best=work.hits[0].time;
+     VuLanes d=VuGet(VuSub(work.endpoint.q,work.position.q));
+     float inverse=SLY2_FDIV(1.0f,VuSqrt((d.x*d.x+d.y*d.y)+d.z*d.z));
+     qword normal=VuMake<qword>(d.x*inverse,d.y*inverse,d.z*inverse,d.w*inverse);
+     out->p=work.hits[0].p;
+     InitPlaneFromNormalPos(&out->plane,normal,work.hits[0].p);
+     out->kind=12;
+    }
+   }
+  }
+#endif
   for(int j=0;j<work.count;j++)first[j].poly->flags&=~0x1000;
   if(best>0.0f){STACKSCOPE_ctor_1AE4A0(&work.frame,2);return;}
  }
