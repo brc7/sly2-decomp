@@ -23,6 +23,7 @@
 #include "sly2/sw.h"
 #include "sly2/clock.h"
 #include "sly2/joy.h"
+#include "sly2/vis.h"   /* CID5 (SetCmVisZone) */
 #include "sly2/vtables.h"
 #include "sly2/port.h"   /* SLY2_EE_LAYOUT */
 #if defined(SLY2_EE_LAYOUT)
@@ -546,13 +547,13 @@ extern "C" void UpdateCmVisZone__FP2CM(CM *cm)
 }
 } // namespace M_UpdateCmVisZone__FP2CM
 
-// If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0. (inferred)
+// If changed: pzonVis = pzon, grfvis = the zone's CID5::grfvis.
 // Also known as: SetCmCurObject (upstream readable / Sly 1 name; SetCmCurObject__FP2CMP2LO).
 extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
 {
     if (pzon != pcm->pzonVis) {
         pcm->pzonVis = pzon;
-        pcm->grfvis = *(uint *)((char *)pzon + 0xE0);   /* CID5::grfvis, the zone's visibility mask (classes.h is not included here: it brings so.h, which renumbers s_rgba) */
+        pcm->grfvis = ((CID5 *)pzon)->grfvis;   /* the zone (CM::pzonVis's VISZONE) is a CID5 (sly2/vis.h) */
     }
 }
 
