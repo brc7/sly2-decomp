@@ -478,7 +478,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   depends on the qsort), ChooseGuardScriptNearestCommand (copies an uninitialised choice when nothing qualifies) and
   rand.c's _reent view. Views tool pass: 5 more rewrites kept. Signatures: mismatching declarations 1293 -> 1293,
   int-vs-pointer 82 -> 82, cross-declaration conflicts 273 -> 272 (the round's fixes are C-named declarations). Views
-  inventory: candidates 936 -> 882 (frame path 141 -> 135), TU structs 2430 -> 2363.
+  inventory: candidates 936 -> 876 (frame path 141 -> 135), TU structs 2430 -> 2356.
   Still open after v1.25: POSE / RENDER (rendertree.cpp's RENDER / RENDERBLOCK are so.h's POSE / POSESET, same layout
   on every target, but the bit-field signedness differs: `KIND kind : 4; long channels : 8; long sort : 6; ulong index
   : 13` against `long nKind; ulong nCount; ulong nChannel; long iglob`, and each TU's code depends on its own; the
