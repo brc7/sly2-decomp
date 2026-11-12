@@ -121,6 +121,11 @@ def compare(old, new, known_old=None, known_new=None, defined_elsewhere=()):
         so = old.secs[ao[k]]
         cand = [n for n in an if n not in ao and n.startswith(pre) and n not in secmap.values()
                 and new.secs[an[n]]['type'] == so['type'] and new.secs[an[n]]['data'] == so['data']]
+        if pre and len(cand) > 1 and known_old and known_new:
+            # several sections with the same bytes (two renamed classes' vtables, identical linkonce getters): take
+            # the one whose symbol's config entry has the old symbol's address
+            addr = known_old.get(k[len(pre):])
+            cand = [n for n in cand if addr is not None and known_new.get(n[len(pre):]) == addr]
         if pre and len(cand) == 1:
             secmap[k] = cand[0]
             pairs.setdefault(k[len(pre):], {}).setdefault(cand[0][len(pre):], []).append(('symtab', 0))
