@@ -2047,17 +2047,51 @@ template CLASSINFO *GetEmitterClassDesc_linkonce(EXPLO *);                  /* 0
 EMITV4 D_002BDDF0 = {{0.0f, 0.0f, 0.0f, 0.0f}};
 float D_002BDE00 = 1.0f;
 namespace EMIT_DEFAULTS {
+#if defined(SLY2_EE_LAYOUT)
 extern unsigned int r_D_002BDE10[16] __asm__("D_002BDE10") __attribute__((aligned(16))) = {   /* record 0 */
     0, 0, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF, 0, 0, 0x41C80000 /* 25.0f */, 0, 0, 0, 0, 0, 0, 0};
+#endif
 extern unsigned int r_D_002BDE50[2] __asm__("D_002BDE50") = {0xFFFFFFFF, 0x41200000 /* 10.0f */};
 }
 int D_002BDE58 = 0;
 EMITV3 D_002BDE60 = {{25.0f, 0.8f, 0.8f}};
 namespace EMIT_DEFAULTS {
+#if defined(SLY2_EE_LAYOUT)
 extern unsigned int r_D_002BDE70[16] __asm__("D_002BDE70") __attribute__((aligned(16))) = {   /* record 1 */
     0xFFFFFFFF, 0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x41C80000 /* 25.0f */, 0x3F800000 /* 1.0f */,
     0x3F800000 /* 1.0f */, 0x3F800000 /* 1.0f */, 0, 0, 0, 0, 0, 0, 0};
+#endif
 }
+#if !defined(SLY2_EE_LAYOUT)
+/* The same two records by member (natively EMITV's pointer member moves the blip record's scale curve, so the EE word
+   images would put 25.0f in pblipclrs). */
+static EMITV MakeEmitvBlipDefault()
+{
+    EMITV v;
+    memset(&v, 0, sizeof(v));
+    v.k = 0;
+    v.oidShader = -1;
+    v.oid14 = -1;
+    v.scale.g0 = 25.0f;
+    return v;
+}
+static EMITV MakeEmitvRipDefault()
+{
+    EMITV v;
+    memset(&v, 0, sizeof(v));
+    v.k = -1;
+    v.oid08 = -1;
+    v.n0C = -1;
+    v.oid10 = -1;
+    v.ripScale = 25.0f;
+    v.lmScale.minValue = 1.0f;
+    v.lmScale.maxValue = 1.0f;
+    v.unknown20 = 1.0f;
+    return v;
+}
+EMITV D_002BDE10 = MakeEmitvBlipDefault();   /* record 0 */
+EMITV D_002BDE70 = MakeEmitvRipDefault();    /* record 1 */
+#endif
 int D_002BDEB0[4] = {75, 77, 78, 76};
 LM D_002BDEC0 = {0.5f, 2.0f};
 
