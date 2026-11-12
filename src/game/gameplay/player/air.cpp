@@ -3193,9 +3193,9 @@ extern "C" int SolveJtJumpTimeToTarget(JTAIR *p, qword a, qword b, qword c, qwor
 namespace M_MeasureJtJumpToTarget {
 typedef union { qword q; float f; } U;
 struct WORK{U u0,v10,v20,s;float at;U uq;qword incoming;U sum;};
-struct C { char pad[0x88]; float g88; };
-struct B { char pad[0xE8]; struct C *pc; };
-struct S { struct B *pb; };
+/* S: the jump record (JTAIR), whose first word is its player (an SO: SO::physics, SOPHYS::gravity). */
+
+struct S { SO *pb; };
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword GetXfVelocity(XF *p, XF *stop, qword q) __asm__("GetXfVelocity");
 int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) __asm__("SolveJtJumpTimeToTarget");
@@ -3246,7 +3246,7 @@ extern "C" void MeasureJtJumpToTarget(struct S *p, qword aInput, LO *o, qword bI
       solved=SolveJtJumpTimeToTarget(receiver,initial,velocity,b,q,&w.at); }
     if (!solved) {
         float dz = QwordZ(a) - QwordZ(q);
-        float g = p->pb->pc->g88;
+        float g = p->pb->physics->gravity.z;
         float t1 = -dz / g;
         float h;
         t1 = Max(0.0f, t1);
@@ -3313,12 +3313,12 @@ typedef char Qword_alignment[__alignof__(qword)==16?1:-1];
 typedef char U_size[sizeof(U)==16?1:-1];
 typedef char U_alignment[__alignof__(U)==16?1:-1];
 typedef char U_scalar[OFF(U,f)==0?1:-1];
-typedef char C_gravity[OFF(struct C,g88)==0x88?1:-1];
-typedef char C_size[sizeof(struct C)==0x8C?1:-1];
-typedef char B_physics[OFF(struct B,pc)==0xE8?1:-1];
-typedef char B_size[sizeof(struct B)==0xEC?1:-1];
+typedef char SOPHYS_gravity[SLY2_EE_CHECK(SLY2_OFFSETOF(SOPHYS, gravity) == 0x80) ? 1 : -1];   /* gravity.z at EE +0x88 */
+typedef char SO_physics[SLY2_EE_CHECK(SLY2_OFFSETOF(SO, physics) == 0xE8) ? 1 : -1];
+/* (was the B / C views' sizes) */
+/* */
 typedef char S_body[OFF(struct S,pb)==0?1:-1];
-typedef char S_size[sizeof(struct S)==4?1:-1];
+typedef char S_size[SLY2_EE_CHECK(sizeof(struct S)==4)?1:-1];
 typedef char WORK_size[sizeof(struct WORK)==0x80?1:-1];
 typedef char WORK_alignment[__alignof__(struct WORK)==16?1:-1];
 typedef char WORK_u0[OFF(struct WORK,u0)==0x00?1:-1];

@@ -800,7 +800,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     }
     case 5:
     case 9:
-        UpdateJtHands(ctx->sub);
+        UpdateJtHands(&((::JTGRAB *)ctx)->hands);   /* CONTEXT is JTGRAB: sub at EE +0x440 is JTGRAB::hands */
         break;
     case 8:
         switch (ctx->step) {
