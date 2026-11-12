@@ -2066,19 +2066,50 @@ struct CID45 : XFM
 typedef char assert_CID45_size[sizeof(CID45) == 0x130 ? 1 : -1];
 typedef char assert_CID45_prt[SLY2_OFFSETOF(CID45, prt) == 0x128 ? 1 : -1];
 
-/* A navigation graph (CG): vertices (CGV, 0x20 bytes each), triangles (three vertex pointers each), the 2D BSP
+/* A navigation graph (CG): vertices (CGV, 0x20 bytes each), triangles (CGT, three vertex pointers each), the 2D BSP
    nodes, and the zone's dynamic obstacles with their sorted x and z begin/end events (sweep and prune; the event
    arrays start with two sentinels, so numEvents is 2 + 2 per obstacle). path.cpp's 2D BSP walkers see it as GRAPH.
    Moved from src/game/engine/physics/path.cpp with PATHZONE. */
-struct CGV { int an[8]; };
+struct CGV;
+/* CGE: an edge of a navigation vertex: the neighbour and the cost of walking to it (FindPathAStar adds it to the
+   path cost; FindPathPoints stores the XY distance). */
+struct CGE
+{
+    CGV *pcgv;              /* the neighbouring vertex */
+    float cost;             /* +0x04 */
+};
+/* CGV: a navigation vertex (0x20 bytes on the EE): its position and its edges. */
+struct CGV
+{
+    qword pos;              /* position */
+    int numEdges;           /* +0x10 */
+    CGE *edges;             /* +0x14 */
+};
+/* CGT: a walkable triangle: its three corners (12 bytes on the EE, three pointers natively). */
+struct CGT
+{
+    CGV *vertices[3];
+};
+/* CBSP: a node of the graph's 2D BSP: the splitting line as a plane (x, y, d; the walkers dot it with (px, py, -1))
+   and the two children (back, front). A child index with bit 15 set is a leaf: bits 0..13 index the triangles, and
+   bit 14 (walk) / bit 15 (always) say whether the leaf is walkable for the query's flags. */
+union CBSP
+{
+    qword plane;
+    struct
+    {
+        float x, y, z;
+        unsigned short child[2];
+    } e;
+};
 struct CG
 {
     int ccgv;               /* number of vertices */
     CGV *acgv;              /* +0x04 vertices */
     int numTriangles;       /* +0x08 */
-    void *triangles;        /* +0x0C */
+    CGT *triangles;         /* +0x0C */
     int numBspNodes;        /* +0x10 */
-    void *bspNodes;         /* +0x14 */
+    CBSP *bspNodes;         /* +0x14 */
     int numObstacles;       /* +0x18 */
     int obstacleCapacity;   /* +0x1C */
     int numEvents;          /* +0x20 */
