@@ -168,9 +168,10 @@ struct JT : public STEPPLAYER
       ASEG *pasegPickpocket;   /* pickpocket animation */
       LO *ploPickpocket;   /* the object being pickpocketed */
       LO *unknown1BD0;
-      int unknown1BD4;
+      int isPickpocketReach;   /* +0x1BD4 the pickpocket hand reaches for the pouch: UpdateJtAttachCorrection set the three
+                                  offset acts' goals this frame (else it decays them); was unknown1BD4 */
       float tPickpocketLabel;   /* +0x1BD8 time of label 0x167 in pasegPickpocket (CacheJtRestPose) */
-      undefined4 unknown1BDC;
+      float pickpocketReachTime;   /* +0x1BDC g_clock.time of the last reach: the goals decay to zero over D_002BF3BC after it */
       qword posPickpocketHand;   /* +0x1BE0 the hand object's position at that label (CacheJtRestPose) */
       qword posPickpocket19CC;   /* +0x1BF0 handXf (+0x19CC)'s position at that label */
       qword posPickpocket19C0;   /* +0x1C00 wristXf (+0x19C0)'s position at that label */

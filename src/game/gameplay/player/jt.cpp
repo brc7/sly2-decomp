@@ -625,7 +625,7 @@ extern "C" void HandleJtMessage(JT *p, int msg, void *pv)
                 }
                 break;
             case 0x167:
-                if (p->interactTarget && p->unknown1BD4) {
+                if (p->interactTarget && p->isPickpocketReach) {
                     LO *object = PickpocketStepguard(p->interactTarget, GetLoWorldPos(p));
                     if (object && !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
                         !IsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
@@ -2057,22 +2057,21 @@ namespace M_func_0018B460 {
 typedef union {qword q;float f[4];} U;
 
 struct M3{U r[3];};struct M4{U r[4];};
-struct AIM{char pad[0x150];struct XF*frame;};struct OWNER{char pad[0x494];struct AIM*aim;};
-struct GROUP{char pad[0xA0];struct XF*space;};
-struct DV{char pad[0x20];qword value;};
-struct P : LO { char pad[0x60 - 0x50]; struct XF*space;char pad64[0x1030-0x64];struct ASEGA*model;char pad1034[0x10DC-0x1034];struct OWNER*owner;char pad10E0[0x19A0-0x10E0];struct SO*focus;char pad19A4[0x19EC-0x19A4];struct DV*dvResidual;char pad19F0[8];struct DV*dvYaw;struct DV*dvX;char pad1A00[0x1BD4-0x1A00];int valid;float height,time;char pad1BE0[0x10];qword anchor,position,euler,localPoint;};
+// The player is JT (the pickpocket fields), its interact target the STEPGUARD being robbed, whose lootPouch is the CID99
+// pouch (launchFrame); the three offset acts (ACT5::offset) bend the hand, the wrist and unknown19A0 toward it.
+static inline STEPGUARD *Victim(JT *jt) { return (STEPGUARD *)jt->interactTarget; }
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
 extern float D_002BF380 __asm__("D_002BF380");
 extern float D_002BF3A0 __asm__("D_002BF3A0");
 extern float D_002BF3B8 __asm__("D_002BF3B8");
 extern float D_002BF3BC __asm__("D_002BF3BC");
 extern qword D_002BF390 __asm__("D_002BF390");extern struct LM D_002BF3A8 __asm__("D_002BF3A8"),D_002BF3B0 __asm__("D_002BF3B0");
-void FaceStepToward(struct P*,struct AIM*) __asm__("FaceStepToward");void LoadIdentityMatrix4(struct XF*,struct XF*,struct M4*,struct M4*,float) __asm__("LoadIdentityMatrix4");
+void FaceStepToward(JT*,LO*) __asm__("FaceStepToward");void LoadIdentityMatrix4(struct XF*,struct XF*,struct M4*,struct M4*,float) __asm__("LoadIdentityMatrix4");
 qword TransformXfPos(struct XF*,struct XF*,qword) __asm__("TransformXfPos");qword ConvertXfVec(struct XF*,struct XF*,qword) __asm__("ConvertXfVec");
 float atan2f(float,float) __asm__("atan2f");float ClampToLimits__FP2LMf(struct LM*,float) __asm__("ClampToLimits__FP2LMf");
 struct M3 *LoadRotateMatrixEuler(struct M3 *, qword) __asm__("LoadRotateMatrixEuler");
 qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
-void SetActRotationGoal(struct DV *, qword) __asm__("SetActRotationGoal");
+void SetActRotationGoal(ACT5 *, qword) __asm__("SetActRotationGoal");
 // Transform the point *a by the 4x4 matrix m (register-pinned) and fetch the source space.
 extern "C" { static inline qword Point(const struct M4 *m, const qword *a, struct XF **source)
 {
@@ -2089,17 +2088,17 @@ extern "C" { static inline qword Point(const struct M4 *m, const qword *a, struc
     return r;
 } }
 // Length of the position after adding the correction (position + correction), register-pinned.
-extern "C" { static inline float CorrectionDistance(struct P *p, qword correction)
+extern "C" { static inline float CorrectionDistance(JT *p, qword correction)
 {
     register qword d __asm__("vf1");
     register float result __asm__("$3");
-    __asm__ __volatile__("lqc2 %0,%1" : "=j"(d) : "m"(p->position));
+    __asm__ __volatile__("lqc2 %0,%1" : "=j"(d) : "m"(p->posPickpocket19C0));
     {
         register qword c __asm__("vf2") = correction;
         __asm__("vadd.xyzw %0,%0,%1" : "+j"(d) : "j"(c));
     }
     {
-        register qword a __asm__("vf2") = p->anchor;
+        register qword a __asm__("vf2") = p->posPickpocket19CC;
         __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(a));
     }
     {
@@ -2113,17 +2112,17 @@ extern "C" { static inline float CorrectionDistance(struct P *p, qword correctio
 } }
 // State 11 handler: corrects the attachment and decays inactive responses. (inferred)
 // Also known as: UpdatePickpocketPose (upstream readable / Sly 1 name; UpdatePickpocketPose__FP3SLY).
-extern "C" void UpdateJtAttachCorrection(struct P *jt)
+extern "C" void UpdateJtAttachCorrection(JT *jt)
 {
     struct WORK w;
     register float ratio __asm__("$f20");
     {
-        register float height __asm__("$f0") = jt->height, base __asm__("$f1") = jt->model->time,
-                              scale __asm__("$f2") = jt->model->speed;
+        register float height __asm__("$f0") = jt->tPickpocketLabel, base __asm__("$f1") = jt->activeAnimation->time,
+                              scale __asm__("$f2") = jt->activeAnimation->speed;
         height = height - base;
         __asm__("div.s %0,%1,%2" : "=f"(ratio) : "f"(height), "f"(scale));
     }
-    if (jt->owner && jt->owner->aim) {
+    if (jt->interactTarget && Victim(jt)->lootPouch) {
         float zero = 0.0f;
         if (zero < ratio) {
             register qword mapped __asm__("$17");
@@ -2133,20 +2132,20 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
             register struct XF *relativeDestination __asm__("$5");
             struct M4 *frame;
             float heading;
-            FaceStepToward(jt, jt->owner->aim);
+            FaceStepToward(jt, Victim(jt)->lootPouch);
             {
-                register struct OWNER *predictionOwner __asm__("$2") = jt->owner;
+                register STEPGUARD *predictionOwner __asm__("$2") = (STEPGUARD *)jt->interactTarget;
                 register float capped __asm__("$f12");
                 register struct M4 *request __asm__("$6"), *optionalOutput __asm__("$7");
-                register struct AIM *aim __asm__("$3");
+                register CID99 *aim __asm__("$3");
                 register struct XF *sourceSpace __asm__("$5");
                 const int nullValue = 0;
                 __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu "
                         "%4,%z9,$zero"
                         : "=&f"(capped), "=&r"(request), "=&r"(aim), "=r"(optionalOutput), "=r"(sourceSpace)
-                        : "f"(ratio), "m"(D_002BF380), "r"(&w.phase.predicted), "m"(predictionOwner->aim),
+                        : "f"(ratio), "m"(D_002BF380), "r"(&w.phase.predicted), "m"(predictionOwner->lootPouch),
                           "rJ"(nullValue));
-                LoadIdentityMatrix4(aim->frame, sourceSpace, request, optionalOutput, capped);
+                LoadIdentityMatrix4(aim->launchFrame, sourceSpace, request, optionalOutput, capped);
             }
             {
                 struct XF *sourceSpace;
@@ -2154,7 +2153,7 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
                 register unsigned page __asm__("$3");
                 __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)"
                         : "=r"(mapped), "=r"(page)
-                        : "r"(TransformXfPos(sourceSpace, jt->space, predictedPoint)), "i"(&D_002BF3A0));
+                        : "r"(TransformXfPos(sourceSpace, jt->rootTransform, predictedPoint)), "i"(&D_002BF3A0));
                 {
                     register int zBits __asm__("$2");
                     register float z __asm__("$f12"), x __asm__("$f13"), coefficient __asm__("$f0");
@@ -2168,9 +2167,9 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
             heading = ClampToLimits__FP2LMf(&D_002BF3A8, heading);
             tilt = QwordFromFloats<qword>(zero, heading, zero);
             w.axis.q = tilt;
-            LoadRotateMatrixEuler(&w.rotation, VuAdd(jt->euler, w.axis.q));
+            LoadRotateMatrixEuler(&w.rotation, VuAdd(jt->eulerPickpocket19C0, w.axis.q));
             frame = &w.transform;
-            VECTOR_opAssign(&frame->r[3].q, jt->position);
+            VECTOR_opAssign(&frame->r[3].q, jt->posPickpocket19C0);
             {
                 register qword row0 __asm__("$3"), row1 __asm__("$2"), mappedVector __asm__("vf6");
                 __asm__("lq %2,%5\n\tqmtc2.ni %8,%4\n\tlq %3,%6\n\tsq %2,%0\n\tsq %3,0x10(%7)"
@@ -2181,8 +2180,8 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
                     register float one __asm__("$f0") = 1.0f;
                     register qword row2 __asm__("$2");
                     register struct SO *focus __asm__("$3");
-                    register struct GROUP *group __asm__("$2");
-                    __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(row2), "=r"(focus) : "m"(w.rotation.r[2].q), "m"(jt->focus));
+                    register XF *group __asm__("$2");
+                    __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(row2), "=r"(focus) : "m"(w.rotation.r[2].q), "m"(jt->unknown19A0));
                     __asm__("sq %1,0x20(%2)" : "=m"(w.transform.r[2].q) : "r"(row2), "r"(frame));
 #ifdef SLY2_EE_ASM
                     __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
@@ -2194,19 +2193,19 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
                     w.transform.r[1].f[3] = zero;
                     w.transform.r[0].f[3] = zero;
                     frame->r[3].f[3] = one;   /* frame is &w.transform */
-                    group = (struct GROUP *)focus->positionXf;
+                    group = focus->positionXf;
 #endif
                     {
                         register qword point __asm__("vf4"), axis2 __asm__("vf2"), axis0 __asm__("vf5"),
                             axis1 __asm__("vf3"), origin __asm__("vf1");
                         __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tlqc2 %3,%8\n\tlqc2 %4,%9"
                                 : "=j"(point), "=j"(axis2), "=j"(axis0), "=j"(axis1), "=j"(origin)
-                                : "m"(jt->localPoint), "m"(w.transform.r[2].q), "m"(w.transform.r[0].q),
+                                : "m"(jt->posPickpocketHandLocal), "m"(w.transform.r[2].q), "m"(w.transform.r[0].q),
                                   "m"(w.transform.r[1].q), "m"(w.transform.r[3].q));
                         __asm__("vmulax.xyz ACC,%2,%5x\n\tvmadday.xyz ACC,%3,%5y\n\tvmaddaz.xyz "
                                 "ACC,%4,%5z\n\tvmaddw.xyz %0,%0,$vf0w\n\tlw %1,%6"
                                 : "+j"(origin), "=r"(space)
-                                : "j"(axis0), "j"(axis1), "j"(axis2), "j"(point), "m"(group->space));
+                                : "j"(axis0), "j"(axis1), "j"(axis2), "j"(point), "m"(group->parent));
                         __asm__("vsub.xyzw %0,%0,%1" : "+j"(mappedVector) : "j"(origin));
                         __asm__("sqc2 %2,%0\n\tdaddu %1,%3,$zero"
                                 : "=m"(w.relative.q), "=r"(relativeDestination)
@@ -2214,12 +2213,12 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
                     }
                 }
             }
-            heading = QwordX(ConvertXfVec(jt->space, relativeDestination, w.relative.q));
+            heading = QwordX(ConvertXfVec(jt->rootTransform, relativeDestination, w.relative.q));
             heading = ClampToLimits__FP2LMf(&D_002BF3B0, heading);
             axis = QwordFromFloats<qword>(heading, zero, zero);
             w.axis.q = axis;
             {
-                register qword returned __asm__("vf2") = ConvertXfVec(space, jt->space, w.axis.q),
+                register qword returned __asm__("vf2") = ConvertXfVec(space, jt->rootTransform, w.axis.q),
                                         relative __asm__("vf1");
                 register unsigned page __asm__("$2");
                 __asm__("lqc2 %0,%2\n\tlui %1,%%hi(%3)"
@@ -2239,18 +2238,18 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
                 } else
                     near = 0;
                 if (near) {
-                    SetActRotationGoal(jt->dvYaw, tilt);
-                    SetActRotationGoal(jt->dvResidual, w.residual.q);
-                    SetActRotationGoal(jt->dvX, axis);
-                    jt->valid = 1;
-                    jt->time = g_clock.time;
+                    SetActRotationGoal(jt->pact5Unk19f8, tilt);
+                    SetActRotationGoal(jt->pact5Unk19ec, w.residual.q);
+                    SetActRotationGoal(jt->pact5Unk19fc, axis);
+                    jt->isPickpocketReach = 1;
+                    jt->pickpocketReachTime = g_clock.time;
                     return;
                 }
             }
         }
     }
     {
-        register float remaining __asm__("$f0") = jt->time, after __asm__("$f2"), gain __asm__("$f3");
+        register float remaining __asm__("$f0") = jt->pickpocketReachTime, after __asm__("$f2"), gain __asm__("$f3");
         {
             register float life __asm__("$f1") = D_002BF3BC, now __asm__("$f3") = g_clock.time;
             remaining = remaining + life;
@@ -2270,36 +2269,36 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
             __asm__("mfc1 %0,%2\n\tsq %0,%1" : "=&r"(bits), "=m"(w.gain.q) : "f"(gain));
         }
         {
-            register struct DV *source __asm__("$2"), *receiver __asm__("$4");
+            register ACT5 *source __asm__("$2"), *receiver __asm__("$4");
             register qword raw __asm__("$3"), scalar __asm__("vf2");
-            __asm__("lw %0,%2\n\tlq %1,%3" : "=&r"(source), "=r"(raw) : "m"(jt->dvYaw), "m"(w.gain.q));
+            __asm__("lw %0,%2\n\tlq %1,%3" : "=&r"(source), "=r"(raw) : "m"(jt->pact5Unk19f8), "m"(w.gain.q));
             __asm__("daddu %0,%3,$zero\n\tsq %4,%1\n\tqmtc2.ni %4,%2"
                     : "=&r"(receiver), "=m"(w.phase.scalar.q), "=j"(scalar)
                     : "r"(source), "r"(raw));
-            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(source->value));
+            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(source->offset));
             SetActRotationGoal(receiver, scalar);
         }
         {
             register qword raw __asm__("$2"), scalar __asm__("vf2");
-            register struct DV *receiver __asm__("$4");
+            register ACT5 *receiver __asm__("$4");
             __asm__("lq %0,%1" : "=r"(raw) : "m"(w.gain.q));
             __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4"
                     : "=m"(w.phase.scalar.q), "=j"(scalar), "=r"(receiver)
-                    : "r"(raw), "m"(jt->dvResidual));
-            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(receiver->value));
+                    : "r"(raw), "m"(jt->pact5Unk19ec));
+            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(receiver->offset));
             SetActRotationGoal(receiver, scalar);
         }
         {
-            register struct DV *source __asm__("$2"), *receiver __asm__("$4");
+            register ACT5 *source __asm__("$2"), *receiver __asm__("$4");
             register qword raw __asm__("$3"), scalar __asm__("vf2");
-            __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(raw), "=r"(source) : "m"(w.gain.q), "m"(jt->dvX));
+            __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(raw), "=r"(source) : "m"(w.gain.q), "m"(jt->pact5Unk19fc));
             __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tdaddu %2,%4,$zero"
                     : "=m"(w.phase.scalar.q), "=j"(scalar), "=r"(receiver)
                     : "r"(raw), "r"(source));
-            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(source->value));
+            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(source->offset));
             SetActRotationGoal(receiver, scalar);
         }
-        jt->valid = 0;
+        jt->isPickpocketReach = 0;
     }
 }
 
@@ -2308,27 +2307,8 @@ typedef char U_Size[(sizeof(U) == 16) ? 1 : -1];
 typedef char M3_Size[(sizeof(struct M3) == 48) ? 1 : -1];
 typedef char M4_Size[(sizeof(struct M4) == 64) ? 1 : -1];
 
-typedef char DV_Size[(sizeof(struct DV) == 48) ? 1 : -1];
 typedef char WORK_Size[(sizeof(struct WORK) == 240) ? 1 : -1];
-typedef char AIM_frame_Offset[((unsigned)&((struct AIM *)0)->frame == 336) ? 1 : -1];
-typedef char OWNER_aim_Offset[((unsigned)&((struct OWNER *)0)->aim == 1172) ? 1 : -1];
-typedef char GROUP_space_Offset[((unsigned)&((struct GROUP *)0)->space == 160) ? 1 : -1];
 
-typedef char DV_value_Offset[((unsigned)&((struct DV *)0)->value == 32) ? 1 : -1];
-typedef char P_space_Offset[((unsigned)&((struct P *)0)->space == 96) ? 1 : -1];
-typedef char P_model_Offset[((unsigned)&((struct P *)0)->model == 4144) ? 1 : -1];
-typedef char P_owner_Offset[((unsigned)&((struct P *)0)->owner == 4316) ? 1 : -1];
-typedef char P_focus_Offset[((unsigned)&((struct P *)0)->focus == 6560) ? 1 : -1];
-typedef char P_dvResidual_Offset[((unsigned)&((struct P *)0)->dvResidual == 6636) ? 1 : -1];
-typedef char P_dvYaw_Offset[((unsigned)&((struct P *)0)->dvYaw == 6648) ? 1 : -1];
-typedef char P_dvX_Offset[((unsigned)&((struct P *)0)->dvX == 6652) ? 1 : -1];
-typedef char P_valid_Offset[((unsigned)&((struct P *)0)->valid == 7124) ? 1 : -1];
-typedef char P_height_Offset[((unsigned)&((struct P *)0)->height == 7128) ? 1 : -1];
-typedef char P_time_Offset[((unsigned)&((struct P *)0)->time == 7132) ? 1 : -1];
-typedef char P_anchor_Offset[((unsigned)&((struct P *)0)->anchor == 7152) ? 1 : -1];
-typedef char P_position_Offset[((unsigned)&((struct P *)0)->position == 7168) ? 1 : -1];
-typedef char P_euler_Offset[((unsigned)&((struct P *)0)->euler == 7184) ? 1 : -1];
-typedef char P_localPoint_Offset[((unsigned)&((struct P *)0)->localPoint == 7200) ? 1 : -1];
 typedef char WORK_phase_Offset[((unsigned)&((struct WORK *)0)->phase == 0) ? 1 : -1];
 typedef char WORK_transform_Offset[((unsigned)&((struct WORK *)0)->transform == 64) ? 1 : -1];
 typedef char WORK_axis_Offset[((unsigned)&((struct WORK *)0)->axis == 128) ? 1 : -1];
@@ -3414,7 +3394,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 *(qword *)&jt->vecLocalVelocity = D_002A2DD0;
                 jt->interactBlockFlags |= 2;
                 grf = 100;
-                jt->unknown1BD4 = 0;
+                jt->isPickpocketReach = 0;
                 break;
             case JTS_Gait2:
                 aseg = jt->gaitB.blendedAnimation;
