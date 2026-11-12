@@ -490,17 +490,23 @@ extern "C" int IsStepplayerNearInteractTarget(STEPPLAYER *player, int fX)
 
 namespace M_func_00140C30 {
 void SetJtAirJump(JTAIR *p, int a, int b, int c) __asm__("SetJtAirJump");
-void AddStepAxisXps(STEPPLAYER *p, void *a, LO *b, qword d) __asm__("AddStepAxisXps");
-// Slot 82 (STEP constraint hook): if the other object left the world, resets the air component; then the base.
-extern "C" void AddStepplayerAxisXps(STEPPLAYER *player, void *a, LO *b, qword v)
+void AddStepAxisXps(STEP *step, int grf, LO *plo, qword posOther, qword direction, qword pos) __asm__("AddStepAxisXps");
+// Slot 82 (STEP::AddAxisXps): if the other object left the world, resets the air component; otherwise the STEP base
+// with the other object's position corrected by the smoothed position offset. The direction and position pass through
+// unchanged (on the EE they stay in t0 / t1; every target needs them named).
+extern "C" void AddStepplayerAxisXps(STEPPLAYER *player, int grf, LO *plo, qword posOther, qword direction, qword pos)
 {
     qword d;
-    if (((int)b->isInWorld & 1) == 0) {
+    if (((int)plo->isInWorld & 1) == 0) {
         SetJtAirJump(&player->jtair, 0, 0, 0);
         return;
     }
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(player->smoothedPosOffset));
-    AddStepAxisXps(player, a, b, d);
+#ifdef SLY2_EE_ASM
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(posOther), "j"(player->smoothedPosOffset));
+#else
+    d = VuSub(posOther, player->smoothedPosOffset);
+#endif
+    AddStepAxisXps(player, grf, plo, d, direction, pos);
 }
 } // namespace M_func_00140C30
 
