@@ -82,7 +82,7 @@ void UpdateSwPoFollowers(SW *p);
 EMITB *PemitbEnsureEmitter(EMITTER *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB");
 }
 /* LoadRotateMatrixPanTilt as this caller sees it: returning the matrix. */
-MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanTilt");
+MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) SLY2_SRET_LABEL("LoadRotateMatrixPanTilt", "LoadRotateMatrixPanTiltValue");
 
 // Slot 7 (Init): InitSo, enables collection in the PO's pickup info (pzi) with itself as collector, and sets
 // flag 2 in the LO flags.
@@ -461,7 +461,7 @@ void UpdateSwPoFollowers(SW *world)
 }
 
 struct CREF4 : CRefData { int pad[2]; };   /* a CRef in a 16-byte slot */
-extern "C" CREF4 *SetSaveVarByName(CREF4 *pret, CREF4 *pref, const char *s, int n);
+extern "C" CREF4 *SetSaveVarByName(CREF4 *pret, CREF4 *pref, const char *s, int n) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
 void Decref4(CREF4 *p) __asm__("Decref__4CRef");
 // Makes ppo the current PO: deactivates the old effective PO, activates the new one, publishes its oid in the
 // splice variable oidPoCurrent for player characters, and updates the followers.

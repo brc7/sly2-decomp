@@ -136,7 +136,7 @@ void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
 qwordV ConvertPosBetweenLos(CID96V *, CID96V *, qwordV);
 void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
-M3 BuildAxisAngleRotationMatrix(qwordV v, float g);
+M3 BuildAxisAngleRotationMatrix(qwordV v, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 float atan2f(float y, float x);
 CHN *FindAsegChannel(ASEG *paseg, CID96V *p, int a, int b);
 

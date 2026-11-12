@@ -1152,7 +1152,7 @@ extern "C" int IsScreenItemUnlocked(int i) {
 namespace M_FPowerupAcquired {
 extern char D_002A79A0[] __asm__("D_002A79A0"), D_002A79A8[] __asm__("D_002A79A8"), D_002A79B8[] __asm__("D_002A79B8");
 void sprintf(char *pch, char *fmt, int n) __asm__("sprintf");
-void GetSaveVarByName(CRefData *pref, char *a, char *b, char *c, int d) __asm__("GetSaveVarByName");
+void GetSaveVarByName(CRefData *pref, char *a, char *b, char *c, int d) SLY2_SRET_LABEL("GetSaveVarByName", "GetSaveVarByNameInto");
 void func_00129658(CRefData *pref, CRefData *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // True when the power-up has been bought (save data).

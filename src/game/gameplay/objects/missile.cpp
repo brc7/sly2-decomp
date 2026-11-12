@@ -138,7 +138,7 @@ void AddSoAcceleration(SO *pso, qword qwAccel);
 qword ApplyConstr(CONSTR *pconstr, XF *pxf, qword qw);
 }
 /* GetMissileTargetPosition as its two callers call it: the hidden result pointer passed by hand. */
-extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) __asm__("GetMissileTargetPosition");
+extern "C" V *func_001B2398Ret(V *pvResult, MISSILE *pmissile, float g) SLY2_SRET_LABEL("GetMissileTargetPosition", "GetMissileTargetPositionInto");
 void ReplaceCurrentAseg(ASEG *segment, ALO *palo, float t, float rt, int grf, ASEGA **ppasega);
 int AreFloatsNear(float g0, float g1, float gEpsilon);
 extern "C" void AddSoAcceleration(SO *pso, qword qwVel);
@@ -529,4 +529,18 @@ extern "C" void PresetSplmissAccel(SPLMISS *missile)
     w.step.q = dt;
     AddSoAcceleration(missile, acceleration);
 }
+#endif
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_missile {
+struct V4R { float x, y, z, w; } __attribute__((aligned(16)));
+extern "C" V4R GetMissileTargetPosition_value(MISSILE *, float) __asm__("GetMissileTargetPosition");
+extern "C" V4R *GetMissileTargetPositionInto(V4R *out, MISSILE *missile, float dt)
+{ *out = GetMissileTargetPosition_value(missile, dt); return out; }
+} // namespace SRET_missile
 #endif

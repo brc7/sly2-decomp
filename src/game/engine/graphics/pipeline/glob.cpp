@@ -297,7 +297,7 @@ extern "C" void LoadPoseSetsFromBrx(GLOBSET *p, struct STREAM *stream)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BindGlobset {
 extern SO *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");   /* the found object is an SO here */
-extern void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
+extern void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 extern void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 extern void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern void AddWrWarpGroup(SO *plo, WRBG *pwrbg) __asm__("AddWrWarpGroup");
@@ -899,7 +899,7 @@ int ShouldUpdateSaa__FP3SAA(SAA *psaa) __asm__("ShouldUpdateSaa__FP3SAA");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
-void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 float GetMaxRowLengthMatrix3(const MATRIX4 *pmat) __asm__("GetMaxRowLengthMatrix3");
 qword ExpandSphereForProjection(const MATRIX4 *pmat, qword qwPos, float *psRadius) __asm__("ExpandSphereForProjection");
 int IsWithinCameraRenderDistance(CM *pcm, qword qwDpos, float sRange, float *pgVis) __asm__("IsWithinCameraRenderDistance");
@@ -1340,7 +1340,7 @@ int ShouldUpdateSaa__FP3SAA(SAA *psaa) __asm__("ShouldUpdateSaa__FP3SAA");
 int GetRenderTargetTexture(ALOV *palo, int n) __asm__("GetRenderTargetTexture");
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
-void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 qword GetLoWorldPos(ALOV *palo) __asm__("GetLoWorldPos");
 RPL *AllocRenderListEntry(void) __asm__("AllocRenderListEntry");
 

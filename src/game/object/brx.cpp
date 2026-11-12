@@ -32,7 +32,7 @@ void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
 CRef BuildSpliceListFromValues(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 void PostLoadOidField(LO *plo, void *pv);
 void PostLoadOidSetter(LO *plo, void *pv);
-CRef RefFromBrx(OTYP otyp, CBinaryInputStream *stream) __asm__("ReadOptionArgFromBrx");   /* defined below (C symbol) */
+CRef RefFromBrx(OTYP otyp, CBinaryInputStream *stream) SLY2_SRET_LABEL("ReadOptionArgFromBrx", "ReadOptionArgFromBrxValue");   /* defined below (C symbol) */
 void *AllocSwPostLoadRecord(SW *world) __asm__("AllocSwPostLoadRecord");
 extern "C" void ColorCorrectRgba(RGBA *prgba);
 // Allocate cb zeroed bytes with alignment cbAlign from the world heap.
@@ -813,3 +813,15 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
         stream->Skip(cb);
     }
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_brx {
+extern "C" CRef ReadOptionArgFromBrxValue(int otyp, CBinaryInputStream *stream)
+{ CRef r; ReadOptionArgFromBrx(&r, otyp, stream); return r; }   /* r starts nil, so writing over it releases nothing */
+} // namespace SRET_brx
+#endif

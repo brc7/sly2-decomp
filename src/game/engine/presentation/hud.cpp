@@ -870,7 +870,7 @@ extern "C" int AreWidgetLoadsIdle(void)
 // 0x212828 ShowWidgetArgsFromSplice
 namespace M_ShowWidgetArgsFromSplice {
 struct L { int words[4]; };
-void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d) __asm__("SetValuesFromSpliceList");
+void SetValuesFromSpliceList(CRefData *r, void *a, int b, int c, struct L *pl, void *d) SLY2_SRET_LABEL("SetValuesFromSpliceList", "SetValuesFromSpliceListInto");
 void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 } // namespace M_ShowWidgetArgsFromSplice
 // Shows a widget with argument ids taken from a splice list (at most 10).

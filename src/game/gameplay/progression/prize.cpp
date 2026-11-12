@@ -165,8 +165,8 @@ extern float D_002C0D4C __asm__("D_002C0D4C");
 extern qword g_normalZ __asm__("g_normalZ");
 void UpdateSoXfWorld(DPRIZE *) __asm__("UpdateSoXfWorld");
 qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
-M3 BuildOrthonormalMatrixZ(qword, qword) __asm__("BuildOrthonormalMatrixZ");
-M3 LoadRotateMatrixEuler(qword) __asm__("LoadRotateMatrixEuler");
+M3 BuildOrthonormalMatrixZ(qword, qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
+M3 LoadRotateMatrixEuler(qword) SLY2_SRET_LABEL("LoadRotateMatrixEuler", "LoadRotateMatrixEulerValue");
 
 
 struct VU_FLOAT {
@@ -642,7 +642,7 @@ void *GetLoWorldMatrix(DPRIZE *plo) __asm__("GetLoWorldMatrix");
 void RenderSoSelf(DPRIZE *plo) __asm__("RenderSoSelf");
 void RenderDprizeSelf(DPRIZE *p) __asm__("RenderDprizeSelf");
 
-M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec) __asm__("LoadMatrixFromPosRotScale");
+M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec) SLY2_SRET_LABEL("LoadMatrixFromPosRotScale", "LoadMatrixFromPosRotScaleValue");
 void RenderLoAtMatrix(DPRIZE *plo, M4 m, float a, float b) __asm__("RenderLoAtMatrix");
 // DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
 void RenderDprizeSelf(DPRIZE *prize)

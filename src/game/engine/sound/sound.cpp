@@ -1827,7 +1827,7 @@ extern "C" STREAMSND *PushMusic(SNDMGR *soundManager, int id)
 } // namespace M_PushMusic
 
 namespace M_func_001FE310 {
-extern void FindMusic(SNDREF *, SNDMGR *, int) __asm__("FindMusic");   /* its by-value result, by hand */
+extern void FindMusic(SNDREF *, SNDMGR *, int) SLY2_SRET_LABEL("FindMusic", "FindMusicInto");   /* its by-value result, by hand */
 // Stops a music track by id: takes it off the stack (FindMusic) and, unless it had already stopped, stops it and
 // restarts the track now on top of the stack. (inferred)
 // Also known as: PopMusic (upstream readable / Sly 1 name; PopMusic__FP8SOUNDMGRi).
@@ -2247,3 +2247,15 @@ extern "C" { inline void InitSoundRef(O **pp, O *o) { if (o) ((BASIC *)o)->AddRe
 extern const LM D_002A83B8 = {500.0f, 3000.0f};
 extern const LM D_002A83C0 = {500.0f, 1000.0f};
 int D_002C3C40[6] = {1548, 1549, 1550, -1, 1551, 1552};
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_sound {
+extern "C" SNDREF *FindMusicInto(SNDREF *out, SNDMGR *soundManager, int id)
+{ SNDREFC r = M_func_001FE478::FindMusic(soundManager, id); out->p = r.p; r.p = 0; return out; }   /* moves into *out */
+} // namespace SRET_sound
+#endif

@@ -617,7 +617,7 @@ void SetSoPartsBit48(BARREL *p, int n) __asm__("SetSoPartsBit48");
 void UpdateSwBusyList(void *p) __asm__("UpdateSwBusyList");
 void *GetLoWorldMatrix(BARREL *p) __asm__("GetLoWorldMatrix");
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm) __asm__("TiltMatUpright");
-MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm) __asm__("ConvertXfMat");
+MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
 qword DecomposeRotationMatrixToEuler(MATRIX3 *pm) __asm__("DecomposeRotationMatrixToEuler");
 qword TransformXfPos(void *pv, void *pvA0, qword v) __asm__("TransformXfPos");
 void SetBarrelState(BARREL *p, int n) __asm__("SetBarrelState");

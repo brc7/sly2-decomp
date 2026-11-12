@@ -931,7 +931,7 @@ P *FindNearestRobottankPickup(P *) __asm__("FindNearestRobottankPickup");
 int IsWithinLimits__FP2LMf(LM *, float) __asm__("IsWithinLimits__FP2LMf");
 void SetRobottankTactic(P *, int) __asm__("SetRobottankTactic");
 float acosf(float) __asm__("acosf");
-M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword, float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 int ClipEdgeToPathzone(void *, qword, qword, int, HIT *, int) __asm__("ClipEdgeToPathzone");
 void MeasureShape(SHAPE *) __asm__("MeasureShape");
 void ResetRobottankWheelHeights(P *) __asm__("ResetRobottankWheelHeights");

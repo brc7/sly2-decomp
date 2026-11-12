@@ -1175,7 +1175,7 @@ namespace M_LoadStepplayerGadgets {
 extern char D_002A4D50[] __asm__("D_002A4D50");
 extern char D_002A4D58[] __asm__("D_002A4D58");
 int sprintf(char *, const char *, ...) __asm__("sprintf");
-void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d) __asm__("GetSaveVarByName");
+void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d) SLY2_SRET_LABEL("GetSaveVarByName", "GetSaveVarByNameInto");
 void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 // 0x141EF0: dead-code scrap (sly2/scrap.h)
 extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0x20"); }
@@ -1433,7 +1433,7 @@ extern "C" void RenderStepplayerSelf(STEPPLAYER *player)
 
 namespace M_func_001426E8 {
 XF *FindSoXf(STEPPLAYER *p, int x, int n) __asm__("FindSoXf");
-void InvertMatrix3CofactorP(MATRIX3Q *pmOut, void *pm) __asm__("InvertMatrix3Cofactor");
+void InvertMatrix3CofactorP(MATRIX3Q *pmOut, void *pm) SLY2_SRET_LABEL("InvertMatrix3Cofactor", "InvertMatrix3CofactorInto");
 qword DecomposeRotationMatrixToEuler(qword *aqwRows) __asm__("DecomposeRotationMatrixToEuler");
 ACT *NewPositionAct(STEPPLAYER *p, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
 void DetachAct(ACT *pact) __asm__("DetachAct");
@@ -1666,9 +1666,9 @@ qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 qword ConvertPosBetweenLos(int n, STEPPLAYER *p, qword q) __asm__("ConvertPosBetweenLos");
 void CalculateVectorPanTilt(qword v, float *pa, float *pb) __asm__("CalculateVectorPanTilt");
 float ClampAngleToRange(LM *plm, float g) __asm__("ClampAngleToRange");
-MATRIX3Q LoadRotateMatrixPanTilt(float a, float b) __asm__("LoadRotateMatrixPanTilt");
-MATRIX3Q BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
-MATRIX3Q ConvertXfMat(void *pvFrom, void *pvTo, MATRIX3Q *pm) __asm__("ConvertXfMat");
+MATRIX3Q LoadRotateMatrixPanTilt(float a, float b) SLY2_SRET_LABEL("LoadRotateMatrixPanTilt", "LoadRotateMatrixPanTiltValue");
+MATRIX3Q BuildAxisAngleRotationMatrix(qword v, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
+MATRIX3Q ConvertXfMat(void *pvFrom, void *pvTo, MATRIX3Q *pm) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
 MATRIX3Q InvertMatrix3Cofactor(const MATRIX3Q *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(MATRIX3Q *pm) __asm__("DecomposeRotationMatrixToEuler");
 void SetActPositionGoal(ACT *pq, qword q) __asm__("SetActPositionGoal");

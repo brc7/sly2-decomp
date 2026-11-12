@@ -1240,7 +1240,7 @@ float GetStepHeading(BENTLEY *) __asm__("GetStepHeading");
 void SetStepTargetHeading(BENTLEY *, float) __asm__("SetStepTargetHeading");
 void FixStepAngularVelocity(BENTLEY *) __asm__("FixStepAngularVelocity");
 void SetJtThrowState(JTTHROW *, int) __asm__("SetJtThrowState");
-M4 GetRelativeXfMatrix(void *, void *, M4 *) __asm__("GetRelativeXfMatrix");
+M4 GetRelativeXfMatrix(void *, void *, M4 *) SLY2_SRET_LABEL("GetRelativeXfMatrix", "GetRelativeXfMatrixValue");
 ACT *NewPositionAct(BENTLEY *p, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
 qword DecomposeRotationMatrixToEuler(M4 *pm) __asm__("DecomposeRotationMatrixToEuler");
 void ReleaseSma(SMA **) __asm__("ReleaseSma");
@@ -1786,7 +1786,7 @@ extern qword g_normalZ __asm__("g_normalZ"), D_002A2DA0 __asm__("D_002A2DA0");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");
 float ClampAbs__Fff(float g, float gMax) __asm__("ClampAbs__Fff");
-MATRIX3Q BuildAxisAngleRotationMatrix(qword axis, float g) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3Q BuildAxisAngleRotationMatrix(qword axis, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 qword LimitVectorLength(qword v, float g) __asm__("LimitVectorLength");
 void AddSoAcceleration(STEPPLAYER *p, qword v) __asm__("AddSoAcceleration");
 

@@ -525,7 +525,7 @@ struct M3 { qword r[3]; };
 struct M4 { qword r[4]; };
 
 M3 *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
-M3 BuildAxisAngleRotationMatrix(qword axis, float g) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword axis, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 void UpdateBhvfollowPosition(BHVFOLLOW *p) __asm__("UpdateBhvfollowPosition");
 
 // Float broadcast into a VU0 register (copyable).

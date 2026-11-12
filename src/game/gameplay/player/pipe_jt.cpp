@@ -40,7 +40,7 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *a, int b, int 
 void GetPipeGoalMatrix(PATH *a, float g, int b, M3 *pm);
 M3 *GetLoWorldMatrix(STEPPLAYER *o);
 void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
-M3 MulMatrix3Matrix3(M3 *a, M3 *b);
+M3 MulMatrix3Matrix3(M3 *a, M3 *b) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, U *pv);
 float GetShapeMinDistance(PATH *);
 float GetShapeMaxDistance(PATH*);

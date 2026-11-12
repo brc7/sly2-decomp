@@ -665,7 +665,7 @@ struct M3{U r[3];M3(){}M3(const M3&m){r[0]=m.r[0];r[2]=m.r[2];r[1]=m.r[1];}M3&op
 struct M4{U r[4];};
 extern "C" const qword g_normalZ;
 extern "C" float D_002BF4B8;
-extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
+extern "C" M3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 extern "C" LO *FindSwObjectByClass__FP2SWi3CIDP2LO(SW*,int,int,LO*);

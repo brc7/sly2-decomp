@@ -40,7 +40,7 @@ qword GetXfVelocity(void*,void*,qword);
 float SplitVectorAlongAxis(qword,qword,qword*,qword*);
 struct CLQV{float g0,g1,g2;};   /* 12-byte data objects: basic.h's CLQ is 16 (the symbol sizes would change) */
 float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
-M3 BuildRotationMatrixFromVector(qword);
+M3 BuildRotationMatrixFromVector(qword) SLY2_SRET_LABEL("BuildRotationMatrixFromVector", "BuildRotationMatrixFromVectorValue");
 void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
 qword GetSoImpulseLinearDelta(NODE*,qword);
 qword GetSoImpulseAngularDelta(NODE*,qword,qword);
@@ -48,7 +48,7 @@ void AddSoAcceleration(void*,qword);
 void AddSoAngularAcceleration(void*,qword);
 void AccelSoTowardMatBounded(JT*,M3P*,float*);
 M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
-M3P BuildAxisAngleRotationMatrix(qword,float);
+M3P BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 qword DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float NormalizeAngle__Ff(float);extern "C++" { void SetStepTargetHeading(JT*,float) __asm__("SetStepTargetHeading"); }float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GetButtonsPressedWithin__5POCTLUif(POCTL*,uint,float);void ClearPoctlJoyPressed(POCTL*,int);void StartJtMode(void*,int,JT*,void*);

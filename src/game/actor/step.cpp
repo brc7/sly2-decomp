@@ -234,7 +234,7 @@ namespace M_SetStepPhys {
 typedef struct { qword a[4]; } MATRIX4;   /* qword rows (TU-private; XF's matrices are converted at the call) */
 /* The C file assigned the struct result (hidden pointer = mi); as C++ that adds a temporary, so the result is
    passed by hand. This form exists to reproduce the original codegen. */
-void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4RigidP(MATRIX4 *pd, MATRIX4 *ps) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pd, MATRIX4 *pa, MATRIX4 *pb) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 // Sets the current phys part (psopartPhys). With fForceSnap the body part (psopartBody) takes its points at once (in the body
@@ -281,7 +281,7 @@ struct S : PO { char pad258[0x258 - 0x180]; struct M *pm0,*pm1;};
  * smoothing SMP; the rest is defined in the per-function namespaces below, in address order. */
 extern float D_002C3C60[2] __asm__("D_002C3C60");
 extern float D_002C3C68[3] __asm__("D_002C3C68");
-M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
+M4 *InvertMatrix4Rigid(M4 *,const M4 *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 float SmoothValue__FfffP3SMPPf(float,float,float,float *,float *) __asm__("SmoothValue__FfffP3SMPPf");
 #ifdef SLY2_EE_ASM
@@ -791,7 +791,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 namespace M_func_00204660 {
 
 extern qword g_normalZ __asm__("g_normalZ");
-MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 // Sets the target heading (radians) and rebuilds the target rotation matrix about Z.
 // Also known as: SetStepPhysHeading (upstream readable / Sly 1 name; SetStepPhysHeading__FP3ALOf).
 extern "C" void SetStepTargetHeading(STEP *step, float g) { step->targetHeading = g; step->matTarget = BuildAxisAngleRotationMatrix(g_normalZ, g); }
@@ -1150,7 +1150,7 @@ struct M3 { qword r[3]; };
 extern qword g_normalZ __asm__("g_normalZ");   // g_normalZ
 
 SO *GetSoFromLo(LO *) __asm__("GetSoFromLo");                 // PsoZapTarget
-M3 BuildOrthonormalMatrixZ(qword, qword) __asm__("BuildOrthonormalMatrixZ");          // BuildOrthonormalMatrixZ
+M3 BuildOrthonormalMatrixZ(qword, qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");          // BuildOrthonormalMatrixZ
 void AddXp(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **) __asm__("AddXp");  // AddXp
 
 // Return a - b.
@@ -1494,7 +1494,7 @@ extern float D_002C3CE0 __asm__("D_002C3CE0");   /* the probe drop along the up 
 extern int D_002C3CE4 __asm__("D_002C3CE4");
 extern float D_002C3CE8 __asm__("D_002C3CE8");    /* the angle limit */
 
-MATRIX3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 qword GetLoWorldPos(STEP *) __asm__("GetLoWorldPos");

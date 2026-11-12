@@ -69,7 +69,7 @@ void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float 
 void SetPlane(qword *, qword, float);
 void SolveInequalities(int n, float *matrix, float *rhs, float *weights, float eps);
 qword GetLoWorldPos(JT*);M4*GetLoWorldMatrix(JT*);
-M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
+M3 BuildOrthonormalMatrixZ(qword,qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
 void SmoothMatrix(M4*,M3*,SMP*,M3*,qword*,float);
 void PosSmooth(qword,qword,SMP*,qword*,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void UpdateDirectionalBlend(JT*,BLDIR*,ASEGBL*);

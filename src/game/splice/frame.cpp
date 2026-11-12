@@ -159,3 +159,15 @@ SPO CFrame_CloneTo(CFrame *source, void *a)
         sp->SetPbinding(CVarb_CloneTo(source->m_pvarb.p, sp.p, a).p);
     return SPO(sp.p);
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_frame {
+extern "C" SPO *CFrame_CloneToInto(SPO *out, CFrame *source, void *a)
+{ SPO r = CFrame_CloneTo(source, a); out->p = r.p; r.p = 0; return out; }   /* the owning pointer moves into *out */
+} // namespace SRET_frame
+#endif

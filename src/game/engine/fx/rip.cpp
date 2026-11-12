@@ -1153,7 +1153,7 @@ struct S {
 }; /* +0xE0: the touch object (unused here) */
 
 int IsVectorNearlyZero(qword) __asm__("IsVectorNearlyZero");int IsVectorShorterThan2(qword) __asm__("IsVectorShorterThan2");int IsVectorShorterThan5(qword) __asm__("IsVectorShorterThan5");
-M3*BuildAxisAngleRotationMatrix(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
+M3*BuildAxisAngleRotationMatrix(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*) SLY2_SRET_LABEL("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4", "CalculateEmitdvMatrixInto");
 void ProjectRipTransform(S*) __asm__("ProjectRipTransform");
 
 // Squared length of the xyz part of a (x lane of the result).
@@ -1376,7 +1376,7 @@ extern struct LIMIT { float lo,hi; } g_lmZeroOne __asm__("g_lmZeroOne");
 
 int IsInCameraFrustum(CM*,qword,qword) __asm__("IsInCameraFrustum");
 int IsWithinCameraRenderDistance(CM*,qword,float,float*) __asm__("IsWithinCameraRenderDistance");
-M4 LoadMatrixFromPosRotScalar(qword,const M3&,float) __asm__("LoadMatrixFromPosRotScalar");
+M4 LoadMatrixFromPosRotScalar(qword,const M3&,float) SLY2_SRET_LABEL("LoadMatrixFromPosRotScalar", "LoadMatrixFromPosRotScalarValue");
 void RenderLoAtMatrix(LO*,const M4&,float,float) __asm__("RenderLoAtMatrix");
 int RenderRipAtPose(S*,qword,const M3&) __asm__("RenderRipAtPose");
 
@@ -1467,7 +1467,7 @@ void FLYING::PostEmit(EMITB *pemitb)
 
 extern "C" {
 extern qword g_normalZ;
-RIPM3 BuildOrthonormalMatrixZ(qword a, qword b);
+RIPM3 BuildOrthonormalMatrixZ(qword a, qword b) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 }
 // FLYING Render: oriented along its velocity, with "up" toward the camera (facesCamera) or world +z.
 void FLYING::Render()
@@ -1499,7 +1499,7 @@ STUCK *NewRipInGroup(void*,void*,void*) __asm__("NewRipInGroup");
 qword TransformXfPos(void*,LO*,qword) __asm__("TransformXfPos");
 float RandomFloatInRange__Fff(float,float) __asm__("RandomFloatInRange__Fff");
 void GetNormalVectors(qword,qword,qword,qword*) __asm__("GetNormalVectors");
-M3 LoadRotateMatrixEuler(qword) __asm__("LoadRotateMatrixEuler");
+M3 LoadRotateMatrixEuler(qword) SLY2_SRET_LABEL("LoadRotateMatrixEuler", "LoadRotateMatrixEulerValue");
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
 STUCK *CreateStuck(FLYING*,LO*,LO*,qword,qword) __asm__("CreateStuck");
 
@@ -1630,7 +1630,7 @@ namespace M_RenderStuck {
 typedef int qword __attribute__((mode(TI)));
 
 qword TransformXfPos(LO *plo, int n, qword q) __asm__("TransformXfPos");
-RIPM3 ConvertXfMat(LO *plo, int n, RIPM3 *pm) __asm__("ConvertXfMat");
+RIPM3 ConvertXfMat(LO *plo, int n, RIPM3 *pm) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
 int RenderRipAtPose(RIP *prip, qword q, RIPM3 m) __asm__("RenderRipAtPose");
 void RenderStuck(STUCK *pstuck) __asm__("RenderStuck");
 
@@ -1870,7 +1870,7 @@ struct S {
 
 MAT3 *GetLoWorldMatrix(LO *plo) __asm__("GetLoWorldMatrix");
 void LoadIdentityMatrix4(void *p, int n, MAT4 *pm, int k, float g) __asm__("LoadIdentityMatrix4");
-MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2) __asm__("MulMatrix3Matrix3");
+MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MAT3 *pm, float *pg, qword *pv) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
 void LaunchMatch__FP5MATCH(S *p) __asm__("LaunchMatch__FP5MATCH");
 
@@ -2061,9 +2061,9 @@ extern const qword D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ
 
 void RemoveRip__FP3RIP(RIP *) __asm__("RemoveRip__FP3RIP");
 int IsInCameraFrustum(CM *,qword,qword) __asm__("IsInCameraFrustum");
-M3 BuildOrthonormalMatrixZ(qword,qword) __asm__("BuildOrthonormalMatrixZ");
-M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
-M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float) __asm__("LoadMatrixFromPosRotScalar");
+M3 BuildOrthonormalMatrixZ(qword,qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
+M3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
+M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float) SLY2_SRET_LABEL("LoadMatrixFromPosRotScalar", "LoadMatrixFromPosRotScalarValue");
 void RenderLoAtMatrix(void *,const M4 &,float,float) __asm__("RenderLoAtMatrix");
 
 // Float broadcast into a VU0 register on construction.
@@ -2244,9 +2244,9 @@ struct S {
 };
 
 qword ConvertCmScreenToWorld(CM*,qword) __asm__("ConvertCmScreenToWorld");
-M3 MulMatrix3Matrix3(const M3&,const M3&) __asm__("MulMatrix3Matrix3");
+M3 MulMatrix3Matrix3(const M3&,const M3&) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
-M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 int RenderRipAtPose(S*,qword,const M3&) __asm__("RenderRipAtPose");
 void RenderSmack(S*) __asm__("RenderSmack");
 
@@ -2366,7 +2366,7 @@ struct P { char pad0[0x40]; M3 matrix; char pad70[0x20]; qword vel; char padA0[0
 
 extern float D_002C2010[3] __asm__("D_002C2010"), D_002C2020[2] __asm__("D_002C2020"), D_002C2028 __asm__("D_002C2028"), D_002C202C __asm__("D_002C202C");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
-M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword, float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 float SplitVectorAlongAxis(qword, qword, qword *, qword *) __asm__("SplitVectorAlongAxis");
 void ProjectRipTransform(P *) __asm__("ProjectRipTransform");
 
@@ -2468,7 +2468,7 @@ extern "C" void ProjectLeafTransform(P *p)
 extern "C" {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 STUCK *CreateStuck(RIP *prip, LO *ploRender, void *ploHit, qword pos, qword normal);   /* (its definition names a FLYING) */
-void ConvertMatBetweenLos(RIPM3 *pmatDst, int, void *, RIPM3 *pmatSrc);
+void ConvertMatBetweenLos(RIPM3 *pmatDst, int, void *, RIPM3 *pmatSrc) SLY2_SRET_LABEL("ConvertMatBetweenLos", "ConvertMatBetweenLosInto");
 }
 // LEAF HandleBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
 // orientation taken into the hit body's space, and removes the leaf. pa: the bounce contact (hit object, hit body).

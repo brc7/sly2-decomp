@@ -1133,7 +1133,7 @@ struct X {
 extern qword D_002A2DD0 __asm__("D_002A2DD0"), g_normalZ __asm__("g_normalZ"), D_002BC380 __asm__("D_002BC380");
 void UpdateXfJobRange(void *pv, X *px) __asm__("UpdateXfJobRange");
 void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, qword *pacc) __asm__("EvaluateBezierPos");
-M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
+M3 BuildOrthonormalMatrixZ(qword a, qword b) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc) __asm__("ConvertXfMat");
 
 

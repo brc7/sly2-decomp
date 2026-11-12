@@ -1065,10 +1065,10 @@ extern char D_002BDAB0[] __asm__("D_002BDAB0"), D_002BDAC0[] __asm__("D_002BDAC0
 struct Y { char pad[0x1BC]; float turretFov; char pad1[0x1D0 - 0x1C0]; LO *plo; int isSmoothing; };
 
 void UpdateCplcy(CPTURRET *p) __asm__("UpdateCplcy");
-M3 MulMatrix3Matrix3(M4 *pm, M3 *pm2) __asm__("MulMatrix3Matrix3");
+M3 MulMatrix3Matrix3(M4 *pm, M3 *pm2) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, qword *pv) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf"); /* SmoothValue */
-M3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword v, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 qword *VECTOR_opAssign(qword *p, qword v) __asm__("VECTOR_opAssign");
 void SetCmMat4(CM *p, M4 *m) __asm__("SetCmMat4");
 void UpdateCpturret(CPTURRET *p) __asm__("UpdateCpturret");

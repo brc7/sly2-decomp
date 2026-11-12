@@ -87,7 +87,7 @@ void InitSl(void *pdl, int ibDle);
 void AppendSlEntry(void *pdl, void *pv);
 void SetLoBusyKind(WR *warp, int busyk);
 void UpdateLo(WR *warp);
-M3 BuildAxisAngleRotationMatrix(qwordV,float);
+M3 BuildAxisAngleRotationMatrix(qwordV,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 }
 void UpdateWrStateVectors(WR *warp) __asm__("UpdateWrStateVectors__FP2WR");
 float UNoise(int n);

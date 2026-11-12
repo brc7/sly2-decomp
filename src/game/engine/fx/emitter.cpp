@@ -2107,3 +2107,17 @@ extern const unsigned int D_002A5140[2] __asm__("D_002A5140") = {0xFFFF0000, (un
 extern const float D_002A5148 = 3.40282347e+38f;
 extern const float D_002A514C = 3.40282347e+38f;
 extern const float D_002A5150 = 3.40282347e+38f;
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_emitter {
+struct M4R { qword r[4]; };
+extern "C" M4R CalculateEmitdvMatrix_value(void *) __asm__("CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4");
+extern "C" M4R *CalculateEmitdvMatrixInto(M4R *out, void *emitdv)
+{ *out = CalculateEmitdvMatrix_value(emitdv); return out; }
+} // namespace SRET_emitter
+#endif

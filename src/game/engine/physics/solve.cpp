@@ -147,7 +147,7 @@ void UpdateSoPartMatrices(SOV *);
 void UpdateSoPartGeom(SOPART *);
 void ClearSoTreeDirty(SOV *);
 void SettleXfSlot(SOV *, XFV *);
-M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps);
+M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps) SLY2_SRET_LABEL("InvertMatrix3Cofactor", "InvertMatrix3CofactorInto");
 qword GetLoWorldPos(SOV *pso);
 
 void SolveSwContactGroups(SW *psw, int k);
@@ -671,7 +671,7 @@ extern "C" void ApplySoImpactVelocity(SOV *object)
 }
 
 // Apply queued translation and rotation, then refresh changed objects.
-extern "C" M3 func_0011B570R(qword) __asm__("BuildRotationMatrixFromVector");
+extern "C" M3 func_0011B570R(qword) SLY2_SRET_LABEL("BuildRotationMatrixFromVector", "BuildRotationMatrixFromVectorValue");
 // Set *out when a and b are equal within 0.0001 on x, y and z.
 static inline void NearR(int*out,qword a,qword b){if(AreFloatsNear__Ffff(QwordX(a),QwordX(b),0.0001f))if(AreFloatsNear__Ffff(QwordY(a),QwordY(b),0.0001f))*out=AreFloatsNear__Ffff(QwordZ(a),QwordZ(b),0.0001f)!=0;}
 // Return a + b.

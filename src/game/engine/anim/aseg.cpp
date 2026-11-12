@@ -61,9 +61,9 @@ void EvaluateXfSlotValue(ASEGA *, int);
 void HandleAsegaEventsFastForward(ASEGA *);
 void SyncAsegaEventCursor__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
-M4 BuildXfValueMatrix(XF *pxf, qword q);
+M4 BuildXfValueMatrix(XF *pxf, qword q) SLY2_SRET_LABEL("BuildXfValueMatrix", "BuildXfValueMatrixValue");
 M4 BuildEulerDerivativeMatrix(XF *pxf, M4 *pm, qword q1, qword q2);
-M4 BuildXfValueDerivativeMatrix(XF *pxf, qword q);
+M4 BuildXfValueDerivativeMatrix(XF *pxf, qword q) SLY2_SRET_LABEL("BuildXfValueDerivativeMatrix", "BuildXfValueDerivativeMatrixValue");
 void RetractAsega(ASEGA *player);
 void SeekAsega(ASEGA *player, SEEK seek, float t, float svt);          /* SeekAsega */
 void SetAsegaMasterSpeed(ASEGA *player, float svt);

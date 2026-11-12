@@ -360,7 +360,7 @@ void PresetJtAccelZap(void*) __asm__("PresetJtAccelZap");void PresetJtAccelHide(
 qword GetStepAsegaTranslation(JT*,ASEGA*,float) __asm__("GetStepAsegaTranslation");float GetAsegLabelTime(void*,int) __asm__("GetAsegLabelTime");
 void AddSoAcceleration(JT*,qword) __asm__("AddSoAcceleration");qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
 M4*GetLoWorldMatrix(JT*) __asm__("GetLoWorldMatrix");float SplitVectorAlongAxis(qword,qword,qword*,qword*) __asm__("SplitVectorAlongAxis");
-M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 
 struct VU_FLOAT{qword qw;};
 // Broadcast a float into a VU0 register.
@@ -1672,7 +1672,7 @@ int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("IsSte
 qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity) __asm__("CalculateBallisticLaunchVelocity");
 
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("TryGrabJtNearestCandidate");
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 extern float D_002BF354 __asm__("D_002BF354");
 extern float D_002BF360 __asm__("D_002BF360");
 extern float D_002BF364 __asm__("D_002BF364");
@@ -2019,7 +2019,7 @@ typedef struct { qword r[4]; } MATRIX4;
 extern float GetAsegLabelTime(void *p, int n) __asm__("GetAsegLabelTime");
 extern void PredictAsegTransform(void *a, float g, JT *p, float h, void *b, void *c, MATRIX4 *pm, int n) __asm__("PredictAsegTransform");
 extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm) __asm__("DecomposeRotationMatrixToEuler");
-extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm) __asm__("InvertMatrix4Rigid");
+extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 // Transform point v by the 4x4 matrix pm.
 extern "C" { static __inline__ qword Mul(MATRIX4 *pm, qword v)
 {
@@ -4359,7 +4359,7 @@ typedef struct { qword r[3]; } M3;
 extern qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 extern void SetStepTargetHeadingFromVector(JT *p, qword v) __asm__("SetStepTargetHeadingFromVector");
 extern float SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg) __asm__("SmoothValue__FfffP3SMPPf");
-extern M3 *InvertMatrix3Cofactor(M3 *pmOut, qword *aqwRows) __asm__("InvertMatrix3Cofactor");
+extern M3 *InvertMatrix3Cofactor(M3 *pmOut, qword *aqwRows) SLY2_SRET_LABEL("InvertMatrix3Cofactor", "InvertMatrix3CofactorInto");
 extern float D_002BF414 __asm__("D_002BF414");
 extern char D_002BF418[] __asm__("D_002BF418");
 extern qword D_002A2DA0 __asm__("D_002A2DA0");

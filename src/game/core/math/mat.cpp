@@ -81,16 +81,16 @@ M4 InvertMatrix4Rigid(M4 *pm);
 }
 /* Callers' views (asm labels): these callers see a struct-returning function or other argument types. */
 M3 LoadRotateMatrixSinCosV(VU_FLOAT s, VU_FLOAT c, qword axis) __asm__("LoadRotateMatrixSinCos");
-M3 func_0011B500R(float rad, qword axis) __asm__("BuildAxisAngleRotationMatrix");
+M3 func_0011B500R(float rad, qword axis) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 void func_0011B500V(M3 *pm, float g, qword axis) __asm__("BuildAxisAngleRotationMatrix");
-MATRIX3 BuildOrthonormalMatrixZR(qword vecX, qword vecY) __asm__("BuildOrthonormalMatrixZ");
+MATRIX3 BuildOrthonormalMatrixZR(qword vecX, qword vecY) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 M3 BuildRotateVectorsMatrixR(qword a, qword b)
     SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
-M3 MulMatrix3Matrix3R(M3 *pa, M3 *pb) __asm__("MulMatrix3Matrix3");
+M3 MulMatrix3Matrix3R(M3 *pa, M3 *pb) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 /* ... or pass the hidden result pointer by hand (C assigns the result straight into the variable; C++ would go through a
    temporary). */
-M3 *LoadRotateMatrixSinCosP(M3 *pmRet, qword s, qword c, qword axis) __asm__("LoadRotateMatrixSinCos");
-MATRIX4 *InvertMatrix4RigidP(MATRIX4 *pmatRet, void *pv) __asm__("InvertMatrix4Rigid");
+M3 *LoadRotateMatrixSinCosP(M3 *pmRet, qword s, qword c, qword axis) SLY2_SRET_LABEL("LoadRotateMatrixSinCos", "LoadRotateMatrixSinCosInto");
+MATRIX4 *InvertMatrix4RigidP(MATRIX4 *pmatRet, void *pv) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b);
 MATRIX4 *MulMatrix4Matrix4P(MATRIX4 *pmatRet, const MATRIX4 *pmatA, const MATRIX4 *pmatB)
     SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
@@ -1238,3 +1238,51 @@ extern const float r_D_002A2D30[16] __asm__("D_002A2D30") __attribute__((aligned
 extern const float r_D_002A2D70[12] __asm__("D_002A2D70") __attribute__((aligned(16))) =
     {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_mat {
+struct M3R { qword r[3]; };
+struct M4R { qword r[4]; };
+extern "C" M3R *BuildAxisAngleRotationMatrix_out(M3R *, float, qword) __asm__("BuildAxisAngleRotationMatrix");
+extern "C" M3R BuildAxisAngleRotationMatrixValue(float rad, qword axis)
+{ M3R m; BuildAxisAngleRotationMatrix_out(&m, rad, axis); return m; }
+extern "C" M3R *BuildOrthonormalMatrixZ_out(M3R *, qword, qword) __asm__("BuildOrthonormalMatrixZ");
+extern "C" M3R BuildOrthonormalMatrixZValue(qword direction, qword up)
+{ M3R m; BuildOrthonormalMatrixZ_out(&m, direction, up); return m; }
+extern "C" M3R *BuildRotationMatrixFromVector_out(M3R *, qword) __asm__("BuildRotationMatrixFromVector");
+extern "C" M3R BuildRotationMatrixFromVectorValue(qword v)
+{ M3R m; BuildRotationMatrixFromVector_out(&m, v); return m; }
+extern "C" M3R *LoadLookAtMatrix_out(M3R *, qword) __asm__("LoadLookAtMatrix");
+extern "C" M3R LoadLookAtMatrixValue(qword vec)
+{ M3R m; LoadLookAtMatrix_out(&m, vec); return m; }
+extern "C" M4R *LoadMatrixFromPosRotScalar_out(M4R *, qword, const M3R *, float) __asm__("LoadMatrixFromPosRotScalar");
+extern "C" M4R LoadMatrixFromPosRotScalarValue(qword pos, const M3R *rotation, float scale)
+{ M4R m; LoadMatrixFromPosRotScalar_out(&m, pos, rotation, scale); return m; }
+extern "C" M4R *LoadMatrixFromPosRotScale_out(M4R *, qword, const M3R *, const void *) __asm__("LoadMatrixFromPosRotScale");
+extern "C" M4R LoadMatrixFromPosRotScaleValue(qword pos, const M3R *rotation, const void *scale)
+{ M4R m; LoadMatrixFromPosRotScale_out(&m, pos, rotation, scale); return m; }
+extern "C" M3R *LoadRotateMatrixEuler_out(M3R *, qword) __asm__("LoadRotateMatrixEuler");
+extern "C" M3R LoadRotateMatrixEulerValue(qword euler)
+{ M3R m; LoadRotateMatrixEuler_out(&m, euler); return m; }
+extern "C" M3R *LoadRotateMatrixPanTilt_out(M3R *, float, float) __asm__("LoadRotateMatrixPanTilt");
+extern "C" M3R LoadRotateMatrixPanTiltValue(float pan, float tilt)
+{ M3R m; LoadRotateMatrixPanTilt_out(&m, pan, tilt); return m; }
+extern "C" M3R *MulMatrix3Matrix3_out(M3R *, const M3R *, const M3R *) __asm__("MulMatrix3Matrix3");
+extern "C" M3R MulMatrix3Matrix3Value(const M3R *a, const M3R *b)
+{ M3R m; MulMatrix3Matrix3_out(&m, a, b); return m; }
+extern "C" M3R InvertMatrix3Cofactor_value(const M3R *) __asm__("InvertMatrix3Cofactor");
+extern "C" M3R *InvertMatrix3CofactorInto(M3R *out, const M3R *matrix)
+{ *out = InvertMatrix3Cofactor_value(matrix); return out; }
+extern "C" M4R InvertMatrix4Rigid_value(const M4R *) __asm__("InvertMatrix4Rigid");
+extern "C" M4R *InvertMatrix4RigidInto(M4R *out, const M4R *matrix)
+{ *out = InvertMatrix4Rigid_value(matrix); return out; }
+extern "C" M3R LoadRotateMatrixSinCos_value(qword, qword, qword) __asm__("LoadRotateMatrixSinCos");
+extern "C" M3R *LoadRotateMatrixSinCosInto(M3R *out, qword sine, qword cosine, qword axis)
+{ *out = LoadRotateMatrixSinCos_value(sine, cosine, axis); return out; }
+} // namespace SRET_mat
+#endif

@@ -291,7 +291,7 @@ extern "C" void StartJtThrowFlight(JTTHROW *pjtthrow, LO *plo);
 
 void PutSwHeroAtWarp(WARP *pwarp) __asm__("PutHeroAtWarp");
 
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 
 GRABSPOTV *PspotFromLo(LO *plo) __asm__("GetGrabspotFromLo");
 
@@ -748,7 +748,7 @@ extern "C" void AddRelayStopBlock(RELAY *relay, OID oidLabel)
 namespace M_AddRelayWaitBlocks {
 struct CMD;
 struct CMD { char pad[0x10]; unsigned int c; int a[4]; };
-void SetValuesFromSpliceList(CRefData *pref, void *x, int a, int b, unsigned int *pc, int *pa) __asm__("SetValuesFromSpliceList");
+void SetValuesFromSpliceList(CRefData *pref, void *x, int a, int b, unsigned int *pc, int *pa) SLY2_SRET_LABEL("SetValuesFromSpliceList", "SetValuesFromSpliceListInto");
 struct CMD *AddRelayCommand(void *pq, int kind, int b) __asm__("AddRelayCommand");
 void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb) __asm__("CopyAb__FPvT0Ui");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");

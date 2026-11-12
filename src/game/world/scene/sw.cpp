@@ -1666,7 +1666,7 @@ extern "C" int GetCurrentWorld(void)
 } // namespace M_NWorldCur
 
 namespace M_NEpisodeBest {
-void GetSaveVarByName(CRefData *r, char *s, int a) __asm__("GetSaveVarByName");
+void GetSaveVarByName(CRefData *r, char *s, int a) SLY2_SRET_LABEL("GetSaveVarByName", "GetSaveVarByNameInto");
 void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 // Returns the best episode reached (save variable "episodeBest").
 extern "C" int GetBestEpisode(void)

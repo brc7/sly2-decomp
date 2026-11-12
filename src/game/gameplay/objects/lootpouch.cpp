@@ -52,7 +52,7 @@ void *GetHeroPo(SW *);
 qwordV GetLoWorldPos(void *);
 float RandomFloatInRange__Fff(float, float);
 qwordV SetVectorCylind(float, float, float);
-M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
+M3 BuildOrthonormalMatrixZ(qwordV, qwordV) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 qwordV CalculateVelocityToReachPos(qwordV, qwordV, qwordV, float);
 void LaunchSprayedDprize(SOV *, qwordV, qwordV, float, float);
 void ClearLootPouchLoot(SPRAYER *);

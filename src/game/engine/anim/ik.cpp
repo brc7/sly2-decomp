@@ -156,7 +156,7 @@ struct WORK{U row[23];};
 // Placement new: construct at p.
 inline void*operator new(unsigned int,void*p){return p;}
 extern "C" float acosf(float);
-extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float);
+extern "C" M3 BuildAxisAngleRotationMatrix(qwordV,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 extern "C" qwordV*VECTOR_opAssign(qwordV*,qwordV);
 // Copy the request's snapshot matrix into the current frame's local matrix (register-pinned); returns 1.0.
 static inline float CopySnapshot(IKREC*q){float high;register XF *d __asm__("$4")=IKCUR(q);register qwordV odd __asm__("$3"),even __asm__("$2");__asm__("li.s %2,1.0\n\tlw %0,%3\n\tlq %1,%4":"=&r"(d),"=r"(odd),"=f"(high):"m"(q->pxfUpper),"m"(IKSNAP(q).r[0].q):"at");d->localMatq.r[0].q=odd;even=IKSNAP(q).r[1].q;d->localMatq.r[1].q=even;odd=IKSNAP(q).r[2].q;d->localMatq.r[2].q=odd;even=IKSNAP(q).r[3].q;d->localMatq.r[3].q=even;return high;}

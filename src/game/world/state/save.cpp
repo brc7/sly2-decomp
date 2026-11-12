@@ -666,3 +666,42 @@ namespace RO_ORDER { extern const char r_D_002A78F8[] __asm__("D_002A78F8") = "f
 // after safehouse's word at 0x3D4A54; SAVEDATA itself is 8-aligned, and its 0x5408 bytes are what the copies in this
 // file move). Defined after the functions, so none sees a definition.
 SAVEDATA g_gs __attribute__((aligned(16)));
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_save {
+extern "C" CRefData *GetSaveVarInto(CRefData *out, SAVEVARS *schema, SVKEY *key, SAVEDATA *saveSet)
+{ CRef r = GetSaveVar(schema, key, saveSet); *out = r; r.m_tagk = -1; return out; }
+extern "C" CRefData *SetSaveVarInto(CRefData *out, SAVEVARS *schema, SVKEY *key, const CRef &refVal, SAVEDATA *saveSet)
+{ CRef r = SetSaveVar(schema, key, refVal, saveSet); *out = r; r.m_tagk = -1; return out; }
+/* The varargs pair: the same bodies as GetSaveVarByName / SetSaveVarByName, writing into *out. */
+extern "C" CRefData *GetSaveVarByNameInto(CRefData *out, const char *pchz, ...)
+{
+    STACKSCOPE stackscope;
+    SVKEY key;
+    VA_LIST ap;
+    VA_START(ap, pchz);
+    BuildSaveKeyV(pchz, ap, &key);
+    CRef r = GetSaveVar(&g_sw.savevars, &key, &g_gs);
+    *out = r;
+    r.m_tagk = -1;
+    return out;
+}
+extern "C" CRefData *SetSaveVarByNameInto(CRefData *out, const CRef &refVal, const char *pchz, ...)
+{
+    STACKSCOPE stackscope;
+    SVKEY key;
+    VA_LIST ap;
+    VA_START(ap, pchz);
+    BuildSaveKeyV(pchz, ap, &key);
+    CRef r = SetSaveVar(&g_sw.savevars, &key, refVal, &g_gs);
+    *out = r;
+    r.m_tagk = -1;
+    return out;
+}
+} // namespace SRET_save
+#endif

@@ -120,7 +120,7 @@ void DropStepplayerBooty(HERO *);
 void RenderSoSelf(BOOTYV *);
 qword GetLoWorldPos(void *);
 void *GetLoWorldMatrix(void *);
-M4 LoadMatrixFromPosRotScale(qword, void *, VU *);
+M4 LoadMatrixFromPosRotScale(qword, void *, VU *) SLY2_SRET_LABEL("LoadMatrixFromPosRotScale", "LoadMatrixFromPosRotScaleValue");
 void RenderLoAtMatrix(BOOTYV *, M4 *, float, float);
 void HandleBasicMessage(BOOTYV *, int, MATCH *);
 int ShouldSoIgnoreIntersection(BOOTYV *, struct XPM *);

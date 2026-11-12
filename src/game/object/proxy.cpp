@@ -555,7 +555,7 @@ struct E { int kind; int cid; struct RC *frame; int cb; void *pvOptions; LO *plo
 struct SP { struct RC *p; };
 void CloneXfm(PROXY *p, PROXY *q) __asm__("CloneXfm");
 struct E *AllocCopyFromWorldHeap(struct SWALLOC *pal, struct E *pv) __asm__("AllocCopyFromWorldHeap");
-void CFrame_CloneTo(struct SP *pret, struct RC *p, PROXY *ps) __asm__("CFrame_CloneTo");
+void CFrame_CloneTo(struct SP *pret, struct RC *p, PROXY *ps) SLY2_SRET_LABEL("CFrame_CloneTo", "CFrame_CloneToInto");
 void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
 void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p) __asm__("MakeRoot__t6CGcObj1Z6CFrame");
 // PROXY's Clone (vtable slot 41): clones the XFM part and copies the init records.

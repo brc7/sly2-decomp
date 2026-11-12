@@ -80,7 +80,7 @@ void SetTag(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
 void Decref(CRefData *pref) __asm__("Decref__4CRef");
 void CompareNumericArgs(CRefData *pref, CRefData *args, int cmpk) __asm__("CompareNumericArgs__FP4CRef4CMPK");
 void ApplyUnaryFloatOp(CRefData *pref, CRefData *args, int ufok) __asm__("ApplyUnaryFloatOp__FP4CRef4UFOK");
-void AreRefsStructurallyEqual(CRefData *pref, CRefData *pref1, CRefData *pref2) __asm__("AreRefsStructurallyEqual__FP4CRefT0");
+void AreRefsStructurallyEqual(CRefData *pref, CRefData *pref1, CRefData *pref2) SLY2_SRET_LABEL("AreRefsStructurallyEqual__FP4CRefT0", "AreRefsStructurallyEqualInto");
 CRefData *__4CRefRC4CRef(CRefData *pref, CRefData *prefSrc);             /* CRef copy constructor */
 CRefData *CRef_ctor_CPair(CRefData *pref, CPair *ppair);
 CRefData *CRef_ctor_VECTOR(CRefData *pref, VECTORQ *pvec);
@@ -1535,7 +1535,7 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("BuildCallListForTwoArgs");
+extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) SLY2_SRET_LABEL("BuildCallListForTwoArgs", "BuildCallListForTwoArgsInto");
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CFrame *frame) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinMap__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinMap__FiP4CRefP6CFrame");
 // Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results.
@@ -1600,7 +1600,7 @@ struct SPN {
     CPair *operator->() { return p; }
     int pad[3];
 };
-extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("BuildCallListForTwoArgs");
+extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) SLY2_SRET_LABEL("BuildCallListForTwoArgs", "BuildCallListForTwoArgsInto");
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CFrame *frame) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinFilter__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinFilter__FiP4CRefP6CFrame");
 // Splice builtin "filter": same, keeps elems where result true.
@@ -1659,7 +1659,7 @@ struct SPN {
     // Access the held pair.
     CPair *operator->() { return p; }
 };
-extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) __asm__("BuildCallListForTwoArgs");
+extern void BuildCallListForTwoArgs(SPN *psp, CRef **ppa, CRef **ppb) SLY2_SRET_LABEL("BuildCallListForTwoArgs", "BuildCallListForTwoArgsInto");
 extern CRef EvalExpression__FP5CPairP6CFrame(CPair *pn, CFrame *frame) __asm__("EvalExpression__FP5CPairP6CFrame");
 extern CRef BuiltinForEach__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinForEach__FiP4CRefP6CFrame");
 // Splice builtin "for-each": same, discards results.
@@ -1717,7 +1717,7 @@ CRef BuiltinEval__FiP4CRefP6CFrame(int cref, CRef *pref, CFrame *frame)
 namespace M_BuiltinVector__FiP4CRefP6CFrame {
 
 
-CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef CRef_CoerceF32(CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref, CFrame *frame) __asm__("BuiltinVector__FiP4CRefP6CFrame");
 
 // Splice builtin "vector": 0/1/3 args -> VECTOR (Sly2 made it varargs).
@@ -1763,7 +1763,7 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref, CFrame *frame)
 namespace M_BuiltinMatrix__FiP4CRefP6CFrame {
 
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
-CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef CRef_CoerceF32(CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref, CFrame *frame) __asm__("BuiltinMatrix__FiP4CRefP6CFrame");
 
 // Splice builtin "matrix": 0/1/3/4 args -> MATRIX4 identity-based.
@@ -1951,7 +1951,7 @@ extern "C" CRefData *BuiltinGetElement__FiP4CRefP6CFrame(CRefData *ret, int carg
 // 0x1223C0 BuiltinRandom__FiP4CRefP6CFrame
 namespace M_BuiltinRandom__FiP4CRefP6CFrame {
 
-CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef CRef_CoerceF32(CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 int RandomIntInRange__Fii(int a, int b) __asm__("RandomIntInRange__Fii");
 float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
 CRef BuiltinRandom__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinRandom__FiP4CRefP6CFrame");
@@ -2380,7 +2380,7 @@ struct XFM { char pad[0x80]; qword pos; };
 struct O { char pad[0xE8]; XFM *pxfm; };
 struct W { char pad[0xC]; O *po; };
 
-CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef CRef_CoerceF32(CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 qword CalculateBallisticLaunchVelocity(qword a, qword b, qword c, float g) __asm__("CalculateBallisticLaunchVelocity");
 CRef BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinVectorBallisticVelocity__FiP4CRefP6CFrame");
 
@@ -2491,9 +2491,9 @@ namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame {
 // stores each row right after its asm, and also writes a second (dead) M3 copy t, which is the target's 0xB0 slot.
 typedef union { qword q; float g; } UF;
 
-MATRIX3Q MulMatrix3Matrix3(MATRIX3Q *pa, MATRIX3Q *pb) __asm__("MulMatrix3Matrix3");
+MATRIX3Q MulMatrix3Matrix3(MATRIX3Q *pa, MATRIX3Q *pb) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3Q *pmat, float *prad, qword *pvec) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
-MATRIX3Q BuildAxisAngleRotationMatrix(float rad, qword axis) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3Q BuildAxisAngleRotationMatrix(float rad, qword axis) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 
 // Return the 3x3 matrix product a * *pb.
@@ -2615,7 +2615,7 @@ struct MATRIX3 { VECTOR4 mat[3]; };
 struct W { char pad[0xC]; qword *pv; };
 extern qword g_normalZ __asm__("g_normalZ");
 
-MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
+MATRIX3 BuildOrthonormalMatrixZ(qword a, qword b) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinMatrixLookAt__FiP4CRefP6CFrame");
 
 // Return *pb - *pa.
@@ -2723,7 +2723,7 @@ extern "C" CRefData *BuiltinClqEvaluateLm__FiP4CRefP6CFrame(CRefData *ret, int c
 // 0x123498 BuiltinClqFit__FiP4CRefP6CFrame
 namespace M_BuiltinClqFit__FiP4CRefP6CFrame {
 
-CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef CRef_CoerceF32(CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 void FitClq__FffffP3CLQ(void *pv, float a, float b, float c, float d) __asm__("FitClq__FffffP3CLQ");
 CRef BuiltinClqFit__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinClqFit__FiP4CRefP6CFrame");
 
@@ -3069,7 +3069,7 @@ extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool");
 struct R { char pad[0xC]; int handle; };   /* a scheduled callback: its handle at +0xC */
 
 void FreeSlotheapSlot(void *pheap, void *pv) __asm__("FreeSlotheapSlot");
-CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
+CRef CRef_CoerceF32(CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 R *ScheduleSwSpliceCallback(SW *pg, int n, CPair *pnode, float t) __asm__("ScheduleSwSpliceCallback");
 
 struct SPN {
@@ -3184,7 +3184,7 @@ CRef BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(int cref, CRef *args, CFrame *fr
 
 // 0x123FB8 BuiltinAddOption__FiP4CRefP6CFrame
 namespace M_BuiltinAddOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) SLY2_SRET_LABEL("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK", "BuiltinObjectOptionInto");
 // Splice builtin "addo": BuiltinObjectOption(op 0x6C) -> AddBasicOption.
 SLY2_BUILTIN_C(BuiltinAddOption__FiP4CRefP6CFrame)
 extern "C" CRefData *BuiltinAddOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
@@ -3196,7 +3196,7 @@ extern "C" CRefData *BuiltinAddOption__FiP4CRefP6CFrame(CRefData *ret, int cref,
 
 // 0x123FE8 BuiltinEnsureOption__FiP4CRefP6CFrame
 namespace M_BuiltinEnsureOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) SLY2_SRET_LABEL("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK", "BuiltinObjectOptionInto");
 // Splice builtin "ensureo": op 0x6D EnsureBasicOption.
 SLY2_BUILTIN_C(BuiltinEnsureOption__FiP4CRefP6CFrame)
 extern "C" CRefData *BuiltinEnsureOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
@@ -3208,7 +3208,7 @@ extern "C" CRefData *BuiltinEnsureOption__FiP4CRefP6CFrame(CRefData *ret, int cr
 
 // 0x124018 BuiltinSetOption__FiP4CRefP6CFrame
 namespace M_BuiltinSetOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) SLY2_SRET_LABEL("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK", "BuiltinObjectOptionInto");
 // Splice builtin "seto!": op 0x6E SetBasicOption.
 SLY2_BUILTIN_C(BuiltinSetOption__FiP4CRefP6CFrame)
 extern "C" CRefData *BuiltinSetOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
@@ -3220,7 +3220,7 @@ extern "C" CRefData *BuiltinSetOption__FiP4CRefP6CFrame(CRefData *ret, int cref,
 
 // 0x124048 BuiltinGetOption__FiP4CRefP6CFrame
 namespace M_BuiltinGetOption__FiP4CRefP6CFrame {
-void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) __asm__("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK");
+void BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(CRefData *ret, int cref, CRefData *args, CFrame *frame, int k) SLY2_SRET_LABEL("BuiltinObjectOption__FiP4CRefP6CFrame4BIFK", "BuiltinObjectOptionInto");
 // Splice builtin "geto": op 0x6F GetBasicOption.
 SLY2_BUILTIN_C(BuiltinGetOption__FiP4CRefP6CFrame)
 extern "C" CRefData *BuiltinGetOption__FiP4CRefP6CFrame(CRefData *ret, int cref, CRefData *args, CFrame *frame)
@@ -3732,7 +3732,7 @@ extern "C" CRefData *BuiltinConvertObjectVector__FiP4CRefP6CFrame(CRefData *ret,
 namespace M_BuiltinConvertObjectMatrix__FiP4CRefP6CFrame {
 
 void SetTag__4CRef4TAGK(CRefData *pref, int tagk) __asm__("SetTag__4CRef4TAGK");
-void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c) __asm__("ConvertMat4BetweenLos");
+void ConvertMat4BetweenLos(MATRIX4 *pmat, int a, int b, int c) SLY2_SRET_LABEL("ConvertMat4BetweenLos", "ConvertMat4BetweenLosInto");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Splice builtin "convert-object-matrix": ConvertMatBetweenLos 0x1A71B0.
 SLY2_BUILTIN_C(BuiltinConvertObjectMatrix__FiP4CRefP6CFrame)
@@ -4308,3 +4308,36 @@ BIF g_mpbifkbif[169] __asm__("g_mpbifkbif") = {
     {BuiltinStub165, 0, 0}, {BuiltinStub166, 2, 0}, {BuiltinStub167, 0, 0}, {BuiltinStub168, 0, 0}
 };
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_bif {
+extern "C" CRefData *AreRefsStructurallyEqualInto(CRefData *out, CRefData *a, CRefData *b)
+{
+    CRef r = M_AreRefsStructurallyEqual__FP4CRefT0::AreRefsStructurallyEqual__FP4CRefT0(*(CRef *)a, *(CRef *)b);
+    *out = r;
+    r.m_tagk = -1;   /* nil: ~CRef releases nothing (the reference moved into *out) */
+    return out;
+}
+extern "C" M_BuildCallListForTwoArgs::SPN *BuildCallListForTwoArgsInto(M_BuildCallListForTwoArgs::SPN *out, CRef **ppref1,
+                                                                          CRef **ppref2)
+{
+    M_BuildCallListForTwoArgs::SPN r = M_BuildCallListForTwoArgs::BuildCallListForTwoArgs(ppref1, ppref2);
+    out->p = r.p;
+    r.p = 0;         /* moved into *out */
+    return out;
+}
+extern "C" CRefData *BuiltinObjectOptionInto(CRefData *out, int cref, CRefData *args, CFrame *frame, int op)
+{
+    CRef r = M_BuiltinObjectOption__FiP4CRefP6CFrame4BIFK::BuiltinObjectOption__FiP4CRefP6CFrame4BIFK(cref, (CRef *)args,
+                                                                                                    frame, op);
+    *out = r;
+    r.m_tagk = -1;
+    return out;
+}
+} // namespace SRET_bif
+#endif

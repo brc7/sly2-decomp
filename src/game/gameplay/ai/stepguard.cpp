@@ -1118,7 +1118,7 @@ qword GetLoWorldPos(STEPGUARD *) __asm__("GetLoWorldPos");
 float sinf(float) __asm__("sinf");
 qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
-M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
+M4 *InvertMatrix4Rigid(M4 *,const M4 *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 
 // VU0 helper: vector difference.
 // VU0 helper: length of a vector.
@@ -1272,7 +1272,7 @@ extern "C" int ListSgfsInMask(unsigned long mask, int *sgfs)
 
 // 0x207B10 GetSgfMaskFromSpliceList
 namespace M_func_00207B10 {
-void SetValuesFromSpliceList(CRefData *ref, void *list, int type, int capacity, int *count, int *values) __asm__("SetValuesFromSpliceList");
+void SetValuesFromSpliceList(CRefData *ref, void *list, int type, int capacity, int *count, int *values) SLY2_SRET_LABEL("SetValuesFromSpliceList", "SetValuesFromSpliceListInto");
 unsigned long GetSgfArrayMask(int count, int *sgfs) __asm__("GetSgfArrayMask");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
@@ -2641,7 +2641,7 @@ extern "C" int StepguardHasSgf(STEPGUARD *guard, int sgf)
 namespace M_func_00209A88 {
 
 void *ListSgfsInMask(long mask, char *sgfs) __asm__("ListSgfsInMask");
-void BuildSpliceListFromUniformValues(CRefData *ret, void *count, int type, char *values) __asm__("BuildSpliceListFromUniformValues");
+void BuildSpliceListFromUniformValues(CRefData *ret, void *count, int type, char *values) SLY2_SRET_LABEL("BuildSpliceListFromUniformValues", "BuildSpliceListFromUniformValuesInto");
 // 0x209A88: Splice getter: the guard's set flags as a list.
 extern "C" CRefData *GetStepguardSgfRefList(CRefData *ret, STEPGUARD *guard)
 {
@@ -2849,7 +2849,7 @@ extern "C" int GetStepguardJuggledValue(STEPGUARD *guard)
 namespace M_func_0020A058 {
 
 typedef struct { int tagk; int tag; } CRef;
-void SetValuesFromSpliceList(CRef *ref, int list, int type, int capacity, void *count, void *values) __asm__("SetValuesFromSpliceList");
+void SetValuesFromSpliceList(CRef *ref, int list, int type, int capacity, void *count, void *values) SLY2_SRET_LABEL("SetValuesFromSpliceList", "SetValuesFromSpliceListInto");
 void func_00129658(CRef *pd, CRef *ps) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *ref) __asm__("Decref__4CRef");
 // 0x20A058: Splice option: sets the designated target list and the avoid-object list (two typed reference lists).

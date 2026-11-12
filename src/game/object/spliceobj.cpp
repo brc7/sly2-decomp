@@ -14,7 +14,7 @@
 #include "sly2/method.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
-
+#include "sly2/port.h"
 // 0x2014C8 StaticInit_spliceobj and GlobalConstructors_spliceobj: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -43,8 +43,8 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 PVREC *FindOptionRecord(BASIC *object, int optionId);
 }
 /* CRef_CoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */
-CRef CoerceS32(const CRef *pref) __asm__("CRef_CoerceS32");
-CRef CoerceF32(const CRef *pref) __asm__("CRef_CoerceF32");
+CRef CoerceS32(const CRef *pref) SLY2_SRET_LABEL("CRef_CoerceS32", "CRef_CoerceS32Value");
+CRef CoerceF32(const CRef *pref) SLY2_SRET_LABEL("CRef_CoerceF32", "CRef_CoerceF32Value");
 CRef GetOptionRecordValue(void *pv, PVREC *record) __asm__("GetOptionRecordValue");
 CRef SetOptionRecordValue(void *pv, PVREC *record, CRef *pref) __asm__("SetOptionRecordValue");
 CRef SetValuesFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
@@ -526,3 +526,21 @@ CRef SetValuesFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, vo
     return CRef(0x24);
 }
 
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_spliceobj {
+extern "C" CRefData *BuildSpliceListFromUniformValuesInto(CRefData *out, int c, OTYP otyp, void *pv)
+{ CRef r = BuildSpliceListFromUniformValues(c, otyp, pv); *out = r; r.m_tagk = -1; return out; }
+extern "C" CRefData *BuildSpliceListFromValuesInto(CRefData *out, int c, OTYP *aotyp, void **apv)
+{ CRef r = BuildSpliceListFromValues(c, aotyp, apv); *out = r; r.m_tagk = -1; return out; }
+extern "C" CRefData *SetValuesFromSpliceListInto(CRefData *out, SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv)
+{ CRef r = SetValuesFromSpliceList(plist, otyp, nUnused, pc, apv); *out = r; r.m_tagk = -1; return out; }
+extern "C" CRefData *EnsureBasicOptionInto(CRefData *out, BASIC *object, int optionId, CRef *pref)
+{ CRef r = EnsureBasicOption(object, optionId, pref); *out = r; r.m_tagk = -1; return out; }
+} // namespace SRET_spliceobj
+#endif

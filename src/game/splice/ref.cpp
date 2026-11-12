@@ -611,3 +611,17 @@ void CRef::SetTag(TAGK tagk)
 inline CProc::~CProc()
 {
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_ref {
+extern "C" CRef CRef_CoerceF32Value(CRef *source)
+{ CRef r; CRef_CoerceF32(&r, source); return r; }   /* r starts nil, so writing over it releases nothing */
+extern "C" CRef CRef_CoerceS32Value(CRef *source)
+{ CRef r; CRef_CoerceS32(&r, source); return r; }
+} // namespace SRET_ref
+#endif

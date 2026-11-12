@@ -221,7 +221,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
 void OnLoRemove(TN *p);
 void EvaluateShapeAtDistance(SHAPE *pshape, float t, qword *ppos, qword *pnormal);
-MATRIX3Q BuildOrthonormalMatrixZ(qword, qword);
+MATRIX3Q BuildOrthonormalMatrixZ(qword, qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 qword SetVectorCylind(float, float, float);
 void GetVectorCylind(qword, float *, float *, float *);
 MATRIX3Q *GetLoWorldMatrix(TN *p);

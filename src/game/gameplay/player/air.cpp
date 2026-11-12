@@ -2047,7 +2047,7 @@ void SetStepTargetHeading(ACTOR *, float) __asm__("SetStepTargetHeading");
 void DrainStepplayerMp(ACTOR *, float) __asm__("DrainStepplayerMp");
 qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_LABEL("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3", "BuildRotateVectorsMatrixValue");
-M3 BuildAxisAngleRotationMatrix(qword, float) __asm__("BuildAxisAngleRotationMatrix");
+M3 BuildAxisAngleRotationMatrix(qword, float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 float atan2f(float, float) __asm__("atan2f");
 float cosf(float) __asm__("cosf");
 float SplitVectorAlongAxis(qword, qword, qword *, qword *) __asm__("SplitVectorAlongAxis");
@@ -2606,7 +2606,7 @@ namespace M_func_001995D8 {
 struct M3 {QWROW r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M3&operator=(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];return *this;}};
 struct M4 {QWROW r[4];};
 extern qword g_normalZ __asm__("g_normalZ");
-extern M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+extern M3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 // Pack x, y, z into a 128-bit value.
 static inline qword Pack(float x,float y,float z){QWROW u;qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));u.q=q;return q;}
 // Rotate v by the 3x3 matrix m.

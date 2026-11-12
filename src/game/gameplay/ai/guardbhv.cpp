@@ -5681,7 +5681,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 void StartBhv(BHV187 *p) __asm__("StartBhv");
 BHVANIM *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 qword *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
-struct M3 BuildOrthonormalMatrixZ(qword a, qword b) __asm__("BuildOrthonormalMatrixZ");
+struct M3 BuildOrthonormalMatrixZ(qword a, qword b) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 // 0x17D1F0: Attach behaviour (cid 0x13) vtable slot 8 (Start): pushes the stand animation and aligns to the attach
 // object's frame.
 // Also known as: Enter (upstream readable / Sly 1 name).

@@ -225,7 +225,7 @@ namespace M_func_0022CB90 {
 struct V {qword q;};
 struct M4 { qword r[4];  };
 extern qword ConvertEulerRatesToAngularVelocity(qword,qword) __asm__("ConvertEulerRatesToAngularVelocity");
-extern M4 BuildRotationDerivativeMatrix(void *,void *,V) __asm__("BuildRotationDerivativeMatrix");
+extern M4 BuildRotationDerivativeMatrix(void *,void *,V) SLY2_SRET_LABEL("BuildRotationDerivativeMatrix", "BuildRotationDerivativeMatrixValue");
 // The time derivative of an Euler-rotation slot's matrix: converts the angle rates to an angular velocity and builds
 // the rotation-derivative matrix from it (inferred).
 extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return m {
@@ -324,7 +324,7 @@ extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 extern void *func_002333B4(void *p, int c, int n) __asm__("memset");
 extern M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M3 *basis, qword v) __asm__("BuildRotationDerivativeMatrix");
-extern M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M3 *basis, qword c, qword d) __asm__("BuildEulerDerivativeMatrix");
+extern M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M3 *basis, qword c, qword d) SLY2_SRET_LABEL("BuildEulerDerivativeMatrix", "BuildEulerDerivativeMatrixInto");
 extern M4 *BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueDerivativeMatrix");
 extern qword GetXfValueFromMatrix(XF *pa, const M4 *matrix) __asm__("GetXfValueFromMatrix");
 extern qword DecomposeRotationMatrixToEuler(const M3 *rotation) __asm__("DecomposeRotationMatrixToEuler");
@@ -459,7 +459,7 @@ extern "C" M4 *EvaluateXfSlotMatrixDerivative(M4 *pr, XF *po)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022D148 {
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
@@ -532,7 +532,7 @@ union V {qword q;float f[4];};
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 
 M4 InvertMatrix4Rigid(const M4 *) __asm__("InvertMatrix4Rigid");
-M4 EvaluateXfSlotMatrixDerivative(XF *) __asm__("EvaluateXfSlotMatrixDerivative");
+M4 EvaluateXfSlotMatrixDerivative(XF *) SLY2_SRET_LABEL("EvaluateXfSlotMatrixDerivative", "EvaluateXfSlotMatrixDerivativeValue");
 void UpdateXfJobRange(void *,XF *) __asm__("UpdateXfJobRange");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
 
@@ -871,7 +871,7 @@ extern "C" void UpdateXfJobRange(void *pa, XF *p)
 //    $v0 loads, the spill `sq v0,0x1C0(sp)` is shared, and the goal reload becomes $vf4; a bare `asm("")` after it keeps the `sq` ahead of the argument moves of the next call.
 //  - the world-matrix tail is written with asm text (loads + vcallms in one output-less asm, the result rows as cfc2.i outputs) and ONE register pin instead of
 //    the personal draft's eight bound vf variables.
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
+MATRIX3 LoadRotateMatrix(qword vec) SLY2_SRET_LABEL("BuildRotationMatrixFromVector", "BuildRotationMatrixFromVectorValue");
 
 // 3x3 matrix product matL * matR.
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
@@ -907,7 +907,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pnormal);
 qword DecomposeRotateMatrixEuler(MATRIX3 *pmat) __asm__("DecomposeRotationMatrixToEuler");
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
-extern "C" MATRIX3 MulMatrix3Matrix3(MATRIX3 *pmat0, MATRIX3 *pmat1);
+extern "C" MATRIX3 MulMatrix3Matrix3(MATRIX3 *pmat0, MATRIX3 *pmat1) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 float NormalizeAngle(float rad);
 float SmoothValue(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 int AreFloatsNear(float g1, float g2, float gEpsilon);
@@ -949,7 +949,7 @@ extern qword D_002A2DA0;
 qword SlotRestValue(XF *xf, MATRIX4 *pmat) __asm__("GetXfValueFromMatrix");
 void SlotRefresh(SO *so, XF *xf) __asm__("UpdateXfJobRange");
 void SlotSetRole(SO *so, XF *xf, int nRole) __asm__("SetXfRole");
-MATRIX4 SlotStoreValue(XF *xf, qword qwVal) __asm__("BuildXfValueMatrix");
+MATRIX4 SlotStoreValue(XF *xf, qword qwVal) SLY2_SRET_LABEL("BuildXfValueMatrix", "BuildXfValueMatrixValue");
 qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate) __asm__("ConvertEulerRatesToAngularVelocity");
 extern "C" void RefreshSoAfterSlotUpdate(SO *so);
 extern "C" void SolveIk(SO *so, void *pv);
@@ -1166,7 +1166,7 @@ static inline void TurnSlotMat(XF *xf, MATRIX3 *pmatFrom, qword qwTurn)
     xf->localMatrix.mat[1][3] = 0.0f;
     xf->localMatrix.mat[0][3] = 0.0f;
 }
-MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 void UpdateSoSlots(SO *so) __asm__("UpdateSoSlots");
 // Per-frame update of all transform slots of an SO: actions by role (chase, spring, curves, IK, chains, constraints),
 // value integration and settling, then world-matrix invalidation. The heart of object animation.
@@ -1830,7 +1830,7 @@ extern "C" void UpdateSoXfWorldHierarchy(SO *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022FC48 {
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pd, M4 *ps) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4 *pd, M4 *ps) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 // Transform point v by the 4x4 matrix m.
 extern "C" { static inline qword MulPos(const M4 *m, qword v)
 {
@@ -1860,7 +1860,7 @@ extern "C" qword TransformXfPos(XF *a, XF *b, qword v)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ConvertXfVec {
 typedef struct { qword r[3]; } M3;
-void InvertMatrix3Cofactor(M3 *pd, M3 *ps) __asm__("InvertMatrix3Cofactor");
+void InvertMatrix3Cofactor(M3 *pd, M3 *ps) SLY2_SRET_LABEL("InvertMatrix3Cofactor", "InvertMatrix3CofactorInto");
 // Rotate v by the 3x3 matrix m.
 extern "C" { static inline qword Mul3(const M3 *m, qword v)
 {
@@ -1935,7 +1935,7 @@ extern "C" M3 *ConvertXfMat(M3 *pr, XF *pa, XF *pb, const M3 *pm)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0022FF40 {
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 // Converts a 4x4 matrix from transform a's space to transform b's space. (inferred)
@@ -2121,7 +2121,7 @@ extern "C" { static inline void SetV(VECTOR4 *pv, float x, float y, float z) { p
 int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
 int IsXfRoleAtRest(int) __asm__("IsXfRoleAtRest");
 int IsXfRoleVelocity(int) __asm__("IsXfRoleVelocity");
-M4 EvaluateXfSlotMatrixDerivative(XF *) __asm__("EvaluateXfSlotMatrixDerivative");
+M4 EvaluateXfSlotMatrixDerivative(XF *) SLY2_SRET_LABEL("EvaluateXfSlotMatrixDerivative", "EvaluateXfSlotMatrixDerivativeValue");
 M4 InvertMatrix4Rigid(XF *) __asm__("InvertMatrix4Rigid");
 M4 __ml__FRC7MATRIX4T0(M4 *, M4 *) __asm__("__ml__FRC7MATRIX4T0");
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
@@ -2245,7 +2245,7 @@ struct M3 { qword r[3]; };
 
 int IsXfRoleMoving(int) __asm__("IsXfRoleMoving");
 M4 *BuildXfValueMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueMatrix");
-M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M4 *basis, qword c, qword d) __asm__("BuildEulerDerivativeMatrix");
+M4 *BuildEulerDerivativeMatrix(M4 *pr, XF *pa, const M4 *basis, qword c, qword d) SLY2_SRET_LABEL("BuildEulerDerivativeMatrix", "BuildEulerDerivativeMatrixInto");
 void BuildXfValueDerivativeMatrix(M4 *pm, XF *po, qword v) __asm__("BuildXfValueDerivativeMatrix");
 M4 *BuildRotationDerivativeMatrix(M4 *pm, XF *pa, const M4 *basis, qword v) __asm__("BuildRotationDerivativeMatrix");
 M3 *BuildRotationMatrixFromVector(M3 *, qword) __asm__("BuildRotationMatrixFromVector");
@@ -2481,7 +2481,7 @@ int IsActCurrent(ACT *) __asm__("IsActCurrent");
 void UpdateXfJobRange(LO *, XF *) __asm__("UpdateXfJobRange");
 qword GetXfValueFromMatrix(XF *, MATRIX4 *) __asm__("GetXfValueFromMatrix");
 qword DecomposeRotationMatrixToEuler(MATRIX3 *) __asm__("DecomposeRotationMatrixToEuler");   /* phase 5: the rotation rows stored at +0xC0 */
-M4 BuildXfValueMatrix(XF *, qword) __asm__("BuildXfValueMatrix");
+M4 BuildXfValueMatrix(XF *, qword) SLY2_SRET_LABEL("BuildXfValueMatrix", "BuildXfValueMatrixValue");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *) __asm__("EvaluateBezierPos");
 
 // Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot. (inferred)
@@ -2569,3 +2569,39 @@ namespace BSS_xf {
 int b_004437A0 __asm__("D_004437A0");
 int b_004437A8[22] __asm__("D_004437A8");
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_xf {
+struct M3R { qword r[3]; };
+struct M4R { qword r[4]; };
+extern "C" M4R *BuildRotationDerivativeMatrix_out(M4R *, void *, const M3R *, qword) __asm__("BuildRotationDerivativeMatrix");
+extern "C" M4R BuildRotationDerivativeMatrixValue(void *xf, const M3R *basis, qword v)
+{ M4R m; BuildRotationDerivativeMatrix_out(&m, xf, basis, v); return m; }
+extern "C" M4R *BuildXfValueDerivativeMatrix_out(M4R *, XF *, qword) __asm__("BuildXfValueDerivativeMatrix");
+extern "C" M4R BuildXfValueDerivativeMatrixValue(XF *xf, qword v)
+{ M4R m; BuildXfValueDerivativeMatrix_out(&m, xf, v); return m; }
+extern "C" M4R *BuildXfValueMatrix_out(M4R *, XF *, qword) __asm__("BuildXfValueMatrix");
+extern "C" M4R BuildXfValueMatrixValue(XF *xf, qword v)
+{ M4R m; BuildXfValueMatrix_out(&m, xf, v); return m; }
+extern "C" M3R *ConvertXfMat_out(M3R *, XF *, XF *, const M3R *) __asm__("ConvertXfMat");
+extern "C" M3R ConvertXfMatValue(XF *from, XF *to, const M3R *matrix)
+{ M3R m; ConvertXfMat_out(&m, from, to, matrix); return m; }
+extern "C" M4R *EvaluateXfSlotMatrixDerivative_out(M4R *, XF *) __asm__("EvaluateXfSlotMatrixDerivative");
+extern "C" M4R EvaluateXfSlotMatrixDerivativeValue(XF *xf)
+{ M4R m; EvaluateXfSlotMatrixDerivative_out(&m, xf); return m; }
+extern "C" M4R *GetRelativeXfMatrix_out(M4R *, XF *, XF *, M4R *) __asm__("GetRelativeXfMatrix");
+extern "C" M4R GetRelativeXfMatrixValue(XF *from, XF *to, M4R *matrix)
+{ M4R m; GetRelativeXfMatrix_out(&m, from, to, matrix); return m; }
+extern "C" M4R *GetXfAngularVelocity_out(M4R *, XF *, XF *) __asm__("GetXfAngularVelocity");
+extern "C" M4R GetXfAngularVelocityValue(XF *xf, XF *stop)
+{ M4R m; GetXfAngularVelocity_out(&m, xf, stop); return m; }
+extern "C" M4R BuildEulerDerivativeMatrix_value(void *, void *, qword, qword) __asm__("BuildEulerDerivativeMatrix");
+extern "C" M4R *BuildEulerDerivativeMatrixInto(M4R *out, void *xf, void *basis, qword angles, qword rates)
+{ *out = BuildEulerDerivativeMatrix_value(xf, basis, angles, rates); return out; }
+} // namespace SRET_xf
+#endif

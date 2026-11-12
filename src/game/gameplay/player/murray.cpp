@@ -1642,13 +1642,13 @@ typedef struct { char pad[0x50]; NODE *first; char pad54[0xC]; M4 transform; } P
 typedef struct { char pad[0x180]; OWNER *owner; int pad184; POSE *pose; } LINK;
 typedef struct { char pad[0x13F0]; LINK *link; } P;
 extern M4 D_002A2D30 __asm__("D_002A2D30");   // identity matrix
-extern M3 ConvertXfMat(NODE *, NODE *, const M3 &) __asm__("ConvertXfMat");
-extern M4 GetRelativeXfMatrix(NODE *, NODE *, const M4 &) __asm__("GetRelativeXfMatrix");
+extern M3 ConvertXfMat(NODE *, NODE *, const M3 &) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
+extern M4 GetRelativeXfMatrix(NODE *, NODE *, const M4 &) SLY2_SRET_LABEL("GetRelativeXfMatrix", "GetRelativeXfMatrixValue");
 extern VU_VECTOR TransformXfPos(NODE *, NODE *, VU_VECTOR) __asm__("TransformXfPos");
 extern VU_VECTOR DecomposeRotationMatrixToEuler(const M3 *) __asm__("DecomposeRotationMatrixToEuler");
 extern void LoadRotateMatrixEuler(M3 *, VU_VECTOR) __asm__("LoadRotateMatrixEuler");
 extern qword *VECTOR_opAssign(qword *, VU_VECTOR) __asm__("VECTOR_opAssign");
-extern void InvertMatrix4Rigid(M4 *, const M4 *) __asm__("InvertMatrix4Rigid");
+extern void InvertMatrix4Rigid(M4 *, const M4 *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 extern M4 __ml__FRC7MATRIX4T0(const M4 &, const M4 &) __asm__("__ml__FRC7MATRIX4T0");
 
 // Rotation and position of the carried object relative to Murray's two grip nodes (with an optional pose change).

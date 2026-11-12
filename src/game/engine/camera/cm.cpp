@@ -252,7 +252,7 @@ namespace M_CombineEyeLookAtProj {
 typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void InvertMatrix4Rigid(M4F *pmOut, M4F *pm) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4F *pmOut, M4F *pm) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 // MatViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x)
 // Also known as: CombineEyeLookAtProj (upstream readable / Sly 1 name; CombineEyeLookAtProj__FP7MATRIX4T0Pv).
@@ -380,7 +380,7 @@ namespace M_UpdateCmMat4__FP2CM {
 #include "sly2/basic.h"
 #include "sly2/aseg.h"
 #include "sly2/cm.h"
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
+MATRIX3 LoadRotateMatrix(qword vec) SLY2_SRET_LABEL("BuildRotationMatrixFromVector", "BuildRotationMatrixFromVectorValue");
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR) __asm__("__ml__FRC7MATRIX4T0");
 bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("InvertMatrix4");
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sNear, float sFar, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
@@ -575,7 +575,7 @@ typedef struct { float x, y, z, w; } V4;
 struct M3 { V4 r[3]; } __attribute__((aligned(16)));
 typedef struct { M3 m; V4 pos; } M4;
 void GetVectorSphere(qword v, float *a, float *b, int c) __asm__("GetVectorSphere");
-M3 LoadRotateMatrixPanTilt(float a, float b) __asm__("LoadRotateMatrixPanTilt");
+M3 LoadRotateMatrixPanTilt(float a, float b) SLY2_SRET_LABEL("LoadRotateMatrixPanTilt", "LoadRotateMatrixPanTiltValue");
 void VECTOR_opAssign(V4 *p, qword v) __asm__("VECTOR_opAssign");
 // Build a 4x4 matrix from rotation m and translation pos.
 extern "C" { static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
@@ -1204,7 +1204,7 @@ extern "C" qword ConvertCmScreenToWorld(CM *cm, qword v)
 namespace M_ConvertCmWorldToScreen {
 
 typedef struct { qword r[4]; } M4;
-void InvertMatrix4Rigid(M4 *pm, M4 *pn) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4 *pm, M4 *pn) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 // World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
 // Also known as: ConvertCmWorldToScreen (upstream readable / Sly 1 name; ConvertCmWorldToScreen__FP2CMG9VU_VECTOR).
 extern "C" qword ConvertCmWorldToScreen(CM *cm, qword v)

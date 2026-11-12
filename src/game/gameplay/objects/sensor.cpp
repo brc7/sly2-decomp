@@ -819,8 +819,8 @@ struct VU_FLOAT {
 extern "C" {
 int IsInCameraFrustum(CM *pcm, qword pos, VU_FLOAT sRadius);
 void RenderLoAlongSegment(ALO *palo, qword posA, qword posB, float a, float b);
-M3 BuildOrthonormalMatrixZ(qword dir, qword up);
-M4 LoadMatrixFromPosRotScale(qword pos, const M3 *pmat, const U *pscale);
+M3 BuildOrthonormalMatrixZ(qword dir, qword up) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
+M4 LoadMatrixFromPosRotScale(qword pos, const M3 *pmat, const U *pscale) SLY2_SRET_LABEL("LoadMatrixFromPosRotScale", "LoadMatrixFromPosRotScaleValue");
 qword *VECTOR_opAssign(qword *pdst, qword src);
 void RenderLoAtMatrix(ALO *palo, const M4 *pmat, float a, float b);
 }

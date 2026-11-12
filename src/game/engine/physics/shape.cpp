@@ -1467,7 +1467,7 @@ extern qword g_normalZ __asm__("g_normalZ");
 qword GetXfVelocity(SPACE *, SPACE *, qword) __asm__("GetXfVelocity");
 void CopyAb__FPvT0Ui(void *, const void *, unsigned) __asm__("CopyAb__FPvT0Ui");
 int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg) __asm__("ClipEdgeToSphere");
-MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *) __asm__("InvertMatrix4Rigid");
+MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void StepChainRk4(CHAIN *) __asm__("StepChainRk4");
 
 
@@ -1781,7 +1781,7 @@ struct CHAIN
 extern qword D_002A2DA0 __asm__("D_002A2DA0");    // fallback direction
 
 qword GetXfVelocity(SPACE *, SPACE *, qword) __asm__("GetXfVelocity");
-MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *) __asm__("InvertMatrix4Rigid");   // invert
+MATRIX4Q *InvertMatrix4Rigid(MATRIX4Q *, MATRIX4Q *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");   // invert
 void AddChainSample(CHAIN *, float) __asm__("AddChainSample");
 void StepChain(CHAIN *) __asm__("StepChain");
 
@@ -2152,7 +2152,7 @@ void RenderSoSelf(S*) __asm__("RenderSoSelf");
 float GetShapeMaxParam(void*) __asm__("GetShapeMaxParam");
 M3 *GetLoWorldMatrix(S*) __asm__("GetLoWorldMatrix");
 void EvaluateShapeAtParam(void*,float,qword*,qword*) __asm__("EvaluateShapeAtParam");
-M3 BuildOrthonormalMatrixZ(qword,qword) __asm__("BuildOrthonormalMatrixZ");
+M3 BuildOrthonormalMatrixZ(qword,qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 void RenderCid106Self(S*) __asm__("RenderCid106Self");
 
 // Rotate a by the 3x3 matrix m.

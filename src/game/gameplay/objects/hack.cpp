@@ -364,7 +364,7 @@ namespace M_func_0017FB50 {
 
 extern qword g_normalZ __asm__("g_normalZ"), D_002A2DD0 __asm__("D_002A2DD0");
 extern char D_002BE800[] __asm__("D_002BE800"), D_002BE810[] __asm__("D_002BE810");
-MATRIX3 BuildAxisAngleRotationMatrix(qword q, float g) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 BuildAxisAngleRotationMatrix(qword q, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 void AccelSoTowardMatBounded(SO *pso, MATRIX3 *pm, void *pv) __asm__("AccelSoTowardMatBounded");
 void AccelSoTowardPosSpring(SO *pso, qword a, int b, qword c, void *pv) __asm__("AccelSoTowardPosSpring");
 void PresetHackshipAccel(HACKSHIP *ship) __asm__("PresetHackshipAccel");
@@ -428,7 +428,7 @@ void SetSoCnstrTorque(SO *pso, int n) __asm__("SetSoCnstrTorque");
 void SetSoPartsBit48(SO *pso, int n) __asm__("SetSoPartsBit48");
 void SetSmaGoal(SMA *psma, int n) __asm__("SetSmaGoal");
 void StopSnd(CID151 *psnd, float f) __asm__("StopSnd");
-struct MATRIX4Q GetRelativeXfMatrix(XF *pxfA, XF *pxfB, struct MATRIX4Q *pm) __asm__("GetRelativeXfMatrix");
+struct MATRIX4Q GetRelativeXfMatrix(XF *pxfA, XF *pxfB, struct MATRIX4Q *pm) SLY2_SRET_LABEL("GetRelativeXfMatrix", "GetRelativeXfMatrixValue");
 ACT *NewPositionAct(SO *pso, XF *pxf, int a, int b, int c, qword v) __asm__("NewPositionAct");
 qword DecomposeRotationMatrixToEuler(struct MATRIX4Q *pm) __asm__("DecomposeRotationMatrixToEuler");
 
@@ -580,7 +580,7 @@ extern qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
 extern float atan2f(float,float) __asm__("atan2f");
 extern float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
 extern float ClampAbs__Fff(float,float) __asm__("ClampAbs__Fff");
-extern M3 BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+extern M3 BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 // Helpers Sub, X, Y, Transform (small asm wrappers/accessors shaped for the match).
 static inline qword Transform(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 // 3x3 matrix product.
@@ -890,8 +890,8 @@ dispatch:
 namespace M_func_00180EE8 {
 
 extern qword g_normalZ __asm__("g_normalZ");
-extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
-extern MATRIX3 ConvertXfMat(XF *pxf, int n, MATRIX3 *pm) __asm__("ConvertXfMat");
+extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
+extern MATRIX3 ConvertXfMat(XF *pxf, int n, MATRIX3 *pm) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
 extern void AccelSoTowardMatBounded(SO *pso, MATRIX3 *pm, void *pv) __asm__("AccelSoTowardMatBounded");
 extern void AddSoAcceleration(SO *pso, qword v) __asm__("AddSoAcceleration");
 // Helpers VSub, Bc (small asm wrappers/accessors shaped for the match).
@@ -946,7 +946,7 @@ namespace M_func_00181060 {
 typedef struct { qword r[3]; } MATRIX3;
 struct MSG { ASEGA *pasega; float time; int kind; };   /* message 9: an animation event */
 extern void HandlePoMessage(PO *ppo, int msg, struct MSG *pm) __asm__("HandlePoMessage");
-extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
+extern MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 extern qword GetStepAsegaTranslation(SO *pso, ASEGA *pasega, float time) __asm__("GetStepAsegaTranslation");
 extern qword g_normalZ __asm__("g_normalZ");
 extern void HandleHackenemyMessage(HACKENEMY *enemy, int msg, struct MSG *pm) __asm__("HandleHackenemyMessage");
@@ -1530,8 +1530,8 @@ typedef union {qword q;float f[4];int i[4];} U;
 struct M4 {U r[4];};
 extern qword g_normalZ __asm__("g_normalZ");
 extern void RenderSoSelf(SO*) __asm__("RenderSoSelf");
-extern MATRIX3Q BuildOrthonormalMatrixZ(qword,qword) __asm__("BuildOrthonormalMatrixZ");
-extern MATRIX3Q BuildAxisAngleRotationMatrix(qword,float) __asm__("BuildAxisAngleRotationMatrix");
+extern MATRIX3Q BuildOrthonormalMatrixZ(qword,qword) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
+extern MATRIX3Q BuildAxisAngleRotationMatrix(qword,float) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 extern qword*VECTOR_opAssign(qword*,qword) __asm__("VECTOR_opAssign");
 extern void RenderLoAtMatrix(LO*,M4*,float,float) __asm__("RenderLoAtMatrix");
 // Helpers Load, Cross, AddLateral (small asm wrappers/accessors shaped for the match).

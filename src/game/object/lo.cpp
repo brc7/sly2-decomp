@@ -479,7 +479,7 @@ extern "C" void RenderLoAll()
 
 namespace M_func_001A5EE8 {
 typedef struct { qword q[4]; } M4;
-void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4 *out, void *in) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
@@ -1123,7 +1123,7 @@ extern "C" void LO_Slot45Default()
 }
 
 namespace M_ConvertAloPos {
-void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(MATRIX4Q *pm, MATRIX4Q *pn) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 // Converts a point from one object's space to another's (through world space; a null object means world space).
 // Also known as: ConvertPos (upstream readable / Sly 1 name; ConvertPos__FP2LOT0G9VU_VECTOR).
 extern "C" qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
@@ -1145,7 +1145,7 @@ extern "C" qword ConvertPosBetweenLos(struct LO *a, struct LO *b, qword v)
 
 namespace M_ConvertAloVec {
 MATRIX3Q *GetLoWorldMatrix(void *p) __asm__("GetLoWorldMatrix");
-void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn) __asm__("InvertMatrix3Cofactor");
+void InvertMatrix3Cofactor(MATRIX3Q *pm, MATRIX3Q *pn) SLY2_SRET_LABEL("InvertMatrix3Cofactor", "InvertMatrix3CofactorInto");
 // Converts a direction vector from one object's space to another's (rotation only).
 // Also known as: ConvertVec (upstream readable / Sly 1 name; ConvertVec__FP2LOT0G9VU_VECTOR).
 extern "C" qword ConvertVecBetweenLos(void *a, void *b, qword v)
@@ -1193,7 +1193,7 @@ extern "C" MATRIX3Q ConvertMatBetweenLos(void *a, void *b, const MATRIX3Q *m)
 
 namespace M_ConvertAloMat4 {
 typedef struct { qword q[4]; } M4;
-void InvertMatrix4Rigid(M4 *out, void *in) __asm__("InvertMatrix4Rigid");
+void InvertMatrix4Rigid(M4 *out, void *in) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 // Converts a 4x4 matrix from one object's space to another's.
 extern "C" M4 ConvertMat4BetweenLos(LO *o1, LO *o2, M4 *m)
@@ -1263,3 +1263,21 @@ SLY2_SCRAP("addiu $sp, $sp, 0x100");
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 extern const float D_002A6A40 = 3.40282347e+38f;
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+namespace SRET_lo {
+struct M3R { qword r[3]; };
+struct M4R { qword r[4]; };
+extern "C" M4R ConvertMat4BetweenLos_value(LO *, LO *, M4R *) __asm__("ConvertMat4BetweenLos");
+extern "C" M4R *ConvertMat4BetweenLosInto(M4R *out, LO *from, LO *to, M4R *matrix)
+{ *out = ConvertMat4BetweenLos_value(from, to, matrix); return out; }
+extern "C" M3R ConvertMatBetweenLos_value(LO *, LO *, const M3R *) __asm__("ConvertMatBetweenLos");
+extern "C" M3R *ConvertMatBetweenLosInto(M3R *out, LO *from, LO *to, const M3R *matrix)
+{ *out = ConvertMatBetweenLos_value(from, to, matrix); return out; }
+} // namespace SRET_lo
+#endif

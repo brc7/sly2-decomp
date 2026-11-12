@@ -98,7 +98,7 @@ float GetShapeMaxDistance(LO *);
 int FindRangeContaining(void *, float);
 void EvaluateShapeAtDistance(LO *, qwordV *, qwordV *, float);
 float atan2f(float, float);
-M3 BuildAxisAngleRotationMatrix(float, qwordV);
+M3 BuildAxisAngleRotationMatrix(float, qwordV) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 STEPGUARD *AcquireProxyObject(void *p, int n);
 void *FindStepBehavior(STEPGUARD *r, int n);
 void SetBhvguardMode(void *o, BHVGUARDRECDATA *f);

@@ -196,7 +196,7 @@ static inline qword VuLengthUntied(qword v)
 }
 extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float AngleBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) SLY2_SRET_LABEL("BuildAxisAngleRotationMatrix", "BuildAxisAngleRotationMatrixValue");
 extern qword D_002A2DA0;
 // Return qwBase + qwVec * gScale.
 static inline qword VuAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)

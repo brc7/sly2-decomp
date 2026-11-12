@@ -83,7 +83,7 @@ int IsTaskComplete(TASK *);
 float RandomFloatInRange__Fff(float, float);
 int RandomIntInRange__Fii(int, int);
 void BroadcastGameEvent(GAME *, int, STEPGUARD *);
-void BuildSpliceListFromUniformValues(void *, int, int, int *);
+void BuildSpliceListFromUniformValues(void *, int, int, int *) SLY2_SRET_LABEL("BuildSpliceListFromUniformValues", "BuildSpliceListFromUniformValuesInto");
 void IgnoreStepSlot87(STEPGUARD *, int);
 void SetStepguardPickpocketState(STEPGUARD *guard, int state);
 void UpdateStepguardPickpocket(STEPGUARD *guard);

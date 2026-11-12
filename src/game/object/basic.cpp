@@ -51,7 +51,7 @@ extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 SIDEBAG *PtNew__t6CGcObj1Z8CSidebag(void);
 void AssignSidebagRef(SIDEBAG **pp, SIDEBAG *p);
 void MakeRoot__t6CGcObj1Z8CSidebag(SIDEBAG *p);
-void EnsureBasicOption__FP5BASICiP4CRef(CRefData *pref, LO *plo, int optid, CRefData *prefValue);
+void EnsureBasicOption__FP5BASICiP4CRef(CRefData *pref, LO *plo, int optid, CRefData *prefValue) SLY2_SRET_LABEL("EnsureBasicOption__FP5BASICiP4CRef", "EnsureBasicOptionInto");
 void Decref__4CRef(CRefData *pref);
 void CRef_ctor_CLQ(CRefData *pref, CLQ *pclq);
 void CRef_ctor_LM(CRefData *pref, LM *plm);
@@ -71,7 +71,7 @@ void CRefAssign(CRefData *pref, CRefData *prefFrom) __asm__("__as__4CRefRC4CRef"
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int FindBindingPtr__6CFrameUii(CFrame *p, int k, int n);
-CRefData *BuildSpliceListFromValues(CRefData *ret, int x, int *pn, void **y);
+CRefData *BuildSpliceListFromValues(CRefData *ret, int x, int *pn, void **y) SLY2_SRET_LABEL("BuildSpliceListFromValues", "BuildSpliceListFromValuesInto");
 
 void EvalSpliceEventCallback(BASIC *p, CPAIR *pair, CFrame *frame, CRefData *pref);
 SWCB *ScheduleSwSpliceCallback(SW *world, BASIC *p, CPAIR *pair, float t);

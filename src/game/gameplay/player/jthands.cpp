@@ -116,7 +116,7 @@ extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) SL
 extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("NewBezierAct");
 extern "C" M4 InvertMatrix4RigidP(const M4 *pmat) __asm__("InvertMatrix4Rigid");
 extern "C" M4 InvertMatrix4RigidV(M4 mat) __asm__("InvertMatrix4Rigid");
-extern "C" M3 ConvertXfMatR(XF *pxfFrom, XF *pxfTo, void *pmat) __asm__("ConvertXfMat");
+extern "C" M3 ConvertXfMatR(XF *pxfFrom, XF *pxfTo, void *pmat) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
 extern "C" qword func_0011BFF0V(M3 mat) __asm__("DecomposeRotationMatrixToEuler");
 extern "C" void MinimizeRange(float (*pfn)(void *, float), void *pv, float a, float b, float c, float d, float *pu, float *pg) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
 

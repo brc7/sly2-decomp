@@ -575,7 +575,7 @@ extern "C" int GetStateMask(int c, int *ai)
 } // namespace M_GrfFromStates
 
 namespace M_func_00162050 {
-void SetValuesFromSpliceList(CRefData *pref, void *p, int n, int c, int *pc, int *ai) __asm__("SetValuesFromSpliceList");
+void SetValuesFromSpliceList(CRefData *pref, void *p, int n, int c, int *pc, int *ai) SLY2_SRET_LABEL("SetValuesFromSpliceList", "SetValuesFromSpliceListInto");
 int GetStateMask(int c, int *ai) __asm__("GetStateMask");
 void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 // Converts a Splice list of state numbers (at most six) into a state bit mask.
@@ -2166,7 +2166,7 @@ extern void SortTasksTopologically(int *pc, TASK ***papx) __asm__("SortTasksTopo
 extern void RestoreTaskState(TASK *p) __asm__("RestoreTaskState");
 extern TASK *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 extern void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
-extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) __asm__("SetSaveVarByName");
+extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
 extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern void SetTaskState(TASK *p, int n) __asm__("SetTaskState");
 // After a load (event 4, world flag 8): recomputes the tasks in topological order, makes the pending task available,
@@ -2217,7 +2217,7 @@ extern char D_002A5238[] __asm__("D_002A5238");
 extern void AbortJob(JOB *p) __asm__("AbortJob");
 extern void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
 extern void ActivateTask(TASK *p) __asm__("ActivateTask");
-extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) __asm__("SetSaveVarByName");
+extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
 extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern int GetCurrentLevelIndex__Fv() __asm__("GetCurrentLevelIndex__Fv");
 extern void *GetLevelFileRecord(int n) __asm__("GetLevelFileRecord");
@@ -2564,14 +2564,14 @@ extern "C" void ResetGameSequence()
 }
 
 namespace M_RefGetGlobalSaveVar {
- void GetSaveVar(void *, void *, int, int) __asm__("GetSaveVar");
+ void GetSaveVar(void *, void *, int, int) SLY2_SRET_LABEL("GetSaveVar", "GetSaveVarInto");
 // Read a save variable from the world's global save store into a.
 // Also known as: NProgress (upstream readable / Sly 1 name).
 extern "C" { inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; } }
 } // namespace M_RefGetGlobalSaveVar
 
 namespace M_RefSetGlobalSaveVar {
- void SetSaveVar(void *, void *, int, int, int) __asm__("SetSaveVar");
+ void SetSaveVar(void *, void *, int, int, int) SLY2_SRET_LABEL("SetSaveVar", "SetSaveVarInto");
 // Write a save variable into the world's global save store.
 extern "C" { inline void *SetGlobalSaveVar(void *a, int b, int c, int d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; } }
 } // namespace M_RefSetGlobalSaveVar

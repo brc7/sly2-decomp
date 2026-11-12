@@ -71,7 +71,7 @@ void UpdateTurretFire(TURRETV *p);
 void SetTurretActive(TURRETV *p, int k);
 qword GetLoWorldPos(void *);
 M3 *GetLoWorldMatrix(void *);
-M3 LoadLookAtMatrix(qword);
+M3 LoadLookAtMatrix(qword) SLY2_SRET_LABEL("LoadLookAtMatrix", "LoadLookAtMatrixValue");
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(const M3 *,float *,float *);
 float ClampAbs__Fff(float,float);
 float SmoothValue__FfffP3SMPPf(float,float,float,const float *,float *);

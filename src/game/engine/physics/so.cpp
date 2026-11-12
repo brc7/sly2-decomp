@@ -1208,7 +1208,7 @@ typedef union { struct { M3 m3; qword r3; } s; float f[4][4]; qword r[4]; } __at
 typedef union { qword q; float f[4]; } V4;
 struct REGION;
 qword *VECTOR_opAssign(qword *, qword) __asm__("VECTOR_opAssign");
-M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
+M4 *InvertMatrix4Rigid(M4 *,const M4 *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 M4 *__ml__FRC7MATRIX4T0(M4 *, const M4 *, const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 void *func_002333B4(void *, int, int) __asm__("memset");
 void UpdateSoPartMatrices(SO *) __asm__("UpdateSoPartMatrices");
@@ -1397,7 +1397,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 
 extern qword D_002A2DD0;
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
-MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("GetXfAngularVelocity");
+MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) SLY2_SRET_LABEL("GetXfAngularVelocity", "GetXfAngularVelocityValue");
 // Slot 34: world-space angular velocity of the rotation XF (when it is dynamic), else zero (Lilly port).
 // Also known as: AngVelAlo (upstream readable / Sly 1 name; AngVelAlo__Fv).
 qword SO::GetAngularVelocity()
@@ -2364,9 +2364,9 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 // 3x3 matrix of U rows with copy constructor and assignment.
 struct M3 {U rows[3];M3(){} M3(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];} M3&operator=(const M3&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];return *this;}};
-extern M3 ConvertXfMat(XF *,XF *,const M3 *) __asm__("ConvertXfMat");
+extern M3 ConvertXfMat(XF *,XF *,const M3 *) SLY2_SRET_LABEL("ConvertXfMat", "ConvertXfMatValue");
 extern void NormalizeRotateMatrix3__FP7MATRIX3(M3 *) __asm__("NormalizeRotateMatrix3__FP7MATRIX3");
-extern M3 MulMatrix3Matrix3(const M3 *,const M3 *) __asm__("MulMatrix3Matrix3");
+extern M3 MulMatrix3Matrix3(const M3 *,const M3 *) SLY2_SRET_LABEL("MulMatrix3Matrix3", "MulMatrix3Matrix3Value");
 extern void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *,float *,qword *) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
 extern qword ConvertXfVec(XF *,XF *,qword) __asm__("ConvertXfVec");
 // Length of the xyz part of a as a float.
@@ -3014,7 +3014,7 @@ extern FRAME *STACKSCOPE_ctor(FRAME *) __asm__("STACKSCOPE_ctor");
 extern void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern void *AllocClearedFromStack(SWALLOC *) __asm__("AllocClearedFromStack");
 extern void CopyAb__FPvT0Ui(void *,const void *,unsigned int) __asm__("CopyAb__FPvT0Ui");
-extern M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
+extern M4 *InvertMatrix4Rigid(M4 *,const M4 *) SLY2_SRET_LABEL("InvertMatrix4Rigid", "InvertMatrix4RigidInto");
 extern M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
 
 // Squared length of the xyz part of a as a float.

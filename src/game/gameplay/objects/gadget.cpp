@@ -153,7 +153,7 @@ int MaxInt(int v, int a);
 void AdjustSoNewXp(CID100V *p, XP *pxp, int i);
 void AdjustSoXps(CID100V *p);
 void PresetSoAccel(CID100V *);
-M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
+M3 BuildOrthonormalMatrixZ(qwordV, qwordV) SLY2_SRET_LABEL("BuildOrthonormalMatrixZ", "BuildOrthonormalMatrixZValue");
 void TiltMatUpright(M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(CID100V *, M3 *, void *, qwordV, void *);
 struct COLL { void *source; SOV *object; };
