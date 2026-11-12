@@ -1032,8 +1032,8 @@ lComputeLean:
         vecLean.y = 0.0f;
         vecLean.x = 0.0f;
     }
-    float gFootL = EvaluateClq(&D_002BF330, ((float *)jt->pact5Unk19f0)[10]);
-    float gFootR = EvaluateClq(&D_002BF330, ((float *)jt->pact5Unk19f4)[10]);
+    float gFootL = EvaluateClq(&D_002BF330, ((float *)&jt->pact5Unk19f0->offset)[2]);
+    float gFootR = EvaluateClq(&D_002BF330, ((float *)&jt->pact5Unk19f4->offset)[2]);
     float gZ = vecLean.z;
     if (gZ < gFootL && gZ < gFootR)
         gFootR = gZ;
