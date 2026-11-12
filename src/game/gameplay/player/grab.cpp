@@ -186,16 +186,11 @@ struct SURF;
 
 struct XP;
 struct ASEGA;
-struct GEOM { int numPositions; qword *positions; };
-struct SO {
-    char pad0[0xC]; void *vptr; ulong flags; char pad18[0x6C - 0x18]; int cbsp; char pad70[4]; BSP *absp;
-    char pad78[0x90 - 0x78]; GEOM geomWorld;
-};
 // Line segment hit (0x60 bytes, as in IntersectSphereBsp)
 
 struct ACTOR {
     void *scriptFrame; void *scriptVariables; void *firstSubscriber; VTE *vt; char pad10[0xEC - 0x10]; void *pvFilter; char padF0[0x150 - 0xF0]; JOY *pjoy;
-    char pad154[0x240 - 0x154]; qword posOffset; char pad250[0x268 - 0x250]; SO *pso; char pad26C[0xF5C - 0x26C];
+    char pad154[0x240 - 0x154]; qword posOffset; char pad250[0x268 - 0x250]; SOPART *pso; char pad26C[0xF5C - 0x26C];
     ACTOR *ptarget; float gTarget; char padF64[0x1030 - 0xF64]; ASEGA *pasega; char pad1034[0x10EC - 0x1034]; int interactMode;
 };
 struct ATTACH { char pad0[0x34]; ACTOR *pactor; };
@@ -220,15 +215,15 @@ int IsAsegaRetracted(ASEGA *) __asm__("IsAsegaRetracted");
 void SetJtGrabKind(CONTEXT *, int) __asm__("SetJtGrabKind");                     // set the step
 void *AllocFromStack(SWALLOC *) __asm__("AllocFromStack");                         // stack allocation in the current STACKSCOPE
 qword GetLoWorldPos(ACTOR *) __asm__("GetLoWorldPos");                           // world position
-int ShouldKeepSoPair(void *, SO *) __asm__("ShouldKeepSoPair");
-void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***) __asm__("IntersectSwBoundingBox");   // objects in a box
-int ClipEdgeToObject(SO *, qword, qword, int, LSG *) __asm__("ClipEdgeToObject");      // line test against an object
-void UpdateSoPartGeom(SO *) __asm__("UpdateSoPartGeom");
+int ShouldKeepSoPair(void *, SOPART *) __asm__("ShouldKeepSoPair");
+void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***) __asm__("IntersectSwBoundingBox");   // objects in a box
+int ClipEdgeToObject(SOPART *, qword, qword, int, LSG *) __asm__("ClipEdgeToObject");      // line test against an object
+void UpdateSoPartGeom(SOPART *) __asm__("UpdateSoPartGeom");
 qword VecMinArray(int, qword *) __asm__("VecMinArray");                      // min of points
 qword VecMaxArray(int, qword *) __asm__("VecMaxArray");                      // max of points
-void MarkSoContactsSphereBsp(SW *, SO *, SO *, int, BSP *, XP **) __asm__("MarkSoContactsSphereBsp");
+void MarkSoContactsSphereBsp(SW *, SOPART *, SOPART *, int, BSP *, XP **) __asm__("MarkSoContactsSphereBsp");
 int PruneBspBySphere(BSP *, BSP *, float, qword, int *, BSP **) __asm__("PruneBspBySphere");   // prune a BSP to a sphere
-void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **) __asm__("MarkSoContactsBspBsp");
+void MarkSoContactsBspBsp(SW *, SOPART *, SOPART *, int, BSP *, BSP *, XP **) __asm__("MarkSoContactsBspBsp");
 void AttachJtHandsObject(ATTACH *, ACTOR *) __asm__("AttachJtHandsObject");
 int IsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 int IsStepplayerGrabReady(ACTOR *) __asm__("IsStepplayerGrabReady");
@@ -276,7 +271,7 @@ static inline void ProbeGround(CONTEXT *p)
     qword posBase = VuAdd(pos, p->pactor->posOffset);
     qword posEnd = VuAdd(posBase, ScaleVec(g_normalZ, VuFloat(&D_002BF5B0)));
     int cso;
-    SO **apso;
+    SOPART **apso;
     IntersectSwBoundingBox(&g_sw, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++) {
         int clsg = ClipEdgeToObject(apso[i], posBase, posEnd, 8, alsg);
@@ -285,32 +280,32 @@ static inline void ProbeGround(CONTEXT *p)
             if (plsg[j].au[0] != 0.0f)
                 return;
     }
-    SO *psoSelf = p->pactor->pso;
-    GEOM *pgeom = &psoSelf->geomWorld;
+    SOPART *psoSelf = p->pactor->pso;
+    GEOM *pgeom = &psoSelf->meshWorld;
     int cbspMax = 0;
     UpdateSoPartGeom(psoSelf);
-    qword posMin = VecMinArray(pgeom->numPositions, pgeom->positions);
-    qword posMax = VecMaxArray(pgeom->numPositions, pgeom->positions);
+    qword posMin = VecMinArray(pgeom->numPositions, (qword *)pgeom->positions);
+    qword posMax = VecMaxArray(pgeom->numPositions, (qword *)pgeom->positions);
     IntersectSwBoundingBox(&g_sw, posMin, posMax, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++)
-        if (cbspMax <= apso[i]->cbsp)
-            cbspMax = apso[i]->cbsp;
+        if (cbspMax <= apso[i]->bspc.numNodesAllocated)
+            cbspMax = apso[i]->bspc.numNodesAllocated;
     cbspMax = MinInt(cbspMax, 0x1555);
     BSP *absp = (BSP *)AllocStack(cbspMax * sizeof(BSP));
     qword posMid = CombineVec(posMin, posMax, VuFloat(0.5f), VuFloat(0.5f));
     float sRadius = LengthOf(VuSub(posMid, posMin));
     for (i = 0; i < cso; i++) {
-        SO *so = apso[i];
+        SOPART *so = apso[i];
         XP *xp = 0;
-        if (so->flags & (1UL << 49)) {
+        if (so->unknownFlag10B) {
             MarkSoContactsSphereBsp(&g_sw, so, psoSelf, 0, 0, &xp);
         } else {
             int cbspLeft = cbspMax;
             BSP *pbsp = absp;
-            if (PruneBspBySphere(so->absp, (BSP *)SLY2_BSP_NO_LIMIT, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
+            if (PruneBspBySphere(so->bspc.nodes, (BSP *)SLY2_BSP_NO_LIMIT, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
                 int cbsp = pbsp - absp;
                 pbsp--;
-                MarkSoContactsBspBsp(&g_sw, psoSelf, so, cbsp, so->absp, pbsp, &xp);
+                MarkSoContactsBspBsp(&g_sw, psoSelf, so, cbsp, so->bspc.nodes, pbsp, &xp);
             }
         }
         if (xp) {
@@ -440,8 +435,8 @@ extern "C" void UpdateJtGrabInput(CONTEXT *grab)
 
 #define FIELD_OFFSET(t, m) ((unsigned int)&(((t *)0x10000)->m) - 0x10000)
 
-typedef char SO_absp_Offset[FIELD_OFFSET(SO, absp) == 0x74 ? 1 : -1];
-typedef char SO_geomWorld_Offset[FIELD_OFFSET(SO, geomWorld) == 0x90 ? 1 : -1];
+
+
 typedef char ACTOR_pso_Offset[FIELD_OFFSET(ACTOR, pso) == 0x268 ? 1 : -1];
 typedef char ACTOR_x10EC_Offset[FIELD_OFFSET(ACTOR, interactMode) == 0x10EC ? 1 : -1];
 typedef char CONTEXT_attach_Offset[FIELD_OFFSET(CONTEXT, attach) == 0x440 ? 1 : -1];
