@@ -1265,21 +1265,22 @@ extern "C" void AllocateTextureHashTables(void)
     struct AR ar;
     void **pp1 = &D_003DD010;
     void **pp2 = &D_003DD018;
-    ar.cb = 0xFFF4;
+    ar.cb = 0x3FFD * sizeof(void *);   /* 0x3FFD pointer entries (0xFFF4 bytes on the EE) */
     ar.cbAlign = 0x10;
     *pp1 = AllocFromStack(&ar);
-    func_002333B4(*pp1, 0, 0xFFF4);
-    ar.cb = 0xFFF4;
+    func_002333B4(*pp1, 0, 0x3FFD * sizeof(void *));
+    ar.cb = 0x3FFD * sizeof(void *);
     ar.cbAlign = 0x10;
     *pp2 = AllocFromStack(&ar);
-    func_002333B4(*pp2, 0, 0xFFF4);
+    func_002333B4(*pp2, 0, 0x3FFD * sizeof(void *));
     D_003DD00C = D_003DD014 = 0;
 }
 } // namespace M_AllocateTextureHashTables
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_ClearTextureHashTables {
-extern int D_003DD00C __asm__("D_003DD00C"), D_003DD010 __asm__("D_003DD010"), D_003DD014 __asm__("D_003DD014"), D_003DD018 __asm__("D_003DD018");
+extern int D_003DD00C __asm__("D_003DD00C"), D_003DD014 __asm__("D_003DD014");   /* the counts */
+extern void *D_003DD010 __asm__("D_003DD010"), *D_003DD018 __asm__("D_003DD018");   /* the bitmap and clut tables */
 // Null both hash tables and counts. (inferred)
 extern "C" void ClearTextureHashTables(void)
 {
