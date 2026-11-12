@@ -1142,13 +1142,14 @@ namespace M_AddStepAxisXps {
 // to the link list entry that joins this object to the zap target of plo (or of its nearest attached
 // ancestor); with no target they go to this object's own list.
 struct M3 { qword r[3]; };
-struct XP;
-struct SOPART;
-struct SO;
-struct LO;
-struct LINK { XP *pxpFirst; LINK *plinkNext; XP **ppxpOut; SO *pso; };
-struct ATT { char pad0[0x34]; SOPART *psopart; char pad38[0x60 - 0x38]; SO *pso; LINK *plinkFirst; XP *pxpFirst; };
-struct SO { char pad0[0x10]; SO *psoParent; char pad14[0xEC - 0x14]; ATT *patt; char padF0[0x258 - 0xF0]; SOPART *psopart; };
+/* (the object is the STEP; its trees are SOTREE, their touching links XPLIST) */
+
+
+
+
+
+
+
 extern qword g_normalZ __asm__("g_normalZ");   // g_normalZ
 
 SO *GetSoFromLo(LO *) __asm__("GetSoFromLo");                 // PsoZapTarget
@@ -1172,41 +1173,41 @@ static inline qword Rotate(const M3 &m, qword v) {
 // Slot 82: adds up to three contacts at a point along the axes of an orthonormal frame built around dir, one per
 // grf bit.
 // Also known as: AddActorLineXps (upstream readable / Sly 1 name; AddActorLineXps__FP5ACTORiP6VECTORG9VU_VECTORN23).
-extern "C" void AddStepAxisXps(SO *object, int flags, LO *plo, qword posOther, qword direction, qword pos)
+extern "C" void AddStepAxisXps(STEP *object, int flags, LO *plo, qword posOther, qword direction, qword pos)
 {
     XP **ppxpFirst, **ppxpOut;
     SOPART *psopartOther;
     SO *psoTarget = GetSoFromLo(plo);
-    ATT *patt, *pattThis;
+    SOTREE *patt, *pattThis;
     if (psoTarget) {
-        patt = psoTarget->patt;
-        pattThis = object->patt;
+        patt = psoTarget->physicsTree;
+        pattThis = object->physicsTree;
         if (!patt) {
-            while ((psoTarget = psoTarget->psoParent) != 0) {
-                patt = psoTarget->patt;
+            while ((psoTarget = psoTarget->parent) != 0) {
+                patt = psoTarget->physicsTree;
                 if (patt) break;
             }
         }
     }
     if (psoTarget) {
-        SO *psoOwner = patt->pso;
-        LINK *plink = pattThis->plinkFirst;
-        while (plink && plink->pso != psoOwner) plink = plink->plinkNext;
+        SO *psoOwner = patt->root;
+        XPLIST *plink = pattThis->pxplistFirst;
+        while (plink && plink->psoOther != psoOwner) plink = plink->pxplistNext;
         ppxpFirst = &plink->pxpFirst;
-        ppxpOut = plink->ppxpOut;
-        psopartOther = psoOwner->patt->psopart;
+        ppxpOut = plink->ppxpHead;
+        psopartOther = (SOPART *)psoOwner->physicsTree->parts.head;
     } else {
         psopartOther = 0;
-        ppxpFirst = ppxpOut = &object->patt->pxpFirst;
+        ppxpFirst = ppxpOut = &object->physicsTree->pxpFirst;
     }
     M3 mat = BuildOrthonormalMatrixZ(direction, g_normalZ);
     qword posLocal = Rotate(mat, Sub(pos, posOther));
     if ((flags & 1) || ((flags & 8) && QwordX(posLocal) < 0.0001f))
-        AddXp(&g_sw, object->psopart, psopartOther, pos, mat.r[0], QwordX(posLocal), (flags & 1) ? 11 : 10, 0, 0, ppxpFirst);
+        AddXp(&g_sw, object->psopartBody, psopartOther, pos, mat.r[0], QwordX(posLocal), (flags & 1) ? 11 : 10, 0, 0, ppxpFirst);
     if ((flags & 2) || ((flags & 0x10) && QwordY(posLocal) < 0.0001f))
-        AddXp(&g_sw, object->psopart, psopartOther, pos, mat.r[1], QwordY(posLocal), (flags & 2) ? 11 : 10, 0, 0, ppxpFirst);
+        AddXp(&g_sw, object->psopartBody, psopartOther, pos, mat.r[1], QwordY(posLocal), (flags & 2) ? 11 : 10, 0, 0, ppxpFirst);
     if ((flags & 4) || ((flags & 0x20) && QwordZ(posLocal) < 0.0001f))
-        AddXp(&g_sw, object->psopart, psopartOther, pos, mat.r[2], QwordZ(posLocal), (flags & 4) ? 11 : 14, 0, 0, ppxpFirst);
+        AddXp(&g_sw, object->psopartBody, psopartOther, pos, mat.r[2], QwordZ(posLocal), (flags & 4) ? 11 : 14, 0, 0, ppxpFirst);
     *ppxpOut = *ppxpFirst;
 }
 } // namespace M_AddStepAxisXps
