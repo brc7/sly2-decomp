@@ -564,6 +564,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
         AsStepplayer(((ACTOR *)air->player))->EndMeleeAttack();
         LinkStepAttachment(((ACTOR *)air->player), air->edge->owner, 1);
         qword point = TransformXfPos(air->edge->transform, 0, air->edgePosition);
+#ifdef SLY2_EE_ASM
         register qword direction __asm__("vf1"), negative __asm__("vf2"), upArg __asm__("$5");
         register QWROW *axisAddress __asm__("$4");
         float negativeScalar = -1.0f;
@@ -606,6 +607,30 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
             __asm__("vsub.xyzw %0,%0,%1" : "+j"(delta) : "j"(position));
             actor->unknown1010 = delta;
         }
+#else
+        /* Mode 17 (edge catch), in C: the basis (-edge normal, then the two normals GetNormalVectors builds from it),
+           the catch offset taken back out of the edge point, stored relative to Sly's position. */
+        {
+            ACTOR *actor = (ACTOR *)air->player;
+            QWROW direction, offset, delta, position;
+            int k;
+            direction.q = air->normalEdge;
+            for (k = 0; k < 4; k++)
+                direction.f[k] = -direction.f[k];
+            w.temp.q = point;
+            w.basis.row[0].q = direction.q;
+            GetNormalVectors(direction.q, g_normalZ.q, D_002A2DB0.q, (TWO_ROWS *)&w.basis.row[1]);
+            offset.q = air->dposEdge;
+            for (k = 0; k < 3; k++)
+                delta.f[k] = w.temp.f[k] - (w.basis.row[0].f[k] * offset.f[0] + w.basis.row[1].f[k] * offset.f[1] +
+                                            w.basis.row[2].f[k] * offset.f[2]);
+            delta.f[3] = w.temp.f[3] - offset.f[3];
+            position.q = GetLoWorldPos(actor);
+            for (k = 0; k < 4; k++)
+                delta.f[k] -= position.f[k];
+            actor->unknown1010 = delta.q;
+        }
+#endif
         ClearVelocity(((ACTOR *)air->player));
         air->canDoubleJump = 0;
         clip = air->pasegEdge;
@@ -725,6 +750,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
         flags = 9;
         break;
     case 21: {
+#ifdef SLY2_EE_ASM
         register float minimum __asm__("$f21"), maximum __asm__("$f20");
         register qword bodyPosition __asm__("$3");
         register LO *queryObject __asm__("$4");
@@ -827,6 +853,40 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
             ClearVelocity(cleared);
             SetStepTargetHeadingFromVector(((ACTOR *)air->player), directionArg);
         }
+#else
+        /* Mode 21 (jump to the place target), in C: launch velocity that reaches the target in the ballistic time,
+           then a Bezier act toward it in the parent transform's space (the asm above is the EE schedule). */
+        {
+            ACTOR *actor = (ACTOR *)air->player;
+            float minimum = -1000.0f, maximum = -1.0f;
+            w.bodyPosition.q = actor->positionXf->worldMatq.r[3].q;
+            LO *queryObject = air->placeTarget.object;
+            if (queryObject && (IsBasicDerivedFrom__FP5BASIC3CID(queryObject, 19) ||
+                                IsBasicDerivedFrom__FP5BASIC3CID(queryObject, 11))) {
+                minimum = 0.0f;
+                maximum = 500.0f;
+            }
+            w.goal.q = GetJtPlacePosition(actor, &air->placeTarget, D_002BF7A0);
+            w.delta.q = VuSub(w.goal.q, w.bodyPosition.q);
+            w.acceleration.q = *(qword *)&actor->physics->gravity;
+            float solved = ComputeMaxBallisticTime(w.delta.q, w.acceleration.q, 1000.0f, minimum, 1.0f, maximum);
+            float duration = D_002BF7A0 < solved ? solved : D_002BF7A0;
+            int k;
+            for (k = 0; k < 4; k++) {
+                w.velocity.f[k] = w.delta.f[k] / duration - 0.5f * duration * w.acceleration.f[k];
+                w.endVelocity.f[k] = w.velocity.f[k] + w.acceleration.f[k] * duration;
+                w.duration.f[k] = duration;
+            }
+            AsStepplayer(actor)->SetVelocity(w.velocity.q);
+            float deadline = g_clock.time + duration;
+            qword localGoal = TransformXfPos(0, actor->positionXf->parent, w.goal.q);
+            qword localEnd = ConvertXfVec(0, actor->positionXf->parent, w.endVelocity.q);
+            air->pact8 = NewBezierAct(actor, actor->positionXf, 5, deadline, localGoal, localEnd);
+            SetSoTreeFlag2(actor, 1);
+            ClearVelocity(actor);
+            SetStepTargetHeadingFromVector(actor, w.delta.q);
+        }
+#endif
         clip = air->apasegJump[0];
         break;
     }
