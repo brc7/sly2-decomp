@@ -36,7 +36,7 @@
 #include "sly2/xfm.h"
 #include "sly2/so.h"
 #include "sly2/lsg.h"
-
+#include "sly2/leap.h"
 // 0x17EF38 StaticInit_guardbhv and GlobalConstructors_guardbhv: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -2944,10 +2944,10 @@ void BHVWALKPATH::OnPush()
 
 // 0x178EE0 UpdateBhvwalkpath
 namespace M_UpdateBhvwalkpath {
-struct MODEL; struct CONTROL; struct VU_FLOAT;
+ struct CONTROL; struct VU_FLOAT;
 // UpdateBhvwalkpath (Claude agent, lane G13, 2026-10-24): laneG10v2 (no pins) + VU_FLOAT(float) qmtc2 constructor building the speed in place, and the 1e-4 length test read with VuGetX (gcc emits the qmfc2, asm mtc1).
 /* the kind-3 binding's handle and instance (the DIRANIM pair; leap.h pads CID146) */
-struct MODEL { char pad[0x10]; qword velocity; };
+
 struct CONTROL { char pad[0x24]; void *animation; };
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
@@ -3066,7 +3066,7 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
             qword qwLocal = VuDotMatrixRows(GetLoWorldMatrix(behavior->owner), dpos);
             qword qwFallback = D_002A2DD0;
             float gSpeed = behavior->rate * g;
-            gSpeed *= QwordX(VuLengthXY(((MODEL *)pchoice->payload4)->velocity));
+            gSpeed *= QwordX(VuLengthXY(((CID146 *)pchoice->payload4)->velocity));
             qword qwLen = VuLengthUntied(qwLocal);
             VU_FLOAT vuSpeed(gSpeed);
             qword qwDir;
@@ -3586,10 +3586,10 @@ extern "C" void InitBhvleap(BHVLEAP *behavior)
 
 // 0x179FA0 StartBhvleap
 namespace M_StartBhvleap {
-union U;  struct HND; union TEMP; struct WORK; struct LIMIT;
+union U;   union TEMP; struct WORK; struct LIMIT;
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 union U{qword q;float f[4];};
-struct HND{char pad[0x124];int kind;};   /* the CID19 hang handle (no header yet): its kind */
+   /* the CID19 hang handle (no header yet): its kind */
 union TEMP{struct{U direction;MATRIX3Q rotation;}first;MATRIX3Q basis;};
 struct WORK{TEMP temp;float curve;};
 struct LIMIT{float low,high;};
@@ -3708,7 +3708,7 @@ extern "C" void StartBhvleap(BHVLEAP *behavior)
             behavior->hasAttachBasis = 1;
             GetPipeGoalMatrix(behavior->target, behavior->isReversed, (MATRIX3Q *)&behavior->attachBasis, work.curve);
             AdjustBhvleapAttachPoint(behavior);
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS19) && ((HND *)behavior->target)->kind == 3) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->target, CID_CLASS19) && ((HND *)behavior->target)->nHangKind == 3) {
             active |= GetSgfMask(SGF_ON_CLASS19);
             behavior->hasAttachBasis = 1;
             MATRIX3Q *m = GetLoWorldMatrix(behavior->target);
@@ -4280,17 +4280,17 @@ typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
 
 // 0x17AF30 HandleBhvjuggledMessage
 namespace M_BHVJUGGLED_FHandleMessage {
-struct O; struct X;
+ struct X;
 extern void *D_002BE6D0[] __asm__("D_002BE6D0");
 extern int D_002BE6E8[] __asm__("D_002BE6E8");
-struct O { char pad[0xC]; void *vptr; };   /* an EXPL */
+   /* an EXPL */
 struct X { int a; int pad[7]; qword v; qword pad2; };
 int IsAnimBindingDone(ANIMBINDING *c) __asm__("IsAnimBindingDone");
 void StopAnimBinding(ANIMBINDING *c) __asm__("StopAnimBinding");
 void StartAnimBinding(ANIMBINDING *c, STEPGUARD *a, int fl, float g) __asm__("StartAnimBinding");
 float *FindAsegLabel(void *p, void *q) __asm__("FindAsegLabel");
 void SeekAsega(void *p, float a, float b, int n) __asm__("SeekAsega");
-struct O *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, LO *c) __asm__("FindSwObject__FP2SWi3OIDP2LO");
+struct EXPL *FindSwObject__FP2SWi3OIDP2LO(SW *g, int a, int b, LO *c) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword GetLoWorldPos(STEPGUARD *a) __asm__("GetLoWorldPos");
 void NewNoise(void *p, qword v, STEPGUARD *a) __asm__("NewNoise");
@@ -4311,7 +4311,7 @@ extern "C" int HandleBhvjuggledMessage(BHVJUGGLED *behavior, int msg, ASEGEVENTM
             int i, n;
             float g;
             SW *pg;
-            struct O *o;
+            struct EXPL *o;
             STEPGUARD *a;
             if (((ZPR *)pm)->zpk != 0x200000) return 0;
             if (!(((ZPR *)pm)->grfzpr & 8)) return 0;

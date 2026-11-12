@@ -1672,7 +1672,7 @@ extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *object)
 
 // 0x2085D0 TryAddStepguardDetectTarget
 namespace M_FAddStepguardDetectTarget {
-struct DETECTORTARGETIsland; struct DETECTORIsland; 
+struct DETECTORTARGETIsland;
 // Placement new.
 } inline void *operator new(unsigned int,void *storage){return storage;} namespace M_FAddStepguardDetectTarget {  // global (ISO C++: no operator new in a namespace)
 

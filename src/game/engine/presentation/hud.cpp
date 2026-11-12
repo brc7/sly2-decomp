@@ -39,6 +39,7 @@
 #include "sly2/hw.h"
 #include "sly2/streambis.h"
 #include "sly2/so.h"
+#include "sly2/basic.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (subtitle), base of D_004435F4 */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
@@ -72,7 +73,6 @@ void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
 void StaticInit_hud(int fInitialize, int nPriority);
 }
-
 /* Sprite descriptor kinds (LoadSpriteDescriptor; the payload union is in its namespace). */
 enum SPRITE_KIND
 {
@@ -2658,7 +2658,7 @@ extern "C" float GetFontGlyphWidth2(struct S *p, unsigned char ch)
 namespace M_RenderSpriteText {
 // Render generated sprite text, wrapped speech, or the scrolling ticker.
 typedef unsigned int uint;
-typedef struct {unsigned char r,g,b,a;} RGBA;
+
 typedef struct {float a[8];} __attribute__((aligned(16))) T;
 typedef union {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};} DATA;
 typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float scale,width,height;int hAlign,vAlign;} S;   /* kind: 0 language string, 1 text table */
@@ -3488,8 +3488,8 @@ struct O;
 struct E { int numItems; void *items; short animIndex, keyIndex; float time; int isFinished; CID151 *pm; };   /* a SPRITESLOT (hud.h): pm = its sound */
 struct R { unsigned short numAnims, numSlots; void *anims; struct E *ae; };   /* a SPRITEGRP prefix (hud.h): ae = its slots */
 struct A { int kind; int id; };
-struct F { float time; unsigned char itemCount, colorCount, shortCount, byteCount; void *bytes, *items, *colors, *shorts; unsigned char count; char pad1[3]; struct A *aa; };   /* a SPRITEKEY (hud.h): count/aa = its tags */
-struct S { unsigned short numKeys, pad2; struct F *af; float duration; WIDGET *owner; struct R *r; };   /* a SPRITEANIM (hud.h): af = its keys, r = its group */
+   /* a SPRITEKEY (hud.h): count/aa = its tags */
+struct S { unsigned short numKeys, pad2; struct SPRITEKEY *af; float duration; WIDGET *owner; struct R *r; };   /* a SPRITEANIM (hud.h): af = its keys, r = its group */
 extern CID151 *CreateSfxSound(int id) __asm__("CreateSfxSound");
 extern void SetSndSourceLo(CID151 *, struct O *) __asm__("SetSndSourceLo");
 extern void StopSnd(CID151 *, float) __asm__("StopSnd");
@@ -3523,13 +3523,13 @@ static inline E *StopEntry(E *array,int offset){register E *value asm("$2");asm(
 // Runs a sprite key's actions: start / stop sounds, start / stop dialog.
 // Also known as: RunScreenKeyEvents (upstream readable / Sly 1 name; RunScreenKeyEvents__FP8SENTRYRTii).
 extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
-    struct F *f=&p->af[fi];
+    struct SPRITEKEY *f=&p->af[fi];
     int j=0;
-    if(!f->count)return;
+    if(!f->numTags)return;
     int stride=sizeof(E);
     int createOffset=EntryOffset(i,stride);
     do {
-        struct A *a=(struct A *)(j*sizeof(A)+(int)f->aa);
+        struct A *a=(struct A *)(j*sizeof(A)+(int)f->tags);
         switch(ActionKind(*a)) {
         case 0: {
             CID151 *m=CreateSfxSound(a->id);
@@ -3547,7 +3547,7 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
         case 2: StartDialog(&g_sndmgr,a->id,0); break;
         case 3: StopDialog(&g_sndmgr); break;
         }
-    } while(++j<f->count);
+    } while(++j<f->numTags);
 }
 } // namespace M_HandleSpriteKeyEvents
 

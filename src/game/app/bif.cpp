@@ -97,12 +97,11 @@ void CancelSwSpliceCallback(SW *psw, int n);
 
 // 0x11F440 BuiltinAdd__FiP4CRefP6CFrame
 namespace M_BuiltinAdd__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4;
+
 // (Claude agent, lane A9, 2026-10-23) script `+` builtin (probably). The first node is read through an inline accessor in an
 // if/else: the inline blocks jump.c's "x = b; if (c) x = a" rewrite, so `pn = 0` is laid out after the branch and
 // reorg steals it into the beqz delay slot as in the original.
-struct VECTOR { float x, y, z, w; };
-struct MATRIX4 { float m[4][4]; };
+
 extern CRef BuiltinAdd__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinAdd__FiP4CRefP6CFrame");
 
 // The node a script reference points to.
@@ -158,10 +157,10 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame)
         for (; pn; pn = pn->next.p) {
             MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
             MATRIX4 *pmB = (MATRIX4 *)pn->ref.u.pv;
-            pm->m[0][0] += pmB->m[0][0]; pm->m[0][1] += pmB->m[0][1]; pm->m[0][2] += pmB->m[0][2]; pm->m[0][3] += pmB->m[0][3];
-            pm->m[1][0] += pmB->m[1][0]; pm->m[1][1] += pmB->m[1][1]; pm->m[1][2] += pmB->m[1][2]; pm->m[1][3] += pmB->m[1][3];
-            pm->m[2][0] += pmB->m[2][0]; pm->m[2][1] += pmB->m[2][1]; pm->m[2][2] += pmB->m[2][2]; pm->m[2][3] += pmB->m[2][3];
-            pm->m[3][0] += pmB->m[3][0]; pm->m[3][1] += pmB->m[3][1]; pm->m[3][2] += pmB->m[3][2]; pm->m[3][3] += pmB->m[3][3];
+            pm->mat[0][0] += pmB->mat[0][0]; pm->mat[0][1] += pmB->mat[0][1]; pm->mat[0][2] += pmB->mat[0][2]; pm->mat[0][3] += pmB->mat[0][3];
+            pm->mat[1][0] += pmB->mat[1][0]; pm->mat[1][1] += pmB->mat[1][1]; pm->mat[1][2] += pmB->mat[1][2]; pm->mat[1][3] += pmB->mat[1][3];
+            pm->mat[2][0] += pmB->mat[2][0]; pm->mat[2][1] += pmB->mat[2][1]; pm->mat[2][2] += pmB->mat[2][2]; pm->mat[2][3] += pmB->mat[2][3];
+            pm->mat[3][0] += pmB->mat[3][0]; pm->mat[3][1] += pmB->mat[3][1]; pm->mat[3][2] += pmB->mat[3][2]; pm->mat[3][3] += pmB->mat[3][3];
         }
         break;
     }
@@ -171,11 +170,10 @@ CRef BuiltinAdd__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame)
 
 // 0x11F6D0 BuiltinSubtract__FiP4CRefP6CFrame
 namespace M_BuiltinSubtract__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4;
+
 // (Claude agent, lane A9, 2026-10-23) script `-` builtin (probably), same shape as BuiltinAdd: the inline accessor in the
 // if/else keeps `pn = 0` after the branch (no jump.c rewrite), so reorg puts it in the beqz delay slot.
-struct VECTOR { float x, y, z, w; };
-struct MATRIX4 { float m[4][4]; };
+
 extern CRef BuiltinSubtract__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame) __asm__("BuiltinSubtract__FiP4CRefP6CFrame");
 
 // The node a script reference points to.
@@ -231,10 +229,10 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame)
         for (; pn; pn = pn->next.p) {
             MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
             MATRIX4 *pmB = (MATRIX4 *)pn->ref.u.pv;
-            pm->m[0][0] -= pmB->m[0][0]; pm->m[0][1] -= pmB->m[0][1]; pm->m[0][2] -= pmB->m[0][2]; pm->m[0][3] -= pmB->m[0][3];
-            pm->m[1][0] -= pmB->m[1][0]; pm->m[1][1] -= pmB->m[1][1]; pm->m[1][2] -= pmB->m[1][2]; pm->m[1][3] -= pmB->m[1][3];
-            pm->m[2][0] -= pmB->m[2][0]; pm->m[2][1] -= pmB->m[2][1]; pm->m[2][2] -= pmB->m[2][2]; pm->m[2][3] -= pmB->m[2][3];
-            pm->m[3][0] -= pmB->m[3][0]; pm->m[3][1] -= pmB->m[3][1]; pm->m[3][2] -= pmB->m[3][2]; pm->m[3][3] -= pmB->m[3][3];
+            pm->mat[0][0] -= pmB->mat[0][0]; pm->mat[0][1] -= pmB->mat[0][1]; pm->mat[0][2] -= pmB->mat[0][2]; pm->mat[0][3] -= pmB->mat[0][3];
+            pm->mat[1][0] -= pmB->mat[1][0]; pm->mat[1][1] -= pmB->mat[1][1]; pm->mat[1][2] -= pmB->mat[1][2]; pm->mat[1][3] -= pmB->mat[1][3];
+            pm->mat[2][0] -= pmB->mat[2][0]; pm->mat[2][1] -= pmB->mat[2][1]; pm->mat[2][2] -= pmB->mat[2][2]; pm->mat[2][3] -= pmB->mat[2][3];
+            pm->mat[3][0] -= pmB->mat[3][0]; pm->mat[3][1] -= pmB->mat[3][1]; pm->mat[3][2] -= pmB->mat[3][2]; pm->mat[3][3] -= pmB->mat[3][3];
         }
         break;
     }
@@ -244,9 +242,9 @@ CRef BuiltinSubtract__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame)
 
 // 0x11F960 BuiltinMultiply__FiP4CRefP6CFrame
 namespace M_BuiltinMultiply__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_M; struct VU_FLOAT_V; struct VU_FLOAT_I; struct VU_FLOAT_D; struct VU_FLOAT_F; struct VU_FLOAT_X; struct VU_VECTOR;
+ struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_M; struct VU_FLOAT_V; struct VU_FLOAT_I; struct VU_FLOAT_D; struct VU_FLOAT_F; struct VU_FLOAT_X; struct VU_VECTOR;
 // BuiltinMultiply MATCH (Claude agent, lane A12, 2026-10-23), from fresh4 (6): 0x1A/0x16 MulVectorR builds the VU float from the int bits with ONE commented pin ($17, pr's register, as the target), and MulMatrix (0x1B/0x16) has a commented volatile empty asm that keeps &mat after the mtc1. The other old pins were removed.
-struct VECTOR { float x, y, z, w; };
+
 struct MATRIX4 { float af[16]; } __attribute__((aligned(16)));
 struct V8 { float x, y; };
 struct VU_FLOAT {
@@ -474,10 +472,10 @@ CRef BuiltinMultiply__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame)
 
 // 0x11FEC8 BuiltinDivide__FiP4CRefP6CFrame
 namespace M_BuiltinDivide__FiP4CRefP6CFrame {
-struct VECTOR; struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_X; struct VU_VECTOR; struct VU_FLOAT_V;
+ struct MATRIX4; struct V8; struct VU_FLOAT; struct VU_FLOAT_X; struct VU_VECTOR; struct VU_FLOAT_V;
 // `/` script builtin (Claude agent). The int-matrix path builds its VU_FLOAT temp in the caller, before the inline scale
 // helper frame, so the temp reuses the freed CRef slot at sp+0x10 as in the original.
-struct VECTOR { float x, y, z, w; };
+
 struct MATRIX4 { float af[16]; } __attribute__((aligned(16)));
 struct V8 { float x, y; };
 struct VU_FLOAT {
@@ -1763,8 +1761,6 @@ CRef BuiltinVector__FiP4CRefP6CFrame(int c, CRef *pref, CFrame *frame)
 
 // 0x121F00 BuiltinMatrix__FiP4CRefP6CFrame
 namespace M_BuiltinMatrix__FiP4CRefP6CFrame {
-struct MATRIX4;
-struct MATRIX4 { float m[4][4]; };
 
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 CRef CRef_CoerceF32(CRef *pref) __asm__("CRef_CoerceF32");
@@ -1780,18 +1776,18 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref, CFrame *frame)
     if (carg > 0)
         pn = pref->u.ppair;
     func_002333B4(pm, 0, sizeof(*pm));
-    pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
+    pm->mat[0][0] = pm->mat[1][1] = pm->mat[2][2] = pm->mat[3][3] = 1.0f;
     switch (carg) {
     case 0:
         break;
     case 1:
-        pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = CRef_CoerceF32(&pn->ref).u.g;
+        pm->mat[0][0] = pm->mat[1][1] = pm->mat[2][2] = CRef_CoerceF32(&pn->ref).u.g;
         break;
     case 3:
     case 4: {
         int i;
         for (i = 0; i < carg; i++) {
-            *(qword *)pm->m[i] = *(qword *)pn->ref.u.pv;
+            *(qword *)pm->mat[i] = *(qword *)pn->ref.u.pv;
             pn = pn->next.p;
         }
         break;
@@ -1803,7 +1799,7 @@ CRef BuiltinMatrix__FiP4CRefP6CFrame(int carg, CRef *pref, CFrame *frame)
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
                 CRef r = CRef_CoerceF32(&pn->ref);
-                pm->m[i][j] = r.u.g;
+                pm->mat[i][j] = r.u.g;
                 pn = pn->next.p;
             }
         }
@@ -2491,10 +2487,9 @@ extern "C" CRefData *BuiltinMatrixCalculateDmat__FiP4CRefP6CFrame(CRefData *pref
 
 // 0x122F00 BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame {
-struct MATRIX4; // Script matrix-slerp builtin. Matched by Claude agent (2026-10-17): MulM3 uses the g++ named return value (`return m`),
+ // Script matrix-slerp builtin. Matched by Claude agent (2026-10-17): MulM3 uses the g++ named return value (`return m`),
 // stores each row right after its asm, and also writes a second (dead) M3 copy t, which is the target's 0xB0 slot.
 typedef union { qword q; float g; } UF;
-struct MATRIX4 { float m[4][4]; };
 
 MATRIX3Q MulMatrix3Matrix3(MATRIX3Q *pa, MATRIX3Q *pb) __asm__("MulMatrix3Matrix3");
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3Q *pmat, float *prad, qword *pvec) __asm__("DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR");
@@ -2528,7 +2523,7 @@ CRef BuiltinMatrixInterpolateRotate__FiP4CRefP6CFrame(int cref, CRef *args, CFra
     CRef ref(TAGK_MATRIX);
     MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
     func_002333B4(pm, 0, 0x40);
-    pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
+    pm->mat[0][0] = pm->mat[1][1] = pm->mat[2][2] = pm->mat[3][3] = 1.0f;
     *(MATRIX3Q *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * args[2].u.g, normal.q), (MATRIX3Q *)args[0].u.pv);
     return ref;
 }
@@ -2654,10 +2649,9 @@ CRef BuiltinMatrixLookAt__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *frame)
 
 // 0x1232D0 BuiltinMatrixTiltUpright__FiP4CRefP6CFrame
 namespace M_BuiltinMatrixTiltUpright__FiP4CRefP6CFrame {
-struct MATRIX3; struct MATRIX4; struct XF;
+struct MATRIX3; struct MATRIX4; 
 struct MATRIX3 { VECTOR4 mat[3]; };
 struct MATRIX4 { VECTOR4 mat[3]; VECTOR4 pos; };
-struct XF { char pad[0x30]; qword pos; };
 
 void TiltMatUpright(XF *pxf, int f, MATRIX3 *pmat) __asm__("TiltMatUpright");
 VECTOR4 *VECTOR_opAssign(VECTOR4 *pv, qword q) __asm__("VECTOR_opAssign");
@@ -2671,7 +2665,7 @@ CRef BuiltinMatrixTiltUpright__FiP4CRefP6CFrame(int cref, CRef *args, CFrame *fr
     TiltMatUpright((XF *)args[0].u.pv, 0, &mat);
     CRef ref(TAGK_MATRIX);
     MATRIX4 *pmat = (MATRIX4 *)ref.u.pv;
-    VECTOR_opAssign(&pmat->pos, ((XF *)args[0].u.pv)->pos);
+    VECTOR_opAssign(&pmat->pos, ((XF *)args[0].u.pv)->localMatq.r[3].q);
     *(MATRIX3 *)pmat = mat;
     pmat->mat[2].w = 0.0f;
     pmat->mat[1].w = 0.0f;

@@ -34,7 +34,7 @@
 #include "sly2/game.h"
 #include "sly2/classes.h"
 #include "sly2/lsg.h"
-
+#include "sly2/xp.h"
 // Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
 static inline JT *AsJt(void *p) { return (JT *)p; }
 
@@ -1236,7 +1236,7 @@ int TryMatchJtXmg(JT *jt, XMG *pm, void *px)
 namespace M_UpdateJtStand {
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct T { char pad[0x4C]; SO *po; };   /* the floor contact (XP): the other side's object */
+   /* the floor contact (XP): the other side's object */
 int GetStepplayerLeanFlags(JT *pjt) __asm__("GetStepplayerLeanFlags");
 void SetSmaMask(SMA *psma, int n) __asm__("SetSmaMask");
 float ClampAbs__Fff(float g, float h) __asm__("ClampAbs__Fff");
@@ -1251,7 +1251,7 @@ extern "C" void UpdateJtStand(JT *jt)
 {
     SetSmaMask(jt->activeStateMachine, GetStepplayerLeanFlags(jt));
     if (!jt->TryFaceAttachedObject() && jt->floorContact) {
-        SO *o = ((struct T *)jt->floorContact)->po;
+        SO *o = ((struct XP *)jt->floorContact)->axps[1].pso;
         UV u;
         u.q = o->GetAngularVelocity();
         u.v.z = ClampAbs__Fff(u.v.z, 10.0f);
