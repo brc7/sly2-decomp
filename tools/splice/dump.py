@@ -521,7 +521,7 @@ BIF_OID = (112, 113, 115, 116)      # find-object(s), find-nearest-object(s): (o
 BIF_OIDLIST = 114                   # (op '(OID ...) scope ...)
 BIF_CID = 120                       # find-class-objects: (op CID scope)
 BIF_RECEIVER = {117: 1, 118: 152, 119: 135, 137: 154}
-# find-world-object -> SW, find-sound-object~ -> CID152 (g_sndmgr: the only class binding StartDialog, option 264),
+# find-world-object -> SW, find-sound-object~ -> SNDMGR (was CID152) (g_sndmgr: the only class binding StartDialog, option 264),
 # find-camera-object -> CM, find-hintbox-object~ -> CID154 (the only class binding PostNotice, option 979)
 IDENT = re.compile(r"^[A-Za-z!$%&*/:<=>?^_~+\-][A-Za-z0-9!$%&*/:<=>?^_~+\-.@]*$")
 NUMBER = re.compile(r'^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$')

@@ -2405,7 +2405,7 @@ parent BASIC; 23 options in all.
 | 262 | `RefThunk_SetSndRange` | - | method(2) | 135 |
 | 263 | `rangeNear` | lm | get | 136 |
 
-## CID152 (cid 152)
+## SNDMGR (cid 152)
 
 parent BASIC; 27 options in all.
 

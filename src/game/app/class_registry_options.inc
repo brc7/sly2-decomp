@@ -887,20 +887,20 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x22, EOPID_OFF(CID151, position), EOPID_PMF(SetSndSourcePos), EOPID_NONE, EOPID_NONE}, /* [134] opt 261, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndRange), EOPID_INT(2), EOPID_NONE}, /* [135] opt 262, CID151 */
     {0xA, 2, EOPID_OFF(CID151, rangeNear), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [136] opt 263, CID151 */
-    {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_StartDialog), EOPID_INT(2), EOPID_NONE}, /* [137] opt 264, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopDialog), EOPID_NONE, EOPID_NONE}, /* [138] opt 265, CID152 */
-    {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsDialogPlaying), EOPID_INT(1), EOPID_NONE}, /* [139] opt 266, CID152 */
-    {1, 4, EOPID_PMF(GetDialogTime), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [140] opt 267, CID152 */
-    {1, 1, EOPID_NONE, EOPID_FN(RefThunk_GetDialogStreamDuration), EOPID_INT(1), EOPID_NONE}, /* [141] opt 268, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_AddMusicLayer2Request), EOPID_NONE, EOPID_NONE}, /* [142] opt 269, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveMusicLayer2Request), EOPID_NONE, EOPID_NONE}, /* [143] opt 270, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_AddMusicLayer0Request), EOPID_NONE, EOPID_NONE}, /* [144] opt 271, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveMusicLayer0Request), EOPID_NONE, EOPID_NONE}, /* [145] opt 272, CID152 */
-    {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_PushMusic), EOPID_INT(1), EOPID_NONE}, /* [146] opt 273, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopMusic), EOPID_INT(1), EOPID_NONE}, /* [147] opt 274, CID152 */
-    {1, 1, EOPID_NONE, EOPID_FN(RefThunk_GetMusicTime), EOPID_NONE, EOPID_NONE}, /* [148] opt 275, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrMasterVolume), EOPID_INT(1), EOPID_NONE}, /* [149] opt 276, CID152 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrChannelVolume), EOPID_INT(2), EOPID_NONE}, /* [150] opt 277, CID152 */
+    {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_StartDialog), EOPID_INT(2), EOPID_NONE}, /* [137] opt 264, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopDialog), EOPID_NONE, EOPID_NONE}, /* [138] opt 265, SNDMGR */
+    {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsDialogPlaying), EOPID_INT(1), EOPID_NONE}, /* [139] opt 266, SNDMGR */
+    {1, 4, EOPID_PMF(GetDialogTime), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [140] opt 267, SNDMGR */
+    {1, 1, EOPID_NONE, EOPID_FN(RefThunk_GetDialogStreamDuration), EOPID_INT(1), EOPID_NONE}, /* [141] opt 268, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_AddMusicLayer2Request), EOPID_NONE, EOPID_NONE}, /* [142] opt 269, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveMusicLayer2Request), EOPID_NONE, EOPID_NONE}, /* [143] opt 270, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_AddMusicLayer0Request), EOPID_NONE, EOPID_NONE}, /* [144] opt 271, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveMusicLayer0Request), EOPID_NONE, EOPID_NONE}, /* [145] opt 272, SNDMGR */
+    {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_PushMusic), EOPID_INT(1), EOPID_NONE}, /* [146] opt 273, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopMusic), EOPID_INT(1), EOPID_NONE}, /* [147] opt 274, SNDMGR */
+    {1, 1, EOPID_NONE, EOPID_FN(RefThunk_GetMusicTime), EOPID_NONE, EOPID_NONE}, /* [148] opt 275, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrMasterVolume), EOPID_INT(1), EOPID_NONE}, /* [149] opt 276, SNDMGR */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrChannelVolume), EOPID_INT(2), EOPID_NONE}, /* [150] opt 277, SNDMGR */
     {0x1007, 0x122, EOPID_OFF(LIGHT, kind), EOPID_PMF(SetLightKind), EOPID_PMF(SetLightKind), EOPID_NONE}, /* [151] opt 278, LIGHT */
     {2, 0xA2, EOPID_OFF(LIGHT, highlightHsvComponents), EOPID_PMF(SetLightHighlightColor), EOPID_OFF(LIGHT, highlightHsvComponents), EOPID_NONE}, /* [152] opt 279, LIGHT */
     {1, 0xA2, EOPID_OFF(LIGHT, midtoneStrength), EOPID_PMF(SetLightMidtoneStrength), EOPID_OFF(LIGHT, midtoneStrength), EOPID_NONE}, /* [153] opt 280, LIGHT */

@@ -22,18 +22,75 @@
 #ifndef SLY2_CLASSES_H
 #define SLY2_CLASSES_H
 /* The headers and the first classes in the order class_registry (their key TU) emits its vtables, the reverse of
-   0x2C8940..0x2CA550's order: CID152, CM, TICKER, ASEGBL, CID149 and CID150 (so.h), POCTL (po.h), EXPLO
+   0x2C8940..0x2CA550's order: SNDMGR, CM, TICKER, ASEGBL, CID149 and CID150 (so.h), POCTL (po.h), EXPLO
    (emitter.h), then GUARD and the rest below. */
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* 152 CID152 (0x250): sound manager (find-sound-object~); vtable 0x2CA510, 6 slots */
-struct CID152 : BASIC
+#include "sly2/slotheap.h"   /* SNDMGR's pools */
+#include "sly2/snd.h"        /* SNDREF */
+#include "sly2/sw.h"         /* FILEREC (sw.h emits no vtable: SW's key function is a C definition) */
+struct SNDSTREAM; struct SNDFILE;
+
+/* 152 SNDMGR (was CID152; 0x250): the sound manager (find-sound-object~; g_sndmgr, D_003DD040, defined by sound.cpp,
+   declared in sly2/sndmgr.h); vtable 0x2CA510, 6 slots. A BASIC (constructed by
+   SNDMGR_ctor, which stores BASIC's words and vtable itself); sound.cpp's definition has its own construct-and-destruct
+   form.
+   Volume channels: 0 ambience, 1 music, 2 dialog, 3 bank sound effects (the menu's effects slider sets 0 and 3).
+   Volume categories (rows of volumes): 1 the options menu, 2 the pause fade (0 pauses the channel's sounds), 3 a player
+   mode's ducking (mode.cpp: 0.6); the rest are 1. */
+struct SNDMGR : public BASIC
 {
-    char pad10[0x250 - 0x10];
+    int isHeadsetEnabled;        /* +0x010 the "use headset" option (save.cpp loads it; menu.cpp shows it) */
+    int unknown14;               /* +0x014 cleared by ResetSndmgr only */
+    int numSfx;                  /* +0x018 size of the sfx id -> sound index table (ResetSndmgr: -1) */
+    SLOTHEAP bankSoundPool;      /* +0x01C */
+    SLOTHEAP streamSoundPool;    /* +0x034 */
+    DL dirtySounds;              /* +0x04C the sounds with pending requests (UpdateSndmgr flushes them) */
+    int isPaused;                /* +0x058 set while the disc is busy (UpdateSndmgr pauses the music / ambience / dialog) */
+    int musicLayer2Requests;     /* +0x05C counted requests */
+    int musicLayer0Requests;     /* +0x060 */
+    int selectedMusicLayer;      /* +0x064 0..2 */
+    int muteWhenStoppedFlags;    /* +0x068 bit 1: cleared by a player mode, bit 2: during cutscenes; when both are set (3,
+                                    the default) the ambience and music fade out while game time is stopped */
+    int isMicLevelQueryBusy;     /* +0x06C */
+    float micLevel;              /* +0x070 headset microphone level from the IOP (SUKR command 0xB) */
+    int micNoise[3];             /* +0x074 the NOISE the microphone makes for guards (ReplaceHeldNoise, noise.cpp) */
+    CLQ micNoiseRangeCurve;      /* +0x080 microphone level -> noise range */
+    CLQ micNoiseHeightCurve;     /* +0x090 microphone level -> noise height */
+    int isStatusQueryBusy;       /* +0x0A0 */
+    int statusResult;            /* +0x0A4 SUKR command 0xC; meaning unknown */
+    FILEREC bankRecord;          /* +0x0A8 */
+    int bank;                    /* +0x0E8 989snd bank handle */
+    SNDSTREAM *firstDialogStream; /* +0x0EC dialog lines */
+    SNDFILE *firstMusicFile;     /* +0x0F0 music tracks (PushMusic / FindMusic create kind-4 STREAMSNDs from them) */
+    FILEREC *ambienceRecord;     /* +0x0F4 */
+    int numSounds;               /* +0x0F8 */
+    int *soundKinds;             /* +0x0FC per sound: 2 = looping */
+    int *soundIndexFromSfx;      /* +0x100 */
+    int playbackMode;            /* +0x104 snd_SetPlaybackMode */
+    float musicLayerWeights[3];  /* +0x108 */
+    SMP musicLayerSmoothing[3];  /* +0x114 */
+    int sfxVariationStep;        /* +0x138 the random walk of StepRandomSfxVariation (-12..12) */
+    float volumes[8][4];         /* +0x13C category x channel */
+    float masterVolume;          /* +0x1BC */
+    float channelVolumes[4];     /* +0x1C0 the product of the volumes of each channel */
+    int numAmbienceGroups;       /* +0x1D0 */
+    int ambienceGroupIds[6];     /* +0x1D4 */
+    int pad1EC;
+    long tickNow;                /* +0x1F0 this update's tick */
+    long tickLast;               /* +0x1F8 the last update's tick */
+    SNDREF dialogSound;          /* +0x200 counted pointers (released by g_sndmgr's destructor) */
+    int musicStackCount;         /* +0x204 */
+    SNDREF musicStack[8];        /* +0x208 */
+    SNDREF ambienceSound;        /* +0x228 */
+    BASIC *dialogRoleObjects[6]; /* +0x22C per lip-sync role (3: the speaker object; the others its state machines) */
+    int dialogEventIndex;        /* +0x244 */
+    float dialogEventTime;       /* +0x248 */
+    float dialogElapsed;         /* +0x24C */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid152ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID152_size[sizeof(CID152) == 0x250 ? 1 : -1];
+typedef char assert_SNDMGR_size[sizeof(SNDMGR) == 0x250 ? 1 : -1];
 
 #include "sly2/cm.h"
 

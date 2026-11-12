@@ -415,7 +415,7 @@ SLY2_SPLICEWRAP_END
 // ---- splice thunk RefThunk_StartDialog (was src/game/app/splice_thunks/RefThunk_StartDialog.cpp) ----
 namespace T_RefThunk_StartDialog {
 extern "C" { void *StartDialog(void *p, int a, int b); CRef RefThunk_StartDialog(void *p, int c, void *aref); }
-// Splice binding for option 264 on CID152 (g_aeopid[137], thunkFn): unpacks the script's 2 arguments (0x10, 0x105D)
+// Splice binding for option 264 on SNDMGR (g_aeopid[137], thunkFn): unpacks the script's 2 arguments (0x10, 0x105D)
 // with RefSetArgsFromSplice, calls StartDialog and returns a value of type 0x2097 to the script.
 CRef RefThunk_StartDialog(void *object, int argCount, void *args)
 {
@@ -3093,7 +3093,7 @@ CLASSINFO *CID150::GetClassInfo() { return &D_002BAAE8[150]; }
 
 extern "C" CLASSINFO *GetCid151ClassDesc() { return &D_002BAAE8[151]; }
 
-CLASSINFO *CID152::GetClassInfo() { return &D_002BAAE8[152]; }
+CLASSINFO *SNDMGR::GetClassInfo() { return &D_002BAAE8[152]; }
 
 CLASSINFO *JSG::GetClassInfo() { return &D_002BAAE8[153]; }
 
@@ -3375,7 +3375,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[148], 149, 150, sizeof(CID149), 0}, /* Cid149 */
     {&D_002BAAE8[148], 150, 151, sizeof(CID150), 0}, /* Cid150 */
     {&D_002BAAE8[0], 151, 152, sizeof(CID151), 0}, /* Cid151 */
-    {&D_002BAAE8[0], 152, 153, sizeof(CID152), 0}, /* Cid152 */
+    {&D_002BAAE8[0], 152, 153, sizeof(SNDMGR), 0}, /* Sndmgr (was Cid152) */
     {&D_002BAAE8[0], 153, 154, sizeof(JSG), (PFNNEW)NewJsg}, /* Jsg */
     {&D_002BAAE8[0], 154, 155, sizeof(TICKER), (PFNNEW)NewCid154}, /* Cid154 */
     {&D_002BAAE8[0], 155, 199, sizeof(BHV), (PFNNEW)NewBhv}, /* Bhv */
