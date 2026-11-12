@@ -671,7 +671,7 @@ struct C{P*actor;int kind;char pad8[8];int*counter;char pad14[8];ACTION action;c
  void*CreateSfxSound(int) __asm__("CreateSfxSound");
  void SetSndSourceLo(void*,P*) __asm__("SetSndSourceLo");
  qword GetLoWorldPos(P*) __asm__("GetLoWorldPos");
- void*NewNoise(STIMK*,qword,P*) __asm__("NewNoise");
+ void*NewNoise(CID117*,qword,P*) __asm__("NewNoise");
 
 // a + b with unsigned wrap.
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
@@ -836,7 +836,7 @@ notify: {
 sound:
     register SW *game __asm__("$16") = &g_sw;
     qword point = GetLoWorldPos(p->actor);
-    STIMK *channel = game->apstimk[6];
+    CID117 *channel = game->apstimk[6];
     (void)NewNoise(channel, point, p->actor);
     return 1;
 }

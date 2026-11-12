@@ -1938,7 +1938,7 @@ namespace M_FStepguardSenseStimulus {
 int AreStepguardSensesEnabled(STEPGUARD *guard) __asm__("AreStepguardSensesEnabled");
 DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object) __asm__("FindDetectorTarget");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
-int IsPositionInNoise(STIMULUS *stimulus, qword pos) __asm__("IsPositionInNoise");
+int IsPositionInNoise(CID147 *stimulus, qword pos) __asm__("IsPositionInNoise");
 int IsPointInVol(VOL *volume, qword pos) __asm__("IsPointInVol");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, void *phit) __asm__("FindFirstObjectHitByLine");
@@ -1950,11 +1950,11 @@ void ShouldKeepSoNotSelf() __asm__("ShouldKeepSoNotSelf");
 // not its own; kind 0 noises by range test, kind 1 inside the detector's near volume with a clear line, and so on
 // per kind.
 // Also known as: FGuardAcceptsNoise (upstream readable / Sly 1 name; FGuardAcceptsNoise__FP5GUARDP5NOISE).
-int STEPGUARD::CanSenseStimulus(STIMULUS *stimulus)
+int STEPGUARD::CanSenseStimulus(CID147 *stimulus)
 {
     using namespace M_FStepguardSenseStimulus;
     STEPGUARD *guard = this;
-    STIMTEMPLATE *stimTemplate;
+    CID117 *stimTemplate;
     qword guardPos, stimulusPos;
     if (!AreStepguardSensesEnabled(guard))
         return 0;
@@ -1968,9 +1968,9 @@ int STEPGUARD::CanSenseStimulus(STIMULUS *stimulus)
         if (subject != guard && !entry)
             return 0;
     }
-    stimTemplate = stimulus->stimTemplate;
+    stimTemplate = stimulus->type;
     guardPos = GetLoWorldPos(guard);
-    stimulusPos = stimulus->pos;
+    stimulusPos = stimulus->position;
     switch (stimTemplate->kind) {
     case 0:
         return IsPositionInNoise(stimulus, GetLoWorldPos(guard));
@@ -2908,22 +2908,22 @@ extern "C" { static inline float DistSq(void *object, qword *point)
 // 0x20A168: Compares two stimuli for priority: template kind (lower first), level (higher first),
 // time (later first), then distance (nearer first); finally address order.
 // Also known as: NCompareNoises (upstream readable / Sly 1 name; NCompareNoises__FP5GUARDP5NOISET1).
-extern "C" int CompareStepguardStimuli(void *guard, struct STIMULUS *a, struct STIMULUS *b)
+extern "C" int CompareStepguardStimuli(void *guard, struct CID147 *a, struct CID147 *b)
 {
     int diff;
     float distA, distB;
-    diff = a->stimTemplate->kind - b->stimTemplate->kind;
+    diff = a->type->kind - b->type->kind;
     if (diff)
         return diff;
     diff = b->level - a->level;
     if (diff)
         return diff;
-    if (a->time > b->time)
+    if (a->startTime > b->startTime)
         return -1;
-    if (a->time < b->time)
+    if (a->startTime < b->startTime)
         return 1;
-    distA = DistSq(guard, &a->pos);
-    distB = DistSq(guard, &b->pos);
+    distA = DistSq(guard, &a->position);
+    distB = DistSq(guard, &b->position);
     if (distA < distB)
         return -1;
     if (distB > distA)
@@ -2979,9 +2979,9 @@ extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 
 // 0x20A408 ChooseStepguardStimulus
 namespace M_func_0020A408 {
-struct STIMLIST_VIEW { char pad[0x148C]; STIMULUS *first; };   /* first at g_sw+0x3FFC */
+
 extern float D_002C3DB0 __asm__("D_002C3DB0");
-int CompareStepguardStimuli(STEPGUARD *guard, STIMULUS *a, STIMULUS *b) __asm__("CompareStepguardStimuli");
+int CompareStepguardStimuli(STEPGUARD *guard, CID147 *a, CID147 *b) __asm__("CompareStepguardStimuli");
 DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object) __asm__("FindDetectorTarget");
 void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int state) __asm__("SetDetectorTargetState");
 
@@ -2990,15 +2990,15 @@ void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int state
 }
 int AreStepguardSensesEnabled(STEPGUARD *guard) __asm__("AreStepguardSensesEnabled");
 // Also known as: PloGuardInterest (upstream readable / Sly 1 name; PloGuardInterest__FP5GUARDP2LO).
-extern "C" STIMULUS *ChooseStepguardStimulus(STEPGUARD *guard, STIMULUS *fallback)
+extern "C" CID147 *ChooseStepguardStimulus(STEPGUARD *guard, CID147 *fallback)
 {
     using namespace M_func_0020A408;
-    STIMULUS *stimulus, *best;
+    CID147 *stimulus, *best;
     int unused[4];
     if (!AreStepguardSensesEnabled(guard))
         return fallback;
     best = fallback;
-    for (stimulus = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; stimulus; stimulus = stimulus->next) {
+    for (stimulus = (CID147 *)g_sw.dlStimulus.head; stimulus; stimulus = stimulus->next) {
         if (guard->CanSenseStimulus(stimulus)) {   /* CanStepguardSenseStimulus */
             if (!best || CompareStepguardStimuli(guard, stimulus, best) < 0)
                 best = stimulus;
@@ -3542,21 +3542,21 @@ extern "C" int GetStepguardGroundProbeFlags(STEPGUARD *guard)
 namespace M_func_0020B140 {
 extern float D_002C3DB8 __asm__("D_002C3DB8");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void CreateNoise(struct CID117 *noiseType, qword pos, STEPGUARD *source, STIMULUS **result) __asm__("CreateNoise");
-STIMULUS *NewNoise(STIMK *pstimk, qword pos, STEPGUARD *source) __asm__("NewNoise");
+void CreateNoise(struct CID117 *noiseType, qword pos, STEPGUARD *source, CID147 **result) __asm__("CreateNoise");
+CID147 *NewNoise(CID117 *pstimk, qword pos, STEPGUARD *source) __asm__("NewNoise");
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).
 // Also known as: RaiseGuardAlarm (upstream readable / Sly 1 name; RaiseGuardAlarm__FP5GUARDP2LO).
 extern "C" void EmitStepguardStimulus(STEPGUARD *guard, void *target)
 {
-    STIMULUS *stimulus;
+    CID147 *stimulus;
     qword targetPos = GetLoWorldPos(target);
     stimulus = 0;
     if (guard->noiseType)
         CreateNoise(guard->noiseType, GetLoWorldPos(guard), guard, &stimulus);
     else
         stimulus = NewNoise(g_sw.apstimk[4], GetLoWorldPos(guard), guard);
-    stimulus->targetPos = targetPos;
+    stimulus->targetPosition = targetPos;
     stimulus->subject = (LO *)target;
     stimulus->level = 4;
     guard->alertCooldownEnd = g_clock.time + D_002C3DB8;

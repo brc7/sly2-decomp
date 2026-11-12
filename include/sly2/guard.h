@@ -91,33 +91,9 @@ struct SSGRESUME
       float pathParam;      /* +0x8 kind 6: where along the path */
 };
 
-/* A stimulus template (the noise type; only what the guards' sense tests read). [S] */
-struct STIMTEMPLATE
-{
-      undefined4 unknown0[0x50 / 4];
-      int kind;             /* +0x50 [S] 0 noise (audible), 1 sight (CanStepguardSenseStimulus) */
-      float range;          /* +0x54 [S] how far it carries (CanRajanSenseStimulus doubles it) */
-      LM heightRange;       /* +0x58 [S] the height window */
-};
-/* A stimulus a guard may sense (0x60 bytes; stepguard.cpp's stimulus functions, rajan emitter). [S] */
-struct STIMULUS
-{
-      undefined4 unknown0[5];
-      STIMTEMPLATE *stimTemplate; /* +0x14 [S] what kind of stimulus */
-      undefined4 unknown18[2];
-      qword pos;            /* +0x20 [S] where it happened */
-      qword targetPos;      /* +0x30 [S] */
-      LO *source;           /* +0x40 [S] its emitter (a guard does not sense its own) */
-      LO *subject;          /* +0x44 [S] who it is about (level 4: only a tracked subject is sensed) */
-      undefined4 unknown48;
-      float time;           /* +0x4C [S] */
-      undefined4 unknown50;
-      int level;            /* +0x54 [S] loudness, compared with STEPGUARD::minStimulusLevel */
-      STIMULUS *next;       /* +0x58 [S] link in SW::dlStimulus (with previous: a DLE) */
-      STIMULUS *previous;   /* +0x5C */
-};
-typedef char assert_STIMULUS_level[SLY2_OFFSETOF(STIMULUS, level) == 0x54 ? 1 : -1];
-typedef char assert_STIMULUS_size[sizeof(STIMULUS) == 0x60 ? 1 : -1];
+/* The stimulus a guard senses is classes.h CID147 (one record with noise.cpp's NOISE: source / subject / level),
+   its type CID117 (kind, range, height window); the world keeps them on SW::dlStimulus. */
+struct CID117; struct CID147;
 
 /* One detector target (16 bytes): the object, its detection state (0 none, 1 seen, 2 close; set by
    UpdateDetectorTargets) and when the state was entered. [S] */
@@ -424,7 +400,7 @@ struct STEPGUARD : public STEP
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepguardZapLethal");   /* slot 86 */
     virtual void SetPlayable(int fOn) __asm__("SetStepguardPlayable");   /* slot 87 */
     virtual LO *ChooseTarget() __asm__("ChooseStepguardTarget");   /* slot 88: STEPGUARD adds 2 slots to STEP's 0..87; returns the target to pursue (ResumeBhvguard) */
-    virtual int CanSenseStimulus(struct STIMULUS *pstim) __asm__("CanStepguardSenseStimulus");   /* slot 89 (stepguard.cpp calls vtable entry 89 with the stimulus) */
+    virtual int CanSenseStimulus(struct CID147 *pstim) __asm__("CanStepguardSenseStimulus");   /* slot 89 (stepguard.cpp calls vtable entry 89 with the stimulus) */
 };
 typedef char assert_STEPGUARD_size[sizeof(STEPGUARD) == 0x1010 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_STEPGUARD_grfsg[SLY2_OFFSETOF(STEPGUARD, grfsg) == 0x2C0 ? 1 : -1];   /* CONFIRMED runtime */

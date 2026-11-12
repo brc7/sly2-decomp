@@ -704,11 +704,11 @@ typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 /* 117 CID117 (0x70): stimulus template (NOISETYPE: radius, height, ramp; the world's seven in SW::apstimk); vtable 0x2CE2F8, 48 slots */
 struct CID117 : LO
 {
-    int isMuted;            /* +0x50 listeners ignore its noises */
+    int kind;               /* +0x50 0 audible, 1 visible (CanStepguardSenseStimulus; listeners hear only kind 0) */
     float range;            /* +0x54 (InitNoiseType 1500) */
     LM heightRange;         /* +0x58 (-200..500) */
     float duration;         /* +0x60 the noises' lifetime (< 0: they last; InitNoiseType 0.25 s) */
-    int noiseKind;          /* +0x64 copied into each noise's CID147::noiseKind */
+    int level;              /* +0x64 copied into each stimulus' CID147::level */
     int unknown68[2];
     virtual void Init() __asm__("InitNoiseType");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
@@ -721,25 +721,26 @@ typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 struct CID147 : BASIC
 {
     int refCount;           /* +0x10 */
-    struct CID117 *type;    /* +0x14 the noise type it was emitted from */
+    struct CID117 *type;    /* +0x14 the stimulus type it was emitted from */
     int unknown18[2];
     qword position;         /* +0x20 where it is (a held noise is moved with its maker: UpdateBhvSleep) */
-    qword startPosition;    /* +0x30 */
-    int loudness;           /* +0x40 */
-    int unknown44;
+    qword targetPosition;   /* +0x30 CreateNoise: the emission point; EmitStepguardStimulus: the alarm target's position */
+    LO *source;             /* +0x40 what made it (NewNoise's third argument; a guard does not sense its own) */
+    LO *subject;            /* +0x44 who it is about (level 4 alarms: only a tracked subject is sensed) */
     int serial;             /* +0x48 */
     float startTime;        /* +0x4C */
     int unknown50;
-    int noiseKind;          /* +0x54 what made it (3: a thrown guard yelling, UpdateBhvThrown) */
-    CID147 *next;           /* +0x58 link of DL g_sw.dlStimulus */
-    int unknown5C;
+    int level;              /* +0x54 from CID117::level; compared with STEPGUARD::minStimulusLevel (3: a thrown guard yelling,
+                               UpdateBhvThrown; 4: an alarm about subject, EmitStepguardStimulus) */
+    CID147 *next;           /* +0x58 link of DL g_sw.dlStimulus (with previous: a DLE) */
+    CID147 *previous;       /* +0x5C */
     virtual void AddRef() __asm__("RetainNoise");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("ReleaseNoise");   /* slot 2 */
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 typedef char assert_CID147_position[SLY2_OFFSETOF(CID147, position) == 0x20 ? 1 : -1];
-typedef char assert_CID147_noiseKind[SLY2_OFFSETOF(CID147, noiseKind) == 0x54 ? 1 : -1];
+typedef char assert_CID147_level[SLY2_OFFSETOF(CID147, level) == 0x54 ? 1 : -1];
 
 /* 47 CID47 (0x110): stimulus listener (LISTENER, noise.cpp); vtable 0x2CE118, 50 slots */
 struct CID47 : XFM
@@ -884,7 +885,7 @@ struct BHV171 : BHV
     float lookEndTime;      /* +0x38 */
     float nextTime;         /* +0x3C give-up time in state 2, next search point time in state 3 */
     float unknown40;
-    STIMULUS *watched;      /* +0x44 the stimulus being investigated (SetBhvSearchWatched; counted: slots 1/2) */
+    CID147 *watched;      /* +0x44 the stimulus being investigated (SetBhvSearchWatched; counted: slots 1/2) */
     int needsReplan;        /* +0x48 */
     int unknown4C;
     BHV171POINT searchPoints[4]; /* +0x50 (ChooseBhvSearchPoints) */
@@ -2231,7 +2232,7 @@ struct RAJAN : STEPGUARD
     int unk1014[3];
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRajanClassDesc");   /* slot 6 */
-    virtual int CanSenseStimulus(struct STIMULUS *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
+    virtual int CanSenseStimulus(struct CID147 *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
     virtual void SetCameraFocus() __asm__("SetRajanCameraFocus");   /* slot 90 */
 };
 typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];

@@ -121,7 +121,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSlotheap(&world->slotheapSma,sizeof(SMA),0x80,0x10);
     *(int *)&world->rgbaClear=0x80000000;
     InitSlotheap(&world->slotheapSobounds,sizeof(SOBOUNDS),0x40,0x10);
-    InitSlotheap(&world->slotheapStimulus,sizeof(STIMULUS),0x40,0x10);
+    InitSlotheap(&world->slotheapStimulus,sizeof(CID147),0x40,0x10);
     InitSlotheap(&world->slotheapRipg,sizeof(RIPG),0x10,0x10);
     int chosen=GetMaxRipSize();
     chosen=chosen?chosen:0xF0;
@@ -159,7 +159,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid27,SLY2_OFFSETOF(CID27, dleGrab));
     InitDl__FP2DLi(&world->dlCid9,SLY2_OFFSETOF(CID9, dleList));
     InitDl__FP2DLi(&world->dlSma,SLY2_OFFSETOF(SMA, dleSw));
-    InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(STIMULUS, next));
+    InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(CID147, next));
     InitDl__FP2DLi(&world->dlStepguard,SLY2_OFFSETOF(STEPGUARD, dleGuard));
     InitDl__FP2DLi(&world->dlCid98,SLY2_OFFSETOF(CID98, dleBreakable));
     InitSl(&world->slPoctl,0x84);

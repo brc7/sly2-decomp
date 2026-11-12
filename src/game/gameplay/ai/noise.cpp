@@ -54,12 +54,12 @@ void CloneXfm(CID47 *object, CID47 *source);
 void UpdateLo(CID47 *object);
 void *memmove(void *dst, void *src, int cb);
 qword GetLoWorldPos(void *object);
-void CreateNoise(CID117 *type, qword pos, int b, CID147 **heldNoise);
+void CreateNoise(CID117 *type, qword pos, LO *source, CID147 **heldNoise);
 void RemoveNoise(CID147 *noise);
 int IsNoiseRemoved(CID147 *noise);
 float GetNoiseRadius(CID147 *noise);
-CID147 *NewNoise(CID117 *type, qword pos, int b);
-void ReplaceHeldNoise(CID117 *type, qword q, int c, CID147 **heldNoise);
+CID147 *NewNoise(CID117 *type, qword pos, LO *source);
+void ReplaceHeldNoise(CID117 *type, qword q, LO *source, CID147 **heldNoise);
 void DropListenerNoises(CID47 *object, int f);
 int CanListenerHearNoise(CID47 *listener, CID147 *object);
 }
@@ -92,7 +92,7 @@ struct Lock {
 // stamps the emit time and a serial id, appends it to the active list g_sw.dlStimulus, binds the type's frame and
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
 // Also known as: PnoiseNew (upstream readable / Sly 1 name; PnoiseNew__FP9NOISETMPLG9VU_VECTORiP6VECTOR).
-extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outNoise)
+extern "C" void CreateNoise(CID117 *type, qword pos, LO *source, CID147 **outNoise)
 {
     CID147 *noise = (CID147 *)AllocZeroedFromSlotheap(&g_sw.slotheapStimulus);
     func_002333B4(noise, 0, 0x60);
@@ -100,12 +100,12 @@ extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outN
     ((NOISEHDR *)noise)->sidebag = 0;
     noise->type = type;
     noise->position = pos;
-    noise->startPosition = pos;
+    noise->targetPosition = pos;
     SLY2_SET_VPTR(noise, CID147);
-    noise->loudness = loudness;
+    noise->source = source;
     noise->serial = ++g_sw.stimulusSerial;
     noise->startTime = g_clock.time;
-    noise->noiseKind = type->noiseKind;
+    noise->level = type->level;
     AppendDlEntry(&g_sw.dlStimulus, noise);
     noise->AddRef();
     Lock lock(noise);
@@ -116,10 +116,10 @@ extern "C" void CreateNoise(CID117 *type, qword pos, int loudness, CID147 **outN
 
 // 0x156698: Creates a noise (CreateNoise) and returns it. Called by EmitSwNoise, bomb detonation,
 // EmitStepguardStimulus and the Splice thunk.
-extern "C" CID147 *NewNoise(CID117 *type, qword pos, int loudness)
+extern "C" CID147 *NewNoise(CID117 *type, qword pos, LO *source)
 {
     CID147 *noise;
-    CreateNoise(type, pos, loudness, &noise);
+    CreateNoise(type, pos, source, &noise);
     return noise;
 }
 
@@ -229,73 +229,73 @@ extern "C" void CreateSwNoiseTypes(SW *world)
 {
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
-        type->isMuted = 0;
-        world->apstimk[0] = (STIMK *)type;
+        type->kind = 0;
+        world->apstimk[0] = type;
         Init(type);
     }
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
-        type->isMuted = 1;
+        type->kind = 1;
         type->duration = D_002BDD00;
-        world->apstimk[1] = (STIMK *)type;
+        world->apstimk[1] = type;
         Init(type);
     }
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
-        type->isMuted = 0;
+        type->kind = 0;
         type->range = D_002BDD04;
-        world->apstimk[2] = (STIMK *)type;
+        world->apstimk[2] = type;
         Init(type);
     }
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
         type->range = D_002BDD08;
         type->duration = D_002BDD0C;
-        type->isMuted = 0;
-        world->apstimk[3] = (STIMK *)type;
+        type->kind = 0;
+        world->apstimk[3] = type;
         Init(type);
     }
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
-        type->noiseKind = 3;
+        type->level = 3;
         type->duration = -1.0f;
-        type->isMuted = 0;
-        world->apstimk[5] = (STIMK *)type;
+        type->kind = 0;
+        world->apstimk[5] = type;
         Init(type);
     }
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
         type->range = D_002BDD10;
         type->duration = D_002BDD14;
-        type->isMuted = 0;
-        world->apstimk[4] = (STIMK *)type;
+        type->kind = 0;
+        world->apstimk[4] = type;
         Init(type);
     }
     {
         CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
-        type->isMuted = 0;
+        type->kind = 0;
         type->range = D_002BDD18;
-        world->apstimk[6] = (STIMK *)type;
+        world->apstimk[6] = type;
         Init(type);
     }
 }
 
 // 0x156B98: Emits a noise at `pos` from one of the world's two generic noise types (kind 0 or 1).
-extern "C" void EmitSwNoise(SW *world, int kind, qword pos, int loudness)
+extern "C" void EmitSwNoise(SW *world, int kind, qword pos, LO *source)
 {
     CID117 *type;
     switch (kind) {
     case 0: type = (CID117 *)world->apstimk[0]; break;
     case 1: type = (CID117 *)world->apstimk[1]; break;
     }
-    NewNoise(type, pos, loudness);
+    NewNoise(type, pos, source);
 }
 
 // 0x156BE0: Replaces a held noise: removes and releases the one in `heldNoise` (if any), then creates a new one of
 // `type` (if non-null) and holds a reference to it. Used for noises that follow their emitter (pain, sleep,
 // yelling).
 // Also known as: SetHeldNoise (upstream readable / Sly 1 name; SetHeldNoise__FPP5NOISEG9VU_VECTORiP2LO).
-extern "C" void ReplaceHeldNoise(CID117 *type, qword pos, int loudness, CID147 **heldNoise)
+extern "C" void ReplaceHeldNoise(CID117 *type, qword pos, LO *source, CID147 **heldNoise)
 {
     if (*heldNoise) {
         CID147 *noise;
@@ -306,14 +306,14 @@ extern "C" void ReplaceHeldNoise(CID117 *type, qword pos, int loudness, CID147 *
     }
     if (type) {
         CID147 *noise;
-        CreateNoise(type, pos, loudness, heldNoise);
+        CreateNoise(type, pos, source, heldNoise);
         noise = *heldNoise;
         noise->AddRef();
     }
 }
 
 // 0x156C80: ReplaceHeldNoise using the world's generic noise type 0 or 1.
-extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, int loudness, CID147 **heldNoise)
+extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, LO *source, CID147 **heldNoise)
 {
     CID117 *type;
     switch (kind) {
@@ -321,7 +321,7 @@ extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, int loudness,
     case 1: type = (CID117 *)world->apstimk[1]; break;
     default: type = 0; break;
     }
-    ReplaceHeldNoise(type, pos, loudness, heldNoise);
+    ReplaceHeldNoise(type, pos, source, heldNoise);
 }
 
 // 0x156CC8: Listener (CID47, cid 0x2F) Init: XFM Init, not busy, then sets object flag 2.
@@ -427,7 +427,7 @@ extern "C" int CanListenerHearNoise(CID47 *listener, CID147 *noise)
     qword offset, listenerPos;
     if ((uchar)listener->isInWorld) {
         type = noise->type;
-        if (!type->isMuted) {
+        if (!type->kind) {
             listenerPos = GetLoWorldPos(listener);
             offset = VuSub(listenerPos, noise->position);
             if (IsWithinLimits__FP2LMf(&type->heightRange, QwordZ(offset)) && IsWithinXY(offset, type->range))

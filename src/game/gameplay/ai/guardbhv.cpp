@@ -1936,8 +1936,8 @@ namespace M_UpdateBhvguard {
  void*func_002333B4(void*,int,unsigned int) __asm__("memset");
  int IsStepguardForceClass(STEPGUARD*,LO*) __asm__("IsStepguardForceClass");
  float GetRandomStepguardDelay(STEPGUARD*) __asm__("GetRandomStepguardDelay");
- STIMULUS*ChooseStepguardStimulus(STEPGUARD*,STIMULUS*) __asm__("ChooseStepguardStimulus");
- void SetBhvSearchWatched(BHV171*,STIMULUS*) __asm__("SetBhvSearchWatched");
+ CID147*ChooseStepguardStimulus(STEPGUARD*,CID147*) __asm__("ChooseStepguardStimulus");
+ void SetBhvSearchWatched(BHV171*,CID147*) __asm__("SetBhvSearchWatched");
  int IsBhvSearchIdle(BHV171*) __asm__("IsBhvSearchIdle");
  int IsBhvScriptDone(BHV*) __asm__("IsBhvScriptDone");
  LO*EmitSwNoise(SW*,int,qword,STEPGUARD*) __asm__("EmitSwNoise");
@@ -1984,7 +1984,7 @@ extern "C" void UpdateBhvguard(BHV156 *behavior)
                 if (object)
                     Attack(behavior, &next, object);
                 else {
-                    STIMULUS *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, 0);
+                    CID147 *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, 0);
                     if (selected) {
                         next.kind = GUARD_MODE_SUSPICIOUS;
                         next.arg.object = selected;
@@ -2017,8 +2017,8 @@ extern "C" void UpdateBhvguard(BHV156 *behavior)
                     SetBhvguardMode(behavior, &next);
                 } else {
                     BHV171 *h = (BHV171 *)behavior->pbhvNext;
-                    STIMULUS *old = h->watched;
-                    STIMULUS *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, old);
+                    CID147 *old = h->watched;
+                    CID147 *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, old);
                     if (selected != old)
                         SetBhvSearchWatched(h, selected);
                     else if (IsBhvSearchIdle(h)) {
@@ -3974,7 +3974,7 @@ extern "C" void UpdateBhvThrown(BHV176 *behavior) {
         if (g_clock.time - behavior->lastYellTime > D_002BE6C0) {
             SW *g = &g_sw;
             behavior->lastYellTime = g_clock.time;
-            NewNoise(g->apstimk[0], GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner))->noiseKind = 3;
+            NewNoise(g->apstimk[0], GetLoWorldPos(((STEPGUARD *)behavior->owner)), ((STEPGUARD *)behavior->owner))->level = 3;
         }
     }
 }
