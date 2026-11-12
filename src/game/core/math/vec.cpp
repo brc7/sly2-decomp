@@ -866,7 +866,7 @@ extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qwo
     qword e0 = VuSub(pos, p0);
     qword vd = VuDot(d, d);
     qword vn = VuDot(e0, d);
-    float t = Clamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
+    float t = Clamp(SLY2_FDIV(VuToFloat(vn), VuToFloat(vd)), 0.0f, 1.0f);   /* a zero-length segment: +-MAX, clamped */
     if (outT)
         *outT = t;
     if (outPos || outDistance) {

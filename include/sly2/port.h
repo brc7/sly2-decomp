@@ -61,6 +61,24 @@ typedef char assert_uptr_size[sizeof(uptr) == sizeof(void *) && sizeof(sptr) == 
 #if defined(__R5900__) && !defined(SLY2_NO_EE_LAYOUT)
 #define SLY2_EE_LAYOUT 1
 #endif
+/* SLY2_FDIV(a, b): a float division with the R5900 FPU's result for a zero divisor. div.s gives +-FLT_MAX there (sign
+   of a xor sign of b; also for 0 / 0), where IEEE gives +-Inf or NaN; code on per-frame paths that can divide by a
+   zero length uses it (vec.cpp FindClosestPointOnLineSegment: a zero-length segment). Plain a / b on the EE. */
+#if defined(__R5900__)
+#define SLY2_FDIV(a, b) ((a) / (b))
+#else
+static inline float Sly2EeFdiv(float a, float b)
+{
+    if (b != 0.0f)
+        return a / b;
+    union { float f; unsigned int u; } ua, ub, r;
+    ua.f = a;
+    ub.f = b;
+    r.u = 0x7F7FFFFFu | ((ua.u ^ ub.u) & 0x80000000u);
+    return r.f;
+}
+#define SLY2_FDIV(a, b) Sly2EeFdiv((a), (b))
+#endif
 #if defined(SLY2_EE_LAYOUT)
 #define SLY2_SRET_LABEL(ee, native) __asm__(ee)
 #else
