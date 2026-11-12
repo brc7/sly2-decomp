@@ -503,28 +503,27 @@ namespace M_func_001A16C8 {
 typedef union U{float f[4];qword q;int bits[4];}U;   // floats first: U globals are initialized
 typedef union F{float value;int bits;}F;
 struct M3{U row[3];};
-struct P{LO*self;char pad4[0x30-4];LO*target;char pad34[8];int mode;char pad40[0x20];U velocity;};
-extern F D_002BFACC __asm__("D_002BFACC");
-extern F D_002BFAD0 __asm__("D_002BFAD0");
-extern F D_002BFAD4 __asm__("D_002BFAD4");
-extern U D_002BFAE0 __asm__("D_002BFAE0");
-extern U D_002BFAF0 __asm__("D_002BFAF0");
-extern F D_002BFB00 __asm__("D_002BFB00");
-extern F D_002BFB04 __asm__("D_002BFB04");
+extern F D_002BFACC __asm__("D_002BFACC");   /* 0x200 / 0x8000 from a CID 0x33: extra velocity scale */
+extern F D_002BFAD0 __asm__("D_002BFAD0");   /* its minimum vertical velocity */
+extern F D_002BFAD4 __asm__("D_002BFAD4");   /* its maximum speed */
+extern U D_002BFAE0 __asm__("D_002BFAE0");   /* 0x40 from a CID 0x36: knockback in its frame, from its front */
+extern U D_002BFAF0 __asm__("D_002BFAF0");   /* the same from behind */
+extern F D_002BFB00 __asm__("D_002BFB00");   /* 0x100 from a CID 0x4F: horizontal weight */
+extern F D_002BFB04 __asm__("D_002BFB04");   /* its vertical weight */
 extern U D_002A2DA0 __asm__("D_002A2DA0"),g_normalZ __asm__("g_normalZ");
 int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword LimitVectorLength(qword,float) __asm__("LimitVectorLength");
 qword GetLoWorldPos(LO*) __asm__("GetLoWorldPos");
 struct M3*GetLoWorldMatrix(LO*) __asm__("GetLoWorldMatrix");
 qword ConvertVecBetweenLos(LO*,LO*,qword) __asm__("ConvertVecBetweenLos");
-void SetJtHurtState(struct P*,int) __asm__("SetJtHurtState");
+#ifdef SLY2_EE_ASM
 // Broadcast a float into a VU0 register (via a GPR).
 extern "C" { static inline qword Scalar(float f){qword q;int bits;__asm__("mfc1 %0,%1":"=r"(bits):"f"(f));__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;} }
 // Move a float's bits into a GPR qword.
 extern "C" { static inline qword Word(float f){qword q;__asm__("mfc1 %0,%1":"=r"(q):"f"(f));return q;} }
 // Return v scaled by k.x.
 extern "C" { static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k));return v;} }
-// y lane of q as a float.
+// y lane of q as a float (prot3w puts word 1 in word 0).
 extern "C" { static inline float Z(qword q){register int bits __asm__("$3");float f;__asm__("prot3w %0,%1":"=r"(bits):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;} }
 // Unit vector along *u, or fallback when its length is too small (register-pinned).
 extern "C" { static inline qword Normal(U*u,qword fallback){
@@ -541,7 +540,7 @@ extern "C" { static inline qword Normal(U*u,qword fallback){
 } }
 // Return a*direction.x + b*z.x (operands as in the original).
 extern "C" { static inline qword Blend(qword direction,qword z,qword a,qword b){__asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(z):"j"(direction),"j"(a),"j"(b));return z;} }
-// self - (target + basis.row0 * negative).
+// self - (target + vf0 + basis.row0 * negative.x): vf0 adds 1 to w.
 extern "C" { static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
     register qword position __asm__("vf2")=target->q;
     register qword axis __asm__("vf1")=basis->row[0].q;
@@ -559,19 +558,38 @@ extern "C" { static inline qword Difference(U*first,qword target){
     __asm__("lqc2 %0,%2\n\tqmtc2.ni %3,%1":"=j"(a),"=j"(b):"m"(first->q),"r"(target));
     __asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;
 } }
-// Selects and blends the knockback velocity from the damage kind flags (0x200, 0x8000, ...) and the source
-// direction, limits its length, then enters the hurt state.
+#else
+static inline qword Scalar(float f){return VuMake<qword>(f,0.0f,0.0f,0.0f);}
+static inline qword Word(float f){return VuMake<qword>(f,0.0f,0.0f,0.0f);}
+static inline qword Scale(qword v,qword k){return VuScaleByX(v,k);}
+static inline float Z(qword q){return QwordY(q);}
+static inline qword Normal(U*u,qword fallback){
+    VuLanes v=VuGet(u->q);
+    float length=VuSqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+    if(length<0.0001f)return fallback;
+    float k=1.0f/length;
+    return VuMake<qword>(v.x*k,v.y*k,v.z*k,v.w*k);
+}
+static inline qword Blend(qword direction,qword z,qword a,qword b){return VuAdd(VuScaleByX(direction,a),VuScaleByX(z,b));}
+static inline qword Intercept(U*self,U*target,struct M3*basis,U*negative){
+    qword axis=VuAdd(VuAdd(target->q,VuMake<qword>(0.0f,0.0f,0.0f,1.0f)),VuScaleByX(basis->row[0].q,negative->q));
+    return VuSub(self->q,axis);
+}
+static inline qword Difference(U*first,qword target){return VuSub(first->q,target);}
+#endif
+// Selects and blends the knockback velocity from the zap kind (zpr.zpk 0x200, 0x8000, 0x40, 0x100) and its source
+// (zpr.ploSource), limits its length, then enters the hurt state 7.
 // Also known as: ApplyDamageVelocity (upstream readable / Sly 1 name; ApplyDamageVelocity__FP5ACTOR).
-extern "C" void StartJtKnockback(struct P*p){
-    U output=p->velocity;
+extern "C" void StartJtKnockback(JTHURT*p){
+    U output=*(U*)&p->zpr.velocity;
     U scratch,scalar;
     U selfPosition,targetPosition,negative,otherPosition;
-    switch(p->mode){
+    switch(p->zpr.zpk){
     case 0x200:
     case 0x8000:
-        if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x33)){
+        if(IsBasicDerivedFrom__FP5BASIC3CID(p->zpr.ploSource,0x33)){
             qword k=Scalar(D_002BFACC.value+1.0f);
-            qword v=Scale(p->velocity.q,k);
+            qword v=Scale(p->zpr.velocity,k);
             scratch.q=k;
             output.q=v;
             output.q=LimitVectorLength(v,D_002BFAD4.value);
@@ -579,11 +597,11 @@ extern "C" void StartJtKnockback(struct P*p){
         }
         break;
     case 0x40:
-        if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x36)){
-            LO*target=p->target;
+        if(IsBasicDerivedFrom__FP5BASIC3CID(p->zpr.ploSource,0x36)){
+            LO*target=p->zpr.ploSource;
             struct M3*basis;
             qword delta,local;
-            selfPosition.q=GetLoWorldPos(p->self);
+            selfPosition.q=GetLoWorldPos(p->player);
             targetPosition.q=GetLoWorldPos(target);
             {qword k=Word(-150.0f);scratch.q=k;negative.q=k;}
             basis=GetLoWorldMatrix(target);
@@ -594,21 +612,22 @@ extern "C" void StartJtKnockback(struct P*p){
         }
         break;
     case 0x100:
-        if(IsBasicDerivedFrom__FP5BASIC3CID(p->target,0x4F)){
-            LO*target=p->target;
+        if(IsBasicDerivedFrom__FP5BASIC3CID(p->zpr.ploSource,0x4F)){
+            LO*target=p->zpr.ploSource;
             qword n,a,b,mixed,z;
             if(IsBasicDerivedFrom__FP5BASIC3CID(target,0x51)){
                 struct M3*basis=(struct M3*)target->GetWorldMatrix();   /* its rows as quadwords */
                 scratch=basis->row[0];
             }else{
                 qword targetPoint;
-                otherPosition.q=GetLoWorldPos(p->self);
+                otherPosition.q=GetLoWorldPos(p->player);
                 targetPoint=GetLoWorldPos(target);
                 scratch.q=Difference(&otherPosition,targetPoint);
             }
             scratch.bits[2]=0;
             n=Normal(&scratch,D_002A2DA0.q);
             {
+#ifdef SLY2_EE_ASM
                 register int first __asm__("$4"),second __asm__("$3");
                 register U*up __asm__("$2");
                 register qword weight __asm__("vf2"),lift __asm__("vf3"),axis __asm__("vf1");
@@ -617,6 +636,10 @@ extern "C" void StartJtKnockback(struct P*p){
                     :"=&r"(first),"=&r"(second),"=&r"(up),"=j"(weight),"=j"(lift),"=j"(axis),"=m"(scalar.q)
                     :"i"(&D_002BFB00.bits),"i"(&D_002BFB04.bits),"i"(&g_normalZ):"memory");
                 a=weight;b=lift;z=axis;
+#else
+                a=Scalar(D_002BFB00.value);b=Scalar(D_002BFB04.value);z=g_normalZ.q;
+                scalar.q=a;
+#endif
             }
 
             mixed=Blend(n,z,a,b);
@@ -624,12 +647,15 @@ extern "C" void StartJtKnockback(struct P*p){
             output.q=mixed;
             // The C file stored a compound literal (U){b} here; as C++ that is an extra temporary. The empty asm keeps the
             // store last, where the original has it. This form exists to reproduce the original codegen.
-            __asm__("":"+j"(b));scalar.q=b;
+#ifdef SLY2_EE_ASM
+            __asm__("":"+j"(b));
+#endif
+            scalar.q=b;
         }
         break;
     }
     {
-        p->self->SetVelocity(output.q);
+        p->player->SetVelocity(output.q);
     }
     SetJtHurtState(p,7);
 }
