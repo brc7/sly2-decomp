@@ -905,10 +905,16 @@ static inline qword TransformPointRef(const MATRIX4 &mat, const qword &qwPos)
 // Store the bits of qwV's squared length (xyz) into gDst.
 static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
 {
+#ifdef SLY2_EE_ASM
     qword qwSq, qwOne;
     __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(qwOne), "=j"(qwSq) : "j"(qwV));
     // the "m" / "!r" alternative is allocation-only (never chosen): it keeps the destination a MEM, so the qmfc2 result is an output reload
     __asm__("qmfc2.ni %0, %1" : "=r,m"(gDst) : "j,!r"(qwSq));
+#else
+    VuLanes v = VuGet(qwV);
+    float g = (v.x * v.x + v.y * v.y) + v.z * v.z;
+    __builtin_memcpy(&gDst, &g, sizeof(gDst));
+#endif
 }
 // Bits of qwV's squared length (xyz) as an int.
 static inline int GetSquaredLengthBits(qword qwV)
@@ -1322,10 +1328,16 @@ static inline qword TransformPoint(const MATRIX4 &mat, qword qwPos)
 // Store the bits of qwV's squared length (xyz) into gDst.
 static inline void StoreSquaredLengthBits(int &gDst, qword qwV)
 {
+#ifdef SLY2_EE_ASM
     qword qwSq, qwOne;
     __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(qwOne), "=j"(qwSq) : "j"(qwV));
     // the "m"/"r" alternative is allocation-only (never chosen): it keeps the destination a MEM, so the qmfc2 result is an output reload
     __asm__("qmfc2.ni %0, %1" : "=r,m"(gDst) : "j,!r"(qwSq));
+#else
+    VuLanes v = VuGet(qwV);
+    float g = (v.x * v.x + v.y * v.y) + v.z * v.z;
+    __builtin_memcpy(&gDst, &g, sizeof(gDst));
+#endif
 }
 // Bits of qwV's squared length (xyz) as an int.
 static inline int GetSquaredLengthBits(qword qwV)

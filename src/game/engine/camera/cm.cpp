@@ -1069,6 +1069,7 @@ void SmoothValue__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float 
 // Signed distance from pos to plane (plane.xyz . pos - plane.w).
 extern "C" { static __inline__ float GDistPlane(qword plane, qword pos)
 {
+#ifdef SLY2_EE_ASM
     U d, one;
     qword td, tone;
     float dist;
@@ -1082,6 +1083,10 @@ extern "C" { static __inline__ float GDistPlane(qword plane, qword pos)
     one.q = tone;
     d.q = td;
     return dist;
+#else
+    VuLanes p = VuGet(plane), q = VuGet(pos);
+    return ((p.x * q.x + p.y * q.y) + p.z * q.z) - p.w;
+#endif
 } }
 // Dot product of the xyz parts of *pa and b as a float.
 extern "C" { static __inline__ float GDot(const qword *pa, qword b)

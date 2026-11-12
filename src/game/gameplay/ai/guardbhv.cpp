@@ -1154,6 +1154,7 @@ extern "C" { static inline struct CID17*ActorRegion(STEPGUARD*actor){REGENT*owne
 // Matching helper (register-pinned asm): true if the actor moved farther than a .data threshold from `point`.
 extern "C" { static inline int Moved(BHVCOMBAT *p, QWROW *point)
 {
+#ifdef SLY2_EE_ASM
     register qword a __asm__("vf2"), d __asm__("vf1");
     qword one;
     register char *high __asm__("$2");
@@ -1172,6 +1173,11 @@ extern "C" { static inline int Moved(BHVCOMBAT *p, QWROW *point)
     distance = XFloat(d);
     result = threshold < distance ? result : 0;
     return result;
+#else
+    VuLanes d = VuGet(VuSub(point->q, p->cachedPosition));
+    float distance = VuSqrt((d.x * d.x + d.y * d.y) + d.z * d.z);
+    return D_002BE614 < distance ? 1 : 0;
+#endif
 } }
 typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char X_Size[sizeof(X)==32?1:-1];
@@ -1856,10 +1862,21 @@ extern "C" int HandleBhvguardMessage(BHV156 *behavior, int event, ZPR *msg)
                         register int queryKind __asm__("$5");
                         const int targetKind = 0x36;
                         const OFFSETINPUTS &inputs = *(const OFFSETINPUTS *)&w.own;
+#ifdef SLY2_EE_ASM
                         __asm__("lqc2 %0,%5\n\taddiu %4,$zero,%8\n\tlqc2 %1,16+%6\n\tlqc2 %2,32+%6\n\tvadda.xyzw "
                                 "$ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x\n\tlw %3,%7\n\tlqc2 %1,%6\n\tvsub.xyzw %2,%1,%0"
                                 : "=&j"(axis), "=&j"(origin), "=&j"(delta), "=&r"(receiver), "=&r"(queryKind)
                                 : "m"(*(qword *)frame->mat[0]), "m"(inputs), "m"(selected->ploSource), "i"(targetKind));
+#else
+                        {   /* axis = (inputs[1] + vf0) + row 0 * inputs[2].x; delta = inputs[0] - axis */
+                            const qword *in = (const qword *)&inputs;
+                            axis = VuAddScaled<qword>(in[1], *(qword *)frame->mat[0], in[2]);
+                            origin = in[0];
+                            delta = VuSub(origin, axis);
+                            receiver = selected->ploSource;
+                            queryKind = targetKind;
+                        }
+#endif
                         w.delta.q = delta;
                         special = IsBasicDerivedFrom(receiver, (CID)queryKind);
                     }
@@ -2476,6 +2493,7 @@ static inline qword VuLength(qword v)
     return r;
 }
 /* length of v; copy receives v itself (allocation-only tied output, never written); the "r"(v) operands load v through a GPR */
+#ifdef SLY2_EE_ASM
 #define QW_LENGTH_COPY(len, copy, v) \
     { \
         qword qwSq_, vfOne_; \
@@ -2483,6 +2501,9 @@ static inline qword VuLength(qword v)
                 : "=j"(qwSq_), "=j"(vfOne_), "=j"(copy) : "2"(v), "r"(v), "r"(v)); \
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(len) : "j"(qwSq_)); \
     }
+#else
+#define QW_LENGTH_COPY(len, copy, v) { (copy) = (v); (len) = ::VuLength(copy); }
+#endif
 // VU0 helper: horizontal (xy) length of a vector.
 // VU0 helper: v divided by a given length.
 // Same idiom as sly2/vu0.h VuDivByX; kept local because its callers pass mixed operand types (the template wants one).
@@ -4275,7 +4296,11 @@ extern "C" void UpdateBhvjuggled(BHVJUGGLED *behavior) {
                 qword velocity = behavior->owner->GetVelocity();
                 dt=clock->deltaTime;
                 /* Preserve velocity and prepare the prediction inputs. */
+#ifdef SLY2_EE_ASM
                 __asm__("sq %4,%0\n\tdaddu %1,%z5,$zero\n\tdaddu %2,%z5,$zero\n\tlw %3,%6" : "=m"(b.q),"=&r"(nullOutput),"=&r"(nullSource),"=&r"(frameLink) : "r"(velocity),"J"(0),"m"(((struct X *)behavior->holder)));
+#else
+                b.q = velocity; nullOutput = 0; nullSource = 0; frameLink = (struct X *)behavior->holder;
+#endif
             }
             LoadIdentityMatrix4(Frame(frameLink), nullSource, &out, (MATRIX4Q *)nullOutput, dt);
             t.q = out.r[3].q;
@@ -4838,11 +4863,20 @@ extern "C" void ChooseBhvTargetsTarget(BHV178 *behavior)
         return;
     // D_002BE710 holds the random-delay range.
     register unsigned int randomAddress __asm__("$2");
+#ifdef SLY2_EE_ASM
     __asm__("vsub.xyzw %0,$vf0,$vf0\n\tlui %1,0x2c" : "=j"(zero), "=r"(randomAddress));
     __asm__("sqc2 %4,%0\n\tdaddu %2,%z5,$zero\n\tlwc1 %1,-0x18f0(%3)\n\taddiu %3,%3,-0x18f0"
             : "=m"(work.bestPoint.q), "=f"(lower), "=&r"(best), "+r"(randomAddress)
             : "j"(zero), "J"(0), "m"(*(float *)(randomAddress - 0x18f0)));
     behavior->nextChooseTime = now + RandomFloatInRange__Fff(lower, ((RANGE *)randomAddress)->hi);
+#else
+    extern RANGE delayRange __asm__("D_002BE710");   /* the random-delay range */
+    zero = VuZero<qword>();
+    work.bestPoint.q = zero;
+    best = 0;
+    lower = delayRange.lo;
+    behavior->nextChooseTime = now + RandomFloatInRange__Fff(lower, delayRange.hi);
+#endif
     work.origin.q = GetLoWorldPos(behavior->owner);
     // D_002A55FC supplies the initial selection cost.
     int i;
@@ -4852,14 +4886,25 @@ extern "C" void ChooseBhvTargetsTarget(BHV178 *behavior)
         register int firstIndex __asm__("$5");
         register STEPGUARD *firstActor __asm__("$4");
         register unsigned int high __asm__("$3");
+#ifdef SLY2_EE_ASM
         __asm__("lui %0,0x2a\n\tdaddu %1,$zero,$zero\n\tlw %2,%3"
                 : "=&r"(high), "=&r"(firstIndex), "=r"(firstActor)
                 : "m"(behavior->owner));
+#else
+        high = 0;   /* unused: bestCost reads D_002A55FC by name */
+        firstIndex = 0;
+        firstActor = (STEPGUARD *)behavior->owner;
+#endif
         limitHigh = high;
         i = firstIndex;
         actor = firstActor;
     }
+#ifdef SLY2_EE_ASM
     float bestCost = *(float *)(limitHigh + 0x55fc);
+#else
+    extern const float initialCost __asm__("D_002A55FC");   /* FLT_MAX */
+    float bestCost = initialCost;
+#endif
     if (actor->designatedTargetCount > 0)
         do {
             LO *choice = actor->designatedTargets[i];

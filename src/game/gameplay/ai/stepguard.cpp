@@ -603,12 +603,17 @@ DETECTORTARGET *FindDetectorTarget(DETECTOR *,LO *) __asm__("FindDetectorTarget"
 // VU0 helper: horizontal (xy) length of a vector.
 extern "C" { static __inline__ float LengthXY(qword a)
 {
+#ifdef SLY2_EE_ASM
     qword r;
     float f;
     __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(a));
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(r));
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(r));
     return f;
+#else
+    VuLanes v = VuGet(a);
+    return VuSqrt(v.x * v.x + v.y * v.y);
+#endif
 } }
 // z component of a quadword vector.
 // Absolute value.
@@ -620,8 +625,13 @@ extern "C" { static __inline__ int Near(qword difference){return LengthXY(differ
    LOOP_SIZE_PAD: 24 empty volatile asms at the end of the loop body. They emit nothing, but loop.c's move_movables only
      hoists a constant out of a loop when threshold(95)*savings*lifetime >= insn count; the original loop body has ~96 RTL
      insns, so only the D_002C3D04 high part is hoisted (to $fp) and the `li 24` / `li -1` stay inside the loop. */
+#ifdef SLY2_EE_ASM
 #define OPAQUE_COUNT(n) __asm__("":"+r"(n))
 #define PAD1 __asm__ volatile("");
+#else
+#define OPAQUE_COUNT(n)
+#define PAD1
+#endif
 #define PAD4 PAD1 PAD1 PAD1 PAD1
 #define LOOP_SIZE_PAD PAD4 PAD4 PAD4 PAD4 PAD4 PAD4
 // 0x206900: Per-frame target detection: unless blind, collects objects of the preferred classes within 1500
