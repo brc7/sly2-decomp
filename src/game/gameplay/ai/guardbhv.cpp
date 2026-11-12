@@ -2668,9 +2668,9 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
         REGENT *pbodySelf = behavior->owner->physics->pregent;
         for (REGENT *pbodyOther = (REGENT *)pctx->dlRegent.head; pbodyOther; pbodyOther = (REGENT *)pbodyOther->dlePathzone.next)
         {
-            if (pbodyOther->unknown08 == 0.0f)
+            if (pbodyOther->radius == 0.0f)
                 continue;
-            if (pbodyOther->unknown0C == 0.0f)
+            if (pbodyOther->mass == 0.0f)
                 continue;
             void *pobj = pbodyOther->pso;
             if (pobj == (void *)behavior->owner)
@@ -2678,7 +2678,7 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
             VEC posOther;
             VEC vecUnused;
             posOther.qw = GetLoWorldPos(pobj);
-            posOther.f[2] += pbodyOther->unknown04;
+            posOther.f[2] += pbodyOther->heightOffset;
             qword dpos = VuSub(posActor, posOther.qw);
             if (__builtin_fabsf(QwordZ(dpos)) > D_002BE660)
                 continue;
@@ -2699,8 +2699,8 @@ extern "C" void StepBhvpathAlongShape(BHVPATH *behavior)
             else
                 normal.qw = VuDivByX(normalCopy, qwLen);
             float sGap = VuGetXKeepInVf(qwLen);
-            sGap = StdMax(0.0f, sGap - pbodyOther->unknown08 - pbodySelf->unknown08);
-            float gMass = pbodyOther->unknown0C / (pbodyOther->unknown0C + pbodySelf->unknown0C);
+            sGap = StdMax(0.0f, sGap - pbodyOther->radius - pbodySelf->radius);
+            float gMass = pbodyOther->mass / (pbodyOther->mass + pbodySelf->mass);
             float g;
             if (sGap < D_002BE668)
             {

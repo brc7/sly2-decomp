@@ -3621,9 +3621,9 @@ REGENT *EnsureSoPhysRegionRecord(SO *so) __asm__("EnsureSoPhysRegionRecord"); RE
         struct CB cb;
         REGENT *q = (__typeof__(q))PvAllocMsg(&cb, sizeof(REGENT), 0x10);
         q->pso = so;
-        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->unknown08 = 150.0f;
-        else q->unknown08 = 75.0f;
-        q->unknown0C = 1.0f;
+        if (IsBasicDerivedFrom__FP5BASIC3CID(so, 0x34)) q->radius = 150.0f;
+        else q->radius = 75.0f;
+        q->mass = 1.0f;
         so->physics->pregent = q;
     }
     return so->physics->pregent;
@@ -3637,14 +3637,14 @@ extern "C" void SetSoPhysRecordParam8(STEP *step, float g)
     REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->unknown08 = g;
+        prec->radius = g;
     }
 }
 
 // 0x1F83E0 GetSoPhysRecordParam8
 namespace M_func_001F83E0 {
 // Returns the region record's second float (0 without a record). (inferred)
-extern "C" float GetSoPhysRecordParam8(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown08; return 0.0f; }
+extern "C" float GetSoPhysRecordParam8(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->radius; return 0.0f; }
 } // namespace M_func_001F83E0
 
 // 0x1F8410 SetSoPhysRecordParamC
@@ -3654,14 +3654,14 @@ extern "C" void SetSoPhysRecordParamC(STEP *step, float g)
     REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->unknown0C = g;
+        prec->mass = g;
     }
 }
 
 // 0x1F8440 GetSoPhysRecordParamC
 namespace M_func_001F8440 {
 // Returns the region record's third float (0 without a record). (inferred)
-extern "C" float GetSoPhysRecordParamC(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown0C; return 0.0f; }
+extern "C" float GetSoPhysRecordParamC(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->mass; return 0.0f; }
 } // namespace M_func_001F8440
 
 // 0x1F8470 SetSoPhysRecordParam4
@@ -3671,14 +3671,14 @@ extern "C" void SetSoPhysRecordParam4(STEP *step, float g)
     REGENT *prec;
     prec = EnsureSoPhysRegionRecord(step);
     if (prec != 0) {
-        prec->unknown04 = g;
+        prec->heightOffset = g;
     }
 }
 
 // 0x1F84A0 GetSoPhysRecordParam4
 namespace M_func_001F84A0 {
 // Returns the region record's first float (0 without a record). (inferred)
-extern "C" float GetSoPhysRecordParam4(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->unknown04; return 0.0f; }
+extern "C" float GetSoPhysRecordParam4(SO *p) { REGENT *pu = 0; if (p->physics) pu = p->physics->pregent; if (pu) return pu->heightOffset; return 0.0f; }
 } // namespace M_func_001F84A0
 
 // 0x1F84D0 SetSoIceable__FP2SOi

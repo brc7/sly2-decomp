@@ -177,9 +177,9 @@ struct SOPHYS
 struct REGENT
 {
       SO *pso;   /* the solid object */
-      float unknown04;   /* +0x04 (so.cpp GetSoPhysRecordParam4) */
-      float unknown08;   /* +0x08 default 75, 150 for CID 0x34 objects (EnsureSoPhysRegionRecord) */
-      float unknown0C;   /* +0x0C default 1 */
+      float heightOffset; /* +0x04 height of the body's centre above its position (StepBhvpathAlongShape adds it to z; Get/SetSoPhysRecordParam4) */
+      float radius;      /* +0x08 avoidance radius (StepBhvpathAlongShape: the gap between two bodies is distance - both radii; 0: not avoided); default 75, 150 for CID 0x34 objects (EnsureSoPhysRegionRecord) */
+      float mass;        /* +0x0C avoidance weight (StepBhvpathAlongShape pushes by other / (other + self); 0: not avoided); default 1 */
       struct CID17 *pathzone;   /* +0x10 the path zone (PATHZONE, CID 17) the object is in */
       undefined4 unknown14[3];
       undefined4 unknown20[16];   /* +0x20 the zone's obstacle query cursor (InitObstacleQueryCursor) */
