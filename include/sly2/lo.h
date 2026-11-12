@@ -63,7 +63,9 @@ struct LO : public BASIC
                ulong isInWorld : 1;  /* the object is currently in the world (FIsLoInWorld) */
       float nextSpliceTime;   /* when UpdateLo next sends the Splice update event; PostLoLoad sets the default */
       LORUN *firstRunCallback; /* first queued LORUN callback */
-      float busyRadius; /* busy distance: activation radius around the camera/hero (Sly 1 sBusy) */
+      float busyRadius; /* busy distance (Sly 1 sBusy): the activation radius around the camera / hero (busy list), and
+                           also the model's cull range: RenderSoGlobset / the VU0 microprogram 0x1C0 sphere test fades the
+                           model out over the last 400 units before it (sly2/vu0.h VuCullSphere) */
       PXR *proxyRecord; /* proxy record when the object was spawned from a proxy */
       union
       {
