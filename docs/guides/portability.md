@@ -551,6 +551,42 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   and declares g_sndmgr, so SNDMGR's definition has to move to CID152's place in classes.h first; the asm without C
   fallbacks in jt.cpp UpdateJtAttachCorrection, gait.cpp SelectDirAnim and air.cpp's other functions; the register
   pins clang rejects.
+  Done in v1.29 (every change byte-identical; the class renames RENAMED only). **VU state across asm statements** (the
+  port's task 55: its translator keeps no Q, ACC or VF value between statements): the ten vdiv / vmulq pairs in
+  separate statements (tn.cpp's camera update and ScaleByInverse, guardbhv.cpp UpdateBhvwalkpath, tail.cpp
+  UpdateChainLink, grab.cpp DivVec / Unit) have VuDivByX fallbacks, and rip.cpp's IsVectorShorterThan2 /
+  IsVectorNearlyZero / IsVectorShorterThan5 (vf1..vf3 and ACC across statements) C bodies; a scan of src/game for an
+  asm statement reading Q without setting it finds no other site outside SLY2_EE_ASM. **The port's allowlist class
+  'gameplay'** (claude/boot-13, 58 statements): every statement but rip.cpp HandleRipBounce's seven has a C path now:
+  whole-function #else bodies for jt.cpp UpdateJtAttachCorrection, air.cpp PresetJtAccelJump (modes 20 / 22 and the
+  default case) and MeasureJtJumpToTargetAtTime (STEPPLAYER::jumpTargetRadius, was unknown1020; the asm takes the
+  point's w from a stale VF5: zero in the C), missile.cpp FireSplmiss / PresetSplmissAccel (virtual GetVelocity calls;
+  the EE-layout call island folded into the EE branch), jthands.cpp StartJtHandsCarry and PublishProductAndBasis
+  (the carry's pinned helpers are EE-only), relay.cpp NormalizeTangent; statement fallbacks in pipe_jt.cpp
+  UpdateJtActivePipe, hang.cpp (the dt bits), murray.cpp, recon / bhvsearch / critter macros, throw.cpp CopyRange,
+  gadget.cpp InitScalar, prize.cpp Selection, and rip.cpp's LEN1 / LEN2, FallbackPage / FallbackAddress, Depth,
+  ClockHigh / Factors, MixAndAdvance; gait.cpp SelectDirAnim is C natively (its scoring loop's setup and helpers),
+  guardbhv.cpp UpdateBhvwalkpath too. VuDotMatrixRows' per-lane ACC order ((t0.x + t0.y) + t0.z, (t1.y + t1.x) +
+  t1.z, (t2.z + t2.x) + t2.y; also PresetJtAccelJump's default case) was checked on the port's VU interpreter (20,000
+  cases, a few ulps); every other form is a sly2/vu0.h helper the harness covers. **CID152 is SNDMGR**: its definition
+  moved to CID152's place in classes.h (class_registry's emission order unchanged), sndmgr.h keeps g_sndmgr's
+  declaration and the file lists. From the port's upstream request 15: hurt.cpp compiles natively again (Position() as a
+  quadword, the HURTFN redeclaration EE-only); jt.cpp UpdateJtLean reads ACT5::offset by member (natively it read
+  pointer bits: the root-bone NaN); act.cpp UpdateOffsetAct on XF::restValue / segmentEndValue; amb.cpp OnAmbRemove's
+  slot stride; sw.cpp AddLoToSwUpdateList's cloupdHole / cloupd through SLY2_FDIV; wr.cpp's slope products through
+  SLY2_FMUL; JT::sndGrab (was unknown2048) is a pointer. Signatures: rhythm.cpp's SmoothValue declaration,
+  guardscript.cpp's EnsureSggAlarm (SSGE::palarm), po.cpp's UpdateJtGrabCandidates, hack.cpp's AdjustNewXp overrides on
+  xp.h XP (int-vs-pointer 82 -> 77, mismatching declarations 1294 -> 1291, cross-declaration conflicts 272 -> 271).
+  Still open after v1.29: rip.cpp HandleRipBounce (an EE-offset page / shape view; with the other RIP integrators);
+  SWCALLBACK::argument is an int that carries pointers (hud.cpp's sprite, hack.cpp's StartHackDying object): a
+  pointer-wide argument across PostSwCallback / EnsureSwCallback / ClearSwCallbacks' ~50 call sites; the rest of the
+  port's upstream request 15 (grab.cpp SetJtGrabKind / UpdateJtGrabInput / ClearJtDetectionOutOfSight views, relay.cpp
+  UpdateJsgJtControl views, screen.cpp SCRLIST's focused screen and the EE-sized inline screens, hud.cpp's picture
+  callback constant as a PMF, MeasureJtJumpToTarget's B / C views, RecordJtGrabPlace's x184 class); the EE layout
+  asserts that natively fail (stepplayer.h assert_JTHURT_flinchAsega, classes.h RHYTHMMGR's: not under
+  SLY2_EE_LAYOUT); the struct-return forms and the generated splicewrap thunks' s32 arguments (as before); the many
+  declarations of BuildAxisAngleRotationMatrix as a by-value MATRIX3 (qword, float) against its (M3 *, float, qword)
+  definition (the same registers on the EE and on x86-64; not on arm64, where the hidden result pointer is x8).
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
