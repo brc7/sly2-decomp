@@ -60,7 +60,7 @@ MATRIX3Q BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword) SLY2_SRET_
 qword ConvertVecBetweenLos(PIPEV *, PIPEV *, qword);
 qword GetNormalVector(qword);
 qword GetLoWorldPos(void *q);
-void FindShapeClosestPoint(PIPEV *p, qword q, int a, void *pv, int b, int c, float *pf);
+void FindShapeClosestPoint(PIPEV *p, qword q, void *a, void *pv, qword *b, float *c, float *pf);
 void GetPipeGoalMatrix(PIPEV *p, float distance, int forward, MATRIX3Q *out);
 float GetRandomShapeDistanceInRange(PIPEV *,float,float);
 float RandomFloatInRange__Fff(float,float);

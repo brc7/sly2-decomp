@@ -1661,7 +1661,7 @@ extern "C" void GrowPathzoneObstacleArrays(struct S *zone)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1EC0 {
 extern char D_003DD020[] __asm__("D_003DD020");
-void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, qword *c, float *d, float *e) __asm__("FindShapeClosestPoint");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 // Position of a path-link endpoint: the closest point on its shape, else its object's position, else the stored
 // vector.

@@ -50,7 +50,7 @@ void OnLoRemove(RAILV *p);
 void CloneShape(RAILV *p, LO *ploBase);
 float GetShapeMinDistance(RAILV *p);
 float GetShapeMaxDistance(RAILV *p);
-void FindShapeClosestPoint(RAILV *p, qword q, int a, void *pv, int b, int c, float *pf);
+void FindShapeClosestPoint(RAILV *p, qword q, void *a, void *pv, qword *b, float *c, float *pf);
 void EvaluateShapeAtDistance(RAILV *p, float s, qword *ppos, qword *pdir);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */

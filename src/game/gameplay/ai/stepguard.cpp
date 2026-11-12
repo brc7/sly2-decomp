@@ -3597,7 +3597,7 @@ struct ATTACHOBJ;
 struct ATTACHOBJ { char pad[0x124]; int unknown124; };   /* the cid 0x13 class's mode word (not a guard type) */
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void FindShapeClosestPoint(LO *shape, qword pos, int a, int b, int c, int d, float *param) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(LO *shape, qword pos, void *a, qword *b, qword *c, float *d, float *param) __asm__("FindShapeClosestPoint");
 void LinkStepAttachment(STEPGUARD *guard, LO *object, int attach) __asm__("LinkStepAttachment");
 
 // 0x20B2A8: Attaches the guard to an object, choosing the attach kind by class: pipe (cid 0xB), rail (cid 0xD), cid

@@ -3950,7 +3950,7 @@ typedef char layout_U_float[((unsigned)&((U*)0)->f==0)?1:-1];
 namespace M_GetJsgTargetPosHeading {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
-void FindShapeClosestPoint(LO *po, qword q, int a, qword *pv, float *pg, int b, int c) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(LO *po, qword q, void *a, qword *pv, float *pg, float *b, float *c) __asm__("FindShapeClosestPoint");
 float atan2f(float y, float x) __asm__("atan2f");
 // Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
 // else object pos and its matrix heading). (inferred)

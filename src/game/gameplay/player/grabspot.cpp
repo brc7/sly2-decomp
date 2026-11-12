@@ -196,7 +196,7 @@ extern "C" int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
 namespace M_func_00183040 {
 struct T { char pad[0x218]; qword *pq; };
 struct V { float a[4]; };
-void FindShapeClosestPoint(SHAPE *p, qword q, int a, struct V *pv, int b, int c, float *pg) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(SHAPE *p, qword q, void *a, struct V *pv, qword *b, float *c, float *pg) __asm__("FindShapeClosestPoint");
 float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
 extern "C" void GetWallGrabspotClosestParam(CID12 *wall, struct T *t, float *pg)

@@ -64,7 +64,7 @@ void EvaluateShapeAtParam(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 void FindClosestPointOnLineSegment(qword q, qword a, qword b, qword *ppos, float *pu, float *ps);
 qword GetLoWorldPos(LO *plo);
 void FindShapeClosestPointFromDistance(void *pshape, qword pos, void *p, qword *ppos, qword *pdir, float *pu, float *ps, float s);
-void FindShapeClosestPoint(LO *pshape, qword pos, int a, int b, int c, int d, float *ps);
+void FindShapeClosestPoint(LO *pshape, qword pos, void *a, qword *b, qword *c, float *d, float *ps);
 M4 InvertMatrix4Rigid(const MATRIX4 *pmat);
 qword ConvertPosBetweenLos(LO *ploFrom, LO *ploTo, qword pos);
 M4 ConvertMat4BetweenLos(LO *ploFrom, LO *ploTo, const M4 *pmat);

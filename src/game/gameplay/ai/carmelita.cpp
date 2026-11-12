@@ -102,7 +102,7 @@ qword SetVectorSphere(float a, float b, float c);
 float AngleBetweenVectors(qword a, qword b, void *p);
 float atan2f(float y, float x);
 qword SetVectorCylind(float a, float b, float c);
-void FindShapeClosestPoint(SHAPE *, qword, int, int, int, int, float *);
+void FindShapeClosestPoint(SHAPE *, qword, void *, qword *, qword *, float *, float *);
 qword ConvertCmWorldToScreen(void *, qword);
 void SetStepguardAimAct(STEP *, int, int, qword);
 void SetSoCnstrForce(STEP *, int);

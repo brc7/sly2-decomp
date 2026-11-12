@@ -2771,7 +2771,7 @@ extern struct G D_003DD020 __asm__("D_003DD020");
 
 void StepBhvpathAlongShape(BHVPATH *p) __asm__("StepBhvpathAlongShape");
 int FindShapeFreePoint(qword q, void *a1, void *a2, void *obj, int dir, CID14 **pp, float *pf, float g) __asm__("FindShapeFreePoint");
-void FindShapeClosestPoint(CID14 *po, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(CID14 *po, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPoint");
 float GetShapeDistanceBetween(CID14 *p, float a, float b) __asm__("GetShapeDistanceBetween");
 // VU0 helper: distance between two points.
 extern "C" { static inline float Dist(qword a, qword b) {
@@ -2896,8 +2896,8 @@ extern "C" int IsBhvpathFinished(BHVPATH *behavior)
 namespace M_SetBhvpathShape {
 struct G;
 extern struct G D_003DD020 __asm__("D_003DD020");
-void FindShapeClosestPointFromDistance(SHAPE *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPointFromDistance");
-void FindShapeClosestPoint(SHAPE *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPointFromDistance(SHAPE *shape, float g, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPointFromDistance");
+void FindShapeClosestPoint(SHAPE *shape, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPoint");
 float GetShapeMinDistance(SHAPE *shape) __asm__("GetShapeMinDistance");
 float GetShapeMaxDistance(SHAPE *shape) __asm__("GetShapeMaxDistance");
 void EvaluateShapeAtDistance(SHAPE *shape, float g, qword *pv, int n) __asm__("EvaluateShapeAtDistance");
@@ -3602,7 +3602,7 @@ struct LIMIT{float low,high;};
  int IsBasicDerivedFrom__FP5BASIC3CID(void*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
  qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");
  MATRIX3Q*GetLoWorldMatrix(void*) __asm__("GetLoWorldMatrix");
- void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*) __asm__("FindShapeClosestPoint");
+ void FindShapeClosestPoint(LO*, qword, void*, qword*, qword*, float*, float*) __asm__("FindShapeClosestPoint");
  float atan2f(float,float) __asm__("atan2f");
  float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
  void BuildAxisAngleRotationMatrix(MATRIX3Q*,float,qword) __asm__("BuildAxisAngleRotationMatrix");
@@ -5433,7 +5433,7 @@ union V { qword q; float f[4]; };
 void UpdateBhv(BHVRAIL *p) __asm__("UpdateBhv");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 float WrapShapeDistance(void *p, float f) __asm__("WrapShapeDistance");
-void FindShapeClosestPointFromDistance(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt) __asm__("FindShapeClosestPointFromDistance");
+void FindShapeClosestPointFromDistance(void *p, float f, qword v, void *a, qword *b, union V *pv, float *c, float *pt) __asm__("FindShapeClosestPointFromDistance");
 int HasBhvrailArrived(BHVRAIL *p) __asm__("HasBhvrailArrived");
 float atan2f(float y, float x) __asm__("atan2f");
 void SetStepguardMoverRadTarget(void *p, float f) __asm__("SetStepguardMoverRadTarget");
@@ -6668,8 +6668,8 @@ struct G;
 extern struct G D_003DD020 __asm__("D_003DD020");
 void StartBhv(BHVPATROLPATH *p) __asm__("StartBhv");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void FindShapeClosestPointFromDistance(SHAPE *a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPointFromDistance");
-void FindShapeClosestPoint(SHAPE *a, qword q, struct G *pg, void *pv, int b, int c, float *pf) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPointFromDistance(SHAPE *a, float g, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPointFromDistance");
+void FindShapeClosestPoint(SHAPE *a, qword q, struct G *pg, void *pv, qword *b, float *c, float *pf) __asm__("FindShapeClosestPoint");
 BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 void AdvanceBhvpatrolpathGoal(BHVPATROLPATH *p, int n) __asm__("AdvanceBhvpatrolpathGoal");
 // 0x17EB88: BHVPATROLPATH vtable slot 8 (Start): starts at the closest parameter on the path shape, pushes the goto

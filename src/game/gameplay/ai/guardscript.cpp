@@ -280,7 +280,7 @@ typedef union {qword q;float f[4];} U;
 extern const float D_002A52B0 __asm__("D_002A52B0");   /* defined below where the ELF has it (.rodata order) */
 LO*FindSwObject__FP2SWi3OIDP2LO(void*,int,int,LO*) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 void GetGuardScriptTargetPose(LO*,qword,LO*,qword*,float*) __asm__("GetGuardScriptTargetPose");
-void FindShapeClosestPoint(LO*,qword,void*,qword*,qword*,float*,float*) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(LO*, qword, void*, qword*, qword*, float*, float*) __asm__("FindShapeClosestPoint");
 void FindShapeClosestPointFromDistance(LO*,qword,void*,qword*,qword*,float*,float*,float) __asm__("FindShapeClosestPointFromDistance");
 // VU0 helper: vector difference.
 // VU0 helper: length of a vector.
@@ -381,7 +381,7 @@ extern "C" void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *
 namespace M_func_001710F8 {
 struct VEC { float x, y, z, w; };
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *object, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-void FindShapeClosestPoint(LO *shape, qword pos, int a, qword *point, struct VEC *tangent, int b, int c) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(LO *shape, qword pos, void *a, qword *point, struct VEC *tangent, float *b, float *c) __asm__("FindShapeClosestPoint");
 float atan2f(float y, float x) __asm__("atan2f");
 qword GetLoWorldPos(LO *object) __asm__("GetLoWorldPos");
 // 0x1710F8: Position and heading of a target: the closest point and tangent on a SHAPE (cid 0xA), else the object's

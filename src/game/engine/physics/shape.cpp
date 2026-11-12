@@ -966,9 +966,9 @@ forwardDone:
 } // namespace M_IsegFindShapeS
 
 namespace M_func_001E77B0 {
-void FindShapeClosestPoint(void *a, int b, int c, qword *pq, int d, int e, int f) __asm__("FindShapeClosestPoint");
+void FindShapeClosestPoint(void *a, qword pos, void *space, qword *pq, qword *d, float *e, float *f) __asm__("FindShapeClosestPoint");
 // Only the closest point of FindShapeClosestPoint.
-extern "C" qword GetShapeClosestPoint(void *a, int b)
+extern "C" qword GetShapeClosestPoint(void *a, qword b)
 {
     qword q;
     FindShapeClosestPoint(a, b, 0, &q, 0, 0, 0);
