@@ -1324,13 +1324,13 @@ namespace M_BuildModelDrawPackets {
 // empty do-while(0), whose loop notes act as the scheduling barrier the target shows after `pb += 4`.
 // Builds the VIF packet for every submodel of a model: model matrix, optional bone matrices, optional skin matrices,
 // then queues the packet with its sort distance.
-// The model is so.h's GLOBSET (as in RenderSoGlobset); ALOV is rtcam.cpp's render-target camera (RTCAM, TU-private there).
-struct ALOV
-{
-    char pad[0x104];
-    int cpshd;
-    void *apshd[1];
-};
+// The model is so.h's GLOBSET (as in RenderSoGlobset); ALOV is the render-target camera (sly2/rtcam.h RTCAM): its shown
+// objects are the light list.
+#include "sly2/rtcam.h"
+typedef RTCAM ALOV;
+
+
+
 extern MATRIX4 D_002A2D30 __asm__("D_002A2D30");
 
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
@@ -1432,11 +1432,11 @@ extern "C" void BuildModelDrawPackets(GLOBSET *pmodel, ALOV *palo)
     SOBOUNDS shd;
     MATRIX4 matModel;
     SOBOUNDS *pshd;
-    if (palo->cpshd)
+    if (palo->numShown)
     {
         func_002333B4(&shd, 0, sizeof(SOBOUNDS));
         pshd = &shd;
-        BuildLightPackets(&g_sw, palo->cpshd, palo->apshd, &shd);
+        BuildLightPackets(&g_sw, palo->numShown, (void **)palo->shown, &shd);
     }
     else
     {
@@ -3301,15 +3301,15 @@ extern "C" void LoadSubglobType3FromBrx(GLOBSET *p, SUBGLOB *desc, GLOB *entry, 
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_AddFramePatch {
-struct D { int a; char *b; int c; char *d; };
 struct H { short a; short b; };
+
 // Records a (framebuffer word index, qword offset+0x23) patch for the VU1 microprogram, which fills FRAME/TEX0 of the
 // current buffer from VU qw 0xB/0xC. (inferred)
-extern "C" void AddFramePatch(int n, struct D *pd, struct H **pph)
+extern "C" void AddFramePatch(int n, GIFS *pgifs, struct H **pph)
 {
     struct H *ph = (*pph)++;
     ph->a = n;
-    ph->b = ((pd->d - pd->b) >> 4) + 0x23;
+    ph->b = ((pgifs->m_pb - pgifs->m_ab) >> 4) + 0x23;   /* qwords written to the packet so far */
 }
 } // namespace M_AddFramePatch
 

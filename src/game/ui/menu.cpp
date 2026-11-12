@@ -54,8 +54,8 @@ typedef char PAUSEMENU_1E8[FIELD_OFFSET(PAUSEMENU,state)==0x1E8?1:-1];
 typedef char ITEM_Size[sizeof(ITEM)==32?1:-1];
 typedef char META_Size[sizeof(META)==32?1:-1];
 typedef char GROUP_Size[sizeof(PAGE)==28?1:-1];
-/* Page k counted from 1 (the stack seen from +0xC). */
-#define PPAGE(p, k) (&((PAGE *)((char *)(p) + 0xC))[k])
+/* Page k of the stack, counted from 1. */
+#define PPAGE(p, k) (&(p)->ae[(k) - 1])
 
 struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; unsigned int r1; } __attribute__((aligned(8)));
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
@@ -300,7 +300,7 @@ extern "C" void UpdatePauseMenu(PAUSEMENU*menu){
  int direction;
  UpdateScreenDefault();
  if(menu->depth<=0)return;
- PAGE*group=(PAGE*)((char*)menu+0xC+menu->depth*sizeof(PAGE));
+ PAGE*group=&menu->ae[menu->depth-1];
  int i=0;if(group->count>0){
  next:{ITEM*item=&group->items[i];if(item->update)item->update(item);}
   i++;if(i<group->count)goto next;}

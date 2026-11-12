@@ -25,38 +25,38 @@ struct V3{float f[3];};
 struct PLANE{V3 normal;float distance;};
 
 
-struct RTCAM;
-/* A render target (g_sw.artgt[2], sly2/sw.h's RENDERTGT, 0x28 bytes; this view reads TEX0 as sly2/shd.h's bit-fields): its size, texture register, the two GIF packets built by
-   InitRenderTargets, and the camera object that owns it (0 when free). */
-struct RT
-{
-    int dx, dy;
-    TEX0 tex0;
-    int cqwClear;      /* +0x10 FRAME/ZBUF/offset/scissor setup and the clearing sprites */
-    QW *aqwClear;
-    int cqwTex;        /* +0x18 TEX0/TEX1/CLAMP of the target as a texture */
-    QW *aqwTex;
-    RTCAM *camera;     /* +0x20 */
-    int pad24;
-};
-typedef char assert_RT_size[sizeof(RT) == 0x28 ? 1 : -1];
+#include "sly2/rtcam.h"   /* RT, RTO, RTCAM (shared with glob.cpp BuildModelDrawPackets) */
 
-/* An object the camera renders (+0xE4 list): LO fields used by AcquireRenderTarget. */
-/* An object of the second list (+0x108). */
-struct RTO : SO { char pad150[0x15C - 0x150]; int unknown15C; int unknown160; };   /* both set to 1 while shown in a target */
-/* The camera object (an XFM, which ends at +0xE0). */
-struct RTCAM : XFM
-{
-    int c;             /* +0xE0 objects hidden while rendering, with their flags (1 shown again, 2 re-enabled) */
-    LO *ap[4];
-    int af[4];
-    int numShown;      /* +0x104 objects shown only in the target */
-    RTO *shown[4];
-    RTCAM *parent;     /* +0x118 */
-    float fov, clipNear, clipFar;
-    RT *prt;           /* +0x128 the claimed target */
-};
-typedef char assert_RTCAM_prt[(unsigned int)&((RTCAM *)0)->prt == 0x128 ? 1 : -1];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 struct MATRIX4;
 struct SW; struct LO; struct BASIC;
 /* The hero: a PO; a STEPPLAYER (cid 0x34) hands on to the object it controls (stepplayer.h jtmode.pstepOther, +0xF40). */
@@ -350,7 +350,7 @@ extern "C" void RenderRtcam(RTCAM *rtcam)
 {
     int i;
     if (rtcam->prt) {
-        for (i = 0; i < rtcam->c; i++) BuildModelDrawPackets((char *)rtcam->ap[i] + 0x80, rtcam);
+        for (i = 0; i < rtcam->c; i++) BuildModelDrawPackets(&((SO *)rtcam->ap[i])->model, rtcam);
     }
 }
 

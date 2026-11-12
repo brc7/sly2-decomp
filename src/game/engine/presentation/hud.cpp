@@ -251,13 +251,13 @@ extern "C" void BuildMenuCarouselText(char *dst, int k)
 
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText {
-void strcpy(void *p, int v) __asm__("strcpy");
+void strcpy(void *p, const char *v) __asm__("strcpy");
 } // namespace M_BuildWidgetArgText
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
 extern "C" void BuildWidgetArgText(void *text, int i, WIDGET *widget)
 {
     using namespace M_BuildWidgetArgText;
-    strcpy(text, (int)FindSwLocalizedString(&g_sw, widget->argTextIds[i]));
+    strcpy(text, FindSwLocalizedString(&g_sw, widget->argTextIds[i]));
 }
 
 // 0x211390 BuildSubtitleText

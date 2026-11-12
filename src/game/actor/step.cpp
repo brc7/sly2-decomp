@@ -1116,18 +1116,16 @@ extern "C" qword GetStepAsegaRotation(void *step, ASEGA *q, float g)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204F78 {
-struct O { char pad[0x10]; struct O *parent; char p2[0xEC - 0x14]; void *tree; };
-void *GetSoFromLo(void *pv) __asm__("GetSoFromLo");
-void UpdateSwPox(SW *pg, void *a, void *b, int n) __asm__("UpdateSwPox");
-void InvalidateSoAaox(struct O *p) __asm__("InvalidateSoAaox");
-// Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
-// attachment pair through UpdateSwPox. (inferred)
+SO *GetSoFromLo(void *pv) __asm__("GetSoFromLo");
+void UpdateSwPox(SW *pg, SOTREE *a, SOTREE *b, int n) __asm__("UpdateSwPox");
+// Finds the SO up plo's parent chain that has a physics tree and links (f=1) or unlinks the step's tree with it
+// through UpdateSwPox. (inferred)
 // Also known as: PairActorWith (upstream readable / Sly 1 name; PairActorWith__FP5ACTORP2LOi).
-extern "C" void LinkStepAttachment(struct O *step, void *pv, int f)
+extern "C" void LinkStepAttachment(SO *step, void *pv, int f)
 {
-    struct O *o = (struct O *)GetSoFromLo(pv);
-    while (o && !o->tree) o = o->parent;
-    if (step->tree && o && o->tree) UpdateSwPox(&g_sw, step->tree, o->tree, f ? 1 : 2);
+    SO *o = GetSoFromLo(pv);
+    while (o && !o->physicsTree) o = o->parent;
+    if (step->physicsTree && o && o->physicsTree) UpdateSwPox(&g_sw, step->physicsTree, o->physicsTree, f ? 1 : 2);
     InvalidateSoAaox(step);
 }
 } // namespace M_func_00204F78

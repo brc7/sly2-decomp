@@ -142,7 +142,7 @@ void snd_ContinueSound(int voiceHandle);
 void *AllocZeroedFromSlotheap(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void snd_DoExternCallNoWait(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
-SNDSTREAM *FindDialogStream(int id);
+/* (FindDialogStream: M_func_001FCFA0 below) */
 void snd_SetPlaybackMode(int nMode);
 }
 int IsEntryInDl(DL *pdl, void *pv);
@@ -1230,9 +1230,9 @@ SNDSTREAM *FindDialogStream(SNDMGR *soundManager, int id) __asm__("FindDialogStr
 } // namespace M_func_001FCFA0
 
 // Duration of a dialog line's stream by id (0 when unknown); subtitles use it to pace the typewriter effect. (inferred)
-extern "C" float GetDialogStreamDuration(int id)
+extern "C" float GetDialogStreamDuration(SNDMGR *soundManager, int id)
 {
-    SNDSTREAM *prec = FindDialogStream(id);
+    SNDSTREAM *prec = M_func_001FCFA0::FindDialogStream(soundManager, id);
     float g = 0.0f;
     if (prec != 0) {
         g = prec->duration;
