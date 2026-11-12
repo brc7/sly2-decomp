@@ -2645,7 +2645,7 @@ extern "C" SPAWNER *NewCid119() { return new SPAWNER; }
 
 extern "C" CID120 *NewCid120() { return new CID120; }
 
-extern "C" CID121 *NewCid121() { return new CID121; }
+extern "C" RHYTHMMGR *NewCid121() { return new RHYTHMMGR; }
 
 extern "C" CID122 *NewCid122() { return new CID122; }
 
@@ -3344,7 +3344,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[2], 118, 119, sizeof(CID118), (PFNNEW)NewCid118}, /* Cid118 */
     {&D_002BAAE8[2], 119, 120, sizeof(SPAWNER), (PFNNEW)NewCid119}, /* Cid119 */
     {&D_002BAAE8[2], 120, 121, sizeof(CID120), (PFNNEW)NewCid120}, /* Cid120 */
-    {&D_002BAAE8[2], 121, 122, sizeof(CID121), (PFNNEW)NewCid121}, /* Cid121 */
+    {&D_002BAAE8[2], 121, 122, sizeof(RHYTHMMGR), (PFNNEW)NewCid121}, /* Cid121 */
     {&D_002BAAE8[2], 122, 123, sizeof(CID122), (PFNNEW)NewCid122}, /* Cid122 */
     {&D_002BAAE8[2], 123, 124, sizeof(ROUTE), (PFNNEW)NewCid123}, /* Cid123 */
     {&D_002BAAE8[2], 124, 125, sizeof(PATHLINK), (PFNNEW)NewPathlink}, /* Pathlink */

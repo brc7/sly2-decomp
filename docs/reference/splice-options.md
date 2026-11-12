@@ -2005,24 +2005,24 @@ parent LO; 46 options in all.
 | 472 | `ignoresClass98` | bool | get set file | 361 |
 | 473 | `RefThunk_SetGuardAttackOids` | - | method(3) file | 362 |
 
-## CID121 (cid 121)
+## RHYTHMMGR (cid 121)
 
 parent LO; 46 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 342 | `+0x50` / `SetRhythmMgrState` | int | get set file | 1354 |
-| 1159 | `+0x58` | float | get set file | 1344 |
-| 1160 | `+0x5C` | float | get set file | 1345 |
+| 342 | `state` / `SetRhythmMgrState` | int | get set file | 1354 |
+| 1159 | `earlyWindow` | float | get set file | 1344 |
+| 1160 | `lateWindow` | float | get set file | 1345 |
 | 1161 | `RefThunk_AddRhythmManagerGrade` | - | file-method(2) | 1346 |
-| 1162 | `+0x234` | lm | get file | 1347 |
-| 1163 | `+0x280` | int | get set file | 1348 |
-| 1164 | `+0x28C` | smp | get set file | 1349 |
-| 1165 | `+0x298` | float | get set file | 1350 |
-| 1166 | `+0x29C` | float | get set file | 1351 |
-| 1167 | `+0x2A0` | float | get set file | 1352 |
-| 1168 | `+0x2A4` | float | get set file | 1353 |
-| 1169 | `+0x284` | float | get | 1355 |
+| 1162 | `scoreRange` | lm | get file | 1347 |
+| 1163 | `averageWindow` | int | get set file | 1348 |
+| 1164 | `smoothing` | smp | get set file | 1349 |
+| 1165 | `earlyPressScore` | float | get set file | 1350 |
+| 1166 | `wrongButtonScore` | float | get set file | 1351 |
+| 1167 | `repeatPressScore` | float | get set file | 1352 |
+| 1168 | `missScore` | float | get set file | 1353 |
+| 1169 | `averageScore` | float | get | 1355 |
 | 1170 | `RefThunk_ResetRhythmScore` | - | method(0) | 1356 |
 
 ## CID122 (cid 122)

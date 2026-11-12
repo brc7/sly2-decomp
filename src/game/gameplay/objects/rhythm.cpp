@@ -2,7 +2,7 @@
 // telling them when) and the rhythm manager (cue timing, button presses, the score window, the note track it draws with
 // rich text, the score-driven SMA crowd). TU 0x1520C8..0x153850 (30 functions, address order), then the five inline
 // CTextBox setters behind the linkonce copies 0x258438..0x258480 (used by DrawRhythmMgr). Entry points: the DANCER
-// and CID121 (rhythm manager) vtables, the Splice setters (AddDancerMove, SetRhythmManagerPrompts...) and the manager's
+// and RHYTHMMGR (rhythm manager) vtables, the Splice setters (AddDancerMove, SetRhythmManagerPrompts...) and the manager's
 // world callback BindRhythmManagerGrades.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rhythm
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_rhythm
@@ -24,63 +24,13 @@ enum { ANY_KEY = -1 };   /* PlayDancerMove: the move whose button the controller
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 
-/* A note on the drawn track (0x30). */
-struct ENT { float time; int buttonMask; char pad[8]; union { qwordV screenPos; VECTOR4 screenPosV; }; int isHit; char pad2[0x30 - 0x24]; };
-/* A cue: the dancer, its button and the move that follows, when it is due (music time). */
-struct CUE
-{
-    DANCER *dancer;
-    int key;
-    int nextKey;
-    float time;
-    float timeAdded;
-    int hasPlayed;              /* demonstration state: the dancer showed the move */
-    int hasPrompted;            /* play state: game event 0x34 sent */
-    int wasPressed;             /* play state: the player pressed for it */
-    int isExpired;              /* play state: the late window passed */
-};
-/* A crowd grade SMA driven by the score: object oid, grade oid, the bound SMA, current grade, score thresholds. */
-struct SMAE { int oid; int gradeOid; void *sma; int gradeIndex; float thresholds[3]; };
+/* RHYTHMNOTE / RHYTHMCUE / RHYTHMGRADE and the manager itself: sly2/classes.h RHYTHMMGR. */
 /* SmoothValue parameters (SMP). */
 
 /* Rhythm manager states (inferred). */
 enum RHYTHM_STATE { RHYTHM_IDLE = 0, RHYTHM_DEMONSTRATE = 1, RHYTHM_PLAY = 2 };
 enum { GAME_EVENT_RHYTHM_CUE = 0x34, GAME_EVENT_RHYTHM_PRESS = 0x35, GAME_EVENT_RHYTHM_SCORE = 0x36 };
 
-/* The rhythm manager. */
-struct RHYTHMMGR
-{
-    char pad0[0x40];
-    unsigned int taggedFlags;   /* 0x040 */
-    char pad44[0x50 - 0x44];
-    int state;                  /* 0x050 RHYTHM_STATE */
-    float stateTime;            /* 0x054 */
-    float earlyWindow;          /* 0x058 seconds before a cue a press still counts */
-    float lateWindow;           /* 0x05C seconds after */
-    int numNotes;               /* 0x060 */
-    int pad64[3];
-    ENT notes[6];               /* 0x070 */
-    int hintState;              /* 0x190 0 waiting, 1 flying to the next note */
-    int hintIndex;              /* 0x194 */
-    int pad198[2];
-    union { qwordV hintPos; VECTOR4 hintPosV; };  /* 0x1A0 the hint marker */
-    qwordV hintVelocity;        /* 0x1B0 */
-    int numCues;                /* 0x1C0 */
-    CUE cues[3];                /* 0x1C4 */
-    int eventButtons;           /* 0x230 buttons reported with game events 0x34/0x35 */
-    LM scoreRange;             /* 0x234 */
-    int numScores;              /* 0x23C */
-    float scores[16];           /* 0x240 last scores */
-    int averageWindow;          /* 0x280 scores averaged */
-    float averageScore;         /* 0x284 */
-    float smoothedScore;        /* 0x288 */
-    union { char smoothing[0x0C]; SMP smoothingParams; };   /* 0x28C */
-    float earlyPressScore, wrongButtonScore, repeatPressScore, missScore;   /* 0x298 */
-    union { unsigned int numGradesU; int numGrades; };    /* 0x2A8 */
-    SMAE grades[8];             /* 0x2AC */
-};
-typedef char RHYTHMMGR_2AC[FIELD_OFFSET(RHYTHMMGR,grades)==0x2AC?1:-1];
-typedef char RHYTHMMGR_1C4[FIELD_OFFSET(RHYTHMMGR,cues)==0x1C4?1:-1];
 
 struct SW;
 extern "C" {
@@ -130,7 +80,7 @@ int GetGradeOidForIndex(int k);
 void UpdateRhythmManagerGrades(RHYTHMMGR *p);
 void SetRhythmMgrState(RHYTHMMGR *p, int s);
 void JudgeRhythmPress(RHYTHMMGR *p, DANCER *po);
-float GetRhythmTimingScore(RHYTHMMGR *p, CUE *q);
+float GetRhythmTimingScore(RHYTHMMGR *p, RHYTHMCUE *q);
 float AdjustRhythmScore(RHYTHMMGR *p, float g);
 void AddRhythmScore(RHYTHMMGR *p, float g);
 float GetAverageRhythmScore(RHYTHMMGR *p);
@@ -370,14 +320,14 @@ extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
     manager->earlyPressScore = -1.5f;
     manager->missScore = -1.5f;
     SetLoBusyKind(manager, 1);
-    SetTaggedFlags(&manager->taggedFlags, 0xA);
+    SetTaggedFlags((unsigned int *)&manager->inlineFlags, 0xA);
 }
 
 // Rhythm manager vtable slot 15 (PostLoad): LO post-load, then queues BindRhythmManagerGrades (D_002A5010) as a world
 // callback (it needs the other objects loaded).
-void CID121::PostLoad()
+void RHYTHMMGR::PostLoad()
 {
-    RHYTHMMGR *manager = (RHYTHMMGR *)this;
+    RHYTHMMGR *manager = this;
     PostLoLoad(manager);
     PostSwCallback(&g_sw, manager, D_002A5010.l, 0);
 }
@@ -391,7 +341,7 @@ extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
     float third = __builtin_fabsf(manager->scoreRange.maxValue - manager->scoreRange.minValue) / 3.0f;
     float jitter = third * 0.5f;
     for (i = 0; i < manager->numGrades; i++) {
-        SMAE *grade = &manager->grades[i];
+        RHYTHMGRADE *grade = &manager->grades[i];
         void *object = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, grade->oid, manager);
         void *sma;
         float boundary;
@@ -419,7 +369,7 @@ extern "C" void UpdateRhythmMgr(RHYTHMMGR *manager)
 {
     float musicTime;
     int i, j;
-    CUE *cue;
+    RHYTHMCUE *cue;
     UpdateLo(manager);
     musicTime = GetMusicTime(&g_sndmgr);
     switch (manager->state) {
@@ -470,7 +420,7 @@ void UpdateRhythmManagerGrades(RHYTHMMGR *manager)
 {
     int i, j;
     for (i = 0; i < manager->numGrades; i++) {
-        SMAE *grade = &manager->grades[i];
+        RHYTHMGRADE *grade = &manager->grades[i];
         if (!grade->sma)
             continue;
         if (IsSmaRetracted(grade->sma)) {
@@ -546,7 +496,7 @@ void RenderLoSelf(RHYTHMMGR *p);
 FONT *CRichText_ctor(FONT *pf, const char *sz, float scale);
 float CRichText_GetWidth(FONT *pf);
 void DrawRichText2(FONT *pf, TB *ptb, int grf);
-void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qwordV *ppos, qwordV *pvel, qwordV *pacc);
+void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qword *ppos, qword *pvel, qword *pacc);
 }
 // The larger of two floats.
 // Rhythm manager render: while demonstrating or playing, draws the note track: each note not yet due (or every note
@@ -582,7 +532,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
         float dyB = fontB.dy;
         int i;
         for (i = 0; i < manager->numNotes; i++) {
-            ENT *pe = &manager->notes[i];
+            RHYTHMNOTE *pe = &manager->notes[i];
             if (manager->state == 1 || pe->isHit || pe->time + manager->lateWindow < t) {
                 unsigned int j;
                 for (j = 0; j < 4; j++) {
@@ -615,7 +565,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *manager)
             }
         }
         if (manager->hintIndex < manager->numNotes) {
-            ENT *pe = &manager->notes[manager->hintIndex];
+            RHYTHMNOTE *pe = &manager->notes[manager->hintIndex];
             switch (manager->hintState) {
             case 0:
                 if (pe->time - t < D_002BDBB0) {
@@ -675,12 +625,12 @@ extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *manager, int state, int numNo
     if (numNotes) {
         float firstTime, pixelsPerSecond;
         int i;
-        CopyAb__FPvT0Ui(manager->notes, notes, numNotes * sizeof(ENT));
+        CopyAb__FPvT0Ui(manager->notes, notes, numNotes * sizeof(RHYTHMNOTE));
         firstTime = manager->notes[0].time;
         pixelsPerSecond = 440.0f / (manager->notes[manager->numNotes - 1].time - firstTime);
         SetVector(&manager->hintPosV, 100.0f, 468.80002f, 0.0f);   /* (the track origin, reused as a temporary) */
         for (i = 0; i < manager->numNotes; i++) {
-            ENT *note = &manager->notes[i];
+            RHYTHMNOTE *note = &manager->notes[i];
             note->screenPosV = manager->hintPosV;
             note->isHit = 0;
             note->screenPosV.x += pixelsPerSecond * (note->time - firstTime);
@@ -697,9 +647,9 @@ extern "C" void SetRhythmManagerPrompts(RHYTHMMGR *manager, int state, int numNo
 // Also known as: AddDanceBeat (upstream readable / Sly 1 name; AddDanceBeat__FP2LOiiif).
 extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCER *dancer, int key, int nextKey, float time)
 {
-    CUE *cue;
+    RHYTHMCUE *cue;
     if (manager->numCues == 3) {
-        memmove(&manager->cues[0], &manager->cues[1], (manager->numCues - 1) * sizeof(CUE));
+        memmove(&manager->cues[0], &manager->cues[1], (manager->numCues - 1) * sizeof(RHYTHMCUE));
         cue = &manager->cues[manager->numCues - 1];
     } else {
         cue = &manager->cues[manager->numCues++];
@@ -723,7 +673,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCER *dancer)
 {
     void *controller = dancer->controller;
     int i, j;
-    CUE *cue;
+    RHYTHMCUE *cue;
     manager->eventButtons = GetButtonsPressedWithin__5POCTLUif(controller, 0xF0, 0.0f);   /* the four face buttons */
     if (!manager->eventButtons)
         return;
@@ -749,7 +699,7 @@ void JudgeRhythmPress(RHYTHMMGR *manager, DANCER *dancer)
             PlayDancerMove(dancer, cue->key, cue->nextKey, MOVE_CLIP_SUCCESS);
             AddRhythmScore(manager, AdjustRhythmScore(manager, GetRhythmTimingScore(manager, cue)));
             for (j = 0; j < manager->numNotes; j++) {
-                ENT *note = &manager->notes[j];
+                RHYTHMNOTE *note = &manager->notes[j];
                 if (AreFloatsNear__Ffff(note->time, cue->time, 0.1f)) {
                     note->isHit = 1;
                     break;
@@ -768,7 +718,7 @@ static inline float GLerp(float a, float b, float t) { return (1.0f - t) * a + t
 // Timing score of a press for a cue: 1 - |now - due| / window (the early or late window by side), mapped linearly onto
 // the score range g_lmZeroOne (exactly on time gives its maximum).
 // Also known as: GBeatScore (upstream readable / Sly 1 name; GBeatScore__FP5DANCEP4BEAT).
-float GetRhythmTimingScore(RHYTHMMGR *manager, CUE *cue)
+float GetRhythmTimingScore(RHYTHMMGR *manager, RHYTHMCUE *cue)
 {
     float musicTime = GetMusicTime(&g_sndmgr);
     float lateness;
@@ -835,7 +785,7 @@ extern "C" void ResetRhythmScore(RHYTHMMGR *manager)
 extern "C" void AddRhythmManagerGrade(RHYTHMMGR *manager, int oid, int gradeOid) {
     unsigned int count = manager->numGradesU;
     if (count < 0x80U) {
-        SMAE *grade;
+        RHYTHMGRADE *grade;
         manager->numGradesU = count + 1;
         grade = &manager->grades[count];
         grade->oid = oid;

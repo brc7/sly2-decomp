@@ -431,7 +431,7 @@ a health-bar WIDGET, guard scripts (CID 0x71), boss music, and PROXY copies so r
 Minigames are entered by handing the controller to another PO (`SetCtlState` from a RELAY, or the task's controlled-PO
 field): **Bentley hacking** (HACK family CIDs 0x47-0x4C: ship, enemies, bullets, lock, walls; left stick moves, right
 stick aims and fires), **mounted turret** (TURRET 0x45 + CPTURRET), **RC combat** (ROBOTTANK 0x4D; player or AI mode),
-**dance** (DANCER 0x44 + rhythm manager CID121, judged against music time), the **safehouse** character select and
+**dance** (DANCER 0x44 + rhythm manager RHYTHMMGR (was CID121), judged against music time), the **safehouse** character select and
 ThiefNet (SAFEHOUSE 0x46). The hacking classes are declared in `include/sly2/hack.h`, the robot tank in `tank.h`. The RC chopper and the drivable tank are plain POs whose drive code is not identified yet.
 
 Smaller gameplay classes (`gameplay/objects/`): BARRIER, BOMB, MISSILE/ACCMISS (projectiles derived from BOMB), BUTTON and

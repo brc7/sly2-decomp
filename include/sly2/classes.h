@@ -629,17 +629,61 @@ typedef char assert_DANCER_size[sizeof(DANCER) == 0x410 ? 1 : -1];
 typedef char assert_DANCER_moves[SLY2_OFFSETOF(DANCER, moves) == 0x2C8 ? 1 : -1];   /* rhythm.cpp */
 typedef char assert_DANCER_segmentAnim[SLY2_OFFSETOF(DANCER, segmentAnim) == 0x408 ? 1 : -1];
 
-/* 121 CID121 (0x10B0): rhythm-game manager; vtable 0x2CD5B8, 48 slots */
-struct CID121 : LO
+/* The rhythm game's records (rhythm.cpp). RHYTHMNOTE: a note on the drawn track (0x30). RHYTHMCUE: a cue: the dancer,
+   its button and the move that follows, when it is due (music time), and its demonstration / play state.
+   RHYTHMGRADE: a crowd grade SMA driven by the score (object oid, grade oid, the bound SMA, current grade, the score
+   thresholds). */
+struct RHYTHMNOTE { float time; int buttonMask; char pad[8]; union { qword screenPos; VECTOR4 screenPosV; }; int isHit; char pad2[0x30 - 0x24]; };
+struct RHYTHMCUE
 {
-    char pad50[0x10B0 - 0x50];
+    DANCER *dancer;
+    int key;
+    int nextKey;
+    float time;
+    float timeAdded;
+    int hasPlayed;              /* demonstration state: the dancer showed the move */
+    int hasPrompted;            /* play state: game event 0x34 sent */
+    int wasPressed;             /* play state: the player pressed for it */
+    int isExpired;              /* play state: the late window passed */
+};
+struct RHYTHMGRADE { int oid; int gradeOid; void *sma; int gradeIndex; float thresholds[3]; };
+
+/* 121 RHYTHMMGR (0x10B0): rhythm-game manager (rhythm.cpp; was CID121); vtable 0x2CD5B8, 48 slots */
+struct RHYTHMMGR : LO
+{
+    int state;                  /* +0x050 RHYTHM_STATE (rhythm.cpp; option 342 SetRhythmMgrState) */
+    float stateTime;            /* +0x054 */
+    float earlyWindow;          /* +0x058 seconds before a cue a press still counts (option 1159) */
+    float lateWindow;           /* +0x05C seconds after (option 1160) */
+    int numNotes;               /* +0x060 */
+    int pad64[3];
+    RHYTHMNOTE notes[6];        /* +0x070 */
+    int hintState;              /* +0x190 0 waiting, 1 flying to the next note */
+    int hintIndex;              /* +0x194 */
+    int pad198[2];
+    union { qword hintPos; VECTOR4 hintPosV; };  /* +0x1A0 the hint marker */
+    qword hintVelocity;         /* +0x1B0 */
+    int numCues;                /* +0x1C0 */
+    RHYTHMCUE cues[3];          /* +0x1C4 */
+    int eventButtons;           /* +0x230 buttons reported with game events 0x34 / 0x35 */
+    LM scoreRange;              /* +0x234 (option 1162) */
+    int numScores;              /* +0x23C */
+    float scores[16];           /* +0x240 last scores */
+    int averageWindow;          /* +0x280 scores averaged (option 1163) */
+    float averageScore;         /* +0x284 (option 1169) */
+    float smoothedScore;        /* +0x288 */
+    union { char smoothing[0x0C]; SMP smoothingParams; };   /* +0x28C (option 1164; SmoothValue takes the bytes) */
+    float earlyPressScore, wrongButtonScore, repeatPressScore, missScore;   /* +0x298 (options 1165..1168) */
+    union { unsigned int numGradesU; int numGrades; };    /* +0x2A8 */
+    RHYTHMGRADE grades[8];      /* +0x2AC */
+    char pad38C[0x10B0 - 0x38C];
     virtual void PostLoad() __asm__("PostRhythmManagerLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid121ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRhythmMgr");   /* slot 7 */
     virtual void Update() __asm__("UpdateRhythmMgr");   /* slot 16 */
     virtual void RenderSelf() __asm__("DrawRhythmMgr");   /* slot 19 */
 };
-typedef char assert_CID121_size[sizeof(CID121) == 0x10B0 ? 1 : -1];
+typedef char assert_RHYTHMMGR_size[sizeof(RHYTHMMGR) == 0x10B0 ? 1 : -1]; typedef char assert_RHYTHMMGR_grades[SLY2_OFFSETOF(RHYTHMMGR, grades) == 0x2AC ? 1 : -1];
 
 /* 122 CID122 (0x60): ? (LoadFromBrx with FILEREC list); vtable 0x2CDA10, 48 slots */
 struct CID122 : LO
