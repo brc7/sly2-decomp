@@ -480,7 +480,7 @@ struct SURFACE { qword plane; char pad10[8]; int flags; };
 struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
 
 extern const float D_002A6AD0 __asm__("D_002A6AD0");   /* defined below where the ELF has it (.rodata order) */
-void AddXp(W *, A *, B *, qword, float, qword, int, int, int, XP **) __asm__("AddXp");
+void AddXp(W *, A *, B *, qword, float, qword, int, void *, void *, XP **) __asm__("AddXp");
 
 
 /* signed distance of pos from plane: dot(plane.xyz, pos.xyz) - plane.w, via VU0 macro mode */
@@ -533,14 +533,14 @@ extern "C" void AddEmbeddedVertexXps(W *w, A *a, B *b, int count, int *indices, 
         for (n = head; n; n = n->next) n->surface->flags &= ~8;
         VECTOR normal;
         normal.q = bestNormal;
-        AddXp(w, a, b, position, bestOrig, normal.q, 1, (int)&a->points.data[index], (int)best, out);
+        AddXp(w, a, b, position, bestOrig, normal.q, 1, &a->points.data[index], best, out);
         for (m = head; m; m = m->next) {
             d = PlaneDist(bestNormal, m->point);
             if (d < bestOrig) {
                 qword pt = m->point;
                 VECTOR nn;
                 nn.q = bestNormal;
-                AddXp(w, a, b, pt, d, nn.q, 2, (int)m->edge, (int)best, out);
+                AddXp(w, a, b, pt, d, nn.q, 2, m->edge, best, out);
             }
         }
     }
@@ -1320,11 +1320,11 @@ extern "C" void MarkSoContactsSphereSphere(SW *world, SOPART *part0, SOPART *par
 // matched with, in a namespace of its own (see the file header).
 namespace M_func_001A9D38 {
 struct M4{qword r[4];};
-struct HIT{qword p;char pad10[0x30];float time;int unknown44,unknown48,tag;char pad50[0x10];};
+
 struct W;struct C;
 extern M4 InvertMatrix4Rigid(const M4*) __asm__("InvertMatrix4Rigid");
-extern int ClipEdgeToObject(SOPART*,qword,qword,int,HIT*) __asm__("ClipEdgeToObject");
-extern void AddXp(W*,SOPART*,SOPART*,qword,qword,int,int,int,C**,float) __asm__("AddXp");
+extern int ClipEdgeToObject(SOPART*,qword,qword,int,LSG*) __asm__("ClipEdgeToObject");
+extern void AddXp(W*,SOPART*,SOPART*,qword,qword,int,void*,void*,C**,float) __asm__("AddXp");
 // Transform point p by the 4x4 matrix m into a new register.
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
 // Transform point p by the 4x4 matrix m in place.
@@ -1353,21 +1353,21 @@ do {float d=Dot(VuSub(*points,p),n);if(d<best)best=d;points++;}while(--count);}
 extern "C" void MarkSoContactsSweptVertices(W*w,SOPART*a,SOPART*b,C**out){
  int i;
  for(i=a->unknown1C;i<a->meshLocal.numPositions;i++){
-  HIT hits[2];
+  LSG hits[2];
   qword pos=TransformNew((M4 *)&a->matWorld,*(qword *)&a->meshLocal.positions[i]);
   if(b->meshStamp!=b->worldStamp)pos=Transform((M4 *)&b->transform->worldMatrix,Transform(&InvertMatrix4Rigid((M4 *)&b->matWorld),pos));
   qword dest=*(qword *)&a->meshWorld.positions[i];
   int count=ClipEdgeToObject(b,pos,dest,2,hits);
   if(count){
-   int skip=hits[0].time==0.0f;
+   int skip=hits[0].au[0]==0.0f;
    if(skip<count){
     qword dir=Normal(SubN(pos,dest));
-    qword hit=hits[0].p;
+    qword hit=hits[0].apos[0];
     float g=0.0f;
     g=MinDistance(hit,dir,a->meshWorld.numPositions,(const qword *const *)&a->meshWorld.positions);
     if(a->unknownFlag10B){float d=Dot(VuSub(*(qword *)&a->transform->worldMatq.r[3],hit),dir)-a->radius;if(d<g)g=d;}
     int kind=b->unknownFlag10B?9:8;
-    int tag=b->unknownFlag10B?0:hits[0].tag;
+    SURF*tag=b->unknownFlag10B?0:hits[0].apsurf[0];
     AddXp(w,a,b,hit,dir,kind,tag,0,out,g);
    }
   }

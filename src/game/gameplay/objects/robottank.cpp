@@ -1415,7 +1415,7 @@ void *AllocFromStack(SWALLOC *) __asm__("AllocFromStack");
 int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **) __asm__("PruneBspBySphere");
 int ClipSegmentBsp(BSP *, BSP *, qword, qword, int, LSG *) __asm__("ClipSegmentBsp");
 qword TransformPlane(M4 *, qword) __asm__("TransformPlane");
-void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float) __asm__("AddXp");
+void AddXp(SW *, SHAPE *, SOPART *, qword, qword, int, void *, void *, CONTACT **, float) __asm__("AddXp");
 
 
 // Helpers GetMatrix, PvAllocStack, ClearAb, Sqrt (small asm wrappers/accessors shaped for the match).

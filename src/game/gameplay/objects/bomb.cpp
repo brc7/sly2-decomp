@@ -96,7 +96,7 @@ void UpdateSwPox(SW *pg, SOTREE *pa, SOTREE *pb, int n);
 qword GetLoWorldPos(void *p);
 int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
 void AddSoCustomXps(BOMBV *p, CREQ *ps, int cbsp, BSP *absp, BSP *pbsp, XP **ppxpFirst);
-void AddXp(SW *pg, SOPART *ppart, CREQ *ps, qword a, qword b, int k, int x, int y, float g, XP **ppxpFirst);
+void AddXp(SW *pg, SOPART *ppart, CREQ *ps, qword a, qword b, int k, void *x, void *y, float g, XP **ppxpFirst);
 void AdjustSoXps(BOMBV *p);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int IsPoPlayable(BOMBV *p);

@@ -227,7 +227,7 @@ void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, int n);
 void AddSoCustomXps(SOV *pso, REQUEST *preq, int a2, int a3, int a4, XP **ppxp);
 int ClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
 int IntersectStepFootprint(void *pso, qword posA, qword posB, qword *ppos);
-void AddXp(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, int s, int x, XP **ppxp, float g);
+void AddXp(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, void *s, void *x, XP **ppxp, float g);
 void DeliverZapToSo(ZPR *pzpr);   /* InflictZap */
 void UpdateSo(SOV *pso, float dt);
 float fmodf(float, float);
@@ -705,7 +705,7 @@ extern "C" void AddLasenBeamXps(LASENV *laser, REQUEST *q, int a2, int a3, int a
             float dist = Scalar(Len(Sub(seg[0], pos.q)));
             qword dir = Sub(seg[1], seg[0]);
             dir = Div(dir, Len(dir));
-            AddXp(&g_sw, laser->apart, q, pos.q, dir, 10, *(int *)&dist, 0, &e->firstContact, 0.0f);
+            AddXp(&g_sw, laser->apart, q, pos.q, dir, 10, (void *)(sptr)*(int *)&dist, 0, &e->firstContact, 0.0f);   /* the beam length's bits in pvFeature0 (XP::sBeam) */
             EnsureSwCallback(&g_sw, laser, &LASENV::ZapBeams, 0);
         }
     }

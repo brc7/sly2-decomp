@@ -1617,7 +1617,7 @@ extern qword D_002A2DA0 __asm__("D_002A2DA0");
 extern void AddSoCustomXps(SO*,REQUEST*,int,int,int,CONTACT**) __asm__("AddSoCustomXps");
 extern qword*InitVuTemp(qword*) __asm__("InitVuTemp");
 extern int ClipEdgeToSphere(qword,float,qword,qword,int,SEGMENT*) __asm__("ClipEdgeToSphere");
-extern void AddXp(void*,SOPART*,REQUEST*,qword,qword,int,HACKWALLPIECE*,int,CONTACT**,float) __asm__("AddXp");
+extern void AddXp(void*,SOPART*,REQUEST*,qword,qword,int,HACKWALLPIECE*,void*,CONTACT**,float) __asm__("AddXp");
 
 // Helpers Sub, Broadcast, BroadcastBits, Scalar, MAdd, MAdd2, Point (small asm wrappers/accessors shaped for the match).
 extern "C" { static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;} }

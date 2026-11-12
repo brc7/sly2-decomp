@@ -567,7 +567,7 @@ extern qword D_002A2DA0 __asm__("D_002A2DA0");
 extern float D_002C3C60[] __asm__("D_002C3C60");
 extern float D_002C3C90 __asm__("D_002C3C90");   /* base contact friction */
 void AdjustSoNewXp(void) __asm__("AdjustSoNewXp");
-void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, XP **out, float g) __asm__("AddXp");
+void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, void *x, void *y, XP **out, float g) __asm__("AddXp");
 
 /* The endpoint positions are passed by address (like C++ const VECTOR & operands): the address
    then comes out as offset + x, and the second read of the other position is a reload. */
@@ -957,7 +957,7 @@ int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 int ClipEdgeToObjectPruned(struct X *x, BSP *pbsp, qword pos, qword v, int n, struct HIT *phit) __asm__("ClipEdgeToObjectPruned");
 int HasStepFloorNearby(STEP *p, qword v, struct X *x, int n) __asm__("HasStepFloorNearby");
-void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, XP **ppxpFirst, float f) __asm__("AddXp");
+void AddXp(void *g, void *p, struct X *x, qword a, qword b, int k, void *c, void *d, XP **ppxpFirst, float f) __asm__("AddXp");
 
 // Slot 60: if the ground-probe flags allow it, casts a ray down from the base point (ClipEdgeToObjectPruned) and
 // adds a floor contact (kind 14) at the hit.
