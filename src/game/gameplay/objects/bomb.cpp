@@ -114,7 +114,7 @@ void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qword q, void (*pfn)(), SOTREE *px, float g, int *pc, XAV ***paps);
 void *AllocFromStack(AREQV *preq);
 int IntersectSphereBsp(qword q, XAV *ps, uptr n, int a, int b, int c, float g, HIT48 *phit);
-void qsort(void *, int, int, int (*)(const void *, const void *));
+void qsort(void *, __SIZE_TYPE__, __SIZE_TYPE__, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int DeliverZapToSo(ZPR *pmsg);
 int *NewNoise(NOISETYPE *pstimk, qword pos, void *pv);

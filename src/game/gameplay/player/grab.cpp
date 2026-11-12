@@ -2351,7 +2351,7 @@ extern float D_002BF710 __asm__("D_002BF710");
 extern float D_002BF714 __asm__("D_002BF714");
 extern SMP D_002BF718 __asm__("D_002BF718");
 int CompareJtGrabCandidates(const void *, const void *) __asm__("CompareJtGrabCandidates");   // JTGRABCAND compare for qsort
-void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *)) __asm__("qsort");   // qsort
+void qsort(void *base, __SIZE_TYPE__ c, __SIZE_TYPE__ cb, int (*pfnCmp)(const void *, const void *)) __asm__("qsort");   // qsort
 void *memmove(void *dst, const void *src, uint cb) __asm__("memmove");   // memmove
 float SmoothValue__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext) __asm__("SmoothValue__FfffP3SMPPf");   // SmoothValue
 void FadeSoOut(LO *plo, float g) __asm__("FadeSoOut");

@@ -83,7 +83,7 @@ void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 float GetStepHeading(void *object);
 void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
 int FindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
-void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
+void qsort(void*,__SIZE_TYPE__,__SIZE_TYPE__,int(*)(ROW*,ROW*));
 qword SetVectorCylind(float,float,float);
 }
 float RandomFloatInRange(float gMin, float gMax);

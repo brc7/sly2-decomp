@@ -594,7 +594,7 @@ extern float D_002C3D04 __asm__("D_002C3D04"),D_002C3D08 __asm__("D_002C3D08"),D
 ulong GetSgfMask(int) __asm__("GetSgfMask");
 int FindSwObjectsByClass(SW *,int,int,int,int,STEPGUARD **) __asm__("FindSwObjectsByClass");
 qword GetLoWorldPos(LO *) __asm__("GetLoWorldPos");
-void qsort(void *,unsigned int,unsigned int,int (*)(const void *,const void *)) __asm__("qsort");
+void qsort(void *,__SIZE_TYPE__,__SIZE_TYPE__,int (*)(const void *,const void *)) __asm__("qsort");
 int CompareGuardCandidateDistance(const void *,const void *) __asm__("CompareGuardCandidateDistance");
 int TryAddStepguardDetectTarget(STEPGUARD *,STEPGUARD *,int) __asm__("TryAddStepguardDetectTarget");
 void UpdateDetectorTargets(DETECTOR *) __asm__("UpdateDetectorTargets");

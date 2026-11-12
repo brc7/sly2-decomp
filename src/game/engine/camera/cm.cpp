@@ -529,7 +529,7 @@ namespace M_UpdateCmVisZone__FP2CM {
 struct O { char pad[0x110]; int k; };
 int FindSwObjectsByClass(void *g, int a, int b, int c, int n, struct O **ap) __asm__("FindSwObjectsByClass");
 void UpdateVisInside(struct O *po, qword pos) __asm__("UpdateVisInside");
-void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *)) __asm__("qsort");
+void qsort(void *base, __SIZE_TYPE__ n, __SIZE_TYPE__ cb, int (*cmp)(const void *, const void *)) __asm__("qsort");
 int CompareCameraVisZones(const void *a, const void *b) __asm__("CompareCameraVisZones");
 void SetCmVisZone(CM *p, struct O *po) __asm__("SetCmVisZone");
 // Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best

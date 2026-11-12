@@ -42,7 +42,7 @@ int D_002BDD20[NUM_RPL_KINDS] = {4, 3, 0, 0, 11, 0, 11, 6, 7, 1, 0, 0, 2, 0, 0, 
 extern PFNRP D_002BDD88[][2];
 
 extern "C" {
-void qsort(void *, unsigned int, unsigned int, int (*)(const void *, const void *));
+void qsort(void *, __SIZE_TYPE__, __SIZE_TYPE__, int (*)(const void *, const void *));
 void BuildStereoEyeViewProj(CM *pcm, int k, int n, MATRIX4 *pm0, MATRIX4 *pm1);
 void BeginRpGlob(VIFS *pvifs, void *a1, void *a2);
 void BuildWorldBackgroundImage(SW *pgame, int n);
@@ -169,7 +169,7 @@ extern "C" void DrawSw(SW *world)
     RPL *sorted[0x2000];
     int firstIndex[NUM_RPL_KINDS];
     int endIndex[NUM_RPL_KINDS];
-    V4 v0, v1;
+    V4 clipConstants[2];   /* VU1 qw0 / qw1: one unpack of both */
     int count;
     int passPrev, kindPrev;
     int i;
@@ -197,12 +197,12 @@ extern "C" void DrawSw(SW *world)
         float sFar = g_cm.farClip;
         float depthRatio = (sNear + sFar) / (sNear - sFar);
         float depthScale = sNear * (1.0f - depthRatio);
-        v0.v = D_002C1F00;
-        v0.w = 1.0f / depthScale;
-        v1.v = D_002C1F10;
-        v1.w = -depthRatio / depthScale;
+        clipConstants[0].v = D_002C1F00;
+        clipConstants[0].w = 1.0f / depthScale;
+        clipConstants[1].v = D_002C1F10;
+        clipConstants[1].w = -depthRatio / depthScale;
     }
-    D_002DEA28.AddVifUnpack(UPK_V4_32, 2, &v0, 0);
+    D_002DEA28.AddVifUnpack(UPK_V4_32, 2, clipConstants, 0);
     D_002DEA28.AddVifUnpack(UPK_S32, 1, &D_002DE5A4, 0xD);
     D_002DE5A4 = 0;
     if (g_sw.unknown3E38) {

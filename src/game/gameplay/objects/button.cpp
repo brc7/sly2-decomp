@@ -94,7 +94,7 @@ int FindSwObjectsByClass(SW *psw, int grffso, CID cid, int x, int cploMax, LO **
 int IsLoInWorld(LO *plo);
 qwordV GetLoWorldPos(LO *plo);
 int IsPointInVol(VOLBTN *pvolbtn, qwordV pos);
-void qsort(void *pv, int c, int cb, int (*pfncmp)(const void *, const void *));
+void qsort(void *pv, __SIZE_TYPE__ c, __SIZE_TYPE__ cb, int (*pfncmp)(const void *, const void *));
 CRef BuildSpliceListFromUniformValues(int c, int otyp, LO **aplo);
 
 int AddAshEntry(ASH *pash, OID oid, int x);

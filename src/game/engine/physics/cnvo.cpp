@@ -95,7 +95,7 @@ void InitPlaneFromNormalPos(qword *pplane, qword n, qword pos);
 void FindShapeClosestPoint(CID14 *x, qword q, void *g, qword *a, qword *b, float *c, float *pf);
 CID14 *CreateLo__F3CIDP2SO3OIDi(int a, SO *b, int c, int d);
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
+void qsort(void *base, __SIZE_TYPE__ n, __SIZE_TYPE__ cb, int (*cmp)(const void *, const void *));
 void CopyAb__FPvT0Ui(void *dst, const void *src, int cb);
 
 int ComparePosXY(qword a, qword b);

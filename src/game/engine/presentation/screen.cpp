@@ -2252,7 +2252,7 @@ namespace M_RefreshJobListEntries {
 void StopWidgetAnim(void *, int) __asm__("StopWidgetAnim");
 void func_002333B4(void *, int, unsigned int) __asm__("memset");
 void SortTasksTopologically(int *, TASK ***) __asm__("SortTasksTopologically");
-void qsort(void *, int, int, int (*)(const void *, const void *)) __asm__("qsort");
+void qsort(void *, __SIZE_TYPE__, __SIZE_TYPE__, int (*)(const void *, const void *)) __asm__("qsort");
 int CompareTasks(const void *, const void *) __asm__("CompareTasks");
 int GetJobState(JOB *) __asm__("GetJobState");
 void memmove(void *, void *, unsigned int) __asm__("memmove");
