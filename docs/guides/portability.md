@@ -335,6 +335,19 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   STEP / XP); CID5 moved to sly2/vis.h so cm.cpp SetCmVisZone reads CID5::grfvis (including it renumbers two
   compiler-local names in cm.o, s_rgba.81 -> .111 and _$tmp_0.82 -> .112, not in the config: bytes and link unchanged);
   brx_sw.cpp's LoadSwObjectsFromBrx / CloneLoWithParent parent as SO *; STEP::targetAngularVelocity (was unknown1E0).
+  From the port's request 9 (boot-9), also in v1.23: GLOBSET::boundsCenterq is EE-only (a qword in the union
+  16-aligned GLOBSET natively and moved every SO field; glob.cpp's native branch copies boundsCenter into a local
+  quadword); xp.h's kind-14 limits overlay one feature pointer each (gLimitMin with pvFeature0, gLimitMax with
+  pvFeature1: natively two adjacent floats both sat in pvFeature0); sw.cpp's aloupd is 0x1000 * sizeof(LOUPD); hud.cpp
+  passes uptr to SLY2_CACHED. Request 9 still open: vec.cpp's qwordi prototypes; the EE-layout views in step.cpp
+  (AdjustStepXpVelocity, HasStepFloorNearby, MatchStepXf), air.cpp SetJtAirState (CONTEXT / BODY / MOTION, TRACK
+  stride, the mode-21 vtable word), relay.cpp SGG, grabspot.cpp T / Q, screen.cpp's notice views, cm.cpp SquishCmEye /
+  ClipCameraEye, prize.cpp's collision and bounce views, path.cpp FindClosestPointInCg (CG, the 12-byte LEAF / TRI
+  records: sizeof; FindNavTriangleSafe's missing flags argument), emitter.cpp MESHO and WakeSoWater, guardbhv's
+  SOTREE view and the path following after StepBhvpathAlongShape, the 0x60-byte LSG views (prize, screen, guardbhv,
+  robottank, grab, hack, jt, bentley, air, path); STIMULUS vs CID147 (one record, two layouts) and
+  ChooseStepguardStimulus' `&g_sw.aslPxrOid[410]`; the int-typed pointer parameters (CanBhvcombatShoot,
+  FindShapeClosestPointFromDistance in tn / guardbhv).
   Still open after v1.23: port request 8's path planning views (FindPathzonePathCurve, GRAPH / G as CG), emitter.cpp
   EXPLS / EMITP, AddXp / FindShapeClosestPoint / bhvstk int pointers, button / rail / pipe, the remaining glob /
   rendertree views; blip.cpp UpdateMs10 (microprogram 0x10); air.cpp CONTEXT `tracks[i]`; step.cpp AddStepAxisXps'
