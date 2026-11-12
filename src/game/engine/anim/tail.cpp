@@ -323,8 +323,12 @@ void UpdateChainLink(SO *so, CHAINLINK *chainLink)
                 }
                 else
                 {
+#ifdef SLY2_EE_ASM
                     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(newLength));
                     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(unitSegment) : "j"(newSegment));
+#else
+                    unitSegment = VuDivByX(newSegment, newLength);   /* Q = 1 / len.x, then v * Q */
+#endif
                 }
                 *(qword *)&direction = unitSegment;
                 qword alongVelocity = VuDot(velocityAtTip, unitSegment);

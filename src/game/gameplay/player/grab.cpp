@@ -556,8 +556,12 @@ static inline float LengthXYOf(qword v)
 static inline qword DivVec(qword v, qword l)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__ __volatile__("vdiv $Q,$vf0w,%0x\n\tvwaitq" : : "j"(l));
     __asm__("vmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v));
+#else
+    r = VuDivByX(v, l);   /* Q = 1 / len.x, then v * Q */
+#endif
     return r;
 }
 // Unit vector along v, or fallback when its length is too small.
@@ -1121,8 +1125,12 @@ static inline qword Length(qword v)
 static inline qword Unit(qword v, qword len)
 {
     qword r;
+#ifdef SLY2_EE_ASM
     __asm__ __volatile__("vdiv Q,$vf0w,%0x\n\tvwaitq" : : "j"(len));
     __asm__("vmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(v));
+#else
+    r = VuDivByX(v, len);   /* Q = 1 / len.x, then v * Q */
+#endif
     return r;
 }
 

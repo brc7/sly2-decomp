@@ -896,9 +896,13 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         else
         {
+#ifdef SLY2_EE_ASM
             __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
             qword qwNormal;
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwNormal) : "j"(qwDir));
+#else
+            qword qwNormal = VuDivByX(qwDir, qwLen);   /* Q = 1 / len.x, then v * Q */
+#endif
             *(qword *)&dpos = qwNormal;
         }
         float gPull = GEvaluateClqLm(&ptnCur->clqPull, &ptnCur->lmPull, QwordX(qwLen));
@@ -971,8 +975,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         else
         {
+#ifdef SLY2_EE_ASM
             __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLenStick));
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwStick) : "j"(qwStick));
+#else
+            qwStick = VuDivByX(qwStick, qwLenStick);   /* Q = 1 / len.x, then v * Q */
+#endif
         }
         *(qword *)&vecStick = qwStick;
         VECTOR4 vecView;
@@ -988,9 +996,13 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         else
         {
+#ifdef SLY2_EE_ASM
             __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLenView));
             qword qwNormal;
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwNormal) : "j"(qwView));
+#else
+            qword qwNormal = VuDivByX(qwView, qwLenView);   /* Q = 1 / len.x, then v * Q */
+#endif
             *(qword *)&vecView = qwNormal;
         }
         float sView = VuToFloat(qwLenView);
@@ -1018,8 +1030,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
         }
         else
         {
+#ifdef SLY2_EE_ASM
             __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLenAxis));
             __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwAxis) : "j"(qwAxis));
+#else
+            qwAxis = VuDivByX(qwAxis, qwLenAxis);   /* Q = 1 / len.x, then v * Q */
+#endif
         }
         *(qword *)&vecAxis = qwAxis;
         float gTurn = ClampAbs(VuToFloat(VuDot(*(qword *)&vFocus, qwAxis)) / sView, D_002C41E0);
@@ -1090,8 +1106,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
                 }
                 else
                 {
+#ifdef SLY2_EE_ASM
                     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLenHeading));
                     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwHeading) : "j"(qwHeadingRaw));
+#else
+                    qwHeading = VuDivByX(qwHeadingRaw, qwLenHeading);   /* Q = 1 / len.x, then v * Q */
+#endif
                 }
                 *(qword *)&vecHeading = qwHeading;
                 *(qword *)&vecTangent = ConvertVecBetweenLos(ptnCur, 0, *(qword *)&vecTangent);
@@ -1341,8 +1361,12 @@ void CMPART2::Update(CPDEFI *pcpdefi, JOY *pjoy)
 static inline qword ScaleByInverse(qword v, qword qwLen)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
     __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v));
+#else
+    qw = VuDivByX(v, qwLen);   /* Q = 1 / len.x, then v * Q */
+#endif
     return qw;
 }
 // back * v.x + side * v.y + up * v.z

@@ -2936,7 +2936,11 @@ namespace M_UpdateBhvwalkpath {
 
 /* Kind-3 bindings (DIRANIM): payload4 is the DIRBL (AllocDirAnim: four directional clips), payload its playing CID146. */
 // Float broadcast into a VU0 register on construction.
+#ifdef SLY2_EE_ASM
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
+#else
+struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { qw = VuFromFloat<qword>(g); } };
+#endif
 
 extern CLQ D_002BE6A0 __asm__("D_002BE6A0");
 extern LM g_lmZeroOne __asm__("g_lmZeroOne");
@@ -2949,13 +2953,6 @@ float atan2f(float, float) __asm__("atan2f");
 void SetStepguardMoverRadTarget(GUARDMOVER *, float) __asm__("SetStepguardMoverRadTarget");
 void SelectDirAnim(CID146 *, qword) __asm__("SelectDirAnim");
 
-// VU0 helper: a float in a VU register.
-static inline VU_FLOAT VuFloat(float g)
-{
-    VU_FLOAT v;
-    __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
-    return v;
-}
 // VU0 helper: the x component of a VU register as a float.
 // VU0 helper: x component of a quadword vector.
 // VU0 helper: y component of a quadword vector.
@@ -2966,8 +2963,13 @@ static inline qword VuProjectOut(qword v, qword n)
 {
     qword d = VuDot(v, n);
     qword al, ac;
+#ifdef SLY2_EE_ASM
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(al) : "j"(d), "j"(n));
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
+#else
+    al = VuScaleByX(n, d);
+    ac = VuSub(v, al);
+#endif
     return ac;
 }
 // VU0 helper: length of a vector (in x).
@@ -2975,6 +2977,7 @@ static inline qword VuProjectOut(qword v, qword n)
 // VU0 helper: length of a vector (operands not tied, for the match).
 static inline qword VuLengthUntied(qword v)
 {
+#ifdef SLY2_EE_ASM
     qword qwSq;
     qword vfOne;
     qword qwLen;
@@ -2982,13 +2985,9 @@ static inline qword VuLengthUntied(qword v)
             : "=j"(qwSq), "=j"(vfOne) : "j"(v));
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
-}
-// VU0 helper: length via a dot product.
-static inline qword VuLengthFromDot(qword v)
-{
-    qword qw = VuDot(v, v);
-    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
-    return qw;
+#else
+    return VuLength(v);
+#endif
 }
 // VU0 helper: length of a vector.
 static inline float VectorLength(qword v) { return VuToFloat(VuLength(v)); }
@@ -2998,17 +2997,30 @@ static inline float VectorLengthXY(qword v) { return VuToFloat(VuLengthXY(v)); }
 static inline qword VuScaleByX(qword qwVec, VU_FLOAT g)
 {
     qword qw;
+#ifdef SLY2_EE_ASM
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
+#else
+    qw = VuScaleByX(qwVec, g.qw);
+#endif
     return qw;
 }
 // VU0 helper: dot products of a vector with the rows of a 3x3 matrix.
 static inline qword VuDotMatrixRows(MATRIX3 *pmat, qword qwV)
 {
     qword qwLocal;
+#ifdef SLY2_EE_ASM
     qword qwTmp0, qwTmp1, qwTmp2, qwOnes;
     __asm__("vmul.xyzw %2, %5, %8\n\tvmaxw.xyzw %1, $vf0, $vf0w\n\tvmul.xyzw %3, %6, %8\n\tvmul.xyzw %4, %7, %8\n\tvadday.x $ACC, %2, %2y\n\tvmaddz.x %0, %1, %2z\n\tvaddax.y $ACC, %3, %3x\n\tvmaddz.y %0, %1, %3z\n\tvaddax.z $ACC, %4, %4x\n\tvmaddy.z %0, %1, %4y"
             : "=j"(qwLocal), "=&j"(qwOnes), "=&j"(qwTmp0), "=&j"(qwTmp1), "=&j"(qwTmp2)
             : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(qwV));
+#else
+    /* row i's products t = row * v; x = (t0.x + t0.y) + t0.z, y = (t1.y + t1.x) + t1.z, z = (t2.z + t2.x) + t2.y (the
+       ACC order of the asm); w is left unwritten by the asm (zero here) */
+    VuLanes v = VuGet(qwV), r0 = VuGet(*(qword *)pmat->mat[0]), r1 = VuGet(*(qword *)pmat->mat[1]),
+            r2 = VuGet(*(qword *)pmat->mat[2]);
+    qwLocal = VuMake<qword>((r0.x * v.x + r0.y * v.y) + r0.z * v.z, (r1.y * v.y + r1.x * v.x) + r1.z * v.z,
+                            (r2.z * v.z + r2.x * v.x) + r2.y * v.y, 0.0f);
+#endif
     return qwLocal;
 }
 // Evaluates a CLQ curve at x clamped to an LM range.
@@ -3062,8 +3074,12 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
             }
             else
             {
+#ifdef SLY2_EE_ASM
                 __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
                 __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwDir) : "j"(qwLocal));
+#else
+                qwDir = VuDivByX(qwLocal, qwLen);   /* Q = 1 / len.x, then v * Q */
+#endif
             }
             SelectDirAnim((CID146 *)pchoice->payload, VuScaleByX(qwDir, vuSpeed));
             SetAsegaSpeed__FP5ASEGAf(((CID146 *)pchoice->payload)->pasegaCur, g);
