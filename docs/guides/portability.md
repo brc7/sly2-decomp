@@ -467,7 +467,16 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   with it): path.cpp's ROW (asserted: flags = lsgk, the triangle in apsurf[0]'s slot; robottank.cpp's
   ClipEdgeToPathzone buffer disagreed with it natively), prize, screen, guardbhv, grab, hack, spawner, detector, air,
   mark, cm, jt. screen.cpp's notice views on NOTICE (widget WIDGET *). rendertree.cpp CullSceneRenderList on GLOBSET /
-  GLOB / SUBGLOB / WRBG. Views tool pass: 5 more rewrites kept. Signatures: mismatching declarations 1293 -> 1293,
+  GLOB / SUBGLOB / WRBG. From the port's determinism run: guardbhv's AdvanceBhvpatrolpathGoal / SetBhvEscortState /
+  RegoalBhvStalk and bhvsearch.cpp build their goal as PATHLINKEND's members (pos is +0x20 natively; asserted against
+  classes.h; the local names stay because PATHLINKEND's constructor changes their schedules); path.cpp FindPathAStar /
+  FindPathPoints allocate sizeof(NODE), 3 * sizeof(CGE), 128 * sizeof(CGV *); bhvstk.cpp ConstructBhv clears sizeof of
+  each class (all 40 EE literals matched sizeof) and BHVGOTO / BHV191's PATHLINKENDs by member, GetBhvSlotSize is
+  sizeof(BHVWALKPATH) (0xF0 on the EE; natively the largest class must be checked); detector.cpp's target / chain /
+  occluder views are STEPPLAYER (STEPPLAYER::isHidden, was unk_0x11ac), SOTREE::pxplistFirst / XPLIST (a target the
+  owner touches is seen) and CID23; comments on CompareSearchCandidates (returns a < b: never negative, so the order
+  depends on the qsort), ChooseGuardScriptNearestCommand (copies an uninitialised choice when nothing qualifies) and
+  rand.c's _reent view. Views tool pass: 5 more rewrites kept. Signatures: mismatching declarations 1293 -> 1293,
   int-vs-pointer 82 -> 82, cross-declaration conflicts 273 -> 272 (the round's fixes are C-named declarations). Views
   inventory: candidates 936 -> 882 (frame path 141 -> 135), TU structs 2430 -> 2363.
   Still open after v1.25: POSE / RENDER (rendertree.cpp's RENDER / RENDERBLOCK are so.h's POSE / POSESET, same layout
