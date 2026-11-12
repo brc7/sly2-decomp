@@ -312,11 +312,16 @@ void CID82::Init()
 }
 
 // a scaled by lane x of k.
+#ifdef SLY2_EE_ASM
 inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a),"0"(k));return k;}
+#else
+inline qword Scale(qword a, qword k) { return VuScaleByX(a, k); }
+#endif
 // CID82 Fire (vtable slot 78): FireMissile; with a flight time the arrival time follows from it; otherwise the target
 // predicted 0.5 s ahead and the launch velocity (clamped to 0.75 maxSpeed) give the arrival time by a sweep test
 // (ClipEdgeToSphere, at least 0.25). Hand-scheduled asm (see the header). (inferred)
 // Also known as: SetHomingMissileTarget (upstream readable / Sly 1 name; SetHomingMissileTarget__FP3ALOP2LOP6VECTOR).
+#ifdef SLY2_EE_ASM
 extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
@@ -357,6 +362,37 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
   missile->arrivalTime=g_clock.time+duration;
  }
 }
+#else
+/* FireSplmiss in C (the EE body above is hand-scheduled asm with a hand slot-33 call): the same calls in the same order. */
+extern "C" void FireSplmiss(CID82 *missile, LO *source, V *point)
+{
+    WORKF w;
+    w.pos.q = *(qword *)point;
+    FireMissile(missile, source, (V *)&w.pos);
+    if (missile->flightTime > 0.0f)
+        missile->arrivalTime = g_clock.time + missile->flightTime;
+    else {
+        /* the target predicted 0.5 s ahead; the launch velocity -0.5 v limited to 0.75 maxSpeed; the arrival time from
+           the sweep of (velocity + 1.5 (target - position)) against the speed sphere, at least 0.25 s away */
+        func_001B2398Ret((V *)&w.velocity, missile, 0.5f);
+        *(qword *)&w.dir = w.velocity.q;
+        w.tmp.q = VuFromFloat<qword>(-0.5f);
+        w.spill.q = w.tmp.q;
+        w.velocity.q = Scale(missile->GetVelocity(), w.spill.q);
+        qword velocity = LimitVectorLength(w.velocity.q, 0.75f * missile->maxSpeed);
+        w.velocity.q = velocity;
+        *(qword *)&w.scalar = VuFromFloat<qword>(1.5f);
+        w.spill.q = velocity;
+        w.direction.q = *(qword *)&w.dir;
+        *(qword *)&w.factor = *(qword *)&w.scalar;
+        qword position = GetLoWorldPos(missile);
+        qword endpoint = VuAddScaled(w.spill.q, VuSub(w.direction.q, position), *(qword *)&w.scalar);
+        w.tmp.q = endpoint;
+        ClipEdgeToSphere(D_002A2DD0, w.velocity.q, endpoint, 1, &w.hit, missile->maxSpeed);
+        missile->arrivalTime = g_clock.time + 1.0f / FpuMax(0.25f, w.hit.t1);
+    }
+}
+#endif
 
 // 4x4 matrix times point.
 static inline qword MulPt(MATRIX4Q *m, qword v) { qword r; r = VuMulMatrix4(m->r[0].q, m->r[1].q, m->r[2].q, m->r[3].q, v); return r; }
@@ -378,13 +414,22 @@ extern "C" V GetMissileTargetPosition(MISSILE *missile, float g)
 }
 
 // Lanes y and z of a 128-bit EE register as floats; vtable slot 33 (GetVelocity).
+#ifdef SLY2_EE_ASM
 static inline float Y(qword q){qword b;float f;__asm__("prot3w %0,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
+#else
+static inline float Y(qword q) { return QwordY(q); }
+#endif
 // Lane z as a float; the missile's velocity (vtable slot 33).
+#ifdef SLY2_EE_ASM
 static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"(b):"r"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(b));return f;}
+#else
+static inline float Z(qword q) { return QwordZ(q); }
+#endif
 // The missile's velocity (virtual slot 33).
 static inline qword Velocity(CID82*missile){return missile->GetVelocity();}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of
 // PresetSplmissAccel).
+#ifdef SLY2_EE_ASM
 static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*destination){
  register qword copied __asm__("$3"),target __asm__("$17"),zero __asm__("$16");register qword*origin __asm__("$2");
  register float targetX __asm__("$f13"),epsilon __asm__("$f14"),zeroX __asm__("$f12");
@@ -392,9 +437,19 @@ static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*dest
  __asm__("lq %0,%2\n\tmtc1 %0,%1":"=r"(zero),"=f"(zeroX):"m"(*origin));
  return AreFloatsNear(zeroX,targetX,epsilon)&&AreFloatsNear(Y(zero),Y(target),0.0001f)&&AreFloatsNear(Z(zero),Z(target),0.0001f);
 }
+#else
+static inline int CaptureDestinationAndEqual(CID82 *missile, const V *output, V *destination)
+{
+    *destination = *output;
+    qword target = missile->targetVelocity, zero = D_002A2DD0;
+    return AreFloatsNear(QwordX(zero), QwordX(target), 0.0001f) && AreFloatsNear(Y(zero), Y(target), 0.0001f) &&
+           AreFloatsNear(Z(zero), Z(target), 0.0001f);
+}
+#endif
 // CID82 vtable slot 70 (PresetAccel): steers along a Bezier from where the missile is to the predicted target, to arrive
 // at arrivalTime with targetVelocity (a moving target: the velocity that closes the gap). Hand-scheduled asm. (inferred)
 // Also known as: UpdateHomingMissileAccel (upstream readable / Sly 1 name; UpdateHomingMissileAccel__FP3ALO).
+#ifdef SLY2_EE_ASM
 extern "C" void PresetSplmissAccel(CID82*missile){
  if(missile->thrower)return;
  WORKA w;
@@ -427,14 +482,10 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  __asm__("lq %2,%5\n\tpor %1,$zero,%6\n\tlq %3,%7\n\tpor %0,$zero,%8\n\tli.s %4,%9":"=r"(startPosition),"=&r"(startVelocity),"=&r"(endPosition),"=&r"(endVelocity),"=f"(tension):"m"(w.destination),"r"(velocity),"m"(w.output),"r"(position),"F"(1.0f));
  EvaluateBezierPos(remaining,frameDt,tension,startPosition,startVelocity,endPosition,endVelocity,0,&w.integrated.q,0);
  w.copy=w.integrated;
-#if defined(SLY2_EE_LAYOUT)
  /* GetVelocity (slot 33) by hand: the virtual call loads the adjustment first (2 of 151 off) */
  VTE*table=PVT(missile);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
  qword current=method((char*)missile+displacement);
-#else
- qword current=missile->GetVelocity();
-#endif
  register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
  __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(missile),"r"(current),"m"(clock->deltaTime));
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");
@@ -442,3 +493,40 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  w.step.q=dt;
  AddSoAcceleration(owner,acceleration);
 }
+#else
+/* PresetSplmissAccel in C (the EE body above is hand-scheduled asm with hand slot-33 calls; its EE-layout call island
+   is folded into it): the same calls in the same order. */
+extern "C" void PresetSplmissAccel(CID82 *missile)
+{
+    if (missile->thrower)
+        return;
+    WORKA w;
+    float remaining = Max(missile->arrivalTime - g_clock.time, 0.0f) + g_clock.deltaTime;
+    func_001B2398Ret(&w.output, missile, Min(remaining, 0.5f));
+    int stationary = CaptureDestinationAndEqual(missile, &w.output, &w.destination);
+    if (stationary) {
+        /* a target at rest: arrive with 1.5 (destination - position) / remaining - 0.5 velocity */
+        w.scale.q = VuFromFloat<qword>(1.5f / remaining);
+        w.integrated.q = w.scale.q;
+        qword position = GetLoWorldPos(missile);
+        w.delta.q = VuSub(*(qword *)&w.destination, position);
+        w.negative.q = VuFromFloat<qword>(-0.5f);
+        w.integrated.q = w.negative.q;
+        qword velocity = missile->GetVelocity();
+        *(qword *)&w.output = VuScaleX2(w.delta.q, w.scale.q, velocity, w.negative.q);
+    } else
+        *(qword *)&w.output = missile->targetVelocity;
+    float frameDt = g_clock.deltaTime;
+    qword position = GetLoWorldPos(missile);
+    qword velocity = Velocity(missile);
+    EvaluateBezierPos(remaining, frameDt, 1.0f, position, velocity, *(qword *)&w.destination, *(qword *)&w.output, 0,
+                      &w.integrated.q, 0);
+    w.copy = w.integrated;
+    qword current = missile->GetVelocity();
+    /* the acceleration that reaches the curve's velocity this frame: (next - current) / dt */
+    qword dt = VuFromFloat<qword>(g_clock.deltaTime);
+    qword acceleration = VuDivByX(VuSub(w.copy.q, current), dt);
+    w.step.q = dt;
+    AddSoAcceleration(missile, acceleration);
+}
+#endif
