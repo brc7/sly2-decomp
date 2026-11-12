@@ -1842,8 +1842,8 @@ struct CARRYSPOT : CID35
 typedef char assert_CID36_size[sizeof(CARRYSPOT) == 0x1A0 ? 1 : -1];
 typedef char assert_CID36_oid1[SLY2_OFFSETOF(CARRYSPOT, oid1) == 0x184 ? 1 : -1];
 
-/* 27 CID27 (0x160): table grabspot (VOL + GRABSPOT; hide under); vtable 0x2D1B60, 50 slots */
-struct CID27 : VOL, GRABSPOT
+/* 27 TABLESPOT (was CID27; 0x160): table grabspot (VOL + GRABSPOT; hide under); vtable 0x2D1B60, 50 slots */
+struct TABLESPOT : VOL, GRABSPOT
 {
     DLE dleGrab;            /* +0x154 link in g_sw.dlCid27 */
     LO *ploHold;            /* +0x15C child whose height sets the hold position */
@@ -1854,10 +1854,10 @@ struct CID27 : VOL, GRABSPOT
     virtual void OnRemove() __asm__("OnTableGrabspotRemove");   /* slot 22 */
     virtual void GetGrabPos(float sParam, STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading) __asm__("GetTableGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -304) */
     virtual void GetSparklePos(qword *ppos, qword *pdv, float sParam) __asm__("GetTableGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -304) */
-    virtual LO *GetOwner() __asm__("GetCid27GrabspotOwner__FP5CID27");   /* GRABSPOT slot 6 (delta -304) */
+    virtual LO *GetOwner() __asm__("GetCid27GrabspotOwner__FP9TABLESPOT");   /* GRABSPOT slot 6 (delta -304) */
 };
-typedef char assert_CID27_size[sizeof(CID27) == 0x160 ? 1 : -1];
-typedef char assert_CID27_ploHold[SLY2_OFFSETOF(CID27, ploHold) == 0x15C ? 1 : -1];
+typedef char assert_CID27_size[sizeof(TABLESPOT) == 0x160 ? 1 : -1];
+typedef char assert_CID27_ploHold[SLY2_OFFSETOF(TABLESPOT, ploHold) == 0x15C ? 1 : -1];
 
 /* 19 HND (0x140): hook; REVIEW proposes HND; vtable 0x2D2978, 50 slots */
 struct HND : TARGET, GRABSPOT
@@ -2030,8 +2030,8 @@ struct ACCMISS : MISSILE
 };
 typedef char assert_ACCMISS_size[sizeof(ACCMISS) == 0x280 ? 1 : -1];
 
-/* 82 CID82 (0x290); vtable 0x2D3AA0, 78 slots */
-struct CID82 : MISSILE
+/* 82 SPLMISS (was CID82; 0x290); vtable 0x2D3AA0, 78 slots */
+struct SPLMISS : MISSILE
 {
     float flightTime;           /* +0x270 */
     float maxSpeed;             /* +0x274 */
@@ -2043,7 +2043,7 @@ struct CID82 : MISSILE
     virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
     virtual void Fire(LO *ploTarget, VECTOR4 *pposTarget) __asm__("FireSplmiss");   /* slot 78 */
 };
-typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
+typedef char assert_CID82_size[sizeof(SPLMISS) == 0x290 ? 1 : -1];
 
 /* 49 MS (0x150); vtable 0x2D4260, 75 slots */
 struct MS : SO
@@ -3038,7 +3038,7 @@ inline void *GetCid12OwnFields(WALLSPOT *p) { return SLY2_GRABSPOT_BASE(WALLSPOT
 inline void *GetCid34OwnFields(POLESPOT *p) { return SLY2_GRABSPOT_BASE(POLESPOT, p); }
 inline void *GetCid38OwnFields(CID38 *p) { return SLY2_GRABSPOT_BASE(CID38, p); }
 inline void *GetCid35OwnFields(CID35 *p) { return SLY2_GRABSPOT_BASE(CID35, p); }
-inline void *GetCid27OwnFields(CID27 *p) { return SLY2_GRABSPOT_BASE(CID27, p); }
+inline void *GetCid27OwnFields(TABLESPOT *p) { return SLY2_GRABSPOT_BASE(TABLESPOT, p); }
 inline void *GetHndOwnFields(HND *phnd) { return SLY2_GRABSPOT_BASE(HND, phnd); }
 inline void *GetPipeOwnFields(PIPE *ppipe) { return SLY2_GRABSPOT_BASE(PIPE, ppipe); }
 inline void *GetRailOwnFields(RAIL *prail) { return SLY2_GRABSPOT_BASE(RAIL, prail); }

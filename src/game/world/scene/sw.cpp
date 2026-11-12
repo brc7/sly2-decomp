@@ -158,7 +158,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid38,SLY2_OFFSETOF(CID38, dleGrab));
     InitDl__FP2DLi(&world->dlCid35,SLY2_OFFSETOF(CID35, dleGrab));
     InitDl__FP2DLi(&world->dlCid40,SLY2_OFFSETOF(JUMPTARGET, dleList));
-    InitDl__FP2DLi(&world->dlCid27,SLY2_OFFSETOF(CID27, dleGrab));
+    InitDl__FP2DLi(&world->dlCid27,SLY2_OFFSETOF(TABLESPOT, dleGrab));
     InitDl__FP2DLi(&world->dlCid9,SLY2_OFFSETOF(CID9, dleList));
     InitDl__FP2DLi(&world->dlSma,SLY2_OFFSETOF(SMA, dleSw));
     InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(NOISE, next));

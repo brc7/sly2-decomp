@@ -424,7 +424,7 @@ parent VOL; 46 options in all.
 | 770 | `state` / `SetExitExits` | int | get set | 787 |
 | 771 | `GetExitTargetLevelIndex` | int | get | 789 |
 
-## CID27 (cid 27)
+## TABLESPOT (cid 27)
 
 parent VOL; 44 options in all.
 
@@ -1372,7 +1372,7 @@ parent MISSILE; 111 options in all.
 | 356 | `+0x270` | float | get set file | 409 |
 | 511 | `+0x274` | float | get set file | 408 |
 
-## CID82 (cid 82)
+## SPLMISS (cid 82)
 
 parent MISSILE; 112 options in all.
 

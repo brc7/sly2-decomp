@@ -3,10 +3,10 @@
 // 0x182C70..0x1848A8 (66 functions, address order; the classes' GRABSPOT owner getters from the linkonce area are
 // inline functions in sly2/xfm.h and so.h now).
 // Entry points: InitGrabspot and the GRABSPOT default virtuals, then per grabbable class (wall WALLSPOT, pole POLESPOT,
-// hold point CID38, barrel CID88, mission trigger CID35, carry spot CARRYSPOT, table CID27): Init, OnAdd/OnRemove
+// hold point CID38, barrel CID88, mission trigger CID35, carry spot CARRYSPOT, table TABLESPOT): Init, OnAdd/OnRemove
 // (world grab lists), PostLoad, Clone and its grab-position/sparkle virtuals; GetGrabspotFromLo.
 //
-// Types: sly2/classes.h's GRABSPOT and grabbable classes (WALLSPOT, POLESPOT, CID38, BARREL, CID35, CARRYSPOT, CID27, their
+// Types: sly2/classes.h's GRABSPOT and grabbable classes (WALLSPOT, POLESPOT, CID38, BARREL, CID35, CARRYSPOT, TABLESPOT, their
 // GRABSPOT at +0x190, +0xE0, +0x150 or +0x130 and their grab-list links), so.h's XF, stepplayer.h's STEPPLAYER (jtgrab,
 // jtair) and ZPR. The per-function namespaces keep their helpers and the views of other families' records (the
 // carrying player's attach transforms and JTMODE, a skip target's +0xF4 id); C++-named definitions are C-linkage
@@ -879,11 +879,11 @@ extern "C" int ShouldTriggerGrabspotSkipTarget(CARRYSPOT *trigger, struct T *q)
 }
 } // namespace M_func_00184380
 
-// Table grab spot (CID27, hide under) Init: transform init and its GRABSPOT part.
-extern "C" void InitTableGrabspot(CID27 *table)
+// Table grab spot (TABLESPOT, hide under) Init: transform init and its GRABSPOT part.
+extern "C" void InitTableGrabspot(TABLESPOT *table)
 {
     InitXfm(table);
-    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(CID27, table));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
+    InitGrabspot((GRABSPOT *)SLY2_GRABSPOT_BASE(TABLESPOT, table));   /* its GRABSPOT base, without a null test (sly2/classes.h) */
 }
 
 namespace M_func_001843F0 {
@@ -904,7 +904,7 @@ extern "C" { static __inline__ float DistanceBetween(qword a, qword b)
     return g;
 } }
 // Post-load: LO base; default busy radius = distance to its point + D_002BE904.
-extern "C" void PostTableGrabspotLoad(CID27 *table)
+extern "C" void PostTableGrabspotLoad(TABLESPOT *table)
 {
     PostLoLoad(table);
     if (table->busyRadius == 1e10f) {
@@ -914,7 +914,7 @@ extern "C" void PostTableGrabspotLoad(CID27 *table)
 } // namespace M_func_001843F0
 
 // OnAdd: unfreeze, then joins the world's table list (g_sw.dlCid27).
-void CID27::OnAdd()
+void TABLESPOT::OnAdd()
 {
     LO *lo = (LO *)this;
     OnLoAdd(lo);
@@ -934,10 +934,10 @@ typedef union { qword q; VEC v; } UV;
 extern int D_002DFB84 __asm__("D_002DFB84");
 extern float D_002BE908 __asm__("D_002BE908");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-qword ConvertPosBetweenLos(CID27 *p, int n, qword q) __asm__("ConvertPosBetweenLos");
+qword ConvertPosBetweenLos(TABLESPOT *p, int n, qword q) __asm__("ConvertPosBetweenLos");
 // The hold position (the debug flag D_002DFB84 uses a child's position plus an offset).
 // Also known as: PosHookTarget (upstream readable / Sly 1 name; PosHookTarget__FP2LOiPv).
-extern "C" void GetTableGrabspotGrabPosition(CID27 *table, int unused, UV *pv)
+extern "C" void GetTableGrabspotGrabPosition(TABLESPOT *table, int unused, UV *pv)
 {
     if (!pv)
         return;
@@ -958,7 +958,7 @@ extern float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRan
 extern float D_002BE90C __asm__("D_002BE90C");
 extern qword g_normalZ __asm__("g_normalZ");
 // A random point on a disc around its point.
-extern "C" void GetTableGrabspotSparklePosition(CID27 *table, qword *pv, qword *pdv)
+extern "C" void GetTableGrabspotSparklePosition(TABLESPOT *table, qword *pv, qword *pdv)
 {
     float gPan = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = RandomFloatInRange__Fff(0.0f, D_002BE90C);
@@ -976,7 +976,7 @@ extern "C" void *GetGrabspotFromLo(char *p)
 {
     if (!p) return 0;
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return SLY2_GRABSPOT_BASE(BARREL, p);
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return SLY2_GRABSPOT_BASE(CID27, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return SLY2_GRABSPOT_BASE(TABLESPOT, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return SLY2_GRABSPOT_BASE(POLESPOT, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return SLY2_GRABSPOT_BASE(WALLSPOT, p);
     if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x23)) return SLY2_GRABSPOT_BASE(CID35, p);

@@ -2,7 +2,7 @@
 // its two kinds ACCMISS (accelerates to a cruise speed, vtable slot 69) and SPLMISS (flies a Bezier path to arrive at
 // the target in a given time). VU0 macro-mode asm; FireSplmiss and PresetSplmissAccel are hand-scheduled (register pins
 // and fused asm blocks, from their per-function files).
-// Entry points: the MISSILE/ACCMISS/CID82 vtables (Init, LoadFromBrx, OnRemove, FireMissile/FireSplmiss, the acceleration
+// Entry points: the MISSILE/ACCMISS/SPLMISS vtables (Init, LoadFromBrx, OnRemove, FireMissile/FireSplmiss, the acceleration
 // presets) and the Splice setters AddMissileSpecialObject / AddMissileSpecialClass.
 // TU 0x1B1DB8..0x1B2820 (16 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_missile
@@ -86,10 +86,10 @@ struct ACCMISS : public MISSILE
     virtual CLASSINFO *GetClassInfo() __asm__("GetAccmissClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitAccmiss__FP7ACCMISS");   /* slot 7 */
 };
-/* CID82: the class-registry name of Sly 1's SPLMISS (its vtable is _vt$5CID82). This TU is the key TU of MISSILE,
-   ACCMISS and CID82: the three views carry the classes' virtual layouts (sly2/classes.h) and define their first
+/* SPLMISS (cid 82; was CID82, the class-registry placeholder for Sly 1's SPLMISS; vtable _vt$7SPLMISS). This TU is the key TU of MISSILE,
+   ACCMISS and SPLMISS: the three views carry the classes' virtual layouts (sly2/classes.h) and define their first
    virtuals as members. */
-struct CID82 : public MISSILE
+struct SPLMISS : public MISSILE
 {
       float flightTime;        /* +0x270 > 0: arrive after this time; else from the launch velocity (FireSplmiss) */
       float maxSpeed;           /* +0x274 1500 */
@@ -101,7 +101,7 @@ struct CID82 : public MISSILE
     virtual void PresetAccel() __asm__("PresetSplmissAccel");   /* slot 70 */
     virtual void Fire(LO *ploTarget, VECTOR4 *pposTarget) __asm__("FireSplmiss");   /* slot 78 */
 };
-typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
+typedef char assert_CID82_size[sizeof(SPLMISS) == 0x290 ? 1 : -1];
 
 /* FireSplmiss's collision result (ClipEdgeToSphere). */
 struct HIT { qword q[4]; float t0, t1; int count; void *owner0, *owner1; };
@@ -303,10 +303,10 @@ void ACCMISS::PresetAccel()
     }
 }
 
-// CID82 (SPLMISS) Init: the MISSILE init; maximum speed 1500.
-void CID82::Init()
+// SPLMISS (SPLMISS) Init: the MISSILE init; maximum speed 1500.
+void SPLMISS::Init()
 {
-    CID82 *psplmiss = this;
+    SPLMISS *psplmiss = this;
     InitMissile(psplmiss);
     psplmiss->maxSpeed = 1500.0f;
 }
@@ -317,12 +317,12 @@ inline qword Scale(qword a,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(k):"j"(a
 #else
 inline qword Scale(qword a, qword k) { return VuScaleByX(a, k); }
 #endif
-// CID82 Fire (vtable slot 78): FireMissile; with a flight time the arrival time follows from it; otherwise the target
+// SPLMISS Fire (vtable slot 78): FireMissile; with a flight time the arrival time follows from it; otherwise the target
 // predicted 0.5 s ahead and the launch velocity (clamped to 0.75 maxSpeed) give the arrival time by a sweep test
 // (ClipEdgeToSphere, at least 0.25). Hand-scheduled asm (see the header). (inferred)
 // Also known as: SetHomingMissileTarget (upstream readable / Sly 1 name; SetHomingMissileTarget__FP3ALOP2LOP6VECTOR).
 #ifdef SLY2_EE_ASM
-extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
+extern "C" void FireSplmiss(SPLMISS*missile,LO*source,V*point){
  WORKF w;
  w.pos.q=*(qword*)point;
  FireMissile(missile,source,(V*)&w.pos);
@@ -341,7 +341,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
   __asm__("qmtc2.ni %1,%0":"=j"(velocity):"r"(clamped));
   register qword scalarWord __asm__("$2");
   __asm__("mfc1 %0,%3\n\tsqc2 %4,%1\n\tsq %0,%2":"=&r"(scalarWord),"=m"(w.velocity.q),"=m"(w.scalar):"f"(1.5f),"j"(velocity));
-  register CID82*owner __asm__("$4");
+  register SPLMISS*owner __asm__("$4");
   __asm__("daddu %0,%4,$zero\n\tlq %1,%5\n\tsqc2 %6,%2\n\tsq %1,%3\n\tlq %1,%7":"=r"(owner),"=&r"(scalarWord),"=m"(w.spill.q),"=m"(w.direction.q):"r"(missile),"m"(w.dir),"j"(velocity),"m"(w.scalar));
   *(qword*)&w.factor=scalarWord;
   qword fresh=GetLoWorldPos(owner);
@@ -364,7 +364,7 @@ extern "C" void FireSplmiss(CID82*missile,LO*source,V*point){
 }
 #else
 /* FireSplmiss in C (the EE body above is hand-scheduled asm with a hand slot-33 call): the same calls in the same order. */
-extern "C" void FireSplmiss(CID82 *missile, LO *source, V *point)
+extern "C" void FireSplmiss(SPLMISS *missile, LO *source, V *point)
 {
     WORKF w;
     w.pos.q = *(qword *)point;
@@ -426,11 +426,11 @@ static inline float Z(qword q){qword b;float f;__asm__("pextuw %0,$zero,%1":"=r"
 static inline float Z(qword q) { return QwordZ(q); }
 #endif
 // The missile's velocity (virtual slot 33).
-static inline qword Velocity(CID82*missile){return missile->GetVelocity();}
+static inline qword Velocity(SPLMISS*missile){return missile->GetVelocity();}
 // Stores the output vector as the destination and reports whether it equals the previous one (part of
 // PresetSplmissAccel).
 #ifdef SLY2_EE_ASM
-static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*destination){
+static inline int CaptureDestinationAndEqual(SPLMISS*missile,const V*output,V*destination){
  register qword copied __asm__("$3"),target __asm__("$17"),zero __asm__("$16");register qword*origin __asm__("$2");
  register float targetX __asm__("$f13"),epsilon __asm__("$f14"),zeroX __asm__("$f12");
  __asm__("lq %0,%6\n\tlui %1,%%hi(%8)\n\tlq %2,%7\n\taddiu %1,%1,%%lo(%8)\n\tsq %0,%5\n\tmtc1 %2,%3\n\tli.s %4,%9":"=&r"(copied),"=&r"(origin),"=&r"(target),"=f"(targetX),"=f"(epsilon),"=m"(*destination):"m"(*output),"m"(missile->targetVelocity),"i"(&D_002A2DD0),"F"(0.0001f));
@@ -438,7 +438,7 @@ static inline int CaptureDestinationAndEqual(CID82*missile,const V*output,V*dest
  return AreFloatsNear(zeroX,targetX,epsilon)&&AreFloatsNear(Y(zero),Y(target),0.0001f)&&AreFloatsNear(Z(zero),Z(target),0.0001f);
 }
 #else
-static inline int CaptureDestinationAndEqual(CID82 *missile, const V *output, V *destination)
+static inline int CaptureDestinationAndEqual(SPLMISS *missile, const V *output, V *destination)
 {
     *destination = *output;
     qword target = missile->targetVelocity, zero = D_002A2DD0;
@@ -446,11 +446,11 @@ static inline int CaptureDestinationAndEqual(CID82 *missile, const V *output, V 
            AreFloatsNear(Z(zero), Z(target), 0.0001f);
 }
 #endif
-// CID82 vtable slot 70 (PresetAccel): steers along a Bezier from where the missile is to the predicted target, to arrive
+// SPLMISS vtable slot 70 (PresetAccel): steers along a Bezier from where the missile is to the predicted target, to arrive
 // at arrivalTime with targetVelocity (a moving target: the velocity that closes the gap). Hand-scheduled asm. (inferred)
 // Also known as: UpdateHomingMissileAccel (upstream readable / Sly 1 name; UpdateHomingMissileAccel__FP3ALO).
 #ifdef SLY2_EE_ASM
-extern "C" void PresetSplmissAccel(CID82*missile){
+extern "C" void PresetSplmissAccel(SPLMISS*missile){
  if(missile->thrower)return;
  WORKA w;
  float remaining;
@@ -486,7 +486,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
  VTE*table=PVT(missile);register qword(*method)(void*) __asm__("$2");register int displacement __asm__("$4");
  __asm__("lw %0,%2\n\tlh %1,%3":"=&r"(method),"=r"(displacement):"m"(table[33].pfn),"m"(table[33].d));
  qword current=method((char*)missile+displacement);
- register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register CID82*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
+ register qword copied __asm__("vf1"),actualCurrent __asm__("vf3");register SPLMISS*owner __asm__("$4");register unsigned int dtWord __asm__("$17");
  __asm__("lqc2 %0,%4\n\tdaddu %1,%5,$zero\n\tqmtc2.ni %6,%2\n\tlw %3,%7":"=j"(copied),"=r"(owner),"=j"(actualCurrent),"=r"(dtWord):"m"(w.copy.q),"r"(missile),"r"(current),"m"(clock->deltaTime));
  register qword difference __asm__("vf2"),dt __asm__("vf1"),acceleration __asm__("vf4");
  __asm__("vsub.xyzw %0,%3,%4\n\tqmtc2.ni %5,%1\n\tvdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %2,%0,Q":"=j"(difference),"=j"(dt),"=j"(acceleration):"j"(copied),"j"(actualCurrent),"r"(dtWord));
@@ -496,7 +496,7 @@ extern "C" void PresetSplmissAccel(CID82*missile){
 #else
 /* PresetSplmissAccel in C (the EE body above is hand-scheduled asm with hand slot-33 calls; its EE-layout call island
    is folded into it): the same calls in the same order. */
-extern "C" void PresetSplmissAccel(CID82 *missile)
+extern "C" void PresetSplmissAccel(SPLMISS *missile)
 {
     if (missile->thrower)
         return;

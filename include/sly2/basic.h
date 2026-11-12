@@ -26,7 +26,7 @@ struct ASEGA; struct ASEGBL; struct ASEGSTART; struct BASIC; struct BENTLEY; str
 struct BHV193; struct BHVSTK; struct BL; struct BLDIR; struct BLGAIT; struct BLLEAN; struct BND; struct BOMB;
 struct BSP; struct BSPC; struct BTBLEND; struct BTBLENDS; struct CAMEVENT; struct CAMMOVE; struct CAMPOSE; struct CBinaryInputStream;
 struct CBinaryStreamBase; struct CEB; struct CELL; struct CFrame; struct CHAIN; struct CHAINLINK; struct CHN; struct TOSSABLE;
-struct CID11; struct SCREENFADE; struct WALLSPOT; struct CID124; struct CID13; struct CID17; struct CID19; struct CID27;
+struct CID11; struct SCREENFADE; struct WALLSPOT; struct CID124; struct CID13; struct CID17; struct CID19; struct TABLESPOT;
 struct POLESPOT; struct CID35; struct CID38; struct CID39; struct CAMERAMARKER; struct CID88; struct CLASSINFO; struct CLIMBSURF;
 struct CLOCK; struct CLQ; struct CLoadCollector; struct CLoadCollectorArray; struct CM; struct CMBASE; struct CMCONTACT; struct CMPART1;
 struct CMPART2; struct CMethod; struct CONSTR; struct CPCAMBLEND; struct CPCAMERA; struct CPD; struct CPDEFI; struct CPHANG;

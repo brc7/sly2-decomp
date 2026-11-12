@@ -2465,7 +2465,7 @@ extern "C" CID25 *NewCid25() { return new CID25; }
 
 extern "C" EXIT *NewExit() { return new EXIT; }
 
-extern "C" CID27 *NewCid27() { return new CID27; }
+extern "C" TABLESPOT *NewCid27() { return new TABLESPOT; }
 
 extern "C" BLIPG *NewBlipg() { return new BLIPG; }
 
@@ -2571,7 +2571,7 @@ extern "C" MISSILE *NewMissile() { return new MISSILE; }
 
 extern "C" ACCMISS *NewAccmiss() { return new ACCMISS; }
 
-extern "C" CID82 *NewCid82() { return new CID82; }
+extern "C" SPLMISS *NewCid82() { return new SPLMISS; }
 
 extern "C" BUTTON *NewButton() { return new BUTTON; }
 
@@ -3250,7 +3250,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[22], 24, 26, sizeof(VOLBTN), (PFNNEW)NewVolbtn}, /* Volbtn */
     {&D_002BAAE8[24], 25, 26, sizeof(CID25), (PFNNEW)NewCid25}, /* Cid25 */
     {&D_002BAAE8[22], 26, 27, sizeof(EXIT), (PFNNEW)NewExit}, /* Exit */
-    {&D_002BAAE8[22], 27, 28, sizeof(CID27), (PFNNEW)NewCid27}, /* Cid27 */
+    {&D_002BAAE8[22], 27, 28, sizeof(TABLESPOT), (PFNNEW)NewCid27}, /* Cid27 */
     {&D_002BAAE8[3], 28, 29, sizeof(BLIPG), (PFNNEW)NewBlipg}, /* Blipg */
     {&D_002BAAE8[3], 29, 30, sizeof(EMITTER), (PFNNEW)NewEmitter}, /* Emitter */
     {&D_002BAAE8[3], 30, 34, sizeof(EXPL), 0}, /* Expl */
@@ -3305,7 +3305,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[48], 79, 83, sizeof(BOMB), (PFNNEW)NewBomb}, /* Bomb */
     {&D_002BAAE8[79], 80, 83, sizeof(MISSILE), (PFNNEW)NewMissile}, /* Missile */
     {&D_002BAAE8[80], 81, 82, sizeof(ACCMISS), (PFNNEW)NewAccmiss}, /* Accmiss */
-    {&D_002BAAE8[80], 82, 83, sizeof(CID82), (PFNNEW)NewCid82}, /* Cid82 */
+    {&D_002BAAE8[80], 82, 83, sizeof(SPLMISS), (PFNNEW)NewCid82}, /* Cid82 */
     {&D_002BAAE8[48], 83, 84, sizeof(BUTTON), (PFNNEW)NewButton}, /* Button */
     {&D_002BAAE8[48], 84, 86, sizeof(SENSOR), 0}, /* Sensor */
     {&D_002BAAE8[84], 85, 86, sizeof(LASEN), (PFNNEW)NewLasen}, /* Lasen */

@@ -1507,7 +1507,7 @@ extern JT *D_002E1E40 __asm__("D_002E1E40");
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void SetJtGrabState(JTGRAB *pjtgrab, int n, LO *plo, GRABSPOT *pspot) __asm__("SetJtGrabState");
 // Walks the sorted grab candidates (distance < D_002BF660) and maps the nearest usable one's class to a grab state;
-// returns nonzero if a grab started. Runtime: CID27 gives state 8, WALLSPOT/34 state 0, rails state 3.
+// returns nonzero if a grab started. Runtime: TABLESPOT gives state 8, WALLSPOT/34 state 0, rails state 3.
 // Also known as: FInteractCircle (upstream readable / Sly 1 name; FInteractCircle__FP5ACTOR).
 extern "C" int TryGrabJtNearestCandidate(JTGRAB *grab)
 {
@@ -2273,7 +2273,7 @@ void GatherJtGrabCandidates(SW *world, STEPPLAYER *player, uint grf)
     if (grf & 4)
     {
         DL *pdlpcid27 = &g_sw.dlCid27;
-        for (CID27 *pcid27 = (CID27 *)pdlpcid27->head; pcid27; pcid27 = (CID27 *)pcid27->dleGrab.next)
+        for (TABLESPOT *pcid27 = (TABLESPOT *)pdlpcid27->head; pcid27; pcid27 = (TABLESPOT *)pcid27->dleGrab.next)
             AddJtGrabCandidate(world, player, qwPosJt, pcid27, pcid27, 4, candidates);
     }
     if (grf & 0x400)

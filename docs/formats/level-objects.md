@@ -83,7 +83,7 @@ the first one. RELAY command lists arrive this way.
 | CID8/9 0x08/0x09 | `LoadCid8FromBrx` | XF part; S16 cv; cv x VECTOR; S16 cx; 2 x cx x 3 x S16; options | [C:parse] |
 | TN 0x0F | `LoadTnFromBrx` | XF part; GEOM; TREE; options; nested list (`LoadXfmChildObjectsFromBrx`) | [C:parse] |
 | PATHZONE 0x11 | `LoadPathzoneFromBrx` | XFM; U16 cpt; U16 ctri; cpt x {VECTOR; U8 c; c x U16 neighbour}; ctri x 3 x U16; U16 c3; c3 x {3 x F32, U16, U16} (navigation mesh `[H]`) | [C:parse] |
-| VOL 0x16, CID23 0x17, CID27 0x1B; VOLBTN 0x18/0x19 | `LoadVolFromBrx` (0x18/0x19: `LoadVolbtnFromBrx`) | XFM; GEOM; TREE | [C:parse] |
+| VOL 0x16, CID23 0x17, TABLESPOT 0x1B; VOLBTN 0x18/0x19 | `LoadVolFromBrx` (0x18/0x19: `LoadVolbtnFromBrx`) | XFM; GEOM; TREE | [C:parse] |
 | EXIT 0x1A | `LoadExitFromBrx` | VOL; FILEREC; U8 c; c x FILEREC (`LoadWarpBlobFromBrx`) | [C:parse] |
 | EMITTER 0x1D; EXPLO/EXPLS 0x20/0x21 | the EMITTER and EXPLO instances of the `LoadEmitterFromBrx` template (`sly2/emitter.h`) | XFM; [emit-source kind == 3 (set by option 483 / 536): U16 n; n x VECTOR; U16 m; m x {3 x U16, F32}; VECTOR]; U16 n; [n: U8; n x U32 RGBA] (3 = emit from a triangle mesh `[H]`; 14 objects, all and only those with the option = 3) | [C:parse] |
 | EXPLG 0x1F | `LoadExplgFromBrx` | XFM; nested list | [C:parse] |

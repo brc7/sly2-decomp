@@ -377,12 +377,12 @@ typedef char assert_TN_size[sizeof(TN) == 0x1C0 ? 1 : -1];   /* class descriptor
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names (inferred): what they return. */
 /* The "ensure" accessors of these classes return the start of the class's own fields (the end of its base part); the
  * option records address fields relative to it. The classes have no header yet, so only their names are used. */
-struct WALLSPOT; struct CID27; struct POLESPOT; struct CID35; struct CID38; struct CID39; struct HND; struct PIPE; struct RAIL;
+struct WALLSPOT; struct TABLESPOT; struct POLESPOT; struct CID35; struct CID38; struct CID39; struct HND; struct PIPE; struct RAIL;
 inline void *GetCid12OwnFields(WALLSPOT *p);    /* WALLSPOT : SHAPE */
 inline void *GetCid34OwnFields(POLESPOT *p);      /* POLESPOT : XFM */
 inline void *GetCid38OwnFields(CID38 *p);      /* CID38 : XFM */
 inline void *GetCid35OwnFields(CID35 *p);      /* CID35 : XFM */
-inline void *GetCid27OwnFields(CID27 *p);      /* CID27 : VOL */
+inline void *GetCid27OwnFields(TABLESPOT *p);      /* TABLESPOT : VOL */
 inline void *GetHndOwnFields(HND *phnd);  /* HND : TARGET */
 inline void *GetPipeOwnFields(PIPE *ppipe);  /* PIPE : SHAPE */
 inline void *GetRailOwnFields(RAIL *prail);  /* RAIL : SHAPE */
@@ -397,7 +397,7 @@ inline void *GetCid12GrabspotOwner(WALLSPOT *p) { return p; }
 inline void *GetCid34GrabspotOwner(POLESPOT *p) { return p; }
 inline void *GetCid38GrabspotOwner(CID38 *p) { return p; }
 inline void *GetCid35GrabspotOwner(CID35 *p) { return p; }
-inline void *GetCid27GrabspotOwner(CID27 *p) { return p; }
+inline void *GetCid27GrabspotOwner(TABLESPOT *p) { return p; }
 inline void *GetHndGrabspotOwner(HND *phnd) { return phnd; }
 inline void *GetPipeGrabspotOwner(PIPE *ppipe) { return ppipe; }
 inline void *GetRailGrabspotOwner(RAIL *prail) { return prail; }
