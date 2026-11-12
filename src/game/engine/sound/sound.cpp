@@ -493,7 +493,7 @@ extern "C" void UpdateSnd(CID151 *sound)
 namespace M_func_001FBAF8 {
 // Async callback when a looping bank sound started: stores its voice handle, clears "starting", drops the callback's
 // reference. (inferred)
-extern "C" void OnBankSoundStarted(int voiceHandle, long context) { CID151 *sound = (CID151 *)(int)context; sound->voiceHandle = voiceHandle; sound->playState = 0; sound->Release(); }
+extern "C" void OnBankSoundStarted(int voiceHandle, long context) { CID151 *sound = (CID151 *)context; sound->voiceHandle = voiceHandle; sound->playState = 0; sound->Release(); }
 } // namespace M_func_001FBAF8
 
 namespace M_func_001FBB30 {
@@ -551,14 +551,14 @@ struct M { int bank; int pad4; int volume; int pan; short soundIndex; short pad1
 #define SFX_BENTLEY 0x73
 #define SFX_MURRAY 0x15
 extern SNDMGR D_003DD040 __asm__("D_003DD040");
-extern int D_002DD5BC __asm__("D_002DD5BC"), D_002F7900 __asm__("D_002F7900"), D_002E1E40 __asm__("D_002E1E40");   /* Bentley, Murray, Sly */
+extern LO *D_002DD5BC __asm__("D_002DD5BC"), *D_002F7900 __asm__("D_002F7900"), *D_002E1E40 __asm__("D_002E1E40");   /* Bentley, Murray, Sly */
 short GetSoundIndex(SNDMGR *, int *) __asm__("GetSoundIndex");
 void RemoveSndFromDirtyList(CID151 *) __asm__("RemoveSndFromDirtyList");
 void *func_002333B4(void *, int, int) __asm__("memset");
 void OnBankSoundStarted(void) __asm__("OnBankSoundStarted");
 void snd_PlaySoundEx_CB(struct M *, void (*)(void), BANKSND *) __asm__("snd_PlaySoundEx_CB");
 void snd_PlaySoundEx(struct M *) __asm__("snd_PlaySoundEx");
-int GetHeroPo(void *) __asm__("GetHeroPo");
+void *GetHeroPo(void *) __asm__("GetHeroPo");
 void StepRandomSfxVariation(SNDMGR *) __asm__("StepRandomSfxVariation");
 // Starts a bank sound on the 989snd library (slot 9) with its bank, sound index, volume, pan and pitch: loopers start
 // asynchronously and get a voice handle, one-shots are fire-and-forget; some effects get special handling.
@@ -568,7 +568,7 @@ extern "C" void PlayBanksnd(BANKSND *sound)
     SNDMGR *soundManager = &D_003DD040;
     int *entry = FindSoundForSfxId(soundManager, sound->sfxId);
     struct M params;
-    int owner;
+    LO *owner;
     if (!entry || !soundManager->bank) {
         SetSndFlags(sound, SND_ALL, 0);
         return;
@@ -1208,12 +1208,12 @@ extern "C" void StartupSound(void)
 namespace M_func_001FCF70 {
 // Async callback of the headset microphone level query (SUKR command 0xB, UpdateHeadsetMicrophone): stores the level and
 // clears the busy flag. (inferred)
-extern "C" void OnMicLevelResult(int result, long context) { SNDMGR *soundManager = (SNDMGR *)(int)context; *(int *)&soundManager->micLevel = result;   /* the float's bits */ soundManager->isMicLevelQueryBusy = 0; }
+extern "C" void OnMicLevelResult(int result, long context) { SNDMGR *soundManager = (SNDMGR *)context; *(int *)&soundManager->micLevel = result;   /* the float's bits */ soundManager->isMicLevelQueryBusy = 0; }
 } // namespace M_func_001FCF70
 
 namespace M_func_001FCF88 {
 // Async callback of the manager's periodic status query: stores the result and clears the busy flag. (inferred)
-extern "C" void OnSoundManagerStatusResult(int result, long context) { SNDMGR *soundManager = (SNDMGR *)(int)context; soundManager->statusResult = result; soundManager->isStatusQueryBusy = 0; }
+extern "C" void OnSoundManagerStatusResult(int result, long context) { SNDMGR *soundManager = (SNDMGR *)context; soundManager->statusResult = result; soundManager->isStatusQueryBusy = 0; }
 } // namespace M_func_001FCF88
 
 namespace M_func_001FCFA0 {
@@ -1786,14 +1786,14 @@ extern "C" void ApplyDialogEvent(SNDMGR *soundManager, DIALOGEVENT *event)
 } // namespace M_func_001FE0E8
 
 namespace M_PushMusic {
-extern int D_002DD5BC __asm__("D_002DD5BC");   /* Bentley */
-extern int D_002F7900 __asm__("D_002F7900");   /* Murray */
-extern int D_002E1E40 __asm__("D_002E1E40");   /* Sly (g_pjt) */
+extern LO *D_002DD5BC __asm__("D_002DD5BC");   /* Bentley */
+extern LO *D_002F7900 __asm__("D_002F7900");   /* Murray */
+extern LO *D_002E1E40 __asm__("D_002E1E40");   /* Sly (g_pjt) */
 
 SNDREFC FindMusic(SNDMGR *, int) __asm__("FindMusic");
 STREAMSND *PstreamsndNew(FILEREC *, int) __asm__("PstreamsndNew");
 FILEREC *FindMusicStream(SNDMGR *, int) __asm__("FindMusicStream");
-void AddStreamGroupSource(STREAMSND *, int, int, float, float *) __asm__("AddStreamGroupSource");   /* (sound, group, object, gain, range): the float travels in $f12 */
+void AddStreamGroupSource(STREAMSND *, int, LO *, float, float *) __asm__("AddStreamGroupSource");   /* (sound, group, object, gain, range): the float travels in $f12 */
 
 struct RANGE { float near, far; };
 // Set a range's near and far distances.
