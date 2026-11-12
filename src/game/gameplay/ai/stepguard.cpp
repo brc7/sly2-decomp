@@ -1087,14 +1087,12 @@ extern "C" void HandleStepguardMessage(STEPGUARD *guard, int message, struct ATT
 
 // 0x207690 RenderStepguardSelf
 namespace M_RenderStepguardSelf {
- struct M4; struct SPACE; union FLAGS; struct STEPGUARDIsland; struct PROFILE; 
+ struct M4; struct PROFILE; 
 
 // 4x4 matrix of U rows with copy constructor and assignment.
 struct M4 {QWROW rows[4];M4(){}M4(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4 &operator=(const M4 &m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
-struct SPACE {char pad0[0x40];M4 matrix;};
-union FLAGS {unsigned long value;unsigned char bytes[8];};
-/* island: reads SO +0x28 flags bytes, +0x60 root XF matrix as qword rows, +0x134 material and STEP +0x240 as floats (lo.h/so.h/step.h layouts); not attempted */
-struct STEPGUARDIsland {char pad0[0x28];FLAGS flags;char pad30[0x30];SPACE *space;char pad64[0xC8];float opacity;int unused130;void *material;char pad138[0x108];float pivot[3];char pad24C[0x114];float start;};
+/* The guard is read as STEPGUARD: LO::visibilityMask, SO::rootTransform (its world matrix rows), SO::model,
+   SO::opacity / psobounds, STEP::vecPivotOffset, STEPGUARD::pulseStartTime; the camera policy is CM::tunnelPolicy. */
 struct PROFILE {float a,b,c,unused,min,max;};
 struct EFFECT;
 
@@ -1102,11 +1100,11 @@ struct EFFECT;
 extern float D_002C3D4C __asm__("D_002C3D4C");
 extern float D_002C3D50[3] __asm__("D_002C3D50"),D_002C3D60[2] __asm__("D_002C3D60"),g_lmZeroOne[2] __asm__("g_lmZeroOne");
 
-void RefreshSoBoundsRecord(STEPGUARDIsland *) __asm__("RefreshSoBoundsRecord");
+void RefreshSoBoundsRecord(STEPGUARD *) __asm__("RefreshSoBoundsRecord");
 int IsCameraPolicyActive__FP5CPLCY(void *) __asm__("IsCameraPolicyActive__FP5CPLCY");
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float) __asm__("RenderSoGlobset");
 void *func_002333B4(void *,int,unsigned int) __asm__("memset");
-qword GetLoWorldPos(STEPGUARDIsland *) __asm__("GetLoWorldPos");
+qword GetLoWorldPos(STEPGUARD *) __asm__("GetLoWorldPos");
 float sinf(float) __asm__("sinf");
 qword *VECTOR_opAssign(qword *,qword) __asm__("VECTOR_opAssign");
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *) SLY2_SRET_LABEL("__ml__FRC7MATRIX4T0", "MulMatrix4Into");
@@ -1116,6 +1114,7 @@ M4 *InvertMatrix4Rigid(M4 *,const M4 *) __asm__("InvertMatrix4Rigid");
 // VU0 helper: length of a vector.
 static inline float Length(qword a)
 {
+#ifdef SLY2_EE_ASM
     qword one;
     float f;
     __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
@@ -1123,20 +1122,24 @@ static inline float Length(qword a)
     __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(a));
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(a));
     return f;
+#else
+    VuLanes p = VuGet(a);
+    return VuSqrt((p.x * p.x + p.y * p.y) + p.z * p.z);
+#endif
 }
 // 0x207690: STEPGUARD vtable slot 19 (render): draws the guard; while the camera policy is active, applies a 0.85 s
 // squash/stretch pulse and a distance-based scale.
 // Also known as: RenderStepguardSelf (upstream readable / Sly 1 name; RenderStepguardSelf__FP9STEPGUARDP2CMP2RO).
-extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
+extern "C" void RenderStepguardSelf(STEPGUARD *guard)
 {
     M4 local;
     QWROW offset;
     M4 basis,matrix,product,inverse;
     CM *camera=&g_cm;
-    if(guard->flags.bytes[5]&camera->grfvis){
+    if(guard->visibilityMask&camera->grfvis){
         RefreshSoBoundsRecord(guard);
-        if(!IsCameraPolicyActive__FP5CPLCY((char *)camera+0x3B0)){
-            RenderSoGlobset((EFFECT *)((char *)guard+0x80),0,guard->material,guard->opacity,guard->opacity);
+        if(!IsCameraPolicyActive__FP5CPLCY(&camera->tunnelPolicy)){
+            RenderSoGlobset((EFFECT *)&guard->model,0,guard->psobounds,guard->opacity,guard->opacity);
         }else{
             func_002333B4(&local,0,sizeof(M4));
             local.rows[3].f[3]=1.0f;
@@ -1148,7 +1151,7 @@ extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
             float gain=profile->a+distance*(profile->b+distance*profile->c);
             float min=profile->min,max=profile->max;
             if(gain<min)gain=min;else if(max<gain)gain=max;
-            float elapsed=g_clock.time-guard->start;
+            float elapsed=g_clock.time-guard->pulseStartTime;
             float along=gain,across=gain;
             if(elapsed<0.85f){
                 float wave=sinf(elapsed*D_002C3D4C);
@@ -1165,23 +1168,23 @@ extern "C" void RenderStepguardSelf(STEPGUARDIsland *guard)
             local.rows[0].f[0]=across;
             local.rows[1].f[1]=across;
             local.rows[2].f[2]=along;
-            offset.f[0]=(1.0f-across)*guard->pivot[0];
-            offset.f[2]=(1.0f-along)*guard->pivot[2];
-            offset.f[1]=(1.0f-across)*guard->pivot[1];
+            offset.f[0]=(1.0f-across)*guard->vecPivotOffset.x;
+            offset.f[2]=(1.0f-along)*guard->vecPivotOffset.z;
+            offset.f[1]=(1.0f-across)*guard->vecPivotOffset.y;
             VECTOR_opAssign(&local.rows[3].q,offset.q);
             local.rows[3].f[3]=1.0f;
             M4 *productPointer=&product;
             M4 *basisPointer=&basis;
             M4 *matrixPointer=&matrix;
-            basis.rows[0]=guard->space->matrix.rows[0];
-            basis.rows[1]=guard->space->matrix.rows[1];
-            basis.rows[2]=guard->space->matrix.rows[2];
-            basis.rows[3]=guard->space->matrix.rows[3];
+            basis.rows[0]=guard->rootTransform->worldMatq.r[0];
+            basis.rows[1]=guard->rootTransform->worldMatq.r[1];
+            basis.rows[2]=guard->rootTransform->worldMatq.r[2];
+            basis.rows[3]=guard->rootTransform->worldMatq.r[3];
             __ml__FRC7MATRIX4T0(productPointer,basisPointer,&local);
             M4 *inversePointer=&inverse;
             InvertMatrix4Rigid(inversePointer,basisPointer);
             __ml__FRC7MATRIX4T0(matrixPointer,productPointer,inversePointer);
-            RenderSoGlobset((EFFECT *)((char *)guard+0x80),matrixPointer,guard->material,guard->opacity,guard->opacity);
+            RenderSoGlobset((EFFECT *)&guard->model,matrixPointer,guard->psobounds,guard->opacity,guard->opacity);
         }
     }
 }
