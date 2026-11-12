@@ -1085,14 +1085,16 @@ void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *) __asm__("ReplaceSma")
 void EnableJtLeanActs(ACTOR *, int) __asm__("EnableJtLeanActs");
 
 
-// bit 0 set: the word holds the flags itself; otherwise it points to them
-static inline void AddFlags(uint *pflags, uint bits)
+// Sets bits in LO's tagged update word (as lo.cpp SetLoFlags): bit 0 set, the word holds the flags itself; clear, it
+// is the object's SW::aloupd entry (LOUPD::grf). Read pointer-wide: natively the word is a pointer.
+static inline void AddFlags(void *object, uint bits)
 {
-    uint w = *pflags;
+    ::LO *plo = AsLo(object);
+    uptr w = (uptr)plo->ploupd;
     if ((w ^ 1) & 1)
-        *(uint *)w |= bits;
+        plo->ploupd->grf |= bits;
     else
-        *pflags = w | bits;
+        plo->inlineFlags = w | bits;
 }
 
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in UpdateJtGrabInput).
@@ -1470,10 +1472,10 @@ extern "C" void SetJtGrabKind(CONTEXT *grab, int step)
     case 9:
         script = grab->script32C;
         if (grab->step == 7) {
-            AddFlags(&grab->pactor->flags, 0x10);
+            AddFlags(grab->pactor, 0x10);
             if (grab->pactor == D_002E1E40) {
-                AddFlags(&grab->pactor->first->flags, 0x10);
-                AddFlags(&D_002E1E40->second->flags, 0x10);
+                AddFlags(grab->pactor->first, 0x10);
+                AddFlags(D_002E1E40->second, 0x10);
             }
         }
         grab->pactor->velocity = D_002A2DD0;

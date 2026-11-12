@@ -3000,7 +3000,7 @@ static inline qword VuScaleByX(qword qwVec, VU_FLOAT g)
 #ifdef SLY2_EE_ASM
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
 #else
-    qw = VuScaleByX(qwVec, g.qw);
+    qw = ::VuScaleByX<qword>(qwVec, g.qw);   // sly2/vu0.h's template: unqualified, this function would call itself (VU_FLOAT(float) from the qword)
 #endif
     return qw;
 }
