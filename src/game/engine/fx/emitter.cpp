@@ -109,13 +109,12 @@ enum EMIT_VELOCITY {
 typedef EMITB EMITBV;
 typedef EMITTER EMITTERV;
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
-/* The EXPLS (an explosion's sound-effect part; EnsureExplsSfx is registered as an EXPLS option accessor in the class
-   option table): its lazily created SFX at +0xF0. */
-struct SFXHOLDER : public XFM
-{
-    char padE0[0x10];
-    SFX *sfx;               /* +0xF0 */
-};
+/* EnsureExplsSfx (an EXPLS option accessor in the class option table) creates EXPLS::sfx lazily. */
+
+
+
+
+
 
 extern "C" {
 extern const float D_002A514C;    /* "indefinitely": a time far in the future */
@@ -1850,7 +1849,7 @@ void EXPLS::ExplodeExplso(EXPLSO *pexplso)
 // Returns the EXPLS's sound effect, creating it on first use. Used by the class option table (five EXPLS options
 // point at it), so level data can set the explosion's sound properties.
 // Also known as: PsfxEnsureExpls (upstream readable / Sly 1 name; PsfxEnsureExpls__FP5EXPLS4ENSK).
-extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
+extern "C" SFX *EnsureExplsSfx(EXPLS *explosionSound)
 {
     if (explosionSound->sfx == 0) {
         explosionSound->sfx = NewSfx();
@@ -1860,18 +1859,17 @@ extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
 
 namespace M_FireExplsExplso {
 // (Claude agent) MATCH: g8 if/else reload form, max via local h=0.5f, pfrm transform split into mul asm + vadd asm with t loaded late.
-typedef struct EMITP { int reference; int shape; int render; int nextRender; int touch; } EMITP;   /* EMITB+0x08: the resolved objects */
-typedef struct XF4 { qword v; } XF4;
-typedef struct X4 { char pad[0xF4]; XF4 *p; } X4;   /* the curve shape object: its centre at ->p->v (inferred) */
+typedef struct EMITP { LO *reference; LO *shape; LO *render; LO *nextRender; LO *touch; } EMITP;   /* EMITB+0x08: the resolved objects (EMITREF order) */
+
+
 typedef struct FRM { qword pos; qword m[3]; } FRM;
 typedef struct SND { int id; float rangeMin, rangeMax, volume, pitch; } SND;   /* the EXPLS's SFX */
-/* EXPLS */
-typedef struct EMITTERV {
-    char pad[0xE4]; EMITB *pemitb; int padE8, padEC; SND *psnd;
-    float countMin, countMax;   /* +0xF4 particles per explosion */
-    int keepsGroups;            /* +0xFC emit into the EXPLS's own rip / blip groups (and subscribe it) */
-    RIPG *pripg; BLIPG *pblipg; /* +0x100 */
-} EMITTERV;
+
+
+
+
+
+
 
 extern char D_002BDEC0[] __asm__("D_002BDEC0");
 extern float RandomFloatInRange__Fff(float lo, float hi) __asm__("RandomFloatInRange__Fff");
@@ -1882,7 +1880,7 @@ extern V4 __9VU_VECTORRC6VECTOR(qword *pv) __asm__("__9VU_VECTORRC6VECTOR");
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
 extern void VECTOR_opAssign(qword *pv, qword a) __asm__("VECTOR_opAssign");
 extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITG *pemitg) __asm__("EmitParticles__FiP5EMITBP5EMITG");
-extern qword ConvertPosBetweenLos(int x, int y, qword v) __asm__("ConvertPosBetweenLos");
+extern qword ConvertPosBetweenLos(LO *from, LO *to, qword v) __asm__("ConvertPosBetweenLos");
 extern void *CreateSfxSound(int id) __asm__("CreateSfxSound");
 extern void SetSndSourceLo(void *p, void *pso) __asm__("SetSndSourceLo");
 extern void SetSndSourcePos(void *p, qword v) __asm__("SetSndSourcePos");
@@ -1895,7 +1893,7 @@ extern void SetSndPitch(void *p, float g) __asm__("SetSndPitch");
 // (capped at half the maximum), speed and blip size. Then plays the EXPLS's sound at the origin's centre (by
 // origin kind, through the local transform, then into world space from the reference object).
 // Also known as: FireExplsExplso (upstream readable / Sly 1 name; FireExplsExplso__FP5EXPLSP6EXPLSO).
-extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
+extern "C" void FireExplsExplso(EXPLS *expls, EXPLSO *explso)
 {
     EMITP emitp;
     EMITB emitb;
@@ -1911,9 +1909,9 @@ extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
     if (explso->grf & EXPLSO_HAS_COUNT)
         count = explso->count;
     else
-        count = (int)RandomFloatInRange__Fff(expls->countMin, expls->countMax);
+        count = (int)RandomFloatInRange__Fff(expls->countRange.minValue, expls->countRange.maxValue);
     if (explso->grf & EXPLSO_HAS_REFERENCE)
-        emitp.reference = (int)explso->ploReference;
+        emitp.reference = explso->ploReference;
     if (explso->grf & EXPLSO_HAS_VECTOR)
         emitb.emito.direction = explso->vector;
     if (explso->grf & EXPLSO_HAS_ORIGIN) {
@@ -1934,7 +1932,7 @@ extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
             count = (int)(count * scale);
         else
             count = (int)(count / scale);
-        maxCount = (int)expls->countMax / 2;
+        maxCount = (int)expls->countRange.maxValue / 2;
         if (!(maxCount < count))
             count = maxCount;
         speedScale = ClampToLimits__FP2LMf(D_002BDEC0, scale);
@@ -1947,20 +1945,20 @@ extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
         if (explso->grf & EXPLSO_HAS_RIP_SCALE)
             emitb.v.lmScale.maxValue = emitb.v.lmScale.minValue = explso->scale;
         if (explso->grf & EXPLSO_HAS_TOUCH)
-            ((EMITP *)emitb.aploRef)->touch = (int)explso->ploTouch;
+            ((EMITP *)emitb.aploRef)->touch = explso->ploTouch;
     }
     if (expls->keepsGroups) {
-        emitg.ppblipg = &expls->pblipg;
-        emitg.ppripg = &expls->pripg;
+        emitg.ppblipg = (BLIPG **)&expls->pblipg;
+        emitg.ppripg = (RIPG **)&expls->pripg;
         emitg.ploSubscriber = (LO *)expls;
         pemitg = &emitg;
     } else {
         pemitg = 0;
     }
     if (emitp.reference == 0 && emitb.emito.originKind != EMIT_ORIGIN_CURVE && !(explso->grf & (EXPLSO_HAS_SCALE | EXPLSO_HAS_XF)))
-        emitp.reference = (int)expls;
+        emitp.reference = expls;
     EmitParticles__FiP5EMITBP5EMITG(count, &emitb, pemitg);
-    if (expls->psnd) {
+    if (expls->sfx) {
         void *sound;
         switch (emitb.emito.originKind) {
         case EMIT_ORIGIN_POINT:
@@ -1984,7 +1982,7 @@ extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
             break;
         }
         case EMIT_ORIGIN_CURVE:
-            pos.q = ((X4 *)((EMITP *)emitb.aploRef)->shape)->p->v;
+            pos.q = ((SHAPE *)((EMITP *)emitb.aploRef)->shape)->vertexPosq->q;   /* the curve's first point */
             break;
         case EMIT_ORIGIN_MESH:
             pos.q = ((qword *)emitb.emito.pvEmito)[2];   /* the EMITMESH's centre (+0x20) */
@@ -2006,12 +2004,12 @@ extern "C" void FireExplsExplso(EMITTERV *expls, EXPLSO *explso)
             pos.q = v;
         }
         pos.q = ConvertPosBetweenLos(emitp.reference, 0, pos.q);
-        sound = CreateSfxSound(expls->psnd->id);
+        sound = CreateSfxSound(((SND *)expls->sfx)->id);
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, pos.q);
-        SetSndRange(sound, expls->psnd->rangeMin, expls->psnd->rangeMax);
-        SetSndVolume(sound, expls->psnd->volume);
-        SetSndPitch(sound, expls->psnd->pitch);
+        SetSndRange(sound, ((SND *)expls->sfx)->rangeMin, ((SND *)expls->sfx)->rangeMax);
+        SetSndVolume(sound, ((SND *)expls->sfx)->volume);
+        SetSndPitch(sound, ((SND *)expls->sfx)->pitch);
     }
 }
 } // namespace M_FireExplsExplso

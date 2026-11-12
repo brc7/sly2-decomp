@@ -1305,8 +1305,8 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_OFF(EMITB, vel.randomRadius), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [552] opt 585, EXPLO (+1) */
     {0xA, 0x2092, EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_OFF(EMITB, vel.lmPush), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [553] opt 587, EXPLO (+1) */
     {0x101C, 0x104, EOPID_PMFT(GetEmitterRecord1PayloadKind, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterRecord1PayloadKind, EXPLO), EOPID_NONE}, /* [554] opt 590, EXPLO (+1) */
-    {0xA, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [555] opt 551, EXPLS */
-    {0, 0x92, EOPID_INT(0xFC), EOPID_INT(0xFC), EOPID_INT(0xFC), EOPID_NONE}, /* [556] opt 617, EXPLS */
+    {0xA, 0x92, EOPID_OFF(EXPLS, countRange), EOPID_OFF(EXPLS, countRange), EOPID_OFF(EXPLS, countRange), EOPID_NONE}, /* [555] opt 551, EXPLS */
+    {0, 0x92, EOPID_OFF(EXPLS, keepsGroups), EOPID_OFF(EXPLS, keepsGroups), EOPID_OFF(EXPLS, keepsGroups), EOPID_NONE}, /* [556] opt 617, EXPLS */
     {0x1021, 0x104, EOPID_PMFT(GetEmitterParticleKind, EXPLO), EOPID_NONE, EOPID_PMFT(SetEmitterParticleKind, EXPLO), EOPID_NONE}, /* [557] opt 563, EXPLS */
     {2, 0x2092, EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_OFF(EMITB, vel.addedVelocity), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [558] opt 580, EXPLS */
     {1, 0x2092, EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_OFF(EMITB, vel.damping), EOPID_PMFT(PemitbEnsure, EXPLO)}, /* [559] opt 581, EXPLS */

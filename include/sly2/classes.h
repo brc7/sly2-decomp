@@ -777,7 +777,9 @@ typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 /* 33 EXPLS (0x110); vtable 0x2CE4D0, 52 slots */
 struct EXPLS : EXPLO
 {
-    int unkF0[4];
+    struct SFX *sfx;            /* +0xF0 its sound effect (EnsureExplsSfx creates it; options 209, 618..620) */
+    LM countRange;              /* +0xF4 particles per explosion (option 551) */
+    int keepsGroups;            /* +0xFC emit into its own rip / blip groups and subscribe it (option 617) */
     void *pripg;                /* +0x100 its rip group (forgotten when that object goes away: HandleExplsMessage) */
     void *pblipg;               /* +0x104 its blip group */
     int unk108[2];
