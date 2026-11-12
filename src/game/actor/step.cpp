@@ -560,14 +560,14 @@ namespace M_AdjustStepNewXp {
 /* Prepare a new contact: reset its friction/response and set the limits for kind 14; for the
    side-facing kinds add a horizontal response contact (kind 10) through AddXp. */
 
-struct XP { struct XPS ae[2]; QWROW normal; float distance, friction, response; int kind; float lower, upper; int tag; struct XP *next; };
-struct STATE { char pad[0xD0]; float mass; };
-struct P : LO { char padE8[0xE8 - 0x50]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
+/* The contact is sly2/xp.h XP, the object a STEP (physics->m: the mass; psopartBody: the body part). */
+
+
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
 extern float D_002C3C60[] __asm__("D_002C3C60");
 extern float D_002C3C90 __asm__("D_002C3C90");   /* base contact friction */
 void AdjustSoNewXp(void) __asm__("AdjustSoNewXp");
-void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g) __asm__("AddXp");
+void AddXp(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, XP **out, float g) __asm__("AddXp");
 
 /* The endpoint positions are passed by address (like C++ const VECTOR & operands): the address
    then comes out as offset + x, and the second read of the other position is a reload. */
@@ -626,7 +626,7 @@ extern "C" { static inline qword AddScaled(const qword *pa, qword b, float g)
 // Slot 55: sets up a new contact: resets friction and response; a floor contact (kind 14) with an upward normal
 // (z > 0.7) gets the step's floor friction and a force limit from its weight.
 // Also known as: OnStepXpNew (upstream readable / Sly 1 name; OnStepXpNew__FP3ALOP2XPi).
-extern "C" void AdjustStepNewXp(struct P *step, struct XP *x, int side)
+extern "C" void AdjustStepNewXp(STEP *step, XP *x, int side)
 {
     QWROW dir, diff, point;
     float d;
@@ -634,15 +634,15 @@ extern "C" void AdjustStepNewXp(struct P *step, struct XP *x, int side)
     int kind;
     AdjustSoNewXp();
     kind = x->kind;
-    x->friction = 0.0f;
-    x->response = 0.0f;
+    x->gFriction = 0.0f;
+    x->gElasticity = 0.0f;
     if (kind == 14) {
-        if (x->normal.f[2] > 0.7f) {
-            x->friction = D_002C3C90;
-            x->lower = step->state->mass * -4500.0f;
-            x->upper = step->state->mass * 9000.0f;
+        if (x->normalVec.z > 0.7f) {
+            x->gFriction = D_002C3C90;
+            x->gLimitMin = step->physics->m * -4500.0f;
+            x->gLimitMax = step->physics->m * 9000.0f;
         } else
-            x->upper = step->state->mass * 9000.0f;
+            x->gLimitMax = step->physics->m * 9000.0f;
         return;
     }
     if (kind != 3) {
@@ -652,16 +652,16 @@ extern "C" void AdjustStepNewXp(struct P *step, struct XP *x, int side)
             return;
     }
     sign = D_002C3C60[side];
-    if (sign * x->normal.f[2] > 0.0f) {
+    if (sign * x->normalVec.z > 0.0f) {
         /* horizontal direction of the (side-signed) normal */
-        dir.q = Scale(x->normal.q, sign);
+        dir.q = Scale(x->normal, sign);
         dir.f[2] = 0.0f;
         Normal(&dir, D_002A2DA0);
         /* project this endpoint onto the other along that direction */
-        diff.q = Sub(&x->ae[side].pos, &x->ae[1 - side].pos);
+        diff.q = Sub(&x->axps[side].pos, &x->axps[1 - side].pos);
         d = Dot(diff.q, dir.q);
-        point.q = AddScaled(&x->ae[1 - side].pos, dir.q, d);
-        AddXp(&g_sw, step->mesh, x->ae[1 - side].ppart, point.q, dir.q, 10, 0, 0, &x->next, d);
+        point.q = AddScaled(&x->axps[1 - side].pos, dir.q, d);
+        AddXp(&g_sw, step->psopartBody, x->axps[1 - side].ppart, point.q, dir.q, 10, 0, 0, &x->pxpNext, d);
     }
 }
 } // namespace M_AdjustStepNewXp

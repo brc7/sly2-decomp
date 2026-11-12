@@ -47,8 +47,8 @@ enum BentleyState {
 // 0x137780 StaticInit_bentley and GlobalConstructors_bentley: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The contact friction field (engine/physics/mark.cpp's XP). */
-struct XP { char pad0[0x94]; float gFriction; };
+/* Contacts are sly2/xp.h's XP (through so.h; the gadget drag reads XP::gFriction). */
+
 
 extern "C" {
 /* Bentley's snip table (Sly 1 SNIP {grfsnip, oid, ib}, BindLoOidTable with a count of 0x76), bentley's first .data. */

@@ -28,9 +28,9 @@
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
 // 0x1D4FF8 StaticInit_robottank and GlobalConstructors_robottank: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
-/* A contact (XP, 0xB0) as FindDeepestRobottankWheelXp reads it: its separation and the next contact of its list
-   (engine/physics/mark.cpp's names). */
-struct XP { char pad0[0x90]; float g; char pad94[0xAC - 0x94]; XP *pxpNext; };
+/* Contacts are sly2/xp.h's XP (through so.h): FindDeepestRobottankWheelXp reads XP::g (the separation) and
+   XP::pxpNext. */
+
 
 extern "C" {
 extern const float D_002A7834;   /* defined below where the ELF has it (.rodata order) */

@@ -112,30 +112,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pjtpipe);
 
 void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
 
-struct XPD
-{
-      SOPART *ppart;
-      XF *pxf;
-      SO *psoRoot;
-      SO *psoLeaf;
-      qword pos;
-      qword posLeaf;
-      qword v;
-};
-
-struct XP
-{
-      XPD axpd[2];
-      union { qword qwNormal; VECTOR4 normal; };
-      float gDist;
-      float mu;
-      float elas;
-      int xpk;
-      union { void *pv0; float sfMin; };
-      union { void *pv1; float sfMax; };
-      undefined4 unk_0xa8;
-      XP *pxpNext;
-};
+/* Contacts are sly2/xp.h's XP (through so.h; was a Sly 1-named copy: axpd = axps, psoLeaf = pso, normal = normalVec). */
 
 extern "C" float GetShapeMaxDistance(SHAPE *pshape);
 
@@ -974,7 +951,7 @@ void UpdateJtLean(JT *jt)
     switch (jt->state) {
     case JTS_Stand:
         if (jt->floorContact)
-            lo = jt->floorContact->axpd[1].psoLeaf;
+            lo = jt->floorContact->axps[1].pso;
         break;
     case JTS_Grab:
         if (jt->jtgrab.kind == 0) {
@@ -1939,7 +1916,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                         break;
                     }
-                    if (jt->floorContact && 0.7f < jt->floorContact->normal.z)
+                    if (jt->floorContact && 0.7f < jt->floorContact->normalVec.z)
                     {
                         if (g_clock.time - jt->stateStartTime > 0.4f)
                             SetJtState(jt, JTS_Stand, JTBS_Nil);
@@ -1951,7 +1928,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->floorContact && 0.7f < jt->floorContact->normal.z && g_clock.time - jt->stateStartTime > 0.4f)
+                    if (jt->floorContact && 0.7f < jt->floorContact->normalVec.z && g_clock.time - jt->stateStartTime > 0.4f)
                     {
                         float tLabel = TFindAsegLabel(jt->unknown1A84, (OID)0x16D);
                         ASEGA *asega = jt->activeAnimation;

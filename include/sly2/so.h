@@ -12,6 +12,7 @@
 #include "sly2/lo.h"
 #include "sly2/alo.h"
 #include "sly2/xfm.h"
+#include "sly2/xp.h"
 
 /* GLOB: one model piece of a GLOBSET: its oid, the transform it is drawn with, render flags and its shader
    animations.
