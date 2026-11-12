@@ -780,18 +780,18 @@ int FindPathPoints(CG *graph, qword from, qword to, int capacity, QWROW *out)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C02D0 {
-struct T { char pad[0xE8]; int ne8; char pad2[8]; int nf4; };
-int FindPathPoints(void *p, int a, int b, int c, int d) __asm__("FindPathPoints");
-void MeasureShape(struct T *pt) __asm__("MeasureShape");
+
+int FindPathPoints(CG *graph, qword from, qword to, int capacity, QWROW *out) __asm__("FindPathPoints");
+void MeasureShape(SHAPE *path) __asm__("MeasureShape");
 // Finds a path (max 16 points) in a path zone into a path curve object and rebuilds the curve; returns 0 when
 // fewer than 2 points were found.
 // Also known as: FNavPathCrv (upstream readable / Sly 1 name; FNavPathCrv__FP9NAVREGIONiiP3CRV).
-extern "C" int FindPathzonePathCurve(char *p, int a, int b, struct T *pt)
+extern "C" int FindPathzonePathCurve(PATHZONE *zone, qword from, qword to, SHAPE *path)
 {
-    int n = FindPathPoints(p + 0xE0, a, b, 0x10, pt->nf4);
+    int n = FindPathPoints(&zone->cg, from, to, 0x10, path->vertexPosq);
     if (n < 2) return 0;
-    pt->ne8 = n;
-    MeasureShape(pt);
+    path->numControlVertices = n;
+    MeasureShape(path);
     return 1;
 }
 } // namespace M_func_001C02D0
@@ -825,67 +825,67 @@ void PATHZONE::Init()
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_LoadPathzoneFromBrx {
 struct A { int cb; int align; };
-struct E8 { struct V *pv; int cost; };
-struct V { qword pos; int c; struct E8 *ae; };   /* 0x20 with the qword alignment (the CGV vertex of M_HookupCg) */
-struct F { struct V *apv[3]; };
-struct P { float x, y, z; unsigned short c, d; };
-/* The zone (classes.h PATHZONE: an XFM, then its CG graph, typed here with this function's vertex/triangle/node views). */
-struct S : XFM { int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes;
-    int numObstacles, obstacleCapacity, numEvents; void *xEvents, *zEvents; void **obstacles; int n110; int version; };
-void LoadXfmFromBrx(struct S *p, void *pbis) __asm__("LoadXfmFromBrx");
+
+
+
+
+
+
+
+void LoadXfmFromBrx(PATHZONE *p, void *pbis) __asm__("LoadXfmFromBrx");
 int U16Read__18CBinaryInputStream(void *pbis) __asm__("U16Read__18CBinaryInputStream");
 int U8Read__18CBinaryInputStream(void *pbis) __asm__("U8Read__18CBinaryInputStream");
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, qword *pv) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
 float F32Read__18CBinaryInputStream(void *pbis) __asm__("F32Read__18CBinaryInputStream");
 void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
 void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
-void ComputeCgEdgeCosts(int *p) __asm__("ComputeCgEdgeCosts");
+void ComputeCgEdgeCosts(CG *p) __asm__("ComputeCgEdgeCosts");
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
 // ComputeCgEdgeCosts. Layout parse-verified: a parser following it reads every byte of 4 levels.
 // Also known as: LoadMeshZoneFromBrx (upstream readable / Sly 1 name; LoadMeshZoneFromBrx__FP2LOP18CBinaryInputStream).
-extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
+extern "C" void LoadPathzoneFromBrx(PATHZONE *zone, void *stream)
 {
     struct A a;
     int i, j, k;
     LoadXfmFromBrx(zone, stream);
-    zone->numVertices = U16Read__18CBinaryInputStream(stream);
-    a.cb = zone->numVertices * (int)sizeof(struct V);
+    zone->cg.ccgv = U16Read__18CBinaryInputStream(stream);
+    a.cb = zone->cg.ccgv * (int)sizeof(CGV);
     a.align = 0x10;
-    zone->vertices = (__typeof__(zone->vertices))AllocClearedFromWorldHeap(&a);
-    zone->numTriangles = U16Read__18CBinaryInputStream(stream);
-    a.cb = zone->numTriangles * (int)sizeof(struct F);
+    zone->cg.acgv = (__typeof__(zone->cg.acgv))AllocClearedFromWorldHeap(&a);
+    zone->cg.numTriangles = U16Read__18CBinaryInputStream(stream);
+    a.cb = zone->cg.numTriangles * (int)sizeof(CGT);
     a.align = 0x10;
-    zone->triangles = (__typeof__(zone->triangles))AllocClearedFromWorldHeap(&a);
-    for (i = 0; i < zone->numVertices; i++) {
-        struct V *pd = &zone->vertices[i];
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream, pd);
-        pd->c = U8Read__18CBinaryInputStream(stream);
-        a.cb = pd->c * (int)sizeof(struct E8) + (int)sizeof(struct E8);   /* one spare entry */
+    zone->cg.triangles = (__typeof__(zone->cg.triangles))AllocClearedFromWorldHeap(&a);
+    for (i = 0; i < zone->cg.ccgv; i++) {
+        CGV *pd = &zone->cg.acgv[i];
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pd->pos);
+        pd->numEdges = U8Read__18CBinaryInputStream(stream);
+        a.cb = pd->numEdges * (int)sizeof(CGE) + (int)sizeof(CGE);   /* one spare entry */
         a.align = 0x10;
-        pd->ae = (__typeof__(pd->ae))AllocFromWorldHeap(&a);
-        for (j = 0; j < pd->c; j++) {
-            struct E8 *pe = &pd->ae[j];
-            pe->pv = &zone->vertices[U16Read__18CBinaryInputStream(stream)];
+        pd->edges = (__typeof__(pd->edges))AllocFromWorldHeap(&a);
+        for (j = 0; j < pd->numEdges; j++) {
+            CGE *pe = &pd->edges[j];
+            pe->pcgv = &zone->cg.acgv[U16Read__18CBinaryInputStream(stream)];
         }
     }
-    for (k = 0; k < zone->numTriangles; k++) {
-        struct V **ppv = zone->triangles[k].apv;
+    for (k = 0; k < zone->cg.numTriangles; k++) {
+        CGV **ppv = zone->cg.triangles[k].vertices;
         for (i = 0; i < 3; i++)
-            *ppv++ = &zone->vertices[U16Read__18CBinaryInputStream(stream)];
+            *ppv++ = &zone->cg.acgv[U16Read__18CBinaryInputStream(stream)];
     }
-    zone->numBspNodes = U16Read__18CBinaryInputStream(stream);
-    a.cb = zone->numBspNodes * (int)sizeof(struct P);
+    zone->cg.numBspNodes = U16Read__18CBinaryInputStream(stream);
+    a.cb = zone->cg.numBspNodes * (int)sizeof(CBSP);
     a.align = 0x10;
-    zone->bspNodes = (__typeof__(zone->bspNodes))AllocClearedFromWorldHeap(&a);
-    for (i = 0; i < zone->numBspNodes; i++) {
-        struct P *pp = &zone->bspNodes[i];
-        pp->x = F32Read__18CBinaryInputStream(stream);
-        pp->y = F32Read__18CBinaryInputStream(stream);
-        pp->z = F32Read__18CBinaryInputStream(stream);
-        pp->c = U16Read__18CBinaryInputStream(stream);
-        pp->d = U16Read__18CBinaryInputStream(stream);
+    zone->cg.bspNodes = (__typeof__(zone->cg.bspNodes))AllocClearedFromWorldHeap(&a);
+    for (i = 0; i < zone->cg.numBspNodes; i++) {
+        CBSP *pp = &zone->cg.bspNodes[i];
+        pp->e.x = F32Read__18CBinaryInputStream(stream);
+        pp->e.y = F32Read__18CBinaryInputStream(stream);
+        pp->e.z = F32Read__18CBinaryInputStream(stream);
+        pp->e.child[0] = U16Read__18CBinaryInputStream(stream);
+        pp->e.child[1] = U16Read__18CBinaryInputStream(stream);
     }
-    ComputeCgEdgeCosts(&zone->numVertices);
+    ComputeCgEdgeCosts(&zone->cg);
     if (zone->oid == 0x2CA)
         g_sw.pcid17Default = (CID17 *)zone;
     zone->version = ++g_sw.pathzoneVersion;
@@ -895,13 +895,13 @@ extern "C" void LoadPathzoneFromBrx(struct S *zone, void *stream)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitDefaultPathzoneCg {
 struct A { int cb; int align; };
-struct E8 { struct V *pv; int cost; };
-struct V { qword pos; int c; struct E8 *ae; };   /* 0x20 with the qword alignment (the CGV vertex of M_HookupCg) */
+
+
 struct VS { union { float af[4]; qword q; } pos; int c; int ai[3]; };   /* floats first: initializable */
-struct F { struct V *apv[3]; };
+
 struct FS { int ai[3]; };
-struct P { float x, y; int z; unsigned short c, d; };
-struct S : XFM { int numVertices; struct V *vertices; int numTriangles; struct F *triangles; int numBspNodes; struct P *bspNodes; char p1[0x114 - 0xF8]; int version; };
+
+
 /* The default navigation graph (path's .data): four corner vertices of a 200000-unit square, each with its
  * neighbour indices (-1: unused), and its two triangles. */
 struct VS D_002C0C10[4] __asm__("D_002C0C10") = {
@@ -913,60 +913,60 @@ struct VS D_002C0C10[4] __asm__("D_002C0C10") = {
 struct FS D_002C0C90[2] __asm__("D_002C0C90") = {{{0, 1, 2}}, {{0, 2, 3}}};
 void *AllocClearedFromWorldHeap(struct A *pa) __asm__("AllocClearedFromWorldHeap");
 void *AllocFromWorldHeap(struct A *pa) __asm__("AllocFromWorldHeap");
-void ComputeCgEdgeCosts(int *p) __asm__("ComputeCgEdgeCosts");
+void ComputeCgEdgeCosts(CG *p) __asm__("ComputeCgEdgeCosts");
 // Builds a trivial graph for a level without zones: 4 vertices, 2 triangles and one diagonal BSP node from tables.
-extern "C" void InitDefaultPathzoneCg(struct S *zone)
+extern "C" void InitDefaultPathzoneCg(PATHZONE *zone)
 {
     struct A a;
     int i, j, k;
-    struct P *pp;
+    CBSP *pp;
     float g;
-    zone->numVertices = 4;
-    a.cb = 4 * (int)sizeof(struct V);
+    zone->cg.ccgv = 4;
+    a.cb = 4 * (int)sizeof(CGV);
     a.align = 0x10;
-    zone->vertices = (__typeof__(zone->vertices))AllocClearedFromWorldHeap(&a);
-    for (i = 0; i < zone->numVertices; i++) {
+    zone->cg.acgv = (__typeof__(zone->cg.acgv))AllocClearedFromWorldHeap(&a);
+    for (i = 0; i < zone->cg.ccgv; i++) {
         struct VS *ps = &D_002C0C10[i];
-        struct V *pd = &zone->vertices[i];
+        CGV *pd = &zone->cg.acgv[i];
         pd->pos = ps->pos.q;
-        pd->c = ps->c;
-        a.cb = pd->c * (int)sizeof(struct E8) + (int)sizeof(struct E8);   /* one spare entry */
+        pd->numEdges = ps->c;
+        a.cb = pd->numEdges * (int)sizeof(CGE) + (int)sizeof(CGE);   /* one spare entry */
         a.align = 0x10;
-        pd->ae = (__typeof__(pd->ae))AllocFromWorldHeap(&a);
-        for (j = 0; j < pd->c; j++)
-            { struct E8 *pe = &pd->ae[j]; pe->pv = &zone->vertices[ps->ai[j]]; }
+        pd->edges = (__typeof__(pd->edges))AllocFromWorldHeap(&a);
+        for (j = 0; j < pd->numEdges; j++)
+            { CGE *pe = &pd->edges[j]; pe->pcgv = &zone->cg.acgv[ps->ai[j]]; }
     }
-    zone->numTriangles = 2;
-    a.cb = 2 * (int)sizeof(struct F);
+    zone->cg.numTriangles = 2;
+    a.cb = 2 * (int)sizeof(CGT);
     a.align = 0x10;
-    zone->triangles = (__typeof__(zone->triangles))AllocClearedFromWorldHeap(&a);
-    for (k = 0; k < zone->numTriangles; k++) {
-        struct V **ppv = zone->triangles[k].apv;
+    zone->cg.triangles = (__typeof__(zone->cg.triangles))AllocClearedFromWorldHeap(&a);
+    for (k = 0; k < zone->cg.numTriangles; k++) {
+        CGV **ppv = zone->cg.triangles[k].vertices;
         int *pi = D_002C0C90[k].ai;
         for (i = 0; i < 3; i++)
-            *ppv++ = &zone->vertices[*pi++];
+            *ppv++ = &zone->cg.acgv[*pi++];
     }
-    zone->numBspNodes = 1;
-    a.cb = (int)sizeof(struct P);
+    zone->cg.numBspNodes = 1;
+    a.cb = (int)sizeof(CBSP);
     a.align = 0x10;
     pp = (__typeof__(pp))AllocClearedFromWorldHeap(&a);
-    zone->bspNodes = pp;
+    zone->cg.bspNodes = pp;
     g = SqrtFloat(2.0f) * 0.5f;
-    pp->c = 0xC001;
-    pp->d = 0xC000;
-    pp->z = 0;
-    pp->x = g;
-    pp->y = -g;
-    ComputeCgEdgeCosts(&zone->numVertices);
+    pp->e.child[0] = 0xC001;
+    pp->e.child[1] = 0xC000;
+    pp->e.z = 0;
+    pp->e.x = g;
+    pp->e.y = -g;
+    ComputeCgEdgeCosts(&zone->cg);
     zone->version = ++g_sw.pathzoneVersion;
 }
 } // namespace M_InitDefaultPathzoneCg
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HookupCg {
-struct F { qword *pq; int d; };
-struct E { qword pos; int c; struct F *af; };
-struct A { int c; struct E *ae; };
+
+
+
 // Distance between a and b in the XY plane, returned as raw float bits.
 extern "C" { static inline int Dist(qword a, qword b)
 {
@@ -980,15 +980,15 @@ extern "C" { static inline int Dist(qword a, qword b)
     return f;
 } }
 // Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name: HookupCg.
-extern "C" void ComputeCgEdgeCosts(struct A *graph)
+extern "C" void ComputeCgEdgeCosts(CG *graph)
 {
     int i, j;
-    for (i = 0; i < graph->c; i++) {
-        struct E *pe = &graph->ae[i];
-        for (j = 0; j < pe->c; j++) {
-            register struct F *field __asm__("$3") = pe->af;
+    for (i = 0; i < graph->ccgv; i++) {
+        CGV *pe = &graph->acgv[i];
+        for (j = 0; j < pe->numEdges; j++) {
+            register CGE *field __asm__("$3") = pe->edges;
             field += j;
-            field->d = Dist(pe->pos, *field->pq);
+            *(int *)&field->cost = Dist(pe->pos, field->pcgv->pos);   /* the float bits through a GPR (Dist) */
         }
     }
 }
