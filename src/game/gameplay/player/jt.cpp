@@ -1065,7 +1065,7 @@ namespace M_RebuildJtXmg {
 // UpdateJtStand (every frame, the two feet) and JT::Update call it; TryMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
 // Match notes (decomp/learnings.md "T1460"): the two pool constants are `extern int` words read with VuFloatFromMemWord(D) (by-value param); the source order that keeps the game's
 // schedule is "sphere centre store, radius store, then the two constants, then the two AddScaledVec into locals, then the call", and the extremePosition store before the two clip stores.
-inline qword TransformPos(MATRIX4 *matrix, qword pos)
+inline qword TransformPosVu0(MATRIX4 *matrix, qword pos)
 {
     qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -1164,7 +1164,7 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, (XF *)paloHip, jt->rootTransform, &matHip, 0);
     MATRIX4 matIkh;
     PredictAsegEffect(asega->animation, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->reference) ->pxfGoal, jt->rootTransform, &matIkh, 0);
-    qword posIkh = TransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->posIkHandle);
+    qword posIkh = TransformPosVu0(&matIkh, ((IKREC *)((XF *)( paloHip ))->reference) ->posIkHandle);
     qword posSphereCenter = VuAdd(*(qword *)matHip.mat[3], VuSub(posExtrem, posIkh));
     pxmg->spherePosition = posSphereCenter;
     pxmg->sphereRadius = ((IKREC *)((XF *)( paloHip ))->reference) ->upperLength + ((IKREC *)((XF *)( paloHip ))->reference) ->lowerLength + 10.0f;
@@ -1607,7 +1607,7 @@ namespace M_JtChooseGroundState {
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), g_clock, g_normalZ
 // 0x0018A8C8 ChooseJtGroundState (curated name)
-inline qword TransformPos(MATRIX4 *matrix, qword pos)
+inline qword TransformPosVu0(MATRIX4 *matrix, qword pos)
 {
     qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
@@ -1979,7 +1979,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                                 *(qword *)&vLocal = D_002BF370;
                             MATRIX3 mat;
                             mat = LoadRotateMatrixRad(jt->unknown1F94 * D_002BF364, D_002A2DA0);
-                            *(qword *)&vTarget = TransformPos(jt->hangHandle->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
+                            *(qword *)&vTarget = TransformPosVu0(jt->hangHandle->GetWorldMatrix(), RotateVecAt(&mat, (qword *)&vLocal));
                         }
                         qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), VuSub(*(qword *)&vTarget, jt->pivotOffset), *(qword *)&jt->physics->gravity);
                         VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->unknown1F98);
