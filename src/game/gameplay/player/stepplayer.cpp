@@ -639,16 +639,12 @@ namespace M_HandleStepplayerMessage {
 // The -1.0f VU_FLOAT's home store (s.q = sv) goes last, so sv stays live in vf5 across the transform and the earlyclobber output lands
 // in vf6 by itself; with the plain asms sched2 orders lh / lqc2 / lqc2 / addu / lw like the target.
 /* g_pdliFirst: sly2/dli.h's declaration (one entity with the inline DLI helpers) */
-#define F(T, p, off) (*(T *)((char *)(p) + (off)))
-struct SO : BASIC { void *parent; void *root; void *p18; };
-struct MSG { struct SO *pso; float g; int k; };
 struct MSGB { void *p0; void *p4; };
-struct ENT { void *po; int x4; };
 extern JT *D_002E1E40 __asm__("D_002E1E40");   /* the hero JT */
 extern float D_002BCC94 __asm__("D_002BCC94");
 void RunJtHurtCallback(void *p) __asm__("RunJtHurtCallback");
 void SetJtThrowState(void *p, int n) __asm__("SetJtThrowState");
-qword GetStepAsegaTranslation(void *p, struct SO *pso, float g) __asm__("GetStepAsegaTranslation");
+qword GetStepAsegaTranslation(void *p, ASEGA *pasega, float g) __asm__("GetStepAsegaTranslation");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 void ReleaseJtThrowObject(void *p) __asm__("ReleaseJtThrowObject");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
@@ -683,9 +679,9 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
 {
     switch (msg) {
     case 3:
-        if (pv == F(void *, player, 0x1030) ||
-            (F(void *, player, 0x1034) != 0 && pv == F(void *, F(void *, player, 0x1034), 0x30))) {
-            F(int, player, 0x1038) = -1;
+        if (pv == AsStepplayer(player)->activeAnimation ||
+            (AsStepplayer(player)->activeStateMachine != 0 && pv == AsStepplayer(player)->activeStateMachine->pasegaCur)) {
+            AsStepplayer(player)->blendSide = -1;
             int hurtState = AsStepplayer(player)->jthurt.state;
             if (hurtState >= 8 && hurtState <= 12) {   // hurt states with a pending callback (inferred)
 
@@ -701,13 +697,13 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
         }
         break;
     case 9: {
-        struct MSG *message = (struct MSG *)pv;
-        if (message->pso->p18 != player)
+        ASEGEVENTMSG *message = (ASEGEVENTMSG *)pv;
+        if (message->asega->rootObject != player)
             break;
-        switch (message->k) {
+        switch (message->event) {
         case 0x15E: {
-            qword v = GetStepAsegaTranslation(player, message->pso, message->g);
-            qword *pm = &F(qword, player, 0x1B0);
+            qword v = GetStepAsegaTranslation(player, message->asega, message->time);
+            qword *pm = AsStepplayer(player)->aqwTarget;
             union {
                 qword q;
                 float f[4];
@@ -720,24 +716,31 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
             {
                 qword qwFqwordp0x190Out;
                 __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwFqwordp0x190Out) : "j"(v), "j"(sv));
-                F(qword, player, 0x190) = qwFqwordp0x190Out;
+                AsStepplayer(player)->localVelocity = qwFqwordp0x190Out;
             }
-            vtable = F(VTE *, player, 0xC);
+#if defined(SLY2_EE_LAYOUT)
+            /* SO::SetVelocity (slot 35) by hand: the entry is loaded before the transform */
+            vtable = *(VTE **)((char *)player + 0xC);
             pthis = (char *)player + vtable[35].d;
             function = (void (*)(void *, qword))vtable[35].pfn;
+#endif
             __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z"
                     : "=&j"(r)
                     : "j"(pm[0]), "j"(v), "j"(pm[1]), "j"(pm[2]));
             s.q = sv;
+#if defined(SLY2_EE_LAYOUT)
             function(pthis, r);
+#else
+            AsStepplayer(player)->SetVelocity(r);
+#endif
             break;
         }
-        case 0x161: F(int, player, 0x1044) = 1; break;
+        case 0x161: AsStepplayer(player)->hasScriptFocus = 1; break;
         case 0x162: {
-            qword v = F(qword, player, 0x1060);
-            F(int, player, 0x1044) = 0;
-            F(qword, player, 0x1070) = VuSub(v, GetLoWorldPos(player));
-            F(int, player, 0x1078) = 0;
+            qword v = AsStepplayer(player)->goalPos;
+            AsStepplayer(player)->hasScriptFocus = 0;
+            AsStepplayer(player)->goalDelta = VuSub(v, GetLoWorldPos(player));
+            ((int *)&AsStepplayer(player)->goalDelta)[2] = 0;   /* z */
             break;
         }
         case 0x27B:
@@ -753,21 +756,21 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
                     if (IsTossableActive(object))
                         TriggerTossable(object);
                 }
-                n = F(int, player, 0x9BC);
-                if (F(void *, player, 0x130C) != 0) {
+                n = AsStepplayer(player)->jtgrab.gadgetId;
+                if (AsStepplayer(player)->pasegGadget != 0) {
                     __asm__("" : : : "$3", "$4"); /* clobber of dead v1/a0 (Claude agent): target keeps n in a1 */
                     if (AsStepplayer(player)->idGadgetOverlay == n) {
                         ReleaseAsega(&AsStepplayer(player)->pasegaGadgetOverlay);
                         AsStepplayer(player)->idGadgetOverlay = -1;
                     } else {
                         ChargeGadgetMp(player);
-                        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f,
+                        ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(AsStepplayer(player)->pasegGadget, player, 0.0f, 8, 1.0f,
                                                               &AsStepplayer(player)->pasegaGadgetOverlay);
-                        AsStepplayer(player)->idGadgetOverlay = F(int, player, 0x9BC);
+                        AsStepplayer(player)->idGadgetOverlay = AsStepplayer(player)->jtgrab.gadgetId;
                     }
                 } else if (n != -1) {
                     ChargeGadgetMp(player);
-                    switch (F(int, player, 0x9BC)) {
+                    switch (AsStepplayer(player)->jtgrab.gadgetId) {
                     case 0xE: SetGuardOverride(&g_sw, 1); break;
                     case 0x15: SetAllGuardsSpecialState(&g_sw, 0x15); break;
                     case 0x17: {
@@ -778,7 +781,7 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
                             SetLoParent(pa, 0, 3);
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
                         while ((po2 = NextDliItem(&dli)) != 0) {
-                            if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == player)
+                            if (((NOISE *)po2)->level == 4 && ((NOISE *)po2)->subject == player)
                                 RemoveNoise(po2);
                         }
                         g_pdliFirst = dli.m_pdliNext;
@@ -787,8 +790,8 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
                     }
                     }
                 }
-                F(void *, player, 0x130C) = 0;
-                F(int, player, 0x9BC) = -1;
+                AsStepplayer(player)->pasegGadget = 0;
+                AsStepplayer(player)->jtgrab.gadgetId = -1;
             }
             break;
         case 0x1C8:
@@ -797,7 +800,7 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
             break;
         case 0x1C7:
             if (AsStepplayer(player)->jtgrab.state == 0xC) {
-                SetAsegaSpeed__FP5ASEGAf(F(void *, player, 0x1030), 1.0f);
+                SetAsegaSpeed__FP5ASEGAf(AsStepplayer(player)->activeAnimation, 1.0f);
                 AttachJtHandsObject(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.grabbedObject);
             }
             break;
@@ -808,22 +811,22 @@ extern "C" void HandleStepplayerMessage(void *player, int msg, void *pv)
         struct MSGB *pm = (struct MSGB *)pv;
         if (pm->p4 == player) {
             int i;
-            F(void *, player, 0x108C) = pm->p0;
-            for (i = 0; i < F(int, player, 0x1094); i++) {
-                void *object = F(struct ENT *, player, 0x1090)[i].po;
+            AsStepplayer(player)->pwater = (WATER *)pm->p0;
+            for (i = 0; i < AsStepplayer(player)->clorefSplash; i++) {
+                void *object = AsStepplayer(player)->alorefSplash[i].plo;
                 AsLo(object)->Add();
-                F(struct ENT *, player, 0x1090)[i].x4 = 0;
+                AsStepplayer(player)->alorefSplash[i].tLast = 0.0f;
             }
         }
         break;
     }
     case 5: {
         struct MSGB *pm = (struct MSGB *)pv;
-        if (pm->p4 == player && pm->p0 == F(void *, player, 0x108C)) {
+        if (pm->p4 == player && pm->p0 == AsStepplayer(player)->pwater) {
             int i;
-            F(void *, player, 0x108C) = 0;
-            for (i = 0; i < F(int, player, 0x1094); i++) {
-                void *object = F(struct ENT *, player, 0x1090)[i].po;
+            AsStepplayer(player)->pwater = 0;
+            for (i = 0; i < AsStepplayer(player)->clorefSplash; i++) {
+                void *object = AsStepplayer(player)->alorefSplash[i].plo;
                 AsLo(object)->Remove();
             }
         }
