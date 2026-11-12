@@ -514,12 +514,43 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   passes a zeroed EXPLSO). Names: XF::segmentEndRate aliases XF::acceleration (+0xF0) for the animated roles;
   CID123 / CID154 / CID119 / CID112 are ROUTE / TICKER / SPAWNER / LAUNCHER. docs/reference/splice-options.md is
   regenerated (the generator reproduced it exactly where it was last generated; later renames had been hand-edited in).
-  Still open after v1.27 (request 12): hurt.cpp SetJtHurtState (P / RIG / INNER / VALUE / CONTROL / C: STEPPLAYER, XF
-  -> CHAINLINK -> CHAIN::gravity, POCTL, JTHURT; Sly's tail XFs JT::unknown19B8 are null and the EE writes through
-  them), TakeJtDamage (P / W / RECORD / C), the hurt callbacks stored into HURTEND as g++ 2.95 PMF records,
-  UpdateJtActiveZap, M_func_001A16C8, PresetJtAccelZap, M_func_001A2160; air.cpp ChooseJtLanding's SHAPE / CURVE /
-  HOOK / MESH (dlCid9) views; hud.cpp FinishSpriteSoundEvent's `lw %0,8(%1)`; CID152 is SNDMGR (same size 0x250,
-  find-sound-object, the dialog / music options), not merged yet.
+  Done in v1.28 (the port's requests 12 / 14, boot-13; every change byte-identical, the class / function renames
+  RENAMED only): hurt.cpp on the header types throughout: SetJtHurtState (JTHURT::stateTime / recoveredTime /
+  stateClips, STEPPLAYER::vecLocalVelocity / canCollect / targetHeading / aqwTarget / controller->leftStickAngle; the tail
+  chains through JT::tailXfs -> XF::plink -> CHAINLINK::chain -> CHAIN::gravity: Sly's model has neither tail transform,
+  so the EE stores through null and the native path skips a missing tail), TakeJtDamage (ZPR, STEP::takesNoDamage,
+  JTGRAB, STEPGUARD::specialState, BOOTY / BOOTYE::dropsOnHit; JTHURT::hitTime / postHitMode / flinchClip /
+  flinchAsega), UpdateJtActiveZap (GLOBSET::flashAmount), PresetJtAccelZap (SOPHYS::gravityq), StartJtKnockback (ZPR;
+  C fallbacks for its VU0 helpers, checked against the microcode on the port's VU interpreter: Intercept's vadda with
+  vf0 adds 1 to w), AddJtHurtCpdefiFlags (CPDEFI); C fallbacks for SetJtHurtState's and TakeJtDamage's asm. The hurt
+  callbacks are passed as SLY2_HURTFN(member, function) (stepplayer.h: HURTFN is g++ 2.95's PMF on the EE, whose bytes
+  are the HURTEND record; elsewhere a HURTEND built from the function, as EOPID_PMF does), and D_002A6790 is a HURTEND.
+  air.cpp ChooseJtLanding on the real grab-spot classes (CID39 / POLESPOT / CID38, RAIL / PIPE / WALLSPOT, HND, CID9
+  with maxDropHeight: GRABSPOT::sBusy / grfPlayers / GetGrabPos, the world lists' own links) and STEPPLAYER / JT / MURRAY
+  / JTAIR (landingParam / landingDistance); its two u = 0 calls keep an EE-only island (GRABSPOT slot 3 declared with
+  the float last, for the argument load order). hud.cpp FinishSpriteSoundEvent's C fallback. grab.cpp
+  RecordJtGrabPlace on JTGRAB / WALLSPOT / CID38 / POLESPOT / BARREL (GRABSPOT::noSafePlace, BARREL::grabRadius) and
+  the floor contact's XP. jt.cpp UpdateJtAttachCorrection (M_func_0018B460) on JT / STEPGUARD::lootPouch (CID99) / XF /
+  ACT5 (its hand-scheduled asm still has no C fallback). Request 14: the stack GSBs (brx_sw.cpp LoadSwFromBrx, sw.cpp
+  InitSwLoadBuffers: GSB, 0x858 natively; InitZpr clears sizeof(GSB)); step.cpp SetStepTargetHeading /
+  FixStepAngularVelocity and guardbhv.cpp UpdateBhvpipe on STEP / STEPGUARD (the PO-relative pads were 8 bytes early
+  natively past STEP's 16-aligned localVelocity union); UpdateBhvwalkpath's kind-3 binding (payload4 is the DIRBL:
+  ae[0].velocity; payload the CID146, pasegaCur); gait.cpp's DIROWNER / DIRACT / DIRSEL are leap.h CID146 (subject,
+  pdirbl, pdireCur, grfapl, isForward / isBackward) and sw.h DIRBL (StartDirAnim's raw stores to BASIC's counted
+  pointers are EE-only: natively they overwrote the vptr); dirblend.cpp (STEPGUARD::lootPouch; a C fallback for the
+  speed read through the truncated pointer); shd.cpp's texture hash tables (0x3FFD * sizeof(void *)); path.cpp
+  FindPathzoneSegmentBlocker (LSG spans, int counts); stepguard.cpp RemoveTargetRecordGuard (sizeof(STEPGUARD *));
+  util.cpp SolveQuadratic (SLY2_FDIV: a = 0 from SmoothValue when fastSpeed == slowSpeed); emitter.cpp / dimitri.cpp
+  call VU_FLOAT(float) / VU_VECTOR(const VECTOR &) as constructors (the EE's struct return and a constructor's this
+  share a0; arm64 passes the result in x8); bomb.cpp HandleBombContact on XPLIST / XP; bhvsearch.cpp
+  ChooseBhvSearchPoints follows each list's own link (NEXT_ON) and reads POLESPOT::sRadius / TARGET::targetKindFlags.
+  frm.cpp (no decomp change): the deferred blip and release lists are freed only by the render thread
+  (ClearPendingFrame); a port that runs headless, or without that thread, has to free them itself.
+  Still open after v1.28: CID152 is SNDMGR (sound.cpp's SNDMGR_ctor stores CID152's vtable) but not merged: class_registry
+  owns the vtable (GetCid152ClassDesc) and emits its vtables in classes.h's declaration order, while sndmgr.h needs sw.h
+  and declares g_sndmgr, so SNDMGR's definition has to move to CID152's place in classes.h first; the asm without C
+  fallbacks in jt.cpp UpdateJtAttachCorrection, gait.cpp SelectDirAnim and air.cpp's other functions; the register
+  pins clang rejects.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
