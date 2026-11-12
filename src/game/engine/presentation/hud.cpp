@@ -56,8 +56,8 @@ char *strcpy(char *, const char *);
 PO *GetHeroPo(SW *psw);
 char *GetReconPendingText(int *pn);
 char *GetReconSelectedText(int *pn);
-void GetSubtitleText(char *pchz, int n);
-void FormatSubtitleButtonGlyphs(char *pchz, int n);
+void GetSubtitleText(char *subtitle, char *buffer);   /* subtitle.cpp: (SPEAKERLABEL *, char *) */
+void FormatSubtitleButtonGlyphs(char *subtitle, char *buffer);
 void SetWidgetRequest(WIDGET *widget, int request);
 void SetWidgetState(WIDGET *widget, int state);
 int HasSpriteAnim(void *pv, SPRITEGRP *group, int id);
@@ -279,16 +279,16 @@ extern "C" void BuildWidgetArgText(void *text, int i, WIDGET *widget)
 
 // 0x211390 BuildSubtitleText
 // HUD text 0x2EF: the current subtitle's text. (inferred)
-extern "C" void BuildSubtitleText(int n)
+extern "C" void BuildSubtitleText(char *buffer)
 {
-    GetSubtitleText(D_004435F0, n);
+    GetSubtitleText(D_004435F0, buffer);
 }
 
 // 0x2113B8 BuildSubtitleButtonText
 // HUD text 0x2F0: the current subtitle's button glyphs. (inferred)
-extern "C" void BuildSubtitleButtonText(int n)
+extern "C" void BuildSubtitleButtonText(char *buffer)
 {
-    FormatSubtitleButtonGlyphs(D_004435F0, n);
+    FormatSubtitleButtonGlyphs(D_004435F0, buffer);
 }
 
 // 0x2113E0 BuildTickerText
@@ -2091,11 +2091,11 @@ extern "C" void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFl
 // 0x2159E0 RenderSpritePayload
 namespace M_func_002159E0 {
 struct S { int id; int kind; };
-void RenderSpriteText(struct S *p, int a, int b, int c) __asm__("RenderSpriteText");
-void RenderSpriteGeometry(struct S *p, int a, int b, int c) __asm__("RenderSpriteGeometry");
-void RenderSpritePicture(struct S *p, int a, int b, int c) __asm__("RenderSpritePicture");
+void RenderSpriteText(struct S *p, void *matrix, void *params, int c) __asm__("RenderSpriteText");
+void RenderSpriteGeometry(struct S *p, void *matrix, void *params, int c) __asm__("RenderSpriteGeometry");
+void RenderSpritePicture(struct S *p, void *matrix, void *params, int c) __asm__("RenderSpritePicture");
 // Renders a queued sprite payload by kind: text, geometry or picture. (inferred)
-extern "C" void RenderSpritePayload(struct S *sprite, int matrix, int params, int channel)
+extern "C" void RenderSpritePayload(struct S *sprite, void *matrix, void *params, int channel)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_TEXT:
