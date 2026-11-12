@@ -41,7 +41,12 @@ ProjectJtVelocityOnContacts and FCheckJtStuck on XP / XPLIST / SOTREE, UpdateJtA
 update's link records, the file-scope XP), step.cpp PresetStepAccel (STEP / XF / MATRIX3Q), path.cpp's obstacle
 `S : XFM` (PATHZONE), mark.cpp, jt.cpp, trail.cpp (SUBGLOB / SUBGLOBX), glob.cpp, hud.cpp, act.cpp; XP / XPS in
 sly2/xp.h; and from the port's request 6: EvaluateKeyedFloatCurve's key, ProjectJtVelocityOnContacts' uptr cursor,
-guardscript.cpp's pointer arguments (section 3 lists what is left).
+guardscript.cpp's pointer arguments (section 3 lists what is left); (v1.22) declarations against their mangled
+signatures (tools/cleanup/signatures/sigcheck.py): operator*(MATRIX4, MATRIX4) defined as the struct-returning C++
+function, hand-passed result pointers bound through `SLY2_SRET_LABEL` (native adapters), bif.cpp's builtins on
+(int, CRef *, CFrame *) with native CRef entries for the C-style ones (`SLY2_BUILTIN_C`), FindSwObject's context and
+other int-typed pointer parameters; from the port's request 8: `SLY2_BSP_NO_LIMIT`, the VU0 microprogram 0x1C0 cull
+in C, LSG's offsets, ConstructLeap's vptr-clobbering stores.
 
 ## 1. Guards and hooks
 
@@ -61,6 +66,9 @@ guardscript.cpp's pointer arguments (section 3 lists what is left).
 | `CStreamBisStorage` (sly2/streambis.h) | room for a CStreamBis without g++'s implicit constructor; the callers call `CStreamBis_ctor` / `_$_10CStreamBis` themselves | provide those two C entry points (or override the two declarations); sizes follow `sizeof(CStreamBis)` | sw.cpp, hud.cpp (the class itself: brx_sw.cpp, memcard.cpp) |
 | EE layout asserts (the `typedef char assert_...[cond ? 1 : -1]` lines) | compile-time checks of the EE offsets and sizes | not true on a 64-bit host: the port rewrites them into a non-failing sink (its own generator) | every sly2/ header, many TUs |
 | `SLY2_GRABSPOT_BASE(T, p)` (sly2/classes.h) | `p` plus the GRABSPOT base offset of T, taken from `static_cast<GRABSPOT *>((T *)0x100)` (folds to sizeof(first base), no null test) | the same expression gives the ABI's offset | the OwnFields accessors (GetPipeOwnFields and the like, GetBarrelOwnFields) (defined at the end of classes.h), grabspot.cpp's InitGrabspot calls |
+| `SLY2_SRET_LABEL(ee, native)` (sly2/port.h) | `__asm__(ee)`: the EE symbol; g++ 2.95 passes a struct result's address as the first argument, so a declaration that writes it out as a pointer parameter (or takes an explicit out-pointer as a struct result) calls the same code | `__asm__(native)`: an adapter next to the definition, outside SLY2_EE_LAYOUT, with the declaration's own spelling (arm64 passes the result address in x8, not x0) | mat.cpp operator* (26 callers, adapter MulMatrix4Into) and BuildRotateVectorsMatrix (7 callers taking the matrix as a struct result, BuildRotateVectorsMatrixValue); basic.cpp EvalExpression (EvalExpressionInto in eval.cpp). The TU defining an adapter must include sly2/port.h before the guard (eval.cpp did not: its native branch compiled on the EE until it did) |
+| `SLY2_BUILTIN_C(sym)` (app/bif.cpp) | nothing: the builtin table calls the C-style body (`CRefData *sym(CRefData *ret, int cref, CRefData *args, CFrame *frame)`) | the body becomes `sym_c` and `sym` is a CRef-returning entry calling it: the type eval.cpp's BIF::function calls through | the 98 C-style builtins in bif.cpp |
+| `SLY2_BSP_NO_LIMIT` (sly2/port.h) | `(~(uptr)0 >> 1)` = 0x7FFFFFFF, the literal the callers passed | the largest positive pointer-sized value: above every heap address (no guard needed) | every BSP walk caller (clip, geom, so, tn, detector, bomb, air, exit_warp, vol, mark, prize, rip, vis, robottank, grab); caller-side declarations take the limit as `uptr` (bsp.cpp's definitions compare `BSP *`) |
 | `EOPID_PMF`, `EOPID_PMFI`, `EOPID_PMFT`, `EOPID_VPMF`, `EOPIDW` (app/class_registry_options.inc) | g++ 2.95 pointers to member functions: `{short delta; short index; pfn or delta2}` | redefine the four macros and `EOPIDW` in the native PMF ABI (Itanium: `{ptr, adj}`, ptr = address or 1 + vtable offset) | class_registry_options.inc (documented next to the macros) |
 
 Why the matching form cannot be the portable one:
@@ -147,6 +155,13 @@ loads and stores) has plain C equivalents:
   (InvertMatrix3Cofactor), renormalises it and rebuilds the plane through its anchor point (InitPlaneFromNormalPos),
   as CloneGeom does; the same kind of assumption about 0x150 (the VU0 harness cannot check it: it models the macro
   instructions, not the microprograms). InitPlaneFromNormalPos itself (bsp.cpp) is still asm only.
+  **VU0 microprogram 0x1C0** (v1.22, the sphere-against-view cull of glob.cpp RenderSoGlobset / SubmitGlobsetRelight
+  and rendertree.cpp CullSceneRenderList): sly2/vu0.h VuCullSphere (C side only) is the microcode as the port
+  transcribed it from .vutext (four side-plane tests, then the range test with a fade band of 400 at its far end;
+  visibility in [0, 1] and centre - camera); glob.cpp's GetSphereVisibility[Sync] and rendertree.cpp's StartCull /
+  WaitCullVisibility / GetCullSphereOffset have #else bodies on it (rendertree keeps the two result registers as file
+  state between the start and the reads). Checked on the host against a hand case only; the VU0 harness does not
+  model microprograms.
 
 Conventions: the C follows the VU0 operation order (one rounding per VU operation: `(a.x b.x + a.y b.y) + a.z b.z`,
 `v * (1 / d)` rather than `v / d`), never fuses (build with `-ffp-contract=off`), and uses IEEE floats; the VU's
@@ -261,6 +276,32 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   `+0xE0` (CID5::grfvis; classes.h still renumbers s_rgba: CID5 needs a narrower header, CID5 : XFM); POSE / RENDER;
   prog.cpp's own FRM view; the header pads in GRABSPOT users (HND, PIPE, RAIL), CID96 (critter.cpp), JSG
   (robottank.cpp) and JOY (grab.cpp) that the fuller inventory now reports.
+  Done in v1.22 (every change byte-identical): signatures (tools/cleanup/signatures/sigcheck.py, worst-class
+  declarations 1468 -> 1298, cross-declaration conflicts 360 -> 276; int-vs-pointer 195 -> 85, wrong-count 122 -> 26, struct-return 25 -> 9 plus 10
+  sret-adapted): operator*(MATRIX4, MATRIX4) is the C++ function (NRV body), its 26 hand-passed-pointer callers and
+  BuildRotateVectorsMatrix's 7 struct-result callers bind through SLY2_SRET_LABEL, basic.cpp's EvalExpression too;
+  bif.cpp's builtins all take (int cref, CRef *args, CFrame *frame) and the 98 C-style ones have native CRef entries
+  (SLY2_BUILTIN_C); FindSwObject / FindSwObjectByClass's context LO * (12 declarations), EnsureAsegBlendDynamic's
+  int * outputs, CreateLo's parent SO *, SmoothValue's float *, ClampToLimits / IsWithinLimits' LM *, the option
+  forwarders (BASIC *, int). From the port's request 8: SLY2_BSP_NO_LIMIT (25 call sites, limit parameters uptr);
+  VU0 microprogram 0x1C0 in C (section 2); sly2/lsg.h's offsets from lsgk on (+0x48, apsurf +0x4C), and the LSG views
+  of mark, shape, water, guardbhv, bentley, grab, jt and gadget replaced by it (views pass); the file-scope XP copies
+  of gadget, hurt, jtgoal and places replaced by xp.h; gait.cpp ConstructLeap no longer clears LEAPV's +0 / +4 words
+  after storing the vptr (natively they were the vptr: STEPGUARD's embedded LEAP had a null vtable in
+  StartAnimBinding).
+  Still open after v1.22: mangled names in the config that do not describe the Sly 2 function (sigcheck flags them
+  whatever the declarations say): BuildRotateVectorsMatrix (qword arguments, out-pointer first, as in Sly 1's mangled name), InitZpr (callers pass two sizes), CalculateEmitdvMatrix; brx.cpp's five-argument
+  FindSwObject form and sw.cpp's two three-argument forms (the caller leaves a3 as it is); the hidden-pointer
+  forms that are consistent with their definition (BuiltinObjectOption / BuiltinSetCadr, CompareNumericArgs,
+  ApplyUnaryFloatOp, EnsureBasicOption); the wrong-type views of STACKSCOPE, CRefPtr<CPair>::Attach,
+  DecomposeRotateMatrixRad and NormalizeRotateMatrix3 (local record types with the same ABI); the SDK's
+  snd_SendIOPCommand* (not built here). Port request 8 left: DriveStepguardFromAnim / UpdateStepPhys C versions,
+  RenderStepguardSelf's offsets, prize CHANNEL (targets.json says XF; the stamp word and the +0x3C store are not
+  mapped), path planning views, emitter EXPLS / EMITP, AddXp / FindShapeClosestPoint / bhvstk int pointers, button /
+  rail / pipe, blip.cpp and the remaining glob / rendertree views, StartLeap's memset(0x70). Views: air.cpp CONTEXT
+  `tracks[i]` (the two CONTEXT views disagree on TRACK's members; needs a hand rewrite of the whole view), step.cpp
+  AddStepAxisXps' local SO, the XP copies in mark, solve, rip, step, bentley, stepplayer, robottank, sensor, grab, jt
+  (so xp.h is not in so.h yet), POSE / RENDER, cm.cpp SetCmVisZone's +0xE0.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
