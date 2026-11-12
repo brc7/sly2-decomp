@@ -1,7 +1,7 @@
-// spawner.cpp -- the guard spawner (CID119, cid 0x77, an LO of 0xB0 bytes). It keeps spawn selectors (an LO spot,
+// spawner.cpp -- the guard spawner (SPAWNER, cid 0x77, an LO of 0xB0 bytes). It keeps spawn selectors (an LO spot,
 // a small spot, or a curve sampled along its length), guard templates and test offsets, and a fixed number of
 // spawned-guard slots; every few seconds it picks a free slot and a spawn point the camera cannot see (screen
-// rectangle, distance, line of sight from the camera) and clones a guard there. Entry points: the CID119 slots
+// rectangle, distance, line of sight from the camera) and clones a guard there. Entry points: the SPAWNER slots
 // (Init, LoadSpawnerFromBrx, PostSpawnerLoad, UpdateSpawner, RemoveSpawnerHierarchy) and the Splice options
 // AddSpawner*. VU0 and EE asm; GetSpawnPointConcealment, UpdateSpawner, UpdateSpawnerEntries and
 // ChooseSpawnerSpawnPoint are hand-tuned (register pins, allocation-only operands).
@@ -31,7 +31,7 @@ struct M4 { qwordV r[4]; };
 struct SCOPE { int a[4]; };
 struct AI { int cb; int align; };
 
-/* The spawner is classes.h CID119 (SPAWNSELECTOR, SPAWNENTRY), its guards STEPGUARD. */
+/* The spawner is classes.h SPAWNER (SPAWNSELECTOR, SPAWNENTRY), its guards STEPGUARD. */
 /* Spawn selector kinds (SPAWNSELECTOR::kind). */
 enum { SELECTOR_SPOT = 0, SELECTOR_CURVE = 1, SELECTOR_SMALL_SPOT = 2 };
 /* Most selectors, templates and test offsets a spawner holds. */
@@ -68,12 +68,12 @@ float D_002BE5F0[2]={-350.0f,100.0f};
 extern "C" {
 extern const float D_002A53E0;   /* defined below where the ELF has it (.rodata order) */
 extern LM g_lmZeroOne;
-void InitLo(CID119 *p);
-void LoadLoFromBrx(CID119 *p, void *pbis);
-void PostLoLoad(CID119 *p);
-void UpdateLo(CID119 *p);
-void RemoveLoHierarchy(CID119 *p);
-void SetLoBusyKind(CID119 *p, int n);
+void InitLo(SPAWNER *p);
+void LoadLoFromBrx(SPAWNER *p, void *pbis);
+void PostLoLoad(SPAWNER *p);
+void UpdateLo(SPAWNER *p);
+void RemoveLoHierarchy(SPAWNER *p);
+void SetLoBusyKind(SPAWNER *p, int n);
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 void *AllocClearedFromStack(AI *pa);
@@ -102,26 +102,26 @@ M3 BuildAxisAngleRotationMatrix(float, qwordV);
 STEPGUARD *AcquireProxyObject(void *p, int n);
 void *FindStepBehavior(STEPGUARD *r, int n);
 void SetBhvguardMode(void *o, BHVGUARDRECDATA *f);
-void AddSpawnerOffset(CID119 *p, qwordV q);
+void AddSpawnerOffset(SPAWNER *p, qwordV q);
 int IsInScreenRect(qwordV v, float r);
 int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void));
-int GetSpawnPointConcealment(CID119 *p, qwordV pos, int count, void **objects, float distance);
-void ReleaseSpawnerEntry(CID119 *p, SPAWNENTRY *pe, int k, int f);
-qwordV GetSpawnerFocusPosition(CID119 *p);
-void UpdateSpawnerEntries(CID119 *p, qwordV pos);
-SPAWNENTRY *FindFreeSpawnerEntry(CID119 *p, LO *object);
-SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped);
-STEPGUARD *SpawnGuardFromSpawner(CID119 *spawner, SPAWNSELECTOR *selector, qwordV *position, M3 *rotation, int isFlipped);
+int GetSpawnPointConcealment(SPAWNER *p, qwordV pos, int count, void **objects, float distance);
+void ReleaseSpawnerEntry(SPAWNER *p, SPAWNENTRY *pe, int k, int f);
+qwordV GetSpawnerFocusPosition(SPAWNER *p);
+void UpdateSpawnerEntries(SPAWNER *p, qwordV pos);
+SPAWNENTRY *FindFreeSpawnerEntry(SPAWNER *p, LO *object);
+SPAWNSELECTOR *ChooseSpawnerSpawnPoint(SPAWNER *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped);
+STEPGUARD *SpawnGuardFromSpawner(SPAWNER *spawner, SPAWNSELECTOR *selector, qwordV *position, M3 *rotation, int isFlipped);
 }
 float RandomFloatInRange(float gMin, float gMax);
 int RandomIntInRange(int nMin, int nMax);
 CID113 *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
-// 0x173158: Spawner (CID119) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
+// 0x173158: Spawner (SPAWNER) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
 // 1, respawn delays 30 and 50 s.
-void CID119::Init()
+void SPAWNER::Init()
 {
-    CID119 *spawner = this;
+    SPAWNER *spawner = this;
     InitLo(spawner);
     spawner->planarRange = 5500.0f;
     spawner->useEdgeTest = spawner->useOcclusionTest = spawner->useRangeTest = 1;
@@ -133,7 +133,7 @@ void CID119::Init()
 static inline AI *SetAi(AI *request, int size, int align) { request->cb = size; request->align = align; return request; }
 // 0x1731B8: Spawner vtable slot 14 (LoadFromBrx): preallocates the selector, template and offset arrays at their
 // maximum sizes, loads the LO (Splice options fill them), then shrinks them.
-extern "C" void LoadSpawnerFromBrx(CID119 *spawner, void *bis) {
+extern "C" void LoadSpawnerFromBrx(SPAWNER *spawner, void *bis) {
     SCOPE scope;
     AI request;
     STACKSCOPE_ctor(&scope);
@@ -153,7 +153,7 @@ extern "C" void LoadSpawnerFromBrx(CID119 *spawner, void *bis) {
 }
 
 // 0x1732E0: Splice option: appends a spawn selector of kind 0 (an LO spot) by oid (at most 128).
-extern "C" void AddSpawnerLoSpot(CID119 *spawner, int oid)
+extern "C" void AddSpawnerLoSpot(SPAWNER *spawner, int oid)
 {
     int count = spawner->selectorCount;
     if (count < MAX_SELECTORS) {
@@ -166,7 +166,7 @@ extern "C" void AddSpawnerLoSpot(CID119 *spawner, int oid)
 }
 
 // 0x173318: Splice option: appends a spawn selector of kind 1 (a curve, sampled along its length).
-extern "C" void AddSpawnerCurve(CID119 *spawner, int oid)
+extern "C" void AddSpawnerCurve(SPAWNER *spawner, int oid)
 {
     int count = spawner->selectorCount;
     if (count < MAX_SELECTORS) {
@@ -179,7 +179,7 @@ extern "C" void AddSpawnerCurve(CID119 *spawner, int oid)
 }
 
 // 0x173358: Splice option: appends a spawn selector of kind 2 (an LO spot tested with the minimum radius).
-extern "C" void AddSpawnerSmallLoSpot(CID119 *spawner, int oid)
+extern "C" void AddSpawnerSmallLoSpot(SPAWNER *spawner, int oid)
 {
     int count = spawner->selectorCount;
     if (count < MAX_SELECTORS) {
@@ -192,7 +192,7 @@ extern "C" void AddSpawnerSmallLoSpot(CID119 *spawner, int oid)
 }
 
 // 0x173398: Splice option: appends a guard template object (at most 8).
-extern "C" void AddSpawnerTemplate(CID119 *spawner, LO *guardTemplate)
+extern "C" void AddSpawnerTemplate(SPAWNER *spawner, LO *guardTemplate)
 {
     if (spawner->templateCount < MAX_TEMPLATES) {
         spawner->templates[spawner->templateCount++] = guardTemplate;
@@ -202,7 +202,7 @@ extern "C" void AddSpawnerTemplate(CID119 *spawner, LO *guardTemplate)
 // 0x1733C8: Splice option: appends a test offset (at most 16): points around a spawn point that must also be hidden
 // from the camera.
 // (Register-pinned, and the store spelled as byte arithmetic, for the match.)
-extern "C" void AddSpawnerOffset(CID119 *spawner, qwordV offset)
+extern "C" void AddSpawnerOffset(SPAWNER *spawner, qwordV offset)
 {
     register int newCount __asm__("$3");
     register int count __asm__("$6");
@@ -221,7 +221,7 @@ extern "C" void AddSpawnerOffset(CID119 *spawner, qwordV offset)
 // 0x1733F8: Spawner vtable slot 15 (PostLoad): resolves the selector oids; for curves creates a guard script (cid
 // 0x71) with a goto; allocates the per-slot entries and registers for updates.
 // Also known as: StartSpawner (upstream readable / Sly 1 name; StartSpawner__FP2SW).
-extern "C" void PostSpawnerLoad(CID119 *spawner) {
+extern "C" void PostSpawnerLoad(SPAWNER *spawner) {
     int i;
     AI al;
     uptr f;
@@ -359,7 +359,7 @@ static inline float Z(qwordV a)
 static inline int TooFar(qwordV a,float limit){return limit<Len2(a);}
 // 0x173768: Camera concealment of a spawn point: 0 if it is visible (or too far / behind / off screen: unusable),
 // else 1 at the screen edge, 2 out of the planar range, 3 occluded.
-extern "C" int GetSpawnPointConcealment(CID119 *spawner, qwordV pos, int count, void **objects, float distance)
+extern "C" int GetSpawnPointConcealment(SPAWNER *spawner, qwordV pos, int count, void **objects, float distance)
 {
     // (Register pins and the U unions reproduce the original's register and stack use.)
     register int numObjects asm("$19") = count;
@@ -400,7 +400,7 @@ extern "C" int GetSpawnPointConcealment(CID119 *spawner, qwordV pos, int count, 
 // 0x173928: Ends a spawned-guard slot: kind 0 removes the guard (vtable slot 9, RemoveLo), kind 1 arms a respawn
 // delay; decrements the live count.
 // Also known as: ReleaseSlot (upstream readable / Sly 1 name; ReleaseSlot__FP7SPAWNERP4SLOTii).
-extern "C" void ReleaseSpawnerEntry(CID119 *spawner, SPAWNENTRY *slot, int status, int keepSelectorReady) {
+extern "C" void ReleaseSpawnerEntry(SPAWNER *spawner, SPAWNENTRY *slot, int status, int keepSelectorReady) {
     slot->status = status;
     switch (status) {
     case ENTRY_FREE:
@@ -425,7 +425,7 @@ extern "C" void ReleaseSpawnerEntry(CID119 *spawner, SPAWNENTRY *slot, int statu
 
 // 0x173A18: Returns the focus position the spawner works from: the current player's position, or the camera's.
 // Also known as: PosCenter (upstream readable / Sly 1 name; PosCenter__Fv).
-extern "C" qwordV GetSpawnerFocusPosition(CID119 *spawner)
+extern "C" qwordV GetSpawnerFocusPosition(SPAWNER *spawner)
 {
     void *world = &g_sw;
     if (GetHeroPo(world))
@@ -447,7 +447,7 @@ static inline float DistanceXY(qwordV a, qwordV b)
 // 0x173A68: Spawner vtable slot 16 (Update): periodically, when a slot is free (and gated by the player's last
 // alert event), spawns a guard at a concealed spawn point, aims it at the player and sends it message 0x19.
 // Also known as: UpdateSpawner (upstream readable / Sly 1 name; UpdateSpawner__FP2LO).
-extern "C" void UpdateSpawner(CID119 *spawner)
+extern "C" void UpdateSpawner(SPAWNER *spawner)
 {
     U point;
     M3 rotation;
@@ -550,7 +550,7 @@ static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
 // 0x173D18: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough away.
 // Also known as: CheckSlots (upstream readable / Sly 1 name; CheckSlots__FP7SPAWNERG9VU_VECTOR).
-extern "C" void UpdateSpawnerEntries(CID119 *spawner, qwordV pos) {
+extern "C" void UpdateSpawnerEntries(SPAWNER *spawner, qwordV pos) {
     int i;
     for (i = 0; i < spawner->entryCapacity; i++) {
         SPAWNENTRY *entry = &spawner->entries[i];
@@ -576,7 +576,7 @@ extern "C" void UpdateSpawnerEntries(CID119 *spawner, qwordV pos) {
 
 // 0x173E78: Picks the slot to use: the oldest free one, or the oldest occupied one past the timeout.
 // Also known as: PslotChoose (upstream readable / Sly 1 name; PslotChoose__FP7SPAWNERi).
-extern "C" SPAWNENTRY *FindFreeSpawnerEntry(CID119 *spawner, LO *object) {
+extern "C" SPAWNENTRY *FindFreeSpawnerEntry(SPAWNER *spawner, LO *object) {
     float oldestActiveTime = g_clock.time - D_002BE5E0; // occupied slots must be older than this
     float oldestReadyTime = g_clock.time;
     SPAWNENTRY *best = 0;
@@ -653,7 +653,7 @@ namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.4
 // 0x173F18: Picks the nearest usable spawn selector (LO spot or curve sample) where every test offset point is
 // concealed from the camera; returns its position.
 // Also known as: PsrcChoose (upstream readable / Sly 1 name; PsrcChoose__FP7SPAWNERG9VU_VECTORP6VECTORP7MATRIX3Pi).
-extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped)
+extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(SPAWNER *spawner, qwordV pos, qwordV *outPosition, M3 *outRotation, int *outIsFlipped)
 {
     SCOPE frame;
     union { VECTOR4 v; qwordV q; } bestPosition;
@@ -778,7 +778,7 @@ extern "C" SPAWNSELECTOR *ChooseSpawnerSpawnPoint(CID119 *spawner, qwordV pos, q
 // 0x174490: Spawns a guard from a template at the chosen point (clone and activate) and optionally sets its root
 // behaviour mode.
 // Also known as: PloSpawn (upstream readable / Sly 1 name; PloSpawn__FP7SPAWNERP6SOURCEP6VECTORii).
-extern "C" STEPGUARD *SpawnGuardFromSpawner(CID119 *spawner, SPAWNSELECTOR *selector, qwordV *position, M3 *rotation, int isFlipped) {
+extern "C" STEPGUARD *SpawnGuardFromSpawner(SPAWNER *spawner, SPAWNSELECTOR *selector, qwordV *position, M3 *rotation, int isFlipped) {
     STEPGUARD *guard = 0;
     int kind;
     switch (selector->kind) {
@@ -828,7 +828,7 @@ extern "C" STEPGUARD *SpawnGuardFromSpawner(CID119 *spawner, SPAWNSELECTOR *sele
 
 // 0x1746B8: Spawner vtable slot 12 (RemoveHierarchy): LO base, then releases every active slot.
 // Also known as: OnRemoveSpawner (upstream readable / Sly 1 name; OnRemoveSpawner__FP2LO).
-extern "C" void RemoveSpawnerHierarchy(CID119 *spawner) {
+extern "C" void RemoveSpawnerHierarchy(SPAWNER *spawner) {
     int i;
     RemoveLoHierarchy(spawner);
     if (!spawner->entries) return;

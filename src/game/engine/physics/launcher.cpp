@@ -1,7 +1,7 @@
 // launcher.cpp -- launchers (CID 112, an LO): objects that throw another object toward a target point.
 // Role: computes launch velocities (a ballistic arc at a chosen elevation, or the velocity that covers a distance
 // in a given time under gravity) and launches an SO from a launcher with prediction, offset, class-specific
-// velocity and random spin. Entry points: CID112::Init, LaunchSoFromLauncher, CalculateBallisticLaunchVelocity,
+// velocity and random spin. Entry points: LAUNCHER::Init, LaunchSoFromLauncher, CalculateBallisticLaunchVelocity,
 // CalculateVelocityToReachPos. VU0 macro-mode asm.
 // TU 0x1D6848..0x1D7238 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_launcher
@@ -21,7 +21,7 @@ float sinf(float);
 float atan2f(float, float);
 float tanf(float);
 float cosf(float);
-void InitLo(CID112 *p);
+void InitLo(LAUNCHER *p);
 }
 extern qwordV g_normalZ, D_002A2DD0;
 
@@ -129,7 +129,7 @@ static inline void SetClq(CLQ *pclq, float g0, float g1, float g2) { pclq->g0 = 
 namespace RO_ORDER { extern const float r_D_002A7874 __asm__("D_002A7874") = 3.40282347e+38f; }
 // Initialise a launcher: base LO init, zero prediction curve with range [0, FLT_MAX], offset curve (0, 1, 0) with
 // range [0, FLT_MAX], and pitch 0.5.
-void CID112::Init() { CID112 *launcher = this;
+void LAUNCHER::Init() { LAUNCHER *launcher = this;
     InitLo(launcher);
     SetClq(&launcher->clqPredict, 0, 0, 0);
     launcher->lmPredict.minValue = 0;
@@ -192,7 +192,7 @@ struct SOV : LOV {
     virtual void V73(); virtual void V74(); virtual void V75(); virtual void V76(); virtual void V77();
     virtual void SetTarget(SOV *psoSource, const VECTOR4V &posTarget); // 78
 };
-typedef CID112 LAUNCH;   /* classes.h */
+typedef LAUNCHER LAUNCH;   /* classes.h */
 extern XFV D_002C44F0;           // identity frame
 extern qwordV D_002A2DA0;        // default direction
 extern "C" {

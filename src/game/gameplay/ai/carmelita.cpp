@@ -41,7 +41,7 @@ struct SW;
 struct ALLOCREQ { int cb, cbAlign; };
 struct SCOPE { int a[4]; };
 
-/* The route is classes.h CID123 (stations: ROUTESTATION), Carmelita is CARMELITA, the behaviour is BHV182; the
+/* The route is classes.h ROUTE (stations: ROUTESTATION), Carmelita is CARMELITA, the behaviour is BHV182; the
    sub-behaviours it pushes are BHVIDLE, BHVWALKPATH, BHVLEAP and BHVATTACK. */
 /* The hero's record at STEP +0x258 while hanging (UpdateBhvRouteChase): its points (STEP types it SOPART*). */
 struct PATH { char pad[0x90]; int c; qword *av; };
@@ -70,8 +70,8 @@ SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 ROUTESTATION *AllocClearedFromStack(ALLOCREQ *preq);
 ROUTESTATION *AllocCopyFromWorldHeap(ALLOCREQ *preq, ROUTESTATION *pv);
-void LoadLoFromBrx(CID123 *proute, void *pbis);
-void PostLoLoad(CID123 *proute);
+void LoadLoFromBrx(ROUTE *proute, void *pbis);
+void PostLoLoad(ROUTE *proute);
 SHAPE *NewSampledShape(int oid, int c);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *object);
 qword GetLoWorldPos(void *p);
@@ -138,7 +138,7 @@ static inline void InitS(ALLOCREQ *ps, int a, int b)
 }
 // 0x14A008: ROUTE (cid 0x7B) vtable slot 14 (LoadFromBrx): loads into a 256-entry stack table filled by the
 // AddRoutePoint Splice option, then copies the used part to the heap.
-extern "C" void LoadRouteFromBrx(CID123 *route, void *pbis)
+extern "C" void LoadRouteFromBrx(ROUTE *route, void *pbis)
 {
     SCOPE f;
     ALLOCREQ s;
@@ -154,9 +154,9 @@ extern "C" void LoadRouteFromBrx(CID123 *route, void *pbis)
 // 0x14A0A8: ROUTE vtable slot 15 (PostLoad): LO post-load, then builds the route's path shape (kind 0x62C) from its
 // points.
 // Also known as: PostLoadChasegraph (upstream readable / Sly 1 name; PostLoadChasegraph__FP2LO).
-void CID123::PostLoad()
+void ROUTE::PostLoad()
 {
-    CID123 *route = this;
+    ROUTE *route = this;
     int i;
     PostLoLoad(route);
     route->shape = NewSampledShape(0x62C, route->stationCount);
@@ -174,7 +174,7 @@ void CID123::PostLoad()
 }
 
 // 0x14A178: Splice option: appends a route point {oid, kind} (at most 256).
-extern "C" void AddRoutePoint(CID123 *route, int k, int oid)
+extern "C" void AddRoutePoint(ROUTE *route, int k, int oid)
 {
     int c = route->stationCount;
     if (c < 0x100) {

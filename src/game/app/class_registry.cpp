@@ -2627,7 +2627,7 @@ extern "C" ASEGBL *NewAsegbl() { return new ASEGBL; }
 
 extern "C" SM *NewSm() { return new SM; }
 
-extern "C" CID112 *NewCid112() { return new CID112; }
+extern "C" LAUNCHER *NewCid112() { return new LAUNCHER; }
 
 extern "C" CID113 *NewCid113() { return new CID113; }
 
@@ -2641,7 +2641,7 @@ extern "C" NOISETYPE *NewCid117() { return new NOISETYPE; }
 
 extern "C" CID118 *NewCid118() { return new CID118; }
 
-extern "C" CID119 *NewCid119() { return new CID119; }
+extern "C" SPAWNER *NewCid119() { return new SPAWNER; }
 
 extern "C" CID120 *NewCid120() { return new CID120; }
 
@@ -2649,7 +2649,7 @@ extern "C" CID121 *NewCid121() { return new CID121; }
 
 extern "C" CID122 *NewCid122() { return new CID122; }
 
-extern "C" CID123 *NewCid123() { return new CID123; }
+extern "C" ROUTE *NewCid123() { return new ROUTE; }
 
 extern "C" PATHLINK *NewPathlink() { return new PATHLINK; }
 
@@ -2693,7 +2693,7 @@ extern "C" CID146 *NewCid146() { return new CID146; }
 
 extern "C" JSG *NewJsg() { return new JSG; }
 
-extern "C" CID154 *NewCid154() { return new CID154; }
+extern "C" TICKER *NewCid154() { return new TICKER; }
 
 extern "C" BHV *NewBhv() { return new BHV; }
 
@@ -3097,7 +3097,7 @@ CLASSINFO *CID152::GetClassInfo() { return &D_002BAAE8[152]; }
 
 CLASSINFO *JSG::GetClassInfo() { return &D_002BAAE8[153]; }
 
-CLASSINFO *CID154::GetClassInfo() { return &D_002BAAE8[154]; }
+CLASSINFO *TICKER::GetClassInfo() { return &D_002BAAE8[154]; }
 
 extern "C" CLASSINFO *GetBhvClassDesc() { return &D_002BAAE8[155]; }
 
@@ -3335,18 +3335,18 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[2], 109, 111, sizeof(ASEG), (PFNNEW)NewAseg}, /* Aseg */
     {&D_002BAAE8[109], 110, 111, sizeof(ASEGBL), (PFNNEW)NewAsegbl}, /* Asegbl */
     {&D_002BAAE8[2], 111, 112, sizeof(SM), (PFNNEW)NewSm}, /* Sm */
-    {&D_002BAAE8[2], 112, 113, sizeof(CID112), (PFNNEW)NewCid112}, /* Cid112 */
+    {&D_002BAAE8[2], 112, 113, sizeof(LAUNCHER), (PFNNEW)NewCid112}, /* Cid112 */
     {&D_002BAAE8[2], 113, 114, sizeof(CID113), (PFNNEW)NewCid113}, /* Cid113 */
     {&D_002BAAE8[2], 114, 115, sizeof(RELAY), (PFNNEW)NewRelay}, /* Relay */
     {&D_002BAAE8[2], 115, 116, sizeof(WR), (PFNNEW)NewWr}, /* Wr */
     {&D_002BAAE8[2], 116, 117, sizeof(SCREENFADE), (PFNNEW)NewCid116}, /* Cid116 */
     {&D_002BAAE8[2], 117, 118, sizeof(NOISETYPE), (PFNNEW)NewCid117}, /* Cid117 */
     {&D_002BAAE8[2], 118, 119, sizeof(CID118), (PFNNEW)NewCid118}, /* Cid118 */
-    {&D_002BAAE8[2], 119, 120, sizeof(CID119), (PFNNEW)NewCid119}, /* Cid119 */
+    {&D_002BAAE8[2], 119, 120, sizeof(SPAWNER), (PFNNEW)NewCid119}, /* Cid119 */
     {&D_002BAAE8[2], 120, 121, sizeof(CID120), (PFNNEW)NewCid120}, /* Cid120 */
     {&D_002BAAE8[2], 121, 122, sizeof(CID121), (PFNNEW)NewCid121}, /* Cid121 */
     {&D_002BAAE8[2], 122, 123, sizeof(CID122), (PFNNEW)NewCid122}, /* Cid122 */
-    {&D_002BAAE8[2], 123, 124, sizeof(CID123), (PFNNEW)NewCid123}, /* Cid123 */
+    {&D_002BAAE8[2], 123, 124, sizeof(ROUTE), (PFNNEW)NewCid123}, /* Cid123 */
     {&D_002BAAE8[2], 124, 125, sizeof(PATHLINK), (PFNNEW)NewPathlink}, /* Pathlink */
     {&D_002BAAE8[2], 125, 126, sizeof(GUARDMGR), (PFNNEW)NewCid125}, /* Cid125 */
     {&D_002BAAE8[2], 126, 132, sizeof(WIDGET), (PFNNEW)NewWidget}, /* Widget */
@@ -3377,7 +3377,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[0], 151, 152, sizeof(CID151), 0}, /* Cid151 */
     {&D_002BAAE8[0], 152, 153, sizeof(CID152), 0}, /* Cid152 */
     {&D_002BAAE8[0], 153, 154, sizeof(JSG), (PFNNEW)NewJsg}, /* Jsg */
-    {&D_002BAAE8[0], 154, 155, sizeof(CID154), (PFNNEW)NewCid154}, /* Cid154 */
+    {&D_002BAAE8[0], 154, 155, sizeof(TICKER), (PFNNEW)NewCid154}, /* Cid154 */
     {&D_002BAAE8[0], 155, 199, sizeof(BHV), (PFNNEW)NewBhv}, /* Bhv */
     {&D_002BAAE8[155], 156, 157, sizeof(BHVGUARD), (PFNNEW)NewBhvguard}, /* Bhvguard */
     {&D_002BAAE8[155], 157, 164, sizeof(BHVANIM), (PFNNEW)NewBhvanim}, /* Bhvanim */

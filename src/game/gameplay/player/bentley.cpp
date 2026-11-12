@@ -743,7 +743,7 @@ void LaunchSoFromLauncher(struct Q *, SO *) __asm__("LaunchSoFromLauncher");
 void PrimeBomb__FP4BOMBf(SO *, float) __asm__("PrimeBomb__FP4BOMBf");
 void SetBentleyAimState(BENTLEY *, int) __asm__("SetBentleyAimState");
 // Fires the binocucom crossbow dart: clones the selected projectile template and launches it from the launcher
-// (CID112) toward the aim point. (runtime-verified: the dart, not a bomb)
+// (LAUNCHER) toward the aim point. (runtime-verified: the dart, not a bomb)
 extern "C" void FireBentleyDart(BENTLEY *bentley, int a) {
     PROXY *pv;
     SO *object;

@@ -22,7 +22,7 @@
 #ifndef SLY2_CLASSES_H
 #define SLY2_CLASSES_H
 /* The headers and the first classes in the order class_registry (their key TU) emits its vtables, the reverse of
-   0x2C8940..0x2CA550's order: CID152, CM, CID154, ASEGBL, CID149 and CID150 (so.h), POCTL (po.h), EXPLO
+   0x2C8940..0x2CA550's order: CID152, CM, TICKER, ASEGBL, CID149 and CID150 (so.h), POCTL (po.h), EXPLO
    (emitter.h), then GUARD and the rest below. */
 #include "sly2/basic.h"
 #include "sly2/lo.h"
@@ -37,13 +37,13 @@ typedef char assert_CID152_size[sizeof(CID152) == 0x250 ? 1 : -1];
 
 #include "sly2/cm.h"
 
-/* 154 CID154 (0x30): ticker / hint box (find-ticker-object~); vtable 0x2CA490, 6 slots */
-struct CID154 : BASIC
+/* 154 TICKER (was CID154; 0x30): ticker / hint box (find-ticker-object~); vtable 0x2CA490, 6 slots */
+struct TICKER : BASIC
 {
     char pad10[0x30 - 0x10];
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid154ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID154_size[sizeof(CID154) == 0x30 ? 1 : -1];
+typedef char assert_CID154_size[sizeof(TICKER) == 0x30 ? 1 : -1];
 
 #include "sly2/aseg.h"
 #include "sly2/so.h"
@@ -527,7 +527,7 @@ struct CID20 : XFM
 };
 typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
 
-/* A station of a CID123 route (12 bytes): its kind (0 walk to it, 1 leap to it), the oid of its object, the object. */
+/* A station of a ROUTE route (12 bytes): its kind (0 walk to it, 1 leap to it), the oid of its object, the object. */
 struct ROUTESTATION
 {
     int kind;               /* +0x0 */
@@ -536,8 +536,8 @@ struct ROUTESTATION
 };
 typedef char assert_ROUTESTATION_size[sizeof(ROUTESTATION) == 0xC ? 1 : -1];
 
-/* 123 CID123 (0x60): 256-point route (ROUTE, cid 0x7B: Carmelita's stations, carmelita.cpp); vtable 0x2CCF10, 48 slots */
-struct CID123 : LO
+/* 123 ROUTE (was CID123; 0x60): 256-point route (ROUTE, cid 0x7B: Carmelita's stations, carmelita.cpp); vtable 0x2CCF10, 48 slots */
+struct ROUTE : LO
 {
     int isReversed;         /* +0x50 1: distances along the route count the other way */
     int stationCount;       /* +0x54 */
@@ -547,14 +547,14 @@ struct CID123 : LO
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid123ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRouteFromBrx");   /* slot 14 */
 };
-typedef char assert_CID123_size[sizeof(CID123) == 0x60 ? 1 : -1];
+typedef char assert_CID123_size[sizeof(ROUTE) == 0x60 ? 1 : -1];
 
 /* 182 BHV182 (0x50): keep pace on route; vtable 0x2CCE90, 14 slots */
 struct BHV182 : BHV
 {
     int state;              /* +0x30 0 at a station, 1 walking, 2 leaping/recovering, 3 attacking, 4 hands-off */
     float stateTime;        /* +0x34 */
-    CID123 *route;          /* +0x38 [S] the mode's object (SetBhvguardMode): the route */
+    ROUTE *route;          /* +0x38 [S] the mode's object (SetBhvguardMode): the route */
     int currentStation;     /* +0x3C the station the guard is at */
     int targetStation;      /* +0x40 the station to go to */
     CID120 *attack;         /* +0x44 */
@@ -901,7 +901,7 @@ struct BHV171 : BHV
 };
 typedef char assert_BHV171_size[sizeof(BHV171) == 0xE0 ? 1 : -1];
 
-/* A spawn selector of CID119 (0x1C bytes, spawner.cpp): kind 0 an LO spot, 1 a curve (walked with a one-command
+/* A spawn selector of SPAWNER (0x1C bytes, spawner.cpp): kind 0 an LO spot, 1 a curve (walked with a one-command
    script), 2 a small LO spot. */
 struct SPAWNSELECTOR
 {
@@ -914,7 +914,7 @@ struct SPAWNSELECTOR
     float busyUntil;        /* +0x18 */
 };
 typedef char assert_SPAWNSELECTOR_size[sizeof(SPAWNSELECTOR) == 0x1C ? 1 : -1];
-/* A spawned-guard slot of CID119 (0x30 bytes): status 0 free (ready at readyTime), 1 waiting for the player to move
+/* A spawned-guard slot of SPAWNER (0x30 bytes): status 0 free (ready at readyTime), 1 waiting for the player to move
    away before re-arming. */
 struct SPAWNENTRY
 {
@@ -928,8 +928,8 @@ struct SPAWNENTRY
 };
 typedef char assert_SPAWNENTRY_size[sizeof(SPAWNENTRY) == 0x30 ? 1 : -1];
 
-/* 119 CID119 (0xB0): off-screen guard spawner; vtable 0x2CFA90, 48 slots */
-struct CID119 : LO
+/* 119 SPAWNER (was CID119; 0xB0): off-screen guard spawner; vtable 0x2CFA90, 48 slots */
+struct SPAWNER : LO
 {
     int selectorCount;      /* +0x50 */
     SPAWNSELECTOR *selectors; /* +0x54 (at most 128) */
@@ -957,7 +957,7 @@ struct CID119 : LO
     virtual void PostLoad() __asm__("PostSpawnerLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateSpawner");   /* slot 16 */
 };
-typedef char assert_CID119_size[sizeof(CID119) == 0xB0 ? 1 : -1];
+typedef char assert_CID119_size[sizeof(SPAWNER) == 0xB0 ? 1 : -1];
 
 /* 157 BHVANIM (0x50): animation/locomotion leaf (flag 9); vtable 0x2D0AB0, 14 slots */
 struct BHVANIM : BHV
@@ -2268,8 +2268,8 @@ typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 /* 77 ROBOTTANK and 108 CID108 (key TU robottank): sly2/tank.h */
 #include "sly2/tank.h"
 
-/* 112 CID112 (0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
-struct CID112 : LO
+/* 112 LAUNCHER (was CID112; 0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
+struct LAUNCHER : LO
 {
     /* Own fields from launcher.cpp (its LAUNCH / S views until v1.16; options 503..550). */
     qword posTarget;            /* +0x50 the launch target, in psoSource's frame (option 504) */
@@ -2286,8 +2286,8 @@ struct CID112 : LO
     virtual void Init() __asm__("InitCid112");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid112ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID112_pitch[SLY2_OFFSETOF(CID112, pitch) == 0xB0 ? 1 : -1];
-typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
+typedef char assert_CID112_pitch[SLY2_OFFSETOF(LAUNCHER, pitch) == 0xB0 ? 1 : -1];
+typedef char assert_CID112_size[sizeof(LAUNCHER) == 0xC0 ? 1 : -1];
 
 /* 70 SAFEHOUSE (0x240): character-select PO; vtable 0x2D80D0, 81 slots */
 /* One safehouse joystick binding: in state machine state `state`, button `buttonMask` fires relay `oid` (0x378: open
@@ -2758,7 +2758,7 @@ struct TURRET : PO
     LM range;                   /* +0x1AC zoom range */
     float blend, velocity, strength;  /* +0x1B4 */
     LO *projectileProxy;        /* +0x1C0 what it fires (a PROXY, AcquireProxyObject) */
-    struct CID112 *launcher;    /* +0x1C4 its launcher (option 915: a CID 0x70) */
+    struct LAUNCHER *launcher;    /* +0x1C4 its launcher (option 915: a CID 0x70) */
     SO *lastLaunched;           /* +0x1C8 last object fired */
     int isActRunning;           /* +0x1CC the rotation act is running */
     LO *self;                   /* +0x1D0 */

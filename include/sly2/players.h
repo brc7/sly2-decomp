@@ -223,7 +223,7 @@ struct BENTLEY : public STEPPLAYER
       LO *aploLandEffect[2];   /* +0x16D0 effects played when Bentley leaves the air: [0] usual, [1] for grab states 3/4 (SetBentleyState) */
       int dartKind;   /* +0x16D8 which dart template FireBentleyDart clones: 0/1 (aproxyDart), other: none */
       PROXY *aproxyDart[2];   /* +0x16DC the dart templates */
-      struct CID112 *launcher; /* +0x16E4 the launcher the darts leave from (LaunchSoFromLauncher; name check: a CID112 in 119/119) */
+      struct LAUNCHER *launcher; /* +0x16E4 the launcher the darts leave from (LaunchSoFromLauncher; name check: a LAUNCHER in 119/119) */
       undefined4 unk_0x16e8[(0x16f0 - 0x16e8) / 4];
       qword aimPoint;   /* +0x16F0 where the crosshair ray hits (UpdateBentleyAimPoint); darts fly there */
       float lastDartTime;   /* +0x1700 clock.time of the last dart (FireBentleyDart) */

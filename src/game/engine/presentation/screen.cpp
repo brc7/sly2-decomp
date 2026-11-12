@@ -77,7 +77,7 @@ template <int CB> struct SCRCTOR
 SCRLIST D_003D9E70 __attribute__((aligned(16)));   /* 16-aligned by layout: 0x3D9E70 after g_gs (save, 0x5408 bytes from 0x3D4A60) */
 SCRINL<0x50> D_003D9E80(SLY2_VTBL(HUDMETER));    /* HUD meter */
 SCRINL<0x1F0> D_003D9ED0(SLY2_VTBL(PAUSEMENU));   /* pause menu */
-SCRINL<0x30> D_003DA0C0(SLY2_VTBL(CID154));    /* notice */
+SCRINL<0x30> D_003DA0C0(SLY2_VTBL(TICKER));    /* notice */
 SCRCTOR<0x60> D_003DA0F0(GADGETMENU_ctor);
 SCRCTOR<0x270> D_003DA150(ConstructThiefnetScreen);
 SCRCTOR<0x110> D_003DA3C0(ConstructJobListScreen);
@@ -96,7 +96,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A screen as the m2c bodies read it. */
 struct SCRCHILD { char pad0[0xB0]; int unknownB0; };
-/* The notice banner (D_003DA0C0, CID154, 0x30 bytes; not a SCREEN: BASIC, then its state, the text shown and the one
+/* The notice banner (D_003DA0C0, TICKER, 0x30 bytes; not a SCREEN: BASIC, then its state, the text shown and the one
    queued, and its widget). */
 struct NOTICE : BASIC
 {
