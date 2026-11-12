@@ -338,11 +338,15 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT *jt)
         NODE *object = ((NODE *)jt->janim.pxaHang->other);
         qword base;
         qword dt;
+#ifdef SLY2_EE_ASM
         __asm__(
             ""
             : "=r"(dt)
             : "0V"(*(int *)&g_clock.deltaTime)
             : "memory"); /* empty asm, see below: the "memory" clobber keeps the point/spin/base loads after the dt store (target order) */
+#else
+        dt = VuWiden<qword>(g_clock.deltaTime);   /* the dt bits in the low word */
+#endif
         base =
             anchorVelocity
                 .q; /* empty asm: the dt bits as a GPR qword (target lw; sq, no qmtc2). The "V" alternative is allocation-only (never chosen: the operand is offsettable), it keeps the MEM in the asm so reload loads it straight into the output reg */

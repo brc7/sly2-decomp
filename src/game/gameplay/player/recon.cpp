@@ -267,7 +267,11 @@ static inline qword Normalize(qword v)
     return r;
 }
 // v *= k.x in place
+#ifdef SLY2_EE_ASM
 #define SCALE_IN_PLACE(v,k) __asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k))
+#else
+#define SCALE_IN_PLACE(v, k) ((v) = VuScaleByX((v), (k)))
+#endif
 // Four-ray occlusion test from the origin to a target: state 1 clear, 2 blocked, 3 partly visible.
 void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTARGET *other)
 {

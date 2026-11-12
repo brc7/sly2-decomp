@@ -2113,11 +2113,19 @@ qword TransformXfPos(void *frame, void *vault, qword q) __asm__("TransformXfPos"
 void SetXfRole(VAULT *vault, XF *px, int n) __asm__("SetXfRole");
 void ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(void *clip, VAULT *owner, float position, float speed, int flags, void *output) __asm__("ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA");
 // Loads the vault dial's selected index and its timer object (register-pinned for the match).
+#ifdef SLY2_EE_ASM
 extern "C" { static inline void Selection(const VAULT*vault,int*index,struct XF**timer){
  register int selected __asm__("$2");register struct XF*receiver __asm__("s0");
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(vault),"m"(vault->selectedDigit),"m"(vault->dialTimer));
  *index=selected;*timer=receiver;
 } }
+#else
+extern "C" { static inline void Selection(const VAULT *vault, int *index, struct XF **timer)
+{
+    *index = vault->selectedDigit;
+    *timer = vault->dialTimer;
+} }
+#endif
 // Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
 // animation and timer for the new sub-state. (inferred)
 // Also known as: SetVaultSub (upstream readable / Sly 1 name; SetVaultSub__FP2LOi).

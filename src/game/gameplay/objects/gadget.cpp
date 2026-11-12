@@ -354,7 +354,11 @@ struct LN { CONTACT *firstEdge; LN *next; };
 struct SCALAR {qwordV q;};
 // Asm accessors of UpdateTossableContacts (each pins one load or address computation the target has): a scalar
 // loaded into a VU register, a vector scaled by it, the other end's object, an end by index, a table entry address.
+#ifdef SLY2_EE_ASM
 static inline void InitScalar(SCALAR &home,const float &f){int bits;asm("lw %0,0(%1)":"=r"(bits):"0"(&f),"m"(f));__asm__("qmtc2.ni %1,%0":"=j"(home.q):"r"(bits));}
+#else
+static inline void InitScalar(SCALAR &home, const float &f) { home.q = VuWiden<qwordV>(f); }
+#endif
 // Return direction scaled by scalar.
 static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV result;__asm__("vmulx.xyzw %0,%1,%0x":"=j"(result):"j"(direction),"0"(scalar.q));return result;}
 // Load the side's neighbouring object into $16.

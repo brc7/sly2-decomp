@@ -316,11 +316,15 @@ static inline void LaunchPublication(qword value, V &home, BENTLEY *&owner, int 
 }
 typedef int RangeBits __attribute__((mode(DI)));
 // Copy a range record through a GPR.
+#ifdef SLY2_EE_ASM
 static inline void CopyRange(LM &destination, const LM &source)
 {
     register RangeBits value asm("$5");
     asm("ldl %0,7+%2\n\tldr %0,%2\n\tsdl %0,7+%1\n\tsdr %0,%1" : "=&r"(value), "=m"(destination) : "m"(source));
 }
+#else
+static inline void CopyRange(LM &destination, const LM &source) { destination = source; }
+#endif
 // Per-frame carry/aim controller: target selection, aim angles (limited), the predicted arc (UpdateJtThrowArc) and
 // state transitions (SetJtThrowState).
 // Also known as: UpdateJtThrow (upstream readable / Sly 1 name; UpdateJtThrow__FP7JTTHROW).

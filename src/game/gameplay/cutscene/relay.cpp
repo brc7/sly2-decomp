@@ -3715,6 +3715,7 @@ static inline qword Root(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,
 // XY length of a as a float.
 static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return QwordX(Root(r));}
 // Normalizes the path tangent in place (fallback for a zero tangent).
+#ifdef SLY2_EE_ASM
 static inline void NormalizeTangent(U &output){
  register qword vector __asm__("vf3");
  register qword length __asm__("vf1");
@@ -3735,6 +3736,15 @@ static inline void NormalizeTangent(U &output){
  else {__asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"+j"(length):"j"(vector));}
  __asm__("sqc2 %1,%0":"=m"(output.q):"j"(length));
 }
+#else
+static inline void NormalizeTangent(U &output)
+{
+    output.f[2] = 0.0f;   /* the horizontal part only */
+    qword vector = output.q;
+    qword length = VuLength(vector);
+    output.q = VuToFloat(length) < 0.0001f ? D_002A2DA0 : VuDivByX(vector, length);
+}
+#endif
 // Displacement from the actor to the captured target position.
 static inline void TargetDisplacement(U &output,const qword &captured,qword actorPosition){
  register qword current __asm__("vf3");

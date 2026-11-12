@@ -434,7 +434,11 @@ static inline qword VuFloatVolatile(float g)
     return v;
 }
 // vsub r = t - b. Allocation-only constraints: "=j"(t)/"1"(t) marks the copy t as consumed by the vsub, and "0"(b) puts r in b's register (as in the target)
+#ifdef SLY2_EE_ASM
 #define QW_SUB_T(r,t,b) __asm__("vsub.xyzw %0, %1, %2":"=j"(r),"=j"(t):"0"(b),"1"(t))
+#else
+#define QW_SUB_T(r, t, b) ((r) = VuSub((t), (b)))   /* r = t - b (t unchanged) */
+#endif
 
 namespace RO_ORDER { extern const LM r_D_002A53C0 __asm__("D_002A53C0") = {200.0f, 1200.0f}; }
 namespace RO_ORDER { extern const LM r_D_002A53C8 __asm__("D_002A53C8") = {-0.785398185f, 0.785398185f}; }

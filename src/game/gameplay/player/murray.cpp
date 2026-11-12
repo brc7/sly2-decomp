@@ -609,9 +609,17 @@ extern "C" void SetMurrayCarrySubstate(MURRAY *murray, int k)
     case 2: murray->gaitBlend = murray->activeAnimation->time / murray->activeAnimation->animation->duration;
     default: murray->carrySubstate = k; break;
     }
+#ifdef SLY2_EE_ASM
     __asm__("daddu %0,$%5,$zero\n\tdaddu %1,$%5,$zero\n\tlwc1 %2,%6\n\taddiu %3,$zero,%7\n\tmtc1 $%5,%4"
             : "=&r"(pr), "=&r"(pv), "=f"(now), "=r"(n), "=f"(f)
             : "J"(0), "m"(g_clock.time), "I"(1));
+#else
+    pr = 0;
+    pv = 0;
+    now = g_clock.time;
+    n = 1;
+    f = 0.0f;
+#endif
     murray->carrySubstateTime = now;
     if (k == n)
         goto state1;
@@ -1773,7 +1781,18 @@ extern "C" void ComputeMurrayLiftLaunch(MURRAY*murray,qword goal,float*animation
    register int positionWord __asm__("$3"),accelerationWord __asm__("$2");
    register float half __asm__("$f1");register float*outputRoots __asm__("$4");
    register int goalWord __asm__("$2");register qword velocityWord __asm__("$3");float velocityZ;
+#ifdef SLY2_EE_ASM
    __asm__("pextuw %0,$zero,%5\n\tpextuw %1,$zero,%6\n\tli.s %2,%7\n\tmtc1 %1,%3\n\tdaddu %4,%8,$zero":"=&r"(positionWord),"=&r"(accelerationWord),"=f"(half),"=f"(accelerationZ),"=r"(outputRoots):"r"(pos),"r"(acceleration),"F"(0.5f),"r"(roots.f));
+#else
+   {   /* the z lanes of the position and the acceleration (the position's as its bits), 0.5, the roots' address */
+       float z = QwordZ(pos);
+       VuCopyBits(positionWord, z);
+       accelerationZ = QwordZ(acceleration);
+       VuCopyBits(accelerationWord, accelerationZ);
+       half = 0.5f;
+       outputRoots = roots.f;
+   }
+#endif
    __asm__("pextuw %0,$zero,%2\n\tmtc1 %3,%1":"=&r"(goalWord),"=f"(positionZ):"r"(goal),"r"(positionWord));
    __asm__("mtc1 %2,%0\n\tlq %1,%3":"=f"(goalZ),"=r"(velocityWord):"r"(goalWord),"m"(v.q));
    __asm__("mul.s %0,%0,%2\n\tpextuw %1,$zero,%3":"+f"(accelerationZ),"=r"(velocityZ):"f"(half),"1"(velocityWord));

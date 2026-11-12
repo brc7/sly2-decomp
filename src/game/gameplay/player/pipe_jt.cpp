@@ -259,6 +259,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         return;
     proceed:;
         register qword tangent __asm__("$2") = GetPoctlLateralVector(input, VuSub(w.ahead.q, w.behind.q));
+#ifdef SLY2_EE_ASM
         __asm__("lwc1 $f1,0x10(%6)\n\tqmtc2.ni %5,$vf4\n\tlwc1 $f0,0x14(%6)\n\tmtc1 $zero,%2\n\tmfc1 $3,$f1\n\tmfc1 "
                 "$4,$f0\n\tpextlw $3,$4,$3\n\tmfc1 $4,%2\n\tpcpyld $3,$4,$3\n\tlwc1 %0,0x1c(%6)\n\tqmtc2.ni "
                 "$3,$vf3\n\tlw %1,0x20(%7)\n\tvmul.xyz $vf1,$vf4,$vf3\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x "
@@ -266,6 +267,16 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
                 : "=f"(amount), "=r"(previous), "=f"(zero), "=m"(w.reuse.input.q), "=f"(dot)
                 : "r"(tangent), "r"(input), "r"(pipe)
                 : "$2", "$3", "$4", "$f0", "$f1", "vf1", "vf2", "vf3", "vf4", "memory");
+#else
+        {   /* the left stick (x, y, 0, 0), its deflection, the previous stick direction, tangent . stick */
+            zero = 0.0f;
+            qword stick = VuMake<qword>(input->dxLeft, input->dyLeft, zero, 0.0f);
+            amount = input->leftStickDeflection;
+            previous = pipe->stickDirection;
+            dot = VuToFloat(VuDot(tangent, stick));
+            w.reuse.input.q = stick;
+        }
+#endif
     }
     switch (previous) {
     case 0:
@@ -329,6 +340,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
     register CLOCK *clock __asm__("$19") = &g_clock;
     register float nextMemory __asm__("$f0");
     register PATH *path __asm__("$3");
+#ifdef SLY2_EE_ASM
     __asm__("abs.s $f5,%2\n\tlwc1 $f2,4(%7)\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%2\n\t.set at\n\tneg.s "
             "%0,$f2\n\tlwc1 $f4,0x1c(%8)\n\tsub.s %2,%2,$f2\n\t.set noat\n\tlui $1,0x3e4c\n\tori $1,$1,0xcccd\n\tmtc1 "
             "$1,$f3\n\t.set at\n\tswc1 $f5,%3\n\tmul.s %0,%0,%6\n\tswc1 $f3,%4\n\tmul.s %2,%2,$f4\n\tsw "
@@ -337,6 +349,19 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
               "=m"(w.reuse.smooth.duration), "=m"(w.reuse.smooth.minimum)
             : "f"(speed), "r"(clock), "r"(pipe)
             : "$1", "$f2", "$f3", "$f4", "$f5", "memory");
+#else
+    {   /* the end-of-pipe smoothing (maximum |fast clip speed|, 0.2 s) and the remembered velocity:
+           -dt speed / |fast speed| + (1 - dt) velocityAlong */
+        float fastest = FpuAbs(maximumInput);
+        w.reuse.smooth.maximum = fastest;
+        nextMemory = -clock->deltaTime * speed;
+        maximumInput = (1.0f - clock->deltaTime) * pipe->velocityAlong;
+        w.reuse.smooth.duration = 0.2f;
+        w.reuse.smooth.minimum = 0.0f;
+        nextMemory = nextMemory / fastest + maximumInput;
+        path = (PATH *)pipe->pipeCurve;
+    }
+#endif
     pipe->velocityAlong = nextMemory;
     if (!path->isClosed) {
         GetJtPipeDistanceRange(pipe, &w.limit);
@@ -361,21 +386,36 @@ extern "C" void UpdateJtActivePipe(JTPIPE *pipe)
         mode = 1;
     else {
         register float initial __asm__("$f0") = pipe->abl[0].speed, one __asm__("$f4"), weight __asm__("$f3");
+#ifdef SLY2_EE_ASM
         __asm__("lwc1 $f1,%4\n\tabs.s %0,%0\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%1\n\t.set at\n\tabs.s "
                 "$f1,$f1\n\tsub.s %2,%2,%0\n\tsub.s $f1,$f1,%0\n\tdiv.s %3,%2,$f1"
                 : "+f"(initial), "=f"(one), "+f"(magnitude), "=f"(weight)
                 : "m"(pipe->abl[1].speed)
                 : "$1", "$f1");
+#else
+        {   /* the fast clip's weight: (|speed| - |slow|) / (|fast| - |slow|) */
+            initial = FpuAbs(initial);
+            one = 1.0f;
+            magnitude = magnitude - initial;
+            weight = magnitude / (FpuAbs(pipe->abl[1].speed) - initial);
+        }
+#endif
         if (weight < stopped)
             weight = stopped;
         else if (one < weight)
             weight = one;
         register ASEG *animation __asm__("$4");
         register float complement __asm__("$f0");
+#ifdef SLY2_EE_ASM
         __asm__(".set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%0\n\t.set at\n\tlw %1,0x70(%3)\n\tsub.s %0,%0,%4\n\tswc1 %4,%2"
                 : "=f"(complement), "=r"(animation), "=m"(pipe->abl[1].weight)
                 : "r"(pipe), "f"(weight)
                 : "$1", "memory");
+#else
+        complement = 1.0f - weight;
+        animation = (ASEG *)pipe->pasegbl;   /* the blend's ASEGBL (+0x70) */
+        pipe->abl[1].weight = weight;
+#endif
         pipe->abl[0].weight = complement;
         RecalculateAsegBlend(animation);
     }

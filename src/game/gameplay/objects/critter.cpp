@@ -439,8 +439,13 @@ static inline qwordV LengthV(qwordV v){qwordV d,one;__asm__("vmul.xyz %0,%2,%2\n
 static inline qwordV DivBy(qwordV v,qwordV n){qwordV r;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(r):"j"(n),"j"(v):"memory");return r;}
 // A float's bit pattern into a VU register.
 static inline qwordV SplatBits(int bits){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(bits));return q;}
+#ifdef SLY2_EE_ASM
 #define LEN1M(d,one,v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"j"(v):"memory")
 #define LEN2M(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d): :"memory")
+#else
+#define LEN1M(d, one, v) ((d) = VuDot((v), (v)))   /* |v|^2 in x */
+#define LEN2M(d) ((d) = VuSqrtX(d))
+#endif
 // State change. Leaving idle/turn/startled restores the rotation XF's role. Idle: stops, picks the idle time. Walk:
 // walking mode, picks the walk time. Turn: reverses the path direction and heads the other way. Startled: stops and
 // doubles the spin ratio. Flee: runs along the flee path from its closest point (fading out fadeTime before the end)
