@@ -20,6 +20,7 @@
 #include "sly2/act.h"
 #include "sly2/clock.h"
 #include "sly2/vtables.h"
+#include "sly2/leap.h"
 
 // 0x20CCD0 StaticInit_gait and GlobalConstructors_gait: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -386,8 +387,8 @@ extern "C" void PostAsegArcLoad(ASEGARC *p, LEAPSUBJECT *arg)
 extern "C" void StartLeap(ASEGARC *ptune, LEAPSUBJECT *psubject, int index, LEAPV *p) {
     if (ptune->paseg == 0)
         return;
-    memset(p, 0, 0x70);
-    memset(p, 0, 0x70);
+    memset(p, 0, sizeof(LEAP));
+    memset(p, 0, sizeof(LEAP));
     ConstructLeap(p);
     p->tuning = ptune;
     p->subject = psubject;
