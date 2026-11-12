@@ -28,7 +28,7 @@ typedef union { qword q; float f[4]; } U;
 
 /* The hang object (JT::hangHandle, CID19): +0x100 its grab spot, +0x10C nonzero: no place is recorded on it. */
 struct B { char pad[0x10C]; int unknown10C; };
-struct HIT { qword pos; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };
+#include "sly2/lsg.h"
 typedef struct { float g, gFirst, gSecond; } CLQV;   /* 12-byte data object: basic.h's CLQ is 16 (its symbol size would change) */
 
 float D_002BF940 = 1.25f;   /* places' .data starts here (address order) */
@@ -52,8 +52,8 @@ int IsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
 void UpdateSoBusy(SW *g, LO *a);
 void ChooseJtLanding(void *p, LO *a);
 void StartScreenFade(SCREENFADE *pcid116);
-void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
-int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit);
+void IntersectSwBoundingSphere(SW *world, qword pos, void *pfn, void *ctx, int *pcpso, SOPART ***papso, float r);   /* (the radius travels in $f12) */
+SOPART *FindFirstObjectHitByLine(int grfhtl, qword a, qword b, int cpso, SOPART **apso, LSG *phit);
 void ShouldKeepSoPair(void);
 /* VQ: a 16-byte vector that can be initialized (floats first), read as a qword (.q). */
 union VQ { float af[4]; qword q; };
@@ -168,22 +168,23 @@ extern "C" float ScoreJtPlace(JTPLACES *places, JTPLACE *q, int n, STEP **apo)
     if (q->part) {
         STACKSCOPE frame;
         U a, b;
-        HIT hit;
-        int i0, i1;
-        IntersectSwBoundingSphere(&g_sw, pos, (void *)ShouldKeepSoPair, places->player->physicsTree, &i0, &i1, D_002BF944);
+        LSG hit;
+        int cpso;
+        SOPART **apso;
+        IntersectSwBoundingSphere(&g_sw, pos, (void *)ShouldKeepSoPair, places->player->physicsTree, &cpso, &apso, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;
         b.f[2] -= 175.0f;
-        if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit) || hit.unknown40 == 0.0f || hit.normalZ < 0.7f)
+        if (!FindFirstObjectHitByLine(0, a.q, b.q, cpso, apso, &hit) || hit.au[0] == 0.0f || ((float *)&hit.anormal[0])[2] < 0.7f)
             g = Max(g, 2000.0f);
         else
-            pos = hit.pos;
+            pos = hit.apos[0];
         b.q = pos;
         a.q = pos;
         a.f[2] += 180.0f;
         b.f[2] += 5.0f;
-        if (FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit))
+        if (FindFirstObjectHitByLine(0, a.q, b.q, cpso, apso, &hit))
             g = Max(g, 2000.0f);
         for (unsigned k = 0; k < 8; k++) {
             qword v;
@@ -192,7 +193,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, JTPLACE *q, int n, STEP **apo)
             a.q = v;
             a.f[2] += 50.0f;
             b.f[2] -= 30.0f;
-            if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit)) {
+            if (!FindFirstObjectHitByLine(0, a.q, b.q, cpso, apso, &hit)) {
                 g = Max(g, 1500.0f);
                 break;
             }
