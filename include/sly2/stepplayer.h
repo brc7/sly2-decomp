@@ -332,7 +332,8 @@ struct JTAIR
       int jumpKind; /* jump kind */
       int unknown08;   /* possibly jumpParam (low-confidence guess: third argument of SetJtAirJump, stored by it) */
       struct LO *jumpObject; /* object jumped from/to */
-      undefined4 unknown10[2];
+      float landingParam;    /* +0x10 the curve parameter of the chosen landing on a rail (ChooseJtLanding) */
+      float landingDistance; /* +0x14 its distance along the target (rails, pipes, hide shapes: the point's parameter) */
       float startTime; /* time the jump started */
       int state;    /* air state */
       float stateStartTime; /* time the state was entered */

@@ -3624,92 +3624,48 @@ struct VU_VECTOR
 };
 struct TRI { int itri; float u, v; };
 
-struct SOPHYS { char pad0[0x80]; VECTOR gravity; };
-
-class LO
+// The player is the real STEPPLAYER (JT in Sly's lists: JT::avecMeshProbe[0].x is the distance kept from a mesh), the
+// partner D_002F7900 is Murray: Bentley can jump to the object Murray's aimed throw holds (MURRAY::state 15, the aimed
+// throw holding: jtthrowAim.state 0, its ploHoldParent).
+// The candidates are the grab spots (classes.h: GRABSPOT's sBusy is how far below the player a spot may be, grfPlayers
+// the players that may use it, GetGrabPos its point): the XFM + GRABSPOT classes CID39 / CID34 / CID38 and the
+// SHAPE + GRABSPOT classes RAIL / PIPE / CID12, each on its world list (dleGrab); the hang targets (HND) on the
+// TARGET list; the jump-target meshes CID9 (dleList, maxDropHeight).
+typedef ::SHAPE CURVE;
+// The spot's point at u (GRABSPOT::GetGrabPos).
+template <class T> static inline void GetSpotPoint(T *spot, void *player, VECTOR *ppos, void *pv, float u)
 {
-public:
-    int pad0, pad4, pad8;
-    virtual void V01(); virtual void V02(); virtual void V03(); virtual void V04(); virtual void V05();
-    virtual void V06(); virtual void V07(); virtual void V08(); virtual void V09(); virtual void V10();
-    virtual void V11(); virtual void V12(); virtual void V13(); virtual void V14(); virtual void V15();
-    virtual void V16(); virtual void V17(); virtual void V18(); virtual void V19(); virtual void V20();
-    virtual void V21(); virtual void V22(); virtual void V23(); virtual void V24(); virtual void V25();
-    virtual void V26(); virtual void V27(); virtual void V28(); virtual void V29(); virtual void V30();
-    virtual void V31(); virtual void V32();
-    virtual qword GetVelocity();                // slot 33
-};
-
-struct STEPPLAYER : LO
+    spot->GetGrabPos(u, (::STEPPLAYER *)player, &ppos->q, (float *)pv);
+}
+#if defined(SLY2_EE_LAYOUT)
+// Island: GRABSPOT's slot 3 declared with the float last, in an XFM + GRABSPOT class like CID39 / CID38. The registers
+// are the same; g++ loads the arguments in declaration order, and the two calls at u = 0 load the player before $f12
+// (the original's view had the float last).
+struct GRABSPOTCALLIsland
 {
-    char pad10[0x58 - 0x10];
-    XF *pxf;                    // 0x58
-    char pad5C[0xE8 - 0x5C];
-    SOPHYS *psophys;            // 0xE8
-    void *psoCollide;           // 0xEC (filter argument of FindJtObstruction)
-    char padF0[0x218 - 0xF0];
-    qword *pqwUnk218;           // 0x218
-    char pad21C[0x240 - 0x21C];
-    qword qwUnk240;             // 0x240 offset between the targets' frame and the goal
-    char pad250[0x2C0 - 0x250];
-    char jtair[0x200];          // 0x2C0
-    char jtcontrol[0xB40];      // 0x4C0 (first argument of GetJtRailLanding)
-    uint grfTarget;             // 0x1000 target kinds this player can use
-    char pad1004[0x13D0 - 0x1004];
-    int nPartnerState;          // 0x13D0
-    char pad13D4[0x1914 - 0x13D4];
-    int fPartnerBusy;           // 0x1914
-    char pad1918[4];
-    LO *ploPartnerTarget;       // 0x191C
-    char pad1920[0x1F30 - 0x1920];
-    float sRadius;              // 0x1F30
+    char fields[0x20];   /* GRABSPOT's fields; its vptr follows them */
+    virtual int V01(); virtual void V02();
+    virtual void GetGrabPos(::STEPPLAYER *pstepplayer, qword *ppos, float *pgHeading, float sParam);   /* slot 3 */
 };
-
-struct JTAIR
+struct SPOTCALLIsland : XFM, GRABSPOTCALLIsland {};
+template <class T> static inline void GetSpotStart(T *spot, void *player, VECTOR *ppos)
 {
-    STEPPLAYER *player;
-    char pad4[0x10 - 0x4];
-    float uTarget;              // 0x10
-    float sTarget;              // 0x14
-};
-
-// Mix-in shared by the target objects (at 0xE0 in a SHAPE, at 0x190 in a CURVE).
-class TARGET
-{
-public:
-    int pad0, pad4;
-    float sHeight;              // 0x08 how far below the player it may be
-    int padC[4];
-    uint grf;                   // 0x1C
-    virtual void V01(); virtual void V02();
-    virtual void GetPoint(STEPPLAYER *pstepplayer, VECTOR *ppos, void *pv, float u);
-};
-class PAD_E0 { public: char ab[0xE0]; };
-class PAD_190 { public: char ab[0x190]; };
-struct SHAPE : PAD_E0, TARGET { SHAPE *pshapeNext; int pad108; float rAngle; };
-struct CURVE : PAD_190, TARGET { CURVE *pcurveNext; };
-struct HOOK : XFM
-{
-    HOOK *phookNext;            // 0xE0
-    int padE4;
-    uint grfHook;               // 0xE8
-    char padEC[0x108 - 0xEC];
-    float sHeight;              // 0x108
-    char pad10C[0x11C - 0x10C];
-    uint grf;                   // 0x11C
-};
-struct MESH { char pad0[0x100]; MESH *pmeshNext; int pad104; float sHeight; };
+    ((SPOTCALLIsland *)spot)->GetGrabPos((::STEPPLAYER *)player, &ppos->q, 0, 0.0f);
+}
+#else
+template <class T> static inline void GetSpotStart(T *spot, void *player, VECTOR *ppos) { GetSpotPoint(spot, player, ppos, 0, 0.0f); }
+#endif
 
 // Callback contexts (layouts from the matched callbacks).
-struct CURVECTX { void *pjtcontrol; void *pjtair; CURVE *pcurve; int pad; qword v; };    // MeasureJumpToRail
+struct CURVECTX { JTGRAB *pjtcontrol; JTAIR *pjtair; CURVE *pcurve; int pad; qword v; };    // MeasureJumpToRail
 struct OBJCTX { JTAIR *pjtair; void *plo; int pad[2]; qword v; };                         // ABB8, AC88, AAB8, AB38
 struct PAIR { JTAIR *pjtair; void *plo; };                                               // MeasureJumpToPipe
-struct SOLIST { int cpso; void **apso; };                                                // FilterJtObstruction
+struct SOLIST { int cpso; SOTREE **apso; };                                                // FilterJtObstruction
 
 typedef float (*PFNSCORE)(void *, float);
 
 
-extern STEPPLAYER *D_002F7900 __asm__("D_002F7900");      // the partner
+extern MURRAY *D_002F7900 __asm__("D_002F7900");      // Murray
 extern qword D_002A2DD0 __asm__("D_002A2DD0");            // zero vector
 extern float D_002BF8E0 __asm__("D_002BF8E0");            // score limit
 extern float D_002BF8E4 __asm__("D_002BF8E4"), D_002BF8E8 __asm__("D_002BF8E8"), D_002BF8EC __asm__("D_002BF8EC"), D_002BF8F0 __asm__("D_002BF8F0"), D_002BF8F4 __asm__("D_002BF8F4"), D_002BF8F8 __asm__("D_002BF8F8"), D_002BF8FC __asm__("D_002BF8FC"), D_002BF904 __asm__("D_002BF904"), D_002BF908 __asm__("D_002BF908");
@@ -3739,10 +3695,10 @@ float MeasureJumpToPipe(void *pv, float u) __asm__("MeasureJumpToPipe");
 float MeasureJumpAlongPath(void *pv, float u) __asm__("MeasureJumpAlongPath");
 float MeasureJumpToHidePoint(void *pv, float u) __asm__("MeasureJumpToHidePoint");
 float MeasureJumpToHideShape(void *pv, float u) __asm__("MeasureJumpToHideShape");
-void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u) __asm__("GetJtRailLanding");
+void GetJtRailLanding(JTGRAB *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u) __asm__("GetJtRailLanding");
 void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t) __asm__("MeasureJtJumpToTargetAtTime");
-void FindMeshClosestPoint(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal) __asm__("FindMeshClosestPoint");
-int PredictMeshContact(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv) __asm__("PredictMeshContact");
+void FindMeshClosestPoint(CID9 *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal) __asm__("FindMeshClosestPoint");
+int PredictMeshContact(CID9 *pmesh, qword pos, qword v, qword dv, float s, float t, TRI *ptri, VECTOR *ppos, VECTOR *pv) __asm__("PredictMeshContact");
 void EvaluateShapeAtDistance(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal) __asm__("EvaluateShapeAtDistance");
 qword ConvertPosBetweenLos(void *pvFrom, void *pvTo, qword pos) __asm__("ConvertPosBetweenLos");
 float atan2f(float y, float x) __asm__("atan2f");                                 // atan2f
@@ -3788,28 +3744,28 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
 
     pos.q = GetLoWorldPos(air->player);
     v.q = air->player->GetVelocity();
-    uint grf = air->player->grfTarget;
+    uint grf = air->player->grfGrabTarget;
     func_002333B4(&tri, 0, sizeof(tri));
     float bestScore = forcedTarget ? -FLT_MAX : FLT_MAX;
     vLaunch.q = PlanJtLaunchVelocity(air, 4);
     float tBest = 0.0f;
 
     if (IsBasicDerivedFrom__FP5BASIC3CID(air->player, 0x35)) {
-        for (SHAPE *shape = (*(SHAPE **)&g_sw.dlCid39); shape; shape = shape->pshapeNext) {
-            if (!(shape->grf & grf))
+        for (CID39 *shape = (*(CID39 **)&g_sw.dlCid39); shape; shape = (CID39 *)shape->dleGrab.next) {
+            if (!(shape->grfPlayers & grf))
                 continue;
-            shape->GetPoint(air->player, &posTarget, 0, 0.0f);
-            if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
+            GetSpotStart(shape, air->player, &posTarget);
+            if (shape != forcedTarget && shape->sBusy < pos.f[2] - posTarget.f[2])
                 continue;
             MeasureJtJumpToTarget(air, vLaunch, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * air->player->psophys->gravity.f[2];
+            vHit.f[2] = vLaunch.f[2] + t * air->player->physics->gravity.z;
             if (shape != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
                 g = AdjustJtLandingScore(air, shape, g, D_002BF8E4);
                 if (bestScore <= g)
                     continue;
-                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t, pos.q, vLaunch.q,
+                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t, pos.q, vLaunch.q,
                                       posHit.q, vHit.q, 0))
                     continue;
             }
@@ -3821,18 +3777,18 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             tBest = t;
         }
 
-        for (CURVE *curve = (*(CURVE **)&g_sw.dlCid13); curve; curve = curve->pcurveNext) {
-            if (!(curve->grf & grf))
+        for (RAIL *curve = (*(RAIL **)&g_sw.dlCid13); curve; curve = (RAIL *)curve->dleGrab.next) {
+            if (!(curve->grfPlayers & grf))
                 continue;
             if (curve != forcedTarget) {
-                FindShapeClosestPoint(curve, *air->player->pqwUnk218, 0, &posTarget, 0, 0, 0);
-                if (curve->sHeight < pos.f[2] - posTarget.f[2])
+                FindShapeClosestPoint(curve, *air->player->probeBottomPos, 0, &posTarget, 0, 0, 0);
+                if (curve->sBusy < pos.f[2] - posTarget.f[2])
                     continue;
             }
             CURVECTX ctx;
             float uStart, u;
-            ctx.pjtcontrol = air->player->jtcontrol;
-            ctx.pjtair = air->player->jtair;
+            ctx.pjtcontrol = &air->player->jtgrab;
+            ctx.pjtair = &air->player->jtair;
             ctx.pcurve = curve;
             ctx.v = vLaunch.q;
             FindShapeBestVertex(curve, MeasureJumpToRail, &ctx, 0, 0, &uStart, 0);
@@ -3849,8 +3805,8 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             VECTOR dpos;
             GetJtRailLanding(ctx.pjtcontrol, curve, &posTarget, &dpos, u);
             MeasureJtJumpToTarget(air, vLaunch, curve, posTarget, dpos, &t, 0, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * air->player->psophys->gravity.f[2];
-            if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
+            vHit.f[2] = vLaunch.f[2] + t * air->player->physics->gravity.z;
+            if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t,
                                                            pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 continue;
             ploBest = curve;
@@ -3863,21 +3819,21 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             sBest = GetShapeDistanceAtParam(curve, uBest);
         }
 
-        for (HOOK *phook = (*(HOOK **)&g_sw.dlTarget); phook; phook = phook->phookNext) {
+        for (HND *phook = (*(HND **)&g_sw.dlTarget); phook; phook = (HND *)phook->targetListLink.next) {   /* HND once derived from 0x13 */
             if (phook != forcedTarget) {
                 if (forcedTarget)
                     continue;
-                if ((phook->grfHook & 1) == 0)
+                if ((phook->targetKindFlags & 1) == 0)
                     continue;
                 if (!IsBasicDerivedFrom__FP5BASIC3CID(phook, 0x13))
                     continue;
             }
-            if (!(phook->grf & grf))
+            if (!(phook->grfPlayers & grf))
                 continue;
             qword posHook = GetLoWorldPos(phook);
             posTarget.q = posHook;
             if (phook != forcedTarget) {
-                if (phook->sHeight < pos.f[2] - posTarget.f[2])
+                if (phook->sBusy < pos.f[2] - posTarget.f[2])
                     continue;
                 if (1000000.0f < LengthSquared(VuSub(posHook, pos.q)))
                     continue;
@@ -3894,22 +3850,22 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 g = AdjustJtLandingScore(air, phook, g, D_002BF8EC);
                 if (bestScore <= g)
                     continue;
-                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t, pos.q, v.q, posHit.q,
+                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t, pos.q, v.q, posHit.q,
                                       vHit.q, &posTarget))
                     continue;
             }
             kind = 14;
             ploBest = phook;
-            posBest.q = VuAdd(posHit.q, air->player->qwUnk240);
+            posBest.q = VuAdd(posHit.q, air->player->pivotOffset);
             vBest = vHit;
             bestScore = Min(bestScore, g);
             tBest = t;
         }
 
-        for (MESH *pmesh = (*(MESH **)&g_sw.dlCid9); pmesh; pmesh = pmesh->pmeshNext) {
+        for (CID9 *pmesh = (*(CID9 **)&g_sw.dlCid9); pmesh; pmesh = (CID9 *)pmesh->dleList.next) {
             FindMeshClosestPoint(pmesh, pos.q, 0, 0, &posTarget, 0);
             if (pmesh != forcedTarget) {
-                if (pmesh->sHeight < pos.f[2] - posTarget.f[2])
+                if (pmesh->maxDropHeight < pos.f[2] - posTarget.f[2])
                     continue;
                 if (1000.0f < Length(VuSub(posTarget.q, pos.q)))
                     continue;
@@ -3928,14 +3884,14 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 if (bestScore <= gMesh)
                     continue;
             }
-            PredictMeshContact(pmesh, pos.q, vLaunch.q, air->player->psophys->gravity.q, air->player->sRadius, t,
+            PredictMeshContact(pmesh, pos.q, vLaunch.q, air->player->physics->gravityq, ((JT *)air->player)->avecMeshProbe[0].x, t,
                           &triHit, &posHit, &vHit);
-            if (pmesh != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
+            if (pmesh != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t,
                                                            pos.q, v.q, posHit.q, vHit.q, 0))
                 continue;
             kind = 16;
             ploBest = pmesh;
-            posBest.q = VuAdd(posHit.q, air->player->qwUnk240);
+            posBest.q = VuAdd(posHit.q, air->player->pivotOffset);
             vBest = vHit;
             bestScore = Min(bestScore, gMesh);
             tBest = t;
@@ -3943,22 +3899,22 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         }
     }
 
-    if (IsBasicDerivedFrom__FP5BASIC3CID(air->player, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
-        !D_002F7900->fPartnerBusy) {
-        posTarget.q = GetLoWorldPos(D_002F7900->ploPartnerTarget);
-        MeasureJtJumpToTarget(air, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit,
+    if (IsBasicDerivedFrom__FP5BASIC3CID(air->player, 0x37) && D_002F7900 && D_002F7900->state == 15 &&
+        !D_002F7900->jtthrowAim.state) {
+        posTarget.q = GetLoWorldPos(D_002F7900->jtthrowAim.ploHoldParent);
+        MeasureJtJumpToTarget(air, vLaunch, D_002F7900->jtthrowAim.ploHoldParent, posTarget, D_002A2DD0, &t, &g, &posHit,
                               &vHit);
-        vHit.f[2] = vLaunch.f[2] + t * air->player->psophys->gravity.f[2];
-        if (D_002F7900->ploPartnerTarget != forcedTarget) {
+        vHit.f[2] = vLaunch.f[2] + t * air->player->physics->gravity.z;
+        if (D_002F7900->jtthrowAim.ploHoldParent != forcedTarget) {
             if (g >= D_002BF8E0)
                 goto LPartnerDone;
             g = AdjustJtLandingScore(air, D_002F7900, g, D_002BF904);
             if (bestScore <= g)
                 goto LPartnerDone;
-            void *apso[2];
+            SOTREE *apso[2];
             SOLIST solist;
-            apso[0] = air->player->psoCollide;
-            apso[1] = D_002F7900->psoCollide;
+            apso[0] = air->player->physicsTree;
+            apso[1] = D_002F7900->physicsTree;
             solist.cpso = 2;
             solist.apso = apso;
             if (FindJtObstruction(air, (void *)FilterJtObstruction, &solist, t, pos.q, vLaunch.q, posHit.q, vHit.q, 0))
@@ -3967,19 +3923,19 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
         posBest = posHit;
         vBest = vHit;
         kind = 18;
-        ploBest = D_002F7900->ploPartnerTarget;
+        ploBest = D_002F7900->jtthrowAim.ploHoldParent;
         tBest = t;
         bestScore = Min(g, bestScore);
     }
 LPartnerDone:
 
-    for (CURVE *curve = (*(CURVE **)&g_sw.dlCid11); curve; curve = curve->pcurveNext) {
-        if (!(curve->grf & air->player->grfTarget))
+    for (PIPE *curve = (*(PIPE **)&g_sw.dlCid11); curve; curve = (PIPE *)curve->dleGrab.next) {
+        if (!(curve->grfPlayers & air->player->grfGrabTarget))
             continue;
         float sCur;
         FindShapeClosestPoint(curve, pos.q, 0, &posTarget, 0, 0, &sCur);
         if (curve != forcedTarget) {
-            if (curve->sHeight < pos.f[2] - posTarget.f[2])
+            if (curve->sBusy < pos.f[2] - posTarget.f[2])
                 continue;
             if (1000.0f < Length(VuSub(posTarget.q, pos.q)))
                 continue;
@@ -4004,24 +3960,24 @@ LPartnerDone:
         ctx.v = ConvertPosBetweenLos(0, curve, posTarget.q);
         MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
-        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
+        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t,
                                                        pos.q, v.q, posHit.q, vHit.q, &posTarget))
             continue;
         kind = 15;
         ploBest = curve;
-        posBest.q = VuAdd(posHit.q, air->player->qwUnk240);
+        posBest.q = VuAdd(posHit.q, air->player->pivotOffset);
         vBest = vHit;
         bestScore = Min(bestScore, gCurve);
         tBest = t;
         sBest = s;
     }
 
-    for (SHAPE *shape = (*(SHAPE **)&g_sw.dlCid34); shape; shape = shape->pshapeNext) {
-        if (!(shape->grf & grf))
+    for (CID34 *shape = (*(CID34 **)&g_sw.dlCid34); shape; shape = (CID34 *)shape->dleGrab.next) {   /* poles */
+        if (!(shape->grfPlayers & grf))
             continue;
         qword posShape = GetLoWorldPos(shape);
         posTarget.q = posShape;
-        if (shape->sHeight < pos.f[2] - posTarget.f[2])
+        if (shape->sBusy < pos.f[2] - posTarget.f[2])
             continue;
         OBJCTX ctx;
         VECTOR dpos;
@@ -4030,7 +3986,7 @@ LPartnerDone:
         ctx.v = v.q;
         ctx.pjtair = air;
         ctx.plo = shape;
-        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHidePoint, &ctx, atan2f(dpos.f[1], dpos.f[0]) * shape->rAngle,
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHidePoint, &ctx, atan2f(dpos.f[1], dpos.f[0]) * shape->sRadius,
                                           D_002BF914, -FLT_MAX, FLT_MAX, &u, &g);
         g = g * D_002BF90C;
         if (shape != forcedTarget) {
@@ -4041,10 +3997,10 @@ LPartnerDone:
                 continue;
         }
         VECTOR posPoint;
-        shape->GetPoint(air->player, &posPoint, 0, u);
+        GetSpotPoint(shape, air->player, &posPoint, 0, u);
         MeasureJtJumpToTarget(air, v, shape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->player->psophys->gravity.f[2];
-        if (shape != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
+        vHit.f[2] = v.f[2] + t * air->player->physics->gravity.z;
+        if (shape != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t,
                                                        pos.q, v.q, posHit.q, vHit.q, 0))
             continue;
         kind = 12;
@@ -4056,12 +4012,12 @@ LPartnerDone:
         sBest = u;
     }
 
-    for (CURVE *curve = (*(CURVE **)&g_sw.dlCid12); curve; curve = curve->pcurveNext) {
-        if (!(curve->grf & grf))
+    for (CID12 *curve = (*(CID12 **)&g_sw.dlCid12); curve; curve = (CID12 *)curve->dleGrab.next) {
+        if (!(curve->grfPlayers & grf))
             continue;
         float sCur;
         FindShapeClosestPoint(curve, pos.q, 0, &posTarget, 0, 0, &sCur);
-        if (curve->sHeight < pos.f[2] - posTarget.f[2])
+        if (curve->sBusy < pos.f[2] - posTarget.f[2])
             continue;
         OBJCTX ctx;
         float u;
@@ -4079,10 +4035,10 @@ LPartnerDone:
                 continue;
         }
         VECTOR posPoint;
-        curve->GetPoint(air->player, &posPoint, 0, u);
+        GetSpotPoint(curve, air->player, &posPoint, 0, u);
         MeasureJtJumpToTarget(air, v, curve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->player->psophys->gravity.f[2];
-        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t,
+        vHit.f[2] = v.f[2] + t * air->player->physics->gravity.z;
+        if (curve != forcedTarget && FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t,
                                                        pos.q, v.q, posHit.q, vHit.q, 0))
             continue;
         kind = 11;
@@ -4094,21 +4050,21 @@ LPartnerDone:
         sBest = u;
     }
 
-    for (SHAPE *shape = (*(SHAPE **)&g_sw.dlCid38); shape; shape = shape->pshapeNext) {
-        if (!(shape->grf & grf))
+    for (CID38 *shape = (*(CID38 **)&g_sw.dlCid38); shape; shape = (CID38 *)shape->dleGrab.next) {
+        if (!(shape->grfPlayers & grf))
             continue;
-        shape->GetPoint(air->player, &posTarget, 0, 0.0f);
-        if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
+        GetSpotStart(shape, air->player, &posTarget);
+        if (shape != forcedTarget && shape->sBusy < pos.f[2] - posTarget.f[2])
             continue;
         MeasureJtJumpToTarget(air, v, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * air->player->psophys->gravity.f[2];
+        vHit.f[2] = v.f[2] + t * air->player->physics->gravity.z;
         if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
             g = AdjustJtLandingScore(air, shape, g, D_002BF8FC);
             if (bestScore <= g)
                 continue;
-            if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->psoCollide, t, pos.q, v.q, posHit.q,
+            if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->player->physicsTree, t, pos.q, v.q, posHit.q,
                                   vHit.q, 0))
                 continue;
         }
@@ -4122,12 +4078,12 @@ LPartnerDone:
 
     if (kind == -1)
         return;
-    XF *xf = air->player->pxf;
+    XF *xf = air->player->positionXf;
     xf->arrivalTime = g_clock.time + tBest;
-    xf->restValue = VuSub(posBest.q, air->player->qwUnk240);
+    xf->restValue = VuSub(posBest.q, air->player->pivotOffset);
     xf->rate = vBest.q;
-    air->uTarget = uBest;
-    air->sTarget = sBest;
+    air->landingParam = uBest;
+    air->landingDistance = sBest;
     SetJtAirState(air, kind, ploBest);
 }
 } // namespace M_JtbsChooseJtLanding

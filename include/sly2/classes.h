@@ -1787,7 +1787,9 @@ typedef char assert_CID8_size[sizeof(CID8) == 0x100 ? 1 : -1];
 struct CID9 : CID8
 {
     DLE dleList;                /* +0x100 link in SW::dlCid9 */
-    char pad108[0x120 - 0x108];
+    float maxDropHeight;        /* +0x108 how far below the jumping player the surface may be to be a jump target
+                                   (air.cpp ChooseJtLanding; GRABSPOT::sBusy plays the same role for the grab spots) */
+    char pad10C[0x120 - 0x10C];
     virtual void Init() __asm__("InitCid9");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid9ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddCid9Hierarchy");   /* slot 11 */
