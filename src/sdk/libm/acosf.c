@@ -41,3 +41,8 @@ float acosf(float x)
     } else
         return z;
 }
+
+/* Semantics a port must keep (docs/guides/portability.md, "libm"): this is newlib's fdlibm wrapper, and the game's
+   __fdlib_version is 1 (_POSIX_), not _IEEE_ (-1): for |x| > 1 the wrapper calls matherr and returns exc.retval,
+   0.0, where a host libm returns NaN. The game passes normalised dot products that round just past 1 (vec.cpp
+   AngleBetweenVectors). A NaN argument returns __ieee754_acosf's result (NaN). */

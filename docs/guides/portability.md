@@ -50,13 +50,18 @@ in C, LSG's offsets, ConstructLeap's vptr-clobbering stores; (v1.23) port reques
 and DriveStepguardFromAnim, RenderStepguardSelf on STEPGUARD / CM members, prize.cpp's XFs as XF, StartLeap's
 sizeof(LEAP), BLIPG's fields in classes.h with blip.cpp / emitter.cpp / frm.cpp on them), C fallbacks for every
 statement of the port allowlist's 'frame' class but blip.cpp's microprogram 0x10, sly2/xp.h included from so.h,
-sly2/vis.h (CID5) for cm.cpp SetCmVisZone.
+sly2/vis.h (CID5) for cm.cpp SetCmVisZone; (v1.25, the port's boot-11 list) hud.h SPRITEDESC with the loader's payload
+union and every sprite view on it, vec.cpp GetVectorSphere's lane readers, cm.cpp's eye squish on SOPART / CM (SOPART
+in xfm.h, BSPC::numCameraNodes), recon.cpp on LO / CID46 / JTMODE / STEPPLAYER with RECONSEL in sly2/recon.h
+(JT::reconSel), stepplayer.cpp's component literals, relay.cpp's RELAYJSG / ASEG views, GetGrabspotFromLo and option
+776, IntersectSwBoundingBox's SOPART results, the line-clip span views as LSG, rendertree.cpp on GLOBSET, the libm note
+(section 1).
 
 ## 1. Guards and hooks
 
 | hook | EE (matching build) | native build | where |
 |---|---|---|---|
-| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp, geom.cpp; v1.23: step.cpp, stepguard.cpp, guardbhv.cpp, cm.cpp, glob.cpp, dirblend.cpp, jt.cpp, hud.cpp, so.cpp, shape.cpp, sticky.cpp); section 2 |
+| `SLY2_EE_ASM` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_ASM`): inline EE assembly allowed | undefined: the `#else` plain-C body is compiled | `grep -rln SLY2_EE_ASM src include` (sly2/vu0.h, mat.cpp, vec.cpp, xf.cpp, shd.cpp, booty.cpp, rip.cpp, sw.cpp, path.cpp, gs.cpp, geom.cpp; v1.23: step.cpp, stepguard.cpp, guardbhv.cpp, cm.cpp, glob.cpp, dirblend.cpp, jt.cpp, hud.cpp, so.cpp, shape.cpp, sticky.cpp; v1.25: mark.cpp, recon.cpp); section 2 |
 | `SLY2_EE_LAYOUT` (sly2/port.h) | defined (`__R5900__`, unless `SLY2_NO_EE_LAYOUT`): EE data layout (4-byte pointers, file records read straight into in-memory structs) and g++ 2.95 vtables | undefined: `#else` reads file records field by field, uses plain virtual calls | shd.cpp LoadClutFromBrx / LoadBmpFromBrx; the hand vtable calls that do not match as virtual calls: gait.cpp StartLeap (slot 35), cnvo.cpp MergeCid14Obstacles (31 / 29 / 9, `SLY2_VTE`), cm.cpp UpdateCmLast / GetCmCpdefi (50; the #else includes sly2/so.h), stepguard.cpp RestartStepguard (27 / 3 / 26), rhythm.cpp (35), so.cpp SetSoXf (35, with its VU0 transform in C), robottank.cpp MarkWheel / UpdateRobottank (31), proxy.cpp AcquireProxySpare (42), missile.cpp PresetSplmissAccel (33), bentley.cpp's gadget drag (33), pipe_jt.cpp (36), booty.cpp SetBootyState (35) |
 | `uptr`, `sptr` (sly2/port.h) | `unsigned int`, `int` | `__UINTPTR_TYPE__`, `__INTPTR_TYPE__` (override: `SLY2_UPTR_TYPE`, `SLY2_SPTR_TYPE`) | `grep -rlwn 'uptr\|sptr' src include` |
 | `SLY2_OFFSETOF(T, m)` (sly2/basic.h) | `((int)(char *)&((T *)0)->m)` | define first, e.g. `((int)__builtin_offsetof(T, m))` | layout asserts, list-link offsets, g_aeopid's `EOPID_OFF` |
@@ -69,11 +74,11 @@ sly2/vis.h (CID5) for cm.cpp SetCmVisZone.
 | `SLY2_HEAP_BEGIN`, `SLY2_HEAP_END` (platform/memory/memory.cpp) | the end of the program image (`D_0047220F`) and the top of the 32 MB RAM (0x02000000) | a static buffer's bounds | memory.cpp StartupMemMgr |
 | `CStreamBisStorage` (sly2/streambis.h) | room for a CStreamBis without g++'s implicit constructor; the callers call `CStreamBis_ctor` / `_$_10CStreamBis` themselves | provide those two C entry points (or override the two declarations); sizes follow `sizeof(CStreamBis)` | sw.cpp, hud.cpp (the class itself: brx_sw.cpp, memcard.cpp) |
 | EE layout asserts (the `typedef char assert_...[cond ? 1 : -1]` lines) | compile-time checks of the EE offsets and sizes | not true on a 64-bit host: the port rewrites them into a non-failing sink (its own generator) | every sly2/ header, many TUs |
-| `SLY2_GRABSPOT_BASE(T, p)` (sly2/classes.h) | `p` plus the GRABSPOT base offset of T, taken from `static_cast<GRABSPOT *>((T *)0x100)` (folds to sizeof(first base), no null test) | the same expression gives the ABI's offset | the OwnFields accessors (GetPipeOwnFields and the like, GetBarrelOwnFields) (defined at the end of classes.h), grabspot.cpp's InitGrabspot calls |
+| `SLY2_GRABSPOT_BASE(T, p)` (sly2/classes.h) | `p` plus the GRABSPOT base offset of T, taken from `static_cast<GRABSPOT *>((T *)0x100)` (folds to sizeof(first base), no null test) | the same expression gives the ABI's offset | the OwnFields accessors (GetPipeOwnFields and the like, GetBarrelOwnFields) (defined at the end of classes.h), grabspot.cpp's InitGrabspot calls and GetGrabspotFromLo (v1.25) |
 | `SLY2_SRET_LABEL(ee, native)` (sly2/port.h) | `__asm__(ee)`: the EE symbol; g++ 2.95 passes a struct result's address as the first argument, so a declaration that writes it out as a pointer parameter (or takes an explicit out-pointer as a struct result) calls the same code | `__asm__(native)`: an adapter next to the definition, outside SLY2_EE_LAYOUT, with the declaration's own spelling (arm64 passes the result address in x8, not x0) | mat.cpp operator* (26 callers, adapter MulMatrix4Into) and BuildRotateVectorsMatrix (7 callers taking the matrix as a struct result, BuildRotateVectorsMatrixValue); basic.cpp EvalExpression (EvalExpressionInto in eval.cpp). The TU defining an adapter must include sly2/port.h before the guard (eval.cpp did not: its native branch compiled on the EE until it did) |
 | `SLY2_BUILTIN_C(sym)` (app/bif.cpp) | nothing: the builtin table calls the C-style body (`CRefData *sym(CRefData *ret, int cref, CRefData *args, CFrame *frame)`) | the body becomes `sym_c` and `sym` is a CRef-returning entry calling it: the type eval.cpp's BIF::function calls through | the 98 C-style builtins in bif.cpp |
 | `SLY2_BSP_NO_LIMIT` (sly2/port.h) | `(~(uptr)0 >> 1)` = 0x7FFFFFFF, the literal the callers passed | the largest positive pointer-sized value: above every heap address (no guard needed) | every BSP walk caller (clip, geom, so, tn, detector, bomb, air, exit_warp, vol, mark, prize, rip, vis, robottank, grab); caller-side declarations take the limit as `uptr` (bsp.cpp's definitions compare `BSP *`) |
-| `SLY2_FDIV(a, b)` (sly2/port.h, v1.24) | `((a) / (b))`: div.s, which gives +-FLT_MAX for a zero divisor (sign of a xor sign of b; also 0 / 0) | `Sly2EeFdiv`: a / b, or +-FLT_MAX with that sign when b is 0 (IEEE gives Inf / NaN) | vec.cpp FindClosestPointOnLineSegment (a zero-length segment); use it for other per-frame divisions by a length that can be 0 |
+| `SLY2_FDIV(a, b)` (sly2/port.h, v1.24) | `((a) / (b))`: div.s, which gives +-FLT_MAX for a zero divisor (sign of a xor sign of b; also 0 / 0) | `Sly2EeFdiv`: a / b, or +-FLT_MAX with that sign when b is 0 (IEEE gives Inf / NaN) | vec.cpp FindClosestPointOnLineSegment (a zero-length segment), wr.cpp FitLinearClq (s0 == s1), mark.cpp FindContactInsideBsp's C contact normal (v1.25); use it for other per-frame divisions by a length that can be 0 |
 | `EOPID_PMF`, `EOPID_PMFI`, `EOPID_PMFT`, `EOPID_VPMF`, `EOPIDW` (app/class_registry_options.inc) | g++ 2.95 pointers to member functions: `{short delta; short index; pfn or delta2}` | redefine the four macros and `EOPIDW` in the native PMF ABI (Itanium: `{ptr, adj}`, ptr = address or 1 + vtable offset) | class_registry_options.inc (documented next to the macros) |
 
 Why the matching form cannot be the portable one:
@@ -126,6 +131,18 @@ Why the matching form cannot be the portable one:
   same-position fields of that type into and/or masks, where the original (int / uint fields) extracts and reinserts.
   Casts do not change it, so the EE copies go through a local int-typed view under `SLY2_EE_LAYOUT`. Single-bit reads
   that the original extracts (`isInWorld`) match with `(int)x & 1`.
+- **ulong bit-fields read through their doubleword**: so.h declares SOPART's flags after `short damage` (+0x14) as
+  `ulong` bit-fields, and g++ 2.95 reads a `ulong` bit-field with an `ld` of the aligned doubleword that holds it
+  (+0x10..+0x17), then shifts. TU views that matched on that code declared "a 64-bit flag word at +0x10" over plvo /
+  damage; bit 48 of it is SOPART::unknownFlag10A (+0x16 bit 0), bit 49 unknownFlag10B. Replacing the masks with the
+  members is byte-identical (v1.25: recon, prize, guardbhv, grab), so those views were never a second layout.
+- **libm domain errors (SDK semantics, no hook)**: the game links newlib's fdlibm wrappers (src/sdk/libm acosf.c,
+  asinf.c) with `__fdlib_version` 1 (`_POSIX_`), not `_IEEE_` (-1): for |x| > 1 the wrapper calls matherr and returns
+  `exc.retval`, 0.0, where a host libm returns NaN (a NaN argument still returns NaN). The game relies on it: vec.cpp
+  AngleBetweenVectors passes normalised dot products that round just past 1 (chain.cpp UpdateChainLink: Sly's position
+  went NaN natively). A port must link acosf / asinf with these semantics (the sly2-port does, port/runtime/ee_libm.cpp);
+  nothing changes on the EE side. The other wrappers in src/sdk/libm (powf, pow, log10, fmodf, sqrtf, atan2f) follow
+  the same `_LIB_VERSION` rules and are worth checking the same way when a port sees NaN from one of them.
 - **Wider native records in EE-sized storage**: static storage and allocations sized from sizeof (the memcard dialog
   storage from SCREEN, the slot heaps, the heap-guard sites); where the EE asks for less than sizeof (SSGE) the literal
   stays behind a guard.
@@ -149,7 +166,12 @@ loads and stores) has plain C equivalents:
   vf5-vf8; the microcode makes result row i = sum_k b[i][k] a.r[k], the row-vector product **b * a**. Until v1.24 the C
   body formed a * b (the port's boot-10: CM::matViewProj came out wrong natively and VU1 clipped everything); see
   "v1.24" below.
-- **vec.cpp**: every asm statement (all 45 functions are covered).
+- **vec.cpp**: every asm statement (all 45 functions are covered). v1.25: GetVectorSphere's lane readers were wrong
+  (GetX converted the quadword's value, GetY / GetZ rotated the uninitialised result: pan NaN, tilt 0 natively); they
+  copy the low word of q / prot3w(q) / pextuw($0, q) now. Checked with the v1.24 harness's VU interpreter: the #else
+  body compiled natively against the asm's lane moves and its macro-mode sequences assembled as micro instructions
+  (vmul / vaddy / vsqrt / vaddq; vmul / vaddw / vadday / vmaddz), 20,000 random vectors, pan exact, tilt and length
+  within 4e-7 relative (the old fallback failed every case).
 - **xf.cpp**: BuildXfValueMatrix, BuildXfValueDerivativeMatrix and every VU0 statement except the `vcallms 0x60`
   sites. **shd.cpp**: ColorCorrectVector, AddBitmapToHash / AddClutToHash (whole C functions over D_003DD010 /
   D_003DD018). **booty.cpp**: every asm statement (SetBootyState and the distance helpers). **rip.cpp**: LaunchMatch.
@@ -416,6 +438,44 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   BuiltinObjectOption / BuiltinSetCadr, AreRefsStructurallyEqual, basic.cpp EnsureBasicOption: their definitions and
   every caller pass the result pointer explicitly, so a native build is consistent; left); guardscript.cpp's
   EnsureSggAlarm declaration (int alarm) and the generated splicewrap thunks' s32 arguments.
+  Done in v1.25 (the port's boot-11 list, request 11 / 10; every change byte-identical): hud.h SPRITEDESC declares
+  LoadSpriteDescriptor's payload union (SPRITETABLE, SPRITETEXT, SPRITEPOLYGON, SPRITEEFFECT with its RENDERTGT,
+  SPRITEPICTURE with BuildSpritePictureTexPacket's TEX packet, SPRITEGEOMETRY; SPRITE_KIND in hud.h): natively the
+  polygon's aligned matrix puts the payload at +0x20 (0x50 bytes), and BuildSpritePictureTexPacket,
+  Set / ReleaseSpriteItem, ConstructRichText2FromSprite, RenderSpriteText / Geometry / Picture / Payload and
+  ApplySpriteKeyPoses (SPRITE / ROOT = SPRITEDESC / WIDGET: the nested groups) read it through the members;
+  RenderSpriteText's DATA union has an empty default constructor (RGBA's user-declared one deleted it natively).
+  vec.cpp GetVectorSphere (section 2). cm.cpp: SquishCmEye / HasCameraBsp / ClipCameraEye / FindCameraClearInterval
+  on SOPART / CM, SvSquishCmEyeConstraint's second argument the qword eye position (one GPR on the EE, two natively);
+  SOPART moved to xfm.h (cm.cpp still cannot include so.h on the EE: it renumbers s_rgba); BSPC::unknown08 is
+  numCameraNodes (the walk's node limit &nodes[n], not a root index); tn.cpp's IntersectSwBoundingBox context void *.
+  relay.cpp SetRelayScriptHandsOff (RELAYJSG::fHandsOff / grfHandsOff), ReleaseJsgJtIfComplete (prelaycmdJt, RELAYCMD
+  relayck / an[0]), GetJsgCommandDuration (ASEG). mark.cpp FindContactInsideBsp: limit 0xFFFC / sizeof(ENTRY) and a C
+  body for the per-face asm (`addiu last, end, -12` is end - 1). grabspot.cpp GetGrabspotFromLo by SLY2_GRABSPOT_BASE;
+  option 776 (GRABSPOT::ptn, otyp 0x200F) has EOPID_OFF(GRABSPOT, ptn) in its slots for the ten grabspot classes
+  (EOPID_NONE was offset 0: the vptr natively). rip.cpp PostShrapnelEmit's split g_lmZeroOne address and blip.cpp's
+  CA / CB macros (sptr); wr.cpp FitLinearClq through SLY2_FDIV. stepplayer.cpp's `player + offset` literals as
+  STEPPLAYER members (jtair / jtgrab / jtpipe / jtmode / jthurt states, gadgetPower, ...). recon.cpp: LOV = LO
+  (isInWorld through `(int)x & 1`, unknown40), RECONTGT = CID46 (its fields declared in classes.h; plo100 is
+  fadeObject, height LO::busyRadius), MODEL = JTMODE, PLAYER = STEPPLAYER, SOF = SOPART, SetReconSelState case 8 with a
+  C body; RECONSEL in the new sly2/recon.h is JT::reconSel (+0x1D40, was an int and a pad the 0x140-byte native
+  selector overran) and JTMODEHUD::reconSel (was int *unknown14; mode.cpp, jt.cpp, hud.cpp follow). The SOPART +0x10
+  "flag word" (section 1, ulong bit-fields): prize.cpp IsDprizeCollisionCandidate / CheckDprizeBounce / the landing
+  test on SOPART; sw.cpp IntersectSwBoundingBox / Sphere walk SOTREEs and return SOPARTs (v1.24's SO ** arrays in
+  guardbhv, stepguard, jt, air, bentley, grab are SOPART **; grab's ProbeGround SO view is SOPART); guardbhv's candidate
+  record Y (SOPART) and CanBhvcombatShoot's hit record (LSG). The 0x60-byte line-clip span views are LSG (or a union
+  with it): path.cpp's ROW (asserted: flags = lsgk, the triangle in apsurf[0]'s slot; robottank.cpp's
+  ClipEdgeToPathzone buffer disagreed with it natively), prize, screen, guardbhv, grab, hack, spawner, detector, air,
+  mark, cm, jt. screen.cpp's notice views on NOTICE (widget WIDGET *). rendertree.cpp CullSceneRenderList on GLOBSET /
+  GLOB / SUBGLOB / WRBG. Views tool pass: 5 more rewrites kept. Signatures: mismatching declarations 1293 -> 1293,
+  int-vs-pointer 82 -> 82, cross-declaration conflicts 273 -> 272 (the round's fixes are C-named declarations). Views
+  inventory: candidates 936 -> 882 (frame path 141 -> 135), TU structs 2430 -> 2363.
+  Still open after v1.25: POSE / RENDER (rendertree.cpp's RENDER / RENDERBLOCK are so.h's POSE / POSESET, same layout
+  on every target, but the bit-field signedness differs: `KIND kind : 4; long channels : 8; long sort : 6; ulong index
+  : 13` against `long nKind; ulong nCount; ulong nChannel; long iglob`, and each TU's code depends on its own; the
+  8-bit field is the render-channel mask InsertRenderEntry stores, so POSE::nCount is probably misnamed); CID46's field
+  names are recon.cpp's (sRadius, fDone... not yet in the approved style); hud.cpp FinishSpriteSoundEvent's `lw
+  %0,8(%1)`; the struct-return forms and guardscript.cpp / splicewrap items above.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks

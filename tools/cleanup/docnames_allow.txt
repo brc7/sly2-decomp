@@ -51,3 +51,5 @@ XXXXXXXX FILE.json
 BLIPGV CHANNEL
 # --- portability.md's history of removed views and the VU0 upload chain's VIF command (v1.24)
 MPG BODY STIMULUS STIMTEMPLATE RAILV PIPEV
+# v1.25: recon.cpp view removed (FilterReconOccluder: SOPART), named in portability.md
+SOF
