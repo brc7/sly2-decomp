@@ -66,8 +66,8 @@ struct STEP : public PO
       };
       union
       {
-            qword unknown1E0;   /* root-motion velocity (throw.cpp: the z of root channel 6 while unknown1A4 is 1, else zero) */
-            VECTOR vecUnknown1E0;   /* the same, by component (UpdateJtThrow writes x, z, y) */
+            qword targetAngularVelocity; /* the angular velocity steering mode STEERING_ANGULAR_VELOCITY drives the rotation XF toward (step.cpp PresetStepAccel); set from root motion (stepguard DriveStepguardFromAnim: GetStepAsegaRotation; throw.cpp: the z of root channel 6 while steeringMode is 1, else zero) */
+            VECTOR vecTargetAngularVelocity; /* the same, by component (UpdateJtThrow writes x, z, y) */
       };
       float rSpin;   /* spin rate */
       VECTOR vSpin;   /* spin axis */

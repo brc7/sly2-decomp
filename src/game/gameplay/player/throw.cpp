@@ -492,13 +492,13 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
     CHN *reference = animation ? FindAsegChannel(animation->animation, owner, (void *)6, 1) : 0;
     if (reference) {
         reference->pac->Evaluate(animation->time, animation->speed, 0, &w.scratch.vector);
-        VECTOR *direction = &s->player->vecUnknown1E0;
+        VECTOR *direction = &s->player->vecTargetAngularVelocity;
         float height = w.scratch.vector.f[2];
         direction->x = 0.0f;
         direction->z = height;
         direction->y = 0.0f;
     } else
-        s->player->unknown1E0 = D_002A2DD0.q;
+        s->player->targetAngularVelocity = D_002A2DD0.q;
 }
 
 // Object filter for the arc's box search: rejects objects with flag 0x59, otherwise defers to the default filter.
@@ -1046,7 +1046,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
         s->player->steeringMode = 0;
         break;
     default:
-        s->player->unknown1E0 = D_002A2DD0.q;
+        s->player->targetAngularVelocity = D_002A2DD0.q;
         s->player->steeringMode = 1;
         break;
     }

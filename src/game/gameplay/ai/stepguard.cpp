@@ -2453,7 +2453,7 @@ extern "C" void DriveStepguardFromAnim(struct ANIMBINDING *binding, struct STEPG
         __builtin_memcpy(&scale, ((ACT *)guard->scale)->transform, sizeof(scale));   /* the XF's first word */
         v.x *= scale; v.y *= scale; v.z *= scale; v.w *= scale;
     }
-    guard->unknown1E0 = extra;
+    guard->targetAngularVelocity = extra;
     v.x *= -1.0f; v.y *= -1.0f; v.z *= -1.0f; v.w *= -1.0f;
     guard->qwUnknown190 = VuPut<qword>(v);
 }

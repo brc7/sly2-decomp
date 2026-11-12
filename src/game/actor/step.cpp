@@ -511,7 +511,7 @@ extern "C" void PresetStepAccel(struct STEP *step)
         register qword d __asm__("vf3");         register qword vel __asm__("vf2");
         char*page=ClockPage();
         int word;
-        d=step->unknown1E0;
+        d=step->targetAngularVelocity;
         word=ClockWord(page);
         vel = po->acceleration;
         __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(po->velq.q));
