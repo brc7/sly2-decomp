@@ -374,7 +374,7 @@ extern "C" int TryAddSearchCandidate(QUERY *query) {
 }
 
 // 0x172888: Sort predicate for search candidates: by relative heading.
-extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->angle; }
+extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->angle; }   /* 0 or 1, never negative: not a valid qsort comparator (the result depends on the qsort; the port must use the EE qsort, or a stable sort with a < b, to reproduce the order) */
 
 struct VU_FLOAT{qword qw;};
 // VU0 helper: vector difference.

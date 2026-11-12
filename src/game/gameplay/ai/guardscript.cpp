@@ -373,7 +373,7 @@ extern "C" void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *
         }
     }
     if (out)
-        *out = choice;
+        *out = choice;   /* as the game does: when no command qualifies, choice is copied uninitialised (stack garbage; a port should clear it) */
 }
 } // namespace M_func_00170E90
 
