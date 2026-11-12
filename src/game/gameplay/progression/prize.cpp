@@ -17,6 +17,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
+#include "sly2/lsg.h"
 #include "sly2/classes.h"
 #include "sly2/prize.h"
 #include "sly2/stepplayer.h"
@@ -295,15 +296,12 @@ extern "C" void ProjectDprizeTransform(DPRIZE *prize)
 } // namespace M_ProjectDprizeTransform
 
 namespace M_IsDprizeCollisionCandidate {
-struct C { char pad[0x60]; void *p60; };
-struct B { char pad[0xEC]; struct C *pc; };
-struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // collision filter callback (FIsCidDerived test). (inferred)
-extern "C" int IsDprizeCollisionCandidate(void *prize, struct Q *q)
+extern "C" int IsDprizeCollisionCandidate(void *prize, SOPART *q)
 {
     void *s;
-    /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (IsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || IsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
+    /*B*/if (q->unknownFlag10A) return 0; s = q->owner->physicsTree->root; if (IsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || IsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
 }
 } // namespace M_IsDprizeCollisionCandidate
 
@@ -320,7 +318,6 @@ namespace M_CheckDprizeBounce {
 // two tie and the li.s goes first as in the target.
 union U { qword qw; float g[4]; };
 
-struct SOPART { XF *transform; void *owner; float sRadius; int oid; unsigned long grf; char pad18[0x5C]; int cplane; };
 struct CMCONTACT { qword pos; U plane; int kind; void *pv; };
 
 
@@ -420,10 +417,10 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
     CMCONTACT acontact[8];
     for (int i = 0; i < cpart; i++) {
         SOPART *ppart = appart[i];
-        if (ppart->grf & (1UL << 49)) {
+        if (ppart->unknownFlag10B) {
             qword center = ppart->transform->worldMatq.r[3].q;
             qword posCur = GetLoWorldPos(prize);
-            float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->sRadius - prize->bounceRadius;
+            float g = VuToFloat(QwLength(VuSub(center, posCur))) - ppart->radius - prize->bounceRadius;
             if (g < gDeepest) {
                 vec.qw = QwNormalize(VuSub<qword>(prize->position, ppart->transform->worldMatq.r[3].q), D_002A2DA0);
                 if (GDot(prize->velocity, vec.qw) < 0.0f) {
@@ -431,7 +428,7 @@ extern "C" void CheckDprizeBounce(DPRIZE *prize)
                     normal.qw = vec.qw;
                 }
             }
-        } else if (ppart->cplane) {
+        } else if (ppart->bspc.nodes) {
             int ccontact = IntersectSphereBsp(GetLoWorldPos(prize), prize->bounceRadius, ppart, (void *)SLY2_BSP_NO_LIMIT, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
@@ -1128,16 +1125,19 @@ namespace M_func_001C6DE8 {
 //    of block 0, so reorg puts it in the bnez delay slot, and its write of $a2 gives the `sw a2,0x84` home store one more
 //    dependent, which is why that store precedes the $ra/$f20 saves in the prologue. cse merges any plain copy made before the
 //    test, so the argument is held in a variable pinned to $a2 (the one allowed pin).
-struct LSG {
-    QWROW posA;           // 0x00: hit point (lower cast)
-    QWROW posB;           // 0x10: hit point (upper cast)
-    QWROW normalA;        // 0x20
-    QWROW normalB;        // 0x30
-    float t;                // 0x40
-    float u;                // 0x44
-    char pad48[0x18];
+/* The line test's hit record: sly2/lsg.h's LSG (its size), read as entry / exit points, normals and parameters
+   (apos, anormal, au) with float lanes. */
+union HIT {
+    ::LSG lsg;
+    struct {
+        QWROW posA;           // 0x00 LSG::apos[0]: hit point (lower cast)
+        QWROW posB;           // 0x10 LSG::apos[1]: hit point (upper cast)
+        QWROW normalA;        // 0x20 LSG::anormal[0]
+        QWROW normalB;        // 0x30 LSG::anormal[1]
+        float t;              // 0x40 LSG::au[0]
+        float u;              // 0x44 LSG::au[1]
+    };
 };
-struct CANDIDATE;
 struct VU_FLOAT {
     qword q;
     // Broadcast a float into a VU0 register.
@@ -1146,9 +1146,9 @@ struct VU_FLOAT {
 // Qword wrapper convertible to and from qword.
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 
-int IsDprizeCollisionCandidate(void *, CANDIDATE *) __asm__("IsDprizeCollisionCandidate");
-void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***) __asm__("IntersectSwBoundingBox");
-CANDIDATE *PsoHitTestLineObjects(int, qword, qword, int, CANDIDATE **, LSG *)
+int IsDprizeCollisionCandidate(void *, SOPART *) __asm__("IsDprizeCollisionCandidate");
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***) __asm__("IntersectSwBoundingBox");
+SOPART *PsoHitTestLineObjects(int, qword, qword, int, SOPART **, ::LSG *)
     __asm__("FindFirstObjectHitByLine");
 extern qword g_normalZ __asm__("g_normalZ");
 
@@ -1163,10 +1163,10 @@ static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
 // find landing point on objects below/above a point. (inferred)
 // Also known as: FFindPickupFloor (upstream readable / Sly 1 name;
 //   FFindPickupFloor__FfffG9VU_VECTORiP6VECTORPG9VU_VECTOR).
-extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword point, int ccand, CANDIDATE **apcand,
+extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword point, int ccand, SOPART **apcand,
                              qword *ppos)
 {
-    LSG lsg;
+    HIT lsg;
     STACKSCOPE frame;
     qword posMax = AddScaled(point, VU_FLOAT(gMax), g_normalZ);
     qword posMin = AddScaled(point, VU_FLOAT(gMin), g_normalZ);
@@ -1174,7 +1174,7 @@ extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword
     if (!apcand)
         IntersectSwBoundingBox(&g_sw, point, posMaxArg, IsDprizeCollisionCandidate, 0, &ccand, &apcand);
     if (gMax > 0) {
-        if (PsoHitTestLineObjects(0, point, posMax, ccand, apcand, &lsg) && lsg.t == 0) {
+        if (PsoHitTestLineObjects(0, point, posMax, ccand, apcand, &lsg.lsg) && lsg.t == 0) {
             if (lsg.u == 1 || lsg.normalB.f[2] < gThreshold)
                 return 0;
             *ppos = lsg.posB.q;
@@ -1182,7 +1182,7 @@ extern "C" int FindDprizeLanding(float gMin, float gMax, float gThreshold, qword
         }
     }
     if (gMin < 0) {
-        if (PsoHitTestLineObjects(0, point, posMin, ccand, apcand, &lsg)) {
+        if (PsoHitTestLineObjects(0, point, posMin, ccand, apcand, &lsg.lsg)) {
             if (lsg.t == 0 || lsg.normalA.f[2] < gThreshold)
                 return 0;
             *ppos = lsg.posA.q;
@@ -1215,7 +1215,6 @@ union VECTOR4 { qword q; float f[4]; };
 // Allocation request: byte count and alignment.
 struct ALLOCREQ { int cb, cbAlign; ALLOCREQ(int c, int a) { cb = c; cbAlign = a; } };
 struct REGION;
-struct CANDIDATE;
 extern qword D_002A2DA0 __asm__("D_002A2DA0"), g_normalZ __asm__("g_normalZ"), D_002A2DE0 __asm__("D_002A2DE0"), D_002C0D60 __asm__("D_002C0D60");
 extern float D_002A775C __asm__("D_002A775C"), D_002A7760 __asm__("D_002A7760"), D_002C0D70 __asm__("D_002C0D70");
 extern float D_002C0E80 __asm__("D_002C0E80"), D_002C0E84 __asm__("D_002C0E84"), D_002C0E88 __asm__("D_002C0E88"), D_002C0E8C __asm__("D_002C0E8C"), D_002C0E90 __asm__("D_002C0E90"), D_002C0E94 __asm__("D_002C0E94");
@@ -1223,7 +1222,7 @@ extern CLQ D_002C0EA0 __asm__("D_002C0EA0");
 extern LM D_002C0EB0 __asm__("D_002C0EB0");
 extern float D_002C0EB8 __asm__("D_002C0EB8"), D_002C0EBC __asm__("D_002C0EBC"), D_002C0EC0 __asm__("D_002C0EC0"), D_002C0EC4 __asm__("D_002C0EC4");
 
-int FindDprizeLanding(float, float, float, qword, int, CANDIDATE **, qword *) __asm__("FindDprizeLanding");
+int FindDprizeLanding(float, float, float, qword, int, SOPART **, qword *) __asm__("FindDprizeLanding");
 SO *GetHeroPo(void *) __asm__("GetHeroPo");
 REGION *FindPathzoneAtPos(qword, int) __asm__("FindPathzoneAtPos");
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int) __asm__("FindPathzoneClosestPoint");
@@ -1231,8 +1230,8 @@ int IsEdgeBlockedByPathzone(REGION *, qword, qword, int) __asm__("IsEdgeBlockedB
 qword GetLoWorldPos(SO *) __asm__("GetLoWorldPos");
 void *AllocFromStack(ALLOCREQ *) __asm__("AllocFromStack");
 int NewSprayedDprize(void *, int, int, DPRIZE **) __asm__("NewSprayedDprize");
-int IsDprizeCollisionCandidate(void *, CANDIDATE *) __asm__("IsDprizeCollisionCandidate");
-void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***) __asm__("IntersectSwBoundingBox");
+int IsDprizeCollisionCandidate(void *, SOPART *) __asm__("IsDprizeCollisionCandidate");
+void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***) __asm__("IntersectSwBoundingBox");
 float RandomFloatInRange__Fff(float, float) __asm__("RandomFloatInRange__Fff");
 float NormalizeAngle__Ff(float) __asm__("NormalizeAngle__Ff");
 qword SetVectorCylind(float, float, float) __asm__("SetVectorCylind");
@@ -1349,7 +1348,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     posMin.q = AddScaled(posSnap.q, VU_FLOAT(-r), D_002A2DE0);
     posMax.q = AddScaled(posSnap.q, VU_FLOAT(r), D_002A2DE0);
     int ccand;
-    CANDIDATE **apcand;
+    SOPART **apcand;
     IntersectSwBoundingBox(&g_sw, posMin.q, posMax.q, IsDprizeCollisionCandidate, 0, &ccand, &apcand);
     int cLaunched = 0;
     float gAngle = RandomFloatInRange__Fff(-3.1415927f, 3.1415927f);
