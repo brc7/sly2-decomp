@@ -119,7 +119,8 @@ struct GLOBSET
                              SubmitSwRelightAll, glob.cpp BindGlobset) */
       union
     {
-        float unknown50;
+        float flashAmount;   /* +0x50 the model's flash (the render parameter z: glob.cpp, rendertree.cpp); hurt.cpp's post-hit
+                                blinking sets it, 0 none; was unknown50 */
         ulong grf50;   /* the bit-fields below as one word (LoadSubglobType2FromBrx sets bit 33) */
         struct
         {
@@ -158,8 +159,11 @@ struct SOPHYS
       MATRIX3 inverseInertiaLocal; /* inverse moment of inertia (local frame) */
       qword velocity;     /* linear velocity */
       qword angularVelocity; /* angular velocity */
-      VECTOR gravity;     /* gravity acceleration applied to the object */
-      undefined4 unknown8C;
+      union
+      {
+            VECTOR gravity;     /* gravity acceleration applied to the object */
+            qword gravityq;     /* the same as a quadword (hurt.cpp PresetJtAccelZap; water.cpp) */
+      };
       CONSTR constrTorque;   /* rotation constraint */
       CONSTR constrForce;   /* translation constraint */
       float m;   /* mass */

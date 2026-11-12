@@ -402,7 +402,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, GLOBSET *pscene)
                     U params;
                     params.f[0] = gVis;
                     params.f[1] = 1.0f;
-                    params.f[2] = pscene->unknown50;
+                    params.f[2] = pscene->flashAmount;
                     params.w[3] = 0;
                     *(ulong *)pdma->m_pb = 0x10000002;
                     pdma->m_pb += 0x10;
@@ -481,7 +481,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, GLOBSET *pscene)
                 U params;
                 params.f[0] = gVis;
                 params.f[1] = 1.0f;
-                params.f[2] = pscene->unknown50;
+                params.f[2] = pscene->flashAmount;
                 params.w[3] = 0;
                 UnpackWords<0x6C01C008>(&params, 4);
                 int sort = prender->sort;

@@ -1242,7 +1242,7 @@ extern "C" void RenderSoGlobset(GLOBSET *pmodel, MATRIX4 *pmatWorld, float gFirs
             vecParams.x = gFirst * gVisSub;
             vecParams.y = gSecond * gVisSub;
         }
-        vecParams.z = pmodel->unknown50;
+        vecParams.z = pmodel->flashAmount;
         *(uint *)&vecParams.w = (psub->grf & 0x200) ? pmodel->selectedShader : 0;
         UnpackQws<0x6C01C008>(&vecParams, 4);
         if (psub->abnd)
@@ -1504,7 +1504,7 @@ extern "C" void BuildModelDrawPackets(GLOBSET *pmodel, ALOV *palo)
         VECTOR4 vecParams;
         vecParams.x = 1.0f;
         vecParams.y = 1.0f;
-        vecParams.z = pmodel->unknown50;
+        vecParams.z = pmodel->flashAmount;
         *(uint *)&vecParams.w = (psub->grf & 0x200) ? pmodel->selectedShader : 0;
         UnpackQws<0x6C01C008>((uint *)&vecParams, 4);
         if (psub->abnd)

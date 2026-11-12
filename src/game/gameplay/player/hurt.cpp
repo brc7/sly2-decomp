@@ -353,40 +353,37 @@ extern "C" void PostLoadJtHurt(JTHURT *s)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_PresetJtAccelZap {
-struct X { char pad[0x80]; qword v80; };
-struct O : LO { char pad1[0xE8-0x50]; struct X *xE8; char pad2[0x198-0xEC]; float f198; void Set(qword v) __asm__("AddSoAcceleration"); void Negate(QWROW &u); };
-struct P { struct O *o; int state; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 extern float D_002BFA90[3] __asm__("D_002BFA90");   /* the zap spring */
 
-extern void AccelSoTowardPosSpring(struct O *p,qword a,int n,qword b,float *c) __asm__("AccelSoTowardPosSpring");
-// Broadcast g into a VU0 register and store it to u.
-static inline qword BroadcastTo(float g,QWROW *u) { qword q=VuFromFloat<qword>(g); u->q=q;return q; }
-// Set the vector to -xE8->v80 (keeping the -1 broadcast in u).
-inline void O::Negate(QWROW &u) { qword v=xE8->v80; qword k=VuFromFloat<qword>(-1.0f); u.q=k; Set(VuScaleByX(v,k)); }
-// Physics preset in the hurt state: in knockback states adds velocity or springs toward the target velocity.
+extern void AccelSoTowardPosSpring(SO *p,qword a,int n,qword b,float *c) __asm__("AccelSoTowardPosSpring");
+extern void AddSoAcceleration(SO *so, qword v) __asm__("AddSoAcceleration");
+// Cancel gravity: accelerate by -gravity (keeping the -1 broadcast in u).
+static inline void CancelGravity(STEPPLAYER *player, QWROW &u) { qword v=player->physics->gravityq; qword k=VuFromFloat<qword>(-1.0f); u.q=k; AddSoAcceleration(player, VuScaleByX(v,k)); }
+// Physics preset in the hurt state: states 1 / 2 hold the player in place (gravity cancelled, a spring to zero
+// velocity); states 5 / 11 the same, but keep the vertical motion while vecLocalVelocity.z is set, accelerating so the
+// vertical velocity reaches -vecLocalVelocity.z within the frame.
 // Also known as: UpdateDamageMotion (upstream readable / Sly 1 name; UpdateDamageMotion__FP5ACTOR).
-extern "C" void PresetJtAccelZap(struct P *p)
+extern "C" void PresetJtAccelZap(JTHURT *p)
 {
  QWROW u,v,u2;
- qword k;
  float zero;
  switch(p->state) {
  case 1:case 2:
-  p->o->Negate(u);
-  AccelSoTowardPosSpring(p->o,D_002A2DD0,0,D_002A2DD0,D_002BFA90);
+  CancelGravity(p->player,u);
+  AccelSoTowardPosSpring(p->player,D_002A2DD0,0,D_002A2DD0,D_002BFA90);
   break;
  case 5:case 11:
-  p->o->Negate(u2);
+  CancelGravity(p->player,u2);
   v.i[2]=0;v.i[1]=0;v.i[0]=0;
   zero=v.f[2];
-  if(p->o->f198!=zero)
-   v.f[2]=QwordZ(p->o->GetVelocity());
-  AccelSoTowardPosSpring(p->o,D_002A2DD0,0,v.q,D_002BFA90);
-  if(p->o->f198!=zero) {
+  if(p->player->vecLocalVelocity.z!=zero)
+   v.f[2]=QwordZ(p->player->GetVelocity());
+  AccelSoTowardPosSpring(p->player,D_002A2DD0,0,v.q,D_002BFA90);
+  if(p->player->vecLocalVelocity.z!=zero) {
    u.f[2]=zero;u.f[1]=zero;u.f[0]=zero;
-   u.f[2]=(-p->o->f198-v.f[2])/g_clock.deltaTime;
-   p->o->Set(u.q);
+   u.f[2]=(-p->player->vecLocalVelocity.z-v.f[2])/g_clock.deltaTime;
+   AddSoAcceleration(p->player,u.q);
   }
   break;
  }
@@ -410,59 +407,56 @@ extern "C" void UpdateJtHurtInput(JTHURT *hurt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtActiveZap {
-struct LO;
-struct LO { int x0, x4, x8; void *vptr; char pad10[0xD0 - 0x10]; float xD0; char padD4[0x1A8 - 0xD4]; float x1A8; char pad1AC[0x208 - 0x1AC]; int x208; };
-struct S { struct LO *po; int x4; float x8; char pad[0x90 - 0xC]; int x90; float x94, x98, x9C; };
-extern float D_002BFAA0[3] __asm__("D_002BFAA0");
-extern float D_002BFAB0[3] __asm__("D_002BFAB0");
-extern float D_002BFAC0[3] __asm__("D_002BFAC0");
+extern float D_002BFAA0[3] __asm__("D_002BFAA0");   /* flash envelope over the post-hit time (quadratic) */
+extern float D_002BFAB0[3] __asm__("D_002BFAB0");   /* flash by the blink phase (quadratic) */
+extern float D_002BFAC0[3] __asm__("D_002BFAC0");   /* heading smoothing of state 7 (SMP) */
 extern float g_lmZeroOne[2] __asm__("g_lmZeroOne");
-void InvalidateSoAaox(struct LO *po) __asm__("InvalidateSoAaox");
+void InvalidateSoAaox(STEPPLAYER *player) __asm__("InvalidateSoAaox");
 float cosf(float g) __asm__("cosf");
 float atan2f(float y, float x) __asm__("atan2f");
 float SmoothAngle__FfffP3SMPPf(void *p, int n, float a, float b, float c) __asm__("SmoothAngle__FfffP3SMPPf");
-void SetStepTargetHeading(struct LO *po, float g) __asm__("SetStepTargetHeading");
-int IsJtStuck(struct LO *po, int n, float g) __asm__("IsJtStuck");
-void RunJtHurtCallback(struct S *s) __asm__("RunJtHurtCallback");
-// Per-frame update of the hurt state (jts 4): smooths the heading, advances timers, runs the pending callback and
-// escapes when stuck (IsJtStuck).
+void SetStepTargetHeading(STEPPLAYER *player, float g) __asm__("SetStepTargetHeading");
+int IsJtStuck(STEPPLAYER *player, int n, float g) __asm__("IsJtStuck");
+// Per-frame update of the hurt state (jts 4): the post-hit flashing (GLOBSET::flashAmount, blinking at 10 rad/s and
+// fading out over postHitDuration once the hurt state has ended), and in state 7 (knocked back) the heading toward the
+// motion, ending the state on the floor after 0.25 s or when stuck (IsJtStuck).
 // Also known as: UpdateDamage (upstream readable / Sly 1 name; UpdateDamage__FP5ACTOR).
-extern "C" void UpdateJtActiveZap(struct S *s)
+extern "C" void UpdateJtActiveZap(JTHURT *hurt)
 {
-    if (s->x90 != -1) {
+    if (hurt->postHitMode != -1) {
         float u;
         float w;
         float a;
-        if (s->x4 == -1) {
-            float dt = g_clock.time - s->x98;
-            if (s->x9C < dt) {
-                s->x90 = -1;
-                s->po->xD0 = 0.0f;
-                InvalidateSoAaox(s->po);
+        if (hurt->state == -1) {
+            float dt = g_clock.time - hurt->recoveredTime;
+            if (hurt->postHitDuration < dt) {
+                hurt->postHitMode = -1;
+                hurt->player->model.flashAmount = 0.0f;
+                InvalidateSoAaox(hurt->player);
                 goto done;
             }
-            u = dt / s->x9C;
+            u = dt / hurt->postHitDuration;
         } else {
             u = 0.0f;
         }
-        w = cosf((g_clock.time - s->x94) * 10.0f);
+        w = cosf((g_clock.time - hurt->hitTime) * 10.0f);
         a = Clamp(D_002BFAA0[0] + u * (D_002BFAA0[1] + u * D_002BFAA0[2]), g_lmZeroOne[0], g_lmZeroOne[1]);
-        s->po->xD0 = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), g_lmZeroOne[0], g_lmZeroOne[1]);
+        hurt->player->model.flashAmount = a * Clamp(D_002BFAB0[0] + w * (D_002BFAB0[1] + w * D_002BFAB0[2]), g_lmZeroOne[0], g_lmZeroOne[1]);
     }
 done:
-    switch (s->x4) {
+    switch (hurt->state) {
     case -1:
         break;
     case 7: {
         union { qword q; float f[4]; } v;
         float g;
-        v.q = AsLo(s->po)->GetVelocity();
+        v.q = hurt->player->GetVelocity();
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
-        SetStepTargetHeading(s->po, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, g_clock.deltaTime));
-        if (0.25f < g_clock.time - s->x8 && s->po->x208)
-            RunJtHurtCallback(s);
-        else if (IsJtStuck(s->po, 0, s->x8))
-            RunJtHurtCallback(s);
+        SetStepTargetHeading(hurt->player, SmoothAngle__FfffP3SMPPf(D_002BFAC0, 0, hurt->player->targetHeading, g, g_clock.deltaTime));
+        if (0.25f < g_clock.time - hurt->stateTime && hurt->player->floorContact)
+            RunJtHurtCallback(hurt);
+        else if (IsJtStuck(hurt->player, 0, hurt->stateTime))
+            RunJtHurtCallback(hurt);
         break;
     }
     }
@@ -902,15 +896,14 @@ extern "C" void AdjustJtHurtXp(JTHURT *hurt, XP *xp)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001A2160 {
-struct Q { unsigned int x0; char pad[0x30]; int x34; };
-struct S { int x0; int x4; };
-// Camera-definition hook: hurt states 5 and 8..12 clear +0x34; always sets bit 0 of the flags. (inferred)
-extern "C" void AddJtHurtCpdefiFlags(struct S *hurt, struct Q *q)
+// Camera-definition hook: hurt states 5 and 8..12 clear the adjustment distance; always sets bit 0 of the flags.
+// (inferred)
+extern "C" void AddJtHurtCpdefiFlags(JTHURT *hurt, CPDEFI *cpdefi)
 {
-    switch (hurt->x4) {
-    case 5: case 8: case 9: case 10: case 11: case 12: q->x34 = 0; break; case 4: break;
+    switch (hurt->state) {
+    case 5: case 8: case 9: case 10: case 11: case 12: cpdefi->adjustDistance = 0; break; case 4: break;
     }
-    q->x0 |= 1;
+    cpdefi->grfcpd |= 1;
 }
 } // namespace M_func_001A2160
 
