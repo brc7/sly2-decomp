@@ -338,16 +338,16 @@ extern "C" void LO_SetParent(LO *object, SO *newParent, XF *pxfParent, int grf)
 // vtable slot 13: with a parent, shares the parent's root record (freeing its own if it had one); without a parent and
 // when makeRoot is set, makes its own root.
 /* LO slot UpdateLoroot: share the parent's root, or make one of its own. */
-extern "C" void UpdateLoLoroot(LO *plo, LO *ploRoot, int fRoot)
+extern "C" void UpdateLoLoroot(LO *plo, LO *ploRoot, SO *psoOld)
 {
     if (plo->parent != 0) {
-        if (ploRoot == plo && fRoot == 0) {
+        if (ploRoot == plo && psoOld == 0) {
             FreeLoroot(plo);
         }
         plo->root = ((LO *)plo->parent)->root;
         return;
     }
-    if (fRoot != 0) {
+    if (psoOld != 0) {
         plo->root = 0;
         EnsureLoroot(plo);
     }
