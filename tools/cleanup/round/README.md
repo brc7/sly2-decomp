@@ -66,8 +66,10 @@ Output is one verdict line plus a few lines of detail:
 - `IDENTICAL`: every affected object is byte-identical.
 - `RENAMED`: the bytes and relocation positions are identical and only symbol names differ through a one-to-one
   map whose new names are either the old name's config entry moved (rename.py) or unknown before (a renumbered
-  `$LC` label). A relocation that now names a different existing symbol (another overload, another virtual) is a
-  DIFF with class `retarget`, even though matchtool would still say MATCH.
+  `$LC` label). A class rename counts too: its vtable's `.gnu.linkonce.d.<vtable>` section is compared under the
+  new name when exactly one new section of the same kind has the same bytes, and the vtable symbol (with its config
+  entry moved) goes through the same rename test. A relocation that now names a different existing symbol (another
+  overload, another virtual) is a DIFF with class `retarget`, even though matchtool would still say MATCH.
 - `DIFF`: the first differing section, the function and offset, about six instructions old | new with relocation
   targets, and matchtool's verdict for that function against the ELF.
 - `COMPILE-FAIL`: the first compiler error lines.

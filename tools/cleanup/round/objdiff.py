@@ -8,7 +8,8 @@ Verdicts:
   IDENTICAL   nothing differs
   RENAMED     bytes and relocation positions identical; only symbol names differ, through a consistent one-to-one
               map whose new names are not already known under another address (see classify_renames). A real
-              rename (rename.py) or a renumbered local label ($LC12 -> $LC13) looks like this.
+              rename (rename.py) or a renumbered local label ($LC12 -> $LC13) looks like this; so does a class
+              rename, whose vtable's .gnu.linkonce.d section is renamed with the vtable symbol.
   DIFF        anything else; first_diff() describes the first difference (section, function, a few instructions)
 A relocation that now names another existing symbol (a call resolving to another overload or virtual) is a DIFF
 even though matchtool still reports MATCH: that is the case this module exists to catch.
@@ -110,6 +111,21 @@ def compare(old, new, known_old=None, known_new=None, defined_elsewhere=()):
     diffs = []
     ao, an = old.alloc(), new.alloc()
     first = None
+    pairs = {}
+    # a linkonce section named after a renamed symbol (a class rename moves .gnu.linkonce.d.<its vtable>) is compared
+    # as the same section when exactly one new-only section of the same kind has identical bytes; the name pair goes
+    # through classify_renames like any other (the vtable symbol's config entry must have moved with it)
+    secmap = {}
+    for k in [k for k in ao if k not in an and k.startswith('.gnu.linkonce.')]:
+        pre = k[:k.find('.', len('.gnu.linkonce.')) + 1]
+        so = old.secs[ao[k]]
+        cand = [n for n in an if n not in ao and n.startswith(pre) and n not in secmap.values()
+                and new.secs[an[n]]['type'] == so['type'] and new.secs[an[n]]['data'] == so['data']]
+        if pre and len(cand) == 1:
+            secmap[k] = cand[0]
+            pairs.setdefault(k[len(pre):], {}).setdefault(cand[0][len(pre):], []).append(('symtab', 0))
+    unmap = {n: k for k, n in secmap.items()}
+    an = {unmap.get(n, n): i for n, i in an.items()}
     for k in sorted(set(ao) | set(an), key=lambda k: (k not in ao, ao.get(k, an.get(k, 0)))):
         if k not in ao or k not in an:
             diffs.append(('section', k, 'only in ' + ('new' if k in an else 'old')))
@@ -124,7 +140,6 @@ def compare(old, new, known_old=None, known_new=None, defined_elsewhere=()):
             diffs.append(('bytes', k, f'size {so["size"]:#x} -> {sn["size"]:#x}' + (f', first at +{off:#x}' if off is not None else '')))
             first = first or ('bytes', k, off)
     # relocations: positions and types must agree; names may differ only through a rename map
-    pairs = {}
     for k in set(ao) & set(an):
         ro, rn = sorted(old.rels.get(ao[k], [])), sorted(new.rels.get(an[k], []))
         if [r[:2] for r in ro] != [r[:2] for r in rn]:
@@ -133,10 +148,11 @@ def compare(old, new, known_old=None, known_new=None, defined_elsewhere=()):
             first = first or ('relocs', k, off)
             continue
         for a, b in zip(ro, rn):
-            if a[2] != b[2]:
+            if a[2] != b[2] and unmap.get(b[2], b[2]) != a[2]:
                 pairs.setdefault(a[2], {}).setdefault(b[2], []).append((k, a[0]))
     # symbols
     no, nn = old.named(), new.named()
+    nn = {n: t[:4] + (unmap.get(t[4], t[4]),) for n, t in nn.items()}
     gone, added = set(no) - set(nn), set(nn) - set(no)
     for n in set(no) & set(nn):
         if no[n] != nn[n]:
@@ -147,7 +163,10 @@ def compare(old, new, known_old=None, known_new=None, defined_elsewhere=()):
     for n in added: by_attr.setdefault(nn[n], []).append(n)
     for n in sorted(gone):
         cand = by_attr.get(no[n], [])
-        if len(cand) == 1:
+        via = [m for m in pairs.get(n, {}) if m in added and nn[m] == no[n]]
+        if len(via) == 1:                    # the relocations already pair it (undefined symbols share attributes)
+            added.discard(via[0]); by_attr[no[n]] = [m for m in cand if m != via[0]]
+        elif len(cand) == 1:
             pairs.setdefault(n, {}).setdefault(cand[0], []).append(('symtab', 0))
             added.discard(cand[0]); by_attr[no[n]] = []
         else:
