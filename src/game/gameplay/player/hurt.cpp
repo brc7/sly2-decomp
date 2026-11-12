@@ -163,7 +163,7 @@ static inline qword Difference1(U *a, qword b, JTHURT *c, STEPPLAYER *&player)
     return x;
 }
 #else
-static inline qword Position() { return g_cm.pos; }
+static inline qword Position() { return VuWiden<qword>(g_cm.pos); }   /* CM::pos (VECTOR4) as a quadword */
 static inline qword Difference(U *a, qword b, JTHURT *c, STEPPLAYER *&player) { player = c->player; return VuSub(a->q, b); }
 static inline qword Difference1(U *a, qword b, JTHURT *c, STEPPLAYER *&player) { player = c->player; return VuSub(a->q, b); }
 #endif
@@ -673,7 +673,9 @@ namespace M_FTakeJtDamage {
  int IsBasicDerivedFrom__FP5BASIC3CID(LO*,int) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
  void DropStepplayerBooty(STEPPLAYER*) __asm__("DropStepplayerBooty");
  void BroadcastGameEvent(void*,int,LO*) __asm__("BroadcastGameEvent");
+#if defined(SLY2_EE_LAYOUT)
  void SetJtHurtCallback(JTHURT*,HURTFN) __asm__("SetJtHurtCallback");
+#endif
  void StartJtKnockback(JTHURT*) __asm__("StartJtKnockback");
  int GetBasicCid(STEPPLAYER*) __asm__("GetBasicCid");
  void*CreateSfxSound(int) __asm__("CreateSfxSound");
