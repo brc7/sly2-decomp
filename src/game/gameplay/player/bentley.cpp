@@ -196,14 +196,14 @@ extern "C" void UpdateBentleyStateMachine(BENTLEY *p)
         case BENTLEY_GRAB:
             if (p->jtgrab.state == 1 || p->jtgrab.state == 12)
                 break;
-            if (0.1f < g_clock.time - p->unknown20C)
+            if (0.1f < g_clock.time - p->floorContactTime)
                 SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         case BENTLEY_NEAR_TARGET:
         case BENTLEY_WALK:
         case BENTLEY_THROW:
         default:
-            if (0.1f < g_clock.time - p->unknown20C)
+            if (0.1f < g_clock.time - p->floorContactTime)
                 SetJtAirJump(&p->jtair, 0, 0, 0);
             break;
         }
@@ -387,12 +387,12 @@ extern "C" { static __inline__ qword MulT(qword *pm, qword v)
             : "+j"(r), "=&j"(one), "=&j"(t0), "=&j"(t1), "=&j"(t2) : "j"(v), "j"(pm[1]), "j"(pm[2]));
     return r;
 } }
-// Set the actor's qwUnknown190 velocity to v rotated by its target orientation, reset blendSide and update the
+// Set the actor's localVelocity velocity to v rotated by its target orientation, reset blendSide and update the
 // directional blend.
 extern "C" { static __inline__ void SetVel(BENTLEY *p, qword v, BLDIR *pv, ASEGBL *n)
 {
-    p->qwUnknown190 = v;
-    p->qwUnknown190 = MulT(p->aqwTarget, v);
+    p->localVelocity = v;
+    p->localVelocity = MulT(p->aqwTarget, v);
     p->blendSide = -1;
     UpdateDirectionalBlend(p, pv, n);
 } }
@@ -406,7 +406,7 @@ extern "C" { static __inline__ void Pull(BENTLEY *p)
     __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(-1.0f));
     u.q = uq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(u.q));
-    p->qwUnknown190 = r;
+    p->localVelocity = r;
 } }
 // Set v190 to the negated step-animation translation of the current action (volatile stores keep the original order).
 extern "C" { static __inline__ void PullB(BENTLEY *p)
@@ -416,7 +416,7 @@ extern "C" { static __inline__ void PullB(BENTLEY *p)
     qword r, t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(-1.0f));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(t));
-    *(volatile qword *)&p->qwUnknown190 = r;
+    *(volatile qword *)&p->localVelocity = r;
     *(volatile qword *)&u.q = t;
 } }
 // Update the gait blend by g and then the footsteps.
@@ -640,7 +640,7 @@ extern "C" void SetBentleyState(BENTLEY *p, int k)
             if (FindSmStateOptional__FP2SM3OID(jt, anim) < 0)
                 anim = -1;
         }
-        p->qwUnknown190 = D_002A2DD0;
+        p->localVelocity = D_002A2DD0;
         c = GetStepplayerLeanFlags(p);
         InitIdleTimer(p, 1);
         break;
@@ -678,7 +678,7 @@ extern "C" void SetBentleyState(BENTLEY *p, int k)
     case BENTLEY_SCRIPT_SMA:
         SetXfRole(p, p->positionXf, 1);
         SetXfRole(p, p->rotationXf, 1);
-        p->qwUnknown190 = D_002A2DD0;
+        p->localVelocity = D_002A2DD0;
         break;
     case BENTLEY_ADRENALINE:
         asega = p->pasegAdrenaline;
@@ -1071,7 +1071,7 @@ extern "C" void SetBentleySubState(BENTLEY *bentley, int n) {
     case 0:
         aseg = bentley->pasegSubState0;
         {
-            VECTOR *pv = &bentley->unknown190;
+            VECTOR *pv = &bentley->vecLocalVelocity;
             pv->z = 0.0f;
             pv->y = 0.0f;
             pv->x = 0.0f;
@@ -1128,7 +1128,7 @@ extern "C" void UpdateBentleySubState(BENTLEY *bentley)
                 ReleaseBentleyHeldObject(bentley);
                 SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if
- (0.1f < g_clock.time - bentley->unknown20C) {
+ (0.1f < g_clock.time - bentley->floorContactTime) {
                 SetBentleySubState(bentley, 2);
             } else {
                 SetBentleySubState(bentley, 1);
@@ -1533,7 +1533,7 @@ int GetStepplayerGroundProbeFlags(BENTLEY *) __asm__("GetStepplayerGroundProbeFl
 // BENTLEY slot 85: per-state ground-probe flags (0 on a pipe, 5 hovering, 0xF in adrenaline), else the STEPPLAYER base.
 // Also known as: GrfBentleyXp (upstream readable / Sly 1 name; GrfBentleyXp__FP3ALO).
 extern "C" int GetBentleyGroundProbeFlags(BENTLEY *bentley) {
-    if (bentley->unknown204) return 0;
+    if (bentley->hasNoBase) return 0;
     switch (bentley->state) {
     case BENTLEY_PIPE: return 0;
     case BENTLEY_HOVER: return 5;
@@ -1947,7 +1947,7 @@ extern "C" void SetBentleyHelperState(JTREC *s, int k)
             FaceStepToward(s->player, s->player->interactTarget);
             FindAsegChannel(px, s->player, 1, 1)->pac->Evaluate(0.0f, px->masterSpeed, 0, &v.q);
             s->player->SetVelocity(*(M3Q *)s->player->aqwTarget * VU_VECTOR(v.q));
-            s->player->qwUnknown190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
+            s->player->localVelocity = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
             s->side = k;
         }
     ReleaseSma(&s->player->activeStateMachine);

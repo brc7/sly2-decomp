@@ -911,7 +911,7 @@ extern "C" void SetStepguardSpecial(STEPGUARD *guard, int special)
                 SetAsegaMasterSpeed(asega, 0.0f);
         }
         {
-            VECTOR *velocity = &guard->unknown190;
+            VECTOR *velocity = &guard->vecLocalVelocity;
             velocity->z = 0;
             velocity->y = 0;
             velocity->x = 0;
@@ -1008,7 +1008,7 @@ void STEPGUARD::Update()
     if (guard->heldAnimation && IsAsegaRetracted(guard->heldAnimation))
         DropAsegaRef(&guard->heldAnimation);
     if (guard->tracksRelocatePoint && guard->floorContact)
-        guard->relocatePoint = *guard->unknown218;
+        guard->relocatePoint = *guard->probeBottomPos;
 }
 
 // 0x207468 TakeStepguardDamage
@@ -1061,7 +1061,7 @@ namespace M_FInvulnerableStepguard {
 // 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
 extern "C" int IsStepguardInvulnerable(STEPGUARD *guard)
 {
-    if (guard->isInvulnerable32C || guard->unknown298)
+    if (guard->isInvulnerable32C || guard->isInvulnerable)
         return 1;
     return StepguardHasSgf(guard, 0x2A) != 0;
 }
@@ -2455,7 +2455,7 @@ extern "C" void DriveStepguardFromAnim(struct ANIMBINDING *binding, struct STEPG
     }
     guard->targetAngularVelocity = extra;
     v.x *= -1.0f; v.y *= -1.0f; v.z *= -1.0f; v.w *= -1.0f;
-    guard->qwUnknown190 = VuPut<qword>(v);
+    guard->localVelocity = VuPut<qword>(v);
 }
 #endif
 } // namespace M_func_00209618
@@ -2500,7 +2500,7 @@ extern "C" void ResetStepguardMover(GUARDMOVER *mover)
     mover->driver = 0;
     guard = mover->guard;
     mover->isHeadingLocked = 0;
-    VECTOR *velocity = &guard->unknown190;
+    VECTOR *velocity = &guard->vecLocalVelocity;
     velocity->z = 0.0f;
     velocity->y = 0.0f;
     velocity->x = 0.0f;
@@ -2750,7 +2750,7 @@ void STEPGUARD::AddExtraXps()
     switch (guard->attachKind) {
     case 0:
         EvaluateShapeAtDistance(guard->attachObject, &pos, &tangent, guard->attachParam);
-        guard->AddAxisXps(0x22, guard->attachObject, pos, tangent, *guard->unknown218);
+        guard->AddAxisXps(0x22, guard->attachObject, pos, tangent, *guard->probeBottomPos);
         break;
     case 1: {
         EvaluateShapeAtDistance(guard->attachObject, &pos, &tangent, guard->attachParam);
@@ -2762,7 +2762,7 @@ void STEPGUARD::AddExtraXps()
         break;
     }
     case 3: {
-        guard->AddAxisXps(7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->unknown218);
+        guard->AddAxisXps(7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->probeBottomPos);
         break;
     }
     }

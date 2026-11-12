@@ -354,7 +354,7 @@ extern "C" int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm
             STEPGUARD *a;
             { qword u_q; __asm__("qmtc2.ni %1, %0" : "=j"(u_q) : "r"(-1.0f)); u.q = u_q; }
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(v), "j"(u.q));
-            ((STEPGUARD *)behavior->owner)->qwUnknown190 = n;
+            ((STEPGUARD *)behavior->owner)->localVelocity = n;
             a = ((STEPGUARD *)behavior->owner);
             {
                 qword *m = a->aqwTarget;
@@ -440,7 +440,7 @@ extern "C" void UpdateBhvanimMotion(BHVANIM *behavior)
     if (behavior->state == 0)
         DriveStepguardFromAnim(behavior->binding, ((STEPGUARD *)behavior->owner));
     else
-        ((STEPGUARD *)behavior->owner)->qwUnknown190 = D_002A2DD0;
+        ((STEPGUARD *)behavior->owner)->localVelocity = D_002A2DD0;
     if (behavior->lookAt) {
         qword a = GetLoWorldPos(behavior->lookAt);
         qword b = GetLoWorldPos(((STEPGUARD *)behavior->owner));
@@ -5925,7 +5925,7 @@ void BHVGOTO::Update() {
                     behavior->relocateGoal.shape = 0;
                     behavior->relocateGoal.object = 0;
                     EvaluateShapeAtDistance(t->shape, f < maxParam ? f : maxParam, &behavior->relocateGoal.pos, 0);
-                    ((float *)&behavior->relocateGoal.pos)[2] = ((float *)((STEPGUARD *)behavior->owner)->unknown218)[2];
+                    ((float *)&behavior->relocateGoal.pos)[2] = ((float *)((STEPGUARD *)behavior->owner)->probeBottomPos)[2];
                     SetBhvgotoState(behavior, 5);
                 }
             }

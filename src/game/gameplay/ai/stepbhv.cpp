@@ -575,7 +575,7 @@ void UpdateBhvfollowPosition(BHVFOLLOW *behavior)
     if (IsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, CID_STEP)) {
         STEP *leader = (STEP *)behavior->leader;
         u.s.m = BuildAxisAngleRotationMatrix(g_normalZ, leader->targetHeading);
-        u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->qwUnknown190));
+        u.s.pos = AddScaled(behavior->followPoint, VU_FLOAT(-behavior->velocityLeadTime), MulM3(u.s.m, leader->localVelocity));
     } else {
         PO *leader;
         u.s.m = *GetLoWorldMatrix(behavior->leader);

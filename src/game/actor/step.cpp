@@ -84,7 +84,7 @@ void STEP::Init()
     InitPo(this);
     oidPhys = -1;
     gravityRatio = 1.0f;
-    unknown200 = 1.0f;
+    tiltSpinScale = 1.0f;
     ScaleStepSpinSpeed(this, 1.0f);
     SetStepTargetHeading(this, 0.0f);
     baseRadius = 30.0f;
@@ -190,7 +190,7 @@ extern "C" void BuildStepPhysPart(STEP *step, SOPART *m)
         float e = ((struct E *)step->psopartBody->meshLocal.positions)[i].z;
         lowestZ = (e > lowestZ) ? lowestZ : e;
     }
-    step->unknown210 = lowestZ;
+    step->bodyLowestZ = lowestZ;
     firstHelper = step->psopartBody->unknown1C;
     step->psopartBody->unknown1C = firstHelper + 2;
     {register SOPART *mesh __asm__("$4")=step->psopartBody;
@@ -209,8 +209,8 @@ extern "C" void BuildStepPhysPart(STEP *step, SOPART *m)
     if (allPinned)
         ((qword *)step->psopartBody->meshLocal.positions)[firstHelper + 2] = D_002A2DD0;
     UpdateGeomWorld(&step->psopartBody->transform->worldMatrix, &step->psopartBody->meshLocal, &step->psopartBody->meshWorld);
-    step->unknown218 = (::qword *)((char *)step->psopartBody->meshWorld.positions + firstHelper * 16);
-    step->unknown21C = (::qword *)((char *)step->psopartBody->meshWorld.positions + (firstHelper * 16 + 0x10));
+    step->probeBottomPos = (::qword *)((char *)step->psopartBody->meshWorld.positions + firstHelper * 16);
+    step->probeTopPos = (::qword *)((char *)step->psopartBody->meshWorld.positions + (firstHelper * 16 + 0x10));
     {
         bool fInWorld = step->isInWorld;
         if (fInWorld)
@@ -407,8 +407,8 @@ extern "C" void UpdateStepPhys(struct S *input)
 // Sets the "no base" option (+0x204); turning it on drops the cached floor contact (+0x208).
 extern "C" void SetStepNoBase(STEP *step, int n)
 {
-    if (step->unknown204 != n) {
-        step->unknown204 = n;
+    if (step->hasNoBase != n) {
+        step->hasNoBase = n;
         if (n != 0) {
             step->floorContact = 0;
         }
@@ -468,7 +468,7 @@ extern "C" void UpdateStep(struct S *step)
 // Slot 85: ground-probe flags for AddStepCustomXps: 0 with the no-base option, else 7 (probe, use top point, ...).
 extern "C" int GetStepGroundProbeFlags(STEP *step)
 {
-    return (step->unknown204 != 0) ? 0 : PROBE_DEFAULT;
+    return (step->hasNoBase != 0) ? 0 : PROBE_DEFAULT;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -498,7 +498,7 @@ extern "C" void PresetStepAccel(struct STEP *step)
     switch (step->steeringMode) {
     case STEERING_HEADING: {
         VECTOR3 v;
-        float s = step->unknown200;
+        float s = step->tiltSpinScale;
         v.z = step->vSpin.z;
         v.x = step->vSpin.x * s;
         v.y = step->vSpin.y * s;
@@ -532,7 +532,7 @@ extern "C" void PresetStepAccel(struct STEP *step)
 extern "C" void TranslateStepToPos(STEP *step, qword pos)
 {
     TranslateSoToPos(step, pos);
-    step->unknown230 = ConvertPosBetweenLos(step, 0, step->pivotOffset);
+    step->worldBasePos = ConvertPosBetweenLos(step, 0, step->pivotOffset);
 }
 
 // Slot 30: RotateSoToMat, then takes the new heading as target heading and stores it in the controller.
@@ -671,8 +671,8 @@ namespace M_AdjustStepXpVelocity {
 // AdjustStepXpVelocity: a STEP's contact-velocity adjustment (vtable slot 56; Sly 1 has AdjustStepXpVelocity(STEP *, XP *, int)).
 // After the base version (AdjustSoXpVelocity), for a kind-0xE contact: the closing speed along the contact normal is smoothed
 // with SmoothValue (SmoothValue) toward two limits (SMPs D_002C3C98 / D_002C3CA8), the change is limited to dt * 9000 up and
-// dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * unknown190 without its part along the
-// normal) * unknown180. Finally the contact distance moves by unknown210 - gUnk248.
+// dt * -4500 down, and this side's velocity gets normal * -speed plus (matTarget * localVelocity without its part along the
+// normal) * tangentVelocityScale. Finally the contact distance moves by bodyLowestZ - gUnk248.
 // Matched with one asm statement per VU0 operation, no register pins: the local pmat gives the target's pointer/row registers,
 // the two smoothing outputs are separate address-taken floats (frame slots after the VU_FLOAT home at 0($sp)).
 
@@ -691,13 +691,13 @@ struct M3
 
 struct STEP : PO
 {
-    float unknown180;
+    float tangentVelocityScale;
     char pad184[0xC];
-    qword unknown190;
+    qword vecLocalVelocity;
     char pad1a0[0x10];
     struct M3 matTarget;
     char pad1e0[0x30];
-    float unknown210;
+    float bodyLowestZ;
     char pad214[0x34];
     float gUnk248;
 };
@@ -759,7 +759,7 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
     float gVn = QwordX(VuDot(VuSub(pxp->axps[0].v, pxp->axps[1].v), pxp->normal));
     float gVnMin;
     float gVnTarget;
-    SmoothValue__FfffP3SMPPf(pxp->g, step->unknown210, g_clock.deltaTime, D_002C3C98, &gVnMin);
+    SmoothValue__FfffP3SMPPf(pxp->g, step->bodyLowestZ, g_clock.deltaTime, D_002C3C98, &gVnMin);
     SmoothValue__FfffP3SMPPf(pxp->g, 0.0f, g_clock.deltaTime, D_002C3CA8, &gVnTarget);
     gVn = gVn > gVnMin ? gVn : gVnMin;
     if (gVn < gVnTarget)
@@ -777,13 +777,13 @@ extern "C" void AdjustStepXpVelocity(struct STEP *step, struct XP *pxp, int ixpd
 
     struct XPS *pxpd = &pxp->axps[ixpd];
     struct M3 *pmat = &step->matTarget;
-    qword v = QwRotate(pmat, step->unknown190);
+    qword v = QwRotate(pmat, step->vecLocalVelocity);
     qword normal = pxp->normal;
     qword vT = VuSub(v, VuScaleByX(normal, VuDot(v, normal)));
     struct VU_FLOAT vuVn = VuFloat(-gVn);
-    struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->unknown180);
+    struct VU_FLOAT vuK = VuFloatFromMemWord(*(int *)&step->tangentVelocityScale);
     pxpd->v = QwAddScaled2(pxpd->v, normal, vuVn.qw, vT, vuK.qw);
-    pxp->g += step->unknown210 - step->gUnk248;
+    pxp->g += step->bodyLowestZ - step->gUnk248;
 }
 } // namespace M_AdjustStepXpVelocity
 
@@ -975,7 +975,7 @@ extern "C" void AddStepCustomXps(STEP *step, struct X *x, int cbsp, BSP *absp, B
     if (IsBasicDerivedFrom__FP5BASIC3CID(x->so->tree->rootSo, 0x33))
         return;
     pos = GetLoWorldPos(step);
-    if (ClipEdgeToObjectPruned(x, pbsp, pos, *((fl & PROBE_FROM_TOP) ? step->unknown21C : step->unknown218), 1, &hit) <= 0)
+    if (ClipEdgeToObjectPruned(x, pbsp, pos, *((fl & PROBE_FROM_TOP) ? step->probeTopPos : step->probeBottomPos), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
         if (fl & PROBE_KEEP_NORMAL)
@@ -984,14 +984,14 @@ extern "C" void AddStepCustomXps(STEP *step, struct X *x, int cbsp, BSP *absp, B
             n = g_normalZ;
         else if (hit.unknown48)
             n = hit.normal;
-        else if (HasStepFloorNearby(step, *step->unknown218, x, hit.tag))
+        else if (HasStepFloorNearby(step, *step->probeBottomPos, x, hit.tag))
             n = g_normalZ;
         else
             n = hit.normal;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->unknown218), "j"(hit.pos));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(*step->probeBottomPos), "j"(hit.pos));
         __asm__("vmul.xyz %0, %0, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "+j"(d), "=&j"(tmp) : "j"(n));
         __asm__("mtc1 %1, %0" : "=f"(f) : "r"(d));
-        AddXp(&g_sw, step->psopartBody, x, *step->unknown218, n, 0xE, 0, 0, ppxpFirst, f);   /* kind 14: the floor contact */
+        AddXp(&g_sw, step->psopartBody, x, *step->probeBottomPos, n, 0xE, 0, 0, ppxpFirst, f); /* kind 14: the floor contact */
     }
 }
 } // namespace M_AddStepCustomXps
@@ -1431,12 +1431,12 @@ extern int D_002C3CC8[2][3] __asm__("D_002C3CC8");
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 // Load a vector into a VU0 register.
 static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) : "m"(*p)); return r; }
-// Builds the two footprint triangles: a diamond of radius baseRadius around the base point (*unknown218), oriented by the
+// Builds the two footprint triangles: a diamond of radius baseRadius around the base point (*probeBottomPos), oriented by the
 // world matrix.
 extern "C" void BuildStepFootprint(STEP *step, qword out[2][3])
 {
     qword point[5];
-    qword origin = *step->unknown218;
+    qword origin = *step->probeBottomPos;
     qword right = GetLoWorldMatrix(step)->r[0];
     qword forward = LoadVf(&GetLoWorldMatrix(step)->r[1]);
     point[0] = GetLoWorldPos(step);

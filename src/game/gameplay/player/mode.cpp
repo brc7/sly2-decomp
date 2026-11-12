@@ -227,7 +227,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                         {
                             step->AddDialogSmRefs(0x3F, 1);
                             SetSoCnstrForce(step, 1);
-                            ClearXyz(&step->unknown190);
+                            ClearXyz(&step->vecLocalVelocity);
                             step->SetVelocity(D_002A2DD0);
                             step->SetAngularVelocity(D_002A2DD0);
                         }
@@ -241,7 +241,7 @@ void SetJtModeState(JTMODE *jtMode, int state)
                     jtMode->hud.SetState(0);
                     break;
             }
-            ClearXyz(&jtMode->player->unknown190);
+            ClearXyz(&jtMode->player->vecLocalVelocity);
             jtMode->player->SetVelocity(D_002A2DD0);
             jtMode->player->SetAngularVelocity(D_002A2DD0);
             CutCm(&g_cm);
@@ -291,12 +291,12 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
         n = jtMode->state;
         switch (n) {
         case 0:
-            jtMode->player->qwUnknown190 = D_002A2DD0;
+            jtMode->player->localVelocity = D_002A2DD0;
             if (!jtMode->animationPlayback || IsAsegaRetracted(jtMode->animationPlayback))
                 SetJtModeState(jtMode, 1);
             break;
         case 1:
-            jtMode->player->qwUnknown190 = D_002A2DD0;
+            jtMode->player->localVelocity = D_002A2DD0;
             switch (jtMode->kind) {
             case 0:
                 SetStepTargetHeading(jtMode->player, g_cm.cplook.panAngle);
@@ -311,7 +311,7 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             }
             break;
         case 2:
-            jtMode->player->qwUnknown190 = D_002A2DD0;
+            jtMode->player->localVelocity = D_002A2DD0;
             if (!jtMode->animationPlayback || IsAsegaRetracted(jtMode->animationPlayback))
                 SetJtModeState(jtMode, -1);
             break;

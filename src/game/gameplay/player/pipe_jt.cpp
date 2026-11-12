@@ -583,7 +583,7 @@ extern "C" void SetJtPipeState(JTPIPE *pipe, int next)
     }
     ReleaseSma(&pipe->player->activeStateMachine);
     ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA(clip, pipe->player, position, speed, flags, &pipe->player->activeAnimation);
-    Clear((U *)&pipe->player->qwUnknown190);
+    Clear((U *)&pipe->player->localVelocity);
 }
 
 // Gadget check while on a pipe: only gadget kind 3 is considered, allowed when the owner's gadget flag (x12F0) and the

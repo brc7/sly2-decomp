@@ -203,7 +203,7 @@ extern "C" float ScoreJtPlace(JTPLACES *places, JTPLACE *q, int n, STEP **apo)
         if (lo == places->player) continue;
         qword d;
         float dist;
-        d = VuSub(*lo->unknown218, *(qword *)(void *)&pos);
+        d = VuSub(*lo->probeBottomPos, *(qword *)(void *)&pos);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         dist = VuToFloat(d);

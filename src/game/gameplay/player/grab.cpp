@@ -643,19 +643,19 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             offset = ScaleVec(side.q, VuFloat(s));
         }
         ACTOR *actor = ctx->actor;
-        actor->qwUnknown190 = ScaleVec(MulM3Vec((M3 *)&actor->matqTarget, VuAdd(vel.q, offset)), VuFloat(-1.0f));
+        actor->localVelocity = ScaleVec(MulM3Vec((M3 *)&actor->matqTarget, VuAdd(vel.q, offset)), VuFloat(-1.0f));
         int step;
-        if (25.0f < LengthOf(ctx->actor->qwUnknown190)) {
+        if (25.0f < LengthOf(ctx->actor->localVelocity)) {
             step = 1;
             if (ctx->action == 0) {
                 if (45.0f < LengthOf(vel.q)) {
                     SetJtHideFacingKind__FP2JT4HFDK(ctx, 0);
-                } else if (20.0f < ((U *)&ctx->actor->qwUnknown190)->f[1]) {
+                } else if (20.0f < ((U *)&ctx->actor->localVelocity)->f[1]) {
                     if (ctx->actor->unknown1040 == 1)
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
                     else
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
-                } else if (((U *)&ctx->actor->qwUnknown190)->f[1] < -20.0f) {
+                } else if (((U *)&ctx->actor->localVelocity)->f[1] < -20.0f) {
                     if (ctx->actor->unknown1040 == 1)
                         SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
                     else
@@ -707,7 +707,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     case 3: {
         FOCUS *focus = ctx->focus;
         U point, tangent;
-        FindShapeClosestPointFromParam(focus, *ctx->actor->unknown218, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
+        FindShapeClosestPointFromParam(focus, *ctx->actor->probeBottomPos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
         if (focus->flags && !focus->cyclic &&
             (ctx->parameter < GetShapeMinParam(focus) + 0.01f || GetShapeMaxParam(focus) - 0.01f < ctx->parameter)) {
             SetJtAirJump(&ctx->actor->jtair, 0, 0, 0);
@@ -722,7 +722,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         if (!focus->other)
             dir = tangent;
         else
-            FindShapeClosestPoint(focus->other, *ctx->actor->unknown218, 0, 0, &dir, 0, 0);
+            FindShapeClosestPoint(focus->other, *ctx->actor->probeBottomPos, 0, 0, &dir, 0, 0);
         dir.f[2] = 0.0f;
         dir.q = NormalizeVec(dir.q, D_002A2DA0);
         float g = QwordX(DotVec(input.q, dir.q));
@@ -809,11 +809,11 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 ENTRY *e = &ctx->axes2[3];
                 if (!e->active)
                     e = &ctx->axes2[2];
-                SetXYZ((U *)&ctx->actor->qwUnknown190, -joy->y * LengthXYOf(e->direction.q), joy->x * LengthXYOf(ctx->axes2[1].direction.q), 0.0f);
+                SetXYZ((U *)&ctx->actor->localVelocity, -joy->y * LengthXYOf(e->direction.q), joy->x * LengthXYOf(ctx->axes2[1].direction.q), 0.0f);
                 UpdateDirectionalBlend(ctx->actor, ctx->axes2, ctx->request2);
                 ACTOR *actor = ctx->actor;
-                float turn = -((U *)&actor->qwUnknown190)->f[1] / D_002BF5CC;
-                actor->qwUnknown190 = ScaleVecX(D_002A2DA0, DotVec(actor->qwUnknown190, D_002A2DA0));
+                float turn = -((U *)&actor->localVelocity)->f[1] / D_002BF5CC;
+                actor->localVelocity = ScaleVecX(D_002A2DA0, DotVec(actor->localVelocity, D_002A2DA0));
                 SetStepTargetHeading(ctx->actor, ctx->actor->targetHeading + turn * g_clock.deltaTime);
             } else {
                 SetJtGrabKind(ctx, 9);
@@ -839,7 +839,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 v.q = ScaleVec(v.q, VuFloat(-1.0f));
             }
         }
-        *(U *)&ctx->actor->qwUnknown190 = v;
+        *(U *)&ctx->actor->localVelocity = v;
         break;
     }
     case 11:
@@ -1686,14 +1686,14 @@ extern "C" void UpdateJtInternalXpsHide(JTGRAB *p)
     case 4: {
         U pos;
         pos.q = GetLoWorldPos(p->grabbedObject);
-        p->player->AddAxisXps(0x23, p->grabbedObject, pos.q, D_002A2DB0, *p->player->unknown218);
+        p->player->AddAxisXps(0x23, p->grabbedObject, pos.q, D_002A2DB0, *p->player->probeBottomPos);
         break;
     }
     case 3: {
         U v0, v1;
         RAIL *t = (RAIL *)p->grabbedObject;
         int k;
-        FindShapeClosestPointFromParam(t, *p->player->unknown218, 0, &v0.q, &v1.q, &p->spotParam, &p->spotDistance, p->spotParam);
+        FindShapeClosestPointFromParam(t, *p->player->probeBottomPos, 0, &v0.q, &v1.q, &p->spotParam, &p->spotDistance, p->spotParam);
         k = 0x22;
         if (t->fSlide == 0 && t->isClosed == 0) {
             U vel;
@@ -1703,7 +1703,7 @@ extern "C" void UpdateJtInternalXpsHide(JTGRAB *p)
             vel.q = p->player->GetVelocity();
             d0 = Dot(vel.q, v1.q);
             m = GetLoWorldMatrix(p->player);
-            w=p->player->qwUnknown190;
+            w=p->player->localVelocity;
             __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(w):"j"(m->row[0]),"j"(m->row[1]),"j"(m->row[2]));
             d1 = -Dot2(w, v1.q);
             if ((d0 < -2.0f || d1 < 2.0f) && p->spotDistance < GetShapeMinDistance(t) + 50.0f) {
@@ -1720,7 +1720,7 @@ extern "C" void UpdateJtInternalXpsHide(JTGRAB *p)
                 v1.q = v1q;
             }
         }
-        p->player->AddAxisXps(k, t, v0.q, v1.q, *p->player->unknown218);
+        p->player->AddAxisXps(k, t, v0.q, v1.q, *p->player->probeBottomPos);
         break;
     }
     }

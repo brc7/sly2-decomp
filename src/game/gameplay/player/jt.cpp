@@ -639,10 +639,10 @@ extern "C" void HandleJtMessage(JT *p, int msg, void *pv)
                 void *px;
 
                 p->unknown1D2C = 1;
-                ClearX((CLR *)&p->unknown190);
+                ClearX((CLR *)&p->vecLocalVelocity);
 
                 {
-                    p->SetVelocity(p->qwUnknown190);
+                    p->SetVelocity(p->localVelocity);
                 }
                 px = FindStepBehavior(p->interactTarget, 0xB1);
                 if (px)
@@ -1744,7 +1744,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     if (jt->animState != 8 && jt->animState != 9 || jt->janim.isInputOpen)
                     {
     fell:
-                        if (g_clock.time - jt->unknown20C > 0.1f)
+                        if (g_clock.time - jt->floorContactTime > 0.1f)
                             SetJtAirJump(&jt->jtair, 0, 0, 0);
                     }
                     break;
@@ -2361,7 +2361,7 @@ typedef char PHASE_Scalar_Offset[((unsigned)&((struct WORK *)0)->phase.scalar ==
 namespace M_UpdateJtPre {
 
 
-/* qword: the header's (the hero's qwUnknown190 is one) */
+/* qword: the header's (the hero's localVelocity is one) */
 typedef union {
     qword q;
     float f[4];
@@ -2494,7 +2494,7 @@ extern "C" { static inline void PrepareAnimation(JT *p, U *u, ASEGA **modelOut, 
             : "r"(input), "m"(p->activeAnimation), "f"(-1.0f));
     __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
     __asm__("vmulx.xyzw %0,%2,%3x\n\tlw %1,%4" : "=j"(result), "=r"(state) : "j"(v), "j"(scalar), "m"(p->controller));
-    WriteVectorPair(result, &p->qwUnknown190, scalar, &u->q);
+    WriteVectorPair(result, &p->localVelocity, scalar, &u->q);
     *modelOut = model;
     *stateOut = state;
 } }
@@ -2518,12 +2518,12 @@ extern "C" void UpdateJtPre(JT *jt)
     case 9: {
         ASEGA *m = jt->activeAnimation;
         struct BINDING *b;
-        jt->qwUnknown190 = D_002A2DD0;
+        jt->localVelocity = D_002A2DD0;
         if (m) {
             b = FindAsegChannel(m->animation, jt, (void *)1, 1);
             if (b) {
                 ReadBinding(b, m, &phase.direction);
-                jt->qwUnknown190 = FirstNegative(&phase.direction, &scalar, -1.0f);
+                jt->localVelocity = FirstNegative(&phase.direction, &scalar, -1.0f);
             }
         }
         break;
@@ -2552,7 +2552,7 @@ extern "C" void UpdateJtPre(JT *jt)
         case 8:
         case 9:
             phase.direction = SetVectorCylind(jt->controller->leftStickAngle + 3.14159265f, jt->controller->leftStickDeflection * D_002BF3C0, 0.0f);
-            jt->qwUnknown190 = ConvertVecBetweenLos(0, jt, phase.direction);
+            jt->localVelocity = ConvertVecBetweenLos(0, jt, phase.direction);
             break;
         }
         break;
@@ -2563,11 +2563,11 @@ extern "C" void UpdateJtPre(JT *jt)
             struct BINDING *b = FindAsegChannel(jt->unknown1D1C, jt, (void *)1, 1);
             if (b) {
                 ReadBinding(b, jt->activeAnimation, &phase.direction);
-                jt->qwUnknown190 = SecondNegative(&phase.direction, &scalar, -1.0f);
+                jt->localVelocity = SecondNegative(&phase.direction, &scalar, -1.0f);
             }
         }
         break;
-    case 19: jt->qwUnknown190 = NegativeModelNative(jt, &phase.scalar); break;
+    case 19: jt->localVelocity = NegativeModelNative(jt, &phase.scalar); break;
     case 20: {
         ASEGA *model;
         POCTL *state;
@@ -2579,7 +2579,7 @@ extern "C" void UpdateJtPre(JT *jt)
     case 17: {
         POCTL *state;
         float zero;
-        jt->qwUnknown190 = NegativeWithState(jt, &phase.scalar, &state, &zero);
+        jt->localVelocity = NegativeWithState(jt, &phase.scalar, &state, &zero);
         if (zero < state->leftStickDeflection)
             SetStepTargetHeading(jt, state->leftStickAngle);
         break;
@@ -2637,7 +2637,7 @@ typedef char ASEGA_scale_Offset[((unsigned)&((ASEGA*)0)->speed==64)?1:-1];
 typedef char BINDING_component_Offset[((unsigned)&((struct BINDING*)0)->component==4)?1:-1];
 /* P_vptr: the vptr (+0xC, BASIC's) */
 typedef char JT_controller_Offset[((unsigned)&((JT*)0)->controller==336)?1:-1];
-typedef char JT_qwUnknown190_Offset[((unsigned)&((JT*)0)->qwUnknown190==400)?1:-1];
+typedef char JT_qwUnknown190_Offset[((unsigned)&((JT*)0)->localVelocity==400)?1:-1];
 typedef char JT_targetHeading_Offset[((unsigned)&((JT*)0)->targetHeading==424)?1:-1];
 typedef char JT_vSpin_Offset[((unsigned)&((JT*)0)->vSpin==500)?1:-1];
 typedef char JT_activeAnimation_Offset[((unsigned)&((JT*)0)->activeAnimation==4144)?1:-1];
@@ -2719,11 +2719,11 @@ extern "C" void UpdateJt(JT *p)
             unsigned page;
             __asm__("lui %0,%%hi(%2)\n\tlqc2 %1,%3"
                     : "=&r"(page), "=j"(motion)
-                    : "i"(&D_002BF3D4), "m"(p->qwUnknown190));
+                    : "i"(&D_002BF3D4), "m"(p->localVelocity));
             __asm__("lw %0,%%lo(%2)(%0)\n\tqmtc2.ni %0,%1" : "+r"(page), "=j"(s) : "i"(&D_002BF3D4) : "memory");
         }
         u.q = s;
-        p->qwUnknown190 = VuScaleByX(motion, s);
+        p->localVelocity = VuScaleByX(motion, s);
 
         break;
     }
@@ -2735,13 +2735,13 @@ extern "C" void UpdateJt(JT *p)
                 unsigned page;
                 __asm__("lui %0,%%hi(%3)\n\tlqc2 %1,%4\n\tlw %0,%%lo(%3)(%0)\n\tqmtc2.ni %0,%2"
                         : "=&r"(page), "=j"(motion), "=j"(s)
-                        : "i"(&D_002BF3D8), "m"(p->qwUnknown190)
+                        : "i"(&D_002BF3D8), "m"(p->localVelocity)
                         : "memory");
             }
             u.q = s;
-            p->qwUnknown190 = VuScaleByX(motion, s);
+            p->localVelocity = VuScaleByX(motion, s);
 
-            p->unknown180 = 1.0f;
+            p->tangentVelocityScale = 1.0f;
         }
         break;
     case 0xA: UpdateDirectionalBlend(p, p->abldirJts10, p->pasegblJts10); break;
@@ -3253,7 +3253,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 OnGameEvent(&g_game, 0x38, jt);
                 break;
             case JTS_Unk18:
-                jt->unknown200 = 1.0f;
+                jt->tiltSpinScale = 1.0f;
                 jt->controller->leftStickAngle = jt->targetHeading;
                 break;
             case JTS_Unk0D:
@@ -3291,7 +3291,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 if (FindSmStateOptional(stateMachine, oid) < 0)
                     oid = OID_Nil;
                 grfRoute = GrfJtLeanMask(jt);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 if (jt->ablSweep[2].pasegbl != 0 && jt->ablSweep[3].pasegbl != 0)
                 {
                     switch (jt->animState)
@@ -3366,7 +3366,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 }
                 sfxid = jt->hangHandle->sfxidHangStart;
                 SetJtAnimState(jt, 1);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 CalculateJtHangAccel(jt);
                 SetPlayerTn(jt, jt->hangHandle->ptn);
             }
@@ -3393,14 +3393,14 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Unk0D:
                 SetJtAnimState(jt, -1);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 ChooseJtSmashTarget(jt);
                 aseg = jt->unknown1A80;
                 jt->unknown19B0 = g_clock.time + D_002BF3E4;
                 break;
             case JTS_Unk0E:
                 SetJtAnimState(jt, -1);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 aseg = jt->unknown1A84;
                 break;
             case JTS_Unk0A:
@@ -3411,7 +3411,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTS_Pickpocket:
                 aseg = jt->pasegPickpocket;
-                *(qword *)&jt->unknown190 = D_002A2DD0;
+                *(qword *)&jt->vecLocalVelocity = D_002A2DD0;
                 jt->interactBlockFlags |= 2;
                 grf = 100;
                 jt->unknown1BD4 = 0;
@@ -3429,7 +3429,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     aseg = jt->pasegPouncePowerUp;
                     UpdateJtPounceArc(jt);
                     MATRIX3 *matrix = &jt->matTarget;
-                    qword velocity = RotateVecRows(*(qword *)matrix->mat[0], *(qword *)matrix->mat[1], *(qword *)matrix->mat[2], ScaleVec(*(qword *)&jt->unknown190, VuFloat(-1.0f)));
+                    qword velocity = RotateVecRows(*(qword *)matrix->mat[0], *(qword *)matrix->mat[1], *(qword *)matrix->mat[2], ScaleVec(*(qword *)&jt->vecLocalVelocity, VuFloat(-1.0f)));
                     jt->SetVelocity(velocity);
                     FixStepAngularVelocity(jt);
                 }
@@ -3447,27 +3447,27 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                     tLabel /= aseg->masterSpeed;
                     qword posHold = PosLoWorld(jt->interactTarget);
                     qword posAim = VuSub(AdvancePos(VuFloatBits(tLabel), posHold, jt->interactTarget->GetVelocity()), RotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
-                    *(qword *)&jt->unknown190 = DivVec(VuSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
-                    jt->unknown190.z = gZero;
-                    jt->SetVelocity(*(qword *)&jt->unknown190);
+                    *(qword *)&jt->vecLocalVelocity = DivVec(VuSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
+                    jt->vecLocalVelocity.z = gZero;
+                    jt->SetVelocity(*(qword *)&jt->vecLocalVelocity);
                 }
                 break;
             case JTS_Unk12:
                 stateMachine = jt->unknown102C;
                 SlotSetRole(jt, jt->positionXf, 1);
                 SlotSetRole(jt, jt->rotationXf, 1);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 SetJtAnimState(jt, -1);
             case JTS_Unk13:
                 SlotSetRole(jt, jt->positionXf, 1);
                 SlotSetRole(jt, jt->rotationXf, 1);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk14:
                 SlotSetRole(jt, jt->positionXf, 2);
                 SlotSetRole(jt, jt->rotationXf, 2);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk11:
@@ -3480,7 +3480,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 jt->unknown1F18->HandleSpliceEvent(5, 0, 0, 0, 0);
                 if (*(TN **)((char *)jt->unknown1F18 + 0x110) != 0)
                     SetPlayerTn(jt, *(TN **)((char *)jt->unknown1F18 + 0x110));
@@ -3492,7 +3492,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetSoCnstrForce(jt, 1);
                 jt->SetVelocity(D_002A2DD0);
                 jt->SetAngularVelocity(D_002A2DD0);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 jt->hangHandle->HandleSpliceEvent(5, 0, 0, 0, 0);
                 SubscribeLoObject(jt->hangHandle, jt);
                 SetPlayerTn(jt, jt->hangHandle->ptn);
@@ -3510,7 +3510,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 SetStepRadTarget(jt, jt->controller->leftStickAngle);
                 qword velocity = SetVectorCylind(jt->targetHeading, D_002BF3E8, gZero);
                 jt->SetVelocity(velocity);
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
             }
             break;
         }
@@ -3543,25 +3543,25 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 break;
             case JTBS_4:
                 stateMachine = jt->unknown1BC4;
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 break;
             case JTBS_5:
                 jt->blendSide = -1;
                 aseg = jt->pasegblJts5;
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 grfapl = 9;
                 break;
             case JTBS_6:
                 SetJtAnimState(jt, -1);
                 aseg = jt->apasegSwing[10];
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 jt->janim.useAltLanding = 0;
                 jt->janim.isInputOpen = 0;
                 break;
             case JTBS_7:
                 SetJtAnimState(jt, -1);
                 aseg = jt->apasegSwing[11];
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 jt->janim.useAltLanding = 0;
                 jt->janim.isInputOpen = 0;
                 break;
@@ -3572,7 +3572,7 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 else
                     aseg = jt->unknown1FE8;
                 jt->janim.isInputOpen = 0;
-                ClearXyz(&jt->unknown190);
+                ClearXyz(&jt->vecLocalVelocity);
                 break;
             case JTBS_10:
                 stateMachine = jt->unknown1F14;
@@ -3582,12 +3582,12 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
                 grfapl = 9;
                 break;
             case JTBS_12:
-                jt->unknown200 = D_002BF358;
+                jt->tiltSpinScale = D_002BF358;
                 grf = 0x18;
                 break;
             case JTBS_13:
                 fKeep = 1;
-                jt->unknown200 = D_002BF35C;
+                jt->tiltSpinScale = D_002BF35C;
                 grf = 0x18;
                 break;
         }
@@ -4070,7 +4070,7 @@ int GetStepplayerGroundProbeFlags(JT *p) __asm__("GetStepplayerGroundProbeFlags"
 // Also known as: GrfSlyXp (upstream readable / Sly 1 name; GrfSlyXp__FP3ALO).
 extern "C" int GetJtGroundProbeFlags(JT *p)
 {
-    if (p->unknown204) return 0;
+    if (p->hasNoBase) return 0;
     switch (p->state) {
     case 3: case 8: case 21: case 22:
         return 0;
@@ -4361,7 +4361,7 @@ extern "C" void UpdateJtFaceTarget(JT *jt)
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[2]), "j"(s)); ms.r[2] = r; }
     __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
         : "=j"(r) : "j"(ms.r[0]), "j"(ms.r[1]), "j"(ms.r[2]), "j"(n.q));
-    jt->qwUnknown190 = r;
+    jt->localVelocity = r;
 }
 } // namespace M_func_0018E1E0
 

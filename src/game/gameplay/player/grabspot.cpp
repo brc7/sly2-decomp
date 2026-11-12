@@ -202,7 +202,7 @@ float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 extern "C" void GetWallGrabspotClosestParam(CID12 *wall, STEPPLAYER *t, float *pg)
 {
     struct V v;
-    FindShapeClosestPoint(wall, *t->unknown218, 0, &v, 0, 0, pg);
+    FindShapeClosestPoint(wall, *t->probeBottomPos, 0, &v, 0, 0, pg);
     if (wall->isClosed)
         return;
     float lim = GetShapeMaxDistance(wall) - 30.0f;
@@ -395,7 +395,7 @@ float atan2f(float y, float x) __asm__("atan2f");
 // The arc-length parameter of the player's angle around the pole axis.
 extern "C" void GetPoleGrabspotClosestParam(CID34 *pole, STEPPLAYER *q, float *pg)
 {
-    qword a = *q->unknown218;
+    qword a = *q->probeBottomPos;
     qword b = GetLoWorldPos(pole);
     qword d;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));

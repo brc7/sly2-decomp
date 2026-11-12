@@ -978,10 +978,10 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x122, EOPID_OFF(STEP, gravityRatio), EOPID_PMF(SetStepGravityRatio), EOPID_PMF(SetStepGravityRatio), EOPID_NONE}, /* [225] opt 351, STEP (+17) */
     {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_OFF(STEP, oidPhys), EOPID_NONE}, /* [226] opt 352, STEP (+17) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepPhysByOid), EOPID_INT(2), EOPID_NONE}, /* [227] opt 353, STEP (+17) */
-    {0, 0xA2, EOPID_OFF(STEP, unknown204), EOPID_PMF(SetStepNoBase), EOPID_OFF(STEP, unknown204), EOPID_NONE}, /* [228] opt 354, STEP (+17) */
+    {0, 0xA2, EOPID_OFF(STEP, hasNoBase), EOPID_PMF(SetStepNoBase), EOPID_OFF(STEP, hasNoBase), EOPID_NONE}, /* [228] opt 354, STEP (+17) */
     {1, 0x22, EOPID_OFF(STEP, targetHeading), EOPID_PMFI(SetStepTargetHeadingOption), EOPID_NONE, EOPID_NONE}, /* [229] opt 355, STEP (+17) */
-    {2, 0x12, EOPID_OFF(STEP, unknown190), EOPID_OFF(STEP, unknown190), EOPID_NONE, EOPID_NONE}, /* [230] opt 356, STEP (+17) */
-    {0, 0x92, EOPID_OFF(STEP, unknown298), EOPID_OFF(STEP, unknown298), EOPID_OFF(STEP, unknown298), EOPID_NONE}, /* [231] opt 357, STEP (+17) */
+    {2, 0x12, EOPID_OFF(STEP, vecLocalVelocity), EOPID_OFF(STEP, vecLocalVelocity), EOPID_NONE, EOPID_NONE}, /* [230] opt 356, STEP (+17) */
+    {0, 0x92, EOPID_OFF(STEP, isInvulnerable), EOPID_OFF(STEP, isInvulnerable), EOPID_OFF(STEP, isInvulnerable), EOPID_NONE}, /* [231] opt 357, STEP (+17) */
     {0, 0x92, EOPID_OFF(STEP, unknown29C), EOPID_OFF(STEP, unknown29C), EOPID_OFF(STEP, unknown29C), EOPID_NONE}, /* [232] opt 358, STEP (+17) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardAttackOid), EOPID_FN(RefThunk_AddAndResolveStepguardAttackOid), EOPID_INT(1), EOPID_NONE}, /* [233] opt 359, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_ClearStepguardAttacks), EOPID_FN(RefThunk_ClearStepguardAttacks), EOPID_NONE, EOPID_NONE}, /* [234] opt 360, STEPGUARD (+11) */

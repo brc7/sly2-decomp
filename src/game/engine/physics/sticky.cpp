@@ -689,19 +689,19 @@ extern "C" void UpdateJtMeshAttachment(JT*jt){
   qword fallback=g_normalZ.q;
   if(QwordX(dir)<0.0001f)dir=fallback;else dir=QwDivideR(movement.q,dir,fallback); // "r"(fallback): allocation-only
   movement.q=QwScaleX(dir,speed);
-  jt->qwUnknown190=QwCombo(jt->abldirMesh[1].vRoot,jt->abldirMesh[2].vRoot,VuFloatFromMemWord(movement.i[1]),VuFloatFromMemWord(movement.i[2]));
-  jt->qwUnknown190=QwScaleX(jt->qwUnknown190,VuFloatFromMemF(jt->pasegblMesh->masterSpeed));
- }else ClearXyz(&jt->unknown190);
+  jt->localVelocity=QwCombo(jt->abldirMesh[1].vRoot,jt->abldirMesh[2].vRoot,VuFloatFromMemWord(movement.i[1]),VuFloatFromMemWord(movement.i[2]));
+  jt->localVelocity=QwScaleX(jt->localVelocity,VuFloatFromMemF(jt->pasegblMesh->masterSpeed));
+ }else ClearXyz(&jt->vecLocalVelocity);
  if(planes.count>0){
-  qword projected=SolveMeshConstraints(((MESH *)jt->unknown1F18),&planes,QwRotateVec((M3 *)jt->aqwTarget,QwScaleX(jt->qwUnknown190,VU_FLOAT(-1.0f))));
+  qword projected=SolveMeshConstraints(((MESH *)jt->unknown1F18),&planes,QwRotateVec((M3 *)jt->aqwTarget,QwScaleX(jt->localVelocity,VU_FLOAT(-1.0f))));
   M3 inverse=InvertMatrix3Cofactor((M3 *)jt->aqwTarget);
-  jt->qwUnknown190=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
+  jt->localVelocity=QwRotateVec(&inverse,QwScaleX(projected,VU_FLOAT(-1.0f)));
  }
  int active=0;
- if(QwordX(VuDot(jt->qwUnknown190,jt->qwUnknown190))>1.0f)active=1;
+ if(QwordX(VuDot(jt->localVelocity,jt->localVelocity))>1.0f)active=1;
  else if(jt->controller->leftStickDeflection!=0.0f)active=1;
  if(active){
   SetJtState__FP2JT3JTS4JTBS(jt,21,11);UpdateDirectionalBlend(jt,jt->abldirMesh,jt->pasegblMesh);
-  jt->SetVelocity(QwAdd(linear.q,QwRotateVec((M3 *)jt->aqwTarget,QwScaleX(jt->qwUnknown190,VuFloatC1(-1.0f)))));
+  jt->SetVelocity(QwAdd(linear.q,QwRotateVec((M3 *)jt->aqwTarget,QwScaleX(jt->localVelocity,VuFloatC1(-1.0f)))));
  }else{SetJtState__FP2JT3JTS4JTBS(jt,21,10);jt->SetVelocity(linear.q);}
 }

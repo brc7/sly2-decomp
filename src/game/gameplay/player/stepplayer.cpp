@@ -862,7 +862,7 @@ extern "C" void GetStepplayerCameraFocusPosition(STEPPLAYER *player, VECTOR4 *v)
     }
     *(qword *)v = GetLoWorldPos(player);
     if (player->floorContact) {
-        z = player->vecUnknown230.z + player->unknown1048;
+        z = player->vecWorldBasePos.z + player->unknown1048;
     } else if (player->jtair.state == 0x14 || g_cm.nCut != 0 || (void *)g_cm.focus != (void *)player) {
         v->z += player->vecPivotOffset.z + player->unknown1048;
         return;
@@ -2204,7 +2204,7 @@ namespace M_func_00143C78 {
 // Also known as: GrfActorStance (upstream readable / Sly 1 name; GrfActorStance__FP5ACTOR).
 extern "C" int GetStepplayerGroundProbeFlags(STEPPLAYER *player)
 {
-    if (player->unknown204) return 0;
+    if (player->hasNoBase) return 0;
     switch (player->jtgrab.state) {
     case 3:
     case 4:

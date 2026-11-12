@@ -30,7 +30,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 
 
-/* The player a closest point is measured from (STEP::unknown218) and whose pivot a grab offset is taken from. */
+/* The player a closest point is measured from (STEP::probeBottomPos) and whose pivot a grab offset is taken from. */
 
 
 
@@ -116,7 +116,7 @@ extern "C" void GetRailClosestParam(RAIL *rail, STEPPLAYER *q, float *pf)
 {
     qword buf;
     float g, v;
-    FindShapeClosestPoint(rail, *q->unknown218, 0, &buf, 0, 0, pf);
+    FindShapeClosestPoint(rail, *q->probeBottomPos, 0, &buf, 0, 0, pf);
     if (rail->isClosed != 0)
         return;
     g = GetShapeMaxDistance(rail) - 50.0f;

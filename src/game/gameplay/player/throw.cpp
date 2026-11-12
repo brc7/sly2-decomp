@@ -1018,7 +1018,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
             AttachJtHandsObject(&s->player->jtgrab.hands, s->ploCarried);
         if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64))
             AsTossable(s->ploCarried)->SetState(0);
-        ZeroXYZ(s->player->unknown190);
+        ZeroXYZ(s->player->vecLocalVelocity);
         break;
     case 3:
         if (state != 4)

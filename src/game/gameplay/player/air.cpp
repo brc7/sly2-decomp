@@ -378,7 +378,7 @@ qword TransformXfPos(XF*,XF*,qword) __asm__("TransformXfPos");qword ConvertXfVec
 // Zero the xyz words of v.
 static inline void ClearXYZ(QWROW*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 // Zero the actor's velocity.
-static inline void ClearVelocity(ACTOR*p){ClearXYZ((QWROW *)&p->qwUnknown190);}
+static inline void ClearVelocity(ACTOR*p){ClearXYZ((QWROW *)&p->localVelocity);}
 // x < limit.
 static inline bool Less(int x,int limit){return x<limit;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -508,7 +508,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
                 SetBarrelState(old, 0);
         }
         SetXfRole(((ACTOR *)air->player), ((ACTOR *)air->player)->positionXf, 2);
-        ((ACTOR *)air->player)->qwUnknown190 = D_002A2DD0.q;
+        ((ACTOR *)air->player)->localVelocity = D_002A2DD0.q;
         break;
     }
     case 8:
@@ -522,7 +522,7 @@ void SetJtAirState(JTAIR *air, int newMode, LO *source) __asm__("SetJtAirState")
     case 16:
     case 18:
         SetXfRole(((ACTOR *)air->player), ((ACTOR *)air->player)->positionXf, 2);
-        ((ACTOR *)air->player)->qwUnknown190 = D_002A2DD0.q;
+        ((ACTOR *)air->player)->localVelocity = D_002A2DD0.q;
         if (Less(air->state, 16) && !Less(air->state, 14)) {
             if (((ACTOR *)air->player) != D_002E1E40)
                 SetJtHandsTarget((SECONDARY *)&((ACTOR *)air->player)->jtgrab.hands, -1);
@@ -3277,7 +3277,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
                     sApex = D_002BF738;
                     break;
             }
-            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->player->unknown218)->z - ((VECTOR4 *)&air->player->unknown230)->z - sApex), 0.0f));
+            vzNew = SqrtfEarly(Max((g + g) * (((VECTOR4 *)air->player->probeBottomPos)->z - ((VECTOR4 *)&air->player->worldBasePos)->z - sApex), 0.0f));
             break;
         }
         case 4:

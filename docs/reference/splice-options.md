@@ -885,10 +885,10 @@ parent PO; 104 options in all.
 | 351 | `gravityRatio` / `SetStepGravityRatio` | float | get set file | 225 |
 | 352 | `oidPhys` | int | file | 226 |
 | 353 | `RefThunk_SetStepPhysByOid` | - | method(2) | 227 |
-| 354 | `unknown204` / `SetStepNoBase` | bool | get set file | 228 |
+| 354 | `hasNoBase` / `SetStepNoBase` | bool | get set file | 228 |
 | 355 | `targetHeading` / `SetStepTargetHeadingOption` | float | get set | 229 |
-| 356 | `unknown190` | vector | get set | 230 |
-| 357 | `unknown298` | bool | get set file | 231 |
+| 356 | `vecLocalVelocity` | vector | get set | 230 |
+| 357 | `isInvulnerable` | bool | get set file | 231 |
 | 358 | `unknown29C` | bool | get set file | 232 |
 
 ## STEPPLAYER (cid 52)

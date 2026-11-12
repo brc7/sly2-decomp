@@ -100,7 +100,7 @@ extern "C" void UpdateDirectionalBlend(STEPPLAYER *player, BLDIR *axes, void *re
     if (!axes[6].animation || !axes[7].animation)
         player->blendSide = -1;
     else if (player->blendSide == -1) {
-        if (FloatX(VuDot(player->qwUnknown190, axes[0].vRoot)) < 0.0f)
+        if (FloatX(VuDot(player->localVelocity, axes[0].vRoot)) < 0.0f)
             player->blendSide = 1;
         else
             player->blendSide = 0;
@@ -147,7 +147,7 @@ extern "C" void UpdateDirectionalBlend(STEPPLAYER *player, BLDIR *axes, void *re
         for (i = 1; i < count; i++) {
             BLDIR *entry = &axes[indices[i]];
             float denominator = rate * Float1(VuDot(entry->vRoot, entry->vRoot));
-            float along = Float3(VuDot(player->qwUnknown190, entry->vRoot));
+            float along = Float3(VuDot(player->localVelocity, entry->vRoot));
             float weight = FpuMax(along / denominator, 0.0f);
             entry->weight = weight;
             sum += weight;
@@ -176,7 +176,7 @@ extern "C" void UpdateDirectionalBlend(STEPPLAYER *player, BLDIR *axes, void *re
         {
             register void *argument __asm__("$4") = request;
             scalar.q = rateVec;
-            player->qwUnknown190 = q;
+            player->localVelocity = q;
             RecalculateAsegBlend(argument);
         }
     }
@@ -235,14 +235,14 @@ static inline void BlendPositive(STEPPLAYER *player, BLDIR *axes, float xin, con
     __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x"
             : "=j"(ka)
             : "j"(a), "j"(b), "j"(c), "0"(ka), "j"(kb), "j"(kc));
-    player->qwUnknown190 = ka;
+    player->localVelocity = ka;
     out->q = kc;
 #else
-    /* qwUnknown190 = (axes[1] * y + axes[3] * max(0, x)) + axes[5] * -min(0, x); *out = (-min(0, x), 0, 0, 0) */
+    /* localVelocity = (axes[1] * y + axes[3] * max(0, x)) + axes[5] * -min(0, x); *out = (-min(0, x), 0, 0, 0) */
     float x = xin, y = input->f[1];
     float left = -FpuMin(0.0f, x), right = FpuMax(0.0f, x);
     VuLanes a = VuGet(axes[1].vRoot), b = VuGet(axes[3].vRoot), c = VuGet(axes[5].vRoot);
-    player->qwUnknown190 = VuMake<qword>((a.x * y + b.x * right) + c.x * left, (a.y * y + b.y * right) + c.y * left,
+    player->localVelocity = VuMake<qword>((a.x * y + b.x * right) + c.x * left, (a.y * y + b.y * right) + c.y * left,
                                          (a.z * y + b.z * right) + c.z * left, (a.w * y + b.w * right) + c.w * left);
     out->q = VuWiden<qword>(left);
 #endif
@@ -268,13 +268,13 @@ static inline void BlendNegative(STEPPLAYER *player, BLDIR *axes, float xin, con
     __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x"
             : "=j"(ka)
             : "j"(a), "j"(b), "j"(c), "0"(ka), "j"(kb), "j"(kc));
-    __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->qwUnknown190), "=m"(out->q) : "j"(ka), "j"(kc));
+    __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->localVelocity), "=m"(out->q) : "j"(ka), "j"(kc));
 #else
-    /* qwUnknown190 = (axes[0] * -y + axes[2] * max(0, x)) + axes[4] * -min(0, x); *out = (-min(0, x), 0, 0, 0) */
+    /* localVelocity = (axes[0] * -y + axes[2] * max(0, x)) + axes[4] * -min(0, x); *out = (-min(0, x), 0, 0, 0) */
     float x = xin, y = -input->f[1];
     float left = -FpuMin(0.0f, x), right = FpuMax(0.0f, x);
     VuLanes a = VuGet(axes[0].vRoot), b = VuGet(axes[2].vRoot), c = VuGet(axes[4].vRoot);
-    player->qwUnknown190 = VuMake<qword>((a.x * y + b.x * right) + c.x * left, (a.y * y + b.y * right) + c.y * left,
+    player->localVelocity = VuMake<qword>((a.x * y + b.x * right) + c.x * left, (a.y * y + b.y * right) + c.y * left,
                                          (a.z * y + b.z * right) + c.z * left, (a.w * y + b.w * right) + c.w * left);
     out->q = VuWiden<qword>(left);
 #endif
@@ -326,15 +326,15 @@ extern "C" void UpdateDirectionalAcceleration(STEPPLAYER *player, BLDIR *axes, i
             BlendNegative(player, axes, x, &input, &scaleOut);
         }
     }
-    *(int *)&player->unknown190.z = 0;
+    *(int *)&player->vecLocalVelocity.z = 0;
     {
         unsigned int animWord = (unsigned int)player->activeAnimation;
         register qword rate __asm__("vf2"), acceleration __asm__("vf1"), scaled __asm__("vf1");
         __asm__("lqc2 %0,%2\n\tlw %1,%3"
                 : "=j"(acceleration), "+r"(animWord)
-                : "m"(player->qwUnknown190), "m"(*(int *)&((ASEGA *)animWord)->speed));
+                : "m"(player->localVelocity), "m"(*(int *)&((ASEGA *)animWord)->speed));
         rate = VuFromFloat<qword>(animWord);
         scaled = ScaleAndSetSide(player, acceleration, rate, side);
-        __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->qwUnknown190), "=m"(scaleOut.q) : "j"(scaled), "j"(rate));
+        __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->localVelocity), "=m"(scaleOut.q) : "j"(scaled), "j"(rate));
     }
 }

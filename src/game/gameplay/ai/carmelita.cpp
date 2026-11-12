@@ -550,7 +550,7 @@ extern "C" void SetBhvRouteState(BHV182 *behavior, int state)
         behavior->owner->SetVelocity(D_002A2DD0);
         behavior->owner->SetAngularVelocity(D_002A2DD0);
         {
-            VECTOR *pv = &behavior->owner->unknown190;
+            VECTOR *pv = &behavior->owner->vecLocalVelocity;
             *(int *)&pv->x = *(int *)&pv->y = *(int *)&pv->z = 0;   /* integer zero stores (sw $0), as the target */
         }
         break;

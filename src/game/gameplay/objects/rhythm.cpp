@@ -188,7 +188,7 @@ extern "C" void UpdateDancer(DANCER *dancer)
         break;
     }
     if (dancer->segmentAnim)
-        dancer->qwUnknown190 = VecMul(GetStepAsegaTranslation(dancer, dancer->segmentAnim, dancer->segmentAnim->time), -1.0f);
+        dancer->localVelocity = VecMul(GetStepAsegaTranslation(dancer, dancer->segmentAnim, dancer->segmentAnim->time), -1.0f);
 }
 
 /* A segment event message (kind 9): the segment, its time and the event kind. */
@@ -220,7 +220,7 @@ extern "C" void HandleDancerMessage(DANCER *dancer, int messageKind, MSGD *messa
 #endif
                 qwordV *rows = (qwordV *)target->aqwTarget;
                 qwordV worldVelocity;
-                target->qwUnknown190 = VecMul(localVelocity, -1.0f);
+                target->localVelocity = VecMul(localVelocity, -1.0f);
                 __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z" : "=j"(worldVelocity) : "j"(rows[0]), "j"(localVelocity), "j"(rows[1]), "j"(rows[2]));
 #if defined(SLY2_EE_LAYOUT)
                 ((void (*)(void *, qwordV))vt[35].pfn)((char *)target + vt[35].d, worldVelocity);   /* LO::SetVelocity */

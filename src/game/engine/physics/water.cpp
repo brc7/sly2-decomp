@@ -37,7 +37,7 @@ typedef char assert_EVENT_size[sizeof(EVENT) == sizeof(EXPLSO) ? 1 : -1];
    WATER::pxaFirst and on each object's SO::pxa list; the object's in-water marks are bits 31 / 32 of SO::soFlags
    (wasInWater / isInWater, tested and set by mask on the whole unit); the overlap candidates come from the water's
    physics tree (SOTREE::pxplistFirst, one XPLIST per other object); the colliders are its SOPARTs. A STEP is probed
-   from its pivot (STEP::vecPivotOffset.z) and, standing on something, no lower than STEP::vecUnknown230.z; a PO's
+   from its pivot (STEP::vecPivotOffset.z) and, standing on something, no lower than STEP::vecWorldBasePos.z; a PO's
    wake sound is PO::wakeSound. */
 #define SO_WAS_IN_WATER 0x80000000L    /* SO::wasInWater */
 #define SO_IS_IN_WATER 0x100000000L    /* SO::isInWater */
@@ -374,7 +374,7 @@ extern "C" float GetWaterSubmergedFraction(WATER *water, SO *object, qwordV *sur
         STEP *step = (STEP *)object;
         work.a.f[2] = work.a.f[2] + step->vecPivotOffset.z;
         if (step->floorContact)
-            work.a.f[2] = work.a.f[2] > step->vecUnknown230.z ? work.a.f[2] : step->vecUnknown230.z;
+            work.a.f[2] = work.a.f[2] > step->vecWorldBasePos.z ? work.a.f[2] : step->vecWorldBasePos.z;
     } else {
         work.a.f[2] = object->physicsTree->vecBoundsMin.z;
     }

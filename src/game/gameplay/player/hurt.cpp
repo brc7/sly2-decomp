@@ -972,7 +972,7 @@ extern "C" int IsJtInvulnerable(JT *jt, int zpk)
 // Also known as: FDamageImmune (upstream readable / Sly 1 name; FDamageImmune__FP5ACTORi).
 extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
 {
-    if (hurt->player->unknown298)
+    if (hurt->player->isInvulnerable)
         return 1;
     if (zpk == 0x2000 || zpk == 0x4000) {
         switch (hurt->player->jthurt.state) {
@@ -1227,7 +1227,7 @@ extern "C" void ResolveStepplayerWaterContact(STEPPLAYER *player,void *o)
   break;
  case 3:case 10:
   if(!ProbeStepplayerSurface(player,o,&pos.q)) break;
-  local.q=Mul(player->aqwTarget,&player->qwUnknown190);
+  local.q=Mul(player->aqwTarget,&player->localVelocity);
   CalculateWaterCurrent(o,pos.q,&dir.q,&v50.q);
   v=player->GetVelocity();
   vel.q=v;

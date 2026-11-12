@@ -232,7 +232,7 @@ extern "C" void UpdateBhv(BHV *behavior)
 // Also known as: State (upstream readable / Sly 1 name).
 extern "C" int GetBhvGroundProbeFlags(BHV *behavior)
 {
-    return (behavior->owner->unknown204 != 0) ? 0 : 7;   /* the step's ground-probe override */
+    return (behavior->owner->hasNoBase != 0) ? 0 : 7;    /* the step's ground-probe override */
 }
 
 // 0x1EEFB8: BHV vtable slot 11 (UpdateMotion), base version: empty. Per-frame motion update for the behaviour that

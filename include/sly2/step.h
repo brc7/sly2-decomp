@@ -47,12 +47,12 @@ struct BHVSTK
    Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (15 copies in Lilly ports) */
 struct STEP : public PO
 {
-      float unknown180;
+      float tangentVelocityScale;   /* +0x180 weight of the local velocity's tangential part in the floor contact (AdjustStepXpVelocity); root-motion code sets 1 (inferred) */
       undefined4 unknown184[3];
       union
       {
-            VECTOR unknown190;   /* possibly localVelocity (low-confidence guess: rotated by the step matrix in step.cpp; modes clear it) */
-            qword qwUnknown190;  /* the same vector as a VU quadword (the root-motion code stores whole quadwords; mode.cpp, murray.cpp) */
+            VECTOR vecLocalVelocity;   /* +0x190 velocity in the step's own frame: rotated by matTarget into the world velocity; modes clear it (inferred) */
+            qword localVelocity; /* the same vector as a VU quadword (the root-motion code stores whole quadwords; mode.cpp, murray.cpp) */
       };
       float gaitBlend; /* gait blend, 0..1 (walk to run, inferred) */
       int steeringMode;
@@ -71,20 +71,20 @@ struct STEP : public PO
       };
       float rSpin;   /* spin rate */
       VECTOR vSpin;   /* spin axis */
-      float unknown200;
-      int unknown204;
+      float tiltSpinScale;   /* +0x200 heading steering scales vSpin.x / .y (not z) by it (PresetStepAccel) (inferred) */
+      int hasNoBase;   /* +0x204 the no-base option (SetStepNoBase): no floor probe, no floor contact, no gadgets */
       XP *floorContact; /* contact with the floor (0 when airborne) */
-      float unknown20C;
-      float unknown210;
+      float floorContactTime;   /* +0x20C clock.time of the last floor contact (AdjustStepXps); more than 0.1 s ago means falling */
+      float bodyLowestZ;   /* +0x210 lowest z of the body mesh (STEP::Init); the floor contact keeps the body above it */
       float stepDownHeight;   /* +0x214 how far below the base the floor probe reaches (STEP::Init: -50) */
-      qword *unknown218;
-      qword *unknown21C;
+      qword *probeBottomPos;   /* +0x218 the first of two helper vertices STEP::Init appends to the body mesh: the floor probe's bottom point */
+      qword *probeTopPos;   /* +0x21C the second helper vertex: the probe's top point (PROBE_FROM_TOP) */
       float baseRadius;   /* +0x220 radius of the base (floor contact) footprint (STEP::Init: 30) */
       undefined4 unknown224[3];
       union
       {
-            qword unknown230;   /* possibly worldOffset (low-confidence guess: ConvertAloPos(step, 0, pivotOffset)) */
-            VECTOR vecUnknown230;   /* the same, by component (GetStepplayerCameraFocusPosition reads z) */
+            qword worldBasePos;   /* +0x230 the base point in world space: pivotOffset converted (TranslateStepToPos), or the floor contact position (AdjustStepXps) */
+            VECTOR vecWorldBasePos; /* the same, by component (GetStepplayerCameraFocusPosition reads z) */
       };
       union
       {
@@ -103,7 +103,7 @@ struct STEP : public PO
       SOPART *ppartPhysMesh;   /* +0x268 that mesh part (PostStepLoad: BuildStepPhysPart from it, then hidden) */
       BHVSTK behaviors; /* the behaviour stack */
       SHAPE *routeShape;   /* +0x294 the route the character follows: a 16-point sampled shape (PostStepLoad: NewSampledShape) that FindPathzonePathCurve fills; guards follow it with SetBhvpathShape */
-      int unknown298;
+      int isInvulnerable;   /* +0x298 nonzero: every zap is ignored (ShouldStepplayerIgnoreZap, STEPGUARD::IsZapLethal) (inferred) */
       undefined4 unknown29C;
       int acrefDialogSm[6];   /* +0x2A0 reference counts of the six dialog roles' state machines (AddStepDialogSmRefs /
                                  RemoveStepDialogSmRefs: the first reference applies the role's SM, the last retracts it) */

@@ -234,7 +234,7 @@ extern "C" void UpdateMurrayStateMachine(MURRAY *murray)
         case MURRAY_SCRIPT_SMA:
         case MURRAY_PIPE: break;
         default:
-            if (g_clock.time - murray->unknown20C > 0.1f) {
+            if (g_clock.time - murray->floorContactTime > 0.1f) {
                 switch (murray->state) {
                 case MURRAY_CARRY: SetJtAirJump(&murray->jtair, 16, 0, 0); break;
                 case MURRAY_POWER_MOVE:
@@ -398,7 +398,7 @@ void UpdateJtActiveZap(JTHURT *p) __asm__("UpdateJtActiveZap");
 int ShouldSwPairObjects(SW *pg,SOTREE *a,SOTREE *b) __asm__("ShouldSwPairObjects");
 void RefreshSwObjectCollisionFilter(SW *pg, MURRAY *p) __asm__("RefreshSwObjectCollisionFilter");
 void SetActPositionGoal(ACT1 *p, qword v) __asm__("SetActPositionGoal");
-// Store -v (v scaled by a broadcast -1) into the actor's qwUnknown190.
+// Store -v (v scaled by a broadcast -1) into the actor's localVelocity.
 extern "C" { static inline void Neg(MURRAY *p, qword v)
 {
     union { qword q; float f[4]; } u;
@@ -407,17 +407,17 @@ extern "C" { static inline void Neg(MURRAY *p, qword v)
     {
         qword qwpv190Out;
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qwpv190Out) : "j"(v), "j"(u.q));
-        p->qwUnknown190 = qwpv190Out;
+        p->localVelocity = qwpv190Out;
     }
 } }
-// Store -v into the actor's qwUnknown190 and set the action's speed from the stick deflection.
+// Store -v into the actor's localVelocity and set the action's speed from the stick deflection.
 extern "C" { static inline void Neg2(MURRAY *p, qword v)
 {
     ASEGA *pl = p->activeAnimation;
     volatile qword u; /* scalar stack copy of the -1 broadcast (target stores it to 0(sp) last) */
     qword b = VuFromFloat<qword>(-1.0f); qword r;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(b));
-    p->qwUnknown190 = r;
+    p->localVelocity = r;
     u = b;
     SetAsegaSpeed__FP5ASEGAf(pl,p->controller->leftStickDeflection);
 } }
@@ -571,7 +571,7 @@ extern "C" void UpdateMurrayCarry(MURRAY *murray)
         qword v;
         SetStepTargetHeading(murray, murray->controller->leftStickAngle);
         v = GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
-        NegateSource(v,&murray->qwUnknown190,&u);
+        NegateSource(v,&murray->localVelocity,&u);
         break;
     }
     }
@@ -627,7 +627,7 @@ state0:
     SetXfRole(murray, murray->positionXf, 1);
     SetXfRole(murray, murray->rotationXf, 1);
     pv = murray->psmCarryStand;
-    murray->qwUnknown190 = D_002A2DD0;
+    murray->localVelocity = D_002A2DD0;
     goto done;
 state1:
     pr = murray->gaitB.blendedAnimation;
@@ -776,10 +776,10 @@ extern "C" void UpdateMurrayStrafe(MURRAY *murray)
         POCTL *input = murray->controller;
         qword direction = Vector(
             SetVectorCylind(input->leftStickAngle + 3.1415927f, (input->leftStickDeflection * length) * murray->activeAnimation->speed, 0.0f));
-        murray->qwUnknown190 = direction;
+        murray->localVelocity = direction;
         qword world = Rotate(&murray->matqTarget, direction);
         murray->blendSide = -1;
-        murray->qwUnknown190 = world;
+        murray->localVelocity = world;
         UpdateDirectionalBlend(murray, murray->unknown16F0, murray->unknown17F0);
         break;
     }
@@ -823,7 +823,7 @@ extern "C" void SetMurrayStrafeSubstate(MURRAY *murray, int st)
         SetXfRole(murray, murray->positionXf, 1);
         SetXfRole(murray, murray->rotationXf, 1);
         x = murray->psmStrafeIdle;
-        murray->qwUnknown190 = D_002A2DD0;
+        murray->localVelocity = D_002A2DD0;
         break;
     case 2:
         o = murray->unknown17F0;
@@ -1038,7 +1038,7 @@ void SetMurrayState(MURRAY *murray, int next) __asm__("SetMurrayState"); void Se
         SetXfRole(murray, murray->positionXf, 1);
         SetXfRole(murray, murray->rotationXf, 1);
         source = murray->unknown1028;
-        murray->qwUnknown190 = D_002A2DD0.q;
+        murray->localVelocity = D_002A2DD0.q;
         if (old != 2) {
             id = (old != 10) ? 0x175 : 0x176;
         } else
@@ -1072,7 +1072,7 @@ void SetMurrayState(MURRAY *murray, int next) __asm__("SetMurrayState"); void Se
         case 0: clip = murray->apasegLift[0]; break;
         case 1: clip = murray->apasegLift[1]; break;
         }
-        murray->qwUnknown190 = D_002A2DD0.q;
+        murray->localVelocity = D_002A2DD0.q;
         SetMurrayLiftSubstate(murray, 0);
         break;
     case MURRAY_THROW: {
@@ -1083,7 +1083,7 @@ void SetMurrayState(MURRAY *murray, int next) __asm__("SetMurrayState"); void Se
             clip = murray->pasegThrow;
         {
             register qword zero __asm__("$3") = D_002A2DD0.q;
-            murray->qwUnknown190 = zero;
+            murray->localVelocity = zero;
         } // pin: the zero vector goes through $v1 here
         ChooseMurrayThrowTarget(murray);
         U point;
@@ -1126,16 +1126,16 @@ void SetMurrayState(MURRAY *murray, int next) __asm__("SetMurrayState"); void Se
         SetXfRole(murray, murray->positionXf, 1);
         SetXfRole(murray, murray->rotationXf, 1);
     clear_velocity:
-        murray->qwUnknown190 = D_002A2DD0.q;
+        murray->localVelocity = D_002A2DD0.q;
         break;
     case MURRAY_PIPE: SetJtPipeState(&murray->jtpipe, 0); return;
     case MURRAY_TURNBUCKLE: {
         clip = murray->pasegTurnbuckle;
-        U *velocity = (U *)&murray->qwUnknown190;
+        U *velocity = (U *)&murray->localVelocity;
         velocity->i[2] = 0;
         flags = 9;
         velocity->i[1] = 0;
-        ((U *)&murray->qwUnknown190)->i[0] = 0;
+        ((U *)&murray->localVelocity)->i[0] = 0;
         break;
     }
     case MURRAY_JUMP:
@@ -1328,7 +1328,7 @@ extern "C" void UpdateMurrayFlop(MURRAY *murray)
     switch (murray->flopSubstate) {
     case 0:
     case 1:
-        murray->qwUnknown190 = SetVectorCylind(murray->controller->leftStickAngle + 3.14159265f, D_002C09A0 * D_002BF730 * murray->controller->leftStickDeflection, 0.0f);
+        murray->localVelocity = SetVectorCylind(murray->controller->leftStickAngle + 3.14159265f, D_002C09A0 * D_002BF730 * murray->controller->leftStickDeflection, 0.0f);
         break;
     }
 }
@@ -1372,7 +1372,7 @@ extern "C" void PresetMurrayFlopAccel(MURRAY *murray)
         qword v = murray->GetVelocity();
         QWROW u; register qword kn __asm__("vf5"); register qword n __asm__("vf1");
         __asm__("qmtc2.ni %1,%0":"=j"(kn):"r"(-1.0f));
-        __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->qwUnknown190),"j"(kn));
+        __asm__("vmulx.xyzw %0,%1,%2x":"=j"(n):"j"(murray->localVelocity),"j"(kn));
         int bits = ReadFactor();
         qword d = VuSub(n, v);
         qword up = g_normalZ;
@@ -1429,7 +1429,7 @@ extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
     if (murray->flopSubstate == s)
         return;
     if (murray->flopSubstate == -1)
-        Zero(&murray->unknown190);
+        Zero(&murray->vecLocalVelocity);
     murray->flopSubstate = s;
     murray->unknown13DC = g_clock.time;
     switch (s) {
@@ -1459,7 +1459,7 @@ extern "C" void SetMurrayFlopSubstate(MURRAY *murray, int s)
     }
     case 2: {
         struct LINK *pl;
-        Zero(&murray->unknown190);
+        Zero(&murray->vecLocalVelocity);
         for (pl = (struct LINK *)murray->pxpFlop; pl; pl = pl->pnext) {
             int i = pl->as[0].x8 != murray;
             struct SIDE *so = &pl->as[1 - i];
@@ -2152,7 +2152,7 @@ int GetStepplayerGroundProbeFlags(MURRAY *p) __asm__("GetStepplayerGroundProbeFl
 // Also known as: GrfMurrayXp (upstream readable / Sly 1 name; GrfMurrayXp__FP3ALO).
 extern "C" int GetMurrayGroundProbeFlags(MURRAY *murray)
 {
-    if (murray->unknown204) return 0;
+    if (murray->hasNoBase) return 0;
     if (murray->flopSubstate == 1 || murray->state == MURRAY_PIPE) return 0;
     return GetStepplayerGroundProbeFlags(murray);
 }
@@ -2295,7 +2295,7 @@ extern "C" void SetMurrayAttack(MURRAY *murray, int k)
     if (murray->unknown190C)
         ReleaseAsega(&murray->unknown190C);
     q = murray->apasegAttack[k];
-    murray->qwUnknown190 = D_002A2DD0;
+    murray->localVelocity = D_002A2DD0;
     if (murray->interactTarget && murray->nUnk10e4 >= 2 && !(murray->controller->buttonsHeld & 8)) {
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(murray->interactTarget)), "j"(GetLoWorldPos(murray)));
@@ -2457,7 +2457,7 @@ extern "C" void UpdateMurrayAttackVelocity(MURRAY*murray){
     QWROW scalar;
     if(murray->activeAnimation){
         qword value=GetStepAsegaTranslation(murray,murray->activeAnimation,murray->activeAnimation->time);
-        NegateSource(value,&murray->qwUnknown190,&scalar);
+        NegateSource(value,&murray->localVelocity,&scalar);
         {
             register int active __asm__("$3")=murray->unknown1818;
             if(active){
@@ -2467,7 +2467,7 @@ extern "C" void UpdateMurrayAttackVelocity(MURRAY*murray){
             float blend=Clamp(Polynomial(&D_002C0A20,t),g_lmZeroOne.lo,g_lmZeroOne.hi);
             qword desired=OrbitVector(murray);
             desired=ConvertVecBetweenLos(0,murray,desired);
-            Blend(desired,blend,&murray->qwUnknown190,&scalar);
+            Blend(desired,blend,&murray->localVelocity,&scalar);
             }
         }
     }
@@ -2508,7 +2508,7 @@ extern "C" void SetMurrayPowerSubstate(MURRAY *murray, int st)
     switch (st) {
     case 0:
         o = murray->pasegPowerA;
-        Zero(&murray->unknown190);
+        Zero(&murray->vecLocalVelocity);
         n = 1;
         break;
     case 1:
@@ -2536,7 +2536,7 @@ extern "C" void SetMurrayPowerSubstate(MURRAY *murray, int st)
                     : "+j"(axis) : "j"(origin), "j"(u2.q));
             ((LEAP *)q)->posGoal = axis;
         }
-        murray->qwUnknown190 = D_002A2DD0;
+        murray->localVelocity = D_002A2DD0;
         break;
     }
     case 3:
@@ -2622,8 +2622,8 @@ extern "C" void UpdateMurrayPowerVelocity(MURRAY *murray)
         s.q = qwsqOut;
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
-    murray->qwUnknown190 = r;
-    murray->unknown180 = 1.0f;
+    murray->localVelocity = r;
+    murray->tangentVelocityScale = 1.0f;
 }
 } // namespace M_func_001B90B8
 
@@ -2833,7 +2833,7 @@ extern "C" void SetMurrayLiftSubstate(MURRAY *murray, int state)
         }
         if (IsBasicDerivedFrom__FP5BASIC3CID(owner, 0x38))
             StunStepguardThrownOp1(owner);
-        ClearXYZ(&murray->unknown190);
+        ClearXYZ(&murray->vecLocalVelocity);
         break;
     }
     default: break;
