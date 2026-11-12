@@ -306,7 +306,7 @@ extern "C" void InitSwLoadBuffers(SW *world)
         msg.cbAlign = 0x10;
         world->aaaox[i] = (struct AAOX *)AllocFromWorldHeap(&msg);
     }
-    msg.cb = 0x8000;
+    msg.cb = 0x1000 * sizeof(LOUPD);   /* 4096 entries (0x8000 bytes on the EE) */
     msg.cbAlign = 0x10;
     world->aloupd = (LOUPD *)AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
