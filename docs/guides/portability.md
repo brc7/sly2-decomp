@@ -73,6 +73,7 @@ sly2/vis.h (CID5) for cm.cpp SetCmVisZone.
 | `SLY2_SRET_LABEL(ee, native)` (sly2/port.h) | `__asm__(ee)`: the EE symbol; g++ 2.95 passes a struct result's address as the first argument, so a declaration that writes it out as a pointer parameter (or takes an explicit out-pointer as a struct result) calls the same code | `__asm__(native)`: an adapter next to the definition, outside SLY2_EE_LAYOUT, with the declaration's own spelling (arm64 passes the result address in x8, not x0) | mat.cpp operator* (26 callers, adapter MulMatrix4Into) and BuildRotateVectorsMatrix (7 callers taking the matrix as a struct result, BuildRotateVectorsMatrixValue); basic.cpp EvalExpression (EvalExpressionInto in eval.cpp). The TU defining an adapter must include sly2/port.h before the guard (eval.cpp did not: its native branch compiled on the EE until it did) |
 | `SLY2_BUILTIN_C(sym)` (app/bif.cpp) | nothing: the builtin table calls the C-style body (`CRefData *sym(CRefData *ret, int cref, CRefData *args, CFrame *frame)`) | the body becomes `sym_c` and `sym` is a CRef-returning entry calling it: the type eval.cpp's BIF::function calls through | the 98 C-style builtins in bif.cpp |
 | `SLY2_BSP_NO_LIMIT` (sly2/port.h) | `(~(uptr)0 >> 1)` = 0x7FFFFFFF, the literal the callers passed | the largest positive pointer-sized value: above every heap address (no guard needed) | every BSP walk caller (clip, geom, so, tn, detector, bomb, air, exit_warp, vol, mark, prize, rip, vis, robottank, grab); caller-side declarations take the limit as `uptr` (bsp.cpp's definitions compare `BSP *`) |
+| `SLY2_FDIV(a, b)` (sly2/port.h, v1.24) | `((a) / (b))`: div.s, which gives +-FLT_MAX for a zero divisor (sign of a xor sign of b; also 0 / 0) | `Sly2EeFdiv`: a / b, or +-FLT_MAX with that sign when b is 0 (IEEE gives Inf / NaN) | vec.cpp FindClosestPointOnLineSegment (a zero-length segment); use it for other per-frame divisions by a length that can be 0 |
 | `EOPID_PMF`, `EOPID_PMFI`, `EOPID_PMFT`, `EOPID_VPMF`, `EOPIDW` (app/class_registry_options.inc) | g++ 2.95 pointers to member functions: `{short delta; short index; pfn or delta2}` | redefine the four macros and `EOPIDW` in the native PMF ABI (Itanium: `{ptr, adj}`, ptr = address or 1 + vtable offset) | class_registry_options.inc (documented next to the macros) |
 
 Why the matching form cannot be the portable one:
@@ -144,21 +145,19 @@ loads and stores) has plain C equivalents:
   BuildRotateVectorsMatrix, MulMatrix3Matrix3, DecomposeRotationMatrixToVector, operator*(MATRIX4, VU_FLOAT), `ml`,
   `__ml__FRC7MATRIX4T0`, LoadMatrixFromPosRotScale / Scalar, InvertMatrix4Rigid, SmoothMatrix, GetMaxRowLengthMatrix3
   (whole functions or their asm helpers; the named-return helpers are ordinary returns on the C side).
-  `__ml__FRC7MATRIX4T0` runs the VU0 microprogram at 0x60 on the EE (vcallms); its C body is the row-vector product
-  out[i] = sum_k a[i][k] b[k], which is what its callers (CalculateDmat4) need; the microprogram itself is not
-  modelled.
+  `__ml__FRC7MATRIX4T0` runs the VU0 microprogram at 0x60 on the EE (vcallms) with a's rows in vf1-vf4 and b's in
+  vf5-vf8; the microcode makes result row i = sum_k b[i][k] a.r[k], the row-vector product **b * a**. Until v1.24 the C
+  body formed a * b (the port's boot-10: CM::matViewProj came out wrong natively and VU1 clipped everything); see
+  "v1.24" below.
 - **vec.cpp**: every asm statement (all 45 functions are covered).
 - **xf.cpp**: BuildXfValueMatrix, BuildXfValueDerivativeMatrix and every VU0 statement except the `vcallms 0x60`
   sites. **shd.cpp**: ColorCorrectVector, AddBitmapToHash / AddClutToHash (whole C functions over D_003DD010 /
   D_003DD018). **booty.cpp**: every asm statement (SetBootyState and the distance helpers). **rip.cpp**: LaunchMatch.
   **geom.cpp**: TransformPointsVu0, whose EE body runs the VU0 microprograms at 0x120 / 0xF0 (vcallms); its C body
-  transforms each point the way CloneGeom's `Transform` does (xyz = p M with p.w taken as 1, w kept). That reading of
-  the microprograms is an assumption (the same points go through `Transform` in CloneGeom), not checked against the
-  microcode. **geom.cpp UpdateGeomWorld** (v1.19): the plane loop (microprogram 0x150 over the transposed inverse,
+  is the microcode's: all four lanes p.x r0 + p.y r1 + p.z r2 + r3 (p.w taken as 1; until v1.24 it kept the input's w). **geom.cpp UpdateGeomWorld** (v1.19): the plane loop (microprogram 0x150 over the transposed inverse,
   pinned EE loads) is under SLY2_EE_ASM; the C body takes each normal through the inverse transpose of the 3x3 part
   (InvertMatrix3Cofactor), renormalises it and rebuilds the plane through its anchor point (InitPlaneFromNormalPos),
-  as CloneGeom does; the same kind of assumption about 0x150 (the VU0 harness cannot check it: it models the macro
-  instructions, not the microprograms). InitPlaneFromNormalPos itself (bsp.cpp) is still asm only.
+  as CloneGeom does, which is what microprogram 0x150 does (checked in v1.24, below). InitPlaneFromNormalPos itself (bsp.cpp) is still asm only.
   **VU0 microprogram 0x1C0** (v1.22, the sphere-against-view cull of glob.cpp RenderSoGlobset / SubmitGlobsetRelight
   and rendertree.cpp CullSceneRenderList): sly2/vu0.h VuCullSphere (C side only) is the microcode as the port
   transcribed it from .vutext (four side-plane tests, then the range test with a fade band of 400 at its far end;
@@ -181,8 +180,26 @@ u = (d . (n x e2)) / (e1 . (n x e2)), v = (n . (d x e1)) / the same, e1 = a - c,
 and its Unit helper. Tested with the harness (scratch v123/vu0test/t_v123.cpp: the asm texts of GDistPlane,
 StoreSquaredLengthBits, LengthXY, Length / Moved, the knock-back axis, the blend axes, sticky's triangle statements
 (their lqc2 / sqc2 / qmfc2 parts replaced by operands) and closest point, UpdateStepPhys' transform; 100,000 random
-cases each, maximum error 0). Left: blip.cpp UpdateMs10 (`vcallms 0x10`: a microprogram the harness does not model and
-nothing in the tree documents); UnpackSubglobBones' reading of 0x60 is mat.cpp's (not checked against the microcode).
+cases each, maximum error 0). Left then: blip.cpp UpdateMs10 (`vcallms 0x10`); UnpackSubglobBones' reading of 0x60 was mat.cpp's (wrong, see v1.24).
+
+**v1.24 (the microprograms from the microcode)**: the VU0 microcode is one upload chain in .vutext, D_00259DF0 (DMA cnt
+tag, VIF NOP, MPG of 84 instruction pairs at VU0 address 0). Disassembled (a scratch disassembler; its reading of 0x1C0
+reproduces the port's boot-8 transcription, I = 400 and all), the entry points are:
+
+| entry | instructions | does | C side |
+|---|---|---|---|
+| 0x10 | 2..10 | b' = r0 b.x + r1 b.y + r2 b.z + r3 (xyz, rows vf31..vf28; w = b.w), a' = a + b' dt.x (xyz; w = a.w), bounds min / max of a' (vf26 / vf25) | blip.cpp UpdateMs10 #else (new) |
+| 0x60 | 12..27 | for N = vf5..vf8: vfN = vf1 N.x + vf2 N.y + vf3 N.z + vf4 N.w (xyzw) | mat.cpp operator*(a, b) = **b * a** (fixed), glob.cpp UnpackSubglobBones = inverse bind * world (fixed; was world * inverse); xf.cpp's two asm-only sites are local * parent (comments fixed) |
+| 0xF0 / 0x120 | 30..33 / 36..39 | vf5 / vf6 = vf1 p.x + vf2 p.y + vf3 p.z + vf4 (xyzw) | geom.cpp TransformPointsVu0 (fixed: w is computed, not kept) |
+| 0x150 | 42..53 | v = vf1 n.x + vf2 n.y + vf3 n.z (xyz), v.w = v . vf4 (the anchor), then RSQRT and v * Q (xyzw) | geom.cpp UpdateGeomWorld (confirmed) |
+| 0x1C0 | 56..83 | sly2/vu0.h VuCullSphere's reading | confirmed |
+
+Verification: a scratch harness (scratch v124/vutest, outside the repository) builds the port's VU interpreter
+(sly2-port port/vu1/vu1_interp.cpp, read-only; it runs VU0 micro code from a micro memory loaded with the ELF's 84
+instruction pairs) and compares each C side, written with the fallbacks' operation order, on 20,000 random cases per
+entry (0x1C0: a third forced visible): no mismatch beyond a few ulps of the summed terms (the VU rounds toward zero
+and accumulates in ACC). The old a * b product fails every case, so the harness discriminates. The other fallbacks
+(macro-mode statements) keep their v1.14..v1.23 harness results.
 
 Conventions: the C follows the VU0 operation order (one rounding per VU operation: `(a.x b.x + a.y b.y) + a.z b.z`,
 `v * (1 / d)` rather than `v / d`), never fuses (build with `-ffp-contract=off`), and uses IEEE floats; the VU's
@@ -356,6 +373,49 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   basic.cpp EnsureBasicOption: consistent with their definitions, which take the result pointer explicitly) and the
   remaining int-vs-pointer declarations (85 -> 83; mismatching declarations 1298 -> 1295, cross-declaration conflicts
   276 -> 274). Views inventory (tools/cleanup/views): candidates 1039 -> 999 (frame path 172 -> 164), TU structs 2560 -> 2518.
+  Done in v1.24 (every change byte-identical; class_registry.cpp differs only in renamed references): **the VU0
+  microprogram fallbacks from the microcode** (section 2: operator*(MATRIX4, MATRIX4) is b * a, UnpackSubglobBones
+  inverse bind * world, TransformPointsVu0 computes w, UpdateMs10 has a C body; 0x150 and 0x1C0 confirmed on the port's
+  VU interpreter). Port request 10 / the boot-10 run: StepBhvpathAlongShape on BHVPATH / STEP / SOPHYS / REGENT /
+  PATHZONE / SHAPE (the other bodies through PATHZONE::dlRegent and REGENT::dlePathzone; REGENT's floats are
+  heightOffset / radius / mass, their option accessors Get/SetSoRegionHeightOffset / Radius / Mass); BHVPATH::blocker is
+  the CID14 obstacle (UpdateBhvpath's T view gone; the flag word is LO::isInWorld, +0x1D8 CID14::owner); STEP::routeShape
+  (SHAPE *, was void *unknown294); SLY2_FDIV (section 1) in FindClosestPointOnLineSegment; emitter.cpp EmitBlips on
+  BLIPG / BLIPBATCH / BLIPBUF / BLIPBEZ and the EMITV default records by member natively (the EE word images put 25.0f in
+  pblipclrs: the port's SetBlipgEmitb symptom); safehouse StepCharSelect compares the slots' oid words;
+  ShouldStepplayerIgnoreIntersection on (STEPPLAYER *, SO *) returning the flags; TriggerRsmg / TriggerOneRsmg on SW /
+  RSMG / LO *; SetSoGrfBit8's fallback without an int * to the tagged word; hud.cpp BuildSubtitleText /
+  BuildSubtitleButtonText (char *) and RenderSpritePayload (pointer matrix / params). Port request 8 / 9: path.cpp's
+  navigation graph typed (classes.h CGV / CGE / CGT / CBSP; CGT is the 12-byte EE triangle: three vertex pointers) and
+  every walker on CG (FindNavTriangleQuick / Safe, ClipEdgeToCbsp, IsEdgeBlockedByCbsp, FindPathAStar,
+  GetClosestPointOnNavTriangle, FindPathPoints, LoadPathzoneFromBrx, InitDefaultPathzoneCg, ComputeCgEdgeCosts);
+  FindPathzonePathCurve (PATHZONE *, qword, qword, SHAPE *); FindClosestPointInCg / FindPathzoneClosestPoint take the
+  flags their callers pass and hand them to FindNavTriangleSafe; FindPathzoneClosestFreePoint on PATHZONE / CID14 / LSG
+  (its S : XFM view served both, and its EE layout assert is gone); air.cpp SetJtAirState on JTAIR / JT / BARREL / XF /
+  JTPLACE (the CONTEXT view's rGravitySaved read gave Sly a mass of ~4e-26 natively; tracks[i] is abl[i + 1].weight)
+  with C fallbacks for its mode-17 and mode-21 asm; STIMULUS / STIMTEMPLATE merged into CID147 / CID117 (source,
+  subject, level, next / previous; CID117::kind 0 audible / 1 visible; noise.cpp's emitters take LO *source; SW::apstimk
+  is CID117 *; ChooseStepguardStimulus walks SW::dlStimulus); vec.cpp's C prototypes on basic.h's qword; AddXp's feature
+  words as void * in every declaration (mark.cpp's MarkSoContactsBspBsp keeps its VV vectors on the EE, qword natively);
+  FindShapeClosestPoint / FindShapeClosestPointFromDistance's pointer parameters (17 declarations; GetShapeClosestPoint
+  takes a qword); HandleBhvstkMessage / HandleBhvMessage's void * payload; button.cpp's sizeof(LO *) arrays; rail.cpp
+  and pipe.cpp on RAIL / PIPE and STEPPLAYER (RAILV / PIPEV / T / P gone; GetPipeGrabPosition has a C fallback, no
+  literal 0x2C0D04 natively); IntersectSwBoundingBox's object array as SO ** in guardbhv CanBhvcombatShoot, stepguard,
+  jt, air, bentley, grab; EXPLS declares sfx / countRange / keepsGroups and FireExplsExplso uses it (EMITP is LO *[5]);
+  grabspot.cpp's wall / pole callbacks and FilterAttackLineOfSightHit's hit object on STEPPLAYER / SO; relay.cpp's SGG
+  is RELAY under the mangled name; step.cpp AddStepAxisXps on STEP / SOTREE / XPLIST; the views tool kept 16 more
+  rewrites (bif, hud, guardbhv, stepguard, jt). Signatures: mismatching declarations 1295 -> 1293, int-vs-pointer
+  83 -> 82, cross-declaration conflicts 274 -> 273 (most of this round's pointer fixes are C-named declarations, which
+  sigcheck does not cover). Views inventory: candidates 992 -> 936 (frame path 164 -> 141), TU structs 2512 -> 2430.
+  Still open after v1.24: hud.h SPRITEDESC vs LoadSpriteDescriptor's record and its six views; cm.cpp SquishCmEye /
+  ClipCameraEye (the object array as int; its local SO views clash with so.h, so SOPART cannot be included yet:
+  SOPART::bspc.unknown08 is the root node index); tn.cpp's int IntersectSwBoundingBox context; prize.cpp's collision /
+  bounce views (the candidate record has a 64-bit flag word at +0x10 where so.h's SOPART declares plvo: needs evidence);
+  guardbhv's candidate record Y; path.cpp's ROW (an LSG with the triangle in apsurf[0]; native-consistent, not
+  unified); screen.cpp notice views; the remaining glob / rendertree views; POSE / RENDER; the struct-return forms (bif.cpp
+  BuiltinObjectOption / BuiltinSetCadr, AreRefsStructurallyEqual, basic.cpp EnsureBasicOption: their definitions and
+  every caller pass the result pointer explicitly, so a native build is consistent; left); guardscript.cpp's
+  EnsureSggAlarm declaration (int alarm) and the generated splicewrap thunks' s32 arguments.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
