@@ -115,7 +115,10 @@ def main():
         vals = [(f, dl) for f, dl in fs if f[0] == 'value']
         outs = [(f, dl) for f, dl in fs if f[0] == 'out']
         if not vals or not outs: continue
-        bad_out = [(f, dl) for f, dl in outs if any(len(flat(dl)) == len(flat(v)) + 1 for _, v in vals)]
+        def pairs(o, v):               # o has one more leading parameter than v (v variadic: at least that many)
+            n, m = len(flat(o)), len(flat(v))
+            return n == m + 1 or (v.variadic and n >= m)
+        bad_out = [(f, dl) for f, dl in outs if any(pairs(dl, v) for _, v in vals)]
         if not bad_out: continue
         defs = [dl for _, dl in fs if dl.is_def]
         dform = form(defs[0], enums)[0] if defs else '?'

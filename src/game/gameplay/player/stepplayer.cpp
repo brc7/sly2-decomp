@@ -1175,7 +1175,7 @@ namespace M_LoadStepplayerGadgets {
 extern char D_002A4D50[] __asm__("D_002A4D50");
 extern char D_002A4D58[] __asm__("D_002A4D58");
 int sprintf(char *, const char *, ...) __asm__("sprintf");
-void GetSaveVarByName(CRefData *r, void *a, void *b, char *c, int d) SLY2_SRET_LABEL("GetSaveVarByName", "GetSaveVarByNameInto");
+void GetSaveVarByName(CRefData *r, void *a, ...) SLY2_SRET_LABEL("GetSaveVarByName", "GetSaveVarByNameInto");
 void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 // 0x141EF0: dead-code scrap (sly2/scrap.h)
 extern "C" { SLY2_SCRAP("addiu $sp, $sp, 0x20"); }
@@ -2134,7 +2134,7 @@ extern char D_002A4DB0[] __asm__("D_002A4DB0");
 
 void *FindBootySaveVar(void *p) __asm__("FindBootySaveVar");
 CRef SetGlobalSaveVar(void *p, const CRef &ref, SAVEDATA *pv) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
-CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n) __asm__("SetSaveVarByName");
+CRef SetSaveVarByName(const CRef &ref, void *o, ...) __asm__("SetSaveVarByName");
 
 /* Same SetPv form as SetBootyContainerKind: the unused dummy param makes gcc set up %hi(D_003D4A60)
    before the copy (lui in the copy-ctor jal slot). The copy is made in a raw struct with explicit
@@ -2165,7 +2165,7 @@ extern "C" void *ClearStepplayerBootySave(LO *lo, int x)
 
 namespace M_func_00143BD8 {
 extern char D_002A4DB0[] __asm__("D_002A4DB0");
-void GetSaveVarByName(CRefData *r, void *a, void *b, int c) __asm__("GetSaveVarByName");
+void GetSaveVarByName(CRefData *r, void *a, ...) SLY2_SRET_LABEL("GetSaveVarByName", "GetSaveVarByNameInto");
 void Decref__4CRef(CRefData *r) __asm__("Decref__4CRef");
 void ClearStepplayerBootySave(STEPPLAYER *p, int n) __asm__("ClearStepplayerBootySave");
 void SpawnStepplayerBootyMarker(STEPPLAYER *p, int n) __asm__("SpawnStepplayerBootyMarker");

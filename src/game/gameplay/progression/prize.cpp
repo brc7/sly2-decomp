@@ -1452,8 +1452,8 @@ struct M { int n; DPRIZE *p; int pad[14]; };
 extern char D_002A7768[] __asm__("D_002A7768");
 extern char D_002A7770[] __asm__("D_002A7770");
 extern char D_002A7778[] __asm__("D_002A7778");
-CRef GetSaveVarByName(char *a, char *b, char *c, int n) __asm__("GetSaveVarByName");
-CRef SetSaveVarByName(const CRef &r, char *a, char *b, char *c, int n) __asm__("SetSaveVarByName");
+CRef GetSaveVarByName(char *a, ...) __asm__("GetSaveVarByName");
+CRef SetSaveVarByName(const CRef &r, char *a, ...) __asm__("SetSaveVarByName");
 extern void SetLootDprizes(LOOT *p, int n) __asm__("SetLootDprizes");
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
 // Also known as: SetLootState (upstream readable / Sly 1 name; SetLootState__FP2LOi).

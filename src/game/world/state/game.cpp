@@ -2166,7 +2166,7 @@ extern void SortTasksTopologically(int *pc, TASK ***papx) __asm__("SortTasksTopo
 extern void RestoreTaskState(TASK *p) __asm__("RestoreTaskState");
 extern TASK *FindSwObject__FP2SWi3OIDP2LO(SW *pg, int kind, int oid, void *owner) __asm__("FindSwObject__FP2SWi3OIDP2LO");
 extern void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
-extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
+extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, ...) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
 extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern void SetTaskState(TASK *p, int n) __asm__("SetTaskState");
 // After a load (event 4, world flag 8): recomputes the tasks in topological order, makes the pending task available,
@@ -2217,7 +2217,7 @@ extern char D_002A5238[] __asm__("D_002A5238");
 extern void AbortJob(JOB *p) __asm__("AbortJob");
 extern void SetTaskStateCascade(TASK *p, int n) __asm__("SetTaskStateCascade");
 extern void ActivateTask(TASK *p) __asm__("ActivateTask");
-extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, int n) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
+extern void SetSaveVarByName(CRefData *pref, CRefData *parg, void *pv, ...) SLY2_SRET_LABEL("SetSaveVarByName", "SetSaveVarByNameInto");
 extern void Decref__4CRef(CRefData *pref) __asm__("Decref__4CRef");
 extern int GetCurrentLevelIndex__Fv() __asm__("GetCurrentLevelIndex__Fv");
 extern void *GetLevelFileRecord(int n) __asm__("GetLevelFileRecord");

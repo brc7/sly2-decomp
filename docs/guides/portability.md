@@ -175,8 +175,9 @@ So a mismatch is always wrong on arm64, and wrong on x86-64 for small results; i
 value form names (a 4-float vector and a `{qword}` come back in different registers). Further arm64 facts the
 adapters rely on: a `__int128` argument takes an even-numbered register pair (x0:x1, x2:x3), float arguments use the
 v registers whatever their position (so `(qword, float)` and `(float, qword)` are the same call on both hosts), and
-Apple's arm64 passes variadic arguments on the stack (a fixed-argument declaration of a varargs function, such as the
-`GetSaveVarByName(char *, char *, char *, int)` views, is a separate hazard listed below).
+Apple's arm64 passes variadic arguments on the stack, so every declaration of a varargs function must be variadic
+too (v1.30: the 10 fixed-argument declarations of GetSaveVarByName / SetSaveVarByName now end in `...`; the EE call
+is the same).
 
 **Finding them**: tools/cleanup/signatures/sretcheck.py (README there) groups every declaration by the linker symbol it
 reaches natively (asm label, C name, canonical mangled name), skipping EE-only preprocessor branches and file-local
@@ -667,13 +668,13 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   them); mark.cpp MarkSoContactsSphereBsp has a C version on SOPART / CMCONTACT (the EE view read the radius at
   +0x08 and stepped its candidate pointer through `unsigned`); the asserts added since the port's neutraliser list
   use SLY2_EE_CHECK; SWCALLBACK::argument and PMFCB's parameter are sptr, and the callback API's declarations take
-  sptr. The ZPR / GSB stack buffers were already GSB with InitGsb clearing sizeof(GSB) (v1.28); RecordJtGrabPlace
+  sptr; the fixed-argument declarations of the varargs GetSaveVarByName / SetSaveVarByName are variadic (Apple's
+  arm64 passes variadic arguments on the stack). The ZPR / GSB stack buffers were already GSB with InitGsb clearing sizeof(GSB) (v1.28); RecordJtGrabPlace
   already reads the grabbed object through its classes (no +0x184 view left).
   Still open after v1.30: the callback API's 20 caller-side declarations that pass the PMF as a `long` (g++ 2.95's
   8-byte PMF in one register; natively a PMF is two pointer-sized words: they need the PMF constants as native PMFs,
   as hud.cpp's picture callback D_002A8B08, still an EE word image like the other 100+ function-pointer data images of
-  hud.cpp); fixed-argument declarations of the varargs GetSaveVarByName / SetSaveVarByName (stack-passed on Apple
-  arm64); stepplayer.cpp's CRefIsland is 8 bytes where a native CRef is 16 (a by-value CRef written into it
+  hud.cpp); stepplayer.cpp's CRefIsland is 8 bytes where a native CRef is 16 (a by-value CRef written into it
   overruns); rip.cpp HandleRipBounce (asm without a C fallback); grab.cpp SetJtGrabKind / UpdateJtGrabInput /
   ClearJtDetectionOutOfSight views, relay.cpp UpdateJsgJtControl views, screen.cpp SCRLIST's focused screen and the
   EE-sized inline screens, MeasureJtJumpToTarget's B / C views; sigcheck's remaining int-vs-pointer declarations (62).
