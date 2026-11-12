@@ -70,10 +70,7 @@ typedef char assert_LEAP_size[sizeof(LEAPV) == 0x70 ? 1 : -1];
 
 /* The direction blend (four clips with their root velocities) and its 0x40-byte act. */
 /* DIRE / DIRBL (the directional animation set, 0xD0): sly2/sw.h. */
-struct DIRSEL { char pad[0x10]; qword direction; LEAPSUBJECT *root; ASEGA *active; DIRE *entries, *best; int flags, forward, backward; };
-struct DIROWNER { char pad[0x30]; ASEG *paseg; };
-struct DIRACT { int n0; int n4; int pad8; void *pvt; char pad10[0x10]; LEAPSUBJECT *palo; ASEGA *pasega; DIROWNER *powner; ASEG **ppaseg; int grfapl; char pad34[0xC]; };
-typedef char assert_DIRACT_size[sizeof(DIRACT) == 0x40 ? 1 : -1];
+/* The directional animation: leap.h CID146 (the playing instance) over sw.h DIRBL (its four clips). */
 
 
 struct SLOTHEAP;
@@ -124,7 +121,7 @@ void SetLeapState(LEAPV *p, int state);
 LEAPV *ConstructLeap(LEAPV *p);
 int IsLeapDone(LEAPV *p);
 void ReleaseLeapConstraint(LEAPV *p);
-int IsDirAnimStopped(DIRACT *p);
+int IsDirAnimStopped(CID146 *p);
 }
 void ReplaceCurrentAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ReplaceCurrentAseg__FP4ASEGP3ALOffiPP5ASEGA */
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* IsBasicDerivedFrom__FP5BASIC3CID */
@@ -678,53 +675,55 @@ extern "C" void InitDirAnims(DIRBL *dirAnims, LEAPSUBJECT *arg)
 
 // Initializes a directional-animation object (CID 0x92) and applies its animation.
 // Also known as: StartK3 (upstream readable / Sly 1 name; StartK3__FP5KIND3iiP6K3PLAY).
-extern "C" void StartDirAnim(DIROWNER *dirAnims, LEAPSUBJECT *a, int b, DIRACT *object)
+extern "C" void StartDirAnim(DIRBL *dirbl, LEAPSUBJECT *a, int b, CID146 *object)
 {
     memset(object, 0, sizeof(*object));
     memset(object, 0, sizeof(*object));
-    object->powner = dirAnims;
-    object->palo = a;
+    object->pdirbl = dirbl;
+    object->subject = a;
     SLY2_SET_VPTR(object, CID146);
     object->grfapl = b;
-    object->n0 = 0;
-    object->n4 = 0;
-    ReplaceCurrentAseg(dirAnims->paseg, (ALO *)a, 0.0f, 1.0f, b, &object->pasega);
-    SubscribeLoObject(object->pasega, object);
-    object->ppaseg = &dirAnims->paseg;
+#if defined(SLY2_EE_LAYOUT)
+    *(int *)&object->scriptFrame = 0;       /* BASIC's two counted pointers, raw (already zero) */
+    *(int *)&object->scriptVariables = 0;
+#endif
+    ReplaceCurrentAseg(dirbl->ae[1].animation, (ALO *)a, 0.0f, 1.0f, b, &object->pasegaCur);
+    SubscribeLoObject(object->pasegaCur, object);
+    object->pdireCur = &dirbl->ae[1];
 }
 
 // Allocates a directional-animation object from the world's slot heap.
-extern "C" DIRACT *AllocDirAnim(void) {
-    return (DIRACT *)AllocZeroedFromSlotheap(&g_sw.slotheapDiract);
+extern "C" DIRBL *AllocDirAnim(void) {
+    return (DIRBL *)AllocZeroedFromSlotheap(&g_sw.slotheapDiract);
 }
 
 // Returns a directional-animation object to the world's slot heap.
-extern "C" void FreeDirAnim(DIRACT *dirAnims) {
+extern "C" void FreeDirAnim(DIRBL *dirAnims) {
     FreeSlotheapSlot(&g_sw.slotheapDiract, dirAnims);
 }
 
 // Clears the directional animation's job if active.
 // Also known as: StopK3 (upstream readable / Sly 1 name; StopK3__FP6K3PLAY).
-extern "C" void StopDirAnim(DIRACT *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasega); }
+extern "C" void StopDirAnim(CID146 *dirAnims) { if (!IsDirAnimStopped(dirAnims)) ReplaceCurrentAseg(0, 0, 0.0f, 1.0f, 0, &dirAnims->pasegaCur); }
 
 // Whether the directional animation's job is cleared.
-int IsDirAnimStopped(DIRACT *dirAnims) {
-    return dirAnims->pasega == 0;
+int IsDirAnimStopped(CID146 *dirAnims) {
+    return dirAnims->pasegaCur == 0;
 }
 
 // Directional-animation message handler (slot 5): labels 0x17D/0x17E set forward, 0x17F/0x180 backward.
 // Also known as: OnK3Event (upstream readable / Sly 1 name; OnK3Event__FP6K3PLAYiP8ASEGMSG9).
 void CID146::HandleMessage(MSGID msg_m, void *pm_m)
 {
-    DIRSEL *p = (DIRSEL *)this;
+    CID146 *p = this;
     int msg = (int)msg_m;
     MSGL *pm = (MSGL *)pm_m;
     if (msg == 9) {
         switch (pm->n8) {
-        case 0x17D: p->forward = 1; break;
-        case 0x17E: p->forward = 0; break;
-        case 0x17F: p->backward = 1; break;
-        case 0x180: p->backward = 0; break;
+        case 0x17D: p->isForward = 1; break;
+        case 0x17E: p->isForward = 0; break;
+        case 0x17F: p->isBackward = 1; break;
+        case 0x180: p->isBackward = 0; break;
         }
     }
     HandleBasicMessage(p, msg, pm);
@@ -775,7 +774,7 @@ static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm
 namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.40282347e+38f; }
 // Chooses the best of the four directional animations for the desired direction.
 // Also known as: SelectK3 (upstream readable / Sly 1 name; SelectK3__FP6K3PLAYG9VU_VECTOR).
-extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
+extern "C" void SelectDirAnim(CID146 *dirAnims, qword v)
 {
     U scalar, direction;
     register qword finalDirection __asm__("vf3");
@@ -783,19 +782,19 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
     register DIRE *current __asm__("v0");
     Normalize(&direction, v);
     float maximum = D_002A8904;
-    if (dirAnims->forward || dirAnims->backward) {
+    if (dirAnims->isForward || dirAnims->isBackward) {
         DIRE *entry;
         unsigned int i;
         float bias;
         register qword scoringDirection __asm__("vf4");
         __asm__("lqc2 %0,%4\n\tlw %1,%5\n\tdaddu %2,%z6,$zero\n\tlwc1 %3,%7"
                 : "=j"(scoringDirection), "=&r"(entry), "=&r"(i), "=f"(bias)
-                : "m"(direction.q), "m"(dirAnims->entries), "rJ"(0), "m"(D_002C3DE4));
+                : "m"(direction.q), "m"(dirAnims->pdirbl), "rJ"(0), "m"(D_002C3DE4));
         do {
             ASEG *animation = entry->animation;
             if (animation) {
                 float score = VuToFloat(DotReuse(scoringDirection, NormalizeEntry(entry->velocity)));
-                if (animation == dirAnims->active->animation)
+                if (animation == dirAnims->pasegaCur->animation)
                     score *= bias;
                 if (maximum < score) {
                     maximum = score;
@@ -803,14 +802,14 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
                 }
             }
         } while (++entry, ++i < 4);
-        current = dirAnims->best;
+        current = dirAnims->pdireCur;
         finalDirection = direction.q;
         if (best != current) {
             float time = 0.0f;
             EA *tag;
             ASEG *animation;
             int id;
-            if (dirAnims->forward) {
+            if (dirAnims->isForward) {
                 id = 0x17D;
                 animation = best->animation;
             } else {
@@ -820,13 +819,13 @@ extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
             tag = FindAsegLabel(animation, id);
             if (tag)
                 time = tag->time;
-            ReplaceCurrentAseg(best->animation, (ALO *)dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
-            SubscribeLoObject(dirAnims->active, dirAnims);
-            dirAnims->best = best;
+            ReplaceCurrentAseg(best->animation, (ALO *)dirAnims->subject, time, 1.0f, dirAnims->grfapl, &dirAnims->pasegaCur);
+            SubscribeLoObject(dirAnims->pasegaCur, dirAnims);
+            dirAnims->pdireCur = best;
         }
     }
-    current = dirAnims->best;
+    current = dirAnims->pdireCur;
     finalDirection = direction.q;
     scalar.q = ScalarFW(&current->speed);
-    dirAnims->direction = Scale(finalDirection, scalar.q);
+    dirAnims->velocity = Scale(finalDirection, scalar.q);
 }

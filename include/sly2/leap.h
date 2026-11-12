@@ -37,10 +37,16 @@ typedef char assert_LEAP_size[sizeof(LEAP) == 0x70 ? 1 : -1]; typedef char asser
    146 CID146 (0x40): DIRANIM; vtable 0x2DA9D0, 6 slots */
 struct CID146 : BASIC
 {
-    qword velocity;         /* +0x10 the root velocity (stepguard DriveStepguardFromAnim; guardbhv.cpp MODEL::velocity) */
-    char pad20[0x24 - 0x20];
+    qword velocity;         /* +0x10 the root velocity: the wanted direction scaled by the chosen clip's speed (gait.cpp
+                               SelectDirAnim; stepguard DriveStepguardFromAnim; guardbhv.cpp MODEL::velocity) */
+    struct SO *subject;     /* +0x20 the animated object (StartDirAnim) */
     ASEGA *pasegaCur;       /* +0x24 [S] the animation the directional animation plays (stepguard GetAnimBindingInstance) */
-    char pad28[0x40 - 0x28];
+    struct DIRBL *pdirbl;   /* +0x28 the four directional clips (sw.h DIRBL: the binding's AllocDirAnim record) */
+    struct DIRE *pdireCur;  /* +0x2C the chosen clip (StartDirAnim: ae[1]) */
+    int grfapl;             /* +0x30 the ReplaceCurrentAseg flags */
+    int isForward;          /* +0x34 between the clip's labels 0x17D and 0x17E (HandleMessage) */
+    int isBackward;         /* +0x38 between labels 0x17F and 0x180 */
+    int unknown3C;
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleCid146Message");   /* slot 5 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid146ClassDesc");   /* slot 6 */
 };
