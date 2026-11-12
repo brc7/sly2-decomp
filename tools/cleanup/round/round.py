@@ -795,9 +795,11 @@ def cmd_try(a):
                         if n == fn.group(1):
                             out.append(f'  vs ELF: {head}'); break
         print('\n'.join(out))
-        if a.keep:
+        if a.keep and not bad:
             os.unlink(pending); restored = True
             print('  kept (edit left applied)')
+        elif a.keep:
+            print('  not kept (restored): --keep keeps identical / renamed edits only')
         return 0 if not bad else 1
     except (KeyboardInterrupt, Interrupted):
         print('interrupted: restoring')
