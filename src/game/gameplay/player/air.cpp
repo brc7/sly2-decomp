@@ -4403,7 +4403,7 @@ namespace M_func_0019C870 {
 extern "C" SOPART *GetJtAirAdjustRecord(JTAIR *s, int *pn) {
     SOPART *v;
     switch (s->state) {
-    case 0xB: case 0xC: case 0xD: v = s->player->jtgrab.unknown60; break;
+    case 0xB: case 0xC: case 0xD: v = s->player->jtgrab.interactMeshKind5; break;
     case 0x11: v = s->precAirWallRun; break;
     default: v = s->precAir; break;
     }

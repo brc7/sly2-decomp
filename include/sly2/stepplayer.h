@@ -249,11 +249,13 @@ struct JTGRAB
       undefined4 unk_0x38[(0x40 - 0x38) / 4];
       qword focusPosition; /* focus position */
       float uFlattenClamp;
-      SOPART *unknown54;
-      SOPART *unknown58;
-      SOPART *unknown5C;   /* +0x5C a part bound by oid (the players' SNIP tables, BindLoOidTable) */
-      SOPART *unknown60;
-      SOPART *unknown64;
+      /* The interaction meshes (Sly 1's IsoeInteractMesh: GetJtGrabAdjustRecord returns them as the adjust record by
+         grab state and kind; bound by oid in the players' SNIP tables). Names from that selection (inferred). */
+      SOPART *interactMeshGrab;      /* +0x54 grab state 0 (kind != 5); was unknown54 */
+      SOPART *interactMeshState1;    /* +0x58 grab state 1; was unknown58 */
+      SOPART *interactMesh5C;        /* +0x5C bound, not read by the selection; was unknown5C */
+      SOPART *interactMeshKind5;     /* +0x60 grab state 0 with kind 5 (air.cpp reads it for its kinds 0xB..0xD); was unknown60 */
+      SOPART *interactMeshFlipped;   /* +0x64 grab state 8, kinds 9 / 10 (the flipped record); was unknown64 */
       struct TN *cameraTunnel; /* camera tunnel of the grab */
       undefined4 unknown6C;
       BLDIR abldirA[8];   /* first directional blends */

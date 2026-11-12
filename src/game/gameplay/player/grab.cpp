@@ -1927,7 +1927,7 @@ extern "C" void RecordJtGrabPlace(JTGRAB *grab)
 }
 } // namespace M_func_001942F0
 
-/* The grab's record for its state and kind (unknown54/58/60/64); *pfFlip set in state 8 for kinds 9 and 10. */
+/* The grab's record for its state and kind (JTGRAB::interactMeshGrab / State1 / Kind5 / Flipped); *pfFlip set in state 8 for kinds 9 and 10. */
 // The adjust record for the grab kind and a flag.
 // Also known as: IsoeInteractMesh (upstream readable / Sly 1 name; IsoeInteractMesh__FP5ACTORPi).
 extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
@@ -1937,16 +1937,16 @@ extern "C" void *GetJtGrabAdjustRecord(JTGRAB *grab, int *pfFlip)
     switch (grab->state) {
     case 0:
         if (grab->kind == 5)
-            record = grab->unknown60;
+            record = grab->interactMeshKind5;
         else
-            record = grab->unknown54;
+            record = grab->interactMeshGrab;
         break;
-    case 1: record = grab->unknown58; break;
+    case 1: record = grab->interactMeshState1; break;
     case 8:
         switch (grab->kind) {
         case 9:
         case 10:
-            record = grab->unknown64;
+            record = grab->interactMeshFlipped;
             fFlip = 1;
             break;
         default: record = 0; break;

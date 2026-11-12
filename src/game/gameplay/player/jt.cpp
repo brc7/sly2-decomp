@@ -2806,7 +2806,7 @@ extern "C" void ApplyJtStateStepParams(JT *jt)
     case 7: pv = GetJtGrabAdjustRecord(&jt->jtgrab, &n); break;
     case 4: pv = GetJtHurtAdjustRecord(&jt->jthurt, &n); break;
     case 2: pv = GetJtAirAdjustRecord(&jt->jtair, &n); break;
-    case 21: case 22: pv = jt->jtgrab.unknown60; break;
+    case 21: case 22: pv = jt->jtgrab.interactMeshKind5; break;
     default: pv = jt->aprecJts[jt->state]; break;
     }
     if (!pv) pv = jt->aprecJts[0];
@@ -4407,8 +4407,8 @@ SNIP D_002BE990[0xAD] = {{0x200, 0x7C, SLY2_OFFSETOF(JT, standStateMachine)}, {0
     {0x300, 0x97, SLY2_OFFSETOF(JT, unknown14D8)}, {0x320, 0xC9, SLY2_OFFSETOF(JT, jtair.precAir)}, {0x320, 0xCB, SLY2_OFFSETOF(JT, jtair.precAirWallRun)}, {0x200, 0x9E, SLY2_OFFSETOF(JT, jtair.pasegLaunch)}, {0x200, 0x9F, SLY2_OFFSETOF(JT, jtair.pasegLaunch10)},
     {0x200, 0xA9, SLY2_OFFSETOF(JT, jtair.pasegEdge)}, {0x200, 0x98, SLY2_OFFSETOF(JT, jtair.apasegJump[0])}, {0x200, 0x99, SLY2_OFFSETOF(JT, jtair.apasegJump[3])}, {0x200, 0x9A, SLY2_OFFSETOF(JT, jtair.apasegJump[4])}, {0x200, 0x9B, SLY2_OFFSETOF(JT, jtair.apasegJump[2])},
     {0x200, 0x9C, SLY2_OFFSETOF(JT, jtair.apasegJump[1])}, {0x200, 0xA0, SLY2_OFFSETOF(JT, jtair.apasegDoubleJump[0])}, {0x200, 0xA1, SLY2_OFFSETOF(JT, jtair.apasegDoubleJump[3])}, {0x200, 0xA2, SLY2_OFFSETOF(JT, jtair.apasegDoubleJump[4])}, {0x200, 0xA3, SLY2_OFFSETOF(JT, jtair.apasegDoubleJump[2])},
-    {0x200, 0xA4, SLY2_OFFSETOF(JT, jtair.apasegDoubleJump[1])}, {0x300, 0x259, SLY2_OFFSETOF(JT, jtair.pasegKindE)}, {0x300, 0x25A, SLY2_OFFSETOF(JT, jtair.pasegKindEDouble)}, {0x320, 0xCC, SLY2_OFFSETOF(JT, jtgrab.unknown54)}, {0x320, 0xCD, SLY2_OFFSETOF(JT, jtgrab.unknown58)},
-    {0x320, 0xCE, SLY2_OFFSETOF(JT, jtgrab.unknown5C)}, {0x320, 0xDC, SLY2_OFFSETOF(JT, jtgrab.unknown60)}, {0x200, 0x87, SLY2_OFFSETOF(JT, jtgrab.abldirA[0].animation)}, {0x200, 0x88, SLY2_OFFSETOF(JT, jtgrab.abldirA[1].animation)}, {0x200, 0x89, SLY2_OFFSETOF(JT, jtgrab.abldirA[2].animation)},
+    {0x200, 0xA4, SLY2_OFFSETOF(JT, jtair.apasegDoubleJump[1])}, {0x300, 0x259, SLY2_OFFSETOF(JT, jtair.pasegKindE)}, {0x300, 0x25A, SLY2_OFFSETOF(JT, jtair.pasegKindEDouble)}, {0x320, 0xCC, SLY2_OFFSETOF(JT, jtgrab.interactMeshGrab)}, {0x320, 0xCD, SLY2_OFFSETOF(JT, jtgrab.interactMeshState1)},
+    {0x320, 0xCE, SLY2_OFFSETOF(JT, jtgrab.interactMesh5C)}, {0x320, 0xDC, SLY2_OFFSETOF(JT, jtgrab.interactMeshKind5)}, {0x200, 0x87, SLY2_OFFSETOF(JT, jtgrab.abldirA[0].animation)}, {0x200, 0x88, SLY2_OFFSETOF(JT, jtgrab.abldirA[1].animation)}, {0x200, 0x89, SLY2_OFFSETOF(JT, jtgrab.abldirA[2].animation)},
     {0x200, 0x8A, SLY2_OFFSETOF(JT, jtgrab.abldirA[3].animation)}, {0x200, 0x8B, SLY2_OFFSETOF(JT, jtgrab.abldirA[4].animation)}, {0x200, 0x8C, SLY2_OFFSETOF(JT, jtgrab.abldirA[5].animation)}, {0x200, 0x8D, SLY2_OFFSETOF(JT, jtgrab.abldirA[6].animation)}, {0x200, 0x8E, SLY2_OFFSETOF(JT, jtgrab.abldirA[7].animation)},
     {0x200, 0x8F, SLY2_OFFSETOF(JT, jtgrab.unknown174[0])}, {0x200, 0x90, SLY2_OFFSETOF(JT, jtgrab.unknown174[1])}, {0x200, 0x91, SLY2_OFFSETOF(JT, jtgrab.unknown174[2])}, {0x300, 0x27D, SLY2_OFFSETOF(JT, jtgrab.unknown510[0])}, {0x300, 0x92, SLY2_OFFSETOF(JT, jtgrab.unknown230[1])},
     {0x300, 0x93, SLY2_OFFSETOF(JT, jtgrab.unknown230[2])}, {0x300, 0x94, SLY2_OFFSETOF(JT, jtgrab.gaitB.abl[0].animation)}, {0x300, 0x95, SLY2_OFFSETOF(JT, jtgrab.gaitB.abl[1].animation)}, {0x300, 0x100, SLY2_OFFSETOF(JT, jtgrab.ablC[0].animation)}, {0x300, 0x101, SLY2_OFFSETOF(JT, jtgrab.ablC[1].animation)},
