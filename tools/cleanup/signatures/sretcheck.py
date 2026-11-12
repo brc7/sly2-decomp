@@ -68,20 +68,10 @@ def site(dl):
     return f'{dl.file}:{dl.line}'
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0], epilog=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--root', default=os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))))
-    ap.add_argument('--out')
-    a = ap.parse_args()
-    root = os.path.abspath(a.root)
-    out = os.path.abspath(a.out or os.path.join(root, 'build', 'signatures'))
-    os.makedirs(out, exist_ok=True)
-    L = S.load(root)
-    syms, decls, enums = L['syms'], L['decls'], L['enums']
-
-    # native linker symbol of each declaration
+def native_groups(L):
+    """linker symbol -> the native-visible declarations that reach it (asm label, C name, canonical mangled name;
+    EE-only branches and file-local statics skipped, SLY2_SRET_LABEL / SLY2_BUILTIN_C by their native name)"""
+    syms, decls = L['syms'], L['decls']
     groups = collections.defaultdict(list)
     canon_key = collections.defaultdict(list)
     for s_, d in syms.items():
@@ -103,6 +93,23 @@ def main():
             if syms[s_]['params'] == dl.params and not dl.templ:
                 groups[s_].append(dl)
 
+    return groups
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0], epilog=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--root', default=os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))))
+    ap.add_argument('--out')
+    a = ap.parse_args()
+    root = os.path.abspath(a.root)
+    out = os.path.abspath(a.out or os.path.join(root, 'build', 'signatures'))
+    os.makedirs(out, exist_ok=True)
+    L = S.load(root)
+    syms, decls, enums = L['syms'], L['decls'], L['enums']
+
+    groups = native_groups(L)
     rows, listed = [], []
     # SLY2_SRET_LABEL's native label must name a definition (the adapter)
     defined = {dl.cname for dl in decls if dl.is_def and dl.cname}
