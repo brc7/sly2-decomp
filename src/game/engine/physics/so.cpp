@@ -1048,17 +1048,25 @@ extern "C" void SetSoGrfBit8(SO *so, int enabled)
     }
 #else
     /* the flags live in the tagged word itself (bit 0 set) or in the LOUPD entry it points to */
-    int *flags = (so->unknown40 & 1) ? &so->unknown40 : &so->ploupd->grf;
+    /* (no int * to the tagged word: a native LO may keep it pointer-wide) */
+    int isTagged = so->unknown40 & 1;
+    int flags = isTagged ? so->unknown40 : so->ploupd->grf;
     if (enabled) {
-        if (*flags & 8)
+        if (flags & 8)
             return;
-        *flags |= 8;
+        if (isTagged)
+            so->unknown40 |= 8;
+        else
+            so->ploupd->grf |= 8;
         if (so->isRenderable && IsLoInWorld(so))
             AddLoToRenderTree(so);
     } else {
-        if (!(*flags & 8))
+        if (!(flags & 8))
             return;
-        *flags &= ~8;
+        if (isTagged)
+            so->unknown40 &= ~8;
+        else
+            so->ploupd->grf &= ~8;
         RemoveLoFromRenderTree(so);
     }
 #endif
