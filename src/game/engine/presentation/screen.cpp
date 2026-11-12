@@ -52,14 +52,15 @@ void *ConstructTitleScreen(void *pv);      /* title screen constructor */
 }
 struct SCRLIST
 {
-    union { DL dl; char ab[0x10]; };   /* the list; 0x10 bytes on the EE */
+    DL dl;                  /* the shown screens, top first */
+    struct SCREENBASE *focused;   /* the screen with the joypad (UpdateScreenFocus); EE +0xC, after the 12-byte DL */
     // Construct an empty screen list.
     SCRLIST() { InitScreenList(this); }
 };
 /* A screen whose BASIC part is set inline (scriptFrame, scriptVariables, vtable). */
 template <int CB> struct SCRINL
 {
-    char ab[CB];
+    char ab[CB * (sizeof(void *) / 4)];   /* CB: the EE size; natively room for the class with 8-byte pointers */
     // Inline screen header: BASIC's counted pointers cleared and the given vtable.
     SCRINL(void *pvtInit) { BASIC *b = (BASIC *)this; b->scriptFrame.m_p = 0; b->scriptVariables.m_p = 0; SLY2_STORE_VPTR(this, pvtInit); }
     // Destroy the screen object (~BASIC, in-charge flag 2).
@@ -68,7 +69,7 @@ template <int CB> struct SCRINL
 /* A screen constructed by a C-named constructor. */
 template <int CB> struct SCRCTOR
 {
-    char ab[CB];
+    char ab[CB * (sizeof(void *) / 4)];   /* CB: the EE size; natively room for the class with 8-byte pointers */
     // Construct the object with its class constructor.
     SCRCTOR(void *(*pfnCtor)(void *)) { pfnCtor(this); }
     // Destroy the object (~BASIC, in-charge flag 2).
@@ -213,7 +214,7 @@ void PostJobListLoad(SCREEN *screen);
 void CMemcardDialog_PostLoad(void *pdlg);
 void PostLoadScreen52D(SCREEN *screen);
 void DrawScreen(void *screen);
-void UpdateScreenFocus(DL *pdl);
+void UpdateScreenFocus(SCRLIST *list);
 void SetHudMeterState(HUDMETER *hudmeter, int nState);
 void SetNoticeState(struct NOTICE *notice, int nState);
 void ResetScreenMode(SCREEN *screen);
@@ -312,11 +313,11 @@ extern "C" void PostLoadScreens()
 }
 
 namespace M_func_001D95B8 {
-struct S { SCREENBASE *requested; int a, b; SCREENBASE *focused; };   /* the shown-screen list: head, focused screen */
+
 // If the screen at the head of the shown list (the requested top screen) differs from the focused one, tells the old one
 // it lost focus and focuses the new one. (inferred)
-void UpdateScreenFocus(struct S *list) __asm__("UpdateScreenFocus"); void UpdateScreenFocus(struct S *list) {
-    SCREENBASE *requested = list->requested;
+void UpdateScreenFocus(SCRLIST *list) __asm__("UpdateScreenFocus"); void UpdateScreenFocus(SCRLIST *list) {
+    SCREENBASE *requested = (SCREENBASE *)list->dl.head;
     SCREENBASE *previous;
     if (requested == list->focused) return;
     if (list->focused) {
@@ -437,7 +438,7 @@ extern "C" void ShowScreen(SCREEN *screen)
         RemoveDlEntry((DL *)&D_003D9E70, screen);
     }
     PrependDlEntry((DL *)&D_003D9E70, screen);
-    UpdateScreenFocus((DL *)&D_003D9E70);
+    UpdateScreenFocus(&D_003D9E70);
 }
 
 /* screen slot 11: take off the shown list. */
@@ -446,7 +447,7 @@ extern "C" void HideScreen(SCREEN *screen)
 {
     if (IsEntryInDl((DL *)&D_003D9E70, screen) != 0) {
         RemoveDlEntry((DL *)&D_003D9E70, screen);
-        UpdateScreenFocus((DL *)&D_003D9E70);
+        UpdateScreenFocus(&D_003D9E70);
     }
 }
 
