@@ -140,8 +140,13 @@ void MarkSoTreeBoundsDirty(SO *) __asm__("MarkSoTreeBoundsDirty");
 // (a + b) * k.x.  The second "j"(k) operand is allocation-only: it gives k the register priority the original had.
 extern "C" { static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xyzw $ACC,%1,%3x\n\tvmaddx.xyzw %0,%2,%4x" : "=j"(r) : "j"(a), "j"(b), "j"(k), "j"(k)); return r; } }
 // Length of a vector in two steps (sum of squares, then sqrt).  The "memory" clobbers keep the stores around the steps in source order.
+#ifdef SLY2_EE_ASM
 #define LEN1(d, one, v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v) : "memory")
 #define LEN2(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d) : : "memory")
+#else
+#define LEN1(d, one, v) ((d) = VuDot((v), (v)))   /* |v|^2 in x */
+#define LEN2(d) ((d) = VuSqrtX(d))
+#endif
 // RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set
 // center/radius. (inferred)
 // Also known as: ProjectRipgTransform (upstream readable / Sly 1 name; ProjectRipgTransform__FP4RIPGfi).
@@ -624,6 +629,7 @@ static inline qw ImpulseValue(float value)
     return scalar;
 }
 // High half of the address of the fallback vector D_002A2DA0 (lui), split out for scheduling.
+#ifdef SLY2_EE_ASM
 static inline unsigned FallbackPage()
 {
     register unsigned page __asm__("$2");
@@ -637,6 +643,11 @@ static inline qw *FallbackAddress(unsigned page)
     __asm__("addiu %0,%1,%%lo(D_002A2DA0)" : "=r"(address) : "r"(page));
     return address;
 }
+#else
+static inline unsigned FallbackPage() { return 0; }   /* natively the address is taken whole by FallbackAddress */
+// The address of D_002A2DA0.
+static inline qw *FallbackAddress(unsigned) { return &D_002A2DA0; }
+#endif
 // Move the x lane of a VU0 vector into a GPR as float bits.
 static inline float SecondProjection(qw value)
 {
@@ -1031,6 +1042,7 @@ typedef char layout_ceb08_70[(sizeof(((PROX*)0)->distance)==4)?1:-1];
 
 namespace M_IsVectorShorterThan2 {
 // Helper: |v|^2 < 4. (inferred)
+#ifdef SLY2_EE_ASM
 extern "C" int IsVectorShorterThan2(qword v)
 {
     float g;
@@ -1044,10 +1056,17 @@ extern "C" int IsVectorShorterThan2(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
+#else
+extern "C" int IsVectorShorterThan2(qword v)   /* the asm keeps vf1 / vf2 / vf3 and ACC across statements */
+{
+    return VuToFloat(VuDot(v, v)) < 4.0f;
+}
+#endif
 } // namespace M_IsVectorShorterThan2
 
 namespace M_IsVectorNearlyZero {
 // Helper: |v|^2 < 0.0004. (inferred)
+#ifdef SLY2_EE_ASM
 extern "C" int IsVectorNearlyZero(qword v)
 {
     float g;
@@ -1061,10 +1080,17 @@ extern "C" int IsVectorNearlyZero(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
+#else
+extern "C" int IsVectorNearlyZero(qword v)   /* the asm keeps vf1 / vf2 / vf3 and ACC across statements */
+{
+    return VuToFloat(VuDot(v, v)) < 0.0004f;
+}
+#endif
 } // namespace M_IsVectorNearlyZero
 
 namespace M_IsVectorShorterThan5 {
 // Helper: |v|^2 < 25. (inferred)
+#ifdef SLY2_EE_ASM
 extern "C" int IsVectorShorterThan5(qword v)
 {
     float g;
@@ -1078,6 +1104,12 @@ extern "C" int IsVectorShorterThan5(qword v)
     __asm__ __volatile__("qmfc2.ni %0, $vf1" : "=r"(g));
     return g < lim;
 }
+#else
+extern "C" int IsVectorShorterThan5(qword v)   /* the asm keeps vf1 / vf2 / vf3 and ACC across statements */
+{
+    return VuToFloat(VuDot(v, v)) < 25.0f;
+}
+#endif
 } // namespace M_IsVectorShorterThan5
 
 namespace M_ProjectRipTransform {
@@ -1777,6 +1809,7 @@ static inline const RIPM3 *MatrixAddress(SHRAPNEL *shrapnel)
     return matrix;
 }
 // Broadcast the shrapnel's depth word (+0xF0) into vf2.
+#ifdef SLY2_EE_ASM
 static inline qword Depth(SHRAPNEL *shrapnel)
 {
     register qword k __asm__("vf2");
@@ -1784,6 +1817,9 @@ static inline qword Depth(SHRAPNEL *shrapnel)
     __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0" : "=j"(k), "=&r"(bits) : "r"(shrapnel), "m"(shrapnel->depth.bits));
     return k;
 }
+#else
+static inline qword Depth(SHRAPNEL *shrapnel) { return VuFromFloat<qword>(shrapnel->depth.bits); }
+#endif
 // SHRAPNEL Render.
 extern "C" void RenderShrapnel__FP8SHRAPNELP2CM(SHRAPNEL *input, CM *)
 {
@@ -2549,13 +2585,18 @@ int AreFloatsNear__Ffff(float,float,float) __asm__("AreFloatsNear__Ffff");
 void GetNormalVectors(qword,qword,qword,struct B*) __asm__("GetNormalVectors");
 void CalculateSinCos__FfPfT1(float,float*,float*) __asm__("CalculateSinCos__FfPfT1");
 // High address page of the frame clock's dt word (g_clock+4).
+#ifdef SLY2_EE_ASM
 extern "C" { static inline const void *ClockHigh(void)
 {
     register const void *page __asm__("$2");
     __asm__("lui %0,%%hi(g_clock+4)" : "=r"(page));
     return page;
 } }
+#else
+extern "C" { static inline const void *ClockHigh(void) { return &g_clock; } }
+#endif
 // Scale the two speed coefficients cs[0..1] by speed into *first/*second and broadcast the frame dt into vf5.
+#ifdef SLY2_EE_ASM
 extern "C" { static inline qword Factors(const float *cs, float speed, float *first, float *second)
 {
     register float a __asm__("$f1") = cs[0], b __asm__("$f0");
@@ -2570,6 +2611,14 @@ extern "C" { static inline qword Factors(const float *cs, float speed, float *fi
     *second = b;
     return dt;
 } }
+#else
+extern "C" { static inline qword Factors(const float *cs, float speed, float *first, float *second)
+{
+    *first = cs[0] * speed;
+    *second = cs[1] * speed;
+    return VuFromFloat<qword>(g_clock.deltaTime);
+} }
+#endif
 // Set *pf when a and b are equal within 0.0001 on x, y and z (leaves it untouched otherwise).
 extern "C" { static inline void FNear(int *pf, qword a, qword b)
 {
@@ -2592,6 +2641,7 @@ extern "C" { static inline qword BcYAndPublishX(float f, qword x, union U *home)
     return value;
 } }
 // Advance the owner's position by the basis mixed with the coefficients times dt, saving the mix state.
+#ifdef SLY2_EE_ASM
 extern "C" { static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct MIX_STATE *state, qword sx, qword sy,
                                  qword dt)
 {
@@ -2603,6 +2653,17 @@ extern "C" { static inline void MixAndAdvance(struct S *owner, const struct B *b
             : "+&j"(x), "+&j"(y), "+m"(owner->pos), "=m"(*state)
             : "j"(coefficientX), "j"(coefficientY), "j"(time));
 } }
+#else
+extern "C" { static inline void MixAndAdvance(struct S *owner, const struct B *basis, struct MIX_STATE *state, qword sx, qword sy,
+                                 qword dt)
+{
+    /* direction = x sx + y sy; pos += direction dt (w + 1: vadda vf0); the state keeps the direction and dt */
+    qword direction = VuScaleX2(basis->x, sx, basis->y, sy);
+    owner->pos = VuAddScaled(owner->pos, direction, dt);
+    state->direction.q = direction;
+    state->scalar.q = dt;
+} }
+#endif
 // Compute the owner velocity's squared length and the addresses of the up and x reference axes in one asm block.
 extern "C" { static inline qword NormalizeAndAxes(const struct S *owner, qword *rawPage, qword *xAxis, qword *upAxis)
 {
