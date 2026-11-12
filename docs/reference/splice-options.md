@@ -125,7 +125,7 @@ parent XFM; 34 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 220 | `+0xE4` | int | get set file | 175 |
+| 220 | `wordE4` | int | get set file | 175 |
 
 ## PROXY (cid 6)
 
@@ -190,14 +190,14 @@ parent SHAPE; 61 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 845 |
-| 776 | `?` | object&lt;TN&gt; | none | 842 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 842 |
 | 777 | `sub-object unknown04` | bool | get set file | 843 |
 | 778 | `sub-object sBusy` | float | get set file | 844 |
 | 779 | `sub-object nPriority` | int | get set file | 846 |
 | 780 | `sub-object nUnk14` | int | get set file | 847 |
 | 781 | `sub-object ploGroup` | object&lt;LO&gt; | file | 848 |
 | 782 | `sub-object grfPlayers` | int | get set file | 849 |
-| 788 | `+0x1C0` | vector | get set file | 838 |
+| 788 | `axis` | vector | get set file | 838 |
 | 789 | `attachEffectId` | int | get set file | 839 |
 | 790 | `releaseEffectId` | int | get set file | 840 |
 | 791 | `SetPipeGrabEnabled` | bool | set file | 841 |
@@ -210,7 +210,7 @@ parent SHAPE; 59 options in all.
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 811 |
 | 775 | `?` | bool | none | 807 |
-| 776 | `?` | object&lt;TN&gt; | none | 808 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 808 |
 | 777 | `sub-object unknown04` | bool | get set file | 809 |
 | 778 | `sub-object sBusy` | float | get set file | 810 |
 | 779 | `sub-object nPriority` | int | get set file | 812 |
@@ -227,7 +227,7 @@ parent SHAPE; 61 options in all.
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 865 |
 | 351 | `rSlide` | float | get set file | 860 |
-| 776 | `?` | object&lt;TN&gt; | none | 862 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 862 |
 | 777 | `sub-object unknown04` | bool | get set file | 863 |
 | 778 | `sub-object sBusy` | float | get set file | 864 |
 | 779 | `sub-object nPriority` | int | get set file | 866 |
@@ -333,7 +333,7 @@ parent TARGET; 51 options in all.
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 1020 |
 | 503 | `ploTarget` | object&lt;LO&gt; | get set file | 1016 |
-| 776 | `?` | object&lt;TN&gt; | none | 1017 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 1017 |
 | 777 | `sub-object unknown04` | bool | get set file | 1018 |
 | 778 | `sub-object sBusy` | float | get set file | 1019 |
 | 779 | `sub-object nPriority` | int | get set file | 1021 |
@@ -431,7 +431,7 @@ parent VOL; 44 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 1186 |
-| 776 | `?` | object&lt;TN&gt; | none | 1183 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 1183 |
 | 777 | `sub-object unknown04` | bool | get set file | 1184 |
 | 778 | `sub-object sBusy` | float | get set file | 1185 |
 | 779 | `sub-object nPriority` | int | get set file | 1187 |
@@ -562,7 +562,7 @@ parent EXPLO; 93 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 209 | `?` | int | none | 589 |
-| 551 | `+0xF4` | lm | get set file | 555 |
+| 551 | `countRange` | lm | get set file | 555 |
 | 563 | `GetEmitterParticleKind` / `SetEmitterParticleKind` | int | get file | 557 |
 | 580 | `sub-object vel.addedVelocity` | vector | get set file | 558 |
 | 581 | `sub-object vel.damping` | float | get set file | 559 |
@@ -595,7 +595,7 @@ parent EXPLO; 93 options in all.
 | 613 | `sub-object +0x4` | bool | get set file | 586 |
 | 614 | `sub-object +0x8` | lm | get set file | 587 |
 | 615 | `?` | float | none | 588 |
-| 617 | `+0xFC` | bool | get set file | 556 |
+| 617 | `keepsGroups` | bool | get set file | 556 |
 | 618 | `sub-object +0x8` | float | get set file | 590 |
 | 619 | `sub-object +0x4` | float | get set file | 591 |
 | 620 | `sub-object +0xC` | float | get set file | 592 |
@@ -610,7 +610,7 @@ parent XFM; 43 options in all.
 | 141 | `sub-object unknown0C` | bool | get set file | 801 |
 | 774 | `sRadius` | float | get set file | 796 |
 | 775 | `?` | bool | none | 797 |
-| 776 | `?` | object&lt;TN&gt; | none | 798 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 798 |
 | 777 | `sub-object unknown04` | bool | get set file | 799 |
 | 778 | `sub-object sBusy` | float | get set file | 800 |
 | 779 | `sub-object nPriority` | int | get set file | 802 |
@@ -632,7 +632,7 @@ parent XFM; 50 options in all.
 | 527 | `RefThunk_AddTriggerGrabspotPair` | - | method(2) file | 1076 |
 | 531 | `relay` | object&lt;RELAY&gt; | get set file | 1070 |
 | 534 | `activator` | object&lt;LO&gt; | get set file | 1068 |
-| 776 | `?` | object&lt;TN&gt; | none | 1077 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 1077 |
 | 777 | `sub-object unknown04` | bool | get set file | 1078 |
 | 778 | `sub-object sBusy` | float | get set file | 1079 |
 | 779 | `sub-object nPriority` | int | get set file | 1081 |
@@ -660,13 +660,13 @@ parent CID35; 57 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 735 | `+0x194` | object&lt;BOOTY&gt; | get | 1170 |
+| 735 | `pbooty` | object&lt;BOOTY&gt; | get | 1170 |
 | 736 | `RefThunk_SetBootyContainerKind` | - | method(1) | 1168 |
-| 1007 | `+0x188` | int | get set file | 1171 |
-| 1013 | `+0x184` | int | get file | 1167 |
-| 1014 | `+0x190` | bool | get set file | 1169 |
+| 1007 | `acceptedKind` | int | get set file | 1171 |
+| 1013 | `kind` | int | get file | 1167 |
+| 1014 | `isLocked` | bool | get set file | 1169 |
 | 1015 | `?` | int | none | 1172 |
-| 1016 | `+0x18C` | float | get set file | 1173 |
+| 1016 | `timerSeconds` | float | get set file | 1173 |
 
 ## CID38 (cid 38)
 
@@ -676,7 +676,7 @@ parent XFM; 43 options in all.
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 821 |
 | 775 | `?` | bool | none | 817 |
-| 776 | `?` | object&lt;TN&gt; | none | 818 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 818 |
 | 777 | `sub-object unknown04` | bool | get set file | 819 |
 | 778 | `sub-object sBusy` | float | get set file | 820 |
 | 779 | `sub-object nPriority` | int | get set file | 822 |
@@ -692,7 +692,7 @@ parent XFM; 41 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 853 |
-| 776 | `?` | object&lt;TN&gt; | none | 850 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 850 |
 | 777 | `sub-object unknown04` | bool | get set file | 851 |
 | 778 | `sub-object sBusy` | float | get set file | 852 |
 | 779 | `sub-object nPriority` | int | get set file | 854 |
@@ -804,7 +804,7 @@ parent LO; 84 options in all.
 | 69 | `SetSoCnstrForce` | int | set file | 33 |
 | 70 | `SetSoCnstrTorque` | int | set file | 34 |
 | 71 | `GetSoGravity` / `SetSoGravity` | vector | get set file | 35 |
-| 87 | `unknown13C` / `SetSoBoundsScale` | float | get set file | 36 |
+| 87 | `boundsScale` / `SetSoBoundsScale` | float | get set file | 36 |
 | 88 | `GetSoIgnoreFixed` / `SetSoIgnoreFixed` | bool | get set file | 37 |
 | 90 | `GetSoTreeFlag2` / `SetSoTreeFlag2` | bool | get set | 38 |
 | 91 | `SetSoTreeRoot` | bool | set file | 39 |
@@ -928,17 +928,17 @@ parent STEP; 156 options in all.
 | 728 | `RefThunk_ForceStepplayerLeanTarget` | - | method(2) | 744 |
 | 729 | `RefThunk_UnlockStepplayerLeanTarget` | - | method(0) | 745 |
 | 730 | `agdtIdle` | lm | get set file | 746 |
-| 731 | `+0x1140` | lm | get set file | 747 |
-| 732 | `+0x1104` | bool | get set | 748 |
-| 733 | `+0x1110` | vector | get set | 749 |
+| 731 | `agdtIdle[2]` | lm | get set file | 747 |
+| 732 | `isLookOverridden` | bool | get set | 748 |
+| 733 | `lookOverride` | vector | get set | 749 |
 | 734 | `RefThunk_SetStepplayerPlayerState` | - | method(1) | 750 |
-| 735 | `+0x11A8` | object&lt;BOOTY&gt; | get | 752 |
+| 735 | `pbooty` | object&lt;BOOTY&gt; | get | 752 |
 | 736 | `RefThunk_SpawnStepplayerBootyMarker` | - | method(1) | 753 |
 | 737 | `RefThunk_DropStepplayerBooty` | - | method(0) | 754 |
 | 738 | `RefThunk_DeliverStepplayerBooty` | - | method(0) | 755 |
 | 739 | `interactTarget` | object&lt;STEPGUARD&gt; | get | 756 |
 | 740 | `nUnk10e4` | int | get | 757 |
-| 741 | `+0x11AC` | bool | get set file | 758 |
+| 741 | `isHidden` | bool | get set file | 758 |
 | 742 | `IsStepplayerPushing` | bool | get | 759 |
 | 743 | `RefThunk_SetStepplayerThrowParams` | - | method(7) file | 760 |
 | 744 | `canFreeLook` | bool | get set file | 761 |
@@ -1128,7 +1128,7 @@ parent STEPGUARD; 221 options in all.
 | 968 | `idleVolume` | object&lt;VOL&gt; | get set file | 1115 |
 | 969 | `prop` | object&lt;SO&gt; | get set file | 1116 |
 | 970 | `RefThunk_SendRootBhvMode15` | - | method(1) | 1117 |
-| 971 | `giveUpBinding.oid` | object&lt;ASEG&gt; | get set file | 1118 |
+| 971 | `giveUpBinding.aseg` | object&lt;ASEG&gt; | get set file | 1118 |
 | 972 | `chaseTune` | clq | get set file | 1119 |
 | 973 | `chaseTune.speedRange` | lm | get set file | 1120 |
 | 974 | `chaseTune.giveUpTime` | float | get set file | 1121 |
@@ -1184,20 +1184,20 @@ parent PO; 107 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 325 | `+0x19C` | lm | get set file | 1000 |
-| 910 | `+0x180` | object&lt;SO&gt; | get set file | 997 |
-| 911 | `+0x188` | bool | get set file | 998 |
-| 912 | `+0x184` | bool | get set file | 999 |
-| 913 | `+0x1A4` | lm | get set file | 1001 |
-| 914 | `+0x1C0` | object&lt;PROXY&gt; | get set file | 1002 |
-| 915 | `+0x1C4` | object&lt;CID112&gt; | get set file | 1003 |
-| 916 | `+0x1C8` | object&lt;SO&gt; | get | 1004 |
-| 917 | `+0x18C` | float | get set file | 1005 |
-| 918 | `+0x190` | float | get set file | 1006 |
-| 919 | `+0x1CC` / `SetTurretActive` | bool | get set file | 1007 |
-| 920 | `+0x1D0` | object&lt;LO&gt; | get set file | 1008 |
-| 921 | `+0x1D4` | bool | get set file | 1009 |
-| 922 | `+0x1AC` | lm | get set file | 1010 |
+| 325 | `yawRange` | lm | get set file | 1000 |
+| 910 | `target` | object&lt;SO&gt; | get set file | 997 |
+| 911 | `follow` | bool | get set file | 998 |
+| 912 | `aim` | bool | get set file | 999 |
+| 913 | `pitchRange` | lm | get set file | 1001 |
+| 914 | `projectileProxy` | object&lt;PROXY&gt; | get set file | 1002 |
+| 915 | `launcher` | object&lt;CID112&gt; | get set file | 1003 |
+| 916 | `lastLaunched` | object&lt;SO&gt; | get | 1004 |
+| 917 | `pitch` | float | get set file | 1005 |
+| 918 | `yaw` | float | get set file | 1006 |
+| 919 | `isActRunning` / `SetTurretActive` | bool | get set file | 1007 |
+| 920 | `self` | object&lt;LO&gt; | get set file | 1008 |
+| 921 | `isActive` | bool | get set file | 1009 |
+| 922 | `range` | lm | get set file | 1010 |
 
 ## SAFEHOUSE (cid 70)
 
@@ -1451,7 +1451,7 @@ parent SO; 96 options in all.
 |---|---|---|---|---|
 | 141 | `sub-object unknown0C` | bool | get set file | 833 |
 | 774 | `unknown184` | float | get set file | 826 |
-| 776 | `?` | object&lt;TN&gt; | none | 830 |
+| 776 | `sub-object ptn` | object&lt;TN&gt; | get set file | 830 |
 | 777 | `sub-object unknown04` | bool | get set file | 831 |
 | 778 | `sub-object sBusy` | float | get set file | 832 |
 | 779 | `sub-object nPriority` | int | get set file | 834 |
@@ -1468,11 +1468,11 @@ parent SO; 92 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 666 | `+0x184` | int | get set file | 876 |
-| 797 | `+0x170` | object&lt;EXPL&gt; | get set file | 874 |
-| 798 | `+0x174` | object&lt;EXPL&gt; | get set file | 875 |
-| 799 | `+0x188` | int | get set file | 877 |
-| 800 | `+0x160` | vector | get set file | 878 |
+| 666 | `unknown184` | int | get set file | 876 |
+| 797 | `recipient` | object&lt;EXPL&gt; | get set file | 874 |
+| 798 | `emitter` | object&lt;EXPL&gt; | get set file | 875 |
+| 799 | `zapKind` | int | get set file | 877 |
+| 800 | `posCurrent` | vector | get set file | 878 |
 | 801 | `hasWakeSound` | bool | get set file | 879 |
 | 802 | `splashObject` | object&lt;SO&gt; | get set file | 880 |
 | 803 | `rippleObject` | object&lt;SO&gt; | get set file | 881 |
@@ -1588,13 +1588,13 @@ parent SO; 108 options in all.
 | 926 | `RefThunk_AddBreakableTriggerClass` | - | file-method(2) | 1025 |
 | 927 | `?` | - | none | 1026 |
 | 928 | `?` | - | none | 1027 |
-| 929 | `+0x16C` | object&lt;LO&gt; | get | 1028 |
-| 930 | `+0x170` | int | get | 1029 |
+| 929 | `instigator` | object&lt;LO&gt; | get | 1028 |
+| 930 | `zapKind` | int | get | 1029 |
 | 931 | `RefThunk_InitBreakablePreStage` | - | file-method(0) | 1031 |
 | 932 | `RefThunk_SetBreakableStageParam` | - | file-method(1) | 1032 |
 | 933 | `AddBreakableSetSource` | int | file | 1033 |
 | 934 | `RefThunk_AddBreakableSound` | - | file-method(1) | 1037 |
-| 935 | `+0x168` | int | get set | 1046 |
+| 935 | `reactionMask` | int | get set | 1046 |
 | 936 | `RefThunk_ScheduleBreakableReaction` | - | method(0) | 1047 |
 
 ## CID99 (cid 99)
@@ -1642,21 +1642,21 @@ parent SO; 99 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 342 | `+0x184` | int | get | 1164 |
+| 342 | `st` | int | get | 1164 |
 | 352 | `sub-object +0x18` | int | file | 1155 |
 | 828 | `RefThunk_AddBootyEntry` | - | file-method(3) | 1152 |
 | 829 | `RefThunk_ClearCurrentBootyEntry` | - | file-method(0) | 1153 |
 | 830 | `RefThunk_AddBootyEntryObject` | - | file-method(1) | 1154 |
 | 831 | `GetCurrentBootyEntryId` / `SelectBootyEntry` | int | get set | 1158 |
 | 832 | `sub-object +0x4` | int | get | 1160 |
-| 1005 | `+0x164` | object&lt;EXPL&gt; | get set file | 1156 |
-| 1006 | `+0x170` | vector | get set file | 1157 |
+| 1005 | `unknown164` | object&lt;EXPL&gt; | get set file | 1156 |
+| 1006 | `vScale` | vector | get set file | 1157 |
 | 1007 | `sub-object +0x14` | int | get | 1159 |
 | 1008 | `sub-object +0xC` | bool | file | 1161 |
 | 1009 | `sub-object +0x8` | bool | file | 1162 |
 | 1010 | `sub-object +0x10` | bool | file | 1163 |
-| 1011 | `+0x15C` | object&lt;CID37&gt; | get | 1165 |
-| 1012 | `+0x160` | object&lt;STEPPLAYER&gt; | get | 1166 |
+| 1011 | `pcont` | object&lt;CID37&gt; | get | 1165 |
+| 1012 | `phero` | object&lt;STEPPLAYER&gt; | get | 1166 |
 
 ## CID104 (cid 104)
 
@@ -1753,15 +1753,15 @@ parent LO; 42 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
-| 503 | `+0x60` | object&lt;LO&gt; | get set file | 460 |
-| 504 | `+0x50` | vector | get set file | 461 |
+| 503 | `psoSource` | object&lt;LO&gt; | get set file | 460 |
+| 504 | `posTarget` | vector | get set file | 461 |
 | 508 | `RefThunk_LaunchSoFromLauncher` | - | method(1) | 468 |
-| 545 | `+0x70` | clq | get set file | 462 |
-| 546 | `+0x80` | lm | get set file | 463 |
-| 547 | `+0x90` | clq | get set file | 464 |
-| 548 | `+0xA0` | lm | get set file | 465 |
-| 549 | `+0xA8` | lm | get set file | 466 |
-| 550 | `+0xB0` | float | get set file | 467 |
+| 545 | `clqPredict` | clq | get set file | 462 |
+| 546 | `lmPredict` | lm | get set file | 463 |
+| 547 | `clqOffset` | clq | get set file | 464 |
+| 548 | `lmOffset` | lm | get set file | 465 |
+| 549 | `lmSpin` | lm | get set file | 466 |
+| 550 | `pitch` | float | get set file | 467 |
 
 ## CID113 (cid 113)
 
@@ -2357,7 +2357,7 @@ parent BASIC; 19 options in all.
 | 255 | `IsNoiseRemoved` | bool | get | 1101 |
 | 957 | `level` | int | get set | 1099 |
 | 958 | `type` | object&lt;NOISETYPE&gt; | get | 1096 |
-| 959 | `startPosition` | vector | get set | 1098 |
+| 959 | `targetPosition` | vector | get set | 1098 |
 
 ## CID148 (cid 148)
 
