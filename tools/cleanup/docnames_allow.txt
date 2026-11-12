@@ -2,7 +2,7 @@
 # --- illustrative code / naming examples (not symbols)
 Helper kNext nextX Name__ClassArgs Foo__4CBarii CBar Foo __4CBar _4CBar Foo__FP4CBari r_D_X CLS M_Func
 hasTarget canJump numX xCount guardIndex GetWorldPosition UpdateGuardAlertTimer LoadSceneFromBrx Has Should UpdateAlert
-NGetY unk_XX unknown4C8 Class xOFF Cf_PREFIXCt PLAN.csv batch.json msg.txt batch.csv
+NGetY unk_XX unknown4C8 Class xOFF Cf_PREFIXCt PLAN.csv batch.json msg.txt batch.csv assert_X
 # --- MIPS/VU instruction mnemonics that look like file names; .c/.cpp extension pair
 min.s abs.s c.cond.s div.s sqrt.s rsqrt.s .c/.cpp
 # --- labelled history (in git history / "formerly") or proposed new headers in the layering analysis
@@ -12,7 +12,7 @@ FreezeAlo BLOT pfnLoadLoFromBrx symidMax
 # --- out-of-repo research write-ups used as provenance labels (engine.md legend explains) / research paths
 lo.md brx.md sound.md top50_round/splice_builtins_options.csv
 # --- research reading proposed in engine.md "Names the research disputes"; glossary abbreviations
-InitGsb Pchz SYMID JTCS
+Pchz SYMID JTCS
 # --- SDK names cited as absent or as library prefixes
 sceCdSearchFile sceSif
 # --- global data still address-named in code; doc uses the name the source comments give it
@@ -20,9 +20,9 @@ g_apchzWorld s_aotypEvtParm s_aiEvtParm
 # --- on-disc record field labels and math notation in formats/ layout descriptions
 fStreamed cbBlob idBlob fExtra ifaceOther fTangents grfBreak shdA matProxy pxfWorld matProxy_inner matProxy_outer fEntry
 # --- former name, labelled ("once named"); BHV vtable slot label (same label as the source comments)
-AddSoVelocity UpdateMotion
+AddSoVelocity UpdateMotion InitZpr
 # --- port-plan.md (a proposal record): planned port files/APIs, Apple/third-party APIs, hardware terms, research files
-port/ CMakeLists.txt recomp/ include/port/ shaders/ tests/ build/ out/ MMIO KSEG master_names.csv DISPATCH NEON
+port/ CMakeLists.txt recomp/ include/port/ shaders/ tests/ build/ out/ MMIO KSEG master_names.csv DISPATCH NEON HFA
 CreateThread StartThread RotateThreadReadyQueue N64Recomp Zelda64Recomp assets/manifest.json GameController PortOpen
 GetState Info_PREFIX SetActDirect DualShock GCExtendedGamepad GCDeviceHaptics Open Mkdir Delete Format Sync Support Sly2
 PORT_OVERRIDE sceCd scePad AndWait MoltenVK OpenGOAL DmaFollower NOP PassRenderers PassRenderer Wflag Cs_PREFIXAs FOGCOL

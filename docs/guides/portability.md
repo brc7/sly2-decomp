@@ -55,7 +55,9 @@ union and every sprite view on it, vec.cpp GetVectorSphere's lane readers, cm.cp
 in xfm.h, BSPC::numCameraNodes), recon.cpp on LO / CID46 / JTMODE / STEPPLAYER with RECONSEL in sly2/recon.h
 (JT::reconSel), stepplayer.cpp's component literals, relay.cpp's RELAYJSG / ASEG views, GetGrabspotFromLo and option
 776, IntersectSwBoundingBox's SOPART results, the line-clip span views as LSG, rendertree.cpp on GLOBSET, the libm note
-(section 1).
+(section 1); (v1.30, the port's arm64 request 010) struct results that agree between declarations on every ABI
+(section 1, "Struct results and arm64"; tools/cleanup/signatures/sretcheck.py), SLY2_EE_CHECK for EE-offset asserts,
+a pointer-sized SWCALLBACK argument, mark.cpp MarkSoContactsSphereBsp in C.
 
 ## 1. Guards and hooks
 
@@ -75,7 +77,8 @@ in xfm.h, BSPC::numCameraNodes), recon.cpp on LO / CID46 / JTMODE / STEPPLAYER w
 | `CStreamBisStorage` (sly2/streambis.h) | room for a CStreamBis without g++'s implicit constructor; the callers call `CStreamBis_ctor` / `_$_10CStreamBis` themselves | provide those two C entry points (or override the two declarations); sizes follow `sizeof(CStreamBis)` | sw.cpp, hud.cpp (the class itself: brx_sw.cpp, memcard.cpp) |
 | EE layout asserts (the `typedef char assert_...[cond ? 1 : -1]` lines) | compile-time checks of the EE offsets and sizes | not true on a 64-bit host: the port rewrites them into a non-failing sink (its own generator) | every sly2/ header, many TUs |
 | `SLY2_GRABSPOT_BASE(T, p)` (sly2/classes.h) | `p` plus the GRABSPOT base offset of T, taken from `static_cast<GRABSPOT *>((T *)0x100)` (folds to sizeof(first base), no null test) | the same expression gives the ABI's offset | the OwnFields accessors (GetPipeOwnFields and the like, GetBarrelOwnFields) (defined at the end of classes.h), grabspot.cpp's InitGrabspot calls and GetGrabspotFromLo (v1.25) |
-| `SLY2_SRET_LABEL(ee, native)` (sly2/port.h) | `__asm__(ee)`: the EE symbol; g++ 2.95 passes a struct result's address as the first argument, so a declaration that writes it out as a pointer parameter (or takes an explicit out-pointer as a struct result) calls the same code | `__asm__(native)`: an adapter next to the definition, outside SLY2_EE_LAYOUT, with the declaration's own spelling (arm64 passes the result address in x8, not x0) | mat.cpp operator* (26 callers, adapter MulMatrix4Into) and BuildRotateVectorsMatrix (7 callers taking the matrix as a struct result, BuildRotateVectorsMatrixValue); basic.cpp EvalExpression (EvalExpressionInto in eval.cpp). The TU defining an adapter must include sly2/port.h before the guard (eval.cpp did not: its native branch compiled on the EE until it did) |
+| `SLY2_SRET_LABEL(ee, native)` (sly2/port.h) | `__asm__(ee)`: the EE symbol; g++ 2.95 passes a struct result's address as the first argument, so a declaration that writes it out as a pointer parameter (or takes an explicit out-pointer as a struct result) calls the same code | `__asm__(native)`: an adapter next to the definition, outside SLY2_EE_LAYOUT, with the declaration's own spelling (arm64 passes the result address in x8, not x0) | mat.cpp operator* (26 callers, adapter MulMatrix4Into) and BuildRotateVectorsMatrix (7 callers taking the matrix as a struct result, BuildRotateVectorsMatrixValue); basic.cpp EvalExpression (EvalExpressionInto in eval.cpp); since v1.30 every symbol sretcheck.py found (44 more: `<name>Value` / `<name>Into` adapters, "Struct results and arm64" below), including two g_aeopid getters. The TU defining an adapter must include sly2/port.h before the guard (eval.cpp did not: its native branch compiled on the EE until it did) |
+| `SLY2_EE_CHECK(cond)` (sly2/port.h, v1.30) | `(cond)` | `1` | a layout assert stating an EE offset or size: `typedef char assert_X[SLY2_EE_CHECK(SLY2_OFFSETOF(T, m) == 0x10C) ? 1 : -1]` (JTHURT, JT, RECONSEL, RHYTHMMGR, SO::boundsScale, SPRITEDESC, SWCALLBACK); use it for every new EE-offset assert (the older ones are neutralised by the port's generated list); relations that hold on every target stay plain |
 | `SLY2_BUILTIN_C(sym)` (app/bif.cpp) | nothing: the builtin table calls the C-style body (`CRefData *sym(CRefData *ret, int cref, CRefData *args, CFrame *frame)`) | the body becomes `sym_c` and `sym` is a CRef-returning entry calling it: the type eval.cpp's BIF::function calls through | the 98 C-style builtins in bif.cpp |
 | `SLY2_BSP_NO_LIMIT` (sly2/port.h) | `(~(uptr)0 >> 1)` = 0x7FFFFFFF, the literal the callers passed | the largest positive pointer-sized value: above every heap address (no guard needed) | every BSP walk caller (clip, geom, so, tn, detector, bomb, air, exit_warp, vol, mark, prize, rip, vis, robottank, grab); caller-side declarations take the limit as `uptr` (bsp.cpp's definitions compare `BSP *`) |
 | `SLY2_FDIV(a, b)` (sly2/port.h, v1.24) | `((a) / (b))`: div.s, which gives +-FLT_MAX for a zero divisor (sign of a xor sign of b; also 0 / 0) | `Sly2EeFdiv`: a / b, or +-FLT_MAX with that sign when b is 0 (IEEE gives Inf / NaN) | vec.cpp FindClosestPointOnLineSegment (a zero-length segment), wr.cpp FitLinearClq (s0 == s1), mark.cpp FindContactInsideBsp's C contact normal (v1.25); use it for other per-frame divisions by a length that can be 0 |
@@ -148,6 +151,75 @@ Why the matching form cannot be the portable one:
 - **Wider native records in EE-sized storage**: static storage and allocations sized from sizeof (the memcard dialog
   storage from SCREEN, the slot heaps, the heap-guard sites); where the EE asks for less than sizeof (SSGE) the literal
   stays behind a guard.
+
+### Struct results and arm64 (v1.30)
+
+g++ 2.95 on the EE returns every struct or class through memory: the caller passes the result's address as a hidden
+first argument (in a0), and the callee returns it in v0. So these two declarations call the same EE code, and the decomp
+uses both for one symbol in different files (whichever form matched the caller):
+
+```cpp
+MATRIX3 BuildAxisAngleRotationMatrix(float rad, qword axis);              // by-value result ("value" form)
+MATRIX3 *BuildAxisAngleRotationMatrix(MATRIX3 *out, float rad, qword axis); // explicit out-pointer ("out" form)
+```
+
+Natively they are different functions:
+
+| result | x86-64 SysV | arm64 (AAPCS64) |
+|---|---|---|
+| struct > 16 bytes, or a non-trivial class (CRef, CRefOwner, SNDREF) | address in rdi, the first argument register: the out form happens to work | address in **x8**; arguments stay in x0..: the out form shifts every argument by one and leaves x8 garbage |
+| trivially copyable struct of 16 bytes or less (a float vector, `{qword}`) | registers (rax:rdx or xmm0:xmm1, by member class) | registers (x0:x1, or v0..v3 for a float HFA) |
+| qword (`__int128`) | rax:rdx | x0:x1 |
+
+So a mismatch is always wrong on arm64, and wrong on x86-64 for small results; it also matters which small type a
+value form names (a 4-float vector and a `{qword}` come back in different registers). Further arm64 facts the
+adapters rely on: a `__int128` argument takes an even-numbered register pair (x0:x1, x2:x3), float arguments use the
+v registers whatever their position (so `(qword, float)` and `(float, qword)` are the same call on both hosts), and
+Apple's arm64 passes variadic arguments on the stack (a fixed-argument declaration of a varargs function, such as the
+`GetSaveVarByName(char *, char *, char *, int)` views, is a separate hazard listed below).
+
+**Finding them**: tools/cleanup/signatures/sretcheck.py (README there) groups every declaration by the linker symbol it
+reaches natively (asm label, C name, canonical mangled name), skipping EE-only preprocessor branches and file-local
+statics, and lists the symbols with both forms; it also checks the function-pointer tables against the type they are
+called through: bif.cpp g_mpbifkbif (`CRef (*)(int, CRef *, CFrame *)`), g_aeopid's PMF getters (otyp & 0x8000:
+`CRef (BASIC::*)()`; otyp 9 / 10 / 11: an explicit CLQ / LM / SMP out-pointer), that every SLY2_SRET_LABEL native label
+has a definition, and the world callback API's integer-typed PMF / argument words. At the v1.29 base it listed 42
+symbols and the two getters below; at v1.30 it lists none (the 20 callback-API declarations that pass the PMF as a
+`long` remain, see section 3).
+
+**Fix pattern**: the definition keeps its form; every declaration with the other form keeps its EE label and binds
+natively through `SLY2_SRET_LABEL("sym", "<adapter>")` to an adapter appended to the defining file (after all code, so
+no line moves: g++ hashes line numbers into some asm schedules), inside `#if !defined(SLY2_EE_LAYOUT)`:
+
+- out-pointer definition, by-value callers: `extern "C" T <name>Value(args) { T r; <name>(&r, args); return r; }`;
+- by-value definition, out-pointer callers: `extern "C" T *<name>Into(T *out, args) { *out = <name>(args); return out; }`;
+  for a CRef (or a CRefOwner / SNDREF owner) the reference moves into the caller's raw storage (`*out = r; r.m_tagk =
+  -1;`, or `out->p = r.p; r.p = 0;`), as EvalExpressionInto does; a default CRef is nil, so the Value form may let the
+  out-pointer function write over it;
+- the adapters use plain records of the definition's size (`struct M3R { qword r[3]; }`, `M4R`, a 16-aligned 4-float
+  `V4R`) and reach the definition through an asm-labelled declaration, so one adapter serves callers that spell the
+  matrix MATRIX3, RIPM3, MATRIX3Q or M3P.
+
+Adapters by file: mat.cpp BuildAxisAngleRotationMatrix (30 by-value callers), BuildOrthonormalMatrixZ (15),
+BuildRotationMatrixFromVector, LoadLookAtMatrix, LoadMatrixFromPosRotScalar, LoadMatrixFromPosRotScale,
+LoadRotateMatrixEuler, LoadRotateMatrixPanTilt, MulMatrix3Matrix3 (Value), InvertMatrix3Cofactor, InvertMatrix4Rigid
+(21 out-pointer callers), LoadRotateMatrixSinCos (Into); xf.cpp BuildRotationDerivativeMatrix,
+BuildXfValueDerivativeMatrix, BuildXfValueMatrix, ConvertXfMat, EvaluateXfSlotMatrixDerivative, GetRelativeXfMatrix,
+GetXfAngularVelocity (Value), BuildEulerDerivativeMatrix (Into); lo.cpp ConvertMat4BetweenLos, ConvertMatBetweenLos;
+emitter.cpp CalculateEmitdvMatrix; missile.cpp GetMissileTargetPosition; bif.cpp AreRefsStructurallyEqual,
+BuildCallListForTwoArgs, BuiltinObjectOption; spliceobj.cpp BuildSpliceListFromUniformValues, BuildSpliceListFromValues,
+SetValuesFromSpliceList, EnsureBasicOption; frame.cpp CFrame_CloneTo; sound.cpp FindMusic; save.cpp GetSaveVar,
+SetSaveVar, GetSaveVarByName, SetSaveVarByName (Into; the varargs pair re-read their arguments); ref.cpp
+CRef_CoerceF32, CRef_CoerceS32; brx.cpp ReadOptionArgFromBrx; game.cpp GetGlobalSaveVar, SetGlobalSaveVar (Value; the
+linkonce wrappers take SVKEY * / SAVEDATA * instead of int); pickpocket.cpp GetStepguardLootRefList and stepguard.cpp
+GetStepguardSgfRefList (Value: g_aeopid calls them as `CRef (BASIC::*)()`; their EOPIDFN declarations in
+class_registry_options.inc carry the SLY2_SRET_LABEL).
+
+Already consistent before v1.30 (no change): bif.cpp's C-style builtins including BuiltinEqual / BuiltinPrint
+(SLY2_BUILTIN_C, v1.22), basic.cpp's EvalExpression (EvalExpressionInto), VU_FLOAT / VU_VECTOR (member constructors),
+operator*(MATRIX4, MATRIX4) (MulMatrix4Into), BuiltinSetCadr (the out form everywhere, never called through a by-value
+type). New code: write the by-value C++ form where it matches; where a caller needs the other spelling for the match,
+give it SLY2_SRET_LABEL and an adapter in the same commit, and run sretcheck.py.
 
 ## 2. VU0 fallbacks
 
@@ -352,7 +424,7 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   after storing the vptr (natively they were the vptr: STEPGUARD's embedded LEAP had a null vtable in
   StartAnimBinding).
   Still open after v1.22: mangled names in the config that do not describe the Sly 2 function (sigcheck flags them
-  whatever the declarations say): BuildRotateVectorsMatrix (qword arguments, out-pointer first, as in Sly 1's mangled name), InitZpr (callers pass two sizes), CalculateEmitdvMatrix; brx.cpp's five-argument
+  whatever the declarations say): BuildRotateVectorsMatrix (qword arguments, out-pointer first, as in Sly 1's mangled name), InitZpr (callers pass two sizes), CalculateEmitdvMatrix (renamed in v1.30); brx.cpp's five-argument
   FindSwObject form and sw.cpp's two three-argument forms (the caller leaves a3 as it is); the hidden-pointer
   forms that are consistent with their definition (BuiltinObjectOption / BuiltinSetCadr, CompareNumericArgs,
   ApplyUnaryFloatOp, EnsureBasicOption); the wrong-type views of STACKSCOPE, CRefPtr<CPair>::Attach,
@@ -587,6 +659,24 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   SLY2_EE_LAYOUT); the struct-return forms and the generated splicewrap thunks' s32 arguments (as before); the many
   declarations of BuildAxisAngleRotationMatrix as a by-value MATRIX3 (qword, float) against its (M3 *, float, qword)
   definition (the same registers on the EE and on x86-64; not on arm64, where the hidden result pointer is x8).
+  Done in v1.30 (every change byte-identical; the three config renames RENAMED only), from the port's arm64 request
+  010: struct results agree on every ABI (section 1, "Struct results and arm64": 44 symbols, sretcheck.py);
+  config symbols that describe the function: InitGsb__FP3GSBii (was InitZpr__FP3ZPR3ZPKP2LO; gs.cpp's definition on
+  (GSB *, int, int)), BuildRotateVectorsMatrix__FUxUx, CalculateEmitdvMatrix__FP6EMITDV; jt.cpp's file-local
+  TransformPos helpers renamed TransformPosVu0 (a name-keyed alias tool mapped mat.cpp's TransformPos callers to
+  them); mark.cpp MarkSoContactsSphereBsp has a C version on SOPART / CMCONTACT (the EE view read the radius at
+  +0x08 and stepped its candidate pointer through `unsigned`); the asserts added since the port's neutraliser list
+  use SLY2_EE_CHECK; SWCALLBACK::argument and PMFCB's parameter are sptr, and the callback API's declarations take
+  sptr. The ZPR / GSB stack buffers were already GSB with InitGsb clearing sizeof(GSB) (v1.28); RecordJtGrabPlace
+  already reads the grabbed object through its classes (no +0x184 view left).
+  Still open after v1.30: the callback API's 20 caller-side declarations that pass the PMF as a `long` (g++ 2.95's
+  8-byte PMF in one register; natively a PMF is two pointer-sized words: they need the PMF constants as native PMFs,
+  as hud.cpp's picture callback D_002A8B08, still an EE word image like the other 100+ function-pointer data images of
+  hud.cpp); fixed-argument declarations of the varargs GetSaveVarByName / SetSaveVarByName (stack-passed on Apple
+  arm64); stepplayer.cpp's CRefIsland is 8 bytes where a native CRef is 16 (a by-value CRef written into it
+  overruns); rip.cpp HandleRipBounce (asm without a C fallback); grab.cpp SetJtGrabKind / UpdateJtGrabInput /
+  ClearJtDetectionOutOfSight views, relay.cpp UpdateJsgJtControl views, screen.cpp SCRLIST's focused screen and the
+  EE-sized inline screens, MeasureJtJumpToTarget's B / C views; sigcheck's remaining int-vs-pointer declarations (62).
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks
