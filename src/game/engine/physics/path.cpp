@@ -483,7 +483,7 @@ extern "C" void FindPathAStar(CG *graph, CGV *start, CGV *goal, int maxVertices,
                 }
                 if (fSkip)
                     continue;
-                pnNew = (NODE *)Alloc(0x18);
+                pnNew = (NODE *)Alloc((int)sizeof(NODE));
                 pnNew->pv = pv;
                 pnNew->g = pn->g + pe->cost;
                 pnNew->f = pnNew->g + Dist2(pvCur->pos, goal->pos);
@@ -715,11 +715,11 @@ int FindPathPoints(CG *graph, qword from, qword to, int capacity, QWROW *out)
     } else {
         STACKSCOPE mark;
         write = out + 1;
-        CGV **path = (CGV **)AllocFromStack(AREQ().Set(0x200));
+        CGV **path = (CGV **)AllocFromStack(AREQ().Set(128 * (int)sizeof(CGV *)));   /* FindPathAStar's capacity below */
         CGV initial;
         initial.pos = start;
         initial.numEdges = 3;
-        initial.edges = (CGE *)AllocFromStack(AREQ().Set(0x18));
+        initial.edges = (CGE *)AllocFromStack(AREQ().Set(3 * (int)sizeof(CGE)));
         qword sv = ToVF(start);
         for (int i = 0; i < 3; i++) {
             CGV *v = first->vertices[i];

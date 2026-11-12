@@ -328,168 +328,168 @@ extern "C" BHV *ConstructBhv(int cid, void *memory)
     BHV *behavior;
     switch (cid) {
     case CID_BHVGUARD:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xB0), BHVGUARD);
-        func_002333B4((char *)memory + 0x30, 0, 0x70);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVGUARD)), BHVGUARD);
+        func_002333B4(&((BHVGUARD *)memory)->mode, 0, (int)sizeof(BHVGUARDREC));
         behavior = (BHV *)memory;
         break;
     case CID_BHVANIM:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHVANIM);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVANIM)), BHVANIM);
         behavior = (BHV *)memory;
         break;
     case CID_BHVIDLE:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHVIDLE);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVIDLE)), BHVIDLE);
         behavior = (BHV *)memory;
         break;
     case CID_BHVSTRIKE:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x60), BHVSTRIKE);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVSTRIKE)), BHVSTRIKE);
         behavior = (BHV *)memory;
         break;
     case CID_BHV161:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xC0), BHV161);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV161)), BHV161);
         behavior = (BHV *)memory;
         break;
     case CID_BHV162:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xC0), BHV162);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV162)), BHV162);
         behavior = (BHV *)memory;
         break;
     case CID_BHVKO:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xC0), BHVKO);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVKO)), BHVKO);
         behavior = (BHV *)memory;
         break;
     case CID_BHVATTACK:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHVATTACK);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVATTACK)), BHVATTACK);
         behavior = (BHV *)memory;
         break;
     case CID_BHVCOMBAT:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x60), BHVCOMBAT);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVCOMBAT)), BHVCOMBAT);
         behavior = (BHV *)memory;
         break;
     case CID_BHVWALKPATH:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xF0), BHVWALKPATH);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVWALKPATH)), BHVWALKPATH);
         behavior = (BHV *)memory;
         break;
     case CID_BHV169:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x60), BHV169);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV169)), BHV169);
         behavior = (BHV *)memory;
         break;
     case CID_BHVPATROL:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHVPATROL);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVPATROL)), BHVPATROL);
         behavior = (BHV *)memory;
         break;
     case CID_BHV171:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xE0), BHV171);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV171)), BHV171);
         behavior = (BHV *)memory;
         break;
     case CID_BHV174:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV174);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV174)), BHV174);
         behavior = (BHV *)memory;
         break;
     case CID_BHVLEAP:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xA0), BHVLEAP);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVLEAP)), BHVLEAP);
         behavior = (BHV *)memory;
         break;
     case CID_BHV175:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x60), BHV175);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV175)), BHV175);
         behavior = (BHV *)memory;
         break;
     case CID_BHV176:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV176);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV176)), BHV176);
         behavior = (BHV *)memory;
         break;
     case CID_BHVJUGGLED:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x70), BHVJUGGLED);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVJUGGLED)), BHVJUGGLED);
         behavior = (BHV *)memory;
         break;
     case CID_BHV173:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHVSHOOT);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVSHOOT)), BHVSHOOT);
         behavior = (BHV *)memory;
         break;
     case CID_BHV178:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHV178);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV178)), BHV178);
         behavior = (BHV *)memory;
         break;
     case CID_BHV179:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV179);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV179)), BHV179);
         behavior = (BHV *)memory;
         break;
     case CID_BHV180:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV180);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV180)), BHV180);
         behavior = (BHV *)memory;
         break;
     case CID_BHV181:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x60), BHV181);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV181)), BHV181);
         behavior = (BHV *)memory;
         break;
     case CID_BHV168:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xE0), BHVWALKGOAL);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVWALKGOAL)), BHVWALKGOAL);
         behavior = (BHV *)memory;
         break;
     case CID_BHV193:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHV193);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV193)), BHV193);
         behavior = (BHV *)memory;
         break;
     case CID_BHV194:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xA0), BHVFOLLOW);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVFOLLOW)), BHVFOLLOW);
         behavior = (BHV *)memory;
         break;
     case CID_BHV195:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV195);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV195)), BHV195);
         behavior = (BHV *)memory;
         break;
     case CID_BHV196:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV196);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV196)), BHV196);
         behavior = (BHV *)memory;
         break;
     case CID_BHV197:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV197);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV197)), BHV197);
         behavior = (BHV *)memory;
         break;
     case CID_BHV182:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHV182);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV182)), BHV182);
         behavior = (BHV *)memory;
         break;
     case CID_BHV198:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHV198);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV198)), BHV198);
         behavior = (BHV *)memory;
         break;
     case CID_BHV183:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x70), BHV183);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV183)), BHV183);
         behavior = (BHV *)memory;
         break;
     case CID_BHVRAIL:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHVRAIL);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVRAIL)), BHVRAIL);
         behavior = (BHV *)memory;
         break;
     case CID_BHVPIPE:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x40), BHVPIPE);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVPIPE)), BHVPIPE);
         behavior = (BHV *)memory;
         break;
     case CID_BHV187:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x30), BHV187);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV187)), BHV187);
         behavior = (BHV *)memory;
         break;
     case CID_BHVGOTO:
-        SLY2_SET_VPTR(ClearBhv(memory, 0xD0), BHVGOTO);
-        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x40));
-        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x60));
-        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x80));
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVGOTO)), BHVGOTO);
+        ClearPointerPair(&((BHVGOTO *)memory)->goal);
+        ClearPointerPair(&((BHVGOTO *)memory)->waypoint);
+        ClearPointerPair(&((BHVGOTO *)memory)->relocateGoal);
         behavior = (BHV *)memory;
         break;
     case CID_BHV189:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHV189);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV189)), BHV189);
         behavior = (BHV *)memory;
         break;
     case CID_BHVPATHLINK:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHVPATHLINK);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVPATHLINK)), BHVPATHLINK);
         behavior = (BHV *)memory;
         break;
     case CID_BHV191:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x50), BHV191);
-        ClearPointerPair((PATHLINKEND *)((char *)memory + 0x30));
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHV191)), BHV191);
+        ClearPointerPair(&((BHV191 *)memory)->end);
         behavior = (BHV *)memory;
         break;
     case CID_BHVPATROLPATH:
-        SLY2_SET_VPTR(ClearBhv(memory, 0x60), BHVPATROLPATH);
+        SLY2_SET_VPTR(ClearBhv(memory, (int)sizeof(BHVPATROLPATH)), BHVPATROLPATH);
         behavior = (BHV *)memory;
         break;
     default:
@@ -498,9 +498,9 @@ extern "C" BHV *ConstructBhv(int cid, void *memory)
     return behavior;
 }
 
-// 0x1EF6F0: Returns the slot size every behaviour must fit in: 0xF0 bytes (the largest subclass, the walk-path
-// behaviour 0xA7).
+// 0x1EF6F0: Returns the slot size every behaviour must fit in: 0xF0 bytes on the EE (the largest subclass, the
+// walk-path behaviour 0xA7; natively another class may be the largest: check every ConstructBhv class).
 extern "C" int GetBhvSlotSize()
 {
-    return 0xF0;
+    return (int)sizeof(BHVWALKPATH);
 }
