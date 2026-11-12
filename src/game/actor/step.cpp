@@ -792,10 +792,9 @@ namespace M_func_00204660 {
 
 extern qword g_normalZ __asm__("g_normalZ");
 MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g) __asm__("BuildAxisAngleRotationMatrix");
-struct S : PO { char pad[0x1A8 - 0x180]; float g; int pad2; MATRIX3 m; };
-// Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
+// Sets the target heading (radians) and rebuilds the target rotation matrix about Z.
 // Also known as: SetStepPhysHeading (upstream readable / Sly 1 name; SetStepPhysHeading__FP3ALOf).
-void SetStepTargetHeading(struct S *p, float g) __asm__("SetStepTargetHeading"); void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(g_normalZ, g); }
+extern "C" void SetStepTargetHeading(STEP *step, float g) { step->targetHeading = g; step->matTarget = BuildAxisAngleRotationMatrix(g_normalZ, g); }
 } // namespace M_func_00204660
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1010,22 +1009,20 @@ extern "C" void OnStepSoContactFreed(STEP *step, SO *object)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FixStepAngularVelocity {
-struct B { char pad[0xB0]; qword v; };
-struct S { char pad[0xC]; void *vptr; char pad2[0x5C - 0x10]; struct B *pb; char pad3[0x1A8 - 0x60]; float g; char pad4[0x1F4 - 0x1AC]; int x; };
 float atan2f(float y, float x) __asm__("atan2f");
-void SmoothAngle__FfffP3SMPPf(float a, float b, float c, int *p, float *pf) __asm__("SmoothAngle__FfffP3SMPPf");
+void SmoothAngle__FfffP3SMPPf(float a, float b, float c, VECTOR *psmp, float *pf) __asm__("SmoothAngle__FfffP3SMPPf");   /* vSpin as its SMP */
 // Smooths the heading toward the target heading (SmoothAngle with the spin parameters) and sets the resulting
 // angular velocity about Z.
 // Also known as: TurnActorNow (upstream readable / Sly 1 name; TurnActorNow__FP5ACTOR).
-extern "C" void FixStepAngularVelocity(struct S *step)
+extern "C" void FixStepAngularVelocity(STEP *step)
 {
     QWROW v;
     float *a, *b;
-    v.q = step->pb->v;
-    a = (float *)AsStep(step)->GetWorldMatrix();
-    b = (float *)AsStep(step)->GetWorldMatrix();
-    SmoothAngle__FfffP3SMPPf(atan2f(a[1], b[0]), step->g, 0.0f, &step->x, &v.f[2]);
-    AsStep(step)->SetAngularVelocity(v.q);
+    v.q = step->rotationXf->velq.q;   /* the rotation transform's angular velocity */
+    a = (float *)step->GetWorldMatrix();
+    b = (float *)step->GetWorldMatrix();
+    SmoothAngle__FfffP3SMPPf(atan2f(a[1], b[0]), step->targetHeading, 0.0f, &step->vSpin, &v.f[2]);
+    step->SetAngularVelocity(v.q);
 }
 } // namespace M_FixStepAngularVelocity
 
