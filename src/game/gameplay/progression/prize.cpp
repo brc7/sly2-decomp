@@ -155,9 +155,9 @@ namespace M_ProjectDprizeTransform {
 //  * `spin` is a second variable for p->orientation so that `current` and the later reload get different registers.
 union U { qword q; float f[4]; int words[4]; };
 union M3 { qword rows[3]; float values[12]; };
-/* The prize's two XFs (SO unknown58 / unknown5C: the position and orientation channels) as this function moves them:
-   the local rotation rows, the local position (row 3), the world stamp and the velocity as quadwords. */
-struct CHANNEL { M3 matrix; qword position; char pad40[0x64]; int stamp; char padA8[8]; qword velocity; };
+/* The prize's two XFs (SO::positionXf / rotationXf) as this function moves them: the local rotation rows (as M3),
+   the local position (localMatq row 3, w = 1), XF::worldStamp and XF::velq
+   (the localMatq copy of M3's rows is the original's 48-byte copy). */
    /* CLOCK island: deltaTime read as float and as int bits (FLOATWORD) */
 
 extern float D_002C0D4C __asm__("D_002C0D4C");
@@ -220,9 +220,9 @@ static inline M3 operator*(const M3 &matL, const M3 &matR) return mat
     t.rows[2] = v2; mat.rows[2] = v2;
 }
 // Motion channel of the prize (vtable slot 51).
-static inline CHANNEL *GetChannel(DPRIZE *prize, int channel)
+static inline XF *GetChannel(DPRIZE *prize, int channel)
 {
-    return (CHANNEL *)prize->GetXfFromIndex(channel);
+    return prize->GetXfFromIndex(channel);
 }
 // Samples a motion curve at the animation time: value and velocity (motion vtable slot 3).
 static inline void Sample(AC *motion, const ASEGA *animation, qword *value, qword *velocity)
@@ -240,12 +240,12 @@ extern "C" void ProjectDprizeTransform(DPRIZE *prize)
     else factor = 1.0f;
     prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(g_clock.deltaTimeBits), VU_VECTOR(prize->acceleration));
     qword newPosition = Advance(prize->position, prize->velocity, VU_FLOAT(g_clock.deltaTimeBits));
-    CHANNEL *channel = (CHANNEL *)prize->positionXf;
+    XF *channel = prize->positionXf;
     prize->position = newPosition;
-    VECTOR_opAssign(&channel->position, newPosition);
-    *(float *)((char *)channel + 0x3C) = 1.0f;
-    ((CHANNEL *)prize->positionXf)->velocity = prize->velocity;
-    { int stamp = ++g_sw.transformStamp; ((CHANNEL *)prize->positionXf)->stamp = stamp; }
+    VECTOR_opAssign(&channel->localMatq.r[3].q, newPosition);
+    channel->localMatrix.mat[3][3] = 1.0f;
+    prize->positionXf->velq.q = prize->velocity;
+    { int stamp = ++g_sw.transformStamp; prize->positionXf->worldStamp = stamp; }
     if (prize->sma && prize->sma->pasegaCur) {
         ASEGA *animation = prize->sma->pasegaCur;
         ASEG *action = animation->animation;
@@ -257,36 +257,36 @@ extern "C" void ProjectDprizeTransform(DPRIZE *prize)
             if (!(key & 0x40000000U)) continue;
             if (((int)(key << 12) >> 12) != prize->oid) continue;
             {
-                CHANNEL *selected = GetChannel(prize, (int)(key << 2) >> 22);
-                if (selected == (CHANNEL *)prize->positionXf) positionMotion = entry->pac;
-                else if (selected == (CHANNEL *)prize->rotationXf) orientationMotion = entry->pac;
+                XF *selected = GetChannel(prize, (int)(key << 2) >> 22);
+                if (selected == prize->positionXf) positionMotion = entry->pac;
+                else if (selected == prize->rotationXf) orientationMotion = entry->pac;
             }
             if (positionMotion && orientationMotion) break;
         }
         if (positionMotion || orientationMotion) {
             U dir, position, velocity, angles, angularVelocity;
             M3 frame, rot;
-            dir.q = VuSub<qword>(g_cm.matq.pos, ((CHANNEL *)prize->positionXf)->position);
+            dir.q = VuSub<qword>(g_cm.matq.pos, prize->positionXf->localMatq.r[3].q);
             dir.words[2] = 0;
             frame = BuildOrthonormalMatrixZ(dir.q, g_normalZ);
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
-                channel = (CHANNEL *)prize->positionXf;
-                VECTOR_opAssign(&channel->position, VuAdd(channel->position, RotateVec(frame, position.q)));
-                *(float *)((char *)channel + 0x3C) = 1.0f;
-                CHANNEL *current = (CHANNEL *)prize->positionXf;
-                current->velocity = VuAdd(current->velocity, RotateVec(frame, velocity.q));
-                { int stamp = ++g_sw.transformStamp; ((CHANNEL *)prize->positionXf)->stamp = stamp; }
+                channel = prize->positionXf;
+                VECTOR_opAssign(&channel->localMatq.r[3].q, VuAdd(channel->localMatq.r[3].q, RotateVec(frame, position.q)));
+                channel->localMatrix.mat[3][3] = 1.0f;
+                XF *current = prize->positionXf;
+                current->velq.q = VuAdd(current->velq.q, RotateVec(frame, velocity.q));
+                { int stamp = ++g_sw.transformStamp; prize->positionXf->worldStamp = stamp; }
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
                 rot = LoadRotateMatrixEuler(angles.q);
-                CHANNEL *current = (CHANNEL *)prize->rotationXf;
-                current->matrix = frame * rot;
-                current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;
-                CHANNEL *spin = (CHANNEL *)prize->rotationXf;
-                spin->velocity = RotateVec(frame, angularVelocity.q);
-                { int stamp = ++g_sw.transformStamp; ((CHANNEL *)prize->rotationXf)->stamp = stamp; }
+                XF *current = prize->rotationXf;
+                *(M3 *)&current->localMatq = frame * rot;
+                current->localMatq.r[0].f[3] = 0.0f; current->localMatq.r[1].f[3] = 0.0f; current->localMatq.r[2].f[3] = 0.0f;
+                XF *spin = prize->rotationXf;
+                spin->velq.q = RotateVec(frame, angularVelocity.q);
+                { int stamp = ++g_sw.transformStamp; prize->rotationXf->worldStamp = stamp; }
             }
         }
     }
