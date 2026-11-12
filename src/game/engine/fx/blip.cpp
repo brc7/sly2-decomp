@@ -391,6 +391,7 @@ static __inline__ void MoveExtra(qwordV *pc, int i, int j, int k, qwordV dt)
 }
 // Advance c blips by dt on VU0 (velocity integration through matrix pm) and grow the bounds *pvMin/*pvMax;
 // register-pinned to the original vf allocation.
+#ifdef SLY2_EE_ASM
 static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k,
                                  qwordV *pvMin, qwordV *pvMax)
 {
@@ -429,6 +430,60 @@ static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb
     *pvMax = vmax;
     return cDead;
 }
+#else
+/* VU0 microprogram 0x10 in C. The microcode (the VU0 upload chain D_00259DF0 in .vutext, loaded at VU0 address 0:
+   instructions 2..10, ending with the E bit at 0x50) is
+       MULAx.xyz ACC, vf31, vf24x / MADDAy.xyz ACC, vf30, vf24y / MADDAz.xyz ACC, vf29, vf24z / MADDw.xyz vf22, vf28, vf0w
+       MULx.xyz vf21, vf22, vf27x / ADD.xyz vf21, vf21, vf23
+       MINI.xyz vf26, vf26, vf21 + MOVE.w vf22, vf24 / MAX.xyz vf25, vf25, vf21 + MOVE.w vf21, vf23
+   that is, with b the velocity entry (vf24), a the position entry (vf23), rows r0..r3 = vf31..vf28:
+       b' = r0 * b.x + r1 * b.y + r2 * b.z + r3 (xyz), b'.w = b.w     (the time of death stays in w)
+       a' = a + b' * dt (xyz), a'.w = a.w
+       min = min(min, a'), max = max(max, a') (xyz; w unchanged) */
+static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k,
+                                 qwordV *pvMin, qwordV *pvMax)
+{
+    const VEC *row = (const VEC *)pm->r;
+    VEC vmin, vmax, step;
+    float t = g_clock.time;
+    int cDead = 0;
+    int j = -1;
+    int i;
+    step.q = dt;
+    vmin.q = *pvMin;
+    vmax.q = *pvMax;
+    for (i = 0; i < c; i++) {
+        VEC a, b, aNew, bNew;
+        if (((VEC *)&pb[i])->v.w <= t) {
+            cDead++;
+            continue;
+        }
+        a.q = pa[i];
+        b.q = pb[i];
+        bNew.v.x = row[0].v.x * b.v.x + row[1].v.x * b.v.y + row[2].v.x * b.v.z + row[3].v.x;
+        bNew.v.y = row[0].v.y * b.v.x + row[1].v.y * b.v.y + row[2].v.y * b.v.z + row[3].v.y;
+        bNew.v.z = row[0].v.z * b.v.x + row[1].v.z * b.v.y + row[2].v.z * b.v.z + row[3].v.z;
+        bNew.v.w = b.v.w;
+        aNew.v.x = a.v.x + bNew.v.x * step.v.x;
+        aNew.v.y = a.v.y + bNew.v.y * step.v.x;
+        aNew.v.z = a.v.z + bNew.v.z * step.v.x;
+        aNew.v.w = a.v.w;
+        if (aNew.v.x < vmin.v.x) vmin.v.x = aNew.v.x;
+        if (aNew.v.y < vmin.v.y) vmin.v.y = aNew.v.y;
+        if (aNew.v.z < vmin.v.z) vmin.v.z = aNew.v.z;
+        if (vmax.v.x < aNew.v.x) vmax.v.x = aNew.v.x;
+        if (vmax.v.y < aNew.v.y) vmax.v.y = aNew.v.y;
+        if (vmax.v.z < aNew.v.z) vmax.v.z = aNew.v.z;
+        j++;
+        MoveExtra(pc, i, j, k, dt);
+        pb[j] = bNew.q;
+        pa[j] = aNew.q;
+    }
+    *pvMin = vmin.q;
+    *pvMax = vmax.q;
+    return cDead;
+}
+#endif
 // VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds. (inferred)
 extern "C" int ProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k, qwordV *pvMin, qwordV *pvMax)
 {
