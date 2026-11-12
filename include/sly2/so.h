@@ -484,8 +484,12 @@ struct XF
             {
                   qword restValue;   /* rest / goal value (act.cpp goalValue) */
                   qword rate;   /* +0xD0 its rate (act.cpp goalVelocity; asega.cpp: a rotation channel's curve word) */
-                  qword segmentEndValue;   /* +0xE0 the end value of the current Hermite segment (EvaluateBezierPos: restValue / rate at the start, this / acceleration at the end); xfk 6 keeps its angle here (inferred) */
-                  qword acceleration;
+                  qword segmentEndValue;   /* +0xE0 the end value of the current Hermite segment (EvaluateBezierPos: restValue / rate at the start, this / segmentEndRate at the end); xfk 6 keeps its angle here (inferred) */
+                  union   /* +0xF0 */
+                  {
+                        qword acceleration;     /* physics roles: the accumulated acceleration (SO::AddAcceleration; so.cpp predicts velq + acceleration * dt, solve.cpp) */
+                        qword segmentEndRate;   /* animated roles: the Hermite segment's end rate (EvaluateBezierPos's vel1, the counterpart of rate) */
+                  };
             };
             struct   /* phase 1: the cubic (Bezier/Hermite) segment's four control values (act.cpp) */
             {

@@ -332,7 +332,7 @@ extern void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, 
 // Evaluate the object's Bezier segment position at the current time into the three outputs.
 static __inline__ void Eval(XF *po, qword *pa, qword *pb, qword *pc)
 {
-    EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->timeSource - po->segmentStartTime, *po->speedSource, po->restValue, po->rate, po->segmentEndValue, po->acceleration, pa, pb, pc);
+    EvaluateBezierPos(po->segmentEndTime - po->segmentStartTime, *po->timeSource - po->segmentStartTime, *po->speedSource, po->restValue, po->rate, po->segmentEndValue, po->segmentEndRate, pa, pb, pc);
 }
 // Copy a 128-bit GPR value (por with zero).
 #ifdef SLY2_EE_ASM
@@ -593,7 +593,7 @@ static inline qword RotateRow(const M4 &m,qword v) {qword r=m.r[0];
     r = VuKeepW(r, VuMulMatrix3(r, m.r[1], m.r[2], v));return r;}
 #endif
 // Evaluate the object's Bezier position at its current time into *v.
-static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->segmentEndValue,p->acceleration,0,v,0);}
+static inline void Eval(XF *p,qword *v) {EvaluateBezierPos(p->segmentEndTime-p->segmentStartTime,*p->timeSource-p->segmentStartTime,*p->speedSource,p->restValue,p->rate,p->segmentEndValue,p->segmentEndRate,0,v,0);}
 // Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 // Runtime-checked: XF+0xB0 holds the velocity.
 // Also known as: VelXfPoint (upstream readable / Sly 1 name; VelXfPoint__FP2XFT0G9VU_VECTOR).
@@ -1070,7 +1070,7 @@ static inline qword GetSlotValue(XF *xf)
         case 1:
         {
             VECTOR4 vec;
-            EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->acceleration, &vec, 0, 0);
+            EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->segmentEndRate, &vec, 0, 0);
             qw = *(qword *)&vec;
             break;
         }
@@ -1092,14 +1092,14 @@ static inline qword GetSlotValue(XF *xf)
 static inline qword EvaluateHermitePos(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->acceleration, &vec, 0, 0);
+    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->segmentEndRate, &vec, 0, 0);
     return *(qword *)&vec;
 }
 // Velocity on the transform slot's Hermite/Bezier segment at the current time.
 static inline qword EvaluateHermiteVel(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->acceleration, 0, &vec, 0);
+    EvaluateBezierPos(xf->segmentEndTime - xf->segmentStartTime, *xf->timeSource - xf->segmentStartTime, *xf->speedSource, xf->restValue, xf->rate, xf->segmentEndValue, xf->segmentEndRate, 0, &vec, 0);
     return *(qword *)&vec;
 }
 // The value / rate switches of an XF's actuator, open-coded (the game does not use a helper; see SlotCurrentMatrix in the personal xf.c).
