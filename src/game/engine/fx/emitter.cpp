@@ -26,6 +26,7 @@
 #include "sly2/util.h"
 #include "sly2/clock.h"
 #include "sly2/sw.h"
+#include "sly2/blip.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -1241,33 +1242,33 @@ namespace M_EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3 {
 // DRAFT (Claude agent, lane E5): fresh rewrite, aligned 49 (old 80). Outer while(k<c && (pblk || (pblk=alloc))) gives the target loop shape; GRand(&p->lm) inline gives the hoisted plm slot; unsigned n0 &= ~1u gives lui/ori. Left: giv bases (target base = &apd[i] for a-side, separate &afr[1].apos[i] giv for the copy).
 /* per-blip draw data (the third array of a frame) */
 struct PD { unsigned int color; int frame; float rollSpeed; float rollAngle; };
-struct PAIR { qword a; qword b; };
-struct FR { qword apos[43]; qword av[43]; qword apd[43]; qword pad[3]; };
-struct BLK {
-    FR afr[2]; int unknown1080;
-    int numBlips; PAIR *apair; int pad108C; BLK *pblkNext;   /* apair: spline end points (spline motion) */
-};
-struct PRG;
-/* BLIPG (fields as the blip-emission code reads them; kinds after Sly 1's BLIPMK / BLIPOK) */
-struct PRG {
-    char pad0[0xC]; VTE *pvt; char pad10[0x160 - 0x10];
-    int motionKind;             /* +0x160 2: spline (each blip keeps two end points) */
-    char pad164[0x1A0 - 0x164];
-    int numFrames;              /* +0x1A0 texture animation frames */
-    char pad1A4[0x3B0 - 0x1A4];
-    int numColors;              /* +0x3B0 */
-    char pad3B4[0x434 - 0x3B4];
-    int hasColorRanges;         /* +0x434 colours come in (start, end) pairs: pick an even index */
-    int pad438;
-    int renderKind;             /* +0x43C 2: rolling */
-    int pad440;
-    int numBlips;               /* +0x444 */
-    BLK *pblkFirst;             /* +0x448 */
-};
+/* The batches are sly2/blip.h BLIPBATCH (two BLIPBUF frames: positions a, velocities b, draw data c), the group classes.h BLIPG. */
 
-PRG *NewBlipGroup(void *pv) __asm__("NewBlipGroup");
-void SetBlipgEmitb(PRG *pprg, EMITB *p) __asm__("SetBlipgEmitb");
-BLK *NewBlip(void *pv, PRG *pprg) __asm__("NewBlip");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+::BLIPG *NewBlipGroup(void *pv) __asm__("NewBlipGroup");
+
+BLIPBATCH *NewBlip(void *pv, ::BLIPG *pprg) __asm__("NewBlip");
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int RandomIntInRange__Fii(int nMin, int nMax) __asm__("RandomIntInRange__Fii");
 float RandomFloatInRange__Fff(float gMin, float gMax) __asm__("RandomFloatInRange__Fff");
@@ -1295,32 +1296,32 @@ static inline float GRand(LM *plm) { return RandomFloatInRange__Fff(plm->minValu
 //   InsertPsysParticles__FP8EMITTERNP6VECTORiT1PfT4N21PG9VU_VECTOR).
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
-    PRG *pprg = 0;
+    ::BLIPG *pprg = 0;
     if (px && px->ppblipg)
-        pprg = (PRG *)*px->ppblipg;
+        pprg = *px->ppblipg;
     if (!pprg) {
         pprg = NewBlipGroup(&g_sw);
         if (!pprg)
             return;
         if (px && px->ppblipg)
-            *px->ppblipg = (BLIPG *)pprg;
+            *px->ppblipg = pprg;
         SetBlipgEmitb(pprg, emitter);
         if (px && px->ploSubscriber)
-            ((::BLIPG *)pprg)->SubscribeObject(px->ploSubscriber);
+            pprg->SubscribeObject(px->ploSubscriber);
         if (!pprg)
             return;
     }
-    BLK *pblk = pprg->pblkFirst;
+    BLIPBATCH *pblk = (BLIPBATCH *)pprg->dl.head;
     int k = 0;
     while (k < c && (pblk || (pblk = NewBlip(&g_sw, pprg)))) {
-        qword *pq1 = pblk->afr[1].apos;
-        for (unsigned int i = pblk->numBlips; i < 43 && k < c; k++, i++) {
-            FR *pfr = &pblk->afr[0];
-            pfr->apos[i] = apos[k];
-            ((float *)&pfr->apos[i])[3] = ag1[k];
-            pfr->av[i] = av[k];
-            ((float *)&pfr->av[i])[3] = ag2[k];
-#define pd ((PD *)&pfr->apd[i])
+        qword *pq1 = &pblk->abuf[1].a[0].q;
+        for (unsigned int i = pblk->c; i < 43 && k < c; k++, i++) {
+            BLIPBUF *pfr = &pblk->abuf[0];
+            pfr->a[i].q = apos[k];
+            pfr->a[i].v.w = ag1[k];
+            pfr->b[i].q = av[k];
+            pfr->b[i].v.w = ag2[k];
+#define pd ((PD *)&pfr->c[i])
             func_002333B4(pd, 0, sizeof(PD));
             pd->color = RandomIntInRange__Fii(0, pprg->numColors - 1);
             if (pprg->hasColorRanges)
@@ -1330,23 +1331,23 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITB *emitter, EMITG *px, in
             if (pprg->renderKind == 2) {
                 float g = GRand(&emitter->v.u.roll.lmRollSpeed);
                 pd->rollSpeed = g;
-                if (!emitter->v.u.roll.rollKind && 0.0f < Dot(g_cm.matq.rot[1], pfr->av[i]))
+                if (!emitter->v.u.roll.rollKind && 0.0f < Dot(g_cm.matq.rot[1], pfr->b[i].q))
                     pd->rollSpeed = -g;
                 if (emitter->v.u.roll.hasRandomRoll)
                     pd->rollAngle = RandomFloatInRange__Fff(-3.14159265f, 3.14159265f);
             }
             if (pprg->motionKind == 2) {
-                PAIR *ppair = &pblk->apair[i];
-                ppair->a = aa[k];
-                ppair->b = ab[k];
+                BLIPBEZ *ppair = &pblk->ae[i];
+                ppair->v0 = aa[k];
+                ppair->v10 = ab[k];
             }
-            pq1[i] = pfr->apos[i];
-            pq1[i + 43] = pfr->av[i];
+            pq1[i] = pfr->a[i].q;
+            pq1[i + 43] = pfr->b[i].q;
             pq1[i + 86] = *(qword *)pd;
-            pblk->numBlips++;
-            pprg->numBlips++;
+            pblk->c++;
+            pprg->numLiveParticles++;
         }
-        pblk = pblk->pblkNext;
+        pblk = pblk->pblipNext;
     }
 }
 } // namespace M_EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3
