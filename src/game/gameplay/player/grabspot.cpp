@@ -969,20 +969,21 @@ extern "C" void GetTableGrabspotSparklePosition(CID27 *table, qword *pv, qword *
 
 namespace M_PgrabspotFromLo {
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-// The GRABSPOT part of an object by class (barrel +0x150, table +0x130, pole +0xE0, wall +0x190, ...), or null.
+// The GRABSPOT part of an object by class (on the EE: barrel +0x150, table +0x130, pole +0xE0, wall +0x190, ...),
+// or null.
 // Also known as: JtlDescFromLo (upstream readable / Sly 1 name; JtlDescFromLo__FP2LO).
 extern "C" void *GetGrabspotFromLo(char *p)
 {
     if (!p) return 0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return p + 0x150;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return p + 0x130;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return p + 0xE0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return p + 0x190;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x23)) return p + 0xE0;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x13)) return p + 0x100;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return p + 0x190;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return p + 0x190;
-    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x27)) return p + 0xE0;
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return SLY2_GRABSPOT_BASE(BARREL, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x1B)) return SLY2_GRABSPOT_BASE(CID27, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x22)) return SLY2_GRABSPOT_BASE(CID34, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xC)) return SLY2_GRABSPOT_BASE(CID12, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x23)) return SLY2_GRABSPOT_BASE(CID35, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x13)) return SLY2_GRABSPOT_BASE(HND, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return SLY2_GRABSPOT_BASE(PIPE, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return SLY2_GRABSPOT_BASE(RAIL, p);
+    if (IsBasicDerivedFrom__FP5BASIC3CID(p, 0x27)) return SLY2_GRABSPOT_BASE(CID39, p);
     return 0;
 }
 } // namespace M_PgrabspotFromLo
