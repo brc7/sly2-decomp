@@ -78,3 +78,32 @@ one declaration in a header would replace many private ones).
 - Classes named in mangled names can be enums or structs; an `enum` definition (or `typedef enum`) somewhere in the
   tree is what makes `int vs OID` an alias rather than a wrong type.
 - Function pointer types are compared by arity only.
+
+# Struct-result convention check (sretcheck.py)
+
+```sh
+python3 tools/cleanup/signatures/sretcheck.py [--root REPO] [--out DIR]   # sret.csv, sret.md in DIR (default build/signatures/)
+```
+
+g++ 2.95 passes a struct (or class) result's address as a hidden first argument, so `MATRIX3 f(float, qword)` and
+`void f(MATRIX3 *out, float, qword)` call the same EE code and the decomp uses both spellings for one symbol. Natively
+they differ: x86-64 passes a large result's address in rdi (the mismatch happens to work) but returns small trivially
+copyable structs in registers, and arm64 passes the result address in x8 with the arguments still in x0.. (it never
+works). sretcheck.py reuses sigcheck.py's parser (`sigcheck.load`) and groups every declaration by the linker symbol
+it reaches natively: its asm label, its C name (extern "C", or a later definition of a name an extern "C" declaration
+gave), or its mangled name when it is the canonical C++ declaration. It skips lines only the EE compiles (branches on
+SLY2_EE_LAYOUT / SLY2_EE_ASM / `__R5900__`), file-local `static` helpers, and the forms that are bound natively
+elsewhere (SLY2_SRET_LABEL's native label, SLY2_BUILTIN_C's `sym_c`). A symbol is listed when one declaration
+returns a class / struct / qword by value with N parameters and another has N + 1 with a leading pointer
+(`value` vs `out`). It also checks:
+
+- function-pointer tables against the type they are called through: bif.cpp g_mpbifkbif (`CRef (*)(int, CRef *,
+  CFrame *)`), g_aeopid's PMF getters (otyp & 0x8000: `CRef (BASIC::*)()`; otyp 9 / 10 / 11: an explicit CLQ / LM /
+  SMP out-pointer);
+- that every SLY2_SRET_LABEL native label names a definition (the adapter);
+- the world callback API declarations (PostSwCallback, EnsureSwCallback, ClearSwCallbacks) that pass the
+  `void (CObj::*)(int)` PMF as an integer or the argument word as a 32-bit integer (natively a PMF is two
+  pointer-sized words, and a pointer argument truncates).
+
+Fix pattern: keep the EE spelling and bind the minority form natively to an adapter beside the definition
+(docs/guides/portability.md, "Struct results and arm64").

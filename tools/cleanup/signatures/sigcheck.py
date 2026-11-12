@@ -91,6 +91,61 @@ def strip_comments_pp(text):
     return ''.join(out), incs
 
 
+EE_MACROS = {'SLY2_EE_LAYOUT', 'SLY2_EE_ASM', '__R5900__'}
+
+
+def pp_regions(text):
+    """per line (index = line number): None (compiled on both targets), 'ee' (only on the EE: a native build skips it)
+    or 'native' (only natively), from #if / #ifdef / #ifndef / #elif / #else / #endif on the EE macros (EE_MACROS:
+    defined on the EE, undefined natively); other conditions count as true on both"""
+    def ev(cond, ee):
+        c = re.sub(r'defined\s*\(\s*(\w+)\s*\)|defined\s+(\w+)',
+                   lambda m: '1' if ee and (m.group(1) or m.group(2)) in EE_MACROS else '0', cond)
+        if not any(x in cond for x in EE_MACROS): return None
+        c = re.sub(r'\b[A-Za-z_]\w*\b', lambda m: '1' if ee and m.group(0) in EE_MACROS else '0', c)
+        c = c.replace('&&', ' and ').replace('||', ' or ').replace('!', ' not ').replace(' not =', '!=')
+        try: return bool(eval(c, {}))
+        except Exception: return None
+    lines = text.split('\n')
+    state = [None] * (len(lines) + 2)
+    stack = []                   # [ee active, native active, ee taken, native taken]
+    cur = (True, True)
+    for i, ln in enumerate(lines, 1):
+        m = re.match(r'\s*#\s*(ifdef|ifndef|if|elif|else|endif)\b(.*)', ln)
+        if m:
+            k, cond = m.group(1), m.group(2).split('//')[0].split('/*')[0].strip()
+            if k in ('if', 'ifdef', 'ifndef'):
+                if k == 'ifdef': cond = f'defined({cond})'
+                elif k == 'ifndef': cond = f'!defined({cond})'
+                e, n = ev(cond, True), ev(cond, False)
+                e = True if e is None else e
+                n = True if n is None else n
+                stack.append([e, n, e, n, cur])
+            elif k == 'elif' and stack:
+                t = stack[-1]
+                e, n = ev(cond, True), ev(cond, False)
+                e = True if e is None else e
+                n = True if n is None else n
+                t[0], t[1] = e and not t[2], n and not t[3]
+                t[2], t[3] = t[2] or e, t[3] or n
+            elif k == 'else' and stack:
+                t = stack[-1]
+                t[0], t[1] = not t[2], not t[3]
+                t[2] = t[3] = True
+            elif k == 'endif' and stack:
+                stack.pop()
+            ee = all(t[0] for t in stack)
+            na = all(t[1] for t in stack)
+            cur = (ee, na)
+            continue
+        ee, na = cur
+        state[i] = None if ee == na else ('ee' if ee else 'native')
+    return state
+
+
+CUR_PP = [None]
+
+
 def tokenize(text):
     toks = []
     line = 1
@@ -280,7 +335,7 @@ def drop_top_const(t):
 
 class Decl:
     __slots__ = ('file', 'line', 'name', 'qual', 'scope', 'member', 'static', 'ret', 'params', 'const', 'label',
-                 'is_def', 'unparsed', 'variadic', 'templ', 'cname', 'adapted')
+                 'is_def', 'unparsed', 'variadic', 'templ', 'cname', 'adapted', 'cdecl', 'pp', 'native_label')
 
     def flat(self, cls_this=True):
         p = list(self.params)
@@ -296,6 +351,7 @@ class Decl:
 
 def scan_file(path, rel, types_for, record):
     text = open(path, errors='replace').read()
+    CUR_PP[0] = pp_regions(text)
     text, _ = strip_comments_pp(text)
     toks = tokenize(text)
     T = types_for(rel)
@@ -384,6 +440,7 @@ def handle_decl(seg, stack, T, rel, record, is_def):
     toks = [t for t, _ in seg]
     lines = [l for _, l in seg]
     i = 0
+    cdecl = any(s[0] == 'externC' for s in stack)
     while True:
         if toks[i:i + 2] in (['public', ':'], ['private', ':'], ['protected', ':']): i += 2; continue
         if toks[i:i + 1] == ['template'] and toks[i + 1:i + 2] == ['<']:
@@ -394,11 +451,13 @@ def handle_decl(seg, stack, T, rel, record, is_def):
                 elif toks[j] == '>>': d -= 2
                 if d <= 0: break
             i = j + 1; continue
-        if toks[i:i + 2] == ['extern', '"C"']: i += 2; continue
+        if toks[i:i + 2] == ['extern', '"C"']: i += 2; cdecl = True; continue
+        if toks[i:i + 2] == ['SLY2_BUILTIN_C', '('] and toks[i + 3:i + 4] == [')']: i += 4; continue
         break
     toks, lines = toks[i:], lines[i:]
     if not toks or 'typedef' in toks[:1] or '(' not in toks: return
     label = None
+    native_label = None
     adapted = False
     out, ol = [], []
     j = 0
@@ -406,7 +465,10 @@ def handle_decl(seg, stack, T, rel, record, is_def):
         t = toks[j]
         # SLY2_SRET_LABEL("ee", "native") (sly2/port.h): the EE asm label; natively an adapter with this spelling
         if t == 'SLY2_SRET_LABEL' and toks[j + 1:j + 2] == ['('] and j + 2 < len(toks) and toks[j + 2].startswith('"'):
-            label = toks[j + 2][1:-1]; adapted = True; j = match_close(toks, j + 1) + 1; continue
+            label = toks[j + 2][1:-1]; adapted = True
+            if toks[j + 3:j + 4] == [','] and toks[j + 4:j + 5] and toks[j + 4].startswith('"'):
+                native_label = toks[j + 4][1:-1]
+            j = match_close(toks, j + 1) + 1; continue
         if t in ('__asm__', 'asm', '__asm') and toks[j + 1:j + 2] == ['('] and j + 3 < len(toks) and \
                 toks[j + 2].startswith('"') and toks[j + 3] == ')':
             label = toks[j + 2][1:-1]; j += 4; continue
@@ -490,7 +552,10 @@ def handle_decl(seg, stack, T, rel, record, is_def):
     dl.params, dl.const, dl.label, dl.is_def = params, const, label, is_def
     dl.unparsed, dl.variadic, dl.templ = unparsed, variadic, templ
     dl.cname = name if re.match(r'[A-Za-z_$][\w$]*$', name) else None
-    dl.adapted = adapted or (dl.cname is not None and dl.cname in BUILTIN_C.get(rel, ()))
+    dl.cdecl, dl.native_label = cdecl, native_label
+    dl.adapted = adapted or (cdecl and dl.cname is not None and dl.cname in BUILTIN_C.get(rel, ()))
+    pp = CUR_PP[0]
+    dl.pp = pp[dl.line] if pp and dl.line < len(pp) else None
     record('decl', rel, dl, None)
 
 
@@ -616,19 +681,9 @@ def worst(fs):
 
 # ------------------------------------------------------------------ main
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0], epilog=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--root', default=os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))))
-    ap.add_argument('--map')
-    ap.add_argument('--out')
-    ap.add_argument('--top', type=int, default=40)
-    a = ap.parse_args()
-    root = os.path.abspath(a.root)
-    out = os.path.abspath(a.out or os.path.join(root, 'build', 'signatures'))
-    os.makedirs(out, exist_ok=True)
-
+def load(root, mp=None):
+    """parse the config symbols and every declaration of src/ and include/: a dict with names, syms (demangled),
+    decls (Decl), enums, classes, labels_seen, mangled_like (shared by sigcheck.py and sretcheck.py)"""
     # symbols
     names = set()
     for line in open(os.path.join(root, 'config/symbol_addrs.txt')):
@@ -636,7 +691,7 @@ def main():
         if m: names.add(m.group(1))
     for r in csv.DictReader(open(os.path.join(root, 'config/functions.csv'), newline='')): names.add(r['Name'])
     for r in csv.DictReader(open(os.path.join(root, 'config/matched.csv'), newline='')): names.add(r['name'])
-    mp = a.map or os.path.join(root, 'build/link/sly2.map')
+    mp = mp or os.path.join(root, 'build/link/sly2.map')
     if os.path.exists(mp):
         for line in open(mp, errors='replace'):
             for t in re.findall(r'[A-Za-z_$][\w$.]*__[\w$]+|_\$_\w+', line): names.add(t)
@@ -768,6 +823,27 @@ def main():
 
     for f in files:
         scan_file(os.path.join(root, f), f, types_for, rec1)
+
+    return dict(names=names, syms=syms, decls=decls, enums=enums, classes=classes, labels_seen=labels_seen,
+                mangled_like=mangled_like)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0], epilog=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('--root', default=os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))))
+    ap.add_argument('--map')
+    ap.add_argument('--out')
+    ap.add_argument('--top', type=int, default=40)
+    a = ap.parse_args()
+    root = os.path.abspath(a.root)
+    out = os.path.abspath(a.out or os.path.join(root, 'build', 'signatures'))
+    os.makedirs(out, exist_ok=True)
+
+    L = load(root, a.map)
+    names, syms, decls, enums, labels_seen, mangled_like = (
+        L['names'], L['syms'], L['decls'], L['enums'], L['labels_seen'], L['mangled_like'])
 
     # bind declarations to symbols
     bound = collections.defaultdict(list)
