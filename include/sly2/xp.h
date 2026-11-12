@@ -34,19 +34,21 @@ struct XP
     float gFriction;        /* +0x94 */
     float gElasticity;      /* +0x98 */
     int kind;               /* +0x9C */
+    /* +0xA0 / +0xA4: the two features that made the contact (an EDGE, SURF or vertex per kind), or, kind 14, the
+       solver row's limits per second (solve.cpp SolveSwGroup scales them by the frame time; a negative minimum makes
+       the row two-sided; step.cpp AdjustStepNewXp / jt.cpp write them), or a LASEN beam's contact distance from the
+       beam's first endpoint (sensor.cpp). One union per slot, so each limit overlays its own feature pointer on every
+       ABI (natively the pointers are 8 bytes: two adjacent floats would both sit in pvFeature0). */
     union
     {
-        struct
-        {
-            void *pvFeature0;   /* +0xA0 */
-            void *pvFeature1;   /* +0xA4 */
-        };
-        float sBeam;            /* a LASEN beam's contact: its distance from the beam's first endpoint (sensor.cpp) */
-        struct
-        {
-            float gLimitMin;    /* kind 14: the solver row's limits per second (solve.cpp SolveSwGroup scales them by */
-            float gLimitMax;    /* the frame time; a negative minimum makes the row two-sided) */
-        };
+        void *pvFeature0;
+        float gLimitMin;
+        float sBeam;
+    };
+    union
+    {
+        void *pvFeature1;
+        float gLimitMax;
     };
     int ixp;                /* +0xA8 */
     XP *pxpNext;            /* +0xAC */

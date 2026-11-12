@@ -99,7 +99,10 @@ struct GLOBSET
                   VECTOR boundsCenter; /* centre of the model's bounding sphere (local) */
                   undefined4 unknown1C;
             };
-            qword boundsCenterq;   /* +0x10 the centre as one quadword (RenderSoGlobset transforms it on VU0) */
+#if defined(SLY2_EE_LAYOUT)
+            qword boundsCenterq;   /* +0x10 the centre as one quadword (RenderSoGlobset transforms it on VU0); EE only:
+                                      natively a qword member would 16-align GLOBSET and move every SO field after it */
+#endif
       };
       float boundsRadius; /* radius of the bounding sphere */
       int cpsaa;   /* number of shader animations */

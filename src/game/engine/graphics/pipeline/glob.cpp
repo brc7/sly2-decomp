@@ -1104,7 +1104,13 @@ extern "C" void RenderSoGlobset(GLOBSET *pmodel, MATRIX4 *pmatWorld, float gFirs
 {
     SUBGLOB *pdesc;
     qword posCam = g_cm.matq.pos;
+#if defined(SLY2_EE_LAYOUT)
     qword pos = TransformPointRef(pmodel->owner->rootTransform->worldMatrix, pmodel->boundsCenterq);
+#else
+    qword center;   /* boundsCenter and the word after it, as the EE's quadword (GLOBSET keeps 4-byte alignment) */
+    __builtin_memcpy(&center, &pmodel->boundsCenter, sizeof(center));
+    qword pos = TransformPointRef(pmodel->owner->rootTransform->worldMatrix, center);
+#endif
     float sRadius = pmodel->boundsRadius;
     if (pmatWorld)
     {
