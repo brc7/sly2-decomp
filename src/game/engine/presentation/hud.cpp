@@ -54,8 +54,8 @@ void RemoveDlEntry(DL *pdl, void *pv);
 extern "C" {
 char *strcpy(char *, const char *);
 PO *GetHeroPo(SW *psw);
-char *GetReconPendingText(int *pn);
-char *GetReconSelectedText(int *pn);
+char *GetReconPendingText(RECONSEL *pn);
+char *GetReconSelectedText(RECONSEL *pn);
 void GetSubtitleText(char *subtitle, char *buffer);   /* subtitle.cpp: (SPEAKERLABEL *, char *) */
 void FormatSubtitleButtonGlyphs(char *subtitle, char *buffer);
 void SetWidgetRequest(WIDGET *widget, int request);
@@ -192,7 +192,7 @@ extern "C" void BuildReconSelectionText(char *text, int which)
     JT *hero = (JT *)GetHeroPo(&g_sw);
     if (!hero || !IsBasicDerivedFrom((BASIC *)hero, (CID)CID_STEPPLAYER))
         return;
-    int *reconSelector = hero->jtmode.hud.unknown14;
+    RECONSEL *reconSelector = hero->jtmode.hud.reconSel;
     char *reconText = 0;
     if (reconSelector) {
         if (which != 0) {
@@ -208,20 +208,17 @@ extern "C" void BuildReconSelectionText(char *text, int which)
 
 // 0x2111F0 BuildReconTargetText
 namespace M_BuildReconTargetText {
-struct Z { char pad[0xF8]; int nameTextId; };
-struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
-struct X : STEP { char pad[0xF38 - 0x2C0]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.unknown14 */
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void strcpy(char *dst, char *src) __asm__("strcpy");
 // HUD texts 0x2DF-0x2E4: the name of recon target i, if there is one.
 extern "C" void BuildReconTargetText(char *dst, int i)
 {
     SW *sw = &g_sw;
-    struct X *hero = (struct X *)GetHeroPo(sw);
+    STEPPLAYER *hero = (STEPPLAYER *)GetHeroPo(sw);
     if (hero && IsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
-        struct Y *selector = hero->reconSelector;
-        if (selector && i < selector->numTargets)
-            strcpy(dst, FindSwLocalizedString(sw, selector->targets[i]->nameTextId));
+        RECONSEL *selector = hero->jtmode.hud.reconSel;
+        if (selector && i < (int)selector->cPending)
+            strcpy(dst, FindSwLocalizedString(sw, selector->apending[i]->idPending));
     }
 }
 } // namespace M_BuildReconTargetText

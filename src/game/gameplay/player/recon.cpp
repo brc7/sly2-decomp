@@ -15,6 +15,8 @@
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
 #include "sly2/sw.h"
+#include "sly2/stepplayer.h"
+#include "sly2/jt.h"   /* JT::reconSel, sly2/recon.h RECONSEL */
 // 0x2037F0 StaticInit_recon and GlobalConstructors_recon: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
@@ -29,64 +31,15 @@ union V { qword q; float f[4]; };
 #define CID_35 ((CID)0x35)
 #define CID_19 ((CID)0x19)
 
-/* A world object as far as this TU reads one (LO: vtable, fInWorld in bit 60 of the word at +0x28, grf at +0x40). */
-struct LOV { int x0, x4, x8; VTE *pvt; char pad10[0x28 - 0x10]; unsigned long fl28; char pad30[0x40 - 0x30]; uint grf40; };
 
-/* A recon target (CID 0x2E, an XFM). */
-struct RECONTGT
-{
-    int x0, x4, x8;
-    VTE *pvt;               /* 0x0C */
-    char pad10[0x28 - 0x10];
-    unsigned long fl28;     /* 0x28 bit 60: in world */
-    char pad30[0x38 - 0x30];
-    float height;           /* 0x38 */
-    char pad3C[0xE0 - 0x3C];
-    float sRadius;          /* 0xE0 selection radius (75) */
-    float sHead;            /* 0xE4 head offset / visibility radius (defaults to sRadius) */
-    float threshold;        /* 0xE8 (0.25) */
-    TASK *link;             /* 0xEC */
-    int fDone;              /* 0xF0 done without a task */
-    int id;                 /* 0xF4 text */
-    int idPending;          /* 0xF8 (defaults to id) */
-    int key;                /* 0xFC dialog */
-    LOV *plo100;             /* 0x100 */
-    float rFade;            /* 0x104 (5000) */
-    int state;              /* 0x108 visibility: 1 visible, 2 hidden, 3 partly */
-    int mode;               /* 0x10C */
-    int choice;             /* 0x110 */
-};
+/* A recon target: classes.h CID46 (an XFM). */
+typedef CID46 RECONTGT;
 
-/* The hero mode the prompt belongs to: its owner object, and its state at +0x20. */
-struct MODEL { LOV *plo; char pad4[0x20 - 4]; int state; };
+/* The hero mode the prompt belongs to (stepplayer.h JTMODE: its player, its kind). */
+typedef JTMODE MODEL;
 
-struct RECONSEL
-{
-    int state;              /* 0x00 */
-    char pad4[0xC];
-    union { VECTOR vOrigin; qword origin; };    /* 0x10 screen point of the prompt */
-    V position;             /* 0x20 world position of the viewer (raised by 20) */
-    int count;              /* 0x30 */
-    RECONTGT *items[16];    /* 0x34 */
-    uint cPending;          /* 0x74 */
-    RECONTGT *apending[5];  /* 0x78 */
-    RECONTGT *actor;        /* 0x8C selected target */
-    float proximity;        /* 0x90 */
-    float sizeGain;         /* 0x94 */
-    int rising;             /* 0x98 */
-    float choiceTime;       /* 0x9C */
-    uint savedFlags;        /* 0xA0 */
-    void *resource;         /* 0xA4 */
-    MODEL *model;           /* 0xA8 */
-    WIDGET130 *primary;      /* 0xAC the prompt (oid 0x362) */
-    WIDGET *secondary;       /* 0xB0 oid 0x365, follows the target */
-    int refreshPending;     /* 0xB4 */
-    int visible;            /* 0xB8 */
-    int selected;           /* 0xBC */
-    int pending;            /* 0xC0 */
-};
 
-struct PLAYER : SO { void *control; char pad154[0xF24 - 0x154]; char abF24[0x14]; RECONSEL *preconsel; };
+typedef STEPPLAYER PLAYER;
 
 extern "C" {
 extern PLAYER *D_002E1E40;
@@ -94,14 +47,14 @@ extern PLAYER *D_002E1E40;
 extern int D_002C3588[];
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
-int FindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
-int IsPointInVol(LOV *pvol, qword v);
+int FindSwObjectsByClass(SW *psw, int grf, CID cid, LO *ploCtx, int c, RECONTGT **apl);
+int IsPointInVol(LO *pvol, qword v);
 qword GetLoWorldPos(void *p);
-void FadeSoIn(LOV *plo, float f);
-void FadeSoOut(LOV *plo, float f);
+void FadeSoIn(LO *plo, float f);
+void FadeSoOut(LO *plo, float f);
 void PlayWidgetAnimWithArg(WIDGET *pw, int id, int v);
-void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
-RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
+void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
+SOPART *FindFirstObjectHitByLine(int, qword, qword, int, SOPART **, LSG *);
 int IsInCameraFrustum(CM *, qword, qword);
 int IsWithinCameraRenderDistance(CM *, qword, float, float *);
 void IncrementSwHandsOff(SW *, int);
@@ -142,7 +95,7 @@ void FadeReconTargetMarkers(RECONSEL *p);
 void UpdateReconChecklist(RECONSEL *p);
 void ClearReconTargetMarks(RECONSEL *p);
 int IsReconSelAvailable(RECONSEL *p);
-int FilterReconOccluder(void *, RECONTGT *);
+int FilterReconOccluder(void *, SOPART *);
 void UpdateReconTargetVisibility(RECONSEL *p, RECONTGT *other);
 void SelectReconTarget(RECONSEL *p);
 void SetReconSelState(RECONSEL *p, int nextState);
@@ -151,16 +104,16 @@ int IsReconTargetDone(RECONTGT *p);
 int IsReconTargetSelectable(RECONTGT *p);
 }
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                    /* IsBasicDerivedFrom__FP5BASIC3CID */
-LOV *FindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");         /* FindSwObject__FP2SWi3OIDP2LO */
+LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");         /* FindSwObject__FP2SWi3OIDP2LO */
 const char *FindSwLocalizedString(SW *psw, int oid);                    /* FindSwLocalizedString__FP2SWi */
 int IsCameraPolicyActive(CPLCY *pcplcy);                                    /* IsCameraPolicyActive__FP5CPLCY */
 
-#define BIT60(o) ((int)((o)->fl28 >> 60) & 1)
+#define IN_WORLD(o) ((int)(o)->isInWorld & 1)   /* LO::isInWorld (bit 60 of the word at +0x28 on the EE) */
 
 // Initializes the recon (camera snapshot) selector: owner, aim origin at the screen centre (320, 246.4), state -1.
 extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 {
-    VECTOR *pv = &reconSel->vOrigin;
+    VECTOR *pv = (VECTOR *)&reconSel->origin;
     float y;
     reconSel->model = pmodel;
     pv->x = 0;
@@ -177,7 +130,7 @@ extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 // (CID 0x2E, at most 16).
 extern "C" void PostReconSelLoad(RECONSEL *reconSel)
 {
-    if (IsBasicDerivedFrom((BASIC *)reconSel->model->plo, CID_35)) {
+    if (IsBasicDerivedFrom((BASIC *)reconSel->model->player, CID_35)) {
         reconSel->primary = (WIDGET130 *)FindSwObject(&g_sw, 0x405, (OID)0x362, 0);
         reconSel->secondary = (WIDGET *)FindSwObject(&g_sw, 0x405, (OID)0x365, 0);
     }
@@ -191,7 +144,7 @@ void ResetReconTargets(RECONSEL *reconSel)
 {
     int i;
     for (i = 0; i < reconSel->count; i++) {
-        LOV *o = reconSel->items[i]->plo100;
+        LO *o = reconSel->items[i]->fadeObject;
         if (o) {
             ((LO *)o)->Remove();
         }
@@ -204,14 +157,14 @@ void NotifyReconTargets(RECONSEL *reconSel)
     int i;
     for (i = 0; i < reconSel->count; i++) {
         RECONTGT *o = reconSel->items[i];
-        if (((int)(o->fl28 >> 60) & 1) && o->plo100) ((::LO *)o->plo100)->Add();
+        if (IN_WORLD(o) && o->fadeObject) o->fadeObject->Add();
     }
 }
 
 // Sets the in-volume flag (+0xB8) when the aim origin is inside any volume of class 0x19.
 void UpdateReconSelInVolume(RECONSEL *reconSel)
 {
-    LOV *a[16];
+    LO *a[16];
     int n, i;
     reconSel->visible = 0;
     n = FindSwObjectsByClass(&g_sw, 0x505, CID_19, 0, 16, (RECONTGT **)a);
@@ -248,15 +201,15 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
         RECONTGT *o = reconSel->items[i];
         qword a, d;
         float f, r;
-        if (!o->plo100)
+        if (!o->fadeObject)
             continue;
         a = GetLoWorldPos(o);
         __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(g_cm.matq.pos));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
-        if (o->rFade < f && ((o->plo100->fl28 >> 60) & 1) == 0)
-            FadeSoIn(o->plo100, 0.25f);
-        else if (f <= o->rFade && !!((o->plo100->fl28 >> 60) & 1))
-            FadeSoOut(o->plo100, 0.25f);
+        if (o->rFade < f && IN_WORLD(o->fadeObject) == 0)
+            FadeSoIn(o->fadeObject, 0.25f);
+        else if (f <= o->rFade && !!IN_WORLD(o->fadeObject))
+            FadeSoOut(o->fadeObject, 0.25f);
     }
 }
 
@@ -286,14 +239,13 @@ int IsReconSelAvailable(RECONSEL *reconSel)
     if (reconSel->visible) return 1;
     for (i = 0; i < reconSel->count; i++) {
         RECONTGT *o = reconSel->items[i];
-        if (BIT60(o) && (!o->plo100 || BIT60(o->plo100) == 0)) return 1;
+        if (IN_WORLD(o) && (!o->fadeObject || IN_WORLD(o->fadeObject) == 0)) return 1;
     }
     return 0;
 }
 
-struct SOF { char pad[0x10]; long fl; char pad2[0x58]; int n; };
-// Filter callback for the occlusion box query.
-int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int r = 0; if (!(p->fl & 0x1000000000000L)) r = p->n > 0; return r; }
+// Filter callback for the occlusion box query (the objects are SOPARTs: parts with camera nodes, not unknownFlag10A).
+int FilterReconOccluder(void *a, SOPART *p) { int r = 0; if (!p->unknownFlag10A) r = p->bspc.numCameraNodes > 0; return r; }
 
 /* UpdateReconTargetVisibility (Lilly / Claude agent, T1560): four-ray visibility of an actor from the selector's origin (p+0x20, the caller
  * SelectReconTarget raises it by 20). Collects the objects between the two points (IntersectSwBoundingBox with the FilterReconOccluder filter),
@@ -303,7 +255,7 @@ int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int
  * What made it match: the actor position is a plain qword across the call (spilled to 0x70 by the compiler), the scale-by-radius
  * multiplies are in place on direction/up (so they wait for the cross product), the side vector's dot product names its
  * operand twice, and the case-4 constant is a variable set before the switch (the game has it in v1 in the beqz delay slot). */
-struct QUERY {int count;RECONTGT **objects;};
+struct QUERY {int count;SOPART **objects;};
 
 // v / |v|: the dot product names v twice (the side vector's registers only match that way)
 static inline qword Normalize(qword v)
@@ -406,7 +358,7 @@ void SelectReconTarget(RECONSEL *reconSel)
     V radius, screen, position;
     int i = 0;
     register RECONTGT *best __asm__("$20") = 0;
-    LOV *owner = reconSel->model->plo;
+    LO *owner = reconSel->model->player;
     float minimum;
     RECONTGT **slot;
     ((JT *)owner)->GetCameraFocusPos((VECTOR4 *)&reconSel->position.q);
@@ -427,7 +379,7 @@ void SelectReconTarget(RECONSEL *reconSel)
             PlaneArguments(&eye, &threshold, &point, radius.q, &*(qword *)&camera->pos, &position.q);
             if (!IsInCameraFrustum(camera, PlaneDelta(point, eye), threshold))
                 continue;
-            if (!IsWithinCameraRenderDistance(camera, GetLoWorldPos(o), o->height, &screen.f[0]))
+            if (!IsWithinCameraRenderDistance(camera, GetLoWorldPos(o), o->busyRadius, &screen.f[0]))
                 continue;
             distance = LengthXY(SubSecond(position.q, *(qword *)&camera->pos));
             if (distance < minimum) {
@@ -466,7 +418,7 @@ static inline int IndirectWord(int word)
     return result;
 }
 // Restore the object's flags to mask, keeping bit 0 (writes through the pointer when bit 0 is clear).
-static inline void Restore(LOV *x,uint mask){uint f=x->grf40;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->grf40=mask|(f&1);}
+static inline void Restore(LO *x,uint mask){uint f=x->unknown40;if((f^1)&1)*(uint *)f=mask|(*(uint *)f&1);else x->unknown40=mask|(f&1);}
 // Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
 // (dialog, game event 10, target marked done).
 // Also known as: SetPhotoPromptState (upstream readable / Sly 1 name; SetPhotoPromptState__FPvi).
@@ -507,7 +459,7 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
         StopWidgetAnim(reconSel->secondary, 0x357);
         break;
     case 8:
-        Restore(reconSel->model->plo, reconSel->savedFlags);
+        Restore(reconSel->model->player, reconSel->savedFlags);
         SetClockRate(&g_clock, 0, 1.0f);
         SetSoundManagerFlags(&g_sndmgr, 1, 1);
         StopWidgetAnim(reconSel->primary, 0x358);
@@ -567,25 +519,39 @@ void SetReconSelState(RECONSEL *reconSel, int nextState)
     case 8: {
         StopWidgetAnim(reconSel->primary, 0x35B);
         PlayWidgetAnim(reconSel->primary, 0x358);
+#ifdef SLY2_EE_ASM
         register MODEL *model __asm__("a1");
-        register LOV *widget __asm__("v0");
+        register LO *widget __asm__("v0");
         register int flags __asm__("a0");
         __asm__("lw %0,%1" : "=r"(model) : "m"(reconSel->model));
-        __asm__("lw %0,0(%1)" : "=r"(widget) : "r"(model), "m"(model->plo));
-        __asm__("lw %0,64(%1)" : "=r"(flags) : "r"(widget), "m"(widget->grf40));
+        __asm__("lw %0,0(%1)" : "=r"(widget) : "r"(model), "m"(model->player));
+        __asm__("lw %0,64(%1)" : "=r"(flags) : "r"(widget), "m"(widget->unknown40));
         if (IndirectWord(flags))
             flags = *(uint *)flags;
         reconSel->savedFlags = Untag(flags);
-        register LOV *updated __asm__("a0");
+        register LO *updated __asm__("a0");
         register uint raw __asm__("v1");
-        __asm__("lw %0,0(%1)" : "=r"(updated) : "r"(model), "m"(model->plo));
-        __asm__("lw %0,64(%1)" : "=r"(raw) : "r"(updated), "m"(updated->grf40));
+        __asm__("lw %0,0(%1)" : "=r"(updated) : "r"(model), "m"(model->player));
+        __asm__("lw %0,64(%1)" : "=r"(raw) : "r"(updated), "m"(updated->unknown40));
         if ((raw ^ 1) & 1)
             *(uint *)raw |= 0x102;
         else {
             register uint inlineWord __asm__("v0") = raw | 0x102;
-            __asm__("sw %1,%0" : "=m"(updated->grf40) : "r"(inlineWord));
+            __asm__("sw %1,%0" : "=m"(updated->unknown40) : "r"(inlineWord));
         }
+#else
+        {   /* the player's tagged flag word (LO::unknown40): save it untagged, then set 0x102 */
+            LO *player = reconSel->model->player;
+            sptr word = player->unknown40;
+            if (word & 1) {
+                reconSel->savedFlags = (uint)word & ~1u;
+                player->unknown40 = (int)word | 0x102;
+            } else {
+                reconSel->savedFlags = *(uint *)word & ~1u;
+                *(uint *)word |= 0x102;
+            }
+        }
+#endif
         SetSoundManagerFlags(&g_sndmgr, 1, 0);
         SetClockRate(&g_clock, 0, 0.0f);
         break;
@@ -679,7 +645,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
         qword base = ConvertCmWorldToScreen(&g_cm, world);
         qword top = ConvertCmWorldToScreen(&g_cm, head);
         VU_FLOAT screen = ScreenFromProjected(base);
-        float distance = QwordX(VuLengthXY(VuSub(screen.qw, reconSel->origin)));
+        float distance = QwordX(VuLengthXY(VuSub(screen.qw, reconSel->origin.q)));
         VU_FLOAT screenTop = ScreenFromProjected(top);
         float size = QwordX(VuLengthXY(VuSub(screen.qw, screenTop.qw)));
         float proximity = 1.0f - (distance - 128.0f) / 128.0f;
@@ -817,7 +783,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
             SetReconSelState(reconSel, 2);
         break;
     }
-    if (reconSel->model->state == 1)
+    if (reconSel->model->kind == 1)
         return;
     switch (reconSel->state) {
     case 2:
@@ -825,11 +791,11 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
     case 4:
     case 5:
     case 6:
-        if (!IsCameraPolicyActive(&g_cm.part3a0) && ConsumeButtonsPressedWithin__5POCTLUif(D_002E1E40->control, 10, 0.0f))
+        if (!IsCameraPolicyActive(&g_cm.part3a0) && ConsumeButtonsPressedWithin__5POCTLUif(D_002E1E40->controller, 10, 0.0f))
             SetReconSelState(reconSel, 8);
         break;
     case 7:
-        if (!IsCameraPolicyActive(&g_cm.part3a0) && ConsumeButtonsPressedWithin__5POCTLUif(D_002E1E40->control, 250, 0.0f))
+        if (!IsCameraPolicyActive(&g_cm.part3a0) && ConsumeButtonsPressedWithin__5POCTLUif(D_002E1E40->controller, 250, 0.0f))
             SetReconSelState(reconSel, 8);
         break;
     }
@@ -877,9 +843,9 @@ extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
     HandleBasicMessage(target, msg, pm);
     if (msg != 0x11) return;
     o = GetHeroPo(&g_sw);
-    if (o && IsBasicDerivedFrom((BASIC *)o, CID_34) && o->preconsel) {
-        RefreshReconPendingTargets(o->preconsel);
-        UpdateReconChecklist(o->preconsel);
+    if (o && IsBasicDerivedFrom((BASIC *)o, CID_34) && o->jtmode.hud.reconSel) {
+        RefreshReconPendingTargets(o->jtmode.hud.reconSel);
+        UpdateReconChecklist(o->jtmode.hud.reconSel);
     }
 }
 
@@ -890,7 +856,7 @@ void SetReconTargetDone(RECONTGT *target, int n)
         PLAYER *o;
         RequestTaskState(target->link, 2, target);
         o = GetHeroPo(&g_sw);
-        if (o && IsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(o->abF24);
+        if (o && IsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(&o->jtmode.hud);
     } else target->fDone = n;
 }
 
@@ -901,8 +867,8 @@ int IsReconTargetDone(RECONTGT *target) { if (target->link) return IsTaskComplet
 int IsReconTargetSelectable(RECONTGT *target)
 {
     TASK *o;
-    if (BIT60(target) == 0) return 0;
-    if (target->plo100 && BIT60(target->plo100)) return 0;
+    if (IN_WORLD(target) == 0) return 0;
+    if (target->fadeObject && IN_WORLD(target->fadeObject)) return 0;
     o = target->link;
     if (o && o->state != 1) return 0;
     return 1;

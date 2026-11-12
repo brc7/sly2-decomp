@@ -162,7 +162,7 @@ struct JTMODEHUD
       struct WIDGET *pwidgetHud;   /* the mode's HUD widget */
       struct WIDGET *pwidgetDefault;   /* the default widget */
       struct WIDGET *pwidgetCur;   /* the widget shown */
-      int *unknown14;   /* possibly reconValue (low-confidence guess: hud.cpp reads it as pnRecon; mode.cpp switches on *it) */
+      struct RECONSEL *reconSel;   /* Sly's recon selector (JT::reconSel; sly2/recon.h), else 0 */
       float zoom;    /* zoom shown on the HUD, 0..1 */
     void SetState(int nState) __asm__("SetJtModeHudState");
     void SetWidgetCur(struct WIDGET *pwidget) __asm__("SetJtModeHudOverride");

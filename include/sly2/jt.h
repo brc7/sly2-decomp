@@ -11,6 +11,7 @@
 #include "sly2/basic.h"
 #include "sly2/aseg.h"
 #include "sly2/stepplayer.h"
+#include "sly2/recon.h"   /* RECONSEL (JT::reconSel) */
 
 /* XMG: geometry sampled from an animation segment for grab/ledge tests: a validity flag, a sphere and its extreme
    points (inferred from the fields).
@@ -185,8 +186,7 @@ struct JT : public STEPPLAYER
       int unknown1D30;
       ASEG *unknown1D34;
       undefined4 unknown1D38[2];
-      int unknown1D40;
-      undefined4 unk_0x1d44[(0x1e10 - 0x1d44) / 4];
+      RECONSEL reconSel;   /* +0x1D40 the recon selector (InitJtModeHud binds the mode HUD to it) */
       BLDIR abldirMesh[8];   /* +0x1E10 directional blends while attached to a sticky mesh (InitJt; sticky.cpp UpdateJtMeshAttachment) */
       ASEGBL *pasegblMesh;   /* +0x1F10 their blended segment (masterSpeed scales the mesh movement) */
       SM *unknown1F14;
@@ -256,6 +256,8 @@ struct JT : public STEPPLAYER
     virtual void IsCameraFree() __asm__("IsJtCameraFree");   /* slot 106: named from its overrides (inferred) */
     virtual void AddAttachedObjectAccelerations() __asm__("AddJtExternalAccelerations");   /* slot 107: named from its overrides (inferred) */
 };
+typedef char assert_JT_reconSel[SLY2_OFFSETOF(JT, reconSel) == 0x1D40 ? 1 : -1];
+typedef char assert_JT_abldirMesh[SLY2_OFFSETOF(JT, abldirMesh) == 0x1E10 ? 1 : -1];
 typedef char assert_JT_size[sizeof(JT) == 0x2060 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_JT_state[SLY2_OFFSETOF(JT, state) == 0x18C8 ? 1 : -1]; /* 0 standing / 11 pickpocket (CONFIRMED runtime) */
 typedef char assert_JT_bodyState[SLY2_OFFSETOF(JT, bodyState) == 0x18D0 ? 1 : -1]; /* -1 in all states (CONFIRMED runtime) */

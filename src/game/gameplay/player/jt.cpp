@@ -2007,7 +2007,7 @@ extern "C" void UpdateJtModeInput(JT *p)
     if (!IsStepplayerInJtMode(p))
         return;
     if (p->jtmode.state == 1 && !p->jtmode.kind &&
-        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->unknown1D40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        ConsumeButtonsPressedWithin__5POCTLUif(p->controller, p->reconSel.state == 7 ? 0x410 : 0x4F0, 0.25f))
         EndJtMode(&p->jtmode);
     UpdateJtMode(&p->jtmode);
 }

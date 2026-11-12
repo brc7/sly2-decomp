@@ -24,11 +24,11 @@
 #include "sly2/clock.h"
 #include "sly2/game.h"
 #include "sly2/sndmgr.h"
+#include "sly2/jt.h"   /* JT::reconSel */
 
 // 0x19DCB8 StaticInit_mode and GlobalConstructors_mode: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-struct SELECTOR;
 extern qword D_002A2DD0;
 void CutCm(CM *pcm);
 extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, void *pvTarget, int nUnk2);
@@ -64,9 +64,9 @@ int IsAsegaRetracted(ASEGA *pasega);
 extern "C++" { void SetStepTargetHeading(STEPPLAYER *pstepplayer, float g) __asm__("SetStepTargetHeading"); }
 void UpdateJtModeHud(JTMODEHUD *phud);
 int IsBasicDerivedFrom__FP5BASIC3CID(void *pv, int cid);
-void InitReconSel(int *psel, JTMODE *pjtmode);
+void InitReconSel(RECONSEL *psel, JTMODE *pjtmode);
 void *FindSwObject__FP2SWi3OIDP2LO(SW *g, int k, int oid, LO *z);
-void PostReconSelLoad(void *p);
+void PostReconSelLoad(RECONSEL *p);
 void SetJtModeHudOverride(JTMODEHUD *phud, WIDGET *pwidget);
 void GatherJtModeHudTags(JTMODEHUD *phud);
 void BroadcastGameEvent(void *p, int n, int m);
@@ -74,10 +74,10 @@ void PlayWidgetAnim(WIDGET *p, int n);
 void StopWidgetAnim(WIDGET *p, int n);
 void SetWidgetAnimPhase(WIDGET *p, int n, float f);
 void ClearSubtitle(void *p);
-void SetReconSelState(void *p, int n);
+void SetReconSelState(RECONSEL *p, int n);
 void SetWidgetState(WIDGET *p, int n);
 void SetWidgetRequest(WIDGET *p, int n);
-void UpdateReconSel(SELECTOR *p);
+void UpdateReconSel(RECONSEL *p);
 void SetJtModeHudState(JTMODEHUD *phud, int n);
 int D_002BF920 = -1;   /* mode's .data: the interact mode the HUD widget last showed (-1: none) */
 }
@@ -123,8 +123,8 @@ extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *w
 // Leaves the mode (state 2, ending) unless the owner is in state 0, 8, 9 or 10.
 // Also known as: CloseBinoc (upstream readable / Sly 1 name; CloseBinoc__FP5ACTOR).
 extern "C" void EndJtMode(JTMODE *jtMode) {
-    if (jtMode->hud.unknown14) {
-        switch (*jtMode->hud.unknown14) {
+    if (jtMode->hud.reconSel) {
+        switch (jtMode->hud.reconSel->state) {
         case 0: case 8: case 9: case 10: return;
         }
     }
@@ -327,18 +327,18 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
     v->dxRight = 0.0f;
 }
 
-// Initializes the mode HUD record: owner, state -1; for Sly (CID 0x35) also binds the recon selector at JT+0x1D40.
+// Initializes the mode HUD record: owner, state -1; for Sly (CID 0x35) also binds JT::reconSel.
 extern "C" void InitJtModeHud(JTMODEHUD *hud, JTMODE *jtMode)
 {
     hud->pjtmode = jtMode;
     hud->state = -1;
     if (IsBasicDerivedFrom__FP5BASIC3CID(jtMode->player, 0x35) != 0) {
-        int *psel = (int *)((char *)hud->pjtmode->player + 0x1D40);        /* the recon selector */
-        hud->unknown14 = psel;
+        RECONSEL *psel = &((JT *)hud->pjtmode->player)->reconSel;
+        hud->reconSel = psel;
         InitReconSel(psel, jtMode);
         return;
     }
-    hud->unknown14 = 0;
+    hud->reconSel = 0;
 }
 
 // Finds the per-character HUD widgets by oid (Sly 0x35F/0x368, Bentley 0x360/0x369, Murray 0x361/...).
@@ -354,8 +354,8 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *hud)
         hud->pwidgetHud = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, 0x361, 0);
         hud->pwidgetDefault = (WIDGET *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 0x405, 0x36A, 0);
     }
-    if (hud->unknown14)
-        PostReconSelLoad(hud->unknown14);
+    if (hud->reconSel)
+        PostReconSelLoad(hud->reconSel);
     SetJtModeHudOverride(hud, hud->pwidgetDefault);
 }
 
@@ -384,14 +384,14 @@ extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
             ClearSubtitle(D_004435F0);
             if (hud->pwidgetCur) hud->pwidgetCur->Show(-1);
         }
-        if (hud->unknown14) SetReconSelState(hud->unknown14, 0);
+        if (hud->reconSel) SetReconSelState(hud->reconSel, 0);
         break;
     case 2:
         if (hud->pjtmode->kind == 1) BroadcastGameEvent(&g_game, 0xD, 0);
         else BroadcastGameEvent(&g_game, 8, 0);
         if (hud->pwidgetHud) hud->pwidgetHud->Hide();
         if (hud->pwidgetCur) hud->pwidgetCur->Hide();
-        if (hud->unknown14) SetReconSelState(hud->unknown14, 10);
+        if (hud->reconSel) SetReconSelState(hud->reconSel, 10);
         break;
     case -1:
         if (old != 2) {
@@ -406,7 +406,7 @@ extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
             SetWidgetState(hud->pwidgetCur, 1);
             SetWidgetRequest(hud->pwidgetCur, 1);
         }
-        if (hud->unknown14) SetReconSelState(hud->unknown14, -1);
+        if (hud->reconSel) SetReconSelState(hud->reconSel, -1);
         break;
     }
 }
@@ -470,8 +470,8 @@ static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->state==2)value=1;
 extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
 {
 
-    if (hud->unknown14)
-        UpdateReconSel((SELECTOR *)hud->unknown14);
+    if (hud->reconSel)
+        UpdateReconSel(hud->reconSel);
     switch (hud->state) {
     case -1: return;
     case 2: {

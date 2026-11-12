@@ -2516,9 +2516,24 @@ typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
 typedef char assert_CID39_dleGrab[SLY2_OFFSETOF(CID39, dleGrab) == 0x104 ? 1 : -1];
 
 /* 46 CID46 (0x120): recon photo target; vtable 0x2D9F70, 50 slots */
+/* CID46: a recon target (the photographs the recon prompt picks out; recon.cpp, RECONSEL). Member names from
+   recon.cpp's view. */
 struct CID46 : XFM
 {
-    char padE0[0x120 - 0xE0];
+    float sRadius;          /* +0xE0 selection radius (75) */
+    float sHead;            /* +0xE4 head offset / visibility radius (defaults to sRadius) */
+    float threshold;        /* +0xE8 (0.25) */
+    TASK *link;             /* +0xEC the task the photograph completes */
+    int fDone;              /* +0xF0 done without a task */
+    int id;                 /* +0xF4 its text */
+    int idPending;          /* +0xF8 (defaults to id) */
+    int key;                /* +0xFC dialog */
+    LO *fadeObject;         /* +0x100 faded in / out by distance (rFade) */
+    float rFade;            /* +0x104 (5000) */
+    int state;              /* +0x108 visibility: 1 visible, 2 hidden, 3 partly */
+    int mode;               /* +0x10C */
+    int choice;             /* +0x110 */
+    undefined4 unknown114[3];
     virtual void PostLoad() __asm__("PostReconTargetLoad");   /* slot 15 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid46ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleReconTargetMessage");   /* slot 5 */
