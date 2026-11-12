@@ -2930,11 +2930,11 @@ void BHVWALKPATH::OnPush()
 
 // 0x178EE0 UpdateBhvwalkpath
 namespace M_UpdateBhvwalkpath {
- struct CONTROL; struct VU_FLOAT;
+ struct VU_FLOAT;
 // UpdateBhvwalkpath (Claude agent, lane G13, 2026-10-24): laneG10v2 (no pins) + VU_FLOAT(float) qmtc2 constructor building the speed in place, and the 1e-4 length test read with VuGetX (gcc emits the qmfc2, asm mtc1).
 /* the kind-3 binding's handle and instance (the DIRANIM pair; leap.h pads CID146) */
 
-struct CONTROL { char pad[0x24]; void *animation; };
+/* Kind-3 bindings (DIRANIM): payload4 is the DIRBL (AllocDirAnim: four directional clips), payload its playing CID146. */
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword qw; VU_FLOAT() {} VU_FLOAT(float g) { __asm__("qmtc2 %1, %0" : "=j"(qw) : "r"(g)); } };
 
@@ -2947,7 +2947,7 @@ MATRIX3 *GetLoWorldMatrix(LO *) __asm__("GetLoWorldMatrix");
 void SetAsegaSpeed__FP5ASEGAf(void *, float) __asm__("SetAsegaSpeed__FP5ASEGAf");
 float atan2f(float, float) __asm__("atan2f");
 void SetStepguardMoverRadTarget(GUARDMOVER *, float) __asm__("SetStepguardMoverRadTarget");
-void SelectDirAnim(CONTROL *, qword) __asm__("SelectDirAnim");
+void SelectDirAnim(CID146 *, qword) __asm__("SelectDirAnim");
 
 // VU0 helper: a float in a VU register.
 static inline VU_FLOAT VuFloat(float g)
@@ -3052,7 +3052,7 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
             qword qwLocal = VuDotMatrixRows(GetLoWorldMatrix(behavior->owner), dpos);
             qword qwFallback = D_002A2DD0;
             float gSpeed = behavior->rate * g;
-            gSpeed *= QwordX(VuLengthXY(((CID146 *)pchoice->payload4)->velocity));
+            gSpeed *= QwordX(VuLengthXY(((DIRBL *)pchoice->payload4)->ae[0].velocity));   /* the first clip's root velocity */
             qword qwLen = VuLengthUntied(qwLocal);
             VU_FLOAT vuSpeed(gSpeed);
             qword qwDir;
@@ -3065,8 +3065,8 @@ extern "C" void UpdateBhvwalkpath(BHVWALKPATH *behavior)
                 __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
                 __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwDir) : "j"(qwLocal));
             }
-            SelectDirAnim((CONTROL *)pchoice->payload, VuScaleByX(qwDir, vuSpeed));
-            SetAsegaSpeed__FP5ASEGAf(((CONTROL *)pchoice->payload)->animation, g);
+            SelectDirAnim((CID146 *)pchoice->payload, VuScaleByX(qwDir, vuSpeed));
+            SetAsegaSpeed__FP5ASEGAf(((CID146 *)pchoice->payload)->pasegaCur, g);
             break;
         }
         }
@@ -5548,15 +5548,16 @@ extern "C" void CloseBhvpipe(BHVPIPE *behavior)
 
 // 0x17CF10 UpdateBhvpipe
 namespace M_UpdateBhvpipe {
-struct O; struct L;
+struct L;
 extern float D_002DFB7C __asm__("D_002DFB7C");
-struct O : PO { char pad[0x198 - 0x180]; float moveSpeed; char pad2[0x14]; char orientation[0xF84 - 0x1B0]; int attachObject; float attachParam; int isMovingForward; };
+// The guard (STEPGUARD): vecLocalVelocity.z is its pipe speed, matTarget the goal orientation GetPipeGoalMatrix fills,
+// attachObject / attachParam the pipe and the position along it.
 struct L { float a, b, c; };
 void UpdateBhv(BHVPIPE *p) __asm__("UpdateBhv");
 int HasBhvpipeArrived(BHVPIPE *p) __asm__("HasBhvpipeArrived");
 float SmoothValue__FfffP3SMPPf(float a, float b, float dt, struct L *pl, float *n) __asm__("SmoothValue__FfffP3SMPPf");
-float WrapShapeDistance(int n, float g) __asm__("WrapShapeDistance");
-void GetPipeGoalMatrix(int a, float g, int b, void *pv) __asm__("GetPipeGoalMatrix");
+float WrapShapeDistance(void *shape, float g) __asm__("WrapShapeDistance");
+void GetPipeGoalMatrix(void *pipe, float g, int forward, MATRIX3 *pmat) __asm__("GetPipeGoalMatrix");
 // 0x17CF10: BHVPIPE vtable slot 10 (Update): shimmies along the pipe toward the goal with a smoothed speed; keeps
 // the pipe goal matrix.
 // Also known as: Update (upstream readable / Sly 1 name).
@@ -5571,9 +5572,9 @@ extern "C" void UpdateBhvpipe(BHVPIPE *behavior) {
             } else {
                 struct L l;
                 float g;
-                ((struct O *)behavior->owner)->isMovingForward = ((struct O *)behavior->owner)->attachParam < behavior->goalParam;
-                if (((struct O *)behavior->owner)->isMovingForward) D_002DFB7C = -((struct O *)behavior->owner)->moveSpeed;
-                else D_002DFB7C = ((struct O *)behavior->owner)->moveSpeed;
+                ((STEPGUARD *)behavior->owner)->isMovingForward = ((STEPGUARD *)behavior->owner)->attachParam < behavior->goalParam;
+                if (((STEPGUARD *)behavior->owner)->isMovingForward) D_002DFB7C = -((STEPGUARD *)behavior->owner)->vecLocalVelocity.z;
+                else D_002DFB7C = ((STEPGUARD *)behavior->owner)->vecLocalVelocity.z;
                 {
                     float d = D_002DFB7C;
                     l.b = 0.0f;
@@ -5582,13 +5583,13 @@ extern "C" void UpdateBhvpipe(BHVPIPE *behavior) {
                     g = SmoothValue__FfffP3SMPPf(behavior->smoothedSpeed, d, g_clock.deltaTime, &l, 0);
                 }
                 behavior->smoothedSpeed = g;
-                ((struct O *)behavior->owner)->attachParam = WrapShapeDistance(((struct O *)behavior->owner)->attachObject, ((struct O *)behavior->owner)->attachParam + g * g_clock.deltaTime);
+                ((STEPGUARD *)behavior->owner)->attachParam = WrapShapeDistance(((STEPGUARD *)behavior->owner)->attachObject, ((STEPGUARD *)behavior->owner)->attachParam + g * g_clock.deltaTime);
             }
         }
     } while (behavior->state != s);
     {
-        struct O *o = ((struct O *)behavior->owner);
-        GetPipeGoalMatrix(o->attachObject, o->attachParam, o->isMovingForward, o->orientation);
+        STEPGUARD *o = ((STEPGUARD *)behavior->owner);
+        GetPipeGoalMatrix(o->attachObject, o->attachParam, o->isMovingForward, &o->matTarget);
     }
 }
 } // namespace M_UpdateBhvpipe
