@@ -350,35 +350,7 @@ struct LVO
     SURFX *mpisurfsurfx;   /* the triangle of each surface */
 };
 
-/* SOPART: one collision part of an SO: its transform, mesh (local and world copies), BSP and damage settings.
-   Layout from src/game/engine/graphics/pipeline/glob/LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream.cpp (9 copies in Lilly ports) */
-struct SOPART
-{
-      XF *transform; /* transform the part moves with */
-      SO *owner; /* owning solid object */
-      float radius;
-      OID oid;   /* oid of the part */
-      LVO *plvo;   /* local vertex data */
-      short damage; /* damage (hit points) dealt or taken by the part (inferred: dhp = delta hit points) */
-      ulong unknownFlag10A : 1;   /* possibly collectsZaps (low-confidence guess: mark.cpp: parts with zap kinds (unknownFlag10A / zapKindFlags) collect zap contacts) */
-               ulong unknownFlag10B : 1;   /* possibly isSphere (low-confidence guess: so.cpp view: radius applies to unknownFlag10B parts; mark.cpp sphere tests) */
-               ulong isHidden : 1;  /* part is hidden */
-               ulong hasPlaces : 1;   /* the part carries hero places (RemoveSoPartFromTree then calls RemoveSwPlacesOf; places.cpp) */
-               ulong unknownBits10A : 12;
-      uint zapKindFlags; /* zap kinds (damage types) the part delivers or accepts */
-      int unknown1C;   /* possibly numSphereVertices (low-confidence guess: compared with meshLocal.cpos in mark.cpp) */
-      union
-      {
-            MATRIX4 matWorld;   /* world matrix of the part */
-            MATRIX4Q matqWorld;   /* its rows as quadwords (row 3: the part's world position; water.cpp) */
-      };
-      DLE dle;   /* link in the physics tree's part list */
-      BSPC bspc;   /* BSP of the part mesh */
-      GEOM meshLocal;   /* part mesh (local) */
-      GEOM meshWorld;   /* part mesh (world, updated when stale) */
-      int meshStamp;    /* frame stamp of the world mesh */
-      int worldStamp;    /* frame stamp of the world matrix */
-};
+/* SOPART is in sly2/xfm.h (with BSPC / GEOM, which it embeds), so files can name a part without so.h. */
 
 /* CID148 (CID 0x94 : BASIC, cb 0x20) and CID150 (CID 0x96 : CID148, cb 0x30): placeholder names. A CID150 is the
  * Splice handle of one part of an SO (the part's object at +0x20, the SOPART at +0x24); only those two are known. */

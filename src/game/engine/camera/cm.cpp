@@ -26,6 +26,7 @@
 #include "sly2/vis.h"   /* CID5 (SetCmVisZone) */
 #include "sly2/vtables.h"
 #include "sly2/port.h"   /* SLY2_EE_LAYOUT */
+#include "sly2/xfm.h"   /* SOPART (so.h is native-only here: on the EE it renumbers s_rgba below) */
 #if defined(SLY2_EE_LAYOUT)
 #else
 #include "sly2/so.h"   /* SO::GetCpdefi; the EE build calls it by hand (including so.h here renumbers s_rgba below) */
@@ -955,13 +956,11 @@ qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
 namespace M_SquishCmEye {
 /* MATCH (Claude agent, lane D4): v2 inline Dot(qword *pa, qword *pb) (keeps &ax[i].normal hoisted in a reg), returning int from a qmfc2 into `register int d asm("$7")`, stored through `*(int *)pg++` (sw $a3 like the target). */
 struct X { qword pos; qword normal; qword unknown20; };
-struct E { int a, b, c; };
-struct LO { char pad[0x70]; int rootNodeIndex; struct E *bspNodes; };
 extern float D_002BD8D4 __asm__("D_002BD8D4");
 void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(struct SWALLOC *pal) __asm__("AllocFromStack");
-int IntersectSphereBsp(qword pos, struct LO *po, struct E *pe, float g, int a, int b, int cMax, struct X *ax) __asm__("IntersectSphereBsp");
+int IntersectSphereBsp(qword pos, SOPART *part, BSP *pbspLimit, float radius, int cbsp, BSP *absp, int ccontactMax, struct X *acontact) __asm__("IntersectSphereBsp");
 void SolveInequalities(int c, float *aDot, float *aW, float *aZ, float g) __asm__("SolveInequalities");
 qword LimitVectorLength(qword v, float g) __asm__("LimitVectorLength");
 
@@ -991,7 +990,7 @@ extern "C" { static inline void *PvAlloc(int cb, int cbAlign)
 // solves (0x11AD30) and returns v + sum of normal impulses.
 // Also known as: SquishCmEye (upstream readable / Sly 1 name;
 //   SquishCmEye__FP2CM14PFNCMHITWEIGHTP6VECTORT2G9VU_VECTORT4ff).
-extern "C" qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, qword, struct X *),
+extern "C" qword SquishCmEye(CM *p, int c, SOPART **apo, float (*pfn)(void *, qword, qword, struct X *),
                     qword pos, qword v, float g, float h)
 {
     struct X ax[64];
@@ -1001,8 +1000,9 @@ extern "C" qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void 
     {
     int k;
     for (k = 0; k < c; k++) {
-        struct LO *po = apo[k];
-        n += IntersectSphereBsp(pos, po, &po->bspNodes[po->rootNodeIndex], g, 0, 0, 64 - n, &ax[n]);
+        SOPART *po = apo[k];
+        /* the walk stops at the part's camera nodes (BSPC::numCameraNodes) */
+        n += IntersectSphereBsp(pos, po, &po->bspc.nodes[po->bspc.numCameraNodes], g, 0, 0, 64 - n, &ax[n]);
     }
     }
     if (n == 0)
@@ -1049,11 +1049,10 @@ extern "C" qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void 
 }
 } // namespace M_SquishCmEye
 
-struct LOBSP { char pad[0x70]; int numCameraBspNodes; };
-// Camera object filter: accepts objects with camera-collision BSP nodes (a positive count at +0x70) (inferred).
-extern "C" int HasCameraBsp(void *pv, LO *plo)
+// Camera part filter (IntersectSwBoundingBox): accepts parts with camera-collision BSP nodes.
+extern "C" int HasCameraBsp(void *pv, SOPART *part)
 {
-    return ((LOBSP *)plo)->numCameraBspNodes > 0;
+    return part->bspc.numCameraNodes > 0;
 }
 
 namespace M_SvSquishCmEyeConstraint {
@@ -1062,7 +1061,6 @@ namespace M_SvSquishCmEyeConstraint {
 // the mtc1 has 4 dependents like the `one` sqc2, so the luid tie-break issues the sqc2 first, like the target.
 typedef union { qword q; float f; } U;
 struct PL { qword pos; qword plane; };
-struct P { char pad[0x48]; float nearCorner; };
 extern float D_002BD8D8 __asm__("D_002BD8D8");
 extern char s_smpSquishEye[] __asm__("s_smpSquishEye");
 void *InitVuTemp(void *p) __asm__("InitVuTemp");
@@ -1099,14 +1097,15 @@ extern "C" { static __inline__ float GDot(const qword *pa, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 } }
-// Constraint for SquishCmEye: SmoothValue(dist-to-plane, nearCornerDistance(+0x48) - k) ; return dot(vEye, normal) - smoothed.
+// Constraint for SquishCmEye: SmoothValue(dist-to-plane, nearCornerDistance - k) ; return dot(vEye, normal) - smoothed.
+// eyePos (unused) is the eye position SquishCmEye passes: a quadword (one GPR on the EE, two natively).
 // Also known as: GCmAvoidWeight (upstream readable / Sly 1 name; GCmAvoidWeight__FP2CMiG9VU_VECTORP5CMHIT).
-extern "C" float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
+extern "C" float SvSquishCmEyeConstraint(CM *p, qword eyePos, qword vIn, struct PL *pl)
 {
     float r;
     qword plane = pl->plane;
     qword pos = pl->pos;
-    SmoothValue__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCorner - D_002BD8D8, g_clock.cameraDeltaTime, s_smpSquishEye, &r);
+    SmoothValue__FfffP3SMPPf(GDistPlane(plane, pos), p->nearCornerDistance - D_002BD8D8, g_clock.cameraDeltaTime, s_smpSquishEye, &r);
     return GDot(&vIn, pl->plane) - r;
 }
 } // namespace M_SvSquishCmEyeConstraint
@@ -1124,11 +1123,11 @@ extern qword D_002BD8F0 __asm__("D_002BD8F0"), D_002BD900 __asm__("D_002BD900");
 extern float D_002BD8D8 __asm__("D_002BD8D8"), D_002BD8DC __asm__("D_002BD8DC");
 void *STACKSCOPE_ctor(STACKSCOPE *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *p, int n) __asm__("_$_10STACKSCOPE");
-void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj) __asm__("IntersectSwBoundingBox");
-qword SquishCmEye(void *p, int i, int j, void *pfn, qword a, qword v, float g, float h) __asm__("SquishCmEye");
+void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pcpart, SOPART ***papart) __asm__("IntersectSwBoundingBox");
+qword SquishCmEye(CM *p, int cpart, SOPART **apart, void *pfn, qword a, qword v, float g, float h) __asm__("SquishCmEye");
 void HasCameraBsp(void) __asm__("HasCameraBsp");
 void SvSquishCmEyeConstraint(void) __asm__("SvSquishCmEyeConstraint");
-qword ClipCameraEye(void *p, qword pos, qword posTarget) __asm__("ClipCameraEye");
+qword ClipCameraEye(CM *p, qword pos, qword posTarget) __asm__("ClipCameraEye");
 
 // Divide v by g.
 static inline qword DivideBy(const qword &v, const VU_FLOAT &g) { qword r; __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
@@ -1155,10 +1154,11 @@ static inline float Length(const qword &v) { return GXOfQw(QwSqrt(QwDot(v, v)));
 
 // VEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt.
 // Also known as: PosCmAvoid (upstream readable / Sly 1 name; PosCmAvoid__FP2CMG9VU_VECTORT1).
-qword ClipCameraEye(void *p, qword pos, qword posTarget)
+qword ClipCameraEye(CM *p, qword pos, qword posTarget)
 {
     CLOCK *pclock = &g_clock;
-    int ii, jj;
+    int ii;
+    SOPART **jj;
     qword dpos = VuSub(posTarget, pos);
     qword v = DivideBy(dpos, VU_FLOAT(&pclock->cameraDeltaTime));
     qword posMin = VuAdd(pos, D_002BD8F0);

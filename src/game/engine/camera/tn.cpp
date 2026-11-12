@@ -237,8 +237,8 @@ void FindShapeClosestPointFromDistance(SHAPE *p, qword q, float g, void *a, qwor
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 qword SetVectorSphere(float a, float b, float c);
 void CutCm__FP2CM(CM *pcm);
-int HasCameraBsp(void *pv, SO *pso);
-void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
+int HasCameraBsp(void *pv, SOPART *part);
+void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SOPART *), void *context, int *pcpso, SOPART ***papso);
 qword ConvertCmWorldToScreen(CM *pcm, qword pos);
 qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
 int FindCameraClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
