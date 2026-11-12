@@ -4302,6 +4302,7 @@ typedef char M4_row3_Offset[((unsigned)&((M4*)0)->row[3])==48?1:-1];
 // Cost of landing on a target's local point after duration dt in the target's predicted frame; outputs the goal
 // position and velocity.
 // Also known as: GFitJump (upstream readable / Sly 1 name; GFitJump__FP5ACTORP2LOG9VU_VECTORP6VECTORN23f).
+#ifdef SLY2_EE_ASM
 extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qword localPoint, float *score,
                                             qword *point, qword *velocity, float duration)
 {
@@ -4474,6 +4475,84 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qw
     if (velocity)
         *velocity = future.q;
 }
+#else
+/* The same function in C (the EE body above is hand-scheduled asm on an EE-offset view): the context is the JTAIR,
+   its owner the jumping STEPPLAYER (OBJECT::motion is SO::physics, MOTION::acceleration SOPHYS::gravityq, the radius
+   STEPPLAYER::jumpTargetRadius), the target an SO whose slot 32 is GetLocalTransform. The VU0 arithmetic is sly2/vu0.h
+   in the asm's operation order; the asm takes the transformed point's w from whatever VF5 held before (scratch: zero
+   here). */
+extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context, OBJECT *target, qword localPoint, float *score,
+                                            qword *point, qword *velocity, float duration)
+{
+    STEPPLAYER *player = ((JTAIR *)context)->player;
+    V delta, scalar, future, position, oldVelocity, comparison, prediction;
+    M4 predicted, inverse, product;
+    position.q = GetLoWorldPos(context->owner);
+    oldVelocity.q = player->GetVelocity();
+    /* the free fall over the duration: velocity v + g dt, position p + (v + v') dt / 2 */
+    qword dt = VuFromFloat<qword>(duration);
+    scalar.q = dt;
+    future.q = VuAddScaled(oldVelocity.q, player->physics->gravityq, dt);
+    qword half = VuFromFloat<qword>(duration * 0.5f);
+    prediction.q = VuAddScaled2(position.q, oldVelocity.q, future.q, half);
+    scalar.q = half;
+    SPACE *frame = (SPACE *)((SO *)target)->GetLocalTransform((MATRIX4 *)&inverse);
+    comparison.q = prediction.q;
+    /* the target's local point in its frame predicted dt ahead, relative to where the fall ends */
+    LoadIdentityMatrix4(frame, 0, &predicted, 0, duration);
+    __ml__FRC7MATRIX4T0(&product, &predicted, &inverse);
+    qword offset = VuMulMatrix4(product.row[0], product.row[1], product.row[2], product.row[3], localPoint);
+    predicted.row[0] = product.row[0];
+    predicted.row[1] = product.row[1];
+    offset = VuSub(offset, comparison.q);
+    predicted.row[2] = product.row[2];
+    float squared = VuToFloat(VuDot(offset, offset));
+    predicted.row[3] = product.row[3];
+    delta.q = offset;
+    float radius = player->jumpTargetRadius;
+    float radiusSquared = radius * radius;
+    if (squared < radiusSquared) {
+        /* the fall ends inside the target radius */
+        if (score)
+            *score = SqrtFloat(squared) - radius;
+        if (point)
+            *point = prediction.q;
+    } else {
+        float vertical = FpuAbs(delta.a[2]);
+        if (radius < vertical || duration == 0.0f) {
+            if (score)
+                *score = vertical + 1010000.0f;
+            if (point)
+                *point = position.q;
+        } else {
+            /* the horizontal shortfall to the radius' edge, closed by a constant extra acceleration */
+            delta.a[2] = 0.0f;
+            qword direction = delta.q;
+            qword length = VuLength(direction);
+            if (VuToFloat(length) < 0.0001f)
+                delta.q = D_002A2DD0;
+            else
+                delta.q = VuDivByX(direction, length);
+            float deficit = VuToFloat(length) - SqrtFloat(radius * radius - vertical * vertical);
+            qword correction = VuFromFloat<qword>((deficit + deficit) / (duration * duration));
+            scalar.q = correction;
+            scalar.q = dt;
+            qword corrected = VuAddScaled2(oldVelocity.q, player->physics->gravityq, VuScaleByX(delta.q, correction), dt);
+            future.q = corrected;
+            if (score)
+                *score = FpuMin((D_002BF910 + D_002BF910) * deficit / duration, 1000000.0f);
+            if (point) {
+                qword k = VuFromFloat<qword>(duration * 0.5f);
+                corrected = VuAddScaled2(position.q, oldVelocity.q, corrected, k);
+                scalar.q = k;
+                *point = corrected;
+            }
+        }
+    }
+    if (velocity)
+        *velocity = future.q;
+}
+#endif
 } // namespace M_MeasureJtJumpToTargetAtTime
 
 //////// 0x19C688 GrabJtAirTarget

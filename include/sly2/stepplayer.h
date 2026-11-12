@@ -595,7 +595,8 @@ struct STEPPLAYER : public STEP
                                and CID 0x14 hand targets (jthands.cpp) */
       undefined4 unk_0x1004[(0x1010 - 0x1004) / 4];
       qword smoothedPosOffset;   /* +0x1010 a position correction smoothed back to zero each frame (air.cpp, pipe_jt.cpp PosSmooth); stepplayer.cpp subtracts it (inferred) */
-      float unknown1020;
+      float jumpTargetRadius;   /* +0x1020 a jump lands on a target when its predicted end is within this of the target point
+                                   (MeasureJtJumpToTargetAtTime; 100, JT 200) */
       struct TN *overrideTunnel;   /* +0x1024 the camera tunnel whose override this hero holds (SetStepplayerTnOverride, Sly 1 SetActorZone) */
       struct SM *standStateMachine;   /* +0x1028 the stand state machine (SetJtState JTS_Stand; cane.cpp / bentley.cpp look up state 0x17B in it) */
       struct SM *unknown102C;

@@ -122,7 +122,7 @@ extern "C" void InitStepplayer(STEPPLAYER *player)
     player->agdtIdle[2] = 3.0f;
     player->agdtIdle[3] = 5.0f;
     player->canFreeLook = player->canFreeLookDefault;
-    player->unknown1020 = 100.0f;
+    player->jumpTargetRadius = 100.0f;
     player->maxGadgetPower = 100;
     player->lastGadgetUseTime = -60.0f;
     player->interactMode = -1;

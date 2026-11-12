@@ -238,7 +238,7 @@ extern "C" void InitJt(JT *jt)
     jt->gadgetPockets[3].idGadget = 0x29;
     InitBentleyHelper(&jt->jtrec, jt);
     jt->grfGrabTarget = 1;
-    jt->unknown1020 = 200.0f;
+    jt->jumpTargetRadius = 200.0f;
     jt->oidPhys = 0xC7;
     ResetJtHands(&jt->hands);
     D_002E1E40 = jt;
