@@ -733,41 +733,67 @@ void CID146::HandleMessage(MSGID msg_m, void *pm_m)
 static inline qword Dot(qword a, qword b)
 {
     qword r, one;
+#ifdef SLY2_EE_ASM
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
             : "=&j"(r), "=&j"(one)
             : "j"(a), "j"(b));
+#else
+    r = VuDot(a, b);
+#endif
     return r;
 }
 // Dot product of a and b (x lane), reusing a's register.
 static inline qword DotReuse(qword a, qword b)
 {
     qword one;
+#ifdef SLY2_EE_ASM
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
             : "=j"(b), "=&j"(one)
             : "j"(a), "0"(b));
+#else
+    b = VuDot(a, b);
+#endif
     return b;
 }
 // Square root of the x lane of q.
+#ifdef SLY2_EE_ASM
 static inline qword Sqrt(qword q){__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(q):"0"(q));return q;}
+#else
+static inline qword Sqrt(qword q) { return VuSqrtX(q); }
+#endif
 // Store the unit vector along v into dst.
 static inline void Normalize(U *dst, qword v)
 {
     qword length = Sqrt(Dot(v, v));
     register qword result __asm__("vf3");
+#ifdef SLY2_EE_ASM
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=&j"(result) : "j"(length), "j"(v));
+#else
+    result = VuDivByX(v, length);
+#endif
     dst->q = result;
 }
 // Unit vector along v.
 static inline qword NormalizeEntry(qword v)
 {
     qword length = Sqrt(Dot(v, v));
+#ifdef SLY2_EE_ASM
     __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(length) : "0"(length), "j"(v));
+#else
+    length = VuDivByX(v, length);
+#endif
     return length;
 }
 // Broadcast the float word p->bits into vf1.
+#ifdef SLY2_EE_ASM
 static inline qword ScalarFW(const FLOATWORD*p){register qword v __asm__("vf1");register int w __asm__("$2")=p->bits;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(w));return v;}
 // Return v scaled by s.x (vf2).
 static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
+#else
+static inline qword ScalarFW(const FLOATWORD *p) { return VuFromFloat<qword>(p->bits); }
+// Return v scaled by s.x.
+static inline qword Scale(qword v, qword s) { return VuScaleByX(v, s); }
+#endif
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -787,9 +813,16 @@ extern "C" void SelectDirAnim(CID146 *dirAnims, qword v)
         unsigned int i;
         float bias;
         register qword scoringDirection __asm__("vf4");
+#ifdef SLY2_EE_ASM
         __asm__("lqc2 %0,%4\n\tlw %1,%5\n\tdaddu %2,%z6,$zero\n\tlwc1 %3,%7"
                 : "=j"(scoringDirection), "=&r"(entry), "=&r"(i), "=f"(bias)
                 : "m"(direction.q), "m"(dirAnims->pdirbl), "rJ"(0), "m"(D_002C3DE4));
+#else
+        scoringDirection = direction.q;
+        entry = dirAnims->pdirbl->ae;   /* the four clips (DIRBL::ae is at +0) */
+        i = 0;
+        bias = D_002C3DE4;              /* the current clip's score bonus */
+#endif
         do {
             ASEG *animation = entry->animation;
             if (animation) {
