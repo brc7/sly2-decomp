@@ -97,8 +97,10 @@ HERO *GetHeroPo(void *p);
 extern char D_002DE578[];
 M3 *GetLoWorldMatrix(void *p);
 float GetDifficulty(void *p);
-VUV func_00256CE8(float g) __asm__("__8VU_FLOATf+0");   /* VU_FLOAT(float); +0: a plain label would make g++ emit this file's inline constructor under that name */
-VUV __9VU_VECTORRC6VECTOR(VECTORV *pv);
+/* bif.cpp's out-of-line VU_FLOAT(float) and VU_VECTOR(const VECTOR &) constructors (+0: a plain label would make g++
+   emit this file's inline constructor under that name). */
+struct VU_FLOAT_C { qwordV q; VU_FLOAT_C(float g) __asm__("__8VU_FLOATf+0"); };
+struct VU_VECTOR_C { qwordV q; VU_VECTOR_C(const VECTORV &v) __asm__("__9VU_VECTORRC6VECTOR"); };
 qwordV VecComboQ(qwordV a, qwordV b, qwordV c, qwordV d) __asm__("VecCombo__FG8VU_FLOATG9VU_VECTORT0T1");   /* VecCombo below, called with plain quadwords */
 void VECTOR_opAssign(VECTORV *pv, qwordV v);
 qwordV SetVectorCylind(float a, float b, float c);
@@ -558,7 +560,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
         float g;
         VECTORV *pv0 = &D_002BDC60;
         VECTORV *pv1 = &D_002BDC80;
-        qwordV cq = VecComboQ(func_00256CE8(u1).q, __9VU_VECTORRC6VECTOR(pv0).q, func_00256CE8(u).q, __9VU_VECTORRC6VECTOR(pv1).q);
+        qwordV cq = VecComboQ(VU_FLOAT_C(u1).q, VU_VECTOR_C(*pv0).q, VU_FLOAT_C(u).q, VU_VECTOR_C(*pv1).q);
         VECTOR_opAssign(&clq, cq);
         g = clq.x + dist * (clq.y + dist * clq.z);
         lm.minValue = u1 * D_002BDC70[0] + u * D_002BDC90[0];

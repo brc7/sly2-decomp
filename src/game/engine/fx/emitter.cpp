@@ -1875,8 +1875,9 @@ extern char D_002BDEC0[] __asm__("D_002BDEC0");
 extern float RandomFloatInRange__Fff(float lo, float hi) __asm__("RandomFloatInRange__Fff");
 extern float ClampToLimits__FP2LMf(void *p, float g) __asm__("ClampToLimits__FP2LMf");
 typedef union V4 { qword q; float a[4]; } V4;
-extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
-extern V4 __9VU_VECTORRC6VECTOR(qword *pv) __asm__("__9VU_VECTORRC6VECTOR");
+/* bif.cpp's out-of-line VU_FLOAT(float) and VU_VECTOR(const VECTOR &) constructors (this file's views of the classes). */
+struct VU_FLOAT_C { qword q; VU_FLOAT_C(float g) __asm__("__8VU_FLOATf"); };
+struct VU_VECTOR_C { qword q; VU_VECTOR_C(const VECTOR &v) __asm__("__9VU_VECTORRC6VECTOR"); };
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
 extern void VECTOR_opAssign(qword *pv, qword a) __asm__("VECTOR_opAssign");
 extern void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pb, EMITG *pemitg) __asm__("EmitParticles__FiP5EMITBP5EMITG");
@@ -1939,7 +1940,7 @@ extern "C" void FireExplsExplso(EXPLS *expls, EXPLSO *explso)
         emitb.vel.lmSpeed.minValue *= speedScale;
         emitb.vel.lmSpeed.maxValue *= speedScale;
         { float h = 0.5f; scale = (h < scale) ? scale : h; }
-        VECTOR_opAssign((qword *)&emitb.v.scale, __ml__FG8VU_FLOATG9VU_VECTOR(func_00256CE8(scale).q, __9VU_VECTORRC6VECTOR((qword *)&emitb.v.scale).q));
+        VECTOR_opAssign((qword *)&emitb.v.scale, __ml__FG8VU_FLOATG9VU_VECTOR(VU_FLOAT_C(scale).q, VU_VECTOR_C(*(VECTOR *)&emitb.v.scale).q));
     }
     if (emitb.particleKind == 1) {   /* rips */
         if (explso->grf & EXPLSO_HAS_RIP_SCALE)
