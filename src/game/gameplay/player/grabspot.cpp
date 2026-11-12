@@ -194,15 +194,15 @@ extern "C" int GetWallGrabspotWrapRange(CID12 *wall, float *pg)
 } // namespace M_func_00182FE8
 
 namespace M_func_00183040 {
-struct T { char pad[0x218]; qword *pq; };
+
 struct V { float a[4]; };
 void FindShapeClosestPoint(SHAPE *p, qword q, void *a, struct V *pv, qword *b, float *c, float *pg) __asm__("FindShapeClosestPoint");
 float GetShapeMaxDistance(SHAPE *p) __asm__("GetShapeMaxDistance");
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
-extern "C" void GetWallGrabspotClosestParam(CID12 *wall, struct T *t, float *pg)
+extern "C" void GetWallGrabspotClosestParam(CID12 *wall, STEPPLAYER *t, float *pg)
 {
     struct V v;
-    FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
+    FindShapeClosestPoint(wall, *t->unknown218, 0, &v, 0, 0, pg);
     if (wall->isClosed)
         return;
     float lim = GetShapeMaxDistance(wall) - 30.0f;
@@ -389,13 +389,13 @@ extern "C" int GetPoleGrabspotWrapRange(CID34 *ppole, float *ag)
 }
 
 namespace M_func_001834D0 {
-struct Q { char pad[0x218]; qword *p218; };
+
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
 float atan2f(float y, float x) __asm__("atan2f");
 // The arc-length parameter of the player's angle around the pole axis.
-extern "C" void GetPoleGrabspotClosestParam(CID34 *pole, struct Q *q, float *pg)
+extern "C" void GetPoleGrabspotClosestParam(CID34 *pole, STEPPLAYER *q, float *pg)
 {
-    qword a = *q->p218;
+    qword a = *q->unknown218;
     qword b = GetLoWorldPos(pole);
     qword d;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
