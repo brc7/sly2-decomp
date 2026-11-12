@@ -220,7 +220,8 @@ struct JT : public STEPPLAYER
       undefined4 unk_0x203c[(0x2044 - 0x203c) / 4];
       CRefPtr<SND> psndGadget;   /* +0x2044 [R] looping gadget sound (ram_inspector) */
 
-      undefined4 unknown2048;
+      SND *sndGrab;   /* +0x2048 a counted sound reference SetJtGrabKind starts (RcPtr_Assign) and stops (StopSnd); JT_ctor clears it;
+                         pointer-sized */
       struct EXPL *unknown204C;
       ASEG *pasegPouncePowerUp;   /* pounce animation of the power-up */
       undefined4 unknown2054[3];

@@ -3203,9 +3203,9 @@ extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
 __attribute__((weak, section(".gnu.linkonce.t.STEPGUARD_ctor")))
 STEPGUARD::STEPGUARD() {}
 
-// JT's (Sly's player class) constructor (out-of-line inline copy): clears the gadget sound reference and +0x2048.
+// JT's (Sly's player class) constructor (out-of-line inline copy): clears the gadget sound reference and sndGrab.
 __attribute__((weak, section(".gnu.linkonce.t.JT_ctor")))
-JT::JT() : psndGadget(refptrNull) { unknown2048 = 0; }
+JT::JT() : psndGadget(refptrNull) { sndGrab = 0; }
 
 // MURRAY's constructor (out-of-line inline copy).
 __attribute__((weak, section(".gnu.linkonce.t.MURRAY_ctor")))
