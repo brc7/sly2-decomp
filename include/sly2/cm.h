@@ -196,7 +196,7 @@ struct CPCAMERA : public CPLCY
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpcamera");   /* key function (camera) */
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpcamera");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpcamera");
-      CID44 *pcamera;   /* the placed camera object */
+      CAMERAMARKER *pcamera;   /* the placed camera object */
 };
 
 /* CPTWOSHOT: the two-shot policy: frames the hero and another object together.

@@ -153,7 +153,7 @@ train, sawmill (Canada), blimp. The disc's world files are the `Lnn` levels plus
 ### Transitions
 
 - **EXIT** (CID 0x1A, a VOL child): a player-in-volume state machine that starts a wipe; **WARP** (CID 0x2A): warp
-  destinations matched by id or alias list (`FindWarpByOid`); CID41 (0x29): in-level teleport destination.
+  destinations matched by id or alias list (`FindWarpByOid`); WARPDEST (0x29): in-level teleport destination.
 - **WIPE**: idle, out animation, in animation, fire -> `SetSwTransition`.
 - The boot step queue (movie, world warp, start task, memcard UI phase) is run by `StartupGame`, `ExecuteSwTransition`
   and the job flow `[H]`.
@@ -435,8 +435,8 @@ stick aims and fires), **mounted turret** (TURRET 0x45 + CPTURRET), **RC combat*
 ThiefNet (SAFEHOUSE 0x46). The hacking classes are declared in `include/sly2/hack.h`, the robot tank in `tank.h`. The RC chopper and the drivable tank are plain POs whose drive code is not identified yet.
 
 Smaller gameplay classes (`gameplay/objects/`): BARRIER, BOMB, MISSILE/ACCMISS (projectiles derived from BOMB), BUTTON and
-VOLBTN (fire Splice events 5/6), SENSOR and laser rigs, TARGET, breakable props (CID98, staged recorded actions),
-tossable gadget objects (CID100-102), critters (CID96), the screen tint/fade (SCREENFADE, cid 116), the sky dome (SKY).
+VOLBTN (fire Splice events 5/6), SENSOR and laser rigs, TARGET, breakable props (BREAKABLE, staged recorded actions),
+gadget objects (TOSSABLE, TRIGGERBOMB, GUARDTRAP: cids 100-102), critters (CRITTER), the screen tint/fade (SCREENFADE, cid 116), the sky dome (SKY).
 
 ## 8. Where Sly 2 differs from Sly 1
 
@@ -459,7 +459,7 @@ The research pages argued for these readings; the code keeps a different name fo
 |---|---|
 | `AllocSw__4DMASi` | allocates from the stack heap (`AllocStack`) |
 | `InitZpr__FP3ZPR3ZPKP2LO` | GS block allocator init (`InitGsb`) |
-| `SetStepSpinRatio__FP4STEPf` | sets the spin ratio of the CID96 critters |
+| `SetStepSpinRatio__FP4STEPf` | sets the spin ratio of the critters (CRITTER) |
 | `EnsureSggAlarm__FP3SGGP5ALARM` | RELAY alarm id set used by command kinds 4/5 |
 | `AddBootyEntryObject__FP5ALARM3OID` | adds a BOOTY entry by oid (CID 0x67 is BOOTY, not ALARM) |
 | `SetFrameCaptureState` | the DANCER's screen-grab state (split/flip transition) |

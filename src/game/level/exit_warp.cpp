@@ -114,7 +114,7 @@ extern "C" EXIT *FindDefaultExit(SW *world)
 
 // Loads the in-level teleport destination (cid 41) from the BRX: the XFM part, then skips a string.
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
-void CID41::LoadFromBrx(CBinaryInputStream *stream)
+void WARPDEST::LoadFromBrx(CBinaryInputStream *stream)
 {
     WARP *warp = (WARP *)this;
     LoadXfmFromBrx(warp, stream);

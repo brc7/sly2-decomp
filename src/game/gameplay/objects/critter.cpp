@@ -1,5 +1,5 @@
-// critter.cpp -- CID96 (0x60), the small critters (pigeons, rats): an SO that turns toward the nearest object,
-// walks a curve and flees along another one, with a per-state animation table. Entry points: the CID96
+// critter.cpp -- CRITTER (0x60), the small critters (pigeons, rats): an SO that turns toward the nearest object,
+// walks a curve and flees along another one, with a per-state animation table. Entry points: the CRITTER
 // vtable (InitCritter, LoadCritterFromBrx, PostCritterLoad, UpdateCritter, HandleCritterMessage, TakeCritterDamage...)
 // and the Splice setter SetCritterLink. TU 0x1B0B78..0x1B1DB8 (25 functions,
 // address order).
@@ -156,7 +156,7 @@ float NormalizeAngle(float r);                                                  
 LOV *FindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");                                   /* FindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
-// CID96 vtable slot 7 (Init): SO init; startle distances 400/800, idle 2-6 s, walk 6-10 s, fade 1 s; no animations yet
+// CRITTER vtable slot 7 (Init): SO init; startle distances 400/800, idle 2-6 s, walk 6-10 s, fade 1 s; no animations yet
 // (apply flags from D_002C0230); speeds 300/1000; no state; LO flag 2.
 // Also known as: InitBird (upstream readable / Sly 1 name; InitBird__FP2LO).
 extern "C" void InitCritter(CID96V *critter)
@@ -187,14 +187,14 @@ extern "C" void InitCritter(CID96V *critter)
     else critter->taggedFlags |= 2;
 }
 
-// CID96 vtable slot 12 (RemoveHierarchy): SO removal, animation stopped.
+// CRITTER vtable slot 12 (RemoveHierarchy): SO removal, animation stopped.
 extern "C" void RemoveCritterHierarchy(CID96V *critter)
 {
     RemoveSoHierarchy(critter);
     ReplaceCurrentAseg(0, 0, 0.0f, 0.0f, 0, &critter->segmentAnim);
 }
 
-// CID96 vtable slot 14 (LoadFromBrx): SO load; the position XF gets role 1 and a cleared vector; remembers the
+// CRITTER vtable slot 14 (LoadFromBrx): SO load; the position XF gets role 1 and a cleared vector; remembers the
 // rotation XF's role; resolves the animation oids.
 extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *stream)
 {
@@ -211,7 +211,7 @@ extern "C" void LoadCritterFromBrx(CID96V *critter, CBinaryInputStream *stream)
     ResolveCritterLinks(critter);
 }
 
-// CID96 vtable slot 15 (PostLoad): SO post-load, resolves the animations, takes the walk and flee speeds from their
+// CRITTER vtable slot 15 (PostLoad): SO post-load, resolves the animations, takes the walk and flee speeds from their
 // root motion, then resets.
 // Also known as: StartBird (upstream readable / Sly 1 name; StartBird__FP2LO).
 extern "C" void PostCritterLoad(CID96V *critter)
@@ -223,7 +223,7 @@ extern "C" void PostCritterLoad(CID96V *critter)
     ResetCritter(critter);
 }
 
-// CID96 vtable slot 26 (proxy reset): the base, then ResetCritter.
+// CRITTER vtable slot 26 (proxy reset): the base, then ResetCritter.
 extern "C" void ResetCritterFromProxy(CID96V *critter)
 {
     SO_ResetForProxy(critter);
@@ -252,7 +252,7 @@ void ResetCritter(CID96V *critter)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.40282347e+38f; }
-// CID96 vtable slot 16 (Update): SO update and the state machine: idle, walking and turning critters are startled by a
+// CRITTER vtable slot 16 (Update): SO update and the state machine: idle, walking and turning critters are startled by a
 // nearby player, otherwise idle and walk alternate on their timers and a turn ends when the critter faces its
 // heading; a startled critter flees once it faces away and its animation has finished; a fleeing one fades out at
 // fleeEndTime. Then the path following.
@@ -293,7 +293,7 @@ extern "C" void UpdateCritter(CID96V *critter)
 
 struct M96 { int kind; int pad[3]; qwordV vectorA; qwordV vectorB; qwordV vectorC; };
 struct A96 { char pad[0x20]; qwordV unknown20; qwordV unknown30; int pad1; int flags; };   /* the hit (a WKR) */
-// CID96 vtable slot 75 (absorb a hit): after the base absorb, a hit with flag 8 kills the critter (CRITTER_HIT) and
+// CRITTER vtable slot 75 (absorb a hit): after the base absorb, a hit with flag 8 kills the critter (CRITTER_HIT) and
 // tells its hit listener (vtable slot 51, message 6 with the hit's two vectors). Returns the base result.
 // Also known as: FAcceptBirdContact (upstream readable / Sly 1 name; FAcceptBirdContact__FP3ALOP5CTMSG).
 extern "C" int TakeCritterDamage(CID96V *critter, A96 *hit)
@@ -314,7 +314,7 @@ extern "C" int TakeCritterDamage(CID96V *critter, A96 *hit)
 
 // Clears a three-word vector.
 static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
-// CID96 vtable slot 17: while turning or startled, clears both XFs' vectors and springs toward the heading (vtable
+// CRITTER vtable slot 17: while turning or startled, clears both XFs' vectors and springs toward the heading (vtable
 // slot 70, PresetCritterAccel); then the SO step.
 // Also known as: UpdateBirdPhys (upstream readable / Sly 1 name; UpdateBirdPhys__FP3ALO).
 extern "C" void UpdateCritterXfWorld(CID96V *critter)
@@ -328,14 +328,14 @@ extern "C" void UpdateCritterXfWorld(CID96V *critter)
     UpdateSoXfWorld(critter);
 }
 
-// CID96 vtable slot 70: spring acceleration toward the heading basis with the spin parameters (AccelSoTowardMatBounded). (inferred)
+// CRITTER vtable slot 70: spring acceleration toward the heading basis with the spin parameters (AccelSoTowardMatBounded). (inferred)
 // Also known as: TurnBird (upstream readable / Sly 1 name; TurnBird__FP3ALOii).
 extern "C" void PresetCritterAccel(CID96V *critter)
 {
     AccelSoTowardMatBounded(critter, &critter->headingBasis, &critter->spinScale);
 }
 
-// CID96 vtable slot 5 (HandleMessage): the basic handler; when its startled animation ends (message 2 from its
+// CRITTER vtable slot 5 (HandleMessage): the basic handler; when its startled animation ends (message 2 from its
 // ASEGA playing that clip) the critter flees.
 // Also known as: OnBirdMessage (upstream readable / Sly 1 name; OnBirdMessage__FP2LO5MSGIDPv).
 extern "C" void HandleCritterMessage(CID96V *critter, int kind, ASEGA *anim)
@@ -345,8 +345,8 @@ extern "C" void HandleCritterMessage(CID96V *critter, int kind, ASEGA *anim)
         SetCritterState(critter, CRITTER_FLEE);
 }
 
-// CID96 vtable slot 19 (RenderSelf): the SO render.
-void CID96::RenderSelf()
+// CRITTER vtable slot 19 (RenderSelf): the SO render.
+void CRITTER::RenderSelf()
 {
     CID96V *critter = (CID96V *)this;
     RenderSoSelf(critter);

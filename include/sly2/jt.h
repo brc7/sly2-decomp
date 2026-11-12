@@ -57,7 +57,7 @@ struct JTPOCKET
 {
       int idGadget;   /* gadget id */
       PROXY *proxy;    /* proxy that spawns the gadget object */
-      CID100 *pcid100;   /* the gadget object */
+      TOSSABLE *pcid100;   /* the gadget object */
 };
 
 /* JTSWEEPBL: a cane sweep blend: two blend entries (incoming, outgoing) and the blended segment

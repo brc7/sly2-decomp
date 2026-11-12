@@ -1,7 +1,7 @@
-// gadget.cpp -- CID100..102 (0x64..0x66), the gadget objects (docs/engine.md section 7): tossables, Bentley's
+// gadget.cpp -- TOSSABLE..102 (0x64..0x66), the gadget objects (docs/engine.md section 7): tossables, Bentley's
 // trigger bomb / mines (SetCid100State SetTossableState: -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health
-// extractor) and the guard trap; the blast probe that pushes the bodies around it. Entry points: the CID100 and
-// CID102 vtables, TriggerTossable (gadget button) and the predicates IsThrowableGadget / IsHealthExtractor. TU 0x223F70..0x2259D8 (28 functions,
+// extractor) and the guard trap; the blast probe that pushes the bodies around it. Entry points: the TOSSABLE and
+// GUARDTRAP vtables, TriggerTossable (gadget button) and the predicates IsThrowableGadget / IsHealthExtractor. TU 0x223F70..0x2259D8 (28 functions,
 // address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gadget
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_gadget
@@ -25,7 +25,7 @@ struct M4 { M3 basis; qwordV position; };
 
 // The real classes behind the views below, for their virtual calls.
 static inline ::SO *AsSo(void *pso) { return (::SO *)pso; }
-static inline ::CID100 *AsTossable(void *p) { return (::CID100 *)p; }
+static inline ::TOSSABLE *AsTossable(void *p) { return (::TOSSABLE *)p; }
 
 enum CIDV { CID_34 = 0x34 };
 struct BASIC;
@@ -219,7 +219,7 @@ static inline void SetStateVirtual(CID100V *gadget, int state)
     AsTossable(gadget)->SetState(state);
 }
 
-// CID100 vtable slot 7 (Init): SO init; blast damage -10, fired beyond 3000 units from the thrower, no pending
+// TOSSABLE vtable slot 7 (Init): SO init; blast damage -10, fired beyond 3000 units from the thrower, no pending
 // contact, pooled; LO flags 6.
 void InitTossable(CID100V *gadget)
 {
@@ -234,7 +234,7 @@ void InitTossable(CID100V *gadget)
     else ((LO *)gadget)->inlineFlags = flags | 6;
 }
 
-// CID100 vtable slot 14 (LoadFromBrx): SO load; its buoyancy and water drag (SOPHYS +0xD4, +0xD8) set to 2.
+// TOSSABLE vtable slot 14 (LoadFromBrx): SO load; its buoyancy and water drag (SOPHYS +0xD4, +0xD8) set to 2.
 extern "C" void LoadTossableFromBrx(CID100V *gadget, void *stream) {
     SOPHYSV *physics;
     LoadSoFromBrx(gadget, stream);
@@ -245,7 +245,7 @@ extern "C" void LoadTossableFromBrx(CID100V *gadget, void *stream) {
     }
 }
 
-// CID100 vtable slot 11 (AddHierarchy): SO add; a gadget with a state machine (re)applies it.
+// TOSSABLE vtable slot 11 (AddHierarchy): SO add; a gadget with a state machine (re)applies it.
 // Also known as: OnCarryAdd (upstream readable / Sly 1 name; OnCarryAdd__FP2LO).
 extern "C" void AddTossableHierarchy(CID100V *gadget)
 {
@@ -253,9 +253,9 @@ extern "C" void AddTossableHierarchy(CID100V *gadget)
     if (gadget->stateMachine) ReplaceSma(gadget->stateMachine, gadget, -1, 0, &gadget->smApplication);
 }
 
-// CID100 vtable slot 12 (RemoveHierarchy): SO removal, back to the pool, state machine released.
+// TOSSABLE vtable slot 12 (RemoveHierarchy): SO removal, back to the pool, state machine released.
 // Also known as: OnCarryRemove (upstream readable / Sly 1 name; OnCarryRemove__FP2LO).
-void CID100::RemoveHierarchy()
+void TOSSABLE::RemoveHierarchy()
 {
     CID100V *gadget = (CID100V *)this;
     RemoveSoHierarchy(gadget);
@@ -263,7 +263,7 @@ void CID100::RemoveHierarchy()
     ReleaseSma(&gadget->smApplication);
 }
 
-// CID100 vtable slot 16 (Update): SO update; a flying gadget with a pending contact sticks (StickTossable); a gadget
+// TOSSABLE vtable slot 16 (Update): SO update; a flying gadget with a pending contact sticks (StickTossable); a gadget
 // farther than maxThrowerDistance from its thrower is fired (vtable slot 75, TriggerTossable). (inferred)
 // Also known as: UpdateCarry (upstream readable / Sly 1 name; UpdateCarry__FP2LO).
 void UpdateTossable(CID100V *gadget)
@@ -287,7 +287,7 @@ void UpdateTossable(CID100V *gadget)
     }
 }
 
-// CID100 damage handler: a flying or stuck gadget detonates. Always absorbs the damage.
+// TOSSABLE damage handler: a flying or stuck gadget detonates. Always absorbs the damage.
 // Also known as: FAcceptCarryContact (upstream readable / Sly 1 name; FAcceptCarryContact__FP3ALO).
 extern "C" int TakeTossableDamage(CID100V *gadget)
 {
@@ -300,7 +300,7 @@ extern "C" int TakeTossableDamage(CID100V *gadget)
 }
 
 struct MSG100 { int unknown0; CID100V *target; };
-// CID100 vtable slot 5 (HandleMessage): the basic handler; message 4 aimed at a flying or stuck gadget detonates it.
+// TOSSABLE vtable slot 5 (HandleMessage): the basic handler; message 4 aimed at a flying or stuck gadget detonates it.
 // (inferred)
 // Also known as: OnCarryMessage (upstream readable / Sly 1 name; OnCarryMessage__FP2LO5MSGIDPv).
 extern "C" void HandleTossableMessage(CID100V *gadget, int kind, MSG100 *message)
@@ -326,7 +326,7 @@ void StickTossable(CID100V *gadget, SOV *surface)
     }
 }
 
-// CID100 intersection filter: the SO answer, plus (MaxInt bit 1) the hero (CID 0x34) while the gadget is held
+// TOSSABLE intersection filter: the SO answer, plus (MaxInt bit 1) the hero (CID 0x34) while the gadget is held
 // or fading, so it does not collide with the one carrying it.
 // Also known as: OverlapKindCarry (upstream readable / Sly 1 name; OverlapKindCarry__FP3ALOT0).
 extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
@@ -339,7 +339,7 @@ extern "C" int ShouldTossableIgnoreIntersection(CID100V *gadget, BASIC *other)
     return ignore;
 }
 
-// CID100 new-contact hook: the SO setup, then the contact's elasticity is 0.25 (a soft bounce).
+// TOSSABLE new-contact hook: the SO setup, then the contact's elasticity is 0.25 (a soft bounce).
 extern "C" float AdjustTossableNewXp(CID100V *gadget, XP *contact, int end) {
     AdjustSoNewXp(gadget, contact, end);
     contact->gElasticity = 0.25f;
@@ -367,7 +367,7 @@ static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm
 static inline const SIDE *SideAt(const CONTACT *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 // Address of coefficient `index` in the table.
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
-// CID100 contact update: after the SO update (and not in the first D_002C42E0 seconds after being picked up), each
+// TOSSABLE contact update: after the SO update (and not in the first D_002C42E0 seconds after being picked up), each
 // contact this gadget owns is examined: a sticky gadget touching a free surface (not contact kind 8, no blocking class
 // up its parent chain) records it as the stick target with the contact normal (sign by end, D_002C3C60); a held
 // gadget notes that it touched something.
@@ -484,7 +484,7 @@ static inline qwordV Sqrt(qwordV len) {
 // Lane x as a float; d divided by lane x of len (a normalize step).
 static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
-// CID100 orientation update (not while held or fading): after the SO step, gadgets 0x1A/0x29 spring-rotate toward
+// TOSSABLE orientation update (not while held or fading): after the SO step, gadgets 0x1A/0x29 spring-rotate toward
 // their homing target in the horizontal plane (or, without one, upright).
 // Also known as: ApplyCarryGravity (upstream readable / Sly 1 name; ApplyCarryGravity__FP3ALO).
 extern "C" void OrientTossableToTarget(CID100V *gadget) {
@@ -697,7 +697,7 @@ static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A97A8 __asm__("D_002A97A8") = 3.40282347e+38f; }
-// CID100 state change (vtable slot 76): stamps the time, drops the pending contact and the position/rotation jobs.
+// TOSSABLE state change (vtable slot 76): stamps the time, drops the pending contact and the position/rotation jobs.
 // Held: constraints off, velocities zeroed, the position and rotation are locked to where they are (jobs 7/2).
 // Stuck: constraints on, velocities zeroed; a health extractor also turns its z axis along the stick normal.
 // Flying: detached (parent flags 15), free; the homing gadget 0x29 keeps rotation constrained and picks the nearest
@@ -763,8 +763,8 @@ void SetTossableState(CID100V *gadget, int state)
     if (gadget->smApplication && gadget->state >= 0) SetSmaGoalIfReachable(gadget->smApplication, D_002C4398[gadget->state]);
 }
 
-// CID102 (guard trap) vtable slot 7 (Init): the tossable init.
-void CID102::Init()
+// GUARDTRAP (guard trap) vtable slot 7 (Init): the tossable init.
+void GUARDTRAP::Init()
 {
     CID100V *gadget = (CID100V *)this;
     InitTossable(gadget);
@@ -797,7 +797,7 @@ static inline qwordV Splat(float f) {
     __asm__("pextlw %0,%2,%2\n\tpextlw %1,%0,%0" : "=r"(t),"=r"(r) : "r"(b));
     return r;
 }
-// CID102 vtable slot 16 (Update): the tossable update, then the extraction (see the block comment above), repeated
+// GUARDTRAP vtable slot 16 (Update): the tossable update, then the extraction (see the block comment above), repeated
 // while it changes the state.
 // Also known as: UpdateExtractor (upstream readable / Sly 1 name; UpdateExtractor__FP2LO).
 extern "C" void UpdateGuardTrap(CID100V *gadget) {
@@ -887,7 +887,7 @@ static inline qwordV LoadCoefficient(){
 }
 // Qword wrapper convertible back to qwordV.
 struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;}};
-// CID102 state change (vtable slot 76): leaving extraction lets the actor go (unhooks it, behavior 0xB0 to state 2,
+// GUARDTRAP state change (vtable slot 76): leaving extraction lets the actor go (unhooks it, behavior 0xB0 to state 2,
 // colour goal reset); entering it picks the nearest class-0x38 actor within 400 passing CanSetStepguardSpecial(0xB),
 // hooks it (AddSoXa), sets its velocity to half its current one with z = 400 (a hop), then SendStepguardRootBhvMode6.
 // Also known as: SetExtractorState (upstream readable / Sly 1 name; SetExtractorState__FP2LOi).

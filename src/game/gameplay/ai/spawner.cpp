@@ -81,7 +81,7 @@ void *AllocFromStack(AI *pa);
 void *AllocCopyFromWorldHeap(AI *pa, void *pv);
 void *AllocClearedFromWorldHeap(AI *pa);
 void *FindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, LO *c);
-void AddGuardScriptFollowPath(CID113 *o, int a, int b, int c);
+void AddGuardScriptFollowPath(GUARDSCRIPT *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pcObject, SOPART ***papObject);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
@@ -115,7 +115,7 @@ STEPGUARD *SpawnGuardFromSpawner(SPAWNER *spawner, SPAWNSELECTOR *selector, qwor
 }
 float RandomFloatInRange(float gMin, float gMax);
 int RandomIntInRange(int nMin, int nMax);
-CID113 *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
+GUARDSCRIPT *CreateLo(int cid, void *psoParent, int oid, int isplice) __asm__("CreateLo__F3CIDP2SO3OIDi");
 
 // 0x173158: Spawner (SPAWNER) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
 // 1, respawn delays 30 and 50 s.
@@ -232,7 +232,7 @@ extern "C" void PostSpawnerLoad(SPAWNER *spawner) {
         case SELECTOR_CURVE:
             {
                 // A curve spawn walks its guard along the curve: a script (cid 0x71) with one goto command.
-                CID113 *script;
+                GUARDSCRIPT *script;
                 selector->object = (LO *)FindSwObject__FP2SWi3OIDP2LO(&g_sw, 5, selector->oid, 0);
                 script = CreateLo(0x71, 0, 0x2CB, -1);
                 AddGuardScriptFollowPath(script, selector->oid, 1, -1);

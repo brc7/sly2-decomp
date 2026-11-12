@@ -24,7 +24,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    (the per-file P/S records mapped onto it field for field). Matrices that inline asm moves as quadword rows use the
    TU-private M3/M4 (qword rows) and are converted at the boundary to the header's float MATRIX3/MATRIX4. The hero is
    the header STEPPLAYER (its target rows through STEP::aqwTarget); the hand target the headers do not name is a view
-   derived from LO (CID20). */
+   derived from LO (HANDATTACH). */
 
 union U { qword q; float f[4]; };
 struct M3 { qword r[3]; };
@@ -39,7 +39,7 @@ struct M4 { qword r[4]; };
    currently playing. */
 
 /* A hand target of CID 0x14 (placeholder name): its class mask at +0xE0. */
-struct CID20 : LO
+struct HANDATTACH : LO
 {
     char pad50[0xE0 - 0x50];
     uint grfHand;           /* +0xE0 */
@@ -104,7 +104,7 @@ void GetClosestPointOnJtHandsCurveB(JTHANDS *phands, qword pos, float *pu, float
 float EvaluateJtHandsCurveA(JTHANDSCTX *pctx, float u);
 float EvaluateJtHandsCurveB(JTHANDSCTX *pctx, float u);
 void UpdateJtHands(JTHANDS *phands);
-CID20 *FindJtHandsTarget(STEPPLAYER *pjt, LO *plo);
+HANDATTACH *FindJtHandsTarget(STEPPLAYER *pjt, LO *plo);
 void SetJtHandsTarget(JTHANDS *phands, int nMode);
 }
 /* Per-caller views of callees that other callers declare differently (see the mismatch table). */
@@ -401,9 +401,9 @@ extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 
 // The first nearby object of class 0x14 whose flags match the hands' flags.
 // Also known as: PloReachGrip (upstream readable / Sly 1 name; PloReachGrip__FP5ACTORi).
-extern "C" CID20 *FindJtHandsTarget(STEPPLAYER *jt, LO *lo)
+extern "C" HANDATTACH *FindJtHandsTarget(STEPPLAYER *jt, LO *lo)
 {
-    CID20 *apcid[4];
+    HANDATTACH *apcid[4];
     int c = FindSwObjectsByClass(&g_sw, 0x401, 0x14, lo, 4, (LO **)apcid);
     int i;
     for (i = 0; i < c; i++) {
@@ -433,10 +433,10 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
             LO *shape = hands->ploTarget;
             FindShapeClosestPoint(shape, GetLoWorldPos(hands->owner), 0, 0, 0, 0, &hands->distanceAlong);
             hands->holdKind = 0;
-        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((STEPPLAYER *)hands->owner)->grfGrabTarget)) {
+        } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((HANDATTACH *)hands->ploTarget)->grfHand & ((STEPPLAYER *)hands->owner)->grfGrabTarget)) {
             hands->holdKind = 2;
         } else if (IsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
-            CID20 *pcid = FindJtHandsTarget((STEPPLAYER *)hands->owner, hands->ploTarget);
+            HANDATTACH *pcid = FindJtHandsTarget((STEPPLAYER *)hands->owner, hands->ploTarget);
             if (pcid) {
                 hands->ploRef = pcid;
                 hands->holdKind = 2;
@@ -542,7 +542,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
                 : "r"(&work.original), "r"(intermediate));
         MulMatrix4Ret(secondDestination, product, originalArgument);
     }
-    CID20 *counterpart;
+    HANDATTACH *counterpart;
     {
         register qword first __asm__("$7"), row1 __asm__("$2"), row2 __asm__("$3"), row3 __asm__("$6");
         register SO *objectArgument __asm__("$5");
@@ -698,7 +698,7 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
     XF *xf = hands->ploHand->GetLocalTransform((MATRIX4 *)&buf);
     object->SetParent(hands->owner, xf, 0);
     m = *(M4 *)hands->ploHand->GetWorldMatrix();
-    CID20 *pcid = FindJtHandsTarget((STEPPLAYER *)hands->owner, object);
+    HANDATTACH *pcid = FindJtHandsTarget((STEPPLAYER *)hands->owner, object);
     if (pcid) {
         M4 u;
         M4 t = ConvertMat4BetweenLos(0, object, (M4 *)pcid->GetWorldMatrix());

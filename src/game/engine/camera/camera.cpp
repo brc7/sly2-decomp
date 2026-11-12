@@ -1,7 +1,7 @@
 // camera.cpp -- CAMERA (class cid 0x2C), a camera placed in the level by the designers (an XFM with an optional
 // look-at target, a focal length and a field of view), and CPCAMERA, the camera policy that puts the camera manager at
 // such a camera. A camera pushes the policy when it enters the world hierarchy (or at load, when lo.h's isInWorld bit is set) and revokes
-// it when it leaves. Entry points: CID44::Init, PostCameraLoad, Add/RemoveCameraHierarchy, CPCAMERA::Activate,
+// it when it leaves. Entry points: CAMERAMARKER::Init, PostCameraLoad, Add/RemoveCameraHierarchy, CPCAMERA::Activate,
 // DeactivateCpcamera, UpdateCpcamera (VU0 asm). TU 0x12E600..0x12EB48 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_camera
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_camera
@@ -20,7 +20,7 @@ typedef struct { qwordV r[3]; } M3;
 typedef struct { qwordV r[4]; } M4;
 
 /* View of the camera object. */
-typedef CID44 CAMERA;   /* the camera object (classes.h CID44; was a whole-object view) */
+typedef CAMERAMARKER CAMERA;   /* the camera object (classes.h CAMERAMARKER; was a whole-object view) */
 extern U D_002A2DA0, g_normalZ;
 extern "C" {
 void InitXfm(CAMERA *p);
@@ -43,7 +43,7 @@ float atanf(float g);
 }
 
 // Initializes a camera object (class cid 0x2C, vtable slot 7): XFM init, then the two vectors at +0x100/+0x110.
-void CID44::Init()
+void CAMERAMARKER::Init()
 {
     CAMERA *camera = (CAMERA *)this;
     InitXfm(camera);
@@ -113,7 +113,7 @@ void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vt
     void *hero = pvHero;
     CAMERA *camera = (CAMERA *)pv;
     ActivateCplcy(policy, hero, camera);
-    policy->pcamera = (CID44 *)camera;
+    policy->pcamera = (CAMERAMARKER *)camera;
     if (camera->fov != 0.0f)
         SetCmFov__FP2CMf(&g_cm, camera->fov);
 }
@@ -123,7 +123,7 @@ void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vt
 // Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__8CPLOOKATP2LOPv).
 extern "C" void DeactivateCpcamera(CPCAMERA *policy, int hero, CAMERA *camera)
 {
-    if (policy->pcamera == (CID44 *)camera) {
+    if (policy->pcamera == (CAMERAMARKER *)camera) {
         if (camera->cutOnEnd != 0)
             CutCm__FP2CM(&g_cm);
         policy->pcamera = 0;

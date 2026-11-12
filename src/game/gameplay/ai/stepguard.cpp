@@ -147,7 +147,7 @@ void FreeLeap(int h);
 void FreeDirAnim(int h);
 void AddStepguardAttackOid(STEPGUARD *guard);   /* the oid passes through in a1 */
 void ResolveStepguardAttacks(STEPGUARD *guard);
-void SetGuardAttackBindingKind2(CID120 *attack);
+void SetGuardAttackBindingKind2(GUARDATTACK *attack);
 void SetStepguardAnimBinding(STEPGUARD *guard, void *sgfList, OID oid, int flags);
 void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *table);
 void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *table);
@@ -312,7 +312,7 @@ void STEPGUARD::PostLoad()
     InitHazardWatch(guard->hazardWatch, guard);
     if (!guard->proxyRecord->isCopy)
         PostSwCallback(&g_sw, guard, D_002A8608.l, 0);
-    guard->altPatrolScript = (CID113 *)CreateLo((CID)0x71, 0, (OID)0x2CB, -1);
+    guard->altPatrolScript = (GUARDSCRIPT *)CreateLo((CID)0x71, 0, (OID)0x2CB, -1);
     AddGuardScriptGoto(guard->altPatrolScript, -1, -1, 40.0f);
     guard->homeRecord = (SSGE *)guard->altPatrolScript->commands.head;
     guard->altPatrolScript->Remove();
@@ -968,7 +968,7 @@ extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void UpdateStepguardSpecial(STEPGUARD *guard) __asm__("UpdateStepguardSpecial");
 void UpdateStepguardDetectTargets(STEPGUARD *guard) __asm__("UpdateStepguardDetectTargets");
 int IsAnimBindingDone(ANIMBINDING *binding) __asm__("IsAnimBindingDone");
-void SetStepguardAttack(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset) __asm__("SetStepguardAttack");
+void SetStepguardAttack(STEPGUARD *guard, GUARDATTACK *attack, int aimTarget, qword aimOffset) __asm__("SetStepguardAttack");
 void UpdateStepguardAim(STEPGUARD *guard) __asm__("UpdateStepguardAim");
 void UpdateStuckWatch(void *p) __asm__("UpdateStuckWatch");
 void UpdateHazardWatch(void *p) __asm__("UpdateHazardWatch");
@@ -3034,7 +3034,7 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(BHV156 *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
 // Also known as: SetGuardPatrol (upstream readable / Sly 1 name; SetGuardPatrol__FP5GUARDi).
-extern "C" void SetStepguardPatrolScript(STEPGUARD *guard, CID113 *script)
+extern "C" void SetStepguardPatrolScript(STEPGUARD *guard, GUARDSCRIPT *script)
 {
     if (guard->patrolScript == script)
         return;
@@ -3243,17 +3243,17 @@ extern "C" void SetTargetRecordState(TARGETREC *record, int state)
 
 // 0x20A9C0 GetStepguardDefaultAttack
 // Appends an attack (oid and resolved object) to the guard's two attack lists.
-static __inline__ void PushStepguardAttack(STEPGUARD *guard, int oid, CID120 *attack)
+static __inline__ void PushStepguardAttack(STEPGUARD *guard, int oid, GUARDATTACK *attack)
 {
     guard->attacks[guard->numAttacks++] = attack;
     guard->attackOids[guard->attackOidCount++] = oid;
 }
 // 0x20A9C0: Returns the guard's first attack object, creating the default one (cid 0x78, oid 0x2CC) if it has none.
-extern "C" CID120 *GetStepguardDefaultAttack(STEPGUARD *guard)
+extern "C" GUARDATTACK *GetStepguardDefaultAttack(STEPGUARD *guard)
 {
-    CID120 *attack;
+    GUARDATTACK *attack;
     if (guard->attackOidCount == 0) {
-        attack = (CID120 *)CreateLo((CID)0x78, guard, (OID)OID_DEFAULT_ATTACK, -1);
+        attack = (GUARDATTACK *)CreateLo((CID)0x78, guard, (OID)OID_DEFAULT_ATTACK, -1);
         PushStepguardAttack(guard, OID_DEFAULT_ATTACK, attack);
     } else {
         attack = guard->attacks[0];
@@ -3294,7 +3294,7 @@ extern "C" void ResolveStepguardAttacks(STEPGUARD *guard)
     for (i = 0; i < guard->attackOidCount; i++) {
         LO *attack = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, guard->attackOids[i], guard);
         if (attack)
-            guard->attacks[guard->numAttacks++] = (CID120 *)attack;
+            guard->attacks[guard->numAttacks++] = (GUARDATTACK *)attack;
     }
 }
 
@@ -3313,12 +3313,12 @@ extern "C" void ClearStepguardAttacks(STEPGUARD *guard)
 namespace M_func_0020AB68 {
 extern float D_002A88C4 __asm__("D_002A88C4");
 float RandomFloatInRange__Fff(float a, float b) __asm__("RandomFloatInRange__Fff");
-void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset) __asm__("SetStepguardAimAct");
+void SetStepguardAimAct(STEPGUARD *guard, GUARDATTACK *attack, int aimTarget, qword aimOffset) __asm__("SetStepguardAimAct");
 }
 // 0x20AB68: Switches the current attack: stops the old animation, sets the cooldown (now + random in the attack's
 // range), starts the new animation and its aim.
 // Also known as: SetGuardResponse (upstream readable / Sly 1 name; SetGuardResponse__FP5GUARDP9ACTIONOBJiG9VU_VECTOR).
-extern "C" void SetStepguardAttack(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset)
+extern "C" void SetStepguardAttack(STEPGUARD *guard, GUARDATTACK *attack, int aimTarget, qword aimOffset)
 {
     using namespace M_func_0020AB68;
     if (guard->currentAttack) {
@@ -3346,7 +3346,7 @@ void ReleaseAct(ACT **pact) __asm__("ReleaseAct");
 // arm, toward the target) of the current attack.
 // Also known as: SetGuardActionAim (upstream readable / Sly 1 name;
 //   SetGuardActionAim__FP5GUARDP9ACTIONOBJiG9VU_VECTOR).
-extern "C" void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, int aimTarget, qword aimOffset)
+extern "C" void SetStepguardAimAct(STEPGUARD *guard, GUARDATTACK *attack, int aimTarget, qword aimOffset)
 {
     using namespace M_func_0020AC28;
     if (guard->aimAttack) {
@@ -3389,11 +3389,11 @@ extern "C" void UpdateStepguardAim(STEPGUARD *guard)
 
 // 0x20AD38 InitGuardAttack
 namespace M_func_0020AD38 { extern float D_002A88C8 __asm__("D_002A88C8"); }
-// 0x20AD38: Guard attack (CID120, cid 0x78) vtable slot 7 (Init): LO Init, range 0..300, height -5000..5000,
+// 0x20AD38: Guard attack (GUARDATTACK, cid 0x78) vtable slot 7 (Init): LO Init, range 0..300, height -5000..5000,
 // cooldown 0.2..0.5 s, angle 10 degrees, no oids, empty binding.
-void CID120::Init()
+void GUARDATTACK::Init()
 {
-    CID120 *attack = this;
+    GUARDATTACK *attack = this;
     LO::Init();
     attack->distance.minValue = 0;
     attack->distance.maxValue = 300.0f;
@@ -3412,7 +3412,7 @@ void CID120::Init()
 
 // 0x20ADE8 CloneGuardAttack
 // 0x20ADE8: Guard attack vtable slot 41 (Clone): LO clone plus a copy of its binding.
-void CID120::Clone(LO *ploBase)
+void GUARDATTACK::Clone(LO *ploBase)
 {
     LO::Clone(ploBase);
     CloneAnimBinding(&binding);
@@ -3430,10 +3430,10 @@ void PredictAsegTransform(ASEG *aseg, STEPGUARD *root, XF *so, XF *relativeTo, s
 // effector is, relative to the aim object, at the strike label of the attack animation (inferred).
 }
 // Also known as: PostLoadGuardAction (upstream readable / Sly 1 name; PostLoadGuardAction__FP2LO).
-void CID120::PostLoad()
+void GUARDATTACK::PostLoad()
 {
     using namespace M_func_0020AE18;
-    CID120 *attack = this;
+    GUARDATTACK *attack = this;
     LO *object;
     LO::PostLoad();
     for (object = attack->parent; object && !IsBasicDerivedFrom__FP5BASIC3CID(object, CID_STEPGUARD); object = object->parent)
@@ -3458,11 +3458,11 @@ void CID120::PostLoad()
 
 // 0x20AF08 SetGuardAttackAngleDegrees
 // 0x20AF08: Splice option: sets the attack angle (given in degrees, stored in radians).
-extern "C" void SetGuardAttackAngleDegrees(CID120 *attack, float degrees) { attack->angle = degrees * 0.01745329424738884f; }
+extern "C" void SetGuardAttackAngleDegrees(GUARDATTACK *attack, float degrees) { attack->angle = degrees * 0.01745329424738884f; }
 
 // 0x20AF28 SetGuardAttackOids
 // 0x20AF28: Splice option: sets the attack's aim object, effector and strike label (inferred).
-extern "C" void SetGuardAttackOids(CID120 *attack, int aimObjectOid, int effectorOid, int strikeLabel)
+extern "C" void SetGuardAttackOids(GUARDATTACK *attack, int aimObjectOid, int effectorOid, int strikeLabel)
 {
     attack->aimObjectOid = aimObjectOid;
     attack->effectorOid = effectorOid;
@@ -3471,7 +3471,7 @@ extern "C" void SetGuardAttackOids(CID120 *attack, int aimObjectOid, int effecto
 
 // 0x20AF38 SetGuardAttackBinding
 // 0x20AF38: Splice option: sets the attack's animation binding.
-extern "C" void SetGuardAttackBinding(CID120 *attack, OID oid, int flags)
+extern "C" void SetGuardAttackBinding(GUARDATTACK *attack, OID oid, int flags)
 {
     ReleaseAnimBinding(&attack->binding, attack->guard);
     attack->binding.oid = oid;
@@ -3480,7 +3480,7 @@ extern "C" void SetGuardAttackBinding(CID120 *attack, OID oid, int flags)
 
 // 0x20AF88 SetAndResolveGuardAttackBinding
 // 0x20AF88: Sets and resolves the attack's animation binding.
-extern "C" void SetAndResolveGuardAttackBinding(CID120 *attack, OID oid, int flags)
+extern "C" void SetAndResolveGuardAttackBinding(GUARDATTACK *attack, OID oid, int flags)
 {
     ANIMBINDING *binding;
     binding = &attack->binding;
@@ -3497,7 +3497,7 @@ struct PAYLOAD2 { int parameter; };
 struct PAYLOAD2 *AllocLeap(int cb) __asm__("AllocLeap");
 void InitAsegArc(struct PAYLOAD2 *payload) __asm__("InitAsegArc");
 // 0x20AFF0: Splice option: sets the attack's binding to a leap payload.
-void SetGuardAttackBindingKind2(CID120 *attack, int parameter) __asm__("SetGuardAttackBindingKind2"); void SetGuardAttackBindingKind2(CID120 *attack, int parameter)
+void SetGuardAttackBindingKind2(GUARDATTACK *attack, int parameter) __asm__("SetGuardAttackBindingKind2"); void SetGuardAttackBindingKind2(GUARDATTACK *attack, int parameter)
 {
     ANIMBINDING *binding = &attack->binding;
     ReleaseAnimBinding(binding, attack->guard);
@@ -3511,7 +3511,7 @@ void SetGuardAttackBindingKind2(CID120 *attack, int parameter) __asm__("SetGuard
 
 // 0x20B060 SetAndResolveGuardAttackBindingKind2
 // 0x20B060: Sets and resolves the attack's kind-2 binding.
-extern "C" void SetAndResolveGuardAttackBindingKind2(CID120 *attack)
+extern "C" void SetAndResolveGuardAttackBindingKind2(GUARDATTACK *attack)
 {
     SetGuardAttackBindingKind2(attack);
     ResolveAnimBinding(&attack->binding, attack->guard);

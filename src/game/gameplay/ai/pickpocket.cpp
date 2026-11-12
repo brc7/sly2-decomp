@@ -12,7 +12,7 @@
 #include "sly2/guard.h"
 #include "sly2/game.h"
 #include "sly2/sw.h"
-#include "sly2/classes.h"   /* CID99 */
+#include "sly2/classes.h"   /* LOOTPOUCH */
 
 // 0x1F1FB0 StaticInit_pickpocket and GlobalConstructors_pickpocket: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -36,7 +36,7 @@ enum { OID_LOOT_COINS = 0x2B3, OID_LOOT_ITEM = 0x2B5, LAUNCH_OBJECT = 0x2B0, LAU
 /* Pickpocket states (P::pickpocketState). */
 enum { PICKPOCKET_NONE = -1, PICKPOCKET_ALERT = 0, PICKPOCKET_COINS = 1, PICKPOCKET_ITEM = 2 };
 
-/* The guard is guard.h STEPGUARD (loot: GUARDLOOT); its loot pouch (STEPGUARD::lootPouch) is a CID99 (classes.h). */
+/* The guard is guard.h STEPGUARD (loot: GUARDLOOT); its loot pouch (STEPGUARD::lootPouch) is a LOOTPOUCH (classes.h). */
 
 struct TABLE { int minimum, maximum; float chance; struct PICK { int weight, key; } picks[6]; };
 typedef TABLE::PICK PICK;
@@ -139,7 +139,7 @@ extern "C" void SetStepguardPickpocketState(STEPGUARD *guard, int state)
         if (guard->pickpocketIndicator1) guard->pickpocketIndicator1->Add();
         break;
     }
-    stateMachine = ((CID99 *)guard->lootPouch)->psma;
+    stateMachine = ((LOOTPOUCH *)guard->lootPouch)->psma;
     if (stateMachine) SetSmaGoalIfReachable(stateMachine, D_002C3738[guard->pickpocketState + 1]);
 }
 
@@ -153,7 +153,7 @@ extern "C" void UpdateStepguardPickpocket(STEPGUARD *guard)
     int state;
     if (!guard->lootPouch) return;
     state = PICKPOCKET_NONE;
-    if (((CID99 *)guard->lootPouch)->pdprize) {
+    if (((LOOTPOUCH *)guard->lootPouch)->pdprize) {
         alertMask = GetSgfMask(SGF_COMBAT) | GetSgfMask(0x20) | GetSgfMask(5) | GetSgfMask(6)
             | GetSgfMask(SGF_KO) | GetSgfMask(SGF_JUGGLED) | GetSgfMask(0x16);
         if (guard->grfsg & alertMask)

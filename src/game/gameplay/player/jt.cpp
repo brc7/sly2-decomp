@@ -89,7 +89,7 @@ PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare")
 
 int FCanAcquireProxy(PROXY *pproxy) __asm__("CanAcquireProxy");
 
-/* The gadget id and thrower of a tossable (classes.h CID100); classes.h leaves CID100's words padded (objects family). */
+/* The gadget id and thrower of a tossable (classes.h TOSSABLE); classes.h leaves TOSSABLE's words padded (objects family). */
 struct CID100GADGET : SO
 {
     char pad150[0x15C - 0x150];
@@ -2057,7 +2057,7 @@ namespace M_func_0018B460 {
 typedef union {qword q;float f[4];} U;
 
 struct M3{U r[3];};struct M4{U r[4];};
-// The player is JT (the pickpocket fields), its interact target the STEPGUARD being robbed, whose lootPouch is the CID99
+// The player is JT (the pickpocket fields), its interact target the STEPGUARD being robbed, whose lootPouch is the LOOTPOUCH
 // pouch (launchFrame); the three offset acts (ACT5::offset) bend the hand, the wrist and unknown19A0 toward it.
 static inline STEPGUARD *Victim(JT *jt) { return (STEPGUARD *)jt->interactTarget; }
 struct WORK{union{struct M4 predicted;U scalar;}phase;struct M4 transform;U axis;struct M3 rotation;U relative,residual,gain;};
@@ -2138,7 +2138,7 @@ extern "C" void UpdateJtAttachCorrection(JT *jt)
                 register STEPGUARD *predictionOwner __asm__("$2") = (STEPGUARD *)jt->interactTarget;
                 register float capped __asm__("$f12");
                 register struct M4 *request __asm__("$6"), *optionalOutput __asm__("$7");
-                register CID99 *aim __asm__("$3");
+                register LOOTPOUCH *aim __asm__("$3");
                 register struct XF *sourceSpace __asm__("$5");
                 const int nullValue = 0;
                 __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu "
@@ -2308,7 +2308,7 @@ extern "C" void UpdateJtAttachCorrection(JT *jt)
             FaceStepToward(jt, Victim(jt)->lootPouch);
             /* the pouch's launch frame predicted min(ratio, D_002BF380) ahead; D_002BF390 (25 forward) in it, in Sly's
                root space */
-            LoadIdentityMatrix4(((CID99 *)Victim(jt)->lootPouch)->launchFrame, 0, &w.phase.predicted, 0, FpuMin(ratio, D_002BF380));
+            LoadIdentityMatrix4(((LOOTPOUCH *)Victim(jt)->lootPouch)->launchFrame, 0, &w.phase.predicted, 0, FpuMin(ratio, D_002BF380));
             const struct M4 *predicted = &w.phase.predicted;
             qword predictedPoint = VuMulMatrix4(predicted->r[0].q, predicted->r[1].q, predicted->r[2].q,
                                                 predicted->r[3].q, D_002BF390);
@@ -3752,7 +3752,7 @@ extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
         ppocket->pcid100 = 0;
     }
     if (lo != 0) {
-        ppocket->pcid100 = (CID100 *)lo;
+        ppocket->pcid100 = (TOSSABLE *)lo;
         SubscribeLoObject(lo, jt);
     }
 }
@@ -3802,7 +3802,7 @@ extern int g_grfjoyt;
 
 extern float D_002BF3EC;
 extern float D_002BF3F0;
-int FPocketItemCarried(CID100 *pcid100) __asm__("IsTossableActive");
+int FPocketItemCarried(TOSSABLE *pcid100) __asm__("IsTossableActive");
 extern "C" JTPOCKET *GetJtGadgetRecord(JT *pjt, int idGadget);
 // JT slot 99: whether Sly can use the gadget now (per-state allow lists; the aiming state allows only the carried
 // gadget).

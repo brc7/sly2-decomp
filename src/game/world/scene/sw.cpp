@@ -157,13 +157,13 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid34,SLY2_OFFSETOF(POLESPOT, dleGrab));
     InitDl__FP2DLi(&world->dlCid38,SLY2_OFFSETOF(CID38, dleGrab));
     InitDl__FP2DLi(&world->dlCid35,SLY2_OFFSETOF(CID35, dleGrab));
-    InitDl__FP2DLi(&world->dlCid40,SLY2_OFFSETOF(CID40, dleList));
+    InitDl__FP2DLi(&world->dlCid40,SLY2_OFFSETOF(JUMPTARGET, dleList));
     InitDl__FP2DLi(&world->dlCid27,SLY2_OFFSETOF(CID27, dleGrab));
     InitDl__FP2DLi(&world->dlCid9,SLY2_OFFSETOF(CID9, dleList));
     InitDl__FP2DLi(&world->dlSma,SLY2_OFFSETOF(SMA, dleSw));
     InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(NOISE, next));
     InitDl__FP2DLi(&world->dlStepguard,SLY2_OFFSETOF(STEPGUARD, dleGuard));
-    InitDl__FP2DLi(&world->dlCid98,SLY2_OFFSETOF(CID98, dleBreakable));
+    InitDl__FP2DLi(&world->dlCid98,SLY2_OFFSETOF(BREAKABLE, dleBreakable));
     InitSl(&world->slPoctl,SLY2_OFFSETOF(POCTL, next));
     InitSl(&world->slShd,SLY2_OFFSETOF(SHDBLIP, pshdblipNext));
     InitSl(&world->slSaa,SLY2_OFFSETOF(SAA, next));

@@ -84,7 +84,7 @@ void SetBhvNeelaChaseState(BHV174 *p, int n);
 void SaveBhvScriptResumeState(BHV *a, SSGRESUME *b);
 void PopBhv(BHV **p);
 BHV *PushStepBehavior(NEELA *p, int b);
-void SetBhvScriptScript(BHV169 *o, CID113 *a, int b, SSGRESUME *c);
+void SetBhvScriptScript(BHV169 *o, GUARDSCRIPT *a, int b, SSGRESUME *c);
 void BroadcastGameEvent(void *p, int a, NEELA *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(BHV *p, BHVGUARDRECDATA *pf);
@@ -401,7 +401,7 @@ extern "C" void SendRootBhvMode15(NEELA *neela, int n)
     BHVGUARDRECDATA f;
     BHV *po;
     func_002333B4(&neela->resumeState, 0, 0xC);
-    neela->chaseScript = (CID113 *)n;
+    neela->chaseScript = (GUARDSCRIPT *)n;
     func_002333B4(&f, 0, sizeof(f));
     f.kind = 0xF;
     po = FindStepBehavior(neela, CID_BHVGUARD);

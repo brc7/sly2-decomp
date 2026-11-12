@@ -346,7 +346,7 @@ parent TARGET; 51 options in all.
 | 924 | `unknown128` | float | get set file | 1012 |
 | 925 | `unknown134` | float | get set file | 1015 |
 
-## CID20 (cid 20)
+## HANDATTACH (cid 20)
 
 parent XFM; 34 options in all.
 
@@ -700,7 +700,7 @@ parent XFM; 41 options in all.
 | 781 | `sub-object ploGroup` | object&lt;LO&gt; | file | 856 |
 | 782 | `sub-object grfPlayers` | int | get set file | 857 |
 
-## CID40 (cid 40)
+## JUMPTARGET (cid 40)
 
 parent XFM; 34 options in all.
 
@@ -708,7 +708,7 @@ parent XFM; 34 options in all.
 |---|---|---|---|---|
 | 795 | `+0xE8` | float | get set file | 870 |
 
-## CID41 (cid 41)
+## WARPDEST (cid 41)
 
 parent XFM; 34 options in all.
 
@@ -743,7 +743,7 @@ parent XFM; 40 options in all.
 | 212 | `sub-object +0xC` | float | file | 104 |
 | 213 | `sub-object +0x10` | float | file | 105 |
 
-## CID44 (cid 44)
+## CAMERAMARKER (cid 44)
 
 parent XFM; 39 options in all.
 
@@ -1033,7 +1033,7 @@ parent STEP; 213 options in all.
 | 396 | `RefThunk_AddStepguardForceClass` | - | method(1) file | 270 |
 | 397 | `RefThunk_RemoveStepguardForceClass` | - | method(1) file | 271 |
 | 398 | `RefThunk_ClearStepguardForceClasses` | - | method(0) file | 272 |
-| 399 | `patrolScript` / `SetStepguardPatrolScript` | object&lt;CID113&gt; | get set file | 273 |
+| 399 | `patrolScript` / `SetStepguardPatrolScript` | object&lt;GUARDSCRIPT&gt; | get set file | 273 |
 | 400 | `walkTimes` | lm | get set file | 274 |
 | 401 | `pauseTimes` | lm | get set file | 275 |
 | 402 | `coinCountOverride` | int | get set file | 276 |
@@ -1064,7 +1064,7 @@ parent STEP; 213 options in all.
 | 427 | `?` | object&lt;VOL&gt; | none | 303 |
 | 428 | `pickpocketIndicator0` | object&lt;VOL&gt; | get set file | 304 |
 | 429 | `pickpocketIndicator1` | object&lt;VOL&gt; | get set file | 305 |
-| 430 | `lootPouch` | object&lt;CID99&gt; | get set file | 306 |
+| 430 | `lootPouch` | object&lt;LOOTPOUCH&gt; | get set file | 306 |
 | 431 | `isLootFixed` | bool | get set file | 307 |
 | 432 | `RefThunk_AddStepguardLootCoins` | - | method(1) file | 308 |
 | 433 | `RefThunk_AddStepguardLootItem_Opt433` | - | method(1) file | 309 |
@@ -1538,7 +1538,7 @@ parent DPRIZE; 101 options in all.
 
 parent DPRIZE; 95 options in all; nothing new.
 
-## CID96 (cid 96)
+## CRITTER (cid 96)
 
 parent SO; 97 options in all.
 
@@ -1566,7 +1566,7 @@ parent SO; 85 options in all.
 |---|---|---|---|---|
 | 892 | `followCameraZ` | bool | get set file | 978 |
 
-## CID98 (cid 98)
+## BREAKABLE (cid 98)
 
 parent SO; 108 options in all.
 
@@ -1597,11 +1597,11 @@ parent SO; 108 options in all.
 | 935 | `reactionMask` | int | get set | 1046 |
 | 936 | `RefThunk_ScheduleBreakableReaction` | - | method(0) | 1047 |
 
-## CID99 (cid 99)
+## LOOTPOUCH (cid 99)
 
 parent SO; 84 options in all; nothing new.
 
-## CID100 (cid 100)
+## TOSSABLE (cid 100)
 
 parent SO; 95 options in all.
 
@@ -1619,17 +1619,17 @@ parent SO; 95 options in all.
 | 965 | `thrower` | object&lt;LO&gt; | get set file | 1111 |
 | 966 | `maxThrowerDistance` | float | get set file | 1112 |
 
-## CID101 (cid 101)
+## TRIGGERBOMB (cid 101)
 
-parent CID100; 95 options in all.
+parent TOSSABLE; 95 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 183 | `smApplication` | object&lt;SMA&gt; | get | 1103 |
 
-## CID102 (cid 102)
+## GUARDTRAP (cid 102)
 
-parent CID100; 96 options in all.
+parent TOSSABLE; 96 options in all.
 
 | id | name | type | access | rec |
 |---|---|---|---|---|
@@ -1680,7 +1680,7 @@ parent SO; 91 options in all.
 | 1125 | `+0x180` | object&lt;XFM&gt; | get set file | 1309 |
 | 1126 | `+0x184` | float | get set file | 1310 |
 
-## CID106 (cid 106)
+## PATHMESH (cid 106)
 
 parent SO; 85 options in all.
 
@@ -1706,7 +1706,7 @@ parent SO; 95 options in all.
 | 1137 | `jobCondition` | object&lt;JOB&gt; | get file | 1322 |
 | 1138 | `requiredPowerup` | int | get file | 1323 |
 
-## CID108 (cid 108)
+## AMMOPICKUP (cid 108)
 
 parent SO; 87 options in all.
 
@@ -1763,7 +1763,7 @@ parent LO; 42 options in all.
 | 549 | `lmSpin` | lm | get set file | 466 |
 | 550 | `pitch` | float | get set file | 467 |
 
-## CID113 (cid 113)
+## GUARDSCRIPT (cid 113)
 
 parent LO; 52 options in all.
 
@@ -1985,7 +1985,7 @@ parent LO; 46 options in all.
 | 1150 | `respawnDelay2` | float | get set file | 1335 |
 | 1151 | `mode` | int | get set file | 1336 |
 
-## CID120 (cid 120)
+## GUARDATTACK (cid 120)
 
 parent LO; 46 options in all.
 
@@ -2530,7 +2530,7 @@ parent BHV; 16 options in all.
 | id | name | type | access | rec |
 |---|---|---|---|---|
 | 236 | `RefThunk_JumpBhvScriptToLabel` | - | method(1) | 1359 |
-| 1172 | `script` | object&lt;CID113&gt; | get | 1358 |
+| 1172 | `script` | object&lt;GUARDSCRIPT&gt; | get | 1358 |
 
 ## BHVPATROL (cid 170)
 

@@ -746,7 +746,7 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_SetAndResolveGuardAttackBinding)
 SLY2_SPLICEWRAP_END
 
 extern "C" void SetGuardAttackBindingKind2(void *p, int, float, float, float, float);
-// Splice binding for option 371 on CID120 (g_aeopid[365], thunkUser): unpacks the script's 5 arguments (Oid, Float,
+// Splice binding for option 371 on GUARDATTACK (g_aeopid[365], thunkUser): unpacks the script's 5 arguments (Oid, Float,
 // Float, Float, Float) with RefSetArgsFromSplice, calls SetGuardAttackBindingKind2 and returns nothing to the script.
 extern "C" CRef RefThunk_SetGuardAttackBindingKind2(void *p, int c, void *aref)
 {
@@ -764,7 +764,7 @@ extern "C" CRef RefThunk_SetGuardAttackBindingKind2(void *p, int c, void *aref)
 }
 
 extern "C" void SetAndResolveGuardAttackBindingKind2(void *p, int, float, float, float, float);
-// Splice binding for option 371 on CID120 (g_aeopid[365], thunkFn): unpacks the script's 5 arguments (Oid, Float,
+// Splice binding for option 371 on GUARDATTACK (g_aeopid[365], thunkFn): unpacks the script's 5 arguments (Oid, Float,
 // Float, Float, Float) with RefSetArgsFromSplice, calls SetAndResolveGuardAttackBindingKind2 and returns nothing to the
 // script.
 extern "C" CRef RefThunk_SetAndResolveGuardAttackBindingKind2(void *p, int c, void *aref)
@@ -1014,7 +1014,7 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_AddGuardScriptSetContext)
 SLY2_SPLICEWRAP_END
 
 extern "C" void AddGuardScriptSetWalkTimes(void *p, void *pv);
-// Splice binding for option 623 on CID113 (g_aeopid[596], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
+// Splice binding for option 623 on GUARDSCRIPT (g_aeopid[596], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
 // with RefSetArgsFromSplice, calls AddGuardScriptSetWalkTimes and returns nothing to the script.
 extern "C" CRef RefThunk_AddGuardScriptSetWalkTimes(void *p, int c, void *aref)
 {
@@ -1028,7 +1028,7 @@ extern "C" CRef RefThunk_AddGuardScriptSetWalkTimes(void *p, int c, void *aref)
 }
 
 extern "C" void AddGuardScriptSetPauseTimes(void *p, void *pv);
-// Splice binding for option 624 on CID113 (g_aeopid[597], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
+// Splice binding for option 624 on GUARDSCRIPT (g_aeopid[597], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
 // with RefSetArgsFromSplice, calls AddGuardScriptSetPauseTimes and returns nothing to the script.
 extern "C" CRef RefThunk_AddGuardScriptSetPauseTimes(void *p, int c, void *aref)
 {
@@ -2451,7 +2451,7 @@ extern "C" TARGET *NewTarget() { return new TARGET; }
 
 extern "C" HND *NewHnd() { return new HND; }
 
-extern "C" CID20 *NewCid20() { return new CID20; }
+extern "C" HANDATTACH *NewCid20() { return new HANDATTACH; }
 
 extern "C" CID21 *NewCid21() { return new CID21; }
 
@@ -2489,15 +2489,15 @@ extern "C" CID38 *NewCid38() { return new CID38; }
 
 extern "C" CID39 *NewCid39() { return new CID39; }
 
-extern "C" CID40 *NewCid40() { return new CID40; }
+extern "C" JUMPTARGET *NewCid40() { return new JUMPTARGET; }
 
-extern "C" CID41 *NewCid41() { return new CID41; }
+extern "C" WARPDEST *NewCid41() { return new WARPDEST; }
 
 extern "C" WARP *NewWarp() { return new WARP; }
 
 extern "C" CID43 *NewCid43() { return new CID43; }
 
-extern "C" CID44 *NewCid44() { return new CID44; }
+extern "C" CAMERAMARKER *NewCid44() { return new CAMERAMARKER; }
 
 extern "C" CID45 *NewCid45() { return new CID45; }
 
@@ -2595,19 +2595,19 @@ extern "C" LOOT *NewLoot() { return new LOOT; }
 
 extern "C" CLUE *NewClue() { return new CLUE; }
 
-extern "C" CID96 *NewCid96() { return new CID96; }
+extern "C" CRITTER *NewCid96() { return new CRITTER; }
 
 extern "C" SKY *NewSky() { return new SKY; }
 
-extern "C" CID98 *NewCid98() { return new CID98; }
+extern "C" BREAKABLE *NewCid98() { return new BREAKABLE; }
 
-extern "C" CID99 *NewCid99() { return new CID99; }
+extern "C" LOOTPOUCH *NewCid99() { return new LOOTPOUCH; }
 
-extern "C" CID100 *NewCid100() { return new CID100; }
+extern "C" TOSSABLE *NewCid100() { return new TOSSABLE; }
 
-extern "C" CID101 *NewCid101() { return new CID101; }
+extern "C" TRIGGERBOMB *NewCid101() { return new TRIGGERBOMB; }
 
-extern "C" CID102 *NewCid102() { return new CID102; }
+extern "C" GUARDTRAP *NewCid102() { return new GUARDTRAP; }
 
 extern "C" BOOTY *NewBooty() { return new BOOTY; }
 
@@ -2615,11 +2615,11 @@ extern "C" CID104 *NewCid104() { return new CID104; }
 
 extern "C" CID105 *NewCid105() { return new CID105; }
 
-extern "C" CID106 *NewCid106() { return new CID106; }
+extern "C" PATHMESH *NewCid106() { return new PATHMESH; }
 
 extern "C" WAYPT *NewWaypt() { return new WAYPT; }
 
-extern "C" CID108 *NewCid108() { return new CID108; }
+extern "C" AMMOPICKUP *NewCid108() { return new AMMOPICKUP; }
 
 extern "C" ASEG *NewAseg() { return new ASEG; }
 
@@ -2629,7 +2629,7 @@ extern "C" SM *NewSm() { return new SM; }
 
 extern "C" LAUNCHER *NewCid112() { return new LAUNCHER; }
 
-extern "C" CID113 *NewCid113() { return new CID113; }
+extern "C" GUARDSCRIPT *NewCid113() { return new GUARDSCRIPT; }
 
 extern "C" RELAY *NewRelay() { return new RELAY; }
 
@@ -2643,7 +2643,7 @@ extern "C" CID118 *NewCid118() { return new CID118; }
 
 extern "C" SPAWNER *NewCid119() { return new SPAWNER; }
 
-extern "C" CID120 *NewCid120() { return new CID120; }
+extern "C" GUARDATTACK *NewCid120() { return new GUARDATTACK; }
 
 extern "C" RHYTHMMGR *NewCid121() { return new RHYTHMMGR; }
 
@@ -2829,7 +2829,7 @@ extern "C" CLASSINFO *GetTargetClassDesc() { return &D_002BAAE8[18]; }
 
 extern "C" CLASSINFO *GetHndClassDesc() { return &D_002BAAE8[19]; }
 
-CLASSINFO *CID20::GetClassInfo() { return &D_002BAAE8[20]; }
+CLASSINFO *HANDATTACH::GetClassInfo() { return &D_002BAAE8[20]; }
 
 extern "C" CLASSINFO *GetCid21ClassDesc() { return &D_002BAAE8[21]; }
 
@@ -2991,7 +2991,7 @@ extern "C" CLASSINFO *GetCid99ClassDesc() { return &D_002BAAE8[99]; }
 
 extern "C" CLASSINFO *GetCid100ClassDesc() { return &D_002BAAE8[100]; }
 
-CLASSINFO *CID101::GetClassInfo() { return &D_002BAAE8[101]; }
+CLASSINFO *TRIGGERBOMB::GetClassInfo() { return &D_002BAAE8[101]; }
 
 extern "C" CLASSINFO *GetCid102ClassDesc() { return &D_002BAAE8[102]; }
 
@@ -3243,7 +3243,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[3], 17, 18, sizeof(PATHZONE), (PFNNEW)NewPathzone}, /* Pathzone */
     {&D_002BAAE8[3], 18, 20, sizeof(TARGET), (PFNNEW)NewTarget}, /* Target */
     {&D_002BAAE8[18], 19, 20, sizeof(HND), (PFNNEW)NewHnd}, /* Hnd */
-    {&D_002BAAE8[3], 20, 21, sizeof(CID20), (PFNNEW)NewCid20}, /* Cid20 */
+    {&D_002BAAE8[3], 20, 21, sizeof(HANDATTACH), (PFNNEW)NewCid20}, /* Cid20 */
     {&D_002BAAE8[3], 21, 22, sizeof(CID21), (PFNNEW)NewCid21}, /* Cid21 */
     {&D_002BAAE8[3], 22, 28, sizeof(VOL), (PFNNEW)NewVol}, /* Vol */
     {&D_002BAAE8[22], 23, 24, sizeof(CID23), (PFNNEW)NewCid23}, /* Cid23 */
@@ -3263,11 +3263,11 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[35], 37, 38, sizeof(CID37), (PFNNEW)NewCid37}, /* Cid37 */
     {&D_002BAAE8[3], 38, 39, sizeof(CID38), (PFNNEW)NewCid38}, /* Cid38 */
     {&D_002BAAE8[3], 39, 40, sizeof(CID39), (PFNNEW)NewCid39}, /* Cid39 */
-    {&D_002BAAE8[3], 40, 41, sizeof(CID40), (PFNNEW)NewCid40}, /* Cid40 */
-    {&D_002BAAE8[3], 41, 42, sizeof(CID41), (PFNNEW)NewCid41}, /* Cid41 */
+    {&D_002BAAE8[3], 40, 41, sizeof(JUMPTARGET), (PFNNEW)NewCid40}, /* Cid40 */
+    {&D_002BAAE8[3], 41, 42, sizeof(WARPDEST), (PFNNEW)NewCid41}, /* Cid41 */
     {&D_002BAAE8[3], 42, 43, sizeof(WARP), (PFNNEW)NewWarp}, /* Warp */
     {&D_002BAAE8[3], 43, 44, sizeof(CID43), (PFNNEW)NewCid43}, /* Cid43 */
-    {&D_002BAAE8[3], 44, 45, sizeof(CID44), (PFNNEW)NewCid44}, /* Cid44 */
+    {&D_002BAAE8[3], 44, 45, sizeof(CAMERAMARKER), (PFNNEW)NewCid44}, /* Cid44 */
     {&D_002BAAE8[3], 45, 46, sizeof(CID45), (PFNNEW)NewCid45}, /* Cid45 */
     {&D_002BAAE8[3], 46, 47, sizeof(RECONTARGET), (PFNNEW)NewCid46}, /* Cid46 */
     {&D_002BAAE8[3], 47, 48, sizeof(LISTENER), (PFNNEW)NewCid47}, /* Cid47 */
@@ -3319,31 +3319,31 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[90], 93, 94, sizeof(MEDICINE), (PFNNEW)NewMedicine}, /* Medicine */
     {&D_002BAAE8[90], 94, 95, sizeof(LOOT), (PFNNEW)NewLoot}, /* Loot */
     {&D_002BAAE8[90], 95, 96, sizeof(CLUE), (PFNNEW)NewClue}, /* Clue */
-    {&D_002BAAE8[48], 96, 97, sizeof(CID96), (PFNNEW)NewCid96}, /* Cid96 */
+    {&D_002BAAE8[48], 96, 97, sizeof(CRITTER), (PFNNEW)NewCid96}, /* Cid96 */
     {&D_002BAAE8[48], 97, 98, sizeof(SKY), (PFNNEW)NewSky}, /* Sky */
-    {&D_002BAAE8[48], 98, 99, sizeof(CID98), (PFNNEW)NewCid98}, /* Cid98 */
-    {&D_002BAAE8[48], 99, 100, sizeof(CID99), (PFNNEW)NewCid99}, /* Cid99 */
-    {&D_002BAAE8[48], 100, 103, sizeof(CID100), (PFNNEW)NewCid100}, /* Cid100 */
-    {&D_002BAAE8[100], 101, 102, sizeof(CID101), (PFNNEW)NewCid101}, /* Cid101 */
-    {&D_002BAAE8[100], 102, 103, sizeof(CID102), (PFNNEW)NewCid102}, /* Cid102 */
+    {&D_002BAAE8[48], 98, 99, sizeof(BREAKABLE), (PFNNEW)NewCid98}, /* Cid98 */
+    {&D_002BAAE8[48], 99, 100, sizeof(LOOTPOUCH), (PFNNEW)NewCid99}, /* Cid99 */
+    {&D_002BAAE8[48], 100, 103, sizeof(TOSSABLE), (PFNNEW)NewCid100}, /* Cid100 */
+    {&D_002BAAE8[100], 101, 102, sizeof(TRIGGERBOMB), (PFNNEW)NewCid101}, /* Cid101 */
+    {&D_002BAAE8[100], 102, 103, sizeof(GUARDTRAP), (PFNNEW)NewCid102}, /* Cid102 */
     {&D_002BAAE8[48], 103, 104, sizeof(BOOTY), (PFNNEW)NewBooty}, /* Booty */
     {&D_002BAAE8[48], 104, 105, sizeof(CID104), (PFNNEW)NewCid104}, /* Cid104 */
     {&D_002BAAE8[48], 105, 106, sizeof(CID105), (PFNNEW)NewCid105}, /* Cid105 */
-    {&D_002BAAE8[48], 106, 107, sizeof(CID106), (PFNNEW)NewCid106}, /* Cid106 */
+    {&D_002BAAE8[48], 106, 107, sizeof(PATHMESH), (PFNNEW)NewCid106}, /* Cid106 */
     {&D_002BAAE8[48], 107, 108, sizeof(WAYPT), (PFNNEW)NewWaypt}, /* Waypt */
-    {&D_002BAAE8[48], 108, 109, sizeof(CID108), (PFNNEW)NewCid108}, /* Cid108 */
+    {&D_002BAAE8[48], 108, 109, sizeof(AMMOPICKUP), (PFNNEW)NewCid108}, /* Cid108 */
     {&D_002BAAE8[2], 109, 111, sizeof(ASEG), (PFNNEW)NewAseg}, /* Aseg */
     {&D_002BAAE8[109], 110, 111, sizeof(ASEGBL), (PFNNEW)NewAsegbl}, /* Asegbl */
     {&D_002BAAE8[2], 111, 112, sizeof(SM), (PFNNEW)NewSm}, /* Sm */
     {&D_002BAAE8[2], 112, 113, sizeof(LAUNCHER), (PFNNEW)NewCid112}, /* Cid112 */
-    {&D_002BAAE8[2], 113, 114, sizeof(CID113), (PFNNEW)NewCid113}, /* Cid113 */
+    {&D_002BAAE8[2], 113, 114, sizeof(GUARDSCRIPT), (PFNNEW)NewCid113}, /* Cid113 */
     {&D_002BAAE8[2], 114, 115, sizeof(RELAY), (PFNNEW)NewRelay}, /* Relay */
     {&D_002BAAE8[2], 115, 116, sizeof(WR), (PFNNEW)NewWr}, /* Wr */
     {&D_002BAAE8[2], 116, 117, sizeof(SCREENFADE), (PFNNEW)NewCid116}, /* Cid116 */
     {&D_002BAAE8[2], 117, 118, sizeof(NOISETYPE), (PFNNEW)NewCid117}, /* Cid117 */
     {&D_002BAAE8[2], 118, 119, sizeof(CID118), (PFNNEW)NewCid118}, /* Cid118 */
     {&D_002BAAE8[2], 119, 120, sizeof(SPAWNER), (PFNNEW)NewCid119}, /* Cid119 */
-    {&D_002BAAE8[2], 120, 121, sizeof(CID120), (PFNNEW)NewCid120}, /* Cid120 */
+    {&D_002BAAE8[2], 120, 121, sizeof(GUARDATTACK), (PFNNEW)NewCid120}, /* Cid120 */
     {&D_002BAAE8[2], 121, 122, sizeof(RHYTHMMGR), (PFNNEW)NewCid121}, /* Cid121 */
     {&D_002BAAE8[2], 122, 123, sizeof(CID122), (PFNNEW)NewCid122}, /* Cid122 */
     {&D_002BAAE8[2], 123, 124, sizeof(ROUTE), (PFNNEW)NewCid123}, /* Cid123 */

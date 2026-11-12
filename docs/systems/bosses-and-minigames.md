@@ -32,7 +32,7 @@ ammo pickup in `include/sly2/tank.h`. Each file's header comment names its class
 | `CONTESSA` (0x40) | boss guard: Init and Update overrides that fit her body to the terrain while she crawls | `contessa.cpp` |
 | `HACK` family (0x47-0x4C: `HACK`, `HACKSHIP`, `HACKENEMY`, `HACKBULLET`, `HACKLOCK`, `HACKWALL`) | Bentley's hacking minigame: the ship (a singleton), enemies, bullets, locks and walls, each an `SO` with health and entry tables bound by oid | `hack.cpp` |
 | `TURRET` (0x45) | player-controlled turret (a PO): aim from the stick or a target, zoom, fire through a launcher; the camera follows with the `CPTURRET` policy | `turret.cpp`, `engine/camera/cplcy.cpp` |
-| `ROBOTTANK` (0x4D) | the RC combat car (a PO) with wheels, weapons, ammo and an AI mode; CID108 is its ammo pickup | the unit defining `CollectRobottankPickup` |
+| `ROBOTTANK` (0x4D) | the RC combat car (a PO) with wheels, weapons, ammo and an AI mode; AMMOPICKUP is its ammo pickup | the unit defining `CollectRobottankPickup` |
 | `DANCER` (0x44) and the rhythm manager (`RHYTHMMGR`, was CID121) | the dance minigame: dancers playing a move clip per cue, and a manager timing cues, judging presses and drawing the note track | `rhythm.cpp` |
 | `SAFEHOUSE` (0x46) | the safehouse character select: steps through the selectable characters and binds buttons to relays (ThiefNet) | the unit defining `UpdateSafehouse` |
 

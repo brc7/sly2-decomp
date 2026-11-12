@@ -526,7 +526,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
             TryAddSearchCandidate(&w.query);
         }
     }
-    for (object = (*(NODE **)&g_sw.dlCid98); object; object = NEXT_ON(CID98, dleBreakable, object)) {
+    for (object = (*(NODE **)&g_sw.dlCid98); object; object = NEXT_ON(BREAKABLE, dleBreakable, object)) {
         w.query.candidate.q = GetLoWorldPos(object);
         TryAddSearchCandidate(&w.query);
     }

@@ -1,9 +1,9 @@
-// breakable.cpp -- CID98, breakable props (chairs, barrels, crates; classes.h): a scripted trigger SO with a list of
+// breakable.cpp -- BREAKABLE, breakable props (chairs, barrels, crates; classes.h): a scripted trigger SO with a list of
 // trigger classes (0x154) whose contact or zap fires it, and a sequence of
 // stages (0x164, stage -1 = the always-run stage), each a list of actions (show / hide objects, globs and parts,
 // messages, camera, rumble, noise, splice events, task states). Firing (ReactBreakable, through a world callback) runs
 // the current stage's actions and steps to the next; SetBreakableStage replays or rewinds the stages up to a given one.
-// Entry points: the CID98 vtable and the Splice builders AddBreakable* (stages, trigger classes, actions).
+// Entry points: the BREAKABLE vtable and the Splice builders AddBreakable* (stages, trigger classes, actions).
 // TU 0x1BAB50..0x1BC050 (34 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_breakable
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_breakable
@@ -30,8 +30,8 @@ typedef BRKACTION I;
 struct BRKSTAGE { int id; int n; int c; I *a; };
 typedef BRKSTAGE E;
 
-/* The trigger object: CID98 (classes.h), plus the reaction callback EnsureSwCallback takes as a member pointer. */
-struct TRIG : CID98
+/* The trigger object: BREAKABLE (classes.h), plus the reaction callback EnsureSwCallback takes as a member pointer. */
+struct TRIG : BREAKABLE
 {
     void Action() __asm__("ReactBreakable");  // Also known as: RunHit (upstream readable / Sly 1 name; RunHit__FP2LO).
 };
@@ -282,7 +282,7 @@ typedef char event_shift[sizeof(E)==(1<<EVENT_SHIFT)?1:-1];
 // CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98
 // objects. (inferred)
 // Also known as: UpdateBreakableContacts (upstream readable / Sly 1 name; UpdateBreakableContacts__FP3ALO).
-void CID98::AdjustXps()
+void BREAKABLE::AdjustXps()
 {
     TRIG *breakable = (TRIG *)this;
     XPLIST *pl;
@@ -573,7 +573,7 @@ extern "C" void AddBreakableTaskStates(TRIG *breakable, int a, int b)
     ((int *)pi->b)[1] = b;
 }
 
-// Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it. (inferred)
+// Append an action of kind x to the current stage of a BREAKABLE object (max 64 per stage) and return it. (inferred)
 // Also known as: PitemNew (upstream readable / Sly 1 name; PitemNew__FP2LOi).
 I *AddBreakableAction(TRIG *breakable, int x)
 {

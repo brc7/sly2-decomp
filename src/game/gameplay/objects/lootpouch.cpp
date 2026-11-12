@@ -1,7 +1,7 @@
-// lootpouch.cpp -- CID99, the loot pouch a guard carries (the pickpocket dispenser): it holds one item (a prize, a
+// lootpouch.cpp -- LOOTPOUCH, the loot pouch a guard carries (the pickpocket dispenser): it holds one item (a prize, a
 // clue bottle or loot, or a proxy that makes copies), draws it at an attach frame, and when the player pickpockets or
 // knocks out the guard launches the item (and copies from the proxy) toward random points around the player.
-// Entry points: the CID99 vtable (PostLoad, RenderLootPouchSelf) and, from pickpocket.cpp, StageLootPouchLoot,
+// Entry points: the LOOTPOUCH vtable (PostLoad, RenderLootPouchSelf) and, from pickpocket.cpp, StageLootPouchLoot,
 // ClearLootPouchLoot and LaunchLootPouchLootAtPlayer. VU0 macro-mode asm.
 // TU 0x1C2D20..0x1C3390 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_lootpouch
@@ -58,10 +58,10 @@ void LaunchSprayedDprize(SOV *, qwordV, qwordV, float, float);
 void ClearLootPouchLoot(SPRAYER *);
 }
 
-// CID99 vtable slot 15 (PostLoad): finishes the SO load, binds the snip table (its SMA, proxy, held item and attach
+// LOOTPOUCH vtable slot 15 (PostLoad): finishes the SO load, binds the snip table (its SMA, proxy, held item and attach
 // frame by oid) and starts the SMA.
 // Also known as: PpsmaPocket (upstream readable / Sly 1 name; PpsmaPocket__FP2LO).
-void CID99::PostLoad()
+void LOOTPOUCH::PostLoad()
 {
     SPRAYER *pouch = (SPRAYER *)this;
     PostSoLoad(pouch);
@@ -69,7 +69,7 @@ void CID99::PostLoad()
     ReplaceSma(pouch->sma, pouch, -1, 0, &pouch->smaIndex);
 }
 
-// CID99 vtable slot 19 (RenderSelf): draws the pouch, then places the held item at the attach frame's world matrix.
+// LOOTPOUCH vtable slot 19 (RenderSelf): draws the pouch, then places the held item at the attach frame's world matrix.
 // Also known as: CollectPocketDraws (upstream readable / Sly 1 name; CollectPocketDraws__FP5SCENE).
 extern "C" void RenderLootPouchSelf(SPRAYER *pouch)
 {

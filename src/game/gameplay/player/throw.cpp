@@ -14,20 +14,20 @@
 #include "sly2/players.h"   /* STEPPLAYER (JTTHROW::player), BENTLEY (D_002DD5BC) */
 #include "sly2/clock.h"
 #include "sly2/sw.h"
-#include "sly2/classes.h"   /* CID100 (the carried tossable) */
+#include "sly2/classes.h"   /* TOSSABLE (the carried tossable) */
 // 0x220BE8 StaticInit_throw and GlobalConstructors_throw: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 union V {qword q;float f[4];int n[4];};
 struct M3 {V r[3];};
 struct M4 {M3 basis;V position;};
-/* The real classes behind the views below, for their virtual calls (the carried object is a tossable, CID100). */
+/* The real classes behind the views below, for their virtual calls (the carried object is a tossable, TOSSABLE). */
 static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
-static inline ::CID100 *AsTossable(void *p) { return (::CID100 *)p; }
+static inline ::TOSSABLE *AsTossable(void *p) { return (::TOSSABLE *)p; }
 /* the clip channel FindAsegChannel returns: aseg.h CHN, its curve act.h AC */
 /* Any BASIC as the register-pinned launch helper calls it: the g++ vtable pointer at +0xC. */
 struct VOBJ {char pad[0xC];VTE *vt;};
-/* A tossable (classes.h CID100, no fields there yet) carried as JTTHROW::ploCarried: its slot-76 virtual (not declared
+/* A tossable (classes.h TOSSABLE, no fields there yet) carried as JTTHROW::ploCarried: its slot-76 virtual (not declared
    in classes.h) and two words. */
 /* A frame of the aim marker's arc: the time it was written, 1 when the point exists, a length (0) and the matrix. */
 struct ARCFRAME {float t,gValid,s;M4 mat;};
@@ -424,7 +424,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s)
         case 4:
         case 5:
         case 6: {
-            if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64) && ((CID100 *)s->ploCarried)->pendingContact != -1) {
+            if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64) && ((TOSSABLE *)s->ploCarried)->pendingContact != -1) {
                 s->player->SetPlayerState(0);
                 break;
             }
@@ -1125,7 +1125,7 @@ extern "C" void SetJtThrowState(JTTHROW *s, int state)
     case 7:
         animation = s->pasegblC;
         if (IsBasicDerivedFrom__FP5BASIC3CID(s->ploCarried, 0x64))
-            ChargeGadgetMp(s->player, ((CID100 *)s->ploCarried)->gadgetKind);
+            ChargeGadgetMp(s->player, ((TOSSABLE *)s->ploCarried)->gadgetKind);
         break;
     }
     ReleaseSma(&s->player->activeStateMachine);

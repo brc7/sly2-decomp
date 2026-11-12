@@ -76,7 +76,7 @@ every Paris level). The listing prints `@oid<Class:WE>`; L02 names 529 of 611 oi
   `t1_sat_dish1` evt19 fires RELAY 0x6E3; `t1_recon_brawl` evt19 calls option 446 on Murray to follow Sly `[C:runtime]`.
 - Level rigs: volume buttons add/remove objects; ASEG label scripts choreograph ambushes; handlers call the base handler first (`(find-binding-or-noop~ 'evt5)`,
   script "inheritance").
-- Props: breakables (CID98) free physics constraints on hit; awnings bounce the player (`LaunchStepplayer`); the pipe-room puzzle propagates a sidebag "pressure".
+- Props: breakables (BREAKABLE) free physics constraints on hit; awnings bounce the player (`LaunchStepplayer`); the pipe-room puzzle propagates a sidebag "pressure".
   Per-WE summaries (research workspace, not in this repo): `splice_scripts/PARIS_HUB_SCRIPTS_SUMMARY.txt`, `whole_game/splice/script_index_by_we.txt`.
 
 ## 5. Modding notes

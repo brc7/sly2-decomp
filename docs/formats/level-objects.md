@@ -74,7 +74,7 @@ the first one. RELAY command lists arrive this way.
 
 | Class (cid) | Loader | Payload | Tag |
 |---|---|---|---|
-| LO base: LO 0x02, LAUNCHER 0x70 (aim manager; was CID112), CID113 0x71 (guard script), WR 0x73, SCREENFADE 0x74, NOISETYPE 0x75, CID120 0x78, PATHLINK 0x7C, RHYTHMMGR 0x79 (rhythm manager; was CID121) | `LoadLoFromBrx` | options | [C:parse] |
+| LO base: LO 0x02, LAUNCHER 0x70 (aim manager; was CID112), GUARDSCRIPT 0x71 (guard script), WR 0x73, SCREENFADE 0x74, NOISETYPE 0x75, GUARDATTACK 0x78, PATHLINK 0x7C, RHYTHMMGR 0x79 (rhythm manager; was CID121) | `LoadLoFromBrx` | options | [C:parse] |
 | RELAY 0x72; SPAWNER 0x77 (was CID119); ROUTE 0x7B (was CID123) | `LoadRelayFromBrx` / `LoadSpawnerFromBrx` / `LoadRouteFromBrx` | = LoadLoFromBrx (relay commands arrive via METHOD options; route copies its points to the heap) | [C:parse] |
 | XFM base: XFM 0x03, LIGHT 0x04, TARGET 0x12, 0x13-0x15, 0x23-0x25, 0x27, 0x2C, CID43 0x2B, CID45 0x2D, recon target 0x2E, 0x10, 0x28, 0x2F | `LoadXfmFromBrx` | XF part; options | [C:parse] |
 | PROXY 0x06, CLUEPROXY 0x07 | `LoadProxyFromBrx` (instead of slot 14) | `S32 idSource; S8 mode; S16 ixf; MATRIX4; U32 grfvis; U8 cinit; cinit x {S32 kind (5/6 = the copy's first object, else an oid); S16 cid; S16 isplice; U16 cb; cb bytes options}; S32 cbList; nested object list` (cbList includes its S16 count; 5,979/5,979 init blocks parse exactly) | [C:parse] |
@@ -87,9 +87,9 @@ the first one. RELAY command lists arrive this way.
 | EXIT 0x1A | `LoadExitFromBrx` | VOL; FILEREC; U8 c; c x FILEREC (`LoadWarpBlobFromBrx`) | [C:parse] |
 | EMITTER 0x1D; EXPLO/EXPLS 0x20/0x21 | the EMITTER and EXPLO instances of the `LoadEmitterFromBrx` template (`sly2/emitter.h`) | XFM; [emit-source kind == 3 (set by option 483 / 536): U16 n; n x VECTOR; U16 m; m x {3 x U16, F32}; VECTOR]; U16 n; [n: U8; n x U32 RGBA] (3 = emit from a triangle mesh `[H]`; 14 objects, all and only those with the option = 3) | [C:parse] |
 | EXPLG 0x1F | `LoadExplgFromBrx` | XFM; nested list | [C:parse] |
-| CID41 0x29, WARP 0x2A | `LoadTeleportDestinationFromBrx` / `LoadWarpFromBrx` | XFM; string16 (skipped by the game: `WARP_*` / `entrance_*`) | [C:parse] |
-| SO base and direct users (SO 0x30, MS 0x31, BOMB 0x4F, BARRIER 0x56, WATER 0x59, SKY 0x61, CID99 0x63, CID104 0x68, CID105 0x69, CID106 0x6A, WAYPT 0x6B, CID88 0x58) | `LoadSoFromBrx` | section 6 | [C:parse] |
-| SO + own wrapper: BOOTY 0x67, DPRIZE kinds 0x5B-0x5D/0x5F, LOOT 0x5E, CID98 0x62, CID100-102 0x64-0x66, BUTTON 0x53, MISSILE family 0x50-0x52, CID85 0x55, CID96 0x60 | `LoadBootyFromBrx`, `LoadDprizeFromBrx`, `LoadLootFromBrx`, `LoadBreakableFromBrx`, `LoadTossableFromBrx`, `LoadButtonFromBrx`, `LoadMissileFromBrx`, `LoadLasenFromBrx`, `LoadCritterFromBrx` | LoadSoFromBrx; no further file reads | [C:parse] |
+| WARPDEST 0x29, WARP 0x2A | `LoadTeleportDestinationFromBrx` / `LoadWarpFromBrx` | XFM; string16 (skipped by the game: `WARP_*` / `entrance_*`) | [C:parse] |
+| SO base and direct users (SO 0x30, MS 0x31, BOMB 0x4F, BARRIER 0x56, WATER 0x59, SKY 0x61, LOOTPOUCH 0x63, CID104 0x68, CID105 0x69, PATHMESH 0x6A, WAYPT 0x6B, CID88 0x58) | `LoadSoFromBrx` | section 6 | [C:parse] |
+| SO + own wrapper: BOOTY 0x67, DPRIZE kinds 0x5B-0x5D/0x5F, LOOT 0x5E, BREAKABLE 0x62, TOSSABLE / TRIGGERBOMB / GUARDTRAP 0x64-0x66, BUTTON 0x53, MISSILE family 0x50-0x52, CID85 0x55, CRITTER 0x60 | `LoadBootyFromBrx`, `LoadDprizeFromBrx`, `LoadLootFromBrx`, `LoadBreakableFromBrx`, `LoadTossableFromBrx`, `LoadButtonFromBrx`, `LoadMissileFromBrx`, `LoadLasenFromBrx`, `LoadCritterFromBrx` | LoadSoFromBrx; no further file reads | [C:parse] |
 | PO family: PO 0x32, TURRET 0x45, SAFEHOUSE 0x46, 0x47-0x4E | `LoadPoFromBrx` | SO; string16 (skipped by the game) | [C:parse] |
 | STEP family: GOMER 0x39, GUARD 0x3A, characters 0x3B-0x44, JT 0x35, MURRAY 0x36, BENTLEY 0x37 | `LoadStepFromBrx`, `LoadJtFromBrx`, `LoadMurrayFromBrx`, `LoadBentleyFromBrx`, `LoadDimitriFromBrx` | = LoadPoFromBrx (the rest is runtime-only) | [C:parse] |
 | ASEG 0x6D | `LoadAsegFromBrx` | section 7 | [C:parse] |

@@ -4625,7 +4625,7 @@ extern "C" void InitJmt(XFM *pjmt)
 
 //////// 0x19C9E8 AddJmtHierarchy
 // JMT slot 11: adds the hierarchy, then joins the global JMT list (D_003E1420).
-void CID40::AddHierarchy()
+void JUMPTARGET::AddHierarchy()
 {
     XFM *pjmt = (XFM *)this;
     AddLoHierarchy(pjmt);

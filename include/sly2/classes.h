@@ -257,10 +257,10 @@ struct GUARD : STEPGUARD
 };
 typedef char assert_GUARD_size[sizeof(GUARD) == 0x1010 ? 1 : -1];
 
-/* 44 CID44 (0x140): camera marker (CPCAMERA target); vtable 0x2CA9F0, 50 slots */
-struct CID44 : XFM
+/* 44 CAMERAMARKER (was CID44; 0x140): camera marker (CPCAMERA target); vtable 0x2CA9F0, 50 slots */
+struct CAMERAMARKER : XFM
 {
-    CID44 *lookAtTarget;    /* +0x0E0 look-at target (0: use the object's matrix) (camera.cpp) */
+    CAMERAMARKER *lookAtTarget;    /* +0x0E0 look-at target (0: use the object's matrix) (camera.cpp) */
     undefined4 unknownE4[7];
     qword axis100;          /* +0x100 initialized to (1, 0, 0, 0) (InitCamera; meaning unknown) */
     qword axis110;          /* +0x110 initialized to g_normalZ (meaning unknown) */
@@ -279,8 +279,8 @@ struct CID44 : XFM
     virtual void AcquireAnimatedField(int id) __asm__("IncrementCameraFovRequests");   /* slot 44 */
     virtual void ReleaseAnimatedField(int id) __asm__("DecrementCameraFovRequests");   /* slot 45 */
 };
-typedef char assert_CID44_size[sizeof(CID44) == 0x140 ? 1 : -1];
-typedef char assert_CID44_fov[SLY2_OFFSETOF(CID44, fov) == 0x130 ? 1 : -1];   /* camera.cpp */
+typedef char assert_CID44_size[sizeof(CAMERAMARKER) == 0x140 ? 1 : -1];
+typedef char assert_CID44_fov[SLY2_OFFSETOF(CAMERAMARKER, fov) == 0x130 ? 1 : -1];   /* camera.cpp */
 
 /* 43 CID43 (0x100): ambient-sound XFM (OnAdd/OnRemove start/stop); vtable 0x2CABD8, 50 slots */
 struct AMBSND;   /* amb.cpp: a sound the emitter plays (0x14 bytes) */
@@ -591,13 +591,13 @@ struct CID25 : VOLBTN
 };
 typedef char assert_CID25_size[sizeof(CID25) == 0x2D0 ? 1 : -1];
 
-/* 20 CID20 (0xF0): hand-attach XFM (adjust_hand_jt / _bentley, 2 per level); vtable 0x2C9A80, 50 slots */
-struct CID20 : XFM
+/* 20 HANDATTACH (was CID20; 0xF0): hand-attach XFM (adjust_hand_jt / _bentley, 2 per level); vtable 0x2C9A80, 50 slots */
+struct HANDATTACH : XFM
 {
     char padE0[0xF0 - 0xE0];
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid20ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID20_size[sizeof(CID20) == 0xF0 ? 1 : -1];
+typedef char assert_CID20_size[sizeof(HANDATTACH) == 0xF0 ? 1 : -1];
 
 /* A station of a ROUTE route (12 bytes): its kind (0 walk to it, 1 leap to it), the oid of its object, the object. */
 struct ROUTESTATION
@@ -629,7 +629,7 @@ struct BHV182 : BHV
     ROUTE *route;          /* +0x38 [S] the mode's object (SetBhvguardMode): the route */
     int currentStation;     /* +0x3C the station the guard is at */
     int targetStation;      /* +0x40 the station to go to */
-    CID120 *attack;         /* +0x44 */
+    GUARDATTACK *attack;         /* +0x44 */
     float lastFastHeroTime; /* +0x48 last time the hero moved fast */
     int unknown4C;
     virtual void Start() __asm__("StartBhvRoute");   /* slot 8 */
@@ -807,7 +807,7 @@ struct BHV181 : BHV
     float arrivalTime;      /* +0x48 */
     LO *target;             /* +0x4C */
     int attackCount;        /* +0x50 */
-    CID120 *attack;         /* +0x54 the chosen attack */
+    GUARDATTACK *attack;         /* +0x54 the chosen attack */
     int unknown58[2];
     virtual void Start() __asm__("StartBhvDimitriAttack");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
@@ -956,8 +956,8 @@ struct GOMER : STEPGUARD
 };
 typedef char assert_GOMER_size[sizeof(GOMER) == 0x1010 ? 1 : -1];
 
-/* 113 CID113 (0x60): guard script; vtable 0x2CF880, 48 slots */
-struct CID113 : LO
+/* 113 GUARDSCRIPT (was CID113; 0x60): guard script; vtable 0x2CF880, 48 slots */
+struct GUARDSCRIPT : LO
 {
     DL commands;            /* +0x50 [S] the SSGE command list (InitGuardScript: link at +0x18); PostStepguardLoad keeps the head as the guard's home record */
     char pad5C[0x60 - 0x5C];
@@ -965,13 +965,13 @@ struct CID113 : LO
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid113ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitGuardScript");   /* slot 7 */
 };
-typedef char assert_CID113_size[sizeof(CID113) == 0x60 ? 1 : -1];
-typedef char assert_CID113_commands[SLY2_OFFSETOF(CID113, commands) == 0x50 ? 1 : -1];
+typedef char assert_CID113_size[sizeof(GUARDSCRIPT) == 0x60 ? 1 : -1];
+typedef char assert_CID113_commands[SLY2_OFFSETOF(GUARDSCRIPT, commands) == 0x50 ? 1 : -1];
 
 /* 169 BHV169 (0x60): guard-script runner (flag 0x21); vtable 0x2CF7F8, 15 slots */
 struct BHV169 : BHV
 {
-    CID113 *script;         /* +0x30 [S] the script being run */
+    GUARDSCRIPT *script;         /* +0x30 [S] the script being run */
     LO *context;            /* +0x34 [S] the object script oids are looked up relative to */
     SSGE *currentCommand;   /* +0x38 [S] */
     float commandStartTime; /* +0x3C [S] */
@@ -1024,7 +1024,7 @@ struct SPAWNSELECTOR
     int kind;               /* +0x00 */
     int oid;                /* +0x04 */
     LO *object;             /* +0x08 */
-    CID113 *script;         /* +0x0C kind 1: the script made for the curve (cid 0x71) */
+    GUARDSCRIPT *script;         /* +0x0C kind 1: the script made for the curve (cid 0x71) */
     SSGE *scriptCommand;    /* +0x10 kind 1: its command (the direction in its +0x8) */
     int isBusy;             /* +0x14 a spawned guard uses it */
     float busyUntil;        /* +0x18 */
@@ -1345,7 +1345,7 @@ struct BHVATTACK : BHV
     LO *victim;             /* +0x30 the attacked object */
     int state;              /* +0x34 */
     float stateTime;        /* +0x38 */
-    CID120 *attack;         /* +0x3C the attack definition being run */
+    GUARDATTACK *attack;         /* +0x3C the attack definition being run */
     int isHitConfirmed;     /* +0x40 set by message 0xB from the victim's guard */
     int unknown44[3];
     virtual void Start() __asm__("StartBhvattack");   /* slot 8 */
@@ -1363,7 +1363,7 @@ struct BHVCOMBAT : BHV
     LO *target;             /* +0x30 */
     int state;              /* +0x34 */
     float stateTime;        /* +0x38 */
-    CID120 *attack;         /* +0x3C the chosen attack */
+    GUARDATTACK *attack;         /* +0x3C the chosen attack */
     int isHitConfirmed;     /* +0x40 */
     struct CID17 *pathzone; /* +0x44 the path zone of the target position the pursuit was last goaled at */
     int unknown48[2];
@@ -1383,7 +1383,7 @@ struct BHVPATROL : BHV
     float pauseEndTime;     /* +0x34 */
     int state;              /* +0x38 */
     float stateTime;        /* +0x3C */
-    CID113 *script;         /* +0x40 the patrol script being run */
+    GUARDSCRIPT *script;         /* +0x40 the patrol script being run */
     int unknown44[3];
     virtual void Close() __asm__("CloseBhvpatrol");   /* slot 9 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhvpatrolClassDesc");   /* slot 6 */
@@ -1902,8 +1902,8 @@ struct CID9 : CID8
 };
 typedef char assert_CID9_size[sizeof(CID9) == 0x120 ? 1 : -1];
 
-/* 40 CID40 (0xF0): JMT (jump target; none in the Paris hub); vtable 0x2D3200, 50 slots */
-struct CID40 : XFM
+/* 40 JUMPTARGET (was CID40; 0xF0): JMT (jump target; none in the Paris hub); vtable 0x2D3200, 50 slots */
+struct JUMPTARGET : XFM
 {
     DLE dleList;                /* +0xE0 link in SW::dlCid40 */
     char padE8[0xF0 - 0xE8];
@@ -1913,7 +1913,7 @@ struct CID40 : XFM
     virtual void RemoveHierarchy() __asm__("RemoveJmtHierarchy");   /* slot 12 */
     virtual void Clone(LO *ploBase) __asm__("CloneJmt");   /* slot 41 */
 };
-typedef char assert_CID40_size[sizeof(CID40) == 0xF0 ? 1 : -1];
+typedef char assert_CID40_size[sizeof(JUMPTARGET) == 0xF0 ? 1 : -1];
 
 /* 4 LIGHT (0x170): relight inputs: 3 qw from +0x120; vtable 0x2D33A0, 50 slots */
 struct LIGHT : XFM
@@ -1971,8 +1971,8 @@ typedef char assert_LIGHT_position[SLY2_OFFSETOF(LIGHT, position) == 0x100 ? 1 :
 typedef char assert_LIGHT_payload[SLY2_OFFSETOF(LIGHT, payload) == 0x120 ? 1 : -1];
 typedef char assert_LIGHT_sNear[SLY2_OFFSETOF(LIGHT, sNear) == 0x164 ? 1 : -1];
 
-/* 96 CID96 (0x250): mini pigeon/rat critter; vtable 0x2D3838, 75 slots */
-struct CID96 : SO
+/* 96 CRITTER (was CID96; 0x250): mini pigeon/rat critter; vtable 0x2D3838, 75 slots */
+struct CRITTER : SO
 {
     char pad150[0x250 - 0x150];
     virtual void RenderSelf() __asm__("RenderCritterSelf");   /* slot 19 */
@@ -1988,7 +1988,7 @@ struct CID96 : SO
     virtual void PresetAccel() __asm__("PresetCritterAccel");   /* slot 70 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeCritterDamage");   /* slot 75 */
 };
-typedef char assert_CID96_size[sizeof(CID96) == 0x250 ? 1 : -1];
+typedef char assert_CID96_size[sizeof(CRITTER) == 0x250 ? 1 : -1];
 
 /* 80 MISSILE (0x270); vtable 0x2D3FA0, 78 slots */
 struct MISSILE : BOMB
@@ -2058,7 +2058,7 @@ struct BHV174 : BHV
 {
     int state;              /* +0x30 0 run the chase script (BHV169), 1 chase the player, 2 give up */
     float stateTime;        /* +0x34 */
-    CID113 *chaseScript;    /* +0x38 [S] copied from NEELA::chaseScript (SetBhvguardMode) */
+    GUARDSCRIPT *chaseScript;    /* +0x38 [S] copied from NEELA::chaseScript (SetBhvguardMode) */
     int unknown3C;
     virtual void Start() __asm__("StartBhvNeelaChase");   /* slot 8 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetBhv174ClassDesc");   /* slot 6 */
@@ -2095,7 +2095,7 @@ struct NEELA : STEPGUARD
     int unknown1054[3];
     ANIMBINDING giveUpBinding; /* +0x1060 the animation of chase state 2 (PostNeelaLoad: kind 0, flags 1) */
     NEELACHASETUNE chaseTune; /* +0x1070 */
-    CID113 *chaseScript;    /* +0x108C her option (SendRootBhvMode15): chase (BHV174) with this script instead of combat (ShouldBhvguardUseNeelaBehavior) */
+    GUARDSCRIPT *chaseScript;    /* +0x108C her option (SendRootBhvMode15): chase (BHV174) with this script instead of combat (ShouldBhvguardUseNeelaBehavior) */
     SSGRESUME resumeState;  /* +0x1090 where the chase script resumes */
     int unknown109C;
     virtual void Init() __asm__("InitNeela");   /* slot 7 */
@@ -2107,9 +2107,9 @@ struct NEELA : STEPGUARD
 typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
 typedef char assert_NEELA_chaseScript[SLY2_OFFSETOF(NEELA, chaseScript) == 0x108C ? 1 : -1];
 
-/* 98 CID98 (0x180): breakable props (chairs, barrels, crates, containers); vtable 0x2D4B78, 75 slots */
+/* 98 BREAKABLE (was CID98; 0x180): breakable props (chairs, barrels, crates, containers); vtable 0x2D4B78, 75 slots */
 struct BRKACTION; struct BRKSTAGE;   /* breakable.cpp: a trigger class or action record (kind, value), a stage */
-struct CID98 : SO
+struct BREAKABLE : SO
 {
     /* Own fields from breakable.cpp (its TRIG view until v1.16). */
     int triggerClassCount;      /* +0x150 */
@@ -2132,8 +2132,8 @@ struct CID98 : SO
     virtual void OnProxyAcquire(LO *plo) __asm__("ResetBreakable");   /* slot 26 */
     virtual int TakeDamage(ZPR *pzpr) __asm__("AcceptBreakableZap");   /* slot 75 */
 };
-typedef char assert_CID98_dleBreakable[SLY2_OFFSETOF(CID98, dleBreakable) == 0x174 ? 1 : -1];
-typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];
+typedef char assert_CID98_dleBreakable[SLY2_OFFSETOF(BREAKABLE, dleBreakable) == 0x174 ? 1 : -1];
+typedef char assert_CID98_size[sizeof(BREAKABLE) == 0x180 ? 1 : -1];
 
 /* 14 OBSTACLE (was CID14; 0x1F0): convex polygon SHAPE / pathzone obstacle (cnvo.cpp: the TU sits where Sly 1 has
    cnvo.c, but Sly 1's CNVO is a conveyor; this class clips, merges and registers convex obstacles); vtable 0x2D4DE0, 50 slots */
@@ -2280,8 +2280,8 @@ struct PATHLINK : LO
 typedef char assert_PATHLINK_size[sizeof(PATHLINK) == 0x160 ? 1 : -1];
 typedef char assert_PATHLINK_kind[SLY2_OFFSETOF(PATHLINK, kind) == 0x120 ? 1 : -1]; typedef char assert_PATHLINK_endPos[SLY2_OFFSETOF(PATHLINK, endPos) == 0x140 ? 1 : -1];
 
-/* 99 CID99 (0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
-struct CID99 : SO
+/* 99 LOOTPOUCH (was CID99; 0x170): pickpocket dispenser / guard pouch; vtable 0x2D5450, 75 slots */
+struct LOOTPOUCH : SO
 {
     /* lootpouch.cpp's SPRAYER view names +0x150..+0x168 (declared here so the class has its size on every target). */
     struct XF *launchFrame;     /* +0x150 the frame the item is drawn at and launched from (FindSoXf) */
@@ -2295,7 +2295,7 @@ struct CID99 : SO
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid99ClassDesc");   /* slot 6 */
     virtual void RenderSelf() __asm__("RenderLootPouchSelf");   /* slot 19 */
 };
-typedef char assert_CID99_size[sizeof(CID99) == 0x170 ? 1 : -1]; typedef char assert_CID99_psma[SLY2_OFFSETOF(CID99, psma) == 0x16C ? 1 : -1];
+typedef char assert_CID99_size[sizeof(LOOTPOUCH) == 0x170 ? 1 : -1]; typedef char assert_CID99_psma[SLY2_OFFSETOF(LOOTPOUCH, psma) == 0x16C ? 1 : -1];
 
 /* 11 PIPE (0x1E0): lamp posts; JTPIPE; vtable 0x2D56F8, 50 slots */
 struct PIPE : SHAPE, GRABSPOT
@@ -2386,7 +2386,7 @@ typedef char assert_RIPG_ripList[SLY2_OFFSETOF(RIPG, ripList) == 0x15C ? 1 : -1]
 typedef char assert_RIPG_boundsRadius[SLY2_OFFSETOF(RIPG, boundsRadius) == 0x1A0 ? 1 : -1];
 typedef char assert_RIPG_size[sizeof(RIPG) == 0x1B0 ? 1 : -1];
 
-/* 77 ROBOTTANK and 108 CID108 (key TU robottank): sly2/tank.h */
+/* 77 ROBOTTANK and 108 AMMOPICKUP (key TU robottank): sly2/tank.h */
 #include "sly2/tank.h"
 
 /* 112 LAUNCHER (was CID112; 0xC0): aim manager / launcher (darts, guard pebbles, sword missiles); vtable 0x2D7F40, 48 slots */
@@ -2496,15 +2496,15 @@ typedef char assert_RELAY_dlJsg[SLY2_OFFSETOF(RELAY, dlJsg) == 0x5C ? 1 : -1];
 typedef char assert_RELAY_fOwnCommands[SLY2_OFFSETOF(RELAY, fOwnCommands) == 0x80 ? 1 : -1];
 typedef char assert_RELAY_apalarm[SLY2_OFFSETOF(RELAY, apalarm) == 0x88 ? 1 : -1];
 
-/* 106 CID106 (0x160): mesh deformed along a path; vtable 0x2D8DD8, 75 slots */
-struct CID106 : SO
+/* 106 PATHMESH (was CID106; 0x160): mesh deformed along a path; vtable 0x2D8DD8, 75 slots */
+struct PATHMESH : SO
 {
     char pad150[0x160 - 0x150];
     virtual void RenderSelf() __asm__("RenderCid106Self");   /* slot 19 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid106ClassDesc");   /* slot 6 */
     virtual void PostLoad() __asm__("PostCid106Load");   /* slot 15 */
 };
-typedef char assert_CID106_size[sizeof(CID106) == 0x160 ? 1 : -1];
+typedef char assert_CID106_size[sizeof(PATHMESH) == 0x160 ? 1 : -1];
 
 /* 139 LOOP (0x70); vtable 0x2D93C0, 10 slots */
 struct LOOP : SAA
@@ -2746,11 +2746,11 @@ struct CID21 : XFM
 };
 typedef char assert_CID21_size[sizeof(CID21) == 0x100 ? 1 : -1];
 
-/* 100 CID100 (0x1B0): tossables (alarm clock tossable_distract, music box); vtable 0x2DBB10, 76 slots. Slot functions
-   are named Tossable (InitTossable, UpdateTossable...); the gadgets (CID101/CID102) derive from it. Layout from
+/* 100 TOSSABLE (was CID100; 0x1B0): tossables (alarm clock tossable_distract, music box); vtable 0x2DBB10, 76 slots. Slot functions
+   are named Tossable (InitTossable, UpdateTossable...); the gadgets (TRIGGERBOMB/GUARDTRAP) derive from it. Layout from
    src/game/gameplay/objects/gadget.cpp's CID100V view (names from there; also relay.cpp's/air.cpp's copies and
    throw.cpp's reads). */
-struct CID100 : SO
+struct TOSSABLE : SO
 {
     int state;                  /* +0x150 gadget.cpp's TOSSABLE_STATE */
     float time;                 /* +0x154 time of the last state change */
@@ -2783,15 +2783,15 @@ struct CID100 : SO
     virtual int TakeDamage(ZPR *pzpr) __asm__("TakeTossableDamage");   /* slot 75 */
     virtual void SetState(int state) __asm__("SetTossableState");   /* slot 76 */
 };
-typedef char assert_CID100_size[sizeof(CID100) == 0x1B0 ? 1 : -1];
-typedef char assert_CID100_stickNormal[SLY2_OFFSETOF(CID100, stickNormal) == 0x190 ? 1 : -1];
+typedef char assert_CID100_size[sizeof(TOSSABLE) == 0x1B0 ? 1 : -1];
+typedef char assert_CID100_stickNormal[SLY2_OFFSETOF(TOSSABLE, stickNormal) == 0x190 ? 1 : -1];
 
-/* 101 CID101 (0x1B0): Bentley trigger bomb / mines (gadget object); vtable 0x2C9810, 76 slots */
-struct CID101 : CID100
+/* 101 TRIGGERBOMB (was CID101; 0x1B0): Bentley trigger bomb / mines (gadget object); vtable 0x2C9810, 76 slots */
+struct TRIGGERBOMB : TOSSABLE
 {
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid101ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID101_size[sizeof(CID101) == 0x1B0 ? 1 : -1];
+typedef char assert_CID101_size[sizeof(TRIGGERBOMB) == 0x1B0 ? 1 : -1];
 
 /* 130 WIDGET130 (0x130): WIDGET: the recon selector prompt (recon); vtable 0x2C9670, 50 slots */
 struct WIDGET130 : WIDGET
@@ -2853,8 +2853,8 @@ struct BEARCUB : STEPGUARD
 };
 typedef char assert_BEARCUB_size[sizeof(BEARCUB) == 0x1010 ? 1 : -1];
 
-/* 102 CID102 (0x1D0): guard trap (drops a prize); vtable 0x2DB8A0, 76 slots */
-struct CID102 : CID100
+/* 102 GUARDTRAP (was CID102; 0x1D0): guard trap (drops a prize); vtable 0x2DB8A0, 76 slots */
+struct GUARDTRAP : TOSSABLE
 {
     char pad1B0[0x1D0 - 0x1B0];
     virtual void Init() __asm__("InitGuardTrap");   /* slot 7 */
@@ -2863,7 +2863,7 @@ struct CID102 : CID100
     virtual void AddExternalAccelerations(XA *pxa) __asm__("PushGuardTrapAway");   /* slot 71 */
     virtual void SetState(int state) __asm__("SelectGuardTrapTarget");   /* slot 76 */
 };
-typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
+typedef char assert_CID102_size[sizeof(GUARDTRAP) == 0x1D0 ? 1 : -1];
 
 /* 69 TURRET (0x1E0): grapple turret; vtable 0x2DBD80, 81 slots */
 struct TURRET : PO
@@ -2909,13 +2909,13 @@ struct CID23 : VOL
 };
 typedef char assert_CID23_size[sizeof(CID23) == 0x140 ? 1 : -1];
 
-/* 41 CID41 (0xE0): in-level teleport destination (WARP_* strings); vtable 0x2DC890, 50 slots */
-struct CID41 : XFM
+/* 41 WARPDEST (was CID41; 0xE0): in-level teleport destination (WARP_* strings); vtable 0x2DC890, 50 slots */
+struct WARPDEST : XFM
 {
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadTeleportDestinationFromBrx");   /* slot 14 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid41ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID41_size[sizeof(CID41) == 0xE0 ? 1 : -1];
+typedef char assert_CID41_size[sizeof(WARPDEST) == 0xE0 ? 1 : -1];
 
 /* 26 EXIT (0x190): level exit volume; vtable 0x2DC6F0, 50 slots. Sends the player to another world: plays the
    queued movies, then wipes to the target world. Layout from src/game/level/exit_warp.cpp (the former EXITV view). */

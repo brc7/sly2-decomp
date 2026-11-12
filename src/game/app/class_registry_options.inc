@@ -985,14 +985,14 @@ EOPIDROW D_002AC880[1449] = {
     {0, 0x92, EOPID_OFF(STEP, takesNoDamage), EOPID_OFF(STEP, takesNoDamage), EOPID_OFF(STEP, takesNoDamage), EOPID_NONE}, /* [232] opt 358, STEP (+17) */
     {0x12, 0x401, EOPID_FN(RefThunk_AddStepguardAttackOid), EOPID_FN(RefThunk_AddAndResolveStepguardAttackOid), EOPID_INT(1), EOPID_NONE}, /* [233] opt 359, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_ClearStepguardAttacks), EOPID_FN(RefThunk_ClearStepguardAttacks), EOPID_NONE, EOPID_NONE}, /* [234] opt 360, STEPGUARD (+11) */
-    {0xA, 0x2092, EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_PMF(GetStepguardDefaultAttack)}, /* [235] opt 361, STEPGUARD (+11) */
-    {0xA, 0x2092, EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_PMF(GetStepguardDefaultAttack)}, /* [236] opt 362, STEPGUARD (+11) */
-    {0xA, 0x2092, EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_PMF(GetStepguardDefaultAttack)}, /* [237] opt 363, STEPGUARD (+11) */
+    {0xA, 0x2092, EOPID_OFF(GUARDATTACK, distance), EOPID_OFF(GUARDATTACK, distance), EOPID_OFF(GUARDATTACK, distance), EOPID_PMF(GetStepguardDefaultAttack)}, /* [235] opt 361, STEPGUARD (+11) */
+    {0xA, 0x2092, EOPID_OFF(GUARDATTACK, height), EOPID_OFF(GUARDATTACK, height), EOPID_OFF(GUARDATTACK, height), EOPID_PMF(GetStepguardDefaultAttack)}, /* [236] opt 362, STEPGUARD (+11) */
+    {0xA, 0x2092, EOPID_OFF(GUARDATTACK, cooldownMin), EOPID_OFF(GUARDATTACK, cooldownMin), EOPID_OFF(GUARDATTACK, cooldownMin), EOPID_PMF(GetStepguardDefaultAttack)}, /* [237] opt 363, STEPGUARD (+11) */
     {1, 0x2120, EOPID_NONE, EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(GetStepguardDefaultAttack)}, /* [238] opt 364, STEPGUARD (+11) */
-    {1, 0x2092, EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_PMF(GetStepguardDefaultAttack)}, /* [239] opt 365, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_PMF(GetStepguardDefaultAttack)}, /* [240] opt 366, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_PMF(GetStepguardDefaultAttack)}, /* [241] opt 367, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_PMF(GetStepguardDefaultAttack)}, /* [242] opt 368, STEPGUARD (+11) */
+    {1, 0x2092, EOPID_OFF(GUARDATTACK, angle), EOPID_OFF(GUARDATTACK, angle), EOPID_OFF(GUARDATTACK, angle), EOPID_PMF(GetStepguardDefaultAttack)}, /* [239] opt 365, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(GUARDATTACK, aimsAtTarget), EOPID_OFF(GUARDATTACK, aimsAtTarget), EOPID_OFF(GUARDATTACK, aimsAtTarget), EOPID_PMF(GetStepguardDefaultAttack)}, /* [240] opt 366, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(GUARDATTACK, needsLineOfSight), EOPID_OFF(GUARDATTACK, needsLineOfSight), EOPID_OFF(GUARDATTACK, needsLineOfSight), EOPID_PMF(GetStepguardDefaultAttack)}, /* [241] opt 367, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_OFF(GUARDATTACK, isEnabled), EOPID_OFF(GUARDATTACK, isEnabled), EOPID_OFF(GUARDATTACK, isEnabled), EOPID_PMF(GetStepguardDefaultAttack)}, /* [242] opt 368, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardAnimBinding), EOPID_FN(RefThunk_SetAndResolveStepguardAnimBinding), EOPID_INT(3), EOPID_NONE}, /* [243] opt 369, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardAnimBindingKind3), EOPID_FN(RefThunk_SetAndResolveStepguardAnimBindingKind3), EOPID_INT(5), EOPID_NONE}, /* [244] opt 370, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(RefThunk_SetStepguardAnimBindingKind2), EOPID_FN(RefThunk_SetAndResolveStepguardAnimBindingKind2), EOPID_INT(6), EOPID_NONE}, /* [245] opt 371, STEPGUARD (+11) */
@@ -1103,19 +1103,19 @@ EOPIDROW D_002AC880[1449] = {
     {0x2002, 0x120, EOPID_NONE, EOPID_PMF(RemoveDetectorTarget), EOPID_PMF(RemoveDetectorTarget), EOPID_NONE}, /* [350] opt 469, DETECTOR */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkDetector_SetDetectorTargetStateById), EOPID_INT(2), EOPID_NONE}, /* [351] opt 458, DETECTOR */
     {0x106B, 1, EOPID_NONE, EOPID_FN(RefThunkDetector_GetDetectorTargetStateById), EOPID_INT(1), EOPID_NONE}, /* [352] opt 459, DETECTOR */
-    {0xA, 0x92, EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_OFF(CID120, distance), EOPID_NONE}, /* [353] opt 361, CID120 */
-    {0xA, 0x92, EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_OFF(CID120, height), EOPID_NONE}, /* [354] opt 362, CID120 */
-    {0xA, 0x92, EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_OFF(CID120, cooldownMin), EOPID_NONE}, /* [355] opt 363, CID120 */
-    {1, 0x120, EOPID_NONE, EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_NONE}, /* [356] opt 364, CID120 */
-    {1, 0x92, EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_OFF(CID120, angle), EOPID_NONE}, /* [357] opt 365, CID120 */
-    {0, 0x92, EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_OFF(CID120, aimsAtTarget), EOPID_NONE}, /* [358] opt 366, CID120 */
-    {0, 0x92, EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_OFF(CID120, needsLineOfSight), EOPID_NONE}, /* [359] opt 470, CID120 */
-    {1, 0x92, EOPID_OFF(CID120, minLineOfSight), EOPID_OFF(CID120, minLineOfSight), EOPID_OFF(CID120, minLineOfSight), EOPID_NONE}, /* [360] opt 471, CID120 */
-    {0, 0x92, EOPID_OFF(CID120, ignoresClass98), EOPID_OFF(CID120, ignoresClass98), EOPID_OFF(CID120, ignoresClass98), EOPID_NONE}, /* [361] opt 472, CID120 */
-    {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackOids), EOPID_FN(RefThunk_SetGuardAttackOids), EOPID_INT(3), EOPID_NONE}, /* [362] opt 473, CID120 */
-    {0, 0x92, EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_OFF(CID120, isEnabled), EOPID_NONE}, /* [363] opt 368, CID120 */
-    {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackBinding), EOPID_FN(RefThunk_SetAndResolveGuardAttackBinding), EOPID_INT(2), EOPID_NONE}, /* [364] opt 369, CID120 */
-    {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackBindingKind2), EOPID_FN(RefThunk_SetAndResolveGuardAttackBindingKind2), EOPID_INT(5), EOPID_NONE}, /* [365] opt 371, CID120 */
+    {0xA, 0x92, EOPID_OFF(GUARDATTACK, distance), EOPID_OFF(GUARDATTACK, distance), EOPID_OFF(GUARDATTACK, distance), EOPID_NONE}, /* [353] opt 361, GUARDATTACK */
+    {0xA, 0x92, EOPID_OFF(GUARDATTACK, height), EOPID_OFF(GUARDATTACK, height), EOPID_OFF(GUARDATTACK, height), EOPID_NONE}, /* [354] opt 362, GUARDATTACK */
+    {0xA, 0x92, EOPID_OFF(GUARDATTACK, cooldownMin), EOPID_OFF(GUARDATTACK, cooldownMin), EOPID_OFF(GUARDATTACK, cooldownMin), EOPID_NONE}, /* [355] opt 363, GUARDATTACK */
+    {1, 0x120, EOPID_NONE, EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_PMF(SetGuardAttackAngleDegrees), EOPID_NONE}, /* [356] opt 364, GUARDATTACK */
+    {1, 0x92, EOPID_OFF(GUARDATTACK, angle), EOPID_OFF(GUARDATTACK, angle), EOPID_OFF(GUARDATTACK, angle), EOPID_NONE}, /* [357] opt 365, GUARDATTACK */
+    {0, 0x92, EOPID_OFF(GUARDATTACK, aimsAtTarget), EOPID_OFF(GUARDATTACK, aimsAtTarget), EOPID_OFF(GUARDATTACK, aimsAtTarget), EOPID_NONE}, /* [358] opt 366, GUARDATTACK */
+    {0, 0x92, EOPID_OFF(GUARDATTACK, needsLineOfSight), EOPID_OFF(GUARDATTACK, needsLineOfSight), EOPID_OFF(GUARDATTACK, needsLineOfSight), EOPID_NONE}, /* [359] opt 470, GUARDATTACK */
+    {1, 0x92, EOPID_OFF(GUARDATTACK, minLineOfSight), EOPID_OFF(GUARDATTACK, minLineOfSight), EOPID_OFF(GUARDATTACK, minLineOfSight), EOPID_NONE}, /* [360] opt 471, GUARDATTACK */
+    {0, 0x92, EOPID_OFF(GUARDATTACK, ignoresClass98), EOPID_OFF(GUARDATTACK, ignoresClass98), EOPID_OFF(GUARDATTACK, ignoresClass98), EOPID_NONE}, /* [361] opt 472, GUARDATTACK */
+    {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackOids), EOPID_FN(RefThunk_SetGuardAttackOids), EOPID_INT(3), EOPID_NONE}, /* [362] opt 473, GUARDATTACK */
+    {0, 0x92, EOPID_OFF(GUARDATTACK, isEnabled), EOPID_OFF(GUARDATTACK, isEnabled), EOPID_OFF(GUARDATTACK, isEnabled), EOPID_NONE}, /* [363] opt 368, GUARDATTACK */
+    {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackBinding), EOPID_FN(RefThunk_SetAndResolveGuardAttackBinding), EOPID_INT(2), EOPID_NONE}, /* [364] opt 369, GUARDATTACK */
+    {0x12, 0x401, EOPID_FN(RefThunk_SetGuardAttackBindingKind2), EOPID_FN(RefThunk_SetAndResolveGuardAttackBindingKind2), EOPID_INT(5), EOPID_NONE}, /* [365] opt 371, GUARDATTACK */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunkVolCHECK_POINT), EOPID_INT(1), EOPID_NONE}, /* [366] opt 108, VOL (+5) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_IsSphereInVol), EOPID_INT(2), EOPID_NONE}, /* [367] opt 474, VOL (+5) */
     {0x2088, 1, EOPID_NONE, EOPID_FN(RefThunkSmAPPLY), EOPID_INT(3), EOPID_NONE}, /* [368] opt 214, SM */
@@ -1344,25 +1344,25 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(EnsureExplsSfx)}, /* [591] opt 619, EXPLS */
     {1, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMF(EnsureExplsSfx)}, /* [592] opt 620, EXPLS */
     {1, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(EnsureExplsSfx)}, /* [593] opt 621, EXPLS */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartGuardScriptOnGuard), EOPID_INT(1), EOPID_NONE}, /* [594] opt 214, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptSetContext), EOPID_FN(RefThunk_AddGuardScriptSetContext), EOPID_INT(1), EOPID_NONE}, /* [595] opt 622, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptSetWalkTimes), EOPID_FN(RefThunk_AddGuardScriptSetWalkTimes), EOPID_INT(1), EOPID_NONE}, /* [596] opt 623, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptSetPauseTimes), EOPID_FN(RefThunk_AddGuardScriptSetPauseTimes), EOPID_INT(1), EOPID_NONE}, /* [597] opt 624, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptTeleport), EOPID_FN(RefThunk_AddGuardScriptTeleport), EOPID_INT(1), EOPID_NONE}, /* [598] opt 292, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptMessage), EOPID_FN(RefThunk_AddGuardScriptMessage), EOPID_INT(1), EOPID_NONE}, /* [599] opt 243, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptWait), EOPID_FN(RefThunk_AddGuardScriptWait), EOPID_INT(1), EOPID_NONE}, /* [600] opt 256, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptFollowPath), EOPID_FN(RefThunk_AddGuardScriptFollowPath), EOPID_INT(3), EOPID_NONE}, /* [601] opt 625, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptGoto), EOPID_FN(RefThunk_AddGuardScriptGoto), EOPID_INT(3), EOPID_NONE}, /* [602] opt 626, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptAnim), EOPID_FN(RefThunk_AddGuardScriptAnim), EOPID_INT(1), EOPID_NONE}, /* [603] opt 627, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptLabel), EOPID_FN(RefThunk_AddGuardScriptLabel), EOPID_INT(1), EOPID_NONE}, /* [604] opt 242, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptJump), EOPID_FN(RefThunk_AddGuardScriptJump), EOPID_INT(1), EOPID_NONE}, /* [605] opt 236, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptLeap), EOPID_FN(RefThunk_AddGuardScriptLeap), EOPID_INT(2), EOPID_NONE}, /* [606] opt 628, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptBusyOn), EOPID_FN(RefThunk_AddGuardScriptBusyOn), EOPID_NONE, EOPID_NONE}, /* [607] opt 629, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptBusyOff), EOPID_FN(RefThunk_AddGuardScriptBusyOff), EOPID_NONE, EOPID_NONE}, /* [608] opt 630, CID113 */
-    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [609] opt 631, CID113 */
-    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [610] opt 632, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptPlayBinding), EOPID_FN(RefThunk_AddGuardScriptPlayBinding), EOPID_INT(2), EOPID_NONE}, /* [611] opt 633, CID113 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptEnsureRelayAlarm), EOPID_FN(RefThunk_AddGuardScriptEnsureRelayAlarm), EOPID_INT(2), EOPID_NONE}, /* [612] opt 634, CID113 */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartGuardScriptOnGuard), EOPID_INT(1), EOPID_NONE}, /* [594] opt 214, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptSetContext), EOPID_FN(RefThunk_AddGuardScriptSetContext), EOPID_INT(1), EOPID_NONE}, /* [595] opt 622, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptSetWalkTimes), EOPID_FN(RefThunk_AddGuardScriptSetWalkTimes), EOPID_INT(1), EOPID_NONE}, /* [596] opt 623, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptSetPauseTimes), EOPID_FN(RefThunk_AddGuardScriptSetPauseTimes), EOPID_INT(1), EOPID_NONE}, /* [597] opt 624, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptTeleport), EOPID_FN(RefThunk_AddGuardScriptTeleport), EOPID_INT(1), EOPID_NONE}, /* [598] opt 292, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptMessage), EOPID_FN(RefThunk_AddGuardScriptMessage), EOPID_INT(1), EOPID_NONE}, /* [599] opt 243, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptWait), EOPID_FN(RefThunk_AddGuardScriptWait), EOPID_INT(1), EOPID_NONE}, /* [600] opt 256, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptFollowPath), EOPID_FN(RefThunk_AddGuardScriptFollowPath), EOPID_INT(3), EOPID_NONE}, /* [601] opt 625, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptGoto), EOPID_FN(RefThunk_AddGuardScriptGoto), EOPID_INT(3), EOPID_NONE}, /* [602] opt 626, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptAnim), EOPID_FN(RefThunk_AddGuardScriptAnim), EOPID_INT(1), EOPID_NONE}, /* [603] opt 627, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptLabel), EOPID_FN(RefThunk_AddGuardScriptLabel), EOPID_INT(1), EOPID_NONE}, /* [604] opt 242, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptJump), EOPID_FN(RefThunk_AddGuardScriptJump), EOPID_INT(1), EOPID_NONE}, /* [605] opt 236, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptLeap), EOPID_FN(RefThunk_AddGuardScriptLeap), EOPID_INT(2), EOPID_NONE}, /* [606] opt 628, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptBusyOn), EOPID_FN(RefThunk_AddGuardScriptBusyOn), EOPID_NONE, EOPID_NONE}, /* [607] opt 629, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptBusyOff), EOPID_FN(RefThunk_AddGuardScriptBusyOff), EOPID_NONE, EOPID_NONE}, /* [608] opt 630, GUARDSCRIPT */
+    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [609] opt 631, GUARDSCRIPT */
+    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [610] opt 632, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptPlayBinding), EOPID_FN(RefThunk_AddGuardScriptPlayBinding), EOPID_INT(2), EOPID_NONE}, /* [611] opt 633, GUARDSCRIPT */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddGuardScriptEnsureRelayAlarm), EOPID_FN(RefThunk_AddGuardScriptEnsureRelayAlarm), EOPID_INT(2), EOPID_NONE}, /* [612] opt 634, GUARDSCRIPT */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkRelayTRIGGER), EOPID_INT(1), EOPID_NONE}, /* [613] opt 235, RELAY */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_FireRelayFromPlayer), EOPID_NONE, EOPID_NONE}, /* [614] opt 638, RELAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkRelayUNTRIGGER), EOPID_NONE, EOPID_NONE}, /* [615] opt 530, RELAY */
@@ -1528,7 +1528,7 @@ EOPIDROW D_002AC880[1449] = {
     {0, 0x92, EOPID_OFF(BENTLEY, unknown1818), EOPID_OFF(BENTLEY, unknown1818), EOPID_OFF(BENTLEY, unknown1818), EOPID_NONE}, /* [775] opt 758, BENTLEY */
     {0, 0x92, EOPID_OFF(BENTLEY, unknown181C), EOPID_OFF(BENTLEY, unknown181C), EOPID_OFF(BENTLEY, unknown181C), EOPID_NONE}, /* [776] opt 759, BENTLEY */
     {0x1049, 0x92, EOPID_OFF(BENTLEY, unknown1870), EOPID_OFF(BENTLEY, unknown1870), EOPID_OFF(BENTLEY, unknown1870), EOPID_NONE}, /* [777] opt 760, BENTLEY */
-    {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_PutHeroAtWarp), EOPID_NONE, EOPID_NONE}, /* [778] opt 235, CID41 */
+    {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_PutHeroAtWarp), EOPID_NONE, EOPID_NONE}, /* [778] opt 235, WARPDEST */
     {6, 0x92, EOPID_OFF(EXIT, targetWarpOid), EOPID_OFF(EXIT, targetWarpOid), EOPID_OFF(EXIT, targetWarpOid), EOPID_NONE}, /* [779] opt 761, EXIT */
     {6, 0x92, EOPID_OFF(EXIT, wipeOid), EOPID_OFF(EXIT, wipeOid), EOPID_OFF(EXIT, wipeOid), EOPID_NONE}, /* [780] opt 764, EXIT */
     {1, 0x92, EOPID_OFF(EXIT, rearmDelay), EOPID_OFF(EXIT, rearmDelay), EOPID_OFF(EXIT, rearmDelay), EOPID_NONE}, /* [781] opt 765, EXIT */
@@ -1620,7 +1620,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetRailOwnFields)}, /* [867] opt 780, RAIL */
     {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, ploGroup), EOPID_PMFI(GetRailOwnFields)}, /* [868] opt 781, RAIL */
     {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetRailOwnFields)}, /* [869] opt 782, RAIL */
-    {1, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [870] opt 795, CID40 */
+    {1, 0x92, EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_INT(0xE8), EOPID_NONE}, /* [870] opt 795, JUMPTARGET */
     {1, 0x92, EOPID_INT(0x108), EOPID_INT(0x108), EOPID_INT(0x108), EOPID_NONE}, /* [871] opt 778, CID9 */
     {0, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [872] opt 141, CID9 */
     {0x200F, 0x92, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_NONE}, /* [873] opt 796, CID9 */
@@ -1715,19 +1715,19 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x400, EOPID_FN(RefThunkWrADD_SWIVEL_NOISE), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [962] opt 880, WR */
     {5, 2, EOPID_OFF(WR, entryCount), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [963] opt 881, WR */
     {5, 0x12, EOPID_OFF(WR, currentEntryIndex), EOPID_OFF(WR, currentEntryIndex), EOPID_NONE, EOPID_NONE}, /* [964] opt 882, WR */
-    {0x12, 0x400, EOPID_FN(RefThunk_SetCritterLink), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [965] opt 369, CID96 */
-    {0x200A, 0x92, EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_NONE}, /* [966] opt 883, CID96 */
-    {0x200A, 0x92, EOPID_INT(0x170), EOPID_INT(0x170), EOPID_INT(0x170), EOPID_NONE}, /* [967] opt 884, CID96 */
-    {0x201E, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [968] opt 885, CID96 */
-    {1, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [969] opt 886, CID96 */
-    {1, 0x92, EOPID_INT(0x154), EOPID_INT(0x154), EOPID_INT(0x154), EOPID_NONE}, /* [970] opt 887, CID96 */
-    {0xA, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [971] opt 888, CID96 */
-    {0xA, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [972] opt 889, CID96 */
-    {1, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [973] opt 890, CID96 */
-    {1, 0x122, EOPID_INT(0x21C), EOPID_PMF(SetStepSpinRatio__FP4STEPf), EOPID_PMF(SetStepSpinRatio__FP4STEPf), EOPID_NONE}, /* [974] opt 350, CID96 */
-    {0x1036, 0x22, EOPID_INT(0x220), EOPID_PMF(SetCritterState), EOPID_NONE, EOPID_NONE}, /* [975] opt 891, CID96 */
-    {5, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [976] opt 402, CID96 */
-    {2, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [977] opt 403, CID96 */
+    {0x12, 0x400, EOPID_FN(RefThunk_SetCritterLink), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [965] opt 369, CRITTER */
+    {0x200A, 0x92, EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_INT(0x16C), EOPID_NONE}, /* [966] opt 883, CRITTER */
+    {0x200A, 0x92, EOPID_INT(0x170), EOPID_INT(0x170), EOPID_INT(0x170), EOPID_NONE}, /* [967] opt 884, CRITTER */
+    {0x201E, 0x92, EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_INT(0x1C8), EOPID_NONE}, /* [968] opt 885, CRITTER */
+    {1, 0x92, EOPID_INT(0x150), EOPID_INT(0x150), EOPID_INT(0x150), EOPID_NONE}, /* [969] opt 886, CRITTER */
+    {1, 0x92, EOPID_INT(0x154), EOPID_INT(0x154), EOPID_INT(0x154), EOPID_NONE}, /* [970] opt 887, CRITTER */
+    {0xA, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [971] opt 888, CRITTER */
+    {0xA, 0x92, EOPID_INT(0x160), EOPID_INT(0x160), EOPID_INT(0x160), EOPID_NONE}, /* [972] opt 889, CRITTER */
+    {1, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [973] opt 890, CRITTER */
+    {1, 0x122, EOPID_INT(0x21C), EOPID_PMF(SetStepSpinRatio__FP4STEPf), EOPID_PMF(SetStepSpinRatio__FP4STEPf), EOPID_NONE}, /* [974] opt 350, CRITTER */
+    {0x1036, 0x22, EOPID_INT(0x220), EOPID_PMF(SetCritterState), EOPID_NONE, EOPID_NONE}, /* [975] opt 891, CRITTER */
+    {5, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [976] opt 402, CRITTER */
+    {2, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [977] opt 403, CRITTER */
     {0, 0x92, EOPID_OFF(SKY, followCameraZ), EOPID_OFF(SKY, followCameraZ), EOPID_OFF(SKY, followCameraZ), EOPID_NONE}, /* [978] opt 892, SKY */
     {0x12, 0x4401, EOPID_FN(RefThunk_StartScreenFade), EOPID_FN(RefThunk_StartScreenFade), EOPID_NONE, EOPID_NONE}, /* [979] opt 235, SCREENFADE */
     {0xD, 0x92, EOPID_OFF(SCREENFADE, rgbaFadeIn), EOPID_OFF(SCREENFADE, rgbaFadeIn), EOPID_OFF(SCREENFADE, rgbaFadeIn), EOPID_NONE}, /* [980] opt 893, SCREENFADE */
@@ -1775,41 +1775,41 @@ EOPIDROW D_002AC880[1449] = {
     {0x10, 0x2092, EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_OFF(GRABSPOT, nUnk14), EOPID_PMFI(GetHndOwnFields)}, /* [1022] opt 780, HND */
     {0x2002, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_OFF(GRABSPOT, ploGroup), EOPID_PMFI(GetHndOwnFields)}, /* [1023] opt 781, HND */
     {0x106C, 0x2092, EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_OFF(GRABSPOT, grfPlayers), EOPID_PMFI(GetHndOwnFields)}, /* [1024] opt 782, HND */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTriggerClass), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1025] opt 926, CID98 */
-    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1026] opt 927, CID98 */
-    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1027] opt 928, CID98 */
-    {0x2002, 2, EOPID_OFF(CID98, instigator), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1028] opt 929, CID98 */
-    {0x1011, 2, EOPID_OFF(CID98, zapKind), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1029] opt 930, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableStage), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1030] opt 342, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_InitBreakablePreStage), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1031] opt 931, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_SetBreakableStageParam), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1032] opt 932, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSetSource), EOPID_NONE}, /* [1033] opt 933, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSendMessage), EOPID_NONE}, /* [1034] opt 244, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableJoltCamera), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1035] opt 233, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableRumble), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1036] opt 234, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableSound), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1037] opt 934, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSpliceEvent), EOPID_NONE}, /* [1038] opt 243, CID98 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAddObject), EOPID_NONE}, /* [1039] opt 238, CID98 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableShowGlobs), EOPID_FN(RefThunk_ShowSoGlobsById), EOPID_INT(1), EOPID_NONE}, /* [1040] opt 110, CID98 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableShowParts), EOPID_FN(RefThunk_ShowSoPartsById), EOPID_INT(1), EOPID_NONE}, /* [1041] opt 112, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableRemoveObject), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1042] opt 239, CID98 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableHideGlobs), EOPID_FN(RefThunk_HideSoGlobsById), EOPID_INT(1), EOPID_NONE}, /* [1043] opt 111, CID98 */
-    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableHideParts), EOPID_FN(RefThunk_HideSoPartsById), EOPID_INT(1), EOPID_NONE}, /* [1044] opt 113, CID98 */
-    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTaskStates), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1045] opt 527, CID98 */
-    {0x104A, 0x12, EOPID_OFF(CID98, reactionMask), EOPID_OFF(CID98, reactionMask), EOPID_NONE, EOPID_NONE}, /* [1046] opt 935, CID98 */
-    {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_ScheduleBreakableReaction), EOPID_NONE, EOPID_NONE}, /* [1047] opt 936, CID98 */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetBreakableStage), EOPID_INT(1), EOPID_NONE}, /* [1048] opt 236, CID98 */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTriggerClass), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1025] opt 926, BREAKABLE */
+    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1026] opt 927, BREAKABLE */
+    {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1027] opt 928, BREAKABLE */
+    {0x2002, 2, EOPID_OFF(BREAKABLE, instigator), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1028] opt 929, BREAKABLE */
+    {0x1011, 2, EOPID_OFF(BREAKABLE, zapKind), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1029] opt 930, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableStage), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1030] opt 342, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_InitBreakablePreStage), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1031] opt 931, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_SetBreakableStageParam), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1032] opt 932, BREAKABLE */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSetSource), EOPID_NONE}, /* [1033] opt 933, BREAKABLE */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSendMessage), EOPID_NONE}, /* [1034] opt 244, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableJoltCamera), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1035] opt 233, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableRumble), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1036] opt 234, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableSound), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1037] opt 934, BREAKABLE */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableSpliceEvent), EOPID_NONE}, /* [1038] opt 243, BREAKABLE */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddBreakableAddObject), EOPID_NONE}, /* [1039] opt 238, BREAKABLE */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableShowGlobs), EOPID_FN(RefThunk_ShowSoGlobsById), EOPID_INT(1), EOPID_NONE}, /* [1040] opt 110, BREAKABLE */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableShowParts), EOPID_FN(RefThunk_ShowSoPartsById), EOPID_INT(1), EOPID_NONE}, /* [1041] opt 112, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableRemoveObject), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1042] opt 239, BREAKABLE */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableHideGlobs), EOPID_FN(RefThunk_HideSoGlobsById), EOPID_INT(1), EOPID_NONE}, /* [1043] opt 111, BREAKABLE */
+    {0x12, 0x401, EOPID_FN(RefThunk_AddBreakableHideParts), EOPID_FN(RefThunk_HideSoPartsById), EOPID_INT(1), EOPID_NONE}, /* [1044] opt 113, BREAKABLE */
+    {0x12, 0x400, EOPID_FN(RefThunk_AddBreakableTaskStates), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [1045] opt 527, BREAKABLE */
+    {0x104A, 0x12, EOPID_OFF(BREAKABLE, reactionMask), EOPID_OFF(BREAKABLE, reactionMask), EOPID_NONE, EOPID_NONE}, /* [1046] opt 935, BREAKABLE */
+    {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunk_ScheduleBreakableReaction), EOPID_NONE, EOPID_NONE}, /* [1047] opt 936, BREAKABLE */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetBreakableStage), EOPID_INT(1), EOPID_NONE}, /* [1048] opt 236, BREAKABLE */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartMurrayLiftGrabspot), EOPID_INT(1), EOPID_NONE}, /* [1049] opt 937, MURRAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ThrowMurrayCarriedAt), EOPID_INT(1), EOPID_NONE}, /* [1050] opt 938, MURRAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_EnterMurrayThrowAim), EOPID_NONE, EOPID_NONE}, /* [1051] opt 939, MURRAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ClearMurrayBehaviors), EOPID_INT(1), EOPID_NONE}, /* [1052] opt 940, MURRAY */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StartMurrayFlop), EOPID_NONE, EOPID_NONE}, /* [1053] opt 941, MURRAY */
-    {1, 0x82, EOPID_OFF(CID44, fov), EOPID_NONE, EOPID_OFF(CID44, fov), EOPID_NONE}, /* [1054] opt 293, CID44 */
-    {0x2002, 0x92, EOPID_OFF(CID44, lookAtTarget), EOPID_OFF(CID44, lookAtTarget), EOPID_OFF(CID44, lookAtTarget), EOPID_NONE}, /* [1055] opt 503, CID44 */
-    {2, 0x92, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_NONE}, /* [1056] opt 942, CID44 */
-    {2, 0x92, EOPID_OFF(CID44, axis100), EOPID_OFF(CID44, axis100), EOPID_OFF(CID44, axis100), EOPID_NONE}, /* [1057] opt 943, CID44 */
-    {2, 0x92, EOPID_OFF(CID44, axis110), EOPID_OFF(CID44, axis110), EOPID_OFF(CID44, axis110), EOPID_NONE}, /* [1058] opt 944, CID44 */
-    {0, 0x92, EOPID_OFF(CID44, cutOnEnd), EOPID_OFF(CID44, cutOnEnd), EOPID_OFF(CID44, cutOnEnd), EOPID_NONE}, /* [1059] opt 945, CID44 */
+    {1, 0x82, EOPID_OFF(CAMERAMARKER, fov), EOPID_NONE, EOPID_OFF(CAMERAMARKER, fov), EOPID_NONE}, /* [1054] opt 293, CAMERAMARKER */
+    {0x2002, 0x92, EOPID_OFF(CAMERAMARKER, lookAtTarget), EOPID_OFF(CAMERAMARKER, lookAtTarget), EOPID_OFF(CAMERAMARKER, lookAtTarget), EOPID_NONE}, /* [1055] opt 503, CAMERAMARKER */
+    {2, 0x92, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_NONE}, /* [1056] opt 942, CAMERAMARKER */
+    {2, 0x92, EOPID_OFF(CAMERAMARKER, axis100), EOPID_OFF(CAMERAMARKER, axis100), EOPID_OFF(CAMERAMARKER, axis100), EOPID_NONE}, /* [1057] opt 943, CAMERAMARKER */
+    {2, 0x92, EOPID_OFF(CAMERAMARKER, axis110), EOPID_OFF(CAMERAMARKER, axis110), EOPID_OFF(CAMERAMARKER, axis110), EOPID_NONE}, /* [1058] opt 944, CAMERAMARKER */
+    {0, 0x92, EOPID_OFF(CAMERAMARKER, cutOnEnd), EOPID_OFF(CAMERAMARKER, cutOnEnd), EOPID_OFF(CAMERAMARKER, cutOnEnd), EOPID_NONE}, /* [1059] opt 945, CAMERAMARKER */
     {1, 0x82, EOPID_INT(0x11C), EOPID_NONE, EOPID_INT(0x11C), EOPID_NONE}, /* [1060] opt 293, CID45 */
     {1, 0x82, EOPID_INT(0x120), EOPID_NONE, EOPID_INT(0x120), EOPID_NONE}, /* [1061] opt 296, CID45 */
     {1, 0x82, EOPID_INT(0x124), EOPID_NONE, EOPID_INT(0x124), EOPID_NONE}, /* [1062] opt 297, CID45 */
@@ -1852,18 +1852,18 @@ EOPIDROW D_002AC880[1449] = {
     {0x1047, 0x12, EOPID_OFF(NOISE, level), EOPID_OFF(NOISE, level), EOPID_NONE, EOPID_NONE}, /* [1099] opt 957, NOISE */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_RemoveNoise), EOPID_NONE, EOPID_NONE}, /* [1100] opt 237, NOISE */
     {0, 4, EOPID_PMF(IsNoiseRemoved), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1101] opt 255, NOISE */
-    {0x206F, 0x92, EOPID_OFF(CID100, stateMachine), EOPID_OFF(CID100, stateMachine), EOPID_OFF(CID100, stateMachine), EOPID_NONE}, /* [1102] opt 484, CID100 (+2) */
-    {0x2088, 2, EOPID_OFF(CID100, smApplication), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1103] opt 183, CID100 (+2) */
-    {0x1049, 0x92, EOPID_OFF(CID100, gadgetKind), EOPID_OFF(CID100, gadgetKind), EOPID_OFF(CID100, gadgetKind), EOPID_NONE}, /* [1104] opt 960, CID100 (+2) */
-    {0, 4, EOPID_PMF(IsThrowableGadget), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1105] opt 961, CID100 (+2) */
-    {0, 4, EOPID_PMF(IsTossableStateBlocking), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1106] opt 501, CID100 (+2) */
-    {0x1011, 0x92, EOPID_OFF(CID100, blastZapKind), EOPID_OFF(CID100, blastZapKind), EOPID_OFF(CID100, blastZapKind), EOPID_NONE}, /* [1107] opt 962, CID100 (+2) */
-    {5, 0x92, EOPID_OFF(CID100, blastDamage), EOPID_OFF(CID100, blastDamage), EOPID_OFF(CID100, blastDamage), EOPID_NONE}, /* [1108] opt 498, CID100 (+2) */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StickTossable), EOPID_INT(1), EOPID_NONE}, /* [1109] opt 963, CID100 (+2) */
-    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_DropTossable), EOPID_INT(1), EOPID_NONE}, /* [1110] opt 964, CID100 (+2) */
-    {0x2002, 0x92, EOPID_OFF(CID100, thrower), EOPID_OFF(CID100, thrower), EOPID_OFF(CID100, thrower), EOPID_NONE}, /* [1111] opt 965, CID100 (+2) */
-    {1, 0x92, EOPID_OFF(CID100, maxThrowerDistance), EOPID_OFF(CID100, maxThrowerDistance), EOPID_OFF(CID100, maxThrowerDistance), EOPID_NONE}, /* [1112] opt 966, CID100 (+2) */
-    {0x2002, 0x92, EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_NONE}, /* [1113] opt 37, CID102 */
+    {0x206F, 0x92, EOPID_OFF(TOSSABLE, stateMachine), EOPID_OFF(TOSSABLE, stateMachine), EOPID_OFF(TOSSABLE, stateMachine), EOPID_NONE}, /* [1102] opt 484, TOSSABLE (+2) */
+    {0x2088, 2, EOPID_OFF(TOSSABLE, smApplication), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1103] opt 183, TOSSABLE (+2) */
+    {0x1049, 0x92, EOPID_OFF(TOSSABLE, gadgetKind), EOPID_OFF(TOSSABLE, gadgetKind), EOPID_OFF(TOSSABLE, gadgetKind), EOPID_NONE}, /* [1104] opt 960, TOSSABLE (+2) */
+    {0, 4, EOPID_PMF(IsThrowableGadget), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1105] opt 961, TOSSABLE (+2) */
+    {0, 4, EOPID_PMF(IsTossableStateBlocking), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1106] opt 501, TOSSABLE (+2) */
+    {0x1011, 0x92, EOPID_OFF(TOSSABLE, blastZapKind), EOPID_OFF(TOSSABLE, blastZapKind), EOPID_OFF(TOSSABLE, blastZapKind), EOPID_NONE}, /* [1107] opt 962, TOSSABLE (+2) */
+    {5, 0x92, EOPID_OFF(TOSSABLE, blastDamage), EOPID_OFF(TOSSABLE, blastDamage), EOPID_OFF(TOSSABLE, blastDamage), EOPID_NONE}, /* [1108] opt 498, TOSSABLE (+2) */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StickTossable), EOPID_INT(1), EOPID_NONE}, /* [1109] opt 963, TOSSABLE (+2) */
+    {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_DropTossable), EOPID_INT(1), EOPID_NONE}, /* [1110] opt 964, TOSSABLE (+2) */
+    {0x2002, 0x92, EOPID_OFF(TOSSABLE, thrower), EOPID_OFF(TOSSABLE, thrower), EOPID_OFF(TOSSABLE, thrower), EOPID_NONE}, /* [1111] opt 965, TOSSABLE (+2) */
+    {1, 0x92, EOPID_OFF(TOSSABLE, maxThrowerDistance), EOPID_OFF(TOSSABLE, maxThrowerDistance), EOPID_OFF(TOSSABLE, maxThrowerDistance), EOPID_NONE}, /* [1112] opt 966, TOSSABLE (+2) */
+    {0x2002, 0x92, EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_INT(0x1B0), EOPID_NONE}, /* [1113] opt 37, GUARDTRAP */
     {0x2016, 0x92, EOPID_OFF(NEELA, moveVolume), EOPID_OFF(NEELA, moveVolume), EOPID_OFF(NEELA, moveVolume), EOPID_NONE}, /* [1114] opt 967, NEELA */
     {0x2016, 0x92, EOPID_OFF(NEELA, idleVolume), EOPID_OFF(NEELA, idleVolume), EOPID_OFF(NEELA, idleVolume), EOPID_NONE}, /* [1115] opt 968, NEELA */
     {0x2030, 0x92, EOPID_OFF(NEELA, prop), EOPID_OFF(NEELA, prop), EOPID_OFF(NEELA, prop), EOPID_NONE}, /* [1116] opt 969, NEELA */
@@ -2061,7 +2061,7 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x92, EOPID_INT(0x168), EOPID_INT(0x168), EOPID_INT(0x168), EOPID_NONE}, /* [1308] opt 1124, CID105 */
     {0x2003, 0x92, EOPID_INT(0x180), EOPID_INT(0x180), EOPID_INT(0x180), EOPID_NONE}, /* [1309] opt 1125, CID105 */
     {1, 0x92, EOPID_INT(0x184), EOPID_INT(0x184), EOPID_INT(0x184), EOPID_NONE}, /* [1310] opt 1126, CID105 */
-    {0x200A, 0x82, EOPID_INT(0x150), EOPID_NONE, EOPID_INT(0x150), EOPID_NONE}, /* [1311] opt 1127, CID106 */
+    {0x200A, 0x82, EOPID_INT(0x150), EOPID_NONE, EOPID_INT(0x150), EOPID_NONE}, /* [1311] opt 1127, PATHMESH */
     {6, 0x82, EOPID_OFF(PATHZONE, unknown110), EOPID_NONE, EOPID_OFF(PATHZONE, unknown110), EOPID_NONE}, /* [1312] opt 1007, PATHZONE */
     {7, 0x92, EOPID_OFF(WAYPT, triggerClass), EOPID_OFF(WAYPT, triggerClass), EOPID_OFF(WAYPT, triggerClass), EOPID_NONE}, /* [1313] opt 1129, WAYPT */
     {0xA, 0x92, EOPID_OFF(WAYPT, inactiveRadius), EOPID_OFF(WAYPT, inactiveRadius), EOPID_OFF(WAYPT, inactiveRadius), EOPID_NONE}, /* [1314] opt 1130, WAYPT */
@@ -2185,9 +2185,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetRobottankSlotValue), EOPID_INT(2), EOPID_NONE}, /* [1432] opt 1220, ROBOTTANK */
     {0x12, 0x400, EOPID_FN(RefThunk_SetRobottankAmmo), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [1433] opt 1221, ROBOTTANK */
     {0xE, 0x92, EOPID_OFF(ROBOTTANK, sfxidEngine), EOPID_OFF(ROBOTTANK, sfxidEngine), EOPID_OFF(ROBOTTANK, sfxidEngine), EOPID_NONE}, /* [1434] opt 1222, ROBOTTANK */
-    {0x1065, 0x92, EOPID_OFF(CID108, iammo), EOPID_OFF(CID108, iammo), EOPID_OFF(CID108, iammo), EOPID_NONE}, /* [1435] opt 1212, CID108 */
-    {5, 0x92, EOPID_OFF(CID108, cAmmo), EOPID_OFF(CID108, cAmmo), EOPID_OFF(CID108, cAmmo), EOPID_NONE}, /* [1436] opt 1223, CID108 */
-    {0x206F, 0x92, EOPID_OFF(CID108, psm), EOPID_OFF(CID108, psm), EOPID_OFF(CID108, psm), EOPID_NONE}, /* [1437] opt 484, CID108 */
+    {0x1065, 0x92, EOPID_OFF(AMMOPICKUP, iammo), EOPID_OFF(AMMOPICKUP, iammo), EOPID_OFF(AMMOPICKUP, iammo), EOPID_NONE}, /* [1435] opt 1212, AMMOPICKUP */
+    {5, 0x92, EOPID_OFF(AMMOPICKUP, cAmmo), EOPID_OFF(AMMOPICKUP, cAmmo), EOPID_OFF(AMMOPICKUP, cAmmo), EOPID_NONE}, /* [1436] opt 1223, AMMOPICKUP */
+    {0x206F, 0x92, EOPID_OFF(AMMOPICKUP, psm), EOPID_OFF(AMMOPICKUP, psm), EOPID_OFF(AMMOPICKUP, psm), EOPID_NONE}, /* [1437] opt 484, AMMOPICKUP */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetRajanCameraFocus), EOPID_INT(1), EOPID_NONE}, /* [1438] opt 1224, RAJAN */
     {5, 0x92, EOPID_OFF(VAULT, combination), EOPID_OFF(VAULT, combination), EOPID_OFF(VAULT, combination), EOPID_NONE}, /* [1439] opt 1225, VAULT */
     {0x10, 0x92, EOPID_OFF(VAULT, introDialog), EOPID_OFF(VAULT, introDialog), EOPID_OFF(VAULT, introDialog), EOPID_NONE}, /* [1440] opt 1226, VAULT */
@@ -2195,7 +2195,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x1049, 0x92, EOPID_OFF(VAULT, rewardPowerup), EOPID_OFF(VAULT, rewardPowerup), EOPID_OFF(VAULT, rewardPowerup), EOPID_NONE}, /* [1442] opt 1228, VAULT */
     {0x10, 0x92, EOPID_OFF(VAULT, openedDialog), EOPID_OFF(VAULT, openedDialog), EOPID_OFF(VAULT, openedDialog), EOPID_NONE}, /* [1443] opt 1229, VAULT */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkVaultTRIGGER), EOPID_INT(1), EOPID_NONE}, /* [1444] opt 235, VAULT */
-    {0x106C, 0x92, EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_NONE}, /* [1445] opt 1230, CID20 */
+    {0x106C, 0x92, EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_INT(0xE0), EOPID_NONE}, /* [1445] opt 1230, HANDATTACH */
     {0x106E, 0x92, EOPID_OFF(PATHLINK, kind), EOPID_OFF(PATHLINK, kind), EOPID_OFF(PATHLINK, kind), EOPID_NONE}, /* [1446] opt 1231, PATHLINK */
     {0x2002, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddPathlinkEndpointObject), EOPID_NONE}, /* [1447] opt 238, PATHLINK */
     {2, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddPathlinkEndpointPos), EOPID_NONE}, /* [1448] opt 1232, PATHLINK */
@@ -2432,7 +2432,7 @@ extern const SPLOPTROW D_00263D00[51] SPLOPT_RODATA = {   /* HND (cid 19) */
     {782, &D_002AC880[1024]}, {789, &D_002AC880[1013]}, {790, &D_002AC880[1014]}, {923, &D_002AC880[1011]}, {924, &D_002AC880[1012]},
     {925, &D_002AC880[1015]},
 };
-extern const SPLOPTROW D_00263E98[34] SPLOPT_RODATA = {   /* CID20 (cid 20) */
+extern const SPLOPTROW D_00263E98[34] SPLOPT_RODATA = {   /* HANDATTACH (cid 20) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -2673,7 +2673,7 @@ extern const SPLOPTROW D_00265BB8[41] SPLOPT_RODATA = {   /* CID39 (cid 39) */
     {777, &D_002AC880[851]}, {778, &D_002AC880[852]}, {779, &D_002AC880[854]}, {780, &D_002AC880[855]}, {781, &D_002AC880[856]},
     {782, &D_002AC880[857]},
 };
-extern const SPLOPTROW D_00265D00[34] SPLOPT_RODATA = {   /* CID40 (cid 40) */
+extern const SPLOPTROW D_00265D00[34] SPLOPT_RODATA = {   /* JUMPTARGET (cid 40) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -2682,7 +2682,7 @@ extern const SPLOPTROW D_00265D00[34] SPLOPT_RODATA = {   /* CID40 (cid 40) */
     {39, &D_002AC880[25]}, {40, &D_002AC880[26]}, {41, &D_002AC880[27]}, {60, &D_002AC880[28]}, {63, &D_002AC880[29]},
     {64, &D_002AC880[30]}, {65, &D_002AC880[31]}, {67, &D_002AC880[32]}, {795, &D_002AC880[870]},
 };
-extern const SPLOPTROW D_00265E10[34] SPLOPT_RODATA = {   /* CID41 (cid 41) */
+extern const SPLOPTROW D_00265E10[34] SPLOPT_RODATA = {   /* WARPDEST (cid 41) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -2711,7 +2711,7 @@ extern const SPLOPTROW D_00266058[40] SPLOPT_RODATA = {   /* CID43 (cid 43) */
     {64, &D_002AC880[30]}, {65, &D_002AC880[31]}, {67, &D_002AC880[32]}, {207, &D_002AC880[99]}, {208, &D_002AC880[100]},
     {209, &D_002AC880[101]}, {210, &D_002AC880[102]}, {211, &D_002AC880[103]}, {212, &D_002AC880[104]}, {213, &D_002AC880[105]},
 };
-extern const SPLOPTROW D_00266198[39] SPLOPT_RODATA = {   /* CID44 (cid 44) */
+extern const SPLOPTROW D_00266198[39] SPLOPT_RODATA = {   /* CAMERAMARKER (cid 44) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4147,7 +4147,7 @@ extern const SPLOPTROW D_00272AD8[95] SPLOPT_RODATA = {   /* CLUE (cid 95) */
     {814, &D_002AC880[892]}, {815, &D_002AC880[893]}, {816, &D_002AC880[894]}, {817, &D_002AC880[895]}, {818, &D_002AC880[896]},
     {819, &D_002AC880[897]}, {820, &D_002AC880[898]}, {821, &D_002AC880[899]}, {822, &D_002AC880[900]}, {823, &D_002AC880[901]},
 };
-extern const SPLOPTROW D_00272DD0[97] SPLOPT_RODATA = {   /* CID96 (cid 96) */
+extern const SPLOPTROW D_00272DD0[97] SPLOPT_RODATA = {   /* CRITTER (cid 96) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4188,7 +4188,7 @@ extern const SPLOPTROW D_002730D8[85] SPLOPT_RODATA = {   /* SKY (cid 97) */
     {187, &D_002AC880[75]}, {188, &D_002AC880[76]}, {194, &D_002AC880[77]}, {195, &D_002AC880[78]}, {196, &D_002AC880[79]},
     {197, &D_002AC880[80]}, {198, &D_002AC880[81]}, {199, &D_002AC880[82]}, {200, &D_002AC880[83]}, {892, &D_002AC880[978]},
 };
-extern const SPLOPTROW D_00273380[108] SPLOPT_RODATA = {   /* CID98 (cid 98) */
+extern const SPLOPTROW D_00273380[108] SPLOPT_RODATA = {   /* BREAKABLE (cid 98) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4212,7 +4212,7 @@ extern const SPLOPTROW D_00273380[108] SPLOPT_RODATA = {   /* CID98 (cid 98) */
     {929, &D_002AC880[1028]}, {930, &D_002AC880[1029]}, {931, &D_002AC880[1031]}, {932, &D_002AC880[1032]}, {933, &D_002AC880[1033]},
     {934, &D_002AC880[1037]}, {935, &D_002AC880[1046]}, {936, &D_002AC880[1047]},
 };
-extern const SPLOPTROW D_002736E0[84] SPLOPT_RODATA = {   /* CID99 (cid 99) */
+extern const SPLOPTROW D_002736E0[84] SPLOPT_RODATA = {   /* LOOTPOUCH (cid 99) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4231,7 +4231,7 @@ extern const SPLOPTROW D_002736E0[84] SPLOPT_RODATA = {   /* CID99 (cid 99) */
     {187, &D_002AC880[75]}, {188, &D_002AC880[76]}, {194, &D_002AC880[77]}, {195, &D_002AC880[78]}, {196, &D_002AC880[79]},
     {197, &D_002AC880[80]}, {198, &D_002AC880[81]}, {199, &D_002AC880[82]}, {200, &D_002AC880[83]},
 };
-extern const SPLOPTROW D_00273980[95] SPLOPT_RODATA = {   /* CID100 (cid 100) */
+extern const SPLOPTROW D_00273980[95] SPLOPT_RODATA = {   /* TOSSABLE (cid 100) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4252,7 +4252,7 @@ extern const SPLOPTROW D_00273980[95] SPLOPT_RODATA = {   /* CID100 (cid 100) */
     {484, &D_002AC880[1102]}, {498, &D_002AC880[1108]}, {501, &D_002AC880[1106]}, {960, &D_002AC880[1104]}, {961, &D_002AC880[1105]},
     {962, &D_002AC880[1107]}, {963, &D_002AC880[1109]}, {964, &D_002AC880[1110]}, {965, &D_002AC880[1111]}, {966, &D_002AC880[1112]},
 };
-extern const SPLOPTROW D_00273C78[95] SPLOPT_RODATA = {   /* CID101 (cid 101) */
+extern const SPLOPTROW D_00273C78[95] SPLOPT_RODATA = {   /* TRIGGERBOMB (cid 101) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4273,7 +4273,7 @@ extern const SPLOPTROW D_00273C78[95] SPLOPT_RODATA = {   /* CID101 (cid 101) */
     {484, &D_002AC880[1102]}, {498, &D_002AC880[1108]}, {501, &D_002AC880[1106]}, {960, &D_002AC880[1104]}, {961, &D_002AC880[1105]},
     {962, &D_002AC880[1107]}, {963, &D_002AC880[1109]}, {964, &D_002AC880[1110]}, {965, &D_002AC880[1111]}, {966, &D_002AC880[1112]},
 };
-extern const SPLOPTROW D_00273F70[96] SPLOPT_RODATA = {   /* CID102 (cid 102) */
+extern const SPLOPTROW D_00273F70[96] SPLOPT_RODATA = {   /* GUARDTRAP (cid 102) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4357,7 +4357,7 @@ extern const SPLOPTROW D_00274830[91] SPLOPT_RODATA = {   /* CID105 (cid 105) */
     {1121, &D_002AC880[1305]}, {1122, &D_002AC880[1306]}, {1123, &D_002AC880[1307]}, {1124, &D_002AC880[1308]}, {1125, &D_002AC880[1309]},
     {1126, &D_002AC880[1310]},
 };
-extern const SPLOPTROW D_00274B08[85] SPLOPT_RODATA = {   /* CID106 (cid 106) */
+extern const SPLOPTROW D_00274B08[85] SPLOPT_RODATA = {   /* PATHMESH (cid 106) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4397,7 +4397,7 @@ extern const SPLOPTROW D_00274DB0[95] SPLOPT_RODATA = {   /* WAYPT (cid 107) */
     {1129, &D_002AC880[1313]}, {1130, &D_002AC880[1314]}, {1131, &D_002AC880[1315]}, {1132, &D_002AC880[1316]}, {1133, &D_002AC880[1317]},
     {1134, &D_002AC880[1318]}, {1135, &D_002AC880[1320]}, {1136, &D_002AC880[1321]}, {1137, &D_002AC880[1322]}, {1138, &D_002AC880[1323]},
 };
-extern const SPLOPTROW D_002750A8[87] SPLOPT_RODATA = {   /* CID108 (cid 108) */
+extern const SPLOPTROW D_002750A8[87] SPLOPT_RODATA = {   /* AMMOPICKUP (cid 108) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4460,7 +4460,7 @@ extern const SPLOPTROW D_00275730[42] SPLOPT_RODATA = {   /* LAUNCHER (cid 112) 
     {508, &D_002AC880[468]}, {545, &D_002AC880[462]}, {546, &D_002AC880[463]}, {547, &D_002AC880[464]}, {548, &D_002AC880[465]},
     {549, &D_002AC880[466]}, {550, &D_002AC880[467]},
 };
-extern const SPLOPTROW D_00275880[52] SPLOPT_RODATA = {   /* CID113 (cid 113) */
+extern const SPLOPTROW D_00275880[52] SPLOPT_RODATA = {   /* GUARDSCRIPT (cid 113) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -4559,7 +4559,7 @@ extern const SPLOPTROW D_002763B0[46] SPLOPT_RODATA = {   /* SPAWNER (cid 119) *
     {1146, &D_002AC880[1331]}, {1147, &D_002AC880[1332]}, {1148, &D_002AC880[1333]}, {1149, &D_002AC880[1334]}, {1150, &D_002AC880[1335]},
     {1151, &D_002AC880[1336]},
 };
-extern const SPLOPTROW D_00276520[46] SPLOPT_RODATA = {   /* CID120 (cid 120) */
+extern const SPLOPTROW D_00276520[46] SPLOPT_RODATA = {   /* GUARDATTACK (cid 120) */
     {1, &D_002AC880[0]}, {2, &D_002AC880[1]}, {3, &D_002AC880[2]}, {4, &D_002AC880[3]}, {5, &D_002AC880[4]},
     {6, &D_002AC880[5]}, {7, &D_002AC880[6]}, {8, &D_002AC880[7]}, {9, &D_002AC880[8]}, {10, &D_002AC880[9]},
     {11, &D_002AC880[10]}, {12, &D_002AC880[11]}, {13, &D_002AC880[12]}, {14, &D_002AC880[13]}, {15, &D_002AC880[14]},
@@ -5110,7 +5110,7 @@ extern const SPLOPTSROW D_00279AD0[199] SPLOPT_RODATA = {
     SPLOPTS(D_00263AC8), /* PATHZONE */
     SPLOPTS(D_00263BD8), /* TARGET */
     SPLOPTS(D_00263D00), /* HND */
-    SPLOPTS(D_00263E98), /* CID20 */
+    SPLOPTS(D_00263E98), /* HANDATTACH */
     SPLOPTS(D_00263FA8), /* CID21 */
     SPLOPTS(D_002640C8), /* VOL */
     SPLOPTS(D_002641E0), /* CID23 */
@@ -5130,11 +5130,11 @@ extern const SPLOPTSROW D_00279AD0[199] SPLOPT_RODATA = {
     SPLOPTS(D_00265898), /* CID37 */
     SPLOPTS(D_00265A60), /* CID38 */
     SPLOPTS(D_00265BB8), /* CID39 */
-    SPLOPTS(D_00265D00), /* CID40 */
-    SPLOPTS(D_00265E10), /* CID41 */
+    SPLOPTS(D_00265D00), /* JUMPTARGET */
+    SPLOPTS(D_00265E10), /* WARPDEST */
     SPLOPTS(D_00265F20), /* WARP */
     SPLOPTS(D_00266058), /* CID43 */
-    SPLOPTS(D_00266198), /* CID44 */
+    SPLOPTS(D_00266198), /* CAMERAMARKER */
     SPLOPTS(D_002662D0), /* CID45 */
     SPLOPTS(D_00266418), /* RECONTARGET */
     SPLOPTS(D_00266588), /* LISTENER */
@@ -5186,31 +5186,31 @@ extern const SPLOPTSROW D_00279AD0[199] SPLOPT_RODATA = {
     SPLOPTS(D_002724A0), /* MEDICINE */
     SPLOPTS(D_002727B0), /* LOOT */
     SPLOPTS(D_00272AD8), /* CLUE */
-    SPLOPTS(D_00272DD0), /* CID96 */
+    SPLOPTS(D_00272DD0), /* CRITTER */
     SPLOPTS(D_002730D8), /* SKY */
-    SPLOPTS(D_00273380), /* CID98 */
-    SPLOPTS(D_002736E0), /* CID99 */
-    SPLOPTS(D_00273980), /* CID100 */
-    SPLOPTS(D_00273C78), /* CID101 */
-    SPLOPTS(D_00273F70), /* CID102 */
+    SPLOPTS(D_00273380), /* BREAKABLE */
+    SPLOPTS(D_002736E0), /* LOOTPOUCH */
+    SPLOPTS(D_00273980), /* TOSSABLE */
+    SPLOPTS(D_00273C78), /* TRIGGERBOMB */
+    SPLOPTS(D_00273F70), /* GUARDTRAP */
     SPLOPTS(D_00274270), /* BOOTY */
     SPLOPTS(D_00274588), /* CID104 */
     SPLOPTS(D_00274830), /* CID105 */
-    SPLOPTS(D_00274B08), /* CID106 */
+    SPLOPTS(D_00274B08), /* PATHMESH */
     SPLOPTS(D_00274DB0), /* WAYPT */
-    SPLOPTS(D_002750A8), /* CID108 */
+    SPLOPTS(D_002750A8), /* AMMOPICKUP */
     SPLOPTS(D_00275360), /* ASEG */
     SPLOPTS(D_002754B8), /* ASEGBL */
     SPLOPTS(D_00275610), /* SM */
     SPLOPTS(D_00275730), /* LAUNCHER */
-    SPLOPTS(D_00275880), /* CID113 */
+    SPLOPTS(D_00275880), /* GUARDSCRIPT */
     SPLOPTS(D_00275A20), /* RELAY */
     SPLOPTS(D_00275E68), /* WR */
     SPLOPTS(D_00276010), /* SCREENFADE */
     SPLOPTS(D_00276158), /* NOISETYPE */
     SPLOPTS(D_00276290), /* CID118 */
     SPLOPTS(D_002763B0), /* SPAWNER */
-    SPLOPTS(D_00276520), /* CID120 */
+    SPLOPTS(D_00276520), /* GUARDATTACK */
     SPLOPTS(D_00276690), /* RHYTHMMGR */
     SPLOPTS(D_00276800), /* CID122 */
     SPLOPTS(D_00276908), /* ROUTE */

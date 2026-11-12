@@ -504,7 +504,7 @@ extern "C" void UpdateBentley(BENTLEY *bentley)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetBentleyState {
-/* The held tossable (classes.h CID100: its slot 76 is not declared there). */
+/* The held tossable (classes.h TOSSABLE: its slot 76 is not declared there). */
 struct VO { char pad[0xC]; VTE *vt; };
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void SetXfRole(BENTLEY *, XF *, int) __asm__("SetXfRole");
@@ -868,7 +868,7 @@ extern "C" void AdjustBentleyXp(BENTLEY *bentley, struct E *ae, int i) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_HandleBentleyMessage {
-/* The spawned tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): its gadget id and slot 76. */
+/* The spawned tossable (BENTLEY::ploHeld; classes.h TOSSABLE has no fields yet): its gadget id and slot 76. */
 struct O { char pad[0xC]; void *vptr; char pad2[0x15C - 0x10]; int x15C; };
 struct M { void *x0; int x4; int x8; };
 void HandleStepplayerMessage(BENTLEY *p, int k, struct M *pm) __asm__("HandleStepplayerMessage");
@@ -892,7 +892,7 @@ extern "C" void HandleBentleyMessage(BENTLEY *bentley, int k, struct M *pm)
                 LockProxyObject(bentley->ppocketCur->proxy, bentley->ploHeld);
                 ((struct O *)bentley->ploHeld)->x15C = bentley->ppocketCur->idGadget;
                 object = (struct O *)bentley->ploHeld;
-                ((CID100 *)object)->SetState(0);
+                ((TOSSABLE *)object)->SetState(0);
             }
         } else if (pm->x0 == bentley->pasegaAim) {
             if (pm->x8 == 0x243)
@@ -1095,7 +1095,7 @@ extern "C" void SetBentleySubState(BENTLEY *bentley, int n) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00136118 {
-/* The held tossable (BENTLEY::ploHeld; classes.h CID100 has no fields yet): state, a stick target and slot 76. */
+/* The held tossable (BENTLEY::ploHeld; classes.h TOSSABLE has no fields yet): state, a stick target and slot 76. */
 struct O { char pad[0xC]; void *vptr; char pad1[0x158 - 0x10]; int x158; char pad2[0x1A0 - 0x15C]; int x1A0; };
 int IsAsegaRetracted(ASEGA *pv) __asm__("IsAsegaRetracted");
 void SetBentleySubState(BENTLEY *p, int n) __asm__("SetBentleySubState");
@@ -1124,7 +1124,7 @@ extern "C" void UpdateBentleySubState(BENTLEY *bentley)
                 ReleaseBentleyHeldObject(bentley);
                 SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if (object->x158 == 4 || !POCTL_IsButtonDown(bentley->controller, GetGadgetButtonMask(bentley, bentley->ppocketCur->idGadget) | BUTTON_ALT_ATTACK)) {
-                ((CID100 *)object)->SetState(1);
+                ((TOSSABLE *)object)->SetState(1);
                 ReleaseBentleyHeldObject(bentley);
                 SetJtAirJump(&bentley->jtair, 0xB, 0, 0);
             } else if
@@ -1337,7 +1337,7 @@ namespace M_BENTLEY_FCanUseGadget {
 /* MATCH (Claude agent laneB13, 2026-10-23), from v4 (4). One register pin (f in v1) plus commented empty asms that emulate the original toolchain's reorg/cross-jump state: case 12 has its own `return 0` (with an empty asm so it isn't merged with the shared fail), the shared fail has one too, the 1CADE0 path ends in `return 0`, and an empty asm using pe in the pv != 0 block keeps v0 live so reorg annuls the beql slot. */
 /* v4 (Claude agent laneB12, 2026-10-23): aligned 10 -> 4. f pinned to v1 (one commented pin) and used for case 12's x15C and the ChooseProxySpare result; cases 2/3/13 test their call results directly; an empty volatile asm "+r"(f) after the 1CADE0 call keeps the target's `daddu v1,v0; bnez v1` (cse otherwise tests v0). Left: reorg fill choices: case 12 beq slot (target steals li v0,1 from `one`, ours takes li v0,0 from the fallthrough; `if (f != k) goto fail` flips the layout: 4), and the pv == 0 test (target beql, ours beqz). */
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
-/* The carried tossable (classes.h CID100 has no fields yet): its gadget id. */
+/* The carried tossable (classes.h TOSSABLE has no fields yet): its gadget id. */
 
 extern int g_grfjoyt __asm__("g_grfjoyt");
 int IsStepplayerInJtMode() __asm__("IsStepplayerInJtMode");
@@ -1379,7 +1379,7 @@ extern "C" int CanBentleyUseGadget(BENTLEY *bentley, int k)
             switch (k) {
             case 4: case 7: case 9: case 11: case 13:
                 pv = bentley->jtthrow.ploCarried;
-                f = ((struct CID100 *)pv)->gadgetKind;
+                f = ((struct TOSSABLE *)pv)->gadgetKind;
                 if (f == k)
                     goto one;
                 __asm__ __volatile__("");  /* keeps case 12's return 0 from being merged with the shared one */
@@ -1442,15 +1442,15 @@ extern "C" int GetBentleyGadgetFromId(char *bentley, int saak)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_StartBentleyGadget {
-/* The spawned tossable (classes.h CID100 has no fields yet): its gadget id and owner. */
+/* The spawned tossable (classes.h TOSSABLE has no fields yet): its gadget id and owner. */
 
 void BroadcastGameEvent(GAME *pg, int n, BENTLEY *p) __asm__("BroadcastGameEvent");
 JTPOCKET *GetBentleyGadgetFromId(BENTLEY *p, int k) __asm__("GetBentleyGadgetFromId");
 void SetJtThrowState(JTTHROW *pv, int n) __asm__("SetJtThrowState");
 void SetJtGrabState(JTGRAB *pv, int n, void *pv2, int m) __asm__("SetJtGrabState");
-struct CID100 *AcquireProxyObject(PROXY *pv, int n) __asm__("AcquireProxyObject");
-int IsThrowableGadget(struct CID100 *po) __asm__("IsThrowableGadget");
-void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct CID100 *po) __asm__("SetGadgetRecordObject");
+struct TOSSABLE *AcquireProxyObject(PROXY *pv, int n) __asm__("AcquireProxyObject");
+int IsThrowableGadget(struct TOSSABLE *po) __asm__("IsThrowableGadget");
+void SetGadgetRecordObject(BENTLEY *p, JTPOCKET *pe, struct TOSSABLE *po) __asm__("SetGadgetRecordObject");
 void GetGadgetButtonMask(BENTLEY *p, int k) __asm__("GetGadgetButtonMask");
 void SetBentleyState(BENTLEY *p, int n) __asm__("SetBentleyState");
 void ChargeGadgetMp(BENTLEY *p, int k) __asm__("ChargeGadgetMp");
@@ -1474,7 +1474,7 @@ extern "C" void StartBentleyGadget(BENTLEY *bentley, int k)
         }
         bentley->ppocketCur = pe;
         if (k == 7 || k == 11) {
-            struct CID100 *object = AcquireProxyObject(pe->proxy, 0);
+            struct TOSSABLE *object = AcquireProxyObject(pe->proxy, 0);
             if (!object)
                 return;
             object->gadgetKind = pe->idGadget;

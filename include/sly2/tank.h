@@ -1,5 +1,5 @@
 /* include/sly2/tank.h -- the robot tank (RC car) and its ammo pickup (gameplay/objects/robottank.cpp, their key TU):
- * ROBOTTANK : PO with its wheel, side and ammo records, and CID108 (the ammo pickup).
+ * ROBOTTANK : PO with its wheel, side and ammo records, and AMMOPICKUP (the ammo pickup).
  *
  * Registry classes (sly2/classes.h conventions: real virtual layouts, each slot's function named by an asm label,
  * sizes from the class descriptors). They are defined at their emission position inside classes.h, which includes
@@ -131,8 +131,8 @@ typedef char assert_ROBOTTANK_lastCorrection[SLY2_OFFSETOF(ROBOTTANK, lastCorrec
 inline ROBOTTANK::ROBOTTANK() { psndEngine = 0; }
 #endif
 
-/* 108 CID108 (0x170): robot-tank ammo pickup; vtable 0x2D7A40, 75 slots */
-struct CID108 : SO
+/* 108 AMMOPICKUP (was CID108; 0x170): robot-tank ammo pickup; vtable 0x2D7A40, 75 slots */
+struct AMMOPICKUP : SO
 {
     int state;              /* +0x150 -1 off, 0 waiting, 1 available, 2 collected (SetRcPickupState) (inferred) */
     float stateTime;        /* +0x154 */
@@ -147,8 +147,8 @@ struct CID108 : SO
     virtual void PostLoad() __asm__("PostRcPickupLoad");   /* slot 15 */
     virtual void OnProxyAcquire(LO *plo) __asm__("ResetRobottankPickup");   /* slot 26 */
 };
-typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
-typedef char assert_CID108_iammo[SLY2_OFFSETOF(CID108, iammo) == 0x158 ? 1 : -1];
+typedef char assert_CID108_size[sizeof(AMMOPICKUP) == 0x170 ? 1 : -1];
+typedef char assert_CID108_iammo[SLY2_OFFSETOF(AMMOPICKUP, iammo) == 0x158 ? 1 : -1];
 
 #endif /* SLY2_CLASSES_H */
 #endif /* SLY2_TANK_H */

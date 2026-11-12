@@ -176,7 +176,7 @@ int HandleBhvanimMessage(BHVANIM *behavior, int msg, ASEGEVENTMSG *pm);
 ASEGA *GetAnimBindingInstance(ANIMBINDING *binding);
 void SetBhvattackState(BHVATTACK *behavior, int nState);
 void SetBhvcombatState(BHVCOMBAT *behavior, int nState);
-CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *ploTarget, void *pvEngage);
+GUARDATTACK *ChooseStepguardAttack(STEPGUARD *guard, LO *ploTarget, void *pvEngage);
 void CloseBhvhit(BHV *behavior);
 void SetBhvpatrolState(BHV *behavior, int nState);
 void SetBhvThrownState(BHV176 *behavior, int nState);
@@ -649,7 +649,7 @@ extern "C" void CloseBhvattack(BHVATTACK *behavior)
 
 // 0x175488 SetBhvattackState
 namespace M_SetBhvattackState {
-void SetStepguardAimAct(STEPGUARD *guard, CID120 *attack, XF *pxf, qword v) __asm__("SetStepguardAimAct");
+void SetStepguardAimAct(STEPGUARD *guard, GUARDATTACK *attack, XF *pxf, qword v) __asm__("SetStepguardAimAct");
 BHV *PushStepBehavior(void *pstep, int cid) __asm__("PushStepBehavior");
 } // namespace M_SetBhvattackState
 // 0x175488: BHVATTACK state switch: 0 subscribes to the victim and pushes a BHVSTRIKE with the chosen attack and
@@ -798,7 +798,7 @@ namespace M_func_00175820 {
 int IsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 // 0x175820: Line-test filter for attack checks: ignores non-blocking hits, cid 0x62 objects (when the attack asks)
 // and any step.
-extern "C" int FilterAttackLineOfSightHit(CID120 *x, SOPART *p) {
+extern "C" int FilterAttackLineOfSightHit(GUARDATTACK *x, SOPART *p) {
     if (p->unknownFlag10A) return 0;
     if (p->owner->physicsTree->grf & 4) return 0;
     if (x->ignoresClass98 && IsBasicDerivedFrom__FP5BASIC3CID(p->owner, CID_CLASS98)) return 0;
@@ -837,7 +837,7 @@ float atan2f(float, float) __asm__("atan2f");
 int FilterAttackLineOfSightHit(void *, void *) __asm__("FilterAttackLineOfSightHit");
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***) __asm__("IntersectSwBoundingBox");
 int FindFirstObjectHitByLine(int, qword, qword, int, void **, LSG *) __asm__("FindFirstObjectHitByLine");
-void SetStepguardAttack(STEPGUARD *, CID120 *, XF *, qword) __asm__("SetStepguardAttack");
+void SetStepguardAttack(STEPGUARD *, GUARDATTACK *, XF *, qword) __asm__("SetStepguardAttack");
 void SetTargetRecordState(void *, int) __asm__("SetTargetRecordState");
 
 // VU0 helper: vector difference.
@@ -874,7 +874,7 @@ static inline int Blocked(LOS *line, float limit)
 // 0x1758A0: Picks the first enabled attack whose range, height, angle and line of sight accept the target, confirms
 // it with Splice event 0x18, starts it and marks the target record as attacked. Returns the attack, or NULL.
 // Also known as: PactionSelect (upstream readable / Sly 1 name; PactionSelect__FP5GUARDP2LOP9TARGETREC).
-extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gate)
+extern "C" GUARDATTACK *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gate)
 {
     qword from, to;
     float height, distance;
@@ -912,7 +912,7 @@ extern "C" CID120 *ChooseStepguardAttack(STEPGUARD *guard, LO *target, void *gat
         height /= s;
     }
     for (i = 0; i < guard->numAttacks; i++) {
-        CID120 *entry = guard->attacks[i];
+        GUARDATTACK *entry = guard->attacks[i];
         float angle, gain;
         if (!entry->isEnabled)
             continue;
@@ -1064,7 +1064,7 @@ extern "C" int CanBhvcombatShoot(BHVCOMBAT *behavior) {
 extern "C" int TryBhvcombatChooseAttack(BHVCOMBAT *behavior)
 {
     STEPGUARD *guard;
-    CID120 *pentry;
+    GUARDATTACK *pentry;
     guard = (STEPGUARD *)behavior->owner;
     pentry = ChooseStepguardAttack(guard, behavior->target, guard->pvEngage);
     behavior->attack = pentry;
@@ -3424,7 +3424,7 @@ namespace M_StartBhvpatrol {
 void StartBhv(BHVPATROL *p) __asm__("StartBhv");
 void SetBhvpatrolState(BHVPATROL *p, int n) __asm__("SetBhvpatrolState");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void ChooseGuardScriptNearestCommand(CID113 *script, qword q, SSGRESUME *presume) __asm__("ChooseGuardScriptNearestCommand");
+void ChooseGuardScriptNearestCommand(GUARDSCRIPT *script, qword q, SSGRESUME *presume) __asm__("ChooseGuardScriptNearestCommand");
 int IsStepguardHandsOff(STEPGUARD *t) __asm__("IsStepguardHandsOff");
 // 0x179AA0: BHVPATROL vtable slot 8 (Start): takes the patrol script (or the alternate one with capability 2),
 // resumes at the nearest script point, then walks (0), stands (2) or is hands-off (3).
@@ -3498,7 +3498,7 @@ extern "C" void UpdateBhvpatrol(BHVPATROL *behavior) {
 namespace M_SetBhvpatrolState {
 BHV *PushStepBehavior(void *p, int n) __asm__("PushStepBehavior");
 void SaveBhvScriptResumeState(BHV *p, SSGRESUME *presume) __asm__("SaveBhvScriptResumeState");
-void SetBhvScriptScript(BHV169 *o, CID113 *script, int a, SSGRESUME *presume) __asm__("SetBhvScriptScript");
+void SetBhvScriptScript(BHV169 *o, GUARDSCRIPT *script, int a, SSGRESUME *presume) __asm__("SetBhvScriptScript");
 void ArmBhvpatrolPauseTimer(BHVPATROL *p) __asm__("ArmBhvpatrolPauseTimer");
 void ArmBhvpatrolWalkTimer(BHVPATROL *p) __asm__("ArmBhvpatrolWalkTimer");
 // 0x179D30: BHVPATROL state switch: 0 runs the patrol script (BHV169, saving the resume point), 1/2 idle, 3

@@ -444,7 +444,7 @@ Meanings come from the code that sends them; "inferred" marks readings from scri
 
 Full parameter-type list from the table, for reference: 7 int, int, object (SMA); 8 int, int, object (VOLBTN);
 9 object (SO); 10 object (SO), int, object (SO); 11 object (SO), int, object (LO); 12 int, int, object (PO);
-13 object (LO); 15 object (LO), object (CID98); 16 object (LO); 21, 22 object (TASK); 23 bool, object (STEPGUARD);
+13 object (LO); 15 object (LO), object (BREAKABLE); 16 object (LO); 21, 22 object (TASK); 23 bool, object (STEPGUARD);
 24 int, object (SPAWNER); 25 object (STEPGUARD), object (STEPPLAYER); 26 object (BOMB); 27 object (DETECTOR);
 28 object (LO), int, int, bool.
 

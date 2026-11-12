@@ -80,7 +80,7 @@ void SetBhvpathShape(BHVPATH *a, SHAPE *b, int c);
 int IsBhvanimDone(void *p);
 int IsBhvpathAtEnd(void *p);
 int IsBhvattackDone(void *p);
-CID120 *ChooseStepguardAttack(STEP *p, void *ploTarget, int z);
+GUARDATTACK *ChooseStepguardAttack(STEP *p, void *ploTarget, int z);
 void SetBhvDimitriEscapeState(BHV180 *p, int k);
 DIMITRIROUTE *FindDimitriFarthestRoute(BHV180 *p);
 void SetBhvDimitriAttackState(BHV181 *p, int k);

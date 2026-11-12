@@ -1,9 +1,9 @@
 // robottank.cpp -- the robot tank (RC car, a PO: input, AI, acceleration presets, contacts, health, rendering,
-// states) and the RC pickup (CID108, ammo). Entry points: the ROBOTTANK and CID108 vtables, the Splice setters
+// states) and the RC pickup (AMMOPICKUP, ammo). Entry points: the ROBOTTANK and AMMOPICKUP vtables, the Splice setters
 // (AddRobottankWheel/Weapon/Attachment, SetRobottankAmmo, SetRobottankTactic...) and the pickup callback
 // CollectRobottankPickup. TU 0x1D1370..0x1D5150 (44 functions, address order).
 //
-// Types: ROBOTTANK (with ROBOTTANKWHEEL/SIDE/AMMO) and CID108 from sly2/tank.h, and a small XP view; the larger
+// Types: ROBOTTANK (with ROBOTTANKWHEEL/SIDE/AMMO) and AMMOPICKUP from sly2/tank.h, and a small XP view; the larger
 // hand-tuned functions (PostRobottankLoad, UpdateRobottank, UpdateRobottankAi, PresetRobottankAccel, the wheel
 // contact generator, RenderRobottankSelf, TakeRobottankDamage, SetRobottankState) and the weapon (JSG) functions still
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp do).
@@ -39,7 +39,7 @@ void SetRobottankState(ROBOTTANK *tank, int nState);
 void UpdateRobottankHealthMeter(ROBOTTANK *tank);
 void SeekSma(SMA *psma, OID oidState);
 void SO_ResetForProxy(void *plo);
-void SetRcPickupState(CID108 *pickup, int nState);
+void SetRcPickupState(AMMOPICKUP *pickup, int nState);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 }
 
@@ -751,19 +751,19 @@ namespace M_func_001D22D0 {
 extern const float D_002A7810 __asm__("D_002A7810");   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3] __asm__("D_002C20C0");
 qword GetLoWorldPos(LO *plo) __asm__("GetLoWorldPos");
-int FindSwObjectsByClass(void *, int, int, int, int, CID108 **) __asm__("FindSwObjectsByClass");
-// Nearest ammo pickup (class 0x6C, CID108) via FindSwObjectsByClass, biased by its ammo slot (and against the last
+int FindSwObjectsByClass(void *, int, int, int, int, AMMOPICKUP **) __asm__("FindSwObjectsByClass");
+// Nearest ammo pickup (class 0x6C, AMMOPICKUP) via FindSwObjectsByClass, biased by its ammo slot (and against the last
 // one chosen). (inferred) Also known as: BestVehiclePickup (upstream readable / Sly 1 name; BestVehiclePickup__FP7VEHICLE).
-extern "C" CID108 *FindNearestRobottankPickup(ROBOTTANK *tank)
+extern "C" AMMOPICKUP *FindNearestRobottankPickup(ROBOTTANK *tank)
 {
-    CID108 *best = 0;
-    CID108 *apickup[16];
+    AMMOPICKUP *best = 0;
+    AMMOPICKUP *apickup[16];
     qword pos = GetLoWorldPos(tank);
     int n = FindSwObjectsByClass(&g_sw, 0x105, 0x6C, 0, 0x10, apickup);
     float fMin = D_002A7810;
     int i;
     for (i = 0; i < n; i++) {
-        CID108 *pickup = apickup[i];
+        AMMOPICKUP *pickup = apickup[i];
         qword d;
         float f;
         qword q = GetLoWorldPos(pickup);
@@ -1752,7 +1752,7 @@ extern "C" struct O *FindRobottankWeapon(ROBOTTANK *tank, int id) {
 namespace M_func_001D3FF0 {
 // Pickup callback: if the pickup is not collected yet, add its ammo to the tank's slot (clamped to the max) and set
 // the pickup's state 2. (inferred)
-extern "C" void CollectRobottankPickup(ROBOTTANK *tank, CID108 *pickup) {
+extern "C" void CollectRobottankPickup(ROBOTTANK *tank, AMMOPICKUP *pickup) {
     if (pickup->state != 2) {
         ROBOTTANKAMMO *pammo = &tank->aammo[pickup->iammo];
         int n = pammo->cAmmo + pickup->cAmmo;
@@ -2327,7 +2327,7 @@ extern "C" void UseRobottankWeaponAmmo(struct S *weapon) {
 namespace M_InitRcPickup {
 void InitSo(SO *pso) __asm__("InitSo");
 // CID 108 vtable slot 7 Init: InitSo, ammo amount 30, state -1. (inferred)
-extern "C" void InitRcPickup(CID108 *pickup) {
+extern "C" void InitRcPickup(AMMOPICKUP *pickup) {
     sptr v;
     InitSo(pickup);
     pickup->cAmmo = 0x1E;
@@ -2343,7 +2343,7 @@ namespace M_PostRcPickupLoad {
 void PostSoLoad(SO *pso) __asm__("PostSoLoad");
 void ReplaceSma(SM *psm, LO *plo, int b, int c, SMA **ppsma) __asm__("ReplaceSma");
 // CID 108 vtable slot 15: PostSoLoad, SMA binding, state 0. (inferred)
-extern "C" void PostRcPickupLoad(CID108 *pickup) {
+extern "C" void PostRcPickupLoad(AMMOPICKUP *pickup) {
     PostSoLoad(pickup);
     ReplaceSma(pickup->psm, pickup, -1, 0, &pickup->psma);
     SetRcPickupState(pickup, 0);
@@ -2351,7 +2351,7 @@ extern "C" void PostRcPickupLoad(CID108 *pickup) {
 } // namespace M_PostRcPickupLoad
 
 // CID 108 vtable slot 26: proxy base then state -1 -> 0 (respawn). (inferred)
-extern "C" void ResetRobottankPickup(CID108 *pickup)
+extern "C" void ResetRobottankPickup(AMMOPICKUP *pickup)
 {
     SO_ResetForProxy(pickup);
     SetRcPickupState(pickup, -1);
@@ -2360,7 +2360,7 @@ extern "C" void ResetRobottankPickup(CID108 *pickup)
 
 // CID 108 vtable slot 16: UpdateSo; in state 0 go to state 1 once its transform's role is 3. (inferred)
 extern "C" void UpdateSo(SO *pso);
-void CID108::Update()  // Also known as: UpdateVehiclePickup (upstream readable / Sly 1 name; UpdateVehiclePickup__FP2LO).
+void AMMOPICKUP::Update()  // Also known as: UpdateVehiclePickup (upstream readable / Sly 1 name; UpdateVehiclePickup__FP2LO).
 {
     UpdateSo(this);
     if (state == 0 && positionXf->role == 3) SetRcPickupState(this, 1);
@@ -2370,7 +2370,7 @@ namespace M_SetRcPickupState {
 extern int D_002C2248[] __asm__("D_002C2248");
 void SetSmaGoalIfReachable(SMA *psma, int n) __asm__("SetSmaGoalIfReachable");
 // Pickup state with time; SMA goal from D_002C2248[state]. (inferred) Also known as: SetVehiclePickupState (upstream readable / Sly 1 name; SetVehiclePickupState__FP2LOi).
-extern "C" void SetRcPickupState(CID108 *pickup, int n) {
+extern "C" void SetRcPickupState(AMMOPICKUP *pickup, int n) {
     if (n == pickup->state) return;
     pickup->state = n;
     pickup->stateTime = g_clock.time;

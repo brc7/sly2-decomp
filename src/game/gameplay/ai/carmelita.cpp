@@ -88,7 +88,7 @@ void AddStepguardSgf(STEP *p, int n);
 void RemoveStepguardSgf(STEP *p, int n);
 int IsStepguardHandsOff(STEP *p);
 STEPPLAYER *GetHeroPo(SW *psw);
-CID120 *ChooseStepguardAttack(STEP *p, STEPPLAYER *phero, int m);
+GUARDATTACK *ChooseStepguardAttack(STEP *p, STEPPLAYER *phero, int m);
 int IsBhvpathAtEnd(void *p);
 int IsBhvanimDone(void *p);
 int IsBhvattackDone(void *p);
@@ -244,7 +244,7 @@ extern "C" void UpdateBhvRoute(BHV182 *behavior)
                 int v = FindBhvRouteBestStation(behavior);
                 behavior->targetStation = v;
                 if (v == behavior->currentStation) {
-                    CID120 *r = ChooseStepguardAttack(behavior->owner, GetHeroPo(&g_sw), 0);
+                    GUARDATTACK *r = ChooseStepguardAttack(behavior->owner, GetHeroPo(&g_sw), 0);
                     behavior->attack = r;
                     if (r)
                         SetBhvRouteState(behavior, 3);

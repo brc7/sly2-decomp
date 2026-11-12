@@ -12,7 +12,7 @@
 #include "sly2/xfm.h"
 #include "sly2/stepplayer.h"   /* ZPR (BHVGUARDRECDATA) */
 
-struct CID113;  /* the guard script class (classes.h) */
+struct GUARDSCRIPT;  /* the guard script class (classes.h) */
 struct NOISE;   /* NOISE: a noise event heard by the guards' listeners (noise.cpp; fields in classes.h) */
 
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
@@ -199,10 +199,10 @@ struct ANIMBINDINGREC
       undefined4 unknown18[2];
 };
 
-/* CID120 (classes.h's family, defined here): its vtable follows _vt$9STEPGUARD in stepguard.cpp's run, and g++
+/* GUARDATTACK (classes.h's family, defined here): its vtable follows _vt$9STEPGUARD in stepguard.cpp's run, and g++
    emits a TU's vtables in the reverse order of their classes' definitions. */
-/* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
-struct CID120 : LO
+/* 120 GUARDATTACK (was CID120; 0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
+struct GUARDATTACK : LO
 {
     LM distance;            /* +0x50 [S] horizontal distance window of the target (InitGuardAttack 0..300; ChooseStepguardAttack) */
     LM height;              /* +0x58 [S] height window of the target (-5000..5000) */
@@ -230,9 +230,9 @@ struct CID120 : LO
     virtual void PostLoad() __asm__("PostGuardAttackLoad");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("CloneGuardAttack");   /* slot 41 */
 };
-typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
-typedef char assert_CID120_aimObjectOid[SLY2_OFFSETOF(CID120, aimObjectOid) == 0x7C ? 1 : -1];
-typedef char assert_CID120_guard[SLY2_OFFSETOF(CID120, guard) == 0xAC ? 1 : -1];
+typedef char assert_CID120_size[sizeof(GUARDATTACK) == 0xD0 ? 1 : -1];
+typedef char assert_CID120_aimObjectOid[SLY2_OFFSETOF(GUARDATTACK, aimObjectOid) == 0x7C ? 1 : -1];
+typedef char assert_CID120_guard[SLY2_OFFSETOF(GUARDATTACK, guard) == 0xAC ? 1 : -1];
 
 /* STEPGUARD: the guard: a STEP driven by its behaviour stack (root BHV156), with hit points, a target, pickpocket
    loot, a vision detector and animation bindings.
@@ -245,8 +245,8 @@ struct STEPGUARD : public STEP
       LM walkTimes;         /* +0x2CC [S] patrol walk duration range (BHVPATROL; script command 1 copies it whole) */
       LM pauseTimes;        /* +0x2D4 [S] patrol pause duration range (BHVPATROL; script command 2) */
       SSGRESUME scriptResumePoint; /* +0x2DC [S] where a patrol script resumes (BHVPATROL saves/restores it) */
-      CID113 *patrolScript; /* +0x2E8 [S] the patrol script (BHVPATROL) */
-      CID113 *altPatrolScript; /* +0x2EC [S] the alternative patrol script (PostStepguardLoad creates it) */
+      GUARDSCRIPT *patrolScript; /* +0x2E8 [S] the patrol script (BHVPATROL) */
+      GUARDSCRIPT *altPatrolScript; /* +0x2EC [S] the alternative patrol script (PostStepguardLoad creates it) */
       SSGE *homeRecord;     /* +0x2F0 [S] the home marker the guard returns to: the alternative patrol script's first command (ResetStepguardToHome) */
       undefined4 unk_0x2f4[3];
       qword homePosition;   /* +0x300 [S] */
@@ -331,11 +331,11 @@ struct STEPGUARD : public STEP
       int allowedZones[8];  /* +0xE98 [S] */
       int attackOids[8];    /* +0xEB8 [S] oids of the attack definitions (resolved into attacks) */
       int attackOidCount;   /* +0xED8 [S] */
-      CID120 *attacks[8];   /* +0xEDC [S] the guard's attack definitions (ChooseStepguardAttack) */
+      GUARDATTACK *attacks[8];   /* +0xEDC [S] the guard's attack definitions (ChooseStepguardAttack) */
       int numAttacks;       /* +0xEFC [S] */
-      CID120 *currentAttack; /* +0xF00 [S] the attack being run */
+      GUARDATTACK *currentAttack; /* +0xF00 [S] the attack being run */
       float nextAttackTime; /* +0xF04 [S] earliest time of the next attack choice (guardbhv TryBhvcombatChooseAttack) */
-      CID120 *aimAttack;    /* +0xF08 [S] the attack being aimed */
+      GUARDATTACK *aimAttack;    /* +0xF08 [S] the attack being aimed */
       ACT *aimAct;          /* +0xF0C [S] */
       int aimTarget;        /* +0xF10 [S] */
       undefined4 unk_0xf14[3];

@@ -167,7 +167,7 @@ extern "C" void SetCharSelectState(SAFEHOUSEV *safehouse, int state)
         }
         count = FindSwObjectsByClass(&g_sw, 0x105, 0x64, 0, 0x20, objects64);
         for (int i1 = 0; i1 < count; i1++)
-            ((CID100 *)objects64[i1])->SetState(4);   /* slot 76, SetTossableState */
+            ((TOSSABLE *)objects64[i1])->SetState(4);   /* slot 76, SetTossableState */
         count = FindSwObjectsByClass(&g_sw, 0x105, 0x4F, 0, 0x20, objects4F);
         for (int i2 = 0; i2 < count; i2++)
             objects4F[i2]->Remove();

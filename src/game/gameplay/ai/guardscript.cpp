@@ -1,10 +1,10 @@
-// guardscript.cpp -- guard scripts. The script object (CID113, cid 0x71, an LO) holds a list of commands (SSGE: set the
+// guardscript.cpp -- guard scripts. The script object (GUARDSCRIPT, cid 0x71, an LO) holds a list of commands (SSGE: set the
 // context object, set walk/pause times, teleport, message, wait, go to / follow a path, look at, animation, labels
 // and jumps, busy on/off, relay alarm) appended by its Splice options; the script-running guard behaviour (BHV169,
 // BHV169, guard flag 0x21) steps through them, spawning child behaviours for the commands that take time. Entry
 // points: AddGuardScript* (Splice), StartGuardScript, SetBhvScriptScript, UpdateBhvScript, ExecuteBhvScriptCommand.
 // TU 0x1709A8..0x171F58 (42 functions, address order).
-// Types: SSGE (with a kind-selected argument union), CID113, BHV169 and BHVGUARD are TU-private views written for the
+// Types: SSGE (with a kind-selected argument union), GUARDSCRIPT, BHV169 and BHVGUARD are TU-private views written for the
 // 26 m2c bodies and a few small functions; the other functions keep the per-function views they were matched with,
 // each in a namespace named after it (as vec.cpp and mark.cpp do).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_guardscript
@@ -60,16 +60,16 @@ enum {
     SSGK_PLAY_BINDING = 14,     /* BHVANIM on the behaviour's own binding */
     SSGK_RELAY_ALARM = 15,
 };
-/* The guard script object is CID113 (classes.h; its commands from +0x50), the commands SSGE and the script-running
+/* The guard script object is GUARDSCRIPT (classes.h; its commands from +0x50), the commands SSGE and the script-running
    behaviour BHV169 (sly2/guard.h, classes.h). */
 extern "C" {
-void InitLo(CID113 *script);
-void PostLoLoad(CID113 *script);
+void InitLo(GUARDSCRIPT *script);
+void PostLoLoad(GUARDSCRIPT *script);
 void InitSl(DL *pdl, int ibDle);       /* InitDl */
 void AppendSlEntry(DL *pdl, void *pv);        /* AppendDlEntry */
-void PrepareGuardScriptTargets(CID113 *script);
-SSGE *AppendGuardScriptCommand(CID113 *script, int kind, int id) __asm__("AddGuardScriptCommand");
-void StartGuardScript(LO *object, CID113 *script);
+void PrepareGuardScriptTargets(GUARDSCRIPT *script);
+SSGE *AppendGuardScriptCommand(GUARDSCRIPT *script, int kind, int id) __asm__("AddGuardScriptCommand");
+void StartGuardScript(LO *object, GUARDSCRIPT *script);
 void InitBhv(BHV169 *behavior);
 void CloseBhv(BHV169 *behavior);
 void UpdateBhv(BHV169 *behavior);
@@ -77,9 +77,9 @@ void ClearBhvBusy(BHV169 *behavior);
 void PopBhv(void *behavior);
 void AddStepguardSgf(STEPGUARD *guard, int sgf);
 void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
-void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPartialRoute, SSGRESUME *resume);
+void SetBhvScriptScript(BHV169 *behavior, GUARDSCRIPT *script, int allowPartialRoute, SSGRESUME *resume);
 int IsBhvScriptCommandBusy(BHV169 *behavior);
-SSGE *FindGuardScriptLabel(CID113 *script, int id);
+SSGE *FindGuardScriptLabel(GUARDSCRIPT *script, int id);
 void *FindStepBehavior(LO *object, int cid);
 }
 
@@ -99,16 +99,16 @@ extern "C" int GetShapeMoveKind(void *p)
 } // namespace M_func_001709A8
 
 // 0x1709F8: Guard script (cid 0x71) vtable slot 7 (Init): LO Init, then an empty command list.
-extern "C" void InitGuardScript(CID113 *script)
+extern "C" void InitGuardScript(GUARDSCRIPT *script)
 {
     InitLo(script);
     InitSl(&script->commands, 0x18);
 }
 
 // 0x170A28: Guard script vtable slot 15 (PostLoad): LO post-load, then prepares its targets.
-void CID113::PostLoad()
+void GUARDSCRIPT::PostLoad()
 {
-    CID113 *script = this;
+    GUARDSCRIPT *script = this;
     PostLoLoad(script);
     PrepareGuardScriptTargets(script);
 }
@@ -124,7 +124,7 @@ void EnsureShapeVolumeSegments(LO *shape) __asm__("EnsureShapeVolumeSegments");
 void PrepareGuardScriptTargets(LO *context) __asm__("PrepareGuardScriptTargets"); void PrepareGuardScriptTargets(LO *context)
 {
     SSGE *command;
-    for (command = (SSGE *)((CID113 *)context)->commands.head; command; command = command->next) {   /* context starts as the script itself */
+    for (command = (SSGE *)((GUARDSCRIPT *)context)->commands.head; command; command = command->next) {   /* context starts as the script itself */
         switch (command->kind) {
         case SSGK_FOLLOW_PATH: {
             LO *shape = FindSwObject__FP2SWi3OIDP2LO(&g_sw, 4, command->id, context);
@@ -141,7 +141,7 @@ void PrepareGuardScriptTargets(LO *context) __asm__("PrepareGuardScriptTargets")
 } // namespace M_func_00170A58
 
 // 0x170B40: Splice option: appends command kind 0, set the lookup context object (oid).
-extern "C" void AddGuardScriptSetContext(CID113 *script, int id)
+extern "C" void AddGuardScriptSetContext(GUARDSCRIPT *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_SET_CONTEXT, id);
 }
@@ -161,26 +161,26 @@ extern "C" void AddGuardScriptSetPauseTimes(void *script, LM *range) { AddGuardS
 } // namespace M_func_00170BA0
 
 // 0x170BE0: Splice option: appends command kind 3, teleport the guard to a target (oid).
-extern "C" void AddGuardScriptTeleport(CID113 *script, int id)
+extern "C" void AddGuardScriptTeleport(GUARDSCRIPT *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_TELEPORT, id);
 }
 
 // 0x170C00: Splice option: appends command kind 4, send the guard message 4 with an argument.
-extern "C" void AddGuardScriptMessage(CID113 *script, int id)
+extern "C" void AddGuardScriptMessage(GUARDSCRIPT *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_MESSAGE, id);
 }
 
 // 0x170C20: Splice option: appends command kind 5, wait/idle for a time.
-extern "C" void AddGuardScriptWait(CID113 *script, float g)
+extern "C" void AddGuardScriptWait(GUARDSCRIPT *script, float g)
 {
     AppendGuardScriptCommand(script, SSGK_WAIT, -1)->g = g;
 }
 
 // 0x170C50: Appends command kind 6, follow a path target (oid): BHVPATROLPATH on a patrol path with `pathArg` and an
 // optional second target, or BHVRAIL/BHVPIPE when the guard is attached to a rail or pipe.
-extern "C" void AddGuardScriptFollowPath(CID113 *script, int id, int pathArg, int secondOid)
+extern "C" void AddGuardScriptFollowPath(GUARDSCRIPT *script, int id, int pathArg, int secondOid)
 {
     SSGE *command;
     command = AppendGuardScriptCommand(script, SSGK_FOLLOW_PATH, id);
@@ -190,7 +190,7 @@ extern "C" void AddGuardScriptFollowPath(CID113 *script, int id, int pathArg, in
 
 // 0x170C90: Appends command kind 7, go to a target (oid; a point when -1) with BHVGOTO, optionally looking at
 // `lookAtOid` (-1 for none); `gotoParam` is copied to BHVGOTO +0xB0 (meaning unknown).
-extern "C" void AddGuardScriptGoto(CID113 *script, int id, int lookAtOid, float gotoParam)
+extern "C" void AddGuardScriptGoto(GUARDSCRIPT *script, int id, int lookAtOid, float gotoParam)
 {
     SSGE *command;
     command = AppendGuardScriptCommand(script, SSGK_GOTO, id);
@@ -199,51 +199,51 @@ extern "C" void AddGuardScriptGoto(CID113 *script, int id, int lookAtOid, float 
 }
 
 // 0x170CD0: Splice option: appends command kind 8, play the animation of a target (oid).
-extern "C" void AddGuardScriptAnim(CID113 *script, int id)
+extern "C" void AddGuardScriptAnim(GUARDSCRIPT *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_ANIM, id);
 }
 
 // 0x170CF0: Splice option: appends command kind 9, a label.
-extern "C" void AddGuardScriptLabel(CID113 *script, int id)
+extern "C" void AddGuardScriptLabel(GUARDSCRIPT *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_LABEL, id);
 }
 
 // 0x170D10: Splice option: appends command kind 10, jump to a label.
-extern "C" void AddGuardScriptJump(CID113 *script, int id)
+extern "C" void AddGuardScriptJump(GUARDSCRIPT *script, int id)
 {
     AppendGuardScriptCommand(script, SSGK_JUMP, id);
 }
 
 // 0x170D30: Splice option: appends command kind 11, behaviour busy on (also suspends target selection and
 // nearest-command resume).
-extern "C" void AddGuardScriptBusyOn(CID113 *script, int n1, int n2)
+extern "C" void AddGuardScriptBusyOn(GUARDSCRIPT *script, int n1, int n2)
 {
     AppendGuardScriptCommand(script, SSGK_BUSY_ON, -1);
 }
 
 // 0x170D50: Splice option: appends command kind 12, behaviour busy off.
-extern "C" void AddGuardScriptBusyOff(CID113 *script, int n1, int n2)
+extern "C" void AddGuardScriptBusyOff(GUARDSCRIPT *script, int n1, int n2)
 {
     AppendGuardScriptCommand(script, SSGK_BUSY_OFF, -1);
 }
 
 // 0x170D70: Splice option: appends command kind 13, leap at a target (oid) with an int argument (BHVLEAP, cid 0xAC).
-extern "C" void AddGuardScriptLeap(CID113 *script, int id, int n)
+extern "C" void AddGuardScriptLeap(GUARDSCRIPT *script, int id, int n)
 {
     AppendGuardScriptCommand(script, SSGK_LEAP, id)->n = n;
 }
 
 // 0x170DA0: Splice option: appends command kind 14, play the behaviour's own animation binding (BHVANIM, cid 0x9D)
 // with an int argument and a sensor block.
-extern "C" void AddGuardScriptPlayBinding(CID113 *script, int id, int n)
+extern "C" void AddGuardScriptPlayBinding(GUARDSCRIPT *script, int id, int n)
 {
     AppendGuardScriptCommand(script, SSGK_PLAY_BINDING, id)->n = n;
 }
 
 // 0x170DD0: Splice option: appends command kind 15, ensure the relay alarm of a target.
-extern "C" void AddGuardScriptEnsureRelayAlarm(CID113 *script, int id, int n)
+extern "C" void AddGuardScriptEnsureRelayAlarm(GUARDSCRIPT *script, int id, int n)
 {
     AppendGuardScriptCommand(script, SSGK_RELAY_ALARM, id)->n = n;
 }
@@ -252,7 +252,7 @@ extern "C" void AddGuardScriptEnsureRelayAlarm(CID113 *script, int id, int n)
 // script's list; returns it.
 /* Appends a command of the given kind (and target id, -1 for none) to the script; returns it. */
 // Also known as: PcmdAppend (upstream readable / Sly 1 name; PcmdAppend__FP7CMDLISTi3OID).
-extern "C" SSGE *AddGuardScriptCommand(CID113 *script, int kind, int id)
+extern "C" SSGE *AddGuardScriptCommand(GUARDSCRIPT *script, int kind, int id)
 {
     SSGE *command;
     command = (SSGE *)AllocZeroedFromSlotheap(&g_sw.slotheapSsge);
@@ -263,7 +263,7 @@ extern "C" SSGE *AddGuardScriptCommand(CID113 *script, int kind, int id)
 }
 
 // 0x170E68: Starts this script on a guard, if one is given.
-extern "C" void StartGuardScriptOnGuard(CID113 *script, LO *object)
+extern "C" void StartGuardScriptOnGuard(GUARDSCRIPT *script, LO *object)
 {
     if (object != 0) {
         StartGuardScript(object, script);
@@ -309,7 +309,7 @@ extern "C" void ChooseGuardScriptNearestCommand(LO *root, qword pos, SSGRESUME *
     SSGE *node;
     int stopped = 0;
     float best = D_002A52B0;
-    for (node = (SSGE *)((CID113 *)current)->commands.head; node; node = node->next) {
+    for (node = (SSGE *)((GUARDSCRIPT *)current)->commands.head; node; node = node->next) {
         switch (node->kind) {
         case SSGK_BUSY_ON:
             stopped = 1;
@@ -418,7 +418,7 @@ extern "C" void GetGuardScriptTargetPose(void *script, qword pos, LO *target, qw
 
 // 0x1711F0: Finds the label command (kind 9) with the given id.
 /* The label command (kind 9) with the given id. The unused array is part of the original frame. */
-extern "C" SSGE *FindGuardScriptLabel(CID113 *script, int id)
+extern "C" SSGE *FindGuardScriptLabel(GUARDSCRIPT *script, int id)
 {
     int unused[4];
     SSGE *command;
@@ -444,7 +444,7 @@ void AssignSidebagRef(CRefPtr<CSidebag> *pref, CSidebag *sidebag) __asm__("Assig
 // 0x171258: Switches the script a script behaviour runs: stops the old one (splice event 3), starts the new one
 // (event 2) at its first command or at a saved resume point.
 // Also known as: SetTarget (upstream readable / Sly 1 name; SetTarget__9JOBSCRIPTP7CMDLISTiP11SAVEDSCRIPT).
-extern "C" void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPartialRoute, SSGRESUME *resume)
+extern "C" void SetBhvScriptScript(BHV169 *behavior, GUARDSCRIPT *script, int allowPartialRoute, SSGRESUME *resume)
 {
     using namespace M_func_00171258;
     if (script == behavior->script)
@@ -466,7 +466,7 @@ extern "C" void SetBhvScriptScript(BHV169 *behavior, CID113 *script, int allowPa
     behavior->HandleSpliceEvent(2, 0, 0, 0, 0);
     behavior->allowPartialRoute = allowPartialRoute;
     if (!resume || !resume->command) {
-        CID113 *s = behavior->script;
+        GUARDSCRIPT *s = behavior->script;
         SSGE *first = (SSGE *)s->commands.head;
         behavior->context = s;
         behavior->currentCommand = first;
@@ -762,7 +762,7 @@ void BHV169::ExecuteScriptCommand(SSGE *command)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171AF8 {
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
-void GetGuardScriptTargetPose(CID113 *script, qword pos, LO *target, qword *posOut, float *headingOut) __asm__("GetGuardScriptTargetPose");
+void GetGuardScriptTargetPose(GUARDSCRIPT *script, qword pos, LO *target, qword *posOut, float *headingOut) __asm__("GetGuardScriptTargetPose");
 }
 // 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
 extern "C" void GetBhvScriptTargetPose(BHV169 *behavior, LO *target, qword *posOut, float *headingOut)
@@ -834,7 +834,7 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *bhv, BHVGUARDRECDATA *mode) __asm__("SetBhvguardMode");
 // 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
 // Also known as: TellGuardCommands (upstream readable / Sly 1 name; TellGuardCommands__FP2LOi).
-void StartGuardScript(LO *guard, CID113 *script) __asm__("StartGuardScript"); void StartGuardScript(LO *guard, CID113 *script)
+void StartGuardScript(LO *guard, GUARDSCRIPT *script) __asm__("StartGuardScript"); void StartGuardScript(LO *guard, GUARDSCRIPT *script)
 {
     BHVGUARDRECDATA mode;
     void *bhv = FindStepBehavior(guard, CID_BHVGUARD);
