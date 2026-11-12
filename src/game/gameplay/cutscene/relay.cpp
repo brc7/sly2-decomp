@@ -346,13 +346,13 @@ int FRelayHasAlarm(RELAY *relay, ALARM *palarm) __asm__("IsRelayAlarm");
 
 int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("IsGuardRunningScript");
 
-/* The alarm set of a guard group (SGG) as EnsureSggAlarm reads it (RELAY has the same block at +0x84). */
-struct SGG : LO
+/* EnsureSggAlarm's mangled name keeps Sly 1's SGG (a guard group); Sly 2 calls it with a RELAY (its alarm block, calarm
+   / apalarm at +0x84), so SGG is RELAY under that name (the mangled name needs the type name). */
+struct SGG : RELAY
 {
-    char pad0[0x84 - 0x50];
-    int calarm;             /* +0x84 */
-    ALARM *apalarm[8];      /* +0x88 */
 };
+
+
 
 int IsEntryInDl(DL *pdl, void *pv);
 extern "C" {
@@ -615,7 +615,7 @@ extern "C" void RemoveAlarmFromRelay(RELAY *relay, ALARM *palarm)
     int i;
     for (i = 0; i < relay->calarm; i++) {
         if (relay->apalarm[i] == palarm) {
-            memmove(relay->apalarm + i, relay->apalarm + i + 1, (relay->calarm - i) * 4 - 4);
+            memmove(relay->apalarm + i, relay->apalarm + i + 1, (relay->calarm - i) * (int)sizeof(ALARM *) - (int)sizeof(ALARM *));
             relay->calarm--;
             return;
         }
