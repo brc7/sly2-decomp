@@ -1205,48 +1205,48 @@ extern "C" int AddOrUpdateRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg,
 } // namespace M_FAddRsmg__FP2SWP4RSMGiPii3OIDN25
 
 namespace M_TriggerRsmg {
-typedef struct QW { int a[4]; } QW;
-void TriggerOneRsmg(void *p, QW *pq, int a, int b, int c, int d) __asm__("TriggerOneRsmg");
+
+void TriggerOneRsmg(SW *world, ::RSMG *rsmg, LO *context, int flags, LO *subscriber, SMA **psmaOut) __asm__("TriggerOneRsmg");
 // Applies every rsmg record of an array (TriggerOneRsmg on each).
 // Also known as: ApplyRsmg (upstream readable / Sly 1 name; ApplyRsmg__FP2LOiP4RSMGii).
-extern "C" void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
+extern "C" void TriggerRsmg(SW *world, int c, ::RSMG *rsmgs, LO *context, int flags)
 {
     int i;
     for (i = 0; i < c; i++) {
-        TriggerOneRsmg(p, &pq[i], a, b, 0, 0);
+        TriggerOneRsmg(world, &rsmgs[i], context, flags, 0, 0);
 
     }
 }
 } // namespace M_TriggerRsmg
 
 namespace M_func_0020FFF0 {
-struct D { int a; int b; int c; int d; };
-int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo) __asm__("FindSwObjects");
-int IsBasicDerivedFrom__FP5BASIC3CID(void *o, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
-BASIC *FindLiveSma(void *o, int b) __asm__("FindLiveSma");
-void SubscribeLoObject(BASIC *y, int x) __asm__("SubscribeLoObject");
+
+int FindSwObjects(SW *world, int grffso, OID oid, LO *context, int cploMax, LO **aplo) __asm__("FindSwObjects");
+int IsBasicDerivedFrom__FP5BASIC3CID(LO *o, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
+BASIC *FindLiveSma(LO *o, OID oidSM) __asm__("FindLiveSma");
+void SubscribeLoObject(BASIC *y, LO *x) __asm__("SubscribeLoObject");
 void SeekSma(BASIC *y, int id) __asm__("SeekSma");
 void SetSmaGoal(BASIC *y, int id) __asm__("SetSmaGoal");
 // Applies one rsmg record: finds the root object and its state machine by oid, then seeks or sets the trigger or
 // untrigger goal; optionally returns the state machine.
-extern "C" void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, BASIC **ppy)
+extern "C" void TriggerOneRsmg(SW *p, ::RSMG *pd, LO *b, int fl, LO *x, BASIC **ppy)
 {
-    void *o;
+    LO *o;
     BASIC *y;
     int id;
     if (ppy)
         *ppy = 0;
-    if (FindSwObjects(p, 0x204, pd->a, b, 1, &o) != 1)
+    if (FindSwObjects(p, 0x204, pd->oidRoot, b, 1, &o) != 1)
         return;
     if (!IsBasicDerivedFrom__FP5BASIC3CID(o, 0x30))
         return;
-    y = FindLiveSma(o, pd->b);
+    y = FindLiveSma(o, pd->oidSM);
     if (!y)
         return;
     if (fl & 1)
-        id = pd->c;
+        id = pd->oidTriggerGoal;
     else
-        id = pd->d;
+        id = pd->oidUntriggerGoal;
     if (id == -1)
         return;
     if (x) {
