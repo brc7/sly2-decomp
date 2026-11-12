@@ -1213,7 +1213,7 @@ namespace M_SetGadgetMenuStickDir {
 // enabled item that lies closest along that direction from the current one.
 
 struct PROX { float along, distance; };
-union HIT { LSG lsg; struct { qword position, other, normal; char pad30[0x10]; float fraction; }; };   /* sly2/lsg.h LSG */
+
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.
@@ -1221,7 +1221,7 @@ extern float D_002C3280 __asm__("D_002C3280"), D_002C3274 __asm__("D_002C3274"),
 
 
 GMITEM *FindScreenEntry(GADGETMENU *sel, int id) __asm__("FindScreenEntry");
-int ClipEdgeToSphere(qword point, qword start, qword end, int flags, HIT *hit, float radius) __asm__("ClipEdgeToSphere");
+int ClipEdgeToSphere(qword point, qword start, qword end, int flags, LSG *hit, float radius) __asm__("ClipEdgeToSphere");
 void FindClosestPointOnLineSegment(qword point, qword start, qword end, qword *unused, float *along, float *distance) __asm__("FindClosestPointOnLineSegment");
 void SelectGadgetMenuItem(GADGETMENU *sel, int id) __asm__("SelectGadgetMenuItem");
 void CloseScreen(GADGETMENU *sel) __asm__("CloseScreen");
@@ -1268,7 +1268,7 @@ static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %
 void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
 {
     QWROW home;
-    HIT hit;
+    LSG hit;
     PROX proximity;
     if (mode == sel->nMode)
         return;
@@ -1297,7 +1297,7 @@ void SetGadgetMenuStickDir(GADGETMENU *sel, int mode)
         qword point = XYZ(item->x, item->y * D_002C3280, zero, home);
         float score;
         if (ClipEdgeToSphere(point, origin, Add(origin, ray), 1, &hit, D_002C3278) > 0) {
-            score = hit.fraction * D_002C3274;
+            score = hit.au[0] * D_002C3274;
         } else {
             FindClosestPointOnLineSegment(point, origin, Add(origin, ray), 0, &proximity.along, &proximity.distance);
             if (proximity.distance < D_002C327C) {

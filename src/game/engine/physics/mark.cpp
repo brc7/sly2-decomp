@@ -737,15 +737,15 @@ struct FRAME{};
 struct REQ{unsigned int bytes,alignment;};
 struct POLY{qword plane;char opaque10[8];int flags;};
 struct ENTRY{ENTRY*child[2];POLY*poly;};
-union HIT{LSG lsg;struct{qword p;char pad10[0x30];float time;};};   /* sly2/lsg.h LSG */
+
 struct OUT{qword p,plane;int kind;};
 union SCR{REQ req;QWROW u;};
-struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;QWROW position,endpoint;};
+struct WORK{FRAME frame;SCR scratch;LSG hits[16];int count;ENTRY*end;QWROW position,endpoint;};
 extern FRAME*STACKSCOPE_ctor(FRAME*) __asm__("STACKSCOPE_ctor");
 extern void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
 extern void*AllocFromStack(REQ*) __asm__("AllocFromStack");
 extern int PruneBspBySphere(ENTRY*,uptr,qword,float,int*,ENTRY**) __asm__("PruneBspBySphere");
-extern int ClipSegmentBsp(ENTRY*,uptr,qword,qword,int,HIT*) __asm__("ClipSegmentBsp");
+extern int ClipSegmentBsp(ENTRY*,uptr,qword,qword,int,LSG*) __asm__("ClipSegmentBsp");
 extern void InitPlaneFromNormalPos(qword*,qword,qword) __asm__("InitPlaneFromNormalPos");
 // Return a - b.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -786,11 +786,11 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,uptr pbspLimit,void*geometry,qwo
    int found=ClipSegmentBsp(last,SLY2_BSP_NO_LIMIT,to,argument,16,work.hits);
    register qword snapshot __asm__("vf1")=work.endpoint.q;
    if(found>0){
-    if(work.hits[0].time>best){
-     best=work.hits[0].time;
+    if(work.hits[0].au[0]>best){
+     best=work.hits[0].au[0];
      qword normal=Normal(Sub(snapshot,work.position.q));
-     out->p=work.hits[0].p;
-     InitPlaneFromNormalPos(&out->plane,normal,work.hits[0].p);
+     out->p=work.hits[0].apos[0];
+     InitPlaneFromNormalPos(&out->plane,normal,work.hits[0].apos[0]);
      out->kind=12;
     }
    }
@@ -807,13 +807,13 @@ extern "C" void FindContactInsideBsp(ENTRY*tree,uptr pbspLimit,void*geometry,qwo
    work.endpoint.q=to;
    int found=ClipSegmentBsp(last,SLY2_BSP_NO_LIMIT,to,work.position.q,16,work.hits);
    if(found>0){
-    if(work.hits[0].time>best){
-     best=work.hits[0].time;
+    if(work.hits[0].au[0]>best){
+     best=work.hits[0].au[0];
      VuLanes d=VuGet(VuSub(work.endpoint.q,work.position.q));
      float inverse=SLY2_FDIV(1.0f,VuSqrt((d.x*d.x+d.y*d.y)+d.z*d.z));
      qword normal=VuMake<qword>(d.x*inverse,d.y*inverse,d.z*inverse,d.w*inverse);
-     out->p=work.hits[0].p;
-     InitPlaneFromNormalPos(&out->plane,normal,work.hits[0].p);
+     out->p=work.hits[0].apos[0];
+     InitPlaneFromNormalPos(&out->plane,normal,work.hits[0].apos[0]);
      out->kind=12;
     }
    }
@@ -834,8 +834,7 @@ typedef char POLY_plane_Offset[FIELD_OFFSET(POLY,plane)==0?1:-1];
 typedef char POLY_flags_Offset[FIELD_OFFSET(POLY,flags)==24?1:-1];
 typedef char ENTRY_child_Offset[FIELD_OFFSET(ENTRY,child)==0?1:-1];
 typedef char ENTRY_poly_Offset[FIELD_OFFSET(ENTRY,poly)==8?1:-1];
-typedef char HIT_p_Offset[FIELD_OFFSET(HIT,p)==0?1:-1];
-typedef char HIT_time_Offset[FIELD_OFFSET(HIT,time)==64?1:-1];
+
 typedef char OUT_p_Offset[FIELD_OFFSET(OUT,p)==0?1:-1];
 typedef char OUT_plane_Offset[FIELD_OFFSET(OUT,plane)==16?1:-1];
 typedef char OUT_kind_Offset[FIELD_OFFSET(OUT,kind)==32?1:-1];
@@ -855,8 +854,7 @@ typedef char POLY_PrefixSize[sizeof(POLY)==32?1:-1];
 typedef char POLY_Alignment[__alignof__(POLY)==16?1:-1];
 typedef char ENTRY_PrefixSize[sizeof(ENTRY)==12?1:-1];
 typedef char ENTRY_Alignment[__alignof__(ENTRY)==4?1:-1];
-typedef char HIT_PrefixSize[sizeof(HIT)==96?1:-1];
-typedef char HIT_Alignment[__alignof__(HIT)==16?1:-1];
+
 typedef char OUT_PrefixSize[sizeof(OUT)==48?1:-1];
 typedef char OUT_Alignment[__alignof__(OUT)==16?1:-1];
 typedef char U_PrefixSize[sizeof(QWROW)==16?1:-1];

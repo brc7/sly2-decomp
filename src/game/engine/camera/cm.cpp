@@ -846,25 +846,23 @@ extern "C" void GetCmCpdefi(CM *p, O *po, CPDEFI *ps)
 
 namespace M_FindCameraClearInterval {
 /* float g placed after the pointer params: its param copy comes after pgMax, lengthening pgMax so the hoisted 0x40 wins $fp in global alloc */
-struct T { int a, b, c; };
-struct O { char pad[0x70]; int c; struct T *at; };
-union HIT { LSG lsg; struct { char pad[0x40]; float enterTime; float exitTime; }; };   /* sly2/lsg.h LSG (au[0] / au[1]) */
-int ClipSegmentBsp(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, HIT *ahit) __asm__("ClipSegmentBsp");
-int MergeSegmentLists(int c, HIT *ahit, int cNew, HIT *ahitNew, int cMax, HIT *ahitOut, int f) __asm__("MergeSegmentLists");
-// Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
+
+int ClipSegmentBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos, qword dir, int c, LSG *ahit) __asm__("ClipSegmentBsp");
+int MergeSegmentLists(int c, LSG *ahit, int cNew, LSG *ahitNew, int cMax, LSG *ahitOut, int f) __asm__("MergeSegmentLists");
+// Clips segment pos->dir against each part's camera BSP nodes (ClipSegmentBsp up to BSPC::numCameraNodes), merges intervals (0x14C9F8), returns first clear gap
 // > duMin in *puFrom/ *puTo.
 // Also known as: FFindCmClearInterval (upstream readable / Sly 1 name;
 //   FFindCmClearInterval__FiP8CMSOLIDSG9VU_VECTORT2P6VECTORT4f).
-extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
+extern "C" int FindCameraClearInterval(int n, SOPART **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
 {
-    HIT ahit[0x40];
+    LSG ahit[0x40];
     int c = 0;
     int i;
     int j;
     float g0, g1;
     for (i = 0; i < n; i++) {
-        struct O *po = apo[i];
-        int cNew = ClipSegmentBsp(po->at, po->at + po->c, pos, dir, 0x40 - c, &ahit[c]);
+        SOPART *po = apo[i];
+        int cNew = ClipSegmentBsp(po->bspc.nodes, po->bspc.nodes + po->bspc.numCameraNodes, pos, dir, 0x40 - c, &ahit[c]);
         if (cNew)
             c = MergeSegmentLists(c, ahit, cNew, &ahit[c], 0x40, ahit, 0);
     }
@@ -873,9 +871,9 @@ extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword d
             return 0;
         g0 = 0.0f;
         if (j > 0)
-            g0 = ahit[j - 1].exitTime;
+            g0 = ahit[j - 1].au[1];
         if (j < c)
-            g1 = ahit[j].enterTime;
+            g1 = ahit[j].au[0];
         else
             g1 = 1.0f;
         if (g < g1 - g0)
@@ -897,8 +895,8 @@ namespace M_FindCmClosestClearPos {
 
 extern int D_002BD8B0[] __asm__("D_002BD8B0");
 qword SetVectorSphere(float pan, float tilt, float s) __asm__("SetVectorSphere");
-int FindCameraClearInterval(void *p, void *x, qword a, qword b, float *pt, float *pu, float g) __asm__("FindCameraClearInterval");
-qword FindCmClosestClearPos(void *p, void *x, qword pos, float g) __asm__("FindCmClosestClearPos");
+int FindCameraClearInterval(int cpart, SOPART **apart, qword a, qword b, float *pt, float *pu, float g) __asm__("FindCameraClearInterval");
+qword FindCmClosestClearPos(int p, SOPART **x, qword pos, float g) __asm__("FindCmClosestClearPos");
 
 // Float broadcast into a VU0 register on construction.
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -925,7 +923,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 // Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position.
 // Also known as: FindCmClosestClearPos (upstream readable / Sly 1 name;
 //   FindCmClosestClearPos__FP8CMSOLIDSP6VECTORG9VU_VECTORf).
-qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
+qword FindCmClosestClearPos(int p, SOPART **x, qword pos, float g)
 {
     float t, u;
     qword best;

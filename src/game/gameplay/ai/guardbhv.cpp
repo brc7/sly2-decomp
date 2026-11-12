@@ -808,7 +808,7 @@ extern "C" int FilterAttackLineOfSightHit(CID120 *x, SOPART *p) {
 
 // 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
-union U; struct SCALE; union LSG; struct LOS; struct POLY; struct BASIC;
+union U; struct SCALE;  struct LOS; struct POLY; struct BASIC;
 // ChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
@@ -816,7 +816,7 @@ union U; struct SCALE; union LSG; struct LOS; struct POLY; struct BASIC;
 // (Decref), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
 union U { qword q; float f[4]; };
 struct SCALE { char pad[0x20]; float value; };   /* STEPGUARD::scale's record */
-union LSG { ::LSG lsg; U point; };   /* sly2/lsg.h LSG, its first point */
+
 struct LOS { U start, end; LSG hit; };
 extern void Decref__4CRef(void *) __asm__("Decref__4CRef");
 struct POLY { float a, b, c; };
@@ -868,7 +868,7 @@ static inline float VectorLength(qword v)
 // True if the line test hit something nearer than `limit` to the line start.
 static inline int Blocked(LOS *line, float limit)
 {
-    return VectorLength(VuSub(line->start.q, line->hit.point.q)) < limit;
+    return VectorLength(VuSub(line->start.q, line->hit.apos[0])) < limit;
 }
 
 // 0x1758A0: Picks the first enabled attack whose range, height, angle and line of sight accept the target, confirms
@@ -2314,7 +2314,7 @@ extern "C" void StartBhvpath(BHVPATH *behavior) {
 
 // 0x177F78 StepBhvpathAlongShape
 namespace M_StepBhvpathAlongShape {
-union VEC; struct CLQ; struct LM; struct VU_FLOAT; struct VUF; struct VV; struct VU_VECTOR;
+union VEC;   struct VU_FLOAT; struct VUF; struct VV; struct VU_VECTOR;
 // StepBhvpathAlongShape (Claude agent, T1690, 2026-10-25): MATCH. Curve follower step: closest point on the curve(s), steering
 // velocity toward the next point, avoidance of other bodies (loop), integration and collision clamp.
 // Built on lilly15 (aligned 11, T1686). What finished it (each measured, see notes/170000.md):
@@ -2342,14 +2342,6 @@ union VEC
 {
     qword qw;
     float f[4];
-};
-struct CLQ
-{
-    float g0, g1, g2;
-};
-struct LM
-{
-    float minValue, maxValue;
 };
 
 extern char D_003DD020[] __asm__("D_003DD020");
