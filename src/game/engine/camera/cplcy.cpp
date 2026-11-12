@@ -199,7 +199,7 @@ extern "C" qword PosCplookEye(CPLOOK *p)
 
 namespace M_ActivateCplook {
 extern LM D_002BD950 __asm__("D_002BD950"), D_002BD958 __asm__("D_002BD958"), D_002BD960 __asm__("D_002BD960"), D_002BD968 __asm__("D_002BD968"), D_002BD970 __asm__("D_002BD970");
-void ActivateCplcy(CPLOOK *p) __asm__("ActivateCplcy");
+void ActivateCplcy(CPLOOK *p, void *pvHero, void *pvArg) __asm__("ActivateCplcy");
 void *CreateSfxSound(int) __asm__("CreateSfxSound");
 void SetSndSourceLo(void *, int) __asm__("SetSndSourceLo");
 void RcPtr_Assign(CRefPtr<SND> *, void *) __asm__("RcPtr_Assign");
@@ -212,12 +212,12 @@ float ClampToLimits__FP2LMf(LM *, float) __asm__("ClampToLimits__FP2LMf");
 // Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits,
 // zoom=0, fov zoom range, near clip 49, numActivations++.
 // Also known as: Activate (upstream readable / Sly 1 name; Activate__7CPRECONP2LOPv).
-extern "C" void ActivateCplook(CPLOOK *p)
+extern "C" void ActivateCplook(CPLOOK *p, void *pvHero, void *pvArg)
 {
     CM *pcm;
     void *pv;
     float g;
-    ActivateCplcy(p);
+    ActivateCplcy(p, pvHero, pvArg);
     pv = CreateSfxSound(0x26);
     SetSndSourceLo(pv, 0);
     RcPtr_Assign(&p->psndZoom, pv);
@@ -362,7 +362,7 @@ void StopSnd(SND *p, float g) __asm__("StopSnd");
 void RcPtr_Assign(CRefPtr<SND> *pp, int n) __asm__("RcPtr_Assign");
 int IsBasicDerivedFrom__FP5BASIC3CID(void *p, int n) __asm__("IsBasicDerivedFrom__FP5BASIC3CID");
 void SetCmCut(CM *p, float a, float b) __asm__("SetCmCut");
-void DeactivateCplcy(CPLOOK *a, int n, void *b) __asm__("DeactivateCplcy");
+void DeactivateCplcy(CPLOOK *a, void *pvHero, void *b) __asm__("DeactivateCplcy");
 // Stop the sound (fading over g) and drop the reference, if any.
 extern "C" { static inline void Release(CRefPtr<SND> *pp, float g)
 {
@@ -373,7 +373,7 @@ extern "C" { static inline void Release(CRefPtr<SND> *pp, float g)
 } }
 // Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then CPLCY::Deactivate.
 // Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__7CPRECONP2LOPv).
-extern "C" void DeactivateCplook(CPLOOK *a, int n, void *b)
+extern "C" void DeactivateCplook(CPLOOK *a, void *pvHero, void *b)
 {
     Release(&a->psndZoom, 0.0f);
     Release(&a->zoomStopSound, 0.5f);
@@ -381,7 +381,7 @@ extern "C" void DeactivateCplook(CPLOOK *a, int n, void *b)
         SetCmCut(&g_cm, a->panAngle + 3.1415927f, -a->tiltAngle);
     else
         SetCmCut(&g_cm, a->panStartAngle + 3.1415927f, -a->tiltStartAngle);
-    DeactivateCplcy(a, n, b);
+    DeactivateCplcy(a, pvHero, b);
 }
 } // namespace M_DeactivateCplook
 
@@ -483,7 +483,7 @@ extern "C" qword PosCpzoomEye(CPZOOM *p)
 } // namespace M_PosCpzoomEye
 
 namespace M_ActivateCpzoom {
-void ActivateCplcy(CPZOOM *a, int n) __asm__("ActivateCplcy");
+void ActivateCplcy(CPZOOM *a, void *pvHero, void *pv) __asm__("ActivateCplcy");
 void *CreateSfxSound(int n) __asm__("CreateSfxSound");
 void SetSndSourceLo(void *p, int n) __asm__("SetSndSourceLo");
 void RcPtr_Assign(CRefPtr<SND> *pp, void *p) __asm__("RcPtr_Assign");
@@ -492,11 +492,11 @@ void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pmat, float *pa, float *
 // Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49, SnapCpzoom, shares
 // numActivations counter (g_cm+0x4A4)
 // Also known as: Activate (upstream readable / Sly 1 name; Activate__6CPFREEP2LOPv).
-extern "C" void ActivateCpzoom(CPZOOM *a, int n)
+extern "C" void ActivateCpzoom(CPZOOM *a, void *pvHero, void *pv)
 {
     void *p;
     CM *pg;
-    ActivateCplcy(a, n);
+    ActivateCplcy(a, pvHero, pv);
     p = CreateSfxSound(0x26);
     SetSndSourceLo(p, 0);
     RcPtr_Assign(&a->psndZoom, p);
@@ -739,7 +739,7 @@ extern "C" int HasZoomReachedTarget(CPZOOM *p)
 namespace M_DeactivateCpzoom {
 void StopSnd(SND *p, float g) __asm__("StopSnd");
 void RcPtr_Assign(CRefPtr<SND> *pp, int n) __asm__("RcPtr_Assign");
-void DeactivateCplcy(CPZOOM *a, int n, void *b) __asm__("DeactivateCplcy");
+void DeactivateCplcy(CPZOOM *a, void *pvHero, void *b) __asm__("DeactivateCplcy");
 // Stop the sound (fading over g) and drop the reference, if any.
 extern "C" { static inline void Release(CRefPtr<SND> *pp, float g)
 {
@@ -750,7 +750,7 @@ extern "C" { static inline void Release(CRefPtr<SND> *pp, float g)
 } }
 // Release sounds, clear owner/focus/pose, zoomTarget=-1, CutCm, CPLCY::Deactivate.
 // Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__6CPFREEP2LOPv).
-extern "C" void DeactivateCpzoom(CPZOOM *a, int n, void *b)
+extern "C" void DeactivateCpzoom(CPZOOM *a, void *pvHero, void *b)
 {
     Release(&a->psndZoom, 0.0f);
     Release(&a->zoomStopSound, 0.5f);
@@ -759,7 +759,7 @@ extern "C" void DeactivateCpzoom(CPZOOM *a, int n, void *b)
     a->hasPose = 0;
     a->zoomTarget = -1.0f;
     CutCm(&g_cm);
-    DeactivateCplcy(a, n, b);
+    DeactivateCplcy(a, pvHero, b);
 }
 } // namespace M_DeactivateCpzoom
 
@@ -773,14 +773,14 @@ extern "C" CPHANG *CPHANG_ctor(CPHANG *pcphang)
 
 namespace M_ActivateCphang {
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
-void ActivateCplcy(CPHANG *a, int n, void *b) __asm__("ActivateCplcy");
+void ActivateCplcy(CPHANG *a, void *pvHero, void *b) __asm__("ActivateCplcy");
 ACT1 *NewPositionAct(void *pvHero, XF *pxf, int a, int b, int c, qword q) __asm__("NewPositionAct");
 // Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), nextSwayTime=-1. (inferred)
 // Also known as: Activate (upstream readable / Sly 1 name; Activate__10CPACTUATEDP2LOPv).
-extern "C" void ActivateCphang(CPHANG *a, int n, void *b)
+extern "C" void ActivateCphang(CPHANG *a, void *pvHero, void *b)
 {
     CM *pg;
-    ActivateCplcy(a, n, b);
+    ActivateCplcy(a, pvHero, b);
     a->pxfCam = (XF *)b;
     pg = &g_cm;
     SetCmNearClip(pg, 25.0f);
@@ -921,7 +921,7 @@ extern "C" CPCAMBLEND *CPCAMBLEND_ctor(CPCAMBLEND *pcpcamblend)
 }
 
 namespace M_ActivateCpcamblend {
-void ActivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b) __asm__("ActivateCplcy");
+void ActivateCplcy(CPCAMBLEND *a, void *pvHero, CAMMOVE *b) __asm__("ActivateCplcy");
 } // namespace M_ActivateCpcamblend
 // CPLCY::Activate; pcammove(+0x10)=pv; pevent->AddRef() (begin event). (inferred)
 // Also known as: Activate (upstream readable / Sly 1 name; Activate__7CPTIMEDP2LOPv).
@@ -929,20 +929,19 @@ void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespa
 {
     using namespace M_ActivateCpcamblend;
     CPCAMBLEND *a = this;
-    int n = (int)pvHero;
     CAMMOVE *b = (CAMMOVE *)pv;
-    M_ActivateCpcamblend::ActivateCplcy(a, n, b);
+    M_ActivateCpcamblend::ActivateCplcy(a, pvHero, b);
     a->pcammove = b;
     ((BASIC *)b->pevent)->AddRef();
 }
 
 namespace M_DeactivateCpcamblend {
-void DeactivateCplcy(CPCAMBLEND *a, int n, CAMMOVE *b) __asm__("DeactivateCplcy");
+void DeactivateCplcy(CPCAMBLEND *a, void *pvHero, CAMMOVE *b) __asm__("DeactivateCplcy");
 // CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent->Release() (end event); pcammove=0. (inferred)
 // Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__7CPTIMEDP2LOPv).
-extern "C" void DeactivateCpcamblend(CPCAMBLEND *a, int n, CAMMOVE *b)
+extern "C" void DeactivateCpcamblend(CPCAMBLEND *a, void *pvHero, CAMMOVE *b)
 {
-    DeactivateCplcy(a, n, b);
+    DeactivateCplcy(a, pvHero, b);
     if (b->fCutOnLeave)
         CutCm(&g_cm);
     ((BASIC *)a->pcammove->pevent)->Release();
@@ -1042,7 +1041,7 @@ extern "C" CPTURRET *CPTURRET_ctor(CPTURRET *pcpturret)
 namespace M_ActivateCpturret {
 /* The turret (classes.h TURRET, a PO; fields as turret.cpp's TURRETV): +0x1BC is what TURRETV calls strength. */
 struct B : PO { void *target; int aim, follow; float pitch, yaw, vpitch, vyaw; LM yawRange, pitchRange, range; float blend, velocity; float turretFov; };
-void ActivateCplcy(void *a, struct B *b) __asm__("ActivateCplcy");
+void ActivateCplcy(void *a, struct B *b, void *pv) __asm__("ActivateCplcy");
 } // namespace M_ActivateCpturret
 // CPLCY::Activate; near clip 49; targetFieldOfView = turret +0x1BC. (inferred)
 // Also known as: Activate (upstream readable / Sly 1 name; Activate__8CPATTACHP2LOPv).
@@ -1052,7 +1051,7 @@ void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace
     void *a = this;
     struct B *b = (struct B *)pvHero;
     CM *pg;
-    M_ActivateCpturret::ActivateCplcy(a, b);
+    M_ActivateCpturret::ActivateCplcy(a, b, pv);
     pg = &g_cm;
     SetCmNearClip(pg, 49.0f);
     pg->targetFieldOfView = b->turretFov;

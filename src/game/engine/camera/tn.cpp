@@ -229,7 +229,7 @@ float fmodf(float, float);
 void CPLCY_ctor(CMPART2 *p);
 void InitCplcy(CMPART2 *p);
 void ActivateCplcy(CMPART2 *p, void *pj, TN *pt);
-void DeactivateCplcy(CMPART2 *p);
+void DeactivateCplcy(CMPART2 *p, void *pvHero, void *pv);
 int IsCidDerivedFrom(int a, int b);
 void GetCmCpdefi(CM *pcm, void *pj, void *pq);
 void FindShapeClosestPoint(SHAPE *p, qword q, void *a, qword *pq, qword *b, float *c, float *pf);
@@ -686,10 +686,10 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
 
 // Clears tn/ppo (0x10,0x14) then base 0x14FCE8. (inferred)
 // Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__8CPFOLLOWP2LOPv).
-extern "C" void DeactivateCptn(CMPART2 *p) {
+extern "C" void DeactivateCptn(CMPART2 *p, void *pvHero, void *pv) {
     p->cameraTunnel = 0;
     p->cameraDefinition = 0;
-    DeactivateCplcy(p);
+    DeactivateCplcy(p, pvHero, pv);
 }
 
 // Positions tn target via FillCrvcCache or atan2 heading. (inferred)

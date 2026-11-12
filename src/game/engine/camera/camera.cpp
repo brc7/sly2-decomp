@@ -31,7 +31,7 @@ void SetCmPolicy(CM *a, int b, void *c, int d, void *e);
 void RevokeCmPolicy(CM *a, int b, int c, void *d, int e, void *f);
 void CPLCY_ctor(CPCAMERA *p);
 void ActivateCplcy(CPCAMERA *t, void *b, CAMERA *s);
-void DeactivateCplcy(CPCAMERA *t, int b, CAMERA *s);
+void DeactivateCplcy(CPCAMERA *t, void *b, CAMERA *s);
 void SetCmFov__FP2CMf(CM *a, float g);
 void CutCm__FP2CM(CM *pcm);
 qwordV GetLoWorldPos(CAMERA *pso);
@@ -121,7 +121,7 @@ void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vt
 // Deactivates the policy for a camera object: if it is the active camera, cuts (no blend) when the camera asks for it
 // and forgets it; then base deactivation.
 // Also known as: Deactivate (upstream readable / Sly 1 name; Deactivate__8CPLOOKATP2LOPv).
-extern "C" void DeactivateCpcamera(CPCAMERA *policy, int hero, CAMERA *camera)
+extern "C" void DeactivateCpcamera(CPCAMERA *policy, void *hero, CAMERA *camera)
 {
     if (policy->pcamera == (CAMERAMARKER *)camera) {
         if (camera->cutOnEnd != 0)
