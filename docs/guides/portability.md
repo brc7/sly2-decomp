@@ -79,6 +79,7 @@ in xfm.h, BSPC::numCameraNodes), recon.cpp on LO / CID46 / JTMODE / STEPPLAYER w
 | `SLY2_BUILTIN_C(sym)` (app/bif.cpp) | nothing: the builtin table calls the C-style body (`CRefData *sym(CRefData *ret, int cref, CRefData *args, CFrame *frame)`) | the body becomes `sym_c` and `sym` is a CRef-returning entry calling it: the type eval.cpp's BIF::function calls through | the 98 C-style builtins in bif.cpp |
 | `SLY2_BSP_NO_LIMIT` (sly2/port.h) | `(~(uptr)0 >> 1)` = 0x7FFFFFFF, the literal the callers passed | the largest positive pointer-sized value: above every heap address (no guard needed) | every BSP walk caller (clip, geom, so, tn, detector, bomb, air, exit_warp, vol, mark, prize, rip, vis, robottank, grab); caller-side declarations take the limit as `uptr` (bsp.cpp's definitions compare `BSP *`) |
 | `SLY2_FDIV(a, b)` (sly2/port.h, v1.24) | `((a) / (b))`: div.s, which gives +-FLT_MAX for a zero divisor (sign of a xor sign of b; also 0 / 0) | `Sly2EeFdiv`: a / b, or +-FLT_MAX with that sign when b is 0 (IEEE gives Inf / NaN) | vec.cpp FindClosestPointOnLineSegment (a zero-length segment), wr.cpp FitLinearClq (s0 == s1), mark.cpp FindContactInsideBsp's C contact normal (v1.25); use it for other per-frame divisions by a length that can be 0 |
+| `SLY2_FMUL(a, b)` (sly2/port.h, v1.27) | `((a) * (b))`: mul.s, which saturates an overflow to +-FLT_MAX | `Sly2EeFmul`: a * b clamped to +-FLT_MAX (IEEE gives +-Inf) | blend.cpp RecalculateAsegBlend (the rescale after the SLY2_FDIV 0 / 0); pair it with SLY2_FDIV where a possibly saturated quotient is scaled back |
 | `EOPID_PMF`, `EOPID_PMFI`, `EOPID_PMFT`, `EOPID_VPMF`, `EOPIDW` (app/class_registry_options.inc) | g++ 2.95 pointers to member functions: `{short delta; short index; pfn or delta2}` | redefine the four macros and `EOPIDW` in the native PMF ABI (Itanium: `{ptr, adj}`, ptr = address or 1 + vtable offset) | class_registry_options.inc (documented next to the macros) |
 
 Why the matching form cannot be the portable one:
@@ -487,6 +488,38 @@ From the v1.12 list (scratch REMAINING.md), minus what v1.13 fixed:
   names are recon.cpp's (sRadius, fDone... not yet in the approved style; done in v1.26: the class is RECONTARGET and
   the fields selectionRadius, visibilityRadius, isDone, fadeDistance); hud.cpp FinishSpriteSoundEvent's `lw
   %0,8(%1)`; the struct-return forms and guardscript.cpp / splicewrap items above.
+  Done in v1.27 (the port's request 12 / boot-12; every change byte-identical, the class renames RENAMED only): SW_ctor's
+  six singly linked lists by SLY2_OFFSETOF (SWEVENT / SWCALLBACK::next, POCTL::next, SHDBLIP::pshdblipNext, SAA::next,
+  WIDGETLOAD::next: natively slPoctl's 0x84 left UpdateSw on POCTL::sRightHold); sound.cpp's three sound callbacks take
+  their context as a pointer, PlayBanksnd's owner and the hero globals there are `LO *` (AddStreamGroupSource keeps
+  its (sound, group, object, gain, range) declaration: the definition's order changes PushMusic's schedule, the
+  registers are the same on every target); gait.cpp PostJtLoadGait by sizeof(BLGAIT) / amrsgFoot0 / amrsgFoot1;
+  blend.cpp RecalculateAsegBlend's rescale through SLY2_FDIV and the new SLY2_FMUL (section 1: 0 / 0 is +FLT_MAX on
+  the EE and the product saturates; natively it was NaN); draw.cpp DrawSw's two clip constants are one `V4[2]` (the
+  same code on the EE, so no guard: natively VU1 qw1 had come from the stack) and the nine qsort declarations take
+  `__SIZE_TYPE__`; detector.cpp's other-cover branch returns "not concealed" natively when nothing is grabbed (the
+  EE reads low memory there; `#if !defined(__R5900__)`); relay.cpp ClearJsgJtMode ends `&STEPPLAYER::jtmode`;
+  hud.cpp's sprite-anim views (InterpolateSpriteSlot, ApplySpriteKeyPoses, AdvanceSpriteAnim)
+  have hud.h's native layouts: REUSE's sound pointer (SPRITESLOT), GROUP's tail (SPRITEGRP), ITEM's render-queue SLE
+  (SPRITEITEM; native stride 144, was 128), asserted against the headers and checked with a clang -m64 probe, and
+  their address arithmetic is sptr; stepplayer.cpp HandleStepplayerMessage on STEPPLAYER / SMA / ASEGEVENTMSG / NOISE
+  / LOREF members (its slot-35 SO::SetVelocity hand call stays under SLY2_EE_LAYOUT, a virtual call in the #else) and
+  PickHeroInteractTarget on STEPPLAYER / CID21 / ACT / XF (STEPPLAYER::isLookOverridden / lookOverride, options 732 /
+  733 by EOPID_OFF; almLook[3], was almIdle: the head's pan / tilt limits and roll range; matStartMarker);
+  places.cpp ScoreJtPlace's probe (SOPART ** array, lsg.h LSG hit); cane.cpp ChooseJtAttackTarget on TARGET / LO and
+  a C fallback for AddScaled (section 2's method: checked on the port's VU interpreter; vadda's vf0 term adds 1 to
+  w, which the port's own fallback misses); mark.cpp AddEmbeddedVertexXps on SOPART::meshWorld, SURF and LSG;
+  hurt.cpp UpdateStepplayerWater / ProbeStepplayerSurface on WATER / SO / LSG (numParts pointers, 16 LSGs; the EE
+  passes a 0x30-byte splash record as the EXPLSO and ExplodeExplso reads its tail from the frame: the native branch
+  passes a zeroed EXPLSO). Names: XF::segmentEndRate aliases XF::acceleration (+0xF0) for the animated roles;
+  CID123 / CID154 / CID119 / CID112 are ROUTE / TICKER / SPAWNER / LAUNCHER. docs/reference/splice-options.md is
+  regenerated (the generator reproduced it exactly where it was last generated; later renames had been hand-edited in).
+  Still open after v1.27 (request 12): hurt.cpp SetJtHurtState (P / RIG / INNER / VALUE / CONTROL / C: STEPPLAYER, XF
+  -> CHAINLINK -> CHAIN::gravity, POCTL, JTHURT; Sly's tail XFs JT::unknown19B8 are null and the EE writes through
+  them), TakeJtDamage (P / W / RECORD / C), the hurt callbacks stored into HURTEND as g++ 2.95 PMF records,
+  UpdateJtActiveZap, M_func_001A16C8, PresetJtAccelZap, M_func_001A2160; air.cpp ChooseJtLanding's SHAPE / CURVE /
+  HOOK / MESH (dlCid9) views; hud.cpp FinishSpriteSoundEvent's `lw %0,8(%1)`; CID152 is SNDMGR (same size 0x250,
+  find-sound-object, the dialog / music options), not merged yet.
   Still open after v1.20 (the tool's inventory, build/views/views.csv, has the per-view reason):
   - air.cpp UpdateJtActiveJump / the jump update: CONTEXT (JTAIR; `tracks[i]` is `abl[i + 1]`, a 12-byte TRACK over
     JTAIRBL), ACTOR (STEPPLAYER; the namespace's signed `typedef int qword` against basic.h's unsigned qword breaks

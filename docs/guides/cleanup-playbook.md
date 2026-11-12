@@ -247,6 +247,12 @@ and fixes", "Traps") and the compiler facts in [MATCHING_NOTES.md](../MATCHING_N
   function) changes. Never declare the library name directly: keep the old identifier and give it an `__asm__` label
   with the new symbol, at the declaration *and* at every call site that declares it locally. Only the platform-only
   builds (the Docker SDK build) compile these files, so run them before calling such a rename done.
+- **List heads: load the pointer, do not convert it.** `*(T **)&dl.head` and `(T *)dl.head` read the same word, but
+  the converted `void *` load can cost a quadword of frame in a hand-tuned function (v1.27, PickHeroInteractTarget);
+  where a view read the head through `*(S **)&g_sw.dlCid21` (any list head), keep that form with the real class.
+- **Argument order is schedule.** Two declarations of one function that pass the same registers (a float moved to the
+  end of the list goes to `$f12` either way) can still compile differently, because g++ evaluates the arguments in
+  list order (v1.27, PushMusic's AddStreamGroupSource): fix the types and keep the order.
 
 ## 9. Integration workflow
 

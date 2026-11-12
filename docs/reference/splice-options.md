@@ -1190,7 +1190,7 @@ parent PO; 107 options in all.
 | 912 | `aim` | bool | get set file | 999 |
 | 913 | `pitchRange` | lm | get set file | 1001 |
 | 914 | `projectileProxy` | object&lt;PROXY&gt; | get set file | 1002 |
-| 915 | `launcher` | object&lt;CID112&gt; | get set file | 1003 |
+| 915 | `launcher` | object&lt;LAUNCHER&gt; | get set file | 1003 |
 | 916 | `lastLaunched` | object&lt;SO&gt; | get | 1004 |
 | 917 | `pitch` | float | get set file | 1005 |
 | 918 | `yaw` | float | get set file | 1006 |
@@ -1747,7 +1747,7 @@ parent LO; 36 options in all.
 | 215 | `RefThunk_SetSmPendingApply` | - | file-method(3) | 370 |
 | 477 | `RefThunk_ApplySmWithKind` | - | method(4) | 369 |
 
-## CID112 (cid 112)
+## LAUNCHER (cid 112)
 
 parent LO; 42 options in all.
 
@@ -1965,7 +1965,7 @@ parent LO; 36 options in all.
 | 1028 | `+0x54` | float | get file | 1192 |
 | 1029 | `+0x58` | float | get file | 1193 |
 
-## CID119 (cid 119)
+## SPAWNER (cid 119)
 
 parent LO; 46 options in all.
 
@@ -2029,7 +2029,7 @@ parent LO; 46 options in all.
 
 parent LO; 33 options in all; nothing new.
 
-## CID123 (cid 123)
+## ROUTE (cid 123)
 
 parent LO; 35 options in all.
 
@@ -2452,7 +2452,7 @@ parent BASIC; 32 options in all.
 | 1213 | `+0x70` | int | get set | 1417 |
 | 1214 | `RefThunk_UseRobottankWeaponAmmo` | - | method(0) | 1418 |
 
-## CID154 (cid 154)
+## TICKER (cid 154)
 
 parent BASIC; 17 options in all.
 

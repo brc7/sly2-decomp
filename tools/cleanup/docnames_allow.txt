@@ -53,3 +53,5 @@ BLIPGV CHANNEL
 MPG BODY STIMULUS STIMTEMPLATE RAILV PIPEV
 # v1.25: recon.cpp view removed (FilterReconOccluder: SOPART), named in portability.md
 SOF
+# v1.27: STEPPLAYER::almIdle renamed almLook (portability.md history)
+almIdle
