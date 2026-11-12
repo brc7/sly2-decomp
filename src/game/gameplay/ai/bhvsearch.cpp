@@ -39,7 +39,11 @@ typedef struct ROW { U point; float angle; } ROW;
 typedef struct QUERY { U point; float heading; unsigned count; ROW row[64]; U candidate, delta, scalar; } QUERY;
 typedef char assert_QUERY_candidate[(unsigned int)&((QUERY *)0)->candidate == 0x820 ? 1 : -1];
 /* An object of one of the global lists ChooseBhvSearchPoints searches (next links at several offsets). */
-typedef struct NODE{char pad0[0xE0];struct NODE*nextE0;char padE4[4];unsigned flags;char padEC[0x18];struct NODE*next104;char pad108[4];float reach;char pad110[0x64];struct NODE*next174;char pad178[0x3C];struct NODE*next1B4;}NODE;
+/* NODE: an object on one of the world lists ChooseBhvSearchPoints walks (opaque: one loop variable serves every list,
+   each loop reads its own class's link and fields). */
+typedef struct NODE NODE;
+// The next object on a list whose class T links it through member dle (the list's own link: dleGrab, dleBreakable...).
+#define NEXT_ON(T, dle, object) ((NODE *)((T *)(object))->dle.next)
 typedef struct WORK{QUERY query;NODE*result256[256];NODE*result32[32];NODE*result128[128];}WORK;
 
 struct GOAL { SHAPE *shape; LO *object; int unknown8[2]; qword pos; };   /* classes.h PATHLINKEND without its constructor */ typedef char assert_GOAL_pos[SLY2_OFFSETOF(GOAL, pos) == SLY2_OFFSETOF(PATHLINKEND, pos) && sizeof(GOAL) == sizeof(PATHLINKEND) ? 1 : -1];
@@ -449,13 +453,13 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
     w.query.point.q = GetLoWorldPos(((STEPGUARD *)behavior->owner));
     w.query.heading = GetStepHeading(((STEPGUARD *)behavior->owner));
     w.query.count = 0;
-    for (object = (*(NODE **)&g_sw.dlCid34); object; object = object->next104) {
+    for (object = (*(NODE **)&g_sw.dlCid34); object; object = NEXT_ON(CID34, dleGrab, object)) {
         qword posObj = GetLoWorldPos(object);
         qword qwFallback = D_002A2DA0;
         w.query.delta.q = VuSub(w.query.point.q, posObj);
         w.query.delta.i[2] = 0;
         qword len = VuLengthReuseOne(w.query.delta.q);
-        qword g = VuFloatFromMemWord(*(int *)&object->reach);
+        qword g = VuFloatFromMemWord(*(int *)&((CID34 *)object)->sRadius);
         qword n;
         if (QwordX(len) < 0.0001f) {
             w.query.scalar.q = g;
@@ -467,32 +471,32 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
         w.query.candidate.q = VuMulAdd(posObj, n, g);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid12); object; object = object->next1B4) {
+    for (object = (*(NODE **)&g_sw.dlCid12); object; object = NEXT_ON(CID12, dleGrab, object)) {
         FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid38); object; object = object->next104) {
+    for (object = (*(NODE **)&g_sw.dlCid38); object; object = NEXT_ON(CID38, dleGrab, object)) {
         w.query.candidate.q = GetLoWorldPos(object);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid88); object; object = object->next174) {
+    for (object = (*(NODE **)&g_sw.dlCid88); object; object = NEXT_ON(BARREL, dleGrab, object)) {
         w.query.candidate.q = GetLoWorldPos(object);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid11); object; object = object->next1B4) {
+    for (object = (*(NODE **)&g_sw.dlCid11); object; object = NEXT_ON(PIPE, dleGrab, object)) {
         FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid39); object; object = object->next104) {
+    for (object = (*(NODE **)&g_sw.dlCid39); object; object = NEXT_ON(CID39, dleGrab, object)) {
         w.query.candidate.q = GetLoWorldPos(object);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlCid13); object; object = object->next1B4) {
+    for (object = (*(NODE **)&g_sw.dlCid13); object; object = NEXT_ON(RAIL, dleGrab, object)) {
         FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
         TryAddSearchCandidate(&w.query);
     }
-    for (object = (*(NODE **)&g_sw.dlTarget); object; object = object->nextE0) {
-        if ((object->flags & 1) && IsBasicDerivedFrom(object, CID_CLASS19)) {
+    for (object = (*(NODE **)&g_sw.dlTarget); object; object = NEXT_ON(::TARGET, targetListLink, object)) {
+        if ((((::TARGET *)object)->targetKindFlags & 1) && IsBasicDerivedFrom(object, CID_CLASS19)) {
             w.query.candidate.q = GetLoWorldPos(object);
             TryAddSearchCandidate(&w.query);
         }
@@ -518,7 +522,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171 *behavior)
             TryAddSearchCandidate(&w.query);
         }
     }
-    for (object = (*(NODE **)&g_sw.dlCid98); object; object = object->next174) {
+    for (object = (*(NODE **)&g_sw.dlCid98); object; object = NEXT_ON(CID98, dleBreakable, object)) {
         w.query.candidate.q = GetLoWorldPos(object);
         TryAddSearchCandidate(&w.query);
     }
