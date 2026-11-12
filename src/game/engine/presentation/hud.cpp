@@ -73,20 +73,6 @@ void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
 void StaticInit_hud(int fInitialize, int nPriority);
 }
-/* Sprite descriptor kinds (LoadSpriteDescriptor; the payload union is in its namespace). */
-enum SPRITE_KIND
-{
-    SPRITE_KIND_NONE = 0,
-    SPRITE_KIND_GEOMETRY = 1,   /* VU1 line / strip records */
-    SPRITE_KIND_POLYGON = 2,
-    SPRITE_KIND_TEXT = 3,       /* drawn by RenderSpriteText */
-    SPRITE_KIND_NESTED = 4,     /* shows another sprite group */
-    SPRITE_KIND_UNUSED5 = 5,
-    SPRITE_KIND_EFFECT = 6,     /* a textured quad from a texture resource */
-    SPRITE_KIND_PICTURE = 7,    /* a textured quad from a texture id */
-    SPRITE_KIND_TABLE = 8,      /* a nested sprite table with word / float parameters */
-};
-
 /* Class ids tested by the text getters (docs/systems/object-model.md section 1). */
 enum HUD_CID
 {
@@ -1756,24 +1742,12 @@ namespace M_LoadSpriteDescriptor {
 //   number puts the gcse temp for j+1 between &packetCount and &packet, which gives their spill slots.
 struct BIS;
 typedef WIDGET OWNER;   /* the widget the descriptor belongs to (widget.h; +0xC4 its sprite heap) */
-struct ROOT;
-struct SPRITE;
-struct M23 {float a[6];} __attribute__((aligned(16)));
 struct PAIR {short x,y;};
 struct RAWCOLOR {uchar r,g,b,a;};
-struct VERTEX {uchar data[0x18];};
-struct NESTED {int count;SPRITE *children;int floatCount;float *floats;int wordCount;uint *words;};
-struct SHADER {int tag,mode,id;uint slot;float size,value,scale;int flag,special;};
-struct POLYGON {M23 matrix;ushort count,pad22;VERTEX *vertices;};
-struct EFFECT {int id;void *handle;int count;QW *packet;};
-struct PICTURE {int id,count;QW *packet;};
-struct GEOMETRY {ushort count,groups;int samples,packetCount;QW *packet;};
-union PAYLOAD {int index;NESTED nested;SHADER shader;POLYGON polygon;EFFECT effect;PICTURE picture;GEOMETRY geometry;};
-struct SPRITE {int id,kind;ROOT *root;int fieldC;PAYLOAD data;};
 struct RECORD {int kind,id;RAWCOLOR color;uchar count,padD[3];int budget;uchar format,pad15[3];PAIR *coordinates;uchar extra,pad1D[3];uchar *extras;};
 struct GROUP {int count,budget,samples;RECORD *begin,*end;};
 // Native two-word member callback, stored as {delta,index,function}.
-typedef void (OWNER::*PMF)(SPRITE *);
+typedef void (OWNER::*PMF)(SPRITEDESC *);
 
 int U16Read__18CBinaryInputStream(BIS *) __asm__("U16Read__18CBinaryInputStream");
 uint U32Read__18CBinaryInputStream(BIS *) __asm__("U32Read__18CBinaryInputStream");
@@ -1786,8 +1760,8 @@ void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,MATRIX3Q *) __asm__("ReadMa
 void Read__18CBinaryInputStreamiPv(BIS *,int,void *) __asm__("Read__18CBinaryInputStreamiPv");
 void *AllocZeroedFromHeap__FP4HEAPii(HEAP *,int,int) __asm__("AllocZeroedFromHeap__FP4HEAPii");
 void *AllocClearedFromStack(SWALLOC *) __asm__("AllocClearedFromStack");
-void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **) __asm__("LoadSpriteTable");
-void PostSwCallback(SW *,OWNER *,PMF,SPRITE *) __asm__("PostSwCallback");
+void LoadSpriteTable(OWNER *,BIS *,WIDGET *,int *,SPRITEDESC **) __asm__("LoadSpriteTable");
+void PostSwCallback(SW *,OWNER *,PMF,SPRITEDESC *) __asm__("PostSwCallback");
 
 extern int D_002C40A4 __asm__("D_002C40A4");
 extern PMF D_002A8B08 __asm__("D_002A8B08");
@@ -1796,7 +1770,7 @@ extern char D_00000650[] __asm__("D_00000650"),D_00000140[] __asm__("D_00000140"
 // Fill the request and allocate bytes with the given alignment.
 static inline void *Acquire(SWALLOC *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
 // Copy the xy parts of the three rows of src into a 2x3 affine matrix.
-static inline void CopyXY(M23 &dst,const MATRIX3Q &src){
+static inline void CopyXY(SPRITEXF &dst,const MATRIX3Q &src){
  const float *a=(const float *)&src.r[0].q,*b=(const float *)&src.r[1].q,*c=(const float *)&src.r[2].q;
  dst.a[0]=a[0];dst.a[1]=a[1];dst.a[2]=b[0];dst.a[3]=b[1];dst.a[4]=c[0];dst.a[5]=c[1];
 }
@@ -1804,39 +1778,39 @@ static inline void CopyXY(M23 &dst,const MATRIX3Q &src){
 // Layout parse-verified: a parser following it reads every byte of 4 levels.
 // Also known as: LoadElemFromBrx (upstream readable / Sly 1 name;
 //   LoadElemFromBrx__FP5OWNERP18CBinaryInputStreamP4ROOTiP6SPRITE).
-extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,int,SPRITE *sprites){
+extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,WIDGET *root,int,SPRITEDESC *sprites){
  STACKSCOPE outer;MATRIX3Q raw;
- int id=U16Read__18CBinaryInputStream(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
+ int id=U16Read__18CBinaryInputStream(stream);SPRITEDESC *sprite=&sprites[id];sprite->owner=root;sprite->id=id;
  sprite->kind=U32Read__18CBinaryInputStream(stream);
  switch(sprite->kind){
  case SPRITE_KIND_NONE:case SPRITE_KIND_UNUSED5:default:break;
- case SPRITE_KIND_NESTED:sprite->data.index=U16Read__18CBinaryInputStream(stream);break;
+ case SPRITE_KIND_NESTED:sprite->index=U16Read__18CBinaryInputStream(stream);break;
  case SPRITE_KIND_TABLE:
   D_002C40A4=1;
-  LoadSpriteTable(owner,stream,root,&sprite->data.nested.count,&sprite->data.nested.children);
-  sprite->data.nested.wordCount=U32Read__18CBinaryInputStream(stream);
-  sprite->data.nested.words=(uint *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->data.nested.wordCount*4,0x13);
+  LoadSpriteTable(owner,stream,root,&sprite->table.count,&sprite->table.children);
+  sprite->table.wordCount=U32Read__18CBinaryInputStream(stream);
+  sprite->table.words=(uint *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->table.wordCount*4,0x13);
   int i;
-  for(i=0;i<sprite->data.nested.wordCount;i++)sprite->data.nested.words[i]=U32Read__18CBinaryInputStream(stream);
-  sprite->data.nested.floatCount=U32Read__18CBinaryInputStream(stream);
+  for(i=0;i<sprite->table.wordCount;i++)sprite->table.words[i]=U32Read__18CBinaryInputStream(stream);
+  sprite->table.floatCount=U32Read__18CBinaryInputStream(stream);
   int j;
-  sprite->data.nested.floats=(float *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->data.nested.floatCount*4,0x13);
-  for(j=0;j<sprite->data.nested.floatCount;j++)sprite->data.nested.floats[j]=F32Read__18CBinaryInputStream(stream);
+  sprite->table.floats=(float *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->table.floatCount*4,0x13);
+  for(j=0;j<sprite->table.floatCount;j++)sprite->table.floats[j]=F32Read__18CBinaryInputStream(stream);
   D_002C40A4=0;break;
  case SPRITE_KIND_TEXT:{
-  sprite->data.shader.tag=U32Read__18CBinaryInputStream(stream);sprite->data.shader.slot=U32Read__18CBinaryInputStream(stream);
-  sprite->data.shader.size=F32Read__18CBinaryInputStream(stream);sprite->data.shader.scale=F32Read__18CBinaryInputStream(stream);sprite->data.shader.value=F32Read__18CBinaryInputStream(stream);
-  sprite->data.shader.flag=S8Read__18CBinaryInputStream(stream);sprite->data.shader.mode=S8Read__18CBinaryInputStream(stream);
-  if(sprite->data.shader.mode==1)sprite->data.shader.id=S32Read__18CBinaryInputStream(stream);else if(sprite->data.shader.mode==0)sprite->data.shader.id=S32Read__18CBinaryInputStream(stream);
-  if(sprite->data.shader.mode==1&&sprite->data.shader.id==0x2F2)sprite->data.shader.special=sprite->data.shader.mode;
-  else sprite->data.shader.special=0;
+  sprite->text.tag=U32Read__18CBinaryInputStream(stream);sprite->text.color=U32Read__18CBinaryInputStream(stream);
+  sprite->text.scale=F32Read__18CBinaryInputStream(stream);sprite->text.height=F32Read__18CBinaryInputStream(stream);sprite->text.width=F32Read__18CBinaryInputStream(stream);
+  sprite->text.hAlign=S8Read__18CBinaryInputStream(stream);sprite->text.source=S8Read__18CBinaryInputStream(stream);
+  if(sprite->text.source==1)sprite->text.id=S32Read__18CBinaryInputStream(stream);else if(sprite->text.source==0)sprite->text.id=S32Read__18CBinaryInputStream(stream);
+  if(sprite->text.source==1&&sprite->text.id==0x2F2)sprite->text.vAlign=sprite->text.source;
+  else sprite->text.vAlign=0;
   break;
  }
  case SPRITE_KIND_POLYGON:{
-  ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);MATRIX3Q matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
-  sprite->data.polygon.count=U16Read__18CBinaryInputStream(stream);
-  sprite->data.polygon.vertices=(VERTEX *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
-  Read__18CBinaryInputStreamiPv(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
+  ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);MATRIX3Q matrix=raw;CopyXY(sprite->polygon.matrix,matrix);
+  sprite->polygon.count=U16Read__18CBinaryInputStream(stream);
+  sprite->polygon.vertices=(SPRITEVERTEX *)AllocZeroedFromHeap__FP4HEAPii(owner->spriteHeap,sprite->polygon.count*sizeof(SPRITEVERTEX),0x14);
+  Read__18CBinaryInputStreamiPv(stream,sprite->polygon.count*sizeof(SPRITEVERTEX),sprite->polygon.vertices);break;
  }
  case SPRITE_KIND_EFFECT:case SPRITE_KIND_PICTURE:{
   PAIR first,second;
@@ -1844,8 +1818,8 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   int texture=S32Read__18CBinaryInputStream(stream);
   STACKSCOPE inner;GIFS gif;
   gif.AllocSw(16);gif.AddPrimPack(0,1,0xE);
-  if(sprite->kind==SPRITE_KIND_EFFECT){sprite->data.effect.id=texture;sprite->data.effect.handle=0;gif.PackAD(0x47,0x5000F);gif.PackAD(0x42,0x80000000A8L);}
-  else{sprite->data.picture.id=texture;gif.PackAD(0x42,0x44);gif.PackAD(0x47,0x50000);}
+  if(sprite->kind==SPRITE_KIND_EFFECT){sprite->effect.targetOid=texture;sprite->effect.target=0;gif.PackAD(0x47,0x5000F);gif.PackAD(0x42,0x80000000A8L);}
+  else{sprite->picture.textureId=texture;gif.PackAD(0x42,0x44);gif.PackAD(0x47,0x50000);}
   gif.AddPrimPack(0x54,9,0x525252521L);gif.PackRGBA(0x80808080);
   if(sprite->kind==SPRITE_KIND_EFFECT){
    gif.PackSTQ(0.0f,0.0f,0.0f);gif.PackXYZ(first.x,first.y,0);
@@ -1864,17 +1838,17 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   VIFS vif;vif.AllocSw(20);vif.AddDmaCnt();
   vif.AddVifUnpack(UPK_V4_32,((uptr)gif.m_pb-(uptr)gif.m_ab)>>4,gif.m_ab,7);
   vif.AddVifMscal(D_00000650);vif.EndDmaCnt();vif.AddDmaRet();
-  if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->spriteHeap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
-  else{vif.DetachCopySw(owner->spriteHeap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&g_sw,owner,D_002A8B08,sprite);}
+  if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->spriteHeap,&sprite->effect.count,0,&sprite->effect.packet);
+  else{vif.DetachCopySw(owner->spriteHeap,&sprite->picture.count,0,&sprite->picture.packet);PostSwCallback(&g_sw,owner,D_002A8B08,sprite);}
   break;
  }
  case SPRITE_KIND_GEOMETRY:{
-  sprite->data.geometry.count=U16Read__18CBinaryInputStream(stream);
+  sprite->geometry.count=U16Read__18CBinaryInputStream(stream);
   RECORD *records;GROUP *groups;int i;
   { SWALLOC request;
-  records=(RECORD *)Acquire(&request,sprite->data.geometry.count*sizeof(RECORD),16);
-  groups=(GROUP *)Acquire(&request,sprite->data.geometry.count*sizeof(GROUP),16);
-  for(i=0;i<sprite->data.geometry.count;i++){
+  records=(RECORD *)Acquire(&request,sprite->geometry.count*sizeof(RECORD),16);
+  groups=(GROUP *)Acquire(&request,sprite->geometry.count*sizeof(GROUP),16);
+  for(i=0;i<sprite->geometry.count;i++){
    RECORD *record=&records[i];
    record->count=U8Read__18CBinaryInputStream(stream);record->format=U8Read__18CBinaryInputStream(stream);
    record->kind=U8Read__18CBinaryInputStream(stream);record->id=U8Read__18CBinaryInputStream(stream);record->extra=U8Read__18CBinaryInputStream(stream);
@@ -1888,20 +1862,20 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
    }
   }
   }
-  sprite->data.geometry.groups=0;sprite->data.geometry.packetCount=0;sprite->data.geometry.samples=0;
-  for(i=0;i<sprite->data.geometry.count;){
-   GROUP *group=&groups[sprite->data.geometry.groups];
+  sprite->geometry.groups=0;sprite->geometry.packetCount=0;sprite->geometry.samples=0;
+  for(i=0;i<sprite->geometry.count;){
+   GROUP *group=&groups[sprite->geometry.groups];
    group->count=0;group->samples=0;group->budget=0;group->begin=&records[i];
-   while(i<sprite->data.geometry.count&&group->budget+records[i].budget<0xBD){
+   while(i<sprite->geometry.count&&group->budget+records[i].budget<0xBD){
     group->budget+=records[i].budget;group->samples+=records[i].count;group->count++;i++;group->end=&records[i];
    }
    int estimate=(group->samples+1)/4+group->samples/16+(group->count*3+3)/4+3;
-   sprite->data.geometry.packetCount+=estimate;
-   sprite->data.geometry.samples+=group->samples;
-   sprite->data.geometry.groups++;
+   sprite->geometry.packetCount+=estimate;
+   sprite->geometry.samples+=group->samples;
+   sprite->geometry.groups++;
   }
-  VIFS vif;j=0;vif.AllocSw(sprite->data.geometry.packetCount*2);vif.AddDmaCnt();vif.AddVifStrow(&D_002A2E10);
-  for(;j<sprite->data.geometry.groups;j++){
+  VIFS vif;j=0;vif.AllocSw(sprite->geometry.packetCount*2);vif.AddDmaCnt();vif.AddVifStrow(&D_002A2E10);
+  for(;j<sprite->geometry.groups;j++){
    GROUP *group=&groups[j];
    // V2_32 copies eight bytes; only the first header component is written.
    int n=0;QW header;header.an[0]=group->count;vif.AddVifUnpack(UPK_V2_32,1,&header,7);vif.AddVifStcycl(1,2);
@@ -1923,7 +1897,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
    }
    vif.AddVifStmask(0);vif.AddVifMscal(D_00000140);
   }
-  vif.EndDmaCnt();vif.AddDmaRet();vif.DetachCopySw(owner->spriteHeap,&sprite->data.geometry.packetCount,0,&sprite->data.geometry.packet);break;
+  vif.EndDmaCnt();vif.AddDmaRet();vif.DetachCopySw(owner->spriteHeap,&sprite->geometry.packetCount,0,&sprite->geometry.packet);break;
  }
  }
 }
@@ -1936,17 +1910,15 @@ void STACKSCOPE_ctor(void *p) __asm__("STACKSCOPE_ctor");
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 SHDBLIP *FindShaderById(int oid) __asm__("FindShaderById");
 
-/* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
-struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; QW *texPacket; };
-extern void BuildSpritePictureTexPacket(WIDGET *p, Q *q) __asm__("BuildSpritePictureTexPacket");
+extern void BuildSpritePictureTexPacket(WIDGET *p, SPRITEDESC *q) __asm__("BuildSpritePictureTexPacket");
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
-void BuildSpritePictureTexPacket(WIDGET *owner, Q *sprite)
+void BuildSpritePictureTexPacket(WIDGET *owner, SPRITEDESC *sprite)
 {
     STACKSCOPE frame;
     if (sprite->kind == SPRITE_KIND_PICTURE) {
-        sprite->texPacketCount = 0;
-        sprite->texPacket = 0;
-        SHDBLIP *texture = FindShaderById(sprite->textureId);
+        sprite->picture.texPacketCount = 0;
+        sprite->picture.texPacket = 0;
+        SHDBLIP *texture = FindShaderById(sprite->picture.textureId);
         if (texture) {
             GIFS gifs;
             gifs.AllocSw(0x10);
@@ -1955,7 +1927,7 @@ void BuildSpritePictureTexPacket(WIDGET *owner, Q *sprite)
             gifs.PackAD(0x14, 0x60);          /* TEX1_1 */
             gifs.PackAD(8, 5);                /* CLAMP_1 */
             gifs.AddPrimEnd();
-            gifs.DetachCopySw(owner->spriteHeap, &sprite->texPacketCount, 0, &sprite->texPacket);
+            gifs.DetachCopySw(owner->spriteHeap, &sprite->picture.texPacketCount, 0, &sprite->picture.texPacket);
         }
     }
 }
@@ -1998,7 +1970,7 @@ struct RGBA {
 extern int FindFreeSpriteSlot(void *p) __asm__("FindFreeSpriteSlot");
 extern void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1) __asm__("StartSpriteAnimSlot");
 extern void *FindObjectForRenderTarget(int) __asm__("FindObjectForRenderTarget");
-extern void *AcquireRenderTarget(void *) __asm__("AcquireRenderTarget");
+extern RENDERTGT *AcquireRenderTarget(void *) __asm__("AcquireRenderTarget");
 // Binds a sprite item to its payload by kind (a nested sprite starts its main animation). (inferred)
 extern "C" void SetSpriteItemSource(SPRITEDESC *sprite, SPRITEITEM *item, void *matrix, RGBA c0, RGBA c1)
 {
@@ -2009,10 +1981,10 @@ extern "C" void SetSpriteItemSource(SPRITEDESC *sprite, SPRITEITEM *item, void *
         StartSpriteAnimSlot(&sprite->owner->spriteGroups[sprite->index], 0x314, item->spriteSlot, matrix, c0, c1);
         break;
     case SPRITE_KIND_EFFECT:
-        if (sprite->index != -1) {
-            void *resource = FindObjectForRenderTarget(sprite->index);
+        if (sprite->effect.targetOid != -1) {
+            void *resource = FindObjectForRenderTarget(sprite->effect.targetOid);
             if (resource)
-                sprite->texture = AcquireRenderTarget(resource);
+                sprite->effect.target = AcquireRenderTarget(resource);
         }
         break;
     }
@@ -2039,23 +2011,21 @@ extern "C" void UpdateSpriteItem(float time, SPRITEDESC *sprite, SPRITEITEM *ite
 
 // 0x2158C0 ReleaseSpriteItem
 namespace M_func_002158C0 {
-struct Q { char pad[0x20]; void *resource; };   /* a texture reference */
-struct S { int id; int kind; WIDGET *owner; int unknownC; int index; struct Q *texture; };
 void StopSpriteSlot(void *p, int a) __asm__("StopSpriteSlot");
 void ReleaseRenderTarget(void *p) __asm__("ReleaseRenderTarget");
 void InitSpriteItem(SPRITEITEM *item) __asm__("InitSpriteItem");
 // Releases a sprite item's payload (stops a nested sprite, drops a texture reference) and resets it. (inferred)
-extern "C" void ReleaseSpriteItem(struct S *sprite, SPRITEITEM *item)
+extern "C" void ReleaseSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_NESTED:
         StopSpriteSlot(&sprite->owner->spriteGroups[sprite->index], item->spriteSlot);
         break;
     case SPRITE_KIND_EFFECT:
-        if (sprite->texture) {
-            if (sprite->texture->resource)
-                ReleaseRenderTarget(sprite->texture->resource);
-            sprite->texture = 0;
+        if (sprite->effect.target) {
+            if (sprite->effect.target->prtcam)
+                ReleaseRenderTarget(sprite->effect.target->prtcam);
+            sprite->effect.target = 0;
         }
         break;
     }
@@ -2090,12 +2060,11 @@ extern "C" void QueueSpriteItem(SPRITEDESC *sprite, SPRITEITEM *item, int drawFl
 
 // 0x2159E0 RenderSpritePayload
 namespace M_func_002159E0 {
-struct S { int id; int kind; };
-void RenderSpriteText(struct S *p, void *matrix, void *params, int c) __asm__("RenderSpriteText");
-void RenderSpriteGeometry(struct S *p, void *matrix, void *params, int c) __asm__("RenderSpriteGeometry");
-void RenderSpritePicture(struct S *p, void *matrix, void *params, int c) __asm__("RenderSpritePicture");
+void RenderSpriteText(SPRITEDESC *p, void *matrix, void *params, int c) __asm__("RenderSpriteText");
+void RenderSpriteGeometry(SPRITEDESC *p, void *matrix, void *params, int c) __asm__("RenderSpriteGeometry");
+void RenderSpritePicture(SPRITEDESC *p, void *matrix, void *params, int c) __asm__("RenderSpritePicture");
 // Renders a queued sprite payload by kind: text, geometry or picture. (inferred)
-extern "C" void RenderSpritePayload(struct S *sprite, void *matrix, void *params, int channel)
+extern "C" void RenderSpritePayload(SPRITEDESC *sprite, void *matrix, void *params, int channel)
 {
     switch (sprite->kind) {
     case SPRITE_KIND_TEXT:
@@ -2181,30 +2150,28 @@ extern "C" CRichText2 *CRichText_ctor(CRichText2 *rt, uchar *text, float fontSca
 // 0x215BA8 ConstructRichText2FromSprite
 namespace M_func_00215BA8 {
 struct Q3 { QWROW a, b, c; };
-/* a text sprite descriptor (RenderSpriteText's S) */
-struct R { char pad[8]; WIDGET *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
 extern void ResetRichText2(CRichText2 *p, int i) __asm__("ResetRichText2");
 // Rich-text constructor from a sprite text element (width, height, colour). (inferred)
-extern "C" CRichText2 *ConstructRichText2FromSprite(CRichText2 *rt, uchar *text, R *sprite, Q3 *style)
+extern "C" CRichText2 *ConstructRichText2FromSprite(CRichText2 *rt, uchar *text, SPRITEDESC *sprite, Q3 *style)
 {
     Q3 styleCopy = *style;
     rt->text = text;
     rt->offsetX = 0;
     rt->offsetY = 0;
-    rt->width = sprite->width;
-    rt->height = sprite->height;
+    rt->width = sprite->text.width;
+    rt->height = sprite->text.height;
     rt->scaleX = 1.0f;
     rt->scaleY = 1.0f;
-    rt->hAlign = sprite->hAlign;
-    rt->vAlign = sprite->vAlign;
+    rt->hAlign = sprite->text.hAlign;
+    rt->vAlign = sprite->text.vAlign;
     rt->originX = sprite->owner->ownerWidget->screenX;
     rt->originY = sprite->owner->ownerWidget->screenY;
     rt->priority = sprite->owner->priority;
-    rt->lineHeight = sprite->scale;
+    rt->lineHeight = sprite->text.scale;
     rt->fontScale = rt->lineHeight * 0.01953125f;   /* 1 / 51.2 */
     rt->font = rt->baseFont = (char *)((WIDGET *)g_sw.ploHudFont)->sprites;
     rt->altFont = (char *)(((WIDGET *)g_sw.ploHudFont)->sprites + 1);
-    *(int *)&rt->baseColor = sprite->color;
+    *(int *)&rt->baseColor = sprite->text.color;
     rt->baseColor0 = styleCopy.b;
     rt->baseColor1 = styleCopy.c;
     ResetRichText2(rt, 0);
@@ -2660,8 +2627,10 @@ namespace M_RenderSpriteText {
 typedef unsigned int uint;
 
 typedef struct {float a[8];} __attribute__((aligned(16))) T;
-typedef union {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};} DATA;
-typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float scale,width,height;int hAlign,vAlign;} S;   /* kind: 0 language string, 1 text table */
+/* The text style (three quadwords). RGBA has a user-declared constructor, so the union declares its own (empty)
+   default constructor: without it the union has none (clang rejects `DATA style;`). */
+union DATA {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};DATA(){}};
+typedef SPRITEDESC S;   /* a SPRITE_KIND_TEXT descriptor (hud.h SPRITETEXT) */
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
 extern STRINGGEN D_003E1C88[] __asm__("D_003E1C88");
@@ -2693,15 +2662,15 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
     char marquee[2*sizeof(text)+3*5];
     if(!g_sw.ploHudFont)return;
     text[0]=0;
-    if(p->kind==TEXT_SOURCE_TABLE){
+    if(p->text.source==TEXT_SOURCE_TABLE){
         uint i;
-        for(i=0;i<108;i++)if(D_003E1C88[i].id==p->id)break;
+        for(i=0;i<108;i++)if(D_003E1C88[i].id==p->text.id)break;
         if(i>=108)*(long *)text=*(const long *)D_002A8B80;
         else D_003E1C88[i].get(text,D_003E1C88[i].context,p->owner);
-    }else if(p->kind==TEXT_SOURCE_LANGSTR){
-        strcpy(text,(const char *)FindSwLocalizedString(&g_sw,p->id));
+    }else if(p->text.source==TEXT_SOURCE_LANGSTR){
+        strcpy(text,(const char *)FindSwLocalizedString(&g_sw,p->text.id));
     }
-    if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_SUBTITLE){
+    if(p->text.source==TEXT_SOURCE_TABLE && p->text.id==TEXT_ID_SUBTITLE){
         int lines=1,ch,visible;
         unsigned char *first;
         style=*data;
@@ -2710,7 +2679,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         TrimSubtitleToVoiceProgress(D_004435F0,&rt);
         ResetRichText2(&rt,0);
         while((ch=GetRichText2NextChar(&rt))!=0)if(ch=='\n')lines++;
-        visible=(int)(p->height/p->scale);
+        visible=(int)(p->text.height/p->text.scale);
         first=(unsigned char *)rt.text;
         while(visible<lines && *first){
             while(*first && *first!='\n')first++;
@@ -2721,7 +2690,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         style.color=D_004435F4;
         SetRichText2BaseColor(&rt,&style.color);
         DrawRichText2AtXf(&rt,t,data);
-    }else if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_TICKER && D_003DA0C0.state==2){
+    }else if(p->text.source==TEXT_SOURCE_TABLE && p->text.id==TEXT_ID_TICKER && D_003DA0C0.state==2){
         float scale,paddingWidth,textWidth,elapsed,period,position;
         style=*data;
         ConstructRichText2FromSprite(&rt,text,p,&style);
@@ -2743,7 +2712,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
             period=textWidth*0.01f;
             position=ModPositive__Fff(elapsed,period);
             if(D_003DA0C0.finish>=0.0f){
-                float finish=StdMax(D_003DA0C0.finish,(textWidth+StdMax(0.0f,textWidth-p->width*scale)+paddingWidth)*0.01f);
+                float finish=StdMax(D_003DA0C0.finish,(textWidth+StdMax(0.0f,textWidth-p->text.width*scale)+paddingWidth)*0.01f);
                 if(elapsed>=finish)SetNoticeState(&D_003DA0C0,3);
             }
             t->a[4]-=position/period*textWidth;
@@ -2848,7 +2817,7 @@ namespace M_RenderSpriteGeometry {
 // Queue transformed sprite parameters with optional fade limiting.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct S {char pad[8];WIDGET *owner;char padc[6];unsigned short mode;int count;char pad18[4];int tag;};
+typedef SPRITEDESC S;   /* a SPRITE_KIND_GEOMETRY descriptor (hud.h SPRITEGEOMETRY) */
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
@@ -2865,7 +2834,7 @@ extern "C" { static inline void CopyWords(int *d,const int *s,int n){int rem=n&3
 extern "C" { static inline void Unpack(VIFS *r,const int *s,int n,uint header){Word(r,header);CopyWords((int *)r->m_pb,s,n);r->m_pb+=n*4;} }
 // Renders a geometry sprite with its transform and optional fade.
 // Also known as: StateOfSlot (upstream readable / Sly 1 name; StateOfSlot__FPvP7VECTOR2T0i).
-extern "C" void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
+extern "C" void RenderSpriteGeometry(S *p,struct T *t,struct D *data,int fade){
     struct M4 m;
     unsigned char *tag;
     RPL *e;
@@ -2875,13 +2844,13 @@ extern "C" void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int 
     m.a[8]=t->x*0.8f+p->owner->ownerWidget->screenX+786432.0f;
     m.a[9]=t->y*0.45454547f+p->owner->ownerWidget->screenY+786432.0f;
     m.a[15]=m.a[10]=1.0f;
-    if(p->mode>=2)data->mode=1;else data->mode=0;
+    if(p->geometry.groups>=2)data->mode=1;else data->mode=0;
     data->limit=0x7FFF;
     if(fade){
         float old=data->fade;
         data->fade=1.0f;
         if(old<1.0f){
-            int n=MinInt((int)(p->count*old),p->count);
+            int n=MinInt((int)(p->geometry.samples*old),p->geometry.samples);
             data->limit=n>=3?n:3;
             if(data->limit>0x7FFFU)data->limit=0x7FFF;
         }
@@ -2896,7 +2865,7 @@ extern "C" void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int 
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=data->priority+(p->owner->priority<<18);
     e->pbCall=(unsigned char *)SLY2_CACHED((uptr)tag);
-    e->pvCall=(void *)p->tag;
+    e->pvCall=(void *)p->geometry.packet;
 }
 } // namespace M_RenderSpriteGeometry
 
@@ -2905,8 +2874,7 @@ namespace M_func_002177E0 {
 // Queue transformed sprite parameters and a direct GIF payload.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct GEO {char pad[0x18];int count;void *data;};
-struct S {int pad,type;WIDGET *owner;char padc[8];union {struct GEO *geo;int raw;};int rawtag;union {int tag;int count;};void *buffer;};
+typedef SPRITEDESC S;   /* a SPRITE_KIND_EFFECT or SPRITE_KIND_PICTURE descriptor (hud.h) */
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
 struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
@@ -2928,13 +2896,13 @@ extern "C" { static inline void AlignTo(VIFS *r,int word){while(((uint)r->m_pb&1
 // Append a VIF DIRECT code for n quadwords followed by the data.
 extern "C" { static inline void Direct(VIFS *r,int n,void *source){AlignTo(r,3);Word(r,0x50000000|n);CopyAqw__FPvT0i(r->m_pb,source,n);r->m_pb+=n*16;} }
 // Renders a picture sprite: transformed parameters plus a direct GIF payload. (inferred)
-extern "C" void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
+extern "C" void RenderSpritePicture(S *p,struct T *t,struct D *data,int unused){
     struct M4 m;
     unsigned char *tag;
     RPL *e;
-    switch(p->type){
-    case SPRITE_KIND_EFFECT:if(!p->geo)return;break;
-    case SPRITE_KIND_PICTURE:if(!p->count)return;break;
+    switch(p->kind){
+    case SPRITE_KIND_EFFECT:if(!p->effect.target)return;break;
+    case SPRITE_KIND_PICTURE:if(!p->picture.texPacketCount)return;break;
     default:return;
     }
     func_002333B4(&m,0,0x40);
@@ -2948,15 +2916,15 @@ extern "C" void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int u
     *(ulong *)tag=0x10000000UL;D_002DEA28.m_pb+=16;
     Unpack(&D_002DEA28,(const int *)&m,16,0x6C04C000);
     Unpack(&D_002DEA28,(const int *)data,12,0x6C03C004);
-    if(p->type==SPRITE_KIND_EFFECT)Direct(&D_002DEA28,p->geo->count,p->geo->data);
-    else Direct(&D_002DEA28,p->count,p->buffer);
+    if(p->kind==SPRITE_KIND_EFFECT)Direct(&D_002DEA28,p->effect.target->cqwTex,p->effect.target->aqwTex);
+    else Direct(&D_002DEA28,p->picture.texPacketCount,p->picture.texPacket);
     Align(&D_002DEA28);
     *(uint *)tag|=((D_002DEA28.m_pb-tag)>>4)-1;
     *(ulong *)D_002DEA28.m_pb=0x60000000UL;D_002DEA28.m_pb+=16;
     e=AllocRenderListEntry();
     e->kind=0x15;e->depth=data->priority+(p->owner->priority<<18);
     e->pbCall=(unsigned char *)SLY2_CACHED((uptr)tag);
-    if(p->type==SPRITE_KIND_EFFECT)e->pvCall=(void *)p->tag;else e->pvCall=(void *)p->rawtag;
+    if(p->kind==SPRITE_KIND_EFFECT)e->pvCall=(void *)p->effect.packet;else e->pvCall=(void *)p->picture.packet;
 }
 } // namespace M_func_002177E0
 
@@ -3602,7 +3570,7 @@ struct RGBA {
     RGBA &operator=(const RGBA &c) { *(RGBA_RAW *)this = *(const RGBA_RAW *)&c; return *this; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct SPRITE { int id, kind; void *group; int fieldC, index; void *extra; char pad18[0x28]; };
+typedef SPRITEDESC SPRITE;   /* hud.h */
 struct ITEM {
     RGBA_RAW additive, multiply;
     char pad8[8];
@@ -3656,7 +3624,7 @@ struct KEY {
     char pad19[3];
     TAG *tags;
 };
-struct ROOT { char pad[0x54]; SPRITE *sprites; };
+typedef WIDGET ROOT;   /* the animation's widget: its sprite descriptor table */
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
 
 void ClearSle(int *) __asm__("ClearSle");
