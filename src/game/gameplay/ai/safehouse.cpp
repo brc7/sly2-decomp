@@ -51,7 +51,7 @@ int GetSmStateOid(SM *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
 CRef SetValuesFromSpliceList(void *pv, int a, int b, int *pc, void **apv);
 int FindSmStateRequired(SM *psm, void *pv);
-void SetSmaGoal(SMA *psma, void *pv);
+void SetSmaGoal(SMA *psma, int oidGoal);
 void SetCharSelectState(SAFEHOUSEV *safehouse, int state);
 void StepCharSelect(SAFEHOUSEV *safehouse, int d);
 }
@@ -217,16 +217,16 @@ extern "C" void StepCharSelect(SAFEHOUSEV *safehouse, int delta)
     index = FindSmStateRequired(safehouse->stateMachine, GetSmaCurrentState(safehouse->stateMachineAnim));
     startIndex = index;
     for (;;) {
-        void *stateOid;
+        int stateOid;
         int choiceIndex;
         index += delta;
         if (index < 0)
             index = safehouse->stateMachine->csms - 1;
         else if (index >= safehouse->stateMachine->csms)
             index = 0;
-        stateOid = (void *)GetSmStateOid(safehouse->stateMachine, index);
+        stateOid = GetSmStateOid(safehouse->stateMachine, index);
         for (choiceIndex = 0; choiceIndex < safehouse->choiceCount; choiceIndex++) {
-            if (safehouse->choices[choiceIndex] == stateOid) {
+            if (*(int *)&safehouse->choices[choiceIndex] == stateOid) {   /* the 4-byte oid RefSetArgsFromSplice stored in the slot */
                 SetSmaGoal(safehouse->stateMachineAnim, stateOid);
                 return;
             }
