@@ -701,27 +701,27 @@ struct BHV181 : BHV
 };
 typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 
-/* 117 CID117 (0x70): stimulus template (NOISETYPE: radius, height, ramp; the world's seven in SW::apstimk); vtable 0x2CE2F8, 48 slots */
-struct CID117 : LO
+/* 117 NOISETYPE (was CID117; 0x70): stimulus template (radius, height, ramp; the world's seven in SW::apstimk); vtable 0x2CE2F8, 48 slots */
+struct NOISETYPE : LO
 {
     int kind;               /* +0x50 0 audible, 1 visible (CanStepguardSenseStimulus; listeners hear only kind 0) */
     float range;            /* +0x54 (InitNoiseType 1500) */
     LM heightRange;         /* +0x58 (-200..500) */
     float duration;         /* +0x60 the noises' lifetime (< 0: they last; InitNoiseType 0.25 s) */
-    int level;              /* +0x64 copied into each stimulus' CID147::level */
+    int level;              /* +0x64 copied into each stimulus' NOISE::level */
     int unknown68[2];
     virtual void Init() __asm__("InitNoiseType");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
 };
-typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
+typedef char assert_CID117_size[sizeof(NOISETYPE) == 0x70 ? 1 : -1];
 
-/* 147 CID147 (0x60): stimulus (noise) instance; vtable 0x2CE2B8, 6 slots; defined between CID117 and CID47: noise.cpp emits CID47, CID147, CID117 */
-/* CID147 is the NOISE record (noise.cpp's view NOISE; STEPGUARD::heldNoise): a refcounted noise event emitted from a
-   CID117 noise type and linked on g_sw.dlStimulus. */
-struct CID147 : BASIC
+/* 147 NOISE (was CID147; 0x60): stimulus (noise) instance; vtable 0x2CE2B8, 6 slots; defined between NOISETYPE and LISTENER: noise.cpp emits LISTENER, NOISE, NOISETYPE */
+/* NOISE is the NOISE record (noise.cpp's view NOISE; STEPGUARD::heldNoise): a refcounted noise event emitted from a
+   NOISETYPE noise type and linked on g_sw.dlStimulus. */
+struct NOISE : BASIC
 {
     int refCount;           /* +0x10 */
-    struct CID117 *type;    /* +0x14 the stimulus type it was emitted from */
+    struct NOISETYPE *type;    /* +0x14 the stimulus type it was emitted from */
     int unknown18[2];
     qword position;         /* +0x20 where it is (a held noise is moved with its maker: UpdateBhvSleep) */
     qword targetPosition;   /* +0x30 CreateNoise: the emission point; EmitStepguardStimulus: the alarm target's position */
@@ -730,23 +730,23 @@ struct CID147 : BASIC
     int serial;             /* +0x48 */
     float startTime;        /* +0x4C */
     int unknown50;
-    int level;              /* +0x54 from CID117::level; compared with STEPGUARD::minStimulusLevel (3: a thrown guard yelling,
+    int level;              /* +0x54 from NOISETYPE::level; compared with STEPGUARD::minStimulusLevel (3: a thrown guard yelling,
                                UpdateBhvThrown; 4: an alarm about subject, EmitStepguardStimulus) */
-    CID147 *next;           /* +0x58 link of DL g_sw.dlStimulus (with previous: a DLE) */
-    CID147 *previous;       /* +0x5C */
+    NOISE *next;           /* +0x58 link of DL g_sw.dlStimulus (with previous: a DLE) */
+    NOISE *previous;       /* +0x5C */
     virtual void AddRef() __asm__("RetainNoise");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
     virtual void Release() __asm__("ReleaseNoise");   /* slot 2 */
 };
-typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
-typedef char assert_CID147_position[SLY2_OFFSETOF(CID147, position) == 0x20 ? 1 : -1];
-typedef char assert_CID147_level[SLY2_OFFSETOF(CID147, level) == 0x54 ? 1 : -1];
+typedef char assert_CID147_size[sizeof(NOISE) == 0x60 ? 1 : -1];
+typedef char assert_CID147_position[SLY2_OFFSETOF(NOISE, position) == 0x20 ? 1 : -1];
+typedef char assert_CID147_level[SLY2_OFFSETOF(NOISE, level) == 0x54 ? 1 : -1];
 
-/* 47 CID47 (0x110): stimulus listener (LISTENER, noise.cpp); vtable 0x2CE118, 50 slots */
-struct CID47 : XFM
+/* 47 LISTENER (was CID47; 0x110): stimulus listener (noise.cpp); vtable 0x2CE118, 50 slots */
+struct LISTENER : XFM
 {
     unsigned int noiseCount; /* +0xE0 the noises it heard and holds (at most 8) */
-    CID147 *noises[8];      /* +0xE4 */
+    NOISE *noises[8];      /* +0xE4 */
     DLE dleListener;        /* +0x104 link in g_sw.dlCid47 (AddListenerHierarchy; kept across CloneListener, as the grab
                                lists' links are; was LISTENERKEY key) */
     int unknown10C;
@@ -757,8 +757,8 @@ struct CID47 : XFM
     virtual void Update() __asm__("UpdateListener");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneListener");   /* slot 41 */
 };
-typedef char assert_CID47_dleListener[SLY2_OFFSETOF(CID47, dleListener) == 0x104 ? 1 : -1];
-typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
+typedef char assert_CID47_dleListener[SLY2_OFFSETOF(LISTENER, dleListener) == 0x104 ? 1 : -1];
+typedef char assert_CID47_size[sizeof(LISTENER) == 0x110 ? 1 : -1];
 
 /* 31 EXPLG (0xF0); vtable 0x2CE828, 51 slots */
 struct EXPLG : EXPL
@@ -812,8 +812,8 @@ struct WIDGET131 : WIDGET
 typedef char assert_WIDGET131_size[sizeof(WIDGET131) == 0x140 ? 1 : -1];
 typedef char assert_WIDGET131_promptTime[SLY2_OFFSETOF(WIDGET131, promptTime) == 0x130 ? 1 : -1];
 
-/* 116 CID116 (0x70): screen tint / fill (render kinds 14 and 1); vtable 0x2CF058, 48 slots */
-struct CID116 : LO
+/* 116 SCREENFADE (was CID116; 0x70): screen tint / fill (render kinds 14 and 1); vtable 0x2CF058, 48 slots */
+struct SCREENFADE : LO
 {
     /* fields named from screenfade.cpp's FADEV view and CreateSwScreenTint (sw.cpp) */
     RGBA rgbaFadeIn;     /* +0x50 colour the fade starts from */
@@ -829,8 +829,8 @@ struct CID116 : LO
     virtual void Update() __asm__("UpdateScreenFade");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderScreenFade");   /* slot 19 */
 };
-typedef char assert_CID116_size[sizeof(CID116) == 0x70 ? 1 : -1];
-typedef char assert_CID116_renderKind[SLY2_OFFSETOF(CID116, renderKind) == 0x6C ? 1 : -1];
+typedef char assert_CID116_size[sizeof(SCREENFADE) == 0x70 ? 1 : -1];
+typedef char assert_CID116_renderKind[SLY2_OFFSETOF(SCREENFADE, renderKind) == 0x6C ? 1 : -1];
 
 /* 57 GOMER (0x1010): instances are swarmers; vtable 0x2CF520, 89 slots */
 struct GOMER : STEPGUARD
@@ -887,7 +887,7 @@ struct BHV171 : BHV
     float lookEndTime;      /* +0x38 */
     float nextTime;         /* +0x3C give-up time in state 2, next search point time in state 3 */
     float unknown40;
-    CID147 *watched;      /* +0x44 the stimulus being investigated (SetBhvSearchWatched; counted: slots 1/2) */
+    NOISE *watched;      /* +0x44 the stimulus being investigated (SetBhvSearchWatched; counted: slots 1/2) */
     int needsReplan;        /* +0x48 */
     int unknown4C;
     BHV171POINT searchPoints[4]; /* +0x50 (ChooseBhvSearchPoints) */
@@ -1694,7 +1694,7 @@ struct CID37 : CID35
     float timerSeconds;         /* +0x18C HUD timer started when booty goes in (inferred) */
     int isLocked;               /* +0x190 refuses booty while set (inferred) */
     struct BOOTY *pbooty;       /* +0x194 the booty it holds */
-    struct CID147 *heldNoise;   /* +0x198 the noise it makes while holding booty (ReplaceHeldSwNoise) */
+    struct NOISE *heldNoise;   /* +0x198 the noise it makes while holding booty (ReplaceHeldSwNoise) */
     char pad19C[0x1A0 - 0x19C];
     virtual void PostLoad() __asm__("PostBootyContainerLoad");   /* slot 15 Also known as: PostLoadBootyStand (upstream readable / Sly 1 name; PostLoadBootyStand__FP2SW). */
     virtual CLASSINFO *GetClassInfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
@@ -2234,7 +2234,7 @@ struct RAJAN : STEPGUARD
     int unk1014[3];
     virtual void Init() __asm__("InitRajan");   /* slot 7 */
     virtual CLASSINFO *GetClassInfo() __asm__("GetRajanClassDesc");   /* slot 6 */
-    virtual int CanSenseStimulus(struct CID147 *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
+    virtual int CanSenseStimulus(struct NOISE *pstim) __asm__("CanRajanSenseStimulus");   /* slot 89 */
     virtual void SetCameraFocus() __asm__("SetRajanCameraFocus");   /* slot 90 */
 };
 typedef char assert_RAJAN_size[sizeof(RAJAN) == 0x1020 ? 1 : -1];
@@ -2515,10 +2515,10 @@ struct CID39 : XFM, GRABSPOT
 typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
 typedef char assert_CID39_dleGrab[SLY2_OFFSETOF(CID39, dleGrab) == 0x104 ? 1 : -1];
 
-/* 46 CID46 (0x120): recon photo target; vtable 0x2D9F70, 50 slots */
-/* CID46: a recon target (the photographs the recon prompt picks out; recon.cpp, RECONSEL). Member names from
+/* 46 RECONTARGET (was CID46; 0x120): recon photo target; vtable 0x2D9F70, 50 slots */
+/* RECONTARGET: a recon target (the photographs the recon prompt picks out; recon.cpp, RECONSEL). Member names from
    recon.cpp's view, in the modern style since v1.26 (were sRadius, sHead, fDone, rFade). */
-struct CID46 : XFM
+struct RECONTARGET : XFM
 {
     float selectionRadius;  /* +0xE0 selection radius (75) */
     float visibilityRadius; /* +0xE4 head offset / visibility radius (defaults to selectionRadius) */
@@ -2540,10 +2540,10 @@ struct CID46 : XFM
     virtual void Init() __asm__("InitReconTarget");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadReconTargetFromBrx");   /* slot 14 */
 };
-typedef char assert_CID46_size[sizeof(CID46) == 0x120 ? 1 : -1];
+typedef char assert_CID46_size[sizeof(RECONTARGET) == 0x120 ? 1 : -1];
 
-/* 125 CID125 (0x60): guard manager (oid 0x656); vtable 0x2DA3D8, 48 slots */
-struct CID125 : LO
+/* 125 GUARDMGR (was CID125; 0x60): guard manager (oid 0x656); vtable 0x2DA3D8, 48 slots */
+struct GUARDMGR : LO
 {
     int guardCount;         /* +0x50 [S] the guards in the world (PostGuardManagerLoad) */
     STEPGUARD **guards;     /* +0x54 [S] */
@@ -2553,8 +2553,8 @@ struct CID125 : LO
     virtual void PostLoad() __asm__("PostGuardManagerLoad");   /* slot 15 */
     virtual void Update() __asm__("UpdateGuardManager");   /* slot 16 */
 };
-typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
-typedef char assert_CID125_guards[SLY2_OFFSETOF(CID125, guards) == 0x54 ? 1 : -1];
+typedef char assert_CID125_size[sizeof(GUARDMGR) == 0x60 ? 1 : -1];
+typedef char assert_CID125_guards[SLY2_OFFSETOF(GUARDMGR, guards) == 0x54 ? 1 : -1];
 
 /* 129 WIDGET129 (0x220): WIDGET: objective counter (computed per frame); vtable 0x2DAD90, 50 slots */
 struct ITEMCOUNTERENTRY { OID oid; TASK *task; };   /* an item counter entry: the task's oid, resolved by PostLoad */
@@ -2775,7 +2775,7 @@ struct TURRET : PO
 };
 typedef char assert_TURRET_size[sizeof(TURRET) == 0x1E0 ? 1 : -1];
 
-#include "sly2/vis.h"   /* 5 CID5, the vis zone (a header of its own so cm.cpp can read it without classes.h) */
+#include "sly2/vis.h"   /* 5 VISZONE, the vis zone (a header of its own so cm.cpp can read it without classes.h) */
 
 /* 23 CID23 (0x140): VOL child; vtable 0x2DC210, 50 slots */
 struct CID23 : VOL

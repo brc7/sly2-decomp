@@ -1,6 +1,6 @@
-// vis.cpp -- VIS (class CID5), a camera visibility zone: an XFM carrying a BSP volume. Each frame the camera tests its
+// vis.cpp -- VIS (class VISZONE), a camera visibility zone: an XFM carrying a BSP volume. Each frame the camera tests its
 // position against every zone (cm.cpp calls UpdateVisInside on each, sorts them, and makes the first one it is inside
-// the camera's vis zone, SetCmVisZone), which lets the renderer cull by zone. Entry points: CID5::Init,
+// the camera's vis zone, SetCmVisZone), which lets the renderer cull by zone. Entry points: VISZONE::Init,
 // LoadVisFromBrx, UpdateVisInside. TU 0x227350..0x2275B8 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_vis
 // SLY2_ALIAS: _GLOBAL_$I$*=GlobalConstructors_vis
@@ -12,8 +12,8 @@
 // 0x227460 StaticInit_vis and GlobalConstructors_vis: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* The zone: classes.h CID5 (its fields are declared there; vis.cpp is the only TU that reads them). */
-typedef CID5 VIS;
+/* The zone: classes.h VISZONE (its fields are declared there; vis.cpp is the only TU that reads them). */
+typedef VISZONE VIS;
 
 extern "C" {
 void InitXfm(XFM *pxfm);
@@ -28,7 +28,7 @@ void SetVisInside(VIS *vis, int isInside);
 }
 
 // Initializes the zone: XFM init, then marks the inside state unknown (-1) so the first test always records a change.
-void CID5::Init()
+void VISZONE::Init()
 {
     VIS *vis = (VIS *)this;
     InitXfm(vis);

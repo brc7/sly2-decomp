@@ -1,5 +1,5 @@
 // recon.cpp -- recon selection: Sly's photo/recon prompt (RECONSEL: candidate targets, screen projection, the
-// selection state machine and its widgets) and the recon targets themselves (RECONTGT, CID 0x2E). TU 0x201D78..
+// selection state machine and its widgets) and the recon targets themselves (RECONTARGET, CID 0x2E). TU 0x201D78..
 // 0x203948 (26 functions, address order).
 // Entry points: InitReconSel/PostReconSelLoad, UpdateReconSel (per frame), SetReconSelState, and the recon
 // target class (InitReconTarget .. IsReconTargetSelectable).
@@ -32,8 +32,8 @@ union V { qword q; float f[4]; };
 #define CID_19 ((CID)0x19)
 
 
-/* A recon target: classes.h CID46 (an XFM). */
-typedef CID46 RECONTGT;
+/* A recon target: classes.h RECONTARGET (an XFM; cid 46). */
+/* (this file called it RECONTGT before v1.26) */
 
 /* The hero mode the prompt belongs to (stepplayer.h JTMODE: its player, its kind). */
 typedef JTMODE MODEL;
@@ -47,7 +47,7 @@ extern PLAYER *D_002E1E40;
 extern int D_002C3588[];
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
-int FindSwObjectsByClass(SW *psw, int grf, CID cid, LO *ploCtx, int c, RECONTGT **apl);
+int FindSwObjectsByClass(SW *psw, int grf, CID cid, LO *ploCtx, int c, RECONTARGET **apl);
 int IsPointInVol(LO *pvol, qword v);
 qword GetLoWorldPos(void *p);
 void FadeSoIn(LO *plo, float f);
@@ -77,13 +77,13 @@ int IsWidgetAnimPlaying(WIDGET *, int);
 void EndJtMode(MODEL *);
 qword ConvertCmWorldToScreen(CM *, qword);
 int ConsumeButtonsPressedWithin__5POCTLUif(void *, int, float);
-void InitXfm(RECONTGT *p);
-void LoadXfmFromBrx(RECONTGT *p, void *pbis);
-void PostLoLoad(RECONTGT *p);
-void SubscribeLoObject(TASK *plink, RECONTGT *p);
-void HandleBasicMessage(RECONTGT *p, int msg, void *pm);
+void InitXfm(RECONTARGET *p);
+void LoadXfmFromBrx(RECONTARGET *p, void *pbis);
+void PostLoLoad(RECONTARGET *p);
+void SubscribeLoObject(TASK *plink, RECONTARGET *p);
+void HandleBasicMessage(RECONTARGET *p, int msg, void *pm);
 PLAYER *GetHeroPo(SW *psw);
-void RequestTaskState(TASK *plink, int n, RECONTGT *p);
+void RequestTaskState(TASK *plink, int n, RECONTARGET *p);
 void GatherJtModeHudTags(void *pv);
 int IsTaskComplete(TASK *plink);
 
@@ -96,12 +96,12 @@ void UpdateReconChecklist(RECONSEL *p);
 void ClearReconTargetMarks(RECONSEL *p);
 int IsReconSelAvailable(RECONSEL *p);
 int FilterReconOccluder(void *, SOPART *);
-void UpdateReconTargetVisibility(RECONSEL *p, RECONTGT *other);
+void UpdateReconTargetVisibility(RECONSEL *p, RECONTARGET *other);
 void SelectReconTarget(RECONSEL *p);
 void SetReconSelState(RECONSEL *p, int nextState);
-void SetReconTargetDone(RECONTGT *p, int n);
-int IsReconTargetDone(RECONTGT *p);
-int IsReconTargetSelectable(RECONTGT *p);
+void SetReconTargetDone(RECONTARGET *p, int n);
+int IsReconTargetDone(RECONTARGET *p);
+int IsReconTargetSelectable(RECONTARGET *p);
 }
 int IsBasicDerivedFrom(BASIC *pbasic, CID cid);                    /* IsBasicDerivedFrom__FP5BASIC3CID */
 LO *FindSwObject(SW *psw, int grf, OID oid, LO *ploCtx) __asm__("FindSwObject__FP2SWi3OIDP2LO");         /* FindSwObject__FP2SWi3OIDP2LO */
@@ -156,7 +156,7 @@ void NotifyReconTargets(RECONSEL *reconSel)
 {
     int i;
     for (i = 0; i < reconSel->count; i++) {
-        RECONTGT *o = reconSel->items[i];
+        RECONTARGET *o = reconSel->items[i];
         if (IN_WORLD(o) && o->fadeObject) o->fadeObject->Add();
     }
 }
@@ -167,7 +167,7 @@ void UpdateReconSelInVolume(RECONSEL *reconSel)
     LO *a[16];
     int n, i;
     reconSel->visible = 0;
-    n = FindSwObjectsByClass(&g_sw, 0x505, CID_19, 0, 16, (RECONTGT **)a);
+    n = FindSwObjectsByClass(&g_sw, 0x505, CID_19, 0, 16, (RECONTARGET **)a);
     for (i = 0; i < n; i++) {
         if (IsPointInVol(a[i], reconSel->position.q)) {
             reconSel->visible = 1;
@@ -182,7 +182,7 @@ void RefreshReconPendingTargets(RECONSEL *reconSel)
     int i;
     reconSel->cPending = 0;
     for (i = 0; i < reconSel->count; i++) {
-        RECONTGT *o = reconSel->items[i];
+        RECONTARGET *o = reconSel->items[i];
         if (o->idPending != -1) {
             TASK *q = o->link;
             if (!q || q->state == 1 || q->state == 2) {
@@ -198,7 +198,7 @@ void FadeReconTargetMarkers(RECONSEL *reconSel)
 {
     int i;
     for (i = 0; i < reconSel->count; i++) {
-        RECONTGT *o = reconSel->items[i];
+        RECONTARGET *o = reconSel->items[i];
         qword a, d;
         float f, r;
         if (!o->fadeObject)
@@ -220,7 +220,7 @@ void UpdateReconChecklist(RECONSEL *reconSel)
     int i;
     for (i = 0; i < (int)reconSel->cPending; i++) {
         int v;
-        RECONTGT *a = reconSel->apending[i];
+        RECONTARGET *a = reconSel->apending[i];
         v = D_002C3588[i];
         if (IsReconTargetDone(a))
             PlayWidgetAnimWithArg(reconSel->primary, 0x33A, v);
@@ -238,7 +238,7 @@ int IsReconSelAvailable(RECONSEL *reconSel)
     int i;
     if (reconSel->visible) return 1;
     for (i = 0; i < reconSel->count; i++) {
-        RECONTGT *o = reconSel->items[i];
+        RECONTARGET *o = reconSel->items[i];
         if (IN_WORLD(o) && (!o->fadeObject || IN_WORLD(o->fadeObject) == 0)) return 1;
     }
     return 0;
@@ -269,7 +269,7 @@ static inline qword Normalize(qword v)
 // v *= k.x in place
 #define SCALE_IN_PLACE(v,k) __asm__("vmulx.xyzw %0,%0,%1x":"+j"(v):"j"(k))
 // Four-ray occlusion test from the origin to a target: state 1 clear, 2 blocked, 3 partly visible.
-void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
+void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTARGET *other)
 {
     int cHit = 0;
     unsigned i = 0;
@@ -357,17 +357,17 @@ void SelectReconTarget(RECONSEL *reconSel)
 {
     V radius, screen, position;
     int i = 0;
-    register RECONTGT *best __asm__("$20") = 0;
+    register RECONTARGET *best __asm__("$20") = 0;
     LO *owner = reconSel->model->player;
     float minimum;
-    RECONTGT **slot;
+    RECONTARGET **slot;
     ((JT *)owner)->GetCameraFocusPos((VECTOR4 *)&reconSel->position.q);
     reconSel->position.f[2] += 20.0f;
     minimum = D_002A8550;
     if (reconSel->count > 0) {
         slot = reconSel->items;
         do {
-            RECONTGT *o = *slot;
+            RECONTARGET *o = *slot;
             CM *camera;
             float distance;
             qword eye, threshold, point;
@@ -756,7 +756,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
             int ready = 1;
             SetReconSelState(reconSel, 2);
             for (int i = 0; i < reconSel->count; i++) {
-                RECONTGT *actor = reconSel->items[i];
+                RECONTARGET *actor = reconSel->items[i];
                 int done = IsReconTargetDone(actor);
                 // an actor whose link is missing or in state 1 must be done before the refresh
                 int linkReady = !actor->link || actor->link->state == 1;
@@ -803,7 +803,7 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
 
 // Recon target (CID 0x2E) Init: transform init, ids -1/-2.
 // Also known as: InitPhotoTarget (upstream readable / Sly 1 name; InitPhotoTarget__FP2LO).
-extern "C" void InitReconTarget(RECONTGT *target)
+extern "C" void InitReconTarget(RECONTARGET *target)
 {
     InitXfm(target);
     target->id = -1; //P
@@ -813,7 +813,7 @@ extern "C" void InitReconTarget(RECONTGT *target)
 }
 
 // Recon target LoadFromBrx: defaults 75 / 0.25 / 5000, then the level's values. Verified by parsing all 43 levels.
-extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
+extern "C" void LoadReconTargetFromBrx(RECONTARGET *target, void *pbis)
 {
     target->visibilityRadius = 0.0f;
     target->selectionRadius = 75.0f;
@@ -825,9 +825,9 @@ extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
 }
 
 // Recon target post-load: LO base and registration with its task (+0xEC).
-void CID46::PostLoad()
+void RECONTARGET::PostLoad()
 {
-    RECONTGT *p = (RECONTGT *)this;
+    RECONTARGET *p = (RECONTARGET *)this;
     TASK *link;
     PostLoLoad(p);
     link = p->link;
@@ -837,7 +837,7 @@ void CID46::PostLoad()
 }
 
 // Recon target message handler: on message 0x11 refreshes the player's recon list and checklist.
-extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
+extern "C" void HandleReconTargetMessage(RECONTARGET *target, int msg, void *pm)
 {
     PLAYER *o;
     HandleBasicMessage(target, msg, pm);
@@ -850,7 +850,7 @@ extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
 }
 
 // Marks the target photographed (in its task, or a local flag without one).
-void SetReconTargetDone(RECONTGT *target, int n)
+void SetReconTargetDone(RECONTARGET *target, int n)
 {
     if (target->link) {
         PLAYER *o;
@@ -861,10 +861,10 @@ void SetReconTargetDone(RECONTGT *target, int n)
 }
 
 // Whether the target was photographed (task done, or the local flag).
-int IsReconTargetDone(RECONTGT *target) { if (target->link) return IsTaskComplete(target->link); return target->isDone; }
+int IsReconTargetDone(RECONTARGET *target) { if (target->link) return IsTaskComplete(target->link); return target->isDone; }
 
 // Whether the target is visible and its task is in state 1.
-int IsReconTargetSelectable(RECONTGT *target)
+int IsReconTargetSelectable(RECONTARGET *target)
 {
     TASK *o;
     if (IN_WORLD(target) == 0) return 0;

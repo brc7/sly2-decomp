@@ -1799,7 +1799,7 @@ CRef RefThunk_EmitSwNoise(void *object, int argCount, void *args)
 {
     int argTypes[3] = {0x1046, 2, 0x2002};
     union { qword q; } u;
-    int a, b;   /* b: script type 0x2002 (an object) where noise.cpp has an int "loudness" (CID147 +0x40); open */
+    int a, b;   /* b: script type 0x2002 (an object) where noise.cpp has an int "loudness" (NOISE +0x40); open */
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, args, argTypes, &a, &u, &b);
     ref.SetBasic((BASIC *)EmitSwNoise(object, a, u.q, b));
     return ref;
@@ -1937,7 +1937,7 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_AddTriggerGrabspotPair)
 SLY2_SPLICEWRAP_END
 
 extern "C" void * NewNoise(void *p, qword, int);
-// Splice binding for option 214 on CID117 (g_aeopid[1095], thunkFn): unpacks the script's 2 arguments (Vector,
+// Splice binding for option 214 on NOISETYPE (g_aeopid[1095], thunkFn): unpacks the script's 2 arguments (Vector,
 // 0x2002) with RefSetArgsFromSplice, calls NewNoise and returns a value of type 0x2093 to the script.
 extern "C" CRef RefThunk_NewNoise(void *p, int c, void *aref)
 {
@@ -2421,7 +2421,7 @@ extern "C" XFM *NewXfm() { return new XFM; }
 
 extern "C" LIGHT *NewLight() { return new LIGHT; }
 
-extern "C" CID5 *NewCid5() { return new CID5; }
+extern "C" VISZONE *NewCid5() { return new VISZONE; }
 
 extern "C" PROXY *NewProxy() { return new PROXY; }
 
@@ -2501,9 +2501,9 @@ extern "C" CID44 *NewCid44() { return new CID44; }
 
 extern "C" CID45 *NewCid45() { return new CID45; }
 
-extern "C" CID46 *NewCid46() { return new CID46; }
+extern "C" RECONTARGET *NewCid46() { return new RECONTARGET; }
 
-extern "C" CID47 *NewCid47() { return new CID47; }
+extern "C" LISTENER *NewCid47() { return new LISTENER; }
 
 extern "C" SO *NewSo() { return new SO; }
 
@@ -2635,9 +2635,9 @@ extern "C" RELAY *NewRelay() { return new RELAY; }
 
 extern "C" WR *NewWr() { return new WR; }
 
-extern "C" CID116 *NewCid116() { return new CID116; }
+extern "C" SCREENFADE *NewCid116() { return new SCREENFADE; }
 
-extern "C" CID117 *NewCid117() { return new CID117; }
+extern "C" NOISETYPE *NewCid117() { return new NOISETYPE; }
 
 extern "C" CID118 *NewCid118() { return new CID118; }
 
@@ -2653,7 +2653,7 @@ extern "C" CID123 *NewCid123() { return new CID123; }
 
 extern "C" PATHLINK *NewPathlink() { return new PATHLINK; }
 
-extern "C" CID125 *NewCid125() { return new CID125; }
+extern "C" GUARDMGR *NewCid125() { return new GUARDMGR; }
 
 extern "C" WIDGET *NewWidget() { return new WIDGET; }
 
@@ -3228,7 +3228,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[0], 2, 134, sizeof(LO), (PFNNEW)NewLo}, /* Lo */
     {&D_002BAAE8[2], 3, 48, sizeof(XFM), (PFNNEW)NewXfm}, /* Xfm */
     {&D_002BAAE8[3], 4, 5, sizeof(LIGHT), (PFNNEW)NewLight}, /* Light */
-    {&D_002BAAE8[3], 5, 6, sizeof(CID5), (PFNNEW)NewCid5}, /* Cid5 */
+    {&D_002BAAE8[3], 5, 6, sizeof(VISZONE), (PFNNEW)NewCid5}, /* Cid5 */
     {&D_002BAAE8[3], 6, 8, sizeof(PROXY), (PFNNEW)NewProxy}, /* Proxy */
     {&D_002BAAE8[6], 7, 8, sizeof(CLUEPROXY), (PFNNEW)NewClueproxy}, /* Clueproxy */
     {&D_002BAAE8[3], 8, 10, sizeof(CID8), (PFNNEW)NewCid8}, /* Cid8 */
@@ -3269,8 +3269,8 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[3], 43, 44, sizeof(CID43), (PFNNEW)NewCid43}, /* Cid43 */
     {&D_002BAAE8[3], 44, 45, sizeof(CID44), (PFNNEW)NewCid44}, /* Cid44 */
     {&D_002BAAE8[3], 45, 46, sizeof(CID45), (PFNNEW)NewCid45}, /* Cid45 */
-    {&D_002BAAE8[3], 46, 47, sizeof(CID46), (PFNNEW)NewCid46}, /* Cid46 */
-    {&D_002BAAE8[3], 47, 48, sizeof(CID47), (PFNNEW)NewCid47}, /* Cid47 */
+    {&D_002BAAE8[3], 46, 47, sizeof(RECONTARGET), (PFNNEW)NewCid46}, /* Cid46 */
+    {&D_002BAAE8[3], 47, 48, sizeof(LISTENER), (PFNNEW)NewCid47}, /* Cid47 */
     {&D_002BAAE8[2], 48, 109, sizeof(SO), (PFNNEW)NewSo}, /* So */
     {&D_002BAAE8[48], 49, 50, sizeof(MS), (PFNNEW)NewMs}, /* Ms */
     {&D_002BAAE8[48], 50, 79, sizeof(PO), (PFNNEW)NewPo}, /* Po */
@@ -3339,8 +3339,8 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[2], 113, 114, sizeof(CID113), (PFNNEW)NewCid113}, /* Cid113 */
     {&D_002BAAE8[2], 114, 115, sizeof(RELAY), (PFNNEW)NewRelay}, /* Relay */
     {&D_002BAAE8[2], 115, 116, sizeof(WR), (PFNNEW)NewWr}, /* Wr */
-    {&D_002BAAE8[2], 116, 117, sizeof(CID116), (PFNNEW)NewCid116}, /* Cid116 */
-    {&D_002BAAE8[2], 117, 118, sizeof(CID117), (PFNNEW)NewCid117}, /* Cid117 */
+    {&D_002BAAE8[2], 116, 117, sizeof(SCREENFADE), (PFNNEW)NewCid116}, /* Cid116 */
+    {&D_002BAAE8[2], 117, 118, sizeof(NOISETYPE), (PFNNEW)NewCid117}, /* Cid117 */
     {&D_002BAAE8[2], 118, 119, sizeof(CID118), (PFNNEW)NewCid118}, /* Cid118 */
     {&D_002BAAE8[2], 119, 120, sizeof(CID119), (PFNNEW)NewCid119}, /* Cid119 */
     {&D_002BAAE8[2], 120, 121, sizeof(CID120), (PFNNEW)NewCid120}, /* Cid120 */
@@ -3348,7 +3348,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[2], 122, 123, sizeof(CID122), (PFNNEW)NewCid122}, /* Cid122 */
     {&D_002BAAE8[2], 123, 124, sizeof(CID123), (PFNNEW)NewCid123}, /* Cid123 */
     {&D_002BAAE8[2], 124, 125, sizeof(PATHLINK), (PFNNEW)NewPathlink}, /* Pathlink */
-    {&D_002BAAE8[2], 125, 126, sizeof(CID125), (PFNNEW)NewCid125}, /* Cid125 */
+    {&D_002BAAE8[2], 125, 126, sizeof(GUARDMGR), (PFNNEW)NewCid125}, /* Cid125 */
     {&D_002BAAE8[2], 126, 132, sizeof(WIDGET), (PFNNEW)NewWidget}, /* Widget */
     {&D_002BAAE8[126], 127, 128, sizeof(WIDGET127), (PFNNEW)NewWidget127}, /* Widget127 */
     {&D_002BAAE8[126], 128, 129, sizeof(WIDGET128), (PFNNEW)NewWidget128}, /* Widget128 */
@@ -3370,7 +3370,7 @@ CLASSROW D_002BAAE8[199] __asm__("D_002BAAE8") = {
     {&D_002BAAE8[138], 144, 145, sizeof(CIRCLER), (PFNNEW)NewCircler}, /* Circler */
     {&D_002BAAE8[0], 145, 146, sizeof(LEAP), (PFNNEW)NewLeap}, /* Leap */
     {&D_002BAAE8[0], 146, 147, sizeof(CID146), (PFNNEW)NewCid146}, /* Cid146 */
-    {&D_002BAAE8[0], 147, 148, sizeof(CID147), 0}, /* Cid147 */
+    {&D_002BAAE8[0], 147, 148, sizeof(NOISE), 0}, /* Cid147 */
     {&D_002BAAE8[0], 148, 151, sizeof(CID148), 0}, /* Cid148 */
     {&D_002BAAE8[148], 149, 150, sizeof(CID149), 0}, /* Cid149 */
     {&D_002BAAE8[148], 150, 151, sizeof(CID150), 0}, /* Cid150 */

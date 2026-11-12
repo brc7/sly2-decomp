@@ -20,8 +20,8 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 
-/* The noise types are classes.h CID117 (NOISETYPE). */
-/* The noises are classes.h CID147 (NOISE), the listeners CID47 (LISTENER). CreateNoise builds a noise in a cleared
+/* The noise types are classes.h NOISETYPE (cid 117). */
+/* The noises are classes.h NOISE (cid 147), the listeners LISTENER (cid 47). CreateNoise builds a noise in a cleared
    pool slot by hand: its BASIC header words and vtable pointer through this construction view. */
 struct NOISEHDR { int frame; int sidebag; int unknown8; VTE *vt; };
 
@@ -39,40 +39,40 @@ extern float D_002BDD10;
 extern float D_002BDD14;
 extern float D_002BDD18;
 extern "C" {
-void InitLo(CID117 *object);
+void InitLo(NOISETYPE *object);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(CRefPtr<CFrame> *, void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void AssignSidebagRef(void *pointer, int value);
-void UnsubscribeLoAll(CID147 *noise);
+void UnsubscribeLoAll(NOISE *noise);
 int IsWithinLimits__FP2LMf(void *object, float z);
-CID117 *CreateLo__F3CIDP2SO3OIDi(int a, SO *b, int c, int d);
-void InitXfm(CID47 *object);
-void SetLoBusyKind(CID47 *object, int value);
-void AddLoHierarchy(CID47 *object);
-void RemoveLoHierarchy(CID47 *object);
-void CloneXfm(CID47 *object, CID47 *source);
-void UpdateLo(CID47 *object);
+NOISETYPE *CreateLo__F3CIDP2SO3OIDi(int a, SO *b, int c, int d);
+void InitXfm(LISTENER *object);
+void SetLoBusyKind(LISTENER *object, int value);
+void AddLoHierarchy(LISTENER *object);
+void RemoveLoHierarchy(LISTENER *object);
+void CloneXfm(LISTENER *object, LISTENER *source);
+void UpdateLo(LISTENER *object);
 void *memmove(void *dst, void *src, int cb);
 qword GetLoWorldPos(void *object);
-void CreateNoise(CID117 *type, qword pos, LO *source, CID147 **heldNoise);
-void RemoveNoise(CID147 *noise);
-int IsNoiseRemoved(CID147 *noise);
-float GetNoiseRadius(CID147 *noise);
-CID147 *NewNoise(CID117 *type, qword pos, LO *source);
-void ReplaceHeldNoise(CID117 *type, qword q, LO *source, CID147 **heldNoise);
-void DropListenerNoises(CID47 *object, int f);
-int CanListenerHearNoise(CID47 *listener, CID147 *object);
+void CreateNoise(NOISETYPE *type, qword pos, LO *source, NOISE **heldNoise);
+void RemoveNoise(NOISE *noise);
+int IsNoiseRemoved(NOISE *noise);
+float GetNoiseRadius(NOISE *noise);
+NOISE *NewNoise(NOISETYPE *type, qword pos, LO *source);
+void ReplaceHeldNoise(NOISETYPE *type, qword q, LO *source, NOISE **heldNoise);
+void DropListenerNoises(LISTENER *object, int f);
+int CanListenerHearNoise(LISTENER *listener, NOISE *object);
 }
 void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(void *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 int IsEntryInDl(void *pdl, void *pv) __asm__("IsEntryInDl__FP2DLPv");
 
 
-// 0x1564E8: NOISETYPE (CID117, cid 0x75) Init: LO Init, then the default range (1500), height window (-200..500), a
+// 0x1564E8: NOISETYPE (cid 0x75) Init: LO Init, then the default range (1500), height window (-200..500), a
 // 0.25 s lifetime and LO flag 0x40.
-void CID117::Init()
+void NOISETYPE::Init()
 {
-    CID117 *type = this;
+    NOISETYPE *type = this;
     InitLo(type);
     type->range = D_002BDCD0;
     type->heightRange = D_002BDCD8;
@@ -82,9 +82,9 @@ void CID117::Init()
 
 /* Holds a reference while the noise is set up (vtable slots 1/2). */
 struct Lock {
-    CID147 *noise;
+    NOISE *noise;
     // Scope guard: call the noise's virtual slot 1 on entry and slot 2 on exit (reference bracket).
-    Lock(CID147 *target) { noise = target; noise->AddRef(); }
+    Lock(NOISE *target) { noise = target; noise->AddRef(); }
     // Close the bracket (virtual slot 2).
     ~Lock() { noise->Release(); }
 };
@@ -92,16 +92,16 @@ struct Lock {
 // stamps the emit time and a serial id, appends it to the active list g_sw.dlStimulus, binds the type's frame and
 // sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
 // Also known as: PnoiseNew (upstream readable / Sly 1 name; PnoiseNew__FP9NOISETMPLG9VU_VECTORiP6VECTOR).
-extern "C" void CreateNoise(CID117 *type, qword pos, LO *source, CID147 **outNoise)
+extern "C" void CreateNoise(NOISETYPE *type, qword pos, LO *source, NOISE **outNoise)
 {
-    CID147 *noise = (CID147 *)AllocZeroedFromSlotheap(&g_sw.slotheapStimulus);
+    NOISE *noise = (NOISE *)AllocZeroedFromSlotheap(&g_sw.slotheapStimulus);
     func_002333B4(noise, 0, 0x60);
     ((NOISEHDR *)noise)->frame = 0;
     ((NOISEHDR *)noise)->sidebag = 0;
     noise->type = type;
     noise->position = pos;
     noise->targetPosition = pos;
-    SLY2_SET_VPTR(noise, CID147);
+    SLY2_SET_VPTR(noise, NOISE);
     noise->source = source;
     noise->serial = ++g_sw.stimulusSerial;
     noise->startTime = g_clock.time;
@@ -116,16 +116,16 @@ extern "C" void CreateNoise(CID117 *type, qword pos, LO *source, CID147 **outNoi
 
 // 0x156698: Creates a noise (CreateNoise) and returns it. Called by EmitSwNoise, bomb detonation,
 // EmitStepguardStimulus and the Splice thunk.
-extern "C" CID147 *NewNoise(CID117 *type, qword pos, LO *source)
+extern "C" NOISE *NewNoise(NOISETYPE *type, qword pos, LO *source)
 {
-    CID147 *noise;
+    NOISE *noise;
     CreateNoise(type, pos, source, &noise);
     return noise;
 }
 
-// 0x1566B8: Noise (CID147) vtable slot 1: adds a reference.
+// 0x1566B8: Noise (NOISE) vtable slot 1: adds a reference.
 // Also known as: AddRefNoise (upstream readable / Sly 1 name; AddRefNoise__FP5NOISE).
-void CID147::AddRef()   /* key function: CID147's vtable comes out here */
+void NOISE::AddRef()   /* key function: NOISE's vtable comes out here */
 {
     refCount++;
 }
@@ -133,7 +133,7 @@ void CID147::AddRef()   /* key function: CID147's vtable comes out here */
 // 0x1566C8: Noise vtable slot 2: drops a reference; at zero, clears its frame and side-bag references, unsubscribes
 // it and frees it back to the world's noise pool.
 // Also known as: ReleaseNoise (upstream readable / Sly 1 name; ReleaseNoise__FP5NOISEi).
-extern "C" void ReleaseNoise(CID147 *noise)
+extern "C" void ReleaseNoise(NOISE *noise)
 {
     int refCount = noise->refCount - 1;
     noise->refCount = refCount;
@@ -148,7 +148,7 @@ extern "C" void ReleaseNoise(CID147 *noise)
 // 0x156728: Removes the noise once its type's lifetime has elapsed (a negative lifetime lasts until removed
 // explicitly).
 // Also known as: ExpireNoises (upstream readable / Sly 1 name; ExpireNoises__FPv).
-extern "C" void ExpireNoise(CID147 *noise)
+extern "C" void ExpireNoise(NOISE *noise)
 {
     float duration = noise->type->duration;
     if (duration >= 0.0f) {
@@ -161,16 +161,16 @@ extern "C" void ExpireNoise(CID147 *noise)
 /* Holds a reference across the notification (vtable slots 1/2). */
 class CRefGuard {
 public:
-    CID147 *noise;
+    NOISE *noise;
     // Scope guard: call the noise's virtual slot 1 on entry and slot 2 on exit (reference bracket).
-    CRefGuard(CID147 *target) : noise(target) { target->AddRef(); }
+    CRefGuard(NOISE *target) : noise(target) { target->AddRef(); }
     // Close the bracket (virtual slot 2).
     ~CRefGuard() { noise->Release(); }
 };
 // 0x156780: Ends a noise: notifies its subscribers (message 0xF), unlinks it from the active list, sends message 3
 // (removed) and drops the list's reference. Safe to call on an already removed noise.
 // Also known as: RemoveNoise (upstream readable / Sly 1 name; RemoveNoise__FP5NOISE).
-extern "C" void RemoveNoise(CID147 *noise)
+extern "C" void RemoveNoise(NOISE *noise)
 {
     if (IsNoiseRemoved(noise))
         return;
@@ -184,7 +184,7 @@ extern "C" void RemoveNoise(CID147 *noise)
 }
 
 // 0x156870: True if the noise is no longer on the active list g_sw.dlStimulus.
-extern "C" int IsNoiseRemoved(CID147 *noise)
+extern "C" int IsNoiseRemoved(NOISE *noise)
 {
     return IsEntryInDl((char *)&g_sw.dlStimulus, noise) == 0;
 }
@@ -192,9 +192,9 @@ extern "C" int IsNoiseRemoved(CID147 *noise)
 // 0x156898: Current audible radius: the type's range scaled by a quadratic ramp over the first min(1 s, lifetime)
 // after emission (constant range for lasting noises).
 // Also known as: SRadiusNoise (upstream readable / Sly 1 name; SRadiusNoise__FP5NOISE).
-extern "C" float GetNoiseRadius(CID147 *noise)
+extern "C" float GetNoiseRadius(NOISE *noise)
 {
-    CID117 *type = noise->type;
+    NOISETYPE *type = noise->type;
     float rampTime, progress;
     if (0.0f < type->duration) {
         rampTime = Min(D_002BDCE0, type->duration);
@@ -208,7 +208,7 @@ extern "C" float GetNoiseRadius(CID147 *noise)
 // 0x156918: True if `pos` is inside the noise: within the type's height window above/below the emitter and within
 // the current radius in the horizontal plane.
 // Also known as: FNoiseReaches (upstream readable / Sly 1 name; FNoiseReaches__FP5NOISEG9VU_VECTOR).
-extern "C" int IsPositionInNoise(CID147 *noise, qword pos)
+extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
 {
     qword offset, lengthSquared;
     float distance;
@@ -222,33 +222,33 @@ extern "C" int IsPositionInNoise(CID147 *noise, qword pos)
 }
 
 // Calls the type's vtable slot 9 (LO Remove: the types are templates, kept out of the world).
-static inline void Init(CID117 *type) { type->Remove(); }
+static inline void Init(NOISETYPE *type) { type->Remove(); }
 // 0x1569B8: Creates the world's seven noise types (oids 0x2C2..0x2C8) with their per-kind range, lifetime and
 // audibility, and stores them in the world's type table. Called at world load (inferred).
 extern "C" void CreateSwNoiseTypes(SW *world)
 {
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
         type->kind = 0;
         world->apstimk[0] = type;
         Init(type);
     }
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
         type->kind = 1;
         type->duration = D_002BDD00;
         world->apstimk[1] = type;
         Init(type);
     }
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
         type->kind = 0;
         type->range = D_002BDD04;
         world->apstimk[2] = type;
         Init(type);
     }
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
         type->range = D_002BDD08;
         type->duration = D_002BDD0C;
         type->kind = 0;
@@ -256,7 +256,7 @@ extern "C" void CreateSwNoiseTypes(SW *world)
         Init(type);
     }
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
         type->level = 3;
         type->duration = -1.0f;
         type->kind = 0;
@@ -264,7 +264,7 @@ extern "C" void CreateSwNoiseTypes(SW *world)
         Init(type);
     }
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
         type->range = D_002BDD10;
         type->duration = D_002BDD14;
         type->kind = 0;
@@ -272,7 +272,7 @@ extern "C" void CreateSwNoiseTypes(SW *world)
         Init(type);
     }
     {
-        CID117 *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
+        NOISETYPE *type = CreateLo__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
         type->kind = 0;
         type->range = D_002BDD18;
         world->apstimk[6] = type;
@@ -283,10 +283,10 @@ extern "C" void CreateSwNoiseTypes(SW *world)
 // 0x156B98: Emits a noise at `pos` from one of the world's two generic noise types (kind 0 or 1).
 extern "C" void EmitSwNoise(SW *world, int kind, qword pos, LO *source)
 {
-    CID117 *type;
+    NOISETYPE *type;
     switch (kind) {
-    case 0: type = (CID117 *)world->apstimk[0]; break;
-    case 1: type = (CID117 *)world->apstimk[1]; break;
+    case 0: type = (NOISETYPE *)world->apstimk[0]; break;
+    case 1: type = (NOISETYPE *)world->apstimk[1]; break;
     }
     NewNoise(type, pos, source);
 }
@@ -295,17 +295,17 @@ extern "C" void EmitSwNoise(SW *world, int kind, qword pos, LO *source)
 // `type` (if non-null) and holds a reference to it. Used for noises that follow their emitter (pain, sleep,
 // yelling).
 // Also known as: SetHeldNoise (upstream readable / Sly 1 name; SetHeldNoise__FPP5NOISEG9VU_VECTORiP2LO).
-extern "C" void ReplaceHeldNoise(CID117 *type, qword pos, LO *source, CID147 **heldNoise)
+extern "C" void ReplaceHeldNoise(NOISETYPE *type, qword pos, LO *source, NOISE **heldNoise)
 {
     if (*heldNoise) {
-        CID147 *noise;
+        NOISE *noise;
         RemoveNoise(*heldNoise);
         noise = *heldNoise;
         noise->Release();
         *heldNoise = 0;
     }
     if (type) {
-        CID147 *noise;
+        NOISE *noise;
         CreateNoise(type, pos, source, heldNoise);
         noise = *heldNoise;
         noise->AddRef();
@@ -313,19 +313,19 @@ extern "C" void ReplaceHeldNoise(CID117 *type, qword pos, LO *source, CID147 **h
 }
 
 // 0x156C80: ReplaceHeldNoise using the world's generic noise type 0 or 1.
-extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, LO *source, CID147 **heldNoise)
+extern "C" void ReplaceHeldSwNoise(SW *world, int kind, qword pos, LO *source, NOISE **heldNoise)
 {
-    CID117 *type;
+    NOISETYPE *type;
     switch (kind) {
-    case 0: type = (CID117 *)world->apstimk[0]; break;
-    case 1: type = (CID117 *)world->apstimk[1]; break;
+    case 0: type = (NOISETYPE *)world->apstimk[0]; break;
+    case 1: type = (NOISETYPE *)world->apstimk[1]; break;
     default: type = 0; break;
     }
     ReplaceHeldNoise(type, pos, source, heldNoise);
 }
 
-// 0x156CC8: Listener (CID47, cid 0x2F) Init: XFM Init, not busy, then sets object flag 2.
-extern "C" void InitListener(CID47 *listener)
+// 0x156CC8: Listener (LISTENER, cid 0x2F) Init: XFM Init, not busy, then sets object flag 2.
+extern "C" void InitListener(LISTENER *listener)
 {
     uptr flags;
     InitXfm(listener);
@@ -337,9 +337,9 @@ extern "C" void InitListener(CID47 *listener)
 
 // 0x156D20: Listener vtable slot 11 (AddHierarchy): LO base, then links the listener on the world list
 // g_sw.dlCid47.
-void CID47::AddHierarchy()
+void LISTENER::AddHierarchy()
 {
-    CID47 *listener = this;
+    LISTENER *listener = this;
     AddLoHierarchy(listener);
     AppendDlEntry((char *)&g_sw.dlCid47, listener);
 }
@@ -347,7 +347,7 @@ void CID47::AddHierarchy()
 // 0x156D58: Listener vtable slot 12 (RemoveHierarchy): LO base, drops every held noise and unlinks from
 // g_sw.dlCid47.
 // Also known as: OnRemoveNoiseListener (upstream readable / Sly 1 name; OnRemoveNoiseListener__FP2LO).
-extern "C" void RemoveListenerHierarchy(CID47 *listener)
+extern "C" void RemoveListenerHierarchy(LISTENER *listener)
 {
     RemoveLoHierarchy(listener);
     DropListenerNoises(listener, 1);
@@ -355,7 +355,7 @@ extern "C" void RemoveListenerHierarchy(CID47 *listener)
 }
 
 // 0x156D98: Listener vtable slot 41 (Clone): XFM clone that keeps the listener's own list link.
-extern "C" void CloneListener(CID47 *listener, CID47 *source)
+extern "C" void CloneListener(LISTENER *listener, LISTENER *source)
 {
     DLE dle = listener->dleListener;
     CloneXfm(listener, source);
@@ -364,15 +364,15 @@ extern "C" void CloneListener(CID47 *listener, CID47 *source)
 
 // 0x156DE0: Releases the listener's noises that have been removed from the world (or all of them when `dropAll`),
 // compacting its array.
-extern "C" void DropListenerNoises(CID47 *listener, int dropAll)
+extern "C" void DropListenerNoises(LISTENER *listener, int dropAll)
 {
     int i;
     for (i = 0; i < (int)listener->noiseCount;) {
-        CID147 **slot = &listener->noises[i];
-        CID147 *noise = *slot;
+        NOISE **slot = &listener->noises[i];
+        NOISE *noise = *slot;
         if (dropAll || IsNoiseRemoved(noise)) {
             noise->Release();
-            memmove(slot, slot + 1, (listener->noiseCount - i) * sizeof(CID147 *) - sizeof(CID147 *));
+            memmove(slot, slot + 1, (listener->noiseCount - i) * sizeof(NOISE *) - sizeof(NOISE *));
             listener->noiseCount--;
         } else {
             i++;
@@ -383,12 +383,12 @@ extern "C" void DropListenerNoises(CID47 *listener, int dropAll)
 // 0x156EB8: Listener vtable slot 16 (Update): LO update, drops dead noises, then picks up at most one new noise
 // from the active list that it can hear, holding a reference and sending itself message 5 (heard a noise).
 // Also known as: UpdateNoiseListener (upstream readable / Sly 1 name; UpdateNoiseListener__FP2LO).
-extern "C" void UpdateListener(CID47 *listener)
+extern "C" void UpdateListener(LISTENER *listener)
 {
-    CID147 *noise;
+    NOISE *noise;
     UpdateLo(listener);
     DropListenerNoises(listener, 0);
-    for (noise = *(CID147 **)&g_sw.dlStimulus; noise; noise = noise->next) {
+    for (noise = *(NOISE **)&g_sw.dlStimulus; noise; noise = noise->next) {
         int i;
         for (i = 0; i < (int)listener->noiseCount; i++)
             if (noise == listener->noises[i])
@@ -421,9 +421,9 @@ static __inline__ int IsWithinXY(qword d, float g) { return DistXY(d) < g; }
 // 0x156FE8: True if the listener is in the world and the noise is audible (its type not muted) with the listener
 // inside its height window and range.
 // Also known as: FListenerHearsNoise (upstream readable / Sly 1 name; FListenerHearsNoise__FP2LOP5NOISE).
-extern "C" int CanListenerHearNoise(CID47 *listener, CID147 *noise)
+extern "C" int CanListenerHearNoise(LISTENER *listener, NOISE *noise)
 {
-    CID117 *type;
+    NOISETYPE *type;
     qword offset, listenerPos;
     if ((uchar)listener->isInWorld) {
         type = noise->type;

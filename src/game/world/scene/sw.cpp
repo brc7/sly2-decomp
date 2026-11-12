@@ -121,7 +121,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSlotheap(&world->slotheapSma,sizeof(SMA),0x80,0x10);
     *(int *)&world->rgbaClear=0x80000000;
     InitSlotheap(&world->slotheapSobounds,sizeof(SOBOUNDS),0x40,0x10);
-    InitSlotheap(&world->slotheapStimulus,sizeof(CID147),0x40,0x10);
+    InitSlotheap(&world->slotheapStimulus,sizeof(NOISE),0x40,0x10);
     InitSlotheap(&world->slotheapRipg,sizeof(RIPG),0x10,0x10);
     int chosen=GetMaxRipSize();
     chosen=chosen?chosen:0xF0;
@@ -159,7 +159,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitDl__FP2DLi(&world->dlCid27,SLY2_OFFSETOF(CID27, dleGrab));
     InitDl__FP2DLi(&world->dlCid9,SLY2_OFFSETOF(CID9, dleList));
     InitDl__FP2DLi(&world->dlSma,SLY2_OFFSETOF(SMA, dleSw));
-    InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(CID147, next));
+    InitDl__FP2DLi(&world->dlStimulus,SLY2_OFFSETOF(NOISE, next));
     InitDl__FP2DLi(&world->dlStepguard,SLY2_OFFSETOF(STEPGUARD, dleGuard));
     InitDl__FP2DLi(&world->dlCid98,SLY2_OFFSETOF(CID98, dleBreakable));
     InitSl(&world->slPoctl,0x84);
@@ -167,7 +167,7 @@ extern "C" SW *SW_ctor(SW *world)
     InitSl(&world->slSaa,0x40);
     InitDl__FP2DLi(&world->dlZprHit,SLY2_OFFSETOF(ZPR, dle));
     InitDl__FP2DLi(&world->dlTargetrec,SLY2_OFFSETOF(TARGETREC, dleTargetrec));
-    InitDl__FP2DLi(&world->dlCid47,SLY2_OFFSETOF(CID47, dleListener));
+    InitDl__FP2DLi(&world->dlCid47,SLY2_OFFSETOF(LISTENER, dleListener));
     InitDl__FP2DLi(&world->dlCid14Free,SLY2_OFFSETOF(CID14, dleMerged));
     InitDl__FP2DLi(&world->dlCid14Pending,SLY2_OFFSETOF(CID14, dlePending));
     InitDl__FP2DLi(&world->dlTaskActive,SLY2_OFFSETOF(TASK, dleActive));
@@ -352,8 +352,8 @@ extern "C" void SelectSwMainMs(SW *world)
 } // namespace M_func_0020E2B0
 
 namespace M_func_0020E338 {
-extern CID116 *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
-// Creates the world's screen tint/fill object (class 0x74, CID116 in docs/engine.md section 7; parameters 0.1 and
+extern SCREENFADE *CreateLo__F3CIDP2SO3OIDi(int a, void *p, int b, int c) __asm__("CreateLo__F3CIDP2SO3OIDi");
+// Creates the world's screen tint/fill object (class 0x74, SCREENFADE in docs/engine.md section 7; parameters 0.1 and
 // 0.25, hold colour 0x80200000), stores it at SW+0x3E60 and takes it out of the world (Remove). (inferred)
 extern "C" void CreateSwScreenTint(SW *world)
 {

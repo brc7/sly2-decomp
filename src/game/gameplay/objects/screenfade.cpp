@@ -1,6 +1,6 @@
-// screenfade.cpp -- CID116, the screen fade: an LO that fills the screen with a colour that fades in, holds, and fades
+// screenfade.cpp -- SCREENFADE, the screen fade: an LO that fills the screen with a colour that fades in, holds, and fades
 // out (three timed phases), then removes itself. Started from a level script (Splice thunk RefThunk_StartScreenFade) or by the
-// world-entry code in places.cpp (StartScreenFade). Entry points: StartScreenFade and the CID116 vtable (Init,
+// world-entry code in places.cpp (StartScreenFade). Entry points: StartScreenFade and the SCREENFADE vtable (Init,
 // UpdateScreenFade, RenderScreenFade).
 // TU 0x15DC80..0x15E380 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_screenfade
@@ -19,7 +19,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // Color bytes with a user constructor (part of RgbaLerp's codegen).
 struct RGBAV { unsigned char r, g, b, a; RGBAV() {} };   /* the user constructor is part of RgbaLerp's codegen */
 
-/* The fade object, CID116: an LO with its fade fields after LO's data (offsets confirmed by the match). */
+/* The fade object, SCREENFADE: an LO with its fade fields after LO's data (offsets confirmed by the match). */
 struct FADEV : LO
 {
     RGBAV fadeInFrom, holdColor, fadeOutTo;   /* +0x50 */
@@ -38,9 +38,9 @@ void BuildClearGifs__FP2QWG4RGBAi(BUF *pbuf, RGBAV *prgba, int n);
 RPL *AllocRenderListEntry(void);
 }
 
-// CID116 vtable slot 7 (Init): LO defaults, busy kind 1, and update flags 0xA (the flag word is either inline,
+// SCREENFADE vtable slot 7 (Init): LO defaults, busy kind 1, and update flags 0xA (the flag word is either inline,
 // tagged with bit 0, or behind a pointer).
-void CID116::Init()
+void SCREENFADE::Init()
 {
     FADEV *fade = (FADEV *)this;
     uptr flags;
@@ -54,7 +54,7 @@ void CID116::Init()
         ((LO *)fade)->inlineFlags = flags | 0xA;
 }
 
-// CID116 vtable slot 16 (Update): once all three phases have elapsed, removes the fade from the world (vtable
+// SCREENFADE vtable slot 16 (Update): once all three phases have elapsed, removes the fade from the world (vtable
 // slot 9, Remove).
 extern "C" void UpdateScreenFade(FADEV *fade, float dt)
 {
@@ -79,7 +79,7 @@ static inline void BuildClearPacket(BUF *packet, RGBAV color)
 {
     BuildClearGifs__FP2QWG4RGBAi(packet, &color, 3);
 }
-// CID116 vtable slot 19 (RenderSelf): picks the current phase (fade in: from -> hold, hold, fade out: hold -> to),
+// SCREENFADE vtable slot 19 (RenderSelf): picks the current phase (fade in: from -> hold, hold, fade out: hold -> to),
 // blends the colour, builds a full-screen clear packet into the DMA chain and queues it as a render-list entry in
 // pass 1 or 14 (by renderKind). Past the last phase the blend inputs are left unset (the update removes the fade).
 extern "C" void RenderScreenFade(FADEV *fade)

@@ -1938,7 +1938,7 @@ namespace M_FStepguardSenseStimulus {
 int AreStepguardSensesEnabled(STEPGUARD *guard) __asm__("AreStepguardSensesEnabled");
 DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object) __asm__("FindDetectorTarget");
 qword GetLoWorldPos(LO *p) __asm__("GetLoWorldPos");
-int IsPositionInNoise(CID147 *stimulus, qword pos) __asm__("IsPositionInNoise");
+int IsPositionInNoise(NOISE *stimulus, qword pos) __asm__("IsPositionInNoise");
 int IsPointInVol(VOL *volume, qword pos) __asm__("IsPointInVol");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, SOPART ***papso) __asm__("IntersectSwBoundingBox");
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, SOPART **apso, void *phit) __asm__("FindFirstObjectHitByLine");
@@ -1950,11 +1950,11 @@ void ShouldKeepSoNotSelf() __asm__("ShouldKeepSoNotSelf");
 // not its own; kind 0 noises by range test, kind 1 inside the detector's near volume with a clear line, and so on
 // per kind.
 // Also known as: FGuardAcceptsNoise (upstream readable / Sly 1 name; FGuardAcceptsNoise__FP5GUARDP5NOISE).
-int STEPGUARD::CanSenseStimulus(CID147 *stimulus)
+int STEPGUARD::CanSenseStimulus(NOISE *stimulus)
 {
     using namespace M_FStepguardSenseStimulus;
     STEPGUARD *guard = this;
-    CID117 *stimTemplate;
+    NOISETYPE *stimTemplate;
     qword guardPos, stimulusPos;
     if (!AreStepguardSensesEnabled(guard))
         return 0;
@@ -2908,7 +2908,7 @@ extern "C" { static inline float DistSq(void *object, qword *point)
 // 0x20A168: Compares two stimuli for priority: template kind (lower first), level (higher first),
 // time (later first), then distance (nearer first); finally address order.
 // Also known as: NCompareNoises (upstream readable / Sly 1 name; NCompareNoises__FP5GUARDP5NOISET1).
-extern "C" int CompareStepguardStimuli(void *guard, struct CID147 *a, struct CID147 *b)
+extern "C" int CompareStepguardStimuli(void *guard, struct NOISE *a, struct NOISE *b)
 {
     int diff;
     float distA, distB;
@@ -2981,7 +2981,7 @@ extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 namespace M_func_0020A408 {
 
 extern float D_002C3DB0 __asm__("D_002C3DB0");
-int CompareStepguardStimuli(STEPGUARD *guard, CID147 *a, CID147 *b) __asm__("CompareStepguardStimuli");
+int CompareStepguardStimuli(STEPGUARD *guard, NOISE *a, NOISE *b) __asm__("CompareStepguardStimuli");
 DETECTORTARGET *FindDetectorTarget(DETECTOR *detector, LO *object) __asm__("FindDetectorTarget");
 void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int state) __asm__("SetDetectorTargetState");
 
@@ -2990,15 +2990,15 @@ void SetDetectorTargetState(DETECTOR *detector, DETECTORTARGET *entry, int state
 }
 int AreStepguardSensesEnabled(STEPGUARD *guard) __asm__("AreStepguardSensesEnabled");
 // Also known as: PloGuardInterest (upstream readable / Sly 1 name; PloGuardInterest__FP5GUARDP2LO).
-extern "C" CID147 *ChooseStepguardStimulus(STEPGUARD *guard, CID147 *fallback)
+extern "C" NOISE *ChooseStepguardStimulus(STEPGUARD *guard, NOISE *fallback)
 {
     using namespace M_func_0020A408;
-    CID147 *stimulus, *best;
+    NOISE *stimulus, *best;
     int unused[4];
     if (!AreStepguardSensesEnabled(guard))
         return fallback;
     best = fallback;
-    for (stimulus = (CID147 *)g_sw.dlStimulus.head; stimulus; stimulus = stimulus->next) {
+    for (stimulus = (NOISE *)g_sw.dlStimulus.head; stimulus; stimulus = stimulus->next) {
         if (guard->CanSenseStimulus(stimulus)) {   /* CanStepguardSenseStimulus */
             if (!best || CompareStepguardStimuli(guard, stimulus, best) < 0)
                 best = stimulus;
@@ -3542,14 +3542,14 @@ extern "C" int GetStepguardGroundProbeFlags(STEPGUARD *guard)
 namespace M_func_0020B140 {
 extern float D_002C3DB8 __asm__("D_002C3DB8");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-void CreateNoise(struct CID117 *noiseType, qword pos, STEPGUARD *source, CID147 **result) __asm__("CreateNoise");
-CID147 *NewNoise(CID117 *pstimk, qword pos, STEPGUARD *source) __asm__("NewNoise");
+void CreateNoise(struct NOISETYPE *noiseType, qword pos, STEPGUARD *source, NOISE **result) __asm__("CreateNoise");
+NOISE *NewNoise(NOISETYPE *pstimk, qword pos, STEPGUARD *source) __asm__("NewNoise");
 // 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
 // and remembers when (+0xF44).
 // Also known as: RaiseGuardAlarm (upstream readable / Sly 1 name; RaiseGuardAlarm__FP5GUARDP2LO).
 extern "C" void EmitStepguardStimulus(STEPGUARD *guard, void *target)
 {
-    CID147 *stimulus;
+    NOISE *stimulus;
     qword targetPos = GetLoWorldPos(target);
     stimulus = 0;
     if (guard->noiseType)
@@ -3672,10 +3672,10 @@ extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 }
 
 // 0x20B4A8 InitGuardManager
-// 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
-void CID125::Init()
+// 0x20B4A8: Guard manager (GUARDMGR, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
+void GUARDMGR::Init()
 {
-    CID125 *manager = this;
+    GUARDMGR *manager = this;
     sptr flags;
     LO::Init();
     flags = (sptr)manager->ploupd;
@@ -3694,10 +3694,10 @@ void *AllocFromWorldHeap(ALLOCREQ *request) __asm__("AllocFromWorldHeap");
 }
 // 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
 // Also known as: PostLoadGuardManager (upstream readable / Sly 1 name; PostLoadGuardManager__FP2LO).
-void CID125::PostLoad()
+void GUARDMGR::PostLoad()
 {
     using namespace M_func_0020B500;
-    CID125 *manager = this;
+    GUARDMGR *manager = this;
     ALLOCREQ request;
     LO::PostLoad();
     manager->guardCount = FindSwObjectsByClass(&g_sw, 0x605, CID_STEPGUARD, 0, 0, 0);
@@ -3718,10 +3718,10 @@ void ResetDetectorTargets(DETECTOR *detector) __asm__("ResetDetectorTargets");
 // 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
 // removes them, mode 2 restarts their root behaviour and resets their detector.
 // Also known as: UpdateGuardManager (upstream readable / Sly 1 name; UpdateGuardManager__FP2LO).
-void CID125::Update()
+void GUARDMGR::Update()
 {
     using namespace M_func_0020B590;
-    CID125 *manager = this;
+    GUARDMGR *manager = this;
     int i, count;
     STEPGUARD **guards;
     LO::Update();

@@ -681,7 +681,7 @@ extern "C" void InitHackenemy(HACKENEMY *enemy)
 }
 } // namespace M_InitHackenemy
 
-// vtable slot 12: CID47 RemoveHierarchy + SetCid49State. (inferred)
+// vtable slot 12: LISTENER RemoveHierarchy + SetCid49State. (inferred)
 /* HACKENEMY slot 12. */
 extern "C" void RemoveHackenemyHierarchy(HACKENEMY *enemy)
 {

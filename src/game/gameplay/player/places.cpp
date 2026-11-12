@@ -51,7 +51,7 @@ void SetJtAirJump(void *p, int a, int b, int c);
 int IsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
 void UpdateSoBusy(SW *g, LO *a);
 void ChooseJtLanding(void *p, LO *a);
-void StartScreenFade(CID116 *pcid116);
+void StartScreenFade(SCREENFADE *pcid116);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit);
 void ShouldKeepSoPair(void);

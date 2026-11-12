@@ -1,12 +1,12 @@
 /* include/sly2/recon.h -- RECONSEL, Sly's recon selector (gameplay/player/recon.cpp): the photo prompt's candidate
- * targets (CID46 recon targets), their screen projection, the selection state machine and its widgets. It lives in
+ * targets (RECONTARGET recon targets), their screen projection, the selection state machine and its widgets. It lives in
  * JT::reconSel; the mode HUD points at it (JTMODEHUD::reconSel). */
 #ifndef SLY2_RECON_H
 #define SLY2_RECON_H
 #include "sly2/basic.h"
 #include "sly2/port.h"   /* SLY2_EE_LAYOUT */
 
-struct CID46; struct JTMODE; struct WIDGET; struct WIDGET130;
+struct RECONTARGET; struct JTMODE; struct WIDGET; struct WIDGET130;
 
 /* The recon selector (0xC4 bytes, 0xD0 with its alignment on the EE). */
 struct RECONSEL
@@ -16,10 +16,10 @@ struct RECONSEL
     QWROW origin;           /* +0x10 screen point of the prompt (x, y, z) */
     QWROW position;         /* +0x20 world position of the viewer (raised by 20) */
     int count;              /* +0x30 */
-    CID46 *items[16];       /* +0x34 the recon targets */
+    RECONTARGET *items[16];       /* +0x34 the recon targets */
     uint cPending;          /* +0x74 */
-    CID46 *apending[5];     /* +0x78 */
-    CID46 *actor;           /* +0x8C selected target */
+    RECONTARGET *apending[5];     /* +0x78 */
+    RECONTARGET *actor;           /* +0x8C selected target */
     float proximity;        /* +0x90 */
     float sizeGain;         /* +0x94 */
     int rising;             /* +0x98 */

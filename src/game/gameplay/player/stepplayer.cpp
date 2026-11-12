@@ -436,7 +436,7 @@ extern "C" int TestStepplayerHidden(STEPPLAYER *player)
     for (;;) {
         if (!so) break;
         if (StepguardHasSgf(so, 0x1D) || StepguardHasSgf(so, 0xB)) { r = 2; break; }
-        if (so->CanSenseStimulus((CID147 *)q)) { r = 1; break; }
+        if (so->CanSenseStimulus((NOISE *)q)) { r = 1; break; }
         so = (STEPGUARD *)so->dleGuard.next;
     }
     if (r == 0) {

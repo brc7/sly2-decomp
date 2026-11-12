@@ -31,7 +31,7 @@ enum {
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
 
-/* The search behaviour is classes.h's BHV171 (its guard: guard.h's STEPGUARD; the watched stimulus: CID147, a counted
+/* The search behaviour is classes.h's BHV171 (its guard: guard.h's STEPGUARD; the watched stimulus: NOISE, a counted
    object: BASIC slots 1/2). */
 
 /* Candidate list built by ChooseBhvSearchPoints (TryAddSearchCandidate adds one). */
@@ -72,7 +72,7 @@ float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(GUARDMOVER *pmover, float rad);
 void SetBhvSearchState(BHV171 *behavior, int state);
 void SetBhvSearchLookTimers(BHV171 *behavior);
-void SetBhvSearchWatched(BHV171 *behavior, CID147 *pwatch);
+void SetBhvSearchWatched(BHV171 *behavior, NOISE *pwatch);
 int HasBhvSearchReachedTarget(BHV171 *behavior);
 qword GetBhvSearchLastKnownPosition(BHV171 *behavior);
 int TryAddSearchCandidate(QUERY *pquery);
@@ -308,7 +308,7 @@ extern "C" void SetBhvSearchLookTimers(BHV171 *behavior) {
 // 0x1725E0: Replaces the watched stimulus (a refcounted object at +0x44, via its add/drop reference slots) and
 // flags a re-plan.
 // Also known as: SetNoise (upstream readable / Sly 1 name; SetNoise__14JOBINVESTIGATEP5NOISE).
-extern "C" void SetBhvSearchWatched(BHV171 *behavior, CID147 *watched) {
+extern "C" void SetBhvSearchWatched(BHV171 *behavior, NOISE *watched) {
     if (watched == behavior->watched) return;
     if (behavior->watched) ((BASIC *)behavior->watched)->Release();
     behavior->watched = watched;
@@ -346,7 +346,7 @@ extern "C" int HasBhvSearchReachedTarget(BHV171 *behavior) {
 // Also known as: PosNoise (upstream readable / Sly 1 name).
 extern "C" qword GetBhvSearchLastKnownPosition(BHV171 *behavior)
 {
-    CID147 *t = behavior->watched;
+    NOISE *t = behavior->watched;
     if (t->level == 4 && t->subject == ((STEPGUARD *)behavior->owner))
         return t->position;
     return behavior->watched->targetPosition;

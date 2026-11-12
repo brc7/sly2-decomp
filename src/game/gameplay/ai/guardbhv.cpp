@@ -1930,8 +1930,8 @@ namespace M_UpdateBhvguard {
  void*func_002333B4(void*,int,unsigned int) __asm__("memset");
  int IsStepguardForceClass(STEPGUARD*,LO*) __asm__("IsStepguardForceClass");
  float GetRandomStepguardDelay(STEPGUARD*) __asm__("GetRandomStepguardDelay");
- CID147*ChooseStepguardStimulus(STEPGUARD*,CID147*) __asm__("ChooseStepguardStimulus");
- void SetBhvSearchWatched(BHV171*,CID147*) __asm__("SetBhvSearchWatched");
+ NOISE*ChooseStepguardStimulus(STEPGUARD*,NOISE*) __asm__("ChooseStepguardStimulus");
+ void SetBhvSearchWatched(BHV171*,NOISE*) __asm__("SetBhvSearchWatched");
  int IsBhvSearchIdle(BHV171*) __asm__("IsBhvSearchIdle");
  int IsBhvScriptDone(BHV*) __asm__("IsBhvScriptDone");
  LO*EmitSwNoise(SW*,int,qword,STEPGUARD*) __asm__("EmitSwNoise");
@@ -1978,7 +1978,7 @@ extern "C" void UpdateBhvguard(BHV156 *behavior)
                 if (object)
                     Attack(behavior, &next, object);
                 else {
-                    CID147 *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, 0);
+                    NOISE *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, 0);
                     if (selected) {
                         next.kind = GUARD_MODE_SUSPICIOUS;
                         next.arg.object = selected;
@@ -2011,8 +2011,8 @@ extern "C" void UpdateBhvguard(BHV156 *behavior)
                     SetBhvguardMode(behavior, &next);
                 } else {
                     BHV171 *h = (BHV171 *)behavior->pbhvNext;
-                    CID147 *old = h->watched;
-                    CID147 *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, old);
+                    NOISE *old = h->watched;
+                    NOISE *selected = ChooseStepguardStimulus((STEPGUARD *)behavior->owner, old);
                     if (selected != old)
                         SetBhvSearchWatched(h, selected);
                     else if (IsBhvSearchIdle(h)) {
@@ -3152,7 +3152,7 @@ float NormalizeAngle__Ff(float f) __asm__("NormalizeAngle__Ff");
 qword SetVectorCylind(float a, float b, float c) __asm__("SetVectorCylind");
 void SetLeapTarget(void *p, qword v) __asm__("SetLeapTarget");
 void SetStepguardAttack(STEPGUARD *guard, int b, int c, qword v) __asm__("SetStepguardAttack");
-void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, CID147 **ppnoise) __asm__("ReplaceHeldSwNoise");
+void ReplaceHeldSwNoise(SW *psw, int n, qword v, STEPGUARD *guard, NOISE **ppnoise) __asm__("ReplaceHeldSwNoise");
 LO *GetHeroPo(SW *psw) __asm__("GetHeroPo");
 int IsLoSelfOrDescendantOf(LO *plo, LO *ploAncestor) __asm__("IsLoSelfOrDescendantOf");
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f) __asm__("TriggerJoyRumbleRumk__FP3JOY4RUMKf");
@@ -3229,7 +3229,7 @@ extern "C" void UpdateBhvhit(BHVHIT *behavior) {
     UpdateBhvanim(behavior);
     {
         STEPGUARD *pt = ((STEPGUARD *)behavior->owner);
-        CID147 *v = pt->heldNoise;
+        NOISE *v = pt->heldNoise;
         v->position = GetLoWorldPos(pt);
     }
     t = g_clock.time + 0.0001f;
@@ -3880,7 +3880,7 @@ extern "C" void UpdateBhvSleep(BHV175 *behavior) {
     } while (behavior->sleepState != s);
     {
         STEPGUARD *t = (STEPGUARD *)behavior->owner;
-        CID147 *v = t->heldNoise;
+        NOISE *v = t->heldNoise;
         v->position = GetLoWorldPos(t);
     }
 }
@@ -3945,7 +3945,7 @@ namespace M_func_0017A7F8 {
 extern float D_002BE6C0 __asm__("D_002BE6C0");
 void UpdateBhv(BHV176 *p) __asm__("UpdateBhv");
 qword GetLoWorldPos(void *p) __asm__("GetLoWorldPos");
-CID147 *NewNoise(void *p, qword q, STEPGUARD *t) __asm__("NewNoise");
+NOISE *NewNoise(void *p, qword q, STEPGUARD *t) __asm__("NewNoise");
 // 0x17A7F8: Thrown behaviour vtable slot 10 (Update): ends after landing (states 2/3); emits a yelling noise
 // periodically while airborne.
 // Also known as: Update (upstream readable / Sly 1 name).

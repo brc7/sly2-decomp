@@ -117,7 +117,7 @@ int IntersectSphereBsp(qword q, XAV *ps, uptr n, int a, int b, int c, float g, H
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int DeliverZapToSo(ZPR *pmsg);
-int *NewNoise(CID117 *pstimk, qword pos, void *pv);
+int *NewNoise(NOISETYPE *pstimk, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void SO_ResetForProxy(BOMBV *);

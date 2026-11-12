@@ -312,7 +312,7 @@ struct SW : public BASIC
       SLOTHEAP slotheapSobounds;   /* SO bounds records */
       struct RENDERBLOCK *pblockRender; /* +0x3E5C root block of the level's render tree (rendertree.cpp InsertRenderEntry);
                                           was unknown3E5C */
-      CID116 *pcid116Fade;   /* the screen fade object (CID116, inferred) */
+      SCREENFADE *pcid116Fade;   /* the screen fade object (SCREENFADE, inferred) */
       float agShdLight[3];  /* +0x3E64 [S] draft name: three shading values stored by StoreColor (shd.cpp BuildWorldBackgroundImage); was _pad_283 */
       float aclrShdLight[3][4]; /* +0x3E70 [S] draft name: three user HSV colours converted by ConvertUserHsvToUserRgb (same function) */
       ulong tex2Background; /* +0x3EA0 [S] TEX2 whose CBP is the 256-entry CLUT BuildWorldBackgroundImage (shd.cpp) builds from agShdLight; glob.cpp's projected-volume pass reads the framebuffer through it */
@@ -353,7 +353,7 @@ struct SW : public BASIC
       DL dlCid23;           /* +0x3FF0 [S] class list of CID 23, the volumes (vol.cpp OnCid23Add / Remove, detector.cpp walks) */
       DL dlStimulus;   /* live stimuli (noises, sights guards react to) */
       SLOTHEAP slotheapStimulus;   /* stimulus records */
-      struct CID117 *apstimk[7];   /* +0x4020 stimulus (noise) kinds, made by noise.cpp CreateSwNoiseTypes; by use: [0] guard yell,
+      struct NOISETYPE *apstimk[7];   /* +0x4020 stimulus (noise) kinds, made by noise.cpp CreateSwNoiseTypes; by use: [0] guard yell,
                                      [2] guard hit (guardbhv.cpp), [3] bomb / tossed gadget, [4] guard default (stepguard.cpp),
                                      [5] headset microphone (sound.cpp), [6] player hurt (hurt.cpp) */
       SLOTHEAP slotheapRipg; /* +0x403C [S] RIPG (ripple group) records (rip.cpp NewRipGroup / OnRipgRemove); was unknown403C */

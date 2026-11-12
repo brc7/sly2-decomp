@@ -33,9 +33,9 @@ void RAJAN::Init()
 // 0x1CBEE0: RAJAN vtable slot 89 (sense a stimulus): for an audible noise whose emitter has id 0x246 at +0x18
 // (inferred: an oid), temporarily doubles its noise type's range and height window (about its centre), asks the
 // STEPGUARD test, then restores them.
-int RAJAN::CanSenseStimulus(CID147 *stimulus)
+int RAJAN::CanSenseStimulus(NOISE *stimulus)
 {
-      CID117 *noiseType = stimulus->type;
+      NOISETYPE *noiseType = stimulus->type;
       LM savedHeightRange = noiseType->heightRange;
       float savedRange = noiseType->range;
       int result;

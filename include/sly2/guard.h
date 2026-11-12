@@ -13,7 +13,7 @@
 #include "sly2/stepplayer.h"   /* ZPR (BHVGUARDRECDATA) */
 
 struct CID113;  /* the guard script class (classes.h) */
-struct CID147;   /* NOISE: a noise event heard by the guards' listeners (noise.cpp; fields in classes.h) */
+struct NOISE;   /* NOISE: a noise event heard by the guards' listeners (noise.cpp; fields in classes.h) */
 
 /* one pickpocket-able loot entry carried by a guard (16 bytes) */
 struct GUARDLOOT
@@ -91,9 +91,9 @@ struct SSGRESUME
       float pathParam;      /* +0x8 kind 6: where along the path */
 };
 
-/* The stimulus a guard senses is classes.h CID147 (one record with noise.cpp's NOISE: source / subject / level),
-   its type CID117 (kind, range, height window); the world keeps them on SW::dlStimulus. */
-struct CID117; struct CID147;
+/* The stimulus a guard senses is classes.h NOISE (one record with noise.cpp's NOISE: source / subject / level),
+   its type NOISETYPE (kind, range, height window); the world keeps them on SW::dlStimulus. */
+struct NOISETYPE; struct NOISE;
 
 /* One detector target (16 bytes): the object, its detection state (0 none, 1 seen, 2 close; set by
    UpdateDetectorTargets) and when the state was entered. [S] */
@@ -266,7 +266,7 @@ struct STEPGUARD : public STEP
       int hurtZapMask;      /* +0x350 [S] zap kinds that hurt (InitStepguard) */
       int knockdownZapMask; /* +0x354 [S] zap kinds that knock down */
       int koZapMask;        /* +0x358 [S] zap kinds that knock out */
-      CID147 *heldNoise;    /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
+      NOISE *heldNoise;    /* +0x35C [S] the noise the guard keeps making (ReplaceHeldNoise) */
       float pulseStartTime; /* +0x360 [S] */
       int unknown364;       /* +0x364 [S] */
       LM closeAngleRangeHeld; /* +0x368 [S] interaction angle range while held (GuardEvalInteractMode) */
@@ -315,7 +315,7 @@ struct STEPGUARD : public STEP
       ANIMBINDING koReactions[26];        /* +0xC10 [S] KO */
       LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (ConstructLeap) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
-      struct CID117 *noiseType; /* +0xE60 [S] the noise type object (option 408, otyp 0x2075 = a CID 117 reference; CreateNoise takes it) */
+      struct NOISETYPE *noiseType; /* +0xE60 [S] the noise type object (option 408, otyp 0x2075 = a CID 117 reference; CreateNoise takes it) */
       int sensesEnabled;    /* +0xE64 [S] */
       int minStimulusLevel; /* +0xE68 [S] weakest stimulus the guard reacts to */
       LM lookTimes;         /* +0xE6C [S] how long a search looks around (InitStepguard 5.5/6.5; SetBhvSearchLookTimers) */
@@ -400,7 +400,7 @@ struct STEPGUARD : public STEP
     virtual int IsZapLethal(ZPR *pzpr) __asm__("IsStepguardZapLethal");   /* slot 86 */
     virtual void SetPlayable(int fOn) __asm__("SetStepguardPlayable");   /* slot 87 */
     virtual LO *ChooseTarget() __asm__("ChooseStepguardTarget");   /* slot 88: STEPGUARD adds 2 slots to STEP's 0..87; returns the target to pursue (ResumeBhvguard) */
-    virtual int CanSenseStimulus(struct CID147 *pstim) __asm__("CanStepguardSenseStimulus");   /* slot 89 (stepguard.cpp calls vtable entry 89 with the stimulus) */
+    virtual int CanSenseStimulus(struct NOISE *pstim) __asm__("CanStepguardSenseStimulus");   /* slot 89 (stepguard.cpp calls vtable entry 89 with the stimulus) */
 };
 typedef char assert_STEPGUARD_size[sizeof(STEPGUARD) == 0x1010 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime) */
 typedef char assert_STEPGUARD_grfsg[SLY2_OFFSETOF(STEPGUARD, grfsg) == 0x2C0 ? 1 : -1];   /* CONFIRMED runtime */
