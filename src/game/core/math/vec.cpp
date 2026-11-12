@@ -944,23 +944,26 @@ extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, floa
 //////// 0x11EFB0 GetVectorSphere
 namespace V_GetVectorSphere {
 /* RadPanTiltRFromVector-style: pan/tilt angles and length of v (Claude agent, 2026-10-17) */
+// The lane readers take the lane's bits (the asm leaves the quadword in the float's register: its low word is the
+// lane); the C forms copy the bits (an earlier fallback converted the quadword's value and rotated the uninitialised
+// result: pan NaN, tilt 0 natively).
 // x lane of q as a float (no instruction).
 #ifdef SLY2_EE_ASM
 static __inline__ float GetX(qword q) { float x; __asm__("" : "=r"(x) : "0"(q)); return x; }
 #else
-static __inline__ float GetX(qword q) { float x; x = q; return x; }
+static __inline__ float GetX(qword q) { float x; VuCopyBits(x, q); return x; }
 #endif
 // y lane of q as a float.
 #ifdef SLY2_EE_ASM
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%0" : "=r"(y) : "0"(q)); return y; }
 #else
-static __inline__ float GetY(qword q) { float y; VuCopyBits(y, VuProt3w(y)); return y; }
+static __inline__ float GetY(qword q) { float y; VuCopyBits(y, VuProt3w(q)); return y; }
 #endif
 // z lane of q as a float.
 #ifdef SLY2_EE_ASM
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r"(z) : "0"(q)); return z; }
 #else
-static __inline__ float GetZ(qword q) { float z; VuCopyBits(z, VuPextuw0(z)); return z; }
+static __inline__ float GetZ(qword q) { float z; VuCopyBits(z, VuPextuw0(q)); return z; }
 #endif
 // Inverse of SetVectorSphere: v's pan, tilt and length (each optional).
 // Also known as: ConvertVectorToSphere (upstream readable / Sly 1 name; ConvertVectorToSphere__FG9VU_VECTORPfN21).
