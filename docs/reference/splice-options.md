@@ -848,9 +848,9 @@ parent LO; 84 options in all.
 | 194 | `RefThunk_NewSoXfHandle` | - | method(2) | 77 |
 | 195 | `RefThunk_NewSoPartHandle` | - | method(1) | 78 |
 | 196 | `RefThunk_SetSoTargetRecordParams` | - | method(2) file | 79 |
-| 197 | `GetSoPhysRecordParam8` / `SetSoPhysRecordParam8` | float | get set file | 80 |
-| 198 | `GetSoPhysRecordParamC` / `SetSoPhysRecordParamC` | float | get set file | 81 |
-| 199 | `GetSoPhysRecordParam4` / `SetSoPhysRecordParam4` | float | get set file | 82 |
+| 197 | `GetSoRegionRadius` / `SetSoRegionRadius` | float | get set file | 80 |
+| 198 | `GetSoRegionMass` / `SetSoRegionMass` | float | get set file | 81 |
+| 199 | `GetSoRegionHeightOffset` / `SetSoRegionHeightOffset` | float | get set file | 82 |
 | 200 | `GetSoPathzone` | object&lt;PATHZONE&gt; | get | 83 |
 
 ## MS (cid 49)
@@ -1950,10 +1950,10 @@ parent LO; 39 options in all.
 |---|---|---|---|---|
 | 214 | `RefThunk_NewNoise` | - | method(2) | 1095 |
 | 795 | `range` | float | get set file | 1091 |
-| 954 | `isMuted` | int | get set file | 1090 |
+| 954 | `kind` | int | get set file | 1090 |
 | 955 | `heightRange` | lm | get set file | 1092 |
 | 956 | `duration` | float | get set file | 1093 |
-| 957 | `noiseKind` | int | get set file | 1094 |
+| 957 | `level` | int | get set file | 1094 |
 
 ## CID118 (cid 118)
 
@@ -2355,7 +2355,7 @@ parent BASIC; 19 options in all.
 | 34 | `position` | vector | get set | 1097 |
 | 237 | `RefThunk_RemoveNoise` | - | method(0) | 1100 |
 | 255 | `IsNoiseRemoved` | bool | get | 1101 |
-| 957 | `noiseKind` | int | get set | 1099 |
+| 957 | `level` | int | get set | 1099 |
 | 958 | `type` | object&lt;CID117&gt; | get | 1096 |
 | 959 | `startPosition` | vector | get set | 1098 |
 

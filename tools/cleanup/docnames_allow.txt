@@ -49,3 +49,5 @@ svkElapsed.c svkDifficulty.c svkStart.c svkComplete.c svkCompletionCount.c svkSt
 XXXXXXXX FILE.json
 # removed in v1.23 (portability.md history names the old views)
 BLIPGV CHANNEL
+# --- portability.md's history of removed views and the VU0 upload chain's VIF command (v1.24)
+MPG BODY STIMULUS STIMTEMPLATE RAILV PIPEV
