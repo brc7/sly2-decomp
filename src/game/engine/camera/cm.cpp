@@ -27,6 +27,7 @@
 #include "sly2/vtables.h"
 #include "sly2/port.h"   /* SLY2_EE_LAYOUT */
 #include "sly2/xfm.h"   /* SOPART (so.h is native-only here: on the EE it renumbers s_rgba below) */
+#include "sly2/lsg.h"   /* LSG: the line clip's span records */
 #if defined(SLY2_EE_LAYOUT)
 #else
 #include "sly2/so.h"   /* SO::GetCpdefi; the EE build calls it by hand (including so.h here renumbers s_rgba below) */
@@ -847,16 +848,16 @@ namespace M_FindCameraClearInterval {
 /* float g placed after the pointer params: its param copy comes after pgMax, lengthening pgMax so the hoisted 0x40 wins $fp in global alloc */
 struct T { int a, b, c; };
 struct O { char pad[0x70]; int c; struct T *at; };
-struct HIT { char pad[0x40]; float enterTime; float exitTime; char pad2[0x18]; };
-int ClipSegmentBsp(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit) __asm__("ClipSegmentBsp");
-int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f) __asm__("MergeSegmentLists");
+union HIT { LSG lsg; struct { char pad[0x40]; float enterTime; float exitTime; }; };   /* sly2/lsg.h LSG (au[0] / au[1]) */
+int ClipSegmentBsp(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, HIT *ahit) __asm__("ClipSegmentBsp");
+int MergeSegmentLists(int c, HIT *ahit, int cNew, HIT *ahitNew, int cMax, HIT *ahitOut, int f) __asm__("MergeSegmentLists");
 // Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
 // > duMin in *puFrom/ *puTo.
 // Also known as: FFindCmClearInterval (upstream readable / Sly 1 name;
 //   FFindCmClearInterval__FiP8CMSOLIDSG9VU_VECTORT2P6VECTORT4f).
 extern "C" int FindCameraClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
 {
-    struct HIT ahit[0x40];
+    HIT ahit[0x40];
     int c = 0;
     int i;
     int j;

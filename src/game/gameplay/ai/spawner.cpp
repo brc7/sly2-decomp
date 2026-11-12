@@ -14,6 +14,7 @@
 #include "sly2/clock.h"
 #include "sly2/classes.h"
 #include "sly2/sw.h"
+#include "sly2/lsg.h"   /* LSG: the line clip's span records */
 
 // 0x174740 StaticInit_spawner and GlobalConstructors_spawner: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -41,7 +42,7 @@ enum { ENTRY_FREE = 0, ENTRY_RESPAWN_DELAY = 1 };
 struct EVENT{float time;char pad4[8];LO*tag;char pad10[0x10];EVENT*next;char pad24[4];int kind;LO*previous;};
 struct LINK{LO**pp;};
 /* SnapToGround's line hit. */
-struct HITY { qwordV v; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };   /* hit point, normal at +0x20 */
+union HITY { LSG lsg; struct { qwordV v; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; }; };   /* hit point, normal at +0x20 */
 struct VU_FLOAT { qwordV qw; };
 
 extern qwordV D_002A2DD0;

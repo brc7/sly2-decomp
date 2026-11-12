@@ -25,6 +25,7 @@
 #include "sly2/util.h"
 #include "sly2/dli.h"
 #include "sly2/sw.h"
+#include "sly2/lsg.h"   /* LSG: the line clip's span records */
 
 // 0x182B18 StaticInit_hack and GlobalConstructors_hack: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -1611,7 +1612,7 @@ typedef struct M4{U r[4];}M4;
 typedef struct OWNER{char pad0[0x70];qword position;}OWNER;
 typedef struct REQUEST{OWNER*owner;int unused4;float radius;int unusedC;long flags;int unused18,start;M4 matrix;char pad60[0x1C];qword*vertices;char pad80[0x10];int count;qword*world;}REQUEST;
 typedef struct CONTACT{char pad[0xB0];}CONTACT;   /* the contact list (XP) */
-typedef struct SEGMENT{qword a,b,plane;char pad30[0x30];}SEGMENT;
+typedef union SEGMENT{LSG lsg;struct{qword a,b,plane;};}SEGMENT;   /* sly2/lsg.h LSG */
 typedef struct WORK{U direction,newEndpoint,oldEndpoint;SEGMENT segments[2];U scale,dot,one;}WORK;
 extern qword D_002A2DA0 __asm__("D_002A2DA0");
 extern void AddSoCustomXps(SO*,REQUEST*,int,int,int,CONTACT**) __asm__("AddSoCustomXps");

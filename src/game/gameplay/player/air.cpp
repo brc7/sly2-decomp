@@ -27,6 +27,7 @@
 #include "sly2/act.h"
 #include "sly2/clock.h"
 #include "sly2/xp.h"
+#include "sly2/lsg.h"   /* LSG: the line clip's span records */
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
@@ -2578,7 +2579,7 @@ namespace M_func_001999D0 {
 // between the fallback load and the bc1f stops reorg's backward delay-slot search, so the divide's reload fills
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
 typedef unsigned short ushort;
-struct SPAN { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; SURF *firstFace, *lastFace; };
+union SPAN { LSG lsg; struct { QWROW first, last, firstPlane, lastPlane; float from, to; int flags; SURF *firstFace, *lastFace; }; };   /* sly2/lsg.h LSG */
 
 extern QWROW D_002A2DD0 __asm__("D_002A2DD0"), D_002A2DA0 __asm__("D_002A2DA0");   // zero vector, fallback direction
 int CollectEdgesAtGeomPoint(GEOM *, BSPC *, int, int, EDGE **) __asm__("CollectEdgesAtGeomPoint");

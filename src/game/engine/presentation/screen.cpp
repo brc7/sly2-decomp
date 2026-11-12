@@ -38,6 +38,7 @@
 #include "vifs.h"
 #include "sly2/clock.h"
 #include "sly2/vtables.h"
+#include "sly2/lsg.h"   /* LSG: the line clip's span records */
 extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
@@ -1212,7 +1213,7 @@ namespace M_SetGadgetMenuStickDir {
 // enabled item that lies closest along that direction from the current one.
 
 struct PROX { float along, distance; };
-struct HIT { qword position, other, normal; char pad30[0x10]; float fraction; char pad44[0x1C]; };
+union HIT { LSG lsg; struct { qword position, other, normal; char pad30[0x10]; float fraction; }; };   /* sly2/lsg.h LSG */
 
 // D_002DDF0C is read as a field of the clock struct: a struct field at a fixed address may alias
 // sel->mode (a scalar global may not), which keeps the clock load after the mode store.

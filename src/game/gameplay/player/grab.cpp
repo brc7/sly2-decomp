@@ -1609,7 +1609,7 @@ extern "C" void GetJtRailLanding(struct P *p, struct CURVE *curve, qword *outPos
 namespace M_func_00193C98 {
 typedef union { qword q; float f; } U;
 struct Q { int x0; int x4; float x8; int xc; U x10; qword x20; };
-struct HIT { qword a; U b; qword c[4]; };
+union HIT { LSG lsg; struct { qword a; U b; qword c[4]; }; };   /* sly2/lsg.h LSG */
 extern qword D_002A2DD0 __asm__("D_002A2DD0");
 void SetActRotationGoal(void *r, qword q) __asm__("SetActRotationGoal");
 float GetShapeMinDistance(SHAPE *pshape) __asm__("GetShapeMinDistance");
@@ -1617,14 +1617,14 @@ float GetShapeMaxDistance(SHAPE *pshape) __asm__("GetShapeMaxDistance");
 float ModPositive__Fff(float g, float hi) __asm__("ModPositive__Fff");
 void EvaluateShapeAtDistance(SHAPE *pshape, float g, U *pv, int n) __asm__("EvaluateShapeAtDistance");
 qword ConvertPosBetweenLos(int n, STEPPLAYER *pstepplayer, qword q) __asm__("ConvertPosBetweenLos");
-int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv) __asm__("ClipEdgeToSphere");
+int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, HIT *pv) __asm__("ClipEdgeToSphere");
 // Advances/clamps the grab parameter along the held curve object (wraps on closed curves, clamps on open ones).
 extern "C" void ClampJtGrabCurveParam(STEPPLAYER *grab, struct Q *q, void *r)
 {
     SHAPE *o;
     float g, lo, hi, t;
     U v;
-    struct HIT hit;
+    HIT hit;
     qword d;
     if (!q->x4) {
         SetActRotationGoal(r, D_002A2DD0);

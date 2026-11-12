@@ -212,7 +212,9 @@ namespace M_ClsgClipEdgeToCbsp {
 
 
 struct STATE { CBSP *node; CGT *leaf; float t; QWROW plane; };
-struct ROW { QWROW a, b, planeA, planeB; float t0, t1; int flags; CGT *leaf; char tail[16]; };
+/* One clipped span: sly2/lsg.h's LSG (its size and layout on every target), with the navigation triangle crossed
+   in LSG::apsurf[0]'s slot. */
+union ROW { ::LSG lsg; struct { QWROW a, b, planeA, planeB; float t0, t1; int flags; CGT *leaf; }; }; typedef char assert_ROW_leaf[SLY2_OFFSETOF(ROW, leaf) == SLY2_OFFSETOF(::LSG, apsurf) && SLY2_OFFSETOF(ROW, flags) == SLY2_OFFSETOF(::LSG, lsgk) ? 1 : -1];
 typedef char STATE_Size[sizeof(STATE) == 0x20 ? 1 : -1];
 typedef char ROW_Size[sizeof(ROW) == 0x60 ? 1 : -1];
 extern void *func_002333B4(void *, int, unsigned int) __asm__("memset"); // memset
@@ -389,7 +391,7 @@ namespace M_FClipEdgeToCbsp {
 
 
 
-typedef struct ROW{QWROW begin,end,beginPlane,endPlane;float low,high;int flags;CGT*leaf;char tail[16];}ROW;
+union ROW{::LSG lsg;struct{QWROW begin,end,beginPlane,endPlane;float low,high;int flags;CGT*leaf;};};   /* sly2/lsg.h LSG, the triangle in apsurf[0]'s slot */
 extern int ClipEdgeToCbsp(CG*,qword,qword,int,ROW*,int) __asm__("ClipEdgeToCbsp");
 typedef char U_Size[sizeof(QWROW)==16?1:-1];
 typedef char ROW_Size[sizeof(ROW)==96?1:-1];

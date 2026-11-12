@@ -24,8 +24,8 @@
 #include "sly2/util.h"
 #include "sly2/sw.h"
 #include "sly2/xfm.h"
-// The real class behind the per-function object views below, for its virtual calls.
-static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }
+#include "sly2/lsg.h"   /* LSG: ClipEdgeToPathzone's spans */
+static inline ::LO *AsLo(void *plo) { return (::LO *)plo; }   // the real class behind the per-function object views below, for its virtual calls
 // 0x1D4FF8 StaticInit_robottank and GlobalConstructors_robottank: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
 /* Contacts are sly2/xp.h's XP (through so.h): FindDeepestRobottankWheelXp reads XP::g (the separation) and
@@ -912,7 +912,7 @@ struct ATTACH {
     char pad40[0x3C]; float radius; int tactic; void *constraint; LM enterRange, exitRange, fireInterval;
 };
 
-struct HIT { QWROW start, end, normal0, normal1; float startFraction, endFraction; char pad48[0x18]; };
+union HIT { LSG lsg; struct { QWROW start, end, normal0, normal1; float startFraction, endFraction; }; };   /* ClipEdgeToPathzone's span: sly2/lsg.h LSG */
 struct P : PO {
     char pad0[0x188 - 0x180]; int state; char pad18C[0x36C]; int attachCount; ATTACH *attachments[8]; float slip;
     char pad520[0x20]; float heading, goalHeading, steering, wheelAngle, drive; char pad554[0x50];

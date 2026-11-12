@@ -808,7 +808,7 @@ extern "C" int FilterAttackLineOfSightHit(CID120 *x, SOPART *p) {
 
 // 0x1758A0 ChooseStepguardAttack
 namespace M_PentryChooseStepguardAttack {
-union U; struct SCALE; struct LSG; struct LOS; struct POLY; struct BASIC;
+union U; struct SCALE; union LSG; struct LOS; struct POLY; struct BASIC;
 // ChooseStepguardAttack: pick the first enabled response ENTRY of p that accepts target (range, height, angle, optional
 // line of sight), ask p's HandleSpliceEvent(0x18) about it with a CRef(true), then run the response.
 // (Claude agent, T1672) MATCH from lanef10v1 with real C++ locals instead of the SLOT union and explicit calls:
@@ -816,7 +816,7 @@ union U; struct SCALE; struct LSG; struct LOS; struct POLY; struct BASIC;
 // (Decref), and `void *argument = (char *)entry + 0x18;` declared after the CRef.
 union U { qword q; float f[4]; };
 struct SCALE { char pad[0x20]; float value; };   /* STEPGUARD::scale's record */
-struct LSG { U point; char rest[0x50]; };
+union LSG { ::LSG lsg; U point; };   /* sly2/lsg.h LSG, its first point */
 struct LOS { U start, end; LSG hit; };
 extern void Decref__4CRef(void *) __asm__("Decref__4CRef");
 struct POLY { float a, b, c; };
@@ -4988,7 +4988,7 @@ void BHV179::Close()
 
 // 0x17BFF8 ChooseBhvCirclePosition
 namespace M_func_0017BFF8 {
-union U; struct SCALE; struct FLOW; struct SEGMENT; struct VU_FLOAT;
+union U; struct SCALE; struct FLOW; union SEGMENT; struct VU_FLOAT;
 // ChooseBhvCirclePosition MATCH (Claude agent lane H14), no pins: laneH13v2 with the inner loop as `int k=0;int i=hits;do{SEGMENT*base=segments;Closest(target,&base[k],...);...;k++;}while(--i);`. base is its own pseudo inside the do-body (cse block after the loop label, so not shared with the 1C0A40 call arg, which stays `addiu t0,sp,0x50`); loop.c hoists it to the inner preheader, the &base[k] giv is then initialised as a copy of it, and pass 1 hoists base once more into the index-loop preheader (s4), like the target.
 // ChooseBhvCirclePosition laneH13v2 (Claude agent lane H13): inner loop `SEGMENT*segment=base;int i=hits;do{...segment++;}while(--i);` with a function-scope `SEGMENT*base=segments;` so cse cannot share &segments with the 1C0A40 call arg (rematerialized like the target), 22 -> 17. Left: base is set before the mode loop (s6) instead of the index-loop preheader (target s4), which shifts s-reg roles.
 // ChooseBhvCirclePosition laneH12v1 (Claude agent lane H12): laneH11v2 + `U point` at function scope between selected and segments, and the two VU scales passed as a qword (VuFromMemWord) into VuMulAddViaScratch(base,v,const qword&g,U*scratch) that stores g into point (target sqc2 0x40): frame and the whole VU block exact (82 -> 72 differing, aligned 26).
@@ -4998,7 +4998,7 @@ union U; struct SCALE; struct FLOW; struct SEGMENT; struct VU_FLOAT;
 union U{qword q;float f[4];int i[4];};
 struct SCALE{char pad[0x20];float value;};   /* STEPGUARD::scale's record (untyped) */
 struct FLOW{float polarAngle,polarLength,candidateAngle,candidateLength,distance;};
-struct SEGMENT{qword a,b;char data[0x40];};
+union SEGMENT{::LSG lsg;struct{qword a,b;};};   /* sly2/lsg.h LSG */
 
 extern float D_002A5600 __asm__("D_002A5600");
 qword GetLoWorldPos(void*) __asm__("GetLoWorldPos");

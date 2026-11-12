@@ -1183,7 +1183,7 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FMatchJtXmg {
-struct HIT { qword v0; char pad[0x28 - 0x10]; float g28; char pad1[0x40 - 0x2C]; float g40; char pad2[0x60 - 0x44]; };
+union HIT { LSG lsg; struct { qword v0; char pad[0x28 - 0x10]; float g28; char pad1[0x40 - 0x2C]; float g40; }; };   /* sly2/lsg.h LSG */
 
 qword ConvertPosBetweenLos(void *p, void *q, qword v) __asm__("ConvertPosBetweenLos");
 void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, SOTREE *ptree, int *pn0, SOPART ***pn1) __asm__("IntersectSwBoundingBox");

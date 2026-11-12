@@ -14,6 +14,7 @@
 #include "sly2/clock.h"
 #include "sly2/classes.h"
 #include "sly2/game.h"
+#include "sly2/lsg.h"   /* LSG: the line clip's span records */
 
 // 0x154908 StaticInit_detector and GlobalConstructors_detector: g++-generated for the six engine slot pools.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -56,7 +57,7 @@ struct SOV
 typedef char assert_SOV_isHidden[(unsigned int)&((SOV *)0)->isHidden == 0x11AC ? 1 : -1];
 /* A world volume of the occluder list g_sw.dlCid23 (+0xEC its BSP, +0x130 next). */
 struct WVOL : XFM { char pad[0xEC - 0xE0]; void *bsp; char pad1[0x130 - 0xF0]; WVOL *next; };
-struct BUF { char a[0x180]; };
+struct BUF { char a[4 * sizeof(LSG)]; };   /* four sly2/lsg.h LSGs */
 /* Line-test callback arguments (FilterDetectorLineOfSightHit/FilterDetectorHitClass31). */
 /* The hits are SOPARTs; their owners SOs with a physics tree (SOTREE). */
 struct ARGS { DETECTORTARGET *entry; int *oldState; int *newState; };

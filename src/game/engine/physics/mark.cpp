@@ -737,7 +737,7 @@ struct FRAME{};
 struct REQ{unsigned int bytes,alignment;};
 struct POLY{qword plane;char opaque10[8];int flags;};
 struct ENTRY{ENTRY*child[2];POLY*poly;};
-struct HIT{qword p;char pad10[0x30];float time;char pad44[0x1C];};
+union HIT{LSG lsg;struct{qword p;char pad10[0x30];float time;};};   /* sly2/lsg.h LSG */
 struct OUT{qword p,plane;int kind;};
 union SCR{REQ req;QWROW u;};
 struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;QWROW position,endpoint;};
