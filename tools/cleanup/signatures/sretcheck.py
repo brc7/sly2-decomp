@@ -157,7 +157,9 @@ def main():
         txt, _ = S.strip_comments_pp(open(os.path.join(root, path), errors='replace').read())
         m = re.search(r'namespace\s+' + ns + r'\s*\{', txt)
         if not m: return {}
-        return dict(re.findall(r'\b(\w+)\s*\(\s*\)\s*__asm__\s*\(\s*"([^"]+)"\s*\)', txt[m.end():]))
+        out = dict(re.findall(r'\b(\w+)\s*\(\s*\)\s*__asm__\s*\(\s*"([^"]+)"\s*\)', txt[m.end():]))
+        out.update(re.findall(r'\b(\w+)\s*\(\s*\)\s*SLY2_SRET_LABEL\s*\(\s*"[^"]+"\s*,\s*"([^"]+)"\s*\)', txt[m.end():]))
+        return out                     # SLY2_SRET_LABEL: natively the entry is the adapter
 
     bif = 'src/game/app/bif.cpp'
     if os.path.exists(os.path.join(root, bif)):

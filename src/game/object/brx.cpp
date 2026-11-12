@@ -25,7 +25,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Declarations from LoadOptionFromBrx's per-function file (Lilly port): a private CBinaryInputStream view (S8Read and
    Skip added for LoadSwObjectsFromBrx). EOPID is sly2/eopid.h's, CRef sly2/cref.h's. Callees keep the names that file
    gave them. */
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
+MATRIX3 LoadRotateMatrix(qword vec) SLY2_SRET_LABEL("BuildRotationMatrixFromVector", "BuildRotationMatrixFromVectorValue");
 extern "C" LORUN *AddLoDeferredCallback(LO *plo);
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");

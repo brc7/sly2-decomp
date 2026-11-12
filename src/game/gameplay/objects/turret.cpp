@@ -78,7 +78,7 @@ float SmoothValue__FfffP3SMPPf(float,float,float,const float *,float *);
 float ClampToLimits__FP2LMf(const LM *,float);
 float SmoothValueWithAccel__FffffP4SMPAPf(float,float,float,float,SMPV *,float *);
 void SetActPositionGoal(void *,qword);
-CRef GetGlobalSaveVar(int,void *);
+CRef GetGlobalSaveVar(int,void *) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
 int POCTL_ConsumeAnyPressed(POCTL *x, int a);

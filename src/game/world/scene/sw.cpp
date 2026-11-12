@@ -386,7 +386,7 @@ extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 extern int D_002E1E54;
 extern const char *D_002A39E8[9];
 extern "C" SVPATH *NewSaveKey(const char *pchz, ...);
-extern "C" CRef SetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
+extern "C" CRef SetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 // Store a script reference into a global save variable.
 inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { SetGlobalSaveVar(psvp, ref, &g_gs); }
 // Store an int into a global save variable.

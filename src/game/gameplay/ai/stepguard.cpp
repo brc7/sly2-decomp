@@ -3809,3 +3809,14 @@ float D_002C3DB0 = 2.0f;
 float D_002C3DB4 = 5.0f;
 float D_002C3DB8 = 1.0f;
 float D_002C3DBC = 0.25f;
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+/* g_aeopid calls the getter as CRef (BASIC::*)() (otyp 0x9010; spliceobj.cpp GetOptionRecordValue). */
+extern "C" CRef GetStepguardSgfRefListValue(STEPGUARD *guard)
+{ CRef r; M_func_00209A88::GetStepguardSgfRefList(&r, guard); return r; }
+#endif

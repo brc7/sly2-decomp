@@ -53,9 +53,9 @@ extern const char D_002A5060[] = "suck_history", D_002A5070[] = "mission_0", D_0
 extern "C" {
 void *memset(void *pv, int c, unsigned int cb);
 SVKEY *NewSaveKey(const void *p, ...);
-CRef GetGlobalSaveVar(SVKEY *key, SAVEDATA *saveSet);
+CRef GetGlobalSaveVar(SVKEY *key, SAVEDATA *saveSet) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 CRef GetSaveVar(SVSTORE *psvstore, SVKEY *key, SAVEDATA *saveSet);
-CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SAVEDATA *saveSet);
+CRef SetGlobalSaveVar(SVKEY *key, const CRef &ref, SAVEDATA *saveSet) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 float GetDifficulty(DIFFICULTY *difficulty);
 void SetDifficulty(DIFFICULTY *difficulty, float g);
 void ChangeDifficulty(DIFFICULTY *difficulty, float delta);

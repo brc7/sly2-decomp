@@ -39,7 +39,7 @@ extern int *D_002BE080[];
 extern const char D_002A5160[] = "%d%%", D_002A5168[] = "%01d:%02d";
 
 extern "C" {
-CRef GetGlobalSaveVar(void *pkey, void *psvset);
+CRef GetGlobalSaveVar(void *pkey, void *psvset) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 void SetWidgetRequest(WIDGET *widget, int n);
 void SetWidgetState(WIDGET *widget, int n);
 void PlayWidgetAnim(WIDGET *widget, int n);

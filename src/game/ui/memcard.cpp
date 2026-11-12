@@ -583,7 +583,7 @@ void HideMcDialogWidget(void *) __asm__("HideMcDialogWidget");
 void ResetSaveGs(SAVESLOT *, int) __asm__("ResetSaveGs");
 void SetSaveState(SAVE *saveManager, int state) __asm__("SetSaveState");
 
-CRef Eval(SVPATH *, SAVESLOT *) __asm__("GetGlobalSaveVar");
+CRef Eval(SVPATH *, SAVESLOT *) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 // Evaluate save variable k as a float.
 static inline float GetF(SVPATH *k, SAVESLOT *p) { return Eval(k, p).u.g; }
 
@@ -1634,7 +1634,7 @@ void PopPauseMenuPage(void *p) __asm__("PopPauseMenuPage");
 void SetMcDialogState(S *s, int n) __asm__("SetMcDialogState");
 void StartSaveSlotJob(void *p) __asm__("StartSaveSlotJob");
 void OnMcDialogChoice(S *s) __asm__("OnMcDialogChoice");
-CRef SetGlobalSaveVar(O *, const CRef &, void *) __asm__("SetGlobalSaveVar");                   // O::Set(const CRef &, context), returns a CRef
+CRef SetGlobalSaveVar(O *, const CRef &, void *) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");                   // O::Set(const CRef &, context), returns a CRef
 
 // Store a script reference into a global save variable.
 static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = SetGlobalSaveVar(po, arg, &g_gs); }
@@ -1836,7 +1836,7 @@ extern struct H D_003D9ED0 __asm__("D_003D9ED0");
 void SetMcDialogPhase(void *p, int n) __asm__("SetMcDialogPhase");
 int GetPauseMenuTopPageId(void *g) __asm__("GetPauseMenuTopPageId");
 
-CRef Eval(SVPATH *a, void *b) __asm__("GetGlobalSaveVar");
+CRef Eval(SVPATH *a, void *b) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 // Evaluate save variable saveVar as a float.
 static inline float EvalSaveVar(SVPATH *saveVar, void *slot) { return Eval(saveVar, slot).u.g; }
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.

@@ -452,7 +452,9 @@ def handle_decl(seg, stack, T, rel, record, is_def):
                 if d <= 0: break
             i = j + 1; continue
         if toks[i:i + 2] == ['extern', '"C"']: i += 2; cdecl = True; continue
-        if toks[i:i + 2] == ['SLY2_BUILTIN_C', '('] and toks[i + 3:i + 4] == [')']: i += 4; continue
+        if i < len(toks) and re.match(r'SLY2_[A-Z0-9_]+$', toks[i]) and toks[i + 1:i + 2] == ['(']:
+            j = match_close(toks, i + 1)           # a statement-like macro without a semicolon (SLY2_BUILTIN_C,
+            if 0 < j < len(toks) - 1: i = j + 1; continue   # SLY2_INSTANTIATE_SLOT_POOLS) before a declaration
         break
     toks, lines = toks[i:], lines[i:]
     if not toks or 'typedef' in toks[:1] or '(' not in toks: return

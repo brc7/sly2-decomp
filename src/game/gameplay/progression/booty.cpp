@@ -776,7 +776,7 @@ void GetBootyContainerSaveKey(CID37V *container) {
 extern "C" { void Decref__4CRef(void *); }
 extern "C" {
 void GetGlobalSaveVar(CRefData *, void *, void *);
-CRef SetGlobalSaveVar(void *, const CRef &, void *);
+CRef SetGlobalSaveVar(void *, const CRef &, void *) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 }
 // Reads an integer save variable through a CRef.
 static inline int NFromRef(void *pv)

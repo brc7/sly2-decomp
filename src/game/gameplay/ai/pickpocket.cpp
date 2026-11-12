@@ -317,3 +317,15 @@ extern "C" void SetStepguardPlayable(STEPGUARD *guard, int isPlayable)
         guard->lootPouch->SetFlag8(1);
     }
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+#include "sly2/cref.h"
+/* g_aeopid calls the getter as CRef (BASIC::*)() (otyp 0x8006; spliceobj.cpp GetOptionRecordValue). */
+extern "C" CRef GetStepguardLootRefListValue(STEPGUARD *guard)
+{ CRef r; GetStepguardLootRefList(&r, guard); return r; }   /* r starts nil, so writing over it releases nothing */
+#endif

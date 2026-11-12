@@ -1630,7 +1630,7 @@ void SetClueCollected(int n, int f) __asm__("SetClueCollected");
 
 
 
-extern CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p) __asm__("SetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 /* Copy the reference into the setter's value argument. */
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
@@ -1857,7 +1857,7 @@ void *GetVaultSaveKey(void) __asm__("GetVaultSaveKey");
 void AutosaveGame(void *p, int n) __asm__("AutosaveGame");
 
 
-extern CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p) __asm__("SetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(void *pv, const CRef &ref, void *p) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 extern CRefData *GetGlobalSaveVar(CRefData *pr, void *pv, void *p) __asm__("GetGlobalSaveVar");
 // Helpers NFromPv, SetPv (small asm wrappers/accessors shaped for the match).
 static inline int NFromPv(void *pv,CRefData &ref) { int n; GetGlobalSaveVar(&ref,pv,&g_gs);n=ref.u.n;Decref__4CRef(&ref);return n; }

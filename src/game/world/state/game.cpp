@@ -173,8 +173,8 @@ namespace M_UpdateGameTimers {
 void *__4CRefRC4CRef(void *, const void *) __asm__("__4CRefRC4CRef"); void Decref__4CRef(void *) __asm__("Decref__4CRef");
 struct OPT;
 extern char D_002DE578[] __asm__("D_002DE578");
-extern CRef GetGlobalSaveVar(OPT *, void *) __asm__("GetGlobalSaveVar");
-extern CRef SetGlobalSaveVar(OPT *, const CRefData &, void *) __asm__("SetGlobalSaveVar");
+extern CRef GetGlobalSaveVar(OPT *, void *) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
+extern CRef SetGlobalSaveVar(OPT *, const CRefData &, void *) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 extern int GetCurrentWorld() __asm__("GetCurrentWorld");
 extern void ChangeDifficulty(void *, float) __asm__("ChangeDifficulty");
 // Read a global save variable as a float.
@@ -291,7 +291,7 @@ extern "C" int GetCoinCount(void)
 
 namespace M_func_001617E0 {
 struct O;
-extern CRef SetGlobalSaveVar(O *, const CRef &, void *) __asm__("SetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(O *, const CRef &, void *) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 // Store a script reference into a global save variable.
 static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=SetGlobalSaveVar(pv,arg,&g_gs);}
 extern void RestartHudWidget1(SW *pg) __asm__("RestartHudWidget1");
@@ -414,7 +414,7 @@ struct LEASE;
 
 // Stack-allocation scope: opens a STACKSCOPE on construction; Release frees it.
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-extern CRef GetGlobalSaveVar(void*,void*) __asm__("GetGlobalSaveVar");
+extern CRef GetGlobalSaveVar(void*,void*) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 // Read a global save variable as a float.
 static inline float GetFloat(void*p,void*context){const CRef&r=GetGlobalSaveVar(p,context);return r.u.g;}
 // True when two file headers name the same file (same pointer, or equal key words 2 ^ 14).
@@ -1276,7 +1276,7 @@ extern "C" int GetJobState(JOB *job)
 } // namespace M_func_00163430
 
 namespace M_UpdateJobSaveVars {
-extern CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*) __asm__("SetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 static inline void SetPv(SVKEY*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,&g_gs);}
 static inline void SetInt(SVKEY*p,int n){CRef r(n,0x15);SetPv(p,r);}
 static inline void SetBool(SVKEY*p,bool b,void*context=0){CRef r(b);SetPv(p,r,context);}
@@ -1761,7 +1761,7 @@ extern "C" void RestoreTaskState(TASK *task)
 } // namespace M_RestoreTaskState
 
 namespace M_UpdateTaskSaveVars {
-extern CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*) __asm__("SetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(SVKEY*,const CRef&,void*) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 extern void UpdateJobSaveVars(void*) __asm__("UpdateJobSaveVars");
 // Store a script reference into a global save variable.
 static inline void SetPv(SVKEY*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=SetGlobalSaveVar(p,arg,&g_gs);}
@@ -2040,7 +2040,7 @@ void AutosaveGame(void*,int) __asm__("AutosaveGame");
 
 // Allocate n zeroed bytes, 16-byte aligned, from the frame stack.
 static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
-extern CRef SetGlobalSaveVar(void*,const CRef&,void*) __asm__("SetGlobalSaveVar");
+extern CRef SetGlobalSaveVar(void*,const CRef&,void*) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 // Store a script reference into a global save variable.
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=SetGlobalSaveVar(object,arg,&g_gs);}
 // Store an int into a global save variable.
@@ -2564,16 +2564,16 @@ extern "C" void ResetGameSequence()
 }
 
 namespace M_RefGetGlobalSaveVar {
- void GetSaveVar(void *, void *, int, int) SLY2_SRET_LABEL("GetSaveVar", "GetSaveVarInto");
+ void GetSaveVar(void *, void *, SVKEY *, SAVEDATA *) SLY2_SRET_LABEL("GetSaveVar", "GetSaveVarInto");
 // Read a save variable from the world's global save store into a.
 // Also known as: NProgress (upstream readable / Sly 1 name).
-extern "C" { inline void *GetGlobalSaveVar(void *a, int b, int c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; } }
+extern "C" { inline void *GetGlobalSaveVar(void *a, SVKEY *b, SAVEDATA *c) { GetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; } }
 } // namespace M_RefGetGlobalSaveVar
 
 namespace M_RefSetGlobalSaveVar {
- void SetSaveVar(void *, void *, int, int, int) SLY2_SRET_LABEL("SetSaveVar", "SetSaveVarInto");
+ void SetSaveVar(void *, void *, SVKEY *, const CRef *, SAVEDATA *) SLY2_SRET_LABEL("SetSaveVar", "SetSaveVarInto");
 // Write a save variable into the world's global save store.
-extern "C" { inline void *SetGlobalSaveVar(void *a, int b, int c, int d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; } }
+extern "C" { inline void *SetGlobalSaveVar(void *a, SVKEY *b, const CRef *c, SAVEDATA *d) { SetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; } }
 } // namespace M_RefSetGlobalSaveVar
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
@@ -2595,3 +2595,18 @@ namespace GAME_KEYS {
 extern const unsigned int r_D_002A37E8[16] __asm__("D_002A37E8") __attribute__((section(".rodata.early"))) = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
 extern const unsigned int r_D_002A3828[16] __asm__("D_002A3828") __attribute__((section(".rodata.early"))) = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
 }
+
+#include "sly2/port.h"
+#if !defined(SLY2_EE_LAYOUT)
+/* Native adapters for SLY2_SRET_LABEL (sly2/port.h; docs/guides/portability.md "Struct results and arm64"). The EE
+   passes a struct result's address as a hidden first argument, so the declarations elsewhere that spell this file's
+   functions with the other form (a by-value result for an explicit out-pointer, or the reverse) call the same code
+   there; natively they bind to these entries, which have their spelling. Plain records with the definitions' sizes. */
+/* GetGlobalSaveVar / SetGlobalSaveVar (the linkonce wrappers above, which take the result pointer by hand) as their
+   by-value callers declare them: CRef GetGlobalSaveVar(SVKEY *, SAVEDATA *), CRef SetGlobalSaveVar(SVKEY *, const CRef &,
+   SAVEDATA *). */
+extern "C" CRef GetGlobalSaveVarValue(SVKEY *key, SAVEDATA *saveSet)
+{ CRef r; M_RefGetGlobalSaveVar::GetGlobalSaveVar(&r, key, saveSet); return r; }   /* r starts nil */
+extern "C" CRef SetGlobalSaveVarValue(SVKEY *key, const CRef &ref, SAVEDATA *saveSet)
+{ CRef r; M_RefSetGlobalSaveVar::SetGlobalSaveVar(&r, key, &ref, saveSet); return r; }
+#endif

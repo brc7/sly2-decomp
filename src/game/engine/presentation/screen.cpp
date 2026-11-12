@@ -2689,7 +2689,7 @@ extern void *D_002E1E40 __asm__("D_002E1E40");
 extern void *D_002DD5BC __asm__("D_002DD5BC");
 extern void *D_002F7900 __asm__("D_002F7900");
 
-CRef SetGlobalSaveVar(void *, const CRef &, SAVEDATA *) __asm__("SetGlobalSaveVar");
+CRef SetGlobalSaveVar(void *, const CRef &, SAVEDATA *) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 void BindStepplayerHpMp(void *, int) __asm__("BindStepplayerHpMp");
 void StartGameFromSave(SAVEDATA *) __asm__("StartGameFromSave");
 
@@ -2730,7 +2730,7 @@ extern char D_002A7A70[] __asm__("D_002A7A70");
 extern char *strcpy(char *, const char *) __asm__("strcpy");
 extern char *strcpy1(char *, const char *) __asm__("strcpy1");
 extern int CountRegionLanguages(void) __asm__("CountRegionLanguages");
-CRef GetGlobalSaveVar(void *, void *) __asm__("GetGlobalSaveVar");
+CRef GetGlobalSaveVar(void *, void *) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 // Text callback: the title prompt (continue or new game, options, language).
 extern "C" void BuildTitlePromptText(char *pch)
 {

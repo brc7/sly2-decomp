@@ -48,8 +48,8 @@ extern "C" int IsRumbleEnabled(void);
 /* ResetRumbleSaveVar builds the value in a POD (CRefData) and copies it with CRef's copy constructor. */
 // Store a bool into a raw script reference (tag 0x17).
 static inline void SetBool2(CRefData *p, int f) { p->u.n = f; p->m_tagk = 0x17; }
-extern "C" CRef SetGlobalSaveVar(void *saveVar, const CRef &ref, void *p);
-extern "C" CRef GetGlobalSaveVar(void *saveVar, void *p);
+extern "C" CRef SetGlobalSaveVar(void *saveVar, const CRef &ref, void *p) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
+extern "C" CRef GetGlobalSaveVar(void *saveVar, void *p) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 // Store a script reference into a global save variable.
 static inline void SetPv(void *saveVar, const CRefData &r, void *)
 {

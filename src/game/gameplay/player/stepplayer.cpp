@@ -2046,7 +2046,7 @@ BL *GetLevelListEntry(int) __asm__("GetLevelListEntry");
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 int FindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso) __asm__("FindSwObjectsByClass");
 int sprintf(char *, const char *, ...) __asm__("sprintf");
-CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, SAVEDATA *pv) __asm__("SetGlobalSaveVar");
+CRefIsland SetGlobalSaveVar(void *p, const CRefIsland &ref, SAVEDATA *pv) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 
 CRefIsland SetSaveVarByName(const CRefIsland &ref, const void *o, ...) __asm__("SetSaveVarByName");
 CRefIsland GetSaveVarByName(const char *, ...) __asm__("GetSaveVarByName");
@@ -2133,7 +2133,7 @@ struct LO { char pad[0xC]; void *vptr; char pad2[0x18 - 0x10]; void *p18; };
 extern char D_002A4DB0[] __asm__("D_002A4DB0");
 
 void *FindBootySaveVar(void *p) __asm__("FindBootySaveVar");
-CRef SetGlobalSaveVar(void *p, const CRef &ref, SAVEDATA *pv) __asm__("SetGlobalSaveVar");
+CRef SetGlobalSaveVar(void *p, const CRef &ref, SAVEDATA *pv) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 CRef SetSaveVarByName(const CRef &ref, void *o, void *pv, int n) __asm__("SetSaveVarByName");
 
 /* Same SetPv form as SetBootyContainerKind: the unused dummy param makes gcc set up %hi(D_003D4A60)

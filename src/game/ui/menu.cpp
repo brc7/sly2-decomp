@@ -107,8 +107,8 @@ int IsWidgetAnimPlaying(WIDGET *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
 uint HandleJoyButtons(JOY *, uint);
-CRef GetGlobalSaveVar(OPT *, SAVESLOT *);
-CRef SetGlobalSaveVar(OPT *, const CRef &, void *);
+CRef GetGlobalSaveVar(OPT *, SAVESLOT *) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
+CRef SetGlobalSaveVar(OPT *, const CRef &, void *) SLY2_SRET_LABEL("SetGlobalSaveVar", "SetGlobalSaveVarValue");
 void SetMcDialogState(MCDLG *, int);
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 float ClampToLimits__FP2LMf(void *, float);
@@ -142,7 +142,7 @@ int GetPauseMenuTopPageId(PAUSEMENU *p);
 int IsPauseMenuOnSavePage(PAUSEMENU *p);
 }
 /* Callers' views (asm labels). */
-CRef Eval(int a, void *b) __asm__("GetGlobalSaveVar");
+CRef Eval(int a, void *b) SLY2_SRET_LABEL("GetGlobalSaveVar", "GetGlobalSaveVarValue");
 void GetGlobalSaveVarInto(CRefData *r, int a, void *b) __asm__("GetGlobalSaveVar");
 
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
