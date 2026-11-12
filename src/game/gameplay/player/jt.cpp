@@ -2207,10 +2207,18 @@ extern "C" void UpdateJtAttachCorrection(struct P *jt)
                     register struct GROUP *group __asm__("$2");
                     __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(row2), "=r"(focus) : "m"(w.rotation.r[2].q), "m"(jt->focus));
                     __asm__("sq %1,0x20(%2)" : "=m"(w.transform.r[2].q) : "r"(row2), "r"(frame));
+#ifdef SLY2_EE_ASM
                     __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
                             : "=m"(w.transform.r[2].f[3]), "=m"(w.transform.r[1].f[3]), "=m"(w.transform.r[0].f[3]),
                               "=m"(w.transform.r[3].f[3]), "=r"(group)
                             : "f"(zero), "f"(one), "r"(frame), "r"(focus), "m"(focus->positionXf));
+#else
+                    w.transform.r[2].f[3] = zero;
+                    w.transform.r[1].f[3] = zero;
+                    w.transform.r[0].f[3] = zero;
+                    frame->r[3].f[3] = one;   /* frame is &w.transform */
+                    group = (struct GROUP *)focus->positionXf;
+#endif
                     {
                         register qword point __asm__("vf4"), axis2 __asm__("vf2"), axis0 __asm__("vf5"),
                             axis1 __asm__("vf3"), origin __asm__("vf1");

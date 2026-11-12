@@ -214,6 +214,7 @@ static inline void RemoveSide(STEPPLAYER *player, U *result, U *oldVelocity)
 // Blend the directional axes for a positive x input into *out (register-pinned).
 static inline void BlendPositive(STEPPLAYER *player, BLDIR *axes, float xin, const U *input, U *out)
 {
+#ifdef SLY2_EE_ASM
     float x = xin;
     register float y __asm__("$f3"), zero __asm__("$f0"), left __asm__("$f2"), right __asm__("$f0");
     register qword a __asm__("vf2"), b __asm__("vf1"), c __asm__("vf4");
@@ -236,10 +237,20 @@ static inline void BlendPositive(STEPPLAYER *player, BLDIR *axes, float xin, con
             : "j"(a), "j"(b), "j"(c), "0"(ka), "j"(kb), "j"(kc));
     player->qwUnknown190 = ka;
     out->q = kc;
+#else
+    /* qwUnknown190 = (axes[1] * y + axes[3] * max(0, x)) + axes[5] * -min(0, x); *out = (-min(0, x), 0, 0, 0) */
+    float x = xin, y = input->f[1];
+    float left = -FpuMin(0.0f, x), right = FpuMax(0.0f, x);
+    VuLanes a = VuGet(axes[1].vRoot), b = VuGet(axes[3].vRoot), c = VuGet(axes[5].vRoot);
+    player->qwUnknown190 = VuMake<qword>((a.x * y + b.x * right) + c.x * left, (a.y * y + b.y * right) + c.y * left,
+                                         (a.z * y + b.z * right) + c.z * left, (a.w * y + b.w * right) + c.w * left);
+    out->q = VuWiden<qword>(left);
+#endif
 }
 // Blend the directional axes for a negative x input into *out (register-pinned).
 static inline void BlendNegative(STEPPLAYER *player, BLDIR *axes, float xin, const U *input, U *out)
 {
+#ifdef SLY2_EE_ASM
     float x = xin;
     register float y __asm__("$f2"), zero __asm__("$f0"), left __asm__("$f3"), right __asm__("$f0"),
         negativeY __asm__("$f2");
@@ -258,6 +269,15 @@ static inline void BlendNegative(STEPPLAYER *player, BLDIR *axes, float xin, con
             : "=j"(ka)
             : "j"(a), "j"(b), "j"(c), "0"(ka), "j"(kb), "j"(kc));
     __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->qwUnknown190), "=m"(out->q) : "j"(ka), "j"(kc));
+#else
+    /* qwUnknown190 = (axes[0] * -y + axes[2] * max(0, x)) + axes[4] * -min(0, x); *out = (-min(0, x), 0, 0, 0) */
+    float x = xin, y = -input->f[1];
+    float left = -FpuMin(0.0f, x), right = FpuMax(0.0f, x);
+    VuLanes a = VuGet(axes[0].vRoot), b = VuGet(axes[2].vRoot), c = VuGet(axes[4].vRoot);
+    player->qwUnknown190 = VuMake<qword>((a.x * y + b.x * right) + c.x * left, (a.y * y + b.y * right) + c.y * left,
+                                         (a.z * y + b.z * right) + c.z * left, (a.w * y + b.w * right) + c.w * left);
+    out->q = VuWiden<qword>(left);
+#endif
 }
 
 // Turns a steering input (heading and magnitude relative to the player's facing, optionally facing the lock-on

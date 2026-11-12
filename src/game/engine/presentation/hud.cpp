@@ -3497,7 +3497,11 @@ extern void RcPtr_Assign(CID151 **pp, CID151 *m) __asm__("RcPtr_Assign");
 extern void *StartDialog(void *p,int a,int b) __asm__("StartDialog");
 extern void StopDialog(void *p) __asm__("StopDialog");
 // Load the sound from its slot into $4.
+#ifdef SLY2_EE_ASM
 static inline CID151 *SlotSound(CID151 *const &slot){register CID151 *value asm("$4");asm("lw %0,0(%1)":"=r"(value):"r"(&slot),"m"(slot));return value;}
+#else
+static inline CID151 *SlotSound(CID151 *const &slot){return slot;}
+#endif
 // Stop the slot's sound and drop the reference, if any.
 static inline void Stop(CID151 **pp){if(pp){CID151 *sound=SlotSound(*pp);if(sound){StopSnd(sound,0.0f);RcPtr_Assign(pp,0);}}}
 // Load the slot word (non-zero when a sound is present) into $3.

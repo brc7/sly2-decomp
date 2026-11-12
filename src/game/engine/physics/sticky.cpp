@@ -125,7 +125,11 @@ extern "C" void LoadCid8FromBrx(MESH *mesh, CBinaryInputStream *stream)
 
 typedef struct WORK{M4 matrix;SURFLOC candidate;SURFLOC best __attribute__((aligned(16)));U closest,scalar;float parameter;U bestNormal,input,normal;}WORK;
 // Unit vector along input (register-pinned).
+#ifdef SLY2_EE_ASM
 static inline qword Unit(qword input){register qword a __asm__("vf3")=input,d __asm__("vf1"),r __asm__("vf1");d = VuDot(a, a);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"j"(d));__asm__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q":"=j"(r):"j"(a),"j"(d));return r;}
+#else
+static inline qword Unit(qword input){return VuDivByX(input, VuSqrtX(VuDot(input, input)));}
+#endif
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -134,6 +138,7 @@ namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.4
 // (vertex positions transformed by the object's world matrix, slot 31).
 // Also known as: FindClimbSurfClosestPoint (upstream readable / Sly 1 name;
 //   FindClimbSurfClosestPoint__FP2LOG9VU_VECTORP6VECTORP7SURFLOCN22).
+#ifdef SLY2_EE_ASM
 extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,SURFLOC*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  w.input.q=point;
@@ -205,6 +210,65 @@ extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,S
  if(outPoint)*outPoint=bestPoint;
  if(outNormal)*outNormal=Unit(w.bestNormal.q);
 }
+#else
+// C version of the EE body above (hand-scheduled asm). Per triangle (a, b, c = the vertices in world space,
+// n = (a - c) x (b - c), d = input - c): the barycentric weights of the input's projection,
+// u = (d . (n x (b - c))) / ((a - c) . (n x (b - c))) and v = (n . (d x (a - c))) / the same, as the EE computes them;
+// outside the triangle the closest point of the nearest edge. Keeps the nearest triangle overall.
+static inline float DotX(qword a, qword b) { return VuGet(VuDot(a, b)).x; }
+extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,SURFLOC*outReference,qword*outPoint,qword*outNormal){
+    WORK w;
+    qword bestPoint = VuZero<qword>();
+    float bestDistance = D_002A5684;
+    w.input.q = point;
+    w.matrix = *(M4 *)mesh->GetWorldMatrix();
+    for (int i = 0; i < mesh->count; i++) {
+        const int *index = mesh->triangles[i].index;
+        qword a = VuMulMatrix4(w.matrix.r[0].q, w.matrix.r[1].q, w.matrix.r[2].q, w.matrix.r[3].q, mesh->vertices[index[0]]);
+        qword b = VuMulMatrix4(w.matrix.r[0].q, w.matrix.r[1].q, w.matrix.r[2].q, w.matrix.r[3].q, mesh->vertices[index[1]]);
+        qword c = VuMulMatrix4(w.matrix.r[0].q, w.matrix.r[1].q, w.matrix.r[2].q, w.matrix.r[3].q, mesh->vertices[index[2]]);
+        qword edgeA = VuSub(a, c), edgeB = VuSub(b, c);
+        w.normal.q = VuCross(edgeA, edgeB);
+        qword delta = VuSub(w.input.q, c);
+        qword sideB = VuCross(w.normal.q, edgeB);
+        float denominator = 1.0f / DotX(edgeA, sideB);
+        float u = denominator * DotX(delta, sideB);
+        float v = denominator * DotX(w.normal.q, VuCross(delta, edgeA));
+        if (u < 0.0f) {
+            FindClosestPointOnLineSegment(w.input.q, b, c, &w.closest.q, &w.parameter, 0);
+            w.candidate.u = 0.0f; w.candidate.v = 1.0f - w.parameter;
+        } else if (v < 0.0f) {
+            FindClosestPointOnLineSegment(w.input.q, a, c, &w.closest.q, &w.parameter, 0);
+            w.candidate.u = 1.0f - w.parameter; w.candidate.v = 0.0f;
+        } else if (u + v > 1.0f) {
+            FindClosestPointOnLineSegment(w.input.q, a, b, &w.closest.q, &w.parameter, 0);
+            w.candidate.u = 1.0f - w.parameter; w.candidate.v = w.parameter;
+        } else {
+            float rest = (1.0f - u) - v;
+            VuLanes pa = VuGet(a), pb = VuGet(b), pc = VuGet(c);
+            w.candidate.u = u; w.candidate.v = v;
+            w.scalar.q = VuWiden<qword>(rest);
+            w.closest.q = VuMake<qword>((pa.x * u + pb.x * v) + pc.x * rest, (pa.y * u + pb.y * v) + pc.y * rest,
+                                        (pa.z * u + pb.z * v) + pc.z * rest, (pa.w * u + pb.w * v) + pc.w * rest);
+        }
+        qword offset = VuSub(w.closest.q, w.input.q);
+        float distance = DotX(offset, offset);
+        if (distance < bestDistance) {
+            w.candidate.itri = i;
+            bestDistance = distance;
+            w.best = w.candidate;
+            bestPoint = w.closest.q;
+            w.bestNormal.q = w.normal.q;
+        }
+    }
+    if (outReference)
+        *outReference = w.best;
+    if (outPoint)
+        *outPoint = bestPoint;
+    if (outNormal)
+        *outNormal = Unit(w.bestNormal.q);
+}
+#endif
 
 namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.40282347e+38f; }
 // Empties a contact-plane list.

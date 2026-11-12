@@ -999,6 +999,7 @@ void RemoveLoFromRenderTree(SO *) __asm__("RemoveLoFromRenderTree");
 // disabling unregisters them (meaning inferred).
 extern "C" void SetSoGrfBit8(SO *so, int enabled)
 {
+#ifdef SLY2_EE_ASM
     register int word __asm__("a2") = so->unknown40;
     register int flags __asm__("v1") = word;
     register int firstTest __asm__("v0");
@@ -1045,6 +1046,22 @@ extern "C" void SetSoGrfBit8(SO *so, int enabled)
             RemoveLoFromRenderTree(so);
         }
     }
+#else
+    /* the flags live in the tagged word itself (bit 0 set) or in the LOUPD entry it points to */
+    int *flags = (so->unknown40 & 1) ? &so->unknown40 : &so->ploupd->grf;
+    if (enabled) {
+        if (*flags & 8)
+            return;
+        *flags |= 8;
+        if (so->isRenderable && IsLoInWorld(so))
+            AddLoToRenderTree(so);
+    } else {
+        if (!(*flags & 8))
+            return;
+        *flags &= ~8;
+        RemoveLoFromRenderTree(so);
+    }
+#endif
 }
 } // namespace M_func_001F3B28
 

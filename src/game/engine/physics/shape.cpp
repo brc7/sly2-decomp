@@ -1135,7 +1135,11 @@ extern "C" void GetShapeBounds(SHAPE *shape,qword*minOut,qword*maxOut){
    register int remaining __asm__("$2");
    __asm__("lw $2,%4\n\tvmove.xyzw %0,%6\n\tlw %1,%5\n\tvmove.xyzw %2,%7\n\taddiu %3,$2,%8":"=j"(a),"=r"(time),"=j"(b),"=r"(incoming):"m"(shape->incomingTangentq),"m"(shape->vertexParams),"j"(r0),"j"(r1),"I"(sizeof(qword)):"$2");
    positive=0.333333343f;
+#ifdef SLY2_EE_ASM
    __asm__("vmove.xyzw %0,%2\n\tli.s %1,%3":"=j"(c),"=f"(negative):"j"(r2),"F"(-0.333333343f):"$1");
+#else
+   c = r2; negative = -0.333333343f;
+#endif
    {register float lower __asm__("$f0");
    point=first;
    __asm__("lw %0,%4\n\taddiu %1,%1,%7\n\tdaddu %2,%5,$zero\n\tlwc1 %3,%6":"=&r"(outgoing),"+&r"(point),"=&r"(remaining),"=f"(lower):"m"(shape->outgoingTangentq),"r"(bound),"m"(time[0]),"I"(sizeof(qword)));
