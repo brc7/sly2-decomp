@@ -13,6 +13,9 @@ $R try -- sed -i 's/\bgDiv\b/divisor/g' src/game/core/math/mat.cpp
 git diff | $R try --stdin --keep                  # keep the edit when it is identical
 $R check                                          # incremental check of everything changed since the baseline
 $R check --full                                   # plus symcheck, linkcheck, docnames, progress, real link
+$R check --native                                 # plus the native golden check (port build + scenario + state diff)
+$R try --native -- <edit>                         # the same for one candidate edit, before it is reverted
+$R golden status                                  # the native golden tool itself (no round needed)
 $R status
 ```
 
@@ -75,6 +78,111 @@ Output is one verdict line plus a few lines of detail:
 - `COMPILE-FAIL`: the first compiler error lines.
 
 Exit status: 0 identical or renamed, 1 difference or compile failure, 2 the edit did not apply.
+
+## Native golden check (--native, `golden`)
+
+The checks above prove the PS2 build is byte-identical. They cannot see the code the native port compiles instead:
+`#else` / `!SLY2_EE_LAYOUT` branches, C fallbacks for asm, and type changes that move host layouts. `--native` (and
+`round.py golden ...`, a pass-through to `tools/cleanup/native/golden.py`) builds the 64-bit port against the round's
+tree and replays a fixed scenario against a golden state stream:
+
+1. **port**: `git archive` of the port commit recorded in the golden into `<cache>/port` (file times = commit time;
+   kept while the commit is the same). The port's `decomp/` is a mirror of the candidate's `include/ src/ config/`
+   (a worktree's tracked and untracked files as they are on disk, or a commit); only files whose content changed are
+   rewritten, so ninja rebuilds what changed.
+2. **gen**: the port's generators, as after a submodule bump: gen_compat_asserts, gen_layout_maps, gen_overrides,
+   `tools/state/gen_offsets.py --abi host`. Generated files whose content did not change keep their file times.
+   **Stale hunks** (an optional port hunk no longer matches: the decomp changed under a port workaround) and
+   **missing hunks** (a required one no longer matches: usually a landed port request, sometimes a change that broke
+   the workaround) are reported, not fatal; the build goes on without them.
+3. **build**: cmake (Debug, clang, tests off), ninja, gen_sym_aliases (its AST cache entries are dropped for every
+   TU whose ninja dependencies changed), ninja sly2 (includes the port's EE-asm lint).
+4. **run**: `sly2 --load-level <Paris> --frames N` with `SLY2_DT_REPLAY=fixed` (virtual 1/60 s clock),
+   `SLY2_UPDATE_SCREENS=1`, ASLR off, a fixed `SLY2_PAD_SCRIPT` and the per-frame state stream of the port's
+   `tools/state` (schema v2: clock, pad, Sly's state / position / velocity, camera, save blob, object lists).
+5. **diff**: the port's `tools/state/diff.py` against `<golden>/stream.jsonl`, schema tolerances, aligned by frame.
+
+Scenarios (in golden.py; the golden stores the one it was recorded with and `check` replays that one):
+
+| scenario | frames | inputs | covers |
+|---|---|---|---|
+| default | 5300 | CROSS at 1395 (intro select); from 4400 run, jump + double jump, slow walk, run right + jump, run left | the intro relay (walk, pipe jump ~1511, climb, roof, binocucom), pad control from ~4000, running / jumping, a fall into the water |
+| `--long` | 12000 | the same intro, then boot-15's soak loop P3 looped from read 4400 (`SLY2_PAD_LOOP=4400:1800`) | more ground and guards; reaches the guardbhv.cpp patrol path (removing the port's VuScaleByX hunk crashes it at frame 5263) |
+
+**Output** (at most about ten lines; details in `<cache>/logs/`: gen_overrides.log, build.log, run.log, diff.txt
+with the full per-field and per-class tables, diff.json):
+
+```
+native golden: /home/claude/work/wt-ngdemo @ 9dd812c3fa + uncommitted changes vs golden integrate/decomp-v1.29 (9dd812c3fa) (port ce8e58e2eb, scenario default v1, 5300 frames)
+  RESULT     FAIL  diverged
+  first divergence: frame 725: field jt.pos, a [4788.34, -6845.09, 1306.73], b [4788.34, -6845.09, 1306.16]
+  field                first@   div/of      max err  golden | candidate at first
+  jt.pos                  725  4072/5300       15.9  [4788.34, -6845.09, 1306.73] | [4788.34, -6845.09, 1306.16]
+  jt.vel                  725  1108/5300        541  [-1639.58, 226.873, 1884.2] | [-1639.58, 226.873, 1848.81]
+  rand.seed               737  4562/5300   4.18e+09  100060067 | 3346240277
+  objects: 11 of 89 classes differ (first at frame 900, cid 22)
+  time: port 0s, decomp 0s, gen 6s, build 35s, run 6s, diff 2s; total 48s
+```
+
+(That is `round.py try --native` of `0.5f` -> `0.49f` in the C fallback of air.cpp's jump-to-target: the PS2 object
+is IDENTICAL, the native launch velocity is not.) How to read it:
+
+- `RESULT PASS`: every frame equal within the schema tolerances (in practice bit-identical: the run is deterministic).
+- `RESULT FAIL diverged`: the first frame and field that differ, then the diverged fields, earliest first: frames
+  diverged / compared, max error, both values at the first divergence. Read the earliest field first; later ones are
+  usually consequences (`rand.seed` diverging means the game took another branch that draws random numbers).
+  Frame k is the record taken at the start of harness frame k (docs/state.md in the port).
+- `RESULT FAIL harness killed by SIGSEGV after N records` / `exit 139`: a crash; the backtrace frames follow when the
+  port's signal handler ran (none for a stack overflow). Frames up to N are still diffed.
+- `RESULT FAIL (build)`: gen / compile / link failed: the first errors and the failed targets. If the failed TUs are
+  the ones listed under missing hunks, the decomp changed lines the port patches: the port needs a bump to this decomp
+  (port work), not necessarily a decomp fix.
+- `RESULT BUILD-ONLY`: `SLY2_ISO` is not set; the build ran, the scenario did not.
+- `stale hunks` / `missing hunks`: informative; the list is in `logs/gen_overrides.log`. A new stale hunk after an edit
+  means the edit touched code the port works around: tell the port track.
+- `note: host offsets ... differ from the golden's`: a type change moved a schema field natively (fields are still
+  compared by name).
+
+Exit status: 0 PASS / BUILD-ONLY, 1 FAIL, 2 setup error (no golden, cache locked, < 2 GB free). With `check --native`
+a native FAIL makes the check fail; with `try --native` it makes the verdict a failure (`--keep` then does not keep).
+
+**The port window.** The port's generators and hunks follow one decomp version: a port commit builds the decomp it
+pins and, usually, small rounds on top of it. It cannot build older versions (renamed classes, declarations that
+moved decomp-side) and needs a bump for newer ones that change the lines it patches. The golden therefore records its
+port commit, and `check` always builds that one (`check --port REF` builds another and flags the report: a
+cross-port comparison, where differences may come from the port). Run `--native` in rounds whose base is the golden's
+decomp version; after an integration tag, re-baseline once the port has bumped to it.
+
+**Recording and re-baselining.** Record from a known-good decomp commit and the port commit that pins it:
+
+```sh
+round.py golden record --decomp integrate/decomp-v1.29 --port <port commit> [--force]   # default scenario
+round.py golden record --long --decomp integrate/decomp-v1.29 --port <port commit> [--force]
+round.py golden status [--long]
+```
+
+`record` needs `SLY2_ISO`, refuses uncommitted trees, runs the scenario twice and writes the golden only if both runs
+are identical. `<golden>/meta.json` records the decomp commit, the port commit and ref, the scenario, the stale /
+missing hunk counts and the end state; `offsets_host.json` and `stale_hunks.txt` sit next to the stream. Re-record
+(`--force`) after (a) a port bump: new port commit, new decomp tag; (b) an intentional behaviour change in the decomp
+(a native fix that makes the port more faithful): check first, confirm in diff.txt that only the intended frames
+and fields moved, then record from the commit that has the change and say so in its message; (c) a scenario change
+in golden.py (bump its version). The golden is a regression reference, not a fidelity oracle: "same as the golden"
+is not "same as PCSX2" (docs/state.md in the port for the PCSX2 side).
+
+Current golden (2026-11-12): decomp `integrate/decomp-v1.29` (9dd812c3f) + port `claude/boot-15` at ce8e58e2e
+(decomp pin v1.29), both scenarios.
+
+Settings for the native check (environment variable, then the `[native]` section of the round config, then the
+default): `cache` SLY2_NATIVE_CACHE (`{scratch}/native-golden/cache`: the port copy, its build directory, logs; about
+140 MB), `golden` SLY2_NATIVE_GOLDEN (`{scratch}/native-golden/golden`; `-long` appended for `--long`), `port`
+SLY2_PORT_REPO (`/home/claude/work/sly2-port`), `port_ref` SLY2_PORT_REF (`claude/boot-15`, record's default
+`--port`), `iso` SLY2_ISO (unset: build only), `prefix` SLY2_DEPS_PREFIX (`/home/claude/work/deps/prefix`), `jobs` JOBS.
+
+Timings on two cores: a new port commit (cold cache) about 2.5 minutes (most of it gen_sym_aliases' AST pass); a
+one-file edit about 50 seconds (gen 6 s, build 35 s, run 6 s, diff 2 s); `--long` adds about 12 seconds of run; a
+switch between decomp versions that change many headers about 2 minutes. One golden.py run at a time per cache (a
+lock file).
 
 ## Settings
 

@@ -40,6 +40,7 @@ docstring lists its options).
 | 6 sweeps | stable base | scripted mechanical edits (vtable-entry copies, wrong-typed externs, repeated helpers) with skip lists | re-run on the final base, not merged |
 | 7 integrate | family branches verified | one integration branch, merge in order, reconcile duplicates, checkpoint | full verify clean; bundle to the maintainer |
 | side: snapshots | RAM snapshots of the levels in question | object discovery (vptr at +0xC), field typing across instances, name checks (tools/cleanup/snapshots/) | field types / names confirmed against the code that uses them; code wins on disagreement |
+| side: native golden | the port builds the round's base (its decomp pin) and a golden exists for it | `round.py check --native` / `try --native` on edits to native-only code (`#else` / `!SLY2_EE_LAYOUT` branches, C fallbacks, host-visible types); `round.py golden record` after a port bump or an intentional native change (tools/cleanup/round/README.md "Native golden check") | native PASS, or each divergence explained (intended and re-baselined, or reported to the port track) |
 | side: 64-bit | views unified as far as they go | views to real classes with tools/cleanup/views (inventory with compiler layouts, propagation from annotated context records, rewrite kept only if byte-identical); exact danger test (tools/cleanup/ptr64/dt.py + judge.py, EE long = 8, accessed fields only); derive views from the real base; type pointer slots in pads; record pointer-free judgements in evidence.json; signatures/sigcheck.py for declarations that lie about a mangled symbol's types | 0 dangerous in the milestone's files, unverifiable ones listed |
 
 ## Verification commands
@@ -49,6 +50,8 @@ docstring lists its options).
 tools/cleanup/round/round.py start NAME --base REF   # worktree, branch, inputs, baseline (before edits)
 tools/cleanup/round/round.py try fix.patch           # or: try -- <edit command>; IDENTICAL or first diff, then revert
 tools/cleanup/round/round.py check [--full]          # incremental object check; --full adds all whole-tree gates
+tools/cleanup/round/round.py check --native          # plus the native port: build, fixed scenario, state diff vs golden
+tools/cleanup/round/round.py golden check --long --decomp REF   # the 12000-frame scenario, any commit
 # by hand: once per base, in a separate worktree at the base commit, BEFORE edits
 tools/cleanup/objcmp.py record --root ../base-worktree base.json $(find src -name '*.cpp' -o -name '*.c')
 # after each file or batch: matchtool + objcmp on the touched files and every includer of touched headers

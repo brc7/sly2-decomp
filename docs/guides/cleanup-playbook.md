@@ -185,6 +185,26 @@ round.py check                   # incremental: changed sources + includers of c
 round.py check --full            # plus symcheck, linkcheck, docnames, progress from a deleted cache, the real link
 ```
 
+**Byte-identical is not enough for the port.** The native 64-bit port compiles the same sources with
+`SLY2_EE_LAYOUT` / `SLY2_EE_ASM` off: `#else` branches, C fallbacks for asm and host layouts are code no PS2 check
+sees (decomp v1.28's ChooseJtLanding made the intro reach the pipe path natively, which exposed latent port bugs; it
+took a day to notice). `round.py check --native` / `try --native` builds the port against the round's tree, replays a
+fixed intro + movement scenario and diffs the per-frame game state against a golden stream (README "Native golden
+check"). Run it:
+
+- in every round that edits code inside `#else` / `!SLY2_EE_LAYOUT` / `SLY2_EE_ASM` branches, C fallbacks, or types
+  and declarations the port uses natively (pointer-sized fields, signatures, struct layouts), and once on the
+  integration branch before tagging (`--long` too);
+- only when the round's base is the golden's decomp version (the port follows one decomp version at a time);
+  otherwise the result is a build failure that means "the port needs a bump", not a regression.
+
+Reading it: PASS, or the first divergent frame and field plus the diverged fields earliest first (the earliest is the
+cause, later ones follow); a crash with its backtrace; or a build failure with the failed TUs. Stale / missing port
+hunks are listed as signals: the edit touched code the port works around, so note it for the port track. Re-baseline
+(`round.py golden record --force ...`) only after a port bump or after an intentional native behaviour change whose
+diff you have read, and name the golden's commits in the round's notes. A golden is a regression reference, not
+PCSX2: when the decomp becomes more faithful, the golden moves with it.
+
 Its object comparison is stricter than step 2 (every allocated section byte for byte, relocations by symbol, named
 symbols), it tells a rename (rename.py moved the config entry too) from a relocation that now names another existing
 symbol, and objects are cached by content (source plus every header it includes), so a `try` of a one-file edit takes
