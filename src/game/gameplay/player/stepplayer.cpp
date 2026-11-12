@@ -2459,16 +2459,16 @@ extern "C" void RemoveStepplayerDialogSmRefs(char *player, int a, int b)
 } // namespace M_func_00144338
 
 namespace M_FIgnoreIntersection__10STEPPLAYERP2SO {
-int ShouldSoIgnoreIntersection(void *p, int a) __asm__("ShouldSoIgnoreIntersection");
-int AdjustJtThrowFindFlags(void *p, int a, int b) __asm__("AdjustJtThrowFindFlags");
-void GetJtHandsIgnoreFlags(void *p, int a, int b) __asm__("GetJtHandsIgnoreFlags");
+int ShouldSoIgnoreIntersection(SO *p, SO *other) __asm__("ShouldSoIgnoreIntersection");
+int AdjustJtThrowFindFlags(JTTHROW *p, SO *other, int grf) __asm__("AdjustJtThrowFindFlags");
+int GetJtHandsIgnoreFlags(JTHANDS *p, SO *other, int grf) __asm__("GetJtHandsIgnoreFlags");
 // Slot 61: SO base flags, then the throw controller (AdjustJtThrowFindFlags) and grab component add theirs.
 // Also known as: OverlapKindActor (upstream readable / Sly 1 name; OverlapKindActor__FP3ALOi).
-extern "C" void ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(char *p, int a)
+extern "C" int ShouldStepplayerIgnoreIntersection__10STEPPLAYERP2SO(STEPPLAYER *player, SO *other)
 {
-    int x = ShouldSoIgnoreIntersection(p, a);
-    x = AdjustJtThrowFindFlags(p + 0x11B0, a, x);
-    GetJtHandsIgnoreFlags(p + 0x900, a, x);
+    int grf = ShouldSoIgnoreIntersection(player, other);
+    grf = AdjustJtThrowFindFlags(&player->jtthrow, other, grf);
+    return GetJtHandsIgnoreFlags(&player->jtgrab.hands, other, grf);
 }
 } // namespace M_FIgnoreIntersection__10STEPPLAYERP2SO
 
